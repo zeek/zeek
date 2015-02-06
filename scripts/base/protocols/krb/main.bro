@@ -9,21 +9,34 @@ export {
 
 	type Info: record {
 		## Timestamp for when the event happened.
-		ts:     		time    &log;
+		ts:			time    &log;
 		## Unique ID for the connection.
-		uid:    		string  &log;
+		uid:			string  &log;
 		## The connection's 4-tuple of endpoint addresses/ports.
-		id:     		conn_id &log;
+		id:			conn_id &log;
+		
+		## Request type - Authentication Service ("AS") or
+		## Ticket Granting Service ("TGS")
+		request_type:		string &log &optional;
 		## Client
 		client:			string &log &optional;
 		## Service
 		service:		string &log;
+
+		## Request result
+		success:		bool &log &optional;
+		## Error code
+		error_code: 		count &optional;
+		## Error message
+		error_msg: 		string &log &optional;
+
 		## Ticket valid from
 		from:			time &log &optional;
 		## Ticket valid till
 		till:			time &log &optional;
 		## Ticket encryption type
 		cipher:			string &log &optional;
+
 		## Forwardable ticket requested
 		forwardable: 		bool &log &optional;
 		## Proxiable ticket requested
@@ -32,6 +45,7 @@ export {
 		postdated:		bool &log &optional;
 		## Renewable ticket requested
 		renewable:		bool &log &optional;
+
 		## The request is for a renewal
 		renew_request:		bool &log &optional;
 		# The request is to validate a postdated ticket
@@ -41,12 +55,6 @@ export {
 		# NetBIOS addresses supplied by the client
 		netbios_addrs:		vector of string &log &optional;
 		
-		## Request result
-		success:		bool &log &optional;
-		## Error code
-		error_code: 		count &log &optional;
-		## Error message
-		error_msg: 		string &log &optional;
 		## We've already logged this
 		logged: 		bool &default=F;
 	};
@@ -141,6 +149,7 @@ event krb_as_request(c: connection, msg: KDC_Request) &priority=5
 	else
 		info = c$krb;
 
+	info$request_type = "AS";
 	info$client = fmt("%s/%s", msg$client_name, msg$service_realm);
 	info$service = msg$service_name;
 
@@ -166,11 +175,15 @@ event krb_as_request(c: connection, msg: KDC_Request) &priority=5
 		}
 		
 	info$till = msg$till;
+
 	info$forwardable = msg$kdc_options$forwardable;
 	info$proxiable = msg$kdc_options$proxiable;
 	info$postdated = msg$kdc_options$postdated;
 	info$renewable = msg$kdc_options$renewable;
-	
+
+	info$renew_request = msg$kdc_options$renew;
+	info$validate_request = msg$kdc_options$validate;
+
 	c$krb = info;
 	}
 
@@ -183,9 +196,18 @@ event krb_tgs_request(c: connection, msg: KDC_Request) &priority=5
 	info$ts  = network_time();
 	info$uid = c$uid;
 	info$id  = c$id;
+	info$request_type = "TGS";
 	info$service = msg$service_name;
 	if ( msg?$from ) info$from = msg$from;
 	info$till = msg$till;
+
+	info$forwardable = msg$kdc_options$forwardable;
+	info$proxiable = msg$kdc_options$proxiable;
+	info$postdated = msg$kdc_options$postdated;
+	info$renewable = msg$kdc_options$renewable;
+
+	info$renew_request = msg$kdc_options$renew;
+	info$validate_request = msg$kdc_options$validate;
 
 	c$krb = info;
 	}
@@ -211,6 +233,7 @@ event krb_as_response(c: connection, msg: KDC_Response) &priority=5
 		info$client = fmt("%s/%s", msg$client_name, msg$client_realm);
 
 	info$service = msg$ticket$service_name;
+	info$cipher  = cipher_name[msg$ticket$cipher];
 	info$success = T;
 
 	c$krb = info;

@@ -15,7 +15,7 @@
 ##    krb_ap_response krb_priv krb_safe krb_cred krb_error
 event krb_as_request%(c: connection, msg: KRB::KDC_Request%);
 
-## A Kerberos 5 ``Authentication Server (AS) Reply`` as defined
+## A Kerberos 5 ``Authentication Server (AS) Response`` as defined
 ## in :rfc:`4120`. Following the AS request for a user, an AS reply
 ## contains an encrypted Ticket Granting Ticket (TGT) for that user. 
 ## The TGT can then be used to request further tickets for other services.
@@ -48,7 +48,7 @@ event krb_as_response%(c: connection, msg: KRB::KDC_Response%);
 ##    krb_ap_response krb_priv krb_safe krb_cred krb_error
 event krb_tgs_request%(c: connection, msg: KRB::KDC_Request%);
 
-## A Kerberos 5 ``Ticket Granting Service (TGS) Reply`` as defined
+## A Kerberos 5 ``Ticket Granting Service (TGS) Response`` as defined
 ## in :rfc:`4120`. This message returns a Service Ticket to the client,
 ## which is encrypted with the service's long-term key, and which the
 ## client can use to authenticate to that service.
@@ -82,7 +82,7 @@ event krb_tgs_response%(c: connection, msg: KRB::KDC_Response%);
 ##    krb_ap_response krb_priv krb_safe krb_cred krb_error
 event krb_ap_request%(c: connection, ticket: KRB::Ticket, opts: KRB::AP_Options%);
 
-## A Kerberos 5 ``Authentication Header (AP) Reply`` as defined
+## A Kerberos 5 ``Authentication Header (AP) Response`` as defined
 ## in :rfc:`4120`. This is used if mutual authentication is desired.
 ## All of the interesting information in here is encrypted, so the event
 ## doesn't have much useful data, but it's provided in case it's important

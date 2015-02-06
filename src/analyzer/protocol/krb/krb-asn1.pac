@@ -48,7 +48,7 @@ Val* GetTimeFromAsn1(StringVal* atime, int64 usecs)
 	if ( !lResult )
 		lResult = 0;
 
-	return new Val(double(lResult + (usecs/100000)), TYPE_TIME);
+	return new Val(double(lResult + double(usecs/100000.0)), TYPE_TIME);
 	}
 
 	Val* asn1_integer_to_val(const ASN1Integer* i, TypeTag t)

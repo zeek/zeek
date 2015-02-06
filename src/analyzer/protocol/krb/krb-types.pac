@@ -92,7 +92,7 @@ RecordVal* proc_ticket(const KRB_Ticket* ticket)
 	rv->Assign(0, asn1_integer_to_val(ticket->tkt_vno()->data(), TYPE_COUNT));
 	rv->Assign(1, bytestring_to_val(ticket->realm()->data()->content()));
 	rv->Assign(2, GetStringFromPrincipalName(ticket->sname()));
-	rv->Assign(3, asn1_integer_to_val(ticket->enc_part()->etype()->data(), TYPE_COUNT));
+	rv->Assign(3, asn1_integer_to_val(ticket->enc_part()->data()->etype()->data(), TYPE_COUNT));
 
 	return rv;
 }
@@ -134,7 +134,7 @@ type KRB_Ticket(in_sequence: bool) = record {
 	realm	  : SequenceElement(true);
 	sname_meta: ASN1EncodingMeta;
 	sname	  : KRB_Principal_Name &length=sname_meta.length;
-	enc_part  : KRB_Encrypted_Data;
+	enc_part  : KRB_Encrypted_Data_in_Seq;
 };
 
 type KRB_Ticket_Sequence = record {

@@ -3,16 +3,16 @@ module KRB;
 export {
 
 	const error_msg: table[count] of string = {
-		[0]	 = "KDC_ERR_NONE",
-		[1]	 = "KDC_ERR_NAME_EXP",
-		[2]	 = "KDC_ERR_SERVICE_EXP",
-		[3]	 = "KDC_ERR_BAD_PVNO",
-		[4]	 = "KDC_ERR_C_OLD_MAST_KVNO",
-		[5]	 = "KDC_ERR_S_OLD_MAST_KVNO",
-		[6]	 = "KDC_ERR_C_PRINCIPAL_UNKNOWN",
-		[7]	 = "KDC_ERR_S_PRINCIPAL_UNKNOWN",
-		[8]	 = "KDC_ERR_PRINCIPAL_NOT_UNIQUE",
-		[9]	 = "KDC_ERR_NULL_KEY",
+		[0] = "KDC_ERR_NONE",
+		[1] = "KDC_ERR_NAME_EXP",
+		[2] = "KDC_ERR_SERVICE_EXP",
+		[3] = "KDC_ERR_BAD_PVNO",
+		[4] = "KDC_ERR_C_OLD_MAST_KVNO",
+		[5] = "KDC_ERR_S_OLD_MAST_KVNO",
+		[6] = "KDC_ERR_C_PRINCIPAL_UNKNOWN",
+		[7] = "KDC_ERR_S_PRINCIPAL_UNKNOWN",
+		[8] = "KDC_ERR_PRINCIPAL_NOT_UNIQUE",
+		[9] = "KDC_ERR_NULL_KEY",
 		[10] = "KDC_ERR_CANNOT_POSTDATE",
 		[11] = "KDC_ERR_NEVER_VALID",
 		[12] = "KDC_ERR_POLICY",
@@ -72,5 +72,28 @@ export {
 		[75] = "KDC_ERR_CLIENT_NAME_MISMATCH",
 		[76] = "KDC_ERR_KDC_NAME_MISMATCH",
 	};
+
+	const cipher_name: table[count] of string = {
+		[1] = "des-cbc-crc",
+		[2] = "des-cbc-md4",
+		[3] = "des-cbc-md5",
+		[5] = "des3-cbc-md5",
+		[7] = "des3-cbc-sha1",
+		[9] = "dsaWithSHA1-CmsOID",
+		[10] = "md5WithRSAEncryption-CmsOID",
+		[11] = "sha1WithRSAEncryption-CmsOID",
+		[12] = "rc2CBC-EnvOID",
+		[13] = "rsaEncryption-EnvOID",
+		[14] = "rsaES-OAEP-ENV-OID",
+		[15] = "des-ede3-cbc-Env-OID",
+		[16] = "des3-cbc-sha1-kd",
+		[17] = "aes128-cts-hmac-sha1-96",
+		[18] = "aes256-cts-hmac-sha1-96",
+		[23] = "rc4-hmac",
+		[24] = "rc4-hmac-exp",
+		[25] = "camellia128-cts-cmac",
+		[26] = "camellia256-cts-cmac",
+		[65] = "subkey-keymaterial",
+	};	
 
 }

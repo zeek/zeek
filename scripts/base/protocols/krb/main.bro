@@ -22,6 +22,8 @@ export {
 		from:			time &log &optional;
 		## Ticket valid till
 		till:			time &log &optional;
+		## Ticket encryption type
+		cipher:			string &log &optional;
 		## Forwardable ticket requested
 		forwardable: 		bool &log &optional;
 		## Proxiable ticket requested
@@ -241,6 +243,7 @@ event krb_tgs_response(c: connection, msg: KDC_Response) &priority=5
 		info$client = fmt("%s/%s", msg$client_name, msg$client_realm);
 
 	info$service = msg$ticket$service_name;
+	info$cipher  = cipher_name[msg$ticket$cipher];
 	info$success = T;
 		
 	c$krb = info;

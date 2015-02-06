@@ -23,7 +23,7 @@ function extract_filename_from_content_disposition(data: string): string
 
 	# Remove quotes around the filename if they are there.
 	if ( /^\"/ in filename )
-		filename = split_n(filename, /\"/, F, 2)[2];
+		filename = split_string_n(filename, /\"/, F, 2)[1];
 
 	# Remove the language and encoding if it's there.
 	if ( /^[a-zA-Z0-9\!#$%&+-^_`{}~]+'[a-zA-Z0-9\!#$%&+-^_`{}~]*'/ in filename )

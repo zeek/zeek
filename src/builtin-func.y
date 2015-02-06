@@ -287,7 +287,7 @@ void record_bif_item(const char* id, const char* type)
 
 %left ',' ':'
 
-%type <str> TOK_C_TOKEN TOK_ID TOK_CSTR TOK_WS TOK_COMMENT TOK_ATTR TOK_INT opt_ws type attr_list opt_attr_list
+%type <str> TOK_C_TOKEN TOK_ID TOK_CSTR TOK_WS TOK_COMMENT TOK_ATTR TOK_INT opt_ws type attr_list opt_attr_list opt_func_attrs
 %type <val> TOK_ATOM TOK_BOOL
 
 %union	{
@@ -372,7 +372,13 @@ type_def_types: TOK_RECORD
 			{ set_definition_type(TYPE_DEF, "Table"); }
 	;
 
-event_def:	event_prefix opt_ws plain_head opt_attr_list
+opt_func_attrs:	attr_list opt_ws
+		{ $$ = $1; }
+	| /* nothing */
+		{ $$ = ""; }
+	;
+
+event_def:	event_prefix opt_ws plain_head opt_func_attrs
 			{ fprintf(fp_bro_init, "%s", $4); } end_of_head ';'
 			{
 			print_event_c_prototype(fp_func_h, true);
@@ -380,13 +386,16 @@ event_def:	event_prefix opt_ws plain_head opt_attr_list
 			print_event_c_body(fp_func_def);
 			}
 
-func_def:	func_prefix opt_ws typed_head end_of_head body
+func_def:	func_prefix opt_ws typed_head opt_func_attrs
+			{ fprintf(fp_bro_init, "%s", $4); } end_of_head body
 	;
 
-enum_def:	enum_def_1 enum_list TOK_RPB
+enum_def:	enum_def_1 enum_list TOK_RPB opt_attr_list
 			{
 			// First, put an end to the enum type decl.
-			fprintf(fp_bro_init, "};\n");
+			fprintf(fp_bro_init, "} ");
+			fprintf(fp_bro_init, "%s", $4);
+			fprintf(fp_bro_init, ";\n");
 			if ( decl.module_name != GLOBAL_MODULE_NAME )
 				fprintf(fp_netvar_h, "}; } }\n");
 			else

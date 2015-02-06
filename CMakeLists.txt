@@ -2,7 +2,7 @@ project(Bro C CXX)
 
 # When changing the minimum version here, also adapt
 # aux/bro-aux/plugin-support/skeleton/CMakeLists.txt
-cmake_minimum_required(VERSION 2.6.3 FATAL_ERROR)
+cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
 include(cmake/CommonCMakeConfig.cmake)
 

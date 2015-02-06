@@ -154,13 +154,11 @@ string Manager::DataIn(const u_char* data, uint64 len, analyzer::Tag tag,
 void Manager::DataIn(const u_char* data, uint64 len, const string& file_id,
                      const string& source)
 	{
-	File* file = GetFile(file_id);
+	File* file = GetFile(file_id, 0, analyzer::Tag::Error, false, false,
+	                     source.c_str());
 
 	if ( ! file )
 		return;
-
-	if ( file->GetSource().empty() )
-		file->SetSource(source);
 
 	file->DataIn(data, len);
 
@@ -232,6 +230,39 @@ bool Manager::SetTimeoutInterval(const string& file_id, double interval) const
 	return true;
 	}
 
+bool Manager::EnableReassembly(const string& file_id)
+	{
+	File* file = LookupFile(file_id);
+
+	if ( ! file )
+		return false;
+
+	file->EnableReassembly();
+	return true;
+	}
+
+bool Manager::DisableReassembly(const string& file_id)
+	{
+	File* file = LookupFile(file_id);
+
+	if ( ! file )
+		return false;
+
+	file->DisableReassembly();
+	return true;
+	}
+
+bool Manager::SetReassemblyBuffer(const string& file_id, uint64 max)
+	{
+	File* file = LookupFile(file_id);
+
+	if ( ! file )
+		return false;
+
+	file->SetReassemblyBuffer(max);
+	return true;
+	}
+
 bool Manager::SetExtractionLimit(const string& file_id, RecordVal* args,
                                  uint64 n) const
 	{
@@ -254,28 +285,6 @@ bool Manager::AddAnalyzer(const string& file_id, file_analysis::Tag tag,
 	return file->AddAnalyzer(tag, args);
 	}
 
-TableVal* Manager::AddAnalyzersForMIMEType(const string& file_id, const string& mtype,
-					   RecordVal* args)
-	{
-	if ( ! tag_set_type )
-		tag_set_type = internal_type("files_tag_set")->AsTableType();
-
-	TableVal* sval = new TableVal(tag_set_type);
-	TagSet* l = LookupMIMEType(mtype, false);
-
-	if ( ! l )
-		return sval;
-
-	for ( TagSet::const_iterator i = l->begin(); i != l->end(); i++ )
-		{
-		file_analysis::Tag tag = *i;
-		if ( AddAnalyzer(file_id, tag, args) )
-			sval->Assign(tag.AsEnumVal(), 0);
-		}
-
-	return sval;
-	}
-
 bool Manager::RemoveAnalyzer(const string& file_id, file_analysis::Tag tag,
                              RecordVal* args) const
 	{
@@ -288,7 +297,8 @@ bool Manager::RemoveAnalyzer(const string& file_id, file_analysis::Tag tag,
 	}
 
 File* Manager::GetFile(const string& file_id, Connection* conn,
-                       analyzer::Tag tag, bool is_orig, bool update_conn)
+                       analyzer::Tag tag, bool is_orig, bool update_conn,
+                       const char* source_name)
 	{
 	if ( file_id.empty() )
 		return 0;
@@ -300,9 +310,18 @@ File* Manager::GetFile(const string& file_id, Connection* conn,
 
 	if ( ! rval )
 		{
-		rval = new File(file_id, conn, tag, is_orig);
+		rval = new File(file_id,
+		                source_name ? source_name
+		                            : analyzer_mgr->GetComponentName(tag),
+		                conn, tag, is_orig);
 		id_map.Insert(file_id.c_str(), rval);
 		rval->ScheduleInactivityTimer();
+
+		// Generate file_new after inserting it into manager's mapping
+		// in case script-layer calls back in to core from the event.
+		rval->FileEvent(file_new);
+		// Same for file_over_new_connection.
+		rval->RaiseFileOverNewConnection(conn, is_orig);
 
 		if ( IsIgnored(file_id) )
 			return 0;
@@ -311,8 +330,8 @@ File* Manager::GetFile(const string& file_id, Connection* conn,
 		{
 		rval->UpdateLastActivityTime();
 
-		if ( update_conn )
-			rval->UpdateConnectionFields(conn, is_orig);
+		if ( update_conn && rval->UpdateConnectionFields(conn, is_orig) )
+			rval->RaiseFileOverNewConnection(conn, is_orig);
 		}
 
 	return rval;
@@ -459,63 +478,6 @@ Analyzer* Manager::InstantiateAnalyzer(Tag tag, RecordVal* args, File* f) const
 	a->SetAnalyzerTag(tag);
 
 	return a;
-	}
-
-Manager::TagSet* Manager::LookupMIMEType(const string& mtype, bool add_if_not_found)
-	{
-	MIMEMap::const_iterator i = mime_types.find(to_upper(mtype));
-
-	if ( i != mime_types.end() )
-		return i->second;
-
-	if ( ! add_if_not_found )
-		return 0;
-
-	TagSet* l = new TagSet;
-	mime_types.insert(std::make_pair(to_upper(mtype), l));
-	return l;
-	}
-
-bool Manager::RegisterAnalyzerForMIMEType(EnumVal* tag, StringVal* mtype)
-	{
-	Component* p = Lookup(tag);
-
-	if ( ! p  )
-		return false;
-
-	return RegisterAnalyzerForMIMEType(p->Tag(), mtype->CheckString());
-	}
-
-bool Manager::RegisterAnalyzerForMIMEType(Tag tag, const string& mtype)
-	{
-	TagSet* l = LookupMIMEType(mtype, true);
-
-	DBG_LOG(DBG_FILE_ANALYSIS, "Register analyzer %s for MIME type %s",
-		GetComponentName(tag).c_str(), mtype.c_str());
-
-	l->insert(tag);
-	return true;
-	}
-
-bool Manager::UnregisterAnalyzerForMIMEType(EnumVal* tag, StringVal* mtype)
-	{
-	Component* p = Lookup(tag);
-
-	if ( ! p  )
-		return false;
-
-	return UnregisterAnalyzerForMIMEType(p->Tag(), mtype->CheckString());
-	}
-
-bool Manager::UnregisterAnalyzerForMIMEType(Tag tag, const string& mtype)
-	{
-	TagSet* l = LookupMIMEType(mtype, true);
-
-	DBG_LOG(DBG_FILE_ANALYSIS, "Unregister analyzer %s for MIME type %s",
-		GetComponentName(tag).c_str(), mtype.c_str());
-
-	l->erase(tag);
-	return true;
 	}
 
 RuleMatcher::MIME_Matches* Manager::DetectMIME(const u_char* data, uint64 len,

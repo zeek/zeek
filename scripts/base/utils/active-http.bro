@@ -105,21 +105,21 @@ function request(req: Request): ActiveHTTP::Response
 			# The reply is the first line.
 			if ( i == 0 )
 				{
-				local response_line = split_n(headers[0], /[[:blank:]]+/, F, 2);
+				local response_line = split_string_n(headers[0], /[[:blank:]]+/, F, 2);
 				if ( |response_line| != 3 )
 					return resp;
 
-				resp$code = to_count(response_line[2]);
-				resp$msg = response_line[3];
+				resp$code = to_count(response_line[1]);
+				resp$msg = response_line[2];
 				resp$body = join_string_vec(result$files[bodyfile], "");
 				}
 			else
 				{
 				local line = headers[i];
-				local h = split1(line, /:/);
+				local h = split_string1(line, /:/);
 				if ( |h| != 2 )
 					next;
-				resp$headers[h[1]] = sub_bytes(h[2], 0, |h[2]|-1);
+				resp$headers[h[0]] = sub_bytes(h[1], 0, |h[1]|-1);
 				}
 			}
 		return resp;

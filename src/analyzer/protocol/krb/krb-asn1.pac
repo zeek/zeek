@@ -9,7 +9,10 @@ Val* asn1_integer_to_val(const ASN1Integer* i, TypeTag t);
 %code{
 Val* GetTimeFromAsn1(const KRB_Time* atime, int64 usecs)
 	{
-	return GetTimeFromAsn1(bytestring_to_val(atime->time()), usecs);
+	StringVal* atime_bytestring = bytestring_to_val(atime->time());
+	Val* result = GetTimeFromAsn1(atime_bytestring, usecs);
+	Unref(atime_bytestring);
+	return result;	
 	}
 
 Val* GetTimeFromAsn1(StringVal* atime, int64 usecs)

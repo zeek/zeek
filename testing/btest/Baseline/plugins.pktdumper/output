@@ -1,0 +1,12 @@
+Demo::Foo - A Foo packet dumper (dynamic, version 1.0)
+    [Packet Dumper] FooPktDumper (dumper prefix: "foo")
+
+===
+Dumping to XXX: 1373858797.646968 len 94
+Dumping to XXX: 1373858797.646998 len 94
+Dumping to XXX: 1373858797.647041 len 86
+Dumping to XXX: 1373858797.647147 len 98
+Dumping to XXX: 1373858797.647186 len 86
+Dumping to XXX: 1373858797.647250 len 86
+Dumping to XXX: 1373858797.647317 len 86
+Dumping to XXX: 1373858797.647350 len 86

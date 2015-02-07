@@ -104,7 +104,7 @@ public:
 	NCP_Analyzer(Connection* conn);
 	virtual ~NCP_Analyzer();
 
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new NCP_Analyzer(conn); }
 
 protected:

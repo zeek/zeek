@@ -1,0 +1,52 @@
+##! Internal functions and types used by the input framework.
+
+module Input;
+
+%%{
+#include "input/Manager.h"
+%%}
+
+enum Event %{
+	EVENT_NEW = 0,
+	EVENT_CHANGED = 1,
+	EVENT_REMOVED = 2,
+%}
+
+type TableDescription: record;
+type EventDescription: record;
+type AnalysisDescription: record;
+
+function Input::__create_table_stream%(description: Input::TableDescription%) : bool
+	%{
+	bool res = input_mgr->CreateTableStream(description->AsRecordVal());
+	return new Val(res, TYPE_BOOL);
+	%}
+
+function Input::__create_event_stream%(description: Input::EventDescription%) : bool
+	%{
+	bool res = input_mgr->CreateEventStream(description->AsRecordVal());
+	return new Val(res, TYPE_BOOL);
+	%}
+
+function Input::__create_analysis_stream%(description: Input::AnalysisDescription%) : bool
+	%{
+	bool res = input_mgr->CreateAnalysisStream(description->AsRecordVal());
+	return new Val(res, TYPE_BOOL);
+	%}
+
+function Input::__remove_stream%(id: string%) : bool
+	%{
+	bool res = input_mgr->RemoveStream(id->AsString()->CheckString());
+	return new Val(res, TYPE_BOOL);
+	%}
+
+function Input::__force_update%(id: string%) : bool
+	%{
+	bool res = input_mgr->ForceUpdate(id->AsString()->CheckString());
+	return new Val(res, TYPE_BOOL);
+	%}
+
+# Options for the input framework
+
+const accept_unsupported_types: bool;
+

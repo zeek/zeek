@@ -12,21 +12,26 @@
 #include "UID.h"
 
 #include "plugin/Manager.h"
+#include "analyzer/Manager.h"
 
 using namespace file_analysis;
 
 TableVal* Manager::disabled = 0;
+TableType* Manager::tag_set_type = 0;
 string Manager::salt;
 
 Manager::Manager()
 	: plugin::ComponentManager<file_analysis::Tag,
-	                           file_analysis::Component>("Files"),
+	                           file_analysis::Component>("Files", "Tag"),
 	id_map(), ignored(), current_file_id(), magic_state()
 	{
 	}
 
 Manager::~Manager()
 	{
+	for ( MIMEMap::iterator i = mime_types.begin(); i != mime_types.end(); i++ )
+		delete i->second;
+
 	// Have to assume that too much of Bro has been shutdown by this point
 	// to do anything more than reclaim memory.
 
@@ -48,11 +53,6 @@ Manager::~Manager()
 
 void Manager::InitPreScript()
 	{
-	std::list<Component*> analyzers = plugin_mgr->Components<Component>();
-
-	for ( std::list<Component*>::const_iterator i = analyzers.begin();
-	      i != analyzers.end(); ++i )
-	      RegisterComponent(*i, "ANALYZER_");
 	}
 
 void Manager::InitPostScript()
@@ -104,6 +104,7 @@ void Manager::SetHandle(const string& handle)
 	if ( handle.empty() )
 		return;
 
+	DBG_LOG(DBG_FILE_ANALYSIS, "Set current handle to %s", handle.c_str());
 	current_file_id = HashHandle(handle);
 	}
 
@@ -153,13 +154,11 @@ string Manager::DataIn(const u_char* data, uint64 len, analyzer::Tag tag,
 void Manager::DataIn(const u_char* data, uint64 len, const string& file_id,
                      const string& source)
 	{
-	File* file = GetFile(file_id);
+	File* file = GetFile(file_id, 0, analyzer::Tag::Error, false, false,
+	                     source.c_str());
 
 	if ( ! file )
 		return;
-
-	if ( file->GetSource().empty() )
-		file->SetSource(source);
 
 	file->DataIn(data, len);
 
@@ -231,6 +230,39 @@ bool Manager::SetTimeoutInterval(const string& file_id, double interval) const
 	return true;
 	}
 
+bool Manager::EnableReassembly(const string& file_id)
+	{
+	File* file = LookupFile(file_id);
+
+	if ( ! file )
+		return false;
+
+	file->EnableReassembly();
+	return true;
+	}
+
+bool Manager::DisableReassembly(const string& file_id)
+	{
+	File* file = LookupFile(file_id);
+
+	if ( ! file )
+		return false;
+
+	file->DisableReassembly();
+	return true;
+	}
+
+bool Manager::SetReassemblyBuffer(const string& file_id, uint64 max)
+	{
+	File* file = LookupFile(file_id);
+
+	if ( ! file )
+		return false;
+
+	file->SetReassemblyBuffer(max);
+	return true;
+	}
+
 bool Manager::SetExtractionLimit(const string& file_id, RecordVal* args,
                                  uint64 n) const
 	{
@@ -265,7 +297,8 @@ bool Manager::RemoveAnalyzer(const string& file_id, file_analysis::Tag tag,
 	}
 
 File* Manager::GetFile(const string& file_id, Connection* conn,
-                       analyzer::Tag tag, bool is_orig, bool update_conn)
+                       analyzer::Tag tag, bool is_orig, bool update_conn,
+                       const char* source_name)
 	{
 	if ( file_id.empty() )
 		return 0;
@@ -277,9 +310,18 @@ File* Manager::GetFile(const string& file_id, Connection* conn,
 
 	if ( ! rval )
 		{
-		rval = new File(file_id, conn, tag, is_orig);
+		rval = new File(file_id,
+		                source_name ? source_name
+		                            : analyzer_mgr->GetComponentName(tag),
+		                conn, tag, is_orig);
 		id_map.Insert(file_id.c_str(), rval);
 		rval->ScheduleInactivityTimer();
+
+		// Generate file_new after inserting it into manager's mapping
+		// in case script-layer calls back in to core from the event.
+		rval->FileEvent(file_new);
+		// Same for file_over_new_connection.
+		rval->RaiseFileOverNewConnection(conn, is_orig);
 
 		if ( IsIgnored(file_id) )
 			return 0;
@@ -288,8 +330,8 @@ File* Manager::GetFile(const string& file_id, Connection* conn,
 		{
 		rval->UpdateLastActivityTime();
 
-		if ( update_conn )
-			rval->UpdateConnectionFields(conn, is_orig);
+		if ( update_conn && rval->UpdateConnectionFields(conn, is_orig) )
+			rval->RaiseFileOverNewConnection(conn, is_orig);
 		}
 
 	return rval;
@@ -372,6 +414,9 @@ string Manager::GetFileID(analyzer::Tag tag, Connection* c, bool is_orig)
 	if ( ! get_file_handle )
 		return "";
 
+	DBG_LOG(DBG_FILE_ANALYSIS, "Raise get_file_handle() for protocol analyzer %s",
+		analyzer_mgr->GetComponentName(tag).c_str());
+
 	EnumVal* tagval = tag.AsEnumVal();
 	Ref(tagval);
 
@@ -418,11 +463,21 @@ Analyzer* Manager::InstantiateAnalyzer(Tag tag, RecordVal* args, File* f) const
 	if ( ! c->Factory() )
 		{
 		reporter->InternalWarning("file analyzer %s cannot be instantiated "
-								"dynamically", c->CanonicalName());
+					  "dynamically", c->CanonicalName().c_str());
 		return 0;
 		}
 
-	return c->Factory()(args, f);
+	DBG_LOG(DBG_FILE_ANALYSIS, "Instantiate analyzer %s for file %s",
+		GetComponentName(tag).c_str(), f->id.c_str());
+
+	Analyzer* a = c->Factory()(args, f);
+
+	if ( ! a )
+		reporter->InternalError("file analyzer instantiation failed");
+
+	a->SetAnalyzerTag(tag);
+
+	return a;
 	}
 
 RuleMatcher::MIME_Matches* Manager::DetectMIME(const u_char* data, uint64 len,

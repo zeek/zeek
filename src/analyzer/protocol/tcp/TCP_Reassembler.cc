@@ -28,7 +28,7 @@ TCP_Reassembler::TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer,
 				TCP_Analyzer* arg_tcp_analyzer,
 				TCP_Reassembler::Type arg_type,
 				TCP_Endpoint* arg_endp)
-	: Reassembler(1, REASSEM_TCP)
+	: Reassembler(1)
 	{
 	dst_analyzer = arg_dst_analyzer;
 	tcp_analyzer = arg_tcp_analyzer;
@@ -117,6 +117,45 @@ void TCP_Reassembler::SetContentsFile(BroFile* f)
 	record_contents_file = f;
 	}
 
+static inline bool established(const TCP_Endpoint* a, const TCP_Endpoint* b)
+	{
+	return a->state == TCP_ENDPOINT_ESTABLISHED &&
+	       b->state == TCP_ENDPOINT_ESTABLISHED;
+	}
+
+static inline bool report_gap(const TCP_Endpoint* a, const TCP_Endpoint* b)
+	{
+	return content_gap &&
+	       ( BifConst::report_gaps_for_partial || established(a, b) );
+	}
+
+void TCP_Reassembler::Gap(uint64 seq, uint64 len)
+	{
+	// Only report on content gaps for connections that
+	// are in a cleanly established state.  In other
+	// states, these can arise falsely due to things
+	// like sequence number mismatches in RSTs, or
+	// unseen previous packets in partial connections.
+	// The one opportunity we lose here is on clean FIN
+	// handshakes, but Oh Well.
+
+	if ( report_gap(endp, endp->peer) )
+		{
+		val_list* vl = new val_list;
+		vl->append(dst_analyzer->BuildConnVal());
+		vl->append(new Val(IsOrig(), TYPE_BOOL));
+		vl->append(new Val(seq, TYPE_COUNT));
+		vl->append(new Val(len, TYPE_COUNT));
+		dst_analyzer->ConnectionEvent(content_gap, vl);
+		}
+
+	if ( type == Direct )
+		dst_analyzer->NextUndelivered(seq, len, IsOrig());
+	else
+		dst_analyzer->ForwardUndelivered(seq, len, IsOrig());
+
+	had_gap = true;
+	}
 
 void TCP_Reassembler::Undelivered(uint64 up_to_seq)
 	{
@@ -149,7 +188,7 @@ void TCP_Reassembler::Undelivered(uint64 up_to_seq)
 
 	if ( DEBUG_tcp_contents )
 		{
-		DEBUG_MSG("%.6f Undelivered: IsOrig()=%d up_to_seq=%"PRIu64", last_reassm=%"PRIu64", "
+		DEBUG_MSG("%.6f Undelivered: IsOrig()=%d up_to_seq=%" PRIu64", last_reassm=%" PRIu64", "
 		          "endp: FIN_cnt=%d, RST_cnt=%d, "
 		          "peer: FIN_cnt=%d, RST_cnt=%d\n",
 		          network_time, IsOrig(), up_to_seq, last_reassem_seq,
@@ -180,7 +219,7 @@ void TCP_Reassembler::Undelivered(uint64 up_to_seq)
 		{
 		if ( DEBUG_tcp_contents )
 			{
-			DEBUG_MSG("%.6f Undelivered: IsOrig()=%d, seq=%"PRIu64", len=%"PRIu64", "
+			DEBUG_MSG("%.6f Undelivered: IsOrig()=%d, seq=%" PRIu64", len=%" PRIu64", "
 					  "skip_deliveries=%d\n",
 					  network_time, IsOrig(), last_reassem_seq,
 					  up_to_seq - last_reassem_seq,
@@ -189,48 +228,35 @@ void TCP_Reassembler::Undelivered(uint64 up_to_seq)
 
 		if ( ! skip_deliveries )
 			{
-			// This can happen because we're processing a trace
-			// that's been filtered.  For example, if it's just
-			// SYN/FIN data, then there can be data in the FIN
-			// packet, but it's undelievered because it's out of
-			// sequence.
-
-			uint64 seq = last_reassem_seq;
-			uint64 len = up_to_seq - last_reassem_seq;
-
-			// Only report on content gaps for connections that
-			// are in a cleanly established state.  In other
-			// states, these can arise falsely due to things
-			// like sequence number mismatches in RSTs, or
-			// unseen previous packets in partial connections.
-			// The one opportunity we lose here is on clean FIN
-			// handshakes, but Oh Well.
-
-			if ( content_gap &&
-				(BifConst::report_gaps_for_partial ||
-					(endpoint->state == TCP_ENDPOINT_ESTABLISHED &&
-					peer->state == TCP_ENDPOINT_ESTABLISHED ) ) )
+			// If we have blocks that begin below up_to_seq, deliver them.
+			DataBlock* b = blocks;
+			while ( b )
 				{
-				val_list* vl = new val_list;
-				vl->append(dst_analyzer->BuildConnVal());
-				vl->append(new Val(IsOrig(), TYPE_BOOL));
-				vl->append(new Val(seq, TYPE_COUNT));
-				vl->append(new Val(len, TYPE_COUNT));
+				if ( b->seq < last_reassem_seq )
+					{
+					// Already delivered this block.
+					b = b->next;
+					continue;
+					}
 
-				dst_analyzer->ConnectionEvent(content_gap, vl);
+				if ( b->seq >= up_to_seq )
+					// Block is beyond what we need to process at this point.
+					break;
+
+				uint64 gap_at_seq = last_reassem_seq;
+				uint64 gap_len = b->seq - last_reassem_seq;
+
+				Gap(gap_at_seq, gap_len);
+				last_reassem_seq += gap_len;
+				BlockInserted(b);
+				// Inserting a block may cause trimming of what's buffered,
+				// so have to assume 'b' is invalid, hence re-assign to start.
+				b = blocks;
 				}
 
-			if ( type == Direct )
-				dst_analyzer->NextUndelivered(last_reassem_seq,
-								len, IsOrig());
-			else
-				{
-				dst_analyzer->ForwardUndelivered(last_reassem_seq,
-								len, IsOrig());
-				}
+			if ( up_to_seq > last_reassem_seq )
+				Gap(last_reassem_seq, up_to_seq - last_reassem_seq);
 			}
-
-		had_gap = true;
 		}
 
 	// We should record and match undelivered even if we are skipping
@@ -243,7 +269,8 @@ void TCP_Reassembler::Undelivered(uint64 up_to_seq)
 		MatchUndelivered(up_to_seq, false);
 
 	// But we need to re-adjust last_reassem_seq in either case.
-	last_reassem_seq = up_to_seq;	// we've done our best ...
+	if ( up_to_seq > last_reassem_seq )
+		last_reassem_seq = up_to_seq;	// we've done our best ...
 	}
 
 void TCP_Reassembler::MatchUndelivered(uint64 up_to_seq, bool use_last_upper)
@@ -323,7 +350,7 @@ void TCP_Reassembler::RecordBlock(DataBlock* b, BroFile* f)
 
 void TCP_Reassembler::RecordGap(uint64 start_seq, uint64 upper_seq, BroFile* f)
 	{
-	if ( f->Write(fmt("\n<<gap %"PRIu64">>\n", upper_seq - start_seq)) )
+	if ( f->Write(fmt("\n<<gap %" PRIu64">>\n", upper_seq - start_seq)) )
 		return;
 
 	reporter->Error("TCP_Reassembler contents gap write failed");
@@ -393,7 +420,7 @@ void TCP_Reassembler::BlockInserted(DataBlock* start_block)
 void TCP_Reassembler::Overlap(const u_char* b1, const u_char* b2, uint64 n)
 	{
 	if ( DEBUG_tcp_contents )
-		DEBUG_MSG("%.6f TCP contents overlap: %"PRIu64" IsOrig()=%d\n", network_time,  n, IsOrig());
+		DEBUG_MSG("%.6f TCP contents overlap: %" PRIu64" IsOrig()=%d\n", network_time,  n, IsOrig());
 
 	if ( rexmit_inconsistency &&
 	     memcmp((const void*) b1, (const void*) b2, n) &&
@@ -438,7 +465,7 @@ int TCP_Reassembler::DataSent(double t, uint64 seq, int len,
 
 	if ( DEBUG_tcp_contents )
 		{
-		DEBUG_MSG("%.6f DataSent: IsOrig()=%d seq=%"PRIu64" upper=%"PRIu64" ack=%"PRIu64"\n",
+		DEBUG_MSG("%.6f DataSent: IsOrig()=%d seq=%" PRIu64" upper=%" PRIu64" ack=%" PRIu64"\n",
 		          network_time, IsOrig(), seq, upper_seq, ack);
 		}
 

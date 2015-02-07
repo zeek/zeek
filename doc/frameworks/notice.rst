@@ -271,7 +271,7 @@ script that is generating the notice has indicated to the notice framework how
 to identify notices that are intrinsically the same. Identification of these
 "intrinsically duplicate" notices is implemented with an optional field in
 :bro:see:`Notice::Info` records named ``$identifier`` which is a simple string.
-If the ``$identifier`` and ``$type`` fields are the same for two notices, the
+If the ``$identifier`` and ``$note`` fields are the same for two notices, the
 notice framework actually considers them to be the same thing and can use that
 information to suppress duplicates for a configurable period of time.
 

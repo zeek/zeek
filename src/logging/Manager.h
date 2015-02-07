@@ -6,9 +6,12 @@
 #define LOGGING_MANAGER_H
 
 #include "../Val.h"
+#include "../Tag.h"
 #include "../EventHandler.h"
 #include "../RemoteSerializer.h"
+#include "../plugin/ComponentManager.h"
 
+#include "Component.h"
 #include "WriterBackend.h"
 
 class SerializationFormat;
@@ -23,7 +26,7 @@ class RotationFinishedMessage;
 /**
  * Singleton class for managing log streams.
  */
-class Manager {
+class Manager : public plugin::ComponentManager<Tag, Component> {
 public:
 	/**
 	 * Constructor.
@@ -154,11 +157,6 @@ public:
 	 */
 	void Terminate();
 
-	/**
-	 * Returns a list of supported output formats.
-	 */
-	static list<string> SupportedFormats();
-
 protected:
 	friend class WriterFrontend;
 	friend class RotationFinishedMessage;
@@ -168,7 +166,7 @@ protected:
 
 	// Instantiates a new WriterBackend of the given type (note that
 	// doing so creates a new thread!).
-	WriterBackend* CreateBackend(WriterFrontend* frontend, bro_int_t type);
+	WriterBackend* CreateBackend(WriterFrontend* frontend, EnumVal* tag);
 
 	//// Function also used by the RemoteSerializer.
 

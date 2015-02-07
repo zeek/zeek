@@ -660,8 +660,13 @@ void Case::Describe(ODesc* d) const
 
 TraversalCode Case::Traverse(TraversalCallback* cb) const
 	{
-	TraversalCode tc = cases->Traverse(cb);
-	HANDLE_TC_STMT_PRE(tc);
+	TraversalCode tc;
+
+	if ( cases )
+		{
+		tc = cases->Traverse(cb);
+		HANDLE_TC_STMT_PRE(tc);
+		}
 
 	tc = s->Traverse(cb);
 	HANDLE_TC_STMT_PRE(tc);

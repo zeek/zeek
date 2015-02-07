@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	ssl
+#open	2014-11-25-19-14-54
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer
+#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string
+1416942644.508914	CXWv6p3arKYeMETxOg	192.168.4.149	49422	23.92.19.75	443	TLSv12	TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256	secp384r1	-	F	-	-	T	Fi6J8q3lDJpbQWAnvi,FDXMnz1NjsQeaBxCU	(empty)	CN=pantz.org,OU=PositiveSSL,OU=Domain Control Validated	CN=COMODO ECC Domain Validation Secure Server CA,O=COMODO CA Limited,L=Salford,ST=Greater Manchester,C=GB	-	-
+#close	2014-11-25-19-14-54

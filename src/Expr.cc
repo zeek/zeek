@@ -636,7 +636,7 @@ Val* BinaryExpr::Eval(Frame* f) const
 		return v_result;
 		}
 
-	if ( is_vec1 || is_vec2 )
+	if ( IsVector(Type()->Tag()) && (is_vec1 || is_vec2) )
 		{ // fold vector against scalar
 		VectorVal* vv = (is_vec1 ? v1 : v2)->AsVectorVal();
 		VectorVal* v_result = new VectorVal(Type()->AsVectorType());
@@ -1438,7 +1438,7 @@ bool AddExpr::DoUnserialize(UnserialInfo* info)
 	}
 
 AddToExpr::AddToExpr(Expr* arg_op1, Expr* arg_op2)
-: BinaryExpr(EXPR_ADD_TO, arg_op1, arg_op2)
+: BinaryExpr(EXPR_ADD_TO, arg_op1->MakeLvalue(), arg_op2)
 	{
 	if ( IsError() )
 		return;
@@ -1562,7 +1562,7 @@ bool SubExpr::DoUnserialize(UnserialInfo* info)
 	}
 
 RemoveFromExpr::RemoveFromExpr(Expr* arg_op1, Expr* arg_op2)
-: BinaryExpr(EXPR_REMOVE_FROM, arg_op1, arg_op2)
+: BinaryExpr(EXPR_REMOVE_FROM, arg_op1->MakeLvalue(), arg_op2)
 	{
 	if ( IsError() )
 		return;
@@ -3213,6 +3213,10 @@ FieldExpr::FieldExpr(Expr* arg_op, const char* arg_field_name)
 			{
 			SetType(rt->FieldType(field)->Ref());
 			td = rt->FieldDecl(field);
+
+			if ( td->FindAttr(ATTR_DEPRECATED) )
+				reporter->Warning("deprecated (%s$%s)", rt->GetName().c_str(),
+				                  field_name);
 			}
 		}
 	}
@@ -3333,6 +3337,9 @@ HasFieldExpr::HasFieldExpr(Expr* arg_op, const char* arg_field_name)
 
 		if ( field < 0 )
 			ExprError("no such field in record");
+		else if ( rt->FieldDecl(field)->FindAttr(ATTR_DEPRECATED) )
+			reporter->Warning("deprecated (%s?$%s)", rt->GetName().c_str(),
+			                  field_name);
 
 		SetType(base_type(TYPE_BOOL));
 		}
@@ -4147,16 +4154,28 @@ RecordCoerceExpr::RecordCoerceExpr(Expr* op, RecordType* r)
 			}
 
 		for ( i = 0; i < map_size; ++i )
-			if ( map[i] == -1 &&
-			     ! t_r->FieldDecl(i)->FindAttr(ATTR_OPTIONAL) )
+			{
+			if ( map[i] == -1 )
 				{
-				char buf[512];
-				safe_snprintf(buf, sizeof(buf),
-					      "non-optional field \"%s\" missing", t_r->FieldName(i));
-				Error(buf);
-				SetError();
-				break;
+				if ( ! t_r->FieldDecl(i)->FindAttr(ATTR_OPTIONAL) )
+					{
+					char buf[512];
+					safe_snprintf(buf, sizeof(buf),
+					              "non-optional field \"%s\" missing",
+					              t_r->FieldName(i));
+					Error(buf);
+					SetError();
+					break;
+					}
 				}
+			else
+				{
+				if ( t_r->FieldDecl(i)->FindAttr(ATTR_DEPRECATED) )
+					reporter->Warning("deprecated (%s$%s)",
+					                  t_r->GetName().c_str(),
+					                  t_r->FieldName(i));
+				}
+			}
 		}
 	}
 
@@ -4703,8 +4722,14 @@ Val* InExpr::Fold(Val* v1, Val* v2) const
 	     v2->Type()->Tag() == TYPE_SUBNET )
 		return new Val(v2->AsSubNetVal()->Contains(v1->AsAddr()), TYPE_BOOL);
 
-	TableVal* vt = v2->AsTableVal();
-	if ( vt->Lookup(v1, false) )
+	Val* res;
+
+	if ( is_vector(v2) )
+		res = v2->AsVectorVal()->Lookup(v1);
+	else
+		res = v2->AsTableVal()->Lookup(v1, false);
+
+	if ( res )
 		return new Val(1, TYPE_BOOL);
 	else
 		return new Val(0, TYPE_BOOL);

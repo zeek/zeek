@@ -18,7 +18,7 @@ const char* attr_name(attr_tag t)
 		"&encrypt",
 		"&raw_output", "&mergeable", "&priority",
 		"&group", "&log", "&error_handler", "&type_column",
-		"(&tracked)",
+		"(&tracked)", "&deprecated",
 	};
 
 	return attr_names[int(t)];
@@ -212,6 +212,7 @@ void Attributes::DescribeReST(ODesc* d) const
 void Attributes::CheckAttr(Attr* a)
 	{
 	switch ( a->Tag() ) {
+	case ATTR_DEPRECATED:
 	case ATTR_OPTIONAL:
 	case ATTR_REDEF:
 		break;
@@ -265,6 +266,14 @@ void Attributes::CheckAttr(Attr* a)
 				// Ok.
 				break;
 
+			Expr* e = a->AttrExpr();
+			if ( check_and_promote_expr(e, type) )
+				{
+				a->SetAttrExpr(e);
+				// Ok.
+				break;
+				}
+
 			a->AttrExpr()->Error("&default value has inconsistent type", type);
 			}
 
@@ -297,8 +306,11 @@ void Attributes::CheckAttr(Attr* a)
 
 				Expr* e = a->AttrExpr();
 				if ( check_and_promote_expr(e, ytype) )
+					{
+					a->SetAttrExpr(e);
 					// Ok.
 					break;
+					}
 
 				Error("&default value has inconsistent type 2");
 				}

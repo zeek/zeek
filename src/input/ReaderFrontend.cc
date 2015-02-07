@@ -44,7 +44,7 @@ ReaderFrontend::ReaderFrontend(const ReaderBackend::ReaderInfo& arg_info, EnumVa
 	const char* t = type->Type()->AsEnumType()->Lookup(type->InternalInt());
 	name = copy_string(fmt("%s/%s", arg_info.source, t));
 
-	backend = input_mgr->CreateBackend(this, type->InternalInt());
+	backend = input_mgr->CreateBackend(this, type);
 	assert(backend);
 	backend->Start();
 	}

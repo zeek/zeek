@@ -21,7 +21,9 @@ static const char* smtp_cmd_word[] = {
 #include "SMTP_cmd.def"
 };
 
-#define SMTP_CMD_WORD(code) ((code >= 0) ? smtp_cmd_word[code] : "(UNKNOWN)")
+static const char* unknown_cmd = "(UNKNOWN)";
+
+#define SMTP_CMD_WORD(code) ((code >= 0) ? smtp_cmd_word[code] : unknown_cmd)
 
 
 SMTP_Analyzer::SMTP_Analyzer(Connection* conn)
@@ -83,7 +85,7 @@ void SMTP_Analyzer::Undelivered(uint64 seq, int len, bool is_orig)
 	if ( len <= 0 )
 		return;
 
-	const char* buf = fmt("seq = %"PRIu64", len = %d", seq, len);
+	const char* buf = fmt("seq = %" PRIu64", len = %d", seq, len);
 	int buf_len = strlen(buf);
 
 	Unexpected(is_orig, "content gap", buf_len, buf);
@@ -422,7 +424,6 @@ void SMTP_Analyzer::NewReply(const int reply_code)
 	if ( state == SMTP_AFTER_GAP && reply_code > 0 )
 		{
 		state = SMTP_GAP_RECOVERY;
-		const char* unknown_cmd = SMTP_CMD_WORD(-1);
 		RequestEvent(strlen(unknown_cmd), unknown_cmd, 0, "");
 		/*
 		if ( line_after_gap )

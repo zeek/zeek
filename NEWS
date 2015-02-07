@@ -4,6 +4,87 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as BroControl and Broccoli, come with
 their own ``CHANGES``.)
 
+Bro 2.4 (in progress)
+=====================
+
+Dependencies
+------------
+
+New Functionality
+-----------------
+
+- Bro now has support for external plugins that can extend its core
+  functionality, like protocol/file analysis, via shared libraries.
+  Plugins can be developed and distributed externally, and will be
+  pulled in dynamically at startup. Currently, a plugin can provide
+  custom protocol analyzers, file analyzers, log writers[TODO], input
+  readers[TODO], packet sources[TODO], and new built-in functions. A
+  plugin can furthermore hook into Bro's processing a number of places
+  to add custom logic.
+
+  See https://www.bro.org/sphinx-git/devel/plugins.html for more
+  information on writing plugins.
+
+- Bro now has supoprt for the MySQL wire protocol. Activity gets
+  logged into mysql.log.
+
+- Bro's file analysis now supports reassembly of files that are not
+  transferred/seen sequentially.
+
+Changed Functionality
+---------------------
+
+- bro-cut has been rewritten in C, and is hence much faster.
+
+- File analysis
+
+    * Removed ``fa_file`` record's ``mime_type`` and ``mime_types``
+      fields.  The events ``file_mime_type`` and ``file_mime_types``
+      have been added which contain the same information.  The
+      ``mime_type`` field of ``Files::Info`` also still has this info.
+
+    * Removed ``Files::add_analyzers_for_mime_type`` function.
+
+    * Removed ``offset`` parameter of the ``file_extraction_limit``
+      event.  Since file extraction now internally depends on file
+      reassembly for non-sequential files, "offset" can be obtained
+      with other information already available -- adding together
+      ``seen_bytes`` and ``missed_bytes`` fields of the ``fa_file``
+      record gives the how many bytes have been written so far (i.e.
+      the "offset").
+
+- has_valid_octets: now uses a string_vec parameter instead of
+  string_array.
+
+Deprecated Functionality
+------------------------
+
+- The split* family of functions are to be replaced with alternate
+  versions that return a vector of strings rather than a table of
+  strings. This also allows deprecation for some related string
+  concatenation/extraction functions. Note that the new functions use
+  0-based indexing, rather than 1-based.
+
+  The full list of now deprecation functions is:
+
+    * split: use split_string instead.
+
+    * split1: use split_string1 instead.
+
+    * split_all: use split_string_all instead.
+
+    * split_n: use split_string_n instead.
+
+    * cat_string_array: see join_string_vec instead.
+
+    * cat_string_array_n: see join_string_vec instead.
+
+    * join_string_array: see join_string_vec instead.
+
+    * sort_string_array: use sort instead.
+
+    * find_ip_addresses: use extract_ip_addresses instead.
+
 Bro 2.3
 =======
 

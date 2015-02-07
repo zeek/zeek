@@ -1,4 +1,5 @@
 %{
+#include <ctype.h>
 #include <string.h>
 #include <unistd.h>
 #include "bif_arg.h"
@@ -152,6 +153,7 @@ FILE* fp_bro_init = 0;
 FILE* fp_func_def = 0;
 FILE* fp_func_h = 0;
 FILE* fp_func_init = 0;
+FILE* fp_func_register = 0;
 FILE* fp_netvar_h = 0;
 FILE* fp_netvar_def = 0;
 FILE* fp_netvar_init = 0;
@@ -190,6 +192,7 @@ void init_alternative_mode()
 	fp_func_h = open_output_file("h");
 	fp_func_def = open_output_file("cc");
 	fp_func_init = open_output_file("init.cc");
+	fp_func_register = plugin ? open_output_file("register.cc") : NULL;
 
 	fp_netvar_h = fp_func_h;
 	fp_netvar_def = fp_func_def;
@@ -207,6 +210,9 @@ void init_alternative_mode()
 	fprintf(fp_func_h, "// %s\n\n", auto_gen_comment);
 	fprintf(fp_func_init, "// %s\n\n", auto_gen_comment);
 
+	if ( fp_func_register )
+		fprintf(fp_func_register, "// %s\n\n", auto_gen_comment);
+
 	static char guard[1024];
 	if ( getcwd(guard, sizeof(guard)) == NULL )
 		{
@@ -218,7 +224,7 @@ void init_alternative_mode()
 
 	for ( char* p = guard; *p; p++ )
 		{
-		if ( strchr("/.-", *p) )
+		if ( ! isalnum(*p) )
 			*p = '_';
 		}
 
@@ -240,21 +246,36 @@ void init_alternative_mode()
 	strncpy(name, input_filename, sizeof(name));
 	char* dot = strchr(name, '.');
 	if ( dot )
-	    *dot = '\0';
+		*dot = '\0';
 
-    if ( plugin )
-        {
-    	fprintf(fp_func_init, "\n");
-    	fprintf(fp_func_init, "#include <list>\n");
-    	fprintf(fp_func_init, "#include <string>\n");
-    	fprintf(fp_func_init, "#include \"%s.h\"\n", input_filename);
-    	fprintf(fp_func_init, "\n");
-    	fprintf(fp_func_init, "namespace plugin { namespace %s {\n", plugin);
-    	fprintf(fp_func_init, "\n");
-    	fprintf(fp_func_init, "std::list<std::pair<const char*, int> > __bif_%s_init()\n", name);
-    	fprintf(fp_func_init, "\t{\n");
-    	fprintf(fp_func_init, "\tstd::list<std::pair<const char*, int> > bifs;\n");
-    	fprintf(fp_func_init, "\n");
+	if ( plugin )
+		{
+		static char plugin_canon[1024];
+		strncpy(plugin_canon, plugin, sizeof(plugin_canon));
+		char* colon = strstr(plugin_canon, "::");
+
+		if ( colon ) {
+			*colon = '_';
+			memmove(colon + 1, colon + 2, plugin_canon + strlen(plugin_canon) - colon);
+			}
+
+		fprintf(fp_func_init, "\n");
+		fprintf(fp_func_init, "#include <list>\n");
+		fprintf(fp_func_init, "#include <string>\n");
+		fprintf(fp_func_init, "#include \"plugin/Plugin.h\"\n");
+		fprintf(fp_func_init, "#include \"%s.h\"\n", input_filename);
+		fprintf(fp_func_init, "\n");
+		fprintf(fp_func_init, "namespace plugin { namespace %s {\n", plugin_canon);
+		fprintf(fp_func_init, "\n");
+		fprintf(fp_func_init, "void __bif_%s_init(plugin::Plugin* plugin)\n", name);
+		fprintf(fp_func_init, "\t{\n");
+
+		fprintf(fp_func_register, "#include \"plugin/Manager.h\"\n");
+		fprintf(fp_func_register, "\n");
+		fprintf(fp_func_register, "namespace plugin { namespace %s {\n", plugin_canon);
+		fprintf(fp_func_register, "void __bif_%s_init(plugin::Plugin* plugin);\n", name);
+		fprintf(fp_func_register, "::plugin::__RegisterBif __register_bifs_%s_%s(\"%s\", __bif_%s_init);\n", plugin_canon, name, plugin, name);
+		fprintf(fp_func_register, "} }\n");
         }
 	}
 
@@ -263,15 +284,15 @@ void finish_alternative_mode()
 	fprintf(fp_func_h, "\n");
 	fprintf(fp_func_h, "#endif\n");
 
-    if ( plugin )
-        {
-    	fprintf(fp_func_init, "\n");
-    	fprintf(fp_func_init, "\treturn bifs;\n");
-    	fprintf(fp_func_init, "\t}\n");
-    	fprintf(fp_func_init, "} }\n");
-    	fprintf(fp_func_init, "\n");
-    	}
-    }
+	if ( plugin )
+		{
+		fprintf(fp_func_init, "\n");
+		fprintf(fp_func_init, "\t}\n");
+		fprintf(fp_func_init, "} }\n");
+		fprintf(fp_func_init, "\n");
+		fprintf(fp_func_init, "\n");
+		}
+	}
 
 int main(int argc, char* argv[])
 	{
@@ -366,6 +387,7 @@ void close_all_output_files(void)
 	close_if_open(&fp_func_h);
 	close_if_open(&fp_func_def);
 	close_if_open(&fp_func_init);
+	close_if_open(&fp_func_register);
 
 	if ( ! alternative_mode )
 		{
@@ -391,6 +413,7 @@ void err_exit(void)
 	remove_file("func_h");
 	remove_file("func_def");
 	remove_file("func_init");
+	remove_file("func_register");
 	remove_file("netvar_h");
 	remove_file("netvar_def");
 	remove_file("netvar_init");

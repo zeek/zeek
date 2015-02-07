@@ -465,10 +465,7 @@ void Val::Describe(ODesc* d) const
 		d->SP();
 		}
 
-	if ( d->IsReadable() )
-		ValDescribe(d);
-	else
-		Val::ValDescribe(d);
+	ValDescribe(d);
 	}
 
 void Val::DescribeReST(ODesc* d) const
@@ -1152,7 +1149,7 @@ bool PatternVal::DoUnserialize(UnserialInfo* info)
 	}
 
 ListVal::ListVal(TypeTag t)
-: Val(new TypeList(t == TYPE_ANY ? 0 : base_type(t)))
+: Val(new TypeList(t == TYPE_ANY ? 0 : base_type_no_ref(t)))
 	{
 	tag = t;
 	}

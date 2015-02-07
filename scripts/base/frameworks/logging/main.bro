@@ -5,9 +5,15 @@
 
 module Log;
 
-# Log::ID and Log::Writer are defined in types.bif due to circular dependencies.
-
 export {
+	## Type that defines an ID unique to each log stream. Scripts creating new log
+	## streams need to redef this enum to add their own specific log ID. The log ID
+	## implicitly determines the default name of the generated log file.
+	type Log::ID: enum {
+		## Dummy place-holder.
+		UNKNOWN
+	};
+
 	## If true, local logging is by default enabled for all filters.
 	const enable_local_logging = T &redef;
 
@@ -27,13 +33,13 @@ export {
 	const set_separator = "," &redef;
 
 	## String to use for empty fields. This should be different from
-        ## *unset_field* to make the output unambiguous. 
+	## *unset_field* to make the output unambiguous.
 	## Can be overwritten by individual writers.
 	const empty_field = "(empty)" &redef;
 
 	## String to use for an unset &optional field.
 	## Can be overwritten by individual writers.
-	const unset_field = "-" &redef;	
+	const unset_field = "-" &redef;
 
 	## Type defining the content of a logging stream.
 	type Stream: record {
@@ -399,30 +405,30 @@ function default_path_func(id: ID, path: string, rec: any) : string
 
 	local id_str = fmt("%s", id);
 
-	local parts = split1(id_str, /::/);
+	local parts = split_string1(id_str, /::/);
 	if ( |parts| == 2 )
 		{
 		# Example: Notice::LOG -> "notice"
-		if ( parts[2] == "LOG" )
+		if ( parts[1] == "LOG" )
 			{
-			local module_parts = split_n(parts[1], /[^A-Z][A-Z][a-z]*/, T, 4);
+			local module_parts = split_string_n(parts[0], /[^A-Z][A-Z][a-z]*/, T, 4);
 			local output = "";
-			if ( 1 in module_parts )
-				output = module_parts[1];
+			if ( 0 in module_parts )
+				output = module_parts[0];
+			if ( 1 in module_parts && module_parts[1] != "" )
+				output = cat(output, sub_bytes(module_parts[1],1,1), "_", sub_bytes(module_parts[1], 2, |module_parts[1]|));
 			if ( 2 in module_parts && module_parts[2] != "" )
-				output = cat(output, sub_bytes(module_parts[2],1,1), "_", sub_bytes(module_parts[2], 2, |module_parts[2]|));
+				output = cat(output, "_", module_parts[2]);
 			if ( 3 in module_parts && module_parts[3] != "" )
-				output = cat(output, "_", module_parts[3]);
-			if ( 4 in module_parts && module_parts[4] != "" )
-				output = cat(output, sub_bytes(module_parts[4],1,1), "_", sub_bytes(module_parts[4], 2, |module_parts[4]|));
+				output = cat(output, sub_bytes(module_parts[3],1,1), "_", sub_bytes(module_parts[3], 2, |module_parts[3]|));
 			return to_lower(output);
 			}
 
 		# Example: Notice::POLICY_LOG -> "notice_policy"
-		if ( /_LOG$/ in parts[2] )
-			parts[2] = sub(parts[2], /_LOG$/, "");
+		if ( /_LOG$/ in parts[1] )
+			parts[1] = sub(parts[1], /_LOG$/, "");
 
-		return cat(to_lower(parts[1]),"_",to_lower(parts[2]));
+		return cat(to_lower(parts[0]),"_",to_lower(parts[1]));
 		}
 	else
 		return to_lower(id_str);

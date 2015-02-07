@@ -8,13 +8,25 @@
 
 event bro_init()
 {
-	local h1: addr = 127.0.0.1;
+	local h: addr = 127.0.0.1;
 
-	when ( local h1name = lookup_addr(h1) )
+	when ( local hname = lookup_addr(h) )
 		{ 
 		print "lookup successful";
 		terminate();
 		}
+	timeout 10sec
+		{
+		print "timeout (1)";
+		}
+
+	local to = 5sec;
+	# Just checking that timeouts can use arbitrary expressions...
+	when ( local hname2 = lookup_addr(h) ) {}
+	timeout to {}
+	when ( local hname3 = lookup_addr(h) ) {}
+	timeout to + 2sec {}
+
 	print "done";
 }
 

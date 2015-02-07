@@ -2,10 +2,10 @@
 
 #include "events.bif.h"
 
-using namespace analyzer::sip;
+using namespace analyzer::SIP;
 
 SIP_Analyzer::SIP_Analyzer(Connection* c)
-	: Analyzer("SIP", c)
+	: analyzer::Analyzer("SIP", c)
 	{
 	interp = new binpac::SIP::SIP_Conn(this);
 	}

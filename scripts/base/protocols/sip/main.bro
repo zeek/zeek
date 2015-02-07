@@ -167,12 +167,12 @@ event sip_header(c: connection, is_request: bool, name: string, value: string) &
 		else if ( name == "CONTENT-LENGTH" || name == "L" ) c$sip$request_body_len = value;
 		else if ( name == "CSEQ" )                          c$sip$seq = value;
 		else if ( name == "DATE" )                          c$sip$date = value;
-		else if ( name == "FROM" || name == "F" )           c$sip$from = split1(value, /;[ ]?tag=/)[1];
+		else if ( name == "FROM" || name == "F" )           c$sip$from = split_string1(value, /;[ ]?tag=/)[0];
 		else if ( name == "REPLY-TO" )                      c$sip$reply_to = value;
 		else if ( name == "SUBJECT" || name == "S" )        c$sip$subject = value;
 		else if ( name == "TO" || name == "T" )             c$sip$to = value;
 		else if ( name == "USER-AGENT" )                    c$sip$user_agent = value;
-		else if ( name == "VIA" || name == "V" )            c$sip$path[|c$sip$path|] = split1(value, /;[ ]?branch/)[1];
+		else if ( name == "VIA" || name == "V" )            c$sip$path[|c$sip$path|] = split_string1(value, /;[ ]?branch/)[0];
 		c$sip_state$pending[c$sip_state$current_request] = c$sip;
 		}
 	else # from server

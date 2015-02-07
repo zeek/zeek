@@ -53,7 +53,6 @@ void KRB_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		}
 	catch ( const binpac::Exception& e )
 		{
-		printf("BinPAC Exception: %s\n", e.c_msg());
 		ProtocolViolation(e.c_msg());
 		}
 	}

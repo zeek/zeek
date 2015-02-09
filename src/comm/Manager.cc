@@ -8,6 +8,7 @@
 #include "util.h"
 #include "Var.h"
 #include "Reporter.h"
+#include "comm/comm.bif.h"
 #include "comm/data.bif.h"
 #include "comm/messaging.bif.h"
 #include "comm/store.bif.h"
@@ -444,7 +445,8 @@ int comm::Manager::GetFlags(Val* flags)
 void comm::Manager::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
                            iosource::FD_Set* except)
 	{
-	read->Insert(endpoint->peer_status().fd());
+	read->Insert(endpoint->outgoing_connection_status().fd());
+	read->Insert(endpoint->incoming_connection_status().fd());
 
 	for ( const auto& ps : print_subscriptions )
 		read->Insert(ps.second.fd());
@@ -523,57 +525,85 @@ static RecordVal* response_to_val(broker::store::response r)
 void comm::Manager::Process()
 	{
 	bool idle = true;
-	auto peer_status_updates = endpoint->peer_status().want_pop();
+	auto outgoing_connection_updates =
+	        endpoint->outgoing_connection_status().want_pop();
+	auto incoming_connection_updates =
+	        endpoint->incoming_connection_status().want_pop();
 
-	if ( ! peer_status_updates.empty() )
+	for ( auto& u : outgoing_connection_updates )
+		{
 		idle = false;
 
-	for ( auto& u : peer_status_updates )
-		{
-		if ( ! u.relation.remote() )
-			continue;
-
 		switch ( u.status ) {
-		case broker::peer_status::tag::established:
-			if ( Comm::remote_connection_established )
+		case broker::outgoing_connection_status::tag::established:
+			if ( Comm::outgoing_connection_established )
 				{
 				val_list* vl = new val_list;
 				vl->append(new StringVal(u.relation.remote_tuple().first));
 				vl->append(new PortVal(u.relation.remote_tuple().second,
 				                       TRANSPORT_TCP));
 				vl->append(new StringVal(u.peer_name));
-				mgr.QueueEvent(Comm::remote_connection_established, vl);
+				mgr.QueueEvent(Comm::outgoing_connection_established, vl);
 				}
-
 			break;
 
-		case broker::peer_status::tag::disconnected:
-			if ( Comm::remote_connection_broken )
+		case broker::outgoing_connection_status::tag::disconnected:
+			if ( Comm::outgoing_connection_broken )
 				{
 				val_list* vl = new val_list;
 				vl->append(new StringVal(u.relation.remote_tuple().first));
 				vl->append(new PortVal(u.relation.remote_tuple().second,
 				                       TRANSPORT_TCP));
-				mgr.QueueEvent(Comm::remote_connection_broken, vl);
+				mgr.QueueEvent(Comm::outgoing_connection_broken, vl);
 				}
-
 			break;
 
-		case broker::peer_status::tag::incompatible:
-			if ( Comm::remote_connection_incompatible )
+		case broker::outgoing_connection_status::tag::incompatible:
+			if ( Comm::outgoing_connection_incompatible )
 				{
 				val_list* vl = new val_list;
 				vl->append(new StringVal(u.relation.remote_tuple().first));
 				vl->append(new PortVal(u.relation.remote_tuple().second,
 				                       TRANSPORT_TCP));
-				mgr.QueueEvent(Comm::remote_connection_incompatible, vl);
+				mgr.QueueEvent(Comm::outgoing_connection_incompatible, vl);
 				}
-
 			break;
 
 		default:
-			reporter->InternalWarning("unknown broker::peer_status::tag : %d",
-			                          static_cast<int>(u.status));
+			reporter->InternalWarning(
+			            "unknown broker::outgoing_connection_status::tag : %d",
+			            static_cast<int>(u.status));
+			break;
+		}
+		}
+
+	for ( auto& u : incoming_connection_updates )
+		{
+		idle = false;
+
+		switch ( u.status ) {
+		case broker::incoming_connection_status::tag::established:
+			if ( Comm::incoming_connection_established )
+				{
+				val_list* vl = new val_list;
+				vl->append(new StringVal(u.peer_name));
+				mgr.QueueEvent(Comm::incoming_connection_established, vl);
+				}
+			break;
+
+		case broker::incoming_connection_status::tag::disconnected:
+			if ( Comm::incoming_connection_broken )
+				{
+				val_list* vl = new val_list;
+				vl->append(new StringVal(u.peer_name));
+				mgr.QueueEvent(Comm::incoming_connection_broken, vl);
+				}
+			break;
+
+		default:
+			reporter->InternalWarning(
+			            "unknown broker::incoming_connection_status::tag : %d",
+			            static_cast<int>(u.status));
 			break;
 		}
 		}

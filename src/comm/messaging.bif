@@ -12,55 +12,6 @@ type Comm::SendFlags: record;
 
 type Comm::EventArgs: record;
 
-event Comm::remote_connection_established%(peer_address: string,
-                                           peer_port: port,
-                                           peer_name: string%);
-
-event Comm::remote_connection_broken%(peer_address: string,
-                                      peer_port: port%);
-
-event Comm::remote_connection_incompatible%(peer_address: string,
-                                            peer_port: port%);
-
-function Comm::listen%(p: port, a: string &default = "",
-					   reuse: bool &default = T%): bool
-	%{
-	if ( ! p->IsTCP() )
-		{
-		reporter->Error("listen port must use tcp");
-		return new Val(false, TYPE_BOOL);
-		}
-
-	auto rval = comm_mgr->Listen(p->Port(), a->Len() ? a->CheckString() : 0,
-								 reuse);
-	return new Val(rval, TYPE_BOOL);
-	%}
-
-function Comm::connect%(a: string, p: port, retry: interval%): bool
-	%{
-	if ( ! p->IsTCP() )
-		{
-		reporter->Error("remote connection port must use tcp");
-		return new Val(false, TYPE_BOOL);
-		}
-
-	auto rval = comm_mgr->Connect(a->CheckString(), p->Port(),
-	                              std::chrono::duration<double>(retry));
-	return new Val(rval, TYPE_BOOL);
-	%}
-
-function Comm::disconnect%(a: string, p: port%): bool
-	%{
-	if ( ! p->IsTCP() )
-		{
-		reporter->Error("remote connection port must use tcp");
-		return new Val(false, TYPE_BOOL);
-		}
-
-	auto rval = comm_mgr->Disconnect(a->CheckString(), p->Port());
-	return new Val(rval, TYPE_BOOL);
-	%}
-
 event Comm::print_handler%(msg: string%);
 
 function Comm::print%(topic: string, msg: string,

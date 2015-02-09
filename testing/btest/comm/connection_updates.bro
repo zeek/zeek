@@ -11,24 +11,23 @@
 @TEST-START-FILE recv.bro
 
 redef exit_only_after_terminate = T;
+redef Comm::endpoint_name = "listener";
 
 event bro_init()
 	{
 	Comm::enable();
 	Comm::listen(9999/tcp, "127.0.0.1");
-	Comm::subscribe_to_prints("bro/print/");
 	}
 
-global n = 0;
-
-event Comm::print_handler(msg: string)
+event Comm::incoming_connection_established(peer_name: string)
 	{
-	print "got print msg", msg;
-	Comm::print("bro/print/my_topic", fmt("pong %d", n));
-	++n;
+	print "Comm::incoming_connection_established", peer_name;;
+	}
 
-	if ( msg == "ping 5" )
-		terminate();
+event Comm::incoming_connection_broken(peer_name: string)
+	{
+	print "Comm::incoming_connection_broken", peer_name;;
+	terminate();
 	}
 
 @TEST-END-FILE
@@ -36,33 +35,21 @@ event Comm::print_handler(msg: string)
 @TEST-START-FILE send.bro
 
 redef exit_only_after_terminate = T;
+redef Comm::endpoint_name = "connector";
 
 event bro_init()
 	{
 	Comm::enable();
-	Comm::subscribe_to_prints("bro/print/my_topic");
-	Comm::connect("127.0.0.1", 9999/tcp, 1secs);
+	Comm::connect("127.0.0.1", 9999/tcp, 1sec);
 	}
-
-global n = 0;
 
 event Comm::outgoing_connection_established(peer_address: string,
                                             peer_port: port,
                                             peer_name: string)
 	{
-	print "Comm::outgoing_connection_established", peer_address, peer_port;
-	Comm::print("bro/print/hi", fmt("ping %d", n));
-	++n;
-	}
-
-event Comm::print_handler(msg: string)
-	{
-	print "got print msg", msg;
-	Comm::print("bro/print/hi", fmt("ping %d", n));
-	++n;
-
-	if ( msg == "pong 5" )
-		terminate();
+	print "Comm::outgoing_connection_established",
+	      peer_address, peer_port, peer_name;;
+	terminate();
 	}
 
 @TEST-END-FILE

@@ -81,9 +81,9 @@ event done()
 	terminate();
 	}
 
-event Comm::remote_connection_established(peer_address: string,
-                                          peer_port: port,
-                                          peer_name: string)
+event Comm::outgoing_connection_established(peer_address: string,
+                                            peer_port: port,
+                                            peer_name: string)
 	{
 	local myset: set[string] = {"a", "b", "c"};
 	local myvec: vector of string = {"alpha", "beta", "gamma"};

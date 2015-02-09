@@ -55,11 +55,11 @@ event bro_init()
 
 global event_count = 0;
 
-event Comm::remote_connection_established(peer_address: string,
-                                          peer_port: port,
-                                          peer_name: string)
+event Comm::outgoing_connection_established(peer_address: string,
+                                            peer_port: port,
+                                            peer_name: string)
 	{
-	print "Comm::remote_connection_established", peer_address, peer_port;
+	print "Comm::outgoing_connection_established", peer_address, peer_port;
 	local args = Comm::event_args(event_handler, "ping", event_count);
 	Comm::event("bro/event/hi", args);
 	++event_count;

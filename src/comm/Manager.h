@@ -24,7 +24,9 @@ public:
 
 	~Manager();
 
-	bool Enable();
+	bool Enable(Val* flags);
+
+	bool SetEndpointFlags(Val* flags);
 
 	bool Enabled()
 		{ return endpoint != nullptr; }

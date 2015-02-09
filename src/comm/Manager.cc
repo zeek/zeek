@@ -41,7 +41,25 @@ static int require_field(RecordType* rt, const char* name)
 	return rval;
 	}
 
-bool comm::Manager::Enable()
+static int GetEndpointFlags(Val* broker_endpoint_flags)
+	{
+	int rval = 0;
+	auto r = broker_endpoint_flags->AsRecordVal();
+	Val* auto_publish_flag = r->Lookup("auto_publish", true);
+	Val* auto_advertise_flag = r->Lookup("auto_advertise", true);
+
+	if ( auto_publish_flag->AsBool() )
+		rval |= broker::AUTO_PUBLISH;
+
+	if ( auto_advertise_flag->AsBool() )
+		rval |= broker::AUTO_ADVERTISE;
+
+	Unref(auto_publish_flag);
+	Unref(auto_advertise_flag);
+	return rval;
+	}
+
+bool comm::Manager::Enable(Val* broker_endpoint_flags)
 	{
 	if ( endpoint != nullptr )
 		return true;
@@ -93,8 +111,19 @@ bool comm::Manager::Enable()
 			name = fmt("bro@<unknown>.%ld", static_cast<long>(getpid()));
 		}
 
-	endpoint = unique_ptr<broker::endpoint>(new broker::endpoint(name));
+	int flags = GetEndpointFlags(broker_endpoint_flags);
+	endpoint = unique_ptr<broker::endpoint>(new broker::endpoint(name, flags));
 	iosource_mgr->Register(this, true);
+	return true;
+	}
+
+bool comm::Manager::SetEndpointFlags(Val* broker_endpoint_flags)
+	{
+	if ( ! Enabled() )
+		return false;
+
+	int flags = GetEndpointFlags(broker_endpoint_flags);
+	endpoint->set_flags(flags);
 	return true;
 	}
 

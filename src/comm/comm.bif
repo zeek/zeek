@@ -7,9 +7,16 @@
 
 module Comm;
 
-function Comm::enable%(%): bool
+type Comm::EndpointFlags: record;
+
+function Comm::enable%(flags: EndpointFlags &default = EndpointFlags()%): bool
 	%{
-	return new Val(comm_mgr->Enable(), TYPE_BOOL);
+	return new Val(comm_mgr->Enable(flags), TYPE_BOOL);
+	%}
+
+function Comm::set_endpoint_flags%(flags: EndpointFlags &default = EndpointFlags()%): bool
+	%{
+	return new Val(comm_mgr->SetEndpointFlags(flags), TYPE_BOOL);
 	%}
 
 event Comm::outgoing_connection_established%(peer_address: string,

@@ -5,6 +5,11 @@ export {
 
 	const endpoint_name = "" &redef;
 
+	type EndpointFlags: record {
+		auto_publish: bool &default = T;
+		auto_advertise: bool &default = T;
+	};
+
 	type SendFlags: record {
 		self: bool &default = F;
 		peers: bool &default = T;

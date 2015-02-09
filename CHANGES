@@ -1,4 +1,10 @@
 
+2.3-413 | 2015-02-08 18:23:05 -0800
+
+  * Fixing analyzer tag types for some Files::* functions. (Robin Sommer)
+
+  * Changing load order for plugin scripts. (Robin Sommer)
+
 2.3-411 | 2015-02-05 10:05:48 -0600
 
   * Fix file analysis of files with total size below the bof_buffer size

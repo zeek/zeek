@@ -1,8 +1,8 @@
 # @TEST_SERIALIZE: brokercomm
 # @TEST_REQUIRES: grep -q ENABLE_BROKER $BUILD/CMakeCache.txt
 
-# @TEST-EXEC: btest-bg-run recv "bro -b ../recv.bro >recv.out"
-# @TEST-EXEC: btest-bg-run send "bro -b ../send.bro >send.out"
+# @TEST-EXEC: btest-bg-run recv "bro -b ../recv.bro broker_port=$BROKER_PORT >recv.out"
+# @TEST-EXEC: btest-bg-run send "bro -b ../send.bro broker_port=$BROKER_PORT >send.out"
 
 # @TEST-EXEC: btest-bg-wait 20
 # @TEST-EXEC: btest-diff recv/recv.out
@@ -10,6 +10,7 @@
 
 @TEST-START-FILE recv.bro
 
+const broker_port: port &redef;
 redef exit_only_after_terminate = T;
 
 global event_handler: event(msg: string, c: count);
@@ -18,7 +19,7 @@ global auto_event_handler: event(msg: string, c: count);
 event bro_init()
 	{
 	Comm::enable();
-	Comm::listen(9999/tcp, "127.0.0.1");
+	Comm::listen(broker_port, "127.0.0.1");
 	Comm::subscribe_to_events("bro/event/");
 	Comm::auto_event("bro/event/my_topic", auto_event_handler);
 	}
@@ -41,6 +42,7 @@ event event_handler(msg: string, n: count)
 
 @TEST-START-FILE send.bro
 
+const broker_port: port &redef;
 redef exit_only_after_terminate = T;
 
 global event_handler: event(msg: string, c: count);
@@ -50,7 +52,7 @@ event bro_init()
 	{
 	Comm::enable();
 	Comm::subscribe_to_events("bro/event/my_topic");
-	Comm::connect("127.0.0.1", 9999/tcp, 1secs);
+	Comm::connect("127.0.0.1", broker_port, 1secs);
 	}
 
 global event_count = 0;

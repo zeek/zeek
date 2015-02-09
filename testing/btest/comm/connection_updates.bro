@@ -1,8 +1,8 @@
 # @TEST_SERIALIZE: brokercomm
 # @TEST_REQUIRES: grep -q ENABLE_BROKER $BUILD/CMakeCache.txt
 
-# @TEST-EXEC: btest-bg-run recv "bro -b ../recv.bro >recv.out"
-# @TEST-EXEC: btest-bg-run send "bro -b ../send.bro >send.out"
+# @TEST-EXEC: btest-bg-run recv "bro -b ../recv.bro broker_port=$BROKER_PORT >recv.out"
+# @TEST-EXEC: btest-bg-run send "bro -b ../send.bro broker_port=$BROKER_PORT >send.out"
 
 # @TEST-EXEC: btest-bg-wait 20
 # @TEST-EXEC: btest-diff recv/recv.out
@@ -10,13 +10,14 @@
 
 @TEST-START-FILE recv.bro
 
+const broker_port: port &redef;
 redef exit_only_after_terminate = T;
 redef Comm::endpoint_name = "listener";
 
 event bro_init()
 	{
 	Comm::enable();
-	Comm::listen(9999/tcp, "127.0.0.1");
+	Comm::listen(broker_port, "127.0.0.1");
 	}
 
 event Comm::incoming_connection_established(peer_name: string)
@@ -34,13 +35,14 @@ event Comm::incoming_connection_broken(peer_name: string)
 
 @TEST-START-FILE send.bro
 
+const broker_port: port &redef;
 redef exit_only_after_terminate = T;
 redef Comm::endpoint_name = "connector";
 
 event bro_init()
 	{
 	Comm::enable();
-	Comm::connect("127.0.0.1", 9999/tcp, 1sec);
+	Comm::connect("127.0.0.1", broker_port, 1sec);
 	}
 
 event Comm::outgoing_connection_established(peer_address: string,

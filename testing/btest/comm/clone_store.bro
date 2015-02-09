@@ -1,8 +1,8 @@
 # @TEST_SERIALIZE: brokercomm
 # @TEST_REQUIRES: grep -q ENABLE_BROKER $BUILD/CMakeCache.txt
 
-# @TEST-EXEC: btest-bg-run clone "bro -b ../clone.bro >clone.out"
-# @TEST-EXEC: btest-bg-run master "bro -b ../master.bro >master.out"
+# @TEST-EXEC: btest-bg-run clone "bro -b ../clone.bro broker_port=$BROKER_PORT >clone.out"
+# @TEST-EXEC: btest-bg-run master "bro -b ../master.bro broker_port=$BROKER_PORT >master.out"
 
 # @TEST-EXEC: btest-bg-wait 20
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff clone/clone.out
@@ -10,6 +10,7 @@
 
 @TEST-START-FILE clone.bro
 
+const broker_port: port &redef;
 redef exit_only_after_terminate = T;
 
 global h: opaque of Store::Handle;
@@ -54,7 +55,7 @@ event ready()
 event bro_init()
 	{
 	Comm::enable();
-	Comm::listen(9999/tcp, "127.0.0.1");
+	Comm::listen(broker_port, "127.0.0.1");
 	Comm::subscribe_to_events("bro/event/ready");
 	Comm::auto_event("bro/event/done", done);
 	}
@@ -63,6 +64,7 @@ event bro_init()
 
 @TEST-START-FILE master.bro
 
+const broker_port: port &redef;
 redef exit_only_after_terminate = T;
 
 global h: opaque of Store::Handle;
@@ -108,7 +110,7 @@ event Comm::outgoing_connection_established(peer_address: string,
 event bro_init()
 	{
 	Comm::enable();
-	Comm::connect("127.0.0.1", 9999/tcp, 1secs);
+	Comm::connect("127.0.0.1", broker_port, 1secs);
 	Comm::auto_event("bro/event/ready", ready);
 	Comm::subscribe_to_events("bro/event/done");
 	}

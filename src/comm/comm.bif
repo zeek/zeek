@@ -19,6 +19,26 @@ function Comm::set_endpoint_flags%(flags: EndpointFlags &default = EndpointFlags
 	return new Val(comm_mgr->SetEndpointFlags(flags), TYPE_BOOL);
 	%}
 
+function Comm::publish_topic%(topic: string%): bool
+	%{
+	return new Val(comm_mgr->PublishTopic(topic->CheckString()), TYPE_BOOL);
+	%}
+
+function Comm::unpublish_topic%(topic: string%): bool
+	%{
+	return new Val(comm_mgr->UnpublishTopic(topic->CheckString()), TYPE_BOOL);
+	%}
+
+function Comm::advertise_topic%(topic: string%): bool
+	%{
+	return new Val(comm_mgr->AdvertiseTopic(topic->CheckString()), TYPE_BOOL);
+	%}
+
+function Comm::unadvertise_topic%(topic: string%): bool
+	%{
+	return new Val(comm_mgr->UnadvertiseTopic(topic->CheckString()), TYPE_BOOL);
+	%}
+
 event Comm::outgoing_connection_established%(peer_address: string,
                                              peer_port: port,
                                              peer_name: string%);

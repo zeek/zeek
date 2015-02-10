@@ -64,6 +64,14 @@ public:
 
 	bool UnsubscribeToLogs(const std::string& topic_prefix);
 
+	bool PublishTopic(broker::topic t);
+
+	bool UnpublishTopic(broker::topic t);
+
+	bool AdvertiseTopic(broker::topic t);
+
+	bool UnadvertiseTopic(broker::topic t);
+
 	bool AddStore(StoreHandleVal* handle);
 
 	StoreHandleVal* LookupStore(const broker::store::identifier& id, StoreType type);

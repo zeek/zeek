@@ -448,6 +448,42 @@ bool comm::Manager::UnsubscribeToLogs(const string& topic_prefix)
 	return log_subscriptions.erase(topic_prefix);
 	}
 
+bool comm::Manager::PublishTopic(broker::topic t)
+	{
+	if ( ! Enabled() )
+		return false;
+
+	endpoint->publish(move(t));
+	return true;
+	}
+
+bool comm::Manager::UnpublishTopic(broker::topic t)
+	{
+	if ( ! Enabled() )
+		return false;
+
+	endpoint->unpublish(move(t));
+	return true;
+	}
+
+bool comm::Manager::AdvertiseTopic(broker::topic t)
+	{
+	if ( ! Enabled() )
+		return false;
+
+	endpoint->advertise(move(t));
+	return true;
+	}
+
+bool comm::Manager::UnadvertiseTopic(broker::topic t)
+	{
+	if ( ! Enabled() )
+		return false;
+
+	endpoint->unadvertise(move(t));
+	return true;
+	}
+
 int comm::Manager::GetFlags(Val* flags)
 	{
 	auto r = flags->AsRecordVal();

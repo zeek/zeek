@@ -192,7 +192,8 @@ struct val_converter {
 
 			auto expected_index_types = tt->Indices()->Types();
 
-			if ( expected_index_types->length() != indices->size() )
+			if ( static_cast<size_t>(expected_index_types->length()) !=
+			     indices->size() )
 				{
 				Unref(rval);
 				return nullptr;
@@ -244,7 +245,8 @@ struct val_converter {
 
 			auto expected_index_types = tt->Indices()->Types();
 
-			if ( expected_index_types->length() != indices->size() )
+			if ( static_cast<size_t>(expected_index_types->length()) !=
+			     indices->size() )
 				{
 				Unref(rval);
 				return nullptr;
@@ -315,7 +317,7 @@ struct val_converter {
 
 		auto rt = type->AsRecordType();
 
-		if ( a.fields.size() != rt->NumFields() )
+		if ( a.fields.size() != static_cast<size_t>(rt->NumFields()) )
 			return nullptr;
 
 		auto rval = new RecordVal(rt);
@@ -505,7 +507,7 @@ broker::util::optional<broker::data> comm::val_to_data(Val* v)
 		{
 		auto rec = v->AsRecordVal();
 		broker::record rval;
-		auto num_fields = v->Type()->AsRecordType()->NumFields();
+		size_t num_fields = v->Type()->AsRecordType()->NumFields();
 		rval.fields.reserve(num_fields);
 
 		for ( auto i = 0u; i < num_fields; ++i )

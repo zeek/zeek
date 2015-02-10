@@ -322,7 +322,7 @@ RecordVal* comm::Manager::MakeEventArgs(val_list* args)
 	rval->Assign(1, arg_vec);
 	Func* func;
 
-	for ( auto i = 0u; i < args->length(); ++i )
+	for ( auto i = 0; i < args->length(); ++i )
 		{
 		auto arg_val = (*args)[i];
 
@@ -742,7 +742,7 @@ void comm::Manager::Process()
 
 			auto arg_types = ehp->FType()->ArgTypes()->Types();
 
-			if ( arg_types->length() != em.size() - 1 )
+			if ( static_cast<size_t>(arg_types->length()) != em.size() - 1 )
 				{
 				reporter->Warning("got event message with invalid # of args,"
 				                  " got %zd, expected %d", em.size() - 1,
@@ -766,7 +766,7 @@ void comm::Manager::Process()
 					}
 				}
 
-			if ( vl->length() == em.size() - 1 )
+			if ( static_cast<size_t>(vl->length()) == em.size() - 1 )
 				mgr.QueueEvent(ehp, vl);
 			else
 				delete_vals(vl);

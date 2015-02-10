@@ -94,7 +94,7 @@ void EventHandler::Call(val_list* vl, bool no_remote)
 			msg.emplace_back(Name());
 			bool valid_args = true;
 
-			for ( auto i = 0u; i < vl->length(); ++i )
+			for ( auto i = 0; i < vl->length(); ++i )
 				{
 				auto opt_data = comm::val_to_data((*vl)[i]);
 

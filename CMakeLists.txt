@@ -177,8 +177,11 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 ########################################################################
 ## Recurse on sub-directories
 
+if ( ENABLE_CXX11 )
+    include(RequireCXX11)
+endif ()
+
 if ( ENABLE_BROKER )
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
     add_subdirectory(aux/broker)
     set(brodeps ${brodeps} broker)
     add_definitions(-DENABLE_BROKER)

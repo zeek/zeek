@@ -17,11 +17,6 @@ global h: opaque of Store::Handle;
 global expected_key_count = 4;
 global key_count = 0;
 
-event done()
-	{
-	terminate();
-	}
-
 function do_lookup(key: string)
 	{
 	when ( local res = Store::lookup(h, Comm::data(key)) )
@@ -30,7 +25,7 @@ function do_lookup(key: string)
 		print "lookup", key, res;
 
 		if ( key_count == expected_key_count )
-			event done();
+			terminate();
 		}
 	timeout 10sec
 		{ print "timeout"; }
@@ -57,7 +52,6 @@ event bro_init()
 	Comm::enable();
 	Comm::listen(broker_port, "127.0.0.1");
 	Comm::subscribe_to_events("bro/event/ready");
-	Comm::auto_event("bro/event/done", done);
 	}
 
 @TEST-END-FILE
@@ -78,7 +72,8 @@ function dv(d: Comm::Data): Comm::DataVector
 
 global ready: event();
 
-event done()
+event Comm::outgoing_connection_broken(peer_address: string,
+                                       peer_port: port)
 	{
 	terminate();
 	}
@@ -112,7 +107,6 @@ event bro_init()
 	Comm::enable();
 	Comm::connect("127.0.0.1", broker_port, 1secs);
 	Comm::auto_event("bro/event/ready", ready);
-	Comm::subscribe_to_events("bro/event/done");
 	}
 
 @TEST-END-FILE

@@ -20,16 +20,23 @@ event bro_init()
 	Comm::subscribe_to_prints("bro/print/");
 	}
 
-global n = 0;
+global messages_to_recv = 6;
+global messages_sent = 0;
+global messages_recv = 0;
 
 event Comm::print_handler(msg: string)
 	{
+	++messages_recv;
 	print "got print msg", msg;
-	Comm::print("bro/print/my_topic", fmt("pong %d", n));
-	++n;
 
-	if ( msg == "ping 5" )
+	if ( messages_to_recv == messages_recv )
+		{
 		terminate();
+		return;
+		}
+
+	Comm::print("bro/print/my_topic", fmt("pong %d", messages_sent));
+	++messages_sent;
 	}
 
 @TEST-END-FILE
@@ -46,25 +53,31 @@ event bro_init()
 	Comm::connect("127.0.0.1", broker_port, 1secs);
 	}
 
-global n = 0;
+global messages_sent = 0;
+global messages_recv = 0;
+global peer_disconnected = F;
 
 event Comm::outgoing_connection_established(peer_address: string,
                                             peer_port: port,
                                             peer_name: string)
 	{
 	print "Comm::outgoing_connection_established", peer_address, peer_port;
-	Comm::print("bro/print/hi", fmt("ping %d", n));
-	++n;
+	Comm::print("bro/print/hi", fmt("ping %d", messages_sent));
+	++messages_sent;
+	}
+
+event Comm::outgoing_connection_broken(peer_address: string,
+                                       peer_port: port)
+	{
+	terminate();
 	}
 
 event Comm::print_handler(msg: string)
 	{
+	++messages_recv;
 	print "got print msg", msg;
-	Comm::print("bro/print/hi", fmt("ping %d", n));
-	++n;
-
-	if ( msg == "pong 5" )
-		terminate();
+	Comm::print("bro/print/hi", fmt("ping %d", messages_sent));
+	++messages_sent;
 	}
 
 @TEST-END-FILE

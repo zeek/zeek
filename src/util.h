@@ -48,8 +48,8 @@
 #endif
 
 #ifdef USE_PERFTOOLS_DEBUG
-#include <google/heap-checker.h>
-#include <google/heap-profiler.h>
+#include <gperftools/heap-checker.h>
+#include <gperftools/heap-profiler.h>
 extern HeapLeakChecker* heap_checker;
 #endif
 

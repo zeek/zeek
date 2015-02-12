@@ -414,7 +414,6 @@ broker::util::optional<broker::data> comm::val_to_data(Val* v)
 		auto is_set = v->Type()->IsSet();
 		auto table = v->AsTable();
 		auto table_val = v->AsTableVal();
-		auto c = table->InitForIteration();
 		broker::data rval;
 
 		if ( is_set )
@@ -437,10 +436,12 @@ broker::util::optional<broker::data> comm::val_to_data(Val* v)
 			ListVal* lv;
 		};
 
-		for ( auto i = 0; i < table->Length(); ++i )
+		HashKey* k;
+		TableEntryVal* entry;
+		auto c = table->InitForIteration();
+
+		while ( (entry = table->NextEntry(k, c)) )
 			{
-			HashKey* k;
-			auto entry = table->NextEntry(k, c);
 			auto vl = table_val->RecoverIndex(k);
 			iter_guard ig(k, vl);
 

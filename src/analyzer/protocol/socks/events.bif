@@ -34,12 +34,12 @@ event socks_reply%(c: connection, version: count, reply: count, sa: SOCKS::Addre
 ## user: The given username.
 ##
 ## password: The given password.
-event socks_login_userpass%(c: connection, user: string, password: string%);
+event socks_login_userpass_request%(c: connection, user: string, password: string%);
 
-## Generated when a SOCKS server replies to a login attempt.
+## Generated when a SOCKS server replies to a username/password login attempt.
 ##
 ## c: The parent connection of the proxy.
 ## 
 ## code: The response code for the attempted login.
-event socks_login_reply%(c: connection, code: count%);
+event socks_login_userpass_reply%(c: connection, code: count%);
 

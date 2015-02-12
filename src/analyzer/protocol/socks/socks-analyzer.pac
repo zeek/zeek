@@ -148,28 +148,34 @@ refine connection SOCKS_Conn += {
 		return true;
 		%}
 
-	function socks5_auth_request_userpass(request: SOCKS5_Auth_Request_UserPass): bool
+	function socks5_auth_request_userpass(request: SOCKS5_Auth_Request_UserPass_v1): bool
 		%{
 		StringVal* user = new StringVal(${request.username}.length(), (const char*) ${request.username}.begin());
 		StringVal* pass = new StringVal(${request.password}.length(), (const char*) ${request.password}.begin());
 		
-		BifEvent::generate_socks_login_userpass(bro_analyzer(),
-		                                        bro_analyzer()->Conn(),
-		                                        user, pass);
+		BifEvent::generate_socks_login_userpass_request(bro_analyzer(),
+		                                                bro_analyzer()->Conn(),
+		                                                user, pass);
 		return true;
 		%}
 
-	function socks5_unsupported_authentication(auth_method: uint8): bool
+	function socks5_unsupported_authentication_method(auth_method: uint8): bool
 		%{
-		reporter->Weird(bro_analyzer()->Conn(), fmt("socks5_unsupported_authentication_%d", auth_method));
+		reporter->Weird(bro_analyzer()->Conn(), fmt("socks5_unsupported_authentication_method_%d", auth_method));
+		return true;
+		%}
+
+	function socks5_unsupported_authentication_version(auth_method: uint8, version: uint8): bool
+		%{
+		reporter->Weird(bro_analyzer()->Conn(), fmt("socks5_unsupported_authentication_%d_%d", auth_method, version));
 		return true;
 		%}
 	
-	function socks5_auth_reply(reply: SOCKS5_Auth_Reply): bool
+	function socks5_auth_reply_userpass(reply: SOCKS5_Auth_Reply_UserPass_v1): bool
 		%{
-		BifEvent::generate_socks_login_reply(bro_analyzer(),
-		                                     bro_analyzer()->Conn(),
-		                                     ${reply.code});
+		BifEvent::generate_socks_login_userpass_reply(bro_analyzer(),
+		                                              bro_analyzer()->Conn(),
+		                                              ${reply.code});
 		return true;
 		%}
 
@@ -205,14 +211,18 @@ refine typeattr SOCKS5_Reply += &let {
 refine typeattr SOCKS5_Auth_Negotiation_Reply += &let {
 };
 
-refine typeattr SOCKS5_Auth_Request_UserPass += &let {
+refine typeattr SOCKS5_Auth_Request_UserPass_v1 += &let {
 	proc: bool = $context.connection.socks5_auth_request_userpass(this);
 };
 
-refine typeattr SOCKS5_Auth_Reply += &let {
-	proc: bool = $context.connection.socks5_auth_reply(this);
+refine typeattr SOCKS5_Auth_Reply_UserPass_v1 += &let {
+	proc: bool = $context.connection.socks5_auth_reply_userpass(this);
 };
 
-refine typeattr SOCKS5_Unsupported_Authentication += &let {
-	proc: bool = $context.connection.socks5_unsupported_authentication($context.connection.v5_auth_method());
+refine typeattr SOCKS5_Unsupported_Authentication_Method += &let {
+	proc: bool = $context.connection.socks5_unsupported_authentication_method($context.connection.v5_auth_method());
+};
+
+refine typeattr SOCKS5_Unsupported_Authentication_Version += &let {
+	proc: bool = $context.connection.socks5_unsupported_authentication_version($context.connection.v5_auth_method(), version);
 };

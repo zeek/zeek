@@ -94,7 +94,7 @@ event socks_reply(c: connection, version: count, reply: count, sa: SOCKS::Addres
 		Log::write(SOCKS::LOG, c$socks);
 	}
 
-event socks_login_userpass(c: connection, user: string, password: string) &priority=5
+event socks_login_userpass_request(c: connection, user: string, password: string) &priority=5
 	{
 	# Authentication only possible with the version 5.
 	set_session(c, 5); 
@@ -103,7 +103,7 @@ event socks_login_userpass(c: connection, user: string, password: string) &prior
 	c$socks$password = password;
 	}
 
-event socks_login_reply(c: connection, code: count) &priority=5
+event socks_login_userpass_reply(c: connection, code: count) &priority=5
 	{
 	# Authentication only possible with the version 5.
 	set_session(c, 5);

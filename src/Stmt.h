@@ -310,6 +310,35 @@ protected:
 	EventExpr* event_expr;
 };
 
+class WhileStmt : public Stmt {
+public:
+
+	WhileStmt(Expr* loop_condition, Stmt* body);
+
+	~WhileStmt();
+
+	int IsPure() const;
+
+	void Describe(ODesc* d) const;
+
+	TraversalCode Traverse(TraversalCallback* cb) const;
+
+protected:
+	friend class Stmt;
+
+	DECLARE_SERIAL(WhileStmt);
+
+	WhileStmt()
+		{ loop_condition = 0; body = 0; }
+
+	Val* Exec(Frame* f, stmt_flow_type& flow) const;
+
+	Stmt* Simplify();
+
+	Expr* loop_condition;
+	Stmt* body;
+};
+
 class ForStmt : public ExprStmt {
 public:
 	ForStmt(id_list* loop_vars, Expr* loop_expr);

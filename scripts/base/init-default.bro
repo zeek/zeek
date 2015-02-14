@@ -46,7 +46,7 @@
 @load base/protocols/http
 @load base/protocols/irc
 @load base/protocols/modbus
-@load base/protocols/mysql
+#@load base/protocols/mysql
 @load base/protocols/pop3
 @load base/protocols/radius
 @load base/protocols/rdp

@@ -14,29 +14,33 @@ export {
                 id:     		conn_id &log;
                 ## Cookie value used by the client machine.
                 ## This is typically a username.
-                cookie: 		string &log &optional;
+                cookie: 		string 	&log &optional;
                 ## Keyboard layout (language) of the client machine.
-                keyboard_layout:        string &log &optional;
+                keyboard_layout:        string 	&log &optional;
 		## RDP client version used by the client machine.
-		client_build:		string &log &optional;
+		client_build:		string 	&log &optional;
                 ## Hostname of the client machine.
-                client_hostname:	string &log &optional;
+                client_hostname:	string 	&log &optional;
                 ## Product ID of the client machine.
-                client_product_id:	string &log &optional;
-                ## GCC result for the connection. This value is extracted from the payload for native encryption.
-                result: 		string  &log    &optional;
+                client_product_id:	string 	&log &optional;
+                ## GCC result for the connection. 
+                result: 		string  &log &optional;
                 ## Encryption level of the connection.
-                encryption_level:       string  &log    &optional;
+                encryption_level:       string  &log &optional;
                 ## Encryption method of the connection. 
-                encryption_method:      string  &log    &optional;
+                encryption_method:      string  &log &optional;
 		## Track status of logging RDP connections.
-		done:			bool &default=F;
+		done:			bool 	&default=F;
         };
 
         ## Event that can be handled to access the rdp record as it is sent on
         ## to the loggin framework.
         global log_rdp: event(rec: Info);
 }
+
+redef record connection += {
+        rdp: Info &optional;
+        };
 
 const ports = { 3389/tcp };
 redef likely_server_ports += { ports };
@@ -47,9 +51,15 @@ event bro_init() &priority=5
         Analyzer::register_for_ports(Analyzer::ANALYZER_RDP, ports);
         }
 
-redef record connection += {
-        rdp: Info &optional;
-	};
+function set_session(c: connection)
+        {
+        if ( ! c?$rdp )
+          {
+          c$rdp = [$ts=network_time(),$id=c$id,$uid=c$uid];
+	  # Need to do this manually because the DPD framework does not seem to register the protocol (even though DPD is working)
+          add c$service["rdp"];
+          }
+        }
 
 function rdp_done(c: connection, done: bool)
 	{
@@ -94,15 +104,6 @@ event rdp_tracker(c: connection)
         schedule +5secs { rdp_tracker(c) };
 	}
 
-function set_session(c: connection)
-        {
-        if ( ! c?$rdp )
-          {
-          c$rdp = [$ts=network_time(),$id=c$id,$uid=c$uid];
-          add c$service["rdp"];
-          }
-        }
-
 event connection_state_remove(c: connection) &priority=-5
 	{
 	# Log the RDP connection if the connection is removed but the session has not been marked as done
@@ -137,8 +138,6 @@ event rdp_result(c: connection, result: count) &priority=5
 	{
         set_session(c);
         c$rdp$result = results[result];
-
-	schedule +5secs { rdp_tracker(c) };
 	}
 
 event rdp_server_security(c: connection, encryption_method: count, encryption_level: count) &priority=5
@@ -146,6 +145,4 @@ event rdp_server_security(c: connection, encryption_method: count, encryption_le
 	set_session(c);
 	c$rdp$encryption_method = encryption_methods[encryption_method];
 	c$rdp$encryption_level = encryption_levels[encryption_level];
-
-	schedule +5secs { rdp_tracker(c) };
 	}

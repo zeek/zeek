@@ -62,6 +62,8 @@ function set_session(c: connection)
           }
         }
 
+## Currently rdp_done and rdp_tracker mimic the SSH analyzer for disabling analysis, but there might be a better method
+## Once the DPD framework bug is fixed, we could possibly use the same method as SSL analyzer
 function rdp_done(c: connection, done: bool)
 	{
 	if ( done )
@@ -91,8 +93,8 @@ event rdp_tracker(c: connection)
 	
 	if ( connection_exists(id) )
 	  {
-	  # If the RDP connection has been alive for more than 5secs, log it
-	  # This duration should be sufficient to collect the data that needs to be logged
+	  ## If the RDP connection has been alive for more than 5secs, log it
+	  ## This duration should be sufficient to collect the data that needs to be logged
 	  local diff = network_time() - c$rdp$ts;
 	  if ( diff > 5secs ) 
 	    {
@@ -101,13 +103,13 @@ event rdp_tracker(c: connection)
 	    }
 	  }
 
-	# Schedule the event to run again if necessary
+	## Schedule the event to run again if necessary
         schedule +5secs { rdp_tracker(c) };
 	}
 
 event connection_state_remove(c: connection) &priority=-5
 	{
-	# Log the RDP connection if the connection is removed but the session has not been marked as done
+	## Log the RDP connection if the connection is removed but the session has not been marked as done
 	if ( c?$rdp && ! c$rdp$done )
 	  rdp_done(c,T);
 	}

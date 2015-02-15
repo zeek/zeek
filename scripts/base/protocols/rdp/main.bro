@@ -34,7 +34,7 @@ export {
         };
 
         ## Event that can be handled to access the rdp record as it is sent on
-        ## to the loggin framework.
+        ## to the logging framework.
         global log_rdp: event(rec: Info);
 }
 
@@ -56,7 +56,8 @@ function set_session(c: connection)
         if ( ! c?$rdp )
           {
           c$rdp = [$ts=network_time(),$id=c$id,$uid=c$uid];
-	  # Need to do this manually because the DPD framework does not seem to register the protocol (even though DPD is working)
+	  ## Need to do this manually because the DPD framework does not seem to register the protocol (even though DPD is working)
+	  ## TODO: Find out why DPD framework isn't working
           add c$service["rdp"];
           }
         }
@@ -113,12 +114,14 @@ event connection_state_remove(c: connection) &priority=-5
 
 event rdp_client_request(c: connection, cookie: string) &priority=5
 	{
+	## Possibly better to avoid this clean up and use regex in binpac to extract the cookie value
 	if ( "Cookie" in clean(cookie) )
 	  {
 	  set_session(c);
 	  local cookie_val = sub(cookie,/Cookie.*\=/,"");
 	  c$rdp$cookie = sub(cookie_val,/\x0d\x0a.*$/,"");
 
+	  ## Schedule the rdp_tracker event so remaining data can be collected 
 	  schedule +5secs { rdp_tracker(c) };
 	  }
 	}
@@ -131,6 +134,8 @@ event rdp_client_data(c: connection, keyboard_layout: count, build: count, hostn
 	c$rdp$client_hostname = gsub(cat(hostname),/\\0/,""); 
 	c$rdp$client_product_id = gsub(cat(product_id),/\\0/,"");
 
+	## Schedule the rdp_tracker event so remaining data can be collected
+	## This is scheduled twice because the cookie in rdp_client_request may not exist
 	schedule +5secs { rdp_tracker(c) };
 	}
 

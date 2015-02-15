@@ -1,8 +1,8 @@
 type RDP_PDU(is_orig: bool) = record {
-	type:	uint16;
+	type:	uint8;
 	switch: case type of {
-	  0x1603 -> 	ntlm_authentication: 	NTLMAuthentication;	# NTLM authentication appears to be flagged by this 16-bit integer
-	  default ->	native_encryption:	NativeEncryption;	# assume native encryption, this should be the value of the TPKT version
+	  0x16 		-> 	ssl_encryption: 	bytestring &restofdata &transient; 	# send to SSL analyzer in the future
+	  default 	->	native_encryption:	NativeEncryption;			# TPKT version
 	};
 } &byteorder=bigendian;
 
@@ -11,8 +11,9 @@ type RDP_PDU(is_orig: bool) = record {
 ######################################################################
 
 type NativeEncryption = record {
-        pad:    padding[2]; # remaining TPKT values
-        cotp:   COTP;
+	tpkt_reserved:	uint8;
+	tpkt_length:	uint16;
+        cotp:   	COTP;
 };
 
 type COTP = record {
@@ -20,12 +21,12 @@ type COTP = record {
         pdu:    uint8;
         switch: case pdu of {
           0xe0    -> cRequest:    ClientRequest;
-          0xf0    -> hdr:         Header;
+          0xf0    -> hdr:         COTPHeader;
           default -> data:        bytestring &restofdata &transient;
         };
 } &byteorder=littleendian;
 
-type Header = record {
+type COTPHeader = record {
         tpdu_number:    		uint8;
         application_defined_type:       uint8;  	# this begins a BER encoded multiple octet variant, but can be safely skipped
         application_type:           	uint8;      	# this is value for the BER encoded octet variant above
@@ -34,6 +35,11 @@ type Header = record {
           0x66  -> sHeader:     ServerHeader;     # 0x66 is a server
           default -> data:      bytestring &restofdata &transient;
         };
+} &byteorder=littleendian;
+
+type DataHdr = record {
+        type:   uint16;
+        length: uint16;
 } &byteorder=littleendian;
 
 ######################################################################
@@ -130,7 +136,7 @@ type ServerHeader = record {
 	network_header:				DataHdr;	
         net_data:         			padding[network_header.length - 4]; 				# skip this data 
 	security_header:			DataHdr;	
-        security_data:    			ServerSecurityData;						# there is some issue / bug where the length reported by the security header overruns the end of the packet
+        security_data:    			ServerSecurityData;						
 };
 
 type GCC_Server_ConnectionData = record {
@@ -152,11 +158,6 @@ type GCC_Server_CreateResponse = record {
 	user_data_value_length:		uint16;
 };
 
-type DataHdr = record {
-        type:   uint16;
-        length: uint16;
-} &byteorder=littleendian;
-
 type ServerCoreData = record {
 	version_major:			uint16;
 	version_minor:			uint16;
@@ -174,83 +175,40 @@ type ServerSecurityData = record {
         server_random_length:   uint32 &byteorder=littleendian;
         server_cert_length:     uint32 &byteorder=littleendian;
         server_random:          bytestring &length=server_random_length;
-        server_certificate:     bytestring &length=server_cert_length-8;	# arbitrarily cutting off 8 chars so the certificate doesn't overrun the end of the packet
+	server_certificate:	ServerCertificate;
 };
 
-######################################################################
-# NTLM Authentication
-######################################################################
-
-type NTLMAuthentication = record {
-        type:   uint16;
-        switch: case type of {									# there may be further type bytes that need to be added to this switch
-          0x0100        ->      client_request: 	NTLMClientRequest;
-	  0x0300	->	client_request2:	NTLMClientRequest;
-          0x0103        ->      server_response:        NTLMServerResponse;
-	  0x0104	->	server_response2:	NTLMServerResponse;
-          default       ->      data:   		bytestring &restofdata &transient;
+type ServerCertificate = record {
+        cert_type:           uint8;
+        switch: case cert_type of {
+          0x01  ->      proprietary:    ServerProprietary;
+          0x02  ->      ssl:            SSL; 
         };
+} &byteorder=littleendian;
+
+type ServerProprietary = record {
+        cert_type:              uint8[3];               # remainder of cert_type value
+        signature_algorithm:    uint32;
+        key_algorithm:          uint32;
+        public_key_blob_type:   uint16;
+        public_key_blob_length: uint16;
+        public_key_blob:        PublicKeyBlob &length=public_key_blob_length;
+        signature_blob_type:    uint16;
+        signature_blob_length:  uint16;
+        signature_blob:         bytestring &length=signature_blob_length;
 };
 
-######################################################################
-# NTLM Client
-######################################################################
-
-type NTLMClientRequest = record {
-	payload_length:		uint8; 				# total payload length
-	pad1:			padding[3];			# arbitrary 3 bytes
-	remaining_length1:	uint8;				# remaining length of the payload
-	pad2:			padding[36];			# arbitrary 36 bytes 	
-	unknown_length:		uint8;				# an unknown length value
-	unknown_value1:		padding[unknown_length];	# arbitrary padding for the length value above
-	pad3:			padding[3];			# arbitrary 3 bytes
-	remainder_length2:	uint8; 				# remaining length of the payload
-	unknown:		uint8; 				# this unknown field affects the length between here and the beginning of the requested server name
-	switch: case unknown of {
-	  0x00		->	case1:	uint8[7]; 		# jump 7 bytes
-	  0xff		->	case2:	uint8[12]; 		# jump 12 bytes
-	  default	->	case3:	Debug;			# debug if an unknown value is seen
-	};
-	server_length:		uint8;	
-	server_name:		bytestring &length=server_length;
-	data:			bytestring &restofdata &transient;
+type PublicKeyBlob = record {
+        magic:                  bytestring &length=4;
+        key_length:             uint32;
+        bit_length:             uint32;
+        public_exponent:        uint32;
+        modulus:                bytestring &length=key_length;
 };
 
-######################################################################
-# NTLM Server
-######################################################################
-
-type NTLMServerResponse = record {
-	unknown_value1:		uint8; 					# 1 variable byte
-	unknown_value2:		uint8[3];				# 3 bytes that may be static
-	unknown_value3:		uint8;					# 1 variable byte 
-	unknown_value4:		uint8[2];				# 2 bytes that may be static
-	unknown_length1:	uint8;					# an unknown length value
-	pad1:			padding[unknown_length1]; 		# arbitrary padding for the length value above
-	unknown_value5:		uint8[3];				# 3 bytes that may be static
-	unknown_value6:		uint8;					# 1 variable byte
-	unknown_value7:		uint8[3];				# 3 bytes that may be static
-	unknown_value8:		uint8;					# 1 variable byte
-	unknown_value9:		uint8[7];				# 7 bytes that may be static
-	unknown_value10:	uint8[16];				# 16 bytes that may be static
-	unknown_value11:	uint8[16];				# 16 bytes that may be static
-	unknown_value12:	uint8;					# 1 variable byte
-	unknown_value13:	uint8;					# 1 byte that may be static
-	unknown_value14:	uint8;					# 1 variable byte
-	unknown_value15:	uint8;					# 1 byte that may be static
-	unknown_value16:	uint8;					# 1 variable byte
-	unknown_value17:	uint8[6];				# 6 bytes that may be static
-	server_length:		uint8; 					# length of server name
-	server_name:		bytestring &length=server_length;	# server name
-	data:			bytestring &restofdata &transient;
-} &byteorder=bigendian;
-
-######################################################################
-# Debugging
-######################################################################
-
-type Debug = record {
-        remainder:      bytestring &restofdata;
+type SSL = record {
+	pad1:		padding[11];
+	x509_cert:	bytestring &restofdata &transient;	# send to x509 analyzer
 };
 
 ######################################################################
@@ -311,3 +269,4 @@ function binary_to_int64(bs: bytestring): int64
 
 	return rval;
 	%}
+

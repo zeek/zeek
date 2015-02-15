@@ -14,7 +14,7 @@ export {
                 id:     		conn_id &log;
                 ## Cookie value used by the client machine.
                 ## This is typically a username.
-                cookie: string &log &optional;
+                cookie: 		string &log &optional;
                 ## Keyboard layout (language) of the client machine.
                 keyboard_layout:        string &log &optional;
 		## RDP client version used by the client machine.
@@ -23,11 +23,8 @@ export {
                 client_hostname:	string &log &optional;
                 ## Product ID of the client machine.
                 client_product_id:	string &log &optional;
-		## Name of the server.
-		server_name:		vector of string &log &optional;
-                ## Authentication result for the connection. This value is extracted from the payload for native authentication.
-		## TODO: Perform heuristic authentication determination for NLA.
-                authentication_result: 	string  &log    &optional;
+                ## GCC result for the connection. This value is extracted from the payload for native encryption.
+                result: 		string  &log    &optional;
                 ## Encryption level of the connection.
                 encryption_level:       string  &log    &optional;
                 ## Encryption method of the connection. 
@@ -35,12 +32,6 @@ export {
 		## Track status of logging RDP connections.
 		done:			bool &default=F;
         };
-
-	## Variable to track if NTLM authentication is used.
-	global ntlm = F;
-
-	## Size in bytes of data sent by the server at which the RDP connection is presumed to be successful (NTLM authentication only).
-	const authentication_data_size = 1000 &redef;
 
         ## Event that can be handled to access the rdp record as it is sent on
         ## to the loggin framework.
@@ -65,17 +56,6 @@ function rdp_done(c: connection, done: bool)
 	if ( done )
 	  {
 	  c$rdp$done = T;
-
-	  # Not currently implemented
-#	  if ( ntlm && use_conn_size_analyzer ) 
-#	    {
-#	    if ( c$resp$size > authentication_data_size )
-#	      c$rdp$authentication_result = "Success (H)";
-#	    else c$rdp$authentication_result = "Undetermined";
-#	    }
-
-	  if ( c$rdp?$authentication_result && ( ! c$rdp?$encryption_method || ! c$rdp?$encryption_level ) )
-	    Reporter::error(fmt("Error parsing RDP security data in connection %s",c$uid));
 
 	  Log::write(RDP::LOG, c$rdp);
 	  skip_further_processing(c$id);
@@ -110,7 +90,7 @@ event rdp_tracker(c: connection)
 	    }
 	  }
 
-	# schedule the event to run again if necessary
+	# Schedule the event to run again if necessary
         schedule +5secs { rdp_tracker(c) };
 	}
 
@@ -130,7 +110,7 @@ event connection_state_remove(c: connection) &priority=-5
 	  rdp_done(c,T);
 	}
 
-event rdp_native_client_request(c: connection, cookie: string) &priority=5
+event rdp_client_request(c: connection, cookie: string) &priority=5
 	{
 	if ( "Cookie" in clean(cookie) )
 	  {
@@ -142,7 +122,7 @@ event rdp_native_client_request(c: connection, cookie: string) &priority=5
 	  }
 	}
 
-event rdp_native_client_info(c: connection, keyboard_layout: count, build: count, hostname: string, product_id: string) &priority=5
+event rdp_client_data(c: connection, keyboard_layout: count, build: count, hostname: string, product_id: string) &priority=5
 	{
 	set_session(c);
 	c$rdp$keyboard_layout = languages[keyboard_layout];
@@ -153,48 +133,19 @@ event rdp_native_client_info(c: connection, keyboard_layout: count, build: count
 	schedule +5secs { rdp_tracker(c) };
 	}
 
-event rdp_native_authentication(c: connection, result: count) &priority=5
+event rdp_result(c: connection, result: count) &priority=5
 	{
         set_session(c);
-        c$rdp$authentication_result = results[result];
+        c$rdp$result = results[result];
 
 	schedule +5secs { rdp_tracker(c) };
 	}
 
-event rdp_native_server_security(c: connection, encryption_method: count, encryption_level: count, random: string, certificate: string) &priority=5
+event rdp_server_security(c: connection, encryption_method: count, encryption_level: count) &priority=5
 	{
 	set_session(c);
 	c$rdp$encryption_method = encryption_methods[encryption_method];
 	c$rdp$encryption_level = encryption_levels[encryption_level];
 
 	schedule +5secs { rdp_tracker(c) };
-	}
-
-event rdp_ntlm_client_request(c: connection, server: string) &priority=5
-        {
-        set_session(c);
-        ntlm = T;
-
-	if ( ! c$rdp?$server_name )
-	  c$rdp$server_name = vector();
-        c$rdp$server_name[|c$rdp$server_name|] = server;
-
-	schedule +5secs { rdp_tracker(c) };
-        }
-
-event rdp_ntlm_server_response(c: connection, server: string) &priority=5
-	{
-	set_session(c);
-	ntlm = T;
-
-        if ( ! c$rdp?$server_name )
-          c$rdp$server_name = vector();
-        c$rdp$server_name[|c$rdp$server_name|] = server;
-
-	schedule +5secs { rdp_tracker(c) };
-	}
-
-event rdp_debug(c: connection, remainder: string)
-	{
-	Reporter::error(fmt("Debug RDP data generated in connection %s: %s",c$uid,remainder));
 	}

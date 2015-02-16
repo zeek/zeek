@@ -100,7 +100,7 @@ event log_record(c: connection, remove_analyzer: bool)
 	  verify_rdp(c);
 
 	  # Remove the analyzer if it is still attached.
-          if ( remove_analyzer && disable_analyzer_after_detection && c$rdp?$analyzer_id )
+          if ( remove_analyzer && disable_analyzer_after_detection && connection_exists(c$id) && c$rdp?$analyzer_id )
             {
             disable_analyzer(c$id, c$rdp$analyzer_id);
             delete c$rdp$analyzer_id;

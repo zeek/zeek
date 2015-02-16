@@ -414,3 +414,12 @@ install(DIRECTORY DESTINATION ${BRO_PLUGIN_INSTALL_PATH})
 # Make clean removes the bif directory.
 set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES ${CMAKE_BINARY_DIR}/scripts/base/bif)
 
+# Remove some stale files and scripts that previous Bro versions put in
+# place, yet make confuse us now. This makes upgrading easier.
+install(CODE "
+   file(REMOVE_RECURSE
+       ${BRO_SCRIPT_INSTALL_PATH}/base/frameworks/logging/writers/dataseries.bro
+       ${BRO_SCRIPT_INSTALL_PATH}/base/frameworks/logging/writers/elasticsearch.bro
+       ${BRO_SCRIPT_INSTALL_PATH}/policy/tuning/logs-to-elasticsearch.bro
+   )
+")

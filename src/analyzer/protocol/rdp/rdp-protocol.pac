@@ -2,7 +2,7 @@ type RDP_PDU(is_orig: bool) = record {
 	type:	uint8;
 	switch: case type of {
 	  0x16 		-> 	ssl_encryption: 	bytestring &restofdata &transient; 	# send to SSL analyzer in the future
-	  default 	->	native_encryption:	NativeEncryption;			# TPKT version
+	  default 	->	native_encryption:	Native_Encryption;			# TPKT version
 	};
 } &byteorder=bigendian;
 
@@ -10,7 +10,7 @@ type RDP_PDU(is_orig: bool) = record {
 # Native Encryption
 ######################################################################
 
-type NativeEncryption = record {
+type Native_Encryption = record {
 	tpkt_reserved:	uint8;
 	tpkt_length:	uint16;
         cotp:   	COTP;
@@ -20,24 +20,24 @@ type COTP = record {
         length: uint8;
         pdu:    uint8;
         switch: case pdu of {
-          0xe0    -> cRequest:    ClientRequest;
-          0xf0    -> hdr:         COTPHeader;
+          0xe0    -> cRequest:    Client_Request;
+          0xf0    -> hdr:         COTP_Header;
           default -> data:        bytestring &restofdata &transient;
         };
 } &byteorder=littleendian;
 
-type COTPHeader = record {
+type COTP_Header = record {
         tpdu_number:    		uint8;
         application_defined_type:       uint8;  	# this begins a BER encoded multiple octet variant, but can be safely skipped
         application_type:           	uint8;      	# this is value for the BER encoded octet variant above
-        switch: case application_type of {
-          0x65  -> cHeader:     ClientHeader;     # 0x65 is a client
-          0x66  -> sHeader:     ServerHeader;     # 0x66 is a server
-          default -> data:      bytestring &restofdata &transient;
+        switch: case application_type of {		# this seems to cause a binpac exception error
+          0x65  	-> cHeader:     Client_Header;     # 0x65 is a client
+          0x66  	-> sHeader:     Server_Header;     # 0x66 is a server
+          default 	-> data:      	bytestring &restofdata;
         };
 } &byteorder=littleendian;
 
-type DataHdr = record {
+type Data_Header = record {
         type:   uint16;
         length: uint16;
 } &byteorder=littleendian;
@@ -46,19 +46,20 @@ type DataHdr = record {
 # Client X.224
 ######################################################################
 
-type ClientRequest = record {
+type Client_Request = record {
         destination_reference:  uint16;
         source_reference:       uint16;
         flow_control:   	uint8;
-        cookie: 		bytestring &restofdata; # cookie value is a variable length field, so everything is captured
+	cookie_mstshash:	RE/Cookie: mstshash\=/;	# &check would be better here, but it is not implemented
+	cookie_value:		RE/[^\x0d]*/;		# the value is anything up to \x0d
 };
 
 ######################################################################
 # Client MCS
 ######################################################################
 
-type ClientHeader = record {
-	type_length:			padding[3]; # BER encoded long variant, can be safely skipped for now
+type Client_Header = record {
+	type_length:			uint8[3]; # BER encoded long variant, can be safely skipped for now
 	calling_domain_selector:	ASN1OctetString;
 	called_domain_selector:		ASN1OctetString;
 	upward_flag:			ASN1Boolean;
@@ -69,20 +70,20 @@ type ClientHeader = record {
 	maximum_parameters:		ASN1SequenceMeta;
 	max_parameters_pad:		padding[maximum_parameters.encoding.length];
 	user_data_length:		uint32; # BER encoded OctetString and long variant, can be safely skipped for now
-	gcc_connection_data:    	GCC_Client_ConnectionData;
-	gcc_client_create_request:	GCC_Client_CreateRequest;
-        core_header:                    DataHdr;
-        core_data:      		ClientCore;
+	gcc_connection_data:    	GCC_Client_Connection_Data;
+	gcc_client_create_request:	GCC_Client_Create_Request;
+        core_header:                    Data_Header;
+        core_data:      		Client_Core_Data;
 	remainder:			bytestring &restofdata &transient; # everything after core_data can be discarded
 };
 
-type GCC_Client_ConnectionData = record {
+type GCC_Client_Connection_Data = record {
         key_object_length:              uint16;
         key_object:                     uint8[key_object_length];
         connect_data_connect_pdu:       uint16;
 } &byteorder=bigendian;
 
-type GCC_Client_CreateRequest = record {
+type GCC_Client_Create_Request = record {
         extension_bit:                  uint8;
         privileges:                     uint8;
         numeric_length:                 uint8;
@@ -95,7 +96,7 @@ type GCC_Client_CreateRequest = record {
         user_data_value_length:         uint16;
 };
 
-type ClientCore = record {
+type Client_Core_Data = record {
         version_major:          uint16;
         version_minor:          uint16;
         desktop_width:          uint16;
@@ -122,30 +123,30 @@ type ClientCore = record {
 # Server MCS
 ######################################################################
 
-type ServerHeader = record {
-	type_length:                    	padding[3]; 							# BER encoded long variant, can be safely skipped for now
+type Server_Header = record {
+	type_length:                    	uint8[3]; 							# BER encoded long variant, can be safely skipped for now
 	connect_response_result:		ASN1Enumerated;
 	connect_response_called_id:		ASN1Integer;
 	connect_response_domain_parameters:	ASN1SequenceMeta;
         domain_parameters_pad:            	padding[connect_response_domain_parameters.encoding.length]; 	# skip this data
 	user_data_length:               	uint32; 							# BER encoded OctetString and long variant, can be safely skipped for now
-	gcc_connection_data:			GCC_Server_ConnectionData;
-	gcc_create_response:			GCC_Server_CreateResponse;
-	core_header:				DataHdr;	
+	gcc_connection_data:			GCC_Server_Connection_Data;
+	gcc_create_response:			GCC_Server_Create_Response;
+	core_header:				Data_Header;	
         core_data:        			padding[core_header.length - 4]; 				# skip this data
-	network_header:				DataHdr;	
+	network_header:				Data_Header;	
         net_data:         			padding[network_header.length - 4]; 				# skip this data 
-	security_header:			DataHdr;	
-        security_data:    			ServerSecurityData;						
+	security_header:			Data_Header;	
+        security_data:    			Server_Security_Data;						
 };
 
-type GCC_Server_ConnectionData = record {
+type GCC_Server_Connection_Data = record {
 	key_object_length:      	uint16;
         key_object:             	uint8[key_object_length];
         connect_data_connect_pdu:       uint8;
 } &byteorder=bigendian;
 
-type GCC_Server_CreateResponse = record {
+type GCC_Server_Create_Response = record {
 	extension_bit:			uint8;
 	node_id:			uint8[2];
 	tag_length:			uint8;
@@ -158,47 +159,47 @@ type GCC_Server_CreateResponse = record {
 	user_data_value_length:		uint16;
 };
 
-type ServerCoreData = record {
+type Server_Core_Data = record {
 	version_major:			uint16;
 	version_minor:			uint16;
 	client_requested_protocols:	uint32;
 };
 
-type ServerNetworkData = record {
+type Server_Network_Data = record {
 	mcs_channel_id:	uint16;
 	channel_count:	uint16;
 };
 
-type ServerSecurityData = record {
+type Server_Security_Data = record {
         encryption_method:      uint32;
         encryption_level:       uint32;
         server_random_length:   uint32 &byteorder=littleendian;
         server_cert_length:     uint32 &byteorder=littleendian;
         server_random:          bytestring &length=server_random_length;
-	server_certificate:	ServerCertificate;
+	server_certificate:	Server_Certificate;
 };
 
-type ServerCertificate = record {
+type Server_Certificate = record {
         cert_type:           uint8;
         switch: case cert_type of {
-          0x01  ->      proprietary:    ServerProprietary;
+          0x01  ->      proprietary:    Server_Proprietary;
           0x02  ->      ssl:            SSL; 
         };
 } &byteorder=littleendian;
 
-type ServerProprietary = record {
+type Server_Proprietary = record {
         cert_type:              uint8[3];               # remainder of cert_type value
         signature_algorithm:    uint32;
         key_algorithm:          uint32;
         public_key_blob_type:   uint16;
         public_key_blob_length: uint16;
-        public_key_blob:        PublicKeyBlob &length=public_key_blob_length;
+        public_key_blob:        Public_Key_Blob &length=public_key_blob_length;
         signature_blob_type:    uint16;
         signature_blob_length:  uint16;
         signature_blob:         bytestring &length=signature_blob_length;
 };
 
-type PublicKeyBlob = record {
+type Public_Key_Blob = record {
         magic:                  bytestring &length=4;
         key_length:             uint32;
         bit_length:             uint32;

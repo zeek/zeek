@@ -29,9 +29,23 @@ export {
                 encryption_level:       string  &log &optional;
                 ## Encryption method of the connection. 
                 encryption_method:      string  &log &optional;
+
+		## The analyzer ID used for the analyzer instance attached
+		## to each connection.  It is not used for logging since it's a
+		## meaningless arbitrary number.
+		analyzer_id:      count            &optional;
 		## Track status of logging RDP connections.
 		done:			bool 	&default=F;
         };
+
+	## If true, detach the RDP analyzer from the connection to prevent
+	## continuing to process encrypted traffic. Helps with performance
+	## (especially with large file transfers).
+	const disable_analyzer_after_detection = T &redef;
+
+	## The amount of time to monitor an RDP session from when it is first 
+	## identified. When this interval is reached, the session is logged.
+	const rdp_interval = 10secs &redef;
 
         ## Event that can be handled to access the rdp record as it is sent on
         ## to the logging framework.
@@ -51,81 +65,71 @@ event bro_init() &priority=5
         Analyzer::register_for_ports(Analyzer::ANALYZER_RDP, ports);
         }
 
+# Verify that the RDP session contains
+# RDP data before writing it to the log. 
+function verify_rdp(c: connection)
+	{
+	local info = c$rdp;
+	if ( info?$cookie || info?$keyboard_layout || info?$result )
+	  Log::write(RDP::LOG,info);
+	else
+	  Reporter::error("RDP analyzer was initialized but no data was found");
+	}
+
+event log_record(c: connection, remove_analyzer: bool)
+        {
+	# If the record was logged, then stop processing.
+        if ( c$rdp$done )
+          return;
+
+	# If the analyzer is no logger attached, then 
+	# log the record and stop processing.
+	if ( ! remove_analyzer )
+	  {
+	  c$rdp$done = T;
+	  verify_rdp(c);
+	  return;
+	  }
+
+	# If the value rdp_interval has passed since the 
+	# RDP session was started, then log the record. 
+        local diff = network_time() - c$rdp$ts;
+        if ( diff > rdp_interval )
+          {
+          c$rdp$done = T;
+	  verify_rdp(c);
+
+	  # Remove the analyzer if it is still attached.
+          if ( remove_analyzer && disable_analyzer_after_detection && c$rdp?$analyzer_id )
+            {
+            disable_analyzer(c$id, c$rdp$analyzer_id);
+            delete c$rdp$analyzer_id;
+            }
+
+	  return;
+          }
+	# If the analyzer is attached and the duration
+	# to monitor the RDP session was not met, then
+	# reschedule the logging event.
+        else
+          schedule +rdp_interval { log_record(c,remove_analyzer) };
+        }
+
 function set_session(c: connection)
         {
         if ( ! c?$rdp )
-          {
+	  {
           c$rdp = [$ts=network_time(),$id=c$id,$uid=c$uid];
-	  ## Need to do this manually because the DPD framework does not seem to register the protocol (even though DPD is working)
-	  ## TODO: Find out why DPD framework isn't working
-          add c$service["rdp"];
-          }
+	  # The RDP session is scheduled to be logged from
+	  # the time it is first initiated.
+	  schedule +rdp_interval { log_record(c,T) };	
+	  }
         }
-
-## Currently rdp_done and rdp_tracker mimic the SSH analyzer for disabling analysis, but there might be a better method
-## Once the DPD framework bug is fixed, we could possibly use the same method as SSL analyzer
-function rdp_done(c: connection, done: bool)
-	{
-	if ( done )
-	  {
-	  c$rdp$done = T;
-
-	  Log::write(RDP::LOG, c$rdp);
-	  skip_further_processing(c$id);
-	  set_record_packets(c$id, F);
-	  }
-	}
-
-event rdp_tracker(c: connection)
-	{
-	if ( c$rdp$done )
-	  return;
-
-	local id = c$id;
-	  
-	if ( ! connection_exists(id) )
-	  {
-	  rdp_done(c,T);
-	  return;
-	  }
-
-	lookup_connection(id);
-	
-	if ( connection_exists(id) )
-	  {
-	  ## If the RDP connection has been alive for more than 5secs, log it
-	  ## This duration should be sufficient to collect the data that needs to be logged
-	  local diff = network_time() - c$rdp$ts;
-	  if ( diff > 5secs ) 
-	    {
-	    rdp_done(c,T);
-            return;
-	    }
-	  }
-
-	## Schedule the event to run again if necessary
-        schedule +5secs { rdp_tracker(c) };
-	}
-
-event connection_state_remove(c: connection) &priority=-5
-	{
-	## Log the RDP connection if the connection is removed but the session has not been marked as done
-	if ( c?$rdp && ! c$rdp$done )
-	  rdp_done(c,T);
-	}
 
 event rdp_client_request(c: connection, cookie: string) &priority=5
 	{
-	## Possibly better to avoid this clean up and use regex in binpac to extract the cookie value
-	if ( "Cookie" in clean(cookie) )
-	  {
-	  set_session(c);
-	  local cookie_val = sub(cookie,/Cookie.*\=/,"");
-	  c$rdp$cookie = sub(cookie_val,/\x0d\x0a.*$/,"");
-
-	  ## Schedule the rdp_tracker event so remaining data can be collected 
-	  schedule +5secs { rdp_tracker(c) };
-	  }
+	set_session(c);
+	c$rdp$cookie = cookie;
 	}
 
 event rdp_client_data(c: connection, keyboard_layout: count, build: count, hostname: string, product_id: string) &priority=5
@@ -135,10 +139,6 @@ event rdp_client_data(c: connection, keyboard_layout: count, build: count, hostn
 	c$rdp$client_build = builds[build];
 	c$rdp$client_hostname = gsub(cat(hostname),/\\0/,""); 
 	c$rdp$client_product_id = gsub(cat(product_id),/\\0/,"");
-
-	## Schedule the rdp_tracker event so remaining data can be collected
-	## This is scheduled twice because the cookie in rdp_client_request may not exist
-	schedule +5secs { rdp_tracker(c) };
 	}
 
 event rdp_result(c: connection, result: count) &priority=5
@@ -153,3 +153,26 @@ event rdp_server_security(c: connection, encryption_method: count, encryption_le
 	c$rdp$encryption_method = encryption_methods[encryption_method];
 	c$rdp$encryption_level = encryption_levels[encryption_level];
 	}
+
+event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &priority=5
+	{
+	if ( atype == Analyzer::ANALYZER_RDP )
+		{
+		set_session(c);
+		c$rdp$analyzer_id = aid;
+		}
+	}
+
+event protocol_violation(c: connection, atype: Analyzer::Tag, aid: count, reason: string) &priority=5
+	{
+	# If a protocol violation occurs, then log the record immediately.
+	if ( c?$rdp )
+	  schedule +0secs { log_record(c,F) };
+	}
+
+event connection_state_remove(c: connection) &priority=-5
+        {
+	# If the connection is removed, then log the record immediately.
+        if ( c?$rdp )
+          schedule +0secs { log_record(c,F) };
+        }

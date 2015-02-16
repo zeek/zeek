@@ -82,7 +82,7 @@ event log_record(c: connection, remove_analyzer: bool)
         if ( c$rdp$done )
           return;
 
-	# If the analyzer is no logger attached, then 
+	# If the analyzer is no longer attached, then 
 	# log the record and stop processing.
 	if ( ! remove_analyzer )
 	  {

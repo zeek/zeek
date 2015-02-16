@@ -159,6 +159,9 @@ int strstr_n(const int big_len, const unsigned char* big,
 extern int fputs(int len, const char* s, FILE* fp);
 extern bool is_printable(const char* s, int len);
 
+// Return a lower-cased version of the string.
+extern std::string strtolower(const std::string& s);
+
 extern const char* fmt_bytes(const char* data, int len);
 
 // Note: returns a pointer into a shared buffer.

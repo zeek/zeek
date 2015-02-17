@@ -14,12 +14,21 @@ namespace comm {
 
 extern OpaqueType* opaque_of_store_handle;
 
+/**
+ * Enumerates the possible types of data stores.
+ */
 enum StoreType {
+	// Just a view in to a remote store, contains no data itself.
     FRONTEND,
     MASTER,
     CLONE,
 };
 
+/**
+ * Create a Store::QueryStatus value.
+ * @param success whether the query status should be set to success or failure.
+ * @return a Store::QueryStatus value.
+ */
 inline EnumVal* query_status(bool success)
 	{
 	static EnumType* store_query_status = nullptr;
@@ -36,6 +45,10 @@ inline EnumVal* query_status(bool success)
 	return new EnumVal(success ? success_val : failure_val, store_query_status);
 	}
 
+/**
+ * @return a Store::QueryResult value that has a Store::QueryStatus indicating
+ * a failure.
+ */
 inline RecordVal* query_result()
 	{
 	auto rval = new RecordVal(BifType::Record::Store::QueryResult);
@@ -44,6 +57,11 @@ inline RecordVal* query_result()
 	return rval;
 	}
 
+/**
+ * @param data the result of the query.
+ * @return a Store::QueryResult value that has a Store::QueryStatus indicating
+ * a success.
+ */
 inline RecordVal* query_result(RecordVal* data)
 	{
 	auto rval = new RecordVal(BifType::Record::Store::QueryResult);
@@ -52,6 +70,9 @@ inline RecordVal* query_result(RecordVal* data)
 	return rval;
 	}
 
+/**
+ * Used for asynchronous data store queries which use "when" statements.
+ */
 class StoreQueryCallback {
 public:
 
@@ -84,6 +105,9 @@ public:
 		Unref(result);
 		}
 
+	bool Disabled() const
+		{ return trigger->Disabled(); }
+
 	const broker::store::identifier& StoreID() const
 		{ return store_id; }
 
@@ -98,6 +122,9 @@ private:
 	StoreType store_type;
 };
 
+/**
+ * An opaque handle which wraps a Broker data store.
+ */
 class StoreHandleVal : public OpaqueVal {
 public:
 

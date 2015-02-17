@@ -48,13 +48,8 @@ comm::StoreHandleVal::StoreHandleVal(broker::store::identifier id,
 #ifdef HAVE_ROCKSDB
 			std::string path = backend_options->Lookup(1)->AsRecordVal()
 			                   ->Lookup(0)->AsStringVal()->CheckString();
-			bool use_merge_op = backend_options->Lookup(1)->AsRecordVal()
-			                    ->Lookup(1)->AsBool();
 			rocksdb::Options rock_op;
 			rock_op.create_if_missing = true;
-
-			if ( use_merge_op )
-				options.merge_operator.reset(new rocksdb_merge_operator);
 
 			auto rocksdb = new broker::store::rocksdb_backend;
 

@@ -55,6 +55,8 @@ public:
 	// may not immediately delete it as other references may still exist.
 	void Disable();
 
+	bool Disabled() const { return disabled; }
+
 	virtual void Describe(ODesc* d) const { d->Add("<trigger>"); }
 
 	// Overidden from Notifier.  We queue the trigger and evaluate it

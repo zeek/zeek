@@ -16,12 +16,22 @@ type Store::QueryResult: record;
 
 type Store::BackendOptions: record;
 
+## Enumerates the possible storage backends.
 enum BackendType %{
 	MEMORY,
 	SQLITE,
 	ROCKSDB,
 %}
 
+## Create a master data store which contains key-value pairs.
+##
+## id: a unique name for the data store.
+##
+## b: the storage backend to use.
+##
+## options: tunes how some storage backends operate.
+##
+## Returns: a handle to the data store.
 function Store::create_master%(id: string, b: BackendType &default = MEMORY,
                                options: BackendOptions &default = BackendOptions()%): opaque of Store::Handle
 	%{
@@ -42,6 +52,28 @@ function Store::create_master%(id: string, b: BackendType &default = MEMORY,
 	return rval;
 	%}
 
+## Create a clone of a master data store which may live with a remote peer.
+## A clone automatically synchronizes to the master by automatically receiving
+## modifications and applying them locally.  Direct modifications are not
+## possible, they must be sent through the master store, which then
+## automatically broadcasts the changes out to clones.  But queries may be made
+## directly against the local cloned copy, which may be resolved quicker than
+## reaching out to a remote master store.
+##
+## id: the unique name which identifies the master data store.
+##
+## b: the storage backend to use.
+##
+## options: tunes how some storage backends operate.
+##
+## resync: the interval at which to re-attempt synchronizing with the master
+##         store should the connection be lost.  If the clone has not yet
+##         synchronized for the first time, updates and queries queue up until
+##         the synchronization completes.  After, if the connection to the
+##         master store is lost, queries continue to use the clone's version,
+##         but updates will be lost until the master is once again available.
+##
+## Returns: a handle to the data store.
 function Store::create_clone%(id: string, b: BackendType &default = MEMORY,
                               options: BackendOptions &default = BackendOptions(),
                               resync: interval &default = 1sec%): opaque of Store::Handle
@@ -64,6 +96,12 @@ function Store::create_clone%(id: string, b: BackendType &default = MEMORY,
 	return rval;
 	%}
 
+## Create a frontend interface to an existing master data store that allows
+## querying and updating its contents.
+##
+## id: the unique name which identifies the master data store.
+##
+## Returns: a handle to the data store.
 function Store::create_frontend%(id: string%): opaque of Store::Handle
 	%{
 	auto id_str = id->CheckString();
@@ -81,6 +119,12 @@ function Store::create_frontend%(id: string%): opaque of Store::Handle
 	return rval;
 	%}
 
+## Close a data store.
+##
+## h: a data store handle.
+##
+## Returns: true if store was valid and is now closed.  The handle can no
+##          longer be used for data store operations.
 function Store::close_by_handle%(h: opaque of Store::Handle%): bool
 	%{
 	auto handle = static_cast<comm::StoreHandleVal*>(h);
@@ -96,6 +140,17 @@ function Store::close_by_handle%(h: opaque of Store::Handle%): bool
 # non-blocking update API #
 ###########################
 
+## Insert a key-value pair in to the store.
+##
+## h: the handle of the store to modify.
+##
+## k: the key to insert.
+##
+## v: the value to insert.
+##
+## e: the expiration time of the key-value pair.
+##
+## Returns: false if the store handle was not valid.
 function Store::insert%(h: opaque of Store::Handle,
                         k: Comm::Data, v: Comm::Data,
                         e: Store::ExpiryTime &default = Store::ExpiryTime()%): bool
@@ -134,6 +189,13 @@ function Store::insert%(h: opaque of Store::Handle,
 	return new Val(true, TYPE_BOOL);
 	%}
 
+## Remove a key-value pair from the store.
+##
+## h: the handle of the store to modify.
+##
+## k: the key to remove.
+##
+## Returns: false if the store handle was not valid.
 function Store::erase%(h: opaque of Store::Handle, k: Comm::Data%): bool
 	%{
 	auto handle = static_cast<comm::StoreHandleVal*>(h);
@@ -146,6 +208,11 @@ function Store::erase%(h: opaque of Store::Handle, k: Comm::Data%): bool
 	return new Val(true, TYPE_BOOL);
 	%}
 
+## Remove all key-value pairs from the store.
+##
+## h: the handle of the store to modify.
+##
+## Returns: false if the store handle was not valid.
 function Store::clear%(h: opaque of Store::Handle%): bool
 	%{
 	auto handle = static_cast<comm::StoreHandleVal*>(h);
@@ -157,6 +224,16 @@ function Store::clear%(h: opaque of Store::Handle%): bool
 	return new Val(true, TYPE_BOOL);
 	%}
 
+## Increment an integer value in a data store.
+##
+## h: the handle of the store to modify.
+##
+## k: the key whose associated value is to be modified.
+##
+## by: the amount to increment the value by.  A non-existent key will first
+##     create it with an implicit value of zero before incrementing.
+##
+## Returns: false if the store handle was not valid.
 function Store::increment%(h: opaque of Store::Handle,
                            k: Comm::Data, by: int &default = +1%): bool
 	%{
@@ -170,6 +247,16 @@ function Store::increment%(h: opaque of Store::Handle,
 	return new Val(true, TYPE_BOOL);
 	%}
 
+## Decrement an integer value in a data store.
+##
+## h: the handle of the store to modify.
+##
+## k: the key whose associated value is to be modified.
+##
+## by: the amount to decrement the value by.  A non-existent key will first
+##     create it with an implicit value of zero before decrementing.
+##
+## Returns: false if the store handle was not valid.
 function Store::decrement%(h: opaque of Store::Handle,
                            k: Comm::Data, by: int &default = +1%): bool
 	%{
@@ -183,6 +270,16 @@ function Store::decrement%(h: opaque of Store::Handle,
 	return new Val(true, TYPE_BOOL);
 	%}
 
+## Add an element to a set value in a data store.
+##
+## h: the handle of the store to modify.
+##
+## k: the key whose associated value is to be modified.
+##
+## element: the element to add to the set.  A non-existent key will first
+##          create it with an implicit empty set value before modifying.
+##
+## Returns: false if the store handle was not valid.
 function Store::add_to_set%(h: opaque of Store::Handle,
                             k: Comm::Data, element: Comm::Data%): bool
 	%{
@@ -197,6 +294,16 @@ function Store::add_to_set%(h: opaque of Store::Handle,
 	return new Val(true, TYPE_BOOL);
 	%}
 
+## Remove an element from a set value in a data store.
+##
+## h: the handle of the store to modify.
+##
+## k: the key whose associated value is to be modified.
+##
+## element: the element to remove from the set.  A non-existent key will
+##          implicitly create an empty set value associated with the key.
+##
+## Returns: false if the store handle was not valid.
 function Store::remove_from_set%(h: opaque of Store::Handle,
                                  k: Comm::Data, element: Comm::Data%): bool
 	%{
@@ -211,6 +318,16 @@ function Store::remove_from_set%(h: opaque of Store::Handle,
 	return new Val(true, TYPE_BOOL);
 	%}
 
+## Add a new item to the head of a vector value in a data store.
+##
+## h: the handle of store to modify.
+##
+## k: the key whose associated value is to be modified.
+##
+## item: the element to insert in to the vector.  A non-existent key will first
+##       create empty vector value before modifying.
+##
+## Returns: the handle of store to modify.
 function Store::push_left%(h: opaque of Store::Handle, k: Comm::Data,
                            items: Comm::DataVector%): bool
 	%{
@@ -234,6 +351,16 @@ function Store::push_left%(h: opaque of Store::Handle, k: Comm::Data,
 	return new Val(true, TYPE_BOOL);
 	%}
 
+## Add a new item to the tail of a vector value in a data store.
+##
+## h: the handle of store to modify.
+##
+## k: the key whose associated value is to be modified.
+##
+## item: the element to insert in to the vector.  A non-existent key will first
+##       create empty vector value before modifying.
+##
+## Returns: the handle of store to modify.
 function Store::push_right%(h: opaque of Store::Handle, k: Comm::Data,
                             items: Comm::DataVector%): bool
 	%{
@@ -297,25 +424,35 @@ static bool prepare_for_query(Val* opaque, Frame* frame,
     *cb = new comm::StoreQueryCallback(trigger, frame->GetCall(),
                                        (*handle)->store->id(),
                                        (*handle)->store_type);
-    comm_mgr->TrackStoreQuery(*cb);
+	comm_mgr->TrackStoreQuery(*cb);
     return true;
     }
 
 %%}
 
+## Pop the head of a data store vector value.
+##
+## h: the handle of the store to query.
+##
+## k: the key associated with the vector to modify.
+##
+## Returns: the result of the query.
 function Store::pop_left%(h: opaque of Store::Handle,
                           k: Comm::Data%): Store::QueryResult
 	%{
-	double timeout;
-	comm::StoreQueryCallback* cb;
-	comm::StoreHandleVal* handle;
-
-	if ( ! prepare_for_query(h, frame, &handle, &timeout, &cb) )
+	if ( ! comm_mgr->Enabled() )
 		return comm::query_result();
 
 	Val* key = k->AsRecordVal()->Lookup(0);
 
 	if ( ! key )
+		return comm::query_result();
+
+	double timeout;
+	comm::StoreQueryCallback* cb;
+	comm::StoreHandleVal* handle;
+
+	if ( ! prepare_for_query(h, frame, &handle, &timeout, &cb) )
 		return comm::query_result();
 
 	handle->store->pop_left(static_cast<comm::DataVal*>(key)->data,
@@ -323,19 +460,29 @@ function Store::pop_left%(h: opaque of Store::Handle,
 	return 0;
 	%}
 
+## Pop the tail of a data store vector value.
+##
+## h: the handle of the store to query.
+##
+## k: the key associated with the vector to modify.
+##
+## Returns: the result of the query.
 function Store::pop_right%(h: opaque of Store::Handle,
                            k: Comm::Data%): Store::QueryResult
 	%{
-	double timeout;
-	comm::StoreQueryCallback* cb;
-	comm::StoreHandleVal* handle;
-
-	if ( ! prepare_for_query(h, frame, &handle, &timeout, &cb) )
+	if ( ! comm_mgr->Enabled() )
 		return comm::query_result();
 
 	Val* key = k->AsRecordVal()->Lookup(0);
 
 	if ( ! key )
+		return comm::query_result();
+
+	double timeout;
+	comm::StoreQueryCallback* cb;
+	comm::StoreHandleVal* handle;
+
+	if ( ! prepare_for_query(h, frame, &handle, &timeout, &cb) )
 		return comm::query_result();
 
 	handle->store->pop_right(static_cast<comm::DataVal*>(key)->data,
@@ -343,19 +490,29 @@ function Store::pop_right%(h: opaque of Store::Handle,
 	return 0;
 	%}
 
+## Lookup the value associated with a key in a data store.
+##
+## h: the handle of the store to query.
+##
+## k: the key to lookup.
+##
+## Returns: the result of the query.
 function Store::lookup%(h: opaque of Store::Handle,
                        k: Comm::Data%): Store::QueryResult
 	%{
-	double timeout;
-	comm::StoreQueryCallback* cb;
-	comm::StoreHandleVal* handle;
-
-	if ( ! prepare_for_query(h, frame, &handle, &timeout, &cb) )
+	if ( ! comm_mgr->Enabled() )
 		return comm::query_result();
 
 	Val* key = k->AsRecordVal()->Lookup(0);
 
 	if ( ! key )
+		return comm::query_result();
+
+	double timeout;
+	comm::StoreQueryCallback* cb;
+	comm::StoreHandleVal* handle;
+
+	if ( ! prepare_for_query(h, frame, &handle, &timeout, &cb) )
 		return comm::query_result();
 
 	handle->store->lookup(static_cast<comm::DataVal*>(key)->data,
@@ -363,14 +520,17 @@ function Store::lookup%(h: opaque of Store::Handle,
 	return 0;
 	%}
 
+## Check if a data store contains a given key.
+##
+## h: the handle of the store to query.
+##
+## k: the key to check for existence.
+##
+## Returns: the result of the query (uses :bro:see:`Comm::BOOL`).
 function Store::exists%(h: opaque of Store::Handle,
                         k: Comm::Data%): Store::QueryResult
 	%{
-	double timeout;
-	comm::StoreQueryCallback* cb;
-	comm::StoreHandleVal* handle;
-
-	if ( ! prepare_for_query(h, frame, &handle, &timeout, &cb) )
+	if ( ! comm_mgr->Enabled() )
 		return comm::query_result();
 
 	Val* key = k->AsRecordVal()->Lookup(0);
@@ -378,11 +538,23 @@ function Store::exists%(h: opaque of Store::Handle,
 	if ( ! key )
 		return comm::query_result();
 
+	double timeout;
+	comm::StoreQueryCallback* cb;
+	comm::StoreHandleVal* handle;
+
+	if ( ! prepare_for_query(h, frame, &handle, &timeout, &cb) )
+		return comm::query_result();
+
 	handle->store->exists(static_cast<comm::DataVal*>(key)->data,
 	                      std::chrono::duration<double>(timeout), cb);
 	return 0;
 	%}
 
+## Retrieve all keys in a data store.
+##
+## h: the handle of the store to query.
+##
+## Returns: the result of the query (uses :bro:see:`Comm::VECTOR`).
 function Store::keys%(h: opaque of Store::Handle%): Store::QueryResult
 	%{
 	double timeout;
@@ -396,8 +568,16 @@ function Store::keys%(h: opaque of Store::Handle%): Store::QueryResult
 	return 0;
 	%}
 
+## Get the number of key-value pairs in a data store.
+##
+## h: the handle of the store to query.
+##
+## Returns: the result of the query (uses :bro:see:`Comm::COUNT`).
 function Store::size%(h: opaque of Store::Handle%): Store::QueryResult
 	%{
+	if ( ! comm_mgr->Enabled() )
+		return comm::query_result();
+
 	double timeout;
 	comm::StoreQueryCallback* cb;
 	comm::StoreHandleVal* handle;

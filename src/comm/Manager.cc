@@ -41,7 +41,7 @@ static int require_field(RecordType* rt, const char* name)
 	return rval;
 	}
 
-static int GetEndpointFlags(Val* broker_endpoint_flags)
+static int endpoint_flags_to_int(Val* broker_endpoint_flags)
 	{
 	int rval = 0;
 	auto r = broker_endpoint_flags->AsRecordVal();
@@ -111,7 +111,7 @@ bool comm::Manager::Enable(Val* broker_endpoint_flags)
 			name = fmt("bro@<unknown>.%ld", static_cast<long>(getpid()));
 		}
 
-	int flags = GetEndpointFlags(broker_endpoint_flags);
+	int flags = endpoint_flags_to_int(broker_endpoint_flags);
 	endpoint = unique_ptr<broker::endpoint>(new broker::endpoint(name, flags));
 	iosource_mgr->Register(this, true);
 	return true;
@@ -122,7 +122,7 @@ bool comm::Manager::SetEndpointFlags(Val* broker_endpoint_flags)
 	if ( ! Enabled() )
 		return false;
 
-	int flags = GetEndpointFlags(broker_endpoint_flags);
+	int flags = endpoint_flags_to_int(broker_endpoint_flags);
 	endpoint->set_flags(flags);
 	return true;
 	}
@@ -179,7 +179,8 @@ bool comm::Manager::Print(string topic, string msg, Val* flags)
 	if ( ! Enabled() )
 		return false;
 
-	endpoint->send(move(topic), broker::message{move(msg)}, GetFlags(flags));
+	endpoint->send(move(topic), broker::message{move(msg)},
+	               send_flags_to_int(flags));
 	return true;
 	}
 
@@ -243,7 +244,7 @@ bool comm::Manager::Event(std::string topic, RecordVal* args, Val* flags)
 		msg.emplace_back(data_val->data);
 		}
 
-	endpoint->send(move(topic), move(msg), GetFlags(flags));
+	endpoint->send(move(topic), move(msg), send_flags_to_int(flags));
 	return true;
 	}
 
@@ -275,7 +276,7 @@ bool comm::Manager::AutoEvent(string topic, Val* event, Val* flags)
 		return false;
 		}
 
-	handler->AutoRemote(move(topic), GetFlags(flags));
+	handler->AutoRemote(move(topic), send_flags_to_int(flags));
 	return true;
 	}
 
@@ -484,7 +485,7 @@ bool comm::Manager::UnadvertiseTopic(broker::topic t)
 	return true;
 	}
 
-int comm::Manager::GetFlags(Val* flags)
+int comm::Manager::send_flags_to_int(Val* flags)
 	{
 	auto r = flags->AsRecordVal();
 	int rval = 0;
@@ -869,6 +870,14 @@ void comm::Manager::Process()
 
 			auto query = *it;
 
+			if ( query->Disabled() )
+				{
+				// Trigger timer must have timed the query out already.
+				delete query;
+				pending_queries.erase(it);
+				continue;
+				}
+
 			switch ( response.reply.stat ) {
 			case broker::store::result::status::timeout:
 				// Fine, trigger's timeout takes care of things.
@@ -885,6 +894,7 @@ void comm::Manager::Process()
 				break;
 			}
 
+			delete query;
 			pending_queries.erase(it);
 			}
 		}
@@ -1006,8 +1016,6 @@ bool comm::Manager::CloseStore(const broker::store::identifier& id,
 
 bool comm::Manager::TrackStoreQuery(StoreQueryCallback* cb)
 	{
-	if ( ! Enabled() )
-		return false;
-
+	assert(Enabled());
 	return pending_queries.insert(cb).second;
 	}

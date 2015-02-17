@@ -15,18 +15,53 @@ extern OpaqueType* opaque_of_table_iterator;
 extern OpaqueType* opaque_of_vector_iterator;
 extern OpaqueType* opaque_of_record_iterator;
 
+/**
+ * Convert a broker port protocol to a bro port protocol.
+ */
 TransportProto to_bro_port_proto(broker::port::protocol tp);
 
+/**
+ * Create a Comm::Data value from a Bro value.
+ * @param v the Bro value to convert to a Broker data value.
+ * @return a Comm::Data value, where the optional field is set if the conversion
+ * was possible, else it is unset.
+ */
 RecordVal* make_data_val(Val* v);
 
+/**
+ * Create a Comm::Data value from a Broker data value.
+ * @param d the Broker value to wrap in an opaque type.
+ * @return a Comm::Data value that wraps the Broker value.
+ */
 RecordVal* make_data_val(broker::data d);
 
+/**
+ * Get the type of Broker data that Comm::Data wraps.
+ * @param v a Comm::Data value.
+ * @param frame used to get location info upon error.
+ * @return a Comm::DataType value.
+ */
 EnumVal* get_data_type(RecordVal* v, Frame* frame);
 
+/**
+ * Convert a Bro value to a Broker data value.
+ * @param v a Bro value.
+ * @return a Broker data value if the Bro value could be converted to one.
+ */
 broker::util::optional<broker::data> val_to_data(Val* v);
 
+/**
+ * Convert a Broker data value to a Bro value.
+ * @param d a Broker data value.
+ * @param type the expected type of the value to return.
+ * @return a pointer to a new Bro value or a nullptr if the conversion was not
+ * possible.
+ */
 Val* data_to_val(broker::data d, BroType* type);
 
+/**
+ * A Bro value which wraps a Broker data value.
+ */
 class DataVal : public OpaqueVal {
 public:
 
@@ -51,6 +86,9 @@ protected:
 		{}
 };
 
+/**
+ * Visitor for retrieving type names a Broker data value.
+ */
 struct type_name_getter {
 	using result_type = const char*;
 
@@ -100,8 +138,25 @@ struct type_name_getter {
 		{ return "record"; }
 };
 
+/**
+ * Retrieve Broker data value associated with a Comm::Data Bro value.
+ * @param v a Comm::Data value.
+ * @param f used to get location information on error.
+ * @return a reference to the wrapped Broker data value.  A runtime interpreter
+ * exception is thrown if the the optional opaque value of \a v is not set.
+ */
 broker::data& opaque_field_to_data(RecordVal* v, Frame* f);
 
+/**
+ * Retrieve variant data from a Broker data value.
+ * @tparam T a type that the variant may contain.
+ * @param d a Broker data value to get variant data out of.
+ * @param tag a Bro tag which corresponds to T (just used for error reporting).
+ * @param f used to get location information on error.
+ * @return a refrence to the requested type in the variant Broker data.
+ * A runtime interpret exception is thrown if trying to access a type which
+ * is not currently stored in the Broker data.
+ */
 template <typename T>
 T& require_data_type(broker::data& d, TypeTag tag, Frame* f)
 	{
@@ -116,12 +171,24 @@ T& require_data_type(broker::data& d, TypeTag tag, Frame* f)
 	return *ptr;
 	}
 
+/**
+ * @see require_data_type() and opaque_field_to_data().
+ */
 template <typename T>
 inline T& require_data_type(RecordVal* v, TypeTag tag, Frame* f)
 	{
 	return require_data_type<T>(opaque_field_to_data(v, f), tag, f);
 	}
 
+/**
+ * Convert a Comm::Data Bro value to a Bro value of a given type.
+ * @tparam a type that a Broker data variant may contain.
+ * @param v a Comm::Data value.
+ * @param tag a Bro type to convert to.
+ * @param f used to get location information on error.
+ * A runtime interpret exception is thrown if trying to access a type which
+ * is not currently stored in the Broker data.
+ */
 template <typename T>
 inline Val* refine(RecordVal* v, TypeTag tag, Frame* f)
 	{

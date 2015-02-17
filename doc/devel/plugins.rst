@@ -61,7 +61,7 @@ layout is described later. For now, all we need is
 there as follows::
 
     # cat src/rot13.bif
-    module CaesarCipher;
+    module Demo;
 
     function rot13%(s: string%) : string
         %{
@@ -131,12 +131,12 @@ more verbose option ``-NN``::
     # bro -NN
     [...]
     Plugin: Demo::Rot13 - Caesar cipher rotating a string's characters by 13 places. (dynamic, version 1)
-        [Function] CaesarCipher::rot13
+        [Function] Demo::rot13
     [...]
 
 There's our function. Now let's use it::
 
-    # bro -e 'print CaesarCipher::rot13("Hello")'
+    # bro -e 'print Demo::rot13("Hello")'
     Uryyb
 
 It works. We next install the plugin along with Bro itself, so that it
@@ -145,13 +145,13 @@ environment variable. If we first unset the variable, the function
 will no longer be available::
 
     # unset BRO_PLUGIN_PATH
-    # bro -e 'print CaesarCipher::rot13("Hello")'
-    error in <command line>, line 1: unknown identifier CaesarCipher::rot13, at or near "CaesarCipher::rot13"
+    # bro -e 'print Demo::rot13("Hello")'
+    error in <command line>, line 1: unknown identifier Demo::rot13, at or near "Demo::rot13"
 
 Once we install it, it works again::
 
     # make install
-    # bro -e 'print CaesarCipher::rot13("Hello")'
+    # bro -e 'print Demo::rot13("Hello")'
     Uryyb
 
 The installed version went into
@@ -369,7 +369,7 @@ let's get that in place::
     % cat .diag
     == File ===============================
     Demo::Rot13 - Caesar cipher rotating a string's characters by 13 places. (dynamic, version 1.0)
-        [Function] CaesarCipher::rot13
+        [Function] Demo::rot13
 
     == Error ===============================
     test-diff: no baseline found.
@@ -396,7 +396,7 @@ correctly::
 
     event bro_init()
         {
-        print CaesarCipher::rot13("Hello");
+        print Demo::rot13("Hello");
         }
 
 Check the output::

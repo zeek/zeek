@@ -388,7 +388,7 @@ bool comm::Manager::SubscribeToPrints(string topic_prefix)
 	if ( ! Enabled() )
 		return false;
 
-	auto& q = print_subscriptions[topic_prefix];
+	auto& q = print_subscriptions[topic_prefix].q;
 
 	if ( q )
 		return false;
@@ -410,7 +410,7 @@ bool comm::Manager::SubscribeToEvents(string topic_prefix)
 	if ( ! Enabled() )
 		return false;
 
-	auto& q = event_subscriptions[topic_prefix];
+	auto& q = event_subscriptions[topic_prefix].q;
 
 	if ( q )
 		return false;
@@ -432,7 +432,7 @@ bool comm::Manager::SubscribeToLogs(string topic_prefix)
 	if ( ! Enabled() )
 		return false;
 
-	auto& q = log_subscriptions[topic_prefix];
+	auto& q = log_subscriptions[topic_prefix].q;
 
 	if ( q )
 		return false;
@@ -515,13 +515,13 @@ void comm::Manager::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
 	read->Insert(endpoint->incoming_connection_status().fd());
 
 	for ( const auto& ps : print_subscriptions )
-		read->Insert(ps.second.fd());
+		read->Insert(ps.second.q.fd());
 
 	for ( const auto& ps : event_subscriptions )
-		read->Insert(ps.second.fd());
+		read->Insert(ps.second.q.fd());
 
 	for ( const auto& ps : log_subscriptions )
-		read->Insert(ps.second.fd());
+		read->Insert(ps.second.q.fd());
 
 	for ( const auto& s : data_stores )
 		read->Insert(s.second->store->responses().fd());
@@ -595,6 +595,9 @@ void comm::Manager::Process()
 	        endpoint->outgoing_connection_status().want_pop();
 	auto incoming_connection_updates =
 	        endpoint->incoming_connection_status().want_pop();
+
+	statistics.outgoing_conn_status_count += outgoing_connection_updates.size();
+	statistics.incoming_conn_status_count += incoming_connection_updates.size();
 
 	for ( auto& u : outgoing_connection_updates )
 		{
@@ -674,13 +677,14 @@ void comm::Manager::Process()
 		}
 		}
 
-	for ( const auto& ps : print_subscriptions )
+	for ( auto& ps : print_subscriptions )
 		{
-		auto print_messages = ps.second.want_pop();
+		auto print_messages = ps.second.q.want_pop();
 
 		if ( print_messages.empty() )
 			continue;
 
+		ps.second.received += print_messages.size();
 		idle = false;
 
 		if ( ! Comm::print_handler )
@@ -710,13 +714,14 @@ void comm::Manager::Process()
 			}
 		}
 
-	for ( const auto& es : event_subscriptions )
+	for ( auto& es : event_subscriptions )
 		{
-		auto event_messages = es.second.want_pop();
+		auto event_messages = es.second.q.want_pop();
 
 		if ( event_messages.empty() )
 			continue;
 
+		es.second.received += event_messages.size();
 		idle = false;
 
 		for ( auto& em : event_messages )
@@ -780,13 +785,14 @@ void comm::Manager::Process()
 		Val* val;
 	};
 
-	for ( const auto& ls : log_subscriptions )
+	for ( auto& ls : log_subscriptions )
 		{
-		auto log_messages = ls.second.want_pop();
+		auto log_messages = ls.second.q.want_pop();
 
 		if ( log_messages.empty() )
 			continue;
 
+		ls.second.received += log_messages.size();
 		idle = false;
 
 		for ( auto& lm : log_messages )
@@ -854,6 +860,7 @@ void comm::Manager::Process()
 		if ( responses.empty() )
 			continue;
 
+		statistics.report_count += responses.size();
 		idle = false;
 
 		for ( auto& response : responses )
@@ -900,48 +907,46 @@ void comm::Manager::Process()
 		}
 
 	auto reports = broker::report::default_queue->want_pop();
+	statistics.report_count += reports.size();
 
-	if ( ! reports.empty() )
+	for ( auto& report : reports )
 		{
 		idle = false;
 
-		for ( auto& report : reports )
+		if ( report.size() < 2 )
 			{
-			if ( report.size() < 2 )
-				{
-				reporter->Warning("got broker report msg of size %zu, expect 4",
-				                  report.size());
-				continue;
-				}
-
-			uint64_t* level = broker::get<uint64_t>(report[1]);
-
-			if ( ! level )
-				{
-				reporter->Warning("got broker report msg w/ bad level type: %d",
-				                  static_cast<int>(broker::which(report[1])));
-				continue;
-				}
-
-			auto lvl = static_cast<broker::report::level>(*level);
-
-			switch ( lvl ) {
-			case broker::report::level::debug:
-				DBG_LOG(DBG_BROKER, broker::to_string(report).data());
-				break;
-			case broker::report::level::info:
-				reporter->Info("broker info: %s",
-				               broker::to_string(report).data());
-				break;
-			case broker::report::level::warn:
-				reporter->Warning("broker warning: %s",
-				                  broker::to_string(report).data());
-				break;
-			case broker::report::level::error:
-				reporter->Error("broker error: %s",
-				                broker::to_string(report).data());
-				break;
+			reporter->Warning("got broker report msg of size %zu, expect 4",
+			                  report.size());
+			continue;
 			}
+
+		uint64_t* level = broker::get<uint64_t>(report[1]);
+
+		if ( ! level )
+			{
+			reporter->Warning("got broker report msg w/ bad level type: %d",
+			                  static_cast<int>(broker::which(report[1])));
+			continue;
+			}
+
+		auto lvl = static_cast<broker::report::level>(*level);
+
+		switch ( lvl ) {
+		case broker::report::level::debug:
+			DBG_LOG(DBG_BROKER, broker::to_string(report).data());
+			break;
+		case broker::report::level::info:
+			reporter->Info("broker info: %s",
+			               broker::to_string(report).data());
+			break;
+		case broker::report::level::warn:
+			reporter->Warning("broker warning: %s",
+			                  broker::to_string(report).data());
+			break;
+		case broker::report::level::error:
+			reporter->Error("broker error: %s",
+			                broker::to_string(report).data());
+			break;
 			}
 		}
 
@@ -1018,4 +1023,33 @@ bool comm::Manager::TrackStoreQuery(StoreQueryCallback* cb)
 	{
 	assert(Enabled());
 	return pending_queries.insert(cb).second;
+	}
+
+comm::Stats comm::Manager::ConsumeStatistics()
+	{
+	statistics.outgoing_peer_count = peers.size();
+	statistics.data_store_count = data_stores.size();
+	statistics.pending_query_count = pending_queries.size();
+
+	for ( auto& s : print_subscriptions )
+		{
+		statistics.print_count[s.first] = s.second.received;
+		s.second.received = 0;
+		}
+
+	for ( auto& s : event_subscriptions )
+		{
+		statistics.event_count[s.first] = s.second.received;
+		s.second.received = 0;
+		}
+
+	for ( auto& s : log_subscriptions )
+		{
+		statistics.log_count[s.first] = s.second.received;
+		s.second.received = 0;
+		}
+
+	auto rval = move(statistics);
+	statistics = Stats{};
+	return rval;
 	}

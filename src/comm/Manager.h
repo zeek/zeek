@@ -15,6 +15,34 @@
 namespace comm {
 
 /**
+ * Communication statistics.  Some are tracked in relation to last
+ * sample (comm::Manager::ConsumeStatistics()).
+ */
+struct Stats {
+	// Number of outgoing peer connections (at time of sample).
+	size_t outgoing_peer_count = 0;
+	// Number of data stores (at time of sample).
+	size_t data_store_count = 0;
+	// Number of pending data store queries (at time of sample).
+	size_t pending_query_count = 0;
+	// Number of data store responses received (since last sample).
+	size_t response_count = 0;
+	// Number of outgoing connection updates received (since last sample).
+	size_t outgoing_conn_status_count = 0;
+	// Number of incoming connection updates received (since last sample).
+	size_t incoming_conn_status_count = 0;
+	// Number of broker report messages (e.g. debug, warning, errors) received
+	// (since last sample).
+	size_t report_count = 0;
+	// Number of print messages received per topic-prefix (since last sample).
+	std::map<std::string, size_t> print_count;
+	// Number of event messages received per topic-prefix (since last sample).
+	std::map<std::string, size_t> event_count;
+	// Number of log messages received per topic-prefix (since last sample).
+	std::map<std::string, size_t> log_count;
+};
+
+/**
  * Manages various forms of communication between peer Bro processes
  * or other external applications via use of the Broker messaging library.
  */
@@ -280,6 +308,11 @@ public:
 	bool TrackStoreQuery(StoreQueryCallback* cb);
 
 	/**
+	 * @return communication statistics.
+	 */
+	Stats ConsumeStatistics();
+
+	/**
 	 * Convert Comm::SendFlags to int flags for use with broker::send().
 	 */
 	static int send_flags_to_int(Val* flags);
@@ -300,15 +333,22 @@ private:
 	broker::endpoint& Endpoint()
 		{ return *endpoint; }
 
+	struct QueueWithStats {
+		broker::message_queue q;
+		size_t received = 0;
+	};
+
 	std::unique_ptr<broker::endpoint> endpoint;
 	std::map<std::pair<std::string, uint16_t>, broker::peering> peers;
-	std::map<std::string, broker::message_queue> print_subscriptions;
-	std::map<std::string, broker::message_queue> event_subscriptions;
-	std::map<std::string, broker::message_queue> log_subscriptions;
+	std::map<std::string, QueueWithStats> print_subscriptions;
+	std::map<std::string, QueueWithStats> event_subscriptions;
+	std::map<std::string, QueueWithStats> log_subscriptions;
 
 	std::map<std::pair<broker::store::identifier, StoreType>,
 	         StoreHandleVal*> data_stores;
 	std::unordered_set<StoreQueryCallback*> pending_queries;
+
+	Stats statistics;
 
 	static VectorType* vector_of_data_type;
 	static EnumType* log_id_type;

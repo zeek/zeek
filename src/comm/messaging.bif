@@ -12,9 +12,12 @@ type Comm::SendFlags: record;
 
 type Comm::EventArgs: record;
 
+## Used to handle remote print messages from peers that call
+## :bro:see:`Comm::print`.
 event Comm::print_handler%(msg: string%);
 
-## Print a simple message to any interested peers.
+## Print a simple message to any interested peers.  The receiver can use
+## :bro:see:`Comm::print_handler` to handle messages.
 ##
 ## topic: a topic associated with the printed message.
 ##
@@ -32,6 +35,7 @@ function Comm::print%(topic: string, msg: string,
 	%}
 
 ## Register interest in all peer print messages that use a certain topic prefix.
+## use :bro:see:`Comm::print_handler` to handle received messages.
 ##
 ## topic_prefix: a prefix to match against remote message topics.
 ##               e.g. an empty prefix matches everything and "a" matches

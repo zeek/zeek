@@ -1,3 +1,7 @@
+# @TEST-EXEC: cat %INPUT >output && btest-diff output
+
+remote_print.test
+
 # @TEST-SERIALIZE: brokercomm
 # @TEST-REQUIRES: grep -q ENABLE_BROKER $BUILD/CMakeCache.txt
 
@@ -13,34 +17,30 @@
 const broker_port: port &redef;
 redef exit_only_after_terminate = T;
 
-global event_handler: event(msg: string, c: count);
-global auto_event_handler: event(msg: string, c: count);
-
 event bro_init()
 	{
 	Comm::enable();
-	Comm::subscribe_to_events("bro/event/");
-	Comm::auto_event("bro/event/my_topic", auto_event_handler);
 	Comm::listen(broker_port, "127.0.0.1");
+	Comm::subscribe_to_prints("bro/print/");
 	}
 
-global event_count = 0;
-global events_to_recv = 6;
+global messages_to_recv = 6;
+global messages_sent = 0;
+global messages_recv = 0;
 
-event event_handler(msg: string, n: count)
+event Comm::print_handler(msg: string)
 	{
-	++event_count;
-	print "got event msg", msg, n;
+	++messages_recv;
+	print "got print msg", msg;
 
-	if ( event_count == events_to_recv )
+	if ( messages_to_recv == messages_recv )
 		{
 		terminate();
 		return;
 		}
 
-	event auto_event_handler(msg, n);
-	local args = Comm::event_args(event_handler, "pong", n);
-	Comm::event("bro/event/my_topic", args);
+	Comm::print("bro/print/my_topic", fmt("pong %d", messages_sent));
+	++messages_sent;
 	}
 
 @TEST-END-FILE
@@ -50,26 +50,24 @@ event event_handler(msg: string, n: count)
 const broker_port: port &redef;
 redef exit_only_after_terminate = T;
 
-global event_handler: event(msg: string, c: count);
-global auto_event_handler: event(msg: string, c: count);
-
 event bro_init()
 	{
 	Comm::enable();
-	Comm::subscribe_to_events("bro/event/my_topic");
+	Comm::subscribe_to_prints("bro/print/my_topic");
 	Comm::connect("127.0.0.1", broker_port, 1secs);
 	}
 
-global event_count = 0;
+global messages_sent = 0;
+global messages_recv = 0;
+global peer_disconnected = F;
 
 event Comm::outgoing_connection_established(peer_address: string,
                                             peer_port: port,
                                             peer_name: string)
 	{
 	print "Comm::outgoing_connection_established", peer_address, peer_port;
-	local args = Comm::event_args(event_handler, "ping", event_count);
-	Comm::event("bro/event/hi", args);
-	++event_count;
+	Comm::print("bro/print/hi", fmt("ping %d", messages_sent));
+	++messages_sent;
 	}
 
 event Comm::outgoing_connection_broken(peer_address: string,
@@ -78,17 +76,12 @@ event Comm::outgoing_connection_broken(peer_address: string,
 	terminate();
 	}
 
-event event_handler(msg: string, n: count)
+event Comm::print_handler(msg: string)
 	{
-	print "got event msg", msg, n;
-	local args = Comm::event_args(event_handler, "ping", event_count);
-    Comm::event("bro/event/hi", args);
-	++event_count;
+	++messages_recv;
+	print "got print msg", msg;
+	Comm::print("bro/print/hi", fmt("ping %d", messages_sent));
+	++messages_sent;
 	}
 
-event auto_event_handler(msg: string, n: count)
-	{
-	print "got auto event msg", msg, n;
-	}
-	
 @TEST-END-FILE

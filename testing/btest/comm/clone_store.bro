@@ -50,8 +50,8 @@ event ready()
 event bro_init()
 	{
 	Comm::enable();
-	Comm::listen(broker_port, "127.0.0.1");
 	Comm::subscribe_to_events("bro/event/ready");
+	Comm::listen(broker_port, "127.0.0.1");
 	}
 
 @TEST-END-FILE

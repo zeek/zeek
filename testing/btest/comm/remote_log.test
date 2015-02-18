@@ -40,8 +40,8 @@ redef exit_only_after_terminate = T;
 
 event bro_init()
 	{
-	Comm::listen(broker_port, "127.0.0.1");
 	Comm::subscribe_to_logs("bro/log/");
+	Comm::listen(broker_port, "127.0.0.1");
 	}
 
 event Test::log_test(rec: Test::Info)

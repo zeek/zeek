@@ -39,6 +39,9 @@ export {
 		## Number of packets seen on the link since the last stats
 		## interval if reading live traffic.
 		pkts_link:     count     &log &optional;
+		## Number of bytes received since the last stats interval if
+		## reading live traffic.
+		bytes_recv:   count     &log &optional;
 	};
 
 	## Event to catch stats as they are written to the logging stream.
@@ -74,6 +77,7 @@ event check_stats(last_ts: time, last_ns: NetStats, last_res: bro_resources)
 		info$pkts_recv = ns$pkts_recvd - last_ns$pkts_recvd;
 		info$pkts_dropped = ns$pkts_dropped  - last_ns$pkts_dropped;
 		info$pkts_link = ns$pkts_link  - last_ns$pkts_link;
+		info$bytes_recv = ns$bytes_recvd  - last_ns$bytes_recvd;
 		}
 
 	Log::write(Stats::LOG, info);

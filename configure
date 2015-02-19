@@ -24,6 +24,13 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --prefix=PREFIX        installation directory [/usr/local/bro]
     --scriptdir=PATH       root installation directory for Bro scripts
                            [PREFIX/share/bro]
+    --localstatedir=PATH   when using BroControl, path to store log files
+                           and run-time data (within log/ and spool/ subdirs)
+                           [PREFIX]
+    --spooldir=PATH        when using BroControl, path to store run-time data
+                           [PREFIX/spool]
+    --logdir=PATH          when using BroControl, path to store log file
+                           [PREFIX/logs]
     --conf-files-dir=PATH  config files installation directory [PREFIX/etc]
 
   Optional Features:
@@ -39,8 +46,6 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --disable-auxtools     don't build or install auxiliary tools
     --disable-perftools    don't try to build with Google Perftools
     --disable-python       don't try to build python bindings for broccoli
-    --disable-dataseries   don't use the optional DataSeries log writer
-    --disable-elasticsearch don't use the optional ElasticSearch log writer
 
   Required Packages in Non-Standard Locations:
     --with-openssl=PATH    path to OpenSSL install root
@@ -50,7 +55,6 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-flex=PATH       path to flex executable
     --with-bison=PATH      path to bison executable
     --with-perl=PATH       path to perl executable
-    --with-libmagic=PATH   path to libmagic install root
 
   Optional Packages in Non-Standard Locations:
     --with-geoip=PATH      path to the libGeoIP install root
@@ -63,9 +67,6 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-ruby-lib=PATH   path to ruby library
     --with-ruby-inc=PATH   path to ruby headers
     --with-swig=PATH       path to SWIG executable
-    --with-dataseries=PATH path to DataSeries and Lintel libraries
-    --with-xml2=PATH       path to libxml2 installation (for DataSeries)
-    --with-curl=PATH       path to libcurl install root (for ElasticSearch)
 
   Packaging Options (for developers):
     --binary-package       toggle special logic for binary packaging
@@ -150,6 +151,15 @@ while [ $# -ne 0 ]; do
             append_cache_entry BRO_ETC_INSTALL_DIR PATH $optarg
             user_set_conffilesdir="true"
             ;;
+        --localstatedir=*)
+            append_cache_entry BRO_LOCAL_STATE_DIR  PATH   $optarg
+            ;;
+        --spooldir=*)
+            append_cache_entry BRO_SPOOL_DIR  PATH   $optarg
+            ;;
+        --logdir=*)
+            append_cache_entry BRO_LOG_DIR  PATH   $optarg
+            ;;
         --enable-debug)
             append_cache_entry ENABLE_DEBUG         BOOL   true
             ;;
@@ -184,12 +194,6 @@ while [ $# -ne 0 ]; do
         --enable-ruby)
             append_cache_entry DISABLE_RUBY_BINDINGS     BOOL   false
             ;;
-        --disable-dataseries)
-            append_cache_entry DISABLE_DATASERIES     BOOL   true
-            ;;
-        --disable-elasticsearch)
-            append_cache_entry DISABLE_ELASTICSEARCH     BOOL   true
-            ;;
         --with-openssl=*)
             append_cache_entry OpenSSL_ROOT_DIR PATH $optarg
             ;;
@@ -210,9 +214,6 @@ while [ $# -ne 0 ]; do
             ;;
         --with-perl=*)
             append_cache_entry PERL_EXECUTABLE PATH $optarg
-            ;;
-        --with-libmagic=*)
-            append_cache_entry LibMagic_ROOT_DIR PATH $optarg
             ;;
         --with-geoip=*)
             append_cache_entry LibGeoIP_ROOT_DIR PATH $optarg
@@ -246,16 +247,6 @@ while [ $# -ne 0 ]; do
             ;;
         --with-swig=*)
             append_cache_entry SWIG_EXECUTABLE      PATH    $optarg
-            ;;
-        --with-dataseries=*)
-            append_cache_entry DataSeries_ROOT_DIR PATH $optarg
-            append_cache_entry Lintel_ROOT_DIR PATH $optarg
-            ;;
-        --with-xml2=*)
-            append_cache_entry LibXML2_ROOT_DIR PATH $optarg
-            ;;
-        --with-curl=*)
-            append_cache_entry LibCURL_ROOT_DIR PATH $optarg
             ;;
         --binary-package)
             append_cache_entry BINARY_PACKAGING_MODE BOOL true

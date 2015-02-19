@@ -7,7 +7,8 @@ include_directories(BEFORE
 set(bro_ALL_GENERATED_OUTPUTS  CACHE INTERNAL "automatically generated files" FORCE)
 
 # This collects bif inputs that we'll load automatically.
-set(bro_AUTO_BIFS CACHE INTERNAL "BIFs for automatic inclusion" FORCE)
+set(bro_AUTO_BIFS     CACHE INTERNAL "BIFs for automatic inclusion" FORCE)
+set(bro_REGISTER_BIFS CACHE INTERNAL "BIFs for automatic registering" FORCE)
 
 set(bro_BASE_BIF_SCRIPTS CACHE INTERNAL "Bro script stubs for BIFs in base distribution of Bro" FORCE)
 set(bro_PLUGIN_BIF_SCRIPTS CACHE INTERNAL "Bro script stubs for BIFs in Bro plugins" FORCE)
@@ -47,7 +48,7 @@ set(BISON_FLAGS "--debug")
 bison_target(BIFParser builtin-func.y
              ${CMAKE_CURRENT_BINARY_DIR}/bif_parse.cc
              HEADER ${CMAKE_CURRENT_BINARY_DIR}/bif_parse.h
-             VERBOSE ${CMAKE_CURRENT_BINARY_DIR}/bif_parse.output
+             #VERBOSE ${CMAKE_CURRENT_BINARY_DIR}/bif_parse.output
              COMPILE_FLAGS "${BISON_FLAGS}")
 flex_target(BIFScanner builtin-func.l ${CMAKE_CURRENT_BINARY_DIR}/bif_lex.cc)
 add_flex_bison_dependency(BIFScanner BIFParser)
@@ -56,7 +57,7 @@ add_flex_bison_dependency(BIFScanner BIFParser)
 bison_target(RuleParser rule-parse.y
              ${CMAKE_CURRENT_BINARY_DIR}/rup.cc
              HEADER ${CMAKE_CURRENT_BINARY_DIR}/rup.h
-             VERBOSE ${CMAKE_CURRENT_BINARY_DIR}/rule_parse.output
+             #VERBOSE ${CMAKE_CURRENT_BINARY_DIR}/rule_parse.output
              COMPILE_FLAGS "${BISON_FLAGS}")
 replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/rup.cc
                          ${CMAKE_CURRENT_BINARY_DIR}/rule-parse.cc
@@ -71,7 +72,7 @@ flex_target(RuleScanner rule-scan.l ${CMAKE_CURRENT_BINARY_DIR}/rule-scan.cc
 bison_target(REParser re-parse.y
              ${CMAKE_CURRENT_BINARY_DIR}/rep.cc
              HEADER ${CMAKE_CURRENT_BINARY_DIR}/re-parse.h
-             VERBOSE ${CMAKE_CURRENT_BINARY_DIR}/re_parse.output
+             #VERBOSE ${CMAKE_CURRENT_BINARY_DIR}/re_parse.output
              COMPILE_FLAGS "${BISON_FLAGS}")
 replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/rep.cc
                          ${CMAKE_CURRENT_BINARY_DIR}/re-parse.cc
@@ -84,7 +85,7 @@ add_flex_bison_dependency(REScanner REParser)
 bison_target(Parser parse.y
              ${CMAKE_CURRENT_BINARY_DIR}/p.cc
              HEADER ${CMAKE_CURRENT_BINARY_DIR}/broparse.h
-             VERBOSE ${CMAKE_CURRENT_BINARY_DIR}/parse.output
+             #VERBOSE ${CMAKE_CURRENT_BINARY_DIR}/parse.output
              COMPILE_FLAGS "${BISON_FLAGS}")
 replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/p.cc
                          ${CMAKE_CURRENT_BINARY_DIR}/parse.cc
@@ -117,8 +118,6 @@ include(BifCl)
 
 set(BIF_SRCS
     bro.bif
-    logging.bif
-    input.bif
     event.bif
     const.bif
     types.bif
@@ -155,21 +154,25 @@ set(bro_SUBDIR_LIBS CACHE INTERNAL "subdir libraries" FORCE)
 set(bro_PLUGIN_LIBS CACHE INTERNAL "plugin libraries" FORCE)
 
 add_subdirectory(analyzer)
-add_subdirectory(file_analysis)
-add_subdirectory(probabilistic)
 add_subdirectory(broxygen)
+add_subdirectory(file_analysis)
+add_subdirectory(input)
+add_subdirectory(iosource)
+add_subdirectory(logging)
+add_subdirectory(probabilistic)
 
 set(bro_SUBDIRS
-    ${bro_SUBDIR_LIBS}
+    # Order is important here.
     ${bro_PLUGIN_LIBS}
+    ${bro_SUBDIR_LIBS}
 )
 
 if ( NOT bro_HAVE_OBJECT_LIBRARIES )
     foreach (_plugin ${bro_PLUGIN_LIBS})
         string(REGEX REPLACE "plugin-" "" _plugin "${_plugin}")
         string(REGEX REPLACE "-" "_" _plugin "${_plugin}")
-        set(_decl "namespace plugin { namespace ${_plugin} { class Plugin; extern Plugin __plugin; } };")
-        set(_use "i += (size_t)(&(plugin::${_plugin}::__plugin));")
+        set(_decl "namespace plugin { namespace ${_plugin} { class Plugin; extern Plugin plugin; } };")
+        set(_use "i += (size_t)(&(plugin::${_plugin}::plugin));")
         set(__BRO_DECL_PLUGINS "${__BRO_DECL_PLUGINS}${_decl}\n")
         set(__BRO_USE_PLUGINS "${__BRO_USE_PLUGINS}${_use}\n")
     endforeach()
@@ -252,7 +255,6 @@ set(bro_SRCS
     Anon.cc
     Attr.cc
     Base64.cc
-    BPF_Program.cc
     Brofiler.cc
     BroString.cc
     CCL.cc
@@ -277,14 +279,13 @@ set(bro_SRCS
     EventRegistry.cc
     Expr.cc
     File.cc
-    FlowSrc.cc
+    Flare.cc
     Frag.cc
     Frame.cc
     Func.cc
     Hash.cc
     ID.cc
     IntSet.cc
-    IOSource.cc
     IP.cc
     IPAddr.cc
     List.cc
@@ -297,7 +298,7 @@ set(bro_SRCS
     OSFinger.cc
     PacketFilter.cc
     PersistenceSerializer.cc
-    PktSrc.cc
+    Pipe.cc
     PolicyFile.cc
     PrefixTable.cc
     PriorityQueue.cc
@@ -346,24 +347,6 @@ set(bro_SRCS
     threading/formatters/Ascii.cc
     threading/formatters/JSON.cc
 
-    logging/Manager.cc
-    logging/WriterBackend.cc
-    logging/WriterFrontend.cc
-    logging/writers/Ascii.cc
-    logging/writers/DataSeries.cc
-    logging/writers/SQLite.cc
-    logging/writers/ElasticSearch.cc
-    logging/writers/None.cc
-
-    input/Manager.cc
-    input/ReaderBackend.cc
-    input/ReaderFrontend.cc
-    input/readers/Ascii.cc
-    input/readers/Raw.cc
-    input/readers/Benchmark.cc
-    input/readers/Binary.cc
-    input/readers/SQLite.cc
-
     3rdparty/sqlite3.c
 
     plugin/Component.cc
@@ -371,7 +354,6 @@ set(bro_SRCS
     plugin/TaggedComponent.h
     plugin/Manager.cc
     plugin/Plugin.cc
-    plugin/Macros.h
 
     nb_dns.c
     digest.h
@@ -387,22 +369,31 @@ else ()
     target_link_libraries(bro ${bro_SUBDIRS} ${brodeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 endif ()
 
+if ( NOT "${bro_LINKER_FLAGS}" STREQUAL "" )
+    set_target_properties(bro PROPERTIES LINK_FLAGS "${bro_LINKER_FLAGS}")
+endif ()
+
 install(TARGETS bro DESTINATION bin)
 
 set(BRO_EXE bro
     CACHE STRING "Bro executable binary" FORCE)
+
+set(BRO_EXE_PATH ${CMAKE_CURRENT_BINARY_DIR}/bro
+    CACHE STRING "Path to Bro executable binary" FORCE)
 
 # Target to create all the autogenerated files.
 add_custom_target(generate_outputs_stage1)
 add_dependencies(generate_outputs_stage1 ${bro_ALL_GENERATED_OUTPUTS})
 
 # Target to create the joint includes files that pull in the bif code.
-bro_bif_create_includes(generate_outputs_stage2 ${CMAKE_CURRENT_BINARY_DIR} "${bro_AUTO_BIFS}")
-add_dependencies(generate_outputs_stage2 generate_outputs_stage1)
+bro_bif_create_includes(generate_outputs_stage2a ${CMAKE_CURRENT_BINARY_DIR} "${bro_AUTO_BIFS}")
+bro_bif_create_register(generate_outputs_stage2b ${CMAKE_CURRENT_BINARY_DIR} "${bro_REGISTER_BIFS}")
+add_dependencies(generate_outputs_stage2a generate_outputs_stage1)
+add_dependencies(generate_outputs_stage2b generate_outputs_stage1)
 
 # Global target to trigger creation of autogenerated code.
 add_custom_target(generate_outputs)
-add_dependencies(generate_outputs generate_outputs_stage2)
+add_dependencies(generate_outputs generate_outputs_stage2a generate_outputs_stage2b)
 
 # Build __load__.bro files for standard *.bif.bro.
 bro_bif_create_loader(bif_loader "${bro_BASE_BIF_SCRIPTS}")

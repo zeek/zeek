@@ -1,10 +1,26 @@
+// See the file  in the main distribution directory for copyright.
+
 
 #include "plugin/Plugin.h"
 
 #include "DNP3.h"
 
-BRO_PLUGIN_BEGIN(Bro, DNP3)
-	BRO_PLUGIN_DESCRIPTION("DNP3 analyzer");
-	BRO_PLUGIN_ANALYZER("DNP3", dnp3::DNP3_Analyzer);
-	BRO_PLUGIN_BIF_FILE(events);
-BRO_PLUGIN_END
+namespace plugin {
+namespace Bro_DNP3 {
+
+class Plugin : public plugin::Plugin {
+public:
+	plugin::Configuration Configure()
+		{
+		AddComponent(new ::analyzer::Component("DNP3_TCP", ::analyzer::dnp3::DNP3_TCP_Analyzer::Instantiate));
+		AddComponent(new ::analyzer::Component("DNP3_UDP", ::analyzer::dnp3::DNP3_UDP_Analyzer::Instantiate));
+
+		plugin::Configuration config;
+		config.name = "Bro::DNP3";
+		config.description = "DNP3 UDP/TCP analyzers";
+		return config;
+		}
+} plugin;
+
+}
+}

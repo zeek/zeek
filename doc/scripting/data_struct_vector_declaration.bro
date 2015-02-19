@@ -10,6 +10,6 @@ event bro_init()
     
     print fmt("contents of v1: %s", v1);
     print fmt("length of v1: %d", |v1|);
-    print fmt("contents of v1: %s", v2);
+    print fmt("contents of v2: %s", v2);
     print fmt("length of v2: %d", |v2|);
     }

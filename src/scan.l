@@ -26,9 +26,12 @@
 #include "Reporter.h"
 #include "RE.h"
 #include "Net.h"
+#include "Traverse.h"
 
 #include "analyzer/Analyzer.h"
 #include "broxygen/Manager.h"
+
+#include "plugin/Manager.h"
 
 extern YYLTYPE yylloc;	// holds start line and column of token
 extern EnumType* cur_enum_type;
@@ -315,6 +318,11 @@ when	return TOK_WHEN;
 		sig_files.push_back(copy_string(path.c_str()));
 	}
 
+@load-plugin{WS}{ID} {
+	const char* plugin = skip_whitespace(yytext + 12);
+	plugin_mgr->ActivateDynamicPlugin(plugin);
+}
+
 @unload{WS}{FILE}	{
 	// Skip "@unload".
 	const char* file = skip_whitespace(yytext + 7);
@@ -501,6 +509,24 @@ static bool already_scanned(const string& path)
 
 static int load_files(const char* orig_file)
 	{
+	int rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(orig_file), -1);
+
+	if ( rc == 1 )
+		return 0; // A plugin took care of it, just skip.
+
+	if ( rc == 0 )
+		{
+		if ( ! reporter->Errors() )
+			// This is just in case the plugin failed to report
+			// the error itself, in which case we want to at
+			// least tell the user that something went wrong.
+			reporter->Error("Plugin reported error loading %s", orig_file);
+
+		exit(1);
+		}
+
+	assert(rc == -1); // No plugin in charge of this file.
+
 	// Whether we pushed on a FileInfo that will restore the
 	// current module after the final file has been scanned.
 	bool did_module_restore = false;
@@ -590,11 +616,50 @@ void end_RE()
 	BEGIN(INITIAL);
 	}
 
+class LocalNameFinder : public TraversalCallback {
+public:
+	LocalNameFinder()
+		{}
+
+	virtual TraversalCode PreExpr(const Expr* expr)
+		{
+		if ( expr->Tag() != EXPR_NAME )
+			return TC_CONTINUE;
+
+		const NameExpr* name_expr = static_cast<const NameExpr*>(expr);
+
+		if ( name_expr->Id()->IsGlobal() )
+			return TC_CONTINUE;
+
+		local_names.push_back(name_expr);
+		return TC_CONTINUE;
+		}
+
+	std::vector<const NameExpr*> local_names;
+};
+
 void do_atif(Expr* expr)
 	{
 	++current_depth;
 
-	Val* val = expr->Eval(0);
+	LocalNameFinder cb;
+	expr->Traverse(&cb);
+	Val* val = 0;
+
+	if ( cb.local_names.empty() )
+		val = expr->Eval(0);
+	else
+		{
+		for ( size_t i = 0; i < cb.local_names.size(); ++i )
+			cb.local_names[i]->Error("referencing a local name in @if");
+		}
+
+	if ( ! val )
+		{
+		expr->Error("invalid expression in @if");
+		return;
+		}
+
 	if ( ! val->AsBool() )
 		{
 		if_stack.append(current_depth);
@@ -680,6 +745,17 @@ void add_input_file(const char* file)
 		(void) load_files(file);
 	else
 		input_files.append(copy_string(file));
+	}
+
+void add_input_file_at_front(const char* file)
+	{
+	if ( ! file )
+		reporter->InternalError("empty filename");
+
+	if ( ! filename )
+		(void) load_files(file);
+	else
+		input_files.insert(copy_string(file));
 	}
 
 void add_to_name_list(char* s, char delim, name_list& nl)

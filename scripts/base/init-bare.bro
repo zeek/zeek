@@ -75,6 +75,13 @@ type addr_vec: vector of addr;
 ##    directly and then remove this alias.
 type table_string_of_string: table[string] of string;
 
+## A set of file analyzer tags.
+##
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
+type files_tag_set: set[Files::Tag];
+
 ## A structure indicating a MIME type and strength of a match against
 ## file magic signatures.
 ##
@@ -346,9 +353,10 @@ type connection: record {
 ## gives up and discards any internal state related to the file.
 const default_file_timeout_interval: interval = 2 mins &redef;
 
-## Default amount of bytes that file analysis will buffer before raising
-## :bro:see:`file_new`.
-const default_file_bof_buffer_size: count = 1024 &redef;
+## Default amount of bytes that file analysis will buffer in order to use
+## for mime type matching.  File analyzers attached at the time of mime type
+## matching or later, will receive a copy of this buffer.
+const default_file_bof_buffer_size: count = 4096 &redef;
 
 ## A file that Bro is analyzing.  This is Bro's type for describing the basic
 ## internal metadata collected about a "file", which is essentially just a
@@ -387,8 +395,10 @@ type fa_file: record {
 	## during the process of analysis e.g. due to dropped packets.
 	missing_bytes: count &default=0;
 
-	## The number of not all-in-sequence bytes in the file stream that
-	## were delivered to file analyzers due to reassembly buffer overflow.
+	## The number of bytes in the file stream that were not delivered to
+	## stream file analyzers.  Generally, this consists of bytes that
+	## couldn't be reassembled, either because reassembly simply isn't
+	## enabled, or due to size limitations of the reassembly buffer.
 	overflow_bytes: count &default=0;
 
 	## The amount of time between receiving new data for this file that
@@ -402,16 +412,6 @@ type fa_file: record {
 	## The content of the beginning of a file up to *bof_buffer_size* bytes.
 	## This is also the buffer that's used for file/mime type detection.
 	bof_buffer: string &optional;
-
-	## The mime type of the strongest file magic signature matches against
-	## the data chunk in *bof_buffer*, or in the cases where no buffering
-	## of the beginning of file occurs, an initial guess of the mime type
-	## based on the first data seen.
-	mime_type: string &optional;
-
-	## All mime types that matched file magic signatures against the data
-	## chunk in *bof_buffer*, in order of their strength value.
-	mime_types: mime_matches &optional;
 } &redef;
 
 ## Fields of a SYN packet.
@@ -2478,8 +2478,7 @@ type http_message_stat: record {
 	header_length: count;
 };
 
-## Maximum number of HTTP entity data delivered to events. The amount of data
-## can be limited for better performance, zero disables truncation.
+## Maximum number of HTTP entity data delivered to events.
 ##
 ## .. bro:see:: http_entity_data skip_http_entity_data skip_http_data
 global http_entity_data_delivery_size = 1500 &redef;
@@ -2806,6 +2805,7 @@ type ModbusRegisters: vector of count;
 type ModbusHeaders: record {
 	tid:           count;
 	pid:           count;
+	len:           count;
 	uid:           count;
 	function_code: count;
 };
@@ -3431,9 +3431,6 @@ const global_hash_seed: string = "" &redef;
 ## The maximum is currently 128 bits.
 const bits_per_uid: count = 96 &redef;
 
-# Load BiFs defined by plugins.
-@load base/bif/plugins
-
 # Load these frameworks here because they use fairly deep integration with
 # BiFs and script-land defined types.
 @load base/frameworks/logging
@@ -3442,3 +3439,7 @@ const bits_per_uid: count = 96 &redef;
 @load base/frameworks/files
 
 @load base/bif
+
+# Load BiFs defined by plugins.
+@load base/bif/plugins
+

@@ -11,6 +11,7 @@ set(file_analysis_SRCS
     Manager.cc
     File.cc
     FileTimer.cc
+    FileReassembler.cc
     Analyzer.cc
     AnalyzerSet.cc
     Component.cc

@@ -1,0 +1,3 @@
+error in /home/robin/bro/master/testing/btest/.tmp/language.outer_param_binding/outer_param_binding.bro, line 16: referencing outer function IDs not supported (c)
+error in /home/robin/bro/master/testing/btest/.tmp/language.outer_param_binding/outer_param_binding.bro, line 16: referencing outer function IDs not supported (d)
+error in /home/robin/bro/master/testing/btest/.tmp/language.outer_param_binding/outer_param_binding.bro, line 17: referencing outer function IDs not supported (b)

@@ -31,7 +31,7 @@ DataBlock::DataBlock(const u_char* data, uint64 size, uint64 arg_seq,
 
 uint64 Reassembler::total_size = 0;
 
-Reassembler::Reassembler(uint64 init_seq, ReassemblerType arg_type)
+Reassembler::Reassembler(uint64 init_seq)
 	{
 	blocks = last_block = 0;
 	trim_seq = last_reassem_seq = init_seq;
@@ -182,7 +182,7 @@ DataBlock* Reassembler::AddAndCheck(DataBlock* b, uint64 seq, uint64 upper,
 	{
 	if ( DEBUG_reassem )
 		{
-		DEBUG_MSG("%.6f Reassembler::AddAndCheck seq=%"PRIu64", upper=%"PRIu64"\n",
+		DEBUG_MSG("%.6f Reassembler::AddAndCheck seq=%" PRIu64", upper=%" PRIu64"\n",
 		          network_time, seq, upper);
 		}
 

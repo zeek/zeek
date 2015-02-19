@@ -67,6 +67,7 @@ export {
 		IN_ANYWHERE,
 	};
 
+	## Information about a piece of "seen" data.
 	type Seen: record {
 		## The string if the data is about a string.
 		indicator:       string        &log &optional;
@@ -81,6 +82,9 @@ export {
 		## Where the data was discovered.
 		where:           Where         &log;
 		
+		## The name of the node where the match was discovered.
+		node:            string        &optional &log;
+
 		## If the data was discovered within a connection, the 
 		## connection record should go here to give context to the data.
 		conn:            connection    &optional;
@@ -121,7 +125,7 @@ export {
 		sources:  set[string]    &log &default=string_set();
 	};
 
-	## Intelligence data manipulation functions.
+	## Intelligence data manipulation function.
 	global insert: function(item: Item);
 
 	## Function to declare discovery of a piece of data in order to check
@@ -240,6 +244,11 @@ function Intel::seen(s: Seen)
 			s$indicator_type = Intel::ADDR;
 			}
 
+		if ( ! s?$node )
+			{
+			s$node = peer_description;
+			}
+
 		if ( have_full_data )
 			{
 			local items = get_items(s);
@@ -281,8 +290,8 @@ event Intel::match(s: Seen, items: set[Item]) &priority=5
 		if ( ! info?$fuid )
 			info$fuid = s$f$id;
 
-		if ( ! info?$file_mime_type && s$f?$mime_type )
-			info$file_mime_type = s$f$mime_type;
+		if ( ! info?$file_mime_type && s$f?$info && s$f$info?$mime_type )
+			info$file_mime_type = s$f$info$mime_type;
 
 		if ( ! info?$file_desc )
 			info$file_desc = Files::describe(s$f);

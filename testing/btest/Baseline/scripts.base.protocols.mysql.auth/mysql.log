@@ -1,0 +1,21 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	mysql
+#open	2015-01-13-18-11-40
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	cmd	arg	success	rows	response
+#types	time	string	addr	port	addr	port	string	string	bool	count	string
+1362452327.618353	CsRx2w45OKnoww6xl4	192.168.1.3	55845	192.168.1.8	3306	login	root_nope	F	-	Access denied for user 'root_nope'@'lumberjack.home' (using password: NO)
+1362452330.947463	CRJuHdVW0XPVINV8a	192.168.1.3	55846	192.168.1.8	3306	login	root_nope	F	-	Access denied for user 'root_nope'@'lumberjack.home' (using password: YES)
+1362452332.571339	CPbrpk1qSsw6ESzHV4	192.168.1.3	55847	192.168.1.8	3306	login	root_nope	F	-	Access denied for user 'root_nope'@'lumberjack.home' (using password: YES)
+1362452334.559420	C6pKV8GSxOnSLghOa	192.168.1.3	55857	192.168.1.8	3306	login	root_nope	F	-	Access denied for user 'root_nope'@'lumberjack.home' (using password: YES)
+1362452336.361958	CIPOse170MGiRM1Qf4	192.168.1.3	55860	192.168.1.8	3306	login	root_nope	F	-	Access denied for user 'root_nope'@'lumberjack.home' (using password: YES)
+1362452357.320858	C7XEbhP654jzLoe3a	192.168.1.3	55861	192.168.1.8	3306	login	root	F	-	Access denied for user 'root'@'lumberjack.home' (using password: NO)
+1362452358.565340	CJ3xTn1c4Zw9TmAE05	192.168.1.3	55862	192.168.1.8	3306	login	root	F	-	Access denied for user 'root'@'lumberjack.home' (using password: YES)
+1362452360.410803	CMXxB5GvmoxJFXdTa	192.168.1.3	55863	192.168.1.8	3306	login	root	F	-	Access denied for user 'root'@'lumberjack.home' (using password: YES)
+1362452361.886123	Caby8b1slFea8xwSmb	192.168.1.3	55864	192.168.1.8	3306	login	root	F	-	Access denied for user 'root'@'lumberjack.home' (using password: YES)
+1362452372.452858	Che1bq3i2rO3KD1Syg	192.168.1.3	55865	192.168.1.8	3306	login	root	T	0	-
+1362452372.454995	Che1bq3i2rO3KD1Syg	192.168.1.3	55865	192.168.1.8	3306	query	select @@version_comment limit 1	T	1	-
+1362452372.991997	Che1bq3i2rO3KD1Syg	192.168.1.3	55865	192.168.1.8	3306	quit	(empty)	-	-	-
+#close	2015-01-13-18-11-40

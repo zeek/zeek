@@ -32,6 +32,7 @@
 @load frameworks/packet-filter/shunt.bro
 @load frameworks/software/version-changes.bro
 @load frameworks/software/vulnerable.bro
+@load frameworks/software/windows-version-detection.bro
 @load integration/barnyard2/__load__.bro
 @load integration/barnyard2/main.bro
 @load integration/barnyard2/types.bro
@@ -75,6 +76,7 @@
 @load protocols/http/var-extraction-uri.bro
 @load protocols/modbus/known-masters-slaves.bro
 @load protocols/modbus/track-memmap.bro
+@load protocols/mysql/software.bro
 @load protocols/smtp/blocklists.bro
 @load protocols/smtp/detect-suspicious-orig.bro
 @load protocols/smtp/entities-excerpt.bro
@@ -98,7 +100,4 @@
 @load tuning/defaults/packet-fragments.bro
 @load tuning/defaults/warnings.bro
 @load tuning/json-logs.bro
-@load tuning/logs-to-elasticsearch.bro
 @load tuning/track-all-assets.bro
-
-redef LogElasticSearch::server_host = "";

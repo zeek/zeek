@@ -65,11 +65,11 @@ RuleActionAnalyzer::RuleActionAnalyzer(const char* arg_analyzer)
 void RuleActionAnalyzer::PrintDebug()
 	{
 	if ( ! child_analyzer )
-		fprintf(stderr, "|%s|\n", analyzer_mgr->GetComponentName(analyzer));
+		fprintf(stderr, "|%s|\n", analyzer_mgr->GetComponentName(analyzer).c_str());
 	else
 		fprintf(stderr, "|%s:%s|\n",
-			analyzer_mgr->GetComponentName(analyzer),
-			analyzer_mgr->GetComponentName(child_analyzer));
+			analyzer_mgr->GetComponentName(analyzer).c_str(),
+			analyzer_mgr->GetComponentName(child_analyzer).c_str());
 	}
 
 

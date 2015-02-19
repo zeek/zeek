@@ -26,7 +26,7 @@ public:
 	virtual void Undelivered(uint64 seq, int len, bool orig);
 	virtual void EndpointEOF(bool is_orig);
 
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new SOCKS_Analyzer(conn); }
 
 protected:

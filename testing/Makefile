@@ -5,6 +5,10 @@ all: make-verbose coverage
 
 brief: make-brief coverage
 
+distclean:
+	@rm -f coverage.log
+	$(MAKE) -C btest $@
+
 make-verbose:
 	@for repo in $(DIRS); do (cd $$repo && make -s ); done
 

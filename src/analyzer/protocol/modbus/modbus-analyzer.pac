@@ -17,6 +17,11 @@
 	VectorVal* bytestring_to_coils(bytestring coils, uint quantity)
 		{
 		VectorVal* modbus_coils = new VectorVal(BifType::Vector::ModbusCoils);
+		for ( uint i = 0; i < quantity; i++ )
+			{
+			char currentCoil = (coils[i/8] >> (i % 8)) % 2;
+			modbus_coils->Assign(i, new Val(currentCoil, TYPE_BOOL));
+			}
 
 		return modbus_coils;
 		}
@@ -26,8 +31,9 @@
 		RecordVal* modbus_header = new RecordVal(BifType::Record::ModbusHeaders);
 		modbus_header->Assign(0, new Val(header->tid(), TYPE_COUNT));
 		modbus_header->Assign(1, new Val(header->pid(), TYPE_COUNT));
-		modbus_header->Assign(2, new Val(header->uid(), TYPE_COUNT));
-		modbus_header->Assign(3, new Val(header->fc(), TYPE_COUNT));
+		modbus_header->Assign(2, new Val(header->len(), TYPE_COUNT));
+		modbus_header->Assign(3, new Val(header->uid(), TYPE_COUNT));
+		modbus_header->Assign(4, new Val(header->fc(), TYPE_COUNT));
 		return modbus_header;
 		}
 
@@ -614,6 +620,3 @@ refine flow ModbusTCP_Flow += {
 		return true;
 		%}
 };
-
-
-

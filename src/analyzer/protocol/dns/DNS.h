@@ -180,6 +180,7 @@ protected:
 
 	uint16 ExtractShort(const u_char*& data, int& len);
 	uint32 ExtractLong(const u_char*& data, int& len);
+	void ExtractOctets(const u_char*& data, int& len, BroString** p);
 
 	int ParseRR_Name(DNS_MsgInfo* msg,
 				const u_char*& data, int& len, int rdlength,
@@ -267,7 +268,7 @@ public:
 
 	void ExpireTimer(double t);
 
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new DNS_Analyzer(conn); }
 
 protected:

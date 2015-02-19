@@ -49,7 +49,7 @@ public:
 	void ClientUserName(const char* s);
 	void ServerUserName(const char* s);
 
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new Rsh_Analyzer(conn); }
 
 	Contents_Rsh_Analyzer* contents_orig;

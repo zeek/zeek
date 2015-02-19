@@ -45,10 +45,6 @@ namespace analyzer {
  * sets up their initial analyzer tree, including adding the right \c PIA,
  * respecting well-known ports, and tracking any analyzers specifically
  * scheduled for individidual connections.
- *
- * Note that we keep the public interface of this class free of std::*
- * classes. This allows to external analyzer code to potentially use a
- * different C++ standard library.
  */
 class Manager : public plugin::ComponentManager<Tag, Component> {
 public:
@@ -132,6 +128,14 @@ public:
 	 * Disables all currently registered analyzers.
 	 */
 	void DisableAllAnalyzers();
+
+	/**
+	 * Returns the tag associated with an analyer name, or the tag
+	 * associated with an error if no such analyzer exists.
+	 *
+	 * @param name The canonical analyzer name to check.
+	 */
+	Tag GetAnalyzerTag(const char* name);
 
 	/**
 	 * Returns true if an analyzer is enabled.

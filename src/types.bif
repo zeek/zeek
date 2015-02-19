@@ -183,6 +183,7 @@ enum ID %{
 	Unknown,
 %}
 
+
 module Tunnel;
 enum Type %{
 	NONE,
@@ -195,29 +196,6 @@ enum Type %{
 %}
 
 type EncapsulatingConn: record;
-
-module Input;
-
-enum Reader %{
-	READER_DEFAULT,
-	READER_ASCII,
-	READER_RAW,
-	READER_BENCHMARK,
-	READER_BINARY,
-	READER_SQLITE,
-%}
-
-enum Event %{
-	EVENT_NEW,
-	EVENT_CHANGED,
-	EVENT_REMOVED,
-%}
-
-enum Mode %{
-	MANUAL = 0,
-	REREAD = 1,
-	STREAM = 2,
-%}
 
 module GLOBAL;
 

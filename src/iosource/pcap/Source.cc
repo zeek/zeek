@@ -174,6 +174,7 @@ bool PcapSource::ExtractNextPacket(Packet* pkt)
 	last_hdr = current_hdr;
 	last_data = data;
 	++stats.received;
+  stats.bytes += current_hdr.len;
 	return true;
 	}
 
@@ -213,7 +214,7 @@ bool PcapSource::SetFilter(int index)
 
 #ifndef HAVE_LINUX
 	// Linux doesn't clear counters when resetting filter.
-	stats.received = stats.dropped = stats.link = 0;
+	stats.received = stats.dropped = stats.link = stats.bytes = 0;
 #endif
 
 	return true;
@@ -224,7 +225,7 @@ void PcapSource::Statistics(Stats* s)
 	char errbuf[PCAP_ERRBUF_SIZE];
 
 	if ( ! (props.is_live && pd) )
-		s->received = s->dropped = s->link = 0;
+		s->received = s->dropped = s->link = s->bytes = 0;
 
 	else
 		{
@@ -232,7 +233,7 @@ void PcapSource::Statistics(Stats* s)
 		if ( pcap_stats(pd, &pstat) < 0 )
 			{
 			PcapError();
-			s->received = s->dropped = s->link = 0;
+			s->received = s->dropped = s->link = s->bytes = 0;
 			}
 
 		else
@@ -243,6 +244,8 @@ void PcapSource::Statistics(Stats* s)
 		}
 
 	s->received = stats.received;
+
+  s->bytes = stats.bytes;
 
 	if ( ! props.is_live )
 		s->dropped = 0;

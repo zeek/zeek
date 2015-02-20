@@ -65,54 +65,50 @@ event bro_init() &priority=5
         Analyzer::register_for_ports(Analyzer::ANALYZER_RDP, ports);
         }
 
-# Verify that the RDP session contains
-# RDP data before writing it to the log. 
-function verify_rdp(c: connection)
+function log_record(info: Info)
 	{
-	local info = c$rdp;
-	if ( info?$cookie || info?$keyboard_layout || info?$result )
-	  Log::write(RDP::LOG,info);
-	else
-	  Reporter::error("RDP analyzer was initialized but no data was found");
+	if ( info$done )
+          return;
+
+	info$done = T;
+
+	# This shouldn't happen, but just in case it does ...
+        if ( info?$cookie || info?$keyboard_layout || info?$result )
+          Log::write(RDP::LOG,info);
+        else
+          Reporter::error("RDP analyzer was initialized but no data was found");
 	}
 
-event log_record(c: connection, remove_analyzer: bool)
+function finish(c: connection, remove_analyzer: bool)
+	{
+	log_record(c$rdp);
+	if ( remove_analyzer && disable_analyzer_after_detection && c?$rdp && c$rdp?$analyzer_id )
+		{
+		disable_analyzer(c$id, c$rdp$analyzer_id);
+		delete c$rdp$analyzer_id;
+		}
+	}
+
+event rdp_scheduler(c: connection)
         {
 	# If the record was logged, then stop processing.
         if ( c$rdp$done )
           return;
 
-	# If the analyzer is no longer attached, then 
-	# log the record and stop processing.
-	if ( ! remove_analyzer )
-	  {
-	  c$rdp$done = T;
-	  verify_rdp(c);
-	  return;
-	  }
-
-	# If the value rdp_interval has passed since the 
+	# If the rdp_interval value has passed since the 
 	# RDP session was started, then log the record. 
         local diff = network_time() - c$rdp$ts;
         if ( diff > rdp_interval )
           {
-          c$rdp$done = T;
-	  verify_rdp(c);
-
-	  # Remove the analyzer if it is still attached.
-          if ( remove_analyzer && disable_analyzer_after_detection && connection_exists(c$id) && c$rdp?$analyzer_id )
-            {
-            disable_analyzer(c$id, c$rdp$analyzer_id);
-            delete c$rdp$analyzer_id;
-            }
-
+	  finish(c,T);
 	  return;
           }
+
 	# If the analyzer is attached and the duration
 	# to monitor the RDP session was not met, then
 	# reschedule the logging event.
         else
-          schedule +rdp_interval { log_record(c,remove_analyzer) };
+          schedule +rdp_interval { rdp_scheduler(c) };
         }
 
 function set_session(c: connection)
@@ -122,7 +118,7 @@ function set_session(c: connection)
           c$rdp = [$ts=network_time(),$id=c$id,$uid=c$uid];
 	  # The RDP session is scheduled to be logged from
 	  # the time it is first initiated.
-	  schedule +rdp_interval { log_record(c,T) };	
+	  schedule +rdp_interval { rdp_scheduler(c) };	
 	  }
         }
 
@@ -157,22 +153,22 @@ event rdp_server_security(c: connection, encryption_method: count, encryption_le
 event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &priority=5
 	{
 	if ( atype == Analyzer::ANALYZER_RDP )
-		{
-		set_session(c);
-		c$rdp$analyzer_id = aid;
-		}
+	  {
+	  set_session(c);
+	  c$rdp$analyzer_id = aid;
+	  }
 	}
 
 event protocol_violation(c: connection, atype: Analyzer::Tag, aid: count, reason: string) &priority=5
 	{
-	# If a protocol violation occurs, then log the record immediately.
+	# If a protocol violation occurs, then remove the analyzer and log the record immediately.
 	if ( c?$rdp )
-	  schedule +0secs { log_record(c,F) };
+	  finish(c,T);
 	}
 
 event connection_state_remove(c: connection) &priority=-5
         {
 	# If the connection is removed, then log the record immediately.
         if ( c?$rdp )
-          schedule +0secs { log_record(c,F) };
+	  finish(c,F);
         }

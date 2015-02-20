@@ -1,4 +1,9 @@
 
+2.3-424 | 2015-02-20 12:39:10 -0800
+
+  * Add the ability to remove surrounding braces from the JSON
+    formatter. (Seth Hall)
+
 2.3-419 | 2015-02-13 09:10:44 -0600
 
   * BIT-1011: Update the SOCKS analyzer to support user/pass login.

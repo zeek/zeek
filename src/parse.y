@@ -16,6 +16,7 @@
 %token TOK_REMOVE_FROM TOK_RETURN TOK_SCHEDULE TOK_SET
 %token TOK_STRING TOK_SUBNET TOK_SWITCH TOK_TABLE
 %token TOK_TIME TOK_TIMEOUT TOK_TIMER TOK_TYPE TOK_UNION TOK_VECTOR TOK_WHEN
+%token TOK_WHILE
 
 %token TOK_ATTR_ADD_FUNC TOK_ATTR_ENCRYPT TOK_ATTR_DEFAULT
 %token TOK_ATTR_OPTIONAL TOK_ATTR_REDEF TOK_ATTR_ROTATE_INTERVAL
@@ -1338,6 +1339,11 @@ stmt:
 	|	for_head stmt
 			{
 			$1->AsForStmt()->AddBody($2);
+			}
+
+	|	TOK_WHILE '(' expr ')' stmt
+			{
+			$$ = new WhileStmt($3, $5);
 			}
 
 	|	TOK_NEXT ';' opt_no_test

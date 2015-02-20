@@ -1,4 +1,8 @@
 
+2.3-426 | 2015-02-20 12:45:51 -0800
+
+  * Add 'while' statement to Bro language. Really. (Jon Siwek)
+
 2.3-424 | 2015-02-20 12:39:10 -0800
 
   * Add the ability to remove surrounding braces from the JSON

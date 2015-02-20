@@ -31,6 +31,14 @@ New Functionality
 - Bro's file analysis now supports reassembly of files that are not
   transferred/seen sequentially.
 
+- Bro's scripting language now has a ``while`` statement::
+
+        while ( i < 5 )
+            print ++i;
+
+  ``next`` and ``break`` can be used inside the loop's body just like
+  with ``for`` loops.
+
 Changed Functionality
 ---------------------
 

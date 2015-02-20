@@ -77,6 +77,12 @@ void PcapSource::OpenLive()
 		props.netmask = 0xffffff00;
 		}
 
+#ifdef PCAP_NETMASK_UNKNOWN
+	// Defined in libpcap >= 1.1.1
+	if ( props.netmask == PCAP_NETMASK_UNKNOWN )
+		props.netmask = PktSrc::NETMASK_UNKNOWN;
+#endif
+
 	// We use the smallest time-out possible to return almost immediately if
 	// no packets are available. (We can't use set_nonblocking() as it's
 	// broken on FreeBSD: even when select() indicates that we can read

@@ -1,4 +1,9 @@
 
+2.3-427 | 2015-02-20 13:49:33 -0800
+
+  * Removing dependency on PCAP_NETMASK_UNKNOWN to compile with
+    libpcap < 1.1.1. (Robin Sommer)
+
 2.3-426 | 2015-02-20 12:45:51 -0800
 
   * Add 'while' statement to Bro language. Really. (Jon Siwek)

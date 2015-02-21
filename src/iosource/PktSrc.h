@@ -16,6 +16,8 @@ namespace iosource {
  */
 class PktSrc : public IOSource {
 public:
+	static const int NETMASK_UNKNOWN = 0xffffffff;
+
 	/**
 	 * Struct for returning statistics on a packet source.
 	 */
@@ -67,7 +69,7 @@ public:
 
 	/**
 	 * Returns the netmask associated with the source, or \c
-	 * PCAP_NETMASK_UNKNOWN if unknown.
+	 * NETMASK_UNKNOWN if unknown.
 	 */
 	uint32 Netmask() const;
 
@@ -253,8 +255,8 @@ protected:
 		int hdr_size;
 
 		/**
-		 * The netmask associated with the source, or \c
-		 * PCAP_NETMASK_UNKNOWN if unknown.
+		 * Returns the netmask associated with the source, or \c
+		 * NETMASK_UNKNOWN if unknown.
 		 */
 		uint32 netmask;
 
@@ -264,14 +266,7 @@ protected:
 		 */
 		bool is_live;
 
-		Properties()
-			{
-			selectable_fd = -1;
-			link_type = -1;
-			hdr_size = -1;
-			netmask = PCAP_NETMASK_UNKNOWN;
-			is_live = false;
-			}
+		Properties();
 	};
 
 	/**

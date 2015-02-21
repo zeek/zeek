@@ -1,4 +1,42 @@
 
+2.3-427 | 2015-02-20 13:49:33 -0800
+
+  * Removing dependency on PCAP_NETMASK_UNKNOWN to compile with
+    libpcap < 1.1.1. (Robin Sommer)
+
+2.3-426 | 2015-02-20 12:45:51 -0800
+
+  * Add 'while' statement to Bro language. Really. (Jon Siwek)
+
+2.3-424 | 2015-02-20 12:39:10 -0800
+
+  * Add the ability to remove surrounding braces from the JSON
+    formatter. (Seth Hall)
+
+2.3-419 | 2015-02-13 09:10:44 -0600
+
+  * BIT-1011: Update the SOCKS analyzer to support user/pass login.
+    (Nicolas Retrain, Seth Hall, Jon Siwek)
+
+    - Add a new field to socks.log: "password".
+    - Two new events: "socks_login_userpass_request" and
+      "socks_login_userpass_reply".
+    - Two new weirds for unsupported SOCKS authentication method or
+      version.
+    - A new test for authenticated socks traffic.
+
+2.3-416 | 2015-02-12 12:18:42 -0600
+
+  * Submodule update - newest sqlite version (Johanna Amann)
+
+  * Fix use of deprecated gperftools headers. (Jon Siwek)
+
+2.3-413 | 2015-02-08 18:23:05 -0800
+
+  * Fixing analyzer tag types for some Files::* functions. (Robin Sommer)
+
+  * Changing load order for plugin scripts. (Robin Sommer)
+
 2.3-411 | 2015-02-05 10:05:48 -0600
 
   * Fix file analysis of files with total size below the bof_buffer size

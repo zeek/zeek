@@ -89,7 +89,7 @@ bool WriterBackend::WriterInfo::Read(SerializationFormat* fmt)
 		string value;
 		string key;
 
-		if ( ! (fmt->Read(&value, "config-value") && fmt->Read(&value, "config-key")) )
+		if ( ! (fmt->Read(&value, "config-value") && fmt->Read(&key, "config-key")) )
 			return false;
 
 		config.insert(std::make_pair(copy_string(value.c_str()), copy_string(key.c_str())));

@@ -1,4 +1,9 @@
 
+2.3-442 | 2015-02-23 13:29:30 -0800
+
+  * Add a "local_resp" field to conn.log, along the lines of the
+    existing "local_orig". (Mike Smiley)
+
 2.3-440 | 2015-02-23 11:39:17 -0600
 
   * Updating plugin docs to recent changes. (Robin Sommer)

@@ -1,4 +1,24 @@
 
+2.3-440 | 2015-02-23 11:39:17 -0600
+
+  * Updating plugin docs to recent changes. (Robin Sommer)
+
+  * Updating plugin tests to recent changes. (Robin Sommer)
+
+  * Making plugin names case-insensitive for some internal comparisions.
+    Makes plugin system more tolerant against spelling inconsistencies
+    are hard to catch otherwise. (Robin Sommer)
+
+  * Explicitly removing some old scripts on install that have moved
+    into plugins to prevent them causing confusion. (Robin Sommer)
+
+  * BIT-1312: Removing setting installation plugin path from
+    bro-path-dev.sh.  Also, adding to existing BRO_PLUGIN_PATH rather
+    than replacing. (Robin Sommer)
+
+  * Creating the installation directory for plugins at install time.
+    (Robin Sommer)
+
 2.3-427 | 2015-02-20 13:49:33 -0800
 
   * Removing dependency on PCAP_NETMASK_UNKNOWN to compile with

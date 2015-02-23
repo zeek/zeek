@@ -541,6 +541,13 @@ bool is_printable(const char* s, int len)
 	return true;
 	}
 
+std::string strtolower(const std::string& s)
+	{
+	std::string t = s;
+	std::transform(t.begin(), t.end(), t.begin(), ::tolower);
+	return t;
+	}
+
 const char* fmt_bytes(const char* data, int len)
 	{
 	static char buf[1024];

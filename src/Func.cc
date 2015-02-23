@@ -335,7 +335,7 @@ int BroFunc::IsPure() const
 Val* BroFunc::Call(val_list* args, Frame* parent) const
 	{
 #ifdef PROFILE_BRO_FUNCTIONS
-	DEBUG_MSG("Function: %s\n", id->Name());
+	DEBUG_MSG("Function: %s\n", Name());
 #endif
 
 	SegmentProfiler(segment_logger, location);

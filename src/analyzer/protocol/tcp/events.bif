@@ -29,8 +29,10 @@ event new_connection_contents%(c: connection%);
 ##    new_connection new_connection_contents partial_connection
 event connection_attempt%(c: connection%);
 
-## Generated when a SYN-ACK packet is seen in response to a SYN packet during
-## a TCP handshake.  The final ACK of the handshake in response to SYN-ACK may
+## Generated when seeing a SYN-ACK packet from the responder in a TCP
+## handshake.  An associated SYN packet was not seen from the originator
+## side if its state is not set to :bro:see:`TCP_ESTABLISHED`.
+## The final ACK of the handshake in response to SYN-ACK may
 ## or may not occur later, one way to tell is to check the *history* field of
 ## :bro:type:`connection` to see if the originator sent an ACK, indicated by
 ## 'A' in the history string.

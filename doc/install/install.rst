@@ -35,7 +35,7 @@ before you begin:
 
 To build Bro from source, the following additional dependencies are required:
 
-    * CMake 2.6.3 or greater            (http://www.cmake.org)
+    * CMake 2.8 or greater              (http://www.cmake.org)
     * Make
     * C/C++ compiler
     * SWIG                              (http://www.swig.org)

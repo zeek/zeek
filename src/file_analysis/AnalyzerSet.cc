@@ -72,7 +72,7 @@ bool AnalyzerSet::Add(file_analysis::Tag tag, RecordVal* args)
 	return true;
 	}
 
-bool AnalyzerSet::QueueAdd(file_analysis::Tag tag, RecordVal* args)
+Analyzer* AnalyzerSet::QueueAdd(file_analysis::Tag tag, RecordVal* args)
 	{
 	HashKey* key = GetKey(tag, args);
 	file_analysis::Analyzer* a = InstantiateAnalyzer(tag, args);
@@ -80,12 +80,12 @@ bool AnalyzerSet::QueueAdd(file_analysis::Tag tag, RecordVal* args)
 	if ( ! a )
 		{
 		delete key;
-		return false;
+		return 0;
 		}
 
 	mod_queue.push(new AddMod(a, key));
 
-	return true;
+	return a;
 	}
 
 bool AnalyzerSet::AddMod::Perform(AnalyzerSet* set)

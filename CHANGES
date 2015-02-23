@@ -1,4 +1,242 @@
 
+2.3-427 | 2015-02-20 13:49:33 -0800
+
+  * Removing dependency on PCAP_NETMASK_UNKNOWN to compile with
+    libpcap < 1.1.1. (Robin Sommer)
+
+2.3-426 | 2015-02-20 12:45:51 -0800
+
+  * Add 'while' statement to Bro language. Really. (Jon Siwek)
+
+2.3-424 | 2015-02-20 12:39:10 -0800
+
+  * Add the ability to remove surrounding braces from the JSON
+    formatter. (Seth Hall)
+
+2.3-419 | 2015-02-13 09:10:44 -0600
+
+  * BIT-1011: Update the SOCKS analyzer to support user/pass login.
+    (Nicolas Retrain, Seth Hall, Jon Siwek)
+
+    - Add a new field to socks.log: "password".
+    - Two new events: "socks_login_userpass_request" and
+      "socks_login_userpass_reply".
+    - Two new weirds for unsupported SOCKS authentication method or
+      version.
+    - A new test for authenticated socks traffic.
+
+2.3-416 | 2015-02-12 12:18:42 -0600
+
+  * Submodule update - newest sqlite version (Johanna Amann)
+
+  * Fix use of deprecated gperftools headers. (Jon Siwek)
+
+2.3-413 | 2015-02-08 18:23:05 -0800
+
+  * Fixing analyzer tag types for some Files::* functions. (Robin Sommer)
+
+  * Changing load order for plugin scripts. (Robin Sommer)
+
+2.3-411 | 2015-02-05 10:05:48 -0600
+
+  * Fix file analysis of files with total size below the bof_buffer size
+    never delivering content to stream analyzers. (Seth Hall)
+
+  * Add/fix log fields in x509 diff canonifier. (Jon Siwek)
+
+  * "id" not defined for debug code when using -DPROFILE_BRO_FUNCTIONS
+    (Mike Smiley)
+
+2.3-406 | 2015-02-03 17:02:45 -0600
+
+  * Add x509 canonifier to a unit test. (Jon Siwek)
+
+2.3-405 | 2015-02-02 11:14:24 -0600
+
+  * Fix memory leak in new split_string* functions. (Jon Siwek)
+
+2.3-404 | 2015-01-30 14:23:27 -0800
+
+  * Update documentation (broken links, outdated tests). (Jon Siwek)
+
+  * Deprecate split* family of BIFs. (Jon Siwek)
+
+    These functions are now deprecated in favor of alternative versions that
+    return a vector of strings rather than a table of strings.
+
+    Deprecated functions:
+
+    - split: use split_string instead.
+    - split1: use split_string1 instead.
+    - split_all: use split_string_all instead.
+    - split_n: use split_string_n instead.
+    - cat_string_array: see join_string_vec instead.
+    - cat_string_array_n: see join_string_vec instead.
+    - join_string_array: see join_string_vec instead.
+    - sort_string_array: use sort instead instead.
+    - find_ip_addresses: use extract_ip_addresses instead.
+
+    Changed functions:
+
+    - has_valid_octets: uses a string_vec parameter instead of string_array.
+
+    Addresses BIT-924.
+
+  * Add a new attribute: &deprecated. While scripts are parsed, a
+    warning is raised for each usage of an identifier marked as
+    &deprecated.  This also works for BIFs. Addresses BIT-924,
+    BIT-757. (Jon Siwek)
+
+2.3-397 | 2015-01-27 10:13:10 -0600
+
+  * Handle guess_lexer exceptions in pygments reST directive (Jon Siwek)
+
+2.3-396 | 2015-01-23 10:49:15 -0600
+
+  * DNP3: fix reachable assertion and buffer over-read/overflow.
+    CVE number pending. (Travis Emmert, Jon Siwek)
+
+  * Update binpac: Fix potential out-of-bounds memory reads in generated
+    code. CVE-2014-9586. (John Villamil and Chris Rohlf - Yahoo
+    Paranoids, Jon Siwek)
+
+  * Fixing (harmless) Coverity warning. (Robin Sommer)
+
+2.3-392 | 2015-01-15 09:44:15 -0800
+
+  * Small changes to EC curve names in a newer draft. (Johanna Amann)
+
+2.3-390 | 2015-01-14 13:27:34 -0800
+
+  * Updating MySQL analyses. (Vlad Grigorescu)
+     - Use a boolean success instead of a result string.
+     - Change the affected_rows response detail string to a "rows" count.
+     - Fix the state tracking to log incomplete command.
+
+  * Extend DNP3 to support communication over UDP. (Hui Lin)
+
+  * Fix a bug in DNP3 determining the length of an object in some
+    cases. (Hui Lin)
+
+2.3-376 | 2015-01-12 09:38:10 -0600
+
+  * Improve documentation for connection_established event. (Jon Siwek)
+
+2.3-375 | 2015-01-08 13:10:09 -0600
+
+  * Increase minimum required CMake version to 2.8. (Jon Siwek)
+
+2.3-374 | 2015-01-07 10:03:17 -0600
+
+  * Improve documentation of the Intelligence Framework. (Daniel Thayer)
+
+2.3-371 | 2015-01-06 09:58:09 -0600
+
+  * Update/improve file mime type identification. (Seth Hall)
+
+     - Change to the default BOF buffer size to 3000 (was 1024).
+
+     - Reorganized MS signatures into a separate file.
+
+     - Remove all of the x-c detections.  Nearly all false positives.
+
+     - Improve TAR detections, removing old, back up TAR detections.
+
+     - Remove one of the x-elc detections that was too loose
+       and caused many false positives.
+
+     - Improved lots of the signatures and added new ones. (Seth Hall)
+
+  * Add support for file reassembly in the file analysis framework
+    (Seth Hall, Jon Siwek).
+
+     - The reassembly behavior can be modified per-file by enabling or
+       disabling the reassembler and/or modifying the size of the
+       reassembly buffer.
+
+     - Changed the file extraction analyzer to use stream-wise input to
+       avoid issues with the chunk-wise approach not immediately
+       triggering the file_new event due to mime-type detection delay.
+       Before, early chunks frequently ended up lost.  Extraction also
+       will now explicitly NUL-fill gaps in the file instead of
+       implicitly relying on pwrite to do it.
+
+2.3-349 | 2015-01-05 15:21:13 -0600
+
+  * Fix race condition in unified2 file analyzer startup. (Jon siwek)
+
+2.3-348 | 2014-12-31 09:19:34 -0800
+
+  * Changing Makefile's test-all to run test-all for broctl, which now
+    executes trace-summary tests as well. (Robin Sommer)
+
+2.3-345 | 2014-12-31 09:06:15 -0800
+
+  * Correct a typo in the Notice framework doc. (Daniel Thayer)
+
+2.3-343 | 2014-12-12 12:43:46 -0800
+
+  * Fix PIA packet replay to deliver copy of IP header. This prevented
+    one from writing a packet-wise analyzer that needs access to IP
+    headers and can be attached to a connection via signature match.
+    Addresses BIT-1298 (Jon Siwek)
+
+2.3-338 | 2014-12-08 13:56:19 -0800
+
+  * Add man page for Bro. (Raúl Benencia)
+
+  * Updating doc baselines. (Robin Sommer)
+
+2.3-334 | 2014-12-03 14:22:07 -0800
+
+  * Fix compound assignment to require proper L-value. Addresses
+    BIT-1295. (Jon Siwek)
+
+2.3-332 | 2014-12-03 14:14:11 -0800
+
+  * Make using local IDs in @if directives an error. Addresses
+    BIT-1296. (Jon Siwek)
+
+2.3-330 | 2014-12-03 14:10:39 -0800
+
+  * Fix some "make doc" warnings and update some doc tests. (Daniel
+    Thayer)
+
+2.3-328 | 2014-12-02 08:13:10 -0500
+
+  * Update windows-version-detection.bro to add support for 
+    Windows 10. (Michal Purzynski)
+
+2.3-326 | 2014-12-01 12:10:27 -0600
+
+  * BIFScanner: fix invalid characters in generated preprocessor macros.
+    (Hilko Bengen)
+
+  * BIT-1294: fix exec.bro from mutating Input::end_of_data event
+    parameters. (Johanna Amann)
+
+  * Add/invoke "distclean" for testing directories. (Raúl Benencia)
+
+  * Delete prebuilt python bytecode files from git. (Jon Siwek)
+
+  * Add Windows detection based on CryptoAPI HTTP traffic as a software
+    framework policy script. (Vlad Grigorescu)
+
+2.3-316 | 2014-11-25 17:35:06 -0800
+
+  * Make the SSL analyzer skip further processing once encountering
+    situations which are very probably non-recoverable. (Johanna
+    Amann)
+
+2.3-313 | 2014-11-25 14:27:07 -0800
+
+  * Make SSL v2 protocol tests more strict. In its former state they
+    triggered on http traffic over port 443 sometimes. Found by Michał
+    Purzyński. (Johanna Amann)
+
+  * Fix X509 analyzer to correctly return ECDSA as the key_type for
+    ECDSA certs. Bug found by Michał Purzyński. (Johanna Amann)
+
 2.3-310 | 2014-11-19 10:56:59 -0600
 
   * Disable verbose bison output. (Jon Siwek)
@@ -33,6 +271,11 @@
   * A new analyzer parsing the MySQL wire protocol. Activity gets
     logged into mysql.log. Supports protocol versions 9 and 10. (Vlad
     Grigorescu)
+
+2.3-280 | 2014-11-05 09:46:33 -0500
+
+  * Add Windows detection based on CryptoAPI HTTP traffic as a 
+    software framework policy script. (Vlad Grigorescu)
 
 2.3-278 | 2014-11-03 18:55:18 -0800
 

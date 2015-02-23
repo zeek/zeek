@@ -7,40 +7,16 @@
 # The instrumented version of the `file` command used to generate these
 # is located at: https://github.com/jsiwek/file/tree/bro-signatures.
 
-# >2080  string,=Foglio di lavoro Microsoft Exce (len=31), ["%s"], swap_endian=0
-signature file-magic-auto0 {
-	file-mime "application/vnd.ms-excel", 340
-	file-magic /(.{2080})(Foglio di lavoro Microsoft Exce)/
-}
-
 # >2  string,=---BEGIN PGP PUBLIC KEY BLOCK- (len=30), ["PGP public key block"], swap_endian=0
 signature file-magic-auto1 {
 	file-mime "application/pgp-keys", 330
 	file-magic /(.{2})(\x2d\x2d\x2dBEGIN PGP PUBLIC KEY BLOCK\x2d)/
 }
 
-# >2080  string,=Microsoft Excel 5.0 Worksheet (len=29), ["%s"], swap_endian=0
-signature file-magic-auto2 {
-	file-mime "application/vnd.ms-excel", 320
-	file-magic /(.{2080})(Microsoft Excel 5\x2e0 Worksheet)/
-}
-
 # >11  string,=must be converted with BinHex (len=29), ["BinHex binary text"], swap_endian=0
 signature file-magic-auto3 {
 	file-mime "application/mac-binhex40", 320
 	file-magic /(.{11})(must be converted with BinHex)/
-}
-
-# >2080  string,=Microsoft Word 6.0 Document (len=27), ["%s"], swap_endian=0
-signature file-magic-auto4 {
-	file-mime "application/msword", 300
-	file-magic /(.{2080})(Microsoft Word 6\x2e0 Document)/
-}
-
-# >2080  string,=Documento Microsoft Word 6 (len=26), ["Spanish Microsoft Word 6 document data"], swap_endian=0
-signature file-magic-auto5 {
-	file-mime "application/msword", 290
-	file-magic /(.{2080})(Documento Microsoft Word 6)/
 }
 
 # >0  string,=-----BEGIN PGP SIGNATURE- (len=25), ["PGP signature"], swap_endian=0
@@ -92,36 +68,6 @@ signature file-magic-auto13 {
 	file-magic /(\x23\x21 ?\x2fusr\x2flocal\x2fbin\x2fgawk)/
 }
 
-# >0  string/wt,=#! /usr/local/bin/bash (len=22), ["Bourne-Again shell script text executable"], swap_endian=0
-signature file-magic-auto14 {
-	file-mime "text/x-shellscript", 250
-	file-magic /(\x23\x21 ?\x2fusr\x2flocal\x2fbin\x2fbash)/
-}
-
-# >0  string/wt,=#! /usr/local/bin/tcsh (len=22), ["Tenex C shell script text executable"], swap_endian=0
-signature file-magic-auto15 {
-	file-mime "text/x-shellscript", 250
-	file-magic /(\x23\x21 ?\x2fusr\x2flocal\x2fbin\x2ftcsh)/
-}
-
-# >0  string/wt,=#! /usr/local/bin/zsh (len=21), ["Paul Falstad's zsh script text executable"], swap_endian=0
-signature file-magic-auto16 {
-	file-mime "text/x-shellscript", 240
-	file-magic /(\x23\x21 ?\x2fusr\x2flocal\x2fbin\x2fzsh)/
-}
-
-# >0  string/wt,=#! /usr/local/bin/ash (len=21), ["Neil Brown's ash script text executable"], swap_endian=0
-signature file-magic-auto17 {
-	file-mime "text/x-shellscript", 240
-	file-magic /(\x23\x21 ?\x2fusr\x2flocal\x2fbin\x2fash)/
-}
-
-# >0  string/wt,=#! /usr/local/bin/ae (len=20), ["Neil Brown's ae script text executable"], swap_endian=0
-signature file-magic-auto18 {
-	file-mime "text/x-shellscript", 230
-	file-magic /(\x23\x21 ?\x2fusr\x2flocal\x2fbin\x2fae)/
-}
-
 # >0  string,=# PaCkAgE DaTaStReAm (len=20), ["pkg Datastream (SVR4)"], swap_endian=0
 signature file-magic-auto19 {
 	file-mime "application/x-svr4-package", 230
@@ -140,28 +86,10 @@ signature file-magic-auto21 {
 	file-magic /(\x5bKDE Desktop Entry\x5d)/
 }
 
-# >512  string,=R\000o\000o\000t\000 \000E\000n\000t\000r\000y (len=19), ["Microsoft Word Document"], swap_endian=0
-signature file-magic-auto22 {
-	file-mime "application/msword", 220
-	file-magic /(.{512})(R\x00o\x00o\x00t\x00 \x00E\x00n\x00t\x00r\x00y)/
-}
-
 # >0  string,=!<arch>\n__________E (len=19), ["MIPS archive"], swap_endian=0
 signature file-magic-auto23 {
 	file-mime "application/x-archive", 220
 	file-magic /(\x21\x3carch\x3e\x0a\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5fE)/
-}
-
-# >0  string/wt,=#! /usr/local/tcsh (len=18), ["Tenex C shell script text executable"], swap_endian=0
-signature file-magic-auto24 {
-	file-mime "text/x-shellscript", 210
-	file-magic /(\x23\x21 ?\x2fusr\x2flocal\x2ftcsh)/
-}
-
-# >0  string/wt,=#! /usr/local/bash (len=18), ["Bourne-Again shell script text executable"], swap_endian=0
-signature file-magic-auto25 {
-	file-mime "text/x-shellscript", 210
-	file-magic /(\x23\x21 ?\x2fusr\x2flocal\x2fbash)/
 }
 
 # >0  string/t,=# KDE Config File (len=17), ["KDE config file"], swap_endian=0
@@ -189,12 +117,6 @@ signature file-magic-auto29 {
 	file-magic /(\x23\x21 ?\x2fusr\x2fbin\x2fnawk)/
 }
 
-# >0  string/wt,=#! /usr/bin/tcsh (len=16), ["Tenex C shell script text executable"], swap_endian=0
-signature file-magic-auto30 {
-	file-mime "text/x-shellscript", 190
-	file-magic /(\x23\x21 ?\x2fusr\x2fbin\x2ftcsh)/
-}
-
 # >0  string/wt,=#! /usr/bin/gawk (len=16), ["GNU awk script text executable"], swap_endian=0
 signature file-magic-auto31 {
 	file-mime "text/x-gawk", 190
@@ -205,12 +127,6 @@ signature file-magic-auto31 {
 signature file-magic-auto32 {
 	file-mime "application/x-dosexec", 190
 	file-magic /(.{369})(MICROSOFT PIFEX\x00)/
-}
-
-# >0  string/wt,=#! /usr/bin/bash (len=16), ["Bourne-Again shell script text executable"], swap_endian=0
-signature file-magic-auto33 {
-	file-mime "text/x-shellscript", 190
-	file-magic /(\x23\x21 ?\x2fusr\x2fbin\x2fbash)/
 }
 
 # >0  string/w,=#VRML V1.0 ascii (len=16), ["VRML 1 file"], swap_endian=0
@@ -334,12 +250,6 @@ signature file-magic-auto51 {
 	file-magic /(\x23\x21 ?\x2fusr\x2fbin\x2fawk)/
 }
 
-# >0  string/wt,=#! /usr/bin/zsh (len=15), ["Paul Falstad's zsh script text executable"], swap_endian=0
-signature file-magic-auto52 {
-	file-mime "text/x-shellscript", 180
-	file-magic /(\x23\x21 ?\x2fusr\x2fbin\x2fzsh)/
-}
-
 # >0  string,=MAS_UTrack_V00 (len=14), [""], swap_endian=0
 # >>14  string,>/0 (len=2), ["ultratracker V1.%.1s module sound data"], swap_endian=0
 signature file-magic-auto53 {
@@ -457,12 +367,6 @@ signature file-magic-auto70 {
 	file-magic /(\x3cmap ?version)/
 }
 
-# >0  string/wt,=#! /bin/tcsh (len=12), ["Tenex C shell script text executable"], swap_endian=0
-signature file-magic-auto71 {
-	file-mime "text/x-shellscript", 150
-	file-magic /(\x23\x21 ?\x2fbin\x2ftcsh)/
-}
-
 # >0  string/wt,=#! /bin/nawk (len=12), ["new awk script text executable"], swap_endian=0
 signature file-magic-auto72 {
 	file-mime "text/x-nawk", 150
@@ -473,12 +377,6 @@ signature file-magic-auto72 {
 signature file-magic-auto73 {
 	file-mime "text/x-gawk", 150
 	file-magic /(\x23\x21 ?\x2fbin\x2fgawk)/
-}
-
-# >0  string/wt,=#! /bin/bash (len=12), ["Bourne-Again shell script text executable"], swap_endian=0
-signature file-magic-auto74 {
-	file-mime "text/x-shellscript", 150
-	file-magic /(\x23\x21 ?\x2fbin\x2fbash)/
 }
 
 # >0  string/wt,=#! /bin/awk (len=11), ["awk script text executable"], swap_endian=0
@@ -505,24 +403,6 @@ signature file-magic-auto78 {
 	file-magic /(d8\x3aannounce)/
 }
 
-# >0  string/wt,=#! /bin/csh (len=11), ["C shell script text executable"], swap_endian=0
-signature file-magic-auto79 {
-	file-mime "text/x-shellscript", 140
-	file-magic /(\x23\x21 ?\x2fbin\x2fcsh)/
-}
-
-# >0  string/wt,=#! /bin/ksh (len=11), ["Korn shell script text executable"], swap_endian=0
-signature file-magic-auto80 {
-	file-mime "text/x-shellscript", 140
-	file-magic /(\x23\x21 ?\x2fbin\x2fksh)/
-}
-
-# >0  string/wt,=#! /bin/zsh (len=11), ["Paul Falstad's zsh script text executable"], swap_endian=0
-signature file-magic-auto81 {
-	file-mime "text/x-shellscript", 140
-	file-magic /(\x23\x21 ?\x2fbin\x2fzsh)/
-}
-
 # >0  string/c,=BEGIN:VCARD (len=11), ["vCard visiting card"], swap_endian=0
 signature file-magic-auto82 {
 	file-mime "text/x-vcard", 140
@@ -543,12 +423,6 @@ signature file-magic-auto83 {
 signature file-magic-auto84 {
 	file-mime "message/rfc822", 130
 	file-magic /(Forward to)/
-}
-
-# >0  string/wt,=#! /bin/sh (len=10), ["POSIX shell script text executable"], swap_endian=0
-signature file-magic-auto85 {
-	file-mime "text/x-shellscript", 130
-	file-magic /(\x23\x21 ?\x2fbin\x2fsh)/
 }
 
 # >0  string,=II*\000\020\000\000\000CR (len=10), ["Canon CR2 raw image data"], swap_endian=0
@@ -583,12 +457,6 @@ signature file-magic-auto89 {
 signature file-magic-auto90 {
 	file-mime "application/x-mif", 120
 	file-magic /(\x3cBookFile)/
-}
-
-# >2112  string,=MSWordDoc (len=9), ["Microsoft Word document data"], swap_endian=0
-signature file-magic-auto91 {
-	file-mime "application/msword", 120
-	file-magic /(.{2112})(MSWordDoc)/
 }
 
 # >0  string/t,=N#! rnews (len=9), ["mailed, batched news text"], swap_endian=0
@@ -654,12 +522,6 @@ signature file-magic-auto99 {
 signature file-magic-auto100 {
 	file-mime "application/vnd.ms-cab-compressed", 110
 	file-magic /(MSCF\x00\x00\x00\x00)/
-}
-
-# >0  string/b,=\320\317\021\340\241\261\032\341 (len=8), ["Microsoft Office Document"], swap_endian=0
-signature file-magic-auto101 {
-	file-mime "application/msword", 110
-	file-magic /(\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1)/
 }
 
 # >21  string/c,=!SCREAM! (len=8), ["Screamtracker 2 module sound data"], swap_endian=0
@@ -754,10 +616,10 @@ signature file-magic-auto116 {
 }
 
 # >257  string,=ustar  \000 (len=8), ["GNU tar archive"], swap_endian=0
-signature file-magic-auto117 {
-	file-mime "application/x-tar", 110
-	file-magic /(.{257})(ustar  \x00)/
-}
+#signature file-magic-auto117 {
+#	file-mime "application/x-tar", 110
+#	file-magic /(.{257})(ustar  \x00)/
+#}
 
 # >0  string,=<MIFFile (len=8), ["FrameMaker MIF (ASCII) file"], swap_endian=0
 signature file-magic-auto118 {
@@ -769,12 +631,6 @@ signature file-magic-auto118 {
 signature file-magic-auto119 {
 	file-mime "application/zip", 110
 	file-magic /(PK\x07\x08PK\x03\x04)/
-}
-
-# >0  string/b,=\t\004\006\000\000\000\020\000 (len=8), ["Microsoft Excel Worksheet"], swap_endian=0
-signature file-magic-auto120 {
-	file-mime "application/vnd.ms-excel", 110
-	file-magic /(\x09\x04\x06\x00\x00\x00\x10\x00)/
 }
 
 # >0  string/b,=WordPro\000 (len=8), ["Lotus WordPro"], swap_endian=0
@@ -844,10 +700,10 @@ signature file-magic-auto130 {
 }
 
 # >257  string,=ustar\000 (len=6), ["POSIX tar archive"], swap_endian=0
-signature file-magic-auto131 {
-	file-mime "application/x-tar", 90
-	file-magic /(.{257})(ustar\x00)/
-}
+#signature file-magic-auto131 {
+#	file-mime "application/x-tar", 90
+#	file-magic /(.{257})(ustar\x00)/
+#}
 
 # >0  string,=AC1.40 (len=6), ["DWG AutoDesk AutoCAD Release 1.40"], swap_endian=0
 signature file-magic-auto132 {
@@ -994,12 +850,6 @@ signature file-magic-auto155 {
 	file-magic /(\x23 xmcd)/
 }
 
-# >0  string/b,=\333\245-\000\000\000 (len=6), ["Microsoft Office Document"], swap_endian=0
-signature file-magic-auto156 {
-	file-mime "application/msword", 90
-	file-magic /(\xdb\xa5\x2d\x00\x00\x00)/
-}
-
 # >2  string,=MMXPR3 (len=6), ["Motorola Quark Express Document (English)"], swap_endian=0
 signature file-magic-auto157 {
 	file-mime "application/x-quark-xpress-3", 90
@@ -1044,36 +894,6 @@ signature file-magic-auto161 {
 signature file-magic-auto162 {
 	file-mime "application/vnd.google-earth.kml+xml", 60
 	file-magic /(\x3c\x3fxml)(.{15})(.*)( xmlns\x3d)(['"]http:\x2f\x2fwww.opengis.net\x2fkml)/
-}
-
-# >0  string,=PK\003\004 (len=4), [""], swap_endian=0
-# >>30  regex,=[Content_Types].xml|_rels/.rels (len=31), [""], swap_endian=0
-# >>>18 (lelong,+49), search/2000,=PK\003\004 (len=4), [""], swap_endian=0
-# >>>>&26  search/1000,=PK\003\004 (len=4), [""], swap_endian=0
-# >>>>>&26  string,=word/ (len=5), ["Microsoft Word 2007+"], swap_endian=0
-signature file-magic-auto163 {
-	file-mime "application/vnd.openxmlformats-officedocument.wordprocessingml.document", 80
-	file-magic /(PK\x03\x04)(.{26})(\[Content_Types\].xml|_rels\x2f.rels)(.*)(PK\x03\x04)(.{26})(.*)(PK\x03\x04)(.{26})(word\x2f)/
-}
-
-# >0  string,=PK\003\004 (len=4), [""], swap_endian=0
-# >>30  regex,=[Content_Types].xml|_rels/.rels (len=31), [""], swap_endian=0
-# >>>18 (lelong,+49), search/2000,=PK\003\004 (len=4), [""], swap_endian=0
-# >>>>&26  search/1000,=PK\003\004 (len=4), [""], swap_endian=0
-# >>>>>&26  string,=ppt/ (len=4), ["Microsoft PowerPoint 2007+"], swap_endian=0
-signature file-magic-auto164 {
-	file-mime "application/vnd.openxmlformats-officedocument.presentationml.presentation", 70
-	file-magic /(PK\x03\x04)(.{26})(\[Content_Types\].xml|_rels\x2f.rels)(.*)(PK\x03\x04)(.{26})(.*)(PK\x03\x04)(.{26})(ppt\x2f)/
-}
-
-# >0  string,=PK\003\004 (len=4), [""], swap_endian=0
-# >>30  regex,=[Content_Types].xml|_rels/.rels (len=31), [""], swap_endian=0
-# >>>18 (lelong,+49), search/2000,=PK\003\004 (len=4), [""], swap_endian=0
-# >>>>&26  search/1000,=PK\003\004 (len=4), [""], swap_endian=0
-# >>>>>&26  string,=xl/ (len=3), ["Microsoft Excel 2007+"], swap_endian=0
-signature file-magic-auto165 {
-	file-mime "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 60
-	file-magic /(PK\x03\x04)(.{26})(\[Content_Types\].xml|_rels\x2f.rels)(.*)(PK\x03\x04)(.{26})(.*)(PK\x03\x04)(.{26})(xl\x2f)/
 }
 
 # >60  string,=RINEX (len=5), [""], swap_endian=0
@@ -1229,28 +1049,10 @@ signature file-magic-auto187 {
 	file-magic /(\x00\x01\x00\x00\x00)/
 }
 
-# >0  string/b,=PO^Q` (len=5), ["Microsoft Word 6.0 Document"], swap_endian=0
-signature file-magic-auto188 {
-	file-mime "application/msword", 80
-	file-magic /(PO\x5eQ\x60)/
-}
-
 # >0  string,=%PDF- (len=5), ["PDF document"], swap_endian=0
 signature file-magic-auto189 {
 	file-mime "application/pdf", 80
 	file-magic /(\x25PDF\x2d)/
-}
-
-# >2114  string,=Biff5 (len=5), ["Microsoft Excel 5.0 Worksheet"], swap_endian=0
-signature file-magic-auto190 {
-	file-mime "application/vnd.ms-excel", 80
-	file-magic /(.{2114})(Biff5)/
-}
-
-# >2121  string,=Biff5 (len=5), ["Microsoft Excel 5.0 Worksheet"], swap_endian=0
-signature file-magic-auto191 {
-	file-mime "application/vnd.ms-excel", 80
-	file-magic /(.{2121})(Biff5)/
 }
 
 # >0  string/t,=Path: (len=5), ["news text"], swap_endian=0
@@ -1381,12 +1183,6 @@ signature file-magic-auto209 {
 signature file-magic-auto211 {
 	file-mime "video/h264", 41
 	file-magic /(\x00\x00\x00\x01)([\x07\x27\x47\x67\x87\xa7\xc7\xe7])/
-}
-
-# >0  belong&,=-889275714 (0xcafebabe), [""], swap_endian=0
-signature file-magic-auto212 {
-	file-mime "application/x-java-applet", 71
-	file-magic /(\xca\xfe\xba\xbe)/
 }
 
 # >0  belong&ffffffffffffff00,=256 (0x00000100), [""], swap_endian=0
@@ -1704,46 +1500,6 @@ signature file-magic-auto244 {
 signature file-magic-auto245 {
 	file-mime "application/epub+zip", 110
 	file-magic /(PK\x03\x04)(.{22})(\x08\x00\x00\x00mimetypeapplication\x2f)(epub\x2bzip)/
-}
-
-# Seems redundant with other zip signature below.
-# >0  string,=PK\003\004 (len=4), [""], swap_endian=0
-# >>26  string,=\b\000\000\000mimetypeapplication/ (len=24), [""], swap_endian=0
-# >>>50  string,!epub+zip (len=8), [""], swap_endian=0
-# >>>>50  string,!vnd.oasis.opendocument. (len=23), [""], swap_endian=0
-# >>>>>50  string,!vnd.sun.xml. (len=12), [""], swap_endian=0
-# >>>>>>50  string,!vnd.kde. (len=8), [""], swap_endian=0
-# >>>>>>>38  regex,=[!-OQ-~]+ (len=9), ["Zip data (MIME type "%s"?)"], swap_endian=0
-#signature file-magic-auto246 {
-#	file-mime "application/zip", 39
-#	file-magic /(PK\x03\x04)(.{22})(\x08\x00\x00\x00mimetypeapplication\x2f)/
-#}
-
-# >0  string,=PK\003\004 (len=4), [""], swap_endian=0
-# >>26  string,=\b\000\000\000mimetype (len=12), [""], swap_endian=0
-# >>>38  string,!application/ (len=12), [""], swap_endian=0
-# >>>>38  regex,=[!-OQ-~]+ (len=9), ["Zip data (MIME type "%s"?)"], swap_endian=0
-signature file-magic-auto247 {
-	file-mime "application/zip", 39
-	file-magic /(PK\x03\x04)(.{22})(\x08\x00\x00\x00mimetype)/
-}
-
-# The indirect offset makes this difficult to convert.
-# The (.*) may be too generous.
-# >0  string,=PK\003\004 (len=4), [""], swap_endian=0
-# >>26 (leshort,+30), leshort&,=-13570 (0xcafe), ["Java archive data (JAR)"], swap_endian=0
-signature file-magic-auto248 {
-	file-mime "application/java-archive", 50
-	file-magic /(PK\x03\x04)(.*)(\xfe\xca)/
-}
-
-# The indeirect offset and string inequality make this difficult to convert.
-# >0  string,=PK\003\004 (len=4), [""], swap_endian=0
-# >>26 (leshort,+30), leshort&,!-13570 (0xcafe), [""], swap_endian=0
-# >>>26  string,!\b\000\000\000mimetype (len=12), ["Zip archive data"], swap_endian=0
-signature file-magic-auto249 {
-	file-mime "application/zip", 10
-	file-magic /(PK\x03\x04)(.{2})/
 }
 
 # >0  belong&,=442 (0x000001ba), [""], swap_endian=0
@@ -2065,18 +1821,6 @@ signature file-magic-auto299 {
 	file-magic /(PDN3)/
 }
 
-# >0  ulelong&,=2712847316 (0xa1b2c3d4), ["tcpdump capture file (little-endian)"], swap_endian=0
-signature file-magic-auto300 {
-	file-mime "application/vnd.tcpdump.pcap", 70
-	file-magic /(\xd4\xc3\xb2\xa1)/
-}
-
-# >0  ubelong&,=2712847316 (0xa1b2c3d4), ["tcpdump capture file (big-endian)"], swap_endian=0
-signature file-magic-auto301 {
-	file-mime "application/vnd.tcpdump.pcap", 70
-	file-magic /(\xa1\xb2\xc3\xd4)/
-}
-
 # >0  belong&,=-17957139 (0xfeedfeed), ["Java KeyStore"], swap_endian=0
 signature file-magic-auto302 {
 	file-mime "application/x-java-keystore", 70
@@ -2297,12 +2041,6 @@ signature file-magic-auto335 {
 	file-magic /(SIT\x21)/
 }
 
-# >0  lelong&,=574529400 (0x223e9f78), ["Transport Neutral Encapsulation Format"], swap_endian=0
-signature file-magic-auto336 {
-	file-mime "application/vnd.ms-tnef", 70
-	file-magic /(\x78\x9f\x3e\x22)/
-}
-
 # >0  string,=<ar> (len=4), ["System V Release 1 ar archive"], swap_endian=0
 signature file-magic-auto337 {
 	file-mime "application/x-archive", 70
@@ -2431,48 +2169,6 @@ signature file-magic-auto356 {
 signature file-magic-auto357 {
 	file-mime "video/x-msvideo", 70
 	file-magic /(RIFF)(.{4})(AVI )/
-}
-
-# >0  belong&,=834535424 (0x31be0000), ["Microsoft Word Document"], swap_endian=0
-signature file-magic-auto358 {
-	file-mime "application/msword", 70
-	file-magic /(\x31\xbe\x00\x00)/
-}
-
-# >0  string/b,=\3767\000# (len=4), ["Microsoft Office Document"], swap_endian=0
-signature file-magic-auto359 {
-	file-mime "application/msword", 70
-	file-magic /(\xfe7\x00\x23)/
-}
-
-# >0  string/b,=\333\245-\000 (len=4), ["Microsoft WinWord 2.0 Document"], swap_endian=0
-signature file-magic-auto360 {
-	file-mime "application/msword", 70
-	file-magic /(\xdb\xa5\x2d\x00)/
-}
-
-# >0  string/b,=\333\245-\000 (len=4), ["Microsoft WinWord 2.0 Document"], swap_endian=0
-signature file-magic-auto361 {
-	file-mime "application/msword", 70
-	file-magic /(\xdb\xa5\x2d\x00)/
-}
-
-# >0  belong&,=6656 (0x00001a00), ["Lotus 1-2-3"], swap_endian=0
-signature file-magic-auto362 {
-	file-mime "application/x-123", 70
-	file-magic /(\x00\x00\x1a\x00)/
-}
-
-# >0  belong&,=512 (0x00000200), ["Lotus 1-2-3"], swap_endian=0
-signature file-magic-auto363 {
-	file-mime "application/x-123", 70
-	file-magic /(\x00\x00\x02\x00)/
-}
-
-# >0  string/b,=\000\000\001\000 (len=4), ["MS Windows icon resource"], swap_endian=0
-signature file-magic-auto364 {
-	file-mime "image/x-icon", 70
-	file-magic /(\x00\x00\x01\x00)/
 }
 
 # >0  lelong&,=268435536 (0x10000050), ["Psion Series 5"], swap_endian=0
@@ -2737,12 +2433,6 @@ signature file-magic-auto403 {
 	file-magic /(SBI)/
 }
 
-# >0  string/b,=\224\246. (len=3), ["Microsoft Word Document"], swap_endian=0
-signature file-magic-auto404 {
-	file-mime "application/msword", 60
-	file-magic /(\x94\xa6\x2e)/
-}
-
 # >0  string,=\004%! (len=3), ["PostScript document text"], swap_endian=0
 signature file-magic-auto405 {
 	file-mime "application/postscript", 60
@@ -2763,17 +2453,11 @@ signature file-magic-auto407 {
 	file-magic /(.*)([ \x09]*(class|module)[ \x09][A-Z])((modul|includ)e [A-Z]|def [a-z])(^[ \x09]*end([ \x09]*[;#].*)?$)/
 }
 
-# >512  string/b,=\354\245\301 (len=3), ["Microsoft Word Document"], swap_endian=0
-signature file-magic-auto408 {
-	file-mime "application/msword", 60
-	file-magic /(.{512})(\xec\xa5\xc1)/
-}
-
 # >0  regex/20,=^\.[A-Za-z0-9][A-Za-z0-9][ \t] (len=29), ["troff or preprocessor input text"], swap_endian=0
-signature file-magic-auto411 {
-	file-mime "text/troff", 59
-	file-magic /(^\.[A-Za-z0-9][A-Za-z0-9][ \x09])/
-}
+#signature file-magic-auto411 {
+#	file-mime "text/troff", 59
+#	file-magic /(^\.[A-Za-z0-9][A-Za-z0-9][ \x09])/
+#}
 
 # >0  search/4096,=\documentclass (len=14), ["LaTeX 2e document text"], swap_endian=0
 signature file-magic-auto412 {
@@ -2806,10 +2490,10 @@ signature file-magic-auto416 {
 }
 
 # >0  regex/20,=^\.[A-Za-z0-9][A-Za-z0-9]$ (len=26), ["troff or preprocessor input text"], swap_endian=0
-signature file-magic-auto417 {
-	file-mime "text/troff", 56
-	file-magic /(^\.[A-Za-z0-9][A-Za-z0-9]$)/
-}
+#signature file-magic-auto417 {
+#	file-mime "text/troff", 56
+#	file-magic /(^\.[A-Za-z0-9][A-Za-z0-9]$)/
+#}
 
 # >0  search/w/1,=#! /usr/bin/php (len=15), ["PHP script text executable"], swap_endian=0
 signature file-magic-auto418 {
@@ -2829,28 +2513,10 @@ signature file-magic-auto420 {
 	file-magic /(.*)(eval \x22exec \x2fusr\x2fbin\x2fperl)/
 }
 
-# >0  search/w/1,=#! /usr/local/bin/python (len=24), ["Python script text executable"], swap_endian=0
-signature file-magic-auto421 {
-	file-mime "text/x-python", 54
-	file-magic /(.*)(\x23\x21 ?\x2fusr\x2flocal\x2fbin\x2fpython)/
-}
-
 # >0  search/1,=Common subdirectories:  (len=23), ["diff output text"], swap_endian=0
 signature file-magic-auto422 {
 	file-mime "text/x-diff", 53
 	file-magic /(.*)(Common subdirectories\x3a )/
-}
-
-# >0  search/1,=#! /usr/bin/env python (len=22), ["Python script text executable"], swap_endian=0
-signature file-magic-auto423 {
-	file-mime "text/x-python", 52
-	file-magic /(.*)(\x23\x21 \x2fusr\x2fbin\x2fenv python)/
-}
-
-# >0  search/w/1,=#! /usr/local/bin/ruby (len=22), ["Ruby script text executable"], swap_endian=0
-signature file-magic-auto424 {
-	file-mime "text/x-ruby", 52
-	file-magic /(.*)(\x23\x21 ?\x2fusr\x2flocal\x2fbin\x2fruby)/
 }
 
 # >0  search/w/1,=#! /usr/local/bin/wish (len=22), ["Tcl/Tk script text executable"], swap_endian=0
@@ -2869,12 +2535,6 @@ signature file-magic-auto426 {
 signature file-magic-auto427 {
 	file-mime "image/jpeg", 52
 	file-magic /(\xff\xd8)/
-}
-
-# >0  search/1,=#!/usr/bin/env python (len=21), ["Python script text executable"], swap_endian=0
-signature file-magic-auto428 {
-	file-mime "text/x-python", 51
-	file-magic /(.*)(\x23\x21\x2fusr\x2fbin\x2fenv python)/
 }
 
 # >0  search/1,=#!/usr/bin/env nodejs (len=21), ["Node.js script text executable"], swap_endian=0
@@ -3189,12 +2849,6 @@ signature file-magic-auto474 {
 	file-magic /(\x25\x21)/
 }
 
-# >0  search/1,=#! /usr/bin/env ruby (len=20), ["Ruby script text executable"], swap_endian=0
-signature file-magic-auto475 {
-	file-mime "text/x-ruby", 50
-	file-magic /(.*)(\x23\x21 \x2fusr\x2fbin\x2fenv ruby)/
-}
-
 # >0  regex/1,=(^[0-9]{5})[acdn][w] (len=20), ["MARC21 Classification"], swap_endian=0
 signature file-magic-auto476 {
 	file-mime "application/marc", 50
@@ -3228,10 +2882,10 @@ signature file-magic-auto480 {
 }
 
 # >0  string,=\n( (len=2), ["Emacs v18 byte-compiled Lisp data"], swap_endian=0
-signature file-magic-auto481 {
-	file-mime "application/x-elc", 50
-	file-magic /(\x0a\x28)/
-}
+#signature file-magic-auto481 {
+#	file-mime "application/x-elc", 50
+#	file-magic /(\x0a\x28)/
+#}
 
 # >0  string,=\021\t (len=2), ["Award BIOS Logo, 136 x 126"], swap_endian=0
 signature file-magic-auto482 {
@@ -3305,17 +2959,17 @@ signature file-magic-auto493 {
 	file-magic /(\xf7\x02)/
 }
 
-# >2  string,=\000\021 (len=2), ["TeX font metric data"], swap_endian=0
-signature file-magic-auto494 {
-	file-mime "application/x-tex-tfm", 50
-	file-magic /(.{2})(\x00\x11)/
-}
-
-# >2  string,=\000\022 (len=2), ["TeX font metric data"], swap_endian=0
-signature file-magic-auto495 {
-	file-mime "application/x-tex-tfm", 50
-	file-magic /(.{2})(\x00\x12)/
-}
+## >2  string,=\000\021 (len=2), ["TeX font metric data"], swap_endian=0
+#signature file-magic-auto494 {
+#	file-mime "application/x-tex-tfm", 50
+#	file-magic /(.{2})(\x00\x11)/
+#}
+#
+## >2  string,=\000\022 (len=2), ["TeX font metric data"], swap_endian=0
+#signature file-magic-auto495 {
+#	file-mime "application/x-tex-tfm", 50
+#	file-magic /(.{2})(\x00\x12)/
+#}
 
 # >0  beshort&,=-31486 (0x8502), ["GPG encrypted data"], swap_endian=0
 signature file-magic-auto496 {
@@ -3470,12 +3124,6 @@ signature file-magic-auto514 {
 	file-magic /(.*)(\x23\x21 \x2fusr\x2fbin\x2fenv lua)/
 }
 
-# >0  search/1,=#!/usr/bin/env ruby (len=19), ["Ruby script text executable"], swap_endian=0
-signature file-magic-auto515 {
-	file-mime "text/x-ruby", 49
-	file-magic /(.*)(\x23\x21\x2fusr\x2fbin\x2fenv ruby)/
-}
-
 # >0  search/1,=#! /usr/bin/env tcl (len=19), ["Tcl script text executable"], swap_endian=0
 signature file-magic-auto516 {
 	file-mime "text/x-tcl", 49
@@ -3493,12 +3141,6 @@ signature file-magic-auto519 {
 	file-magic /(.*)(\x23\x21\x2fusr\x2fbin\x2fenv lua)/
 }
 
-# >0  search/w/1,=#! /usr/bin/python (len=18), ["Python script text executable"], swap_endian=0
-signature file-magic-auto520 {
-	file-mime "text/x-python", 48
-	file-magic /(.*)(\x23\x21 ?\x2fusr\x2fbin\x2fpython)/
-}
-
 # >0  search/w/1,=#!/usr/bin/nodejs (len=17), ["Node.js script text executable"], swap_endian=0
 signature file-magic-auto521 {
 	file-mime "application/javascript", 47
@@ -3506,10 +3148,10 @@ signature file-magic-auto521 {
 }
 
 # >0  regex,=^class[ \t\n]+ (len=12), ["C++ source text"], swap_endian=0
-signature file-magic-auto522 {
-	file-mime "text/x-c++", 47
-	file-magic /(.*)(class[ \x09\x0a]+[[:alnum:]_]+)(.*)(\x7b)(.*)(public:)/
-}
+#signature file-magic-auto522 {
+#	file-mime "text/x-c++", 47
+#	file-magic /(.*)(class[ \x09\x0a]+[[:alnum:]_]+)(.*)(\x7b)(.*)(public:)/
+#}
 
 # >0  search/1,=This is Info file (len=17), ["GNU Info text"], swap_endian=0
 signature file-magic-auto528 {
@@ -3658,12 +3300,6 @@ signature file-magic-auto545 {
 	file-magic /(.*)(\x23\x21 ?\x2fusr\x2fbin\x2fwish)/
 }
 
-# >0  search/w/1,=#! /usr/bin/ruby (len=16), ["Ruby script text executable"], swap_endian=0
-signature file-magic-auto546 {
-	file-mime "text/x-ruby", 46
-	file-magic /(.*)(\x23\x21 ?\x2fusr\x2fbin\x2fruby)/
-}
-
 # >0  search/w/1,=#! /usr/bin/lua (len=15), ["Lua script text executable"], swap_endian=0
 signature file-magic-auto547 {
 	file-mime "text/x-lua", 45
@@ -3727,10 +3363,10 @@ signature file-magic-auto556 {
 }
 
 # >0  regex,=^extern[ \t\n]+ (len=13), ["C source text"], swap_endian=0
-signature file-magic-auto557 {
-	file-mime "text/x-c", 43
-	file-magic /(.*)(extern[ \x09\x0a]+)/
-}
+#signature file-magic-auto557 {
+#	file-mime "text/x-c", 43
+#	file-magic /(.*)(extern[ \x09\x0a]+)/
+#}
 
 # >0  search/4096,=% -*-latex-*- (len=13), ["LaTeX document text"], swap_endian=0
 signature file-magic-auto558 {
@@ -3746,10 +3382,10 @@ signature file-magic-auto558 {
 #}
 
 # >0  regex,=^struct[ \t\n]+ (len=13), ["C source text"], swap_endian=0
-signature file-magic-auto560 {
-	file-mime "text/x-c", 43
-	file-magic /(.*)(struct[ \x09\x0a]+)/
-}
+#signature file-magic-auto560 {
+#	file-mime "text/x-c", 43
+#	file-magic /(.*)(struct[ \x09\x0a]+)/
+#}
 
 # >0  search/w/1,=#!/bin/nodejs (len=13), ["Node.js script text executable"], swap_endian=0
 signature file-magic-auto561 {
@@ -3802,10 +3438,10 @@ signature file-magic-auto567 {
 }
 
 # >0  regex,=^char[ \t\n]+ (len=11), ["C source text"], swap_endian=0
-signature file-magic-auto568 {
-	file-mime "text/x-c", 41
-	file-magic /(.*)(char[ \x09\x0a]+)/
-}
+#signature file-magic-auto568 {
+#	file-mime "text/x-c", 41
+#	file-magic /(.*)(char[ \x09\x0a]+)/
+#}
 
 # >0  search/1,=#! (len=2), [""], swap_endian=0
 # >>0  regex,=^#!.*/bin/perl$ (len=15), ["Perl script text executable"], swap_endian=0
@@ -3887,23 +3523,11 @@ signature file-magic-auto578 {
 	file-magic /(^dnl )/
 }
 
-# >0  regex,=^all: (len=5), ["makefile script text"], swap_endian=0
-signature file-magic-auto579 {
-	file-mime "text/x-makefile", 40
-	file-magic /(^all:)/
-}
-
-# >0  regex,=^.PRECIOUS (len=10), ["makefile script text"], swap_endian=0
-signature file-magic-auto580 {
-	file-mime "text/x-makefile", 40
-	file-magic /(^.PRECIOUS)/
-}
-
 # >0  search/8192,=main( (len=5), ["C source text"], swap_endian=0
-signature file-magic-auto581 {
-	file-mime "text/x-c", 40
-	file-magic /(.*)(main\x28)/
-}
+#signature file-magic-auto581 {
+#	file-mime "text/x-c", 40
+#	file-magic /(.*)(main\x28)/
+#}
 
 # Not specific enough.
 # >0  search/1,=\" (len=2), ["troff or preprocessor input text"], swap_endian=0
@@ -3932,22 +3556,22 @@ signature file-magic-auto584 {
 #}
 
 # >0  regex,=^#include (len=9), ["C source text"], swap_endian=0
-signature file-magic-auto586 {
-	file-mime "text/x-c", 39
-	file-magic /(.*)(#include)/
-}
+#signature file-magic-auto586 {
+#	file-mime "text/x-c", 39
+#	file-magic /(.*)(#include)/
+#}
 
 # >0  search/1,=.\" (len=3), ["troff or preprocessor input text"], swap_endian=0
-signature file-magic-auto587 {
-	file-mime "text/troff", 39
-	file-magic /(.*)(\x2e\x5c\x22)/
-}
+#signature file-magic-auto587 {
+#	file-mime "text/troff", 39
+#	file-magic /(.*)(\x2e\x5c\x22)/
+#}
 
 # >0  search/1,='\" (len=3), ["troff or preprocessor input text"], swap_endian=0
-signature file-magic-auto588 {
-	file-mime "text/troff", 39
-	file-magic /(.*)(\x27\x5c\x22)/
-}
+#signature file-magic-auto588 {
+#	file-mime "text/troff", 39
+#	file-magic /(.*)(\x27\x5c\x22)/
+#}
 
 # >0  search/1,=<TeXmacs| (len=9), ["TeXmacs document text"], swap_endian=0
 signature file-magic-auto589 {
@@ -3974,10 +3598,10 @@ signature file-magic-auto592 {
 }
 
 # >0  search/1,=''' (len=3), ["troff or preprocessor input text"], swap_endian=0
-signature file-magic-auto593 {
-	file-mime "text/troff", 39
-	file-magic /(.*)(\x27\x27\x27)/
-}
+#signature file-magic-auto593 {
+#	file-mime "text/troff", 39
+#	file-magic /(.*)(\x27\x27\x27)/
+#}
 
 # >0  search/4096,=try: (len=4), [""], swap_endian=0
 # >>&0  regex,=^\s*except.*: (len=13), ["Python script text executable"], swap_endian=0
@@ -3997,12 +3621,6 @@ signature file-magic-auto595 {
 signature file-magic-auto596 {
 	file-mime "text/x-bcpl", 38
 	file-magic /(.*)(\x22LIBHDR\x22)/
-}
-
-# >0  regex,=^SUBDIRS (len=8), ["automake makefile script text"], swap_endian=0
-signature file-magic-auto597 {
-	file-mime "text/x-makefile", 38
-	file-magic /(.*)(SUBDIRS)/
 }
 
 # >0  search/4096,=(defvar  (len=8), ["Lisp/Scheme program text"], swap_endian=0
@@ -4031,19 +3649,6 @@ signature file-magic-auto600 {
 #	file-magic /(.*)(\x2a\x2a\x2a )/
 #}
 
-# >0  search/1,='.\" (len=4), ["troff or preprocessor input text"], swap_endian=0
-signature file-magic-auto602 {
-	file-mime "text/troff", 38
-	file-magic /(.*)(\x27\x2e\x5c\x22)/
-}
-
-# LDFLAGS appears in other contexts, e.g. shell script.
-# >0  regex,=^LDFLAGS (len=8), ["makefile script text"], swap_endian=0
-#signature file-magic-auto603 {
-#	file-mime "text/x-makefile", 38
-#	file-magic /(.*)(LDFLAGS)/
-#}
-
 # >0  search/8192,="libhdr" (len=8), ["BCPL source text"], swap_endian=0
 signature file-magic-auto604 {
 	file-mime "text/x-bcpl", 38
@@ -4056,12 +3661,6 @@ signature file-magic-auto604 {
 #	file-mime "text/x-pascal", 37
 #	file-magic /(^record)/
 #}
-
-# >0  regex,=^CFLAGS (len=7), ["makefile script text"], swap_endian=0
-signature file-magic-auto606 {
-	file-mime "text/x-makefile", 37
-	file-magic /(.*)(CFLAGS)/
-}
 
 # >0  search/4096,=(defun  (len=7), ["Lisp/Scheme program text"], swap_endian=0
 signature file-magic-auto607 {

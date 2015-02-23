@@ -531,8 +531,8 @@ function create_file_info(f: fa_file): Notice::FileInfo
 	local fi: Notice::FileInfo = Notice::FileInfo($fuid = f$id,
 	                                              $desc = Files::describe(f));
 
-	if ( f?$mime_type )
-		fi$mime = f$mime_type;
+	if ( f?$info && f$info?$mime_type )
+		fi$mime = f$info$mime_type;
 
 	if ( f?$conns && |f$conns| == 1 )
 		for ( id in f$conns )

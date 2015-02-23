@@ -172,7 +172,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 
 	// Load {bif,scripts}/__load__.bro automatically.
 
-	string init = dir + "scripts/__load__.bro";
+	string init = dir + "lib/bif/__load__.bro";
 
 	if ( is_file(init) )
 		{
@@ -180,7 +180,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 		scripts_to_load.push_back(init);
 		}
 
-	init = dir + "lib/bif/__load__.bro";
+	init = dir + "scripts/__load__.bro";
 
 	if ( is_file(init) )
 		{

@@ -1,4 +1,5 @@
 %{
+#include <ctype.h>
 #include <string.h>
 #include <unistd.h>
 #include "bif_arg.h"
@@ -223,7 +224,7 @@ void init_alternative_mode()
 
 	for ( char* p = guard; *p; p++ )
 		{
-		if ( strchr("/.-", *p) )
+		if ( ! isalnum(*p) )
 			*p = '_';
 		}
 

@@ -2,7 +2,7 @@ project(Bro C CXX)
 
 # When changing the minimum version here, also adapt
 # aux/bro-aux/plugin-support/skeleton/CMakeLists.txt
-cmake_minimum_required(VERSION 2.6.3 FATAL_ERROR)
+cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
 include(cmake/CommonCMakeConfig.cmake)
 
@@ -13,6 +13,11 @@ set(BRO_ROOT_DIR ${CMAKE_INSTALL_PREFIX})
 if (NOT BRO_SCRIPT_INSTALL_PATH)
     # set the default Bro script installation path (user did not specify one)
     set(BRO_SCRIPT_INSTALL_PATH ${BRO_ROOT_DIR}/share/bro)
+endif ()
+
+if (NOT BRO_MAN_INSTALL_PATH)
+    # set the default Bro man page installation path (user did not specify one)
+    set(BRO_MAN_INSTALL_PATH ${BRO_ROOT_DIR}/share/man)
 endif ()
 
 # sanitize the Bro script install directory into an absolute path
@@ -175,6 +180,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 add_subdirectory(src)
 add_subdirectory(scripts)
 add_subdirectory(doc)
+add_subdirectory(man)
 
 include(CheckOptionalBuildSources)
 

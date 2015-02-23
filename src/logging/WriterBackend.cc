@@ -84,7 +84,7 @@ bool WriterBackend::WriterInfo::Read(SerializationFormat* fmt)
 
 	config.clear();
 
-	while ( size )
+	while ( size-- )
 		{
 		string value;
 		string key;

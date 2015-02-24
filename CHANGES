@@ -1,4 +1,12 @@
 
+2.3-447 | 2015-02-23 16:28:30 -0800
+
+  * Fix potential crash in logging framework when deserializing
+    WriterInfo from remote. where config is present. Testcase crashes
+    on unpatched versions of Bro. (Aaron Eppert)
+
+  * Fix wrong value test in WriterBackend. (Aaron Eppert)
+
 2.3-442 | 2015-02-23 13:29:30 -0800
 
   * Add a "local_resp" field to conn.log, along the lines of the

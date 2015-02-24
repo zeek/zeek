@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	auth
+#open	2015-02-24-17-23-24
+#fields	ts	action	username	endpoint.host	endpoint.mac	service	hardware_auth	method	success	failure_reason	acquired_host
+#types	time	enum	string	addr	string	string	bool	string	bool	string	addr
+1217631137.916850	Auth::Login	John.McGuirk	-	00:14:22:e9:54:5e	10.0.0.100	T	Radius	T	-	-
+#close	2015-02-24-17-23-24

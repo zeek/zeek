@@ -64,6 +64,9 @@ Changed Functionality
 - has_valid_octets: now uses a string_vec parameter instead of
   string_array.
 
+- conn.log gained a new field local_resp that works like local_orig,
+  just for the responder address of the connection.
+
 Deprecated Functionality
 ------------------------
 

@@ -1,4 +1,8 @@
 
+2.3-448 | 2015-02-23 16:58:10 -0800
+
+  * Updating NEWS. (Robin Sommer)
+
 2.3-447 | 2015-02-23 16:28:30 -0800
 
   * Fix potential crash in logging framework when deserializing

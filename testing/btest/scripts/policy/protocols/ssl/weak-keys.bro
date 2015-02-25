@@ -1,5 +1,10 @@
 # @TEST-EXEC: bro -r $TRACES/tls/dhe.pcap %INPUT
-# @TEST-EXEC: btest-diff notice.log
+# @TEST-EXEC: cp notice.log notice-out.log
+# @TEST-EXEC: bro -r $TRACES/tls/ssl-v2.trace %INPUT
+# @TEST-EXEC: cat notice.log >> notice-out.log
+# @TEST-EXEC: bro -r $TRACES/tls/ssl.v3.trace %INPUT
+# @TEST-EXEC: cat notice.log >> notice-out.log
+# @TEST-EXEC: btest-diff notice-out.log
 
 @load protocols/ssl/weak-keys
 

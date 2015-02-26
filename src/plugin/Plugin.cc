@@ -393,7 +393,7 @@ void Plugin::Describe(ODesc* d) const
 			type = "<unknown>";
 		}
 
-		d->Add("	");
+		d->Add("    ");
 		d->Add("[");
 		d->Add(type);
 		d->Add("] ");
@@ -408,7 +408,7 @@ void Plugin::Describe(ODesc* d) const
 		HookType hook = (*i).first;
 		int prio = (*i).second;
 
-		d->Add("	Implements ");
+		d->Add("    Implements ");
 		d->Add(hook_name(hook));
 		d->Add(" (priority ");
 		d->Add(prio);

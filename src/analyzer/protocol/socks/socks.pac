@@ -20,7 +20,7 @@ connection SOCKS_Conn(bro_analyzer: BroAnalyzer) {
 %include socks-protocol.pac
 
 flow SOCKS_Flow(is_orig: bool) {
-	datagram = SOCKS_Version(is_orig) withcontext(connection, this);
+	datagram = SOCKS_Message(is_orig) withcontext(connection, this);
 };
 
 %include socks-analyzer.pac

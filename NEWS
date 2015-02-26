@@ -31,6 +31,14 @@ New Functionality
 - Bro's file analysis now supports reassembly of files that are not
   transferred/seen sequentially.
 
+- Bro's scripting language now has a ``while`` statement::
+
+        while ( i < 5 )
+            print ++i;
+
+  ``next`` and ``break`` can be used inside the loop's body just like
+  with ``for`` loops.
+
 Changed Functionality
 ---------------------
 
@@ -55,6 +63,9 @@ Changed Functionality
 
 - has_valid_octets: now uses a string_vec parameter instead of
   string_array.
+
+- conn.log gained a new field local_resp that works like local_orig,
+  just for the responder address of the connection.
 
 Deprecated Functionality
 ------------------------

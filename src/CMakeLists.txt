@@ -161,6 +161,14 @@ add_subdirectory(iosource)
 add_subdirectory(logging)
 add_subdirectory(probabilistic)
 
+if ( ENABLE_BROKER )
+    add_subdirectory(comm)
+else ()
+    # Just to satisfy coverage unit tests until new Broker-based
+    # communication is enabled by default.
+    add_subdirectory(comm-dummy)
+endif ()
+
 set(bro_SUBDIRS
     # Order is important here.
     ${bro_PLUGIN_LIBS}

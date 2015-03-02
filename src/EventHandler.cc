@@ -5,6 +5,11 @@
 #include "RemoteSerializer.h"
 #include "NetVar.h"
 
+#ifdef ENABLE_BROKER
+#include "comm/Manager.h"
+#include "comm/Data.h"
+#endif
+
 EventHandler::EventHandler(const char* arg_name)
 	{
 	name = copy_string(arg_name);
@@ -26,7 +31,12 @@ EventHandler::operator bool() const
 	{
 	return enabled && ((local && local->HasBodies())
 			   || receivers.length()
-			   || generate_always);
+			   || generate_always
+#ifdef ENABLE_BROKER
+			   || ! auto_remote_send.empty()
+			   // TODO: and require a subscriber interested in a topic or unsolicited flags?
+#endif
+	                   );
 	}
 
 FuncType* EventHandler::FType()
@@ -73,6 +83,46 @@ void EventHandler::Call(val_list* vl, bool no_remote)
 			SerialInfo info(remote_serializer);
 			remote_serializer->SendCall(&info, receivers[i], name, vl);
 			}
+
+#ifdef ENABLE_BROKER
+
+		if ( ! auto_remote_send.empty() )
+			{
+			// TODO: also short-circuit based on interested subscribers/flags?
+			broker::message msg;
+			msg.reserve(vl->length() + 1);
+			msg.emplace_back(Name());
+			bool valid_args = true;
+
+			for ( auto i = 0; i < vl->length(); ++i )
+				{
+				auto opt_data = comm::val_to_data((*vl)[i]);
+
+				if ( opt_data )
+					msg.emplace_back(move(*opt_data));
+				else
+					{
+					valid_args = false;
+					auto_remote_send.clear();
+					reporter->Error("failed auto-remote event '%s', disabled",
+					                Name());
+					break;
+					}
+				}
+
+			if ( valid_args )
+				{
+				for ( auto it = auto_remote_send.begin();
+				      it != auto_remote_send.end(); ++it )
+					{
+					if ( std::next(it) == auto_remote_send.end() )
+						comm_mgr->Event(it->first, move(msg), it->second);
+					else
+						comm_mgr->Event(it->first, msg, it->second);
+					}
+				}
+			}
+#endif
 		}
 
 	if ( local )

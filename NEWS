@@ -39,6 +39,25 @@ New Functionality
   ``next`` and ``break`` can be used inside the loop's body just like
   with ``for`` loops.
 
+- Bro now integrates Broker, it's new communication library. See
+  aux/broker/README for more information on Broker, and
+  doc/frameworks/comm.rst for the corresponding Bro script API.
+
+  TODO: Extend with some more information on  Broker.
+
+  Broker support is by default off for now; it can be enabled at
+  configure time with --enable-broker. It requires CAF
+  (https://github.com/actor-framework/actor-framework) as well as a
+  C++11 compiler.
+
+  TODO: Add minumim version for CAF.
+
+  Broker will become a mandatory dependency in future Bro versions.
+
+- Add --enable-c++11 configure flag to compile Bro's source code in
+  C++11 mode with a corresponding compiler. Note that 2.4 will be the
+  last version of Bro that compiles without C++11 support.
+
 Changed Functionality
 ---------------------
 

@@ -17,12 +17,12 @@ export {
 		resp_bytes:   count           &log &optional;
 		conn_state:   string          &log &optional;
 		local_orig:   bool            &log &optional;
-		missed_bytes: count           &log &default=0;
-		history:      string          &log &optional;
-		orig_pkts:     count      &log &optional;
-		orig_ip_bytes: count      &log &optional;
-		resp_pkts:     count      &log &optional;
-		resp_ip_bytes: count      &log &optional;
+		local_resp:   bool            &log &optional;
+		##
+		## lower-case. Multiple packets of the same type will only be
+		## Number of packets that the originator sent.
+		## Number of IP level bytes that the originator sent (as seen on
+		## Number of packets that the responder sent.
+		## the wire, taken from the IP total_length header field).
+		## Only set if :bro:id:`use_conn_size_analyzer` = T.
 		tunnel_parents: set[string] &log;
-	};
-}

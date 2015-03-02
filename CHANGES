@@ -1,4 +1,21 @@
 
+2.3-489 | 2015-03-02 15:29:30 -0800
+
+  * Integrate Broker, Bro's new communication library. (Jon Siwek)
+
+    See aux/broker/README for more information on Broker, and
+    doc/frameworks/comm.rst for the corresponding Bro script API.
+
+    Broker support is by default off for now; it can be enabled at
+    configure time with --enable-broker. It requires CAF
+    (https://github.com/actor-framework/actor-framework); for now
+    needs the "develop" branch. Broker also requires a C++11 compiler.
+
+    Broker will become a mandatory dependency in future Bro versions.
+
+  * Add --enable-c++11 configure flag to compile Bro's source code in
+    C++11 mode with a corresponding compiler. (Jon Siwek)
+
 2.3-451 | 2015-02-24 16:37:08 -0800
 
   * Updating submodule(s).

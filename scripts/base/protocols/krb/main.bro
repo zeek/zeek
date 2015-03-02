@@ -39,22 +39,9 @@ export {
 
 		## Forwardable ticket requested
 		forwardable: 		bool &log &optional;
-		## Proxiable ticket requested
-		proxiable:		bool &log &optional;
-		## Postdated ticket requested
-		postdated:		bool &log &optional;
 		## Renewable ticket requested
 		renewable:		bool &log &optional;
 
-		## The request is for a renewal
-		renew_request:		bool &log &optional;
-		# The request is to validate a postdated ticket
-		validate_request:	bool &log &optional;
-		# Network addresses supplied by the client
-		network_addrs:		vector of addr &log &optional;
-		# NetBIOS addresses supplied by the client
-		netbios_addrs:		vector of string &log &optional;
-		
 		## We've already logged this
 		logged: 		bool &default=F;
 	};
@@ -156,33 +143,10 @@ event krb_as_request(c: connection, msg: KDC_Request) &priority=5
 	if ( msg?$from )
 		info$from = msg$from;
 
-	if ( msg?$host_addrs )
-		{
-		for ( i in msg$host_addrs )
-			{
-			if ( msg$host_addrs[i]?$ip )
-				{
-				if ( ! info?$network_addrs ) info$network_addrs = vector();
-				info$network_addrs[|info$network_addrs|] = msg$host_addrs[i]$ip;
-				}
-
-			if ( msg$host_addrs[i]?$netbios )
-				{
-				if ( ! info?$netbios_addrs ) info$netbios_addrs = vector();
-				info$netbios_addrs[|info$netbios_addrs|] = msg$host_addrs[i]$netbios;
-				}
-			}
-		}
-		
 	info$till = msg$till;
 
 	info$forwardable = msg$kdc_options$forwardable;
-	info$proxiable = msg$kdc_options$proxiable;
-	info$postdated = msg$kdc_options$postdated;
 	info$renewable = msg$kdc_options$renewable;
-
-	info$renew_request = msg$kdc_options$renew;
-	info$validate_request = msg$kdc_options$validate;
 
 	c$krb = info;
 	}
@@ -202,12 +166,7 @@ event krb_tgs_request(c: connection, msg: KDC_Request) &priority=5
 	info$till = msg$till;
 
 	info$forwardable = msg$kdc_options$forwardable;
-	info$proxiable = msg$kdc_options$proxiable;
-	info$postdated = msg$kdc_options$postdated;
 	info$renewable = msg$kdc_options$renewable;
-
-	info$renew_request = msg$kdc_options$renew;
-	info$validate_request = msg$kdc_options$validate;
 
 	c$krb = info;
 	}

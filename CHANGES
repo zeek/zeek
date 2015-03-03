@@ -1,4 +1,13 @@
 
+2.3-493 | 2015-03-02 17:17:32 -0800
+
+  * Extend the SSL weak-keys policy file to also alert when
+    encountering SSL connections with old versions as well as unsafe
+    cipher suites. (Johanna Amann)
+
+  * Make the notice suppression handling of other SSL policy files a
+    tad more robust. (Johanna Amann)
+
 2.3-491 | 2015-03-02 17:12:56 -0800
 
   * Updating docs for recent addition of local_resp. (Robin Sommer)

@@ -58,6 +58,9 @@ New Functionality
   C++11 mode with a corresponding compiler. Note that 2.4 will be the
   last version of Bro that compiles without C++11 support.
 
+- The SSL analysis now alert when encountering SSL connections with
+  old protocol versions or unsafe cipher suites.
+
 Changed Functionality
 ---------------------
 

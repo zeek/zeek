@@ -1,0 +1,33 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	notice
+#open	2015-02-25-21-37-10
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	fuid	file_mime_type	file_desc	proto	note	msg	sub	src	dst	p	n	peer_descr	actions	suppress_for	dropped	remote_location.country_code	remote_location.region	remote_location.city	remote_location.latitude	remote_location.longitude
+#types	time	string	addr	port	addr	port	string	string	string	enum	enum	string	string	addr	addr	port	count	string	set[enum]	interval	bool	string	string	string	double	double
+1398558136.430417	CXWv6p3arKYeMETxOg	192.168.18.50	62277	162.219.2.166	443	-	-	-	tcp	SSL::Weak_Key	Host uses weak DH parameters with 1024 key bits	-	192.168.18.50	162.219.2.166	443	-	bro	Notice::ACTION_LOG	86400.000000	F	-	-	-	-	-
+1398558136.430417	CXWv6p3arKYeMETxOg	192.168.18.50	62277	162.219.2.166	443	-	-	-	tcp	SSL::Weak_Key	DH key length of 1024 bits is smaller certificate key length of 2048 bits	-	192.168.18.50	162.219.2.166	443	-	bro	Notice::ACTION_LOG	86400.000000	F	-	-	-	-	-
+1398558136.542637	CXWv6p3arKYeMETxOg	192.168.18.50	62277	162.219.2.166	443	-	-	-	tcp	SSL::Weak_Key	Host uses weak certificate with 2048 bit key	-	192.168.18.50	162.219.2.166	443	-	bro	Notice::ACTION_LOG	86400.000000	F	-	-	-	-	-
+#close	2015-02-25-21-37-10
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	notice
+#open	2015-02-25-21-37-10
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	fuid	file_mime_type	file_desc	proto	note	msg	sub	src	dst	p	n	peer_descr	actions	suppress_for	dropped	remote_location.country_code	remote_location.region	remote_location.city	remote_location.latitude	remote_location.longitude
+#types	time	string	addr	port	addr	port	string	string	string	enum	enum	string	string	addr	addr	port	count	string	set[enum]	interval	bool	string	string	string	double	double
+1397165496.713940	CXWv6p3arKYeMETxOg	192.168.4.149	59062	91.227.4.92	443	-	-	-	tcp	SSL::Old_Version	Host uses protocol version SSLv2 which is lower than the safe minimum TLSv10	-	192.168.4.149	91.227.4.92	443	-	bro	Notice::ACTION_LOG	86400.000000	F	-	-	-	-	-
+#close	2015-02-25-21-37-11
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	notice
+#open	2015-02-25-21-37-11
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	fuid	file_mime_type	file_desc	proto	note	msg	sub	src	dst	p	n	peer_descr	actions	suppress_for	dropped	remote_location.country_code	remote_location.region	remote_location.city	remote_location.latitude	remote_location.longitude
+#types	time	string	addr	port	addr	port	string	string	string	enum	enum	string	string	addr	addr	port	count	string	set[enum]	interval	bool	string	string	string	double	double
+1170717505.734145	CXWv6p3arKYeMETxOg	192.150.187.164	58868	194.127.84.106	443	-	-	-	tcp	SSL::Weak_Cipher	Host established connection using unsafe ciper suite TLS_RSA_WITH_RC4_128_MD5	-	192.150.187.164	194.127.84.106	443	-	bro	Notice::ACTION_LOG	86400.000000	F	-	-	-	-	-
+1170717505.934612	CXWv6p3arKYeMETxOg	192.150.187.164	58868	194.127.84.106	443	-	-	-	tcp	SSL::Weak_Key	Host uses weak certificate with 1024 bit key	-	192.150.187.164	194.127.84.106	443	-	bro	Notice::ACTION_LOG	86400.000000	F	-	-	-	-	-
+#close	2015-02-25-21-37-11

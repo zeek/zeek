@@ -17,6 +17,7 @@ export {
 		resp_bytes:   count           &log &optional;
 		conn_state:   string          &log &optional;
 		local_orig:   bool            &log &optional;
+		local_resp:   bool            &log &optional;
 		missed_bytes: count           &log &default=0;
 		history:      string          &log &optional;
 		orig_pkts:     count      &log &optional;

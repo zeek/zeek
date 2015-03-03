@@ -1,4 +1,8 @@
 
+2.3-490 | 2015-03-02 17:11:10 -0800
+
+  * Updating docs for recent addition of local_resp. (Robin Sommer)
+
 2.3-489 | 2015-03-02 15:29:30 -0800
 
   * Integrate Broker, Bro's new communication library. (Jon Siwek)
@@ -8,8 +12,9 @@
 
     Broker support is by default off for now; it can be enabled at
     configure time with --enable-broker. It requires CAF
-    (https://github.com/actor-framework/actor-framework); for now
-    needs the "develop" branch. Broker also requires a C++11 compiler.
+    (https://github.com/actor-framework/actor-framework); for now iot
+    needs CAF's "develop" branch. Broker also requires a C++11
+    compiler.
 
     Broker will become a mandatory dependency in future Bro versions.
 

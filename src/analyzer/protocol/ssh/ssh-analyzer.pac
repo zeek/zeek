@@ -54,14 +54,14 @@ refine flow SSH_Flow += {
 		if ( ssh_client_version && ${msg.is_orig } )
 			{
 			BifEvent::generate_ssh_client_version(connection()->bro_analyzer(), 
-							      connection()->bro_analyzer()->Conn(), 
-							      bytestring_to_val(${msg.version}));
+				connection()->bro_analyzer()->Conn(), 
+				bytestring_to_val(${msg.version}));
 			}
 		else if ( ssh_server_version )
 			{
 			BifEvent::generate_ssh_server_version(connection()->bro_analyzer(), 
-							      connection()->bro_analyzer()->Conn(), 
-							      bytestring_to_val(${msg.version}));
+				connection()->bro_analyzer()->Conn(), 
+				bytestring_to_val(${msg.version}));
 			}
 		return true;
 		%}
@@ -86,8 +86,8 @@ refine flow SSH_Flow += {
 			result->Assign(10, new Val(${msg.is_orig}, TYPE_BOOL));
 
 			BifEvent::generate_ssh_capabilities(connection()->bro_analyzer(),
-												connection()->bro_analyzer()->Conn(), bytestring_to_val(${msg.cookie}),
-												result);
+				connection()->bro_analyzer()->Conn(), bytestring_to_val(${msg.cookie}),
+				result);
 			}
 		return true;
 		%}
@@ -97,8 +97,8 @@ refine flow SSH_Flow += {
 		if ( ssh_server_host_key )
 			{
 			BifEvent::generate_ssh_server_host_key(connection()->bro_analyzer(), 
-							       connection()->bro_analyzer()->Conn(), 
-						  	       bytestring_to_val(${key}));
+				connection()->bro_analyzer()->Conn(), 
+				bytestring_to_val(${key}));
 			}
 		return true;
 		%}
@@ -108,9 +108,9 @@ refine flow SSH_Flow += {
 		if ( ssh1_server_host_key )
 			{
 			BifEvent::generate_ssh1_server_host_key(connection()->bro_analyzer(), 
-							       	connection()->bro_analyzer()->Conn(), 
-						  	       	bytestring_to_val(${p}),
-						  	       	bytestring_to_val(${e}));
+				connection()->bro_analyzer()->Conn(), 
+				bytestring_to_val(${p}),
+				bytestring_to_val(${e}));
 			}
 		return true;
 		%}
@@ -148,5 +148,5 @@ refine typeattr SSH_ECC_REPLY += &let {
 };
 
 refine typeattr SSH1_PUBLIC_KEY += &let {
-    proc: bool = $context.flow.proc_ssh1_server_host_key(host_key_p.val, host_key_e.val);
+	proc: bool = $context.flow.proc_ssh1_server_host_key(host_key_p.val, host_key_e.val);
 };

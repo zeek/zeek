@@ -12,9 +12,7 @@
 using namespace analyzer::SSH;
 
 SSH_Analyzer::SSH_Analyzer(Connection* c)
-
-: tcp::TCP_ApplicationAnalyzer("SSH", c)
-
+	: tcp::TCP_ApplicationAnalyzer("SSH", c)
 	{
 	interp = new binpac::SSH::SSH_Conn(this);
 	had_gap = false;
@@ -22,7 +20,7 @@ SSH_Analyzer::SSH_Analyzer(Connection* c)
 	skipped_banner = false;
 	service_accept_size = 0;
 	userauth_failure_size = 0;
-   	}
+	}
 
 SSH_Analyzer::~SSH_Analyzer()
 	{
@@ -31,12 +29,10 @@ SSH_Analyzer::~SSH_Analyzer()
 
 void SSH_Analyzer::Done()
 	{
-	
 	tcp::TCP_ApplicationAnalyzer::Done();
 
 	interp->FlowEOF(true);
-	interp->FlowEOF(false);
-	
+	interp->FlowEOF(false);	
 	}
 
 void SSH_Analyzer::EndpointEOF(bool is_orig)
@@ -62,7 +58,7 @@ void SSH_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		{
 		if ( ssh_encrypted_packet )
 			BifEvent::generate_ssh_encrypted_packet(interp->bro_analyzer(), interp->bro_analyzer()->Conn(),
-													orig, len);
+				orig, len);
 
 		if ( !auth_decision_made )
 			ProcessEncrypted(len, orig);

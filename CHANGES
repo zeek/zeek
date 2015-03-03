@@ -1,4 +1,13 @@
 
+2.3-511 | 2015-03-02 18:07:17 -0800
+
+  * Changes to plugin meta hooks for function calls. (Gilbert Clark)
+
+        - Add frame argument.
+
+        - Change return value to tuple unambigiously whether hook
+          returned a result.
+
 2.3-493 | 2015-03-02 17:17:32 -0800
 
   * Extend the SSL weak-keys policy file to also alert when

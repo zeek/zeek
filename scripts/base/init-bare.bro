@@ -440,6 +440,7 @@ type NetStats: record {
 	## packet capture system, this value may not be available and will then
 	## be always set to zero.
 	pkts_link:    count &default=0;
+	bytes_recvd:  count &default=0;	##< Bytes received by Bro.
 };
 
 ## Statistics about Bro's resource consumption.

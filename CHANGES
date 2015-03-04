@@ -1,4 +1,9 @@
 
+2.3-518 | 2015-03-04 13:13:50 -0800
+
+  * Add bytes_recvd to stats.log recording the number of bytes
+    received, according to packet headers. (Mike Smiley)
+
 2.3-516 | 2015-03-04 12:30:06 -0800
 
   * Extract most specific Common Name from SSL certificates (Johanna

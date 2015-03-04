@@ -34,6 +34,10 @@
 #include "iosource/PktDumper.h"
 #include "plugin/Manager.h"
 
+#ifdef ENABLE_BROKER
+#include "comm/Manager.h"
+#endif
+
 extern "C" {
 #include "setsignal.h"
 };
@@ -315,6 +319,11 @@ void net_run()
 			}
 #endif
 		current_iosrc = src;
+		bool communication_enabled = using_communication;
+
+#ifdef ENABLE_BROKER
+		communication_enabled |= comm_mgr->Enabled();
+#endif
 
 		if ( src )
 			src->Process();	// which will call net_packet_dispatch()
@@ -332,7 +341,7 @@ void net_run()
 				}
 			}
 
-		else if ( (have_pending_timers || using_communication) &&
+		else if ( (have_pending_timers || communication_enabled) &&
 			  ! pseudo_realtime )
 			{
 			// Take advantage of the lull to get up to
@@ -347,7 +356,7 @@ void net_run()
 			// us a lot of idle time, but doesn't delay near-term
 			// timers too much.  (Delaying them somewhat is okay,
 			// since Bro timers are not high-precision anyway.)
-			if ( ! using_communication )
+			if ( ! communication_enabled )
 				usleep(100000);
 			else
 				usleep(1000);

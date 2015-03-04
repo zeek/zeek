@@ -79,18 +79,19 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 		std::string name;
 		std::getline(in, name);
 		strstrip(name);
+		string lower_name = strtolower(name);
 
 		if ( name.empty() )
 			reporter->FatalError("empty plugin magic file %s", magic.c_str());
 
-		if ( dynamic_plugins.find(name) != dynamic_plugins.end() )
+		if ( dynamic_plugins.find(lower_name) != dynamic_plugins.end() )
 			{
 			DBG_LOG(DBG_PLUGINS, "Found already known plugin %s in %s, ignoring", name.c_str(), dir.c_str());
 			return;
 			}
 
 		// Record it, so that we can later activate it.
-		dynamic_plugins.insert(std::make_pair(name, dir));
+		dynamic_plugins.insert(std::make_pair(lower_name, dir));
 
 		DBG_LOG(DBG_PLUGINS, "Found plugin %s in %s", name.c_str(), dir.c_str());
 		return;
@@ -135,7 +136,7 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 
 bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_not_found)
 	{
-	dynamic_plugin_map::iterator m = dynamic_plugins.find(name);
+	dynamic_plugin_map::iterator m = dynamic_plugins.find(strtolower(name));
 
 	if ( m == dynamic_plugins.end() )
 		{
@@ -230,7 +231,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 
 			// Make sure the name the plugin reports is consistent with
 			// what we expect from its magic file.
-			if ( string(current_plugin->Name()) != name )
+			if ( strtolower(current_plugin->Name()) != strtolower(name) )
 				reporter->FatalError("inconsistent plugin name: %s vs %s",
 						     current_plugin->Name().c_str(), name.c_str());
 
@@ -297,7 +298,7 @@ void Manager::UpdateInputFiles()
 
 static bool plugin_cmp(const Plugin* a, const Plugin* b)
 	{
-	return a->Name() < b->Name();
+	return strtolower(a->Name()) < strtolower(b->Name());
 	}
 
 void Manager::RegisterPlugin(Plugin *plugin)
@@ -318,10 +319,11 @@ void Manager::RegisterBifFile(const char* plugin, bif_init_func c)
 	{
 	bif_init_func_map* bifs = BifFilesInternal();
 
-	bif_init_func_map::iterator i = bifs->find(plugin);
+	std::string lower_plugin = strtolower(plugin);
+	bif_init_func_map::iterator i = bifs->find(lower_plugin);
 
 	if ( i == bifs->end() )
-		i = bifs->insert(std::make_pair(std::string(plugin), new bif_init_func_list())).first;
+		i = bifs->insert(std::make_pair(lower_plugin, new bif_init_func_list())).first;
 
 	i->second->push_back(c);
 	}
@@ -331,7 +333,7 @@ void Manager::InitPreScript()
 	assert(! init);
 
 	for ( plugin_list::iterator i = Manager::ActivePluginsInternal()->begin();
-          i != Manager::ActivePluginsInternal()->end(); i++ )
+	      i != Manager::ActivePluginsInternal()->end(); i++ )
 		{
 		Plugin* plugin = *i;
 		plugin->DoConfigure();
@@ -346,9 +348,9 @@ void Manager::InitBifs()
 	bif_init_func_map* bifs = BifFilesInternal();
 
 	for ( plugin_list::iterator i = Manager::ActivePluginsInternal()->begin();
-          i != Manager::ActivePluginsInternal()->end(); i++ )
+	      i != Manager::ActivePluginsInternal()->end(); i++ )
 		{
-		bif_init_func_map::const_iterator b = bifs->find((*i)->Name());
+		bif_init_func_map::const_iterator b = bifs->find(strtolower((*i)->Name()));
 
 		if ( b != bifs->end() )
 			{
@@ -363,7 +365,7 @@ void Manager::InitPostScript()
 	assert(init);
 
 	for ( plugin_list::iterator i = Manager::ActivePluginsInternal()->begin();
-          i != Manager::ActivePluginsInternal()->end(); i++ )
+	      i != Manager::ActivePluginsInternal()->end(); i++ )
 		(*i)->InitPostScript();
 	}
 
@@ -372,7 +374,7 @@ void Manager::FinishPlugins()
 	assert(init);
 
 	for ( plugin_list::iterator i = Manager::ActivePluginsInternal()->begin();
-          i != Manager::ActivePluginsInternal()->end(); i++ )
+	      i != Manager::ActivePluginsInternal()->end(); i++ )
 		(*i)->Done();
 
 	Manager::ActivePluginsInternal()->clear();
@@ -397,7 +399,7 @@ Manager::inactive_plugin_list Manager::InactivePlugins() const
 
 		for ( plugin_list::const_iterator j = all->begin(); j != all->end(); j++ )
 			{
-			if ( (*i).first == (*j)->Name() )
+			if ( (*i).first == strtolower((*j)->Name()) )
 				{
 				found = true;
 				break;
@@ -434,7 +436,7 @@ Manager::bif_init_func_map* Manager::BifFilesInternal()
 static bool hook_cmp(std::pair<int, Plugin*> a, std::pair<int, Plugin*> b)
 	{
 	if ( a.first == b.first )
-		return a.second->Name() < a.second->Name();
+		return strtolower(a.second->Name()) < strtolower(a.second->Name());
 
 	// Reverse sort.
 	return a.first > b.first;
@@ -505,13 +507,13 @@ void Manager::DisableHook(HookType hook, Plugin* plugin)
 void Manager::RequestEvent(EventHandlerPtr handler, Plugin* plugin)
 	{
 	DBG_LOG(DBG_PLUGINS, "Plugin %s requested event %s",
-            plugin->Name().c_str(), handler->Name());
+	        plugin->Name().c_str(), handler->Name());
 	handler->SetGenerateAlways();
 	}
 
 void Manager::RequestBroObjDtor(BroObj* obj, Plugin* plugin)
 	{
-    obj->NotifyPluginsOnDtor();
+	obj->NotifyPluginsOnDtor();
 	}
 
 int Manager::HookLoadFile(const string& file)
@@ -559,31 +561,34 @@ int Manager::HookLoadFile(const string& file)
 	return rc;
 	}
 
-Val* Manager::HookCallFunction(const Func* func, val_list* vargs) const
+std::pair<bool, Val*> Manager::HookCallFunction(const Func* func, Frame* parent, val_list* vargs) const
 	{
 	HookArgumentList args;
 
 	if ( HavePluginForHook(META_HOOK_PRE) )
 		{
 		args.push_back(HookArgument(func));
+		args.push_back(HookArgument(parent));
 		args.push_back(HookArgument(vargs));
 		MetaHookPre(HOOK_CALL_FUNCTION, args);
 		}
 
 	hook_list* l = hooks[HOOK_CALL_FUNCTION];
 
-	Val* v = 0;
+	std::pair<bool, Val*> v = std::pair<bool, Val*>(false, NULL);
 
 	if ( l )
+		{
 		for ( hook_list::iterator i = l->begin(); i != l->end(); ++i )
 			{
 			Plugin* p = (*i).second;
 
-			v = p->HookCallFunction(func, vargs);
+			v = p->HookCallFunction(func, parent, vargs);
 
-			if ( v )
+			if ( v.first )
 				break;
 			}
+		}
 
 	if ( HavePluginForHook(META_HOOK_POST) )
 		MetaHookPost(HOOK_CALL_FUNCTION, args, HookArgument(v));
@@ -671,7 +676,7 @@ void Manager::HookBroObjDtor(void* obj) const
 	{
 	HookArgumentList args;
 
-        if ( HavePluginForHook(META_HOOK_PRE) )
+	if ( HavePluginForHook(META_HOOK_PRE) )
 		{
 		args.push_back(obj);
 		MetaHookPre(HOOK_BRO_OBJ_DTOR, args);

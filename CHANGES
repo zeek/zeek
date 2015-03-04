@@ -1,4 +1,99 @@
 
+2.3-511 | 2015-03-02 18:07:17 -0800
+
+  * Changes to plugin meta hooks for function calls. (Gilbert Clark)
+
+        - Add frame argument.
+
+        - Change return value to tuple unambigiously whether hook
+          returned a result.
+
+2.3-493 | 2015-03-02 17:17:32 -0800
+
+  * Extend the SSL weak-keys policy file to also alert when
+    encountering SSL connections with old versions as well as unsafe
+    cipher suites. (Johanna Amann)
+
+  * Make the notice suppression handling of other SSL policy files a
+    tad more robust. (Johanna Amann)
+
+2.3-491 | 2015-03-02 17:12:56 -0800
+
+  * Updating docs for recent addition of local_resp. (Robin Sommer)
+
+2.3-489 | 2015-03-02 15:29:30 -0800
+
+  * Integrate Broker, Bro's new communication library. (Jon Siwek)
+
+    See aux/broker/README for more information on Broker, and
+    doc/frameworks/comm.rst for the corresponding Bro script API.
+
+    Broker support is by default off for now; it can be enabled at
+    configure time with --enable-broker. It requires CAF
+    (https://github.com/actor-framework/actor-framework); for now iot
+    needs CAF's "develop" branch. Broker also requires a C++11
+    compiler.
+
+    Broker will become a mandatory dependency in future Bro versions.
+
+  * Add --enable-c++11 configure flag to compile Bro's source code in
+    C++11 mode with a corresponding compiler. (Jon Siwek)
+
+2.3-451 | 2015-02-24 16:37:08 -0800
+
+  * Updating submodule(s).
+
+2.3-448 | 2015-02-23 16:58:10 -0800
+
+  * Updating NEWS. (Robin Sommer)
+
+2.3-447 | 2015-02-23 16:28:30 -0800
+
+  * Fix potential crash in logging framework when deserializing
+    WriterInfo from remote. where config is present. Testcase crashes
+    on unpatched versions of Bro. (Aaron Eppert)
+
+  * Fix wrong value test in WriterBackend. (Aaron Eppert)
+
+2.3-442 | 2015-02-23 13:29:30 -0800
+
+  * Add a "local_resp" field to conn.log, along the lines of the
+    existing "local_orig". (Mike Smiley)
+
+2.3-440 | 2015-02-23 11:39:17 -0600
+
+  * Updating plugin docs to recent changes. (Robin Sommer)
+
+  * Updating plugin tests to recent changes. (Robin Sommer)
+
+  * Making plugin names case-insensitive for some internal comparisions.
+    Makes plugin system more tolerant against spelling inconsistencies
+    are hard to catch otherwise. (Robin Sommer)
+
+  * Explicitly removing some old scripts on install that have moved
+    into plugins to prevent them causing confusion. (Robin Sommer)
+
+  * BIT-1312: Removing setting installation plugin path from
+    bro-path-dev.sh.  Also, adding to existing BRO_PLUGIN_PATH rather
+    than replacing. (Robin Sommer)
+
+  * Creating the installation directory for plugins at install time.
+    (Robin Sommer)
+
+2.3-427 | 2015-02-20 13:49:33 -0800
+
+  * Removing dependency on PCAP_NETMASK_UNKNOWN to compile with
+    libpcap < 1.1.1. (Robin Sommer)
+
+2.3-426 | 2015-02-20 12:45:51 -0800
+
+  * Add 'while' statement to Bro language. Really. (Jon Siwek)
+
+2.3-424 | 2015-02-20 12:39:10 -0800
+
+  * Add the ability to remove surrounding braces from the JSON
+    formatter. (Seth Hall)
+
 2.3-419 | 2015-02-13 09:10:44 -0600
 
   * BIT-1011: Update the SOCKS analyzer to support user/pass login.

@@ -221,6 +221,7 @@ export	return TOK_EXPORT;
 fallthrough	return TOK_FALLTHROUGH;
 file	return TOK_FILE;
 for	return TOK_FOR;
+while	return TOK_WHILE;
 function	return TOK_FUNCTION;
 global	return TOK_GLOBAL;
 "?$"	return TOK_HAS_FIELD;

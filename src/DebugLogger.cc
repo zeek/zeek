@@ -19,7 +19,7 @@ DebugLogger::Stream DebugLogger::streams[NUM_DBGS] = {
 	{ "logging", 0, false }, {"input", 0, false },
 	{ "threading", 0, false }, { "file_analysis", 0, false },
 	{ "plugins", 0, false }, { "broxygen", 0, false },
-	{ "pktio", 0, false}
+	{ "pktio", 0, false }, { "broker", 0, false }
 };
 
 DebugLogger::DebugLogger(const char* filename)

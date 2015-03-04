@@ -3,6 +3,7 @@
 #ifndef PLUGIN_MANAGER_H
 #define PLUGIN_MANAGER_H
 
+#include <utility>
 #include <map>
 
 #include "Plugin.h"
@@ -244,7 +245,7 @@ public:
 	 * functions and events, it may be any Val and must be ignored). If no
 	 * plugin handled the call, the method returns null.
 	 */
-	Val* HookCallFunction(const Func* func, val_list* args) const;
+	std::pair<bool, Val*> HookCallFunction(const Func* func, Frame *parent, val_list* args) const;
 
 	/**
 	 * Hook that filters the queuing of an event.

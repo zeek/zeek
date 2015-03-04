@@ -15,7 +15,7 @@
 
 using namespace threading::formatter;
 
-JSON::JSON(MsgThread* t, TimeFormat tf) : Formatter(t)
+JSON::JSON(MsgThread* t, TimeFormat tf) : Formatter(t), surrounding_braces(true)
 	{
 	timestamps = tf;
 	}
@@ -27,7 +27,8 @@ JSON::~JSON()
 bool JSON::Describe(ODesc* desc, int num_fields, const Field* const * fields,
                     Value** vals) const
 	{
-	desc->AddRaw("{");
+	if ( surrounding_braces )
+		desc->AddRaw("{");
 
 	for ( int i = 0; i < num_fields; i++ )
 		{
@@ -41,7 +42,8 @@ bool JSON::Describe(ODesc* desc, int num_fields, const Field* const * fields,
 			return false;
 		}
 
-	desc->AddRaw("}");
+	if ( surrounding_braces )
+		desc->AddRaw("}");
 
 	return true;
 	}
@@ -216,4 +218,9 @@ threading::Value* JSON::ParseValue(const string& s, const string& name, TypeTag 
 	{
 	GetThread()->Error("JSON formatter does not support parsing yet.");
 	return NULL;
+	}
+
+void JSON::SurroundingBraces(bool use_braces)
+	{
+	surrounding_braces = use_braces;
 	}

@@ -43,7 +43,6 @@ VectorVal* name_list_to_vector(const bytestring nl)
 		word = name_list.substr(start, name_list.size() - start);
 		vv->Assign(vv->Size(), new StringVal(word));
 		}
-
 	return vv;
 	}
 %}
@@ -68,27 +67,28 @@ refine flow SSH_Flow += {
 
 	function proc_ssh_kexinit(msg: SSH_KEXINIT): bool
 		%{
-		if ( ssh_capabilities )
-			{
-			RecordVal* result = new RecordVal(BifType::Record::SSH::Capabilities);
-			result->Assign(0, name_list_to_vector(${msg.kex_algorithms.val}));
-			result->Assign(1, name_list_to_vector(${msg.server_host_key_algorithms.val}));
-			result->Assign(2, name_list_to_vector(${msg.encryption_algorithms_client_to_server.val}));
-			result->Assign(3, name_list_to_vector(${msg.encryption_algorithms_server_to_client.val}));
-			result->Assign(4, name_list_to_vector(${msg.mac_algorithms_client_to_server.val}));
-			result->Assign(5, name_list_to_vector(${msg.mac_algorithms_server_to_client.val}));
-			result->Assign(6, name_list_to_vector(${msg.compression_algorithms_client_to_server.val}));
-			result->Assign(7, name_list_to_vector(${msg.compression_algorithms_server_to_client.val}));
-			if ( ${msg.languages_client_to_server.len} )
-				result->Assign(8, name_list_to_vector(${msg.languages_client_to_server.val}));
-			if ( ${msg.languages_server_to_client.len} )
-				result->Assign(9, name_list_to_vector(${msg.languages_server_to_client.val}));
-			result->Assign(10, new Val(${msg.is_orig}, TYPE_BOOL));
+		if ( ! ssh_capabilities )
+			return false;
 
-			BifEvent::generate_ssh_capabilities(connection()->bro_analyzer(),
-				connection()->bro_analyzer()->Conn(), bytestring_to_val(${msg.cookie}),
-				result);
-			}
+		RecordVal* result = new RecordVal(BifType::Record::SSH::Capabilities);
+		result->Assign(0, name_list_to_vector(${msg.kex_algorithms.val}));
+		result->Assign(1, name_list_to_vector(${msg.server_host_key_algorithms.val}));
+		result->Assign(2, name_list_to_vector(${msg.encryption_algorithms_client_to_server.val}));
+		result->Assign(3, name_list_to_vector(${msg.encryption_algorithms_server_to_client.val}));
+		result->Assign(4, name_list_to_vector(${msg.mac_algorithms_client_to_server.val}));
+		result->Assign(5, name_list_to_vector(${msg.mac_algorithms_server_to_client.val}));
+		result->Assign(6, name_list_to_vector(${msg.compression_algorithms_client_to_server.val}));
+		result->Assign(7, name_list_to_vector(${msg.compression_algorithms_server_to_client.val}));
+		if ( ${msg.languages_client_to_server.len} )
+			result->Assign(8, name_list_to_vector(${msg.languages_client_to_server.val}));
+		if ( ${msg.languages_server_to_client.len} )
+			result->Assign(9, name_list_to_vector(${msg.languages_server_to_client.val}));
+		result->Assign(10, new Val(${msg.is_orig}, TYPE_BOOL));
+
+		BifEvent::generate_ssh_capabilities(connection()->bro_analyzer(),
+			connection()->bro_analyzer()->Conn(), bytestring_to_val(${msg.cookie}),
+			result);
+
 		return true;
 		%}
 

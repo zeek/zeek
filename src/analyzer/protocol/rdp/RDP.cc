@@ -2,17 +2,17 @@
 #include "analyzer/protocol/tcp/TCP_Reassembler.h"
 #include "Reporter.h"
 #include "events.bif.h"
+#include "types.bif.h"
 
 using namespace analyzer::rdp;
 
 RDP_Analyzer::RDP_Analyzer(Connection* c)
-
-: tcp::TCP_ApplicationAnalyzer("RDP", c)
+	: tcp::TCP_ApplicationAnalyzer("RDP", c)
 	{
 	interp = new binpac::RDP::RDP_Conn(this);
 	
 	had_gap = false;
-	
+	pia = 0;
 	}
 
 RDP_Analyzer::~RDP_Analyzer()
@@ -22,12 +22,10 @@ RDP_Analyzer::~RDP_Analyzer()
 
 void RDP_Analyzer::Done()
 	{
-	
 	tcp::TCP_ApplicationAnalyzer::Done();
 
 	interp->FlowEOF(true);
 	interp->FlowEOF(false);
-	
 	}
 
 void RDP_Analyzer::EndpointEOF(bool is_orig)
@@ -49,13 +47,47 @@ void RDP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		// deliver data to the other side if the script layer can handle this.
 		return;
 
-	try
+	// If the data appears (very loosely) to be SSL/TLS
+	// we'll just move this over to the PIA analyzer.
+	// Like the comment below says, this is probably the wrong
+	// way to handle this.
+	if ( len > 0 && data[0] >= 0x14 && data[0] <= 0x17 )
 		{
-		interp->NewData(orig, data, data + len);
+		if ( ! pia )
+			{
+			pia = new pia::PIA_TCP(Conn());
+
+			if ( AddChildAnalyzer(pia) )
+				{
+				pia->FirstPacket(true, 0);
+				pia->FirstPacket(false, 0);
+				}
+			}
+
+		if ( pia )
+			{
+			ForwardStream(len, data, orig);
+			}
 		}
-	catch ( const binpac::Exception& e )
+	else if ( pia )
 		{
-		ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
+		// This is data that doesn't seem to match 
+		// an SSL record, but we've moved into SSL mode.
+		// This is probably the wrong way to handle this
+		// situation but I don't know what these records
+		// are that don't appear to be SSL/TLS.
+		return;
+		}
+	else
+		{
+		try
+			{
+			interp->NewData(orig, data, data + len);
+			}
+		catch ( const binpac::Exception& e )
+			{
+			ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
+			}
 		}
 	}
 

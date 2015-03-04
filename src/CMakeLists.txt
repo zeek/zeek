@@ -261,6 +261,7 @@ set(bro_SRCS
     ChunkedIO.cc
     CompHash.cc
     Conn.cc
+    ConvertUTF.c
     DFA.cc
     DbgBreakpoint.cc
     DbgHelp.cc

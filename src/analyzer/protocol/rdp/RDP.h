@@ -5,6 +5,7 @@
 
 
 #include "analyzer/protocol/tcp/TCP.h"
+#include "analyzer/protocol/pia/PIA.h"
 
 #include "rdp_pac.h"
 
@@ -21,10 +22,7 @@ public:
 	
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
 	virtual void Undelivered(uint64 seq, int len, bool orig);
-
-	// Overriden from tcp::TCP_ApplicationAnalyzer.
 	virtual void EndpointEOF(bool is_orig);
-	
 
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new RDP_Analyzer(conn); }
@@ -40,7 +38,7 @@ protected:
 	binpac::RDP::RDP_Conn* interp;
 	
 	bool had_gap;
-	
+	pia::PIA_TCP *pia;
 };
 
 } } // namespace analyzer::* 

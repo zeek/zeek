@@ -9,14 +9,8 @@ event rdp_client_request%(c: connection, cookie: string%);
 ##
 ## c: The connection record for the underlying transport-layer session/flow.
 ##
-## keyboard_layout: The 16-bit integer representing the keyboard layout/language of the client machine.
-##
-## build: The 16-bit integer representing the version of the RDP client.
-##
-## hostname: The hostname of the client machine (optional).
-##
-## product_id: The product ID of the client machine (optional).
-event rdp_client_data%(c: connection, keyboard_layout: count, build: count, hostname: string, product_id: string%);
+## data: The data contained in the client core data structure.
+event rdp_client_core_data%(c: connection, data: RDP::ClientCoreData%);
 
 ## Generated for MCS server responses when native RDP encryption is used.
 ##

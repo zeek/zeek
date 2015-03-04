@@ -19,8 +19,7 @@ connection RDP_Conn(bro_analyzer: BroAnalyzer) {
 %include rdp-protocol.pac
 
 flow RDP_Flow(is_orig: bool) {
-	#flowunit = RDP_PDU(is_orig) withcontext(connection, this);
-	datagram = RDP_PDU(is_orig) withcontext(connection, this);
+	flowunit = TPKT(is_orig) withcontext(connection, this);
 };
 
 %include rdp-analyzer.pac

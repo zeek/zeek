@@ -35,6 +35,21 @@ export {
 		[4] = "FIPS"
 	} &default = function(n: count): string { return fmt("encryption_level-%d", n); };
 
+	const high_color_depths = {
+		[0x0004] = "4bit",
+		[0x0008] = "8bit",
+		[0x000F] = "15bit",
+		[0x0010] = "16bit",
+		[0x0018] = "24bit"
+	} &default = function(n: count): string { return fmt("high_color_depth-%d", n); };
+
+	const color_depths = {
+		[0x0001] = "24bit",
+		[0x0002] = "16bit",
+		[0x0004] = "15bit",
+		[0x0008] = "32bit"
+	} &default = function(n: count): string { return fmt("color_depth-%d", n); };
+
 	const results = {
 		[0] = "Success",
 		[1] = "User rejected",

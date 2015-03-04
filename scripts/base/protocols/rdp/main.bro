@@ -37,7 +37,7 @@ export {
 		## Encryption method of the connection. 
 		encryption_method:     string  &log &optional;
 		## Flag the connection if it was seen over SSL.
-                ssl:                    bool    &log &default=F;
+                ssl:                   bool    &log &default=F;
 		};
 
 	## If true, detach the RDP analyzer from the connection to prevent

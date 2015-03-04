@@ -2774,20 +2774,20 @@ export {
 module X509;
 export {
 	type Certificate: record {
-		version: count;	##< Version number.
-		serial: string;	##< Serial number.
-		subject: string;	##< Subject.
-		issuer: string;	##< Issuer.
+		version: count &log;	##< Version number.
+		serial: string &log;	##< Serial number.
+		subject: string &log;	##< Subject.
+		issuer: string &log;	##< Issuer.
 		cn: string &optional; ##< Last (most specific) common name.
-		not_valid_before: time;	##< Timestamp before when certificate is not valid.
-		not_valid_after: time;	##< Timestamp after when certificate is not valid.
-		key_alg: string;	##< Name of the key algorithm
-		sig_alg: string;	##< Name of the signature algorithm
-		key_type: string &optional;	##< Key type, if key parseable by openssl (either rsa, dsa or ec)
-		key_length: count &optional;	##< Key length in bits
-		exponent: string &optional;	##< Exponent, if RSA-certificate
-		curve: string &optional;	##< Curve, if EC-certificate
-	} &log;
+		not_valid_before: time &log;	##< Timestamp before when certificate is not valid.
+		not_valid_after: time &log;	##< Timestamp after when certificate is not valid.
+		key_alg: string &log;	##< Name of the key algorithm
+		sig_alg: string &log;	##< Name of the signature algorithm
+		key_type: string &optional &log;	##< Key type, if key parseable by openssl (either rsa, dsa or ec)
+		key_length: count &optional &log;	##< Key length in bits
+		exponent: string &optional &log;	##< Exponent, if RSA-certificate
+		curve: string &optional &log;	##< Curve, if EC-certificate
+	};
 
 	type Extension: record {
 		name: string;	##< Long name of extension. oid if name not known

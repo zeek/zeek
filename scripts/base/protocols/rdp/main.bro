@@ -36,6 +36,8 @@ export {
 		encryption_level:      string  &log &optional;
 		## Encryption method of the connection. 
 		encryption_method:     string  &log &optional;
+		## Flag the connection if it was seen over SSL.
+                ssl:                    bool    &log &default=F;
 		};
 
 	## If true, detach the RDP analyzer from the connection to prevent
@@ -194,6 +196,15 @@ event protocol_violation(c: connection, atype: Analyzer::Tag, aid: count, reason
 	if ( c?$rdp )
 		write_log(c);
 	}
+	
+event ssl_established(c: connection) &priority=-5
+        {
+        if ( c?$rdp )
+                {
+                c$rdp$ssl = T;
+                write_log(c);
+                }
+        }
 
 event connection_state_remove(c: connection) &priority=-5
 	{

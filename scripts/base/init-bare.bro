@@ -2778,6 +2778,7 @@ export {
 		serial: string;	##< Serial number.
 		subject: string;	##< Subject.
 		issuer: string;	##< Issuer.
+		cn: string &optional; ##< Last (most specific) common name.
 		not_valid_before: time;	##< Timestamp before when certificate is not valid.
 		not_valid_after: time;	##< Timestamp after when certificate is not valid.
 		key_alg: string;	##< Name of the key algorithm

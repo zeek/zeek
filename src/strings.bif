@@ -698,7 +698,7 @@ function split_n%(str: string, re: pattern,
 ##
 ## Returns: An array of strings where, if *incl_sep* is true, each two
 ##          successive elements correspond to a substring in *str* of the part
-##          not matching *re* (event-indexed) and the part that matches *re*
+##          not matching *re* (even-indexed) and the part that matches *re*
 ##          (odd-indexed).
 ##
 ## .. bro:see:: split_string split_string1 split_string_all str_split

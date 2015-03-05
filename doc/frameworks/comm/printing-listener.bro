@@ -1,22 +1,22 @@
 
 const broker_port: port &redef;
 redef exit_only_after_terminate = T;
-redef Comm::endpoint_name = "listener";
+redef BrokerComm::endpoint_name = "listener";
 global msg_count = 0;
 
 event bro_init()
 	{
-	Comm::enable();
-	Comm::subscribe_to_prints("bro/print/");
-	Comm::listen(broker_port, "127.0.0.1");
+	BrokerComm::enable();
+	BrokerComm::subscribe_to_prints("bro/print/");
+	BrokerComm::listen(broker_port, "127.0.0.1");
 	}
 
-event Comm::incoming_connection_established(peer_name: string)
+event BrokerComm::incoming_connection_established(peer_name: string)
 	{
-	print "Comm::incoming_connection_established", peer_name;
+	print "BrokerComm::incoming_connection_established", peer_name;
 	}
 
-event Comm::print_handler(msg: string)
+event BrokerComm::print_handler(msg: string)
 	{
 	++msg_count;
 	print "got print message", msg;

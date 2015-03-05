@@ -7,7 +7,7 @@
 #include "Frame.h"
 #include "Expr.h"
 
-namespace comm {
+namespace bro_broker {
 
 extern OpaqueType* opaque_of_data_type;
 extern OpaqueType* opaque_of_set_iterator;
@@ -21,25 +21,25 @@ extern OpaqueType* opaque_of_record_iterator;
 TransportProto to_bro_port_proto(broker::port::protocol tp);
 
 /**
- * Create a Comm::Data value from a Bro value.
+ * Create a BrokerComm::Data value from a Bro value.
  * @param v the Bro value to convert to a Broker data value.
- * @return a Comm::Data value, where the optional field is set if the conversion
+ * @return a BrokerComm::Data value, where the optional field is set if the conversion
  * was possible, else it is unset.
  */
 RecordVal* make_data_val(Val* v);
 
 /**
- * Create a Comm::Data value from a Broker data value.
+ * Create a BrokerComm::Data value from a Broker data value.
  * @param d the Broker value to wrap in an opaque type.
- * @return a Comm::Data value that wraps the Broker value.
+ * @return a BrokerComm::Data value that wraps the Broker value.
  */
 RecordVal* make_data_val(broker::data d);
 
 /**
- * Get the type of Broker data that Comm::Data wraps.
- * @param v a Comm::Data value.
+ * Get the type of Broker data that BrokerComm::Data wraps.
+ * @param v a BrokerComm::Data value.
  * @param frame used to get location info upon error.
- * @return a Comm::DataType value.
+ * @return a BrokerComm::DataType value.
  */
 EnumVal* get_data_type(RecordVal* v, Frame* frame);
 
@@ -68,7 +68,7 @@ class DataVal : public OpaqueVal {
 public:
 
 	DataVal(broker::data arg_data)
-		: OpaqueVal(comm::opaque_of_data_type), data(std::move(arg_data))
+		: OpaqueVal(bro_broker::opaque_of_data_type), data(std::move(arg_data))
 		{}
 
 	void ValDescribe(ODesc* d) const override
@@ -141,8 +141,8 @@ struct type_name_getter {
 };
 
 /**
- * Retrieve Broker data value associated with a Comm::Data Bro value.
- * @param v a Comm::Data value.
+ * Retrieve Broker data value associated with a BrokerComm::Data Bro value.
+ * @param v a BrokerComm::Data value.
  * @param f used to get location information on error.
  * @return a reference to the wrapped Broker data value.  A runtime interpreter
  * exception is thrown if the the optional opaque value of \a v is not set.
@@ -183,9 +183,9 @@ inline T& require_data_type(RecordVal* v, TypeTag tag, Frame* f)
 	}
 
 /**
- * Convert a Comm::Data Bro value to a Bro value of a given type.
+ * Convert a BrokerComm::Data Bro value to a Bro value of a given type.
  * @tparam a type that a Broker data variant may contain.
- * @param v a Comm::Data value.
+ * @param v a BrokerComm::Data value.
  * @param tag a Bro type to convert to.
  * @param f used to get location information on error.
  * A runtime interpret exception is thrown if trying to access a type which
@@ -203,7 +203,7 @@ class SetIterator : public OpaqueVal {
 public:
 
 	SetIterator(RecordVal* v, TypeTag tag, Frame* f)
-	    : OpaqueVal(comm::opaque_of_set_iterator),
+	    : OpaqueVal(bro_broker::opaque_of_set_iterator),
 	      dat(require_data_type<broker::set>(v, TYPE_TABLE, f)),
 	      it(dat.begin())
 		{}
@@ -216,7 +216,7 @@ class TableIterator : public OpaqueVal {
 public:
 
 	TableIterator(RecordVal* v, TypeTag tag, Frame* f)
-	    : OpaqueVal(comm::opaque_of_table_iterator),
+	    : OpaqueVal(bro_broker::opaque_of_table_iterator),
 	      dat(require_data_type<broker::table>(v, TYPE_TABLE, f)),
 	      it(dat.begin())
 		{}
@@ -229,7 +229,7 @@ class VectorIterator : public OpaqueVal {
 public:
 
 	VectorIterator(RecordVal* v, TypeTag tag, Frame* f)
-	    : OpaqueVal(comm::opaque_of_vector_iterator),
+	    : OpaqueVal(bro_broker::opaque_of_vector_iterator),
 	      dat(require_data_type<broker::vector>(v, TYPE_VECTOR, f)),
 	      it(dat.begin())
 		{}
@@ -242,7 +242,7 @@ class RecordIterator : public OpaqueVal {
 public:
 
 	RecordIterator(RecordVal* v, TypeTag tag, Frame* f)
-	    : OpaqueVal(comm::opaque_of_record_iterator),
+	    : OpaqueVal(bro_broker::opaque_of_record_iterator),
 	      dat(require_data_type<broker::record>(v, TYPE_VECTOR, f)),
 	      it(dat.fields.begin())
 		{}
@@ -251,6 +251,6 @@ public:
 	decltype(broker::record::fields)::iterator it;
 };
 
-} // namespace comm
+} // namespace bro_broker
 
 #endif // BRO_COMM_DATA_H

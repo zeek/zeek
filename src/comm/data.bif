@@ -5,9 +5,9 @@
 #include "comm/Data.h"
 %%}
 
-module Comm;
+module BrokerComm;
 
-## Enumerates the possible types that :bro:see:`Comm::Data` may be in terms of
+## Enumerates the possible types that :bro:see:`BrokerComm::Data` may be in terms of
 ## Bro data types.
 enum DataType %{
 	BOOL,
@@ -27,9 +27,9 @@ enum DataType %{
 	RECORD,
 %}
 
-type Comm::Data: record;
+type BrokerComm::Data: record;
 
-type Comm::TableItem: record;
+type BrokerComm::TableItem: record;
 
 ## Convert any Bro value in to communication data.
 ##
@@ -38,9 +38,9 @@ type Comm::TableItem: record;
 ## Returns: the converted communication data which may not set its only
 ##          opaque field of the the conversion was not possible (the Bro data
 ##          type does not support being converted to communicaiton data).
-function Comm::data%(d: any%): Comm::Data
+function BrokerComm::data%(d: any%): BrokerComm::Data
 	%{
-	return comm::make_data_val(d);
+	return bro_broker::make_data_val(d);
 	%}
 
 ## Retrieve the type of data associated with communication data.
@@ -48,153 +48,153 @@ function Comm::data%(d: any%): Comm::Data
 ## d: the communication data.
 ##
 ## Returns: the data type associated with the communication data.
-function Comm::data_type%(d: Comm::Data%): Comm::DataType
+function BrokerComm::data_type%(d: BrokerComm::Data%): BrokerComm::DataType
 	%{
-	return comm::get_data_type(d->AsRecordVal(), frame);
+	return bro_broker::get_data_type(d->AsRecordVal(), frame);
 	%}
 
-## Convert communication data with a type of :bro:see:`Comm::BOOL` to
+## Convert communication data with a type of :bro:see:`BrokerComm::BOOL` to
 ## an actual Bro value.
 ##
 ## d: the communication data to convert.
 ##
 ## Returns: the value retrieved from the communication data.
-function Comm::refine_to_bool%(d: Comm::Data%): bool
+function BrokerComm::refine_to_bool%(d: BrokerComm::Data%): bool
 	%{
-	return comm::refine<bool>(d->AsRecordVal(), TYPE_BOOL, frame);
+	return bro_broker::refine<bool>(d->AsRecordVal(), TYPE_BOOL, frame);
 	%}
 
-## Convert communication data with a type of :bro:see:`Comm::INT` to
+## Convert communication data with a type of :bro:see:`BrokerComm::INT` to
 ## an actual Bro value.
 ##
 ## d: the communication data to convert.
 ##
 ## Returns: the value retrieved from the communication data.
-function Comm::refine_to_int%(d: Comm::Data%): int
+function BrokerComm::refine_to_int%(d: BrokerComm::Data%): int
 	%{
-	return comm::refine<int64_t>(d->AsRecordVal(), TYPE_INT, frame);
+	return bro_broker::refine<int64_t>(d->AsRecordVal(), TYPE_INT, frame);
 	%}
 
-## Convert communication data with a type of :bro:see:`Comm::COUNT` to
+## Convert communication data with a type of :bro:see:`BrokerComm::COUNT` to
 ## an actual Bro value.
 ##
 ## d: the communication data to convert.
 ##
 ## Returns: the value retrieved from the communication data.
-function Comm::refine_to_count%(d: Comm::Data%): count
+function BrokerComm::refine_to_count%(d: BrokerComm::Data%): count
 	%{
-	return comm::refine<uint64_t>(d->AsRecordVal(), TYPE_COUNT, frame);
+	return bro_broker::refine<uint64_t>(d->AsRecordVal(), TYPE_COUNT, frame);
 	%}
 
-## Convert communication data with a type of :bro:see:`Comm::DOUBLE` to
+## Convert communication data with a type of :bro:see:`BrokerComm::DOUBLE` to
 ## an actual Bro value.
 ##
 ## d: the communication data to convert.
 ##
 ## Returns: the value retrieved from the communication data.
-function Comm::refine_to_double%(d: Comm::Data%): double
+function BrokerComm::refine_to_double%(d: BrokerComm::Data%): double
 	%{
-	return comm::refine<double>(d->AsRecordVal(), TYPE_DOUBLE, frame);
+	return bro_broker::refine<double>(d->AsRecordVal(), TYPE_DOUBLE, frame);
 	%}
 
-## Convert communication data with a type of :bro:see:`Comm::STRING` to
+## Convert communication data with a type of :bro:see:`BrokerComm::STRING` to
 ## an actual Bro value.
 ##
 ## d: the communication data to convert.
 ##
 ## Returns: the value retrieved from the communication data.
-function Comm::refine_to_string%(d: Comm::Data%): string
+function BrokerComm::refine_to_string%(d: BrokerComm::Data%): string
 	%{
-	return new StringVal(comm::require_data_type<std::string>(d->AsRecordVal(),
+	return new StringVal(bro_broker::require_data_type<std::string>(d->AsRecordVal(),
 												              TYPE_STRING,
 															  frame));
 	%}
 
-## Convert communication data with a type of :bro:see:`Comm::ADDR` to
+## Convert communication data with a type of :bro:see:`BrokerComm::ADDR` to
 ## an actual Bro value.
 ##
 ## d: the communication data to convert.
 ##
 ## Returns: the value retrieved from the communication data.
-function Comm::refine_to_addr%(d: Comm::Data%): addr
+function BrokerComm::refine_to_addr%(d: BrokerComm::Data%): addr
 	%{
-	auto& a = comm::require_data_type<broker::address>(d->AsRecordVal(),
+	auto& a = bro_broker::require_data_type<broker::address>(d->AsRecordVal(),
 													   TYPE_ADDR, frame);
 	auto bits = reinterpret_cast<const in6_addr*>(&a.bytes());
 	return new AddrVal(IPAddr(*bits));
 	%}
 
-## Convert communication data with a type of :bro:see:`Comm::SUBNET` to
+## Convert communication data with a type of :bro:see:`BrokerComm::SUBNET` to
 ## an actual Bro value.
 ##
 ## d: the communication data to convert.
 ##
 ## Returns: the value retrieved from the communication data.
-function Comm::refine_to_subnet%(d: Comm::Data%): subnet
+function BrokerComm::refine_to_subnet%(d: BrokerComm::Data%): subnet
 	%{
-	auto& a = comm::require_data_type<broker::subnet>(d->AsRecordVal(),
+	auto& a = bro_broker::require_data_type<broker::subnet>(d->AsRecordVal(),
 													  TYPE_SUBNET, frame);
 	auto bits = reinterpret_cast<const in6_addr*>(&a.network().bytes());
 	return new SubNetVal(IPPrefix(IPAddr(*bits), a.length()));
 	%}
 
-## Convert communication data with a type of :bro:see:`Comm::PORT` to
+## Convert communication data with a type of :bro:see:`BrokerComm::PORT` to
 ## an actual Bro value.
 ##
 ## d: the communication data to convert.
 ##
 ## Returns: the value retrieved from the communication data.
-function Comm::refine_to_port%(d: Comm::Data%): port
+function BrokerComm::refine_to_port%(d: BrokerComm::Data%): port
 	%{
-	auto& a = comm::require_data_type<broker::port>(d->AsRecordVal(),
+	auto& a = bro_broker::require_data_type<broker::port>(d->AsRecordVal(),
 													TYPE_SUBNET, frame);
-	return new PortVal(a.number(), comm::to_bro_port_proto(a.type()));
+	return new PortVal(a.number(), bro_broker::to_bro_port_proto(a.type()));
 	%}
 
-## Convert communication data with a type of :bro:see:`Comm::TIME` to
+## Convert communication data with a type of :bro:see:`BrokerComm::TIME` to
 ## an actual Bro value.
 ##
 ## d: the communication data to convert.
 ##
 ## Returns: the value retrieved from the communication data.
-function Comm::refine_to_time%(d: Comm::Data%): time
+function BrokerComm::refine_to_time%(d: BrokerComm::Data%): time
 	%{
-	auto v = comm::require_data_type<broker::time_point>(d->AsRecordVal(),
+	auto v = bro_broker::require_data_type<broker::time_point>(d->AsRecordVal(),
 														TYPE_TIME, frame).value;
 	return new Val(v, TYPE_TIME);
 	%}
 
-## Convert communication data with a type of :bro:see:`Comm::INTERVAL` to
+## Convert communication data with a type of :bro:see:`BrokerComm::INTERVAL` to
 ## an actual Bro value.
 ##
 ## d: the communication data to convert.
 ##
 ## Returns: the value retrieved from the communication data.
-function Comm::refine_to_interval%(d: Comm::Data%): interval
+function BrokerComm::refine_to_interval%(d: BrokerComm::Data%): interval
 	%{
-	auto v = comm::require_data_type<broker::time_duration>(d->AsRecordVal(),
+	auto v = bro_broker::require_data_type<broker::time_duration>(d->AsRecordVal(),
 														TYPE_TIME, frame).value;
 	return new Val(v, TYPE_INTERVAL);
 	%}
 
-## Convert communication data with a type of :bro:see:`Comm::ENUM` to
+## Convert communication data with a type of :bro:see:`BrokerComm::ENUM` to
 ## the name of the enum value.  :bro:see:`lookup_ID` may be used to convert
 ## the name to the actual enum value.
 ##
 ## d: the communication data to convert.
 ##
 ## Returns: the enum name retrieved from the communication data.
-function Comm::refine_to_enum_name%(d: Comm::Data%): string
+function BrokerComm::refine_to_enum_name%(d: BrokerComm::Data%): string
 	%{
-	auto& v = comm::require_data_type<broker::enum_value>(d->AsRecordVal(),
+	auto& v = bro_broker::require_data_type<broker::enum_value>(d->AsRecordVal(),
 														TYPE_ENUM, frame).name;
 	return new StringVal(v);
 	%}
 
 ## Create communication data of type "set".
-function Comm::set_create%(%): Comm::Data
+function BrokerComm::set_create%(%): BrokerComm::Data
 	%{
-	return comm::make_data_val(broker::set());
+	return bro_broker::make_data_val(broker::set());
 	%}
 
 ## Remove all elements within a set.
@@ -202,9 +202,9 @@ function Comm::set_create%(%): Comm::Data
 ## s: the set to clear.
 ##
 ## Returns: always true.
-function Comm::set_clear%(s: Comm::Data%): bool
+function BrokerComm::set_clear%(s: BrokerComm::Data%): bool
 	%{
-	auto& v = comm::require_data_type<broker::set>(s->AsRecordVal(), TYPE_TABLE,
+	auto& v = bro_broker::require_data_type<broker::set>(s->AsRecordVal(), TYPE_TABLE,
 												   frame);
 	v.clear();
 	return new Val(true, TYPE_BOOL);
@@ -215,9 +215,9 @@ function Comm::set_clear%(s: Comm::Data%): bool
 ## s: the set to query.
 ##
 ## Returns: the number of elements in the set.
-function Comm::set_size%(s: Comm::Data%): count
+function BrokerComm::set_size%(s: BrokerComm::Data%): count
 	%{
-	auto& v = comm::require_data_type<broker::set>(s->AsRecordVal(), TYPE_TABLE,
+	auto& v = bro_broker::require_data_type<broker::set>(s->AsRecordVal(), TYPE_TABLE,
 												   frame);
 	return new Val(static_cast<uint64_t>(v.size()), TYPE_COUNT);
 	%}
@@ -229,11 +229,11 @@ function Comm::set_size%(s: Comm::Data%): count
 ## key: the element to check for existence.
 ##
 ## Returns: true if the key exists in the set.
-function Comm::set_contains%(s: Comm::Data, key: Comm::Data%): bool
+function BrokerComm::set_contains%(s: BrokerComm::Data, key: BrokerComm::Data%): bool
 	%{
-	auto& v = comm::require_data_type<broker::set>(s->AsRecordVal(), TYPE_TABLE,
+	auto& v = bro_broker::require_data_type<broker::set>(s->AsRecordVal(), TYPE_TABLE,
 												   frame);
-	auto& k = comm::opaque_field_to_data(key->AsRecordVal(), frame);
+	auto& k = bro_broker::opaque_field_to_data(key->AsRecordVal(), frame);
 	return new Val(v.find(k) != v.end(), TYPE_BOOL);
 	%}
 
@@ -244,11 +244,11 @@ function Comm::set_contains%(s: Comm::Data, key: Comm::Data%): bool
 ## key: the element to insert.
 ##
 ## Returns: true if the key was inserted, or false if it already existed.
-function Comm::set_insert%(s: Comm::Data, key: Comm::Data%): bool
+function BrokerComm::set_insert%(s: BrokerComm::Data, key: BrokerComm::Data%): bool
 	%{
-	auto& v = comm::require_data_type<broker::set>(s->AsRecordVal(), TYPE_TABLE,
+	auto& v = bro_broker::require_data_type<broker::set>(s->AsRecordVal(), TYPE_TABLE,
 												   frame);
-	auto& k = comm::opaque_field_to_data(key->AsRecordVal(), frame);
+	auto& k = bro_broker::opaque_field_to_data(key->AsRecordVal(), frame);
 	return new Val(v.insert(k).second, TYPE_BOOL);
 	%}
 
@@ -259,11 +259,11 @@ function Comm::set_insert%(s: Comm::Data, key: Comm::Data%): bool
 ## key: the element to remove.
 ##
 ## Returns: true if the element existed in the set and is now removed.
-function Comm::set_remove%(s: Comm::Data, key: Comm::Data%): bool
+function BrokerComm::set_remove%(s: BrokerComm::Data, key: BrokerComm::Data%): bool
 	%{
-	auto& v = comm::require_data_type<broker::set>(s->AsRecordVal(), TYPE_TABLE,
+	auto& v = bro_broker::require_data_type<broker::set>(s->AsRecordVal(), TYPE_TABLE,
 												   frame);
-	auto& k = comm::opaque_field_to_data(key->AsRecordVal(), frame);
+	auto& k = bro_broker::opaque_field_to_data(key->AsRecordVal(), frame);
 	return new Val(v.erase(k) > 0, TYPE_BOOL);
 	%}
 
@@ -273,9 +273,9 @@ function Comm::set_remove%(s: Comm::Data, key: Comm::Data%): bool
 ## s: the set to iterate over.
 ##
 ## Returns: an iterator.
-function Comm::set_iterator%(s: Comm::Data%): opaque of Comm::SetIterator
+function BrokerComm::set_iterator%(s: BrokerComm::Data%): opaque of BrokerComm::SetIterator
 	%{
-	return new comm::SetIterator(s->AsRecordVal(), TYPE_TABLE, frame);
+	return new bro_broker::SetIterator(s->AsRecordVal(), TYPE_TABLE, frame);
 	%}
 
 ## Check if there are no more elements to iterate over.
@@ -284,9 +284,9 @@ function Comm::set_iterator%(s: Comm::Data%): opaque of Comm::SetIterator
 ##
 ## Returns: true if there are no more elements to iterator over, i.e.
 ##          the iterator is one-past-the-final-element.
-function Comm::set_iterator_last%(it: opaque of Comm::SetIterator%): bool
+function BrokerComm::set_iterator_last%(it: opaque of BrokerComm::SetIterator%): bool
 	%{
-	auto set_it = static_cast<comm::SetIterator*>(it);
+	auto set_it = static_cast<bro_broker::SetIterator*>(it);
 	return new Val(set_it->it == set_it->dat.end(), TYPE_BOOL);
 	%}
 
@@ -297,9 +297,9 @@ function Comm::set_iterator_last%(it: opaque of Comm::SetIterator%): bool
 ## Returns: true if the iterator, after advancing, still references an element
 ##          in the collection.  False if the iterator, after advancing, is
 ##          one-past-the-final-element.
-function Comm::set_iterator_next%(it: opaque of Comm::SetIterator%): bool
+function BrokerComm::set_iterator_next%(it: opaque of BrokerComm::SetIterator%): bool
 	%{
-	auto set_it = static_cast<comm::SetIterator*>(it);
+	auto set_it = static_cast<bro_broker::SetIterator*>(it);
 
 	if ( set_it->it == set_it->dat.end() )
 		return new Val(false, TYPE_BOOL);
@@ -313,10 +313,10 @@ function Comm::set_iterator_next%(it: opaque of Comm::SetIterator%): bool
 ## it: an iterator.
 ##
 ## Returns: element in the collection that the iterator currently references.
-function Comm::set_iterator_value%(it: opaque of Comm::SetIterator%): Comm::Data
+function BrokerComm::set_iterator_value%(it: opaque of BrokerComm::SetIterator%): BrokerComm::Data
 	%{
-	auto set_it = static_cast<comm::SetIterator*>(it);
-	auto rval = new RecordVal(BifType::Record::Comm::Data);
+	auto set_it = static_cast<bro_broker::SetIterator*>(it);
+	auto rval = new RecordVal(BifType::Record::BrokerComm::Data);
 
 	if ( set_it->it == set_it->dat.end() )
 		{
@@ -326,14 +326,14 @@ function Comm::set_iterator_value%(it: opaque of Comm::SetIterator%): Comm::Data
 		return rval;
 		}
 
-	rval->Assign(0, new comm::DataVal(*set_it->it));
+	rval->Assign(0, new bro_broker::DataVal(*set_it->it));
 	return rval;
 	%}
 
 ## Create communication data of type "table".
-function Comm::table_create%(%): Comm::Data
+function BrokerComm::table_create%(%): BrokerComm::Data
 	%{
-	return comm::make_data_val(broker::table());
+	return bro_broker::make_data_val(broker::table());
 	%}
 
 ## Remove all elements within a table.
@@ -341,9 +341,9 @@ function Comm::table_create%(%): Comm::Data
 ## t: the table to clear.
 ##
 ## Returns: always true.
-function Comm::table_clear%(t: Comm::Data%): bool
+function BrokerComm::table_clear%(t: BrokerComm::Data%): bool
 	%{
-	auto& v = comm::require_data_type<broker::table>(t->AsRecordVal(),
+	auto& v = bro_broker::require_data_type<broker::table>(t->AsRecordVal(),
 													 TYPE_TABLE, frame);
 	v.clear();
 	return new Val(true, TYPE_BOOL);
@@ -354,9 +354,9 @@ function Comm::table_clear%(t: Comm::Data%): bool
 ## t: the table to query.
 ##
 ## Returns: the number of elements in the table.
-function Comm::table_size%(t: Comm::Data%): count
+function BrokerComm::table_size%(t: BrokerComm::Data%): count
 	%{
-	auto& v = comm::require_data_type<broker::table>(t->AsRecordVal(),
+	auto& v = bro_broker::require_data_type<broker::table>(t->AsRecordVal(),
 													 TYPE_TABLE, frame);
 	return new Val(static_cast<uint64_t>(v.size()), TYPE_COUNT);
 	%}
@@ -368,11 +368,11 @@ function Comm::table_size%(t: Comm::Data%): count
 ## key: the key to check for existence.
 ##
 ## Returns: true if the key exists in the set.
-function Comm::table_contains%(t: Comm::Data, key: Comm::Data%): bool
+function BrokerComm::table_contains%(t: BrokerComm::Data, key: BrokerComm::Data%): bool
 	%{
-	auto& v = comm::require_data_type<broker::table>(t->AsRecordVal(),
+	auto& v = bro_broker::require_data_type<broker::table>(t->AsRecordVal(),
 													 TYPE_TABLE, frame);
-	auto& k = comm::opaque_field_to_data(key->AsRecordVal(), frame);
+	auto& k = bro_broker::opaque_field_to_data(key->AsRecordVal(), frame);
 	return new Val(v.find(k) != v.end(), TYPE_BOOL);
 	%}
 
@@ -386,24 +386,24 @@ function Comm::table_contains%(t: Comm::Data, key: Comm::Data%): bool
 ##
 ## Returns: true if the key-value pair was inserted, or false if the key
 ##          already existed in the table.
-function Comm::table_insert%(t: Comm::Data, key: Comm::Data, val: Comm::Data%): Comm::Data
+function BrokerComm::table_insert%(t: BrokerComm::Data, key: BrokerComm::Data, val: BrokerComm::Data%): BrokerComm::Data
 	%{
-	auto& table = comm::require_data_type<broker::table>(t->AsRecordVal(),
+	auto& table = bro_broker::require_data_type<broker::table>(t->AsRecordVal(),
 													     TYPE_TABLE, frame);
-	auto& k = comm::opaque_field_to_data(key->AsRecordVal(), frame);
-	auto& v = comm::opaque_field_to_data(val->AsRecordVal(), frame);
+	auto& k = bro_broker::opaque_field_to_data(key->AsRecordVal(), frame);
+	auto& v = bro_broker::opaque_field_to_data(val->AsRecordVal(), frame);
 
 	try
 		{
 		auto& prev = table.at(k);
-		auto rval = comm::make_data_val(move(prev));
+		auto rval = bro_broker::make_data_val(move(prev));
 		prev = v;
 		return rval;
 		}
 	catch (const std::out_of_range&)
 		{
 		table[k] = v;
-		return new RecordVal(BifType::Record::Comm::Data);
+		return new RecordVal(BifType::Record::BrokerComm::Data);
 		}
 	%}
 
@@ -415,18 +415,18 @@ function Comm::table_insert%(t: Comm::Data, key: Comm::Data, val: Comm::Data%): 
 ##
 ## Returns: the value associated with the key.  If the key did not exist, then
 ##          the optional field of the returned record is not set.
-function Comm::table_remove%(t: Comm::Data, key: Comm::Data%): Comm::Data
+function BrokerComm::table_remove%(t: BrokerComm::Data, key: BrokerComm::Data%): BrokerComm::Data
 	%{
-	auto& table = comm::require_data_type<broker::table>(t->AsRecordVal(),
+	auto& table = bro_broker::require_data_type<broker::table>(t->AsRecordVal(),
 													     TYPE_TABLE, frame);
-	auto& k = comm::opaque_field_to_data(key->AsRecordVal(), frame);
+	auto& k = bro_broker::opaque_field_to_data(key->AsRecordVal(), frame);
 	auto it = table.find(k);
 
 	if ( it == table.end() )
-		return new RecordVal(BifType::Record::Comm::Data);
+		return new RecordVal(BifType::Record::BrokerComm::Data);
 	else
 		{
-		auto rval = comm::make_data_val(move(it->second));
+		auto rval = bro_broker::make_data_val(move(it->second));
 		table.erase(it);
 		return rval;
 		}
@@ -440,17 +440,17 @@ function Comm::table_remove%(t: Comm::Data, key: Comm::Data%): Comm::Data
 ##
 ## Returns: the value associated with the key.  If the key did not exist, then
 ##          the optional field of the returned record is not set.
-function Comm::table_lookup%(t: Comm::Data, key: Comm::Data%): Comm::Data
+function BrokerComm::table_lookup%(t: BrokerComm::Data, key: BrokerComm::Data%): BrokerComm::Data
 	%{
-	auto& table = comm::require_data_type<broker::table>(t->AsRecordVal(),
+	auto& table = bro_broker::require_data_type<broker::table>(t->AsRecordVal(),
 													     TYPE_TABLE, frame);
-	auto& k = comm::opaque_field_to_data(key->AsRecordVal(), frame);
+	auto& k = bro_broker::opaque_field_to_data(key->AsRecordVal(), frame);
 	auto it = table.find(k);
 
 	if ( it == table.end() )
-		return new RecordVal(BifType::Record::Comm::Data);
+		return new RecordVal(BifType::Record::BrokerComm::Data);
 	else
-		return comm::make_data_val(it->second);
+		return bro_broker::make_data_val(it->second);
 	%}
 
 ## Create an iterator for a table.  Note that this makes a copy of the table
@@ -459,9 +459,9 @@ function Comm::table_lookup%(t: Comm::Data, key: Comm::Data%): Comm::Data
 ## t: the table to iterate over.
 ##
 ## Returns: an iterator.
-function Comm::table_iterator%(t: Comm::Data%): opaque of Comm::TableIterator
+function BrokerComm::table_iterator%(t: BrokerComm::Data%): opaque of BrokerComm::TableIterator
 	%{
-	return new comm::TableIterator(t->AsRecordVal(), TYPE_TABLE, frame);
+	return new bro_broker::TableIterator(t->AsRecordVal(), TYPE_TABLE, frame);
 	%}
 
 ## Check if there are no more elements to iterate over.
@@ -470,9 +470,9 @@ function Comm::table_iterator%(t: Comm::Data%): opaque of Comm::TableIterator
 ##
 ## Returns: true if there are no more elements to iterator over, i.e.
 ##          the iterator is one-past-the-final-element.
-function Comm::table_iterator_last%(it: opaque of Comm::TableIterator%): bool
+function BrokerComm::table_iterator_last%(it: opaque of BrokerComm::TableIterator%): bool
 	%{
-	auto ti = static_cast<comm::TableIterator*>(it);
+	auto ti = static_cast<bro_broker::TableIterator*>(it);
 	return new Val(ti->it == ti->dat.end(), TYPE_BOOL);
 	%}
 
@@ -483,9 +483,9 @@ function Comm::table_iterator_last%(it: opaque of Comm::TableIterator%): bool
 ## Returns: true if the iterator, after advancing, still references an element
 ##          in the collection.  False if the iterator, after advancing, is
 ##          one-past-the-final-element.
-function Comm::table_iterator_next%(it: opaque of Comm::TableIterator%): bool
+function BrokerComm::table_iterator_next%(it: opaque of BrokerComm::TableIterator%): bool
 	%{
-	auto ti = static_cast<comm::TableIterator*>(it);
+	auto ti = static_cast<bro_broker::TableIterator*>(it);
 
 	if ( ti->it == ti->dat.end() )
 		return new Val(false, TYPE_BOOL);
@@ -499,12 +499,12 @@ function Comm::table_iterator_next%(it: opaque of Comm::TableIterator%): bool
 ## it: an iterator.
 ##
 ## Returns: element in the collection that the iterator currently references.
-function Comm::table_iterator_value%(it: opaque of Comm::TableIterator%): Comm::TableItem
+function BrokerComm::table_iterator_value%(it: opaque of BrokerComm::TableIterator%): BrokerComm::TableItem
 	%{
-	auto ti = static_cast<comm::TableIterator*>(it);
-	auto rval = new RecordVal(BifType::Record::Comm::TableItem);
-	auto key_val = new RecordVal(BifType::Record::Comm::Data);
-	auto val_val = new RecordVal(BifType::Record::Comm::Data);
+	auto ti = static_cast<bro_broker::TableIterator*>(it);
+	auto rval = new RecordVal(BifType::Record::BrokerComm::TableItem);
+	auto key_val = new RecordVal(BifType::Record::BrokerComm::Data);
+	auto val_val = new RecordVal(BifType::Record::BrokerComm::Data);
 	rval->Assign(0, key_val);
 	rval->Assign(1, val_val);
 
@@ -516,15 +516,15 @@ function Comm::table_iterator_value%(it: opaque of Comm::TableIterator%): Comm::
 		return rval;
 		}
 
-	key_val->Assign(0, new comm::DataVal(ti->it->first));
-	val_val->Assign(0, new comm::DataVal(ti->it->second));
+	key_val->Assign(0, new bro_broker::DataVal(ti->it->first));
+	val_val->Assign(0, new bro_broker::DataVal(ti->it->second));
 	return rval;
 	%}
 
 ## Create communication data of type "vector".
-function Comm::vector_create%(%): Comm::Data
+function BrokerComm::vector_create%(%): BrokerComm::Data
 	%{
-	return comm::make_data_val(broker::vector());
+	return bro_broker::make_data_val(broker::vector());
 	%}
 
 ## Remove all elements within a vector.
@@ -532,9 +532,9 @@ function Comm::vector_create%(%): Comm::Data
 ## v: the vector to clear.
 ##
 ## Returns: always true.
-function Comm::vector_clear%(v: Comm::Data%): bool
+function BrokerComm::vector_clear%(v: BrokerComm::Data%): bool
 	%{
-	auto& vec = comm::require_data_type<broker::vector>(v->AsRecordVal(),
+	auto& vec = bro_broker::require_data_type<broker::vector>(v->AsRecordVal(),
 													    TYPE_VECTOR, frame);
 	vec.clear();
 	return new Val(true, TYPE_BOOL);
@@ -545,9 +545,9 @@ function Comm::vector_clear%(v: Comm::Data%): bool
 ## v: the vector to query.
 ##
 ## Returns: the number of elements in the vector.
-function Comm::vector_size%(v: Comm::Data%): count
+function BrokerComm::vector_size%(v: BrokerComm::Data%): count
 	%{
-	auto& vec = comm::require_data_type<broker::vector>(v->AsRecordVal(),
+	auto& vec = bro_broker::require_data_type<broker::vector>(v->AsRecordVal(),
 													    TYPE_VECTOR, frame);
 	return new Val(static_cast<uint64_t>(vec.size()), TYPE_COUNT);
 	%}
@@ -563,11 +563,11 @@ function Comm::vector_size%(v: Comm::Data%): count
 ##      current size of the vector, the element is inserted at the end.
 ##
 ## Returns: always true.
-function Comm::vector_insert%(v: Comm::Data, d: Comm::Data, idx: count%): bool
+function BrokerComm::vector_insert%(v: BrokerComm::Data, d: BrokerComm::Data, idx: count%): bool
 	%{
-	auto& vec = comm::require_data_type<broker::vector>(v->AsRecordVal(),
+	auto& vec = bro_broker::require_data_type<broker::vector>(v->AsRecordVal(),
 													    TYPE_VECTOR, frame);
-	auto& item = comm::opaque_field_to_data(d->AsRecordVal(), frame);
+	auto& item = bro_broker::opaque_field_to_data(d->AsRecordVal(), frame);
 	idx = min(idx, static_cast<uint64_t>(vec.size()));
 	vec.insert(vec.begin() + idx, item);
 	return new Val(true, TYPE_BOOL);
@@ -583,16 +583,16 @@ function Comm::vector_insert%(v: Comm::Data, d: Comm::Data, idx: count%): bool
 ##
 ## Returns: the value that was just evicted.  If the index was larger than any
 ##          valid index, the optional field of the returned record is not set.
-function Comm::vector_replace%(v: Comm::Data, d: Comm::Data, idx: count%): Comm::Data
+function BrokerComm::vector_replace%(v: BrokerComm::Data, d: BrokerComm::Data, idx: count%): BrokerComm::Data
 	%{
-	auto& vec = comm::require_data_type<broker::vector>(v->AsRecordVal(),
+	auto& vec = bro_broker::require_data_type<broker::vector>(v->AsRecordVal(),
 													    TYPE_VECTOR, frame);
-	auto& item = comm::opaque_field_to_data(d->AsRecordVal(), frame);
+	auto& item = bro_broker::opaque_field_to_data(d->AsRecordVal(), frame);
 
 	if ( idx >= vec.size() )
-		return new RecordVal(BifType::Record::Comm::Data);
+		return new RecordVal(BifType::Record::BrokerComm::Data);
 
-	auto rval = comm::make_data_val(move(vec[idx]));
+	auto rval = bro_broker::make_data_val(move(vec[idx]));
 	vec[idx] = item;
 	return rval;
 	%}
@@ -605,15 +605,15 @@ function Comm::vector_replace%(v: Comm::Data, d: Comm::Data, idx: count%): Comm:
 ##
 ## Returns: the value that was just evicted.  If the index was larger than any
 ##          valid index, the optional field of the returned record is not set.
-function Comm::vector_remove%(v: Comm::Data, idx: count%): Comm::Data
+function BrokerComm::vector_remove%(v: BrokerComm::Data, idx: count%): BrokerComm::Data
 	%{
-	auto& vec = comm::require_data_type<broker::vector>(v->AsRecordVal(),
+	auto& vec = bro_broker::require_data_type<broker::vector>(v->AsRecordVal(),
 													    TYPE_VECTOR, frame);
 
 	if ( idx >= vec.size() )
-		return new RecordVal(BifType::Record::Comm::Data);
+		return new RecordVal(BifType::Record::BrokerComm::Data);
 
-	auto rval = comm::make_data_val(move(vec[idx]));
+	auto rval = bro_broker::make_data_val(move(vec[idx]));
 	vec.erase(vec.begin() + idx);
 	return rval;
 	%}
@@ -626,15 +626,15 @@ function Comm::vector_remove%(v: Comm::Data, idx: count%): Comm::Data
 ##
 ## Returns: the value at the index.  If the index was larger than any
 ##          valid index, the optional field of the returned record is not set.
-function Comm::vector_lookup%(v: Comm::Data, idx: count%): Comm::Data
+function BrokerComm::vector_lookup%(v: BrokerComm::Data, idx: count%): BrokerComm::Data
 	%{
-	auto& vec = comm::require_data_type<broker::vector>(v->AsRecordVal(),
+	auto& vec = bro_broker::require_data_type<broker::vector>(v->AsRecordVal(),
 													    TYPE_VECTOR, frame);
 
 	if ( idx >= vec.size() )
-		return new RecordVal(BifType::Record::Comm::Data);
+		return new RecordVal(BifType::Record::BrokerComm::Data);
 
-	return comm::make_data_val(vec[idx]);
+	return bro_broker::make_data_val(vec[idx]);
 	%}
 
 ## Create an iterator for a vector.  Note that this makes a copy of the vector
@@ -643,9 +643,9 @@ function Comm::vector_lookup%(v: Comm::Data, idx: count%): Comm::Data
 ## v: the vector to iterate over.
 ##
 ## Returns: an iterator.
-function Comm::vector_iterator%(v: Comm::Data%): opaque of Comm::VectorIterator
+function BrokerComm::vector_iterator%(v: BrokerComm::Data%): opaque of BrokerComm::VectorIterator
 	%{
-	return new comm::VectorIterator(v->AsRecordVal(), TYPE_VECTOR, frame);
+	return new bro_broker::VectorIterator(v->AsRecordVal(), TYPE_VECTOR, frame);
 	%}
 
 ## Check if there are no more elements to iterate over.
@@ -654,9 +654,9 @@ function Comm::vector_iterator%(v: Comm::Data%): opaque of Comm::VectorIterator
 ##
 ## Returns: true if there are no more elements to iterator over, i.e.
 ##          the iterator is one-past-the-final-element.
-function Comm::vector_iterator_last%(it: opaque of Comm::VectorIterator%): bool
+function BrokerComm::vector_iterator_last%(it: opaque of BrokerComm::VectorIterator%): bool
 	%{
-	auto vi = static_cast<comm::VectorIterator*>(it);
+	auto vi = static_cast<bro_broker::VectorIterator*>(it);
 	return new Val(vi->it == vi->dat.end(), TYPE_BOOL);
 	%}
 
@@ -667,9 +667,9 @@ function Comm::vector_iterator_last%(it: opaque of Comm::VectorIterator%): bool
 ## Returns: true if the iterator, after advancing, still references an element
 ##          in the collection.  False if the iterator, after advancing, is
 ##          one-past-the-final-element.
-function Comm::vector_iterator_next%(it: opaque of Comm::VectorIterator%): bool
+function BrokerComm::vector_iterator_next%(it: opaque of BrokerComm::VectorIterator%): bool
 	%{
-	auto vi = static_cast<comm::VectorIterator*>(it);
+	auto vi = static_cast<bro_broker::VectorIterator*>(it);
 
 	if ( vi->it == vi->dat.end() )
 		return new Val(false, TYPE_BOOL);
@@ -683,10 +683,10 @@ function Comm::vector_iterator_next%(it: opaque of Comm::VectorIterator%): bool
 ## it: an iterator.
 ##
 ## Returns: element in the collection that the iterator currently references.
-function Comm::vector_iterator_value%(it: opaque of Comm::VectorIterator%): Comm::Data
+function BrokerComm::vector_iterator_value%(it: opaque of BrokerComm::VectorIterator%): BrokerComm::Data
 	%{
-	auto vi = static_cast<comm::VectorIterator*>(it);
-	auto rval = new RecordVal(BifType::Record::Comm::Data);
+	auto vi = static_cast<bro_broker::VectorIterator*>(it);
+	auto rval = new RecordVal(BifType::Record::BrokerComm::Data);
 
 	if ( vi->it == vi->dat.end() )
 		{
@@ -696,7 +696,7 @@ function Comm::vector_iterator_value%(it: opaque of Comm::VectorIterator%): Comm
 		return rval;
 		}
 
-	rval->Assign(0, new comm::DataVal(*vi->it));
+	rval->Assign(0, new bro_broker::DataVal(*vi->it));
 	return rval;
 	%}
 
@@ -705,9 +705,9 @@ function Comm::vector_iterator_value%(it: opaque of Comm::VectorIterator%): Comm
 ## sz: the number of fields in the record.
 ##
 ## Returns: record data, with all fields uninitialized.
-function Comm::record_create%(sz: count%): Comm::Data
+function BrokerComm::record_create%(sz: count%): BrokerComm::Data
 	%{
-	return comm::make_data_val(broker::record(std::vector<broker::record::field>(sz)));
+	return bro_broker::make_data_val(broker::record(std::vector<broker::record::field>(sz)));
 	%}
 
 ## Get the number of fields within a record.
@@ -715,9 +715,9 @@ function Comm::record_create%(sz: count%): Comm::Data
 ## r: the record to query.
 ##
 ## Returns: the number of fields in the record.
-function Comm::record_size%(r: Comm::Data%): count
+function BrokerComm::record_size%(r: BrokerComm::Data%): count
 	%{
-	auto& v = comm::require_data_type<broker::record>(r->AsRecordVal(),
+	auto& v = bro_broker::require_data_type<broker::record>(r->AsRecordVal(),
 													  TYPE_RECORD, frame);
 	return new Val(static_cast<uint64_t>(v.fields.size()), TYPE_COUNT);
 	%}
@@ -731,11 +731,11 @@ function Comm::record_size%(r: Comm::Data%): count
 ## idx: the index to replace.
 ##
 ## Returns: false if the index was larger than any valid index, else true.
-function Comm::record_assign%(r: Comm::Data, d: Comm::Data, idx: count%): bool
+function BrokerComm::record_assign%(r: BrokerComm::Data, d: BrokerComm::Data, idx: count%): bool
 	%{
-	auto& v = comm::require_data_type<broker::record>(r->AsRecordVal(),
+	auto& v = bro_broker::require_data_type<broker::record>(r->AsRecordVal(),
 													  TYPE_RECORD, frame);
-	auto& item = comm::opaque_field_to_data(d->AsRecordVal(), frame);
+	auto& item = bro_broker::opaque_field_to_data(d->AsRecordVal(), frame);
 
 	if ( idx >= v.fields.size() )
 		return new Val(false, TYPE_BOOL);
@@ -753,18 +753,18 @@ function Comm::record_assign%(r: Comm::Data, d: Comm::Data, idx: count%): bool
 ## Returns: the value at the index.  The optional field of the returned record
 ##          may not be set if the field of the record has no value or if the
 ##          the index was not valid.
-function Comm::record_lookup%(r: Comm::Data, idx: count%): Comm::Data
+function BrokerComm::record_lookup%(r: BrokerComm::Data, idx: count%): BrokerComm::Data
 	%{
-	auto& v = comm::require_data_type<broker::record>(r->AsRecordVal(),
+	auto& v = bro_broker::require_data_type<broker::record>(r->AsRecordVal(),
 													  TYPE_RECORD, frame);
 
 	if ( idx >= v.size() )
-		return new RecordVal(BifType::Record::Comm::Data);
+		return new RecordVal(BifType::Record::BrokerComm::Data);
 
 	if ( ! v.fields[idx] )
-		return new RecordVal(BifType::Record::Comm::Data);
+		return new RecordVal(BifType::Record::BrokerComm::Data);
 
-	return comm::make_data_val(*v.fields[idx]);
+	return bro_broker::make_data_val(*v.fields[idx]);
 	%}
 
 ## Create an iterator for a record.  Note that this makes a copy of the record
@@ -773,9 +773,9 @@ function Comm::record_lookup%(r: Comm::Data, idx: count%): Comm::Data
 ## r: the record to iterate over.
 ##
 ## Returns: an iterator.
-function Comm::record_iterator%(r: Comm::Data%): opaque of Comm::RecordIterator
+function BrokerComm::record_iterator%(r: BrokerComm::Data%): opaque of BrokerComm::RecordIterator
 	%{
-	return new comm::RecordIterator(r->AsRecordVal(), TYPE_RECORD, frame);
+	return new bro_broker::RecordIterator(r->AsRecordVal(), TYPE_RECORD, frame);
 	%}
 
 ## Check if there are no more elements to iterate over.
@@ -784,9 +784,9 @@ function Comm::record_iterator%(r: Comm::Data%): opaque of Comm::RecordIterator
 ##
 ## Returns: true if there are no more elements to iterator over, i.e.
 ##          the iterator is one-past-the-final-element.
-function Comm::record_iterator_last%(it: opaque of Comm::RecordIterator%): bool
+function BrokerComm::record_iterator_last%(it: opaque of BrokerComm::RecordIterator%): bool
 	%{
-	auto ri = static_cast<comm::RecordIterator*>(it);
+	auto ri = static_cast<bro_broker::RecordIterator*>(it);
 	return new Val(ri->it == ri->dat.fields.end(), TYPE_BOOL);
 	%}
 
@@ -797,9 +797,9 @@ function Comm::record_iterator_last%(it: opaque of Comm::RecordIterator%): bool
 ## Returns: true if the iterator, after advancing, still references an element
 ##          in the collection.  False if the iterator, after advancing, is
 ##          one-past-the-final-element.
-function Comm::record_iterator_next%(it: opaque of Comm::RecordIterator%): bool
+function BrokerComm::record_iterator_next%(it: opaque of BrokerComm::RecordIterator%): bool
 	%{
-	auto ri = static_cast<comm::RecordIterator*>(it);
+	auto ri = static_cast<bro_broker::RecordIterator*>(it);
 
 	if ( ri->it == ri->dat.fields.end() )
 		return new Val(false, TYPE_BOOL);
@@ -813,10 +813,10 @@ function Comm::record_iterator_next%(it: opaque of Comm::RecordIterator%): bool
 ## it: an iterator.
 ##
 ## Returns: element in the collection that the iterator currently references.
-function Comm::record_iterator_value%(it: opaque of Comm::RecordIterator%): Comm::Data
+function BrokerComm::record_iterator_value%(it: opaque of BrokerComm::RecordIterator%): BrokerComm::Data
 	%{
-	auto ri = static_cast<comm::RecordIterator*>(it);
-	auto rval = new RecordVal(BifType::Record::Comm::Data);
+	auto ri = static_cast<bro_broker::RecordIterator*>(it);
+	auto rval = new RecordVal(BifType::Record::BrokerComm::Data);
 
 	if ( ri->it == ri->dat.fields.end() )
 		{
@@ -829,6 +829,6 @@ function Comm::record_iterator_value%(it: opaque of Comm::RecordIterator%): Comm
 	if ( ! *ri->it )
 		return rval; // field isn't set
 
-	rval->Assign(0, new comm::DataVal(**ri->it));
+	rval->Assign(0, new bro_broker::DataVal(**ri->it));
 	return rval;
 	%}

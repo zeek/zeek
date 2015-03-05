@@ -96,7 +96,7 @@ file_analysis::Manager* file_mgr = 0;
 broxygen::Manager* broxygen_mgr = 0;
 iosource::Manager* iosource_mgr = 0;
 #ifdef ENABLE_BROKER
-comm::Manager* comm_mgr = 0;
+bro_broker::Manager* broker_mgr = 0;
 #endif
 
 const char* prog;
@@ -860,7 +860,7 @@ int main(int argc, char** argv)
 	file_mgr = new file_analysis::Manager();
 
 #ifdef ENABLE_BROKER
-	comm_mgr = new comm::Manager();
+	broker_mgr = new bro_broker::Manager();
 #endif
 
 	plugin_mgr->InitPreScript();

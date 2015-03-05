@@ -10,16 +10,16 @@
 #include <rocksdb/db.h>
 #endif
 
-OpaqueType* comm::opaque_of_store_handle;
+OpaqueType* bro_broker::opaque_of_store_handle;
 
-comm::StoreHandleVal::StoreHandleVal(broker::store::identifier id,
-                                     comm::StoreType arg_type,
-                                     broker::util::optional<BifEnum::Store::BackendType> arg_back,
+bro_broker::StoreHandleVal::StoreHandleVal(broker::store::identifier id,
+                                     bro_broker::StoreType arg_type,
+                                     broker::util::optional<BifEnum::BrokerStore::BackendType> arg_back,
                                      RecordVal* backend_options, std::chrono::duration<double> resync)
 	: OpaqueVal(opaque_of_store_handle),
 	  store(), store_type(arg_type), backend_type(arg_back)
 	{
-	using BifEnum::Store::BackendType;
+	using BifEnum::BrokerStore::BackendType;
 	std::unique_ptr<broker::store::backend> backend;
 
 	if ( backend_type )
@@ -73,14 +73,14 @@ comm::StoreHandleVal::StoreHandleVal(broker::store::identifier id,
 
 	switch ( store_type ) {
 	case StoreType::FRONTEND:
-		store = new broker::store::frontend(comm_mgr->Endpoint(), move(id));
+		store = new broker::store::frontend(broker_mgr->Endpoint(), move(id));
 		break;
 	case StoreType::MASTER:
-		store = new broker::store::master(comm_mgr->Endpoint(), move(id),
+		store = new broker::store::master(broker_mgr->Endpoint(), move(id),
 		                                  move(backend));
 		break;
 	case StoreType::CLONE:
-		store = new broker::store::clone(comm_mgr->Endpoint(), move(id), resync,
+		store = new broker::store::clone(broker_mgr->Endpoint(), move(id), resync,
 		                                 move(backend));
 		break;
 	default:
@@ -89,9 +89,9 @@ comm::StoreHandleVal::StoreHandleVal(broker::store::identifier id,
 		}
 	}
 
-void comm::StoreHandleVal::ValDescribe(ODesc* d) const
+void bro_broker::StoreHandleVal::ValDescribe(ODesc* d) const
 	{
-	using BifEnum::Store::BackendType;
+	using BifEnum::BrokerStore::BackendType;
 	d->Add("broker::store::");
 
 	switch ( store_type ) {
@@ -133,9 +133,9 @@ void comm::StoreHandleVal::ValDescribe(ODesc* d) const
 	d->Add("}");
 	}
 
-IMPLEMENT_SERIAL(comm::StoreHandleVal, SER_COMM_STORE_HANDLE_VAL);
+IMPLEMENT_SERIAL(bro_broker::StoreHandleVal, SER_COMM_STORE_HANDLE_VAL);
 
-bool comm::StoreHandleVal::DoSerialize(SerialInfo* info) const
+bool bro_broker::StoreHandleVal::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_COMM_STORE_HANDLE_VAL, OpaqueVal);
 
@@ -156,7 +156,7 @@ bool comm::StoreHandleVal::DoSerialize(SerialInfo* info) const
 	return true;
 	}
 
-bool comm::StoreHandleVal::DoUnserialize(UnserialInfo* info)
+bool bro_broker::StoreHandleVal::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(OpaqueVal);
 
@@ -185,7 +185,7 @@ bool comm::StoreHandleVal::DoUnserialize(UnserialInfo* info)
 	broker::store::identifier id(id_str, len);
 	delete [] id_str;
 
-	auto handle = comm_mgr->LookupStore(id, static_cast<comm::StoreType>(type));
+	auto handle = broker_mgr->LookupStore(id, static_cast<bro_broker::StoreType>(type));
 
 	if ( ! handle )
 		{

@@ -20,20 +20,20 @@ Connecting to Peers
 ===================
 
 Communication via Broker must first be turned on via
-:bro:see:`Comm::enable`.
+:bro:see:`BrokerComm::enable`.
 
-Bro can accept incoming connections by calling :bro:see:`Comm::listen`
+Bro can accept incoming connections by calling :bro:see:`BrokerComm::listen`
 and then monitor connection status updates via
-:bro:see:`Comm::incoming_connection_established` and
-:bro:see:`Comm::incoming_connection_broken`.
+:bro:see:`BrokerComm::incoming_connection_established` and
+:bro:see:`BrokerComm::incoming_connection_broken`.
 
 .. btest-include:: ${DOC_ROOT}/frameworks/comm/connecting-listener.bro
 
-Bro can initiate outgoing connections by calling :bro:see:`Comm::connect`
+Bro can initiate outgoing connections by calling :bro:see:`BrokerComm::connect`
 and then monitor connection status updates via
-:bro:see:`Comm::outgoing_connection_established`,
-:bro:see:`Comm::outgoing_connection_broken`, and
-:bro:see:`Comm::outgoing_connection_incompatible`.
+:bro:see:`BrokerComm::outgoing_connection_established`,
+:bro:see:`BrokerComm::outgoing_connection_broken`, and
+:bro:see:`BrokerComm::outgoing_connection_incompatible`.
 
 .. btest-include:: ${DOC_ROOT}/frameworks/comm/connecting-connector.bro
 
@@ -41,14 +41,14 @@ Remote Printing
 ===============
 
 To receive remote print messages, first use
-:bro:see:`Comm::subscribe_to_prints` to advertise to peers a topic
+:bro:see:`BrokerComm::subscribe_to_prints` to advertise to peers a topic
 prefix of interest and then create an event handler for
-:bro:see:`Comm::print_handler` to handle any print messages that are
+:bro:see:`BrokerComm::print_handler` to handle any print messages that are
 received.
 
 .. btest-include:: ${DOC_ROOT}/frameworks/comm/printing-listener.bro
 
-To send remote print messages, just call :bro:see:`Comm::print`.
+To send remote print messages, just call :bro:see:`BrokerComm::print`.
 
 .. btest-include:: ${DOC_ROOT}/frameworks/comm/printing-connector.bro
 
@@ -72,14 +72,14 @@ Remote Events
 =============
 
 Receiving remote events is similar to remote prints.  Just use
-:bro:see:`Comm::subscribe_to_events` and possibly define any new events
+:bro:see:`BrokerComm::subscribe_to_events` and possibly define any new events
 along with handlers that peers may want to send.
 
 .. btest-include:: ${DOC_ROOT}/frameworks/comm/events-listener.bro
 
 To send events, there are two choices.  The first is to use call
-:bro:see:`Comm::event` directly.  The second option is to use
-:bro:see:`Comm::auto_event` to make it so a particular event is
+:bro:see:`BrokerComm::event` directly.  The second option is to use
+:bro:see:`BrokerComm::auto_event` to make it so a particular event is
 automatically sent to peers whenever it is called locally via the normal
 event invocation syntax.
 
@@ -107,14 +107,14 @@ Remote Logging
 
 .. btest-include:: ${DOC_ROOT}/frameworks/comm/testlog.bro
 
-Use :bro:see:`Comm::subscribe_to_logs` to advertise interest in logs
+Use :bro:see:`BrokerComm::subscribe_to_logs` to advertise interest in logs
 written by peers.  The topic names that Bro uses are implicitly of the
 form "bro/log/<stream-name>".
 
 .. btest-include:: ${DOC_ROOT}/frameworks/comm/logs-listener.bro
 
 To send remote logs either use :bro:see:`Log::enable_remote_logging` or
-:bro:see:`Comm::enable_remote_logs`.  The former allows any log stream
+:bro:see:`BrokerComm::enable_remote_logs`.  The former allows any log stream
 to be sent to peers while the later toggles remote logging for
 particular streams.
 
@@ -140,23 +140,23 @@ Tuning Access Control
 By default, endpoints do not restrict the message topics that it sends
 to peers and do not restrict what message topics and data store
 identifiers get advertised to peers.  These are the default
-:bro:see:`Comm::EndpointFlags` supplied to :bro:see:`Comm::enable`.
+:bro:see:`BrokerComm::EndpointFlags` supplied to :bro:see:`BrokerComm::enable`.
 
 If not using the ``auto_publish`` flag, one can use the
-:bro:see:`Comm::publish_topic` and :bro:see:`Comm::unpublish_topic`
+:bro:see:`BrokerComm::publish_topic` and :bro:see:`BrokerComm::unpublish_topic`
 functions to manipulate the set of message topics (must match exactly)
 that are allowed to be sent to peer endpoints.  These settings take
 precedence over the per-message ``peers`` flag supplied to functions
-that take a :bro:see:`Comm::SendFlags` such as :bro:see:`Comm::print`,
-:bro:see:`Comm::event`, :bro:see:`Comm::auto_event` or
-:bro:see:`Comm::enable_remote_logs`.
+that take a :bro:see:`BrokerComm::SendFlags` such as :bro:see:`BrokerComm::print`,
+:bro:see:`BrokerComm::event`, :bro:see:`BrokerComm::auto_event` or
+:bro:see:`BrokerComm::enable_remote_logs`.
 
 If not using the ``auto_advertise`` flag, one can use the
-:bro:see:`Comm::advertise_topic` and :bro:see:`Comm::unadvertise_topic`
+:bro:see:`BrokerComm::advertise_topic` and :bro:see:`BrokerComm::unadvertise_topic`
 to manupulate the set of topic prefixes that are allowed to be
 advertised to peers.  If an endpoint does not advertise a topic prefix,
 the only way a peers can send messages to it is via the ``unsolicited``
-flag of :bro:see:`Comm::SendFlags`  and choosing a topic with a matching
+flag of :bro:see:`BrokerComm::SendFlags`  and choosing a topic with a matching
 prefix (i.e. full topic may be longer than receivers prefix, just the
 prefix needs to match).
 
@@ -194,8 +194,8 @@ last modification time.
 .. btest-include:: ${DOC_ROOT}/frameworks/comm/stores-connector.bro
 
 In the above example, if a local copy of the store contents isn't
-needed, just replace the :bro:see:`Store::create_clone` call with
-:bro:see:`Store::create_frontend`.  Queries will then be made against
+needed, just replace the :bro:see:`BrokerStore::create_clone` call with
+:bro:see:`BrokerStore::create_frontend`.  Queries will then be made against
 the remote master store instead of the local clone.
 
 Note that all queries are made within Bro's asynchrounous ``when``

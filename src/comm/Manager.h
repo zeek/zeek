@@ -12,11 +12,11 @@
 #include "iosource/IOSource.h"
 #include "Val.h"
 
-namespace comm {
+namespace bro_broker {
 
 /**
  * Communication statistics.  Some are tracked in relation to last
- * sample (comm::Manager::ConsumeStatistics()).
+ * sample (bro_broker::Manager::ConsumeStatistics()).
  */
 struct Stats {
 	// Number of outgoing peer connections (at time of sample).
@@ -58,20 +58,20 @@ public:
 	/**
 	 * Enable use of communication.
 	 * @param flags used to tune the local Broker endpoint's behavior.
-	 * See the Comm::EndpointFlags record type.
+	 * See the BrokerComm::EndpointFlags record type.
 	 * @return true if communication is successfully initialized.
 	 */
 	bool Enable(Val* flags);
 
 	/**
-	 * Changes endpoint flags originally supplied to comm::Manager::Enable().
+	 * Changes endpoint flags originally supplied to bro_broker::Manager::Enable().
 	 * @param flags the new behavior flags to use.
 	 * @return true if flags were changed.
 	 */
 	bool SetEndpointFlags(Val* flags);
 
 	/**
-	 * @return true if comm::Manager::Enable() has previously been called and
+	 * @return true if bro_broker::Manager::Enable() has previously been called and
 	 * it succeeded.
 	 */
 	bool Enabled()
@@ -103,10 +103,10 @@ public:
 
 	/**
 	 * Remove a remote connection.
-	 * @param addr the address used in comm::Manager::Connect().
-	 * @param port the port used in comm::Manager::Connect().
+	 * @param addr the address used in bro_broker::Manager::Connect().
+	 * @param port the port used in bro_broker::Manager::Connect().
 	 * @return true if the arguments match a previously successful call to
-	 * comm::Manager::Connect().
+	 * bro_broker::Manager::Connect().
 	 */
 	bool Disconnect(const std::string& addr, uint16_t port);
 
@@ -117,7 +117,7 @@ public:
 	 * of this topic name.
 	 * @param msg the string to send to peers.
 	 * @param flags tune the behavior of how the message is send.
-	 * See the Comm::SendFlags record type.
+	 * See the BrokerComm::SendFlags record type.
 	 * @return true if the message is sent successfully.
 	 */
 	bool Print(std::string topic, std::string msg, Val* flags);
@@ -130,7 +130,7 @@ public:
 	 * @param msg the event to send to peers, which is the name of the event
 	 * as a string followed by all of its arguments.
 	 * @param flags tune the behavior of how the message is send.
-	 * See the Comm::SendFlags record type.
+	 * See the BrokerComm::SendFlags record type.
 	 * @return true if the message is sent successfully.
 	 */
 	bool Event(std::string topic, broker::message msg, int flags);
@@ -141,9 +141,9 @@ public:
 	 * Peers advertise interest by registering a subscription to some prefix
 	 * of this topic name.
 	 * @param args the event and its arguments to send to peers.  See the
-	 * Comm::EventArgs record type.
+	 * BrokerComm::EventArgs record type.
 	 * @param flags tune the behavior of how the message is send.
-	 * See the Comm::SendFlags record type.
+	 * See the BrokerComm::SendFlags record type.
 	 * @return true if the message is sent successfully.
 	 */
 	bool Event(std::string topic, RecordVal* args, Val* flags);
@@ -155,7 +155,7 @@ public:
 	 * @param columns the data which comprises the log entry.
 	 * @param info the record type corresponding to the log's columns.
 	 * @param flags tune the behavior of how the message is send.
-	 * See the Comm::SendFlags record type.
+	 * See the BrokerComm::SendFlags record type.
 	 * @return true if the message is sent successfully.
 	 */
 	bool Log(EnumVal* stream_id, RecordVal* columns, RecordType* info,
@@ -169,15 +169,15 @@ public:
 	 * of this topic name.
 	 * @param event a Bro event value.
 	 * @param flags tune the behavior of how the message is send.
-	 * See the Comm::SendFlags record type.
+	 * See the BrokerComm::SendFlags record type.
 	 * @return true if automatic event sending is now enabled.
 	 */
 	bool AutoEvent(std::string topic, Val* event, Val* flags);
 
 	/**
 	 * Stop automatically sending an event to peers upon local dispatch.
-	 * @param topic a topic originally given to comm::Manager::AutoEvent().
-	 * @param event an event originally given to comm::Manager::AutoEvent().
+	 * @param topic a topic originally given to bro_broker::Manager::AutoEvent().
+	 * @param event an event originally given to bro_broker::Manager::AutoEvent().
 	 * @return true if automatic events will no occur for the topic/event pair.
 	 */
 	bool AutoEventStop(const std::string& topic, Val* event);
@@ -203,7 +203,7 @@ public:
 	/**
 	 * Unregister interest in peer print messages.
 	 * @param topic_prefix a prefix previously supplied to a successful call
-	 * to comm::Manager::SubscribeToPrints().
+	 * to bro_broker::Manager::SubscribeToPrints().
 	 * @return true if interest in topic prefix is no longer advertised.
 	 */
 	bool UnsubscribeToPrints(const std::string& topic_prefix);
@@ -220,7 +220,7 @@ public:
 	/**
 	 * Unregister interest in peer event messages.
 	 * @param topic_prefix a prefix previously supplied to a successful call
-	 * to comm::Manager::SubscribeToEvents().
+	 * to bro_broker::Manager::SubscribeToEvents().
 	 * @return true if interest in topic prefix is no longer advertised.
 	 */
 	bool UnsubscribeToEvents(const std::string& topic_prefix);
@@ -237,7 +237,7 @@ public:
 	/**
 	 * Unregister interest in peer log messages.
 	 * @param topic_prefix a prefix previously supplied to a successful call
-	 * to comm::Manager::SubscribeToLogs().
+	 * to bro_broker::Manager::SubscribeToLogs().
 	 * @return true if interest in topic prefix is no longer advertised.
 	 */
 	bool UnsubscribeToLogs(const std::string& topic_prefix);
@@ -245,7 +245,7 @@ public:
 	/**
 	 * Allow sending messages to peers if associated with the given topic.
 	 * This has no effect if auto publication behavior is enabled via the flags
-	 * supplied to comm::Manager::Enable() or comm::Manager::SetEndpointFlags().
+	 * supplied to bro_broker::Manager::Enable() or bro_broker::Manager::SetEndpointFlags().
 	 * @param t a topic to allow messages to be published under.
 	 * @return true if successful.
 	 */
@@ -254,7 +254,7 @@ public:
 	/**
 	 * Disallow sending messages to peers if associated with the given topic.
 	 * This has no effect if auto publication behavior is enabled via the flags
-	 * supplied to comm::Manager::Enable() or comm::Manager::SetEndpointFlags().
+	 * supplied to bro_broker::Manager::Enable() or bro_broker::Manager::SetEndpointFlags().
 	 * @param t a topic to disallow messages to be published under.
 	 * @return true if successful.
 	 */
@@ -263,7 +263,7 @@ public:
 	/**
 	 * Allow advertising interest in the given topic to peers.
 	 * This has no effect if auto advertise behavior is enabled via the flags
-	 * supplied to comm::Manager::Enable() or comm::Manager::SetEndpointFlags().
+	 * supplied to bro_broker::Manager::Enable() or bro_broker::Manager::SetEndpointFlags().
 	 * @param t a topic to allow advertising interest/subscription to peers.
 	 * @return true if successful.
 	 */
@@ -272,7 +272,7 @@ public:
 	/**
 	 * Disallow advertising interest in the given topic to peers.
 	 * This has no effect if auto advertise behavior is enabled via the flags
-	 * supplied to comm::Manager::Enable() or comm::Manager::SetEndpointFlags().
+	 * supplied to bro_broker::Manager::Enable() or bro_broker::Manager::SetEndpointFlags().
 	 * @param t a topic to disallow advertising interest/subscription to peers.
 	 * @return true if successful.
 	 */
@@ -315,7 +315,7 @@ public:
 	Stats ConsumeStatistics();
 
 	/**
-	 * Convert Comm::SendFlags to int flags for use with broker::send().
+	 * Convert BrokerComm::SendFlags to int flags for use with broker::send().
 	 */
 	static int send_flags_to_int(Val* flags);
 
@@ -330,7 +330,7 @@ private:
 	void Process() override;
 
 	const char* Tag() override
-		{ return "Comm::Manager"; }
+		{ return "BrokerComm::Manager"; }
 
 	broker::endpoint& Endpoint()
 		{ return *endpoint; }
@@ -359,8 +359,8 @@ private:
 	static int send_flags_unsolicited_idx;
 };
 
-} // namespace comm
+} // namespace bro_broker
 
-extern comm::Manager* comm_mgr;
+extern bro_broker::Manager* broker_mgr;
 
 #endif // BRO_COMM_MANAGER_H

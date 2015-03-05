@@ -227,7 +227,7 @@ void ProfileLogger::Log()
 		}
 
 #ifdef ENABLE_BROKER
-	auto cs = comm_mgr->ConsumeStatistics();
+	auto cs = broker_mgr->ConsumeStatistics();
 
 	file->Write(fmt("%0.6f Comm: peers=%zu stores=%zu "
 	                "store_queries=%zu store_responses=%zu "

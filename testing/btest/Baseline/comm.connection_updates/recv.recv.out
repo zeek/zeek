@@ -1,2 +1,2 @@
-Comm::incoming_connection_established, connector
-Comm::incoming_connection_broken, connector
+BrokerComm::incoming_connection_established, connector
+BrokerComm::incoming_connection_broken, connector

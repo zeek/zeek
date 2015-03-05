@@ -10,7 +10,7 @@
 
 #include <broker/store/frontend.hh>
 
-namespace comm {
+namespace bro_broker {
 
 extern OpaqueType* opaque_of_store_handle;
 
@@ -25,9 +25,9 @@ enum StoreType {
 };
 
 /**
- * Create a Store::QueryStatus value.
+ * Create a BrokerStore::QueryStatus value.
  * @param success whether the query status should be set to success or failure.
- * @return a Store::QueryStatus value.
+ * @return a BrokerStore::QueryStatus value.
  */
 inline EnumVal* query_status(bool success)
 	{
@@ -37,34 +37,34 @@ inline EnumVal* query_status(bool success)
 
 	if ( ! store_query_status )
 		{
-		store_query_status = internal_type("Store::QueryStatus")->AsEnumType();
-		success_val = store_query_status->Lookup("Store", "SUCCESS");
-		failure_val = store_query_status->Lookup("Store", "FAILURE");
+		store_query_status = internal_type("BrokerStore::QueryStatus")->AsEnumType();
+		success_val = store_query_status->Lookup("BrokerStore", "SUCCESS");
+		failure_val = store_query_status->Lookup("BrokerStore", "FAILURE");
 		}
 
 	return new EnumVal(success ? success_val : failure_val, store_query_status);
 	}
 
 /**
- * @return a Store::QueryResult value that has a Store::QueryStatus indicating
+ * @return a BrokerStore::QueryResult value that has a BrokerStore::QueryStatus indicating
  * a failure.
  */
 inline RecordVal* query_result()
 	{
-	auto rval = new RecordVal(BifType::Record::Store::QueryResult);
+	auto rval = new RecordVal(BifType::Record::BrokerStore::QueryResult);
 	rval->Assign(0, query_status(false));
-	rval->Assign(1, new RecordVal(BifType::Record::Comm::Data));
+	rval->Assign(1, new RecordVal(BifType::Record::BrokerComm::Data));
 	return rval;
 	}
 
 /**
  * @param data the result of the query.
- * @return a Store::QueryResult value that has a Store::QueryStatus indicating
+ * @return a BrokerStore::QueryResult value that has a BrokerStore::QueryStatus indicating
  * a success.
  */
 inline RecordVal* query_result(RecordVal* data)
 	{
-	auto rval = new RecordVal(BifType::Record::Store::QueryResult);
+	auto rval = new RecordVal(BifType::Record::BrokerStore::QueryResult);
 	rval->Assign(0, query_status(true));
 	rval->Assign(1, data);
 	return rval;
@@ -129,8 +129,8 @@ class StoreHandleVal : public OpaqueVal {
 public:
 
 	StoreHandleVal(broker::store::identifier id,
-		       comm::StoreType arg_type,
-		       broker::util::optional<BifEnum::Store::BackendType> arg_back,
+		       bro_broker::StoreType arg_type,
+		       broker::util::optional<BifEnum::BrokerStore::BackendType> arg_back,
 		       RecordVal* backend_options,
 		       std::chrono::duration<double> resync = std::chrono::seconds(1));
 
@@ -139,8 +139,8 @@ public:
 	DECLARE_SERIAL(StoreHandleVal);
 
 	broker::store::frontend* store;
-	comm::StoreType store_type;
-	broker::util::optional<BifEnum::Store::BackendType> backend_type;
+	bro_broker::StoreType store_type;
+	broker::util::optional<BifEnum::BrokerStore::BackendType> backend_type;
 
 protected:
 
@@ -148,6 +148,6 @@ protected:
 		{}
 };
 
-} // namespace comm
+} // namespace bro_broker
 
 #endif // BRO_COMM_STORE_H

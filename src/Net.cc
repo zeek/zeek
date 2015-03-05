@@ -322,7 +322,7 @@ void net_run()
 		bool communication_enabled = using_communication;
 
 #ifdef ENABLE_BROKER
-		communication_enabled |= comm_mgr->Enabled();
+		communication_enabled |= broker_mgr->Enabled();
 #endif
 
 		if ( src )

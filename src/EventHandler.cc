@@ -96,7 +96,7 @@ void EventHandler::Call(val_list* vl, bool no_remote)
 
 			for ( auto i = 0; i < vl->length(); ++i )
 				{
-				auto opt_data = comm::val_to_data((*vl)[i]);
+				auto opt_data = bro_broker::val_to_data((*vl)[i]);
 
 				if ( opt_data )
 					msg.emplace_back(move(*opt_data));
@@ -116,9 +116,9 @@ void EventHandler::Call(val_list* vl, bool no_remote)
 				      it != auto_remote_send.end(); ++it )
 					{
 					if ( std::next(it) == auto_remote_send.end() )
-						comm_mgr->Event(it->first, move(msg), it->second);
+						broker_mgr->Event(it->first, move(msg), it->second);
 					else
-						comm_mgr->Event(it->first, msg, it->second);
+						broker_mgr->Event(it->first, msg, it->second);
 					}
 				}
 			}

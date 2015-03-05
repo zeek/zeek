@@ -6,7 +6,7 @@
 
 redef exit_only_after_terminate = T;
 
-global h: opaque of Store::Handle;
+global h: opaque of BrokerStore::Handle;
 global lookup_count = 0;
 const lookup_expect_count = 5;
 global exists_count = 0;
@@ -20,13 +20,13 @@ global query_timeout = 5sec;
 
 event test_clear()
 	{
-	Store::clear(h);
+	BrokerStore::clear(h);
 	event test_size("after clear");
 	}
 
 event test_size(where: string)
 	{
-	when ( local res = Store::size(h) )
+	when ( local res = BrokerStore::size(h) )
 		{
 		if ( where == "" )
 			{
@@ -52,7 +52,7 @@ event test_size(where: string)
 
 event test_keys()
 	{
-	when ( local res = Store::keys(h) )
+	when ( local res = BrokerStore::keys(h) )
 		{
 		print fmt("keys: %s", res);
 		event test_size();
@@ -66,7 +66,7 @@ event test_keys()
 
 event test_pop(key: string)
 	{
-	when ( local lres = Store::pop_left(h, Comm::data(key)) )
+	when ( local lres = BrokerStore::pop_left(h, BrokerComm::data(key)) )
 		{
 		print fmt("pop_left(%s): %s", key, lres);
 		++pop_count;
@@ -83,7 +83,7 @@ event test_pop(key: string)
 			event test_keys();
 		}
 
-	when ( local rres = Store::pop_right(h, Comm::data(key)) )
+	when ( local rres = BrokerStore::pop_right(h, BrokerComm::data(key)) )
 		{
 		print fmt("pop_right(%s): %s", key, rres);
 		++pop_count;
@@ -103,7 +103,7 @@ event test_pop(key: string)
 
 function do_exists(key: string)
 	{
-	when ( local res = Store::exists(h, Comm::data(key)) )
+	when ( local res = BrokerStore::exists(h, BrokerComm::data(key)) )
 		{
 		print fmt("exists(%s): %s", key, res);
 		++exists_count;
@@ -123,7 +123,7 @@ function do_exists(key: string)
 
 event test_erase()
 	{
-	Store::erase(h, Comm::data("two"));
+	BrokerStore::erase(h, BrokerComm::data("two"));
 	do_exists("one");
 	do_exists("two");
 	do_exists("myset");
@@ -132,7 +132,7 @@ event test_erase()
 
 function do_lookup(key: string)
 	{
-	when ( local res = Store::lookup(h, Comm::data(key)) )
+	when ( local res = BrokerStore::lookup(h, BrokerComm::data(key)) )
 		{
 		print fmt("lookup(%s): %s", key, res);
 		++lookup_count;
@@ -150,29 +150,29 @@ function do_lookup(key: string)
 		}
 	}
 
-function dv(d: Comm::Data): Comm::DataVector
+function dv(d: BrokerComm::Data): BrokerComm::DataVector
 	{
-	local rval: Comm::DataVector;
+	local rval: BrokerComm::DataVector;
 	rval[0] = d;
 	return rval;
 	}
 
 event bro_init()
 	{
-	Comm::enable();
+	BrokerComm::enable();
 	local myset: set[string] = {"a", "b", "c"};
 	local myvec: vector of string = {"alpha", "beta", "gamma"};
-	h = Store::create_master("master");
-	Store::insert(h, Comm::data("one"), Comm::data(110));
-	Store::insert(h, Comm::data("two"), Comm::data(223));
-	Store::insert(h, Comm::data("myset"), Comm::data(myset));
-	Store::insert(h, Comm::data("myvec"), Comm::data(myvec));
-	Store::increment(h, Comm::data("one"));
-	Store::decrement(h, Comm::data("two"));
-	Store::add_to_set(h, Comm::data("myset"), Comm::data("d"));
-	Store::remove_from_set(h, Comm::data("myset"), Comm::data("b"));
-	Store::push_left(h, Comm::data("myvec"), dv(Comm::data("delta")));
-	Store::push_right(h, Comm::data("myvec"), dv(Comm::data("omega")));
+	h = BrokerStore::create_master("master");
+	BrokerStore::insert(h, BrokerComm::data("one"), BrokerComm::data(110));
+	BrokerStore::insert(h, BrokerComm::data("two"), BrokerComm::data(223));
+	BrokerStore::insert(h, BrokerComm::data("myset"), BrokerComm::data(myset));
+	BrokerStore::insert(h, BrokerComm::data("myvec"), BrokerComm::data(myvec));
+	BrokerStore::increment(h, BrokerComm::data("one"));
+	BrokerStore::decrement(h, BrokerComm::data("two"));
+	BrokerStore::add_to_set(h, BrokerComm::data("myset"), BrokerComm::data("d"));
+	BrokerStore::remove_from_set(h, BrokerComm::data("myset"), BrokerComm::data("b"));
+	BrokerStore::push_left(h, BrokerComm::data("myvec"), dv(BrokerComm::data("delta")));
+	BrokerStore::push_right(h, BrokerComm::data("myvec"), dv(BrokerComm::data("omega")));
 	do_lookup("one");
 	do_lookup("two");
 	do_lookup("myset");

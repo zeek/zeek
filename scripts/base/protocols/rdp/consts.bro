@@ -19,6 +19,27 @@ export {
 		[25282] = "RDP 8.0 (Mac)"
 	} &default = function(n: count): string { return fmt("client_build-%d", n); };
 
+	const security_protocols = {
+		[0x00] = "RDP",
+		[0x01] = "SSL",
+		[0x02] = "HYBRID",
+		[0x08] = "HYBRID_EX"
+	} &default = function(n: count): string { return fmt("security_protocol-%d", n); };
+
+	const failure_codes = {
+		[0x01] = "SSL_REQUIRED_BY_SERVER",
+		[0x02] = "SSL_NOT_ALLOWED_BY_SERVER",
+		[0x03] = "SSL_CERT_NOT_ON_SERVER",
+		[0x04] = "INCONSISTENT_FLAGS",
+		[0x05] = "HYBRID_REQUIRED_BY_SERVER",
+		[0x06] = "SSL_WITH_USER_AUTH_REQUIRED_BY_SERVER"
+	} &default = function(n: count): string { return fmt("failure_code-%d", n); };
+
+	const cert_types = {
+		[1] = "RSA",
+		[2] = "X.509"
+	} &default = function(n: count): string { return fmt("cert_type-%d", n); };
+
 	const encryption_methods = {
 		[0] = "None",
 		[1] = "40bit",

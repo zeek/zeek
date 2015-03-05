@@ -15,6 +15,11 @@ export {
 		## Cookie value used by the client machine.
 		## This is typically a username.
 		cookie:                string  &log &optional;
+		## Status result for the connection.  It's a mix between
+		## RDP negotation failure messages and GCC server create
+		## response messages.
+		result:                string  &log &optional;
+
 		## Keyboard layout     (language) of the client machine.
 		keyboard_layout:       string  &log &optional;
 		## RDP client version used by the client machine.
@@ -30,8 +35,19 @@ export {
 		## The color depth requested by the client in 
 		## the high_color_depth field.
 		requested_color_depth: string  &log &optional;
-		## GCC result for the connection. 
-		result:                string  &log &optional;
+
+		## If the connection is being encrypted with native
+		## RDP encryption, this is the type of cert 
+		## being used.
+		cert_type:             string  &log &optional;
+		## The number of certs seen.  X.509 can transfer an 
+		## entire certificate chain.
+		cert_count:            count   &log &default=0;
+		## Indicates if the provided certificate or certificate
+		## chain is permanent or temporary.
+		cert_permanent:        bool    &log &optional;
+		## Security protocol chosen by the server.
+		selected_security_protocol: string &log &optional;
 		## Encryption level of the connection.
 		encryption_level:      string  &log &optional;
 		## Encryption method of the connection. 
@@ -132,11 +148,25 @@ function set_session(c: connection)
 		}
 	}
 
-event rdp_client_request(c: connection, cookie: string) &priority=5
+event rdp_connect_request(c: connection, cookie: string) &priority=5
 	{
 	set_session(c);
 
 	c$rdp$cookie = cookie;
+	}
+
+event rdp_negotiation_response(c: connection, selected_security_protocol: count) &priority=5
+	{
+	set_session(c);
+
+	c$rdp$selected_security_protocol = security_protocols[selected_security_protocol];
+	}
+
+event rdp_negotiation_failure(c: connection, failure_code: count) &priority=5
+	{
+	set_session(c);
+
+	c$rdp$result = failure_codes[failure_code];
 	}
 
 event rdp_client_core_data(c: connection, data: RDP::ClientCoreData) &priority=5
@@ -150,12 +180,12 @@ event rdp_client_core_data(c: connection, data: RDP::ClientCoreData) &priority=5
 	c$rdp$desktop_width         = data$desktop_width;
 	c$rdp$desktop_height        = data$desktop_height;
 	if ( data?$ec_flags && data$ec_flags$want_32bpp_session )
-		c$rdp$requested_color_depth = "32-bit";
+		c$rdp$requested_color_depth = "32bit";
 	else
 		c$rdp$requested_color_depth = RDP::high_color_depths[data$high_color_depth];
 	}
 
-event rdp_result(c: connection, result: count) &priority=5
+event rdp_gcc_server_create_response(c: connection, result: count) &priority=5
 	{
 	set_session(c);
 
@@ -170,13 +200,31 @@ event rdp_server_security(c: connection, encryption_method: count, encryption_le
 	c$rdp$encryption_level = RDP::encryption_levels[encryption_level];
 	}
 
-event file_over_new_connection(f: fa_file, c: connection, is_orig: bool)
+event rdp_server_certificate(c: connection, cert_type: count, permanently_issued: bool) &priority=5
 	{
-	Files::add_analyzer(f, Files::ANALYZER_X509);
-	# always calculate hashes. They are not necessary for base scripts
-	# but very useful for identification, and required for policy scripts
-	Files::add_analyzer(f, Files::ANALYZER_MD5);
-	Files::add_analyzer(f, Files::ANALYZER_SHA1);
+	set_session(c);
+
+	c$rdp$cert_type = RDP::cert_types[cert_type];
+
+	# There are no events for proprietary/RSA certs right
+	# now so we manually count this one.
+	if ( c$rdp$cert_type == "RSA" )
+		++c$rdp$cert_count;
+	
+	c$rdp$cert_permanent = permanently_issued;
+	}
+
+event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priority=5
+	{
+	if ( c?$rdp && f$source == "RDP" )
+		{
+		## Count up X509 certs.
+		++c$rdp$cert_count;
+
+		Files::add_analyzer(f, Files::ANALYZER_X509);
+		Files::add_analyzer(f, Files::ANALYZER_MD5);
+		Files::add_analyzer(f, Files::ANALYZER_SHA1);
+		}
 	}
 
 event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &priority=5

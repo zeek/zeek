@@ -51,34 +51,26 @@ void RDP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	// we'll just move this over to the PIA analyzer.
 	// Like the comment below says, this is probably the wrong
 	// way to handle this.
-	if ( len > 0 && data[0] >= 0x14 && data[0] <= 0x17 )
+	if ( interp->is_encrypted() )
 		{
-		if ( ! pia )
+		if ( len > 0 && data[0] >= 0x14 && data[0] <= 0x17 )
 			{
-			pia = new pia::PIA_TCP(Conn());
-
-			if ( AddChildAnalyzer(pia) )
+			if ( ! pia )
 				{
-				pia->FirstPacket(true, 0);
-				pia->FirstPacket(false, 0);
-				}
-			}
+				pia = new pia::PIA_TCP(Conn());
 
-		if ( pia )
-			{
-			ForwardStream(len, data, orig);
+				if ( AddChildAnalyzer(pia) )
+					{
+					pia->FirstPacket(true, 0);
+					pia->FirstPacket(false, 0);
+					}
+				}
+
+			if ( pia )
+				ForwardStream(len, data, orig);
 			}
 		}
-	else if ( pia )
-		{
-		// This is data that doesn't seem to match 
-		// an SSL record, but we've moved into SSL mode.
-		// This is probably the wrong way to handle this
-		// situation but I don't know what these records
-		// are that don't appear to be SSL/TLS.
-		return;
-		}
-	else
+	else // if not encrypted
 		{
 		try
 			{

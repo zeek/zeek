@@ -14,12 +14,10 @@ type TPKT(is_orig: bool) = record {
 type COTP = record {
 	cotp_len:  uint8;
 	pdu:       uint8;
-	# Probably should do something with this eventually.
-	#cotp_crap: padding[cotp_len-2];
 	switch:    case pdu of {
-		#0xd0    -> cConfirm: Connect_Confirm;
-		0xe0    -> c_request: Client_Request;
-		0xf0    -> data:      DT_Data;
+		0xd0    -> connect_confirm: Connect_Confirm;
+		0xe0    -> client_request:  Connect_Request;
+		0xf0    -> data:            DT_Data;
 
 		# In case we don't support the PDU we just
 		# consume the rest of it and throw it away.
@@ -75,13 +73,58 @@ type Data_Block = record {
 # Client X.224
 ######################################################################
 
-type Client_Request = record {
+type Connect_Request = record {
 	destination_reference: uint16;
 	source_reference:      uint16;
 	flow_control:          uint8;
 	cookie_mstshash:       RE/Cookie: mstshash\=/;
-	cookie_value:          RE/[^\x0d]*/;
+	cookie_value:          RE/[^\x0d]+/;
+	cookie_terminator:     RE/\x0d\x0a/;
+	rdp_neg_req:           RDP_Negotiation_Request;
+} &byteorder=littleendian;
+
+type RDP_Negotiation_Request = record {
+	type:                uint8;
+	flags:               uint8;
+	length:              uint16; # must be set to 8
+	requested_protocols: uint32;
+} &let {
+	PROTOCOL_RDP:       bool = requested_protocols & 0x00;
+	PROTOCOL_SSL:       bool = requested_protocols & 0x01;
+	PROTOCOL_HYBRID:    bool = requested_protocols & 0x02;
+	PROTOCOL_HYBRID_EX: bool = requested_protocols & 0x08;
+} &byteorder=littleendian;
+
+######################################################################
+# Server X.224
+######################################################################
+
+type Connect_Confirm = record {
+	destination_reference: uint16;
+	source_reference:      uint16;
+	flags:                 uint8;
+	response_type:         uint8;
+	response_switch: case response_type of {
+		0x02 -> neg_resp: RDP_Negotiation_Response;
+		0x03 -> neg_fail: RDP_Negotiation_Failure;
+	};
 };
+
+type RDP_Negotiation_Response = record {
+	flags:               uint8;
+	length:              uint16; # must be set to 8
+	selected_protocol:   uint32;
+} &let {
+	# Seems to be encrypted after this message if 
+	# selected_protocol > 0
+	enc: bool = $context.connection.go_encrypted(selected_protocol>0);
+} &byteorder=littleendian;
+
+type RDP_Negotiation_Failure = record {
+	flags: uint8;
+	length: uint16;
+	failure_code: uint32;
+} &byteorder=littleendian;
 
 ######################################################################
 # Client MCS
@@ -93,11 +136,11 @@ type Client_Header = record {
 	called_domain_selector:    ASN1OctetString;
 	upward_flag:               ASN1Boolean;
 	target_parameters:         ASN1SequenceMeta;
-	targ_parameters_pad:       padding[target_parameters.encoding.length];
+	targ_parameters_pad:       bytestring &length=target_parameters.encoding.length &transient;
 	minimum_parameters:        ASN1SequenceMeta;
-	min_parameters_pad:        padding[minimum_parameters.encoding.length];
+	min_parameters_pad:        bytestring &length=minimum_parameters.encoding.length &transient;
 	maximum_parameters:        ASN1SequenceMeta;
-	max_parameters_pad:        padding[maximum_parameters.encoding.length];
+	max_parameters_pad:        bytestring &length=maximum_parameters.encoding.length &transient;
 	# BER encoded OctetString and long variant, can be safely skipped for now
 	user_data_length:          uint32;
 	gcc_connection_data:       GCC_Client_Connection_Data;
@@ -174,7 +217,7 @@ type Server_Header = record {
 	connect_response_called_id:         ASN1Integer;
 	connect_response_domain_parameters: ASN1SequenceMeta;
 	# Skipping over domain parameters for now.
-	domain_parameters:                  padding[connect_response_domain_parameters.encoding.length];
+	domain_parameters:                  bytestring &length=connect_response_domain_parameters.encoding.length &transient;
 	# I think this is another definite length encoded value.
 	user_data_length:                   uint32;
 	gcc_connection_data:                GCC_Server_Connection_Data;
@@ -219,20 +262,24 @@ type Server_Security_Data = record {
 	server_cert_length:     uint32;
 	server_random:          bytestring &length=server_random_length;
 	server_certificate:     Server_Certificate &length=server_cert_length;
+} &let {
+	# Seems to be encrypted after this message if 
+	# encryption level is >0
+	enc: bool = $context.connection.go_encrypted(encryption_level>0);
 } &byteorder=littleendian;
 
 type Server_Certificate = record {
 	version: uint32;
 	switch:  case cert_type of {
-		0x01 -> proprietary: Server_Proprietary;
+		0x01 -> proprietary: Server_Proprietary_Cert(this);
 		0x02 -> x509:        X509;
 	};
 } &let {
-	cert_type: uint32 = version & 0x7FFFFFFF;
-	permanent_issue: bool = (version & 0x80000000) == 0;
+	cert_type:          uint32 = version & 0x7FFFFFFF;
+	permanently_issued: bool   = (version & 0x80000000) == 0;
 } &byteorder=littleendian;
 
-type Server_Proprietary = record {
+type Server_Proprietary_Cert(cert: Server_Certificate) = record {
 	signature_algorithm:    uint32;
 	key_algorithm:          uint32;
 	public_key_blob_type:   uint16;
@@ -252,8 +299,13 @@ type Public_Key_Blob = record {
 } &byteorder=littleendian;
 
 type X509 = record {
-	pad1: padding[8];
-	cert: bytestring &restofdata;
+	num_of_certs: uint32;
+	certs: X509_Cert_Data[num_of_certs];
+} &byteorder=littleendian;
+
+type X509_Cert_Data = record {
+	cert_len: uint32;
+	cert: bytestring &length=cert_len;
 } &byteorder=littleendian;
 
 ######################################################################
@@ -314,3 +366,28 @@ function binary_to_int64(bs: bytestring): int64
 	return rval;
 	%}
 
+refine connection RDP_Conn += {
+
+	%member{
+		bool is_encrypted_;
+	%}
+
+	%init{
+		is_encrypted_ = false;
+	%}
+
+	function go_encrypted(should_we: bool): bool
+		%{
+		if ( should_we )
+			{
+			printf("going encrypted\n");
+			is_encrypted_ = true;
+			}
+		return is_encrypted_;
+		%}
+
+	function is_encrypted(): bool
+		%{
+		return is_encrypted_;
+		%}
+};

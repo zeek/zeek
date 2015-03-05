@@ -59,7 +59,7 @@ type Data_Block = record {
 		#0xc008  -> client_monitor_ex: Client_MonitorExtended_Data;
 		#0xc00A  -> client_multitrans: Client_MultiTransport_Data;
 
-		0x0c01  -> server_core:       Server_Core_Data;
+		0x0c01  -> server_core:       Server_Core_Data(header);
 		0x0c02  -> server_security:   Server_Security_Data;
 		0x0c03  -> server_network:    Server_Network_Data;
 		#0x0c04  -> server_msgchannel: Server_MsgChannel_Data;
@@ -244,10 +244,13 @@ type GCC_Server_Create_Response = record {
 	user_data_value_length:  uint16;
 } &byteorder=bigendian;
 
-type Server_Core_Data = record {
-	version_major:              uint16;
-	version_minor:              uint16;
-	client_requested_protocols: uint32;
+type Server_Core_Data(h: Data_Header) = record {
+	version_major: uint16;
+	version_minor: uint16;
+	switch1:       case h.length of {
+		8       -> none:                       empty;
+		default -> client_requested_protocols: uint32;
+	};
 } &byteorder=littleendian;
 
 type Server_Network_Data = record {

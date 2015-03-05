@@ -106,8 +106,15 @@ type Connect_Confirm(cotp: COTP) = record {
 	destination_reference: uint16;
 	source_reference:      uint16;
 	flags:                 uint8;
+	switch1: case (offsetof(switch1) + 2 - cotp.cotp_len - 1) of {
+		0       -> none1:    empty;
+		default -> response: Connect_Confirm_Record;
+	};
+};
+
+type Connect_Confirm_Record = record {
 	response_type:         uint8;
-	response_switch: case response_type of {
+	switch1: case response_type of {
 		0x02 -> neg_resp: RDP_Negotiation_Response;
 		0x03 -> neg_fail: RDP_Negotiation_Failure;
 	};

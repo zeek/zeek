@@ -380,7 +380,6 @@ refine connection RDP_Conn += {
 		%{
 		if ( should_we )
 			{
-			printf("going encrypted\n");
 			is_encrypted_ = true;
 			}
 		return is_encrypted_;

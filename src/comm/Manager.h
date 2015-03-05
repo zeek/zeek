@@ -153,11 +153,13 @@ public:
 	 * implicitly "bro/log/<stream-name>".
 	 * @param stream_id the stream to which the log entry belongs.
 	 * @param columns the data which comprises the log entry.
+	 * @param info the record type corresponding to the log's columns.
 	 * @param flags tune the behavior of how the message is send.
 	 * See the Comm::SendFlags record type.
 	 * @return true if the message is sent successfully.
 	 */
-	bool Log(EnumVal* stream_id, RecordVal* columns, int flags);
+	bool Log(EnumVal* stream_id, RecordVal* columns, RecordType* info,
+	         int flags);
 
 	/**
 	 * Automatically send an event to any interested peers whenever it is

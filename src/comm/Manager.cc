@@ -193,7 +193,8 @@ bool comm::Manager::Event(std::string topic, broker::message msg, int flags)
 	return true;
 	}
 
-bool comm::Manager::Log(EnumVal* stream, RecordVal* columns, int flags)
+bool comm::Manager::Log(EnumVal* stream, RecordVal* columns, RecordType* info,
+                        int flags)
 	{
 	if ( ! Enabled() )
 		return false;
@@ -207,17 +208,38 @@ bool comm::Manager::Log(EnumVal* stream, RecordVal* columns, int flags)
 		return false;
 		}
 
-	auto opt_column_data = val_to_data(columns);
+	broker::record column_data;
 
-	if ( ! opt_column_data )
+	for ( auto i = 0u; i < info->NumFields(); ++i )
 		{
-		reporter->Error("Failed to remotely log stream %s: unsupported types",
-		                stream_name);
-		return false;
+		if ( ! info->FieldDecl(i)->FindAttr(ATTR_LOG) )
+			continue;
+
+		auto field_val = columns->LookupWithDefault(i);
+
+		if ( ! field_val )
+			{
+			column_data.fields.emplace_back(broker::record::field{});
+			continue;
+			}
+
+		auto opt_field_data = val_to_data(field_val);
+		Unref(field_val);
+
+		if ( ! opt_field_data )
+			{
+			reporter->Error("Failed to remotely log stream %s: "
+			                "unsupported type '%s'",
+			                stream_name,
+			                type_name(info->FieldDecl(i)->type->Tag()));
+			return false;
+			}
+
+		column_data.fields.emplace_back(
+		            broker::record::field{move(*opt_field_data)});
 		}
 
-	broker::message msg{broker::enum_value{stream_name},
-		                move(*opt_column_data)};
+	broker::message msg{broker::enum_value{stream_name}, move(column_data)};
 	std::string topic = std::string("bro/log/") + stream_name;
 	endpoint->send(move(topic), move(msg), flags);
 	return true;
@@ -837,7 +859,7 @@ void comm::Manager::Process()
 				continue;
 				}
 
-			auto columns = data_to_val(move(lm[1]), columns_type);
+			auto columns = data_to_val(move(lm[1]), columns_type, true);
 
 			if ( ! columns )
 				{

@@ -45,6 +45,7 @@ struct val_converter {
 	using result_type = Val*;
 
 	BroType* type;
+	bool require_log_attr;
 
 	result_type operator()(bool a)
 		{
@@ -316,14 +317,19 @@ struct val_converter {
 			return nullptr;
 
 		auto rt = type->AsRecordType();
-
-		if ( a.fields.size() != static_cast<size_t>(rt->NumFields()) )
-			return nullptr;
-
 		auto rval = new RecordVal(rt);
 
-		for ( auto i = 0u; i < a.fields.size(); ++i )
+		for ( auto i = 0; i < rt->NumFields(); ++i )
 			{
+			if ( require_log_attr && ! rt->FieldDecl(i)->FindAttr(ATTR_LOG) )
+				continue;
+
+			if ( i >= a.fields.size() )
+				{
+				Unref(rval);
+				return nullptr;
+				}
+
 			if ( ! a.fields[i] )
 				{
 				rval->Assign(i, nullptr);
@@ -346,9 +352,9 @@ struct val_converter {
 		}
 };
 
-Val* comm::data_to_val(broker::data d, BroType* type)
+Val* comm::data_to_val(broker::data d, BroType* type, bool require_log_attr)
 	{
-	return broker::visit(val_converter{type}, d);
+	return broker::visit(val_converter{type, require_log_attr}, d);
 	}
 
 broker::util::optional<broker::data> comm::val_to_data(Val* v)

@@ -1675,6 +1675,7 @@ function net_stats%(%): NetStats
 	unsigned int recv = 0;
 	unsigned int drop = 0;
 	unsigned int link = 0;
+	unsigned int bytes_recv = 0;
 
 	const iosource::Manager::PktSrcList& pkt_srcs(iosource_mgr->GetPktSrcs());
 
@@ -1688,12 +1689,14 @@ function net_stats%(%): NetStats
 		recv += stat.received;
 		drop += stat.dropped;
 		link += stat.link;
+		bytes_recv += stat.bytes_received;
 		}
 
 	RecordVal* ns = new RecordVal(net_stats);
 	ns->Assign(0, new Val(recv, TYPE_COUNT));
 	ns->Assign(1, new Val(drop, TYPE_COUNT));
 	ns->Assign(2, new Val(link, TYPE_COUNT));
+	ns->Assign(3, new Val(bytes_recv, TYPE_COUNT));
 
 	return ns;
 	%}

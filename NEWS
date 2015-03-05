@@ -61,6 +61,8 @@ New Functionality
 - The SSL analysis now alert when encountering SSL connections with
   old protocol versions or unsafe cipher suites.
 
+- [TODO] Add new BroControl features.
+
 Changed Functionality
 ---------------------
 
@@ -88,6 +90,8 @@ Changed Functionality
 
 - conn.log gained a new field local_resp that works like local_orig,
   just for the responder address of the connection.
+
+- [TODO] Add changed BroControl features.
 
 Deprecated Functionality
 ------------------------

@@ -1,5 +1,5 @@
 
-.. _comm-framework:
+.. _brokercomm-framework:
 
 ======================================
 Broker-Enabled Communication Framework
@@ -27,7 +27,7 @@ and then monitor connection status updates via
 :bro:see:`BrokerComm::incoming_connection_established` and
 :bro:see:`BrokerComm::incoming_connection_broken`.
 
-.. btest-include:: ${DOC_ROOT}/frameworks/comm/connecting-listener.bro
+.. btest-include:: ${DOC_ROOT}/frameworks/broker/connecting-listener.bro
 
 Bro can initiate outgoing connections by calling :bro:see:`BrokerComm::connect`
 and then monitor connection status updates via
@@ -35,7 +35,7 @@ and then monitor connection status updates via
 :bro:see:`BrokerComm::outgoing_connection_broken`, and
 :bro:see:`BrokerComm::outgoing_connection_incompatible`.
 
-.. btest-include:: ${DOC_ROOT}/frameworks/comm/connecting-connector.bro
+.. btest-include:: ${DOC_ROOT}/frameworks/broker/connecting-connector.bro
 
 Remote Printing
 ===============
@@ -46,11 +46,11 @@ prefix of interest and then create an event handler for
 :bro:see:`BrokerComm::print_handler` to handle any print messages that are
 received.
 
-.. btest-include:: ${DOC_ROOT}/frameworks/comm/printing-listener.bro
+.. btest-include:: ${DOC_ROOT}/frameworks/broker/printing-listener.bro
 
 To send remote print messages, just call :bro:see:`BrokerComm::print`.
 
-.. btest-include:: ${DOC_ROOT}/frameworks/comm/printing-connector.bro
+.. btest-include:: ${DOC_ROOT}/frameworks/broker/printing-connector.bro
 
 Notice that the subscriber only used the prefix "bro/print/", but is
 able to receive messages with full topics of "bro/print/hi",
@@ -75,7 +75,7 @@ Receiving remote events is similar to remote prints.  Just use
 :bro:see:`BrokerComm::subscribe_to_events` and possibly define any new events
 along with handlers that peers may want to send.
 
-.. btest-include:: ${DOC_ROOT}/frameworks/comm/events-listener.bro
+.. btest-include:: ${DOC_ROOT}/frameworks/broker/events-listener.bro
 
 To send events, there are two choices.  The first is to use call
 :bro:see:`BrokerComm::event` directly.  The second option is to use
@@ -83,7 +83,7 @@ To send events, there are two choices.  The first is to use call
 automatically sent to peers whenever it is called locally via the normal
 event invocation syntax.
 
-.. btest-include:: ${DOC_ROOT}/frameworks/comm/events-connector.bro
+.. btest-include:: ${DOC_ROOT}/frameworks/broker/events-connector.bro
 
 Again, the subscription model is prefix-based.
 
@@ -105,20 +105,20 @@ parameter of the message.
 Remote Logging
 ==============
 
-.. btest-include:: ${DOC_ROOT}/frameworks/comm/testlog.bro
+.. btest-include:: ${DOC_ROOT}/frameworks/broker/testlog.bro
 
 Use :bro:see:`BrokerComm::subscribe_to_logs` to advertise interest in logs
 written by peers.  The topic names that Bro uses are implicitly of the
 form "bro/log/<stream-name>".
 
-.. btest-include:: ${DOC_ROOT}/frameworks/comm/logs-listener.bro
+.. btest-include:: ${DOC_ROOT}/frameworks/broker/logs-listener.bro
 
 To send remote logs either use :bro:see:`Log::enable_remote_logging` or
 :bro:see:`BrokerComm::enable_remote_logs`.  The former allows any log stream
 to be sent to peers while the later toggles remote logging for
 particular streams.
 
-.. btest-include:: ${DOC_ROOT}/frameworks/comm/logs-connector.bro
+.. btest-include:: ${DOC_ROOT}/frameworks/broker/logs-connector.bro
 
 Message Format
 --------------
@@ -189,9 +189,9 @@ Data stores also support expiration on a per-key basis either using an
 absolute point in time or a relative amount of time since the entry's
 last modification time.
 
-.. btest-include:: ${DOC_ROOT}/frameworks/comm/stores-listener.bro
+.. btest-include:: ${DOC_ROOT}/frameworks/broker/stores-listener.bro
 
-.. btest-include:: ${DOC_ROOT}/frameworks/comm/stores-connector.bro
+.. btest-include:: ${DOC_ROOT}/frameworks/broker/stores-connector.bro
 
 In the above example, if a local copy of the store contents isn't
 needed, just replace the :bro:see:`BrokerStore::create_clone` call with

@@ -11,7 +11,7 @@
 #include "threading/Manager.h"
 
 #ifdef ENABLE_BROKER
-#include "comm/Manager.h"
+#include "broker/Manager.h"
 #endif
 
 int killed_by_inactivity = 0;

@@ -2,7 +2,7 @@
 ##! General functions regarding Bro's broker communication mechanisms.
 
 %%{
-#include "comm/Manager.h"
+#include "broker/Manager.h"
 %%}
 
 module BrokerComm;

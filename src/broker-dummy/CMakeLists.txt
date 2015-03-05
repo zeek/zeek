@@ -9,5 +9,5 @@ bif_target(data.bif)
 bif_target(messaging.bif)
 bif_target(store.bif)
 
-bro_add_subdir_library(comm_dummy ${BIF_OUTPUT_CC})
-add_dependencies(bro_comm_dummy generate_outputs)
+bro_add_subdir_library(broker_dummy ${BIF_OUTPUT_CC})
+add_dependencies(bro_broker_dummy generate_outputs)

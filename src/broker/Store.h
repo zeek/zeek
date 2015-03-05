@@ -1,8 +1,8 @@
 #ifndef BRO_COMM_STORE_H
 #define BRO_COMM_STORE_H
 
-#include "comm/store.bif.h"
-#include "comm/data.bif.h"
+#include "broker/store.bif.h"
+#include "broker/data.bif.h"
 #include "Reporter.h"
 #include "Type.h"
 #include "Val.h"

@@ -7,7 +7,7 @@
 #include <string>
 #include <map>
 #include <unordered_set>
-#include "comm/Store.h"
+#include "broker/Store.h"
 #include "Reporter.h"
 #include "iosource/IOSource.h"
 #include "Val.h"

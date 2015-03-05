@@ -64,7 +64,7 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "3rdparty/sqlite3.h"
 
 #ifdef ENABLE_BROKER
-#include <comm/Manager.h>
+#include "broker/Manager.h"
 #endif
 
 Brofiler brofiler;

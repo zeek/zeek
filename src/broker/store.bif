@@ -2,9 +2,9 @@
 ##! Functions to interface with broker's distributed data store.
 
 %%{
-#include "comm/Manager.h"
-#include "comm/Store.h"
-#include "comm/Data.h"
+#include "broker/Manager.h"
+#include "broker/Store.h"
+#include "broker/Data.h"
 #include "Trigger.h"
 %%}
 

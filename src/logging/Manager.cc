@@ -17,7 +17,7 @@
 #include "logging.bif.h"
 
 #ifdef ENABLE_BROKER
-#include "comm/Manager.h"
+#include "broker/Manager.h"
 #endif
 
 using namespace logging;

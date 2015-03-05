@@ -2,7 +2,7 @@
 ##! Functions for peering and various messaging patterns (e.g. print/log/event).
 
 %%{
-#include "comm/Manager.h"
+#include "broker/Manager.h"
 #include "logging/Manager.h"
 %%}
 

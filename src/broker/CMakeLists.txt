@@ -24,5 +24,5 @@ bif_target(data.bif)
 bif_target(messaging.bif)
 bif_target(store.bif)
 
-bro_add_subdir_library(comm ${comm_SRCS} ${BIF_OUTPUT_CC})
-add_dependencies(bro_comm generate_outputs)
+bro_add_subdir_library(brokercomm ${comm_SRCS} ${BIF_OUTPUT_CC})
+add_dependencies(bro_brokercomm generate_outputs)

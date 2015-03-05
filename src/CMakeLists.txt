@@ -162,11 +162,11 @@ add_subdirectory(logging)
 add_subdirectory(probabilistic)
 
 if ( ENABLE_BROKER )
-    add_subdirectory(comm)
+    add_subdirectory(broker)
 else ()
     # Just to satisfy coverage unit tests until new Broker-based
     # communication is enabled by default.
-    add_subdirectory(comm-dummy)
+    add_subdirectory(broker-dummy)
 endif ()
 
 set(bro_SUBDIRS

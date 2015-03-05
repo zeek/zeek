@@ -6,8 +6,8 @@
 #include "NetVar.h"
 
 #ifdef ENABLE_BROKER
-#include "comm/Manager.h"
-#include "comm/Data.h"
+#include "broker/Manager.h"
+#include "broker/Data.h"
 #endif
 
 EventHandler::EventHandler(const char* arg_name)

@@ -1,5 +1,5 @@
 #include "Data.h"
-#include "comm/data.bif.h"
+#include "broker/data.bif.h"
 #include <caf/binary_serializer.hpp>
 #include <caf/binary_deserializer.hpp>
 

@@ -1,5 +1,5 @@
 #include "Store.h"
-#include "comm/Manager.h"
+#include "broker/Manager.h"
 
 #include <broker/store/master.hh>
 #include <broker/store/clone.hh>

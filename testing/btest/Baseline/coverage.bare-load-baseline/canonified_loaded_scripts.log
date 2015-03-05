@@ -14,8 +14,8 @@ scripts/base/init-bare.bro
   build/scripts/base/bif/reporter.bif.bro
   build/scripts/base/bif/plugins/Bro_SNMP.types.bif.bro
   build/scripts/base/bif/event.bif.bro
-  scripts/base/frameworks/comm/__load__.bro
-    scripts/base/frameworks/comm/main.bro
+  scripts/base/frameworks/broker/__load__.bro
+    scripts/base/frameworks/broker/main.bro
   scripts/base/frameworks/logging/__load__.bro
     scripts/base/frameworks/logging/main.bro
       build/scripts/base/bif/logging.bif.bro

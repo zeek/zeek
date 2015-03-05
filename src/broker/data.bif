@@ -2,7 +2,7 @@
 ##! Functions for inspecting and manipulating broker data.
 
 %%{
-#include "comm/Data.h"
+#include "broker/Data.h"
 %%}
 
 module BrokerComm;

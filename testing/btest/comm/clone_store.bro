@@ -1,8 +1,8 @@
 # @TEST-SERIALIZE: brokercomm
 # @TEST-REQUIRES: grep -q ENABLE_BROKER $BUILD/CMakeCache.txt
 
-# @TEST-EXEC: btest-bg-run clone "bro -b ../clone.bro broker_port=$BROKER_PORT >clone.out"
-# @TEST-EXEC: btest-bg-run master "bro -b ../master.bro broker_port=$BROKER_PORT >master.out"
+# @TEST-EXEC: btest-bg-run clone "bro -b -r $TRACES/wikipedia.trace ../clone.bro broker_port=$BROKER_PORT >clone.out"
+# @TEST-EXEC: btest-bg-run master "bro -b -r $TRACES/wikipedia.trace ../master.bro broker_port=$BROKER_PORT >master.out"
 
 # @TEST-EXEC: btest-bg-wait 20
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff clone/clone.out
@@ -17,6 +17,8 @@ global h: opaque of Store::Handle;
 global expected_key_count = 4;
 global key_count = 0;
 
+global query_timeout = 15sec;
+
 function do_lookup(key: string)
 	{
 	when ( local res = Store::lookup(h, Comm::data(key)) )
@@ -27,8 +29,11 @@ function do_lookup(key: string)
 		if ( key_count == expected_key_count )
 			terminate();
 		}
-	timeout 10sec
-		{ print "timeout"; }
+	timeout query_timeout
+		{
+		print "clone lookup query timeout";
+		terminate();
+		}
 	}
 
 event ready()
@@ -43,8 +48,11 @@ event ready()
 		do_lookup(Comm::refine_to_string(Comm::vector_lookup(res$result, 2)));
 		do_lookup(Comm::refine_to_string(Comm::vector_lookup(res$result, 3)));
 		}
-	timeout 10sec
-		{ print "timeout"; }
+	timeout query_timeout
+		{
+		print "clone keys query timeout";
+		terminate();
+		}
 	}
 
 event bro_init()
@@ -57,6 +65,8 @@ event bro_init()
 @TEST-END-FILE
 
 @TEST-START-FILE master.bro
+
+global query_timeout = 15sec;
 
 const broker_port: port &redef;
 redef exit_only_after_terminate = T;
@@ -98,15 +108,18 @@ event Comm::outgoing_connection_established(peer_address: string,
 
 	when ( local res = Store::size(h) )
 		{ event ready(); }
-	timeout 10sec
-		{ print "timeout"; }
+	timeout query_timeout
+		{
+		print "master size query timeout";
+		terminate();
+		}
 	}
 
 event bro_init()
 	{
 	Comm::enable();
-	Comm::connect("127.0.0.1", broker_port, 1secs);
 	Comm::auto_event("bro/event/ready", ready);
+	Comm::connect("127.0.0.1", broker_port, 1secs);
 	}
 
 @TEST-END-FILE

@@ -1,7 +1,8 @@
 # @TEST-REQUIRES: grep -q ENABLE_BROKER $BUILD/CMakeCache.txt
 
-# @TEST-EXEC: bro -b %INPUT >out
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff out
+# @TEST-EXEC: btest-bg-run master "bro -b -r $TRACES/wikipedia.trace %INPUT >out"
+# @TEST-EXEC: btest-bg-wait 20
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff master/out
 
 redef exit_only_after_terminate = T;
 
@@ -14,6 +15,8 @@ global pop_count = 0;
 const pop_expect_count = 2;
 
 global test_size: event(where: string &default = "");
+
+global query_timeout = 5sec;
 
 event test_clear()
 	{
@@ -36,8 +39,15 @@ event test_size(where: string)
 			terminate();
 			}
 		}
-	timeout 10sec
-		{ print "timeout"; }
+	timeout query_timeout
+		{
+		print "'size' query timeout";
+
+		if ( where == "" )
+			event test_clear();
+		else
+			terminate();
+		}
 	}
 
 event test_keys()
@@ -47,8 +57,11 @@ event test_keys()
 		print fmt("keys: %s", res);
 		event test_size();
 		}
-	timeout 10sec
-		{ print "timeout"; }
+	timeout query_timeout
+		{
+		print "'keys' query timeout";
+		event test_size();
+		}
 	}
 
 event test_pop(key: string)
@@ -61,8 +74,14 @@ event test_pop(key: string)
 		if ( pop_count == pop_expect_count )
 			event test_keys();
 		}
-	timeout 10sec
-		{ print "timeout"; }
+	timeout query_timeout
+		{
+		print "'pop_left' timeout";
+		++pop_count;
+
+		if ( pop_count == pop_expect_count )
+			event test_keys();
+		}
 
 	when ( local rres = Store::pop_right(h, Comm::data(key)) )
 		{
@@ -72,8 +91,14 @@ event test_pop(key: string)
 		if ( pop_count == pop_expect_count )
 			event test_keys();
 		}
-	timeout 10sec
-		{ print "timeout"; }
+	timeout query_timeout
+		{
+		print "'pop_right' timeout";
+		++pop_count;
+
+		if ( pop_count == pop_expect_count )
+			event test_keys();
+		}
 	}
 
 function do_exists(key: string)
@@ -86,8 +111,14 @@ function do_exists(key: string)
 		if ( exists_count == exists_expect_count )
 			event test_pop("myvec");
 		}
-	timeout 10sec
-		{ print "timeout"; }
+	timeout query_timeout
+		{
+		print "'exists' query timeout";
+		++exists_count;
+
+		if ( exists_count == exists_expect_count )
+			event test_pop("myvec");
+		}
 	}
 
 event test_erase()
@@ -109,8 +140,14 @@ function do_lookup(key: string)
 		if ( lookup_count == lookup_expect_count )
 			event test_erase();
 		}
-	timeout 10sec
-		{ print "timeout"; }
+	timeout query_timeout
+		{
+		print "'lookup' query timeout";
+		++lookup_count;
+
+		if ( lookup_count == lookup_expect_count )
+			event test_erase();
+		}
 	}
 
 function dv(d: Comm::Data): Comm::DataVector

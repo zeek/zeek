@@ -80,6 +80,8 @@ type Connect_Request(cotp: COTP) = record {
 	cookie_mstshash:       RE/Cookie: mstshash\=/;
 	cookie_value:          RE/[^\x0d]*/;
 	cookie_terminator:     RE/\x0d\x0a/;
+	# Terrifying little case statement to figure out if there
+	# is any data left in the COTP structure.
 	switch1:   case (offsetof(switch1) + 2 - cotp.cotp_len - 1) of {
 		0       -> none:        empty;
 		default -> rdp_neg_req: RDP_Negotiation_Request;
@@ -106,6 +108,8 @@ type Connect_Confirm(cotp: COTP) = record {
 	destination_reference: uint16;
 	source_reference:      uint16;
 	flags:                 uint8;
+	# Terrifying little case statement to figure out if there
+	# is any data left in the COTP structure.
 	switch1: case (offsetof(switch1) + 2 - cotp.cotp_len - 1) of {
 		0       -> none1:    empty;
 		default -> response: Connect_Confirm_Record;

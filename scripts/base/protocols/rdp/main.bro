@@ -218,7 +218,7 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 	{
 	if ( c?$rdp && f$source == "RDP" )
 		{
-		## Count up X509 certs.
+		# Count up X509 certs.
 		++c$rdp$cert_count;
 
 		Files::add_analyzer(f, Files::ANALYZER_X509);

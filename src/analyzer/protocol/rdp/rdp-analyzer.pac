@@ -22,7 +22,7 @@ refine flow RDP_Flow += {
 		                                          sourceend,
 		                                          &targetstart, 
 		                                          targetend, 
-		                                          strictConversion);
+		                                          lenientConversion);
 		if ( res != conversionOK )
 			{
 			connection()->bro_analyzer()->Weird("Failed UTF-16 to UTF-8 conversion");

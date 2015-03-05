@@ -47,13 +47,12 @@ void RDP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		// deliver data to the other side if the script layer can handle this.
 		return;
 
-	// If the data appears (very loosely) to be SSL/TLS
-	// we'll just move this over to the PIA analyzer.
-	// Like the comment below says, this is probably the wrong
-	// way to handle this.
 	if ( interp->is_encrypted() )
 		{
-		if ( len > 0 && data[0] >= 0x14 && data[0] <= 0x17 )
+		// 0x00 is RDP native encryption which we don't do anything with now.
+		// 0x01 is SSL/TLS
+		// 0x03-0x04 is CredSSP which is effectively SSL/TLS
+		if ( interp->encryption_method() > 0x00 )
 			{
 			if ( ! pia )
 				{
@@ -67,7 +66,9 @@ void RDP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 				}
 
 			if ( pia )
+				{
 				ForwardStream(len, data, orig);
+				}
 			}
 		}
 	else // if not encrypted

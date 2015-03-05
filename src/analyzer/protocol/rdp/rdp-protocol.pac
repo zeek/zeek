@@ -388,15 +388,19 @@ refine connection RDP_Conn += {
 
 	%member{
 		bool is_encrypted_;
+		uint32 encryption_method_;
 	%}
 
 	%init{
 		is_encrypted_ = false;
+		encryption_method_ = 0;
 	%}
 
 	function go_encrypted(method: uint32): bool
 		%{
 		is_encrypted_ = true;
+		encryption_method_ = method;
+
 		if ( rdp_begin_encryption )
 			{
 			BifEvent::generate_rdp_begin_encryption(bro_analyzer(),
@@ -410,5 +414,10 @@ refine connection RDP_Conn += {
 	function is_encrypted(): bool
 		%{
 		return is_encrypted_;
+		%}
+
+	function encryption_method(): uint32
+		%{
+		return encryption_method_;
 		%}
 };

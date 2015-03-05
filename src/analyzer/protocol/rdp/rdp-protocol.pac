@@ -8,15 +8,15 @@ type TPKT(is_orig: bool) = record {
 # because there are packets that report incorrect 
 # lengths in the tpkt length field.  No clue why.
 
-	cotp:     COTP;
+	cotp:     COTP(this);
 } &byteorder=bigendian &length=tpkt_len;
 
-type COTP = record {
+type COTP(tpkt: TPKT) = record {
 	cotp_len:  uint8;
 	pdu:       uint8;
 	switch:    case pdu of {
-		0xd0    -> connect_confirm: Connect_Confirm;
-		0xe0    -> client_request:  Connect_Request;
+		0xd0    -> connect_confirm: Connect_Confirm(this);
+		0xe0    -> client_request:  Connect_Request(this);
 		0xf0    -> data:            DT_Data;
 
 		# In case we don't support the PDU we just
@@ -73,14 +73,17 @@ type Data_Block = record {
 # Client X.224
 ######################################################################
 
-type Connect_Request = record {
+type Connect_Request(cotp: COTP) = record {
 	destination_reference: uint16;
 	source_reference:      uint16;
 	flow_control:          uint8;
 	cookie_mstshash:       RE/Cookie: mstshash\=/;
-	cookie_value:          RE/[^\x0d]+/;
+	cookie_value:          RE/[^\x0d]*/;
 	cookie_terminator:     RE/\x0d\x0a/;
-	rdp_neg_req:           RDP_Negotiation_Request;
+	switch1:   case (offsetof(switch1) + 2 - cotp.cotp_len - 1) of {
+		0       -> none:        empty;
+		default -> rdp_neg_req: RDP_Negotiation_Request;
+	};
 } &byteorder=littleendian;
 
 type RDP_Negotiation_Request = record {
@@ -99,7 +102,7 @@ type RDP_Negotiation_Request = record {
 # Server X.224
 ######################################################################
 
-type Connect_Confirm = record {
+type Connect_Confirm(cotp: COTP) = record {
 	destination_reference: uint16;
 	source_reference:      uint16;
 	flags:                 uint8;

@@ -844,7 +844,8 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 
 #ifdef ENABLE_BROKER
 	if ( stream->enable_remote )
-		comm_mgr->Log(id, columns, stream->remote_flags);
+		if ( ! comm_mgr->Log(id, columns, stream->remote_flags) )
+			stream->enable_remote = false;
 #endif
 
 	Unref(columns);

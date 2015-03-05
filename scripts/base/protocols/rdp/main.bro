@@ -19,6 +19,8 @@ export {
 		## RDP negotation failure messages and GCC server create
 		## response messages.
 		result:                string  &log &optional;
+		## Security protocol chosen by the server.
+		security_protocol:     string &log &optional;
 
 		## Keyboard layout     (language) of the client machine.
 		keyboard_layout:       string  &log &optional;
@@ -46,8 +48,6 @@ export {
 		## Indicates if the provided certificate or certificate
 		## chain is permanent or temporary.
 		cert_permanent:        bool    &log &optional;
-		## Security protocol chosen by the server.
-		selected_security_protocol: string &log &optional;
 		## Encryption level of the connection.
 		encryption_level:      string  &log &optional;
 		## Encryption method of the connection. 
@@ -155,11 +155,11 @@ event rdp_connect_request(c: connection, cookie: string) &priority=5
 	c$rdp$cookie = cookie;
 	}
 
-event rdp_negotiation_response(c: connection, selected_security_protocol: count) &priority=5
+event rdp_negotiation_response(c: connection, security_protocol: count) &priority=5
 	{
 	set_session(c);
 
-	c$rdp$selected_security_protocol = security_protocols[selected_security_protocol];
+	c$rdp$security_protocol = security_protocols[security_protocol];
 	}
 
 event rdp_negotiation_failure(c: connection, failure_code: count) &priority=5
@@ -212,6 +212,17 @@ event rdp_server_certificate(c: connection, cert_type: count, permanently_issued
 		++c$rdp$cert_count;
 	
 	c$rdp$cert_permanent = permanently_issued;
+	}
+
+event rdp_begin_encryption(c: connection, security_protocol: count) &priority=5
+	{
+	set_session(c);
+
+	if ( ! c$rdp?$result )
+		{
+		c$rdp$result = "encrypted";
+		}
+	c$rdp$security_protocol = security_protocols[security_protocol];
 	}
 
 event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priority=5

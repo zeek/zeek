@@ -129,9 +129,9 @@ type RDP_Negotiation_Response = record {
 	length:              uint16; # must be set to 8
 	selected_protocol:   uint32;
 } &let {
-	# Seems to be encrypted after this message if 
-	# selected_protocol > 0
-	enc: bool = $context.connection.go_encrypted(selected_protocol>0);
+	# Seems to be SSL encrypted (maybe CredSSP also?) 
+	# after this message if the selected_protocol is > 0.
+	enc_ssl: bool = $context.connection.go_encrypted(selected_protocol) &if(selected_protocol > 0);
 } &byteorder=littleendian;
 
 type RDP_Negotiation_Failure = record {
@@ -282,7 +282,8 @@ type Server_Security_Data = record {
 } &let {
 	# Seems to be encrypted after this message if 
 	# encryption level is >0
-	enc: bool = $context.connection.go_encrypted(encryption_level>0);
+	# 0 means RDP encryption.
+	enc: bool = $context.connection.go_encrypted(0) &if(encryption_method > 0 && encryption_level > 0);
 } &byteorder=littleendian;
 
 type Server_Certificate = record {
@@ -393,12 +394,16 @@ refine connection RDP_Conn += {
 		is_encrypted_ = false;
 	%}
 
-	function go_encrypted(should_we: bool): bool
+	function go_encrypted(method: uint32): bool
 		%{
-		if ( should_we )
+		is_encrypted_ = true;
+		if ( rdp_begin_encryption )
 			{
-			is_encrypted_ = true;
+			BifEvent::generate_rdp_begin_encryption(bro_analyzer(),
+			                                        bro_analyzer()->Conn(),
+			                                        ${method});
 			}
+
 		return is_encrypted_;
 		%}
 

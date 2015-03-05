@@ -9,8 +9,8 @@ event rdp_connect_request%(c: connection, cookie: string%);
 ##
 ## c: The connection record for the underlying transport-layer session/flow.
 ##
-## selected_security_protocol: The security protocol selected by the server.
-event rdp_negotiation_response%(c: connection, selected_security_protocol: count%);
+## security_protocol: The security protocol selected by the server.
+event rdp_negotiation_response%(c: connection, security_protocol: count%);
 
 ## Generated for RDP Negotiation Failure messages.
 ##
@@ -52,3 +52,10 @@ event rdp_server_security%(c: connection, encryption_method: count, encryption_l
 ##
 ## permanently_issued: Value will be true is the certificate(s) is permanent on the server.
 event rdp_server_certificate%(c: connection, cert_type: count, permanently_issued: bool%);
+
+## Generated when an RDP session becomes encrypted.
+##
+## c: The connection record for the underlying transport-layer session/flow.
+##
+## security_protocol: The security protocol being used for the session.
+event rdp_begin_encryption%(c: connection, security_protocol: count%);

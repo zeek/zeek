@@ -120,6 +120,19 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val)
 
 	pX509Cert->Assign(6, new StringVal(buf));
 
+	// Special case for RDP server certificates. For some reason some (all?) RDP server
+	// certificates like to specify their key algorithm as md5WithRSAEncryption, which
+	// is wrong on so many levels. We catch this special case here and set it to what is
+	// actually should be (namely - rsaEncryption), so that OpenSSL will parse out the
+	// key later. Otherwise it will just fail to parse the certificate key.
+
+	ASN1_OBJECT* old_algorithm = 0;
+	if ( OBJ_obj2nid(ssl_cert->cert_info->key->algor->algorithm) == NID_md5WithRSAEncryption )
+		{
+		old_algorithm = ssl_cert->cert_info->key->algor->algorithm;
+		ssl_cert->cert_info->key->algor->algorithm = OBJ_nid2obj(NID_rsaEncryption);
+		}
+
 	if ( ! i2t_ASN1_OBJECT(buf, 255, ssl_cert->sig_alg->algorithm) )
 		buf[0] = 0;
 
@@ -151,6 +164,11 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val)
 			pX509Cert->Assign(11, KeyCurve(pkey));
 			}
 #endif
+
+		// set key algorithm back. We do not have to free the value that we created because (I think) it
+		// comes out of a static array from OpenSSL memory.
+		if ( old_algorithm )
+			ssl_cert->cert_info->key->algor->algorithm = old_algorithm;
 
 		unsigned int length = KeyLength(pkey);
 		if ( length > 0 )

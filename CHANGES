@@ -1,4 +1,20 @@
 
+2.3-526 | 2015-03-06 12:48:49 -0600
+
+  * Fix build warnings, clarify broker requirements, update submodule.
+    (Jon Siwek)
+
+  * Rename comm/ directories to broker/ (Jon Siwek)
+
+  * Rename broker-related namespaces. (Jon Siwek)
+
+  * Improve remote logging via broker by only sending fields w/ &log.
+    (Jon Siwek)
+
+  * Disable a stream's remote logging via broker if it fails. (Jon Siwek)
+
+  * Improve some broker communication unit tests. (Jon Siwek)
+
 2.3-518 | 2015-03-04 13:13:50 -0800
 
   * Add bytes_recvd to stats.log recording the number of bytes

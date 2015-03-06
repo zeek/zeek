@@ -17,7 +17,7 @@
 #include "logging.bif.h"
 
 #ifdef ENABLE_BROKER
-#include "comm/Manager.h"
+#include "broker/Manager.h"
 #endif
 
 using namespace logging;
@@ -843,8 +843,9 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 		}
 
 #ifdef ENABLE_BROKER
-	if ( stream->enable_remote )
-		comm_mgr->Log(id, columns, stream->remote_flags);
+	if ( stream->enable_remote &&
+	     ! broker_mgr->Log(id, columns, stream->columns, stream->remote_flags) )
+			stream->enable_remote = false;
 #endif
 
 	Unref(columns);

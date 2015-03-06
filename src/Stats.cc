@@ -11,7 +11,7 @@
 #include "threading/Manager.h"
 
 #ifdef ENABLE_BROKER
-#include "comm/Manager.h"
+#include "broker/Manager.h"
 #endif
 
 int killed_by_inactivity = 0;
@@ -227,7 +227,7 @@ void ProfileLogger::Log()
 		}
 
 #ifdef ENABLE_BROKER
-	auto cs = comm_mgr->ConsumeStatistics();
+	auto cs = broker_mgr->ConsumeStatistics();
 
 	file->Write(fmt("%0.6f Comm: peers=%zu stores=%zu "
 	                "store_queries=%zu store_responses=%zu "

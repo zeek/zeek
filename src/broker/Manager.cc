@@ -210,7 +210,7 @@ bool bro_broker::Manager::Log(EnumVal* stream, RecordVal* columns, RecordType* i
 
 	broker::record column_data;
 
-	for ( auto i = 0u; i < info->NumFields(); ++i )
+	for ( auto i = 0u; i < static_cast<size_t>(info->NumFields()); ++i )
 		{
 		if ( ! info->FieldDecl(i)->FindAttr(ATTR_LOG) )
 			continue;

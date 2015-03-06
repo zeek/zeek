@@ -11,8 +11,8 @@ Broker-Enabled Communication Framework
     <../components/broker/README.html>`_ to exchange information with
     other Bro processes.  To enable it run Bro's ``configure`` script
     with the ``--enable-broker`` option.  Note that a C++11 compatible
-    compiler is required as well as the `C++ Actor Framework
-    <http://actor-framework.org/>`_.
+    compiler (e.g. GCC 4.8+ or Clang 3.3+) is required as well as the
+    `C++ Actor Framework <http://actor-framework.org/>`_.
 
 .. contents::
 

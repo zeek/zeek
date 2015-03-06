@@ -319,7 +319,7 @@ struct val_converter {
 		auto rt = type->AsRecordType();
 		auto rval = new RecordVal(rt);
 
-		for ( auto i = 0; i < rt->NumFields(); ++i )
+		for ( auto i = 0u; i < static_cast<size_t>(rt->NumFields()); ++i )
 			{
 			if ( require_log_attr && ! rt->FieldDecl(i)->FindAttr(ATTR_LOG) )
 				continue;

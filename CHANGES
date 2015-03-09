@@ -1,4 +1,8 @@
 
+2.3-529 | 2015-03-09 13:14:27 -0500
+
+  * Fix format specifier in SSL protocol violation. (Jon Siwek)
+
 2.3-526 | 2015-03-06 12:48:49 -0600
 
   * Fix build warnings, clarify broker requirements, update submodule.

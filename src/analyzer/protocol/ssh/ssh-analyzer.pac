@@ -73,17 +73,35 @@ refine flow SSH_Flow += {
 		RecordVal* result = new RecordVal(BifType::Record::SSH::Capabilities);
 		result->Assign(0, name_list_to_vector(${msg.kex_algorithms.val}));
 		result->Assign(1, name_list_to_vector(${msg.server_host_key_algorithms.val}));
-		result->Assign(2, name_list_to_vector(${msg.encryption_algorithms_client_to_server.val}));
-		result->Assign(3, name_list_to_vector(${msg.encryption_algorithms_server_to_client.val}));
-		result->Assign(4, name_list_to_vector(${msg.mac_algorithms_client_to_server.val}));
-		result->Assign(5, name_list_to_vector(${msg.mac_algorithms_server_to_client.val}));
-		result->Assign(6, name_list_to_vector(${msg.compression_algorithms_client_to_server.val}));
-		result->Assign(7, name_list_to_vector(${msg.compression_algorithms_server_to_client.val}));
-		if ( ${msg.languages_client_to_server.len} )
-			result->Assign(8, name_list_to_vector(${msg.languages_client_to_server.val}));
-		if ( ${msg.languages_server_to_client.len} )
-			result->Assign(9, name_list_to_vector(${msg.languages_server_to_client.val}));
-		result->Assign(10, new Val(${msg.is_orig}, TYPE_BOOL));
+
+		RecordVal* encryption_algs = new RecordVal(BifType::Record::SSH::Algorithm_Prefs);
+		encryption_algs->Assign(0, name_list_to_vector(${msg.encryption_algorithms_client_to_server.val}));
+		encryption_algs->Assign(1, name_list_to_vector(${msg.encryption_algorithms_server_to_client.val}));
+		result->Assign(2, encryption_algs);
+
+		RecordVal* mac_algs = new RecordVal(BifType::Record::SSH::Algorithm_Prefs);
+		mac_algs->Assign(0, name_list_to_vector(${msg.mac_algorithms_client_to_server.val}));
+		mac_algs->Assign(1, name_list_to_vector(${msg.mac_algorithms_server_to_client.val}));
+		result->Assign(3, mac_algs);
+
+		RecordVal* compression_algs = new RecordVal(BifType::Record::SSH::Algorithm_Prefs);
+		compression_algs->Assign(0, name_list_to_vector(${msg.compression_algorithms_client_to_server.val}));
+		compression_algs->Assign(1, name_list_to_vector(${msg.compression_algorithms_server_to_client.val}));
+		result->Assign(4, compression_algs);
+
+		if ( ${msg.languages_client_to_server.len} || ${msg.languages_server_to_client.len} )
+			{
+			RecordVal* languages = new RecordVal(BifType::Record::SSH::Algorithm_Prefs);
+			if ( ${msg.languages_client_to_server.len} )
+				languages->Assign(0, name_list_to_vector(${msg.languages_client_to_server.val}));
+			if ( ${msg.languages_server_to_client.len} )
+				languages->Assign(1, name_list_to_vector(${msg.languages_server_to_client.val}));
+
+			result->Assign(5, languages);
+			}
+
+		
+		result->Assign(6, new Val(${msg.is_orig}, TYPE_BOOL));
 
 		BifEvent::generate_ssh_capabilities(connection()->bro_analyzer(),
 			connection()->bro_analyzer()->Conn(), bytestring_to_val(${msg.cookie}),

@@ -2218,37 +2218,31 @@ export {
 module SSH;
 
 export {
+	## The client and server each have some preferences for the algorithms used
+	## in each direction.
+	type Algorithm_Prefs: record {
+		## The algorithm preferences for client to server communication
+		client_to_server:  vector of string &optional;
+		## The algorithm preferences for server to client communication
+		server_to_client: vector of string &optional;
+	};
+	
 	## SSH Capability record
 	type Capabilities: record {
 		## Key exchange algorithms
-		kex_algorithms							: string_vec;
+		kex_algorithms:             string_vec;
 		## The algorithms supported for the server host key
-		server_host_key_algorithms				: string_vec;
-		## Acceptable symmetric encryption algorithms for c->s,
-		## in order of preference
-		encryption_algorithms_client_to_server	: string_vec;
-		## Acceptable symmetric encryption algorithms for s->c,
-		## in order of preference
-		encryption_algorithms_server_to_client	: string_vec;
-		## Acceptable MAC algorithms for c->s,
-		## in order of preference
-		mac_algorithms_client_to_server			: string_vec;
-
-		## Acceptable MAC algorithms for s->c,
-		## in order of preference
-		mac_algorithms_server_to_client			: string_vec;
-		## Acceptable compression algorithms for c->s,
-		## in order of preference
-		compression_algorithms_client_to_server	: string_vec;
-		## Acceptable compression algorithms for c->s,
-		## in order of preference
-		compression_algorithms_server_to_client	: string_vec;
-		## Language tags in order of preference for c->s
-		languages_client_to_server				: string_vec &optional;
-		## Language tags in order of preference for s->c
-		languages_server_to_client				: string_vec &optional;
+		server_host_key_algorithms: string_vec;
+		## Symmetric encryption algorithm preferences
+		encryption_algorithms:      Algorithm_Prefs;
+		## Symmetric MAC algorithm preferences
+		mac_algorithms:             Algorithm_Prefs;
+		## Compression algorithm preferences
+		compression_algorithms:     Algorithm_Prefs;
+		## Language preferences
+		languages:                  Algorithm_Prefs &optional;
 		## Are these the capabilities of the server?
-		is_server								: bool;
+		is_server:                  bool;
 	};
 }
 

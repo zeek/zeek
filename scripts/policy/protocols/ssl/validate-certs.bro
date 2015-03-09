@@ -131,6 +131,7 @@ event ssl_established(c: connection) &priority=3
 
 	local intermediate_chain: vector of opaque of x509 = vector();
 	local issuer = c$ssl$cert_chain[0]$x509$certificate$issuer;
+	local hash = c$ssl$cert_chain[0]$sha1;
 	local result: string;
 
 	# look if we already have a working chain for the issuer of this cert.
@@ -168,6 +169,6 @@ event ssl_established(c: connection) &priority=3
 		local message = fmt("SSL certificate validation failed with (%s)", c$ssl$validation_status);
 		NOTICE([$note=Invalid_Server_Cert, $msg=message,
 		        $sub=c$ssl$subject, $conn=c,
-		        $identifier=cat(c$id$resp_h,c$id$resp_p,c$ssl$validation_status)]);
+		        $identifier=cat(c$id$resp_h,c$id$resp_p,hash,c$ssl$validation_status)]);
 		}
 	}

@@ -26,6 +26,18 @@ export {
 	global recently_validated_certs: table[string] of string = table()
 		&read_expire=5mins &redef;
 
+	## Use intermediate CA certificate caching when trying to validate
+	## certificates. When this is enabled, Bro keeps track of all valid
+	## intermediate CA certificates that it has seen in the past. When
+	## encountering a host-certificate that cannot be validated because
+	## of missing intermediate CA certificate, the cached list is used
+	## to try to validate the cert. This is similar to how Firefox is
+	## doing certificate validation.
+	## Disabling this will usually greatly increase the number of validation
+	## warnings that you encounter. Only disable if you want to find misconfigured
+	## servers.
+	global ssl_cache_intermediate_ca: bool = T &redef;
+
 	## Event from a worker to the manager that it has encountered a new
 	## valid intermediate
 	global intermediate_add: event(key: string, value: vector of opaque of x509);
@@ -88,7 +100,10 @@ function cache_validate(chain: vector of opaque of x509): string
 
 	# if we have a working chain where we did not store the intermediate certs
 	# in our cache yet - do so
-	if ( result$result_string == "ok" && result?$chain_certs && |result$chain_certs| > 2 )
+	if ( ssl_cache_intermediate_ca &&
+	     result$result_string == "ok" &&
+		   result?$chain_certs &&
+		   |result$chain_certs| > 2 )
 		{
 		local result_chain = result$chain_certs;
 		local icert = x509_parse(result_chain[1]);
@@ -121,7 +136,7 @@ event ssl_established(c: connection) &priority=3
 	# look if we already have a working chain for the issuer of this cert.
 	# If yes, try this chain first instead of using the chain supplied from
 	# the server.
-	if ( issuer in intermediate_cache )
+	if ( ssl_cache_intermediate_ca && issuer in intermediate_cache )
 		{
 		intermediate_chain[0] = c$ssl$cert_chain[0]$x509$handle;
 		for ( i in intermediate_cache[issuer] )

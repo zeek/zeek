@@ -140,7 +140,7 @@ event ssh_auth_failed(c: connection)
 		return;
 
 	# We can't accurately tell for compressed streams
-	if ( c$ssh?$compression_alg && ( c$ssh$compression_alg == "zlib@openssh.com" || c$ssh$compression_alg == "zlib" ) )
+	if ( c$ssh?$compression_alg && ( c$ssh$compression_alg in compression_algorithms ) )
 		return;
 
 	c$ssh$auth_success = F;
@@ -154,6 +154,7 @@ function find_alg(client_algorithms: vector of string, server_algorithms: vector
 		for ( j in server_algorithms )
 			if ( client_algorithms[i] == server_algorithms[j] )
 				return client_algorithms[i];
+	return "Algorithm negotiation failed";
 	}
 
 # This is a simple wrapper around find_alg for cases where client to server and server to client

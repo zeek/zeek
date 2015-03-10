@@ -1,4 +1,8 @@
 
+2.3-530 | 2015-03-10 13:22:39 -0500
+
+  * Fix broker data stores in absence of --enable-debug. (Jon Siwek)
+
 2.3-529 | 2015-03-09 13:14:27 -0500
 
   * Fix format specifier in SSL protocol violation. (Jon Siwek)

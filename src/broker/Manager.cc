@@ -1038,6 +1038,7 @@ bool bro_broker::Manager::CloseStore(const broker::store::identifier& id,
 	delete it->second->store;
 	it->second->store = nullptr;
 	Unref(it->second);
+	data_stores.erase(it);
 	return true;
 	}
 

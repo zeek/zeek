@@ -48,7 +48,8 @@ function BrokerStore::create_master%(id: string, b: BackendType &default = MEMOR
 	rval = new bro_broker::StoreHandleVal(id_str, type,
 	                                static_cast<BifEnum::BrokerStore::BackendType>(b->AsEnum()),
 	                                options->AsRecordVal());
-	assert(broker_mgr->AddStore(rval));
+	auto added = broker_mgr->AddStore(rval);
+	assert(added);
 	return rval;
 	%}
 
@@ -92,7 +93,8 @@ function BrokerStore::create_clone%(id: string, b: BackendType &default = MEMORY
 	                                static_cast<BifEnum::BrokerStore::BackendType>(b->AsEnum()),
 	                                options->AsRecordVal(),
 	                                std::chrono::duration<double>(resync));
-	assert(broker_mgr->AddStore(rval));
+	auto added = broker_mgr->AddStore(rval);
+	assert(added);
 	return rval;
 	%}
 
@@ -115,7 +117,8 @@ function BrokerStore::create_frontend%(id: string%): opaque of BrokerStore::Hand
 		}
 
 	rval = new bro_broker::StoreHandleVal(id_str, type, {}, nullptr);
-	assert(broker_mgr->AddStore(rval));
+	auto added = broker_mgr->AddStore(rval);
+	assert(added);
 	return rval;
 	%}
 
@@ -396,7 +399,12 @@ static bool prepare_for_query(Val* opaque, Frame* frame,
 	*handle = static_cast<bro_broker::StoreHandleVal*>(opaque);
 
 	if ( ! (*handle)->store )
+		{
+		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
+		reporter->Error("BrokerStore query has an invalid data store");
+		reporter->PopLocation();
 		return false;
+		}
 
 	Trigger* trigger = frame->GetTrigger();
 

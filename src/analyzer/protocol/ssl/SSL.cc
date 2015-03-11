@@ -5,6 +5,8 @@
 #include "util.h"
 
 #include "events.bif.h"
+#include "ssl_pac.h"
+#include "tls-handshake_pac.h"
 
 using namespace analyzer::ssl;
 
@@ -12,12 +14,14 @@ SSL_Analyzer::SSL_Analyzer(Connection* c)
 : tcp::TCP_ApplicationAnalyzer("SSL", c)
 	{
 	interp = new binpac::SSL::SSL_Conn(this);
+	handshake_interp = new binpac::TLSHandshake::Handshake_Conn(this);
 	had_gap = false;
 	}
 
 SSL_Analyzer::~SSL_Analyzer()
 	{
 	delete interp;
+	delete handshake_interp;
 	}
 
 void SSL_Analyzer::Done()
@@ -54,6 +58,21 @@ void SSL_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	catch ( const binpac::Exception& e )
 		{
 		ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
+		}
+	}
+
+void SSL_Analyzer::SendHandshake(uint8 msg_type, uint32 length, const u_char* begin, const u_char* end, bool orig)
+	{
+	handshake_interp->set_msg_type(msg_type);
+	handshake_interp->set_msg_length(length);
+	try
+		{
+		handshake_interp->NewData(orig, begin, end);
+		}
+	catch ( const binpac::Exception& e )
+		{
+		ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
+		fprintf(stderr, "Handshake exception: %s\n", e.c_msg());
 		}
 	}
 

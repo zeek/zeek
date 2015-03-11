@@ -92,16 +92,20 @@ redef record Info += {
 		delay_tokens: set[string] &optional;
 };
 
-const ports = {
+const ssl_ports = {
 	443/tcp, 563/tcp, 585/tcp, 614/tcp, 636/tcp,
 	989/tcp, 990/tcp, 992/tcp, 993/tcp, 995/tcp, 5223/tcp
 };
-redef likely_server_ports += { ports };
+
+const dtls_ports = { 4433/udp };
+
+redef likely_server_ports += { ssl_ports, dtls_ports };
 
 event bro_init() &priority=5
 	{
 	Log::create_stream(SSL::LOG, [$columns=Info, $ev=log_ssl]);
-	Analyzer::register_for_ports(Analyzer::ANALYZER_SSL, ports);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_SSL, ssl_ports);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_DTLS, dtls_ports);
 	}
 
 function set_session(c: connection)

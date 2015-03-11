@@ -65,7 +65,7 @@ refine flow SSH_Flow += {
 		return true;
 		%}
 
-	function proc_ssh_kexinit(msg: SSH_KEXINIT): bool
+	function proc_ssh2_kexinit(msg: SSH2_KEXINIT): bool
 		%{
 		if ( ! ssh_capabilities )
 			return false;
@@ -110,11 +110,11 @@ refine flow SSH_Flow += {
 		return true;
 		%}
 
-	function proc_ssh_server_host_key(key: bytestring): bool
+	function proc_ssh2_server_host_key(key: bytestring): bool
 		%{
-		if ( ssh_server_host_key )
+		if ( ssh2_server_host_key )
 			{
-			BifEvent::generate_ssh_server_host_key(connection()->bro_analyzer(), 
+			BifEvent::generate_ssh2_server_host_key(connection()->bro_analyzer(), 
 				connection()->bro_analyzer()->Conn(), 
 				bytestring_to_val(${key}));
 			}
@@ -138,15 +138,14 @@ refine flow SSH_Flow += {
 		connection()->bro_analyzer()->ProtocolConfirmation();
 		return true;
 		%}
-
 };
 
 refine typeattr SSH_Version += &let {
 	proc: bool = $context.flow.proc_ssh_version(this);
 };
 
-refine typeattr SSH_KEXINIT += &let {
-	proc: bool = $context.flow.proc_ssh_kexinit(this);
+refine typeattr SSH2_KEXINIT += &let {
+	proc: bool = $context.flow.proc_ssh2_kexinit(this);
 };
 
 refine typeattr SSH1_Message += &let {
@@ -157,14 +156,14 @@ refine typeattr SSH2_Message += &let {
 	proc_newkeys: bool = $context.flow.proc_newkeys() &if(msg_type == MSG_NEWKEYS);
 };
 
-refine typeattr SSH_DH_GEX_REPLY += &let {
-	proc: bool = $context.flow.proc_ssh_server_host_key(k_s.val);
+refine typeattr SSH2_DH_GEX_REPLY += &let {
+	proc: bool = $context.flow.proc_ssh2_server_host_key(k_s.val);
 };
 
-refine typeattr SSH_ECC_REPLY += &let {
-	proc: bool = $context.flow.proc_ssh_server_host_key(k_s.val);
+refine typeattr SSH2_ECC_REPLY += &let {
+	proc: bool = $context.flow.proc_ssh2_server_host_key(k_s.val);
 };
 
 refine typeattr SSH1_PUBLIC_KEY += &let {
-	proc: bool = $context.flow.proc_ssh1_server_host_key(host_key_p.val, host_key_e.val);
+	proc:  bool = $context.flow.proc_ssh1_server_host_key(host_key_p.val, host_key_e.val);
 };

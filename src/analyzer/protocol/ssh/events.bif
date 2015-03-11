@@ -10,6 +10,6 @@ event ssh_encrypted_packet%(c: connection, orig: bool, len: count%);
 
 event ssh_capabilities%(c: connection, cookie: string, capabilities: SSH::Capabilities%);
 
-event ssh_server_host_key%(c: connection, key: string%);
+event ssh2_server_host_key%(c: connection, key: string%);
 
 event ssh1_server_host_key%(c: connection, p: string, e: string%);

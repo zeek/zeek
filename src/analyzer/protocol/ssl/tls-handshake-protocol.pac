@@ -23,31 +23,36 @@ enum HandshakeType {
 # V3 Handshake Protocol (7.)
 ######################################################################
 
-type UnknownHandshake(hs: Handshake, is_orig: bool) = record {
-	data : bytestring &restofdata &transient;
-};
+type HandshakeRecord(is_orig: bool) = record {
+  msg_type: uint8;
+	msg_length: uint32;
+	rec: Handshake(this);
+#  rec: bytestring &length=10 &transient;
+} &length=(msg_length + 5);
 
-type Handshake(is_orig: bool) = record {
-	body : case msg_type of {
-		HELLO_REQUEST       -> hello_request       : HelloRequest(this);
-		CLIENT_HELLO        -> client_hello        : ClientHello(this);
-		SERVER_HELLO        -> server_hello        : ServerHello(this);
-		SESSION_TICKET      -> session_ticket      : SessionTicketHandshake(this);
-		CERTIFICATE         -> certificate         : Certificate(this);
-		SERVER_KEY_EXCHANGE -> server_key_exchange : ServerKeyExchange(this);
-		CERTIFICATE_REQUEST -> certificate_request : CertificateRequest(this);
-		SERVER_HELLO_DONE   -> server_hello_done   : ServerHelloDone(this);
-		CERTIFICATE_VERIFY  -> certificate_verify  : CertificateVerify(this);
-		CLIENT_KEY_EXCHANGE -> client_key_exchange : ClientKeyExchange(this);
-		FINISHED            -> finished            : Finished(this);
-		CERTIFICATE_URL     -> certificate_url     : bytestring &restofdata &transient;
-		CERTIFICATE_STATUS  -> certificate_status  : CertificateStatus(this);
-		default             -> unknown_handshake   : UnknownHandshake(this, is_orig);
-	} &length = msg_length;
-} &byteorder = bigendian,
-	&let {
-	msg_type: uint8 = $context.connection.msg_type();
-	msg_length: uint32 = $context.connection.msg_length();
+type Handshake(rec: HandshakeRecord) = case rec.msg_type of {
+	HELLO_REQUEST       -> hello_request       : HelloRequest(rec);
+	CLIENT_HELLO        -> client_hello        : ClientHello(rec);
+	SERVER_HELLO        -> server_hello        : ServerHello(rec);
+	SESSION_TICKET      -> session_ticket      : SessionTicketHandshake(rec);
+	CERTIFICATE         -> certificate         : Certificate(rec);
+	SERVER_KEY_EXCHANGE -> server_key_exchange : ServerKeyExchange(rec);
+	CERTIFICATE_REQUEST -> certificate_request : CertificateRequest(rec);
+	SERVER_HELLO_DONE   -> server_hello_done   : ServerHelloDone(rec);
+	CERTIFICATE_VERIFY  -> certificate_verify  : CertificateVerify(rec);
+	CLIENT_KEY_EXCHANGE -> client_key_exchange : ClientKeyExchange(rec);
+	FINISHED            -> finished            : Finished(rec);
+	CERTIFICATE_URL     -> certificate_url     : bytestring &restofdata &transient;
+	CERTIFICATE_STATUS  -> certificate_status  : CertificateStatus(rec);
+	default             -> unknown_handshake   : UnknownHandshake(rec, rec.is_orig);
+}
+
+type HandshakePDU(is_orig: bool) = record {
+	records: HandshakeRecord(is_orig)[] &transient;
+} &byteorder = bigendian;
+
+type UnknownHandshake(hs: HandshakeRecord, is_orig: bool) = record {
+	data : bytestring &restofdata &transient;
 };
 
 ######################################################################
@@ -55,14 +60,14 @@ type Handshake(is_orig: bool) = record {
 ######################################################################
 
 # Hello Request is empty
-type HelloRequest(rec: Handshake) = empty;
+type HelloRequest(rec: HandshakeRecord) = empty;
 
 
 ######################################################################
 # V3 Client Hello (7.4.1.2.)
 ######################################################################
 
-type ClientHello(rec: Handshake) = record {
+type ClientHello(rec: HandshakeRecord) = record {
 	client_version : uint16;
 	gmt_unix_time : uint32;
 	random_bytes : bytestring &length = 28;
@@ -82,7 +87,7 @@ type ClientHello(rec: Handshake) = record {
 # V3 Server Hello (7.4.1.3.)
 ######################################################################
 
-type ServerHello(rec: Handshake) = record {
+type ServerHello(rec: HandshakeRecord) = record {
 	server_version : uint16;
 	gmt_unix_time : uint32;
 	random_bytes : bytestring &length = 28;
@@ -108,14 +113,14 @@ type X509Certificate = record {
 	certificate : bytestring &length = to_int()(length);
 };
 
-type Certificate(rec: Handshake) = record {
+type Certificate(rec: HandshakeRecord) = record {
 	length : uint24;
 	certificates : X509Certificate[] &until($input.length() == 0);
 } &length = to_int()(length)+3;
 
 # OCSP Stapling
 
-type CertificateStatus(rec: Handshake) = record {
+type CertificateStatus(rec: HandshakeRecord) = record {
 	status_type: uint8; # 1 = ocsp, everything else is undefined
 	length : uint24;
 	response: bytestring &restofdata;
@@ -131,7 +136,7 @@ type CertificateStatus(rec: Handshake) = record {
 # The exception is when we are using an ECDHE, DHE or DH-Anon suite.
 # In this case, we can extract information about the chosen cipher from
 # here.
-type ServerKeyExchange(rec: Handshake) = case $context.connection.chosen_cipher() of {
+type ServerKeyExchange(rec: HandshakeRecord) = case $context.connection.chosen_cipher() of {
 	TLS_ECDH_ECDSA_WITH_NULL_SHA,
 	TLS_ECDH_ECDSA_WITH_RC4_128_SHA,
 	TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA,
@@ -336,7 +341,7 @@ type ServerKeyExchange(rec: Handshake) = case $context.connection.chosen_cipher(
 # For the moment, we really only are interested in the curve name. If it
 # is not set (if the server sends explicit parameters), we do not bother.
 # We also do not parse the actual signature data following the named curve.
-type EcServerKeyExchange(rec: Handshake) = record {
+type EcServerKeyExchange(rec: HandshakeRecord) = record {
 	curve_type: uint8;
 	curve: uint16; # only if curve_type = 3 (NAMED_CURVE)
 	data: bytestring &restofdata &transient;
@@ -344,7 +349,7 @@ type EcServerKeyExchange(rec: Handshake) = record {
 
 # For both, dh_anon and dhe the ServerKeyExchange starts with a ServerDHParams
 # structure. After that, they start to differ, but we do not care about that.
-type DhServerKeyExchange(rec: Handshake) = record {
+type DhServerKeyExchange(rec: HandshakeRecord) = record {
 	dh_p_length: uint16;
 	dh_p: bytestring &length=dh_p_length;
 	dh_g_length: uint16;
@@ -360,7 +365,7 @@ type DhServerKeyExchange(rec: Handshake) = record {
 ######################################################################
 
 # For now, ignore Certificate Request Details; just eat up message.
-type CertificateRequest(rec: Handshake) = record {
+type CertificateRequest(rec: HandshakeRecord) = record {
 	cont : bytestring &restofdata &transient;
 };
 
@@ -370,7 +375,7 @@ type CertificateRequest(rec: Handshake) = record {
 ######################################################################
 
 # Server Hello Done is empty
-type ServerHelloDone(rec: Handshake) = empty;
+type ServerHelloDone(rec: HandshakeRecord) = empty;
 
 
 ######################################################################
@@ -387,7 +392,7 @@ type ServerHelloDone(rec: Handshake) = empty;
 
 # For now ignore details of ClientKeyExchange (most of it is
 # encrypted anyway); just eat up message.
-type ClientKeyExchange(rec: Handshake) = record {
+type ClientKeyExchange(rec: HandshakeRecord) = record {
 	key : bytestring &restofdata &transient;
 };
 
@@ -397,7 +402,7 @@ type ClientKeyExchange(rec: Handshake) = record {
 ######################################################################
 
 # For now, ignore Certificate Verify; just eat up the message.
-type CertificateVerify(rec: Handshake) = record {
+type CertificateVerify(rec: HandshakeRecord) = record {
 	cont : bytestring &restofdata &transient;
 };
 
@@ -408,11 +413,11 @@ type CertificateVerify(rec: Handshake) = record {
 
 # The finished messages are always sent after encryption is in effect,
 # so we will not be able to read those messages.
-type Finished(rec: Handshake) = record {
+type Finished(rec: HandshakeRecord) = record {
 	cont : bytestring &restofdata &transient;
 };
 
-type SessionTicketHandshake(rec: Handshake) = record {
+type SessionTicketHandshake(rec: HandshakeRecord) = record {
 	ticket_lifetime_hint: uint32;
 	data:                 bytestring &restofdata;
 };
@@ -421,7 +426,7 @@ type SessionTicketHandshake(rec: Handshake) = record {
 # TLS Extensions
 ######################################################################
 
-type SSLExtension(rec: Handshake) = record {
+type SSLExtension(rec: HandshakeRecord) = record {
 	type: uint16;
 	data_len: uint16;
 
@@ -450,20 +455,20 @@ type ServerName() = record {
 	};
 };
 
-type ServerNameExt(rec: Handshake) = record {
+type ServerNameExt(rec: HandshakeRecord) = record {
 	length: uint16;
 	server_names: ServerName[] &until($input.length() == 0);
 } &length=length+2;
 
 # Do not parse for now. Structure is correct, but only contains asn.1 data that we would not use further.
-#type OcspStatusRequest(rec: Handshake) = record {
+#type OcspStatusRequest(rec: HandshakeRecord) = record {
 #	responder_id_list_length: uint16;
 #	responder_id_list: bytestring &length=responder_id_list_length;
 #	request_extensions_length: uint16;
 #	request_extensions: bytestring &length=request_extensions_length;
 #};
 #
-#type StatusRequest(rec: Handshake) = record {
+#type StatusRequest(rec: HandshakeRecord) = record {
 #	status_type: uint8; # 1 -> ocsp
 #	req: case status_type of {
 #		1 -> ocsp_status_request: OcspStatusRequest(rec);
@@ -471,12 +476,12 @@ type ServerNameExt(rec: Handshake) = record {
 #	};
 #};
 
-type EcPointFormats(rec: Handshake) = record {
+type EcPointFormats(rec: HandshakeRecord) = record {
 	length: uint8;
 	point_format_list: uint8[length];
 };
 
-type EllipticCurves(rec: Handshake) = record {
+type EllipticCurves(rec: HandshakeRecord) = record {
 	length: uint16;
 	elliptic_curve_list: uint16[length/2];
 };
@@ -486,7 +491,7 @@ type ProtocolName() = record {
 	name: bytestring &length=length;
 };
 
-type ApplicationLayerProtocolNegotiationExtension(rec: Handshake) = record {
+type ApplicationLayerProtocolNegotiationExtension(rec: HandshakeRecord) = record {
 	length: uint16;
 	protocol_name_list: ProtocolName[] &until($input.length() == 0);
 } &length=length+2;
@@ -509,7 +514,7 @@ refine connection Handshake_Conn += {
 
 	function msg_type() : uint8 %{ return msg_type_; %}
 
-	function msg_length() : uint32 %{ return msg_length_; %}
+	function msg_length() : uint32 %{ fprintf(stderr, "Got length %d\n", msg_length_); return msg_length_; %}
 
 	function set_msg_type(type: uint8) : bool
 		%{

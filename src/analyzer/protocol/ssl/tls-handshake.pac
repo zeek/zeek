@@ -13,12 +13,11 @@ connection Handshake_Conn(bro_analyzer: BroAnalyzer) {
 	downflow = Handshake_Flow(false);
 };
 
+%include tls-handshake-protocol.pac
+
 flow Handshake_Flow(is_orig: bool) {
-  datagram = Handshake(is_orig) withcontext(connection, this);
+	flowunit = HandshakePDU(is_orig) withcontext(connection, this);
 }
 
-%include tls-handshake-protocol.pac
 %include tls-handshake-analyzer.pac
-
 %include ssl-defs.pac
-

@@ -42,7 +42,7 @@ refine connection Handshake_Conn += {
 		return true;
 		%}
 
-	function proc_ssl_extension(rec: Handshake, type: int, sourcedata: const_bytestring) : bool
+	function proc_ssl_extension(rec: HandshakeRecord, type: int, sourcedata: const_bytestring) : bool
 		%{
 		// We cheat a little bit here. We want to throw this event
 		// for every extension we encounter, even those that are
@@ -70,7 +70,7 @@ refine connection Handshake_Conn += {
 		return true;
 		%}
 
-	function proc_ec_point_formats(rec: Handshake, point_format_list: uint8[]) : bool
+	function proc_ec_point_formats(rec: HandshakeRecord, point_format_list: uint8[]) : bool
 		%{
 		VectorVal* points = new VectorVal(internal_type("index_vec")->AsVectorType());
 
@@ -86,7 +86,7 @@ refine connection Handshake_Conn += {
 		return true;
 		%}
 
-	function proc_elliptic_curves(rec: Handshake, list: uint16[]) : bool
+	function proc_elliptic_curves(rec: HandshakeRecord, list: uint16[]) : bool
 		%{
 		VectorVal* curves = new VectorVal(internal_type("index_vec")->AsVectorType());
 
@@ -102,7 +102,7 @@ refine connection Handshake_Conn += {
 		return true;
 		%}
 
-	function proc_apnl(rec: Handshake, protocols: ProtocolName[]) : bool
+	function proc_apnl(rec: HandshakeRecord, protocols: ProtocolName[]) : bool
 		%{
 		VectorVal* plist = new VectorVal(internal_type("string_vec")->AsVectorType());
 
@@ -118,7 +118,7 @@ refine connection Handshake_Conn += {
 		return true;
 		%}
 
-	function proc_server_name(rec: Handshake, list: ServerName[]) : bool
+	function proc_server_name(rec: HandshakeRecord, list: ServerName[]) : bool
 		%{
 		VectorVal* servers = new VectorVal(internal_type("string_vec")->AsVectorType());
 
@@ -159,14 +159,14 @@ refine connection Handshake_Conn += {
 		return ret;
 		%}
 
-	function proc_unknown_handshake(hs: Handshake, is_orig: bool) : bool
+	function proc_unknown_handshake(hs: HandshakeRecord, is_orig: bool) : bool
 		%{
 		bro_analyzer()->ProtocolViolation(fmt("unknown handshake message (%d) from %s",
 			${hs.msg_type}, orig_label(is_orig).c_str()));
 		return true;
 		%}
 
-	function proc_certificate_status(rec : Handshake, status_type: uint8, response: bytestring) : bool
+	function proc_certificate_status(rec : HandshakeRecord, status_type: uint8, response: bytestring) : bool
 		%{
 		 if ( status_type == 1 ) // ocsp
 			{
@@ -179,7 +179,7 @@ refine connection Handshake_Conn += {
 		return true;
 		%}
 
-	function proc_ec_server_key_exchange(rec: Handshake, curve_type: uint8, curve: uint16) : bool
+	function proc_ec_server_key_exchange(rec: HandshakeRecord, curve_type: uint8, curve: uint16) : bool
 		%{
 		if ( curve_type == NAMED_CURVE )
 			BifEvent::generate_ssl_server_curve(bro_analyzer(),
@@ -188,7 +188,7 @@ refine connection Handshake_Conn += {
 		return true;
 		%}
 
-	function proc_dh_server_key_exchange(rec: Handshake, p: bytestring, g: bytestring, Ys: bytestring) : bool
+	function proc_dh_server_key_exchange(rec: HandshakeRecord, p: bytestring, g: bytestring, Ys: bytestring) : bool
 		%{
 		BifEvent::generate_ssl_dh_server_params(bro_analyzer(),
 			bro_analyzer()->Conn(),
@@ -268,6 +268,6 @@ refine typeattr DhServerKeyExchange += &let {
 };
 
 refine typeattr Handshake += &let {
-	proc : bool = $context.connection.proc_handshake(is_orig, msg_type, msg_length);
+	proc : bool = $context.connection.proc_handshake(rec.is_orig, rec.msg_type, rec.msg_length);
 };
 

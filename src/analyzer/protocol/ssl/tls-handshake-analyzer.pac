@@ -200,10 +200,10 @@ refine connection Handshake_Conn += {
 		return true;
 		%}
 
-	function proc_handshake(is_orig: bool, msg_type: uint8, length: uint32) : bool
+	function proc_handshake(is_orig: bool, msg_type: uint8, length: uint24) : bool
 		%{
 		BifEvent::generate_ssl_handshake_message(bro_analyzer(),
-			bro_analyzer()->Conn(), is_orig, msg_type, length);
+			bro_analyzer()->Conn(), is_orig, msg_type, to_int()(length));
 
 		return true;
 		%}

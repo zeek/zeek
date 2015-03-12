@@ -61,19 +61,15 @@ void SSL_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		}
 	}
 
-void SSL_Analyzer::SendHandshake(uint8 msg_type, uint32 length, const u_char* begin, const u_char* end, bool orig)
+void SSL_Analyzer::SendHandshake(const u_char* begin, const u_char* end, bool orig)
 	{
 	try
 		{
-		handshake_interp->NewData(orig, (const unsigned char*) &msg_type, (const unsigned char*) &msg_type + 1);
-		uint32 host_length = htonl(length);
-		handshake_interp->NewData(orig, (const unsigned char*) &host_length, (const unsigned char*) &host_length + sizeof(host_length));
 		handshake_interp->NewData(orig, begin, end);
 		}
 	catch ( const binpac::Exception& e )
 		{
 		ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
-		fprintf(stderr, "Handshake exception: %s\n", e.c_msg());
 		}
 	}
 

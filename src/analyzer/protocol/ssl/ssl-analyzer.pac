@@ -23,11 +23,9 @@ refine connection SSL_Conn += {
 		return true;
 		%}
 
-	function proc_handshake(rec: SSLRecord, msg_type: uint8, length: uint24, data: bytestring, is_orig: bool) : bool
+	function proc_handshake(rec: SSLRecord, data: bytestring, is_orig: bool) : bool
 		%{
-		fprintf(stderr, "Forwarding to Handshake analyzer: msg_type: %u, length: %u\n", msg_type, to_int()(length));
-		fprintf(stderr, "%u\n", data.end() - data.begin());
-		bro_analyzer()->SendHandshake(msg_type, to_int()(length), data.begin(), data.end(), is_orig);
+		bro_analyzer()->SendHandshake(data.begin(), data.end(), is_orig);
 		return true;
 		%}
 };
@@ -58,5 +56,5 @@ refine typeattr V2ClientMasterKey += &let {
 };
 
 refine typeattr Handshake += &let {
-	proc : bool = $context.connection.proc_handshake(rec, msg_type, length, data, rec.is_orig);
+	proc : bool = $context.connection.proc_handshake(rec, data, rec.is_orig);
 };

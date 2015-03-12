@@ -25,10 +25,9 @@ enum HandshakeType {
 
 type HandshakeRecord(is_orig: bool) = record {
   msg_type: uint8;
-	msg_length: uint32;
+	msg_length: uint24;
 	rec: Handshake(this);
-#  rec: bytestring &length=10 &transient;
-} &length=(msg_length + 5);
+} &length=(to_int()(msg_length) + 4);
 
 type Handshake(rec: HandshakeRecord) = case rec.msg_type of {
 	HELLO_REQUEST       -> hello_request       : HelloRequest(rec);
@@ -500,33 +499,13 @@ refine connection Handshake_Conn += {
 
 	%member{
 		uint32 chosen_cipher_;
-		uint8 msg_type_;
-		uint32 msg_length_;
 	%}
 
 	%init{
 		chosen_cipher_ = NO_CHOSEN_CIPHER;
-		msg_type_ = 0;
-		msg_length_ = 0;
 	%}
 
 	function chosen_cipher() : int %{ return chosen_cipher_; %}
-
-	function msg_type() : uint8 %{ return msg_type_; %}
-
-	function msg_length() : uint32 %{ fprintf(stderr, "Got length %d\n", msg_length_); return msg_length_; %}
-
-	function set_msg_type(type: uint8) : bool
-		%{
-		msg_type_ = type;
-		return true;
-		%}
-
-	function set_msg_length(len: uint32) : bool
-		%{
-		msg_length_ = len;
-		return true;
-		%}
 
 	function set_cipher(cipher: uint32) : bool
 		%{

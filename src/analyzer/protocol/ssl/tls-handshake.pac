@@ -13,6 +13,7 @@ connection Handshake_Conn(bro_analyzer: BroAnalyzer) {
 	downflow = Handshake_Flow(false);
 };
 
+%include ssl-defs.pac
 %include tls-handshake-protocol.pac
 
 flow Handshake_Flow(is_orig: bool) {
@@ -20,4 +21,3 @@ flow Handshake_Flow(is_orig: bool) {
 }
 
 %include tls-handshake-analyzer.pac
-%include ssl-defs.pac

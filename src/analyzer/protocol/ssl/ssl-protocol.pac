@@ -43,9 +43,10 @@ refine casetype PlaintextRecord += {
 };
 
 type Handshake(rec: SSLRecord) = record {
-	msg_type: uint8;
-	length: uint24;
-	data: bytestring &length=to_int()(length);
+#	msg_type: uint8;
+#	length: uint24;
+#	data: bytestring &length=to_int()(length);
+	data: bytestring &restofdata;
 };
 
 ######################################################################

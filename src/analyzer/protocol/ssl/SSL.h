@@ -21,7 +21,7 @@ public:
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
 	virtual void Undelivered(uint64 seq, int len, bool orig);
 
-	void SendHandshake(uint8 msg_type, uint32 length, const u_char* begin, const u_char* end, bool orig);
+	void SendHandshake(const u_char* begin, const u_char* end, bool orig);
 
 	// Overriden from tcp::TCP_ApplicationAnalyzer.
 	virtual void EndpointEOF(bool is_orig);

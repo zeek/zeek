@@ -149,6 +149,10 @@ while [ $# -ne 0 ]; do
             append_cache_entry CMAKE_INSTALL_PREFIX PATH   $optarg
             append_cache_entry BRO_ROOT_DIR         PATH   $optarg
             append_cache_entry PY_MOD_INSTALL_DIR   PATH   $optarg/lib/broctl
+
+            if [ -n "$user_enabled_broker" ]; then
+                append_cache_entry BROKER_PYTHON_HOME   PATH   $prefix
+            fi
             ;;
         --scriptdir=*)
             append_cache_entry BRO_SCRIPT_INSTALL_PATH STRING $optarg
@@ -189,6 +193,8 @@ while [ $# -ne 0 ]; do
         --enable-broker)
             append_cache_entry ENABLE_CXX11         BOOL   true
             append_cache_entry ENABLE_BROKER        BOOL   true
+            append_cache_entry BROKER_PYTHON_HOME   PATH   $prefix
+            user_enabled_broker="true"
             ;;
         --disable-broccoli)
             append_cache_entry INSTALL_BROCCOLI     BOOL   false

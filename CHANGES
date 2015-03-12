@@ -1,4 +1,9 @@
 
+2.3-533 | 2015-03-12 10:18:53 -0500
+
+  * Give broker python bindings default install path within --prefix.
+    (Jon Siwek)
+
 2.3-530 | 2015-03-10 13:22:39 -0500
 
   * Fix broker data stores in absence of --enable-debug. (Jon Siwek)

@@ -30,12 +30,15 @@ void SSL_Analyzer::Done()
 
 	interp->FlowEOF(true);
 	interp->FlowEOF(false);
+	handshake_interp->FlowEOF(true);
+	handshake_interp->FlowEOF(false);
 	}
 
 void SSL_Analyzer::EndpointEOF(bool is_orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
 	interp->FlowEOF(is_orig);
+	handshake_interp->FlowEOF(is_orig);
 	}
 
 void SSL_Analyzer::DeliverStream(int len, const u_char* data, bool orig)

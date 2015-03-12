@@ -42,10 +42,8 @@ refine casetype PlaintextRecord += {
 	V2_SERVER_HELLO		-> v2_server_hello : V2ServerHello(rec);
 };
 
+# Handshakes are parsed by the handshake analyzer.
 type Handshake(rec: SSLRecord) = record {
-#	msg_type: uint8;
-#	length: uint24;
-#	data: bytestring &length=to_int()(length);
 	data: bytestring &restofdata;
 };
 

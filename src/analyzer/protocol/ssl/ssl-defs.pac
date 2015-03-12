@@ -71,6 +71,8 @@ function version_ok(vers : uint16) : bool
 	case TLSv10:
 	case TLSv11:
 	case TLSv12:
+	case DTLSv10:
+	case DTLSv12:
 		return true;
 
 	default:
@@ -85,6 +87,9 @@ using std::string;
 
 #include "events.bif.h"
 %}
+
+# a maximum of 100k for one record seems safe 
+let MAX_DTLS_HANDSHAKE_RECORD: uint32 = 100000;
 
 enum ContentType {
 	CHANGE_CIPHER_SPEC = 20,
@@ -106,7 +111,11 @@ enum SSLVersions {
 	SSLv30		= 0x0300,
 	TLSv10		= 0x0301,
 	TLSv11		= 0x0302,
-	TLSv12		= 0x0303
+	TLSv12		= 0x0303,
+
+	DTLSv10   = 0xFEFF,
+# DTLSv11 does not exist.
+	DTLSv12   = 0xFEFD
 };
 
 enum SSLExtensions {

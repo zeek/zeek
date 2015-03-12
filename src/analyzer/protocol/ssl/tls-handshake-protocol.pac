@@ -6,6 +6,7 @@ enum HandshakeType {
 	HELLO_REQUEST       = 0,
 	CLIENT_HELLO        = 1,
 	SERVER_HELLO        = 2,
+	HELLO_VERIFY_REQUEST = 3, # DTLS
 	SESSION_TICKET      = 4, # RFC 5077
 	CERTIFICATE         = 11,
 	SERVER_KEY_EXCHANGE = 12,
@@ -30,20 +31,21 @@ type HandshakeRecord(is_orig: bool) = record {
 } &length=(to_int()(msg_length) + 4);
 
 type Handshake(rec: HandshakeRecord) = case rec.msg_type of {
-	HELLO_REQUEST       -> hello_request       : HelloRequest(rec);
-	CLIENT_HELLO        -> client_hello        : ClientHello(rec);
-	SERVER_HELLO        -> server_hello        : ServerHello(rec);
-	SESSION_TICKET      -> session_ticket      : SessionTicketHandshake(rec);
-	CERTIFICATE         -> certificate         : Certificate(rec);
-	SERVER_KEY_EXCHANGE -> server_key_exchange : ServerKeyExchange(rec);
-	CERTIFICATE_REQUEST -> certificate_request : CertificateRequest(rec);
-	SERVER_HELLO_DONE   -> server_hello_done   : ServerHelloDone(rec);
-	CERTIFICATE_VERIFY  -> certificate_verify  : CertificateVerify(rec);
-	CLIENT_KEY_EXCHANGE -> client_key_exchange : ClientKeyExchange(rec);
-	FINISHED            -> finished            : Finished(rec);
-	CERTIFICATE_URL     -> certificate_url     : bytestring &restofdata &transient;
-	CERTIFICATE_STATUS  -> certificate_status  : CertificateStatus(rec);
-	default             -> unknown_handshake   : UnknownHandshake(rec, rec.is_orig);
+	HELLO_REQUEST        -> hello_request        : HelloRequest(rec);
+	CLIENT_HELLO         -> client_hello         : ClientHello(rec);
+	SERVER_HELLO         -> server_hello         : ServerHello(rec);
+	HELLO_VERIFY_REQUEST -> hello_verify_request : HelloVerifyRequest(rec);
+	SESSION_TICKET       -> session_ticket       : SessionTicketHandshake(rec);
+	CERTIFICATE          -> certificate          : Certificate(rec);
+	SERVER_KEY_EXCHANGE  -> server_key_exchange  : ServerKeyExchange(rec);
+	CERTIFICATE_REQUEST  -> certificate_request  : CertificateRequest(rec);
+	SERVER_HELLO_DONE    -> server_hello_done    : ServerHelloDone(rec);
+	CERTIFICATE_VERIFY   -> certificate_verify   : CertificateVerify(rec);
+	CLIENT_KEY_EXCHANGE  -> client_key_exchange  : ClientKeyExchange(rec);
+	FINISHED             -> finished             : Finished(rec);
+	CERTIFICATE_URL      -> certificate_url      : bytestring &restofdata &transient;
+	CERTIFICATE_STATUS   -> certificate_status   : CertificateStatus(rec);
+	default              -> unknown_handshake    : UnknownHandshake(rec, rec.is_orig);
 }
 
 type HandshakePDU(is_orig: bool) = record {
@@ -72,6 +74,10 @@ type ClientHello(rec: HandshakeRecord) = record {
 	random_bytes : bytestring &length = 28;
 	session_len : uint8;
 	session_id : uint8[session_len];
+	dtls_cookie: case client_version of {
+		DTLSv10 -> cookie: ClientHelloCookie(rec);
+		default -> nothing: bytestring &length=0;
+	};
 	csuit_len : uint16 &check(csuit_len > 1 && csuit_len % 2 == 0);
 	csuits : uint16[csuit_len/2];
 	cmeth_len : uint8 &check(cmeth_len > 0);
@@ -80,6 +86,11 @@ type ClientHello(rec: HandshakeRecord) = record {
 	# of the following fields.
 	ext_len: uint16[] &until($element == 0 || $element != 0);
 	extensions : SSLExtension(rec)[] &until($input.length() == 0);
+};
+
+type ClientHelloCookie(rec: HandshakeRecord) = record {
+	cookie_len : uint8;
+	cookie : bytestring &length = cookie_len;
 };
 
 ######################################################################
@@ -101,6 +112,16 @@ type ServerHello(rec: HandshakeRecord) = record {
 } &let {
 	cipher_set : bool =
 		$context.connection.set_cipher(cipher_suite[0]);
+};
+
+######################################################################
+# DTLS Hello Verify Request
+######################################################################
+
+type HelloVerifyRequest(rec: HandshakeRecord) = record {
+	version: uint16;
+	cookie_length: uint8;
+	cookie: bytestring &length=cookie_length;
 };
 
 ######################################################################

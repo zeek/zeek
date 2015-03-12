@@ -6,6 +6,11 @@ export {
 	const TLSv10 = 0x0301;
 	const TLSv11 = 0x0302;
 	const TLSv12 = 0x0303;
+
+	const DTLSv10 = 0xFEFF;
+	# DTLSv11 does not exist
+	const DTLSv12 = 0xFEFD;
+
 	## Mapping between the constants and string values for SSL/TLS versions.
 	const version_strings: table[count] of string = {
 		[SSLv2] = "SSLv2",
@@ -13,6 +18,8 @@ export {
 		[TLSv10] = "TLSv10",
 		[TLSv11] = "TLSv11",
 		[TLSv12] = "TLSv12",
+		[DTLSv10] = "DTLSv10",
+		[DTLSv12] = "DTLSv12"
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };
 
 	## TLS content types:

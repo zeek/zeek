@@ -1,4 +1,8 @@
 
+2.3-534 | 2015-03-12 10:59:49 -0500
+
+  * Update NEWS file. (Jon Siwek)
+
 2.3-533 | 2015-03-12 10:18:53 -0500
 
   * Give broker python bindings default install path within --prefix.

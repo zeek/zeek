@@ -46,11 +46,9 @@ New Functionality
   TODO: Extend with some more information on  Broker.
 
   Broker support is by default off for now; it can be enabled at
-  configure time with --enable-broker. It requires CAF
+  configure time with --enable-broker. It requires CAF version 0.13+
   (https://github.com/actor-framework/actor-framework) as well as a
-  C++11 compiler.
-
-  TODO: Add minumim version for CAF.
+  C++11 compiler (e.g. GCC 4.8+ or Clang 3.3+).
 
   Broker will become a mandatory dependency in future Bro versions.
 
@@ -74,6 +72,11 @@ Changed Functionality
       fields.  The events ``file_mime_type`` and ``file_mime_types``
       have been added which contain the same information.  The
       ``mime_type`` field of ``Files::Info`` also still has this info.
+
+    * The earliest point that new mime type information is available is
+      in the ``file_mime_type`` event which comes after the ``file_new``
+      and ``file_over_new_connection`` events.  Scripts which inspected
+      mime type info within those events will need to be adapted.
 
     * Removed ``Files::add_analyzers_for_mime_type`` function.
 

@@ -1,4 +1,8 @@
 
+2.3-536 | 2015-03-12 16:16:24 -0500
+
+  * Fix Broker leak tests. (Jon Siwek)
+
 2.3-534 | 2015-03-12 10:59:49 -0500
 
   * Update NEWS file. (Jon Siwek)

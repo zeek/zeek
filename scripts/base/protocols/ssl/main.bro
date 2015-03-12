@@ -282,6 +282,6 @@ event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &pr
 event protocol_violation(c: connection, atype: Analyzer::Tag, aid: count,
                          reason: string) &priority=5
 	{
-	if ( c?$ssl )
+	if ( c?$ssl && atype == Analyzer::ANALYZER_SSL )
 		finish(c, T);
 	}

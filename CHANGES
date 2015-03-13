@@ -1,4 +1,15 @@
 
+2.3-539 | 2015-03-13 14:19:27 -0500
+
+  * BIT-1335: Include timestamp in default extracted file names.
+    And add a policy script to extract all files. (Jon Siwek)
+
+  * BIT-1311: Identify GRE tunnels as Tunnel::GRE, not Tunnel::IP.
+    (Jon Siwek)
+
+  * BIT-1309: Add Connection class getter methods for flow labels.
+    (Jon Siwek)
+
 2.3-536 | 2015-03-12 16:16:24 -0500
 
   * Fix Broker leak tests. (Jon Siwek)

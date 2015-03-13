@@ -97,6 +97,9 @@ Changed Functionality
 - GRE tunnels are now identified as ``Tunnel::GRE`` instead of
   ``Tunnel::IP``.
 
+- The default name for extracted files changed from extract-protocol-id
+  to extract-timestamp-protocol-id.
+
 - [TODO] Add changed BroControl features.
 
 Deprecated Functionality

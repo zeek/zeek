@@ -1,4 +1,10 @@
 
+2.3-541 | 2015-03-13 15:44:08 -0500
+
+  * Make INSTALL a symlink to doc/install/install.rst (Jon siwek)
+
+  * Fix Broxygen coverage. (Jon Siwek)
+
 2.3-539 | 2015-03-13 14:19:27 -0500
 
   * BIT-1335: Include timestamp in default extracted file names.

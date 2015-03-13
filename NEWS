@@ -94,6 +94,9 @@ Changed Functionality
 - conn.log gained a new field local_resp that works like local_orig,
   just for the responder address of the connection.
 
+- GRE tunnels are now identified as ``Tunnel::GRE`` instead of
+  ``Tunnel::IP``.
+
 - [TODO] Add changed BroControl features.
 
 Deprecated Functionality

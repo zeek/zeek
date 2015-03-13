@@ -56,6 +56,11 @@ char last_tok[128];
 	if ( ((result = fread(buf, 1, max_size, yyin)) == 0) && ferror(yyin) ) \
 		reporter->Error("read failed with \"%s\"", strerror(errno));
 
+static void deprecated_attr(const char* attr)
+	{
+	reporter->Warning("Use of deprecated attribute: %s", attr);
+	}
+
 static string find_relative_file(const string& filename, const string& ext)
 	{
 	if ( filename.empty() )
@@ -263,20 +268,38 @@ when	return TOK_WHEN;
 &delete_func	return TOK_ATTR_DEL_FUNC;
 &deprecated	return TOK_ATTR_DEPRECATED;
 &raw_output return TOK_ATTR_RAW_OUTPUT;
-&encrypt	return TOK_ATTR_ENCRYPT;
+&encrypt	{
+	deprecated_attr(yytext);
+	return TOK_ATTR_ENCRYPT;
+	}
 &error_handler	return TOK_ATTR_ERROR_HANDLER;
 &expire_func	return TOK_ATTR_EXPIRE_FUNC;
 &log		return TOK_ATTR_LOG;
-&mergeable	return TOK_ATTR_MERGEABLE;
+&mergeable	{
+	deprecated_attr(yytext);
+	return TOK_ATTR_MERGEABLE;
+	}
 &optional	return TOK_ATTR_OPTIONAL;
-&persistent	return TOK_ATTR_PERSISTENT;
+&persistent	{
+	//deprecated_attr(yytext);
+	return TOK_ATTR_PERSISTENT;
+	}
 &priority	return TOK_ATTR_PRIORITY;
 &type_column	return TOK_ATTR_TYPE_COLUMN;
 &read_expire	return TOK_ATTR_EXPIRE_READ;
 &redef		return TOK_ATTR_REDEF;
-&rotate_interval	return TOK_ATTR_ROTATE_INTERVAL;
-&rotate_size		return TOK_ATTR_ROTATE_SIZE;
-&synchronized	return TOK_ATTR_SYNCHRONIZED;
+&rotate_interval	{
+	deprecated_attr(yytext);
+	return TOK_ATTR_ROTATE_INTERVAL;
+	}
+&rotate_size	{
+	deprecated_attr(yytext);
+	return TOK_ATTR_ROTATE_SIZE;
+	}
+&synchronized	{
+	//deprecated_attr(yytext);
+	return TOK_ATTR_SYNCHRONIZED;
+	}
 &write_expire	return TOK_ATTR_EXPIRE_WRITE;
 
 @DEBUG	return TOK_DEBUG;	// marks input for debugger

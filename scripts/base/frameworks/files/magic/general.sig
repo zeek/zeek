@@ -9,37 +9,42 @@ signature file-plaintext {
 
 signature file-xml {
 	file-mime "application/xml", 10
-	file-magic /^[\x0d\x0a[:blank:]]*<\?xml /
+	file-magic /^([\x0d\x0a[:blank:]]*(<!--.*-->)?)*<\?xml /
 }
 
 signature file-xhtml {
 	file-mime "text/html", 100
-	file-magic /^[\x0d\x0a[:blank:]]*<\?xml version[ =]['"].*<(![dD][oO][cC][tT][yY][pP][eE] {1,}[hH][tT][mM][lL]|[hH][tT][mM][lL])/
+	file-magic /^([\x0d\x0a[:blank:]]*(<!--.*-->)?)*<\?xml version[ =]['"].*<(![dD][oO][cC][tT][yY][pP][eE] {1,}[hH][tT][mM][lL]|[hH][tT][mM][lL])/
 }
 
 signature file-html {
 	file-mime "text/html", 49
-	file-magic /^[\x0d\x0a[:blank:]]*<![dD][oO][cC][tT][yY][pP][eE] {1,}[hH][tT][mM][lL]/
+	file-magic /^([\x0d\x0a[:blank:]]*(<!--.*-->)?)*<![dD][oO][cC][tT][yY][pP][eE] {1,}[hH][tT][mM][lL]/
 }
 
 signature file-html2 {
 	file-mime "text/html", 20
-	file-magic /[\x0d\x0a[:blank:]]*<([hH][eE][aA][dD]|[hH][tT][mM][lL]|[tT][iI][tT][lL][eE]|[bB][oO][dD][yY])/
+	file-magic /^([\x0d\x0a[:blank:]]*(<!--.*-->)?)*<([hH][eE][aA][dD]|[hH][tT][mM][lL]|[tT][iI][tT][lL][eE]|[bB][oO][dD][yY])/
+}
+
+signature file-coldfusion {
+	file-mime "magnus-internal/cold-fusion", 20
+	file-magic /^([\x0d\x0a[:blank:]]*(<!--.*-->)?)*<(CFPARAM|CFSET|CFIF)/
 }
 
 signature file-soap {
 	file-mime "application/soap+xml", 49
-	file-magic /^[\x0d\x0a[:blank:]]*<[sS][oO][aA][pP]-[eE][nN][vV]:[eE][nN][vV][eE][lL][oO][pP][eE]/
+	file-magic /^([\x0d\x0a[:blank:]]*(<!--.*-->)?)*<[sS][oO][aA][pP]-[eE][nN][vV]:[eE][nN][vV][eE][lL][oO][pP][eE]/
 }
 
 signature file-cross-domain-policy {
 	file-mime "text/x-cross-domain-policy", 49
-	file-magic /^[\x0d\x0a[:blank:]]*(<\?xml version="1.0"\?>)?<![dD][oO][cC][tT][yY][pP][eE] {1,}[cC][rR][oO][sS][sS]-[dD][oO][mM][aA][iI][nN]-[pP][oO][lL][iI][cC][yY]/
+	file-magic /^([\x0d\x0a[:blank:]]*(<!--.*-->)?)*(<\?xml version="1.0"\?>)?<![dD][oO][cC][tT][yY][pP][eE] {1,}[cC][rR][oO][sS][sS]-[dD][oO][mM][aA][iI][nN]-[pP][oO][lL][iI][cC][yY]/
 }
 
 signature file-cross-domain-policy2 {
 	file-mime "text/x-cross-domain-policy", 49
-	file-magic /^[\x0d\x0a[:blank:]]*<[cC][rR][oO][sS][sS]-[dD][oO][mM][aA][iI][nN]-[pP][oO][lL][iI][cC][yY]/
+	file-magic /^([\x0d\x0a[:blank:]]*(<!--.*-->)?)*<[cC][rR][oO][sS][sS]-[dD][oO][mM][aA][iI][nN]-[pP][oO][lL][iI][cC][yY]/
 }
 
 # Microsoft LNK files

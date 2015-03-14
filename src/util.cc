@@ -1356,9 +1356,13 @@ double calc_next_rotate(double current, double interval, double base)
 	time_t teatime = time_t(current);
 
 	struct tm t;
-	t = *localtime_r(&teatime, &t);
-	t.tm_hour = t.tm_min = t.tm_sec = 0;
-	double startofday = mktime(&t);
+	if ( ! localtime_r(&teatime, &t) )
+		{
+		reporter->Error("calc_next_rotate(): can't parse current time");
+
+		// fall back to the method used if no base time is given
+		base = -1;
+		}
 
 	if ( base < 0 )
 		// No base time given. To get nice timestamps, we round
@@ -1367,6 +1371,8 @@ double calc_next_rotate(double current, double interval, double base)
 			+ interval - current;
 
 	// current < startofday + base + i * interval <= current + interval
+	t.tm_hour = t.tm_min = t.tm_sec = 0;
+	double startofday = mktime(&t);
 	return startofday + base +
 		ceil((current - startofday - base) / interval) * interval -
 			current;

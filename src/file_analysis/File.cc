@@ -304,7 +304,9 @@ bool File::DetectMIME()
 	file_mgr->DetectMIME(data, len, &matches);
 
 	if ( matches.empty() )
+		{
 		return false;
+		}
 
 	if ( FileEventAvailable(file_mime_type) )
 		{
@@ -502,10 +504,10 @@ void File::EndOfFile()
 	// any stream analyzers.
 	if ( ! bof_buffer.full )
 		{
+		DBG_LOG(DBG_FILE_ANALYSIS, "[%s] File over but bof_buffer not full.", id.c_str());
 		bof_buffer.full = true;
 		DeliverStream((const u_char*) "", 0);
 		}
-
 	analyzers.DrainModifications();
 
 	done = true;
@@ -582,7 +584,7 @@ void File::FileEvent(EventHandlerPtr h, val_list* vl)
 	mgr.QueueEvent(h, vl);
 
 	if ( h == file_new || h == file_over_new_connection ||
-	     h == file_mime_type ||
+	     h == file_mime_type || h == file_mime_types ||
 	     h == file_timeout || h == file_extraction_limit )
 		{
 		// immediate feedback is required for these events.

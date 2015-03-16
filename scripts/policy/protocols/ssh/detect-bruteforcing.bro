@@ -70,7 +70,7 @@ event bro_init()
 	                  	}]);
 	}
 
-event SSH::heuristic_successful_login(c: connection)
+event SSH::ssh_auth_successful(c: connection, auth_method_none: bool)
 	{
 	local id = c$id;
 
@@ -79,7 +79,7 @@ event SSH::heuristic_successful_login(c: connection)
 	             $where=SSH::SUCCESSFUL_LOGIN]);
 	}
 
-event SSH::heuristic_failed_login(c: connection)
+event SSH::ssh_auth_failed(c: connection)
 	{
 	local id = c$id;
 

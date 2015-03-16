@@ -30,7 +30,7 @@ function get_location(c: connection): geo_location
 	return lookup_location(lookup_ip);
 	}
 
-event SSH::heuristic_successful_login(c: connection) &priority=5
+event SSH::ssh_auth_successful(c: connection, auth_method_none: bool) &priority=3
 	{
 	# Add the location data to the SSH record.
 	c$ssh$remote_location = get_location(c);
@@ -45,7 +45,7 @@ event SSH::heuristic_successful_login(c: connection) &priority=5
 		}
 	}
 
-event SSH::heuristic_failed_login(c: connection) &priority=5
+event SSH::ssh_auth_failed(c: connection) &priority=3
 	{
 	# Add the location data to the SSH record.
 	c$ssh$remote_location = get_location(c);

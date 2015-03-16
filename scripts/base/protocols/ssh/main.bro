@@ -58,12 +58,12 @@ export {
 }
 
 redef record Info += {
-	## This connection has been logged (internal use)
+	# This connection has been logged (internal use)
 	logged:       bool         &default=F;
-	## Number of failures seen (internal use)
+	# Number of failures seen (internal use)
 	num_failures: count        &default=0;
-	## Store capabilities from the first host for
-	## comparison with the second (internal use)
+	# Store capabilities from the first host for
+	# comparison with the second (internal use)
 	capabilities: Capabilities &optional;
 };
 

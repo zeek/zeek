@@ -2227,7 +2227,11 @@ export {
 		server_to_client: vector of string &optional;
 	};
 	
-	## SSH Capability record
+	## This record lists the preferences of an SSH endpoint for
+	## algorithm selection. During the initial :abbr:`SSH (Secure Shell)`
+	## key exchange, each endpoint lists the algorithms
+	## that it supports, in order of preference. See
+	## :rfc:`4253#section-7.1` for details.
 	type Capabilities: record {
 		## Key exchange algorithms
 		kex_algorithms:             string_vec;

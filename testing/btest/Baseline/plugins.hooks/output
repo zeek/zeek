@@ -37,7 +37,6 @@
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, (Analyzer::ANALYZER_SNMP, 161/udp)) -> <null>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, (Analyzer::ANALYZER_SNMP, 162/udp)) -> <null>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, (Analyzer::ANALYZER_SOCKS, 1080/tcp)) -> <null>
-0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, (Analyzer::ANALYZER_SSH, 22/tcp)) -> <null>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, (Analyzer::ANALYZER_SSL, 443/tcp)) -> <null>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, (Analyzer::ANALYZER_SSL, 5223/tcp)) -> <null>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, (Analyzer::ANALYZER_SSL, 563/tcp)) -> <null>
@@ -90,7 +89,6 @@
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, (Analyzer::ANALYZER_SNMP, 161/udp)) -> <null>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, (Analyzer::ANALYZER_SNMP, 162/udp)) -> <null>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, (Analyzer::ANALYZER_SOCKS, 1080/tcp)) -> <null>
-0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, (Analyzer::ANALYZER_SSH, 22/tcp)) -> <null>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, (Analyzer::ANALYZER_SSL, 443/tcp)) -> <null>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, (Analyzer::ANALYZER_SSL, 5223/tcp)) -> <null>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, (Analyzer::ANALYZER_SSL, 563/tcp)) -> <null>
@@ -118,7 +116,6 @@
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, (Analyzer::ANALYZER_SMTP, {25<...>/tcp})) -> <null>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, (Analyzer::ANALYZER_SNMP, {162<...>/udp})) -> <null>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, (Analyzer::ANALYZER_SOCKS, {1080/tcp})) -> <null>
-0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, (Analyzer::ANALYZER_SSH, {22/tcp})) -> <null>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, (Analyzer::ANALYZER_SSL, {5223<...>/tcp})) -> <null>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, (Analyzer::ANALYZER_SYSLOG, {514/udp})) -> <null>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, (Analyzer::ANALYZER_TEREDO, {3544/udp})) -> <null>
@@ -191,7 +188,7 @@
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird])) -> <null>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, (X509::LOG, [columns=<no value description>, ev=X509::log_x509])) -> <null>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql])) -> <null>
-0.000000   MetaHookPost  CallFunction(Log::__write, (PacketFilter::LOG, [ts=1421870896.278622, node=bro, filter=ip or not ip, init=T, success=T])) -> <null>
+0.000000   MetaHookPost  CallFunction(Log::__write, (PacketFilter::LOG, [ts=1426535272.39213, node=bro, filter=ip or not ip, init=T, success=T])) -> <null>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, (Cluster::LOG)) -> <null>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, (Communication::LOG)) -> <null>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, (Conn::LOG)) -> <null>
@@ -285,8 +282,8 @@
 0.000000   MetaHookPost  CallFunction(Log::create_stream, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird])) -> <null>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, (X509::LOG, [columns=<no value description>, ev=X509::log_x509])) -> <null>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql])) -> <null>
-0.000000   MetaHookPost  CallFunction(Log::default_path_func, (PacketFilter::LOG, , [ts=1421870896.278622, node=bro, filter=ip or not ip, init=T, success=T])) -> <null>
-0.000000   MetaHookPost  CallFunction(Log::write, (PacketFilter::LOG, [ts=1421870896.278622, node=bro, filter=ip or not ip, init=T, success=T])) -> <null>
+0.000000   MetaHookPost  CallFunction(Log::default_path_func, (PacketFilter::LOG, , [ts=1426535272.39213, node=bro, filter=ip or not ip, init=T, success=T])) -> <null>
+0.000000   MetaHookPost  CallFunction(Log::write, (PacketFilter::LOG, [ts=1426535272.39213, node=bro, filter=ip or not ip, init=T, success=T])) -> <null>
 0.000000   MetaHookPost  CallFunction(Notice::want_pp, ()) -> <null>
 0.000000   MetaHookPost  CallFunction(PacketFilter::build, ()) -> <null>
 0.000000   MetaHookPost  CallFunction(PacketFilter::combine_filters, (ip or not ip, and, )) -> <null>
@@ -381,6 +378,7 @@
 0.000000   MetaHookPost  LoadFile(./Bro_SQLiteReader.sqlite.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./Bro_SQLiteWriter.sqlite.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./Bro_SSH.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(./Bro_SSH.types.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./Bro_SSL.events.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./Bro_SteppingStone.events.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./Bro_Syslog.events.bif.bro) -> -1
@@ -576,7 +574,6 @@
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, (Analyzer::ANALYZER_SNMP, 161/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, (Analyzer::ANALYZER_SNMP, 162/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, (Analyzer::ANALYZER_SOCKS, 1080/tcp))
-0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, (Analyzer::ANALYZER_SSH, 22/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, (Analyzer::ANALYZER_SSL, 443/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, (Analyzer::ANALYZER_SSL, 5223/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, (Analyzer::ANALYZER_SSL, 563/tcp))
@@ -629,7 +626,6 @@
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, (Analyzer::ANALYZER_SNMP, 161/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, (Analyzer::ANALYZER_SNMP, 162/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, (Analyzer::ANALYZER_SOCKS, 1080/tcp))
-0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, (Analyzer::ANALYZER_SSH, 22/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, (Analyzer::ANALYZER_SSL, 443/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, (Analyzer::ANALYZER_SSL, 5223/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, (Analyzer::ANALYZER_SSL, 563/tcp))
@@ -657,7 +653,6 @@
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, (Analyzer::ANALYZER_SMTP, {25<...>/tcp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, (Analyzer::ANALYZER_SNMP, {162<...>/udp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, (Analyzer::ANALYZER_SOCKS, {1080/tcp}))
-0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, (Analyzer::ANALYZER_SSH, {22/tcp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, (Analyzer::ANALYZER_SSL, {5223<...>/tcp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, (Analyzer::ANALYZER_SYSLOG, {514/udp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, (Analyzer::ANALYZER_TEREDO, {3544/udp}))
@@ -730,7 +725,7 @@
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, (X509::LOG, [columns=<no value description>, ev=X509::log_x509]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql]))
-0.000000   MetaHookPre   CallFunction(Log::__write, (PacketFilter::LOG, [ts=1421870896.278622, node=bro, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::__write, (PacketFilter::LOG, [ts=1426535272.39213, node=bro, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, (Cluster::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, (Communication::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, (Conn::LOG))
@@ -824,8 +819,8 @@
 0.000000   MetaHookPre   CallFunction(Log::create_stream, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, (X509::LOG, [columns=<no value description>, ev=X509::log_x509]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql]))
-0.000000   MetaHookPre   CallFunction(Log::default_path_func, (PacketFilter::LOG, , [ts=1421870896.278622, node=bro, filter=ip or not ip, init=T, success=T]))
-0.000000   MetaHookPre   CallFunction(Log::write, (PacketFilter::LOG, [ts=1421870896.278622, node=bro, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::default_path_func, (PacketFilter::LOG, , [ts=1426535272.39213, node=bro, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::write, (PacketFilter::LOG, [ts=1426535272.39213, node=bro, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(Notice::want_pp, ())
 0.000000   MetaHookPre   CallFunction(PacketFilter::build, ())
 0.000000   MetaHookPre   CallFunction(PacketFilter::combine_filters, (ip or not ip, and, ))
@@ -920,6 +915,7 @@
 0.000000   MetaHookPre   LoadFile(./Bro_SQLiteReader.sqlite.bif.bro)
 0.000000   MetaHookPre   LoadFile(./Bro_SQLiteWriter.sqlite.bif.bro)
 0.000000   MetaHookPre   LoadFile(./Bro_SSH.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(./Bro_SSH.types.bif.bro)
 0.000000   MetaHookPre   LoadFile(./Bro_SSL.events.bif.bro)
 0.000000   MetaHookPre   LoadFile(./Bro_SteppingStone.events.bif.bro)
 0.000000   MetaHookPre   LoadFile(./Bro_Syslog.events.bif.bro)
@@ -1115,7 +1111,6 @@
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_SNMP, 161/udp)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_SNMP, 162/udp)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_SOCKS, 1080/tcp)
-0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_SSH, 22/tcp)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_SSL, 443/tcp)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_SSL, 5223/tcp)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_SSL, 563/tcp)
@@ -1168,7 +1163,6 @@
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_SNMP, 161/udp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_SNMP, 162/udp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_SOCKS, 1080/tcp)
-0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_SSH, 22/tcp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_SSL, 443/tcp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_SSL, 5223/tcp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_SSL, 563/tcp)
@@ -1196,7 +1190,6 @@
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_SMTP, {25<...>/tcp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_SNMP, {162<...>/udp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_SOCKS, {1080/tcp})
-0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_SSH, {22/tcp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_SSL, {5223<...>/tcp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_SYSLOG, {514/udp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_TEREDO, {3544/udp})
@@ -1269,7 +1262,7 @@
 0.000000 | HookCallFunction Log::__create_stream(Weird::LOG, [columns=<no value description>, ev=Weird::log_weird])
 0.000000 | HookCallFunction Log::__create_stream(X509::LOG, [columns=<no value description>, ev=X509::log_x509])
 0.000000 | HookCallFunction Log::__create_stream(mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql])
-0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1421870896.278622, node=bro, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1426535272.39213, node=bro, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction Log::add_default_filter(Cluster::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Communication::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Conn::LOG)
@@ -1363,8 +1356,8 @@
 0.000000 | HookCallFunction Log::create_stream(Weird::LOG, [columns=<no value description>, ev=Weird::log_weird])
 0.000000 | HookCallFunction Log::create_stream(X509::LOG, [columns=<no value description>, ev=X509::log_x509])
 0.000000 | HookCallFunction Log::create_stream(mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql])
-0.000000 | HookCallFunction Log::default_path_func(PacketFilter::LOG, , [ts=1421870896.278622, node=bro, filter=ip or not ip, init=T, success=T])
-0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1421870896.278622, node=bro, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::default_path_func(PacketFilter::LOG, , [ts=1426535272.39213, node=bro, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1426535272.39213, node=bro, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction Notice::want_pp()
 0.000000 | HookCallFunction PacketFilter::build()
 0.000000 | HookCallFunction PacketFilter::combine_filters(ip or not ip, and, )

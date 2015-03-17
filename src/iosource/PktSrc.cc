@@ -13,6 +13,15 @@
 
 using namespace iosource;
 
+PktSrc::Properties::Properties()
+	{
+	selectable_fd = -1;
+	link_type = -1;
+	hdr_size = -1;
+	netmask = NETMASK_UNKNOWN;
+	is_live = false;
+	}
+
 PktSrc::PktSrc()
 	{
 	have_packet = false;
@@ -50,7 +59,7 @@ int PktSrc::LinkType() const
 
 uint32 PktSrc::Netmask() const
 	{
-	return IsOpen() ? props.netmask : PCAP_NETMASK_UNKNOWN;
+	return IsOpen() ? props.netmask : NETMASK_UNKNOWN;
 	}
 
 bool PktSrc::IsError() const

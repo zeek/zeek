@@ -466,6 +466,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 	id.src_addr = ip_hdr->SrcAddr();
 	id.dst_addr = ip_hdr->DstAddr();
 	Dictionary* d = 0;
+	BifEnum::Tunnel::Type tunnel_type = BifEnum::Tunnel::IP;
 
 	switch ( proto ) {
 	case IPPROTO_TCP:
@@ -606,6 +607,8 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 
 		// Treat GRE tunnel like IP tunnels, fallthrough to logic below now
 		// that GRE header is stripped and only payload packet remains.
+		// The only thing different is the tunnel type enum value to use.
+		tunnel_type = BifEnum::Tunnel::GRE;
 		}
 
 	case IPPROTO_IPV4:
@@ -653,7 +656,8 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 
 		if ( it == ip_tunnels.end() )
 			{
-			EncapsulatingConn ec(ip_hdr->SrcAddr(), ip_hdr->DstAddr());
+			EncapsulatingConn ec(ip_hdr->SrcAddr(), ip_hdr->DstAddr(),
+			                     tunnel_type);
 			ip_tunnels[tunnel_idx] = TunnelActivity(ec, network_time);
 			timer_mgr->Add(new IPTunnelTimer(network_time, tunnel_idx));
 			}

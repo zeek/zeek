@@ -5,6 +5,7 @@
 
 #include <list>
 #include <string>
+#include <utility>
 
 #include "config.h"
 #include "analyzer/Component.h"
@@ -156,7 +157,7 @@ public:
 	 * Type of the argument.
 	 */
 	enum Type {
-		BOOL, DOUBLE, EVENT, FUNC, INT, STRING, VAL, VAL_LIST, VOID, VOIDP,
+		BOOL, DOUBLE, EVENT, FRAME, FUNC, FUNC_RESULT, INT, STRING, VAL, VAL_LIST, VOID, VOIDP
 	};
 
 	/**
@@ -210,6 +211,16 @@ public:
 	HookArgument(void* p)	{ type = VOIDP; arg.voidp = p; }
 
 	/**
+	 * Constructor with a function result argument.
+	 */
+	HookArgument(std::pair<bool, Val*> fresult)	{ type = FUNC_RESULT; func_result = fresult; }
+
+	/**
+	 * Constructor with a Frame argument.
+	 */
+	HookArgument(Frame* f)	{ type = FRAME; arg.frame = f; }
+
+	/**
 	 * Returns the value for a boolen argument. The argument's type must
 	 * match accordingly.
 	 */
@@ -252,6 +263,18 @@ public:
 	const Val* AsVal() const	{ assert(type == VAL); return arg.val; }
 
 	/**
+	 * Returns the value for a Bro wrapped value argument.  The argument's type must
+	 * match accordingly.
+	 */
+	const std::pair<bool, Val*> AsFuncResult() const { assert(type == FUNC_RESULT); return func_result; }
+
+	/**
+	 * Returns the value for a Bro frame argument.  The argument's type must
+	 * match accordingly.
+	 */
+	const Frame* AsFrame() const { assert(type == FRAME); return arg.frame; }
+
+	/**
 	 * Returns the value for a list of Bro values argument. The argument's type must
 	 * match accordingly.
 	 */
@@ -282,13 +305,16 @@ private:
 		double double_;
 		const Event* event;
 		const Func* func;
+		const Frame* frame;
 		int int_;
 		const Val* val;
 		const val_list* vals;
 		const void* voidp;
 	} arg;
 
-	std::string arg_string; // Outside union because it has dtor.
+	// Outside union because these have dtors.
+	std::pair<bool, Val*> func_result;
+	std::string arg_string;
 };
 
 typedef std::list<HookArgument> HookArgumentList;
@@ -512,7 +538,7 @@ protected:
 	 * actually has code to execute for it. By calling this method, the
 	 * plugin tells Bro to raise the event even if there's no correspondong
 	 * handler; it will then go into HookQueueEvent() just as any other.
-     *
+	 *
 	 * @param handler The event handler being interested in.
 	 */
 	void RequestEvent(EventHandlerPtr handler);
@@ -568,13 +594,13 @@ protected:
 	 * in place as long as it ensures matching types and correct reference
 	 * counting.
 	 *
-	 * @return If the plugin handled the call, a Val with +1 reference
-	 * count containixnmg the result value to pass back to the interpreter
-	 * (for void functions and events any \a Val is fine; it will be
-	 * ignored; best to use a \c TYPE_ANY). If the plugin did not handle
-	 * the call, it must return null.
+	 * @return If the plugin handled the call, a std::pair<bool, Val*> with the
+	 * processed flag set to true, and a value set on the object with
+	 * a+1 reference count containing the result value to pass back to the
+	 * interpreter.  If the plugin did not handle the call, it must
+	 * return a pair with the processed flag set to 'false'.
 	 */
-	virtual Val* HookCallFunction(const Func* func, val_list* args);
+	virtual std::pair<bool, Val*> HookCallFunction(const Func* func, Frame *parent, val_list* args);
 
 	/**
 	 * Hook into raising events. Whenever the script interpreter is about
@@ -606,7 +632,7 @@ protected:
 	 * Hook for updates to network time. This method will be called
 	 * whenever network time is advanced.
 	 *
-	 * @param networkt_time The new network time.
+	 * @param network_time The new network time.
 	 */
 	virtual void HookUpdateNetworkTime(double network_time);
 

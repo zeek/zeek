@@ -63,6 +63,10 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 
 #include "3rdparty/sqlite3.h"
 
+#ifdef ENABLE_BROKER
+#include "broker/Manager.h"
+#endif
+
 Brofiler brofiler;
 
 #ifndef HAVE_STRSEP
@@ -81,9 +85,6 @@ int perftools_leaks = 0;
 int perftools_profile = 0;
 #endif
 
-const char* prog;
-char* writefile = 0;
-name_list prefixes;
 DNS_Mgr* dns_mgr;
 TimerMgr* timer_mgr;
 logging::Manager* log_mgr = 0;
@@ -94,6 +95,13 @@ analyzer::Manager* analyzer_mgr = 0;
 file_analysis::Manager* file_mgr = 0;
 broxygen::Manager* broxygen_mgr = 0;
 iosource::Manager* iosource_mgr = 0;
+#ifdef ENABLE_BROKER
+bro_broker::Manager* broker_mgr = 0;
+#endif
+
+const char* prog;
+char* writefile = 0;
+name_list prefixes;
 Stmt* stmts;
 EventHandlerPtr net_done = 0;
 RuleMatcher* rule_matcher = 0;
@@ -850,6 +858,10 @@ int main(int argc, char** argv)
 	log_mgr = new logging::Manager();
 	input_mgr = new input::Manager();
 	file_mgr = new file_analysis::Manager();
+
+#ifdef ENABLE_BROKER
+	broker_mgr = new bro_broker::Manager();
+#endif
 
 	plugin_mgr->InitPreScript();
 	analyzer_mgr->InitPreScript();

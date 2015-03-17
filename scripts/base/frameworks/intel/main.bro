@@ -32,6 +32,8 @@ export {
 		FILE_NAME,
 		## Certificate SHA-1 hash.
 		CERT_HASH,
+		## Public key MD5 hash. (SSH server host keys are a good example.)
+		PUBKEY_HASH,
 	};
 	
 	## Data about an :bro:type:`Intel::Item`.

@@ -55,6 +55,11 @@ export {
 	## Event that can be handled to access the SSH record as it is sent on
 	## to the logging framework.
 	global log_ssh: event(rec: Info);
+
+	## Event that can be handled when the analyzer sees an SSH server host
+	## key. This abstracts :bro:id:`SSH::ssh1_server_host_key` and 
+	## :bro:id:`SSH::ssh2_server_host_key`.
+	global ssh_server_host_key: event(c: connection, hash string);
 }
 
 redef record Info += {
@@ -212,13 +217,12 @@ function generate_fingerprint(c: connection, key: string)
 	c$ssh$host_key = sub(join_string_vec(lx, ":"), /:/, "");
 	}
 
-event ssh1_server_host_key(c: connection, p: string, e: string)
+event ssh1_server_host_key(c: connection, p: string, e: string) &priority=5
 	{
 	generate_fingerprint(c, e + p);
 	}
 
-event ssh_server_host_key(c: connection, key: string)
+event ssh2_server_host_key(c: connection, key: string) &priority=5
 	{
 	generate_fingerprint(c, key);
 	}
-

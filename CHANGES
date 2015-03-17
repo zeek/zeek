@@ -1,4 +1,11 @@
 
+2.3-547 | 2015-03-17 09:07:51 -0700
+
+  * Update certificate validation script to cache valid intermediate
+    chains that it encounters on the wire and use those to try to
+    validate chains that might be missing intermediate certificates.
+    (Johanna Amann)
+
 2.3-541 | 2015-03-13 15:44:08 -0500
 
   * Make INSTALL a symlink to doc/install/install.rst (Jon siwek)
@@ -352,7 +359,7 @@
 
 2.3-328 | 2014-12-02 08:13:10 -0500
 
-  * Update windows-version-detection.bro to add support for 
+  * Update windows-version-detection.bro to add support for
     Windows 10. (Michal Purzynski)
 
 2.3-326 | 2014-12-01 12:10:27 -0600
@@ -422,7 +429,7 @@
 
 2.3-280 | 2014-11-05 09:46:33 -0500
 
-  * Add Windows detection based on CryptoAPI HTTP traffic as a 
+  * Add Windows detection based on CryptoAPI HTTP traffic as a
     software framework policy script. (Vlad Grigorescu)
 
 2.3-278 | 2014-11-03 18:55:18 -0800

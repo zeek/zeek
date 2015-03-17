@@ -1,5 +1,5 @@
 # @TEST-EXEC: bro -C -r $TRACES/tls/missing-intermediate.pcap %INPUT
-# @TEST-EXEC: btest-diff ssl.log
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-x509-names btest-diff ssl.log
 
 @load protocols/ssl/validate-certs.bro
 

@@ -1,4 +1,9 @@
 
+2.3-555 | 2015-03-17 15:57:13 -0700
+
+  * Splitting test-all Makefile target into Bro tests and test-aux.
+    (Robin Sommer)
+
 2.3-554 | 2015-03-17 15:40:39 -0700
 
   * Deprecate &rotate_interval, &rotate_size, &encrypt. Addresses

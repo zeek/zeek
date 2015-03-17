@@ -1,4 +1,9 @@
 
+2.3-549 | 2015-03-17 09:12:18 -0700
+
+  * BIT-1077: Fix HTTP::log_server_header_names. Before, it just
+    re-logged fields from the client side. (Jon Siwek)
+
 2.3-547 | 2015-03-17 09:07:51 -0700
 
   * Update certificate validation script to cache valid intermediate

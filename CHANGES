@@ -1,4 +1,9 @@
 
+2.3-551 | 2015-03-17 09:22:37 -0700
+
+  * Deprecate &rotate_interval, &rotate_size, &encrypt. Addresses
+    BIT-1305. (Jon Siwek)
+
 2.3-549 | 2015-03-17 09:12:18 -0700
 
   * BIT-1077: Fix HTTP::log_server_header_names. Before, it just

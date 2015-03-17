@@ -971,7 +971,7 @@ Val* Manager::RecordValToIndexVal(RecordVal *r)
 	}
 
 
-Val* Manager::ValueToIndexVal(int num_fields, const RecordType *type, const Value* const *vals)
+Val* Manager::ValueToIndexVal(const Stream* i, int num_fields, const RecordType *type, const Value* const *vals)
 	{
 	Val* idxval;
 	int position = 0;
@@ -979,7 +979,7 @@ Val* Manager::ValueToIndexVal(int num_fields, const RecordType *type, const Valu
 
 	if ( num_fields == 1 && type->FieldType(0)->Tag() != TYPE_RECORD  )
 		{
-		idxval = ValueToVal(vals[0], type->FieldType(0));
+		idxval = ValueToVal(i, vals[0], type->FieldType(0));
 		position = 1;
 		}
 	else
@@ -988,11 +988,11 @@ Val* Manager::ValueToIndexVal(int num_fields, const RecordType *type, const Valu
 		for ( int j = 0 ; j < type->NumFields(); j++ )
 			{
 			if ( type->FieldType(j)->Tag() == TYPE_RECORD )
-				l->Append(ValueToRecordVal(vals,
+				l->Append(ValueToRecordVal(i, vals,
 				          type->FieldType(j)->AsRecordType(), &position));
 			else
 				{
-				l->Append(ValueToVal(vals[position], type->FieldType(j)));
+				l->Append(ValueToVal(i, vals[position], type->FieldType(j)));
 				position++;
 				}
 			}
@@ -1107,10 +1107,10 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals)
 		valval = 0;
 
 	else if ( stream->num_val_fields == 1 && !stream->want_record )
-		valval = ValueToVal(vals[position], stream->rtype->FieldType(0));
+		valval = ValueToVal(i, vals[position], stream->rtype->FieldType(0));
 
 	else
-		valval = ValueToRecordVal(vals, stream->rtype, &position);
+		valval = ValueToRecordVal(i, vals, stream->rtype, &position);
 
 
 	// call stream first to determine if we really add / change the entry
@@ -1118,7 +1118,7 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals)
 		{
 		EnumVal* ev;
 		int startpos = 0;
-		predidx = ValueToRecordVal(vals, stream->itype, &startpos);
+		predidx = ValueToRecordVal(i, vals, stream->itype, &startpos);
 
 		if ( updated )
 			ev = new EnumVal(BifEnum::Input::EVENT_CHANGED, BifType::Enum::Input::Event);
@@ -1168,7 +1168,7 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals)
 		// I think there is an unref missing here. But if I insert is, it crashes :)
 		}
 	else
-		idxval = ValueToIndexVal(stream->num_idx_fields, stream->itype, vals);
+		idxval = ValueToIndexVal(i, stream->num_idx_fields, stream->itype, vals);
 
 	Val* oldval = 0;
 	if ( updated == true )
@@ -1203,7 +1203,7 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals)
 		{
 		EnumVal* ev;
 		int startpos = 0;
-		Val* predidx = ValueToRecordVal(vals, stream->itype, &startpos);
+		Val* predidx = ValueToRecordVal(i, vals, stream->itype, &startpos);
 
 		if ( updated )
 			{ // in case of update send back the old value.
@@ -1427,7 +1427,7 @@ int Manager::SendEventStreamEvent(Stream* i, EnumVal* type, const Value* const *
 
 	if ( stream->want_record )
 		{
-		RecordVal * r = ValueToRecordVal(vals, stream->fields, &position);
+		RecordVal * r = ValueToRecordVal(i, vals, stream->fields, &position);
 		out_vals.push_back(r);
 		}
 
@@ -1438,13 +1438,13 @@ int Manager::SendEventStreamEvent(Stream* i, EnumVal* type, const Value* const *
 			Val* val = 0;
 
 			if ( stream->fields->FieldType(j)->Tag() == TYPE_RECORD )
-				val = ValueToRecordVal(vals,
+				val = ValueToRecordVal(i, vals,
 						stream->fields->FieldType(j)->AsRecordType(),
 						&position);
 
 			else
 				{
-				val =  ValueToVal(vals[position], stream->fields->FieldType(j));
+				val = ValueToVal(i, vals[position], stream->fields->FieldType(j));
 				position++;
 				}
 
@@ -1464,7 +1464,7 @@ int Manager::PutTable(Stream* i, const Value* const *vals)
 	assert(i->stream_type == TABLE_STREAM);
 	TableStream* stream = (TableStream*) i;
 
-	Val* idxval = ValueToIndexVal(stream->num_idx_fields, stream->itype, vals);
+	Val* idxval = ValueToIndexVal(i, stream->num_idx_fields, stream->itype, vals);
 	Val* valval;
 
 	int position = stream->num_idx_fields;
@@ -1473,9 +1473,9 @@ int Manager::PutTable(Stream* i, const Value* const *vals)
 		valval = 0;
 
 	else if ( stream->num_val_fields == 1 && stream->want_record == 0 )
-		valval = ValueToVal(vals[position], stream->rtype->FieldType(0));
+		valval = ValueToVal(i, vals[position], stream->rtype->FieldType(0));
 	else
-		valval = ValueToRecordVal(vals, stream->rtype, &position);
+		valval = ValueToRecordVal(i, vals, stream->rtype, &position);
 
 	// if we have a subscribed event, we need to figure out, if this is an update or not
 	// same for predicates
@@ -1503,7 +1503,7 @@ int Manager::PutTable(Stream* i, const Value* const *vals)
 			{
 			EnumVal* ev;
 			int startpos = 0;
-			Val* predidx = ValueToRecordVal(vals, stream->itype, &startpos);
+			Val* predidx = ValueToRecordVal(i, vals, stream->itype, &startpos);
 
 			if ( updated )
 				ev = new EnumVal(BifEnum::Input::EVENT_CHANGED,
@@ -1538,7 +1538,7 @@ int Manager::PutTable(Stream* i, const Value* const *vals)
 			{
 			EnumVal* ev;
 			int startpos = 0;
-			Val* predidx = ValueToRecordVal(vals, stream->itype, &startpos);
+			Val* predidx = ValueToRecordVal(i, vals, stream->itype, &startpos);
 
 			if ( updated )
 				{
@@ -1612,7 +1612,7 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 	if ( i->stream_type == TABLE_STREAM )
 		{
 		TableStream* stream = (TableStream*) i;
-		Val* idxval = ValueToIndexVal(stream->num_idx_fields, stream->itype, vals);
+		Val* idxval = ValueToIndexVal(i, stream->num_idx_fields, stream->itype, vals);
 		assert(idxval != 0);
 		readVals = stream->num_idx_fields + stream->num_val_fields;
 		bool streamresult = true;
@@ -1626,7 +1626,7 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 				Ref(val);
 				EnumVal *ev = new EnumVal(BifEnum::Input::EVENT_REMOVED, BifType::Enum::Input::Event);
 				int startpos = 0;
-				Val* predidx = ValueToRecordVal(vals, stream->itype, &startpos);
+				Val* predidx = ValueToRecordVal(i, vals, stream->itype, &startpos);
 
 				streamresult = CallPred(stream->pred, 3, ev, predidx, val);
 
@@ -1708,8 +1708,15 @@ bool Manager::CallPred(Func* pred_func, const int numvals, ...)
 	return result;
 	}
 
-bool Manager::SendEvent(const string& name, const int num_vals, Value* *vals)
+bool Manager::SendEvent(ReaderFrontend* reader, const string& name, const int num_vals, Value* *vals)
 	{
+	Stream *i = FindStream(reader);
+	if ( i == 0 )
+		{
+		reporter->InternalWarning("Unknown reader %s in SendEvent for event %s", reader->Name(), name.c_str());
+		return false;
+		}
+
 	EventHandler* handler = event_registry->Lookup(name.c_str());
 	if ( handler == 0 )
 		{
@@ -1733,8 +1740,8 @@ bool Manager::SendEvent(const string& name, const int num_vals, Value* *vals)
 		}
 
 	val_list* vl = new val_list;
-	for ( int i = 0; i < num_vals; i++)
-		vl->append(ValueToVal(vals[i], type->FieldType(i)));
+	for ( int j = 0; j < num_vals; j++)
+		vl->append(ValueToVal(i, vals[j], type->FieldType(j)));
 
 	mgr.QueueEvent(handler, vl, SOURCE_LOCAL);
 
@@ -1809,7 +1816,7 @@ RecordVal* Manager::ListValToRecordVal(ListVal* list, RecordType *request_type, 
 	}
 
 // Convert a threading value to a record value
-RecordVal* Manager::ValueToRecordVal(const Value* const *vals,
+RecordVal* Manager::ValueToRecordVal(const Stream* stream, const Value* const *vals,
 	                             RecordType *request_type, int* position)
 	{
 	assert(position != 0); // we need the pointer to point to data.
@@ -1819,7 +1826,7 @@ RecordVal* Manager::ValueToRecordVal(const Value* const *vals,
 		{
 		Val* fieldVal = 0;
 		if ( request_type->FieldType(i)->Tag() == TYPE_RECORD )
-			fieldVal = ValueToRecordVal(vals, request_type->FieldType(i)->AsRecordType(), position);
+			fieldVal = ValueToRecordVal(stream, vals, request_type->FieldType(i)->AsRecordType(), position);
 		else if ( request_type->FieldType(i)->Tag() == TYPE_FILE ||
 			  request_type->FieldType(i)->Tag() == TYPE_FUNC )
 			{
@@ -1834,7 +1841,7 @@ RecordVal* Manager::ValueToRecordVal(const Value* const *vals,
 			}
 		else
 			{
-			fieldVal = ValueToVal(vals[*position], request_type->FieldType(i));
+			fieldVal = ValueToVal(stream, vals[*position], request_type->FieldType(i));
 			(*position)++;
 			}
 
@@ -2103,12 +2110,12 @@ HashKey* Manager::HashValues(const int num_elements, const Value* const *vals)
 	}
 
 // convert threading value to Bro value
-Val* Manager::ValueToVal(const Value* val, BroType* request_type)
+Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_type)
 	{
 
 	if ( request_type->Tag() != TYPE_ANY && request_type->Tag() != val->type )
 		{
-		reporter->InternalError("Typetags don't match: %d vs %d", request_type->Tag(), val->type);
+		reporter->InternalError("Typetags don't match: %d vs %d in stream %s", request_type->Tag(), val->type, i->name.c_str());
 		return 0;
 		}
 
@@ -2189,9 +2196,9 @@ Val* Manager::ValueToVal(const Value* val, BroType* request_type)
 		set_index->Append(type->Ref());
 		SetType* s = new SetType(set_index, 0);
 		TableVal* t = new TableVal(s);
-		for ( int i = 0; i < val->val.set_val.size; i++ )
+		for ( int j = 0; j < val->val.set_val.size; j++ )
 			{
-			Val* assignval = ValueToVal( val->val.set_val.vals[i], type );
+			Val* assignval = ValueToVal(i, val->val.set_val.vals[j], type);
 			t->Assign(assignval, 0);
 			Unref(assignval); // idex is not consumed by assign.
 			}
@@ -2206,8 +2213,8 @@ Val* Manager::ValueToVal(const Value* val, BroType* request_type)
 		BroType* type = request_type->AsVectorType()->YieldType();
 		VectorType* vt = new VectorType(type->Ref());
 		VectorVal* v = new VectorVal(vt);
-		for (  int i = 0; i < val->val.vector_val.size; i++ )
-			v->Assign(i, ValueToVal( val->val.set_val.vals[i], type ));
+		for ( int j = 0; j < val->val.vector_val.size; j++ )
+			v->Assign(j, ValueToVal(i, val->val.set_val.vals[j], type));
 
 		Unref(vt);
 		return v;
@@ -2216,25 +2223,24 @@ Val* Manager::ValueToVal(const Value* val, BroType* request_type)
 	case TYPE_ENUM: {
 		// Convert to string first to not have to deal with missing
 		// \0's...
-		string module_string(val->val.string_val.data, val->val.string_val.length);
-		string var_string(val->val.string_val.data, val->val.string_val.length);
+		string enum_string(val->val.string_val.data, val->val.string_val.length);
 
-		string module = extract_module_name(module_string.c_str());
-		string var = extract_var_name(var_string.c_str());
+		string module = extract_module_name(enum_string.c_str());
+		string var = extract_var_name(enum_string.c_str());
 
 		// Well, this is kind of stupid, because EnumType just
 		// mangles the module name and the var name together again...
 		// but well.
 		bro_int_t index = request_type->AsEnumType()->Lookup(module, var.c_str());
 		if ( index == -1 )
-			reporter->InternalError("Value not found in enum mappimg. Module: %s, var: %s, var size: %zu",
-			                        module.c_str(), var.c_str(), var.size());
+			reporter->InternalError("Value not '%s' for stream '%s' is not a valid enum.",
+			                        enum_string.c_str(), i->name.c_str());
 
 		return new EnumVal(index, request_type->Ref()->AsEnumType());
 		}
 
 	default:
-		reporter->InternalError("unsupported type for input_read");
+		reporter->InternalError("Unsupported type for input_read in stream %s", i->name.c_str());
 	}
 
 	assert(false);

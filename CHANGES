@@ -1,5 +1,5 @@
 
-2.3-551 | 2015-03-17 09:22:37 -0700
+2.3-553 | 2015-03-17 14:33:23 -0700
 
   * Deprecate &rotate_interval, &rotate_size, &encrypt. Addresses
     BIT-1305. (Jon Siwek)

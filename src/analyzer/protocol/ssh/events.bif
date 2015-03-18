@@ -9,7 +9,8 @@
 ##
 ## .. bro:see:: ssh_client_version ssh_auth_successful ssh_auth_failed
 ##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
-##    ssh_encrypted_packet
+##    ssh_encrypted_packet ssh2_dh_server_params
+##    ssh2_gss_error ssh2_ecc_key
 event ssh_server_version%(c: connection, version: string%);
 
 ## An :abbr:`SSH (Secure Shell)` Protocol Version Exchange message
@@ -23,7 +24,8 @@ event ssh_server_version%(c: connection, version: string%);
 ##
 ## .. bro:see:: ssh_server_version ssh_auth_successful ssh_auth_failed
 ##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
-##    ssh_encrypted_packet
+##    ssh_encrypted_packet ssh2_dh_server_params
+##    ssh2_gss_error ssh2_ecc_key
 event ssh_client_version%(c: connection, version: string%);
 
 ## This event is generated when an :abbr:`SSH (Secure Shell)`
@@ -42,7 +44,8 @@ event ssh_client_version%(c: connection, version: string%);
 ##
 ## .. bro:see:: ssh_server_version ssh_client_version ssh_auth_failed
 ##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
-##    ssh_encrypted_packet
+##    ssh_encrypted_packet ssh2_dh_server_params
+##    ssh2_gss_error ssh2_ecc_key
 event ssh_auth_successful%(c: connection, auth_method_none: bool%);
 
 ## This event is generated when an :abbr:`SSH (Secure Shell)`
@@ -56,7 +59,8 @@ event ssh_auth_successful%(c: connection, auth_method_none: bool%);
 ##
 ## .. bro:see:: ssh_server_version ssh_client_version
 ##    ssh_auth_successful ssh_capabilities ssh2_server_host_key
-##    ssh1_server_host_key ssh_encrypted_packet
+##    ssh1_server_host_key ssh_encrypted_packet ssh2_dh_server_params
+##    ssh2_gss_error ssh2_ecc_key
 event ssh_auth_failed%(c: connection%);
 
 ## During the initial :abbr:`SSH (Secure Shell)` key exchange, each
@@ -76,7 +80,8 @@ event ssh_auth_failed%(c: connection%);
 ##
 ## .. bro:see:: ssh_server_version ssh_client_version
 ##    ssh_auth_successful ssh_auth_failed ssh2_server_host_key
-##    ssh1_server_host_key ssh_encrypted_packet
+##    ssh1_server_host_key ssh_encrypted_packet ssh2_dh_server_params
+##    ssh2_gss_error ssh2_ecc_key
 event ssh_capabilities%(c: connection, cookie: string, capabilities: SSH::Capabilities%);
 
 ## During the :abbr:`SSH (Secure Shell)` key exchange, the server
@@ -91,7 +96,8 @@ event ssh_capabilities%(c: connection, cookie: string, capabilities: SSH::Capabi
 ##
 ## .. bro:see:: ssh_server_version ssh_client_version
 ##    ssh_auth_successful ssh_auth_failed ssh_capabilities
-##    ssh1_server_host_key ssh_encrypted_packet
+##    ssh1_server_host_key ssh_encrypted_packet ssh2_dh_server_params
+##    ssh2_gss_error ssh2_ecc_key
 event ssh2_server_host_key%(c: connection, key: string%);
 
 ## During the :abbr:`SSH (Secure Shell)` key exchange, the server
@@ -107,7 +113,8 @@ event ssh2_server_host_key%(c: connection, key: string%);
 ##
 ## .. bro:see:: ssh_server_version ssh_client_version
 ##    ssh_auth_successful ssh_auth_failed ssh_capabilities
-##    ssh2_server_host_key ssh_encrypted_packet
+##    ssh2_server_host_key ssh_encrypted_packet ssh2_dh_server_params
+##    ssh2_gss_error ssh2_ecc_key
 event ssh1_server_host_key%(c: connection, p: string, e: string%);
 
 ## This event is generated when an :abbr:`SSH (Secure Shell)`
@@ -128,6 +135,61 @@ event ssh1_server_host_key%(c: connection, p: string, e: string%);
 ##
 ## .. bro:see:: ssh_server_version ssh_client_version
 ##    ssh_auth_successful ssh_auth_failed ssh_capabilities
-##    ssh2_server_host_key ssh1_server_host_key
+##    ssh2_server_host_key ssh1_server_host_key ssh2_dh_server_params
+##    ssh2_gss_error ssh2_ecc_key
 event ssh_encrypted_packet%(c: connection, orig: bool, len: count%);
 
+## Generated if the connection uses a Diffie-Hellman Group Exchange
+## key exchange method. This event contains the server DH parameters,
+## which are sent in the SSH_MSG_KEY_DH_GEX_GROUP message as defined in
+## :rfc:`4419#section-3`.
+##
+## c: The connection.
+##
+## p: The DH prime modulus.
+##
+## q: The DH generator.
+##
+## .. bro:see:: ssl_dh_server_params ssh_server_version
+##    ssh_client_version ssh_auth_successful ssh_auth_failed
+##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
+##    ssh_encrypted_packet ssh2_gss_error ssh2_ecc_key
+event ssh2_dh_server_params%(c: connection, p: string, q: string%);
+
+## In the event of a GSS-API error on the server, the server MAY send
+## send an error message with some additional details. This event is
+## generated when such an error message is seen. For more information,
+## see :rfc:`4462#section-2.1`.
+##
+## c: The connection.
+##
+## major_status: GSS-API major status code.
+##
+## minor_status: GSS-API minor status code.
+##
+## err_msg: Detailed human-readable error message
+##
+## .. bro:see:: ssh_server_version ssh_client_version
+##    ssh_auth_successful ssh_auth_failed ssh_capabilities
+##    ssh2_server_host_key ssh1_server_host_key ssh_encrypted_packet
+##    ssh2_dh_server_params ssh2_ecc_key
+event ssh2_gss_error%(c: connection, major_status: count, minor_status: count, err_msg: string%);
+
+## The :abbr:`ECDH (Elliptic Curve Diffie-Hellman)` and
+## :abbr:`ECMQV (Elliptic Curve Menezes-Qu-Vanstone)` key exchange
+## algorithms use two ephemeral key pairs to generate a shared
+## secret. This event is generated when either the client's or
+## server's ephemeral public key is seen. For more information, see:
+## :rfc:`5656#section-4`.
+##
+## c: The connection
+##
+## is_orig: Did this message come from the originator?
+##
+## q: The ephemeral public key
+##
+## .. bro:see:: ssh_server_version ssh_client_version
+##    ssh_auth_successful ssh_auth_failed ssh_capabilities
+##    ssh2_server_host_key ssh1_server_host_key ssh_encrypted_packet
+##    ssh2_dh_server_params ssh2_gss_error
+event ssh2_ecc_key%(c: connection, is_orig: bool, q: string%);

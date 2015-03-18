@@ -59,7 +59,7 @@ export {
 	## Event that can be handled when the analyzer sees an SSH server host
 	## key. This abstracts :bro:id:`SSH::ssh1_server_host_key` and 
 	## :bro:id:`SSH::ssh2_server_host_key`.
-	global ssh_server_host_key: event(c: connection, hash string);
+	global ssh_server_host_key: event(c: connection, hash: string);
 }
 
 redef record Info += {

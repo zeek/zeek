@@ -110,6 +110,41 @@ refine flow SSH_Flow += {
 		return true;
 		%}
 
+
+	function proc_ssh2_dh_gex_group(msg: SSH2_DH_GEX_GROUP): bool
+		%{
+		if ( ssh2_dh_server_params )
+			{
+			BifEvent::generate_ssh2_dh_server_params(connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				bytestring_to_val(${msg.p.val}), bytestring_to_val(${msg.g.val}));
+			}
+		return true;
+		%}
+
+	function proc_ssh2_ecc_key(q: bytestring, is_orig: bool): bool
+		%{
+		if ( ssh2_ecc_key )
+			{
+			BifEvent::generate_ssh2_ecc_key(connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig, bytestring_to_val(q));
+			}
+		return true;
+		%}
+
+	function proc_ssh2_gss_error(msg: SSH2_GSS_ERROR): bool
+		%{
+		if ( ssh2_gss_error )
+			{
+			BifEvent::generate_ssh2_gss_error(connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				${msg.major_status}, ${msg.minor_status},
+				bytestring_to_val(${msg.message.val}));
+			}
+		return true;
+		%}
+
 	function proc_ssh2_server_host_key(key: bytestring): bool
 		%{
 		if ( ssh2_server_host_key )
@@ -160,8 +195,25 @@ refine typeattr SSH2_DH_GEX_REPLY += &let {
 	proc: bool = $context.flow.proc_ssh2_server_host_key(k_s.val);
 };
 
-refine typeattr SSH2_ECC_REPLY += &let {
+refine typeattr SSH2_GSS_HOSTKEY += &let {
 	proc: bool = $context.flow.proc_ssh2_server_host_key(k_s.val);
+};
+
+refine typeattr SSH2_GSS_ERROR += &let {
+	proc: bool = $context.flow.proc_ssh2_gss_error(this);
+};
+
+refine typeattr SSH2_DH_GEX_GROUP += &let {
+	proc: bool = $context.flow.proc_ssh2_dh_gex_group(this);
+};
+
+refine typeattr SSH2_ECC_REPLY += &let {
+	proc_k: bool = $context.flow.proc_ssh2_server_host_key(k_s.val);
+	proc_q: bool = $context.flow.proc_ssh2_ecc_key(q_s.val, false);
+};
+
+refine typeattr SSH2_ECC_INIT += &let {
+	proc: bool = $context.flow.proc_ssh2_ecc_key(q_c.val, true);
 };
 
 refine typeattr SSH1_PUBLIC_KEY += &let {

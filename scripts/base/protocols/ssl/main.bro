@@ -97,7 +97,9 @@ const ssl_ports = {
 	989/tcp, 990/tcp, 992/tcp, 993/tcp, 995/tcp, 5223/tcp
 };
 
-const dtls_ports = { 4433/udp };
+# As far as I know, there are no well known dtls ports at the moment. Let's
+# just add 443 for now for good measure - who knows :)
+const dtls_ports = { 443/udp };
 
 redef likely_server_ports += { ssl_ports, dtls_ports };
 

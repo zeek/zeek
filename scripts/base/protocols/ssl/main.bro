@@ -274,7 +274,7 @@ event connection_state_remove(c: connection) &priority=-5
 
 event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &priority=5
 	{
-	if ( atype == Analyzer::ANALYZER_SSL )
+	if ( atype == Analyzer::ANALYZER_SSL || atype == Analyzer::ANALYZER_DTLS )
 		{
 		set_session(c);
 		c$ssl$analyzer_id = aid;
@@ -284,6 +284,6 @@ event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &pr
 event protocol_violation(c: connection, atype: Analyzer::Tag, aid: count,
                          reason: string) &priority=5
 	{
-	if ( c?$ssl && atype == Analyzer::ANALYZER_SSL )
+	if ( c?$ssl && ( atype == Analyzer::ANALYZER_SSL || atype == Analyzer::ANALYZER_DTLS ) )
 		finish(c, T);
 	}

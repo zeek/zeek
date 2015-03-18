@@ -1,4 +1,56 @@
 
+2.3-555 | 2015-03-17 15:57:13 -0700
+
+  * Splitting test-all Makefile target into Bro tests and test-aux.
+    (Robin Sommer)
+
+2.3-554 | 2015-03-17 15:40:39 -0700
+
+  * Deprecate &rotate_interval, &rotate_size, &encrypt. Addresses
+    BIT-1305. (Jon Siwek)
+
+2.3-549 | 2015-03-17 09:12:18 -0700
+
+  * BIT-1077: Fix HTTP::log_server_header_names. Before, it just
+    re-logged fields from the client side. (Jon Siwek)
+
+2.3-547 | 2015-03-17 09:07:51 -0700
+
+  * Update certificate validation script to cache valid intermediate
+    chains that it encounters on the wire and use those to try to
+    validate chains that might be missing intermediate certificates.
+    (Johanna Amann)
+
+2.3-541 | 2015-03-13 15:44:08 -0500
+
+  * Make INSTALL a symlink to doc/install/install.rst (Jon siwek)
+
+  * Fix Broxygen coverage. (Jon Siwek)
+
+2.3-539 | 2015-03-13 14:19:27 -0500
+
+  * BIT-1335: Include timestamp in default extracted file names.
+    And add a policy script to extract all files. (Jon Siwek)
+
+  * BIT-1311: Identify GRE tunnels as Tunnel::GRE, not Tunnel::IP.
+    (Jon Siwek)
+
+  * BIT-1309: Add Connection class getter methods for flow labels.
+    (Jon Siwek)
+
+2.3-536 | 2015-03-12 16:16:24 -0500
+
+  * Fix Broker leak tests. (Jon Siwek)
+
+2.3-534 | 2015-03-12 10:59:49 -0500
+
+  * Update NEWS file. (Jon Siwek)
+
+2.3-533 | 2015-03-12 10:18:53 -0500
+
+  * Give broker python bindings default install path within --prefix.
+    (Jon Siwek)
+
 2.3-530 | 2015-03-10 13:22:39 -0500
 
   * Fix broker data stores in absence of --enable-debug. (Jon Siwek)
@@ -322,7 +374,7 @@
 
 2.3-328 | 2014-12-02 08:13:10 -0500
 
-  * Update windows-version-detection.bro to add support for 
+  * Update windows-version-detection.bro to add support for
     Windows 10. (Michal Purzynski)
 
 2.3-326 | 2014-12-01 12:10:27 -0600
@@ -392,7 +444,7 @@
 
 2.3-280 | 2014-11-05 09:46:33 -0500
 
-  * Add Windows detection based on CryptoAPI HTTP traffic as a 
+  * Add Windows detection based on CryptoAPI HTTP traffic as a
     software framework policy script. (Vlad Grigorescu)
 
 2.3-278 | 2014-11-03 18:55:18 -0800

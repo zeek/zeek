@@ -43,8 +43,6 @@ The Bro scripting language supports the following attributes.
 +-----------------------------+-----------------------------------------------+
 | :bro:attr:`&mergeable`      |Prefer set union for synchronized state.       |
 +-----------------------------+-----------------------------------------------+
-| :bro:attr:`&group`          |Group event handlers to activate/deactivate.   |
-+-----------------------------+-----------------------------------------------+
 | :bro:attr:`&error_handler`  |Used internally for reporter framework events. |
 +-----------------------------+-----------------------------------------------+
 | :bro:attr:`&type_column`    |Used by input framework for "port" type.       |
@@ -197,11 +195,6 @@ Here is a more detailed explanation of each attribute:
     condition, where the last update succeeds. This can cause
     inconsistencies and can be avoided by unifying the two sets, rather
     than merely overwriting the old value.
-
-.. bro:attr:: &group
-
-    Groups event handlers such that those in the same group can be
-    jointly activated or deactivated.
 
 .. bro:attr:: &error_handler
 

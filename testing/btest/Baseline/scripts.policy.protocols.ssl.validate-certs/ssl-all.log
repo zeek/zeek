@@ -1,0 +1,23 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	ssl
+#open	2015-03-09-19-44-42
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer	validation_status
+#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string	string
+1394745602.951961	CXWv6p3arKYeMETxOg	192.168.4.149	60539	87.98.220.10	443	TLSv10	TLS_DHE_RSA_WITH_AES_256_CBC_SHA	-	-	F	-	-	T	F1fX1R2cDOzbvg17ye,FqPEQR2eytAQybroyl	(empty)	CN=www.spidh.org,OU=COMODO SSL,OU=Domain Control Validated	CN=COMODO SSL CA,O=COMODO CA Limited,L=Salford,ST=Greater Manchester,C=GB	-	-	certificate has expired
+1394745618.791420	CjhGID4nQcgTWjvg4c	192.168.4.149	60540	122.1.240.204	443	TLSv10	TLS_RSA_WITH_AES_256_CBC_SHA	-	-	F	-	-	T	F6NAbK127LhNBaEe5c,FDhmPt28vyXlGMTxP7,F0ROCKibhE1KntJ1h	(empty)	CN=www.tobu-estate.com,OU=Terms of use at www.verisign.com/rpa (c)05,O=TOBU RAILWAY Co.\,Ltd.,L=Sumida-ku,ST=Tokyo,C=JP	CN=VeriSign Class 3 Secure Server CA - G3,OU=Terms of use at https://www.verisign.com/rpa (c)10,OU=VeriSign Trust Network,O=VeriSign\, Inc.,C=US	-	-	ok
+#close	2015-03-09-19-44-42
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	ssl
+#open	2015-03-09-19-44-42
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer	validation_status
+#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string	string
+1417039703.224578	CXWv6p3arKYeMETxOg	192.168.4.149	58529	128.32.169.140	443	TLSv10	TLS_RSA_WITH_RC4_128_MD5	-	-	F	-	-	T	FghNi02cFL9n6ttuMa	(empty)	CN=www.cviis.org,OU=Domain Control Validated	CN=Starfield Secure Certificate Authority - G2,OU=http://certs.starfieldtech.com/repository/,O=Starfield Technologies\, Inc.,L=Scottsdale,ST=Arizona,C=US	-	-	unable to get local issuer certificate
+1417039705.820093	CjhGID4nQcgTWjvg4c	192.168.4.149	58530	72.167.102.91	443	TLSv12	TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384	secp256r1	-	F	-	-	T	Fz7gr4fSm2T2sEyDl,FhjNBG25vvoBO6CS79,FQFHJA20WL56NP6LXk	(empty)	CN=valid.sfig2.catest.starfieldtech.com,O=Starfield Technologies\, LLC,L=Scottsdale,ST=Arizona,C=US,serialNumber=R-1724741-6,businessCategory=Private Organization,jurisdictionST=Arizona,jurisdictionC=US	CN=Starfield Secure Certificate Authority - G2,OU=http://certs.starfieldtech.com/repository/,O=Starfield Technologies\, Inc.,L=Scottsdale,ST=Arizona,C=US	-	-	ok
+1417039710.349578	CCvvfg3TEfuqmmG4bh	192.168.4.149	58532	128.32.169.140	443	TLSv10	TLS_RSA_WITH_RC4_128_MD5	-	-	F	-	-	T	FRcFYq3e3hgYkZ8dS1	(empty)	CN=www.cviis.org,OU=Domain Control Validated	CN=Starfield Secure Certificate Authority - G2,OU=http://certs.starfieldtech.com/repository/,O=Starfield Technologies\, Inc.,L=Scottsdale,ST=Arizona,C=US	-	-	ok
+#close	2015-03-09-19-44-42

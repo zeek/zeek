@@ -38,7 +38,12 @@ public:
 		 */
 		unsigned int link;
 
-		Stats()	{ received = dropped = link = 0; }
+		/**
+		  * Bytes received by source after filtering (w/o drops).
+		*/
+		uint64 bytes_received;
+
+		Stats()	{ received = dropped = link = bytes_received = 0; }
 	};
 
 	/**

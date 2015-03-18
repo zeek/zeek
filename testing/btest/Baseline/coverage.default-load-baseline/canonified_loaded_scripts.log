@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2014-10-31-20-38-48
+#open	2015-02-03-22-47-15
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -14,6 +14,8 @@ scripts/base/init-bare.bro
   build/scripts/base/bif/reporter.bif.bro
   build/scripts/base/bif/plugins/Bro_SNMP.types.bif.bro
   build/scripts/base/bif/event.bif.bro
+  scripts/base/frameworks/broker/__load__.bro
+    scripts/base/frameworks/broker/main.bro
   scripts/base/frameworks/logging/__load__.bro
     scripts/base/frameworks/logging/main.bro
       build/scripts/base/bif/logging.bif.bro
@@ -47,6 +49,10 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/bloom-filter.bif.bro
     build/scripts/base/bif/cardinality-counter.bif.bro
     build/scripts/base/bif/top-k.bif.bro
+    build/scripts/base/bif/comm.bif.bro
+    build/scripts/base/bif/data.bif.bro
+    build/scripts/base/bif/messaging.bif.bro
+    build/scripts/base/bif/store.bif.bro
   build/scripts/base/bif/plugins/__load__.bro
     build/scripts/base/bif/plugins/Bro_ARP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_AYIYA.events.bif.bro
@@ -247,4 +253,4 @@ scripts/base/init-default.bro
   scripts/base/misc/find-checksum-offloading.bro
   scripts/base/misc/find-filtered-trace.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2014-10-31-20-38-48
+#close	2015-02-03-22-47-15

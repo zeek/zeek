@@ -39,6 +39,28 @@ New Functionality
   ``next`` and ``break`` can be used inside the loop's body just like
   with ``for`` loops.
 
+- Bro now integrates Broker, it's new communication library. See
+  aux/broker/README for more information on Broker, and
+  doc/frameworks/comm.rst for the corresponding Bro script API.
+
+  TODO: Extend with some more information on  Broker.
+
+  Broker support is by default off for now; it can be enabled at
+  configure time with --enable-broker. It requires CAF version 0.13+
+  (https://github.com/actor-framework/actor-framework) as well as a
+  C++11 compiler (e.g. GCC 4.8+ or Clang 3.3+).
+
+  Broker will become a mandatory dependency in future Bro versions.
+
+- Add --enable-c++11 configure flag to compile Bro's source code in
+  C++11 mode with a corresponding compiler. Note that 2.4 will be the
+  last version of Bro that compiles without C++11 support.
+
+- The SSL analysis now alert when encountering SSL connections with
+  old protocol versions or unsafe cipher suites.
+
+- [TODO] Add new BroControl features.
+
 Changed Functionality
 ---------------------
 
@@ -50,6 +72,11 @@ Changed Functionality
       fields.  The events ``file_mime_type`` and ``file_mime_types``
       have been added which contain the same information.  The
       ``mime_type`` field of ``Files::Info`` also still has this info.
+
+    * The earliest point that new mime type information is available is
+      in the ``file_mime_type`` event which comes after the ``file_new``
+      and ``file_over_new_connection`` events.  Scripts which inspected
+      mime type info within those events will need to be adapted.
 
     * Removed ``Files::add_analyzers_for_mime_type`` function.
 
@@ -63,6 +90,17 @@ Changed Functionality
 
 - has_valid_octets: now uses a string_vec parameter instead of
   string_array.
+
+- conn.log gained a new field local_resp that works like local_orig,
+  just for the responder address of the connection.
+
+- GRE tunnels are now identified as ``Tunnel::GRE`` instead of
+  ``Tunnel::IP``.
+
+- The default name for extracted files changed from extract-protocol-id
+  to extract-timestamp-protocol-id.
+
+- [TODO] Add changed BroControl features.
 
 Deprecated Functionality
 ------------------------

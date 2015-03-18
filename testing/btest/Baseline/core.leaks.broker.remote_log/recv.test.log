@@ -1,0 +1,15 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	test
+#open	2015-02-12-17-33-13
+#fields	msg	num
+#types	string	count
+ping	0
+ping	1
+ping	2
+ping	3
+ping	4
+ping	5
+#close	2015-02-12-17-33-14

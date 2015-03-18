@@ -12,16 +12,16 @@ export {
 		## invalid.
 		Invalid_Server_Cert
 	};
-	
+
 	redef record Info += {
 		## Result of certificate validation for this connection.
 		validation_status: string &log &optional;
 	};
-	
+
 	## MD5 hash values for recently validated chains along with the
 	## validation status message are kept in this table to avoid constant
 	## validation every time the same certificate chain is seen.
-	global recently_validated_certs: table[string] of string = table() 
+	global recently_validated_certs: table[string] of string = table()
 		&read_expire=5mins &synchronized &redef;
 }
 
@@ -33,6 +33,7 @@ event ssl_established(c: connection) &priority=3
 		return;
 
 	local chain_id = join_string_vec(c$ssl$cert_chain_fuids, ".");
+	local hash = c$ssl$cert_chain[0]$sha1;
 
 	local chain: vector of opaque of x509 = vector();
 	for ( i in c$ssl$cert_chain )
@@ -57,7 +58,7 @@ event ssl_established(c: connection) &priority=3
 		local message = fmt("SSL certificate validation failed with (%s)", c$ssl$validation_status);
 		NOTICE([$note=Invalid_Server_Cert, $msg=message,
 		        $sub=c$ssl$subject, $conn=c,
-		        $identifier=cat(c$id$resp_h,c$id$resp_p,c$ssl$validation_status)]);
+		        $identifier=cat(c$id$resp_h,c$id$resp_p,hash,c$ssl$validation_status)]);
 		}
 	}
 

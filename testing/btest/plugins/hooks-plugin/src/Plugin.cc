@@ -48,7 +48,7 @@ int Plugin::HookLoadFile(const std::string& file, const std::string& ext)
 	return -1;
 	}
 
-Val* Plugin::HookCallFunction(const Func* func, val_list* args)
+std::pair<bool, Val*> Plugin::HookCallFunction(const Func* func, Frame* frame, val_list* args)
 	{
 	ODesc d;
 	d.SetShort();
@@ -57,7 +57,7 @@ Val* Plugin::HookCallFunction(const Func* func, val_list* args)
 	fprintf(stderr, "%.6f %-15s %s\n", network_time, "| HookCallFunction",
 		d.Description());
 
-	return 0;
+	return std::pair<bool, Val*>(false, NULL);
 	}
 
 bool Plugin::HookQueueEvent(Event* event)

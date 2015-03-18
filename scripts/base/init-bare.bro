@@ -440,6 +440,7 @@ type NetStats: record {
 	## packet capture system, this value may not be available and will then
 	## be always set to zero.
 	pkts_link:    count &default=0;
+	bytes_recvd:  count &default=0;	##< Bytes received by Bro.
 };
 
 ## Statistics about Bro's resource consumption.
@@ -2774,19 +2775,20 @@ export {
 module X509;
 export {
 	type Certificate: record {
-		version: count;	##< Version number.
-		serial: string;	##< Serial number.
-		subject: string;	##< Subject.
-		issuer: string;	##< Issuer.
-		not_valid_before: time;	##< Timestamp before when certificate is not valid.
-		not_valid_after: time;	##< Timestamp after when certificate is not valid.
-		key_alg: string;	##< Name of the key algorithm
-		sig_alg: string;	##< Name of the signature algorithm
-		key_type: string &optional;	##< Key type, if key parseable by openssl (either rsa, dsa or ec)
-		key_length: count &optional;	##< Key length in bits
-		exponent: string &optional;	##< Exponent, if RSA-certificate
-		curve: string &optional;	##< Curve, if EC-certificate
-	} &log;
+		version: count &log;	##< Version number.
+		serial: string &log;	##< Serial number.
+		subject: string &log;	##< Subject.
+		issuer: string &log;	##< Issuer.
+		cn: string &optional; ##< Last (most specific) common name.
+		not_valid_before: time &log;	##< Timestamp before when certificate is not valid.
+		not_valid_after: time &log;	##< Timestamp after when certificate is not valid.
+		key_alg: string &log;	##< Name of the key algorithm
+		sig_alg: string &log;	##< Name of the signature algorithm
+		key_type: string &optional &log;	##< Key type, if key parseable by openssl (either rsa, dsa or ec)
+		key_length: count &optional &log;	##< Key length in bits
+		exponent: string &optional &log;	##< Exponent, if RSA-certificate
+		curve: string &optional &log;	##< Curve, if EC-certificate
+	};
 
 	type Extension: record {
 		name: string;	##< Long name of extension. oid if name not known
@@ -3358,6 +3360,7 @@ const bits_per_uid: count = 96 &redef;
 
 # Load these frameworks here because they use fairly deep integration with
 # BiFs and script-land defined types.
+@load base/frameworks/broker
 @load base/frameworks/logging
 @load base/frameworks/input
 @load base/frameworks/analyzer

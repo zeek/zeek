@@ -207,7 +207,7 @@ refine connection SSL_Conn += {
 			{
 			// This should be impossible due to the binpac parser
 			// and protocol description
-			bro_analyzer()->ProtocolViolation(fmt("Impossible extension length: %lu", length));
+			bro_analyzer()->ProtocolViolation(fmt("Impossible extension length: %zu", length));
 			bro_analyzer()->SetSkip(true);
 			return true;
 			}

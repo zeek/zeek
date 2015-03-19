@@ -896,7 +896,7 @@ void SMTP_Analyzer::BeginData()
 	skip_data = 0; // reset the flag at the beginning of the mail
 	if ( mail != 0 )
 		{
-		reporter->Warning("nested mail transaction");
+		Weird("smtp_nested_mail_transaction");
 		mail->Done();
 		delete mail;
 		}
@@ -907,7 +907,7 @@ void SMTP_Analyzer::BeginData()
 void SMTP_Analyzer::EndData()
 	{
 	if ( ! mail )
-		reporter->Warning("Unmatched end of data");
+		Weird("smtp_unmatched_end_of_data");
 	else
 		{
 		mail->Done();

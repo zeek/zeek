@@ -1,4 +1,10 @@
 
+2.3-559 | 2015-03-19 12:14:33 -0500
+
+  * BIT-849: turn SMTP reporter warnings into weirds,
+    "smtp_nested_mail_transaction" and "smtp_unmatched_end_of_data".
+    (Jon Siwek)
+
 2.3-558 | 2015-03-18 22:50:55 -0400
 
   * DNS: Log the type number for the DNS_RR_unknown_type weird. (Vlad Grigorescu)

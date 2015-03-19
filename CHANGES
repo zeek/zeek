@@ -1,4 +1,8 @@
 
+2.3-558 | 2015-03-18 22:50:55 -0400
+
+  * DNS: Log the type number for the DNS_RR_unknown_type weird. (Vlad Grigorescu)
+
 2.3-555 | 2015-03-17 15:57:13 -0700
 
   * Splitting test-all Makefile target into Bro tests and test-aux.

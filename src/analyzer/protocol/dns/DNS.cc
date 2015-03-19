@@ -308,7 +308,7 @@ int DNS_Interpreter::ParseAnswer(DNS_MsgInfo* msg,
 				analyzer->ConnectionEvent(dns_unknown_reply, vl);
 				}
 
-			analyzer->Weird("DNS_RR_unknown_type");
+			analyzer->Weird("DNS_RR_unknown_type", fmt("%d", msg->atype));
 			data += rdlength;
 			len -= rdlength;
 			status = 1;

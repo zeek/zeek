@@ -205,14 +205,14 @@ private:
 
 	// Convert Threading::Value to an internal Bro Type (works also with
 	// Records).
-	Val* ValueToVal(const Stream* i, const threading::Value* val, BroType* request_type);
+	Val* ValueToVal(const Stream* i, const threading::Value* val, BroType* request_type, bool& have_error);
 
 	// Convert Threading::Value to an internal Bro List type.
-	Val* ValueToIndexVal(const Stream* i, int num_fields, const RecordType* type, const threading::Value* const *vals);
+	Val* ValueToIndexVal(const Stream* i, int num_fields, const RecordType* type, const threading::Value* const *vals, bool& have_error);
 
 	// Converts a threading::value to a record type. Mostly used by
 	// ValueToVal.
-	RecordVal* ValueToRecordVal(const Stream* i, const threading::Value* const *vals, RecordType *request_type, int* position);
+	RecordVal* ValueToRecordVal(const Stream* i, const threading::Value* const *vals, RecordType *request_type, int* position, bool& have_error);
 
 	Val* RecordValToIndexVal(RecordVal *r);
 

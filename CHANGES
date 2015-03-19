@@ -1,4 +1,10 @@
 
+2.3-560 | 2015-03-19 13:17:39 -0500
+
+  * BIT-1255: Increase default values of
+    "tcp_max_above_hole_without_any_acks" and "tcp_max_initial_window"
+    from 4096 to 16384 bytes. (Jon Siwek)
+
 2.3-559 | 2015-03-19 12:14:33 -0500
 
   * BIT-849: turn SMTP reporter warnings into weirds,

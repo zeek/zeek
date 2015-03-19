@@ -929,7 +929,7 @@ const tcp_storm_interarrival_thresh = 1 sec &redef;
 ## seeing our peer's ACKs.  Set to zero to turn off this determination.
 ##
 ## .. bro:see:: tcp_max_above_hole_without_any_acks tcp_excessive_data_without_further_acks
-const tcp_max_initial_window = 4096 &redef;
+const tcp_max_initial_window = 16384 &redef;
 
 ## If we're not seeing our peer's ACKs, the maximum volume of data above a
 ## sequence hole that we'll tolerate before assuming that there's been a packet
@@ -937,7 +937,7 @@ const tcp_max_initial_window = 4096 &redef;
 ## don't ever give up.
 ##
 ## .. bro:see:: tcp_max_initial_window tcp_excessive_data_without_further_acks
-const tcp_max_above_hole_without_any_acks = 4096 &redef;
+const tcp_max_above_hole_without_any_acks = 16384 &redef;
 
 ## If we've seen this much data without any of it being acked, we give up
 ## on that connection to avoid memory exhaustion due to buffering all that

@@ -89,7 +89,7 @@ redef likely_server_ports += { ayiya_ports, teredo_ports, gtpv1_ports };
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(Tunnel::LOG, [$columns=Info]);
+	Log::create_stream(Tunnel::LOG, [$columns=Info, $path="tunnel"]);
 
 	Analyzer::register_for_ports(Analyzer::ANALYZER_AYIYA, ayiya_ports);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_TEREDO, teredo_ports);

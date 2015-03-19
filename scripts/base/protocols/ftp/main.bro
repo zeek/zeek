@@ -52,7 +52,7 @@ redef likely_server_ports += { ports };
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(FTP::LOG, [$columns=Info, $ev=log_ftp]);
+	Log::create_stream(FTP::LOG, [$columns=Info, $ev=log_ftp, $path="ftp"]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_FTP, ports);
 	}
 

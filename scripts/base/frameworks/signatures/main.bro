@@ -142,7 +142,7 @@ global did_sig_log: set[string] &read_expire = 1 hr;
 
 event bro_init()
 	{
-	Log::create_stream(Signatures::LOG, [$columns=Info, $ev=log_signature]);
+	Log::create_stream(Signatures::LOG, [$columns=Info, $ev=log_signature, $path="signatures"]);
 	}
 		
 # Returns true if the given signature has already been triggered for the given

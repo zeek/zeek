@@ -73,7 +73,7 @@ redef likely_server_ports += { ports };
 
 event bro_init() &priority=5
 {
-	Log::create_stream(SSH::LOG, [$columns=Info, $ev=log_ssh]);
+	Log::create_stream(SSH::LOG, [$columns=Info, $ev=log_ssh, $path="ssh"]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SSH, ports);
 }
 

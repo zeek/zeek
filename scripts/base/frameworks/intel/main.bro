@@ -174,7 +174,7 @@ global min_data_store: MinDataStore &redef;
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(LOG, [$columns=Info, $ev=log_intel]);
+	Log::create_stream(LOG, [$columns=Info, $ev=log_intel, $path="intel"]);
 	}
 
 function find(s: Seen): bool

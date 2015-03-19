@@ -102,6 +102,15 @@ Changed Functionality
 
 - [TODO] Add changed BroControl features.
 
+- When adding a logging filter to a stream, the filter can now inherit
+  a default ``path`` field from the associated ``Log::Stream`` record.
+
+- When adding a logging filter to a stream, the
+  ``Log::default_path_func`` is now only automatically added to the
+  filter if it has neither a ``path`` nor a ``path_func`` already
+  explicitly set.  Before, the default path function would always be set
+  for all filters which didn't specify their own ``path_func``.
+
 Deprecated Functionality
 ------------------------
 

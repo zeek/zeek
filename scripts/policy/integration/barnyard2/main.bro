@@ -23,7 +23,7 @@ export {
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(Barnyard2::LOG, [$columns=Info]);
+	Log::create_stream(Barnyard2::LOG, [$columns=Info, $path="barnyard2"]);
 	}
 
 

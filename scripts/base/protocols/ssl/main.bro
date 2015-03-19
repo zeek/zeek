@@ -100,7 +100,7 @@ redef likely_server_ports += { ports };
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(SSL::LOG, [$columns=Info, $ev=log_ssl]);
+	Log::create_stream(SSL::LOG, [$columns=Info, $ev=log_ssl, $path="ssl"]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SSL, ports);
 	}
 

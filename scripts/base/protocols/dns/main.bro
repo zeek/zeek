@@ -305,6 +305,9 @@ hook DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string) 
 
 	if ( ans$answer_type == DNS_ANS )
 		{
+		if ( ! c$dns?$query )
+			c$dns$query = ans$query;
+
 		c$dns$AA    = msg$AA;
 		c$dns$RA    = msg$RA;
 

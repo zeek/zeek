@@ -25,7 +25,11 @@ void SIP_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 	{
 	bool real_orig = true;
 	if ( len > 6 && data[0] == 'S' && data[1] == 'I' && data[2] == 'P' && data[3] == '/' )
-	    real_orig = false;
+	    real_orig  = false;
+
+	// Sometimes we see some packets with just '\r\n' - ignore those
+	if ( len == 2 && data[0] == '\r')
+		return;
 
 	Analyzer::DeliverPacket(len, data, real_orig, seq, ip, caplen);
 	

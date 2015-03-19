@@ -18,6 +18,7 @@ refine flow SIP_Flow += {
 
 	function proc_sip_request(method: bytestring, uri: bytestring, vers: SIP_Version): bool
 		%{
+		connection()->bro_analyzer()->ProtocolConfirmation();
 		if ( sip_request )
 			{
 			BifEvent::generate_sip_request(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
@@ -32,6 +33,7 @@ refine flow SIP_Flow += {
 
 	function proc_sip_reply(vers: SIP_Version, code: int, reason: bytestring): bool
 		%{
+		connection()->bro_analyzer()->ProtocolConfirmation();
 		if ( sip_reply )
 			{
 			BifEvent::generate_sip_reply(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),

@@ -85,13 +85,9 @@ redef record connection += {
 	sip_state:  State &optional;
 };
 
-const ports = { 5060/udp };
-redef likely_server_ports += { ports };
-
 event bro_init() &priority=5
 	{
 	Log::create_stream(SIP::LOG, [$columns=Info, $ev=log_sip]);
-	Analyzer::register_for_ports(Analyzer::ANALYZER_SIP, ports);
 	}
 
 function new_sip_session(c: connection): Info
@@ -105,7 +101,7 @@ function new_sip_session(c: connection): Info
 	tmp$trans_depth = c$sip_state$current_request;
 
 	tmp$path = vector();
-		
+
 	return tmp;
 	}
 	
@@ -209,8 +205,6 @@ event connection_state_remove(c: connection) &priority=-5
 		{
 		for ( r in c$sip_state$pending )
 			{
-			# We don't use pending elements at index 0.
-			if ( r == 0 ) next;
 			Log::write(SIP::LOG, c$sip_state$pending[r]);
 			}
 		}

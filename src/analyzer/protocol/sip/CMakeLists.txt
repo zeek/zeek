@@ -8,3 +8,8 @@ bro_plugin_cc(SIP.cc Plugin.cc)
 bro_plugin_bif(events.bif)
 bro_plugin_pac(sip.pac sip-analyzer.pac sip-protocol.pac)
 bro_plugin_end()
+
+bro_plugin_begin(Bro SIP_TCP)
+bro_plugin_cc(SIP_TCP.cc Plugin_TCP.cc)
+bro_plugin_pac(sip_TCP.pac sip-protocol.pac sip-analyzer.pac)
+bro_plugin_end()

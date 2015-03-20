@@ -102,6 +102,10 @@ Changed Functionality
 
 - [TODO] Add changed BroControl features.
 
+- The weird named "unmatched_HTTP_reply" has been removed since it can
+  be detected at the script-layer and is handled correctly by the
+  default HTTP scripts.
+
 Deprecated Functionality
 ------------------------
 

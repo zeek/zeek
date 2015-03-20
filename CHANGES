@@ -1,4 +1,8 @@
 
+2.3-564 | 2015-03-20 11:12:02 -0500
+
+  * BIT-725: Remove "unmatched_HTTP_reply" weird. (Jon Siwek)
+
 2.3-562 | 2015-03-20 10:31:02 -0500
 
   * BIT-1207: Add unit test to catch breaking changes to local.bro

@@ -1,4 +1,11 @@
 
+2.3-562 | 2015-03-20 10:31:02 -0500
+
+  * BIT-1207: Add unit test to catch breaking changes to local.bro
+    (Jon Siwek)
+
+  * Fix failing sqlite leak test (Johanna Amann)
+
 2.3-560 | 2015-03-19 13:17:39 -0500
 
   * BIT-1255: Increase default values of

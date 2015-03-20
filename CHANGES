@@ -1,4 +1,9 @@
 
+2.3-565 | 2015-03-20 16:27:41 -0500
+
+  * BIT-978: Improve documentation of 'for' loop iterator invalidation.
+    (Jon Siwek)
+
 2.3-564 | 2015-03-20 11:12:02 -0500
 
   * BIT-725: Remove "unmatched_HTTP_reply" weird. (Jon Siwek)

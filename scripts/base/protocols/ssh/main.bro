@@ -49,8 +49,8 @@ export {
 	## If true, we tell the event engine to not look at further data
 	## packets after the initial SSH handshake. Helps with performance
 	## (especially with large file transfers) but precludes some
-	## kinds of analyses.
-	const skip_processing_after_detection = F &redef;
+	## kinds of analyses. Defaults to T.
+	const skip_processing_after_detection = T &redef;
 	
 	## Event that can be handled to access the SSH record as it is sent on
 	## to the logging framework.

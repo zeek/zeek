@@ -6,17 +6,17 @@
 # We have 3 basic types of messages:
 #
 #  - SSH_Version messages just have a string with the banner string of the client or server
-#  - Encrypted messages have no usable data, but those never get passed in by SSH.cc
+#  - Encrypted messages have no usable data, so we'll just ignore them as best we can.
 #  - Finally, key exchange messages have a common format.
 
 type SSH_PDU(is_orig: bool) = case $context.connection.get_state(is_orig) of {
 	VERSION_EXCHANGE -> version   : SSH_Version(is_orig);
+	ENCRYPTED        -> encrypted : bytestring &length=1 &transient;
 	default          -> kex       : SSH_Key_Exchange(is_orig);
 } &byteorder=bigendian;
 
 type SSH_Version(is_orig: bool) = record {
 	version : bytestring &oneline;
-	pad     : bytestring &length=0 &transient;
 } &let {
 	update_state   : bool = $context.connection.update_state(KEX_INIT, is_orig);
 	update_version : bool = $context.connection.update_version(version, is_orig);

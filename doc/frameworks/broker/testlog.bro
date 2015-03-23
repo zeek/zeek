@@ -15,5 +15,5 @@ export {
 event bro_init() &priority=5
 	{
 	BrokerComm::enable();
-	Log::create_stream(Test::LOG, [$columns=Test::Info, $ev=log_test]);
+	Log::create_stream(Test::LOG, [$columns=Test::Info, $ev=log_test, $path="test"]);
 	}

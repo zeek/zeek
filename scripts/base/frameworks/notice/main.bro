@@ -349,9 +349,9 @@ function log_mailing_postprocessor(info: Log::RotationInfo): bool
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(Notice::LOG, [$columns=Info, $ev=log_notice]);
+	Log::create_stream(Notice::LOG, [$columns=Info, $ev=log_notice, $path="notice"]);
 
-	Log::create_stream(Notice::ALARM_LOG, [$columns=Notice::Info]);
+	Log::create_stream(Notice::ALARM_LOG, [$columns=Notice::Info, $path="notice_alarm"]);
 	# If Bro is configured for mailing notices, set up mailing for alarms.
 	# Make sure that this alarm log is also output as text so that it can
 	# be packaged up and emailed later.

@@ -159,7 +159,7 @@ event filter_change_tracking()
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(PacketFilter::LOG, [$columns=Info]);
+	Log::create_stream(PacketFilter::LOG, [$columns=Info, $path="packet_filter"]);
 
 	# Preverify the capture and restrict filters to give more granular failure messages.
 	for ( id in capture_filters )

@@ -150,7 +150,7 @@ redef likely_server_ports += { ports };
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(DNS::LOG, [$columns=Info, $ev=log_dns]);
+	Log::create_stream(DNS::LOG, [$columns=Info, $ev=log_dns, $path="dns"]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_DNS, ports);
 	}
 

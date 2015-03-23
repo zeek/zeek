@@ -50,7 +50,7 @@ export {
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(Stats::LOG, [$columns=Info, $ev=log_stats]);
+	Log::create_stream(Stats::LOG, [$columns=Info, $ev=log_stats, $path="stats"]);
 	}
 
 event check_stats(last_ts: time, last_ns: NetStats, last_res: bro_resources)

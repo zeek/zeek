@@ -1,5 +1,5 @@
 
-2.3-595 | 2015-03-23 12:33:42 -0700
+2.3-597 | 2015-03-23 12:50:04 -0700
 
   * DTLS analyzer. (Johanna Amann)
 
@@ -25,7 +25,9 @@
   * BIT-788: Use DNS QR field to better identify flow direction. (Jon
     Siwek)
 
-  * BIT-342: Add "icmp_sent_payload" event. (Jon Siwek)
+2.3-572 | 2015-03-23 13:04:53 -0500
+
+  * BIT-1226: Fix an example in quickstart docs. (Jon siwek)
 
 2.3-570 | 2015-03-23 09:51:20 -0500
 

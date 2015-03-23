@@ -1,4 +1,8 @@
 
+2.3-572 | 2015-03-23 13:04:53 -0500
+
+  * BIT-1226: Fix an example in quickstart docs. (Jon siwek)
+
 2.3-570 | 2015-03-23 09:51:20 -0500
 
   * Correct a spelling error (Daniel Thayer)

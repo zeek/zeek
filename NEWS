@@ -61,6 +61,8 @@ New Functionality
 
 - [TODO] Add new BroControl features.
 
+- A new icmp_sent_payload event provides access to ICMP payload.
+
 Changed Functionality
 ---------------------
 

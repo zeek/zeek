@@ -55,32 +55,81 @@ DebugLogger::~DebugLogger()
 		fclose(file);
 	}
 
+void DebugLogger::ShowStreamsHelp()
+	{
+	fprintf(stderr, "\n");
+	fprintf(stderr, "Enable debug output into debug.log with -B <streams>.\n");
+	fprintf(stderr, "<streams> is a comma-separated list of streams to enable.\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "Available streams:\n");
+
+	for ( int i = 0; i < NUM_DBGS; ++i )
+		fprintf(stderr,"  %s\n", streams[i].prefix);
+
+	fprintf(stderr, "\n");
+	fprintf(stderr, "  plugin-<plugin-name>   (replace '::' in name with '-'; e.g., '-B plugin-Bro-Netmap')\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "Pseudo streams\n");
+	fprintf(stderr, "  verbose  Increase verbosity.\n");
+	fprintf(stderr, "  all      Enable all streams at maximum verbosity.\n");
+	fprintf(stderr, "\n");
+	}
+
 void DebugLogger::EnableStreams(const char* s)
 	{
-	char* tmp = copy_string(s);
 	char* brkt;
+	char* tmp = copy_string(s);
 	char* tok = strtok(tmp, ",");
 
 	while ( tok )
 		{
+		if ( strcasecmp("all", tok) == 0 )
+			{
+			for ( int i = 0; i < NUM_DBGS; ++i )
+				{
+				streams[i].enabled = true;
+				enabled_streams.insert(streams[i].prefix);
+				}
+
+			verbose = true;
+			goto next;
+			}
+
+		if ( strcasecmp("verbose", tok) == 0 )
+			{
+			verbose = true;
+			goto next;
+			}
+
+		if ( strcasecmp("help", tok) == 0 )
+			{
+			ShowStreamsHelp();
+			exit(0);
+			}
+
+		if ( strncmp(tok, "plugin-", strlen("plugin-")) == 0 )
+			{
+			// Cannot verify this at this time, plugins may not
+			// have been loaded.
+			enabled_streams.insert(tok);
+			goto next;
+			}
+
 		int i;
+
 		for ( i = 0; i < NUM_DBGS; ++i )
+			{
 			if ( strcasecmp(streams[i].prefix, tok) == 0 )
 				{
 				streams[i].enabled = true;
-				break;
+				enabled_streams.insert(tok);
+				goto next;
 				}
-
-		if ( i == NUM_DBGS )
-			{
-			if ( strcasecmp("verbose", tok) == 0 )
-				verbose = true;
-			else if ( strncmp(tok, "plugin-", 7) != 0 )
-				reporter->FatalError("unknown debug stream %s\n", tok);
 			}
 
-		enabled_streams.insert(tok);
+		reporter->FatalError("unknown debug stream '%s', try -B help.\n", tok);
 
+next:
 		tok = strtok(0, ",");
 		}
 

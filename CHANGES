@@ -1,4 +1,25 @@
 
+2.3-582 | 2015-03-23 11:34:25 -0700
+
+  * BIT-1313: In debug builds, "bro -B <x>" now supports "all" and
+    "help" for "<x>". "all" enables all debug streams. "help" prints a
+    list of available debug streams. (John Donnelly/Robin Sommer).
+
+  * BIT-1324: Allow logging filters to inherit default path from
+    stream. This allows the path for the default filter to be
+    specified explicitly through $path="..." when creating a stream.
+    Adapted the existing Log::create_stream calls to explicitly
+    specify a path value. (Jon Siwek)
+
+  * BIT-1199: Change the way the input framework deals with values it
+    cannot convert into BroVals, raising error messages instead of
+    aborting execution. (Johanna Amann)
+
+  * BIT-788: Use DNS QR field to better identify flow direction. (Jon
+    Siwek)
+
+  * BIT-342: Add "icmp_sent_payload" event. (Jon Siwek)
+
 2.3-570 | 2015-03-23 09:51:20 -0500
 
   * Correct a spelling error (Daniel Thayer)

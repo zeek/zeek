@@ -1,4 +1,10 @@
 
+2.3-570 | 2015-03-23 09:51:20 -0500
+
+  * Correct a spelling error (Daniel Thayer)
+
+  * Improvement to SSL analyzer failure mode. (Johanna Amann)
+
 2.3-565 | 2015-03-20 16:27:41 -0500
 
   * BIT-978: Improve documentation of 'for' loop iterator invalidation.

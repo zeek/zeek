@@ -92,16 +92,22 @@ redef record Info += {
 		delay_tokens: set[string] &optional;
 };
 
-const ports = {
+const ssl_ports = {
 	443/tcp, 563/tcp, 585/tcp, 614/tcp, 636/tcp,
 	989/tcp, 990/tcp, 992/tcp, 993/tcp, 995/tcp, 5223/tcp
 };
-redef likely_server_ports += { ports };
+
+# There are no well known DTLS ports at the moment. Let's
+# just add 443 for now for good measure - who knows :)
+const dtls_ports = { 443/udp };
+
+redef likely_server_ports += { ssl_ports, dtls_ports };
 
 event bro_init() &priority=5
 	{
 	Log::create_stream(SSL::LOG, [$columns=Info, $ev=log_ssl, $path="ssl"]);
-	Analyzer::register_for_ports(Analyzer::ANALYZER_SSL, ports);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_SSL, ssl_ports);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_DTLS, dtls_ports);
 	}
 
 function set_session(c: connection)
@@ -268,7 +274,7 @@ event connection_state_remove(c: connection) &priority=-5
 
 event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &priority=5
 	{
-	if ( atype == Analyzer::ANALYZER_SSL )
+	if ( atype == Analyzer::ANALYZER_SSL || atype == Analyzer::ANALYZER_DTLS )
 		{
 		set_session(c);
 		c$ssl$analyzer_id = aid;
@@ -278,6 +284,6 @@ event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &pr
 event protocol_violation(c: connection, atype: Analyzer::Tag, aid: count,
                          reason: string) &priority=5
 	{
-	if ( c?$ssl )
+	if ( c?$ssl && ( atype == Analyzer::ANALYZER_SSL || atype == Analyzer::ANALYZER_DTLS ) )
 		finish(c, T);
 	}

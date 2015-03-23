@@ -63,6 +63,8 @@ New Functionality
 
 - A new icmp_sent_payload event provides access to ICMP payload.
 
+- Bro now parses DTLS traffic.
+
 Changed Functionality
 ---------------------
 

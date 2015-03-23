@@ -1,4 +1,11 @@
 
+2.3-595 | 2015-03-23 12:33:42 -0700
+
+  * DTLS analyzer. (Johanna Amann)
+
+  * Implement correct parsing of TLS record fragmentation. (Johanna
+    Amann)
+
 2.3-582 | 2015-03-23 11:34:25 -0700
 
   * BIT-1313: In debug builds, "bro -B <x>" now supports "all" and

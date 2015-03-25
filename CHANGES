@@ -1,4 +1,9 @@
 
+2.3-599 | 2015-03-25 10:14:57 -0700
+
+  * Add defensive checks in code to calculate log rotation intervals.
+    (Pete Nelson).
+
 2.3-597 | 2015-03-23 12:50:04 -0700
 
   * DTLS analyzer. (Johanna Amann)

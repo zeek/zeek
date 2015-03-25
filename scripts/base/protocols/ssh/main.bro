@@ -76,10 +76,12 @@ redef record connection += {
 	ssh: Info &optional;
 };
 
-redef likely_server_ports += { 22/tcp };
+const ports = { 22/tcp };
+redef likely_server_ports += { ports };
 
 event bro_init() &priority=5
 	{
+	Analyzer::register_for_ports(Analyzer::ANALYZER_SSH, ports);
 	Log::create_stream(SSH::LOG, [$columns=Info, $ev=log_ssh]);
 	}
 

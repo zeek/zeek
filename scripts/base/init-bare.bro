@@ -426,6 +426,7 @@ type SYN_packet: record {
 	win_scale: int;	##< The window scale option if present, or -1 if not.
 	MSS: count;	##< The maximum segment size if present, or 0 if not.
 	SACK_OK: bool;	##< True if the *SACK* option is present.
+	MPTCP_subtype: count &optional; ##< MPTCP subtype, if option present.
 };
 
 ## Packet capture statistics.  All counts are cumulative.

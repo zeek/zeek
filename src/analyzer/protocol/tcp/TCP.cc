@@ -42,6 +42,7 @@ static RecordVal* build_syn_packet_val(int is_orig, const IP_Hdr* ip,
 	int winscale = -1;
 	int MSS = 0;
 	int SACK = 0;
+	int MPTCP_subtype = 0;
 
 	// Parse TCP options.
 	u_char* options = (u_char*) tcp + sizeof(struct tcphdr);
@@ -94,6 +95,13 @@ static RecordVal* build_syn_packet_val(int is_orig, const IP_Hdr* ip,
 			winscale = options[2];
 			break;
 
+		case 30: // Multipath TCP
+			if ( opt_len < 3 )
+				break;	// bad length
+
+			MPTCP_subtype = options[2] >> 4;
+			break;
+
 		default:	// just skip over
 			break;
 		}
@@ -111,6 +119,7 @@ static RecordVal* build_syn_packet_val(int is_orig, const IP_Hdr* ip,
 	v->Assign(5, new Val(winscale, TYPE_INT));
 	v->Assign(6, new Val(MSS, TYPE_INT));
 	v->Assign(7, new Val(SACK, TYPE_BOOL));
+	v->Assign(8, new Val(MPTCP_subtype, TYPE_COUNT));
 
 	return v;
 	}

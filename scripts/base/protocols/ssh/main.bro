@@ -76,6 +76,8 @@ redef record connection += {
 	ssh: Info &optional;
 };
 
+redef likely_server_ports += { 22/tcp };
+
 event bro_init() &priority=5
 	{
 	Log::create_stream(SSH::LOG, [$columns=Info, $ev=log_ssh]);

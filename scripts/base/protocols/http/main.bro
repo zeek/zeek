@@ -257,7 +257,7 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 				add c$http$proxied[fmt("%s -> %s", name, value)];
 				}
 
-		else if ( name == "AUTHORIZATION" )
+		else if ( name == "AUTHORIZATION" || name == "PROXY-AUTHORIZATION" )
 			{
 			if ( /^[bB][aA][sS][iI][cC] / in value )
 				{

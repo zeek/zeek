@@ -2216,6 +2216,41 @@ export {
 	const heartbeat_interval = 1.0 secs &redef;
 }
 
+module SSH;
+
+export {
+	## The client and server each have some preferences for the algorithms used
+	## in each direction.
+	type Algorithm_Prefs: record {
+		## The algorithm preferences for client to server communication
+		client_to_server: vector of string &optional;
+		## The algorithm preferences for server to client communication
+		server_to_client: vector of string &optional;
+	};
+
+	## This record lists the preferences of an SSH endpoint for
+	## algorithm selection. During the initial :abbr:`SSH (Secure Shell)`
+	## key exchange, each endpoint lists the algorithms
+	## that it supports, in order of preference. See
+	## :rfc:`4253#section-7.1` for details.
+	type Capabilities: record {
+		## Key exchange algorithms
+		kex_algorithms:             string_vec;
+		## The algorithms supported for the server host key
+		server_host_key_algorithms: string_vec;
+		## Symmetric encryption algorithm preferences
+		encryption_algorithms:      Algorithm_Prefs;
+		## Symmetric MAC algorithm preferences
+		mac_algorithms:             Algorithm_Prefs;
+		## Compression algorithm preferences
+		compression_algorithms:     Algorithm_Prefs;
+		## Language preferences
+		languages:                  Algorithm_Prefs &optional;
+		## Are these the capabilities of the server?
+		is_server:                  bool;
+	};
+}
+
 module GLOBAL;
 
 ## An NTP message.

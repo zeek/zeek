@@ -12,11 +12,11 @@ export {
 	redef enum Notice::Type += {
 		## Indicates that a host has been identified as crossing the
 		## :bro:id:`SSH::password_guesses_limit` threshold with
-		## heuristically determined failed logins.
+		## failed logins.
 		Password_Guessing,
 		## Indicates that a host previously identified as a "password
-		## guesser" has now had a heuristically successful login
-		## attempt.  This is not currently implemented.
+		## guesser" has now had a successful login
+		## attempt. This is not currently implemented.
 		Login_By_Password_Guesser,
 	};
 
@@ -34,8 +34,7 @@ export {
 	const guessing_timeout = 30 mins &redef;
 
 	## This value can be used to exclude hosts or entire networks from being
-	## tracked as potential "guessers".  There are cases where the success
-	## heuristic fails and this acts as the whitelist.  The index represents
+	## tracked as potential "guessers". The index represents
 	## client subnets and the yield value represents server subnets.
 	const ignore_guessers: table[subnet] of subnet &redef;
 }
@@ -70,7 +69,7 @@ event bro_init()
 	                  	}]);
 	}
 
-event SSH::heuristic_successful_login(c: connection)
+event SSH::ssh_auth_successful(c: connection, auth_method_none: bool)
 	{
 	local id = c$id;
 
@@ -79,7 +78,7 @@ event SSH::heuristic_successful_login(c: connection)
 	             $where=SSH::SUCCESSFUL_LOGIN]);
 	}
 
-event SSH::heuristic_failed_login(c: connection)
+event SSH::ssh_auth_failed(c: connection)
 	{
 	local id = c$id;
 

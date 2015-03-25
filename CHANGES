@@ -1,4 +1,8 @@
 
+2.3-631 | 2015-03-25 11:03:12 -0700
+
+  * New SSH analyzer. (Vlad Grigorescu)
+
 2.3-600 | 2015-03-25 10:23:46 -0700
 
   * Add defensive checks in code to calculate log rotation intervals.

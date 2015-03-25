@@ -19,9 +19,9 @@ export {
 	## the :bro:id:`NOTICE` function.  The convention is to give a general
 	## category along with the specific notice separating words with
 	## underscores and using leading capitals on each word except for
-	## abbreviations which are kept in all capitals.  For example,
+	## abbreviations which are kept in all capitals. For example,
 	## SSH::Password_Guessing is for hosts that have crossed a threshold of
-	## heuristically determined failed SSH logins.
+	## failed SSH logins.
 	type Type: enum {
 		## Notice reporting a count of how often a notice occurred.
 		Tally,

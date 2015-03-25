@@ -28,6 +28,10 @@ New Functionality
 - Bro now has supoprt for the MySQL wire protocol. Activity gets
   logged into mysql.log.
 
+- Bro now features a completely rewritten, enhanced SSH analyzer. A lot
+  more information about SSH sessions is logged. The analyzer is able to
+	determine if logins failed or succeeded in most circumstances.
+
 - Bro's file analysis now supports reassembly of files that are not
   transferred/seen sequentially.
 

@@ -1,4 +1,9 @@
 
+2.3-632 | 2015-03-25 11:58:58 -0700
+
+  * Log::write in signature framework was missing timestamp.
+    (Andrew Benson/Michel Laterman)
+
 2.3-631 | 2015-03-25 11:03:12 -0700
 
   * New SSH analyzer. (Vlad Grigorescu)

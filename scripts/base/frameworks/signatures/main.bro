@@ -277,7 +277,7 @@ event signature_match(state: signature_state, msg: string, data: string)
 				orig, sig_id, hcount);
 
 		Log::write(Signatures::LOG, 
-			[$note=Multiple_Sig_Responders,
+			[$ts=network_time(), $note=Multiple_Sig_Responders,
 		     $src_addr=orig, $sig_id=sig_id, $event_msg=msg,
 		     $host_count=hcount, $sub_msg=horz_scan_msg]);
 

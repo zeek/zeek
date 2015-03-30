@@ -1,4 +1,8 @@
 
+2.3-637 | 2015-03-30 12:02:07 -0500
+
+  * Increase timeout duration in some broker tests. (Jon Siwek)
+
 2.3-636 | 2015-03-30 11:26:32 -0500
 
   * Updates related to SSH analysis. (Jon Siwek)

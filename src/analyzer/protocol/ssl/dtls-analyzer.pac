@@ -122,9 +122,9 @@ refine connection SSL_Conn += {
 		if ( i->message_last_sequence != 0 && i->first_sequence_seen )
 			{
 			uint64 total_length = i->message_last_sequence - i->message_first_sequence;
-			if ( total_length > 32 )
+			if ( total_length > 30 )
 				{
-				bro_analyzer()->ProtocolViolation(fmt("DTLS Message fragmented over more than 32 pieces. Cannot reassemble."));
+				bro_analyzer()->ProtocolViolation(fmt("DTLS Message fragmented over more than 30 pieces. Cannot reassemble."));
 				return true;
 				}
 

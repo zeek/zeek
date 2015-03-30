@@ -1,4 +1,8 @@
 
+2.3-635 | 2015-03-30 11:02:45 -0500
+
+  * Fix outdated documentation unit tests. (Jon Siwek)
+
 2.3-634 | 2015-03-30 10:22:45 -0500
 
   * Add a canonifier to a unit test's output. (Jon Siwek)

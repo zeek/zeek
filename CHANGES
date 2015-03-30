@@ -1,4 +1,8 @@
 
+2.3-675 | 2015-03-30 17:05:05 -0500
+
+  * Add an RDP analyzer. (Josh Liburdi, Seth Hall, Johanna Amann)
+
 2.3-640 | 2015-03-30 13:51:51 -0500
 
   * BIT-1359: Limit maximum number of DTLS fragments to 30. (Johanna Amann)

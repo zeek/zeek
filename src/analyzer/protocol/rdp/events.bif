@@ -1,0 +1,61 @@
+## Generated for X.224 client requests.
+##
+## c: The connection record for the underlying transport-layer session/flow.
+##
+## cookie: The cookie included in the request.
+event rdp_connect_request%(c: connection, cookie: string%);
+
+## Generated for RDP Negotiation Response messages.
+##
+## c: The connection record for the underlying transport-layer session/flow.
+##
+## security_protocol: The security protocol selected by the server.
+event rdp_negotiation_response%(c: connection, security_protocol: count%);
+
+## Generated for RDP Negotiation Failure messages.
+##
+## c: The connection record for the underlying transport-layer session/flow.
+##
+## failure_code: The failure code sent by the server.
+event rdp_negotiation_failure%(c: connection, failure_code: count%);
+
+## Generated for MCS client requests.
+##
+## c: The connection record for the underlying transport-layer session/flow.
+##
+## data: The data contained in the client core data structure.
+event rdp_client_core_data%(c: connection, data: RDP::ClientCoreData%);
+
+## Generated for MCS server responses.
+##
+## c: The connection record for the underlying transport-layer session/flow.
+##
+## result: The 8-bit integer representing the GCC Conference Create Response result.
+event rdp_gcc_server_create_response%(c: connection, result: count%);
+
+## Generated for MCS server responses.
+##
+## c: The connection record for the underlying transport-layer session/flow.
+##
+## encryption_method: The 32-bit integer representing the encryption method used in the connection.
+##
+## encryption_level: The 32-bit integer representing the encryption level used in the connection.
+event rdp_server_security%(c: connection, encryption_method: count, encryption_level: count%);
+
+## Generated for a server certificate section.  If multiple X.509 
+## certificates are included in chain, this event will still
+## only be generated a single time.
+##
+## c: The connection record for the underlying transport-layer session/flow.
+##
+## cert_type: Indicates the type of certificate.
+##
+## permanently_issued: Value will be true is the certificate(s) is permanent on the server.
+event rdp_server_certificate%(c: connection, cert_type: count, permanently_issued: bool%);
+
+## Generated when an RDP session becomes encrypted.
+##
+## c: The connection record for the underlying transport-layer session/flow.
+##
+## security_protocol: The security protocol being used for the session.
+event rdp_begin_encryption%(c: connection, security_protocol: count%);

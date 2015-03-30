@@ -2884,7 +2884,44 @@ export {
 		attributes    : RADIUS::Attributes &optional;
 	};
 }
-module GLOBAL;
+
+module RDP;
+export {
+	type RDP::EarlyCapabilityFlags: record {
+		support_err_info_pdu:       bool;
+		want_32bpp_session:         bool;
+		support_statusinfo_pdu:     bool;
+		strong_asymmetric_keys:     bool;
+		support_monitor_layout_pdu: bool;
+		support_netchar_autodetect: bool;
+		support_dynvc_gfx_protocol: bool;
+		support_dynamic_time_zone:  bool;
+		support_heartbeat_pdu:      bool;
+	};
+
+	type RDP::ClientCoreData: record {
+		version_major:          count;
+		version_minor:          count;
+		desktop_width:          count;
+		desktop_height:         count;
+		color_depth:            count;
+		sas_sequence:           count;
+		keyboard_layout:        count;
+		client_build:           count;
+		client_name:            string;
+		keyboard_type:          count;
+		keyboard_sub:           count;
+		keyboard_function_key:  count;
+		ime_file_name:          string;
+		post_beta2_color_depth: count  &optional;
+		client_product_id:      string &optional;
+		serial_number:          count  &optional;
+		high_color_depth:       count  &optional;
+		supported_color_depths: count  &optional;
+		ec_flags:               RDP::EarlyCapabilityFlags &optional;
+		dig_product_id:         string &optional;
+	};
+}
 
 @load base/bif/plugins/Bro_SNMP.types.bif
 

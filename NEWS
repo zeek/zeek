@@ -69,6 +69,8 @@ New Functionality
 
 - Bro now parses DTLS traffic.
 
+- Bro now has an RDP analyzer.
+
 Changed Functionality
 ---------------------
 

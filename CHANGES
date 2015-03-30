@@ -1,4 +1,8 @@
 
+2.3-634 | 2015-03-30 10:22:45 -0500
+
+  * Add a canonifier to a unit test's output. (Jon Siwek)
+
 2.3-633 | 2015-03-25 18:32:59 -0700
 
   * Log::write in signature framework was missing timestamp.

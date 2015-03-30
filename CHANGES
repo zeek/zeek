@@ -1,4 +1,12 @@
 
+2.3-636 | 2015-03-30 11:26:32 -0500
+
+  * Updates related to SSH analysis. (Jon Siwek)
+
+    - Some scripts used wrong SSH module/namespace scoping on events.
+    - Fix outdated notice documentation related to SSH password guessing.
+    - Add a unit test for SSH pasword guessing notice.
+
 2.3-635 | 2015-03-30 11:02:45 -0500
 
   * Fix outdated documentation unit tests. (Jon Siwek)

@@ -27,7 +27,7 @@ export {
 			/^ftp[0-9]*\./  &redef;
 }
 
-event SSH::ssh_auth_successful(c: connection, auth_method_none: bool)
+event ssh_auth_successful(c: connection, auth_method_none: bool)
 	{
 	for ( host in set(c$id$orig_h, c$id$resp_h) )
 		{

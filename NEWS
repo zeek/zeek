@@ -30,7 +30,7 @@ New Functionality
 
 - Bro now features a completely rewritten, enhanced SSH analyzer. A lot
   more information about SSH sessions is logged. The analyzer is able to
-	determine if logins failed or succeeded in most circumstances.
+  determine if logins failed or succeeded in most circumstances.
 
 - Bro's file analysis now supports reassembly of files that are not
   transferred/seen sequentially.
@@ -122,6 +122,8 @@ Changed Functionality
   filter if it has neither a ``path`` nor a ``path_func`` already
   explicitly set.  Before, the default path function would always be set
   for all filters which didn't specify their own ``path_func``.
+
+- TODO: what SSH events got changed or removed?
 
 Deprecated Functionality
 ------------------------

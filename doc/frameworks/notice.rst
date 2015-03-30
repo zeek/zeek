@@ -88,15 +88,15 @@ directly make modifications to the :bro:see:`Notice::Info` record
 given as the argument to the hook.
 
 Here's a simple example which tells Bro to send an email for all notices of
-type :bro:see:`SSH::Password_Guessing` if the server is 10.0.0.1:
+type :bro:see:`SSH::Password_Guessing` if the guesser attempted to log in to
+the server at 192.168.56.103:
 
-.. code:: bro
+.. btest-include:: ${DOC_ROOT}/frameworks/notice_ssh_guesser.bro
 
-    hook Notice::policy(n: Notice::Info)
-      {
-      if ( n$note == SSH::Password_Guessing && n$id$resp_h == 10.0.0.1 )
-        add n$actions[Notice::ACTION_EMAIL];
-      }
+.. btest:: notice_ssh_guesser.bro
+
+    @TEST-EXEC: btest-rst-cmd bro -C -r ${TRACES}/ssh/sshguess.pcap ${DOC_ROOT}/frameworks/notice_ssh_guesser.bro
+    @TEST-EXEC: btest-rst-cmd cat notice.log
 
 .. note::
 
@@ -111,10 +111,9 @@ a hook body to run before default hook bodies might look like this:
 .. code:: bro
 
     hook Notice::policy(n: Notice::Info) &priority=5
-      {
-      if ( n$note == SSH::Password_Guessing && n$id$resp_h == 10.0.0.1 )
-        add n$actions[Notice::ACTION_EMAIL];
-      }
+        {
+        # Insert your code here.
+        }
 
 Hooks can also abort later hook bodies with the ``break`` keyword. This
 is primarily useful if one wants to completely preempt processing by

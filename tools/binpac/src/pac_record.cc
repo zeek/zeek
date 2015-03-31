@@ -206,6 +206,13 @@ int RecordType::StaticSize(Env* env) const
 void RecordType::SetBoundaryChecked()
 	{
 	Type::SetBoundaryChecked();
+
+	if ( StaticSize(env()) < 0 || attr_length_expr_ )
+		// Don't assume sufficient bounds checking has been done on fields
+		// if the record is of variable size or if its size is set from &length
+		// (whose value is not necessarily trustworthy).
+		return;
+
 	foreach (i, RecordFieldList, record_fields_)
 		{
 		RecordField *f = *i;

@@ -1,4 +1,9 @@
 
+2.3-676 | 2015-04-02 10:10:39 -0500
+
+  * BIT-1366: improve checksum offloading warning.
+    (Frank Meier, Jon Siwek)
+
 2.3-675 | 2015-03-30 17:05:05 -0500
 
   * Add an RDP analyzer. (Josh Liburdi, Seth Hall, Johanna Amann)

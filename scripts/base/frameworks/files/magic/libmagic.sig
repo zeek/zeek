@@ -357,65 +357,50 @@ signature file-magic-auto104 {
 	file-magic /(ITOLITLS)(.{4})/
 }
 
-# >4096  string,=\211HDF\r\n\032\n (len=8), ["Hierarchical Data Format (version 5) with 4k user block"], swap_endian=0
-signature file-magic-auto105 {
-	file-mime "application/x-hdf", 110
-	file-magic /(.{4096})(\x89HDF\x0d\x0a\x1a\x0a)/
-}
-
-# >2048  string,=\211HDF\r\n\032\n (len=8), ["Hierarchical Data Format (version 5) with 2k user block"], swap_endian=0
-signature file-magic-auto106 {
-	file-mime "application/x-hdf", 110
-	file-magic /(.{2048})(\x89HDF\x0d\x0a\x1a\x0a)/
-}
-
-# >1024  string,=\211HDF\r\n\032\n (len=8), ["Hierarchical Data Format (version 5) with 1k user block"], swap_endian=0
-signature file-magic-auto107 {
-	file-mime "application/x-hdf", 110
-	file-magic /(.{1024})(\x89HDF\x0d\x0a\x1a\x0a)/
-}
-
-# >512  string,=\211HDF\r\n\032\n (len=8), ["Hierarchical Data Format (version 5) with 512 bytes user block"], swap_endian=0
-signature file-magic-auto108 {
-	file-mime "application/x-hdf", 110
-	file-magic /(.{512})(\x89HDF\x0d\x0a\x1a\x0a)/
-}
-
 # >0  string,=\211HDF\r\n\032\n (len=8), ["Hierarchical Data Format (version 5) data"], swap_endian=0
 signature file-magic-auto109 {
 	file-mime "application/x-hdf", 110
 	file-magic /(\x89HDF\x0d\x0a\x1a\x0a)/
 }
 
-# >36  string,=acspSUNW (len=8), ["Sun KCMS ICC Profile"], swap_endian=0
-signature file-magic-auto111 {
-	file-mime "application/vnd.iccprofile", 110
-	file-magic /(.{36})(acspSUNW)/
-}
+# Find a way to do the following to generically detect ICC profiles.
+# An ICC parser should deal with the difference in these formats.
+## >36  string,=acspSUNW (len=8), ["Sun KCMS ICC Profile"], swap_endian=0
+#signature file-magic-auto111 {
+#	file-mime "application/vnd.iccprofile", 110
+#	file-magic /(.{36})(acspSUNW)/
+#}
+#
+## >36  string,=acspSGI  (len=8), ["SGI ICC Profile"], swap_endian=0
+#signature file-magic-auto112 {
+#	file-mime "application/vnd.iccprofile", 110
+#	file-magic /(.{36})(acspSGI )/
+#}
+#
+## >36  string,=acspMSFT (len=8), ["Microsoft ICM Color Profile"], swap_endian=0
+#signature file-magic-auto113 {
+#	file-mime "application/vnd.iccprofile", 110
+#	file-magic /(.{36})(acspMSFT)/
+#}
+#
+## >36  string,=acspAPPL (len=8), ["ColorSync ICC Profile"], swap_endian=0
+#signature file-magic-auto114 {
+#	file-mime "application/vnd.iccprofile", 110
+#	file-magic /(.{36})(acspAPPL)/
+#}
+#
+## >36  string,=acsp (len=4), ["ICC Profile"], swap_endian=0
+#signature file-magic-auto277 {
+#	file-mime "application/vnd.iccprofile", 70
+#	file-magic /(.{36})(acsp)/
+#}
 
-# >36  string,=acspSGI  (len=8), ["SGI ICC Profile"], swap_endian=0
-signature file-magic-auto112 {
-	file-mime "application/vnd.iccprofile", 110
-	file-magic /(.{36})(acspSGI )/
-}
-
-# >36  string,=acspMSFT (len=8), ["Microsoft ICM Color Profile"], swap_endian=0
-signature file-magic-auto113 {
-	file-mime "application/vnd.iccprofile", 110
-	file-magic /(.{36})(acspMSFT)/
-}
-
-# >36  string,=acspAPPL (len=8), ["ColorSync ICC Profile"], swap_endian=0
-signature file-magic-auto114 {
-	file-mime "application/vnd.iccprofile", 110
-	file-magic /(.{36})(acspAPPL)/
-}
 
 # >512  string,=R\000o\000o\000t\000 (len=8), ["Hangul (Korean) Word Processor File 2000"], swap_endian=0
-signature file-magic-auto116 {
-	file-mime "application/x-hwp", 110
-	file-magic /(.{512})(R\x00o\x00o\x00t\x00)/
-}
+#signature file-magic-auto116 {
+#	file-mime "application/x-hwp", 110
+#	file-magic /(.{512})(R\x00o\x00o\x00t\x00)/
+#}
 
 # >0  string,=<MIFFile (len=8), ["FrameMaker MIF (ASCII) file"], swap_endian=0
 signature file-magic-auto118 {
@@ -527,78 +512,6 @@ signature file-magic-auto161 {
 signature file-magic-auto162 {
 	file-mime "application/vnd.google-earth.kml+xml", 60
 	file-magic /(\x3c\x3fxml)(.{15})(.*)( xmlns\x3d)(['"]http:\x2f\x2fwww.opengis.net\x2fkml)/
-}
-
-# >60  string,=RINEX (len=5), [""], swap_endian=0
-# >>80  search/256,=XXRINEXB (len=8), ["RINEX Data, GEO SBAS Broadcast"], swap_endian=0
-# >>>5  string,x, [", version %6.6s"], swap_endian=0
-signature file-magic-auto166 {
-	file-mime "rinex/broadcast", 1
-	file-magic /(.{60})(RINEX)(.{15})(.*)(XXRINEXB)/
-}
-
-# >60  string,=RINEX (len=5), [""], swap_endian=0
-# >>80  search/256,=XXRINEXD (len=8), ["RINEX Data, Observation (Hatanaka comp)"], swap_endian=0
-# >>>5  string,x, [", version %6.6s"], swap_endian=0
-signature file-magic-auto167 {
-	file-mime "rinex/observation", 1
-	file-magic /(.{60})(RINEX)(.{15})(.*)(XXRINEXD)/
-}
-
-# >60  string,=RINEX (len=5), [""], swap_endian=0
-# >>80  search/256,=XXRINEXC (len=8), ["RINEX Data, Clock"], swap_endian=0
-# >>>5  string,x, [", version %6.6s"], swap_endian=0
-signature file-magic-auto168 {
-	file-mime "rinex/clock", 1
-	file-magic /(.{60})(RINEX)(.{15})(.*)(XXRINEXC)/
-}
-
-# >60  string,=RINEX (len=5), [""], swap_endian=0
-# >>80  search/256,=XXRINEXH (len=8), ["RINEX Data, GEO SBAS Navigation"], swap_endian=0
-# >>>5  string,x, [", version %6.6s"], swap_endian=0
-signature file-magic-auto169 {
-	file-mime "rinex/navigation", 1
-	file-magic /(.{60})(RINEX)(.{15})(.*)(XXRINEXH)/
-}
-
-# >60  string,=RINEX (len=5), [""], swap_endian=0
-# >>80  search/256,=XXRINEXG (len=8), ["RINEX Data, GLONASS Navigation"], swap_endian=0
-# >>>5  string,x, [", version %6.6s"], swap_endian=0
-signature file-magic-auto170 {
-	file-mime "rinex/navigation", 1
-	file-magic /(.{60})(RINEX)(.{15})(.*)(XXRINEXG)/
-}
-
-# >60  string,=RINEX (len=5), [""], swap_endian=0
-# >>80  search/256,=XXRINEXL (len=8), ["RINEX Data, Galileo Navigation"], swap_endian=0
-# >>>5  string,x, [", version %6.6s"], swap_endian=0
-signature file-magic-auto171 {
-	file-mime "rinex/navigation", 1
-	file-magic /(.{60})(RINEX)(.{15})(.*)(XXRINEXL)/
-}
-
-# >60  string,=RINEX (len=5), [""], swap_endian=0
-# >>80  search/256,=XXRINEXM (len=8), ["RINEX Data, Meteorological"], swap_endian=0
-# >>>5  string,x, [", version %6.6s"], swap_endian=0
-signature file-magic-auto172 {
-	file-mime "rinex/meteorological", 1
-	file-magic /(.{60})(RINEX)(.{15})(.*)(XXRINEXM)/
-}
-
-# >60  string,=RINEX (len=5), [""], swap_endian=0
-# >>80  search/256,=XXRINEXN (len=8), ["RINEX Data, Navigation	"], swap_endian=0
-# >>>5  string,x, [", version %6.6s"], swap_endian=0
-signature file-magic-auto173 {
-	file-mime "rinex/navigation", 1
-	file-magic /(.{60})(RINEX)(.{15})(.*)(XXRINEXN)/
-}
-
-# >60  string,=RINEX (len=5), [""], swap_endian=0
-# >>80  search/256,=XXRINEXO (len=8), ["RINEX Data, Observation"], swap_endian=0
-# >>>5  string,x, [", version %6.6s"], swap_endian=0
-signature file-magic-auto174 {
-	file-mime "rinex/observation", 1
-	file-magic /(.{60})(RINEX)(.{15})(.*)(XXRINEXO)/
 }
 
 # >0  string,=\000\001\000\000\000 (len=5), ["TrueType font data"], swap_endian=0
@@ -935,13 +848,13 @@ signature file-magic-auto245 {
 # >4  string,=idsc (len=4), ["Apple QuickTime image (fast start)"], swap_endian=0
 signature file-magic-auto255 {
 	file-mime "image/x-quicktime", 70
-	file-magic /(.{4})(idsc)/
+	file-magic /....(idsc)/
 }
 
 # >4  string,=pckg (len=4), ["Apple QuickTime compressed archive"], swap_endian=0
 signature file-magic-auto256 {
 	file-mime "application/x-quicktime-player", 70
-	file-magic /(.{4})(pckg)/
+	file-magic /....(pckg)/
 }
 
 
@@ -949,21 +862,21 @@ signature file-magic-auto256 {
 # >>8  string/W,=M4A (len=3), [", MPEG v4 system, iTunes AAC-LC"], swap_endian=0
 signature file-magic-auto268 {
 	file-mime "audio/mp4", 60
-	file-magic /(.{4})(ftyp)(M4A)/
+	file-magic /....(ftyp)(M4A)/
 }
 
 # >4  string,=ftyp (len=4), ["ISO Media"], swap_endian=0
 # >>8  string/W,=M4V (len=3), [", MPEG v4 system, iTunes AVC-LC"], swap_endian=0
 signature file-magic-auto269 {
 	file-mime "video/mp4", 60
-	file-magic /(.{4})(ftyp)(M4V)/
+	file-magic /....(ftyp)(M4V)/
 }
 
 # >4  string,=ftyp (len=4), ["ISO Media"], swap_endian=0
 # >>8  string/W,=qt (len=2), [", Apple QuickTime movie"], swap_endian=0
 signature file-magic-auto270 {
 	file-mime "video/quicktime", 50
-	file-magic /(.{4})(ftyp)(qt)/
+	file-magic /....(ftyp)(qt)/
 }
 
 # >0  string,=ADIF (len=4), ["MPEG ADIF, AAC"], swap_endian=0
@@ -985,11 +898,6 @@ signature file-magic-auto276 {
 	file-magic /(MAC )/
 }
 
-# >36  string,=acsp (len=4), ["ICC Profile"], swap_endian=0
-signature file-magic-auto277 {
-	file-mime "application/vnd.iccprofile", 70
-	file-magic /(.{36})(acsp)/
-}
 
 # >0  string,=FORM (len=4), ["IFF data"], swap_endian=0
 # >>8  string,=AIFF (len=4), [", AIFF audio"], swap_endian=0
@@ -1048,71 +956,71 @@ signature file-magic-auto303 {
 	file-magic /(\xce\xce\xce\xce)/
 }
 
-# >1080  string,=32CN (len=4), ["32-channel Taketracker module sound data"], swap_endian=0
-signature file-magic-auto304 {
-	file-mime "audio/x-mod", 70
-	file-magic /(.{1080})(32CN)/
-}
-
-# >1080  string,=16CN (len=4), ["16-channel Taketracker module sound data"], swap_endian=0
-signature file-magic-auto305 {
-	file-mime "audio/x-mod", 70
-	file-magic /(.{1080})(16CN)/
-}
-
-# >1080  string,=OKTA (len=4), ["8-channel Octalyzer module sound data"], swap_endian=0
-signature file-magic-auto306 {
-	file-mime "audio/x-mod", 70
-	file-magic /(.{1080})(OKTA)/
-}
-
-# >1080  string,=CD81 (len=4), ["8-channel Octalyser module sound data"], swap_endian=0
-signature file-magic-auto307 {
-	file-mime "audio/x-mod", 70
-	file-magic /(.{1080})(CD81)/
-}
-
-# >1080  string,=8CHN (len=4), ["8-channel Fasttracker module sound data"], swap_endian=0
-signature file-magic-auto308 {
-	file-mime "audio/x-mod", 70
-	file-magic /(.{1080})(8CHN)/
-}
-
-# >1080  string,=6CHN (len=4), ["6-channel Fasttracker module sound data"], swap_endian=0
-signature file-magic-auto309 {
-	file-mime "audio/x-mod", 70
-	file-magic /(.{1080})(6CHN)/
-}
-
-# >1080  string,=4CHN (len=4), ["4-channel Fasttracker module sound data"], swap_endian=0
-signature file-magic-auto310 {
-	file-mime "audio/x-mod", 70
-	file-magic /(.{1080})(4CHN)/
-}
-
-# >1080  string,=FLT8 (len=4), ["8-channel Startracker module sound data"], swap_endian=0
-signature file-magic-auto311 {
-	file-mime "audio/x-mod", 70
-	file-magic /(.{1080})(FLT8)/
-}
-
-# >1080  string,=FLT4 (len=4), ["4-channel Startracker module sound data"], swap_endian=0
-signature file-magic-auto312 {
-	file-mime "audio/x-mod", 70
-	file-magic /(.{1080})(FLT4)/
-}
-
-# >1080  string,=M!K! (len=4), ["4-channel Protracker module sound data"], swap_endian=0
-signature file-magic-auto313 {
-	file-mime "audio/x-mod", 70
-	file-magic /(.{1080})(M\x21K\x21)/
-}
-
-# >1080  string,=M.K. (len=4), ["4-channel Protracker module sound data"], swap_endian=0
-signature file-magic-auto314 {
-	file-mime "audio/x-mod", 70
-	file-magic /(.{1080})(M\x2eK\x2e)/
-}
+## >1080  string,=32CN (len=4), ["32-channel Taketracker module sound data"], swap_endian=0
+#signature file-magic-auto304 {
+#	file-mime "audio/x-mod", 70
+#	file-magic /(.{1080})(32CN)/
+#}
+#
+## >1080  string,=16CN (len=4), ["16-channel Taketracker module sound data"], swap_endian=0
+#signature file-magic-auto305 {
+#	file-mime "audio/x-mod", 70
+#	file-magic /(.{1080})(16CN)/
+#}
+#
+## >1080  string,=OKTA (len=4), ["8-channel Octalyzer module sound data"], swap_endian=0
+#signature file-magic-auto306 {
+#	file-mime "audio/x-mod", 70
+#	file-magic /(.{1080})(OKTA)/
+#}
+#
+## >1080  string,=CD81 (len=4), ["8-channel Octalyser module sound data"], swap_endian=0
+#signature file-magic-auto307 {
+#	file-mime "audio/x-mod", 70
+#	file-magic /(.{1080})(CD81)/
+#}
+#
+## >1080  string,=8CHN (len=4), ["8-channel Fasttracker module sound data"], swap_endian=0
+#signature file-magic-auto308 {
+#	file-mime "audio/x-mod", 70
+#	file-magic /(.{1080})(8CHN)/
+#}
+#
+## >1080  string,=6CHN (len=4), ["6-channel Fasttracker module sound data"], swap_endian=0
+#signature file-magic-auto309 {
+#	file-mime "audio/x-mod", 70
+#	file-magic /(.{1080})(6CHN)/
+#}
+#
+## >1080  string,=4CHN (len=4), ["4-channel Fasttracker module sound data"], swap_endian=0
+#signature file-magic-auto310 {
+#	file-mime "audio/x-mod", 70
+#	file-magic /(.{1080})(4CHN)/
+#}
+#
+## >1080  string,=FLT8 (len=4), ["8-channel Startracker module sound data"], swap_endian=0
+#signature file-magic-auto311 {
+#	file-mime "audio/x-mod", 70
+#	file-magic /(.{1080})(FLT8)/
+#}
+#
+## >1080  string,=FLT4 (len=4), ["4-channel Startracker module sound data"], swap_endian=0
+#signature file-magic-auto312 {
+#	file-mime "audio/x-mod", 70
+#	file-magic /(.{1080})(FLT4)/
+#}
+#
+## >1080  string,=M!K! (len=4), ["4-channel Protracker module sound data"], swap_endian=0
+#signature file-magic-auto313 {
+#	file-mime "audio/x-mod", 70
+#	file-magic /(.{1080})(M\x21K\x21)/
+#}
+#
+## >1080  string,=M.K. (len=4), ["4-channel Protracker module sound data"], swap_endian=0
+#signature file-magic-auto314 {
+#	file-mime "audio/x-mod", 70
+#	file-magic /(.{1080})(M\x2eK\x2e)/
+#}
 
 # >0  lelong&,=336851773 (0x1413f33d), ["SYSLINUX' LSS16 image data"], swap_endian=0
 signature file-magic-auto315 {
@@ -1410,11 +1318,11 @@ signature file-magic-auto388 {
 	file-magic /(\xca\xfe\xd0\x0d)(.{1})/
 }
 
-# >0  search/4096,=\documentstyle (len=14), ["LaTeX document text"], swap_endian=0
-signature file-magic-auto390 {
-	file-mime "text/x-tex", 62
-	file-magic /(.*)(\x5cdocumentstyle)/
-}
+## >0  search/4096,=\documentstyle (len=14), ["LaTeX document text"], swap_endian=0
+#signature file-magic-auto390 {
+#	file-mime "text/x-tex", 62
+#	file-magic /(.*)(\x5cdocumentstyle)/
+#}
 
 # >0  string,=DOC (len=3), [""], swap_endian=0
 # >>43  byte&,=0x14, ["Just System Word Processor Ichitaro v4"], swap_endian=0
@@ -1469,150 +1377,52 @@ signature file-magic-auto406 {
 	file-magic /(BZh)/
 }
 
-# >0  search/4096,=\documentclass (len=14), ["LaTeX 2e document text"], swap_endian=0
-signature file-magic-auto412 {
-	file-mime "text/x-tex", 59
-	file-magic /(.*)(\x5cdocumentclass)/
-}
-
-# >0  search/4096,=\contentsline (len=13), ["LaTeX table of contents"], swap_endian=0
-signature file-magic-auto414 {
-	file-mime "text/x-tex", 58
-	file-magic /(.*)(\x5ccontentsline)/
-}
-
-# >0  search/4096,=\chapter (len=8), ["LaTeX document text"], swap_endian=0
-signature file-magic-auto415 {
-	file-mime "text/x-tex", 56
-	file-magic /(.*)(\x5cchapter)/
-}
-
-# >0  search/4096,=\section (len=8), ["LaTeX document text"], swap_endian=0
-signature file-magic-auto416 {
-	file-mime "text/x-tex", 56
-	file-magic /(.*)(\x5csection)/
-}
-
-# >0  search/4096,=\setlength (len=10), ["LaTeX document text"], swap_endian=0
-signature file-magic-auto419 {
-	file-mime "text/x-tex", 55
-	file-magic /(.*)(\x5csetlength)/
-}
-
-# >0  search/1,=Common subdirectories:  (len=23), ["diff output text"], swap_endian=0
-signature file-magic-auto422 {
-	file-mime "text/x-diff", 53
-	file-magic /(.*)(Common subdirectories\x3a )/
-}
-
-# >0  search/4096,=(custom-set-variables  (len=22), ["Lisp/Scheme program text"], swap_endian=0
-signature file-magic-auto426 {
-	file-mime "text/x-lisp", 52
-	file-magic /(.*)(\x28custom\x2dset\x2dvariables )/
-}
+## >0  search/4096,=\documentclass (len=14), ["LaTeX 2e document text"], swap_endian=0
+#signature file-magic-auto412 {
+#	file-mime "text/x-tex", 59
+#	file-magic /(.*)(\x5cdocumentclass)/
+#}
+#
+## >0  search/4096,=\contentsline (len=13), ["LaTeX table of contents"], swap_endian=0
+#signature file-magic-auto414 {
+#	file-mime "text/x-tex", 58
+#	file-magic /(.*)(\x5ccontentsline)/
+#}
+#
+## >0  search/4096,=\chapter (len=8), ["LaTeX document text"], swap_endian=0
+#signature file-magic-auto415 {
+#	file-mime "text/x-tex", 56
+#	file-magic /(.*)(\x5cchapter)/
+#}
+#
+## >0  search/4096,=\section (len=8), ["LaTeX document text"], swap_endian=0
+#signature file-magic-auto416 {
+#	file-mime "text/x-tex", 56
+#	file-magic /(.*)(\x5csection)/
+#}
+#
+## >0  search/4096,=\setlength (len=10), ["LaTeX document text"], swap_endian=0
+#signature file-magic-auto419 {
+#	file-mime "text/x-tex", 55
+#	file-magic /(.*)(\x5csetlength)/
+#}
+#
+## >0  search/1,=Common subdirectories:  (len=23), ["diff output text"], swap_endian=0
+#signature file-magic-auto422 {
+#	file-mime "text/x-diff", 53
+#	file-magic /(.*)(Common subdirectories\x3a )/
+#}
+#
+## >0  search/4096,=(custom-set-variables  (len=22), ["Lisp/Scheme program text"], swap_endian=0
+#signature file-magic-auto426 {
+#	file-mime "text/x-lisp", 52
+#	file-magic /(.*)(\x28custom\x2dset\x2dvariables )/
+#}
 
 # >0  string/b,=MZ (len=2), [""], swap_endian=0
 signature file-magic-auto433 {
 	file-mime "application/x-dosexec", 51
 	file-magic /(MZ)/
-}
-
-# >0  beshort&fffffffffffffffe,=-6 (0xfffa), [""], swap_endian=0
-# >>2  byte&fffffffffffffff0,=0x10, ["MPEG ADTS, layer III, v1,  32 kbps"], swap_endian=0
-signature file-magic-auto438 {
-	file-mime "audio/mpeg", 40
-	file-magic /(\xff[\xfa\xfb])([\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f])/
-}
-
-# >0  beshort&fffffffffffffffe,=-6 (0xfffa), [""], swap_endian=0
-# >>2  byte&fffffffffffffff0,=0x20, ["MPEG ADTS, layer III, v1,  40 kbps"], swap_endian=0
-signature file-magic-auto439 {
-	file-mime "audio/mpeg", 40
-	file-magic /(\xff[\xfa\xfb])([\x20\x21\x22\x23\x24\x25\x26\x27\x28\x29\x2a\x2b\x2c\x2d\x2e\x2f])/
-}
-
-# >0  beshort&fffffffffffffffe,=-6 (0xfffa), [""], swap_endian=0
-# >>2  byte&fffffffffffffff0,=0x30, ["MPEG ADTS, layer III, v1,  48 kbps"], swap_endian=0
-signature file-magic-auto440 {
-	file-mime "audio/mpeg", 40
-	file-magic /(\xff[\xfa\xfb])([\x30\x31\x32\x33\x34\x35\x36\x37\x38\x39\x3a\x3b\x3c\x3d\x3e\x3f])/
-}
-
-# >0  beshort&fffffffffffffffe,=-6 (0xfffa), [""], swap_endian=0
-# >>2  byte&fffffffffffffff0,=0x40, ["MPEG ADTS, layer III, v1,  56 kbps"], swap_endian=0
-signature file-magic-auto441 {
-	file-mime "audio/mpeg", 40
-	file-magic /(\xff[\xfa\xfb])([\x40\x41\x42\x43\x44\x45\x46\x47\x48\x49\x4a\x4b\x4c\x4d\x4e\x4f])/
-}
-
-# >0  beshort&fffffffffffffffe,=-6 (0xfffa), [""], swap_endian=0
-# >>2  byte&fffffffffffffff0,=0x50, ["MPEG ADTS, layer III, v1,  64 kbps"], swap_endian=0
-signature file-magic-auto442 {
-	file-mime "audio/mpeg", 40
-	file-magic /(\xff[\xfa\xfb])([\x50\x51\x52\x53\x54\x55\x56\x57\x58\x59\x5a\x5b\x5c\x5d\x5e\x5f])/
-}
-
-# >0  beshort&fffffffffffffffe,=-6 (0xfffa), [""], swap_endian=0
-# >>2  byte&fffffffffffffff0,=0x60, ["MPEG ADTS, layer III, v1,  80 kbps"], swap_endian=0
-signature file-magic-auto443 {
-	file-mime "audio/mpeg", 40
-	file-magic /(\xff[\xfa\xfb])([\x60\x61\x62\x63\x64\x65\x66\x67\x68\x69\x6a\x6b\x6c\x6d\x6e\x6f])/
-}
-
-# >0  beshort&fffffffffffffffe,=-6 (0xfffa), [""], swap_endian=0
-# >>2  byte&fffffffffffffff0,=0x70, ["MPEG ADTS, layer III, v1,  96 kbps"], swap_endian=0
-signature file-magic-auto444 {
-	file-mime "audio/mpeg", 40
-	file-magic /(\xff[\xfa\xfb])([\x70\x71\x72\x73\x74\x75\x76\x77\x78\x79\x7a\x7b\x7c\x7d\x7e\x7f])/
-}
-
-# >0  beshort&fffffffffffffffe,=-6 (0xfffa), [""], swap_endian=0
-# >>2  byte&fffffffffffffff0,=0x80, ["MPEG ADTS, layer III, v1, 112 kbps"], swap_endian=0
-signature file-magic-auto445 {
-	file-mime "audio/mpeg", 40
-	file-magic /(\xff[\xfa\xfb])([\x80\x81\x82\x83\x84\x85\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f])/
-}
-
-# >0  beshort&fffffffffffffffe,=-6 (0xfffa), [""], swap_endian=0
-# >>2  byte&fffffffffffffff0,=0x90, ["MPEG ADTS, layer III, v1, 128 kbps"], swap_endian=0
-signature file-magic-auto446 {
-	file-mime "audio/mpeg", 40
-	file-magic /(\xff[\xfa\xfb])([\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f])/
-}
-
-# >0  beshort&fffffffffffffffe,=-6 (0xfffa), [""], swap_endian=0
-# >>2  byte&fffffffffffffff0,=0xa0, ["MPEG ADTS, layer III, v1, 160 kbps"], swap_endian=0
-signature file-magic-auto447 {
-	file-mime "audio/mpeg", 40
-	file-magic /(\xff[\xfa\xfb])([\xa0\xa1\xa2\xa3\xa4\xa5\xa6\xa7\xa8\xa9\xaa\xab\xac\xad\xae\xaf])/
-}
-
-# >0  beshort&fffffffffffffffe,=-6 (0xfffa), [""], swap_endian=0
-# >>2  byte&fffffffffffffff0,=0xb0, ["MPEG ADTS, layer III, v1, 192 kbps"], swap_endian=0
-signature file-magic-auto448 {
-	file-mime "audio/mpeg", 40
-	file-magic /(\xff[\xfa\xfb])([\xb0\xb1\xb2\xb3\xb4\xb5\xb6\xb7\xb8\xb9\xba\xbb\xbc\xbd\xbe\xbf])/
-}
-
-# >0  beshort&fffffffffffffffe,=-6 (0xfffa), [""], swap_endian=0
-# >>2  byte&fffffffffffffff0,=0xc0, ["MPEG ADTS, layer III, v1, 224 kbps"], swap_endian=0
-signature file-magic-auto449 {
-	file-mime "audio/mpeg", 40
-	file-magic /(\xff[\xfa\xfb])([\xc0\xc1\xc2\xc3\xc4\xc5\xc6\xc7\xc8\xc9\xca\xcb\xcc\xcd\xce\xcf])/
-}
-
-# >0  beshort&fffffffffffffffe,=-6 (0xfffa), [""], swap_endian=0
-# >>2  byte&fffffffffffffff0,=0xd0, ["MPEG ADTS, layer III, v1, 256 kbps"], swap_endian=0
-signature file-magic-auto450 {
-	file-mime "audio/mpeg", 40
-	file-magic /(\xff[\xfa\xfb])([\xd0\xd1\xd2\xd3\xd4\xd5\xd6\xd7\xd8\xd9\xda\xdb\xdc\xdd\xde\xdf])/
-}
-
-# >0  beshort&fffffffffffffffe,=-6 (0xfffa), [""], swap_endian=0
-# >>2  byte&fffffffffffffff0,=0xe0, ["MPEG ADTS, layer III, v1, 320 kbps"], swap_endian=0
-signature file-magic-auto451 {
-	file-mime "audio/mpeg", 40
-	file-magic /(\xff[\xfa\xfb])([\xe0\xe1\xe2\xe3\xe4\xe5\xe6\xe7\xe8\xe9\xea\xeb\xec\xed\xee\xef])/
 }
 
 # >20  string,=45 (len=2), [""], swap_endian=0
@@ -1636,17 +1446,17 @@ signature file-magic-auto462 {
 	file-magic /(.{20})(45)(.*)((^[0-9]{5})[cdn][uvxy])/
 }
 
-# >0  search/4096,=\relax (len=6), ["LaTeX auxiliary file"], swap_endian=0
-signature file-magic-auto463 {
-	file-mime "text/x-tex", 51
-	file-magic /(.*)(\x5crelax)/
-}
-
-# >0  search/4096,=\begin (len=6), ["LaTeX document text"], swap_endian=0
-signature file-magic-auto464 {
-	file-mime "text/x-tex", 51
-	file-magic /.*\x5c(input|begin)/
-}
+## >0  search/4096,=\relax (len=6), ["LaTeX auxiliary file"], swap_endian=0
+#signature file-magic-auto463 {
+#	file-mime "text/x-tex", 51
+#	file-magic /(.*)(\x5crelax)/
+#}
+#
+## >0  search/4096,=\begin (len=6), ["LaTeX document text"], swap_endian=0
+#signature file-magic-auto464 {
+#	file-mime "text/x-tex", 51
+#	file-magic /.*\x5c(input|begin)/
+#}
 
 # >0  beshort&,=-26368 (0x9900), ["PGP key public ring"], swap_endian=0
 signature file-magic-auto470 {
@@ -1710,29 +1520,6 @@ signature file-magic-auto486 {
 	file-magic /(\xff[\xf0\xf1\xf8\xf9])/
 }
 
-# >0  beshort&fffffffffffffffe,=-30 (0xffe2), ["MPEG ADTS, layer III,  v2.5"], swap_endian=0
-signature file-magic-auto487 {
-	file-mime "audio/mpeg", 50
-	file-magic /(\xff[\xe2\xe3])/
-}
-
-# >0  beshort&fffffffffffffffe,=-10 (0xfff6), ["MPEG ADTS, layer I, v2"], swap_endian=0
-signature file-magic-auto488 {
-	file-mime "audio/mpeg", 50
-	file-magic /(\xff[\xf6\xf7])/
-}
-
-# >0  beshort&fffffffffffffffe,=-14 (0xfff2), ["MPEG ADTS, layer III, v2"], swap_endian=0
-signature file-magic-auto489 {
-	file-mime "audio/mpeg", 50
-	file-magic /(\xff[\xf2\xf3])/
-}
-
-# >0  beshort&fffffffffffffffe,=-4 (0xfffc), ["MPEG ADTS, layer II, v1"], swap_endian=0
-signature file-magic-auto490 {
-	file-mime "audio/mpeg", 50
-	file-magic /(\xff[\xfc\xfd])/
-}
 
 # >0  beshort&,=-26367 (0x9901), ["GPG key public ring"], swap_endian=0
 signature file-magic-auto492 {
@@ -1764,11 +1551,11 @@ signature file-magic-auto507 {
 	file-magic /(\x0b\x77)/
 }
 
-# >0  search/1,=This is Info file (len=17), ["GNU Info text"], swap_endian=0
-signature file-magic-auto528 {
-	file-mime "text/x-info", 47
-	file-magic /(.*)(This is Info file)/
-}
+## >0  search/1,=This is Info file (len=17), ["GNU Info text"], swap_endian=0
+#signature file-magic-auto528 {
+#	file-mime "text/x-info", 47
+#	file-magic /(.*)(This is Info file)/
+#}
 
 # >0  regex/s,=\`(\r\n|;|[[]|\377\376) (len=15), [""], swap_endian=0
 # >>&0  search/8192,=[ (len=1), [""], swap_endian=0
@@ -1834,17 +1621,17 @@ signature file-magic-auto532 {
 	file-magic /(\`(\x0d\x0a|;|[[]|\xff\xfe))(.*)(\x5b)(^([Ww][iI][nN][sS][oO][cC][kK][Cc][Rr][Cc][Ll][iI][sS][tT]|[Oo][Ee][Mm][Cc][Pp][Ll])])/
 }
 
-# >0  search/1,=<MakerDictionary (len=16), ["FrameMaker Dictionary text"], swap_endian=0
-signature file-magic-auto544 {
-	file-mime "application/x-mif", 46
-	file-magic /(.*)(\x3cMakerDictionary)/
-}
+## >0  search/1,=<MakerDictionary (len=16), ["FrameMaker Dictionary text"], swap_endian=0
+#signature file-magic-auto544 {
+#	file-mime "application/x-mif", 46
+#	file-magic /(.*)(\x3cMakerDictionary)/
+#}
 
-# >0  search/4096,=% -*-latex-*- (len=13), ["LaTeX document text"], swap_endian=0
-signature file-magic-auto558 {
-	file-mime "text/x-tex", 43
-	file-magic /(.*)(\x25 \x2d\x2a\x2dlatex\x2d\x2a\x2d)/
-}
+## >0  search/4096,=% -*-latex-*- (len=13), ["LaTeX document text"], swap_endian=0
+#signature file-magic-auto558 {
+#	file-mime "text/x-tex", 43
+#	file-magic /(.*)(\x25 \x2d\x2a\x2dlatex\x2d\x2a\x2d)/
+#}
 
 # The use of non-sequential offsets and relational operations made the
 # autogenerated signature incorrrect.
@@ -1912,59 +1699,59 @@ signature file-magic-auto578 {
 	file-magic /(^dnl )/
 }
 
-# >0  search/4096,=(defparam  (len=10), ["Lisp/Scheme program text"], swap_endian=0
-signature file-magic-auto583 {
-	file-mime "text/x-lisp", 40
-	file-magic /(.*)(\x28defparam )/
-}
-
-# >0  search/4096,=(autoload  (len=10), ["Lisp/Scheme program text"], swap_endian=0
-signature file-magic-auto584 {
-	file-mime "text/x-lisp", 40
-	file-magic /(.*)(\x28autoload )/
-}
-
-# >0  search/1,=<TeXmacs| (len=9), ["TeXmacs document text"], swap_endian=0
-signature file-magic-auto589 {
-	file-mime "text/texmacs", 39
-	file-magic /(.*)(\x3cTeXmacs\x7c)/
-}
-
-# >0  search/1,=/* XPM */ (len=9), ["X pixmap image text"], swap_endian=0
-signature file-magic-auto590 {
-	file-mime "image/x-xpmi", 39
-	file-magic /(.*)(\x2f\x2a XPM \x2a\x2f)/
-}
-
-# >0  search/8192,="LIBHDR" (len=8), ["BCPL source text"], swap_endian=0
-signature file-magic-auto596 {
-	file-mime "text/x-bcpl", 38
-	file-magic /(.*)(\x22LIBHDR\x22)/
-}
-
-# >0  search/4096,=(defvar  (len=8), ["Lisp/Scheme program text"], swap_endian=0
-signature file-magic-auto598 {
-	file-mime "text/x-lisp", 38
-	file-magic /(.*)(\x28defvar )/
-}
-
-# >0  search/1,=Only in  (len=8), ["diff output text"], swap_endian=0
-signature file-magic-auto600 {
-	file-mime "text/x-diff", 38
-	file-magic /(.*)(Only in )/
-}
-
-# >0  search/8192,="libhdr" (len=8), ["BCPL source text"], swap_endian=0
-signature file-magic-auto604 {
-	file-mime "text/x-bcpl", 38
-	file-magic /(.*)(\x22libhdr\x22)/
-}
-
-# >0  search/4096,=(defun  (len=7), ["Lisp/Scheme program text"], swap_endian=0
-signature file-magic-auto607 {
-	file-mime "text/x-lisp", 37
-	file-magic /(.*)(\x28defun )/
-}
+## >0  search/4096,=(defparam  (len=10), ["Lisp/Scheme program text"], swap_endian=0
+#signature file-magic-auto583 {
+#	file-mime "text/x-lisp", 40
+#	file-magic /(.*)(\x28defparam )/
+#}
+#
+## >0  search/4096,=(autoload  (len=10), ["Lisp/Scheme program text"], swap_endian=0
+#signature file-magic-auto584 {
+#	file-mime "text/x-lisp", 40
+#	file-magic /(.*)(\x28autoload )/
+#}
+#
+## >0  search/1,=<TeXmacs| (len=9), ["TeXmacs document text"], swap_endian=0
+#signature file-magic-auto589 {
+#	file-mime "text/texmacs", 39
+#	file-magic /(.*)(\x3cTeXmacs\x7c)/
+#}
+#
+## >0  search/1,=/* XPM */ (len=9), ["X pixmap image text"], swap_endian=0
+#signature file-magic-auto590 {
+#	file-mime "image/x-xpmi", 39
+#	file-magic /(.*)(\x2f\x2a XPM \x2a\x2f)/
+#}
+#
+## >0  search/8192,="LIBHDR" (len=8), ["BCPL source text"], swap_endian=0
+#signature file-magic-auto596 {
+#	file-mime "text/x-bcpl", 38
+#	file-magic /(.*)(\x22LIBHDR\x22)/
+#}
+#
+## >0  search/4096,=(defvar  (len=8), ["Lisp/Scheme program text"], swap_endian=0
+#signature file-magic-auto598 {
+#	file-mime "text/x-lisp", 38
+#	file-magic /(.*)(\x28defvar )/
+#}
+#
+## >0  search/1,=Only in  (len=8), ["diff output text"], swap_endian=0
+#signature file-magic-auto600 {
+#	file-mime "text/x-diff", 38
+#	file-magic /(.*)(Only in )/
+#}
+#
+## >0  search/8192,="libhdr" (len=8), ["BCPL source text"], swap_endian=0
+#signature file-magic-auto604 {
+#	file-mime "text/x-bcpl", 38
+#	file-magic /(.*)(\x22libhdr\x22)/
+#}
+#
+## >0  search/4096,=(defun  (len=7), ["Lisp/Scheme program text"], swap_endian=0
+#signature file-magic-auto607 {
+#	file-mime "text/x-lisp", 37
+#	file-magic /(.*)(\x28defun )/
+#}
 
 # >0  regex,=^msgid  (len=7), ["GNU gettext message catalogue text"], swap_endian=0
 signature file-magic-auto608 {
@@ -1973,7 +1760,7 @@ signature file-magic-auto608 {
 }
 
 # >0  search/4096,=(setq  (len=6), ["Lisp/Scheme program text"], swap_endian=0
-signature file-magic-auto611 {
-	file-mime "text/x-lisp", 36
-	file-magic /(.*)(\x28setq )/
-}
+#signature file-magic-auto611 {
+#	file-mime "text/x-lisp", 36
+#	file-magic /(.*)(\x28setq )/
+#}

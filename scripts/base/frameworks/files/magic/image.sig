@@ -9,11 +9,10 @@ signature file-gif {
 	file-magic /^GIF8/
 }
 
-
-# >0  beshort&,=-40 (0xffd8), ["JPEG image data"], swap_endian=0
+# JPEG image
 signature file-magic-auto427 {
 	file-mime "image/jpeg", 52
-	file-magic /(\xff\xd8)/
+	file-magic /^\xff\xd8/
 }
 
 signature file-bmp {
@@ -31,10 +30,9 @@ signature file-cur {
 	file-mime "image/x-cursor", 70
 }
 
-# >0  string,=8BPS (len=4), ["Adobe Photoshop Image"], swap_endian=0
 signature file-magic-auto289 {
 	file-mime "image/vnd.adobe.photoshop", 70
-	file-magic /(8BPS)/
+	file-magic /^8BPS/
 }
 
 signature file-png {
@@ -66,78 +64,69 @@ signature file-jpm {
 	file-magic /\x00\x00\x00\x0cjP  \x0d\x0a\x87\x0a.{8}jpm /
 }
 
-# >0  string,=Xcur (len=4), ["Xcursor data"], swap_endian=0
-signature file-magic-auto271 {
+# Xcursor image
+signature file-x-cursor {
 	file-mime "image/x-xcursor", 70
-	file-magic /(Xcur)/
+	file-magic /^Xcur/
 }
 
-# >0  string,=IIN1 (len=4), ["NIFF image data"], swap_endian=0
-signature file-magic-auto282 {
+# NIFF image
+signature file-niff {
 	file-mime "image/x-niff", 70
-	file-magic /(IIN1)/
+	file-magic /^IIN1/
 }
 
-# >0  lelong&,=20000630 (0x01312f76), ["OpenEXR image data,"], swap_endian=0
-signature file-magic-auto291 {
+# OpenEXR image
+signature file-openexr {
 	file-mime "image/x-exr", 70
-	file-magic /(\x76\x2f\x31\x01)/
+	file-magic /^\x76\x2f\x31\x01/
 }
 
-# >0  string,=SDPX (len=4), ["DPX image data, big-endian,"], swap_endian=0
-signature file-magic-auto292 {
+# DPX image
+signature file-dpx {
 	file-mime "image/x-dpx", 70
-	file-magic /(SDPX)/
+	file-magic /^SDPX/
 }
 
-# >0  string,=CPC\262 (len=4), ["Cartesian Perceptual Compression image"], swap_endian=0
-signature file-magic-auto294 {
+# Cartesian Perceptual Compression image
+signature file-cpi {
 	file-mime "image/x-cpi", 70
 	file-magic /(CPC\xb2)/
 }
-
 
 signature file-orf {
 	file-mime "image/x-olympus-orf", 70
 	file-magic /IIR[OS]|MMOR/
 }
 
-# >0  string,=FOVb (len=4), ["Foveon X3F raw image data"], swap_endian=0
-signature file-magic-auto298 {
+# Foveon X3F raw image
+signature file-x3r {
 	file-mime "image/x-x3f", 70
-	file-magic /(FOVb)/
+	file-magic /^FOVb/
 }
 
-# >0  string,=PDN3 (len=4), ["Paint.NET image data"], swap_endian=0
-signature file-magic-auto299 {
+# Paint.NET image
+signature file-paint-net {
 	file-mime "image/x-paintnet", 70
-	file-magic /(PDN3)/
+	file-magic /^PDN3/
 }
 
-# >0  string,=RIFF (len=4), ["RIFF (little-endian) data"], swap_endian=0
-# >>8  string,=CDRA (len=4), [", Corel Draw Picture"], swap_endian=0
-signature file-magic-auto355 {
+# Corel Draw Picture
+signature file-coreldraw {
 	file-mime "image/x-coreldraw", 70
-	file-magic /(RIFF)(.{4})(CDRA)/
+	file-magic /^RIFF....CDR[A6]/
 }
 
-# >0  string,=RIFF (len=4), ["RIFF (little-endian) data"], swap_endian=0
-# >>8  string,=CDR6 (len=4), [", Corel Draw Picture, version 6"], swap_endian=0
-signature file-magic-auto356 {
-	file-mime "image/x-coreldraw", 70
-	file-magic /(RIFF)(.{4})(CDR6)/
-}
-
-# >0  string,=P7 (len=2), ["Netpbm PAM image file"], swap_endian=0
-signature file-magic-auto484 {
+# Netpbm PAM image
+signature file-netbpm{
 	file-mime "image/x-portable-pixmap", 50
-	file-magic /(P7)/
+	file-magic /^P7/
 }
 
-# >4  string/W,=jP (len=2), ["JPEG 2000 image"], swap_endian=0
-signature file-magic-auto497 {
+# JPEG 2000 image
+signature file-jpeg-2000 {
 	file-mime "image/jp2", 50
-	file-magic /(.{4})(jP)/
+	file-magic /^....jP/
 }
 
 # DjVU Images
@@ -152,27 +141,26 @@ signature file-dwg {
 	file-magic /^(AC[12]\.|AC10)/
 }
 
-# >0  string,=gimp xcf (len=8), ["GIMP XCF image data,"], swap_endian=0
-signature file-magic-auto115 {
+# GIMP XCF image
+signature file-gimp-xcf {
 	file-mime "image/x-xcf", 110
-	file-magic /(gimp xcf)/
+	file-magic /^gimp xcf/
 }
 
-# >0  string/t,=[BitmapInfo2] (len=13), ["Polar Monitor Bitmap text"], swap_endian=0
-signature file-magic-auto62 {
+# Polar Monitor Bitmap text
+signature file-polar-monitor-bitmap {
 	file-mime "image/x-polar-monitor-bitmap", 160
-	file-magic /(\x5bBitmapInfo2\x5d)/
+	file-magic /^\x5bBitmapInfo2\x5d/
 }
 
-# >0  string,=AWBM (len=4), [""], swap_endian=0
-# >>4  leshort&,<1981 (0x07bd), ["Award BIOS bitmap"], swap_endian=0
-signature file-magic-auto208 {
+# Award BIOS bitmap
+signature file-award-bitmap {
 	file-mime "image/x-award-bmp", 20
-	file-magic /(AWBM)(.{2})/
+	file-magic /^AWBM/
 }
 
-# >0  string,=\021\006 (len=2), ["Award BIOS Logo, 136 x 84"], swap_endian=0
-signature file-magic-auto483 {
+# Award BIOS Logo, 136 x 84
+signature file-award-bios-logo {
 	file-mime "image/x-award-bioslogo", 50
 	file-magic /^\x11[\x06\x09]/
 }

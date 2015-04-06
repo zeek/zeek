@@ -1,4 +1,10 @@
 
+2.3-679 | 2015-04-06 10:16:36 -0500
+
+  * Increase some unit test timeouts. (Jon Siwek)
+
+  * Fix Coverity warning in RDP analyzer. (Jon Siwek)
+
 2.3-676 | 2015-04-02 10:10:39 -0500
 
   * BIT-1366: improve checksum offloading warning.

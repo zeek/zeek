@@ -1,4 +1,9 @@
 
+2.3-680 | 2015-04-06 16:02:43 -0500
+
+  * BIT-1371: remove CMake version check from binary package scripts.
+    (Jon Siwek)
+
 2.3-679 | 2015-04-06 10:16:36 -0500
 
   * Increase some unit test timeouts. (Jon Siwek)

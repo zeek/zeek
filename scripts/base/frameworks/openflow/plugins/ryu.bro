@@ -1,11 +1,9 @@
-@load ../main
-@load ../utils/json
+@load base/frameworks/openflow
+@load base/frameworks/openflow/utils/json
 @load base/utils/exec
 @load base/utils/active-http
 
-
 module OpenflowRyu;
-
 
 export {
 	redef enum Openflow::Plugin += {
@@ -34,14 +32,14 @@ export {
 
 	## Ryu controller constructor.
 	##
-	## ip: Controller ip.
+	## host: Controller ip.
 	##
-	## port_: Controller listen port.
+	## host_port: Controller listen port.
 	##
 	## dpid: Openflow switch datapath id.
 	##
 	## Returns: Openflow::Controller record
-	global new: function(ip: addr, port_: count, dpid: count): Openflow::Controller;
+	global new: function(host: addr, host_port: count, dpid: count): Openflow::Controller;
 }
 
 
@@ -129,7 +127,7 @@ function flow_mod(state: Openflow::ControllerState, flow_mod: Openflow::ofp_flow
 		}
 	# Create the ActiveHTTP request and convert the record to a Ryu ReST API JSON string
 	local request: ActiveHTTP::Request = ActiveHTTP::Request(
-		$url=cat("http://", cat(state$ip), ":", cat(state$port_), RYU_FLOWENTRY_PATH, command_type),
+		$url=cat("http://", cat(state$host), ":", cat(state$host_port), RYU_FLOWENTRY_PATH, command_type),
 		$method="POST",
 		$client_data=OpenflowJSON::convert(_flow_mod)
 	);
@@ -149,9 +147,8 @@ function flow_mod(state: Openflow::ControllerState, flow_mod: Openflow::ofp_flow
 	return T;
 	}
 
-
 # Ryu controller constructor
-function new(ip: addr, port_: count, dpid: count): Openflow::Controller
+function new(host: addr, host_port: count, dpid: count): Openflow::Controller
 	{
-	return [$state=[$ip=ip, $port_=port_, $type_=Openflow::RYU, $dpid=dpid], $flow_mod=flow_mod];
+	return [$state=[$host=host, $host_port=host_port, $type_=Openflow::RYU, $dpid=dpid], $flow_mod=flow_mod];
 	}

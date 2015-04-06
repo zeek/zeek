@@ -32,7 +32,7 @@ const ip_addr_regex =
 ## octets: an array of strings to check for valid octet values.
 ##
 ## Returns: T if every element is between 0 and 255, inclusive, else F.
-function has_valid_octets(octets: string_array): bool
+function has_valid_octets(octets: string_vec): bool
 	{
 	local num = 0;
 	for ( i in octets )
@@ -51,10 +51,10 @@ function has_valid_octets(octets: string_array): bool
 ## Returns: T if the string is a valid IPv4 or IPv6 address format.
 function is_valid_ip(ip_str: string): bool
 	{
-	local octets: string_array;
+	local octets: string_vec;
 	if ( ip_str == ipv4_addr_regex )
 		{
-		octets = split(ip_str, /\./);
+		octets = split_string(ip_str, /\./);
 		if ( |octets| != 4 )
 			return F;
 
@@ -67,13 +67,13 @@ function is_valid_ip(ip_str: string): bool
 			{
 			# the regexes for hybrid IPv6-IPv4 address formats don't for valid
 			# octets within the IPv4 part, so do that now
-			octets = split(ip_str, /\./);
+			octets = split_string(ip_str, /\./);
 			if ( |octets| != 4 )
 				return F;
 
 			# get rid of remaining IPv6 stuff in first octet
-			local tmp = split(octets[1], /:/);
-			octets[1] = tmp[|tmp|];
+			local tmp = split_string(octets[0], /:/);
+			octets[0] = tmp[|tmp| - 1];
 
 			return has_valid_octets(octets);
 			}
@@ -92,14 +92,32 @@ function is_valid_ip(ip_str: string): bool
 ## input: a string that may contain an IP address anywhere within it.
 ##
 ## Returns: an array containing all valid IP address strings found in *input*.
-function find_ip_addresses(input: string): string_array
+function find_ip_addresses(input: string): string_array &deprecated
 	{
-	local parts = split_all(input, ip_addr_regex);
+	local parts = split_string_all(input, ip_addr_regex);
 	local output: string_array;
 
 	for ( i in parts )
 		{
-		if ( i % 2 == 0 && is_valid_ip(parts[i]) )
+		if ( i % 2 == 1 && is_valid_ip(parts[i]) )
+			output[|output|] = parts[i];
+		}
+	return output;
+	}
+
+## Extracts all IP (v4 or v6) address strings from a given string.
+##
+## input: a string that may contain an IP address anywhere within it.
+##
+## Returns: an array containing all valid IP address strings found in *input*.
+function extract_ip_addresses(input: string): string_vec
+	{
+	local parts = split_string_all(input, ip_addr_regex);
+	local output: string_vec;
+
+	for ( i in parts )
+		{
+		if ( i % 2 == 1 && is_valid_ip(parts[i]) )
 			output[|output|] = parts[i];
 		}
 	return output;

@@ -26,6 +26,7 @@
 #include "Reporter.h"
 #include "RE.h"
 #include "Net.h"
+#include "Traverse.h"
 
 #include "analyzer/Analyzer.h"
 #include "broxygen/Manager.h"
@@ -54,6 +55,11 @@ char last_tok[128];
 #define YY_INPUT(buf,result,max_size) \
 	if ( ((result = fread(buf, 1, max_size, yyin)) == 0) && ferror(yyin) ) \
 		reporter->Error("read failed with \"%s\"", strerror(errno));
+
+static void deprecated_attr(const char* attr)
+	{
+	reporter->Warning("Use of deprecated attribute: %s", attr);
+	}
 
 static string find_relative_file(const string& filename, const string& ext)
 	{
@@ -220,6 +226,7 @@ export	return TOK_EXPORT;
 fallthrough	return TOK_FALLTHROUGH;
 file	return TOK_FILE;
 for	return TOK_FOR;
+while	return TOK_WHILE;
 function	return TOK_FUNCTION;
 global	return TOK_GLOBAL;
 "?$"	return TOK_HAS_FIELD;
@@ -259,22 +266,51 @@ when	return TOK_WHEN;
 &create_expire	return TOK_ATTR_EXPIRE_CREATE;
 &default	return TOK_ATTR_DEFAULT;
 &delete_func	return TOK_ATTR_DEL_FUNC;
+&deprecated	return TOK_ATTR_DEPRECATED;
 &raw_output return TOK_ATTR_RAW_OUTPUT;
-&encrypt	return TOK_ATTR_ENCRYPT;
 &error_handler	return TOK_ATTR_ERROR_HANDLER;
 &expire_func	return TOK_ATTR_EXPIRE_FUNC;
 &log		return TOK_ATTR_LOG;
-&mergeable	return TOK_ATTR_MERGEABLE;
 &optional	return TOK_ATTR_OPTIONAL;
-&persistent	return TOK_ATTR_PERSISTENT;
 &priority	return TOK_ATTR_PRIORITY;
 &type_column	return TOK_ATTR_TYPE_COLUMN;
 &read_expire	return TOK_ATTR_EXPIRE_READ;
 &redef		return TOK_ATTR_REDEF;
-&rotate_interval	return TOK_ATTR_ROTATE_INTERVAL;
-&rotate_size		return TOK_ATTR_ROTATE_SIZE;
-&synchronized	return TOK_ATTR_SYNCHRONIZED;
 &write_expire	return TOK_ATTR_EXPIRE_WRITE;
+
+&encrypt {
+	deprecated_attr(yytext);
+	return TOK_ATTR_ENCRYPT;
+	}
+
+&mergeable {
+	// Not yet deprecated, but soon.
+	//deprecated_attr(yytext);
+	return TOK_ATTR_MERGEABLE;
+	}
+
+&persistent {
+	// Not yet deprecated, but soon.
+	//deprecated_attr(yytext);
+	return TOK_ATTR_PERSISTENT;
+	}
+
+&rotate_interval {
+	deprecated_attr(yytext);
+	return TOK_ATTR_ROTATE_INTERVAL;
+	}
+
+&rotate_size {
+	deprecated_attr(yytext);
+	return TOK_ATTR_ROTATE_SIZE;
+	}
+
+&synchronized  {
+	// Not yet deprecated, but soon.
+	//deprecated_attr(yytext);
+	return TOK_ATTR_SYNCHRONIZED;
+	}
+
 
 @DEBUG	return TOK_DEBUG;	// marks input for debugger
 
@@ -615,11 +651,50 @@ void end_RE()
 	BEGIN(INITIAL);
 	}
 
+class LocalNameFinder : public TraversalCallback {
+public:
+	LocalNameFinder()
+		{}
+
+	virtual TraversalCode PreExpr(const Expr* expr)
+		{
+		if ( expr->Tag() != EXPR_NAME )
+			return TC_CONTINUE;
+
+		const NameExpr* name_expr = static_cast<const NameExpr*>(expr);
+
+		if ( name_expr->Id()->IsGlobal() )
+			return TC_CONTINUE;
+
+		local_names.push_back(name_expr);
+		return TC_CONTINUE;
+		}
+
+	std::vector<const NameExpr*> local_names;
+};
+
 void do_atif(Expr* expr)
 	{
 	++current_depth;
 
-	Val* val = expr->Eval(0);
+	LocalNameFinder cb;
+	expr->Traverse(&cb);
+	Val* val = 0;
+
+	if ( cb.local_names.empty() )
+		val = expr->Eval(0);
+	else
+		{
+		for ( size_t i = 0; i < cb.local_names.size(); ++i )
+			cb.local_names[i]->Error("referencing a local name in @if");
+		}
+
+	if ( ! val )
+		{
+		expr->Error("invalid expression in @if");
+		return;
+		}
+
 	if ( ! val->AsBool() )
 		{
 		if_stack.append(current_depth);

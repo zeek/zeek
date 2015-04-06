@@ -541,6 +541,13 @@ bool is_printable(const char* s, int len)
 	return true;
 	}
 
+std::string strtolower(const std::string& s)
+	{
+	std::string t = s;
+	std::transform(t.begin(), t.end(), t.begin(), ::tolower);
+	return t;
+	}
+
 const char* fmt_bytes(const char* data, int len)
 	{
 	static char buf[1024];
@@ -1345,19 +1352,32 @@ double parse_rotate_base_time(const char* rotate_base_time)
 
 double calc_next_rotate(double current, double interval, double base)
 	{
+	if ( ! interval )
+		{
+		reporter->Error("calc_next_rotate(): interval is zero, falling back to 24hrs");
+		interval = 86400;
+		}
+
 	// Calculate start of day.
 	time_t teatime = time_t(current);
 
 	struct tm t;
-	t = *localtime_r(&teatime, &t);
-	t.tm_hour = t.tm_min = t.tm_sec = 0;
-	double startofday = mktime(&t);
+	if ( ! localtime_r(&teatime, &t) )
+		{
+		reporter->Error("calc_next_rotate(): failure processing current time (%.6f)", current);
+
+		// fall back to the method used if no base time is given
+		base = -1;
+		}
 
 	if ( base < 0 )
 		// No base time given. To get nice timestamps, we round
 		// the time up to the next multiple of the rotation interval.
 		return floor(current / interval) * interval
 			+ interval - current;
+
+	t.tm_hour = t.tm_min = t.tm_sec = 0;
+	double startofday = mktime(&t);
 
 	// current < startofday + base + i * interval <= current + interval
 	return startofday + base +

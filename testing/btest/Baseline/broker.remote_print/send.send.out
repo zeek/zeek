@@ -1,0 +1,6 @@
+BrokerComm::outgoing_connection_established, 127.0.0.1, 9999/tcp
+got print msg, pong 0
+got print msg, pong 1
+got print msg, pong 2
+got print msg, pong 3
+got print msg, pong 4

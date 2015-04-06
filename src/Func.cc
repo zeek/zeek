@@ -54,6 +54,7 @@ const Expr* calling_expr = 0;
 bool did_builtin_init = false;
 
 vector<Func*> Func::unique_ids;
+static const std::pair<bool, Val*> empty_hook_result(false, NULL);
 
 Func::Func() : scope(0), type(0)
 	{
@@ -245,20 +246,31 @@ TraversalCode Func::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-Val* Func::HandlePluginResult(Val* plugin_result, val_list* args, function_flavor flavor) const
+std::pair<bool, Val*> Func::HandlePluginResult(std::pair<bool, Val*> plugin_result, val_list* args, function_flavor flavor) const
 	{
-	// Helper function factoring out this code from BroFunc:Call() for better
-	// readability.
+	// Helper function factoring out this code from BroFunc:Call() for
+	// better readability.
+
+	if( ! plugin_result.first )
+		{
+		if( plugin_result.second )
+			reporter->InternalError("plugin set processed flag to false but actually returned a value");
+
+		// The plugin result hasn't been processed yet (read: fall
+		// into ::Call method).
+		return plugin_result;
+		}
 
 	switch ( flavor ) {
 	case FUNC_FLAVOR_EVENT:
-		Unref(plugin_result);
-		plugin_result = 0;
+		if( plugin_result.second )
+			reporter->InternalError("plugin returned non-void result for event %s", this->Name());
+
 		break;
 
 	case FUNC_FLAVOR_HOOK:
-		if ( plugin_result->Type()->Tag() != TYPE_BOOL )
-			reporter->InternalError("plugin returned non-bool for hook");
+		if ( plugin_result.second->Type()->Tag() != TYPE_BOOL )
+			reporter->InternalError("plugin returned non-bool for hook %s", this->Name());
 
 		break;
 
@@ -268,14 +280,14 @@ Val* Func::HandlePluginResult(Val* plugin_result, val_list* args, function_flavo
 
 		if ( (! yt) || yt->Tag() == TYPE_VOID )
 			{
-			Unref(plugin_result);
-			plugin_result = 0;
+			if( plugin_result.second )
+				reporter->InternalError("plugin returned non-void result for void method %s", this->Name());
 			}
 
-		else
+		else if ( plugin_result.second && plugin_result.second->Type()->Tag() != yt->Tag() && yt->Tag() != TYPE_ANY)
 			{
-			if ( plugin_result->Type()->Tag() != yt->Tag() )
-				reporter->InternalError("plugin returned wrong type for function call");
+			reporter->InternalError("plugin returned wrong type (got %d, expecting %d) for %s",
+						plugin_result.second->Type()->Tag(), yt->Tag(), this->Name());
 			}
 
 		break;
@@ -323,7 +335,7 @@ int BroFunc::IsPure() const
 Val* BroFunc::Call(val_list* args, Frame* parent) const
 	{
 #ifdef PROFILE_BRO_FUNCTIONS
-	DEBUG_MSG("Function: %s\n", id->Name());
+	DEBUG_MSG("Function: %s\n", Name());
 #endif
 
 	SegmentProfiler(segment_logger, location);
@@ -331,10 +343,15 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 	if ( sample_logger )
 		sample_logger->FunctionSeen(this);
 
-	Val* plugin_result = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION, HookCallFunction(this, args), 0);
+	std::pair<bool, Val*> plugin_result = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION, HookCallFunction(this, parent, args), empty_hook_result);
 
-	if ( plugin_result )
-		return HandlePluginResult(plugin_result, args, Flavor());
+	plugin_result = HandlePluginResult(plugin_result, args, Flavor());
+
+	if( plugin_result.first )
+		{
+		Val *result = plugin_result.second;
+		return result;
+		}
 
 	if ( bodies.empty() )
 		{
@@ -425,11 +442,11 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 	// Warn if the function returns something, but we returned from
 	// the function without an explicit return, or without a value.
 	else if ( FType()->YieldType() && FType()->YieldType()->Tag() != TYPE_VOID &&
-	     (flow != FLOW_RETURN /* we fell off the end */ ||
-	      ! result /* explicit return with no result */) &&
-	     ! f->HasDelayed() )
+		 (flow != FLOW_RETURN /* we fell off the end */ ||
+		  ! result /* explicit return with no result */) &&
+		 ! f->HasDelayed() )
 		reporter->Warning("non-void function returns without a value: %s",
-		                  Name());
+				  Name());
 
 	if ( result && g_trace_state.DoTrace() )
 		{
@@ -548,10 +565,15 @@ Val* BuiltinFunc::Call(val_list* args, Frame* parent) const
 	if ( sample_logger )
 		sample_logger->FunctionSeen(this);
 
-	Val* plugin_result = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION, HookCallFunction(this, args), 0);
+	std::pair<bool, Val*> plugin_result = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION, HookCallFunction(this, parent, args), empty_hook_result);
 
-	if ( plugin_result )
-		return HandlePluginResult(plugin_result, args, FUNC_FLAVOR_FUNCTION);
+	plugin_result = HandlePluginResult(plugin_result, args, FUNC_FLAVOR_FUNCTION);
+
+	if ( plugin_result.first )
+		{
+		Val *result = plugin_result.second;
+		return result;
+		}
 
 	if ( g_trace_state.DoTrace() )
 		{

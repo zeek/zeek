@@ -43,7 +43,7 @@ export {
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(Known::CERTS_LOG, [$columns=CertsInfo, $ev=log_known_certs]);
+	Log::create_stream(Known::CERTS_LOG, [$columns=CertsInfo, $ev=log_known_certs, $path="known_certs"]);
 	}
 
 event ssl_established(c: connection) &priority=3

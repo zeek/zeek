@@ -1,9 +1,5 @@
 FILE_NEW
 file #0, 0, 0
-FILE_BOF_BUFFER
-^J0.26 | 201
-MIME_TYPE
-text/plain
 FILE_OVER_NEW_CONNECTION
 file_stream, file #0, 1146, ^J0.26 | 2012-08-24 15:10:04 -0700^J^J  * Fixing update-changes, which could pick the wrong control file. (Robin Sommer)^J^J  * Fixing GPG signing script. (Robin Sommer)^J^J0.25 | 2012-08-01 13:55:46 -0500^J^J  * Fix configure script to exit with non-zero status on error (Jon Siwek)^J^J0.24 | 2012-07-05 12:50:43 -0700^J^J  * Raise minimum required CMake version to 2.6.3 (Jon Siwek)^J^J  * Adding script to delete old fully-merged branches. (Robin Sommer)^J^J0.23-2 | 2012-01-25 13:24:01 -0800^J^J  * Fix a bro-cut error message. (Daniel Thayer)^J^J0.23 | 2012-01-11 12:16:11 -0800^J^J  * Tweaks to release scripts, plus a new one for signing files.^J    (Robin Sommer)^J^J0.22 | 2012-01-10 16:45:19 -0800^J^J  * Tweaks for OpenBSD support. (Jon Siwek)^J^J  * bro-cut extensions and fixes.  (Robin Sommer)^J    ^J    - If no field names are given on the command line, we now pass through^J      all fields. Adresses #657.^J^J    - Removing some GNUism from awk script. Addresses #653.^J^J    - Added option for time output in UTC. Addresses #668.^J^J    - Added output field separator option -F. Addresses #649.^J^J    - Fixing option -c: only some header lines were passed through^J   
 file_chunk, file #0, 1146, 0, ^J0.26 | 2012-08-24 15:10:04 -0700^J^J  * Fixing update-changes, which could pick the wrong control file. (Robin Sommer)^J^J  * Fixing GPG signing script. (Robin Sommer)^J^J0.25 | 2012-08-01 13:55:46 -0500^J^J  * Fix configure script to exit with non-zero status on error (Jon Siwek)^J^J0.24 | 2012-07-05 12:50:43 -0700^J^J  * Raise minimum required CMake version to 2.6.3 (Jon Siwek)^J^J  * Adding script to delete old fully-merged branches. (Robin Sommer)^J^J0.23-2 | 2012-01-25 13:24:01 -0800^J^J  * Fix a bro-cut error message. (Daniel Thayer)^J^J0.23 | 2012-01-11 12:16:11 -0800^J^J  * Tweaks to release scripts, plus a new one for signing files.^J    (Robin Sommer)^J^J0.22 | 2012-01-10 16:45:19 -0800^J^J  * Tweaks for OpenBSD support. (Jon Siwek)^J^J  * bro-cut extensions and fixes.  (Robin Sommer)^J    ^J    - If no field names are given on the command line, we now pass through^J      all fields. Adresses #657.^J^J    - Removing some GNUism from awk script. Addresses #653.^J^J    - Added option for time output in UTC. Addresses #668.^J^J    - Added output field separator option -F. Addresses #649.^J^J    - Fixing option -c: only some header lines were passed through^J   
@@ -16,6 +12,10 @@ file_chunk, file #0, 663, 4042,  thread library when necessary (e.g.^J    PF_RIN
 FILE_STATE_REMOVE
 file #0, 4705, 0
 [orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp]
+FILE_BOF_BUFFER
+^J0.26 | 201
+MIME_TYPE
+text/plain
 total bytes: 4705
 source: HTTP
 MD5: 397168fd09991a0e712254df7bc639ac

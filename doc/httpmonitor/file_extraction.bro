@@ -7,18 +7,15 @@ global mime_to_ext: table[string] of string = {
 	["text/html"] = "html",
 };
 
-event file_new(f: fa_file)
+event file_mime_type(f: fa_file, mime_type: string)
 	{
 	if ( f$source != "HTTP" )
 		return;
 
-	if ( ! f?$mime_type )
+	if ( mime_type !in mime_to_ext )
 		return;
 
-	if ( f$mime_type !in mime_to_ext )
-		return;
-
-	local fname = fmt("%s-%s.%s", f$source, f$id, mime_to_ext[f$mime_type]);
+	local fname = fmt("%s-%s.%s", f$source, f$id, mime_to_ext[mime_type]);
 	print fmt("Extracting file %s", fname);
 	Files::add_analyzer(f, Files::ANALYZER_EXTRACT, [$extract_filename=fname]);
 	}

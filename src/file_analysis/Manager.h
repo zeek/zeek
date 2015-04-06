@@ -214,6 +214,21 @@ public:
 	bool SetTimeoutInterval(const string& file_id, double interval) const;
 
 	/**
+	 * Enable the reassembler for a file.
+	 */
+	bool EnableReassembly(const string& file_id);
+	
+	/**
+	 * Disable the reassembler for a file.
+	 */
+	bool DisableReassembly(const string& file_id);
+
+	/**
+	 * Set the reassembly for a file in bytes.
+	 */
+	bool SetReassemblyBuffer(const string& file_id, uint64 max);
+
+	/**
 	 * Sets a limit on the maximum size allowed for extracting the file
 	 * to local disk;
 	 * @param file_id the file identifier/hash.
@@ -237,18 +252,6 @@ public:
 	 */
 	bool AddAnalyzer(const string& file_id, file_analysis::Tag tag,
 	                 RecordVal* args) const;
-
-	/**
-	 * Queue attachment of an all analyzers associated with a given MIME
-	 * type to the file identifier.
-	 *
-	 * @param file_id the file identifier/hash.
-	 * @param mtype the MIME type; comparisions will be performanced case-insensitive.
-	 * @param args a \c AnalyzerArgs value which describes a file analyzer.
-	 * @return A ref'ed \c set[Tag] with all added analyzers.
-	 */
-	TableVal* AddAnalyzersForMIMEType(const string& file_id, const string& mtype,
-					  RecordVal* args);
 
 	/**
 	 * Queue removal of an analyzer for a given file identifier.
@@ -277,62 +280,6 @@ public:
 	Analyzer* InstantiateAnalyzer(Tag tag, RecordVal* args, File* f) const;
 
 	/**
-	 * Registers a MIME type for an analyzer. Once registered, files of
-	 * that MIME type will automatically get a corresponding analyzer
-	 * assigned.
-	 *
-	 * @param tag The analyzer's tag as an enum of script type \c
-	 * Files::Tag.
-	 *
-	 * @param mtype The MIME type. It will be matched case-insenistive.
-	 *
-	 * @return True if successful.
-	 */
-	bool RegisterAnalyzerForMIMEType(EnumVal* tag, StringVal* mtype);
-
-	/**
-	 * Registers a MIME type for an analyzer. Once registered, files of
-	 * that MIME type will automatically get a corresponding analyzer
-	 * assigned.
-	 *
-	 * @param tag The analyzer's tag as an enum of script type \c
-	 * Files::Tag.
-	 *
-	 * @param mtype The MIME type. It will be matched case-insenistive.
-	 *
-	 * @return True if successful.
-	 */
-	bool RegisterAnalyzerForMIMEType(Tag tag, const string& mtype);
-
-	/**
-	 * Unregisters a MIME type for an analyzer.
-	 *
-	 * @param tag The analyzer's tag as an enum of script type \c
-	 * Files::Tag.
-	 *
-	 * @param mtype The MIME type. It will be matched case-insenistive.
-	 *
-	 * @return True if successful (incl. when the type wasn't actually
-	 * registered for the analyzer).
-	 *
-	 */
-	bool UnregisterAnalyzerForMIMEType(EnumVal* tag, StringVal* mtype);
-
-	/**
-	 * Unregisters a MIME type for an analyzer.
-	 *
-	 * @param tag The analyzer's tag as an enum of script type \c
-	 * Files::Tag.
-	 *
-	 * @param mtype The MIME type. It will be matched case-insenistive.
-	 *
-	 * @return True if successful (incl. when the type wasn't actually
-	 * registered for the analyzer).
-	 *
-	 */
-	bool UnregisterAnalyzerForMIMEType(Tag tag, const string& mtype);
-
-    /**
 	 * Returns a set of all matching MIME magic signatures for a given
 	 * chunk of data.
 	 * @param data A chunk of bytes to match magic MIME signatures against.
@@ -372,6 +319,7 @@ protected:
 	 *        this file isn't related to a connection).
 	 * @param update_conn whether we need to update connection-related field
 	 *        in the \c fa_file record value associated with the file.
+	 * @param an optional value of the source field to fill in.
 	 * @return the File object mapped to \a file_id or a null pointer if
 	 *         analysis is being ignored for the associated file.  An File
 	 *         object may be created if a mapping doesn't exist, and if it did
@@ -380,7 +328,8 @@ protected:
 	 */
 	File* GetFile(const string& file_id, Connection* conn = 0,
 	              analyzer::Tag tag = analyzer::Tag::Error,
-	              bool is_orig = false, bool update_conn = true);
+	              bool is_orig = false, bool update_conn = true,
+	              const char* source_name = 0);
 
 	/**
 	 * Try to retrieve a file that's being analyzed, using its identifier/hash.

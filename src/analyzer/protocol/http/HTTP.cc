@@ -985,9 +985,7 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 				{
 				++num_replies;
 
-				if ( unanswered_requests.empty() )
-					Weird("unmatched_HTTP_reply");
-				else
+				if ( ! unanswered_requests.empty() )
 					ProtocolConfirmation();
 
 				reply_state = EXPECT_REPLY_MESSAGE;

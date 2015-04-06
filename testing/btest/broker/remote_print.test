@@ -1,0 +1,83 @@
+# @TEST-SERIALIZE: brokercomm
+# @TEST-REQUIRES: grep -q ENABLE_BROKER $BUILD/CMakeCache.txt
+
+# @TEST-EXEC: btest-bg-run recv "bro -b ../recv.bro broker_port=$BROKER_PORT >recv.out"
+# @TEST-EXEC: btest-bg-run send "bro -b ../send.bro broker_port=$BROKER_PORT >send.out"
+
+# @TEST-EXEC: btest-bg-wait 20
+# @TEST-EXEC: btest-diff recv/recv.out
+# @TEST-EXEC: btest-diff send/send.out
+
+@TEST-START-FILE recv.bro
+
+const broker_port: port &redef;
+redef exit_only_after_terminate = T;
+
+event bro_init()
+	{
+	BrokerComm::enable();
+	BrokerComm::listen(broker_port, "127.0.0.1");
+	BrokerComm::subscribe_to_prints("bro/print/");
+	}
+
+global messages_to_recv = 6;
+global messages_sent = 0;
+global messages_recv = 0;
+
+event BrokerComm::print_handler(msg: string)
+	{
+	++messages_recv;
+	print "got print msg", msg;
+
+	if ( messages_to_recv == messages_recv )
+		{
+		terminate();
+		return;
+		}
+
+	BrokerComm::print("bro/print/my_topic", fmt("pong %d", messages_sent));
+	++messages_sent;
+	}
+
+@TEST-END-FILE
+
+@TEST-START-FILE send.bro
+
+const broker_port: port &redef;
+redef exit_only_after_terminate = T;
+
+event bro_init()
+	{
+	BrokerComm::enable();
+	BrokerComm::subscribe_to_prints("bro/print/my_topic");
+	BrokerComm::connect("127.0.0.1", broker_port, 1secs);
+	}
+
+global messages_sent = 0;
+global messages_recv = 0;
+global peer_disconnected = F;
+
+event BrokerComm::outgoing_connection_established(peer_address: string,
+                                            peer_port: port,
+                                            peer_name: string)
+	{
+	print "BrokerComm::outgoing_connection_established", peer_address, peer_port;
+	BrokerComm::print("bro/print/hi", fmt("ping %d", messages_sent));
+	++messages_sent;
+	}
+
+event BrokerComm::outgoing_connection_broken(peer_address: string,
+                                       peer_port: port)
+	{
+	terminate();
+	}
+
+event BrokerComm::print_handler(msg: string)
+	{
+	++messages_recv;
+	print "got print msg", msg;
+	BrokerComm::print("bro/print/hi", fmt("ping %d", messages_sent));
+	++messages_sent;
+	}
+
+@TEST-END-FILE

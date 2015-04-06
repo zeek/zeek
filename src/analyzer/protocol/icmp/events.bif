@@ -12,8 +12,20 @@
 ## icmp: Additional ICMP-specific information augmenting the standard
 ##       connection record *c*.
 ##
-## .. bro:see:: icmp_error_message
+## .. bro:see:: icmp_error_message icmp_sent_payload
 event icmp_sent%(c: connection, icmp: icmp_conn%);
+
+## The same as :bro:see:`icmp_sent` except containing the ICMP payload.
+##
+## c: The connection record for the corresponding ICMP flow.
+##
+## icmp: Additional ICMP-specific information augmenting the standard
+##       connection record *c*.
+##
+## payload: The payload of the ICMP message.
+##
+## .. bro:see:: icmp_error_message icmp_sent_payload
+event icmp_sent_payload%(c: connection, icmp: icmp_conn, payload: string%);
 
 ## Generated for ICMP *echo request* messages.
 ##

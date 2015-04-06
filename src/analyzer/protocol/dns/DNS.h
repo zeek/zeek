@@ -220,6 +220,7 @@ protected:
 					BroString* question_name);
 
 	analyzer::Analyzer* analyzer;
+	bool first_message;
 };
 
 

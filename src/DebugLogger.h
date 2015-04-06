@@ -32,6 +32,7 @@ enum DebugStream {
 	DBG_PLUGINS,	// Plugin system
 	DBG_BROXYGEN,	// Broxygen
 	DBG_PKTIO,	// Packet sources and dumpers.
+	DBG_BROKER,	// Broker communication
 
 	NUM_DBGS // Has to be last
 };
@@ -76,6 +77,8 @@ public:
 
 	void SetVerbose(bool arg_verbose)	{ verbose = arg_verbose; }
 	bool IsVerbose() const			{ return verbose; }
+
+	void ShowStreamsHelp();
 
 private:
 	FILE* file;

@@ -2,7 +2,7 @@ project(Bro C CXX)
 
 # When changing the minimum version here, also adapt
 # aux/bro-aux/plugin-support/skeleton/CMakeLists.txt
-cmake_minimum_required(VERSION 2.6.3 FATAL_ERROR)
+cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
 include(cmake/CommonCMakeConfig.cmake)
 
@@ -13,6 +13,11 @@ set(BRO_ROOT_DIR ${CMAKE_INSTALL_PREFIX})
 if (NOT BRO_SCRIPT_INSTALL_PATH)
     # set the default Bro script installation path (user did not specify one)
     set(BRO_SCRIPT_INSTALL_PATH ${BRO_ROOT_DIR}/share/bro)
+endif ()
+
+if (NOT BRO_MAN_INSTALL_PATH)
+    # set the default Bro man page installation path (user did not specify one)
+    set(BRO_MAN_INSTALL_PATH ${BRO_ROOT_DIR}/share/man)
 endif ()
 
 # sanitize the Bro script install directory into an absolute path
@@ -26,12 +31,12 @@ configure_file(bro-path-dev.in ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev)
 
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev.sh
      "export BROPATH=`${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev`\n"
-     "export BRO_PLUGIN_PATH=\"${CMAKE_CURRENT_BINARY_DIR}/src:${BRO_PLUGIN_INSTALL_PATH}\"\n"
+     "export BRO_PLUGIN_PATH=\"${CMAKE_CURRENT_BINARY_DIR}/src\":${BRO_PLUGIN_PATH}\n"
      "export PATH=\"${CMAKE_CURRENT_BINARY_DIR}/src\":$PATH\n")
 
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev.csh
      "setenv BROPATH `${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev`\n"
-     "setenv BRO_PLUGIN_PATH \"${CMAKE_CURRENT_BINARY_DIR}/src:${BRO_PLUGIN_INSTALL_PATH}\"\n"
+     "setenv BRO_PLUGIN_PATH \"${CMAKE_CURRENT_BINARY_DIR}/src\":${BRO_PLUGIN_PATH}\n"
      "setenv PATH \"${CMAKE_CURRENT_BINARY_DIR}/src\":$PATH\n")
 
 file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" VERSION LIMIT_COUNT 1)
@@ -172,9 +177,21 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 ########################################################################
 ## Recurse on sub-directories
 
+if ( ENABLE_CXX11 )
+    include(RequireCXX11)
+endif ()
+
+if ( ENABLE_BROKER )
+    add_subdirectory(aux/broker)
+    set(brodeps ${brodeps} broker)
+    add_definitions(-DENABLE_BROKER)
+    include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/aux/broker)
+endif ()
+
 add_subdirectory(src)
 add_subdirectory(scripts)
 add_subdirectory(doc)
+add_subdirectory(man)
 
 include(CheckOptionalBuildSources)
 
@@ -218,6 +235,7 @@ message(
     "\nCXXFLAGS:          ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BuildType}}"
     "\nCPP:               ${CMAKE_CXX_COMPILER}"
     "\n"
+    "\nBroker:            ${ENABLE_BROKER}"
     "\nBroccoli:          ${INSTALL_BROCCOLI}"
     "\nBroctl:            ${INSTALL_BROCTL}"
     "\nAux. Tools:        ${INSTALL_AUX_TOOLS}"

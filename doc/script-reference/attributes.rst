@@ -43,11 +43,11 @@ The Bro scripting language supports the following attributes.
 +-----------------------------+-----------------------------------------------+
 | :bro:attr:`&mergeable`      |Prefer set union for synchronized state.       |
 +-----------------------------+-----------------------------------------------+
-| :bro:attr:`&group`          |Group event handlers to activate/deactivate.   |
-+-----------------------------+-----------------------------------------------+
 | :bro:attr:`&error_handler`  |Used internally for reporter framework events. |
 +-----------------------------+-----------------------------------------------+
 | :bro:attr:`&type_column`    |Used by input framework for "port" type.       |
++-----------------------------+-----------------------------------------------+
+| :bro:attr:`&deprecated`     |Marks an identifier as deprecated.             |
 +-----------------------------+-----------------------------------------------+
 
 Here is a more detailed explanation of each attribute:
@@ -196,11 +196,6 @@ Here is a more detailed explanation of each attribute:
     inconsistencies and can be avoided by unifying the two sets, rather
     than merely overwriting the old value.
 
-.. bro:attr:: &group
-
-    Groups event handlers such that those in the same group can be
-    jointly activated or deactivated.
-
 .. bro:attr:: &error_handler
 
     Internally set on the events that are associated with the reporter
@@ -230,3 +225,9 @@ Here is a more detailed explanation of each attribute:
             msg: string;
         };
 
+.. bro:attr:: &deprecated
+
+    The associated identifier is marked as deprecated and will be
+    removed in a future version of Bro.  Look in the NEWS file for more
+    explanation and/or instructions to migrate code that uses deprecated
+    functionality.

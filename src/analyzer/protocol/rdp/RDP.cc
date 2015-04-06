@@ -58,17 +58,19 @@ void RDP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 				{
 				pia = new pia::PIA_TCP(Conn());
 
-				if ( AddChildAnalyzer(pia) )
+				if ( ! AddChildAnalyzer(pia) )
 					{
-					pia->FirstPacket(true, 0);
-					pia->FirstPacket(false, 0);
+					reporter->AnalyzerError(this,
+					                        "failed to add TCP child analyzer "
+					                        "to RPD analyzer: already exists");
+					return;
 					}
+
+				pia->FirstPacket(true, 0);
+				pia->FirstPacket(false, 0);
 				}
 
-			if ( pia )
-				{
-				ForwardStream(len, data, orig);
-				}
+			ForwardStream(len, data, orig);
 			}
 		}
 	else // if not encrypted

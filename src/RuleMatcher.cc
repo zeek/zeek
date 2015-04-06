@@ -1113,12 +1113,7 @@ void RuleMatcher::ClearEndpointState(RuleEndpointState* state)
 	if ( rule_bench == 3 )
 		return;
 
-	ExecPureRules(state, 1);
 	state->payload_size = -1;
-	state->matched_by_patterns.clear();
-	loop_over_list(state->matched_text, i)
-		delete state->matched_text[i];
-	state->matched_text.clear();
 
 	loop_over_list(state->matchers, j)
 		state->matchers[j]->state->Clear();
@@ -1496,8 +1491,11 @@ void RuleMatcherState::ClearMatchState(bool orig)
 	if ( ! rule_matcher )
 		return;
 
-	if ( orig_match_state )
-		rule_matcher->ClearEndpointState(orig_match_state);
-	if ( resp_match_state )
+	if ( orig )
+		{
+		if ( orig_match_state )
+			rule_matcher->ClearEndpointState(orig_match_state);
+		}
+	else if ( resp_match_state )
 		rule_matcher->ClearEndpointState(resp_match_state);
 	}

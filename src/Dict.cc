@@ -416,13 +416,15 @@ void* Dictionary::Insert(DictEntry* new_entry, int copy_key)
 			{
 			DictEntry* entry = (*chain)[i];
 
-			if ( entry->hash == new_entry->hash &&
-			     entry->len == n &&
-			     ! memcmp(entry->key, new_entry->key, n) )
-				{
-				void* old_value = entry->value;
-				entry->value = new_entry->value;
-				return old_value;
+			if ( entry ) {
+				if ( entry->hash == new_entry->hash &&
+				     entry->len == n &&
+				     ! memcmp(entry->key, new_entry->key, n) )
+					{
+					void* old_value = entry->value;
+					entry->value = new_entry->value;
+					return old_value;
+					}
 				}
 			}
 		}

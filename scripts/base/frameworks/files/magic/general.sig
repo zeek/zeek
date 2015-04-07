@@ -89,6 +89,12 @@ signature file-oscp-response {
 	file-mime "application/ocsp-response", 71
 }
 
+# Web Open Font Format
+signature file-woff {
+	file-magic /^wOFF/
+	file-mime "application/font-woff", 70
+}
+
 # Shockwave flash
 signature file-swf {
 	file-magic /^(F|C|Z)WS/

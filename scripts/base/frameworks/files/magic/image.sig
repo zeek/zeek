@@ -37,7 +37,7 @@ signature file-magic-auto289 {
 
 signature file-png {
 	file-mime "image/png", 110
-	file-magic /^\x89PNG\x0d\x0a\x1a\x0a/
+	file-magic /^\x89PNG/
 }
 
 # JPEG 2000

@@ -1,0 +1,99 @@
+BrokerComm::BOOL
+BrokerComm::INT
+BrokerComm::COUNT
+BrokerComm::DOUBLE
+BrokerComm::STRING
+BrokerComm::ADDR
+BrokerComm::SUBNET
+BrokerComm::PORT
+BrokerComm::TIME
+BrokerComm::INTERVAL
+BrokerComm::ENUM
+BrokerComm::SET
+BrokerComm::TABLE
+BrokerComm::VECTOR
+BrokerComm::RECORD
+***************************
+T
+F
+1
+0
+-1
+1
+0
+1.1
+-11.1
+hello
+1.2.3.4
+192.168.0.0/16
+22/tcp
+42.0
+180.0
+BrokerComm::BOOL
+***************************
+{
+two,
+one,
+three
+}
+0
+T
+1
+T
+F
+T
+2
+T
+1
+F
+{
+bye
+}
+0
+***************************
+{
+[two] = 2,
+[one] = 1,
+[three] = 3
+}
+0
+[d=<uninitialized>]
+1
+T
+42
+F
+[d=<uninitialized>]
+2
+[d=broker::data{7}]
+2
+37
+[d=broker::data{42}]
+1
+***************************
+[zero, one, two]
+0
+T
+T
+T
+T
+[hi, salutations, hello, greetings]
+4
+[d=broker::data{hello}]
+[d=broker::data{bah}]
+[d=broker::data{hi}]
+[hi, salutations, bah, greetings]
+[d=broker::data{bah}]
+[hi, salutations, greetings]
+3
+***************************
+[a=<uninitialized>, b=bee, c=1]
+[a=test, b=bee, c=1]
+[a=test, b=testagain, c=1]
+3
+T
+T
+T
+[d=broker::data{hi}]
+[d=broker::data{hello}]
+[d=broker::data{37}]
+3

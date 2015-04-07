@@ -47,7 +47,7 @@ event smtp_reply(c: connection, is_orig: bool, code: count, cmd: string,
 			local message = fmt("%s received an error message mentioning an SMTP block list", c$id$orig_h);
 
 			# Determine if the originator's IP address is in the message.
-			local ips = find_ip_addresses(msg);
+			local ips = extract_ip_addresses(msg);
 			local text_ip = "";
 			if ( |ips| > 0 && to_addr(ips[0]) == c$id$orig_h )
 				{

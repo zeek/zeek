@@ -62,6 +62,12 @@ export {
 		## field will be left empty at all times.
 		local_orig:   bool            &log &optional;
 
+		## If the connection is responded to locally, this value will be T.
+		## If it was responded to remotely it will be F.  In the case that
+		## the :bro:id:`Site::local_nets` variable is undefined, this
+		## field will be left empty at all times.
+		local_resp:   bool            &log &optional;
+
 		## Indicates the number of bytes missed in content gaps, which
 		## is representative of packet loss.  A value other than zero
 		## will normally cause protocol analysis to fail but some
@@ -121,7 +127,7 @@ redef record connection += {
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(Conn::LOG, [$columns=Info, $ev=log_conn]);
+	Log::create_stream(Conn::LOG, [$columns=Info, $ev=log_conn, $path="conn"]);
 	}
 
 function conn_state(c: connection, trans: transport_proto): string
@@ -201,7 +207,10 @@ function set_conn(c: connection, eoc: bool)
 		add c$conn$tunnel_parents[c$tunnel[|c$tunnel|-1]$uid];
 	c$conn$proto=get_port_transport_proto(c$id$resp_p);
 	if( |Site::local_nets| > 0 )
+		{
 		c$conn$local_orig=Site::is_local_addr(c$id$orig_h);
+		c$conn$local_resp=Site::is_local_addr(c$id$resp_h);
+		}
 
 	if ( eoc )
 		{

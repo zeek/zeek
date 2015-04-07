@@ -45,13 +45,13 @@ event log_http(rec: Info)
 	if ( rec$omniture && rec?$uri )
 		{
 		# We do {5,} because sometimes we see p=6 in the urls.
-		local parts = split_n(rec$uri, /&p=([^&]{5,});&/, T, 1);
-		if ( 2 in parts )
+		local parts = split_string_n(rec$uri, /&p=([^&]{5,});&/, T, 1);
+		if ( 1 in parts )
 			{
 			# We do sub_bytes here just to remove the extra extracted 
 			# characters from the regex split above.
-			local sw = sub_bytes(parts[2], 4, |parts[2]|-5);
-			local plugins = split(sw, /[[:blank:]]*;[[:blank:]]*/);
+			local sw = sub_bytes(parts[1], 4, |parts[1]|-5);
+			local plugins = split_string(sw, /[[:blank:]]*;[[:blank:]]*/);
 			
 			for ( i in plugins )
 				Software::found(rec$id, [$unparsed_version=plugins[i], $host=rec$id$orig_h, $software_type=BROWSER_PLUGIN]);

@@ -55,7 +55,7 @@ export {
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(Traceroute::LOG, [$columns=Info, $ev=log_traceroute]);
+	Log::create_stream(Traceroute::LOG, [$columns=Info, $ev=log_traceroute, $path="traceroute"]);
 
 	local r1: SumStats::Reducer = [$stream="traceroute.time_exceeded", $apply=set(SumStats::UNIQUE)];
 	local r2: SumStats::Reducer = [$stream="traceroute.low_ttl_packet", $apply=set(SumStats::SUM)];
@@ -74,10 +74,10 @@ event bro_init() &priority=5
 	                  $threshold=icmp_time_exceeded_threshold,
 	                  $threshold_crossed(key: SumStats::Key, result: SumStats::Result) =
 	                  	{
-	                  	local parts = split_n(key$str, /-/, F, 2);
-	                  	local src = to_addr(parts[1]);
-	                  	local dst = to_addr(parts[2]);
-	                  	local proto = parts[3];
+	                  	local parts = split_string_n(key$str, /-/, F, 2);
+	                  	local src = to_addr(parts[0]);
+	                  	local dst = to_addr(parts[1]);
+	                  	local proto = parts[2];
 	                  	Log::write(LOG, [$ts=network_time(), $src=src, $dst=dst, $proto=proto]);
 	                  	NOTICE([$note=Traceroute::Detected,
 	                  	        $msg=fmt("%s seems to be running traceroute using %s", src, proto),

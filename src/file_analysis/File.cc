@@ -492,17 +492,21 @@ void File::EndOfFile()
 	if ( done )
 		return;
 
-	if ( ! did_mime_type &&
-	     LookupFieldDefaultCount(missing_bytes_idx) == 0 )
-		DetectMIME();
-
-	analyzers.DrainModifications();
-
 	if ( file_reassembler )
 		{
 		file_reassembler->Flush();
-		analyzers.DrainModifications();
 		}
+
+	// Mark the bof_buffer as full in case it isn't yet
+	// so that the whole thing can be flushed out to
+	// any stream analyzers.
+	if ( ! bof_buffer.full )
+		{
+		bof_buffer.full = true;
+		DeliverStream((const u_char*) "", 0);
+		}
+
+	analyzers.DrainModifications();
 
 	done = true;
 

@@ -45,8 +45,11 @@ Statements
 |                            | file                   |
 +----------------------------+------------------------+
 | :bro:keyword:`for`,        | Loop over each         |
-| :bro:keyword:`next`,       | element in a container |
-| :bro:keyword:`break`       | object                 |
+| :bro:keyword:`while`,      | element in a container |
+| :bro:keyword:`next`,       | object (``for``), or   |
+| :bro:keyword:`break`       | as long as a condition |
+|                            | evaluates to true      |
+|                            | (``while``).           |
 +----------------------------+------------------------+
 | :bro:keyword:`if`          | Evaluate boolean       |
 |                            | expression and if true,|
@@ -291,7 +294,10 @@ Here are the statements that the Bro scripting language supports.
 .. bro:keyword:: for
 
     A "for" loop iterates over each element in a string, set, vector, or
-    table and executes a statement for each iteration.
+    table and executes a statement for each iteration.  Currently,
+    modifying a container's membership while iterating over it may
+    result in undefined behavior, so avoid adding or removing elements
+    inside the loop.
 
     For each iteration of the loop, a loop variable will be assigned to an
     element if the expression evaluates to a string or set, or an index if
@@ -563,6 +569,36 @@ Here are the statements that the Bro scripting language supports.
     See the :bro:keyword:`return` statement for an explanation of how to
     create an asynchronous function in a Bro script.
 
+.. bro:keyword:: while
+
+    A "while" loop iterates over a body statement as long a given
+    condition remains true.
+
+    A :bro:keyword:`break` statement can be used at any time to immediately
+    terminate the "while" loop, and a :bro:keyword:`next` statement can be
+    used to skip to the next loop iteration.
+
+    Example::
+
+        local i = 0;
+
+        while ( i < 5 )
+            print ++i;
+
+        while ( some_cond() )
+            {
+            local finish_up = F;
+
+            if ( skip_ahead() )
+                next;
+
+            [...]
+
+            if ( finish_up )
+                break;
+
+            [...]
+            }
 
 .. _compound statement:
 

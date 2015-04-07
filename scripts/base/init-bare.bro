@@ -440,6 +440,7 @@ type NetStats: record {
 	## packet capture system, this value may not be available and will then
 	## be always set to zero.
 	pkts_link:    count &default=0;
+	bytes_recvd:  count &default=0;	##< Bytes received by Bro.
 };
 
 ## Statistics about Bro's resource consumption.
@@ -928,7 +929,7 @@ const tcp_storm_interarrival_thresh = 1 sec &redef;
 ## seeing our peer's ACKs.  Set to zero to turn off this determination.
 ##
 ## .. bro:see:: tcp_max_above_hole_without_any_acks tcp_excessive_data_without_further_acks
-const tcp_max_initial_window = 4096 &redef;
+const tcp_max_initial_window = 16384 &redef;
 
 ## If we're not seeing our peer's ACKs, the maximum volume of data above a
 ## sequence hole that we'll tolerate before assuming that there's been a packet
@@ -936,7 +937,7 @@ const tcp_max_initial_window = 4096 &redef;
 ## don't ever give up.
 ##
 ## .. bro:see:: tcp_max_initial_window tcp_excessive_data_without_further_acks
-const tcp_max_above_hole_without_any_acks = 4096 &redef;
+const tcp_max_above_hole_without_any_acks = 16384 &redef;
 
 ## If we've seen this much data without any of it being acked, we give up
 ## on that connection to avoid memory exhaustion due to buffering all that
@@ -2215,6 +2216,41 @@ export {
 	const heartbeat_interval = 1.0 secs &redef;
 }
 
+module SSH;
+
+export {
+	## The client and server each have some preferences for the algorithms used
+	## in each direction.
+	type Algorithm_Prefs: record {
+		## The algorithm preferences for client to server communication
+		client_to_server: vector of string &optional;
+		## The algorithm preferences for server to client communication
+		server_to_client: vector of string &optional;
+	};
+
+	## This record lists the preferences of an SSH endpoint for
+	## algorithm selection. During the initial :abbr:`SSH (Secure Shell)`
+	## key exchange, each endpoint lists the algorithms
+	## that it supports, in order of preference. See
+	## :rfc:`4253#section-7.1` for details.
+	type Capabilities: record {
+		## Key exchange algorithms
+		kex_algorithms:             string_vec;
+		## The algorithms supported for the server host key
+		server_host_key_algorithms: string_vec;
+		## Symmetric encryption algorithm preferences
+		encryption_algorithms:      Algorithm_Prefs;
+		## Symmetric MAC algorithm preferences
+		mac_algorithms:             Algorithm_Prefs;
+		## Compression algorithm preferences
+		compression_algorithms:     Algorithm_Prefs;
+		## Language preferences
+		languages:                  Algorithm_Prefs &optional;
+		## Are these the capabilities of the server?
+		is_server:                  bool;
+	};
+}
+
 module GLOBAL;
 
 ## An NTP message.
@@ -2849,19 +2885,20 @@ export {
 module X509;
 export {
 	type Certificate: record {
-		version: count;	##< Version number.
-		serial: string;	##< Serial number.
-		subject: string;	##< Subject.
-		issuer: string;	##< Issuer.
-		not_valid_before: time;	##< Timestamp before when certificate is not valid.
-		not_valid_after: time;	##< Timestamp after when certificate is not valid.
-		key_alg: string;	##< Name of the key algorithm
-		sig_alg: string;	##< Name of the signature algorithm
-		key_type: string &optional;	##< Key type, if key parseable by openssl (either rsa, dsa or ec)
-		key_length: count &optional;	##< Key length in bits
-		exponent: string &optional;	##< Exponent, if RSA-certificate
-		curve: string &optional;	##< Curve, if EC-certificate
-	} &log;
+		version: count &log;	##< Version number.
+		serial: string &log;	##< Serial number.
+		subject: string &log;	##< Subject.
+		issuer: string &log;	##< Issuer.
+		cn: string &optional; ##< Last (most specific) common name.
+		not_valid_before: time &log;	##< Timestamp before when certificate is not valid.
+		not_valid_after: time &log;	##< Timestamp after when certificate is not valid.
+		key_alg: string &log;	##< Name of the key algorithm
+		sig_alg: string &log;	##< Name of the signature algorithm
+		key_type: string &optional &log;	##< Key type, if key parseable by openssl (either rsa, dsa or ec)
+		key_length: count &optional &log;	##< Key length in bits
+		exponent: string &optional &log;	##< Exponent, if RSA-certificate
+		curve: string &optional &log;	##< Curve, if EC-certificate
+	};
 
 	type Extension: record {
 		name: string;	##< Long name of extension. oid if name not known
@@ -2922,7 +2959,44 @@ export {
 		attributes    : RADIUS::Attributes &optional;
 	};
 }
-module GLOBAL;
+
+module RDP;
+export {
+	type RDP::EarlyCapabilityFlags: record {
+		support_err_info_pdu:       bool;
+		want_32bpp_session:         bool;
+		support_statusinfo_pdu:     bool;
+		strong_asymmetric_keys:     bool;
+		support_monitor_layout_pdu: bool;
+		support_netchar_autodetect: bool;
+		support_dynvc_gfx_protocol: bool;
+		support_dynamic_time_zone:  bool;
+		support_heartbeat_pdu:      bool;
+	};
+
+	type RDP::ClientCoreData: record {
+		version_major:          count;
+		version_minor:          count;
+		desktop_width:          count;
+		desktop_height:         count;
+		color_depth:            count;
+		sas_sequence:           count;
+		keyboard_layout:        count;
+		client_build:           count;
+		client_name:            string;
+		keyboard_type:          count;
+		keyboard_sub:           count;
+		keyboard_function_key:  count;
+		ime_file_name:          string;
+		post_beta2_color_depth: count  &optional;
+		client_product_id:      string &optional;
+		serial_number:          count  &optional;
+		high_color_depth:       count  &optional;
+		supported_color_depths: count  &optional;
+		ec_flags:               RDP::EarlyCapabilityFlags &optional;
+		dig_product_id:         string &optional;
+	};
+}
 
 @load base/bif/plugins/Bro_SNMP.types.bif
 
@@ -3433,6 +3507,7 @@ const bits_per_uid: count = 96 &redef;
 
 # Load these frameworks here because they use fairly deep integration with
 # BiFs and script-land defined types.
+@load base/frameworks/broker
 @load base/frameworks/logging
 @load base/frameworks/input
 @load base/frameworks/analyzer

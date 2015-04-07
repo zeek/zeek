@@ -28,8 +28,48 @@ New Functionality
 - Bro now has supoprt for the MySQL wire protocol. Activity gets
   logged into mysql.log.
 
+- Bro now features a completely rewritten, enhanced SSH analyzer. A lot
+  more information about SSH sessions is logged. The analyzer is able to
+  determine if logins failed or succeeded in most circumstances.
+
 - Bro's file analysis now supports reassembly of files that are not
   transferred/seen sequentially.
+
+- Bro's scripting language now has a ``while`` statement::
+
+        while ( i < 5 )
+            print ++i;
+
+  ``next`` and ``break`` can be used inside the loop's body just like
+  with ``for`` loops.
+
+- Bro now integrates Broker, it's new communication library. See
+  aux/broker/README for more information on Broker, and
+  doc/frameworks/comm.rst for the corresponding Bro script API.
+
+  TODO: Extend with some more information on  Broker.
+
+  Broker support is by default off for now; it can be enabled at
+  configure time with --enable-broker. It requires CAF version 0.13+
+  (https://github.com/actor-framework/actor-framework) as well as a
+  C++11 compiler (e.g. GCC 4.8+ or Clang 3.3+).
+
+  Broker will become a mandatory dependency in future Bro versions.
+
+- Add --enable-c++11 configure flag to compile Bro's source code in
+  C++11 mode with a corresponding compiler. Note that 2.4 will be the
+  last version of Bro that compiles without C++11 support.
+
+- The SSL analysis now alert when encountering SSL connections with
+  old protocol versions or unsafe cipher suites.
+
+- [TODO] Add new BroControl features.
+
+- A new icmp_sent_payload event provides access to ICMP payload.
+
+- Bro now parses DTLS traffic.
+
+- Bro now has an RDP analyzer.
 
 Changed Functionality
 ---------------------
@@ -43,6 +83,11 @@ Changed Functionality
       have been added which contain the same information.  The
       ``mime_type`` field of ``Files::Info`` also still has this info.
 
+    * The earliest point that new mime type information is available is
+      in the ``file_mime_type`` event which comes after the ``file_new``
+      and ``file_over_new_connection`` events.  Scripts which inspected
+      mime type info within those events will need to be adapted.
+
     * Removed ``Files::add_analyzers_for_mime_type`` function.
 
     * Removed ``offset`` parameter of the ``file_extraction_limit``
@@ -52,6 +97,64 @@ Changed Functionality
       ``seen_bytes`` and ``missed_bytes`` fields of the ``fa_file``
       record gives the how many bytes have been written so far (i.e.
       the "offset").
+
+- has_valid_octets: now uses a string_vec parameter instead of
+  string_array.
+
+- conn.log gained a new field local_resp that works like local_orig,
+  just for the responder address of the connection.
+
+- GRE tunnels are now identified as ``Tunnel::GRE`` instead of
+  ``Tunnel::IP``.
+
+- The default name for extracted files changed from extract-protocol-id
+  to extract-timestamp-protocol-id.
+
+- [TODO] Add changed BroControl features.
+
+- The weird named "unmatched_HTTP_reply" has been removed since it can
+  be detected at the script-layer and is handled correctly by the
+  default HTTP scripts.
+
+- When adding a logging filter to a stream, the filter can now inherit
+  a default ``path`` field from the associated ``Log::Stream`` record.
+
+- When adding a logging filter to a stream, the
+  ``Log::default_path_func`` is now only automatically added to the
+  filter if it has neither a ``path`` nor a ``path_func`` already
+  explicitly set.  Before, the default path function would always be set
+  for all filters which didn't specify their own ``path_func``.
+
+- TODO: what SSH events got changed or removed?
+
+Deprecated Functionality
+------------------------
+
+- The split* family of functions are to be replaced with alternate
+  versions that return a vector of strings rather than a table of
+  strings. This also allows deprecation for some related string
+  concatenation/extraction functions. Note that the new functions use
+  0-based indexing, rather than 1-based.
+
+  The full list of now deprecation functions is:
+
+    * split: use split_string instead.
+
+    * split1: use split_string1 instead.
+
+    * split_all: use split_string_all instead.
+
+    * split_n: use split_string_n instead.
+
+    * cat_string_array: see join_string_vec instead.
+
+    * cat_string_array_n: see join_string_vec instead.
+
+    * join_string_array: see join_string_vec instead.
+
+    * sort_string_array: use sort instead.
+
+    * find_ip_addresses: use extract_ip_addresses instead.
 
 Bro 2.3
 =======

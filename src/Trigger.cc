@@ -112,6 +112,7 @@ Trigger::Trigger(Expr* arg_cond, Stmt* arg_body, Stmt* arg_timeout_stmts,
 	attached = 0;
 	is_return = arg_is_return;
 	location = arg_location;
+	timeout_value = -1;
 
 	++total_triggers;
 
@@ -133,17 +134,22 @@ Trigger::Trigger(Expr* arg_cond, Stmt* arg_body, Stmt* arg_timeout_stmts,
 
 	Val* timeout_val = arg_timeout ? arg_timeout->Eval(arg_frame) : 0;
 
+	if ( timeout_val )
+		{
+		Unref(timeout_val);
+		timeout_value = timeout_val->AsInterval();
+		}
+
 	// Make sure we don't get deleted if somebody calls a method like
 	// Timeout() while evaluating the trigger. 
 	Ref(this);
 
-	if ( ! Eval() && timeout_val )
+	if ( ! Eval() && timeout_value >= 0 )
 		{
-		timer = new TriggerTimer(timeout_val->AsInterval(), this);
+		timer = new TriggerTimer(timeout_value, this);
 		timer_mgr->Add(timer);
 		}
 
-	Unref(timeout_val);
 	Unref(this);
 	}
 

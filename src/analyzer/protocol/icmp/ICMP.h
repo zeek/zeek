@@ -33,8 +33,8 @@ protected:
 	virtual bool IsReuse(double t, const u_char* pkt);
 	virtual unsigned int MemoryAllocation() const;
 
-	void ICMPEvent(EventHandlerPtr f, const struct icmp* icmpp, int len,
-	               int icmpv6, const IP_Hdr* ip_hdr);
+	void ICMP_Sent(const struct icmp* icmpp, int len, int caplen, int icmpv6,
+	               const u_char* data, const IP_Hdr* ip_hdr);
 
 	void Echo(double t, const struct icmp* icmpp, int len,
 			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr);

@@ -1,6 +1,8 @@
-@load base/utils/strings
+##! Functions to assist with generating JSON data from Bro data scructures.
 
-module OpenflowJSON;
+# We might want to implement this in core somtime, this looks... hacky at best.
+
+@load base/utils/strings
 
 export {
 	## A function to convert arbitrary Bro data into a JSON string.
@@ -11,19 +13,8 @@ export {
 	##                fields with the &log attribute to be included in the JSON.
 	##
 	## returns: a JSON formatted string.
-	global convert: function(v: any, only_loggable: bool &default=F, field_escape_pattern: pattern &default=/^_/): string;
-
-	global jsonToRecord: function(input: string): any;
+	global to_json: function(v: any, only_loggable: bool &default=F, field_escape_pattern: pattern &default=/^_/): string;
 }
-
-function jsonToRecord(input: string): any
-	{
-	local lhs: table[count] of string;
-	lhs = split1(input, / /);
-	for (i in lhs)
-		print lhs[i];
-	return lhs;
-	}
 
 function convert(v: any, only_loggable: bool &default=F, field_escape_pattern: pattern &default=/^_/): string
 	{
@@ -39,7 +30,7 @@ function convert(v: any, only_loggable: bool &default=F, field_escape_pattern: p
 		case "port":
 		return cat(port_to_count(to_port(cat(v))));
 
-		case "addr":		
+		case "addr":
 		return cat("\"", v, "\"");
 
 		case "int":
@@ -72,21 +63,21 @@ function convert(v: any, only_loggable: bool &default=F, field_escape_pattern: p
 				field = cat(sub(field, field_escape_pattern, ""));
 			if ( field_desc?$value && (!only_loggable || field_desc$log) )
 				{
-				local onepart = cat("\"", field, "\": ", OpenflowJSON::convert(field_desc$value, only_loggable));
+				local onepart = cat("\"", field, "\": ", to_json(field_desc$value, only_loggable));
 				rec_parts[|rec_parts|] = onepart;
 				}
 			}
 			return cat("{", join_string_vec(rec_parts, ", "), "}");
 		}
-	
+
 	# None of the following are supported.
 	else if ( /^set/ in tn )
 		{
 		local set_parts: string_vec = vector();
 		local sa: set[bool] = v;
-		for ( sv in sa ) 
+		for ( sv in sa )
 			{
-			set_parts[|set_parts|] = OpenflowJSON::convert(sv, only_loggable);
+			set_parts[|set_parts|] = to_json(sv, only_loggable);
 			}
 		return cat("[", join_string_vec(set_parts, ", "), "]");
 		}
@@ -94,11 +85,11 @@ function convert(v: any, only_loggable: bool &default=F, field_escape_pattern: p
 		{
 		local tab_parts: vector of string = vector();
 		local ta: table[bool] of any = v;
-		for ( ti in ta ) 
+		for ( ti in ta )
 			{
-			local ts = OpenflowJSON::convert(ti);
+			local ts = to_json(ti);
 			local if_quotes = (ts[0] == "\"") ? "" : "\"";
-			tab_parts[|tab_parts|] = cat(if_quotes, ts, if_quotes, ": ", OpenflowJSON::convert(ta[ti], only_loggable));
+			tab_parts[|tab_parts|] = cat(if_quotes, ts, if_quotes, ": ", to_json(ta[ti], only_loggable));
 			}
 		return cat("{", join_string_vec(tab_parts, ", "), "}");
 		}
@@ -108,10 +99,10 @@ function convert(v: any, only_loggable: bool &default=F, field_escape_pattern: p
 		local va: vector of any = v;
 		for ( vi in va )
 			{
-			vec_parts[|vec_parts|] = OpenflowJSON::convert(va[vi], only_loggable);
+			vec_parts[|vec_parts|] = to_json(va[vi], only_loggable);
 			}
 		return cat("[", join_string_vec(vec_parts, ", "), "]");
 		}
-	
+
 	return "\"\"";
 	}

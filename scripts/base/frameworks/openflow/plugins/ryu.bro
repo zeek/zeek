@@ -1,7 +1,7 @@
 @load base/frameworks/openflow
-@load base/frameworks/openflow/utils/json
-@load base/utils/exec
 @load base/utils/active-http
+@load base/utils/exec
+@load base/utils/json
 
 module OpenflowRyu;
 
@@ -129,7 +129,7 @@ function flow_mod(state: Openflow::ControllerState, flow_mod: Openflow::ofp_flow
 	local request: ActiveHTTP::Request = ActiveHTTP::Request(
 		$url=cat("http://", cat(state$host), ":", cat(state$host_port), RYU_FLOWENTRY_PATH, command_type),
 		$method="POST",
-		$client_data=OpenflowJSON::convert(_flow_mod)
+		$client_data=to_json(_flow_mod)
 	);
 	# Execute call to Ryu's ReST API
 	when(local result = ActiveHTTP::request(request))

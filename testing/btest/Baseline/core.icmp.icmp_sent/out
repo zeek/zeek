@@ -1,0 +1,2 @@
+icmp_sent, [orig_h=fe80::2c23:b96c:78d:e116, orig_p=143/icmp, resp_h=ff02::16, resp_p=0/icmp], [orig_h=fe80::2c23:b96c:78d:e116, resp_h=ff02::16, itype=143, icode=0, len=20, hlim=1, v6=T]
+icmp_sent_payload, [orig_h=fe80::2c23:b96c:78d:e116, orig_p=143/icmp, resp_h=ff02::16, resp_p=0/icmp], [orig_h=fe80::2c23:b96c:78d:e116, resp_h=ff02::16, itype=143, icode=0, len=20, hlim=1, v6=T], 20

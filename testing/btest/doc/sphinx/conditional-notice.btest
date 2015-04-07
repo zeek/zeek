@@ -1,0 +1,2 @@
+@TEST-EXEC: btest-rst-cmd bro -r ${TRACES}/tls/tls-expired-cert.trace ${DOC_ROOT}/quickstart/conditional-notice.bro
+@TEST-EXEC: btest-rst-cmd cat notice.log

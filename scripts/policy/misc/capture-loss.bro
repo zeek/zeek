@@ -76,7 +76,7 @@ event CaptureLoss::take_measurement(last_ts: time, last_acks: count, last_gaps: 
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(LOG, [$columns=Info]);
+	Log::create_stream(LOG, [$columns=Info, $path="capture_loss"]);
 
 	# We only schedule the event if we are capturing packets.
 	if ( reading_live_traffic() || reading_traces() )

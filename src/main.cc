@@ -188,7 +188,7 @@ void usage()
 	fprintf(stderr, "    -x|--print-state <file.bst>    | print contents of state file\n");
 	fprintf(stderr, "    -z|--analyze <analysis>        | run the specified policy file analysis\n");
 #ifdef DEBUG
-	fprintf(stderr, "    -B|--debug <dbgstreams>        | Enable debugging output for selected streams\n");
+	fprintf(stderr, "    -B|--debug <dbgstreams>        | Enable debugging output for selected streams ('-B help' for help)\n");
 #endif
 	fprintf(stderr, "    -C|--no-checksums              | ignore checksums\n");
 	fprintf(stderr, "    -D|--dfa-size <size>           | DFA state cache size\n");

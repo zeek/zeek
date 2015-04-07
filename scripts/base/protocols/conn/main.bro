@@ -127,7 +127,7 @@ redef record connection += {
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(Conn::LOG, [$columns=Info, $ev=log_conn]);
+	Log::create_stream(Conn::LOG, [$columns=Info, $ev=log_conn, $path="conn"]);
 	}
 
 function conn_state(c: connection, trans: transport_proto): string

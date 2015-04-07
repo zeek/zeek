@@ -130,7 +130,7 @@ void ICMP_Analyzer::NextICMP4(double t, const struct icmp* icmpp, int len, int c
 			break;
 
 		default:
-			ICMPEvent(icmp_sent, icmpp, len, 0, ip_hdr);
+			ICMP_Sent(icmpp, len, caplen, 0, data, ip_hdr);
 			break;
 		}
 	}
@@ -172,7 +172,7 @@ void ICMP_Analyzer::NextICMP6(double t, const struct icmp* icmpp, int len, int c
 			RouterSolicit(t, icmpp, len, caplen, data, ip_hdr);
 			break;
 		case ICMP6_ROUTER_RENUMBERING:
-			ICMPEvent(icmp_sent, icmpp, len, 1, ip_hdr);
+			ICMP_Sent(icmpp, len, caplen, 1, data, ip_hdr);
 			break;
 
 #if 0
@@ -188,21 +188,32 @@ void ICMP_Analyzer::NextICMP6(double t, const struct icmp* icmpp, int len, int c
 			if ( icmpp->icmp_type < 128 )
 				Context6(t, icmpp, len, caplen, data, ip_hdr);
 			else
-				ICMPEvent(icmp_sent, icmpp, len, 1, ip_hdr);
+				ICMP_Sent(icmpp, len, caplen, 1, data, ip_hdr);
 			break;
 		}
 	}
 
-void ICMP_Analyzer::ICMPEvent(EventHandlerPtr f, const struct icmp* icmpp,
-                              int len, int icmpv6, const IP_Hdr* ip_hdr)
+void ICMP_Analyzer::ICMP_Sent(const struct icmp* icmpp, int len, int caplen,
+                              int icmpv6, const u_char* data,
+                              const IP_Hdr* ip_hdr)
     {
-	if ( ! f )
-		return;
+	if ( icmp_sent )
+		{
+		val_list* vl = new val_list;
+		vl->append(BuildConnVal());
+		vl->append(BuildICMPVal(icmpp, len, icmpv6, ip_hdr));
+		ConnectionEvent(icmp_sent, vl);
+		}
 
-	val_list* vl = new val_list;
-	vl->append(BuildConnVal());
-	vl->append(BuildICMPVal(icmpp, len, icmpv6, ip_hdr));
-	ConnectionEvent(f, vl);
+	if ( icmp_sent_payload )
+		{
+		val_list* vl = new val_list;
+		vl->append(BuildConnVal());
+		vl->append(BuildICMPVal(icmpp, len, icmpv6, ip_hdr));
+		BroString* payload = new BroString(data, min(len, caplen), 0);
+		vl->append(new StringVal(payload));
+		ConnectionEvent(icmp_sent_payload, vl);
+		}
 	}
 
 RecordVal* ICMP_Analyzer::BuildICMPVal(const struct icmp* icmpp, int len,

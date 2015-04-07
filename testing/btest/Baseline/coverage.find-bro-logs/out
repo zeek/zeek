@@ -26,6 +26,7 @@ notice
 notice_alarm
 packet_filter
 radius
+rdp
 reporter
 signatures
 smtp

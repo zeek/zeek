@@ -10,7 +10,7 @@ signature file-gif {
 }
 
 # JPEG image
-signature file-magic-auto427 {
+signature file-jpeg {
 	file-mime "image/jpeg", 52
 	file-magic /^\xff\xd8/
 }

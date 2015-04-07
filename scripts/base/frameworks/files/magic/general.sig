@@ -10,14 +10,13 @@ signature file-plaintext {
 # This can't go well...
 signature file-json {
 	file-mime "text/json", 1
-	file-magic /^(\xef\xbb\xbf)?[\x0d\x0a[:blank:]]*\{[\x0d\x0a[:blank:]]*(['"][a-zA-Z][a-zA-Z0-9]*['"]|[a-zA-Z][a-zA-Z0-9]*)[\x0d\x0a[:blank:]]*:[\x0d\x0a[:blank:]]*(['"]|\[|\{|[0-9]|true|false)/
+	file-magic /^(\xef\xbb\xbf)?[\x0d\x0a[:blank:]]*\{[\x0d\x0a[:blank:]]*(['"][a-zA-Z\\][a-zA-Z0-9\\]*['"]|[a-zA-Z][a-zA-Z0-9]*)[\x0d\x0a[:blank:]]*:[\x0d\x0a[:blank:]]*(['"]|\[|\{|[0-9]|true|false)/
 }
 
 signature file-json2 {
 	file-mime "text/json", 1
-	file-magic /^(\xef\xbb\xbf)?[\x0d\x0a[:blank:]]*\[[\x0d\x0a[:blank:]]*(['"][a-zA-Z][a-zA-Z0-9]*['"]|[0-9]{1,})[\x0d\x0a[:blank:]]*,[\x0d\x0a[:blank:]]*(['"]|\[|\{|[0-9]|true|false)/
+	file-magic /^(\xef\xbb\xbf)?[\x0d\x0a[:blank:]]*\[[\x0d\x0a[:blank:]]*(['"][a-zA-Z\\][a-zA-Z0-9\\]*['"]|[0-9]{1,})[\x0d\x0a[:blank:]]*,[\x0d\x0a[:blank:]]*(['"]|\[|\{|[0-9]|true|false)/
 }
-
 
 signature file-xml {
 	file-mime "application/xml", 10
@@ -83,6 +82,11 @@ signature file-jar {
 signature file-java-applet {
 	file-magic /^\xca\xfe\xba\xbe...[\x2d-\x34]/
 	file-mime "application/x-java-applet", 71
+}
+
+signature file-oscp-response {
+	file-magic /^.{11,19}\x06\x09\x2B\x06\x01\x05\x05\x07\x30\x01\x01/
+	file-mime "application/ocsp-response", 71
 }
 
 # Shockwave flash

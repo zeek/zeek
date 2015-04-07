@@ -3,32 +3,12 @@
 @load base/utils/exec
 @load base/utils/json
 
-module OpenflowRyu;
+module Openflow;
 
 export {
-	redef enum Openflow::Plugin += {
-		Openflow::RYU,
+	redef enum Plugin += {
+		RYU,
 	};
-
-	## Ryu error definitions.
-	type Error: enum {
-		## The openflow command type is not available
-		## for this ryu openflow plugin.
-		COMMAND_TYPE_NOT_AVAILABLE,
-		## The openflow action type is not available
-		## for this ryu openflow plugin.
-		ACTION_TYPE_NOT_AVAILABLE,
-	};
-
-	## Ryu error event.
-	##
-	## flow_mod: The openflow flow_mod record which describes
-	##           the flow to delete, modify or add.
-	##
-	## error: The error why the plugin aborted.
-	##
-	## msg: More detailed error description.
-	global OpenflowRyu::error: event(flow_mod: Openflow::ofp_flow_mod, error: Error, msg: string &default="");
 
 	## Ryu controller constructor.
 	##
@@ -39,34 +19,35 @@ export {
 	## dpid: Openflow switch datapath id.
 	##
 	## Returns: Openflow::Controller record
-	global new: function(host: addr, host_port: count, dpid: count): Openflow::Controller;
+	global ryu_new: function(host: addr, host_port: count, dpid: count): Openflow::Controller;
+
+	redef record ControllerState += {
+		## Controller ip.
+		ryu_host: addr &optional;
+		## Controller listen port.
+		ryu_port: count &optional;
+		## Openflow switch datapath id.
+		ryu_dpid: count &optional;
+		## Enable debug mode - output JSON to stdout; do not perform actions
+		ryu_debug: bool &default=F;
+	};
 }
-
-
-# Openflow no buffer constant.
-const OFP_NO_BUFFER = 0xffffffff;
-
 
 # Ryu ReST API flow_mod URL-path
 const RYU_FLOWENTRY_PATH = "/stats/flowentry/";
 # Ryu ReST API flow_stats URL-path
-const RYU_FLOWSTATS_PATH = "/stats/flow/";
-
+#const RYU_FLOWSTATS_PATH = "/stats/flow/";
 
 # Ryu ReST API action_output type.
-type ryu_flow_action_output: record {
+type ryu_flow_action: record {
 	# Ryu uses strings as its ReST API output action.
-	# The type should be never changed...
-	# but constants are not possible in a record.
-	_type: string &default="OUTPUT";
-	# The output port
-	_port: count;
+	_type: string;
+	# The output port for type OUTPUT
+	_port: count &optional;
 };
-
 
 # The ReST API documentation can be found at
 # https://media.readthedocs.org/pdf/ryu/latest/ryu.pdf
-# on page 278-299 (30.10.2014)
 # Ryu ReST API flow_mod type.
 type ryu_ofp_flow_mod: record {
 	dpid: count;
@@ -76,70 +57,84 @@ type ryu_ofp_flow_mod: record {
 	idle_timeout: count &optional;
 	hard_timeout: count &optional;
 	priority: count &optional;
-	buffer_id: count &optional;
 	flags: count &optional;
 	match: Openflow::ofp_match;
-	actions: vector of ryu_flow_action_output;
+	actions: vector of ryu_flow_action;
 };
 
+# Mapping between ofp flow mod commands and ryu urls
+const ryu_url: table[ofp_flow_mod_command] of string = {
+	[OFPFC_ADD] = "add",
+	[OFPFC_MODIFY] = "modify",
+	[OFPFC_MODIFY_STRICT] = "modify_strict",
+	[OFPFC_DELETE] = "delete",
+	[OFPFC_DELETE_STRICT] = "delete_strict",
+};
 
 # Ryu flow_mod function
-function flow_mod(state: Openflow::ControllerState, flow_mod: Openflow::ofp_flow_mod): bool
+function ryu_flow_mod(state: Openflow::ControllerState, match: ofp_match, flow_mod: Openflow::ofp_flow_mod): bool
 	{
-	# Generate ryu_flow_actions because their type differs (using strings as type).
-	local _flow_actions: vector of ryu_flow_action_output;
-	for(i in flow_mod$actions)
+	if ( state$_plugin != RYU )
 		{
-		switch(flow_mod$actions[i]$type_)
-			{
-			case Openflow::OFPAT_OUTPUT:
-				_flow_actions[|_flow_actions|] = ryu_flow_action_output($_port=flow_mod$actions[i]$port_);
-				break;
-			default:
-				Reporter::warning(fmt("The given Openflow action type '%s' is not available", flow_mod$actions[i]$type_));
-				event OpenflowRyu::error(flow_mod, ACTION_TYPE_NOT_AVAILABLE, cat(flow_mod$actions[i]$type_));
-				return F;
-			}
+		Reporter::error("Ryu openflow plugin was called with state of non-ryu plugin");
+		return F;
 		}
+
+	# Generate ryu_flow_actions because their type differs (using strings as type).
+	local flow_actions: vector of ryu_flow_action = vector();
+
+	for ( i in flow_mod$out_ports )
+		flow_actions[|flow_actions|] = ryu_flow_action($_type="OUTPUT", $_port=flow_mod$out_ports[i]);
+
 	# Generate our ryu_flow_mod record for the ReST API call.
-	local _flow_mod: ryu_ofp_flow_mod = ryu_ofp_flow_mod(
-		$dpid=state$dpid,
+	local mod: ryu_ofp_flow_mod = ryu_ofp_flow_mod(
+		$dpid=state$ryu_dpid,
 		$cookie=Openflow::generate_cookie(flow_mod$cookie),
 		$idle_timeout=flow_mod$idle_timeout,
 		$hard_timeout=flow_mod$hard_timeout,
-		$match=flow_mod$match,
-		$actions=_flow_actions
+		$priority=flow_mod$priority,
+		$flags=flow_mod$flags,
+		$match=match,
+		$actions=flow_actions
 	);
+
 	# Type of the command
 	local command_type: string;
-	switch(flow_mod$command)
-		{
-		case Openflow::OFPFC_ADD:
-			command_type = "add";
-			break;
-		case Openflow::OFPFC_DELETE:
-			command_type = "delete";
-			break;
-		default:
+
+	if ( flow_mod$command in ryu_url )
+		command_type = ryu_url[flow_mod$command];
+	else
+			{
 			Reporter::warning(fmt("The given Openflow command type '%s' is not available", cat(flow_mod$command)));
-			event OpenflowRyu::error(flow_mod, COMMAND_TYPE_NOT_AVAILABLE, cat(flow_mod$command));
 			return F;
+			}
+
+	local url=cat("http://", cat(state$ryu_host), ":", cat(state$ryu_port), RYU_FLOWENTRY_PATH, command_type);
+
+	if ( state$ryu_debug )
+		{
+		print url;
+		print to_json(mod);
+		event Openflow::flow_mod_success(match, flow_mod);
+		return T;
 		}
+
 	# Create the ActiveHTTP request and convert the record to a Ryu ReST API JSON string
 	local request: ActiveHTTP::Request = ActiveHTTP::Request(
-		$url=cat("http://", cat(state$host), ":", cat(state$host_port), RYU_FLOWENTRY_PATH, command_type),
+		$url=url,
 		$method="POST",
-		$client_data=to_json(_flow_mod)
+		$client_data=to_json(mod)
 	);
+
 	# Execute call to Ryu's ReST API
-	when(local result = ActiveHTTP::request(request))
+	when ( local result = ActiveHTTP::request(request) )
 		{
 		if(result$code == 200)
-			event Openflow::flow_mod_success(flow_mod, result$body);
+			event Openflow::flow_mod_success(match, flow_mod, result$body);
 		else
 			{
 			Reporter::warning(fmt("Flow modification failed with error: %s", result$body));
-			event Openflow::flow_mod_failure(flow_mod, result$body);
+			event Openflow::flow_mod_failure(match, flow_mod, result$body);
 			return F;
 			}
 		}
@@ -147,8 +142,31 @@ function flow_mod(state: Openflow::ControllerState, flow_mod: Openflow::ofp_flow
 	return T;
 	}
 
-# Ryu controller constructor
-function new(host: addr, host_port: count, dpid: count): Openflow::Controller
+function ryu_flow_clear(state: Openflow::ControllerState): bool	
 	{
-	return [$state=[$host=host, $host_port=host_port, $type_=Openflow::RYU, $dpid=dpid], $flow_mod=flow_mod];
+	local url=cat("http://", cat(state$ryu_host), ":", cat(state$ryu_port), RYU_FLOWENTRY_PATH, "clear", "/", state$ryu_dpid);
+
+	if ( state$ryu_debug )
+		{
+		print url;
+		return T;
+		}
+
+	local request: ActiveHTTP::Request = ActiveHTTP::Request(
+		$url=url,
+		$method="DELETE"
+	);
+
+	when ( local result = ActiveHTTP::request(request) )
+		{
+		}
+
+	return T;
+	}
+
+# Ryu controller constructor
+function ryu_new(host: addr, host_port: count, dpid: count): Openflow::Controller
+	{
+	return [$state=[$ryu_host=host, $ryu_port=host_port, $ryu_dpid=dpid, $_plugin=Openflow::RYU],
+		$flow_mod=ryu_flow_mod, $flow_clear=ryu_flow_clear];
 	}

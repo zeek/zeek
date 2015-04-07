@@ -1,22 +1,17 @@
 ##! Functions to assist with generating JSON data from Bro data scructures.
-
 # We might want to implement this in core somtime, this looks... hacky at best.
 
 @load base/utils/strings
 
-export {
-	## A function to convert arbitrary Bro data into a JSON string.
-	##
-	## v: The value to convert to JSON.  Typically a record.
-	##
-	## only_loggable: If the v value is a record this will only cause
-	##                fields with the &log attribute to be included in the JSON.
-	##
-	## returns: a JSON formatted string.
-	global to_json: function(v: any, only_loggable: bool &default=F, field_escape_pattern: pattern &default=/^_/): string;
-}
-
-function convert(v: any, only_loggable: bool &default=F, field_escape_pattern: pattern &default=/^_/): string
+## A function to convert arbitrary Bro data into a JSON string.
+##
+## v: The value to convert to JSON.  Typically a record.
+##
+## only_loggable: If the v value is a record this will only cause
+##                fields with the &log attribute to be included in the JSON.
+##
+## returns: a JSON formatted string.
+function to_json(v: any, only_loggable: bool &default=F, field_escape_pattern: pattern &default=/^_/): string
 	{
 	local tn = type_name(v);
 	switch ( tn )

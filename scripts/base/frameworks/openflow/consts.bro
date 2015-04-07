@@ -122,7 +122,6 @@ export {
 	## which is not added, modified or deleted
 	## from the bro openflow framework
 	const INVALID_COOKIE = 0xffffffffffffffff;
-
 	# Openflow pysical port definitions
 	## Maximum number of physical switch ports.
 	const OFPP_MAX = 0xff00;
@@ -147,6 +146,17 @@ export {
 	const OFPP_LOCAL = 0xfffe;
 	## Not associated with a pysical port.
 	const OFPP_NONE = 0xffff;
+	# Openflow no buffer constant.
+	const OFP_NO_BUFFER = 0xffffffff;
+	## Send flow removed message when flow
+	## expires or is deleted.
+	const OFPFF_SEND_FLOW_REM = 0x1;
+	## Check for overlapping entries first.
+	const OFPFF_CHECK_OVERLAP = 0x2;
+	## Remark this is for emergency.
+	## Flows added with this are only used
+	## when the controller is disconnected.
+	const OFPFF_EMERG = 0x4;
 
 	## Openflow action_type definitions
 	##
@@ -212,126 +222,4 @@ export {
 		OFPC_FRAG_MASK = 3,
 	};
 
-	## Openflow match definition.
-	##
-	## The openflow match record describes
-	## which packets match to a specific
-	## rule in a flow table.
-	type ofp_match: record {
-		# Wildcard fields.
-		#wildcards: count &optional;
-		# Input switch port.
-		in_port: count &optional;
-		# Ethernet source address.
-		dl_src: string &optional;
-		# Ethernet destination address.
-		dl_dst: string &optional;
-		# Input VLAN id.
-		dl_vlan: count &optional;
-		# Input VLAN priority.
-		dl_vlan_pcp: count &optional;
-		# Ethernet frame type.
-		dl_type: count &default=ETH_IPv4;
-		# IP ToS (actually DSCP field, 6bits).
-		nw_tos: count &optional;
-		# IP protocol or lower 8 bits of ARP opcode.
-		nw_proto: count &default=IP_TCP;
-		# IP source address.
-		nw_src: addr &optional;
-		# IP destination address.
-		nw_dst: addr &optional;
-		# TCP/UDP source port.
-		tp_src: port &optional;
-		# TCP/UDP destination port.
-		tp_dst: port &optional;
-	};
-
-	## Openflow actions definition.
-	##
-	## A action describes what should
-	## happen with packets of the matching
-	## flow.
-	type ofp_action_output: record {
-		## this should never change, but there are not
-		## constants available in records
-		## defaults to OFPAT_OUTPUT
-		type_: ofp_action_type &default=OFPAT_OUTPUT;
-		#_len: count &default=8;
-		## Output port.
-		port_: count &default=OFPP_FLOOD;
-		#_max_len: count &optional;
-	};
-
-	# Openflow flow_mod_flags definition
-	## Send flow removed message when flow
-	## expires or is deleted.
-	const OFPFF_SEND_FLOW_REM = 0x1;
-	## Check for overlapping entries first.
-	const OFPFF_CHECK_OVERLAP = 0x2;
-	## Remark this is for emergency.
-	## Flows added with this are only used
-	## when the controller is disconnected.
-	const OFPFF_EMERG = 0x4;
-
-	## Openflow flow_mod definition.
-	## It describes the flow to match and
-	## how it should be modified.
-	type ofp_flow_mod: record {
-		# header: ofp_header;
-		## Fields to match
-		match: ofp_match;
-		## Opaque controller-issued identifier.
-		cookie: count &default=BRO_COOKIE_ID * COOKIE_BID_START;
-		# Flow actions
-		## One of OFPFC_*.
-		command: ofp_flow_mod_command &default=OFPFC_ADD;
-		## Idle time before discarding (seconds).
-		idle_timeout: count &optional;
-		## Max time before discarding (seconds).
-		hard_timeout: count &optional;
-		## Priority level of flow entry.
-		priority: count &optional;
-		## Buffered packet to apply to (or -1).
-		## Not meaningful for OFPFC_DELETE*.
-		buffer_id: count &optional;
-		## For OFPFC_DELETE* commands, require
-		## matching entries to include this as an
-		## output port. A value of OFPP_NONE
-		## indicates no restrictions.
-		out_port: count &optional;
-		## One of OFPFF_*.
-		flags: count &optional;
-		## A list of actions to perform.
-		actions: vector of ofp_action_output;
-	};
-
-	## Body of reply to OFPST_FLOW request.
-	type ofp_flow_stats: record {
-		## Length of this entry
-		_length: count;
-		## ID of table flow came from.
-		table_id: count;
-		## Description of fields.
-		match: ofp_match;
-		## Time flow has been alive in seconds.
-		duration_sec: count;
-		## Time flow has been alive in nanoseconds beyond
-		## duration_sec.
-		duration_nsec: count;
-		## Priority of the entry. Only meaningful
-		## when this is not an exact-match entry.
-		priority: count;
-		## Number of seconds idle before expiration.
-		idle_timeout: count;
-		## Number of seconds before expiration.
-		hard_timeout: count;
-		## Opaque controller-issued identifier.
-		cookie: count;
-		## Number of packets in flow.
-		packet_count: count;
-		## Number of bytes in flow.
-		byte_count: count;
-		## Actions
-		actions: vector of ofp_action_output;
-	};
 }

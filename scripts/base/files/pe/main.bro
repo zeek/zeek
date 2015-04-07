@@ -82,9 +82,9 @@ event file_state_remove(f: fa_file)
 		Log::write(LOG, f$pe);
 	}
 
-event file_new(f: fa_file)
+event file_mime_type(f: fa_file, mime_type: string)
 	{
-	if ( f?$mime_type && f$mime_type == /application\/x-dosexec.*/ ) 
+	if ( mime_type == /application\/x-dosexec.*/ ) 
 		{
 		Files::add_analyzer(f, Files::ANALYZER_PE);
 		}

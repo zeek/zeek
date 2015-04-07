@@ -168,22 +168,6 @@ type PE::FileHeader: record;
 type PE::OptionalHeader: record;
 type PE::SectionHeader: record;
 
-module Log;
-
-enum Writer %{
-	WRITER_DEFAULT,
-	WRITER_NONE,
-	WRITER_ASCII,
-	WRITER_DATASERIES,
-	WRITER_SQLITE,
-	WRITER_ELASTICSEARCH,
-%}
-
-enum ID %{
-	Unknown,
-%}
-
-
 module Tunnel;
 enum Type %{
 	NONE,

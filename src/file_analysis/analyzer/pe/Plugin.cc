@@ -1,29 +1,24 @@
+// See the file  in the main distribution directory for copyright.
+
 #include "plugin/Plugin.h"
-#include "file_analysis/Component.h"
 
 #include "PE.h"
 
-namespace plugin { namespace Bro_PE {
+namespace plugin {
+namespace Bro_PE {
 
 class Plugin : public plugin::Plugin {
-protected:
-	void InitPreScript()
+public:
+	plugin::Configuration Configure()
 		{
-		SetName("Bro::PE");
-		SetVersion(-1);
-		SetAPIVersion(BRO_PLUGIN_API_VERSION);
-		SetDynamicPlugin(false);
+		AddComponent(new ::file_analysis::Component("PE", ::file_analysis::PE::Instantiate));
 
-		SetDescription("Portable Executable analyzer");
-
-		AddComponent(new ::file_analysis::Component("PE",
-		        ::file_analysis::PE::Instantiate));
-
-		extern std::list<std::pair<const char*, int> > __bif_events_init();
-		AddBifInitFunction(&__bif_events_init);
+		plugin::Configuration config;
+		config.name = "Bro::PE";
+		config.description = "Portable Executable analyzer";
+		return config;
 		}
-};
+} plugin;
 
-Plugin __plugin;
-
-} }
+}
+}

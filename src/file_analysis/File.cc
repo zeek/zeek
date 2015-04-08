@@ -538,7 +538,12 @@ void File::Gap(uint64 offset, uint64 len)
 		return;
 		}
 
-	analyzers.DrainModifications();
+	if ( ! bof_buffer.full )
+		{
+		DBG_LOG(DBG_FILE_ANALYSIS, "[%s] File gap before bof_buffer filled, continued without attempting to fill bof_buffer.", id.c_str());
+		bof_buffer.full = true;
+		DeliverStream((const u_char*) "", 0);
+		}
 
 	file_analysis::Analyzer* a = 0;
 	IterCookie* c = analyzers.InitForIteration();

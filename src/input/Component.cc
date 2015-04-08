@@ -9,7 +9,7 @@
 using namespace input;
 
 Component::Component(const std::string& name, factory_callback arg_factory)
-	: plugin::Component(plugin::component::WRITER, name)
+	: plugin::Component(plugin::component::READER, name)
 	{
 	factory = arg_factory;
 

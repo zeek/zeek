@@ -1,4 +1,10 @@
 
+2.3-682 | 2015-04-09 12:07:00 -0700
+
+  * Fixing input readers' component type. (Robin Sommer)
+
+  * Tiny spelling correction. (Seth Hall)
+
 2.3-680 | 2015-04-06 16:02:43 -0500
 
   * BIT-1371: remove CMake version check from binary package scripts.

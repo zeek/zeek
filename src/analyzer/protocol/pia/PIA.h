@@ -42,7 +42,7 @@ public:
 protected:
 	void PIA_Done();
 	void PIA_DeliverPacket(int len, const u_char* data, bool is_orig,
-				uint64 seq, const IP_Hdr* ip, int caplen);
+				uint64 seq, const IP_Hdr* ip, int caplen, bool clear_state);
 
 	enum State { INIT, BUFFERING, MATCHING_ONLY, SKIPPING } state;
 
@@ -109,7 +109,7 @@ protected:
 					uint64 seq, const IP_Hdr* ip, int caplen)
 		{
 		Analyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
-		PIA_DeliverPacket(len, data, is_orig, seq, ip, caplen);
+		PIA_DeliverPacket(len, data, is_orig, seq, ip, caplen, true);
 		}
 
 	virtual void ActivateAnalyzer(analyzer::Tag tag, const Rule* rule);
@@ -154,7 +154,7 @@ protected:
 					uint64 seq, const IP_Hdr* ip, int caplen)
 		{
 		Analyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
-		PIA_DeliverPacket(len, data, is_orig, seq, ip, caplen);
+		PIA_DeliverPacket(len, data, is_orig, seq, ip, caplen, false);
 		}
 
 	virtual void DeliverStream(int len, const u_char* data, bool is_orig);

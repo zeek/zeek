@@ -577,9 +577,6 @@ RuleFileMagicState* RuleMatcher::InitFileMagic() const
 	{
 	RuleFileMagicState* state = new RuleFileMagicState();
 
-	if ( rule_bench == 3 )
-		return state;
-
 	loop_over_list(root->psets[Rule::FILE_MAGIC], i)
 		{
 		RuleHdrTest::PatternSet* set = root->psets[Rule::FILE_MAGIC][i];
@@ -629,9 +626,6 @@ RuleMatcher::MIME_Matches* RuleMatcher::Match(RuleFileMagicState* state,
 		reporter->Warning("RuleFileMagicState not initialized yet.");
 		return rval;
 		}
-
-	if ( rule_bench >= 2 )
-		return rval;
 
 #ifdef DEBUG
 	if ( debug_logger.IsEnabled(DBG_RULES) )
@@ -711,9 +705,6 @@ RuleEndpointState* RuleMatcher::InitEndpoint(analyzer::Analyzer* analyzer,
 	{
 	RuleEndpointState* state =
 		new RuleEndpointState(analyzer, from_orig, opposite, pia);
-
-	if ( rule_bench == 3 )
-		return state;
 
 	rule_hdr_test_list tests;
 	tests.append(root);
@@ -837,9 +828,6 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
 	// for 'accepted' (that depends on the average number of matching
 	// patterns).
 
-	if ( rule_bench >= 2 )
-		return;
-
 	bool newmatch = false;
 
 #ifdef DEBUG
@@ -956,9 +944,6 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
 
 void RuleMatcher::FinishEndpoint(RuleEndpointState* state)
 	{
-	if ( rule_bench == 3 )
-		return;
-
 	// Send EOL to payload matchers.
 	Match(state, Rule::PAYLOAD, (const u_char *) "", 0, false, true, false);
 
@@ -1110,15 +1095,7 @@ void RuleMatcher::ExecRule(Rule* rule, RuleEndpointState* state, bool eos)
 
 void RuleMatcher::ClearEndpointState(RuleEndpointState* state)
 	{
-	if ( rule_bench == 3 )
-		return;
-
-	ExecPureRules(state, 1);
 	state->payload_size = -1;
-	state->matched_by_patterns.clear();
-	loop_over_list(state->matched_text, i)
-		delete state->matched_text[i];
-	state->matched_text.clear();
 
 	loop_over_list(state->matchers, j)
 		state->matchers[j]->state->Clear();
@@ -1126,9 +1103,6 @@ void RuleMatcher::ClearEndpointState(RuleEndpointState* state)
 
 void RuleMatcher::ClearFileMagicState(RuleFileMagicState* state) const
 	{
-	if ( rule_bench == 3 )
-		return;
-
 	loop_over_list(state->matchers, j)
 		state->matchers[j]->state->Clear();
 	}
@@ -1496,8 +1470,12 @@ void RuleMatcherState::ClearMatchState(bool orig)
 	if ( ! rule_matcher )
 		return;
 
-	if ( orig_match_state )
-		rule_matcher->ClearEndpointState(orig_match_state);
-	if ( resp_match_state )
+	if ( orig )
+		{
+		if ( orig_match_state )
+			rule_matcher->ClearEndpointState(orig_match_state);
+		}
+
+	else if ( resp_match_state )
 		rule_matcher->ClearEndpointState(resp_match_state);
 	}

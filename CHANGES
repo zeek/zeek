@@ -1,4 +1,12 @@
 
+2.3-685 | 2015-04-09 14:52:11 -0700
+
+  * Remove stale signature benchmarking code (-L command-line option).
+    (Jon Siwek)
+
+  * BIT-844: fix UDP payload signatures to match packet-wise. (Jon
+    Siwek)
+
 2.3-682 | 2015-04-09 12:07:00 -0700
 
   * Fixing input readers' component type. (Robin Sommer)

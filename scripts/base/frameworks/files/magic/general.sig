@@ -10,12 +10,18 @@ signature file-plaintext {
 # This can't go well...
 signature file-json {
 	file-mime "text/json", 1
-	file-magic /^(\xef\xbb\xbf)?[\x0d\x0a[:blank:]]*\{[\x0d\x0a[:blank:]]*(['"][a-zA-Z\\][a-zA-Z0-9\\]*['"]|[a-zA-Z][a-zA-Z0-9]*)[\x0d\x0a[:blank:]]*:[\x0d\x0a[:blank:]]*(['"]|\[|\{|[0-9]|true|false)/
+	file-magic /^(\xef\xbb\xbf)?[\x0d\x0a[:blank:]]*\{[\x0d\x0a[:blank:]]*(["][^"]{1,}["]|[a-zA-Z][a-zA-Z0-9\\_]*)[\x0d\x0a[:blank:]]*:[\x0d\x0a[:blank:]]*(["]|\[|\{|[0-9]|true|false)/
 }
 
 signature file-json2 {
 	file-mime "text/json", 1
-	file-magic /^(\xef\xbb\xbf)?[\x0d\x0a[:blank:]]*\[[\x0d\x0a[:blank:]]*(['"][a-zA-Z\\][a-zA-Z0-9\\]*['"]|[0-9]{1,})[\x0d\x0a[:blank:]]*,[\x0d\x0a[:blank:]]*(['"]|\[|\{|[0-9]|true|false)/
+	file-magic /^(\xef\xbb\xbf)?[\x0d\x0a[:blank:]]*\[[\x0d\x0a[:blank:]]*(((["][^"]{1,}["]|[0-9]{1,}(\.[0-9]{1,})?|true|false)[\x0d\x0a[:blank:]]*,)|\{|\[)[\x0d\x0a[:blank:]]*/
+}
+
+# Match empty JSON documents.
+signature file-json3 {
+	file-mime "text/json", 0
+	file-magic /^(\xef\xbb\xbf)?[\x0d\x0a[:blank:]]*(\[\]|\{\})[\x0d\x0a[:blank:]]*$/
 }
 
 signature file-xml {
@@ -63,6 +69,11 @@ signature file-cross-domain-policy2 {
 	file-magic /^([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*(<\?xml .*\?>)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*<[cC][rR][oO][sS][sS]-[dD][oO][mM][aA][iI][nN]-[pP][oO][lL][iI][cC][yY]/
 }
 
+signature file-xmlrpc {
+	file-mime "application/xml-rpc", 49
+	file-magic /^(\xef\xbb\xbf)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*(<\?xml .*\?>)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*<[mM][eE][tT][hH][oO][dD][rR][eE][sS][pP][oO][nN][sS][eE]>/
+}
+
 signature file-coldfusion {
 	file-mime "magnus-internal/cold-fusion", 20
 	file-magic /^([\x0d\x0a[:blank:]]*(<!--.*-->)?)*<(CFPARAM|CFSET|CFIF)/
@@ -80,19 +91,19 @@ signature file-jar {
 }
 
 signature file-java-applet {
-	file-magic /^\xca\xfe\xba\xbe...[\x2d-\x34]/
 	file-mime "application/x-java-applet", 71
+	file-magic /^\xca\xfe\xba\xbe...[\x2d-\x34]/
 }
 
-signature file-oscp-response {
+# OCSP requests over HTTP.
+signature file-ocsp-request {
+	file-magic /^.{11,19}\x06\x05\x2b\x0e\x03\x02\x1a/
+	file-mime "application/ocsp-request", 71
+}
+
+signature file-ocsp-response {
 	file-magic /^.{11,19}\x06\x09\x2B\x06\x01\x05\x05\x07\x30\x01\x01/
 	file-mime "application/ocsp-response", 71
-}
-
-# Web Open Font Format
-signature file-woff {
-	file-magic /^wOFF/
-	file-mime "application/font-woff", 70
 }
 
 # Shockwave flash
@@ -188,7 +199,7 @@ signature file-javascript {
 
 signature file-javascript2 {
 	file-mime "application/javascript", 60
-	file-magic /^[\x0d\x0a[:blank:]]*<[sS][cC][rR][iI][pP][tT][[:blank:]]+([tT][yY][pP][eE]|[lL][aA][nN][gG][uU][aA][gG][eE])=['"]?([tT][eE][xX][tT]\/)?[jJ][aA][vV][aA][sS][cC][rR][iI][pP][tT]['"]?>/
+	file-magic /^[\x0d\x0a[:blank:]]*<[sS][cC][rR][iI][pP][tT][[:blank:]]+([tT][yY][pP][eE]|[lL][aA][nN][gG][uU][aA][gG][eE])=['"]?([tT][eE][xX][tT]\/)?[jJ][aA][vV][aA][sS][cC][rR][iI][pP][tT]/
 }
 
 signature file-javascript3 {

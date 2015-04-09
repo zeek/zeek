@@ -99,18 +99,11 @@ signature file-magic-auto34 {
 	file-magic /(\x23VRML ?V1\x2e0 ?ascii)/
 }
 
-# >0  string,=<MakerScreenFont (len=16), ["FrameMaker Font file"], swap_endian=0
-signature file-magic-auto35 {
-	file-mime "application/x-mif", 190
-	file-magic /(\x3cMakerScreenFont)/
-}
-
 # >0  string,=Extended Module: (len=16), ["Fasttracker II module sound data"], swap_endian=0
 signature file-magic-auto36 {
 	file-mime "audio/x-mod", 190
 	file-magic /(Extended Module\x3a)/
 }
-
 
 # >0  string/t,=<?xml version=" (len=15), [""], swap_endian=0
 # >>20  search/wc/1000,=<!DOCTYPE X3D (len=13), ["X3D (Extensible 3D) model xml text"], swap_endian=0
@@ -212,12 +205,6 @@ signature file-magic-auto60 {
 signature file-magic-auto61 {
 	file-mime "application/x-gnumeric", 160
 	file-magic /(.{39})(\x3cgmr\x3aWorkbook)/
-}
-
-# >0  string,=SplineFontDB: (len=13), ["Spline Font Database "], swap_endian=0
-signature file-magic-auto63 {
-	file-mime "application/vnd.font-fontforge-sfd", 160
-	file-magic /(SplineFontDB\x3a)/
 }
 
 # >0  string/ct,=delivered-to: (len=13), ["SMTP mail text"], swap_endian=0
@@ -514,12 +501,6 @@ signature file-magic-auto162 {
 	file-magic /(\x3c\x3fxml)(.{15})(.*)( xmlns\x3d)(['"]http:\x2f\x2fwww.opengis.net\x2fkml)/
 }
 
-# >0  string,=\000\001\000\000\000 (len=5), ["TrueType font data"], swap_endian=0
-signature file-magic-auto187 {
-	file-mime "application/x-font-ttf", 80
-	file-magic /(\x00\x01\x00\x00\x00)/
-}
-
 # >0  string,=%PDF- (len=5), ["PDF document"], swap_endian=0
 signature file-magic-auto189 {
 	file-mime "application/pdf", 80
@@ -575,14 +556,6 @@ signature file-magic-auto203 {
 #	file-mime "video/mp2t", 71
 #	file-magic /(.{4})/
 #}
-
-
-# >0  lelong&,=4 (0x00000004), [""], swap_endian=0
-# >>104  lelong&,=4 (0x00000004), ["X11 SNF font data, LSB first"], swap_endian=0
-signature file-magic-auto217 {
-	file-mime "application/x-font-sfn", 70
-	file-magic /(\x04\x00\x00\x00)(.{100})(\x04\x00\x00\x00)/
-}
 
 # This didn't auto-generate correctly due to non-sequential offsets and
 # use of bitwise/relational comparisons.  At a glance: may not be
@@ -1279,18 +1252,6 @@ signature file-magic-auto378 {
 	file-magic /(\x13\x57\x9a\xce)/
 }
 
-# >0  belong&,=4 (0x00000004), ["X11 SNF font data, MSB first"], swap_endian=0
-signature file-magic-auto379 {
-	file-mime "application/x-font-sfn", 70
-	file-magic /(\x00\x00\x00\x04)/
-}
-
-# >0  string,=OTTO (len=4), ["OpenType font data"], swap_endian=0
-signature file-magic-auto380 {
-	file-mime "application/vnd.ms-opentype", 70
-	file-magic /(OTTO)/
-}
-
 # >0  string,=<MML (len=4), ["FrameMaker MML file"], swap_endian=0
 signature file-magic-auto381 {
 	file-mime "application/x-mif", 70
@@ -1537,12 +1498,6 @@ signature file-magic-auto493 {
 signature file-magic-auto496 {
 	file-mime "text/PGP", 50
 	file-magic /(\x85\x02)/
-}
-
-# >34  string,=LP (len=2), ["Embedded OpenType (EOT)"], swap_endian=0
-signature file-magic-auto506 {
-	file-mime "application/vnd.ms-fontobject", 50
-	file-magic /(.{34})(LP)/
 }
 
 # >0  beshort&,=2935 (0x0b77), ["ATSC A/52 aka AC-3 aka Dolby Digital stream,"], swap_endian=0

@@ -85,11 +85,11 @@ signature file-quicktime {
 # MPEG v4 video
 signature file-mp4 {
 	file-mime "video/mp4", 70
-	file-magic /(.{4})(ftyp)(isom|mp4[12])/
+	file-magic /^....ftyp(isom|mp4[12])/
 }
 
 # 3GPP Video
 signature file-3gpp {
 	file-mime "video/3gpp", 60
-	file-magic /^....(ftyp)(3g[egps2]|avc1|mmp4)/
+	file-magic /^....ftyp(3g[egps2]|avc1|mmp4)/
 }

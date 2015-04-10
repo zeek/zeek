@@ -633,6 +633,8 @@ public:
 
 	void SetMatcher(RE_Matcher* re);
 
+	const char* AnywherePattern() const;
+
 	unsigned int MemoryAllocation() const;
 
 protected:

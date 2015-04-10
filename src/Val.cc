@@ -1120,6 +1120,11 @@ void PatternVal::SetMatcher(RE_Matcher* re)
 	val.re_val = re;
 	}
 
+const char* PatternVal::AnywherePattern() const
+	{
+	return AsPattern()->AnywherePatternText();
+	}
+
 void PatternVal::ValDescribe(ODesc* d) const
 	{
 	d->Add("/");

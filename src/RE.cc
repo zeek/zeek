@@ -342,6 +342,91 @@ bool RE_Match_State::Match(const u_char* bv, int n,
 	return accepted_matches.size() != old_matches;
 	}
 
+
+RE_Match_State_Range::RE_Match_State_Range(const char* pattern_text)
+	{
+	matcher = new Specific_RE_Matcher(MATCH_ANYWHERE);
+	matcher->AddPat(pattern_text);
+	matcher->Compile();
+	dfa = matcher->DFA();
+	ecs = matcher->EC()->EquivClasses();
+	Clear();
+	}
+
+RE_Match_State_Range::RE_Match_State_Range(const PatternVal* pattern)
+	{
+	matcher = new Specific_RE_Matcher(MATCH_ANYWHERE);
+	matcher->SetPat(pattern->AnywherePattern());
+	matcher->Compile();
+	dfa = matcher->DFA();
+	ecs = matcher->EC()->EquivClasses();
+	Clear();
+	}
+
+RE_Match_State_Range::~RE_Match_State_Range()
+	{
+	delete matcher;
+	}
+
+void RE_Match_State_Range::Clear()
+	{
+	current_state = dfa->StartState();
+	position = 0;
+	first_match_range_begin = -1;
+	first_match_range_end = -1;
+	start_state_num = dfa->StartState()->StateNum();
+	}
+
+bool RE_Match_State_Range::Match(const u_char* bv, int n, bool bol, bool eol)
+	{
+	int ec;
+	int m = bol ? n + 1 : n;
+	int e = eol ? -1 : 0;
+
+	while ( --m >= e )
+		{
+		if ( m == n )
+			ec = ecs[SYM_BOL];
+		else if ( m == -1 )
+			ec = ecs[SYM_EOL];
+		else
+			ec = ecs[*(bv++)];
+
+		int prev_state_num = current_state->StateNum();
+		DFA_State* next_state = current_state->Xtion(ec,dfa);
+
+		if ( ! next_state )
+			{
+			current_state = 0;
+			break;
+			}
+
+		int next_state_num = next_state->StateNum();
+
+		if ( ec == ecs[SYM_BOL] )
+			start_state_num = next_state_num;
+
+		if ( prev_state_num == start_state_num &&
+		     next_state_num != start_state_num )
+			first_match_range_begin = position;
+
+		const AcceptingSet* ac = next_state->Accept();
+
+		if ( ac )
+			{
+			first_match_range_end = position;
+			return true;
+			}
+
+		if ( ec != ecs[SYM_BOL] && ec != ecs[SYM_EOL] )
+			++position;
+
+		current_state = next_state;
+		}
+
+	return false;
+	}
+
 int Specific_RE_Matcher::LongestMatch(const u_char* bv, int n)
 	{
 	if ( ! dfa )

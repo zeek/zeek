@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2015-03-05-20-59-07
+#open	2015-04-10-17-52-24
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -109,6 +109,7 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_FileExtract.events.bif.bro
     build/scripts/base/bif/plugins/Bro_FileExtract.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_FileHash.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_FileStringExtract.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Unified2.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Unified2.types.bif.bro
     build/scripts/base/bif/plugins/Bro_X509.events.bif.bro
@@ -254,9 +255,11 @@ scripts/base/init-default.bro
   scripts/base/protocols/tunnels/__load__.bro
   scripts/base/files/extract/__load__.bro
     scripts/base/files/extract/main.bro
+  scripts/base/files/string_extract/__load__.bro
+    scripts/base/files/string_extract/main.bro
   scripts/base/files/unified2/__load__.bro
     scripts/base/files/unified2/main.bro
   scripts/base/misc/find-checksum-offloading.bro
   scripts/base/misc/find-filtered-trace.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2015-03-05-20-59-07
+#close	2015-04-10-17-52-24

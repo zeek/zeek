@@ -1,5 +1,6 @@
 add_subdirectory(data_event)
 add_subdirectory(extract)
 add_subdirectory(hash)
+add_subdirectory(string_extract)
 add_subdirectory(unified2)
 add_subdirectory(x509)

@@ -4,6 +4,7 @@
 #define re_h
 
 #include "Obj.h"
+#include "Val.h"
 #include "Dict.h"
 #include "BroString.h"
 #include "CCL.h"
@@ -167,6 +168,37 @@ protected:
 	AcceptingMatchSet accepted_matches;
 	DFA_State* current_state;
 	int current_pos;
+};
+
+class RE_Match_State_Range {
+public:
+
+	RE_Match_State_Range(const char* pattern_text);
+
+	RE_Match_State_Range(const PatternVal* pattern);
+
+	~RE_Match_State_Range();
+
+	// Returns true if this inputs leads to at least one new match.
+	// If clear is true, starts matching over.
+	bool Match(const u_char* bv, int n, bool bol, bool eol);
+
+	void Clear();
+
+	int FirstMatchBeginPos() const { return first_match_range_begin; }
+
+	int FirstMatchEndPos() const { return first_match_range_end; }
+
+protected:
+
+	Specific_RE_Matcher* matcher;
+	DFA_Machine* dfa;
+	int* ecs;
+	DFA_State* current_state;
+	int position;
+	int first_match_range_begin;
+	int first_match_range_end;
+	int start_state_num;
 };
 
 class RE_Matcher : SerialObj {

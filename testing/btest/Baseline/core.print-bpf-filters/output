@@ -3,28 +3,28 @@
 #empty_field	(empty)
 #unset_field	-
 #path	packet_filter
-#open	2013-10-24-18-53-49
+#open	2015-03-30-21-38-29
 #fields	ts	node	filter	init	success
 #types	time	string	string	bool	bool
-1382640829.338079	bro	ip or not ip	T	T
-#close	2013-10-24-18-53-49
+1427751509.034738	bro	ip or not ip	T	T
+#close	2015-03-30-21-38-29
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	packet_filter
-#open	2013-10-24-18-53-49
+#open	2015-03-30-21-38-29
 #fields	ts	node	filter	init	success
 #types	time	string	string	bool	bool
-1382640829.495639	bro	port 42	T	T
-#close	2013-10-24-18-53-49
+1427751509.711080	bro	port 42	T	T
+#close	2015-03-30-21-38-29
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	packet_filter
-#open	2013-10-24-18-53-49
+#open	2015-03-30-21-38-30
 #fields	ts	node	filter	init	success
 #types	time	string	string	bool	bool
-1382640829.653368	bro	(vlan) and (ip or not ip)	T	T
-#close	2013-10-24-18-53-49
+1427751510.380510	bro	(vlan) and (ip or not ip)	T	T
+#close	2015-03-30-21-38-30

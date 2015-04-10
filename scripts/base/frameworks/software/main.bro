@@ -105,7 +105,7 @@ export {
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(Software::LOG, [$columns=Info, $ev=log_software]);
+	Log::create_stream(Software::LOG, [$columns=Info, $ev=log_software, $path="software"]);
 	}
 	
 type Description: record {

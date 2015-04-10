@@ -5,7 +5,7 @@
 # @TEST-REQUIRES: bro  --help 2>&1 | grep -q mem-leaks
 #
 # @TEST-EXEC: btest-bg-run bro HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local bro -m -b %INPUT
-# @TEST-EXEC: btest-bg-wait 15
+# @TEST-EXEC: btest-bg-wait 60
 
 redef exit_only_after_terminate = T;
 

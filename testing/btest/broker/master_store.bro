@@ -1,7 +1,7 @@
 # @TEST-REQUIRES: grep -q ENABLE_BROKER $BUILD/CMakeCache.txt
 
 # @TEST-EXEC: btest-bg-run master "bro -b -r $TRACES/wikipedia.trace %INPUT >out"
-# @TEST-EXEC: btest-bg-wait 20
+# @TEST-EXEC: btest-bg-wait 60
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff master/out
 
 redef exit_only_after_terminate = T;
@@ -16,7 +16,7 @@ const pop_expect_count = 2;
 
 global test_size: event(where: string &default = "");
 
-global query_timeout = 5sec;
+global query_timeout = 30sec;
 
 event test_clear()
 	{

@@ -39,7 +39,7 @@ const ports = { 1434/tcp, 3306/tcp };
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(mysql::LOG, [$columns=Info, $ev=log_mysql]);
+	Log::create_stream(mysql::LOG, [$columns=Info, $ev=log_mysql, $path="mysql"]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_MYSQL, ports);
 	}
 

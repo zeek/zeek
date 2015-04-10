@@ -64,7 +64,7 @@ public:
 
 	virtual bool Process()
 		{
-		bool success = input_mgr->SendEvent(name, num_vals, val);
+		bool success = input_mgr->SendEvent(Object(), name, num_vals, val);
 
 		if ( ! success )
 			reporter->Error("SendEvent for event %s failed", name);

@@ -78,6 +78,8 @@ public:
 	void SetVerbose(bool arg_verbose)	{ verbose = arg_verbose; }
 	bool IsVerbose() const			{ return verbose; }
 
+	void ShowStreamsHelp();
+
 private:
 	FILE* file;
 	bool verbose;

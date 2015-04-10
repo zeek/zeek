@@ -28,6 +28,10 @@ New Functionality
 - Bro now has supoprt for the MySQL wire protocol. Activity gets
   logged into mysql.log.
 
+- Bro now features a completely rewritten, enhanced SSH analyzer. A lot
+  more information about SSH sessions is logged. The analyzer is able to
+  determine if logins failed or succeeded in most circumstances.
+
 - Bro's file analysis now supports reassembly of files that are not
   transferred/seen sequentially.
 
@@ -60,6 +64,12 @@ New Functionality
   old protocol versions or unsafe cipher suites.
 
 - [TODO] Add new BroControl features.
+
+- A new icmp_sent_payload event provides access to ICMP payload.
+
+- Bro now parses DTLS traffic.
+
+- Bro now has an RDP analyzer.
 
 Changed Functionality
 ---------------------
@@ -94,7 +104,28 @@ Changed Functionality
 - conn.log gained a new field local_resp that works like local_orig,
   just for the responder address of the connection.
 
+- GRE tunnels are now identified as ``Tunnel::GRE`` instead of
+  ``Tunnel::IP``.
+
+- The default name for extracted files changed from extract-protocol-id
+  to extract-timestamp-protocol-id.
+
 - [TODO] Add changed BroControl features.
+
+- The weird named "unmatched_HTTP_reply" has been removed since it can
+  be detected at the script-layer and is handled correctly by the
+  default HTTP scripts.
+
+- When adding a logging filter to a stream, the filter can now inherit
+  a default ``path`` field from the associated ``Log::Stream`` record.
+
+- When adding a logging filter to a stream, the
+  ``Log::default_path_func`` is now only automatically added to the
+  filter if it has neither a ``path`` nor a ``path_func`` already
+  explicitly set.  Before, the default path function would always be set
+  for all filters which didn't specify their own ``path_func``.
+
+- TODO: what SSH events got changed or removed?
 
 Deprecated Functionality
 ------------------------

@@ -4,7 +4,7 @@
 # @TEST-EXEC: btest-bg-run clone "bro -b -r $TRACES/wikipedia.trace ../clone.bro broker_port=$BROKER_PORT >clone.out"
 # @TEST-EXEC: btest-bg-run master "bro -b -r $TRACES/wikipedia.trace ../master.bro broker_port=$BROKER_PORT >master.out"
 
-# @TEST-EXEC: btest-bg-wait 20
+# @TEST-EXEC: btest-bg-wait 60
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff clone/clone.out
 # @TEST-EXEC: btest-diff master/master.out
 
@@ -17,7 +17,7 @@ global h: opaque of BrokerStore::Handle;
 global expected_key_count = 4;
 global key_count = 0;
 
-global query_timeout = 15sec;
+global query_timeout = 30sec;
 
 function do_lookup(key: string)
 	{

@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2015-02-03-22-47-13
+#open	2015-03-05-20-42-42
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -88,12 +88,15 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_PIA.events.bif.bro
     build/scripts/base/bif/plugins/Bro_POP3.events.bif.bro
     build/scripts/base/bif/plugins/Bro_RADIUS.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_RDP.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_RDP.types.bif.bro
     build/scripts/base/bif/plugins/Bro_RPC.events.bif.bro
     build/scripts/base/bif/plugins/Bro_SNMP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_SMB.events.bif.bro
     build/scripts/base/bif/plugins/Bro_SMTP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_SMTP.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_SOCKS.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_SSH.types.bif.bro
     build/scripts/base/bif/plugins/Bro_SSH.events.bif.bro
     build/scripts/base/bif/plugins/Bro_SSL.events.bif.bro
     build/scripts/base/bif/plugins/Bro_SteppingStone.events.bif.bro
@@ -121,4 +124,4 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_SQLiteWriter.sqlite.bif.bro
 scripts/policy/misc/loaded-scripts.bro
   scripts/base/utils/paths.bro
-#close	2015-02-03-22-47-13
+#close	2015-03-05-20-42-42

@@ -38,7 +38,7 @@ redef record connection += {
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(DPD::LOG, [$columns=Info]);
+	Log::create_stream(DPD::LOG, [$columns=Info, $path="dpd"]);
 	}
 
 event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &priority=10

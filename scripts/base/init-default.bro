@@ -37,7 +37,7 @@
 @load base/frameworks/reporter
 @load base/frameworks/sumstats
 @load base/frameworks/tunnels
-@load base/frameworks/pacf
+#@load base/frameworks/pacf
 
 @load base/protocols/conn
 @load base/protocols/dhcp

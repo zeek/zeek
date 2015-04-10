@@ -1097,6 +1097,8 @@ void RuleMatcher::ClearEndpointState(RuleEndpointState* state)
 	{
 	state->payload_size = -1;
 
+	ExecPureRules(state, 1);
+
 	loop_over_list(state->matchers, j)
 		state->matchers[j]->state->Clear();
 	}

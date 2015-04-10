@@ -1,5 +1,5 @@
 
-2.3-686 | 2015-04-09 15:22:28 -0700
+2.3-687 | 2015-04-10 07:32:52 -0700
 
   * Remove stale signature benchmarking code (-L command-line option).
     (Jon Siwek)

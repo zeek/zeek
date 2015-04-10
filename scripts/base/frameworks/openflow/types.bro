@@ -1,4 +1,4 @@
-module Openflow;
+module OpenFlow;
 
 @load ./consts
 
@@ -39,6 +39,8 @@ export {
 		nw_tos: count &optional;
 		# IP protocol or lower 8 bits of ARP opcode.
 		nw_proto: count &optional;
+		# At the moment, we store both v4 and v6 in the same fields.
+		# This is not how OpenFlow does it, we might want to change that...
 		# IP source address.
 		nw_src: addr &optional;
 		# IP destination address.
@@ -56,6 +58,9 @@ export {
 		# it so we always can identify our flows...
 		cookie: count; # &default=BRO_COOKIE_ID * COOKIE_BID_START;
 		# Flow actions
+		## Table to put the flow in. OFPTT_ALL can be used for delete,
+		## to delete flows from all matching tables.
+		table_id: count &optional;
 		## One of OFPFC_*.
 		command: ofp_flow_mod_command; # &default=OFPFC_ADD;
 		## Idle time before discarding (seconds).
@@ -64,6 +69,9 @@ export {
 		hard_timeout: count &default=0;
 		## Priority level of flow entry.
 		priority: count &default=0;
+		## For OFPFC_DELETE* commands, require matching entried to include
+		## this as an output port. OFPP_ANY means no restrictions.
+		out_group: count &optional;
 		## Bitmap of the OFPFF_* flags
 		flags: count &default=0;
 		## Output ports to send data to.

@@ -8,7 +8,7 @@
 ##! for shunting, please look at the PACF framework, which provides higher
 ##! level functions and can use the OpenFlow framework as a backend.
 
-module Openflow;
+module OpenFlow;
 
 @load ./consts
 @load ./types
@@ -50,6 +50,16 @@ export {
 	## msg: Message to describe the event.
 	global flow_mod_failure: event(match: ofp_match, flow_mod: ofp_flow_mod, msg: string &default="");
 
+	## Convert a conn_id record into an ofp_match record that can be used to
+	## create match objects for OpenFlow.
+	##
+	## id: the conn_id record that describes the record.
+	##
+	## reverse: reverse the sources and destinations when creating the match record (default F)
+	##
+	## Returns: ofp_match object for the conn_id record.
+	global match_conn: function(id: conn_id, reverse: bool &default=F): ofp_match;
+
 	# ###
 	# ### Low-level functions for cookie handling.
 	# ###
@@ -76,6 +86,7 @@ export {
 	global generate_cookie: function(cookie: count &default=0): count;
 }
 
+
 # the flow_mod function wrapper
 function flow_mod(controller: Controller, match: ofp_match, flow_mod: ofp_flow_mod): bool
 	{
@@ -91,6 +102,49 @@ function flow_clear(controller: Controller): bool
 		return controller$flow_clear(controller$state);
 	else
 		return F;
+	}
+
+function match_conn(id: conn_id, reverse: bool &default=F): ofp_match
+	{
+	local dl_type = ETH_IPv4;
+	local proto = IP_TCP;
+
+	local orig_h: addr;
+	local orig_p: port;
+	local resp_h: addr;
+	local resp_p: port;
+
+	if ( reverse == F )
+		{
+		orig_h = id$orig_h;
+		orig_p = id$orig_p;
+		resp_h = id$resp_h;
+		resp_p = id$resp_p;
+		}
+	else
+		{
+		orig_h = id$resp_h;
+		orig_p = id$resp_p;
+		resp_h = id$orig_h;
+		resp_p = id$resp_p;
+		}
+
+		if ( is_v6_addr(orig_h) )
+			dl_type = ETH_IPv6;
+
+		if ( is_udp_port(orig_p) )
+			proto = IP_UDP;
+		else if ( is_icmp_port(orig_p) )
+			proto = IP_ICMP;
+
+		return ofp_match(
+			$dl_type=dl_type,
+			$nw_proto=proto,
+			$nw_src=orig_h,
+			$tp_src=orig_p,
+			$nw_dst=resp_h,
+			$tp_dst=resp_p
+		);
 	}
 
 # local function to forge a flow_mod cookie for this framework.
@@ -131,7 +185,7 @@ function get_cookie_gid(cookie: count): count
 	{
 	if( is_valid_cookie(cookie) )
 		return (
-			(cookie	- (COOKIE_BID_START * BRO_COOKIE_ID) - 
+			(cookie	- (COOKIE_BID_START * BRO_COOKIE_ID) -
 			(cookie - ((cookie / COOKIE_GID_START) * COOKIE_GID_START))) /
 			COOKIE_GID_START
 		);

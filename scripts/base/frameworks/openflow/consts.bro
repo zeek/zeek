@@ -1,7 +1,7 @@
 # All types/constants not specific to Openflow will be defined here
 # unitl they somehow get into bro.
 
-module Openflow;
+module OpenFlow;
 
 # Some cookie specific constants.
 # first 24 bits

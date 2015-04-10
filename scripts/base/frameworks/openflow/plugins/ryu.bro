@@ -3,7 +3,7 @@
 @load base/utils/exec
 @load base/utils/json
 
-module Openflow;
+module OpenFlow;
 
 export {
 	redef enum Plugin += {
@@ -16,17 +16,17 @@ export {
 	##
 	## host_port: Controller listen port.
 	##
-	## dpid: Openflow switch datapath id.
+	## dpid: OpenFlow switch datapath id.
 	##
-	## Returns: Openflow::Controller record
-	global ryu_new: function(host: addr, host_port: count, dpid: count): Openflow::Controller;
+	## Returns: OpenFlow::Controller record
+	global ryu_new: function(host: addr, host_port: count, dpid: count): OpenFlow::Controller;
 
 	redef record ControllerState += {
 		## Controller ip.
 		ryu_host: addr &optional;
 		## Controller listen port.
 		ryu_port: count &optional;
-		## Openflow switch datapath id.
+		## OpenFlow switch datapath id.
 		ryu_dpid: count &optional;
 		## Enable debug mode - output JSON to stdout; do not perform actions
 		ryu_debug: bool &default=F;
@@ -58,7 +58,7 @@ type ryu_ofp_flow_mod: record {
 	hard_timeout: count &optional;
 	priority: count &optional;
 	flags: count &optional;
-	match: Openflow::ofp_match;
+	match: OpenFlow::ofp_match;
 	actions: vector of ryu_flow_action;
 };
 
@@ -72,7 +72,7 @@ const ryu_url: table[ofp_flow_mod_command] of string = {
 };
 
 # Ryu flow_mod function
-function ryu_flow_mod(state: Openflow::ControllerState, match: ofp_match, flow_mod: Openflow::ofp_flow_mod): bool
+function ryu_flow_mod(state: OpenFlow::ControllerState, match: ofp_match, flow_mod: OpenFlow::ofp_flow_mod): bool
 	{
 	if ( state$_plugin != RYU )
 		{
@@ -89,7 +89,7 @@ function ryu_flow_mod(state: Openflow::ControllerState, match: ofp_match, flow_m
 	# Generate our ryu_flow_mod record for the ReST API call.
 	local mod: ryu_ofp_flow_mod = ryu_ofp_flow_mod(
 		$dpid=state$ryu_dpid,
-		$cookie=Openflow::generate_cookie(flow_mod$cookie),
+		$cookie=OpenFlow::generate_cookie(flow_mod$cookie),
 		$idle_timeout=flow_mod$idle_timeout,
 		$hard_timeout=flow_mod$hard_timeout,
 		$priority=flow_mod$priority,
@@ -105,7 +105,7 @@ function ryu_flow_mod(state: Openflow::ControllerState, match: ofp_match, flow_m
 		command_type = ryu_url[flow_mod$command];
 	else
 			{
-			Reporter::warning(fmt("The given Openflow command type '%s' is not available", cat(flow_mod$command)));
+			Reporter::warning(fmt("The given OpenFlow command type '%s' is not available", cat(flow_mod$command)));
 			return F;
 			}
 
@@ -115,7 +115,7 @@ function ryu_flow_mod(state: Openflow::ControllerState, match: ofp_match, flow_m
 		{
 		print url;
 		print to_json(mod);
-		event Openflow::flow_mod_success(match, flow_mod);
+		event OpenFlow::flow_mod_success(match, flow_mod);
 		return T;
 		}
 
@@ -130,11 +130,11 @@ function ryu_flow_mod(state: Openflow::ControllerState, match: ofp_match, flow_m
 	when ( local result = ActiveHTTP::request(request) )
 		{
 		if(result$code == 200)
-			event Openflow::flow_mod_success(match, flow_mod, result$body);
+			event OpenFlow::flow_mod_success(match, flow_mod, result$body);
 		else
 			{
 			Reporter::warning(fmt("Flow modification failed with error: %s", result$body));
-			event Openflow::flow_mod_failure(match, flow_mod, result$body);
+			event OpenFlow::flow_mod_failure(match, flow_mod, result$body);
 			return F;
 			}
 		}
@@ -142,7 +142,7 @@ function ryu_flow_mod(state: Openflow::ControllerState, match: ofp_match, flow_m
 	return T;
 	}
 
-function ryu_flow_clear(state: Openflow::ControllerState): bool	
+function ryu_flow_clear(state: OpenFlow::ControllerState): bool	
 	{
 	local url=cat("http://", cat(state$ryu_host), ":", cat(state$ryu_port), RYU_FLOWENTRY_PATH, "clear", "/", state$ryu_dpid);
 
@@ -165,8 +165,8 @@ function ryu_flow_clear(state: Openflow::ControllerState): bool
 	}
 
 # Ryu controller constructor
-function ryu_new(host: addr, host_port: count, dpid: count): Openflow::Controller
+function ryu_new(host: addr, host_port: count, dpid: count): OpenFlow::Controller
 	{
-	return [$state=[$ryu_host=host, $ryu_port=host_port, $ryu_dpid=dpid, $_plugin=Openflow::RYU],
+	return [$state=[$ryu_host=host, $ryu_port=host_port, $ryu_dpid=dpid, $_plugin=OpenFlow::RYU],
 		$flow_mod=ryu_flow_mod, $flow_clear=ryu_flow_clear];
 	}

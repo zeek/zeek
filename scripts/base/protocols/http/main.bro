@@ -78,6 +78,9 @@ export {
 		## Indicates if this request can assume 206 partial content in
 		## response.
 		range_request:           bool      &default=F;
+		## ETag for the return data used to match up 
+		## partial content responses.
+		etag:                    string    &optional;
 	};
 
 	## Structure to maintain state for an HTTP connection with multiple
@@ -89,6 +92,10 @@ export {
 		current_request:  count                &default=0;
 		## Current response in the pending queue.
 		current_response: count                &default=0;
+		## Track the current deepest transaction.
+		## This is meant to cope with missing requests 
+		## and responses.
+		trans_depth:      count                &default=0;
 	};
 
 	## A list of HTTP headers typically used to indicate proxied requests.
@@ -150,9 +157,7 @@ function new_http_session(c: connection): Info
 	tmp$ts=network_time();
 	tmp$uid=c$uid;
 	tmp$id=c$id;
-	# $current_request is set prior to the Info record creation so we
-	# can use the value directly here.
-	tmp$trans_depth = c$http_state$current_request;
+	tmp$trans_depth = ++c$http_state$trans_depth;
 	return tmp;
 	}
 
@@ -278,7 +283,13 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 				}
 			}
 		}
-
+	else
+		{
+		if ( name == "ETAG" )
+			{
+			c$http$etag = value;
+			}
+		}
 	}
 
 event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &priority = 5

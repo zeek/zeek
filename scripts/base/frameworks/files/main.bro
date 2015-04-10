@@ -484,16 +484,19 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 	add f$info$rx_hosts[f$is_orig ? cid$resp_h : cid$orig_h];
 	}
 
-event file_mime_type(f: fa_file, mime_type: string) &priority=10
+event file_metadata_inferred(f: fa_file, meta: inferred_file_metadata) &priority=10
 	{
 	set_info(f);
 
-	f$info$mime_type = mime_type;
+	if ( ! meta?$mime_type )
+		return;
+
+	f$info$mime_type = meta$mime_type;
 
 	if ( analyze_by_mime_type_automatically &&
-	     mime_type in mime_type_to_analyzers )
+	     meta$mime_type in mime_type_to_analyzers )
 		{
-		local analyzers = mime_type_to_analyzers[mime_type];
+		local analyzers = mime_type_to_analyzers[meta$mime_type];
 		for ( a in analyzers )
 			{
 			add f$info$analyzers[Files::analyzer_name(a)];

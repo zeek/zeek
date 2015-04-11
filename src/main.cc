@@ -178,8 +178,6 @@ void usage()
 	fprintf(stderr, "    -i|--iface <interface>         | read from given interface\n");
 	fprintf(stderr, "    -p|--prefix <prefix>           | add given prefix to policy file resolution\n");
 	fprintf(stderr, "    -r|--readfile <readfile>       | read from given tcpdump file\n");
-	fprintf(stderr, "    -y|--flowfile <file>[=<ident>] | read from given flow file\n");
-	fprintf(stderr, "    -Y|--netflow <ip>:<prt>[=<id>] | read flow from socket\n");
 	fprintf(stderr, "    -s|--rulefile <rulefile>       | read rules from given file\n");
 	fprintf(stderr, "    -t|--tracefile <tracefile>     | activate execution tracing\n");
 	fprintf(stderr, "    -w|--writefile <writefile>     | write to given tcpdump file\n");
@@ -190,7 +188,6 @@ void usage()
 	fprintf(stderr, "    -B|--debug <dbgstreams>        | Enable debugging output for selected streams ('-B help' for help)\n");
 #endif
 	fprintf(stderr, "    -C|--no-checksums              | ignore checksums\n");
-	fprintf(stderr, "    -D|--dfa-size <size>           | DFA state cache size\n");
 	fprintf(stderr, "    -F|--force-dns                 | force DNS\n");
 	fprintf(stderr, "    -I|--print-id <ID name>        | print out given ID\n");
 	fprintf(stderr, "    -K|--md5-hashkey <hashkey>     | set key for MD5-keyed hashing\n");
@@ -486,8 +483,6 @@ int main(int argc, char** argv)
 		{"broxygen",		required_argument,		0,	'X'},
 		{"prefix",		required_argument,	0,	'p'},
 		{"readfile",		required_argument,	0,	'r'},
-		{"flowfile",		required_argument,	0,	'y'},
-		{"netflow",		required_argument,	0,	'Y'},
 		{"rulefile",		required_argument,	0,	's'},
 		{"tracefile",		required_argument,	0,	't'},
 		{"writefile",		required_argument,	0,	'w'},
@@ -495,7 +490,6 @@ int main(int argc, char** argv)
 		{"print-state",		required_argument,	0,	'x'},
 		{"analyze",		required_argument,	0,	'z'},
 		{"no-checksums",	no_argument,		0,	'C'},
-		{"dfa-cache",		required_argument,	0,	'D'},
 		{"force-dns",		no_argument,		0,	'F'},
 		{"load-seeds",		required_argument,	0,	'G'},
 		{"save-seeds",		required_argument,	0,	'H'},
@@ -554,7 +548,7 @@ int main(int argc, char** argv)
 	opterr = 0;
 
 	char opts[256];
-	safe_strncpy(opts, "B:D:e:f:I:i:K:l:n:p:R:r:s:T:t:U:w:x:X:z:CFGLNOPSWabdghvZQ",
+	safe_strncpy(opts, "B:e:f:I:i:K:l:n:p:R:r:s:T:t:U:w:x:X:z:CFGLNOPSWabdghvZQ",
 		     sizeof(opts));
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -626,10 +620,6 @@ int main(int argc, char** argv)
 
 		case 'C':
 			override_ignore_checksums = 1;
-			break;
-
-		case 'D':
-			dfa_state_cache_size = atoi(optarg);
 			break;
 
 		case 'E':

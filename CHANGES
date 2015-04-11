@@ -1,4 +1,13 @@
 
+2.3-690 | 2015-04-10 21:51:10 -0700
+
+  * Make sure to always delete the remote serializer. Addresses
+    BIT-1306 and probably also BIT-1356. (Robin Sommer)
+
+  * Cleaning up --help. -D and -Y/y were still listed, even though
+    they had no effect anymore. Removing some dead code along with -D.
+    Addresses BIT-1372. (Robin Sommer)
+
 2.3-688 | 2015-04-10 08:10:44 -0700
 
   * Update SQLite to 3.8.8.3.

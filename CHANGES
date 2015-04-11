@@ -1,4 +1,12 @@
 
+2.3-693 | 2015-04-11 10:56:31 -0700
+
+  * BIT-1367: improve coercion of anonymous records in set constructor.
+    (Jon Siwek)
+
+  * Allow to specify ports for sftp log rotator. (Johanna Amann)
+
+
 2.3-690 | 2015-04-10 21:51:10 -0700
 
   * Make sure to always delete the remote serializer. Addresses

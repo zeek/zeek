@@ -7,12 +7,6 @@
 
 refine flow File += {
 
-	function proc_the_file(): bool
-		%{
-		printf("Processed\n");
-		return true;
-		%}
-
 	function characteristics_to_bro(c: uint32, len: uint8): TableVal
 		%{
 		uint64 mask = (len==16) ? 0xFFFF : 0xFFFFFFFF;
@@ -70,7 +64,7 @@ refine flow File += {
 		return true;
 		%}
 
-	function proc_nt_headers(h: IMAGE_NT_HEADERS): bool
+	function proc_nt_headers(h: NT_Headers): bool
 		%{
 		if ( ${h.PESignature} != 17744 ) // Number is uint32 version of "PE\0\0"
 			{
@@ -80,7 +74,7 @@ refine flow File += {
 		return true;
 		%}
 
-	function proc_file_header(h: IMAGE_FILE_HEADER): bool
+	function proc_file_header(h: File_Header): bool
 		%{
 		if ( pe_file_header )
 			{
@@ -98,7 +92,7 @@ refine flow File += {
 		return true;
 		%}
 
-	function proc_optional_header(h: IMAGE_OPTIONAL_HEADER): bool
+	function proc_optional_header(h: Optional_Header): bool
 		%{
 		if ( ${h.magic} != 0x10b &&  // normal pe32 executable
 		     ${h.magic} != 0x107 &&  // rom image
@@ -145,7 +139,7 @@ refine flow File += {
 		return true;
 		%}
 
-	function proc_section_header(h: IMAGE_SECTION_HEADER): bool
+	function proc_section_header(h: Section_Header): bool
 		%{
 		if ( pe_section_header )
 			{
@@ -176,6 +170,14 @@ refine flow File += {
 			}
 		return true;
 		%}
+
+
+	function proc_pe_file(): bool
+		%{
+		printf("PE file processed\n");
+		return true;
+		%}
+
 };
 
 refine typeattr DOS_Header += &let {
@@ -186,23 +188,23 @@ refine typeattr DOS_Code += &let {
 	proc : bool = $context.flow.proc_dos_code(code);
 };
 
-refine typeattr IMAGE_NT_HEADERS += &let {
+refine typeattr NT_Headers += &let {
 	proc : bool = $context.flow.proc_nt_headers(this);
 };
 
-refine typeattr IMAGE_FILE_HEADER += &let {
+refine typeattr File_Header += &let {
 	proc : bool = $context.flow.proc_file_header(this);
 };
 
-refine typeattr IMAGE_OPTIONAL_HEADER += &let {
+refine typeattr Optional_Header += &let {
 	proc : bool = $context.flow.proc_optional_header(this);
 };
 
-refine typeattr IMAGE_SECTION_HEADER += &let {
-	proc: bool = $context.flow.proc_section_header(this);
+refine typeattr Section_Header += &let {
+	proc2: bool = $context.flow.proc_section_header(this);
 };
 
-refine typeattr TheFile += &let {
-	proc: bool = $context.flow.proc_the_file();
+refine typeattr PE_File += &let {
+	proc: bool = $context.flow.proc_pe_file();
 };
 

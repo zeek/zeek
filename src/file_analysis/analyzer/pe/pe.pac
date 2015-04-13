@@ -14,7 +14,7 @@ connection MockConnection(bro_analyzer: BroFileAnalyzer) {
 %include pe-file.pac
 
 flow File {
-	flowunit = TheFile withcontext(connection, this);
+	flowunit = PE_File withcontext(connection, this);
 }
  
 %include pe-analyzer.pac

@@ -39,15 +39,15 @@ hook set_file(f: fa_file) &priority=5
 
 event pe_dos_header(f: fa_file, h: PE::DOSHeader) &priority=5
 	{
-	print "DOS header";
-	print h;
+#	print "DOS header";
+#	print h;
 	hook set_file(f);
 	}
 
 event pe_file_header(f: fa_file, h: PE::FileHeader) &priority=5
 	{
-	print "File header";
-	print h;
+#	print "File header";
+#	print h;
 	hook set_file(f);
 	f$pe$compile_ts = h$ts;
 	f$pe$machine    = machine_types[h$machine];
@@ -57,8 +57,8 @@ event pe_file_header(f: fa_file, h: PE::FileHeader) &priority=5
 
 event pe_optional_header(f: fa_file, h: PE::OptionalHeader) &priority=5
 	{
-	print "Optional header";
-	print h;
+#	print "Optional header";
+#	print h;
 	hook set_file(f);
 	f$pe$os = os_versions[h$os_version_major, h$os_version_minor];
 	f$pe$subsystem = windows_subsystems[h$subsystem];
@@ -66,11 +66,10 @@ event pe_optional_header(f: fa_file, h: PE::OptionalHeader) &priority=5
 
 event pe_section_header(f: fa_file, h: PE::SectionHeader) &priority=5
 	{
-	print "Section header";
-	print h;
+#	print "Section header";
+#	print h;
 	hook set_file(f);
 
-	print h;
 	if ( ! f$pe?$section_names )
 		f$pe$section_names = vector();
 	f$pe$section_names[|f$pe$section_names|] = h$name;

@@ -35,7 +35,8 @@ typedef enum {
 	ATTR_TYPE_COLUMN,	// for input framework
 	ATTR_TRACKED,	// hidden attribute, tracked by NotifierRegistry
 	ATTR_DEPRECATED,
-#define NUM_ATTRS (int(ATTR_DEPRECATED) + 1)
+	ATTR_WEAKEN,
+#define NUM_ATTRS (int(ATTR_WEAKEN) + 1)
 } attr_tag;
 
 class Attr : public BroObj {

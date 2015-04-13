@@ -84,8 +84,8 @@ export {
 	# record type from inside itself.
 	redef record PluginState += {
 		## The plugin that the state belongs to. (Defined separately
-                ## because of cyclic type dependency.)   
-		plugin: Plugin &optional;
+		## because of cyclic type dependency.)
+		plugin: Plugin &optional &weaken;
 	};
 
 }

@@ -1,11 +1,16 @@
 
+2.3-695 | 2015-04-13 10:34:42 -0500
+
+  * Fix iterator invalidation in broker::Manager dtor. (Jon Siwek)
+
+  * Add paragraph to plugin documentation. (Robin Sommer)
+
 2.3-693 | 2015-04-11 10:56:31 -0700
 
   * BIT-1367: improve coercion of anonymous records in set constructor.
     (Jon Siwek)
 
   * Allow to specify ports for sftp log rotator. (Johanna Amann)
-
 
 2.3-690 | 2015-04-10 21:51:10 -0700
 

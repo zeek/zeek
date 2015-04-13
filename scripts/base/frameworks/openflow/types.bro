@@ -49,7 +49,7 @@ export {
 		tp_src: port &optional;
 		# TCP/UDP destination port.
 		tp_dst: port &optional;
-	};
+	} &log;
 
 	## Openflow flow_mod definition, describing the action to perform.
 	type ofp_flow_mod: record {
@@ -76,7 +76,7 @@ export {
 		flags: count &default=0;
 		## Output ports to send data to.
 		out_ports: vector of count &default=vector();
-	};
+	} &log;
 
 # Functionality using this is currently not implemented. At all.
 #	## Body of reply to OFPST_FLOW request.

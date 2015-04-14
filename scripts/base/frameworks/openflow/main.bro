@@ -140,9 +140,9 @@ function match_conn(id: conn_id, reverse: bool &default=F): ofp_match
 		return ofp_match(
 			$dl_type=dl_type,
 			$nw_proto=proto,
-			$nw_src=orig_h,
+			$nw_src=addr_to_subnet(orig_h),
 			$tp_src=orig_p,
-			$nw_dst=resp_h,
+			$nw_dst=addr_to_subnet(resp_h),
 			$tp_dst=resp_p
 		);
 	}

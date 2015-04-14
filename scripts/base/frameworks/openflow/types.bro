@@ -42,9 +42,9 @@ export {
 		# At the moment, we store both v4 and v6 in the same fields.
 		# This is not how OpenFlow does it, we might want to change that...
 		# IP source address.
-		nw_src: addr &optional;
+		nw_src: subnet &optional;
 		# IP destination address.
-		nw_dst: addr &optional;
+		nw_dst: subnet &optional;
 		# TCP/UDP source port.
 		tp_src: port &optional;
 		# TCP/UDP destination port.

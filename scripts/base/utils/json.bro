@@ -26,6 +26,8 @@ function to_json(v: any, only_loggable: bool &default=F, field_escape_pattern: p
 		return cat(port_to_count(to_port(cat(v))));
 
 		case "addr":
+		fallthrough;
+		case "subnet":
 		return cat("\"", v, "\"");
 
 		case "int":

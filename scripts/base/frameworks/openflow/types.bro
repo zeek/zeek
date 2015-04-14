@@ -111,6 +111,8 @@ export {
 	type Controller: record {
 		## Controller related state.
 		state: ControllerState;
+		## function that describes the controller. Has to be implemented.
+		describe: function(state: ControllerState): string;
 		## flow_mod function
 		flow_mod: function(state: ControllerState, match: ofp_match, flow_mod: ofp_flow_mod): bool &optional;
 		## flow_clear function

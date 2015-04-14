@@ -1,0 +1,12 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	pacf
+#open	2015-04-14-22-20-31
+#fields	ts	category	cmd	state	action	target	entity_type	entity	msg	location	plugin
+#types	time	enum	string	enum	string	enum	string	string	string	string	string
+0.000000	Pacf::MESSAGE	-	-	-	-	-	-	activated plugin with priority 0	-	Openflow - OpenFlog Log Plugin - DPID 42
+1254722767.875996	Pacf::RULE	ADD	Pacf::REQUESTED	Pacf::DROP	Pacf::MONITOR	Pacf::FLOW	10.10.1.4/1470->74.53.140.153/25	-	(empty)	Openflow - OpenFlog Log Plugin - DPID 42
+1254722767.875996	Pacf::RULE	ADD	Pacf::REQUESTED	Pacf::DROP	Pacf::FORWARD	Pacf::ADDRESS	10.10.1.4/32	-	(empty)	Openflow - OpenFlog Log Plugin - DPID 42
+#close	2015-04-14-22-20-31

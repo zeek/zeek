@@ -13,7 +13,7 @@ export {
 		_priority: int &default=+0;
 	};
 
-	# Definitioan of a plugin.
+	# Definition of a plugin.
 	#
 	# Generally a plugin needs to implement only what it can support.  By
 	# returning failure, it indicates that it can't support something and the
@@ -37,7 +37,7 @@ export {
 		can_expire: bool;
 
 		# One-time initialization functionl called  when plugin gets registered, and
-		# befire any ther methods are called.
+		# before any other methods are called.
 		init: function(state: PluginState) &optional;
 
 		# One-time finalization function called when a plugin is shutdown; no further
@@ -72,7 +72,7 @@ export {
 
 		# A transaction groups a number of operations. The plugin can add them internally
 		# and postpone putting them into effect until committed. This allows to build a
-		# configuration of multiple rules at once, including replaying  a previous state.
+		# configuration of multiple rules at once, including replaying a previous state.
 		transaction_begin: function(state: PluginState) &optional;
 		transaction_end: function(state: PluginState) &optional;
 	};

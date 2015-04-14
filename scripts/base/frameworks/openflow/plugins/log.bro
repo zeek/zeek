@@ -45,15 +45,20 @@ event bro_init() &priority=5
 	Log::create_stream(LOG, [$columns=Info, $ev=log_openflow, $path="openflow"]);
 	}
 
-function log_flow_mod(state: OpenFlow::ControllerState, match: ofp_match, flow_mod: OpenFlow::ofp_flow_mod): bool
+function log_flow_mod(state: ControllerState, match: ofp_match, flow_mod: OpenFlow::ofp_flow_mod): bool
 	{
 	Log::write(LOG, [$ts=network_time(), $dpid=state$log_dpid, $match=match, $flow_mod=flow_mod]);
 
 	return T;
 	}
 
+function log_describe(state: ControllerState): string
+	{
+	return fmt("OpenFlog Log Plugin - DPID %d", state$log_dpid);
+	}
+
 function log_new(dpid: count): OpenFlow::Controller
 	{
 	return [$state=[$log_dpid=dpid, $_plugin=OpenFlow::LOG],
-		$flow_mod=log_flow_mod, $flow_clear=ryu_flow_clear];
+		$flow_mod=log_flow_mod, $flow_clear=ryu_flow_clear, $describe=log_describe];
 	}

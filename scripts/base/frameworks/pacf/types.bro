@@ -81,7 +81,7 @@ export {
 		d: double &optional;		##< Argument for rule types requiring a double argument.
 		s: string &optional;		##< Argument for rule types requiring a string argument.
 
-		id: string &default="";		##< Internally determined unique ID for this rule. Will be set when added.
+		id: count &default=0;		##< Internally determined unique ID for this rule. Will be set when added.
 	};
 
 	## Type of notifications that the framework supports. Each type lists the
@@ -113,7 +113,7 @@ export {
 		d: double;			##< Argument for notification types requiring a double argument.
 		s: string;			##< Argument for notification types requiring a string argument.
 
-		id: string &default="";		##< Internally determined unique ID for this notification. Will be set when added.
+		id: count &default=0;		##< Internally determined unique ID for this notification. Will be set when added.
 	};
 }
 

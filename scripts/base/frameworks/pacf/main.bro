@@ -81,7 +81,7 @@ export {
 	## assigned to ``r$id``. Note that "successful" means "a plugin knew how to handle
 	## the rule", it doesn't necessarily mean that it was indeed successfully put in
 	## place, because that might happen asynchronously and thus fail only later.
-	global add_rule: function(r: Rule) : string;
+	global add_rule: function(r: Rule) : count;
 
 	## Removes a rule.
 	##
@@ -91,7 +91,7 @@ export {
 	## to handle the removal. Note that again "success" means the plugin accepted the
 	## removal. They might still fail to put it into effect, as that  might happen
 	## asynchronously and thus go wrong at that point.
-	global remove_rule: function(id: string) : bool;
+	global remove_rule: function(id: count) : bool;
 
 	###### Asynchronous feedback on rules.
 
@@ -152,7 +152,7 @@ export {
 	## to handle the removal. Note that again "success" means the plugin accepted the
 	## removal. They might still fail to put it into effect, as that  might happen
 	## asynchronously and thus go wrong at that point.
-	global remove_notification: function(id: string) : bool;
+	global remove_notification: function(id: count) : bool;
 
 	###### Asynchronous feedback on notifications.
 
@@ -240,6 +240,10 @@ export {
 		## Plugin triggering the log entry.
 		plugin: string		&log &optional;
 	};
+
+	## Event that can be handled to access the :bro:type:`Pacf::Info`
+	## record as it is sent on to the logging framework.
+	global log_pacf: event(rec: Info);
 }
 
 redef record Rule += {
@@ -248,12 +252,12 @@ redef record Rule += {
 };
 
 global plugins: vector of PluginState;
-global rule_counter: count = 0;
-global rules: table[string] of Rule;
+global rule_counter: count = 1;
+global rules: table[count] of Rule;
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(Pacf::LOG, [$columns=Info]);
+	Log::create_stream(Pacf::LOG, [$columns=Info, $ev=log_pacf, $path="pacf"]);
 	}
 
 function entity_to_info(info: Info, e: Entity)
@@ -294,7 +298,7 @@ function rule_to_info(info: Info, r: Rule)
 
 	if ( r?$location )
 		info$location = r$location;
-	
+
 	entity_to_info(info, r$entity);
 	}
 
@@ -353,18 +357,18 @@ function drop_address(a: addr, t: interval, location: string &default="") : bool
 	{
 	local e: Entity = [$ty=ADDRESS, $ip=addr_to_subnet(a)];
 	local r: Rule = [$ty=DROP, $target=FORWARD, $entity=e, $expire=t, $location=location];
-	
+
 	local id = add_rule(r);
-	return |id| > 0;
+	return id > 0;
 	}
 
 function shunt_flow(f: flow_id, t: interval, location: string &default="") : bool
 	{
 	local e: Entity = [$ty=FLOW, $flow=f];
 	local r: Rule = [$ty=DROP, $target=MONITOR, $entity=e, $expire=t, $location=location];
-	
+
 	local id = add_rule(r);
-	return |id| > 0;
+	return id > 0;
 	}
 
 function reset(e: Entity)
@@ -377,15 +381,15 @@ function clear()
 	print "Pacf::clear not implemented yet";
 	}
 
-function add_rule(r: Rule) : string
+function add_rule(r: Rule) : count
 	{
-	r$id = fmt("%d", ++rule_counter);
+	r$id = ++rule_counter;
 
 	for ( i in plugins )
 		{
 		local p = plugins[i];
 
-		if ( p$plugin$add_rule(p, r) ) 
+		if ( p$plugin$add_rule(p, r) )
 			{
 			r$_plugin = p;
 			log_rule(r, "ADD", REQUESTED, p);
@@ -394,14 +398,15 @@ function add_rule(r: Rule) : string
 		}
 
 	log_rule_no_plugin(r, FAILED, "not supported");
+	return 0;
 	}
 
-function remove_rule(id: string) : bool
+function remove_rule(id: count) : bool
 	{
 	local r = rules[id];
 	local p = r$_plugin;
-	
-	if ( ! p$plugin$remove_rule(r$_plugin, r) ) 
+
+	if ( ! p$plugin$remove_rule(r$_plugin, r) )
 		{
 		log_rule_error(r, "remove failed", p);
 		return F;
@@ -426,7 +431,7 @@ event rule_added(r: Rule, p: PluginState, msg: string &default="")
 	log_rule(r, "ADD", SUCCEEDED, p);
 
 	rules[r$id] = r;
-	
+
 	if ( r?$expire && ! p$plugin$can_expire )
 		schedule r$expire { rule_expire(r, p) };
 	}
@@ -453,7 +458,7 @@ function add_notification(n: Notification) : string
 	print "Pacf::add_notification not implemented yet";
 	}
 
-function remove_notification(id: string) : bool
+function remove_notification(id: count) : bool
 	{
 	print "Pacf::remove_notification not implemented yet";
 	}
@@ -473,5 +478,3 @@ event notification_timeout(n: Notification, p: PluginState)
 event notification_error(n: Notification, p: PluginState, msg: string &default="")
 	{
 	}
-
-

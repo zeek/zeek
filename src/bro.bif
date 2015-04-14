@@ -2076,6 +2076,33 @@ function is_v6_addr%(a: addr%): bool
 		return new Val(0, TYPE_BOOL);
 	%}
 
+## Returns whether a subnet specification is IPv4 or not.
+##
+## s: the subnet to check.
+##
+## Returns: true if *a* is an IPv4 subnet, else false.
+function is_v4_subnet%(s: subnet%): bool
+	%{
+	if ( s->AsSubNet().Prefix().GetFamily() == IPv4 )
+		return new Val(1, TYPE_BOOL);
+	else
+		return new Val(0, TYPE_BOOL);
+	%}
+
+## Returns whether a subnet specification is IPv6 or not.
+##
+## s: the subnet to check.
+##
+## Returns: true if *a* is an IPv6 subnet, else false.
+function is_v6_subnet%(s: subnet%): bool
+	%{
+	if ( s->AsSubNet().Prefix().GetFamily() == IPv6 )
+		return new Val(1, TYPE_BOOL);
+	else
+		return new Val(0, TYPE_BOOL);
+	%}
+
+
 # ===========================================================================
 #
 #                                 Conversion

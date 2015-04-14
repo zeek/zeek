@@ -1,4 +1,8 @@
 
+2.3-696 | 2015-04-14 15:56:36 -0700
+
+  * Update sqlite to 3.8.9
+
 2.3-695 | 2015-04-13 10:34:42 -0500
 
   * Fix iterator invalidation in broker::Manager dtor. (Jon Siwek)

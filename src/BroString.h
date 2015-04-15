@@ -75,21 +75,17 @@ public:
 
 	enum render_style {
 		ESC_NONE = 0,
-
-		//ESC_NULL = (1 << 0),	// 0 -> "\0"
-		//ESC_DEL  = (1 << 1),	// DEL -> "^?"
-		//ESC_LOW  = (1 << 2),	// values <= 26 mapped into "^[A-Z]"
-		ESC_ESC  = (1 << 3),	// '\' -> "\\"
-		ESC_QUOT = (1 << 4),	// '"' -> "\"", ''' -> "\'"
-		ESC_HEX  = (1 << 5),	// Not in [32, 126]? -> "%XX"
-		ESC_DOT  = (1 << 6),	// Not in [32, 126]? -> "."
+		ESC_ESC  = (1 << 1),	// '\' -> "\\"
+		ESC_QUOT = (1 << 2),	// '"' -> "\"", ''' -> "\'"
+		ESC_HEX  = (1 << 3),	// Not in [32, 126]? -> "\xXX"
+		ESC_DOT  = (1 << 4),	// Not in [32, 126]? -> "."
 
 		// For serialization: '<string len> <string>'
 		ESC_SER  = (1 << 7),
 	};
 
 	static const int EXPANDED_STRING =	// the original style
-		ESC_ESC | ESC_HEX;
+		ESC_HEX;
 
 	static const int BRO_STRING_LITERAL =	// as in a Bro string literal
 		ESC_ESC | ESC_QUOT | ESC_HEX;

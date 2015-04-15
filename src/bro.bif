@@ -129,12 +129,6 @@ static void do_fmt(const char*& fmt, Val* v, ODesc* d)
 
 	ODesc s;
 
-	if ( *fmt == 'A' )
-		{
-		s.SetStyle(ALTERNATIVE_STYLE);
-		++fmt;
-		}
-
 	if ( precision >= 0 && *fmt != 'e' && *fmt != 'f' && *fmt != 'g' )
 		builtin_error("precision specified for non-floating point");
 

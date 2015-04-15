@@ -194,21 +194,6 @@ char* BroString::Render(int format, int* len) const
 
 	for ( int i = 0; i < n; ++i )
 		{
-		//if ( b[i] == '\0' && (format & ESC_NULL) )
-		//	{
-		//	*sp++ = '\\'; *sp++ = 'x'; *sp++ = '0'; *sp++ = '0';
-		//	}
-//
-		//else if ( b[i] == '\x7f' && (format & ESC_DEL) )
-		//	{
-		//	*sp++ = '^'; *sp++ = '?';
-		//	}
-//
-		//else if ( b[i] <= 26 && (format & ESC_LOW) )
-		//	{
-		//	*sp++ = '^'; *sp++ = b[i] + 'A' - 1;
-		//	}
-
 		if ( b[i] == '\\' && (format & ESC_ESC) )
 			{
 			*sp++ = '\\'; *sp++ = '\\';

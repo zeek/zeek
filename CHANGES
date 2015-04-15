@@ -1,4 +1,10 @@
 
+2.3-697 | 2015-04-15 09:51:15 -0700
+
+  * Removing error check verifyingn that an ASCII writer has been
+    properly finished. Instead of aborting, we now just clean up in
+    that case and proceed. Addresses BIT-1331. (Robin Sommer)
+
 2.3-696 | 2015-04-14 15:56:36 -0700
 
   * Update sqlite to 3.8.9

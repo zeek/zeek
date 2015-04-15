@@ -1,0 +1,145 @@
+## Support for parsing the .idata section
+
+type import_directory = record {
+	rva_import_lookup_table : uint32;
+	time_date_stamp         : uint32;
+	forwarder_chain         : uint32;
+	rva_module_name         : uint32;
+	rva_import_addr_table   : uint32;
+} &let {
+	is_null: bool = rva_module_name == 0;
+	proc: bool = $context.connection.proc_image_import_directory(this);
+} &length=20;
+
+type import_lookup_attrs = record {
+	attrs: uint32;
+} &length=4;
+
+type import_lookup_table = record {
+	attrs: import_lookup_attrs[] &until($element.attrs == 0);
+} &let {
+	proc: bool = $context.connection.proc_import_lookup_table(this);
+};
+
+type import_entry(is_module: bool, pad_align: uint8) = record {
+	pad: bytestring &length=pad_align;
+	has_index: case is_module of {
+		true -> null: empty;
+		false -> index: uint16;
+	};
+	name: null_terminated_string;
+};
+
+type idata = record {
+	directory_table : import_directory[] &until $element.is_null;
+	lookup_tables   : import_lookup_table[] &until $context.connection.get_num_imports() <= 0;
+	hint_table	: import_entry($context.connection.get_next_hint_type(), $context.connection.get_next_hint_align())[] &until($context.connection.imports_done());
+};
+
+refine typeattr RVAS += &let {
+	proc: bool = $context.connection.proc_idata_rva(rvas[1]) &if (num > 1);
+};
+
+refine connection MockConnection += {
+	%member{
+		uint8 num_imports_;        // How many import tables will we have?
+
+		uint32 import_table_rva_;  // Used for finding the right section
+		uint32 import_table_va_;
+		uint32 import_table_len_;
+
+		// We need to track the number of imports for each, to
+		// know when we've parsed them all.  
+		vector<uint32> imports_per_module_;
+
+		// These are to determine the alignment of the import hints
+		uint32 next_hint_index_;
+		uint8 next_hint_align_;
+		bool next_hint_is_module_;
+	%}
+
+	%init{
+		// It ends with a null import entry, so we'll set it to -1.
+		num_imports_ = -1;
+
+		// First hint is a module name.
+		next_hint_is_module_ = true;
+		next_hint_index_ = 0;
+		next_hint_align_ = 0;
+	%}
+
+	function proc_idata_rva(r: RVA): bool
+		%{
+		import_table_rva_ = ${r.virtual_address};
+		import_table_len_ = ${r.size};
+
+		return true;
+		%}
+
+	function proc_section(h: Section_Header): bool
+		%{
+		if ( ${h.virtual_addr} > 0 && ${h.virtual_addr} == import_table_rva_ )
+			import_table_va_ = ${h.ptr_to_raw_data};
+		return true;
+		%}
+
+	function proc_image_import_directory(i: import_directory): bool
+		%{
+		num_imports_++;
+		return true;
+		%}
+
+	function get_import_table_addr(): uint32
+		%{
+		return import_table_va_ > 0 ? import_table_va_ : 0;
+		%}
+
+	function get_import_table_len(): uint32
+		%{
+		return import_table_va_ > 0 ? import_table_len_ : 0;
+		%}
+
+	function get_num_imports(): uint8
+		%{
+		return num_imports_;
+		%}		
+
+	function get_next_hint_align(): uint8
+		%{
+		return next_hint_align_;
+		%}		
+
+	function proc_import_lookup_table(t: import_lookup_table): bool
+		%{
+		--num_imports_;
+		imports_per_module_.push_back(${t.attrs}->size());
+		return true;
+		%}		
+
+	function get_next_hint_type(): bool
+		%{
+		if ( next_hint_is_module_ )
+			{
+			next_hint_is_module_ = false;
+			return true;
+			}
+		if ( --imports_per_module_[next_hint_index_] == 0)
+			{
+			++next_hint_index_;
+			return true;
+			}
+		return false;
+		%}
+
+	function imports_done(): bool
+		%{
+		return next_hint_index_ == imports_per_module_.size();
+		%}
+
+	function proc_import_hint(hint_name: bytestring): bool
+		%{
+		next_hint_align_ = ${hint_name}.length() % 2;
+		printf("Import function: %s\n", ${hint_name}.data());
+		return true;
+		%}
+};

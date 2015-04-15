@@ -1,5 +1,11 @@
 # Basic PE types
 
+enum PE_File_Format {
+	UNKNOWN_VERSION = 0,
+	PE32            = 1,
+	PE32_PLUS       = 2,
+};
+
 type Mem_Info32 = record {
 	size_of_stack_reserve : uint32;
 	size_of_stack_commit  : uint32;
@@ -24,7 +30,7 @@ type RVA = record {
 } &length=8;
 
 # The BinPAC padding type doesn't work here.
-type Padding(length: uint32) = record {
+type Padding(length: uint64) = record {
 	pad: bytestring &length=length &transient;
 };
 

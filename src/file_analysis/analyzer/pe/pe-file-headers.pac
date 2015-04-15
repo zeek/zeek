@@ -65,8 +65,14 @@ type Optional_Header(len: uint16, number_of_sections: uint16) = record {
 	size_of_uninit_data     : uint32;
 	addr_of_entry_point     : uint32;
 	base_of_code            : uint32;
-	base_of_data            : uint32;
-	image_base              : uint32;
+	have_base_of_data: case pe_format of {
+		PE32    -> base_of_data: uint32;
+		default -> not_present:  empty;
+	};
+	is_pe32: case pe_format of {
+		PE32_PLUS -> image_base_64: uint64;
+		default   -> image_base_32: uint32;
+	};
 	section_alignment       : uint32;
 	file_alignment          : uint32;
 	os_version_major        : uint16;
@@ -81,14 +87,17 @@ type Optional_Header(len: uint16, number_of_sections: uint16) = record {
 	checksum                : uint32;
 	subsystem               : uint16;
 	dll_characteristics     : uint16;
-	mem: case magic of {
-		267  -> i32           : Mem_Info32;
-		268  -> i64           : Mem_Info64;
+	mem: case pe_format of {
+		PE32      -> i32: Mem_Info32;
+		PE32_PLUS -> i64: Mem_Info64;
 		default -> InvalidPEFile : empty;
 	};
 	loader_flags            : uint32;
 	number_of_rva_and_sizes : uint32;
 	rvas			: RVAS(number_of_rva_and_sizes);
+} &let {
+	pe_format: uint8 = $context.connection.set_pe32_format(magic);
+	image_base: uint64 = pe_format == PE32_PLUS ? image_base_64 : image_base_32;
 } &length=len;
 
 type Section_Headers(num: uint16) = record {
@@ -112,3 +121,43 @@ type Section_Header = record {
 	proc: bool = $context.connection.proc_section(this);
 } &length=40;
 
+refine connection MockConnection += {
+	%member{
+		uint64 max_file_location_;
+		uint8  pe32_format_;
+	%}
+
+	%init{
+		max_file_location_ = 0;
+		pe32_format_ = UNKNOWN_VERSION;;
+	%}
+
+	function proc_section(h: Section_Header): bool
+		%{
+		if ( ${h.size_of_raw_data} + ${h.ptr_to_raw_data} > max_file_location_ )
+			max_file_location_ = ${h.size_of_raw_data} + ${h.ptr_to_raw_data};
+		
+		if ( ${h.virtual_addr} > 0 && ${h.virtual_addr} == import_table_rva_ )
+			import_table_va_ = ${h.ptr_to_raw_data};
+		return true;
+		%}
+
+	function set_pe32_format(magic: uint16): uint8
+		%{
+		if ( ${magic} == 0x10b )
+			pe32_format_ = PE32;
+		if ( ${magic} == 0x20b )
+			pe32_format_ = PE32_PLUS;
+		return pe32_format_;
+		%}
+
+	function get_max_file_location(): uint64
+		%{
+		return max_file_location_;
+		%}
+
+	function get_pe32_format(): uint8
+		%{
+		return pe32_format_;
+		%}
+};

@@ -11,12 +11,17 @@ type import_directory = record {
 	proc: bool = $context.connection.proc_image_import_directory(this);
 } &length=20;
 
-type import_lookup_attrs = record {
-	attrs: uint32;
-} &length=4;
+type import_lookup_attrs(pe32_format: uint8) = record {
+	is_pe32_plus: case pe32_format of {
+		PE32_PLUS -> attrs_64: uint64;
+		default   -> attrs_32: uint32;
+	};
+} &let {
+	attrs: uint64 = (pe32_format == PE32_PLUS) ? attrs_64 : attrs_32;
+} &length=(pe32_format == PE32_PLUS ? 8 : 4);
 
 type import_lookup_table = record {
-	attrs: import_lookup_attrs[] &until($element.attrs == 0);
+	attrs: import_lookup_attrs($context.connection.get_pe32_format())[] &until($element.attrs == 0);
 } &let {
 	proc: bool = $context.connection.proc_import_lookup_table(this);
 };
@@ -28,6 +33,8 @@ type import_entry(is_module: bool, pad_align: uint8) = record {
 		false -> index: uint16;
 	};
 	name: null_terminated_string;
+} &let {
+	proc: bool = $context.connection.proc_import_hint(name);
 };
 
 type idata = record {
@@ -68,6 +75,8 @@ refine connection MockConnection += {
 		next_hint_align_ = 0;
 	%}
 
+	# When we read the section header, store the relative virtual address and
+	# size of the .idata section, so we know when we get there.
 	function proc_idata_rva(r: RVA): bool
 		%{
 		import_table_rva_ = ${r.virtual_address};
@@ -76,17 +85,48 @@ refine connection MockConnection += {
 		return true;
 		%}
 
-	function proc_section(h: Section_Header): bool
-		%{
-		if ( ${h.virtual_addr} > 0 && ${h.virtual_addr} == import_table_rva_ )
-			import_table_va_ = ${h.ptr_to_raw_data};
-		return true;
-		%}
-
+	# Each import directory means another module we're importing from.
 	function proc_image_import_directory(i: import_directory): bool
 		%{
 		num_imports_++;
 		return true;
+		%}
+
+	# Store the number of functions imported in each module lookup table.
+	function proc_import_lookup_table(t: import_lookup_table): bool
+		%{
+		--num_imports_;
+		imports_per_module_.push_back(${t.attrs}->size());
+		return true;
+		%}		
+
+	# We need to calculate the length of the next padding field
+	function proc_import_hint(hint_name: bytestring): bool
+		%{
+		next_hint_align_ = ${hint_name}.length() % 2;
+		printf("Imported %s\n", ${hint_name}.data());
+		return true;
+		%}
+
+	# Functions have an index field, modules don't. Which one is this?
+	function get_next_hint_type(): bool
+		%{
+		if ( next_hint_is_module_ )
+			{
+			next_hint_is_module_ = false;
+			return true;
+			}
+		if ( --imports_per_module_[next_hint_index_] == 0)
+			{
+			++next_hint_index_;
+			return true;
+			}
+		return false;
+		%}
+
+	function imports_done(): bool
+		%{
+		return next_hint_index_ == imports_per_module_.size();
 		%}
 
 	function get_import_table_addr(): uint32
@@ -109,37 +149,4 @@ refine connection MockConnection += {
 		return next_hint_align_;
 		%}		
 
-	function proc_import_lookup_table(t: import_lookup_table): bool
-		%{
-		--num_imports_;
-		imports_per_module_.push_back(${t.attrs}->size());
-		return true;
-		%}		
-
-	function get_next_hint_type(): bool
-		%{
-		if ( next_hint_is_module_ )
-			{
-			next_hint_is_module_ = false;
-			return true;
-			}
-		if ( --imports_per_module_[next_hint_index_] == 0)
-			{
-			++next_hint_index_;
-			return true;
-			}
-		return false;
-		%}
-
-	function imports_done(): bool
-		%{
-		return next_hint_index_ == imports_per_module_.size();
-		%}
-
-	function proc_import_hint(hint_name: bytestring): bool
-		%{
-		next_hint_align_ = ${hint_name}.length() % 2;
-		printf("Import function: %s\n", ${hint_name}.data());
-		return true;
-		%}
 };

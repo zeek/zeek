@@ -10,6 +10,9 @@ export {
 		CONNECTION,	##< All of a bi-directional connection's activity.
 		FLOW,		##< All of a  uni-directional flow's activity.
 		MAC,		##< Activity involving a MAC address.
+		ORIGMAC,	##< Activity *from* a source MAC address.
+		DESTMAC,	##< Activity *to* a destination MAC adress.
+		MACFLOW		##< Activity involving a pair of MAC addresses.
 	};
 
 	## Type defining the enity an :bro:id:`Rule` is operating on.
@@ -18,7 +21,8 @@ export {
 		conn: conn_id &optional;	##< Used with :bro:id:`CONNECTION` .
 		flow: flow_id &optional;	##< Used with :bro:id:`FLOW` .
 		ip: subnet &optional;		##< Used with :bro:id:`ORIGINATOR`/:bro:id:`RESPONDER`/:bro:id:`ADDRESS`; can specifiy a CIDR subnet.
-		mac: string &optional;		##< Used with :bro:id:`MAC` .
+		mac: string &optional;		##< Used with :bro:id:`MAC`/:bro:id:`ORIGMAC`/:bro:id:`DESTMAC`.
+		dst_mac: string &optional;	##< Used with :bro:id:`MACFLOW`; specifies the destination for the flow.
 	};
 
 	## Target of :bro:id:`Rule` action.

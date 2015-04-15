@@ -9,6 +9,9 @@ export {
 		forward: bool &default=T;
 		idle_timeout: count &default=60;
 		table_id: count &optional;
+
+		match_pred: function(p: PluginState, e: Entity, m: vector of OpenFlow::ofp_match): vector of OpenFlow::ofp_match &optional &weaken;
+		flow_mod_pred: function(p: PluginState, r: Rule, m: OpenFlow::ofp_flow_mod): OpenFlow::ofp_flow_mod &optional &weaken;
 	};
 
 	redef record PluginState += {
@@ -38,7 +41,23 @@ function openflow_check_rule(c: OfConfig, r: Rule) : bool
 	return F;
 	}
 
-function entity_to_match(e: Entity): vector of OpenFlow::ofp_match
+function openflow_match_pred(p: PluginState, e: Entity, m: vector of OpenFlow::ofp_match) : vector of OpenFlow::ofp_match
+	{
+	if ( p$of_config?$match_pred )
+		return p$of_config$match_pred(p, e, m);
+
+	return m;
+	}
+
+function openflow_flow_mod_pred(p: PluginState, r: Rule, m: OpenFlow::ofp_flow_mod): OpenFlow::ofp_flow_mod
+	{
+	if ( p$of_config?$flow_mod_pred )
+		return p$of_config$flow_mod_pred(p, r, m);
+
+	return m;
+	}
+
+function entity_to_match(p: PluginState, e: Entity): vector of OpenFlow::ofp_match
 	{
 	local v : vector of OpenFlow::ofp_match = vector();
 
@@ -46,7 +65,32 @@ function entity_to_match(e: Entity): vector of OpenFlow::ofp_match
 		{
 		v[|v|] = OpenFlow::match_conn(e$conn); # forward and...
 		v[|v|] = OpenFlow::match_conn(e$conn, T); # reverse
-		return v;
+		return openflow_match_pred(p, e, v);
+		}
+
+	if ( e$ty == MAC || e$ty == ORIGMAC || e$ty == DESTMAC )
+		{
+		if ( e$ty == MAC || e$ty == ORIGMAC )
+			v[|v|] = OpenFlow::ofp_match(
+				$dl_src=e$mac
+			);
+
+		if ( e$ty == MAC || e$ty == DESTMAC )
+			v[|v|] = OpenFlow::ofp_match(
+				$dl_dst=e$mac
+			);
+
+		return openflow_match_pred(p, e, v);
+		}
+
+	if ( e$ty == MACFLOW )
+		{
+			v[|v|] = OpenFlow::ofp_match(
+				$dl_src=e$mac,
+				$dl_dst=e$dst_mac
+			);
+
+		return openflow_match_pred(p, e, v);
 		}
 
 	local dl_type = OpenFlow::ETH_IPv4;
@@ -68,7 +112,7 @@ function entity_to_match(e: Entity): vector of OpenFlow::ofp_match
 				$nw_dst=e$ip
 			);
 
-		return v;
+		return openflow_match_pred(p, e, v);
 		}
 
 	local proto = OpenFlow::IP_TCP;
@@ -91,11 +135,50 @@ function entity_to_match(e: Entity): vector of OpenFlow::ofp_match
 			$nw_dst=addr_to_subnet(e$flow$dst_h),
 			$tp_dst=e$flow$dst_p
 		);
-		return v;
+
+		return openflow_match_pred(p, e, v);
 		}
 
 	Reporter::error(fmt("Entity type %s not supported for openflow yet", cat(e$ty)));
-	return v;
+	return openflow_match_pred(p, e, v);
+	}
+
+function openflow_rule_to_flow_mod(p: PluginState, r: Rule) : OpenFlow::ofp_flow_mod
+	{
+	local c = p$of_config;
+
+	local flow_mod = OpenFlow::ofp_flow_mod(
+		$cookie=r$id,
+		$command=OpenFlow::OFPFC_ADD,
+		$idle_timeout=c$idle_timeout,
+		$priority=int_to_count(r$priority)
+	);
+
+	if ( r?$expire )
+		flow_mod$hard_timeout = double_to_count(interval_to_double(r$expire));
+	if ( c?$table_id )
+		flow_mod$table_id = c$table_id;	
+
+	if ( r$ty == DROP )
+		{
+		# default, nothing to do. We simply do not add an output port to the rule...
+		}
+	else if ( r$ty == WHITELIST )
+		{
+		# at the moment our interpretation of whitelist is to hand this off to the switches L2/L3 routing.
+		flow_mod$out_ports = vector(OpenFlow::OFPP_NORMAL);
+		}
+	else if ( r$ty == REDIRECT )
+		{
+		# redirect to port i
+		flow_mod$out_ports = vector(int_to_count(r$i));
+		}
+	else
+		{
+		Reporter::error(fmt("Rule type %s not supported for openflow yet", cat(r$ty)));		
+		}
+
+	return openflow_flow_mod_pred(p, r, flow_mod);
 	}
 
 function openflow_add_rule(p: PluginState, r: Rule) : bool
@@ -105,19 +188,8 @@ function openflow_add_rule(p: PluginState, r: Rule) : bool
 	if ( ! openflow_check_rule(c, r) )
 		return F;
 
-	local flow_mod: OpenFlow::ofp_flow_mod = [
-		$cookie=r$id,
-		$command=OpenFlow::OFPFC_ADD,
-		$idle_timeout=c$idle_timeout,
-		$priority=int_to_count(r$priority)
-	];
-
-	if ( r?$expire )
-		flow_mod$hard_timeout = double_to_count(interval_to_double(r$expire));
-	if ( c?$table_id )
-		flow_mod$table_id = c$table_id;
-
-	local matches = entity_to_match(r$entity);
+	local flow_mod = openflow_rule_to_flow_mod(p, r);
+	local matches = entity_to_match(p, r$entity);
 
 	for ( i in matches )
 		{

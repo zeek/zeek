@@ -1,4 +1,9 @@
 
+2.3-699 | 2015-04-16 09:51:58 -0500
+
+  * Fix the to_count function to use strtoull versus strtoll.
+    (Jon Siwek)
+
 2.3-697 | 2015-04-15 09:51:15 -0700
 
   * Removing error check verifyingn that an ASCII writer has been

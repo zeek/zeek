@@ -60,6 +60,8 @@ type ryu_ofp_flow_mod: record {
 	flags: count &optional;
 	match: OpenFlow::ofp_match;
 	actions: vector of ryu_flow_action;
+	out_port: count &optional;
+	out_group: count &optional;
 };
 
 # Mapping between ofp flow mod commands and ryu urls
@@ -97,6 +99,11 @@ function ryu_flow_mod(state: OpenFlow::ControllerState, match: ofp_match, flow_m
 		$match=match,
 		$actions=flow_actions
 	);
+
+	if ( flow_mod?$out_port )
+		mod$out_port = flow_mod$out_port;
+	if ( flow_mod?$out_group )
+		mod$out_group = flow_mod$out_group;
 
 	# Type of the command
 	local command_type: string;

@@ -21,7 +21,7 @@ export {
 		conn: conn_id &optional;	##< Used with :bro:id:`CONNECTION` .
 		flow: flow_id &optional;	##< Used with :bro:id:`FLOW` .
 		ip: subnet &optional;		##< Used with :bro:id:`ORIGINATOR`/:bro:id:`RESPONDER`/:bro:id:`ADDRESS`; can specifiy a CIDR subnet.
-		mac: string &optional;		##< Used with :bro:id:`MAC`/:bro:id:`ORIGMAC`/:bro:id:`DESTMAC`.
+		mac: string &optional;		##< Used with :bro:id:`MAC`/:bro:id:`ORIGMAC`/:bro:id:`DESTMAC`/:bro:id:`MACFLOW`.
 		dst_mac: string &optional;	##< Used with :bro:id:`MACFLOW`; specifies the destination for the flow.
 	};
 

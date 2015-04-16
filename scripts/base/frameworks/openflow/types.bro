@@ -70,7 +70,8 @@ export {
 		## Priority level of flow entry.
 		priority: count &default=0;
 		## For OFPFC_DELETE* commands, require matching entried to include
-		## this as an output port. OFPP_ANY means no restrictions.
+		## this as an output port/group. OFPP_ANY/OFPG_ANY means no restrictions.
+		out_port: count &optional;
 		out_group: count &optional;
 		## Bitmap of the OFPFF_* flags
 		flags: count &default=0;

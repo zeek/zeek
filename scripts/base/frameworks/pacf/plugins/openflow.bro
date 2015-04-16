@@ -10,6 +10,7 @@ export {
 		idle_timeout: count &default=60;
 		table_id: count &optional;
 
+		check_pred: function(p: PluginState, r: Rule): bool &optional &weaken;
 		match_pred: function(p: PluginState, e: Entity, m: vector of OpenFlow::ofp_match): vector of OpenFlow::ofp_match &optional &weaken;
 		flow_mod_pred: function(p: PluginState, r: Rule, m: OpenFlow::ofp_flow_mod): OpenFlow::ofp_flow_mod &optional &weaken;
 	};
@@ -30,8 +31,13 @@ function openflow_name(p: PluginState) : string
 	return fmt("Openflow - %s", p$of_controller$describe(p$of_controller$state));
 	}
 
-function openflow_check_rule(c: OfConfig, r: Rule) : bool
+function openflow_check_rule(p: PluginState, r: Rule) : bool
 	{
+	local c = p$of_config;
+
+	if ( p$of_config?$check_pred )
+		return p$of_config$check_pred(p, r);
+
 	if ( r$target == MONITOR && c$monitor )
 		return T;
 
@@ -183,9 +189,7 @@ function openflow_rule_to_flow_mod(p: PluginState, r: Rule) : OpenFlow::ofp_flow
 
 function openflow_add_rule(p: PluginState, r: Rule) : bool
 	{
-	local c = p$of_config;
-
-	if ( ! openflow_check_rule(c, r) )
+	if ( ! openflow_check_rule(p, r) )
 		return F;
 
 	local flow_mod = openflow_rule_to_flow_mod(p, r);
@@ -202,7 +206,7 @@ function openflow_add_rule(p: PluginState, r: Rule) : bool
 
 function openflow_remove_rule(p: PluginState, r: Rule) : bool
 	{
-	if ( ! openflow_check_rule(p$of_config, r) )
+	if ( ! openflow_check_rule(p, r) )
 		return F;
 
 	local flow_mod: OpenFlow::ofp_flow_mod = [

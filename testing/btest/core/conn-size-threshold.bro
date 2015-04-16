@@ -3,22 +3,22 @@
 
 event connection_established(c: connection)
 	{
-	print get_conn_bytes_threshold(c$id, T);
-	print get_conn_bytes_threshold(c$id, F);
-	print get_conn_packets_threshold(c$id, T);
-	print get_conn_packets_threshold(c$id, F);
+	print get_current_conn_bytes_threshold(c$id, T);
+	print get_current_conn_bytes_threshold(c$id, F);
+	print get_current_conn_packets_threshold(c$id, T);
+	print get_current_conn_packets_threshold(c$id, F);
 
 	print fmt("Threshold set for %s", cat(c$id));
-	set_conn_bytes_threshold(c$id, 3000, T);
-	set_conn_bytes_threshold(c$id, 2000, F);
+	set_current_conn_bytes_threshold(c$id, 3000, T);
+	set_current_conn_bytes_threshold(c$id, 2000, F);
 
-	set_conn_packets_threshold(c$id, 50, F);
-	set_conn_packets_threshold(c$id, 63, T);
+	set_current_conn_packets_threshold(c$id, 50, F);
+	set_current_conn_packets_threshold(c$id, 63, T);
 
-	print get_conn_bytes_threshold(c$id, T);
-	print get_conn_bytes_threshold(c$id, F);
-	print get_conn_packets_threshold(c$id, T);
-	print get_conn_packets_threshold(c$id, F);
+	print get_current_conn_bytes_threshold(c$id, T);
+	print get_current_conn_bytes_threshold(c$id, F);
+	print get_current_conn_packets_threshold(c$id, T);
+	print get_current_conn_packets_threshold(c$id, F);
 	}
 
 event conn_bytes_threshold_crossed(c: connection, threshold: count, is_orig: bool)

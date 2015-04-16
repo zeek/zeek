@@ -1,4 +1,3 @@
-
 %%{
 #include "analyzer/protocol/conn-size/ConnSize.h"
 
@@ -20,7 +19,9 @@ analyzer::Analyzer* GetConnsizeAnalyzer(Val* cid)
 
 %%}
 
-## Sets a threshold for connection sizes.
+## Sets the current byte threshold for connection sizes, overwriting any potential old
+## threshold. Be aware that in nearly any case you will want to use the high level API
+## instead (ConnThreshold::set_bytes_threshold).
 ##
 ## cid: The connection id.
 ##
@@ -28,9 +29,9 @@ analyzer::Analyzer* GetConnsizeAnalyzer(Val* cid)
 ##
 ## is_orig: If true, threshold is set for bytes from originator, otherwhise for bytes from responder.
 ##
-## .. bro:see:: set_conn_packets_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
-##              get_conn_bytes_threshold get_conn_packets_threshold
-function set_conn_bytes_threshold%(cid: conn_id, threshold: count, is_orig: bool%): bool
+## .. bro:see:: set_current_conn_packets_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
+##              get_current_conn_bytes_threshold get_current_conn_packets_threshold
+function set_current_conn_bytes_threshold%(cid: conn_id, threshold: count, is_orig: bool%): bool
 	%{
 	analyzer::Analyzer* a = GetConnsizeAnalyzer(cid);
 	if ( ! a )
@@ -38,10 +39,12 @@ function set_conn_bytes_threshold%(cid: conn_id, threshold: count, is_orig: bool
 
 	static_cast<analyzer::conn_size::ConnSize_Analyzer*>(a)->SetThreshold(threshold, 1, is_orig);
 
-	return new Val(0, TYPE_BOOL);
+	return new Val(1, TYPE_BOOL);
 	%}
 
-## Sets a threshold for connection packets.
+## Sets a threshold for connection packets, overwtiting any potential old thresholds. 
+## Be aware that in nearly any case you will want to use the high level API
+## instead (ConnThreshold::set_packets_threshold).
 ##
 ## cid: The connection id.
 ##
@@ -49,9 +52,9 @@ function set_conn_bytes_threshold%(cid: conn_id, threshold: count, is_orig: bool
 ##
 ## is_orig: If true, threshold is set for packets from originator, otherwhise for packets from responder.
 ##
-## .. bro:see:: set_conn_bytes_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
-##              get_conn_bytes_threshold get_conn_packets_threshold
-function set_conn_packets_threshold%(cid: conn_id, threshold: count, is_orig: bool%): bool
+## .. bro:see:: set_current_conn_bytes_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
+##              get_current_conn_bytes_threshold get_current_conn_packets_threshold
+function set_current_conn_packets_threshold%(cid: conn_id, threshold: count, is_orig: bool%): bool
 	%{
 	analyzer::Analyzer* a = GetConnsizeAnalyzer(cid);
 	if ( ! a )
@@ -59,7 +62,7 @@ function set_conn_packets_threshold%(cid: conn_id, threshold: count, is_orig: bo
 
 	static_cast<analyzer::conn_size::ConnSize_Analyzer*>(a)->SetThreshold(threshold, 0, is_orig);
 
-	return new Val(0, TYPE_BOOL);
+	return new Val(1, TYPE_BOOL);
 	%}
 
 ## Gets the current byte threshold size for a connection.
@@ -70,9 +73,9 @@ function set_conn_packets_threshold%(cid: conn_id, threshold: count, is_orig: bo
 ##
 ## Returns: 0 if no threshold is set or the threshold in bytes
 ##
-## .. bro:see:: set_conn_packets_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
-##              get_conn_packets_threshold
-function get_conn_bytes_threshold%(cid: conn_id, is_orig: bool%): count
+## .. bro:see:: set_current_conn_packets_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
+##              get_current_conn_packets_threshold
+function get_current_conn_bytes_threshold%(cid: conn_id, is_orig: bool%): count
 	%{
 	analyzer::Analyzer* a = GetConnsizeAnalyzer(cid);
 	if ( ! a )
@@ -91,9 +94,9 @@ function get_conn_bytes_threshold%(cid: conn_id, is_orig: bool%): count
 ##
 ## Returns: 0 if no threshold is set or the threshold in packets
 ##
-## .. bro:see:: set_conn_packets_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
-##              get_conn_bytes_threshold
-function get_conn_packets_threshold%(cid: conn_id, is_orig: bool%): count
+## .. bro:see:: set_current_conn_packets_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
+##              get_current_conn_bytes_threshold
+function get_current_conn_packets_threshold%(cid: conn_id, is_orig: bool%): count
 	%{
 	analyzer::Analyzer* a = GetConnsizeAnalyzer(cid);
 	if ( ! a )

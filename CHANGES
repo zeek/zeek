@@ -1,7 +1,14 @@
 
+2.3-700 | 2015-04-16 07:54:12 -0700
+
+  * Update Mozilla CA list. (Johanna Amann)
+
+  * Update tests to have them keep using older certificates where
+    appropiate. (Johanna Amann)
+
 2.3-697 | 2015-04-15 09:51:15 -0700
 
-  * Removing error check verifyingn that an ASCII writer has been
+  * Removing error check verifying that an ASCII writer has been
     properly finished. Instead of aborting, we now just clean up in
     that case and proceed. Addresses BIT-1331. (Robin Sommer)
 

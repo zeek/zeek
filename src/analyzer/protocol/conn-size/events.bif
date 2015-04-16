@@ -1,0 +1,23 @@
+## Generated for a connection that crossed a set byte threshold
+##
+## c: the connection
+##
+## threshold: the threshold that was set
+##
+## is_orig: True if the threshold was crossed by the originator of the connection
+##
+## .. bro:see:: set_conn_packets_threshold set_conn_bytes_threshold conn_packets_threshold_crossed
+##              get_conn_bytes_threshold get_conn_packets_threshold
+event conn_bytes_threshold_crossed%(c: connection, threshold: count, is_orig: bool%);
+
+## Generated for a connection that crossed a set packet threshold
+##
+## c: the connection
+##
+## threshold: the threshold that was set
+##
+## is_orig: True if the threshold was crossed by the originator of the connection
+##
+## .. bro:see:: set_conn_packets_threshold set_conn_bytes_threshold conn_bytes_threshold_crossed
+##              get_conn_bytes_threshold get_conn_packets_threshold
+event conn_packets_threshold_crossed%(c: connection, threshold: count, is_orig: bool%);

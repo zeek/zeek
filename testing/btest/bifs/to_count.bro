@@ -24,4 +24,12 @@ event bro_init()
 	local e: port = 123/tcp;
 	print port_to_count(e);
 
+	local origString =        "9223372036854775808";
+	local directCount: count = 9223372036854775808;
+	local fromStringCount: count = to_count(origString);
+
+	if ( directCount == fromStringCount )
+	   print fmt("%s and %s are the same", directCount, fromStringCount);
+	else
+	   print fmt("%s and %s are not the same", directCount, fromStringCount);
 	}

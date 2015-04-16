@@ -30,6 +30,7 @@ public:
 protected:
 	virtual void DeliverPacket(int len, const u_char* data, bool is_orig,
 					uint64 seq, const IP_Hdr* ip, int caplen);
+	void CheckSizes(bool is_orig);
 
 	void ThresholdEvent(EventHandlerPtr f, uint64 threshold, bool is_orig);
 

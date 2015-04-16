@@ -53,15 +53,10 @@ void ConnSize_Analyzer::ThresholdEvent(EventHandlerPtr f, uint64 threshold, bool
 	ConnectionEvent(f, vl);
 	}
 
-void ConnSize_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, uint64 seq, const IP_Hdr* ip, int caplen)
+void ConnSize_Analyzer::CheckSizes(bool is_orig)
 	{
-	Analyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
-
 	if ( is_orig )
 		{
-		orig_bytes += ip->TotalLen();
-		orig_pkts ++;
-
 		if ( orig_bytes_thresh && orig_bytes >= orig_bytes_thresh )
 			{
 			ThresholdEvent(conn_bytes_threshold_crossed, orig_bytes_thresh, is_orig);
@@ -76,9 +71,6 @@ void ConnSize_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 		}
 	else
 		{
-		resp_bytes += ip->TotalLen();
-		resp_pkts ++;
-
 		if ( resp_bytes_thresh && resp_bytes >= resp_bytes_thresh )
 			{
 			ThresholdEvent(conn_bytes_threshold_crossed, resp_bytes_thresh, is_orig);
@@ -91,6 +83,25 @@ void ConnSize_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 			resp_pkts_thresh = 0;
 			}
 		}
+	}
+
+void ConnSize_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, uint64 seq, const IP_Hdr* ip, int caplen)
+	{
+	Analyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
+
+	if ( is_orig )
+		{
+		orig_bytes += ip->TotalLen();
+		orig_pkts ++;
+
+		}
+	else
+		{
+		resp_bytes += ip->TotalLen();
+		resp_pkts ++;
+		}
+
+	CheckSizes(is_orig);
 	}
 
 void ConnSize_Analyzer::SetThreshold(uint64 threshold, bool bytes, bool orig)
@@ -109,6 +120,9 @@ void ConnSize_Analyzer::SetThreshold(uint64 threshold, bool bytes, bool orig)
 		else
 			resp_pkts_thresh = threshold;
 		}
+
+	// check if threshold is already crossed
+	CheckSizes(orig);
 	}
 
 uint64_t ConnSize_Analyzer::GetThreshold(bool bytes, bool orig)

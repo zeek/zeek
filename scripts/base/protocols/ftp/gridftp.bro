@@ -11,13 +11,13 @@
 ##! GridFTP data channels are identified by a heuristic that relies on
 ##! the fact that default settings for GridFTP clients typically
 ##! mutually authenticate the data channel with TLS/SSL and negotiate a
-##! NULL bulk cipher (no encryption).  Connections with those
-##! attributes are then polled for two minutes with decreasing frequency
-##! to check if the transfer sizes are large enough to indicate a
-##! GridFTP data channel that would be undesirable to analyze further
-##! (e.g. stop TCP reassembly).  A side effect is that true connection
-##! sizes are not logged, but at the benefit of saving CPU cycles that
-##! would otherwise go to analyzing the large (and likely benign) connections.
+##! NULL bulk cipher (no encryption). Connections with those attributes
+##! are marked as GridFTP if the data transfer within the first two minites
+##! is big enough to indicate a GripFTP data channel that would be
+##! undesirable to analyze further (e.g. stop TCP reassembly).  A side
+##! effect is that true connection sizes are not logged, but at the benefit
+##! of saving CPU cycles that would otherwise go to analyzing the large
+##! (and likely benign) connections.
 
 @load ./info
 @load ./main
@@ -32,22 +32,13 @@ export {
 	## GridFTP data channel.
 	const size_threshold = 1073741824 &redef;
 
-	## Max number of times to check whether a connection's size exceeds the
+	## Time dunring which we check whether a connection's size exceeds the
 	## :bro:see:`GridFTP::size_threshold`.
-	const max_poll_count = 15 &redef;
+	const max_time = 2 min &redef;
 
 	## Whether to skip further processing of the GridFTP data channel once
 	## detected, which may help performance.
 	const skip_data = T &redef;
-
-	## Base amount of time between checking whether a GridFTP data connection
-	## has transferred more than :bro:see:`GridFTP::size_threshold` bytes.
-	const poll_interval = 1sec &redef;
-
-	## The amount of time the base :bro:see:`GridFTP::poll_interval` is
-	## increased by each poll interval.  Can be used to make more frequent
-	## checks at the start of a connection and gradually slow down.
-	const poll_interval_increase = 1sec &redef;
 
 	## Raised when a GridFTP data channel is detected.
 	##
@@ -79,23 +70,27 @@ event ftp_request(c: connection, command: string, arg: string) &priority=4
 		c$ftp$last_auth_requested = arg;
 	}
 
-function size_callback(c: connection, cnt: count): interval
+event ConnThreshold::bytes_threshold_crossed(c: connection, threshold: count, is_orig: bool)
 	{
-	if ( c$orig$size > size_threshold || c$resp$size > size_threshold )
+	if ( threshold < size_threshold || c$duration > max_time )
+		return;
+
+	add c$service["gridftp-data"];
+	event GridFTP::data_channel_detected(c);
+
+	if ( skip_data )
+		skip_further_processing(c$id);
+	}
+
+event gridftp_possibility_timeout(c: connection)
+	{
+	# only remove if we did not already detect it and the connection
+	# is not yet at its end.
+	if ( "gridftp-data" !in c$service && ! c$conn?$service )
 		{
-		add c$service["gridftp-data"];
-		event GridFTP::data_channel_detected(c);
-
-		if ( skip_data )
-			skip_further_processing(c$id);
-
-		return -1sec;
+		ConnThreshold::delete_bytes_threshold(c, size_threshold, T);
+		ConnThreshold::delete_bytes_threshold(c, size_threshold, F);
 		}
-
-	if ( cnt >= max_poll_count )
-		return -1sec;
-
-	return poll_interval + poll_interval_increase * cnt;
 	}
 
 event ssl_established(c: connection) &priority=5
@@ -118,5 +113,9 @@ event ssl_established(c: connection) &priority=-3
 	# By default GridFTP data channels do mutual authentication and
 	# negotiate a cipher suite with a NULL bulk cipher.
 	if ( data_channel_initial_criteria(c) )
-		ConnPolling::watch(c, size_callback, 0, 0secs);
+		{
+		ConnThreshold::set_bytes_threshold(c, size_threshold, T);
+		ConnThreshold::set_bytes_threshold(c, size_threshold, F);
+		schedule max_time { gridftp_possibility_timeout(c) };
+		}
 	}

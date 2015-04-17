@@ -72,7 +72,7 @@ event ftp_request(c: connection, command: string, arg: string) &priority=4
 
 event ConnThreshold::bytes_threshold_crossed(c: connection, threshold: count, is_orig: bool)
 	{
-	if ( threshold < size_threshold || c$duration > max_time )
+	if ( threshold < size_threshold || "gridftp-data" in c$service || c$duration > max_time )
 		return;
 
 	add c$service["gridftp-data"];

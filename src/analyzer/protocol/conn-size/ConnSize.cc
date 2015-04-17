@@ -31,9 +31,9 @@ void ConnSize_Analyzer::Init()
 	resp_pkts = 0;
 
 	orig_bytes_thresh = 0;
-	orig_pkts = 0;
+	orig_pkts_thresh = 0;
 	resp_bytes_thresh = 0;
-	resp_pkts = 0;
+	resp_pkts_thresh = 0;
 	}
 
 void ConnSize_Analyzer::Done()

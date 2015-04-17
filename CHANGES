@@ -1,4 +1,16 @@
 
+2.3-709 | 2015-04-17 12:37:32 -0700
+
+  * Fix addressing the dreaded "internal error: unknown msg type 115
+  in Poll()". (Jon Siwek)
+
+    This patch removes the error handling code for overload conditions
+    in the main process that could cause trouble down the road. The
+    "chunked_io_buffer_soft_cap" script variable can now tune when the
+    client process begins shutting down peer connections, and the
+    default setting is now double what it used to be. Addresses
+    BIT-1376.
+
 2.3-707 | 2015-04-17 10:57:59 -0500
 
   * Add more info about Broker to NEWS. (Jon Siwek)

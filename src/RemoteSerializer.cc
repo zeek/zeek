@@ -3464,7 +3464,8 @@ void SocketComm::Run()
 		int a = select(max_fd + 1, &fd_read, &fd_write, &fd_except, 0);
 
 		if ( selects % 100000 == 0 )
-			Log(fmt("selects=%ld canwrites=%ld", selects, canwrites));
+			Log(fmt("selects=%ld canwrites=%ld pending=%lu",
+			        selects, canwrites, io->Stats()->pending));
 
 		if ( a < 0 )
 			// Ignore errors for now.

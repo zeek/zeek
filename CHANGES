@@ -1,4 +1,8 @@
 
+2.3-720 | 2015-04-17 14:18:26 -0700
+
+  * Updating NEWS.
+
 2.3-716 | 2015-04-17 13:06:37 -0700
 
   * Add seeking functionality to raw reader. One can now add an option

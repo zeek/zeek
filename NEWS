@@ -30,7 +30,7 @@ New Functionality
 - Bro now has an RDP analyzer.
 
 - Bro now features a completely rewritten, enhanced SSH analyzer, with
-  a set of addedd events being generated. A lot more information about
+  a set of added events being generated. A lot more information about
   SSH sessions is logged. The analyzer is able to determine if logins
   failed or succeeded in most circumstances.
 

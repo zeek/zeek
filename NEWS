@@ -75,6 +75,15 @@ New Functionality
 
 - Bro now has an RDP analyzer.
 
+- The input framework's raw reader now supports seeking by adding an
+  option "offset" to the config map. Positive offsets are interpreted
+  to be from the beginning of the file, negative from the end of the
+  file (-1 is end of file).
+
+- One can now raise events when a connection crosses a given size
+  threshold in terms of packets or bytes. The primary API for that
+  functionality is in base/protocols/conn/thresholds.bro.
+
 Changed Functionality
 ---------------------
 

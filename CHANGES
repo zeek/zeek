@@ -1,4 +1,43 @@
 
+2.3-716 | 2015-04-17 13:06:37 -0700
+
+  * Add seeking functionality to raw reader. One can now add an option
+    "offset" to the config map. Positive offsets are interpreted to be
+    from the beginning of the file, negative from the end of the file
+    (-1 is end of file). Only works for raw reader in streaming or
+    manual mode. Does not work with executables. Addresses BIT-985.
+    (Johanna Amann)
+
+  * Allow setting packet and byte thresholds for connections. (Johanna Amann)
+
+    This extends the ConnSize analyzer to be able to raise events when
+    each direction of a connection crosses a certain amount of bytes
+    or packets.
+
+    Thresholds are set using:
+        - set_conn_bytes_threshold(c$id, [num-bytes], [direction]);
+        - set_conn_packets_threshold(c$id, [num-packets], [direction]);
+
+    They raise the events, respectively:
+        - event conn_bytes_threshold_crossed(c: connection, threshold: count, is_orig: bool)
+        - event conn_packets_threshold_crossed(c: connection, threshold: count, is_orig: bool)
+
+    Current thresholds can be examined using get_conn_bytes_threshold()
+    and get_conn_packets_threshold().
+
+    Only one threshold can be set per connection.
+
+  * Add high-level API for packet/bytes thresholding in
+    base/protocols/conn/thresholds.bro that holds lists of thresholds
+    and raises an event for each threshold exactly once. (Johanna
+    Amann)
+
+  * Fix a bug where child packet analyzers of the TCP analyzer
+    where not found using FindChild.
+
+  * Update GridFTP analyzer to use connection thresholding instead of
+    polling. (Johanna Amann)
+
 2.3-709 | 2015-04-17 12:37:32 -0700
 
   * Fix addressing the dreaded "internal error: unknown msg type 115

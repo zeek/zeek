@@ -5,14 +5,28 @@ export {
 	redef enum Log::ID += { LOG };
 
 	type Info: record {
-		ts:              time             &log;
-		fuid:            string           &log;
-		machine:         string           &log &optional;
-		compile_ts:      time             &log &optional;
-		os:              string           &log &optional;
-		subsystem:       string           &log &optional;
-		characteristics: set[string]      &log &optional;
-		section_names:   vector of string &log &optional;
+		ts:                  time              &log;
+		fuid:                string            &log;
+		machine:             string            &log &optional;
+		compile_ts:          time              &log &optional;
+		os:                  string            &log &optional;
+		subsystem:           string            &log &optional;
+
+	 	is_exe:              bool              &log &default=F;
+		is_dll:              bool              &log &default=F;
+	        is_64bit:            bool              &log &default=T;
+
+		uses_aslr:           bool              &log &default=F;
+	        uses_dep:            bool              &log &default=F;
+	        uses_code_integrity: bool              &log &default=F;
+	        uses_seh:            bool              &log &default=T;
+	        
+		has_import_table:    bool              &log &optional;
+	        has_export_table:    bool              &log &optional;
+	        has_cert_table:      bool              &log &optional;
+	        has_debug_data:      bool              &log &optional;
+		
+		section_names:       vector of string  &log &optional;
 	};
 
 
@@ -33,41 +47,51 @@ hook set_file(f: fa_file) &priority=5
 	if ( ! f?$pe )
 		{
 		local c: set[string] = set();
-		f$pe = [$ts=network_time(), $fuid=f$id, $characteristics=c];
+		f$pe = [$ts=network_time(), $fuid=f$id];
 		}
 	}
 
 event pe_dos_header(f: fa_file, h: PE::DOSHeader) &priority=5
 	{
-#	print "DOS header";
-#	print h;
 	hook set_file(f);
 	}
 
 event pe_file_header(f: fa_file, h: PE::FileHeader) &priority=5
 	{
-#	print "File header";
-#	print h;
 	hook set_file(f);
 	f$pe$compile_ts = h$ts;
 	f$pe$machine    = machine_types[h$machine];
 	for ( c in h$characteristics )
-		add f$pe$characteristics[PE::file_characteristics[c]];
+		{
+		if ( c == 0x2 )
+			f$pe$is_exe = T;
+		if ( c == 0x100 )
+			f$pe$is_64bit = F;
+		if ( c == 0x2000 )
+			f$pe$is_dll = T;
+		}
 	}
 
 event pe_optional_header(f: fa_file, h: PE::OptionalHeader) &priority=5
 	{
-#	print "Optional header";
-#	print h;
 	hook set_file(f);
 	f$pe$os = os_versions[h$os_version_major, h$os_version_minor];
 	f$pe$subsystem = windows_subsystems[h$subsystem];
+	for ( c in h$dll_characteristics )
+		{
+		if ( c == 0x40 )
+			f$pe$uses_aslr = T;
+		if ( c == 0x80 )
+			f$pe$uses_code_integrity = T;
+		if ( c == 0x100 )
+			f$pe$uses_dep = T;
+		if ( c == 0x400 )
+			f$pe$uses_seh = F;
+		}
 	}
 
 event pe_section_header(f: fa_file, h: PE::SectionHeader) &priority=5
 	{
-#	print "Section header";
-#	print h;
 	hook set_file(f);
 
 	if ( ! f$pe?$section_names )

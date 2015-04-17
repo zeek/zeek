@@ -2586,7 +2586,7 @@ type PE::OptionalHeader: record {
 	size_of_uninit_data     : count;
 	addr_of_entry_point     : count;
 	base_of_code            : count;
-	base_of_data            : count;
+	base_of_data            : count &optional;
 	image_base              : count;
 	section_alignment       : count;
 	file_alignment          : count;

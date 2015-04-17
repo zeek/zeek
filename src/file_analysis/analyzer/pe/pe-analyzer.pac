@@ -114,7 +114,10 @@ refine flow File += {
 			oh->Assign(5,  new Val(${h.size_of_uninit_data}, TYPE_COUNT));
 			oh->Assign(6,  new Val(${h.addr_of_entry_point}, TYPE_COUNT));
 			oh->Assign(7, new Val(${h.base_of_code}, TYPE_COUNT));
-			oh->Assign(8, new Val(${h.base_of_data}, TYPE_COUNT));
+
+			if ( ${h.pe_format} != PE32_PLUS )
+				oh->Assign(8, new Val(${h.base_of_data}, TYPE_COUNT));
+
 			oh->Assign(9, new Val(${h.image_base}, TYPE_COUNT));
 			oh->Assign(10, new Val(${h.section_alignment}, TYPE_COUNT));
 			oh->Assign(11, new Val(${h.file_alignment}, TYPE_COUNT));

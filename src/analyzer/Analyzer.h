@@ -400,7 +400,7 @@ public:
 	 *
 	 * @return The analyzer, or null if not found.
 	 */
-	Analyzer* FindChild(ID id);
+	virtual Analyzer* FindChild(ID id);
 
 	/**
 	 * Recursively searches all (direct or indirect) childs of the
@@ -411,7 +411,7 @@ public:
 	 * @return The first analyzer of the given type found, or null if
 	 * none.
 	 */
-	Analyzer* FindChild(Tag tag);
+	virtual Analyzer* FindChild(Tag tag);
 
 	/**
 	 * Recursively searches all (direct or indirect) childs of the

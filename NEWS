@@ -7,9 +7,6 @@ their own ``CHANGES``.)
 Bro 2.4 (in progress)
 =====================
 
-Dependencies
-------------
-
 New Functionality
 -----------------
 
@@ -17,20 +14,25 @@ New Functionality
   functionality, like protocol/file analysis, via shared libraries.
   Plugins can be developed and distributed externally, and will be
   pulled in dynamically at startup. Currently, a plugin can provide
-  custom protocol analyzers, file analyzers, log writers[TODO], input
-  readers[TODO], packet sources[TODO], and new built-in functions. A
-  plugin can furthermore hook into Bro's processing a number of places
-  to add custom logic.
+  custom protocol analyzers, file analyzers, log writers, input
+  readers, packet sources and dumpers, and new built-in functions. A
+  plugin can furthermore hook into Bro's processing at a number of
+  places to add custom logic.
 
   See https://www.bro.org/sphinx-git/devel/plugins.html for more
   information on writing plugins.
 
-- Bro now has supoprt for the MySQL wire protocol. Activity gets
+- Bro now has support for the MySQL wire protocol. Activity gets
   logged into mysql.log.
 
-- Bro now features a completely rewritten, enhanced SSH analyzer. A lot
-  more information about SSH sessions is logged. The analyzer is able to
-  determine if logins failed or succeeded in most circumstances.
+- Bro now parses DTLS traffic.
+
+- Bro now has an RDP analyzer.
+
+- Bro now features a completely rewritten, enhanced SSH analyzer, with
+  a set of addedd events being generated. A lot more information about
+  SSH sessions is logged. The analyzer is able to determine if logins
+  failed or succeeded in most circumstances.
 
 - Bro's file analysis now supports reassembly of files that are not
   transferred/seen sequentially.
@@ -58,22 +60,23 @@ New Functionality
   (https://github.com/actor-framework/actor-framework) as well as a
   C++11 compiler (e.g. GCC 4.8+ or Clang 3.3+).
 
-  Broker will become a mandatory dependency in future Bro versions.
+  Broker will become a mandatory dependency in future Bro versions and
+  replace the current communcation and serialization system.
 
 - Add --enable-c++11 configure flag to compile Bro's source code in
   C++11 mode with a corresponding compiler. Note that 2.4 will be the
   last version of Bro that compiles without C++11 support.
 
-- The SSL analysis now alert when encountering SSL connections with
-  old protocol versions or unsafe cipher suites.
+- The SSL analysis now alerts when encountering SSL connections with
+  old protocol versions or unsafe cipher suites. It also gained
+  extended reporting of weak keys, caching of already valdidated
+  certificates, full support TLS record defragmentation. SSL generally
+  became much more robust and added several fields to ssl.log (while
+  removing some other).
 
 - [TODO] Add new BroControl features.
 
 - A new icmp_sent_payload event provides access to ICMP payload.
-
-- Bro now parses DTLS traffic.
-
-- Bro now has an RDP analyzer.
 
 - The input framework's raw reader now supports seeking by adding an
   option "offset" to the config map. Positive offsets are interpreted
@@ -137,8 +140,6 @@ Changed Functionality
   filter if it has neither a ``path`` nor a ``path_func`` already
   explicitly set.  Before, the default path function would always be set
   for all filters which didn't specify their own ``path_func``.
-
-- TODO: what SSH events got changed or removed?
 
 Deprecated Functionality
 ------------------------

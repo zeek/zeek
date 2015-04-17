@@ -43,11 +43,15 @@ New Functionality
   ``next`` and ``break`` can be used inside the loop's body just like
   with ``for`` loops.
 
-- Bro now integrates Broker, it's new communication library. See
+- Bro now integrates Broker, a new communication library. See
   aux/broker/README for more information on Broker, and
-  doc/frameworks/comm.rst for the corresponding Bro script API.
+  doc/frameworks/broker.rst for the corresponding Bro script API.
 
-  TODO: Extend with some more information on  Broker.
+  With Broker, Bro has the similar capabilities of exchanging events and
+  logs with remote peers (either another Bro process or some other
+  application that uses Broker).  It also includes a key-value store
+  API that can be used to share state between peers and optionally
+  allow data to persist on disk for longer-term storage.
 
   Broker support is by default off for now; it can be enabled at
   configure time with --enable-broker. It requires CAF version 0.13+

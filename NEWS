@@ -67,13 +67,32 @@ New Functionality
 - The SSL analysis now alert when encountering SSL connections with
   old protocol versions or unsafe cipher suites.
 
-- [TODO] Add new BroControl features.
-
 - A new icmp_sent_payload event provides access to ICMP payload.
 
 - Bro now parses DTLS traffic.
 
 - Bro now has an RDP analyzer.
+
+- BroControl now has a new command "deploy" which is equivalent to running
+  the "check", "install", "stop", and "start" commands (in that order).
+
+- BroControl now has a new option "StatusCmdShowAll" that controls whether
+  or not the broctl "status" command gathers all of the status information.
+  This option can be used to make the "status" command run significantly
+  faster (in this case, the "Peers" column will not be shown in the output).
+
+- BroControl now has a new option "StatsLogEnable" that controls whether
+  or not broctl will record information to the "stats.log" file.  This option
+  can be used to make the "broctl cron" command run slightly faster (in this
+  case, "broctl cron" will also no longer send email about not seeing any
+  packets on the monitoring interfaces).
+
+- BroControl now has a new option "MailHostUpDown" which controls whether or
+  not the "broctl cron" command will send email when it notices that a host
+  in the cluster is up or down.
+
+- BroControl now has a new option "CommandTimeout" which specifies the number
+  of seconds to wait for a command that broctl ran to return results.
 
 Changed Functionality
 ---------------------
@@ -114,8 +133,6 @@ Changed Functionality
 - The default name for extracted files changed from extract-protocol-id
   to extract-timestamp-protocol-id.
 
-- [TODO] Add changed BroControl features.
-
 - The weird named "unmatched_HTTP_reply" has been removed since it can
   be detected at the script-layer and is handled correctly by the
   default HTTP scripts.
@@ -130,6 +147,24 @@ Changed Functionality
   for all filters which didn't specify their own ``path_func``.
 
 - TODO: what SSH events got changed or removed?
+
+- BroControl now establishes only one ssh connection from the manager to
+  each remote host in a cluster configuration (previously, there would be
+  one ssh connection per remote Bro process).
+
+- BroControl now uses SQLite to record state information instead of a
+  plain text file (the file "spool/broctl.dat" is no longer used).
+  On FreeBSD, this means that there is a new dependency on the package
+  "py27-sqlite3".
+
+- BroControl now records the expected running state of each Bro node right
+  before each start or stop.  The "broctl cron" command uses this info to
+  either start or stop Bro nodes as needed so that the actual state matches
+  the expected state (previously, "broctl cron" could only start nodes in
+  the "crashed" state, and could never stop a node).
+
+- BroControl now sends all normal command output (i.e., not error messages)
+  to stdout.  Error messages are still sent to stderr, however.
 
 Deprecated Functionality
 ------------------------

@@ -127,6 +127,10 @@ Changed Functionality
 
 - TODO: what SSH events got changed or removed?
 
+- Log files now escape non-printable characters consistently as "\xXX'.
+  Furthermore, backslashes are escaped as "\\", making the
+  representation fully reversible.
+
 Deprecated Functionality
 ------------------------
 

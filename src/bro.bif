@@ -128,6 +128,7 @@ static void do_fmt(const char*& fmt, Val* v, ODesc* d)
 	char out_buf[512];
 
 	ODesc s;
+	s.SetStyle(RAW_STYLE);
 
 	if ( precision >= 0 && *fmt != 'e' && *fmt != 'f' && *fmt != 'g' )
 		builtin_error("precision specified for non-floating point");
@@ -250,12 +251,12 @@ static void do_fmt(const char*& fmt, Val* v, ODesc* d)
 			d->Add(" ");
 		}
 
-	d->Add(s.Description());
+	d->AddN((const char*)(s.Bytes()), s.Len());
 
 	// Right-padding with whitespace, if any.
 	if ( field_width > 0 && left_just )
 		{
-		int sl = strlen(s.Description());
+		int sl = s.Len();
 		while ( ++sl <= field_width )
 			d->Add(" ");
 		}
@@ -1342,6 +1343,8 @@ function order%(v: any, ...%) : index_vec
 function cat%(...%): string
 	%{
 	ODesc d;
+	d.SetStyle(RAW_STYLE);
+
 	loop_over_list(@ARG@, i)
 		@ARG@[i]->Describe(&d);
 
@@ -1367,6 +1370,8 @@ function cat%(...%): string
 function cat_sep%(sep: string, def: string, ...%): string
 	%{
 	ODesc d;
+	d.SetStyle(RAW_STYLE);
+
 	int pre_size = 0;
 
 	loop_over_list(@ARG@, i)
@@ -1443,6 +1448,8 @@ function fmt%(...%): string
 
 	const char* fmt = fmt_v->AsString()->CheckString();
 	ODesc d;
+	d.SetStyle(RAW_STYLE);
+
 	int n = 0;
 
 	while ( next_fmt(fmt, @ARGS@, &d, n) )

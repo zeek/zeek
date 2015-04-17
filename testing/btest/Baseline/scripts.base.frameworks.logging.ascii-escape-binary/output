@@ -4,6 +4,8 @@ AB\xffCD\x00
 
 abc\x00def
 
+abc\x00def
+
 foo \xc2\xae bar \xc2\xae baz
 foo\x00bar\0baz
 foo \x0e bar ^N baz

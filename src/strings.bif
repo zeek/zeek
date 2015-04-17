@@ -207,6 +207,8 @@ function join_string_array%(sep: string, a: string_array%): string &deprecated
 function join_string_vec%(vec: string_vec, sep: string%): string
 	%{
 	ODesc d;
+	d.SetStyle(RAW_STYLE);
+
 	VectorVal *v = vec->AsVectorVal();
 
 	for ( unsigned i = 0; i < v->Size(); ++i )

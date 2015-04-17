@@ -1,6 +1,6 @@
 ## Generated for a connection that crossed a set byte threshold. Note that this
-## is a low level event that can fire several times for the same threshold---you
-## should probably use ConnThreshold::bytes_threshold_crossed instead.
+## is a low level event that should usually be avoided for user code. Use
+## ConnThreshold::bytes_threshold_crossed instead.
 ##
 ## c: the connection
 ##
@@ -13,8 +13,8 @@
 event conn_bytes_threshold_crossed%(c: connection, threshold: count, is_orig: bool%);
 
 ## Generated for a connection that crossed a set packet threshold. Note that this
-## is a low level event that can fire several times for the same threshold---you
-## should probably use ConnThreshold::packets_threshold_crossed instead.
+## is a low level event that should usually be avoided for user code. Use
+## ConnThreshold::bytes_threshold_crossed instead.
 ##
 ## c: the connection
 ##

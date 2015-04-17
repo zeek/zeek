@@ -65,6 +65,8 @@ private:
 
 	bool forcekill;
 
+	int64_t offset;
+
 	int pipes[6];
 	pid_t childpid;
 

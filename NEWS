@@ -25,6 +25,9 @@ New Functionality
 - Bro now has support for the MySQL wire protocol. Activity gets
   logged into mysql.log.
 
+- Bro now has support for the Kerberos KRB5 protocol over TCP and
+  UDP. Activity gets logged into krb.log.
+
 - Bro now parses DTLS traffic.
 
 - Bro now has an RDP analyzer.

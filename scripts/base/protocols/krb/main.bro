@@ -68,8 +68,14 @@ redef record connection += {
 	krb: Info &optional;
 };
 
+const tcp_ports = { 88/tcp };
+const udp_ports = { 88/udp };
+redef likely_server_ports += { tcp_ports, udp_ports };
+
 event bro_init() &priority=5
 	{
+	Analyzer::register_for_ports(Analyzer::ANALYZER_KRB, udp_ports);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_KRB_TCP, tcp_ports);
 	Log::create_stream(KRB::LOG, [$columns=Info, $ev=log_krb]);
 	}
 

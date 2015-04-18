@@ -39,7 +39,7 @@ type DOS_Code(len: uint32) = record {
 type NT_Headers = record {
 	PESignature     : uint32;
 	file_header     : File_Header;
-	optional_header : Optional_Header(file_header.SizeOfOptionalHeader, file_header.NumberOfSections) &length=file_header.SizeOfOptionalHeader;
+	optional_header : Optional_Header &length=file_header.SizeOfOptionalHeader;
 } &let {
 	length: uint32 = file_header.SizeOfOptionalHeader+offsetof(optional_header);
 } &length=length;
@@ -56,7 +56,7 @@ type File_Header = record {
 };
 
 # The optional header gives us DLL link information, and some structural information
-type Optional_Header(len: uint16, number_of_sections: uint16) = record {
+type Optional_Header = record {
 	magic                   : uint16;
 	major_linker_version    : uint8;
 	minor_linker_version    : uint8;
@@ -68,11 +68,11 @@ type Optional_Header(len: uint16, number_of_sections: uint16) = record {
 	have_base_of_data: case pe_format of {
 		PE32    -> base_of_data: uint32;
 		default -> not_present:  empty;
-	};
+	} &requires(pe_format);
 	is_pe32: case pe_format of {
 		PE32_PLUS -> image_base_64: uint64;
 		default   -> image_base_32: uint32;
-	};
+	} &requires(pe_format);
 	section_alignment       : uint32;
 	file_alignment          : uint32;
 	os_version_major        : uint16;
@@ -91,14 +91,14 @@ type Optional_Header(len: uint16, number_of_sections: uint16) = record {
 		PE32      -> i32: Mem_Info32;
 		PE32_PLUS -> i64: Mem_Info64;
 		default -> InvalidPEFile : empty;
-	};
+	} &requires(pe_format);
 	loader_flags            : uint32;
 	number_of_rva_and_sizes : uint32;
 	rvas			: RVAS(number_of_rva_and_sizes);
 } &let {
 	pe_format: uint8 = $context.connection.set_pe32_format(magic);
 	image_base: uint64 = pe_format == PE32_PLUS ? image_base_64 : image_base_32;
-} &length=len;
+};
 
 type Section_Headers(num: uint16) = record {
 	sections : Section_Header[num];
@@ -118,7 +118,7 @@ type Section_Header = record {
 	non_used_num_of_line_nums : uint16;
 	characteristics           : uint32;
 } &let {
-	proc: bool = $context.connection.proc_section(this);
+	add_section: bool = $context.connection.add_section(this);
 } &length=40;
 
 refine connection MockConnection += {
@@ -132,13 +132,13 @@ refine connection MockConnection += {
 		pe32_format_ = UNKNOWN_VERSION;;
 	%}
 
-	function proc_section(h: Section_Header): bool
+	function add_section(h: Section_Header): bool
 		%{
 		if ( ${h.size_of_raw_data} + ${h.ptr_to_raw_data} > max_file_location_ )
 			max_file_location_ = ${h.size_of_raw_data} + ${h.ptr_to_raw_data};
 		
-		if ( ${h.virtual_addr} > 0 && ${h.virtual_addr} == import_table_rva_ )
-			import_table_va_ = ${h.ptr_to_raw_data};
+		if ( ${h.virtual_addr} > 0 && ${h.virtual_addr} <= import_table_rva_ && ( ${h.virtual_addr} + ${h.virtual_size} ) > import_table_rva_ )
+			import_table_va_ = ${h.ptr_to_raw_data} + (import_table_rva_ - ${h.virtual_addr});
 		return true;
 		%}
 

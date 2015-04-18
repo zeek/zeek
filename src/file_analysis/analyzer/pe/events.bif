@@ -1,5 +1,11 @@
 event pe_dos_header%(f: fa_file, h: PE::DOSHeader%);
+
 event pe_dos_code%(f: fa_file, code: string%);
+
 event pe_file_header%(f: fa_file, h: PE::FileHeader%);
+
 event pe_optional_header%(f: fa_file, h: PE::OptionalHeader%);
+
 event pe_section_header%(f: fa_file, h: PE::SectionHeader%);
+
+event pe_import_entry%(f: fa_file, m: string, name: string%);

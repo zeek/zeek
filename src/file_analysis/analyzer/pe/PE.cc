@@ -18,6 +18,8 @@ PE::~PE()
 
 bool PE::DeliverStream(const u_char* data, uint64 len)
 	{
+	if ( conn->is_done() )
+		return true;
 	try
 		{
 		interp->NewData(data, data + len);

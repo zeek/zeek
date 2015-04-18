@@ -35,4 +35,3 @@ type Padding(length: uint64) = record {
 };
 
 type null_terminated_string = RE/[A-Za-z0-9.]+\x00/;
-

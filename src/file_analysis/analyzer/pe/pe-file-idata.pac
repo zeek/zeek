@@ -29,12 +29,12 @@ type import_lookup_table = record {
 type import_entry(is_module: bool, pad_align: uint8) = record {
 	pad: bytestring &length=pad_align;
 	has_index: case is_module of {
-		true -> null: empty;
+		true  -> null: empty;
 		false -> index: uint16;
 	};
 	name: null_terminated_string;
 } &let {
-	proc: bool = $context.connection.proc_import_hint(name);
+	proc_align: bool = $context.connection.proc_import_hint(name, is_module);
 };
 
 type idata = record {
@@ -63,6 +63,9 @@ refine connection MockConnection += {
 		uint32 next_hint_index_;
 		uint8 next_hint_align_;
 		bool next_hint_is_module_;
+
+		// Track the module name, so we know what each import's for
+		bytestring module_name_;
 	%}
 
 	%init{
@@ -73,6 +76,12 @@ refine connection MockConnection += {
 		next_hint_is_module_ = true;
 		next_hint_index_ = 0;
 		next_hint_align_ = 0;
+
+		module_name_ = bytestring();
+	%}
+
+	%cleanup{
+		module_name_.free();
 	%}
 
 	# When we read the section header, store the relative virtual address and
@@ -101,10 +110,15 @@ refine connection MockConnection += {
 		%}		
 
 	# We need to calculate the length of the next padding field
-	function proc_import_hint(hint_name: bytestring): bool
+	function proc_import_hint(hint_name: bytestring, is_module: bool): bool
 		%{
 		next_hint_align_ = ${hint_name}.length() % 2;
-		printf("Imported %s\n", ${hint_name}.data());
+		if ( is_module && ${hint_name}.length() > 1 )
+			{
+			module_name_.clear();
+			module_name_.init(${hint_name}.data(), ${hint_name}.length() - 1);
+			}
+			
 		return true;
 		%}
 
@@ -127,6 +141,11 @@ refine connection MockConnection += {
 	function imports_done(): bool
 		%{
 		return next_hint_index_ == imports_per_module_.size();
+		%}
+
+	function get_module_name(): bytestring
+		%{
+		return module_name_;
 		%}
 
 	function get_import_table_addr(): uint32

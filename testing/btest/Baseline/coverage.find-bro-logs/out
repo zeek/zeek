@@ -18,6 +18,7 @@ known_devices
 known_hosts
 known_modbus
 known_services
+krb
 loaded_scripts
 modbus
 modbus_register_change

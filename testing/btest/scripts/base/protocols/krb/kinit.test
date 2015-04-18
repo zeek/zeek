@@ -1,0 +1,6 @@
+# This test exercises many of the Linux kinit options against a KDC
+
+# @TEST-EXEC: bro -b -r $TRACES/krb/kinit.trace %INPUT
+# @TEST-EXEC: btest-diff krb.log
+
+@load base/protocols/krb

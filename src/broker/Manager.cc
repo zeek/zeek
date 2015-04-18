@@ -26,8 +26,15 @@ int bro_broker::Manager::send_flags_unsolicited_idx;
 
 bro_broker::Manager::~Manager()
 	{
+	vector<decltype(data_stores)::key_type> stores_to_close;
+
 	for ( auto& s : data_stores )
-		CloseStore(s.first.first, s.first.second);
+		stores_to_close.emplace_back(s.first);
+
+	for ( auto& s : stores_to_close )
+		// This doesn't loop directly over data_stores, because CloseStore
+		// modifies the map and invalidates iterators.
+		CloseStore(s.first, s.second);
 	}
 
 static int require_field(RecordType* rt, const char* name)

@@ -3282,6 +3282,11 @@ const forward_remote_events = F &redef;
 ##    more sophisticated script-level communication framework.
 const forward_remote_state_changes = F &redef;
 
+## The number of IO chunks allowed to be buffered between the child
+## and parent process of remote communication before Bro starts dropping
+## connections to remote peers in an attempt to catch up.
+const chunked_io_buffer_soft_cap = 800000 &redef;
+
 ## Place-holder constant indicating "no peer".
 const PEER_ID_NONE = 0;
 

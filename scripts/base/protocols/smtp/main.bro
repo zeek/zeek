@@ -92,7 +92,7 @@ redef likely_server_ports += { ports };
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(SMTP::LOG, [$columns=SMTP::Info, $ev=log_smtp]);
+	Log::create_stream(SMTP::LOG, [$columns=SMTP::Info, $ev=log_smtp, $path="smtp"]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SMTP, ports);
 	}
 

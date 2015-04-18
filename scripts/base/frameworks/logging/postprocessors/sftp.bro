@@ -37,6 +37,8 @@ export {
 		user: string;
 		## The remote host to which to transfer logs.
 		host: string;
+		## The port to connect to. Defaults to 22
+		host_port: count &default=22;
 		## The path/directory on the remote host to send logs.
 		path: string;
 	};
@@ -63,8 +65,8 @@ function sftp_postprocessor(info: Log::RotationInfo): bool
 		{
 		local dst = fmt("%s/%s.%s.log", d$path, info$path,
 		                strftime(Log::sftp_rotation_date_format, info$open));
-		command += fmt("echo put %s %s | sftp -b - %s@%s;", info$fname, dst,
-		               d$user, d$host);
+		command += fmt("echo put %s %s | sftp -P %d -b - %s@%s;", info$fname, dst,
+		               d$host_port, d$user, d$host);
 		}
 
 	command += fmt("/bin/rm %s", info$fname);

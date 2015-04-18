@@ -3,6 +3,8 @@
 #ifndef func_h
 #define func_h
 
+#include <utility>
+
 #include "BroList.h"
 #include "Obj.h"
 #include "Debug.h"
@@ -71,7 +73,7 @@ protected:
 	Func();
 
 	// Helper function for handling result of plugin hook.
-	Val* HandlePluginResult(Val* plugin_result, val_list* args, function_flavor flavor) const;
+	std::pair<bool, Val*> HandlePluginResult(std::pair<bool, Val*> plugin_result, val_list* args, function_flavor flavor) const;
 
 	DECLARE_ABSTRACT_SERIAL(Func);
 

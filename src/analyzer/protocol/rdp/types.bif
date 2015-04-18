@@ -1,0 +1,5 @@
+
+module RDP;
+
+type EarlyCapabilityFlags: record;
+type ClientCoreData: record;

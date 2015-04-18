@@ -542,6 +542,9 @@ RemoteSerializer::RemoteSerializer()
 	current_msgtype = 0;
 	current_args = 0;
 	source_peer = 0;
+
+	// Register as a "dont-count" source first, we may change that later.
+	iosource_mgr->Register(this, true);
 	}
 
 RemoteSerializer::~RemoteSerializer()
@@ -570,8 +573,6 @@ void RemoteSerializer::Enable()
 		}
 
 	Fork();
-
-	iosource_mgr->Register(this);
 
 	Log(LogInfo, fmt("communication started, parent pid is %d, child pid is %d", getpid(), child_pid));
 	initialized = 1;
@@ -611,6 +612,9 @@ void RemoteSerializer::Fork()
 	{
 	if ( child_pid )
 		return;
+
+	// Register as a "does-count" source now.
+	iosource_mgr->Register(this, false);
 
 	// If we are re-forking, remove old entries
 	loop_over_list(peers, i)
@@ -3460,7 +3464,8 @@ void SocketComm::Run()
 		int a = select(max_fd + 1, &fd_read, &fd_write, &fd_except, 0);
 
 		if ( selects % 100000 == 0 )
-			Log(fmt("selects=%ld canwrites=%ld", selects, canwrites));
+			Log(fmt("selects=%ld canwrites=%ld pending=%lu",
+			        selects, canwrites, io->Stats()->pending));
 
 		if ( a < 0 )
 			// Ignore errors for now.

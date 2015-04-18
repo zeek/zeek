@@ -137,20 +137,6 @@ bool ChunkedIOFd::Write(Chunk* chunk)
 		chunk->len, fmt_bytes(chunk->data, min((uint32)20, chunk->len)));
 #endif
 
-	// Reject if our queue of pending chunks is way too large. Otherwise,
-	// memory could fill up if the other side doesn't read.
-	if ( stats.pending > MAX_BUFFERED_CHUNKS )
-		{
-		DBG_LOG(DBG_CHUNKEDIO, "write queue full");
-
-#ifdef DEBUG_COMMUNICATION
-		AddToBuffer("<false:write-queue-full>", false);
-#endif
-
-		errno = ENOSPC;
-		return false;
-		}
-
 #ifdef DEBUG_COMMUNICATION
 	AddToBuffer(chunk, false);
 #endif
@@ -627,7 +613,7 @@ bool ChunkedIOFd::IsIdle()
 
 bool ChunkedIOFd::IsFillingUp()
 	{
-	return stats.pending > MAX_BUFFERED_CHUNKS_SOFT;
+	return stats.pending > chunked_io_buffer_soft_cap;
 	}
 
 iosource::FD_Set ChunkedIOFd::ExtraReadFDs() const
@@ -837,15 +823,6 @@ bool ChunkedIOSSL::Write(Chunk* chunk)
 	DBG_LOG(DBG_CHUNKEDIO, "ssl write of size %d [%s]",
 		chunk->len, fmt_bytes(chunk->data, 20));
 #endif
-
-	// Reject if our queue of pending chunks is way too large. Otherwise,
-	// memory could fill up if the other side doesn't read.
-	if ( stats.pending > MAX_BUFFERED_CHUNKS )
-		{
-		DBG_LOG(DBG_CHUNKEDIO, "write queue full");
-		errno = ENOSPC;
-		return false;
-		}
 
 	// Queue it.
 	++stats.pending;

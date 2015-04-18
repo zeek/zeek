@@ -1,4 +1,459 @@
 
+2.3-720 | 2015-04-17 14:18:26 -0700
+
+  * Updating NEWS.
+
+2.3-716 | 2015-04-17 13:06:37 -0700
+
+  * Add seeking functionality to raw reader. One can now add an option
+    "offset" to the config map. Positive offsets are interpreted to be
+    from the beginning of the file, negative from the end of the file
+    (-1 is end of file). Only works for raw reader in streaming or
+    manual mode. Does not work with executables. Addresses BIT-985.
+    (Johanna Amann)
+
+  * Allow setting packet and byte thresholds for connections. (Johanna Amann)
+
+    This extends the ConnSize analyzer to be able to raise events when
+    each direction of a connection crosses a certain amount of bytes
+    or packets.
+
+    Thresholds are set using:
+        - set_conn_bytes_threshold(c$id, [num-bytes], [direction]);
+        - set_conn_packets_threshold(c$id, [num-packets], [direction]);
+
+    They raise the events, respectively:
+        - event conn_bytes_threshold_crossed(c: connection, threshold: count, is_orig: bool)
+        - event conn_packets_threshold_crossed(c: connection, threshold: count, is_orig: bool)
+
+    Current thresholds can be examined using get_conn_bytes_threshold()
+    and get_conn_packets_threshold().
+
+    Only one threshold can be set per connection.
+
+  * Add high-level API for packet/bytes thresholding in
+    base/protocols/conn/thresholds.bro that holds lists of thresholds
+    and raises an event for each threshold exactly once. (Johanna
+    Amann)
+
+  * Fix a bug where child packet analyzers of the TCP analyzer
+    where not found using FindChild.
+
+  * Update GridFTP analyzer to use connection thresholding instead of
+    polling. (Johanna Amann)
+
+2.3-709 | 2015-04-17 12:37:32 -0700
+
+  * Fix addressing the dreaded "internal error: unknown msg type 115
+  in Poll()". (Jon Siwek)
+
+    This patch removes the error handling code for overload conditions
+    in the main process that could cause trouble down the road. The
+    "chunked_io_buffer_soft_cap" script variable can now tune when the
+    client process begins shutting down peer connections, and the
+    default setting is now double what it used to be. Addresses
+    BIT-1376.
+
+2.3-707 | 2015-04-17 10:57:59 -0500
+
+  * Add more info about Broker to NEWS. (Jon Siwek)
+
+2.3-705 | 2015-04-16 08:16:45 -0700
+
+  * Update Mozilla CA list. (Johanna Amann)
+
+  * Update tests to have them keep using older certificates where
+    appropiate. (Johanna Amann)
+
+2.3-699 | 2015-04-16 09:51:58 -0500
+
+  * Fix the to_count function to use strtoull versus strtoll.
+    (Jon Siwek)
+
+2.3-697 | 2015-04-15 09:51:15 -0700
+
+  * Removing error check verifying that an ASCII writer has been
+    properly finished. Instead of aborting, we now just clean up in
+    that case and proceed. Addresses BIT-1331. (Robin Sommer)
+
+2.3-696 | 2015-04-14 15:56:36 -0700
+
+  * Update sqlite to 3.8.9
+
+2.3-695 | 2015-04-13 10:34:42 -0500
+
+  * Fix iterator invalidation in broker::Manager dtor. (Jon Siwek)
+
+  * Add paragraph to plugin documentation. (Robin Sommer)
+
+2.3-693 | 2015-04-11 10:56:31 -0700
+
+  * BIT-1367: improve coercion of anonymous records in set constructor.
+    (Jon Siwek)
+
+  * Allow to specify ports for sftp log rotator. (Johanna Amann)
+
+2.3-690 | 2015-04-10 21:51:10 -0700
+
+  * Make sure to always delete the remote serializer. Addresses
+    BIT-1306 and probably also BIT-1356. (Robin Sommer)
+
+  * Cleaning up --help. -D and -Y/y were still listed, even though
+    they had no effect anymore. Removing some dead code along with -D.
+    Addresses BIT-1372. (Robin Sommer)
+
+2.3-688 | 2015-04-10 08:10:44 -0700
+
+  * Update SQLite to 3.8.8.3.
+
+2.3-687 | 2015-04-10 07:32:52 -0700
+
+  * Remove stale signature benchmarking code (-L command-line option).
+    (Jon Siwek)
+
+  * BIT-844: fix UDP payload signatures to match packet-wise. (Jon
+    Siwek)
+
+2.3-682 | 2015-04-09 12:07:00 -0700
+
+  * Fixing input readers' component type. (Robin Sommer)
+
+  * Tiny spelling correction. (Seth Hall)
+
+2.3-680 | 2015-04-06 16:02:43 -0500
+
+  * BIT-1371: remove CMake version check from binary package scripts.
+    (Jon Siwek)
+
+2.3-679 | 2015-04-06 10:16:36 -0500
+
+  * Increase some unit test timeouts. (Jon Siwek)
+
+  * Fix Coverity warning in RDP analyzer. (Jon Siwek)
+
+2.3-676 | 2015-04-02 10:10:39 -0500
+
+  * BIT-1366: improve checksum offloading warning.
+    (Frank Meier, Jon Siwek)
+
+2.3-675 | 2015-03-30 17:05:05 -0500
+
+  * Add an RDP analyzer. (Josh Liburdi, Seth Hall, Johanna Amann)
+
+2.3-640 | 2015-03-30 13:51:51 -0500
+
+  * BIT-1359: Limit maximum number of DTLS fragments to 30. (Johanna Amann)
+
+2.3-637 | 2015-03-30 12:02:07 -0500
+
+  * Increase timeout duration in some broker tests. (Jon Siwek)
+
+2.3-636 | 2015-03-30 11:26:32 -0500
+
+  * Updates related to SSH analysis. (Jon Siwek)
+
+    - Some scripts used wrong SSH module/namespace scoping on events.
+    - Fix outdated notice documentation related to SSH password guessing.
+    - Add a unit test for SSH pasword guessing notice.
+
+2.3-635 | 2015-03-30 11:02:45 -0500
+
+  * Fix outdated documentation unit tests. (Jon Siwek)
+
+2.3-634 | 2015-03-30 10:22:45 -0500
+
+  * Add a canonifier to a unit test's output. (Jon Siwek)
+
+2.3-633 | 2015-03-25 18:32:59 -0700
+
+  * Log::write in signature framework was missing timestamp.
+    (Andrew Benson/Michel Laterman)
+
+2.3-631 | 2015-03-25 11:03:12 -0700
+
+  * New SSH analyzer. (Vlad Grigorescu)
+
+2.3-600 | 2015-03-25 10:23:46 -0700
+
+  * Add defensive checks in code to calculate log rotation intervals.
+    (Pete Nelson).
+
+2.3-597 | 2015-03-23 12:50:04 -0700
+
+  * DTLS analyzer. (Johanna Amann)
+
+  * Implement correct parsing of TLS record fragmentation. (Johanna
+    Amann)
+
+2.3-582 | 2015-03-23 11:34:25 -0700
+
+  * BIT-1313: In debug builds, "bro -B <x>" now supports "all" and
+    "help" for "<x>". "all" enables all debug streams. "help" prints a
+    list of available debug streams. (John Donnelly/Robin Sommer).
+
+  * BIT-1324: Allow logging filters to inherit default path from
+    stream. This allows the path for the default filter to be
+    specified explicitly through $path="..." when creating a stream.
+    Adapted the existing Log::create_stream calls to explicitly
+    specify a path value. (Jon Siwek)
+
+  * BIT-1199: Change the way the input framework deals with values it
+    cannot convert into BroVals, raising error messages instead of
+    aborting execution. (Johanna Amann)
+
+  * BIT-788: Use DNS QR field to better identify flow direction. (Jon
+    Siwek)
+
+2.3-572 | 2015-03-23 13:04:53 -0500
+
+  * BIT-1226: Fix an example in quickstart docs. (Jon siwek)
+
+2.3-570 | 2015-03-23 09:51:20 -0500
+
+  * Correct a spelling error (Daniel Thayer)
+
+  * Improvement to SSL analyzer failure mode. (Johanna Amann)
+
+2.3-565 | 2015-03-20 16:27:41 -0500
+
+  * BIT-978: Improve documentation of 'for' loop iterator invalidation.
+    (Jon Siwek)
+
+2.3-564 | 2015-03-20 11:12:02 -0500
+
+  * BIT-725: Remove "unmatched_HTTP_reply" weird. (Jon Siwek)
+
+2.3-562 | 2015-03-20 10:31:02 -0500
+
+  * BIT-1207: Add unit test to catch breaking changes to local.bro
+    (Jon Siwek)
+
+  * Fix failing sqlite leak test (Johanna Amann)
+
+2.3-560 | 2015-03-19 13:17:39 -0500
+
+  * BIT-1255: Increase default values of
+    "tcp_max_above_hole_without_any_acks" and "tcp_max_initial_window"
+    from 4096 to 16384 bytes. (Jon Siwek)
+
+2.3-559 | 2015-03-19 12:14:33 -0500
+
+  * BIT-849: turn SMTP reporter warnings into weirds,
+    "smtp_nested_mail_transaction" and "smtp_unmatched_end_of_data".
+    (Jon Siwek)
+
+2.3-558 | 2015-03-18 22:50:55 -0400
+
+  * DNS: Log the type number for the DNS_RR_unknown_type weird. (Vlad Grigorescu)
+
+2.3-555 | 2015-03-17 15:57:13 -0700
+
+  * Splitting test-all Makefile target into Bro tests and test-aux.
+    (Robin Sommer)
+
+2.3-554 | 2015-03-17 15:40:39 -0700
+
+  * Deprecate &rotate_interval, &rotate_size, &encrypt. Addresses
+    BIT-1305. (Jon Siwek)
+
+2.3-549 | 2015-03-17 09:12:18 -0700
+
+  * BIT-1077: Fix HTTP::log_server_header_names. Before, it just
+    re-logged fields from the client side. (Jon Siwek)
+
+2.3-547 | 2015-03-17 09:07:51 -0700
+
+  * Update certificate validation script to cache valid intermediate
+    chains that it encounters on the wire and use those to try to
+    validate chains that might be missing intermediate certificates.
+    (Johanna Amann)
+
+2.3-541 | 2015-03-13 15:44:08 -0500
+
+  * Make INSTALL a symlink to doc/install/install.rst (Jon siwek)
+
+  * Fix Broxygen coverage. (Jon Siwek)
+
+2.3-539 | 2015-03-13 14:19:27 -0500
+
+  * BIT-1335: Include timestamp in default extracted file names.
+    And add a policy script to extract all files. (Jon Siwek)
+
+  * BIT-1311: Identify GRE tunnels as Tunnel::GRE, not Tunnel::IP.
+    (Jon Siwek)
+
+  * BIT-1309: Add Connection class getter methods for flow labels.
+    (Jon Siwek)
+
+2.3-536 | 2015-03-12 16:16:24 -0500
+
+  * Fix Broker leak tests. (Jon Siwek)
+
+2.3-534 | 2015-03-12 10:59:49 -0500
+
+  * Update NEWS file. (Jon Siwek)
+
+2.3-533 | 2015-03-12 10:18:53 -0500
+
+  * Give broker python bindings default install path within --prefix.
+    (Jon Siwek)
+
+2.3-530 | 2015-03-10 13:22:39 -0500
+
+  * Fix broker data stores in absence of --enable-debug. (Jon Siwek)
+
+2.3-529 | 2015-03-09 13:14:27 -0500
+
+  * Fix format specifier in SSL protocol violation. (Jon Siwek)
+
+2.3-526 | 2015-03-06 12:48:49 -0600
+
+  * Fix build warnings, clarify broker requirements, update submodule.
+    (Jon Siwek)
+
+  * Rename comm/ directories to broker/ (Jon Siwek)
+
+  * Rename broker-related namespaces. (Jon Siwek)
+
+  * Improve remote logging via broker by only sending fields w/ &log.
+    (Jon Siwek)
+
+  * Disable a stream's remote logging via broker if it fails. (Jon Siwek)
+
+  * Improve some broker communication unit tests. (Jon Siwek)
+
+2.3-518 | 2015-03-04 13:13:50 -0800
+
+  * Add bytes_recvd to stats.log recording the number of bytes
+    received, according to packet headers. (Mike Smiley)
+
+2.3-516 | 2015-03-04 12:30:06 -0800
+
+  * Extract most specific Common Name from SSL certificates (Johanna
+    Amann)
+
+  * Send CN and SAN fields of SSL certificates to the Intel framework.
+    (Johanna Amann)
+
+2.3-511 | 2015-03-02 18:07:17 -0800
+
+  * Changes to plugin meta hooks for function calls. (Gilbert Clark)
+
+        - Add frame argument.
+
+        - Change return value to tuple unambigiously whether hook
+          returned a result.
+
+2.3-493 | 2015-03-02 17:17:32 -0800
+
+  * Extend the SSL weak-keys policy file to also alert when
+    encountering SSL connections with old versions as well as unsafe
+    cipher suites. (Johanna Amann)
+
+  * Make the notice suppression handling of other SSL policy files a
+    tad more robust. (Johanna Amann)
+
+2.3-491 | 2015-03-02 17:12:56 -0800
+
+  * Updating docs for recent addition of local_resp. (Robin Sommer)
+
+2.3-489 | 2015-03-02 15:29:30 -0800
+
+  * Integrate Broker, Bro's new communication library. (Jon Siwek)
+
+    See aux/broker/README for more information on Broker, and
+    doc/frameworks/comm.rst for the corresponding Bro script API.
+
+    Broker support is by default off for now; it can be enabled at
+    configure time with --enable-broker. It requires CAF
+    (https://github.com/actor-framework/actor-framework); for now iot
+    needs CAF's "develop" branch. Broker also requires a C++11
+    compiler.
+
+    Broker will become a mandatory dependency in future Bro versions.
+
+  * Add --enable-c++11 configure flag to compile Bro's source code in
+    C++11 mode with a corresponding compiler. (Jon Siwek)
+
+2.3-451 | 2015-02-24 16:37:08 -0800
+
+  * Updating submodule(s).
+
+2.3-448 | 2015-02-23 16:58:10 -0800
+
+  * Updating NEWS. (Robin Sommer)
+
+2.3-447 | 2015-02-23 16:28:30 -0800
+
+  * Fix potential crash in logging framework when deserializing
+    WriterInfo from remote. where config is present. Testcase crashes
+    on unpatched versions of Bro. (Aaron Eppert)
+
+  * Fix wrong value test in WriterBackend. (Aaron Eppert)
+
+2.3-442 | 2015-02-23 13:29:30 -0800
+
+  * Add a "local_resp" field to conn.log, along the lines of the
+    existing "local_orig". (Mike Smiley)
+
+2.3-440 | 2015-02-23 11:39:17 -0600
+
+  * Updating plugin docs to recent changes. (Robin Sommer)
+
+  * Updating plugin tests to recent changes. (Robin Sommer)
+
+  * Making plugin names case-insensitive for some internal comparisions.
+    Makes plugin system more tolerant against spelling inconsistencies
+    are hard to catch otherwise. (Robin Sommer)
+
+  * Explicitly removing some old scripts on install that have moved
+    into plugins to prevent them causing confusion. (Robin Sommer)
+
+  * BIT-1312: Removing setting installation plugin path from
+    bro-path-dev.sh.  Also, adding to existing BRO_PLUGIN_PATH rather
+    than replacing. (Robin Sommer)
+
+  * Creating the installation directory for plugins at install time.
+    (Robin Sommer)
+
+2.3-427 | 2015-02-20 13:49:33 -0800
+
+  * Removing dependency on PCAP_NETMASK_UNKNOWN to compile with
+    libpcap < 1.1.1. (Robin Sommer)
+
+2.3-426 | 2015-02-20 12:45:51 -0800
+
+  * Add 'while' statement to Bro language. Really. (Jon Siwek)
+
+2.3-424 | 2015-02-20 12:39:10 -0800
+
+  * Add the ability to remove surrounding braces from the JSON
+    formatter. (Seth Hall)
+
+2.3-419 | 2015-02-13 09:10:44 -0600
+
+  * BIT-1011: Update the SOCKS analyzer to support user/pass login.
+    (Nicolas Retrain, Seth Hall, Jon Siwek)
+
+    - Add a new field to socks.log: "password".
+    - Two new events: "socks_login_userpass_request" and
+      "socks_login_userpass_reply".
+    - Two new weirds for unsupported SOCKS authentication method or
+      version.
+    - A new test for authenticated socks traffic.
+
+2.3-416 | 2015-02-12 12:18:42 -0600
+
+  * Submodule update - newest sqlite version (Johanna Amann)
+
+  * Fix use of deprecated gperftools headers. (Jon Siwek)
+
+2.3-413 | 2015-02-08 18:23:05 -0800
+
+  * Fixing analyzer tag types for some Files::* functions. (Robin Sommer)
+
+  * Changing load order for plugin scripts. (Robin Sommer)
+
 2.3-411 | 2015-02-05 10:05:48 -0600
 
   * Fix file analysis of files with total size below the bof_buffer size
@@ -166,7 +621,7 @@
 
 2.3-328 | 2014-12-02 08:13:10 -0500
 
-  * Update windows-version-detection.bro to add support for 
+  * Update windows-version-detection.bro to add support for
     Windows 10. (Michal Purzynski)
 
 2.3-326 | 2014-12-01 12:10:27 -0600
@@ -236,7 +691,7 @@
 
 2.3-280 | 2014-11-05 09:46:33 -0500
 
-  * Add Windows detection based on CryptoAPI HTTP traffic as a 
+  * Add Windows detection based on CryptoAPI HTTP traffic as a
     software framework policy script. (Vlad Grigorescu)
 
 2.3-278 | 2014-11-03 18:55:18 -0800

@@ -3,7 +3,7 @@
 Writing Bro Plugins
 ===================
 
-Bro is internally moving to a plugin structure that enables extending
+Bro internally provides plugin API that enables extending
 the system dynamically, without modifying the core code base. That way
 custom code remains self-contained and can be maintained, compiled,
 and installed independently. Currently, plugins can add the following
@@ -42,18 +42,17 @@ certain structure. To get started, Bro's distribution provides a
 helper script ``aux/bro-aux/plugin-support/init-plugin`` that creates
 a skeleton plugin that can then be customized. Let's use that::
 
-    # mkdir rot13-plugin
-    # cd rot13-plugin
-    # init-plugin Demo Rot13
+    # init-plugin ./rot13-plugin Demo Rot13
 
-As you can see the script takes two arguments. The first is a
-namespace the plugin will live in, and the second a descriptive name
-for the plugin itself. Bro uses the combination of the two to identify
-a plugin. The namespace serves to avoid naming conflicts between
-plugins written by independent developers; pick, e.g., the name of
-your organisation. The namespace ``Bro`` is reserved for functionality
-distributed by the Bro Project. In our example, the plugin will be
-called ``Demo::Rot13``.
+As you can see, the script takes three arguments. The first is a
+directory inside which the plugin skeleton will be created.  The second
+is the namespace the plugin will live in, and the third is a descriptive
+name for the plugin itself relative to the namespace. Bro uses the
+combination of namespace and name to identify a plugin. The namespace
+serves to avoid naming conflicts between plugins written by independent
+developers; pick, e.g., the name of your organisation. The namespace
+``Bro`` is reserved for functionality distributed by the Bro Project. In
+our example, the plugin will be called ``Demo::Rot13``.
 
 The ``init-plugin`` script puts a number of files in place. The full
 layout is described later. For now, all we need is
@@ -61,7 +60,7 @@ layout is described later. For now, all we need is
 there as follows::
 
     # cat src/rot13.bif
-    module CaesarCipher;
+    module Demo;
 
     function rot13%(s: string%) : string
         %{
@@ -82,18 +81,22 @@ The syntax of this file is just like any other ``*.bif`` file; we
 won't go into it here.
 
 Now we can already compile our plugin, we just need to tell the
-configure script put in place by ``init-plugin`` where the Bro source
-tree is located (Bro needs to have been built there first)::
+configure script that ``init-plugin`` put in place where the Bro
+source tree is located (Bro needs to have been built there first)::
 
+    # cd rot13-plugin
     # ./configure --bro-dist=/path/to/bro/dist && make
     [... cmake output ...]
 
-Now our ``rot13-plugin`` directory has everything that it needs
-for Bro to recognize it as a dynamic plugin. Once we point Bro to it,
-it will pull it in automatically, as we can check with the ``-N``
+This builds the plugin in a subdirectory ``build/``. In fact, that
+subdirectory *becomes* the plugin: when ``make`` finishes, ``build/``
+has everything it needs for Bro to recognize it as a dynamic plugin.
+
+Let's try that. Once we point Bro to the ``build/`` directory, it will
+pull in our new plugin automatically, as we can check with the ``-N``
 option::
 
-    # export BRO_PLUGIN_PATH=/path/to/rot13-plugin
+    # export BRO_PLUGIN_PATH=/path/to/rot13-plugin/build
     # bro -N
     [...]
     Plugin: Demo::Rot13 - <Insert brief description of plugin> (dynamic, version 1)
@@ -127,12 +130,12 @@ more verbose option ``-NN``::
     # bro -NN
     [...]
     Plugin: Demo::Rot13 - Caesar cipher rotating a string's characters by 13 places. (dynamic, version 1)
-        [Function] CaesarCipher::rot13
+        [Function] Demo::rot13
     [...]
 
 There's our function. Now let's use it::
 
-    # bro -e 'print CaesarCipher::rot13("Hello")'
+    # bro -e 'print Demo::rot13("Hello")'
     Uryyb
 
 It works. We next install the plugin along with Bro itself, so that it
@@ -141,36 +144,40 @@ environment variable. If we first unset the variable, the function
 will no longer be available::
 
     # unset BRO_PLUGIN_PATH
-    # bro -e 'print CaesarCipher::rot13("Hello")'
-    error in <command line>, line 1: unknown identifier CaesarCipher::rot13, at or near "CaesarCipher::rot13"
+    # bro -e 'print Demo::rot13("Hello")'
+    error in <command line>, line 1: unknown identifier Demo::rot13, at or near "Demo::rot13"
 
 Once we install it, it works again::
 
     # make install
-    # bro -e 'print CaesarCipher::rot13("Hello")'
+    # bro -e 'print Demo::rot13("Hello")'
     Uryyb
 
 The installed version went into
 ``<bro-install-prefix>/lib/bro/plugins/Demo_Rot13``.
 
-We can distribute the plugin in either source or binary form by using
-the Makefile's ``sdist`` and ``bdist`` target, respectively. Both
-create corrsponding tarballs::
+One can distribute the plugin independently of Bro for others to use.
+To distribute in source form, just remove the ``build/`` (``make
+distclean`` does that) and then tar up the whole ``rot13-plugin/``
+directory. Others then follow the same process as above after
+unpacking. To distribute the plugin in binary form, the build process
+conveniently creates a corresponding tarball in ``build/dist/``. In
+this case, it's called ``Demo_Rot13-0.1.tar.gz``, with the version
+number coming out of the ``VERSION`` file that ``init-plugin`` put
+into place. The binary tarball has everything needed to run the
+plugin, but no further source files. Optionally, one can include
+further files by specifying them in the plugin's ``CMakeLists.txt``
+through the ``bro_plugin_dist_files`` macro; the skeleton does that
+for ``README``, ``VERSION``, ``CHANGES``, and ``COPYING``. To use the
+plugin through the binary tarball, just unpack it and point
+``BRO_PLUGIN_PATH`` there; or copy it into
+``<bro-install-prefix>/lib/bro/plugins/`` directly.
 
-    # make sdist
-    [...]
-    Source distribution in build/sdist/Demo_Rot13.tar.gz
-
-    # make bdist
-    [...]
-    Binary distribution in build/Demo_Rot13-darwin-x86_64.tar.gz
-
-The source archive will contain everything in the plugin directory
-except any generated files. The binary archive will contain anything
-needed to install and run the plugin, i.e., just what ``make install``
-puts into place as well. As the binary distribution is
-platform-dependent, its name includes the OS and architecture the
-plugin was built on.
+Before distributing your plugin, you should edit some of the meta
+files that ``init-plugin`` puts in place. Edit ``README`` and
+``VERSION``, and update ``CHANGES`` when you make changes. Also put a
+license file in place as ``COPYING``; if BSD is fine, you find a
+template in ``COPYING.edit-me``.
 
 Plugin Directory Layout
 =======================
@@ -179,7 +186,7 @@ A plugin's directory needs to follow a set of conventions so that Bro
 (1) recognizes it as a plugin, and (2) knows what to load.  While
 ``init-plugin`` takes care of most of this, the following is the full
 story. We'll use ``<base>`` to represent a plugin's top-level
-directory.
+directory. With the skeleton, ``<base>`` corresponds to ``build/``.
 
 ``<base>/__bro_plugin__``
     A file that marks a directory as containing a Bro plugin. The file
@@ -205,6 +212,8 @@ directory.
     Directory with auto-generated Bro scripts that declare the plugin's
     bif elements. The files here are produced by ``bifcl``.
 
+Any other files in ``<base>`` are ignored by Bro.
+
 By convention, a plugin should put its custom scripts into sub folders
 of ``scripts/``, i.e., ``scripts/<script-namespace>/<script>.bro`` to
 avoid conflicts. As usual, you can then put a ``__load__.bro`` in
@@ -229,15 +238,32 @@ their source directory (after ``make`` and setting Bro's
 install``).
 
 ``make install`` copies over the ``lib`` and ``scripts`` directories,
-as well as the ``__bro_plugin__`` magic file and the ``README`` (which
-you should customize). One can add further CMake ``install`` rules to
-install additional files if needed.
+as well as the ``__bro_plugin__`` magic file and any further
+distribution files specified in ``CMakeLists.txt`` (e.g., README,
+VERSION). You can find a full list of files installed in
+``build/MANIFEST``. Behind the scenes, ``make install`` really just
+copies over the binary tarball in ``build/dist``. 
 
-``init-plugin`` will never overwrite existing files, so it's safe to
-rerun in an existing plugin directory; it only put files in place that
-don't exist yet. That also provides a convenient way to revert a file
-back to what ``init-plugin`` created originally: just delete it and
-rerun.
+``init-plugin`` will never overwrite existing files. If its target
+directory already exists, it will by default decline to do anything.
+You can run it with ``-u`` instead to update an existing plugin,
+however it will never overwrite any existing files; it will only put
+in place files it doesn't find yet. To revert a file back to what
+``init-plugin`` created originally, delete it first and then rerun
+with ``-u``.
+
+``init-plugin`` puts a ``configure`` script in place that wraps
+``cmake`` with a more familiar configure-style configuration. By
+default, the script provides two options for specifying paths to the
+Bro source (``--bro-dist``) and to the plugin's installation directory
+(``--install-root``). To extend ``configure`` with plugin-specific
+options (such as search paths for its dependencies) don't edit the
+script directly but instead extend ``configure.plugin``, which
+``configure`` includes. That way you will be able to more easily
+update ``configure`` in the future when the distribution version
+changes. In ``configure.plugin`` you can use the predefined shell
+function ``append_cache_entry`` to seed values into the CMake cache;
+see the installed skeleton version and existing plugins for examples.
 
 Activating a Plugin
 ===================
@@ -355,7 +381,7 @@ let's get that in place::
     % cat .diag
     == File ===============================
     Demo::Rot13 - Caesar cipher rotating a string's characters by 13 places. (dynamic, version 1.0)
-        [Function] CaesarCipher::rot13
+        [Function] Demo::rot13
 
     == Error ===============================
     test-diff: no baseline found.
@@ -375,14 +401,14 @@ Now let's add a custom test that ensures that our bif works
 correctly::
 
     # cd tests
-    # cat >plugin/rot13.bro
+    # cat >rot13/bif-rot13.bro
 
     # @TEST-EXEC: bro %INPUT >output
     # @TEST-EXEC: btest-diff output
 
     event bro_init()
         {
-        print CaesarCipher::rot13("Hello");
+        print Demo::rot13("Hello");
         }
 
 Check the output::
@@ -415,7 +441,7 @@ Debugging Plugins
 =================
 
 If your plugin isn't loading as expected, Bro's debugging facilities
-can help to illuminate what's going on. To enable, recompile Bro
+can help illuminate what's going on. To enable, recompile Bro
 with debugging support (``./configure --enable-debug``), and
 afterwards rebuild your plugin as well. If you then run Bro with ``-B
 plugins``, it will produce a file ``debug.log`` that records details
@@ -434,7 +460,6 @@ replaced with a simple dash. Example: If the plugin is called
 ``Bro::Demo``, use ``-B plugin-Bro-Demo``. As usual, the debugging
 output will be recorded to ``debug.log`` if Bro's compiled in debug
 mode.
-
 
 Documenting Plugins
 ===================

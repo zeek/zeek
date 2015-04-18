@@ -156,9 +156,11 @@ changes we want to make:
    notice that means an SSL connection was established and the server's
    certificate couldn't be validated using Bro's default trust roots, but
    we want to ignore it.
-2) ``SSH::Login`` is a notice type that is triggered when an SSH connection
-   attempt looks like it may have been successful, and we want email when
-   that happens, but only for certain servers.
+2) ``SSL::Certificate_Expired`` is a notice type that is triggered when
+   an SSL connection was established using an expired certificate.  We
+   want email when that happens, but only for certain servers on the
+   local network (Bro can also proactively monitor for certs that will
+   soon expire, but this is just for demonstration purposes).
 
 We've defined *what* we want to do, but need to know *where* to do it.
 The answer is to use a script written in the Bro programming language, so
@@ -203,7 +205,7 @@ the variable's value may not change at run-time, but whose initial value can be
 modified via the ``redef`` operator at parse-time.
 
 Let's continue on our path to modify the behavior for the two SSL
-and SSH notices.  Looking at :doc:`/scripts/base/frameworks/notice/main.bro`,
+notices.  Looking at :doc:`/scripts/base/frameworks/notice/main.bro`,
 we see that it advertises:
 
 .. code:: bro
@@ -216,7 +218,7 @@ we see that it advertises:
         const ignored_types: set[Notice::Type] = {} &redef;
     }
 
-That's exactly what we want to do for the SSL notice.  Add to ``local.bro``:
+That's exactly what we want to do for the first notice.  Add to ``local.bro``:
 
 .. code:: bro
 
@@ -248,38 +250,30 @@ is valid before installing it and then restarting the Bro instance:
    stopping bro ...
    starting bro ...
 
-Now that the SSL notice is ignored, let's look at how to send an email on
-the SSH notice.  The notice framework has a similar option called
-``emailed_types``, but using that would generate email for all SSH servers and
-we only want email for logins to certain ones.  There is a ``policy`` hook
-that is actually what is used to implement the simple functionality of
-``ignored_types`` and
-``emailed_types``, but it's extensible such that the condition and action taken
-on notices can be user-defined.
+Now that the SSL notice is ignored, let's look at how to send an email
+on the other notice.  The notice framework has a similar option called
+``emailed_types``, but using that would generate email for all SSL
+servers with expired certificates and we only want email for connections
+to certain ones.  There is a ``policy`` hook that is actually what is
+used to implement the simple functionality of ``ignored_types`` and
+``emailed_types``, but it's extensible such that the condition and
+action taken on notices can be user-defined.
 
-In ``local.bro``, let's define a new ``policy`` hook handler body
-that takes the email action for SSH logins only for a defined set of servers:
+In ``local.bro``, let's define a new ``policy`` hook handler body:
 
-.. code:: bro
+.. btest-include:: ${DOC_ROOT}/quickstart/conditional-notice.bro
 
-    const watched_servers: set[addr] = {
-        192.168.1.100,
-        192.168.1.101,
-        192.168.1.102,
-    } &redef;
+.. btest:: conditional-notice
 
-   hook Notice::policy(n: Notice::Info)
-       {
-       if ( n$note == SSH::SUCCESSFUL_LOGIN && n$id$resp_h in watched_servers )
-            add n$actions[Notice::ACTION_EMAIL];
-       }
+    @TEST-EXEC: btest-rst-cmd bro -r ${TRACES}/tls/tls-expired-cert.trace ${DOC_ROOT}/quickstart/conditional-notice.bro
+    @TEST-EXEC: btest-rst-cmd cat notice.log
 
 You'll just have to trust the syntax for now, but what we've done is
 first declare our own variable to hold a set of watched addresses,
-``watched_servers``; then added a hook handler body to the policy that will
-generate an email whenever the notice type is an SSH login and the responding
-host stored
-inside the ``Info`` record's connection field is in the set of watched servers.
+``watched_servers``; then added a hook handler body to the policy that
+will generate an email whenever the notice type is an SSL expired
+certificate and the responding host stored inside the ``Info`` record's
+connection field is in the set of watched servers.
 
 .. note:: Record field member access is done with the '$' character
    instead of a '.' as might be expected from other languages, in

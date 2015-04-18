@@ -4,7 +4,10 @@
 #include "events.bif.h"
 
 #include "analyzer/protocol/tcp/TCP.h"
-#include "ssl_pac.h"
+
+namespace binpac { namespace SSL { class SSL_Conn; } }
+
+namespace binpac { namespace TLSHandshake { class Handshake_Conn; } }
 
 namespace analyzer { namespace ssl {
 
@@ -18,6 +21,8 @@ public:
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
 	virtual void Undelivered(uint64 seq, int len, bool orig);
 
+	void SendHandshake(const u_char* begin, const u_char* end, bool orig);
+
 	// Overriden from tcp::TCP_ApplicationAnalyzer.
 	virtual void EndpointEOF(bool is_orig);
 
@@ -26,6 +31,7 @@ public:
 
 protected:
 	binpac::SSL::SSL_Conn* interp;
+	binpac::TLSHandshake::Handshake_Conn* handshake_interp;
 	bool had_gap;
 
 };

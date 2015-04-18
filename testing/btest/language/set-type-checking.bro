@@ -43,3 +43,18 @@ event bro_init()
     {
     local lea: MySet = set(1003); # type clash
     }
+
+type MyRecord: record {
+	user: string;
+	host: string;
+	host_port: count &default=22;
+	path: string;
+};
+
+global set_of_records: set[MyRecord];
+
+event bro_init()
+	{
+	# Set ctor w/ anonymous record ctor should coerce.
+	set_of_records = set([$user="testuser", $host="testhost", $path="testpath"]);
+	}

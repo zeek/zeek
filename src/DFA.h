@@ -15,8 +15,6 @@ class DFA_State;
 
 #include "NFA.h"
 
-extern int dfa_state_cache_size;
-
 class DFA_Machine;
 class DFA_State;
 struct CacheEntry;
@@ -78,7 +76,7 @@ struct CacheEntry {
 
 class DFA_State_Cache {
 public:
-	DFA_State_Cache(int maxsize);
+	DFA_State_Cache();
 	~DFA_State_Cache();
 
 	// If the caller stores the handle, it has to call Ref() on it.
@@ -105,8 +103,6 @@ public:
 	void GetStats(Stats* s);
 
 private:
-	int maxsize;
-
 	int hits;	// Statistics
 	int misses;
 

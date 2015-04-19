@@ -136,9 +136,7 @@ refine connection MockConnection += {
 		%{
 		if ( ${h.size_of_raw_data} + ${h.ptr_to_raw_data} > max_file_location_ )
 			max_file_location_ = ${h.size_of_raw_data} + ${h.ptr_to_raw_data};
-		
-		if ( ${h.virtual_addr} > 0 && ${h.virtual_addr} <= import_table_rva_ && ( ${h.virtual_addr} + ${h.virtual_size} ) > import_table_rva_ )
-			import_table_va_ = ${h.ptr_to_raw_data} + (import_table_rva_ - ${h.virtual_addr});
+
 		return true;
 		%}
 

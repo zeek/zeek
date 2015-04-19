@@ -29,9 +29,12 @@ export {
 		section_names:       vector of string  &log &optional;
 	};
 
-
 	global set_file: hook(f: fa_file);
 }
+
+redef record Info += {
+	confirmed: bool &default=F;
+};
 
 redef record fa_file += {
 	pe: Info &optional;
@@ -75,6 +78,12 @@ event pe_file_header(f: fa_file, h: PE::FileHeader) &priority=5
 event pe_optional_header(f: fa_file, h: PE::OptionalHeader) &priority=5
 	{
 	hook set_file(f);
+
+	if ( h$magic == 0x10b || h$magic == 0x20b )
+		f$pe$confirmed = T;
+	else
+		return;
+		
 	f$pe$os = os_versions[h$os_version_major, h$os_version_minor];
 	f$pe$subsystem = windows_subsystems[h$subsystem];
 	for ( c in h$dll_characteristics )
@@ -99,9 +108,9 @@ event pe_section_header(f: fa_file, h: PE::SectionHeader) &priority=5
 	f$pe$section_names[|f$pe$section_names|] = h$name;
 	}
 
-event file_state_remove(f: fa_file)
+event file_state_remove(f: fa_file) &priority=-5
 	{
-	if ( f?$pe )
+	if ( f?$pe && f$pe$confirmed )
 		Log::write(LOG, f$pe);
 	}
 

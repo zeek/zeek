@@ -98,8 +98,8 @@ refine flow File += {
 		     ${h.magic} != 0x107 &&  // rom image
 		     ${h.magic} != 0x20b )   // pe32+ executable
 			{
-			return false;
 			// FileViolation("PE Optional Header magic is invalid.");
+			return false;
 			}
 
 		if ( pe_optional_header )
@@ -173,24 +173,6 @@ refine flow File += {
 			}
 		return true;
 		%}
-
-	function proc_import_entry(module_name: bytestring, i: import_entry): bool
-		%{
-		if ( pe_import_entry )
-			{
-			StringVal* name;
-			if ( ${i.name}.length() > 1 )
-				name = new StringVal(${i.name}.length() - 1, (const char*) ${i.name}.begin());
-			else
-				name = new StringVal(0, (const char*) ${i.name}.begin());
-			
-			BifEvent::generate_pe_import_entry((analyzer::Analyzer *) connection()->bro_analyzer(), 
-			                                   connection()->bro_analyzer()->GetFile()->GetVal()->Ref(),
-			                                   bytestring_to_val(${module_name}),
-				                           name);
-			}
-		return true;
-		%}
 };
 
 refine typeattr DOS_Header += &let {
@@ -215,8 +197,4 @@ refine typeattr Optional_Header += &let {
 
 refine typeattr Section_Header += &let {
 	proc: bool = $context.flow.proc_section_header(this);
-};
-
-refine typeattr import_entry += &let {
-	proc: bool = $context.flow.proc_import_entry($context.connection.get_module_name(), this) &if(!is_module);
 };

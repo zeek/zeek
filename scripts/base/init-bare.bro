@@ -2603,7 +2603,8 @@ type PE::OptionalHeader: record {
 	subsystem               : count;
 	dll_characteristics     : set[count];
 	loader_flags            : count;
-	number_of_rva_and_sizes : count;
+	rvas                    : vector of count;
+	
 };
 
 ## Record for Portable Executable (PE) section headers.

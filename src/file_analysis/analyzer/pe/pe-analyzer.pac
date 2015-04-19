@@ -1,9 +1,24 @@
-
 %extern{
 #include "Event.h"
 #include "file_analysis/File.h"
 #include "events.bif.h"
 %}
+
+%header{
+VectorVal* process_rvas(const RVAS* rvas, const uint16 size);
+%}
+
+%code{
+VectorVal* process_rvas(const RVAS* rva_table, const uint16 size)
+	{
+	VectorVal* rvas = new VectorVal(internal_type("index_vec")->AsVectorType());
+	for ( uint16 i=0; i < size; ++i )
+		rvas->Assign(i, new Val((*rva_table->rvas())[i]->size(), TYPE_COUNT));
+
+	return rvas;
+	}
+%}
+
 
 refine flow File += {
 
@@ -134,7 +149,9 @@ refine flow File += {
 			oh->Assign(22, new Val(${h.subsystem}, TYPE_COUNT));
 			oh->Assign(23, characteristics_to_bro(${h.dll_characteristics}, 16));
 			oh->Assign(24, new Val(${h.loader_flags}, TYPE_COUNT));
-			oh->Assign(25, new Val(${h.number_of_rva_and_sizes}, TYPE_COUNT));
+
+			oh->Assign(25, process_rvas(${h.rvas}, ${h.number_of_rva_and_sizes}));
+			
 			BifEvent::generate_pe_optional_header((analyzer::Analyzer *) connection()->bro_analyzer(), 
 			                                      connection()->bro_analyzer()->GetFile()->GetVal()->Ref(),
 			                                      oh);

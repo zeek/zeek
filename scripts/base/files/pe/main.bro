@@ -97,6 +97,11 @@ event pe_optional_header(f: fa_file, h: PE::OptionalHeader) &priority=5
 		if ( c == 0x400 )
 			f$pe$uses_seh = F;
 		}
+
+	f$pe$has_export_table = (|h$rvas| > 0 && h$rvas[0] > 0);
+	f$pe$has_import_table = (|h$rvas| > 1 && h$rvas[1] > 0);
+	f$pe$has_cert_table = (|h$rvas| > 4 && h$rvas[4] > 0);
+	f$pe$has_debug_data = (|h$rvas| > 6 && h$rvas[6] > 0);
 	}
 
 event pe_section_header(f: fa_file, h: PE::SectionHeader) &priority=5

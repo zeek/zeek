@@ -1,4 +1,8 @@
 
+2.3-722 | 2015-04-20 12:59:03 -0500
+
+  * Remove unneeded documentation cross-referencing. (Jon Siwek)
+
 2.3-721 | 2015-04-20 12:47:05 -0500
 
   * BIT-1380: Improve Broxygen output of &default expressions.

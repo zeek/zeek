@@ -10,7 +10,7 @@
 namespace file_analysis {
 
 /**
- * An action to simply extract files to disk.
+ * Analyze Portable Executable files
  */
 class PE : public file_analysis::Analyzer {
 public:

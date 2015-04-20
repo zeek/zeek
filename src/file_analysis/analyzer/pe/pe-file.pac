@@ -12,8 +12,9 @@ type Portable_Executable = record {
 	pad     : Padding(restofdata);
 } &let {
 	unparsed_hdr_len: uint32 = headers.pe_header.size_of_headers - headers.length;
-	restofdata: uint64 = headers.pe_header.is_exe ? $context.connection.get_max_file_location() - headers.pe_header.size_of_headers + unparsed_hdr_len : 0;
-	proc: bool = $context.connection.proc_pe(this);
+	data_post_hdrs:   uint64 = $context.connection.get_max_file_location() - headers.pe_header.size_of_headers + unparsed_hdr_len;
+	restofdata:       uint64 = headers.pe_header.is_exe ? data_post_hdrs : 0;
+	proc:             bool   = $context.connection.mark_done();
 } &byteorder=littleendian;
 
 refine connection MockConnection += {
@@ -26,7 +27,7 @@ refine connection MockConnection += {
 		done_ = false;
 	%}
 
-	function proc_pe(p: Portable_Executable): bool
+	function mark_done(): bool
 		%{
 		done_ = true;
 		return true;

@@ -8,7 +8,7 @@ PE::PE(RecordVal* args, File* file)
 	{
 	conn = new binpac::PE::MockConnection(this);
 	interp = new binpac::PE::File(conn);
-	done=false;
+	done = false;
 	}
 
 PE::~PE()
@@ -27,7 +27,6 @@ bool PE::DeliverStream(const u_char* data, uint64 len)
 		}
 	catch ( const binpac::Exception& e )
 		{
-		printf("Binpac exception: %s\n", e.c_msg());
 		return false;
 		}
 

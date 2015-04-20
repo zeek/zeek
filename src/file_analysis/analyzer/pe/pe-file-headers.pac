@@ -39,9 +39,9 @@ type DOS_Code(len: uint32) = record {
 type NT_Headers = record {
 	PESignature     : uint32;
 	file_header     : File_Header;
-	have_opt_header : case file_header.SizeOfOptionalHeader of {
-		0       -> none: empty;
-		default -> optional_header : Optional_Header &length=file_header.SizeOfOptionalHeader;
+	have_opt_header : case is_exe of {
+		true  -> optional_header : Optional_Header &length=file_header.SizeOfOptionalHeader;
+		false -> none: empty;
 		};
 } &let {
 	length: uint32 = file_header.SizeOfOptionalHeader + offsetof(have_opt_header);
@@ -101,7 +101,7 @@ type Optional_Header = record {
 	number_of_rva_and_sizes : uint32;
 	rvas			: RVAS(number_of_rva_and_sizes);
 } &let {
-	pe_format: uint8 = $context.connection.set_pe32_format(magic);
+	pe_format : uint8 = $context.connection.set_pe32_format(magic);
 	image_base: uint64 = pe_format == PE32_PLUS ? image_base_64 : image_base_32;
 };
 
@@ -149,8 +149,10 @@ refine connection MockConnection += {
 		%{
 		if ( ${magic} == 0x10b )
 			pe32_format_ = PE32;
+
 		if ( ${magic} == 0x20b )
 			pe32_format_ = PE32_PLUS;
+
 		return pe32_format_;
 		%}
 

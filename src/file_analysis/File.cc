@@ -74,8 +74,8 @@ void File::StaticInit()
 	timeout_interval_idx = Idx("timeout_interval", fa_file_type);
 	bof_buffer_size_idx = Idx("bof_buffer_size", fa_file_type);
 	bof_buffer_idx = Idx("bof_buffer", fa_file_type);
-	meta_mime_type_idx = Idx("mime_type", inferred_file_metadata_type);
-	meta_mime_types_idx = Idx("mime_types", inferred_file_metadata_type);
+	meta_mime_type_idx = Idx("mime_type", fa_metadata_type);
+	meta_mime_types_idx = Idx("mime_types", fa_metadata_type);
 	}
 
 File::File(const string& file_id, const string& source_name, Connection* conn,
@@ -303,7 +303,7 @@ void File::InferMetadata()
 		val->Assign(bof_buffer_idx, bof_buffer_val);
 		}
 
-	if ( ! FileEventAvailable(file_metadata_inferred) )
+	if ( ! FileEventAvailable(file_sniff) )
 		return;
 
 	RuleMatcher::MIME_Matches matches;
@@ -314,7 +314,7 @@ void File::InferMetadata()
 
 	val_list* vl = new val_list();
 	vl->append(val->Ref());
-	RecordVal* meta = new RecordVal(inferred_file_metadata_type);
+	RecordVal* meta = new RecordVal(fa_metadata_type);
 	vl->append(meta);
 
 	if ( ! matches.empty() )
@@ -325,7 +325,7 @@ void File::InferMetadata()
 		             file_analysis::GenMIMEMatchesVal(matches));
 		}
 
-	FileEvent(file_metadata_inferred, vl);
+	FileEvent(file_sniff, vl);
 	return;
 	}
 
@@ -591,7 +591,7 @@ void File::FileEvent(EventHandlerPtr h, val_list* vl)
 	mgr.QueueEvent(h, vl);
 
 	if ( h == file_new || h == file_over_new_connection ||
-	     h == file_metadata_inferred ||
+	     h == file_sniff ||
 	     h == file_timeout || h == file_extraction_limit )
 		{
 		// immediate feedback is required for these events.

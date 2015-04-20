@@ -7,7 +7,7 @@ global mime_to_ext: table[string] of string = {
 	["text/html"] = "html",
 };
 
-event file_metadata_inferred(f: fa_file, meta: inferred_file_metadata)
+event file_sniff(f: fa_file, meta: fa_metadata)
 	{
 	if ( f$source != "HTTP" )
 		return;

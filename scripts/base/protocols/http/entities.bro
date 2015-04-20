@@ -93,7 +93,7 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 		}
 	}
 
-event file_metadata_inferred(f: fa_file, meta: inferred_file_metadata) &priority=5
+event file_sniff(f: fa_file, meta: fa_metadata) &priority=5
 	{
 	if ( ! f?$http || ! f?$is_orig )
 		return;

@@ -42,7 +42,7 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 	f$irc = irc;
 	}
 
-event file_metadata_inferred(f: fa_file, meta: inferred_file_metadata) &priority=5
+event file_sniff(f: fa_file, meta: fa_metadata) &priority=5
 	{
 	if ( f?$irc && meta?$mime_type )
 		f$irc$dcc_mime_type = meta$mime_type;

@@ -906,7 +906,7 @@ event get_file_handle%(tag: Analyzer::Tag, c: connection, is_orig: bool%);
 ## f: The file.
 ##
 ## .. bro:see:: file_over_new_connection file_timeout file_gap
-##    file_metadata_inferred file_state_remove
+##    file_sniff file_state_remove
 event file_new%(f: fa_file%);
 
 ## Indicates that a file has been seen being transferred over a connection
@@ -918,14 +918,17 @@ event file_new%(f: fa_file%);
 ##
 ## is_orig: true if the originator of *c* is the one sending the file.
 ##
-## .. bro:see:: file_new file_timeout file_gap file_metadata_inferred 
+## .. bro:see:: file_new file_timeout file_gap file_sniff 
 ##    file_state_remove
 event file_over_new_connection%(f: fa_file, c: connection, is_orig: bool%);
 
 ## Provide all metadata that has been inferred about a particular file
 ## from inspection of the initial content that been seen at the beginning
 ## of the file.  The analysis can be augmented at this time via
-## :bro:see:`Files::add_analyzer`.
+## :bro:see:`Files::add_analyzer`.  The amount of data fed into the file 
+## sniffing can be increased or decreased by changing either 
+## :bro:see:`default_file_bof_buffer_size` or the `bof_buffer_size` field
+## in an `fa_file` record.
 ##
 ## f: The file.
 ##
@@ -933,7 +936,7 @@ event file_over_new_connection%(f: fa_file, c: connection, is_orig: bool%);
 ##
 ## .. bro:see:: file_over_new_connection file_timeout file_gap
 ##    file_state_remove
-event file_metadata_inferred%(f: fa_file, meta: inferred_file_metadata%);
+event file_sniff%(f: fa_file, meta: fa_metadata%);
 
 ## Indicates that file analysis has timed out because no activity was seen
 ## for the file in a while.
@@ -941,7 +944,7 @@ event file_metadata_inferred%(f: fa_file, meta: inferred_file_metadata%);
 ## f: The file.
 ##
 ## .. bro:see:: file_new file_over_new_connection file_gap
-##    file_metadata_inferred file_state_remove default_file_timeout_interval
+##    file_sniff file_state_remove default_file_timeout_interval
 ##    Files::set_timeout_interval
 event file_timeout%(f: fa_file%);
 
@@ -954,7 +957,7 @@ event file_timeout%(f: fa_file%);
 ## len: The number of missing bytes.
 ##
 ## .. bro:see:: file_new file_over_new_connection file_timeout
-##    file_metadata_inferred file_state_remove file_reassembly_overflow
+##    file_sniff file_state_remove file_reassembly_overflow
 event file_gap%(f: fa_file, offset: count, len: count%);
 
 ## Indicates that the file had an overflow of the reassembly buffer.
@@ -970,7 +973,7 @@ event file_gap%(f: fa_file, offset: count, len: count%);
 ##          This value will also be represented as a gap.
 ##
 ## .. bro:see:: file_new file_over_new_connection file_timeout
-##    file_metadata_inferred file_state_remove file_gap
+##    file_sniff file_state_remove file_gap
 ##    Files::enable_reassembler Files::reassembly_buffer_size
 ##    Files::enable_reassembly Files::disable_reassembly
 ##    Files::set_reassembly_buffer_size
@@ -981,7 +984,7 @@ event file_reassembly_overflow%(f: fa_file, offset: count, skipped: count%);
 ## f: The file.
 ##
 ## .. bro:see:: file_new file_over_new_connection file_timeout file_gap
-##    file_metadata_inferred
+##    file_sniff
 event file_state_remove%(f: fa_file%);
 
 ## Generated when an internal DNS lookup produces the same result as last time.

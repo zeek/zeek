@@ -1,4 +1,4 @@
-event file_metadata_inferred(f: fa_file, meta: inferred_file_metadata)
+event file_sniff(f: fa_file, meta: fa_metadata)
     {
 	if ( ! meta?$mime_type ) return;
     print "new file", f$id;

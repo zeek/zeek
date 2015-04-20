@@ -25,7 +25,7 @@ New Functionality
   See https://www.bro.org/sphinx-git/devel/plugins.html for more
   information on writing plugins.
 
-- Bro now has supoprt for the MySQL wire protocol. Activity gets
+- Bro now has support for the MySQL wire protocol. Activity gets
   logged into mysql.log.
 
 - Bro now features a completely rewritten, enhanced SSH analyzer. A lot
@@ -33,7 +33,12 @@ New Functionality
   determine if logins failed or succeeded in most circumstances.
 
 - Bro's file analysis now supports reassembly of files that are not
-  transferred/seen sequentially.
+  transferred/seen sequentially.  The default file reassembly buffer
+  size is set with the ``Files::reassembly_buffer_size`` variable.
+
+- Bro's file type identification has been greatly improved.  
+  Unfortunately we were not able to get a test suite to verify the new 
+  file type identification included with this release.
 
 - Bro's scripting language now has a ``while`` statement::
 
@@ -79,17 +84,17 @@ Changed Functionality
 - File analysis
 
     * Removed ``fa_file`` record's ``mime_type`` and ``mime_types``
-      fields.  The event ``file_metadata_inferred`` has been added
-      which contain the same information.  The ``mime_type`` field of
-      ``Files::Info`` also still has this info.
+      fields.  The event ``file_sniff`` has been added which contain 
+      the same information.  The ``mime_type`` field of ``Files::Info``
+      also still has this info.
 
     * The earliest point that new mime type information is available is
-      in the ``file_metadata_inferred`` event which comes after the
-      ``file_new`` and ``file_over_new_connection`` events.  Scripts
-      which inspected mime type info within those events will need to be
-      adapted.  (Note: for users that worked w/ versions of Bro from git,
-      there was also an event called ``file_mime_type`` which is now
-      replaced be the ``file_metadata_inferred`` event).
+      in the ``file_sniff`` event which comes after the ``file_new`` and 
+      ``file_over_new_connection`` events.  Scripts which inspected mime 
+      type info within those events will need to be adapted.  (Note: for
+      users that worked w/ versions of Bro from git, there was also an 
+      event called ``file_mime_type`` which is now replaced be the 
+      ``file_sniff`` event).
 
     * Removed ``Files::add_analyzers_for_mime_type`` function.
 

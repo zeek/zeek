@@ -415,7 +415,7 @@ type fa_file: record {
 } &redef;
 
 ## Metadata that's been inferred about a particular file.
-type inferred_file_metadata: record {
+type fa_metadata: record {
 	## The strongest matching mime type if one was discovered.
 	mime_type: string &optional;
 	## All matching mime types if any were discovered.

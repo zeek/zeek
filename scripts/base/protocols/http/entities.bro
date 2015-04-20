@@ -43,7 +43,7 @@ export {
 
 event http_begin_entity(c: connection, is_orig: bool) &priority=10
 	{
-	set_state(c, F, is_orig);
+	set_state(c, is_orig);
 
 	if ( is_orig )
 		++c$http$orig_mime_depth;

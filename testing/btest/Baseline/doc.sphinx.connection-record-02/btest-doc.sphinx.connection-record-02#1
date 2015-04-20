@@ -11,7 +11,7 @@
       
       }], extract_orig=F, extract_resp=F, http=[ts=1362692526.939527, uid=CXWv6p3arKYeMETxOg, id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp], trans_depth=1, method=GET, host=bro.org, uri=/download/CHANGES.bro-aux.txt, referrer=<uninitialized>, user_agent=Wget/1.14 (darwin12.2.0), request_body_len=0, response_body_len=4705, status_code=200, status_msg=OK, info_code=<uninitialized>, info_msg=<uninitialized>, filename=<uninitialized>, tags={
       
-      }, username=<uninitialized>, password=<uninitialized>, capture_password=F, proxied=<uninitialized>, range_request=F, orig_fuids=<uninitialized>, orig_mime_types=<uninitialized>, resp_fuids=[FakNcS1Jfe01uljb3], resp_mime_types=[text/plain], current_entity=<uninitialized>, orig_mime_depth=1, resp_mime_depth=1], http_state=[pending={
+      }, username=<uninitialized>, password=<uninitialized>, capture_password=F, proxied=<uninitialized>, range_request=F, etag="1261-4c870358a6fc0", orig_fuids=<uninitialized>, orig_mime_types=<uninitialized>, resp_fuids=[FakNcS1Jfe01uljb3], resp_mime_types=[text/plain], current_entity=<uninitialized>, orig_mime_depth=1, resp_mime_depth=1], http_state=[pending={
       
-      }, current_request=1, current_response=1]]
+      }, current_request=1, current_response=1, trans_depth=1]]
 

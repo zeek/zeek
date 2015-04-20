@@ -101,6 +101,7 @@ signature file-ocsp-request {
 	file-mime "application/ocsp-request", 71
 }
 
+# OCSP responses over HTTP.
 signature file-ocsp-response {
 	file-magic /^.{11,19}\x06\x09\x2B\x06\x01\x05\x05\x07\x30\x01\x01/
 	file-mime "application/ocsp-response", 71

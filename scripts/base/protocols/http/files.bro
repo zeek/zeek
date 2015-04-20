@@ -19,12 +19,12 @@ function get_file_handle(c: connection, is_orig: bool): string
 	if ( ! c?$http )
 		return "";
 
-	if ( c$http$range_request && c$http?$etag && ! is_orig )
+	if ( c$http$range_request && ! is_orig )
 		{
 		# Any multipart responses from the server are pieces of same file
 		# that correspond to range requests, so don't use mime depth to
 		# identify the file.
-		return cat(Analyzer::ANALYZER_HTTP, is_orig, c$id$orig_h, build_url(c$http), c$http$etag);
+		return cat(Analyzer::ANALYZER_HTTP, is_orig, c$id$orig_h, build_url(c$http));
 		}
 	else
 		{

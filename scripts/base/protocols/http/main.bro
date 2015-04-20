@@ -78,9 +78,6 @@ export {
 		## Indicates if this request can assume 206 partial content in
 		## response.
 		range_request:           bool      &default=F;
-		## ETag for the return data used to match up 
-		## partial content responses.
-		etag:                    string    &optional;
 	};
 
 	## Structure to maintain state for an HTTP connection with multiple
@@ -161,7 +158,7 @@ function new_http_session(c: connection): Info
 	return tmp;
 	}
 
-function set_state(c: connection, request: bool, is_orig: bool)
+function set_state(c: connection, is_orig: bool)
 	{
 	if ( ! c?$http_state )
 		{
@@ -170,15 +167,20 @@ function set_state(c: connection, request: bool, is_orig: bool)
 		}
 
 	# These deal with new requests and responses.
-	if ( request || c$http_state$current_request !in c$http_state$pending )
-		c$http_state$pending[c$http_state$current_request] = new_http_session(c);
-	if ( ! is_orig && c$http_state$current_response !in c$http_state$pending )
-		c$http_state$pending[c$http_state$current_response] = new_http_session(c);
-
 	if ( is_orig )
+		{
+		if ( c$http_state$current_request !in c$http_state$pending )
+			c$http_state$pending[c$http_state$current_request] = new_http_session(c);
+
 		c$http = c$http_state$pending[c$http_state$current_request];
-	else
+		}
+	else 
+		{
+		if ( c$http_state$current_response !in c$http_state$pending )
+			c$http_state$pending[c$http_state$current_response] = new_http_session(c);
+		
 		c$http = c$http_state$pending[c$http_state$current_response];
+		} 
 	}
 
 event http_request(c: connection, method: string, original_URI: string,
@@ -191,7 +193,7 @@ event http_request(c: connection, method: string, original_URI: string,
 		}
 
 	++c$http_state$current_request;
-	set_state(c, T, T);
+	set_state(c, T);
 
 	c$http$method = method;
 	c$http$uri = unescaped_URI;
@@ -213,8 +215,10 @@ event http_reply(c: connection, version: string, code: count, reason: string) &p
 	if ( c$http_state$current_response !in c$http_state$pending ||
 	     (c$http_state$pending[c$http_state$current_response]?$status_code &&
 	       ! code_in_range(c$http_state$pending[c$http_state$current_response]$status_code, 100, 199)) )
+		{
 		++c$http_state$current_response;
-	set_state(c, F, F);
+		}
+	set_state(c, F);
 
 	c$http$status_code = code;
 	c$http$status_msg = reason;
@@ -238,7 +242,7 @@ event http_reply(c: connection, version: string, code: count, reason: string) &p
 
 event http_header(c: connection, is_orig: bool, name: string, value: string) &priority=5
 	{
-	set_state(c, F, is_orig);
+	set_state(c, is_orig);
 
 	if ( is_orig ) # client headers
 		{
@@ -283,18 +287,11 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 				}
 			}
 		}
-	else
-		{
-		if ( name == "ETAG" )
-			{
-			c$http$etag = value;
-			}
-		}
 	}
 
 event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &priority = 5
 	{
-	set_state(c, F, is_orig);
+	set_state(c, is_orig);
 
 	if ( is_orig )
 		c$http$request_body_len = stat$body_length;

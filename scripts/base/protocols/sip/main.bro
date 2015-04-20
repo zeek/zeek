@@ -125,6 +125,20 @@ function set_state(c: connection, is_request: bool)
 		c$sip = c$sip_state$pending[c$sip_state$current_response];
 	}
 	
+function flush_pending(c: connection)
+	{
+	# Flush all pending but incomplete request/response pairs.
+	if ( c?$sip_state )
+		{
+		for ( r in c$sip_state$pending )
+			{
+			# We don't use pending elements at index 0.
+			if ( r == 0 ) next;
+			Log::write(SIP::LOG, c$sip_state$pending[r]);
+			}
+		}
+	}
+
 event sip_request(c: connection, method: string, original_URI: string, version: string) &priority=5
 	{
 	set_state(c, T);
@@ -138,7 +152,8 @@ event sip_request(c: connection, method: string, original_URI: string, version: 
 	
 event sip_reply(c: connection, version: string, code: count, reason: string) &priority=5
 	{
-	if ( c$sip_state$current_response !in c$sip_state$pending )
+	if ( c$sip_state$current_response !in c$sip_state$pending &&
+	     (code < 100 && 200 <= code) )
 		++c$sip_state$current_response;
 	set_state(c, F);
 	
@@ -194,13 +209,22 @@ event sip_end_entity(c: connection, is_request: bool) &priority = -5
 	if ( ! is_request )
 		{
 		Log::write(SIP::LOG, c$sip);
-		delete c$sip_state$pending[c$sip_state$current_response];
+
+		if ( c$sip$status_code < 100 || 200 <= c$sip$status_code )
+			delete c$sip_state$pending[c$sip_state$current_response];
+
+		if ( c$sip$method == "BYE" &&
+		     c$sip$status_code >= 200 && c$sip$status_code < 300 )
+			{
+			flush_pending(c);
+			delete c$sip;
+			delete c$sip_state;
+			}
 		}
 	}
 
 event connection_state_remove(c: connection) &priority=-5
 	{
-	# Flush all pending but incomplete request/response pairs.
 	if ( c?$sip_state )
 		{
 		for ( r in c$sip_state$pending )

@@ -39,9 +39,14 @@ type DOS_Code(len: uint32) = record {
 type NT_Headers = record {
 	PESignature     : uint32;
 	file_header     : File_Header;
-	optional_header : Optional_Header &length=file_header.SizeOfOptionalHeader;
+	have_opt_header : case file_header.SizeOfOptionalHeader of {
+		0       -> none: empty;
+		default -> optional_header : Optional_Header &length=file_header.SizeOfOptionalHeader;
+		};
 } &let {
-	length: uint32 = file_header.SizeOfOptionalHeader+offsetof(optional_header);
+	length: uint32 = file_header.SizeOfOptionalHeader + offsetof(have_opt_header);
+	is_exe: bool = file_header.SizeOfOptionalHeader > 0;
+	size_of_headers: uint32 = is_exe ? optional_header.size_of_headers : 0;
 } &length=length;
 
 # The file header is mainly self-describing

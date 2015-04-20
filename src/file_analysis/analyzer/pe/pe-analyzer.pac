@@ -98,7 +98,8 @@ refine flow File += {
 			fh->Assign(1, new Val(static_cast<double>(${h.TimeDateStamp}), TYPE_TIME));
 			fh->Assign(2, new Val(${h.PointerToSymbolTable}, TYPE_COUNT));
 			fh->Assign(3, new Val(${h.NumberOfSymbols}, TYPE_COUNT));
-			fh->Assign(4, characteristics_to_bro(${h.Characteristics}, 16));
+			fh->Assign(4, new Val(${h.SizeOfOptionalHeader}, TYPE_COUNT));
+			fh->Assign(5, characteristics_to_bro(${h.Characteristics}, 16));
 			BifEvent::generate_pe_file_header((analyzer::Analyzer *) connection()->bro_analyzer(), 
 			                                  connection()->bro_analyzer()->GetFile()->GetVal()->Ref(),
 			                                  fh);
@@ -142,15 +143,13 @@ refine flow File += {
 			oh->Assign(15, new Val(${h.minor_image_version}, TYPE_COUNT));
 			oh->Assign(16, new Val(${h.minor_subsys_version}, TYPE_COUNT));
 			oh->Assign(17, new Val(${h.minor_subsys_version}, TYPE_COUNT));
-			oh->Assign(18, new Val(${h.win32_version}, TYPE_COUNT));
-			oh->Assign(19, new Val(${h.size_of_image}, TYPE_COUNT));
-			oh->Assign(20, new Val(${h.size_of_headers}, TYPE_COUNT));
-			oh->Assign(21, new Val(${h.checksum}, TYPE_COUNT));
-			oh->Assign(22, new Val(${h.subsystem}, TYPE_COUNT));
-			oh->Assign(23, characteristics_to_bro(${h.dll_characteristics}, 16));
-			oh->Assign(24, new Val(${h.loader_flags}, TYPE_COUNT));
+			oh->Assign(18, new Val(${h.size_of_image}, TYPE_COUNT));
+			oh->Assign(19, new Val(${h.size_of_headers}, TYPE_COUNT));
+			oh->Assign(20, new Val(${h.checksum}, TYPE_COUNT));
+			oh->Assign(21, new Val(${h.subsystem}, TYPE_COUNT));
+			oh->Assign(22, characteristics_to_bro(${h.dll_characteristics}, 16));
 
-			oh->Assign(25, process_rvas(${h.rvas}, ${h.number_of_rva_and_sizes}));
+			oh->Assign(23, process_rvas(${h.rvas}, ${h.number_of_rva_and_sizes}));
 			
 			BifEvent::generate_pe_optional_header((analyzer::Analyzer *) connection()->bro_analyzer(), 
 			                                      connection()->bro_analyzer()->GetFile()->GetVal()->Ref(),

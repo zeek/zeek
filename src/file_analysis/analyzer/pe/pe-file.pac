@@ -11,8 +11,8 @@ type Portable_Executable = record {
 	headers : Headers;
 	pad     : Padding(restofdata);
 } &let {
-	unparsed_hdr_len: uint32 = headers.pe_header.optional_header.size_of_headers - headers.length;
-	restofdata: uint64 = $context.connection.get_max_file_location() - headers.pe_header.optional_header.size_of_headers + unparsed_hdr_len;
+	unparsed_hdr_len: uint32 = headers.pe_header.size_of_headers - headers.length;
+	restofdata: uint64 = headers.pe_header.is_exe ? $context.connection.get_max_file_location() - headers.pe_header.size_of_headers + unparsed_hdr_len : 0;
 	proc: bool = $context.connection.proc_pe(this);
 } &byteorder=littleendian;
 

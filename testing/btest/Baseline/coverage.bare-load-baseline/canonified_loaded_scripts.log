@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2015-04-17-16-40-15
+#open	2015-04-20-02-31-07
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -92,6 +92,7 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_RDP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_RDP.types.bif.bro
     build/scripts/base/bif/plugins/Bro_RPC.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_SIP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_SNMP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_SMB.events.bif.bro
     build/scripts/base/bif/plugins/Bro_SMTP.events.bif.bro
@@ -125,4 +126,4 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_SQLiteWriter.sqlite.bif.bro
 scripts/policy/misc/loaded-scripts.bro
   scripts/base/utils/paths.bro
-#close	2015-04-17-16-40-15
+#close	2015-04-20-02-31-07

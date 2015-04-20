@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2015-04-17-16-46-56
+#open	2015-04-20-02-36-14
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -92,6 +92,7 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_RDP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_RDP.types.bif.bro
     build/scripts/base/bif/plugins/Bro_RPC.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_SIP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_SNMP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_SMB.events.bif.bro
     build/scripts/base/bif/plugins/Bro_SMTP.events.bif.bro
@@ -239,6 +240,8 @@ scripts/base/init-default.bro
   scripts/base/protocols/rdp/__load__.bro
     scripts/base/protocols/rdp/consts.bro
     scripts/base/protocols/rdp/main.bro
+  scripts/base/protocols/sip/__load__.bro
+    scripts/base/protocols/sip/main.bro
   scripts/base/protocols/snmp/__load__.bro
     scripts/base/protocols/snmp/main.bro
   scripts/base/protocols/smtp/__load__.bro
@@ -261,4 +264,4 @@ scripts/base/init-default.bro
   scripts/base/misc/find-checksum-offloading.bro
   scripts/base/misc/find-filtered-trace.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2015-04-17-16-46-56
+#close	2015-04-20-02-36-14

@@ -414,6 +414,14 @@ type fa_file: record {
 	bof_buffer: string &optional;
 } &redef;
 
+## Metadata that's been inferred about a particular file.
+type fa_metadata: record {
+	## The strongest matching mime type if one was discovered.
+	mime_type: string &optional;
+	## All matching mime types if any were discovered.
+	mime_types: mime_matches &optional;
+};
+
 ## Fields of a SYN packet.
 ##
 ## .. bro:see:: connection_SYN_packet

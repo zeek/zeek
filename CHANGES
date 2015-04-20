@@ -1,4 +1,29 @@
 
+2.3-741 | 2015-04-20 13:12:39 -0700
+
+  * API changes to file analysis mime type detection. Removed
+    "file_mime_type" and "file_mime_types" event, replacing them with
+    a new event called "file_metadata_inferred". Addresses BIT-1368.
+    (Jon Siwek)
+
+  * A large series of improvements for file type identification. This
+    inludes a many signature updates (new types, cleanup, performance
+    improvments) and splitting out signatures into subfiles. (Seth
+    Hall)
+
+  * Fix an issue with files having gaps before the bof_buffer is
+    filled, which could lead to file type identification not working
+    correctly. (Seth Hall)
+
+  * Fix an issue with packet loss in HTTP file reporting for file type
+    identification wasn't working correctly zero-length bodies. (Seth
+    Hall)
+
+  * X.509 certificates are now populating files.log with the mime type
+    application/pkix-cert. (Seth Hall)
+
+  * Normalized some FILE_ANALYSIS debug messages. (Seth Hall)
+
 2.3-725 | 2015-04-20 12:54:54 -0700
 
   * Updating submodule(s).

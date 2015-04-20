@@ -7,7 +7,7 @@ file #0, 197, 0
 FILE_BOF_BUFFER
 {^J  "origin
 MIME_TYPE
-text/plain
+text/json
 source: HTTP
 MD5: 5baba7eea57bc8a42a92c817ed566d72
 SHA1: e351b8c693c3353716787c02e2923f4d12ebbb31

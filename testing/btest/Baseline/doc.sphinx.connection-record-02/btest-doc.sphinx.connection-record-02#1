@@ -13,5 +13,5 @@
       
       }, username=<uninitialized>, password=<uninitialized>, capture_password=F, proxied=<uninitialized>, range_request=F, orig_fuids=<uninitialized>, orig_mime_types=<uninitialized>, resp_fuids=[FakNcS1Jfe01uljb3], resp_mime_types=[text/plain], current_entity=<uninitialized>, orig_mime_depth=1, resp_mime_depth=1], http_state=[pending={
       
-      }, current_request=1, current_response=1]]
+      }, current_request=1, current_response=1, trans_depth=1]]
 

@@ -53,31 +53,35 @@ int File::overflow_bytes_idx = -1;
 int File::timeout_interval_idx = -1;
 int File::bof_buffer_size_idx = -1;
 int File::bof_buffer_idx = -1;
+int File::meta_mime_type_idx = -1;
+int File::meta_mime_types_idx = -1;
 
 void File::StaticInit()
 	{
 	if ( id_idx != -1 )
 		return;
 
-	id_idx = Idx("id");
-	parent_id_idx = Idx("parent_id");
-	source_idx = Idx("source");
-	is_orig_idx = Idx("is_orig");
-	conns_idx = Idx("conns");
-	last_active_idx = Idx("last_active");
-	seen_bytes_idx = Idx("seen_bytes");
-	total_bytes_idx = Idx("total_bytes");
-	missing_bytes_idx = Idx("missing_bytes");
-	overflow_bytes_idx = Idx("overflow_bytes");
-	timeout_interval_idx = Idx("timeout_interval");
-	bof_buffer_size_idx = Idx("bof_buffer_size");
-	bof_buffer_idx = Idx("bof_buffer");
+	id_idx = Idx("id", fa_file_type);
+	parent_id_idx = Idx("parent_id", fa_file_type);
+	source_idx = Idx("source", fa_file_type);
+	is_orig_idx = Idx("is_orig", fa_file_type);
+	conns_idx = Idx("conns", fa_file_type);
+	last_active_idx = Idx("last_active", fa_file_type);
+	seen_bytes_idx = Idx("seen_bytes", fa_file_type);
+	total_bytes_idx = Idx("total_bytes", fa_file_type);
+	missing_bytes_idx = Idx("missing_bytes", fa_file_type);
+	overflow_bytes_idx = Idx("overflow_bytes", fa_file_type);
+	timeout_interval_idx = Idx("timeout_interval", fa_file_type);
+	bof_buffer_size_idx = Idx("bof_buffer_size", fa_file_type);
+	bof_buffer_idx = Idx("bof_buffer", fa_file_type);
+	meta_mime_type_idx = Idx("mime_type", inferred_file_metadata_type);
+	meta_mime_types_idx = Idx("mime_types", inferred_file_metadata_type);
 	}
 
 File::File(const string& file_id, const string& source_name, Connection* conn,
            analyzer::Tag tag, bool is_orig)
 	: id(file_id), val(0), file_reassembler(0), stream_offset(0), 
-	  reassembly_max_buffer(0), did_mime_type(false), 
+	  reassembly_max_buffer(0), did_metadata_inference(false),
 	  reassembly_enabled(false), postpone_timeout(false), done(false), 
 	  analyzers(this)
 	{
@@ -169,11 +173,13 @@ double File::LookupFieldDefaultInterval(int idx) const
 	return rval;
 	}
 
-int File::Idx(const string& field)
+int File::Idx(const string& field, const RecordType* type)
 	{
-	int rval = fa_file_type->FieldOffset(field.c_str());
+	int rval = type->FieldOffset(field.c_str());
+
 	if ( rval < 0 )
-		reporter->InternalError("Unknown fa_file field: %s", field.c_str());
+		reporter->InternalError("Unknown %s field: %s", type->GetName().c_str(),
+		                        field.c_str());
 
 	return rval;
 	}
@@ -281,21 +287,24 @@ void File::SetReassemblyBuffer(uint64 max)
 	reassembly_max_buffer = max;
 	}
 
-bool File::DetectMIME()
+void File::InferMetadata()
 	{
-	did_mime_type = true;
+	did_metadata_inference = true;
 
 	Val* bof_buffer_val = val->Lookup(bof_buffer_idx);
 
 	if ( ! bof_buffer_val )
 		{
 		if ( bof_buffer.size == 0 )
-			return false;
+			return;
 
 		BroString* bs = concatenate(bof_buffer.chunks);
 		bof_buffer_val = new StringVal(bs);
 		val->Assign(bof_buffer_idx, bof_buffer_val);
 		}
+
+	if ( ! FileEventAvailable(file_metadata_inferred) )
+		return;
 
 	RuleMatcher::MIME_Matches matches;
 	const u_char* data = bof_buffer_val->AsString()->Bytes();
@@ -303,28 +312,21 @@ bool File::DetectMIME()
 	len = min(len, LookupFieldDefaultCount(bof_buffer_size_idx));
 	file_mgr->DetectMIME(data, len, &matches);
 
-	if ( matches.empty() )
+	val_list* vl = new val_list();
+	vl->append(val->Ref());
+	RecordVal* meta = new RecordVal(inferred_file_metadata_type);
+	vl->append(meta);
+
+	if ( ! matches.empty() )
 		{
-		return false;
+		meta->Assign(meta_mime_type_idx,
+		             new StringVal(*(matches.begin()->second.begin())));
+		meta->Assign(meta_mime_types_idx,
+		             file_analysis::GenMIMEMatchesVal(matches));
 		}
 
-	if ( FileEventAvailable(file_mime_type) )
-		{
-		val_list* vl = new val_list();
-		vl->append(val->Ref());
-		vl->append(new StringVal(*(matches.begin()->second.begin())));
-		FileEvent(file_mime_type, vl);
-		}
-
-	if ( FileEventAvailable(file_mime_types) )
-		{
-		val_list* vl = new val_list();
-		vl->append(val->Ref());
-		vl->append(file_analysis::GenMIMEMatchesVal(matches));
-		FileEvent(file_mime_types, vl);
-		}
-
-	return true;
+	FileEvent(file_metadata_inferred, vl);
+	return;
 	}
 
 bool File::BufferBOF(const u_char* data, uint64 len)
@@ -357,9 +359,9 @@ void File::DeliverStream(const u_char* data, uint64 len)
 	// Buffer enough data for the BOF buffer
 	BufferBOF(data, len);
 
-	if ( ! did_mime_type && bof_buffer.full &&
+	if ( ! did_metadata_inference && bof_buffer.full &&
 	     LookupFieldDefaultCount(missing_bytes_idx) == 0 )
-		DetectMIME();
+		InferMetadata();
 
 	DBG_LOG(DBG_FILE_ANALYSIS,
 	        "[%s] %" PRIu64 " stream bytes in at offset %" PRIu64 "; %s [%s%s]",
@@ -589,7 +591,7 @@ void File::FileEvent(EventHandlerPtr h, val_list* vl)
 	mgr.QueueEvent(h, vl);
 
 	if ( h == file_new || h == file_over_new_connection ||
-	     h == file_mime_type || h == file_mime_types ||
+	     h == file_metadata_inferred ||
 	     h == file_timeout || h == file_extraction_limit )
 		{
 		// immediate feedback is required for these events.

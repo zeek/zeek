@@ -22,8 +22,6 @@
 
 //#define MATCHER_PRINT_STATS
 
-extern int rule_bench;
-
 // Parser interface:
 
 extern void rules_error(const char* msg);

@@ -63,10 +63,13 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 	f$ftp = ftp;
 	}
 
-event file_mime_type(f: fa_file, mime_type: string) &priority=5
+event file_metadata_inferred(f: fa_file, meta: inferred_file_metadata) &priority=5
 	{
 	if ( ! f?$ftp )
 		return;
 
-	f$ftp$mime_type = mime_type;
+	if ( ! meta?$mime_type )
+		return;
+
+	f$ftp$mime_type = meta$mime_type;
 	}

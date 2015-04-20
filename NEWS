@@ -79,14 +79,17 @@ Changed Functionality
 - File analysis
 
     * Removed ``fa_file`` record's ``mime_type`` and ``mime_types``
-      fields.  The events ``file_mime_type`` and ``file_mime_types``
-      have been added which contain the same information.  The
-      ``mime_type`` field of ``Files::Info`` also still has this info.
+      fields.  The event ``file_metadata_inferred`` has been added
+      which contain the same information.  The ``mime_type`` field of
+      ``Files::Info`` also still has this info.
 
     * The earliest point that new mime type information is available is
-      in the ``file_mime_type`` event which comes after the ``file_new``
-      and ``file_over_new_connection`` events.  Scripts which inspected
-      mime type info within those events will need to be adapted.
+      in the ``file_metadata_inferred`` event which comes after the
+      ``file_new`` and ``file_over_new_connection`` events.  Scripts
+      which inspected mime type info within those events will need to be
+      adapted.  (Note: for users that worked w/ versions of Bro from git,
+      there was also an event called ``file_mime_type`` which is now
+      replaced be the ``file_metadata_inferred`` event).
 
     * Removed ``Files::add_analyzers_for_mime_type`` function.
 

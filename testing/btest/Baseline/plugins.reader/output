@@ -1,4 +1,4 @@
 Demo::Foo - A Foo test input reader (dynamic, version 1.0)
-    [Writer] Foo (Input::READER_FOO)
+    [Reader] Foo (Input::READER_FOO)
 
 ===

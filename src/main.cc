@@ -117,7 +117,6 @@ SampleLogger* sample_logger = 0;
 int signal_val = 0;
 int optimize = 0;
 int do_notice_analysis = 0;
-int rule_bench = 0;
 extern char version[];
 char* command_line_policy = 0;
 vector<string> params;
@@ -195,7 +194,6 @@ void usage()
 	fprintf(stderr, "    -F|--force-dns                 | force DNS\n");
 	fprintf(stderr, "    -I|--print-id <ID name>        | print out given ID\n");
 	fprintf(stderr, "    -K|--md5-hashkey <hashkey>     | set key for MD5-keyed hashing\n");
-	fprintf(stderr, "    -L|--rule-benchmark            | benchmark for rules\n");
 	fprintf(stderr, "    -N|--print-plugins             | print available plugins and exit (-NN for verbose)\n");
 	fprintf(stderr, "    -O|--optimize                  | optimize policy script\n");
 	fprintf(stderr, "    -P|--prime-dns                 | prime DNS\n");
@@ -503,7 +501,6 @@ int main(int argc, char** argv)
 		{"save-seeds",		required_argument,	0,	'H'},
 		{"set-seed",		required_argument,	0,	'J'},
 		{"md5-hashkey",		required_argument,	0,	'K'},
-		{"rule-benchmark",	no_argument,		0,	'L'},
 		{"print-plugins",	no_argument,		0,	'N'},
 		{"optimize",		no_argument,		0,	'O'},
 		{"prime-dns",		no_argument,		0,	'P'},
@@ -666,10 +663,6 @@ int main(int argc, char** argv)
 		case 'K':
 			MD5((const u_char*) optarg, strlen(optarg), shared_hmac_md5_key);
 			hmac_key_set = 1;
-			break;
-
-		case 'L':
-			++rule_bench;
 			break;
 
 		case 'N':

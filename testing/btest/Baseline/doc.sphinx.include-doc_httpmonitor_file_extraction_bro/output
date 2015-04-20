@@ -11,15 +11,18 @@ global mime_to_ext: table[string] of string = {
 	["text/html"] = "html",
 };
 
-event file_mime_type(f: fa_file, mime_type: string)
+event file_metadata_inferred(f: fa_file, meta: inferred_file_metadata)
 	{
 	if ( f$source != "HTTP" )
 		return;
 
-	if ( mime_type !in mime_to_ext )
+	if ( ! meta?$mime_type )
 		return;
 
-	local fname = fmt("%s-%s.%s", f$source, f$id, mime_to_ext[mime_type]);
+	if ( meta$mime_type !in mime_to_ext )
+		return;
+
+	local fname = fmt("%s-%s.%s", f$source, f$id, mime_to_ext[meta$mime_type]);
 	print fmt("Extracting file %s", fname);
 	Files::add_analyzer(f, Files::ANALYZER_EXTRACT, [$extract_filename=fname]);
 	}

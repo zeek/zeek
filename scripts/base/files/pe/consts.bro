@@ -70,6 +70,25 @@ export {
 		[14] = "XBOX"
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };
 
+	const directories: table[count] of string = {
+		[0]  = "Export Table",
+		[1]  = "Import Table",
+		[2]  = "Resource Table",
+		[3]  = "Exception Table",
+		[4]  = "Certificate Table",
+		[5]  = "Base Relocation Table",
+		[6]  = "Debug",
+		[7]  = "Architecture",
+		[8]  = "Global Ptr",
+		[9]  = "TLS Table",
+		[10] = "Load Config Table",
+		[11] = "Bound Import",
+		[12] = "IAT",
+		[13] = "Delay Import Descriptor",
+		[14] = "CLR Runtime Header",
+		[15] = "Reserved"
+	} &default=function(i: count):string { return fmt("unknown-%d", i); };
+
 	const section_characteristics: table[count] of string = {
 		[0x8]        = "TYPE_NO_PAD",
 		[0x20]       = "CNT_CODE",

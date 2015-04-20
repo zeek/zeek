@@ -14,6 +14,7 @@ PE::PE(RecordVal* args, File* file)
 PE::~PE()
 	{
 	delete interp;
+	delete conn;
 	}
 
 bool PE::DeliverStream(const u_char* data, uint64 len)

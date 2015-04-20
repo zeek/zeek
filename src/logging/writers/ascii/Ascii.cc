@@ -181,10 +181,9 @@ bool Ascii::InitFormatter()
 Ascii::~Ascii()
 	{
 	if ( ! ascii_done )
-		{
-		fprintf(stderr, "internal error: finish missing\n");
-		abort();
-		}
+		// In case of errors aborting the logging altogether,
+		// DoFinish() may not have been called.
+		CloseFile(network_time);
 
 	delete formatter;
 	}

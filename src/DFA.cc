@@ -7,8 +7,6 @@
 #include "EquivClass.h"
 #include "DFA.h"
 
-int dfa_state_cache_size = 10000;
-
 unsigned int DFA_State::transition_counter = 0;
 
 DFA_State::DFA_State(int arg_state_num, const EquivClass* ec,
@@ -292,9 +290,8 @@ unsigned int DFA_State::Size()
 		+ (centry ? padded_sizeof(CacheEntry) : 0);
 	}
 
-DFA_State_Cache::DFA_State_Cache(int arg_maxsize)
+DFA_State_Cache::DFA_State_Cache()
 	{
-	maxsize = arg_maxsize;
 	hits = misses = 0;
 	}
 
@@ -402,7 +399,7 @@ DFA_Machine::DFA_Machine(NFA_Machine* n, EquivClass* arg_ec)
 
 	ec = arg_ec;
 
-	dfa_state_cache = new DFA_State_Cache(dfa_state_cache_size);
+	dfa_state_cache = new DFA_State_Cache();
 
 	NFA_state_list* ns = new NFA_state_list;
 	ns->append(n->FirstState());

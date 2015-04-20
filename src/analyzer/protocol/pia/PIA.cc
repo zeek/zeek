@@ -81,7 +81,7 @@ void PIA::PIA_Done()
 	}
 
 void PIA::PIA_DeliverPacket(int len, const u_char* data, bool is_orig, uint64 seq,
-				const IP_Hdr* ip, int caplen)
+				const IP_Hdr* ip, int caplen, bool clear_state)
 	{
 	if ( pkt_buffer.state == SKIPPING )
 		return;
@@ -107,6 +107,9 @@ void PIA::PIA_DeliverPacket(int len, const u_char* data, bool is_orig, uint64 se
 
 	// FIXME: I'm not sure why it does not work with eol=true...
 	DoMatch(data, len, is_orig, true, false, false, ip);
+
+	if ( clear_state )
+		RuleMatcherState::ClearMatchState(is_orig);
 
 	pkt_buffer.state = new_state;
 

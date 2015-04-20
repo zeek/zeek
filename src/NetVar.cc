@@ -178,6 +178,7 @@ RecordType* peer;
 int forward_remote_state_changes;
 int forward_remote_events;
 int remote_check_sync_consistency;
+bro_uint_t chunked_io_buffer_soft_cap;
 
 StringVal* ssl_ca_certificate;
 StringVal* ssl_private_key;
@@ -276,6 +277,7 @@ void init_general_global_var()
 	forward_remote_events = opt_internal_int("forward_remote_events");
 	remote_check_sync_consistency =
 		opt_internal_int("remote_check_sync_consistency");
+	chunked_io_buffer_soft_cap = opt_internal_unsigned("chunked_io_buffer_soft_cap");
 
 	ssl_ca_certificate = internal_val("ssl_ca_certificate")->AsStringVal();
 	ssl_private_key = internal_val("ssl_private_key")->AsStringVal();

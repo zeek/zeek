@@ -1,4 +1,134 @@
 
+2.3-722 | 2015-04-20 12:59:03 -0500
+
+  * Remove unneeded documentation cross-referencing. (Jon Siwek)
+
+2.3-721 | 2015-04-20 12:47:05 -0500
+
+  * BIT-1380: Improve Broxygen output of &default expressions.
+    (Jon Siwek)
+
+2.3-720 | 2015-04-17 14:18:26 -0700
+
+  * Updating NEWS.
+
+2.3-716 | 2015-04-17 13:06:37 -0700
+
+  * Add seeking functionality to raw reader. One can now add an option
+    "offset" to the config map. Positive offsets are interpreted to be
+    from the beginning of the file, negative from the end of the file
+    (-1 is end of file). Only works for raw reader in streaming or
+    manual mode. Does not work with executables. Addresses BIT-985.
+    (Johanna Amann)
+
+  * Allow setting packet and byte thresholds for connections. (Johanna Amann)
+
+    This extends the ConnSize analyzer to be able to raise events when
+    each direction of a connection crosses a certain amount of bytes
+    or packets.
+
+    Thresholds are set using:
+        - set_conn_bytes_threshold(c$id, [num-bytes], [direction]);
+        - set_conn_packets_threshold(c$id, [num-packets], [direction]);
+
+    They raise the events, respectively:
+        - event conn_bytes_threshold_crossed(c: connection, threshold: count, is_orig: bool)
+        - event conn_packets_threshold_crossed(c: connection, threshold: count, is_orig: bool)
+
+    Current thresholds can be examined using get_conn_bytes_threshold()
+    and get_conn_packets_threshold().
+
+    Only one threshold can be set per connection.
+
+  * Add high-level API for packet/bytes thresholding in
+    base/protocols/conn/thresholds.bro that holds lists of thresholds
+    and raises an event for each threshold exactly once. (Johanna
+    Amann)
+
+  * Fix a bug where child packet analyzers of the TCP analyzer
+    where not found using FindChild.
+
+  * Update GridFTP analyzer to use connection thresholding instead of
+    polling. (Johanna Amann)
+
+2.3-709 | 2015-04-17 12:37:32 -0700
+
+  * Fix addressing the dreaded "internal error: unknown msg type 115
+  in Poll()". (Jon Siwek)
+
+    This patch removes the error handling code for overload conditions
+    in the main process that could cause trouble down the road. The
+    "chunked_io_buffer_soft_cap" script variable can now tune when the
+    client process begins shutting down peer connections, and the
+    default setting is now double what it used to be. Addresses
+    BIT-1376.
+
+2.3-707 | 2015-04-17 10:57:59 -0500
+
+  * Add more info about Broker to NEWS. (Jon Siwek)
+
+2.3-705 | 2015-04-16 08:16:45 -0700
+
+  * Update Mozilla CA list. (Johanna Amann)
+
+  * Update tests to have them keep using older certificates where
+    appropiate. (Johanna Amann)
+
+2.3-699 | 2015-04-16 09:51:58 -0500
+
+  * Fix the to_count function to use strtoull versus strtoll.
+    (Jon Siwek)
+
+2.3-697 | 2015-04-15 09:51:15 -0700
+
+  * Removing error check verifying that an ASCII writer has been
+    properly finished. Instead of aborting, we now just clean up in
+    that case and proceed. Addresses BIT-1331. (Robin Sommer)
+
+2.3-696 | 2015-04-14 15:56:36 -0700
+
+  * Update sqlite to 3.8.9
+
+2.3-695 | 2015-04-13 10:34:42 -0500
+
+  * Fix iterator invalidation in broker::Manager dtor. (Jon Siwek)
+
+  * Add paragraph to plugin documentation. (Robin Sommer)
+
+2.3-693 | 2015-04-11 10:56:31 -0700
+
+  * BIT-1367: improve coercion of anonymous records in set constructor.
+    (Jon Siwek)
+
+  * Allow to specify ports for sftp log rotator. (Johanna Amann)
+
+2.3-690 | 2015-04-10 21:51:10 -0700
+
+  * Make sure to always delete the remote serializer. Addresses
+    BIT-1306 and probably also BIT-1356. (Robin Sommer)
+
+  * Cleaning up --help. -D and -Y/y were still listed, even though
+    they had no effect anymore. Removing some dead code along with -D.
+    Addresses BIT-1372. (Robin Sommer)
+
+2.3-688 | 2015-04-10 08:10:44 -0700
+
+  * Update SQLite to 3.8.8.3.
+
+2.3-687 | 2015-04-10 07:32:52 -0700
+
+  * Remove stale signature benchmarking code (-L command-line option).
+    (Jon Siwek)
+
+  * BIT-844: fix UDP payload signatures to match packet-wise. (Jon
+    Siwek)
+
+2.3-682 | 2015-04-09 12:07:00 -0700
+
+  * Fixing input readers' component type. (Robin Sommer)
+
+  * Tiny spelling correction. (Seth Hall)
+
 2.3-680 | 2015-04-06 16:02:43 -0500
 
   * BIT-1371: remove CMake version check from binary package scripts.

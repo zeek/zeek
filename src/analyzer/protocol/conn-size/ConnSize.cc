@@ -31,9 +31,9 @@ void ConnSize_Analyzer::Init()
 	resp_pkts = 0;
 
 	orig_bytes_thresh = 0;
-	orig_pkts = 0;
+	orig_pkts_thresh = 0;
 	resp_bytes_thresh = 0;
-	resp_pkts = 0;
+	resp_pkts_thresh = 0;
 	}
 
 void ConnSize_Analyzer::Done()
@@ -93,7 +93,6 @@ void ConnSize_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 		{
 		orig_bytes += ip->TotalLen();
 		orig_pkts ++;
-
 		}
 	else
 		{
@@ -121,7 +120,7 @@ void ConnSize_Analyzer::SetThreshold(uint64 threshold, bool bytes, bool orig)
 			resp_pkts_thresh = threshold;
 		}
 
-	// check if threshold is already crossed
+	// Check if threshold is already crossed.
 	CheckSizes(orig);
 	}
 

@@ -245,12 +245,25 @@ VERSION). You can find a full list of files installed in
 copies over the binary tarball in ``build/dist``. 
 
 ``init-plugin`` will never overwrite existing files. If its target
-directory already exists, it will be default decline to do anything.
+directory already exists, it will by default decline to do anything.
 You can run it with ``-u`` instead to update an existing plugin,
 however it will never overwrite any existing files; it will only put
 in place files it doesn't find yet. To revert a file back to what
 ``init-plugin`` created originally, delete it first and then rerun
 with ``-u``.
+
+``init-plugin`` puts a ``configure`` script in place that wraps
+``cmake`` with a more familiar configure-style configuration. By
+default, the script provides two options for specifying paths to the
+Bro source (``--bro-dist``) and to the plugin's installation directory
+(``--install-root``). To extend ``configure`` with plugin-specific
+options (such as search paths for its dependencies) don't edit the
+script directly but instead extend ``configure.plugin``, which
+``configure`` includes. That way you will be able to more easily
+update ``configure`` in the future when the distribution version
+changes. In ``configure.plugin`` you can use the predefined shell
+function ``append_cache_entry`` to seed values into the CMake cache;
+see the installed skeleton version and existing plugins for examples.
 
 Activating a Plugin
 ===================

@@ -1,7 +1,7 @@
 %%{
 #include "analyzer/protocol/conn-size/ConnSize.h"
 
-analyzer::Analyzer* GetConnsizeAnalyzer(Val* cid)
+static analyzer::Analyzer* GetConnsizeAnalyzer(Val* cid)
 	{
 	Connection* c = sessions->FindConnection(cid);
 	if ( ! c )
@@ -42,7 +42,7 @@ function set_current_conn_bytes_threshold%(cid: conn_id, threshold: count, is_or
 	return new Val(1, TYPE_BOOL);
 	%}
 
-## Sets a threshold for connection packets, overwtiting any potential old thresholds. 
+## Sets a threshold for connection packets, overwtiting any potential old thresholds.
 ## Be aware that in nearly any case you will want to use the high level API
 ## instead (ConnThreshold::set_packets_threshold).
 ##

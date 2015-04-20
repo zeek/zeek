@@ -29,6 +29,9 @@ New Functionality
 
 - Bro now has an RDP analyzer.
 
+- Bro now has support for the SIP protocol over UDP. Activity gets
+  logged into sip.log.
+
 - Bro now features a completely rewritten, enhanced SSH analyzer, with
   a set of addedd events being generated. A lot more information about
   SSH sessions is logged. The analyzer is able to determine if logins

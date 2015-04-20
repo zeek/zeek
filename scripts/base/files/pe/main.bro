@@ -69,8 +69,11 @@ redef record fa_file += {
 	pe: Info &optional;
 };
 
+const pe_mime_types = { "application/x-dosexec" };
+
 event bro_init() &priority=5
 	{
+	Files::register_for_mime_types(Files::ANALYZER_PE, pe_mime_types);
 	Log::create_stream(LOG, [$columns=Info, $ev=log_pe]);
 	}
 
@@ -148,10 +151,3 @@ event file_state_remove(f: fa_file) &priority=-5
 		Log::write(LOG, f$pe);
 	}
 
-event file_mime_type(f: fa_file, mime_type: string)
-	{
-	if ( mime_type == /application\/x-dosexec.*/ ) 
-		{
-		Files::add_analyzer(f, Files::ANALYZER_PE);
-		}
-	}

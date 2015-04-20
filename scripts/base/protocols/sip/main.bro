@@ -85,9 +85,13 @@ redef record connection += {
 	sip_state:  State &optional;
 };
 
+const ports = {	5060/udp };
+redef likely_server_ports += { ports };
+
 event bro_init() &priority=5
 	{
 	Log::create_stream(SIP::LOG, [$columns=Info, $ev=log_sip]);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_SIP, ports);
 	}
 
 function new_sip_session(c: connection): Info

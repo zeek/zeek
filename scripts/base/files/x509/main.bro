@@ -36,7 +36,7 @@ export {
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(X509::LOG, [$columns=Info, $ev=log_x509]);
+	Log::create_stream(X509::LOG, [$columns=Info, $ev=log_x509, $path="x509"]);
 	}
 
 redef record Files::Info += {

@@ -49,7 +49,8 @@ redef record connection += {
 event bro_init() &priority=5
 	{
 	Log::create_stream(Known::SERVICES_LOG, [$columns=ServicesInfo,
-	                                         $ev=log_known_services]);
+	                                         $ev=log_known_services,
+	                                         $path="known_services"]);
 	}
 	
 event log_it(ts: time, a: addr, p: port, services: set[string])

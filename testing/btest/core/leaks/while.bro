@@ -2,7 +2,7 @@
 # @TEST-REQUIRES: bro --help 2>&1 | grep -q mem-leaks
 
 # @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run bro bro -m -b -r $TRACES/http/get.trace %INPUT
-# @TEST-EXEC: btest-bg-wait 30
+# @TEST-EXEC: btest-bg-wait 60
 
 function test_noop()
 	{

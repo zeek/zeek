@@ -47,8 +47,10 @@ public:
 
 	// Add a child analyzer that will always get the packets,
 	// independently of whether we do any reassembly.
-	void AddChildPacketAnalyzer(analyzer::Analyzer* a)
-		{ packet_children.push_back(a); a->SetParent(this); }
+	void AddChildPacketAnalyzer(analyzer::Analyzer* a);
+
+	virtual Analyzer* FindChild(ID id);
+	virtual Analyzer* FindChild(Tag tag);
 
 	// True if the connection has closed in some sense, false otherwise.
 	int IsClosed() const	{ return orig->did_close || resp->did_close; }

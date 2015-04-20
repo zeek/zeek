@@ -159,5 +159,5 @@ event bro_init() &priority=5
 		terminate();
 		}
 	
-	Log::create_stream(Cluster::LOG, [$columns=Info]);
+	Log::create_stream(Cluster::LOG, [$columns=Info, $path="cluster"]);
 	}

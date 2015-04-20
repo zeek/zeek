@@ -9,7 +9,7 @@
 # @TEST-EXEC: sleep 1
 # @TEST-EXEC: btest-bg-run worker-1  HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local BROPATH=$BROPATH:.. CLUSTER_NODE=worker-1 bro -m %INPUT
 # @TEST-EXEC: btest-bg-run worker-2  HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local BROPATH=$BROPATH:.. CLUSTER_NODE=worker-2 bro -m %INPUT
-# @TEST-EXEC: btest-bg-wait 25
+# @TEST-EXEC: btest-bg-wait 60
 
 @TEST-START-FILE cluster-layout.bro
 redef Cluster::nodes = {

@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	dns
+#open	2015-03-19-16-50-45
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	trans_id	query	qclass	qclass_name	qtype	qtype_name	rcode	rcode_name	AA	TC	RD	RA	Z	answers	TTLs	rejected
+#types	time	string	addr	port	addr	port	enum	count	string	count	string	count	string	count	string	bool	bool	bool	bool	count	vector[string]	vector[interval]	bool
+964953086.310131	CXWv6p3arKYeMETxOg	10.20.1.31	53	207.158.192.40	53	udp	25701	us.v27.distributed.net	-	-	-	-	0	NOERROR	T	F	F	T	0	206.109.64.186,216.1.205.81,205.149.163.211,134.53.131.135,134.53.131.192,128.104.18.148,204.152.186.139,63.77.33.226	900.000000,900.000000,900.000000,900.000000,900.000000,900.000000,900.000000,900.000000	F
+#close	2015-03-19-16-50-45

@@ -117,7 +117,6 @@ SampleLogger* sample_logger = 0;
 int signal_val = 0;
 int optimize = 0;
 int do_notice_analysis = 0;
-int rule_bench = 0;
 extern char version[];
 char* command_line_policy = 0;
 vector<string> params;
@@ -179,8 +178,6 @@ void usage()
 	fprintf(stderr, "    -i|--iface <interface>         | read from given interface\n");
 	fprintf(stderr, "    -p|--prefix <prefix>           | add given prefix to policy file resolution\n");
 	fprintf(stderr, "    -r|--readfile <readfile>       | read from given tcpdump file\n");
-	fprintf(stderr, "    -y|--flowfile <file>[=<ident>] | read from given flow file\n");
-	fprintf(stderr, "    -Y|--netflow <ip>:<prt>[=<id>] | read flow from socket\n");
 	fprintf(stderr, "    -s|--rulefile <rulefile>       | read rules from given file\n");
 	fprintf(stderr, "    -t|--tracefile <tracefile>     | activate execution tracing\n");
 	fprintf(stderr, "    -w|--writefile <writefile>     | write to given tcpdump file\n");
@@ -188,14 +185,12 @@ void usage()
 	fprintf(stderr, "    -x|--print-state <file.bst>    | print contents of state file\n");
 	fprintf(stderr, "    -z|--analyze <analysis>        | run the specified policy file analysis\n");
 #ifdef DEBUG
-	fprintf(stderr, "    -B|--debug <dbgstreams>        | Enable debugging output for selected streams\n");
+	fprintf(stderr, "    -B|--debug <dbgstreams>        | Enable debugging output for selected streams ('-B help' for help)\n");
 #endif
 	fprintf(stderr, "    -C|--no-checksums              | ignore checksums\n");
-	fprintf(stderr, "    -D|--dfa-size <size>           | DFA state cache size\n");
 	fprintf(stderr, "    -F|--force-dns                 | force DNS\n");
 	fprintf(stderr, "    -I|--print-id <ID name>        | print out given ID\n");
 	fprintf(stderr, "    -K|--md5-hashkey <hashkey>     | set key for MD5-keyed hashing\n");
-	fprintf(stderr, "    -L|--rule-benchmark            | benchmark for rules\n");
 	fprintf(stderr, "    -N|--print-plugins             | print available plugins and exit (-NN for verbose)\n");
 	fprintf(stderr, "    -O|--optimize                  | optimize policy script\n");
 	fprintf(stderr, "    -P|--prime-dns                 | prime DNS\n");
@@ -488,8 +483,6 @@ int main(int argc, char** argv)
 		{"broxygen",		required_argument,		0,	'X'},
 		{"prefix",		required_argument,	0,	'p'},
 		{"readfile",		required_argument,	0,	'r'},
-		{"flowfile",		required_argument,	0,	'y'},
-		{"netflow",		required_argument,	0,	'Y'},
 		{"rulefile",		required_argument,	0,	's'},
 		{"tracefile",		required_argument,	0,	't'},
 		{"writefile",		required_argument,	0,	'w'},
@@ -497,13 +490,11 @@ int main(int argc, char** argv)
 		{"print-state",		required_argument,	0,	'x'},
 		{"analyze",		required_argument,	0,	'z'},
 		{"no-checksums",	no_argument,		0,	'C'},
-		{"dfa-cache",		required_argument,	0,	'D'},
 		{"force-dns",		no_argument,		0,	'F'},
 		{"load-seeds",		required_argument,	0,	'G'},
 		{"save-seeds",		required_argument,	0,	'H'},
 		{"set-seed",		required_argument,	0,	'J'},
 		{"md5-hashkey",		required_argument,	0,	'K'},
-		{"rule-benchmark",	no_argument,		0,	'L'},
 		{"print-plugins",	no_argument,		0,	'N'},
 		{"optimize",		no_argument,		0,	'O'},
 		{"prime-dns",		no_argument,		0,	'P'},
@@ -557,7 +548,7 @@ int main(int argc, char** argv)
 	opterr = 0;
 
 	char opts[256];
-	safe_strncpy(opts, "B:D:e:f:I:i:K:l:n:p:R:r:s:T:t:U:w:x:X:z:CFGLNOPSWabdghvZQ",
+	safe_strncpy(opts, "B:e:f:I:i:K:l:n:p:R:r:s:T:t:U:w:x:X:z:CFGLNOPSWabdghvZQ",
 		     sizeof(opts));
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -631,10 +622,6 @@ int main(int argc, char** argv)
 			override_ignore_checksums = 1;
 			break;
 
-		case 'D':
-			dfa_state_cache_size = atoi(optarg);
-			break;
-
 		case 'E':
 			pseudo_realtime = 1.0;
 			if ( optarg )
@@ -666,10 +653,6 @@ int main(int argc, char** argv)
 		case 'K':
 			MD5((const u_char*) optarg, strlen(optarg), shared_hmac_md5_key);
 			hmac_key_set = 1;
-			break;
-
-		case 'L':
-			++rule_bench;
 			break;
 
 		case 'N':

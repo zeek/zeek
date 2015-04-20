@@ -294,7 +294,7 @@ global current_conn: connection;
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(Weird::LOG, [$columns=Info, $ev=log_weird]);
+	Log::create_stream(Weird::LOG, [$columns=Info, $ev=log_weird, $path="weird"]);
 	}
 
 function flow_id_string(src: addr, dst: addr): string

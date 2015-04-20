@@ -26,20 +26,25 @@ export {
 
 event http_header(c: connection, is_orig: bool, name: string, value: string) &priority=3
 	{
-	if ( ! is_orig || ! c?$http )
+	if ( ! c?$http )
 		return;
-	
-	if ( log_client_header_names )
+
+	if ( is_orig )
 		{
-		if ( ! c$http?$client_header_names )
-			c$http$client_header_names = vector();
-		c$http$client_header_names[|c$http$client_header_names|] = name;
+		if ( log_client_header_names )
+			{
+			if ( ! c$http?$client_header_names )
+				c$http$client_header_names = vector();
+			c$http$client_header_names[|c$http$client_header_names|] = name;
+			}
 		}
-		
-	if ( log_server_header_names )
+	else
 		{
-		if ( ! c$http?$server_header_names )
-			c$http$server_header_names = vector();
-		c$http$server_header_names[|c$http$server_header_names|] = name;
+		if ( log_server_header_names )
+			{
+			if ( ! c$http?$server_header_names )
+				c$http$server_header_names = vector();
+			c$http$server_header_names[|c$http$server_header_names|] = name;
+			}
 		}
 	}

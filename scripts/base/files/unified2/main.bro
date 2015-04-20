@@ -195,7 +195,7 @@ event Input::end_of_data(name: string, source: string)
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(Unified2::LOG, [$columns=Info, $ev=log_unified2]);
+	Log::create_stream(Unified2::LOG, [$columns=Info, $ev=log_unified2, $path="unified2"]);
 
 	if ( sid_msg == "" )
 		{

@@ -313,7 +313,7 @@ global analyzer_add_callbacks: table[Files::Tag] of function(f: fa_file, args: A
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(Files::LOG, [$columns=Info, $ev=log_files]);
+	Log::create_stream(Files::LOG, [$columns=Info, $ev=log_files, $path="files"]);
 	}
 
 function set_info(f: fa_file)

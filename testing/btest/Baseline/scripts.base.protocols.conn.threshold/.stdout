@@ -1,0 +1,10 @@
+Threshold set for [orig_h=192.168.1.77, orig_p=57640/tcp, resp_h=66.198.80.67, resp_p=6667/tcp]
+triggered bytes, [orig_h=192.168.1.77, orig_p=57640/tcp, resp_h=66.198.80.67, resp_p=6667/tcp], 1, T
+triggered bytes, [orig_h=192.168.1.77, orig_p=57640/tcp, resp_h=66.198.80.67, resp_p=6667/tcp], 2000, F
+triggered bytes, [orig_h=192.168.1.77, orig_p=57640/tcp, resp_h=66.198.80.67, resp_p=6667/tcp], 2500, T
+triggered bytes, [orig_h=192.168.1.77, orig_p=57640/tcp, resp_h=66.198.80.67, resp_p=6667/tcp], 2700, T
+triggered packets, [orig_h=192.168.1.77, orig_p=57640/tcp, resp_h=66.198.80.67, resp_p=6667/tcp], 50, F
+Threshold set for [orig_h=192.168.1.77, orig_p=57655/tcp, resp_h=209.197.168.151, resp_p=1024/tcp]
+triggered bytes, [orig_h=192.168.1.77, orig_p=57655/tcp, resp_h=209.197.168.151, resp_p=1024/tcp], 1, T
+triggered bytes, [orig_h=192.168.1.77, orig_p=57655/tcp, resp_h=209.197.168.151, resp_p=1024/tcp], 2000, F
+triggered packets, [orig_h=192.168.1.77, orig_p=57640/tcp, resp_h=66.198.80.67, resp_p=6667/tcp], 52, F

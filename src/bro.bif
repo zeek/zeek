@@ -2247,7 +2247,7 @@ function to_count%(str: string%): count
 	const char* s = str->CheckString();
 	char* end_s;
 
-	uint64 u = (uint64) strtoll(s, &end_s, 10);
+	uint64 u = (uint64) strtoull(s, &end_s, 10);
 
 	if ( s[0] == '\0' || end_s[0] != '\0' )
     	{

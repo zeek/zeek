@@ -1,11 +1,95 @@
 # Some common definitions for the SSL and SSL record-layer analyzers.
 
+type uint24 = record {
+	byte1 : uint8;
+	byte2 : uint8;
+	byte3 : uint8;
+};
+
+type uint48 = record {
+	byte1 : uint8;
+	byte2 : uint8;
+	byte3 : uint8;
+	byte4 : uint8;
+	byte5 : uint8;
+	byte6 : uint8;
+};
+
+
+%header{
+	string orig_label(bool is_orig);
+	%}
+
+
+%code{
+string orig_label(bool is_orig)
+		{
+		return string(is_orig ? "originator" :"responder");
+		}
+%}
+
+%header{
+	class to_int {
+	public:
+		int operator()(uint24 * num) const
+		{
+		return (num->byte1() << 16) | (num->byte2() << 8) | num->byte3();
+		}
+
+		uint64 operator()(uint48 * num) const
+		{
+		return ((uint64)num->byte1() << 40) | ((uint64)num->byte2() << 32) | ((uint64)num->byte3() << 24) |
+		  ((uint64)num->byte4() << 16) | ((uint64)num->byte5() << 8) | (uint64)num->byte6();
+		}
+	};
+
+	string state_label(int state_nr);
+%}
+
+extern type to_int;
+
+function to_string_val(data : uint8[]) : StringVal
+	%{
+	char tmp[32];
+	memset(tmp, 0, sizeof(tmp));
+
+	// Just return an empty string if the string is longer than 32 bytes
+	if ( data && data->size() <= 32 )
+		{
+		for ( unsigned int i = data->size(); i > 0; --i )
+			tmp[i-1] = (*data)[i-1];
+		}
+
+	return new StringVal(32, tmp);
+	%}
+
+function version_ok(vers : uint16) : bool
+	%{
+	switch ( vers ) {
+	case SSLv20:
+	case SSLv30:
+	case TLSv10:
+	case TLSv11:
+	case TLSv12:
+	case DTLSv10:
+	case DTLSv12:
+		return true;
+
+	default:
+		return false;
+	}
+	%}
+
+
 %extern{
 #include <string>
 using std::string;
 
 #include "events.bif.h"
 %}
+
+# a maximum of 100k for one record seems safe 
+let MAX_DTLS_HANDSHAKE_RECORD: uint32 = 100000;
 
 enum ContentType {
 	CHANGE_CIPHER_SPEC = 20,
@@ -27,7 +111,11 @@ enum SSLVersions {
 	SSLv30		= 0x0300,
 	TLSv10		= 0x0301,
 	TLSv11		= 0x0302,
-	TLSv12		= 0x0303
+	TLSv12		= 0x0303,
+
+	DTLSv10   = 0xFEFF,
+	# DTLSv11 does not exist.
+	DTLSv12   = 0xFEFD
 };
 
 enum SSLExtensions {

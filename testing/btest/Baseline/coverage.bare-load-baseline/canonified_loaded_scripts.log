@@ -3,7 +3,11 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
+<<<<<<< HEAD
 #open	2015-04-21-03-05-12
+=======
+#open	2015-04-18-01-00-45
+>>>>>>> 312cb3b4301584356eab0ac81ff2afc3b1f9e54a
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -13,6 +17,7 @@ scripts/base/init-bare.bro
   build/scripts/base/bif/bro.bif.bro
   build/scripts/base/bif/reporter.bif.bro
   build/scripts/base/bif/plugins/Bro_SNMP.types.bif.bro
+  build/scripts/base/bif/plugins/Bro_KRB.types.bif.bro
   build/scripts/base/bif/event.bif.bro
   scripts/base/frameworks/broker/__load__.bro
     scripts/base/frameworks/broker/main.bro
@@ -76,6 +81,7 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_Ident.events.bif.bro
     build/scripts/base/bif/plugins/Bro_InterConn.events.bif.bro
     build/scripts/base/bif/plugins/Bro_IRC.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_KRB.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Login.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Login.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_MIME.events.bif.bro
@@ -125,4 +131,8 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_SQLiteWriter.sqlite.bif.bro
 scripts/policy/misc/loaded-scripts.bro
   scripts/base/utils/paths.bro
+<<<<<<< HEAD
 #close	2015-04-21-03-05-12
+=======
+#close	2015-04-18-01-00-45
+>>>>>>> 312cb3b4301584356eab0ac81ff2afc3b1f9e54a

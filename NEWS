@@ -27,6 +27,9 @@ New Functionality
 
 - Bro now parses DTLS traffic. Activity gets logged into ssl.log.
 
+- Bro now has support for the Kerberos KRB5 protocol over TCP and
+  UDP. Activity gets logged into kerberos.log.
+
 - Bro now has an RDP analyzer. Activity gets logged into rdp.log.
 
 - Bro now has a file analyzer for Portable Executables. Activity gets

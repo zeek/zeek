@@ -1,4 +1,8 @@
 
+2.3-724 | 2015-04-20 14:11:02 -0500
+
+  * Fix uninitialized field in raw input reader. (Jon Siwek)
+
 2.3-722 | 2015-04-20 12:59:03 -0500
 
   * Remove unneeded documentation cross-referencing. (Jon Siwek)

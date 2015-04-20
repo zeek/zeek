@@ -34,6 +34,7 @@ Raw::Raw(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	firstrun = true;
 	mtime = 0;
 	forcekill = false;
+	offset = 0;
 	separator.assign( (const char*) BifConst::InputRaw::record_separator->Bytes(),
 			  BifConst::InputRaw::record_separator->Len());
 

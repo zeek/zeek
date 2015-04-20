@@ -127,15 +127,31 @@ export {
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };
 
 	const os_versions: table[count, count] of string = {
-		[6,2]  = "Windows 8",
-		[6,1]  = "Windows 7",
-		[6,0]  = "Windows Vista",
-		[5,2]  = "Windows XP 64-Bit Edition",
+		[10,0] = "Windows 10",
+		[6,4]  = "Windows 10 Technical Preview",
+		[6,3]  = "Windows 8.1 or Server 2012 R2",
+		[6,2]  = "Windows 8 or Server 2012",
+		[6,1]  = "Windows 7 or Server 2008 R2",
+		[6,0]  = "Windows Vista or Server 2008",
+		[5,2]  = "Windows XP x64 or Server 2003",
 		[5,1]  = "Windows XP",
 		[5,0]  = "Windows 2000",
 		[4,90] = "Windows Me",
-		[4,1]  = "Windows 98",
-		[4,0]  = "Windows NT 4.0",
+		[4,10] = "Windows 98",
+		[4,0]  = "Windows 95 or NT 4.0",
+		[3,51] = "Windows NT 3.51",
+		[3,50] = "Windows NT 3.5",
+		[3,2]  = "Windows 3.2",
+		[3,11] = "Windows for Workgroups 3.11",
+		[3,10] = "Windows 3.1 or NT 3.1",
+		[3,0]  = "Windows 3.0",
+		[2,11] = "Windows 2.11",
+		[2,10] = "Windows 2.10",
+		[2,0] = "Windows 2.0",
+		[1,4] = "Windows 1.04",
+		[1,3] = "Windows 1.03",
+		[1,1] = "Windows 1.01",
+		[1,0] = "Windows 1.0",	
 	} &default=function(i: count, j: count):string { return fmt("unknown-%d.%d", i, j); };
 
 	const section_descs: table[string] of string = {

@@ -149,7 +149,7 @@ function ryu_flow_mod(state: OpenFlow::ControllerState, match: ofp_match, flow_m
 	return T;
 	}
 
-function ryu_flow_clear(state: OpenFlow::ControllerState): bool	
+function ryu_flow_clear(state: OpenFlow::ControllerState): bool
 	{
 	local url=cat("http://", cat(state$ryu_host), ":", cat(state$ryu_port), RYU_FLOWENTRY_PATH, "clear", "/", state$ryu_dpid);
 

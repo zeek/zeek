@@ -163,7 +163,7 @@ function openflow_rule_to_flow_mod(p: PluginState, r: Rule) : OpenFlow::ofp_flow
 	if ( r?$expire )
 		flow_mod$hard_timeout = double_to_count(interval_to_double(r$expire));
 	if ( c?$table_id )
-		flow_mod$table_id = c$table_id;	
+		flow_mod$table_id = c$table_id;
 
 	if ( r$ty == DROP )
 		{
@@ -181,7 +181,7 @@ function openflow_rule_to_flow_mod(p: PluginState, r: Rule) : OpenFlow::ofp_flow
 		}
 	else
 		{
-		Reporter::error(fmt("Rule type %s not supported for openflow yet", cat(r$ty)));		
+		Reporter::error(fmt("Rule type %s not supported for openflow yet", cat(r$ty)));
 		}
 
 	return openflow_flow_mod_pred(p, r, flow_mod);

@@ -1,15 +1,17 @@
 ##! OpenFlow module that outputs flow-modification commands
 ##! to a Bro log file.
 
-module OpenFlow;
-
 @load base/frameworks/openflow
 @load base/frameworks/logging
 
+module OpenFlow;
+
 export {
 	redef enum Plugin += {
-		LOG,
+		OFLOG,
 	};
+
+	redef enum Log::ID += { LOG };
 
 	## Log controller constructor.
 	##
@@ -42,12 +44,12 @@ export {
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(LOG, [$columns=Info, $ev=log_openflow, $path="openflow"]);
+	Log::create_stream(OpenFlow::LOG, [$columns=Info, $ev=log_openflow, $path="openflow"]);
 	}
 
 function log_flow_mod(state: ControllerState, match: ofp_match, flow_mod: OpenFlow::ofp_flow_mod): bool
 	{
-	Log::write(LOG, [$ts=network_time(), $dpid=state$log_dpid, $match=match, $flow_mod=flow_mod]);
+	Log::write(OpenFlow::LOG, [$ts=network_time(), $dpid=state$log_dpid, $match=match, $flow_mod=flow_mod]);
 
 	return T;
 	}

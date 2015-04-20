@@ -25,6 +25,7 @@ mysql
 notice
 notice_alarm
 packet_filter
+pe
 radius
 rdp
 reporter

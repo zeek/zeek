@@ -1,4 +1,9 @@
 
+2.3-721 | 2015-04-20 12:47:05 -0500
+
+  * BIT-1380: Improve Broxygen output of &default expressions.
+    (Jon Siwek)
+
 2.3-720 | 2015-04-17 14:18:26 -0700
 
   * Updating NEWS.

@@ -1,4 +1,25 @@
 
+2.3-870 | 2015-04-21 15:47:21 -0700
+
+  * Change details of escaping when logging/printing. (Seth Hall/Robin
+    Sommer)
+
+        - Log files now escape non-printable characters consistently
+          as "\xXX'. Furthermore, backslashes are escaped as "\\",
+          making the representation fully reversible.
+
+        - When escaping via script-level functions (escape_string,
+          clean), we likewise now escape consistently with "\xXX" and
+          "\\".
+
+        - There's no "alternative" output style anymore, i.e., fmt()
+          '%A' qualifier is gone.
+
+    Addresses BIT-1333.
+
+  * Remove several BroString escaping methods that are no longer
+    useful. (Seth Hall)
+
 2.3-864 | 2015-04-21 15:24:02 -0700
 
   * A SIP protocol analyzer. (Vlad Grigorescu)

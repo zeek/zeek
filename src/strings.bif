@@ -207,6 +207,8 @@ function join_string_array%(sep: string, a: string_array%): string &deprecated
 function join_string_vec%(vec: string_vec, sep: string%): string
 	%{
 	ODesc d;
+	d.SetStyle(RAW_STYLE);
+
 	VectorVal *v = vec->AsVectorVal();
 
 	for ( unsigned i = 0; i < v->Size(); ++i )
@@ -888,12 +890,11 @@ function to_upper%(str: string%): string
 ## Replaces non-printable characters in a string with escaped sequences. The
 ## mappings are:
 ##
-##     - ``NUL`` to ``\0``
-##     - ``DEL`` to ``^?``
-##     - values <= 26 to ``^[A-Z]``
-##     - values not in *[32, 126]* to ``%XX``
+##     - values not in *[32, 126]* to ``\xXX``
 ##
-## If the string does not yet have a trailing NUL, one is added.
+## If the string does not yet have a trailing NUL, one is added internally.
+##
+## In contrast to :bro:id:`escape_string`, this encoding is *not* fully reversible.` 
 ##
 ## str: The string to escape.
 ##
@@ -909,10 +910,9 @@ function clean%(str: string%): string
 ## Replaces non-printable characters in a string with escaped sequences. The
 ## mappings are:
 ##
-##     - ``NUL`` to ``\0``
-##     - ``DEL`` to ``^?``
-##     - values <= 26 to ``^[A-Z]``
-##     - values not in *[32, 126]* to ``%XX``
+##     - values not in *[32, 126]* to ``\xXX``
+##     - ``\`` to ``\\``
+##     - ``'`` and ``""`` to ``\'`` and ``\"``, respectively.
 ##
 ## str: The string to escape.
 ##
@@ -945,17 +945,22 @@ function is_ascii%(str: string%): bool
 	return new Val(1, TYPE_BOOL);
 	%}
 
-## Creates a printable version of a string. This function is the same as
-## :bro:id:`clean` except that non-printable characters are removed.
+## Replaces non-printable characters in a string with escaped sequences. The
+## mappings are:
 ##
-## s: The string to escape.
+##     - values not in *[32, 126]* to ``\xXX``
+##     - ``\`` to ``\\``
+##
+## In contrast to :bro:id:`clean`, this encoding is fully reversible.` 
+##
+## str: The string to escape.
 ##
 ## Returns: The escaped string.
 ##
 ## .. bro:see:: clean to_string_literal
 function escape_string%(s: string%): string
 	%{
-	char* escstr = s->AsString()->Render();
+	char* escstr = s->AsString()->Render(BroString::ESC_HEX | BroString::ESC_ESC);
 	Val* val = new StringVal(escstr);
 	delete [] escstr;
 	return val;

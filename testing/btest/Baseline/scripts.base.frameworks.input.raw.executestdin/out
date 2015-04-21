@@ -1,20 +1,20 @@
 Input::EVENT_NEW, cat |, input0
 hello
 Input::EVENT_NEW, cat |, input0
-there^A^B^C^D^E^A^B^Cyay0
+there\x01\x02\x03\x04\x05\x01\x02\x03yay0
 Input::EVENT_NEW, cat |, input1
 hello
 Input::EVENT_NEW, cat |, input1
-there^A^B^C^D^E^A^B^Cyay01
+there\x01\x02\x03\x04\x05\x01\x02\x03yay01
 Input::EVENT_NEW, cat |, input2
 hello
 Input::EVENT_NEW, cat |, input2
-there^A^B^C^D^E^A^B^Cyay012
+there\x01\x02\x03\x04\x05\x01\x02\x03yay012
 Input::EVENT_NEW, cat |, input3
 hello
 Input::EVENT_NEW, cat |, input3
-there^A^B^C^D^E^A^B^Cyay0123
+there\x01\x02\x03\x04\x05\x01\x02\x03yay0123
 Input::EVENT_NEW, cat |, input4
 hello
 Input::EVENT_NEW, cat |, input4
-there^A^B^C^D^E^A^B^Cyay01234
+there\x01\x02\x03\x04\x05\x01\x02\x03yay01234

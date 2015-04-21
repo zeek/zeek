@@ -5,7 +5,7 @@ FILE_STATE_REMOVE
 file #0, 77, 0
 [orig_h=10.10.1.4, orig_p=1470/tcp, resp_h=74.53.140.153, resp_p=25/tcp]
 FILE_BOF_BUFFER
-Hello^M^J^M^J ^M
+Hello\x0d\x0a\x0d\x0a \x0d
 MIME_TYPE
 text/plain
 source: SMTP

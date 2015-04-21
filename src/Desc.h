@@ -17,7 +17,6 @@ typedef enum {
 
 typedef enum {
 	STANDARD_STYLE,
-	ALTERNATIVE_STYLE,
 	RAW_STYLE,
 } desc_style;
 

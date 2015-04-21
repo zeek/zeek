@@ -198,6 +198,10 @@ Changed Functionality
   connection record. Likewise, the functions append_addl() and
   append_addl_marker() have been removed.
 
+- Log files now escape non-printable characters consistently as "\xXX'.
+  Furthermore, backslashes are escaped as "\\", making the
+  representation fully reversible.
+
 Deprecated Functionality
 ------------------------
 

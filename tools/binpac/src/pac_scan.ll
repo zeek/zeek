@@ -20,6 +20,7 @@
 #include "pac_record.h"
 #include "pac_type.h"
 #include "pac_utils.h"
+#include <libgen.h>
 
 int line_number = 1;
 
@@ -52,7 +53,7 @@ WS	[ \t]+
 ID	[A-Za-z_][A-Za-z_0-9]*
 D	[0-9]+
 HEX	[0-9a-fA-F]+
-FILE	[A-Za-z._0-9\-]+
+FILE	[^ \t\n]+
 ESCSEQ	(\\([^\n]|[0-7]{3}|x[[:xdigit:]]{2}))
 
 %option nounput
@@ -320,8 +321,27 @@ void include_file(const char *filename)
 	ASSERT(filename);
 
 	string full_filename;
-	if ( filename[0] == '/' || filename[0] == '.' )
+	if ( filename[0] == '/' )
 		full_filename = filename;
+    else if ( filename[0] == '.' )
+        {
+        char* tmp = new char[strlen(input_filename.c_str()) + 1];
+        strcpy(tmp, input_filename.c_str());
+        char* dir = dirname(tmp);
+
+        if ( dir )
+            full_filename = string(dir) + "/" + filename;
+        else
+            {
+            fprintf(stderr, "%s:%d error: cannot include file \"%s\": %s\n",
+                    input_filename.c_str(), line_number, filename,
+                    strerror(errno));
+            delete [] tmp;
+            return;
+            }
+
+        delete [] tmp;
+        }
 	else
 		{
 		int i;

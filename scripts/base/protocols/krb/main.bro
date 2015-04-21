@@ -76,7 +76,7 @@ event bro_init() &priority=5
 	{
 	Analyzer::register_for_ports(Analyzer::ANALYZER_KRB, udp_ports);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_KRB_TCP, tcp_ports);
-	Log::create_stream(KRB::LOG, [$columns=Info, $ev=log_krb]);
+	Log::create_stream(KRB::LOG, [$columns=Info, $ev=log_krb, $path="kerberos"]);
 	}
 
 event krb_error(c: connection, msg: Error_Msg) &priority=5

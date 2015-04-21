@@ -159,7 +159,7 @@
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (HTTP::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=http, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (IRC::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=irc, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (Intel::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=intel, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (KRB::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=Log::default_path_func{ if ( != Log::path) return (Log::path)Log::id_str = fmt(%s, Log::id)Log::parts = split_string1(Log::id_str, <...>/, )return (cat(to_lower(Log::parts[0]), _, to_lower(Log::parts[1])))}elsereturn (to_lower(Log::id_str))}, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (KRB::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=kerberos, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (Modbus::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=modbus, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (Notice::ALARM_LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=notice_alarm, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (Notice::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=notice, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
@@ -193,7 +193,7 @@
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (HTTP::LOG, [columns=<no value description>, ev=HTTP::log_http, path=http])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (IRC::LOG, [columns=<no value description>, ev=IRC::irc_log, path=irc])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Intel::LOG, [columns=<no value description>, ev=Intel::log_intel, path=intel])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (KRB::LOG, [columns=<no value description>, ev=KRB::log_krb, path=<uninitialized>])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (KRB::LOG, [columns=<no value description>, ev=KRB::log_krb, path=kerberos])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Modbus::LOG, [columns=<no value description>, ev=Modbus::log_modbus, path=modbus])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Notice::ALARM_LOG, [columns=<no value description>, ev=<uninitialized>, path=notice_alarm])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Notice::LOG, [columns=<no value description>, ev=Notice::log_notice, path=notice])) -> <no result>
@@ -215,7 +215,7 @@
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1429642660.569786, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1429644094.457898, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Communication::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Conn::LOG)) -> <no result>
@@ -296,7 +296,7 @@
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (HTTP::LOG, [columns=<no value description>, ev=HTTP::log_http, path=http])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (IRC::LOG, [columns=<no value description>, ev=IRC::irc_log, path=irc])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Intel::LOG, [columns=<no value description>, ev=Intel::log_intel, path=intel])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (KRB::LOG, [columns=<no value description>, ev=KRB::log_krb, path=<uninitialized>])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (KRB::LOG, [columns=<no value description>, ev=KRB::log_krb, path=kerberos])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Modbus::LOG, [columns=<no value description>, ev=Modbus::log_modbus, path=modbus])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Notice::ALARM_LOG, [columns=<no value description>, ev=<uninitialized>, path=notice_alarm])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Notice::LOG, [columns=<no value description>, ev=Notice::log_notice, path=notice])) -> <no result>
@@ -318,7 +318,7 @@
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1429642660.569786, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1429644094.457898, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Notice::want_pp, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketFilter::build, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketFilter::combine_filters, <frame>, (ip or not ip, and, )) -> <no result>
@@ -739,7 +739,7 @@
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (HTTP::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=http, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (IRC::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=irc, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (Intel::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=intel, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, interv=0 secs, postprocessor=<uninitialized>, config={}]))
-0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (KRB::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=Log::default_path_func{ if ( != Log::path) return (Log::path)Log::id_str = fmt(%s, Log::id)Log::parts = split_string1(Log::id_str, <...>/, )return (cat(to_lower(Log::parts[0]), _, to_lower(Log::parts[1])))}elsereturn (to_lower(Log::id_str))}, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, interv=0 secs, postprocessor=<uninitialized>, config={}]))
+0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (KRB::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=kerberos, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (Modbus::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=modbus, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (Notice::ALARM_LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=notice_alarm, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (Notice::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=notice, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, interv=0 secs, postprocessor=<uninitialized>, config={}]))
@@ -773,7 +773,7 @@
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (HTTP::LOG, [columns=<no value description>, ev=HTTP::log_http, path=http]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (IRC::LOG, [columns=<no value description>, ev=IRC::irc_log, path=irc]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Intel::LOG, [columns=<no value description>, ev=Intel::log_intel, path=intel]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (KRB::LOG, [columns=<no value description>, ev=KRB::log_krb, path=<uninitialized>]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (KRB::LOG, [columns=<no value description>, ev=KRB::log_krb, path=kerberos]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Modbus::LOG, [columns=<no value description>, ev=Modbus::log_modbus, path=modbus]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Notice::ALARM_LOG, [columns=<no value description>, ev=<uninitialized>, path=notice_alarm]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Notice::LOG, [columns=<no value description>, ev=Notice::log_notice, path=notice]))
@@ -795,7 +795,7 @@
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql]))
-0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1429642660.569786, node=bro, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1429644094.457898, node=bro, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Communication::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Conn::LOG))
@@ -876,7 +876,7 @@
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (HTTP::LOG, [columns=<no value description>, ev=HTTP::log_http, path=http]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (IRC::LOG, [columns=<no value description>, ev=IRC::irc_log, path=irc]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Intel::LOG, [columns=<no value description>, ev=Intel::log_intel, path=intel]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (KRB::LOG, [columns=<no value description>, ev=KRB::log_krb, path=<uninitialized>]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (KRB::LOG, [columns=<no value description>, ev=KRB::log_krb, path=kerberos]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Modbus::LOG, [columns=<no value description>, ev=Modbus::log_modbus, path=modbus]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Notice::ALARM_LOG, [columns=<no value description>, ev=<uninitialized>, path=notice_alarm]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Notice::LOG, [columns=<no value description>, ev=Notice::log_notice, path=notice]))
@@ -898,7 +898,7 @@
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql]))
-0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1429642660.569786, node=bro, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1429644094.457898, node=bro, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(Notice::want_pp, <frame>, ())
 0.000000   MetaHookPre   CallFunction(PacketFilter::build, <frame>, ())
 0.000000   MetaHookPre   CallFunction(PacketFilter::combine_filters, <frame>, (ip or not ip, and, ))
@@ -1318,7 +1318,7 @@
 0.000000 | HookCallFunction Log::__add_filter(HTTP::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=http, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::__add_filter(IRC::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=irc, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::__add_filter(Intel::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=intel, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, interv=0 secs, postprocessor=<uninitialized>, config={}])
-0.000000 | HookCallFunction Log::__add_filter(KRB::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=Log::default_path_func{ if ( != Log::path) return (Log::path)Log::id_str = fmt(%s, Log::id)Log::parts = split_string1(Log::id_str, <...>/, )return (cat(to_lower(Log::parts[0]), _, to_lower(Log::parts[1])))}elsereturn (to_lower(Log::id_str))}, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, interv=0 secs, postprocessor=<uninitialized>, config={}])
+0.000000 | HookCallFunction Log::__add_filter(KRB::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=kerberos, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::__add_filter(Modbus::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=modbus, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::__add_filter(Notice::ALARM_LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=notice_alarm, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::__add_filter(Notice::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=notice, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, interv=0 secs, postprocessor=<uninitialized>, config={}])
@@ -1352,7 +1352,7 @@
 0.000000 | HookCallFunction Log::__create_stream(HTTP::LOG, [columns=<no value description>, ev=HTTP::log_http, path=http])
 0.000000 | HookCallFunction Log::__create_stream(IRC::LOG, [columns=<no value description>, ev=IRC::irc_log, path=irc])
 0.000000 | HookCallFunction Log::__create_stream(Intel::LOG, [columns=<no value description>, ev=Intel::log_intel, path=intel])
-0.000000 | HookCallFunction Log::__create_stream(KRB::LOG, [columns=<no value description>, ev=KRB::log_krb, path=<uninitialized>])
+0.000000 | HookCallFunction Log::__create_stream(KRB::LOG, [columns=<no value description>, ev=KRB::log_krb, path=kerberos])
 0.000000 | HookCallFunction Log::__create_stream(Modbus::LOG, [columns=<no value description>, ev=Modbus::log_modbus, path=modbus])
 0.000000 | HookCallFunction Log::__create_stream(Notice::ALARM_LOG, [columns=<no value description>, ev=<uninitialized>, path=notice_alarm])
 0.000000 | HookCallFunction Log::__create_stream(Notice::LOG, [columns=<no value description>, ev=Notice::log_notice, path=notice])
@@ -1374,7 +1374,7 @@
 0.000000 | HookCallFunction Log::__create_stream(Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])
 0.000000 | HookCallFunction Log::__create_stream(X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])
 0.000000 | HookCallFunction Log::__create_stream(mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])
-0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1429642660.569786, node=bro, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1429644094.457898, node=bro, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction Log::add_default_filter(Cluster::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Communication::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Conn::LOG)
@@ -1455,7 +1455,7 @@
 0.000000 | HookCallFunction Log::create_stream(HTTP::LOG, [columns=<no value description>, ev=HTTP::log_http, path=http])
 0.000000 | HookCallFunction Log::create_stream(IRC::LOG, [columns=<no value description>, ev=IRC::irc_log, path=irc])
 0.000000 | HookCallFunction Log::create_stream(Intel::LOG, [columns=<no value description>, ev=Intel::log_intel, path=intel])
-0.000000 | HookCallFunction Log::create_stream(KRB::LOG, [columns=<no value description>, ev=KRB::log_krb, path=<uninitialized>])
+0.000000 | HookCallFunction Log::create_stream(KRB::LOG, [columns=<no value description>, ev=KRB::log_krb, path=kerberos])
 0.000000 | HookCallFunction Log::create_stream(Modbus::LOG, [columns=<no value description>, ev=Modbus::log_modbus, path=modbus])
 0.000000 | HookCallFunction Log::create_stream(Notice::ALARM_LOG, [columns=<no value description>, ev=<uninitialized>, path=notice_alarm])
 0.000000 | HookCallFunction Log::create_stream(Notice::LOG, [columns=<no value description>, ev=Notice::log_notice, path=notice])
@@ -1477,7 +1477,7 @@
 0.000000 | HookCallFunction Log::create_stream(Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])
 0.000000 | HookCallFunction Log::create_stream(X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])
 0.000000 | HookCallFunction Log::create_stream(mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])
-0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1429642660.569786, node=bro, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1429644094.457898, node=bro, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction Notice::want_pp()
 0.000000 | HookCallFunction PacketFilter::build()
 0.000000 | HookCallFunction PacketFilter::combine_filters(ip or not ip, and, )

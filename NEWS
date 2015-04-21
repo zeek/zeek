@@ -188,6 +188,10 @@ Changed Functionality
 - The capability of processing NetFlow input has been removed for the
   time being.
 
+- The deprecated fields "hot" and "addl" have been removed from the
+  connection record. Likewise, the functions append_addl() and
+  append_addl_marker() have been removed.
+
 Deprecated Functionality
 ------------------------
 

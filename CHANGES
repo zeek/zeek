@@ -1,4 +1,17 @@
 
+2.3-793 | 2015-04-20 20:51:00 -0700
+
+  * Add decoding of PROXY-AUTHORIZATION header to HTTP analyze,
+    treating it the same as AUTHORIZATION. (Josh Liburdi)
+
+  * Remove deprecated fields "hot" and "addl" from the connection
+    record. Remove the functions append_addl() and
+    append_addl_marker(). (Robin Sommer)
+
+  * Removing the NetFlow analyzer, which hasn't been used anymore
+    since then corresponding command-line option went away. (Robin
+    Sommer)
+
 2.3-787 | 2015-04-20 19:15:23 -0700
 
   * A file analyzer for Portable Executables. (Vlad Grigorescu/Seth

@@ -12,7 +12,7 @@ Val* GetTimeFromAsn1(const KRB_Time* atime, int64 usecs)
 	StringVal* atime_bytestring = bytestring_to_val(atime->time());
 	Val* result = GetTimeFromAsn1(atime_bytestring, usecs);
 	Unref(atime_bytestring);
-	return result;	
+	return result;
 	}
 
 Val* GetTimeFromAsn1(StringVal* atime, int64 usecs)
@@ -24,13 +24,13 @@ Val* GetTimeFromAsn1(StringVal* atime, int64 usecs)
 
 	size_t lTimeLength = atime->Len();
 	char * pString = (char *) atime->Bytes();
-	
+
 	if ( lTimeLength != 15 && lTimeLength != 17 )
 		return 0;
 
 	if (lTimeLength == 17 )
 		pString = pString + 2;
-		
+
 	memcpy(pBuffer, pString, 15);
 	*(pBuffer+15) = '\0';
 
@@ -54,12 +54,12 @@ Val* GetTimeFromAsn1(StringVal* atime, int64 usecs)
 	return new Val(double(lResult + double(usecs/100000.0)), TYPE_TIME);
 	}
 
-	Val* asn1_integer_to_val(const ASN1Integer* i, TypeTag t)
+Val* asn1_integer_to_val(const ASN1Integer* i, TypeTag t)
 	{
 	return asn1_integer_to_val(i->encoding(), t);
 	}
 
-	Val* asn1_integer_to_val(const ASN1Encoding* i, TypeTag t)
+Val* asn1_integer_to_val(const ASN1Encoding* i, TypeTag t)
 	{
 	return new Val(binary_to_int64(i->content()), t);
 	}
@@ -89,27 +89,27 @@ type ASN1OptionalEncodingMeta(is_present: bool, previous_metadata: ASN1EncodingM
 };
 
 type ASN1Integer = record {
-     encoding: ASN1Encoding;
+	encoding: ASN1Encoding;
 };
 
 type ASN1OctetString = record {
-     encoding: ASN1Encoding;
+	encoding: ASN1Encoding;
 };
 
 type SequenceElement(grab_content: bool) = record {
-     index_meta	  : ASN1EncodingMeta;
-     have_content : case grab_content of {
-     	true  -> data: ASN1Encoding;
+	index_meta	  : ASN1EncodingMeta;
+	have_content : case grab_content of {
+	true  -> data: ASN1Encoding;
 	false -> meta: ASN1EncodingMeta;
-     };
+	};
 } &let {
-     index  : uint8 = index_meta.index;
-     length : uint64 = index_meta.length;
+	index  : uint8 = index_meta.index;
+	length : uint64 = index_meta.length;
 };
 
 type Array = record {
-     array_meta	: ASN1EncodingMeta;
-     data	: ASN1Encoding[];
+	array_meta	: ASN1EncodingMeta;
+	data	: ASN1Encoding[];
 };
 
 function binary_to_int64(bs: bytestring): int64

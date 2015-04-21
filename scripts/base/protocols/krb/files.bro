@@ -96,12 +96,12 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 		}
 	else
 		{
-		info$server_cert = f$info;		
+		info$server_cert = f$info;
 		info$server_cert_fuid = f$id;
 		}
 
 	c$krb = info;
-		
+
 	Files::add_analyzer(f, Files::ANALYZER_X509);
 	# Always calculate hashes. They are not necessary for base scripts
 	# but very useful for identification, and required for policy scripts
@@ -118,7 +118,7 @@ function fill_in_subjects(c: connection)
 		c$krb$client_cert_subject = c$krb$client_cert$x509$certificate$subject;
 
 	if ( c$krb?$server_cert && c$krb$server_cert?$x509 && c$krb$server_cert$x509?$certificate )
-		c$krb$server_cert_subject = c$krb$server_cert$x509$certificate$subject;	
+		c$krb$server_cert_subject = c$krb$server_cert$x509$certificate$subject;
 	}
 
 event krb_error(c: connection, msg: Error_Msg)

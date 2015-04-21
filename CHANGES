@@ -1,4 +1,21 @@
 
+2.3-831 | 2015-04-21 11:38:09 -0700
+
+  * A Kerberos protocol analyzer. (Vlad Grigorescu)
+
+	Activity gets logged into kerberos.log. It generates the following
+    events:
+
+        event krb_as_request(c: connection, msg: KRB::KDC_Request);
+        event krb_as_response(c: connection, msg: KRB::KDC_Response);
+        event krb_tgs_request(c: connection, msg: KRB::KDC_Request);
+        event krb_tgs_response(c: connection, msg: KRB::KDC_Response);
+        event krb_ap_request(c: connection, ticket: KRB::Ticket, opts: KRB::AP_Options);
+        event krb_priv(c: connection, is_orig: bool);
+        event krb_safe(c: connection, is_orig: bool, msg: KRB::SAFE_Msg);
+        event krb_cred(c: connection, is_orig: bool, tickets: KRB::Ticket_Vector);
+        event krb_error(c: connection, msg: KRB::Error_Msg);
+
 2.3-793 | 2015-04-20 20:51:00 -0700
 
   * Add decoding of PROXY-AUTHORIZATION header to HTTP analyze,

@@ -65,18 +65,18 @@ type KRB_REQ_Arg = record {
 };
 
 type KRB_REQ_Arg_Data(index: uint8) = case index of {
- 	0 	-> options	: KRB_KDC_Options;
- 	1  	-> principal	: KRB_Principal_Name;
- 	2  	-> realm	: ASN1OctetString;
- 	3  	-> sname	: KRB_Principal_Name;
- 	4  	-> from		: KRB_Time;
- 	5  	-> till		: KRB_Time;
- 	6  	-> rtime	: KRB_Time;
- 	7  	-> nonce	: ASN1Integer;
- 	8  	-> etype	: Array;
- 	9  	-> addrs	: KRB_Host_Addresses;
- 	10 	-> auth_data 	: ASN1OctetString;
- 	11 	-> addl_tkts 	: KRB_Ticket_Sequence;
+	0 	-> options	: KRB_KDC_Options;
+	1  	-> principal	: KRB_Principal_Name;
+	2  	-> realm	: ASN1OctetString;
+	3  	-> sname	: KRB_Principal_Name;
+	4  	-> from		: KRB_Time;
+	5  	-> till		: KRB_Time;
+	6  	-> rtime	: KRB_Time;
+	7  	-> nonce	: ASN1Integer;
+	8  	-> etype	: Array;
+	9  	-> addrs	: KRB_Host_Addresses;
+	10 	-> auth_data 	: ASN1OctetString;
+	11 	-> addl_tkts 	: KRB_Ticket_Sequence;
 	default -> unknown	: bytestring &restofdata;
 };
 

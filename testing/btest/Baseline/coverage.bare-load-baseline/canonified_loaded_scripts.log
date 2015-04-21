@@ -3,11 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-<<<<<<< HEAD
-#open	2015-04-21-03-05-12
-=======
 #open	2015-04-18-01-00-45
->>>>>>> 312cb3b4301584356eab0ac81ff2afc3b1f9e54a
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -131,8 +127,4 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_SQLiteWriter.sqlite.bif.bro
 scripts/policy/misc/loaded-scripts.bro
   scripts/base/utils/paths.bro
-<<<<<<< HEAD
 #close	2015-04-21-03-05-12
-=======
-#close	2015-04-18-01-00-45
->>>>>>> 312cb3b4301584356eab0ac81ff2afc3b1f9e54a

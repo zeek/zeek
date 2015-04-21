@@ -77,7 +77,7 @@ RecordVal* proc_krb_kdc_req_arguments(KRB_KDC_REQ* msg, const BroAnalyzer bro_an
 
 				break;
 			case 10:
-			// TODO
+				// TODO
 				break;
 			case 11:
 				if ( element->data()->addl_tkts()->tickets()->size() )
@@ -121,8 +121,11 @@ bool proc_error_arguments(RecordVal* rv, const std::vector<KRB_ERROR_Arg*>* args
 			}
 		}
 
-	if ( ctime_i ) rv->Assign(2, GetTimeFromAsn1((*args)[ctime_i]->args()->ctime(), ctime_usecs));
-	if ( stime_i ) rv->Assign(3, GetTimeFromAsn1((*args)[stime_i]->args()->stime(), stime_usecs));
+	if ( ctime_i )
+		rv->Assign(2, GetTimeFromAsn1((*args)[ctime_i]->args()->ctime(), ctime_usecs));
+
+	if ( stime_i )
+		rv->Assign(3, GetTimeFromAsn1((*args)[stime_i]->args()->stime(), stime_usecs));
 
 	for ( uint i = 0; i < args->size(); ++i )
 		{
@@ -173,7 +176,7 @@ refine connection KRB_Conn += {
 			return false;
 
 		if ( ( binary_to_int64(${msg.msg_type.data.content}) == 12 ) && ! krb_tgs_request )
-			return false;		
+			return false;
 
 		RecordVal* rv = proc_krb_kdc_req_arguments(${msg}, bro_analyzer());
 
@@ -182,21 +185,21 @@ refine connection KRB_Conn += {
 
 		if ( ( binary_to_int64(${msg.msg_type.data.content}) == 12 ) )
 			BifEvent::generate_krb_tgs_request(bro_analyzer(), bro_analyzer()->Conn(), rv);
-				
+
 		return true;
 		%}
 
- 	function proc_krb_kdc_rep_msg(msg: KRB_KDC_REP): bool
+	function proc_krb_kdc_rep_msg(msg: KRB_KDC_REP): bool
 		%{
 		bro_analyzer()->ProtocolConfirmation();
-		
+
 		if ( ( binary_to_int64(${msg.msg_type.data.content}) == 11 ) && ! krb_as_response )
 			return false;
 
 		if ( ( binary_to_int64(${msg.msg_type.data.content}) == 13 ) && ! krb_tgs_response )
 			return false;
-		
-		
+
+
 		RecordVal* rv = new RecordVal(BifType::Record::KRB::KDC_Response);
 
 		rv->Assign(0, asn1_integer_to_val(${msg.pvno.data}, TYPE_COUNT));
@@ -215,11 +218,11 @@ refine connection KRB_Conn += {
 
 		if ( ( binary_to_int64(${msg.msg_type.data.content}) == 13 ) )
 			BifEvent::generate_krb_tgs_response(bro_analyzer(), bro_analyzer()->Conn(), rv);
-				
+
 		return true;
-   		%}
-    
- 	function proc_krb_error_msg(msg: KRB_ERROR_MSG): bool
+		%}
+
+	function proc_krb_error_msg(msg: KRB_ERROR_MSG): bool
 		%{
 		bro_analyzer()->ProtocolConfirmation();
 		if ( krb_error )
@@ -230,10 +233,10 @@ refine connection KRB_Conn += {
 			proc_error_arguments(rv, ${msg.args2}, binary_to_int64(${msg.error_code.encoding.content}));
 			BifEvent::generate_krb_error(bro_analyzer(), bro_analyzer()->Conn(), rv);
 			}
-    		return true;
-    		%}
-    
- 	function proc_krb_ap_req_msg(msg: KRB_AP_REQ): bool
+		return true;
+		%}
+
+	function proc_krb_ap_req_msg(msg: KRB_AP_REQ): bool
 		%{
 		bro_analyzer()->ProtocolConfirmation();
 		if ( krb_ap_request )
@@ -241,24 +244,24 @@ refine connection KRB_Conn += {
 			RecordVal* rv = new RecordVal(BifType::Record::KRB::AP_Options);
 			rv->Assign(0, new Val(${msg.ap_options.use_session_key}, TYPE_BOOL));
 			rv->Assign(1, new Val(${msg.ap_options.mutual_required}, TYPE_BOOL));
-			
-			BifEvent::generate_krb_ap_request(bro_analyzer(), bro_analyzer()->Conn(), 
+
+			BifEvent::generate_krb_ap_request(bro_analyzer(), bro_analyzer()->Conn(),
 						      proc_ticket(${msg.ticket}), rv);
 			}
-   		return true;
-   		%}
-    
- 	function proc_krb_ap_rep_msg(msg: KRB_AP_REP): bool
+		return true;
+		%}
+
+	function proc_krb_ap_rep_msg(msg: KRB_AP_REP): bool
 		%{
 		bro_analyzer()->ProtocolConfirmation();
 		if ( krb_ap_response )
 			{
 			BifEvent::generate_krb_ap_response(bro_analyzer(), bro_analyzer()->Conn());
 			}
-   		return true;
-   		%}
-    
- 	function proc_krb_safe_msg(msg: KRB_SAFE_MSG): bool
+		return true;
+		%}
+
+	function proc_krb_safe_msg(msg: KRB_SAFE_MSG): bool
 		%{
 		bro_analyzer()->ProtocolConfirmation();
 		if ( krb_safe )
@@ -288,7 +291,7 @@ refine connection KRB_Conn += {
 					}
 				}
 
-			if ( timestamp_i ) 
+			if ( timestamp_i )
 				rv->Assign(4, GetTimeFromAsn1(${msg.safe_body.args[timestamp_i].args.timestamp}, timestamp_usecs));
 
 			for ( uint i = 0; i < ${msg.safe_body.args}->size(); ++i )
@@ -314,68 +317,67 @@ refine connection KRB_Conn += {
 			BifEvent::generate_krb_safe(bro_analyzer(), bro_analyzer()->Conn(), ${msg.is_orig}, rv);
 			}
 		return true;
-   		%}
-    
- 	function proc_krb_priv_msg(msg: KRB_PRIV_MSG): bool
-		%{	
+		%}
+
+	function proc_krb_priv_msg(msg: KRB_PRIV_MSG): bool
+		%{
 		bro_analyzer()->ProtocolConfirmation();
 		if ( krb_priv )
 			{
 			BifEvent::generate_krb_priv(bro_analyzer(), bro_analyzer()->Conn(), ${msg.is_orig});
 			}
-   		return true;
-   		%}
-    
- 	function proc_krb_cred_msg(msg: KRB_CRED_MSG): bool
+		return true;
+		%}
+
+	function proc_krb_cred_msg(msg: KRB_CRED_MSG): bool
 		%{
 		bro_analyzer()->ProtocolConfirmation();
 		if ( krb_cred )
 			{
-			BifEvent::generate_krb_cred(bro_analyzer(), bro_analyzer()->Conn(), ${msg.is_orig}, 
+			BifEvent::generate_krb_cred(bro_analyzer(), bro_analyzer()->Conn(), ${msg.is_orig},
 						    proc_tickets(${msg.tickets}));
 			}
-   		return true;
+		return true;
 
-   		%}
+		%}
 }
-
 
 refine typeattr KRB_AS_REQ += &let {
 	proc: bool = $context.connection.proc_krb_kdc_req_msg(data);
 };
-    
+
 refine typeattr KRB_TGS_REQ += &let {
 	proc: bool = $context.connection.proc_krb_kdc_req_msg(data);
 };
-    
+
 refine typeattr KRB_AS_REP += &let {
 	proc: bool = $context.connection.proc_krb_kdc_rep_msg(data);
 };
-    
+
 refine typeattr KRB_TGS_REP += &let {
 	proc: bool = $context.connection.proc_krb_kdc_rep_msg(data);
 };
-    
+
 refine typeattr KRB_AP_REQ += &let {
 	proc: bool = $context.connection.proc_krb_ap_req_msg(this);
 };
-    
+
 refine typeattr KRB_AP_REP += &let {
 	proc: bool = $context.connection.proc_krb_ap_rep_msg(this);
 };
-    
+
 refine typeattr KRB_ERROR_MSG += &let {
 	proc: bool = $context.connection.proc_krb_error_msg(this);
 };
-    
+
 refine typeattr KRB_SAFE_MSG += &let {
 	proc: bool = $context.connection.proc_krb_safe_msg(this);
 };
-    
+
 refine typeattr KRB_PRIV_MSG += &let {
 	proc: bool = $context.connection.proc_krb_priv_msg(this);
 };
-    
+
 refine typeattr KRB_CRED_MSG += &let {
 	proc: bool = $context.connection.proc_krb_cred_msg(this);
 };

@@ -3,11 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-<<<<<<< HEAD
 #open	2015-04-21-03-05-19
-=======
-#open	2015-04-18-01-01-39
->>>>>>> 312cb3b4301584356eab0ac81ff2afc3b1f9e54a
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -274,8 +270,4 @@ scripts/base/init-default.bro
   scripts/base/misc/find-checksum-offloading.bro
   scripts/base/misc/find-filtered-trace.bro
 scripts/policy/misc/loaded-scripts.bro
-<<<<<<< HEAD
 #close	2015-04-21-03-05-19
-=======
-#close	2015-04-18-01-01-39
->>>>>>> 312cb3b4301584356eab0ac81ff2afc3b1f9e54a

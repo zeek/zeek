@@ -12,7 +12,6 @@ namespace analyzer { namespace krb_tcp {
 class KRB_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 
 public:
-
 	KRB_Analyzer(Connection* conn);
 	virtual ~KRB_Analyzer();
 
@@ -27,11 +26,10 @@ public:
 		{ return new KRB_Analyzer(conn); }
 
 protected:
-	
 	binpac::KRB_TCP::KRB_Conn* interp;
 	bool had_gap;
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*
 
 #endif

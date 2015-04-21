@@ -3172,7 +3172,6 @@ export {
 
 	type KRB::Type_Value_Vector: vector of KRB::Type_Value;
 
-	
 	## A Kerberos host address See :rfc:`4120`.
 	type KRB::Host_Address: record {
 		## IPv4 or IPv6 address
@@ -3203,7 +3202,7 @@ export {
 		## Recipient address
 		recipient    	: Host_Address &optional;
 	};
-	
+
 	## The data from the ERROR_MSG message. See :rfc:`4120`.
 	type KRB::Error_Msg: record {
 		## Protocol version number (5 for KRB5)
@@ -3230,7 +3229,6 @@ export {
 		pa_data		: vector of KRB::Type_Value &optional;
 	};
 
-
 	## A Kerberos ticket. See :rfc:`4120`.
 	type KRB::Ticket: record {
 		## Protocol version number (5 for KRB5)
@@ -3244,7 +3242,7 @@ export {
 	};
 
 	type KRB::Ticket_Vector: vector of KRB::Ticket;
-	
+
 	## The data from the AS_REQ and TGS_REQ messages. See :rfc:`4120`.
 	type KRB::KDC_Request: record {
 		## Protocol version number (5 for KRB5)
@@ -3257,7 +3255,7 @@ export {
 		kdc_options		: KRB::KDC_Options;
 		## Name on the ticket
 		client_name		: string &optional;
-		
+
 		## Realm of the service
 		service_realm		: string;
 		## Name of the service

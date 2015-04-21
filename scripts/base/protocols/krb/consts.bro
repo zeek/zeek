@@ -94,6 +94,6 @@ export {
 		[25] = "camellia128-cts-cmac",
 		[26] = "camellia256-cts-cmac",
 		[65] = "subkey-keymaterial",
-	};	
+	};
 
 }

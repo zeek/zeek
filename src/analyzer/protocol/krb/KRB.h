@@ -10,7 +10,6 @@ namespace analyzer { namespace krb {
 class KRB_Analyzer : public analyzer::Analyzer {
 
 public:
-
 	KRB_Analyzer(Connection* conn);
 	virtual ~KRB_Analyzer();
 
@@ -22,10 +21,10 @@ public:
 		{ return new KRB_Analyzer(conn); }
 
 protected:
-	
+
 	binpac::KRB::KRB_Conn* interp;
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*
 
 #endif

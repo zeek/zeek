@@ -14,7 +14,7 @@ export {
 		uid:			string  &log;
 		## The connection's 4-tuple of endpoint addresses/ports.
 		id:			conn_id &log;
-		
+
 		## Request type - Authentication Service ("AS") or
 		## Ticket Granting Service ("TGS")
 		request_type:		string &log &optional;
@@ -58,7 +58,7 @@ export {
 		# by Windows AD Kerberos.
 		"Need to use PA-ENC-TIMESTAMP/PA-PK-AS-REQ",
 	} &redef;
-	
+
 	## Event that can be handled to access the KRB record as it is sent on
 	## to the logging framework.
 	global log_krb: event(rec: Info);
@@ -91,10 +91,10 @@ event krb_error(c: connection, msg: Error_Msg) &priority=5
 
 	if ( c?$krb && c$krb$logged )
 		return;
-		
+
 	if ( c?$krb )
 		info = c$krb;
-		
+
 	if ( ! info?$ts )
 		{
 		info$ts  = network_time();
@@ -113,7 +113,7 @@ event krb_error(c: connection, msg: Error_Msg) &priority=5
 
 	if ( msg?$error_text )			info$error_msg = msg$error_text;
 	else if ( msg$error_code in error_msg ) info$error_msg = error_msg[msg$error_code];
-		
+
 	c$krb = info;
 	}
 
@@ -184,9 +184,9 @@ event krb_as_response(c: connection, msg: KDC_Response) &priority=5
 	if ( c?$krb && c$krb$logged )
 		return;
 
-	if ( c?$krb ) 
+	if ( c?$krb )
 		info = c$krb;
-		
+
 	if ( ! info?$ts )
 		{
 		info$ts  = network_time();
@@ -219,7 +219,7 @@ event krb_tgs_response(c: connection, msg: KDC_Response) &priority=5
 
 	if ( c?$krb )
 		info = c$krb;
-		
+
 	if ( ! info?$ts )
 		{
 		info$ts  = network_time();
@@ -233,7 +233,7 @@ event krb_tgs_response(c: connection, msg: KDC_Response) &priority=5
 	info$service = msg$ticket$service_name;
 	info$cipher  = cipher_name[msg$ticket$cipher];
 	info$success = T;
-		
+
 	c$krb = info;
 	}
 

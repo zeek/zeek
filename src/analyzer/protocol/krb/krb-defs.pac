@@ -17,7 +17,7 @@ enum KRBPADataTypes {
 	PA_TGS_REQ 	 = 1,
 	PA_ENC_TIMESTAMP = 2,
 	PA_PW_SALT 	 = 3,
-	PA_PW_AS_REQ 	 = 16,	
+	PA_PW_AS_REQ 	 = 16,
 	PA_PW_AS_REP	 = 17,
 };
 

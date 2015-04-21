@@ -21,10 +21,10 @@ VectorVal* proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyzer bro_a
 		{
 		KRB_PA_Data* element = (*data->data()->padata_elems())[i];
 		int64 data_type = element->data_type();
-		
+
 		if ( is_error && ( data_type == PA_PW_AS_REQ || data_type == PA_PW_AS_REP ) )
 			data_type = 0;
-		
+
 		switch( data_type )
 			{
 			case PA_TGS_REQ:
@@ -44,49 +44,49 @@ VectorVal* proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyzer bro_a
 			case PA_PW_AS_REQ:
 				{
 				const bytestring& cert = element->pa_data_element()->pa_pk_as_req()->cert();
-				
+
 				ODesc common;
 				common.AddRaw("Analyzer::ANALYZER_KRB");
 				common.Add(bro_analyzer->Conn()->StartTime());
 				// Request means is_orig=T
 				common.AddRaw("T", 1);
 				bro_analyzer->Conn()->IDString(&common);
-				
+
 				ODesc file_handle;
 				file_handle.Add(common.Description());
 				file_handle.Add(0);
-				
+
 				string file_id = file_mgr->HashHandle(file_handle.Description());
-				
+
 				file_mgr->DataIn(reinterpret_cast<const u_char*>(cert.data()),
 			                 	 cert.length(), bro_analyzer->GetAnalyzerTag(),
 			                 	 bro_analyzer->Conn(), true, file_id);
 				file_mgr->EndOfFile(file_id);
-				
+
 				break;
 				}
 			case PA_PW_AS_REP:
 				{
 				const bytestring& cert = element->pa_data_element()->pa_pk_as_rep()->cert();
-							
+
 				ODesc common;
 				common.AddRaw("Analyzer::ANALYZER_KRB");
 				common.Add(bro_analyzer->Conn()->StartTime());
 				// Response means is_orig=F
 				common.AddRaw("F", 1);
 				bro_analyzer->Conn()->IDString(&common);
-				
+
 				ODesc file_handle;
 				file_handle.Add(common.Description());
 				file_handle.Add(1);
-				
+
 				string file_id = file_mgr->HashHandle(file_handle.Description());
-				
+
 				file_mgr->DataIn(reinterpret_cast<const u_char*>(cert.data()),
 	                 			 cert.length(), bro_analyzer->GetAnalyzerTag(),
 			 	                 bro_analyzer->Conn(), false, file_id);
 				file_mgr->EndOfFile(file_id);
-				
+
 				break;
 				}
 			default:

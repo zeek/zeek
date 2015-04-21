@@ -16,9 +16,9 @@ RecordVal* proc_ticket(const KRB_Ticket* ticket);
 Val* GetStringFromPrincipalName(const KRB_Principal_Name* pname)
 {
 	if ( pname->data()->size() == 1 )
- 		return bytestring_to_val(pname->data()[0][0]->encoding()->content());
- 	if ( pname->data()->size() == 2 )
- 		return new StringVal(fmt("%s/%s", (char *) pname->data()[0][0]->encoding()->content().begin(), (char *)pname->data()[0][1]->encoding()->content().begin()));
+		return bytestring_to_val(pname->data()[0][0]->encoding()->content());
+	if ( pname->data()->size() == 2 )
+		return new StringVal(fmt("%s/%s", (char *) pname->data()[0][0]->encoding()->content().begin(), (char *)pname->data()[0][1]->encoding()->content().begin()));
 
 	return new StringVal("unknown");
 }
@@ -40,23 +40,23 @@ VectorVal* proc_host_address_list(const KRB_Host_Addresses* list)
 		addrs->Assign(addrs->Size(), proc_host_address((*list->addresses())[i]));
 		}
 
-	return addrs;	
+	return addrs;
 }
 
 RecordVal* proc_host_address(const KRB_Host_Address* addr)
 {
 	RecordVal* rv = new RecordVal(BifType::Record::KRB::Host_Address);
-	
+
 	switch ( binary_to_int64(addr->addr_type()->encoding()->content()) )
 		{
 		case 2:
-			rv->Assign(0, new AddrVal(IPAddr(IPv4, 
-					    	         (const uint32_t*) c_str(addr->address()->data()->content()), 
+			rv->Assign(0, new AddrVal(IPAddr(IPv4,
+					    	         (const uint32_t*) c_str(addr->address()->data()->content()),
 							 IPAddr::Network)));
 			break;
 		case 24:
-			rv->Assign(0, new AddrVal(IPAddr(IPv6, 
-					    		 (const uint32_t*) c_str(addr->address()->data()->content()), 
+			rv->Assign(0, new AddrVal(IPAddr(IPv6,
+					    		 (const uint32_t*) c_str(addr->address()->data()->content()),
 							 IPAddr::Network)));
 			break;
 		case 20:
@@ -69,7 +69,7 @@ RecordVal* proc_host_address(const KRB_Host_Address* addr)
 			rv->Assign(2, unk);
 			break;
 		}
-		
+
 	return rv;
 }
 
@@ -81,7 +81,7 @@ VectorVal* proc_tickets(const KRB_Ticket_Sequence* list)
 		KRB_Ticket* element = (*list->tickets())[i];
 		tickets->Assign(tickets->Size(), proc_ticket(element));
 		}
-	
+
 	return tickets;
 }
 

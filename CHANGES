@@ -1,4 +1,23 @@
 
+2.3-864 | 2015-04-21 15:24:02 -0700
+
+  * A SIP protocol analyzer. (Vlad Grigorescu)
+
+	Activity gets logged into sip.log. It generates the following
+    events:
+
+	    event sip_request(c: connection, method: string, original_URI: string, version: string);
+        event sip_reply(c: connection, version: string, code: count, reason: string);
+        event sip_header(c: connection, is_orig: bool, name: string, value: string);
+        event sip_all_headers(c: connection, is_orig: bool, hlist: mime_header_list);
+        event sip_begin_entity(c: connection, is_orig: bool);
+        event sip_end_entity(c: connection, is_orig: bool);
+
+    The analyzer support SIP over UDP currently.
+
+  * BIT-1343: Factor common ASN.1 code from RDP, SNMP, and Kerberos
+    analyzers. (Jon Siwek/Robin Sommer)
+
 2.3-838 | 2015-04-21 13:40:12 -0700
 
   * BIT-1373: Fix vector index assignment reference count bug. (Jon Siwek)

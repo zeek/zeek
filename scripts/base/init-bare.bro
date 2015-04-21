@@ -333,8 +333,6 @@ type connection: record {
 	## to parse the same data. If so, all will be recorded. Also note that
 	## the recorded services are independent of any transport-level protocols.
 	service: set[string];
-	addl: string;	##< Deprecated.
-	hot: count;	##< Deprecated.
 	history: string;	##< State history of connections. See *history* in :bro:see:`Conn::Info`.
 	## A globally unique connection identifier. For each connection, Bro
 	## creates an ID that is very likely unique across independent Bro runs.
@@ -1088,27 +1086,6 @@ const ENDIAN_UNKNOWN = 0;	##< Endian not yet determined.
 const ENDIAN_LITTLE = 1;	##< Little endian.
 const ENDIAN_BIG = 2;	##< Big endian.
 const ENDIAN_CONFUSED = 3;	##< Tried to determine endian, but failed.
-
-## Deprecated.
-function append_addl(c: connection, addl: string)
-	{
-	if ( c$addl == "" )
-		c$addl= addl;
-
-	else if ( addl !in c$addl )
-		c$addl = fmt("%s %s", c$addl, addl);
-	}
-
-## Deprecated.
-function append_addl_marker(c: connection, addl: string, marker: string)
-	{
-	if ( c$addl == "" )
-		c$addl= addl;
-
-	else if ( addl !in c$addl )
-		c$addl = fmt("%s%s%s", c$addl, marker, addl);
-	}
-
 
 # Values for :bro:see:`set_contents_file` *direction* argument.
 # todo:: these should go into an enum to make them autodoc'able

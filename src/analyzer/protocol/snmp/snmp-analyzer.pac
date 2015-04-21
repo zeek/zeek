@@ -10,6 +10,7 @@
 %header{
 AddrVal* network_address_to_val(const ASN1Encoding* na);
 AddrVal* network_address_to_val(const NetworkAddress* na);
+Val*     asn1_obj_to_val(const ASN1Encoding* obj);
 
 RecordVal* build_hdr(const Header* header);
 RecordVal* build_hdrV3(const Header* header);
@@ -39,6 +40,49 @@ AddrVal* network_address_to_val(const ASN1Encoding* na)
 	const u_char* data = reinterpret_cast<const u_char*>(bs.data());
 	uint32 network_order = extract_uint32(data);
 	return new AddrVal(network_order);
+	}
+
+Val* asn1_obj_to_val(const ASN1Encoding* obj)
+	{
+	RecordVal* rval = new RecordVal(BifType::Record::SNMP::ObjectValue);
+	uint8 tag = obj->meta()->tag();
+
+	rval->Assign(0, new Val(tag, TYPE_COUNT));
+
+	switch ( tag ) {
+	case VARBIND_UNSPECIFIED_TAG:
+	case VARBIND_NOSUCHOBJECT_TAG:
+	case VARBIND_NOSUCHINSTANCE_TAG:
+	case VARBIND_ENDOFMIBVIEW_TAG:
+		break;
+
+	case ASN1_OBJECT_IDENTIFIER_TAG:
+		rval->Assign(1, asn1_oid_to_val(obj));
+		break;
+
+	case ASN1_INTEGER_TAG:
+		rval->Assign(2, asn1_integer_to_val(obj, TYPE_INT));
+		break;
+
+	case APP_COUNTER32_TAG:
+	case APP_UNSIGNED32_TAG:
+	case APP_TIMETICKS_TAG:
+	case APP_COUNTER64_TAG:
+		rval->Assign(3, asn1_integer_to_val(obj, TYPE_COUNT));
+		break;
+
+	case APP_IPADDRESS_TAG:
+		rval->Assign(4, network_address_to_val(obj));
+		break;
+
+	case ASN1_OCTET_STRING_TAG:
+	case APP_OPAQUE_TAG:
+	default:
+		rval->Assign(5, asn1_octet_string_to_val(obj));
+		break;
+	}
+
+	return rval;
 	}
 
 Val* time_ticks_to_val(const TimeTicks* tt)

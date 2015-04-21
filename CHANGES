@@ -1,4 +1,8 @@
 
+2.3-838 | 2015-04-21 13:40:12 -0700
+
+  * BIT-1373: Fix vector index assignment reference count bug. (Jon Siwek)
+
 2.3-836 | 2015-04-21 13:37:31 -0700
 
   * Fix SSH direction field being unset. Addresses BIT-1365. (Vlad

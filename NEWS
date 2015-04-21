@@ -25,9 +25,9 @@ New Functionality
 - Bro now has support for the MySQL wire protocol. Activity gets
   logged into mysql.log.
 
-- Bro now parses DTLS traffic.
+- Bro now parses DTLS traffic. Activity gets logged into ssl.log.
 
-- Bro now has an RDP analyzer.
+- Bro now has an RDP analyzer. Activity gets logged into rdp.log.
 
 - Bro now has a file analyzer for Portable Executables. Activity gets
   logged into pe.log.

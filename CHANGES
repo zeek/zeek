@@ -1,5 +1,5 @@
 
-2.3-871 | 2015-04-21 16:00:04 -0700
+2.3-874 | 2015-04-21 16:09:20 -0700
 
   * Change details of escaping when logging/printing. (Seth Hall/Robin
     Sommer)
@@ -47,6 +47,10 @@
 
   * Fix SSH direction field being unset. Addresses BIT-1365. (Vlad
     Grigorescu)
+
+2.3-835 | 2015-04-21 16:36:00 -0500
+
+  * Clarify Broker examples. (Jon Siwek)
 
 2.3-833 | 2015-04-21 12:38:32 -0700
 

@@ -1,12 +1,13 @@
-%header{
-Val* GetTimeFromAsn1(const KRB_Time* atime, int64 usecs);
-Val* GetTimeFromAsn1(StringVal* atime, int64 usecs);
 
-Val* asn1_integer_to_val(const ASN1Encoding* i, TypeTag t);
-Val* asn1_integer_to_val(const ASN1Integer* i, TypeTag t);
+%include ../asn1/asn1.pac
+
+%header{
+    Val* GetTimeFromAsn1(const KRB_Time* atime, int64 usecs);
+    Val* GetTimeFromAsn1(StringVal* atime, int64 usecs);
 %}
 
 %code{
+
 Val* GetTimeFromAsn1(const KRB_Time* atime, int64 usecs)
 	{
 	StringVal* atime_bytestring = bytestring_to_val(atime->time());
@@ -54,74 +55,4 @@ Val* GetTimeFromAsn1(StringVal* atime, int64 usecs)
 	return new Val(double(lResult + double(usecs/100000.0)), TYPE_TIME);
 	}
 
-Val* asn1_integer_to_val(const ASN1Integer* i, TypeTag t)
-	{
-	return asn1_integer_to_val(i->encoding(), t);
-	}
-
-Val* asn1_integer_to_val(const ASN1Encoding* i, TypeTag t)
-	{
-	return new Val(binary_to_int64(i->content()), t);
-	}
 %}
-
-type ASN1Encoding = record {
-     meta:    ASN1EncodingMeta;
-     content: bytestring &length = meta.length;
-};
-
-type ASN1EncodingMeta = record {
-	tag	: uint8;
-	len	: uint8;
-	more_len: bytestring &length = long_len ? (len & 0x7f) : 0;
-} &let {
-	long_len	: bool = (len & 0x80) > 0;
-	length		: uint64 = long_len ? binary_to_int64(more_len) : len;
-	has_index	: bool = (tag >= ASN1_INDEX_TAG_OFFSET);
-	index		: uint8 = tag - ASN1_INDEX_TAG_OFFSET;
-};
-
-type ASN1OptionalEncodingMeta(is_present: bool, previous_metadata: ASN1EncodingMeta) = case is_present of {
-	true  -> data: ASN1EncodingMeta;
-	false -> none: empty;
-} &let {
-	length: uint64 = is_present ? data.length : previous_metadata.length;
-};
-
-type ASN1Integer = record {
-	encoding: ASN1Encoding;
-};
-
-type ASN1OctetString = record {
-	encoding: ASN1Encoding;
-};
-
-type SequenceElement(grab_content: bool) = record {
-	index_meta	  : ASN1EncodingMeta;
-	have_content : case grab_content of {
-	true  -> data: ASN1Encoding;
-	false -> meta: ASN1EncodingMeta;
-	};
-} &let {
-	index  : uint8 = index_meta.index;
-	length : uint64 = index_meta.length;
-};
-
-type Array = record {
-	array_meta	: ASN1EncodingMeta;
-	data	: ASN1Encoding[];
-};
-
-function binary_to_int64(bs: bytestring): int64
-	%{
-	int64 rval = 0;
-
-	for ( int i = 0; i < bs.length(); ++i )
-	    {
-	    uint64 byte = bs[i];
-	    rval |= byte << (8 * (bs.length() - (i + 1)));
-	    }
-
-	return rval;
-	%}
-

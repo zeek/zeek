@@ -25,10 +25,3 @@ enum KRBPADataTypes {
 enum KRBErrorCodes {
 	KDC_ERR_PREAUTH_REQUIRED = 25,
 };
-
-# Defined in ASN.1
-enum ASN1Consts {
-	ASN1_SEQUENCE_TAG	= 48,
-	ASN1_APP_TAG_OFFSET	= 96,
-	ASN1_INDEX_TAG_OFFSET	= 160,
-};

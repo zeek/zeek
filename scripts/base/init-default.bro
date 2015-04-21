@@ -58,6 +58,7 @@
 @load base/protocols/syslog
 @load base/protocols/tunnels
 
+@load base/files/pe
 @load base/files/hash
 @load base/files/extract
 @load base/files/unified2

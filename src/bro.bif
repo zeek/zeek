@@ -2247,7 +2247,7 @@ function to_count%(str: string%): count
 	const char* s = str->CheckString();
 	char* end_s;
 
-	uint64 u = (uint64) strtoll(s, &end_s, 10);
+	uint64 u = (uint64) strtoull(s, &end_s, 10);
 
 	if ( s[0] == '\0' || end_s[0] != '\0' )
     	{
@@ -3207,9 +3207,7 @@ function lookup_connection%(cid: conn_id%): connection
 	c->Assign(3, new Val(network_time, TYPE_TIME));
 	c->Assign(4, new Val(0.0, TYPE_INTERVAL));
 	c->Assign(5, new TableVal(string_set));	// service
-	c->Assign(6, new StringVal(""));	// addl
-	c->Assign(7, new Val(0, TYPE_COUNT));	// hot
-	c->Assign(8, new StringVal(""));	// history
+	c->Assign(6, new StringVal(""));	// history
 
 	return c;
 	%}

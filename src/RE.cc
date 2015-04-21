@@ -20,9 +20,6 @@ int case_insensitive = 0;
 extern int RE_parse(void);
 extern void RE_set_input(const char* str);
 
-// If true, the set-wise matching always returns false - for benchmarking.
-extern int rule_bench;
-
 Specific_RE_Matcher::Specific_RE_Matcher(match_type arg_mt, int arg_multiline)
 : equiv_class(NUM_SYM)
 	{
@@ -279,9 +276,6 @@ inline void RE_Match_State::AddMatches(const AcceptingSet& as,
 bool RE_Match_State::Match(const u_char* bv, int n,
 				bool bol, bool eol, bool clear)
 	{
-	if ( rule_bench > 0 )
-		return false;
-
 	if ( current_pos == -1 )
 		{
 		// First call to Match().

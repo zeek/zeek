@@ -2599,6 +2599,39 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 
 	if ( ! same_type(op1->Type(), op2->Type()) )
 		{
+		if ( bt1 == TYPE_TABLE && bt2 == TYPE_TABLE )
+			{
+			if ( op2->Tag() == EXPR_SET_CONSTRUCTOR )
+				{
+				// Some elements in constructor list must not match, see if
+				// we can create a new constructor now that the expected type
+				// of LHS is known and let it do coercions where possible.
+				SetConstructorExpr* sce = dynamic_cast<SetConstructorExpr*>(op2);
+				ListExpr* ctor_list = dynamic_cast<ListExpr*>(sce->Op());
+				attr_list* attr_copy = 0;
+
+				if ( sce->Attrs() )
+					{
+					attr_list* a = sce->Attrs()->Attrs();
+					attrs = new attr_list;
+					loop_over_list(*a, i)
+						attrs->append((*a)[i]);
+					}
+
+				int errors_before = reporter->Errors();
+				op2 = new SetConstructorExpr(ctor_list, attr_copy, op1->Type());
+				int errors_after = reporter->Errors();
+
+				if ( errors_after > errors_before )
+					{
+					ExprError("type clash in assignment");
+					return false;
+					}
+
+				return true;
+				}
+			}
+
 		ExprError("type clash in assignment");
 		return false;
 		}

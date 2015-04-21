@@ -163,6 +163,11 @@ type ModbusHeaders: record;
 type ModbusCoils: vector;
 type ModbusRegisters: vector;
 
+type PE::DOSHeader: record;
+type PE::FileHeader: record;
+type PE::OptionalHeader: record;
+type PE::SectionHeader: record;
+
 module Tunnel;
 enum Type %{
 	NONE,

@@ -239,7 +239,9 @@ int HTTP_Entity::Undelivered(int64_t len)
 			  len, expect_data_length);
 		}
 
-	if ( end_of_data && in_header )
+	// Don't propogate an entity (file) gap if we're still in the headers,
+	// or the body length was declared to be zero.
+	if ( (end_of_data && in_header) || body_length == 0 )
 		return 0;
 
 	if ( is_partial_content )

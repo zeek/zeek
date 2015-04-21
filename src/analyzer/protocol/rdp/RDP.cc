@@ -62,7 +62,7 @@ void RDP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 					{
 					reporter->AnalyzerError(this,
 					                        "failed to add TCP child analyzer "
-					                        "to RPD analyzer: already exists");
+					                        "to RDP analyzer: already exists");
 					return;
 					}
 

@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <signal.h>
+#include <stdlib.h>
 
 #include "Raw.h"
 #include "Plugin.h"
@@ -33,6 +34,7 @@ Raw::Raw(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	firstrun = true;
 	mtime = 0;
 	forcekill = false;
+	offset = 0;
 	separator.assign( (const char*) BifConst::InputRaw::record_separator->Bytes(),
 			  BifConst::InputRaw::record_separator->Len());
 
@@ -298,6 +300,17 @@ bool Raw::OpenInput()
 			Warning(Fmt("Init: cannot set close-on-exec for %s", fname.c_str()));
 		}
 
+		if ( offset )
+			{
+			int whence = (offset > 0) ? SEEK_SET : SEEK_END;
+			if ( fseek(file, offset, whence) < 0 )
+				{
+				char buf[256];
+				strerror_r(errno, buf, sizeof(buf));
+				Error(Fmt("Seek failed in init: %s", buf));
+				}
+			}
+
 	return true;
 	}
 
@@ -375,6 +388,20 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 	if ( it != info.config.end() && execute )
 		{
 		forcekill = true;
+		}
+
+	it = info.config.find("offset"); // we want to seek to a given offset inside the file
+	if ( it != info.config.end() && ! execute && (Info().mode == MODE_STREAM || Info().mode == MODE_MANUAL) )
+		{
+		string offset_s = it->second;
+		offset = strtoll(offset_s.c_str(), 0, 10);
+		if ( offset < 0 )
+			offset++; // we want -1 to be the end of the file
+		}
+	else if ( it != info.config.end() )
+		{
+		Error("Offset only is supported for MODE_STREAM and MODE_MANUAL; it is also not supported when executing a command");
+		return false;
 		}
 
 	if ( num_fields != want_fields )

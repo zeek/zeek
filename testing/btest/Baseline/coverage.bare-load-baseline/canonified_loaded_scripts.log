@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2015-03-05-20-42-42
+#open	2015-04-21-03-05-12
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -59,6 +59,7 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_BackDoor.events.bif.bro
     build/scripts/base/bif/plugins/Bro_BitTorrent.events.bif.bro
     build/scripts/base/bif/plugins/Bro_ConnSize.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_ConnSize.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_DCE_RPC.events.bif.bro
     build/scripts/base/bif/plugins/Bro_DHCP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_DNP3.events.bif.bro
@@ -83,7 +84,6 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_NCP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_NetBIOS.events.bif.bro
     build/scripts/base/bif/plugins/Bro_NetBIOS.functions.bif.bro
-    build/scripts/base/bif/plugins/Bro_NetFlow.events.bif.bro
     build/scripts/base/bif/plugins/Bro_NTP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_PIA.events.bif.bro
     build/scripts/base/bif/plugins/Bro_POP3.events.bif.bro
@@ -109,6 +109,7 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_FileExtract.events.bif.bro
     build/scripts/base/bif/plugins/Bro_FileExtract.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_FileHash.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_PE.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Unified2.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Unified2.types.bif.bro
     build/scripts/base/bif/plugins/Bro_X509.events.bif.bro
@@ -124,4 +125,4 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_SQLiteWriter.sqlite.bif.bro
 scripts/policy/misc/loaded-scripts.bro
   scripts/base/utils/paths.bro
-#close	2015-03-05-20-42-42
+#close	2015-04-21-03-05-12

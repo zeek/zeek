@@ -13,6 +13,7 @@ extern RecordType* endpoint;
 extern RecordType* endpoint_stats;
 extern RecordType* connection_type;
 extern RecordType* fa_file_type;
+extern RecordType* fa_metadata_type;
 extern RecordType* icmp_conn;
 extern RecordType* icmp_context;
 extern RecordType* signature_state;
@@ -181,6 +182,7 @@ extern RecordType* peer;
 extern int forward_remote_state_changes;
 extern int forward_remote_events;
 extern int remote_check_sync_consistency;
+extern bro_uint_t chunked_io_buffer_soft_cap;
 
 extern StringVal* ssl_ca_certificate;
 extern StringVal* ssl_private_key;

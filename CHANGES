@@ -1,4 +1,73 @@
 
+2.3-793 | 2015-04-20 20:51:00 -0700
+
+  * Add decoding of PROXY-AUTHORIZATION header to HTTP analyze,
+    treating it the same as AUTHORIZATION. (Josh Liburdi)
+
+  * Remove deprecated fields "hot" and "addl" from the connection
+    record. Remove the functions append_addl() and
+    append_addl_marker(). (Robin Sommer)
+
+  * Removing the NetFlow analyzer, which hasn't been used anymore
+    since then corresponding command-line option went away. (Robin
+    Sommer)
+
+2.3-787 | 2015-04-20 19:15:23 -0700
+
+  * A file analyzer for Portable Executables. (Vlad Grigorescu/Seth
+    Hall).
+
+	Activity gets logged into pe.log. It generates the following
+	events:
+
+        event pe_dos_header(f: fa_file, h: PE::DOSHeader);
+        event pe_dos_code(f: fa_file, code: string);
+        event pe_file_header(f: fa_file, h: PE::FileHeader);
+        event pe_optional_header(f: fa_file, h: PE::OptionalHeader);
+        event pe_section_header(f: fa_file, h: PE::SectionHeader);
+
+2.3-741 | 2015-04-20 13:12:39 -0700
+
+  * API changes to file analysis mime type detection. Removed
+    "file_mime_type" and "file_mime_types" event, replacing them with
+    a new event called "file_metadata_inferred". Addresses BIT-1368.
+    (Jon Siwek)
+
+  * A large series of improvements for file type identification. This
+    inludes a many signature updates (new types, cleanup, performance
+    improvments) and splitting out signatures into subfiles. (Seth
+    Hall)
+
+  * Fix an issue with files having gaps before the bof_buffer is
+    filled, which could lead to file type identification not working
+    correctly. (Seth Hall)
+
+  * Fix an issue with packet loss in HTTP file reporting for file type
+    identification wasn't working correctly zero-length bodies. (Seth
+    Hall)
+
+  * X.509 certificates are now populating files.log with the mime type
+    application/pkix-cert. (Seth Hall)
+
+  * Normalized some FILE_ANALYSIS debug messages. (Seth Hall)
+
+2.3-725 | 2015-04-20 12:54:54 -0700
+
+  * Updating submodule(s).
+
+2.3-724 | 2015-04-20 14:11:02 -0500
+
+  * Fix uninitialized field in raw input reader. (Jon Siwek)
+
+2.3-722 | 2015-04-20 12:59:03 -0500
+
+  * Remove unneeded documentation cross-referencing. (Jon Siwek)
+
+2.3-721 | 2015-04-20 12:47:05 -0500
+
+  * BIT-1380: Improve Broxygen output of &default expressions.
+    (Jon Siwek)
+
 2.3-720 | 2015-04-17 14:18:26 -0700
 
   * Updating NEWS.

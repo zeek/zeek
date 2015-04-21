@@ -47,6 +47,9 @@ redef record Files::Info += {
 
 event x509_certificate(f: fa_file, cert_ref: opaque of x509, cert: X509::Certificate) &priority=5
 	{
+	if ( ! f$info?$mime_type )
+		f$info$mime_type = "application/pkix-cert";
+
 	f$info$x509 = [$ts=f$info$ts, $id=f$id, $certificate=cert, $handle=cert_ref];
 	}
 

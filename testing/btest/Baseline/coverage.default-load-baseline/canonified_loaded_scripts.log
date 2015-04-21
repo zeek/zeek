@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2015-04-18-01-01-39
+#open	2015-04-21-16-58-55
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -86,7 +86,6 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_NCP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_NetBIOS.events.bif.bro
     build/scripts/base/bif/plugins/Bro_NetBIOS.functions.bif.bro
-    build/scripts/base/bif/plugins/Bro_NetFlow.events.bif.bro
     build/scripts/base/bif/plugins/Bro_NTP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_PIA.events.bif.bro
     build/scripts/base/bif/plugins/Bro_POP3.events.bif.bro
@@ -112,6 +111,7 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_FileExtract.events.bif.bro
     build/scripts/base/bif/plugins/Bro_FileExtract.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_FileHash.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_PE.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Unified2.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Unified2.types.bif.bro
     build/scripts/base/bif/plugins/Bro_X509.events.bif.bro
@@ -260,6 +260,9 @@ scripts/base/init-default.bro
     scripts/base/protocols/syslog/consts.bro
     scripts/base/protocols/syslog/main.bro
   scripts/base/protocols/tunnels/__load__.bro
+  scripts/base/files/pe/__load__.bro
+    scripts/base/files/pe/consts.bro
+    scripts/base/files/pe/main.bro
   scripts/base/files/extract/__load__.bro
     scripts/base/files/extract/main.bro
   scripts/base/files/unified2/__load__.bro
@@ -267,4 +270,4 @@ scripts/base/init-default.bro
   scripts/base/misc/find-checksum-offloading.bro
   scripts/base/misc/find-filtered-trace.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2015-04-18-01-01-39
+#close	2015-04-21-16-58-55

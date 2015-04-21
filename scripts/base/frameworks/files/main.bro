@@ -129,12 +129,11 @@ export {
 	## files based on the detected mime type of the file.
 	const analyze_by_mime_type_automatically = T &redef;
 
-	## The default setting for if the file reassembler is enabled for 
-	## each file.
+	## The default setting for file reassembly.
 	const enable_reassembler = T &redef;
 
 	## The default per-file reassembly buffer size.
-	const reassembly_buffer_size = 1048576 &redef;
+	const reassembly_buffer_size = 524288 &redef;
 
 	## Allows the file reassembler to be used if it's necessary because the
 	## file is transferred out of order.
@@ -484,16 +483,19 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 	add f$info$rx_hosts[f$is_orig ? cid$resp_h : cid$orig_h];
 	}
 
-event file_mime_type(f: fa_file, mime_type: string) &priority=10
+event file_sniff(f: fa_file, meta: fa_metadata) &priority=10
 	{
 	set_info(f);
 
-	f$info$mime_type = mime_type;
+	if ( ! meta?$mime_type )
+		return;
+
+	f$info$mime_type = meta$mime_type;
 
 	if ( analyze_by_mime_type_automatically &&
-	     mime_type in mime_type_to_analyzers )
+	     meta$mime_type in mime_type_to_analyzers )
 		{
-		local analyzers = mime_type_to_analyzers[mime_type];
+		local analyzers = mime_type_to_analyzers[meta$mime_type];
 		for ( a in analyzers )
 			{
 			add f$info$analyzers[Files::analyzer_name(a)];

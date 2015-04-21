@@ -43,7 +43,7 @@ file #3, 465, 0
 FILE_BOF_BUFFER
 {^J  "data":
 MIME_TYPE
-text/plain
+text/json
 total bytes: 465
 source: HTTP
 MD5: 226244811006caf4ac904344841168dd

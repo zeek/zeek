@@ -22,9 +22,6 @@ export {
 	## is_orig: If true, threshold is set for bytes from originator, otherwise for bytes from responder.
 	##
 	## Returns: T on success, F on failure.
-	##
-	## .. bro:see:: bytes_threshold_crossed packets_threshold_crossed set_packets_threshold
-	##              delete_bytes_threshold delete_packets_threshold
 	global set_bytes_threshold: function(c: connection, threshold: count, is_orig: bool): bool;
 
 	## Sets a packet threshold for connection sizes, adding it to potentially already existing thresholds.
@@ -37,9 +34,6 @@ export {
 	## is_orig: If true, threshold is set for packets from originator, otherwise for packets from responder.
 	##
 	## Returns: T on success, F on failure.
-	##
-	## .. bro:see:: bytes_threshold_crossed packets_threshold_crossed set_bytes_threshold
-	##              delete_bytes_threshold delete_packets_threshold
 	global set_packets_threshold: function(c: connection, threshold: count, is_orig: bool): bool;
 
 	## Deletes a byte threshold for connection sizes.
@@ -51,9 +45,6 @@ export {
 	## is_orig: If true, threshold is removed for packets from originator, otherwhise for packets from responder.
 	##
 	## Returns: T on success, F on failure.
-	##
-	## .. bro:see:: bytes_threshold_crossed packets_threshold_crossed set_bytes_threshold set_packets_threshold
-	##              delete_packets_threshold
 	global delete_bytes_threshold: function(c: connection, threshold: count, is_orig: bool): bool;
 
 	## Deletes a packet threshold for connection sizes.
@@ -65,9 +56,6 @@ export {
 	## is_orig: If true, threshold is removed for packets from originator, otherwise for packets from responder.
 	##
 	## Returns: T on success, F on failure.
-	##
-	## .. bro:see:: bytes_threshold_crossed packets_threshold_crossed set_bytes_threshold set_packets_threshold
-	##              delete_bytes_threshold
 	global delete_packets_threshold: function(c: connection, threshold: count, is_orig: bool): bool;
 
 	## Generated for a connection that crossed a set byte threshold
@@ -77,9 +65,6 @@ export {
 	## threshold: the threshold that was set
 	##
 	## is_orig: True if the threshold was crossed by the originator of the connection
-	##
-	## .. bro:see:: packets_threshold_crossed set_bytes_threshold set_packets_threshold
-	##              delete_bytes_threshold delete_packets_threshold
 	global bytes_threshold_crossed: event(c: connection, threshold: count, is_orig: bool);
 
 	## Generated for a connection that crossed a set byte threshold
@@ -89,9 +74,6 @@ export {
 	## threshold: the threshold that was set
 	##
 	## is_orig: True if the threshold was crossed by the originator of the connection
-	##
-	## .. bro:see:: bytes_threshold_crossed  set_bytes_threshold set_packets_threshold
-	##              delete_bytes_threshold delete_packets_threshold
 	global packets_threshold_crossed: event(c: connection, threshold: count, is_orig: bool);
 }
 

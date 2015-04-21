@@ -76,11 +76,28 @@ void Attr::DescribeReST(ODesc* d) const
 			d->Add("`");
 			}
 
-		else
+		else if ( expr->Tag() == EXPR_CONST )
 			{
 			d->Add("``");
 			expr->Describe(d);
-			d-> Add("``");
+			d->Add("``");
+			}
+
+		else
+			{
+			d->Add("``");
+			Val* v = expr->Eval(0);
+			ODesc dd;
+			v->Describe(&dd);
+			Unref(v);
+			string s = dd.Description();
+
+			for ( size_t i = 0; i < s.size(); ++i )
+				if ( s[i] == '\n' )
+					s[i] = ' ';
+
+			d->Add(s);
+			d->Add("``");
 			}
 		}
 	}

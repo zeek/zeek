@@ -93,6 +93,10 @@ function set_session(c: connection)
 		info$ts  = network_time();
 		info$uid = c$uid;
 		info$id  = c$id;
+
+		# If both hosts are local or non-local, we can't reliably set a direction.
+		if ( Site::is_local_addr(c$id$orig_h) != Site::is_local_addr(c$id$resp_h) )
+			info$direction = Site::is_local_addr(c$id$orig_h) ? OUTBOUND: INBOUND;
 		c$ssh = info;
 		}
 	}

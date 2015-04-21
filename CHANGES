@@ -1,4 +1,9 @@
 
+2.3-836 | 2015-04-21 13:37:31 -0700
+
+  * Fix SSH direction field being unset. Addresses BIT-1365. (Vlad
+    Grigorescu)
+
 2.3-833 | 2015-04-21 12:38:32 -0700
 
   * A Kerberos protocol analyzer. (Vlad Grigorescu)

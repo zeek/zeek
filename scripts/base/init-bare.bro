@@ -2818,60 +2818,6 @@ global generate_OS_version_event: set[subnet] &redef;
 # number>``), which were seen during the sample.
 type load_sample_info: set[string];
 
-## ID for NetFlow header. This is primarily a means to sort together NetFlow
-## headers and flow records at the script level.
-type nfheader_id: record {
-	## Name of the NetFlow file (e.g., ``netflow.dat``) or the receiving
-	## socket address (e.g., ``127.0.0.1:5555``), or an explicit name if
-	## specified to ``-y`` or ``-Y``.
-	rcvr_id: string;
-	## A serial number, ignoring any overflows.
-	pdu_id: count;
-};
-
-## A NetFlow v5 header.
-##
-## .. bro:see:: netflow_v5_header
-type nf_v5_header: record {
-	h_id: nfheader_id;	##< ID for sorting.
-	cnt: count;	##< TODO.
-	sysuptime: interval;	##< Router's uptime.
-	exporttime: time;	##< When the data was exported.
-	flow_seq: count;	##< Sequence number.
-	eng_type: count;	##< Engine type.
-	eng_id: count;	##< Engine ID.
-	sample_int: count;	##< Sampling interval.
-	exporter: addr;	##< Exporter address.
-};
-
-## A NetFlow v5 record.
-##
-## .. bro:see:: netflow_v5_record
-type nf_v5_record: record {
-	h_id: nfheader_id;	##< ID for sorting.
-	id: conn_id;	##< Connection ID.
-	nexthop: addr;	##< Address of next hop.
-	input: count;	##< Input interface.
-	output: count;	##< Output interface.
-	pkts: count;	##< Number of packets.
-	octets: count;	##< Number of bytes.
-	first: time;	##< Timestamp of first packet.
-	last: time;	##< Timestamp of last packet.
-	tcpflag_fin: bool;	##< FIN flag for TCP flows.
-	tcpflag_syn: bool;	##< SYN flag for TCP flows.
-	tcpflag_rst: bool;	##< RST flag for TCP flows.
-	tcpflag_psh: bool;	##< PSH flag for TCP flows.
-	tcpflag_ack: bool;	##< ACK flag for TCP flows.
-	tcpflag_urg: bool;	##< URG flag for TCP flows.
-	proto: count;	##< IP protocol.
-	tos: count;	##< Type of service.
-	src_as: count;	##< Source AS.
-	dst_as: count;	##< Destination AS.
-	src_mask: count;	##< Source mask.
-	dst_mask: count;	##< Destination mask.
-};
-
-
 ## A BitTorrent peer.
 ##
 ## .. bro:see:: bittorrent_peer_set

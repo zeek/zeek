@@ -185,6 +185,9 @@ Changed Functionality
 - BroControl now sends all normal command output (i.e., not error messages)
   to stdout.  Error messages are still sent to stderr, however.
 
+- The capability of processing NetFlow input has been removed for the
+  time being.
+
 Deprecated Functionality
 ------------------------
 

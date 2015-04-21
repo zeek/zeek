@@ -1,4 +1,18 @@
 
+2.3-787 | 2015-04-20 19:15:23 -0700
+
+  * A file analyzer for Portable Executables. (Vlad Grigorescu/Seth
+    Hall).
+
+	Activity gets logged into pe.log. It generates the following
+	events:
+
+        event pe_dos_header(f: fa_file, h: PE::DOSHeader);
+        event pe_dos_code(f: fa_file, code: string);
+        event pe_file_header(f: fa_file, h: PE::FileHeader);
+        event pe_optional_header(f: fa_file, h: PE::OptionalHeader);
+        event pe_section_header(f: fa_file, h: PE::SectionHeader);
+
 2.3-741 | 2015-04-20 13:12:39 -0700
 
   * API changes to file analysis mime type detection. Removed

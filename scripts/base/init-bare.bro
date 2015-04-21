@@ -2555,6 +2555,145 @@ type irc_join_info: record {
 ## .. bro:see:: irc_join_message
 type irc_join_list: set[irc_join_info];
 
+module PE;
+export {
+type PE::DOSHeader: record {
+	## The magic number of a portable executable file ("MZ").
+	signature                : string;
+	## The number of bytes in the last page that are used.
+	used_bytes_in_last_page  : count;
+	## The number of pages in the file that are part of the PE file itself.
+	file_in_pages            : count;
+	## Number of relocation entries stored after the header.
+	num_reloc_items          : count;
+	## Number of paragraphs in the header.
+	header_in_paragraphs     : count;
+	## Number of paragraps of additional memory that the program will need.
+	min_extra_paragraphs     : count;
+	## Maximum number of paragraphs of additional memory.
+	max_extra_paragraphs     : count;
+	## Relative value of the stack segment.
+	init_relative_ss         : count;
+	## Initial value of the SP register.
+	init_sp                  : count;
+	## Checksum. The 16-bit sum of all words in the file should be 0. Normally not set.
+	checksum                 : count;
+	## Initial value of the IP register.
+	init_ip                  : count;
+	## Initial value of the CS register (relative to the initial segment).
+	init_relative_cs         : count;
+	## Offset of the first relocation table.
+	addr_of_reloc_table      : count;
+	## Overlays allow you to append data to the end of the file. If this is the main program,
+	## this will be 0.
+	overlay_num              : count;
+	## OEM identifier.
+	oem_id                   : count;
+	## Additional OEM info, specific to oem_id.
+	oem_info                 : count;
+	## Address of the new EXE header.
+	addr_of_new_exe_header   : count;
+};
+
+type PE::FileHeader: record {
+	## The target machine that the file was compiled for.
+	machine              : count;
+	## The time that the file was created at.
+	ts                   : time;
+	## Pointer to the symbol table.
+	sym_table_ptr        : count;
+	## Number of symbols.
+	num_syms             : count;
+	## The size of the optional header.
+	optional_header_size : count;
+	## Bit flags that determine if this file is executable, non-relocatable, and/or a DLL.
+	characteristics      : set[count];
+};
+
+type PE::OptionalHeader: record {
+	## PE32 or PE32+ indicator.
+	magic                   : count;
+	## The major version of the linker used to create the PE.
+	major_linker_version    : count;
+	## The minor version of the linker used to create the PE.
+	minor_linker_version    : count;
+	## Size of the .text section.
+	size_of_code            : count;
+	## Size of the .data section.
+	size_of_init_data       : count;
+	## Size of the .bss section.
+	size_of_uninit_data     : count;
+	## The relative virtual address (RVA) of the entry point.
+	addr_of_entry_point     : count;
+	## The relative virtual address (RVA) of the .text section.
+	base_of_code            : count;
+	## The relative virtual address (RVA) of the .data section.
+	base_of_data            : count &optional;
+	## Preferred memory location for the image to be based at.
+	image_base              : count;
+	## The alignment (in bytes) of sections when they're loaded in memory.
+	section_alignment       : count;
+	## The alignment (in bytes) of the raw data of sections.
+	file_alignment          : count;
+	## The major version of the required OS.
+	os_version_major        : count;
+	## The minor version of the required OS.
+	os_version_minor        : count;
+	## The major version of this image.
+	major_image_version     : count;
+	## The minor version of this image.
+	minor_image_version     : count;
+	## The major version of the subsystem required to run this file.
+	major_subsys_version    : count;
+	## The minor version of the subsystem required to run this file.
+	minor_subsys_version    : count;
+	## The size (in bytes) of the iamge as the image is loaded in memory.
+	size_of_image           : count;
+	## The size (in bytes) of the headers, rounded up to file_alignment.
+	size_of_headers         : count;
+	## The image file checksum.
+	checksum                : count;
+	## The subsystem that's required to run this image.
+	subsystem               : count;
+	## Bit flags that determine how to execute or load this file.
+	dll_characteristics     : set[count];
+	## A vector with the sizes of various tables and strings that are
+	## defined in the optional header data directories. Examples include
+	## the import table, the resource table, and debug information.
+	table_sizes             : vector of count;
+
+};
+
+## Record for Portable Executable (PE) section headers.
+type PE::SectionHeader: record {
+	## The name of the section
+	name             : string;
+	## The total size of the section when loaded into memory.
+	virtual_size     : count;
+	## The relative virtual address (RVA) of the section.
+	virtual_addr     : count;
+	## The size of the initialized data for the section, as it is
+	## in the file on disk.
+	size_of_raw_data : count;
+	## The virtual address of the initialized dat for the section,
+	## as it is in the file on disk.
+	ptr_to_raw_data  : count;
+	## The file pointer to the beginning of relocation entries for
+	## the section.
+	ptr_to_relocs    : count;
+	## The file pointer to the beginning of line-number entries for
+	## the section.
+	ptr_to_line_nums : count;
+	## The number of relocation entries for the section.
+	num_of_relocs    : count;
+	## The number of line-number entrie for the section.
+	num_of_line_nums : count;
+	## Bit-flags that describe the characteristics of the section.
+	characteristics  : set[count];
+};
+}
+module GLOBAL;
+
 ## Deprecated.
 ##
 ## .. todo:: Remove. It's still declared internally but doesn't seem  used anywhere

@@ -139,7 +139,7 @@ event krb_safe%(c: connection, is_orig: bool, msg: KRB::SAFE_Msg%);
 ##
 ## is_orig: Whether the originator of the connection sent this message.
 ##
-## msg: A Kerberos KDC request message data structure.
+## tickets: Tickets obtained from the KDC that are being forwarded.
 ##
 ## .. bro:see:: krb_as_request krb_as_response krb_tgs_request krb_tgs_response
 ##    krb_ap_request krb_ap_response krb_priv krb_safe krb_error

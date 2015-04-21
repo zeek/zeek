@@ -1,4 +1,12 @@
 
+2.3-876 | 2015-04-21 16:40:10 -0700
+
+  * Attempt at fixing a potential std::length_error exception in RDP
+    analyzer. Addresses BIT-1337. (Robin Sommer)
+
+  * Fixing compile problem caused by overeager factorization. (Robin
+    Sommer)
+
 2.3-874 | 2015-04-21 16:09:20 -0700
 
   * Change details of escaping when logging/printing. (Seth Hall/Robin

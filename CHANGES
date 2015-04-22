@@ -1,4 +1,8 @@
 
+2.3-877 | 2015-04-21 20:14:16 -0700
+
+  * Adding missing include. (Robin Sommer)
+
 2.3-876 | 2015-04-21 16:40:10 -0700
 
   * Attempt at fixing a potential std::length_error exception in RDP

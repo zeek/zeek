@@ -1,4 +1,8 @@
 
+2.3-878 | 2015-04-22 08:21:23 -0700
+
+  * Fix another compiler warning in DTLS. (Johanna Amann)
+
 2.3-877 | 2015-04-21 20:14:16 -0700
 
   * Adding missing include. (Robin Sommer)

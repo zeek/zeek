@@ -1,7 +1,8 @@
+%extern{
+#include <cstdlib>
+%}
+
 %header{
-
-	#include <cstdlib>
-
 	Val* asn1_integer_to_val(const ASN1Encoding* i, TypeTag t);
 	Val* asn1_integer_to_val(const ASN1Integer* i, TypeTag t);
 	StringVal* asn1_oid_to_val(const ASN1Encoding* oid);

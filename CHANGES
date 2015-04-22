@@ -1,4 +1,8 @@
 
+2.3-879 | 2015-04-22 10:38:07 -0500
+
+  * Fix compile errors. (Jon Siwek)
+
 2.3-878 | 2015-04-22 08:21:23 -0700
 
   * Fix another compiler warning in DTLS. (Johanna Amann)

@@ -21,6 +21,7 @@
 #include "pac_type.h"
 #include "pac_utils.h"
 #include <libgen.h>
+#include <errno.h>
 
 int line_number = 1;
 

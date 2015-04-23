@@ -1,4 +1,8 @@
 
+2.3-884 | 2015-04-23 12:30:15 -0500
+
+  * Fix some outdated documentation unit tests. (Jon Siwek)
+
 2.3-883 | 2015-04-23 07:10:36 -0700
 
   * Fix -N option to work with builtin plugins as well. (Robin Sommer)

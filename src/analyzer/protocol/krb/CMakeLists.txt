@@ -9,6 +9,18 @@ bro_plugin_cc(KRB.cc)
 bro_plugin_cc(KRB_TCP.cc)
 bro_plugin_bif(types.bif)
 bro_plugin_bif(events.bif)
-bro_plugin_pac(krb.pac krb-protocol.pac krb-analyzer.pac)
-bro_plugin_pac(krb_TCP.pac krb-protocol.pac krb-analyzer.pac)
+bro_plugin_pac(krb.pac krb-protocol.pac krb-analyzer.pac
+	krb-asn1.pac
+	krb-defs.pac
+	krb-types.pac
+	krb-padata.pac
+	../asn1/asn1.pac
+)
+bro_plugin_pac(krb_TCP.pac krb-protocol.pac krb-analyzer.pac
+	krb-asn1.pac
+	krb-defs.pac
+    krb-types.pac
+	krb-padata.pac
+	../asn1/asn1.pac
+)
 bro_plugin_end()

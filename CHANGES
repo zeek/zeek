@@ -1,4 +1,9 @@
 
+2.3-882 | 2015-04-23 06:59:40 -0700
+
+  * Add missing .pac dependencies for some binpac analyzer targets.
+    (Jon Siwek)
+
 2.3-879 | 2015-04-22 10:38:07 -0500
 
   * Fix compile errors. (Jon Siwek)

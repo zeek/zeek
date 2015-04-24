@@ -15,6 +15,27 @@ function Files::__set_timeout_interval%(file_id: string, t: interval%): bool
 	return new Val(result, TYPE_BOOL);
 	%}
 
+## :bro:see:`Files::enable_reassembly`.
+function Files::__enable_reassembly%(file_id: string%): bool
+	%{
+	bool result = file_mgr->EnableReassembly(file_id->CheckString());
+	return new Val(result, TYPE_BOOL);
+	%}
+
+## :bro:see:`Files::disable_reassembly`.
+function Files::__disable_reassembly%(file_id: string%): bool
+	%{
+	bool result = file_mgr->DisableReassembly(file_id->CheckString());
+	return new Val(result, TYPE_BOOL);
+	%}
+
+## :bro:see:`Files::set_reassembly_buffer_size`.
+function Files::__set_reassembly_buffer%(file_id: string, max: count%): bool
+	%{
+	bool result = file_mgr->SetReassemblyBuffer(file_id->CheckString(), max);
+	return new Val(result, TYPE_BOOL);
+	%}
+
 ## :bro:see:`Files::add_analyzer`.
 function Files::__add_analyzer%(file_id: string, tag: Files::Tag, args: any%): bool
 	%{

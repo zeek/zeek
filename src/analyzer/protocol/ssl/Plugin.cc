@@ -1,10 +1,28 @@
+// See the file  in the main distribution directory for copyright.
+
 
 #include "plugin/Plugin.h"
 
 #include "SSL.h"
+#include "DTLS.h"
 
-BRO_PLUGIN_BEGIN(Bro, SSL)
-	BRO_PLUGIN_DESCRIPTION("SSL analyzer");
-	BRO_PLUGIN_ANALYZER("SSL", ssl::SSL_Analyzer);
-	BRO_PLUGIN_BIF_FILE(events);
-BRO_PLUGIN_END
+namespace plugin {
+namespace Bro_SSL {
+
+class Plugin : public plugin::Plugin {
+public:
+	plugin::Configuration Configure()
+		{
+		AddComponent(new ::analyzer::Component("SSL", ::analyzer::ssl::SSL_Analyzer::Instantiate));
+		AddComponent(new ::analyzer::Component("DTLS", ::analyzer::dtls::DTLS_Analyzer::Instantiate));
+
+		plugin::Configuration config;
+		config.name = "Bro::SSL";
+		config.description = "SSL/TLS and DTLS analyzers";
+		return config;
+		}
+} plugin;
+
+}
+}
+

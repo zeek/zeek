@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	ssl
+#open	2014-08-08-17-14-03
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer	ocsp_status
+#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string	string
+1398367809.790512	CXWv6p3arKYeMETxOg	192.168.4.149	56253	131.253.61.82	443	TLSv10	TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA	secp384r1	-	F	-	-	T	Fr1vuhmDOykX05Vj1,FlFGqI1PyTt7Vuo8E9,FSASzpV1NMIvbQ1W9	(empty)	CN=login.live.com,OU=MSA,O=Microsoft Corporation,street=1 Microsoft Way,L=Redmond,ST=Washington,postalCode=98052,C=US,serialNumber=600413485,businessCategory=Private Organization,1.3.6.1.4.1.311.60.2.1.2=#130A57617368696E67746F6E,1.3.6.1.4.1.311.60.2.1.3=#13025553	CN=VeriSign Class 3 Extended Validation SSL SGC CA,OU=Terms of use at https://www.verisign.com/rpa (c)06,OU=VeriSign Trust Network,O=VeriSign\, Inc.,C=US	-	-	good
+#close	2014-08-08-17-14-03

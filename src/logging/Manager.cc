@@ -14,47 +14,13 @@
 #include "Manager.h"
 #include "WriterFrontend.h"
 #include "WriterBackend.h"
+#include "logging.bif.h"
 
-#include "writers/Ascii.h"
-#include "writers/None.h"
-
-#ifdef USE_ELASTICSEARCH
-#include "writers/ElasticSearch.h"
+#ifdef ENABLE_BROKER
+#include "broker/Manager.h"
 #endif
-
-#ifdef USE_DATASERIES
-#include "writers/DataSeries.h"
-#endif
-
-#include "writers/SQLite.h"
 
 using namespace logging;
-
-// Structure describing a log writer type.
-struct WriterDefinition {
-	bro_int_t type;			// The type.
-	const char *name;		// Descriptive name for error messages.
-	bool (*init)();			// An optional one-time initialization function.
-	WriterBackend* (*factory)(WriterFrontend* frontend);	// A factory function creating instances.
-};
-
-// Static table defining all availabel log writers.
-WriterDefinition log_writers[] = {
-	{ BifEnum::Log::WRITER_NONE,  "None", 0, writer::None::Instantiate },
-	{ BifEnum::Log::WRITER_ASCII, "Ascii", 0, writer::Ascii::Instantiate },
-	{ BifEnum::Log::WRITER_SQLITE, "SQLite", 0, writer::SQLite::Instantiate },
-
-#ifdef USE_ELASTICSEARCH
-	{ BifEnum::Log::WRITER_ELASTICSEARCH, "ElasticSearch", 0, writer::ElasticSearch::Instantiate },
-#endif
-
-#ifdef USE_DATASERIES
-	{ BifEnum::Log::WRITER_DATASERIES, "DataSeries", 0, writer::DataSeries::Instantiate },
-#endif
-
-	// End marker, don't touch.
-	{ BifEnum::Log::WRITER_DEFAULT, "None", 0, (WriterBackend* (*)(WriterFrontend* frontend))0 }
-};
 
 struct Manager::Filter {
 	string name;
@@ -107,6 +73,11 @@ struct Manager::Stream {
 
 	WriterMap writers;	// Writers indexed by id/path pair.
 
+#ifdef ENABLE_BROKER
+	bool enable_remote;
+	int remote_flags;
+#endif
+
 	~Stream();
 	};
 
@@ -142,6 +113,7 @@ Manager::Stream::~Stream()
 	}
 
 Manager::Manager()
+	: plugin::ComponentManager<logging::Tag, logging::Component>("Log", "Writer")
 	{
 	rotations_pending = 0;
 	}
@@ -152,64 +124,17 @@ Manager::~Manager()
 		delete *s;
 	}
 
-list<string> Manager::SupportedFormats()
+WriterBackend* Manager::CreateBackend(WriterFrontend* frontend, EnumVal* tag)
 	{
-	list<string> formats;
+	Component* c = Lookup(tag);
 
-	for ( WriterDefinition* ld = log_writers; ld->type != BifEnum::Log::WRITER_DEFAULT; ++ld )
-		formats.push_back(ld->name);
-
-	return formats;
-	}
-
-WriterBackend* Manager::CreateBackend(WriterFrontend* frontend, bro_int_t type)
-	{
-	WriterDefinition* ld = log_writers;
-
-	while ( true )
+	if ( ! c )
 		{
-		if ( ld->type == BifEnum::Log::WRITER_DEFAULT )
-			{
-			reporter->Error("unknown writer type requested");
-			return 0;
-			}
-
-		if ( ld->type != type )
-			{
-			// Not the right one.
-			++ld;
-			continue;
-			}
-
-		// If the writer has an init function, call it.
-		if ( ld->init )
-			{
-			if ( (*ld->init)() )
-				// Clear the init function so that we won't
-				// call it again later.
-				ld->init = 0;
-			else
-				{
-				// Init failed, disable by deleting factory
-				// function.
-				ld->factory = 0;
-
-				reporter->Error("initialization of writer %s failed", ld->name);
-				return 0;
-				}
-			}
-
-		if ( ! ld->factory )
-			// Oops, we can't instantiate this guy.
-			return 0;
-
-		// All done.
-		break;
+		reporter->Error("unknown writer type requested");
+		return 0;
 		}
 
-	assert(ld->factory);
-
-	WriterBackend* backend = (*ld->factory)(frontend);
+	WriterBackend* backend = (*c->Factory())(frontend);
 	assert(backend);
 
 	return backend;
@@ -370,6 +295,11 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 	streams[idx]->name = id->Type()->AsEnumType()->Lookup(idx);
 	streams[idx]->event = event ? event_registry->Lookup(event->Name()) : 0;
 	streams[idx]->columns = columns->Ref()->AsRecordType();
+
+#ifdef ENABLE_BROKER
+	streams[idx]->enable_remote = internal_val("Log::enable_remote_logging")->AsBool();
+	streams[idx]->remote_flags = broker::PEERS;
+#endif
 
 	DBG_LOG(DBG_LOGGING, "Created new logging stream '%s', raising event %s",
 		streams[idx]->name.c_str(), event ? streams[idx]->event->Name() : "<none>");
@@ -912,6 +842,12 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 #endif
 		}
 
+#ifdef ENABLE_BROKER
+	if ( stream->enable_remote &&
+	     ! broker_mgr->Log(id, columns, stream->columns, stream->remote_flags) )
+			stream->enable_remote = false;
+#endif
+
 	Unref(columns);
 
 	if ( error )
@@ -1234,7 +1170,7 @@ void Manager::SendAllWritersTo(RemoteSerializer::PeerID peer)
 			{
 			WriterFrontend* writer = i->second->writer;
 
-			EnumVal writer_val(i->first.first, BifType::Enum::Log::Writer);
+			EnumVal writer_val(i->first.first, internal_type("Log::Writer")->AsEnumType());
 			remote_serializer->SendLogCreateWriter(peer, (*s)->id,
 							       &writer_val,
 							       *i->second->info,
@@ -1289,6 +1225,53 @@ void Manager::Terminate()
 			i->second->writer->Stop();
 		}
 	}
+
+#ifdef ENABLE_BROKER
+
+bool Manager::EnableRemoteLogs(EnumVal* stream_id, int flags)
+	{
+	auto stream = FindStream(stream_id);
+
+	if ( ! stream )
+		return false;
+
+	stream->enable_remote = true;
+	stream->remote_flags = flags;
+	return true;
+	}
+
+bool Manager::DisableRemoteLogs(EnumVal* stream_id)
+	{
+	auto stream = FindStream(stream_id);
+
+	if ( ! stream )
+		return false;
+
+	stream->enable_remote = false;
+	return true;
+	}
+
+bool Manager::RemoteLogsAreEnabled(EnumVal* stream_id)
+	{
+	auto stream = FindStream(stream_id);
+
+	if ( ! stream )
+		return false;
+
+	return stream->enable_remote;
+	}
+
+RecordType* Manager::StreamColumns(EnumVal* stream_id)
+	{
+	auto stream = FindStream(stream_id);
+
+	if ( ! stream )
+		return nullptr;
+
+	return stream->columns;
+	}
+
+#endif
 
 // Timer which on dispatching rotates the filter.
 class RotationTimer : public Timer {

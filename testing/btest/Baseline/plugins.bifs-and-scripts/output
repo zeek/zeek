@@ -1,0 +1,22 @@
+Demo::Foo - <Insert description> (dynamic, version 0.1)
+    [Function] hello_plugin_world
+    [Event] plugin_event
+
+===
+plugin: automatically loaded at startup
+===
+plugin: automatically loaded at startup
+plugin: manually loaded
+calling bif, Hello from the plugin!
+=-=
+=-=
+===
+plugin: automatically loaded at startup
+===
+plugin: automatically loaded at startup
+plugin: manually loaded
+calling bif, Hello from the plugin!
+===
+plugin: automatically loaded at startup
+plugin: manually loaded
+calling bif, Hello from the plugin!

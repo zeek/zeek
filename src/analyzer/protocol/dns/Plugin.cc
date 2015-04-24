@@ -1,11 +1,26 @@
+// See the file  in the main distribution directory for copyright.
+
 
 #include "plugin/Plugin.h"
 
 #include "DNS.h"
 
-BRO_PLUGIN_BEGIN(Bro, DNS)
-	BRO_PLUGIN_DESCRIPTION("DNS analyzer");
-	BRO_PLUGIN_ANALYZER("DNS", dns::DNS_Analyzer);
-	BRO_PLUGIN_SUPPORT_ANALYZER("Contents_DNS");
-	BRO_PLUGIN_BIF_FILE(events);
-BRO_PLUGIN_END
+namespace plugin {
+namespace Bro_DNS {
+
+class Plugin : public plugin::Plugin {
+public:
+	plugin::Configuration Configure()
+		{
+		AddComponent(new ::analyzer::Component("DNS", ::analyzer::dns::DNS_Analyzer::Instantiate));
+		AddComponent(new ::analyzer::Component("Contents_DNS", 0));
+
+		plugin::Configuration config;
+		config.name = "Bro::DNS";
+		config.description = "DNS analyzer";
+		return config;
+		}
+} plugin;
+
+}
+}

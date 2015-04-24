@@ -34,7 +34,8 @@ typedef enum {
 	ATTR_ERROR_HANDLER,
 	ATTR_TYPE_COLUMN,	// for input framework
 	ATTR_TRACKED,	// hidden attribute, tracked by NotifierRegistry
-#define NUM_ATTRS (int(ATTR_TRACKED) + 1)
+	ATTR_DEPRECATED,
+#define NUM_ATTRS (int(ATTR_DEPRECATED) + 1)
 } attr_tag;
 
 class Attr : public BroObj {
@@ -44,6 +45,13 @@ public:
 
 	attr_tag Tag() const	{ return tag; }
 	Expr* AttrExpr() const	{ return expr; }
+
+	// Up to the caller to decide if previous expr can be unref'd since it may
+	// not always be safe; e.g. expressions (at time of writing) don't always
+	// keep careful track of referencing their operands, so doing something
+	// like SetAttrExpr(coerce(AttrExpr())) must not completely unref the
+	// previous expr as the new expr depends on it.
+	void SetAttrExpr(Expr* e) { expr = e; }
 
 	int RedundantAttrOkay() const
 		{ return tag == ATTR_REDEF || tag == ATTR_OPTIONAL; }

@@ -46,6 +46,7 @@
 #include "Event.h"
 #include "Traverse.h"
 #include "Reporter.h"
+#include "plugin/Manager.h"
 
 extern	RETSIGTYPE sig_handler(int signo);
 
@@ -53,6 +54,7 @@ const Expr* calling_expr = 0;
 bool did_builtin_init = false;
 
 vector<Func*> Func::unique_ids;
+static const std::pair<bool, Val*> empty_hook_result(false, NULL);
 
 Func::Func() : scope(0), type(0)
 	{
@@ -226,7 +228,7 @@ TraversalCode Func::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_PRE(tc);
 
 	// FIXME: Traverse arguments to builtin functions, too.
-	if ( kind == BRO_FUNC )
+	if ( kind == BRO_FUNC && scope )
 		{
 		tc = scope->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);
@@ -242,6 +244,60 @@ TraversalCode Func::Traverse(TraversalCallback* cb) const
 
 	cb->current_scope = old_scope;
 	HANDLE_TC_STMT_POST(tc);
+	}
+
+std::pair<bool, Val*> Func::HandlePluginResult(std::pair<bool, Val*> plugin_result, val_list* args, function_flavor flavor) const
+	{
+	// Helper function factoring out this code from BroFunc:Call() for
+	// better readability.
+
+	if( ! plugin_result.first )
+		{
+		if( plugin_result.second )
+			reporter->InternalError("plugin set processed flag to false but actually returned a value");
+
+		// The plugin result hasn't been processed yet (read: fall
+		// into ::Call method).
+		return plugin_result;
+		}
+
+	switch ( flavor ) {
+	case FUNC_FLAVOR_EVENT:
+		if( plugin_result.second )
+			reporter->InternalError("plugin returned non-void result for event %s", this->Name());
+
+		break;
+
+	case FUNC_FLAVOR_HOOK:
+		if ( plugin_result.second->Type()->Tag() != TYPE_BOOL )
+			reporter->InternalError("plugin returned non-bool for hook %s", this->Name());
+
+		break;
+
+	case FUNC_FLAVOR_FUNCTION:
+		{
+		BroType* yt = FType()->YieldType();
+
+		if ( (! yt) || yt->Tag() == TYPE_VOID )
+			{
+			if( plugin_result.second )
+				reporter->InternalError("plugin returned non-void result for void method %s", this->Name());
+			}
+
+		else if ( plugin_result.second && plugin_result.second->Type()->Tag() != yt->Tag() && yt->Tag() != TYPE_ANY)
+			{
+			reporter->InternalError("plugin returned wrong type (got %d, expecting %d) for %s",
+						plugin_result.second->Type()->Tag(), yt->Tag(), this->Name());
+			}
+
+		break;
+		}
+	}
+
+	loop_over_list(*args, i)
+		Unref((*args)[i]);
+
+	return plugin_result;
 	}
 
 BroFunc::BroFunc(ID* arg_id, Stmt* arg_body, id_list* aggr_inits,
@@ -279,8 +335,24 @@ int BroFunc::IsPure() const
 Val* BroFunc::Call(val_list* args, Frame* parent) const
 	{
 #ifdef PROFILE_BRO_FUNCTIONS
-	DEBUG_MSG("Function: %s\n", id->Name());
+	DEBUG_MSG("Function: %s\n", Name());
 #endif
+
+	SegmentProfiler(segment_logger, location);
+
+	if ( sample_logger )
+		sample_logger->FunctionSeen(this);
+
+	std::pair<bool, Val*> plugin_result = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION, HookCallFunction(this, parent, args), empty_hook_result);
+
+	plugin_result = HandlePluginResult(plugin_result, args, Flavor());
+
+	if( plugin_result.first )
+		{
+		Val *result = plugin_result.second;
+		return result;
+		}
+
 	if ( bodies.empty() )
 		{
 		// Can only happen for events and hooks.
@@ -291,7 +363,6 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 		return Flavor() == FUNC_FLAVOR_HOOK ? new Val(true, TYPE_BOOL) : 0;
 		}
 
-	SegmentProfiler(segment_logger, location);
 	Frame* f = new Frame(frame_size, this, args);
 
 	// Hand down any trigger.
@@ -318,9 +389,6 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 	stmt_flow_type flow = FLOW_NEXT;
 
 	Val* result = 0;
-
-	if ( sample_logger )
-		sample_logger->FunctionSeen(this);
 
 	for ( size_t i = 0; i < bodies.size(); ++i )
 		{
@@ -374,11 +442,11 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 	// Warn if the function returns something, but we returned from
 	// the function without an explicit return, or without a value.
 	else if ( FType()->YieldType() && FType()->YieldType()->Tag() != TYPE_VOID &&
-	     (flow != FLOW_RETURN /* we fell off the end */ ||
-	      ! result /* explicit return with no result */) &&
-	     ! f->HasDelayed() )
+		 (flow != FLOW_RETURN /* we fell off the end */ ||
+		  ! result /* explicit return with no result */) &&
+		 ! f->HasDelayed() )
 		reporter->Warning("non-void function returns without a value: %s",
-		                  Name());
+				  Name());
 
 	if ( result && g_trace_state.DoTrace() )
 		{
@@ -497,6 +565,16 @@ Val* BuiltinFunc::Call(val_list* args, Frame* parent) const
 	if ( sample_logger )
 		sample_logger->FunctionSeen(this);
 
+	std::pair<bool, Val*> plugin_result = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION, HookCallFunction(this, parent, args), empty_hook_result);
+
+	plugin_result = HandlePluginResult(plugin_result, args, FUNC_FLAVOR_FUNCTION);
+
+	if ( plugin_result.first )
+		{
+		Val *result = plugin_result.second;
+		return result;
+		}
+
 	if ( g_trace_state.DoTrace() )
 		{
 		ODesc d;
@@ -550,18 +628,15 @@ void builtin_error(const char* msg, BroObj* arg)
 	}
 
 #include "bro.bif.func_h"
-#include "logging.bif.func_h"
-#include "input.bif.func_h"
 #include "reporter.bif.func_h"
 #include "strings.bif.func_h"
 
 #include "bro.bif.func_def"
-#include "logging.bif.func_def"
-#include "input.bif.func_def"
 #include "reporter.bif.func_def"
 #include "strings.bif.func_def"
 
 #include "__all__.bif.cc" // Autogenerated for compiling in the bif_target() code.
+#include "__all__.bif.register.cc" // Autogenerated for compiling in the bif_target() code.
 
 void init_builtin_funcs()
 	{
@@ -572,15 +647,16 @@ void init_builtin_funcs()
 	gap_info = internal_type("gap_info")->AsRecordType();
 
 #include "bro.bif.func_init"
-#include "logging.bif.func_init"
-#include "input.bif.func_init"
 #include "reporter.bif.func_init"
 #include "strings.bif.func_init"
 
-#include "__all__.bif.init.cc" // Autogenerated for compiling in the bif_target() code.
-
 	did_builtin_init = true;
 	}
+
+void init_builtin_funcs_subdirs()
+{
+	#include "__all__.bif.init.cc" // Autogenerated for compiling in the bif_target() code.
+}
 
 bool check_built_in_call(BuiltinFunc* f, CallExpr* call)
 	{

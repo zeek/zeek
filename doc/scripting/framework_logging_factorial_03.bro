@@ -37,7 +37,7 @@ function mod5(id: Log::ID, path: string, rec: Factor::Info) : string
 
 event bro_init()
     {
-    Log::create_stream(LOG, [$columns=Info]);
+    Log::create_stream(LOG, [$columns=Info, $path="factor"]);
     
     local filter: Log::Filter = [$name="split-mod5s", $path_func=mod5];
     Log::add_filter(Factor::LOG, filter);

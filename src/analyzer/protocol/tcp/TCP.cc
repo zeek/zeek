@@ -367,6 +367,41 @@ void TCP_Analyzer::Done()
 	finished = 1;
 	}
 
+analyzer::Analyzer* TCP_Analyzer::FindChild(ID arg_id)
+	{
+	analyzer::Analyzer* child = analyzer::TransportLayerAnalyzer::FindChild(arg_id);
+
+	if ( child )
+		return child;
+
+	LOOP_OVER_GIVEN_CHILDREN(i, packet_children)
+		{
+		analyzer::Analyzer* child = (*i)->FindChild(arg_id);
+		if ( child )
+			return child;
+		}
+
+	return 0;
+	}
+
+analyzer::Analyzer* TCP_Analyzer::FindChild(Tag arg_tag)
+	{
+	analyzer::Analyzer* child = analyzer::TransportLayerAnalyzer::FindChild(arg_tag);
+
+	if ( child )
+		return child;
+
+	LOOP_OVER_GIVEN_CHILDREN(i, packet_children)
+		{
+		analyzer::Analyzer* child = (*i)->FindChild(arg_tag);
+		if ( child )
+			return child;
+		}
+
+	return 0;
+	}
+
+
 void TCP_Analyzer::EnableReassembly()
 	{
 	SetReassembler(new TCP_Reassembler(this, this,
@@ -1769,6 +1804,15 @@ bool TCP_Analyzer::HadGap(bool is_orig) const
 	return endp && endp->HadGap();
 	}
 
+void TCP_Analyzer::AddChildPacketAnalyzer(analyzer::Analyzer* a)
+	{
+	DBG_LOG(DBG_ANALYZER, "%s added packet child %s",
+			this->GetAnalyzerName(), a->GetAnalyzerName());
+
+	packet_children.push_back(a);
+	a->SetParent(this);
+	}
+
 int TCP_Analyzer::DataPending(TCP_Endpoint* closing_endp)
 	{
 	if ( Skipping() )
@@ -1906,7 +1950,7 @@ void TCP_ApplicationAnalyzer::DeliverPacket(int len, const u_char* data,
 						const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
-	DBG_LOG(DBG_ANALYZER, "TCP_ApplicationAnalyzer ignoring DeliverPacket(%d, %s, %"PRIu64", %p, %d) [%s%s]",
+	DBG_LOG(DBG_ANALYZER, "TCP_ApplicationAnalyzer ignoring DeliverPacket(%d, %s, %" PRIu64", %p, %d) [%s%s]",
 			len, is_orig ? "T" : "F", seq, ip, caplen,
 			fmt_bytes((const char*) data, min(40, len)), len > 40 ? "..." : "");
 	}
@@ -2058,7 +2102,7 @@ int TCPStats_Endpoint::DataSent(double /* t */, uint64 seq, int len, int caplen,
 			num_rxmit_bytes += len;
 			}
 
-		DEBUG_MSG("%.6f rexmit %"PRIu64" + %d <= %"PRIu64" data_in_flight = %d\n",
+		DEBUG_MSG("%.6f rexmit %" PRIu64" + %d <= %" PRIu64" data_in_flight = %d\n",
 		 	network_time, seq, len, max_top_seq, data_in_flight);
 
 		if ( tcp_rexmit )

@@ -19,8 +19,9 @@ export {
 	## the :bro:id:`NOTICE` function.  The convention is to give a general
 	## category along with the specific notice separating words with
 	## underscores and using leading capitals on each word except for
-	## abbreviations which are kept in all capitals.  For example,
-	## SSH::Login is for heuristically guessed successful SSH logins.
+	## abbreviations which are kept in all capitals. For example,
+	## SSH::Password_Guessing is for hosts that have crossed a threshold of
+	## failed SSH logins.
 	type Type: enum {
 		## Notice reporting a count of how often a notice occurred.
 		Tally,
@@ -348,9 +349,9 @@ function log_mailing_postprocessor(info: Log::RotationInfo): bool
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(Notice::LOG, [$columns=Info, $ev=log_notice]);
+	Log::create_stream(Notice::LOG, [$columns=Info, $ev=log_notice, $path="notice"]);
 
-	Log::create_stream(Notice::ALARM_LOG, [$columns=Notice::Info]);
+	Log::create_stream(Notice::ALARM_LOG, [$columns=Notice::Info, $path="notice_alarm"]);
 	# If Bro is configured for mailing notices, set up mailing for alarms.
 	# Make sure that this alarm log is also output as text so that it can
 	# be packaged up and emailed later.
@@ -530,8 +531,8 @@ function create_file_info(f: fa_file): Notice::FileInfo
 	local fi: Notice::FileInfo = Notice::FileInfo($fuid = f$id,
 	                                              $desc = Files::describe(f));
 
-	if ( f?$mime_type )
-		fi$mime = f$mime_type;
+	if ( f?$info && f$info?$mime_type )
+		fi$mime = f$info$mime_type;
 
 	if ( f?$conns && |f$conns| == 1 )
 		for ( id in f$conns )

@@ -12,7 +12,7 @@ export {
 		## Time when the SSL connection was first detected.
 		ts:               time             &log;
 		## Unique ID for the connection.
-		uid:         string          &log;
+		uid:              string           &log;
 		## The connection's 4-tuple of endpoint addresses/ports.
 		id:               conn_id          &log;
 		## SSL/TLS version that the server offered.
@@ -25,9 +25,25 @@ export {
 		## indicates the server name that the client was requesting.
 		server_name:      string           &log &optional;
 		## Session ID offered by the client for session resumption.
-		session_id:       string           &log &optional;
+		## Not used for logging.
+		session_id:       string           &optional;
+		## Flag to indicate if the session was resumed reusing
+		## the key material exchanged in an earlier connection.
+		resumed:          bool             &log &default=F;
+		## Flag to indicate if we saw a non-empty session ticket being
+		## sent by the client using an empty session ID. This value
+		## is used to determine if a session is being resumed. It's
+		## not logged.
+		client_ticket_empty_session_seen: bool &default=F;
+		## Flag to indicate if we saw a client key exchange message sent
+		## by the client. This value is used to determine if a session
+		## is being resumed. It's not logged.
+		client_key_exchange_seen: bool     &default=F;
 		## Last alert that was seen during the connection.
 		last_alert:       string           &log &optional;
+		## Next protocol the server chose using the application layer
+		## next protocol extension, if present.
+		next_protocol:    string           &log &optional;
 
 		## The analyzer ID used for the analyzer instance attached
 		## to each connection.  It is not used for logging since it's a
@@ -36,11 +52,11 @@ export {
 
 		## Flag to indicate if this ssl session has been established
 		## succesfully, or if it was aborted during the handshake.
-		established:  bool &log &default=F;
+		established:      bool             &log &default=F;
 
 		## Flag to indicate if this record already has been logged, to
 		## prevent duplicates.
-		logged:  bool  &default=F;
+		logged:           bool             &default=F;
 	};
 
 	## The default root CA bundle.  By default, the mozilla-ca-list.bro
@@ -76,16 +92,22 @@ redef record Info += {
 		delay_tokens: set[string] &optional;
 };
 
-const ports = {
+const ssl_ports = {
 	443/tcp, 563/tcp, 585/tcp, 614/tcp, 636/tcp,
 	989/tcp, 990/tcp, 992/tcp, 993/tcp, 995/tcp, 5223/tcp
 };
-redef likely_server_ports += { ports };
+
+# There are no well known DTLS ports at the moment. Let's
+# just add 443 for now for good measure - who knows :)
+const dtls_ports = { 443/udp };
+
+redef likely_server_ports += { ssl_ports, dtls_ports };
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(SSL::LOG, [$columns=Info, $ev=log_ssl]);
-	Analyzer::register_for_ports(Analyzer::ANALYZER_SSL, ports);
+	Log::create_stream(SSL::LOG, [$columns=Info, $ev=log_ssl, $path="ssl"]);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_SSL, ssl_ports);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_DTLS, dtls_ports);
 	}
 
 function set_session(c: connection)
@@ -149,8 +171,11 @@ event ssl_client_hello(c: connection, version: count, possible_ts: time, client_
 	set_session(c);
 
 	# Save the session_id if there is one set.
-	if ( session_id != /^\x00{32}$/ )
+	if ( |session_id| > 0 && session_id != /^\x00{32}$/ )
+		{
 		c$ssl$session_id = bytestring_to_hexstr(session_id);
+		c$ssl$client_ticket_empty_session_seen = F;
+		}
 	}
 
 event ssl_server_hello(c: connection, version: count, possible_ts: time, server_random: string, session_id: string, cipher: count, comp_method: count) &priority=5
@@ -159,6 +184,9 @@ event ssl_server_hello(c: connection, version: count, possible_ts: time, server_
 
 	c$ssl$version = version_strings[version];
 	c$ssl$cipher = cipher_desc[cipher];
+
+	if ( c$ssl?$session_id && c$ssl$session_id == bytestring_to_hexstr(session_id) )
+		c$ssl$resumed = T;
 	}
 
 event ssl_server_curve(c: connection, curve: count) &priority=5
@@ -178,6 +206,45 @@ event ssl_extension_server_name(c: connection, is_orig: bool, names: string_vec)
 		if ( |names| > 1 )
 			event conn_weird("SSL_many_server_names", c, cat(names));
 		}
+	}
+
+event ssl_extension_application_layer_protocol_negotiation(c: connection, is_orig: bool, protocols: string_vec)
+	{
+	set_session(c);
+
+	if ( is_orig )
+		return;
+
+	if ( |protocols| > 0 )
+		c$ssl$next_protocol = protocols[0];
+	}
+
+event ssl_handshake_message(c: connection, is_orig: bool, msg_type: count, length: count) &priority=5
+	{
+	set_session(c);
+
+	if ( is_orig && msg_type == SSL::CLIENT_KEY_EXCHANGE )
+		c$ssl$client_key_exchange_seen = T;
+	}
+
+# Extension event is fired _before_ the respective client or server hello.
+# Important for client_ticket_empty_session_seen.
+event ssl_extension(c: connection, is_orig: bool, code: count, val: string) &priority=5
+	{
+	set_session(c);
+
+	if ( is_orig && SSL::extensions[code] == "SessionTicket TLS" && |val| > 0 )
+		# In this case, we might have an empty ID. Set back to F in client_hello event
+		# if it is not empty after all.
+		c$ssl$client_ticket_empty_session_seen = T;
+	}
+
+event ssl_change_cipher_spec(c: connection, is_orig: bool) &priority=5
+	{
+	set_session(c);
+
+	if ( is_orig && c$ssl$client_ticket_empty_session_seen && ! c$ssl$client_key_exchange_seen )
+		c$ssl$resumed = T;
 	}
 
 event ssl_alert(c: connection, is_orig: bool, level: count, desc: count) &priority=5
@@ -207,7 +274,7 @@ event connection_state_remove(c: connection) &priority=-5
 
 event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &priority=5
 	{
-	if ( atype == Analyzer::ANALYZER_SSL )
+	if ( atype == Analyzer::ANALYZER_SSL || atype == Analyzer::ANALYZER_DTLS )
 		{
 		set_session(c);
 		c$ssl$analyzer_id = aid;
@@ -217,6 +284,6 @@ event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &pr
 event protocol_violation(c: connection, atype: Analyzer::Tag, aid: count,
                          reason: string) &priority=5
 	{
-	if ( c?$ssl )
+	if ( c?$ssl && ( atype == Analyzer::ANALYZER_SSL || atype == Analyzer::ANALYZER_DTLS ) )
 		finish(c, T);
 	}

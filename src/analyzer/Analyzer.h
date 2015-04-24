@@ -97,8 +97,8 @@ public:
 
 	/**
 	 * Constructor. As this version of the constructor does not receive a
-	 * name or tag, setTag() must be called before the instance can be
-	 * used.
+	 * name or tag, SetAnalyzerTag() must be called before the instance
+	 * can be used.
 	 *
 	 * @param conn The connection the analyzer is associated with.
 	 */
@@ -400,7 +400,7 @@ public:
 	 *
 	 * @return The analyzer, or null if not found.
 	 */
-	Analyzer* FindChild(ID id);
+	virtual Analyzer* FindChild(ID id);
 
 	/**
 	 * Recursively searches all (direct or indirect) childs of the
@@ -411,7 +411,7 @@ public:
 	 * @return The first analyzer of the given type found, or null if
 	 * none.
 	 */
-	Analyzer* FindChild(Tag tag);
+	virtual Analyzer* FindChild(Tag tag);
 
 	/**
 	 * Recursively searches all (direct or indirect) childs of the
@@ -471,8 +471,11 @@ public:
 	 * may turn into \c protocol_confirmed event at the script-layer (but
 	 * only once per analyzer for each connection, even if the method is
 	 * called multiple times).
+	 *
+	 * If tag is given, it overrides the analyzer tag passed to the
+	 * scripting layer; the default is the one of the analyzer itself.
 	 */
-	 virtual void ProtocolConfirmation();
+	virtual void ProtocolConfirmation(Tag tag = Tag());
 
 	/**
 	 * Signals Bro's protocol detection that the analyzer has found a

@@ -1,0 +1,25 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	conn
+#open	2015-02-23-21-32-35
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	local_resp	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents
+#types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	bool	count	string	count	count	count	count	set[string]
+1300475167.096535	CXWv6p3arKYeMETxOg	141.142.220.202	5353	224.0.0.251	5353	udp	dns	-	-	-	S0	-	-	0	D	1	73	0	0	(empty)
+1300475168.853899	CCvvfg3TEfuqmmG4bh	141.142.220.118	43927	141.142.2.2	53	udp	dns	0.000435	38	89	SF	-	-	0	Dd	1	66	1	117	(empty)
+1300475168.854378	CsRx2w45OKnoww6xl4	141.142.220.118	37676	141.142.2.2	53	udp	dns	0.000420	52	99	SF	-	-	0	Dd	1	80	1	127	(empty)
+1300475168.854837	CRJuHdVW0XPVINV8a	141.142.220.118	40526	141.142.2.2	53	udp	dns	0.000392	38	183	SF	-	-	0	Dd	1	66	1	211	(empty)
+1300475168.857956	CPbrpk1qSsw6ESzHV4	141.142.220.118	32902	141.142.2.2	53	udp	dns	0.000317	38	89	SF	-	-	0	Dd	1	66	1	117	(empty)
+1300475168.858306	C6pKV8GSxOnSLghOa	141.142.220.118	59816	141.142.2.2	53	udp	dns	0.000343	52	99	SF	-	-	0	Dd	1	80	1	127	(empty)
+1300475168.858713	CIPOse170MGiRM1Qf4	141.142.220.118	59714	141.142.2.2	53	udp	dns	0.000375	38	183	SF	-	-	0	Dd	1	66	1	211	(empty)
+1300475168.891644	C7XEbhP654jzLoe3a	141.142.220.118	58206	141.142.2.2	53	udp	dns	0.000339	38	89	SF	-	-	0	Dd	1	66	1	117	(empty)
+1300475168.892037	CJ3xTn1c4Zw9TmAE05	141.142.220.118	38911	141.142.2.2	53	udp	dns	0.000335	52	99	SF	-	-	0	Dd	1	80	1	127	(empty)
+1300475168.892414	CMXxB5GvmoxJFXdTa	141.142.220.118	59746	141.142.2.2	53	udp	dns	0.000421	38	183	SF	-	-	0	Dd	1	66	1	211	(empty)
+1300475168.893988	Caby8b1slFea8xwSmb	141.142.220.118	45000	141.142.2.2	53	udp	dns	0.000384	38	89	SF	-	-	0	Dd	1	66	1	117	(empty)
+1300475168.894422	Che1bq3i2rO3KD1Syg	141.142.220.118	48479	141.142.2.2	53	udp	dns	0.000317	52	99	SF	-	-	0	Dd	1	80	1	127	(empty)
+1300475168.894787	C3SfNE4BWaU4aSuwkc	141.142.220.118	48128	141.142.2.2	53	udp	dns	0.000423	38	183	SF	-	-	0	Dd	1	66	1	211	(empty)
+1300475168.901749	CEle3f3zno26fFZkrh	141.142.220.118	56056	141.142.2.2	53	udp	dns	0.000402	36	131	SF	-	-	0	Dd	1	64	1	159	(empty)
+1300475168.902195	CwSkQu4eWZCH7OONC1	141.142.220.118	55092	141.142.2.2	53	udp	dns	0.000374	36	198	SF	-	-	0	Dd	1	64	1	226	(empty)
+1300475168.652003	CjhGID4nQcgTWjvg4c	141.142.220.118	35634	208.80.152.2	80	tcp	-	-	-	-	OTH	-	-	0	D	1	515	0	0	(empty)
+#close	2015-02-23-21-32-35

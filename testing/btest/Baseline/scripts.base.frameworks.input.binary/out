@@ -1,4 +1,4 @@
-abc^J\xffdef
+abc\x0a\xffdef
 DATA2
 abc|\xffdef
 DATA2

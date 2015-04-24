@@ -1,0 +1,65 @@
+##! Internal functions and types used by the logging framework.
+
+module Log;
+
+%%{
+#include "logging/Manager.h"
+%%}
+
+type Filter: record;
+type Stream: record;
+type RotationInfo: record;
+
+function Log::__create_stream%(id: Log::ID, stream: Log::Stream%) : bool
+	%{
+	bool result = log_mgr->CreateStream(id->AsEnumVal(), stream->AsRecordVal());
+	return new Val(result, TYPE_BOOL);
+	%}
+
+function Log::__remove_stream%(id: Log::ID%) : bool
+	%{
+	bool result = log_mgr->RemoveStream(id->AsEnumVal());
+	return new Val(result, TYPE_BOOL);
+	%}
+
+function Log::__enable_stream%(id: Log::ID%) : bool
+	%{
+	bool result = log_mgr->EnableStream(id->AsEnumVal());
+	return new Val(result, TYPE_BOOL);
+	%}
+
+function Log::__disable_stream%(id: Log::ID%) : bool
+	%{
+	bool result = log_mgr->DisableStream(id->AsEnumVal());
+	return new Val(result, TYPE_BOOL);
+	%}
+
+function Log::__add_filter%(id: Log::ID, filter: Log::Filter%) : bool
+	%{
+	bool result = log_mgr->AddFilter(id->AsEnumVal(), filter->AsRecordVal());
+	return new Val(result, TYPE_BOOL);
+	%}
+
+function Log::__remove_filter%(id: Log::ID, name: string%) : bool
+	%{
+	bool result = log_mgr->RemoveFilter(id->AsEnumVal(), name);
+	return new Val(result, TYPE_BOOL);
+	%}
+
+function Log::__write%(id: Log::ID, columns: any%) : bool
+	%{
+	bool result = log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal());
+	return new Val(result, TYPE_BOOL);
+	%}
+
+function Log::__set_buf%(id: Log::ID, buffered: bool%): bool
+	%{
+	bool result = log_mgr->SetBuf(id->AsEnumVal(), buffered);
+	return new Val(result, TYPE_BOOL);
+	%}
+
+function Log::__flush%(id: Log::ID%): bool
+	%{
+	bool result = log_mgr->Flush(id->AsEnumVal());
+	return new Val(result, TYPE_BOOL);
+	%}

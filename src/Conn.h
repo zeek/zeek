@@ -263,6 +263,9 @@ public:
 
 	void CheckFlowLabel(bool is_orig, uint32 flow_label);
 
+	uint32 GetOrigFlowLabel() { return orig_flow_label; }
+	uint32 GetRespFlowLabel() { return resp_flow_label; }
+
 protected:
 
 	Connection()	{ persistent = 0; }

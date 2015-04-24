@@ -21,18 +21,28 @@ public:
 	virtual void UpdateConnVal(RecordVal *conn_val);
 	virtual void FlipRoles();
 
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	void SetThreshold(uint64_t threshold, bool bytes, bool orig);
+	uint64 GetThreshold(bool bytes, bool orig);
+
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new ConnSize_Analyzer(conn); }
 
 protected:
 	virtual void DeliverPacket(int len, const u_char* data, bool is_orig,
 					uint64 seq, const IP_Hdr* ip, int caplen);
+	void CheckSizes(bool is_orig);
 
+	void ThresholdEvent(EventHandlerPtr f, uint64 threshold, bool is_orig);
 
 	uint64_t orig_bytes;
 	uint64_t resp_bytes;
 	uint64_t orig_pkts;
 	uint64_t resp_pkts;
+
+	uint64_t orig_bytes_thresh;
+	uint64_t resp_bytes_thresh;
+	uint64_t orig_pkts_thresh;
+	uint64_t resp_pkts_thresh;
 };
 
 } } // namespace analyzer::* 

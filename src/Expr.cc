@@ -636,7 +636,7 @@ Val* BinaryExpr::Eval(Frame* f) const
 		return v_result;
 		}
 
-	if ( is_vec1 || is_vec2 )
+	if ( IsVector(Type()->Tag()) && (is_vec1 || is_vec2) )
 		{ // fold vector against scalar
 		VectorVal* vv = (is_vec1 ? v1 : v2)->AsVectorVal();
 		VectorVal* v_result = new VectorVal(Type()->AsVectorType());
@@ -1438,7 +1438,7 @@ bool AddExpr::DoUnserialize(UnserialInfo* info)
 	}
 
 AddToExpr::AddToExpr(Expr* arg_op1, Expr* arg_op2)
-: BinaryExpr(EXPR_ADD_TO, arg_op1, arg_op2)
+: BinaryExpr(EXPR_ADD_TO, arg_op1->MakeLvalue(), arg_op2)
 	{
 	if ( IsError() )
 		return;
@@ -1562,7 +1562,7 @@ bool SubExpr::DoUnserialize(UnserialInfo* info)
 	}
 
 RemoveFromExpr::RemoveFromExpr(Expr* arg_op1, Expr* arg_op2)
-: BinaryExpr(EXPR_REMOVE_FROM, arg_op1, arg_op2)
+: BinaryExpr(EXPR_REMOVE_FROM, arg_op1->MakeLvalue(), arg_op2)
 	{
 	if ( IsError() )
 		return;
@@ -2599,6 +2599,39 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 
 	if ( ! same_type(op1->Type(), op2->Type()) )
 		{
+		if ( bt1 == TYPE_TABLE && bt2 == TYPE_TABLE )
+			{
+			if ( op2->Tag() == EXPR_SET_CONSTRUCTOR )
+				{
+				// Some elements in constructor list must not match, see if
+				// we can create a new constructor now that the expected type
+				// of LHS is known and let it do coercions where possible.
+				SetConstructorExpr* sce = dynamic_cast<SetConstructorExpr*>(op2);
+				ListExpr* ctor_list = dynamic_cast<ListExpr*>(sce->Op());
+				attr_list* attr_copy = 0;
+
+				if ( sce->Attrs() )
+					{
+					attr_list* a = sce->Attrs()->Attrs();
+					attrs = new attr_list;
+					loop_over_list(*a, i)
+						attrs->append((*a)[i]);
+					}
+
+				int errors_before = reporter->Errors();
+				op2 = new SetConstructorExpr(ctor_list, attr_copy, op1->Type());
+				int errors_after = reporter->Errors();
+
+				if ( errors_after > errors_before )
+					{
+					ExprError("type clash in assignment");
+					return false;
+					}
+
+				return true;
+				}
+			}
+
 		ExprError("type clash in assignment");
 		return false;
 		}
@@ -3213,6 +3246,10 @@ FieldExpr::FieldExpr(Expr* arg_op, const char* arg_field_name)
 			{
 			SetType(rt->FieldType(field)->Ref());
 			td = rt->FieldDecl(field);
+
+			if ( td->FindAttr(ATTR_DEPRECATED) )
+				reporter->Warning("deprecated (%s$%s)", rt->GetName().c_str(),
+				                  field_name);
 			}
 		}
 	}
@@ -3333,6 +3370,9 @@ HasFieldExpr::HasFieldExpr(Expr* arg_op, const char* arg_field_name)
 
 		if ( field < 0 )
 			ExprError("no such field in record");
+		else if ( rt->FieldDecl(field)->FindAttr(ATTR_DEPRECATED) )
+			reporter->Warning("deprecated (%s?$%s)", rt->GetName().c_str(),
+			                  field_name);
 
 		SetType(base_type(TYPE_BOOL));
 		}
@@ -3398,8 +3438,8 @@ RecordConstructorExpr::RecordConstructorExpr(ListExpr* constructor_list)
 	if ( IsError() )
 		return;
 
-	// Spin through the list, which should be comprised of
-	// either record's or record-field-assign, and build up a
+	// Spin through the list, which should be comprised only of
+	// record-field-assign expressions, and build up a
 	// record type to associate with this constructor.
 	type_decl_list* record_types = new type_decl_list;
 
@@ -3407,34 +3447,18 @@ RecordConstructorExpr::RecordConstructorExpr(ListExpr* constructor_list)
 	loop_over_list(exprs, i)
 		{
 		Expr* e = exprs[i];
-		BroType* t = e->Type();
 
-		if ( e->Tag() == EXPR_FIELD_ASSIGN )
-			{
-			FieldAssignExpr* field = (FieldAssignExpr*) e;
-
-			BroType* field_type = field->Type()->Ref();
-			char* field_name = copy_string(field->FieldName());
-
-			record_types->append(new TypeDecl(field_type, field_name));
-			continue;
-			}
-
-		if ( t->Tag() != TYPE_RECORD )
+		if ( e->Tag() != EXPR_FIELD_ASSIGN )
 			{
 			Error("bad type in record constructor", e);
 			SetError();
 			continue;
 			}
 
-		// It's a record - add in its fields.
-		const RecordType* rt = t->AsRecordType();
-		int n = rt->NumFields();
-		for ( int j = 0; j < n; ++j )
-			{
-			const TypeDecl* td = rt->FieldDecl(j);
-			record_types->append(new TypeDecl(td->type->Ref(), td->id));
-			}
+		FieldAssignExpr* field = (FieldAssignExpr*) e;
+		BroType* field_type = field->Type()->Ref();
+		char* field_name = copy_string(field->FieldName());
+		record_types->append(new TypeDecl(field_type, field_name));
 		}
 
 	SetType(new RecordType(record_types));
@@ -4163,16 +4187,28 @@ RecordCoerceExpr::RecordCoerceExpr(Expr* op, RecordType* r)
 			}
 
 		for ( i = 0; i < map_size; ++i )
-			if ( map[i] == -1 &&
-			     ! t_r->FieldDecl(i)->FindAttr(ATTR_OPTIONAL) )
+			{
+			if ( map[i] == -1 )
 				{
-				char buf[512];
-				safe_snprintf(buf, sizeof(buf),
-					      "non-optional field \"%s\" missing", t_r->FieldName(i));
-				Error(buf);
-				SetError();
-				break;
+				if ( ! t_r->FieldDecl(i)->FindAttr(ATTR_OPTIONAL) )
+					{
+					char buf[512];
+					safe_snprintf(buf, sizeof(buf),
+					              "non-optional field \"%s\" missing",
+					              t_r->FieldName(i));
+					Error(buf);
+					SetError();
+					break;
+					}
 				}
+			else
+				{
+				if ( t_r->FieldDecl(i)->FindAttr(ATTR_DEPRECATED) )
+					reporter->Warning("deprecated (%s$%s)",
+					                  t_r->GetName().c_str(),
+					                  t_r->FieldName(i));
+				}
+			}
 		}
 	}
 
@@ -4346,7 +4382,7 @@ Val* TableCoerceExpr::Fold(Val* v) const
 	if ( tv->Size() > 0 )
 		Internal("coercion of non-empty table/set");
 
-	return new TableVal(Type()->Ref()->AsTableType(), tv->Attrs());
+	return new TableVal(Type()->AsTableType(), tv->Attrs());
 	}
 
 IMPLEMENT_SERIAL(TableCoerceExpr, SER_TABLE_COERCE_EXPR);
@@ -4719,8 +4755,14 @@ Val* InExpr::Fold(Val* v1, Val* v2) const
 	     v2->Type()->Tag() == TYPE_SUBNET )
 		return new Val(v2->AsSubNetVal()->Contains(v1->AsAddr()), TYPE_BOOL);
 
-	TableVal* vt = v2->AsTableVal();
-	if ( vt->Lookup(v1, false) )
+	Val* res;
+
+	if ( is_vector(v2) )
+		res = v2->AsVectorVal()->Lookup(v1);
+	else
+		res = v2->AsTableVal()->Lookup(v1, false);
+
+	if ( res )
 		return new Val(1, TYPE_BOOL);
 	else
 		return new Val(0, TYPE_BOOL);

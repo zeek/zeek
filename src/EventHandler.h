@@ -4,7 +4,8 @@
 #define EVENTHANDLER
 
 #include <assert.h>
-
+#include <map>
+#include <string>
 #include "List.h"
 #include "BroList.h"
 
@@ -28,6 +29,18 @@ public:
 	void AddRemoteHandler(SourceID peer);
 	void RemoveRemoteHandler(SourceID peer);
 
+#ifdef ENABLE_BROKER
+	void AutoRemote(std::string topic, int flags)
+		{
+		auto_remote_send[std::move(topic)] = flags;
+		}
+
+	void AutoRemoteStop(const std::string& topic)
+		{
+		auto_remote_send.erase(topic);
+		}
+#endif
+
 	void Call(val_list* vl, bool no_remote = false);
 
 	// Returns true if there is at least one local or remote handler.
@@ -43,6 +56,11 @@ public:
 
 	void SetEnable(bool arg_enable)	{ enabled = arg_enable; }
 
+	// Flags the event as interesting even if there is no body defined. In
+	// particular, this will then still pass the event on to plugins.
+	void SetGenerateAlways()	{ generate_always = true; }
+	bool GenerateAlways()	{ return generate_always; }
+
 	// We don't serialize the handler(s) itself here, but
 	// just the reference to it.
 	bool Serialize(SerialInfo* info) const;
@@ -57,10 +75,15 @@ private:
 	bool used;		// this handler is indeed used somewhere
 	bool enabled;
 	bool error_handler;	// this handler reports error messages.
+	bool generate_always;
 
 	declare(List, SourceID);
 	typedef List(SourceID) receiver_list;
 	receiver_list receivers;
+
+#ifdef ENABLE_BROKER
+	std::map<std::string, int> auto_remote_send;	// topic -> flags
+#endif
 };
 
 // Encapsulates a ptr to an event handler to overload the boolean operator.

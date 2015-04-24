@@ -10,6 +10,7 @@ RecordType* endpoint;
 RecordType* endpoint_stats;
 RecordType* connection_type;
 RecordType* fa_file_type;
+RecordType* fa_metadata_type;
 RecordType* icmp_conn;
 RecordType* icmp_context;
 RecordType* SYN_packet;
@@ -178,6 +179,7 @@ RecordType* peer;
 int forward_remote_state_changes;
 int forward_remote_events;
 int remote_check_sync_consistency;
+bro_uint_t chunked_io_buffer_soft_cap;
 
 StringVal* ssl_ca_certificate;
 StringVal* ssl_private_key;
@@ -245,8 +247,6 @@ bro_uint_t bits_per_uid;
 #include "const.bif.netvar_def"
 #include "types.bif.netvar_def"
 #include "event.bif.netvar_def"
-#include "logging.bif.netvar_def"
-#include "input.bif.netvar_def"
 #include "reporter.bif.netvar_def"
 
 void init_event_handlers()
@@ -278,6 +278,7 @@ void init_general_global_var()
 	forward_remote_events = opt_internal_int("forward_remote_events");
 	remote_check_sync_consistency =
 		opt_internal_int("remote_check_sync_consistency");
+	chunked_io_buffer_soft_cap = opt_internal_unsigned("chunked_io_buffer_soft_cap");
 
 	ssl_ca_certificate = internal_val("ssl_ca_certificate")->AsStringVal();
 	ssl_private_key = internal_val("ssl_private_key")->AsStringVal();
@@ -311,8 +312,6 @@ void init_net_var()
 	{
 #include "const.bif.netvar_init"
 #include "types.bif.netvar_init"
-#include "logging.bif.netvar_init"
-#include "input.bif.netvar_init"
 #include "reporter.bif.netvar_init"
 
 	conn_id = internal_type("conn_id")->AsRecordType();
@@ -320,6 +319,7 @@ void init_net_var()
 	endpoint_stats = internal_type("endpoint_stats")->AsRecordType();
 	connection_type = internal_type("connection")->AsRecordType();
 	fa_file_type = internal_type("fa_file")->AsRecordType();
+	fa_metadata_type = internal_type("fa_metadata")->AsRecordType();
 	icmp_conn = internal_type("icmp_conn")->AsRecordType();
 	icmp_context = internal_type("icmp_context")->AsRecordType();
 	signature_state = internal_type("signature_state")->AsRecordType();

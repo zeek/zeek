@@ -1,11 +1,25 @@
+// See the file  in the main distribution directory for copyright.
+
 
 #include "plugin/Plugin.h"
 
 #include "HTTP.h"
 
-BRO_PLUGIN_BEGIN(Bro, HTTP)
-	BRO_PLUGIN_DESCRIPTION("HTTP analyzer");
-	BRO_PLUGIN_ANALYZER("HTTP", http::HTTP_Analyzer);
-	BRO_PLUGIN_BIF_FILE(events);
-	BRO_PLUGIN_BIF_FILE(functions);
-BRO_PLUGIN_END
+namespace plugin {
+namespace Bro_HTTP {
+
+class Plugin : public plugin::Plugin {
+public:
+	plugin::Configuration Configure()
+		{
+		AddComponent(new ::analyzer::Component("HTTP", ::analyzer::http::HTTP_Analyzer::Instantiate));
+
+		plugin::Configuration config;
+		config.name = "Bro::HTTP";
+		config.description = "HTTP analyzer";
+		return config;
+		}
+} plugin;
+
+}
+}

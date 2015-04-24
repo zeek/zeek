@@ -1,12 +1,26 @@
+// See the file  in the main distribution directory for copyright.
+
 
 #include "plugin/Plugin.h"
 
 #include "NetbiosSSN.h"
 
-BRO_PLUGIN_BEGIN(Bro, NetBIOS)
-	BRO_PLUGIN_DESCRIPTION("NetBIOS analyzer (support only SSN currently)");
-	BRO_PLUGIN_ANALYZER("NetbiosSSN", netbios_ssn::NetbiosSSN_Analyzer);
-	BRO_PLUGIN_SUPPORT_ANALYZER("Contents_NetbiosSSN");
-	BRO_PLUGIN_BIF_FILE(events);
-	BRO_PLUGIN_BIF_FILE(functions);
-BRO_PLUGIN_END
+namespace plugin {
+namespace Bro_NetBIOS {
+
+class Plugin : public plugin::Plugin {
+public:
+	plugin::Configuration Configure()
+		{
+		AddComponent(new ::analyzer::Component("NetbiosSSN", ::analyzer::netbios_ssn::NetbiosSSN_Analyzer::Instantiate));
+		AddComponent(new ::analyzer::Component("Contents_NetbiosSSN", 0));
+
+		plugin::Configuration config;
+		config.name = "Bro::NetBIOS";
+		config.description = "NetBIOS analyzer support";
+		return config;
+		}
+} plugin;
+
+}
+}

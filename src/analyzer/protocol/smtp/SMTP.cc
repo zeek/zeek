@@ -8,7 +8,7 @@
 #include "SMTP.h"
 #include "Event.h"
 #include "Reporter.h"
-#include "analyzer/protocol/tcp/ContentLine.h"
+#include "analyzer/Manager.h"
 
 #include "events.bif.h"
 
@@ -21,7 +21,9 @@ static const char* smtp_cmd_word[] = {
 #include "SMTP_cmd.def"
 };
 
-#define SMTP_CMD_WORD(code) ((code >= 0) ? smtp_cmd_word[code] : "(UNKNOWN)")
+static const char* unknown_cmd = "(UNKNOWN)";
+
+#define SMTP_CMD_WORD(code) ((code >= 0) ? smtp_cmd_word[code] : unknown_cmd)
 
 
 SMTP_Analyzer::SMTP_Analyzer(Connection* conn)
@@ -44,12 +46,12 @@ SMTP_Analyzer::SMTP_Analyzer(Connection* conn)
 	line_after_gap = 0;
 	mail = 0;
 	UpdateState(first_cmd, 0);
-	tcp::ContentLine_Analyzer* cl_orig = new tcp::ContentLine_Analyzer(conn, true);
+	cl_orig = new tcp::ContentLine_Analyzer(conn, true);
 	cl_orig->SetIsNULSensitive(true);
 	cl_orig->SetSkipPartial(true);
 	AddSupportAnalyzer(cl_orig);
 
-	tcp::ContentLine_Analyzer* cl_resp = new tcp::ContentLine_Analyzer(conn, false);
+	cl_resp = new tcp::ContentLine_Analyzer(conn, false);
 	cl_resp->SetIsNULSensitive(true);
 	cl_resp->SetSkipPartial(true);
 	AddSupportAnalyzer(cl_resp);
@@ -83,7 +85,7 @@ void SMTP_Analyzer::Undelivered(uint64 seq, int len, bool is_orig)
 	if ( len <= 0 )
 		return;
 
-	const char* buf = fmt("seq = %"PRIu64", len = %d", seq, len);
+	const char* buf = fmt("seq = %" PRIu64", len = %d", seq, len);
 	int buf_len = strlen(buf);
 
 	Unexpected(is_orig, "content gap", buf_len, buf);
@@ -117,6 +119,13 @@ void SMTP_Analyzer::Undelivered(uint64 seq, int len, bool is_orig)
 void SMTP_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverStream(length, line, orig);
+
+	// If an TLS transaction has been initiated, forward to child and abort.
+	if ( state == SMTP_IN_TLS )
+		{
+		ForwardStream(length, line, orig);
+		return;
+		}
 
 	// NOTE: do not use IsOrig() here, because of TURN command.
 	int is_sender = orig_is_sender ? orig : ! orig;
@@ -152,10 +161,6 @@ void SMTP_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 	{
 	const char* end_of_line = line + length;
-	if ( state == SMTP_IN_TLS )
-		// Do not try to parse contents after STARTTLS/220.
-		return;
-
 	int cmd_len = 0;
 	const char* cmd = "";
 
@@ -380,6 +385,27 @@ void SMTP_Analyzer::NewCmd(const int cmd_code)
 		first_cmd = cmd_code;
 	}
 
+void SMTP_Analyzer::StartTLS()
+	{
+	// STARTTLS was succesful. Remove SMTP support analyzers, add SSL
+	// analyzer, and throw event signifying the change.
+	state = SMTP_IN_TLS;
+	expect_sender = expect_recver = 1;
+
+	RemoveSupportAnalyzer(cl_orig);
+	RemoveSupportAnalyzer(cl_resp);
+
+	Analyzer* ssl = analyzer_mgr->InstantiateAnalyzer("SSL", Conn());
+	if ( ssl )
+		AddChildAnalyzer(ssl);
+
+	val_list* vl = new val_list;
+	vl->append(BuildConnVal());
+
+	ConnectionEvent(smtp_starttls, vl);
+	}
+
+
 
 // Here we keep a SMTP state machine and update it on each reply.
 // However, the purpose is NOT to check correctness of SMTP commands
@@ -398,7 +424,6 @@ void SMTP_Analyzer::NewReply(const int reply_code)
 	if ( state == SMTP_AFTER_GAP && reply_code > 0 )
 		{
 		state = SMTP_GAP_RECOVERY;
-		const char* unknown_cmd = SMTP_CMD_WORD(-1);
 		RequestEvent(strlen(unknown_cmd), unknown_cmd, 0, "");
 		/*
 		if ( line_after_gap )
@@ -740,8 +765,7 @@ void SMTP_Analyzer::UpdateState(const int cmd_code, const int reply_code)
 				break;
 
 			case 220:
-				state = SMTP_IN_TLS;
-				expect_sender = expect_recver = 1;
+				StartTLS();
 				break;
 
 			case 454:
@@ -872,7 +896,7 @@ void SMTP_Analyzer::BeginData()
 	skip_data = 0; // reset the flag at the beginning of the mail
 	if ( mail != 0 )
 		{
-		reporter->Warning("nested mail transaction");
+		Weird("smtp_nested_mail_transaction");
 		mail->Done();
 		delete mail;
 		}
@@ -883,7 +907,7 @@ void SMTP_Analyzer::BeginData()
 void SMTP_Analyzer::EndData()
 	{
 	if ( ! mail )
-		reporter->Warning("Unmatched end of data");
+		Weird("smtp_unmatched_end_of_data");
 	else
 		{
 		mail->Done();

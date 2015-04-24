@@ -1,0 +1,4 @@
+Demo::Foo - A Foo test input reader (dynamic, version 1.0)
+    [Reader] Foo (Input::READER_FOO)
+
+===

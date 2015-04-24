@@ -10,6 +10,8 @@
 #include "RemoteSerializer.h"
 #include "Val.h"
 
+#include "Component.h"
+
 #include <map>
 
 namespace input {
@@ -20,7 +22,7 @@ class ReaderBackend;
 /**
  * Singleton class for managing input streams.
  */
-class Manager {
+class Manager : public plugin::ComponentManager<Tag, Component> {
 public:
 	/**
 	 * Constructor.
@@ -127,11 +129,11 @@ protected:
 	// Allows readers to directly send Bro events. The num_vals and vals
 	// must be the same the named event expects. Takes ownership of
 	// threading::Value fields.
-	bool SendEvent(const string& name, const int num_vals, threading::Value* *vals);
+	bool SendEvent(ReaderFrontend* reader, const string& name, const int num_vals, threading::Value* *vals);
 
 	// Instantiates a new ReaderBackend of the given type (note that
 	// doing so creates a new thread!).
-	ReaderBackend* CreateBackend(ReaderFrontend* frontend, bro_int_t type);
+	ReaderBackend* CreateBackend(ReaderFrontend* frontend, EnumVal* tag);
 
 	// Function called from the ReaderBackend to notify the manager that
 	// a stream has been removed or a stream has been closed. Used to
@@ -203,14 +205,14 @@ private:
 
 	// Convert Threading::Value to an internal Bro Type (works also with
 	// Records).
-	Val* ValueToVal(const threading::Value* val, BroType* request_type);
+	Val* ValueToVal(const Stream* i, const threading::Value* val, BroType* request_type, bool& have_error);
 
 	// Convert Threading::Value to an internal Bro List type.
-	Val* ValueToIndexVal(int num_fields, const RecordType* type, const threading::Value* const *vals);
+	Val* ValueToIndexVal(const Stream* i, int num_fields, const RecordType* type, const threading::Value* const *vals, bool& have_error);
 
 	// Converts a threading::value to a record type. Mostly used by
 	// ValueToVal.
-	RecordVal* ValueToRecordVal(const threading::Value* const *vals, RecordType *request_type, int* position);
+	RecordVal* ValueToRecordVal(const Stream* i, const threading::Value* const *vals, RecordType *request_type, int* position, bool& have_error);
 
 	Val* RecordValToIndexVal(RecordVal *r);
 

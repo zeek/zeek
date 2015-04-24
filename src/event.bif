@@ -360,9 +360,9 @@ event content_gap%(c: connection, is_orig: bool, seq: count, length: count%);
 ##
 ## .. note::
 ##
-##    Bro comes with a script :doc:`/scripts/policy/misc/capture-loss.bro` that uses
-##    this event to estimate packet loss and report when a predefined threshold
-##    is exceeded.
+##    Bro comes with a script :doc:`/scripts/policy/misc/capture-loss.bro` that
+##    uses this event to estimate packet loss and report when a predefined
+##    threshold is exceeded.
 event gap_report%(dt: interval, info: gap_info%);
 
 ## Generated when a protocol analyzer confirms that a connection is indeed
@@ -905,7 +905,8 @@ event get_file_handle%(tag: Analyzer::Tag, c: connection, is_orig: bool%);
 ##
 ## f: The file.
 ##
-## .. bro:see:: file_over_new_connection file_timeout file_gap file_state_remove
+## .. bro:see:: file_over_new_connection file_timeout file_gap
+##    file_sniff file_state_remove
 event file_new%(f: fa_file%);
 
 ## Indicates that a file has been seen being transferred over a connection
@@ -917,16 +918,35 @@ event file_new%(f: fa_file%);
 ##
 ## is_orig: true if the originator of *c* is the one sending the file.
 ##
-## .. bro:see:: file_new file_timeout file_gap file_state_remove
+## .. bro:see:: file_new file_timeout file_gap file_sniff
+##    file_state_remove
 event file_over_new_connection%(f: fa_file, c: connection, is_orig: bool%);
+
+## Provide all metadata that has been inferred about a particular file
+## from inspection of the initial content that been seen at the beginning
+## of the file.  The analysis can be augmented at this time via
+## :bro:see:`Files::add_analyzer`.  The amount of data fed into the file
+## sniffing can be increased or decreased by changing either
+## :bro:see:`default_file_bof_buffer_size` or the `bof_buffer_size` field
+## in an `fa_file` record. The event will be raised even if content inspection
+## has been unable to infer any metadata, in which case the fields in *meta*
+## will be left all unset.
+##
+## f: The file.
+##
+## meta: Metadata that's been discovered about the file.
+##
+## .. bro:see:: file_over_new_connection file_timeout file_gap
+##    file_state_remove
+event file_sniff%(f: fa_file, meta: fa_metadata%);
 
 ## Indicates that file analysis has timed out because no activity was seen
 ## for the file in a while.
 ##
 ## f: The file.
 ##
-## .. bro:see:: file_new file_over_new_connection file_gap file_state_remove
-##    default_file_timeout_interval Files::set_timeout_interval
+## .. bro:see:: file_new file_over_new_connection file_gap
+##    file_sniff file_state_remove default_file_timeout_interval
 ##    Files::set_timeout_interval
 event file_timeout%(f: fa_file%);
 
@@ -938,14 +958,35 @@ event file_timeout%(f: fa_file%);
 ##
 ## len: The number of missing bytes.
 ##
-## .. bro:see:: file_new file_over_new_connection file_timeout file_state_remove
+## .. bro:see:: file_new file_over_new_connection file_timeout
+##    file_sniff file_state_remove file_reassembly_overflow
 event file_gap%(f: fa_file, offset: count, len: count%);
+
+## Indicates that the file had an overflow of the reassembly buffer.
+## This is a specialization of the :bro:id:`file_gap` event.
+##
+## f: The file.
+##
+## offset: The byte offset from the start of the file at which the reassembly
+##         couldn't continue due to running out of reassembly buffer space.
+##
+## skipped: The number of bytes of the file skipped over to flush some
+##          file data and get back under the reassembly buffer size limit.
+##          This value will also be represented as a gap.
+##
+## .. bro:see:: file_new file_over_new_connection file_timeout
+##    file_sniff file_state_remove file_gap
+##    Files::enable_reassembler Files::reassembly_buffer_size
+##    Files::enable_reassembly Files::disable_reassembly
+##    Files::set_reassembly_buffer_size
+event file_reassembly_overflow%(f: fa_file, offset: count, skipped: count%);
 
 ## This event is generated each time file analysis is ending for a given file.
 ##
 ## f: The file.
 ##
 ## .. bro:see:: file_new file_over_new_connection file_timeout file_gap
+##    file_sniff
 event file_state_remove%(f: fa_file%);
 
 ## Generated when an internal DNS lookup produces the same result as last time.
@@ -1011,8 +1052,8 @@ event dns_mapping_lost_name%(dm: dns_mapping%);
 ##    dns_mapping_valid
 event dns_mapping_altered%(dm: dns_mapping, old_addrs: addr_set, new_addrs: addr_set%);
 
-## A meta event generated for events that Bro raises. This will report all events
-## for which at least one handler is defined.
+## A meta event generated for events that Bro raises. This will report all
+## events for which at least one handler is defined.
 ##
 ## Note that handling this meta event is expensive and should be limited to
 ## debugging purposes.

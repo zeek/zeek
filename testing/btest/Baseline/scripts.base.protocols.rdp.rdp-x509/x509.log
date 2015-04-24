@@ -1,0 +1,11 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	x509
+#open	2015-04-15-23-54-11
+#fields	ts	id	certificate.version	certificate.serial	certificate.subject	certificate.issuer	certificate.not_valid_before	certificate.not_valid_after	certificate.key_alg	certificate.sig_alg	certificate.key_type	certificate.key_length	certificate.exponent	certificate.curve	san.dns	san.uri	san.email	san.ip	basic_constraints.ca	basic_constraints.path_len
+#types	time	string	count	string	string	string	time	time	string	string	string	count	string	string	vector[string]	vector[string]	vector[string]	vector[addr]	bool	count
+1423755602.103140	F71ADVSn3rOqVhNh1	3	59EB28CB02B1A0D4	L=TURNBKL+CN=SERVR	L=TURNBKL+CN=SERVR	1423664106.000000	1431388800.000000	rsaEncryption	sha1WithRSA	rsa	512	65537	-	-	-	-	-	T	0
+1423755602.103140	F71ADVSn3rOqVhNh1	3	0100000001	serialNumber=1BcKefYSF97EvkaiCqahPY8uPd0=\\0D\\0A+L=ncalrpc:SERVR+CN=ncalrpc:SERVR	L=TURNBKL+CN=SERVR	1365174955.000000	1483228799.000000	md5WithRSAEncryption	sha1WithRSA	rsa	512	65537	-	-	-	-	-	-	-
+#close	2015-04-15-23-54-11

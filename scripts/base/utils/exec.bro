@@ -82,9 +82,9 @@ event Exec::line(description: Input::EventDescription, tpe: Input::Event, s: str
 
 event Exec::file_line(description: Input::EventDescription, tpe: Input::Event, s: string)
 	{
-	local parts = split1(description$name, /_/);
-	local name = parts[1];
-	local track_file = parts[2];
+	local parts = split_string1(description$name, /_/);
+	local name = parts[0];
+	local track_file = parts[1];
 
 	local result = results[name];
 	if ( ! result?$files )
@@ -96,15 +96,25 @@ event Exec::file_line(description: Input::EventDescription, tpe: Input::Event, s
 		result$files[track_file][|result$files[track_file]|] = s;
 	}
 
-event Input::end_of_data(name: string, source:string)
+event Input::end_of_data(orig_name: string, source:string)
 	{
-	local parts = split1(name, /_/);
-	name = parts[1];
+	local name = orig_name;
+	local parts = split_string1(name, /_/);
+	name = parts[0];
 
 	if ( name !in pending_commands || |parts| < 2 )
 		return;
 
-	local track_file = parts[2];
+	local track_file = parts[1];
+
+	# If the file is empty, still add it to the result$files table. This is needed
+	# because it is expected that the file was read even if it was empty.
+	local result = results[name];
+	if ( ! result?$files )
+		result$files = table();
+
+	if ( track_file !in result$files )
+		result$files[track_file] = vector();
 
 	Input::remove(name);
 

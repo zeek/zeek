@@ -75,6 +75,13 @@ type addr_vec: vector of addr;
 ##    directly and then remove this alias.
 type table_string_of_string: table[string] of string;
 
+## A set of file analyzer tags.
+##
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
+type files_tag_set: set[Files::Tag];
+
 ## A structure indicating a MIME type and strength of a match against
 ## file magic signatures.
 ##
@@ -326,8 +333,6 @@ type connection: record {
 	## to parse the same data. If so, all will be recorded. Also note that
 	## the recorded services are independent of any transport-level protocols.
 	service: set[string];
-	addl: string;	##< Deprecated.
-	hot: count;	##< Deprecated.
 	history: string;	##< State history of connections. See *history* in :bro:see:`Conn::Info`.
 	## A globally unique connection identifier. For each connection, Bro
 	## creates an ID that is very likely unique across independent Bro runs.
@@ -346,9 +351,10 @@ type connection: record {
 ## gives up and discards any internal state related to the file.
 const default_file_timeout_interval: interval = 2 mins &redef;
 
-## Default amount of bytes that file analysis will buffer before raising
-## :bro:see:`file_new`.
-const default_file_bof_buffer_size: count = 1024 &redef;
+## Default amount of bytes that file analysis will buffer in order to use
+## for mime type matching.  File analyzers attached at the time of mime type
+## matching or later, will receive a copy of this buffer.
+const default_file_bof_buffer_size: count = 4096 &redef;
 
 ## A file that Bro is analyzing.  This is Bro's type for describing the basic
 ## internal metadata collected about a "file", which is essentially just a
@@ -387,8 +393,10 @@ type fa_file: record {
 	## during the process of analysis e.g. due to dropped packets.
 	missing_bytes: count &default=0;
 
-	## The number of not all-in-sequence bytes in the file stream that
-	## were delivered to file analyzers due to reassembly buffer overflow.
+	## The number of bytes in the file stream that were not delivered to
+	## stream file analyzers.  Generally, this consists of bytes that
+	## couldn't be reassembled, either because reassembly simply isn't
+	## enabled, or due to size limitations of the reassembly buffer.
 	overflow_bytes: count &default=0;
 
 	## The amount of time between receiving new data for this file that
@@ -402,17 +410,15 @@ type fa_file: record {
 	## The content of the beginning of a file up to *bof_buffer_size* bytes.
 	## This is also the buffer that's used for file/mime type detection.
 	bof_buffer: string &optional;
-
-	## The mime type of the strongest file magic signature matches against
-	## the data chunk in *bof_buffer*, or in the cases where no buffering
-	## of the beginning of file occurs, an initial guess of the mime type
-	## based on the first data seen.
-	mime_type: string &optional;
-
-	## All mime types that matched file magic signatures against the data
-	## chunk in *bof_buffer*, in order of their strength value.
-	mime_types: mime_matches &optional;
 } &redef;
+
+## Metadata that's been inferred about a particular file.
+type fa_metadata: record {
+	## The strongest matching mime type if one was discovered.
+	mime_type: string &optional;
+	## All matching mime types if any were discovered.
+	mime_types: mime_matches &optional;
+};
 
 ## Fields of a SYN packet.
 ##
@@ -440,6 +446,7 @@ type NetStats: record {
 	## packet capture system, this value may not be available and will then
 	## be always set to zero.
 	pkts_link:    count &default=0;
+	bytes_recvd:  count &default=0;	##< Bytes received by Bro.
 };
 
 ## Statistics about Bro's resource consumption.
@@ -928,7 +935,7 @@ const tcp_storm_interarrival_thresh = 1 sec &redef;
 ## seeing our peer's ACKs.  Set to zero to turn off this determination.
 ##
 ## .. bro:see:: tcp_max_above_hole_without_any_acks tcp_excessive_data_without_further_acks
-const tcp_max_initial_window = 4096 &redef;
+const tcp_max_initial_window = 16384 &redef;
 
 ## If we're not seeing our peer's ACKs, the maximum volume of data above a
 ## sequence hole that we'll tolerate before assuming that there's been a packet
@@ -936,7 +943,7 @@ const tcp_max_initial_window = 4096 &redef;
 ## don't ever give up.
 ##
 ## .. bro:see:: tcp_max_initial_window tcp_excessive_data_without_further_acks
-const tcp_max_above_hole_without_any_acks = 4096 &redef;
+const tcp_max_above_hole_without_any_acks = 16384 &redef;
 
 ## If we've seen this much data without any of it being acked, we give up
 ## on that connection to avoid memory exhaustion due to buffering all that
@@ -1079,27 +1086,6 @@ const ENDIAN_UNKNOWN = 0;	##< Endian not yet determined.
 const ENDIAN_LITTLE = 1;	##< Little endian.
 const ENDIAN_BIG = 2;	##< Big endian.
 const ENDIAN_CONFUSED = 3;	##< Tried to determine endian, but failed.
-
-## Deprecated.
-function append_addl(c: connection, addl: string)
-	{
-	if ( c$addl == "" )
-		c$addl= addl;
-
-	else if ( addl !in c$addl )
-		c$addl = fmt("%s %s", c$addl, addl);
-	}
-
-## Deprecated.
-function append_addl_marker(c: connection, addl: string, marker: string)
-	{
-	if ( c$addl == "" )
-		c$addl= addl;
-
-	else if ( addl !in c$addl )
-		c$addl = fmt("%s%s%s", c$addl, marker, addl);
-	}
-
 
 # Values for :bro:see:`set_contents_file` *direction* argument.
 # todo:: these should go into an enum to make them autodoc'able
@@ -2215,6 +2201,41 @@ export {
 	const heartbeat_interval = 1.0 secs &redef;
 }
 
+module SSH;
+
+export {
+	## The client and server each have some preferences for the algorithms used
+	## in each direction.
+	type Algorithm_Prefs: record {
+		## The algorithm preferences for client to server communication
+		client_to_server: vector of string &optional;
+		## The algorithm preferences for server to client communication
+		server_to_client: vector of string &optional;
+	};
+
+	## This record lists the preferences of an SSH endpoint for
+	## algorithm selection. During the initial :abbr:`SSH (Secure Shell)`
+	## key exchange, each endpoint lists the algorithms
+	## that it supports, in order of preference. See
+	## :rfc:`4253#section-7.1` for details.
+	type Capabilities: record {
+		## Key exchange algorithms
+		kex_algorithms:             string_vec;
+		## The algorithms supported for the server host key
+		server_host_key_algorithms: string_vec;
+		## Symmetric encryption algorithm preferences
+		encryption_algorithms:      Algorithm_Prefs;
+		## Symmetric MAC algorithm preferences
+		mac_algorithms:             Algorithm_Prefs;
+		## Compression algorithm preferences
+		compression_algorithms:     Algorithm_Prefs;
+		## Language preferences
+		languages:                  Algorithm_Prefs &optional;
+		## Are these the capabilities of the server?
+		is_server:                  bool;
+	};
+}
+
 module GLOBAL;
 
 ## An NTP message.
@@ -2478,8 +2499,7 @@ type http_message_stat: record {
 	header_length: count;
 };
 
-## Maximum number of HTTP entity data delivered to events. The amount of data
-## can be limited for better performance, zero disables truncation.
+## Maximum number of HTTP entity data delivered to events.
 ##
 ## .. bro:see:: http_entity_data skip_http_entity_data skip_http_data
 global http_entity_data_delivery_size = 1500 &redef;
@@ -2511,6 +2531,145 @@ type irc_join_info: record {
 ##
 ## .. bro:see:: irc_join_message
 type irc_join_list: set[irc_join_info];
+
+module PE;
+export {
+type PE::DOSHeader: record {
+	## The magic number of a portable executable file ("MZ").
+	signature                : string;
+	## The number of bytes in the last page that are used.
+	used_bytes_in_last_page  : count;
+	## The number of pages in the file that are part of the PE file itself.
+	file_in_pages            : count;
+	## Number of relocation entries stored after the header.
+	num_reloc_items          : count;
+	## Number of paragraphs in the header.
+	header_in_paragraphs     : count;
+	## Number of paragraps of additional memory that the program will need.
+	min_extra_paragraphs     : count;
+	## Maximum number of paragraphs of additional memory.
+	max_extra_paragraphs     : count;
+	## Relative value of the stack segment.
+	init_relative_ss         : count;
+	## Initial value of the SP register.
+	init_sp                  : count;
+	## Checksum. The 16-bit sum of all words in the file should be 0. Normally not set.
+	checksum                 : count;
+	## Initial value of the IP register.
+	init_ip                  : count;
+	## Initial value of the CS register (relative to the initial segment).
+	init_relative_cs         : count;
+	## Offset of the first relocation table.
+	addr_of_reloc_table      : count;
+	## Overlays allow you to append data to the end of the file. If this is the main program,
+	## this will be 0.
+	overlay_num              : count;
+	## OEM identifier.
+	oem_id                   : count;
+	## Additional OEM info, specific to oem_id.
+	oem_info                 : count;
+	## Address of the new EXE header.
+	addr_of_new_exe_header   : count;
+};
+
+type PE::FileHeader: record {
+	## The target machine that the file was compiled for.
+	machine              : count;
+	## The time that the file was created at.
+	ts                   : time;
+	## Pointer to the symbol table.
+	sym_table_ptr        : count;
+	## Number of symbols.
+	num_syms             : count;
+	## The size of the optional header.
+	optional_header_size : count;
+	## Bit flags that determine if this file is executable, non-relocatable, and/or a DLL.
+	characteristics      : set[count];
+};
+
+type PE::OptionalHeader: record {
+	## PE32 or PE32+ indicator.
+	magic                   : count;
+	## The major version of the linker used to create the PE.
+	major_linker_version    : count;
+	## The minor version of the linker used to create the PE.
+	minor_linker_version    : count;
+	## Size of the .text section.
+	size_of_code            : count;
+	## Size of the .data section.
+	size_of_init_data       : count;
+	## Size of the .bss section.
+	size_of_uninit_data     : count;
+	## The relative virtual address (RVA) of the entry point.
+	addr_of_entry_point     : count;
+	## The relative virtual address (RVA) of the .text section.
+	base_of_code            : count;
+	## The relative virtual address (RVA) of the .data section.
+	base_of_data            : count &optional;
+	## Preferred memory location for the image to be based at.
+	image_base              : count;
+	## The alignment (in bytes) of sections when they're loaded in memory.
+	section_alignment       : count;
+	## The alignment (in bytes) of the raw data of sections.
+	file_alignment          : count;
+	## The major version of the required OS.
+	os_version_major        : count;
+	## The minor version of the required OS.
+	os_version_minor        : count;
+	## The major version of this image.
+	major_image_version     : count;
+	## The minor version of this image.
+	minor_image_version     : count;
+	## The major version of the subsystem required to run this file.
+	major_subsys_version    : count;
+	## The minor version of the subsystem required to run this file.
+	minor_subsys_version    : count;
+	## The size (in bytes) of the iamge as the image is loaded in memory.
+	size_of_image           : count;
+	## The size (in bytes) of the headers, rounded up to file_alignment.
+	size_of_headers         : count;
+	## The image file checksum.
+	checksum                : count;
+	## The subsystem that's required to run this image.
+	subsystem               : count;
+	## Bit flags that determine how to execute or load this file.
+	dll_characteristics     : set[count];
+	## A vector with the sizes of various tables and strings that are
+	## defined in the optional header data directories. Examples include
+	## the import table, the resource table, and debug information.
+	table_sizes             : vector of count;
+
+};
+
+## Record for Portable Executable (PE) section headers.
+type PE::SectionHeader: record {
+	## The name of the section
+	name             : string;
+	## The total size of the section when loaded into memory.
+	virtual_size     : count;
+	## The relative virtual address (RVA) of the section.
+	virtual_addr     : count;
+	## The size of the initialized data for the section, as it is
+	## in the file on disk.
+	size_of_raw_data : count;
+	## The virtual address of the initialized dat for the section,
+	## as it is in the file on disk.
+	ptr_to_raw_data  : count;
+	## The file pointer to the beginning of relocation entries for
+	## the section.
+	ptr_to_relocs    : count;
+	## The file pointer to the beginning of line-number entries for
+	## the section.
+	ptr_to_line_nums : count;
+	## The number of relocation entries for the section.
+	num_of_relocs    : count;
+	## The number of line-number entrie for the section.
+	num_of_line_nums : count;
+	## Bit-flags that describe the characteristics of the section.
+	characteristics  : set[count];
+};
+}
+module GLOBAL;
 
 ## Deprecated.
 ##
@@ -2636,60 +2795,6 @@ global generate_OS_version_event: set[subnet] &redef;
 # number>``), which were seen during the sample.
 type load_sample_info: set[string];
 
-## ID for NetFlow header. This is primarily a means to sort together NetFlow
-## headers and flow records at the script level.
-type nfheader_id: record {
-	## Name of the NetFlow file (e.g., ``netflow.dat``) or the receiving
-	## socket address (e.g., ``127.0.0.1:5555``), or an explicit name if
-	## specified to ``-y`` or ``-Y``.
-	rcvr_id: string;
-	## A serial number, ignoring any overflows.
-	pdu_id: count;
-};
-
-## A NetFlow v5 header.
-##
-## .. bro:see:: netflow_v5_header
-type nf_v5_header: record {
-	h_id: nfheader_id;	##< ID for sorting.
-	cnt: count;	##< TODO.
-	sysuptime: interval;	##< Router's uptime.
-	exporttime: time;	##< When the data was exported.
-	flow_seq: count;	##< Sequence number.
-	eng_type: count;	##< Engine type.
-	eng_id: count;	##< Engine ID.
-	sample_int: count;	##< Sampling interval.
-	exporter: addr;	##< Exporter address.
-};
-
-## A NetFlow v5 record.
-##
-## .. bro:see:: netflow_v5_record
-type nf_v5_record: record {
-	h_id: nfheader_id;	##< ID for sorting.
-	id: conn_id;	##< Connection ID.
-	nexthop: addr;	##< Address of next hop.
-	input: count;	##< Input interface.
-	output: count;	##< Output interface.
-	pkts: count;	##< Number of packets.
-	octets: count;	##< Number of bytes.
-	first: time;	##< Timestamp of first packet.
-	last: time;	##< Timestamp of last packet.
-	tcpflag_fin: bool;	##< FIN flag for TCP flows.
-	tcpflag_syn: bool;	##< SYN flag for TCP flows.
-	tcpflag_rst: bool;	##< RST flag for TCP flows.
-	tcpflag_psh: bool;	##< PSH flag for TCP flows.
-	tcpflag_ack: bool;	##< ACK flag for TCP flows.
-	tcpflag_urg: bool;	##< URG flag for TCP flows.
-	proto: count;	##< IP protocol.
-	tos: count;	##< Type of service.
-	src_as: count;	##< Source AS.
-	dst_as: count;	##< Destination AS.
-	src_mask: count;	##< Source mask.
-	dst_mask: count;	##< Destination mask.
-};
-
-
 ## A BitTorrent peer.
 ##
 ## .. bro:see:: bittorrent_peer_set
@@ -2731,6 +2836,7 @@ type ModbusRegisters: vector of count;
 type ModbusHeaders: record {
 	tid:           count;
 	pid:           count;
+	len:           count;
 	uid:           count;
 	function_code: count;
 };
@@ -2774,19 +2880,20 @@ export {
 module X509;
 export {
 	type Certificate: record {
-		version: count;	##< Version number.
-		serial: string;	##< Serial number.
-		subject: string;	##< Subject.
-		issuer: string;	##< Issuer.
-		not_valid_before: time;	##< Timestamp before when certificate is not valid.
-		not_valid_after: time;	##< Timestamp after when certificate is not valid.
-		key_alg: string;	##< Name of the key algorithm
-		sig_alg: string;	##< Name of the signature algorithm
-		key_type: string &optional;	##< Key type, if key parseable by openssl (either rsa, dsa or ec)
-		key_length: count &optional;	##< Key length in bits
-		exponent: string &optional;	##< Exponent, if RSA-certificate
-		curve: string &optional;	##< Curve, if EC-certificate
-	} &log;
+		version: count &log;	##< Version number.
+		serial: string &log;	##< Serial number.
+		subject: string &log;	##< Subject.
+		issuer: string &log;	##< Issuer.
+		cn: string &optional; ##< Last (most specific) common name.
+		not_valid_before: time &log;	##< Timestamp before when certificate is not valid.
+		not_valid_after: time &log;	##< Timestamp after when certificate is not valid.
+		key_alg: string &log;	##< Name of the key algorithm
+		sig_alg: string &log;	##< Name of the signature algorithm
+		key_type: string &optional &log;	##< Key type, if key parseable by openssl (either rsa, dsa or ec)
+		key_length: count &optional &log;	##< Key length in bits
+		exponent: string &optional &log;	##< Exponent, if RSA-certificate
+		curve: string &optional &log;	##< Curve, if EC-certificate
+	};
 
 	type Extension: record {
 		name: string;	##< Long name of extension. oid if name not known
@@ -2812,7 +2919,7 @@ export {
 	## Result of an X509 certificate chain verification
 	type Result: record {
 		## OpenSSL result code
-		result:	count;
+		result:	int;
 		## Result as string
 		result_string: string;
 		## References to the final certificate chain, if verification successful. End-host certificate is first.
@@ -2829,7 +2936,62 @@ export {
 		name: string &optional;
 	} &log;
 }
-module GLOBAL;
+
+module RADIUS;
+
+export {
+	type RADIUS::AttributeList: vector of string;
+	type RADIUS::Attributes: table[count] of RADIUS::AttributeList;
+
+	type RADIUS::Message: record {
+		## The type of message (Access-Request, Access-Accept, etc.).
+		code          : count;
+		## The transaction ID.
+		trans_id      : count;
+		## The "authenticator" string.
+		authenticator : string;
+		## Any attributes.
+		attributes    : RADIUS::Attributes &optional;
+	};
+}
+
+module RDP;
+export {
+	type RDP::EarlyCapabilityFlags: record {
+		support_err_info_pdu:       bool;
+		want_32bpp_session:         bool;
+		support_statusinfo_pdu:     bool;
+		strong_asymmetric_keys:     bool;
+		support_monitor_layout_pdu: bool;
+		support_netchar_autodetect: bool;
+		support_dynvc_gfx_protocol: bool;
+		support_dynamic_time_zone:  bool;
+		support_heartbeat_pdu:      bool;
+	};
+
+	type RDP::ClientCoreData: record {
+		version_major:          count;
+		version_minor:          count;
+		desktop_width:          count;
+		desktop_height:         count;
+		color_depth:            count;
+		sas_sequence:           count;
+		keyboard_layout:        count;
+		client_build:           count;
+		client_name:            string;
+		keyboard_type:          count;
+		keyboard_sub:           count;
+		keyboard_function_key:  count;
+		ime_file_name:          string;
+		post_beta2_color_depth: count  &optional;
+		client_product_id:      string &optional;
+		serial_number:          count  &optional;
+		high_color_depth:       count  &optional;
+		supported_color_depths: count  &optional;
+		ec_flags:               RDP::EarlyCapabilityFlags &optional;
+		dig_product_id:         string &optional;
+	};
+}
 
 @load base/bif/plugins/Bro_SNMP.types.bif
 
@@ -2950,6 +3112,186 @@ export {
 		non_repeaters:   count;
 		max_repititions: count;
 		bindings:        SNMP::Bindings;
+	};
+}
+
+@load base/bif/plugins/Bro_KRB.types.bif
+
+module KRB;
+export {
+	## KDC Options. See :rfc:`4120`
+	type KRB::KDC_Options: record {
+		## The ticket to be issued should have its forwardable flag set.
+		forwardable		: bool;
+		## A (TGT) request for forwarding.
+		forwarded		: bool;
+		## The ticket to be issued should have its proxiable flag set.
+		proxiable		: bool;
+		## A request for a proxy.
+		proxy			: bool;
+		## The ticket to be issued should have its may-postdate flag set.
+		allow_postdate		: bool;
+		## A request for a postdated ticket.
+		postdated		: bool;
+		## The ticket to be issued should have its renewable  flag set.
+		renewable		: bool;
+		## Reserved for opt_hardware_auth
+		opt_hardware_auth	: bool;
+		## Request that the KDC not check the transited field of a TGT against
+		## the policy of the local realm before it will issue derivative tickets
+		## based on the TGT.
+		disable_transited_check	: bool;
+		## If a ticket with the requested lifetime cannot be issued, a renewable
+		## ticket is acceptable
+		renewable_ok		: bool;
+		## The ticket for the end server is to be encrypted in the session key
+		## from the additional TGT provided
+		enc_tkt_in_skey		: bool;
+		## The request is for a renewal
+		renew			: bool;
+		## The request is to validate a postdated ticket.
+		validate		: bool;
+	};
+
+	## AP Options. See :rfc:`4120`
+	type KRB::AP_Options: record {
+		## Indicates that user-to-user-authentication is in use
+		use_session_key	: bool;
+		## Mutual authentication is required
+		mutual_required	: bool;
+	};
+
+	## Used in a few places in the Kerberos analyzer for elements
+	## that have a type and a string value.
+	type KRB::Type_Value: record {
+		## The data type
+		data_type	: count;
+		## The data value
+		val 		: string;
+	};
+
+	type KRB::Type_Value_Vector: vector of KRB::Type_Value;
+
+	## A Kerberos host address See :rfc:`4120`.
+	type KRB::Host_Address: record {
+		## IPv4 or IPv6 address
+		ip	: addr &log &optional;
+		## NetBIOS address
+		netbios : string &log &optional;
+		## Some other type that we don't support yet
+		unknown : KRB::Type_Value &optional;
+	};
+
+	type KRB::Host_Address_Vector: vector of KRB::Host_Address;
+
+	## The data from the SAFE message. See :rfc:`4120`.
+	type KRB::SAFE_Msg: record {
+		## Protocol version number (5 for KRB5)
+		pvno		: count;
+		## The message type (20 for SAFE_MSG)
+		msg_type	: count;
+		## The application-specific data that is being passed
+		## from the sender to the reciever
+		data		: string;
+		## Current time from the sender of the message
+		timestamp	: time &optional;
+		## Sequence number used to detect replays
+		seq		: count &optional;
+		## Sender address
+		sender		: Host_Address &optional;
+		## Recipient address
+		recipient    	: Host_Address &optional;
+	};
+
+	## The data from the ERROR_MSG message. See :rfc:`4120`.
+	type KRB::Error_Msg: record {
+		## Protocol version number (5 for KRB5)
+		pvno		: count;
+		## The message type (30 for ERROR_MSG)
+		msg_type	: count;
+		## Current time on the client
+		client_time	: time &optional;
+		## Current time on the server
+		server_time	: time;
+		## The specific error code
+		error_code	: count;
+		## Realm of the ticket
+		client_realm	: string &optional;
+		## Name on the ticket
+		client_name	: string &optional;
+		## Realm of the service
+		service_realm	: string;
+		## Name of the service
+		service_name	: string;
+		## Additional text to explain the error
+		error_text	: string &optional;
+		## Optional pre-authentication data
+		pa_data		: vector of KRB::Type_Value &optional;
+	};
+
+	## A Kerberos ticket. See :rfc:`4120`.
+	type KRB::Ticket: record {
+		## Protocol version number (5 for KRB5)
+		pvno		: count;
+		## Realm
+		realm		: string;
+		## Name of the service
+		service_name	: string;
+		## Cipher the ticket was encrypted with
+		cipher		: count;
+	};
+
+	type KRB::Ticket_Vector: vector of KRB::Ticket;
+
+	## The data from the AS_REQ and TGS_REQ messages. See :rfc:`4120`.
+	type KRB::KDC_Request: record {
+		## Protocol version number (5 for KRB5)
+		pvno			: count;
+		## The message type (10 for AS_REQ, 12 for TGS_REQ)
+		msg_type		: count;
+		## Optional pre-authentication data
+		pa_data			: vector of KRB::Type_Value &optional;
+		## Options specified in the request
+		kdc_options		: KRB::KDC_Options;
+		## Name on the ticket
+		client_name		: string &optional;
+
+		## Realm of the service
+		service_realm		: string;
+		## Name of the service
+		service_name		: string &optional;
+		## Time the ticket is good from
+		from			: time &optional;
+		## Time the ticket is good till
+		till			: time;
+		## The requested renew-till time
+		rtime			: time &optional;
+
+		## A random nonce generated by the client
+		nonce			: count;
+		## The desired encryption algorithms, in order of preference
+		encryption_types	: vector of count;
+		## Any additional addresses the ticket should be valid for
+		host_addrs		: vector of KRB::Host_Address &optional;
+		## Additional tickets may be included for certain transactions
+		additional_tickets	: vector of KRB::Ticket &optional;
+	};
+
+	## The data from the AS_REQ and TGS_REQ messages. See :rfc:`4120`.
+	type KRB::KDC_Response: record {
+		## Protocol version number (5 for KRB5)
+		pvno			: count;
+		## The message type (11 for AS_REP, 13 for TGS_REP)
+		msg_type		: count;
+		## Optional pre-authentication data
+		pa_data			: vector of KRB::Type_Value &optional;
+		## Realm on the ticket
+		client_realm		: string &optional;
+		## Name on the service
+		client_name		: string;
+
+		## The ticket that was issued
+		ticket			: KRB::Ticket;
 	};
 }
 
@@ -3114,6 +3456,11 @@ const forward_remote_events = F &redef;
 ## .. note:: This option is only temporary and will disappear once we get a
 ##    more sophisticated script-level communication framework.
 const forward_remote_state_changes = F &redef;
+
+## The number of IO chunks allowed to be buffered between the child
+## and parent process of remote communication before Bro starts dropping
+## connections to remote peers in an attempt to catch up.
+const chunked_io_buffer_soft_cap = 800000 &redef;
 
 ## Place-holder constant indicating "no peer".
 const PEER_ID_NONE = 0;
@@ -3338,14 +3685,16 @@ const global_hash_seed: string = "" &redef;
 ## The maximum is currently 128 bits.
 const bits_per_uid: count = 96 &redef;
 
-# Load BiFs defined by plugins.
-@load base/bif/plugins
-
 # Load these frameworks here because they use fairly deep integration with
 # BiFs and script-land defined types.
+@load base/frameworks/broker
 @load base/frameworks/logging
 @load base/frameworks/input
 @load base/frameworks/analyzer
 @load base/frameworks/files
 
 @load base/bif
+
+# Load BiFs defined by plugins.
+@load base/bif/plugins
+

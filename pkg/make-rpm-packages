@@ -3,8 +3,6 @@
 # This script generates binary RPM packages.
 # They can be found in ../build/ after running.
 
-./check-cmake || { exit 1; }
-
 # The RPM CPack generator depends on `rpmbuild` to create packages
 type rpmbuild > /dev/null 2>&1 || {
     echo "\
@@ -15,6 +13,7 @@ the 'rpm-build' package, please install it first.
 }
 
 prefix=/opt/bro
+localstatedir=/var/opt/bro
 
 cd ..
 
@@ -24,7 +23,7 @@ cd ..
 ( cd build && make package )
 
 # Full Bro package
-./configure --prefix=${prefix} --pkg-name-prefix=Bro --binary-package
+./configure --prefix=${prefix} --localstatedir=${localstatedir} --pkg-name-prefix=Bro --binary-package
 ( cd build && make package )
 
 # Broccoli
@@ -35,6 +34,6 @@ cd ../..
 
 # Broctl
 cd aux/broctl
-./configure --prefix=${prefix} --binary-package
+./configure --prefix=${prefix} --localstatedir=${localstatedir} --binary-package
 ( cd build && make package && mv *.rpm ../../../build/ )
 cd ../..

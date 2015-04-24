@@ -188,6 +188,9 @@ flow DHCP_Flow(is_orig: bool) {
 		switch ( type )
 			{
 			case DHCPOFFER:
+				if ( ! router_list )
+					router_list = new TableVal(dhcp_router_list);
+
 				BifEvent::generate_dhcp_offer(connection()->bro_analyzer(),
 							      connection()->bro_analyzer()->Conn(),
 							      dhcp_msg_val_->Ref(), new AddrVal(subnet_mask),
@@ -195,6 +198,9 @@ flow DHCP_Flow(is_orig: bool) {
 				break;
 
 			case DHCPACK:
+				if ( ! router_list )
+					router_list = new TableVal(dhcp_router_list);
+
 				BifEvent::generate_dhcp_ack(connection()->bro_analyzer(),
 							    connection()->bro_analyzer()->Conn(),
 							    dhcp_msg_val_->Ref(), new AddrVal(subnet_mask),
@@ -202,12 +208,14 @@ flow DHCP_Flow(is_orig: bool) {
 				break;
 
 			case DHCPNAK:
+				Unref(router_list);
 				BifEvent::generate_dhcp_nak(connection()->bro_analyzer(),
 							    connection()->bro_analyzer()->Conn(),
 							    dhcp_msg_val_->Ref(), host_name);
 				break;
 
 			default:
+				Unref(router_list);
 				Unref(host_name);
 				break;
 			}

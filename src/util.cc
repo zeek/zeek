@@ -43,6 +43,7 @@
 #include "NetVar.h"
 #include "Net.h"
 #include "Reporter.h"
+#include "iosource/Manager.h"
 
 /**
  * Return IP address without enclosing brackets and any leading 0x.
@@ -140,10 +141,16 @@ ODesc* get_escaped_string(ODesc* d, const char* str, size_t len,
 
 		if ( escape_all || isspace(c) || ! isascii(c) || ! isprint(c) )
 			{
-			char hex[4] = {'\\', 'x', '0', '0' };
-			bytetohex(c, hex + 2);
-			d->AddRaw(hex, 4);
+			if ( c == '\\' )
+				d->AddRaw("\\\\", 2);
+			else
+				{
+				char hex[4] = {'\\', 'x', '0', '0' };
+				bytetohex(c, hex + 2);
+				d->AddRaw(hex, 4);
+				}
 			}
+
 		else
 			d->AddRaw(&c, 1);
 		}
@@ -540,6 +547,13 @@ bool is_printable(const char* s, int len)
 	return true;
 	}
 
+std::string strtolower(const std::string& s)
+	{
+	std::string t = s;
+	std::transform(t.begin(), t.end(), t.begin(), ::tolower);
+	return t;
+	}
+
 const char* fmt_bytes(const char* data, int len)
 	{
 	static char buf[1024];
@@ -656,18 +670,56 @@ bool ensure_dir(const char *dirname)
 	return true;
 	}
 
-bool is_dir(const char* path)
+bool is_dir(const std::string& path)
 	{
 	struct stat st;
-	if ( stat(path, &st) < 0 )
+	if ( stat(path.c_str(), &st) < 0 )
 		{
 		if ( errno != ENOENT )
-			reporter->Warning("can't stat %s: %s", path, strerror(errno));
+			reporter->Warning("can't stat %s: %s", path.c_str(), strerror(errno));
 
 		return false;
 		}
 
 	return S_ISDIR(st.st_mode);
+	}
+
+bool is_file(const std::string& path)
+	{
+	struct stat st;
+	if ( stat(path.c_str(), &st) < 0 )
+		{
+		if ( errno != ENOENT )
+			reporter->Warning("can't stat %s: %s", path.c_str(), strerror(errno));
+
+		return false;
+		}
+
+	return S_ISREG(st.st_mode);
+	}
+
+string strreplace(const string& s, const string& o, const string& n)
+	{
+	string r = s;
+
+	while ( true )
+		{
+		size_t i = r.find(o);
+
+		if ( i == std::string::npos )
+			break;
+
+		r.replace(i, o.size(), n);
+		}
+
+	return r;
+}
+
+std::string strstrip(std::string s)
+	{
+	s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+	s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+	return s;
 	}
 
 int hmac_key_set = 0;
@@ -909,16 +961,51 @@ int int_list_cmp(const void* v1, const void* v2)
 		return 1;
 	}
 
-const char* bro_path()
+static string bro_path_value;
+
+const std::string& bro_path()
 	{
-	const char* path = getenv("BROPATH");
-	if ( ! path )
-		path = ".:"
+	if ( bro_path_value.empty() )
+		{
+		const char* path = getenv("BROPATH");
+		if ( ! path )
+			path = ".:"
 			BRO_SCRIPT_INSTALL_PATH ":"
 			BRO_SCRIPT_INSTALL_PATH "/policy" ":"
 			BRO_SCRIPT_INSTALL_PATH "/site";
 
+		bro_path_value = path;
+		}
+
+	return bro_path_value;
+	}
+
+extern void add_to_bro_path(const string& dir)
+	{
+	// Make sure path is initialized.
+	bro_path();
+
+	bro_path_value += string(":") + dir;
+	}
+
+const char* bro_plugin_path()
+	{
+	const char* path = getenv("BRO_PLUGIN_PATH");
+
+	if ( ! path )
+		path = BRO_PLUGIN_INSTALL_PATH;
+
 	return path;
+	}
+
+const char* bro_plugin_activate()
+	{
+	const char* names = getenv("BRO_PLUGIN_ACTIVATE");
+
+	if ( ! names )
+		names = "";
+
+	return names;
 	}
 
 string bro_prefixes()
@@ -1271,19 +1358,32 @@ double parse_rotate_base_time(const char* rotate_base_time)
 
 double calc_next_rotate(double current, double interval, double base)
 	{
+	if ( ! interval )
+		{
+		reporter->Error("calc_next_rotate(): interval is zero, falling back to 24hrs");
+		interval = 86400;
+		}
+
 	// Calculate start of day.
 	time_t teatime = time_t(current);
 
 	struct tm t;
-	t = *localtime_r(&teatime, &t);
-	t.tm_hour = t.tm_min = t.tm_sec = 0;
-	double startofday = mktime(&t);
+	if ( ! localtime_r(&teatime, &t) )
+		{
+		reporter->Error("calc_next_rotate(): failure processing current time (%.6f)", current);
+
+		// fall back to the method used if no base time is given
+		base = -1;
+		}
 
 	if ( base < 0 )
 		// No base time given. To get nice timestamps, we round
 		// the time up to the next multiple of the rotation interval.
 		return floor(current / interval) * interval
 			+ interval - current;
+
+	t.tm_hour = t.tm_min = t.tm_sec = 0;
+	double startofday = mktime(&t);
 
 	// current < startofday + base + i * interval <= current + interval
 	return startofday + base +
@@ -1351,11 +1451,13 @@ double current_time(bool real)
 
 	double t = double(tv.tv_sec) + double(tv.tv_usec) / 1e6;
 
-	if ( ! pseudo_realtime || real || pkt_srcs.length() == 0 )
+	const iosource::Manager::PktSrcList& pkt_srcs(iosource_mgr->GetPktSrcs());
+
+	if ( ! pseudo_realtime || real || pkt_srcs.empty() )
 		return t;
 
 	// This obviously only works for a single source ...
-	PktSrc* src = pkt_srcs[0];
+	iosource::PktSrc* src = pkt_srcs.front();
 
 	if ( net_is_processing_suspended() )
 		return src->CurrentPacketTimestamp();
@@ -1553,31 +1655,21 @@ void get_memory_usage(unsigned int* total, unsigned int* malloced)
 	unsigned int ret_total;
 
 #ifdef HAVE_MALLINFO
-	// For memory, getrusage() gives bogus results on Linux. Grmpf.
 	struct mallinfo mi = mallinfo();
 
 	if ( malloced )
 		*malloced = mi.uordblks;
 
-	ret_total = mi.arena;
+#endif
 
-	if ( total )
-		*total = ret_total;
-#else
 	struct rusage r;
 	getrusage(RUSAGE_SELF, &r);
 
-	if ( malloced )
-		*malloced = 0;
-
-	// At least on FreeBSD it's in KB.
+	// In KB.
 	ret_total = r.ru_maxrss * 1024;
 
 	if ( total )
 		*total = ret_total;
-#endif
-
-	// return ret_total;
 	}
 
 #ifdef malloc
@@ -1649,17 +1741,16 @@ void operator delete[](void* v)
 
 #endif
 
-const char* canonify_name(const char* name)
+std::string canonify_name(const std::string& name)
 	{
-	unsigned int len = strlen(name);
-	char* nname = new char[len + 1];
+	unsigned int len = name.size();
+	std::string nname;
 
 	for ( unsigned int i = 0; i < len; i++ )
 		{
 		char c = isalnum(name[i]) ? name[i] : '_';
-		nname[i] = toupper(c);
+		nname += toupper(c);
 		}
 
-	nname[len] = '\0';
 	return nname;
 	}

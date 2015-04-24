@@ -1,5 +1,9 @@
 project(Bro C CXX)
-cmake_minimum_required(VERSION 2.6.3 FATAL_ERROR)
+
+# When changing the minimum version here, also adapt
+# aux/bro-aux/plugin-support/skeleton/CMakeLists.txt
+cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
+
 include(cmake/CommonCMakeConfig.cmake)
 
 ########################################################################
@@ -11,17 +15,28 @@ if (NOT BRO_SCRIPT_INSTALL_PATH)
     set(BRO_SCRIPT_INSTALL_PATH ${BRO_ROOT_DIR}/share/bro)
 endif ()
 
+if (NOT BRO_MAN_INSTALL_PATH)
+    # set the default Bro man page installation path (user did not specify one)
+    set(BRO_MAN_INSTALL_PATH ${BRO_ROOT_DIR}/share/man)
+endif ()
+
 # sanitize the Bro script install directory into an absolute path
 # (CMake is confused by ~ as a representation of home directory)
 get_filename_component(BRO_SCRIPT_INSTALL_PATH ${BRO_SCRIPT_INSTALL_PATH}
     ABSOLUTE)
 
+set(BRO_PLUGIN_INSTALL_PATH ${BRO_ROOT_DIR}/lib/bro/plugins CACHE STRING "Installation path for plugins" FORCE)
+
 configure_file(bro-path-dev.in ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev)
+
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev.sh
      "export BROPATH=`${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev`\n"
+     "export BRO_PLUGIN_PATH=\"${CMAKE_CURRENT_BINARY_DIR}/src\":${BRO_PLUGIN_PATH}\n"
      "export PATH=\"${CMAKE_CURRENT_BINARY_DIR}/src\":$PATH\n")
+
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev.csh
      "setenv BROPATH `${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev`\n"
+     "setenv BRO_PLUGIN_PATH \"${CMAKE_CURRENT_BINARY_DIR}/src\":${BRO_PLUGIN_PATH}\n"
      "setenv PATH \"${CMAKE_CURRENT_BINARY_DIR}/src\":$PATH\n")
 
 file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" VERSION LIMIT_COUNT 1)
@@ -117,33 +132,6 @@ if (GOOGLEPERFTOOLS_FOUND)
     endif ()
 endif ()
 
-set(USE_DATASERIES false)
-find_package(Lintel)
-find_package(DataSeries)
-find_package(LibXML2)
-
-if (NOT DISABLE_DATASERIES AND
-    LINTEL_FOUND AND DATASERIES_FOUND AND LIBXML2_FOUND)
-    set(USE_DATASERIES true)
-	include_directories(BEFORE ${Lintel_INCLUDE_DIR})
-	include_directories(BEFORE ${DataSeries_INCLUDE_DIR})
-	include_directories(BEFORE ${LibXML2_INCLUDE_DIR})
-	list(APPEND OPTLIBS ${Lintel_LIBRARIES})
-	list(APPEND OPTLIBS ${DataSeries_LIBRARIES})
-	list(APPEND OPTLIBS ${LibXML2_LIBRARIES})
-endif()
-
-set(USE_ELASTICSEARCH false)
-set(USE_CURL false)
-find_package(LibCURL)
-
-if (NOT DISABLE_ELASTICSEARCH AND LIBCURL_FOUND)
-  set(USE_ELASTICSEARCH true)
-  set(USE_CURL true)
-  include_directories(BEFORE ${LibCURL_INCLUDE_DIR})
-  list(APPEND OPTLIBS ${LibCURL_LIBRARIES})
-endif()
-
 if (ENABLE_PERFTOOLS_DEBUG OR ENABLE_PERFTOOLS)
     # Just a no op to prevent CMake from complaining about manually-specified
     # ENABLE_PERFTOOLS_DEBUG or ENABLE_PERFTOOLS not being used if google
@@ -165,6 +153,8 @@ set(brodeps
 
 include(TestBigEndian)
 test_big_endian(WORDS_BIGENDIAN)
+include(CheckSymbolExists)
+check_symbol_exists(htonll arpa/inet.h HAVE_BYTEORDER_64)
 
 include(OSSpecific)
 include(CheckTypes)
@@ -174,6 +164,10 @@ include(MiscTests)
 include(PCAPTests)
 include(OpenSSLTests)
 include(CheckNameserCompat)
+include(GetArchitecture)
+
+# Tell the plugin code that we're building as part of the main tree.
+set(BRO_PLUGIN_INTERNAL_BUILD true CACHE INTERNAL "" FORCE)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in
                ${CMAKE_CURRENT_BINARY_DIR}/config.h)
@@ -183,9 +177,21 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 ########################################################################
 ## Recurse on sub-directories
 
+if ( ENABLE_CXX11 )
+    include(RequireCXX11)
+endif ()
+
+if ( ENABLE_BROKER )
+    add_subdirectory(aux/broker)
+    set(brodeps ${brodeps} broker)
+    add_definitions(-DENABLE_BROKER)
+    include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/aux/broker)
+endif ()
+
 add_subdirectory(src)
 add_subdirectory(scripts)
 add_subdirectory(doc)
+add_subdirectory(man)
 
 include(CheckOptionalBuildSources)
 
@@ -229,6 +235,7 @@ message(
     "\nCXXFLAGS:          ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BuildType}}"
     "\nCPP:               ${CMAKE_CXX_COMPILER}"
     "\n"
+    "\nBroker:            ${ENABLE_BROKER}"
     "\nBroccoli:          ${INSTALL_BROCCOLI}"
     "\nBroctl:            ${INSTALL_BROCTL}"
     "\nAux. Tools:        ${INSTALL_AUX_TOOLS}"
@@ -238,10 +245,6 @@ message(
     "\n        tcmalloc:  ${USE_PERFTOOLS_TCMALLOC}"
     "\n       debugging:  ${USE_PERFTOOLS_DEBUG}"
     "\njemalloc:          ${ENABLE_JEMALLOC}"
-    "\ncURL:              ${USE_CURL}"
-    "\n"
-    "\nDataSeries:        ${USE_DATASERIES}"
-    "\nElasticSearch:     ${USE_ELASTICSEARCH}"
     "\n"
     "\n================================================================\n"
 )

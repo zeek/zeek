@@ -120,7 +120,7 @@ WriterFrontend::WriterFrontend(const WriterBackend::WriterInfo& arg_info, EnumVa
 
 	if ( local )
 		{
-		backend = log_mgr->CreateBackend(this, writer->AsEnum());
+		backend = log_mgr->CreateBackend(this, writer);
 
 		if ( backend )
 			backend->Start();

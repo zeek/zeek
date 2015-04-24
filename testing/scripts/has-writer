@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 #
 # Returns true if Bro has been compiled with support for writer type
-# $1. The type name must match what "bro --help" prints.
+# $1. The type name must match the plugin name that "bro -N" prints.
 
-bro --helper 2>&1 | grep -qi "Supported log formats:.*$1"
+bro -N | grep -q $1 >/dev/null

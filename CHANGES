@@ -1,4 +1,1476 @@
 
+2.3-884 | 2015-04-23 12:30:15 -0500
+
+  * Fix some outdated documentation unit tests. (Jon Siwek)
+
+2.3-883 | 2015-04-23 07:10:36 -0700
+
+  * Fix -N option to work with builtin plugins as well. (Robin Sommer)
+
+2.3-882 | 2015-04-23 06:59:40 -0700
+
+  * Add missing .pac dependencies for some binpac analyzer targets.
+    (Jon Siwek)
+
+2.3-879 | 2015-04-22 10:38:07 -0500
+
+  * Fix compile errors. (Jon Siwek)
+
+2.3-878 | 2015-04-22 08:21:23 -0700
+
+  * Fix another compiler warning in DTLS. (Johanna Amann)
+
+2.3-877 | 2015-04-21 20:14:16 -0700
+
+  * Adding missing include. (Robin Sommer)
+
+2.3-876 | 2015-04-21 16:40:10 -0700
+
+  * Attempt at fixing a potential std::length_error exception in RDP
+    analyzer. Addresses BIT-1337. (Robin Sommer)
+
+  * Fixing compile problem caused by overeager factorization. (Robin
+    Sommer)
+
+2.3-874 | 2015-04-21 16:09:20 -0700
+
+  * Change details of escaping when logging/printing. (Seth Hall/Robin
+    Sommer)
+
+        - Log files now escape non-printable characters consistently
+          as "\xXX'. Furthermore, backslashes are escaped as "\\",
+          making the representation fully reversible.
+
+        - When escaping via script-level functions (escape_string,
+          clean), we likewise now escape consistently with "\xXX" and
+          "\\".
+
+        - There's no "alternative" output style anymore, i.e., fmt()
+          '%A' qualifier is gone.
+
+    Addresses BIT-1333.
+
+  * Remove several BroString escaping methods that are no longer
+    useful. (Seth Hall)
+
+2.3-864 | 2015-04-21 15:24:02 -0700
+
+  * A SIP protocol analyzer. (Vlad Grigorescu)
+
+	Activity gets logged into sip.log. It generates the following
+    events:
+
+	    event sip_request(c: connection, method: string, original_URI: string, version: string);
+        event sip_reply(c: connection, version: string, code: count, reason: string);
+        event sip_header(c: connection, is_orig: bool, name: string, value: string);
+        event sip_all_headers(c: connection, is_orig: bool, hlist: mime_header_list);
+        event sip_begin_entity(c: connection, is_orig: bool);
+        event sip_end_entity(c: connection, is_orig: bool);
+
+    The analyzer support SIP over UDP currently.
+
+  * BIT-1343: Factor common ASN.1 code from RDP, SNMP, and Kerberos
+    analyzers. (Jon Siwek/Robin Sommer)
+
+2.3-838 | 2015-04-21 13:40:12 -0700
+
+  * BIT-1373: Fix vector index assignment reference count bug. (Jon Siwek)
+
+2.3-836 | 2015-04-21 13:37:31 -0700
+
+  * Fix SSH direction field being unset. Addresses BIT-1365. (Vlad
+    Grigorescu)
+
+2.3-835 | 2015-04-21 16:36:00 -0500
+
+  * Clarify Broker examples. (Jon Siwek)
+
+2.3-833 | 2015-04-21 12:38:32 -0700
+
+  * A Kerberos protocol analyzer. (Vlad Grigorescu)
+
+	Activity gets logged into kerberos.log. It generates the following
+    events:
+
+        event krb_as_request(c: connection, msg: KRB::KDC_Request);
+        event krb_as_response(c: connection, msg: KRB::KDC_Response);
+        event krb_tgs_request(c: connection, msg: KRB::KDC_Request);
+        event krb_tgs_response(c: connection, msg: KRB::KDC_Response);
+        event krb_ap_request(c: connection, ticket: KRB::Ticket, opts: KRB::AP_Options);
+        event krb_priv(c: connection, is_orig: bool);
+        event krb_safe(c: connection, is_orig: bool, msg: KRB::SAFE_Msg);
+        event krb_cred(c: connection, is_orig: bool, tickets: KRB::Ticket_Vector);
+        event krb_error(c: connection, msg: KRB::Error_Msg);
+
+2.3-793 | 2015-04-20 20:51:00 -0700
+
+  * Add decoding of PROXY-AUTHORIZATION header to HTTP analyze,
+    treating it the same as AUTHORIZATION. (Josh Liburdi)
+
+  * Remove deprecated fields "hot" and "addl" from the connection
+    record. Remove the functions append_addl() and
+    append_addl_marker(). (Robin Sommer)
+
+  * Removing the NetFlow analyzer, which hasn't been used anymore
+    since then corresponding command-line option went away. (Robin
+    Sommer)
+
+2.3-787 | 2015-04-20 19:15:23 -0700
+
+  * A file analyzer for Portable Executables. (Vlad Grigorescu/Seth
+    Hall).
+
+	Activity gets logged into pe.log. It generates the following
+	events:
+
+        event pe_dos_header(f: fa_file, h: PE::DOSHeader);
+        event pe_dos_code(f: fa_file, code: string);
+        event pe_file_header(f: fa_file, h: PE::FileHeader);
+        event pe_optional_header(f: fa_file, h: PE::OptionalHeader);
+        event pe_section_header(f: fa_file, h: PE::SectionHeader);
+
+2.3-741 | 2015-04-20 13:12:39 -0700
+
+  * API changes to file analysis mime type detection. Removed
+    "file_mime_type" and "file_mime_types" event, replacing them with
+    a new event called "file_metadata_inferred". Addresses BIT-1368.
+    (Jon Siwek)
+
+  * A large series of improvements for file type identification. This
+    inludes a many signature updates (new types, cleanup, performance
+    improvments) and splitting out signatures into subfiles. (Seth
+    Hall)
+
+  * Fix an issue with files having gaps before the bof_buffer is
+    filled, which could lead to file type identification not working
+    correctly. (Seth Hall)
+
+  * Fix an issue with packet loss in HTTP file reporting for file type
+    identification wasn't working correctly zero-length bodies. (Seth
+    Hall)
+
+  * X.509 certificates are now populating files.log with the mime type
+    application/pkix-cert. (Seth Hall)
+
+  * Normalized some FILE_ANALYSIS debug messages. (Seth Hall)
+
+2.3-725 | 2015-04-20 12:54:54 -0700
+
+  * Updating submodule(s).
+
+2.3-724 | 2015-04-20 14:11:02 -0500
+
+  * Fix uninitialized field in raw input reader. (Jon Siwek)
+
+2.3-722 | 2015-04-20 12:59:03 -0500
+
+  * Remove unneeded documentation cross-referencing. (Jon Siwek)
+
+2.3-721 | 2015-04-20 12:47:05 -0500
+
+  * BIT-1380: Improve Broxygen output of &default expressions.
+    (Jon Siwek)
+
+2.3-720 | 2015-04-17 14:18:26 -0700
+
+  * Updating NEWS.
+
+2.3-716 | 2015-04-17 13:06:37 -0700
+
+  * Add seeking functionality to raw reader. One can now add an option
+    "offset" to the config map. Positive offsets are interpreted to be
+    from the beginning of the file, negative from the end of the file
+    (-1 is end of file). Only works for raw reader in streaming or
+    manual mode. Does not work with executables. Addresses BIT-985.
+    (Johanna Amann)
+
+  * Allow setting packet and byte thresholds for connections. (Johanna Amann)
+
+    This extends the ConnSize analyzer to be able to raise events when
+    each direction of a connection crosses a certain amount of bytes
+    or packets.
+
+    Thresholds are set using:
+        - set_conn_bytes_threshold(c$id, [num-bytes], [direction]);
+        - set_conn_packets_threshold(c$id, [num-packets], [direction]);
+
+    They raise the events, respectively:
+        - event conn_bytes_threshold_crossed(c: connection, threshold: count, is_orig: bool)
+        - event conn_packets_threshold_crossed(c: connection, threshold: count, is_orig: bool)
+
+    Current thresholds can be examined using get_conn_bytes_threshold()
+    and get_conn_packets_threshold().
+
+    Only one threshold can be set per connection.
+
+  * Add high-level API for packet/bytes thresholding in
+    base/protocols/conn/thresholds.bro that holds lists of thresholds
+    and raises an event for each threshold exactly once. (Johanna
+    Amann)
+
+  * Fix a bug where child packet analyzers of the TCP analyzer
+    where not found using FindChild.
+
+  * Update GridFTP analyzer to use connection thresholding instead of
+    polling. (Johanna Amann)
+
+2.3-709 | 2015-04-17 12:37:32 -0700
+
+  * Fix addressing the dreaded "internal error: unknown msg type 115
+  in Poll()". (Jon Siwek)
+
+    This patch removes the error handling code for overload conditions
+    in the main process that could cause trouble down the road. The
+    "chunked_io_buffer_soft_cap" script variable can now tune when the
+    client process begins shutting down peer connections, and the
+    default setting is now double what it used to be. Addresses
+    BIT-1376.
+
+2.3-707 | 2015-04-17 10:57:59 -0500
+
+  * Add more info about Broker to NEWS. (Jon Siwek)
+
+2.3-705 | 2015-04-16 08:16:45 -0700
+
+  * Update Mozilla CA list. (Johanna Amann)
+
+  * Update tests to have them keep using older certificates where
+    appropiate. (Johanna Amann)
+
+2.3-699 | 2015-04-16 09:51:58 -0500
+
+  * Fix the to_count function to use strtoull versus strtoll.
+    (Jon Siwek)
+
+2.3-697 | 2015-04-15 09:51:15 -0700
+
+  * Removing error check verifying that an ASCII writer has been
+    properly finished. Instead of aborting, we now just clean up in
+    that case and proceed. Addresses BIT-1331. (Robin Sommer)
+
+2.3-696 | 2015-04-14 15:56:36 -0700
+
+  * Update sqlite to 3.8.9
+
+2.3-695 | 2015-04-13 10:34:42 -0500
+
+  * Fix iterator invalidation in broker::Manager dtor. (Jon Siwek)
+
+  * Add paragraph to plugin documentation. (Robin Sommer)
+
+2.3-693 | 2015-04-11 10:56:31 -0700
+
+  * BIT-1367: improve coercion of anonymous records in set constructor.
+    (Jon Siwek)
+
+  * Allow to specify ports for sftp log rotator. (Johanna Amann)
+
+2.3-690 | 2015-04-10 21:51:10 -0700
+
+  * Make sure to always delete the remote serializer. Addresses
+    BIT-1306 and probably also BIT-1356. (Robin Sommer)
+
+  * Cleaning up --help. -D and -Y/y were still listed, even though
+    they had no effect anymore. Removing some dead code along with -D.
+    Addresses BIT-1372. (Robin Sommer)
+
+2.3-688 | 2015-04-10 08:10:44 -0700
+
+  * Update SQLite to 3.8.8.3.
+
+2.3-687 | 2015-04-10 07:32:52 -0700
+
+  * Remove stale signature benchmarking code (-L command-line option).
+    (Jon Siwek)
+
+  * BIT-844: fix UDP payload signatures to match packet-wise. (Jon
+    Siwek)
+
+2.3-682 | 2015-04-09 12:07:00 -0700
+
+  * Fixing input readers' component type. (Robin Sommer)
+
+  * Tiny spelling correction. (Seth Hall)
+
+2.3-680 | 2015-04-06 16:02:43 -0500
+
+  * BIT-1371: remove CMake version check from binary package scripts.
+    (Jon Siwek)
+
+2.3-679 | 2015-04-06 10:16:36 -0500
+
+  * Increase some unit test timeouts. (Jon Siwek)
+
+  * Fix Coverity warning in RDP analyzer. (Jon Siwek)
+
+2.3-676 | 2015-04-02 10:10:39 -0500
+
+  * BIT-1366: improve checksum offloading warning.
+    (Frank Meier, Jon Siwek)
+
+2.3-675 | 2015-03-30 17:05:05 -0500
+
+  * Add an RDP analyzer. (Josh Liburdi, Seth Hall, Johanna Amann)
+
+2.3-640 | 2015-03-30 13:51:51 -0500
+
+  * BIT-1359: Limit maximum number of DTLS fragments to 30. (Johanna Amann)
+
+2.3-637 | 2015-03-30 12:02:07 -0500
+
+  * Increase timeout duration in some broker tests. (Jon Siwek)
+
+2.3-636 | 2015-03-30 11:26:32 -0500
+
+  * Updates related to SSH analysis. (Jon Siwek)
+
+    - Some scripts used wrong SSH module/namespace scoping on events.
+    - Fix outdated notice documentation related to SSH password guessing.
+    - Add a unit test for SSH pasword guessing notice.
+
+2.3-635 | 2015-03-30 11:02:45 -0500
+
+  * Fix outdated documentation unit tests. (Jon Siwek)
+
+2.3-634 | 2015-03-30 10:22:45 -0500
+
+  * Add a canonifier to a unit test's output. (Jon Siwek)
+
+2.3-633 | 2015-03-25 18:32:59 -0700
+
+  * Log::write in signature framework was missing timestamp.
+    (Andrew Benson/Michel Laterman)
+
+2.3-631 | 2015-03-25 11:03:12 -0700
+
+  * New SSH analyzer. (Vlad Grigorescu)
+
+2.3-600 | 2015-03-25 10:23:46 -0700
+
+  * Add defensive checks in code to calculate log rotation intervals.
+    (Pete Nelson).
+
+2.3-597 | 2015-03-23 12:50:04 -0700
+
+  * DTLS analyzer. (Johanna Amann)
+
+  * Implement correct parsing of TLS record fragmentation. (Johanna
+    Amann)
+
+2.3-582 | 2015-03-23 11:34:25 -0700
+
+  * BIT-1313: In debug builds, "bro -B <x>" now supports "all" and
+    "help" for "<x>". "all" enables all debug streams. "help" prints a
+    list of available debug streams. (John Donnelly/Robin Sommer).
+
+  * BIT-1324: Allow logging filters to inherit default path from
+    stream. This allows the path for the default filter to be
+    specified explicitly through $path="..." when creating a stream.
+    Adapted the existing Log::create_stream calls to explicitly
+    specify a path value. (Jon Siwek)
+
+  * BIT-1199: Change the way the input framework deals with values it
+    cannot convert into BroVals, raising error messages instead of
+    aborting execution. (Johanna Amann)
+
+  * BIT-788: Use DNS QR field to better identify flow direction. (Jon
+    Siwek)
+
+2.3-572 | 2015-03-23 13:04:53 -0500
+
+  * BIT-1226: Fix an example in quickstart docs. (Jon siwek)
+
+2.3-570 | 2015-03-23 09:51:20 -0500
+
+  * Correct a spelling error (Daniel Thayer)
+
+  * Improvement to SSL analyzer failure mode. (Johanna Amann)
+
+2.3-565 | 2015-03-20 16:27:41 -0500
+
+  * BIT-978: Improve documentation of 'for' loop iterator invalidation.
+    (Jon Siwek)
+
+2.3-564 | 2015-03-20 11:12:02 -0500
+
+  * BIT-725: Remove "unmatched_HTTP_reply" weird. (Jon Siwek)
+
+2.3-562 | 2015-03-20 10:31:02 -0500
+
+  * BIT-1207: Add unit test to catch breaking changes to local.bro
+    (Jon Siwek)
+
+  * Fix failing sqlite leak test (Johanna Amann)
+
+2.3-560 | 2015-03-19 13:17:39 -0500
+
+  * BIT-1255: Increase default values of
+    "tcp_max_above_hole_without_any_acks" and "tcp_max_initial_window"
+    from 4096 to 16384 bytes. (Jon Siwek)
+
+2.3-559 | 2015-03-19 12:14:33 -0500
+
+  * BIT-849: turn SMTP reporter warnings into weirds,
+    "smtp_nested_mail_transaction" and "smtp_unmatched_end_of_data".
+    (Jon Siwek)
+
+2.3-558 | 2015-03-18 22:50:55 -0400
+
+  * DNS: Log the type number for the DNS_RR_unknown_type weird. (Vlad Grigorescu)
+
+2.3-555 | 2015-03-17 15:57:13 -0700
+
+  * Splitting test-all Makefile target into Bro tests and test-aux.
+    (Robin Sommer)
+
+2.3-554 | 2015-03-17 15:40:39 -0700
+
+  * Deprecate &rotate_interval, &rotate_size, &encrypt. Addresses
+    BIT-1305. (Jon Siwek)
+
+2.3-549 | 2015-03-17 09:12:18 -0700
+
+  * BIT-1077: Fix HTTP::log_server_header_names. Before, it just
+    re-logged fields from the client side. (Jon Siwek)
+
+2.3-547 | 2015-03-17 09:07:51 -0700
+
+  * Update certificate validation script to cache valid intermediate
+    chains that it encounters on the wire and use those to try to
+    validate chains that might be missing intermediate certificates.
+    (Johanna Amann)
+
+2.3-541 | 2015-03-13 15:44:08 -0500
+
+  * Make INSTALL a symlink to doc/install/install.rst (Jon siwek)
+
+  * Fix Broxygen coverage. (Jon Siwek)
+
+2.3-539 | 2015-03-13 14:19:27 -0500
+
+  * BIT-1335: Include timestamp in default extracted file names.
+    And add a policy script to extract all files. (Jon Siwek)
+
+  * BIT-1311: Identify GRE tunnels as Tunnel::GRE, not Tunnel::IP.
+    (Jon Siwek)
+
+  * BIT-1309: Add Connection class getter methods for flow labels.
+    (Jon Siwek)
+
+2.3-536 | 2015-03-12 16:16:24 -0500
+
+  * Fix Broker leak tests. (Jon Siwek)
+
+2.3-534 | 2015-03-12 10:59:49 -0500
+
+  * Update NEWS file. (Jon Siwek)
+
+2.3-533 | 2015-03-12 10:18:53 -0500
+
+  * Give broker python bindings default install path within --prefix.
+    (Jon Siwek)
+
+2.3-530 | 2015-03-10 13:22:39 -0500
+
+  * Fix broker data stores in absence of --enable-debug. (Jon Siwek)
+
+2.3-529 | 2015-03-09 13:14:27 -0500
+
+  * Fix format specifier in SSL protocol violation. (Jon Siwek)
+
+2.3-526 | 2015-03-06 12:48:49 -0600
+
+  * Fix build warnings, clarify broker requirements, update submodule.
+    (Jon Siwek)
+
+  * Rename comm/ directories to broker/ (Jon Siwek)
+
+  * Rename broker-related namespaces. (Jon Siwek)
+
+  * Improve remote logging via broker by only sending fields w/ &log.
+    (Jon Siwek)
+
+  * Disable a stream's remote logging via broker if it fails. (Jon Siwek)
+
+  * Improve some broker communication unit tests. (Jon Siwek)
+
+2.3-518 | 2015-03-04 13:13:50 -0800
+
+  * Add bytes_recvd to stats.log recording the number of bytes
+    received, according to packet headers. (Mike Smiley)
+
+2.3-516 | 2015-03-04 12:30:06 -0800
+
+  * Extract most specific Common Name from SSL certificates (Johanna
+    Amann)
+
+  * Send CN and SAN fields of SSL certificates to the Intel framework.
+    (Johanna Amann)
+
+2.3-511 | 2015-03-02 18:07:17 -0800
+
+  * Changes to plugin meta hooks for function calls. (Gilbert Clark)
+
+        - Add frame argument.
+
+        - Change return value to tuple unambigiously whether hook
+          returned a result.
+
+2.3-493 | 2015-03-02 17:17:32 -0800
+
+  * Extend the SSL weak-keys policy file to also alert when
+    encountering SSL connections with old versions as well as unsafe
+    cipher suites. (Johanna Amann)
+
+  * Make the notice suppression handling of other SSL policy files a
+    tad more robust. (Johanna Amann)
+
+2.3-491 | 2015-03-02 17:12:56 -0800
+
+  * Updating docs for recent addition of local_resp. (Robin Sommer)
+
+2.3-489 | 2015-03-02 15:29:30 -0800
+
+  * Integrate Broker, Bro's new communication library. (Jon Siwek)
+
+    See aux/broker/README for more information on Broker, and
+    doc/frameworks/comm.rst for the corresponding Bro script API.
+
+    Broker support is by default off for now; it can be enabled at
+    configure time with --enable-broker. It requires CAF
+    (https://github.com/actor-framework/actor-framework); for now iot
+    needs CAF's "develop" branch. Broker also requires a C++11
+    compiler.
+
+    Broker will become a mandatory dependency in future Bro versions.
+
+  * Add --enable-c++11 configure flag to compile Bro's source code in
+    C++11 mode with a corresponding compiler. (Jon Siwek)
+
+2.3-451 | 2015-02-24 16:37:08 -0800
+
+  * Updating submodule(s).
+
+2.3-448 | 2015-02-23 16:58:10 -0800
+
+  * Updating NEWS. (Robin Sommer)
+
+2.3-447 | 2015-02-23 16:28:30 -0800
+
+  * Fix potential crash in logging framework when deserializing
+    WriterInfo from remote. where config is present. Testcase crashes
+    on unpatched versions of Bro. (Aaron Eppert)
+
+  * Fix wrong value test in WriterBackend. (Aaron Eppert)
+
+2.3-442 | 2015-02-23 13:29:30 -0800
+
+  * Add a "local_resp" field to conn.log, along the lines of the
+    existing "local_orig". (Mike Smiley)
+
+2.3-440 | 2015-02-23 11:39:17 -0600
+
+  * Updating plugin docs to recent changes. (Robin Sommer)
+
+  * Updating plugin tests to recent changes. (Robin Sommer)
+
+  * Making plugin names case-insensitive for some internal comparisions.
+    Makes plugin system more tolerant against spelling inconsistencies
+    are hard to catch otherwise. (Robin Sommer)
+
+  * Explicitly removing some old scripts on install that have moved
+    into plugins to prevent them causing confusion. (Robin Sommer)
+
+  * BIT-1312: Removing setting installation plugin path from
+    bro-path-dev.sh.  Also, adding to existing BRO_PLUGIN_PATH rather
+    than replacing. (Robin Sommer)
+
+  * Creating the installation directory for plugins at install time.
+    (Robin Sommer)
+
+2.3-427 | 2015-02-20 13:49:33 -0800
+
+  * Removing dependency on PCAP_NETMASK_UNKNOWN to compile with
+    libpcap < 1.1.1. (Robin Sommer)
+
+2.3-426 | 2015-02-20 12:45:51 -0800
+
+  * Add 'while' statement to Bro language. Really. (Jon Siwek)
+
+2.3-424 | 2015-02-20 12:39:10 -0800
+
+  * Add the ability to remove surrounding braces from the JSON
+    formatter. (Seth Hall)
+
+2.3-419 | 2015-02-13 09:10:44 -0600
+
+  * BIT-1011: Update the SOCKS analyzer to support user/pass login.
+    (Nicolas Retrain, Seth Hall, Jon Siwek)
+
+    - Add a new field to socks.log: "password".
+    - Two new events: "socks_login_userpass_request" and
+      "socks_login_userpass_reply".
+    - Two new weirds for unsupported SOCKS authentication method or
+      version.
+    - A new test for authenticated socks traffic.
+
+2.3-416 | 2015-02-12 12:18:42 -0600
+
+  * Submodule update - newest sqlite version (Johanna Amann)
+
+  * Fix use of deprecated gperftools headers. (Jon Siwek)
+
+2.3-413 | 2015-02-08 18:23:05 -0800
+
+  * Fixing analyzer tag types for some Files::* functions. (Robin Sommer)
+
+  * Changing load order for plugin scripts. (Robin Sommer)
+
+2.3-411 | 2015-02-05 10:05:48 -0600
+
+  * Fix file analysis of files with total size below the bof_buffer size
+    never delivering content to stream analyzers. (Seth Hall)
+
+  * Add/fix log fields in x509 diff canonifier. (Jon Siwek)
+
+  * "id" not defined for debug code when using -DPROFILE_BRO_FUNCTIONS
+    (Mike Smiley)
+
+2.3-406 | 2015-02-03 17:02:45 -0600
+
+  * Add x509 canonifier to a unit test. (Jon Siwek)
+
+2.3-405 | 2015-02-02 11:14:24 -0600
+
+  * Fix memory leak in new split_string* functions. (Jon Siwek)
+
+2.3-404 | 2015-01-30 14:23:27 -0800
+
+  * Update documentation (broken links, outdated tests). (Jon Siwek)
+
+  * Deprecate split* family of BIFs. (Jon Siwek)
+
+    These functions are now deprecated in favor of alternative versions that
+    return a vector of strings rather than a table of strings.
+
+    Deprecated functions:
+
+    - split: use split_string instead.
+    - split1: use split_string1 instead.
+    - split_all: use split_string_all instead.
+    - split_n: use split_string_n instead.
+    - cat_string_array: see join_string_vec instead.
+    - cat_string_array_n: see join_string_vec instead.
+    - join_string_array: see join_string_vec instead.
+    - sort_string_array: use sort instead instead.
+    - find_ip_addresses: use extract_ip_addresses instead.
+
+    Changed functions:
+
+    - has_valid_octets: uses a string_vec parameter instead of string_array.
+
+    Addresses BIT-924.
+
+  * Add a new attribute: &deprecated. While scripts are parsed, a
+    warning is raised for each usage of an identifier marked as
+    &deprecated.  This also works for BIFs. Addresses BIT-924,
+    BIT-757. (Jon Siwek)
+
+2.3-397 | 2015-01-27 10:13:10 -0600
+
+  * Handle guess_lexer exceptions in pygments reST directive (Jon Siwek)
+
+2.3-396 | 2015-01-23 10:49:15 -0600
+
+  * DNP3: fix reachable assertion and buffer over-read/overflow.
+    CVE number pending. (Travis Emmert, Jon Siwek)
+
+  * Update binpac: Fix potential out-of-bounds memory reads in generated
+    code. CVE-2014-9586. (John Villamil and Chris Rohlf - Yahoo
+    Paranoids, Jon Siwek)
+
+  * Fixing (harmless) Coverity warning. (Robin Sommer)
+
+2.3-392 | 2015-01-15 09:44:15 -0800
+
+  * Small changes to EC curve names in a newer draft. (Johanna Amann)
+
+2.3-390 | 2015-01-14 13:27:34 -0800
+
+  * Updating MySQL analyses. (Vlad Grigorescu)
+     - Use a boolean success instead of a result string.
+     - Change the affected_rows response detail string to a "rows" count.
+     - Fix the state tracking to log incomplete command.
+
+  * Extend DNP3 to support communication over UDP. (Hui Lin)
+
+  * Fix a bug in DNP3 determining the length of an object in some
+    cases. (Hui Lin)
+
+2.3-376 | 2015-01-12 09:38:10 -0600
+
+  * Improve documentation for connection_established event. (Jon Siwek)
+
+2.3-375 | 2015-01-08 13:10:09 -0600
+
+  * Increase minimum required CMake version to 2.8. (Jon Siwek)
+
+2.3-374 | 2015-01-07 10:03:17 -0600
+
+  * Improve documentation of the Intelligence Framework. (Daniel Thayer)
+
+2.3-371 | 2015-01-06 09:58:09 -0600
+
+  * Update/improve file mime type identification. (Seth Hall)
+
+     - Change to the default BOF buffer size to 3000 (was 1024).
+
+     - Reorganized MS signatures into a separate file.
+
+     - Remove all of the x-c detections.  Nearly all false positives.
+
+     - Improve TAR detections, removing old, back up TAR detections.
+
+     - Remove one of the x-elc detections that was too loose
+       and caused many false positives.
+
+     - Improved lots of the signatures and added new ones. (Seth Hall)
+
+  * Add support for file reassembly in the file analysis framework
+    (Seth Hall, Jon Siwek).
+
+     - The reassembly behavior can be modified per-file by enabling or
+       disabling the reassembler and/or modifying the size of the
+       reassembly buffer.
+
+     - Changed the file extraction analyzer to use stream-wise input to
+       avoid issues with the chunk-wise approach not immediately
+       triggering the file_new event due to mime-type detection delay.
+       Before, early chunks frequently ended up lost.  Extraction also
+       will now explicitly NUL-fill gaps in the file instead of
+       implicitly relying on pwrite to do it.
+
+2.3-349 | 2015-01-05 15:21:13 -0600
+
+  * Fix race condition in unified2 file analyzer startup. (Jon siwek)
+
+2.3-348 | 2014-12-31 09:19:34 -0800
+
+  * Changing Makefile's test-all to run test-all for broctl, which now
+    executes trace-summary tests as well. (Robin Sommer)
+
+2.3-345 | 2014-12-31 09:06:15 -0800
+
+  * Correct a typo in the Notice framework doc. (Daniel Thayer)
+
+2.3-343 | 2014-12-12 12:43:46 -0800
+
+  * Fix PIA packet replay to deliver copy of IP header. This prevented
+    one from writing a packet-wise analyzer that needs access to IP
+    headers and can be attached to a connection via signature match.
+    Addresses BIT-1298 (Jon Siwek)
+
+2.3-338 | 2014-12-08 13:56:19 -0800
+
+  * Add man page for Bro. (Raúl Benencia)
+
+  * Updating doc baselines. (Robin Sommer)
+
+2.3-334 | 2014-12-03 14:22:07 -0800
+
+  * Fix compound assignment to require proper L-value. Addresses
+    BIT-1295. (Jon Siwek)
+
+2.3-332 | 2014-12-03 14:14:11 -0800
+
+  * Make using local IDs in @if directives an error. Addresses
+    BIT-1296. (Jon Siwek)
+
+2.3-330 | 2014-12-03 14:10:39 -0800
+
+  * Fix some "make doc" warnings and update some doc tests. (Daniel
+    Thayer)
+
+2.3-328 | 2014-12-02 08:13:10 -0500
+
+  * Update windows-version-detection.bro to add support for
+    Windows 10. (Michal Purzynski)
+
+2.3-326 | 2014-12-01 12:10:27 -0600
+
+  * BIFScanner: fix invalid characters in generated preprocessor macros.
+    (Hilko Bengen)
+
+  * BIT-1294: fix exec.bro from mutating Input::end_of_data event
+    parameters. (Johanna Amann)
+
+  * Add/invoke "distclean" for testing directories. (Raúl Benencia)
+
+  * Delete prebuilt python bytecode files from git. (Jon Siwek)
+
+  * Add Windows detection based on CryptoAPI HTTP traffic as a software
+    framework policy script. (Vlad Grigorescu)
+
+2.3-316 | 2014-11-25 17:35:06 -0800
+
+  * Make the SSL analyzer skip further processing once encountering
+    situations which are very probably non-recoverable. (Johanna
+    Amann)
+
+2.3-313 | 2014-11-25 14:27:07 -0800
+
+  * Make SSL v2 protocol tests more strict. In its former state they
+    triggered on http traffic over port 443 sometimes. Found by Michał
+    Purzyński. (Johanna Amann)
+
+  * Fix X509 analyzer to correctly return ECDSA as the key_type for
+    ECDSA certs. Bug found by Michał Purzyński. (Johanna Amann)
+
+2.3-310 | 2014-11-19 10:56:59 -0600
+
+  * Disable verbose bison output. (Jon Siwek)
+
+2.3-309 | 2014-11-18 12:17:53 -0800
+
+  * New decompose_uri() function in base/utils/urls that splits a URI
+    into its pieces. (Anthony Kasza).
+
+2.3-305 | 2014-11-18 11:09:04 -0800
+
+  * Improve coercion of &default expressions. Addresses BIT-1288. (Jon
+    Siwek)
+
+2.3-303 | 2014-11-18 10:53:04 -0800
+
+  * For DH key exchanges, use p as the parameter for weak key
+    exchanges. (Johanna Amann)
+
+2.3-301 | 2014-11-11 13:47:27 -0800
+
+  * Add builtin function enum_to_int() that converts an enum into a
+    integer. (Christian Struck)
+
+2.3-297 | 2014-11-11 11:50:47 -0800
+
+  * Removing method from SSL analyzer that's no longer used. (Robin
+    Sommer)
+
+2.3-296 | 2014-11-11 11:42:38 -0800
+
+  * A new analyzer parsing the MySQL wire protocol. Activity gets
+    logged into mysql.log. Supports protocol versions 9 and 10. (Vlad
+    Grigorescu)
+
+2.3-280 | 2014-11-05 09:46:33 -0500
+
+  * Add Windows detection based on CryptoAPI HTTP traffic as a
+    software framework policy script. (Vlad Grigorescu)
+
+2.3-278 | 2014-11-03 18:55:18 -0800
+
+  * Add new curves from draft-ietf-tls-negotiated-ff-dhe to SSL
+    analysis. (Johanna Amann)
+
+2.3-274 | 2014-10-31 17:45:25 -0700
+
+  * Adding call to new binpac::init() function. (Robin Sommer)
+
+2.3-272 | 2014-10-31 16:29:42 -0700
+
+  * Fix segfault if when statement's RHS is unitialized. Addresses
+    BIT-1176. (Jon Siwek)
+
+  * Fix checking vector indices via "in". Addresses BIT-1280.  (Jon
+    Siwek)
+
+2.3-268 | 2014-10-31 12:12:22 -0500
+
+  * BIT-1283: Fix crash when using &encrypt. (Jon Siwek)
+
+2.3-267 | 2014-10-31 10:35:02 -0500
+
+  * BIT-1284: Allow arbitrary when statement timeout expressions
+    (Jon Siwek)
+
+2.3-266 | 2014-10-31 09:21:28 -0500
+
+  * BIT-1166: Add configure options to fine tune local state dirs used
+    by BroControl. (Jon Siwek)
+
+2.3-264 | 2014-10-30 13:25:57 -0500
+
+  * Fix some minor Coverity Scan complaints. (Jon Siwek)
+
+2.3-263 | 2014-10-28 15:09:10 -0500
+
+  * Fix checking of fwrite return values (Johanna Amann)
+
+2.3-260 | 2014-10-27 12:54:17 -0500
+
+  * Fix errors/warnings when compiling with -std=c++11 (Jon Siwek)
+
+2.3-259 | 2014-10-27 10:04:04 -0500
+
+  * Documentation fixes. (Vicente Jimenez Aguilar and Stefano Azzalini)
+
+2.3-256 | 2014-10-24 15:33:45 -0700
+
+  * Adding missing test baseline. (Robin Sommer)
+
+2.3-255 | 2014-10-24 13:39:44 -0700
+
+  * Fixing unstable active-http test. (Robin Sommer)
+
+2.3-254 | 2014-10-24 11:40:51 -0700
+
+  * Fix active-http.bro to deal reliably with empty server responses,
+    which will now be passed back as empty files. (Christian Struck)
+
+2.3-248 | 2014-10-23 14:20:59 -0700
+
+  * Change order in which a plugin's scripts are loaded at startup.
+    (Robin Sommer)
+
+2.3-247 | 2014-10-21 13:42:38 -0700
+
+  * Updates to the SSL analyzer. (Johanna Amann)
+
+        * Mark everything below 2048 bit as a weak key.
+
+        * Fix notice suppression.
+
+        * Add information about server-chosen protocol to ssl.log, if
+          provided by application_layer_next_protocol.
+
+        * Add boolean flag to ssl.log signaling if a session was
+          resumed. Remove the (usually not really that useful) session
+          ID that the client sent.
+
+2.3-240 | 2014-10-21 13:36:33 -0700
+
+  * Fix Coverity-reported issues in DNP3 analyzer. (Seth Hall)
+
+2.3-238 | 2014-10-16 06:51:49 -0700
+
+  * Fix multipart HTTP/MIME entity file analysis so that (1) singular
+    CR or LF characters in multipart body content are no longer
+    converted to a full CRLF (thus corrupting the file) and (2) it
+    also no longer considers the CRLF before the multipart boundary as
+    part of the content. Addresses BIT-1235. (Jon Siwek)
+
+2.3-235 | 2014-10-15 10:20:47 -0500
+
+  * BIT-1273: Add error message for bad enum declaration syntax.
+    (Jon Siwek)
+
+2.3-234 | 2014-10-14 14:42:09 -0500
+
+  * Documentation fixes. (Steve Smoot)
+
+2.3-233 | 2014-10-09 16:00:27 -0500
+
+  * Change find-bro-logs unit test to follow symlinks. (Jon Siwek)
+
+  * Add error checks and messages to a test script (Daniel Thayer)
+
+2.3-230 | 2014-10-08 08:15:17 -0700
+
+  * Further baseline normalization for plugin test portability. (Robin
+    Sommer)
+
+2.3-229 | 2014-10-07 20:18:11 -0700
+
+  * Fix for test portability. (Robin Sommer)
+
+2.3-228 | 2014-10-07 15:32:37 -0700
+
+  * Include plugin unit tests into the top-level btest configuration. (Robin Sommer)
+
+  * Switching the prefix separator for packet source/dumper plugins
+    once more, now to "::". Addresses BIT-1267. (Robin Sommer)
+
+  * Fix for allowing a packet source/dumper plugin to support multiple
+    prefixes with a colon. (Robin Sommer)
+
+2.3-225 | 2014-10-07 15:13:35 -0700
+
+  * Updating plugin documentation. (Robin Sommer)
+
+2.3-224 | 2014-10-07 14:32:17 -0700
+
+  * Improved the log file reference documentation. (Jeannette Dopheide
+    and Daniel Thayer)
+
+  * Improves shockwave flash file signatures. (Seth Hall)
+
+     - This moves the signatures out of the libmagic imported signatures
+       and into our own general.sig.
+
+     - Expand the detection to LZMA compressed flash files.
+
+  * Add new script language reference documentation on operators,
+    statements, and directives.  Also improved the documentation on
+    types and attributes by splitting them into two docs, and
+    providing more examples and adding a chart on the top of each page
+    with links to each type and attribute for easier access to the
+    information. (Daniel Thayer)
+
+  * Split the types and attributes reference doc into two docs.
+    (Daniel Thayer)
+
+2.3-208 | 2014-10-03 09:38:52 -0500
+
+  * BIT-1268: Fix uninitialized router_list argument in
+    dhcp_offer/dhcp_ack. (Jon Siwek)
+
+2.3-207 | 2014-10-02 16:39:17 -0700
+
+  * Updating plugin docs. (Robin Sommer)
+
+  * Fix packet sources being treated as idle when a packet is
+    available. Addresses BIT-1266. (Jon Siwek)
+
+  * Fix regression causing the main loop to spin more frequently.
+    Addresses BIT-1266. (Jon Siwek)
+
+2.3-203 | 2014-09-29 20:06:54 -0700
+
+  * Fix to use length parameter in DNP3 time conversion correctly now.
+    (Robin Sommer)
+
+2.3-202 | 2014-09-29 17:05:18 -0700
+
+  * New SSL extension type from IANA and a few other SSL const
+    changes. (Johanna Amann)
+
+  * Make unexpected pipe errors fatal as precaution. Addresses
+    BIT-1260. (Jon Siwek)
+
+  * Adding a function for DNP3 to translate the timestamp format. (Hui
+    Lin)
+
+2.3-197 | 2014-09-29 10:42:01 -0500
+
+  * Fix possible seg fault in TCP reassembler. (Jon Siwek)
+
+2.3-196 | 2014-09-25 17:53:27 -0700
+
+  * Changing prefix for packet sources/dumper from ':' to '%'.
+    Addresses BIT-1249. (Robin Sommer)
+
+  * Remove timeouts from remote communication loop. The select() now
+    blocks until there's work to do instead of relying on a small
+    timeout value which can cause unproductive use of cpu cycles. (Jon
+    Siwek)
+
+  * Improve error message when failing to activate a plugin. Also fix
+    a unit test helper script that checks plugin availability. (Jon
+    Siwek)
+
+2.3-183 | 2014-09-24 10:08:04 -0500
+
+  * Add a "node" field to Intel::Seen struture and intel.log to
+    indicate which node discovered a hit on an intel item. (Seth Hall)
+
+  * BIT-1261: Fixes to plugin quick start doc. (Jon Siwek)
+
+2.3-180 | 2014-09-22 12:52:41 -0500
+
+  * BIT-1259: Fix issue w/ duplicate TCP reassembly deliveries.
+    (Jon Siwek)
+
+2.3-178 | 2014-09-18 14:29:46 -0500
+
+  * BIT-1256: Fix file analysis events from coming after bro_done().
+    (Jon Siwek)
+
+2.3-177 | 2014-09-17 09:41:27 -0500
+
+  * Documentation fixes. (Chris Mavrakis)
+
+2.3-174 | 2014-09-17 09:37:09 -0500
+
+  * Fixed some "make doc" warnings caused by reST formatting
+    (Daniel Thayer).
+
+2.3-172 | 2014-09-15 13:38:52 -0500
+
+  * Remove unneeded allocations for HTTP messages. (Jon Siwek)
+
+2.3-171 | 2014-09-15 11:14:57 -0500
+
+  * Fix a compile error on systems without pcap-int.h. (Jon Siwek)
+
+2.3-170 | 2014-09-12 19:28:01 -0700
+
+  * Fix incorrect data delivery skips after gap in HTTP Content-Range.
+    Addresses BIT-1247. (Jon Siwek)
+
+  * Fix file analysis placement of data after gap in HTTP
+    Content-Range. Addresses BIT-1248. (Jon Siwek)
+
+  * Fix issue w/ TCP reassembler not delivering some segments.
+    Addresses BIT-1246. (Jon Siwek)
+
+  * Fix MIME entity file data/gap ordering and raise http_entity_data
+    in line with data arrival. Addresses BIT-1240. (Jon Siwek)
+
+  * Implement file ID caching for MIME_Mail. (Jon Siwek)
+
+  * Fix a compile error. (Jon Siwek)
+
+2.3-161 | 2014-09-09 12:35:38 -0500
+
+  * Bugfixes and test updates/additions. (Robin Sommer)
+
+  * Interface tweaks and docs for PktSrc/PktDumper. (Robin Sommer)
+
+  * Moving PCAP-related bifs to iosource/pcap.bif. (Robin Sommer)
+
+  * Moving some of the BPF filtering code into base class.
+    This will allow packet sources that don't support BPF natively to
+    emulate the filtering via libpcap. (Robin Sommer)
+
+  * Removing FlowSrc. (Robin Sommer)
+
+  * Removing remaining pieces of the 2ndary path, and left-over
+    files of packet sorter. (Robin Sommer)
+
+  * A bunch of infrastructure work to move IOSource, IOSourceRegistry
+    (now iosource::Manager) and PktSrc/PktDumper code into iosource/,
+    and over to a plugin structure. (Robin Sommer)
+
+2.3-137 | 2014-09-08 19:01:13 -0500
+
+  * Fix Broxygen's rendering of opaque types. (Jon Siwek)
+
+2.3-136 | 2014-09-07 20:50:46 -0700
+
+  * Change more http links to https. (Johanna Amann)
+
+2.3-134 | 2014-09-04 16:16:36 -0700
+
+  * Fixed a number of issues with OCSP reply validation. Addresses
+    BIT-1212. (Johanna Amann)
+
+  * Fix null pointer dereference in OCSP verification code in case no
+    certificate is sent as part as the ocsp reply. Addresses BIT-1212.
+    (Johanna Amann)
+
+2.3-131 | 2014-09-04 16:10:32 -0700
+
+  * Make links in documentation templates protocol relative. (Johanna
+    Amann)
+
+2.3-129 | 2014-09-02 17:21:21 -0700
+
+  * Simplify a conditional with equivalent branches. (Jon Siwek)
+
+  * Change EDNS parsing code to use rdlength more cautiously. (Jon
+    Siwek)
+
+  * Fix a memory leak when bind() fails due to EADDRINUSE. (Jon Siwek)
+
+  * Fix possible buffer over-read in DNS TSIG parsing. (Jon Siwek)
+
+2.3-124 | 2014-08-26 09:24:19 -0500
+
+  * Better documentation for sub_bytes (Jimmy Jones)
+
+  * BIT-1234: Fix build on systems that already have ntohll/htonll
+    (Jon Siwek)
+
+2.3-121 | 2014-08-22 15:22:15 -0700
+
+  * Detect functions that try to bind variables from an outer scope
+    and raise an error saying that's not supported. Addresses
+    BIT-1233. (Jon Siwek)
+
+2.3-116 | 2014-08-21 16:04:13 -0500
+
+  * Adding plugin testing to Makefile's test-all. (Robin Sommer)
+
+  * Converting log writers and input readers to plugins.
+    DataSeries and ElasticSearch plugins have moved to the new
+    bro-plugins repository, which is now a git submodule in the
+    aux/plugins directory. (Robin Sommer)
+
+2.3-98 | 2014-08-19 11:03:46 -0500
+
+  * Silence some doc-related warnings when using `bro -e`.
+    Closes BIT-1232. (Jon Siwek)
+
+  * Fix possible null ptr derefs reported by Coverity. (Jon Siwek)
+
+2.3-96 | 2014-08-01 14:35:01 -0700
+
+  * Small change to DHCP documentation. In server->client messages the
+    host name may differ from the one requested by the client.
+    (Johanna Amann)
+
+  * Split DHCP log writing from record creation. This allows users to
+    customize dhcp.log by changing the record in their own dhcp_ack
+    event. (Johanna Amann)
+
+  * Update PATH so that documentation btests can find bro-cut. (Daniel
+    Thayer)
+
+  * Remove gawk from list of optional packages in documentation.
+    (Daniel Thayer)
+
+  * Fix for redefining built-in constants. (Robin Sommer)
+
+2.3-86 | 2014-07-31 14:19:58 -0700
+
+  * Fix for redefining built-in constants. (Robin Sommer)
+
+  * Adding missing check that a plugin's API version matches what Bro
+    defines. (Robin Sommer)
+
+  * Adding NEWS entry for plugins. (Robin Sommer)
+
+2.3-83 | 2014-07-30 16:26:11 -0500
+
+  * Minor adjustments to plugin code/docs. (Jon Siwek)
+
+  * Dynamic plugin support. (Rpbin Sommer)
+
+    Bro now supports extending core functionality, like protocol and
+    file analysis, dynamically with external plugins in the form of
+    shared libraries. See doc/devel/plugins.rst for an overview of the
+    main functionality. Changes coming with this:
+
+        - Replacing the old Plugin macro magic with a new API.
+
+        - The plugin API changed to generally use std::strings instead
+          of const char*.
+
+        - There are a number of invocations of PLUGIN_HOOK_
+          {VOID,WITH_RESULT} across the code base, which allow plugins
+          to hook into the processing at those locations.
+
+        - A few new accessor methods to various classes to allow
+          plugins to get to that information.
+
+        - network_time cannot be just assigned to anymore, there's now
+          function net_update_time() for that.
+
+        - Redoing how builtin variables are initialized, so that it
+          works for plugins as well. No more init_net_var(), but
+          instead bifcl-generated code that registers them.
+
+        - Various changes for adjusting to the now dynamic generation
+          of analyzer instances.
+
+    - same_type() gets an optional extra argument allowing record type
+      comparision to ignore if field names don't match. (Robin Sommer)
+
+    - Further unify file analysis API with the protocol analyzer API
+      (assigning IDs to analyzers; adding Init()/Done() methods;
+      adding subtypes). (Robin Sommer)
+
+    - A new command line option -Q that prints some basic execution
+      time stats. (Robin Sommer)
+
+    - Add support to the file analysis for activating analyzers by
+      MIME type. (Robin Sommer)
+
+          - File::register_for_mime_type(tag: Analyzer::Tag, mt:
+            string): Associates a file analyzer with a MIME type.
+
+          - File::add_analyzers_for_mime_type(f: fa_file, mtype:
+            string): Activates all analyzers registered for a MIME
+            type for the file.
+
+          - The default file_new() handler calls
+            File::add_analyzers_for_mime_type() with the file's MIME
+            type.
+
+2.3-20 | 2014-07-22 17:41:02 -0700
+
+  * Updating submodule(s).
+
+2.3-19 | 2014-07-22 17:29:19 -0700
+
+  * Implement bytestring_to_coils() in Modbus analyzer so that coils
+    gets passed to the corresponding events. (Hui Lin)
+
+  * Add length field to ModbusHeaders. (Hui Lin)
+
+2.3-12 | 2014-07-10 19:17:37 -0500
+
+  * Include yield of vectors in Broxygen's type descriptions.
+    Addresses BIT-1217. (Jon Siwek)
+
+2.3-11 | 2014-07-10 14:49:27 -0700
+
+  * Fixing DataSeries output. It was using a now illegal value as its
+    default compression level. (Robin Sommer)
+
+2.3-7 | 2014-06-26 17:35:18 -0700
+
+  * Extending "make test-all" to include aux/bro-aux. (Robin Sommer)
+
+2.3-6 | 2014-06-26 17:24:10 -0700
+
+  * DataSeries compilation issue fixed. (mlaterman)
+
+  * Fix a reference counting bug in ListVal ctor. (Jon Siwek)
+
+2.3-3 | 2014-06-26 15:41:04 -0500
+
+  * Support tilde expansion when Bro tries to find its own path. (Jon
+    Siwek)
+
+2.3-2 | 2014-06-23 16:54:15 -0500
+
+  * Remove references to line numbers in tutorial text. (Daniel Thayer)
+
+2.3 | 2014-06-16 09:48:25 -0500
+
+  * Release 2.3.
+
+2.3-beta-33 | 2014-06-12 11:59:28 -0500
+
+  * Documentation improvements/fixes. (Daniel Thayer)
+
+2.3-beta-24 | 2014-06-11 15:35:31 -0500
+
+  * Fix SMTP state tracking when server response is missing.
+    (Robin Sommer)
+
+2.3-beta-22 | 2014-06-11 12:31:38 -0500
+
+  * Fix doc/test that broke due to a Bro script change. (Jon Siwek)
+
+  * Remove unused --with-libmagic configure option. (Jon Siwek)
+
+2.3-beta-20 | 2014-06-10 18:16:51 -0700
+
+  * Fix use-after-free in some cases of reassigning a table index.
+    Addresses BIT-1202. (Jon Siwek)
+
+2.3-beta-18 | 2014-06-06 13:11:50 -0700
+
+  * Add two more SSL events, one triggered for each handshake message
+    and one triggered for the tls change cipherspec message. (Bernhard
+    Amann)
+
+  * Small SSL bug fix. In case SSL::disable_analyzer_after_detection
+    was set to false, the ssl_established event would fire after each
+    data packet once the session is established. (Bernhard Amann)
+
+2.3-beta-16 | 2014-06-06 13:05:44 -0700
+
+  * Re-activate notice suppression for expiring certificates.
+    (Bernhard Amann)
+
+2.3-beta-14 | 2014-06-05 14:43:33 -0700
+
+  * Add new TLS extension type numbers from IANA (Bernhard Amann)
+
+  * Switch to double hashing for Bloomfilters for better performance.
+    (Matthias Vallentin)
+
+  * Bugfix to use full digest length instead of just one byte for
+    Bloomfilter's universal hash function. Addresses BIT-1140.
+    (Matthias Vallentin)
+
+  * Make buffer for X509 certificate subjects larger. Addresses
+    BIT-1195 (Bernhard Amann)
+
+2.3-beta-5 | 2014-05-29 15:34:42 -0500
+
+  * Fix misc/load-balancing.bro's reference to
+    PacketFilter::sampling_filter (Jon Siwek)
+
+2.3-beta-4 | 2014-05-28 14:55:24 -0500
+
+  * Fix potential mem leak in remote function/event unserialization.
+    (Jon Siwek)
+
+  * Fix reference counting bug in table coercion expressions (Jon Siwek)
+
+  * Fix an "unused value" warning. (Jon Siwek)
+
+  * Remove a duplicate unit test baseline dir. (Jon Siwek)
+
+2.3-beta | 2014-05-19 16:36:50 -0500
+
+  * Release 2.3-beta
+
+  * Clean up OpenSSL data structures on exit. (Bernhard Amann)
+
+  * Fixes for OCSP & x509 analysis memory leak issues. (Bernhard Amann)
+
+  * Remove remaining references to BROMAGIC (Daniel Thayer)
+
+  * Fix typos and formatting in event and BiF documentation (Daniel Thayer)
+
+  * Update intel framework plugin for ssl server_name extension API
+    changes. (Bernhard Amann, Justin Azoff)
+
+  * Fix expression errors in SSL/x509 scripts when unparseable data
+    is in certificate chain. (Bernhard Amann)
+
+2.2-478 | 2014-05-19 15:31:33 -0500
+
+  * Change record ctors to only allow record-field-assignment
+    expressions. (Jon Siwek)
+
+2.2-477 | 2014-05-19 14:13:00 -0500
+
+  * Fix X509::Result record's "result" field to be set internally as type int instead of type count. (Bernhard Amann)
+
+  * Fix a couple of doc build warnings (Daniel Thayer)
+
+2.2-470 | 2014-05-16 15:16:32 -0700
+
+  * Add a new section "Cluster Configuration" to the docs that is
+    intended as a how-to for configuring a Bro cluster.  Most of this
+    content was moved here from the BroControl doc (which is now
+    intended as more of a reference guide for more experienced users)
+    and the load balancing FAQ on the website. (Daniel Thayer)
+
+  * Update some doc tests and line numbers (Daniel Thayer)
+
+2.2-457 | 2014-05-16 14:38:31 -0700
+
+  * New script policy/protocols/ssl/validate-ocsp.bro that adds OSCP
+    validation to ssl.log. The work is done by a new bif
+    x509_ocsp_verify(). (Bernhard Amann)
+
+  * STARTTLS support for POP3 and SMTP. The SSL analyzer takes over
+    when seen. smtp.log now logs when a connection switches to SSL.
+    (Bernhard Amann)
+
+  * Replace errors when parsing x509 certs with weirds. (Bernhard
+    Amann)
+
+  * Improved Heartbleed attack/scan detection. (Bernhard Amann)
+
+  * Let TLS analyzer fail better when no longer in sync with the data
+    stream. (Bernhard Amann)
+
+2.2-444 | 2014-05-16 14:10:32 -0500
+
+  * Disable all default AppStat plugins except facebook. (Jon Siwek)
+
+  * Update for the active http test to force it to use ipv4. (Seth Hall)
+
+2.2-441 | 2014-05-15 11:29:56 -0700
+
+  * A new RADIUS analyzer. (Vlad Grigorescu)
+
+    It produces a radius.log and generates two events:
+
+        event radius_message(c: connection, result: RADIUS::Message);
+        event radius_attribute(c: connection, attr_type: count, value: string);
+
+2.2-427 | 2014-05-15 13:37:23 -0400
+
+  * Fix dynamic SumStats update on clusters (Bernhard Amann)
+
 2.2-425 | 2014-05-08 16:34:44 -0700
 
   * Fix reassembly of data w/ sizes beyond 32-bit capacities. (Jon Siwek)
@@ -13,12 +1485,12 @@
     *Undelivered methods now use a uint64 in place of an int for the
     relative sequence space offset parameter.
 
-    Addresses BIT-348. 
+    Addresses BIT-348.
 
   * Fixing compiler warnings. (Robin Sommer)
-    
+
   * Update SNMP analyzer's DeliverPacket method signature. (Jon Siwek)
-    
+
 2.2-417 | 2014-05-07 10:59:22 -0500
 
   * Change handling of atypical OpenSSL error case in x509 verification. (Jon Siwek)
@@ -58,7 +1530,7 @@
 2.2-397 | 2014-05-01 20:29:20 -0700
 
   * Fix reference counting for lookup_ID() usages. (Jon Siwek)
-    
+
 2.2-395 | 2014-05-01 20:25:48 -0700
 
   * Fix missing "irc-dcc-data" service field from IRC DCC connections.
@@ -71,7 +1543,7 @@
     Siwek)
 
   * Improve file analysis manager shutdown/cleanup. (Jon Siwek)
-    
+
 2.2-388 | 2014-04-24 18:38:07 -0700
 
   * Fix decoding of MIME quoted-printable. (Mareq)
@@ -84,11 +1556,11 @@
 2.2-381 | 2014-04-24 17:08:45 -0700
 
   * Add Java version to software framework. (Brian Little)
-    
+
 2.2-379 | 2014-04-24 17:06:21 -0700
 
   * Remove unused Val::attribs member. (Jon Siwek)
-    
+
 2.2-377 | 2014-04-24 16:57:54 -0700
 
   * A larger set of SSL improvements and extensions. Addresses
@@ -101,7 +1573,7 @@
           server_name, alpn, and ec-curves.
 
         - Adds support for the heartbeat events.
-          
+
         - Add Heartbleed detector script.
 
         - Adds basic support for OCSP stapling.
@@ -112,7 +1584,7 @@
 2.2-353 | 2014-04-24 16:12:30 -0700
 
   * Adapt HTTP partial content to cache file analysis IDs. (Jon Siwek)
-    
+
   * Adapt SSL analyzer to generate file analysis handles itself. (Jon
     Siwek)
 
@@ -128,11 +1600,11 @@
     Siwek)
 
   * Refactor file analysis file ID lookup. (Jon Siwek)
-    
+
 2.2-344 | 2014-04-22 20:13:30 -0700
 
   * Refactor various hex escaping code. (Jon Siwek)
-    
+
 2.2-341 | 2014-04-17 18:01:41 -0500
 
   * Fix duplicate DNS log entries. (Robin Sommer)
@@ -140,9 +1612,9 @@
 2.2-341 | 2014-04-17 18:01:01 -0500
 
   * Refactor initialization of ASCII log writer options. (Jon Siwek)
-    
+
   * Fix a memory leak in ASCII log writer. (Jon Siwek)
-    
+
 2.2-338 | 2014-04-17 17:48:17 -0500
 
   * Disable input/logging threads setting their names on every
@@ -154,7 +1626,7 @@
 2.2-335 | 2014-04-10 15:04:57 -0700
 
   * Small logic fix for main SSL script. (Bernhard Amann)
-    
+
   * Update DPD signatures for detecting TLS 1.2. (Bernhard Amann)
 
   * Remove unused data member of SMTP_Analyzer to silence a Coverity
@@ -178,7 +1650,7 @@
 
 2.2-317 | 2014-04-03 10:51:31 -0400
 
-  * Add a uid field to the signatures.log.  Addresses BIT-1171 
+  * Add a uid field to the signatures.log.  Addresses BIT-1171
     (Anthony Verez)
 
 2.2-315 | 2014-04-01 16:50:01 -0700
@@ -189,7 +1661,7 @@
 2.2-313 | 2014-04-01 16:40:19 -0700
 
   * Fix a couple nits reported by Coverity.(Jon Siwek)
-    
+
   * Fix potential memory leak in IP frag reassembly reported by
     Coverity. (Jon Siwek)
 
@@ -279,14 +1751,14 @@
 2.2-271 | 2014-03-30 20:25:17 +0200
 
   * Add unit tests covering vector/set/table ctors/inits. (Jon Siwek)
-    
+
   * Fix parsing of "local" named table constructors. (Jon Siwek)
 
   * Improve type checking of records. Addresses BIT-1159. (Jon Siwek)
-    
+
 2.2-267 | 2014-03-30 20:21:43 +0200
 
-  * Improve documentation of Bro clusters. Addresses BIT-1160. 
+  * Improve documentation of Bro clusters. Addresses BIT-1160.
     (Daniel Thayer)
 
 2.2-263 | 2014-03-30 20:19:05 +0200
@@ -313,7 +1785,7 @@
 2.2-254 | 2014-03-30 19:55:22 +0200
 
   * Update instructions on how to build Bro docs. (Daniel Thayer)
-    
+
 2.2-251 | 2014-03-28 08:37:37 -0400
 
   * Quick fix to the ElasticSearch writer. (Seth Hall)
@@ -343,7 +1815,7 @@
     formatter work.
 
   * Fixing compiler error. (Robin Sommer)
-    
+
   * Fixing (very unlikely) double delete in HTTP analyzer when
     decapsulating CONNECTs. (Robin Sommer)
 
@@ -369,7 +1841,7 @@
     Addresses BIT-1134. (Jon Siwek)
 
   * Enable fake DNS mode for test suites.
-    
+
   * Improve analysis of TCP SYN/SYN-ACK reversal situations. (Jon
     Siwek)
 
@@ -401,7 +1873,7 @@
     (Jon Siwek)
 
   * Silences some documentation warnings from Sphinx. (Jon Siwek)
-    
+
 2.2-215 | 2014-03-10 11:10:15 -0700
 
   * Fix non-deterministic logging of unmatched DNS msgs. Addresses
@@ -439,7 +1911,7 @@
     HTTP traffic. (Seth Hall)
 
   * Fixing removal of support analyzers. (Robin Sommer)
-    
+
 2.2-199 | 2014-03-03 16:34:20 -0800
 
   * Allow iterating over bif functions with result type vector of any.
@@ -454,11 +1926,11 @@
 2.2-194 | 2014-02-28 14:50:53 -0800
 
   * Remove packet sorter. Addresses BIT-700. (Bernhard Amann)
-    
+
 2.2-192 | 2014-02-28 09:46:43 -0800
 
   * Update Mozilla root bundle. (Bernhard Amann)
-    
+
 2.2-190 | 2014-02-27 07:34:44 -0800
 
   * Adjust timings of a few leak tests. (Bernhard Amann)
@@ -488,7 +1960,7 @@
 2.2-177 | 2014-02-20 17:27:46 -0800
 
   * Update to libmagic version 5.17. Addresses BIT-1136. (Jon Siwek)
-    
+
 2.2-174 | 2014-02-14 12:07:04 -0800
 
   * Support for MPLS over VLAN. (Chris Kanich)
@@ -517,7 +1989,7 @@
     defined, but we see it being actively used. (Bernhard Amann)
 
   * Test baseline updates for DNS change. (Robin Sommer)
-    
+
 2.2-158 | 2014-02-09 23:45:39 -0500
 
   * Change dns.log to include only standard DNS queries. (Jon Siwek)
@@ -593,7 +2065,7 @@
 2.2-128 | 2014-01-30 15:58:47 -0800
 
   * Add leak test for Exec module. (Bernhard Amann)
-    
+
   * Fix file_over_new_connection event to trigger when entire file is
     missed. (Jon Siwek)
 
@@ -606,7 +2078,7 @@
     "detect_filtered_trace". (Jon Siwek)
 
   * Improve TCP FIN retransmission handling. (Jon Siwek)
-    
+
 2.2-120 | 2014-01-28 10:25:23 -0800
 
   * Fix and extend x509_extension() event, which now actually returns
@@ -624,10 +2096,10 @@
 2.2-115 | 2014-01-22 12:11:18 -0800
 
   * Add unit tests for new Bro Manual docs. (Jon Siwek)
-    
+
   * New content for the "Using Bro" section of the manual. (Rafael
     Bonilla/Jon Siwek)
-    
+
 2.2-105 | 2014-01-20 12:16:48 -0800
 
   * Support GRE tunnel decapsulation, including enhanced GRE headers.
@@ -636,7 +2108,7 @@
     Addresses BIT-867. (Jon Siwek)
 
   * Simplify FragReassembler memory management. (Jon Siwek)
-    
+
 2.2-102 | 2014-01-20 12:00:29 -0800
 
   * Include file information (MIME type and description) into notice
@@ -645,7 +2117,7 @@
 2.2-100 | 2014-01-20 11:54:58 -0800
 
   * Fix caching of recently validated SSL certifcates. (Justin Azoff)
-    
+
 2.2-98 | 2014-01-20 11:50:32 -0800
 
   * For notice suppresion, instead of storing the entire notice in
@@ -673,7 +2145,7 @@
     the city database instead of just the former. (Jon Siwek)
 
   * Broxygen init fixes. Addresses BIT-1110. (Jon Siwek)
-    
+
     - Don't check mtime of bro binary if BRO_DISABLE_BROXYGEN env var set.
 
     - Fix failure to locate bro binary if invoking from a relative
@@ -686,7 +2158,7 @@
     len field being set to zero. (Seth Hall)
 
   * Canonify output of a unit test. (Jon Siwek)
-    
+
   * A set of documentation updates. (Daniel Thayer)
 
       - Fix typo in Bro 2.2 NEWS on string indexing.
@@ -733,9 +2205,9 @@
     (Jon Siwek)
 
   * Close signature files after done parsing. (Jon Siwek)
-    
+
   * Fix unlikely null ptr deref in broxygen::Manager. (Jon Siwek)
-    
+
   * FreeBSD build fix addendum: unintended variable shadowing. (Jon
     Siwek)
 
@@ -754,7 +2226,7 @@
     were cleaned up. Addresses BIT-1103. (Bernhard Amann)
 
   * Minor Broxygen improvements. Addresses BIT-1098. (Jon Siwek)
-    
+
 2.2-51 | 2013-12-05 07:53:37 -0800
 
   * Improve a unit test involving 'when' conditionals. (Jon Siwek)
@@ -779,7 +2251,7 @@
 2.2-44 | 2013-12-04 12:41:51 -0800
 
   * Fix string slice notation. Addresses BIT-1097. (Jon Siwek)
-    
+
     Slice ranges were not correctly determined for negative indices
     and also off by one in general (included one more element at the
     end of the substring than what actually matched the index range).
@@ -834,7 +2306,7 @@
 2.2-11 | 2013-12-03 10:56:28 -0800
 
   * Unit test for broccoli vector support. (Jon Siwek)
-    
+
   * Changed ordering of Bro type tag enum, which was out of sync. (Jon
     Siwek)
 
@@ -846,14 +2318,14 @@
 2.2-6 | 2013-11-15 07:05:15 -0800
 
   * Make "install-example-configs" target use DESTDIR. (Jon Siwek)
-    
+
 2.2-5 | 2013-11-11 13:47:54 -0800
 
   * Fix the irc_reply event for certain server message types. (Seth
     Hall)
 
   * Fixed Segmentation fault in SQLite Writer. (Jon Crussell)
-    
+
 2.2 | 2013-11-07 10:25:50 -0800
 
   * Release 2.2.

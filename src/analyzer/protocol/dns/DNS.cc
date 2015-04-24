@@ -19,6 +19,7 @@ using namespace analyzer::dns;
 DNS_Interpreter::DNS_Interpreter(analyzer::Analyzer* arg_analyzer)
 	{
 	analyzer = arg_analyzer;
+	first_message = true;
 	}
 
 int DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query)
@@ -32,6 +33,16 @@ int DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query)
 		}
 
 	DNS_MsgInfo msg((DNS_RawMsgHdr*) data, is_query);
+
+	if ( first_message && msg.QR && is_query == 1 )
+		{
+		is_query = msg.is_query = 0;
+
+		if ( ! analyzer->Conn()->RespAddr().IsMulticast() )
+			analyzer->Conn()->FlipRoles();
+		}
+
+	first_message = false;
 
 	if ( dns_message )
 		{
@@ -308,7 +319,7 @@ int DNS_Interpreter::ParseAnswer(DNS_MsgInfo* msg,
 				analyzer->ConnectionEvent(dns_unknown_reply, vl);
 				}
 
-			analyzer->Weird("DNS_RR_unknown_type");
+			analyzer->Weird("DNS_RR_unknown_type", fmt("%d", msg->atype));
 			data += rdlength;
 			len -= rdlength;
 			status = 1;
@@ -692,13 +703,21 @@ int DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
 		data += rdlength;
 		len -= rdlength;
 		}
-	else
-		{ // no data, move on
-		data += rdlength;
-		len -= rdlength;
-		}
 
 	return 1;
+	}
+
+void DNS_Interpreter::ExtractOctets(const u_char*& data, int& len,
+                                    BroString** p)
+	{
+	uint16 dlen = ExtractShort(data, len);
+	dlen = min(len, static_cast<int>(dlen));
+
+	if ( p )
+		*p = new BroString(data, dlen, 0);
+
+	data += dlen;
+	len -= dlen;
 	}
 
 int DNS_Interpreter::ParseRR_TSIG(DNS_MsgInfo* msg,
@@ -718,24 +737,17 @@ int DNS_Interpreter::ParseRR_TSIG(DNS_MsgInfo* msg,
 	uint32 sign_time_sec = ExtractLong(data, len);
 	unsigned int sign_time_msec = ExtractShort(data, len);
 	unsigned int fudge = ExtractShort(data, len);
-
-	u_char request_MAC[16];
-	memcpy(request_MAC, data, sizeof(request_MAC));
-
-	// Here we adjust the size of the requested MAC + u_int16_t
-	// for length.  See RFC 2845, sec 2.3.
-	int n = sizeof(request_MAC) + sizeof(u_int16_t);
-	data += n;
-	len -= n;
-
+	BroString* request_MAC;
+	ExtractOctets(data, len, &request_MAC);
 	unsigned int orig_id = ExtractShort(data, len);
 	unsigned int rr_error = ExtractShort(data, len);
+	ExtractOctets(data, len, 0);  // Other Data
 
 	msg->tsig = new TSIG_DATA;
 
 	msg->tsig->alg_name =
 		new BroString(alg_name, alg_name_end - alg_name, 1);
-	msg->tsig->sig = new BroString(request_MAC, sizeof(request_MAC), 1);
+	msg->tsig->sig = request_MAC;
 	msg->tsig->time_s = sign_time_sec;
 	msg->tsig->time_ms = sign_time_msec;
 	msg->tsig->fudge = fudge;
@@ -1063,7 +1075,8 @@ void Contents_DNS::Flush()
 	{
 	if ( buf_n > 0 )
 		{ // Deliver partial message.
-		interp->ParseMessage(msg_buf, buf_n, true);
+		// '2' here means whether it's a query is unknown.
+		interp->ParseMessage(msg_buf, buf_n, 2);
 		msg_size = 0;
 		}
 	}

@@ -43,12 +43,13 @@ export {
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(Known::CERTS_LOG, [$columns=CertsInfo, $ev=log_known_certs]);
+	Log::create_stream(Known::CERTS_LOG, [$columns=CertsInfo, $ev=log_known_certs, $path="known_certs"]);
 	}
 
 event ssl_established(c: connection) &priority=3
 	{
-	if ( ! c$ssl?$cert_chain || |c$ssl$cert_chain| < 1 )
+	if ( ! c$ssl?$cert_chain || |c$ssl$cert_chain| < 1 ||
+	     ! c$ssl$cert_chain[0]?$x509 )
 		return;
 
 	local fuid = c$ssl$cert_chain_fuids[0];

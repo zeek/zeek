@@ -1,12 +1,17 @@
 FILE_NEW
 file #0, 0, 0
-MIME_TYPE
-application/pdf
 FILE_OVER_NEW_CONNECTION
 FILE_OVER_NEW_CONNECTION
 FILE_STATE_REMOVE
 file #0, 555523, 0
 [orig_h=10.101.84.70, orig_p=10978/tcp, resp_h=129.174.93.161, resp_p=80/tcp]
 [orig_h=10.101.84.70, orig_p=10977/tcp, resp_h=129.174.93.161, resp_p=80/tcp]
+FILE_BOF_BUFFER
+%PDF-1.4\x0a%\xd0
+MIME_TYPE
+application/pdf
 total bytes: 555523
 source: HTTP
+MD5: 5a484ada9c816c0e8b6d2d3978e3f503
+SHA1: 54e7d39e99eb9d40d6251c0361a1090a0d278571
+SHA256: 61c0718bd534ab55716eba161e91bb49155562ddc7c08f0c20f6359d7b808b66

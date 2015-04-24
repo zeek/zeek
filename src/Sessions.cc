@@ -167,7 +167,7 @@ void NetSessions::Done()
 
 void NetSessions::DispatchPacket(double t, const struct pcap_pkthdr* hdr,
 			const u_char* pkt, int hdr_size,
-			PktSrc* src_ps)
+			iosource::PktSrc* src_ps)
 	{
 	const struct ip* ip_hdr = 0;
 	const u_char* ip_data = 0;
@@ -184,10 +184,7 @@ void NetSessions::DispatchPacket(double t, const struct pcap_pkthdr* hdr,
 		// Blanket encapsulation
 		hdr_size += encap_hdr_size;
 
-	if ( src_ps->FilterType() == TYPE_FILTER_NORMAL )
-		NextPacket(t, hdr, pkt, hdr_size);
-	else
-		NextPacketSecondary(t, hdr, pkt, hdr_size, src_ps);
+	NextPacket(t, hdr, pkt, hdr_size);
 	}
 
 void NetSessions::NextPacket(double t, const struct pcap_pkthdr* hdr,
@@ -260,53 +257,6 @@ void NetSessions::NextPacket(double t, const struct pcap_pkthdr* hdr,
 
 	if ( dump_this_packet && ! record_all_packets )
 		DumpPacket(hdr, pkt);
-	}
-
-void NetSessions::NextPacketSecondary(double /* t */, const struct pcap_pkthdr* hdr,
-				const u_char* const pkt, int hdr_size,
-				const PktSrc* src_ps)
-	{
-	SegmentProfiler(segment_logger, "processing-secondary-packet");
-
-	++num_packets_processed;
-
-	uint32 caplen = hdr->caplen - hdr_size;
-	if ( caplen < sizeof(struct ip) )
-		{
-		Weird("truncated_IP", hdr, pkt);
-		return;
-		}
-
-	const struct ip* ip = (const struct ip*) (pkt + hdr_size);
-	if ( ip->ip_v == 4 )
-		{
-		const secondary_program_list& spt = src_ps->ProgramTable();
-
-		loop_over_list(spt, i)
-			{
-			SecondaryProgram* sp = spt[i];
-			if ( ! net_packet_match(sp->Program(), pkt,
-						hdr->len, hdr->caplen) )
-				continue;
-
-			val_list* args = new val_list;
-			StringVal* cmd_val =
-				new StringVal(sp->Event()->Filter());
-			args->append(cmd_val);
-			IP_Hdr ip_hdr(ip, false);
-			args->append(ip_hdr.BuildPktHdrVal());
-			// ### Need to queue event here.
-			try
-				{
-				sp->Event()->Event()->Call(args);
-				}
-
-			catch ( InterpreterException& e )
-				{ /* Already reported. */ }
-
-			delete args;
-			}
-		}
 	}
 
 int NetSessions::CheckConnectionTag(Connection* conn)
@@ -516,6 +466,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 	id.src_addr = ip_hdr->SrcAddr();
 	id.dst_addr = ip_hdr->DstAddr();
 	Dictionary* d = 0;
+	BifEnum::Tunnel::Type tunnel_type = BifEnum::Tunnel::IP;
 
 	switch ( proto ) {
 	case IPPROTO_TCP:
@@ -594,7 +545,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 			if ( proto_typ != 0x0800 && proto_typ != 0x86dd )
 				{
 				// Not IPv4/IPv6 payload.
-				Weird(fmt("unknown_gre_protocol_%"PRIu16, proto_typ), ip_hdr,
+				Weird(fmt("unknown_gre_protocol_%" PRIu16, proto_typ), ip_hdr,
 				      encapsulation);
 				return;
 				}
@@ -656,6 +607,8 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 
 		// Treat GRE tunnel like IP tunnels, fallthrough to logic below now
 		// that GRE header is stripped and only payload packet remains.
+		// The only thing different is the tunnel type enum value to use.
+		tunnel_type = BifEnum::Tunnel::GRE;
 		}
 
 	case IPPROTO_IPV4:
@@ -703,7 +656,8 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 
 		if ( it == ip_tunnels.end() )
 			{
-			EncapsulatingConn ec(ip_hdr->SrcAddr(), ip_hdr->DstAddr());
+			EncapsulatingConn ec(ip_hdr->SrcAddr(), ip_hdr->DstAddr(),
+			                     tunnel_type);
 			ip_tunnels[tunnel_idx] = TunnelActivity(ec, network_time);
 			timer_mgr->Add(new IPTunnelTimer(network_time, tunnel_idx));
 			}
@@ -1440,14 +1394,24 @@ void NetSessions::DumpPacket(const struct pcap_pkthdr* hdr,
 		return;
 
 	if ( len == 0 )
-		pkt_dumper->Dump(hdr, pkt);
+		{
+		iosource::PktDumper::Packet p;
+		p.hdr = hdr;
+		p.data = pkt;
+		pkt_dumper->Dump(&p);
+		}
+
 	else
 		{
 		struct pcap_pkthdr h = *hdr;
 		h.caplen = len;
 		if ( h.caplen > hdr->caplen )
 			reporter->InternalError("bad modified caplen");
-		pkt_dumper->Dump(&h, pkt);
+
+		iosource::PktDumper::Packet p;
+		p.hdr = &h;
+		p.data = pkt;
+		pkt_dumper->Dump(&p);
 		}
 	}
 

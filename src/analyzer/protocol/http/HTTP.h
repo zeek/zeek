@@ -10,7 +10,7 @@
 #include "analyzer/protocol/mime/MIME.h"
 #include "binpac_bro.h"
 #include "IPAddr.h"
-#include "events.bif.h"
+#include "analyzer/protocol/http/events.bif.h"
 
 #include "HTTP.h"
 
@@ -99,6 +99,8 @@ enum {
 // HTTP_MessageDone	-> {Request,Reply}Made
 
 class HTTP_Message : public mime::MIME_Message {
+friend class HTTP_Entity;
+
 public:
 	HTTP_Message(HTTP_Analyzer* analyzer, tcp::ContentLine_Analyzer* cl,
 			 bool is_orig, int expect_body, int64_t init_header_length);
@@ -132,13 +134,7 @@ protected:
 	tcp::ContentLine_Analyzer* content_line;
 	bool is_orig;
 
-	vector<const BroString*> buffers;
-
-	// Controls the total buffer size within http_entity_data_delivery_size.
-	int total_buffer_size;
-
-	int buffer_offset, buffer_size;
-	BroString* data_buffer;
+	char* entity_data_buffer;
 
 	double start_time;
 
@@ -151,9 +147,6 @@ protected:
 
 	HTTP_Entity* current_entity;
 
-	int InitBuffer(int64_t length);
-	void DeliverEntityData();
-
 	Val* BuildMessageStat(const int interrupted, const char* msg);
 };
 
@@ -165,7 +158,7 @@ public:
 	void Undelivered(tcp::TCP_Endpoint* sender, uint64 seq, int len);
 
 	void HTTP_Header(int is_orig, mime::MIME_Header* h);
-	void HTTP_EntityData(int is_orig, const BroString* entity_data);
+	void HTTP_EntityData(int is_orig, BroString* entity_data);
 	void HTTP_MessageDone(int is_orig, HTTP_Message* message);
 	void HTTP_Event(const char* category, const char* detail);
 	void HTTP_Event(const char* category, StringVal *detail);
@@ -186,7 +179,7 @@ public:
 	virtual void ConnectionReset();
 	virtual void PacketWithRST();
 
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new HTTP_Analyzer(conn); }
 
 	static bool Available()

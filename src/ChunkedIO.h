@@ -6,7 +6,8 @@
 #include "config.h"
 #include "List.h"
 #include "util.h"
-
+#include "Flare.h"
+#include "iosource/FD_Set.h"
 #include <list>
 
 #ifdef NEED_KRB5_H
@@ -95,6 +96,11 @@ public:
 	// Returns underlying fd if available, -1 otherwise.
 	virtual int Fd()	{ return -1; }
 
+	// Returns supplementary file descriptors that become read-ready in order
+	// to signal that there is some work that can be performed.
+	virtual iosource::FD_Set ExtraReadFDs() const
+		{ return iosource::FD_Set(); }
+
 	// Makes sure that no additional protocol data is written into
 	// the output stream.  If this is activated, the output cannot
 	// be read again by any of these classes!
@@ -177,6 +183,7 @@ public:
 	virtual void Clear();
 	virtual bool Eof()	{ return eof; }
 	virtual int Fd()	{ return fd; }
+	virtual iosource::FD_Set ExtraReadFDs() const;
 	virtual void Stats(char* buffer, int length);
 
 private:
@@ -214,13 +221,6 @@ private:
 	// than BUFFER_SIZE.
 	static const uint32 FLAG_PARTIAL = 0x80000000;
 
-	// We report that we're filling up when there are more than this number
-	// of pending chunks.
-	static const uint32 MAX_BUFFERED_CHUNKS_SOFT = 400000;
-
-	// Maximum number of chunks we store in memory before rejecting writes.
-	static const uint32 MAX_BUFFERED_CHUNKS = 500000;
-
 	char* read_buffer;
 	uint32 read_len;
 	uint32 read_pos;
@@ -240,6 +240,8 @@ private:
 	ChunkQueue* pending_tail;
 
 	pid_t pid;
+	bro::Flare write_flare;
+	bro::Flare read_flare;
 };
 
 // Chunked I/O using an SSL connection.
@@ -262,11 +264,10 @@ public:
 	virtual void Clear();
 	virtual bool Eof()	{ return eof; }
 	virtual int Fd()	{ return socket; }
+	virtual iosource::FD_Set ExtraReadFDs() const;
 	virtual void Stats(char* buffer, int length);
 
 private:
-	// Maximum number of chunks we store in memory before rejecting writes.
-	static const uint32 MAX_BUFFERED_CHUNKS = 500000;
 
 	// Only returns true if all data has been read. If not, call
 	// it again with the same parameters as long as error is not
@@ -303,6 +304,8 @@ private:
 
 	// One SSL for all connections.
 	static SSL_CTX* ctx;
+
+	bro::Flare write_flare;
 };
 
 #include <zlib.h>
@@ -328,6 +331,8 @@ public:
 
 	virtual bool Eof()	{ return io->Eof(); }
 	virtual int Fd()	{ return io->Fd(); }
+	virtual iosource::FD_Set ExtraReadFDs() const
+		{ return io->ExtraReadFDs(); }
 	virtual void Stats(char* buffer, int length);
 
 	void EnableCompression(int level)

@@ -214,6 +214,21 @@ public:
 	bool SetTimeoutInterval(const string& file_id, double interval) const;
 
 	/**
+	 * Enable the reassembler for a file.
+	 */
+	bool EnableReassembly(const string& file_id);
+	
+	/**
+	 * Disable the reassembler for a file.
+	 */
+	bool DisableReassembly(const string& file_id);
+
+	/**
+	 * Set the reassembly for a file in bytes.
+	 */
+	bool SetReassemblyBuffer(const string& file_id, uint64 max);
+
+	/**
 	 * Sets a limit on the maximum size allowed for extracting the file
 	 * to local disk;
 	 * @param file_id the file identifier/hash.
@@ -304,6 +319,7 @@ protected:
 	 *        this file isn't related to a connection).
 	 * @param update_conn whether we need to update connection-related field
 	 *        in the \c fa_file record value associated with the file.
+	 * @param an optional value of the source field to fill in.
 	 * @return the File object mapped to \a file_id or a null pointer if
 	 *         analysis is being ignored for the associated file.  An File
 	 *         object may be created if a mapping doesn't exist, and if it did
@@ -312,7 +328,8 @@ protected:
 	 */
 	File* GetFile(const string& file_id, Connection* conn = 0,
 	              analyzer::Tag tag = analyzer::Tag::Error,
-	              bool is_orig = false, bool update_conn = true);
+	              bool is_orig = false, bool update_conn = true,
+	              const char* source_name = 0);
 
 	/**
 	 * Try to retrieve a file that's being analyzed, using its identifier/hash.
@@ -362,13 +379,19 @@ protected:
 	static bool IsDisabled(analyzer::Tag tag);
 
 private:
+	typedef set<Tag> TagSet;
+	typedef map<string, TagSet*> MIMEMap;
+
+	TagSet* LookupMIMEType(const string& mtype, bool add_if_not_found);
 
 	PDict(File) id_map;  /**< Map file ID to file_analysis::File records. */
 	PDict(bool) ignored; /**< Ignored files.  Will be finally removed on EOF. */
 	string current_file_id;	/**< Hash of what get_file_handle event sets. */
 	RuleFileMagicState* magic_state;	/**< File magic signature match state. */
+	MIMEMap mime_types;/**< Mapping of MIME types to analyzers. */
 
 	static TableVal* disabled;	/**< Table of disabled analyzers. */
+	static TableType* tag_set_type;	/**< Type for set[tag]. */
 	static string salt; /**< A salt added to file handles before hashing. */
 };
 

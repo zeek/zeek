@@ -1,41 +1,41 @@
 FILE_NEW
 file #0, 0, 0
-FILE_BOF_BUFFER
-Hello^M^J^M^J ^M
-MIME_TYPE
-text/plain
 FILE_OVER_NEW_CONNECTION
 FILE_STATE_REMOVE
-file #0, 79, 0
+file #0, 77, 0
 [orig_h=10.10.1.4, orig_p=1470/tcp, resp_h=74.53.140.153, resp_p=25/tcp]
+FILE_BOF_BUFFER
+Hello\x0d\x0a\x0d\x0a \x0d
+MIME_TYPE
+text/plain
 source: SMTP
-MD5: 92bca2e6cdcde73647125da7dccbdd07
-SHA1: b7e497be8a9f5e2c4b6980fceb015360f98f4a13
-SHA256: 785a8a044d1454ec88837108f443bbb30cc4f529393ffd57118261036bfe59f5
+MD5: 58aff3af22807bc5f4b6357c0038256c
+SHA1: c39dc8cd0f8d8b1f7fc8b362c41e69fdf20f668a
+SHA256: 8d057f3af311c20675eea767a9df5fa31ff3597c6d5d50fd0cdc34766c40204d
 FILE_NEW
 file #1, 0, 0
-FILE_BOF_BUFFER
-<html xmlns
-MIME_TYPE
-text/html
 FILE_OVER_NEW_CONNECTION
 FILE_STATE_REMOVE
 file #1, 1868, 0
 [orig_h=10.10.1.4, orig_p=1470/tcp, resp_h=74.53.140.153, resp_p=25/tcp]
+FILE_BOF_BUFFER
+<html xmlns
+MIME_TYPE
+text/html
 source: SMTP
 MD5: afd68ae5c63caf6050dc5440bd72c5dd
 SHA1: a4825db9a78b6c631f3c97d363be47faf65e8386
 SHA256: 8d9e5bb6072fbbf5b4a5fabe89ede8c8c54915efe33704fe71420d50438f5f81
 FILE_NEW
 file #2, 0, 0
-FILE_BOF_BUFFER
-Version 4.9
-MIME_TYPE
-text/plain
 FILE_OVER_NEW_CONNECTION
 FILE_STATE_REMOVE
 file #2, 10809, 0
 [orig_h=10.10.1.4, orig_p=1470/tcp, resp_h=74.53.140.153, resp_p=25/tcp]
+FILE_BOF_BUFFER
+Version 4.9
+MIME_TYPE
+text/plain
 source: SMTP
 MD5: 30a60389acc290515651391154ba1b33
 SHA1: 5d3e96afdef531571b685aa2a3729e6fe635e413

@@ -85,6 +85,10 @@ event bro_init() &priority=5
 	Files::register_protocol(Analyzer::ANALYZER_SSL,
 	                         [$get_file_handle = SSL::get_file_handle,
 	                          $describe        = SSL::describe_file]);
+
+	Files::register_protocol(Analyzer::ANALYZER_DTLS,
+	                         [$get_file_handle = SSL::get_file_handle,
+	                          $describe        = SSL::describe_file]);
 	}
 
 event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priority=5
@@ -121,13 +125,15 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 event ssl_established(c: connection) &priority=6
 	{
 	# update subject and issuer information
-	if ( c$ssl?$cert_chain && |c$ssl$cert_chain| > 0 )
+	if ( c$ssl?$cert_chain && |c$ssl$cert_chain| > 0 &&
+	     c$ssl$cert_chain[0]?$x509 )
 		{
 		c$ssl$subject = c$ssl$cert_chain[0]$x509$certificate$subject;
 		c$ssl$issuer = c$ssl$cert_chain[0]$x509$certificate$issuer;
 		}
 
-	if ( c$ssl?$client_cert_chain && |c$ssl$client_cert_chain| > 0 )
+	if ( c$ssl?$client_cert_chain && |c$ssl$client_cert_chain| > 0 &&
+	     c$ssl$client_cert_chain[0]?$x509 )
 		{
 		c$ssl$client_subject = c$ssl$client_cert_chain[0]$x509$certificate$subject;
 		c$ssl$client_issuer = c$ssl$client_cert_chain[0]$x509$certificate$issuer;

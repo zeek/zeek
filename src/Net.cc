@@ -29,6 +29,14 @@
 #include "Anon.h"
 #include "Serializer.h"
 #include "PacketDumper.h"
+#include "iosource/Manager.h"
+#include "iosource/PktSrc.h"
+#include "iosource/PktDumper.h"
+#include "plugin/Manager.h"
+
+#ifdef ENABLE_BROKER
+#include "broker/Manager.h"
+#endif
 
 extern "C" {
 #include "setsignal.h"
@@ -38,10 +46,7 @@ extern "C" {
 extern int select(int, fd_set *, fd_set *, fd_set *, struct timeval *);
 }
 
-PList(PktSrc) pkt_srcs;
-
-// FIXME: We should really merge PktDumper and PacketDumper.
-PktDumper* pkt_dumper = 0;
+iosource::PktDumper* pkt_dumper = 0;
 
 int reading_live = 0;
 int reading_traces = 0;
@@ -62,8 +67,8 @@ const u_char* current_pkt = 0;
 int current_dispatched = 0;
 int current_hdr_size = 0;
 double current_timestamp = 0.0;
-PktSrc* current_pktsrc = 0;
-IOSource* current_iosrc;
+iosource::PktSrc* current_pktsrc = 0;
+iosource::IOSource* current_iosrc = 0;
 
 std::list<ScannedFile> files_scanned;
 std::vector<string> sig_files;
@@ -112,17 +117,21 @@ RETSIGTYPE watchdog(int /* signo */)
 					// saving the packet which caused the
 					// watchdog to trigger may be helpful,
 					// so we'll save that one nevertheless.
-					pkt_dumper = new PktDumper("watchdog-pkt.pcap");
-					if ( pkt_dumper->IsError() )
+					pkt_dumper = iosource_mgr->OpenPktDumper("watchdog-pkt.pcap", false);
+					if ( ! pkt_dumper || pkt_dumper->IsError() )
 						{
-						reporter->Error("watchdog: can't open watchdog-pkt.pcap for writing\n");
-						delete pkt_dumper;
+						reporter->Error("watchdog: can't open watchdog-pkt.pcap for writing");
 						pkt_dumper = 0;
 						}
 					}
 
 				if ( pkt_dumper )
-					pkt_dumper->Dump(current_hdr, current_pkt);
+					{
+					iosource::PktDumper::Packet p;
+					p.hdr = current_hdr;
+					p.data = current_pkt;
+					pkt_dumper->Dump(&p);
+					}
 				}
 
 			net_get_final_stats();
@@ -141,121 +150,47 @@ RETSIGTYPE watchdog(int /* signo */)
 	return RETSIGVAL;
 	}
 
-void net_init(name_list& interfaces, name_list& readfiles,
-	      name_list& netflows, name_list& flowfiles,
-	        const char* writefile, const char* filter,
-			const char* secondary_filter, int do_watchdog)
+void net_update_time(double new_network_time)
 	{
-	init_net_var();
+	network_time = new_network_time;
+	PLUGIN_HOOK_VOID(HOOK_UPDATE_NETWORK_TIME, HookUpdateNetworkTime(new_network_time));
+	}
 
-	if ( readfiles.length() > 0 || flowfiles.length() > 0 )
+void net_init(name_list& interfaces, name_list& readfiles,
+	      const char* writefile, int do_watchdog)
+	{
+	if ( readfiles.length() > 0 )
 		{
 		reading_live = pseudo_realtime > 0.0;
 		reading_traces = 1;
 
 		for ( int i = 0; i < readfiles.length(); ++i )
 			{
-			PktFileSrc* ps = new PktFileSrc(readfiles[i], filter);
+			iosource::PktSrc* ps = iosource_mgr->OpenPktSrc(readfiles[i], false);
+			assert(ps);
 
 			if ( ! ps->IsOpen() )
-				reporter->FatalError("%s: problem with trace file %s - %s\n",
-					prog, readfiles[i], ps->ErrorMsg());
-			else
-				{
-				pkt_srcs.append(ps);
-				io_sources.Register(ps);
-				}
-
-			if ( secondary_filter )
-				{
-				// We use a second PktFileSrc for the
-				// secondary path.
-				PktFileSrc* ps = new PktFileSrc(readfiles[i],
-							secondary_filter,
-							TYPE_FILTER_SECONDARY);
-
-				if ( ! ps->IsOpen() )
-					reporter->FatalError("%s: problem with trace file %s - %s\n",
-						prog, readfiles[i],
-						ps->ErrorMsg());
-				else
-					{
-					pkt_srcs.append(ps);
-					io_sources.Register(ps);
-					}
-
-				ps->AddSecondaryTablePrograms();
-				}
-			}
-
-		for ( int i = 0; i < flowfiles.length(); ++i )
-			{
-			FlowFileSrc* fs = new FlowFileSrc(flowfiles[i]);
-
-			if ( ! fs->IsOpen() )
-				reporter->FatalError("%s: problem with netflow file %s - %s\n",
-					prog, flowfiles[i], fs->ErrorMsg());
-			else
-				{
-				io_sources.Register(fs);
-				}
+				reporter->FatalError("problem with trace file %s (%s)",
+						     readfiles[i],
+						     ps->ErrorMsg());
 			}
 		}
 
-	else if ((interfaces.length() > 0 || netflows.length() > 0))
+	else if ( interfaces.length() > 0 )
 		{
 		reading_live = 1;
 		reading_traces = 0;
 
 		for ( int i = 0; i < interfaces.length(); ++i )
 			{
-			PktSrc* ps;
-			ps = new PktInterfaceSrc(interfaces[i], filter);
+			iosource::PktSrc* ps = iosource_mgr->OpenPktSrc(interfaces[i], true);
+			assert(ps);
 
 			if ( ! ps->IsOpen() )
-				reporter->FatalError("%s: problem with interface %s - %s\n",
-					prog, interfaces[i], ps->ErrorMsg());
-			else
-				{
-				pkt_srcs.append(ps);
-				io_sources.Register(ps);
-				}
-
-			if ( secondary_filter )
-				{
-				PktSrc* ps;
-				ps = new PktInterfaceSrc(interfaces[i],
-					filter, TYPE_FILTER_SECONDARY);
-
-				if ( ! ps->IsOpen() )
-					reporter->Error("%s: problem with interface %s - %s\n",
-						prog, interfaces[i],
-						ps->ErrorMsg());
-				else
-					{
-					pkt_srcs.append(ps);
-					io_sources.Register(ps);
-					}
-
-				ps->AddSecondaryTablePrograms();
-				}
+				reporter->FatalError("problem with interface %s (%s)",
+						     interfaces[i],
+						     ps->ErrorMsg());
 			}
-
-		for ( int i = 0; i < netflows.length(); ++i )
-			{
-			FlowSocketSrc* fs = new FlowSocketSrc(netflows[i]);
-
-			if ( ! fs->IsOpen() )
-				{
-				reporter->Error("%s: problem with netflow socket %s - %s\n",
-					prog, netflows[i], fs->ErrorMsg());
-				delete fs;
-				}
-
-			else
-				io_sources.Register(fs);
-			}
-
 		}
 
 	else
@@ -267,12 +202,12 @@ void net_init(name_list& interfaces, name_list& readfiles,
 
 	if ( writefile )
 		{
-		// ### This will fail horribly if there are multiple
-		// interfaces with different-lengthed media.
-		pkt_dumper = new PktDumper(writefile);
-		if ( pkt_dumper->IsError() )
-			reporter->FatalError("%s: can't open write file \"%s\" - %s\n",
-				prog, writefile, pkt_dumper->ErrorMsg());
+		pkt_dumper = iosource_mgr->OpenPktDumper(writefile, false);
+		assert(pkt_dumper);
+
+		if ( ! pkt_dumper->IsOpen() )
+			reporter->FatalError("problem opening dump file %s (%s)",
+					     writefile, pkt_dumper->ErrorMsg());
 
 		ID* id = global_scope()->Lookup("trace_output_file");
 		if ( ! id )
@@ -293,7 +228,7 @@ void net_init(name_list& interfaces, name_list& readfiles,
 		}
 	}
 
-void expire_timers(PktSrc* src_ps)
+void expire_timers(iosource::PktSrc* src_ps)
 	{
 	SegmentProfiler(segment_logger, "expiring-timers");
 	TimerMgr* tmgr =
@@ -306,8 +241,8 @@ void expire_timers(PktSrc* src_ps)
 	}
 
 void net_packet_dispatch(double t, const struct pcap_pkthdr* hdr,
-			const u_char* pkt, int hdr_size,
-			PktSrc* src_ps)
+			 const u_char* pkt, int hdr_size,
+			 iosource::PktSrc* src_ps)
 	{
 	if ( ! bro_start_network_time )
 		bro_start_network_time = t;
@@ -315,7 +250,7 @@ void net_packet_dispatch(double t, const struct pcap_pkthdr* hdr,
 	TimerMgr* tmgr = sessions->LookupTimerMgr(src_ps->GetCurrentTag());
 
 	// network_time never goes back.
-	network_time = tmgr->Time() < t ? t : tmgr->Time();
+	net_update_time(tmgr->Time() < t ? t : tmgr->Time());
 
 	current_pktsrc = src_ps;
 	current_iosrc = src_ps;
@@ -363,11 +298,11 @@ void net_run()
 	{
 	set_processing_status("RUNNING", "net_run");
 
-	while ( io_sources.Size() ||
+	while ( iosource_mgr->Size() ||
 		(BifConst::exit_only_after_terminate && ! terminating) )
 		{
 		double ts;
-		IOSource* src = io_sources.FindSoonest(&ts);
+		iosource::IOSource* src = iosource_mgr->FindSoonest(&ts);
 
 #ifdef DEBUG
 		static int loop_counter = 0;
@@ -384,6 +319,11 @@ void net_run()
 			}
 #endif
 		current_iosrc = src;
+		bool communication_enabled = using_communication;
+
+#ifdef ENABLE_BROKER
+		communication_enabled |= broker_mgr->Enabled();
+#endif
 
 		if ( src )
 			src->Process();	// which will call net_packet_dispatch()
@@ -395,20 +335,20 @@ void net_run()
 				{
 				// Take advantage of the lull to get up to
 				// date on timers and events.
-				network_time = ct;
+				net_update_time(ct);
 				expire_timers();
 				usleep(1); // Just yield.
 				}
 			}
 
-		else if ( (have_pending_timers || using_communication) &&
+		else if ( (have_pending_timers || communication_enabled) &&
 			  ! pseudo_realtime )
 			{
 			// Take advantage of the lull to get up to
 			// date on timers and events.  Because we only
 			// have timers as sources, going to sleep here
 			// doesn't risk blocking on other inputs.
-			network_time = current_time();
+			net_update_time(current_time());
 			expire_timers();
 
 			// Avoid busy-waiting - pause for 100 ms.
@@ -416,7 +356,7 @@ void net_run()
 			// us a lot of idle time, but doesn't delay near-term
 			// timers too much.  (Delaying them somewhat is okay,
 			// since Bro timers are not high-precision anyway.)
-			if ( ! using_communication )
+			if ( ! communication_enabled )
 				usleep(100000);
 			else
 				usleep(1000);
@@ -465,16 +405,19 @@ void net_run()
 
 void net_get_final_stats()
 	{
-	loop_over_list(pkt_srcs, i)
+	const iosource::Manager::PktSrcList& pkt_srcs(iosource_mgr->GetPktSrcs());
+
+	for ( iosource::Manager::PktSrcList::const_iterator i = pkt_srcs.begin();
+	      i != pkt_srcs.end(); i++ )
 		{
-		PktSrc* ps = pkt_srcs[i];
+		iosource::PktSrc* ps = *i;
 
 		if ( ps->IsLive() )
 			{
-			struct PktSrc::Stats s;
+			iosource::PktSrc::Stats s;
 			ps->Statistics(&s);
-			reporter->Info("%d packets received on interface %s, %d dropped\n",
-					s.received, ps->Interface(), s.dropped);
+			reporter->Info("%d packets received on interface %s, %d dropped",
+					s.received, ps->Path().c_str(), s.dropped);
 			}
 		}
 	}
@@ -493,8 +436,6 @@ void net_finish(int drain_events)
 		if ( sessions )
 			sessions->Done();
 		}
-
-	delete pkt_dumper;
 
 #ifdef DEBUG
 	extern int reassem_seen_bytes, reassem_copied_bytes;
@@ -516,29 +457,6 @@ void net_delete()
 		delete ip_anonymizer[i];
 	}
 
-// net_packet_match
-//
-// Description:
-//  - Checks if a packet matches a filter. It just wraps up a call to
-//    [pcap.h's] bpf_filter().
-//
-// Inputs:
-//  - fp: a BPF-compiled filter
-//  - pkt: a pointer to the packet
-//  - len: the original packet length
-//  - caplen: the captured packet length. This is pkt length
-//
-// Output:
-//  - return: 1 if the packet matches the filter, 0 otherwise
-
-int net_packet_match(BPF_Program* fp, const u_char* pkt,
-		     u_int len, u_int caplen)
-	{
-	// NOTE: I don't like too much un-const'ing the pkt variable.
-	return bpf_filter(fp->GetProgram()->bf_insns, (u_char*) pkt, len, caplen);
-	}
-
-
 int _processing_suspended = 0;
 
 static double suspend_start = 0;
@@ -556,8 +474,12 @@ void net_continue_processing()
 	if ( _processing_suspended == 1 )
 		{
 		reporter->Info("processing continued");
-		loop_over_list(pkt_srcs, i)
-			pkt_srcs[i]->ContinueAfterSuspend();
+
+		const iosource::Manager::PktSrcList& pkt_srcs(iosource_mgr->GetPktSrcs());
+
+		for ( iosource::Manager::PktSrcList::const_iterator i = pkt_srcs.begin();
+		      i != pkt_srcs.end(); i++ )
+			(*i)->ContinueAfterSuspend();
 		}
 
 	--_processing_suspended;

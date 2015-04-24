@@ -10,7 +10,7 @@
 # @TEST-EXEC: sleep 2
 # @TEST-EXEC: btest-bg-run worker-1 HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local BROPATH=$BROPATH:.. CLUSTER_NODE=worker-1 bro runnumber=1 %INPUT
 # @TEST-EXEC: btest-bg-run worker-2 HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local BROPATH=$BROPATH:.. CLUSTER_NODE=worker-2 bro runnumber=2 %INPUT
-# @TEST-EXEC: btest-bg-wait 25
+# @TEST-EXEC: btest-bg-wait 60
 #
 # @TEST-EXEC: btest-diff manager-1/.stdout
 # @TEST-EXEC: btest-diff worker-1/.stdout

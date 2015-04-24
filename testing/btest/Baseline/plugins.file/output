@@ -1,0 +1,17 @@
+Demo::Foo - A Foo test analyzer (dynamic, version 1.0)
+    [File Analyzer] Foo (ANALYZER_FOO)
+    [Event] foo_piece
+
+===
+foo_piece, FGy9Oo9JLY8SFxMJ2, The National Center 
+foo_piece, FGy9Oo9JLY8SFxMJ2, net, consult your lo
+foo_piece, FGy9Oo9JLY8SFxMJ2, most everything else
+foo_piece, FGy9Oo9JLY8SFxMJ2, low:\x0a\x0a   /Mac       
+foo_piece, FGy9Oo9JLY8SFxMJ2, es and directories o
+foo_piece, FGy9Oo9JLY8SFxMJ2, r example, here is a
+foo_piece, FGy9Oo9JLY8SFxMJ2, application, StuffIt
+foo_piece, FGy9Oo9JLY8SFxMJ2, tion BinHex by doubl
+foo_piece, FGy9Oo9JLY8SFxMJ2, laced, or are going 
+foo_piece, FGy9Oo9JLY8SFxMJ2, sers several documen
+foo_piece, FGy9Oo9JLY8SFxMJ2, er or can be printed
+foo_piece, FGy9Oo9JLY8SFxMJ2,  \x0a\x0aBug reports shoul

@@ -1,0 +1,22 @@
+Demo::Foo - A Foo test logging writer (dynamic, version 1.0)
+    [Writer] Foo (Log::WRITER_FOO)
+
+===
+[conn] 1340213005.165293|CXWv6p3arKYeMETxOg|10.0.0.55|53994|60.190.189.214|8124|tcp|-|4.314406|0|0|S0|-|-|0|S|5|320|0|0|
+[conn] 1340213010.582723|CjhGID4nQcgTWjvg4c|10.0.0.55|53994|60.190.189.214|8124|tcp|http,socks|13.839419|3860|2934|SF|-|-|0|ShADadfF|23|5080|20|3986|
+[conn] 1340213048.780152|CCvvfg3TEfuqmmG4bh|10.0.0.55|53994|60.190.189.214|8124|tcp|-|-|-|-|SH|-|-|0|F|1|52|0|0|
+[conn] 1340213097.272764|CsRx2w45OKnoww6xl4|10.0.0.55|53994|60.190.189.214|8124|tcp|-|-|-|-|SH|-|-|0|F|1|52|0|0|
+[conn] 1340213162.160367|CRJuHdVW0XPVINV8a|10.0.0.55|53994|60.190.189.214|8124|tcp|-|-|-|-|SH|-|-|0|F|1|52|0|0|
+[conn] 1340213226.561757|CPbrpk1qSsw6ESzHV4|10.0.0.55|53994|60.190.189.214|8124|tcp|-|-|-|-|SH|-|-|0|F|1|52|0|0|
+[conn] 1340213290.981995|C6pKV8GSxOnSLghOa|10.0.0.55|53994|60.190.189.214|8124|tcp|-|-|-|-|SH|-|-|0|F|1|52|0|0|
+[files] 1340213020.732547|FBtZ7y1ppK8iIeY622|60.190.189.214|10.0.0.55|CjhGID4nQcgTWjvg4c|HTTP|0||image/gif|-|0.000034|-|F|1368|1368|0|0|F|-|-|-|-|-
+[http] 1340213019.013158|CjhGID4nQcgTWjvg4c|10.0.0.55|53994|60.190.189.214|8124|1|GET|www.osnews.com|/images/printer2.gif|http://www.osnews.com/|Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:10.0.2) Gecko/20100101 Firefox/10.0.2|0|0|304|Not Modified|-|-|-||-|-|-|-|-|-|-
+[http] 1340213019.013426|CjhGID4nQcgTWjvg4c|10.0.0.55|53994|60.190.189.214|8124|2|GET|www.osnews.com|/img2/shorturl.jpg|http://www.osnews.com/|Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:10.0.2) Gecko/20100101 Firefox/10.0.2|0|0|304|Not Modified|-|-|-||-|-|-|-|-|-|-
+[http] 1340213019.580162|CjhGID4nQcgTWjvg4c|10.0.0.55|53994|60.190.189.214|8124|3|GET|www.osnews.com|/images/icons/9.gif|http://www.osnews.com/|Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:10.0.2) Gecko/20100101 Firefox/10.0.2|0|0|304|Not Modified|-|-|-||-|-|-|-|-|-|-
+[http] 1340213020.155861|CjhGID4nQcgTWjvg4c|10.0.0.55|53994|60.190.189.214|8124|4|GET|www.osnews.com|/images/icons/26.gif|http://www.osnews.com/|Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:10.0.2) Gecko/20100101 Firefox/10.0.2|0|1368|200|OK|-|-|-||-|-|-|-|-|FBtZ7y1ppK8iIeY622|image/gif
+[http] 1340213020.732963|CjhGID4nQcgTWjvg4c|10.0.0.55|53994|60.190.189.214|8124|5|GET|www.osnews.com|/images/icons/17.gif|http://www.osnews.com/|Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:10.0.2) Gecko/20100101 Firefox/10.0.2|0|0|304|Not Modified|-|-|-||-|-|-|-|-|-|-
+[http] 1340213021.300269|CjhGID4nQcgTWjvg4c|10.0.0.55|53994|60.190.189.214|8124|6|GET|www.osnews.com|/images/left.gif|http://www.osnews.com/|Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:10.0.2) Gecko/20100101 Firefox/10.0.2|0|0|304|Not Modified|-|-|-||-|-|-|-|-|-|-
+[http] 1340213021.861584|CjhGID4nQcgTWjvg4c|10.0.0.55|53994|60.190.189.214|8124|7|GET|www.osnews.com|/images/icons/32.gif|http://www.osnews.com/|Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:10.0.2) Gecko/20100101 Firefox/10.0.2|0|0|304|Not Modified|-|-|-||-|-|-|-|-|-|-
+[packet_filter] 1424736260.256998|bro|ip or not ip|T|T
+[socks] 1340213015.276495|CjhGID4nQcgTWjvg4c|10.0.0.55|53994|60.190.189.214|8124|5|-|-|succeeded|-|www.osnews.com|80|192.168.0.31|-|2688
+[tunnel] 1340213015.276495|-|10.0.0.55|0|60.190.189.214|8124|Tunnel::SOCKS|Tunnel::DISCOVER

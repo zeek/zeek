@@ -23,7 +23,7 @@ const char* stmt_name(BroStmtTag t)
 		"print", "event", "expr", "if", "when", "switch",
 		"for", "next", "break", "return", "add", "delete",
 		"list", "bodylist",
-		"<init>", "fallthrough",
+		"<init>", "fallthrough", "while",
 		"null",
 	};
 
@@ -660,8 +660,13 @@ void Case::Describe(ODesc* d) const
 
 TraversalCode Case::Traverse(TraversalCallback* cb) const
 	{
-	TraversalCode tc = cases->Traverse(cb);
-	HANDLE_TC_STMT_PRE(tc);
+	TraversalCode tc;
+
+	if ( cases )
+		{
+		tc = cases->Traverse(cb);
+		HANDLE_TC_STMT_PRE(tc);
+		}
 
 	tc = s->Traverse(cb);
 	HANDLE_TC_STMT_PRE(tc);
@@ -1120,6 +1125,126 @@ bool EventStmt::DoUnserialize(UnserialInfo* info)
 
 	event_expr = (EventExpr*) Expr::Unserialize(info, EXPR_EVENT);
 	return event_expr != 0;
+	}
+
+WhileStmt::WhileStmt(Expr* arg_loop_condition, Stmt* arg_body)
+	: loop_condition(arg_loop_condition), body(arg_body)
+	{
+	if ( ! loop_condition->IsError() &&
+	     ! IsBool(loop_condition->Type()->Tag()) )
+		loop_condition->Error("while conditional must be boolean");
+	}
+
+WhileStmt::~WhileStmt()
+	{
+	Unref(loop_condition);
+	Unref(body);
+	}
+
+int WhileStmt::IsPure() const
+	{
+	return loop_condition->IsPure() && body->IsPure();
+	}
+
+void WhileStmt::Describe(ODesc* d) const
+	{
+	Stmt::Describe(d);
+
+	if ( d->IsReadable() )
+		d->Add("(");
+
+	loop_condition->Describe(d);
+
+	if ( d->IsReadable() )
+		d->Add(")");
+
+	d->SP();
+	d->PushIndent();
+	body->AccessStats(d);
+	body->Describe(d);
+	d->PopIndent();
+	}
+
+TraversalCode WhileStmt::Traverse(TraversalCallback* cb) const
+	{
+	TraversalCode tc = cb->PreStmt(this);
+	HANDLE_TC_STMT_PRE(tc);
+
+	tc = loop_condition->Traverse(cb);
+	HANDLE_TC_STMT_PRE(tc);
+
+	tc = body->Traverse(cb);
+	HANDLE_TC_STMT_PRE(tc);
+
+	tc = cb->PostStmt(this);
+	HANDLE_TC_STMT_POST(tc);
+	}
+
+Val* WhileStmt::Exec(Frame* f, stmt_flow_type& flow) const
+	{
+	RegisterAccess();
+	flow = FLOW_NEXT;
+	Val* rval = 0;
+
+	for ( ; ; )
+		{
+		Val* cond = loop_condition->Eval(f);
+
+		if ( ! cond )
+			break;
+
+		bool cont = cond->AsBool();
+		Unref(cond);
+
+		if ( ! cont )
+			break;
+
+		flow = FLOW_NEXT;
+		rval = body->Exec(f, flow);
+
+		if ( flow == FLOW_BREAK || flow == FLOW_RETURN )
+			break;
+		}
+
+	if ( flow == FLOW_LOOP || flow == FLOW_BREAK )
+		flow = FLOW_NEXT;
+
+	return rval;
+	}
+
+Stmt* WhileStmt::Simplify()
+	{
+	loop_condition = simplify_expr(loop_condition, SIMPLIFY_GENERAL);
+
+	if ( loop_condition->IsConst() && loop_condition->IsZero() )
+		return new NullStmt();
+
+	body = simplify_stmt(body);
+	return this;
+	}
+
+IMPLEMENT_SERIAL(WhileStmt, SER_WHILE_STMT);
+
+bool WhileStmt::DoSerialize(SerialInfo* info) const
+	{
+	DO_SERIALIZE(SER_WHILE_STMT, Stmt);
+
+	if ( ! loop_condition->Serialize(info) )
+		return false;
+
+	return body->Serialize(info);
+	}
+
+bool WhileStmt::DoUnserialize(UnserialInfo* info)
+	{
+	DO_UNSERIALIZE(Stmt);
+	loop_condition = Expr::Unserialize(info);
+
+	if ( ! loop_condition )
+		return false;
+
+	body = Stmt::Unserialize(info);
+	return body != 0;
 	}
 
 ForStmt::ForStmt(id_list* arg_loop_vars, Expr* loop_expr)

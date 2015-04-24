@@ -1,8 +1,10 @@
 module Factor;
 
 export {
+    # Append the value LOG to the Log::ID enumerable.
     redef enum Log::ID += { LOG };
 
+    # Define a new type called Factor::Info.
     type Info: record {
         num:           count &log;
         factorial_num: count &log;
@@ -20,7 +22,8 @@ function factorial(n: count): count
 
 event bro_init()
     {
-    Log::create_stream(LOG, [$columns=Info]);
+    # Create the logging stream.
+    Log::create_stream(LOG, [$columns=Info, $path="factor"]);
     }
 
 event bro_done()

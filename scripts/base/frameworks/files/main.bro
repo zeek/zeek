@@ -56,7 +56,7 @@ export {
 		## local file path which was read, or some other input source.
 		source: string &log &optional;
 
-		## A value to represent the depth of this file in relation 
+		## A value to represent the depth of this file in relation
 		## to its source.  In SMTP, it is the depth of the MIME
 		## attachment on the message.  In HTTP, it is the depth of the
 		## request within the TCP connection.
@@ -73,7 +73,7 @@ export {
 		mime_type: string &log &optional;
 
 		## A filename for the file if one is available from the source
-		## for the file.  These will frequently come from 
+		## for the file.  These will frequently come from
 		## "Content-Disposition" headers in network protocols.
 		filename: string &log &optional;
 
@@ -100,8 +100,9 @@ export {
 		## during the process of analysis e.g. due to dropped packets.
 		missing_bytes: count &log &default=0;
 
-		## The number of not all-in-sequence bytes in the file stream that
-		## were delivered to file analyzers due to reassembly buffer overflow.
+		## The number of bytes in the file stream that were not delivered to
+		## stream file analyzers.  This could be overlapping bytes or 
+		## bytes that couldn't be reassembled.
 		overflow_bytes: count &log &default=0;
 
 		## Whether the file analysis timed out at least once for the file.
@@ -123,6 +124,36 @@ export {
 	## network connections that factor in to the file handle in order to
 	## generate two handles that would hash to the same file id.
 	const salt = "I recommend changing this." &redef;
+
+	## Decide if you want to automatically attached analyzers to 
+	## files based on the detected mime type of the file.
+	const analyze_by_mime_type_automatically = T &redef;
+
+	## The default setting for file reassembly.
+	const enable_reassembler = T &redef;
+
+	## The default per-file reassembly buffer size.
+	const reassembly_buffer_size = 524288 &redef;
+
+	## Allows the file reassembler to be used if it's necessary because the
+	## file is transferred out of order.
+	##
+	## f: the file.
+	global enable_reassembly: function(f: fa_file);
+
+	## Disables the file reassembler on this file.  If the file is not 
+	## transferred out of order this will have no effect.
+	##
+	## f: the file.
+	global disable_reassembly: function(f: fa_file);
+
+	## Set the maximum size the reassembly buffer is allowed to grow
+	## for the given file.
+	##
+	## f: the file.
+	##
+	## max: Maximum allowed size of the reassembly buffer.
+	global set_reassembly_buffer_size: function(f: fa_file, max: count);
 
 	## Sets the *timeout_interval* field of :bro:see:`fa_file`, which is
 	## used to determine the length of inactivity that is allowed for a file
@@ -149,8 +180,8 @@ export {
 	## Returns: true if the analyzer will be added, or false if analysis
 	##          for the file isn't currently active or the *args*
 	##          were invalid for the analyzer type.
-	global add_analyzer: function(f: fa_file, 
-	                              tag: Files::Tag, 
+	global add_analyzer: function(f: fa_file,
+	                              tag: Files::Tag,
 	                              args: AnalyzerArgs &default=AnalyzerArgs()): bool;
 
 	## Removes an analyzer from the analysis of a given file.
@@ -196,7 +227,7 @@ export {
 		## A callback to generate a file handle on demand when
 		## one is needed by the core.
 		get_file_handle: function(c: connection, is_orig: bool): string;
-		
+
 		## A callback to "describe" a file.  In the case of an HTTP
 		## transfer the most obvious description would be the URL.
 		## It's like an extremely compressed version of the normal log.
@@ -207,7 +238,7 @@ export {
 	## Register callbacks for protocols that work with the Files framework.
 	## The callbacks must uniquely identify a file and each protocol can 
 	## only have a single callback registered for it.
-	## 
+	##
 	## tag: Tag for the protocol analyzer having a callback being registered.
 	##
 	## reg: A :bro:see:`Files::ProtoRegistration` record.
@@ -225,6 +256,42 @@ export {
 	## callback: Function to execute when the given file analyzer is being added.
 	global register_analyzer_add_callback: function(tag: Files::Tag, callback: function(f: fa_file, args: AnalyzerArgs));
 
+	## Registers a set of MIME types for an analyzer. If a future connection on one of
+	## these types is seen, the analyzer will be automatically assigned to parsing it.
+	## The function *adds* to all MIME types already registered, it doesn't replace
+	## them.
+	##
+	## tag: The tag of the analyzer.
+	##
+	## mts: The set of MIME types, each in the form "foo/bar" (case-insensitive).
+	##
+	## Returns: True if the MIME types were successfully registered.
+	global register_for_mime_types: function(tag: Files::Tag, mts: set[string]) : bool;
+
+	## Registers a MIME type for an analyzer. If a future file with this type is seen,
+	## the analyzer will be automatically assigned to parsing it. The function *adds*
+	## to all MIME types already registered, it doesn't replace them.
+	##
+	## tag: The tag of the analyzer.
+	##
+	## mt: The MIME type in the form "foo/bar" (case-insensitive).
+	##
+	## Returns: True if the MIME type was successfully registered.
+	global register_for_mime_type: function(tag: Files::Tag, mt: string) : bool;
+
+	## Returns a set of all MIME types currently registered for a specific analyzer.
+	##
+	## tag: The tag of the analyzer.
+	##
+	## Returns: The set of MIME types.
+	global registered_mime_types: function(tag: Files::Tag) : set[string];
+
+	## Returns a table of all MIME-type-to-analyzer mappings currently registered.
+	##
+	## Returns: A table mapping each analyzer to the set of MIME types
+	##          registered for it.
+	global all_registered_mime_types: function() : table[Files::Tag] of set[string];
+
 	## Event that can be handled to access the Info record as it is sent on
 	## to the logging framework.
 	global log_files: event(rec: Info);
@@ -237,11 +304,15 @@ redef record fa_file += {
 # Store the callbacks for protocol analyzers that have files.
 global registered_protocols: table[Analyzer::Tag] of ProtoRegistration = table();
 
+# Store the MIME type to analyzer mappings.
+global mime_types: table[Files::Tag] of set[string];
+global mime_type_to_analyzers: table[string] of set[Files::Tag];
+
 global analyzer_add_callbacks: table[Files::Tag] of function(f: fa_file, args: AnalyzerArgs) = table();
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(Files::LOG, [$columns=Info, $ev=log_files]);
+	Log::create_stream(Files::LOG, [$columns=Info, $ev=log_files, $path="files"]);
 	}
 
 function set_info(f: fa_file)
@@ -259,19 +330,32 @@ function set_info(f: fa_file)
 		f$info$source = f$source;
 	f$info$duration = f$last_active - f$info$ts;
 	f$info$seen_bytes = f$seen_bytes;
-	if ( f?$total_bytes ) 
+	if ( f?$total_bytes )
 		f$info$total_bytes = f$total_bytes;
 	f$info$missing_bytes = f$missing_bytes;
 	f$info$overflow_bytes = f$overflow_bytes;
 	if ( f?$is_orig )
 		f$info$is_orig = f$is_orig;
-	if ( f?$mime_type ) 
-		f$info$mime_type = f$mime_type;
 	}
 
 function set_timeout_interval(f: fa_file, t: interval): bool
 	{
 	return __set_timeout_interval(f$id, t);
+	}
+
+function enable_reassembly(f: fa_file)
+	{
+	__enable_reassembly(f$id);
+	}
+
+function disable_reassembly(f: fa_file)
+	{
+	__disable_reassembly(f$id);
+	}
+
+function set_reassembly_buffer_size(f: fa_file, max: count)
+	{
+	__set_reassembly_buffer(f$id, max);
 	}
 
 function add_analyzer(f: fa_file, tag: Files::Tag, args: AnalyzerArgs): bool
@@ -309,14 +393,87 @@ function analyzer_name(tag: Files::Tag): string
 	return __analyzer_name(tag);
 	}
 
+function register_protocol(tag: Analyzer::Tag, reg: ProtoRegistration): bool
+	{
+	local result = (tag !in registered_protocols);
+	registered_protocols[tag] = reg;
+	return result;
+	}
+
+function register_for_mime_types(tag: Files::Tag, mime_types: set[string]) : bool
+	{
+	local rc = T;
+
+	for ( mt in mime_types )
+		{
+		if ( ! register_for_mime_type(tag, mt) )
+			rc = F;
+		}
+
+	return rc;
+	}
+
+function register_for_mime_type(tag: Files::Tag, mt: string) : bool
+	{
+	if ( tag !in mime_types )
+		{
+		mime_types[tag] = set();
+		}
+	add mime_types[tag][mt];
+
+	if ( mt !in mime_type_to_analyzers )
+		{
+		mime_type_to_analyzers[mt] = set();
+		}
+	add mime_type_to_analyzers[mt][tag];
+
+	return T;
+	}
+
+function registered_mime_types(tag: Files::Tag) : set[string]
+	{
+	return tag in mime_types ? mime_types[tag] : set();
+	}
+
+function all_registered_mime_types(): table[Files::Tag] of set[string]
+	{
+	return mime_types;
+	}
+
+function describe(f: fa_file): string
+	{
+	local tag = Analyzer::get_tag(f$source);
+	if ( tag !in registered_protocols )
+		return "";
+
+	local handler = registered_protocols[tag];
+	return handler$describe(f);
+	}
+
+event get_file_handle(tag: Files::Tag, c: connection, is_orig: bool) &priority=5
+	{
+	if ( tag !in registered_protocols )
+		return;
+
+	local handler = registered_protocols[tag];
+	set_file_handle(handler$get_file_handle(c, is_orig));
+	}
+
 event file_new(f: fa_file) &priority=10
 	{
 	set_info(f);
+
+	if ( enable_reassembler )
+		{
+		Files::enable_reassembly(f);
+		Files::set_reassembly_buffer_size(f, reassembly_buffer_size);
+		}
 	}
 
 event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priority=10
 	{
 	set_info(f);
+
 	add f$info$conn_uids[c$uid];
 	local cid = c$id;
 	add f$info$tx_hosts[f$is_orig ? cid$orig_h : cid$resp_h];
@@ -324,6 +481,27 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 		f$info$local_orig=Site::is_local_addr(f$is_orig ? cid$orig_h : cid$resp_h);
 
 	add f$info$rx_hosts[f$is_orig ? cid$resp_h : cid$orig_h];
+	}
+
+event file_sniff(f: fa_file, meta: fa_metadata) &priority=10
+	{
+	set_info(f);
+
+	if ( ! meta?$mime_type )
+		return;
+
+	f$info$mime_type = meta$mime_type;
+
+	if ( analyze_by_mime_type_automatically &&
+	     meta$mime_type in mime_type_to_analyzers )
+		{
+		local analyzers = mime_type_to_analyzers[meta$mime_type];
+		for ( a in analyzers )
+			{
+			add f$info$analyzers[Files::analyzer_name(a)];
+			Files::add_analyzer(f, a);
+			}
+		}
 	}
 
 event file_timeout(f: fa_file) &priority=10
@@ -340,30 +518,4 @@ event file_state_remove(f: fa_file) &priority=10
 event file_state_remove(f: fa_file) &priority=-10
 	{
 	Log::write(Files::LOG, f$info);
-	}
-
-function register_protocol(tag: Analyzer::Tag, reg: ProtoRegistration): bool
-	{
-	local result = (tag !in registered_protocols);
-	registered_protocols[tag] = reg;
-	return result;
-	}
-
-function describe(f: fa_file): string
-	{
-	local tag = Analyzer::get_tag(f$source);
-	if ( tag !in registered_protocols )
-		return "";
-
-	local handler = registered_protocols[tag];
-	return handler$describe(f);
-	}
-
-event get_file_handle(tag: Analyzer::Tag, c: connection, is_orig: bool) &priority=5
-	{
-	if ( tag !in registered_protocols )
-		return;
-
-	local handler = registered_protocols[tag];
-	set_file_handle(handler$get_file_handle(c, is_orig));
 	}

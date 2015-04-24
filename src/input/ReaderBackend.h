@@ -8,6 +8,8 @@
 #include "threading/SerialTypes.h"
 #include "threading/MsgThread.h"
 
+#include "Component.h"
+
 namespace input {
 
 /**

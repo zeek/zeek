@@ -3,8 +3,6 @@
 # This script generates binary DEB packages.
 # They can be found in ../build/ after running.
 
-./check-cmake || { exit 1; }
-
 # The DEB CPack generator depends on `dpkg-shlibdeps` to automatically
 # determine what dependencies to set for the packages
 type dpkg-shlibdeps > /dev/null 2>&1 || {
@@ -16,6 +14,7 @@ the 'dpkg-dev' package, please install it first.
 }
 
 prefix=/opt/bro
+localstatedir=/var/opt/bro
 
 # During the packaging process, `dpkg-shlibs` will fail if used on a library
 # that links to other internal/project libraries unless an RPATH is used or
@@ -31,7 +30,7 @@ cd ..
 ( cd build && make package )
 
 # Full Bro package
-./configure --prefix=${prefix} --pkg-name-prefix=Bro --binary-package
+./configure --prefix=${prefix} --localstatedir=${localstatedir} --pkg-name-prefix=Bro --binary-package
 ( cd build && make package )
 
 # Broccoli
@@ -42,6 +41,6 @@ cd ../..
 
 # Broctl
 cd aux/broctl
-./configure --prefix=${prefix} --binary-package
+./configure --prefix=${prefix} --localstatedir=${localstatedir} --binary-package
 ( cd build && make package && mv *.deb ../../../build/ )
 cd ../..

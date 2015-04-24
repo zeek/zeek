@@ -4,6 +4,7 @@
 
 #include "Analyzer.h"
 #include "Manager.h"
+#include "binpac.h"
 
 #include "analyzer/protocol/pia/PIA.h"
 #include "../Event.h"
@@ -75,7 +76,7 @@ analyzer::ID Analyzer::id_counter = 0;
 const char* Analyzer::GetAnalyzerName() const
 	{
 	assert(tag);
-	return analyzer_mgr->GetComponentName(tag);
+	return analyzer_mgr->GetComponentName(tag).c_str();
 	}
 
 void Analyzer::SetAnalyzerTag(const Tag& arg_tag)
@@ -87,7 +88,7 @@ void Analyzer::SetAnalyzerTag(const Tag& arg_tag)
 bool Analyzer::IsAnalyzer(const char* name)
 	{
 	assert(tag);
-	return strcmp(analyzer_mgr->GetComponentName(tag), name) == 0;
+	return strcmp(analyzer_mgr->GetComponentName(tag).c_str(), name) == 0;
 	}
 
 // Used in debugging output.
@@ -597,7 +598,7 @@ SupportAnalyzer* Analyzer::FirstSupportAnalyzer(bool orig)
 void Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 				uint64 seq, const IP_Hdr* ip, int caplen)
 	{
-	DBG_LOG(DBG_ANALYZER, "%s DeliverPacket(%d, %s, %"PRIu64", %p, %d) [%s%s]",
+	DBG_LOG(DBG_ANALYZER, "%s DeliverPacket(%d, %s, %" PRIu64", %p, %d) [%s%s]",
 			fmt_analyzer(this).c_str(), len, is_orig ? "T" : "F", seq, ip, caplen,
 			fmt_bytes((const char*) data, min(40, len)), len > 40 ? "..." : "");
 	}
@@ -611,7 +612,7 @@ void Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 
 void Analyzer::Undelivered(uint64 seq, int len, bool is_orig)
 	{
-	DBG_LOG(DBG_ANALYZER, "%s Undelivered(%"PRIu64", %d, %s)",
+	DBG_LOG(DBG_ANALYZER, "%s Undelivered(%" PRIu64", %d, %s)",
 			fmt_analyzer(this).c_str(), seq, len, is_orig ? "T" : "F");
 	}
 
@@ -642,12 +643,12 @@ void Analyzer::FlipRoles()
 	resp_supporters = tmp;
 	}
 
-void Analyzer::ProtocolConfirmation()
+void Analyzer::ProtocolConfirmation(Tag arg_tag)
 	{
 	if ( protocol_confirmed )
 		return;
 
-	EnumVal* tval = tag.AsEnumVal();
+	EnumVal* tval = arg_tag ? arg_tag.AsEnumVal() : tag.AsEnumVal();
 	Ref(tval);
 
 	val_list* vl = new val_list;

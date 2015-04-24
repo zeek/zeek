@@ -6,9 +6,12 @@
 #define LOGGING_MANAGER_H
 
 #include "../Val.h"
+#include "../Tag.h"
 #include "../EventHandler.h"
 #include "../RemoteSerializer.h"
+#include "../plugin/ComponentManager.h"
 
+#include "Component.h"
 #include "WriterBackend.h"
 
 class SerializationFormat;
@@ -23,7 +26,7 @@ class RotationFinishedMessage;
 /**
  * Singleton class for managing log streams.
  */
-class Manager {
+class Manager : public plugin::ComponentManager<Tag, Component> {
 public:
 	/**
 	 * Constructor.
@@ -154,10 +157,33 @@ public:
 	 */
 	void Terminate();
 
+#ifdef ENABLE_BROKER
 	/**
-	 * Returns a list of supported output formats.
+	 * Enable remote logs for a given stream.
+	 * @param stream_id the stream to enable remote logs for.
+	 * @param flags tune behavior of how log entries are sent to peer endpoints.
+	 * @return true if remote logs are enabled.
 	 */
-	static list<string> SupportedFormats();
+	bool EnableRemoteLogs(EnumVal* stream_id, int flags);
+
+	/**
+	 * Disable remote logs for a given stream.
+	 * @param stream_id the stream to disable remote logs for.
+	 * @return true if remote logs are disabled.
+	 */
+	bool DisableRemoteLogs(EnumVal* stream_id);
+
+	/**
+	 * @return true if remote logs are enabled for a given stream.
+	 */
+	bool RemoteLogsAreEnabled(EnumVal* stream_id);
+
+	/**
+	 * @return the type which corresponds to the columns in a log entry for
+	 * a given log stream.
+	 */
+	RecordType* StreamColumns(EnumVal* stream_id);
+#endif
 
 protected:
 	friend class WriterFrontend;
@@ -168,7 +194,7 @@ protected:
 
 	// Instantiates a new WriterBackend of the given type (note that
 	// doing so creates a new thread!).
-	WriterBackend* CreateBackend(WriterFrontend* frontend, bro_int_t type);
+	WriterBackend* CreateBackend(WriterFrontend* frontend, EnumVal* tag);
 
 	//// Function also used by the RemoteSerializer.
 

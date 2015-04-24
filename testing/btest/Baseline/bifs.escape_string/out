@@ -1,10 +1,10 @@
 12
-Test \0string
-13
-Test \0string
+Test \x00string
 15
 Test \x00string
-13
-Test \0string
+15
+Test \x00string
+15
+Test \x00string
 24
 546573742000737472696e67

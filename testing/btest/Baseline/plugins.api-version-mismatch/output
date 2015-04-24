@@ -1,0 +1,1 @@
+fatal error in /home/robin/bro/plugins/scripts/base/init-bare.bro, line 1: plugin's API version does not match Bro (expected 2, got 42 in /home/robin/bro/plugins/testing/btest/.tmp/plugins.api-version-mismatch/build//lib/XXX)

@@ -3,6 +3,8 @@
 #ifndef func_h
 #define func_h
 
+#include <utility>
+
 #include "BroList.h"
 #include "Obj.h"
 #include "Debug.h"
@@ -52,6 +54,7 @@ public:
 	Kind GetKind() const	{ return kind; }
 
 	const char* Name() const { return name.c_str(); }
+	void SetName(const char* arg_name)	{ name = arg_name; }
 
 	virtual void Describe(ODesc* d) const = 0;
 	virtual void DescribeDebug(ODesc* d, const val_list* args) const;
@@ -68,6 +71,9 @@ public:
 
 protected:
 	Func();
+
+	// Helper function for handling result of plugin hook.
+	std::pair<bool, Val*> HandlePluginResult(std::pair<bool, Val*> plugin_result, val_list* args, function_flavor flavor) const;
 
 	DECLARE_ABSTRACT_SERIAL(Func);
 
@@ -130,6 +136,7 @@ protected:
 
 extern void builtin_error(const char* msg, BroObj* arg = 0);
 extern void init_builtin_funcs();
+extern void init_builtin_funcs_subdirs();
 
 extern bool check_built_in_call(BuiltinFunc* f, CallExpr* call);
 

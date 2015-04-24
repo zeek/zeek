@@ -37,10 +37,12 @@ public:
 	 *
 	 * @param s The tunnel source address, likely taken from an IP header.
 	 * @param d The tunnel destination address, likely taken from an IP header.
+	 * @param t The type of IP tunnel.
 	 */
-	EncapsulatingConn(const IPAddr& s, const IPAddr& d)
+	EncapsulatingConn(const IPAddr& s, const IPAddr& d,
+	                  BifEnum::Tunnel::Type t = BifEnum::Tunnel::IP)
 		: src_addr(s), dst_addr(d), src_port(0), dst_port(0),
-		  proto(TRANSPORT_UNKNOWN), type(BifEnum::Tunnel::IP),
+		  proto(TRANSPORT_UNKNOWN), type(t),
 		  uid(Bro::UID(bits_per_uid))
 		{
 		}
@@ -85,7 +87,8 @@ public:
 		if ( ec1.type != ec2.type )
 			return false;
 
-		if ( ec1.type == BifEnum::Tunnel::IP )
+		if ( ec1.type == BifEnum::Tunnel::IP ||
+		     ec1.type == BifEnum::Tunnel::GRE )
 			// Reversing endpoints is still same tunnel.
 			return ec1.uid == ec2.uid && ec1.proto == ec2.proto &&
 			  ((ec1.src_addr == ec2.src_addr && ec1.dst_addr == ec2.dst_addr) ||

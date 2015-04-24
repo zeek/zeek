@@ -1,0 +1,2 @@
+[query=secret-key, qtype=3, alg_name=hmac-md5.sig-alg.reg.int, sig=F\xbd\xbf1\xef\x026\xb8\xeb\xae1u,\x87\xdb\x7f, time_signed=21513.794, fudge=300.0, orig_id=9703, rr_error=0, is_query=1]
+16

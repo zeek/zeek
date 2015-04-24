@@ -73,6 +73,10 @@ public:
 	// function will not return but raise an InterpreterException.
 	void ExprRuntimeError(const Expr* expr, const char* fmt, ...);
 
+	// Report a runtime error in evaluating a Bro script expression. This
+	// function will not return but raise an InterpreterException.
+	void RuntimeError(const Location* location, const char* fmt, ...);
+
 	// Report a traffic weirdness, i.e., an unexpected protocol situation
 	// that may lead to incorrectly processing a connnection.
 	void Weird(const char* name);	// Raises net_weird().

@@ -38,10 +38,17 @@ New Functionality
 - Bro now has support for the SIP protocol over UDP. Activity gets
   logged into sip.log.
 
-- Bro now features a completely rewritten, enhanced SSH analyzer, with
-  a set of added events being generated. A lot more information about
-  SSH sessions is logged. The analyzer is able to determine if logins
-  failed or succeeded in most circumstances.
+- Bro now features a completely rewritten, enhanced SSH analyzer.  The
+  new analyzer is able to determine if logins failed or succeeded in
+  most circumstances, logs a lot more more information about SSH
+  sessions, supports v1, and introduces the intelligence type
+  ``Intel::PUBKEY_HASH`` and location ``SSH::IN_SERVER_HOST_KEY``. The
+  analayzer also generates a set of additional events
+  (``ssh_auth_successful``, ``ssh_auth_failed``, ``ssh_capabilities``,
+  ``ssh2_server_host_key``, ``ssh1_server_host_key``,
+  ``ssh_encrypted_packet``, ``ssh2_dh_server_params``,
+  ``ssh2_gss_error``, ``ssh2_ecc_key``). See next section for
+  incompatible SSH changes.
 
 - Bro's file analysis now supports reassembly of files that are not
   transferred/seen sequentially.  The default file reassembly buffer
@@ -147,6 +154,18 @@ Changed Functionality
       ``seen_bytes`` and ``missed_bytes`` fields of the ``fa_file``
       record gives the how many bytes have been written so far (i.e.
       the "offset").
+
+- The SSH changes come with a few incompatibilities. The following
+  events have been renamed:
+
+    * ``SSH::heuristic_failed_login`` to ``SSH::ssh_auth_failed``
+    * ``SSH::heuristic_successful_login`` to ``SSH::ssh_auth_successful``
+
+  The ``SSH::Info`` status field has been removed and replaced with
+  the ``auth_success`` field.  This field has been changed from a
+  string that was previously ``success``, ``failure`` or
+  ``undetermined`` to a boolean. a boolean that is ``T``, ``F``, or
+  unset.
 
 - has_valid_octets: now uses a string_vec parameter instead of
   string_array.

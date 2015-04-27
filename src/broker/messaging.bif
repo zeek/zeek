@@ -35,7 +35,7 @@ function BrokerComm::print%(topic: string, msg: string,
 	%}
 
 ## Register interest in all peer print messages that use a certain topic prefix.
-## use :bro:see:`BrokerComm::print_handler` to handle received messages.
+## Use :bro:see:`BrokerComm::print_handler` to handle received messages.
 ##
 ## topic_prefix: a prefix to match against remote message topics.
 ##               e.g. an empty prefix matches everything and "a" matches
@@ -99,7 +99,7 @@ function BrokerComm::event%(topic: string, args: BrokerComm::EventArgs,
 ##
 ## ev: a Bro event value.
 ##
-## flags: tune the behavior of how the message is send.
+## flags: tune the behavior of how the message is sent.
 ##
 ## Returns: true if automatic event sending is now enabled.
 function BrokerComm::auto_event%(topic: string, ev: any,
@@ -115,7 +115,7 @@ function BrokerComm::auto_event%(topic: string, ev: any,
 ##
 ## ev: an event originally given to :bro:see:`BrokerComm::auto_event`.
 ##
-## Returns: true if automatic events will no occur for the topic/event pair.
+## Returns: true if automatic events will not occur for the topic/event pair.
 function BrokerComm::auto_event_stop%(topic: string, ev: any%): bool
 	%{
 	auto rval = broker_mgr->AutoEventStop(topic->CheckString(), ev);
@@ -174,6 +174,10 @@ function BrokerComm::disable_remote_logs%(id: Log::ID%): bool
 	return new Val(rval, TYPE_BOOL);
 	%}
 
+## Check if remote logs are enabled for a given log stream.
+##
+## id: the log stream to check.
+##
 ## Returns: true if remote logs are enabled for the given stream.
 function BrokerComm::remote_logs_enabled%(id: Log::ID%): bool
 	%{

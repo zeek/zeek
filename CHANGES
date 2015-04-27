@@ -1,4 +1,14 @@
 
+2.3-892 | 2015-04-27 08:22:22 -0700
+
+  * Fix typos in the Broker BIF documentation. (Daniel Thayer)
+
+  * Update installation instructions and remove outdated references.
+    (Johanna Amann)
+
+  * Easier support for systems with tcmalloc_minimal installed. (Seth
+    Hall)
+
 2.3-884 | 2015-04-23 12:30:15 -0500
 
   * Fix some outdated documentation unit tests. (Jon Siwek)

@@ -68,7 +68,7 @@ that ``bash`` and ``python`` are in your ``PATH``):
 
   .. console::
 
-      sudo pkg_add -r bash cmake swig bison python perl
+      sudo pkg_add -r bash cmake swig bison python perl py27-sqlite3
 
 * Mac OS X:
 
@@ -113,19 +113,15 @@ Using Pre-Built Binary Release Packages
 =======================================
 
 See the `bro downloads page`_ for currently supported/targeted
-platforms for binary releases.
+platforms for binary releases and for installation instructions.
 
-* RPM
+* Linux Packages
 
-  .. console::
-
-      sudo yum localinstall Bro-*.rpm
-
-* DEB
-
-  .. console::
-
-      sudo gdebi Bro-*.deb
+  Linux based binary installations are usually performed by adding
+  information about the Bro packages to the respective system packaging
+  tool. Theen the usual system utilities such as ``apt``, ``yum``
+  or ``zyppper`` are used to perforn the installation. By default,
+  installations of binary packages will go into ``/opt/bro``.
 
 * MacOS Disk Image with Installer
 
@@ -133,8 +129,6 @@ platforms for binary releases.
   Everything installed by the package will go into ``/opt/bro``.
 
 The primary install prefix for binary packages is ``/opt/bro``.
-Non-MacOS packages that include BroControl also put variable/runtime
-data (e.g. Bro logs) in ``/var/opt/bro``.
 
 Installing from Source
 ==========================

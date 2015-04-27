@@ -13,10 +13,12 @@ New Functionality
 - Bro now has support for external plugins that can extend its core
   functionality, like protocol/file analysis, via shared libraries.
   Plugins can be developed and distributed externally, and will be
-  pulled in dynamically at startup. Currently, a plugin can provide
-  custom protocol analyzers, file analyzers, log writers, input
-  readers, packet sources and dumpers, and new built-in functions. A
-  plugin can furthermore hook into Bro's processing at a number of
+  pulled in dynamically at startup (the environment variables
+  BRO_PLUGIN_PATH and BRO_PLUGIN_ACTIVATE can be used to specify the
+  locations and names of plugins to activate). Currently, a plugin
+  can provide custom protocol analyzers, file analyzers, log writers,
+  input readers, packet sources and dumpers, and new built-in functions.
+  A plugin can furthermore hook into Bro's processing at a number of
   places to add custom logic.
 
   See https://www.bro.org/sphinx-git/devel/plugins.html for more
@@ -97,6 +99,9 @@ New Functionality
 - One can now raise events when a connection crosses a given size
   threshold in terms of packets or bytes. The primary API for that
   functionality is in base/protocols/conn/thresholds.bro.
+
+- There is a new command-line option -Q/--time that prints Bro's execution
+  time and memory usage to stderr.
 
 - BroControl now has a new command "deploy" which is equivalent to running
   the "check", "install", "stop", and "start" commands (in that order).
@@ -193,7 +198,13 @@ Changed Functionality
   to stdout.  Error messages are still sent to stderr, however.
 
 - The capability of processing NetFlow input has been removed for the
-  time being.
+  time being.  Therefore, the -y/--flowfile and -Y/--netflow command-line
+  options have been removed, and the netflow_v5_header and netflow_v5_record
+  events have been removed.
+
+- The -D/--dfa-size command-line option has been removed.
+
+- The -L/--rule-benchmark command-line option has been removed.
 
 - The deprecated fields "hot" and "addl" have been removed from the
   connection record. Likewise, the functions append_addl() and

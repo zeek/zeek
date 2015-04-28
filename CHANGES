@@ -1,4 +1,8 @@
 
+2.3-903 | 2015-04-27 17:27:59 -0700
+
+  * BIT-1350: Improve record coercion type checking. (Jon Siwek)
+
 2.3-901 | 2015-04-27 17:25:27 -0700
 
   * BIT-1384: Remove -O (optimize scripts) command-line option, which

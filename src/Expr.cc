@@ -3804,6 +3804,9 @@ RecordCoerceExpr::RecordCoerceExpr(Expr* op, RecordType* r)
 			map[t_i] = i;
 			}
 
+		if ( IsError() )
+			return;
+
 		for ( i = 0; i < map_size; ++i )
 			{
 			if ( map[i] == -1 )

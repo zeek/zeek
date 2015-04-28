@@ -46,6 +46,4 @@ extern vector<string> params;
 class Stmt;
 extern Stmt* stmts;	// global statements
 
-extern int optimize;
-
 #endif

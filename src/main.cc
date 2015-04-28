@@ -115,7 +115,6 @@ ProfileLogger* profiling_logger = 0;
 ProfileLogger* segment_logger = 0;
 SampleLogger* sample_logger = 0;
 int signal_val = 0;
-int optimize = 0;
 int do_notice_analysis = 0;
 extern char version[];
 char* command_line_policy = 0;
@@ -193,7 +192,6 @@ void usage()
 	fprintf(stderr, "    -J|--set-seed <seed>           | set the random number seed\n");
 	fprintf(stderr, "    -K|--md5-hashkey <hashkey>     | set key for MD5-keyed hashing\n");
 	fprintf(stderr, "    -N|--print-plugins             | print available plugins and exit (-NN for verbose)\n");
-	fprintf(stderr, "    -O|--optimize                  | optimize policy script\n");
 	fprintf(stderr, "    -P|--prime-dns                 | prime DNS\n");
 	fprintf(stderr, "    -Q|--time                      | print execution time summary to stderr\n");
 	fprintf(stderr, "    -R|--replay <events.bst>       | replay events\n");
@@ -497,7 +495,6 @@ int main(int argc, char** argv)
 		{"set-seed",		required_argument,	0,	'J'},
 		{"md5-hashkey",		required_argument,	0,	'K'},
 		{"print-plugins",	no_argument,		0,	'N'},
-		{"optimize",		no_argument,		0,	'O'},
 		{"prime-dns",		no_argument,		0,	'P'},
 		{"time",		no_argument,		0,	'Q'},
 		{"replay",		required_argument,	0,	'R'},
@@ -659,10 +656,6 @@ int main(int argc, char** argv)
 
 		case 'N':
 			++print_plugins;
-			break;
-
-		case 'O':
-			optimize = 1;
 			break;
 
 		case 'P':

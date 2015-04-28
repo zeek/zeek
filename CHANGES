@@ -1,4 +1,10 @@
 
+2.3-899 | 2015-04-27 17:22:42 -0700
+
+  * Fix the -J/--set-seed cmd-line option. (Daniel Thayer)
+
+  * Remove unused -l, -L, and -Z cmd-line options. (Daniel Thayer)
+
 2.3-892 | 2015-04-27 08:22:22 -0700
 
   * Fix typos in the Broker BIF documentation. (Daniel Thayer)

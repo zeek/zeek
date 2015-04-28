@@ -13,10 +13,12 @@ New Functionality
 - Bro now has support for external plugins that can extend its core
   functionality, like protocol/file analysis, via shared libraries.
   Plugins can be developed and distributed externally, and will be
-  pulled in dynamically at startup. Currently, a plugin can provide
-  custom protocol analyzers, file analyzers, log writers, input
-  readers, packet sources and dumpers, and new built-in functions. A
-  plugin can furthermore hook into Bro's processing at a number of
+  pulled in dynamically at startup (the environment variables
+  BRO_PLUGIN_PATH and BRO_PLUGIN_ACTIVATE can be used to specify the
+  locations and names of plugins to activate). Currently, a plugin
+  can provide custom protocol analyzers, file analyzers, log writers,
+  input readers, packet sources and dumpers, and new built-in functions.
+  A plugin can furthermore hook into Bro's processing at a number of
   places to add custom logic.
 
   See https://www.bro.org/sphinx-git/devel/plugins.html for more
@@ -54,7 +56,8 @@ New Functionality
   transferred/seen sequentially.  The default file reassembly buffer
   size is set with the ``Files::reassembly_buffer_size`` variable.
 
-- Bro's file type identification has been greatly improved.
+- Bro's file type identification has been greatly improved (new file types,
+  bug fixes, and performance improvements).
 
 - Bro's scripting language now has a ``while`` statement::
 
@@ -80,7 +83,7 @@ New Functionality
   C++11 compiler (e.g. GCC 4.8+ or Clang 3.3+).
 
   Broker will become a mandatory dependency in future Bro versions and
-  replace the current communcation and serialization system.
+  replace the current communication and serialization system.
 
 - Add --enable-c++11 configure flag to compile Bro's source code in
   C++11 mode with a corresponding compiler. Note that 2.4 will be the
@@ -88,10 +91,10 @@ New Functionality
 
 - The SSL analysis now alerts when encountering SSL connections with
   old protocol versions or unsafe cipher suites. It also gained
-  extended reporting of weak keys, caching of already valdidated
-  certificates, full support TLS record defragmentation. SSL generally
+  extended reporting of weak keys, caching of already validated
+  certificates, and full support for TLS record defragmentation. SSL generally
   became much more robust and added several fields to ssl.log (while
-  removing some other).
+  removing some others).
 
 - A new icmp_sent_payload event provides access to ICMP payload.
 
@@ -103,6 +106,9 @@ New Functionality
 - One can now raise events when a connection crosses a given size
   threshold in terms of packets or bytes. The primary API for that
   functionality is in base/protocols/conn/thresholds.bro.
+
+- There is a new command-line option -Q/--time that prints Bro's execution
+  time and memory usage to stderr.
 
 - BroControl now has a new command "deploy" which is equivalent to running
   the "check", "install", "stop", and "start" commands (in that order).
@@ -152,7 +158,7 @@ Changed Functionality
       reassembly for non-sequential files, "offset" can be obtained
       with other information already available -- adding together
       ``seen_bytes`` and ``missed_bytes`` fields of the ``fa_file``
-      record gives the how many bytes have been written so far (i.e.
+      record gives how many bytes have been written so far (i.e.
       the "offset").
 
 - The SSH changes come with a few incompatibilities. The following
@@ -167,7 +173,7 @@ Changed Functionality
   ``undetermined`` to a boolean. a boolean that is ``T``, ``F``, or
   unset.
 
-- has_valid_octets: now uses a string_vec parameter instead of
+- The has_valid_octets function now uses a string_vec parameter instead of
   string_array.
 
 - conn.log gained a new field local_resp that works like local_orig,
@@ -211,7 +217,13 @@ Changed Functionality
   to stdout.  Error messages are still sent to stderr, however.
 
 - The capability of processing NetFlow input has been removed for the
-  time being.
+  time being.  Therefore, the -y/--flowfile and -Y/--netflow command-line
+  options have been removed, and the netflow_v5_header and netflow_v5_record
+  events have been removed.
+
+- The -D/--dfa-size command-line option has been removed.
+
+- The -L/--rule-benchmark command-line option has been removed.
 
 - The deprecated fields "hot" and "addl" have been removed from the
   connection record. Likewise, the functions append_addl() and
@@ -230,7 +242,7 @@ Deprecated Functionality
   concatenation/extraction functions. Note that the new functions use
   0-based indexing, rather than 1-based.
 
-  The full list of now deprecation functions is:
+  The full list of now deprecated functions is:
 
     * split: use split_string instead.
 

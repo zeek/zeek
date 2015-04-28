@@ -190,6 +190,7 @@ void usage()
 	fprintf(stderr, "    -C|--no-checksums              | ignore checksums\n");
 	fprintf(stderr, "    -F|--force-dns                 | force DNS\n");
 	fprintf(stderr, "    -I|--print-id <ID name>        | print out given ID\n");
+	fprintf(stderr, "    -J|--set-seed <seed>           | set the random number seed\n");
 	fprintf(stderr, "    -K|--md5-hashkey <hashkey>     | set key for MD5-keyed hashing\n");
 	fprintf(stderr, "    -N|--print-plugins             | print available plugins and exit (-NN for verbose)\n");
 	fprintf(stderr, "    -O|--optimize                  | optimize policy script\n");
@@ -498,9 +499,10 @@ int main(int argc, char** argv)
 		{"print-plugins",	no_argument,		0,	'N'},
 		{"optimize",		no_argument,		0,	'O'},
 		{"prime-dns",		no_argument,		0,	'P'},
+		{"time",		no_argument,		0,	'Q'},
 		{"replay",		required_argument,	0,	'R'},
 		{"debug-rules",		no_argument,		0,	'S'},
-		{"re-level",		required_argument,	0,	'R'},
+		{"re-level",		required_argument,	0,	'T'},
 		{"watchdog",		no_argument,		0,	'W'},
 		{"print-id",		required_argument,	0,	'I'},
 		{"status-file",		required_argument,	0,	'U'},
@@ -548,7 +550,7 @@ int main(int argc, char** argv)
 	opterr = 0;
 
 	char opts[256];
-	safe_strncpy(opts, "B:e:f:I:i:K:l:n:p:R:r:s:T:t:U:w:x:X:z:CFGLNOPSWabdghvZQ",
+	safe_strncpy(opts, "B:e:f:I:i:J:K:n:p:R:r:s:T:t:U:w:x:X:z:CFGNOPSWabdghvQ",
 		     sizeof(opts));
 
 #ifdef USE_PERFTOOLS_DEBUG

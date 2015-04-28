@@ -225,6 +225,8 @@ Changed Functionality
 
 - The -L/--rule-benchmark command-line option has been removed.
 
+- The -O/--optimize command-line option has been removed.
+
 - The deprecated fields "hot" and "addl" have been removed from the
   connection record. Likewise, the functions append_addl() and
   append_addl_marker() have been removed.

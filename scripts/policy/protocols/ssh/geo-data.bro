@@ -32,6 +32,9 @@ function get_location(c: connection): geo_location
 
 event ssh_auth_successful(c: connection, auth_method_none: bool) &priority=3
 	{
+	if ( ! c$ssh?$direction )
+		return;
+	
 	# Add the location data to the SSH record.
 	c$ssh$remote_location = get_location(c);
 	
@@ -47,6 +50,9 @@ event ssh_auth_successful(c: connection, auth_method_none: bool) &priority=3
 
 event ssh_auth_failed(c: connection) &priority=3
 	{
+	if ( ! c$ssh?$direction )
+		return;
+	
 	# Add the location data to the SSH record.
 	c$ssh$remote_location = get_location(c);
 	}

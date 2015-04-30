@@ -1,4 +1,8 @@
 
+2.3-905 | 2015-04-29 17:01:30 -0700
+
+  * Improve SIP logging and remove reporter messages. (Seth Hall)
+
 2.3-903 | 2015-04-27 17:27:59 -0700
 
   * BIT-1350: Improve record coercion type checking. (Jon Siwek)

@@ -26,12 +26,19 @@ export {
 		uri:                     string            &log &optional;
 		## Contents of the Date: header from the client
 		date:                    string            &log &optional;
-		## Contents of the From: header (call sender)
+		## Contents of the request From: header
 		## Note: The tag= value that's usually appended to the sender
 		## is stripped off and not logged.
-		from:                    string            &log &optional;
-		## Contents of the To: header (call recipient)
-		to:                      string            &log &optional;
+		request_from:            string            &log &optional;
+		## Contents of the To: header
+		request_to:              string            &log &optional;
+		## Contents of the response From: header
+		## Note: The ``tag=`` value that's usually appended to the sender
+		## is stripped off and not logged.
+		response_from:            string            &log &optional;
+		## Contents of the response To: header
+		response_to:              string            &log &optional;
+
 		## Contents of the Reply-To: header
 		reply_to:                string            &log &optional;
 		## Contents of the Call-ID: header from the client
@@ -40,8 +47,10 @@ export {
 		seq:                     string            &log &optional;
 		## Contents of the Subject: header from the client
 		subject:                 string            &log &optional;
-		## The message transmission path, as extracted from the headers.
-		path:                    vector of string  &log &optional;
+		## The client message transmission path, as extracted from the headers.
+		request_path:            vector of string  &log &optional;
+		## The server message transmission path, as extracted from the headers.
+		response_path:           vector of string  &log &optional;
 		## Contents of the User-Agent: header from the client
 		user_agent:              string            &log &optional;
 		## Status code returned by the server.
@@ -104,7 +113,8 @@ function new_sip_session(c: connection): Info
 	# can use the value directly here.
 	tmp$trans_depth = c$sip_state$current_request;
 
-	tmp$path = vector();
+	tmp$request_path = vector();
+	tmp$response_path = vector();
 
 	return tmp;
 	}
@@ -127,6 +137,22 @@ function set_state(c: connection, is_request: bool)
 		c$sip = c$sip_state$pending[c$sip_state$current_request];
 	else
 		c$sip = c$sip_state$pending[c$sip_state$current_response];
+
+	if ( is_request )
+		{
+		if ( c$sip_state$current_request !in c$sip_state$pending )
+			c$sip_state$pending[c$sip_state$current_request] = new_sip_session(c);
+
+		c$sip = c$sip_state$pending[c$sip_state$current_request];
+		}
+	else
+		{
+		if ( c$sip_state$current_response !in c$sip_state$pending )
+			c$sip_state$pending[c$sip_state$current_response] = new_sip_session(c);
+
+		c$sip = c$sip_state$pending[c$sip_state$current_response];
+		}
+
 	}
 
 function flush_pending(c: connection)
@@ -156,10 +182,11 @@ event sip_request(c: connection, method: string, original_URI: string, version: 
 
 event sip_reply(c: connection, version: string, code: count, reason: string) &priority=5
 	{
+	set_state(c, F);
+
 	if ( c$sip_state$current_response !in c$sip_state$pending &&
 	     (code < 100 && 200 <= code) )
 		++c$sip_state$current_response;
-	set_state(c, F);
 
 	c$sip$status_code = code;
 	c$sip$status_msg = reason;
@@ -182,12 +209,13 @@ event sip_header(c: connection, is_request: bool, name: string, value: string) &
 		else if ( name == "CONTENT-LENGTH" || name == "L" ) c$sip$request_body_len = value;
 		else if ( name == "CSEQ" )                          c$sip$seq = value;
 		else if ( name == "DATE" )                          c$sip$date = value;
-		else if ( name == "FROM" || name == "F" )           c$sip$from = split_string1(value, /;[ ]?tag=/)[0];
+		else if ( name == "FROM" || name == "F" )           c$sip$request_from = split_string1(value, /;[ ]?tag=/)[0];
 		else if ( name == "REPLY-TO" )                      c$sip$reply_to = value;
 		else if ( name == "SUBJECT" || name == "S" )        c$sip$subject = value;
-		else if ( name == "TO" || name == "T" )             c$sip$to = value;
+		else if ( name == "TO" || name == "T" )             c$sip$request_to = value;
 		else if ( name == "USER-AGENT" )                    c$sip$user_agent = value;
-		else if ( name == "VIA" || name == "V" )            c$sip$path[|c$sip$path|] = split_string1(value, /;[ ]?branch/)[0];
+		else if ( name == "VIA" || name == "V" )            c$sip$request_path[|c$sip$request_path|] = split_string1(value, /;[ ]?branch/)[0];
+
 		c$sip_state$pending[c$sip_state$current_request] = c$sip;
 		}
 	else # from server
@@ -197,7 +225,11 @@ event sip_header(c: connection, is_request: bool, name: string, value: string) &
 		set_state(c, is_request);
 		if ( name == "CONTENT-LENGTH" || name == "L" )    c$sip$response_body_len = value;
 		else if ( name == "CONTENT-TYPE" || name == "C" ) c$sip$content_type = value;
-		else if ( name == "WARNING" ) 	                  c$sip$warning = value;
+		else if ( name == "WARNING" )                     c$sip$warning = value;
+		else if ( name == "FROM" || name == "F" )         c$sip$response_from = split_string1(value, /;[ ]?tag=/)[0];
+		else if ( name == "TO" || name == "T" )           c$sip$response_to = value;
+		else if ( name == "VIA" || name == "V" )          c$sip$response_path[|c$sip$response_path|] = split_string1(value, /;[ ]?branch/)[0];
+
 		c$sip_state$pending[c$sip_state$current_response] = c$sip;
 		}
 	}
@@ -217,8 +249,8 @@ event sip_end_entity(c: connection, is_request: bool) &priority = -5
 		if ( c$sip$status_code < 100 || 200 <= c$sip$status_code )
 			delete c$sip_state$pending[c$sip_state$current_response];
 
-		if ( c$sip$method == "BYE" &&
-		     c$sip$status_code >= 200 && c$sip$status_code < 300 )
+		if ( ! c$sip?$method || ( c$sip$method == "BYE" &&
+		     c$sip$status_code >= 200 && c$sip$status_code < 300 ) )
 			{
 			flush_pending(c);
 			delete c$sip;

@@ -118,7 +118,7 @@ event ssh_client_version(c: connection, version: string)
 		c$ssh$version = 2;
 	}
 
-event ssh_auth_successful(c: connection, auth_method_none: bool)
+event ssh_auth_successful(c: connection, auth_method_none: bool) &priority=5
 	{
 	# TODO - what to do here?
 	if ( !c?$ssh || ( c$ssh?$auth_success && c$ssh$auth_success ) )
@@ -146,7 +146,7 @@ event ssh_auth_successful(c: connection, auth_method_none: bool) &priority=-5
 		}
 	}
 
-event ssh_auth_failed(c: connection)
+event ssh_auth_failed(c: connection) &priority=5
 	{
 	if ( !c?$ssh || ( c$ssh?$auth_success && !c$ssh$auth_success ) )
 		return;

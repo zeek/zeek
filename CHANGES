@@ -1,4 +1,11 @@
 
+2.3-911 | 2015-05-04 09:58:09 -0700
+
+  * Update usage output and list of command line options. (Daniel
+    Thayer)
+
+  * Improve SIP logging and remove reporter messages. (Seth Hall)
+
 2.3-905 | 2015-04-29 17:01:30 -0700
 
   * Improve SIP logging and remove reporter messages. (Seth Hall)

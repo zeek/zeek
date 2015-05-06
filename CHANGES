@@ -1,8 +1,15 @@
 
+2.3-913 | 2015-05-06 09:58:00 -0700
+
+  * Add /sbin to PATH in btest.cfg and remove duplicate default_path.
+    (Daniel Thayer)
+
 2.3-911 | 2015-05-04 09:58:09 -0700
 
   * Update usage output and list of command line options. (Daniel
     Thayer)
+
+  * Fix to ssh/geo-data.bro for unset directions. (Vlad Grigorescu)
 
   * Improve SIP logging and remove reporter messages. (Seth Hall)
 

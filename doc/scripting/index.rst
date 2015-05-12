@@ -363,7 +363,7 @@ decrypted from HTTP streams is stored in
 excerpt from :doc:`/scripts/base/protocols/http/main.bro` below.
 
 .. btest-include:: ${BRO_SRC_ROOT}/scripts/base/protocols/http/main.bro
-   :lines: 9-11,20-22,121
+   :lines: 9-11,20-22,125
 
 Because the constant was declared with the ``&redef`` attribute, if we
 needed to turn this option on globally, we could do so by adding the

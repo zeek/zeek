@@ -7,8 +7,8 @@
 
 module BrokerComm;
 
-## Enumerates the possible types that :bro:see:`BrokerComm::Data` may be in terms of
-## Bro data types.
+## Enumerates the possible types that :bro:see:`BrokerComm::Data` may be in
+## terms of Bro data types.
 enum DataType %{
 	BOOL,
 	INT,
@@ -31,13 +31,14 @@ type BrokerComm::Data: record;
 
 type BrokerComm::TableItem: record;
 
-## Convert any Bro value in to communication data.
+## Convert any Bro value to communication data.
 ##
 ## d: any Bro value to attempt to convert (not all types are supported).
 ##
-## Returns: the converted communication data which may not set its only
-##          opaque field of the the conversion was not possible (the Bro data
-##          type does not support being converted to communicaiton data).
+## Returns: the converted communication data.  The returned record's optional
+##          field will not be set if the conversion was not possible (this can
+##          happen if the Bro data type does not support being converted to
+##          communication data).
 function BrokerComm::data%(d: any%): BrokerComm::Data
 	%{
 	return bro_broker::make_data_val(d);
@@ -237,7 +238,7 @@ function BrokerComm::set_contains%(s: BrokerComm::Data, key: BrokerComm::Data%):
 	return new Val(v.find(k) != v.end(), TYPE_BOOL);
 	%}
 
-### Insert an element into a set.
+## Insert an element into a set.
 ##
 ## s: the set to modify.
 ##
@@ -367,7 +368,7 @@ function BrokerComm::table_size%(t: BrokerComm::Data%): count
 ##
 ## key: the key to check for existence.
 ##
-## Returns: true if the key exists in the set.
+## Returns: true if the key exists in the table.
 function BrokerComm::table_contains%(t: BrokerComm::Data, key: BrokerComm::Data%): bool
 	%{
 	auto& v = bro_broker::require_data_type<broker::table>(t->AsRecordVal(),
@@ -724,7 +725,7 @@ function BrokerComm::record_size%(r: BrokerComm::Data%): count
 
 ## Replace a field in a record at a particular position.
 ##
-## t: the table to modify.
+## r: the record to modify.
 ##
 ## d: the new field value to assign.
 ##
@@ -752,7 +753,7 @@ function BrokerComm::record_assign%(r: BrokerComm::Data, d: BrokerComm::Data, id
 ##
 ## Returns: the value at the index.  The optional field of the returned record
 ##          may not be set if the field of the record has no value or if the
-##          the index was not valid.
+##          index was not valid.
 function BrokerComm::record_lookup%(r: BrokerComm::Data, idx: count%): BrokerComm::Data
 	%{
 	auto& v = bro_broker::require_data_type<broker::record>(r->AsRecordVal(),

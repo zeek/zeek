@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2015-04-17-16-46-56
+#open	2015-04-21-22-29-27
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -13,6 +13,7 @@ scripts/base/init-bare.bro
   build/scripts/base/bif/bro.bif.bro
   build/scripts/base/bif/reporter.bif.bro
   build/scripts/base/bif/plugins/Bro_SNMP.types.bif.bro
+  build/scripts/base/bif/plugins/Bro_KRB.types.bif.bro
   build/scripts/base/bif/event.bif.bro
   scripts/base/frameworks/broker/__load__.bro
     scripts/base/frameworks/broker/main.bro
@@ -76,6 +77,7 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_Ident.events.bif.bro
     build/scripts/base/bif/plugins/Bro_InterConn.events.bif.bro
     build/scripts/base/bif/plugins/Bro_IRC.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_KRB.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Login.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Login.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_MIME.events.bif.bro
@@ -84,7 +86,6 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_NCP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_NetBIOS.events.bif.bro
     build/scripts/base/bif/plugins/Bro_NetBIOS.functions.bif.bro
-    build/scripts/base/bif/plugins/Bro_NetFlow.events.bif.bro
     build/scripts/base/bif/plugins/Bro_NTP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_PIA.events.bif.bro
     build/scripts/base/bif/plugins/Bro_POP3.events.bif.bro
@@ -92,6 +93,7 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_RDP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_RDP.types.bif.bro
     build/scripts/base/bif/plugins/Bro_RPC.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_SIP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_SNMP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_SMB.events.bif.bro
     build/scripts/base/bif/plugins/Bro_SMTP.events.bif.bro
@@ -110,6 +112,7 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_FileExtract.events.bif.bro
     build/scripts/base/bif/plugins/Bro_FileExtract.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_FileHash.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_PE.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Unified2.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Unified2.types.bif.bro
     build/scripts/base/bif/plugins/Bro_X509.events.bif.bro
@@ -226,6 +229,10 @@ scripts/base/init-default.bro
     scripts/base/protocols/irc/main.bro
     scripts/base/protocols/irc/dcc-send.bro
     scripts/base/protocols/irc/files.bro
+  scripts/base/protocols/krb/__load__.bro
+    scripts/base/protocols/krb/main.bro
+      scripts/base/protocols/krb/consts.bro
+    scripts/base/protocols/krb/files.bro
   scripts/base/protocols/modbus/__load__.bro
     scripts/base/protocols/modbus/consts.bro
     scripts/base/protocols/modbus/main.bro
@@ -239,6 +246,8 @@ scripts/base/init-default.bro
   scripts/base/protocols/rdp/__load__.bro
     scripts/base/protocols/rdp/consts.bro
     scripts/base/protocols/rdp/main.bro
+  scripts/base/protocols/sip/__load__.bro
+    scripts/base/protocols/sip/main.bro
   scripts/base/protocols/snmp/__load__.bro
     scripts/base/protocols/snmp/main.bro
   scripts/base/protocols/smtp/__load__.bro
@@ -254,6 +263,9 @@ scripts/base/init-default.bro
     scripts/base/protocols/syslog/consts.bro
     scripts/base/protocols/syslog/main.bro
   scripts/base/protocols/tunnels/__load__.bro
+  scripts/base/files/pe/__load__.bro
+    scripts/base/files/pe/consts.bro
+    scripts/base/files/pe/main.bro
   scripts/base/files/extract/__load__.bro
     scripts/base/files/extract/main.bro
   scripts/base/files/unified2/__load__.bro
@@ -261,4 +273,4 @@ scripts/base/init-default.bro
   scripts/base/misc/find-checksum-offloading.bro
   scripts/base/misc/find-filtered-trace.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2015-04-17-16-46-56
+#close	2015-04-21-22-29-27

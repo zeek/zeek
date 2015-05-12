@@ -10,6 +10,7 @@ RecordType* endpoint;
 RecordType* endpoint_stats;
 RecordType* connection_type;
 RecordType* fa_file_type;
+RecordType* fa_metadata_type;
 RecordType* icmp_conn;
 RecordType* icmp_context;
 RecordType* SYN_packet;
@@ -318,6 +319,7 @@ void init_net_var()
 	endpoint_stats = internal_type("endpoint_stats")->AsRecordType();
 	connection_type = internal_type("connection")->AsRecordType();
 	fa_file_type = internal_type("fa_file")->AsRecordType();
+	fa_metadata_type = internal_type("fa_metadata")->AsRecordType();
 	icmp_conn = internal_type("icmp_conn")->AsRecordType();
 	icmp_context = internal_type("icmp_context")->AsRecordType();
 	signature_state = internal_type("signature_state")->AsRecordType();

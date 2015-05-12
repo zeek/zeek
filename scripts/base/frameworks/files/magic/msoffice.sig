@@ -26,3 +26,9 @@ signature file-pptx {
 	file-magic /^PK\x03\x04.{26}(\[Content_Types\]\.xml|_rels\x2f\.rels|ppt\x2f).*PK\x03\x04.{26}ppt\x2f/
 	file-mime "application/vnd.openxmlformats-officedocument.presentationml.presentation", 80
 }
+
+signature file-msaccess {
+	file-mime "application/x-msaccess", 180
+	file-magic /.{4}Standard (Jet|ACE) DB\x00/
+}
+

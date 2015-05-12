@@ -8,19 +8,9 @@
 %}
 
 %header{
-StringVal* asn1_oid_to_val(const ASN1Encoding* oid);
-StringVal* asn1_oid_to_val(const ASN1ObjectIdentifier* oid);
-
-Val* asn1_integer_to_val(const ASN1Encoding* i, TypeTag t);
-Val* asn1_integer_to_val(const ASN1Integer* i, TypeTag t);
-
-StringVal* asn1_octet_string_to_val(const ASN1Encoding* s);
-StringVal* asn1_octet_string_to_val(const ASN1OctetString* s);
-
 AddrVal* network_address_to_val(const ASN1Encoding* na);
 AddrVal* network_address_to_val(const NetworkAddress* na);
-
-Val* asn1_obj_to_val(const ASN1Encoding* obj);
+Val*     asn1_obj_to_val(const ASN1Encoding* obj);
 
 RecordVal* build_hdr(const Header* header);
 RecordVal* build_hdrV3(const Header* header);
@@ -32,73 +22,24 @@ RecordVal* build_bulk_pdu(const GetBulkRequestPDU* pdu);
 
 %code{
 
-StringVal* asn1_oid_to_val(const ASN1ObjectIdentifier* oid)
+AddrVal* network_address_to_val(const NetworkAddress* na)
 	{
-	return asn1_oid_to_val(oid->encoding());
+	return network_address_to_val(na->encoding());
 	}
 
-StringVal* asn1_oid_to_val(const ASN1Encoding* oid)
+AddrVal* network_address_to_val(const ASN1Encoding* na)
 	{
-	vector<uint64> oid_components;
-	vector<vector<uint8> > subidentifiers;
-	vector<uint64> subidentifier_values;
-	vector<uint8> subidentifier;
-	bytestring const& bs = oid->content();
+	bytestring const& bs = na->content();
 
-	for ( int i = 0; i < bs.length(); ++i )
-		{
-		if ( bs[i] & 0x80 )
-			subidentifier.push_back(bs[i] & 0x7f);
-		else
-			{
-			subidentifier.push_back(bs[i]);
-			subidentifiers.push_back(subidentifier);
-			subidentifier.clear();
-			}
-		}
+	// IPv6 can probably be presumed to be a octet string of length 16,
+	// but standards don't seem to currently make any provisions for IPv6,
+	// so ignore anything that can't be IPv4.
+	if ( bs.length() != 4 )
+		return new AddrVal(IPAddr());
 
-	if ( ! subidentifier.empty() || subidentifiers.size() < 1 )
-		// Underflow.
-		return new StringVal("");
-
-	for ( size_t i = 0; i < subidentifiers.size(); ++i )
-		{
-		subidentifier = subidentifiers[i];
-		uint64 value = 0;
-
-		for ( size_t j = 0; j < subidentifier.size(); ++j )
-			{
-			uint64 byte = subidentifier[j];
-			value |= byte << (7 * (subidentifier.size() - (j + 1)));
-			}
-
-		subidentifier_values.push_back(value);
-		}
-
-	string rval;
-
-	for ( size_t i = 0; i < subidentifier_values.size(); ++i )
-		{
-		char tmp[32];
-
-		if ( i > 0 )
-			{
-			rval += ".";
-			snprintf(tmp, sizeof(tmp), "%" PRIu64, subidentifier_values[i]);
-			rval += tmp;
-			}
-		else
-			{
-			std::div_t result = std::div(subidentifier_values[i], 40);
-			snprintf(tmp, sizeof(tmp), "%d", result.quot);
-			rval += tmp;
-			rval += ".";
-			snprintf(tmp, sizeof(tmp), "%d", result.rem);
-			rval += tmp;
-			}
-		}
-
-	return new StringVal(rval);
+	const u_char* data = reinterpret_cast<const u_char*>(bs.data());
+	uint32 network_order = extract_uint32(data);
+	return new AddrVal(network_order);
 	}
 
 Val* asn1_obj_to_val(const ASN1Encoding* obj)
@@ -142,47 +83,6 @@ Val* asn1_obj_to_val(const ASN1Encoding* obj)
 	}
 
 	return rval;
-	}
-
-StringVal* asn1_octet_string_to_val(const ASN1OctetString* s)
-	{
-	return asn1_octet_string_to_val(s->encoding());
-	}
-
-StringVal* asn1_octet_string_to_val(const ASN1Encoding* s)
-	{
-	bytestring const& bs = s->content();
-	return new StringVal(bs.length(), reinterpret_cast<const char*>(bs.data()));
-	}
-
-Val* asn1_integer_to_val(const ASN1Integer* i, TypeTag t)
-	{
-	return asn1_integer_to_val(i->encoding(), t);
-	}
-
-Val* asn1_integer_to_val(const ASN1Encoding* i, TypeTag t)
-	{
-	return new Val(binary_to_int64(i->content()), t);
-	}
-
-AddrVal* network_address_to_val(const NetworkAddress* na)
-	{
-	return network_address_to_val(na->encoding());
-	}
-
-AddrVal* network_address_to_val(const ASN1Encoding* na)
-	{
-	bytestring const& bs = na->content();
-
-	// IPv6 can probably be presumed to be a octet string of length 16,
-	// but standards don't seem to currently make any provisions for IPv6,
-	// so ignore anything that can't be IPv4.
-	if ( bs.length() != 4 )
-		return new AddrVal(IPAddr());
-
-	const u_char* data = reinterpret_cast<const u_char*>(bs.data());
-	uint32 network_order = extract_uint32(data);
-	return new AddrVal(network_order);
 	}
 
 Val* time_ticks_to_val(const TimeTicks* tt)

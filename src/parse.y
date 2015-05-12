@@ -272,9 +272,6 @@ static bool has_attr(const attr_list* al, attr_tag tag)
 bro:
 		decl_list stmt_list
 			{
-			if ( optimize )
-				$2 = $2->Simplify();
-
 			if ( stmts )
 				stmts->AsStmtList()->Stmts().append($2);
 			else
@@ -1173,9 +1170,6 @@ func_body:
 
 		'}'
 			{
-			if ( optimize )
-				$4 = $4->Simplify();
-
 			end_func($4, $1);
 			}
 	;

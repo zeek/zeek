@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	kerberos
+#open	2015-04-21-19-22-29
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	request_type	client	service	success	error_msg	from	till	cipher	forwardable	renewable	client_cert_subject	client_cert_fuid	server_cert_subject	server_cert_fuid
+#types	time	string	addr	port	addr	port	string	string	string	bool	string	time	time	string	bool	bool	string	string	string	string
+1429583645.478441	CXWv6p3arKYeMETxOg	192.168.1.31	64889	192.168.1.32	88	TGS	vladg/VLADG.NET	krbtgt/VLADG.NET	T	-	-	0.000000	aes256-cts-hmac-sha1-96	T	F	-	-	-	-
+#close	2015-04-21-19-22-29

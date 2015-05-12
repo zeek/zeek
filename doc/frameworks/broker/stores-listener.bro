@@ -1,4 +1,4 @@
-const broker_port: port &redef;
+const broker_port: port = 9999/tcp &redef;
 redef exit_only_after_terminate = T;
 
 global h: opaque of BrokerStore::Handle;

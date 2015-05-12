@@ -115,7 +115,6 @@ ProfileLogger* profiling_logger = 0;
 ProfileLogger* segment_logger = 0;
 SampleLogger* sample_logger = 0;
 int signal_val = 0;
-int optimize = 0;
 int do_notice_analysis = 0;
 extern char version[];
 char* command_line_policy = 0;
@@ -190,9 +189,9 @@ void usage()
 	fprintf(stderr, "    -C|--no-checksums              | ignore checksums\n");
 	fprintf(stderr, "    -F|--force-dns                 | force DNS\n");
 	fprintf(stderr, "    -I|--print-id <ID name>        | print out given ID\n");
+	fprintf(stderr, "    -J|--set-seed <seed>           | set the random number seed\n");
 	fprintf(stderr, "    -K|--md5-hashkey <hashkey>     | set key for MD5-keyed hashing\n");
 	fprintf(stderr, "    -N|--print-plugins             | print available plugins and exit (-NN for verbose)\n");
-	fprintf(stderr, "    -O|--optimize                  | optimize policy script\n");
 	fprintf(stderr, "    -P|--prime-dns                 | prime DNS\n");
 	fprintf(stderr, "    -Q|--time                      | print execution time summary to stderr\n");
 	fprintf(stderr, "    -R|--replay <events.bst>       | replay events\n");
@@ -200,7 +199,7 @@ void usage()
 	fprintf(stderr, "    -T|--re-level <level>          | set 'RE_level' for rules\n");
 	fprintf(stderr, "    -U|--status-file <file>        | Record process status in file\n");
 	fprintf(stderr, "    -W|--watchdog                  | activate watchdog timer\n");
-	fprintf(stderr, "    -X|--broxygen                  | generate documentation based on config file\n");
+	fprintf(stderr, "    -X|--broxygen <cfgfile>        | generate documentation based on config file\n");
 
 #ifdef USE_PERFTOOLS_DEBUG
 	fprintf(stderr, "    -m|--mem-leaks                 | show leaks  [perftools]\n");
@@ -496,11 +495,11 @@ int main(int argc, char** argv)
 		{"set-seed",		required_argument,	0,	'J'},
 		{"md5-hashkey",		required_argument,	0,	'K'},
 		{"print-plugins",	no_argument,		0,	'N'},
-		{"optimize",		no_argument,		0,	'O'},
 		{"prime-dns",		no_argument,		0,	'P'},
+		{"time",		no_argument,		0,	'Q'},
 		{"replay",		required_argument,	0,	'R'},
 		{"debug-rules",		no_argument,		0,	'S'},
-		{"re-level",		required_argument,	0,	'R'},
+		{"re-level",		required_argument,	0,	'T'},
 		{"watchdog",		no_argument,		0,	'W'},
 		{"print-id",		required_argument,	0,	'I'},
 		{"status-file",		required_argument,	0,	'U'},
@@ -548,7 +547,7 @@ int main(int argc, char** argv)
 	opterr = 0;
 
 	char opts[256];
-	safe_strncpy(opts, "B:e:f:I:i:K:l:n:p:R:r:s:T:t:U:w:x:X:z:CFGLNOPSWabdghvZQ",
+	safe_strncpy(opts, "B:e:f:I:i:J:K:n:p:R:r:s:T:t:U:w:x:X:z:CFNPSWabdghvQ",
 		     sizeof(opts));
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -657,10 +656,6 @@ int main(int argc, char** argv)
 
 		case 'N':
 			++print_plugins;
-			break;
-
-		case 'O':
-			optimize = 1;
 			break;
 
 		case 'P':

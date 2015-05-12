@@ -128,12 +128,7 @@ static void do_fmt(const char*& fmt, Val* v, ODesc* d)
 	char out_buf[512];
 
 	ODesc s;
-
-	if ( *fmt == 'A' )
-		{
-		s.SetStyle(ALTERNATIVE_STYLE);
-		++fmt;
-		}
+	s.SetStyle(RAW_STYLE);
 
 	if ( precision >= 0 && *fmt != 'e' && *fmt != 'f' && *fmt != 'g' )
 		builtin_error("precision specified for non-floating point");
@@ -256,12 +251,12 @@ static void do_fmt(const char*& fmt, Val* v, ODesc* d)
 			d->Add(" ");
 		}
 
-	d->Add(s.Description());
+	d->AddN((const char*)(s.Bytes()), s.Len());
 
 	// Right-padding with whitespace, if any.
 	if ( field_width > 0 && left_just )
 		{
-		int sl = strlen(s.Description());
+		int sl = s.Len();
 		while ( ++sl <= field_width )
 			d->Add(" ");
 		}
@@ -1348,6 +1343,8 @@ function order%(v: any, ...%) : index_vec
 function cat%(...%): string
 	%{
 	ODesc d;
+	d.SetStyle(RAW_STYLE);
+
 	loop_over_list(@ARG@, i)
 		@ARG@[i]->Describe(&d);
 
@@ -1373,6 +1370,8 @@ function cat%(...%): string
 function cat_sep%(sep: string, def: string, ...%): string
 	%{
 	ODesc d;
+	d.SetStyle(RAW_STYLE);
+
 	int pre_size = 0;
 
 	loop_over_list(@ARG@, i)
@@ -1449,6 +1448,8 @@ function fmt%(...%): string
 
 	const char* fmt = fmt_v->AsString()->CheckString();
 	ODesc d;
+	d.SetStyle(RAW_STYLE);
+
 	int n = 0;
 
 	while ( next_fmt(fmt, @ARGS@, &d, n) )
@@ -3247,9 +3248,7 @@ function lookup_connection%(cid: conn_id%): connection
 	c->Assign(3, new Val(network_time, TYPE_TIME));
 	c->Assign(4, new Val(0.0, TYPE_INTERVAL));
 	c->Assign(5, new TableVal(string_set));	// service
-	c->Assign(6, new StringVal(""));	// addl
-	c->Assign(7, new Val(0, TYPE_COUNT));	// hot
-	c->Assign(8, new StringVal(""));	// history
+	c->Assign(6, new StringVal(""));	// history
 
 	return c;
 	%}

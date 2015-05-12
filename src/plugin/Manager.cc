@@ -143,6 +143,17 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 		if ( ok_if_not_found )
 			return true;
 
+		// Check if it's a static built-in plugin; they are always
+		// active, so just ignore. Not the most efficient way, but
+		// this should be rare to begin with.
+		plugin_list* all_plugins = Manager::ActivePluginsInternal();
+
+		for ( plugin::Manager::plugin_list::const_iterator i = all_plugins->begin(); i != all_plugins->end(); i++ )
+			{
+			if ( (*i)->Name() == name )
+				return true;
+			}
+
 		reporter->Error("plugin %s is not available", name.c_str());
 		return false;
 		}

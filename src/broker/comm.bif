@@ -1,5 +1,5 @@
 
-##! General functions regarding Bro's broker communication mechanisms.
+##! Functions and events regarding Bro's broker communication mechanisms.
 
 %%{
 #include "broker/Manager.h"
@@ -23,7 +23,7 @@ function BrokerComm::enable%(flags: EndpointFlags &default = EndpointFlags()%): 
 ##
 ## flags: the new endpoint behavior flags to use.
 ##
-## Returns: true of flags were changed.
+## Returns: true if flags were changed.
 function BrokerComm::set_endpoint_flags%(flags: EndpointFlags &default = EndpointFlags()%): bool
 	%{
 	return new Val(broker_mgr->SetEndpointFlags(flags), TYPE_BOOL);
@@ -162,7 +162,7 @@ function BrokerComm::listen%(p: port, a: string &default = "",
 ##
 ## Returns: true if it's possible to try connecting with the peer and
 ##          it's a new peer.  The actual connection may not be established
-##          a later point in time.
+##          until a later point in time.
 ##
 ## .. bro:see:: BrokerComm::outgoing_connection_established
 function BrokerComm::connect%(a: string, p: port, retry: interval%): bool

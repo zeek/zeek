@@ -113,7 +113,7 @@ if (NOT DISABLE_PERFTOOLS)
    find_package(GooglePerftools)
 endif ()
 
-if (GOOGLEPERFTOOLS_FOUND)
+if (GOOGLEPERFTOOLS_FOUND OR TCMALLOC_FOUND)
     set(HAVE_PERFTOOLS true)
     # Non-Linux systems may not be well-supported by gperftools, so
     # require explicit request from user to enable it in that case.

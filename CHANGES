@@ -1,4 +1,216 @@
 
+2.4-beta | 2015-05-07 21:55:31 -0700
+
+  * Release 2.4-beta.
+
+  * Update local-compat.test (Johanna Amann)
+
+2.3-913 | 2015-05-06 09:58:00 -0700
+
+  * Add /sbin to PATH in btest.cfg and remove duplicate default_path.
+    (Daniel Thayer)
+
+2.3-911 | 2015-05-04 09:58:09 -0700
+
+  * Update usage output and list of command line options. (Daniel
+    Thayer)
+
+  * Fix to ssh/geo-data.bro for unset directions. (Vlad Grigorescu)
+
+  * Improve SIP logging and remove reporter messages. (Seth Hall)
+
+2.3-905 | 2015-04-29 17:01:30 -0700
+
+  * Improve SIP logging and remove reporter messages. (Seth Hall)
+
+2.3-903 | 2015-04-27 17:27:59 -0700
+
+  * BIT-1350: Improve record coercion type checking. (Jon Siwek)
+
+2.3-901 | 2015-04-27 17:25:27 -0700
+
+  * BIT-1384: Remove -O (optimize scripts) command-line option, which
+    hadn't been working for a while already. (Jon Siwek)
+
+2.3-899 | 2015-04-27 17:22:42 -0700
+
+  * Fix the -J/--set-seed cmd-line option. (Daniel Thayer)
+
+  * Remove unused -l, -L, and -Z cmd-line options. (Daniel Thayer)
+
+2.3-892 | 2015-04-27 08:22:22 -0700
+
+  * Fix typos in the Broker BIF documentation. (Daniel Thayer)
+
+  * Update installation instructions and remove outdated references.
+    (Johanna Amann)
+
+  * Easier support for systems with tcmalloc_minimal installed. (Seth
+    Hall)
+
+2.3-884 | 2015-04-23 12:30:15 -0500
+
+  * Fix some outdated documentation unit tests. (Jon Siwek)
+
+2.3-883 | 2015-04-23 07:10:36 -0700
+
+  * Fix -N option to work with builtin plugins as well. (Robin Sommer)
+
+2.3-882 | 2015-04-23 06:59:40 -0700
+
+  * Add missing .pac dependencies for some binpac analyzer targets.
+    (Jon Siwek)
+
+2.3-879 | 2015-04-22 10:38:07 -0500
+
+  * Fix compile errors. (Jon Siwek)
+
+2.3-878 | 2015-04-22 08:21:23 -0700
+
+  * Fix another compiler warning in DTLS. (Johanna Amann)
+
+2.3-877 | 2015-04-21 20:14:16 -0700
+
+  * Adding missing include. (Robin Sommer)
+
+2.3-876 | 2015-04-21 16:40:10 -0700
+
+  * Attempt at fixing a potential std::length_error exception in RDP
+    analyzer. Addresses BIT-1337. (Robin Sommer)
+
+  * Fixing compile problem caused by overeager factorization. (Robin
+    Sommer)
+
+2.3-874 | 2015-04-21 16:09:20 -0700
+
+  * Change details of escaping when logging/printing. (Seth Hall/Robin
+    Sommer)
+
+        - Log files now escape non-printable characters consistently
+          as "\xXX'. Furthermore, backslashes are escaped as "\\",
+          making the representation fully reversible.
+
+        - When escaping via script-level functions (escape_string,
+          clean), we likewise now escape consistently with "\xXX" and
+          "\\".
+
+        - There's no "alternative" output style anymore, i.e., fmt()
+          '%A' qualifier is gone.
+
+    Addresses BIT-1333.
+
+  * Remove several BroString escaping methods that are no longer
+    useful. (Seth Hall)
+
+2.3-864 | 2015-04-21 15:24:02 -0700
+
+  * A SIP protocol analyzer. (Vlad Grigorescu)
+
+	Activity gets logged into sip.log. It generates the following
+    events:
+
+	    event sip_request(c: connection, method: string, original_URI: string, version: string);
+        event sip_reply(c: connection, version: string, code: count, reason: string);
+        event sip_header(c: connection, is_orig: bool, name: string, value: string);
+        event sip_all_headers(c: connection, is_orig: bool, hlist: mime_header_list);
+        event sip_begin_entity(c: connection, is_orig: bool);
+        event sip_end_entity(c: connection, is_orig: bool);
+
+    The analyzer support SIP over UDP currently.
+
+  * BIT-1343: Factor common ASN.1 code from RDP, SNMP, and Kerberos
+    analyzers. (Jon Siwek/Robin Sommer)
+
+2.3-838 | 2015-04-21 13:40:12 -0700
+
+  * BIT-1373: Fix vector index assignment reference count bug. (Jon Siwek)
+
+2.3-836 | 2015-04-21 13:37:31 -0700
+
+  * Fix SSH direction field being unset. Addresses BIT-1365. (Vlad
+    Grigorescu)
+
+2.3-835 | 2015-04-21 16:36:00 -0500
+
+  * Clarify Broker examples. (Jon Siwek)
+
+2.3-833 | 2015-04-21 12:38:32 -0700
+
+  * A Kerberos protocol analyzer. (Vlad Grigorescu)
+
+	Activity gets logged into kerberos.log. It generates the following
+    events:
+
+        event krb_as_request(c: connection, msg: KRB::KDC_Request);
+        event krb_as_response(c: connection, msg: KRB::KDC_Response);
+        event krb_tgs_request(c: connection, msg: KRB::KDC_Request);
+        event krb_tgs_response(c: connection, msg: KRB::KDC_Response);
+        event krb_ap_request(c: connection, ticket: KRB::Ticket, opts: KRB::AP_Options);
+        event krb_priv(c: connection, is_orig: bool);
+        event krb_safe(c: connection, is_orig: bool, msg: KRB::SAFE_Msg);
+        event krb_cred(c: connection, is_orig: bool, tickets: KRB::Ticket_Vector);
+        event krb_error(c: connection, msg: KRB::Error_Msg);
+
+2.3-793 | 2015-04-20 20:51:00 -0700
+
+  * Add decoding of PROXY-AUTHORIZATION header to HTTP analyze,
+    treating it the same as AUTHORIZATION. (Josh Liburdi)
+
+  * Remove deprecated fields "hot" and "addl" from the connection
+    record. Remove the functions append_addl() and
+    append_addl_marker(). (Robin Sommer)
+
+  * Removing the NetFlow analyzer, which hasn't been used anymore
+    since then corresponding command-line option went away. (Robin
+    Sommer)
+
+2.3-787 | 2015-04-20 19:15:23 -0700
+
+  * A file analyzer for Portable Executables. (Vlad Grigorescu/Seth
+    Hall).
+
+	Activity gets logged into pe.log. It generates the following
+	events:
+
+        event pe_dos_header(f: fa_file, h: PE::DOSHeader);
+        event pe_dos_code(f: fa_file, code: string);
+        event pe_file_header(f: fa_file, h: PE::FileHeader);
+        event pe_optional_header(f: fa_file, h: PE::OptionalHeader);
+        event pe_section_header(f: fa_file, h: PE::SectionHeader);
+
+2.3-741 | 2015-04-20 13:12:39 -0700
+
+  * API changes to file analysis mime type detection. Removed
+    "file_mime_type" and "file_mime_types" event, replacing them with
+    a new event called "file_metadata_inferred". Addresses BIT-1368.
+    (Jon Siwek)
+
+  * A large series of improvements for file type identification. This
+    inludes a many signature updates (new types, cleanup, performance
+    improvments) and splitting out signatures into subfiles. (Seth
+    Hall)
+
+  * Fix an issue with files having gaps before the bof_buffer is
+    filled, which could lead to file type identification not working
+    correctly. (Seth Hall)
+
+  * Fix an issue with packet loss in HTTP file reporting for file type
+    identification wasn't working correctly zero-length bodies. (Seth
+    Hall)
+
+  * X.509 certificates are now populating files.log with the mime type
+    application/pkix-cert. (Seth Hall)
+
+  * Normalized some FILE_ANALYSIS debug messages. (Seth Hall)
+
+2.3-725 | 2015-04-20 12:54:54 -0700
+
+  * Updating submodule(s).
+
+2.3-724 | 2015-04-20 14:11:02 -0500
+
+  * Fix uninitialized field in raw input reader. (Jon Siwek)
+
 2.3-722 | 2015-04-20 12:59:03 -0500
 
   * Remove unneeded documentation cross-referencing. (Jon Siwek)

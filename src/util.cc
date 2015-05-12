@@ -141,10 +141,16 @@ ODesc* get_escaped_string(ODesc* d, const char* str, size_t len,
 
 		if ( escape_all || isspace(c) || ! isascii(c) || ! isprint(c) )
 			{
-			char hex[4] = {'\\', 'x', '0', '0' };
-			bytetohex(c, hex + 2);
-			d->AddRaw(hex, 4);
+			if ( c == '\\' )
+				d->AddRaw("\\\\", 2);
+			else
+				{
+				char hex[4] = {'\\', 'x', '0', '0' };
+				bytetohex(c, hex + 2);
+				d->AddRaw(hex, 4);
+				}
 			}
+
 		else
 			d->AddRaw(&c, 1);
 		}

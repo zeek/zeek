@@ -1977,18 +1977,33 @@ int same_attrs(const Attributes* a1, const Attributes* a2)
 	return (*a1 == *a2);
 	}
 
-int record_promotion_compatible(const RecordType* /* super_rec */,
-				const RecordType* /* sub_rec */)
+int record_promotion_compatible(const RecordType* super_rec,
+				const RecordType* sub_rec)
 	{
-#if 0
-	int n = sub_rec->NumFields();
-
-	for ( int i = 0; i < n; ++i )
+	for ( int i = 0; i < sub_rec->NumFields(); ++i )
 		{
-		if ( ! super_rec->HasField(sub_rec->FieldName(i)) )
+		int o = super_rec->FieldOffset(sub_rec->FieldName(i));
+
+		if ( o < 0 )
+			// Orphaned field.
+			continue;
+
+		BroType* sub_field_type = sub_rec->FieldType(i);
+		BroType* super_field_type = super_rec->FieldType(o);
+
+		if ( same_type(sub_field_type, super_field_type) )
+			continue;
+
+		if ( sub_field_type->Tag() != TYPE_RECORD )
+			return 0;
+
+		if ( super_field_type->Tag() != TYPE_RECORD )
+			return 0;
+
+		if ( ! record_promotion_compatible(super_field_type->AsRecordType(),
+		                                   sub_field_type->AsRecordType()) )
 			return 0;
 		}
-#endif
 
 	return 1;
 	}

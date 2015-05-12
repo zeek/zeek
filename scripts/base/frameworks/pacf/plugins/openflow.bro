@@ -63,6 +63,26 @@ function openflow_flow_mod_pred(p: PluginState, r: Rule, m: OpenFlow::ofp_flow_m
 	return m;
 	}
 
+function determine_dl_type(s: subnet): count
+	{
+	local pdl = OpenFlow::ETH_IPv4;
+	if ( is_v6_subnet(s) )
+		pdl = OpenFlow::ETH_IPv6;
+
+	return pdl;
+	}
+
+function determine_proto(p: port): count
+	{
+	local proto = OpenFlow::IP_TCP;
+	if ( is_udp_port(p) )
+		proto = OpenFlow::IP_UDP;
+	else if ( is_icmp_port(p) )
+		proto = OpenFlow::IP_ICMP;
+
+	return proto;
+	}
+
 function entity_to_match(p: PluginState, e: Entity): vector of OpenFlow::ofp_match
 	{
 	local v : vector of OpenFlow::ofp_match = vector();
@@ -74,49 +94,34 @@ function entity_to_match(p: PluginState, e: Entity): vector of OpenFlow::ofp_mat
 		return openflow_match_pred(p, e, v);
 		}
 
-	if ( e$ty == MAC || e$ty == ORIGMAC || e$ty == DESTMAC )
+	if ( e$ty == MAC )
 		{
-		if ( e$ty == MAC || e$ty == ORIGMAC )
-			v[|v|] = OpenFlow::ofp_match(
-				$dl_src=e$mac
-			);
-
-		if ( e$ty == MAC || e$ty == DESTMAC )
-			v[|v|] = OpenFlow::ofp_match(
-				$dl_dst=e$mac
-			);
-
-		return openflow_match_pred(p, e, v);
-		}
-
-	if ( e$ty == MACFLOW )
-		{
-			v[|v|] = OpenFlow::ofp_match(
-				$dl_src=e$mac,
-				$dl_dst=e$dst_mac
-			);
+		v[|v|] = OpenFlow::ofp_match(
+			$dl_src=e$mac
+		);
+		v[|v|] = OpenFlow::ofp_match(
+			$dl_dst=e$mac
+		);
 
 		return openflow_match_pred(p, e, v);
 		}
 
 	local dl_type = OpenFlow::ETH_IPv4;
 
-	if ( e$ty == ADDRESS || e$ty == RESPONDER || e$ty == ORIGINATOR )
+	if ( e$ty == ADDRESS )
 		{
 		if ( is_v6_subnet(e$ip) )
 			dl_type = OpenFlow::ETH_IPv6;
 
-		if ( e$ty == ADDRESS || e$ty == ORIGINATOR )
-			v[|v|] = OpenFlow::ofp_match(
-				$dl_type=dl_type,
-				$nw_src=e$ip
-			);
+		v[|v|] = OpenFlow::ofp_match(
+			$dl_type=dl_type,
+			$nw_src=e$ip
+		);
 
-		if ( e$ty == ADDRESS || e$ty == RESPONDER )
-			v[|v|] = OpenFlow::ofp_match(
-				$dl_type=dl_type,
-				$nw_dst=e$ip
-			);
+		v[|v|] = OpenFlow::ofp_match(
+			$dl_type=dl_type,
+			$nw_dst=e$ip
+		);
 
 		return openflow_match_pred(p, e, v);
 		}
@@ -125,22 +130,39 @@ function entity_to_match(p: PluginState, e: Entity): vector of OpenFlow::ofp_mat
 
 	if ( e$ty == FLOW )
 		{
-		if ( is_v6_addr(e$flow$src_h) )
-			dl_type = OpenFlow::ETH_IPv6;
+		local m = OpenFlow::ofp_match();
+		local f = e$flow;
 
-		if ( is_udp_port(e$flow$src_p) )
-			proto = OpenFlow::IP_UDP;
-		else if ( is_icmp_port(e$flow$src_p) )
-			proto = OpenFlow::IP_ICMP;
+		if ( f?$src_m )
+			m$dl_src=f$src_m;
+		if ( f?$dst_m )
+			m$dl_dst=f$dst_m;
 
-		v[|v|] = OpenFlow::ofp_match(
-			$dl_type=dl_type,
-			$nw_proto=proto,
-			$nw_src=addr_to_subnet(e$flow$src_h),
-			$tp_src=e$flow$src_p,
-			$nw_dst=addr_to_subnet(e$flow$dst_h),
-			$tp_dst=e$flow$dst_p
-		);
+		if ( f?$src_h )
+			{
+			m$dl_type = determine_dl_type(f$src_h);
+			m$nw_src = f$src_h;
+			}
+
+		if ( f?$dst_h )
+			{
+			m$dl_type = determine_dl_type(f$dst_h);
+			m$nw_dst = f$dst_h;
+			}
+
+		if ( f?$src_p )
+			{
+			m$nw_proto = determine_proto(f$src_p);
+			m$tp_src = f$src_p;
+			}
+
+		if ( f?$dst_p )
+			{
+			m$nw_proto = determine_proto(f$dst_p);
+			m$tp_dst = f$dst_p;
+			}
+
+		v[|v|] = m;
 
 		return openflow_match_pred(p, e, v);
 		}

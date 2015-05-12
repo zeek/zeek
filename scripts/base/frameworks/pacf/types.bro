@@ -5,24 +5,28 @@ export {
 	## Type of a :bro:id:`Entity` for defining an action.
 	type EntityType: enum {
 		ADDRESS,	##< Activity involving a specific IP address.
-		ORIGINATOR,	##< Activity *from* a source IP address.
-		RESPONDER,	##< Activity *to* a destination IP address.
 		CONNECTION,	##< All of a bi-directional connection's activity.
-		FLOW,		##< All of a  uni-directional flow's activity.
+		FLOW,		##< All of a uni-directional flow's activity. Can contain wildcards.
 		MAC,		##< Activity involving a MAC address.
-		ORIGMAC,	##< Activity *from* a source MAC address.
-		DESTMAC,	##< Activity *to* a destination MAC adress.
-		MACFLOW		##< Activity involving a pair of MAC addresses.
+	};
+
+	## Type of a :bro:id:`Flow` for defining a flow.
+	type Flow: record {
+		src_h: subnet &optional;	##< The source IP address/subnet.
+		src_p: port &optional;	##< The source port number.
+		dst_h: subnet &optional;	##< The destination IP address/subnet.
+		dst_p: port &optional;	##< The desintation port number.
+		src_m: string &optional;	##< The source MAC address.
+		dst_m: string &optional;	##< The destination MAC address.
 	};
 
 	## Type defining the enity an :bro:id:`Rule` is operating on.
 	type Entity: record {
 		ty: EntityType;			##< Type of entity.
 		conn: conn_id &optional;	##< Used with :bro:id:`CONNECTION` .
-		flow: flow_id &optional;	##< Used with :bro:id:`FLOW` .
-		ip: subnet &optional;		##< Used with :bro:id:`ORIGINATOR`/:bro:id:`RESPONDER`/:bro:id:`ADDRESS`; can specifiy a CIDR subnet.
-		mac: string &optional;		##< Used with :bro:id:`MAC`/:bro:id:`ORIGMAC`/:bro:id:`DESTMAC`/:bro:id:`MACFLOW`.
-		dst_mac: string &optional;	##< Used with :bro:id:`MACFLOW`; specifies the destination for the flow.
+		flow: Flow &optional;	##< Used with :bro:id:`FLOW` .
+		ip: subnet &optional;		##< Used with bro:id:`ADDRESS`; can specifiy a CIDR subnet.
+		mac: string &optional;		##< Used with :bro:id:`MAC`.
 	};
 
 	## Target of :bro:id:`Rule` action.

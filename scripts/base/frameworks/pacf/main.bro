@@ -265,7 +265,7 @@ function entity_to_info(info: Info, e: Entity)
 	info$entity_type = fmt("%s", e$ty);
 
 	switch ( e$ty ) {
-		case ADDRESS, ORIGINATOR, RESPONDER:
+		case ADDRESS:
 			info$entity = fmt("%s", e$ip);
 			break;
 
@@ -364,7 +364,13 @@ function drop_address(a: addr, t: interval, location: string &default="") : bool
 
 function shunt_flow(f: flow_id, t: interval, location: string &default="") : bool
 	{
-	local e: Entity = [$ty=FLOW, $flow=f];
+	local flow = Pacf::Flow(
+		$src_h=addr_to_subnet(f$src_h),
+		$src_p=f$src_p,
+		$dst_h=addr_to_subnet(f$dst_h),
+		$dst_p=f$dst_p
+	);
+	local e: Entity = [$ty=FLOW, $flow=flow];
 	local r: Rule = [$ty=DROP, $target=MONITOR, $entity=e, $expire=t, $location=location];
 
 	local id = add_rule(r);

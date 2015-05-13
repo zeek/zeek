@@ -20,7 +20,7 @@ global of_controller: OpenFlow::Controller;
 event bro_init()
 	{
 	suspend_processing();
-	of_controller = OpenFlow::broker_new(127.0.0.1, broker_port, 42);
+	of_controller = OpenFlow::broker_new(127.0.0.1, broker_port, "bro/event/openflow", 42);
 	}
 
 event BrokerComm::outgoing_connection_established(peer_address: string,
@@ -72,7 +72,6 @@ event bro_init()
 	{
 	BrokerComm::enable();
 	BrokerComm::subscribe_to_events("bro/event/openflow");
-	BrokerComm::subscribe_to_events("bro/event/test_event");
 	BrokerComm::listen(broker_port, "127.0.0.1");
 	}
 

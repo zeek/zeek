@@ -9,6 +9,7 @@ export {
 		forward: bool &default=T;
 		idle_timeout: count &default=60;
 		table_id: count &optional;
+		priority_offset: int &default=+0; ##< add this to all rule priorities. Can be useful if you want the openflow priorities be offset from the pacf priorities without having to write a filter function.
 
 		check_pred: function(p: PluginState, r: Rule): bool &optional &weaken;
 		match_pred: function(p: PluginState, e: Entity, m: vector of OpenFlow::ofp_match): vector of OpenFlow::ofp_match &optional &weaken;
@@ -179,7 +180,7 @@ function openflow_rule_to_flow_mod(p: PluginState, r: Rule) : OpenFlow::ofp_flow
 		$cookie=r$id,
 		$command=OpenFlow::OFPFC_ADD,
 		$idle_timeout=c$idle_timeout,
-		$priority=int_to_count(r$priority)
+		$priority=int_to_count(r$priority + c$priority_offset)
 	);
 
 	if ( r?$expire )

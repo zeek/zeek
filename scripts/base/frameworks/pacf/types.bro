@@ -59,7 +59,7 @@ export {
 		## Begin redirecting all packets matching entity.
 		##
 		## .. todo::
-		##	Define arguments.
+		##	c: output port to redirect traffic to.
 		REDIRECT,
 
 		## Begin sampling all flows matching entity.
@@ -74,6 +74,17 @@ export {
 		WHITELIST,
 	};
 
+	## Type of a :bro:id:`FlowMod` for defining a flow modification action.
+	type FlowMod: record {
+		src_h: addr &optional;	##< The source IP address.
+		src_p: count &optional;	##< The source port number.
+		dst_h: addr &optional;	##< The destination IP address.
+		dst_p: count &optional;	##< The desintation port number.
+		src_m: string &optional;	##< The source MAC address.
+		dst_m: string &optional;	##< The destination MAC address.
+		redirect_port: count &optional;
+	};
+
 	## A rule for the framework to put in place. Of all rules currently in
 	## place, the first match will be taken, sorted by priority. All
 	## further riles will be ignored.
@@ -85,9 +96,11 @@ export {
 		priority: int &default=+0;	##< Priority if multiple rules match an entity (larger value is higher priority).
 		location: string &optional;	##< Optional string describing where/what installed the rule.
 
+		c: count &optional;		##< Argument for rule types requiring an count argument.
 		i: int &optional;		##< Argument for rule types requiring an integer argument.
 		d: double &optional;		##< Argument for rule types requiring a double argument.
 		s: string &optional;		##< Argument for rule types requiring a string argument.
+		mod: FlowMod &optional; ##< Argument for :bro:id:`MODIFY` rules.
 
 		id: count &default=0;		##< Internally determined unique ID for this rule. Will be set when added.
 	};

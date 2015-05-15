@@ -217,12 +217,34 @@ function openflow_rule_to_flow_mod(p: PluginState, r: Rule) : OpenFlow::ofp_flow
 	else if ( r$ty == WHITELIST )
 		{
 		# at the moment our interpretation of whitelist is to hand this off to the switches L2/L3 routing.
-		flow_mod$out_ports = vector(OpenFlow::OFPP_NORMAL);
+		flow_mod$actions$out_ports = vector(OpenFlow::OFPP_NORMAL);
+		}
+	else if ( r$ty == MODIFY )
+		{
+		# if no ports are given, just assume normal pipeline...
+		flow_mod$actions$out_ports = vector(OpenFlow::OFPP_NORMAL);
+
+		local mod = r$mod;
+		if ( mod?$redirect_port )
+			flow_mod$actions$out_ports = vector(mod$redirect_port);
+
+		if ( mod?$src_h )
+			flow_mod$actions$nw_src = mod$src_h;
+		if ( mod?$dst_h )
+			flow_mod$actions$nw_dst = mod$dst_h;
+		if ( mod?$src_m )
+			flow_mod$actions$dl_src = mod$src_m;
+		if ( mod?$dst_m )
+			flow_mod$actions$dl_dst = mod$dst_m;
+		if ( mod?$src_p )
+			flow_mod$actions$tp_src = mod$src_p;
+		if ( mod?$dst_p )
+			flow_mod$actions$tp_dst = mod$dst_p;
 		}
 	else if ( r$ty == REDIRECT )
 		{
-		# redirect to port i
-		flow_mod$out_ports = vector(int_to_count(r$i));
+		# redirect to port c
+		flow_mod$actions$out_ports = vector(r$c);
 		}
 	else
 		{

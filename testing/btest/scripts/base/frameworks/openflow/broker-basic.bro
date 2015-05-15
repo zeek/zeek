@@ -30,7 +30,7 @@ event BrokerComm::outgoing_connection_established(peer_address: string,
 	print "BrokerComm::outgoing_connection_established", peer_address, peer_port;
 	continue_processing();
 	OpenFlow::flow_clear(of_controller);
-	OpenFlow::flow_mod(of_controller, [], [$cookie=1, $command=OpenFlow::OFPFC_ADD, $out_ports=vector(3, 7)]);
+	OpenFlow::flow_mod(of_controller, [], [$cookie=1, $command=OpenFlow::OFPFC_ADD, $actions=[$out_ports=vector(3, 7)]]);
 	}
 
 event BrokerComm::outgoing_connection_broken(peer_address: string,

@@ -85,8 +85,8 @@ function ryu_flow_mod(state: OpenFlow::ControllerState, match: ofp_match, flow_m
 	# Generate ryu_flow_actions because their type differs (using strings as type).
 	local flow_actions: vector of ryu_flow_action = vector();
 
-	for ( i in flow_mod$out_ports )
-		flow_actions[|flow_actions|] = ryu_flow_action($_type="OUTPUT", $_port=flow_mod$out_ports[i]);
+	for ( i in flow_mod$actions$out_ports )
+		flow_actions[|flow_actions|] = ryu_flow_action($_type="OUTPUT", $_port=flow_mod$actions$out_ports[i]);
 
 	# Generate our ryu_flow_mod record for the ReST API call.
 	local mod: ryu_ofp_flow_mod = ryu_ofp_flow_mod(

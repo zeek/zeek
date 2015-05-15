@@ -10,7 +10,7 @@ event bro_init()
 	{
 	of_controller = OpenFlow::log_new(42);
 
-	OpenFlow::flow_mod(of_controller, [], [$cookie=1, $command=OpenFlow::OFPFC_ADD, $out_ports=vector(3, 7)]);
+	OpenFlow::flow_mod(of_controller, [], [$cookie=1, $command=OpenFlow::OFPFC_ADD, $actions=[$out_ports=vector(3, 7)]]);
 	}
 
 event connection_established(c: connection)

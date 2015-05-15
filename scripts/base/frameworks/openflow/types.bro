@@ -51,6 +51,33 @@ export {
 		tp_dst: port &optional;
 	} &log;
 
+	## The actions that can be taken in a flow.
+	## (Sepearate record to make ofp_flow_mod less crowded)
+	type ofp_flow_action: record {
+		## Output ports to send data to.
+		out_ports: vector of count &default=vector();
+		## set vlan vid to this value
+		vlan_vid: count &optional;
+		## set vlan priority to this value
+		vlan_pcp: count &optional;
+		## strip vlan tag
+		vlan_strip: bool &default=F;
+		## set ethernet source address
+		dl_src: string &optional;
+		## set ethernet destination address
+		dl_dst: string &optional;
+		## set ip tos to this value
+		nw_tos: count &optional;
+		## set source to this ip
+		nw_src: addr &optional;
+		## set destination to this ip
+		nw_dst: addr &optional;
+		## set tcp/udp source port
+		tp_src: count &optional;
+		## set tcp/udp destination port
+		tp_dst: count &optional;
+	} &log;
+
 	## Openflow flow_mod definition, describing the action to perform.
 	type ofp_flow_mod: record {
 		## Opaque controller-issued identifier.
@@ -75,8 +102,8 @@ export {
 		out_group: count &optional;
 		## Bitmap of the OFPFF_* flags
 		flags: count &default=0;
-		## Output ports to send data to.
-		out_ports: vector of count &default=vector();
+		## Actions to take on match
+		actions: ofp_flow_action &default=ofp_flow_action();
 	} &log;
 
 # Functionality using this is currently not implemented. At all.

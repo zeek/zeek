@@ -23,9 +23,31 @@ export {
 		of_config: OfConfig &optional;
 	};
 
+	type OfTable: record {
+		p: PluginState;
+		r: Rule;
+	};
+
+	## the time interval after which an openflow message is considered to be timed out
+	## and we delete it from our internal tracking.
+	const openflow_timeout = 20secs &redef;
+
 	## Instantiates an openflow plugin for the PACF framework.
 	global create_openflow: function(controller: OpenFlow::Controller, config: OfConfig &default=[]) : PluginState;
 }
+
+global of_messages: table[count, OpenFlow::ofp_flow_mod_command] of OfTable &create_expire=openflow_timeout
+	&expire_func=function(t: table[count, OpenFlow::ofp_flow_mod_command] of OfTable, idx: any): interval
+		{
+		local rid: count;
+		local command: OpenFlow::ofp_flow_mod_command;
+		[rid, command] = idx;
+
+		local p = t[rid, command]$p;
+		local r = t[rid, command]$r;
+		event Pacf::rule_error(r, p, "Timeout during rule insertion/removal");
+		return 0secs;
+		};
 
 function openflow_name(p: PluginState) : string
 	{
@@ -177,7 +199,7 @@ function openflow_rule_to_flow_mod(p: PluginState, r: Rule) : OpenFlow::ofp_flow
 	local c = p$of_config;
 
 	local flow_mod = OpenFlow::ofp_flow_mod(
-		$cookie=r$id,
+		$cookie=OpenFlow::generate_cookie(r$id),
 		$command=OpenFlow::OFPFC_ADD,
 		$idle_timeout=c$idle_timeout,
 		$priority=int_to_count(r$priority + c$priority_offset)
@@ -220,7 +242,9 @@ function openflow_add_rule(p: PluginState, r: Rule) : bool
 
 	for ( i in matches )
 		{
-		if ( ! OpenFlow::flow_mod(p$of_controller, matches[i], flow_mod) )
+		if ( OpenFlow::flow_mod(p$of_controller, matches[i], flow_mod) )
+			of_messages[r$id, flow_mod$command] = OfTable($p=p, $r=r);
+		else
 			event rule_error(r, p, "Error while executing OpenFlow::flow_mod");
 		}
 
@@ -233,13 +257,45 @@ function openflow_remove_rule(p: PluginState, r: Rule) : bool
 		return F;
 
 	local flow_mod: OpenFlow::ofp_flow_mod = [
-		$cookie=r$id,
+		$cookie=OpenFlow::generate_cookie(r$id),
 		$command=OpenFlow::OFPFC_DELETE
 	];
 
-	OpenFlow::flow_mod(p$of_controller, [], flow_mod);
+	if ( OpenFlow::flow_mod(p$of_controller, [], flow_mod) )
+			of_messages[r$id, flow_mod$command] = OfTable($p=p, $r=r);
+	else
+			event rule_error(r, p, "Error while executing OpenFlow::flow_mod");
 
 	return T;
+	}
+
+event OpenFlow::flow_mod_success(match: OpenFlow::ofp_match, flow_mod: OpenFlow::ofp_flow_mod, msg: string) &priority=3
+	{
+	local id = OpenFlow::get_cookie_uid(flow_mod$cookie);
+	if ( [id, flow_mod$command] !in of_messages )
+		return;
+
+	local r = of_messages[id,flow_mod$command]$r;
+	local p = of_messages[id,flow_mod$command]$p;
+	delete of_messages[id,flow_mod$command];
+
+	if ( flow_mod$command == OpenFlow::OFPFC_ADD )
+		event Pacf::rule_added(r, p, msg);
+	else if ( flow_mod$command == OpenFlow::OFPFC_DELETE || flow_mod$command == OpenFlow::OFPFC_DELETE_STRICT )
+		event Pacf::rule_removed(r, p, msg);
+	}
+
+event OpenFlow::flow_mod_failure(match: OpenFlow::ofp_match, flow_mod: OpenFlow::ofp_flow_mod, msg: string) &priority=3
+	{
+	local id = OpenFlow::get_cookie_uid(flow_mod$cookie);
+	if ( [id, flow_mod$command] !in of_messages )
+		return;
+
+	local r = of_messages[id,flow_mod$command]$r;
+	local p = of_messages[id,flow_mod$command]$p;
+	delete of_messages[id,flow_mod$command];
+
+	event Pacf::rule_error(r, p, msg);
 	}
 
 global openflow_plugin = Plugin(

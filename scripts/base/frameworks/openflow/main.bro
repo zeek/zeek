@@ -38,7 +38,7 @@ export {
 	##
 	## flow_mod: The openflow flow_mod record which describes the action to take.
 	##
-	## msg: An optional informational message by the plugin..
+	## msg: An optional informational message by the plugin.
 	global flow_mod_success: event(match: ofp_match, flow_mod: ofp_flow_mod, msg: string &default="");
 
 	## Reports an error while installing a flow Rule.

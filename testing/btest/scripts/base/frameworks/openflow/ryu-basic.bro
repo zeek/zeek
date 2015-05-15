@@ -30,3 +30,8 @@ event connection_established(c: connection)
 	OpenFlow::flow_mod(of_controller, match, flow_mod);
 	OpenFlow::flow_mod(of_controller, match_rev, flow_mod);
 	}
+
+event OpenFlow::flow_mod_success(match: OpenFlow::ofp_match, flow_mod: OpenFlow::ofp_flow_mod, msg: string)
+	{
+	print "Flow_mod_success";
+	}

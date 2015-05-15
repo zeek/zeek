@@ -56,6 +56,15 @@ event connection_established(c: connection)
 	OpenFlow::flow_mod(of_controller, match_rev, flow_mod);
 	}
 
+event OpenFlow::flow_mod_success(match: OpenFlow::ofp_match, flow_mod: OpenFlow::ofp_flow_mod, msg: string)
+	{
+	print "Flow_mod_success";
+	}
+
+event OpenFlow::flow_mod_failure(match: OpenFlow::ofp_match, flow_mod: OpenFlow::ofp_flow_mod, msg: string)
+	{
+	print "Flow_mod_failure";
+	}
 
 @TEST-END-FILE
 
@@ -91,6 +100,8 @@ function got_message()
 event OpenFlow::broker_flow_mod(dpid: count, match: OpenFlow::ofp_match, flow_mod: OpenFlow::ofp_flow_mod)
 	{
 	print "got flow_mod", dpid, match, flow_mod;
+	BrokerComm::event("bro/event/openflow", BrokerComm::event_args(OpenFlow::flow_mod_success, match, flow_mod, ""));
+	BrokerComm::event("bro/event/openflow", BrokerComm::event_args(OpenFlow::flow_mod_failure, match, flow_mod, ""));
 	got_message();
 	}
 

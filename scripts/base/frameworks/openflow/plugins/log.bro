@@ -17,12 +17,16 @@ export {
 	##
 	## dpid: OpenFlow switch datapath id.
 	##
+	## success_event: If true, flow_mod_success is raised for each logged line.
+	##
 	## Returns: OpenFlow::Controller record
-	global log_new: function(dpid: count): OpenFlow::Controller;
+	global log_new: function(dpid: count, success_event: bool &default=T): OpenFlow::Controller;
 
 	redef record ControllerState += {
 		## OpenFlow switch datapath id.
 		log_dpid: count &optional;
+		## Raise or do not raise success event
+		log_success_event: bool &optional;
 	};
 
 	## The record type which contains column fields of the OpenFlow log.
@@ -50,6 +54,8 @@ event bro_init() &priority=5
 function log_flow_mod(state: ControllerState, match: ofp_match, flow_mod: OpenFlow::ofp_flow_mod): bool
 	{
 	Log::write(OpenFlow::LOG, [$ts=network_time(), $dpid=state$log_dpid, $match=match, $flow_mod=flow_mod]);
+	if ( state$log_success_event )
+		event OpenFlow::flow_mod_success(match, flow_mod);
 
 	return T;
 	}
@@ -59,8 +65,8 @@ function log_describe(state: ControllerState): string
 	return fmt("OpenFlog Log Plugin - DPID %d", state$log_dpid);
 	}
 
-function log_new(dpid: count): OpenFlow::Controller
+function log_new(dpid: count, success_event: bool &default=T): OpenFlow::Controller
 	{
-	return [$state=[$log_dpid=dpid, $_plugin=OpenFlow::LOG],
+	return [$state=[$log_dpid=dpid, $log_success_event=success_event, $_plugin=OpenFlow::LOG],
 		$flow_mod=log_flow_mod, $flow_clear=ryu_flow_clear, $describe=log_describe];
 	}

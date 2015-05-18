@@ -139,6 +139,8 @@ export {
 	type Controller: record {
 		## Controller related state.
 		state: ControllerState;
+		## Does the controller support the flow_removed event?
+		supports_flow_removed: bool;
 		## function that describes the controller. Has to be implemented.
 		describe: function(state: ControllerState): string;
 		## flow_mod function

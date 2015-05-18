@@ -105,6 +105,16 @@ export {
 		id: count &default=0;		##< Internally determined unique ID for this rule. Will be set when added.
 	};
 
+	## Information of a flow that can be provided by switches when the flow times out.
+	## Currently this is heavily influenced by the data that OpenFlow returns by default.
+	## That being said - their design makes sense and this is probably the data one
+	## can expect to be available.
+	type FlowInfo: record {
+		duration: interval &optional; ##< total duration of the rule
+		packet_count: count &optional; ##< number of packets exchanged over connections matched by the rule
+		byte_count: count &optional; ##< total bytes exchanged over connections matched by the rule
+	};
+
 	## Type of notifications that the framework supports. Each type lists the
 	## :bro:id:`Notification` argument(s) it uses, if any. 
 	##

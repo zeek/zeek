@@ -118,11 +118,13 @@ export {
 	##
 	## r: The rule now removed.
 	##
+	## i: Additional flow information, if supported by the protocol.
+	##
 	## plugin: The name of the plugin that had the rule in place and now
 	## removed it.
 	##
 	## msg: An optional informational message by the plugin.
-	global rule_timeout: event(r: Rule, p: PluginState);
+	global rule_timeout: event(r: Rule, i: FlowInfo, p: PluginState);
 
 	## Reports an error when operating on a rule.
 	##
@@ -428,7 +430,7 @@ event rule_expire(r: Rule, p: PluginState)
 		# Remove already.
 		return;
 
-	event rule_timeout(r, p);
+	event rule_timeout(r, FlowInfo(), p);
 	remove_rule(r$id);
 	}
 
@@ -448,7 +450,7 @@ event rule_removed(r: Rule, p: PluginState, msg: string &default="")
 	log_rule(r, "REMOVE", SUCCEEDED, p);
 	}
 
-event rule_timeout(r: Rule, p: PluginState)
+event rule_timeout(r: Rule, i: FlowInfo, p: PluginState)
 	{
 	delete rules[r$id];
 	log_rule(r, "EXPIRE", TIMEOUT, p);

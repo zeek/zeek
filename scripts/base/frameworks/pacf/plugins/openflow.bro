@@ -30,13 +30,18 @@ export {
 
 	## the time interval after which an openflow message is considered to be timed out
 	## and we delete it from our internal tracking.
-	const openflow_timeout = 20secs &redef;
+	const openflow_message_timeout = 20secs &redef;
+
+	## the time interval after we consider a flow timed out. This should be fairly high (or
+	## even disabled) if you expect a lot of long flows. However, one also will have state
+	## buildup for quite a while if keeping this around...
+	const openflow_flow_timeout = 24hrs &redef;
 
 	## Instantiates an openflow plugin for the PACF framework.
 	global create_openflow: function(controller: OpenFlow::Controller, config: OfConfig &default=[]) : PluginState;
 }
 
-global of_messages: table[count, OpenFlow::ofp_flow_mod_command] of OfTable &create_expire=openflow_timeout
+global of_messages: table[count, OpenFlow::ofp_flow_mod_command] of OfTable &create_expire=openflow_message_timeout
 	&expire_func=function(t: table[count, OpenFlow::ofp_flow_mod_command] of OfTable, idx: any): interval
 		{
 		local rid: count;
@@ -48,6 +53,8 @@ global of_messages: table[count, OpenFlow::ofp_flow_mod_command] of OfTable &cre
 		event Pacf::rule_error(r, p, "Timeout during rule insertion/removal");
 		return 0secs;
 		};
+
+global of_flows: table[count] of OfTable &create_expire=openflow_flow_timeout;
 
 function openflow_name(p: PluginState) : string
 	{
@@ -301,6 +308,9 @@ event OpenFlow::flow_mod_success(match: OpenFlow::ofp_match, flow_mod: OpenFlow:
 	local p = of_messages[id,flow_mod$command]$p;
 	delete of_messages[id,flow_mod$command];
 
+	if ( p$of_controller$supports_flow_removed )
+		of_flows[id] = OfTable($p=p, $r=r);
+
 	if ( flow_mod$command == OpenFlow::OFPFC_ADD )
 		event Pacf::rule_added(r, p, msg);
 	else if ( flow_mod$command == OpenFlow::OFPFC_DELETE || flow_mod$command == OpenFlow::OFPFC_DELETE_STRICT )
@@ -318,6 +328,18 @@ event OpenFlow::flow_mod_failure(match: OpenFlow::ofp_match, flow_mod: OpenFlow:
 	delete of_messages[id,flow_mod$command];
 
 	event Pacf::rule_error(r, p, msg);
+	}
+
+event OpenFlow::flow_removed(match: OpenFlow::ofp_match, cookie: count, priority: count, reason: count, duration_sec: count, idle_timeout: count, packet_count: count, byte_count: count)
+	{
+	local id = OpenFlow::get_cookie_uid(cookie);
+	if ( id !in of_flows )
+		return;
+
+	local r = of_flows[id]$r;
+	local p = of_flows[id]$p;
+
+	event Pacf::rule_timeout(r, FlowInfo($duration=double_to_interval(duration_sec+0.0), $packet_count=packet_count, $byte_count=byte_count), p);
 	}
 
 global openflow_plugin = Plugin(

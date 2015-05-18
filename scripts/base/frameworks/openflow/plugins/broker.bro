@@ -63,6 +63,6 @@ function broker_new(host: addr, host_port: port, topic: string, dpid: count): Op
 	BrokerComm::subscribe_to_events(topic); # openflow success and failure events are directly sent back via the other plugin via broker.
 
 	return [$state=[$broker_host=host, $broker_port=host_port, $broker_dpid=dpid, $broker_topic=topic, $_plugin=OpenFlow::BROKER],
-		$flow_mod=broker_flow_mod_fun, $flow_clear=broker_flow_clear_fun, $describe=broker_describe];
+		$flow_mod=broker_flow_mod_fun, $flow_clear=broker_flow_clear_fun, $describe=broker_describe, $supports_flow_removed=T];
 	}
 

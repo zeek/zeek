@@ -1025,8 +1025,11 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 				}
 			else
 				{
-				ProtocolViolation("not a http reply line");
-				reply_state = EXPECT_REPLY_NOTHING;
+				if ( line != end_of_line )
+					{
+					ProtocolViolation("not a http reply line");
+					reply_state = EXPECT_REPLY_NOTHING;
+					}
 				}
 
 			break;

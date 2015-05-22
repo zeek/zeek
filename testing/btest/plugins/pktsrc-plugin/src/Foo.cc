@@ -45,12 +45,9 @@ bool Foo::ExtractNextPacket(Packet* pkt)
 		return false;
 		}
 
-	hdr.ts.tv_sec = 1409193037;
-	hdr.ts.tv_usec = 0;
-	hdr.caplen = hdr.len = packet.size();
-	pkt->ts = hdr.ts.tv_sec;
-	pkt->hdr = &hdr;
-	pkt->data = (const u_char *)packet.c_str();
+	struct timeval ts = { 1409193037, 0 };
+	pkt->Init(props.link_type, &ts, packet.size(), packet.size(), 
+		(const u_char *)packet.c_str());
 	return true;
 	}
 

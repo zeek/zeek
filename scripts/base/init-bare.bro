@@ -740,6 +740,7 @@ type pcap_packet: record {
 	caplen: count;	##< The number of bytes captured (<= *len*).
 	len: count;	##< The length of the packet in bytes, including link-level header.
 	data: string;	##< The payload of the packet, including link-level header.
+	link_type: link_encap;      ##< L2 link encapsulation type
 };
 
 ## GeoIP location information.
@@ -1488,6 +1489,32 @@ type icmp_hdr: record {
 ##
 ## .. bro:see:: new_packet
 type pkt_hdr: record {
+	ip: ip4_hdr &optional;		##< The IPv4 header if an IPv4 packet.
+	ip6: ip6_hdr &optional;		##< The IPv6 header if an IPv6 packet.
+	tcp: tcp_hdr &optional;		##< The TCP header if a TCP packet.
+	udp: udp_hdr &optional;		##< The UDP header if a UDP packet.
+	icmp: icmp_hdr &optional;	##< The ICMP header if an ICMP packet.
+};
+
+## Values extracted from the layer 2 header.
+##
+## .. bro:see:: pkt_hdr
+type l2_hdr: record {
+	encap: link_encap;      ##< L2 link encapsulation
+	len: count;		##< Total frame length on wire
+	cap_len: count;		##< Captured length
+	src: string &optional;  ##< L2 source (if ethernet)
+	dst: string &optional;  ##< L2 destination (if ethernet)
+	vlan: count &optional;  ##< Outermost VLAN tag if any (and ethernet)
+	eth_type: count &optional; ##< Innermost Ethertype (if ethernet)
+	proto: layer3_proto;    ##< L3 proto
+};
+
+## A raw packet header, consisting of L2 header and everything in pkt_hdr above.
+##
+## .. bro:see:: raw_packet pkt_hdr
+type raw_pkt_hdr: record {
+	l2: l2_hdr;			##< Layer 3 and above header
 	ip: ip4_hdr &optional;		##< The IPv4 header if an IPv4 packet.
 	ip6: ip6_hdr &optional;		##< The IPv6 header if an IPv6 packet.
 	tcp: tcp_hdr &optional;		##< The TCP header if a TCP packet.

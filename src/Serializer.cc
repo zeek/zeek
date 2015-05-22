@@ -1133,12 +1133,14 @@ void Packet::Describe(ODesc* d) const
 
 bool Packet::Serialize(SerialInfo* info) const
 	{
-	return SERIALIZE(uint32(hdr->ts.tv_sec)) &&
-		SERIALIZE(uint32(hdr->ts.tv_usec)) &&
-		SERIALIZE(uint32(hdr->len)) &&
-		SERIALIZE(link_type) &&
-		info->s->Write(tag.c_str(), 0, "tag") &&
-		info->s->Write((const char*) pkt, hdr->caplen, "data");
+	return SERIALIZE(uint32(ts.tv_sec)) &&
+		SERIALIZE(uint32(ts.tv_usec)) &&
+		SERIALIZE(uint32(len)) &&
+		SERIALIZE(uint32(link_type)) &&
+		SERIALIZE(uint32(hdr_size)) &&
+		SERIALIZE(uint32(l3_proto)) &&
+		info->s->Write(tag.c_str(), tag.length(), "tag") &&
+		info->s->Write((const char*)data, cap_len, "data");
 	}
 
 static BroFile* profiling_output = 0;
@@ -1149,49 +1151,31 @@ static iosource::PktDumper* dump = 0;
 
 Packet* Packet::Unserialize(UnserialInfo* info)
 	{
-	Packet* p = new Packet("", true);
-	pcap_pkthdr* hdr = new pcap_pkthdr;
+	struct timeval ts;
+	uint32 len, link_type, hdr_size, l3_proto;
 
-	uint32 tv_sec, tv_usec, len;
-
-	if ( ! (UNSERIALIZE(&tv_sec) &&
-		UNSERIALIZE(&tv_usec) &&
+	if ( ! (UNSERIALIZE((uint32 *)&ts.tv_sec) &&
+		UNSERIALIZE((uint32 *)&ts.tv_usec) &&
 		UNSERIALIZE(&len) &&
-		UNSERIALIZE(&p->link_type)) )
-		{
-		delete p;
-		delete hdr;
+		UNSERIALIZE(&link_type) &&
+		UNSERIALIZE(&hdr_size) &&
+		UNSERIALIZE(&l3_proto)) )
 		return 0;
-		}
-
-	hdr->ts.tv_sec = tv_sec;
-	hdr->ts.tv_usec = tv_usec;
-	hdr->len = len;
 
 	char* tag;
 	if ( ! info->s->Read((char**) &tag, 0, "tag") )
-		{
-		delete p;
-		delete hdr;
 		return 0;
-		}
 
-	char* pkt;
+	const u_char* pkt;
 	int caplen;
 	if ( ! info->s->Read((char**) &pkt, &caplen, "data") )
 		{
-		delete p;
-		delete hdr;
 		delete [] tag;
 		return 0;
 		}
 
-	hdr->caplen = uint32(caplen);
-	p->hdr = hdr;
-	p->pkt = (u_char*) pkt;
-	p->tag = tag;
-	p->hdr_size = iosource::PktSrc::GetLinkHeaderSize(p->link_type);
-
+	Packet *p = new Packet(link_type, &ts, caplen, len, pkt, true,
+			std::string(tag), hdr_size, l3_proto);
 	delete [] tag;
 
 	// For the global timer manager, we take the global network_time as the
@@ -1199,7 +1183,7 @@ Packet* Packet::Unserialize(UnserialInfo* info)
 	if ( p->tag == "" )
 		p->time = timer_mgr->Time();
 	else
-		p->time = p->hdr->ts.tv_sec + double(p->hdr->ts.tv_usec) / 1e6;
+		p->time = p->ts.tv_sec + double(p->ts.tv_usec) / 1e6;
 
 	if ( time_machine_profiling )
 		{
@@ -1208,7 +1192,7 @@ Packet* Packet::Unserialize(UnserialInfo* info)
 				new BroFile("tm-prof.packets.log", "w");
 
 		profiling_output->Write(fmt("%.6f %s %d\n", current_time(),
-			(p->tag != "" ? p->tag.c_str() : "-"), hdr->len));
+			(p->tag != "" ? p->tag.c_str() : "-"), p->len));
 		}
 
 #ifdef DEBUG
@@ -1219,10 +1203,7 @@ Packet* Packet::Unserialize(UnserialInfo* info)
 
 		if ( dump )
 			{
-			iosource::PktDumper::Packet dp;
-			dp.hdr = p->hdr;
-			dp.data = p->pkt;
-			dump->Dump(&dp);
+			dump->Dump(p);
 			}
 		}
 #endif

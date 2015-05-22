@@ -241,12 +241,8 @@ void Connection::NextPacket(double t, int is_orig,
 			const u_char*& data,
 			int& record_packet, int& record_content,
 			// arguments for reproducing packets
-			const struct pcap_pkthdr* hdr,
-			const u_char* const pkt,
-			int hdr_size)
+			const Packet *pkt)
 	{
-	current_hdr = hdr;
-	current_hdr_size = hdr_size;
 	current_timestamp = t;
 	current_pkt = pkt;
 
@@ -264,8 +260,6 @@ void Connection::NextPacket(double t, int is_orig,
 	else
 		last_time = t;
 
-	current_hdr = 0;
-	current_hdr_size = 0;
 	current_timestamp = 0;
 	current_pkt = 0;
 	}

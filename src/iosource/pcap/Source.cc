@@ -167,9 +167,8 @@ bool PcapSource::ExtractNextPacket(Packet* pkt)
 		return false;
 		}
 
-	pkt->ts = current_hdr.ts.tv_sec + double(current_hdr.ts.tv_usec) / 1e6;
-	pkt->hdr = &current_hdr;
-	pkt->data = last_data = data;
+	last_data = data;
+	pkt->Init(props.link_type, &current_hdr.ts, current_hdr.caplen, current_hdr.len, data);
 
 	if ( current_hdr.len == 0 || current_hdr.caplen == 0 )
 		{

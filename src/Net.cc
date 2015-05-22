@@ -62,10 +62,8 @@ double bro_start_network_time;	// timestamp of first packet
 double last_watchdog_proc_time = 0.0;	// value of above during last watchdog
 bool terminating = false;	// whether we're done reading and finishing up
 
-const struct pcap_pkthdr* current_hdr = 0;
-const u_char* current_pkt = 0;
+const Packet *current_pkt = 0;
 int current_dispatched = 0;
-int current_hdr_size = 0;
 double current_timestamp = 0.0;
 iosource::PktSrc* current_pktsrc = 0;
 iosource::IOSource* current_iosrc = 0;
@@ -109,7 +107,7 @@ RETSIGTYPE watchdog(int /* signo */)
 			int frac_pst =
 				int((processing_start_time - int_pst) * 1e6);
 
-			if ( current_hdr )
+			if ( current_pkt )
 				{
 				if ( ! pkt_dumper )
 					{
@@ -127,10 +125,7 @@ RETSIGTYPE watchdog(int /* signo */)
 
 				if ( pkt_dumper )
 					{
-					iosource::PktDumper::Packet p;
-					p.hdr = current_hdr;
-					p.data = current_pkt;
-					pkt_dumper->Dump(&p);
+					pkt_dumper->Dump(current_pkt);
 					}
 				}
 
@@ -240,9 +235,7 @@ void expire_timers(iosource::PktSrc* src_ps)
 				max_timer_expires - current_dispatched);
 	}
 
-void net_packet_dispatch(double t, const struct pcap_pkthdr* hdr,
-			 const u_char* pkt, int hdr_size,
-			 iosource::PktSrc* src_ps)
+void net_packet_dispatch(double t, const Packet* pkt, iosource::PktSrc* src_ps)
 	{
 	if ( ! bro_start_network_time )
 		bro_start_network_time = t;
@@ -278,7 +271,7 @@ void net_packet_dispatch(double t, const struct pcap_pkthdr* hdr,
 			}
 		}
 
-	sessions->DispatchPacket(t, hdr, pkt, hdr_size, src_ps);
+	sessions->DispatchPacket(t, pkt, src_ps);
 	mgr.Drain();
 
 	if ( sp )

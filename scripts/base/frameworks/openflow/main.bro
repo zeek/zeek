@@ -160,9 +160,9 @@ function match_conn(id: conn_id, reverse: bool &default=F): ofp_match
 			$dl_type=dl_type,
 			$nw_proto=proto,
 			$nw_src=addr_to_subnet(orig_h),
-			$tp_src=orig_p,
+			$tp_src=port_to_count(orig_p),
 			$nw_dst=addr_to_subnet(resp_h),
-			$tp_dst=resp_p
+			$tp_dst=port_to_count(resp_p)
 		);
 	}
 

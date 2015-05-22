@@ -46,9 +46,9 @@ export {
 		# IP destination address.
 		nw_dst: subnet &optional;
 		# TCP/UDP source port.
-		tp_src: port &optional;
+		tp_src: count &optional;
 		# TCP/UDP destination port.
-		tp_dst: port &optional;
+		tp_dst: count &optional;
 	} &log;
 
 	## The actions that can be taken in a flow.

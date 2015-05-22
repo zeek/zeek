@@ -183,13 +183,13 @@ function entity_to_match(p: PluginState, e: Entity): vector of OpenFlow::ofp_mat
 		if ( f?$src_p )
 			{
 			m$nw_proto = determine_proto(f$src_p);
-			m$tp_src = f$src_p;
+			m$tp_src = port_to_count(f$src_p);
 			}
 
 		if ( f?$dst_p )
 			{
 			m$nw_proto = determine_proto(f$dst_p);
-			m$tp_dst = f$dst_p;
+			m$tp_dst = port_to_count(f$dst_p);
 			}
 
 		v[|v|] = m;

@@ -26,6 +26,10 @@ export {
 	type OfTable: record {
 		p: PluginState;
 		r: Rule;
+		c: count &default=0; # how many replies did we see so far? needed for ids where we have multiple rules...
+		packet_count: count &default=0;
+		byte_count: count &default=0;
+		duration_sec: double &default=0.0;
 	};
 
 	## the time interval after which an openflow message is considered to be timed out
@@ -206,7 +210,7 @@ function openflow_rule_to_flow_mod(p: PluginState, r: Rule) : OpenFlow::ofp_flow
 	local c = p$of_config;
 
 	local flow_mod = OpenFlow::ofp_flow_mod(
-		$cookie=OpenFlow::generate_cookie(r$id),
+		$cookie=OpenFlow::generate_cookie(r$id*2), # leave one space for the cases in which we need two rules.
 		$command=OpenFlow::OFPFC_ADD,
 		$idle_timeout=c$idle_timeout,
 		$priority=int_to_count(r$priority + c$priority_offset)
@@ -272,7 +276,11 @@ function openflow_add_rule(p: PluginState, r: Rule) : bool
 	for ( i in matches )
 		{
 		if ( OpenFlow::flow_mod(p$of_controller, matches[i], flow_mod) )
+			{
 			of_messages[r$id, flow_mod$command] = OfTable($p=p, $r=r);
+			flow_mod = copy(flow_mod);
+			++flow_mod$cookie;
+			}
 		else
 			event rule_error(r, p, "Error while executing OpenFlow::flow_mod");
 		}
@@ -293,19 +301,39 @@ function openflow_remove_rule(p: PluginState, r: Rule) : bool
 	if ( OpenFlow::flow_mod(p$of_controller, [], flow_mod) )
 			of_messages[r$id, flow_mod$command] = OfTable($p=p, $r=r);
 	else
+			{
 			event rule_error(r, p, "Error while executing OpenFlow::flow_mod");
+			return F;
+			}
+
+	# if this was an address or mac match, we also need to remove the reverse
+	if ( r$entity$ty == ADDRESS || r$entity$ty == MAC )
+		{
+		local flow_mod_2 = copy(flow_mod);
+		++flow_mod_2$cookie;
+		OpenFlow::flow_mod(p$of_controller, [], flow_mod_2);
+		}
 
 	return T;
 	}
 
 event OpenFlow::flow_mod_success(match: OpenFlow::ofp_match, flow_mod: OpenFlow::ofp_flow_mod, msg: string) &priority=3
 	{
-	local id = OpenFlow::get_cookie_uid(flow_mod$cookie);
+	local id = OpenFlow::get_cookie_uid(flow_mod$cookie)/2;
 	if ( [id, flow_mod$command] !in of_messages )
 		return;
 
 	local r = of_messages[id,flow_mod$command]$r;
 	local p = of_messages[id,flow_mod$command]$p;
+	local c = of_messages[id,flow_mod$command]$c;
+
+	if ( r$entity$ty == ADDRESS || r$entity$ty == MAC )
+		{
+		++of_messages[id,flow_mod$command]$c;
+		if ( of_messages[id,flow_mod$command]$c < 2 )
+			return; # will do stuff once the second part arrives...
+		}
+
 	delete of_messages[id,flow_mod$command];
 
 	if ( p$of_controller$supports_flow_removed )
@@ -319,7 +347,7 @@ event OpenFlow::flow_mod_success(match: OpenFlow::ofp_match, flow_mod: OpenFlow:
 
 event OpenFlow::flow_mod_failure(match: OpenFlow::ofp_match, flow_mod: OpenFlow::ofp_flow_mod, msg: string) &priority=3
 	{
-	local id = OpenFlow::get_cookie_uid(flow_mod$cookie);
+	local id = OpenFlow::get_cookie_uid(flow_mod$cookie)/2;
 	if ( [id, flow_mod$command] !in of_messages )
 		return;
 
@@ -332,12 +360,24 @@ event OpenFlow::flow_mod_failure(match: OpenFlow::ofp_match, flow_mod: OpenFlow:
 
 event OpenFlow::flow_removed(match: OpenFlow::ofp_match, cookie: count, priority: count, reason: count, duration_sec: count, idle_timeout: count, packet_count: count, byte_count: count)
 	{
-	local id = OpenFlow::get_cookie_uid(cookie);
+	local id = OpenFlow::get_cookie_uid(cookie)/2;
 	if ( id !in of_flows )
 		return;
 
-	local r = of_flows[id]$r;
-	local p = of_flows[id]$p;
+	local rec = of_flows[id];
+	local r = rec$r;
+	local p = rec$p;
+
+	if ( r$entity$ty == ADDRESS || r$entity$ty == MAC )
+		{
+		++of_flows[id]$c;
+		if ( of_flows[id]$c < 2 )
+			return; # will do stuff once the second part arrives...
+		else
+			event Pacf::rule_timeout(r, FlowInfo($duration=double_to_interval((rec$duration_sec+duration_sec)/2), $packet_count=packet_count+rec$packet_count, $byte_count=byte_count+rec$byte_count), p);
+
+		return;
+		}
 
 	event Pacf::rule_timeout(r, FlowInfo($duration=double_to_interval(duration_sec+0.0), $packet_count=packet_count, $byte_count=byte_count), p);
 	}

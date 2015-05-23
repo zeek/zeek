@@ -43,8 +43,8 @@ export {
 	##
 	## location: An optional string describing where the drop was triggered.
 	##
-	## Returns: True if a plugin accepted the rule for carrying it out.
-	global drop_address: function(a: addr, t: interval, location: string &default="") : bool;
+	## Returns: The id of the inserted rule on succes and zero on failure.
+	global drop_address: function(a: addr, t: interval, location: string &default="") : count;
 
 	## Stops forwarding a uni-directional flow's packets to Bro.
 	##
@@ -54,8 +54,8 @@ export {
 	##
 	## location: An optional string describing where the shunt was triggered.
 	##
-	## Returns: True if a plugin accepted the rule for carrying it out.
-	global shunt_flow: function(f: flow_id, t: interval, location: string &default="") : bool;
+	## Returns: The id of the inserted rule on succes and zero on failure.
+	global shunt_flow: function(f: flow_id, t: interval, location: string &default="") : count;
 
 	## Removes all rules and notifications for an entity.
 	##
@@ -355,16 +355,15 @@ function activate(p: PluginState, priority: int)
 	log_msg(fmt("activated plugin with priority %d", priority), p);
 	}
 
-function drop_address(a: addr, t: interval, location: string &default="") : bool
+function drop_address(a: addr, t: interval, location: string &default="") : count
 	{
 	local e: Entity = [$ty=ADDRESS, $ip=addr_to_subnet(a)];
 	local r: Rule = [$ty=DROP, $target=FORWARD, $entity=e, $expire=t, $location=location];
 
-	local id = add_rule(r);
-	return id > 0;
+	return add_rule(r);
 	}
 
-function shunt_flow(f: flow_id, t: interval, location: string &default="") : bool
+function shunt_flow(f: flow_id, t: interval, location: string &default="") : count
 	{
 	local flow = Pacf::Flow(
 		$src_h=addr_to_subnet(f$src_h),
@@ -375,8 +374,7 @@ function shunt_flow(f: flow_id, t: interval, location: string &default="") : boo
 	local e: Entity = [$ty=FLOW, $flow=flow];
 	local r: Rule = [$ty=DROP, $target=MONITOR, $entity=e, $expire=t, $location=location];
 
-	local id = add_rule(r);
-	return id > 0;
+	return add_rule(r);
 	}
 
 function reset(e: Entity)

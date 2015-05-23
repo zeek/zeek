@@ -123,29 +123,27 @@ export {
 	## from the bro openflow framework
 	const INVALID_COOKIE = 0xffffffffffffffff;
 	# Openflow pysical port definitions
-	## Maximum number of physical switch ports.
-	const OFPP_MAX = 0xff00;
 	## Send the packet out the input port. This
 	## virual port must be explicitly used in
 	## order to send back out of the input port.
-	const OFPP_IN_PORT = 0xfff8;
+	const OFPP_IN_PORT = 0xfffffff8;
 	## Perform actions in flow table.
 	## NB: This can only be the destination port
 	## for packet-out messages.
-	const OFPP_TABLE = 0xfff9;
+	const OFPP_TABLE = 0xfffffff9;
 	## Process with normal L2/L3 switching.
-	const OFPP_NORMAL = 0xfffa;
+	const OFPP_NORMAL = 0xfffffffa;
 	## All pysical ports except input port and
 	## those disabled by STP.
-	const OFPP_FLOOD = 0xfffb;
+	const OFPP_FLOOD = 0xfffffffb;
 	## All pysical ports except input port.
-	const OFPP_ALL = 0xfffc;
+	const OFPP_ALL = 0xfffffffc;
 	## Send to controller.
-	const OFPP_CONTROLLER = 0xfffd;
+	const OFPP_CONTROLLER = 0xfffffffd;
 	## Local openflow "port".
-	const OFPP_LOCAL = 0xfffe;
-	## Not associated with a pysical port.
-	const OFPP_NONE = 0xffff;
+	const OFPP_LOCAL = 0xfffffffe;
+	## Wildcard port used only for flow mod (delete) and flow stats requests.
+	const OFPP_ANY = 0xffffffff;
 	# Openflow no buffer constant.
 	const OFP_NO_BUFFER = 0xffffffff;
 	## Send flow removed message when flow
@@ -157,6 +155,10 @@ export {
 	## Flows added with this are only used
 	## when the controller is disconnected.
 	const OFPFF_EMERG = 0x4;
+
+	# Wildcard table used for table config,
+	# flow stats and flow deletes.
+	const OFPTT_ALL = 0xff;
 
 	## Openflow action_type definitions
 	##

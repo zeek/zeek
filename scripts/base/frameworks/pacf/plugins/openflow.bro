@@ -213,7 +213,8 @@ function openflow_rule_to_flow_mod(p: PluginState, r: Rule) : OpenFlow::ofp_flow
 		$cookie=OpenFlow::generate_cookie(r$id*2), # leave one space for the cases in which we need two rules.
 		$command=OpenFlow::OFPFC_ADD,
 		$idle_timeout=c$idle_timeout,
-		$priority=int_to_count(r$priority + c$priority_offset)
+		$priority=int_to_count(r$priority + c$priority_offset),
+		$flags=OpenFlow::OFPFF_SEND_FLOW_REM # please notify us when flows are removed
 	);
 
 	if ( r?$expire )

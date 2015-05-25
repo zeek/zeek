@@ -59,7 +59,7 @@
 1254722770.692743 file_over_new_connection
 1254722770.692743 mime_end_entity
 1254722770.692743 get_file_handle
-1254722770.692743 file_mime_type
+1254722770.692743 file_sniff
 1254722770.692743 file_state_remove
 1254722770.692743 get_file_handle
 1254722770.692743 mime_begin_entity
@@ -70,7 +70,7 @@
 1254722770.692743 file_over_new_connection
 1254722770.692804 mime_end_entity
 1254722770.692804 get_file_handle
-1254722770.692804 file_mime_type
+1254722770.692804 file_sniff
 1254722770.692804 file_state_remove
 1254722770.692804 get_file_handle
 1254722770.692804 mime_end_entity
@@ -84,7 +84,7 @@
 1254722770.692804 file_new
 1254722770.692804 file_over_new_connection
 1254722770.695115 new_connection
-1254722771.494181 file_mime_type
+1254722771.494181 file_sniff
 1254722771.858334 mime_end_entity
 1254722771.858334 get_file_handle
 1254722771.858334 file_state_remove

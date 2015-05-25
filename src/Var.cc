@@ -64,9 +64,6 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 			}
 		}
 
-	if ( init && optimize )
-		init = init->Simplify(SIMPLIFY_GENERAL);
-
 	if ( t && t->IsSet() )
 		{ // Check for set with explicit elements.
 		SetType* st = t->AsTableType()->AsSetType();

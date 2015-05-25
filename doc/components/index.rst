@@ -17,6 +17,8 @@ current, independent component releases.
    Broccoli - User Manual <broccoli/broccoli-manual>
    Broccoli Python Bindings <broccoli-python/README>
    Broccoli Ruby Bindings <broccoli-ruby/README>
+   Broker - Bro's (New) Messaging Library (README) <broker/README>
+   Broker - User Manual <broker/broker-manual.rst>
    BroControl - Interactive Bro management shell <broctl/README>
    Bro-Aux - Small auxiliary tools for Bro <bro-aux/README>
    BTest - A unit testing framework <btest/README>

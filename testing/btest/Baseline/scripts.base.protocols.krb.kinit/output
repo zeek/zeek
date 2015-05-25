@@ -1,0 +1,3 @@
+KRB_AP_REQUEST
+[pvno=5, realm=VLADG.NET, service_name=krbtgt/VLADG.NET, cipher=18]
+[use_session_key=F, mutual_required=F]

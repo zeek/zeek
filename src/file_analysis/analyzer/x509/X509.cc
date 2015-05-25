@@ -104,13 +104,35 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val)
 	len = BIO_gets(bio, buf, sizeof(buf));
 	pX509Cert->Assign(2, new StringVal(len, buf));
 	BIO_reset(bio);
+
+	X509_NAME *subject_name = X509_get_subject_name(ssl_cert);
+	// extract the most specific (last) common name from the subject
+	int namepos = -1;
+	for ( ;; )
+		{
+		int j = X509_NAME_get_index_by_NID(subject_name, NID_commonName, namepos);
+		if ( j == -1 )
+			break;
+
+		namepos = j;
+		}
+
+	if ( namepos != -1 )
+		{
+		// we found a common name
+		ASN1_STRING_print(bio, X509_NAME_ENTRY_get_data(X509_NAME_get_entry(subject_name, namepos)));
+		len = BIO_gets(bio, buf, sizeof(buf));
+		pX509Cert->Assign(4, new StringVal(len, buf));
+		BIO_reset(bio);
+		}
+
 	X509_NAME_print_ex(bio, X509_get_issuer_name(ssl_cert), 0, XN_FLAG_RFC2253);
 	len = BIO_gets(bio, buf, sizeof(buf));
 	pX509Cert->Assign(3, new StringVal(len, buf));
 	BIO_free(bio);
 
-	pX509Cert->Assign(4, new Val(GetTimeFromAsn1(X509_get_notBefore(ssl_cert)), TYPE_TIME));
-	pX509Cert->Assign(5, new Val(GetTimeFromAsn1(X509_get_notAfter(ssl_cert)), TYPE_TIME));
+	pX509Cert->Assign(5, new Val(GetTimeFromAsn1(X509_get_notBefore(ssl_cert)), TYPE_TIME));
+	pX509Cert->Assign(6, new Val(GetTimeFromAsn1(X509_get_notAfter(ssl_cert)), TYPE_TIME));
 
 	// we only read 255 bytes because byte 256 is always 0.
 	// if the string is longer than 255, that will be our null-termination,
@@ -118,28 +140,41 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val)
 	if ( ! i2t_ASN1_OBJECT(buf, 255, ssl_cert->cert_info->key->algor->algorithm) )
 		buf[0] = 0;
 
-	pX509Cert->Assign(6, new StringVal(buf));
+	pX509Cert->Assign(7, new StringVal(buf));
+
+	// Special case for RDP server certificates. For some reason some (all?) RDP server
+	// certificates like to specify their key algorithm as md5WithRSAEncryption, which
+	// is wrong on so many levels. We catch this special case here and set it to what is
+	// actually should be (namely - rsaEncryption), so that OpenSSL will parse out the
+	// key later. Otherwise it will just fail to parse the certificate key.
+
+	ASN1_OBJECT* old_algorithm = 0;
+	if ( OBJ_obj2nid(ssl_cert->cert_info->key->algor->algorithm) == NID_md5WithRSAEncryption )
+		{
+		old_algorithm = ssl_cert->cert_info->key->algor->algorithm;
+		ssl_cert->cert_info->key->algor->algorithm = OBJ_nid2obj(NID_rsaEncryption);
+		}
 
 	if ( ! i2t_ASN1_OBJECT(buf, 255, ssl_cert->sig_alg->algorithm) )
 		buf[0] = 0;
 
-	pX509Cert->Assign(7, new StringVal(buf));
+	pX509Cert->Assign(8, new StringVal(buf));
 
 	// Things we can do when we have the key...
 	EVP_PKEY *pkey = X509_extract_key(ssl_cert);
 	if ( pkey != NULL )
 		{
 		if ( pkey->type == EVP_PKEY_DSA )
-			pX509Cert->Assign(8, new StringVal("dsa"));
+			pX509Cert->Assign(9, new StringVal("dsa"));
 
 		else if ( pkey->type == EVP_PKEY_RSA )
 			{
-			pX509Cert->Assign(8, new StringVal("rsa"));
+			pX509Cert->Assign(9, new StringVal("rsa"));
 
 			char *exponent = BN_bn2dec(pkey->pkey.rsa->e);
 			if ( exponent != NULL )
 				{
-				pX509Cert->Assign(10, new StringVal(exponent));
+				pX509Cert->Assign(11, new StringVal(exponent));
 				OPENSSL_free(exponent);
 				exponent = NULL;
 				}
@@ -147,14 +182,19 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val)
 #ifndef OPENSSL_NO_EC
 		else if ( pkey->type == EVP_PKEY_EC )
 			{
-			pX509Cert->Assign(8, new StringVal("ecdsa"));
-			pX509Cert->Assign(11, KeyCurve(pkey));
+			pX509Cert->Assign(9, new StringVal("ecdsa"));
+			pX509Cert->Assign(12, KeyCurve(pkey));
 			}
 #endif
 
+		// set key algorithm back. We do not have to free the value that we created because (I think) it
+		// comes out of a static array from OpenSSL memory.
+		if ( old_algorithm )
+			ssl_cert->cert_info->key->algor->algorithm = old_algorithm;
+
 		unsigned int length = KeyLength(pkey);
 		if ( length > 0 )
-			pX509Cert->Assign(9, new Val(length, TYPE_COUNT));
+			pX509Cert->Assign(10, new Val(length, TYPE_COUNT));
 
 		EVP_PKEY_free(pkey);
 		}

@@ -239,7 +239,9 @@ int HTTP_Entity::Undelivered(int64_t len)
 			  len, expect_data_length);
 		}
 
-	if ( end_of_data && in_header )
+	// Don't propogate an entity (file) gap if we're still in the headers,
+	// or the body length was declared to be zero.
+	if ( (end_of_data && in_header) || body_length == 0 )
 		return 0;
 
 	if ( is_partial_content )
@@ -985,9 +987,7 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 				{
 				++num_replies;
 
-				if ( unanswered_requests.empty() )
-					Weird("unmatched_HTTP_reply");
-				else
+				if ( ! unanswered_requests.empty() )
 					ProtocolConfirmation();
 
 				reply_state = EXPECT_REPLY_MESSAGE;

@@ -50,11 +50,17 @@ export {
 		## The event receives a single same parameter, an instance of
 		## type ``columns``.
 		ev: any &optional;
+
+		## A path that will be inherited by any filters added to the
+		## stream which do not already specify their own path.
+		path: string &optional;
 	};
 
 	## Builds the default path values for log filters if not otherwise
 	## specified by a filter. The default implementation uses *id*
-	## to derive a name.
+	## to derive a name.  Upon adding a filter to a stream, if neither
+	## ``path`` nor ``path_func`` is explicitly set by them, then
+	## this function is used as the ``path_func``.
 	##
 	## id: The ID associated with the log stream.
 	##
@@ -144,7 +150,9 @@ export {
 		## to compute the string dynamically. It is ok to return
 		## different strings for separate calls, but be careful: it's
 		## easy to flood the disk by returning a new string for each
-		## connection.
+		## connection.  Upon adding a filter to a stream, if neither
+		## ``path`` nor ``path_func`` is explicitly set by them, then
+		## :bro:see:`default_path_func` is used.
 		##
 		## id: The ID associated with the log stream.
 		##
@@ -380,6 +388,8 @@ export {
 	global active_streams: table[ID] of Stream = table();
 }
 
+global all_streams: table[ID] of Stream = table();
+
 # We keep a script-level copy of all filters so that we can manipulate them.
 global filters: table[ID, string] of Filter;
 
@@ -464,6 +474,7 @@ function create_stream(id: ID, stream: Stream) : bool
 		return F;
 
 	active_streams[id] = stream;
+	all_streams[id] = stream;
 
 	return add_default_filter(id);
 	}
@@ -471,6 +482,7 @@ function create_stream(id: ID, stream: Stream) : bool
 function remove_stream(id: ID) : bool
 	{
 	delete active_streams[id];
+	delete all_streams[id];
 	return __remove_stream(id);
 	}
 
@@ -483,10 +495,12 @@ function disable_stream(id: ID) : bool
 
 function add_filter(id: ID, filter: Filter) : bool
 	{
-	# This is a work-around for the fact that we can't forward-declare
-	# the default_path_func and then use it as &default in the record
-	# definition.
-	if ( ! filter?$path_func )
+	local stream = all_streams[id];
+
+	if ( stream?$path && ! filter?$path )
+		filter$path = stream$path;
+
+	if ( ! filter?$path && ! filter?$path_func )
 		filter$path_func = default_path_func;
 
 	filters[id, filter$name] = filter;

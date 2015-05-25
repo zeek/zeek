@@ -1,5 +1,5 @@
 https://www.bro.org:42/documentation/faq.html?k1=v1&k2=v2
-    -> [scheme=https, netlocation=www.bro.org, portnum=42, path=/documentation/faq.html, file_name=faq.html, file_base=faq, file_ext=html, params={^J^I[k2] = v2,^J^I[k1] = v1^J}]
+    -> [scheme=https, netlocation=www.bro.org, portnum=42, path=/documentation/faq.html, file_name=faq.html, file_base=faq, file_ext=html, params={\x0a\x09[k2] = v2,\x0a\x09[k1] = v1\x0a}]
 
 
     -> [scheme=<uninitialized>, netlocation=, portnum=<uninitialized>, path=/, file_name=<uninitialized>, file_base=<uninitialized>, file_ext=<uninitialized>, params=<uninitialized>]
@@ -32,20 +32,20 @@ https://www.bro.org/documentation/faq.html
     -> [scheme=https, netlocation=www.bro.org, portnum=<uninitialized>, path=/documentation/faq.html, file_name=faq.html, file_base=faq, file_ext=html, params=<uninitialized>]
 
 https://www.bro.org/documentation/faq.html?
-    -> [scheme=https, netlocation=www.bro.org, portnum=<uninitialized>, path=/documentation/faq.html, file_name=faq.html, file_base=faq, file_ext=html, params={^J^J}]
+    -> [scheme=https, netlocation=www.bro.org, portnum=<uninitialized>, path=/documentation/faq.html, file_name=faq.html, file_base=faq, file_ext=html, params={\x0a\x0a}]
 
 https://www.bro.org/documentation/faq.html?k=v
-    -> [scheme=https, netlocation=www.bro.org, portnum=<uninitialized>, path=/documentation/faq.html, file_name=faq.html, file_base=faq, file_ext=html, params={^J^I[k] = v^J}]
+    -> [scheme=https, netlocation=www.bro.org, portnum=<uninitialized>, path=/documentation/faq.html, file_name=faq.html, file_base=faq, file_ext=html, params={\x0a\x09[k] = v\x0a}]
 
 https://www.bro.org/documentation/faq.html?k=
-    -> [scheme=https, netlocation=www.bro.org, portnum=<uninitialized>, path=/documentation/faq.html, file_name=faq.html, file_base=faq, file_ext=html, params={^J^I[k] = ^J}]
+    -> [scheme=https, netlocation=www.bro.org, portnum=<uninitialized>, path=/documentation/faq.html, file_name=faq.html, file_base=faq, file_ext=html, params={\x0a\x09[k] = \x0a}]
 
 https://www.bro.org/documentation/faq.html?=v
-    -> [scheme=https, netlocation=www.bro.org, portnum=<uninitialized>, path=/documentation/faq.html, file_name=faq.html, file_base=faq, file_ext=html, params={^J^I[] = v^J}]
+    -> [scheme=https, netlocation=www.bro.org, portnum=<uninitialized>, path=/documentation/faq.html, file_name=faq.html, file_base=faq, file_ext=html, params={\x0a\x09[] = v\x0a}]
 
 file:///documentation/faq.html?=v
-    -> [scheme=file, netlocation=, portnum=<uninitialized>, path=/documentation/faq.html, file_name=faq.html, file_base=faq, file_ext=html, params={^J^I[] = v^J}]
+    -> [scheme=file, netlocation=, portnum=<uninitialized>, path=/documentation/faq.html, file_name=faq.html, file_base=faq, file_ext=html, params={\x0a\x09[] = v\x0a}]
 
 www.bro.org/?foo=bar
-    -> [scheme=<uninitialized>, netlocation=www.bro.org, portnum=<uninitialized>, path=/, file_name=<uninitialized>, file_base=<uninitialized>, file_ext=<uninitialized>, params={^J^I[foo] = bar^J}]
+    -> [scheme=<uninitialized>, netlocation=www.bro.org, portnum=<uninitialized>, path=/, file_name=<uninitialized>, file_base=<uninitialized>, file_ext=<uninitialized>, params={\x0a\x09[foo] = bar\x0a}]
 

@@ -29,7 +29,9 @@ public:
 	~Manager();
 
 	/**
-	 * Registers an IOSource with the manager.
+	 * Registers an IOSource with the manager. If the source is already
+	 * registered, the method will update its *dont_count* value but not
+	 * do anything else.
 	 *
 	 * @param src The source. The manager takes ownership.
 	 *
@@ -117,6 +119,7 @@ private:
 		FD_Set fd_read;
 		FD_Set fd_write;
 		FD_Set fd_except;
+		bool dont_count;
 
 		bool Ready(fd_set* read, fd_set* write, fd_set* except) const
 			{ return fd_read.Ready(read) || fd_write.Ready(write) ||

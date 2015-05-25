@@ -249,18 +249,6 @@ NameExpr::~NameExpr()
 	Unref(id);
 	}
 
-Expr* NameExpr::Simplify(SimplifyType simp_type)
-	{
-	if ( simp_type != SIMPLIFY_LHS && id->IsConst() )
-		{
-		Val* v = Eval(0);
-		if ( v )
-			return new ConstExpr(v);
-		}
-
-	return this;
-	}
-
 Val* NameExpr::Eval(Frame* f) const
 	{
 	Val* v;
@@ -410,11 +398,6 @@ void ConstExpr::ExprDescribe(ODesc* d) const
 	val->Describe(d);
 	}
 
-Expr* ConstExpr::Simplify(SimplifyType /* simp_type */)
-	{
-	return this;
-	}
-
 Val* ConstExpr::Eval(Frame* /* f */) const
 	{
 	return Value()->Ref();
@@ -455,16 +438,6 @@ UnaryExpr::UnaryExpr(BroExprTag arg_tag, Expr* arg_op) : Expr(arg_tag)
 UnaryExpr::~UnaryExpr()
 	{
 	Unref(op);
-	}
-
-Expr* UnaryExpr::Simplify(SimplifyType simp_type)
-	{
-	if ( IsError() )
-		return this;
-
-	op = simplify_expr(op, simp_type);
-	Canonicize();
-	return DoSimplify();
 	}
 
 Val* UnaryExpr::Eval(Frame* f) const
@@ -514,11 +487,6 @@ TraversalCode UnaryExpr::Traverse(TraversalCallback* cb) const
 
 	tc = cb->PostExpr(this);
 	HANDLE_TC_EXPR_POST(tc);
-	}
-
-Expr* UnaryExpr::DoSimplify()
-	{
-	return this;
 	}
 
 Val* UnaryExpr::Fold(Val* v) const
@@ -571,19 +539,6 @@ BinaryExpr::~BinaryExpr()
 	{
 	Unref(op1);
 	Unref(op2);
-	}
-
-Expr* BinaryExpr::Simplify(SimplifyType /* simp_type */)
-	{
-	if ( IsError() )
-		return this;
-
-	SimplifyOps();
-
-	if ( BothConst() )
-		return new ConstExpr(Fold(op1->ExprVal(), op2->ExprVal()));
-	else
-		return DoSimplify();
 	}
 
 Val* BinaryExpr::Eval(Frame* f) const
@@ -687,11 +642,6 @@ TraversalCode BinaryExpr::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_EXPR_POST(tc);
 	}
 
-Expr* BinaryExpr::DoSimplify()
-	{
-	return this;
-	}
-
 void BinaryExpr::ExprDescribe(ODesc* d) const
 	{
 	op1->Describe(d);
@@ -701,13 +651,6 @@ void BinaryExpr::ExprDescribe(ODesc* d) const
 		d->AddSP(expr_name(Tag()));
 
 	op2->Describe(d);
-	}
-
-void BinaryExpr::SimplifyOps()
-	{
-	op1 = simplify_expr(op1, SIMPLIFY_GENERAL);
-	op2 = simplify_expr(op2, SIMPLIFY_GENERAL);
-	Canonicize();
 	}
 
 Val* BinaryExpr::Fold(Val* v1, Val* v2) const
@@ -1147,21 +1090,6 @@ NotExpr::NotExpr(Expr* arg_op) : UnaryExpr(EXPR_NOT, arg_op)
 		SetType(base_type(TYPE_BOOL));
 	}
 
-Expr* NotExpr::DoSimplify()
-	{
-	op = simplify_expr(op, SIMPLIFY_GENERAL);
-	Canonicize();
-
-	if ( op->Tag() == EXPR_NOT )
-		// !!x == x
-		return ((NotExpr*) op)->Op()->Ref();
-
-	if ( op->IsConst() )
-		return new ConstExpr(Fold(op->ExprVal()));
-
-	return this;
-	}
-
 Val* NotExpr::Fold(Val* v) const
 	{
 	return new Val(! v->InternalInt(), type->Tag());
@@ -1205,22 +1133,6 @@ PosExpr::PosExpr(Expr* arg_op) : UnaryExpr(EXPR_POSITIVE, arg_op)
 		SetType(new VectorType(base_result_type));
 	else
 		SetType(base_result_type);
-	}
-
-Expr* PosExpr::DoSimplify()
-	{
-	op = simplify_expr(op, SIMPLIFY_GENERAL);
-	Canonicize();
-
-	TypeTag t = op->Type()->Tag();
-
-	if ( t == TYPE_DOUBLE || t == TYPE_INTERVAL || t == TYPE_INT )
-		return op->Ref();
-
-	if ( op->IsConst() && ! is_vector(op->ExprVal()) )
-		return new ConstExpr(Fold(op->ExprVal()));
-
-	return this;
 	}
 
 Val* PosExpr::Fold(Val* v) const
@@ -1271,27 +1183,6 @@ NegExpr::NegExpr(Expr* arg_op) : UnaryExpr(EXPR_NEGATE, arg_op)
 		SetType(new VectorType(base_result_type));
 	else
 		SetType(base_result_type);
-	}
-
-Expr* NegExpr::DoSimplify()
-	{
-	op = simplify_expr(op, SIMPLIFY_GENERAL);
-	Canonicize();
-
-	if ( op->Tag() == EXPR_NEGATE )
-		// -(-x) == x
-		return ((NegExpr*) op)->Op()->Ref();
-
-	if ( op->IsConst() && ! is_vector(op->ExprVal()) )
-		return new ConstExpr(Fold(op->ExprVal()));
-
-	if ( op->Tag() == EXPR_SUB )
-		{ // -(a-b) == b-a
-		SubExpr* s = (SubExpr*) op;
-		return new SubExpr(s->Op2()->Ref(), s->Op1()->Ref());
-		}
-
-	return this;
 	}
 
 Val* NegExpr::Fold(Val* v) const
@@ -1394,24 +1285,6 @@ AddExpr::AddExpr(Expr* arg_op1, Expr* arg_op2)
 		else
 			SetType(base_result_type);
 		}
-	}
-
-Expr* AddExpr::DoSimplify()
-	{
-	// If there's a constant, then it's in op1, since Canonicize()
-	// makes sure of that.
-	if ( op1->IsZero() )
-		return op2->Ref();
-
-	else if ( op1->Tag() == EXPR_NEGATE )
-		// (-a)+b = b-a
-		return new AddExpr(op2->Ref(), ((NegExpr*) op1)->Op()->Ref());
-
-	else if ( op2->Tag() == EXPR_NEGATE )
-		// a+(-b) == a-b
-		return new SubExpr(op1->Ref(), ((NegExpr*) op2)->Op()->Ref());
-
-	return this;
 	}
 
 void AddExpr::Canonicize()
@@ -1532,21 +1405,6 @@ SubExpr::SubExpr(Expr* arg_op1, Expr* arg_op2)
 		}
 	}
 
-Expr* SubExpr::DoSimplify()
-	{
-	if ( op1->IsZero() )
-		return new NegExpr(op2->Ref());
-
-	else if ( op2->IsZero() )
-		return op1->Ref();
-
-	else if ( op2->Tag() == EXPR_NEGATE )
-		// a-(-b) = a+b
-		return new AddExpr(op1->Ref(), ((NegExpr*) op2)->Op()->Ref());
-
-	return this;
-	}
-
 IMPLEMENT_SERIAL(SubExpr, SER_SUB_EXPR);
 
 bool SubExpr::DoSerialize(SerialInfo* info) const
@@ -1648,27 +1506,6 @@ TimesExpr::TimesExpr(Expr* arg_op1, Expr* arg_op2)
 		ExprError("requires arithmetic operands");
 	}
 
-Expr* TimesExpr::DoSimplify()
-	{
-	// If there's a constant, then it's in op1, since Canonicize()
-	// makes sure of that.
-	if ( op1->IsConst() )
-		{
-		if ( op1->IsZero() )
-			{
-			if ( IsVector(op2->Type()->Tag()) )
-				return this;
-			else
-				return make_zero(type);
-			}
-
-		else if ( op1->IsOne() )
-			return op2->Ref();
-		}
-
-	return this;
-	}
-
 void TimesExpr::Canonicize()
 	{
 	if ( expr_greater(op2, op1) || op2->Type()->Tag() == TYPE_INTERVAL ||
@@ -1741,31 +1578,6 @@ Val* DivideExpr::AddrFold(Val* v1, Val* v2) const
 	return new SubNetVal(v1->AsAddr(), mask);
 	}
 
-Expr* DivideExpr::DoSimplify()
-	{
-	if ( IsError() )
-		return this;
-
-	if ( op1->Type()->Tag() == TYPE_ADDR )
-		return this;
-
-	if ( is_vector(op1) || is_vector(op2) )
-		return this;
-
-	if ( op2->IsConst() )
-		{
-		if ( op2->IsOne() )
-			return op1->Ref();
-		else if ( op2->IsZero() )
-			Error("zero divisor");
-		}
-
-	else if ( same_expr(op1, op2) )
-		return make_one(type);
-
-	return this;
-	}
-
 IMPLEMENT_SERIAL(DivideExpr, SER_DIVIDE_EXPR);
 
 bool DivideExpr::DoSerialize(SerialInfo* info) const
@@ -1798,31 +1610,6 @@ ModExpr::ModExpr(Expr* arg_op1, Expr* arg_op2)
 		PromoteType(max_type(bt1, bt2), is_vector(op1) || is_vector(op2));
 	else
 		ExprError("requires integral operands");
-	}
-
-Expr* ModExpr::DoSimplify()
-	{
-	if ( IsError() )
-		return this;
-
-	TypeTag bt1 = op1->Type()->Tag();
-	TypeTag bt2 = op2->Type()->Tag();
-
-	if ( IsVector(bt1) || IsVector(bt2) )
-		return this;
-
-	if ( op2->IsConst() )
-		{
-		if ( op2->IsOne() )
-			return make_zero(type);
-		else if ( op2->IsZero() )
-			Error("zero modulus");
-		}
-
-	else if ( same_expr(op1, op2) )
-		return make_zero(type);
-
-	return this;
 	}
 
 IMPLEMENT_SERIAL(ModExpr, SER_MOD_EXPR);
@@ -2011,37 +1798,6 @@ Val* BoolExpr::Eval(Frame* f) const
 	return result;
 	}
 
-Expr* BoolExpr::DoSimplify()
-	{
-	if ( op1->IsConst() && ! is_vector(op1) )
-		{
-		if ( op1->IsZero() )
-			// F && x  or  F || x
-			return (tag == EXPR_AND) ? make_zero(type) : op2->Ref();
-		else
-			// T && x  or  T || x
-			return (tag == EXPR_AND) ? op2->Ref() : make_one(type);
-		}
-
-	else if ( op2->IsConst() && ! is_vector(op2) )
-		{
-		if ( op1->IsZero() )
-			// x && F  or  x || F
-			return (tag == EXPR_AND) ? make_zero(type) : op1->Ref();
-		else
-			// x && T  or  x || T
-			return (tag == EXPR_AND) ? op1->Ref() : make_one(type);
-		}
-
-	else if ( same_expr(op1, op2) )
-		{
-		Warn("redundant boolean operation");
-		return op1->Ref();
-		}
-
-	return this;
-	}
-
 IMPLEMENT_SERIAL(BoolExpr, SER_BOOL_EXPR);
 
 bool BoolExpr::DoSerialize(SerialInfo* info) const
@@ -2128,22 +1884,6 @@ void EqExpr::Canonicize()
 		SwapOps();
 	}
 
-Expr* EqExpr::DoSimplify()
-	{
-	if ( same_expr(op1, op2) && ! is_vector(op1) )
-		{
-		if ( ! optimize )
-			Warn("redundant comparison");
-
-		if ( tag == EXPR_EQ )
-			return make_one(type);
-		else
-			return make_zero(type);
-		}
-
-	return this;
-	}
-
 Val* EqExpr::Fold(Val* v1, Val* v2) const
 	{
 	if ( op1->Type()->Tag() == TYPE_PATTERN )
@@ -2205,22 +1945,6 @@ RelExpr::RelExpr(BroExprTag arg_tag, Expr* arg_op1, Expr* arg_op2)
 		  bt1 != TYPE_PORT && bt1 != TYPE_ADDR &&
 		  bt1 != TYPE_STRING )
 		ExprError("illegal comparison");
-	}
-
-Expr* RelExpr::DoSimplify()
-	{
-	if ( same_expr(op1, op2) )
-		{
-		Warn("redundant comparison");
-		// Here we use the fact that the canonical form of
-		// a RelExpr only uses EXPR_LE or EXPR_LT.
-		if ( tag == EXPR_LE )
-			return make_one(type);
-		else
-			return make_zero(type);
-		}
-
-	return this;
 	}
 
 void RelExpr::Canonicize()
@@ -2312,25 +2036,6 @@ CondExpr::~CondExpr()
 	Unref(op1);
 	Unref(op2);
 	Unref(op3);
-	}
-
-Expr* CondExpr::Simplify(SimplifyType /* simp_type */)
-	{
-	op1 = simplify_expr(op1, SIMPLIFY_GENERAL);
-	op2 = simplify_expr(op2, SIMPLIFY_GENERAL);
-	op3 = simplify_expr(op3, SIMPLIFY_GENERAL);
-
-	if ( op1->IsConst() && ! is_vector(op1) )
-		{
-		Val* v = op1->ExprVal();
-		return (v->IsZero() ? op3 : op2)->Ref();
-		}
-
-	if ( op1->Tag() == EXPR_NOT )
-		return new CondExpr(((NotExpr*) op1)->Op()->Ref(),
-					op3->Ref(), op2->Ref());
-
-	return this;
 	}
 
 Val* CondExpr::Eval(Frame* f) const
@@ -2599,6 +2304,39 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 
 	if ( ! same_type(op1->Type(), op2->Type()) )
 		{
+		if ( bt1 == TYPE_TABLE && bt2 == TYPE_TABLE )
+			{
+			if ( op2->Tag() == EXPR_SET_CONSTRUCTOR )
+				{
+				// Some elements in constructor list must not match, see if
+				// we can create a new constructor now that the expected type
+				// of LHS is known and let it do coercions where possible.
+				SetConstructorExpr* sce = dynamic_cast<SetConstructorExpr*>(op2);
+				ListExpr* ctor_list = dynamic_cast<ListExpr*>(sce->Op());
+				attr_list* attr_copy = 0;
+
+				if ( sce->Attrs() )
+					{
+					attr_list* a = sce->Attrs()->Attrs();
+					attrs = new attr_list;
+					loop_over_list(*a, i)
+						attrs->append((*a)[i]);
+					}
+
+				int errors_before = reporter->Errors();
+				op2 = new SetConstructorExpr(ctor_list, attr_copy, op1->Type());
+				int errors_after = reporter->Errors();
+
+				if ( errors_after > errors_before )
+					{
+					ExprError("type clash in assignment");
+					return false;
+					}
+
+				return true;
+				}
+			}
+
 		ExprError("type clash in assignment");
 		return false;
 		}
@@ -2650,13 +2388,6 @@ bool AssignExpr::TypeCheckArithmetics(TypeTag bt1, TypeTag bt2)
 	return true;
 	}
 
-
-Expr* AssignExpr::Simplify(SimplifyType /* simp_type */)
-	{
-	op1 = simplify_expr(op1, SIMPLIFY_LHS);
-	op2 = simplify_expr(op2, SIMPLIFY_GENERAL);
-	return this;
-	}
 
 Val* AssignExpr::Eval(Frame* f) const
 	{
@@ -2973,13 +2704,6 @@ Expr* IndexExpr::MakeLvalue()
 	return new RefExpr(this);
 	}
 
-Expr* IndexExpr::Simplify(SimplifyType simp_type)
-	{
-	op1 = simplify_expr(op1, simp_type);
-	op2 = simplify_expr(op2, SIMPLIFY_GENERAL);
-	return this;
-	}
-
 Val* IndexExpr::Eval(Frame* f) const
 	{
 	Val* v1 = op1->Eval(f);
@@ -3229,12 +2953,6 @@ FieldExpr::~FieldExpr()
 Expr* FieldExpr::MakeLvalue()
 	{
 	return new RefExpr(this);
-	}
-
-Expr* FieldExpr::Simplify(SimplifyType simp_type)
-	{
-	op = simplify_expr(op, simp_type);
-	return this;
 	}
 
 int FieldExpr::CanDel() const
@@ -3962,73 +3680,6 @@ ArithCoerceExpr::ArithCoerceExpr(Expr* arg_op, TypeTag t)
 		ExprError("bad coercion value");
 	}
 
-Expr* ArithCoerceExpr::DoSimplify()
-	{
-	if ( is_vector(op) )
-		return this;
-
-	InternalTypeTag my_int = type->InternalType();
-	InternalTypeTag op_int = op->Type()->InternalType();
-
-	if ( my_int == TYPE_INTERNAL_UNSIGNED )
-		my_int = TYPE_INTERNAL_INT;
-	if ( op_int == TYPE_INTERNAL_UNSIGNED )
-		op_int = TYPE_INTERNAL_INT;
-
-	if ( my_int == op_int )
-		return op->Ref();
-
-	if ( op->IsConst() )
-		{
-		if ( my_int == TYPE_INTERNAL_INT )
-			{
-			if ( op_int != TYPE_INTERNAL_DOUBLE )
-				Internal("bad coercion in CoerceExpr::DoSimplify");
-			double d = op->ExprVal()->InternalDouble();
-			bro_int_t i = bro_int_t(d);
-
-			if ( i < 0 &&
-			     type->InternalType() == TYPE_INTERNAL_UNSIGNED )
-				Warn("coercion produces negative count value");
-
-			if ( d != double(i) )
-				Warn("coercion loses precision");
-
-			return new ConstExpr(new Val(i, type->Tag()));
-			}
-
-		if ( my_int == TYPE_INTERNAL_DOUBLE )
-			{
-			if ( op_int == TYPE_INTERNAL_INT )
-				{
-				bro_int_t i = op->ExprVal()->InternalInt();
-				double d = double(i);
-
-				if ( i != bro_int_t(d) )
-					Warn("coercion loses precision");
-
-				return new ConstExpr(new Val(d, type->Tag()));
-				}
-
-			if ( op_int == TYPE_INTERNAL_UNSIGNED )
-				{
-				bro_uint_t u = op->ExprVal()->InternalUnsigned();
-				double d = double(u);
-
-				if ( u != (bro_uint_t) (d) )
-					Warn("coercion loses precision");
-
-				return new ConstExpr(new Val(d, type->Tag()));
-				}
-
-			}
-
-		Internal("bad coercion in CoerceExpr::DoSimplify");
-		}
-
-	return this;
-	}
-
 Val* ArithCoerceExpr::FoldSingleVal(Val* v, InternalTypeTag t) const
 	{
 	switch ( t ) {
@@ -4152,6 +3803,9 @@ RecordCoerceExpr::RecordCoerceExpr(Expr* op, RecordType* r)
 
 			map[t_i] = i;
 			}
+
+		if ( IsError() )
+			return;
 
 		for ( i = 0; i < map_size; ++i )
 			{
@@ -4517,22 +4171,6 @@ int ScheduleExpr::IsPure() const
 	return 0;
 	}
 
-Expr* ScheduleExpr::Simplify(SimplifyType simp_type)
-	{
-	when = when->Simplify(simp_type);
-	Expr* generic_event = event->Simplify(simp_type);
-
-	if ( ! generic_event )
-		return 0;
-
-	if ( generic_event->Tag() != EXPR_CALL )
-		Internal("bad event type in ScheduleExpr::Simplify");
-
-	event = (EventExpr*) generic_event;
-
-	return this;
-	}
-
 Val* ScheduleExpr::Eval(Frame* f) const
 	{
 	if ( terminating )
@@ -4865,20 +4503,6 @@ int CallExpr::IsPure() const
 	return pure;
 	}
 
-Expr* CallExpr::Simplify(SimplifyType /* simp_type */)
-	{
-	if ( IsError() )
-		return this;
-
-	func = simplify_expr(func, SIMPLIFY_GENERAL);
-	args = simplify_expr_list(args, SIMPLIFY_GENERAL);
-
-	if ( IsPure() )
-		return new ConstExpr(Eval(0));
-	else
-		return this;
-	}
-
 Val* CallExpr::Eval(Frame* f) const
 	{
 	if ( IsError() )
@@ -5031,14 +4655,6 @@ EventExpr::~EventExpr()
 	Unref(args);
 	}
 
-Expr* EventExpr::Simplify(SimplifyType /* simp_type */)
-	{
-	if ( ! IsError() )
-		args = simplify_expr_list(args, SIMPLIFY_GENERAL);
-
-	return this;
-	}
-
 Val* EventExpr::Eval(Frame* f) const
 	{
 	if ( IsError() )
@@ -5143,17 +4759,6 @@ int ListExpr::AllConst() const
 			return 0;
 
 	return 1;
-	}
-
-Expr* ListExpr::Simplify(SimplifyType /* simp_type */)
-	{
-	loop_over_list(exprs, i)
-		exprs.replace(i, simplify_expr(exprs[i], SIMPLIFY_GENERAL));
-
-	// Note that we do *not* simplify a list with one element
-	// to just that element.  The assumption that simplify_expr(ListExpr*)
-	// returns a ListExpr* is widespread.
-	return this;
 	}
 
 Val* ListExpr::Eval(Frame* f) const
@@ -5787,25 +5392,6 @@ int check_and_promote_exprs_to_type(ListExpr*& elements, BroType* type)
 	return 1;
 	}
 
-Expr* simplify_expr(Expr* e, SimplifyType simp_type)
-	{
-	if ( ! e )
-		return 0;
-
-	for ( Expr* s = e->Simplify(simp_type); s != e; s = e->Simplify(simp_type) )
-		{
-		Unref(e);
-		e = s;
-		}
-
-	return e;
-	}
-
-ListExpr* simplify_expr_list(ListExpr* l, SimplifyType simp_type)
-	{
-	return (ListExpr*) simplify_expr(l, simp_type);
-	}
-
 val_list* eval_list(Frame* f, const ListExpr* l)
 	{
 	const expr_list& e = l->Exprs();
@@ -5829,129 +5415,6 @@ val_list* eval_list(Frame* f, const ListExpr* l)
 
 	else
 		return v;
-	}
-
-int same_expr(const Expr* e1, const Expr* e2)
-	{
-	if ( e1 == e2 )
-		return 1;
-
-	if ( e1->Tag() != e2->Tag() || ! same_type(e1->Type(), e2->Type()) )
-		return 0;
-
-	if ( e1->IsError() || e2->IsError() )
-		return 0;
-
-	switch ( e1->Tag() ) {
-	case EXPR_NAME:
-		{
-		const NameExpr* n1 = (NameExpr*) e1;
-		const NameExpr* n2 = (NameExpr*) e2;
-		return n1->Id() == n2->Id();
-		}
-
-	case EXPR_CONST:
-		{
-		const ConstExpr* c1 = (ConstExpr*) e1;
-		const ConstExpr* c2 = (ConstExpr*) e2;
-		return same_val(c1->Value(), c2->Value());
-		}
-
-	case EXPR_INCR:
-	case EXPR_DECR:
-	case EXPR_NOT:
-	case EXPR_NEGATE:
-	case EXPR_POSITIVE:
-	case EXPR_REF:
-	case EXPR_RECORD_CONSTRUCTOR:
-	case EXPR_TABLE_CONSTRUCTOR:
-	case EXPR_SET_CONSTRUCTOR:
-	case EXPR_VECTOR_CONSTRUCTOR:
-	case EXPR_FIELD_ASSIGN:
-	case EXPR_ARITH_COERCE:
-	case EXPR_RECORD_COERCE:
-	case EXPR_TABLE_COERCE:
-	case EXPR_FLATTEN:
-		{
-		const UnaryExpr* u1 = (UnaryExpr*) e1;
-		const UnaryExpr* u2 = (UnaryExpr*) e2;
-		return same_expr(u1->Op(), u2->Op());
-		}
-
-	case EXPR_FIELD:
-		{
-		const FieldExpr* f1 = (FieldExpr*) e1;
-		const FieldExpr* f2 = (FieldExpr*) e2;
-		return same_expr(f1->Op(), f2->Op()) &&
-			f1->Field() == f2->Field();
-		}
-
-	case EXPR_SCHEDULE:
-		{
-		const ScheduleExpr* s1 = (ScheduleExpr*) e1;
-		const ScheduleExpr* s2 = (ScheduleExpr*) e2;
-		return same_expr(s1->When(), s2->When()) &&
-			same_expr(s1->Event(), s2->Event());
-		}
-
-	case EXPR_ADD:
-	case EXPR_ADD_TO:
-	case EXPR_SUB:
-	case EXPR_REMOVE_FROM:
-	case EXPR_TIMES:
-	case EXPR_DIVIDE:
-	case EXPR_MOD:
-	case EXPR_AND:
-	case EXPR_OR:
-	case EXPR_LT:
-	case EXPR_LE:
-	case EXPR_EQ:
-	case EXPR_NE:
-	case EXPR_GE:
-	case EXPR_GT:
-	case EXPR_ASSIGN:
-	case EXPR_MATCH:
-	case EXPR_INDEX:
-	case EXPR_IN:
-		{
-		const BinaryExpr* b1 = (BinaryExpr*) e1;
-		const BinaryExpr* b2 = (BinaryExpr*) e2;
-		return same_expr(b1->Op1(), b2->Op1()) &&
-			same_expr(b1->Op2(), b2->Op2());
-		}
-
-	case EXPR_LIST:
-		{
-		const ListExpr* l1 = (ListExpr*) e1;
-		const ListExpr* l2 = (ListExpr*) e2;
-
-		const expr_list& le1 = l1->Exprs();
-		const expr_list& le2 = l2->Exprs();
-
-		if ( le1.length() != le2.length() )
-			return 0;
-
-		loop_over_list(le1, i)
-			if ( ! same_expr(le1[i], le2[i]) )
-				return 0;
-
-		return 1;
-		}
-
-	case EXPR_CALL:
-		{
-		const CallExpr* c1 = (CallExpr*) e1;
-		const CallExpr* c2 = (CallExpr*) e2;
-
-		return same_expr(c1->Func(), c2->Func()) &&
-			c1->IsPure() && same_expr(c1->Args(), c2->Args());
-		}
-
-	default:
-		reporter->InternalError("bad tag in same_expr()");
-	}
-
-	return 0;
 	}
 
 int expr_greater(const Expr* e1, const Expr* e2)

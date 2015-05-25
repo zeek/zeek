@@ -294,7 +294,10 @@ Here are the statements that the Bro scripting language supports.
 .. bro:keyword:: for
 
     A "for" loop iterates over each element in a string, set, vector, or
-    table and executes a statement for each iteration.
+    table and executes a statement for each iteration.  Currently,
+    modifying a container's membership while iterating over it may
+    result in undefined behavior, so avoid adding or removing elements
+    inside the loop.
 
     For each iteration of the loop, a loop variable will be assigned to an
     element if the expression evaluates to a string or set, or an index if

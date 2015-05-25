@@ -221,13 +221,6 @@ private:
 	// than BUFFER_SIZE.
 	static const uint32 FLAG_PARTIAL = 0x80000000;
 
-	// We report that we're filling up when there are more than this number
-	// of pending chunks.
-	static const uint32 MAX_BUFFERED_CHUNKS_SOFT = 400000;
-
-	// Maximum number of chunks we store in memory before rejecting writes.
-	static const uint32 MAX_BUFFERED_CHUNKS = 500000;
-
 	char* read_buffer;
 	uint32 read_len;
 	uint32 read_pos;
@@ -275,8 +268,6 @@ public:
 	virtual void Stats(char* buffer, int length);
 
 private:
-	// Maximum number of chunks we store in memory before rejecting writes.
-	static const uint32 MAX_BUFFERED_CHUNKS = 500000;
 
 	// Only returns true if all data has been read. If not, call
 	// it again with the same parameters as long as error is not

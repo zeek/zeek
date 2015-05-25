@@ -123,6 +123,19 @@ void Reporter::ExprRuntimeError(const Expr* expr, const char* fmt, ...)
 	throw InterpreterException();
 	}
 
+void Reporter::RuntimeError(const Location* location, const char* fmt, ...)
+	{
+	++errors;
+	PushLocation(location);
+	va_list ap;
+	va_start(ap, fmt);
+	FILE* out = errors_to_stderr ? stderr : 0;
+	DoLog("runtime error", reporter_error, out, 0, 0, true, true, "", fmt, ap);
+	va_end(ap);
+	PopLocation();
+	throw InterpreterException();
+	}
+
 void Reporter::InternalError(const char* fmt, ...)
 	{
 	va_list ap;

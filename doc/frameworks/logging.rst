@@ -344,7 +344,7 @@ example for the ``Foo`` module:
     event bro_init() &priority=5
         {
         # Create the stream. This also adds a default filter automatically.
-        Log::create_stream(Foo::LOG, [$columns=Info, $ev=log_foo]);
+        Log::create_stream(Foo::LOG, [$columns=Info, $ev=log_foo, $path="foo"]);
         }
 
 You can also add the state to the :bro:type:`connection` record to make

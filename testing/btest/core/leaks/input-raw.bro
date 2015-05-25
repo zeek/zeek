@@ -10,7 +10,7 @@
 # @TEST-EXEC: cat input2.log >> input.log
 # @TEST-EXEC: sleep 5
 # @TEST-EXEC: cat input3.log >> input.log
-# @TEST-EXEC: btest-bg-wait 10
+# @TEST-EXEC: btest-bg-wait 60
 
 redef exit_only_after_terminate = T;
 

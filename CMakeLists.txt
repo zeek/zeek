@@ -113,7 +113,7 @@ if (NOT DISABLE_PERFTOOLS)
    find_package(GooglePerftools)
 endif ()
 
-if (GOOGLEPERFTOOLS_FOUND)
+if (GOOGLEPERFTOOLS_FOUND OR TCMALLOC_FOUND)
     set(HAVE_PERFTOOLS true)
     # Non-Linux systems may not be well-supported by gperftools, so
     # require explicit request from user to enable it in that case.
@@ -177,6 +177,17 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 ########################################################################
 ## Recurse on sub-directories
 
+if ( ENABLE_CXX11 )
+    include(RequireCXX11)
+endif ()
+
+if ( ENABLE_BROKER )
+    add_subdirectory(aux/broker)
+    set(brodeps ${brodeps} broker)
+    add_definitions(-DENABLE_BROKER)
+    include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/aux/broker)
+endif ()
+
 add_subdirectory(src)
 add_subdirectory(scripts)
 add_subdirectory(doc)
@@ -224,6 +235,7 @@ message(
     "\nCXXFLAGS:          ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BuildType}}"
     "\nCPP:               ${CMAKE_CXX_COMPILER}"
     "\n"
+    "\nBroker:            ${ENABLE_BROKER}"
     "\nBroccoli:          ${INSTALL_BROCCOLI}"
     "\nBroctl:            ${INSTALL_BROCTL}"
     "\nAux. Tools:        ${INSTALL_AUX_TOOLS}"

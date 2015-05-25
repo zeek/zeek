@@ -141,10 +141,16 @@ ODesc* get_escaped_string(ODesc* d, const char* str, size_t len,
 
 		if ( escape_all || isspace(c) || ! isascii(c) || ! isprint(c) )
 			{
-			char hex[4] = {'\\', 'x', '0', '0' };
-			bytetohex(c, hex + 2);
-			d->AddRaw(hex, 4);
+			if ( c == '\\' )
+				d->AddRaw("\\\\", 2);
+			else
+				{
+				char hex[4] = {'\\', 'x', '0', '0' };
+				bytetohex(c, hex + 2);
+				d->AddRaw(hex, 4);
+				}
 			}
+
 		else
 			d->AddRaw(&c, 1);
 		}
@@ -1352,19 +1358,32 @@ double parse_rotate_base_time(const char* rotate_base_time)
 
 double calc_next_rotate(double current, double interval, double base)
 	{
+	if ( ! interval )
+		{
+		reporter->Error("calc_next_rotate(): interval is zero, falling back to 24hrs");
+		interval = 86400;
+		}
+
 	// Calculate start of day.
 	time_t teatime = time_t(current);
 
 	struct tm t;
-	t = *localtime_r(&teatime, &t);
-	t.tm_hour = t.tm_min = t.tm_sec = 0;
-	double startofday = mktime(&t);
+	if ( ! localtime_r(&teatime, &t) )
+		{
+		reporter->Error("calc_next_rotate(): failure processing current time (%.6f)", current);
+
+		// fall back to the method used if no base time is given
+		base = -1;
+		}
 
 	if ( base < 0 )
 		// No base time given. To get nice timestamps, we round
 		// the time up to the next multiple of the rotation interval.
 		return floor(current / interval) * interval
 			+ interval - current;
+
+	t.tm_hour = t.tm_min = t.tm_sec = 0;
+	double startofday = mktime(&t);
 
 	// current < startofday + base + i * interval <= current + interval
 	return startofday + base +

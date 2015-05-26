@@ -19,7 +19,7 @@ export {
 	## dpid: OpenFlow switch datapath id.
 	##
 	## Returns: OpenFlow::Controller record
-	global broker_new: function(host: addr, host_port: port, topic: string, dpid: count): OpenFlow::Controller;
+	global broker_new: function(name: string, host: addr, host_port: port, topic: string, dpid: count): OpenFlow::Controller;
 
 	redef record ControllerState += {
 		## Controller ip.
@@ -55,14 +55,21 @@ function broker_flow_clear_fun(state: OpenFlow::ControllerState): bool
 	return T;
 	}
 
-# broker controller constructor
-function broker_new(host: addr, host_port: port, topic: string, dpid: count): OpenFlow::Controller
+function broker_init(state: OpenFlow::ControllerState)
 	{
 	BrokerComm::enable();
-	BrokerComm::connect(cat(host), host_port, 1sec);
-	BrokerComm::subscribe_to_events(topic); # openflow success and failure events are directly sent back via the other plugin via broker.
+	BrokerComm::connect(cat(state$broker_host), state$broker_port, 1sec);
+	BrokerComm::subscribe_to_events(state$broker_topic); # openflow success and failure events are directly sent back via the other plugin via broker.
+	}
 
-	return [$state=[$broker_host=host, $broker_port=host_port, $broker_dpid=dpid, $broker_topic=topic, $_plugin=OpenFlow::BROKER],
-		$flow_mod=broker_flow_mod_fun, $flow_clear=broker_flow_clear_fun, $describe=broker_describe, $supports_flow_removed=T];
+# broker controller constructor
+function broker_new(name: string, host: addr, host_port: port, topic: string, dpid: count): OpenFlow::Controller
+	{
+	local c = OpenFlow::Controller($state=OpenFlow::ControllerState($broker_host=host, $broker_port=host_port, $broker_dpid=dpid, $broker_topic=topic),
+		$flow_mod=broker_flow_mod_fun, $flow_clear=broker_flow_clear_fun, $describe=broker_describe, $supports_flow_removed=T, $init=broker_init);
+
+	register_controller(OpenFlow::BROKER, name, c);
+
+	return c;
 	}
 

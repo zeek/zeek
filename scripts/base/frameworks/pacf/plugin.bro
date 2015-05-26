@@ -39,7 +39,7 @@ export {
 		## framework will manage rule expiration. 
 		can_expire: bool;
 
-		# One-time initialization functionl called  when plugin gets registered, and
+		# One-time initialization function called when plugin gets registered, and
 		# before any other methods are called.
 		init: function(state: PluginState) &optional;
 

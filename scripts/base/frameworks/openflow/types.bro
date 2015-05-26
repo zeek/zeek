@@ -13,8 +13,10 @@ export {
 	## Can be redefined by plugins to
 	## add state.
 	type ControllerState: record {
-		## Internally set to the plugin used.
-		_plugin: Plugin;
+		## Internally set to the type of plugin used.
+		_plugin: Plugin &optional;
+		## Internally set to the unique name of the controller.
+		_name: string &optional;
 	} &redef;
 
 	## Openflow match definition.
@@ -143,6 +145,8 @@ export {
 		supports_flow_removed: bool;
 		## function that describes the controller. Has to be implemented.
 		describe: function(state: ControllerState): string;
+		## one-time initialization function.
+		init: function (state: ControllerState) &optional;
 		## flow_mod function
 		flow_mod: function(state: ControllerState, match: ofp_match, flow_mod: ofp_flow_mod): bool &optional;
 		## flow_clear function

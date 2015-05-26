@@ -179,6 +179,10 @@ function ryu_describe(state: ControllerState): string
 # Ryu controller constructor
 function ryu_new(host: addr, host_port: count, dpid: count): OpenFlow::Controller
 	{
-	return [$state=[$ryu_host=host, $ryu_port=host_port, $ryu_dpid=dpid, $_plugin=OpenFlow::RYU],
-		$flow_mod=ryu_flow_mod, $flow_clear=ryu_flow_clear, $describe=ryu_describe, $supports_flow_removed=F];
+	local c = OpenFlow::Controller($state=OpenFlow::ControllerState($ryu_host=host, $ryu_port=host_port, $ryu_dpid=dpid),
+		$flow_mod=ryu_flow_mod, $flow_clear=ryu_flow_clear, $describe=ryu_describe, $supports_flow_removed=F);
+
+	register_controller(OpenFlow::RYU, cat(host,host_port,dpid), c);
+
+	return c;
 	}

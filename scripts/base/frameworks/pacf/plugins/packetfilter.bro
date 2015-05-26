@@ -5,6 +5,8 @@
 
 module Pacf;
 
+@load ../plugin
+
 export {
 	## Instantiates the packetfilter plugin.
 	global create_packetfilter: function() : PluginState;

@@ -9,6 +9,9 @@ export {
 		## Table for a plugin to store custom, instance-specfific state. 
 		config: table[string] of string &default=table();
 
+		## Unique plugin identifier -- used for backlookup of plugins from Rules. Set internally.
+		_id: count &optional;
+
 		## Set internally.
 		_priority: int &default=+0;
 	};

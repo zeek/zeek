@@ -250,11 +250,13 @@ export {
 
 redef record Rule += {
 	##< Internally set to the plugin handling the rule.
-	_plugin: PluginState &optional;
+	_plugin_id: count &optional;
 };
 
 global plugins: vector of PluginState;
+global plugin_ids: table[count] of PluginState;
 global rule_counter: count = 1;
+global plugin_counter: count = 1;
 global rules: table[count] of Rule;
 
 event bro_init() &priority=5
@@ -352,6 +354,10 @@ function activate(p: PluginState, priority: int)
 	plugins[|plugins|] = p;
 	sort(plugins, function(p1: PluginState, p2: PluginState) : int { return p2$_priority - p1$_priority; });
 
+	plugin_ids[plugin_counter] = p;
+	p$_id = plugin_counter;
+	++plugin_counter;
+
 	log_msg(fmt("activated plugin with priority %d", priority), p);
 	}
 
@@ -395,9 +401,11 @@ function add_rule(r: Rule) : count
 		{
 		local p = plugins[i];
 
+		# set before, in case the plugins sends and regenerates the plugin record later.
+		r$_plugin_id = p$_id;
+
 		if ( p$plugin$add_rule(p, r) )
 			{
-			r$_plugin = p;
 			log_rule(r, "ADD", REQUESTED, p);
 			return r$id;
 			}
@@ -409,10 +417,16 @@ function add_rule(r: Rule) : count
 
 function remove_rule(id: count) : bool
 	{
-	local r = rules[id];
-	local p = r$_plugin;
+	if ( id !in rules )
+		{
+		Reporter::error(fmt("Rule %d does not exist in Pacf::remove_rule", id));
+		return F;
+		}
 
-	if ( ! p$plugin$remove_rule(r$_plugin, r) )
+	local r = rules[id];
+	local p = plugin_ids[r$_plugin_id];
+
+	if ( ! p$plugin$remove_rule(p, r) )
 		{
 		log_rule_error(r, "remove failed", p);
 		return F;
@@ -425,7 +439,7 @@ function remove_rule(id: count) : bool
 event rule_expire(r: Rule, p: PluginState)
 	{
 	if ( r$id !in rules )
-		# Remove already.
+		# Removed already.
 		return;
 
 	event rule_timeout(r, FlowInfo(), p);

@@ -87,7 +87,7 @@ export {
 
 	## A rule for the framework to put in place. Of all rules currently in
 	## place, the first match will be taken, sorted by priority. All
-	## further riles will be ignored.
+	## further rules will be ignored.
 	type Rule: record {
 		ty: RuleType;			##< Type of rule.
 		target: TargetType;		##< Where to apply rule.
@@ -146,8 +146,6 @@ export {
 
 		id: count &default=0;		##< Internally determined unique ID for this notification. Will be set when added.
 	};
+
 }
-
-
-
 

@@ -115,37 +115,5 @@ export {
 		byte_count: count &optional; ##< total bytes exchanged over connections matched by the rule
 	};
 
-	## Type of notifications that the framework supports. Each type lists the
-	## :bro:id:`Notification` argument(s) it uses, if any. 
-	##
-	## Plugins may extend this type to define their own.
-	type NotificationType: enum {
-		## Notify if threshold of packets has been reached by entity.
-		##
-		## i: Number of packets.
-		NUM_PACKETS,
-
-		## Notify if threshold of bytes has been reached by entity.
-		##
-		## i: Number of bytes.
-		NUM_BYTES,
-	};
-
-	## A notification for the framework to raise when a condition has been reached.
-	## Different than with rules, all matching conditions will be reported, not only
-	## the first match.
-	type Notification: record {
-		ty: NotificationType;			##< Type of notification.
-		entity: Entity;			##< Entity to apply notification to.
-		expire: interval &optional;	##< Timeout after which to expire the notification.
-		src: string &optional;		##< Optional string describing where/what installed the notification.
-
-		i: int;				##< Argument for notification types requiring an integer argument.
-		d: double;			##< Argument for notification types requiring a double argument.
-		s: string;			##< Argument for notification types requiring a string argument.
-
-		id: count &default=0;		##< Internally determined unique ID for this notification. Will be set when added.
-	};
-
 }
 

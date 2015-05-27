@@ -60,28 +60,6 @@ function debug_remove_rule(p: PluginState, r: Rule) : bool
 	return T;
 	}
 
-function debug_add_notification(p: PluginState, r: Notification) : bool
-	{
-	local s = fmt("add_notification: %s", r);
-	debug_log(p, s);
-
-	if ( do_something(p) ) 
-		{
-		event Pacf::notification_added(r, p);
-		return T;
-		}
-
-	return F;
-	}
-
-function debug_remove_notification(p: PluginState, r: Notification) : bool
-	{
-	local s = fmt("remove_notification: %s", r);
-	debug_log(p, s);
-
-	return do_something(p);
-	}
-
 function debug_transaction_begin(p: PluginState)
 	{
 	debug_log(p, "transaction_begin");
@@ -99,8 +77,6 @@ global debug_plugin = Plugin(
 	$done = debug_done,
 	$add_rule = debug_add_rule,
 	$remove_rule = debug_remove_rule,
-	$add_notification = debug_add_notification,
-	$remove_notification = debug_remove_notification,
 	$transaction_begin = debug_transaction_begin,
 	$transaction_end = debug_transaction_end
 	);

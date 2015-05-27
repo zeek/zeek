@@ -102,10 +102,6 @@ global packetfilter_plugin = Plugin(
 #	$done = packetfilter_done,
 	$add_rule = packetfilter_add_rule,
 	$remove_rule = packetfilter_remove_rule
-#	$add_notification = packetfilter_add_notification,
-#	$remove_notification = packetfilter_remove_notification,
-#	$transaction_begin = packetfilter_transaction_begin,
-#	$transaction_end = packetfilter_transaction_end
 	);
 
 function create_packetfilter() : PluginState

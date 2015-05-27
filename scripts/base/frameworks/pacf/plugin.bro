@@ -28,14 +28,13 @@ export {
 	# events ``rule_{added,remove,error}`` to signal if it indeed worked out;
 	# this is separate from accepting the operation because often a plugin
 	# will only know later (i.e., asynchrously) if that was an error for
-	# something it thought it could handle. The same applies to notifications,
-	# with the corresponding ``notification_*`` events.
+	# something it thought it could handle.
 	type Plugin: record {
 		# Returns a descriptive name of the plugin instance, suitable for use in logging
 		# messages. Note that this function is not optional.
 		name: function(state: PluginState) : string;
 
-		## If true, plugin can expire rules/notifications itself. If false,
+		## If true, plugin can expire rules itself. If false,
 		## framework will manage rule expiration. 
 		can_expire: bool;
 
@@ -59,19 +58,6 @@ export {
 		# a plugin that accepts an add_rule() should also accept the
 		# remove_rule().
 		remove_rule: function(state: PluginState, r: Rule) : bool &optional;
-
-		# Implements the add_notification() operation. If the plugin accepts the notification,
-		# it returns true, false otherwise. The notification will already have its
-		# ``id`` field set, which the plugin may use for identification
-		# purposes.
-		add_notification: function(state: PluginState, r: Notification) : bool &optional;
-
-		# Implements the remove_notification() operation. This will only be called for
-		# notifications that the plugins has previously accepted with add_notification().
-		# The ``id`` field will match that of the add_notification() call.  Generally,
-		# a plugin that accepts an add_notification() should also accept the
-		# remove_notification().
-		remove_notification: function(state: PluginState, r: Notification) : bool &optional;
 
 		# A transaction groups a number of operations. The plugin can add them internally
 		# and postpone putting them into effect until committed. This allows to build a

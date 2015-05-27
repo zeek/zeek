@@ -390,8 +390,6 @@ global openflow_plugin = Plugin(
 #	$done = openflow_done,
 	$add_rule = openflow_add_rule,
 	$remove_rule = openflow_remove_rule
-#	$add_notification = openflow_add_notification,
-#	$remove_notification = openflow_remove_notification,
 #	$transaction_begin = openflow_transaction_begin,
 #	$transaction_end = openflow_transaction_end
 	);

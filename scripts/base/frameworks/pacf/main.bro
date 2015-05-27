@@ -57,10 +57,10 @@ export {
 	## Returns: The id of the inserted rule on succes and zero on failure.
 	global shunt_flow: function(f: flow_id, t: interval, location: string &default="") : count;
 
-	## Removes all rules and notifications for an entity.
+	## Removes all rules for an entity.
 	##
 	## e: The entity. Note that this will be directly to entities of existing
-	## notifications and notifications, which must match exactly field by field.
+	## rules, which must match exactly field by field.
 	global reset: function(e: Entity);
 
 	## Flushes all state.
@@ -135,67 +135,6 @@ export {
 	## msg: An optional informational message by the plugin.
 	global rule_error: event(r: Rule, p: PluginState, msg: string &default="");
 
-	## Installs a notification.
-	##
-	## n: The notification to install.
-	##
-	## Returns: If succesful, returns an ID string unique to the notification that can later
-	## be used to refer to it. If unsuccessful, returns an empty string. The ID is also
-	## assigned to ``r$id``. Note that "successful" means "a plugin knew how to handle
-	## the notification", it doesn't necessarily mean that it was indeed successfully put in
-	## place, because that might happen asynchronously and thus fail only later.
-	global add_notification: function(n: Notification) : string;
-
-	## Removes a notification.
-	##
-	## id: The notification to remove, specified as the ID returned by :bro:id:`add_notification` .
-	##
-	## Returns: True if succesful, the relevant plugin indicated that ity knew how
-	## to handle the removal. Note that again "success" means the plugin accepted the
-	## removal. They might still fail to put it into effect, as that  might happen
-	## asynchronously and thus go wrong at that point.
-	global remove_notification: function(id: count) : bool;
-
-	###### Asynchronous feedback on notifications.
-
-	## Confirms that a notification was put in place.
-	##
-	## n: The notification now in place.
-	##
-	## plugin: The name of the plugin that put it into place.
-	##
-	## msg: An optional informational message by the plugin.
-	global notification_added: event(n: Notification, p: PluginState, msg: string &default="");
-
-	## Reports that a notification was removed due to a remove: function() call.
-	##
-	## n: The notification now removed.
-	##
-	## plugin: The name of the plugin that had the notification in place and now
-	## removed it.
-	##
-	## msg: An optional informational message by the plugin.
-	global notification_removed: event(n: Notification, p: PluginState, msg: string &default="");
-
-	## Reports that a notification was removed internally due to a timeout.
-	##
-	## n: The notification now removed.
-	##
-	## plugin: The name of the plugin that had the notification in place and now
-	## removed it.
-	##
-	## msg: An optional informational message by the plugin.
-	global notification_timeout: event(n: Notification, p: PluginState);
-
-	## Reports an error when operating on a notification.
-	##
-	## n: The notification that encountered an error.
-	##
-	## plugin: The name of the plugin that reported the error.
-	##
-	## msg: An optional informational message by the plugin.
-	global notification_error: event(n: Notification, p: PluginState, msg: string &default="");
-
 	## Type of an entry in the PACF log.
 	type InfoCategory: enum {
 		## A log entry reflecting a framework message.
@@ -203,9 +142,7 @@ export {
 		## A log entry reflecting a framework message.
 		ERROR,
 		## A log entry about about a rule.
-		RULE,
-		## A log entry about about a notification.
-		NOTIFICATION
+		RULE
 	};
 
 	## State of an  entry in the PACF log.
@@ -471,30 +408,4 @@ event rule_timeout(r: Rule, i: FlowInfo, p: PluginState)
 event rule_error(r: Rule, p: PluginState, msg: string &default="")
 	{
 	log_rule_error(r, msg, p);
-	}
-
-function add_notification(n: Notification) : string
-	{
-	print "Pacf::add_notification not implemented yet";
-	}
-
-function remove_notification(id: count) : bool
-	{
-	print "Pacf::remove_notification not implemented yet";
-	}
-
-event notification_added(n: Notification, p: PluginState, msg: string &default="")
-	{
-	}
-
-event notification_removed(n: Notification, p: PluginState, msg: string &default="")
-	{
-	}
-
-event notification_timeout(n: Notification, p: PluginState)
-	{
-	}
-
-event notification_error(n: Notification, p: PluginState, msg: string &default="")
-	{
 	}

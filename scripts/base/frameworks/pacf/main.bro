@@ -340,7 +340,7 @@ function add_rule_impl(r: Rule) : string
 	{
 	r$cid = ++rule_counter; # numeric id that can be used by plugins for their rules.
 
-	if ( ! r?$id )
+	if ( ! r?$id || r$id == "" )
 		r$id = cat(r$cid);
 
 	for ( i in plugins )

@@ -55,7 +55,7 @@ event Pacf::rule_removed(r: Pacf::Rule, p: Pacf::PluginState, msg: string)
 
 event Pacf::rule_timeout(r: Pacf::Rule, i: Pacf::FlowInfo, p: Pacf::PluginState)
 	{
-	print "ruke timeout", r, i;
+	print "rule timeout", r, i;
 	}
 
 @TEST-END-FILE
@@ -94,7 +94,7 @@ event Pacf::broker_remove_rule(id: count, r: Pacf::Rule)
 	BrokerComm::event("bro/event/pacftest", BrokerComm::event_args(Pacf::broker_rule_timeout, id, r, Pacf::FlowInfo()));
 	BrokerComm::event("bro/event/pacftest", BrokerComm::event_args(Pacf::broker_rule_removed, id, r, ""));
 
-	if ( r$id == 3 )
+	if ( r$cid == 3 )
 		terminate();
 	}
 

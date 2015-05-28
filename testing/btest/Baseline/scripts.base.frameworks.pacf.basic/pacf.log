@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	pacf
-#open	2015-05-12-20-36-36
+#open	2015-05-28-00-27-54
 #fields	ts	category	cmd	state	action	target	entity_type	entity	msg	location	plugin
 #types	time	enum	string	enum	string	enum	string	string	string	string	string
 0.000000	Pacf::MESSAGE	-	-	-	-	-	-	activated plugin with priority 0	-	Debug-All
@@ -12,7 +12,7 @@
 1254722767.875996	Pacf::RULE	ADD	Pacf::SUCCEEDED	Pacf::DROP	Pacf::MONITOR	Pacf::FLOW	10.10.1.4/32/1470->74.53.140.153/32/25	-	(empty)	Debug-All
 1254722767.875996	Pacf::RULE	ADD	Pacf::SUCCEEDED	Pacf::DROP	Pacf::FORWARD	Pacf::ADDRESS	10.10.1.4/32	-	(empty)	Debug-All
 1254722776.690444	Pacf::RULE	REMOVE	Pacf::REQUESTED	Pacf::DROP	Pacf::FORWARD	Pacf::ADDRESS	10.10.1.4/32	-	(empty)	Debug-All
-1254722776.690444	Pacf::RULE	REMOVE	Pacf::REQUESTED	Pacf::DROP	Pacf::MONITOR	Pacf::FLOW	10.10.1.4/32/1470->74.53.140.153/32/25	-	(empty)	Debug-All
+1254722776.690444	Pacf::RULE	REMOVE	Pacf::REQUESTED	Pacf::DROP	Pacf::FORWARD	Pacf::ADDRESS	10.10.1.4/32	-	(empty)	Debug-All
 1254722776.690444	Pacf::RULE	REMOVE	Pacf::SUCCEEDED	Pacf::DROP	Pacf::FORWARD	Pacf::ADDRESS	10.10.1.4/32	-	(empty)	Debug-All
-1254722776.690444	Pacf::RULE	REMOVE	Pacf::SUCCEEDED	Pacf::DROP	Pacf::MONITOR	Pacf::FLOW	10.10.1.4/32/1470->74.53.140.153/32/25	-	(empty)	Debug-All
-#close	2015-05-12-20-36-36
+1254722776.690444	Pacf::RULE	REMOVE	Pacf::SUCCEEDED	Pacf::DROP	Pacf::FORWARD	Pacf::ADDRESS	10.10.1.4/32	-	(empty)	Debug-All
+#close	2015-05-28-00-27-54

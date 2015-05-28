@@ -102,7 +102,8 @@ export {
 		s: string &optional;		##< Argument for rule types requiring a string argument.
 		mod: FlowMod &optional; ##< Argument for :bro:id:`MODIFY` rules.
 
-		id: count &default=0;		##< Internally determined unique ID for this rule. Will be set when added.
+		id: string &default="";		##< Internally determined unique ID for this rule. Will be set when added.
+		cid: count &default=0;		##< Internally determined unique numeric ID for this rule. Set when added.
 	};
 
 	## Information of a flow that can be provided by switches when the flow times out.

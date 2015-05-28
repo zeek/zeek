@@ -44,7 +44,7 @@ export {
 	## location: An optional string describing where the drop was triggered.
 	##
 	## Returns: The id of the inserted rule on succes and zero on failure.
-	global drop_address: function(a: addr, t: interval, location: string &default="") : count;
+	global drop_address: function(a: addr, t: interval, location: string &default="") : string;
 
 	## Stops forwarding a uni-directional flow's packets to Bro.
 	##
@@ -55,7 +55,7 @@ export {
 	## location: An optional string describing where the shunt was triggered.
 	##
 	## Returns: The id of the inserted rule on succes and zero on failure.
-	global shunt_flow: function(f: flow_id, t: interval, location: string &default="") : count;
+	global shunt_flow: function(f: flow_id, t: interval, location: string &default="") : string;
 
 	## Removes all rules for an entity.
 	##
@@ -81,7 +81,7 @@ export {
 	## assigned to ``r$id``. Note that "successful" means "a plugin knew how to handle
 	## the rule", it doesn't necessarily mean that it was indeed successfully put in
 	## place, because that might happen asynchronously and thus fail only later.
-	global add_rule: function(r: Rule) : count;
+	global add_rule: function(r: Rule) : string;
 
 	## Removes a rule.
 	##
@@ -91,7 +91,7 @@ export {
 	## to handle the removal. Note that again "success" means the plugin accepted the
 	## removal. They might still fail to put it into effect, as that  might happen
 	## asynchronously and thus go wrong at that point.
-	global remove_rule: function(id: count) : bool;
+	global remove_rule: function(id: string) : bool;
 
 	###### Asynchronous feedback on rules.
 
@@ -194,7 +194,7 @@ global plugins: vector of PluginState;
 global plugin_ids: table[count] of PluginState;
 global rule_counter: count = 1;
 global plugin_counter: count = 1;
-global rules: table[count] of Rule;
+global rules: table[string] of Rule;
 
 event bro_init() &priority=5
 	{
@@ -285,20 +285,7 @@ function log_rule_no_plugin(r: Rule, state: InfoState, msg: string)
 	Log::write(LOG, info);
 	}
 
-function activate(p: PluginState, priority: int)
-	{
-	p$_priority = priority;
-	plugins[|plugins|] = p;
-	sort(plugins, function(p1: PluginState, p2: PluginState) : int { return p2$_priority - p1$_priority; });
-
-	plugin_ids[plugin_counter] = p;
-	p$_id = plugin_counter;
-	++plugin_counter;
-
-	log_msg(fmt("activated plugin with priority %d", priority), p);
-	}
-
-function drop_address(a: addr, t: interval, location: string &default="") : count
+function drop_address(a: addr, t: interval, location: string &default="") : string
 	{
 	local e: Entity = [$ty=ADDRESS, $ip=addr_to_subnet(a)];
 	local r: Rule = [$ty=DROP, $target=FORWARD, $entity=e, $expire=t, $location=location];
@@ -306,7 +293,7 @@ function drop_address(a: addr, t: interval, location: string &default="") : coun
 	return add_rule(r);
 	}
 
-function shunt_flow(f: flow_id, t: interval, location: string &default="") : count
+function shunt_flow(f: flow_id, t: interval, location: string &default="") : string
 	{
 	local flow = Pacf::Flow(
 		$src_h=addr_to_subnet(f$src_h),
@@ -330,9 +317,31 @@ function clear()
 	print "Pacf::clear not implemented yet";
 	}
 
-function add_rule(r: Rule) : count
+# Low-level functions that only runs on the manager (or standalone) Bro node.
+
+function activate_impl(p: PluginState, priority: int)
 	{
-	r$id = ++rule_counter;
+	p$_priority = priority;
+	plugins[|plugins|] = p;
+	sort(plugins, function(p1: PluginState, p2: PluginState) : int { return p2$_priority - p1$_priority; });
+
+	plugin_ids[plugin_counter] = p;
+	p$_id = plugin_counter;
+	++plugin_counter;
+
+	# perform one-timi initialization
+	if ( p$plugin?$init )
+		p$plugin$init(p);
+
+	log_msg(fmt("activated plugin with priority %d", priority), p);
+	}
+
+function add_rule_impl(r: Rule) : string
+	{
+	r$cid = ++rule_counter; # numeric id that can be used by plugins for their rules.
+
+	if ( ! r?$id )
+		r$id = cat(r$cid);
 
 	for ( i in plugins )
 		{
@@ -349,14 +358,14 @@ function add_rule(r: Rule) : count
 		}
 
 	log_rule_no_plugin(r, FAILED, "not supported");
-	return 0;
+	return "";
 	}
 
-function remove_rule(id: count) : bool
+function remove_rule_impl(id: string) : bool
 	{
 	if ( id !in rules )
 		{
-		Reporter::error(fmt("Rule %d does not exist in Pacf::remove_rule", id));
+		Reporter::error(fmt("Rule %s does not exist in Pacf::remove_rule", id));
 		return F;
 		}
 

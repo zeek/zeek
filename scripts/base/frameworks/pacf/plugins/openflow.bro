@@ -210,7 +210,7 @@ function openflow_rule_to_flow_mod(p: PluginState, r: Rule) : OpenFlow::ofp_flow
 	local c = p$of_config;
 
 	local flow_mod = OpenFlow::ofp_flow_mod(
-		$cookie=OpenFlow::generate_cookie(r$id*2), # leave one space for the cases in which we need two rules.
+		$cookie=OpenFlow::generate_cookie(r$cid*2), # leave one space for the cases in which we need two rules.
 		$command=OpenFlow::OFPFC_ADD,
 		$idle_timeout=c$idle_timeout,
 		$priority=int_to_count(r$priority + c$priority_offset),
@@ -278,7 +278,7 @@ function openflow_add_rule(p: PluginState, r: Rule) : bool
 		{
 		if ( OpenFlow::flow_mod(p$of_controller, matches[i], flow_mod) )
 			{
-			of_messages[r$id, flow_mod$command] = OfTable($p=p, $r=r);
+			of_messages[r$cid, flow_mod$command] = OfTable($p=p, $r=r);
 			flow_mod = copy(flow_mod);
 			++flow_mod$cookie;
 			}
@@ -295,12 +295,12 @@ function openflow_remove_rule(p: PluginState, r: Rule) : bool
 		return F;
 
 	local flow_mod: OpenFlow::ofp_flow_mod = [
-		$cookie=OpenFlow::generate_cookie(r$id),
+		$cookie=OpenFlow::generate_cookie(r$cid),
 		$command=OpenFlow::OFPFC_DELETE
 	];
 
 	if ( OpenFlow::flow_mod(p$of_controller, [], flow_mod) )
-			of_messages[r$id, flow_mod$command] = OfTable($p=p, $r=r);
+			of_messages[r$cid, flow_mod$command] = OfTable($p=p, $r=r);
 	else
 			{
 			event rule_error(r, p, "Error while executing OpenFlow::flow_mod");

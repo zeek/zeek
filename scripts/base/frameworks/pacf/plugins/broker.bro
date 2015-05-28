@@ -104,18 +104,27 @@ function broker_remove_rule_fun(p: PluginState, r: Rule) : bool
 	return T;
 	}
 
+function broker_init(p: PluginState)
+	{
+	BrokerComm::enable();
+	BrokerComm::connect(cat(p$broker_host), p$broker_port, 1sec);
+	BrokerComm::subscribe_to_events(p$broker_topic);
+	}
+
 global broker_plugin = Plugin(
 	$name=broker_name,
 	$can_expire = F,
 	$add_rule = broker_add_rule_fun,
-	$remove_rule = broker_remove_rule_fun
+	$remove_rule = broker_remove_rule_fun,
+	$init = broker_init
 	);
 
 global broker_plugin_can_expire = Plugin(
 	$name=broker_name,
 	$can_expire = T,
 	$add_rule = broker_add_rule_fun,
-	$remove_rule = broker_remove_rule_fun
+	$remove_rule = broker_remove_rule_fun,
+	$init = broker_init
 	);
 
 function create_broker(host: addr, host_port: port, topic: string, can_expire: bool &default=F) : PluginState
@@ -133,10 +142,6 @@ function create_broker(host: addr, host_port: port, topic: string, can_expire: b
 
 	pacf_broker_id[pacf_broker_current_id] = p;
 	++pacf_broker_current_id;
-
-	BrokerComm::enable();
-	BrokerComm::connect(cat(host), host_port, 1sec);
-	BrokerComm::subscribe_to_events(topic);
 
 	return p;
 	}

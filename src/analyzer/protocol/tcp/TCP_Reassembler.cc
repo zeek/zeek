@@ -42,6 +42,9 @@ TCP_Reassembler::TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer,
 	seq_to_skip = 0;
 	in_delivery = false;
 
+	if ( tcp_max_old_segments )
+		SetMaxOldBlocks(tcp_max_old_segments);
+
 	if ( tcp_contents )
 		{
 		// Val dst_port_val(ntohs(Conn()->RespPort()), TYPE_PORT);

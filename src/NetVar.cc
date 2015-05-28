@@ -49,6 +49,7 @@ double tcp_partial_close_delay;
 int tcp_max_initial_window;
 int tcp_max_above_hole_without_any_acks;
 int tcp_excessive_data_without_further_acks;
+int tcp_max_old_segments;
 
 RecordType* socks_address;
 
@@ -354,6 +355,7 @@ void init_net_var()
 		opt_internal_int("tcp_max_above_hole_without_any_acks");
 	tcp_excessive_data_without_further_acks =
 		opt_internal_int("tcp_excessive_data_without_further_acks");
+	tcp_max_old_segments = opt_internal_int("tcp_max_old_segments");
 
 	socks_address = internal_type("SOCKS::Address")->AsRecordType();
 

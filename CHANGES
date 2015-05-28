@@ -1,4 +1,8 @@
 
+2.4-beta-6 | 2015-05-28 13:20:44 -0700
+
+  * Updating submodule(s).
+
 2.4-beta-2 | 2015-05-26 08:58:37 -0700
 
   * Fix segfault when DNS is not available. Addresses BIT-1387. (Frank

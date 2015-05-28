@@ -48,11 +48,11 @@ RecordVal* L2_Hdr::BuildPktHdrVal() const
 	RecordVal* pkt_hdr = new RecordVal(raw_pkt_hdr_type);
 	RecordVal* l2_hdr = new RecordVal(l2_hdr_type);
 	int is_ethernet = ( pkt->link_type == DLT_EN10MB ) ? 1 : 0;
-	int l3 = BifEnum::layer3_proto::l3_unknown;
+	int l3 = BifEnum::l3_unknown;
 	if ( pkt->l3_proto == AF_INET )
-		l3 = BifEnum::layer3_proto::l3_ipv4;
+		l3 = BifEnum::l3_ipv4;
 	else if ( pkt->l3_proto == AF_INET6 )
-		l3 = BifEnum::layer3_proto::l3_ipv6;
+		l3 = BifEnum::l3_ipv6;
 
 	// l2_hdr layout:
 	//      encap: link_encap;      ##< L2 link encapsulation
@@ -67,7 +67,7 @@ RecordVal* L2_Hdr::BuildPktHdrVal() const
 		{
 		// Ethernet header layout is:
 		//    dst[6bytes] src[6bytes] ethertype[2bytes]...
-		l2_hdr->Assign(0, new EnumVal(BifEnum::link_encap::link_ethernet, BifType::Enum::link_encap));
+		l2_hdr->Assign(0, new EnumVal(BifEnum::link_ethernet, BifType::Enum::link_encap));
 		l2_hdr->Assign(3, fmt_eui48(pkt->data + 6));	// src
 		l2_hdr->Assign(4, fmt_eui48(pkt->data));  	// dst
 		if ( pkt->vlan )
@@ -76,12 +76,12 @@ RecordVal* L2_Hdr::BuildPktHdrVal() const
 		if ( pkt->eth_type == ETHERTYPE_ARP || pkt->eth_type == ETHERTYPE_REVARP )
 			{
 			// We also identify ARP for L3 over ethernet
-			l3 = BifEnum::layer3_proto::l3_arp;
+			l3 = BifEnum::l3_arp;
 			}
 		}
 	else
 		{
-		l2_hdr->Assign(0, new EnumVal(BifEnum::link_encap::link_unknown, BifType::Enum::link_encap));
+		l2_hdr->Assign(0, new EnumVal(BifEnum::link_unknown, BifType::Enum::link_encap));
 		}
 	l2_hdr->Assign(1, new Val(pkt->len, TYPE_COUNT));
 	l2_hdr->Assign(2, new Val(pkt->cap_len, TYPE_COUNT));

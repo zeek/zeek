@@ -3275,7 +3275,7 @@ function get_current_packet%(%) : pcap_packet
 		pkt->Assign(2, new Val(0, TYPE_COUNT));
 		pkt->Assign(3, new Val(0, TYPE_COUNT));
 		pkt->Assign(4, new StringVal(""));
-		pkt->Assign(5, new EnumVal(BifEnum::link_encap::link_unknown, BifType::Enum::link_encap));
+		pkt->Assign(5, new EnumVal(BifEnum::link_unknown, BifType::Enum::link_encap));
 		return pkt;
 		}
 

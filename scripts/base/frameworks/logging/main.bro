@@ -152,7 +152,7 @@ export {
 		## easy to flood the disk by returning a new string for each
 		## connection.  Upon adding a filter to a stream, if neither
 		## ``path`` nor ``path_func`` is explicitly set by them, then
-		## :bro:see:`default_path_func` is used.
+		## :bro:see:`Log::default_path_func` is used.
 		##
 		## id: The ID associated with the log stream.
 		##

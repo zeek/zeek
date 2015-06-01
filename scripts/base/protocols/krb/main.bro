@@ -1,4 +1,5 @@
-##! Implements base functionality for KRB analysis. Generates the krb.log file.
+##! Implements base functionality for KRB analysis. Generates the kerberos.log
+##! file.
 
 module KRB;
 

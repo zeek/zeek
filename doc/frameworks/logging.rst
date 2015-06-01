@@ -75,23 +75,20 @@ a new log stream.
         redef enum Log::ID += { LOG };
 
         # Define the record type that will contain the data to log.
-        # By convention, the type is called "Info".
-        # All fields to log must have the &log attribute.
-        # If a field might not contain any data, use the 
-        # &optional attribute.
         type Info: record {
             ts: time        &log;
             id: conn_id     &log;
             service: string &log &optional;
+            missed_bytes: count &log &default=0;
         };
     }
 
     # Optionally, we can add a new field to the connection record so that
     # the data we are logging (our "Info" record) will be easily
     # accessible in a variety of event handlers.
-    # By convention, the name of this new field is the lowercase name of
-    # the module.
     redef record connection += {
+        # By convention, the name of this new field is the lowercase name
+        # of the module.
         foo: Info &optional;
     };
 
@@ -104,12 +101,19 @@ a new log stream.
         Log::create_stream(Foo::LOG, [$columns=Info, $path="foo"]);
         }
 
+In the definition of the "Info" record above, notice that each field has the
+:bro:attr:`&log` attribute.  Without this attribute, a field will not appear in
+the log output. Also notice one field has the :bro:attr:`&optional` attribute.
+This indicates that the field might not be assigned any value before the
+log record is written.  Finally, a field with the :bro:attr:`&default`
+attribute has a default value assigned to it automatically.
+
 At this point, the only thing missing is a call to the :bro:id:`Log::write`
 function to send data to the logging framework.  The actual event handler
 where this should take place will depend on where your data becomes available.
-In this example, the connection_established event provides our data, and we
-also store a copy of the data being logged into the :bro:type:`connection`
-record:
+In this example, the :bro:id:`connection_established` event provides our data,
+and we also store a copy of the data being logged into the
+:bro:type:`connection` record:
 
 .. code:: bro
 
@@ -123,6 +127,18 @@ record:
 
         Log::write(Foo::LOG, rec);
         }
+
+If you run Bro with this script, a new log file ``foo.log`` will be created.
+Although we only specified four fields in the "Info" record above, the
+log output will actually contain seven fields because one of the fields 
+(the one named "id") is itself a record type.  Since a :bro:type:`conn_id`
+record has four fields, then each of these fields is a separate column in
+the log output.  Note that the way that such fields are named in the log
+output differs slightly from the way we would refer to the same field
+in a Bro script (each dollar sign is replaced with a period).  For example,
+to access the first field of a ``conn_id`` in a Bro script we would use
+the notation ``id$orig_h``, but that field is named ``id.orig_h``
+in the log output.
 
 When you are developing scripts that add data to the :bro:type:`connection`
 record, care must be given to when and how long data is stored.
@@ -179,9 +195,10 @@ at that time that sets our field correctly:
 Now ``conn.log`` will show a new field ``is_private`` of type
 ``bool``.  If you look at the Bro script which defines the connection
 log stream :doc:`/scripts/base/protocols/conn/main.bro`, you will see
-that the connection log record is written in an event handler for the
+that ``Log::write`` gets called in an event handler for the
 same event as used in this example to set the additional fields, but at a
-lower priority than the one used in this example.
+lower priority than the one used in this example (i.e., the log record gets
+written after we assign the ``is_private`` field).
 
 For extending logs this way, one needs a bit of knowledge about how
 the script that creates the log stream is organizing its state
@@ -210,6 +227,8 @@ need to modify the example module shown above to look something like this:
         type Info: record {
             ts: time     &log;
             id: conn_id  &log;
+            service: string &log &optional;
+            missed_bytes: count &log &default=0;
         };
 
         # Define a logging event. By convention, this is called
@@ -219,8 +238,7 @@ need to modify the example module shown above to look something like this:
 
     event bro_init() &priority=5
         {
-        # Here we specify both the "Info" record type and the "log_foo"
-        # event.
+        # Specify the "log_foo" event here in order for Bro to raise it.
         Log::create_stream(Foo::LOG, [$columns=Info, $ev=log_foo,
                            $path="foo"]);
         }
@@ -240,7 +258,7 @@ specific destination exceeds a certain duration:
 
     event Conn::log_conn(rec: Conn::Info)
         {
-        if ( rec$duration > 5mins )
+        if ( rec?$duration && rec$duration > 5mins )
             NOTICE([$note=Long_Conn_Found,
                     $msg=fmt("unusually long conn to %s", rec$id$resp_h),
                     $id=rec$id]);
@@ -367,11 +385,13 @@ and use the "path_func" filter attribute:
 
 .. code:: bro
 
+    # Note: if using BroControl then you don't need to redef local_nets.
+    redef Site::local_nets = { 192.168.0.0/16 };
+
     function myfunc(id: Log::ID, path: string, rec: Conn::Info) : string
         {
         # Return "conn-local" if originator is a local IP, otherwise
         # return "conn-remote".
-
         local r = Site::is_local_addr(rec$id$orig_h) ? "local" : "remote";
         return fmt("%s-%s", path, r);
         }
@@ -384,8 +404,9 @@ and use the "path_func" filter attribute:
         }
 
 Running this will now produce two new files, ``conn-local.log`` and
-``conn-remote.log``, with the corresponding entries. One could extend this
-further for example to log information by subnets or even by IP
+``conn-remote.log``, with the corresponding entries (for this example to work,
+the ``Site::local_nets`` must specify your local network). One could extend
+this further for example to log information by subnets or even by IP
 address. Be careful, however, as it is easy to create many files very
 quickly.
 
@@ -418,7 +439,7 @@ predicate that will be called for each log record:
     function http_only(rec: Conn::Info) : bool
         {
         # Record only connections with successfully analyzed HTTP traffic
-        return rec$service == "http";
+        return rec?$service && rec$service == "http";
         }
 
     event bro_init()
@@ -429,7 +450,7 @@ predicate that will be called for each log record:
         }
 
 This will result in a new log file ``conn-http.log`` that contains only
-traffic detected and analyzed as HTTP traffic.
+the log records from ``conn.log`` that are analyzed as HTTP traffic.
 
 Rotation
 --------
@@ -468,6 +489,11 @@ needed.
 ASCII Writer
 ------------
 
+By default, the ASCII writer outputs log files that begin with several
+lines of metadata, followed by the actual log output.  The metadata
+describes the format of the log file, the "path" of the log (i.e., the log
+filename without file extension), and also specifies the time that the log
+was created and the time when Bro finished writing to it.
 The ASCII writer has a number of options for customizing the format of its
 output, see :doc:`/scripts/base/frameworks/logging/writers/ascii.bro`.
 If you change the output format options, then be careful to check whether

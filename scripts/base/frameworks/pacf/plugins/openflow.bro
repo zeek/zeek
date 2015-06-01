@@ -7,7 +7,7 @@ export {
 	type OfConfig: record {
 		monitor: bool &default=T;
 		forward: bool &default=T;
-		idle_timeout: count &default=60;
+		idle_timeout: count &default=0;
 		table_id: count &optional;
 		priority_offset: int &default=+0; ##< add this to all rule priorities. Can be useful if you want the openflow priorities be offset from the pacf priorities without having to write a filter function.
 

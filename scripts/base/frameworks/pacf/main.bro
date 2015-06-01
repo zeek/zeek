@@ -57,6 +57,30 @@ export {
 	## Returns: The id of the inserted rule on succes and zero on failure.
 	global shunt_flow: function(f: flow_id, t: interval, location: string &default="") : string;
 
+	## Allows all traffic involving a specific IP address from being forwarded.
+	##
+	## a: The address to be whitelistet.
+	##
+	## t: How long to whitelist it, with 0 being indefinitly.
+	##
+	## location: An optional string describing where the drop was triggered.
+	##
+	## Returns: The id of the inserted rule on succes and zero on failure.
+	global whitelist_address: function(a: addr, t: interval, location: string &default="") : string;
+
+	## Redirects an uni-directional flow to another port.
+	##
+	## f: The flow to redirect.
+	##
+	## out_port: Port to redirect the flow to
+	##
+	## t: How long to leave the redirect in place, with 0 being indefinitly.
+	##
+	## location: An optional string describing where the shunt was triggered.
+	##
+	## Returns: The id of the inserted rule on succes and zero on failure.
+	global redirect_flow: function(f: flow_id, out_port: count, t: interval, location: string &default="") : string;
+
 	## Removes all rules for an entity.
 	##
 	## e: The entity. Note that this will be directly to entities of existing
@@ -293,6 +317,14 @@ function drop_address(a: addr, t: interval, location: string &default="") : stri
 	return add_rule(r);
 	}
 
+function whitelist_address(a: addr, t: interval, location: string &default="") : string
+	{
+	local e: Entity = [$ty=ADDRESS, $ip=addr_to_subnet(a)];
+	local r: Rule = [$ty=WHITELIST, $priority=whitelist_priority, $target=FORWARD, $entity=e, $expire=t, $location=location];
+
+	return add_rule(r);
+	}
+
 function shunt_flow(f: flow_id, t: interval, location: string &default="") : string
 	{
 	local flow = Pacf::Flow(
@@ -303,6 +335,20 @@ function shunt_flow(f: flow_id, t: interval, location: string &default="") : str
 	);
 	local e: Entity = [$ty=FLOW, $flow=flow];
 	local r: Rule = [$ty=DROP, $target=MONITOR, $entity=e, $expire=t, $location=location];
+
+	return add_rule(r);
+	}
+
+function redirect_flow(f: flow_id, out_port: count, t: interval, location: string &default="") : string
+	{
+	local flow = Pacf::Flow(
+		$src_h=addr_to_subnet(f$src_h),
+		$src_p=f$src_p,
+		$dst_h=addr_to_subnet(f$dst_h),
+		$dst_p=f$dst_p
+	);
+	local e: Entity = [$ty=FLOW, $flow=flow];
+	local r: Rule = [$ty=REDIRECT, $target=FORWARD, $entity=e, $expire=t, $location=location, $c=out_port];
 
 	return add_rule(r);
 	}

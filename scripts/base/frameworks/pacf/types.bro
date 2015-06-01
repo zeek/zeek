@@ -2,6 +2,9 @@
 module Pacf;
 
 export {
+	const default_priority: int = +0 &redef;
+	const whitelist_priority: int = +5 &redef;
+
 	## Type of a :bro:id:`Entity` for defining an action.
 	type EntityType: enum {
 		ADDRESS,	##< Activity involving a specific IP address.
@@ -45,11 +48,6 @@ export {
 		## No arguments.
 		DROP,
 
-		## Begin rate-limiting flows matching entity.
-		##
-		## d: Percent of available bandwidth.
-		LIMIT,
-
 		## Begin modifying all packets matching entity.
 		##
 		## .. todo::
@@ -61,11 +59,6 @@ export {
 		## .. todo::
 		##	c: output port to redirect traffic to.
 		REDIRECT,
-
-		## Begin sampling all flows matching entity.
-		##
-		## d: Probability to include a flow between 0 and 1.
-		SAMPLE,
 
 		## Whitelists all packets of an entity, meaning no restrictions will be applied.
 		## While whitelisting is the default if no rule matches an this can type can be
@@ -93,7 +86,7 @@ export {
 		target: TargetType;		##< Where to apply rule.
 		entity: Entity;			##< Entity to apply rule to.
 		expire: interval &optional;	##< Timeout after which to expire the rule.
-		priority: int &default=+0;	##< Priority if multiple rules match an entity (larger value is higher priority).
+		priority: int &default=default_priority;	##< Priority if multiple rules match an entity (larger value is higher priority).
 		location: string &optional;	##< Optional string describing where/what installed the rule.
 
 		c: count &optional;		##< Argument for rule types requiring an count argument.
@@ -115,6 +108,4 @@ export {
 		packet_count: count &optional; ##< number of packets exchanged over connections matched by the rule
 		byte_count: count &optional; ##< total bytes exchanged over connections matched by the rule
 	};
-
 }
-

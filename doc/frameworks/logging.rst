@@ -506,5 +506,11 @@ Bro supports the following additional built-in output formats:
 
    logging-input-sqlite
 
-Additional writers are available as external plugins.
+Additional writers are available as external plugins:
+
+.. toctree::
+   :maxdepth: 1
+
+   ../components/bro-plugins/dataseries/README
+   ../components/bro-plugins/elasticsearch/README
 

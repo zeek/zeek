@@ -1,4 +1,15 @@
 
+2.4-beta-14 | 2015-06-02 09:16:44 -0700
+
+  * Add memleak btest for attachments over SMTP. (Vlad Grigorescu)
+
+  * BIT-1410: Fix flipped tx_hosts and rx_hosts in files.log. Reported
+    by Ali Hadi. (Vlad Grigorescu)
+
+  * Updating the Mozilla root certs. (Seth Hall)
+
+  * Updates for the urls.bro script. Fixes BIT-1404. (Seth Hall)
+
 2.4-beta-6 | 2015-05-28 13:20:44 -0700
 
   * Updating submodule(s).

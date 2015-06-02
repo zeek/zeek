@@ -712,7 +712,8 @@ void POP3_Analyzer::ProcessReply(int length, const char* line)
 			{
 			int data_len = end_of_line - line;
 			if ( ! mail )
-				BeginData();
+				// ProcessReply is only called if orig == false
+				BeginData(false);
 			ProcessData(data_len, line);
 			if ( requestForMultiLine == true )
 				multiLine = true;
@@ -838,10 +839,10 @@ void POP3_Analyzer::AuthSuccessfull()
 				user.c_str(), password.c_str());
 	}
 
-void POP3_Analyzer::BeginData()
+void POP3_Analyzer::BeginData(bool orig)
 	{
 	delete mail;
-	mail = new mime::MIME_Mail(this);
+	mail = new mime::MIME_Mail(this, orig);
 	}
 
 void POP3_Analyzer::EndData()

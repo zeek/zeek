@@ -231,7 +231,7 @@ protected:
 
 class MIME_Mail : public MIME_Message {
 public:
-	MIME_Mail(analyzer::Analyzer* mail_conn, int buf_size = 0);
+	MIME_Mail(analyzer::Analyzer* mail_conn, bool is_orig, int buf_size = 0);
 	~MIME_Mail();
 	void Done();
 
@@ -248,6 +248,7 @@ public:
 protected:
 	int min_overlap_length;
 	int max_chunk_length;
+	bool is_orig;
 	int buffer_start;
 	int data_start;
 	int compute_content_hash;

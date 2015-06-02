@@ -1,4 +1,8 @@
 
+2.4-beta-34 | 2015-06-02 10:37:22 -0700
+
+  * Add signature support for F4M files. (Seth Hall)
+
 2.4-beta-32 | 2015-06-02 09:43:31 -0700
 
   * A larger set of documentation updates, fixes, and extentions.

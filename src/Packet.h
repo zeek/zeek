@@ -16,6 +16,8 @@ class Packet {
 public:
 	Packet()
 		{
+		struct timeval ts = {0, 0};
+		Init(0, &ts, 0, 0, 0);
 		}
 	// Construct and initialize from packet data.
 	Packet(int arg_link_type, struct timeval *arg_ts, uint32 arg_caplen,

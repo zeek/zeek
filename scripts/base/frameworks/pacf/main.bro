@@ -159,6 +159,13 @@ export {
 	## msg: An optional informational message by the plugin.
 	global rule_error: event(r: Rule, p: PluginState, msg: string &default="");
 
+	## Hook that allows the modification of rules passed to add_rule before they
+	## are passed on to the plugins. If one of the hooks uses break, the rule is
+	## ignored and not passed on to any plugin.
+	##
+	## r: The rule to be added
+	global Pacf::rule_policy: hook(r: Rule);
+
 	## Type of an entry in the PACF log.
 	type InfoCategory: enum {
 		## A log entry reflecting a framework message.
@@ -401,6 +408,9 @@ function add_rule_impl(rule: Rule) : string
 
 	if ( ! rule?$id || rule$id == "" )
 		rule$id = cat(rule$cid);
+
+	if ( ! hook Pacf::rule_policy(rule) )
+		return "";
 
 	local accepted = F;
 	local priority: int = +0;

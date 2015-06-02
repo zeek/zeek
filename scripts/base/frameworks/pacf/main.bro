@@ -241,9 +241,21 @@ function entity_to_info(info: Info, e: Entity)
 			break;
 
 		case FLOW:
-			info$entity = fmt("%s/%d->%s/%d",
-					  e$flow$src_h, e$flow$src_p,
-					  e$flow$dst_h, e$flow$dst_p);
+			local ffrom_ip = "*";
+			local ffrom_port = "*";
+			local fto_ip = "*";
+			local fto_port = "*";
+			if ( e$flow?$src_h )
+				ffrom_ip = cat(e$flow$src_h);
+			if ( e$flow?$src_p )
+				ffrom_port = fmt("%d", e$flow$src_p);
+			if ( e$flow?$dst_h )
+				fto_ip = cat(e$flow$dst_h);
+			if ( e$flow?$dst_p )
+				fto_port = fmt("%d", e$flow$dst_p);
+			info$entity = fmt("%s/%s->%s/%s",
+					  ffrom_ip, ffrom_port,
+					  fto_ip, fto_port);
 			break;
 
 		case MAC:

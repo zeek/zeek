@@ -218,7 +218,8 @@ global plugins: vector of PluginState;
 global plugin_ids: table[count] of PluginState;
 global rule_counter: count = 1;
 global plugin_counter: count = 1;
-global rules: table[string] of Rule;
+global rules: table[string,count] of Rule; # Rules indexed by id and cid
+global id_to_cids: table[string] of set[count]; # id to cid
 
 event bro_init() &priority=5
 	{
@@ -394,42 +395,63 @@ function activate_impl(p: PluginState, priority: int)
 	log_msg(fmt("activated plugin with priority %d", priority), p);
 	}
 
-function add_rule_impl(r: Rule) : string
+function add_rule_impl(rule: Rule) : string
 	{
-	r$cid = ++rule_counter; # numeric id that can be used by plugins for their rules.
+	rule$cid = ++rule_counter; # numeric id that can be used by plugins for their rules.
 
-	if ( ! r?$id || r$id == "" )
-		r$id = cat(r$cid);
+	if ( ! rule?$id || rule$id == "" )
+		rule$id = cat(rule$cid);
+
+	local accepted = F;
+	local priority: int = +0;
+	local r = rule;
 
 	for ( i in plugins )
 		{
 		local p = plugins[i];
+
+		# in this case, rule was accepted by earlier plugin and thus plugin has same
+		# priority. accept, but give out new rule id.
+		if ( accepted == T && p$_priority == priority )
+			{
+			r = copy(rule);
+			r$cid = ++rule_counter;
+			}
+		else if ( accepted == T )
+		# in this case, rule was accepted by earlier plugin and this plugin has a lower
+		# priority. Abort and do not send there...
+			break;
 
 		# set before, in case the plugins sends and regenerates the plugin record later.
 		r$_plugin_id = p$_id;
 
 		if ( p$plugin$add_rule(p, r) )
 			{
+			accepted = T;
+			priority = p$_priority;
 			log_rule(r, "ADD", REQUESTED, p);
-			return r$id;
 			}
 		}
+
+	if ( accepted )
+		return rule$id;
 
 	log_rule_no_plugin(r, FAILED, "not supported");
 	return "";
 	}
 
-function remove_rule_impl(id: string) : bool
+function remove_single_rule(id: string, cid: count) : bool
 	{
-	if ( id !in rules )
+	if ( [id,cid] !in rules )
 		{
-		Reporter::error(fmt("Rule %s does not exist in Pacf::remove_rule", id));
+		Reporter::error(fmt("Rule %s -- %d does not exist in Pacf::remove_single_rule", id, cid));
 		return F;
 		}
 
-	local r = rules[id];
+	local r = rules[id,cid];
 	local p = plugin_ids[r$_plugin_id];
 
+	# remove the respective rules from its plugins..
 	if ( ! p$plugin$remove_rule(p, r) )
 		{
 		log_rule_error(r, "remove failed", p);
@@ -440,21 +462,52 @@ function remove_rule_impl(id: string) : bool
 	return T;
 	}
 
+function remove_rule_impl(id: string) : bool
+	{
+	if ( id !in id_to_cids )
+		{
+		Reporter::error(fmt("Rule %s does not exist in Pacf::remove_rule", id));
+		return F;
+		}
+
+	local cids = id_to_cids[id];
+
+	local success = T;
+	for ( cid in cids )
+		{
+		if ( [id,cid] !in rules )
+			{
+			Reporter::error(fmt("Internal error in pacf::remove_rule - cid %d does not belong to rule %s", cid, id));
+			delete cids[cid];
+			next;
+			}
+
+		if ( ! remove_single_rule(id, cid) )
+			success = F;
+		}
+
+	return success;
+	}
+
 event rule_expire(r: Rule, p: PluginState)
 	{
-	if ( r$id !in rules )
+	if ( [r$id,r$cid] !in rules )
 		# Removed already.
 		return;
 
 	event rule_timeout(r, FlowInfo(), p);
-	remove_rule(r$id);
+	remove_single_rule(r$id, r$cid);
 	}
 
 event rule_added(r: Rule, p: PluginState, msg: string &default="")
 	{
 	log_rule(r, "ADD", SUCCEEDED, p);
 
-	rules[r$id] = r;
+	rules[r$id,r$cid] = r;
+	if ( r$id !in id_to_cids )
+		id_to_cids[r$id] = set();
+
+	add id_to_cids[r$id][r$cid];
 
 	if ( r?$expire && ! p$plugin$can_expire )
 		schedule r$expire { rule_expire(r, p) };
@@ -462,17 +515,31 @@ event rule_added(r: Rule, p: PluginState, msg: string &default="")
 
 event rule_removed(r: Rule, p: PluginState, msg: string &default="")
 	{
-	delete rules[r$id];
+	delete rules[r$id,r$cid];
+	delete id_to_cids[r$id][r$cid];
+	if ( |id_to_cids[r$id]| == 0 )
+		delete id_to_cids[r$id];
+
 	log_rule(r, "REMOVE", SUCCEEDED, p);
 	}
 
 event rule_timeout(r: Rule, i: FlowInfo, p: PluginState)
 	{
-	delete rules[r$id];
+	delete rules[r$id,r$cid];
+	delete id_to_cids[r$id][r$cid];
+	if ( |id_to_cids[r$id]| == 0 )
+		delete id_to_cids[r$id];
+
 	log_rule(r, "EXPIRE", TIMEOUT, p);
 	}
 
 event rule_error(r: Rule, p: PluginState, msg: string &default="")
 	{
 	log_rule_error(r, msg, p);
+	# errors can occur during deletion. Since this probably means we wo't hear
+	# from it again, let's just remove it if it exists...
+	delete rules[r$id,r$cid];
+	delete id_to_cids[r$id][r$cid];
+	if ( |id_to_cids[r$id]| == 0 )
+		delete id_to_cids[r$id];
 	}

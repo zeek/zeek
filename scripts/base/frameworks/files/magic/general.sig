@@ -78,6 +78,12 @@ signature file-coldfusion {
 	file-magic /^([\x0d\x0a[:blank:]]*(<!--.*-->)?)*<(CFPARAM|CFSET|CFIF)/
 }
 
+# Adobe Flash Media Manifest
+signature file-f4m {
+	file-mime "application/f4m", 49
+	file-magic /^(\xef\xbb\xbf)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*(<\?xml .*\?>)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*<[mM][aA][nN][iI][fF][eE][sS][tT][\x0d\x0a[:blank:]]{1,}xmlns=\"http:\/\/ns\.adobe\.com\/f4m\//
+}
+
 # Microsoft LNK files
 signature file-lnk {
 	file-mime "application/x-ms-shortcut", 49

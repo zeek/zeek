@@ -141,10 +141,9 @@ int fputs(data_chunk_t b, FILE* fp)
 
 void MIME_Mail::Undelivered(int len)
 	{
-	// is_orig param not available, doesn't matter as long as it's consistent
 	cur_entity_id = file_mgr->Gap(cur_entity_len, len,
 	                              analyzer->GetAnalyzerTag(), analyzer->Conn(),
-	                              false, cur_entity_id);
+	                              is_orig, cur_entity_id);
 	}
 
 int strcasecmp_n(data_chunk_t s, const char* t)
@@ -1286,13 +1285,14 @@ TableVal* MIME_Message::BuildHeaderTable(MIME_HeaderList& hlist)
 	return t;
 	}
 
-MIME_Mail::MIME_Mail(analyzer::Analyzer* mail_analyzer, int buf_size)
+MIME_Mail::MIME_Mail(analyzer::Analyzer* mail_analyzer, bool orig, int buf_size)
     : MIME_Message(mail_analyzer), md5_hash()
 	{
 	analyzer = mail_analyzer;
 
 	min_overlap_length = mime_segment_overlap_length;
 	max_chunk_length = mime_segment_length;
+	is_orig = orig;
 	int length = buf_size;
 
 	if ( min_overlap_length < 0 )
@@ -1456,9 +1456,8 @@ void MIME_Mail::SubmitData(int len, const char* buf)
 		analyzer->ConnectionEvent(mime_segment_data, vl);
 		}
 
-	// is_orig param not available, doesn't matter as long as it's consistent
 	cur_entity_id = file_mgr->DataIn(reinterpret_cast<const u_char*>(buf), len,
-	                 analyzer->GetAnalyzerTag(), analyzer->Conn(), false,
+	                 analyzer->GetAnalyzerTag(), analyzer->Conn(), is_orig,
 	                 cur_entity_id);
 
 	cur_entity_len += len;

@@ -1,5 +1,5 @@
 # @TEST-EXEC: bro -r $TRACES/smtp.trace %INPUT
-# @TEST-EXEC: btest-diff pacf.log
+# @TEST-EXEC: TEST_DIFF_CANONIFIER='grep -v ^# | $SCRIPTS/diff-sort' btest-diff pacf.log
 
 @load base/frameworks/pacf
 

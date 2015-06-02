@@ -1,15 +1,15 @@
 ##! Interface for the ASCII log writer.  Redefinable options are available
 ##! to tweak the output format of ASCII logs.
 ##!
-##! The ASCII writer supports currently one writer-specific filter option via
-##! ``config``: setting ``tsv`` to the string ``T`` turns the output into
+##! The ASCII writer currently supports one writer-specific per-filter config
+##! option: setting ``tsv`` to the string ``T`` turns the output into
 ##! "tab-separated-value" mode where only a single header row with the column
 ##! names is printed out as meta information, with no "# fields" prepended; no
-##! other meta data gets included in that mode.
+##! other meta data gets included in that mode.  Example filter using this::
 ##!
-##! Example filter using this::
-##!
-##!    local my_filter: Log::Filter = [$name = "my-filter", $writer = Log::WRITER_ASCII, $config = table(["tsv"] = "T")];
+##!    local f: Log::Filter = [$name = "my-filter",
+##!                            $writer = Log::WRITER_ASCII,
+##!                            $config = table(["tsv"] = "T")];
 ##!
 
 module LogAscii;
@@ -29,6 +29,8 @@ export {
 	## Format of timestamps when writing out JSON. By default, the JSON
 	## formatter will use double values for timestamps which represent the
 	## number of seconds from the UNIX epoch.
+	##
+	## This option is also available as a per-filter ``$config`` option.
 	const json_timestamps: JSON::TimestampFormat = JSON::TS_EPOCH &redef;
 
 	## If true, include lines with log meta information such as column names

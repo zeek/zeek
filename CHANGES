@@ -1,4 +1,9 @@
 
+2.4-beta-32 | 2015-06-02 09:43:31 -0700
+
+  * A larger set of documentation updates, fixes, and extentions.
+    (Daniel Thayer)
+
 2.4-beta-14 | 2015-06-02 09:16:44 -0700
 
   * Add memleak btest for attachments over SMTP. (Vlad Grigorescu)

@@ -51,6 +51,11 @@ friend class StoreHandleVal;
 public:
 
 	/**
+	 * Constructor.
+	 */
+	Manager();
+
+	/**
 	 * Destructor.  Any still-pending data store queries are aborted.
 	 */
 	~Manager();
@@ -351,6 +356,7 @@ private:
 	std::unordered_set<StoreQueryCallback*> pending_queries;
 
 	Stats statistics;
+	double next_timestamp;
 
 	static VectorType* vector_of_data_type;
 	static EnumType* log_id_type;

@@ -1,4 +1,8 @@
 
+2.4-beta-37 | 2015-06-04 07:53:52 -0700
+
+  * BIT-1408: Improve I/O loop and Broker IOSource. (Jon Siwek)
+
 2.4-beta-34 | 2015-06-02 10:37:22 -0700
 
   * Add signature support for F4M files. (Seth Hall)

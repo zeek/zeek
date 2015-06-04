@@ -240,6 +240,18 @@ void PktSrc::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
 
 	if ( IsOpen() && props.selectable_fd >= 0 )
 		read->Insert(props.selectable_fd);
+
+	// TODO: This seems like a hack that should be removed, but doing so
+	// causes the main run loop to spin more frequently and increase cpu usage.
+	// See also commit 9cd85be308.
+	if ( read->Empty() )
+		read->Insert(0);
+
+	if ( write->Empty() )
+		write->Insert(0);
+
+	if ( except->Empty() )
+		except->Insert(0);
 	}
 
 double PktSrc::NextTimestamp(double* local_network_time)

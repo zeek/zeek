@@ -68,7 +68,7 @@ export {
 	## Returns: The id of the inserted rule on succes and zero on failure.
 	global shunt_flow: function(f: flow_id, t: interval, location: string &default="") : string;
 
-	## Allows all traffic involving a specific IP address from being forwarded.
+	## Allows all traffic involving a specific IP address to be forwarded.
 	##
 	## a: The address to be whitelistet.
 	##
@@ -78,6 +78,17 @@ export {
 	##
 	## Returns: The id of the inserted rule on succes and zero on failure.
 	global whitelist_address: function(a: addr, t: interval, location: string &default="") : string;
+
+	## Allows all traffic involving a specific IP subnet to be forwarded.
+	##
+	## s: The subnet to be whitelistet.
+	##
+	## t: How long to whitelist it, with 0 being indefinitly.
+	##
+	## location: An optional string describing whitelist was triddered.
+	##
+	## Returns: The id of the inserted rule on succes and zero on failure.
+	global whitelist_subnet: function(s: subnet, t: interval, location: string &default="") : string;
 
 	## Redirects an uni-directional flow to another port.
 	##
@@ -91,6 +102,21 @@ export {
 	##
 	## Returns: The id of the inserted rule on succes and zero on failure.
 	global redirect_flow: function(f: flow_id, out_port: count, t: interval, location: string &default="") : string;
+
+	## Quarantines a host by redirecting rewriting DNS queries to the network dns server dns
+	## to the host. Host has to answer to all queries with its own address. Only http communication
+	## from infected to quarantinehost is allowed.
+	##
+	## infected: the host to quarantine
+	##
+	## dns: the network dns server
+	##
+	## quarantine: the quarantine server running a dns and a web server
+	##
+	## t: how long to leave the quarantine in place
+	##
+	## Returns: Vector of inserted rules on success, empty list on failure.
+	global quarantine_host: function(infected: addr, dns: addr, quarantine: addr, t: interval, location: string) : vector of string;
 
 	## Flushes all state.
 	global clear: function();
@@ -358,6 +384,14 @@ function whitelist_address(a: addr, t: interval, location: string &default="") :
 	return add_rule(r);
 	}
 
+function whitelist_subnet(s: subnet, t: interval, location: string &default="") : string
+	{
+	local e: Entity = [$ty=ADDRESS, $ip=s];
+	local r: Rule = [$ty=WHITELIST, $priority=whitelist_priority, $target=FORWARD, $entity=e, $expire=t, $location=location];
+
+	return add_rule(r);
+	}
+
 function shunt_flow(f: flow_id, t: interval, location: string &default="") : string
 	{
 	local flow = Pacf::Flow(
@@ -385,6 +419,29 @@ function redirect_flow(f: flow_id, out_port: count, t: interval, location: strin
 
 	return add_rule(r);
 	}
+
+function quarantine_host(infected: addr, dns: addr, quarantine: addr, t: interval, location: string &default="") : vector of string
+	{
+	local orules: vector of string = vector();
+	local edrop: Entity = [$ty=FLOW, $flow=Flow($src_h=addr_to_subnet(infected))];
+	local rdrop: Rule = [$ty=DROP, $target=FORWARD, $entity=edrop, $expire=t, $location=location];
+	orules[|orules|] = add_rule(rdrop);
+
+	local todnse: Entity = [$ty=FLOW, $flow=Flow($src_h=addr_to_subnet(infected), $dst_h=addr_to_subnet(dns), $dst_p=53/udp)];
+	local todnsr = Rule($ty=MODIFY, $target=FORWARD, $entity=todnse, $expire=t, $location=location, $mod=FlowMod($dst_h=quarantine), $priority=+5);
+	orules[|orules|] = add_rule(todnsr);
+
+	local fromdnse: Entity = [$ty=FLOW, $flow=Flow($src_h=addr_to_subnet(dns), $src_p=53/udp, $dst_h=addr_to_subnet(infected))];
+	local fromdnsr = Rule($ty=MODIFY, $target=FORWARD, $entity=fromdnse, $expire=t, $location=location, $mod=FlowMod($src_h=dns), $priority=+5);
+	orules[|orules|] = add_rule(fromdnsr);
+
+	local wle: Entity = [$ty=FLOW, $flow=Flow($src_h=addr_to_subnet(infected), $dst_h=addr_to_subnet(quarantine), $dst_p=80/tcp)];
+	local wlr = Rule($ty=WHITELIST, $target=FORWARD, $entity=wle, $expire=t, $location=location, $priority=+5);
+	orules[|orules|] = add_rule(wlr);
+
+	return orules;
+	}
+
 
 # Low-level functions that only runs on the manager (or standalone) Bro node.
 

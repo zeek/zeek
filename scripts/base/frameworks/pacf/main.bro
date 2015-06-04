@@ -46,6 +46,17 @@ export {
 	## Returns: The id of the inserted rule on succes and zero on failure.
 	global drop_address: function(a: addr, t: interval, location: string &default="") : string;
 
+	## Stops all packets involving an connection address from being forwarded.
+	##
+	## c: The connection to be dropped.
+	##
+	## t: How long to drop it, with 0 being indefinitly.
+	##
+	## location: An optional string describing where the drop was triggered.
+	##
+	## Returns: The id of the inserted rule on succes and zero on failure.
+	global drop_connection: function(c: conn_id, t: interval, location: string &default="") : string;
+
 	## Stops forwarding a uni-directional flow's packets to Bro.
 	##
 	## f: The flow to shunt.
@@ -63,7 +74,7 @@ export {
 	##
 	## t: How long to whitelist it, with 0 being indefinitly.
 	##
-	## location: An optional string describing where the drop was triggered.
+	## location: An optional string describing whitelist was triddered.
 	##
 	## Returns: The id of the inserted rule on succes and zero on failure.
 	global whitelist_address: function(a: addr, t: interval, location: string &default="") : string;
@@ -76,16 +87,10 @@ export {
 	##
 	## t: How long to leave the redirect in place, with 0 being indefinitly.
 	##
-	## location: An optional string describing where the shunt was triggered.
+	## location: An optional string describing where the redirect was triggered.
 	##
 	## Returns: The id of the inserted rule on succes and zero on failure.
 	global redirect_flow: function(f: flow_id, out_port: count, t: interval, location: string &default="") : string;
-
-	## Removes all rules for an entity.
-	##
-	## e: The entity. Note that this will be directly to entities of existing
-	## rules, which must match exactly field by field.
-	global reset: function(e: Entity);
 
 	## Flushes all state.
 	global clear: function();
@@ -329,6 +334,14 @@ function log_rule_no_plugin(r: Rule, state: InfoState, msg: string)
 	Log::write(LOG, info);
 	}
 
+function drop_connection(c: conn_id, t: interval, location: string &default="") : string
+	{
+	local e: Entity = [$ty=CONNECTION, $conn=c];
+	local r: Rule = [$ty=DROP, $target=FORWARD, $entity=e, $expire=t, $location=location];
+
+	return add_rule(r);
+	}
+
 function drop_address(a: addr, t: interval, location: string &default="") : string
 	{
 	local e: Entity = [$ty=ADDRESS, $ip=addr_to_subnet(a)];
@@ -371,16 +384,6 @@ function redirect_flow(f: flow_id, out_port: count, t: interval, location: strin
 	local r: Rule = [$ty=REDIRECT, $target=FORWARD, $entity=e, $expire=t, $location=location, $c=out_port];
 
 	return add_rule(r);
-	}
-
-function reset(e: Entity)
-	{
-	print "Pacf::reset not implemented yet";
-	}
-
-function clear()
-	{
-	print "Pacf::clear not implemented yet";
 	}
 
 # Low-level functions that only runs on the manager (or standalone) Bro node.
@@ -552,4 +555,10 @@ event rule_error(r: Rule, p: PluginState, msg: string &default="")
 	delete id_to_cids[r$id][r$cid];
 	if ( |id_to_cids[r$id]| == 0 )
 		delete id_to_cids[r$id];
+	}
+
+function clear()
+	{
+	for ( [id,cid] in rules )
+		remove_single_rule(id, cid);
 	}

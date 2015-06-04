@@ -1,4 +1,9 @@
 
+2.4-beta-38 | 2015-06-04 14:48:37 -0700
+
+  * Test for Broker termination. (Robin Sommer)
+
+
 2.4-beta-37 | 2015-06-04 07:53:52 -0700
 
   * BIT-1408: Improve I/O loop and Broker IOSource. (Jon Siwek)

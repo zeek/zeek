@@ -95,7 +95,7 @@ void ConnSize_Analyzer::CheckSize(double st)
 	if ( thresh_kind != 0 && thresh < st && network_time - start_time >= st )
 		{
 		thresh = st;
-		printf("%.6f %s %.6f %llu %llu %.6f %.6f\n", network_time, Conn()->GetUID().Base62().c_str(), st, num_bytes, resp_bytes, network_time - start_time, network_time - Conn()->StartTime());
+		printf("%.6f %s timing %.6f %llu %llu %.6f %.6f\n", network_time, Conn()->GetUID().Base62().c_str(), st, num_bytes, resp_bytes, network_time - start_time, network_time - Conn()->StartTime());
 		}
 	}
 

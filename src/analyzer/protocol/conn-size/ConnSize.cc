@@ -34,6 +34,9 @@ void ConnSize_Analyzer::Init()
 	orig_pkts_thresh = 0;
 	resp_bytes_thresh = 0;
 	resp_pkts_thresh = 0;
+
+	thresh_kind = 0;
+	num_bytes = 0;
 	}
 
 void ConnSize_Analyzer::Done()
@@ -88,6 +91,32 @@ void ConnSize_Analyzer::CheckSizes(bool is_orig)
 void ConnSize_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, uint64 seq, const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
+
+	if ( ! is_orig ) {
+		if ( thresh_kind == 1 && network_time - start_time >= 0.01 )
+			{
+			thresh_kind = 2;
+			printf("%.6f %s 10ms %llu %llu %.6f\n", network_time, Conn()->GetUID().Base62().c_str(), num_bytes, resp_bytes, network_time - start_time);
+			}
+		if ( thresh_kind == 2 && network_time - start_time >= 0.05 )
+			{
+			thresh_kind = 3;
+			printf("%.6f %s 50ms %llu %llu %.6f\n", network_time, Conn()->GetUID().Base62().c_str(), num_bytes, resp_bytes, network_time - start_time);
+			}
+		if ( thresh_kind == 3 && network_time - start_time >= 0.1 )
+			{
+			thresh_kind = 4;
+			printf("%.6f %s 100ms %llu %llu %.6f\n", network_time, Conn()->GetUID().Base62().c_str(), num_bytes, resp_bytes, network_time - start_time);
+			}
+		if ( thresh_kind == 4 && network_time - start_time >=  0.2 )
+			{
+			thresh_kind = 5;
+			printf("%.6f %s 200ms %llu %llu %.6f\n", network_time, Conn()->GetUID().Base62().c_str(), num_bytes, resp_bytes, network_time - start_time);
+			}
+
+		if ( thresh_kind != 0 )
+			num_bytes += ip->PayloadLen() - 20; // 20 = minimum tcp header size
+	}
 
 	if ( is_orig )
 		{
@@ -179,5 +208,15 @@ void ConnSize_Analyzer::FlipRoles()
 	tmp = orig_pkts;
 	orig_pkts = resp_pkts;
 	resp_pkts = tmp;
+	}
+
+void ConnSize_Analyzer::EnableTiming()
+	{
+	if ( thresh_kind != 0 )
+		return;
+	printf("%.6f %s request %llu\n", network_time, Conn()->GetUID().Base62().c_str(), resp_bytes);
+
+	thresh_kind = 1;
+	start_time = network_time;
 	}
 

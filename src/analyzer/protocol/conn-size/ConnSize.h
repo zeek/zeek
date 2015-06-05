@@ -21,6 +21,8 @@ public:
 	virtual void UpdateConnVal(RecordVal *conn_val);
 	virtual void FlipRoles();
 
+	void EnableTiming();
+
 	void SetThreshold(uint64_t threshold, bool bytes, bool orig);
 	uint64 GetThreshold(bool bytes, bool orig);
 
@@ -38,6 +40,10 @@ protected:
 	uint64_t resp_bytes;
 	uint64_t orig_pkts;
 	uint64_t resp_pkts;
+
+	uint64_t num_bytes;
+	uint64_t thresh_kind;
+	double start_time;
 
 	uint64_t orig_bytes_thresh;
 	uint64_t resp_bytes_thresh;

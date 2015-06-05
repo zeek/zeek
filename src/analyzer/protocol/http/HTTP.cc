@@ -12,6 +12,7 @@
 #include "HTTP.h"
 #include "Event.h"
 #include "analyzer/protocol/mime/MIME.h"
+#include "analyzer/protocol/conn-size/ConnSize.h"
 #include "file_analysis/Manager.h"
 
 #include "events.bif.h"
@@ -1372,6 +1373,11 @@ void HTTP_Analyzer::HTTP_Request()
 		vl->append(new StringVal(fmt("%.1f", request_version)));
 		// DEBUG_MSG("%.6f http_request\n", network_time);
 		ConnectionEvent(http_request, vl);
+		//printf("%.6f %s request \n", network_time, Conn()->GetUID().Base62().c_str());
+		analyzer::Analyzer* csa = Conn()->FindAnalyzer("CONNSIZE");
+		if ( ! csa )
+			printf("No connsize analyzer?");
+		static_cast<analyzer::conn_size::ConnSize_Analyzer*>(csa)->EnableTiming();
 		}
 	}
 

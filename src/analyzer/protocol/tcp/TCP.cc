@@ -1777,7 +1777,10 @@ void TCP_Analyzer::ConnectionFinished(int half_finished)
 	if ( half_finished )
 		Event(connection_half_finished);
 	else
+		{
+		printf("%.6f %s finished \n", network_time, Conn()->GetUID().Base62().c_str());
 		Event(connection_finished);
+		}
 
 	is_active = 0;
 	}

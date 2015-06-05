@@ -1,8 +1,11 @@
 
+2.4-beta-39 | 2015-06-05 09:09:44 -0500
+
+  * Fix a unit test to check for Broker requirement. (Jon Siwek)
+
 2.4-beta-38 | 2015-06-04 14:48:37 -0700
 
   * Test for Broker termination. (Robin Sommer)
-
 
 2.4-beta-37 | 2015-06-04 07:53:52 -0700
 

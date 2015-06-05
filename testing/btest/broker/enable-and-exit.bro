@@ -1,4 +1,6 @@
-# @TEST-EXEC: bro %INPUT >output
+# @TEST-REQUIRES: grep -q ENABLE_BROKER $BUILD/CMakeCache.txt
+
+# @TEST-EXEC: bro -b %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 redef exit_only_after_terminate = T;

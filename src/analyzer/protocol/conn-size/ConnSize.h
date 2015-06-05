@@ -33,6 +33,7 @@ protected:
 	virtual void DeliverPacket(int len, const u_char* data, bool is_orig,
 					uint64 seq, const IP_Hdr* ip, int caplen);
 	void CheckSizes(bool is_orig);
+	void CheckSize(double st);
 
 	void ThresholdEvent(EventHandlerPtr f, uint64 threshold, bool is_orig);
 
@@ -42,7 +43,8 @@ protected:
 	uint64_t resp_pkts;
 
 	uint64_t num_bytes;
-	uint64_t thresh_kind;
+	double thresh;
+	unsigned int thresh_kind;
 	double start_time;
 
 	uint64_t orig_bytes_thresh;

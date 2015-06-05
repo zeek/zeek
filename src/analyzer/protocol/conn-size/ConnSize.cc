@@ -96,22 +96,22 @@ void ConnSize_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 		if ( thresh_kind == 1 && network_time - start_time >= 0.01 )
 			{
 			thresh_kind = 2;
-			printf("%.6f %s 10ms %llu %llu %.6f\n", network_time, Conn()->GetUID().Base62().c_str(), num_bytes, resp_bytes, network_time - start_time);
+			printf("%.6f %s 10ms %llu %llu %.6f %.6f\n", network_time, Conn()->GetUID().Base62().c_str(), num_bytes, resp_bytes, network_time - start_time, network_time - Conn()->StartTime());
 			}
 		if ( thresh_kind == 2 && network_time - start_time >= 0.05 )
 			{
 			thresh_kind = 3;
-			printf("%.6f %s 50ms %llu %llu %.6f\n", network_time, Conn()->GetUID().Base62().c_str(), num_bytes, resp_bytes, network_time - start_time);
+			printf("%.6f %s 50ms %llu %llu %.6f %.6f\n", network_time, Conn()->GetUID().Base62().c_str(), num_bytes, resp_bytes, network_time - start_time, network_time - Conn()->StartTime());
 			}
 		if ( thresh_kind == 3 && network_time - start_time >= 0.1 )
 			{
 			thresh_kind = 4;
-			printf("%.6f %s 100ms %llu %llu %.6f\n", network_time, Conn()->GetUID().Base62().c_str(), num_bytes, resp_bytes, network_time - start_time);
+			printf("%.6f %s 100ms %llu %llu %.6f %.6f\n", network_time, Conn()->GetUID().Base62().c_str(), num_bytes, resp_bytes, network_time - start_time, network_time - Conn()->StartTime());
 			}
 		if ( thresh_kind == 4 && network_time - start_time >=  0.2 )
 			{
 			thresh_kind = 5;
-			printf("%.6f %s 200ms %llu %llu %.6f\n", network_time, Conn()->GetUID().Base62().c_str(), num_bytes, resp_bytes, network_time - start_time);
+			printf("%.6f %s 200ms %llu %llu %.6f %.6f\n", network_time, Conn()->GetUID().Base62().c_str(), num_bytes, resp_bytes, network_time - start_time, network_time - Conn()->StartTime());
 			}
 
 		if ( thresh_kind != 0 )
@@ -214,7 +214,7 @@ void ConnSize_Analyzer::EnableTiming()
 	{
 	if ( thresh_kind != 0 )
 		return;
-	printf("%.6f %s request %llu\n", network_time, Conn()->GetUID().Base62().c_str(), resp_bytes);
+	printf("%.6f %s request %llu %.6f \n", network_time, Conn()->GetUID().Base62().c_str(), resp_bytes, network_time - Conn()->StartTime());
 
 	thresh_kind = 1;
 	start_time = network_time;

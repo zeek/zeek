@@ -2398,13 +2398,38 @@ function to_subnet%(sn: string%): subnet
 ##
 ## a: The address to convert.
 ##
-## Returns: The *sn* string as a :bro:type:`subnet`.
+## Returns: The *a* address as a :bro:type:`subnet`.
 ##
 ## .. bro:see:: to_subset
 function addr_to_subnet%(a: addr%): subnet
 	%{
 	int width = (a->AsAddr().GetFamily() == IPv4 ? 32 : 128);
 	return new SubNetVal(a->AsAddr(), width);
+	%}
+
+## Converts a :bro:type:`subnet` to a :bro:type:`addr` by
+## extracting the prefix.
+##
+## s: The subnet to convert.
+##
+## Returns: The *s* subnet as a :bro:type:`addr`.
+##
+## .. bro:see:: to_subset
+function subnet_to_addr%(sn: subnet%): addr
+	%{
+	return new AddrVal(sn->Prefix());
+	%}
+
+## Returns the width of a :bro:type:`subnet`.
+##
+## s: The subnet to convert.
+##
+## Returns: The width of the subnet.
+##
+## .. bro:see:: to_subset
+function subnet_width%(sn: subnet%): count
+	%{
+	return new Val(sn->Width(), TYPE_COUNT);
 	%}
 
 ## Converts a :bro:type:`string` to a :bro:type:`double`.

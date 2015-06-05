@@ -102,6 +102,18 @@ function acld_name(p: PluginState) : string
 	return fmt("PACF acld plugin - using broker topic %s", p$acld_config$acld_topic);
 	}
 
+# check that subnet specifies an addr
+function check_sn(sn: subnet) : bool
+	{
+	if ( is_v4_subnet(sn) && subnet_width(sn) == 32 )
+		return T;
+	if ( is_v6_subnet(sn) && subnet_width(sn) == 128 )
+		return T;
+
+	Reporter::error(fmt("Acld: rule_to_acl_rule was given a subnet that does not specify a distinct address where needed - %s", sn));
+	return F;
+	}
+
 function rule_to_acl_rule(r: Rule) : AclRule
 	{
 	local e = r$entity;
@@ -122,8 +134,9 @@ function rule_to_acl_rule(r: Rule) : AclRule
 		local f = e$flow;
 		if ( ( ! f?$src_h ) && ( ! f?$src_p ) && f?$dst_h && f?$dst_p && ( ! f?$src_m ) && ( ! f?$dst_m ) )
 			{
-				# fixme - check if address is not a subnet
-			if ( is_tcp_port(f$dst_p) && r$ty == DROP )
+			if ( !check_sn(f$dst_h) )
+				command = ""; # invalid addr, do nothing
+			else if ( is_tcp_port(f$dst_p) && r$ty == DROP )
 				command = "droptcpdsthostport";
 			else if ( is_tcp_port(f$dst_p) && r$ty == WHITELIST )
 				command = "permittcpdsthostport";
@@ -132,13 +145,15 @@ function rule_to_acl_rule(r: Rule) : AclRule
 			else if ( is_udp_port(f$dst_p) && r$ty == WHITELIST)
 				command = "permitucpdsthostport";
 
-			arg = fmt("%s %d", f$dst_h, f$dst_p);
+			arg = fmt("%s %d", subnet_to_addr(f$dst_h), f$dst_p);
 			}
 		else if ( f?$src_h && ( ! f?$src_p ) && f?$dst_h && ( ! f?$dst_p ) && ( ! f?$src_m ) && ( ! f?$dst_m ) )
 			{
-			if ( r$ty == DROP )
+			if ( !check_sn(f$src_h) || !check_sn(f$dst_h) )
+				command = "";
+			else if ( r$ty == DROP )
 				command = "blockhosthost";
-			arg = fmt("%s %s", f$src_h, f$dst_h);
+			arg = fmt("%s %s", subnet_to_addr(f$src_h), subnet_to_addr(f$dst_h));
 			}
 		else if ( ( ! f?$src_h ) && ( ! f?$src_p ) && ( ! f?$dst_h ) && f?$dst_p && ( ! f?$src_m ) && ( ! f?$dst_m ) )
 			{

@@ -1,4 +1,8 @@
 
+2.4-beta-40 | 2015-06-06 08:20:52 -0700
+
+  * PE Analyzer: Change how we calculate the rva_table size. (Vlad Grigorescu)
+
 2.4-beta-39 | 2015-06-05 09:09:44 -0500
 
   * Fix a unit test to check for Broker requirement. (Jon Siwek)

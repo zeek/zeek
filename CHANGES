@@ -1,4 +1,8 @@
 
+2.4 | 2015-06-08 13:27:18 -0700
+
+  * Release 2.4.
+
 2.4-beta-42 | 2015-06-08 09:41:39 -0700
 
   * Fix reporter errors with GridFTP traffic. (Robin Sommer)

@@ -77,7 +77,7 @@ flow AYIYA_Flow
 
 		EncapsulatingConn ec(c, BifEnum::Tunnel::AYIYA);
 
-		sessions->DoNextInnerPacket(network_time(), 0, inner, e, ec);
+		sessions->DoNextInnerPacket(network_time(), 0, inner, e, ec, NULL);
 
 		return true;
 		%}

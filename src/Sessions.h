@@ -71,8 +71,8 @@ public:
 	// Main entry point for packet processing. Dispatches the packet
 	// either through NextPacket(), optionally employing the packet
 	// sorter first.
-	void DispatchPacket(double t, const struct pcap_pkthdr* hdr,
-			const u_char* const pkt, int hdr_size,
+	void DispatchPacket(double t, int hdr_size,
+			iosource::PktSrc::Packet *raw_pkt,
 			iosource::PktSrc* src_ps);
 
 	void Done();	// call to drain events before destructing
@@ -110,6 +110,8 @@ public:
 	    const u_char* pkt, const EncapsulationStack* encap = 0);
 	void Weird(const char* name, const IP_Hdr* ip,
 	    const EncapsulationStack* encap = 0);
+	void Weird(const char* name, const iosource::PktSrc::Packet *pkt,
+	    const EncapsulationStack* encap = 0);
 
 	PacketFilter* GetPacketFilter()
 		{
@@ -133,9 +135,9 @@ public:
 			icmp_conns.Length();
 		}
 
-	void DoNextPacket(double t, const struct pcap_pkthdr* hdr,
-			const IP_Hdr* ip_hdr, const u_char* const pkt,
-			int hdr_size, const EncapsulationStack* encapsulation);
+	void DoNextPacket(double t, iosource::PktSrc::Packet *raw_pkt,
+			const IP_Hdr* ip_hdr, int hdr_size,
+			const EncapsulationStack* encapsulation);
 
 	/**
 	 * Wrapper that recurses on DoNextPacket for encapsulated IP packets.
@@ -150,10 +152,12 @@ public:
 	 * @param prev Any previous encapsulation stack of the caller, not including
 	 *        the most-recently found depth of encapsulation.
 	 * @param ec The most-recently found depth of encapsulation.
+	 * @param raw_pkt The raw packet this inner packet came from, if available
 	 */
 	void DoNextInnerPacket(double t, const struct pcap_pkthdr* hdr,
 	                      const IP_Hdr* inner, const EncapsulationStack* prev,
-	                      const EncapsulatingConn& ec);
+	                      const EncapsulatingConn& ec,
+			      iosource::PktSrc::Packet *raw_pkt);
 
 	/**
 	 * Returns a wrapper IP_Hdr object if \a pkt appears to be a valid IPv4
@@ -218,24 +222,22 @@ protected:
 				TransportProto transport_proto,
 				uint8 tcp_flags, bool& flip_roles);
 
-	void NextPacket(double t, const struct pcap_pkthdr* hdr,
-			const u_char* const pkt, int hdr_size);
+	void NextPacket(double t, int hdr_size,
+			iosource::PktSrc::Packet *raw_pkt);
 
 	// Record the given packet (if a dumper is active).  If len=0
 	// then the whole packet is recorded, otherwise just the first
 	// len bytes.
-	void DumpPacket(const struct pcap_pkthdr* hdr, const u_char* pkt,
-			int len=0);
+	void DumpPacket(const iosource::PktSrc::Packet *pkt, int len=0);
 
-	void Internal(const char* msg, const struct pcap_pkthdr* hdr,
-			const u_char* pkt);
+	void Internal(const char* msg, const iosource::PktSrc::Packet *pkt);
 
 	// For a given protocol, checks whether the header's length as derived
 	// from lower-level headers or the length actually captured is less
 	// than that protocol's minimum header size.
 	bool CheckHeaderTrunc(int proto, uint32 len, uint32 caplen,
-			      const struct pcap_pkthdr* hdr, const u_char* pkt,
-			      const EncapsulationStack* encap);
+			      const EncapsulationStack* encap,
+			      const iosource::PktSrc::Packet *raw_pkt);
 
 	CompositeHash* ch;
 	PDict(Connection) tcp_conns;

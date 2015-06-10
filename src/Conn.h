@@ -86,9 +86,8 @@ public:
 			const u_char*& data,
 			int& record_packet, int& record_content,
 			// arguments for reproducing packets
-			const struct pcap_pkthdr* hdr,
-			const u_char* const pkt,
-			int hdr_size);
+			int hdr_size,
+			iosource::PktSrc::Packet *raw_pkt);
 
 	HashKey* Key() const			{ return key; }
 	void ClearKey()				{ key = 0; }

@@ -47,6 +47,28 @@ public:
 	};
 
 	/**
+	 * Structure describing a packet.
+	 */
+	struct Packet {
+		/**
+		 *  Time associated with the packet.
+		 */
+		double ts;
+
+		/**
+		 *  The pcap header associated with the packet.
+		 */
+		const struct ::pcap_pkthdr* hdr;
+
+		/**
+		 * The full content of the packet.
+		 */
+		const u_char* data;
+
+		uint32 TotalLen(bool captured=true) const { return captured?hdr->caplen:hdr->len; }
+	};
+
+	/**
 	 * Constructor.
 	 */
 	PktSrc();
@@ -155,24 +177,17 @@ public:
 	 *
 	 * @param index The index of the filter to apply.
 	 *
-	 * @param hdr The header of the packet to filter.
-	 *
-	 * @param pkt The content of the packet to filter.
+	 * @param p The packet to apply the filter to.
 	 *
 	 * @return True if it maches. 	 */
-	bool ApplyBPFFilter(int index, const struct pcap_pkthdr *hdr, const u_char *pkt);
+	bool ApplyBPFFilter(int index, const Packet *p);
 
 	/**
 	 * Returns the packet currently being processed, if available.
 	 *
-	 * @param hdr A pointer to pass the header of the current packet back.
-	 *
-	 * @param pkt A pointer to pass the content of the current packet
-	 * back.
-	 *
-	 * @return True if the current packet is available, or false if not.
+	 * @return A pointer to the current packet, if available, or NULL if not.
 	 */
-	bool GetCurrentPacket(const pcap_pkthdr** hdr, const u_char** pkt);
+	const Packet *GetCurrentPacket();
 
 	// PacketSource interace for derived classes to override.
 
@@ -272,26 +287,6 @@ protected:
 		bool is_live;
 
 		Properties();
-	};
-
-	/**
-	 * Structure describing a packet.
-	 */
-	struct Packet {
-		/**
-		 *  Time associated with the packet.
-		 */
-		double ts;
-
-		/**
-		 *  The pcap header associated with the packet.
-		 */
-		const struct ::pcap_pkthdr* hdr;
-
-		/**
-		 * The full content of the packet.
-		 */
-		const u_char* data;
 	};
 
 	/**

@@ -10,12 +10,13 @@ using namespace std;
 
 #include <pcap.h>
 
+#include "iosource/PktSrc.h"
+
 class PacketDumper {
 public:
 	PacketDumper(pcap_dumper_t* pkt_dump);
 
-	void DumpPacket(const struct pcap_pkthdr* hdr,
-			const u_char* pkt, int len);
+	void DumpPacket(const iosource::PktSrc::Packet *pkt, int len);
 
 protected:
 	pcap_dumper_t* pkt_dump;

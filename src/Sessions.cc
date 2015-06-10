@@ -165,41 +165,41 @@ void NetSessions::Done()
 	{
 	}
 
-void NetSessions::DispatchPacket(double t, const struct pcap_pkthdr* hdr,
-			const u_char* pkt, int hdr_size,
+void NetSessions::DispatchPacket(double t, int hdr_size,
+			iosource::PktSrc::Packet *raw_pkt,
 			iosource::PktSrc* src_ps)
 	{
 	const struct ip* ip_hdr = 0;
 	const u_char* ip_data = 0;
 	int proto = 0;
 
-	if ( hdr->caplen >= hdr_size + sizeof(struct ip) )
+	if ( raw_pkt->TotalLen() >= hdr_size + sizeof(struct ip) )
 		{
-		ip_hdr = reinterpret_cast<const struct ip*>(pkt + hdr_size);
-		if ( hdr->caplen >= unsigned(hdr_size + (ip_hdr->ip_hl << 2)) )
-			ip_data = pkt + hdr_size + (ip_hdr->ip_hl << 2);
+		ip_hdr = reinterpret_cast<const struct ip*>(raw_pkt->data + hdr_size);
+		if ( raw_pkt->TotalLen() >= unsigned(hdr_size + (ip_hdr->ip_hl << 2)) )
+			ip_data = raw_pkt->data + hdr_size + (ip_hdr->ip_hl << 2);
 		}
 
 	if ( encap_hdr_size > 0 && ip_data )
 		// Blanket encapsulation
 		hdr_size += encap_hdr_size;
 
-	NextPacket(t, hdr, pkt, hdr_size);
+	NextPacket(t, hdr_size, raw_pkt);
 	}
 
-void NetSessions::NextPacket(double t, const struct pcap_pkthdr* hdr,
-			     const u_char* const pkt, int hdr_size)
+void NetSessions::NextPacket(double t, int hdr_size,
+			     iosource::PktSrc::Packet *raw_pkt)
 	{
 	SegmentProfiler(segment_logger, "processing-packet");
 	if ( pkt_profiler )
-		pkt_profiler->ProfilePkt(t, hdr->caplen);
+		pkt_profiler->ProfilePkt(t, raw_pkt->TotalLen());
 
 	++num_packets_processed;
 
 	dump_this_packet = 0;
 
 	if ( record_all_packets )
-		DumpPacket(hdr, pkt);
+		DumpPacket(raw_pkt);
 
 	// ### The following isn't really correct.  What we *should*
 	// do is understanding the different link layers in order to
@@ -210,53 +210,53 @@ void NetSessions::NextPacket(double t, const struct pcap_pkthdr* hdr,
 	// we look to see if what we have is consistent with an
 	// IPv4 packet.  If not, it's either ARP or IPv6 or weird.
 
-	if ( hdr_size > static_cast<int>(hdr->caplen) )
+	if ( hdr_size > static_cast<int>(raw_pkt->TotalLen()) )
 		{
-		Weird("truncated_link_frame", hdr, pkt);
+		Weird("truncated_link_frame", raw_pkt);
 		return;
 		}
 
-	uint32 caplen = hdr->caplen - hdr_size;
+	uint32 caplen = raw_pkt->TotalLen() - hdr_size;
 	if ( caplen < sizeof(struct ip) )
 		{
-		Weird("truncated_IP", hdr, pkt);
+		Weird("truncated_IP", raw_pkt);
 		return;
 		}
 
-	const struct ip* ip = (const struct ip*) (pkt + hdr_size);
+	const struct ip* ip = (const struct ip*) (raw_pkt->data + hdr_size);
 
 	if ( ip->ip_v == 4 )
 		{
 		IP_Hdr ip_hdr(ip, false);
-		DoNextPacket(t, hdr, &ip_hdr, pkt, hdr_size, 0);
+		DoNextPacket(t, raw_pkt, &ip_hdr, hdr_size, 0);
 		}
 
 	else if ( ip->ip_v == 6 )
 		{
 		if ( caplen < sizeof(struct ip6_hdr) )
 			{
-			Weird("truncated_IP", hdr, pkt);
+			Weird("truncated_IP", raw_pkt);
 			return;
 			}
 
-		IP_Hdr ip_hdr((const struct ip6_hdr*) (pkt + hdr_size), false, caplen);
-		DoNextPacket(t, hdr, &ip_hdr, pkt, hdr_size, 0);
+		IP_Hdr ip_hdr((const struct ip6_hdr*) (raw_pkt->data + hdr_size), false, caplen);
+		DoNextPacket(t, raw_pkt, &ip_hdr, hdr_size, 0);
 		}
 
-	else if ( analyzer::arp::ARP_Analyzer::IsARP(pkt, hdr_size) )
+	else if ( analyzer::arp::ARP_Analyzer::IsARP(raw_pkt->data, hdr_size) )
 		{
 		if ( arp_analyzer )
-			arp_analyzer->NextPacket(t, hdr, pkt, hdr_size);
+			arp_analyzer->NextPacket(t, raw_pkt->hdr, raw_pkt->data, hdr_size);
 		}
 
 	else
 		{
-		Weird("unknown_packet_type", hdr, pkt);
+		Weird("unknown_packet_type", raw_pkt);
 		return;
 		}
 
 	if ( dump_this_packet && ! record_all_packets )
-		DumpPacket(hdr, pkt);
+		DumpPacket(raw_pkt);
 	}
 
 int NetSessions::CheckConnectionTag(Connection* conn)
@@ -337,26 +337,26 @@ static unsigned int gre_header_len(uint16 flags)
 	return len;
 	}
 
-void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
-				const IP_Hdr* ip_hdr, const u_char* const pkt,
-				int hdr_size, const EncapsulationStack* encapsulation)
+void NetSessions::DoNextPacket(double t, iosource::PktSrc::Packet *raw_pkt,
+				const IP_Hdr* ip_hdr, int hdr_size,
+				const EncapsulationStack* encapsulation)
 	{
-	uint32 caplen = hdr->caplen - hdr_size;
+	uint32 caplen = raw_pkt->TotalLen() - hdr_size;
 	const struct ip* ip4 = ip_hdr->IP4_Hdr();
 
 	uint32 len = ip_hdr->TotalLen();
 	if ( len == 0 )
 		{
 		// TCP segmentation offloading can zero out the ip_len field.
-		Weird("ip_hdr_len_zero", hdr, pkt, encapsulation);
+		Weird("ip_hdr_len_zero", raw_pkt, encapsulation);
 
 		// Cope with the zero'd out ip_len field by using the caplen.
-		len = hdr->caplen - hdr_size;
+		len = raw_pkt->TotalLen() - hdr_size;
 		}
 
-	if ( hdr->len < len + hdr_size )
+	if ( raw_pkt->TotalLen(false) < len + hdr_size )
 		{
-		Weird("truncated_IP", hdr, pkt, encapsulation);
+		Weird("truncated_IP", raw_pkt, encapsulation);
 		return;
 		}
 
@@ -368,7 +368,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 	if ( ! ignore_checksums && ip4 &&
 	     ones_complement_checksum((void*) ip4, ip_hdr_len, 0) != 0xffff )
 		{
-		Weird("bad_IP_checksum", hdr, pkt, encapsulation);
+		Weird("bad_IP_checksum", raw_pkt, encapsulation);
 		return;
 		}
 
@@ -393,7 +393,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 			}
 		else
 			{
-			f = NextFragment(t, ip_hdr, pkt + hdr_size);
+			f = NextFragment(t, ip_hdr, raw_pkt->data + hdr_size);
 			const IP_Hdr* ih = f->ReassembledPkt();
 			if ( ! ih )
 				// It didn't reassemble into anything yet.
@@ -437,7 +437,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 
 		if ( ! ignore_checksums && mobility_header_checksum(ip_hdr) != 0xffff )
 			{
-			Weird("bad_MH_checksum", hdr, pkt, encapsulation);
+			Weird("bad_MH_checksum", raw_pkt, encapsulation);
 			return;
 			}
 
@@ -449,7 +449,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 			}
 
 		if ( ip_hdr->NextProto() != IPPROTO_NONE )
-			Weird("mobility_piggyback", hdr, pkt, encapsulation);
+			Weird("mobility_piggyback", raw_pkt, encapsulation);
 
 		return;
 		}
@@ -457,7 +457,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 
 	int proto = ip_hdr->NextProto();
 
-	if ( CheckHeaderTrunc(proto, len, caplen, hdr, pkt, encapsulation) )
+	if ( CheckHeaderTrunc(proto, len, caplen, encapsulation, raw_pkt) )
 		return;
 
 	const u_char* data = ip_hdr->Payload();
@@ -664,8 +664,8 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		else
 			it->second.second = network_time;
 
-		DoNextInnerPacket(t, hdr, inner, encapsulation,
-		                  ip_tunnels[tunnel_idx].first);
+		DoNextInnerPacket(t, raw_pkt->hdr, inner, encapsulation,
+		                  ip_tunnels[tunnel_idx].first, raw_pkt);
 
 		return;
 		}
@@ -677,13 +677,13 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		// not sure the reason for the No Next header in the packet.
 		if ( ! ( encapsulation &&
 		     encapsulation->LastType() == BifEnum::Tunnel::TEREDO ) )
-			Weird("ipv6_no_next", hdr, pkt);
+			Weird("ipv6_no_next", raw_pkt);
 
 		return;
 		}
 
 	default:
-		Weird(fmt("unknown_protocol_%d", proto), hdr, pkt, encapsulation);
+		Weird(fmt("unknown_protocol_%d", proto), raw_pkt, encapsulation);
 		return;
 	}
 
@@ -757,7 +757,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 
 	conn->NextPacket(t, is_orig, ip_hdr, len, caplen, data,
 				record_packet, record_content,
-			        hdr, pkt, hdr_size);
+			        hdr_size, raw_pkt);
 
 	if ( f )
 		{
@@ -772,15 +772,16 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 
 		else
 			{
-			int hdr_len = data - pkt;
-			DumpPacket(hdr, pkt, hdr_len);	// just save the header
+			int hdr_len = data - raw_pkt->data;
+			DumpPacket(raw_pkt, hdr_len);	// just save the header
 			}
 		}
 	}
 
 void NetSessions::DoNextInnerPacket(double t, const struct pcap_pkthdr* hdr,
 		const IP_Hdr* inner, const EncapsulationStack* prev,
-		const EncapsulatingConn& ec)
+		const EncapsulatingConn& ec,
+		iosource::PktSrc::Packet *raw_pkt)
 	{
 	struct pcap_pkthdr fake_hdr;
 	fake_hdr.caplen = fake_hdr.len = inner->TotalLen();
@@ -794,18 +795,22 @@ void NetSessions::DoNextInnerPacket(double t, const struct pcap_pkthdr* hdr,
 		    ((network_time - (double)fake_hdr.ts.tv_sec) * 1000000);
 		}
 
-	const u_char* pkt = 0;
+	const u_char *pkt = 0;
 
 	if ( inner->IP4_Hdr() )
 		pkt = (const u_char*) inner->IP4_Hdr();
 	else
 		pkt = (const u_char*) inner->IP6_Hdr();
 
+	iosource::PktSrc::Packet fake_pkt;
+	fake_pkt.hdr = &fake_hdr;
+	fake_pkt.data = pkt;
+
 	EncapsulationStack* outer = prev ?
 			new EncapsulationStack(*prev) : new EncapsulationStack();
 	outer->Add(ec);
 
-	DoNextPacket(t, &fake_hdr, inner, pkt, 0, outer);
+	DoNextPacket(t, &fake_pkt, inner, 0, outer);
 
 	delete inner;
 	delete outer;
@@ -843,8 +848,8 @@ int NetSessions::ParseIPPacket(int caplen, const u_char* const pkt, int proto,
 	}
 
 bool NetSessions::CheckHeaderTrunc(int proto, uint32 len, uint32 caplen,
-                                   const struct pcap_pkthdr* h,
-                                   const u_char* p, const EncapsulationStack* encap)
+                                   const EncapsulationStack* encap,
+                                   const iosource::PktSrc::Packet *raw_pkt)
 	{
 	uint32 min_hdr_len = 0;
 	switch ( proto ) {
@@ -876,13 +881,13 @@ bool NetSessions::CheckHeaderTrunc(int proto, uint32 len, uint32 caplen,
 
 	if ( len < min_hdr_len )
 		{
-		Weird("truncated_header", h, p, encap);
+		Weird("truncated_header", raw_pkt, encap);
 		return true;
 		}
 
 	if ( caplen < min_hdr_len )
 		{
-		Weird("internally_truncated_header", h, p, encap);
+		Weird("internally_truncated_header", raw_pkt, encap);
 		return true;
 		}
 
@@ -1387,8 +1392,7 @@ void NetSessions::ExpireTimerMgrs()
 		}
 	}
 
-void NetSessions::DumpPacket(const struct pcap_pkthdr* hdr,
-				const u_char* pkt, int len)
+void NetSessions::DumpPacket(const iosource::PktSrc::Packet *pkt, int len)
 	{
 	if ( ! pkt_dumper )
 		return;
@@ -1396,36 +1400,35 @@ void NetSessions::DumpPacket(const struct pcap_pkthdr* hdr,
 	if ( len == 0 )
 		{
 		iosource::PktDumper::Packet p;
-		p.hdr = hdr;
-		p.data = pkt;
+		p.hdr = pkt->hdr;
+		p.data = pkt->data;
 		pkt_dumper->Dump(&p);
 		}
 
 	else
 		{
-		struct pcap_pkthdr h = *hdr;
+		struct pcap_pkthdr h = *(pkt->hdr);
 		h.caplen = len;
-		if ( h.caplen > hdr->caplen )
+		if ( h.caplen > pkt->TotalLen() )
 			reporter->InternalError("bad modified caplen");
 
 		iosource::PktDumper::Packet p;
 		p.hdr = &h;
-		p.data = pkt;
+		p.data = pkt->data;
 		pkt_dumper->Dump(&p);
 		}
 	}
 
-void NetSessions::Internal(const char* msg, const struct pcap_pkthdr* hdr,
-				const u_char* pkt)
+void NetSessions::Internal(const char* msg, const iosource::PktSrc::Packet *pkt)
 	{
-	DumpPacket(hdr, pkt);
+	DumpPacket(pkt);
 	reporter->InternalError("%s", msg);
 	}
 
-void NetSessions::Weird(const char* name, const struct pcap_pkthdr* hdr,
-                        const u_char* pkt, const EncapsulationStack* encap)
+void NetSessions::Weird(const char* name, const iosource::PktSrc::Packet *pkt,
+                        const EncapsulationStack* encap)
 	{
-	if ( hdr )
+	if ( pkt )
 		dump_this_packet = 1;
 
 	if ( encap && encap->LastType() != BifEnum::Tunnel::NONE )

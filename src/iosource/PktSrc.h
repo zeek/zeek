@@ -47,6 +47,57 @@ public:
 	};
 
 	/**
+	 * Structure describing ethernet parameters
+	 */
+	struct EthernetParameters {
+		int vlans[2];
+		const u_char* source_mac;
+		const u_char* destination_mac;
+
+		EthernetParameters() { Clear(); }
+
+		void Clear()
+			{
+			vlans[0] = vlans[1] = -1;
+			source_mac = destination_mac = 0;
+			}
+
+		bool OuterVLAN(int *vlan)
+			{
+			if (vlans[0] == -1)
+				return false;
+
+			*vlan = vlans[0];
+			return true;
+			}
+
+		bool InnerVLAN(int *vlan)
+			{
+			if (vlans[1] == -1)
+				return false;
+
+			*vlan = vlans[1];
+			return true;
+			}
+
+
+		bool SourceMAC(char *buf, size_t bufsize) { return MACAddressStr(source_mac, buf, bufsize); }
+
+		bool DestinationMAC(char *buf, size_t bufsize) { return MACAddressStr(destination_mac, buf, bufsize); }
+
+		bool MACAddressStr(const u_char *mac, char *buf, size_t bufsize)
+			{
+			if ( ! mac )
+				return false;
+
+			int n = snprintf(buf, bufsize, "%02x%02x%02x%02x%02x%02x", 
+					mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+
+			return (n == 12);
+			}
+	};
+
+	/**
 	 * Structure describing a packet.
 	 */
 	struct Packet {
@@ -64,6 +115,8 @@ public:
 		 * The full content of the packet.
 		 */
 		const u_char* data;
+
+		EthernetParameters ethernet_parameters;
 
 		uint32 TotalLen(bool captured=true) const { return captured?hdr->caplen:hdr->len; }
 	};

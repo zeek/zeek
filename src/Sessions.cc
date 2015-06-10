@@ -687,6 +687,13 @@ void NetSessions::DoNextPacket(double t, iosource::PktSrc::Packet *raw_pkt,
 		return;
 	}
 
+	int inner_vlan, outer_vlan;
+	if ( ! raw_pkt->ethernet_parameters.OuterVLAN(&outer_vlan) )
+		outer_vlan = -1;
+
+	if ( ! raw_pkt->ethernet_parameters.InnerVLAN(&inner_vlan) )
+		inner_vlan = -1;
+
 	HashKey* h = BuildConnIDHashKey(id);
 	if ( ! h )
 		reporter->InternalError("hash computation failed");
@@ -698,7 +705,8 @@ void NetSessions::DoNextPacket(double t, iosource::PktSrc::Packet *raw_pkt,
 	conn = (Connection*) d->Lookup(h);
 	if ( ! conn )
 		{
-		conn = NewConn(h, t, &id, data, proto, ip_hdr->FlowLabel(), encapsulation);
+
+		conn = NewConn(h, t, &id, data, proto, ip_hdr->FlowLabel(), outer_vlan, inner_vlan, encapsulation);
 		if ( conn )
 			d->Insert(h, conn);
 		}
@@ -718,7 +726,7 @@ void NetSessions::DoNextPacket(double t, iosource::PktSrc::Packet *raw_pkt,
 				conn->Event(connection_reused, 0);
 
 			Remove(conn);
-			conn = NewConn(h, t, &id, data, proto, ip_hdr->FlowLabel(), encapsulation);
+			conn = NewConn(h, t, &id, data, proto, ip_hdr->FlowLabel(), outer_vlan, inner_vlan, encapsulation);
 			if ( conn )
 				d->Insert(h, conn);
 			}
@@ -1191,6 +1199,7 @@ void NetSessions::GetStats(SessionStats& s) const
 
 Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 					const u_char* data, int proto, uint32 flow_label,
+					int outer_vlan, int inner_vlan,
 					const EncapsulationStack* encapsulation)
 	{
 	// FIXME: This should be cleaned up a bit, it's too protocol-specific.
@@ -1247,7 +1256,7 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 		id = &flip_id;
 		}
 
-	Connection* conn = new Connection(this, k, t, id, flow_label, encapsulation);
+	Connection* conn = new Connection(this, k, t, id, flow_label, outer_vlan, inner_vlan, encapsulation);
 	conn->SetTransport(tproto);
 
 	if ( ! analyzer_mgr->BuildInitialAnalyzerTree(conn) )

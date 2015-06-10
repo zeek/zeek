@@ -345,6 +345,10 @@ type connection: record {
 	## for the connection unless the :bro:id:`tunnel_changed` event is
 	## handled and reassigns this field to the new encapsulation.
 	tunnel: EncapsulatingConnVector &optional;
+
+	outer_vlan: int &optional;
+
+	inner_vlan: int &optional;
 };
 
 ## Default amount of time a file can be inactive before the file analysis

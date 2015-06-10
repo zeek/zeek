@@ -321,8 +321,13 @@ void PktSrc::Process()
 
 	case DLT_EN10MB:
 		{
+		current_packet.ethernet_parameters.Clear();
+
 		// Get protocol being carried from the ethernet frame.
 		protocol = (data[12] << 8) + data[13];
+
+		current_packet.ethernet_parameters.source_mac = data;
+		current_packet.ethernet_parameters.destination_mac = data + 6;
 
 		switch ( protocol )
 			{
@@ -343,6 +348,8 @@ void PktSrc::Process()
 				if ( ((data[2] << 8) + data[3]) == 0x8847 )
 					have_mpls = true;
 
+				current_packet.ethernet_parameters.vlans[0] = (data[3] & 0x0F << 8) + data[4];
+
 				data += 4; // Skip the vlan header
 				pkt_hdr_size = 0;
 
@@ -352,7 +359,10 @@ void PktSrc::Process()
 				// specification that allows for deeper
 				// nesting.
 				if ( ((data[2] << 8) + data[3]) == 0x0800 )
-					data += 4;
+					{
+					current_packet.ethernet_parameters.vlans[1] = (data[3] & 0x0F << 8) + data[4];
+					data += 4; // Skip the vlan header
+					}
 
 				break;
 

@@ -84,3 +84,5 @@
 # Uncomment the following line to enable detection of the heartbleed attack. Enabling
 # this might impact performance a bit.
 # @load policy/protocols/ssl/heartbleed
+
+@load policy/protocols/conn/vlan-logging

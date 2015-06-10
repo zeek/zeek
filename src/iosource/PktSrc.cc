@@ -147,7 +147,7 @@ void PktSrc::Info(const std::string& msg)
 
 void PktSrc::Weird(const std::string& msg, const Packet* p)
 	{
-	sessions->Weird(msg.c_str(), p->hdr, p->data, 0);
+	sessions->Weird(msg.c_str(), p, 0);
 	}
 
 void PktSrc::InternalError(const std::string& msg)
@@ -321,8 +321,13 @@ void PktSrc::Process()
 
 	case DLT_EN10MB:
 		{
+		current_packet.ethernet_parameters.Clear();
+
 		// Get protocol being carried from the ethernet frame.
 		protocol = (data[12] << 8) + data[13];
+
+		current_packet.ethernet_parameters.source_mac = data;
+		current_packet.ethernet_parameters.destination_mac = data + 6;
 
 		switch ( protocol )
 			{
@@ -343,6 +348,8 @@ void PktSrc::Process()
 				if ( ((data[2] << 8) + data[3]) == 0x8847 )
 					have_mpls = true;
 
+				current_packet.ethernet_parameters.vlans[0] = (data[3] & 0x0F << 8) + data[4];
+
 				data += 4; // Skip the vlan header
 				pkt_hdr_size = 0;
 
@@ -352,7 +359,10 @@ void PktSrc::Process()
 				// specification that allows for deeper
 				// nesting.
 				if ( ((data[2] << 8) + data[3]) == 0x0800 )
-					data += 4;
+					{
+					current_packet.ethernet_parameters.vlans[1] = (data[3] & 0x0F << 8) + data[4];
+					data += 4; // Skip the vlan header
+					}
 
 				break;
 
@@ -411,16 +421,21 @@ void PktSrc::Process()
 			}
 		}
 
+	// Calculate how much of the packet got skipped over as it was being
+	// parsed above. We need to pass this header size value down to the
+	// dispatch functions
+	pkt_hdr_size += data - current_packet.data;
+
 	if ( pseudo_realtime )
 		{
 		current_pseudo = CheckPseudoTime();
-		net_packet_dispatch(current_pseudo, current_packet.hdr, data, pkt_hdr_size, this);
+		net_packet_dispatch(current_pseudo, pkt_hdr_size, &current_packet, this);
 		if ( ! first_wallclock )
 			first_wallclock = current_time(true);
 		}
 
 	else
-		net_packet_dispatch(current_packet.ts, current_packet.hdr, data, pkt_hdr_size, this);
+		net_packet_dispatch(current_packet.ts, pkt_hdr_size, &current_packet, this);
 
 done:
 	have_packet = 0;
@@ -519,7 +534,7 @@ BPF_Program* PktSrc::GetBPFFilter(int index)
 	return code;
 	}
 
-bool PktSrc::ApplyBPFFilter(int index, const struct pcap_pkthdr *hdr, const u_char *pkt)
+bool PktSrc::ApplyBPFFilter(int index, const Packet *p)
 	{
 	BPF_Program* code = GetBPFFilter(index);
 
@@ -533,15 +548,13 @@ bool PktSrc::ApplyBPFFilter(int index, const struct pcap_pkthdr *hdr, const u_ch
 	if ( code->MatchesAnything() )
 		return true;
 
-	return pcap_offline_filter(code->GetProgram(), hdr, pkt);
+	return pcap_offline_filter(code->GetProgram(), p->hdr, p->data);
 	}
 
-bool PktSrc::GetCurrentPacket(const pcap_pkthdr** hdr, const u_char** pkt)
+const PktSrc::Packet *PktSrc::GetCurrentPacket()
 	{
 	if ( ! have_packet )
-		return false;
+		return NULL;
 
-	*hdr = current_packet.hdr;
-	*pkt = current_packet.data;
-	return true;
+	return &current_packet;
 	}

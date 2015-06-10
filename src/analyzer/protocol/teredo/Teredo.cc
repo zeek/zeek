@@ -256,5 +256,6 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 
 	EncapsulatingConn ec(Conn(), BifEnum::Tunnel::TEREDO);
 
-	sessions->DoNextInnerPacket(network_time, 0, inner, e, ec);
+	// FIXME Handle raw_pkt better
+	sessions->DoNextInnerPacket(network_time, 0, inner, e, ec, NULL);
 	}

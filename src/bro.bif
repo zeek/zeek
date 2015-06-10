@@ -3238,11 +3238,10 @@ const char* conn_id_string(Val* c)
 ## .. bro:see:: dump_packet get_current_packet send_current_packet
 function dump_current_packet%(file_name: string%) : bool
 	%{
-	const struct pcap_pkthdr* hdr;
-	const u_char* pkt;
+	const iosource::PktSrc::Packet *curr_pkt;
 
 	if ( ! current_pktsrc ||
-	     ! current_pktsrc->GetCurrentPacket(&hdr, &pkt) )
+		! (curr_pkt = current_pktsrc->GetCurrentPacket()))
 		return new Val(0, TYPE_BOOL);
 
 	if ( ! addl_pkt_dumper )
@@ -3251,8 +3250,8 @@ function dump_current_packet%(file_name: string%) : bool
 	if ( addl_pkt_dumper )
 		{
 		iosource::PktDumper::Packet p;
-		p.hdr = hdr;
-		p.data = pkt;
+		p.hdr = curr_pkt->hdr;
+		p.data = curr_pkt->data;
 		addl_pkt_dumper->Dump(&p);
 		}
 
@@ -3267,12 +3266,12 @@ function dump_current_packet%(file_name: string%) : bool
 ## .. bro:see:: dump_current_packet dump_packet send_current_packet
 function get_current_packet%(%) : pcap_packet
 	%{
-	const struct pcap_pkthdr* hdr;
+	const iosource::PktSrc::Packet *curr_pkt;
 	const u_char* data;
 	RecordVal* pkt = new RecordVal(pcap_packet);
 
 	if ( ! current_pktsrc ||
-	     ! current_pktsrc->GetCurrentPacket(&hdr, &data) )
+		! (curr_pkt = current_pktsrc->GetCurrentPacket()))
 		{
 		pkt->Assign(0, new Val(0, TYPE_COUNT));
 		pkt->Assign(1, new Val(0, TYPE_COUNT));
@@ -3282,11 +3281,11 @@ function get_current_packet%(%) : pcap_packet
 		return pkt;
 		}
 
-	pkt->Assign(0, new Val(uint32(hdr->ts.tv_sec), TYPE_COUNT));
-	pkt->Assign(1, new Val(uint32(hdr->ts.tv_usec), TYPE_COUNT));
-	pkt->Assign(2, new Val(hdr->caplen, TYPE_COUNT));
-	pkt->Assign(3, new Val(hdr->len, TYPE_COUNT));
-	pkt->Assign(4, new StringVal(hdr->caplen, (const char*) data));
+	pkt->Assign(0, new Val(uint32(curr_pkt->hdr->ts.tv_sec), TYPE_COUNT));
+	pkt->Assign(1, new Val(uint32(curr_pkt->hdr->ts.tv_usec), TYPE_COUNT));
+	pkt->Assign(2, new Val(curr_pkt->hdr->caplen, TYPE_COUNT));
+	pkt->Assign(3, new Val(curr_pkt->hdr->len, TYPE_COUNT));
+	pkt->Assign(4, new StringVal(curr_pkt->hdr->caplen, (const char*) curr_pkt->data));
 
 	return pkt;
 	%}
@@ -4801,12 +4800,16 @@ function send_ping%(p: event_peer, seq: count%) : bool
 function send_current_packet%(p: event_peer%) : bool
 	%{
 	Packet pkt("");
+	const iosource::PktSrc::Packet *curr_pkt;
 
 	if ( ! current_pktsrc ||
-	     ! current_pktsrc->GetCurrentPacket(&pkt.hdr, &pkt.pkt) )
+		! (curr_pkt = current_pktsrc->GetCurrentPacket()))
 		return new Val(0, TYPE_BOOL);
 
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
+
+        pkt.hdr = curr_pkt->hdr;
+        pkt.pkt = curr_pkt->data;
 
 	pkt.time = pkt.hdr->ts.tv_sec + double(pkt.hdr->ts.tv_usec) / 1e6;
 	pkt.hdr_size = current_pktsrc->HdrSize();

@@ -47,6 +47,81 @@ public:
 	};
 
 	/**
+	 * Structure describing ethernet parameters
+	 */
+	struct EthernetParameters {
+		int vlans[2];
+		const u_char* source_mac;
+		const u_char* destination_mac;
+
+		EthernetParameters() { Clear(); }
+
+		void Clear()
+			{
+			vlans[0] = vlans[1] = -1;
+			source_mac = destination_mac = 0;
+			}
+
+		bool OuterVLAN(int *vlan)
+			{
+			if (vlans[0] == -1)
+				return false;
+
+			*vlan = vlans[0];
+			return true;
+			}
+
+		bool InnerVLAN(int *vlan)
+			{
+			if (vlans[1] == -1)
+				return false;
+
+			*vlan = vlans[1];
+			return true;
+			}
+
+
+		bool SourceMAC(char *buf, size_t bufsize) { return MACAddressStr(source_mac, buf, bufsize); }
+
+		bool DestinationMAC(char *buf, size_t bufsize) { return MACAddressStr(destination_mac, buf, bufsize); }
+
+		bool MACAddressStr(const u_char *mac, char *buf, size_t bufsize)
+			{
+			if ( ! mac )
+				return false;
+
+			int n = snprintf(buf, bufsize, "%02x%02x%02x%02x%02x%02x", 
+					mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+
+			return (n == 12);
+			}
+	};
+
+	/**
+	 * Structure describing a packet.
+	 */
+	struct Packet {
+		/**
+		 *  Time associated with the packet.
+		 */
+		double ts;
+
+		/**
+		 *  The pcap header associated with the packet.
+		 */
+		const struct ::pcap_pkthdr* hdr;
+
+		/**
+		 * The full content of the packet.
+		 */
+		const u_char* data;
+
+		EthernetParameters ethernet_parameters;
+
+		uint32 TotalLen(bool captured=true) const { return captured?hdr->caplen:hdr->len; }
+	};
+
+	/**
 	 * Constructor.
 	 */
 	PktSrc();
@@ -155,24 +230,17 @@ public:
 	 *
 	 * @param index The index of the filter to apply.
 	 *
-	 * @param hdr The header of the packet to filter.
-	 *
-	 * @param pkt The content of the packet to filter.
+	 * @param p The packet to apply the filter to.
 	 *
 	 * @return True if it maches. 	 */
-	bool ApplyBPFFilter(int index, const struct pcap_pkthdr *hdr, const u_char *pkt);
+	bool ApplyBPFFilter(int index, const Packet *p);
 
 	/**
 	 * Returns the packet currently being processed, if available.
 	 *
-	 * @param hdr A pointer to pass the header of the current packet back.
-	 *
-	 * @param pkt A pointer to pass the content of the current packet
-	 * back.
-	 *
-	 * @return True if the current packet is available, or false if not.
+	 * @return A pointer to the current packet, if available, or NULL if not.
 	 */
-	bool GetCurrentPacket(const pcap_pkthdr** hdr, const u_char** pkt);
+	const Packet *GetCurrentPacket();
 
 	// PacketSource interace for derived classes to override.
 
@@ -272,26 +340,6 @@ protected:
 		bool is_live;
 
 		Properties();
-	};
-
-	/**
-	 * Structure describing a packet.
-	 */
-	struct Packet {
-		/**
-		 *  Time associated with the packet.
-		 */
-		double ts;
-
-		/**
-		 *  The pcap header associated with the packet.
-		 */
-		const struct ::pcap_pkthdr* hdr;
-
-		/**
-		 * The full content of the packet.
-		 */
-		const u_char* data;
 	};
 
 	/**

@@ -758,7 +758,7 @@ flow GTPv1_Flow(is_orig: bool)
 
 		EncapsulatingConn ec(c, BifEnum::Tunnel::GTPv1);
 
-		sessions->DoNextInnerPacket(network_time(), 0, inner, e, ec);
+		sessions->DoNextInnerPacket(network_time(), 0, inner, e, ec, NULL);
 
 		return true;
 		%}

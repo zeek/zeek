@@ -56,7 +56,7 @@ namespace analyzer { class Analyzer; }
 class Connection : public BroObj {
 public:
 	Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
-	           uint32 flow, const EncapsulationStack* arg_encap);
+	           uint32 flow, int outer_vlan, int inner_vlan, const EncapsulationStack* arg_encap);
 	virtual ~Connection();
 
 	// Invoked when an encapsulation is discovered. It records the
@@ -86,9 +86,8 @@ public:
 			const u_char*& data,
 			int& record_packet, int& record_content,
 			// arguments for reproducing packets
-			const struct pcap_pkthdr* hdr,
-			const u_char* const pkt,
-			int hdr_size);
+			int hdr_size,
+			iosource::PktSrc::Packet *raw_pkt);
 
 	HashKey* Key() const			{ return key; }
 	void ClearKey()				{ key = 0; }
@@ -266,6 +265,21 @@ public:
 	uint32 GetOrigFlowLabel() { return orig_flow_label; }
 	uint32 GetRespFlowLabel() { return resp_flow_label; }
 
+	bool OuterVLAN(int *vlan) const
+		{
+		if (outer_vlan == -1)
+			return false;
+		*vlan = outer_vlan;
+		return true;
+		}
+
+	bool InnerVLAN(int *vlan) const
+		{
+		if (inner_vlan == -1)
+			return false;
+		*vlan = inner_vlan;
+		return true;
+		}
 protected:
 
 	Connection()	{ persistent = 0; }
@@ -297,6 +311,7 @@ protected:
 	uint32 orig_port, resp_port;	// in network order
 	TransportProto proto;
 	uint32 orig_flow_label, resp_flow_label; // most recent IPv6 flow labels
+	int outer_vlan, inner_vlan; // ethernet VLAN(s)
 	double start_time, last_time;
 	double inactivity_timeout;
 	RecordVal* conn_val;

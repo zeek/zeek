@@ -1454,7 +1454,12 @@ void RemoteSerializer::Process()
 		{
 		BufferedPacket* bp = packets[0];
 		Packet* p = bp->p;
+		iosource::PktSrc::Packet psrc_pkt;
 
+		psrc_pkt.ts = p->time;
+		psrc_pkt.hdr = p->hdr;
+		psrc_pkt.data = p->pkt;
+ 
 		// FIXME: The following chunk of code is copied from
 		// net_packet_dispatch().  We should change that function
 		// to accept an IOSource instead of the PktSrc.
@@ -1465,14 +1470,12 @@ void RemoteSerializer::Process()
 		current_dispatched =
 			tmgr->Advance(network_time, max_timer_expires);
 
-		current_hdr = p->hdr;
-		current_pkt = p->pkt;
+		current_pkt = &psrc_pkt;
 		current_pktsrc = 0;
 		current_iosrc = this;
-		sessions->NextPacket(p->time, p->hdr, p->pkt, p->hdr_size);
+		sessions->NextPacket(p->time, p->hdr_size, &psrc_pkt);
 		mgr.Drain();
 
-		current_hdr = 0;	// done with these
 		current_pkt = 0;
 		current_iosrc = 0;
 

@@ -1,0 +1,12 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	tcprecovery
+#open	2014-08-05-06-18-48
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	label	seq	rtt	state	orig	nnseq
+#types	time	string	addr	port	addr	port	string	count	double	int	bool	count
+1285864881.443514	CXWv6p3arKYeMETxOg	10.1.32.198	55408	192.168.0.11	80	TCP::LIMITEDTRANSMIT	4180957073	0.287675	2	F	4180911746
+1285864881.458838	CXWv6p3arKYeMETxOg	10.1.32.198	55408	192.168.0.11	80	TCP::FASTRECOVERY	4180951520	0.287675	2	F	4180911746
+1285864881.564242	CXWv6p3arKYeMETxOg	10.1.32.198	55408	192.168.0.11	80	TCP::FASTRECOVERY	4180952783	0.287675	2	F	4180911746
+#close	2014-08-05-06-18-48

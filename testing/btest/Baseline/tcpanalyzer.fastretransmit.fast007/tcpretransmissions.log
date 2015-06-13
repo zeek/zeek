@@ -1,0 +1,15 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	tcpretransmissions
+#open	2014-08-05-06-18-31
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	label	seq	rtt	state	orig	reason	rtype	confidence	nnseq	flags
+#types	time	string	addr	port	addr	port	string	count	double	int	bool	int	int	double	count	int
+1285863402.372625	CXWv6p3arKYeMETxOg	10.0.141.44	57952	192.168.0.2	80	TCP::Retransmissions	3478741263	0.0	1	F	1	1	-	3478741263	2
+1285863402.972624	CXWv6p3arKYeMETxOg	10.0.141.44	57952	192.168.0.2	80	TCP::Retransmissions	3478741263	0.0	1	F	1	14	-	3478741263	2
+1285863403.830917	CXWv6p3arKYeMETxOg	10.0.141.44	57952	192.168.0.2	80	TCP::Retransmissions	3478741264	0.0	2	F	2	13	-	3478741263	0
+1285863403.847262	CXWv6p3arKYeMETxOg	10.0.141.44	57952	192.168.0.2	80	TCP::Retransmissions	3478742666	0.0	2	F	1	5	-	3478741263	0
+1285863403.877040	CXWv6p3arKYeMETxOg	10.0.141.44	57952	192.168.0.2	80	TCP::Retransmissions	3478744068	0.0	2	F	1	5	-	3478741263	0
+1285863403.925766	CXWv6p3arKYeMETxOg	10.0.141.44	57952	192.168.0.2	80	TCP::Retransmissions	3478746699	0.0	2	F	1	5	-	3478741263	0
+#close	2014-08-05-06-18-31

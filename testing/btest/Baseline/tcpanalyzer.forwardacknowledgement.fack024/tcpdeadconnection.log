@@ -1,0 +1,18 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	tcpdeadconnection
+#open	2014-08-05-06-19-12
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	label	duration	state	orig
+#types	time	string	addr	port	addr	port	string	double	int	bool
+1285864127.337763	CXWv6p3arKYeMETxOg	10.0.70.86	1296	192.168.0.4	80	TCP::ConnectionFailure	1.780348	3	T
+1285864139.602150	CXWv6p3arKYeMETxOg	10.0.70.86	1296	192.168.0.4	80	TCP::ConnectionFailure	2.907175	2	T
+1285864141.174118	CXWv6p3arKYeMETxOg	10.0.70.86	1296	192.168.0.4	80	TCP::ConnectionFailure	0.688341	5	T
+1285864142.618004	CXWv6p3arKYeMETxOg	10.0.70.86	1296	192.168.0.4	80	TCP::ConnectionFailure	0.71603	9	T
+1285864147.752621	CXWv6p3arKYeMETxOg	10.0.70.86	1296	192.168.0.4	80	TCP::ConnectionFailure	0.966807	9	T
+1285864149.191765	CXWv6p3arKYeMETxOg	10.0.70.86	1296	192.168.0.4	80	TCP::ConnectionFailure	1.439144	9	T
+1285864153.183830	CXWv6p3arKYeMETxOg	10.0.70.86	1296	192.168.0.4	80	TCP::ConnectionFailure	2.234937	5	T
+1285864162.546420	CXWv6p3arKYeMETxOg	10.0.70.86	1296	192.168.0.4	80	TCP::ConnectionFailure	3.986528	9	T
+1285864395.517606	CXWv6p3arKYeMETxOg	10.0.70.86	1296	192.168.0.4	80	TCP::ConnectionFailure	2.112279	5	T
+#close	2014-08-05-06-19-12

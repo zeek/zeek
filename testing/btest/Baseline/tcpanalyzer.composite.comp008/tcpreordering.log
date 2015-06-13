@@ -1,0 +1,12 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	tcpreordering
+#open	2014-08-05-06-19-25
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	label	seq	gap	rtt	segments_outoforder	orig	ambiguous	nnseq
+#types	time	string	addr	port	addr	port	string	count	double	double	int	bool	bool	count
+1285863597.648163	CXWv6p3arKYeMETxOg	10.0.45.170	54976	192.168.0.13	80	TCP::Reordering	4167401613	0.000039	0.310091	1	T	F	4167374409
+1285863598.232276	CXWv6p3arKYeMETxOg	10.0.45.170	54976	192.168.0.13	80	TCP::Reordering	4167403163	0.000048	0.310259	1	T	F	4167374409
+1285864129.947159	CXWv6p3arKYeMETxOg	10.0.45.170	54976	192.168.0.13	80	TCP::Reordering	4167498892	0.000002	0.176011	1	T	F	4167374409
+#close	2014-08-05-06-19-25

@@ -353,6 +353,7 @@ private:
 	Tag analyzer_interconn;
 	Tag analyzer_stepping;
 	Tag analyzer_tcpstats;
+	Tag analyzer_tcprs;
 
 	//// Data structures to track analyzed scheduled for future connections.
 

@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	tcprecovery
+#open	2014-08-05-06-18-37
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	label	seq	rtt	state	orig	nnseq
+#types	time	string	addr	port	addr	port	string	count	double	int	bool	count
+1285862291.432755	CXWv6p3arKYeMETxOg	10.0.18.146	12064	192.168.0.10	80	TCP::FASTRECOVERY	3192742979	0.597444	2	F	3192732055
+#close	2014-08-05-06-18-37

@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	conn
+#open	2015-06-18-04-36-54
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	local_resp	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents
+#types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	bool	count	string	count	count	count	count	set[string]
+1285862485.597677	CXWv6p3arKYeMETxOg	10.0.8.169	53824	192.168.0.10	80	tcp	-	68.174947	22184	370193	SF	-	-	379248	ShADadFfR	183	29740	317	393833	(empty)
+#close	2015-06-18-04-36-55

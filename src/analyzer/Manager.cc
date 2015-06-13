@@ -92,6 +92,7 @@ void Manager::InitPreScript()
 	analyzer_interconn = GetComponentTag("INTERCONN");
 	analyzer_stepping = GetComponentTag("STEPPINGSTONE");
 	analyzer_tcpstats = GetComponentTag("TCPSTATS");
+	analyzer_tcprs = GetComponentTag("TCPRS");
 	}
 
 void Manager::InitPostScript()
@@ -479,6 +480,10 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 			// Add TCPStats analyzer. This needs to see packets so
 			// we cannot add it as a normal child.
 			tcp->AddChildPacketAnalyzer(new tcp::TCPStats_Analyzer(conn));
+
+		if ( IsEnabled(analyzer_tcprs) && use_tcp_analyzer )
+			// Add TCPRS analyzer. This needs to see packets as well.
+			tcp->AddChildPacketAnalyzer(new tcp::TCPRS_Analyzer(conn));
 
 		if ( IsEnabled(analyzer_connsize) )
 			// Add ConnSize analyzer. Needs to see packets, not stream.

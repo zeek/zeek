@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	tcpoptions
+#open	2014-08-05-06-19-01
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	label	timestamps	bad	sack_used	orig_sack_offer	resp_sack_offer
+#types	time	string	addr	port	addr	port	string	bool	bool	bool	bool	bool
+0.000000	CXWv6p3arKYeMETxOg	10.1.53.15	54816	192.168.0.17	80	TCP::Options	F	F	T	T	T
+#close	2014-08-05-06-19-01

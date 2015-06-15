@@ -2927,6 +2927,50 @@ export {
 	};
 }
 
+
+module OCSP;
+export {
+	type OneReq: record {
+		hashAlgorithm:      string  &log;
+		issuerNameHash:     string  &log;
+		issuerKeyHash:      string  &log;
+		serialNumber:       string  &log;
+		#RequestExtensions: xxx
+		};
+	type Request: record {
+		version:            count   &log &optional;
+		requestorName:      string  &log &optional;
+		requestList:        vector of OneReq;
+		#requestExtensions: xxx
+                };
+	type SingleResp: record {
+		hashAlgorithm:      string  &log;
+		issuerNameHash:     string  &log;
+		issuerKeyHash:      string  &log;
+		serialNumber:       string  &log;
+		certStatus:         string  &log;
+		thisUpdate:         string  &log;
+		nextUpdate:         string  &log  &optional;
+		#Extensions: xxx
+		};
+	type Response: record {
+		responseStatus:     string  &log;
+		responseType:       string  &log;
+		version:            count   &log;
+		responderID:        string  &log;
+		producedAt:         string  &log;
+		responses:          vector of SingleResp;
+		#responseExtensions:xxx
+		signatureAlgorithm: string  &log;
+		signature:          string;  #&log;
+		};
+	}
+
+module GLOBAL;
+type ocsp_req_vec: vector of OCSP::OneReq;
+type ocsp_resp_vec: vector of OCSP::SingleResp;
+
+			
 module SOCKS;
 export {
 	## This record is for a SOCKS client or server to provide either a

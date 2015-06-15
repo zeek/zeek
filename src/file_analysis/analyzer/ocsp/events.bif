@@ -1,0 +1,23 @@
+## Generated for encountered OCSP request
+##
+##
+## f: The file.
+##
+## req_ref: An opaque pointer to the underlying OpenSSL data structure of the
+##          OCSP request
+##
+## req: The parsed OCSP request information.
+##
+event ocsp_request%(f: fa_file, req_ref: opaque of ocsp_req, req: OCSP::Request%);
+
+## Generated for encountered OCSP response
+##
+##
+## f: The file.
+##
+## req_ref: An opaque pointer to the underlying OpenSSL data structure of the
+##          OCSP response
+##
+## req: The parsed OCSP response information.
+##
+event ocsp_response%(f: fa_file, resp_ref: opaque of ocsp_resp, resp: OCSP::Response%);

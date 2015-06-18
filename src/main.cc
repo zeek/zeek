@@ -179,8 +179,8 @@ void usage()
 	fprintf(stderr, "    -r|--readfile <readfile>       | read from given tcpdump file\n");
 	fprintf(stderr, "    -s|--rulefile <rulefile>       | read rules from given file\n");
 	fprintf(stderr, "    -t|--tracefile <tracefile>     | activate execution tracing\n");
-	fprintf(stderr, "    -w|--writefile <writefile>     | write to given tcpdump file\n");
 	fprintf(stderr, "    -v|--version                   | print version and exit\n");
+	fprintf(stderr, "    -w|--writefile <writefile>     | write to given tcpdump file\n");
 	fprintf(stderr, "    -x|--print-state <file.bst>    | print contents of state file\n");
 	fprintf(stderr, "    -z|--analyze <analysis>        | run the specified policy file analysis\n");
 #ifdef DEBUG
@@ -547,7 +547,7 @@ int main(int argc, char** argv)
 	opterr = 0;
 
 	char opts[256];
-	safe_strncpy(opts, "B:e:f:I:i:J:K:n:p:R:r:s:T:t:U:w:x:X:z:CFNPSWabdghvQ",
+	safe_strncpy(opts, "B:e:f:I:i:J:K:n:p:R:r:s:T:t:U:w:x:X:z:CFNPQSWabdghv",
 		     sizeof(opts));
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -582,6 +582,10 @@ int main(int argc, char** argv)
 			dump_cfg = true;
 			break;
 
+		case 'h':
+			usage();
+			break;
+
 		case 'i':
 			interfaces.append(optarg);
 			break;
@@ -603,8 +607,17 @@ int main(int argc, char** argv)
 			g_trace_state.TraceOn();
 			break;
 
+		case 'v':
+			fprintf(stderr, "%s version %s\n", prog, bro_version());
+			exit(0);
+			break;
+
 		case 'w':
 			writefile = optarg;
+			break;
+
+		case 'x':
+			bst_file = optarg;
 			break;
 
 		case 'z':
@@ -615,6 +628,10 @@ int main(int argc, char** argv)
 				fprintf(stderr, "Unknown analysis type: %s\n", optarg);
 				exit(1);
 				}
+			break;
+
+		case 'B':
+			debug_streams = optarg;
 			break;
 
 		case 'C':
@@ -688,13 +705,8 @@ int main(int argc, char** argv)
 			do_watchdog = 1;
 			break;
 
-		case 'h':
-			usage();
-			break;
-
-		case 'v':
-			fprintf(stderr, "%s version %s\n", prog, bro_version());
-			exit(0);
+		case 'X':
+			broxygen_config = optarg;
 			break;
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -707,9 +719,6 @@ int main(int argc, char** argv)
 			break;
 #endif
 
-		case 'x':
-			bst_file = optarg;
-			break;
 #if 0 // broken
 		case 'X':
 			bst_file = optarg;
@@ -717,20 +726,12 @@ int main(int argc, char** argv)
 			break;
 #endif
 
-		case 'X':
-			broxygen_config = optarg;
-			break;
-
 #ifdef USE_IDMEF
 		case 'n':
 			fprintf(stderr, "Using IDMEF XML DTD from %s\n", optarg);
 			libidmef_dtd_path = optarg;
 			break;
 #endif
-
-		case 'B':
-			debug_streams = optarg;
-			break;
 
 		case 0:
 			// This happens for long options that don't have

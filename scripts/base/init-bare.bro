@@ -2961,8 +2961,14 @@ export {
 		producedAt:         string  &log;
 		responses:          vector of SingleResp;
 		#responseExtensions:xxx
-		signatureAlgorithm: string  &log;
-		signature:          string;  #&log;
+		signatureAlgorithm: string  &log &optional;
+		signature:          string  &optional;  #&log;
+		};
+	type CertId: record {
+		hashAlgorithm:      string  &log;
+		issuerNameHash:     string  &log;
+		issuerKeyHash:      string  &log;
+		serialNumber:       string  &log;
 		};
 	}
 

@@ -2,3 +2,4 @@ type OCSP::Request: record;
 type OCSP::Response: record;
 type OCSP::OneReq: record;
 type OCSP::SingleResp: record;
+type OCSP::CertId: record;

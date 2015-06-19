@@ -1,13 +1,13 @@
 
-2.4-5 | 2015-06-19 14:06:15 -0700
+2.4-6 | 2015-06-19 16:26:40 -0700
 
   * Generate protocol confirmations for Modbus, making it appear as a
     confirmed service in conn.log. (Seth Hall)
 
   * Put command line options in alphabetical order. (Daniel Thayer)
 
-  * Remove unused code fo no longer supported -G command line option.
-    (Robin Sommer)
+  * Removing dead code for no longer supported -G switch. (Robin
+    Sommer) (Robin Sommer)
 
 2.4 | 2015-06-09 07:30:53 -0700
 

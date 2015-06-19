@@ -490,7 +490,6 @@ int main(int argc, char** argv)
 		{"analyze",		required_argument,	0,	'z'},
 		{"no-checksums",	no_argument,		0,	'C'},
 		{"force-dns",		no_argument,		0,	'F'},
-		{"load-seeds",		required_argument,	0,	'G'},
 		{"save-seeds",		required_argument,	0,	'H'},
 		{"set-seed",		required_argument,	0,	'J'},
 		{"md5-hashkey",		required_argument,	0,	'K'},
@@ -648,10 +647,6 @@ int main(int argc, char** argv)
 			if ( dns_type != DNS_DEFAULT )
 				usage();
 			dns_type = DNS_FORCE;
-			break;
-
-		case 'G':
-			seed_load_file = optarg;
 			break;
 
 		case 'H':

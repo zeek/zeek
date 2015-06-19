@@ -537,3 +537,90 @@ x509_verify_chainerror:
 
 	return rrecord;
 	%}
+
+## Get the hash of issuer name of a certificate
+##
+## cert: The X509 certificate opaque handle.
+##
+## hash_alg: the hash algorithm to use
+## 
+## Returns: A string of hash of issuer name.
+## 
+## .. bro:see:: x509_certificate x509_extension x509_ext_basic_constraints
+##              x509_ext_subject_alternative_name x509_parse
+##              x509_get_certificate_string x509_verify
+function x509_issuer_name_hash%(cert: opaque of x509, hash_alg: string%): string
+        %{
+	assert(cert);
+	assert(hash_alg);
+
+	file_analysis::X509Val *cert_handle = (file_analysis::X509Val *) cert;
+	X509 *cert_x509 = cert_handle->GetCertificate();
+	if (cert_x509 == NULL)
+		{
+		builtin_error("cannot get cert from opaque");
+		return NULL;
+		}
+
+	X509_NAME *issuer_name = NULL;
+	StringVal *issuer_name_str = NULL;
+	issuer_name = X509_get_issuer_name(cert_x509);
+	if (issuer_name == NULL)
+		{
+		builtin_error("fail to get issuer name from certificate");
+		return NULL;
+		}
+
+	const char* h = hash_alg->CheckString();
+	if (h == NULL)
+		{
+		builtin_error("fail to get hash algorithm from input");
+		return NULL;
+		}
+
+	const EVP_MD *dgst; 
+	if (strcmp(h, "sha1") == 0)
+		dgst = EVP_sha1();
+	else if (strcmp(h, "sha224") == 0)
+		dgst = EVP_sha224();
+	else if (strcmp(h, "sha256") == 0)
+		dgst = EVP_sha256();
+	else if (strcmp(h, "sha384") == 0)
+		dgst = EVP_sha384();
+	else if (strcmp(h, "sha512") == 0)
+		dgst = EVP_sha512();
+	else
+		{
+		reporter->Error("Unknown digest!");
+		return NULL;
+		}
+	if (dgst == NULL)
+		{
+		builtin_error("fail to allocate digest");
+		return NULL;
+		}
+
+	unsigned char md[EVP_MAX_MD_SIZE];
+	unsigned int len = 0;
+	ASN1_OCTET_STRING *oct_str = ASN1_STRING_type_new(V_ASN1_OCTET_STRING);
+	int new_len = -1;
+	BIO *bio = BIO_new(BIO_s_mem());
+	char buf[1024];
+	memset(buf, 0, sizeof(buf));
+
+	if (!X509_NAME_digest(issuer_name, dgst, md, &len))
+		goto err;
+	if (!ASN1_OCTET_STRING_set(oct_str, md, len))
+		goto err;
+	if (i2a_ASN1_STRING(bio, oct_str, V_ASN1_OCTET_STRING) <= 0)
+		goto err;
+	new_len = BIO_read(bio, buf, sizeof(buf));
+	if (new_len > 0)
+		issuer_name_str = new StringVal(new_len, buf);
+
+	//NOTE: the result string may contain "\\x0a" for sha384 and sha512
+	//      probably need to remove it from here?
+err:
+	BIO_free_all(bio);
+        return issuer_name_str;
+	%}

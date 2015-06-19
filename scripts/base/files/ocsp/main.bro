@@ -13,7 +13,7 @@ export {
         ## ocsp logging
 	redef enum Log::ID += { LOG };
 
-	## tyep for pending ocsp request
+	## type for pending ocsp request
 	type PendingRequests: table[OCSP::CertId] of Queue::Queue;
 
 	## NOTE: one file could contain several requests
@@ -27,7 +27,7 @@ export {
 		version:            count   &log &optional;
 		## requestor name
 		requestorName:      string  &log &optional;
-		## NOTE: the above are for one file which may constain
+		## NOTE: the above are for one file which may contain
 		##       several ocsp requests
 		## request cert id
 		certId:             OCSP::CertId &optional;
@@ -65,8 +65,8 @@ export {
 	};
 
 	type Info: record {
-		## timestamp for request if both request is present
-		## OR timestamp for response if request is not found
+		## timestamp for request if a corresponding request is present
+		## OR timestamp for response if a corresponding request is not found
 		ts:                 time    &log;
 		certId:             OCSP::CertId  &log  &optional;
 		req:                Info_req      &log  &optional;

@@ -30,7 +30,7 @@ export {
 		## NOTE: the above are for one file which may constain
 		##       several ocsp requests
 		## request cert id
-		certId:             OCSP::CertId  &log  &optional;
+		certId:             OCSP::CertId &optional;
 	};
 
 	## NOTE: one file could contain several response
@@ -54,7 +54,8 @@ export {
 		## NOTE: the following are specific to one cert id
 		##       the above are for one file which may contain
 		##       several responses
-
+		##cert id
+		certId:             OCSP::CertId  &optional;
 		## certStatus (this is the response to look at)
 		certStatus:         string  &log  &optional;
 		## thisUpdate
@@ -67,8 +68,9 @@ export {
 		## timestamp for request if both request is present
 		## OR timestamp for response if request is not found
 		ts:                 time    &log;
-		req: Info_req        &log &optional;
-		resp: Info_resp      &log &optional;
+		certId:             OCSP::CertId  &log  &optional;
+		req:                Info_req      &log  &optional;
+		resp:               Info_resp     &log  &optional;
 	};
 
         ## Event for accessing logged OCSP records.
@@ -181,23 +183,24 @@ event ocsp_response(f: fa_file, resp_ref: opaque of ocsp_resp, resp: OCSP::Respo
 						     $version        = resp$version,
 						     $responderID    = resp$responderID,
 						     $producedAt     = resp$producedAt,
+						     $certId         = cert_id,
 						     $certStatus     = single_resp$certStatus,
 						     $thisUpdate     = single_resp$thisUpdate];
 			if (single_resp?$nextUpdate)
 				resp_rec$nextUpdate = single_resp$nextUpdate;
 
-			if (cert_id in conn$ocsp_requests)
+			if (conn?$ocsp_requests && cert_id in conn$ocsp_requests)
 				{
 				# find a match
 				local req_rec: Info_req = Queue::get(conn$ocsp_requests[cert_id]);
-				Log::write(LOG, [$ts=req_rec$ts, $req=req_rec, $resp=resp_rec]);
+				Log::write(LOG, [$ts=req_rec$ts, $certId=req_rec$certId, $req=req_rec, $resp=resp_rec]);
 				if (Queue::len(conn$ocsp_requests[cert_id]) == 0)
 					delete conn$ocsp_requests[cert_id]; #if queue is empty, delete it?
 				}
 			else
 				{
 				# do not find a match; this is weird but log it
-				Log::write(LOG, [$ts=resp_rec$ts, $resp=resp_rec]);
+				Log::write(LOG, [$ts=resp_rec$ts, $certId=resp_rec$certId, $resp=resp_rec]);
 				}
 			}
 		}
@@ -220,7 +223,7 @@ function log_unmatched_msgs_queue(q: Queue::Queue)
 	Queue::get_vector(q, reqs);
 
 	for ( i in reqs )
-		Log::write(LOG, [$ts=reqs[i]$ts, $req=reqs[i]]);
+		Log::write(LOG, [$ts=reqs[i]$ts, $certId=reqs[i]$certId, $req=reqs[i]]);
 	}
 
 function log_unmatched_msgs(msgs: PendingRequests)

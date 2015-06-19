@@ -52,6 +52,8 @@ static int ANS1_to_cstr(char *buf, int buf_len, void *data, int type)
 		}
 	else if (type == V_ASN1_INTEGER)
 		{
+		// NOTE: this will print the hex number
+		//       wireshark may display decimal number
 		if (i2a_ASN1_INTEGER(bio, (ASN1_INTEGER *)data) <= 0)
 			goto err;
 		}
@@ -183,7 +185,7 @@ static void ocsp_print_cert_id(OCSP_CERTID *cid)
 	printf("[%d]issuerKeyHash: %s\n", new_len, issuerKeyHash.CheckString());
 
 	//print serialNumber
-	new_len = ASN1_INTEGER_to_cstr(buf, len, (void *)(cid->issuerKeyHash));
+	new_len = ASN1_INTEGER_to_cstr(buf, len, (void *)(cid->serialNumber));
 	StringVal serialNumber = StringVal(new_len, buf);
 	printf("[%d]serialNumber: %s\n", new_len, serialNumber.CheckString());
 	}
@@ -217,7 +219,7 @@ static void ocsp_fill_cert_id(OCSP_CERTID *cert_id, RecordVal *d)
 	
 	//serialNumber
 	len = -1;
-	len = ASN1_INTEGER_to_cstr(buf, buf_len, (void *)(cert_id->issuerKeyHash));
+	len = ASN1_INTEGER_to_cstr(buf, buf_len, (void *)(cert_id->serialNumber));
 	if (len > 0)
 		d->Assign(3, new StringVal(len, buf));
 	}
@@ -387,7 +389,7 @@ RecordVal *file_analysis::OCSP::ParseRequest(OCSP_REQVal *req_val)
 			all_req_bro = new VectorVal(internal_type("ocsp_req_vec")->AsVectorType());
 		RecordVal *one_req_bro = new RecordVal(BifType::Record::OCSP::OneReq);
 
-		ocsp_fill_cert_id(cert_id, one_req_bro);		
+		ocsp_fill_cert_id(cert_id, one_req_bro);
 		all_req_bro->Assign(all_req_bro->Size(), one_req_bro);
 		}
 	

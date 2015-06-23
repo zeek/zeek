@@ -188,6 +188,8 @@ void usage()
 #endif
 	fprintf(stderr, "    -C|--no-checksums              | ignore checksums\n");
 	fprintf(stderr, "    -F|--force-dns                 | force DNS\n");
+	fprintf(stderr, "    -G|--load-seeds <file>         | load seeds from given file\n");
+	fprintf(stderr, "    -H|--save-seeds <file>         | save seeds to given file\n");
 	fprintf(stderr, "    -I|--print-id <ID name>        | print out given ID\n");
 	fprintf(stderr, "    -J|--set-seed <seed>           | set the random number seed\n");
 	fprintf(stderr, "    -K|--md5-hashkey <hashkey>     | set key for MD5-keyed hashing\n");
@@ -209,8 +211,6 @@ void usage()
 	fprintf(stderr, "    -X <file.bst>                  | print contents of state file as XML\n");
 #endif
 	fprintf(stderr, "    --pseudo-realtime[=<speedup>]  | enable pseudo-realtime for performance evaluation (default 1)\n");
-	fprintf(stderr, "    --load-seeds <file>            | load seeds from given file\n");
-	fprintf(stderr, "    --save-seeds <file>            | save seeds to given file\n");
 
 #ifdef USE_IDMEF
 	fprintf(stderr, "    -n|--idmef-dtd <idmef-msg.dtd> | specify path to IDMEF DTD file\n");
@@ -490,6 +490,7 @@ int main(int argc, char** argv)
 		{"analyze",		required_argument,	0,	'z'},
 		{"no-checksums",	no_argument,		0,	'C'},
 		{"force-dns",		no_argument,		0,	'F'},
+		{"load-seeds",		required_argument,	0,	'G'},
 		{"save-seeds",		required_argument,	0,	'H'},
 		{"set-seed",		required_argument,	0,	'J'},
 		{"md5-hashkey",		required_argument,	0,	'K'},
@@ -546,7 +547,7 @@ int main(int argc, char** argv)
 	opterr = 0;
 
 	char opts[256];
-	safe_strncpy(opts, "B:e:f:I:i:J:K:n:p:R:r:s:T:t:U:w:x:X:z:CFNPQSWabdghv",
+	safe_strncpy(opts, "B:e:f:G:H:I:i:J:K:n:p:R:r:s:T:t:U:w:x:X:z:CFNPQSWabdghv",
 		     sizeof(opts));
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -647,6 +648,10 @@ int main(int argc, char** argv)
 			if ( dns_type != DNS_DEFAULT )
 				usage();
 			dns_type = DNS_FORCE;
+			break;
+
+		case 'G':
+			seed_load_file = optarg;
 			break;
 
 		case 'H':

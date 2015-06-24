@@ -1,4 +1,9 @@
 
+2.4-8 | 2015-06-24 07:50:50 -0700
+
+  * Restore the --load-seeds cmd-line option and enable the short
+    options -G/-H for --load-seeds/--save-seeds. (Daniel Thayer)
+
 2.4-6 | 2015-06-19 16:26:40 -0700
 
   * Generate protocol confirmations for Modbus, making it appear as a

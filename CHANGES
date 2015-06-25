@@ -1,4 +1,8 @@
 
+2.4-10 | 2015-06-25 07:11:17 -0700
+
+  * Correct a name used in a header identifier (Justin Azoff)
+
 2.4-8 | 2015-06-24 07:50:50 -0700
 
   * Restore the --load-seeds cmd-line option and enable the short

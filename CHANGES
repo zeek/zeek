@@ -1,8 +1,14 @@
 
+2.4-14 | 2015-06-28 12:30:12 -0700
+
+  * BIT-1400: Allow '<' and '>' in MIME multipart boundaries. The spec
+    doesn't actually seem to permit these, but they seem to occur in
+    the wild. (Jon Siwek)
+
 2.4-12 | 2015-06-28 12:21:11 -0700
 
-  * Trying to decompress deflated HTTP content even when zlib headers
-    are missing. (Seth Hall)
+  * BIT-1399: Trying to decompress deflated HTTP content even when
+    zlib headers are missing. (Seth Hall)
 
 2.4-10 | 2015-06-25 07:11:17 -0700
 

@@ -1,4 +1,9 @@
 
+2.4-12 | 2015-06-28 12:21:11 -0700
+
+  * Trying to decompress deflated HTTP content even when zlib headers
+    are missing. (Seth Hall)
+
 2.4-10 | 2015-06-25 07:11:17 -0700
 
   * Correct a name used in a header identifier (Justin Azoff)

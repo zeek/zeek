@@ -282,7 +282,8 @@ event packet_contents%(c: connection, contents: string%);
 ## reassembling a TCP stream, Bro buffers all payload until it sees the
 ## responder acking it. If during that time, the sender resends a chunk of
 ## payload but with different content than originally, this event will be
-## raised.
+## raised. In addition, if :bro:id:`tcp_max_old_segments` is larger than zero,
+## mismatches with that older still-buffered data will likewise trigger the event.
 ##
 ## c: The connection showing the inconsistency.
 ##

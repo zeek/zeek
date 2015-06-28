@@ -954,6 +954,11 @@ const tcp_max_above_hole_without_any_acks = 16384 &redef;
 ## .. bro:see:: tcp_max_initial_window tcp_max_above_hole_without_any_acks
 const tcp_excessive_data_without_further_acks = 10 * 1024 * 1024 &redef;
 
+## Number of TCP segments to buffer beyond what's been acknowledged already
+## to detect retransmission inconsistencies. Zero disables any additonal
+## buffering.
+const tcp_max_old_segments = 0 &redef;
+
 ## For services without a handler, these sets define originator-side ports
 ## that still trigger reassembly.
 ##

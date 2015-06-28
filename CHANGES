@@ -1,4 +1,13 @@
 
+2.4-17 | 2015-06-28 13:02:41 -0700
+
+  * BIT-1314: Add detection for Quantum Insert attacks. The TCP
+    reassembler can now keep a history of old TCP segments using the
+    tcp_max_old_segments option. An overlapping segment with different
+    data will then generate an rexmit_inconsistency event. The default
+    for tcp_max_old_segments is zero, which disabled any additional
+    buffering. (Yun Zheng Hu)
+
 2.4-14 | 2015-06-28 12:30:12 -0700
 
   * BIT-1400: Allow '<' and '>' in MIME multipart boundaries. The spec

@@ -765,7 +765,7 @@ int main(int argc, char** argv)
 	binpac::init();
 
 	ERR_load_crypto_strings();
-	OPENSSL_add_all_algorithms_conf();
+	OpenSSL_add_all_algorithms();
 	SSL_library_init();
 	SSL_load_error_strings();
 

@@ -90,7 +90,7 @@ type UnknownRecord(rec: SSLRecord) = record {
 };
 
 type CiphertextRecord(rec: SSLRecord) = record {
-	cont : bytestring &restofdata &transient;
+	data : bytestring &restofdata;
 };
 
 ######################################################################

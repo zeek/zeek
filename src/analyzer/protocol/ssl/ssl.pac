@@ -38,4 +38,5 @@ flow SSL_Flow(is_orig: bool) {
 
 %include ssl-dtls-analyzer.pac
 %include ssl-analyzer.pac
+%include ssl-decryption.pac
 %include ssl-defs.pac

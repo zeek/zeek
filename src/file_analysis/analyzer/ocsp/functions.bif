@@ -1,0 +1,36 @@
+%%{
+#include "file_analysis/analyzer/ocsp/OCSP.h"
+#include "types.bif.h"
+%%}
+
+## Parses a OCSP response into an OCSP::Response structure.
+##
+## ocsp_reply: OCSP data.
+##
+## Returns: A OCSP::Response structure.
+##
+## .. bro:see:: ssl_stapled_ocsp
+function ocsp_parse_response%(ocsp_reply: string%): OCSP::Response
+        %{
+	const unsigned char* start = ocsp_reply->Bytes();
+	OCSP_RESPONSE *resp = NULL;
+	file_analysis::OCSP_RESPVal* resp_val = NULL;
+	RecordVal* resp_record = NULL;
+	resp = d2i_OCSP_RESPONSE(NULL, &start, ocsp_reply->Len());
+	if ( ! resp )
+		{
+		reporter->Weird("OPENSSL Could not parse OCSP response");
+		return NULL;
+		}
+	resp_val = new file_analysis::OCSP_RESPVal(resp);
+	resp_record = file_analysis::OCSP::ParseResponse(resp_val);
+	if (!resp_record)
+		{
+		reporter->Weird("Internal fail to parse OCSP response");
+		Unref(resp_val);
+		return NULL;
+		}
+	Unref(resp_val);
+	//Unref(resp_record);
+	return resp_record;
+	%}

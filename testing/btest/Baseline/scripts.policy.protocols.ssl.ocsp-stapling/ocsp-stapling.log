@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	ocsp-stapling
+#open	2015-07-02-21-49-21
+#fields	ts	cid.orig_h	cid.orig_p	cid.resp_h	cid.resp_p	cuid	size	responseStatus	responseType	version	responderID	producedAt	idx	cert_id.hashAlgorithm	cert_id.issuerNameHash	cert_id.issuerKeyHash	cert_id.serialNumber	certStatus	thisUpdate	nextUpdate
+#types	time	addr	port	addr	port	string	count	string	string	count	string	string	count	string	string	string	string	string	string	string
+1398367809.961683	192.168.4.149	56253	131.253.61.82	443	CXWv6p3arKYeMETxOg	1995	successful	Basic OCSP Response	0	C = US, O = "VeriSign, Inc.", OU = VeriSign Trust Network, OU = Terms of use at https://www.verisign.com/rpa (c)06, CN = VeriSign Class 3 Extended Validation SSL SGC OCSP Responder	20140421080410Z	1	sha1	39AF18B41C021F39109656FDC6D358EF74858B99	4E43C81D76EF37537A4FF2586F94F338E2D5BDDF	62035C00776A614EAF430C6A5C56E2BD	good	20140421080410Z	20140428080410Z
+#close	2015-07-02-21-49-21

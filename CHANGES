@@ -1,4 +1,23 @@
 
+2.4-10 | 2015-06-25 07:11:17 -0700
+
+  * Correct a name used in a header identifier (Justin Azoff)
+
+2.4-8 | 2015-06-24 07:50:50 -0700
+
+  * Restore the --load-seeds cmd-line option and enable the short
+    options -G/-H for --load-seeds/--save-seeds. (Daniel Thayer)
+
+2.4-6 | 2015-06-19 16:26:40 -0700
+
+  * Generate protocol confirmations for Modbus, making it appear as a
+    confirmed service in conn.log. (Seth Hall)
+
+  * Put command line options in alphabetical order. (Daniel Thayer)
+
+  * Removing dead code for no longer supported -G switch. (Robin
+    Sommer) (Robin Sommer)
+
 2.4 | 2015-06-09 07:30:53 -0700
 
   * Release 2.4.

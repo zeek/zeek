@@ -1,4 +1,9 @@
 
+2.4-20 | 2015-07-03 10:40:21 -0700
+
+  * Adding a weird for when truncated packets lead TCP reassembly to
+    ignore content. (Robin Sommer)
+
 2.4-19 | 2015-07-03 09:04:54 -0700
 
   * A set of tests exercising IP defragmentation and TCP reassembly.

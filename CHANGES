@@ -1,4 +1,9 @@
 
+2.4-19 | 2015-07-03 09:04:54 -0700
+
+  * A set of tests exercising IP defragmentation and TCP reassembly.
+    (Robin Sommer)
+
 2.4-17 | 2015-06-28 13:02:41 -0700
 
   * BIT-1314: Add detection for Quantum Insert attacks. The TCP
@@ -6,7 +11,7 @@
     tcp_max_old_segments option. An overlapping segment with different
     data will then generate an rexmit_inconsistency event. The default
     for tcp_max_old_segments is zero, which disabled any additional
-    buffering. (Yun Zheng Hu)
+    buffering. (Yun Zheng Hu/Robin Sommer)
 
 2.4-14 | 2015-06-28 12:30:12 -0700
 

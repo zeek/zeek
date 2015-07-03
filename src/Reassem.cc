@@ -51,35 +51,34 @@ void Reassembler::CheckOverlap(DataBlock *head, DataBlock *tail,
 	if ( ! head || ! tail )
 		return;
 
-	uint64 orig_seq = seq;
-	uint64 orig_upper = seq + len;
-	const u_char* orig_data = data;
+	uint64 upper = (seq + len);
 
 	for ( DataBlock* b = head; b; b = b->next )
 		{
-		uint64 seq = orig_seq;
-		uint64 upper = orig_upper;
-		const u_char* data = orig_data;
+		uint64 nseq = seq;
+		uint64 nupper = upper;
+		const u_char* ndata = data;
 
-		if ( upper <= b->seq )
+		if ( nupper <= b->seq )
 			continue;
 
-		if ( seq >= b->upper )
+		if ( nseq >= b->upper )
 			continue;
 
-		if ( seq < b->seq )
+		if ( nseq < b->seq )
 			{
-			data += (b->seq - seq);
-			seq = b->seq;
+			ndata += (b->seq - seq);
+			nseq = b->seq;
 			}
 
-		if ( upper > b->upper )
-			upper = b->upper;
+		if ( nupper > b->upper )
+			nupper = b->upper;
 
-		uint64 overlap_offset = seq - b->seq;
-		uint64 overlap_len = upper - seq;
+		uint64 overlap_offset = (nseq - b->seq);
+		uint64 overlap_len = (nupper - nseq);
+
 		if ( overlap_len )
-			Overlap(&b->block[overlap_offset], data, overlap_len);
+			Overlap(&b->block[overlap_offset], ndata, overlap_len);
 		}
 	}
 
@@ -304,7 +303,7 @@ DataBlock* Reassembler::AddAndCheck(DataBlock* b, uint64 seq, uint64 upper,
 		return new_b;
 		}
 
-	// The blocks overlap, complain.
+	// The blocks overlap.
 	if ( seq < b->seq )
 		{
 		// The new block has a prefix that comes before b.
@@ -324,8 +323,6 @@ DataBlock* Reassembler::AddAndCheck(DataBlock* b, uint64 seq, uint64 upper,
 	uint64 new_b_len = upper - seq;
 	uint64 b_len = b->upper - overlap_start;
 	uint64 overlap_len = min(new_b_len, b_len);
-
-//	Overlap(&b->block[overlap_offset], data, overlap_len);
 
 	if ( overlap_len < new_b_len )
 		{

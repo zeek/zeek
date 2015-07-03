@@ -23,6 +23,10 @@ export {
 	        ts:                 time;
 		## file id for this request
 		id:                 string  &log;
+		## connection id
+		cid:                conn_id &optional;
+		## connection uid
+		cuid:               string  &optional;
 		## version
 		version:            count   &log &optional;
 		## requestor name
@@ -37,9 +41,13 @@ export {
 	## one ocsp response record
 	type Info_resp: record {
 		## time for the response
-	        ts:                 time;
+	        ts:                 time    &log;
 		## file id for this response
 		id:                 string  &log;
+		## connection id
+		cid:                conn_id &optional;
+		## connection uid
+		cuid:               string  &optional;
 		## responseStatus (different from cert status?)
 		responseStatus:     string  &log;
 		## responseType
@@ -67,9 +75,21 @@ export {
 	type Info: record {
 		## timestamp for request if a corresponding request is present
 		## OR timestamp for response if a corresponding request is not found
-		ts:                 time    &log;
+		ts:                 time          &log;
+
+		## connection id
+		cid:                conn_id       &log;
+
+		## connection uid
+		cuid:               string        &log;
+
+		## cert id
 		certId:             OCSP::CertId  &log  &optional;
+
+		## request
 		req:                Info_req      &log  &optional;
+
+		## response
 		resp:               Info_resp     &log  &optional;
 	};
 
@@ -127,7 +147,7 @@ event ocsp_request(f: fa_file, req_ref: opaque of ocsp_req, req: OCSP::Request) 
 						       $issuerKeyHash  = one_req$issuerKeyHash,
 						       $serialNumber   = one_req$serialNumber];
 
-			local req_rec: Info_req = [$ts=network_time(), $id=f$id, $certId=cert_id];
+			local req_rec: Info_req = [$ts=network_time(), $id=f$id, $certId=cert_id, $cid=conn$id, $cuid=conn$uid];
 
 			if (req?$version)
 				req_rec$version = req$version;
@@ -147,12 +167,12 @@ event ocsp_request(f: fa_file, req_ref: opaque of ocsp_req, req: OCSP::Request) 
 	else
 		{
 		# no request content? this is weird but log it anyway
-		local req_rec_empty: Info_req = [$ts=network_time(), $id=f$id];
+		local req_rec_empty: Info_req = [$ts=network_time(), $id=f$id, $cid=conn$id, $cuid=conn$uid];
 		if (req?$version)
 			req_rec_empty$version = req$version;
 		if (req?$requestorName)
 			req_rec_empty$requestorName = req$requestorName;
-		Log::write(LOG, [$ts=req_rec_empty$ts, $req=req_rec_empty]);
+		Log::write(LOG, [$ts=req_rec_empty$ts, $req=req_rec_empty, $cid=conn$id, $cuid=conn$uid]);
 		}
 	}
 
@@ -178,6 +198,7 @@ event ocsp_response(f: fa_file, resp_ref: opaque of ocsp_resp, resp: OCSP::Respo
 						       $issuerKeyHash  = single_resp$issuerKeyHash,
 						       $serialNumber   = single_resp$serialNumber];
 			local resp_rec: Info_resp = [$ts = network_time(), $id = f$id,
+						     $cid=conn$id, $cuid=conn$uid,
 						     $responseStatus = resp$responseStatus,
 						     $responseType   = resp$responseType,
 						     $version        = resp$version,
@@ -193,14 +214,14 @@ event ocsp_response(f: fa_file, resp_ref: opaque of ocsp_resp, resp: OCSP::Respo
 				{
 				# find a match
 				local req_rec: Info_req = Queue::get(conn$ocsp_requests[cert_id]);
-				Log::write(LOG, [$ts=req_rec$ts, $certId=req_rec$certId, $req=req_rec, $resp=resp_rec]);
+				Log::write(LOG, [$ts=req_rec$ts, $certId=req_rec$certId, $req=req_rec, $resp=resp_rec, $cid=conn$id, $cuid=conn$uid]);
 				if (Queue::len(conn$ocsp_requests[cert_id]) == 0)
 					delete conn$ocsp_requests[cert_id]; #if queue is empty, delete it?
 				}
 			else
 				{
 				# do not find a match; this is weird but log it
-				Log::write(LOG, [$ts=resp_rec$ts, $certId=resp_rec$certId, $resp=resp_rec]);
+				Log::write(LOG, [$ts=resp_rec$ts, $certId=resp_rec$certId, $resp=resp_rec, $cid=conn$id, $cuid=conn$uid]);
 				}
 			}
 		}
@@ -208,12 +229,13 @@ event ocsp_response(f: fa_file, resp_ref: opaque of ocsp_resp, resp: OCSP::Respo
 		{
                 # no response content? this is weird but log it anyway
 		local resp_rec_empty: Info_resp = [$ts=network_time(), $id=f$id,
+			                           $cid=conn$id, $cuid=conn$uid,
 						   $responseStatus = resp$responseStatus,
 						   $responseType   = resp$responseType,
 						   $version        = resp$version,
 						   $responderID    = resp$responderID,
 						   $producedAt     = resp$producedAt];
-		Log::write(LOG, [$ts=resp_rec_empty$ts, $resp=resp_rec_empty]);
+		Log::write(LOG, [$ts=resp_rec_empty$ts, $resp=resp_rec_empty, $cid=conn$id, $cuid=conn$uid]);
 		}
 	}
 
@@ -223,7 +245,7 @@ function log_unmatched_msgs_queue(q: Queue::Queue)
 	Queue::get_vector(q, reqs);
 
 	for ( i in reqs )
-		Log::write(LOG, [$ts=reqs[i]$ts, $certId=reqs[i]$certId, $req=reqs[i]]);
+		Log::write(LOG, [$ts=reqs[i]$ts, $certId=reqs[i]$certId, $req=reqs[i], $cid=reqs[i]$cid, $cuid=reqs[i]$cuid]);
 	}
 
 function log_unmatched_msgs(msgs: PendingRequests)

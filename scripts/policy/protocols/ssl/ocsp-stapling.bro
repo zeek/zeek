@@ -8,7 +8,7 @@ export {
 		## timestamp
 		ts:                 time    &log;
 		
-		## connection uid
+		## connection id
 		cid:                conn_id &log;
 
 		## connection uid

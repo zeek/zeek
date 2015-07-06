@@ -41,7 +41,7 @@ export {
 	## one ocsp response record
 	type Info_resp: record {
 		## time for the response
-	        ts:                 time    &log;
+	        ts:                 time;
 		## file id for this response
 		id:                 string  &log;
 		## connection id
@@ -88,6 +88,9 @@ export {
 
 		## request
 		req:                Info_req      &log  &optional;
+
+		## response timestamp
+		resp_ts:            time          &log  &optional;
 
 		## response
 		resp:               Info_resp     &log  &optional;
@@ -214,14 +217,14 @@ event ocsp_response(f: fa_file, resp_ref: opaque of ocsp_resp, resp: OCSP::Respo
 				{
 				# find a match
 				local req_rec: Info_req = Queue::get(conn$ocsp_requests[cert_id]);
-				Log::write(LOG, [$ts=req_rec$ts, $certId=req_rec$certId, $req=req_rec, $resp=resp_rec, $cid=conn$id, $cuid=conn$uid]);
+				Log::write(LOG, [$ts=req_rec$ts, $certId=req_rec$certId, $req=req_rec, $resp_ts=resp_rec$ts, $resp=resp_rec, $cid=conn$id, $cuid=conn$uid]);
 				if (Queue::len(conn$ocsp_requests[cert_id]) == 0)
 					delete conn$ocsp_requests[cert_id]; #if queue is empty, delete it?
 				}
 			else
 				{
 				# do not find a match; this is weird but log it
-				Log::write(LOG, [$ts=resp_rec$ts, $certId=resp_rec$certId, $resp=resp_rec, $cid=conn$id, $cuid=conn$uid]);
+				Log::write(LOG, [$ts=resp_rec$ts, $certId=resp_rec$certId, $resp_ts=resp_rec$ts, $resp=resp_rec, $cid=conn$id, $cuid=conn$uid]);
 				}
 			}
 		}
@@ -235,7 +238,7 @@ event ocsp_response(f: fa_file, resp_ref: opaque of ocsp_resp, resp: OCSP::Respo
 						   $version        = resp$version,
 						   $responderID    = resp$responderID,
 						   $producedAt     = resp$producedAt];
-		Log::write(LOG, [$ts=resp_rec_empty$ts, $resp=resp_rec_empty, $cid=conn$id, $cuid=conn$uid]);
+		Log::write(LOG, [$ts=resp_rec_empty$ts, $resp_ts=resp_rec_empty$ts, $resp=resp_rec_empty, $cid=conn$id, $cuid=conn$uid]);
 		}
 	}
 

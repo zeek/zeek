@@ -15,11 +15,17 @@ export {
 		## cert id for the OCSP request
 		cert_id:        OCSP::CertId      &log  &optional;
 
+		## request timestamp
+		req_ts:         time              &log  &optional;
+
 		## request
 		## NOTE: this is only one request if multiple requests
 		## are sent together in one HTTP message, they will be
 		## logged separately
 		req:            OCSP::Info_req    &log  &optional;
+
+		## response timestamp
+		resp_ts:        time              &log  &optional;
 
 		## response
 		## NOTE: similar to request, if multiple responses are
@@ -30,10 +36,13 @@ export {
 		## HTTP connection uid
 		cuid:            string     &log;
 
+		## HTTP connection start time
+		conn_start_ts:   time       &log;
+
 		## for 1st request, this is the time between first TCP
 		## SYN and resp_ts; for the rest of the requests in
 		## the same connection, this is the time btween req_ts
-		## and res_ts
+		## and resp_ts
 		delay:           interval   &log       &optional;
 
 		## the size of HTTP request body
@@ -57,8 +66,10 @@ export {
 		## OCSP uri, this is uri in HTTP request
 		uri:             string     &log;
 
-		## number of ocsp requests in this connection
-		## including this one
+		## number of HTTP request containing ocsp requests in
+		## this connection including this one; this may be
+		## different from number of OCSP requests since one
+		## HTTP request may contain several OCSP requests
 		num_ocsp:        count      &log       &optional;
 
 		## the time when the corresponding certificate is
@@ -222,36 +233,42 @@ function fill_ocsp_info(c: connection)
 			                               $issuerKeyHash  = single_resp$issuerKeyHash,
 			                               $serialNumber   = single_resp$serialNumber];
 
-			local resp_rec: OCSP::Info_resp = [$ts = http$ocsp_response_ts, $id = http$ocsp_response_fuid,
-			                             $responseStatus = resp$responseStatus,
-			                             $responseType   = resp$responseType,
-			                             $version        = resp$version,
-			                             $responderID    = resp$responderID,
-			                             $producedAt     = resp$producedAt,
-			                             $certId         = cert_id,
-			                             $certStatus     = single_resp$certStatus,
-			                             $thisUpdate     = single_resp$thisUpdate];
+			local resp_rec: OCSP::Info_resp = [$ts             = http$ocsp_response_ts,
+						           $id             = http$ocsp_response_fuid,
+							   $responseStatus = resp$responseStatus,
+							   $responseType   = resp$responseType,
+							   $version        = resp$version,
+							   $responderID    = resp$responderID,
+							   $producedAt     = resp$producedAt,
+							   $certId         = cert_id,
+							   $certStatus     = single_resp$certStatus,
+							   $thisUpdate     = single_resp$thisUpdate];
 
 			if (single_resp?$nextUpdate)
 				resp_rec$nextUpdate = single_resp$nextUpdate;
 
-			local ocsp_info: OCSP_MEASUREMENT::Info = [$cert_id = cert_id,
-			                                           $cuid = http$uid, $host = http$host,
-				                                   $uri = http$uri, $resp = resp_rec,
-				                                   $req_size = http$request_body_len,
-								   $req_hdr_size = http$request_header_len,
-								   $resp_size = http$response_body_len,
+			local ocsp_info: OCSP_MEASUREMENT::Info = [$cert_id       = cert_id,
+			                                           $cuid          = http$uid,
+								   $conn_start_ts = c$start_time,
+								   $host          = http$host,
+				                                   $uri           = http$uri,
+								   $resp_ts       = resp_rec$ts,
+								   $resp          = resp_rec,
+				                                   $req_size      = http$request_body_len,
+								   $req_hdr_size  = http$request_header_len,
+								   $resp_size     = http$response_body_len,
 								   $resp_hdr_size = http$response_header_len,
-								   $http_code = http$status_code];
+								   $http_code     = http$status_code];
 			if (cert_id in pending_requests)
 				{
 				# find a match
 				local req_rec: OCSP::Info_req = Queue::get(pending_requests[cert_id]);
-				ocsp_info$req = req_rec;
+				ocsp_info$req      = req_rec;
+				ocsp_info$req_ts   = req_rec$ts;
 				ocsp_info$num_ocsp = c$num_ocsp;
 				
-				if (c$num_ocsp == 0)
-					ocsp_info$delay = ocsp_info$req$ts - c$start_time;
+				if (c$num_ocsp == 1)
+					ocsp_info$delay = ocsp_info$resp$ts - c$start_time;
 				else
 					ocsp_info$delay = ocsp_info$resp$ts - ocsp_info$req$ts;
 

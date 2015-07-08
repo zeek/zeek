@@ -168,14 +168,13 @@ refine connection Handshake_Conn += {
 
 	function proc_certificate_status(rec : HandshakeRecord, status_type: uint8, response: bytestring) : bool
 		%{
-		 if ( status_type == 1 ) // ocsp
+		 if ( status_type == 1 || status_type == 2 ) // ocsp
 			{
 			BifEvent::generate_ssl_stapled_ocsp(bro_analyzer(),
 							    bro_analyzer()->Conn(), ${rec.is_orig},
 							    new StringVal(response.length(),
 							    (const char*) response.data()));
 			}
-
 		return true;
 		%}
 
@@ -255,7 +254,7 @@ refine typeattr ServerNameExt += &let {
 	proc : bool = $context.connection.proc_server_name(rec, server_names);
 };
 
-refine typeattr CertificateStatus += &let {
+refine typeattr OCSPResponse += &let {
 	proc : bool = $context.connection.proc_certificate_status(rec, status_type, response);
 };
 

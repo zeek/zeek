@@ -139,11 +139,23 @@ type Certificate(rec: HandshakeRecord) = record {
 } &length = to_int()(length)+3;
 
 # OCSP Stapling
+type OCSPResponse(rec: HandshakeRecord, status_type: uint8) = record {
+	length : uint24;
+	response : bytestring &length = to_int()(length);
+} &length = to_int()(length)+3;
+
+type OCSPResponseList(rec: HandshakeRecord, status_type: uint8) = record {
+	length : uint24;
+	response_list : OCSPResponse(rec, status_type)[] &until($input.length() == 0);
+} &length = to_int()(length)+3;
 
 type CertificateStatus(rec: HandshakeRecord) = record {
-	status_type: uint8; # 1 = ocsp, everything else is undefined
-	length : uint24;
-	response: bytestring &restofdata;
+	status_type: uint8; # 1 = ocsp, 2 = ocsp_multi, everything else is undefined
+	which_type: case status_type of {
+		1       -> ocsp_response : OCSPResponse(rec, status_type);
+		2       -> ocsp_response_list : OCSPResponseList(rec, status_type);
+		default -> data : bytestring &restofdata &transient; # unknown
+	};
 };
 
 ######################################################################

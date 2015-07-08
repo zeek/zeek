@@ -47,6 +47,42 @@
 
 	%}
 
+refine connection ModbusTCP_Conn += {
+	%member{
+		// Fields used to determine if the protocol has been confirmed or not.
+		bool confirmed;
+		bool orig_pdu;
+		bool resp_pdu;
+		%}
+
+	%init{
+		confirmed = false;
+		orig_pdu = false;
+		resp_pdu = false;
+		%}
+
+	function SetPDU(is_orig: bool): bool
+		%{
+		if ( is_orig )
+			orig_pdu = true;
+		else
+			resp_pdu = true;
+
+		return true;
+		%}
+
+	function SetConfirmed(): bool
+		%{
+		confirmed = true;
+		return true;
+		%}
+
+	function IsConfirmed(): bool
+		%{
+		return confirmed && orig_pdu && resp_pdu;
+		%}
+};
+
 refine flow ModbusTCP_Flow += {
 
 	function deliver_message(header: ModbusTCP_TransportHeader): bool
@@ -57,6 +93,21 @@ refine flow ModbusTCP_Flow += {
 			                                  connection()->bro_analyzer()->Conn(),
 			                                  HeaderToBro(header),
 			                                  is_orig());
+			}
+
+		return true;
+		%}
+
+	function deliver_ModbusTCP_PDU(message: ModbusTCP_PDU): bool
+		%{
+		// We will assume that if an entire PDU from both sides
+		// is successfully parsed then this is definitely modbus.
+		connection()->SetPDU(${message.is_orig});
+
+		if ( ! connection()->IsConfirmed() )
+			{
+			connection()->SetConfirmed();
+			connection()->bro_analyzer()->ProtocolConfirmation();
 			}
 
 		return true;

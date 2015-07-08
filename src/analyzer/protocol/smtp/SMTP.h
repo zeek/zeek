@@ -58,13 +58,13 @@ protected:
 
 	void ProcessLine(int length, const char* line, bool orig);
 	void NewCmd(const int cmd_code);
-	void NewReply(const int reply_code);
+	void NewReply(const int reply_code, bool orig);
 	void ProcessExtension(int ext_len, const char* ext);
 	void ProcessData(int length, const char* line);
 
-	void UpdateState(const int cmd_code, const int reply_code);
+	void UpdateState(const int cmd_code, const int reply_code, bool orig);
 
-	void BeginData();
+	void BeginData(bool orig);
 	void EndData();
 
 	int ParseCmd(int cmd_len, const char* cmd);

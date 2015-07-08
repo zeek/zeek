@@ -5,14 +5,14 @@
 %}
 
 %header{
-VectorVal* process_rvas(const RVAS* rvas, const uint16 size);
+VectorVal* process_rvas(const RVAS* rvas);
 %}
 
 %code{
-VectorVal* process_rvas(const RVAS* rva_table, const uint16 size)
+VectorVal* process_rvas(const RVAS* rva_table)
 	{
 	VectorVal* rvas = new VectorVal(internal_type("index_vec")->AsVectorType());
-	for ( uint16 i=0; i < size; ++i )
+	for ( uint16 i=0; i < rva_table->rvas()->size(); ++i )
 		rvas->Assign(i, new Val((*rva_table->rvas())[i]->size(), TYPE_COUNT));
 
 	return rvas;
@@ -149,7 +149,7 @@ refine flow File += {
 			oh->Assign(21, new Val(${h.subsystem}, TYPE_COUNT));
 			oh->Assign(22, characteristics_to_bro(${h.dll_characteristics}, 16));
 
-			oh->Assign(23, process_rvas(${h.rvas}, ${h.number_of_rva_and_sizes}));
+			oh->Assign(23, process_rvas(${h.rvas}));
 
 			BifEvent::generate_pe_optional_header((analyzer::Analyzer *) connection()->bro_analyzer(),
 			                                      connection()->bro_analyzer()->GetFile()->GetVal()->Ref(),

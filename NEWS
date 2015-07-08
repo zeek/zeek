@@ -4,8 +4,8 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as BroControl and Broccoli, come with
 their own ``CHANGES``.)
 
-Bro 2.4 (in progress)
-=====================
+Bro 2.4
+=======
 
 New Functionality
 -----------------

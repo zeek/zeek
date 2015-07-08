@@ -166,7 +166,7 @@ refine connection Handshake_Conn += {
 		return true;
 		%}
 
-	function proc_certificate_status(rec : HandshakeRecord, status_type: uint8, response: bytestring) : bool
+	function proc_ocsp_response(rec : HandshakeRecord, status_type: uint8, response: bytestring) : bool
 		%{
 		 if ( status_type == 1 || status_type == 2 ) // ocsp
 			{
@@ -255,7 +255,7 @@ refine typeattr ServerNameExt += &let {
 };
 
 refine typeattr OCSPResponse += &let {
-	proc : bool = $context.connection.proc_certificate_status(rec, status_type, response);
+	proc : bool = $context.connection.proc_ocsp_response(rec, status_type, response);
 };
 
 refine typeattr EcServerKeyExchange += &let {

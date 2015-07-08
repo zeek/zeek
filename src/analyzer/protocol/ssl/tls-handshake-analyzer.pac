@@ -173,7 +173,8 @@ refine connection Handshake_Conn += {
 			BifEvent::generate_ssl_stapled_ocsp(bro_analyzer(),
 							    bro_analyzer()->Conn(), ${rec.is_orig},
 							    new StringVal(response.length(),
-							    (const char*) response.data()));
+							    (const char*) response.data()),
+							    status_type);
 			}
 		return true;
 		%}

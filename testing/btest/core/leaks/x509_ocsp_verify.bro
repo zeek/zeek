@@ -9,7 +9,7 @@
 
 @load base/protocols/ssl
 
-event ssl_stapled_ocsp(c: connection, is_orig: bool, response: string)
+event ssl_stapled_ocsp(c: connection, is_orig: bool, response: string, status_type: count)
 	{
 	local chain: vector of opaque of x509 = vector();
 	for ( i in c$ssl$cert_chain )

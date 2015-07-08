@@ -53,7 +53,7 @@ export {
 		};
 }
 
-event ssl_stapled_ocsp(c: connection, is_orig: bool, response: string)
+event ssl_stapled_ocsp(c: connection, is_orig: bool, response: string, status_type: count)
 	{
 	local resp: OCSP::Response = ocsp_parse_response(response);
 

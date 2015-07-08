@@ -7,7 +7,10 @@ export {
 	type Info: record {
 		## timestamp
 		ts:                 time    &log;
-		
+
+		## status type
+		status_type:        count   &log;
+
 		## connection id
 		cid:                conn_id &log;
 
@@ -73,7 +76,8 @@ event ssl_stapled_ocsp(c: connection, is_orig: bool, response: string, status_ty
 			                               $serialNumber   = single_resp$serialNumber];
 
 			local resp_rec: Info = [$ts             = network_time(),
-				                $cid            = c$id,
+				                $status_type    = status_type,
+						$cid            = c$id,
 				                $cuid           = c$uid,
 						$size           = resp_size,
 						$responseStatus = resp$responseStatus,
@@ -95,6 +99,7 @@ event ssl_stapled_ocsp(c: connection, is_orig: bool, response: string, status_ty
 		{
                 # no response content? this is weird but log it anyway
 		local resp_rec_empty: Info = [$ts             = network_time(),
+			                      $status_type    = status_type,
 			                      $cid            = c$id,
 					      $cuid           = c$uid,
 			                      $size           = resp_size,

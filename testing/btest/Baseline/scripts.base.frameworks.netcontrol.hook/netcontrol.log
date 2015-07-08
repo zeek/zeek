@@ -1,0 +1,18 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	netcontrol
+#open	2015-07-08-19-33-47
+#fields	ts	category	cmd	state	action	target	entity_type	entity	msg	location	plugin
+#types	time	enum	string	enum	string	enum	string	string	string	string	string
+0.000000	NetControl::MESSAGE	-	-	-	-	-	-	activated plugin with priority 0	-	Debug-All
+1254722767.875996	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	0.0.0.0/0/1470->74.53.140.153/32/25	-	(empty)	Debug-All
+1254722767.875996	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::REDIRECT	NetControl::FORWARD	NetControl::FLOW	0.0.0.0/0/1470->74.53.140.153/32/25	-	(empty)	Debug-All
+1254722767.875996	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	0.0.0.0/0/1470->74.53.140.153/32/25	-	(empty)	Debug-All
+1254722767.875996	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::REDIRECT	NetControl::FORWARD	NetControl::FLOW	0.0.0.0/0/1470->74.53.140.153/32/25	-	(empty)	Debug-All
+1254722776.690444	NetControl::RULE	REMOVE	NetControl::REQUESTED	NetControl::REDIRECT	NetControl::FORWARD	NetControl::FLOW	0.0.0.0/0/1470->74.53.140.153/32/25	-	(empty)	Debug-All
+1254722776.690444	NetControl::RULE	REMOVE	NetControl::REQUESTED	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	0.0.0.0/0/1470->74.53.140.153/32/25	-	(empty)	Debug-All
+1254722776.690444	NetControl::RULE	REMOVE	NetControl::SUCCEEDED	NetControl::REDIRECT	NetControl::FORWARD	NetControl::FLOW	0.0.0.0/0/1470->74.53.140.153/32/25	-	(empty)	Debug-All
+1254722776.690444	NetControl::RULE	REMOVE	NetControl::SUCCEEDED	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	0.0.0.0/0/1470->74.53.140.153/32/25	-	(empty)	Debug-All
+#close	2015-07-08-19-33-48

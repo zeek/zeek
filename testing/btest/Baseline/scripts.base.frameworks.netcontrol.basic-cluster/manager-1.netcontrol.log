@@ -1,0 +1,32 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	netcontrol
+#open	2015-07-08-19-33-09
+#fields	ts	category	cmd	state	action	target	entity_type	entity	msg	location	plugin
+#types	time	enum	string	enum	string	enum	string	string	string	string	string
+1436383989.876677	NetControl::MESSAGE	-	-	-	-	-	-	activated plugin with priority 0	-	Debug-All
+1436383992.255152	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	10.10.1.4/32/1470->74.53.140.153/32/25	-	(empty)	Debug-All
+1436383992.255152	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	10.10.1.4/32	-	(empty)	Debug-All
+1436383992.255152	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	10.10.1.4/32/1470->74.53.140.153/32/25	-	(empty)	Debug-All
+1436383992.255152	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	10.10.1.4/32	-	(empty)	Debug-All
+1436383994.376366	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	10.10.1.4/32/1470->74.53.140.153/32/25	-	(empty)	Debug-All
+1436383994.376366	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	10.10.1.4/32	-	(empty)	Debug-All
+1436383994.376366	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	10.10.1.4/32/1470->74.53.140.153/32/25	-	(empty)	Debug-All
+1436383994.376366	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	10.10.1.4/32	-	(empty)	Debug-All
+1436383991.768500	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	10.10.1.4/32/1470->74.53.140.153/32/25	-	(empty)	Debug-All
+1436383991.768500	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	10.10.1.4/32	-	(empty)	Debug-All
+1436383993.849722	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	10.10.1.4/32/1470->74.53.140.153/32/25	-	(empty)	Debug-All
+1436383993.849722	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	10.10.1.4/32	-	(empty)	Debug-All
+1436383993.813850	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	10.10.1.4/32/1470->74.53.140.153/32/25	-	(empty)	Debug-All
+1436383993.813850	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	10.10.1.4/32	-	(empty)	Debug-All
+1436384002.162435	NetControl::RULE	REMOVE	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	10.10.1.4/32	-	(empty)	Debug-All
+1436384002.162435	NetControl::RULE	REMOVE	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	10.10.1.4/32	-	(empty)	Debug-All
+1436384002.162435	NetControl::RULE	REMOVE	NetControl::REQUESTED	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	10.10.1.4/32/1470->74.53.140.153/32/25	-	(empty)	Debug-All
+1436384002.162435	NetControl::RULE	REMOVE	NetControl::REQUESTED	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	10.10.1.4/32/1470->74.53.140.153/32/25	-	(empty)	Debug-All
+1436384002.162435	NetControl::RULE	REMOVE	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	10.10.1.4/32	-	(empty)	Debug-All
+1436384002.162435	NetControl::RULE	REMOVE	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	10.10.1.4/32	-	(empty)	Debug-All
+1436384002.162435	NetControl::RULE	REMOVE	NetControl::SUCCEEDED	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	10.10.1.4/32/1470->74.53.140.153/32/25	-	(empty)	Debug-All
+1436384002.162435	NetControl::RULE	REMOVE	NetControl::SUCCEEDED	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	10.10.1.4/32/1470->74.53.140.153/32/25	-	(empty)	Debug-All
+#close	2015-07-08-19-33-22

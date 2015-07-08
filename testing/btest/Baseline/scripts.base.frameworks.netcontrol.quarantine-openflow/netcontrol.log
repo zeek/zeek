@@ -1,0 +1,18 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	netcontrol
+#open	2015-07-08-19-33-55
+#fields	ts	category	cmd	state	action	target	entity_type	entity	msg	location	plugin
+#types	time	enum	string	enum	string	enum	string	string	string	string	string
+0.000000	NetControl::MESSAGE	-	-	-	-	-	-	activated plugin with priority 0	-	Openflow - OpenFlog Log Plugin - DPID 42
+1254722767.875996	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::FLOW	10.10.1.4/32/*->*/*	-	(empty)	Openflow - OpenFlog Log Plugin - DPID 42
+1254722767.875996	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::MODIFY	NetControl::FORWARD	NetControl::FLOW	10.10.1.4/32/*->8.8.8.8/32/53	-	(empty)	Openflow - OpenFlog Log Plugin - DPID 42
+1254722767.875996	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::MODIFY	NetControl::FORWARD	NetControl::FLOW	8.8.8.8/32/53->10.10.1.4/32/*	-	(empty)	Openflow - OpenFlog Log Plugin - DPID 42
+1254722767.875996	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::WHITELIST	NetControl::FORWARD	NetControl::FLOW	10.10.1.4/32/*->192.169.18.1/32/80	-	(empty)	Openflow - OpenFlog Log Plugin - DPID 42
+1254722767.875996	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::FLOW	10.10.1.4/32/*->*/*	-	(empty)	Openflow - OpenFlog Log Plugin - DPID 42
+1254722767.875996	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::MODIFY	NetControl::FORWARD	NetControl::FLOW	10.10.1.4/32/*->8.8.8.8/32/53	-	(empty)	Openflow - OpenFlog Log Plugin - DPID 42
+1254722767.875996	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::MODIFY	NetControl::FORWARD	NetControl::FLOW	8.8.8.8/32/53->10.10.1.4/32/*	-	(empty)	Openflow - OpenFlog Log Plugin - DPID 42
+1254722767.875996	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::WHITELIST	NetControl::FORWARD	NetControl::FLOW	10.10.1.4/32/*->192.169.18.1/32/80	-	(empty)	Openflow - OpenFlog Log Plugin - DPID 42
+#close	2015-07-08-19-33-55

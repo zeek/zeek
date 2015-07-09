@@ -88,14 +88,10 @@ export {
 
 		## the time when SSL connection is established
 		ssl_establish_ts:      time &log       &optional;
-		};
 
-	## - map to OCSP_MEASUREMENT::Info
-	## - indexed by source ip(addr), ocsp uri(string), issuer name
-	##   hash(string), serialNumber(string)
-	## - is it possible server sends two same certificate? To be
-	##   safe, let's use a queue to store OCSP_MEASUREMENT::Info
-	type OCSP_Mapping: table[addr, string, string, string] of Queue::Queue &optional &read_expire=5mins;
+		## the time when event connection_state_remove happens
+		ssl_end_ts:            time &log       &optional;
+		};
 
 	## a group of constant string for hash algorithm
 	## to save memory, remove any unseen hash algorithm 
@@ -110,8 +106,12 @@ export {
         global ocsp_info_add: event(c: connection);
 }
 
-# by different hash algorithm, OCSP_Mapping
-global ocsp_map: table[string] of OCSP_MEASUREMENT::OCSP_Mapping;
+## - map to OCSP_MEASUREMENT::Info
+## - indexed by hash algorithm(string), source ip(addr), ocsp
+##   uri(string), issuer name hash(string), serialNumber(string)
+## - is it possible server sends two same certificate? To be
+##   safe, let's use a queue to store OCSP_MEASUREMENT::Info
+global ocsp_map: table[string, addr, string, string, string] of Queue::Queue &read_expire=6mins;
 
 # track number of ocsp requests in this connection
 redef record connection += {
@@ -281,10 +281,10 @@ function fill_ocsp_info(c: connection)
 			local h = cert_id$hashAlgorithm;
 			local src_ip: addr = c$id$orig_h;
 
-			if ( [src_ip, full_uri, cert_id$issuerNameHash, cert_id$serialNumber] !in ocsp_map[h] )
-				ocsp_map[h][src_ip, full_uri, cert_id$issuerNameHash, cert_id$serialNumber] = Queue::init();
+			if ( [h, src_ip, full_uri, cert_id$issuerNameHash, cert_id$serialNumber] !in ocsp_map )
+				ocsp_map[h, src_ip, full_uri, cert_id$issuerNameHash, cert_id$serialNumber] = Queue::init();
 
-			Queue::put(ocsp_map[h][src_ip, full_uri, cert_id$issuerNameHash, cert_id$serialNumber], ocsp_info);	
+			Queue::put(ocsp_map[h, src_ip, full_uri, cert_id$issuerNameHash, cert_id$serialNumber], ocsp_info);
 			}
 		
 		}
@@ -454,12 +454,12 @@ event connection_state_remove(c: connection) &priority= -20
 		local h = hash_algorithm[i];
 		for ( [src_ip, ocsp_uri, issuer_name, serial_number] in c$ssl$cert_ts[h] )
 			{
-			if ( [src_ip, ocsp_uri, issuer_name, serial_number] in ocsp_map[h] )
+			if ( [h, src_ip, ocsp_uri, issuer_name, serial_number] in ocsp_map )
 				{
 				# find a ocsp to ssl match
-				local ocsp_info: OCSP_MEASUREMENT::Info = Queue::get(ocsp_map[h][src_ip, ocsp_uri, issuer_name, serial_number]);
-				if (Queue::len(ocsp_map[h][src_ip, ocsp_uri, issuer_name, serial_number]) == 0)
-					delete ocsp_map[h][src_ip, ocsp_uri, issuer_name, serial_number];
+				local ocsp_info: OCSP_MEASUREMENT::Info = Queue::get(ocsp_map[h, src_ip, ocsp_uri, issuer_name, serial_number]);
+				if (Queue::len(ocsp_map[h, src_ip, ocsp_uri, issuer_name, serial_number]) == 0)
+					delete ocsp_map[h, src_ip, ocsp_uri, issuer_name, serial_number];
 				local cert_recv_ts: time = Queue::get(c$ssl$cert_ts[h][src_ip, ocsp_uri, issuer_name, serial_number]);
 				if (Queue::len(c$ssl$cert_ts[h][src_ip, ocsp_uri, issuer_name, serial_number]) == 0)
 					delete c$ssl$cert_ts[h][src_ip, ocsp_uri, issuer_name, serial_number];
@@ -468,6 +468,7 @@ event connection_state_remove(c: connection) &priority= -20
 				ocsp_info$ssl_cid = c$id;
 				ocsp_info$ssl_change_cipher_ts = c$ssl$change_cipher_ts;
 				ocsp_info$ssl_establish_ts = c$ssl$ssl_establish_ts;
+				ocsp_info$ssl_end_ts = network_time();
 				Log::write(LOG, ocsp_info);
 				}
 			}
@@ -476,9 +477,5 @@ event connection_state_remove(c: connection) &priority= -20
 		
 event bro_init()
 	{
-	# initialize ocsp_map
-	for (i in hash_algorithm)
-		ocsp_map[hash_algorithm[i]] = table();
-		
 	Log::create_stream(LOG, [$columns=Info, $path="ocsp-measurement"]);
 	}

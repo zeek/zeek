@@ -532,6 +532,8 @@ RecordVal *file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val)
 			ocsp_resp_record->Assign(7, new StringVal(len, buf));
 		}
 clean_up:
+	if (basic_resp)
+		OCSP_BASICRESP_free(basic_resp);
 	return ocsp_resp_record;
 }
 

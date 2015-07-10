@@ -67,7 +67,7 @@ To install the required dependencies, you can use:
 
   .. console::
 
-      sudo pkg install bash cmake swig bison python perl py27-sqlite3
+      sudo pkg install bash cmake swig bison python perl5 py27-sqlite3
 
   Note that in older versions of FreeBSD, you might have to use the
   "pkg_add -r" command instead of "pkg install".

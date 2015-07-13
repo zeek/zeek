@@ -86,11 +86,9 @@ export {
 		## the HTTP code in the HTTP response
 		http_code:      count      &log       &optional;
 
-		## OCSP host, this is host in HTTP request
-		host:           string     &log       &optional;
-
-		## OCSP uri, this is uri in HTTP request
-		uri:            string     &log       &optional;
+		## host in HTTP request + uri in HTTP request
+		## last '/' is removed
+		ocsp_uri:       string     &log       &optional;
 
 		## number of HTTP requests containing ocsp requests in
 		## this connection including this one; this may be
@@ -98,6 +96,14 @@ export {
 		## HTTP request may contain several OCSP requests;
 		## this is copied from connection
 		num_ocsp:       count      &log       &optional;
+		};
+
+	type Issuer_Name_Type: record {
+		sha1:              string     &log       &optional;
+		sha224:            string     &log       &optional;
+		sha256:            string     &log       &optional;
+		sha384:            string     &log       &optional;
+		sha512:            string     &log       &optional;
 		};
 
 	type Info_SSL: record {
@@ -112,14 +118,22 @@ export {
 
 		## client hello time
 		client_hello_ts:   time       &log       &optional;
+
+		## server hello time
+		server_hello_ts:   time       &log       &optional;
 		
-		## the time when client receives change cipher message
-		## from server
-		change_cipher_ts:  time       &log       &optional;
+		## the time for client change cipher message
+		client_change_cipher_ts:  time       &log       &optional;
+
+		## the time for server change cipher message
+		server_change_cipher_ts:  time       &log       &optional;
 
 		## the time when SSL connection is established
 		establish_ts:      time       &log       &optional;
 
+		## the time for the first encrypted application data
+		client_first_encrypt_ts:   time       &log       &optional;
+		
 		## the time when event connection_state_remove happens
 		end_ts:            time       &log       &optional;
 
@@ -137,14 +151,11 @@ export {
 		cert_recv_ts:      string     &log       &optional;
 		
 	        ## issuer_name
-	        ## formatted as: hash_algorithm1:value1,hash_algorithm2:value2
-	        issuer_name:       string     &log       &optional;
+	        issuer_name:       Issuer_Name_Type     &log       &optional;
 		};
-
-	## a group of constant string for hash algorithm; to save
-	## memory, remove any unseen hash algorithm
-	global hash_algorithm = vector("sha1", "sha224", "sha256", "sha384", "sha512");
 }
+
+redef SSL::disable_analyzer_after_detection=F;
 
 redef record connection += {
 	## track number of ocsp requests in this connection
@@ -178,22 +189,32 @@ redef record SSL::Info += {
 	## the time when client hello event happens
 	client_hello_ts:          time  &optional;
 
+	## server hello time
+	server_hello_ts:          time  &optional;
+	
 	## the time when ssl connection is established
 	establish_ts:             time  &optional;
 
-	## the time when server sends change-cipher-spec
-	change_cipher_ts:         time  &optional;
-
+	## the time for client change cipher message
+	client_change_cipher_ts:  time  &optional;
+	
+	## the time for server change cipher message
+	server_change_cipher_ts:  time  &optional;
+	
 	## indexed by ocsp_uri(string), serialNumber(string), issuer
-	## name hash(string). issuer name hash is formatted as:
-	## hash_algorithm1:value1,hash_algorithm2:value2
-	cert_ts: table[string, string, string] of Queue::Queue &optional;
+	## name hash(string)
+	cert_ts: table[string, string, OCSP_SSL_SPLIT::Issuer_Name_Type] of Queue::Queue &optional;
+
+	## the time for the first encrypted application data
+	client_first_encrypt_ts:          time  &optional;
 };
 
 # remove the last '/'
 function clean_uri(s: string): string
 	{
 	local s_len = |s|;
+	if ( s_len == 0 )
+		return s;
 	s_len -= 1;
 	if (s[-1] == "/")
 		return clean_uri(s[0:s_len]);
@@ -247,6 +268,12 @@ event ocsp_response(f: fa_file, resp_ref: opaque of ocsp_resp, resp: OCSP::Respo
 	f$http$ocsp_responses[|f$http$ocsp_responses|] = response;
 	}
 
+# add server hello time
+event ssl_server_hello(c: connection, version: count, possible_ts: time, server_random: string, session_id: string, cipher: count, comp_method: count)&priority=5
+	{
+	c$ssl$server_hello_ts = network_time();
+	}
+
 # add client hello time and connection start time
 event ssl_client_hello(c: connection, version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec)
 	{
@@ -257,14 +284,26 @@ event ssl_client_hello(c: connection, version: count, possible_ts: time, client_
 # add time stamp for server's change cipher message
 event ssl_change_cipher_spec(c: connection, is_orig: bool)
 	{
-	if ( ! is_orig )
-		c$ssl$change_cipher_ts = network_time();
+	if ( is_orig )
+		c$ssl$client_change_cipher_ts = network_time();
+	else
+		c$ssl$server_change_cipher_ts = network_time();
 	}
 
 # add ssl established time
 event ssl_established(c: connection)
 	{
 	c$ssl$establish_ts = network_time();
+	}
+
+# add time when first encrypted application data is sent from client
+event ssl_encrypted_data(c: connection, is_orig: bool, content_type: count, length: count)
+	{
+	if ( ! c?$ssl )
+		return;
+		
+	if ( content_type == SSL::APPLICATION_DATA && length > 0 && is_orig && ! c$ssl?$client_first_encrypt_ts )
+		c$ssl$client_first_encrypt_ts = network_time();
 	}
 
 # extract the full ocsp uri from certificate extension
@@ -312,18 +351,13 @@ event x509_extension(f: fa_file, ext: X509::Extension) &priority= -10 {
 		c$ssl$cert_ts = table();
 	
 	local current_ts: time = network_time();
-	local issuer_name: string = "";
-	
-	# loop through each hash algorithm
-	for ( i in hash_algorithm )
-		{
-		local h: string = hash_algorithm[i];
 		
-		# formatted as: hash_algorithm1:value1,hash_algorithm2:value2
-		issuer_name += h + ":" + x509_issuer_name_hash(cert_ref, h);
-		if ( i != (|hash_algorithm| - 1))
-			issuer_name += ",";
-		}
+	local issuer_name: Issuer_Name_Type;
+	issuer_name$sha1 = x509_issuer_name_hash(cert_ref, "sha1");
+	issuer_name$sha224 = x509_issuer_name_hash(cert_ref, "sha224");
+	issuer_name$sha256 = x509_issuer_name_hash(cert_ref, "sha256");
+	issuer_name$sha384 = x509_issuer_name_hash(cert_ref, "sha384");
+	issuer_name$sha512 = x509_issuer_name_hash(cert_ref, "sha512");
 
 	# if given index is not in record, create a new queue
 	if ( [ocsp_uri, serial_number, issuer_name] !in c$ssl$cert_ts )
@@ -354,10 +388,16 @@ function log_unmatched_ocsp(ocsp: table[OCSP::CertId] of Queue::Queue)
 function update_http_info(ocsp: OCSP_SSL_SPLIT::Info_OCSP, http: HTTP::Info)
 	{
 	if ( http?$host )
-		ocsp$host = http$host;
+		ocsp$ocsp_uri = http$host;
 
 	if ( http?$uri )
-		ocsp$uri = http$uri;
+		if ( ocsp?$ocsp_uri )
+			ocsp$ocsp_uri += http$uri;
+		else
+			ocsp$ocsp_uri = http$uri;
+
+	if ( ocsp?$ocsp_uri )
+		ocsp$ocsp_uri = clean_uri(ocsp$ocsp_uri);
 
 	if ( http?$status_code )
 		ocsp$http_code = http$status_code;
@@ -529,11 +569,20 @@ function update_ssl_info(ssl_rec: OCSP_SSL_SPLIT::Info_SSL, ssl: SSL::Info)
 	if ( ssl?$client_hello_ts )
 		ssl_rec$client_hello_ts = ssl$client_hello_ts;
 
+	if ( ssl?$client_first_encrypt_ts )
+		ssl_rec$client_first_encrypt_ts = ssl$client_first_encrypt_ts;
+
+	if ( ssl?$server_hello_ts )
+		ssl_rec$server_hello_ts = ssl$server_hello_ts;
+
 	if ( ssl?$establish_ts )
 		ssl_rec$establish_ts = ssl$establish_ts;
 
-	if ( ssl?$change_cipher_ts )
-		ssl_rec$change_cipher_ts = ssl$change_cipher_ts;
+	if ( ssl?$client_change_cipher_ts )
+		ssl_rec$client_change_cipher_ts = ssl$client_change_cipher_ts;
+
+	if ( ssl?$server_change_cipher_ts )
+		ssl_rec$server_change_cipher_ts = ssl$server_change_cipher_ts;
 	}
 
 # log SSL information when ssl connection is removed
@@ -560,7 +609,7 @@ event connection_state_remove(c: connection) &priority= -20
 			{
 			cert_recv_ts_str += fmt("%f",elem[i]);
 			if ( i != (|elem| - 1))
-				issuer_name += ",";
+				cert_recv_ts_str += ",";
 			}
 		ssl_info_rec$cert_recv_ts = cert_recv_ts_str;
 		update_ssl_info(ssl_info_rec, c$ssl);

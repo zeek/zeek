@@ -1,4 +1,11 @@
 
+2.4-24 | 2015-07-14 08:04:11 -0700
+
+  * Correct Perl package name on FreeBSD in documentation.(Justin Azoff)
+
+  * Adding an environment variable to BTest configuration for external
+    scripts. (Robin Sommer)
+
 2.4-20 | 2015-07-03 10:40:21 -0700
 
   * Adding a weird for when truncated packets lead TCP reassembly to

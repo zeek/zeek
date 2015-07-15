@@ -214,6 +214,48 @@ event ocsp_request(f: fa_file, req_ref: opaque of ocsp_req, req: OCSP::Request) 
 	enq_request(f$http, req, f$id, network_time());
 	}
 
+function remove_first_slash(s: string): string
+	{
+	local s_len = |s|;
+	if (s[0] == "/")
+		return s[1:s_len];
+	else
+		return s;
+	}
+
+function get_uri_prefix(s: string): string
+	{
+	s = remove_first_slash(s);
+	local w = split_string(s, /\//);
+	if (|w| > 1)
+		return w[0];
+	else
+		return "";
+	}
+
+function check_ocsp_request_uri(http: HTTP::Info): OCSP::Request
+	{
+	local parsed_req: OCSP::Request;
+	if ( ! http?$original_uri )
+		return parsed_req;;
+
+	local uri: string = remove_first_slash(http$uri);
+	local uri_prefix: string = get_uri_prefix(http$original_uri);
+	local ocsp_req_str: string;
+
+	if ( |uri_prefix| == 0 )
+		{
+		ocsp_req_str = uri;
+		}
+	else if (|uri_prefix| > 0)
+		{
+		uri_prefix += "/";
+		ocsp_req_str = uri[|uri_prefix|:];
+		}
+	parsed_req = ocsp_parse_request(decode_base64(ocsp_req_str));
+	return parsed_req;
+	}
+
 event ocsp_response(f: fa_file, resp_ref: opaque of ocsp_resp, resp: OCSP::Response) &priority = 5
 	{
 	if ( ! f?$http )
@@ -273,6 +315,14 @@ event ocsp_response(f: fa_file, resp_ref: opaque of ocsp_resp, resp: OCSP::Respo
 			info_rec$method = f$http$method;
 		Log::write(LOG, info_rec);
 		}
+
+	# check if there is a OCSP GET request
+	if ( f$http?$method && f$http$method == "GET" && ! f$http$checked_get )
+		{
+		f$http$checked_get = T;
+		local req_get: OCSP::Request = check_ocsp_request_uri(f$http);
+		enq_request(f$http, req_get, "", f$http$ts);
+		}
 	}
 
 function log_unmatched_reqs_queue(q: Queue::Queue)
@@ -297,48 +347,6 @@ function log_unmatched_reqs(reqs: PendingQueue)
 	for ( cert_id in reqs )
 		log_unmatched_reqs_queue(reqs[cert_id]);
 	clear_table(reqs);
-	}
-
-function remove_first_slash(s: string): string
-	{
-	local s_len = |s|;
-	if (s[0] == "/")
-		return s[1:s_len];
-	else
-		return s;
-	}
-
-function get_uri_prefix(s: string): string
-	{
-	s = remove_first_slash(s);
-	local w = split_string(s, /\//);
-	if (|w| > 1)
-		return w[0];
-	else
-		return "";
-	}			
-
-function check_ocsp_request_uri(http: HTTP::Info): OCSP::Request
-	{
-	local parsed_req: OCSP::Request;
-	if ( ! http?$original_uri )
-		return parsed_req;;
-
-	local uri: string = remove_first_slash(http$uri);
-	local uri_prefix: string = get_uri_prefix(http$original_uri);
-	local ocsp_req_str: string;
-	
-	if ( |uri_prefix| == 0 )
-		{
-		ocsp_req_str = uri;
-		}
-	else if (|uri_prefix| > 0)
-		{
-		uri_prefix += "/";
-		ocsp_req_str = uri[|uri_prefix|:];
-		}
-	parsed_req = ocsp_parse_request(decode_base64(ocsp_req_str));
-	return parsed_req;
 	}
 
 function start_log_ocsp(http: HTTP::Info)
@@ -373,24 +381,6 @@ function start_log_ocsp(http: HTTP::Info)
 				info_rec$ts  = req_rec$ts;
 				if (Queue::len(http$ocsp_requests[cert_id]) == 0)
 					delete http$ocsp_requests[cert_id];
-				}
-			else
-				{
-				if ( http?$method && http$method == "GET" && ! http$checked_get )
-					{
-					http$checked_get = T;
-					local req_get: OCSP::Request = check_ocsp_request_uri(http);
-					enq_request(http, req_get, "", http$ts);
-					if ( http?$ocsp_requests && cert_id in http$ocsp_requests )
-						{
-						# find a match
-						local req_rec_tmp: Info_req = Queue::get(http$ocsp_requests[cert_id]);
-						info_rec$req = req_rec_tmp;
-						info_rec$ts  = req_rec_tmp$ts;
-						if (Queue::len(http$ocsp_requests[cert_id]) == 0)
-							delete http$ocsp_requests[cert_id];
-						}
-					}
 				}
 			if ( http?$method )
 				info_rec$method = http$method;

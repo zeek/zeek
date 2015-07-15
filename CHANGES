@@ -1,4 +1,8 @@
 
+2.4-27 | 2015-07-15 13:31:49 -0700
+
+  * Fix race condition in intel test. (Johanna Amann)
+
 2.4-24 | 2015-07-14 08:04:11 -0700
 
   * Correct Perl package name on FreeBSD in documentation.(Justin Azoff)

@@ -14,7 +14,7 @@ export {
 	redef enum Log::ID += { LOG };
 
 	## type for pending ocsp request
-	type PendingRequests: table[OCSP::CertId] of Queue::Queue;
+	type PendingQueue: table[OCSP::CertId] of Queue::Queue;
 
 	## NOTE: one file could contain several requests
 	## one ocsp request record
@@ -22,7 +22,7 @@ export {
 		## time for the request
 	        ts:                 time;
 		## file id for this request
-		id:                 string  &log;
+		id:                 string  &log &optional;
 		## connection id
 		cid:                conn_id &optional;
 		## connection uid
@@ -35,6 +35,8 @@ export {
 		##       several ocsp requests
 		## request cert id
 		certId:             OCSP::CertId &optional;
+		## HTTP method
+		method:             string &optional;
 	};
 
 	## NOTE: one file could contain several response
@@ -94,52 +96,68 @@ export {
 
 		## response
 		resp:               Info_resp     &log  &optional;
+
+		## HTTP method
+		method:             string        &log  &optional;
 	};
 
         ## Event for accessing logged OCSP records.
 	global log_ocsp: event(rec: Info);
 }
 
-redef record connection += {
-	## keep track of pending requests received so for
-	ocsp_requests: PendingRequests &optional;
+redef record HTTP::Info += {
+	# there should be one request and response but use Queue here
+	# just in case
+	ocsp_requests:            PendingQueue  &optional;
+	ocsp_responses:           PendingQueue  &optional;
+
+	current_content_type:     string        &optional &default="";
+	original_uri:             string        &optional;
+
+	# flag for checking get uri
+	checked_get:              bool          &optional &default=F;
 	};
 
-event bro_init() &priority=5
+event http_request(c: connection, method: string, original_URI: string, unescaped_URI: string, version: string)
 	{
-	Log::create_stream(LOG, [$columns=Info, $ev=log_ocsp, $path="ocsp"]);
+	c$http$original_uri = original_URI;
 	}
 
-function get_http_info(f: fa_file, meta: fa_metadata)
+event http_content_type(c: connection, is_orig: bool, ty: string, subty: string)
 	{
-	if (f$source != "HTTP" || !meta?$mime_type)
+	c$http$current_content_type = to_lower(ty + "/" + subty);
+	}
+
+function check_ocsp_file(f: fa_file, meta: fa_metadata)
+	{
+	if ( f$source != "HTTP" || ! f?$http )
 		return;
 
 	# call OCSP file analyzer
-	if (meta$mime_type == "application/ocsp-request")
+	if ( (meta?$mime_type && meta$mime_type == "application/ocsp-request") || f$http$current_content_type == "application/ocsp-request")
+		{
 		Files::add_analyzer(f, Files::ANALYZER_OCSP, [$ocsp_type = "request"]);
-	else if (meta$mime_type == "application/ocsp-response")
+		}
+	else if ( (meta?$mime_type && meta$mime_type == "application/ocsp-response") || f$http$current_content_type == "application/ocsp-response")
+		{
 		Files::add_analyzer(f, Files::ANALYZER_OCSP, [$ocsp_type = "response"]);
+		}
 	}
 
 event file_sniff(f: fa_file, meta: fa_metadata) &priority = 5
 	{
 	if (f$source == "HTTP")
-		get_http_info(f, meta);
+		check_ocsp_file(f, meta);
 	}
 
-event ocsp_request(f: fa_file, req_ref: opaque of ocsp_req, req: OCSP::Request) &priority = 5
+function update_http_info(http: HTTP::Info, req_rec: OCSP::Info_req)
 	{
-	local conn: connection;
-	local cid: conn_id;
+	if ( http?$method )
+		req_rec$method = http$method;
+	}
 
-	# there should be only one loop: one connection
-	for (id in f$conns)
-		{
-		cid = id;
-		conn = f$conns[id];
-		}
-
+function enq_request(http: HTTP::Info, req: OCSP::Request, file_id: string, req_ts: time)
+	{
 	if (req?$requestList)
 		{
 		for (x in req$requestList)
@@ -149,47 +167,57 @@ event ocsp_request(f: fa_file, req_ref: opaque of ocsp_req, req: OCSP::Request) 
 						       $issuerNameHash = one_req$issuerNameHash,
 						       $issuerKeyHash  = one_req$issuerKeyHash,
 						       $serialNumber   = one_req$serialNumber];
-
-			local req_rec: Info_req = [$ts=network_time(), $id=f$id, $certId=cert_id, $cid=conn$id, $cuid=conn$uid];
-
-			if (req?$version)
+			local req_rec: OCSP::Info_req = [$ts     = req_ts,
+							 $certId = cert_id,
+							 $cid    = http$id,
+							 $cuid   = http$uid];
+			if ( |file_id| > 0 && http$method != "GET" )
+				req_rec$id = file_id;
+			
+			if ( req?$version )
 				req_rec$version = req$version;
 
-			if (req?$requestorName)
+			if ( req?$requestorName )
 				req_rec$requestorName = req$requestorName;
 
-			if (!conn?$ocsp_requests)
-				conn$ocsp_requests = table();
+			if ( ! http?$ocsp_requests )
+				http$ocsp_requests = table();
 
-			if (cert_id !in conn$ocsp_requests)
-				conn$ocsp_requests[cert_id] = Queue::init();
+			if ( cert_id !in http$ocsp_requests )
+				http$ocsp_requests[cert_id] = Queue::init();
 
-			Queue::put(conn$ocsp_requests[cert_id], req_rec);
+			update_http_info(http, req_rec);
+			Queue::put(http$ocsp_requests[cert_id], req_rec);
 			}
 		}
 	else
 		{
 		# no request content? this is weird but log it anyway
-		local req_rec_empty: Info_req = [$ts=network_time(), $id=f$id, $cid=conn$id, $cuid=conn$uid];
+		local req_rec_empty: OCSP::Info_req = [$ts   = req_ts,
+			                               $cid  = http$id,
+						       $cuid = http$uid];
+		if ( |file_id| > 0 && http$method != "GET" )
+			req_rec_empty$id = file_id;
 		if (req?$version)
 			req_rec_empty$version = req$version;
 		if (req?$requestorName)
 			req_rec_empty$requestorName = req$requestorName;
-		Log::write(LOG, [$ts=req_rec_empty$ts, $req=req_rec_empty, $cid=conn$id, $cuid=conn$uid]);
+		update_http_info(http, req_rec_empty);
+		Log::write(LOG, [$ts=req_rec_empty$ts, $req=req_rec_empty, $cid=http$id, $cuid=http$uid, $method=http$method]);
 		}
+	}	
+
+event ocsp_request(f: fa_file, req_ref: opaque of ocsp_req, req: OCSP::Request) &priority = 5
+	{
+        if ( ! f?$http )
+		return;
+	enq_request(f$http, req, f$id, network_time());
 	}
 
 event ocsp_response(f: fa_file, resp_ref: opaque of ocsp_resp, resp: OCSP::Response) &priority = 5
 	{
-	local conn: connection;
-	local cid: conn_id;
-
-	# there should be only one loop
-	for (id in f$conns)
-		{
-		cid = id;
-		conn = f$conns[id];
-		}
+	if ( ! f?$http )
+		return;
 
 	if (resp?$responses)
 		{
@@ -200,8 +228,10 @@ event ocsp_response(f: fa_file, resp_ref: opaque of ocsp_resp, resp: OCSP::Respo
 						       $issuerNameHash = single_resp$issuerNameHash,
 						       $issuerKeyHash  = single_resp$issuerKeyHash,
 						       $serialNumber   = single_resp$serialNumber];
-			local resp_rec: Info_resp = [$ts = network_time(), $id = f$id,
-						     $cid=conn$id, $cuid=conn$uid,
+			local resp_rec: Info_resp = [$ts             = network_time(),
+						     $id             = f$id,
+						     $cid            = f$http$id,
+						     $cuid           = f$http$uid,
 						     $responseStatus = resp$responseStatus,
 						     $responseType   = resp$responseType,
 						     $version        = resp$version,
@@ -213,56 +243,172 @@ event ocsp_response(f: fa_file, resp_ref: opaque of ocsp_resp, resp: OCSP::Respo
 			if (single_resp?$nextUpdate)
 				resp_rec$nextUpdate = single_resp$nextUpdate;
 
-			if (conn?$ocsp_requests && cert_id in conn$ocsp_requests)
-				{
-				# find a match
-				local req_rec: Info_req = Queue::get(conn$ocsp_requests[cert_id]);
-				Log::write(LOG, [$ts=req_rec$ts, $certId=req_rec$certId, $req=req_rec, $resp_ts=resp_rec$ts, $resp=resp_rec, $cid=conn$id, $cuid=conn$uid]);
-				if (Queue::len(conn$ocsp_requests[cert_id]) == 0)
-					delete conn$ocsp_requests[cert_id]; #if queue is empty, delete it?
-				}
-			else
-				{
-				# do not find a match; this is weird but log it
-				Log::write(LOG, [$ts=resp_rec$ts, $certId=resp_rec$certId, $resp_ts=resp_rec$ts, $resp=resp_rec, $cid=conn$id, $cuid=conn$uid]);
-				}
+			if ( ! f$http?$ocsp_responses )
+				f$http$ocsp_responses = table();
+					
+			if ( cert_id !in f$http$ocsp_responses )
+				f$http$ocsp_responses[cert_id] = Queue::init();
+
+			Queue::put(f$http$ocsp_responses[cert_id], resp_rec);				
 			}
 		}
 	else
 		{
                 # no response content? this is weird but log it anyway
-		local resp_rec_empty: Info_resp = [$ts=network_time(), $id=f$id,
-			                           $cid=conn$id, $cuid=conn$uid,
+		local resp_rec_empty: Info_resp = [$ts             = network_time(),
+			                           $id             = f$id,
+			                           $cid            = f$http$id,
+						   $cuid           = f$http$uid,
 						   $responseStatus = resp$responseStatus,
 						   $responseType   = resp$responseType,
 						   $version        = resp$version,
 						   $responderID    = resp$responderID,
 						   $producedAt     = resp$producedAt];
-		Log::write(LOG, [$ts=resp_rec_empty$ts, $resp_ts=resp_rec_empty$ts, $resp=resp_rec_empty, $cid=conn$id, $cuid=conn$uid]);
+		local info_rec: Info = [$ts      = resp_rec_empty$ts,
+					$resp_ts = resp_rec_empty$ts,
+					$resp    = resp_rec_empty,
+					$cid     = f$http$id,
+					$cuid    = f$http$uid];
+		if ( f$http?$method )
+			info_rec$method = f$http$method;
+		Log::write(LOG, info_rec);
 		}
 	}
 
-function log_unmatched_msgs_queue(q: Queue::Queue)
+function log_unmatched_reqs_queue(q: Queue::Queue)
 	{
 	local reqs: vector of Info_req;
 	Queue::get_vector(q, reqs);
-
 	for ( i in reqs )
-		Log::write(LOG, [$ts=reqs[i]$ts, $certId=reqs[i]$certId, $req=reqs[i], $cid=reqs[i]$cid, $cuid=reqs[i]$cuid]);
+		{
+		local info_rec: Info = [$ts     = reqs[i]$ts,
+			                $certId = reqs[i]$certId,
+					$req    = reqs[i],
+					$cid    = reqs[i]$cid,
+					$cuid   = reqs[i]$cuid];
+		if ( reqs[i]?$method )
+			info_rec$method = reqs[i]$method;
+		Log::write(LOG, info_rec);
+		}
 	}
 
-function log_unmatched_msgs(msgs: PendingRequests)
+function log_unmatched_reqs(reqs: PendingQueue)
 	{
-	for ( cert_id in msgs )
-		log_unmatched_msgs_queue(msgs[cert_id]);
-
-	clear_table(msgs);
+	for ( cert_id in reqs )
+		log_unmatched_reqs_queue(reqs[cert_id]);
+	clear_table(reqs);
 	}
 
-# need to log unmatched ocsp request if any
-event connection_state_remove(c: connection) &priority= -5
+function remove_first_slash(s: string): string
 	{
-	if (! c?$ocsp_requests)
+	local s_len = |s|;
+	if (s[0] == "/")
+		return s[1:s_len];
+	else
+		return s;
+	}
+
+function get_uri_prefix(s: string): string
+	{
+	s = remove_first_slash(s);
+	local w = split_string(s, /\//);
+	if (|w| > 1)
+		return w[0];
+	else
+		return "";
+	}			
+
+function check_ocsp_request_uri(http: HTTP::Info): OCSP::Request
+	{
+	local parsed_req: OCSP::Request;
+	if ( ! http?$original_uri )
+		return parsed_req;;
+
+	local uri: string = remove_first_slash(http$uri);
+	local uri_prefix: string = get_uri_prefix(http$original_uri);
+	local ocsp_req_str: string;
+	
+	if ( |uri_prefix| == 0 )
+		{
+		ocsp_req_str = uri;
+		}
+	else if (|uri_prefix| > 0)
+		{
+		uri_prefix += "/";
+		ocsp_req_str = uri[|uri_prefix|:];
+		}
+	parsed_req = ocsp_parse_request(decode_base64(ocsp_req_str));
+	return parsed_req;
+	}
+
+function start_log_ocsp(http: HTTP::Info)
+	{
+	if ( ! http?$ocsp_requests && ! http?$ocsp_responses )
 		return;
-	log_unmatched_msgs(c$ocsp_requests);
+
+	if ( ! http?$ocsp_responses )
+		{
+		log_unmatched_reqs(http$ocsp_requests);
+		return;
+		}
+	
+	for ( cert_id in http$ocsp_responses )
+		{
+		while ( Queue::len(http$ocsp_responses[cert_id]) != 0 )
+			{
+			# have unmatched responses
+			local resp_rec: Info_resp = Queue::get(http$ocsp_responses[cert_id]);
+			local info_rec: Info = [$ts      = resp_rec$ts,
+			                        $certId  = resp_rec$certId,
+						$resp_ts = resp_rec$ts,
+						$resp    = resp_rec,
+						$cid     = http$id,
+						$cuid    = http$uid,
+						$method  = http$method];				
+
+			if ( http?$ocsp_requests && cert_id in http$ocsp_requests )
+				{
+				# find a match
+				local req_rec: Info_req = Queue::get(http$ocsp_requests[cert_id]);
+				info_rec$req = req_rec;
+				info_rec$ts  = req_rec$ts;
+				if (Queue::len(http$ocsp_requests[cert_id]) == 0)
+					delete http$ocsp_requests[cert_id];
+				}
+			else
+				{
+				if ( http$method == "GET" && ! http$checked_get )
+					{
+					http$checked_get = T;
+					local req_get: OCSP::Request = check_ocsp_request_uri(http);
+					enq_request(http, req_get, "", http$ts);
+					if ( http?$ocsp_requests && cert_id in http$ocsp_requests )
+						{
+						# find a match
+						local req_rec_tmp: Info_req = Queue::get(http$ocsp_requests[cert_id]);
+						info_rec$req = req_rec_tmp;
+						info_rec$ts  = req_rec_tmp$ts;
+						if (Queue::len(http$ocsp_requests[cert_id]) == 0)
+							delete http$ocsp_requests[cert_id];
+						}
+					}
+				}
+			Log::write(LOG, info_rec);
+			}
+		if ( Queue::len(http$ocsp_responses[cert_id]) == 0 )
+			delete http$ocsp_responses[cert_id];
+		}
+	if ( http?$ocsp_requests && |http$ocsp_requests| != 0 )
+		log_unmatched_reqs(http$ocsp_requests);
+	}
+	
+# log OCSP information
+event HTTP::log_http(rec: HTTP::Info)
+	{
+	start_log_ocsp(rec);
+	}
+
+event bro_init() &priority=5
+	{
+	Log::create_stream(LOG, [$columns=Info, $ev=log_ocsp, $path="ocsp"]);
 	}

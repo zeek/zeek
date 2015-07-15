@@ -373,7 +373,7 @@ RecordVal *file_analysis::OCSP::ParseRequest(OCSP_REQVal *req_val)
 		{
 		len = -1;
 		len = GENERAL_NAME_to_cstr(buf, buf_len, (void *)(inf->requestorName));
-		if (len > 1)
+		if (len > 0)
 			ocsp_req_record->Assign(1, new StringVal(len, buf));
 		}
 	

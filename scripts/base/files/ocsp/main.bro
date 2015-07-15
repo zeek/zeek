@@ -363,8 +363,7 @@ function start_log_ocsp(http: HTTP::Info)
 						$resp_ts = resp_rec$ts,
 						$resp    = resp_rec,
 						$cid     = http$id,
-						$cuid    = http$uid,
-						$method  = http$method];				
+						$cuid    = http$uid];
 
 			if ( http?$ocsp_requests && cert_id in http$ocsp_requests )
 				{
@@ -377,7 +376,7 @@ function start_log_ocsp(http: HTTP::Info)
 				}
 			else
 				{
-				if ( http$method == "GET" && ! http$checked_get )
+				if ( http?$method && http$method == "GET" && ! http$checked_get )
 					{
 					http$checked_get = T;
 					local req_get: OCSP::Request = check_ocsp_request_uri(http);
@@ -393,6 +392,8 @@ function start_log_ocsp(http: HTTP::Info)
 						}
 					}
 				}
+			if ( http?$method )
+				info_rec$method = http$method;
 			Log::write(LOG, info_rec);
 			}
 		if ( Queue::len(http$ocsp_responses[cert_id]) == 0 )

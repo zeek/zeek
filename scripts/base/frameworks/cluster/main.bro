@@ -158,6 +158,40 @@ event bro_init() &priority=5
 		Reporter::error(fmt("'%s' is not a valid node in the Cluster::nodes configuration", node));
 		terminate();
 		}
-	
+	BrokerComm::enable();
+	BrokerComm::listen(nodes[node]$p, fmt("%s", nodes[node]$ip));
+
 	Log::create_stream(Cluster::LOG, [$columns=Info, $path="cluster"]);
+
+	if( fmt("%s", local_node_type()) ==  "Cluster::MANAGER" )
+		{
+		print "local node is a manager";
+		BrokerComm::subscribe_to_events("/bro/event/cluster/manager/request");
+		# Need to publish:
+		# - controllee_events
+		# - manager2worker_events
+		# - manager2proxy_events
+		#BrokerComm::auto_event("/bro/event/response", controllee_events);
+		}
+	else if( fmt("%s", local_node_type()) == "Cluster::WORKER" )
+		{
+		print "local node is a worker";
+		BrokerComm::subscribe_to_events("/bro/event/cluster/worker/request");
+		# Need to publish:
+		# - controllee_events
+		# - worker2manager_events
+		# - worker2proxy_events
+		#BrokerComm::auto_event("/bro/event/response", controllee_events);
+		}
+	
+	else if( fmt("%s", local_node_type()) == "Cluster::PROXY" )
+		{
+		print "local node is a proxy";
+		BrokerComm::subscribe_to_events("/bro/event/cluster/proxy/request");
+		# Need to publish:
+		# - controllee_events
+		# - proxy2manager_events
+		# - proxy2worker_events
+		#BrokerComm::auto_event("/bro/event/response", controllee_events);
+		}
 	}

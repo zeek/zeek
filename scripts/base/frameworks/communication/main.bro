@@ -202,14 +202,17 @@ function connect_peer(peer: string)
 	if ( node?$p )
 		p = node$p;
 
+	local id = PEER_ID_NONE;
 	local class = node?$class ? node$class : "";
 	local zone_id = node?$zone_id ? node$zone_id : "";
-	local id = connect(node$host, zone_id, p, class, node$retry, node$ssl);
+	id = connect(node$host, zone_id, p, class, node$retry, node$ssl);
+	BrokerComm::connect(fmt("%s", node$host), p, 1sec);
 
 	if ( id == PEER_ID_NONE )
 		Log::write(Communication::LOG, [$ts = network_time(),
 		                                $peer = get_event_peer()$descr,
 		                                $message = "can't trigger connect"]);
+	print "id", fmt("%s", id);
 	pending_peers[id] = node;
 	}
 

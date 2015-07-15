@@ -13,31 +13,12 @@ export {
 	redef enum Log::ID += { LOG_OCSP };
 	redef enum Log::ID += { LOG_SSL };
 
-	type PendingRequests: table[OCSP::CertId] of Queue::Queue;
-	
-	type OCSP_Request_Type: record {
-		ts:             time;
-		fuid:           string;
-		req:            OCSP::Request;
-		};
-
-	type OCSP_Response_Type: record {
-		ts:             time;
-		fuid:           string;
-		resp:           OCSP::Response;
-		};
-	
 	type Info_OCSP: record {
 		## cert id for the OCSP request
 		cert_id:        OCSP::CertId      &log  &optional;
 
 		## request timestamp
 		req_ts:         time              &log  &optional;
-
-		## one OCSP request may contain several OCSP requests
-                ## with different cert id; this is the index of the
-                ## OCSP request with cert_id in the big OCSP request
-		req_index:      count             &log  &optional;
 		
 		## request
 		## NOTE: this is only one request if multiple requests
@@ -47,11 +28,6 @@ export {
 
 		## response timestamp
 		resp_ts:        time              &log  &optional;
-
-		## one OCSP response may contain several OCSP responses
-                ## with different cert id; this is the index of the
-                ## OCSP response with cert_id in the big OCSP response
-		resp_index:      count             &log  &optional;
 
 		## response
 		## NOTE: similar to request, if multiple responses are
@@ -86,8 +62,12 @@ export {
 		## the HTTP code in the HTTP response
 		http_code:      count      &log       &optional;
 
+		## HTTP method
+		method:         string     &log       &optional;
+
 		## host in HTTP request + uri in HTTP request
 		## last '/' is removed
+		## for GET request, OCSP request is remove from url
 		ocsp_uri:       string     &log       &optional;
 
 		## number of HTTP requests containing ocsp requests in
@@ -168,12 +148,6 @@ redef record HTTP::Info += {
 	request_header_len:       count  &optional &default=0;
 	response_header_len:      count  &optional &default=0;
 
-	## OCSP_Request_Type
-	ocsp_requests:            vector of OCSP_Request_Type  &optional;
-
-	## OCSP_Response_Type
-	ocsp_responses:           vector of OCSP_Response_Type &optional;
-
 	## connection start time, copied from connection
 	conn_start_ts:            time  &optional;
 
@@ -240,32 +214,6 @@ event http_message_done(c: connection, is_orig: bool, stat: http_message_stat)
 		}
 	c$http$num_ocsp = c$num_ocsp;
 	c$http$conn_start_ts = c$start_time;
-	}
-
-# add ocsp request to http record
-event ocsp_request(f: fa_file, req_ref: opaque of ocsp_req, req: OCSP::Request)
-	{
-	if ( ! f?$http )
-		return;
-	local request: OCSP_Request_Type = [$ts   = network_time(),
-		                            $fuid = f$id,
-					    $req  = req];
-	if ( ! f$http?$ocsp_requests )
-		f$http$ocsp_requests = vector();
-	f$http$ocsp_requests[|f$http$ocsp_requests|] = request;
-	}
-
-# add ocsp response to http record
-event ocsp_response(f: fa_file, resp_ref: opaque of ocsp_resp, resp: OCSP::Response)
-	{
-	if ( ! f?$http )
-		return;
-	local response: OCSP_Response_Type = [$ts   = network_time(),
-		                              $fuid = f$id,
-					      $resp = resp];
-	if ( ! f$http?$ocsp_responses )
-		f$http$ocsp_responses = vector();
-	f$http$ocsp_responses[|f$http$ocsp_responses|] = response;
 	}
 
 # add server hello time
@@ -367,26 +315,14 @@ event x509_extension(f: fa_file, ext: X509::Extension) &priority= -10 {
 	Queue::put(c$ssl$cert_ts[ocsp_uri, serial_number, issuer_name], current_ts);
 	}
 
-# log unmatched ocsp request or response
-function log_unmatched_ocsp_queue (q: Queue::Queue)
-	{
-	local rec: vector of OCSP_SSL_SPLIT::Info_OCSP;
-	Queue::get_vector(q, rec);
-	for ( i in rec )
-		Log::write(LOG_OCSP, rec[i]);
-	}
-
-# log unmatched ocsp request or response
-function log_unmatched_ocsp(ocsp: table[OCSP::CertId] of Queue::Queue)
-	{
-	for ( cert_id in ocsp )
-		log_unmatched_ocsp_queue(ocsp[cert_id]);
-	clear_table(ocsp);
-	}
-
-# update http data in ocsp info record
 function update_http_info(ocsp: OCSP_SSL_SPLIT::Info_OCSP, http: HTTP::Info)
 	{
+	if ( http?$num_ocsp )
+		ocsp$num_ocsp = http$num_ocsp;
+
+	if ( http?$method )
+		ocsp$method = http$method;
+
 	if ( http?$host )
 		ocsp$ocsp_uri = http$host;
 
@@ -396,9 +332,18 @@ function update_http_info(ocsp: OCSP_SSL_SPLIT::Info_OCSP, http: HTTP::Info)
 		else
 			ocsp$ocsp_uri = http$uri;
 
+	if ( http?$method && http$method == "GET" && http?$original_uri )
+		{
+		local uri_prefix: string = OCSP::get_uri_prefix(http$original_uri);
+		if ( http?$host )
+			ocsp$ocsp_uri = http$host;
+		if ( |uri_prefix| > 0)
+			ocsp$ocsp_uri += "/" + uri_prefix; 
+		}
+
 	if ( ocsp?$ocsp_uri )
 		ocsp$ocsp_uri = clean_uri(ocsp$ocsp_uri);
-
+		
 	if ( http?$status_code )
 		ocsp$http_code = http$status_code;
 		
@@ -415,147 +360,37 @@ function update_http_info(ocsp: OCSP_SSL_SPLIT::Info_OCSP, http: HTTP::Info)
 		ocsp$resp_hdr_size = http$response_header_len;
 	}
 
-# get all the ocsp requests
-function get_ocsp_requests(http: HTTP::Info): PendingRequests
+function start_log_ocsp(rec: OCSP::Info)
 	{
-	local pending_ocsp_requests: PendingRequests = table();
+	local http: HTTP::Info = rec$http;
+	local info_ocsp_rec: OCSP_SSL_SPLIT::Info_OCSP = [$cid = http$id,
+		                                          $cuid = http$uid,
+							  $conn_start_ts = http$conn_start_ts];
 
-	if ( ! http?$ocsp_requests )
-		return pending_ocsp_requests;
-		
-	for ( x in http$ocsp_requests )
+	if ( rec?$certId )
+		info_ocsp_rec$cert_id = rec$certId;
+
+	if ( rec?$req )
 		{
-		local request: OCSP_Request_Type = http$ocsp_requests[x];
-		if ( ! request?$req )
-			next;
-			
-		local req: OCSP::Request = request$req;
-		if ( ! req?$requestList )
-			next;
-			
-		local req_index: count = 0;
-		for ( y in req$requestList )
-			{
-			req_index += 1;
-			local one_req = req$requestList[y];
-			local cert_id: OCSP::CertId = [$hashAlgorithm  = one_req$hashAlgorithm,
-			                               $issuerNameHash = one_req$issuerNameHash,
-			                               $issuerKeyHash  = one_req$issuerKeyHash,
-			                               $serialNumber   = one_req$serialNumber];
-
-		        local req_rec: OCSP::Info_req = [$ts=request$ts, $id=request$fuid, $certId=cert_id];
-
-		        if (req?$version)
-				req_rec$version = req$version;
-
-			if (req?$requestorName)
-				req_rec$requestorName = req$requestorName;
-
-			local ocsp_info_rec: OCSP_SSL_SPLIT::Info_OCSP = [$cert_id       = cert_id,
-				                                          $req_ts        = request$ts,
-									  $req_index     = req_index,
-									  $req           = req_rec,
-									  $cid           = http$id,
-									  $cuid          = http$uid,
-									  $conn_start_ts = http$conn_start_ts,
-									  $num_ocsp      = http$num_ocsp];
-			update_http_info(ocsp_info_rec, http);
-
-			if ( cert_id !in pending_ocsp_requests )
-				pending_ocsp_requests[cert_id] = Queue::init();
-
-			Queue::put(pending_ocsp_requests[cert_id], ocsp_info_rec);
-			}
+		info_ocsp_rec$req = rec$req;
+		info_ocsp_rec$req_ts = rec$req$ts;
 		}
-	return pending_ocsp_requests;
-	}
 
-# log OCSP
-function start_log_ocsp(http: HTTP::Info)
-	{
-	if ( ! http?$ocsp_requests && ! http?$ocsp_responses )
-		return;
-		
-	local pending_ocsp_requests: PendingRequests = get_ocsp_requests(http);
-	
-	if ( ! http?$ocsp_responses )
+	if ( rec?$resp )
 		{
-		log_unmatched_ocsp(pending_ocsp_requests);
-		return;
+		info_ocsp_rec$resp = rec$resp;
+		info_ocsp_rec$resp_ts = rec$resp$ts;
 		}
-	
-	for ( x in http$ocsp_responses )
-		{
-                local response: OCSP_Response_Type = http$ocsp_responses[x];
-		if ( ! response?$resp )
-			next;
 
-		local resp: OCSP::Response = response$resp;
-		if ( ! resp?$responses )
-			next;
+	if ( rec?$req && rec?$resp )
+		info_ocsp_rec$delay = info_ocsp_rec$resp_ts - info_ocsp_rec$req_ts;
 
-		local resp_index: count = 0;
-		for ( y in resp$responses )
-			{
-			resp_index += 1;
-			local single_resp: OCSP::SingleResp = resp$responses[y];
-			local cert_id: OCSP::CertId = [$hashAlgorithm  = single_resp$hashAlgorithm,
-			                               $issuerNameHash = single_resp$issuerNameHash,
-			                               $issuerKeyHash  = single_resp$issuerKeyHash,
-			                               $serialNumber   = single_resp$serialNumber];
-
-			local resp_rec: OCSP::Info_resp = [$ts             = response$ts,
-						           $id             = response$fuid,
-							   $responseStatus = resp$responseStatus,
-							   $responseType   = resp$responseType,
-							   $version        = resp$version,
-							   $responderID    = resp$responderID,
-							   $producedAt     = resp$producedAt,
-							   $certId         = cert_id,
-							   $certStatus     = single_resp$certStatus,
-							   $thisUpdate     = single_resp$thisUpdate];
-			if ( single_resp?$nextUpdate )
-				resp_rec$nextUpdate = single_resp$nextUpdate;
-
-			if ( cert_id in pending_ocsp_requests)
-				{
-				# find a match
-				local ocsp_info: OCSP_SSL_SPLIT::Info_OCSP = Queue::get(pending_ocsp_requests[cert_id]);
-				ocsp_info$resp       = resp_rec;
-				ocsp_info$resp_ts    = response$ts;
-				ocsp_info$resp_index = resp_index;
-
-				# update http info, previously filled in fill_ocsp_request
-				update_http_info(ocsp_info, http);
-				
-				ocsp_info$delay = ocsp_info$resp$ts - ocsp_info$req$ts;
-
-				if (Queue::len(pending_ocsp_requests[cert_id]) == 0)
-					delete pending_ocsp_requests[cert_id];
-
-				Log::write(LOG_OCSP, ocsp_info);
-				}
-			else
-				{
-				local ocsp_info_noreq: OCSP_SSL_SPLIT::Info_OCSP = [$cert_id       = cert_id,
-					                                            $resp_ts       = resp_rec$ts,
-										    $resp_index    = resp_index,
-										    $resp          = resp_rec,
-										    $cid           = http$id,
-										    $cuid          = http$uid,
-										    $conn_start_ts = http$conn_start_ts,
-										    $num_ocsp      = http$num_ocsp];
-				update_http_info(ocsp_info_noreq, http);
-				Log::write(LOG_OCSP, ocsp_info_noreq);
-				}
-			}
-		}
-	if ( |pending_ocsp_requests| != 0 )
-		log_unmatched_ocsp(pending_ocsp_requests);
+	update_http_info(info_ocsp_rec, http);
+	Log::write(LOG_OCSP, info_ocsp_rec);
 	}
 
 # log OCSP information
-event HTTP::log_http(rec: HTTP::Info)
+event OCSP::log_ocsp(rec: OCSP::Info)
 	{
 	start_log_ocsp(rec);
 	}

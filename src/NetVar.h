@@ -245,6 +245,8 @@ extern VectorType* call_argument_vector;
 
 extern StringVal* cmd_line_bpf_filter;
 
+extern RecordType* rtx_stats;
+extern int use_tcp_analyzer;
 extern StringVal* global_hash_seed;
 
 extern bro_uint_t bits_per_uid;

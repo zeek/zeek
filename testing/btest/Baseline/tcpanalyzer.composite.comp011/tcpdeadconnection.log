@@ -1,0 +1,11 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	tcpdeadconnection
+#open	2014-08-05-06-19-31
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	label	duration	state	orig
+#types	time	string	addr	port	addr	port	string	double	int	bool
+1285864852.300291	CXWv6p3arKYeMETxOg	10.1.36.126	4160	192.168.0.2	80	TCP::ConnectionFailure	0.221598	3	T
+1285864852.495805	CXWv6p3arKYeMETxOg	10.1.36.126	4160	192.168.0.2	80	TCP::ConnectionFailure	0.195514	5	T
+#close	2014-08-05-06-19-31

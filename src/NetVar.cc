@@ -241,6 +241,8 @@ VectorType* call_argument_vector;
 
 StringVal* cmd_line_bpf_filter;
 
+RecordType* rtx_stats;
+int use_tcp_analyzer;
 StringVal* global_hash_seed;
 
 bro_uint_t bits_per_uid;
@@ -530,4 +532,7 @@ void init_net_var()
 	record_field_table = internal_type("record_field_table")->AsTableType();
 	call_argument_vector = internal_type("call_argument_vector")->AsVectorType();
 	call_argument = internal_type("call_argument")->AsRecordType();
+	
+	rtx_stats = internal_type("rtx_stats")->AsRecordType();
+	use_tcp_analyzer = opt_internal_int("use_tcp_analyzer");
 	}

@@ -263,6 +263,32 @@ type endpoint_stats: record {
 	endian_type: count;
 };
 
+type rtx_stats: record {
+        unknown: int;
+        hs: int;
+        ss: int;
+        ca: int;
+        fast: int;
+        close: int;
+        windowlimited: int;
+        steady: int;
+        zerowindow: int;
+        retrans: int;
+        idle: int;
+
+};
+
+## A unique analyzer instance ID. Each time instantiates a protocol analyzers
+## for a connection, it assigns it a unique ID that can be used to reference
+## that instance.
+##
+## .. bro:see:: analyzer_name disable_analyzer protocol_confirmation
+##    protocol_violation
+##
+## .. todo::While we declare an alias for the type here, the events/functions still
+##    use ``count``. That should be changed.
+type AnalyzerID: count;
+
 module Tunnel;
 export {
 	## Records the identity of an encapsulating parent of a tunneled connection.
@@ -1085,6 +1111,7 @@ const encap_hdr_size = 0 &redef;
 ## IP-level bytes transferred by each endpoint. If true, these values are
 ## returned in the connection's :bro:see:`endpoint` record value.
 const use_conn_size_analyzer = T &redef;
+const use_tcp_analyzer = F &redef;
 
 # todo:: these should go into an enum to make them autodoc'able.
 const ENDIAN_UNKNOWN = 0;	##< Endian not yet determined.

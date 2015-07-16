@@ -300,3 +300,22 @@ event tcp_rexmit%(c: connection, is_orig: bool, seq: count, len: count, data_in_
 ##
 ## .. bro:see:: set_contents_file get_contents_file
 event contents_file_write_failure%(c: connection, is_orig: bool, msg: string%);
+
+
+# Raised for TCPRS Analyzer
+event conn_spurious_dsack%(c: connection, timestamp: time , seq:count, is_orig:bool, rtt:double, state:int, o_seq:count, beg_seq:count, end_seq:count, reason:int, rtype:int%);
+event conn_rexmit%(c: connection, timestamp: time , seq:count, is_orig:bool, rtt:double, state:int, o_seq:count, beg_seq:count, end_seq:count, reason:int, rtype:int, confidence:double, flags:int%);
+event conn_rtx_summary%(c: connection, timestamp: time, stats: rtx_stats, spurious:count%);
+event conn_rtx_types%(c: connection, timestamp: time, rto: int, fastrtx: int, retrans: int, isdead: bool%);
+event tcp_dup_ack%(c: connection, timestamp: time, seq:count, num_rtx:int, is_orig:bool%);
+event conn_state_change%(c: connection, timestamp: time , prev:int, current:int , is_orig:bool%);
+event conn_dead_event%(c: connection, timestamp: time , duration:double, state:int, is_orig:bool%);
+event conn_ooo_summary%(c: connection, timestamp: time, orig:int, resp:int, total:int%);
+event conn_ooo_event%(c: connection, timestamp: time, is_orig:bool, seq:count, gap:double, rtt:double, num_seq:int, o_seq:count, beg_seq:count, end_seq:count%);
+event conn_ambi_order%(c: connection, timestamp: time, is_orig:bool, seq: count, gap:double, num_seq:int, o_seq:count, beg_seq:count, end_seq:count%);
+event conn_config%(c: connection, timestamp: time, ts:bool, bad_conn:bool, sack:bool, o_sack_offer:bool, r_sack_offer:bool%);
+event conn_rtt_estimate%(c: connection, timestamp: time, rtt:double, c_rtt:double, s_rtt:double%);
+event conn_limited_transmit%(c: connection, timestamp: time, seq:count, is_orig:bool, rtt:double, state:int, o_seq:count, beg_seq:count, end_seq:count%);
+event conn_fast_recovery%(c: connection, timestamp: time, seq:count, is_orig:bool, rtt:double, state:int, o_seq:count, beg_seq:count, end_seq:count%);
+event conn_initial_rtt%(c: connection, timestamp: time, rtt:double, is_orig:bool%);
+event conn_initial_rto%(c: connection, timestamp: time, rto:double, is_orig:bool%);

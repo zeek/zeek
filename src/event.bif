@@ -875,6 +875,7 @@ event reporter_error%(t: time, msg: string, location: string%) &error_handler;
 ##        recursively for each ``@load``.
 event bro_script_loaded%(path: string, level: count%);
 
+# ##### Internal events. Not further documented.
 ## Generated each time Bro's script interpreter opens a file. This event is
 ## triggered only for files opened via :bro:id:`open`, and in particular not for
 ## normal log files as created by log writers.

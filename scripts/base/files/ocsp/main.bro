@@ -236,7 +236,7 @@ function remove_first_slash(s: string): string
 	{
 	local s_len = |s|;
 	if (s[0] == "/")
-		return s[1:s_len];
+		return remove_first_slash(s[1:s_len]);
 	else
 		return s;
 	}

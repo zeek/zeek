@@ -1,4 +1,13 @@
 
+2.4-32 | 2015-07-16 17:21:29 -0700
+
+  * Refactor code to use a common Packet type throught. (Jeff Barber)
+
+  * Extend parsing layer 2 and keeping track of layer 3 protoco. (Jeff Barber)
+
+  * Add a raw_packet() event that generated for all packets and
+    include layer 2 information. (Jeff Barber)
+
 2.4-27 | 2015-07-15 13:31:49 -0700
 
   * Fix race condition in intel test. (Johanna Amann)

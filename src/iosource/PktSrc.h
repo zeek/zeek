@@ -6,6 +6,7 @@
 #include "IOSource.h"
 #include "BPF_Program.h"
 #include "Dict.h"
+#include "Packet.h"
 
 declare(PDict,BPF_Program);
 
@@ -165,14 +166,12 @@ public:
 	/**
 	 * Returns the packet currently being processed, if available.
 	 *
-	 * @param hdr A pointer to pass the header of the current packet back.
-	 *
 	 * @param pkt A pointer to pass the content of the current packet
 	 * back.
 	 *
 	 * @return True if the current packet is available, or false if not.
 	 */
-	bool GetCurrentPacket(const pcap_pkthdr** hdr, const u_char** pkt);
+	bool GetCurrentPacket(const Packet** hdr);
 
 	// PacketSource interace for derived classes to override.
 
@@ -225,6 +224,13 @@ public:
 	 */
 	static int GetLinkHeaderSize(int link_type);
 
+	/**
+	 * Return the pcap link encapsulation type we started with.
+	 *
+	 * @return DLT_EN10MB (etc.)
+	 */
+	int GetLinkEncap(void);
+
 protected:
 	friend class Manager;
 
@@ -272,26 +278,6 @@ protected:
 		bool is_live;
 
 		Properties();
-	};
-
-	/**
-	 * Structure describing a packet.
-	 */
-	struct Packet {
-		/**
-		 *  Time associated with the packet.
-		 */
-		double ts;
-
-		/**
-		 *  The pcap header associated with the packet.
-		 */
-		const struct ::pcap_pkthdr* hdr;
-
-		/**
-		 * The full content of the packet.
-		 */
-		const u_char* data;
 	};
 
 	/**

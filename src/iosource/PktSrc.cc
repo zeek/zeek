@@ -147,7 +147,7 @@ void PktSrc::Info(const std::string& msg)
 
 void PktSrc::Weird(const std::string& msg, const Packet* p)
 	{
-	sessions->Weird(msg.c_str(), p->hdr, p->data, 0);
+	sessions->Weird(msg.c_str(), p, 0);
 	}
 
 void PktSrc::InternalError(const std::string& msg)
@@ -197,20 +197,20 @@ double PktSrc::CheckPseudoTime()
 
 	if ( remote_trace_sync_interval )
 		{
-		if ( next_sync_point == 0 || current_packet.ts >= next_sync_point )
+		if ( next_sync_point == 0 || current_packet.time >= next_sync_point )
 			{
 			int n = remote_serializer->SendSyncPoint();
 			next_sync_point = first_timestamp +
 						n * remote_trace_sync_interval;
 			remote_serializer->Log(RemoteSerializer::LogInfo,
 				fmt("stopping at packet %.6f, next sync-point at %.6f",
-					current_packet.ts, next_sync_point));
+					current_packet.time, next_sync_point));
 
 			return 0;
 			}
 		}
 
-	double pseudo_time = current_packet.ts - first_timestamp;
+	double pseudo_time = current_packet.time - first_timestamp;
 	double ct = (current_time(true) - first_wallclock) * pseudo_realtime;
 
 	return pseudo_time <= ct ? bro_start_time + pseudo_time : 0;
@@ -273,7 +273,7 @@ double PktSrc::NextTimestamp(double* local_network_time)
 		return -1.0;
 		}
 
-	return current_packet.ts;
+	return current_packet.time;
 	}
 
 void PktSrc::Process()
@@ -284,20 +284,22 @@ void PktSrc::Process()
 	if ( ! ExtractNextPacketInternal() )
 		return;
 
-	int pkt_hdr_size = props.hdr_size;
-
 	// Unfortunately some packets on the link might have MPLS labels
 	// while others don't. That means we need to ask the link-layer if
 	// labels are in place.
 	bool have_mpls = false;
 
+	int l3_proto = 0;
 	int protocol = 0;
 	const u_char* data = current_packet.data;
+
+	current_packet.link_type = props.link_type;
 
 	switch ( props.link_type ) {
 	case DLT_NULL:
 		{
 		protocol = (data[3] << 24) + (data[2] << 16) + (data[1] << 8) + data[0];
+		data += GetLinkHeaderSize(props.link_type);
 
 		// From the Wireshark Wiki: "AF_INET6, unfortunately, has
 		// different values in {NetBSD,OpenBSD,BSD/OS},
@@ -306,16 +308,16 @@ void PktSrc::Process()
 		// as the AF_ value." As we may be reading traces captured on
 		// platforms other than what we're running on, we accept them
 		// all here.
-		if ( protocol != AF_INET
-		     && protocol != AF_INET6
-		     && protocol != 24
-		     && protocol != 28
-		     && protocol != 30 )
+		if ( protocol == 24 || protocol == 28 || protocol == 30 )
+			protocol = AF_INET6;
+
+		if ( protocol != AF_INET && protocol != AF_INET6 )
 			{
 			Weird("non_ip_packet_in_null_transport", &current_packet);
 			goto done;
 			}
 
+		l3_proto = protocol;
 		break;
 		}
 
@@ -323,53 +325,66 @@ void PktSrc::Process()
 		{
 		// Get protocol being carried from the ethernet frame.
 		protocol = (data[12] << 8) + data[13];
+		data += GetLinkHeaderSize(props.link_type);
+		current_packet.eth_type = protocol;
 
 		switch ( protocol )
 			{
 			// MPLS carried over the ethernet frame.
 			case 0x8847:
-				// Remove the data link layer and denote a
-				// header size of zero before the IP header.
 				have_mpls = true;
-				data += GetLinkHeaderSize(props.link_type);
-				pkt_hdr_size = 0;
 				break;
 
 			// VLAN carried over the ethernet frame.
+			// 802.1q / 802.1ad
 			case 0x8100:
-				data += GetLinkHeaderSize(props.link_type);
+			case 0x9100:
+				current_packet.vlan = ((data[0] << 8) + data[1]) & 0xfff;
+				protocol = ((data[2] << 8) + data[3]);
+				data += 4; // Skip the vlan header
 
 				// Check for MPLS in VLAN.
-				if ( ((data[2] << 8) + data[3]) == 0x8847 )
+				if ( protocol == 0x8847 )
+					{
 					have_mpls = true;
+					break;
+					}
 
-				data += 4; // Skip the vlan header
-				pkt_hdr_size = 0;
+				// Check for double-tagged (802.1ad)
+				if ( protocol == 0x8100 || protocol == 0x9100 )
+					{
+					protocol = ((data[2] << 8) + data[3]);
+					data += 4; // Skip the vlan header
+					}
 
-				// Check for 802.1ah (Q-in-Q) containing IP.
-				// Only do a second layer of vlan tag
-				// stripping because there is no
-				// specification that allows for deeper
-				// nesting.
-				if ( ((data[2] << 8) + data[3]) == 0x0800 )
-					data += 4;
-
+				current_packet.eth_type = protocol;
 				break;
 
 			// PPPoE carried over the ethernet frame.
 			case 0x8864:
-				data += GetLinkHeaderSize(props.link_type);
 				protocol = (data[6] << 8) + data[7];
 				data += 8; // Skip the PPPoE session and PPP header
-				pkt_hdr_size = 0;
 
-				if ( protocol != 0x0021 && protocol != 0x0057 )
+				if ( protocol == 0x0021 )
+					l3_proto = AF_INET;
+				else if ( protocol == 0x0057 )
+					l3_proto = AF_INET6;
+				else
 					{
 					// Neither IPv4 nor IPv6.
 					Weird("non_ip_packet_in_pppoe_encapsulation", &current_packet);
 					goto done;
 					}
 				break;
+			}
+
+		// Normal path to determine Layer 3 protocol.
+		if ( ! have_mpls && ! l3_proto )
+			{
+			if ( protocol == 0x800 )
+				l3_proto = AF_INET;
+			else if ( protocol == 0x86dd )
+				l3_proto = AF_INET6;
 			}
 
 		break;
@@ -379,22 +394,33 @@ void PktSrc::Process()
 		{
 		// Get PPP protocol.
 		protocol = (data[2] << 8) + data[3];
+		data += GetLinkHeaderSize(props.link_type);
 
 		if ( protocol == 0x0281 )
 			{
 			// MPLS Unicast. Remove the data link layer and
 			// denote a header size of zero before the IP header.
 			have_mpls = true;
-				data += GetLinkHeaderSize(props.link_type);
-			pkt_hdr_size = 0;
 			}
-
-		else if ( protocol != 0x0021 && protocol != 0x0057 )
+		else if ( protocol == 0x0021 )
+			l3_proto = AF_INET;
+		else if ( protocol == 0x0057 )
+			l3_proto = AF_INET6;
+		else
 			{
 			// Neither IPv4 nor IPv6.
 			Weird("non_ip_packet_in_ppp_encapsulation", &current_packet);
 			goto done;
 			}
+		break;
+		}
+
+	default:
+		{
+		// Assume we're pointing at IP. Just figure out which version.
+		data += GetLinkHeaderSize(props.link_type);
+		const struct ip* ip = (const struct ip *)data;
+		l3_proto = ( ip->ip_v == 4 ) ? AF_INET : AF_INET6;
 		break;
 		}
 	}
@@ -408,19 +434,56 @@ void PktSrc::Process()
 			{
 			end_of_stack = *(data + 2) & 0x01;
 			data += 4;
+
+			if ( data >= current_packet.data + current_packet.cap_len )
+				{
+				Weird("no_mpls_payload", &current_packet);
+				goto done;
+				}
 			}
+
+		// We assume that what remains is IP
+		if ( data + sizeof(struct ip) >= current_packet.data + current_packet.cap_len )
+			{
+			Weird("no_ip_in_mpls_payload", &current_packet);
+			goto done;
+			}
+
+		const struct ip* ip = (const struct ip *)data;
+		l3_proto = ( ip->ip_v == 4 ) ? AF_INET : AF_INET6;
 		}
+
+	else if ( encap_hdr_size )
+		{
+		// Blanket encapsulation. We assume that what remains is IP.
+		data += encap_hdr_size;
+		if ( data + sizeof(struct ip) >= current_packet.data + current_packet.cap_len )
+			{
+			Weird("no_ip_left_after_encap", &current_packet);
+			goto done;
+			}
+
+		const struct ip* ip = (const struct ip *)data;
+		l3_proto = ( ip->ip_v == 4 ) ? AF_INET : AF_INET6;
+		}
+
+	// We've now determined (a) AF_INET (IPv4) vs (b) AF_INET6 (IPv6) vs
+	// (c) AF_UNSPEC (0 == anything else)
+	current_packet.l3_proto = l3_proto;
+
+	// Calculate how much header we've used up.
+	current_packet.hdr_size = (data - current_packet.data);
 
 	if ( pseudo_realtime )
 		{
 		current_pseudo = CheckPseudoTime();
-		net_packet_dispatch(current_pseudo, current_packet.hdr, data, pkt_hdr_size, this);
+		net_packet_dispatch(current_pseudo, &current_packet, this);
 		if ( ! first_wallclock )
 			first_wallclock = current_time(true);
 		}
 
 	else
-		net_packet_dispatch(current_packet.ts, current_packet.hdr, data, pkt_hdr_size, this);
+		net_packet_dispatch(current_packet.time, &current_packet, this);
 
 done:
 	have_packet = 0;
@@ -452,8 +515,10 @@ bool PktSrc::ExtractNextPacketInternal()
 
 	if ( ExtractNextPacket(&current_packet) )
 		{
+		current_packet.l3_proto = AF_UNSPEC;
+
 		if ( ! first_timestamp )
-			first_timestamp = current_packet.ts;
+			first_timestamp = current_packet.time;
 
 		SetIdle(false);
 		have_packet = true;
@@ -536,12 +601,11 @@ bool PktSrc::ApplyBPFFilter(int index, const struct pcap_pkthdr *hdr, const u_ch
 	return pcap_offline_filter(code->GetProgram(), hdr, pkt);
 	}
 
-bool PktSrc::GetCurrentPacket(const pcap_pkthdr** hdr, const u_char** pkt)
+bool PktSrc::GetCurrentPacket(const Packet** pkt)
 	{
 	if ( ! have_packet )
 		return false;
 
-	*hdr = current_packet.hdr;
-	*pkt = current_packet.data;
+	*pkt = &current_packet;
 	return true;
 	}

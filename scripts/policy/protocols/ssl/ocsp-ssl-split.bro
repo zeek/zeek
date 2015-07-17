@@ -148,11 +148,8 @@ redef record HTTP::Info += {
 	request_header_len:       count  &optional &default=0;
 	response_header_len:      count  &optional &default=0;
 
-	## connection start time, copied from connection
-	conn_start_ts:            time  &optional;
-
-	## number of OCSP requests so far, copied from connection
-	num_ocsp:                 count &optional;
+	## connection used to get num_ocsp and connection start time
+	conn:                     connection &optional;
 };
 
 # add additional information to ssl info
@@ -196,24 +193,47 @@ function clean_uri(s: string): string
 		return s;
 	}	
 
-# record the header length and update num_ocsp and conn_start_ts
+event ocsp_response(f: fa_file, resp_ref: opaque of ocsp_resp, resp: OCSP::Response)
+	{
+        if ( ! f?$http )
+		return;
+        # check if there is a OCSP GET request
+	if ( f$http?$method && f$http$method == "GET" )
+		f$http$conn$num_ocsp += 1;
+	}
+
+event ocsp_request(f: fa_file, req_ref: opaque of ocsp_req, req: OCSP::Request)
+	{
+        if ( ! f?$http )
+		return;
+	f$http$conn$num_ocsp += 1;
+	}
+
+event http_reply (c: connection, version: string, code: count, reason: string)
+	{
+	if ( ! c?$http )
+		return;
+	if ( ! c$http?$conn )
+		c$http$conn = c;
+	}
+
+event http_request(c: connection, method: string, original_URI: string, unescaped_URI: string, version: string)
+	{
+	if ( ! c?$http )
+		return;
+	if ( ! c$http?$conn )
+		c$http$conn = c;
+	}
+
+# record the header length
 event http_message_done(c: connection, is_orig: bool, stat: http_message_stat)
 	{
-	# proceed only this http connection has ocsp request or response
-	if ( ! c$http?$ocsp_requests && ! c$http?$ocsp_responses )
-		return;
-
+	if ( ! c?$http )
+		return;	
 	if ( is_orig )
-		{
 		c$http$request_header_len = stat$header_length;
-		c$num_ocsp += 1;
-		}
 	else
-		{
 		c$http$response_header_len = stat$header_length;
-		}
-	c$http$num_ocsp = c$num_ocsp;
-	c$http$conn_start_ts = c$start_time;
 	}
 
 # add server hello time
@@ -317,8 +337,7 @@ event x509_extension(f: fa_file, ext: X509::Extension) &priority= -10 {
 
 function update_http_info(ocsp: OCSP_SSL_SPLIT::Info_OCSP, http: HTTP::Info)
 	{
-	if ( http?$num_ocsp )
-		ocsp$num_ocsp = http$num_ocsp;
+	ocsp$num_ocsp = http$conn$num_ocsp;
 
 	if ( http?$method )
 		ocsp$method = http$method;
@@ -365,7 +384,7 @@ function start_log_ocsp(rec: OCSP::Info)
 	local http: HTTP::Info = rec$http;
 	local info_ocsp_rec: OCSP_SSL_SPLIT::Info_OCSP = [$cid = http$id,
 		                                          $cuid = http$uid,
-							  $conn_start_ts = http$conn_start_ts];
+							  $conn_start_ts = http$conn$start_time];
 
 	if ( rec?$certId )
 		info_ocsp_rec$cert_id = rec$certId;

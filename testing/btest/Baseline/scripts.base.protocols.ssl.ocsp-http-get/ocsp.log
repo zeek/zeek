@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	ocsp
-#open	2015-07-15-08-22-46
-#fields	ts	cid.orig_h	cid.orig_p	cid.resp_h	cid.resp_p	cuid	certId.hashAlgorithm	certId.issuerNameHash	certId.issuerKeyHash	certId.serialNumber	req.id	req.version	req.requestorName	resp_ts	resp.id	resp.responseStatus	resp.responseType	resp.version	resp.responderID	resp.producedAt	resp.certStatus	resp.thisUpdate	resp.nextUpdate	method
-#types	time	addr	port	addr	port	string	string	string	string	string	string	count	string	time	string	string	string	count	string	string	string	string	string	string
-1436909712.307162	192.168.6.109	54690	216.58.192.46	80	CXWv6p3arKYeMETxOg	sha1	F2E06AF9858A1D8D709B4919237AA9B51A287E64	4ADD06161BBCF668B576F581B6BB621ABA5A812F	3D474496FF942316	-	0	-	1436909712.329517	Ft368Gc1ce0Juvj0d	successful	Basic OCSP Response	0	4ADD06161BBCF668B576F581B6BB621ABA5A812F	20150711011056Z	good	20150711011056Z	20150718011056Z	GET
-#close	2015-07-15-08-22-46
+#open	2015-07-15-20-38-15
+#fields	ts	cid.orig_h	cid.orig_p	cid.resp_h	cid.resp_p	cuid	certId.hashAlgorithm	certId.issuerNameHash	certId.issuerKeyHash	certId.serialNumber	req.id	req.version	req.requestorName	req.index	resp_ts	resp.id	resp.responseStatus	resp.responseType	resp.version	resp.responderID	resp.producedAt	resp.index	resp.certStatus	resp.thisUpdate	resp.nextUpdate	method
+#types	time	addr	port	addr	port	string	string	string	string	string	string	count	string	count	time	string	string	string	count	string	string	count	string	string	string	string
+1436909712.307162	192.168.6.109	54690	216.58.192.46	80	CXWv6p3arKYeMETxOg	sha1	F2E06AF9858A1D8D709B4919237AA9B51A287E64	4ADD06161BBCF668B576F581B6BB621ABA5A812F	3D474496FF942316	H4c4c3b287beafd8d7f4806a0b14d2ee1de88e4be	0	-	1	1436909712.329517	Ft368Gc1ce0Juvj0d	successful	Basic OCSP Response	0	4ADD06161BBCF668B576F581B6BB621ABA5A812F	20150711011056Z	1	good	20150711011056Z	20150718011056Z	GET
+#close	2015-07-15-20-38-15

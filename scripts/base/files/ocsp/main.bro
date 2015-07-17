@@ -232,6 +232,15 @@ event ocsp_request(f: fa_file, req_ref: opaque of ocsp_req, req: OCSP::Request) 
 	enq_request(f$http, req, f$id, network_time());
 	}
 
+function get_first_slash(s: string): string
+	{
+	local s_len = |s|;
+	if (s[0] == "/")
+		return "/" + get_first_slash(s[1:s_len]);
+	else
+		return "";
+	}
+
 function remove_first_slash(s: string): string
 	{
 	local s_len = |s|;
@@ -243,12 +252,11 @@ function remove_first_slash(s: string): string
 
 function get_uri_prefix(s: string): string
 	{
-	s = remove_first_slash(s);
-	local w = split_string(s, /\//);
+	local uri_prefix = get_first_slash(s);
+	local w = split_string(s[|uri_prefix|:], /\//);
 	if (|w| > 1)
-		return w[0];
-	else
-		return "";
+		uri_prefix += w[0] + "/";
+	return uri_prefix;
 	}
 
 function check_ocsp_request_uri(http: HTTP::Info): OCSP::Request
@@ -256,20 +264,8 @@ function check_ocsp_request_uri(http: HTTP::Info): OCSP::Request
 	local parsed_req: OCSP::Request;
 	if ( ! http?$original_uri )
 		return parsed_req;;
-
-	local uri: string = remove_first_slash(http$uri);
 	local uri_prefix: string = get_uri_prefix(http$original_uri);
-	local ocsp_req_str: string;
-
-	if ( |uri_prefix| == 0 )
-		{
-		ocsp_req_str = uri;
-		}
-	else if (|uri_prefix| > 0)
-		{
-		uri_prefix += "/";
-		ocsp_req_str = uri[|uri_prefix|:];
-		}
+	local ocsp_req_str: string = http$uri[|uri_prefix|:];
 	parsed_req = ocsp_parse_request(decode_base64(ocsp_req_str));
 	return parsed_req;
 	}

@@ -254,8 +254,12 @@ function get_uri_prefix(s: string): string
 	{
 	local uri_prefix = get_first_slash(s);
 	local w = split_string(s[|uri_prefix|:], /\//);
-	if (|w| > 1)
-		uri_prefix += w[0] + "/";
+	local i = 0;
+	while ( i < (|w| - 1) )
+		{
+		uri_prefix += w[i] + "/";
+		i += 1;
+		}
 	return uri_prefix;
 	}
 

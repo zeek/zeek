@@ -439,6 +439,21 @@ function update_ssl_info(ssl_rec: OCSP_SSL_SPLIT::Info_SSL, ssl: SSL::Info)
 		ssl_rec$server_change_cipher_ts = ssl$server_change_cipher_ts;
 	}
 
+# convert all the elements in the queue to a formatted string
+function convert_time_q2str(q: Queue::Queue, sep: string): string
+	{
+	local s = "";
+	local elem: vector of time = vector();
+	Queue::get_vector(q, elem);
+	for ( i in elem )
+		{
+		s += fmt("%f",elem[i]);
+		if ( i != (|elem| - 1))
+			s += sep;
+		}
+	return s;
+	}
+
 # log SSL information when ssl connection is removed
 event connection_state_remove(c: connection) &priority= -20
 	{
@@ -450,22 +465,12 @@ event connection_state_remove(c: connection) &priority= -20
 		local ssl_info_rec: OCSP_SSL_SPLIT::Info_SSL = [$id     = c$id,
 		                                                $uid    = c$uid,
 								$end_ts = network_time()];
-		
 		ssl_info_rec$ocsp_uri      = ocsp_uri;
 		ssl_info_rec$serial_number = serial_number;
 		ssl_info_rec$issuer_name   = issuer_name;
-
-		# convert all the elements in the queue to a formatted string
-		local cert_recv_ts_str: string = "";
-		local elem: vector of time;
-		Queue::get_vector(c$ssl$cert_ts[ocsp_uri, serial_number, issuer_name], elem);
-		for ( i in elem )
-			{
-			cert_recv_ts_str += fmt("%f",elem[i]);
-			if ( i != (|elem| - 1))
-				cert_recv_ts_str += ",";
-			}
-		ssl_info_rec$cert_recv_ts = cert_recv_ts_str;
+		local cert_recv_ts_str:string = convert_time_q2str(c$ssl$cert_ts[ocsp_uri, serial_number, issuer_name], ",");
+		if (|cert_recv_ts_str| > 0)
+			ssl_info_rec$cert_recv_ts = cert_recv_ts_str;
 		update_ssl_info(ssl_info_rec, c$ssl);
 		Log::write(LOG_SSL, ssl_info_rec);
 		#delete c$ssl$cert_ts[ocsp_uri, serial_number, issuer_name];

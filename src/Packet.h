@@ -3,6 +3,14 @@
 
 #include "Desc.h"
 #include "IP.h"
+#include "NetVar.h"
+
+enum Layer3Proto {
+	L3_UNKNOWN = -1,
+	L3_IPV4 = 1,
+	L3_IPV6 = 2,
+	L3_ARP = 3,
+};
 
 // A link-layer packet.
 //
@@ -26,7 +34,7 @@ public:
 	Packet(int arg_link_type, struct timeval *arg_ts, uint32 arg_caplen,
 		uint32 arg_len, const u_char *arg_data, int arg_free = false,
 		std::string arg_tag = std::string(""), uint32 arg_hdrsize = 0,
-		int arg_l3_proto = -1)
+		Layer3Proto arg_l3_proto = L3_UNKNOWN)
 		{
 		Init(arg_link_type, arg_ts, arg_caplen, arg_len, arg_data, arg_free, arg_tag,
 			arg_hdrsize, arg_l3_proto);
@@ -45,7 +53,7 @@ public:
 	void Init(int arg_link_type, struct timeval *arg_ts, uint32 arg_caplen,
 		uint32 arg_len, const u_char *arg_data, int arg_free = false,
 		std::string arg_tag = std::string(""), uint32 arg_hdrsize = 0,
-		int arg_l3_proto = -1)
+		Layer3Proto arg_l3_proto = L3_UNKNOWN)
 		{
 		link_type = arg_link_type;
 		ts = *arg_ts;
@@ -86,7 +94,7 @@ public:
 	uint32 cap_len;			/// Captured packet length
 	uint32 len;			/// Actual length on wire
 	uint32 hdr_size;		/// Layer 2 header size
-	uint32 l3_proto;		/// Layer 3 protocol identified (if any)
+	Layer3Proto l3_proto;		/// Layer 3 protocol identified (if any)
 	uint32 eth_type;		/// If L2==ethernet, innermost ethertype field
 	uint32 vlan;			/// (Outermost) VLan tag if any, else 0
 

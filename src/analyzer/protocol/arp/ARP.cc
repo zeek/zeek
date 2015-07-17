@@ -19,25 +19,6 @@ ARP_Analyzer::~ARP_Analyzer()
 	{
 	}
 
-// Assumes pkt->hdr_size indicates size of the Layer 2 header.
-bool ARP_Analyzer::IsARP(const Packet* pkt)
-	{
-	if ( pkt->hdr_size < 2 )
-		return false;
-
-	unsigned short network_protocol =
-		*(unsigned short*) (pkt->data + pkt->hdr_size - 2);
-
-	switch ( ntohs(network_protocol) ) {
-	case ETHERTYPE_ARP:
-	case ETHERTYPE_REVARP:
-		return true;
-	default:
-		return false;
-	}
-	}
-
-
 // Argh! FreeBSD and Linux have almost completely different net/if_arp.h .
 // ... and on Solaris we are missing half of the ARPOP codes, so define
 // them here as necessary:

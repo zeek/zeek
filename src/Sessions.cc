@@ -206,7 +206,7 @@ void NetSessions::ProcNextPacket(double t, const Packet *pkt)
 
 	uint32 caplen = pkt->cap_len - pkt->hdr_size;
 
-	if ( pkt->l3_proto == AF_INET )
+	if ( pkt->l3_proto == L3_IPV4 )
 		{
 		if ( caplen < sizeof(struct ip) )
 			{
@@ -219,7 +219,7 @@ void NetSessions::ProcNextPacket(double t, const Packet *pkt)
 		DoNextPacket(t, pkt, &ip_hdr, 0);
 		}
 
-	else if ( pkt->l3_proto == AF_INET6 )
+	else if ( pkt->l3_proto == L3_IPV6 )
 		{
 		if ( caplen < sizeof(struct ip6_hdr) )
 			{
@@ -231,7 +231,7 @@ void NetSessions::ProcNextPacket(double t, const Packet *pkt)
 		DoNextPacket(t, pkt, &ip_hdr, 0);
 		}
 
-	else if ( analyzer::arp::ARP_Analyzer::IsARP(pkt) )
+	else if ( pkt->l3_proto == L3_ARP )
 		{
 		if ( arp_analyzer )
 			arp_analyzer->NextPacket(t, pkt);
@@ -774,7 +774,7 @@ void NetSessions::DoNextInnerPacket(double t, const Packet* pkt,
 
 	struct timeval ts;
 	int link_type;
-	int l3_proto;
+	Layer3Proto l3_proto;
 
 	if ( pkt )
 		ts = pkt->ts;
@@ -790,12 +790,12 @@ void NetSessions::DoNextInnerPacket(double t, const Packet* pkt,
 	if ( inner->IP4_Hdr() )
 		{
 		data = (const u_char*) inner->IP4_Hdr();
-		l3_proto = AF_INET;
+		l3_proto = L3_IPV4;
 		}
 	else
 		{
 		data = (const u_char*) inner->IP6_Hdr();
-		l3_proto = AF_INET6;
+		l3_proto = L3_IPV6;
 		}
 
 	EncapsulationStack* outer = prev ?

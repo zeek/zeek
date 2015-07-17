@@ -44,9 +44,6 @@ public:
 			const char* spa, const char* sha,
 			const char* tpa, const char* tha);
 
-	// Whether a packet is of interest for ARP analysis.
-	static bool IsARP(const Packet *pkt);
-
 protected:
 	AddrVal* ConstructAddrVal(const void* addr);
 	StringVal* EthAddrToStr(const u_char* addr);

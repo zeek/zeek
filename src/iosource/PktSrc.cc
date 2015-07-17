@@ -289,7 +289,7 @@ void PktSrc::Process()
 	// labels are in place.
 	bool have_mpls = false;
 
-	int l3_proto = AF_UNSPEC;
+	Layer3Proto l3_proto = L3_UNKNOWN;
 	const u_char* data = current_packet.data;
 
 	current_packet.link_type = props.link_type;
@@ -307,16 +307,17 @@ void PktSrc::Process()
 		// as the AF_ value." As we may be reading traces captured on
 		// platforms other than what we're running on, we accept them
 		// all here.
-		if ( protocol == 24 || protocol == 28 || protocol == 30 )
-			protocol = AF_INET6;
 
-		if ( protocol != AF_INET && protocol != AF_INET6 )
+		if ( protocol == AF_INET )
+			l3_proto = L3_IPV4;
+		else if ( protocol == 24 || protocol == 28 || protocol == 30 )
+			l3_proto = L3_IPV6;
+		else
 			{
 			Weird("non_ip_packet_in_null_transport", &current_packet);
 			goto done;
 			}
 
-		l3_proto = protocol;
 		break;
 		}
 
@@ -365,9 +366,9 @@ void PktSrc::Process()
 				data += 8; // Skip the PPPoE session and PPP header
 
 				if ( protocol == 0x0021 )
-					l3_proto = AF_INET;
+					l3_proto = L3_IPV4;
 				else if ( protocol == 0x0057 )
-					l3_proto = AF_INET6;
+					l3_proto = L3_IPV6;
 				else
 					{
 					// Neither IPv4 nor IPv6.
@@ -379,14 +380,14 @@ void PktSrc::Process()
 			}
 
 		// Normal path to determine Layer 3 protocol.
-		if ( ! have_mpls && ! l3_proto )
+		if ( ! have_mpls && l3_proto == L3_UNKNOWN )
 			{
 			if ( protocol == 0x800 )
-				l3_proto = AF_INET;
+				l3_proto = L3_IPV4;
 			else if ( protocol == 0x86dd )
-				l3_proto = AF_INET6;
+				l3_proto = L3_IPV6;
 			else if ( protocol == 0x0806 || protocol == 0x8035 )
-				l3_proto = AF_UNSPEC;
+				l3_proto = L3_ARP;
 			else
 				{
 				// Neither IPv4 nor IPv6.
@@ -411,9 +412,9 @@ void PktSrc::Process()
 			have_mpls = true;
 			}
 		else if ( protocol == 0x0021 )
-			l3_proto = AF_INET;
+			l3_proto = L3_IPV4;
 		else if ( protocol == 0x0057 )
-			l3_proto = AF_INET6;
+			l3_proto = L3_IPV6;
 		else
 			{
 			// Neither IPv4 nor IPv6.
@@ -430,9 +431,9 @@ void PktSrc::Process()
 		const struct ip* ip = (const struct ip *)data;
 
 		if ( ip->ip_v == 4 )
-			l3_proto = AF_INET;
+			l3_proto = L3_IPV4;
 		else if ( ip->ip_v == 6 )
-			l3_proto = AF_INET6;
+			l3_proto = L3_IPV6;
 		else
 			{
 			// Neither IPv4 nor IPv6.
@@ -471,9 +472,9 @@ void PktSrc::Process()
 		const struct ip* ip = (const struct ip *)data;
 
 		if ( ip->ip_v == 4 )
-			l3_proto = AF_INET;
+			l3_proto = L3_IPV4;
 		else if ( ip->ip_v == 6 )
-			l3_proto = AF_INET6;
+			l3_proto = L3_IPV6;
 		else
 			{
 			// Neither IPv4 nor IPv6.
@@ -495,9 +496,9 @@ void PktSrc::Process()
 		const struct ip* ip = (const struct ip *)data;
 
 		if ( ip->ip_v == 4 )
-			l3_proto = AF_INET;
+			l3_proto = L3_IPV4;
 		else if ( ip->ip_v == 6 )
-			l3_proto = AF_INET6;
+			l3_proto = L3_IPV6;
 		else
 			{
 			// Neither IPv4 nor IPv6.
@@ -507,9 +508,8 @@ void PktSrc::Process()
 
 		}
 
-	// We've now determined (a) AF_INET (IPv4) vs (b) AF_INET6 (IPv6) vs
-	// (c) AF_UNSPEC (0 == anything else)
-	assert(l3_proto == AF_INET || l3_proto == AF_INET6 || l3_proto == AF_UNSPEC);
+	// We've now determined (a) L3_IPV4 vs (b) L3_IPV6 vs
+	// (c) L3_ARP vs (d) L3_UNKNOWN (0 == anything else)
 	current_packet.l3_proto = l3_proto;
 
 	// Calculate how much header we've used up.
@@ -556,7 +556,7 @@ bool PktSrc::ExtractNextPacketInternal()
 
 	if ( ExtractNextPacket(&current_packet) )
 		{
-		current_packet.l3_proto = AF_UNSPEC;
+		current_packet.l3_proto = L3_UNKNOWN;
 
 		if ( ! first_timestamp )
 			first_timestamp = current_packet.time;

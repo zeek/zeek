@@ -1175,7 +1175,7 @@ Packet* Packet::Unserialize(UnserialInfo* info)
 		}
 
 	Packet *p = new Packet(link_type, &ts, caplen, len, pkt, true,
-			std::string(tag), hdr_size, l3_proto);
+			       std::string(tag), hdr_size, (Layer3Proto) l3_proto);
 	delete [] tag;
 
 	// For the global timer manager, we take the global network_time as the

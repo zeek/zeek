@@ -289,8 +289,7 @@ void PktSrc::Process()
 	// labels are in place.
 	bool have_mpls = false;
 
-	int l3_proto = 0;
-	int protocol = 0;
+	int l3_proto = AF_UNSPEC;
 	const u_char* data = current_packet.data;
 
 	current_packet.link_type = props.link_type;
@@ -298,7 +297,7 @@ void PktSrc::Process()
 	switch ( props.link_type ) {
 	case DLT_NULL:
 		{
-		protocol = (data[3] << 24) + (data[2] << 16) + (data[1] << 8) + data[0];
+		int protocol = (data[3] << 24) + (data[2] << 16) + (data[1] << 8) + data[0];
 		data += GetLinkHeaderSize(props.link_type);
 
 		// From the Wireshark Wiki: "AF_INET6, unfortunately, has
@@ -324,7 +323,7 @@ void PktSrc::Process()
 	case DLT_EN10MB:
 		{
 		// Get protocol being carried from the ethernet frame.
-		protocol = (data[12] << 8) + data[13];
+		int protocol = (data[12] << 8) + data[13];
 		data += GetLinkHeaderSize(props.link_type);
 		current_packet.eth_type = protocol;
 
@@ -375,6 +374,7 @@ void PktSrc::Process()
 					Weird("non_ip_packet_in_pppoe_encapsulation", &current_packet);
 					goto done;
 					}
+
 				break;
 			}
 
@@ -385,6 +385,14 @@ void PktSrc::Process()
 				l3_proto = AF_INET;
 			else if ( protocol == 0x86dd )
 				l3_proto = AF_INET6;
+			else if ( protocol == 0x0806 || protocol == 0x8035 )
+				l3_proto = AF_UNSPEC;
+			else
+				{
+				// Neither IPv4 nor IPv6.
+				Weird("non_ip_packet_in_ethernet", &current_packet);
+				goto done;
+				}
 			}
 
 		break;
@@ -393,7 +401,7 @@ void PktSrc::Process()
 	case DLT_PPP_SERIAL:
 		{
 		// Get PPP protocol.
-		protocol = (data[2] << 8) + data[3];
+		int protocol = (data[2] << 8) + data[3];
 		data += GetLinkHeaderSize(props.link_type);
 
 		if ( protocol == 0x0281 )
@@ -420,7 +428,18 @@ void PktSrc::Process()
 		// Assume we're pointing at IP. Just figure out which version.
 		data += GetLinkHeaderSize(props.link_type);
 		const struct ip* ip = (const struct ip *)data;
-		l3_proto = ( ip->ip_v == 4 ) ? AF_INET : AF_INET6;
+
+		if ( ip->ip_v == 4 )
+			l3_proto = AF_INET;
+		else if ( ip->ip_v == 6 )
+			l3_proto = AF_INET6;
+		else
+			{
+			// Neither IPv4 nor IPv6.
+			Weird("non_ip_packet", &current_packet);
+			goto done;
+			}
+
 		break;
 		}
 	}
@@ -450,7 +469,17 @@ void PktSrc::Process()
 			}
 
 		const struct ip* ip = (const struct ip *)data;
-		l3_proto = ( ip->ip_v == 4 ) ? AF_INET : AF_INET6;
+
+		if ( ip->ip_v == 4 )
+			l3_proto = AF_INET;
+		else if ( ip->ip_v == 6 )
+			l3_proto = AF_INET6;
+		else
+			{
+			// Neither IPv4 nor IPv6.
+			Weird("no_ip_in_mpls_payload", &current_packet);
+			goto done;
+			}
 		}
 
 	else if ( encap_hdr_size )
@@ -464,11 +493,23 @@ void PktSrc::Process()
 			}
 
 		const struct ip* ip = (const struct ip *)data;
-		l3_proto = ( ip->ip_v == 4 ) ? AF_INET : AF_INET6;
+
+		if ( ip->ip_v == 4 )
+			l3_proto = AF_INET;
+		else if ( ip->ip_v == 6 )
+			l3_proto = AF_INET6;
+		else
+			{
+			// Neither IPv4 nor IPv6.
+			Weird("no_ip_in_encap", &current_packet);
+			goto done;
+			}
+
 		}
 
 	// We've now determined (a) AF_INET (IPv4) vs (b) AF_INET6 (IPv6) vs
 	// (c) AF_UNSPEC (0 == anything else)
+	assert(l3_proto == AF_INET || l3_proto == AF_INET6 || l3_proto == AF_UNSPEC);
 	current_packet.l3_proto = l3_proto;
 
 	// Calculate how much header we've used up.

@@ -76,6 +76,9 @@ export {
 		## HTTP request may contain several OCSP requests;
 		## this is copied from connection
 		num_ocsp:       count      &log       &optional;
+
+		## the original_uri in HTTP request
+		original_uri:   string     &log       &optional;		
 		};
 
 	type Issuer_Name_Type: record {
@@ -342,6 +345,9 @@ function update_http_info(ocsp: OCSP_SSL_SPLIT::Info_OCSP, http: HTTP::Info)
 	if ( http?$method )
 		ocsp$method = http$method;
 
+	if ( http?$original_uri )
+		ocsp$original_uri = http$original_uri;
+	
 	if ( http?$host )
 		ocsp$ocsp_uri = http$host;
 

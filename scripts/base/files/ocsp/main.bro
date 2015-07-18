@@ -176,7 +176,7 @@ function update_http_info(http: HTTP::Info, req_rec: OCSP::Info_req)
 function enq_request(http: HTTP::Info, req: OCSP::Request, req_id: string, req_ts: time)
 	{
 	local index: count = 0;
-	if (req?$requestList)
+	if ( req?$requestList && |req$requestList| > 0 )
 		{
 		index += 1;
 		for (x in req$requestList)
@@ -271,6 +271,20 @@ function check_ocsp_request_uri(http: HTTP::Info): OCSP::Request
 	local uri_prefix: string = get_uri_prefix(http$original_uri);
 	local ocsp_req_str: string = http$uri[|uri_prefix|:];
 	parsed_req = ocsp_parse_request(decode_base64(ocsp_req_str));
+	if ( ! parsed_req?$requestList || |parsed_req$requestList| == 0 )
+		{
+		# normal parse fails, bug url, natively try each part
+		local w = split_string(http$original_uri, /\//);
+		local s = "";
+		for ( i in w )
+			{
+			s += "/" + w[i];
+			ocsp_req_str = http$uri[|s|:];
+			parsed_req = ocsp_parse_request(decode_base64(ocsp_req_str));
+			if ( parsed_req?$requestList && |parsed_req$requestList| > 0 )
+				break;
+			}
+		}
 	return parsed_req;
 	}
 
@@ -279,7 +293,7 @@ event ocsp_response(f: fa_file, resp_ref: opaque of ocsp_resp, resp: OCSP::Respo
 	if ( ! f?$http )
 		return;
 
-	if (resp?$responses)
+	if ( resp?$responses && |resp$responses| > 0 )
 		{
 		local index: count = 0;
 		for (x in resp$responses)

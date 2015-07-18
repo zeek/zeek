@@ -133,6 +133,9 @@ redef record HTTP::Info += {
 
 	# flag for checking get uri
 	checked_get:              bool          &optional &default=F;
+
+	# uri prefix: this the GET url without ocsp request
+	uri_prefix:               string        &optional;
 	};
 
 event http_request(c: connection, method: string, original_URI: string, unescaped_URI: string, version: string)
@@ -269,6 +272,7 @@ function check_ocsp_request_uri(http: HTTP::Info): OCSP::Request
 	if ( ! http?$original_uri )
 		return parsed_req;;
 	local uri_prefix: string = get_uri_prefix(http$original_uri);
+	http$uri_prefix = uri_prefix;	
 	local ocsp_req_str: string = http$uri[|uri_prefix|:];
 	parsed_req = ocsp_parse_request(decode_base64(ocsp_req_str));
 	if ( ! parsed_req?$requestList || |parsed_req$requestList| == 0 )
@@ -282,7 +286,10 @@ function check_ocsp_request_uri(http: HTTP::Info): OCSP::Request
 			ocsp_req_str = http$uri[|s|:];
 			parsed_req = ocsp_parse_request(decode_base64(ocsp_req_str));
 			if ( parsed_req?$requestList && |parsed_req$requestList| > 0 )
+				{
+				http$uri_prefix = s;
 				break;
+				}
 			}
 		}
 	return parsed_req;

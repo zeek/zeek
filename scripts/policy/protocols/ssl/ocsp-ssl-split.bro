@@ -357,13 +357,14 @@ function update_http_info(ocsp: OCSP_SSL_SPLIT::Info_OCSP, http: HTTP::Info)
 		else
 			ocsp$ocsp_uri = http$uri;
 
-	if ( http?$method && http$method == "GET" && http?$original_uri )
+	if ( http?$method && http$method == "GET" && http?$uri_prefix )
 		{
-		local uri_prefix: string = OCSP::get_uri_prefix(http$original_uri);
+		if ( |http$uri_prefix| > 0)
+			ocsp$ocsp_uri = "";
 		if ( http?$host )
 			ocsp$ocsp_uri = http$host;
-		if ( |uri_prefix| > 0)
-			ocsp$ocsp_uri += "/" + uri_prefix; 
+		if ( |http$uri_prefix| > 0)
+			ocsp$ocsp_uri += http$uri_prefix; 
 		}
 
 	if ( ocsp?$ocsp_uri )

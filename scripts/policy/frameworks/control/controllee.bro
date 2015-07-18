@@ -22,6 +22,7 @@ event Control::id_value_request(id: string)
 
 event Control::peer_status_request()
 	{
+	print "peer status request received";
 	local status = "";
 	for ( p in Communication::nodes )
 		{

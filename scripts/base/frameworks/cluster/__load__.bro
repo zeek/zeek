@@ -21,7 +21,7 @@ redef peer_description = Cluster::node;
 
 # Don't load the listening script until we're a bit more sure that the
 # cluster framework is actually being enabled.
-@load frameworks/communication/listen
+@load policy/frameworks/communication/listen
 
 ## Set the port that this node is supposed to listen on.
 redef Communication::listen_port = Cluster::nodes[Cluster::node]$p;

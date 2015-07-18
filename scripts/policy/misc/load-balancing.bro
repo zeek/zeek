@@ -37,8 +37,8 @@ export {
 	};
 }
 
-#redef Cluster::manager2worker_events += /LoadBalancing::send_filter/;
-#redef Cluster::worker2manager_events += /LoadBalancing::confirm_filter_installation/;
+#redef Cluster::manager2worker_events += {"LoadBalancing::send_filter"};
+#redef Cluster::worker2manager_events += {"LoadBalancing::confirm_filter_installation"};
 
 @if ( Cluster::is_enabled() )
 

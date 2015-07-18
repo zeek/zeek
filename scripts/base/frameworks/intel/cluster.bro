@@ -20,9 +20,9 @@ redef have_full_data = F;
 global cluster_new_item: event(item: Item);
 
 # Primary intelligence distribution comes from manager.
-redef Cluster::manager2worker_events += /^Intel::(cluster_new_item)$/;
+redef Cluster::manager2worker_events += {"Intel::cluster_new_item"};
 # If a worker finds intelligence and adds it, it should share it back to the manager.
-redef Cluster::worker2manager_events += /^Intel::(cluster_new_item|match_no_items)$/;
+redef Cluster::worker2manager_events += {"Intel::cluster_new_item", "Intel::match_no_items"};
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
 event Intel::match_no_items(s: Seen) &priority=5

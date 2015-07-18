@@ -88,7 +88,7 @@ export {
 		class: string &optional;
 
 		## Events requested from remote side.
-		events: pattern &optional;
+		events: set[string] &optional;
 
 		## Whether we are going to connect (rather than waiting
 		## for the other side to connect to us).
@@ -141,12 +141,14 @@ export {
 	## closed and is currently in the process of retrying to establish.
 	## When a connection is successfully established, the peer is removed
 	## from the table.
-	global pending_peers: table[peer_id] of Node;
+	#global pending_peers: table[peer_id] of Node;
+	global pending_peers: table[string] of Node;
 
 	## A table of peer nodes for which this node has an established connection.
 	## Peers are automatically removed if their connection is closed and
 	## automatically added back if a connection is re-established later.
-	global connected_peers: table[peer_id] of Node;
+	#global connected_peers: table[peer_id] of Node;
+	global connected_peers: table[string] of Node;
 
 	## Connect to a node in :bro:id:`Communication::nodes` independent
 	## of its "connect" flag.
@@ -189,142 +191,177 @@ event remote_log_peer(p: event_peer, level: count, src: count, msg: string)
 	do_script_log_common(level, src, rmsg);
 	}
 
-function do_script_log(p: event_peer, msg: string)
+#function do_script_log(p: event_peer, msg: string)
+function do_script_log(msg: string)
 	{
 	do_script_log_common(REMOTE_LOG_INFO, REMOTE_SRC_SCRIPT, msg);
 	}
 
 function connect_peer(peer: string)
 	{
+	print "connect to peer", peer;
 	local node = nodes[peer];
 	local p = listen_port;
 
 	if ( node?$p )
 		p = node$p;
 
-	local id = PEER_ID_NONE;
 	local class = node?$class ? node$class : "";
 	local zone_id = node?$zone_id ? node$zone_id : "";
-	id = connect(node$host, zone_id, p, class, node$retry, node$ssl);
-	BrokerComm::connect(fmt("%s", node$host), p, 1sec);
-
-	if ( id == PEER_ID_NONE )
+	local succ = BrokerComm::connect(fmt("%s", node$host), p, 1sec);
+	
+	if ( !succ )
 		Log::write(Communication::LOG, [$ts = network_time(),
 		                                $peer = get_event_peer()$descr,
 		                                $message = "can't trigger connect"]);
-	print "id", fmt("%s", id);
-	pending_peers[id] = node;
+	pending_peers[peer] = node;
 	}
 
 
-function setup_peer(p: event_peer, node: Node)
+
+#function setup_peer(p: event_peer, node: Node)
+#	{
+#	if ( node?$events )
+#		{
+#		do_script_log(p, fmt("requesting events matching %s", node$events));
+#		request_remote_events(p, node$events);
+#		}
+#
+#	if ( node?$capture_filter && node$capture_filter != "" )
+#		{
+#		local filter = node$capture_filter;
+#		do_script_log(p, fmt("sending capture_filter: %s", filter));
+#		send_capture_filter(p, filter);
+#		}
+#
+#	if ( node$accept_input )
+#		{
+#		do_script_log(p, "accepting state");
+#		set_accept_state(p, T);
+#		}
+#
+#	set_compression_level(p, node$compression);
+#
+#	if ( node$sync )
+#		{
+#		do_script_log(p, "requesting synchronized state");
+#		request_remote_sync(p, node$auth);
+#		}
+#
+#	if ( node$request_logs )
+#		{
+#		do_script_log(p, "requesting logs");
+#		request_remote_logs(p);
+#		}
+#
+#	node$peer = p;
+#	node$connected = T;
+#	connected_peers[p$id] = node;
+#	}"""
+
+#event remote_connection_established(p: event_peer)
+#	{
+#	if ( is_remote_event() )
+#		return;
+#
+#	do_script_log(p, "connection established");
+#
+#	if ( p$id in pending_peers )
+#		{
+#		# We issued the connect.
+#		local node = pending_peers[p$id];
+#		setup_peer(p, node);
+#		delete pending_peers[p$id];
+#		}
+#	else
+#		{ # The other side connected to us.
+#		local found = F;
+#		for ( i in nodes )
+#			{
+#			node = nodes[i];
+#			if ( node$host == p$host )
+#				{
+#				local c = 0;
+#
+#				# See if classes match = either both have
+#				# the same class, or neither of them has
+#				# a class.
+#				if ( p?$class && p$class != "" )
+#					++c;
+#
+#				if ( node?$class && node$class != "" )
+#					++c;
+#
+#				if ( c == 1 ||
+#				     (c == 2 && p$class != node$class) )
+#					next;
+#
+#				found = T;
+#				setup_peer(p, node);
+#				break;
+#				}
+#			}
+#
+#		if ( ! found )
+#			set_compression_level(p, compression_level);
+#		}
+#
+#	complete_handshake(p);
+#	}
+#
+
+event BrokerComm::incoming_connection_established(peer_name: string)
 	{
-	if ( node?$events )
-		{
-		do_script_log(p, fmt("requesting events matching %s", node$events));
-		request_remote_events(p, node$events);
-		}
+	print "BrokerComm::incoming_connection_established by", peer_name;
+	event Cluster::test_worker_event();
+	event Cluster::test_proxy_event();
 
-	if ( node?$capture_filter && node$capture_filter != "" )
-		{
-		local filter = node$capture_filter;
-		do_script_log(p, fmt("sending capture_filter: %s", filter));
-		send_capture_filter(p, filter);
-		}
-
-	if ( node$accept_input )
-		{
-		do_script_log(p, "accepting state");
-		set_accept_state(p, T);
-		}
-
-	set_compression_level(p, node$compression);
-
-	if ( node$sync )
-		{
-		do_script_log(p, "requesting synchronized state");
-		request_remote_sync(p, node$auth);
-		}
-
-	if ( node$request_logs )
-		{
-		do_script_log(p, "requesting logs");
-		request_remote_logs(p);
-		}
-
-	node$peer = p;
-	node$connected = T;
-	connected_peers[p$id] = node;
+	do_script_log(fmt("%s:incoming connection established", peer_name));
 	}
 
-event remote_connection_established(p: event_peer)
+#event remote_connection_closed(p: event_peer)
+#	{
+#	if ( is_remote_event() )
+#		return;
+#
+#	do_script_log(p, "connection closed");
+#
+#	if ( p$id in connected_peers )
+#		{
+#		local node = connected_peers[p$id];
+#		node$connected = F;
+#
+#		delete connected_peers[p$id];
+#
+#		if ( node$retry != 0secs )
+#			# The core will retry.
+#			pending_peers[p$id] = node;
+#		}
+#	}
+
+event BrokerComm::incoming_connection_broken(peer_name: string)
 	{
-	if ( is_remote_event() )
-		return;
-
-	do_script_log(p, "connection established");
-
-	if ( p$id in pending_peers )
-		{
-		# We issued the connect.
-		local node = pending_peers[p$id];
-		setup_peer(p, node);
-		delete pending_peers[p$id];
-		}
-	else
-		{ # The other side connected to us.
-		local found = F;
-		for ( i in nodes )
-			{
-			node = nodes[i];
-			if ( node$host == p$host )
-				{
-				local c = 0;
-
-				# See if classes match = either both have
-				# the same class, or neither of them has
-				# a class.
-				if ( p?$class && p$class != "" )
-					++c;
-
-				if ( node?$class && node$class != "" )
-					++c;
-
-				if ( c == 1 ||
-				     (c == 2 && p$class != node$class) )
-					next;
-
-				found = T;
-				setup_peer(p, node);
-				break;
-				}
-			}
-
-		if ( ! found )
-			set_compression_level(p, compression_level);
-		}
-
-	complete_handshake(p);
+	print "Incoming connection broken to", peer_name;
 	}
 
-event remote_connection_closed(p: event_peer)
+event BrokerComm::outgoing_connection_established(peer_address: string, peer_port: port, peer_name: string)
 	{
-	if ( is_remote_event() )
-		return;
+	print "BrokerComm::outgoing_connection_established to", peer_address, peer_port, peer_name;
+	local id = fmt("%s:%s", peer_address, peer_port);
+	local node = pending_peers[peer_name];
+	delete pending_peers[peer_name];	
 
-	do_script_log(p, "connection closed");
+	do_script_log(fmt("%s:connection established", peer_name));
+	}
 
-	if ( p$id in connected_peers )
-		{
-		local node = connected_peers[p$id];
-		node$connected = F;
+event BrokerComm::outgoing_connection_broken(peer_address: string, peer_port: port, peer_name: string)
+	{
+	print "Outgoing connection broken to", peer_name, "from ", peer_address, "port", peer_port;
+	}
 
-		delete connected_peers[p$id];
-
-		if ( node$retry != 0secs )
-			# The core will retry.
-			pending_peers[p$id] = node;
-		}
+event BrokerComm::outgoing_connection_incompatible(peer_address: string, peer_port: port)
+	{
+	print "Outgoing connection incompatible to", peer_address;
 	}
 
 event remote_state_inconsistency(operation: string, id: string,

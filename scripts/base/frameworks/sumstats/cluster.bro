@@ -56,10 +56,8 @@ export {
 }
 
 # Add events to the cluster framework to make this work.
-redef Cluster::manager2worker_events += /SumStats::cluster_(ss_request|get_result|threshold_crossed)/;
-redef Cluster::manager2worker_events += /SumStats::(get_a_key)/;
-redef Cluster::worker2manager_events += /SumStats::cluster_(send_result|key_intermediate_response)/;
-redef Cluster::worker2manager_events += /SumStats::(send_a_key|send_no_key)/;
+redef Cluster::manager2worker_events += {"SumStats::cluster_ss_request", "SumStats::cluster_get_result", "SumStats::cluster_threshold_crossed", "SumStats::get_a_key"};
+redef Cluster::worker2manager_events += {"SumStats::cluster_send_result", "SumStats::cluster_key_intermediate_response", "SumStats::send_a_key", "SumStats::send_no_key"};
 
 @if ( Cluster::local_node_type() != Cluster::MANAGER )
 # This variable is maintained to know what keys have recently sent as

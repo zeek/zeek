@@ -20,3 +20,9 @@ redef Log::default_rotation_interval = 24hrs;
 ## Use the cluster's delete-log script.
 redef Log::default_rotation_postprocessor_cmd = "delete-log";
 
+
+event Cluster::test_proxy_event()
+	{
+	print Cluster::node, ": WUUUUHUUU WOOORK";
+	event Cluster::test_proxy_response(fmt("it was really hard - %s", Cluster::node));
+	}

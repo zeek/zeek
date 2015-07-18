@@ -45,33 +45,34 @@ export {
 	};
 	
 	## Events raised by a manager and handled by the workers.
-	const manager2worker_events = /Drop::.*/ &redef;
+	const manager2worker_events : set[string] = {} &redef;
 	
 	## Events raised by a manager and handled by proxies.
-	const manager2proxy_events = /EMPTY/ &redef;
-	
+	const manager2proxy_events : set[string] = {} &redef;	
+
 	## Events raised by proxies and handled by a manager.
-	const proxy2manager_events = /EMPTY/ &redef;
+	const proxy2manager_events : set[string] = {} &redef;
 	
 	## Events raised by proxies and handled by workers.
-	const proxy2worker_events = /EMPTY/ &redef;
+	const proxy2worker_events : set[string] = {} &redef;
 	
 	## Events raised by workers and handled by a manager.
-	const worker2manager_events = /(TimeMachine::command|Drop::.*)/ &redef;
+	const worker2manager_events : set[string] += {} &redef;
 	
 	## Events raised by workers and handled by proxies.
-	const worker2proxy_events = /EMPTY/ &redef;
+	const worker2proxy_events : set[string] = {} &redef;
 	
 	## Events raised by TimeMachine instances and handled by a manager.
-	const tm2manager_events = /EMPTY/ &redef;
+	const tm2manager_events : set[string] = {} &redef;
 	
 	## Events raised by TimeMachine instances and handled by workers.
-	const tm2worker_events = /EMPTY/ &redef;
+	const tm2worker_events : set[string] = {} &redef;
 	
 	## Events sent by the control host (i.e. BroControl) when dynamically 
 	## connecting to a running instance to update settings or request data.
-	const control_events = Control::controller_events &redef;
-	
+	#const control_events = Control::controller_events &redef;
+	#const control_events : set[string] = {} &redef;
+
 	## Record type to indicate a node in a cluster.
 	type Node: record {
 		## Identifies the type of cluster node in this node's configuration.
@@ -126,6 +127,15 @@ export {
 	## This is usually supplied on the command line for each instance
 	## of the cluster that is started up.
 	const node = getenv("CLUSTER_NODE") &redef;
+
+	# Set the correct name of this endpoint according to cluster-layout
+	redef BrokerComm::endpoint_name = node;
+
+	global test_worker_event: event();
+	global test_worker_response: event(st: string);
+
+	global test_proxy_event: event();
+	global test_proxy_response: event(st: string);
 }
 
 function is_enabled(): bool
@@ -138,16 +148,28 @@ function local_node_type(): NodeType
 	return is_enabled() ? nodes[node]$node_type : NONE;
 	}
 
-event remote_connection_handshake_done(p: event_peer) &priority=5
+#event remote_connection_handshake_done(p: event_peer) &priority=5
+#	{
+#	if ( p$descr in nodes && nodes[p$descr]$node_type == WORKER )
+#		++worker_count;
+#	}
+event BrokerComm::incoming_connection_established(peer_name: string)
 	{
-	if ( p$descr in nodes && nodes[p$descr]$node_type == WORKER )
+	if ( peer_name in nodes && nodes[peer_name]$node_type == WORKER )
 		++worker_count;
+	print "increment worker count to ", worker_count;
 	}
 
-event remote_connection_closed(p: event_peer) &priority=5
+#event remote_connection_closed(p: event_peer) &priority=5
+#	{
+#	if ( p$descr in nodes && nodes[p$descr]$node_type == WORKER )
+#		--worker_count;
+#	}
+event BrokerComm::incoming_connection_broken(peer_name: string)
 	{
-	if ( p$descr in nodes && nodes[p$descr]$node_type == WORKER )
+	if ( peer_name in nodes && nodes[peer_name]$node_type == WORKER )
 		--worker_count;
+	print "decrement worker count to ", worker_count;
 	}
 
 event bro_init() &priority=5
@@ -158,40 +180,7 @@ event bro_init() &priority=5
 		Reporter::error(fmt("'%s' is not a valid node in the Cluster::nodes configuration", node));
 		terminate();
 		}
+
 	BrokerComm::enable();
-	BrokerComm::listen(nodes[node]$p, fmt("%s", nodes[node]$ip));
-
 	Log::create_stream(Cluster::LOG, [$columns=Info, $path="cluster"]);
-
-	if( fmt("%s", local_node_type()) ==  "Cluster::MANAGER" )
-		{
-		print "local node is a manager";
-		BrokerComm::subscribe_to_events("/bro/event/cluster/manager/request");
-		# Need to publish:
-		# - controllee_events
-		# - manager2worker_events
-		# - manager2proxy_events
-		#BrokerComm::auto_event("/bro/event/response", controllee_events);
-		}
-	else if( fmt("%s", local_node_type()) == "Cluster::WORKER" )
-		{
-		print "local node is a worker";
-		BrokerComm::subscribe_to_events("/bro/event/cluster/worker/request");
-		# Need to publish:
-		# - controllee_events
-		# - worker2manager_events
-		# - worker2proxy_events
-		#BrokerComm::auto_event("/bro/event/response", controllee_events);
-		}
-	
-	else if( fmt("%s", local_node_type()) == "Cluster::PROXY" )
-		{
-		print "local node is a proxy";
-		BrokerComm::subscribe_to_events("/bro/event/cluster/proxy/request");
-		# Need to publish:
-		# - controllee_events
-		# - proxy2manager_events
-		# - proxy2worker_events
-		#BrokerComm::auto_event("/bro/event/response", controllee_events);
-		}
 	}

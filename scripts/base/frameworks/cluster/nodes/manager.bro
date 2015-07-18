@@ -24,3 +24,20 @@ redef Log::default_rotation_postprocessor_cmd = "archive-log";
 
 ## We're processing essentially *only* remote events.
 redef max_remote_events_processed = 10000;
+
+
+event Cluster::test_proxy_event()
+	{
+	print Cluster::node, " send test event for proxy";
+	}
+
+event Cluster::test_worker_response(st: string)
+	{
+	print "WUUUUUHUUU DONE:", st;
+	}
+
+event Cluster::test_proxy_response(st: string)
+	{
+	print "WUUUUUHUUU DONE:", st;
+	}
+

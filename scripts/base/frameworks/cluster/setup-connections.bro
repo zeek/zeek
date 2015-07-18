@@ -21,7 +21,7 @@ event bro_init() &priority=9
 		if ( n$node_type == CONTROL )
 			Communication::nodes["control"] = [$host=n$ip, $zone_id=n$zone_id,
 			                                   $connect=F, $class="control",
-			                                   $events=control_events];
+			                                   $events=Control::controller_events];
 		
 		if ( me$node_type == MANAGER )
 			{

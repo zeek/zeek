@@ -657,6 +657,7 @@ void bro_broker::Manager::Process()
 				vl->append(new StringVal(u.relation.remote_tuple().first));
 				vl->append(new PortVal(u.relation.remote_tuple().second,
 				                       TRANSPORT_TCP));
+				vl->append(new StringVal(u.peer_name));
 				mgr.QueueEvent(BrokerComm::outgoing_connection_broken, vl);
 				}
 			break;

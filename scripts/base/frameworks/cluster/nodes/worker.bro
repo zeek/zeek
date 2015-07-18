@@ -22,3 +22,12 @@ redef Log::default_rotation_postprocessor_cmd = "delete-log";
 ## of them (rather than just those the core deems sufficiently important).
 ## Setting this does not turn recording on. Use '-w <trace>' for that.
 redef record_all_packets = T;
+
+event Cluster::test_worker_event()
+	{
+	print Cluster::node, " WUUUUHUUU WOOORK";
+	event Cluster::test_worker_response(fmt("it was really hard - %s", Cluster::node));
+	}
+
+
+

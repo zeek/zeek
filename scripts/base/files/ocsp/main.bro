@@ -212,15 +212,15 @@ function enq_request(http: HTTP::Info, req: OCSP::Request, req_id: string, req_t
 			Queue::put(http$ocsp_requests[cert_id], req_rec);
 			}
 		}
-	else
+	else if ( req?$version )
 		{
-		# no request content? this is weird but log it anyway
+		# it's ocsp request but has no request content
+		# this is weird but log it anyway
 		local req_rec_empty: OCSP::Info_req = [$ts   = req_ts,
 			                               $cid  = http$id,
 						       $cuid = http$uid,
-						       $id   = req_id];
-		if (req?$version)
-			req_rec_empty$version = req$version;
+						       $id   = req_id,
+						       $version = req$version];
 		if (req?$requestorName)
 			req_rec_empty$requestorName = req$requestorName;
 		update_http_info(http, req_rec_empty);

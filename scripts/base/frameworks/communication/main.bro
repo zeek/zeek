@@ -156,6 +156,8 @@ export {
 	## peer: the string used to index a particular node within the
 	##      :bro:id:`Communication::nodes` table.
 	global connect_peer: function(peer: string);
+
+	global reconnect_interval: interval = 1 secs;
 }
 
 const src_names = {
@@ -192,72 +194,70 @@ event remote_log_peer(p: event_peer, level: count, src: count, msg: string)
 	}
 
 #function do_script_log(p: event_peer, msg: string)
-function do_script_log(msg: string)
+function do_script_log(p: string, msg: string)
 	{
 	do_script_log_common(REMOTE_LOG_INFO, REMOTE_SRC_SCRIPT, msg);
 	}
 
 function connect_peer(peer: string)
 	{
-	print "connect to peer", peer;
 	local node = nodes[peer];
 	local p = listen_port;
 
+	# obtain port
 	if ( node?$p )
 		p = node$p;
 
-	local class = node?$class ? node$class : "";
-	local zone_id = node?$zone_id ? node$zone_id : "";
-	local succ = BrokerComm::connect(fmt("%s", node$host), p, 1sec);
+	# ...and connect via broker
+	local succ = BrokerComm::connect(fmt("%s", node$host), p, Communication::reconnect_interval);
 	
 	if ( !succ )
 		Log::write(Communication::LOG, [$ts = network_time(),
-		                                $peer = get_event_peer()$descr,
+		                                $peer = peer,
 		                                $message = "can't trigger connect"]);
 	pending_peers[peer] = node;
 	}
 
-
-
+# TODO we need to obtain an event_peer for calling the Bro functions in this function
 #function setup_peer(p: event_peer, node: Node)
 #	{
-#	if ( node?$events )
+#	if ( node?$events ) # Done in listen.bro
 #		{
 #		do_script_log(p, fmt("requesting events matching %s", node$events));
 #		request_remote_events(p, node$events);
 #		}
-#
-#	if ( node?$capture_filter && node$capture_filter != "" )
+
+#	if ( node?$capture_filter && node$capture_filter != "" ) # TODO
 #		{
 #		local filter = node$capture_filter;
 #		do_script_log(p, fmt("sending capture_filter: %s", filter));
 #		send_capture_filter(p, filter);
 #		}
-#
-#	if ( node$accept_input )
+
+#	if ( node$accept_input ) # FIXME Required?
 #		{
 #		do_script_log(p, "accepting state");
 #		set_accept_state(p, T);
 #		}
 #
 #	set_compression_level(p, node$compression);
-#
+
 #	if ( node$sync )
 #		{
 #		do_script_log(p, "requesting synchronized state");
 #		request_remote_sync(p, node$auth);
 #		}
-#
-#	if ( node$request_logs )
+
+#	if ( node$request_logs ) # TODO needs to be implemented in listen.bro
 #		{
 #		do_script_log(p, "requesting logs");
 #		request_remote_logs(p);
 #		}
-#
+
 #	node$peer = p;
 #	node$connected = T;
-#	connected_peers[p$id] = node;
-#	}"""
+#	connected_peers[p] = node;
+#	}
 
 #event remote_connection_established(p: event_peer)
 #	{
@@ -313,10 +313,50 @@ function connect_peer(peer: string)
 event BrokerComm::incoming_connection_established(peer_name: string)
 	{
 	print "BrokerComm::incoming_connection_established by", peer_name;
-	event Cluster::test_worker_event();
-	event Cluster::test_proxy_event();
+	do_script_log(peer_name, fmt("%s:incoming connection established", peer_name));
+	#event Cluster::test_worker_event();
+	#event Cluster::test_proxy_event();
+	}
 
-	do_script_log(fmt("%s:incoming connection established", peer_name));
+event BrokerComm::incoming_connection_broken(peer_name: string)
+	{
+	print "Incoming connection broken to", peer_name;
+	}
+
+event BrokerComm::outgoing_connection_established(peer_address: string, peer_port: port, peer_name: string)
+	{
+	print "BrokerComm::outgoing_connection_established to", peer_address, peer_port, peer_name;
+	local id = fmt("%s:%s", peer_address, peer_port);
+
+	local node = pending_peers[peer_name];
+	delete pending_peers[peer_name];	
+
+	do_script_log(peer_name, fmt("%s:connection established", peer_name));
+	}
+
+event BrokerComm::outgoing_connection_broken(peer_address: string, peer_port: port, peer_name: string)
+	{
+	print "Outgoing connection broken to", peer_name, "from ", peer_address, "port", peer_port;
+
+	do_script_log(peer_name, "connection closed/broken");
+
+	if ( peer_name in connected_peers )
+		{
+		local node = connected_peers[peer_name];
+		node$connected = F;
+		delete connected_peers[peer_name];
+
+		if ( reconnect_interval != 0secs )
+			{
+			# Broker will retry.
+			pending_peers[peer_name] = nodes[peer_name];
+			} 
+		}
+	}
+
+event BrokerComm::outgoing_connection_incompatible(peer_address: string, peer_port: port)
+	{
+	print "Outgoing connection incompatible to", peer_address;
 	}
 
 #event remote_connection_closed(p: event_peer)
@@ -339,44 +379,18 @@ event BrokerComm::incoming_connection_established(peer_name: string)
 #		}
 #	}
 
-event BrokerComm::incoming_connection_broken(peer_name: string)
-	{
-	print "Incoming connection broken to", peer_name;
-	}
-
-event BrokerComm::outgoing_connection_established(peer_address: string, peer_port: port, peer_name: string)
-	{
-	print "BrokerComm::outgoing_connection_established to", peer_address, peer_port, peer_name;
-	local id = fmt("%s:%s", peer_address, peer_port);
-	local node = pending_peers[peer_name];
-	delete pending_peers[peer_name];	
-
-	do_script_log(fmt("%s:connection established", peer_name));
-	}
-
-event BrokerComm::outgoing_connection_broken(peer_address: string, peer_port: port, peer_name: string)
-	{
-	print "Outgoing connection broken to", peer_name, "from ", peer_address, "port", peer_port;
-	}
-
-event BrokerComm::outgoing_connection_incompatible(peer_address: string, peer_port: port)
-	{
-	print "Outgoing connection incompatible to", peer_address;
-	}
-
-event remote_state_inconsistency(operation: string, id: string,
-				expected_old: string, real_old: string)
-	{
-	if ( is_remote_event() )
-		return;
-
-	local msg = fmt("state inconsistency: %s should be %s but is %s before %s",
-	                id, expected_old, real_old, operation);
-	Log::write(Communication::LOG, [$ts = network_time(),
-	                                $peer = get_event_peer()$descr,
-	                                $message = msg]);
-	}
-
+#event remote_state_inconsistency(operation: string, id: string,
+#				expected_old: string, real_old: string)
+#	{
+#	if ( is_remote_event() )
+#		return;
+#
+#	local msg = fmt("state inconsistency: %s should be %s but is %s before %s",
+#	                id, expected_old, real_old, operation);
+#	Log::write(Communication::LOG, [$ts = network_time(),
+#	                                $peer = get_event_peer()$descr,
+#	                                $message = msg]);
+#	}
 
 # Actually initiate the connections that need to be established.
 event bro_init() &priority = -10 # let others modify nodes

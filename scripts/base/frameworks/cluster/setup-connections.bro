@@ -67,7 +67,8 @@ event bro_init() &priority=9
 			
 			# Finally the manager, to send it status updates.
 			if ( n$node_type == MANAGER && me$manager == i )
-				Communication::nodes["manager"] = [$host=nodes[i]$ip, 
+				#Communication::nodes["manager"] = [$host=nodes[i]$ip, 
+				Communication::nodes[i] = [$host=nodes[i]$ip, 
 				                                   $zone_id=nodes[i]$zone_id, 
 				                                   $p=nodes[i]$p, 
 				                                   $connect=T, $retry=1mins, 
@@ -77,7 +78,8 @@ event bro_init() &priority=9
 		else if ( me$node_type == WORKER )
 			{
 			if ( n$node_type == MANAGER && me$manager == i )
-				Communication::nodes["manager"] = [$host=nodes[i]$ip, 
+				#Communication::nodes["manager"] = [$host=nodes[i]$ip, 
+				Communication::nodes[i] = [$host=nodes[i]$ip, 
 				                                   $zone_id=nodes[i]$zone_id,
 				                                   $p=nodes[i]$p,
 				                                   $connect=T, $retry=1mins, 
@@ -85,7 +87,8 @@ event bro_init() &priority=9
 				                                   $events=manager2worker_events];
 			
 			if ( n$node_type == PROXY && me$proxy == i )
-				Communication::nodes["proxy"] = [$host=nodes[i]$ip, 
+				#Communication::nodes["proxy"] = [$host=nodes[i]$ip, 
+				Communication::nodes[i] = [$host=nodes[i]$ip, 
 				                                 $zone_id=nodes[i]$zone_id,
 				                                 $p=nodes[i]$p,
 				                                 $connect=T, $retry=1mins, 

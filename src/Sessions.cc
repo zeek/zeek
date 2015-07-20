@@ -576,7 +576,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 
 			if ( ppp_proto != 0x0021 && ppp_proto != 0x0057 )
 				{
-				Weird("non_ip_packet_in_egre", ip_hdr, encapsulation);
+				Weird("non_ip_packet_in_encap", ip_hdr, encapsulation);
 				return;
 				}
 

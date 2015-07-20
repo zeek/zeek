@@ -11,7 +11,9 @@ add_subdirectory(pcap)
 set(iosource_SRCS
     BPF_Program.cc
     Component.cc
+    Layer2.cc
     Manager.cc
+    Packet.cc
     PktDumper.cc
     PktSrc.cc
 )

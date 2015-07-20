@@ -20,9 +20,9 @@
 #include "Reporter.h"
 #include "IPAddr.h"
 #include "util.h"
-#include "Packet.h"
 #include "file_analysis/Manager.h"
 #include "iosource/Manager.h"
+#include "iosource/Packet.h"
 
 using namespace std;
 

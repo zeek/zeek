@@ -214,10 +214,6 @@ protected:
 				TransportProto transport_proto,
 				uint8 tcp_flags, bool& flip_roles);
 
-	void NextPacket(double t, const Packet* pkt);
-
-	void ProcNextPacket(double t, const Packet *pkt);
-
 	// Record the given packet (if a dumper is active).  If len=0
 	// then the whole packet is recorded, otherwise just the first
 	// len bytes.

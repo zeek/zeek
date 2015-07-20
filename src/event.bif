@@ -225,21 +225,21 @@ event udp_session_done%(u: connection%);
 ##    ``ANALYZER_*`` constants right now.
 event scheduled_analyzer_applied%(c: connection, a: Analyzer::Tag%);
 
-## Generated for every packet Bro sees that has a valid link-layer header. This
+## Generated for every packet Bro sees that have a valid link-layer header. This
 ## is a very very low-level and expensive event that should be avoided when at all
 ## possible. It's usually infeasible to handle when processing even medium volumes
 ## of traffic in real-time. That said, if you work from a trace and want to do some
-## packet-level analysis, it may come in handy. 
+## packet-level analysis, it may come in handy.
 ##
 ## p: Information from the header of the packet that triggered the event.
 ##
 ## .. bro:see:: new_packet packet_contents
 event raw_packet%(p: raw_pkt_hdr%);
 
-## Generated for all packets that make it into Bro's connection processing . In
-## contrast to :bro:id:`raw_packet` this filters out some packets that, e.g., don't
-## pass certain sanity checks. 
-## 
+## Generated for all packets that make it into Bro's connection processing. In
+## contrast to :bro:id:`raw_packet` this filters out some more packets that don't
+## pass certain sanity checks.
+##
 ## This is a very low-level and expensive event that should be avoided when at all
 ## possible. It's usually infeasible to handle when processing even medium volumes
 ## of traffic in real-time. That said, if you work from a trace and want to do some

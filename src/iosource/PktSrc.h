@@ -215,22 +215,6 @@ public:
 	 */
 	virtual void Statistics(Stats* stats) = 0;
 
-	/**
-	 * Helper method to return the header size for a given link tyoe.
-	 *
-	 * @param link_type The link tyoe.
-	 *
-	 * @return The header size in bytes.
-	 */
-	static int GetLinkHeaderSize(int link_type);
-
-	/**
-	 * Return the pcap link encapsulation type we started with.
-	 *
-	 * @return DLT_EN10MB (etc.)
-	 */
-	int GetLinkEncap(void);
-
 protected:
 	friend class Manager;
 
@@ -257,13 +241,6 @@ protected:
 		 * The link type for packets from this source.
 		 */
 		int link_type;
-
-		/**
-		 * The size of the link-layer header for packets from this
-		 * source. \a GetLinkHeaderSize() may be used to derive this
-		 * value.
-		 */
-		int hdr_size;
 
 		/**
 		 * Returns the netmask associated with the source, or \c

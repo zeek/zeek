@@ -1,4 +1,12 @@
 
+<<<<<<< HEAD
+=======
+2.4-39 | 2015-07-20 15:30:35 -0700
+
+  * Refactoring layer 2 parsing code to reside in the Packet class,
+    plus further layer 2 cleanup. (Robin Sommer)
+
+>>>>>>> c7602ac... Cleanup
 2.4-32 | 2015-07-16 17:21:29 -0700
 
   * Refactor code to use a common Packet type throught. (Jeff Barber)

@@ -1136,9 +1136,7 @@ bool Packet::Serialize(SerialInfo* info) const
 	return SERIALIZE(uint32(ts.tv_sec)) &&
 		SERIALIZE(uint32(ts.tv_usec)) &&
 		SERIALIZE(uint32(len)) &&
-		SERIALIZE(uint32(link_type)) &&
-		SERIALIZE(uint32(hdr_size)) &&
-		SERIALIZE(uint32(l3_proto)) &&
+		SERIALIZE(link_type) &&
 		info->s->Write(tag.c_str(), tag.length(), "tag") &&
 		info->s->Write((const char*)data, cap_len, "data");
 	}
@@ -1152,14 +1150,12 @@ static iosource::PktDumper* dump = 0;
 Packet* Packet::Unserialize(UnserialInfo* info)
 	{
 	struct timeval ts;
-	uint32 len, link_type, hdr_size, l3_proto;
+	uint32 len, link_type;
 
 	if ( ! (UNSERIALIZE((uint32 *)&ts.tv_sec) &&
 		UNSERIALIZE((uint32 *)&ts.tv_usec) &&
 		UNSERIALIZE(&len) &&
-		UNSERIALIZE(&link_type) &&
-		UNSERIALIZE(&hdr_size) &&
-		UNSERIALIZE(&l3_proto)) )
+		UNSERIALIZE(&link_type)) )
 		return 0;
 
 	char* tag;
@@ -1175,7 +1171,7 @@ Packet* Packet::Unserialize(UnserialInfo* info)
 		}
 
 	Packet *p = new Packet(link_type, &ts, caplen, len, pkt, true,
-			       std::string(tag), hdr_size, (Layer3Proto) l3_proto);
+			       std::string(tag));
 	delete [] tag;
 
 	// For the global timer manager, we take the global network_time as the

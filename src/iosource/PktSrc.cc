@@ -17,7 +17,6 @@ PktSrc::Properties::Properties()
 	{
 	selectable_fd = -1;
 	link_type = -1;
-	hdr_size = -1;
 	netmask = NETMASK_UNKNOWN;
 	is_live = false;
 	}
@@ -67,11 +66,6 @@ bool PktSrc::IsError() const
 	return ErrorMsg();
 	}
 
-int PktSrc::HdrSize() const
-	{
-	return IsOpen() ? props.hdr_size : -1;
-	}
-
 int PktSrc::SnapLen() const
 	{
 	return snaplen; // That's a global. Change?
@@ -98,7 +92,7 @@ double PktSrc::CurrentPacketWallClock()
 
 void PktSrc::Opened(const Properties& arg_props)
 	{
-	if ( arg_props.hdr_size < 0 )
+	if ( Packet::GetLinkHeaderSize(arg_props.link_type) < 0 )
 		{
 		char buf[512];
 		safe_snprintf(buf, sizeof(buf),
@@ -158,33 +152,6 @@ void PktSrc::InternalError(const std::string& msg)
 void PktSrc::ContinueAfterSuspend()
 	{
 	current_wallclock = current_time(true);
-	}
-
-int PktSrc::GetLinkHeaderSize(int link_type)
-	{
-	switch ( link_type ) {
-	case DLT_NULL:
-		return 4;
-
-	case DLT_EN10MB:
-		return 14;
-
-	case DLT_FDDI:
-		return 13 + 8;	// fddi_header + LLC
-
-#ifdef DLT_LINUX_SLL
-	case DLT_LINUX_SLL:
-		return 16;
-#endif
-
-	case DLT_PPP_SERIAL:	// PPP_SERIAL
-		return 4;
-
-	case DLT_RAW:
-		return 0;
-	}
-
-	return -1;
 	}
 
 double PktSrc::CheckPseudoTime()
@@ -284,249 +251,20 @@ void PktSrc::Process()
 	if ( ! ExtractNextPacketInternal() )
 		return;
 
-	// Unfortunately some packets on the link might have MPLS labels
-	// while others don't. That means we need to ask the link-layer if
-	// labels are in place.
-	bool have_mpls = false;
-
-	Layer3Proto l3_proto = L3_UNKNOWN;
-	const u_char* data = current_packet.data;
-
-	current_packet.link_type = props.link_type;
-
-	switch ( props.link_type ) {
-	case DLT_NULL:
+	if ( current_packet.Layer2Valid() )
 		{
-		int protocol = (data[3] << 24) + (data[2] << 16) + (data[1] << 8) + data[0];
-		data += GetLinkHeaderSize(props.link_type);
+		if ( pseudo_realtime )
+			{
+			current_pseudo = CheckPseudoTime();
+			net_packet_dispatch(current_pseudo, &current_packet, this);
+			if ( ! first_wallclock )
+				first_wallclock = current_time(true);
+			}
 
-		// From the Wireshark Wiki: "AF_INET6, unfortunately, has
-		// different values in {NetBSD,OpenBSD,BSD/OS},
-		// {FreeBSD,DragonFlyBSD}, and {Darwin/Mac OS X}, so an IPv6
-		// packet might have a link-layer header with 24, 28, or 30
-		// as the AF_ value." As we may be reading traces captured on
-		// platforms other than what we're running on, we accept them
-		// all here.
-
-		if ( protocol == AF_INET )
-			l3_proto = L3_IPV4;
-		else if ( protocol == 24 || protocol == 28 || protocol == 30 )
-			l3_proto = L3_IPV6;
 		else
-			{
-			Weird("non_ip_packet_in_null_transport", &current_packet);
-			goto done;
-			}
-
-		break;
+			net_packet_dispatch(current_packet.time, &current_packet, this);
 		}
 
-	case DLT_EN10MB:
-		{
-		// Get protocol being carried from the ethernet frame.
-		int protocol = (data[12] << 8) + data[13];
-		data += GetLinkHeaderSize(props.link_type);
-		current_packet.eth_type = protocol;
-
-		switch ( protocol )
-			{
-			// MPLS carried over the ethernet frame.
-			case 0x8847:
-				have_mpls = true;
-				break;
-
-			// VLAN carried over the ethernet frame.
-			// 802.1q / 802.1ad
-			case 0x8100:
-			case 0x9100:
-				current_packet.vlan = ((data[0] << 8) + data[1]) & 0xfff;
-				protocol = ((data[2] << 8) + data[3]);
-				data += 4; // Skip the vlan header
-
-				// Check for MPLS in VLAN.
-				if ( protocol == 0x8847 )
-					{
-					have_mpls = true;
-					break;
-					}
-
-				// Check for double-tagged (802.1ad)
-				if ( protocol == 0x8100 || protocol == 0x9100 )
-					{
-					protocol = ((data[2] << 8) + data[3]);
-					data += 4; // Skip the vlan header
-					}
-
-				current_packet.eth_type = protocol;
-				break;
-
-			// PPPoE carried over the ethernet frame.
-			case 0x8864:
-				protocol = (data[6] << 8) + data[7];
-				data += 8; // Skip the PPPoE session and PPP header
-
-				if ( protocol == 0x0021 )
-					l3_proto = L3_IPV4;
-				else if ( protocol == 0x0057 )
-					l3_proto = L3_IPV6;
-				else
-					{
-					// Neither IPv4 nor IPv6.
-					Weird("non_ip_packet_in_pppoe_encapsulation", &current_packet);
-					goto done;
-					}
-
-				break;
-			}
-
-		// Normal path to determine Layer 3 protocol.
-		if ( ! have_mpls && l3_proto == L3_UNKNOWN )
-			{
-			if ( protocol == 0x800 )
-				l3_proto = L3_IPV4;
-			else if ( protocol == 0x86dd )
-				l3_proto = L3_IPV6;
-			else if ( protocol == 0x0806 || protocol == 0x8035 )
-				l3_proto = L3_ARP;
-			else
-				{
-				// Neither IPv4 nor IPv6.
-				Weird("non_ip_packet_in_ethernet", &current_packet);
-				goto done;
-				}
-			}
-
-		break;
-		}
-
-	case DLT_PPP_SERIAL:
-		{
-		// Get PPP protocol.
-		int protocol = (data[2] << 8) + data[3];
-		data += GetLinkHeaderSize(props.link_type);
-
-		if ( protocol == 0x0281 )
-			{
-			// MPLS Unicast. Remove the data link layer and
-			// denote a header size of zero before the IP header.
-			have_mpls = true;
-			}
-		else if ( protocol == 0x0021 )
-			l3_proto = L3_IPV4;
-		else if ( protocol == 0x0057 )
-			l3_proto = L3_IPV6;
-		else
-			{
-			// Neither IPv4 nor IPv6.
-			Weird("non_ip_packet_in_ppp_encapsulation", &current_packet);
-			goto done;
-			}
-		break;
-		}
-
-	default:
-		{
-		// Assume we're pointing at IP. Just figure out which version.
-		data += GetLinkHeaderSize(props.link_type);
-		const struct ip* ip = (const struct ip *)data;
-
-		if ( ip->ip_v == 4 )
-			l3_proto = L3_IPV4;
-		else if ( ip->ip_v == 6 )
-			l3_proto = L3_IPV6;
-		else
-			{
-			// Neither IPv4 nor IPv6.
-			Weird("non_ip_packet", &current_packet);
-			goto done;
-			}
-
-		break;
-		}
-	}
-
-	if ( have_mpls )
-		{
-		// Skip the MPLS label stack.
-		bool end_of_stack = false;
-
-		while ( ! end_of_stack )
-			{
-			end_of_stack = *(data + 2) & 0x01;
-			data += 4;
-
-			if ( data >= current_packet.data + current_packet.cap_len )
-				{
-				Weird("no_mpls_payload", &current_packet);
-				goto done;
-				}
-			}
-
-		// We assume that what remains is IP
-		if ( data + sizeof(struct ip) >= current_packet.data + current_packet.cap_len )
-			{
-			Weird("no_ip_in_mpls_payload", &current_packet);
-			goto done;
-			}
-
-		const struct ip* ip = (const struct ip *)data;
-
-		if ( ip->ip_v == 4 )
-			l3_proto = L3_IPV4;
-		else if ( ip->ip_v == 6 )
-			l3_proto = L3_IPV6;
-		else
-			{
-			// Neither IPv4 nor IPv6.
-			Weird("no_ip_in_mpls_payload", &current_packet);
-			goto done;
-			}
-		}
-
-	else if ( encap_hdr_size )
-		{
-		// Blanket encapsulation. We assume that what remains is IP.
-		data += encap_hdr_size;
-		if ( data + sizeof(struct ip) >= current_packet.data + current_packet.cap_len )
-			{
-			Weird("no_ip_left_after_encap", &current_packet);
-			goto done;
-			}
-
-		const struct ip* ip = (const struct ip *)data;
-
-		if ( ip->ip_v == 4 )
-			l3_proto = L3_IPV4;
-		else if ( ip->ip_v == 6 )
-			l3_proto = L3_IPV6;
-		else
-			{
-			// Neither IPv4 nor IPv6.
-			Weird("no_ip_in_encap", &current_packet);
-			goto done;
-			}
-
-		}
-
-	// We've now determined (a) L3_IPV4 vs (b) L3_IPV6 vs
-	// (c) L3_ARP vs (d) L3_UNKNOWN (0 == anything else)
-	current_packet.l3_proto = l3_proto;
-
-	// Calculate how much header we've used up.
-	current_packet.hdr_size = (data - current_packet.data);
-
-	if ( pseudo_realtime )
-		{
-		current_pseudo = CheckPseudoTime();
-		net_packet_dispatch(current_pseudo, &current_packet, this);
-		if ( ! first_wallclock )
-			first_wallclock = current_time(true);
-		}
-
-	else
-		net_packet_dispatch(current_packet.time, &current_packet, this);
-
-done:
 	have_packet = 0;
 	DoneWithPacket();
 	}
@@ -556,8 +294,6 @@ bool PktSrc::ExtractNextPacketInternal()
 
 	if ( ExtractNextPacket(&current_packet) )
 		{
-		current_packet.l3_proto = L3_UNKNOWN;
-
 		if ( ! first_timestamp )
 			first_timestamp = current_packet.time;
 

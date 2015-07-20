@@ -15,7 +15,7 @@
 #include "Sessions.h"
 #include "Reporter.h"
 #include "OSFinger.h"
-#include "Layer2.h"
+#include "iosource/Layer2.h"
 
 #include "analyzer/protocol/icmp/ICMP.h"
 #include "analyzer/protocol/udp/UDP.h"
@@ -169,11 +169,8 @@ void NetSessions::Done()
 void NetSessions::DispatchPacket(double t, const Packet* pkt,
 			iosource::PktSrc* src_ps)
 	{
-	NextPacket(t, pkt);
-	}
+	SegmentProfiler(segment_logger, "dispatching-packet");
 
-void NetSessions::NextPacket(double t, const Packet* pkt)
-	{
 	if ( raw_packet )
 		{
 		val_list* vl = new val_list();
@@ -185,9 +182,6 @@ void NetSessions::NextPacket(double t, const Packet* pkt)
 	ProcNextPacket(t, pkt);
 	}
 
-void NetSessions::ProcNextPacket(double t, const Packet *pkt)
-	{
-	SegmentProfiler(segment_logger, "processing-packet");
 	if ( pkt_profiler )
 		pkt_profiler->ProfilePkt(t, pkt->cap_len);
 
@@ -804,7 +798,7 @@ void NetSessions::DoNextInnerPacket(double t, const Packet* pkt,
 
 	// Construct fake packet for DoNextPacket
 	Packet p;
-	p.Init(DLT_RAW, &ts, caplen, len, data, false, "", 0, l3_proto);
+	p.Init(DLT_RAW, &ts, caplen, len, data, false, "");
 	DoNextPacket(t, &p, inner, outer);
 
 	delete inner;

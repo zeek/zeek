@@ -5,6 +5,7 @@
 #include "config.h"
 
 #include "Source.h"
+#include "iosource/Packet.h"
 
 #ifdef HAVE_PCAP_INT_H
 #include <pcap-int.h>
@@ -274,7 +275,6 @@ void PcapSource::SetHdrSize()
 	char errbuf[PCAP_ERRBUF_SIZE];
 
 	props.link_type = pcap_datalink(pd);
-	props.hdr_size = GetLinkHeaderSize(props.link_type);
 	}
 
 iosource::PktSrc* PcapSource::Instantiate(const std::string& path, bool is_live)

@@ -24,7 +24,8 @@
 #endif
 
 #include "NetVar.h"
-#include "Packet.h"
+
+class Packet;
 
 extern "C" {
 #include <pcap.h>

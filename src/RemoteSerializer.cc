@@ -200,7 +200,7 @@ extern "C" {
 
 // Gets incremented each time there's an incompatible change
 // to the communication internals.
-static const unsigned short PROTOCOL_VERSION = 0x08;
+static const unsigned short PROTOCOL_VERSION = 0x07;
 
 static const char MSG_NONE = 0x00;
 static const char MSG_VERSION = 0x01;

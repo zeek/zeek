@@ -17,7 +17,6 @@ Foo::Foo(const std::string& path, bool is_live)
 	props.path = path;
 	props.selectable_fd = open("/bin/sh", O_RDONLY); // any fd is fine.
 	props.link_type = DLT_RAW;
-	props.hdr_size = 0;
 	props.netmask = 0;
 	props.is_live = 0;
 	}

@@ -79,7 +79,7 @@ void PcapDumper::Open()
 		}
 
 	props.open_time = network_time;
-	props.hdr_size = PktSrc::GetLinkHeaderSize(pcap_datalink(pd));
+	props.hdr_size = Packet::GetLinkHeaderSize(pcap_datalink(pd));
 	Opened(props);
 	}
 

@@ -277,12 +277,12 @@ function check_ocsp_request_uri(http: HTTP::Info): OCSP::Request
 	parsed_req = ocsp_parse_request(decode_base64(ocsp_req_str));
 	if ( ! parsed_req?$requestList || |parsed_req$requestList| == 0 )
 		{
-		# normal parse fails, bug url, natively try each part
+		# normal parse fails, bug url, naively try each part
 		local w = split_string(http$original_uri, /\//);
 		local s = "";
 		for ( i in w )
 			{
-			s += "/" + w[i];
+			s += w[i] + "/";
 			ocsp_req_str = http$uri[|s|:];
 			parsed_req = ocsp_parse_request(decode_base64(ocsp_req_str));
 			if ( parsed_req?$requestList && |parsed_req$requestList| > 0 )

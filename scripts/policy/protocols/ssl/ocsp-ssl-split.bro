@@ -78,7 +78,10 @@ export {
 		num_ocsp:       count      &log       &optional;
 
 		## the original_uri in HTTP request
-		original_uri:   string     &log       &optional;		
+		original_uri:   string     &log       &optional;
+
+		## host in HTTP request
+		host:           string     &log       &optional;
 		};
 
 	type Issuer_Name_Type: record {
@@ -349,13 +352,21 @@ function update_http_info(ocsp: OCSP_SSL_SPLIT::Info_OCSP, http: HTTP::Info)
 		ocsp$original_uri = http$original_uri;
 	
 	if ( http?$host )
+		{
+		ocsp$host = http$host;
 		ocsp$ocsp_uri = http$host;
+		}
 
 	if ( http?$uri )
+		{
+		local uri_str = http$uri;
+		if ( http$uri == "http://" + http$host )
+			uri_str = "/"; #deal with software bug: make the full url empty
 		if ( ocsp?$ocsp_uri )
-			ocsp$ocsp_uri += http$uri;
+			ocsp$ocsp_uri += uri_str;
 		else
-			ocsp$ocsp_uri = http$uri;
+			ocsp$ocsp_uri = uri_str;
+		}
 
 	if ( http?$method && http$method == "GET" && http?$uri_prefix )
 		{

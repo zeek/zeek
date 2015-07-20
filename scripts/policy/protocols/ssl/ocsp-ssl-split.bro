@@ -82,6 +82,9 @@ export {
 
 		## host in HTTP request
 		host:           string     &log       &optional;
+
+		## user_agent
+		user_agent:     string     &log       &optional;
 		};
 
 	type Issuer_Name_Type: record {
@@ -347,6 +350,9 @@ function update_http_info(ocsp: OCSP_SSL_SPLIT::Info_OCSP, http: HTTP::Info)
 
 	if ( http?$method )
 		ocsp$method = http$method;
+
+	if ( http?$user_agent )
+		ocsp$user_agent = http$user_agent;
 
 	if ( http?$original_uri )
 		ocsp$original_uri = http$original_uri;

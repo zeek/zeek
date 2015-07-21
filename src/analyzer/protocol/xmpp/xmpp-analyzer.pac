@@ -16,7 +16,8 @@ refine connection XMPP_Conn += {
 			// Yup, looks like xmpp...
 			bro_analyzer()->ProtocolConfirmation();
 
-		if ( token == "success" || token == "message" )
+		if ( token == "success" || token == "message" || token == "db:result"
+		     || token == "db:verify" || token == "presence" )
 			// Handshake has passed the phase where we should see StartTLS. Simply skip from hereon...
 			bro_analyzer()->SetSkip(true);
 
@@ -24,9 +25,9 @@ refine connection XMPP_Conn += {
 			client_starttls = true;
 
 		if ( !is_orig && token == "proceed" && client_starttls )
-			{
 			bro_analyzer()->StartTLS();
-			}
+		else if ( !is_orig && token == "proceed" )
+			reporter->Weird(bro_analyzer()->Conn(), "XMPP: proceed without starttls");
 
 		//printf("Processed: %d %s %s \n", is_orig, c_str(name), c_str(rest));
 

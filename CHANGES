@@ -1,5 +1,11 @@
 
-2.4-39 | 2015-07-20 15:30:35 -0700
+2.4-41 | 2015-07-21 08:35:17 -0700
+
+  * Fixing compiler warning. (Robin Sommer)
+
+  * Updates to IANA TLS registry. (Johanna Amann)
+
+2.4-38 | 2015-07-20 15:30:35 -0700
 
   * Refactor code to use a common Packet type throught. (Jeff
     Barber/Robin Sommer)

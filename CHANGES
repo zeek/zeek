@@ -1,5 +1,9 @@
 
-2.4-45 | 2015-07-21 10:50:02 -0700
+2.4-45 | 2015-07-21 15:19:43 -0700
+
+  * Enabling Broker by default. This means CAF is now a required
+    dependency, altjough for now at least, there's still a switch
+    --disable-broker to turn it off.
 
   * Requiring a C++11 compiler, and turning on C++11 support. (Robin
     Sommer)

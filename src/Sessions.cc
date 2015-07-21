@@ -15,7 +15,6 @@
 #include "Sessions.h"
 #include "Reporter.h"
 #include "OSFinger.h"
-#include "iosource/Layer2.h"
 
 #include "analyzer/protocol/icmp/ICMP.h"
 #include "analyzer/protocol/udp/UDP.h"
@@ -166,21 +165,16 @@ void NetSessions::Done()
 	{
 	}
 
-void NetSessions::DispatchPacket(double t, const Packet* pkt,
-			iosource::PktSrc* src_ps)
+void NetSessions::NextPacket(double t, const Packet* pkt)
 	{
 	SegmentProfiler(segment_logger, "dispatching-packet");
 
 	if ( raw_packet )
 		{
 		val_list* vl = new val_list();
-		L2_Hdr l2_hdr(pkt);
-		vl->append(l2_hdr.BuildPktHdrVal());
+		vl->append(pkt->BuildPktHdrVal());
 		mgr.QueueEvent(raw_packet, vl);
 		}
-
-	ProcNextPacket(t, pkt);
-	}
 
 	if ( pkt_profiler )
 		pkt_profiler->ProfilePkt(t, pkt->cap_len);

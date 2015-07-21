@@ -230,8 +230,6 @@ extern int suppress_local_output;
 
 extern double timer_mgr_inactivity_timeout;
 
-extern int time_machine_profiling;
-
 extern StringVal* trace_output_file;
 
 extern int record_all_packets;

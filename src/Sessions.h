@@ -66,11 +66,8 @@ public:
 	NetSessions();
 	~NetSessions();
 
-	// Main entry point for packet processing. Dispatches the packet
-	// either through NextPacket(), optionally employing the packet
-	// sorter first.
-	void DispatchPacket(double t, const Packet* pkt,
-			iosource::PktSrc* src_ps);
+	// Main entry point for packet processing.
+	void NextPacket(double t, const Packet* pkt);
 
 	void Done();	// call to drain events before destructing
 

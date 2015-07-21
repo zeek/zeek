@@ -270,7 +270,7 @@ void net_packet_dispatch(double t, const Packet* pkt, iosource::PktSrc* src_ps)
 			}
 		}
 
-	sessions->DispatchPacket(t, pkt, src_ps);
+	sessions->NextPacket(t, pkt);
 	mgr.Drain();
 
 	if ( sp )

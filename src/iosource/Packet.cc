@@ -1,6 +1,54 @@
 
 #include "Packet.h"
 #include "Sessions.h"
+#include "iosource/Manager.h"
+
+extern "C" {
+#ifdef HAVE_NET_ETHERNET_H
+#include <net/ethernet.h>
+#elif defined(HAVE_SYS_ETHERNET_H)
+#include <sys/ethernet.h>
+#elif defined(HAVE_NETINET_IF_ETHER_H)
+#include <netinet/if_ether.h>
+#elif defined(HAVE_NET_ETHERTYPES_H)
+#include <net/ethertypes.h>
+#endif
+}
+
+void Packet::Init(int arg_link_type, struct timeval *arg_ts, uint32 arg_caplen,
+		  uint32 arg_len, const u_char *arg_data, int arg_copy,
+		  std::string arg_tag)
+	{
+	if ( data && copy )
+		delete [] data;
+
+	link_type = arg_link_type;
+	ts = *arg_ts;
+	cap_len = arg_caplen;
+	len = arg_len;
+	tag = arg_tag;
+
+	copy = arg_copy;
+
+	if ( arg_data && arg_copy )
+		{
+		data = new u_char[arg_caplen];
+		memcpy(const_cast<u_char *>(data), arg_data, arg_caplen);
+		}
+	else
+		data = arg_data;
+
+	time = ts.tv_sec + double(ts.tv_usec) / 1e6;
+	hdr_size = GetLinkHeaderSize(arg_link_type);
+	l3_proto = L3_UNKNOWN;
+	eth_type = 0;
+	vlan = 0;
+
+	l2_valid = false;
+
+	if ( data )
+		ProcessLayer2();
+	}
 
 void Packet::Weird(const char* name)
 	{
@@ -261,10 +309,169 @@ void Packet::ProcessLayer2()
 		}
 
 	// We've now determined (a) L3_IPV4 vs (b) L3_IPV6 vs
-	// (c) L3_ARP vs (d) L3_UNKNOWN (0 == anything else)
+	// (c) L3_ARP vs (d) L3_UNKNOWN.
 	l3_proto = l3_proto;
 
 	// Calculate how much header we've used up.
 	hdr_size = (pdata - data);
 }
 
+RecordVal* Packet::BuildPktHdrVal() const
+	{
+	static RecordType* l2_hdr_type = 0;
+	static RecordType* raw_pkt_hdr_type = 0;
+
+	if ( ! raw_pkt_hdr_type )
+		{
+		raw_pkt_hdr_type = internal_type("raw_pkt_hdr")->AsRecordType();
+		l2_hdr_type = internal_type("l2_hdr")->AsRecordType();
+		}
+
+	RecordVal* pkt_hdr = new RecordVal(raw_pkt_hdr_type);
+	RecordVal* l2_hdr = new RecordVal(l2_hdr_type);
+
+	int is_ethernet = (link_type == DLT_EN10MB) ? 1 : 0;
+
+	int l3 = BifEnum::L3_UNKNOWN;
+
+	if ( l3_proto == L3_IPV4 )
+		l3 = BifEnum::L3_IPV4;
+
+	else if ( l3_proto == L3_IPV6 )
+		l3 = BifEnum::L3_IPV6;
+
+	else if ( l3_proto == L3_ARP )
+		l3 = BifEnum::L3_ARP;
+
+	// l2_hdr layout:
+	//      encap: link_encap;      ##< L2 link encapsulation
+	//      len: count;		##< Total frame length on wire
+	//      cap_len: count;		##< Captured length
+	//      src: string &optional;  ##< L2 source (if ethernet)
+	//      dst: string &optional;  ##< L2 destination (if ethernet)
+	//      vlan: count &optional;  ##< VLAN tag if any (and ethernet)
+	//      ethertype: count &optional; ##< If ethernet
+	//      proto: layer3_proto;    ##< L3 proto
+
+	if ( is_ethernet )
+		{
+		// Ethernet header layout is:
+		//    dst[6bytes] src[6bytes] ethertype[2bytes]...
+		l2_hdr->Assign(0, new EnumVal(BifEnum::LINK_ETHERNET, BifType::Enum::link_encap));
+		l2_hdr->Assign(3, FmtEUI48(data + 6));	// src
+		l2_hdr->Assign(4, FmtEUI48(data));  	// dst
+
+		if ( vlan )
+			l2_hdr->Assign(5, new Val(vlan, TYPE_COUNT));
+
+		l2_hdr->Assign(6, new Val(eth_type, TYPE_COUNT));
+
+		if ( eth_type == ETHERTYPE_ARP || eth_type == ETHERTYPE_REVARP )
+			// We also identify ARP for L3 over ethernet
+			l3 = BifEnum::L3_ARP;
+		}
+	else
+		l2_hdr->Assign(0, new EnumVal(BifEnum::LINK_UNKNOWN, BifType::Enum::link_encap));
+
+	l2_hdr->Assign(1, new Val(len, TYPE_COUNT));
+	l2_hdr->Assign(2, new Val(cap_len, TYPE_COUNT));
+
+	l2_hdr->Assign(7, new EnumVal(l3, BifType::Enum::layer3_proto));
+
+	pkt_hdr->Assign(0, l2_hdr);
+
+	if ( l3_proto == L3_IPV4 )
+		{
+		IP_Hdr ip_hdr((const struct ip*)(data + hdr_size), false);
+		return ip_hdr.BuildPktHdrVal(pkt_hdr, 1);
+		}
+
+	else if ( l3_proto == L3_IPV6 )
+		{
+		IP_Hdr ip6_hdr((const struct ip6_hdr*)(data + hdr_size), false, cap_len);
+		return ip6_hdr.BuildPktHdrVal(pkt_hdr, 1);
+		}
+
+	else
+		return pkt_hdr;
+	}
+
+Val *Packet::FmtEUI48(const u_char *mac) const
+	{
+	char buf[20];
+	snprintf(buf, sizeof buf, "%02x:%02x:%02x:%02x:%02x:%02x",
+		 mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+	return new StringVal(buf);
+	}
+
+void Packet::Describe(ODesc* d) const
+	{
+	const IP_Hdr ip = IP();
+	d->Add(ip.SrcAddr());
+	d->Add("->");
+	d->Add(ip.DstAddr());
+	}
+
+bool Packet::Serialize(SerialInfo* info) const
+	{
+	return SERIALIZE(uint32(ts.tv_sec)) &&
+		SERIALIZE(uint32(ts.tv_usec)) &&
+		SERIALIZE(uint32(len)) &&
+		SERIALIZE(link_type) &&
+		info->s->Write(tag.c_str(), tag.length(), "tag") &&
+		info->s->Write((const char*)data, cap_len, "data");
+	}
+
+#ifdef DEBUG
+static iosource::PktDumper* dump = 0;
+#endif
+
+Packet* Packet::Unserialize(UnserialInfo* info)
+	{
+	struct timeval ts;
+	uint32 len, link_type;
+
+	if ( ! (UNSERIALIZE((uint32 *)&ts.tv_sec) &&
+		UNSERIALIZE((uint32 *)&ts.tv_usec) &&
+		UNSERIALIZE(&len) &&
+		UNSERIALIZE(&link_type)) )
+		return 0;
+
+	char* tag;
+	if ( ! info->s->Read((char**) &tag, 0, "tag") )
+		return 0;
+
+	const u_char* pkt;
+	int caplen;
+	if ( ! info->s->Read((char**) &pkt, &caplen, "data") )
+		{
+		delete [] tag;
+		return 0;
+		}
+
+	Packet *p = new Packet(link_type, &ts, caplen, len, pkt, true,
+			       std::string(tag));
+	delete [] tag;
+
+	// For the global timer manager, we take the global network_time as the
+	// packet's timestamp for feeding it into our packet loop.
+	if ( p->tag == "" )
+		p->time = timer_mgr->Time();
+	else
+		p->time = p->ts.tv_sec + double(p->ts.tv_usec) / 1e6;
+
+#ifdef DEBUG
+	if ( debug_logger.IsEnabled(DBG_TM) )
+		{
+		if ( ! dump )
+			dump = iosource_mgr->OpenPktDumper("tm.pcap", true);
+
+		if ( dump )
+			{
+			dump->Dump(p);
+			}
+		}
+#endif
+
+	return p;
+	}

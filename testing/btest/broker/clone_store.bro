@@ -83,7 +83,8 @@ function dv(d: BrokerComm::Data): BrokerComm::DataVector
 global ready: event();
 
 event BrokerComm::outgoing_connection_broken(peer_address: string,
-                                       peer_port: port)
+                                       peer_port: port,
+                                       peer_name: string)
 	{
 	terminate();
 	}

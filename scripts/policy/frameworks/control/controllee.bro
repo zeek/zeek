@@ -10,7 +10,7 @@
 @load base/frameworks/control
 # If an instance is a controllee, it implicitly needs to listen for remote
 # connections.
-@load frameworks/communication/listen
+#@load frameworks/communication/listen
 
 module Control;
 
@@ -22,7 +22,6 @@ event Control::id_value_request(id: string)
 
 event Control::peer_status_request()
 	{
-	print "peer status request received";
 	local status = "";
 	for ( p in Communication::nodes )
 		{

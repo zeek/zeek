@@ -19,7 +19,7 @@ event bro_init() &priority=-10
 	# Manager settings
 	if(Cluster::local_node_type() ==  Cluster::MANAGER )
 		{
-		print "local node is a manager";
+		#print "local node is a manager";
 		BrokerComm::subscribe_to_events("/bro/event/cluster/manager/response");
 
 		# Need to publish: manager2worker_events, manager2proxy_events
@@ -36,7 +36,7 @@ event bro_init() &priority=-10
 	# Proxy settings
 	else if( Cluster::local_node_type() == Cluster::PROXY )
 		{
-		print "local node is a proxy";
+		#print "local node is a proxy";
 		BrokerComm::subscribe_to_events("/bro/event/cluster/proxy/request");
 
 		# Need to publish: proxy2manager_events, proxy2worker_events
@@ -52,7 +52,7 @@ event bro_init() &priority=-10
 	# Worker settings
 	else if( Cluster::local_node_type() == Cluster::WORKER )
 		{
-		print "local node is a worker";
+		#print "local node is a worker";
 		BrokerComm::subscribe_to_events("/bro/event/cluster/worker/request");
 
 		# Need to publish: worker2manager_events, worker2proxy_events

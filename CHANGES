@@ -1,4 +1,12 @@
 
+2.4-45 | 2015-07-21 10:50:02 -0700
+
+  * Requiring a C++11 compiler, and turning on C++11 support. (Robin
+    Sommer)
+
+  * Tweaking the listing of hooks in "bro -NN" for consistency. (Robin
+    Sommer)
+
 2.4-41 | 2015-07-21 08:35:17 -0700
 
   * Fixing compiler warning. (Robin Sommer)

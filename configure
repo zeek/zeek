@@ -41,7 +41,6 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --enable-perftools-debug use Google's perftools for debugging
     --enable-jemalloc      link against jemalloc
     --enable-ruby          build ruby bindings for broccoli (deprecated)
-    --enable-c++11         build using the C++11 standard
     --enable-broker        enable use of the Broker communication library
                            (requires C++ Actor Framework and C++11)
     --disable-broccoli     don't build or install the Broccoli library
@@ -187,11 +186,7 @@ while [ $# -ne 0 ]; do
         --enable-jemalloc)
             append_cache_entry ENABLE_JEMALLOC     BOOL   true
             ;;
-        --enable-c++11)
-            append_cache_entry ENABLE_CXX11         BOOL   true
-            ;;
         --enable-broker)
-            append_cache_entry ENABLE_CXX11         BOOL   true
             append_cache_entry ENABLE_BROKER        BOOL   true
             append_cache_entry BROKER_PYTHON_HOME   PATH   $prefix
             user_enabled_broker="true"

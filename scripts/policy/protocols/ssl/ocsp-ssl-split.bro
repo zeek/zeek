@@ -120,8 +120,11 @@ export {
 		## the time when SSL connection is established
 		establish_ts:      time       &log       &optional;
 
-		## the time for the first encrypted application data
+		## the time for the first encrypted client application data
 		client_first_encrypt_ts:   time       &log       &optional;
+
+		## the time for the first encrypted server application data
+		server_first_encrypt_ts:   time       &log       &optional;
 		
 		## the time when event connection_state_remove happens
 		end_ts:            time       &log       &optional;
@@ -185,8 +188,11 @@ redef record SSL::Info += {
 	## name hash(string)
 	cert_ts: table[string, string, OCSP_SSL_SPLIT::Issuer_Name_Type] of Queue::Queue &optional;
 
-	## the time for the first encrypted application data
+	## the time for the first encrypted client application data
 	client_first_encrypt_ts:          time  &optional;
+
+	## the time for the first encrypted server application data
+	server_first_encrypt_ts:          time  &optional;
 };
 
 # remove the last '/'
@@ -279,8 +285,13 @@ event ssl_encrypted_data(c: connection, is_orig: bool, content_type: count, leng
 	if ( ! c?$ssl )
 		return;
 		
-	if ( content_type == SSL::APPLICATION_DATA && length > 0 && is_orig && ! c$ssl?$client_first_encrypt_ts )
-		c$ssl$client_first_encrypt_ts = network_time();
+	if ( content_type == SSL::APPLICATION_DATA && length > 0 )
+		{
+		if ( is_orig && ! c$ssl?$client_first_encrypt_ts )
+			c$ssl$client_first_encrypt_ts = network_time();
+		else if ( ! is_orig && ! c$ssl?$server_first_encrypt_ts )
+			c$ssl$server_first_encrypt_ts = network_time();
+		}
 	}
 
 # extract the full ocsp uri from certificate extension
@@ -449,6 +460,9 @@ function update_ssl_info(ssl_rec: OCSP_SSL_SPLIT::Info_SSL, ssl: SSL::Info)
 
 	if ( ssl?$client_first_encrypt_ts )
 		ssl_rec$client_first_encrypt_ts = ssl$client_first_encrypt_ts;
+
+	if ( ssl?$server_first_encrypt_ts )
+		ssl_rec$server_first_encrypt_ts = ssl$server_first_encrypt_ts;
 
 	if ( ssl?$server_hello_ts )
 		ssl_rec$server_hello_ts = ssl$server_hello_ts;

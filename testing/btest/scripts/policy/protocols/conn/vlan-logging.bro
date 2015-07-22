@@ -1,4 +1,4 @@
-# A basic test of the known-hosts script's logging and asset_tracking options
+# A basic test of the vlan logging script
 
 # @TEST-EXEC: bro -r $TRACES/q-in-q.trace %INPUT
 # @TEST-EXEC: btest-diff conn.log

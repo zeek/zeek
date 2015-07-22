@@ -1,4 +1,61 @@
 
+2.4-41 | 2015-07-21 08:35:17 -0700
+
+  * Fixing compiler warning. (Robin Sommer)
+
+  * Updates to IANA TLS registry. (Johanna Amann)
+
+2.4-38 | 2015-07-20 15:30:35 -0700
+
+  * Refactor code to use a common Packet type throught. (Jeff
+    Barber/Robin Sommer)
+
+  * Extend parsing layer 2 and keeping track of layer 3 protoco. (Jeff Barber)
+
+  * Add a raw_packet() event that generated for all packets and
+    include layer 2 information. (Jeff Barber)
+
+2.4-27 | 2015-07-15 13:31:49 -0700
+
+  * Fix race condition in intel test. (Johanna Amann)
+
+2.4-24 | 2015-07-14 08:04:11 -0700
+
+  * Correct Perl package name on FreeBSD in documentation.(Justin Azoff)
+
+  * Adding an environment variable to BTest configuration for external
+    scripts. (Robin Sommer)
+
+2.4-20 | 2015-07-03 10:40:21 -0700
+
+  * Adding a weird for when truncated packets lead TCP reassembly to
+    ignore content. (Robin Sommer)
+
+2.4-19 | 2015-07-03 09:04:54 -0700
+
+  * A set of tests exercising IP defragmentation and TCP reassembly.
+    (Robin Sommer)
+
+2.4-17 | 2015-06-28 13:02:41 -0700
+
+  * BIT-1314: Add detection for Quantum Insert attacks. The TCP
+    reassembler can now keep a history of old TCP segments using the
+    tcp_max_old_segments option. An overlapping segment with different
+    data will then generate an rexmit_inconsistency event. The default
+    for tcp_max_old_segments is zero, which disabled any additional
+    buffering. (Yun Zheng Hu/Robin Sommer)
+
+2.4-14 | 2015-06-28 12:30:12 -0700
+
+  * BIT-1400: Allow '<' and '>' in MIME multipart boundaries. The spec
+    doesn't actually seem to permit these, but they seem to occur in
+    the wild. (Jon Siwek)
+
+2.4-12 | 2015-06-28 12:21:11 -0700
+
+  * BIT-1399: Trying to decompress deflated HTTP content even when
+    zlib headers are missing. (Seth Hall)
+
 2.4-10 | 2015-06-25 07:11:17 -0700
 
   * Correct a name used in a header identifier (Justin Azoff)

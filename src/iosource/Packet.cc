@@ -43,6 +43,7 @@ void Packet::Init(int arg_link_type, struct timeval *arg_ts, uint32 arg_caplen,
 	l3_proto = L3_UNKNOWN;
 	eth_type = 0;
 	vlan = 0;
+	inner_vlan = 0;
 
 	l2_valid = false;
 
@@ -153,6 +154,7 @@ void Packet::ProcessLayer2()
 				// Check for double-tagged (802.1ad)
 				if ( protocol == 0x8100 || protocol == 0x9100 )
 					{
+				        inner_vlan = ((pdata[0] << 8) + pdata[1]) & 0xfff;
 					protocol = ((pdata[2] << 8) + pdata[3]);
 					pdata += 4; // Skip the vlan header
 					}
@@ -350,6 +352,7 @@ RecordVal* Packet::BuildPktHdrVal() const
 	//      src: string &optional;  ##< L2 source (if ethernet)
 	//      dst: string &optional;  ##< L2 destination (if ethernet)
 	//      vlan: count &optional;  ##< VLAN tag if any (and ethernet)
+	//      inner_vlan: count &optional;  ##< Inner VLAN tag if any (and ethernet)
 	//      ethertype: count &optional; ##< If ethernet
 	//      proto: layer3_proto;    ##< L3 proto
 
@@ -364,7 +367,10 @@ RecordVal* Packet::BuildPktHdrVal() const
 		if ( vlan )
 			l2_hdr->Assign(5, new Val(vlan, TYPE_COUNT));
 
-		l2_hdr->Assign(6, new Val(eth_type, TYPE_COUNT));
+		if ( inner_vlan )
+			l2_hdr->Assign(6, new Val(inner_vlan, TYPE_COUNT));
+
+		l2_hdr->Assign(7, new Val(eth_type, TYPE_COUNT));
 
 		if ( eth_type == ETHERTYPE_ARP || eth_type == ETHERTYPE_REVARP )
 			// We also identify ARP for L3 over ethernet
@@ -376,7 +382,7 @@ RecordVal* Packet::BuildPktHdrVal() const
 	l2_hdr->Assign(1, new Val(len, TYPE_COUNT));
 	l2_hdr->Assign(2, new Val(cap_len, TYPE_COUNT));
 
-	l2_hdr->Assign(7, new EnumVal(l3, BifType::Enum::layer3_proto));
+	l2_hdr->Assign(8, new EnumVal(l3, BifType::Enum::layer3_proto));
 
 	pkt_hdr->Assign(0, l2_hdr);
 

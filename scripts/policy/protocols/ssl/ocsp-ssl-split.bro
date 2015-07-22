@@ -377,7 +377,7 @@ function update_http_info(ocsp: OCSP_SSL_SPLIT::Info_OCSP, http: HTTP::Info)
 	if ( http?$uri )
 		{
 		local uri_str = http$uri;
-		if ( http$uri == "http://" + http$host )
+		if ( http?$host && http$uri == "http://" + http$host )
 			uri_str = "/"; #deal with software bug: make the full url empty
 		if ( ocsp?$ocsp_uri )
 			ocsp$ocsp_uri += uri_str;

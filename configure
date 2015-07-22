@@ -41,9 +41,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --enable-perftools-debug use Google's perftools for debugging
     --enable-jemalloc      link against jemalloc
     --enable-ruby          build ruby bindings for broccoli (deprecated)
-    --enable-c++11         build using the C++11 standard
-    --enable-broker        enable use of the Broker communication library
-                           (requires C++ Actor Framework and C++11)
+    --disable-broker       disable use of the Broker communication library
     --disable-broccoli     don't build or install the Broccoli library
     --disable-broctl       don't install Broctl
     --disable-auxtools     don't build or install auxiliary tools
@@ -95,12 +93,23 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
 sourcedir="$( cd "$( dirname "$0" )" && pwd )"
 
 # Function to append a CMake cache entry definition to the
-# CMakeCacheEntries variable
+# CMakeCacheEntries variable.
 #   $1 is the cache entry variable name
 #   $2 is the cache entry variable type
 #   $3 is the cache entry variable value
 append_cache_entry () {
     CMakeCacheEntries="$CMakeCacheEntries -D $1:$2=$3"
+}
+
+# Function to remove a CMake cache entry definition from the
+# CMakeCacheEntries variable
+#   $1 is the cache entry variable name
+remove_cache_entry () {
+    CMakeCacheEntries="$CMakeCacheEntries -U $1"
+
+    # Even with -U, cmake still warns by default if
+    # added previously with -D.
+    CMakeCacheEntries="$CMakeCacheEntries --no-warn-unused-cli"
 }
 
 # set defaults
@@ -112,10 +121,12 @@ append_cache_entry BRO_ROOT_DIR         PATH   $prefix
 append_cache_entry PY_MOD_INSTALL_DIR   PATH   $prefix/lib/broctl
 append_cache_entry BRO_SCRIPT_INSTALL_PATH STRING $prefix/share/bro
 append_cache_entry BRO_ETC_INSTALL_DIR  PATH   $prefix/etc
+append_cache_entry BROKER_PYTHON_HOME   PATH   $prefix
 append_cache_entry ENABLE_DEBUG         BOOL   false
 append_cache_entry ENABLE_PERFTOOLS     BOOL   false
 append_cache_entry ENABLE_PERFTOOLS_DEBUG BOOL false
-append_cache_entry ENABLE_JEMALLOC      BOOL false
+append_cache_entry ENABLE_JEMALLOC      BOOL   false
+append_cache_entry ENABLE_BROKER        BOOL   true
 append_cache_entry BinPAC_SKIP_INSTALL  BOOL   true
 append_cache_entry BUILD_SHARED_LIBS    BOOL   true
 append_cache_entry INSTALL_AUX_TOOLS    BOOL   true
@@ -150,8 +161,8 @@ while [ $# -ne 0 ]; do
             append_cache_entry BRO_ROOT_DIR         PATH   $optarg
             append_cache_entry PY_MOD_INSTALL_DIR   PATH   $optarg/lib/broctl
 
-            if [ -n "$user_enabled_broker" ]; then
-                append_cache_entry BROKER_PYTHON_HOME   PATH   $prefix
+            if [ -n "$user_disabled_broker" ]; then
+                append_cache_entry BROKER_PYTHON_HOME   PATH   $optarg
             fi
             ;;
         --scriptdir=*)
@@ -187,14 +198,10 @@ while [ $# -ne 0 ]; do
         --enable-jemalloc)
             append_cache_entry ENABLE_JEMALLOC     BOOL   true
             ;;
-        --enable-c++11)
-            append_cache_entry ENABLE_CXX11         BOOL   true
-            ;;
-        --enable-broker)
-            append_cache_entry ENABLE_CXX11         BOOL   true
-            append_cache_entry ENABLE_BROKER        BOOL   true
-            append_cache_entry BROKER_PYTHON_HOME   PATH   $prefix
-            user_enabled_broker="true"
+        --disable-broker)
+            append_cache_entry ENABLE_BROKER        BOOL   false
+            remove_cache_entry BROKER_PYTHON_HOME
+            user_disabled_broker="true"
             ;;
         --disable-broccoli)
             append_cache_entry INSTALL_BROCCOLI     BOOL   false

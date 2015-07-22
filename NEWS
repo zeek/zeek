@@ -4,6 +4,18 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as BroControl and Broccoli, come with
 their own ``CHANGES``.)
 
+Bro 2.5 (in progress)
+=====================
+
+New Dependencies
+----------------
+
+- Bro now requires a compiler with C++11 support for building the
+  source code.
+
+- Bro now requires the C++ Actor Framework, CAF, which must be
+  installed first. See http://actor-framework.org.
+
 Bro 2.4
 =======
 

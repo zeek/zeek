@@ -165,6 +165,7 @@ include(PCAPTests)
 include(OpenSSLTests)
 include(CheckNameserCompat)
 include(GetArchitecture)
+include(RequireCXX11)
 
 # Tell the plugin code that we're building as part of the main tree.
 set(BRO_PLUGIN_INTERNAL_BUILD true CACHE INTERNAL "" FORCE)
@@ -176,10 +177,6 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 ########################################################################
 ## Recurse on sub-directories
-
-if ( ENABLE_CXX11 )
-    include(RequireCXX11)
-endif ()
 
 if ( ENABLE_BROKER )
     add_subdirectory(aux/broker)

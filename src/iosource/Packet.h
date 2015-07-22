@@ -181,6 +181,12 @@ public:
 	 */
 	uint32 vlan;			///
 
+	/**
+	 * (Innermost) VLAN tag if any, else 0. Valid iff Layer2Valid()
+	 * returns true.
+	 */
+	uint32 inner_vlan;		///
+
 private:
 	// Calculate layer 2 attributes. Sets
 	void ProcessLayer2();

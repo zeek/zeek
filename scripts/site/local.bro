@@ -84,3 +84,7 @@
 # Uncomment the following line to enable detection of the heartbleed attack. Enabling
 # this might impact performance a bit.
 # @load policy/protocols/ssl/heartbleed
+
+# Uncomment the following line to enable logging of connection VLANs. Enabling
+# this changes the format of the conn.log file to add two VLAN fields.
+# @load policy/protocols/conn/vlan-logging

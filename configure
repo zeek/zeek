@@ -161,7 +161,7 @@ while [ $# -ne 0 ]; do
             append_cache_entry BRO_ROOT_DIR         PATH   $optarg
             append_cache_entry PY_MOD_INSTALL_DIR   PATH   $optarg/lib/broctl
 
-            if [ -n "$user_disabled_broker" ]; then
+            if [ -z "$user_disabled_broker" ]; then
                 append_cache_entry BROKER_PYTHON_HOME   PATH   $optarg
             fi
             ;;

@@ -8,3 +8,7 @@
 ## capabilities: The list of IMAP capabilities as sent by the server.
 event imap_capabilities%(c: connection, capabilities: string_vec%);
 
+## Generated when a IMAP connection goes encrypted
+##
+## c: The connection.
+event imap_starttls%(c: connection%);

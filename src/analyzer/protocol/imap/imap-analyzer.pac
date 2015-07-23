@@ -41,7 +41,10 @@ refine connection IMAP_Conn += {
 		if ( !is_orig && !client_starttls_id.empty() && tags == client_starttls_id )
 			{
 			if ( commands == "ok" )
+				{
 				bro_analyzer()->StartTLS();
+				BifEvent::generate_imap_starttls(bro_analyzer(), bro_analyzer()->Conn());
+				}
 			else
 				reporter->Weird(bro_analyzer()->Conn(), "IMAP: server refused StartTLS");
 			}

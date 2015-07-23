@@ -167,19 +167,25 @@ public:
 	 * Layer 3 protocol identified (if any). Valid iff Layer2Valid()
 	 * returns true.
 	 */
-	Layer3Proto l3_proto;		/// 
+	Layer3Proto l3_proto;		///
 
 	/**
 	 * If layer 2 is Ethernet, innermost ethertype field. Valid iff
 	 * Layer2Valid() returns true.
 	 */
-	uint32 eth_type;		/// 
+	uint32 eth_type;		///
 
 	/**
 	 * (Outermost) VLAN tag if any, else 0. Valid iff Layer2Valid()
 	 * returns true.
 	 */
 	uint32 vlan;			///
+
+	/**
+	 * (Innermost) VLAN tag if any, else 0. Valid iff Layer2Valid()
+	 * returns true.
+	 */
+	uint32 inner_vlan;
 
 private:
 	// Calculate layer 2 attributes. Sets

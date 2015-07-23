@@ -1,4 +1,19 @@
 
+2.4-53 | 2015-07-23 13:03:27 -0700
+
+  * Add script protocols/conn/vlan-logging.bro to record VLAN data in
+    conn.log. (Aaron Brown)
+
+  * Add field "vlan" and "inner_vlan" to connection record. (Aaron
+    Brown)
+
+  * Save the inner vlan in the Packet object for Q-in-Q setups. (Aaron
+    Brown)
+
+  * Increasing plugin API version.
+
+    The layer 2 updates introduced some API changes. (Robin Sommer)
+
 2.4-46 | 2015-07-22 10:56:40 -0500
 
   * Fix broker python bindings install location to track --prefix.

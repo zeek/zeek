@@ -345,6 +345,12 @@ type connection: record {
 	## for the connection unless the :bro:id:`tunnel_changed` event is
 	## handled and reassigns this field to the new encapsulation.
 	tunnel: EncapsulatingConnVector &optional;
+
+	## The outer VLAN, if applicable, for this connection.
+	vlan: int &optional;
+
+	## The VLAN vlan, if applicable, for this connection.
+	inner_vlan: int &optional;
 };
 
 ## Default amount of time a file can be inactive before the file analysis
@@ -1511,6 +1517,7 @@ type l2_hdr: record {
 	src: string &optional;	##< L2 source (if Ethernet).
 	dst: string &optional;	##< L2 destination (if Ethernet).
 	vlan: count &optional;	##< Outermost VLAN tag if any (and Ethernet).
+	inner_vlan: count &optional;	##< Innermost VLAN tag if any (and Ethernet).
 	eth_type: count &optional;	##< Innermost Ethertype (if Ethernet).
 	proto: layer3_proto;	##< L3 protocol.
 };

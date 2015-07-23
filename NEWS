@@ -16,6 +16,16 @@ New Dependencies
 - Bro now requires the C++ Actor Framework, CAF, which must be
   installed first. See http://actor-framework.org.
 
+New Functionality
+-----------------
+
+- Bro now tracks VLAN IDs. To record them inside the connection log,
+  load protocols/conn/vlan-logging.bro.
+
+- A new per-packet event raw_packet() provides access to layer 2
+  information. Use with care, generating events per packet is
+  expensive.
+
 Bro 2.4
 =======
 

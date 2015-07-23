@@ -58,15 +58,15 @@ export {
 		## connection uid
 		cuid:               string  &optional;
 		## responseStatus (different from cert status?)
-		responseStatus:     string  &log;
+		responseStatus:     string  &log   &optional;
 		## responseType
-		responseType:       string  &log;
+		responseType:       string  &log   &optional;
 		## version
-		version:            count   &log;
+		version:            count   &log   &optional;
 		## responderID
-		responderID:        string  &log;
+		responderID:        string  &log   &optional;
 		## producedAt
-		producedAt:         string  &log;
+		producedAt:         string  &log   &optional;
 
 		## NOTE: the following are specific to one cert id
 		##       the above are for one file which may contain
@@ -176,6 +176,33 @@ function update_http_info(http: HTTP::Info, req_rec: OCSP::Info_req)
 		req_rec$method = http$method;
 	}
 
+function update_request_info(rec: Info_req, req: OCSP::Request)
+	{
+	if ( req?$version )
+		rec$version = req$version;
+
+	if ( req?$requestorName )
+		rec$requestorName = req$requestorName;
+	}
+
+function cert_id_from_request(one_req: OCSP::OneReq): OCSP::CertId
+	{
+	local cert_id: OCSP::CertId = [];
+	if ( one_req?$hashAlgorithm )
+		cert_id$hashAlgorithm = one_req$hashAlgorithm;
+
+	if ( one_req?$issuerNameHash )
+		cert_id$issuerNameHash = one_req$issuerNameHash;
+
+	if ( one_req?$issuerKeyHash )
+		cert_id$issuerKeyHash = one_req$issuerKeyHash;
+
+	if ( one_req?$serialNumber )
+		cert_id$serialNumber = one_req$serialNumber;
+
+	return cert_id;
+	}
+
 function enq_request(http: HTTP::Info, req: OCSP::Request, req_id: string, req_ts: time)
 	{
 	local index: count = 0;
@@ -185,22 +212,14 @@ function enq_request(http: HTTP::Info, req: OCSP::Request, req_id: string, req_t
 		for (x in req$requestList)
 			{
 			local one_req = req$requestList[x];
-			local cert_id: OCSP::CertId = [$hashAlgorithm  = one_req$hashAlgorithm,
-						       $issuerNameHash = one_req$issuerNameHash,
-						       $issuerKeyHash  = one_req$issuerKeyHash,
-						       $serialNumber   = one_req$serialNumber];
+			local cert_id: OCSP::CertId = cert_id_from_request(one_req);
 			local req_rec: OCSP::Info_req = [$ts     = req_ts,
 							 $certId = cert_id,
 							 $cid    = http$id,
 							 $cuid   = http$uid,
 							 $index  = index,
 							 $id     = req_id];
-
-			if ( req?$version )
-				req_rec$version = req$version;
-
-			if ( req?$requestorName )
-				req_rec$requestorName = req$requestorName;
+			update_request_info(req_rec, req);
 
 			if ( ! http?$ocsp_requests )
 				http$ocsp_requests = table();
@@ -219,10 +238,8 @@ function enq_request(http: HTTP::Info, req: OCSP::Request, req_id: string, req_t
 		local req_rec_empty: OCSP::Info_req = [$ts   = req_ts,
 			                               $cid  = http$id,
 						       $cuid = http$uid,
-						       $id   = req_id,
-						       $version = req$version];
-		if (req?$requestorName)
-			req_rec_empty$requestorName = req$requestorName;
+						       $id   = req_id];
+		update_request_info(req_rec_empty, req);
 		update_http_info(http, req_rec_empty);
 		Log::write(LOG, [$ts=req_rec_empty$ts, $req=req_rec_empty, $cid=http$id, $cuid=http$uid, $method=http$method, $http=http]);
 		}
@@ -295,6 +312,60 @@ function check_ocsp_request_uri(http: HTTP::Info): OCSP::Request
 	return parsed_req;
 	}
 
+function update_response_info_single(rec: Info_resp, single_resp: OCSP::SingleResp)
+	{
+	if ( single_resp?$certStatus )
+		rec$certStatus = single_resp$certStatus;
+
+	if ( single_resp?$thisUpdate )
+		rec$thisUpdate = single_resp$thisUpdate;
+
+	if ( single_resp?$nextUpdate )
+		rec$nextUpdate = single_resp$nextUpdate;
+	}
+
+function update_response_info(rec: Info_resp, resp: OCSP::Response)
+	{
+	if ( resp?$responseStatus )
+		rec$responseStatus = resp$responseStatus;
+
+	if ( resp?$responseType )
+		rec$responseType = resp$responseType;
+
+	if ( resp?$version )
+		rec$version = resp$version;
+
+	if ( resp?$responderID )
+		rec$responderID = resp$responderID;
+
+	if ( resp?$producedAt )
+		rec$producedAt = resp$producedAt;
+	}
+
+function update_response_info_with_single(rec: Info_resp, resp: OCSP::Response, single_resp: OCSP::SingleResp)
+	{
+	update_response_info(rec, resp);
+	update_response_info_single(rec, single_resp);
+	}
+
+function cert_id_from_response(single_resp: OCSP::SingleResp): OCSP::CertId
+	{
+	local cert_id: OCSP::CertId = [];
+	if ( single_resp?$hashAlgorithm )
+		cert_id$hashAlgorithm = single_resp$hashAlgorithm;
+
+	if ( single_resp?$issuerNameHash )
+		cert_id$issuerNameHash = single_resp$issuerNameHash;
+
+	if ( single_resp?$issuerKeyHash )
+		cert_id$issuerKeyHash = single_resp$issuerKeyHash;
+
+	if ( single_resp?$serialNumber )
+		cert_id$serialNumber = single_resp$serialNumber;
+
+	return cert_id;
+	}
+
 event ocsp_response(f: fa_file, resp_ref: opaque of ocsp_resp, resp: OCSP::Response) &priority = 5
 	{
 	if ( ! f?$http )
@@ -307,25 +378,14 @@ event ocsp_response(f: fa_file, resp_ref: opaque of ocsp_resp, resp: OCSP::Respo
 			{
 			index += 1;
 			local single_resp: OCSP::SingleResp = resp$responses[x];
-			local cert_id: OCSP::CertId = [$hashAlgorithm  = single_resp$hashAlgorithm,
-						       $issuerNameHash = single_resp$issuerNameHash,
-						       $issuerKeyHash  = single_resp$issuerKeyHash,
-						       $serialNumber   = single_resp$serialNumber];
-			local resp_rec: Info_resp = [$ts             = network_time(),
-						     $id             = f$id,
-						     $cid            = f$http$id,
-						     $cuid           = f$http$uid,
-						     $responseStatus = resp$responseStatus,
-						     $responseType   = resp$responseType,
-						     $version        = resp$version,
-						     $responderID    = resp$responderID,
-						     $producedAt     = resp$producedAt,
-						     $index          = index,
-						     $certId         = cert_id,
-						     $certStatus     = single_resp$certStatus,
-						     $thisUpdate     = single_resp$thisUpdate];
-			if (single_resp?$nextUpdate)
-				resp_rec$nextUpdate = single_resp$nextUpdate;
+			local cert_id: OCSP::CertId = cert_id_from_response(single_resp);
+			local resp_rec: Info_resp = [$ts     = network_time(),
+						     $id     = f$id,
+						     $cid    = f$http$id,
+						     $cuid   = f$http$uid,
+						     $index  = index,
+						     $certId = cert_id];
+			update_response_info_with_single(resp_rec, resp, single_resp);
 
 			if ( ! f$http?$ocsp_responses )
 				f$http$ocsp_responses = table();
@@ -339,15 +399,11 @@ event ocsp_response(f: fa_file, resp_ref: opaque of ocsp_resp, resp: OCSP::Respo
 	else
 		{
                 # no response content? this is weird but log it anyway
-		local resp_rec_empty: Info_resp = [$ts             = network_time(),
-			                           $id             = f$id,
-			                           $cid            = f$http$id,
-						   $cuid           = f$http$uid,
-						   $responseStatus = resp$responseStatus,
-						   $responseType   = resp$responseType,
-						   $version        = resp$version,
-						   $responderID    = resp$responderID,
-						   $producedAt     = resp$producedAt];
+		local resp_rec_empty: Info_resp = [$ts   = network_time(),
+			                           $id   = f$id,
+			                           $cid  = f$http$id,
+						   $cuid = f$http$uid];
+		update_response_info(resp_rec_empty, resp);
 		local info_rec: Info = [$ts      = resp_rec_empty$ts,
 					$resp_ts = resp_rec_empty$ts,
 					$resp    = resp_rec_empty,

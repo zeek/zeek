@@ -2998,10 +2998,10 @@ export {
 		signature:          string  &optional;  #&log;
 		};
 	type CertId: record {
-		hashAlgorithm:      string  &log;
-		issuerNameHash:     string  &log;
-		issuerKeyHash:      string  &log;
-		serialNumber:       string  &log;
+		hashAlgorithm:      string  &log &optional;
+		issuerNameHash:     string  &log &optional;
+		issuerKeyHash:      string  &log &optional;
+		serialNumber:       string  &log &optional;
 		};
 	}
 

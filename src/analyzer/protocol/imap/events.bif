@@ -1,0 +1,10 @@
+## Generated for an SSL/TLS client's initial *hello* message.  SSL/TLS sessions
+## start with an unencrypted handshake, and Bro extracts as much information out
+## of that as it can. This event provides access to the initial information
+## sent by the client.
+##
+## c: The connection.
+##
+## capabilities: The list of IMAP capabilities as sent by the server.
+event imap_capabilities%(c: connection, capabilities: string_vec%);
+

@@ -7,6 +7,8 @@
 %include bro.pac
 
 %extern{
+#include "events.bif.h"
+
 namespace analyzer { namespace imap { class IMAP_Analyzer; } }
 namespace binpac { namespace IMAP { class IMAP_Conn; } }
 typedef analyzer::imap::IMAP_Analyzer* IMAPAnalyzer;

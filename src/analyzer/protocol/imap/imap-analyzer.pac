@@ -49,9 +49,25 @@ refine connection IMAP_Conn += {
 		return true;
 		%}
 
+	function proc_server_capability(capabilities: Capability[]): bool
+		%{
+		VectorVal* capv = new VectorVal(internal_type("string_vec")->AsVectorType());
+		for ( unsigned int i = 0; i< capabilities->size(); i++ )
+			{
+			const bytestring& capability = (*capabilities)[i]->cap();
+			capv ->Assign(i, new StringVal(capability.length(), (const char*)capability.data()));
+			}
+
+		BifEvent::generate_imap_capabilities(bro_analyzer(), bro_analyzer()->Conn(), capv);
+		return true;
+		%}
+
 };
 
-refine typeattr IMAP_TOKEN += &let {
-       proc: bool = $context.connection.proc_imap_token(is_orig, tag, command);
+refine typeattr ImapToken += &let {
+	proc: bool = $context.connection.proc_imap_token(is_orig, tag, command);
 };
 
+refine typeattr ServerCapability += &let {
+	proc: bool = $context.connection.proc_server_capability(capabilities);
+};

@@ -1,5 +1,5 @@
 
-2.4-53 | 2015-07-23 13:03:27 -0700
+2.4-58 | 2015-07-24 15:06:07 -0700
 
   * Add script protocols/conn/vlan-logging.bro to record VLAN data in
     conn.log. (Aaron Brown)
@@ -10,9 +10,10 @@
   * Save the inner vlan in the Packet object for Q-in-Q setups. (Aaron
     Brown)
 
-  * Increasing plugin API version.
+  * Increasing plugin API version for recent packet source changes.
+    (Robin Sommer)
 
-    The layer 2 updates introduced some API changes. (Robin Sommer)
+  * Slightly earlier protocol confirmation for POP3. (Johanna Amann)
 
 2.4-46 | 2015-07-22 10:56:40 -0500
 

@@ -10,6 +10,8 @@ export {
 	redef record Info += {
 		## Indicates if the server is an omniture advertising server.
 		omniture: bool &default=F;
+		## The unparsed Flash version, if detected.
+		flash_version: string &optional;
 	};
 	
 	redef enum Software::Type += {
@@ -22,12 +24,19 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 	{
 	if ( is_orig )
 		{
-		if ( name == "X-FLASH-VERSION" )
+		switch ( name )	
 			{
-			# Flash doesn't include it's name so we'll add it here since it 
-			# simplifies the version parsing.
-			value = cat("Flash/", value);
-			Software::found(c$id, [$unparsed_version=value, $host=c$id$orig_h, $software_type=BROWSER_PLUGIN]);
+			case "X-FLASH-VERSION":
+				# Flash doesn't include it's name so we'll add it here since it 
+				# simplifies the version parsing.
+				c$http$flash_version = cat("Flash/", value);
+				break;
+			case "X-REQUESTED-WITH":
+				# This header is usually used to indicate AJAX requests (XMLHttpRequest),
+				# but Chrome uses this header also to indicate the use of Flash.
+				if ( /Flash/ in value )
+					c$http$flash_version = value;
+				break;
 			}
 		}
 	else
@@ -35,6 +44,23 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 		# Find if the server is Omniture
 		if ( name == "SERVER" && /^Omniture/ in value )
 			c$http$omniture = T;
+		}
+	}
+
+event http_all_headers(c: connection, is_orig: bool, hlist: mime_header_list)
+	{
+	# If a Flash was detected, it has to be logged considering the user agent.
+	if ( is_orig && c$http?$flash_version )
+		{
+		# AdobeAIR contains a seperate Flash, which should be emphasized.
+		# Note: We assume that the user agent header was not reset by the app.
+		if( c$http?$user_agent )
+			{
+			if ( /AdobeAIR/ in c$http$user_agent )
+				c$http$flash_version = cat("AdobeAIR-", c$http$flash_version);
+			}
+
+		Software::found(c$id, [$unparsed_version=c$http$flash_version, $host=c$id$orig_h, $software_type=BROWSER_PLUGIN]);
 		}
 	}
 

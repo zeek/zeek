@@ -264,6 +264,8 @@ public:
 	 */
 	void HookUpdateNetworkTime(double network_time) const;
 
+	void HookAddToAnalyzerTree(Connection *conn) const;
+
 	/**
 	 * Hook that informs plugins that the event queue is being drained.
 	 */

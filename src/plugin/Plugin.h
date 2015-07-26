@@ -39,6 +39,7 @@ enum HookType {
 	HOOK_DRAIN_EVENTS,		//< Activates Plugin::HookDrainEvents()
 	HOOK_UPDATE_NETWORK_TIME,	//< Activates Plugin::HookUpdateNetworkTime.
 	HOOK_BRO_OBJ_DTOR,		//< Activates Plugin::HookBroObjDtor.
+	HOOK_ADD_TO_ANALYZER_TREE, // Activates Plugin::HookAddToAnalyzerTree
 
 	// Meta hooks.
 	META_HOOK_PRE,			//< Activates Plugin::MetaHookPre().
@@ -635,6 +636,8 @@ protected:
 	 * @param network_time The new network time.
 	 */
 	virtual void HookUpdateNetworkTime(double network_time);
+
+	virtual void HookAddToAnalyzerTree(Connection *conn);
 
 	/**
 	 * Hook for destruction of objects registered with

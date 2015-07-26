@@ -183,8 +183,9 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 		}
 
 	// Load {bif,scripts}/__load__.bro automatically.
-
-	string init = dir + "lib/bif/__load__.bro";
+	// Load scripts/__load__.bro first to avoid issue with undefined variables
+	//   from the plugin
+	string init = dir + "scripts/__load__.bro";
 
 	if ( is_file(init) )
 		{
@@ -192,7 +193,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 		scripts_to_load.push_back(init);
 		}
 
-	init = dir + "scripts/__load__.bro";
+	init = dir + "lib/bif/__load__.bro";
 
 	if ( is_file(init) )
 		{
@@ -658,6 +659,33 @@ void Manager::HookDrainEvents() const
 	if ( HavePluginForHook(META_HOOK_POST) )
 		MetaHookPost(HOOK_DRAIN_EVENTS, args, HookArgument());
 
+	}
+
+void Manager::HookAddToAnalyzerTree(Connection *conn) const
+	{
+	HookArgumentList args;
+
+	if ( HavePluginForHook(META_HOOK_PRE) )
+		{
+		args.push_back(conn);
+		MetaHookPre(HOOK_ADD_TO_ANALYZER_TREE, args);
+		}
+
+	hook_list *l = hooks[HOOK_ADD_TO_ANALYZER_TREE];
+
+	if ( l )
+		{
+		for (hook_list::iterator i = l->begin() ; i != l->end(); ++i)
+			{
+			Plugin *p = (*i).second;
+			p->HookAddToAnalyzerTree(conn);
+			}
+		}
+
+	if ( HavePluginForHook(META_HOOK_POST) )
+		{
+		MetaHookPost(HOOK_ADD_TO_ANALYZER_TREE, args, HookArgument());
+		}
 	}
 
 void Manager::HookUpdateNetworkTime(double network_time) const

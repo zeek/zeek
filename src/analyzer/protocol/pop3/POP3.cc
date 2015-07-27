@@ -720,14 +720,16 @@ void POP3_Analyzer::ProcessReply(int length, const char* line)
 			break;
 			}
 
+		case CAPA:
+			ProtocolConfirmation();
 		case UIDL:
 		case LIST:
-		case CAPA:
 			if (requestForMultiLine == true)
 				multiLine = true;
 			break;
 
 		case STLS:
+			ProtocolConfirmation();
 			tls = true;
 			StartTLS();
 			return;

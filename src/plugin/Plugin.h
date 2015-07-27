@@ -14,7 +14,7 @@
 
 // We allow to override this externally for testing purposes.
 #ifndef BRO_PLUGIN_API_VERSION
-#define BRO_PLUGIN_API_VERSION 2
+#define BRO_PLUGIN_API_VERSION 3
 #endif
 
 class ODesc;

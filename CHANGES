@@ -1,4 +1,64 @@
 
+2.4-58 | 2015-07-24 15:06:07 -0700
+
+  * Add script protocols/conn/vlan-logging.bro to record VLAN data in
+    conn.log. (Aaron Brown)
+
+  * Add field "vlan" and "inner_vlan" to connection record. (Aaron
+    Brown)
+
+  * Save the inner vlan in the Packet object for Q-in-Q setups. (Aaron
+    Brown)
+
+  * Increasing plugin API version for recent packet source changes.
+    (Robin Sommer)
+
+  * Slightly earlier protocol confirmation for POP3. (Johanna Amann)
+
+2.4-46 | 2015-07-22 10:56:40 -0500
+
+  * Fix broker python bindings install location to track --prefix.
+    (Jon Siwek)
+
+2.4-45 | 2015-07-21 15:19:43 -0700
+
+  * Enabling Broker by default. This means CAF is now a required
+    dependency, altjough for now at least, there's still a switch
+    --disable-broker to turn it off.
+
+  * Requiring a C++11 compiler, and turning on C++11 support. (Robin
+    Sommer)
+
+  * Tweaking the listing of hooks in "bro -NN" for consistency. (Robin
+    Sommer)
+
+2.4-41 | 2015-07-21 08:35:17 -0700
+
+  * Fixing compiler warning. (Robin Sommer)
+
+  * Updates to IANA TLS registry. (Johanna Amann)
+
+2.4-38 | 2015-07-20 15:30:35 -0700
+
+  * Refactor code to use a common Packet type throught. (Jeff
+    Barber/Robin Sommer)
+
+  * Extend parsing layer 2 and keeping track of layer 3 protoco. (Jeff Barber)
+
+  * Add a raw_packet() event that generated for all packets and
+    include layer 2 information. (Jeff Barber)
+
+2.4-27 | 2015-07-15 13:31:49 -0700
+
+  * Fix race condition in intel test. (Johanna Amann)
+
+2.4-24 | 2015-07-14 08:04:11 -0700
+
+  * Correct Perl package name on FreeBSD in documentation.(Justin Azoff)
+
+  * Adding an environment variable to BTest configuration for external
+    scripts. (Robin Sommer)
+
 2.4-20 | 2015-07-03 10:40:21 -0700
 
   * Adding a weird for when truncated packets lead TCP reassembly to

@@ -22,6 +22,7 @@
 #include "util.h"
 #include "file_analysis/Manager.h"
 #include "iosource/Manager.h"
+#include "iosource/Packet.h"
 
 using namespace std;
 
@@ -3303,11 +3304,10 @@ const char* conn_id_string(Val* c)
 ## .. bro:see:: dump_packet get_current_packet send_current_packet
 function dump_current_packet%(file_name: string%) : bool
 	%{
-	const struct pcap_pkthdr* hdr;
-	const u_char* pkt;
+	const Packet* pkt;
 
 	if ( ! current_pktsrc ||
-	     ! current_pktsrc->GetCurrentPacket(&hdr, &pkt) )
+	     ! current_pktsrc->GetCurrentPacket(&pkt) )
 		return new Val(0, TYPE_BOOL);
 
 	if ( ! addl_pkt_dumper )
@@ -3315,13 +3315,10 @@ function dump_current_packet%(file_name: string%) : bool
 
 	if ( addl_pkt_dumper )
 		{
-		iosource::PktDumper::Packet p;
-		p.hdr = hdr;
-		p.data = pkt;
-		addl_pkt_dumper->Dump(&p);
+		addl_pkt_dumper->Dump(pkt);
 		}
 
-	return new Val(! addl_pkt_dumper->IsError(), TYPE_BOOL);
+	return new Val( addl_pkt_dumper && ! addl_pkt_dumper->IsError(), TYPE_BOOL);
 	%}
 
 ## Returns the currently processed PCAP packet.
@@ -3332,26 +3329,27 @@ function dump_current_packet%(file_name: string%) : bool
 ## .. bro:see:: dump_current_packet dump_packet send_current_packet
 function get_current_packet%(%) : pcap_packet
 	%{
-	const struct pcap_pkthdr* hdr;
-	const u_char* data;
+	const Packet* p;
 	RecordVal* pkt = new RecordVal(pcap_packet);
 
 	if ( ! current_pktsrc ||
-	     ! current_pktsrc->GetCurrentPacket(&hdr, &data) )
+	     ! current_pktsrc->GetCurrentPacket(&p) )
 		{
 		pkt->Assign(0, new Val(0, TYPE_COUNT));
 		pkt->Assign(1, new Val(0, TYPE_COUNT));
 		pkt->Assign(2, new Val(0, TYPE_COUNT));
 		pkt->Assign(3, new Val(0, TYPE_COUNT));
 		pkt->Assign(4, new StringVal(""));
+		pkt->Assign(5, new EnumVal(BifEnum::LINK_UNKNOWN, BifType::Enum::link_encap));
 		return pkt;
 		}
 
-	pkt->Assign(0, new Val(uint32(hdr->ts.tv_sec), TYPE_COUNT));
-	pkt->Assign(1, new Val(uint32(hdr->ts.tv_usec), TYPE_COUNT));
-	pkt->Assign(2, new Val(hdr->caplen, TYPE_COUNT));
-	pkt->Assign(3, new Val(hdr->len, TYPE_COUNT));
-	pkt->Assign(4, new StringVal(hdr->caplen, (const char*) data));
+	pkt->Assign(0, new Val(uint32(p->ts.tv_sec), TYPE_COUNT));
+	pkt->Assign(1, new Val(uint32(p->ts.tv_usec), TYPE_COUNT));
+	pkt->Assign(2, new Val(p->cap_len, TYPE_COUNT));
+	pkt->Assign(3, new Val(p->len, TYPE_COUNT));
+	pkt->Assign(4, new StringVal(p->cap_len, (const char*)p->data));
+	pkt->Assign(5, new EnumVal(p->link_type, BifType::Enum::link_encap));
 
 	return pkt;
 	%}
@@ -3367,26 +3365,29 @@ function get_current_packet%(%) : pcap_packet
 ## .. bro:see:: get_current_packet dump_current_packet send_current_packet
 function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 	%{
-	struct pcap_pkthdr hdr;
-	const val_list* pkt_vl = pkt->AsRecord();
-
-	hdr.ts.tv_sec = (*pkt_vl)[0]->AsCount();
-	hdr.ts.tv_usec = (*pkt_vl)[1]->AsCount();
-	hdr.caplen = (*pkt_vl)[2]->AsCount();
-	hdr.len = (*pkt_vl)[3]->AsCount();
-
 	if ( ! addl_pkt_dumper )
 		addl_pkt_dumper = iosource_mgr->OpenPktDumper(file_name->CheckString(), true);
 
 	if ( addl_pkt_dumper )
 		{
-		iosource::PktDumper::Packet p;
-		p.hdr = &hdr;
-		p.data = (*pkt_vl)[4]->AsString()->Bytes();
+		struct timeval ts;
+		uint32 caplen, len, link_type;
+		u_char *data;
+
+		const val_list* pkt_vl = pkt->AsRecord();
+
+		ts.tv_sec = (*pkt_vl)[0]->AsCount();
+		ts.tv_usec = (*pkt_vl)[1]->AsCount();
+		caplen = (*pkt_vl)[2]->AsCount();
+		len = (*pkt_vl)[3]->AsCount();
+		data = (*pkt_vl)[4]->AsString()->Bytes();
+		link_type = (*pkt_vl)[5]->AsEnum();
+		Packet p(link_type, &ts, caplen, len, data, true);
+
 		addl_pkt_dumper->Dump(&p);
 		}
 
-	return new Val(addl_pkt_dumper->IsError(), TYPE_BOOL);
+	return new Val(addl_pkt_dumper && ! addl_pkt_dumper->IsError(), TYPE_BOOL);
 	%}
 
 %%{
@@ -4865,20 +4866,16 @@ function send_ping%(p: event_peer, seq: count%) : bool
 ##              dump_packet dump_current_packet get_current_packet
 function send_current_packet%(p: event_peer%) : bool
 	%{
-	Packet pkt("");
+	const Packet* pkt;
 
 	if ( ! current_pktsrc ||
-	     ! current_pktsrc->GetCurrentPacket(&pkt.hdr, &pkt.pkt) )
+	     ! current_pktsrc->GetCurrentPacket(&pkt) )
 		return new Val(0, TYPE_BOOL);
 
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
 
-	pkt.time = pkt.hdr->ts.tv_sec + double(pkt.hdr->ts.tv_usec) / 1e6;
-	pkt.hdr_size = current_pktsrc->HdrSize();
-	pkt.link_type = current_pktsrc->LinkType();
-
 	SerialInfo info(remote_serializer);
-	return new Val(remote_serializer->SendPacket(&info, id, pkt), TYPE_BOOL);
+	return new Val(remote_serializer->SendPacket(&info, id, *pkt), TYPE_BOOL);
 	%}
 
 ## Returns the peer who generated the last event.

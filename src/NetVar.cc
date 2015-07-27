@@ -226,8 +226,6 @@ int suppress_local_output;
 
 double timer_mgr_inactivity_timeout;
 
-int time_machine_profiling;
-
 StringVal* trace_output_file;
 
 int record_all_packets;
@@ -522,7 +520,6 @@ void init_net_var()
 
 	timer_mgr_inactivity_timeout =
 		opt_internal_double("timer_mgr_inactivity_timeout");
-	time_machine_profiling = opt_internal_int("time_machine_profiling");
 
 	script_id = internal_type("script_id")->AsRecordType();
 	id_table = internal_type("id_table")->AsTableType();

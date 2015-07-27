@@ -154,6 +154,7 @@ public:
 	uint32 len;			/// Actual length on wire
 	uint32 cap_len;			/// Captured packet length
 	uint32 link_type;		/// pcap link_type (DLT_EN10MB, DLT_RAW, etc)
+	double time_eth;                /// timestamp inserted by cVu 120G
 
 	// These are computed from Layer 2 data. These fields are only valid if
 	// Layer2Valid() returns true.

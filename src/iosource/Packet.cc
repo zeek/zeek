@@ -39,6 +39,7 @@ void Packet::Init(int arg_link_type, struct timeval *arg_ts, uint32 arg_caplen,
 		data = arg_data;
 
 	time = ts.tv_sec + double(ts.tv_usec) / 1e6;
+	time_eth = 0;
 	hdr_size = GetLinkHeaderSize(arg_link_type);
 	l3_proto = L3_UNKNOWN;
 	eth_type = 0;
@@ -139,7 +140,8 @@ void Packet::ProcessLayer2()
 		memcpy(&time_nano_sec, tp, 4);
 		time_nano_sec = ntohl(time_nano_sec);
 
-		time = double(time_sec) + double(time_nano_sec) / 1e9;
+		time_eth = double(time_sec) + double(time_nano_sec) / 1e9;
+		time = time_eth;
 
 		switch ( protocol )
 			{
@@ -471,7 +473,10 @@ Packet* Packet::Unserialize(UnserialInfo* info)
 	if ( p->tag == "" )
 		p->time = timer_mgr->Time();
 	else
-		p->time = p->ts.tv_sec + double(p->ts.tv_usec) / 1e6;
+		{
+		if (link_type != DLT_EN10MB || p->time_eth == 0)
+			p->time = p->ts.tv_sec + double(p->ts.tv_usec) / 1e6;
+		}
 
 #ifdef DEBUG
 	if ( debug_logger.IsEnabled(DBG_TM) )

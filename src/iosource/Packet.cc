@@ -123,10 +123,23 @@ void Packet::ProcessLayer2()
 
 	case DLT_EN10MB:
 		{
+		const u_char* tp = pdata + len - 12;
 		// Get protocol being carried from the ethernet frame.
 		int protocol = (pdata[12] << 8) + pdata[13];
 		pdata += GetLinkHeaderSize(link_type);
 		eth_type = protocol;
+
+		uint32 time_sec = 0;
+		uint32 time_nano_sec = 0;
+
+		memcpy(&time_sec, tp, 4);
+		time_sec = ntohl(time_sec);
+		tp += 4;
+
+		memcpy(&time_nano_sec, tp, 4);
+		time_nano_sec = ntohl(time_nano_sec);
+
+		time = double(time_sec) + double(time_nano_sec) / 1e9;
 
 		switch ( protocol )
 			{

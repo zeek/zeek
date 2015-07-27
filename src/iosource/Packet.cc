@@ -143,6 +143,10 @@ void Packet::ProcessLayer2()
 		time_eth = double(time_sec) + double(time_nano_sec) / 1e9;
 		time = time_eth;
 
+		// Strip all the stuff the cvu added to our packets...
+		len -= 16;
+		cap_len -= 16;
+
 		switch ( protocol )
 			{
 			// MPLS carried over the ethernet frame.

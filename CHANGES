@@ -1,4 +1,9 @@
 
+2.4-46 | 2015-07-22 10:56:40 -0500
+
+  * Fix broker python bindings install location to track --prefix.
+    (Jon Siwek)
+
 2.4-45 | 2015-07-21 15:19:43 -0700
 
   * Enabling Broker by default. This means CAF is now a required

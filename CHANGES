@@ -1,4 +1,33 @@
 
+2.4-63 | 2015-07-28 12:26:37 -0700
+
+  * Updating submodule(s).
+
+2.4-61 | 2015-07-28 12:13:39 -0700
+
+  * Renaming config.h to bro-config.h. (Robin Sommer)
+
+2.4-58 | 2015-07-24 15:06:07 -0700
+
+  * Add script protocols/conn/vlan-logging.bro to record VLAN data in
+    conn.log. (Aaron Brown)
+
+  * Add field "vlan" and "inner_vlan" to connection record. (Aaron
+    Brown)
+
+  * Save the inner vlan in the Packet object for Q-in-Q setups. (Aaron
+    Brown)
+
+  * Increasing plugin API version for recent packet source changes.
+    (Robin Sommer)
+
+  * Slightly earlier protocol confirmation for POP3. (Johanna Amann)
+
+2.4-46 | 2015-07-22 10:56:40 -0500
+
+  * Fix broker python bindings install location to track --prefix.
+    (Jon Siwek)
+
 2.4-45 | 2015-07-21 15:19:43 -0700
 
   * Enabling Broker by default. This means CAF is now a required

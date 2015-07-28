@@ -3,7 +3,7 @@
 #ifndef ip_h
 #define ip_h
 
-#include "config.h"
+#include "bro-config.h"
 #include "net_util.h"
 #include "IPAddr.h"
 #include "Reporter.h"

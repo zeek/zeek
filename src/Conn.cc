@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "config.h"
+#include "bro-config.h"
 
 #include <ctype.h>
 
@@ -115,7 +115,8 @@ unsigned int Connection::external_connections = 0;
 IMPLEMENT_SERIAL(Connection, SER_CONNECTION);
 
 Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
-                       uint32 flow, const EncapsulationStack* arg_encap)
+                       uint32 flow, uint32 arg_vlan, uint32 arg_inner_vlan,
+		       const EncapsulationStack* arg_encap)
 	{
 	sessions = s;
 	key = k;
@@ -130,6 +131,9 @@ Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
 	resp_flow_label = 0;
 	saw_first_orig_packet = 1;
 	saw_first_resp_packet = 0;
+
+	vlan = arg_vlan;
+	inner_vlan = arg_inner_vlan;
 
 	conn_val = 0;
 	login_conn = 0;
@@ -378,6 +382,12 @@ RecordVal* Connection::BuildConnVal()
 
 		if ( encapsulation && encapsulation->Depth() > 0 )
 			conn_val->Assign(8, encapsulation->GetVectorVal());
+
+		if ( vlan != 0 )
+			conn_val->Assign(9, new Val(vlan, TYPE_INT));
+
+		if ( inner_vlan != 0 )
+			conn_val->Assign(10, new Val(inner_vlan, TYPE_INT));
 		}
 
 	if ( root_analyzer )

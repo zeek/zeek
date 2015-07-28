@@ -170,8 +170,8 @@ include(RequireCXX11)
 # Tell the plugin code that we're building as part of the main tree.
 set(BRO_PLUGIN_INTERNAL_BUILD true CACHE INTERNAL "" FORCE)
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in
-               ${CMAKE_CURRENT_BINARY_DIR}/config.h)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/bro-config.h.in
+               ${CMAKE_CURRENT_BINARY_DIR}/bro-config.h)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 

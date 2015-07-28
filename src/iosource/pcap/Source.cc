@@ -2,7 +2,7 @@
 
 #include <assert.h>
 
-#include "config.h"
+#include "bro-config.h"
 
 #include "Source.h"
 #include "iosource/Packet.h"

@@ -1,4 +1,8 @@
 
+2.4-63 | 2015-07-28 12:26:37 -0700
+
+  * Updating submodule(s).
+
 2.4-61 | 2015-07-28 12:13:39 -0700
 
   * Renaming config.h to bro-config.h. (Robin Sommer)

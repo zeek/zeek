@@ -10,7 +10,7 @@
 @load base/frameworks/control
 # If an instance is a controllee, it implicitly needs to listen for remote
 # connections.
-#@load frameworks/communication/listen
+@load frameworks/communication/listen
 
 module Control;
 
@@ -23,16 +23,19 @@ event Control::id_value_request(id: string)
 event Control::peer_status_request()
 	{
 	local status = "";
+    print "peer_status_request received";
 	for ( p in Communication::nodes )
 		{
 		local peer = Communication::nodes[p];
+        print " next peer is ", p;
 		if ( ! peer$connected )
 			next;
-			
+
+        print " we are connected to ", p;
 		local res = resource_usage();
 		status += fmt("%.6f peer=%s host=%s events_in=%s events_out=%s ops_in=%s ops_out=%s bytes_in=? bytes_out=?\n",
 					network_time(),
-					peer$peer$descr, peer$host,
+					peer$peer, peer$host,
 					res$num_events_queued, res$num_events_dispatched,
 					res$blocking_input, res$blocking_output);
 		}
@@ -42,6 +45,7 @@ event Control::peer_status_request()
 
 event Control::net_stats_request()
 	{
+    print "net_stats_request received";
 	local ns = net_stats();
 	local reply = fmt("%.6f recvd=%d dropped=%d link=%d\n", network_time(), 
 	                  ns$pkts_recvd, ns$pkts_dropped, ns$pkts_link);

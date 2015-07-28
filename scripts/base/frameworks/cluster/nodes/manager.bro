@@ -25,19 +25,14 @@ redef Log::default_rotation_postprocessor_cmd = "archive-log";
 ## We're processing essentially *only* remote events.
 redef max_remote_events_processed = 10000;
 
-
-event Cluster::test_proxy_event()
+event bro_init() &priority = -10 
 	{
-	print Cluster::node, " send test event for proxy";
-	}
+	BrokerComm::subscribe_to_events(fmt("%s/manager/response", Cluster::pub_sub_prefix));
 
-event Cluster::test_worker_response(st: string)
-	{
-	print "WUUUUUHUUU DONE:", st;
+	# Need to publish: manager2worker_events, manager2proxy_events
+	for ( e in Cluster::manager2worker_events )
+		BrokerComm::auto_event(fmt("%s/worker/request", Cluster::pub_sub_prefix), lookup_ID(e));
+		
+	for (e in Cluster::manager2proxy_events )
+		BrokerComm::auto_event(fmt("%s/proxy/request", Cluster::pub_sub_prefix), lookup_ID(e));
 	}
-
-event Cluster::test_proxy_response(st: string)
-	{
-	print "WUUUUUHUUU DONE:", st;
-	}
-

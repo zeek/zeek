@@ -57,6 +57,7 @@ event Control::shutdown_response() &priority=-10
 	event terminate_event();
 	}
 	
+# TODO function needs to be appropriately replaced
 function configuration_update_func(p: event_peer)
 	{
 	# Send all &redef'able consts to the peer.
@@ -87,7 +88,7 @@ function configuration_update_func(p: event_peer)
 	event terminate_event();
 	}
 
-event remote_connection_handshake_done(p: event_peer) &priority=-10
+event Communication::outgoing_connection_established_event(peer_name: string) &priority=-10
 	{
 	if ( cmd == "id_value" )
 		{
@@ -108,7 +109,8 @@ event remote_connection_handshake_done(p: event_peer) &priority=-10
 		event Control::shutdown_request();
 	else if ( cmd == "configuration_update" )
 		{
-		configuration_update_func(p);
+		#TODO obsolete function that needs to be replaced appropriately
+		#configuration_update_func(peer_name);
 		# Signal configuration update to peer.
 		event Control::configuration_update_request();
 		}

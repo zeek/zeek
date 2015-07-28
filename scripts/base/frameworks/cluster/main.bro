@@ -68,6 +68,9 @@ export {
 	## Events raised by TimeMachine instances and handled by workers.
 	const tm2worker_events : set[string] = {} &redef;
 	
+	## The prefix used for subscribing and publishing events
+	const pub_sub_prefix : string = "/bro/event/cluster" &redef;
+
 	## Events sent by the control host (i.e. BroControl) when dynamically 
 	## connecting to a running instance to update settings or request data.
 	#const control_events = Control::controller_events &redef;
@@ -130,12 +133,6 @@ export {
 
 	# Set the correct name of this endpoint according to cluster-layout
 	redef BrokerComm::endpoint_name = node;
-
-	global test_worker_event: event();
-	global test_worker_response: event(st: string);
-
-	global test_proxy_event: event();
-	global test_proxy_response: event(st: string);
 }
 
 function is_enabled(): bool
@@ -148,11 +145,6 @@ function local_node_type(): NodeType
 	return is_enabled() ? nodes[node]$node_type : NONE;
 	}
 
-#event remote_connection_handshake_done(p: event_peer) &priority=5
-#	{
-#	if ( p$descr in nodes && nodes[p$descr]$node_type == WORKER )
-#		++worker_count;
-#	}
 event BrokerComm::incoming_connection_established(peer_name: string)
 	{
 	if ( peer_name in nodes && nodes[peer_name]$node_type == WORKER )
@@ -160,11 +152,6 @@ event BrokerComm::incoming_connection_established(peer_name: string)
 	print "increment worker count to ", worker_count;
 	}
 
-#event remote_connection_closed(p: event_peer) &priority=5
-#	{
-#	if ( p$descr in nodes && nodes[p$descr]$node_type == WORKER )
-#		--worker_count;
-#	}
 event BrokerComm::incoming_connection_broken(peer_name: string)
 	{
 	if ( peer_name in nodes && nodes[peer_name]$node_type == WORKER )

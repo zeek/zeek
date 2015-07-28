@@ -52,9 +52,7 @@ global intermediate_cache: table[string] of vector of opaque of x509;
 
 @if ( Cluster::is_enabled() )
 @load base/frameworks/cluster
-#redef Cluster::manager2worker_events += /SSL::intermediate_add/;
 redef Cluster::manager2worker_events += {"SSL::intermediate_add"};
-#redef Cluster::worker2manager_events += /SSL::new_intermediate/;
 redef Cluster::worker2manager_events += {"SSL::new_intermediate"};
 @endif
 

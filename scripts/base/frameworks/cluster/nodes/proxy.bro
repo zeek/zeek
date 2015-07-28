@@ -20,9 +20,14 @@ redef Log::default_rotation_interval = 24hrs;
 ## Use the cluster's delete-log script.
 redef Log::default_rotation_postprocessor_cmd = "delete-log";
 
-
-event Cluster::test_proxy_event()
+event bro_init() &priority = -10 
 	{
-	print Cluster::node, ": WUUUUHUUU WOOORK";
-	event Cluster::test_proxy_response(fmt("it was really hard - %s", Cluster::node));
+	BrokerComm::subscribe_to_events(fmt("%s/proxy/request", Cluster::pub_sub_prefix));
+
+	# Need to publish: proxy2manager_events, proxy2worker_events
+	for ( e in Cluster::proxy2manager_events )
+		BrokerComm::auto_event(fmt("%s/manager/response", Cluster::pub_sub_prefix), lookup_ID(e));
+
+	for ( e in Cluster::proxy2worker_events )
+		BrokerComm::auto_event(fmt("%s/worker/response", Cluster::pub_sub_prefix), lookup_ID(e));
 	}

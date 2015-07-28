@@ -23,11 +23,14 @@ redef Log::default_rotation_postprocessor_cmd = "delete-log";
 ## Setting this does not turn recording on. Use '-w <trace>' for that.
 redef record_all_packets = T;
 
-event Cluster::test_worker_event()
+event bro_init() &priority = -10 
 	{
-	print Cluster::node, " WUUUUHUUU WOOORK";
-	event Cluster::test_worker_response(fmt("it was really hard - %s", Cluster::node));
+	BrokerComm::subscribe_to_events(fmt("%s/proxy/request", Cluster::pub_sub_prefix));
+
+	# Need to publish: proxy2manager_events, proxy2worker_events
+	for ( e in Cluster::proxy2manager_events )
+		BrokerComm::auto_event(fmt("%s/manager/response", Cluster::pub_sub_prefix), lookup_ID(e));
+
+	for ( e in Cluster::proxy2worker_events )
+		BrokerComm::auto_event(fmt("%s/worker/response", Cluster::pub_sub_prefix), lookup_ID(e));
 	}
-
-
-

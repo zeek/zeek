@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#include "config.h"
+#include "bro-config.h"
 
 #ifndef HAVE_STRSEP
 

@@ -355,6 +355,28 @@ event x509_extension(f: fa_file, ext: X509::Extension) &priority= -10 {
 	Queue::put(c$ssl$cert_ts[ocsp_uri, serial_number, issuer_name], current_ts);
 	}
 
+function clean_bug_host(host: string): string
+	{
+	local s: string = host;
+	s = clean_uri(s);
+	if ( s[0:7] == "http://" )
+		s = s[7:];
+	return s;
+	}
+
+function clean_bug_uri(uri: string, host: string): string
+	{
+	local s: string = uri;
+	s = clean_uri(s);
+	if ( s[0:7] == "http://" )
+		s = s[7:];
+
+	if ( |host| > 0 && s[0:|host|] == host )
+		s = s[|host|:];
+
+	return s;
+	}
+
 function update_http_info(ocsp: OCSP_SSL_SPLIT::Info_OCSP, http: HTTP::Info)
 	{
 	ocsp$num_ocsp = http$conn$num_ocsp;
@@ -368,17 +390,27 @@ function update_http_info(ocsp: OCSP_SSL_SPLIT::Info_OCSP, http: HTTP::Info)
 	if ( http?$original_uri )
 		ocsp$original_uri = http$original_uri;
 	
+	local host_str: string = "";
+	if ( http?$host )
+		host_str = clean_bug_host(http$host);
+
+	local uri_str: string = "";
+	if ( http?$uri)
+		{
+		if (http?$host)
+			uri_str = clean_bug_uri(http$uri, host_str);
+		else
+			uri_str = clean_bug_uri(http$uri, "");
+		}
+
 	if ( http?$host )
 		{
-		ocsp$host = http$host;
-		ocsp$ocsp_uri = http$host;
+		ocsp$host = host_str;
+		ocsp$ocsp_uri = host_str;
 		}
 
 	if ( http?$uri )
 		{
-		local uri_str = http$uri;
-		if ( http?$host && http$uri == "http://" + http$host )
-			uri_str = "/"; #deal with software bug: make the full url empty
 		if ( ocsp?$ocsp_uri )
 			ocsp$ocsp_uri += uri_str;
 		else
@@ -390,7 +422,7 @@ function update_http_info(ocsp: OCSP_SSL_SPLIT::Info_OCSP, http: HTTP::Info)
 		if ( |http$uri_prefix| > 0)
 			ocsp$ocsp_uri = "";
 		if ( http?$host )
-			ocsp$ocsp_uri = http$host;
+			ocsp$ocsp_uri = host_str;
 		if ( |http$uri_prefix| > 0)
 			ocsp$ocsp_uri += http$uri_prefix; 
 		}

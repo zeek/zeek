@@ -69,6 +69,8 @@ global matched_software: table[string] of Software::Description = {
 		[$name="Safari", $version=[$major=5,$minor=0,$minor2=4], $unparsed_version=""],
 	["Mozilla/5.0 (iPod; U; CPU iPhone OS 4_0 like Mac OS X; en-us) AppleWebKit/532.9 (KHTML, like Gecko) Version/4.0.5 Mobile/8A293 Safari/6531.22.7"] = 
 		[$name="Safari", $version=[$major=4,$minor=0,$minor2=5,$addl="Mobile"], $unparsed_version=""],
+	["Mozilla/5.0 (Macintosh; U; Intel Mac OS X; en) AppleWebKit/531.9 (KHTML, like Gecko) AdobeAIR/2.6"] =
+		[$name="AdobeAIR", $version=[$major=2,$minor=6], $unparsed_version=""],
 	["Opera/9.80 (J2ME/MIDP; Opera Mini/9.80 (S60; SymbOS; Opera Mobi/23.348; U; en) Presto/2.5.25 Version/10.54"] = 
 		[$name="Opera Mini", $version=[$major=10,$minor=54], $unparsed_version=""],
 	["Opera/9.80 (J2ME/MIDP; Opera Mini/5.0.18741/18.794; U; en) Presto/2.4.15"] =

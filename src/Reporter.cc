@@ -4,7 +4,7 @@
 
 #include <syslog.h>
 
-#include "config.h"
+#include "bro-config.h"
 #include "Reporter.h"
 #include "Event.h"
 #include "NetVar.h"

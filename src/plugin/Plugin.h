@@ -7,7 +7,7 @@
 #include <string>
 #include <utility>
 
-#include "config.h"
+#include "bro-config.h"
 #include "analyzer/Component.h"
 #include "file_analysis/Component.h"
 #include "iosource/Component.h"

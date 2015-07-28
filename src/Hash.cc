@@ -15,7 +15,7 @@
 // for the adversary to construct conflicts, though I do not know if
 // HMAC/MD5 is provably universal.
 
-#include "config.h"
+#include "bro-config.h"
 
 #include "Hash.h"
 

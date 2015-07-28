@@ -1,4 +1,4 @@
-#include "config.h"
+#include "bro-config.h"
 
 #ifdef HAVE_MEMORY_H
 #include <memory.h>

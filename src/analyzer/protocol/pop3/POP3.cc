@@ -1,7 +1,7 @@
 // This code contributed to Bro by Florian Schimandl, Hugh Dollman and
 // Robin Sommer.
 
-#include "config.h"
+#include "bro-config.h"
 
 #include <stdlib.h>
 #include <iostream>

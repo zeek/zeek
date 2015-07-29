@@ -1,4 +1,11 @@
 
+2.4-69 | 2015-07-29 09:01:00 -0700
+
+  * Updated detection of Flash and AdobeAIR. (Jan Grashoefer)
+
+  * Adding tests for Flash version parsing and browser plugin
+    detection. (Robin Sommer)
+
 2.4-63 | 2015-07-28 12:26:37 -0700
 
   * Updating submodule(s).

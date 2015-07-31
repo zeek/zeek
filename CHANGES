@@ -1,4 +1,8 @@
 
+2.4-73 | 2015-07-31 08:53:49 -0700
+
+  * BIT-1429: SMTP logs now include CC: addresses. (Albert Zaharovits)
+
 2.4-70 | 2015-07-30 07:23:44 -0700
 
   * Updated detection of Flash and AdobeAIR. (Jan Grashoefer)

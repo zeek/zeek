@@ -1,0 +1,4 @@
+# This tests a OCSP request missing response
+
+# @TEST-EXEC: bro -C -r $TRACES/tls/ocsp-revoked.pcap %INPUT
+# @TEST-EXEC: btest-diff ocsp.log

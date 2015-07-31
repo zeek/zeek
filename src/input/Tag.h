@@ -3,7 +3,7 @@
 #ifndef INPUT_TAG_H
 #define INPUT_TAG_H
 
-#include "config.h"
+#include "bro-config.h"
 #include "util.h"
 #include "../Tag.h"
 #include "plugin/TaggedComponent.h"

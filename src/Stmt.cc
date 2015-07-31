@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "config.h"
+#include "bro-config.h"
 
 #include "Expr.h"
 #include "Event.h"
@@ -77,11 +77,6 @@ bool Stmt::SetLocationInfo(const Location* start, const Location* end)
 		}
 
 	return true;
-	}
-
-Stmt* Stmt::Simplify()
-	{
-	return this;
 	}
 
 int Stmt::IsPure() const
@@ -199,18 +194,6 @@ Val* ExprListStmt::Exec(Frame* f, stmt_flow_type& flow) const
 		}
 	else
 		return 0;
-	}
-
-Stmt* ExprListStmt::Simplify()
-	{
-	l = simplify_expr_list(l, SIMPLIFY_GENERAL);
-	DoSimplify();
-	return this;
-	}
-
-Stmt* ExprListStmt::DoSimplify()
-	{
-	return this;
 	}
 
 void ExprListStmt::Describe(ODesc* d) const
@@ -383,17 +366,6 @@ Val* ExprStmt::DoExec(Frame* /* f */, Val* /* v */, stmt_flow_type& /* flow */) 
 	return 0;
 	}
 
-Stmt* ExprStmt::Simplify()
-	{
-	e = simplify_expr(e, SIMPLIFY_GENERAL);
-	return DoSimplify();
-	}
-
-Stmt* ExprStmt::DoSimplify()
-	{
-	return this;
-	}
-
 int ExprStmt::IsPure() const
 	{
 	return ! e || e->IsPure();
@@ -490,33 +462,6 @@ Val* IfStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 	return result;
 	}
 
-Stmt* IfStmt::DoSimplify()
-	{
-	s1 = simplify_stmt(s1);
-	s2 = simplify_stmt(s2);
-
-	if ( e->IsConst() )
-		{
-		if ( ! optimize )
-			Warn("constant in conditional");
-
-		return e->IsZero() ? s2->Ref() : s1->Ref();
-		}
-
-	if ( e->Tag() == EXPR_NOT )
-		{
-		Stmt* t = s1;
-		s1 = s2;
-		s2 = t;
-
-		e = new NotExpr(e);
-
-		return Simplify();
-		}
-
-	return this;
-	}
-
 int IfStmt::IsPure() const
 	{
 	return e->IsPure() && s1->IsPure() && s2->IsPure();
@@ -602,7 +547,7 @@ static BroStmtTag get_last_stmt_tag(const Stmt* stmt)
 	}
 
 Case::Case(ListExpr* c, Stmt* arg_s)
-    : cases(simplify_expr_list(c, SIMPLIFY_GENERAL)), s(arg_s)
+    : cases(c), s(arg_s)
 	{
 	BroStmtTag t = get_last_stmt_tag(Body());
 
@@ -729,8 +674,8 @@ SwitchStmt::SwitchStmt(Expr* index, case_list* arg_cases) :
 
 	loop_over_list(*cases, i)
 		{
-		const Case* c = (*cases)[i];
-		const ListExpr* le = c->Cases();
+		Case* c = (*cases)[i];
+		ListExpr* le = c->Cases();
 
 		if ( le )
 			{
@@ -740,10 +685,53 @@ SwitchStmt::SwitchStmt(Expr* index, case_list* arg_cases) :
 				continue;
 				}
 
-			const expr_list& exprs = le->Exprs();
+			expr_list& exprs = le->Exprs();
 
 			loop_over_list(exprs, j)
 				{
+				if ( ! exprs[j]->IsConst() )
+					{
+					Expr* expr = exprs[j];
+
+					switch ( expr->Tag() ) {
+					// Simplify trivial unary plus/minus expressions on consts.
+					case EXPR_NEGATE:
+						{
+						NegExpr* ne = (NegExpr*)(expr);
+
+						if ( ne->Op()->IsConst() )
+							Unref(exprs.replace(j, new ConstExpr(ne->Eval(0))));
+						}
+						break;
+
+					case EXPR_POSITIVE:
+						{
+						PosExpr* pe = (PosExpr*)(expr);
+
+						if ( pe->Op()->IsConst() )
+							Unref(exprs.replace(j, new ConstExpr(pe->Eval(0))));
+						}
+						break;
+
+					case EXPR_NAME:
+						{
+						NameExpr* ne = (NameExpr*)(expr);
+
+						if ( ne->Id()->IsConst() )
+							{
+							Val* v = ne->Eval(0);
+
+							if ( v )
+								Unref(exprs.replace(j, new ConstExpr(v)));
+							}
+						}
+						break;
+
+					default:
+						break;
+					}
+					}
+
 				if ( ! exprs[j]->IsConst() )
 					exprs[j]->Error("case label expression isn't constant");
 				else
@@ -843,36 +831,6 @@ Val* SwitchStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 		flow = FLOW_NEXT;
 
 	return rval;
-	}
-
-Stmt* SwitchStmt::DoSimplify()
-	{
-	loop_over_list(*cases, i)
-		{
-		Case* c = (*cases)[i];
-		ListExpr* new_cases = simplify_expr_list(c->Cases(), SIMPLIFY_GENERAL);
-		Stmt* new_body = simplify_stmt(c->Body());
-
-		if ( new_cases != c->Cases() || new_body != c->Body() )
-			{
-			cases->replace(i, new Case(new_cases, new_body));
-			Unref(c);
-			}
-		}
-
-	if ( e->IsConst() )
-		{
-		// Could possibly remove all case labels before the one
-		// that will match, but may be tricky to tell if any
-		// subsequent ones can also be removed since it depends
-		// on the evaluation of the body executing a break/return
-		// statement.  Then still need a way to bypass the lookup
-		// DoExec for it to be beneficial.
-		if ( ! optimize )
-			Warn("constant in switch");
-		}
-
-	return this;
 	}
 
 int SwitchStmt::IsPure() const
@@ -1212,17 +1170,6 @@ Val* WhileStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	return rval;
 	}
 
-Stmt* WhileStmt::Simplify()
-	{
-	loop_condition = simplify_expr(loop_condition, SIMPLIFY_GENERAL);
-
-	if ( loop_condition->IsConst() && loop_condition->IsZero() )
-		return new NullStmt();
-
-	body = simplify_stmt(body);
-	return this;
-	}
-
 IMPLEMENT_SERIAL(WhileStmt, SER_WHILE_STMT);
 
 bool WhileStmt::DoSerialize(SerialInfo* info) const
@@ -1414,21 +1361,6 @@ Val* ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 		flow = FLOW_NEXT;	// we've now finished the "break"
 
 	return ret;
-	}
-
-Stmt* ForStmt::DoSimplify()
-	{
-	body = simplify_stmt(body);
-
-	if ( e->IsConst() )
-		{
-		const PDict(TableEntryVal)* vt = e->ExprVal()->AsTable();
-
-		if ( vt->Length() == 0 )
-			return new NullStmt();
-		}
-
-	return this;
 	}
 
 int ForStmt::IsPure() const
@@ -1774,20 +1706,6 @@ Val* StmtList::Exec(Frame* f, stmt_flow_type& flow) const
 	return 0;
 	}
 
-Stmt* StmtList::Simplify()
-	{
-	if ( stmts.length() == 0 )
-		return new NullStmt();
-
-	if ( stmts.length() == 1 )
-		return stmts[0]->Ref();
-
-	loop_over_list(stmts, i)
-		stmts.replace(i, simplify_stmt(stmts[i]));
-
-	return this;
-	}
-
 int StmtList::IsPure() const
 	{
 	loop_over_list(stmts, i)
@@ -1907,17 +1825,6 @@ Val* EventBodyList::Exec(Frame* f, stmt_flow_type& flow) const
 	(void) post_execute_stmt(f->GetNextStmt(), f, 0, &ft);
 
 	return 0;
-	}
-
-Stmt* EventBodyList::Simplify()
-	{
-	if ( stmts.length() <= 1 )
-		// Don't simplify these, we don't want to lose our
-		// "execute even across returns" property.
-		return this;
-
-	else
-		return StmtList::Simplify();
 	}
 
 void EventBodyList::Describe(ODesc* d) const
@@ -2168,19 +2075,6 @@ Val* WhenStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	return 0;
 	}
 
-Stmt* WhenStmt::Simplify()
-	{
-	cond = simplify_expr(cond, SIMPLIFY_GENERAL);
-	s1 = simplify_stmt(s1);
-	if ( s2 )
-		s2 = simplify_stmt(s2);
-
-	if ( cond->IsPure() )
-		Warn("non-varying expression in when clause");
-
-	return this;
-	}
-
 int WhenStmt::IsPure() const
 	{
 	return cond->IsPure() && s1->IsPure() && (! s2 || s2->IsPure());
@@ -2275,173 +2169,4 @@ bool WhenStmt::DoUnserialize(UnserialInfo* info)
 	UNSERIALIZE_OPTIONAL(timeout, Expr::Unserialize(info));
 
 	return true;
-	}
-
-Stmt* simplify_stmt(Stmt* s)
-	{
-	for ( Stmt* ss = s->Simplify(); ss != s; ss = s->Simplify() )
-		{
-		Unref(s);
-		s = ss;
-		}
-
-	return s;
-	}
-
-int same_stmt(const Stmt* s1, const Stmt* s2)
-	{
-	if ( s1 == s2 )
-		return 1;
-
-	if ( s1->Tag() != s2->Tag() )
-		return 0;
-
-	switch ( s1->Tag() ) {
-	case STMT_PRINT:
-		{
-		const ListExpr* l1 = ((const ExprListStmt*) s1)->ExprList();
-		const ListExpr* l2 = ((const ExprListStmt*) s2)->ExprList();
-		return same_expr(l1, l2);
-		}
-
-	case STMT_ADD:
-	case STMT_DELETE:
-	case STMT_RETURN:
-	case STMT_EXPR:
-	case STMT_EVENT:
-		{
-		const ExprStmt* e1 = (const ExprStmt*) s1;
-		const ExprStmt* e2 = (const ExprStmt*) s2;
-		return same_expr(e1->StmtExpr(), e2->StmtExpr());
-		}
-
-	case STMT_FOR:
-		{
-		const ForStmt* f1 = (const ForStmt*) s1;
-		const ForStmt* f2 = (const ForStmt*) s2;
-
-		return f1->LoopVar() == f2->LoopVar() &&
-			same_expr(f1->LoopExpr(), f2->LoopExpr()) &&
-			same_stmt(f1->LoopBody(), f2->LoopBody());
-		}
-
-	case STMT_IF:
-		{
-		const IfStmt* i1 = (const IfStmt*) s1;
-		const IfStmt* i2 = (const IfStmt*) s2;
-
-		if ( ! same_expr(i1->StmtExpr(), i2->StmtExpr()) )
-			return 0;
-
-		if ( i1->TrueBranch() || i2->TrueBranch() )
-			{
-			if ( ! i1->TrueBranch() || ! i2->TrueBranch() )
-				return 0;
-			if ( ! same_stmt(i1->TrueBranch(), i2->TrueBranch()) )
-				return 0;
-			}
-
-		if ( i1->FalseBranch() || i2->FalseBranch() )
-			{
-			if ( ! i1->FalseBranch() || ! i2->FalseBranch() )
-				return 0;
-			if ( ! same_stmt(i1->FalseBranch(), i2->FalseBranch()) )
-				return 0;
-			}
-
-		return 1;
-		}
-
-	case STMT_SWITCH:
-		{
-		const SwitchStmt* sw1 = (const SwitchStmt*) s1;
-		const SwitchStmt* sw2 = (const SwitchStmt*) s2;
-
-		if ( ! same_expr(sw1->StmtExpr(), sw2->StmtExpr()) )
-			return 0;
-
-		const case_list* c1 = sw1->Cases();
-		const case_list* c2 = sw1->Cases();
-
-		if ( c1->length() != c2->length() )
-			return 0;
-
-		loop_over_list(*c1, i)
-			{
-			if ( ! same_expr((*c1)[i]->Cases(), (*c2)[i]->Cases()) )
-				return 0;
-			if ( ! same_stmt((*c1)[i]->Body(), (*c2)[i]->Body()) )
-				return 0;
-			}
-
-		return 1;
-		}
-
-	case STMT_LIST:
-	case STMT_EVENT_BODY_LIST:
-		{
-		const stmt_list& l1 = ((const StmtList*) s1)->Stmts();
-		const stmt_list& l2 = ((const StmtList*) s2)->Stmts();
-
-		if ( l1.length() != l2.length() )
-			return 0;
-
-		loop_over_list(l1, i)
-			if ( ! same_stmt(l1[i], l2[i]) )
-				return 0;
-
-		return 1;
-		}
-
-	case STMT_INIT:
-		{
-		const id_list* i1 = ((const InitStmt*) s1)->Inits();
-		const id_list* i2 = ((const InitStmt*) s2)->Inits();
-
-		if ( i1->length() != i2->length() )
-			return 0;
-
-		loop_over_list(*i1, i)
-			if ( (*i1)[i] != (*i2)[i] )
-				return 0;
-
-		return 1;
-		}
-
-	case STMT_WHEN:
-		{
-		const WhenStmt* w1 = (const WhenStmt*) s1;
-		const WhenStmt* w2 = (const WhenStmt*) s2;
-
-		if ( ! same_expr(w1->Cond(), w2->Cond()) )
-			return 0;
-
-		if ( ! same_stmt(w1->Body(), w2->Body()) )
-			return 0;
-
-		if ( w1->TimeoutBody() || w2->TimeoutBody() )
-			{
-			if ( ! w1->TimeoutBody() || ! w2->TimeoutBody() )
-				return 0;
-
-			if ( ! same_expr(w1->TimeoutExpr(), w2->TimeoutExpr()) )
-				return 0;
-
-			if ( ! same_stmt(w1->TimeoutBody(), w2->TimeoutBody()) )
-				return 0;
-			}
-
-		return 1;
-		}
-
-	case STMT_NEXT:
-	case STMT_BREAK:
-	case STMT_NULL:
-		return 1;
-
-	default:
-		reporter->Error("bad tag in same_stmt()");
-	}
-
-	return 0;
 	}

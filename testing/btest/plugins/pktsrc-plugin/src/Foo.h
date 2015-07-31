@@ -26,7 +26,6 @@ protected:
 private:
 	Properties props;
 	string packet;
-	struct pcap_pkthdr hdr;
 };
 
 }

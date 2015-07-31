@@ -2,9 +2,10 @@
 
 #include <assert.h>
 
-#include "config.h"
+#include "bro-config.h"
 
 #include "Source.h"
+#include "iosource/Packet.h"
 
 #ifdef HAVE_PCAP_INT_H
 #include <pcap-int.h>
@@ -167,9 +168,8 @@ bool PcapSource::ExtractNextPacket(Packet* pkt)
 		return false;
 		}
 
-	pkt->ts = current_hdr.ts.tv_sec + double(current_hdr.ts.tv_usec) / 1e6;
-	pkt->hdr = &current_hdr;
-	pkt->data = last_data = data;
+	last_data = data;
+	pkt->Init(props.link_type, &current_hdr.ts, current_hdr.caplen, current_hdr.len, data);
 
 	if ( current_hdr.len == 0 || current_hdr.caplen == 0 )
 		{
@@ -275,7 +275,6 @@ void PcapSource::SetHdrSize()
 	char errbuf[PCAP_ERRBUF_SIZE];
 
 	props.link_type = pcap_datalink(pd);
-	props.hdr_size = GetLinkHeaderSize(props.link_type);
 	}
 
 iosource::PktSrc* PcapSource::Instantiate(const std::string& path, bool is_live)

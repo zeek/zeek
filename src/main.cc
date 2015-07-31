@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "config.h"
+#include "bro-config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -115,7 +115,6 @@ ProfileLogger* profiling_logger = 0;
 ProfileLogger* segment_logger = 0;
 SampleLogger* sample_logger = 0;
 int signal_val = 0;
-int optimize = 0;
 int do_notice_analysis = 0;
 extern char version[];
 char* command_line_policy = 0;
@@ -180,8 +179,8 @@ void usage()
 	fprintf(stderr, "    -r|--readfile <readfile>       | read from given tcpdump file\n");
 	fprintf(stderr, "    -s|--rulefile <rulefile>       | read rules from given file\n");
 	fprintf(stderr, "    -t|--tracefile <tracefile>     | activate execution tracing\n");
-	fprintf(stderr, "    -w|--writefile <writefile>     | write to given tcpdump file\n");
 	fprintf(stderr, "    -v|--version                   | print version and exit\n");
+	fprintf(stderr, "    -w|--writefile <writefile>     | write to given tcpdump file\n");
 	fprintf(stderr, "    -x|--print-state <file.bst>    | print contents of state file\n");
 	fprintf(stderr, "    -z|--analyze <analysis>        | run the specified policy file analysis\n");
 #ifdef DEBUG
@@ -189,10 +188,12 @@ void usage()
 #endif
 	fprintf(stderr, "    -C|--no-checksums              | ignore checksums\n");
 	fprintf(stderr, "    -F|--force-dns                 | force DNS\n");
+	fprintf(stderr, "    -G|--load-seeds <file>         | load seeds from given file\n");
+	fprintf(stderr, "    -H|--save-seeds <file>         | save seeds to given file\n");
 	fprintf(stderr, "    -I|--print-id <ID name>        | print out given ID\n");
+	fprintf(stderr, "    -J|--set-seed <seed>           | set the random number seed\n");
 	fprintf(stderr, "    -K|--md5-hashkey <hashkey>     | set key for MD5-keyed hashing\n");
 	fprintf(stderr, "    -N|--print-plugins             | print available plugins and exit (-NN for verbose)\n");
-	fprintf(stderr, "    -O|--optimize                  | optimize policy script\n");
 	fprintf(stderr, "    -P|--prime-dns                 | prime DNS\n");
 	fprintf(stderr, "    -Q|--time                      | print execution time summary to stderr\n");
 	fprintf(stderr, "    -R|--replay <events.bst>       | replay events\n");
@@ -200,7 +201,7 @@ void usage()
 	fprintf(stderr, "    -T|--re-level <level>          | set 'RE_level' for rules\n");
 	fprintf(stderr, "    -U|--status-file <file>        | Record process status in file\n");
 	fprintf(stderr, "    -W|--watchdog                  | activate watchdog timer\n");
-	fprintf(stderr, "    -X|--broxygen                  | generate documentation based on config file\n");
+	fprintf(stderr, "    -X|--broxygen <cfgfile>        | generate documentation based on config file\n");
 
 #ifdef USE_PERFTOOLS_DEBUG
 	fprintf(stderr, "    -m|--mem-leaks                 | show leaks  [perftools]\n");
@@ -210,8 +211,6 @@ void usage()
 	fprintf(stderr, "    -X <file.bst>                  | print contents of state file as XML\n");
 #endif
 	fprintf(stderr, "    --pseudo-realtime[=<speedup>]  | enable pseudo-realtime for performance evaluation (default 1)\n");
-	fprintf(stderr, "    --load-seeds <file>            | load seeds from given file\n");
-	fprintf(stderr, "    --save-seeds <file>            | save seeds to given file\n");
 
 #ifdef USE_IDMEF
 	fprintf(stderr, "    -n|--idmef-dtd <idmef-msg.dtd> | specify path to IDMEF DTD file\n");
@@ -496,11 +495,11 @@ int main(int argc, char** argv)
 		{"set-seed",		required_argument,	0,	'J'},
 		{"md5-hashkey",		required_argument,	0,	'K'},
 		{"print-plugins",	no_argument,		0,	'N'},
-		{"optimize",		no_argument,		0,	'O'},
 		{"prime-dns",		no_argument,		0,	'P'},
+		{"time",		no_argument,		0,	'Q'},
 		{"replay",		required_argument,	0,	'R'},
 		{"debug-rules",		no_argument,		0,	'S'},
-		{"re-level",		required_argument,	0,	'R'},
+		{"re-level",		required_argument,	0,	'T'},
 		{"watchdog",		no_argument,		0,	'W'},
 		{"print-id",		required_argument,	0,	'I'},
 		{"status-file",		required_argument,	0,	'U'},
@@ -548,7 +547,7 @@ int main(int argc, char** argv)
 	opterr = 0;
 
 	char opts[256];
-	safe_strncpy(opts, "B:e:f:I:i:K:l:n:p:R:r:s:T:t:U:w:x:X:z:CFGLNOPSWabdghvZQ",
+	safe_strncpy(opts, "B:e:f:G:H:I:i:J:K:n:p:R:r:s:T:t:U:w:x:X:z:CFNPQSWabdghv",
 		     sizeof(opts));
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -583,6 +582,10 @@ int main(int argc, char** argv)
 			dump_cfg = true;
 			break;
 
+		case 'h':
+			usage();
+			break;
+
 		case 'i':
 			interfaces.append(optarg);
 			break;
@@ -604,8 +607,17 @@ int main(int argc, char** argv)
 			g_trace_state.TraceOn();
 			break;
 
+		case 'v':
+			fprintf(stderr, "%s version %s\n", prog, bro_version());
+			exit(0);
+			break;
+
 		case 'w':
 			writefile = optarg;
+			break;
+
+		case 'x':
+			bst_file = optarg;
 			break;
 
 		case 'z':
@@ -616,6 +628,10 @@ int main(int argc, char** argv)
 				fprintf(stderr, "Unknown analysis type: %s\n", optarg);
 				exit(1);
 				}
+			break;
+
+		case 'B':
+			debug_streams = optarg;
 			break;
 
 		case 'C':
@@ -659,10 +675,6 @@ int main(int argc, char** argv)
 			++print_plugins;
 			break;
 
-		case 'O':
-			optimize = 1;
-			break;
-
 		case 'P':
 			if ( dns_type != DNS_DEFAULT )
 				usage();
@@ -693,13 +705,8 @@ int main(int argc, char** argv)
 			do_watchdog = 1;
 			break;
 
-		case 'h':
-			usage();
-			break;
-
-		case 'v':
-			fprintf(stderr, "%s version %s\n", prog, bro_version());
-			exit(0);
+		case 'X':
+			broxygen_config = optarg;
 			break;
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -712,9 +719,6 @@ int main(int argc, char** argv)
 			break;
 #endif
 
-		case 'x':
-			bst_file = optarg;
-			break;
 #if 0 // broken
 		case 'X':
 			bst_file = optarg;
@@ -722,20 +726,12 @@ int main(int argc, char** argv)
 			break;
 #endif
 
-		case 'X':
-			broxygen_config = optarg;
-			break;
-
 #ifdef USE_IDMEF
 		case 'n':
 			fprintf(stderr, "Using IDMEF XML DTD from %s\n", optarg);
 			libidmef_dtd_path = optarg;
 			break;
 #endif
-
-		case 'B':
-			debug_streams = optarg;
-			break;
 
 		case 0:
 			// This happens for long options that don't have

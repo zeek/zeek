@@ -3,7 +3,7 @@
 #ifndef ip_h
 #define ip_h
 
-#include "config.h"
+#include "bro-config.h"
 #include "net_util.h"
 #include "IPAddr.h"
 #include "Reporter.h"
@@ -574,8 +574,13 @@ public:
 	 */
 	RecordVal* BuildPktHdrVal() const;
 
-private:
+	/**
+	 * Same as above, but simply add our values into the record at the
+	 * specified starting index.
+	 */
+	RecordVal* BuildPktHdrVal(RecordVal* pkt_hdr, int sindex) const;
 
+private:
 	const struct ip* ip4;
 	const struct ip6_hdr* ip6;
 	bool del;

@@ -1,4 +1,232 @@
 
+2.4-70 | 2015-07-30 07:23:44 -0700
+
+  * Updated detection of Flash and AdobeAIR. (Jan Grashoefer)
+
+  * Adding tests for Flash version parsing and browser plugin
+    detection. (Robin Sommer)
+
+2.4-63 | 2015-07-28 12:26:37 -0700
+
+  * Updating submodule(s).
+
+2.4-61 | 2015-07-28 12:13:39 -0700
+
+  * Renaming config.h to bro-config.h. (Robin Sommer)
+
+2.4-58 | 2015-07-24 15:06:07 -0700
+
+  * Add script protocols/conn/vlan-logging.bro to record VLAN data in
+    conn.log. (Aaron Brown)
+
+  * Add field "vlan" and "inner_vlan" to connection record. (Aaron
+    Brown)
+
+  * Save the inner vlan in the Packet object for Q-in-Q setups. (Aaron
+    Brown)
+
+  * Increasing plugin API version for recent packet source changes.
+    (Robin Sommer)
+
+  * Slightly earlier protocol confirmation for POP3. (Johanna Amann)
+
+2.4-46 | 2015-07-22 10:56:40 -0500
+
+  * Fix broker python bindings install location to track --prefix.
+    (Jon Siwek)
+
+2.4-45 | 2015-07-21 15:19:43 -0700
+
+  * Enabling Broker by default. This means CAF is now a required
+    dependency, altjough for now at least, there's still a switch
+    --disable-broker to turn it off.
+
+  * Requiring a C++11 compiler, and turning on C++11 support. (Robin
+    Sommer)
+
+  * Tweaking the listing of hooks in "bro -NN" for consistency. (Robin
+    Sommer)
+
+2.4-41 | 2015-07-21 08:35:17 -0700
+
+  * Fixing compiler warning. (Robin Sommer)
+
+  * Updates to IANA TLS registry. (Johanna Amann)
+
+2.4-38 | 2015-07-20 15:30:35 -0700
+
+  * Refactor code to use a common Packet type throught. (Jeff
+    Barber/Robin Sommer)
+
+  * Extend parsing layer 2 and keeping track of layer 3 protoco. (Jeff Barber)
+
+  * Add a raw_packet() event that generated for all packets and
+    include layer 2 information. (Jeff Barber)
+
+2.4-27 | 2015-07-15 13:31:49 -0700
+
+  * Fix race condition in intel test. (Johanna Amann)
+
+2.4-24 | 2015-07-14 08:04:11 -0700
+
+  * Correct Perl package name on FreeBSD in documentation.(Justin Azoff)
+
+  * Adding an environment variable to BTest configuration for external
+    scripts. (Robin Sommer)
+
+2.4-20 | 2015-07-03 10:40:21 -0700
+
+  * Adding a weird for when truncated packets lead TCP reassembly to
+    ignore content. (Robin Sommer)
+
+2.4-19 | 2015-07-03 09:04:54 -0700
+
+  * A set of tests exercising IP defragmentation and TCP reassembly.
+    (Robin Sommer)
+
+2.4-17 | 2015-06-28 13:02:41 -0700
+
+  * BIT-1314: Add detection for Quantum Insert attacks. The TCP
+    reassembler can now keep a history of old TCP segments using the
+    tcp_max_old_segments option. An overlapping segment with different
+    data will then generate an rexmit_inconsistency event. The default
+    for tcp_max_old_segments is zero, which disabled any additional
+    buffering. (Yun Zheng Hu/Robin Sommer)
+
+2.4-14 | 2015-06-28 12:30:12 -0700
+
+  * BIT-1400: Allow '<' and '>' in MIME multipart boundaries. The spec
+    doesn't actually seem to permit these, but they seem to occur in
+    the wild. (Jon Siwek)
+
+2.4-12 | 2015-06-28 12:21:11 -0700
+
+  * BIT-1399: Trying to decompress deflated HTTP content even when
+    zlib headers are missing. (Seth Hall)
+
+2.4-10 | 2015-06-25 07:11:17 -0700
+
+  * Correct a name used in a header identifier (Justin Azoff)
+
+2.4-8 | 2015-06-24 07:50:50 -0700
+
+  * Restore the --load-seeds cmd-line option and enable the short
+    options -G/-H for --load-seeds/--save-seeds. (Daniel Thayer)
+
+2.4-6 | 2015-06-19 16:26:40 -0700
+
+  * Generate protocol confirmations for Modbus, making it appear as a
+    confirmed service in conn.log. (Seth Hall)
+
+  * Put command line options in alphabetical order. (Daniel Thayer)
+
+  * Removing dead code for no longer supported -G switch. (Robin
+    Sommer) (Robin Sommer)
+
+2.4 | 2015-06-09 07:30:53 -0700
+
+  * Release 2.4.
+
+  * Fixing tiny thing in NEWS. (Robin Sommer)
+
+2.4-beta-42 | 2015-06-08 09:41:39 -0700
+
+  * Fix reporter errors with GridFTP traffic. (Robin Sommer)
+
+2.4-beta-40 | 2015-06-06 08:20:52 -0700
+
+  * PE Analyzer: Change how we calculate the rva_table size. (Vlad Grigorescu)
+
+2.4-beta-39 | 2015-06-05 09:09:44 -0500
+
+  * Fix a unit test to check for Broker requirement. (Jon Siwek)
+
+2.4-beta-38 | 2015-06-04 14:48:37 -0700
+
+  * Test for Broker termination. (Robin Sommer)
+
+2.4-beta-37 | 2015-06-04 07:53:52 -0700
+
+  * BIT-1408: Improve I/O loop and Broker IOSource. (Jon Siwek)
+
+2.4-beta-34 | 2015-06-02 10:37:22 -0700
+
+  * Add signature support for F4M files. (Seth Hall)
+
+2.4-beta-32 | 2015-06-02 09:43:31 -0700
+
+  * A larger set of documentation updates, fixes, and extentions.
+    (Daniel Thayer)
+
+2.4-beta-14 | 2015-06-02 09:16:44 -0700
+
+  * Add memleak btest for attachments over SMTP. (Vlad Grigorescu)
+
+  * BIT-1410: Fix flipped tx_hosts and rx_hosts in files.log. Reported
+    by Ali Hadi. (Vlad Grigorescu)
+
+  * Updating the Mozilla root certs. (Seth Hall)
+
+  * Updates for the urls.bro script. Fixes BIT-1404. (Seth Hall)
+
+2.4-beta-6 | 2015-05-28 13:20:44 -0700
+
+  * Updating submodule(s).
+
+2.4-beta-2 | 2015-05-26 08:58:37 -0700
+
+  * Fix segfault when DNS is not available. Addresses BIT-1387. (Frank
+    Meier and Robin Sommer)
+
+2.4-beta | 2015-05-07 21:55:31 -0700
+
+  * Release 2.4-beta.
+
+  * Update local-compat.test (Johanna Amann)
+
+2.3-913 | 2015-05-06 09:58:00 -0700
+
+  * Add /sbin to PATH in btest.cfg and remove duplicate default_path.
+    (Daniel Thayer)
+
+2.3-911 | 2015-05-04 09:58:09 -0700
+
+  * Update usage output and list of command line options. (Daniel
+    Thayer)
+
+  * Fix to ssh/geo-data.bro for unset directions. (Vlad Grigorescu)
+
+  * Improve SIP logging and remove reporter messages. (Seth Hall)
+
+2.3-905 | 2015-04-29 17:01:30 -0700
+
+  * Improve SIP logging and remove reporter messages. (Seth Hall)
+
+2.3-903 | 2015-04-27 17:27:59 -0700
+
+  * BIT-1350: Improve record coercion type checking. (Jon Siwek)
+
+2.3-901 | 2015-04-27 17:25:27 -0700
+
+  * BIT-1384: Remove -O (optimize scripts) command-line option, which
+    hadn't been working for a while already. (Jon Siwek)
+
+2.3-899 | 2015-04-27 17:22:42 -0700
+
+  * Fix the -J/--set-seed cmd-line option. (Daniel Thayer)
+
+  * Remove unused -l, -L, and -Z cmd-line options. (Daniel Thayer)
+
+2.3-892 | 2015-04-27 08:22:22 -0700
+
+  * Fix typos in the Broker BIF documentation. (Daniel Thayer)
+
+  * Update installation instructions and remove outdated references.
+    (Johanna Amann)
+
+  * Easier support for systems with tcmalloc_minimal installed. (Seth
+    Hall)
+
 2.3-884 | 2015-04-23 12:30:15 -0500
 
   * Fix some outdated documentation unit tests. (Jon Siwek)

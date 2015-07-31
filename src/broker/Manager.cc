@@ -24,6 +24,12 @@ int bro_broker::Manager::send_flags_self_idx;
 int bro_broker::Manager::send_flags_peers_idx;
 int bro_broker::Manager::send_flags_unsolicited_idx;
 
+bro_broker::Manager::Manager()
+	: iosource::IOSource(), next_timestamp(-1)
+	{
+	SetIdle(true);
+	}
+
 bro_broker::Manager::~Manager()
 	{
 	vector<decltype(data_stores)::key_type> stores_to_close;
@@ -560,8 +566,10 @@ void bro_broker::Manager::GetFds(iosource::FD_Set* read, iosource::FD_Set* write
 
 double bro_broker::Manager::NextTimestamp(double* local_network_time)
 	{
-	// TODO: do something better?
-	return timer_mgr->Time();
+	if ( next_timestamp < 0 )
+		next_timestamp = timer_mgr->Time();
+
+	return next_timestamp;
 	}
 
 struct response_converter {
@@ -619,7 +627,6 @@ static RecordVal* response_to_val(broker::store::response r)
 
 void bro_broker::Manager::Process()
 	{
-	bool idle = true;
 	auto outgoing_connection_updates =
 	        endpoint->outgoing_connection_status().want_pop();
 	auto incoming_connection_updates =
@@ -630,8 +637,6 @@ void bro_broker::Manager::Process()
 
 	for ( auto& u : outgoing_connection_updates )
 		{
-		idle = false;
-
 		switch ( u.status ) {
 		case broker::outgoing_connection_status::tag::established:
 			if ( BrokerComm::outgoing_connection_established )
@@ -677,8 +682,6 @@ void bro_broker::Manager::Process()
 
 	for ( auto& u : incoming_connection_updates )
 		{
-		idle = false;
-
 		switch ( u.status ) {
 		case broker::incoming_connection_status::tag::established:
 			if ( BrokerComm::incoming_connection_established )
@@ -714,7 +717,6 @@ void bro_broker::Manager::Process()
 			continue;
 
 		ps.second.received += print_messages.size();
-		idle = false;
 
 		if ( ! BrokerComm::print_handler )
 			continue;
@@ -751,7 +753,6 @@ void bro_broker::Manager::Process()
 			continue;
 
 		es.second.received += event_messages.size();
-		idle = false;
 
 		for ( auto& em : event_messages )
 			{
@@ -822,7 +823,6 @@ void bro_broker::Manager::Process()
 			continue;
 
 		ls.second.received += log_messages.size();
-		idle = false;
 
 		for ( auto& lm : log_messages )
 			{
@@ -890,7 +890,6 @@ void bro_broker::Manager::Process()
 			continue;
 
 		statistics.report_count += responses.size();
-		idle = false;
 
 		for ( auto& response : responses )
 			{
@@ -940,8 +939,6 @@ void bro_broker::Manager::Process()
 
 	for ( auto& report : reports )
 		{
-		idle = false;
-
 		if ( report.size() < 2 )
 			{
 			reporter->Warning("got broker report msg of size %zu, expect 4",
@@ -979,7 +976,7 @@ void bro_broker::Manager::Process()
 			}
 		}
 
-	SetIdle(idle);
+	next_timestamp = -1;
 	}
 
 bool bro_broker::Manager::AddStore(StoreHandleVal* handle)

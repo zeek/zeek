@@ -67,8 +67,8 @@ that are present in the ASCII log files::
     'id.orig_p' integer,
     ...
 
-Note that the ASCII ``conn.log`` will still be created. To disable the ASCII writer for a
-log stream, you can remove the default filter:
+Note that the ASCII ``conn.log`` will still be created. To prevent this file
+from being created, you can remove the default filter:
 
 .. code:: bro
 

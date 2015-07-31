@@ -106,6 +106,10 @@ global matched_software: table[string] of Software::Description = {
 		[$name="vsFTPd", $version=[$major=2,$minor=0,$minor2=5], $unparsed_version=""],
 	["Apple Mail (2.1084)"] = 
 		[$name="Apple Mail", $version=[$major=2,$minor=1084], $unparsed_version=""],
+	["Mozilla/5.0 (Macintosh; U; PPC Mac OS X; en) AppleWebKit/420+ (KHTML, like Gecko) AdobeAIR/1.0"] = 
+		[$name="AdobeAIR", $version=[$major=1,$minor=0], $unparsed_version=""],
+	["Mozilla/5.0 (Windows; U; en) AppleWebKit/420+ (KHTML, like Gecko) AdobeAIR/1.0"] = 
+		[$name="AdobeAIR", $version=[$major=1,$minor=0], $unparsed_version=""],
 };
 
 event bro_init()

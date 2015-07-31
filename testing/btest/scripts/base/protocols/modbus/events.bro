@@ -5,6 +5,8 @@
 # @TEST-EXEC: cat ${DIST}/src/analyzer/protocol/modbus/events.bif  | grep "^event modbus_" | wc -l >total
 # @TEST-EXEC: echo `cat covered` of `cat total` events triggered by trace >coverage
 # @TEST-EXEC: btest-diff coverage
+# @TEST-EXEC: btest-diff conn.log
+
 
 event modbus_message(c: connection, headers: ModbusHeaders, is_orig: bool)
 {

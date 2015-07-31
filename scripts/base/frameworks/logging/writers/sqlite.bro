@@ -19,7 +19,7 @@ export {
 	const unset_field = Log::unset_field &redef;
 
 	## String to use for empty fields. This should be different from
-        ## *unset_field* to make the output unambiguous.
+	## *unset_field* to make the output unambiguous.
 	const empty_field = Log::empty_field &redef;
 }
 

@@ -46,12 +46,26 @@ export {
 
 	## Regular expression is used to match URI based SQL injections.
 	const match_sql_injection_uri =
-		  /[\?&][^[:blank:]\x00-\x37\|]+?=[\-[:alnum:]%]+([[:blank:]\x00-\x37]|\/\*.*?\*\/)*['"]?([[:blank:]\x00-\x37]|\/\*.*?\*\/|\)?;)+.*?([hH][aA][vV][iI][nN][gG]|[uU][nN][iI][oO][nN]|[eE][xX][eE][cC]|[sS][eE][lL][eE][cC][tT]|[dD][eE][lL][eE][tT][eE]|[dD][rR][oO][pP]|[dD][eE][cC][lL][aA][rR][eE]|[cC][rR][eE][aA][tT][eE]|[iI][nN][sS][eE][rR][tT])([[:blank:]\x00-\x37]|\/\*.*?\*\/)+/
+		  /[\?&][^[:blank:]\x00-\x37\|]+?=[\-[:alnum:]%]+([[:blank:]\x00-\x37]|\/\*.*?\*\/)*['"]?([[:blank:]\x00-\x37]|\/\*.*?\*\/|\)?;)+.*([hH][aA][vV][iI][nN][gG]|[uU][nN][iI][oO][nN]([[:blank:]\x00-\x37]|\/\*.*?\*\/)*([aA][lL][lL]|#[[:alnum:]])|[eE][xX][eE][cC]|[sS][eE][lL][eE][cC][tT]|[dD][eE][lL][eE][tT][eE]|[dD][rR][oO][pP]|[dD][eE][cC][lL][aA][rR][eE]|[cC][rR][eE][aA][tT][eE]|[iI][nN][sS][eE][rR][tT])([[:blank:]\x00-\x37]|\/\*.*?\*\/)+/
+
 		| /[\?&][^[:blank:]\x00-\x37\|]+?=[\-0-9%]+([[:blank:]\x00-\x37]|\/\*.*?\*\/)*['"]?([[:blank:]\x00-\x37]|\/\*.*?\*\/|\)?;)+([xX]?[oO][rR]|[nN]?[aA][nN][dD])([[:blank:]\x00-\x37]|\/\*.*?\*\/)+['"]?(([^a-zA-Z&]+)?=|[eE][xX][iI][sS][tT][sS])/
 		| /[\?&][^[:blank:]\x00-\x37]+?=[\-0-9%]*([[:blank:]\x00-\x37]|\/\*.*?\*\/)*['"]([[:blank:]\x00-\x37]|\/\*.*?\*\/)*(-|=|\+|\|\|)([[:blank:]\x00-\x37]|\/\*.*?\*\/)*([0-9]|\(?[cC][oO][nN][vV][eE][rR][tT]|[cC][aA][sS][tT])/
+
 		| /[\?&][^[:blank:]\x00-\x37\|]+?=([[:blank:]\x00-\x37]|\/\*.*?\*\/)*['"]([[:blank:]\x00-\x37]|\/\*.*?\*\/|;)*([xX]?[oO][rR]|[nN]?[aA][nN][dD]|[hH][aA][vV][iI][nN][gG]|[uU][nN][iI][oO][nN]|[eE][xX][eE][cC]|[sS][eE][lL][eE][cC][tT]|[dD][eE][lL][eE][tT][eE]|[dD][rR][oO][pP]|[dD][eE][cC][lL][aA][rR][eE]|[cC][rR][eE][aA][tT][eE]|[rR][eE][gG][eE][xX][pP]|[iI][nN][sS][eE][rR][tT])([[:blank:]\x00-\x37]|\/\*.*?\*\/|[\[(])+[a-zA-Z&]{2,}/
+
 		| /[\?&][^[:blank:]\x00-\x37]+?=[^\.]*?([cC][hH][aA][rR]|[aA][sS][cC][iI][iI]|[sS][uU][bB][sS][tT][rR][iI][nN][gG]|[tT][rR][uU][nN][cC][aA][tT][eE]|[vV][eE][rR][sS][iI][oO][nN]|[lL][eE][nN][gG][tT][hH])\(/
-		| /\/\*![[:digit:]]{5}.*?\*\// &redef;
+
+		| /[bB][eE][nN][cC][hH][mM][aA][rR][kK]\([[:digit:]]+,.*\)/
+		| /\(select [[:digit:]]{1,}(,[[:digit:]]{1,})?\)=[[:digit:]]{1,}/
+		| /1%27%27=1|1%27=1|1('){1,}=1/
+		| /ping -(c|n) [[:digit:]]{1,} [[:digit:]]{1,3}\.[[:digit:]]{1,3}\.[[:digit:]]{1,3}\.[[:digit:]]{1,3}/
+		| /\)([[:blank:]\x00-\x37]|\/\*.*?\*\/|\+)*[wW][aA][iI][tT][fF][oO][rR]([[:blank:]\x00-\x37]|\/\*.*?\*\/|\+)*[dD][eE][lL][aA][yY]([[:blank:]\x00-\x37]|\/\*.*?\*\/|\+)*'[[:digit:]]{1,}:[[:digit:]]{1,}:[[:digit:]]{1,}'/
+		| /[[:digit:]]{1,}('|%27)?([[:space:]])?or ('|%27)?[[:digit:]]{1,}('|%27)?=('|%27)?[[:digit:]]{1,}(--)?([[:space:]])?=[[:digit:]]/
+		| /([[:digit:]]{1})?(')? and ([[:digit:]]{1})? in \(select benchmark\([[:digit:]]{1,},sha1\(1\)(\)){1,}?(--)?([[:space:]])?=1/
+&redef;
+
+#?id=1+and+if(1=1,BENCHMARK(728000,MD5(0x41)),0)9
+
 }
 
 function format_sqli_samples(samples: vector of SumStats::Observation): string

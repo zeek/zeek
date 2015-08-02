@@ -18,6 +18,7 @@ event Control::id_value_request(id: string)
 	{
 	local val = lookup_ID(id);
 	event Control::id_value_response(id, fmt("%s", val));
+	print "id_value_request received";
 	}
 
 event Control::peer_status_request()
@@ -70,4 +71,11 @@ event Control::shutdown_request()
 	event Control::shutdown_response();
 	# Schedule the shutdown to let the current event queue flush itself first.
 	event terminate_event();
+	}
+
+event bro_init() &priority=-10
+	{
+	# All nodes need to subscribe to control-related events
+	BrokerComm::subscribe_to_events(fmt("%s/request", Control::pub_sub_prefix));
+	Communication::register_broker_events(fmt("%s/response", Control::pub_sub_prefix), Control::controllee_events);
 	}

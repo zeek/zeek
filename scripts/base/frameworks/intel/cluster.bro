@@ -13,7 +13,7 @@ redef record Item += {
 };
 
 # If this process is not a manager process, we don't want the full metadata
-@if ( Cluster::local_node_type() != Cluster::MANAGER )
+@if ( ! Cluster::has_local_role(Cluster::MANAGER) )
 redef have_full_data = F;
 @endif
 
@@ -24,7 +24,7 @@ redef Cluster::manager2worker_events += {"Intel::cluster_new_item"};
 # If a worker finds intelligence and adds it, it should share it back to the manager.
 redef Cluster::worker2manager_events += {"Intel::cluster_new_item", "Intel::match_no_items"};
 
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
+@if ( Cluster::has_local_role(Cluster::MANAGER) )
 event Intel::match_no_items(s: Seen) &priority=5
 	{
 	event Intel::match(s, Intel::get_items(s));
@@ -34,7 +34,7 @@ event remote_connection_handshake_done(p: event_peer)
 	{
 	# When a worker connects, send it the complete minimal data store.
 	# It will be kept up to date after this by the cluster_new_item event.
-	if ( Cluster::nodes[p$descr]$node_type == Cluster::WORKER )
+	if ( Cluster::WORKER in Cluster::nodes[p$descr]$node_roles )
 		{
 		send_id(p, "Intel::min_data_store");
 		}
@@ -52,7 +52,7 @@ event Intel::new_item(item: Intel::Item) &priority=5
 	{
 	# The cluster manager always rebroadcasts intelligence.
 	# Workers redistribute it if it was locally generated.
-	if ( Cluster::local_node_type() == Cluster::MANAGER ||
+	if ( Cluster::has_local_role(Cluster::MANAGER) ||
 	     item$first_dispatch )
 		{
 		item$first_dispatch=F;

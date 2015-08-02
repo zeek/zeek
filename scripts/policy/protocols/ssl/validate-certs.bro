@@ -65,14 +65,14 @@ function add_to_cache(key: string, value: vector of opaque of x509)
 @endif
 	}
 
-@if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
+@if ( Cluster::is_enabled() && ! Cluster::has_local_role(Cluster::MANAGER) )
 event SSL::intermediate_add(key: string, value: vector of opaque of x509)
 	{
 	intermediate_cache[key] = value;
 	}
 @endif
 
-@if ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER )
+@if ( Cluster::is_enabled() && Cluster::has_local_role(Cluster::MANAGER) )
 event SSL::new_intermediate(key: string, value: vector of opaque of x509)
 	{
 	if ( key in intermediate_cache )

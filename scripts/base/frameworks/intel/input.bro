@@ -17,7 +17,7 @@ event Intel::read_entry(desc: Input::EventDescription, tpe: Input::Event, item: 
 event bro_init() &priority=5
 	{
 	if ( ! Cluster::is_enabled() ||
-	     Cluster::local_node_type() == Cluster::MANAGER )
+	     Cluster::has_local_role(Cluster::MANAGER) )
 		{
 		for ( a_file in read_files )
 			{

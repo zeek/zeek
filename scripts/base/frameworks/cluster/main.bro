@@ -7,6 +7,7 @@
 ##! ``@load base/frameworks/cluster``.
 
 @load base/frameworks/control
+@load base/frameworks/logging
 
 module Cluster;
 
@@ -24,7 +25,7 @@ export {
 
 	## Types of nodes that are allowed to participate in the cluster
 	## configuration.
-	type NodeType: enum {
+	type NodeRole: enum {
 		## A dummy node type indicating the local node is not operating
 		## within a cluster.
 		NONE,
@@ -35,9 +36,11 @@ export {
 		MANAGER,
 		## A node type for relaying worker node communication and synchronizing
 		## worker node state.
-		PROXY,
+		DATANODE,
 		## The node type doing all the actual traffic analysis.
 		WORKER,
+		## A node type that is part of a deep cluster configuration
+		PEER,
 		## A node acting as a traffic recorder using the
 		## `Time Machine <http://bro.org/community/time-machine.html>`_
 		## software.
@@ -48,19 +51,19 @@ export {
 	const manager2worker_events : set[string] = {} &redef;
 	
 	## Events raised by a manager and handled by proxies.
-	const manager2proxy_events : set[string] = {} &redef;	
+	const manager2datanode_events : set[string] = {} &redef;	
 
 	## Events raised by proxies and handled by a manager.
-	const proxy2manager_events : set[string] = {} &redef;
+	const datanode2manager_events : set[string] = {} &redef;
 	
 	## Events raised by proxies and handled by workers.
-	const proxy2worker_events : set[string] = {} &redef;
+	const datanode2worker_events : set[string] = {} &redef;
 	
 	## Events raised by workers and handled by a manager.
 	const worker2manager_events : set[string] += {} &redef;
 	
 	## Events raised by workers and handled by proxies.
-	const worker2proxy_events : set[string] = {} &redef;
+	const worker2datanode_events : set[string] = {} &redef;
 	
 	## Events raised by TimeMachine instances and handled by a manager.
 	const tm2manager_events : set[string] = {} &redef;
@@ -71,15 +74,14 @@ export {
 	## The prefix used for subscribing and publishing events
 	const pub_sub_prefix : string = "/bro/event/cluster" &redef;
 
-	## Events sent by the control host (i.e. BroControl) when dynamically 
-	## connecting to a running instance to update settings or request data.
-	#const control_events = Control::controller_events &redef;
-	#const control_events : set[string] = {} &redef;
+	# TODO The IDs of the clusters this node is part of 
+	const cluster_prefix_set : set[string] = {""} &redef;
 
 	## Record type to indicate a node in a cluster.
 	type Node: record {
 		## Identifies the type of cluster node in this node's configuration.
-		node_type:    NodeType;
+		## Roles of a node
+		node_roles: set[NodeRole];
 		## The IP address of the cluster node.
 		ip:           addr;
 		## If the *ip* field is a non-global IPv6 address, this field
@@ -92,13 +94,14 @@ export {
 		interface:    string      &optional;
 		## Name of the manager node this node uses.  For workers and proxies.
 		manager:      string      &optional;
-		## Name of the proxy node this node uses.  For workers and managers.
-		proxy:        string      &optional;
+		## Name of the datanode this node uses.  For workers and managers.
+		datanode:        string      &optional;
 		## Names of worker nodes that this node connects with.
 		## For managers and proxies.
 		workers:      set[string] &optional;
 		## Name of a time machine node with which this node connects.
 		time_machine: string      &optional;
+
 	};
 	
 	## This function can be called at any time to determine if the cluster
@@ -107,13 +110,11 @@ export {
 	## Returns: True if :bro:id:`Cluster::node` has been set.
 	global is_enabled: function(): bool;
 	
-	## This function can be called at any time to determine what type of
-	## cluster node the current Bro instance is going to be acting as.
-	## If :bro:id:`Cluster::is_enabled` returns false, then
-	## :bro:enum:`Cluster::NONE` is returned.
+	## This function can be called at any time to determine the types of
+	## cluster roles the current Bro instance has.
 	##
-	## Returns: The :bro:type:`Cluster::NodeType` the calling node acts as.
-	global local_node_type: function(): NodeType;
+	## Returns: true if local node has that role, false otherwise
+	global has_local_role: function(role: NodeRole): bool;
 	
 	## This gives the value for the number of workers currently connected to,
 	## and it's maintained internally by the cluster framework.  It's 
@@ -140,23 +141,29 @@ function is_enabled(): bool
 	return (node != "");
 	}
 
-function local_node_type(): NodeType
+function has_local_role(role: NodeRole): bool
 	{
-	return is_enabled() ? nodes[node]$node_type : NONE;
+		if (!is_enabled())
+			return F;
+
+		if ( role in nodes[node]$node_roles )
+			return T;
+		else
+			return F;
 	}
 
 event BrokerComm::incoming_connection_established(peer_name: string)
 	{
-	if ( peer_name in nodes && nodes[peer_name]$node_type == WORKER )
+	if ( peer_name in nodes && WORKER in nodes[peer_name]$node_roles)
 		++worker_count;
-	print "increment worker count to ", worker_count;
+	Log::write(Cluster::LOG,[$ts=1, $message="incoming connection established"]);
 	}
 
 event BrokerComm::incoming_connection_broken(peer_name: string)
 	{
-	if ( peer_name in nodes && nodes[peer_name]$node_type == WORKER )
+	if ( peer_name in nodes && WORKER in nodes[peer_name]$node_roles )
 		--worker_count;
-	print "decrement worker count to ", worker_count;
+	Log::write(Cluster::LOG,[$ts=2, $message="incoming connection broken"]);
 	}
 
 event bro_init() &priority=5
@@ -169,5 +176,11 @@ event bro_init() &priority=5
 		}
 
 	BrokerComm::enable();
+
 	Log::create_stream(Cluster::LOG, [$columns=Info, $path="cluster"]);
+
+	# All cluster nodes subscribe to control messages and publish replies to them
+	BrokerComm::subscribe_to_events(fmt("%s/request", Control::pub_sub_prefix));
+	for ( e in Control::controllee_events )
+		BrokerComm::auto_event(fmt("%s/response", Control::pub_sub_prefix), lookup_ID(e));
 	}

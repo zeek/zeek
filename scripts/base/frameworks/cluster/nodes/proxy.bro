@@ -1,33 +1,39 @@
-##! Redefines the options common to all proxy nodes within a Bro cluster.
-##! In particular, proxies are not meant to produce logs locally and they
-##! do not forward events anywhere, they mainly synchronize state between
-##! worker nodes.
+##! The datanode is passive (the workers connect to us), and once connected
+##! the datanode registers for the events on the workers that are needed
+##! to get the desired data from the workers.  This script will be 
+##! automatically loaded if necessary based on the type of node being started.
 
-@prefixes += cluster-proxy
+@prefixes += cluster-datanode
 
-## The proxy only syncs state; does not forward events.
-redef forward_remote_events = F;
-redef forward_remote_state_changes = T;
+## We are the datanode, so do local logging!
+redef Log::enable_local_logging = T;
 
-## Don't do any local logging.
-redef Log::enable_local_logging = F;
+## Make sure that remote logging is disabled.
+redef Log::enable_remote_logging = F;
 
-## Make sure that remote logging is enabled.
-redef Log::enable_remote_logging = T;
+## Log rotation interval.
+redef Log::default_rotation_interval = 1hrs;
 
-redef Log::default_rotation_interval = 24hrs;
+## Alarm summary mail interval.
+redef Log::default_mail_alarms_interval = 24 hrs;
 
-## Use the cluster's delete-log script.
-redef Log::default_rotation_postprocessor_cmd = "delete-log";
+## Use the cluster's archives logging script.
+redef Log::default_rotation_postprocessor_cmd = "archive-log";
+
+## We're processing essentially *only* remote events.
+redef max_remote_events_processed = 10000;
 
 event bro_init() &priority = -10 
 	{
-	BrokerComm::subscribe_to_events(fmt("%s/proxy/request", Cluster::pub_sub_prefix));
+	# Subscribe to events and register events with broker for publication by local node
+	for (p in Cluster::cluster_prefix_set )
+		{
+		BrokerComm::subscribe_to_events(fmt("%s%s/data/request", Cluster::pub_sub_prefix, p));
+		# Need to publish: datanode2manager_events, datanode2worker_events
+		Communication::register_broker_events(fmt("%s%s/manager/response", Cluster::pub_sub_prefix, p), Cluster::datanode2manager_events);
+		Communication::register_broker_events(fmt("%s%s/worker/response", Cluster::pub_sub_prefix, p), Cluster::datanode2worker_events);
+		}
 
-	# Need to publish: proxy2manager_events, proxy2worker_events
-	for ( e in Cluster::proxy2manager_events )
-		BrokerComm::auto_event(fmt("%s/manager/response", Cluster::pub_sub_prefix), lookup_ID(e));
-
-	for ( e in Cluster::proxy2worker_events )
-		BrokerComm::auto_event(fmt("%s/worker/response", Cluster::pub_sub_prefix), lookup_ID(e));
+	# Susbscribe to logs
+	BrokerComm::subscribe_to_logs("bro/log/");
 	}

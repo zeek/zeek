@@ -73,6 +73,9 @@ export {
 	global shutdown_request: event();
 	## Message in response to a shutdown request.
 	global shutdown_response: event();
+
+	# Pub-sub prefix for broker communication
+	const pub_sub_prefix : string = "/bro/event/control" &redef;
 }
 
 
@@ -80,3 +83,4 @@ event terminate_event()
 	{
 	terminate_communication();
 	}
+

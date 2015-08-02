@@ -20,7 +20,7 @@ redef Cluster::manager2worker_events += {"Notice::begin_suppression"};
 ## Workers need ability to forward notices to manager.
 redef Cluster::worker2manager_events += {"Notice::cluster_notice"};
 
-@if ( Cluster::local_node_type() != Cluster::MANAGER )
+@if ( ! Cluster::has_local_role(Cluster::MANAGER) )
 event Notice::begin_suppression(n: Notice::Info)
 	{
 	local suppress_until = n$ts + n$suppress_for;
@@ -28,7 +28,7 @@ event Notice::begin_suppression(n: Notice::Info)
 	}
 @endif
 
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
+@if ( Cluster::has_local_role(Cluster::MANAGER) )
 event Notice::cluster_notice(n: Notice::Info)
 	{
 	# Raise remotely received notices on the manager
@@ -45,7 +45,7 @@ function NOTICE(n: Notice::Info)
 	if ( Notice::is_being_suppressed(n) )
 		return;
 
-	if ( Cluster::local_node_type() == Cluster::MANAGER )
+	if ( Cluster::has_local_role(Cluster::MANAGER) )
 		Notice::internal_NOTICE(n);
 	else
 		# For non-managers, send the notice on to the manager.

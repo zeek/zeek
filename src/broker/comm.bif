@@ -109,8 +109,7 @@ event BrokerComm::outgoing_connection_broken%(peer_address: string,
 ##
 ## peer_port: the port used to connect to the peer.
 event BrokerComm::outgoing_connection_incompatible%(peer_address: string,
-                                            peer_port: port,
-											peer_name: string%);
+                                            peer_port: port%);
 
 ## Generated when a peer has established a connection with this process
 ## as a result of previously performing a :bro:see:`BrokerComm::listen`.

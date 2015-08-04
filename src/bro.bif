@@ -2723,14 +2723,51 @@ function hexstr_to_bytestring%(hexstr: string%): string
 
 ## Encodes a Base64-encoded string.
 ##
-## s: The string to encode
+## s: The string to encode.
+##
+## a: The custom alphabet. The empty string indicates the default alphabet. The
+##    length of *a* must be 64. For example, a custom alphabet could be
+##    ``"!#$%&/(),-.:;<>@[]^ `_{|}~abcdefghijklmnopqrstuvwxyz0123456789+?"``.
 ##
 ## Returns: The encoded version of *s*.
 ##
-## .. bro:see:: encode_base64_custom decode_base64
-function encode_base64%(s: string%): string
+## .. bro:see:: encode_base64_intern decode_base64
+function encode_base64%(s: string, a: string &default=""%): string
 	%{
-	BroString* t = encode_base64(s->AsString());
+	BroString* t = encode_base64(s->AsString(), a->AsString());
+	if ( t )
+		return new StringVal(t);
+	else
+		{
+		reporter->Error("error in encoding string %s", s->CheckString());
+		return new StringVal("");
+		}
+	%}
+
+## Encodes a Base64-encoded string.
+##
+## cid: The connection identifier, identifiying the connection which is used to
+##      handle encoding-errors (errors will go to Weird).
+##
+## s: The string to encode.
+##
+## a: The custom alphabet. The empty string indicates the default alphabet. The
+##    length of *a* must be 64. For example, a custom alphabet could be
+##    ``"!#$%&/(),-.:;<>@[]^ `_{|}~abcdefghijklmnopqrstuvwxyz0123456789+?"``.
+##
+## Returns: The encoded version of *s*.
+##
+## .. bro:see:: encode_base64 decode_base64_intern
+function encode_base64_intern%(cid: conn_id, s: string, a: string &default=""%): string
+	%{
+	Connection* conn = sessions->FindConnection(cid);
+	if ( ! conn )
+		{
+		builtin_error("connection ID not a known connection", cid);
+		return new StringVal("");
+		}
+
+	BroString* t = encode_base64(s->AsString(), a->AsString(), conn);
 	if ( t )
 		return new StringVal(t);
 	else
@@ -2742,7 +2779,7 @@ function encode_base64%(s: string%): string
 
 ## Encodes a Base64-encoded string with a custom alphabet.
 ##
-## s: The string to encode
+## s: The string to encode.
 ##
 ## a: The custom alphabet. The empty string indicates the default alphabet. The
 ##    length of *a* must be 64. For example, a custom alphabet could be
@@ -2751,7 +2788,7 @@ function encode_base64%(s: string%): string
 ## Returns: The encoded version of *s*.
 ##
 ## .. bro:see:: encode_base64 decode_base64_custom
-function encode_base64_custom%(s: string, a: string%): string
+function encode_base64_custom%(s: string, a: string%): string &deprecated
 	%{
 	BroString* t = encode_base64(s->AsString(), a->AsString());
 	if ( t )
@@ -2767,12 +2804,49 @@ function encode_base64_custom%(s: string, a: string%): string
 ##
 ## s: The Base64-encoded string.
 ##
+## a: The custom alphabet. The empty string indicates the default alphabet. The
+##    length of *a* must be 64. For example, a custom alphabet could be
+##    ``"!#$%&/(),-.:;<>@[]^ `_{|}~abcdefghijklmnopqrstuvwxyz0123456789+?"``.
+##
 ## Returns: The decoded version of *s*.
 ##
-## .. bro:see:: decode_base64_custom encode_base64
-function decode_base64%(s: string%): string
+## .. bro:see:: decode_base64_intern encode_base64
+function decode_base64%(s: string, a: string &default=""%): string
 	%{
-	BroString* t = decode_base64(s->AsString());
+	BroString* t = decode_base64(s->AsString(), a->AsString());
+	if ( t )
+		return new StringVal(t);
+	else
+		{
+		reporter->Error("error in decoding string %s", s->CheckString());
+		return new StringVal("");
+		}
+	%}
+
+## Decodes a Base64-encoded string.
+##
+## cid: The connection identifier, identifiying the connection which is used to
+##      handle encoding-errors (errors will go to Weird).
+##
+## s: The Base64-encoded string.
+##
+## a: The custom alphabet. The empty string indicates the default alphabet. The
+##    length of *a* must be 64. For example, a custom alphabet could be
+##    ``"!#$%&/(),-.:;<>@[]^ `_{|}~abcdefghijklmnopqrstuvwxyz0123456789+?"``.
+##
+## Returns: The decoded version of *s*.
+##
+## .. bro:see:: decode_base64 encode_base64_intern
+function decode_base64_intern%(cid: conn_id, s: string, a: string &default=""%): string
+	%{
+	Connection* conn = sessions->FindConnection(cid);
+	if ( ! conn )
+		{
+		builtin_error("connection ID not a known connection", cid);
+		return new StringVal("");
+		}
+
+	BroString* t = decode_base64(s->AsString(), a->AsString(), conn);
 	if ( t )
 		return new StringVal(t);
 	else
@@ -2793,7 +2867,7 @@ function decode_base64%(s: string%): string
 ## Returns: The decoded version of *s*.
 ##
 ## .. bro:see:: decode_base64 encode_base64_custom
-function decode_base64_custom%(s: string, a: string%): string
+function decode_base64_custom%(s: string, a: string%): string &deprecated
 	%{
 	BroString* t = decode_base64(s->AsString(), a->AsString());
 	if ( t )

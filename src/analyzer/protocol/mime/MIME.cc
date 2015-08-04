@@ -1116,13 +1116,21 @@ void MIME_Entity::DecodeBase64(int len, const char* data)
 
 void MIME_Entity::StartDecodeBase64()
 	{
+	analyzer::Analyzer* analyzer = message->GetAnalyzer();
+	Connection* conn = 0;
+
 	if ( base64_decoder )
 		{
 		reporter->InternalWarning("previous MIME Base64 decoder not released");
 		delete base64_decoder;
 		}
 
-	base64_decoder = new Base64Converter(message->GetAnalyzer());
+	if( analyzer )
+		conn = analyzer->Conn();
+	else
+		reporter->InternalWarning("no analyzer associated with MIME message");
+
+	base64_decoder = new Base64Converter(conn);
 	}
 
 void MIME_Entity::FinishDecodeBase64()

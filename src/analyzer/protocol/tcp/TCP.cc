@@ -661,6 +661,11 @@ void TCP_Analyzer::UpdateInactiveState(double t,
 				{
 				Weird("connection_originator_SYN_ack");
 				endpoint->SetState(TCP_ENDPOINT_SYN_ACK_SENT);
+				// Roles should be flipped, because [SYN, ACK] is seen from server ==> !is_orig
+				if ( peer->state == TCP_ENDPOINT_INACTIVE )
+					{
+					Conn()->FlipRoles();
+					}
 				}
 			else
 				endpoint->SetState(TCP_ENDPOINT_SYN_SENT);

@@ -258,8 +258,8 @@ Here are the statements that the Bro scripting language supports.
 
 .. bro:keyword:: break
 
-    The "break" statement is used to break out of a :bro:keyword:`switch` or
-    :bro:keyword:`for` statement.
+    The "break" statement is used to break out of a :bro:keyword:`switch`,
+    :bro:keyword:`for`, or :bro:keyword:`while` statement.
 
 
 .. bro:keyword:: delete
@@ -379,10 +379,10 @@ Here are the statements that the Bro scripting language supports.
 
 .. bro:keyword:: next
 
-    The "next" statement can only appear within a :bro:keyword:`for` loop.
-    It causes execution to skip to the next iteration.
+    The "next" statement can only appear within a :bro:keyword:`for` or
+    :bro:keyword:`while` loop.  It causes execution to skip to the next
+    iteration.
 
-    For an example, see the :bro:keyword:`for` statement.
 
 .. bro:keyword:: print
 
@@ -571,7 +571,7 @@ Here are the statements that the Bro scripting language supports.
 
 .. bro:keyword:: while
 
-    A "while" loop iterates over a body statement as long a given
+    A "while" loop iterates over a body statement as long as a given
     condition remains true.
 
     A :bro:keyword:`break` statement can be used at any time to immediately
@@ -609,8 +609,8 @@ Here are the statements that the Bro scripting language supports.
     (outside of the braces) of a compound statement.
 
     A compound statement is required in order to execute more than one
-    statement in the body of a :bro:keyword:`for`, :bro:keyword:`if`, or
-    :bro:keyword:`when` statement.
+    statement in the body of a :bro:keyword:`for`, :bro:keyword:`while`,
+    :bro:keyword:`if`, or :bro:keyword:`when` statement.
 
     Example::
 

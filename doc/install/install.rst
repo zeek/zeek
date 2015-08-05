@@ -32,12 +32,13 @@ before you begin:
     * Libz
     * Bash (for BroControl)
     * Python (for BroControl)
+    * C++ Actor Framework (CAF)         (http://actor-framework.org)
 
 To build Bro from source, the following additional dependencies are required:
 
     * CMake 2.8 or greater              (http://www.cmake.org)
     * Make
-    * C/C++ compiler
+    * C/C++ compiler with C++11 support
     * SWIG                              (http://www.swig.org)
     * Bison (GNU Parser Generator)
     * Flex  (Fast Lexical Analyzer)
@@ -46,8 +47,11 @@ To build Bro from source, the following additional dependencies are required:
     * zlib headers
     * Perl
 
-To install the required dependencies, you can use (when done, make sure
-that ``bash`` and ``python`` are in your ``PATH``):
+.. todo::
+
+    Update with instructions for installing CAF.
+
+To install the required dependencies, you can use:
 
 * RPM/RedHat-based Linux:
 
@@ -68,13 +72,17 @@ that ``bash`` and ``python`` are in your ``PATH``):
 
   .. console::
 
-      sudo pkg_add -r bash cmake swig bison python perl
+      sudo pkg install bash cmake swig bison python perl5 py27-sqlite3
+
+  Note that in older versions of FreeBSD, you might have to use the
+  "pkg_add -r" command instead of "pkg install".
 
 * Mac OS X:
 
-  Compiling source code on Macs requires first downloading Xcode_,
-  then going through its "Preferences..." -> "Downloads" menus to
-  install the "Command Line Tools" component.
+  Compiling source code on Macs requires first installing Xcode_ (in older
+  versions of Xcode, you would then need to go through its
+  "Preferences..." -> "Downloads" menus to install the "Command Line Tools"
+  component).
 
   OS X comes with all required dependencies except for CMake_ and SWIG_.
   Distributions of these dependencies can likely be obtained from your
@@ -94,7 +102,6 @@ build time:
     * curl (used by a Bro script that implements active HTTP)
     * gperftools (tcmalloc is used to improve memory and CPU usage)
     * ipsumdump (for trace-summary; http://www.cs.ucla.edu/~kohler/ipsumdump)
-    * Ruby executable, library, and headers (for Broccoli Ruby bindings)
 
 LibGeoIP is probably the most interesting and can be installed
 on most platforms by following the instructions for :ref:`installing
@@ -113,19 +120,15 @@ Using Pre-Built Binary Release Packages
 =======================================
 
 See the `bro downloads page`_ for currently supported/targeted
-platforms for binary releases.
+platforms for binary releases and for installation instructions.
 
-* RPM
+* Linux Packages
 
-  .. console::
-
-      sudo yum localinstall Bro-*.rpm
-
-* DEB
-
-  .. console::
-
-      sudo gdebi Bro-*.deb
+  Linux based binary installations are usually performed by adding
+  information about the Bro packages to the respective system packaging
+  tool. Then the usual system utilities such as ``apt``, ``yum``
+  or ``zypper`` are used to perform the installation. By default,
+  installations of binary packages will go into ``/opt/bro``.
 
 * MacOS Disk Image with Installer
 
@@ -133,11 +136,9 @@ platforms for binary releases.
   Everything installed by the package will go into ``/opt/bro``.
 
 The primary install prefix for binary packages is ``/opt/bro``.
-Non-MacOS packages that include BroControl also put variable/runtime
-data (e.g. Bro logs) in ``/var/opt/bro``.
 
 Installing from Source
-==========================
+======================
 
 Bro releases are bundled into source packages for convenience and are
 available on the `bro downloads page`_. Alternatively, the latest

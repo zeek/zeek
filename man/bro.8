@@ -51,12 +51,6 @@ add given prefix to policy file resolution
 \fB\-r\fR,\ \-\-readfile <readfile>
 read from given tcpdump file
 .TP
-\fB\-y\fR,\ \-\-flowfile <file>[=<ident>]
-read from given flow file
-.TP
-\fB\-Y\fR,\ \-\-netflow <ip>:<prt>[=<id>]
-read flow from socket
-.TP
 \fB\-s\fR,\ \-\-rulefile <rulefile>
 read rules from given file
 .TP
@@ -78,26 +72,20 @@ run the specified policy file analysis
 \fB\-C\fR,\ \-\-no\-checksums
 ignore checksums
 .TP
-\fB\-D\fR,\ \-\-dfa\-size <size>
-DFA state cache size
-.TP
 \fB\-F\fR,\ \-\-force\-dns
 force DNS
 .TP
 \fB\-I\fR,\ \-\-print\-id <ID name>
 print out given ID
 .TP
+\fB\-J\fR,\ \-\-set\-seed <seed>
+set the random number seed
+.TP
 \fB\-K\fR,\ \-\-md5\-hashkey <hashkey>
 set key for MD5\-keyed hashing
 .TP
-\fB\-L\fR,\ \-\-rule\-benchmark
-benchmark for rules
-.TP
 \fB\-N\fR,\ \-\-print\-plugins
 print available plugins and exit (\fB\-NN\fR for verbose)
-.TP
-\fB\-O\fR,\ \-\-optimize
-optimize policy script
 .TP
 \fB\-P\fR,\ \-\-prime\-dns
 prime DNS
@@ -120,7 +108,7 @@ Record process status in file
 \fB\-W\fR,\ \-\-watchdog
 activate watchdog timer
 .TP
-\fB\-X\fR,\ \-\-broxygen
+\fB\-X\fR,\ \-\-broxygen <cfgfile>
 generate documentation based on config file
 .TP
 \fB\-\-pseudo\-realtime[=\fR<speedup>]
@@ -131,6 +119,19 @@ load seeds from given file
 .TP
 \fB\-\-save\-seeds\fR <file>
 save seeds to given file
+.TP
+The following option is available only when Bro is built with the \-\-enable\-debug configure option:
+.TP
+\fB\-B\fR,\ \-\-debug <dbgstreams>
+Enable debugging output for selected streams ('-B help' for help)
+.TP
+The following options are available only when Bro is built with gperftools support (use the \-\-enable\-perftools and \-\-enable\-perftools\-debug configure options):
+.TP
+\fB\-m\fR,\ \-\-mem-leaks
+show leaks
+.TP
+\fB\-M\fR,\ \-\-mem-profile
+record heap
 .SH ENVIRONMENT
 .TP
 .B BROPATH

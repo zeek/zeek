@@ -280,6 +280,13 @@ function parse_mozilla(unparsed_version: string): Description
 				v = parse(parts[1])$version;
 			}
 		}
+	else if ( /AdobeAIR\/[0-9\.]*/ in unparsed_version )
+		{
+		software_name = "AdobeAIR";
+		parts = split_string_all(unparsed_version, /AdobeAIR\/[0-9\.]*/);
+		if ( 1 in parts )
+			v = parse(parts[1])$version;
+		}
 	else if ( /AppleWebKit\/[0-9\.]*/ in unparsed_version )
 		{
 		software_name = "Unspecified WebKit";

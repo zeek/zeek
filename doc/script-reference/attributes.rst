@@ -173,13 +173,19 @@ Here is a more detailed explanation of each attribute:
 
     Rotates a file after a specified interval.
 
+    Note: This attribute is deprecated and will be removed in a future release.
+
 .. bro:attr:: &rotate_size
 
     Rotates a file after it has reached a given size in bytes.
 
+    Note: This attribute is deprecated and will be removed in a future release.
+
 .. bro:attr:: &encrypt
 
     Encrypts files right before writing them to disk.
+
+    Note: This attribute is deprecated and will be removed in a future release.
 
 .. bro:attr:: &raw_output
 
@@ -229,5 +235,4 @@ Here is a more detailed explanation of each attribute:
 
     The associated identifier is marked as deprecated and will be
     removed in a future version of Bro.  Look in the NEWS file for more
-    explanation and/or instructions to migrate code that uses deprecated
-    functionality.
+    instructions to migrate code that uses deprecated functionality.

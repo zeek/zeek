@@ -2,7 +2,7 @@
 #include <sys/signal.h>
 #include <signal.h>
 
-#include "config.h"
+#include "bro-config.h"
 #include "BasicThread.h"
 #include "Manager.h"
 

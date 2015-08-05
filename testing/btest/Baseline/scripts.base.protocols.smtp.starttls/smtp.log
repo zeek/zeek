@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	smtp
-#open	2014-05-15-17-52-23
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	trans_depth	helo	mailfrom	rcptto	date	from	to	reply_to	msg_id	in_reply_to	subject	x_originating_ip	first_received	second_received	last_reply	path	user_agent	tls	fuids
-#types	time	string	addr	port	addr	port	count	string	string	set[string]	string	string	set[string]	string	string	string	string	addr	string	string	string	vector[addr]	string	bool	vector[string]
-1400168396.898137	CXWv6p3arKYeMETxOg	192.168.4.149	54170	74.125.142.26	25	1	openssl.client.net	-	-	-	-	-	-	-	-	-	-	-	-	220 2.0.0 Ready to start TLS	74.125.142.26,192.168.4.149	-	T	(empty)
-#close	2014-05-15-17-52-23
+#open	2015-07-26-18-36-27
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	trans_depth	helo	mailfrom	rcptto	date	from	to	cc	reply_to	msg_id	in_reply_to	subject	x_originating_ip	first_received	second_received	last_reply	path	user_agent	tls	fuids
+#types	time	string	addr	port	addr	port	count	string	string	set[string]	string	string	set[string]	set[string]	string	string	string	string	addr	string	string	string	vector[addr]	string	bool	vector[string]
+1400168396.898137	CXWv6p3arKYeMETxOg	192.168.4.149	54170	74.125.142.26	25	1	openssl.client.net	-	-	-	-	-	-	-	-	-	-	-	-	-	220 2.0.0 Ready to start TLS	74.125.142.26,192.168.4.149	-	T	(empty)
+#close	2015-07-26-18-36-27

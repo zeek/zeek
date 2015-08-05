@@ -1,0 +1,13 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	files
+#open	2015-07-26-19-20-59
+#fields	ts	fuid	tx_hosts	rx_hosts	conn_uids	source	depth	analyzers	mime_type	filename	duration	local_orig	is_orig	seen_bytes	total_bytes	missing_bytes	overflow_bytes	timedout	parent_fuid
+#types	time	string	set[addr]	set[addr]	set[string]	string	count	set[string]	string	string	interval	bool	bool	count	count	count	count	bool	string
+1254722770.692743	Fel9gs4OtNEV6gUJZ5	10.10.1.4	74.53.140.153	CXWv6p3arKYeMETxOg	SMTP	3	(empty)	text/plain	-	0.000000	-	T	77	-	0	0	F	-
+1254722770.692743	Ft4M3f2yMvLlmwtbq9	10.10.1.4	74.53.140.153	CXWv6p3arKYeMETxOg	SMTP	4	(empty)	text/html	-	0.000061	-	T	1868	-	0	0	F	-
+1254722770.692804	FL9Y0d45OI4LpS6fmh	10.10.1.4	74.53.140.153	CXWv6p3arKYeMETxOg	SMTP	5	(empty)	text/plain	NEWS.txt	1.165512	-	T	10809	-	0	0	F	-
+1437831787.905375	FKX8fw2lEHCTK8syM3	192.168.133.100	192.168.133.102	CRJuHdVW0XPVINV8a	SMTP	1	(empty)	text/plain	-	0.000000	-	T	204	-	0	0	F	-
+#close	2015-07-26-19-20-59

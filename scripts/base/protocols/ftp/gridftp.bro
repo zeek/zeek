@@ -86,7 +86,7 @@ event gridftp_possibility_timeout(c: connection)
 	{
 	# only remove if we did not already detect it and the connection
 	# is not yet at its end.
-	if ( "gridftp-data" !in c$service && ! c$conn?$service )
+	if ( "gridftp-data" !in c$service && ! (c?$conn && c$conn?$service) )
 		{
 		ConnThreshold::delete_bytes_threshold(c, size_threshold, T);
 		ConnThreshold::delete_bytes_threshold(c, size_threshold, F);

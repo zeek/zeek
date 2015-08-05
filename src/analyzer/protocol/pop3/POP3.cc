@@ -137,7 +137,7 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line)
 		++authLines;
 
 		BroString encoded(line);
-		BroString* decoded = decode_base64(&encoded);
+		BroString* decoded = decode_base64(&encoded, 0, this->Conn());
 
 		if ( ! decoded )
 			{

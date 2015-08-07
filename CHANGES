@@ -1,4 +1,17 @@
 
+2.4-78 | 2015-08-06 22:25:19 -0400
+
+  * Remove build dependency on Perl (now requiring Python instad).
+    (Daniel Thayer)
+
+  * CID 1314754: Fixing unreachable code in RSH analyzer. (Robin
+    Sommer)
+
+  * CID 1312752: Add comment to mark 'case' fallthrough as ok. (Robin
+    Sommer)
+
+  * CID 1312751: Removing redundant assignment. (Robin Sommer)
+
 2.4-73 | 2015-07-31 08:53:49 -0700
 
   * BIT-1429: SMTP logs now include CC: addresses. (Albert Zaharovits)

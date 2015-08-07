@@ -16,6 +16,8 @@ New Dependencies
 - Bro now requires the C++ Actor Framework, CAF, which must be
   installed first. See http://actor-framework.org.
 
+- Bro now requires Python instead of Perl to compile the source code.
+
 New Functionality
 -----------------
 

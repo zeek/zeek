@@ -31,6 +31,7 @@ New Functionality
 - New Bro plugins in aux/plugins:
 
     - pf_ring: Native PF_RING support.
+    - redis:   An experimental log writer for Redis.
 
 Bro 2.4
 =======

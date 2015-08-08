@@ -1,4 +1,8 @@
 
+2.4-81 | 2015-08-08 07:38:42 -0700
+
+  * Fix a test that is failing very frequently. (Daniel Thayer)
+
 2.4-78 | 2015-08-06 22:25:19 -0400
 
   * Remove build dependency on Perl (now requiring Python instad).

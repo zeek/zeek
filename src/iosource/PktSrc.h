@@ -101,6 +101,11 @@ public:
 	int SnapLen() const;
 
 	/**
+	 * Returns the buffer size for this source.
+	 */
+	int BufSize() const;
+
+	/**
 	 * In pseudo-realtime mode, returns the logical timestamp of the
 	 * current packet. Undefined if not running pseudo-realtime mode.
 	 */

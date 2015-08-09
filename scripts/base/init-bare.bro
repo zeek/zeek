@@ -3715,6 +3715,9 @@ module GLOBAL;
 ## Number of bytes per packet to capture from live interfaces.
 const snaplen = 8192 &redef;
 
+## Number of bytes for libpcap buffer.
+const bufsize = 128 &redef;
+
 ## Seed for hashes computed internally for probabilistic data structures. Using
 ## the same value here will make the hashes compatible between independent Bro
 ## instances. If left unset, Bro will use a temporary local seed.

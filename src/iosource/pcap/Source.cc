@@ -89,11 +89,53 @@ void PcapSource::OpenLive()
 	// broken on FreeBSD: even when select() indicates that we can read
 	// something, we may get nothing if the store buffer hasn't filled up
 	// yet.)
-	pd = pcap_open_live(props.path.c_str(), SnapLen(), 1, 1, tmp_errbuf);
+	pd = pcap_create(props.path.c_str(), errbuf);
 
 	if ( ! pd )
 		{
-		Error(tmp_errbuf);
+        safe_snprintf(errbuf, sizeof(errbuf), 
+            "pcap_create: %s", pcap_geterr(pd));
+     	Error(errbuf);
+        return;
+        }
+
+    if ( pcap_set_snaplen(pd, SnapLen()) )
+        {
+        safe_snprintf(errbuf, sizeof(errbuf), 
+            "pcap_set_snaplen: %s", pcap_geterr(pd));
+     	Error(errbuf);
+        return;
+        }
+
+    if ( pcap_set_promisc(pd, 1) )
+        {
+        safe_snprintf(errbuf, sizeof(errbuf), 
+            "pcap_set_promisc: %s", pcap_geterr(pd));
+     	Error(errbuf);
+        return;
+        }
+
+    if ( pcap_set_timeout(pd, 1) )
+        {
+        safe_snprintf(errbuf, sizeof(errbuf), 
+            "pcap_set_timeout: %s", pcap_geterr(pd));
+     	Error(errbuf);
+        return;
+        }
+
+    if ( pcap_set_buffer_size(pd, BufSize()) )
+        {
+        safe_snprintf(errbuf, sizeof(errbuf), 
+            "pcap_set_buffer_size: %s", pcap_geterr(pd));
+     	Error(errbuf);
+        return;
+        }
+
+	if ( pcap_activate(pd) )
+		{
+ 		safe_snprintf(errbuf, sizeof(errbuf),
+            "pcap_activate: %s", pcap_geterr(pd));
+     	Error(errbuf);
 		return;
 		}
 

@@ -5,6 +5,13 @@
 
 #include "../PktSrc.h"
 
+#ifdef HAVE_PACKET_FANOUT
+extern bool fanout_enable;
+extern int fanout_id;
+extern int fanout_method;
+extern int fanout_flag;
+#endif
+
 namespace iosource {
 namespace pcap {
 

@@ -84,13 +84,12 @@ void PcapSource::OpenLive()
 		props.netmask = PktSrc::NETMASK_UNKNOWN;
 #endif
 
-	// We use the smallest time-out possible to return almost immediately if
+	// ### We use the smallest time-out possible to return almost immediately if
 	// no packets are available. (We can't use set_nonblocking() as it's
 	// broken on FreeBSD: even when select() indicates that we can read
 	// something, we may get nothing if the store buffer hasn't filled up
 	// yet.)
 	pd = pcap_create(props.path.c_str(), errbuf);
-
 	if ( ! pd )
 		{
         safe_snprintf(errbuf, sizeof(errbuf), 
@@ -159,6 +158,19 @@ void PcapSource::OpenLive()
 	if ( ! pd )
 		// Was closed, couldn't get header size.
 		return;
+
+#ifdef HAVE_PACKET_FANOUT            
+    /* Turn on cluster mode for the device. */
+    if ( fanout_enable )
+        {
+        uint32_t fanout_arg = (fanout_method << 16) | (fanout_id & 0xffff);
+        if (setsockopt(props.selectable_fd, SOL_PACKET, PACKET_FANOUT, &fanout_arg, sizeof(fanout_arg)) == -1)
+            {
+			Error(fmt("%s: setsockopt: %s", __FUNCTION__, strerror(errno)));
+            return;
+            }
+        }
+#endif
 
 	props.is_live = true;
 

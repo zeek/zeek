@@ -3,6 +3,9 @@
 ##! See :doc:`/frameworks/logging` for an introduction to Bro's
 ##! logging framework.
 
+#@load  base/frameworks/notice
+@load base/frameworks/broker
+
 module Log;
 
 export {
@@ -15,11 +18,15 @@ export {
 		UNKNOWN
 	};
 
+	#global flist: set[string] &optional;
+
 	## If true, local logging is by default enabled for all filters.
-	const enable_local_logging = T &redef;
+	#const enable_local_logging = T &redef;
+	global enable_local_logging = T &redef;
 
 	## If true, remote logging is by default enabled for all filters.
-	const enable_remote_logging = T &redef;
+	#const enable_remote_logging = T &redef;
+	global enable_remote_logging = T &redef;
 
 	## Default writer to use if a filter does not specify anything else.
 	const default_writer = WRITER_ASCII &redef;
@@ -92,25 +99,37 @@ export {
 	##
 	## Note that this is overridden by the BroControl LogRotationInterval
 	## option.
-	const default_rotation_interval = 0secs &redef;
+	#const default_rotation_interval = 0secs &redef;
+	global default_rotation_interval = 0secs &redef;
 
 	## Default alarm summary mail interval. Zero disables alarm summary
 	## mails.
 	##
 	## Note that this is overridden by the BroControl MailAlarmsInterval
 	## option.
-	const default_mail_alarms_interval = 0secs &redef;
+	#const default_mail_alarms_interval = 0secs &redef;
+	global default_mail_alarms_interval = 0secs &redef;
 
 	## Default naming format for timestamps embedded into filenames.
 	## Uses a ``strftime()`` style.
 	const default_rotation_date_format = "%Y-%m-%d-%H-%M-%S" &redef;
 
 	## Default shell command to run on rotated files. Empty for none.
-	const default_rotation_postprocessor_cmd = "" &redef;
+	#const default_rotation_postprocessor_cmd = "" &redef;
+	global default_rotation_postprocessor_cmd = "" &redef;
 
 	## Specifies the default postprocessor function per writer type.
 	## Entries in this table are initialized by each writer type.
 	const default_rotation_postprocessors: table[Writer] of function(info: RotationInfo) : bool &redef;
+
+	## Update logging after role change
+	##
+	## llocal: bool that determines if node does local logging
+	## lremote: bool that determines if node does remote logging
+	## rinterval: log rotation interval
+	## minterval: mail alarms interval
+	## pproc: string rotation postprocessors cmd 
+	global update_logging: function(llocal: bool, lremote: bool, rinterval: interval, minterval: interval, pproc: string);
 
 	## A filter type describes how to customize logging streams.
 	type Filter: record {
@@ -292,6 +311,11 @@ export {
 	##              Log::remove_default_filter
 	global get_filter: function(id: ID, name: string) : Filter;
 
+	## Sets broker values for remote logging
+	##
+	## log_remote: A bool that determines if logs should be send remote or not
+	global set_remote_logging: function(log_remote: bool);
+
 	## Writes a new log line/entry to a logging stream.
 	##
 	## id: The ID associated with a logging stream to be written to.
@@ -394,6 +418,7 @@ global all_streams: table[ID] of Stream = table();
 global filters: table[ID, string] of Filter;
 
 @load base/bif/logging.bif # Needs Filter and Stream defined.
+@load base/bif/messaging.bif # Needed for broker 
 
 module Log;
 
@@ -544,4 +569,46 @@ function add_default_filter(id: ID) : bool
 function remove_default_filter(id: ID) : bool
 	{
 	return remove_filter(id, "default");
+	}
+
+function update_logging(llocal: bool, lremote: bool, rinterval: interval, minterval: interval, pproc: string)
+	{
+	enable_local_logging = llocal;
+
+	if(enable_remote_logging != lremote)
+		{
+		for ( [id, name] in filters )
+			if (lremote)
+				BrokerComm::enable_remote_logs(id);
+			else
+				BrokerComm::disable_remote_logs(id);
+
+		enable_remote_logging = lremote;
+		}
+
+	default_rotation_interval = rinterval;
+
+	## Alarm summary mail interval.
+	default_mail_alarms_interval = minterval;
+
+	## Alarm summary mail interval.
+	default_mail_alarms_interval = 24 hrs;
+
+	## Use the cluster's delete-log script.
+	default_rotation_postprocessor_cmd = "delete-log";
+	
+	for ( [id, name] in filters )
+		{
+		#print "local filter val is ", id, filters[id,name]$log_local, filters[id,name]$log_remote;
+		filters[id, name]$log_local=llocal;
+		filters[id, name]$log_remote=lremote;
+		if (fmt("%s", id) == "Notice::ALARM_LOG")
+			filters[id,name]$interv= minterval;
+		else
+			filters[id,name]$interv= rinterval;
+
+		#print "  -> after is ", filters[id,name]$log_local, filters[id,name]$log_remote;
+		__remove_filter(id, name);
+		__add_filter(id, filters[id,name]);
+		}
 	}

@@ -24,7 +24,7 @@ event Control::id_value_request(id: string)
 event Control::peer_status_request()
 	{
 	local status = "";
-    print "peer_status_request received";
+  print "peer_status_request received";
 	for ( p in Communication::nodes )
 		{
 		local peer = Communication::nodes[p];
@@ -46,7 +46,7 @@ event Control::peer_status_request()
 
 event Control::net_stats_request()
 	{
-    print "net_stats_request received";
+  print "net_stats_request received";
 	local ns = net_stats();
 	local reply = fmt("%.6f recvd=%d dropped=%d link=%d\n", network_time(), 
 	                  ns$pkts_recvd, ns$pkts_dropped, ns$pkts_link);
@@ -76,6 +76,16 @@ event Control::shutdown_request()
 event bro_init() &priority=-10
 	{
 	# All nodes need to subscribe to control-related events
-	BrokerComm::subscribe_to_events(fmt("%s/request", Control::pub_sub_prefix));
-	Communication::register_broker_events(fmt("%s/response", Control::pub_sub_prefix), Control::controllee_events);
+	local prefix = fmt("%s/request", Control::pub_sub_prefix);
+	print "subscribe to prefix ", prefix;
+	BrokerComm::subscribe_to_events(prefix);
+	BrokerComm::advertise_topic(prefix);
+
+	print "subscribe to all events with prefix", prefix;
+
+	# Register responses to control events with broker
+	prefix = fmt("%s/response", Control::pub_sub_prefix);
+	BrokerComm::publish_topic(prefix);
+	for ( e in Control::controllee_events )
+		BrokerComm::auto_event(prefix, lookup_ID(e));
 	}

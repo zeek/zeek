@@ -21,11 +21,6 @@ redef Log::default_rotation_postprocessor_cmd = "delete-log";
 
 event bro_init() &priority = -10 
 	{
-	for (p in Cluster::cluster_prefix_set )
-		{
-		BrokerComm::subscribe_to_events(fmt("%s%s/manager/response", Cluster::pub_sub_prefix, p));
-		# Need to publish: manager2worker_events, manager2datanode_events
-		Communication::register_broker_events(fmt("%s%s/worker/request", Cluster::pub_sub_prefix, p), Cluster::manager2worker_events);
-		Communication::register_broker_events(fmt("%s%s/data/request", Cluster::pub_sub_prefix, p), Cluster::manager2datanode_events);
-		}
+	# Set role to be a manager
+	Cluster::set_role_manager();
 	}

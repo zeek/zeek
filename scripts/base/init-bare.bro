@@ -1800,7 +1800,7 @@ const max_timer_expires = 300 &redef;
 
 ## With a similar trade-off, this gives the number of remote events
 ## to process in a batch before interleaving other activity.
-const max_remote_events_processed = 10 &redef;
+global max_remote_events_processed = 10 &redef;
 
 # These need to match the definitions in Login.h.
 #

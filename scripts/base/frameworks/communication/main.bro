@@ -150,12 +150,6 @@ export {
 
 	## Event that signals that we have finished the connection setup to a remote peer
 	global outgoing_connection_established_event: event(peer_name: string);
-
-	## Register events with broker that the local node will publish
-	##
-	## prefix: the broker pub-sub prefix
-	## event_list: a list of events to be published via this prefix
-	global register_broker_events: function(prefix: string, event_list: set[string]);
 }
 
 const src_names = {
@@ -206,12 +200,6 @@ function setup_peer(peer_name: string, node: Node)
     nodes[peer_name] = node;
 	connected_peers[peer_name] = node;
     }
-
-function register_broker_events(prefix: string, event_list: set[string])
-	{
-		for ( e in event_list )
-			BrokerComm::auto_event(prefix, lookup_ID(e));
-	}
 
 event BrokerComm::incoming_connection_established(peer_name: string)
 	{

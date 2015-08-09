@@ -23,23 +23,25 @@ export {
 		message:  string;
 	} &log;
 
-	## Types of nodes that are allowed to participate in the cluster
+	## Roles of nodes that are allowed to participate in the cluster
 	## configuration.
 	type NodeRole: enum {
-		## A dummy node type indicating the local node is not operating
+		## A dummy node role indicating the local node is not operating
 		## within a cluster.
 		NONE,
-		## A node type which is allowed to view/manipulate the configuration
+		## A node role which is allowed to view/manipulate the configuration
 		## of other nodes in the cluster.
 		CONTROL,
-		## A node type responsible for log and policy management.
+		## A node role responsible for log and policy management.
 		MANAGER,
-		## A node type for relaying worker node communication and synchronizing
+		## A node role for relaying worker node communication and synchronizing
 		## worker node state.
 		DATANODE,
-		## The node type doing all the actual traffic analysis.
+		## A node role for storing logs
+		LOGNODE,
+		## The node role doing all the actual traffic analysis.
 		WORKER,
-		## A node type that is part of a deep cluster configuration
+		## A node role that is part of a deep cluster configuration
 		PEER,
 		## A node acting as a traffic recorder using the
 		## `Time Machine <http://bro.org/community/time-machine.html>`_
@@ -60,7 +62,7 @@ export {
 	const datanode2worker_events : set[string] = {} &redef;
 	
 	## Events raised by workers and handled by a manager.
-	const worker2manager_events : set[string] += {} &redef;
+	const worker2manager_events : set[string] = {} &redef;
 	
 	## Events raised by workers and handled by proxies.
 	const worker2datanode_events : set[string] = {} &redef;
@@ -74,7 +76,7 @@ export {
 	## The prefix used for subscribing and publishing events
 	const pub_sub_prefix : string = "/bro/event/cluster" &redef;
 
-	# TODO The IDs of the clusters this node is part of 
+	# The Cluster-IDs of all clusters this node is part of 
 	const cluster_prefix_set : set[string] = {""} &redef;
 
 	## Record type to indicate a node in a cluster.
@@ -110,12 +112,30 @@ export {
 	## Returns: True if :bro:id:`Cluster::node` has been set.
 	global is_enabled: function(): bool;
 	
+
+	## Register events with broker that the local node will publish
+	##
+	## prefix: the broker pub-sub prefix
+	## event_list: a list of events to be published via this prefix
+	global register_broker_events: function(prefix: string, event_list: set[string]);
+
+	## Unregister events with broker that the local node will publish
+	##
+	## prefix: the broker pub-sub prefix
+	## event_list: a list of events to be published via this prefix
+	global unregister_broker_events: function(prefix: string, event_list: set[string]);
+
 	## This function can be called at any time to determine the types of
 	## cluster roles the current Bro instance has.
 	##
 	## Returns: true if local node has that role, false otherwise
 	global has_local_role: function(role: NodeRole): bool;
 	
+	global set_role_manager:function();
+	global set_role_datanode:function();
+	global set_role_lognode:function();
+	global set_role_worker:function();
+
 	## This gives the value for the number of workers currently connected to,
 	## and it's maintained internally by the cluster framework.  It's 
 	## primarily intended for use by managers to find out how many workers 
@@ -141,6 +161,19 @@ function is_enabled(): bool
 	return (node != "");
 	}
 
+function register_broker_events(prefix: string, event_list: set[string])
+	{
+		BrokerComm::publish_topic(prefix);
+		for ( e in event_list )
+			BrokerComm::auto_event(prefix, lookup_ID(e));
+	}
+
+function unregister_broker_events(prefix: string, event_list: set[string])
+	{
+		for ( e in event_list )
+			BrokerComm::auto_event_stop(prefix, lookup_ID(e));
+	}
+
 function has_local_role(role: NodeRole): bool
 	{
 		if (!is_enabled())
@@ -152,18 +185,124 @@ function has_local_role(role: NodeRole): bool
 			return F;
 	}
 
+function set_role_manager()
+	{
+	## 1. Don't do any local logging 
+	## 2. Turn on remote logging
+	## 3. Log rotation interval.
+	## 4. Alarm summary mail interval.
+	## 5. rotation postprocessor: use the cluster's delete-log script.
+	#Log::update_logging(F, T, 24hrs, 24hrs, "delete-log");
+
+	# Subscribe to events and register events with broker for publication by local node
+	for (p in Cluster::cluster_prefix_set )
+		{
+		local prefix = fmt("%s%s/manager/response", pub_sub_prefix, p);
+		BrokerComm::subscribe_to_events(prefix);
+		BrokerComm::advertise_topic(prefix);
+
+		# Need to publish: manager2worker_events, manager2datanode_events
+		register_broker_events(fmt("%s%s/worker/request", pub_sub_prefix, p), manager2worker_events);
+		register_broker_events(fmt("%s%s/data/request", pub_sub_prefix, p), manager2datanode_events);
+		}
+
+	# Logs
+	Log::set_remote_logging(T);
+	}
+
+function set_role_datanode()
+	{
+	## 1. We are the datanode, so do local logging!
+	## 2. Make sure that remote logging is disabled.
+	## 3. Log rotation interval.
+	## 4. Alarm summary mail interval.
+	## 5. rotation postprocessor: use the cluster's delete-log script.
+	#Log::update_logging(T, F, 1hrs, 24hrs, "archive-log");
+
+	# Susbscribe to logs
+	BrokerComm::subscribe_to_logs("bro/log/");
+
+	## We're processing essentially *only* remote events.
+	max_remote_events_processed = 10000;
+
+	# Subscribe to events and register events with broker for publication by local node
+	for (p in Cluster::cluster_prefix_set )
+		{
+		local prefix = fmt("%s%s/data/request", pub_sub_prefix, p);
+		BrokerComm::subscribe_to_events(prefix);
+		BrokerComm::advertise_topic(prefix);
+
+		# Need to publish: datanode2manager_events, datanode2worker_events
+		register_broker_events(fmt("%s%s/manager/response", pub_sub_prefix, p), datanode2manager_events);
+		register_broker_events(fmt("%s%s/worker/response", pub_sub_prefix, p), datanode2worker_events);
+		}
+
+	}
+
+function set_role_lognode()
+	{
+	## 1. We are the datanode, so do local logging!
+	## 2. Make sure that remote logging is disabled.
+	## 3. Log rotation interval.
+	## 4. Alarm summary mail interval.
+	## 5. rotation postprocessor: use the cluster's delete-log script.
+	#Log::update_logging(T, F, 1hrs, 24hrs, "archive-log");
+
+	## Susbscribe to logs
+	BrokerComm::subscribe_to_logs("bro/log/");
+
+	## We're processing essentially *only* remote events.
+	max_remote_events_processed = 10000;
+
+	## Subscribe to events and register events with broker for publication by local node
+	for (p in Cluster::cluster_prefix_set )
+		{
+		local prefix = fmt("%s%s/data/request", pub_sub_prefix, p);
+		BrokerComm::subscribe_to_events(prefix);
+		BrokerComm::advertise_topic(prefix);
+
+		# Need to publish: datanode2manager_events, datanode2worker_events
+		register_broker_events(fmt("%s%s/manager/response", pub_sub_prefix, p), datanode2manager_events);
+		register_broker_events(fmt("%s%s/worker/response", pub_sub_prefix, p), datanode2worker_events);
+		}
+
+	}
+
+function set_role_worker()
+	{
+	## 1. Don't do any local logging.
+	## 2. Make sure that remote logging is enabled.
+	## 3. Log rotation interval
+	## 4. Alarm summary mail interval.
+	## 5. rotation postprocessor: use the cluster's delete-log script.
+	#Log::update_logging(F, T, 24hrs, 24hrs, "delete-log");
+
+	## Subscribe to events and register events with broker for publication by local node
+	for ( p in Cluster::cluster_prefix_set )
+		{
+		local prefix = fmt("%s%s/worker/request", pub_sub_prefix, p);
+		BrokerComm::subscribe_to_events(prefix);
+		BrokerComm::advertise_topic(prefix);
+
+		# Need to publish: worker2manager_events, worker2datanode_events
+		register_broker_events(fmt("%s%s/manager/response", pub_sub_prefix, p), worker2manager_events);
+		register_broker_events(fmt("%s%s/data/response", pub_sub_prefix, p), worker2datanode_events);
+		}
+
+	}
+
 event BrokerComm::incoming_connection_established(peer_name: string)
 	{
 	if ( peer_name in nodes && WORKER in nodes[peer_name]$node_roles)
 		++worker_count;
-	Log::write(Cluster::LOG,[$ts=1, $message="incoming connection established"]);
+	Log::write(Cluster::LOG,[$ts=1, $message="Cluster: incoming connection established"]);
 	}
 
 event BrokerComm::incoming_connection_broken(peer_name: string)
 	{
 	if ( peer_name in nodes && WORKER in nodes[peer_name]$node_roles )
 		--worker_count;
-	Log::write(Cluster::LOG,[$ts=2, $message="incoming connection broken"]);
+	Log::write(Cluster::LOG,[$ts=2, $message="Cluster: incoming connection broken"]);
 	}
 
 event bro_init() &priority=5
@@ -178,9 +317,4 @@ event bro_init() &priority=5
 	BrokerComm::enable();
 
 	Log::create_stream(Cluster::LOG, [$columns=Info, $path="cluster"]);
-
-	# All cluster nodes subscribe to control messages and publish replies to them
-	BrokerComm::subscribe_to_events(fmt("%s/request", Control::pub_sub_prefix));
-	for ( e in Control::controllee_events )
-		BrokerComm::auto_event(fmt("%s/response", Control::pub_sub_prefix), lookup_ID(e));
 	}

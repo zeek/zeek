@@ -71,6 +71,11 @@ int PktSrc::SnapLen() const
 	return snaplen; // That's a global. Change?
 	}
 
+int PktSrc::BufSize() const
+	{
+	return bufsize; // That's a global too. Change?
+	}
+
 bool PktSrc::IsLive() const
 	{
 	return props.is_live;

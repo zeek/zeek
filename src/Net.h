@@ -73,6 +73,9 @@ extern bool using_communication;
 // Snaplen passed to libpcap.
 extern int snaplen;
 
+// Buffer size passed to libpcap.
+extern int bufsize;
+
 extern const Packet* current_pkt;
 extern int current_dispatched;
 extern double current_timestamp;

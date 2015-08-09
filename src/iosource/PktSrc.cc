@@ -73,7 +73,7 @@ int PktSrc::SnapLen() const
 
 int PktSrc::BufSize() const
 	{
-	return bufsize; // That's a global too. Change?
+	return bufsize; // That's a global. Change?
 	}
 
 bool PktSrc::IsLive() const

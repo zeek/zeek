@@ -124,6 +124,13 @@ char* proc_status_file = 0;
 int snaplen = 0;	// this gets set from the scripting-layer's value
 int bufsize = 0;
 
+#ifdef HAVE_PACKET_FANOUT
+bool fanout_enable = false;
+int fanout_id = 0; 
+int fanout_method = PACKET_FANOUT_HASH;
+int fanout_flag = 0;
+#endif
+
 OpaqueType* md5_type = 0;
 OpaqueType* sha1_type = 0;
 OpaqueType* sha256_type = 0;
@@ -991,7 +998,14 @@ int main(int argc, char** argv)
 		}
 
 	snaplen = internal_val("snaplen")->AsCount();
-	bufsize = internal_val("bufsize")->AsCount() * 1024 * 1024;     // Size in Mbytes
+	bufsize = internal_val("bufsize")->AsCount() * 1024 * 1024;
+
+#ifdef HAVE_PACKET_FANOUT
+    fanout_enable = internal_val("Fanout::enable")->AsBool();
+    fanout_id = internal_val("Fanout::id")->AsCount();
+    fanout_method = internal_val("Fanout::method")->AsEnum(); 
+    fanout_flag = internal_val("Fanout::flag")->AsEnum();
+#endif
 
 	if ( dns_type != DNS_PRIME )
 		net_init(interfaces, read_files, writefile, do_watchdog);

@@ -3710,12 +3710,34 @@ export {
 	## external harness and shouldn't output anything to the console.
 	const errors_to_stderr = T &redef;
 }
+
+module Fanout;
+
+type Method: enum {
+    METHOD_HASH = 0,
+    METHOD_LB = 1,
+    METHOD_CPU = 2,
+    METHOD_ROLLOVER = 3
+};
+
+type Flag: enum {
+    FLAG_NONE = 0,
+    FLAG_DEFRAG = 0x8000,
+    FLAG_ROLLOVER = 0x1000
+};
+
+export {
+    const enable = F &redef;
+    const id = 0 &redef;
+    const method = METHOD_HASH &redef;
+    const flag = FLAG_NONE &redef;
+}
 module GLOBAL;
 
 ## Number of bytes per packet to capture from live interfaces.
 const snaplen = 8192 &redef;
 
-## Number of bytes for libpcap buffer.
+## Number of bytes per packet to capture from live interfaces.
 const bufsize = 128 &redef;
 
 ## Seed for hashes computed internally for probabilistic data structures. Using

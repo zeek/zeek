@@ -1,4 +1,16 @@
 
+2.4-84 | 2015-08-10 14:44:39 -0700
+
+  * Add hook 'HookSetupAnalyzerTree' to allow plugins access to a
+    connection's initial analyzer tree for customization. (James
+    Swaro)
+
+  * Plugins now look for a file "__preload__.bro" in the top-level
+    script directory. If found, they load it first, before any scripts
+    defining BiF elements. This can be used to define types that the
+    BiFs already depend on (like a custom type for an event argument).
+    (Robin Sommer)
+
 2.4-81 | 2015-08-08 07:38:42 -0700
 
   * Fix a test that is failing very frequently. (Daniel Thayer)

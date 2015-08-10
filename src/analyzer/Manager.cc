@@ -505,6 +505,8 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 	if ( ! analyzed )
 		conn->SetLifetime(non_analyzed_lifetime);
 
+	PLUGIN_HOOK_VOID(HOOK_SETUP_ANALYZER_TREE, HookSetupAnalyzerTree(conn));
+
 	return true;
 	}
 

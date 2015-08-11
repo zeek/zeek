@@ -129,7 +129,7 @@ export {
 	## rinterval: log rotation interval
 	## minterval: mail alarms interval
 	## pproc: string rotation postprocessors cmd 
-	global update_logging: function(llocal: bool, lremote: bool, rinterval: interval, minterval: interval, pproc: string);
+	global update_logging: function(reset: bool, llocal: bool, lremote: bool, rinterval: interval, minterval: interval, pproc: string);
 
 	## A filter type describes how to customize logging streams.
 	type Filter: record {
@@ -419,6 +419,7 @@ global filters: table[ID, string] of Filter;
 
 @load base/bif/logging.bif # Needs Filter and Stream defined.
 @load base/bif/messaging.bif # Needed for broker 
+@load base/bif/comm.bif # Needed for broker
 
 module Log;
 
@@ -571,43 +572,43 @@ function remove_default_filter(id: ID) : bool
 	return remove_filter(id, "default");
 	}
 
-function update_logging(llocal: bool, lremote: bool, rinterval: interval, minterval: interval, pproc: string)
+function update_logging(reset: bool, llocal: bool, lremote: bool, rinterval: interval, minterval: interval, pproc: string)
 	{
-	enable_local_logging = llocal;
+	enable_local_logging = (!reset && enable_local_logging) || llocal;
+	enable_remote_logging = (!reset && enable_remote_logging) || lremote;
 
-	if(enable_remote_logging != lremote)
-		{
-		for ( [id, name] in filters )
-			if (lremote)
-				BrokerComm::enable_remote_logs(id);
-			else
-				BrokerComm::disable_remote_logs(id);
+	# Set log rotation interval
+	if ( default_rotation_interval == 0secs || default_rotation_interval > rinterval || reset)
+		default_rotation_interval = rinterval;
 
-		enable_remote_logging = lremote;
-		}
+	## Set alarm summary mail interval.
+	if ( default_mail_alarms_interval  == 0secs || default_mail_alarms_interval > minterval || reset)
+		default_mail_alarms_interval = minterval;
 
-	default_rotation_interval = rinterval;
+	## Update postprocessor command for logs
+	if (default_rotation_postprocessor_cmd != "archive-log" || reset)
+		default_rotation_postprocessor_cmd = pproc;
 
-	## Alarm summary mail interval.
-	default_mail_alarms_interval = minterval;
-
-	## Alarm summary mail interval.
-	default_mail_alarms_interval = 24 hrs;
-
-	## Use the cluster's delete-log script.
-	default_rotation_postprocessor_cmd = "delete-log";
-	
 	for ( [id, name] in filters )
 		{
-		#print "local filter val is ", id, filters[id,name]$log_local, filters[id,name]$log_remote;
-		filters[id, name]$log_local=llocal;
-		filters[id, name]$log_remote=lremote;
-		if (fmt("%s", id) == "Notice::ALARM_LOG")
-			filters[id,name]$interv= minterval;
-		else
-			filters[id,name]$interv= rinterval;
+		## Turn on or off remote logs
+		if (enable_remote_logging)
+			{
+			BrokerComm::enable_remote_logs(id);
+			local topic = fmt("bro/log/%s", id);
+			BrokerComm::publish_topic(topic);
+			}
+		else if (BrokerComm::remote_logs_enabled(id))
+			BrokerComm::disable_remote_logs(id);
 
-		#print "  -> after is ", filters[id,name]$log_local, filters[id,name]$log_remote;
+		## Update filter description
+		filters[id, name]$log_local = enable_local_logging;
+		filters[id, name]$log_remote = enable_remote_logging;
+		if (fmt("%s", id) == "Notice::ALARM_LOG")
+			filters[id,name]$interv = default_mail_alarms_interval;
+		else
+			filters[id,name]$interv = default_rotation_interval;
+
 		__remove_filter(id, name);
 		__add_filter(id, filters[id,name]);
 		}

@@ -3,7 +3,7 @@
 ##! to get the desired data from the workers.  This script will be 
 ##! automatically loaded if necessary based on the type of node being started.
 
-@prefixes += cluster-datanode
+@prefixes += cluster-lognode
 
 ## We are the datanode, so do local logging!
 redef Log::enable_local_logging = T;

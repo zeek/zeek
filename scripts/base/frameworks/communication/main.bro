@@ -266,7 +266,6 @@ event BrokerComm::outgoing_connection_incompatible(peer_address: string, peer_po
 event bro_init() &priority=5
 	{
 	Log::create_stream(Communication::LOG, [$columns=Info, $path="communication"]);
-	BrokerComm::enable_remote_logs(Communication::LOG);
 	}
 
 # Actually initiate the connections that need to be established.

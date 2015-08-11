@@ -131,10 +131,14 @@ export {
 	## Returns: true if local node has that role, false otherwise
 	global has_local_role: function(role: NodeRole): bool;
 	
-	global set_role_manager:function();
-	global set_role_datanode:function();
-	global set_role_lognode:function();
-	global set_role_worker:function();
+  ## Assign the local node all its assigned roles
+	global set_local_roles:function(reset: bool);
+
+	## Functions to set the node role dynamically
+	global set_role_manager:function(reset: bool);
+	global set_role_datanode:function(reset: bool);
+	global set_role_lognode:function(reset: bool);
+	global set_role_worker:function(reset: bool);
 
 	## This gives the value for the number of workers currently connected to,
 	## and it's maintained internally by the cluster framework.  It's 
@@ -185,41 +189,64 @@ function has_local_role(role: NodeRole): bool
 			return F;
 	}
 
-function set_role_manager()
+function set_local_roles(reset: bool)
 	{
+	print "set local roles for node ", node;	
+	## If reset is required, reset the node with the first call to a set_role_* function
+	local reset_node = reset;
+	for (r in nodes[node]$node_roles)
+		{
+		print " - role ", r;
+		if (r == Cluster::MANAGER)
+			set_role_manager(reset_node);
+		else if (r == Cluster::DATANODE)
+			set_role_datanode(reset_node);
+		else if (r == Cluster::LOGNODE)
+			set_role_lognode(reset_node);
+		else if (r == Cluster::WORKER)
+			set_role_worker(reset_node);
+		else
+			next;	
+
+		reset_node = F;
+		}
+	}
+
+function set_role_manager(reset: bool)
+	{
+	print " set role manager";
 	## 1. Don't do any local logging 
 	## 2. Turn on remote logging
 	## 3. Log rotation interval.
 	## 4. Alarm summary mail interval.
-	## 5. rotation postprocessor: use the cluster's delete-log script.
-	#Log::update_logging(F, T, 24hrs, 24hrs, "delete-log");
+	## 5. Rotation postprocessor: use the cluster's delete-log script.
+	Log::update_logging(reset, F, T, 24hrs, 24hrs, "delete-log");
 
 	# Subscribe to events and register events with broker for publication by local node
 	for (p in Cluster::cluster_prefix_set )
 		{
+		## Subsribe to prefix
 		local prefix = fmt("%s%s/manager/response", pub_sub_prefix, p);
-		BrokerComm::subscribe_to_events(prefix);
 		BrokerComm::advertise_topic(prefix);
+		BrokerComm::subscribe_to_events(prefix);
 
-		# Need to publish: manager2worker_events, manager2datanode_events
+		## Publish: manager2worker_events, manager2datanode_events
 		register_broker_events(fmt("%s%s/worker/request", pub_sub_prefix, p), manager2worker_events);
 		register_broker_events(fmt("%s%s/data/request", pub_sub_prefix, p), manager2datanode_events);
 		}
-
-	# Logs
-	Log::set_remote_logging(T);
 	}
 
-function set_role_datanode()
+function set_role_datanode(reset: bool)
 	{
 	## 1. We are the datanode, so do local logging!
 	## 2. Make sure that remote logging is disabled.
 	## 3. Log rotation interval.
 	## 4. Alarm summary mail interval.
 	## 5. rotation postprocessor: use the cluster's delete-log script.
-	#Log::update_logging(T, F, 1hrs, 24hrs, "archive-log");
+	Log::update_logging(reset, T, F, 1hrs, 24hrs, "archive-log");
 
 	# Susbscribe to logs
+	BrokerComm::advertise_topic("bro/log/");
 	BrokerComm::subscribe_to_logs("bro/log/");
 
 	## We're processing essentially *only* remote events.
@@ -227,28 +254,32 @@ function set_role_datanode()
 
 	# Subscribe to events and register events with broker for publication by local node
 	for (p in Cluster::cluster_prefix_set )
-		{
+		{ 
+		## Subsribe to prefix
 		local prefix = fmt("%s%s/data/request", pub_sub_prefix, p);
-		BrokerComm::subscribe_to_events(prefix);
 		BrokerComm::advertise_topic(prefix);
+		BrokerComm::subscribe_to_events(prefix);
 
-		# Need to publish: datanode2manager_events, datanode2worker_events
-		register_broker_events(fmt("%s%s/manager/response", pub_sub_prefix, p), datanode2manager_events);
-		register_broker_events(fmt("%s%s/worker/response", pub_sub_prefix, p), datanode2worker_events);
+		## Publish: datanode2manager_events, datanode2worker_events
+		prefix = fmt("%s%s/manager/response", pub_sub_prefix, p);
+		register_broker_events(prefix, datanode2manager_events);
+		prefix = fmt("%s%s/worker/response", pub_sub_prefix, p);
+		register_broker_events(prefix, datanode2worker_events);
 		}
 
 	}
 
-function set_role_lognode()
+function set_role_lognode(reset: bool)
 	{
 	## 1. We are the datanode, so do local logging!
 	## 2. Make sure that remote logging is disabled.
 	## 3. Log rotation interval.
 	## 4. Alarm summary mail interval.
 	## 5. rotation postprocessor: use the cluster's delete-log script.
-	#Log::update_logging(T, F, 1hrs, 24hrs, "archive-log");
+	Log::update_logging(reset, T, F, 1hrs, 24hrs, "archive-log");
 
 	## Susbscribe to logs
+	BrokerComm::advertise_topic("bro/log/");
 	BrokerComm::subscribe_to_logs("bro/log/");
 
 	## We're processing essentially *only* remote events.
@@ -257,36 +288,45 @@ function set_role_lognode()
 	## Subscribe to events and register events with broker for publication by local node
 	for (p in Cluster::cluster_prefix_set )
 		{
+		## Subsribe to prefix
 		local prefix = fmt("%s%s/data/request", pub_sub_prefix, p);
-		BrokerComm::subscribe_to_events(prefix);
 		BrokerComm::advertise_topic(prefix);
+		BrokerComm::subscribe_to_events(prefix);
 
-		# Need to publish: datanode2manager_events, datanode2worker_events
-		register_broker_events(fmt("%s%s/manager/response", pub_sub_prefix, p), datanode2manager_events);
-		register_broker_events(fmt("%s%s/worker/response", pub_sub_prefix, p), datanode2worker_events);
+		## Publish: datanode2manager_events, datanode2worker_events
+		prefix = fmt("%s%s/manager/response", pub_sub_prefix, p);
+		register_broker_events(prefix, datanode2manager_events);
+		prefix = fmt("%s%s/worker/response", pub_sub_prefix, p);
+		register_broker_events(prefix, datanode2worker_events);
 		}
 
 	}
 
-function set_role_worker()
+function set_role_worker(reset: bool)
 	{
+	print " set role worker";
 	## 1. Don't do any local logging.
 	## 2. Make sure that remote logging is enabled.
 	## 3. Log rotation interval
 	## 4. Alarm summary mail interval.
 	## 5. rotation postprocessor: use the cluster's delete-log script.
-	#Log::update_logging(F, T, 24hrs, 24hrs, "delete-log");
+	Log::update_logging(reset, F, T, 24hrs, 24hrs, "delete-log");
+
+	BrokerComm::publish_topic("bro/log/");
 
 	## Subscribe to events and register events with broker for publication by local node
 	for ( p in Cluster::cluster_prefix_set )
 		{
+		## Subsribe to prefix
 		local prefix = fmt("%s%s/worker/request", pub_sub_prefix, p);
-		BrokerComm::subscribe_to_events(prefix);
 		BrokerComm::advertise_topic(prefix);
+		BrokerComm::subscribe_to_events(prefix);
 
-		# Need to publish: worker2manager_events, worker2datanode_events
-		register_broker_events(fmt("%s%s/manager/response", pub_sub_prefix, p), worker2manager_events);
-		register_broker_events(fmt("%s%s/data/response", pub_sub_prefix, p), worker2datanode_events);
+		## Publish: worker2manager_events, worker2datanode_events
+		prefix = fmt("%s%s/manager/response", pub_sub_prefix, p);
+		register_broker_events(prefix, worker2manager_events);
+		prefix = fmt("%s%s/data/response", pub_sub_prefix, p);
+		register_broker_events(prefix, worker2datanode_events);
 		}
 
 	}

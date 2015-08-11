@@ -21,6 +21,6 @@ redef Log::default_rotation_postprocessor_cmd = "delete-log";
 
 event bro_init() &priority = -10 
 	{
-	# Set role to be a manager
-	Cluster::set_role_manager();
+	# Set local role 
+	Cluster::set_local_roles(T);
 	}

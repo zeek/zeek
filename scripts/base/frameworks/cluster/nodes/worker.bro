@@ -25,5 +25,6 @@ redef record_all_packets = T;
 
 event bro_init() &priority = -10 
 	{
-	Cluster::set_role_worker();
+	# Set local role 
+	Cluster::set_local_roles(T);
 	}

@@ -1,6 +1,6 @@
 
 This document summarizes the most important changes in the current Bro
-release. For an exhaustive list of changes, see the ``CHANGES`` file
+release. For an exhaustive list of changes, see the [CHANGES](CHANGES) file
 (note that submodules, such as BroControl and Broccoli, come with
 their own ``CHANGES``.)
 

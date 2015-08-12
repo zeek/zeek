@@ -3572,7 +3572,7 @@ const trace_output_file = "";
 ## analysis triggers a crash.
 ##
 ## .. bro:see:: trace_output_file
-const record_all_packets = F &redef;
+global record_all_packets = F &redef;
 
 ## Ignore certain TCP retransmissions for :bro:see:`conn_stats`.  Some
 ## connections (e.g., SSH) retransmit the acknowledged last byte to keep the

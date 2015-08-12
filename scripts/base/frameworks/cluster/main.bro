@@ -8,6 +8,7 @@
 
 @load base/frameworks/control
 @load base/frameworks/logging
+@load misc/trim-trace-file
 
 module Cluster;
 
@@ -111,7 +112,6 @@ export {
 	##
 	## Returns: True if :bro:id:`Cluster::node` has been set.
 	global is_enabled: function(): bool;
-	
 
 	## Register events with broker that the local node will publish
 	##
@@ -214,7 +214,6 @@ function set_local_roles(reset: bool)
 
 function set_role_manager(reset: bool)
 	{
-	print " set role manager";
 	## 1. Don't do any local logging 
 	## 2. Turn on remote logging
 	## 3. Log rotation interval.
@@ -266,7 +265,6 @@ function set_role_datanode(reset: bool)
 		prefix = fmt("%s%s/worker/response", pub_sub_prefix, p);
 		register_broker_events(prefix, datanode2worker_events);
 		}
-
 	}
 
 function set_role_lognode(reset: bool)
@@ -299,20 +297,16 @@ function set_role_lognode(reset: bool)
 		prefix = fmt("%s%s/worker/response", pub_sub_prefix, p);
 		register_broker_events(prefix, datanode2worker_events);
 		}
-
 	}
 
 function set_role_worker(reset: bool)
 	{
-	print " set role worker";
 	## 1. Don't do any local logging.
 	## 2. Make sure that remote logging is enabled.
 	## 3. Log rotation interval
 	## 4. Alarm summary mail interval.
 	## 5. rotation postprocessor: use the cluster's delete-log script.
 	Log::update_logging(reset, F, T, 24hrs, 24hrs, "delete-log");
-
-	BrokerComm::publish_topic("bro/log/");
 
 	## Subscribe to events and register events with broker for publication by local node
 	for ( p in Cluster::cluster_prefix_set )
@@ -329,6 +323,13 @@ function set_role_worker(reset: bool)
 		register_broker_events(prefix, worker2datanode_events);
 		}
 
+	## Record all packets into trace file.
+	##
+	## Note that this only indicates that *if* we are recording packets, we want all
+	## of them (rather than just those the core deems sufficiently important).
+	## Setting this does not turn recording on. Use '-w <trace>' for that.
+  TrimTraceFile::startTrimTraceFile();
+	record_all_packets = T;
 	}
 
 event BrokerComm::incoming_connection_established(peer_name: string)
@@ -357,4 +358,10 @@ event bro_init() &priority=5
 	BrokerComm::enable();
 
 	Log::create_stream(Cluster::LOG, [$columns=Info, $path="cluster"]);
+	}
+
+event bro_init() &priority=-10
+	{
+	## set roles of local node
+	set_local_roles(T);
 	}

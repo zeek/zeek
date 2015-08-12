@@ -594,9 +594,9 @@ function update_logging(reset: bool, llocal: bool, lremote: bool, rinterval: int
 		## Turn on or off remote logs
 		if (enable_remote_logging)
 			{
-			BrokerComm::enable_remote_logs(id);
 			local topic = fmt("bro/log/%s", id);
 			BrokerComm::publish_topic(topic);
+			BrokerComm::enable_remote_logs(id);
 			}
 		else if (BrokerComm::remote_logs_enabled(id))
 			BrokerComm::disable_remote_logs(id);

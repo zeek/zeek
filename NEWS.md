@@ -28,7 +28,7 @@ New Functionality
   information. Use with care, generating events per packet is
   expensive.
 
-- New Bro plugins in aux/plugins):
+- New Bro plugins in aux/plugins:
 
     - pf_ring: Native PF_RING support.
     - redis:   An experimental log writer for Redis.

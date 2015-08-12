@@ -15,7 +15,7 @@ You can download source and binary releases on:
 To get the current development version, clone our master git
 repository:
 
-  [git clone --recursive git://git.bro.org/bro](git clone --recursive git://git.bro.org/bro)
+    git clone --recursive git://git.bro.org/bro
 
 For more documentation, research publications, and community contact
 information, please see Bro's home page:

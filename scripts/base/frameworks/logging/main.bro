@@ -394,6 +394,8 @@ global all_streams: table[ID] of Stream = table();
 global filters: table[ID, string] of Filter;
 
 @load base/bif/logging.bif # Needs Filter and Stream defined.
+@load base/bif/messaging.bif # Needed for broker 
+@load base/bif/comm.bif # Needed for broker
 
 module Log;
 
@@ -475,6 +477,13 @@ function create_stream(id: ID, stream: Stream) : bool
 
 	active_streams[id] = stream;
 	all_streams[id] = stream;
+
+	if(enable_remote_logging)
+		{
+		BrokerComm::enable_remote_logs(id);
+		local topic = fmt("bro/log/%s", id);
+		BrokerComm::publish_topic(topic);
+		}
 
 	return add_default_filter(id);
 	}

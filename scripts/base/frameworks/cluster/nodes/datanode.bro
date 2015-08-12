@@ -25,14 +25,20 @@ redef max_remote_events_processed = 10000;
 
 event bro_init() &priority = -10 
 	{
-	# Subscribe to events and register events with broker for publication by local node
-	for (p in Cluster::cluster_prefix_set )
-		{
-		BrokerComm::subscribe_to_events(fmt("%s%s/data/request", Cluster::pub_sub_prefix, p));
-		# Need to publish: datanode2manager_events, datanode2worker_events
-		Communication::register_broker_events(fmt("%s%s/manager/response", Cluster::pub_sub_prefix, p), Cluster::datanode2manager_events);
-		Communication::register_broker_events(fmt("%s%s/worker/response", Cluster::pub_sub_prefix, p), Cluster::datanode2worker_events);
-		}
+	# Susbscribe to logs
+	BrokerComm::advertise_topic("bro/log/");
+	BrokerComm::subscribe_to_logs("bro/log/");
+
+	## Subscribe to prefix
+	local prefix = fmt("%s/data/request", Cluster::pub_sub_prefix);
+	BrokerComm::advertise_topic(prefix);
+	BrokerComm::subscribe_to_events(prefix);
+
+	## Publish: datanode2manager_events, datanode2worker_events
+	prefix = fmt("%s/manager/response", Cluster::pub_sub_prefix);
+	Cluster::register_broker_events(prefix, Cluster::datanode2manager_events);
+	prefix = fmt("%s/worker/response", Cluster::pub_sub_prefix);
+	Cluster::register_broker_events(prefix, Cluster::datanode2worker_events);
 
 	# Susbscribe to logs
 	BrokerComm::subscribe_to_logs("bro/log/");

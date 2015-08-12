@@ -11,11 +11,11 @@ export {
 	## Change communication behavior.
 	type EndpointFlags: record {
 		## Whether to restrict message topics that can be published to peers.
-		auto_publish: bool &default = T;
+		auto_publish: bool &default = F;
 		## Whether to restrict what message topics or data store identifiers
 		## the local endpoint advertises to peers (e.g. subscribing to
 		## events or making a master data store available).
-		auto_advertise: bool &default = T;
+		auto_advertise: bool &default = F;
 	};
 
 	## Fine-grained tuning of communication behavior for a particular message.

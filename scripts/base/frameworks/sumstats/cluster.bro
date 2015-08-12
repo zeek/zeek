@@ -59,7 +59,7 @@ export {
 redef Cluster::manager2worker_events += {"SumStats::cluster_ss_request", "SumStats::cluster_get_result", "SumStats::cluster_threshold_crossed", "SumStats::get_a_key"};
 redef Cluster::worker2manager_events += {"SumStats::cluster_send_result", "SumStats::cluster_key_intermediate_response", "SumStats::send_a_key", "SumStats::send_no_key"};
 
-@if ( ! Cluster::has_local_role(Cluster::MANAGER) )
+@if ( Cluster::local_node_type() != Cluster::MANAGER )
 # This variable is maintained to know what keys have recently sent as
 # intermediate updates so they don't overwhelm their manager. The count that is
 # yielded is the number of times the percentage threshold has been crossed and
@@ -205,7 +205,7 @@ function request_key(ss_name: string, key: Key): Result
 @endif
 
 
-@if ( Cluster::has_local_role(Cluster::MANAGER) )
+@if ( Cluster::local_node_type() == Cluster::MANAGER )
 
 # This variable is maintained by manager nodes as they collect and aggregate
 # results.

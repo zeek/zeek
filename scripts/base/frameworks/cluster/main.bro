@@ -25,7 +25,7 @@ export {
 
 	## Types of nodes that are allowed to participate in the cluster
 	## configuration.
-	type NodeRole: enum {
+	type NodeType: enum {
 		## A dummy node type indicating the local node is not operating
 		## within a cluster.
 		NONE,
@@ -81,7 +81,7 @@ export {
 	type Node: record {
 		## Identifies the type of cluster node in this node's configuration.
 		## Roles of a node
-		node_roles: set[NodeRole];
+		node_type: NodeType;
 		## The IP address of the cluster node.
 		ip:           addr;
 		## If the *ip* field is a non-global IPv6 address, this field
@@ -110,12 +110,20 @@ export {
 	## Returns: True if :bro:id:`Cluster::node` has been set.
 	global is_enabled: function(): bool;
 	
-	## This function can be called at any time to determine the types of
-	## cluster roles the current Bro instance has.
+	## This function can be called at any time to determine what type of
+	## cluster node the current Bro instance is going to be acting as.
+	## If :bro:id:`Cluster::is_enabled` returns false, then
+	## :bro:enum:`Cluster::NONE` is returned.
 	##
-	## Returns: true if local node has that role, false otherwise
-	global has_local_role: function(role: NodeRole): bool;
-	
+	## Returns: The :bro:type:`Cluster::NodeType` the calling node acts as.
+	global local_node_type: function(): NodeType;	
+
+	## Register events with broker that the local node will publish
+	##
+	## prefix: the broker pub-sub prefix
+	## event_list: a list of events to be published via this prefix
+	global register_broker_events: function(prefix: string, event_list: set[string]);
+
 	## This gives the value for the number of workers currently connected to,
 	## and it's maintained internally by the cluster framework.  It's 
 	## primarily intended for use by managers to find out how many workers 
@@ -141,27 +149,28 @@ function is_enabled(): bool
 	return (node != "");
 	}
 
-function has_local_role(role: NodeRole): bool
+function local_node_type(): NodeType
 	{
-		if (!is_enabled())
-			return F;
+	return is_enabled() ? nodes[node]$node_type : NONE;
+	}
 
-		if ( role in nodes[node]$node_roles )
-			return T;
-		else
-			return F;
+function register_broker_events(prefix: string, event_list: set[string])
+	{
+	BrokerComm::publish_topic(prefix);
+	for ( e in event_list )
+		BrokerComm::auto_event(prefix, lookup_ID(e));
 	}
 
 event BrokerComm::incoming_connection_established(peer_name: string)
 	{
-	if ( peer_name in nodes && WORKER in nodes[peer_name]$node_roles)
+	if ( peer_name in nodes && nodes[peer_name]$node_type == WORKER )
 		++worker_count;
 	Log::write(Cluster::LOG,[$ts=1, $message="incoming connection established"]);
 	}
 
 event BrokerComm::incoming_connection_broken(peer_name: string)
 	{
-	if ( peer_name in nodes && WORKER in nodes[peer_name]$node_roles )
+	if ( peer_name in nodes && nodes[peer_name]$node_type == WORKER )
 		--worker_count;
 	Log::write(Cluster::LOG,[$ts=2, $message="incoming connection broken"]);
 	}

@@ -42,7 +42,7 @@ export {
 
 @if ( Cluster::is_enabled() )
 
-@if ( Cluster::has_local_role(Cluster::MANAGER) )
+@if ( Cluster::local_node_type() == Cluster::MANAGER )
 
 event bro_init() &priority=5
 	{
@@ -55,7 +55,7 @@ event bro_init() &priority=5
 		local this_node = Cluster::nodes[n];
 
 		# Only workers!
-		if ( Cluster::WORKER !in this_node$node_roles != Cluster::WORKER ||
+		if ( this_node$node_type != Cluster::WORKER ||
 		     ! this_node?$interface )
 			next;
 
@@ -70,7 +70,7 @@ event bro_init() &priority=5
 	for ( no in Cluster::nodes )
 		{
 		local that_node = Cluster::nodes[no];
-		if ( Cluster::WORKER in that_node$node_roles &&
+		if ( that_node$node_type == Cluster::WORKER &&
 		     that_node?$interface && [that_node$ip, that_node$interface] in worker_ip_interface )
 			{
 			if ( [that_node$ip, that_node$interface] !in lb_proc_track )
@@ -112,7 +112,7 @@ event bro_init() &priority=5
 @endif
 
 
-@if ( Cluster::has_local_role(Cluster::WORKER) )
+@if ( Cluster::local_node_type() == Cluster::WORKER )
 
 #event LoadBalancing::send_filter(for_node: string, filter: string)
 event remote_capture_filter(p: event_peer, filter: string)

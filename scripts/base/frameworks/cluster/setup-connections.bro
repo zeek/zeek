@@ -11,17 +11,17 @@ module Cluster;
 function process_node_manager(i: string, n: Cluster::Node, me: Cluster::Node)
 	{
 
-	if ( WORKER in n$node_roles && n$manager == node )
+	if ( n$node_type == WORKER && n$manager == node )
 		Communication::nodes[i] =
 		    [$host=n$ip, $zone_id=n$zone_id, $connect=F,
 		     $class=i, $request_logs=T];
 			
-	if ( DATANODE in n$node_roles && n$manager == node )
+	if ( n$node_type == DATANODE && n$manager == node )
 		Communication::nodes[i] =
 		    [$host=n$ip, $zone_id=n$zone_id, $connect=F,
 		     $class=i, $request_logs=T];
 				
-	if ( TIME_MACHINE in n$node_roles && me?$time_machine && me$time_machine == i )
+	if ( n$node_type == TIME_MACHINE && me?$time_machine && me$time_machine == i )
 		Communication::nodes["time-machine"] = [$host=nodes[i]$ip,
 		                                        $zone_id=nodes[i]$zone_id,
 		                                        $p=nodes[i]$p,
@@ -31,14 +31,14 @@ function process_node_manager(i: string, n: Cluster::Node, me: Cluster::Node)
 function process_node_datanode(i: string, n: Cluster::Node, me: Cluster::Node)
 	{
 
-	if ( WORKER in n$node_roles && n$datanode == node )
+	if ( n$node_type == WORKER && n$datanode == node )
 		Communication::nodes[i] =
 			[$host=n$ip, $zone_id=n$zone_id, $connect=F, $class=i];
 		
 	# accepts connections from the previous one. 
 	# (This is not ideal for setups with many proxies)
 	# FIXME: Once we're using multiple proxies, we should also figure out some $class scheme ...
-	if ( DATANODE in n$node_roles )
+	if ( n$node_type == DATANODE )
 		{
 		if ( n?$datanode)
 			Communication::nodes[i]
@@ -49,7 +49,7 @@ function process_node_datanode(i: string, n: Cluster::Node, me: Cluster::Node)
 		}
 			
 	# Finally the manager, to send status updates to.
-	if ( MANAGER in n$node_roles && me$manager == i )
+	if ( n$node_type == MANAGER && me$manager == i )
 		## i = manager 
 		Communication::nodes[i] = [$host=nodes[i]$ip, 
 	                               $zone_id=nodes[i]$zone_id, 
@@ -61,7 +61,7 @@ function process_node_datanode(i: string, n: Cluster::Node, me: Cluster::Node)
 function process_node_worker(i: string, n: Cluster::Node, me: Cluster::Node)
 	{
 
-	if ( MANAGER in n$node_roles && me$manager == i )
+	if ( n$node_type == MANAGER && me$manager == i )
 		## i = manager 
 		Communication::nodes[i] = [$host=nodes[i]$ip, 
 		                           $zone_id=nodes[i]$zone_id,
@@ -69,7 +69,7 @@ function process_node_worker(i: string, n: Cluster::Node, me: Cluster::Node)
 		                           $connect=T, $retry=1mins, 
 		                           $class=node];
 			
-	if ( DATANODE in n$node_roles && me$datanode == i )
+	if ( n$node_type == DATANODE && me$datanode == i )
 		## i = datanode 
 		Communication::nodes[i] = [$host=nodes[i]$ip, 
 		                           $zone_id=nodes[i]$zone_id,
@@ -77,7 +77,7 @@ function process_node_worker(i: string, n: Cluster::Node, me: Cluster::Node)
 		                           $connect=T, $retry=1mins, 
 		                           $class=node];
 			
-	if ( TIME_MACHINE in n$node_roles && 
+	if ( n$node_type == TIME_MACHINE && 
 	     me?$time_machine && me$time_machine == i )
 		Communication::nodes["time-machine"] = [$host=nodes[i]$ip, 
 		                                        $zone_id=nodes[i]$zone_id,
@@ -90,15 +90,15 @@ function process_node(i: string, n: Cluster::Node, me: Cluster::Node)
 	{
 		# Connections from the control node for runtime control
 		# Every node in a cluster is eligible for control from this host.
-		if ( CONTROL in n$node_roles )
+		if ( n$node_type == CONTROL)
 			Communication::nodes["control"] = [$host=n$ip, $zone_id=n$zone_id,
 			                                   $connect=F, $class="control"];
 
-		if ( MANAGER in me$node_roles )
+		if ( me$node_type == MANAGER )
 			process_node_manager(i, n, me);
-		else if ( DATANODE in me$node_roles )
+		else if ( me$node_type == DATANODE )
 			process_node_datanode(i, n, me);
-		else if ( WORKER in me$node_roles )
+		else if ( me$node_type == WORKER )
 			process_node_worker(i, n, me);
 	}
 

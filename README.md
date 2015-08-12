@@ -10,17 +10,17 @@ Please see COPYING for licensing information.
 
 You can download source and binary releases on:
 
-    http://www.bro.org/download
+    [http://www.bro.org/download](http://www.bro.org/download)
 
 To get the current development version, clone our master git
 repository:
 
-    git clone --recursive git://git.bro.org/bro
+    [git clone --recursive git://git.bro.org/bro](git clone --recursive git://git.bro.org/bro)
 
 For more documentation, research publications, and community contact
 information, please see Bro's home page:
 
-    http://www.bro.org
+    [http://www.bro.org](http://www.bro.org)
 
 
 On behalf of the Bro Development Team,

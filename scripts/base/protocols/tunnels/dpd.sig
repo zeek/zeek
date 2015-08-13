@@ -9,6 +9,6 @@ signature dpd_ayiya {
 
 signature dpd_teredo {
   ip-proto = udp
-  payload /^(\x00\x00)|(\x00\x01)|([\x60-\x6f])/
+  payload /^(\x00\x00)|(\x00\x01)|([\x60-\x6f].{7}((\x20\x01\x00\x00)).{28})|([\x60-\x6f].{23}((\x20\x01\x00\x00))).{12}/
   enable "teredo"
 }

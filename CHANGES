@@ -1,4 +1,8 @@
 
+2.4-86 | 2015-08-12 17:02:24 -0700
+
+  * Make Teredo DPD signature more precise. (Martina Balint.)
+
 2.4-84 | 2015-08-10 14:44:39 -0700
 
   * Add hook 'HookSetupAnalyzerTree' to allow plugins access to a

@@ -3662,20 +3662,11 @@ export {
 	## Toggle whether to do GRE decapsulation.
 	const enable_gre = T &redef;
 
-	## With this option set, the Teredo analysis will first check to see if
-	## other protocol analyzers have confirmed that they think they're
-	## parsing the right protocol and only continue with Teredo tunnel
-	## decapsulation if nothing else has yet confirmed.  This can help
-	## reduce false positives of UDP traffic (e.g. DNS) that also happens
-	## to have a valid Teredo encapsulation.
-	const yielding_teredo_decapsulation = T &redef;
-
 	## With this set, the Teredo analyzer waits until it sees both sides
 	## of a connection using a valid Teredo encapsulation before issuing
 	## a :bro:see:`protocol_confirmation`.  If it's false, the first
 	## occurrence of a packet with valid Teredo encapsulation causes a
-	## confirmation.  Both cases are still subject to effects of
-	## :bro:see:`Tunnel::yielding_teredo_decapsulation`.
+	## confirmation.
 	const delay_teredo_confirmation = T &redef;
 
 	## With this set, the GTP analyzer waits until the most-recent upflow

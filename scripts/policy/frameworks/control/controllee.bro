@@ -28,11 +28,9 @@ event Control::peer_status_request()
 	for ( p in Communication::nodes )
 		{
 		local peer = Communication::nodes[p];
-        print " next peer is ", p;
 		if ( ! peer$connected )
 			next;
 
-        print " we are connected to ", p;
 		local res = resource_usage();
 		status += fmt("%.6f peer=%s host=%s events_in=%s events_out=%s ops_in=%s ops_out=%s bytes_in=? bytes_out=?\n",
 					network_time(),

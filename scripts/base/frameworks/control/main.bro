@@ -24,11 +24,11 @@ export {
 
 	## Events that need to be handled by controllers.
 	#const controller_events = /Control::.*_request/ &redef;
-	const controller_events : set[string] = {"Control::id_value_request", "Control::peer_status_request", "Control::net_stats_request", "Control::configuration_update_request", "Control::shutdown_request"} &redef;
+	const controller_events : set[string] += {"Control::id_value_request", "Control::peer_status_request", "Control::net_stats_request", "Control::configuration_update_request", "Control::shutdown_request"} &redef;
 	
 	## Events that need to be handled by controllees.
 	#const controllee_events = /Control::.*_response/ &redef;
-	const controllee_events : set[string] = {"Control::id_value_response", "Control::peer_status_response", "Control::net_stats_response", "Control::configuration_update_response", "Control::shutdown_response"} &redef;
+	const controllee_events : set[string] += {"Control::id_value_response", "Control::peer_status_response", "Control::net_stats_response", "Control::configuration_update_response", "Control::shutdown_response"} &redef;
 
 	## The commands that can currently be given on the command line for
 	## remote control.

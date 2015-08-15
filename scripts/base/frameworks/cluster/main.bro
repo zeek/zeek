@@ -74,6 +74,9 @@ export {
 	## Events raised by TimeMachine instances and handled by workers.
 	const tm2worker_events : set[string] = {} &redef;
 	
+	## Add events for adding new nodes and removing old nodes
+	redef Control::controllee_events: set[string] += {"Cluster::add_cluster_node", "Cluster::remove_cluster_node"};
+
 	## The prefix used for subscribing and publishing events
 	const pub_sub_prefix : string = "/bro/event/cluster" &redef;
 
@@ -84,7 +87,7 @@ export {
 	type Node: record {
 		## Identifies the type of cluster node in this node's configuration.
 		## Roles of a node
-		node_roles: set[NodeRole];
+		node_roles: 	set[NodeRole];
 		## The IP address of the cluster node.
 		ip:           addr;
 		## If the *ip* field is a non-global IPv6 address, this field
@@ -98,7 +101,7 @@ export {
 		## Name of the manager node this node uses.  For workers and proxies.
 		manager:      string      &optional;
 		## Name of the datanode this node uses.  For workers and managers.
-		datanode:        string      &optional;
+		datanode:     string      &optional;
 		## Names of worker nodes that this node connects with.
 		## For managers and proxies.
 		workers:      set[string] &optional;
@@ -107,6 +110,14 @@ export {
 
 	};
 	
+	## Process the cluster-layout entry and add entries to Communication::nodes
+	##
+	## name: the name of the node
+	global process_node: function(name: string);
+	global process_node_manager: function(name: string);
+	global process_node_datanode: function(name: string);
+	global process_node_worker: function(name: string);
+
 	## This function can be called at any time to determine if the cluster
 	## framework is being enabled for this run.
 	##
@@ -132,6 +143,9 @@ export {
 	global has_local_role: function(role: NodeRole): bool;
 	
   ## Assign the local node all its assigned roles
+	##
+	## reset: bool that determins if roles are assigned on the existing state (OR)
+	##	or if roles are assigned to a fresh initial state
 	global set_local_roles:function(reset: bool);
 
 	## Functions to set the node role dynamically
@@ -139,6 +153,54 @@ export {
 	global set_role_datanode:function(reset: bool);
 	global set_role_lognode:function(reset: bool);
 	global set_role_worker:function(reset: bool);
+
+	## Helper function
+	##
+	## string of NodeRoles as input, 
+	## returns the node roles as a set of enums
+	global get_roles_enum: function(roles: string): set[NodeRole];
+
+	## Helper function
+	##
+	## String as input that is separated by commas
+	## Returns a set of strings
+	global get_set: function(st: string): set[string];
+
+	## Compares two enum sets with each other
+	##
+	## set1: ste of NodeRoles
+	## set2: ste of NodeRoles
+	## return bool
+	global enum_set_eq: function(set1: set[NodeRole], set2: set[NodeRole]): bool;
+
+	## Compares to sets of strings with each other
+	##
+	## set1: see of strings 
+	## set2: see of  stringsb
+	## return bool
+	global string_set_eq: function(set1: set[string], set2: set[string]): bool;
+
+	## Add an additional node dynamically to an cluster
+	## 
+	## name: 			name of the node
+	## roles: 		supported roles by the node
+	## ip: 				ip of the node
+	## zone_id: 	zone_id of the node
+	## p: 				port this node listens on
+	## interface:	interface this node monitors
+	## manager: 	responsible manager node
+	## datanode: 	responsible datanode
+	global add_cluster_node: event(name: string, roles: string, ip: string, zone_id: string, p: string, interface: string, manager: string, workers: string, datanode: string);
+
+	## Remove a node dynamically from a cluster
+	##
+	## name: the name of the node
+	global remove_cluster_node: event(name: string);
+
+	## Event that node information has been updated
+	##
+	## node_name: the name of the updated node
+	global node_updated: event(node_name: string);
 
 	## This gives the value for the number of workers currently connected to,
 	## and it's maintained internally by the cluster framework.  It's 
@@ -156,9 +218,63 @@ export {
 	## of the cluster that is started up.
 	const node = getenv("CLUSTER_NODE") &redef;
 
-	# Set the correct name of this endpoint according to cluster-layout
+	## Set the correct name of this endpoint according to cluster-layout
 	redef BrokerComm::endpoint_name = node;
 }
+
+function get_set(st: string): set[string]
+	{
+	local node_set: set[string];
+	local node_vec = split_string(st, /(, )/);
+	for (s in node_vec)
+		{
+		local s2 = strip(node_vec[s]);
+		add node_set[s2];
+		}
+		return node_set;
+	}
+
+function get_roles_enum(roles: string): set[NodeRole]
+	{
+	## Get roles of this node as enums! 
+	local node_r: set[NodeRole];
+	if ( strstr(roles, "Cluster::MANAGER") != 0 )  
+		add node_r[Cluster::MANAGER];
+	if( strstr(roles, "Cluster::DATANODE") != 0 )
+		add node_r[Cluster::DATANODE];
+	if ( strstr(roles, "Cluster::LOGNODE") != 0 )
+		add node_r[Cluster::LOGNODE];
+	if( strstr(roles, "Cluster::WORKER") != 0 )
+		add node_r[Cluster::WORKER];
+
+	return node_r;
+	}
+
+function enum_set_eq(set1: set[NodeRole], set2: set[NodeRole]): bool
+	{
+	if(|set1| != |set2|)
+		return F;
+	else
+		{
+		for (e in set1)
+			if(! (e in set2) )
+				return F;
+		}
+	return T;
+	}
+
+function string_set_eq(set1: set[string], set2: set[string]): bool
+	{
+	if(|set1| != |set2|)
+		return F;
+	else
+		{
+		for (e in set1)
+			if(! (e in set2) )
+				return F;
+		}
+	return T;
+	}
 
 function is_enabled(): bool
 	{
@@ -191,12 +307,10 @@ function has_local_role(role: NodeRole): bool
 
 function set_local_roles(reset: bool)
 	{
-	print "set local roles for node ", node;	
 	## If reset is required, reset the node with the first call to a set_role_* function
 	local reset_node = reset;
 	for (r in nodes[node]$node_roles)
 		{
-		print " - role ", r;
 		if (r == Cluster::MANAGER)
 			set_role_manager(reset_node);
 		else if (r == Cluster::DATANODE)
@@ -345,7 +459,6 @@ event BrokerComm::incoming_connection_broken(peer_name: string)
 		--worker_count;
 	Log::write(Cluster::LOG,[$ts=2, $message="Cluster: incoming connection broken"]);
 	}
-
 event bro_init() &priority=5
 	{
 	# If a node is given, but it's an unknown name we need to fail.

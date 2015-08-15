@@ -143,8 +143,13 @@ export {
 	## of its "connect" flag.
 	##
 	## peer: the string used to index a particular node within the
-	##      :bro:id:`Communication::nodes` table.
 	global connect_peer: function(peer: string);
+
+	## Disconnect from a node independent
+	## of its "connect" flag.
+	##
+	## peer: the string used to index a particular node within the
+	global disconnect_peer: function(peer: string);
 
 	global reconnect_interval: interval = 1 secs;
 
@@ -172,18 +177,30 @@ function do_script_log(p: string, msg: string)
 	do_script_log_common(p, REMOTE_LOG_INFO, REMOTE_SRC_SCRIPT, msg);
 	}
 
+function setup_peer(peer_name: string, node: Node)
+  {
+	node$peer = peer_name;
+	node$connected = T;
+  nodes[peer_name] = node;
+	connected_peers[peer_name] = node;
+  }
+
 function connect_peer(peer: string)
 	{
+	## Return if this peer is already connected
+	if ( peer in connected_peers )
+		return;
+
 	local node = nodes[peer];
 	local p = listen_port;
-
 	# obtain port
 	if ( node?$p )
 		p = node$p;
 
+	print " - connect to node ", peer, " with ip ", node$host, " and port ", p;
+
 	# ...and connect via broker
 	local succ = BrokerComm::connect(fmt("%s", node$host), p, node$retry);
-
 	
 	if ( !succ )
 		Log::write(Communication::LOG, [$ts = network_time(),
@@ -192,21 +209,31 @@ function connect_peer(peer: string)
 	pending_peers[peer] = node;
 	}
 
-function setup_peer(peer_name: string, node: Node)
-    {
-	node$peer = peer_name;
-    #node$zone_id = "1";
-	node$connected = T;
-    nodes[peer_name] = node;
-	connected_peers[peer_name] = node;
-    }
+function disconnect_peer(peer: string)
+	{
+	if( !(peer in connected_peers) )
+		return;
+
+	print "  - disconnect from peer ", peer, " with ip ", connected_peers[peer]$host, " on port ", connected_peers[peer]$p;
+	local node = connected_peers[peer];
+
+	local saddr = fmt("%s", node$host);
+	local p = listen_port;
+	# obtain port
+	if ( node?$p )
+		p = node$p;
+
+	# ... and disconnect via broker
+	local res = BrokerComm::disconnect(saddr, p);
+	delete connected_peers[peer];
+	}
 
 event BrokerComm::incoming_connection_established(peer_name: string)
 	{
 	print "BrokerComm::incoming_connection_established by", peer_name;
 	do_script_log(BrokerComm::endpoint_name, fmt("incoming connection established by %s", peer_name));
-    local node = nodes[peer_name];
-    setup_peer(peer_name, node);
+  local node = nodes[peer_name];
+  setup_peer(peer_name, node);
 	}
 
 event BrokerComm::incoming_connection_broken(peer_name: string)
@@ -219,13 +246,13 @@ event BrokerComm::outgoing_connection_established(peer_address: string, peer_por
 	{
 	print "BrokerComm::outgoing_connection_established to", peer_address, peer_port, peer_name;
 	local id = fmt("%s:%s", peer_address, peer_port);
-	local node = pending_peers[peer_name];
-	delete pending_peers[peer_name];	
 
 	do_script_log(BrokerComm::endpoint_name, fmt("outgoing connection established to %s", peer_name));
 
-    setup_peer(peer_name, node);
+	local node = pending_peers[peer_name];
+  setup_peer(peer_name, node);
 	peer_mapping[fmt("%s::%s", peer_address, peer_port)] =  peer_name;
+	delete pending_peers[peer_name];	
 
 	event outgoing_connection_established_event(peer_name);
 	}
@@ -236,12 +263,13 @@ event BrokerComm::outgoing_connection_broken(peer_address: string, peer_port: po
 	# TODO broker should return the peer_name also for broken connections 
 	for ( i in connected_peers )
 		{
-			local n = connected_peers[i];
-			print "host ", n$host, " port ", n$p;
-			if ( fmt("%s", n$host) == peer_address && n$p == peer_port )
-				peer_name = i;
-				print "found", i;
+		local n = connected_peers[i];
+		print "host ", n$host, " port ", n$p;
+		if ( fmt("%s", n$host) == peer_address && n$p == peer_port )
+		peer_name = i;
+		print "found", i;
 		}
+
 	print "Outgoing connection broken to", peer_name, "from ", peer_address, "port", peer_port;
 	do_script_log(BrokerComm::endpoint_name, fmt("connection closed/broken to %s", peer_name));
 
@@ -261,6 +289,25 @@ event BrokerComm::outgoing_connection_incompatible(peer_address: string, peer_po
 	{
 	print "Outgoing connection incompatible to", peer_address, peer_port;
 	do_script_log(peer_address, "outgoing connection incompatible");
+	}
+
+event Cluster::node_updated(node_name: string)
+	{
+	## 1. disconnect from all peers we are not connected to anymore
+	for ( tag in connected_peers )
+		{
+			if( !( tag in nodes ) )
+				disconnect_peer(tag);
+		}
+
+	## 2. check all remaining peers if we might need to establish additional connections
+	for ( tag in nodes )
+		{
+		if ( nodes[tag]$connect && !(tag in connected_peers) )
+			connect_peer(tag);
+		else if( !(nodes[tag]$connect) && tag in connected_peers && tag != "control" )
+			disconnect_peer(tag);
+		}
 	}
 
 event bro_init() &priority=5

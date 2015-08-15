@@ -152,17 +152,6 @@ function process_node_worker(name: string)
 
 event Cluster::add_cluster_node(name: string, roles: string, ip: string, zone_id: string, p: string, interface: string, manager: string, workers: string, datanode: string)
 	{
-	## TODO check if node is already known to us and this is an update!
-	#print "node_name ", name;
-	#print "node_info ", roles;
-	#print "ip ", ip;
-	#print "zone_id ", zone_id;
-	#print "p ", p;
-	#print "interface ", interface;
-	#print "manager ", manager;
-	#print "workers ", workers;
-	#print "datanode ", datanode;
-
 	## Build the Node entry for the new/updated node
 	local new_node = Node($node_roles=get_roles_enum(roles),
 												$ip = to_addr(ip),
@@ -176,10 +165,9 @@ event Cluster::add_cluster_node(name: string, roles: string, ip: string, zone_id
 	local lnode = nodes[node];
 	local set_roles = F;
 	local update_connections = F;
-	## This is an update for us
-	if( name == node )
+	if( name == node ) ## This is an update for us
 		{
-		print "Local node received an update from control";
+		print " * Local node received an update from control";
 		if(enum_set_eq(new_node$node_roles, lnode$node_roles))
 			set_roles = T;
 
@@ -195,16 +183,15 @@ event Cluster::add_cluster_node(name: string, roles: string, ip: string, zone_id
 				|| new_node$manager != lnode$manager )
 			update_connections = T;
 		}
-	## This is an update for another existing node
-	else if (name in nodes )
+	else if (name in nodes ) ## This is an update for another node
 		{
-		print "update for existing node ", name, " received";
+		print " * We received an update for node ", name;
 		update_connections = T;
 		}
-	## New node
-	else
+	else ## New node
 		{
-		print "new node ", name, " added to cluster";
+		print " * Node ", name, " joined the cluster";
+		update_connections = T;
 		}
 
 	## .. and store the entry in the node list

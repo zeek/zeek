@@ -2,13 +2,15 @@
 #
 # Default canonifier used with the trace-based tests in testing/external/*.
 
+filename=`basename $1`
+
 addl="cat"
 
-if [ "$1" == "capture_loss.log" ]; then
+if [ "$filename" == "capture_loss.log" ]; then
     addl="`dirname $0`/diff-remove-fractions"
 fi
 
-if [ "$1" == "ssh.log" ]; then
+if [ "$filename" == "ssh.log" ]; then
     addl="`dirname $0`/diff-remove-fields remote_location"
 fi
 

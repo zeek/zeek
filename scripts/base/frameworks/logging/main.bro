@@ -581,17 +581,17 @@ function update_logging(reset: bool, llocal: bool, lremote: bool, rinterval: int
 	if ( default_rotation_interval == 0secs || default_rotation_interval > rinterval || reset)
 		default_rotation_interval = rinterval;
 
-	## Set alarm summary mail interval.
+	# Set alarm summary mail interval.
 	if ( default_mail_alarms_interval  == 0secs || default_mail_alarms_interval > minterval || reset)
 		default_mail_alarms_interval = minterval;
 
-	## Update postprocessor command for logs
+	# Update postprocessor command for logs
 	if (default_rotation_postprocessor_cmd != "archive-log" || reset)
 		default_rotation_postprocessor_cmd = pproc;
 
 	for ( [id, name] in filters )
 		{
-		## Turn on or off remote logs
+		# Turn on or off remote logs
 		if (enable_remote_logging)
 			{
 			local topic = fmt("bro/log/%s", id);
@@ -601,7 +601,7 @@ function update_logging(reset: bool, llocal: bool, lremote: bool, rinterval: int
 		else if (BrokerComm::remote_logs_enabled(id))
 			BrokerComm::disable_remote_logs(id);
 
-		## Update filter description
+		# Update filter description
 		filters[id, name]$log_local = enable_local_logging;
 		filters[id, name]$log_remote = enable_remote_logging;
 		if (fmt("%s", id) == "Notice::ALARM_LOG")

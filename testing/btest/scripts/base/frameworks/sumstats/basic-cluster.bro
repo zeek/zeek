@@ -37,16 +37,17 @@ event bro_init() &priority=5
 	                  	}]);
 	}
 
-event remote_connection_closed(p: event_peer)
+event BrokerComm::incoming_connection_broken(peer_name: string)
 	{
 	terminate();
 	}
 
 global ready_for_data: event();
-redef Cluster::manager2worker_events += /^ready_for_data$/;
+redef Cluster::manager2worker_events += {"ready_for_data"};
 
 event ready_for_data()
 	{
+	print "received event ready for data";
 	if ( Cluster::node == "worker-1" )
 		{
 		SumStats::observe("test", [$host=1.2.3.4], [$num=34]);
@@ -69,14 +70,18 @@ event ready_for_data()
 		}
 	}
 
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
+@if ( Cluster::has_local_role(Cluster::MANAGER) )
 
 global peer_count = 0;
-event remote_connection_handshake_done(p: event_peer) &priority=-5
+
+event BrokerComm::incoming_connection_established(peer_name: string)
 	{
 	++peer_count;
 	if ( peer_count == 2 )
+		{
 		event ready_for_data();
+		print "nice: give me data";
+		}
 	}
 
 @endif

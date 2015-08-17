@@ -75,7 +75,7 @@ export {
 	global shutdown_response: event();
 
 	# Pub-sub prefix for broker communication
-	const pub_sub_prefix : string = "/bro/event/control" &redef;
+	const pub_sub_prefix : string = "bro/event/control/" &redef;
 }
 
 

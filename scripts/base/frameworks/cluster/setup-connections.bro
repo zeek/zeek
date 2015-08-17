@@ -14,12 +14,6 @@ function process_node(name: string)
 	local n = nodes[name];
 	local me = nodes[node];
 
-	if ( name in Communication::nodes )
-		{
-		delete Communication::nodes[name];
-		print "delete already existing node ", name;
-		}
-
 	# Connections from the control node for runtime control
 	# Every node in a cluster is eligible for control from this host.
 	if ( CONTROL in n$node_roles )
@@ -41,6 +35,7 @@ function process_node_manager(name: string)
 	if ( WORKER in n$node_roles && n$manager == node )
 		Communication::nodes[name] = [$host=n$ip, 
 																	$zone_id=n$zone_id, 
+																	$p=n$p,
 																	$connect=F,
 		     													$class=name, 
 																	$request_logs=T];
@@ -48,6 +43,7 @@ function process_node_manager(name: string)
 	if ( DATANODE in n$node_roles && n$manager == node )
 		Communication::nodes[name] = [$host=n$ip, 
 																	$zone_id=n$zone_id, 
+																	$p=n$p,
 																	$connect=F,
 		     													$class=name, 
 																	$request_logs=T];
@@ -68,6 +64,7 @@ function process_node_datanode(name: string)
 	if ( WORKER in n$node_roles && n$datanode == node )
 		Communication::nodes[name] = [$host=n$ip, 
 																	$zone_id=n$zone_id, 
+																	$p=n$p, 
 																	$connect=F, 
 																	$class=name];
 		
@@ -85,6 +82,7 @@ function process_node_datanode(name: string)
 		else if ( me?$datanode && me$datanode == name )
 			Communication::nodes[me$datanode] = [	$host=nodes[name]$ip, 
 																						$zone_id=nodes[name]$zone_id,
+																						$p=nodes[name]$p, 
 																						$connect=F];
 		}
 			
@@ -92,7 +90,7 @@ function process_node_datanode(name: string)
 	if ( MANAGER in n$node_roles )
 		{
 		if ( me$manager == name)
-		## name = manager 
+		# name = manager 
 		Communication::nodes[name] = [$host=nodes[name]$ip, 
 	                               $zone_id=nodes[name]$zone_id, 
 	                               $p=nodes[name]$p, 
@@ -112,21 +110,22 @@ function process_node_worker(name: string)
 	if ( MANAGER in n$node_roles )
 		{
 		if ( me$manager == name )
-			## name = manager 
+			# name = manager 
 			Communication::nodes[name] = [$host=nodes[name]$ip, 
 		 	                          		$zone_id=nodes[name]$zone_id,
 		  	                         		$p=nodes[name]$p,
 		    	                       		$connect=T, 
 																		$retry=1mins, 
 		      	                     		$class=node];
+
+		else
+			delete Communication::nodes[name];
 		}
-	else
-		delete Communication::nodes[name];
 
 	if ( DATANODE in n$node_roles )
 		{
 		if ( me$datanode == name )
-			## name = datanode 
+			# name = datanode 
 			Communication::nodes[name] = [$host=nodes[name]$ip, 
 			                           		$zone_id=nodes[name]$zone_id,
 			                           		$p=nodes[name]$p,
@@ -150,22 +149,22 @@ function process_node_worker(name: string)
 		}
 	}
 
-event Cluster::add_cluster_node(name: string, roles: string, ip: string, zone_id: string, p: string, interface: string, manager: string, workers: string, datanode: string)
+event Cluster::update_cluster_node(name: string, roles: set[string], ip: string, zone_id: string, p: string, interface: string, manager: string, workers: set[string], datanode: string)
 	{
-	## Build the Node entry for the new/updated node
+	# Build the Node entry for the new/updated node
 	local new_node = Node($node_roles=get_roles_enum(roles),
 												$ip = to_addr(ip),
 												$zone_id = zone_id,
 												$interface = interface,
 												$p = to_port(p),
 												$manager = manager,
-												$workers = get_set(workers),
+												$workers = workers,
 												$datanode = datanode);
 
 	local lnode = nodes[node];
 	local set_roles = F;
 	local update_connections = F;
-	if( name == node ) ## This is an update for us
+	if( name == node ) # This is an update for us
 		{
 		print " * Local node received an update from control";
 		if(enum_set_eq(new_node$node_roles, lnode$node_roles))
@@ -176,28 +175,29 @@ event Cluster::add_cluster_node(name: string, roles: string, ip: string, zone_id
 			update_connections = T;
 
 		if( new_node?$workers != lnode?$workers
-				|| string_set_eq(new_node$workers, lnode$workers) ) 
+				|| !string_set_eq(new_node$workers, lnode$workers) ) 
 			update_connections = T;
 
 		if( new_node?$manager != lnode ?$ manager
 				|| new_node$manager != lnode$manager )
 			update_connections = T;
 		}
-	else if (name in nodes ) ## This is an update for another node
+	else if (name in nodes ) # This is an update for another node
 		{
 		print " * We received an update for node ", name;
 		update_connections = T;
 		}
-	else ## New node
+	else # New node
 		{
 		print " * Node ", name, " joined the cluster";
 		update_connections = T;
 		}
 
-	## .. and store the entry in the node list
+	# .. and store the entry in the node list
 	Cluster::nodes[name] = new_node; 	
+	print "new_node data? ", new_node$datanode;
 
-	## Update node list and Communication::nodes
+	# Update node list and Communication::nodes
 	for (n in nodes)
 		process_node(n);
 

@@ -16,11 +16,11 @@
 
 @TEST-START-FILE cluster-layout.bro
 redef Cluster::nodes = {
-	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=37757/tcp, $workers=set("worker-1")],
-	["proxy-1"] = [$node_type=Cluster::PROXY,     $ip=127.0.0.1, $p=37758/tcp, $manager="manager-1", $workers=set("worker-1")],
-	["proxy-2"] = [$node_type=Cluster::PROXY,     $ip=127.0.0.1, $p=37759/tcp, $manager="manager-1", $workers=set("worker-2")],
-	["worker-1"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=37760/tcp, $manager="manager-1", $proxy="proxy-1", $interface="eth0"],
-	["worker-2"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=37761/tcp, $manager="manager-1", $proxy="proxy-2", $interface="eth1"],
+	["manager-1"] = [$node_roles=set(Cluster::MANAGER), $ip=127.0.0.1, $p=37757/tcp, $workers=set("worker-1")],
+	["proxy-1"] = [$node_roles=set(Cluster::DATANODE),  $ip=127.0.0.1, $p=37758/tcp, $manager="manager-1", $workers=set("worker-1")],
+	["proxy-2"] = [$node_roles=set(Cluster::DATANODE),  $ip=127.0.0.1, $p=37759/tcp, $manager="manager-1", $workers=set("worker-2")],
+	["worker-1"] = [$node_roles=set(Cluster::WORKER),   $ip=127.0.0.1, $p=37760/tcp, $manager="manager-1", $datanode="proxy-1", $interface="eth0"],
+	["worker-2"] = [$node_roles=set(Cluster::WORKER),   $ip=127.0.0.1, $p=37761/tcp, $manager="manager-1", $datanode="proxy-2", $interface="eth1"],
 };
 @TEST-END-FILE
 
@@ -29,6 +29,8 @@ global fully_connected: event();
 global peer_count = 0;
 
 global fully_connected_nodes = 0;
+
+global process_event: function(peer_name: string);
 
 event fully_connected()
 	{
@@ -40,10 +42,10 @@ event fully_connected()
 		}
 	}
 
-redef Cluster::worker2manager_events += /fully_connected/;
-redef Cluster::proxy2manager_events += /fully_connected/;
+redef Cluster::worker2manager_events += {"fully_connected"};
+redef Cluster::datanode2manager_events += {"fully_connected"};
 
-event remote_connection_handshake_done(p: event_peer)
+function process_event(peer_name: string)
 	{
 	print "Connected to a peer";
 	peer_count = peer_count + 1;
@@ -59,7 +61,17 @@ event remote_connection_handshake_done(p: event_peer)
 		}
 	}
 
-event remote_connection_closed(p: event_peer)
+event BrokerComm::incoming_connection_established(peer_name: string)
+	{
+	process_event(peer_name);
+	}
+
+event BrokerComm::outgoing_connection_established(peer_address: string, peer_port: port, peer_name: string)
+	{
+	process_event(peer_name);
+	}
+
+event BrokerComm::outgoing_connection_broken(peer_address: string, peer_port: port, peer_name: string)
 	{
 	terminate();
 	}

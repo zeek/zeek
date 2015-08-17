@@ -87,6 +87,9 @@ export {
 		## the other side.
 		class: string &optional;
 
+		## Events requested from remote side.
+		events: set[string] &optional;
+
 		## Whether we are going to connect (rather than waiting
 		## for the other side to connect to us).
 		connect: bool &default = F;
@@ -187,7 +190,7 @@ function setup_peer(peer_name: string, node: Node)
 
 function connect_peer(peer: string)
 	{
-	## Return if this peer is already connected
+	# Return if this peer is already connected
 	if ( peer in connected_peers )
 		return;
 
@@ -204,6 +207,8 @@ function connect_peer(peer: string)
 	
 	if ( !succ )
 		Log::write(Communication::LOG, [$ts = network_time(),
+																		$level = "info",
+																		$src_name = peer,
 		                                $peer = peer,
 		                                $message = "can't trigger connect"]);
 	pending_peers[peer] = node;
@@ -266,8 +271,7 @@ event BrokerComm::outgoing_connection_broken(peer_address: string, peer_port: po
 		local n = connected_peers[i];
 		print "host ", n$host, " port ", n$p;
 		if ( fmt("%s", n$host) == peer_address && n$p == peer_port )
-		peer_name = i;
-		print "found", i;
+			peer_name = i;
 		}
 
 	print "Outgoing connection broken to", peer_name, "from ", peer_address, "port", peer_port;
@@ -293,14 +297,14 @@ event BrokerComm::outgoing_connection_incompatible(peer_address: string, peer_po
 
 event Cluster::node_updated(node_name: string)
 	{
-	## 1. disconnect from all peers we are not connected to anymore
+	# 1. disconnect from all peers we are not connected to anymore
 	for ( tag in connected_peers )
 		{
 			if( !( tag in nodes ) )
 				disconnect_peer(tag);
 		}
 
-	## 2. check all remaining peers if we might need to establish additional connections
+	# 2. check all remaining peers if we might need to establish additional connections
 	for ( tag in nodes )
 		{
 		if ( nodes[tag]$connect && !(tag in connected_peers) )

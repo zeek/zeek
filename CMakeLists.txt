@@ -61,7 +61,7 @@ if (NOT SED_EXE)
     endif ()
 endif ()
 
-FindRequiredPackage(Perl)
+FindRequiredPackage(PythonInterp)
 FindRequiredPackage(FLEX)
 FindRequiredPackage(BISON)
 FindRequiredPackage(PCAP)

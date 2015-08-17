@@ -1,4 +1,41 @@
 
+2.4-87 | 2015-08-14 08:34:41 -0700
+
+  * Removing the yielding_teredo_decapsulation option. (Robin Sommer)
+
+2.4-86 | 2015-08-12 17:02:24 -0700
+
+  * Make Teredo DPD signature more precise. (Martina Balint)
+
+2.4-84 | 2015-08-10 14:44:39 -0700
+
+  * Add hook 'HookSetupAnalyzerTree' to allow plugins access to a
+    connection's initial analyzer tree for customization. (James
+    Swaro)
+
+  * Plugins now look for a file "__preload__.bro" in the top-level
+    script directory. If found, they load it first, before any scripts
+    defining BiF elements. This can be used to define types that the
+    BiFs already depend on (like a custom type for an event argument).
+    (Robin Sommer)
+
+2.4-81 | 2015-08-08 07:38:42 -0700
+
+  * Fix a test that is failing very frequently. (Daniel Thayer)
+
+2.4-78 | 2015-08-06 22:25:19 -0400
+
+  * Remove build dependency on Perl (now requiring Python instad).
+    (Daniel Thayer)
+
+  * CID 1314754: Fixing unreachable code in RSH analyzer. (Robin
+    Sommer)
+
+  * CID 1312752: Add comment to mark 'case' fallthrough as ok. (Robin
+    Sommer)
+
+  * CID 1312751: Removing redundant assignment. (Robin Sommer)
+
 2.4-73 | 2015-07-31 08:53:49 -0700
 
   * BIT-1429: SMTP logs now include CC: addresses. (Albert Zaharovits)

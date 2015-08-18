@@ -413,9 +413,7 @@ RecordVal *file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val)
 	OCSP_RESPID     *resp_id     = NULL;
 	OCSP_SINGLERESP *single_resp = NULL;
 	OCSP_REVOKEDINFO *revoked_info = NULL;
-	
-	//OCSP_CERTSTATUS *cst = NULL;
-	//OCSP_REVOKEDINFO *rev = NULL;
+	OCSP_CERTSTATUS *cert_status = NULL;
 
         RecordVal *ocsp_resp_record = NULL;
 	VectorVal *all_resp_bro  = NULL;
@@ -496,24 +494,22 @@ RecordVal *file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val)
 		ocsp_fill_cert_id(cert_id, single_resp_bro);
 
 		//certStatus
-		string cert_status_str = OCSP_cert_status_str(single_resp->certStatus->type);
-		string revoke_reason = "";
-		string revoke_time = "";
+		cert_status = single_resp->certStatus;
+		std::string cert_status_str = OCSP_cert_status_str(cert_status->type);
+		std::string revoke_reason = "";
+		std::string revoke_time = "";
 
 		//add revocation time and reason if it is revoked
-		if (single_resp->certStatus->type == V_OCSP_CERTSTATUS_REVOKED)
+		if (cert_status->type == V_OCSP_CERTSTATUS_REVOKED)
 			{
-			revoked_info = single_resp->certStatus->value.revoked;
+			revoked_info = cert_status->value.revoked;
 			len = -1;
 			len = ASN1_GENERALIZEDTIME_to_cstr(buf, buf_len, (void *)(revoked_info->revocationTime));
 			if (len > 0)
 				revoke_time.assign((const char *)buf, len);
 
 			if (revoked_info->revocationReason)
-				{
-				long l = ASN1_ENUMERATED_get(revoked_info->revocationReason);
-				revoke_reason = OCSP_crl_reason_str(l);
-				}
+				revoke_reason = OCSP_crl_reason_str(ASN1_ENUMERATED_get(revoked_info->revocationReason));
 			}
 		if (revoke_time.length() > 0)
 			cert_status_str += " " + revoke_time;

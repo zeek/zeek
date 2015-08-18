@@ -286,9 +286,9 @@ Activating a plugin will:
     1. Load the dynamic module
     2. Make any bif items available
     3. Add the ``scripts/`` directory to ``BROPATH``
-    5. Load ``scripts/__preload__.bro``
-    6. Make BiF elements available to scripts.
-    7. Load ``scripts/__load__.bro``
+    4. Load ``scripts/__preload__.bro``
+    5. Make BiF elements available to scripts.
+    6. Load ``scripts/__load__.bro``
 
 By default, Bro will automatically activate all dynamic plugins found
 in its search path ``BRO_PLUGIN_PATH``. However, in bare mode (``bro

@@ -1,4 +1,8 @@
 
+2.4-94 | 2015-08-21 17:31:32 -0700
+
+  * Add file type detection support for video/MP2T. (Mike Freemon)
+
 2.4-93 | 2015-08-21 17:23:39 -0700
 
   * Make plugin install honor DESTDIR= convention. (Jeff Barber)

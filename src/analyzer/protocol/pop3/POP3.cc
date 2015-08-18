@@ -722,6 +722,8 @@ void POP3_Analyzer::ProcessReply(int length, const char* line)
 
 		case CAPA:
 			ProtocolConfirmation();
+			// Fall-through.
+
 		case UIDL:
 		case LIST:
 			if (requestForMultiLine == true)

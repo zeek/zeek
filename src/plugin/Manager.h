@@ -265,6 +265,15 @@ public:
 	void HookUpdateNetworkTime(double network_time) const;
 
 	/**
+	 * Hook that executes when a connection's initial analyzer tree
+	 * has been fully set up. The hook can manipulate the tree at this time,
+	 * for example by adding further analyzers.
+	 *
+	 * @param conn The connection.
+	 */
+	void HookSetupAnalyzerTree(Connection *conn) const;
+
+	/**
 	 * Hook that informs plugins that the event queue is being drained.
 	 */
 	void HookDrainEvents() const;

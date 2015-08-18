@@ -55,7 +55,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-binpac=PATH     path to BinPAC install root
     --with-flex=PATH       path to flex executable
     --with-bison=PATH      path to bison executable
-    --with-perl=PATH       path to perl executable
+    --with-python=PATH     path to Python executable
     --with-libcaf=PATH     path to C++ Actor Framework installation
                            (a required Broker dependency)
 
@@ -63,7 +63,6 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-geoip=PATH      path to the libGeoIP install root
     --with-perftools=PATH  path to Google Perftools install root
     --with-jemalloc=PATH   path to jemalloc install root
-    --with-python=PATH     path to Python interpreter
     --with-python-lib=PATH path to libpython
     --with-python-inc=PATH path to Python headers
     --with-ruby=PATH       path to ruby interpreter
@@ -238,9 +237,6 @@ while [ $# -ne 0 ]; do
             ;;
         --with-bison=*)
             append_cache_entry BISON_EXECUTABLE PATH $optarg
-            ;;
-        --with-perl=*)
-            append_cache_entry PERL_EXECUTABLE PATH $optarg
             ;;
         --with-geoip=*)
             append_cache_entry LibGeoIP_ROOT_DIR PATH $optarg

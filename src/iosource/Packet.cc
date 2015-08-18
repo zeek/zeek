@@ -310,9 +310,8 @@ void Packet::ProcessLayer2()
 
 		}
 
-	// We've now determined (a) L3_IPV4 vs (b) L3_IPV6 vs
-	// (c) L3_ARP vs (d) L3_UNKNOWN.
-	l3_proto = l3_proto;
+	// We've now determined (a) L3_IPV4 vs (b) L3_IPV6 vs (c) L3_ARP vs
+	// (d) L3_UNKNOWN.
 
 	// Calculate how much header we've used up.
 	hdr_size = (pdata - data);

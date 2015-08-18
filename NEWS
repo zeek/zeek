@@ -16,6 +16,8 @@ New Dependencies
 - Bro now requires the C++ Actor Framework, CAF, which must be
   installed first. See http://actor-framework.org.
 
+- Bro now requires Python instead of Perl to compile the source code.
+
 New Functionality
 -----------------
 
@@ -29,6 +31,7 @@ New Functionality
 - New Bro plugins in aux/plugins:
 
     - pf_ring: Native PF_RING support.
+    - redis:   An experimental log writer for Redis.
 
 Bro 2.4
 =======

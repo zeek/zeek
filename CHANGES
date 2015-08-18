@@ -1,4 +1,9 @@
 
+2.4-89 | 2015-08-18 07:53:36 -0700
+
+  * Fix diff-canonifier-external to use basename of input file.
+  (Daniel Thayer)
+
 2.4-87 | 2015-08-14 08:34:41 -0700
 
   * Removing the yielding_teredo_decapsulation option. (Robin Sommer)

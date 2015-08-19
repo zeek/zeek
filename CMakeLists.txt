@@ -61,7 +61,7 @@ if (NOT SED_EXE)
     endif ()
 endif ()
 
-FindRequiredPackage(Perl)
+FindRequiredPackage(PythonInterp)
 FindRequiredPackage(FLEX)
 FindRequiredPackage(BISON)
 FindRequiredPackage(PCAP)
@@ -165,21 +165,18 @@ include(PCAPTests)
 include(OpenSSLTests)
 include(CheckNameserCompat)
 include(GetArchitecture)
+include(RequireCXX11)
 
 # Tell the plugin code that we're building as part of the main tree.
 set(BRO_PLUGIN_INTERNAL_BUILD true CACHE INTERNAL "" FORCE)
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in
-               ${CMAKE_CURRENT_BINARY_DIR}/config.h)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/bro-config.h.in
+               ${CMAKE_CURRENT_BINARY_DIR}/bro-config.h)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 ########################################################################
 ## Recurse on sub-directories
-
-if ( ENABLE_CXX11 )
-    include(RequireCXX11)
-endif ()
 
 if ( ENABLE_BROKER )
     add_subdirectory(aux/broker)

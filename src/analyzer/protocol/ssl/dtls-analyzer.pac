@@ -55,7 +55,7 @@ refine connection SSL_Conn += {
 
 		if ( length > MAX_DTLS_HANDSHAKE_RECORD )
 			{
-			bro_analyzer()->ProtocolViolation(fmt("DTLS record length %lld larger than allowed maximum.", length));
+			bro_analyzer()->ProtocolViolation(fmt("DTLS record length %" PRId64 " larger than allowed maximum.", length));
 			return true;
 			}
 

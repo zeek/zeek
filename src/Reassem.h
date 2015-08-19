@@ -36,6 +36,7 @@ public:
 
 	// Delete all held blocks.
 	void ClearBlocks();
+	void ClearOldBlocks();
 
 	int HasBlocks() const		{ return blocks != 0; }
 	uint64 LastReassemSeq() const	{ return last_reassem_seq; }
@@ -49,6 +50,8 @@ public:
 
 	// Sum over all data buffered in some reassembler.
 	static uint64 TotalMemoryAllocation()	{ return total_size; }
+
+	void SetMaxOldBlocks(uint32 count)	{ max_old_blocks = count; }
 
 protected:
 	Reassembler()	{ }
@@ -65,10 +68,19 @@ protected:
 	DataBlock* AddAndCheck(DataBlock* b, uint64 seq,
 				uint64 upper, const u_char* data);
 
+	void CheckOverlap(DataBlock *head, DataBlock *tail,
+				uint64 seq, uint64 len, const u_char* data);
+
 	DataBlock* blocks;
 	DataBlock* last_block;
+
+	DataBlock* old_blocks;
+	DataBlock* last_old_block;
+
 	uint64 last_reassem_seq;
 	uint64 trim_seq;	// how far we've trimmed
+	uint32 max_old_blocks;
+	uint32 total_old_blocks;
 
 	static uint64 total_size;
 };

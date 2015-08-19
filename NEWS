@@ -4,6 +4,35 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as BroControl and Broccoli, come with
 their own ``CHANGES``.)
 
+Bro 2.5 (in progress)
+=====================
+
+New Dependencies
+----------------
+
+- Bro now requires a compiler with C++11 support for building the
+  source code.
+
+- Bro now requires the C++ Actor Framework, CAF, which must be
+  installed first. See http://actor-framework.org.
+
+- Bro now requires Python instead of Perl to compile the source code.
+
+New Functionality
+-----------------
+
+- Bro now tracks VLAN IDs. To record them inside the connection log,
+  load protocols/conn/vlan-logging.bro.
+
+- A new per-packet event raw_packet() provides access to layer 2
+  information. Use with care, generating events per packet is
+  expensive.
+
+- New Bro plugins in aux/plugins:
+
+    - pf_ring: Native PF_RING support.
+    - redis:   An experimental log writer for Redis.
+
 Bro 2.4
 =======
 

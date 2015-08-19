@@ -32,13 +32,13 @@ before you begin:
     * Libz
     * Bash (for BroControl)
     * Python (for BroControl)
-    * C++ Actor Framework (CAF)         (http://actor-framework.org)
+    * C++ Actor Framework (CAF) version 0.14 (http://actor-framework.org)
 
 To build Bro from source, the following additional dependencies are required:
 
     * CMake 2.8 or greater              (http://www.cmake.org)
     * Make
-    * C/C++ compiler with C++11 support
+    * C/C++ compiler with C++11 support (GCC 4.8+ or Clang 3.3+)
     * SWIG                              (http://www.swig.org)
     * Bison (GNU Parser Generator)
     * Flex  (Fast Lexical Analyzer)

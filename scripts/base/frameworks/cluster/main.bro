@@ -116,6 +116,7 @@ export {
 	global process_node: function(name: string);
 	global process_node_manager: function(name: string);
 	global process_node_datanode: function(name: string);
+	global process_node_lognode: function(name: string);
 	global process_node_worker: function(name: string);
 
 	## This function can be called at any time to determine if the cluster
@@ -180,6 +181,8 @@ export {
 	## return bool
 	global string_set_eq: function(set1: set[string], set2: set[string]): bool;
 
+	global update_node: function(cname: string, name: string, connect: bool, retry: interval);
+
 	## Add an additional node dynamically to an cluster
 	## 
 	## name: 			name of the node
@@ -190,7 +193,7 @@ export {
 	## interface:	interface this node monitors
 	## manager: 	responsible manager node
 	## datanode: 	responsible datanode
-	global update_cluster_node: event(name: string, roles: set[string], ip: string, zone_id: string, p: string, interface: string, manager: string, workers: set[string], datanode: string);
+	global update_cluster_node: event(name: string, roles: set[string], ip: string, p: string, interface: string, manager: string, workers: set[string], datanode: string);
 
 	## Remove a node dynamically from a cluster
 	##
@@ -362,11 +365,7 @@ function set_role_datanode(reset: bool)
 	# 3. Log rotation interval.
 	# 4. Alarm summary mail interval.
 	# 5. rotation postprocessor: use the cluster's delete-log script.
-	Log::update_logging(reset, T, F, 1hrs, 24hrs, "archive-log");
-
-	# Susbscribe to logs
-	BrokerComm::advertise_topic("bro/log/");
-	BrokerComm::subscribe_to_logs("bro/log/");
+	Log::update_logging(reset, F, F, 1hrs, 24hrs, "archive-log");
 
 	# We're processing essentially *only* remote events.
 	max_remote_events_processed = 10000;

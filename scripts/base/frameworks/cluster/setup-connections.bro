@@ -9,6 +9,29 @@
 
 module Cluster;
 
+function update_node(cname: string, name: string, connect: bool, retry: interval)
+	{
+	if(name in Communication::nodes )
+		{
+		# Check if old retry time is smaller than new one and keep the smaller one
+		local o_retry = Communication::nodes[name]$retry;
+		if(o_retry < retry)
+			retry = o_retry;
+
+		# update connect field
+		Communication::nodes[cname]$connect = Communication::nodes[name]$connect || connect;
+		# update retry field 
+		Communication::nodes[cname]$retry= retry;
+		}
+	else
+		{
+		Communication::nodes[cname] = [$host=nodes[name]$ip, 
+		 	                         		$p=nodes[name]$p,
+	 			                       		$connect=connect, 
+																	$retry=retry];
+		}
+	}
+
 function process_node(name: string)
 	{
 	local n = nodes[name];
@@ -17,11 +40,13 @@ function process_node(name: string)
 	# Connections from the control node for runtime control
 	# Every node in a cluster is eligible for control from this host.
 	if ( CONTROL in n$node_roles )
-		Communication::nodes["control"] = [$host=n$ip, $zone_id=n$zone_id,
-		                                   $connect=F, $class="control"];
+		Communication::nodes["control"] = [	$host=n$ip, 
+		                                   	$connect=F];
 
 	if ( MANAGER in me$node_roles )
 		process_node_manager(name);
+	else if ( LOGNODE in me$node_roles)
+		process_node_lognode(name);
 	else if ( DATANODE in me$node_roles )
 		process_node_datanode(name);
 	else if ( WORKER in me$node_roles )
@@ -32,28 +57,15 @@ function process_node_manager(name: string)
 	{
 	local n = nodes[name];
 	local me = nodes[node];
+		
 	if ( WORKER in n$node_roles && n$manager == node )
-		Communication::nodes[name] = [$host=n$ip, 
-																	$zone_id=n$zone_id, 
-																	$p=n$p,
-																	$connect=F,
-		     													$class=name, 
-																	$request_logs=T];
+		update_node(name, name, F, 1sec);
 			
 	if ( DATANODE in n$node_roles && n$manager == node )
-		Communication::nodes[name] = [$host=n$ip, 
-																	$zone_id=n$zone_id, 
-																	$p=n$p,
-																	$connect=F,
-		     													$class=name, 
-																	$request_logs=T];
+		update_node(name, name, F, 1sec);
 				
 	if ( TIME_MACHINE in n$node_roles && me?$time_machine && me$time_machine == name )
-		Communication::nodes["time-machine"] = [$host=nodes[name]$ip,
-		                                        $zone_id=nodes[name]$zone_id,
-		                                        $p=nodes[name]$p,
-		                                        $connect=T, 
-																						$retry=1min];
+		update_node("time-machine", name, T, 1min);
 	}
 
 function process_node_datanode(name: string)
@@ -62,43 +74,54 @@ function process_node_datanode(name: string)
 	local me = nodes[node];
 
 	if ( WORKER in n$node_roles && n$datanode == node )
-		Communication::nodes[name] = [$host=n$ip, 
-																	$zone_id=n$zone_id, 
-																	$p=n$p, 
-																	$connect=F, 
-																	$class=name];
+		update_node(name, name, F, 1sec);
 		
 	# accepts connections from the previous one. 
 	# FIXME: Once we're using multiple proxies, we should also figure out some $class scheme ...
 	if ( DATANODE in n$node_roles )
 		{
 		if ( n?$datanode)
-			Communication::nodes[name] = [$host=n$ip, 
-																		$zone_id=n$zone_id, 
-																		$p=n$p, 
-																		$connect=T, 
-																		$retry=1mins];
+			update_node(name, name, T, 1min);
 
 		else if ( me?$datanode && me$datanode == name )
-			Communication::nodes[me$datanode] = [	$host=nodes[name]$ip, 
-																						$zone_id=nodes[name]$zone_id,
-																						$p=nodes[name]$p, 
-																						$connect=F];
+			{
+			print "update node ", me$datanode, ", ", name;
+			update_node(me$datanode, name, F, 1sec);
+			}
 		}
 			
 	# Finally the manager, to send status updates to.
 	if ( MANAGER in n$node_roles )
 		{
-		if ( me$manager == name)
-		# name = manager 
-		Communication::nodes[name] = [$host=nodes[name]$ip, 
-	                               $zone_id=nodes[name]$zone_id, 
-	                               $p=nodes[name]$p, 
-	                               $connect=T, $retry=1mins, 
-	                               $class=node];
+		if ( me$manager == name)# name = manager 
+			update_node(name, name, T, 1mins);
+		}
+	}
 
-		else
-			delete Communication::nodes[name];
+function process_node_lognode(name: string)
+	{
+	local n = nodes[name];
+	local me = nodes[node];
+
+	if ( WORKER in n$node_roles && n$datanode == node )
+		update_node(name, name, F, 1sec);
+		
+	# accepts connections from the previous one. 
+	# FIXME: Once we're using multiple proxies, we should also figure out some $class scheme ...
+	if ( DATANODE in n$node_roles )
+		{
+		if ( n?$datanode)
+			update_node(name, name, T, 1mins);
+
+		else if ( me?$datanode && me$datanode == name )
+			update_node(me$datanode, name, F, 1sec);
+		}
+			
+	# Finally the manager, to send status updates to.
+	if ( MANAGER in n$node_roles )
+		{
+		if ( me$manager == name)# name = manager
+			update_node(name, name, T, 1mins);
 		}
 	}
 
@@ -109,52 +132,28 @@ function process_node_worker(name: string)
 
 	if ( MANAGER in n$node_roles )
 		{
-		if ( me$manager == name )
-			# name = manager 
-			Communication::nodes[name] = [$host=nodes[name]$ip, 
-		 	                          		$zone_id=nodes[name]$zone_id,
-		  	                         		$p=nodes[name]$p,
-		    	                       		$connect=T, 
-																		$retry=1mins, 
-		      	                     		$class=node];
-
-		else
-			delete Communication::nodes[name];
+		if ( me$manager == name ) # name = manager
+			update_node(name, name, T, 1mins);
 		}
 
 	if ( DATANODE in n$node_roles )
 		{
-		if ( me$datanode == name )
-			# name = datanode 
-			Communication::nodes[name] = [$host=nodes[name]$ip, 
-			                           		$zone_id=nodes[name]$zone_id,
-			                           		$p=nodes[name]$p,
-		  	                         		$connect=T, 
-																		$retry=1mins, 
-		    	                       		$class=node];
-		else
-			delete Communication::nodes[name];
+		if ( me$datanode == name ) # name = datanode
+			update_node(name, name, T, 1mins);
 		}		
 
 	if ( TIME_MACHINE in n$node_roles  )
 		{
 		if(me?$time_machine && me$time_machine == name)
-			Communication::nodes["time-machine"] = [$host=nodes[name]$ip, 
-		 	                                       	$zone_id=nodes[name]$zone_id,
-		  	                                      $p=nodes[name]$p,
-		    	                                    $connect=T, 
-		      	                                  $retry=1min];
-		else
-			delete Communication::nodes[name];
+			update_node("time-machine", name, T, 1mins);
 		}
 	}
 
-event Cluster::update_cluster_node(name: string, roles: set[string], ip: string, zone_id: string, p: string, interface: string, manager: string, workers: set[string], datanode: string)
+event Cluster::update_cluster_node(name: string, roles: set[string], ip: string, p: string, interface: string, manager: string, workers: set[string], datanode: string)
 	{
 	# Build the Node entry for the new/updated node
 	local new_node = Node($node_roles=get_roles_enum(roles),
 												$ip = to_addr(ip),
-												$zone_id = zone_id,
 												$interface = interface,
 												$p = to_port(p),
 												$manager = manager,
@@ -181,11 +180,20 @@ event Cluster::update_cluster_node(name: string, roles: set[string], ip: string,
 		if( new_node?$manager != lnode ?$ manager
 				|| new_node$manager != lnode$manager )
 			update_connections = T;
+
+		# we have to rethink our relationship to all other nodes
+		for ( n in Communication::nodes )
+			delete Communication::nodes[n];
+		
 		}
 	else if (name in nodes ) # This is an update for another node
 		{
 		print " * We received an update for node ", name;
 		update_connections = T;
+
+		# we have ro rethink our relationship just to this node
+		if (name in Communication::nodes)
+			delete Communication::nodes[name];
 		}
 	else # New node
 		{
@@ -193,13 +201,12 @@ event Cluster::update_cluster_node(name: string, roles: set[string], ip: string,
 		update_connections = T;
 		}
 
-	# .. and store the entry in the node list
+	# ... and store the entry in the node list
 	Cluster::nodes[name] = new_node; 	
 	print "new_node data? ", new_node$datanode;
 
-	# Update node list and Communication::nodes
-	for (n in nodes)
-		process_node(n);
+	for (name in nodes)
+		process_node(name);
 
 	if(set_roles)
 		Cluster::set_local_roles(T);

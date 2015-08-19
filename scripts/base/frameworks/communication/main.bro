@@ -307,6 +307,7 @@ event Cluster::node_updated(node_name: string)
 	# 2. check all remaining peers if we might need to establish additional connections
 	for ( tag in nodes )
 		{
+		print "check node ", tag , " with connect ", nodes[tag]$connect;
 		if ( nodes[tag]$connect && !(tag in connected_peers) )
 			connect_peer(tag);
 		else if( !(nodes[tag]$connect) && tag in connected_peers && tag != "control" )

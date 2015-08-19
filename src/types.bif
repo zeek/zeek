@@ -184,6 +184,18 @@ type EncapsulatingConn: record;
 
 module GLOBAL;
 
+enum link_encap %{
+	LINK_ETHERNET,
+	LINK_UNKNOWN,
+%}
+
+enum layer3_proto %{
+	L3_IPV4,
+	L3_IPV6,
+	L3_ARP,
+	L3_UNKNOWN,
+%}
+
 type gtpv1_hdr: record;
 type gtp_create_pdp_ctx_request_elements: record;
 type gtp_create_pdp_ctx_response_elements: record;

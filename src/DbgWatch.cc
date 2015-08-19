@@ -1,6 +1,6 @@
 // Implementation of watches
 
-#include "config.h"
+#include "bro-config.h"
 
 #include "Debug.h"
 #include "DbgWatch.h"

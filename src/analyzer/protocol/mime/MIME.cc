@@ -1,4 +1,4 @@
-#include "config.h"
+#include "bro-config.h"
 
 #include "NetVar.h"
 #include "MIME.h"
@@ -245,11 +245,16 @@ int MIME_get_field_name(int len, const char* data, data_chunk_t* name)
 	}
 
 // See RFC 2045, page 12.
-int MIME_is_tspecial (char ch)
+int MIME_is_tspecial (char ch, bool is_boundary = false)
 	{
-	return ch == '(' || ch == ')' || ch == '<' || ch == '>' || ch == '@' ||
-	       ch == ',' || ch == ';' || ch == ':' || ch == '\\' || ch == '"' ||
-	       ch == '/' || ch == '[' || ch == ']' || ch == '?' || ch == '=';
+	if ( is_boundary )
+		return ch == '(' || ch == ')' || ch == '@' ||
+		       ch == ',' || ch == ';' || ch == ':' || ch == '\\' || ch == '"' ||
+		       ch == '/' || ch == '[' || ch == ']' || ch == '?' || ch == '=';
+	else
+		return ch == '(' || ch == ')' || ch == '<' || ch == '>' || ch == '@' ||
+		       ch == ',' || ch == ';' || ch == ':' || ch == '\\' || ch == '"' ||
+		       ch == '/' || ch == '[' || ch == ']' || ch == '?' || ch == '=';
 	}
 
 int MIME_is_field_name_char (char ch)
@@ -257,26 +262,27 @@ int MIME_is_field_name_char (char ch)
 	return ch >= 33 && ch <= 126 && ch != ':';
 	}
 
-int MIME_is_token_char (char ch)
+int MIME_is_token_char (char ch, bool is_boundary = false)
 	{
-	return ch >= 33 && ch <= 126 && ! MIME_is_tspecial(ch);
+	return ch >= 33 && ch <= 126 && ! MIME_is_tspecial(ch, is_boundary);
 	}
 
 // See RFC 2045, page 12.
 // A token is composed of characters that are not SPACE, CTLs or tspecials
-int MIME_get_token(int len, const char* data, data_chunk_t* token)
+int MIME_get_token(int len, const char* data, data_chunk_t* token,
+                   bool is_boundary)
 	{
 	int i = MIME_skip_lws_comments(len, data);
 	while ( i < len )
 		{
 		int j;
 
-		if ( MIME_is_token_char(data[i]) )
+		if ( MIME_is_token_char(data[i], is_boundary) )
 			{
 			token->data = (data + i);
 			for ( j = i; j < len; ++j )
 				{
-				if ( ! MIME_is_token_char(data[j]) )
+				if ( ! MIME_is_token_char(data[j], is_boundary) )
 					break;
 				}
 
@@ -358,7 +364,7 @@ int MIME_get_quoted_string(int len, const char* data, data_chunk_t* str)
 	return -1;
 	}
 
-int MIME_get_value(int len, const char* data, BroString*& buf)
+int MIME_get_value(int len, const char* data, BroString*& buf, bool is_boundary)
 	{
 	int offset = MIME_skip_lws_comments(len, data);
 
@@ -379,7 +385,7 @@ int MIME_get_value(int len, const char* data, BroString*& buf)
 	else
 		{
 		data_chunk_t str;
-		int end = MIME_get_token(len, data, &str);
+		int end = MIME_get_token(len, data, &str, is_boundary);
 		if ( end < 0 )
 			return -1;
 
@@ -862,8 +868,22 @@ int MIME_Entity::ParseFieldParameters(int len, const char* data)
 		len -= offset;
 
 		BroString* val = 0;
-		// token or quoted-string
-		offset = MIME_get_value(len, data, val);
+
+		if ( current_field_type == MIME_CONTENT_TYPE &&
+		     content_type == CONTENT_TYPE_MULTIPART &&
+		     strcasecmp_n(attr, "boundary") == 0 )
+			{
+			// token or quoted-string (and some lenience for characters
+			// not explicitly allowed by the RFC, but encountered in the wild)
+			offset = MIME_get_value(len, data, val, true);
+			data_chunk_t vd = get_data_chunk(val);
+			multipart_boundary = new BroString((const u_char*)vd.data,
+			                                   vd.length, 1);
+			}
+		else
+			// token or quoted-string
+			offset = MIME_get_value(len, data, val);
+
 		if ( offset < 0 )
 			{
 			IllegalFormat("value not found in parameter specification");
@@ -873,8 +893,6 @@ int MIME_Entity::ParseFieldParameters(int len, const char* data)
 
 		data += offset;
 		len -= offset;
-
-		ParseParameter(attr, get_data_chunk(val));
 		delete val;
 		}
 
@@ -918,24 +936,6 @@ void MIME_Entity::ParseContentEncoding(data_chunk_t encoding_mechanism)
 
 	content_encoding = i;
 	}
-
-void MIME_Entity::ParseParameter(data_chunk_t attr, data_chunk_t val)
-	{
-	switch ( current_field_type ) {
-		case MIME_CONTENT_TYPE:
-			if ( content_type == CONTENT_TYPE_MULTIPART &&
-			     strcasecmp_n(attr, "boundary") == 0 )
-				multipart_boundary = new BroString((const u_char*)val.data, val.length, 1);
-			break;
-
-		case MIME_CONTENT_TRANSFER_ENCODING:
-			break;
-
-		default:
-			break;
-	}
-	}
-
 
 int MIME_Entity::CheckBoundaryDelimiter(int len, const char* data)
 	{

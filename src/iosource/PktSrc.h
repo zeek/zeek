@@ -6,6 +6,7 @@
 #include "IOSource.h"
 #include "BPF_Program.h"
 #include "Dict.h"
+#include "Packet.h"
 
 declare(PDict,BPF_Program);
 
@@ -165,14 +166,12 @@ public:
 	/**
 	 * Returns the packet currently being processed, if available.
 	 *
-	 * @param hdr A pointer to pass the header of the current packet back.
-	 *
 	 * @param pkt A pointer to pass the content of the current packet
 	 * back.
 	 *
 	 * @return True if the current packet is available, or false if not.
 	 */
-	bool GetCurrentPacket(const pcap_pkthdr** hdr, const u_char** pkt);
+	bool GetCurrentPacket(const Packet** hdr);
 
 	// PacketSource interace for derived classes to override.
 
@@ -216,15 +215,6 @@ public:
 	 */
 	virtual void Statistics(Stats* stats) = 0;
 
-	/**
-	 * Helper method to return the header size for a given link tyoe.
-	 *
-	 * @param link_type The link tyoe.
-	 *
-	 * @return The header size in bytes.
-	 */
-	static int GetLinkHeaderSize(int link_type);
-
 protected:
 	friend class Manager;
 
@@ -253,13 +243,6 @@ protected:
 		int link_type;
 
 		/**
-		 * The size of the link-layer header for packets from this
-		 * source. \a GetLinkHeaderSize() may be used to derive this
-		 * value.
-		 */
-		int hdr_size;
-
-		/**
 		 * Returns the netmask associated with the source, or \c
 		 * NETMASK_UNKNOWN if unknown.
 		 */
@@ -272,26 +255,6 @@ protected:
 		bool is_live;
 
 		Properties();
-	};
-
-	/**
-	 * Structure describing a packet.
-	 */
-	struct Packet {
-		/**
-		 *  Time associated with the packet.
-		 */
-		double ts;
-
-		/**
-		 *  The pcap header associated with the packet.
-		 */
-		const struct ::pcap_pkthdr* hdr;
-
-		/**
-		 * The full content of the packet.
-		 */
-		const u_char* data;
 	};
 
 	/**

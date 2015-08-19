@@ -32,19 +32,24 @@ before you begin:
     * Libz
     * Bash (for BroControl)
     * Python (for BroControl)
+    * C++ Actor Framework (CAF)         (http://actor-framework.org)
 
 To build Bro from source, the following additional dependencies are required:
 
     * CMake 2.8 or greater              (http://www.cmake.org)
     * Make
-    * C/C++ compiler
+    * C/C++ compiler with C++11 support
     * SWIG                              (http://www.swig.org)
     * Bison (GNU Parser Generator)
     * Flex  (Fast Lexical Analyzer)
     * Libpcap headers                   (http://www.tcpdump.org)
     * OpenSSL headers                   (http://www.openssl.org)
     * zlib headers
-    * Perl
+    * Python
+
+.. todo::
+
+    Update with instructions for installing CAF.
 
 To install the required dependencies, you can use:
 
@@ -67,7 +72,7 @@ To install the required dependencies, you can use:
 
   .. console::
 
-      sudo pkg install bash cmake swig bison python perl py27-sqlite3
+      sudo pkg install bash cmake swig bison python py27-sqlite3
 
   Note that in older versions of FreeBSD, you might have to use the
   "pkg_add -r" command instead of "pkg install".
@@ -161,7 +166,7 @@ run ``./configure --help``):
     make install
 
 The default installation path is ``/usr/local/bro``, which would typically
-require root privileges when doing the ``make install``.  A different 
+require root privileges when doing the ``make install``.  A different
 installation path can be chosen by specifying the ``--prefix`` option.
 Note that ``/usr`` and ``/opt/bro`` are the
 standard prefixes for binary Bro packages to be installed, so those are

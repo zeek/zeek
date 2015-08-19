@@ -1,6 +1,6 @@
 # @TEST-REQUIRES: grep -q ENABLE_BROKER $BUILD/CMakeCache.txt
 
-# @TEST-EXEC: btest-bg-run master "bro -b -r $TRACES/wikipedia.trace %INPUT >out"
+# @TEST-EXEC: btest-bg-run master "bro -b %INPUT >out"
 # @TEST-EXEC: btest-bg-wait 60
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff master/out
 

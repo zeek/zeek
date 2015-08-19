@@ -52,6 +52,7 @@ extern double tcp_reset_delay;
 extern int tcp_max_initial_window;
 extern int tcp_max_above_hole_without_any_acks;
 extern int tcp_excessive_data_without_further_acks;
+extern int tcp_max_old_segments;
 
 extern RecordType* socks_address;
 
@@ -228,8 +229,6 @@ extern int dump_used_event_handlers;
 extern int suppress_local_output;
 
 extern double timer_mgr_inactivity_timeout;
-
-extern int time_machine_profiling;
 
 extern StringVal* trace_output_file;
 

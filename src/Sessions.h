@@ -15,8 +15,6 @@
 
 #include <utility>
 
-struct pcap_pkthdr;
-
 class EncapsulationStack;
 class Connection;
 class OSFingerprint;
@@ -68,12 +66,8 @@ public:
 	NetSessions();
 	~NetSessions();
 
-	// Main entry point for packet processing. Dispatches the packet
-	// either through NextPacket(), optionally employing the packet
-	// sorter first.
-	void DispatchPacket(double t, const struct pcap_pkthdr* hdr,
-			const u_char* const pkt, int hdr_size,
-			iosource::PktSrc* src_ps);
+	// Main entry point for packet processing.
+	void NextPacket(double t, const Packet* pkt);
 
 	void Done();	// call to drain events before destructing
 
@@ -106,8 +100,8 @@ public:
 
 	void GetStats(SessionStats& s) const;
 
-	void Weird(const char* name, const struct pcap_pkthdr* hdr,
-	    const u_char* pkt, const EncapsulationStack* encap = 0);
+	void Weird(const char* name, const Packet* pkt,
+	    const EncapsulationStack* encap = 0);
 	void Weird(const char* name, const IP_Hdr* ip,
 	    const EncapsulationStack* encap = 0);
 
@@ -133,9 +127,8 @@ public:
 			icmp_conns.Length();
 		}
 
-	void DoNextPacket(double t, const struct pcap_pkthdr* hdr,
-			const IP_Hdr* ip_hdr, const u_char* const pkt,
-			int hdr_size, const EncapsulationStack* encapsulation);
+	void DoNextPacket(double t, const Packet *pkt, const IP_Hdr* ip_hdr,
+			const EncapsulationStack* encapsulation);
 
 	/**
 	 * Wrapper that recurses on DoNextPacket for encapsulated IP packets.
@@ -151,7 +144,7 @@ public:
 	 *        the most-recently found depth of encapsulation.
 	 * @param ec The most-recently found depth of encapsulation.
 	 */
-	void DoNextInnerPacket(double t, const struct pcap_pkthdr* hdr,
+	void DoNextInnerPacket(double t, const Packet *pkt,
 	                      const IP_Hdr* inner, const EncapsulationStack* prev,
 	                      const EncapsulatingConn& ec);
 
@@ -191,6 +184,7 @@ protected:
 
 	Connection* NewConn(HashKey* k, double t, const ConnID* id,
 			const u_char* data, int proto, uint32 flow_lable,
+			uint32 vlan, uint32 inner_vlan,
 			const EncapsulationStack* encapsulation);
 
 	// Check whether the tag of the current packet is consistent with
@@ -218,24 +212,16 @@ protected:
 				TransportProto transport_proto,
 				uint8 tcp_flags, bool& flip_roles);
 
-	void NextPacket(double t, const struct pcap_pkthdr* hdr,
-			const u_char* const pkt, int hdr_size);
-
 	// Record the given packet (if a dumper is active).  If len=0
 	// then the whole packet is recorded, otherwise just the first
 	// len bytes.
-	void DumpPacket(const struct pcap_pkthdr* hdr, const u_char* pkt,
-			int len=0);
-
-	void Internal(const char* msg, const struct pcap_pkthdr* hdr,
-			const u_char* pkt);
+	void DumpPacket(const Packet *pkt, int len=0);
 
 	// For a given protocol, checks whether the header's length as derived
 	// from lower-level headers or the length actually captured is less
 	// than that protocol's minimum header size.
 	bool CheckHeaderTrunc(int proto, uint32 len, uint32 caplen,
-			      const struct pcap_pkthdr* hdr, const u_char* pkt,
-			      const EncapsulationStack* encap);
+			      const Packet *pkt, const EncapsulationStack* encap);
 
 	CompositeHash* ch;
 	PDict(Connection) tcp_conns;

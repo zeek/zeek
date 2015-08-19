@@ -3,7 +3,7 @@
 #ifndef TAG_H
 #define TAG_H
 
-#include "config.h"
+#include "bro-config.h"
 #include "util.h"
 #include "Type.h"
 

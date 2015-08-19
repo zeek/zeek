@@ -3003,6 +3003,7 @@ export {
 		#responseExtensions:xxx
 		signatureAlgorithm: string  &log &optional;
 		signature:          string  &optional;  #&log;
+		certs:              vector of opaque of x509 &optional;
 		};
 	type CertId: record {
 		hashAlgorithm:      string  &log &optional;

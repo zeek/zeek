@@ -15,6 +15,16 @@
 #include <openssl/asn1.h>
 #include <openssl/opensslconf.h>
 
+// helper function of sk_X509_value to avoid namespace problem
+// sk_X509_value(X,Y) = > SKM_sk_value(X509,X,Y)
+// X509 => file_analysis::X509
+X509 *helper_sk_X509_value(STACK_OF(X509) *certs, int i)
+	{
+	return sk_X509_value(certs, i);
+	}
+
+#include "file_analysis/analyzer/x509/X509.h"
+
 using namespace file_analysis;
 
 IMPLEMENT_SERIAL(OCSP_REQVal, SER_OCSP_REQ_VAL);
@@ -404,7 +414,6 @@ RecordVal *file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val)
 	{
 	if (resp_val == NULL)
 		return NULL;
-
 	OCSP_RESPONSE   *resp        = NULL;
 	OCSP_RESPBYTES  *resp_bytes  = NULL;
 	OCSP_CERTID     *cert_id     = NULL;
@@ -551,6 +560,21 @@ RecordVal *file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val)
 		if (len > 0)
 			ocsp_resp_record->Assign(7, new StringVal(len, buf));
 		}
+	//certs
+	if (basic_resp->certs)
+		{
+		VectorVal *certs_vector = new VectorVal(internal_type("x509_opaque_vector")->AsVectorType());
+		int num_certs = sk_X509_num(basic_resp->certs);
+		for (i=0; i<num_certs; i++) {
+			::X509 *this_cert = X509_dup(helper_sk_X509_value(basic_resp->certs, i));
+			//::X509 *this_cert = X509_dup(sk_X509_value(basic_resp->certs, i));
+			if (this_cert)
+				certs_vector->Assign(i, new file_analysis::X509Val(this_cert));
+			else
+				reporter->Weird("OpenSSL returned null certificate");
+		}
+		ocsp_resp_record->Assign(8, certs_vector);
+	  }
 clean_up:
 	if (basic_resp)
 		OCSP_BASICRESP_free(basic_resp);

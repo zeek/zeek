@@ -67,6 +67,8 @@ export {
 		responderID:        string  &log   &optional;
 		## producedAt
 		producedAt:         string  &log   &optional;
+		## certificates
+		certs:              vector of opaque of x509 &optional;
 
 		## NOTE: the following are specific to one cert id
 		##       the above are for one file which may contain
@@ -340,6 +342,9 @@ function update_response_info(rec: Info_resp, resp: OCSP::Response)
 
 	if ( resp?$producedAt )
 		rec$producedAt = resp$producedAt;
+
+	if ( resp?$certs )
+		rec$certs = resp$certs;
 	}
 
 function update_response_info_with_single(rec: Info_resp, resp: OCSP::Response, single_resp: OCSP::SingleResp)

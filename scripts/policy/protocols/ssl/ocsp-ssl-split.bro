@@ -85,6 +85,9 @@ export {
 
 		## user_agent
 		user_agent:     string     &log       &optional;
+
+		## number of certificates in response
+		resp_certs_num: count      &log &default=0;
 		};
 
 	type Issuer_Name_Type: record {
@@ -466,6 +469,8 @@ function start_log_ocsp(rec: OCSP::Info)
 		{
 		info_ocsp_rec$resp = rec$resp;
 		info_ocsp_rec$resp_ts = rec$resp$ts;
+		if ( rec$resp?$certs )
+			info_ocsp_rec$resp_certs_num = |rec$resp$certs|;
 		}
 
 	if ( rec?$req && rec?$resp )

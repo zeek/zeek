@@ -163,8 +163,11 @@ redef record HTTP::Info += {
 	request_header_len:       count  &optional &default=0;
 	response_header_len:      count  &optional &default=0;
 
-	## connection used to get num_ocsp and connection start time
-	conn:                     connection &optional;
+	## number of OCSP requests so far, copied from connection
+	num_ocsp:                 count  &optional;
+
+	## connection start time, copied from connection
+	conn_start_ts:            time   &optional;
 };
 
 # add additional information to ssl info
@@ -215,32 +218,44 @@ event ocsp_response(f: fa_file, resp_ref: opaque of ocsp_resp, resp: OCSP::Respo
 	{
         if ( ! f?$http )
 		return;
-        # check if there is a OCSP GET request
+
+	# get connection id TODO:TOCHECK
+	local cid: conn_id;
+	for ( id in f$conns )
+		cid = id;
+
+	# check if there is a OCSP GET request
 	if ( f$http?$method && f$http$method == "GET" )
-		f$http$conn$num_ocsp += 1;
+		f$conns[cid]$num_ocsp += 1;
 	}
 
 event ocsp_request(f: fa_file, req_ref: opaque of ocsp_req, req: OCSP::Request)
 	{
         if ( ! f?$http )
 		return;
-	f$http$conn$num_ocsp += 1;
+
+	# get connection id TODO:TOCHECK
+	local cid: conn_id;
+	for ( id in f$conns )
+		cid = id;
+
+	f$conns[cid]$num_ocsp += 1;
 	}
 
 event http_reply (c: connection, version: string, code: count, reason: string)
 	{
 	if ( ! c?$http )
 		return;
-	if ( ! c$http?$conn )
-		c$http$conn = c;
+	if ( ! c$http?$conn_start_ts )
+		c$http$conn_start_ts = c$start_time;
 	}
 
 event http_request(c: connection, method: string, original_URI: string, unescaped_URI: string, version: string)
 	{
 	if ( ! c?$http )
 		return;
-	if ( ! c$http?$conn )
-		c$http$conn = c;
+	if ( ! c$http?$conn_start_ts )
+		c$http$conn_start_ts = c$start_time;
 	}
 
 # record the header length
@@ -252,6 +267,7 @@ event http_message_done(c: connection, is_orig: bool, stat: http_message_stat)
 		c$http$request_header_len = stat$header_length;
 	else
 		c$http$response_header_len = stat$header_length;
+	c$http$num_ocsp = c$num_ocsp;
 	}
 
 # add server hello time
@@ -382,7 +398,8 @@ function clean_bug_uri(uri: string, host: string): string
 
 function update_http_info(ocsp: OCSP_SSL_SPLIT::Info_OCSP, http: HTTP::Info)
 	{
-	ocsp$num_ocsp = http$conn$num_ocsp;
+	if ( http?$num_ocsp )
+		ocsp$num_ocsp = http$num_ocsp;
 
 	if ( http?$method )
 		ocsp$method = http$method;
@@ -454,7 +471,7 @@ function start_log_ocsp(rec: OCSP::Info)
 	local http: HTTP::Info = rec$http;
 	local info_ocsp_rec: OCSP_SSL_SPLIT::Info_OCSP = [$cid = http$id,
 		                                          $cuid = http$uid,
-							  $conn_start_ts = http$conn$start_time];
+							  $conn_start_ts = http$conn_start_ts];
 
 	if ( rec?$certId )
 		info_ocsp_rec$cert_id = rec$certId;

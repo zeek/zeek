@@ -25,14 +25,14 @@ redef record_all_packets = T;
 
 event bro_init() &priority = -10 
 	{
-	## Subsribe to prefix
-	local prefix = fmt("%s/worker/request", Cluster::pub_sub_prefix);
+	# Subsribe to prefix
+	local prefix = fmt("%sworker/request/", Cluster::pub_sub_prefix);
 	BrokerComm::advertise_topic(prefix);
 	BrokerComm::subscribe_to_events(prefix);
 
-	## Publish: worker2manager_events, worker2datanode_events
-	prefix = fmt("%s/manager/response", Cluster::pub_sub_prefix);
+	# Publish: worker2manager_events, worker2datanode_events
+	prefix = fmt("%smanager/response/", Cluster::pub_sub_prefix);
 	Cluster::register_broker_events(prefix, Cluster::worker2manager_events);
-	prefix = fmt("%s/data/response", Cluster::pub_sub_prefix);
+	prefix = fmt("%sdata/response/", Cluster::pub_sub_prefix);
 	Cluster::register_broker_events(prefix, Cluster::worker2datanode_events);
 	}

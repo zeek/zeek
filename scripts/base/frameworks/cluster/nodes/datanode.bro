@@ -6,40 +6,37 @@
 @prefixes += cluster-datanode
 
 ## We are the datanode, so do local logging!
-redef Log::enable_local_logging = T;
+redef Log::enable_local_logging = F;
 
 ## Make sure that remote logging is disabled.
 redef Log::enable_remote_logging = F;
 
 ## Log rotation interval.
-redef Log::default_rotation_interval = 1hrs;
+redef Log::default_rotation_interval = 24hrs;
 
 ## Alarm summary mail interval.
 redef Log::default_mail_alarms_interval = 24 hrs;
 
 ## Use the cluster's archives logging script.
-redef Log::default_rotation_postprocessor_cmd = "archive-log";
+redef Log::default_rotation_postprocessor_cmd = "delete-log";
 
 ## We're processing essentially *only* remote events.
 redef max_remote_events_processed = 10000;
 
 event bro_init() &priority = -10 
 	{
-	# Susbscribe to logs
-	BrokerComm::advertise_topic("bro/log/");
-	BrokerComm::subscribe_to_logs("bro/log/");
-
-	## Subscribe to prefix
-	local prefix = fmt("%s/data/request", Cluster::pub_sub_prefix);
+	# Subscribe to prefix
+	local prefix = fmt("%sdata/request/", Cluster::pub_sub_prefix);
 	BrokerComm::advertise_topic(prefix);
 	BrokerComm::subscribe_to_events(prefix);
 
-	## Publish: datanode2manager_events, datanode2worker_events
-	prefix = fmt("%s/manager/response", Cluster::pub_sub_prefix);
+	# Publish: datanode2manager_events, datanode2worker_events
+	prefix = fmt("%smanager/response/", Cluster::pub_sub_prefix);
 	Cluster::register_broker_events(prefix, Cluster::datanode2manager_events);
-	prefix = fmt("%s/worker/response", Cluster::pub_sub_prefix);
+	prefix = fmt("%sworker/response/", Cluster::pub_sub_prefix);
 	Cluster::register_broker_events(prefix, Cluster::datanode2worker_events);
 
-	# Susbscribe to logs
-	BrokerComm::subscribe_to_logs("bro/log/");
+	# Create the master store
+	Cluster::cluster_store = BrokerStore::create_master("cluster-store");
 	}
+

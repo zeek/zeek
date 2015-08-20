@@ -4,6 +4,7 @@
 ##! use on a network per day.
 
 @load base/utils/directions-and-hosts
+@load base/frameworks/cluster
 
 module Known;
 
@@ -29,7 +30,8 @@ export {
 	## inspect if an address has been seen in use.
 	## Maintain the list of known hosts for 24 hours so that the existence
 	## of each individual address is logged each day.
-	global known_hosts: set[addr] &create_expire=1day &synchronized &redef;
+	#global known_hosts: set[addr] &create_expire=1day &synchronized &redef;
+	global known_hosts: set[addr] &create_expire=1day &redef;
 
 	## An event that can be handled to access the :bro:type:`Known::HostsInfo`
 	## record as it is sent on to the logging framework.
@@ -38,7 +40,11 @@ export {
 
 event bro_init()
 	{
+	print "init connection logs";
 	Log::create_stream(Known::HOSTS_LOG, [$columns=HostsInfo, $ev=log_known_hosts, $path="known_hosts"]);
+
+	if(Cluster::is_enabled() && Cluster::cluster_store)	
+		BrokerStore::insert(Cluster::cluster_store, BrokerStore::data("known_hosts"), BrokerStore::data(known_hosts))
 	}
 
 event connection_established(c: connection) &priority=5
@@ -47,10 +53,27 @@ event connection_established(c: connection) &priority=5
 	
 	for ( host in set(id$orig_h, id$resp_h) )
 		{
-		if ( host !in known_hosts && 
-		     c$orig$state == TCP_ESTABLISHED &&
-		     c$resp$state == TCP_ESTABLISHED &&
-		     addr_matches_host(host, host_tracking) )
+
+		if(Cluster::is_enabled())	
+			{
+			when ( local b_known_hosts = BrokerStore::lookup(Cluster::cluster_store, BrokerComm::data("known_hosts")) )
+				{
+				if(b_known_hosts != 0 &&
+					 host !in b_known_hosts && 
+			     c$orig$state == TCP_ESTABLISHED &&
+		  	   c$resp$state == TCP_ESTABLISHED &&
+		    	 addr_matches_host(host, host_tracking))
+					{
+					BrokerStore::add_to_set(Cluster::cluster_store, BrokerComm::data("known_hosts"), BrokerComm::data(host))
+					Log::write(Known::HOSTS_LOG, [$ts=network_time(), $host=host]);
+					}
+				}
+			}
+
+		else if ( host !in known_hosts && 
+		     			c$orig$state == TCP_ESTABLISHED &&
+				      c$resp$state == TCP_ESTABLISHED &&
+							addr_matches_host(host, host_tracking) )
 			{
 			add known_hosts[host];
 			Log::write(Known::HOSTS_LOG, [$ts=network_time(), $host=host]);

@@ -236,7 +236,7 @@ event BrokerComm::outgoing_connection_established(peer_address: string, peer_por
 
 	do_script_log(BrokerComm::endpoint_name, fmt("outgoing connection established to %s", peer_name));
 
-    setup_peer(peer_name, node);
+  setup_peer(peer_name, node);
 	peer_mapping[fmt("%s::%s", peer_address, peer_port)] =  peer_name;
 
 	event outgoing_connection_established_event(peer_name);

@@ -73,22 +73,23 @@ export {
 		idx: any;
 
 		## Record that defines the values used as the elements of the table.
-		## If this is undefined, then *destination* has to be a set.
+		## If this is undefined, then *destination* must be a set.
 		val: any &optional;
 
 		## Defines if the value of the table is a record (default), or a single value.
 		## When this is set to false, then *val* can only contain one element.
 		want_record: bool &default=T;
 
-		## The event that is raised each time a value is added to, changed in or removed
-		## from the table. The event will receive an Input::Event enum as the first
-		## argument, the *idx* record as the second argument and the value (record) as the
-		## third argument.
+		## The event that is raised each time a value is added to, changed in or
+		## removed from the table. The event will receive an Input::Event enum
+		## as the first argument, the *idx* record as the second argument and
+		## the value (record) as the third argument.
 		ev: any &optional; # event containing idx, val as values.
 
-		## Predicate function that can decide if an insertion, update or removal should
-		## really be executed. Parameters are the same as for the event. If true is
-		## returned, the update is performed. If false is returned, it is skipped.
+		## Predicate function that can decide if an insertion, update or removal
+		## should really be executed. Parameters are the same as for the event.
+		## If true is returned, the update is performed. If false is returned,
+		## it is skipped.
 		pred: function(typ: Input::Event, left: any, right: any): bool &optional;
 
 		## A key/value table that will be passed on the reader.
@@ -123,8 +124,9 @@ export {
 		## If this is set to true (default), the event receives all fields in a single record value.
 		want_record: bool &default=T;
 
-		## The event that is raised each time a new line is received from the reader.
-		## The event will receive an Input::Event enum as the first element, and the fields as the following arguments.
+		## The event that is raised each time a new line is received from the
+		## reader. The event will receive an Input::Event enum as the first
+		## element, and the fields as the following arguments.
 		ev: any;
 
 		## A key/value table that will be passed on the reader.

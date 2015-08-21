@@ -9,7 +9,7 @@
 redef Log::enable_local_logging = F;
 
 ## Make sure that remote logging is disabled.
-redef Log::enable_remote_logging = F;
+redef Log::enable_remote_logging = T;
 
 ## Log rotation interval.
 redef Log::default_rotation_interval = 24hrs;

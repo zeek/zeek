@@ -159,10 +159,7 @@ function register_broker_events(prefix: string, event_list: set[string])
 	{
 	BrokerComm::publish_topic(prefix);
 	for ( e in event_list )
-		{
 		BrokerComm::auto_event(prefix, lookup_ID(e));
-		print "register broker event ", e, " with prefix ", prefix;
-		}
 	}
 
 event BrokerComm::incoming_connection_established(peer_name: string)
@@ -171,6 +168,7 @@ event BrokerComm::incoming_connection_established(peer_name: string)
 		++worker_count;
 
 	Log::write(Cluster::LOG,[$ts=1, $message="incoming connection established"]);
+
 	}
 
 event BrokerComm::incoming_connection_broken(peer_name: string)
@@ -178,17 +176,6 @@ event BrokerComm::incoming_connection_broken(peer_name: string)
 	if ( peer_name in nodes && nodes[peer_name]$node_type == WORKER )
 		--worker_count;
 	Log::write(Cluster::LOG,[$ts=2, $message="incoming connection broken"]);
-
-	# In case a datanode connects to us, we setup a clone
-	if (peer_name in nodes && nodes[peer_name]$node_type == DATANODE)
-		cluster_store = BrokerStore::create_clone("cluster-store");
-	}
-
-event BrokerComm::outgoing_connection_established(peer_address: string, peer_port: port, peer_name: string)
-	{
-	# In case we connect to a datanode, we setup a clone
-	if (peer_name in nodes && nodes[peer_name]$node_type == DATANODE)
-		cluster_store = BrokerStore::create_clone("cluster-store");
 	}
 
 event bro_init() &priority=5

@@ -21,6 +21,7 @@ redef Log::default_rotation_postprocessor_cmd = "archive-log";
 
 event bro_init() &priority = -10 
 	{
+	print "init manager";
 	# Subsribe to prefix
 	local prefix = fmt("%smanager/response/", Cluster::pub_sub_prefix);
 	BrokerComm::advertise_topic(prefix);
@@ -32,10 +33,6 @@ event bro_init() &priority = -10
 	prefix = fmt("%sdata/request/", Cluster::pub_sub_prefix);
 	Cluster::register_broker_events(prefix, Cluster::manager2datanode_events);
 
-	# Publish logs
-	BrokerComm::publish_topic("bro/log/");
-
-	# Susbscribe to logs
-	BrokerComm::advertise_topic("bro/log/");
-	BrokerComm::subscribe_to_logs("bro/log/");
+	# Create clone of the master store
+	Cluster::cluster_store = BrokerStore::create_clone("cluster-store");
 	}

@@ -1,5 +1,5 @@
 
-2.4-11 | 2015-08-31 17:56:31 -0700
+2.4-12 | 2015-08-31 17:57:55 -0700
 
   * Add a number of out-of-bound checks to layer 2 code. Addresses
     BIT-1463. (Johanna Amann)

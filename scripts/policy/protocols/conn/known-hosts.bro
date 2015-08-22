@@ -71,7 +71,7 @@ event connection_established(c: connection) &priority=5
 
 						local res2_bool = BrokerComm::refine_to_bool(BrokerComm::vector_lookup(res2$result, 1));
 
-						if(res2_bool &&
+						if(!res2_bool &&
 					     c$orig$state == TCP_ESTABLISHED &&
 					 	   c$resp$state == TCP_ESTABLISHED &&
 		    			 addr_matches_host(host, host_tracking))

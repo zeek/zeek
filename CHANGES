@@ -1,4 +1,8 @@
 
+2.4-93 | 2015-08-21 17:23:39 -0700
+
+  * Make plugin install honor DESTDIR= convention. (Jeff Barber)
+
 2.4-89 | 2015-08-18 07:53:36 -0700
 
   * Fix diff-canonifier-external to use basename of input file.

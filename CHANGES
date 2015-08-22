@@ -1,4 +1,11 @@
 
+2.4-96 | 2015-08-21 17:37:56 -0700
+
+  * Update SIP analyzer. (balintm)
+
+        - Allows space on both sides of ':'.
+        - Require CR/LF after request/reply line.
+
 2.4-94 | 2015-08-21 17:31:32 -0700
 
   * Add file type detection support for video/MP2T. (Mike Freemon)

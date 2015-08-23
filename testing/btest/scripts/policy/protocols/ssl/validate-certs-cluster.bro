@@ -9,7 +9,7 @@
 # @TEST-EXEC: btest-bg-run worker-2  "cp ../cluster-layout.bro . && CLUSTER_NODE=worker-2 bro --pseudo-realtime -C -r $TRACES/tls/missing-intermediate.pcap %INPUT"
 # @TEST-EXEC: btest-bg-wait 20
 # @TEST-EXEC: cat manager-1/ssl*.log > ssl.log
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-file-ids btest-diff ssl.log
+# @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-x509-names | $SCRIPTS/diff-remove-timestamps" btest-diff ssl.log
 #
 
 redef Log::default_rotation_interval = 0secs;

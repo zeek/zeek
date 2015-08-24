@@ -125,10 +125,9 @@ int snaplen = 0;	// this gets set from the scripting-layer's value
 int bufsize = 0;
 
 #ifdef HAVE_PACKET_FANOUT
-bool fanout_enable = false;
-int fanout_id = 0; 
-int fanout_method = PACKET_FANOUT_HASH;
-int fanout_flag = 0;
+bool packet_fanout_enable = false;
+int packet_fanout_id = 0;
+bool packet_fanout_flag_defrag = false;
 #endif
 
 OpaqueType* md5_type = 0;
@@ -1001,10 +1000,9 @@ int main(int argc, char** argv)
 	bufsize = internal_val("bufsize")->AsCount() * 1024 * 1024;
 
 #ifdef HAVE_PACKET_FANOUT
-    fanout_enable = internal_val("Fanout::enable")->AsBool();
-    fanout_id = internal_val("Fanout::id")->AsCount();
-    fanout_method = internal_val("Fanout::method")->AsEnum(); 
-    fanout_flag = internal_val("Fanout::flag")->AsEnum();
+    packet_fanout_enable = internal_val("PacketFanout::enable")->AsBool();
+    packet_fanout_id = internal_val("PacketFanout::id")->AsCount();
+    packet_fanout_flag_defrag = internal_val("PacketFanout::flag_defrag")->AsBool();
 #endif
 
 	if ( dns_type != DNS_PRIME )

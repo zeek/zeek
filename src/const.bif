@@ -9,8 +9,8 @@ const detect_filtered_trace: bool;
 const report_gaps_for_partial: bool;
 const exit_only_after_terminate: bool;
 
-const Fanout::enable: bool;
-const Fanout::id: count;
+const PacketFanout::enable: bool;
+const PacketFanout::id: count;
 
 const NFS3::return_data: bool;
 const NFS3::return_data_max: count;

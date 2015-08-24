@@ -6,10 +6,9 @@
 #include "../PktSrc.h"
 
 #ifdef HAVE_PACKET_FANOUT
-extern bool fanout_enable;
-extern int fanout_id;
-extern int fanout_method;
-extern int fanout_flag;
+extern bool packet_fanout_enable;
+extern int packet_fanout_id;
+extern bool packet_fanout_flag_defrag;
 #endif
 
 namespace iosource {

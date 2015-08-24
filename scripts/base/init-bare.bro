@@ -3710,28 +3710,20 @@ export {
 	## external harness and shouldn't output anything to the console.
 	const errors_to_stderr = T &redef;
 }
+module GLOBAL;
 
-module Fanout;
-
-type Method: enum {
-    METHOD_HASH = 0,
-    METHOD_LB = 1,
-    METHOD_CPU = 2,
-    METHOD_ROLLOVER = 3
-};
-
-type Flag: enum {
-    FLAG_NONE = 0,
-    FLAG_DEFRAG = 0x8000,
-    FLAG_ROLLOVER = 0x1000
-};
-
+module PacketFanout;
 export {
+	## Toggle whether to do packet fanout.
     const enable = F &redef;
+
+    ## The packet fanout id should be shared amongst worker processes operating
+    ## the same socket.
     const id = 0 &redef;
-    const method = METHOD_HASH &redef;
-    const flag = FLAG_NONE &redef;
-}
+
+    ## If true, causes packets to be defragmented before fanout is applied.
+    const flag_defrag = T &redef;
+} # end export
 module GLOBAL;
 
 ## Number of bytes per packet to capture from live interfaces.

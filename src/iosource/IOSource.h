@@ -5,24 +5,7 @@
 
 #ifdef HAVE_PACKET_FANOUT
 #include <linux/if_packet.h>
-#ifndef PACKET_FANOUT
-#define PACKET_FANOUT          18
-#define PACKET_FANOUT_HASH      0
-#define PACKET_FANOUT_LB        1
-#define PACKET_FANOUT_CPU       2
-#define PACKET_FANOUT_FLAG_DEFRAG   0x8000
-
-#ifndef PACKET_FANOUT_ROLLOVER
-#define PACKET_FANOUT_ROLLOVER      3
 #endif
-
-#ifndef PACKET_FANOUT_FLAG_ROLLOVER
-#define PACKET_FANOUT_FLAG_ROLLOVER 0x1000
-#endif
-
-#define PACKET_FANOUT_FLAG_NONE     -1
-#endif /* PACKET_FANOUT */
-#endif /* HAVE_PACKET_FANOUT */
 
 extern "C" {
 #include <pcap.h>

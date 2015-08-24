@@ -161,10 +161,14 @@ void PcapSource::OpenLive()
 
 #ifdef HAVE_PACKET_FANOUT            
     /* Turn on cluster mode for the device. */
-    if ( fanout_enable )
+    if ( packet_fanout_enable )
         {
-        uint32_t fanout_arg = (fanout_method << 16) | (fanout_id & 0xffff);
-        if (setsockopt(props.selectable_fd, SOL_PACKET, PACKET_FANOUT, &fanout_arg, sizeof(fanout_arg)) == -1)
+        uint32_t packet_fanout_arg = (PACKET_FANOUT_HASH << 16) | (packet_fanout_id & 0xffff);
+
+        if ( packet_fanout_flag_defrag )
+            packet_fanout_arg |= (PACKET_FANOUT_FLAG_DEFRAG << 16);
+
+        if (setsockopt(props.selectable_fd, SOL_PACKET, PACKET_FANOUT, &packet_fanout_arg, sizeof(packet_fanout_arg)) == -1)
             {
 			Error(fmt("%s: setsockopt: %s", __FUNCTION__, strerror(errno)));
             return;

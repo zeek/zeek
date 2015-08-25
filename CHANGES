@@ -1,4 +1,9 @@
 
+2.4-99 | 2015-08-25 07:56:57 -0700
+
+  * Add ``Q`` and update ``I`` documentation for connection history
+    field. Addresses BIT-1466. (Vlad Grigorescu)
+
 2.4-96 | 2015-08-21 17:37:56 -0700
 
   * Update SIP analyzer. (balintm)

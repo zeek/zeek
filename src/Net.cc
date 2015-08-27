@@ -297,10 +297,11 @@ void net_packet_dispatch(double t, const struct pcap_pkthdr* hdr,
 void net_run()
 	{
 	set_processing_status("RUNNING", "net_run");
-
+	int iterations = 0;
 	while ( iosource_mgr->Size() ||
 		(BifConst::exit_only_after_terminate && ! terminating) )
 		{
+		if(++iterations > 200) break;
 		double ts;
 		iosource::IOSource* src = iosource_mgr->FindSoonest(&ts);
 
@@ -356,10 +357,10 @@ void net_run()
 			// us a lot of idle time, but doesn't delay near-term
 			// timers too much.  (Delaying them somewhat is okay,
 			// since Bro timers are not high-precision anyway.)
-			if ( ! communication_enabled )
-				usleep(100000);
-			else
-				usleep(1000);
+			//if ( ! communication_enabled )
+			//	usleep(100000);
+			//else
+			//	usleep(1000);
 
 			// Flawfinder says about usleep:
 			//

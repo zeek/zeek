@@ -303,7 +303,7 @@ void done_with_network()
 		}
 
 	// Save state before expiring the remaining events/timers.
-	persistence_serializer->WriteState(false);
+	//FUZZ NO: persistence_serializer->WriteState(false);
 
 	if ( profiling_logger )
 		profiling_logger->Log();
@@ -433,6 +433,10 @@ static void bro_new_handler()
 	{
 	out_of_memory("new");
 	}
+
+#ifdef __AFL_HAVE_MANUAL_INIT
+extern "C" {void __afl_manual_init(void);}
+#endif
 
 int main(int argc, char** argv)
 	{
@@ -937,6 +941,7 @@ int main(int argc, char** argv)
 
 		id->SetVal(new StringVal(user_pcap_filter));
 		}
+	// WORKS HERE __afl_manual_init();
 
 	// Parse rule files defined on the script level.
 	char* script_rule_files =
@@ -989,9 +994,6 @@ int main(int argc, char** argv)
 		}
 
 	snaplen = internal_val("snaplen")->AsCount();
-
-	if ( dns_type != DNS_PRIME )
-		net_init(interfaces, read_files, writefile, do_watchdog);
 
 	BroFile::SetDefaultRotation(log_rotate_interval, log_max_size);
 
@@ -1087,6 +1089,8 @@ int main(int argc, char** argv)
 		// we don't have any other source for it.
 		net_update_time(current_time());
 
+	__afl_manual_init();
+
 	EventHandlerPtr bro_init = internal_handler("bro_init");
 	if ( bro_init )	//### this should be a function
 		mgr.QueueEvent(bro_init, new val_list);
@@ -1145,6 +1149,7 @@ int main(int argc, char** argv)
 
 	// Drain the event queue here to support the protocols framework configuring DPM
 	mgr.Drain();
+	// DOES NOT WORK HERE __afl_manual_init();
 
 	analyzer_mgr->DumpDebug();
 
@@ -1186,6 +1191,10 @@ int main(int argc, char** argv)
 				mem_net_start_total / 1024 / 1024,
 				mem_net_start_malloced / 1024 / 1024);
 			}
+
+
+	if ( dns_type != DNS_PRIME )
+		net_init(interfaces, read_files, writefile, do_watchdog);
 
 		net_run();
 

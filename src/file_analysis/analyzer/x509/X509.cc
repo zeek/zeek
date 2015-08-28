@@ -52,7 +52,7 @@ bool file_analysis::X509::EndOfFile()
 
 	X509Val* cert_val = new X509Val(ssl_cert); // cert_val takes ownership of ssl_cert
 
-	RecordVal* cert_record = ParseCertificate(cert_val); // parse basic information into record
+	RecordVal* cert_record = ParseCertificate(cert_val, GetFile()->GetID().c_str()); // parse basic information into record
 
 	// and send the record on to scriptland
 	val_list* vl = new val_list();
@@ -84,7 +84,7 @@ bool file_analysis::X509::EndOfFile()
 	return false;
 	}
 
-RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val)
+RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val, const char* id_arg)
 	{
 	::X509* ssl_cert = cert_val->GetCertificate();
 
@@ -131,8 +131,8 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val)
 	pX509Cert->Assign(3, new StringVal(len, buf));
 	BIO_free(bio);
 
-	pX509Cert->Assign(5, new Val(GetTimeFromAsn1(X509_get_notBefore(ssl_cert)), TYPE_TIME));
-	pX509Cert->Assign(6, new Val(GetTimeFromAsn1(X509_get_notAfter(ssl_cert)), TYPE_TIME));
+	pX509Cert->Assign(5, new Val(GetTimeFromAsn1(X509_get_notBefore(ssl_cert), id_arg), TYPE_TIME));
+	pX509Cert->Assign(6, new Val(GetTimeFromAsn1(X509_get_notAfter(ssl_cert), id_arg), TYPE_TIME));
 
 	// we only read 255 bytes because byte 256 is always 0.
 	// if the string is longer than 255, that will be our null-termination,
@@ -515,54 +515,79 @@ unsigned int file_analysis::X509::KeyLength(EVP_PKEY *key)
 	reporter->InternalError("cannot be reached");
 	}
 
-double file_analysis::X509::GetTimeFromAsn1(const ASN1_TIME* atime)
+double file_analysis::X509::GetTimeFromAsn1(const ASN1_TIME* atime, const char * id_arg)
 	{
+	const char * id = id_arg;
+	if ( id_arg == 0 )
+		id = "";
+
 	time_t lResult = 0;
 
 	char lBuffer[24];
 	char* pBuffer = lBuffer;
 
 	size_t lTimeLength = atime->length;
-	char * pString = (char *) atime->data;
+	const char * pString = (const char *) atime->data;
+
+	unsigned int remaining = 0;
 
 	if ( atime->type == V_ASN1_UTCTIME )
 		{
 		if ( lTimeLength < 11 || lTimeLength > 17 )
+			{
+			reporter->Weird(fmt("Could not parse time in X509 certificate (fuid %s) -- UTCTime has wrong length", id));
 			return 0;
+			}
 
 		memcpy(pBuffer, pString, 10);
 		pBuffer += 10;
 		pString += 10;
+
+		remaining = lTimeLength-10;
 		}
 
-	else
+	else // generalized time. We apparently ignore the YYYYMMDDHH case for now and assume we always have minutes and seconds
 		{
-		if ( lTimeLength < 13 )
+		if ( lTimeLength < 12 || lTimeLength > 23 )
+			{
+			reporter->Weird(fmt("Could not parse time in X509 certificate (fuid %s) -- Generalized time has wrong length", id));
 			return 0;
+			}
 
 		memcpy(pBuffer, pString, 12);
 		pBuffer += 12;
 		pString += 12;
+
+		remaining = lTimeLength-12;
 		}
 
-	if ((*pString == 'Z') || (*pString == '-') || (*pString == '+'))
+	if ( (remaining == 0) || (*pString == 'Z') || (*pString == '-') || (*pString == '+') )
 		{
 		*(pBuffer++) = '0';
 		*(pBuffer++) = '0';
 		}
 
-	else
+	else if ( remaining >= 2 )
 		{
 		*(pBuffer++) = *(pString++);
 		*(pBuffer++) = *(pString++);
+
+		remaining -= 2;
 
 		// Skip any fractional seconds...
-		if (*pString == '.')
+		if ( (remaining > 0) && (*pString == '.') )
 			{
 			pString++;
-			while ((*pString >= '0') && (*pString <= '9'))
+			remaining--;
+			while ( (remaining) > 0 && (*pString >= '0') && (*pString <= '9') )
 				pString++;
+				remaining--;
 			}
+		}
+	else
+		{
+		reporter->Weird(fmt("Could not parse time in X509 certificate (fuid %s) -- additional char after time", id));
+		return 0;
 		}
 
 	*(pBuffer++) = 'Z';
@@ -570,13 +595,21 @@ double file_analysis::X509::GetTimeFromAsn1(const ASN1_TIME* atime)
 
 	time_t lSecondsFromUTC;
 
-	if ( *pString == 'Z' )
+	if ( remaining == 0 || *pString == 'Z' )
 		lSecondsFromUTC = 0;
-
 	else
 		{
-		if ((*pString != '+') && (pString[5] != '-'))
+		if ( remaining < 5 )
+			{
+			reporter->Weird(fmt("Could not parse time in X509 certificate (fuid %s) -- not enough bytes remaining for offset", id));
 			return 0;
+			}
+
+		if ((*pString != '+') && (*pString != '-'))
+			{
+			reporter->Weird(fmt("Could not parse time in X509 certificate (fuid %s) -- unknown offset type", id));
+			return 0;
+			}
 
 		lSecondsFromUTC = ((pString[1]-'0') * 10 + (pString[2]-'0')) * 60;
 		lSecondsFromUTC += (pString[3]-'0') * 10 + (pString[4]-'0');

@@ -248,9 +248,7 @@ int MIME_get_field_name(int len, const char* data, data_chunk_t* name)
 int MIME_is_tspecial (char ch, bool is_boundary = false)
 	{
 	if ( is_boundary )
-		return ch == '(' || ch == ')' || ch == '@' ||
-		       ch == ',' || ch == ';' || ch == ':' || ch == '\\' || ch == '"' ||
-		       ch == '/' || ch == '[' || ch == ']' || ch == '?' || ch == '=';
+		return ch == '"';
 	else
 		return ch == '(' || ch == ')' || ch == '<' || ch == '>' || ch == '@' ||
 		       ch == ',' || ch == ';' || ch == ':' || ch == '\\' || ch == '"' ||
@@ -272,7 +270,11 @@ int MIME_is_token_char (char ch, bool is_boundary = false)
 int MIME_get_token(int len, const char* data, data_chunk_t* token,
                    bool is_boundary)
 	{
-	int i = MIME_skip_lws_comments(len, data);
+	int i = 0;
+
+	if ( !is_boundary )
+		i = MIME_skip_lws_comments(len, data);
+
 	while ( i < len )
 		{
 		int j;
@@ -366,7 +368,9 @@ int MIME_get_quoted_string(int len, const char* data, data_chunk_t* str)
 
 int MIME_get_value(int len, const char* data, BroString*& buf, bool is_boundary)
 	{
-	int offset = MIME_skip_lws_comments(len, data);
+	int offset = 0;
+	if ( !is_boundary ) // for boundaries, simply accept everything...
+		offset = MIME_skip_lws_comments(len, data);
 
 	len -= offset;
 	data += offset;
@@ -876,6 +880,12 @@ int MIME_Entity::ParseFieldParameters(int len, const char* data)
 			// token or quoted-string (and some lenience for characters
 			// not explicitly allowed by the RFC, but encountered in the wild)
 			offset = MIME_get_value(len, data, val, true);
+			if ( !val )
+				{
+				IllegalFormat("Could not parse multipart boundary");
+				continue;
+				}
+
 			data_chunk_t vd = get_data_chunk(val);
 			multipart_boundary = new BroString((const u_char*)vd.data,
 			                                   vd.length, 1);

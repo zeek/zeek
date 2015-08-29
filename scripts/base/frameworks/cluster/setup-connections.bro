@@ -43,14 +43,17 @@ function process_node(name: string)
 		Communication::nodes["control"] = [	$host=n$ip, 
 		                                   	$connect=F];
 
-	if ( MANAGER in me$node_roles )
-		process_node_manager(name);
-	else if ( LOGNODE in me$node_roles)
-		process_node_lognode(name);
-	else if ( DATANODE in me$node_roles )
-		process_node_datanode(name);
-	else if ( WORKER in me$node_roles )
-		process_node_worker(name);
+	for ( role in me$node_roles )
+		{
+		if ( role == MANAGER )
+			process_node_manager(name);
+		else if ( role == LOGNODE)
+			process_node_lognode(name);
+		else if ( role == DATANODE )
+			process_node_datanode(name);
+		else if ( role == WORKER )
+			process_node_worker(name);
+		}
 	}
 
 function process_node_manager(name: string)

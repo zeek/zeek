@@ -4,6 +4,7 @@
 #define OPAQUEVAL_H
 
 #include <typeinfo>
+#include <string>
 
 #include "RandTest.h"
 #include "Val.h"

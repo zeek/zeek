@@ -2656,6 +2656,7 @@ Val* RecordVal::LookupWithDefault(int field) const
 	if ( val )
 		return val->Ref();
 
+	//std::cout << " record field type is " << record_type->FieldType(field)->Tag() << std::endl;
 	return record_type->FieldDefault(field);
 	}
 
@@ -3152,8 +3153,18 @@ OpaqueVal::OpaqueVal(OpaqueType* t) : Val(t)
 	{
 	}
 
+OpaqueVal::OpaqueVal(std::string st)
+	{
+
+	}
+
 OpaqueVal::~OpaqueVal()
 	{
+	}
+
+std::string* OpaqueVal::to_string()
+	{
+			return new std::string("");
 	}
 
 IMPLEMENT_SERIAL(OpaqueVal, SER_OPAQUE_VAL);

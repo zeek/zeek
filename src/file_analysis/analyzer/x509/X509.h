@@ -29,10 +29,13 @@ public:
 	 *
 	 * @param cert_val The certificate to converts.
 	 *
+	 * @param fid A file ID associated with the certificate, if any
+	 * (primarily for error reporting).
+	 *
 	 * @param Returns the new record value and passes ownership to
 	 * caller.
 	 */
-	static RecordVal* ParseCertificate(X509Val* cert_val);
+	static RecordVal* ParseCertificate(X509Val* cert_val, const char* fid = 0);
 
 	static file_analysis::Analyzer* Instantiate(RecordVal* args, File* file)
 		{ return new X509(args, file); }
@@ -59,7 +62,7 @@ private:
 	std::string cert_data;
 
 	// Helpers for ParseCertificate.
-	static double GetTimeFromAsn1(const ASN1_TIME * atime);
+	static double GetTimeFromAsn1(const ASN1_TIME * atime, const char* fid);
 	static StringVal* KeyCurve(EVP_PKEY *key);
 	static unsigned int KeyLength(EVP_PKEY *key);
 };

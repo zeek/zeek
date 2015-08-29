@@ -21,6 +21,11 @@ ARP_Analyzer::~ARP_Analyzer()
 
 bool ARP_Analyzer::IsARP(const u_char* pkt, int hdr_size)
 	{
+	if ( hdr_size < 2 )
+		return false;
+
+	// This is a quite hack ... Newer Bro versions relocate this code to
+	// the layer-2 parsing.
 	unsigned short network_protocol =
 		*(unsigned short*) (pkt + hdr_size - 2);
 

@@ -21,7 +21,7 @@ refine flow RDP_Flow += {
 
 		resultstring.resize(utf8size, '\0');
 		const UTF16* sourcestart = reinterpret_cast<const UTF16*>(utf16.begin());
-		const UTF16* sourceend = sourcestart + widesize;
+		const UTF16* sourceend = reinterpret_cast<const UTF16*>(utf16.end());
 		UTF8* targetstart = reinterpret_cast<UTF8*>(&resultstring[0]);
 		UTF8* targetend = targetstart + utf8size;
 

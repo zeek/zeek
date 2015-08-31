@@ -25,9 +25,9 @@ refine flow RDP_Flow += {
 		UTF16 utf16_copy[utf16.length()]; // Twice as much memory than necessary.
 		memcpy(utf16_copy, utf16.begin(), utf16.length());
 
-		char* utf16_copy_end = reinterpret_cast<const char*>(utf16_copy) + utf16.length();
+		const char* utf16_copy_end = reinterpret_cast<const char*>(utf16_copy) + utf16.length();
 		const UTF16* sourcestart = utf16_copy;
-		const UTF16* sourceend = reinterpret_cast<UTF16*>(utf16_copy_end);
+		const UTF16* sourceend = reinterpret_cast<const UTF16*>(utf16_copy_end);
 
 		UTF8* targetstart = reinterpret_cast<UTF8*>(&resultstring[0]);
 		UTF8* targetend = targetstart + utf8size;

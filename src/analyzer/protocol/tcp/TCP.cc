@@ -442,7 +442,7 @@ const struct tcphdr* TCP_Analyzer::ExtractTCP_Header(const u_char*& data,
 		}
 
 	if ( tcp_hdr_len > uint32(len) ||
-	     sizeof(struct tcphdr) > uint32(caplen) )
+	     tcp_hdr_len > uint32(caplen) )
 		{
 		// This can happen even with the above test, due to TCP
 		// options.

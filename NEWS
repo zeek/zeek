@@ -18,6 +18,13 @@ New Dependencies
 
 - Bro now requires Python instead of Perl to compile the source code.
 
+- The pcap buffer size can set through the new option Pcap::bufsize.
+
+- Bro can now leverage packet fanout mode on Linux through the new
+  options Pcap::packet_fanout_enable, Pcap::packet_fanout_id, and
+  Pcap::packet_fanout_defrag.
+
+
 New Functionality
 -----------------
 
@@ -37,6 +44,17 @@ New Functionality
 
     - pf_ring: Native PF_RING support.
     - redis:   An experimental log writer for Redis.
+
+Changed Functionality
+---------------------
+
+- Some script-level identifier have changed their names:
+
+      snaplen                  -> Pcap::snaplen
+      precompile_pcap_filter() -> Pcap::precompile_pcap_filter()
+      install_pcap_filter()    -> Pcap::install_pcap_filter()
+      pcap_error()             -> Pcap::pcap_error()
+
 
 Deprecated Functionality
 ------------------------

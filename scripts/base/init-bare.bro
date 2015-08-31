@@ -3682,7 +3682,6 @@ export {
 	## (includes GRE tunnels).
 	const ip_tunnel_timeout = 24hrs &redef;
 } # end export
-module GLOBAL;
 
 module Reporter;
 export {
@@ -3701,10 +3700,29 @@ export {
 	## external harness and shouldn't output anything to the console.
 	const errors_to_stderr = T &redef;
 }
-module GLOBAL;
 
-## Number of bytes per packet to capture from live interfaces.
-const snaplen = 8192 &redef;
+module Pcap;
+export {
+	## Number of bytes per packet to capture from live interfaces.
+	const snaplen = 8192 &redef;
+
+	## Number of Mbytes to provide as buffer space when capturing from live
+	## interfaces. 
+	const bufsize = 128 &redef;
+
+	## Toggle whether to do packet fanout (Linux-only).
+	const packet_fanout_enable = F &redef;
+
+	## If packet fanout is enabled, the id to sue for it. This should be shared amongst
+	## worker processes processing the same socket.
+	const packet_fanout_id = 0 &redef;
+
+	## If packet fanout is enabled, whether packets are to be defragmented before
+	## fanout is applied.
+	const packet_fanout_defrag = T &redef;
+} # end export
+
+module GLOBAL;
 
 ## Seed for hashes computed internally for probabilistic data structures. Using
 ## the same value here will make the hashes compatible between independent Bro

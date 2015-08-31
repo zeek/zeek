@@ -47,6 +47,12 @@ void Packet::Init(int arg_link_type, struct timeval *arg_ts, uint32 arg_caplen,
 
 	l2_valid = false;
 
+	if ( data && cap_len < hdr_size )
+		{
+		Weird("truncated_header");
+		return;
+		}
+
 	if ( data )
 		ProcessLayer2();
 	}
@@ -94,12 +100,14 @@ void Packet::ProcessLayer2()
 	bool have_mpls = false;
 
 	const u_char* pdata = data;
+	unsigned int remaining = cap_len;
 
 	switch ( link_type ) {
 	case DLT_NULL:
 		{
 		int protocol = (pdata[3] << 24) + (pdata[2] << 16) + (pdata[1] << 8) + pdata[0];
 		pdata += GetLinkHeaderSize(link_type);
+		remaining -= GetLinkHeaderSize(link_type);
 
 		// From the Wireshark Wiki: "AF_INET6, unfortunately, has
 		// different values in {NetBSD,OpenBSD,BSD/OS},
@@ -127,6 +135,7 @@ void Packet::ProcessLayer2()
 		// Get protocol being carried from the ethernet frame.
 		int protocol = (pdata[12] << 8) + pdata[13];
 		pdata += GetLinkHeaderSize(link_type);
+		remaining -= GetLinkHeaderSize(link_type);
 		eth_type = protocol;
 
 		switch ( protocol )
@@ -140,9 +149,15 @@ void Packet::ProcessLayer2()
 			// 802.1q / 802.1ad
 			case 0x8100:
 			case 0x9100:
+				if ( remaining < 4 )
+					{
+					Weird("truncated_header");
+					return;
+					}
 				vlan = ((pdata[0] << 8) + pdata[1]) & 0xfff;
 				protocol = ((pdata[2] << 8) + pdata[3]);
 				pdata += 4; // Skip the vlan header
+				remaining -= 4;
 
 				// Check for MPLS in VLAN.
 				if ( protocol == 0x8847 )
@@ -154,9 +169,15 @@ void Packet::ProcessLayer2()
 				// Check for double-tagged (802.1ad)
 				if ( protocol == 0x8100 || protocol == 0x9100 )
 					{
+					if ( remaining < 4 )
+						{
+						Weird("truncated_header");
+						return;
+						}
 					inner_vlan = ((pdata[0] << 8) + pdata[1]) & 0xfff;
 					protocol = ((pdata[2] << 8) + pdata[3]);
 					pdata += 4; // Skip the vlan header
+					remaining -= 4;
 					}
 
 				eth_type = protocol;
@@ -166,6 +187,7 @@ void Packet::ProcessLayer2()
 			case 0x8864:
 				protocol = (pdata[6] << 8) + pdata[7];
 				pdata += 8; // Skip the PPPoE session and PPP header
+				remaining -= 8;
 
 				if ( protocol == 0x0021 )
 					l3_proto = L3_IPV4;
@@ -206,6 +228,7 @@ void Packet::ProcessLayer2()
 		// Get PPP protocol.
 		int protocol = (pdata[2] << 8) + pdata[3];
 		pdata += GetLinkHeaderSize(link_type);
+		remaining -= GetLinkHeaderSize(link_type);
 
 		if ( protocol == 0x0281 )
 			{
@@ -230,6 +253,12 @@ void Packet::ProcessLayer2()
 		{
 		// Assume we're pointing at IP. Just figure out which version.
 		pdata += GetLinkHeaderSize(link_type);
+		if ( remaining < sizeof(struct ip) )
+			{
+			Weird("truncated_header");
+			return;
+			}
+
 		const struct ip* ip = (const struct ip *)pdata;
 
 		if ( ip->ip_v == 4 )
@@ -254,8 +283,14 @@ void Packet::ProcessLayer2()
 
 		while ( ! end_of_stack )
 			{
+			if ( remaining < 4 )
+				{
+				Weird("truncated_header");
+				return;
+				}
 			end_of_stack = *(pdata + 2) & 0x01;
 			pdata += 4;
+			remaining -= 4;
 
 			if ( pdata >= pdata + cap_len )
 				{
@@ -288,12 +323,13 @@ void Packet::ProcessLayer2()
 	else if ( encap_hdr_size )
 		{
 		// Blanket encapsulation. We assume that what remains is IP.
-		pdata += encap_hdr_size;
-		if ( pdata + sizeof(struct ip) >= data + cap_len )
+		if ( pdata + encap_hdr_size + sizeof(struct ip) >= data + cap_len )
 			{
 			Weird("no_ip_left_after_encap");
 			return;
 			}
+		pdata += encap_hdr_size;
+		remaining -= encap_hdr_size;
 
 		const struct ip* ip = (const struct ip *)pdata;
 

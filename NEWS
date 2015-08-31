@@ -164,8 +164,8 @@ Changed Functionality
 - The SSH changes come with a few incompatibilities. The following
   events have been renamed:
 
-    * ``SSH::heuristic_failed_login`` to ``SSH::ssh_auth_failed``
-    * ``SSH::heuristic_successful_login`` to ``SSH::ssh_auth_successful``
+    * ``SSH::heuristic_failed_login`` to ``ssh_auth_failed``
+    * ``SSH::heuristic_successful_login`` to ``ssh_auth_successful``
 
   The ``SSH::Info`` status field has been removed and replaced with
   the ``auth_success`` field.  This field has been changed from a

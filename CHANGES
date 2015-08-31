@@ -1,4 +1,8 @@
 
+2.4-118 | 2015-08-31 10:55:29 -0700
+
+  * Fix FreeBSD build errors (Johanna Amann)
+
 2.4-117 | 2015-08-30 22:16:24 -0700
 
   * Fix initialization of a pointer in RDP analyzer. (Daniel

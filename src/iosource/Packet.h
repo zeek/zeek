@@ -151,6 +151,7 @@ public:
 	double time;			/// Timestamp reconstituted as float
 	struct timeval ts;		/// Capture timestamp
 	const u_char* data;		/// Packet data.
+	const u_char* end_of_data;	/// Pointer to byte after the end of data
 	uint32 len;			/// Actual length on wire
 	uint32 cap_len;			/// Captured packet length
 	uint32 link_type;		/// pcap link_type (DLT_EN10MB, DLT_RAW, etc)

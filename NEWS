@@ -28,10 +28,24 @@ New Functionality
   information. Use with care, generating events per packet is
   expensive.
 
+- A new built-in function, decode_base64_conn() for Base64 decoding.
+  It works like decode_base64() but receives an additional connection
+  argument that will be used for decoding errors into weird.log
+  (instead of reporter.log).
+
 - New Bro plugins in aux/plugins:
 
     - pf_ring: Native PF_RING support.
     - redis:   An experimental log writer for Redis.
+
+Deprecated Functionality
+------------------------
+
+    - The built-in functions decode_base64_custom() and
+      encode_base64_custom() are no longer needed and will be removed
+      in the future. Their functionality is now provided directly by
+      decode_base64() and encode_base64(), which take an optional
+      parameter to change the Base64 alphabet.
 
 Bro 2.4
 =======

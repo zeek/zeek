@@ -270,7 +270,7 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 			{
 			if ( /^[bB][aA][sS][iI][cC] / in value )
 				{
-				local userpass = decode_base64(sub(value, /[bB][aA][sS][iI][cC][[:blank:]]/, ""));
+				local userpass = decode_base64_conn(c$id, sub(value, /[bB][aA][sS][iI][cC][[:blank:]]/, ""));
 				local up = split_string(userpass, /:/);
 				if ( |up| >= 2 )
 					{

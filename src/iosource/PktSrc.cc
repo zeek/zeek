@@ -293,6 +293,13 @@ void PktSrc::Process()
 
 	int protocol = 0;
 	const u_char* data = current_packet.data;
+	const u_char* end_of_data = data + current_packet.hdr->caplen;
+
+	if ( data + pkt_hdr_size >= end_of_data )
+		{
+		Weird("truncated_header", &current_packet);
+		goto done;
+		}
 
 	switch ( props.link_type ) {
 	case DLT_NULL:
@@ -339,6 +346,12 @@ void PktSrc::Process()
 			case 0x8100:
 				data += GetLinkHeaderSize(props.link_type);
 
+				if ( data + 8 >= end_of_data )
+					{
+					Weird("truncated_header", &current_packet);
+					goto done;
+					}
+
 				// Check for MPLS in VLAN.
 				if ( ((data[2] << 8) + data[3]) == 0x8847 )
 					have_mpls = true;
@@ -359,6 +372,13 @@ void PktSrc::Process()
 			// PPPoE carried over the ethernet frame.
 			case 0x8864:
 				data += GetLinkHeaderSize(props.link_type);
+
+				if ( data + 8 >= end_of_data )
+					{
+					Weird("truncated_header", &current_packet);
+					goto done;
+					}
+
 				protocol = (data[6] << 8) + data[7];
 				data += 8; // Skip the PPPoE session and PPP header
 				pkt_hdr_size = 0;
@@ -378,6 +398,7 @@ void PktSrc::Process()
 	case DLT_PPP_SERIAL:
 		{
 		// Get PPP protocol.
+		// no oob-check necessary -- header size was checked before.
 		protocol = (data[2] << 8) + data[3];
 
 		if ( protocol == 0x0281 )
@@ -406,6 +427,12 @@ void PktSrc::Process()
 
 		while ( ! end_of_stack )
 			{
+			if ( data + 4 >= end_of_data )
+				{
+				Weird("truncated_header", &current_packet);
+				goto done;
+				}
+
 			end_of_stack = *(data + 2) & 0x01;
 			data += 4;
 			}

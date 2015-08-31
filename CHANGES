@@ -1,4 +1,9 @@
 
+2.4-117 | 2015-08-30 22:16:24 -0700
+
+  * Fix initialization of a pointer in RDP analyzer. (Daniel
+    Thayer/Robin Sommer)
+
 2.4-115 | 2015-08-30 21:57:35 -0700
 
   * Enable Bro to leverage packet fanout mode on Linux. (Kris

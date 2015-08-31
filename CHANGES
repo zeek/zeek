@@ -1,4 +1,12 @@
 
+2.4-122 | 2015-08-31 14:39:41 -0700
+
+  * Add a number of out-of-bound checks to layer 2 code. Addresses
+    BIT-1463 (Johanna Amann)
+
+  * Fix error in 2.4 release notes regarding SSH events. (Robin
+    Sommer)
+
 2.4-118 | 2015-08-31 10:55:29 -0700
 
   * Fix FreeBSD build errors (Johanna Amann)

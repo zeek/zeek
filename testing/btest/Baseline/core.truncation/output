@@ -3,48 +3,48 @@
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2015-08-31-19-57-29
+#open	2015-09-01-01-12-18
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
 1334160095.895421	-	-	-	-	-	truncated_IP	-	F	bro
-#close	2015-08-31-19-57-29
+#close	2015-09-01-01-12-18
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2015-08-31-19-57-30
+#open	2015-09-01-01-12-19
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
 1334156241.519125	-	-	-	-	-	truncated_IP	-	F	bro
-#close	2015-08-31-19-57-30
+#close	2015-09-01-01-12-19
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2015-08-31-19-57-31
+#open	2015-09-01-01-12-19
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
 1334094648.590126	-	-	-	-	-	truncated_IP	-	F	bro
-#close	2015-08-31-19-57-31
+#close	2015-09-01-01-12-19
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2015-08-31-19-57-32
+#open	2015-09-01-01-12-21
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
 1338328954.078361	-	-	-	-	-	internally_truncated_header	-	F	bro
-#close	2015-08-31-19-57-32
+#close	2015-09-01-01-12-21
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2015-08-31-19-57-33
+#open	2015-09-01-01-12-21
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-0.000000	-	-	-	-	-	truncated_header	-	F	bro
-#close	2015-08-31-19-57-33
+0.000000	-	-	-	-	-	truncated_link_header	-	F	bro
+#close	2015-09-01-01-12-21

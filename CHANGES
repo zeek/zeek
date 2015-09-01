@@ -1,4 +1,28 @@
 
+2.4-11 | 2015-08-31 17:56:31 -0700
+
+  * Add a number of out-of-bound checks to layer 2 code. Addresses
+    BIT-1463. (Johanna Amann)
+
+  * Be more permissive on what characters we accept as an unquoted
+    multipart boundary. Addresses BIT-1459. (Johanna Amann)
+
+  * Fix potential crash TCP headers were captured incompletely. Test
+    case provided by Jonathan Ganz. Addresses BIT-1425. (Robin Sommer)
+
+  * Fix initialization of a pointer in RDP analyzer. (Daniel
+    Thayer/Robin Sommer)
+
+  * Fix potential ARP out-of-bounds memory access. Addresses BIT-1462.
+    (Robin Sommer)
+
+  * Update SIP analyzer. (balintm)
+        - Allows space on both sides of ':'.
+        - Require CR/LF after request/reply line.
+
+  * Fix error in 2.4 release notes regarding SSH events. (Robin
+    Sommer)
+
 2.4 | 2015-06-09 07:30:53 -0700
 
   * Release 2.4.

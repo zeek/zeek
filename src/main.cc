@@ -121,7 +121,6 @@ char* command_line_policy = 0;
 vector<string> params;
 set<string> requested_plugins;
 char* proc_status_file = 0;
-int snaplen = 0;	// this gets set from the scripting-layer's value
 
 OpaqueType* md5_type = 0;
 OpaqueType* sha1_type = 0;
@@ -988,8 +987,6 @@ int main(int argc, char** argv)
 			delete [] interfaces_str;
 			}
 		}
-
-	snaplen = internal_val("snaplen")->AsCount();
 
 	if ( dns_type != DNS_PRIME )
 		net_init(interfaces, read_files, writefile, do_watchdog);

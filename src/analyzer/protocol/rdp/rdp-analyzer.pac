@@ -9,9 +9,8 @@ refine flow RDP_Flow += {
 	function utf16_to_utf8_val(utf16: bytestring): StringVal
 		%{
 		std::string resultstring;
-		size_t widesize = utf16.length();
 
-		size_t utf8size = 3 * widesize + 1;
+		size_t utf8size = (3 * utf16.length() + 1);
 
 		if ( utf8size > resultstring.max_size() )
 			{
@@ -20,8 +19,16 @@ refine flow RDP_Flow += {
 			}
 
 		resultstring.resize(utf8size, '\0');
-		const UTF16* sourcestart = reinterpret_cast<const UTF16*>(utf16.begin());
-		const UTF16* sourceend = sourcestart + widesize;
+
+		// We can't assume that the string data is properly aligned
+		// here, so make a copy.
+		UTF16 utf16_copy[utf16.length()]; // Twice as much memory than necessary.
+		memcpy(utf16_copy, utf16.begin(), utf16.length());
+
+		const char* utf16_copy_end = reinterpret_cast<const char*>(utf16_copy) + utf16.length();
+		const UTF16* sourcestart = utf16_copy;
+		const UTF16* sourceend = reinterpret_cast<const UTF16*>(utf16_copy_end);
+
 		UTF8* targetstart = reinterpret_cast<UTF8*>(&resultstring[0]);
 		UTF8* targetend = targetstart + utf8size;
 
@@ -37,6 +44,7 @@ refine flow RDP_Flow += {
 			}
 
 		*targetstart = 0;
+
 		// We're relying on no nulls being in the string.
 		return new StringVal(resultstring.c_str());
 		%}

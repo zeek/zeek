@@ -364,16 +364,14 @@ void PktSrc::Process()
 				// stripping because there is no
 				// specification that allows for deeper
 				// nesting.
-				if ( ((data[2] << 8) + data[3]) == 0x0800 )
+				if ( data + 4 >= end_of_data )
 					{
-					data += 4;
-
-					if ( data >= end_of_data )
-						{
-						Weird("truncated_link_header", &current_packet);
-						goto done;
-						}
+					Weird("truncated_link_header", &current_packet);
+					goto done;
 					}
+
+				if ( ((data[2] << 8) + data[3]) == 0x0800 )
+					data += 4;
 
 				break;
 

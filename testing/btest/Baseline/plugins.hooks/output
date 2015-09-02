@@ -220,7 +220,7 @@
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1439244305.210087, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1440997649.720991, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Communication::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Conn::LOG)) -> <no result>
@@ -326,11 +326,13 @@
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1439244305.210087, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1440997649.720991, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Notice::want_pp, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketFilter::build, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketFilter::combine_filters, <frame>, (ip or not ip, and, )) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketFilter::install, <frame>, ()) -> <no result>
+0.000000   MetaHookPost  CallFunction(Pcap::install_pcap_filter, <frame>, (PacketFilter::DefaultPcapFilter)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Pcap::precompile_pcap_filter, <frame>, (PacketFilter::DefaultPcapFilter, ip or not ip)) -> <no result>
 0.000000   MetaHookPost  CallFunction(SumStats::add_observe_plugin_dependency, <frame>, (SumStats::STD_DEV, SumStats::VARIANCE)) -> <no result>
 0.000000   MetaHookPost  CallFunction(SumStats::add_observe_plugin_dependency, <frame>, (SumStats::VARIANCE, SumStats::AVERAGE)) -> <no result>
 0.000000   MetaHookPost  CallFunction(SumStats::register_observe_plugin, <frame>, (SumStats::AVERAGE, anonymous-function{ if (!SumStats::rv?$average) SumStats::rv$average = SumStats::valelseSumStats::rv$average += (SumStats::val - SumStats::rv$average) / (coerce SumStats::rv$num to double)})) -> <no result>
@@ -351,9 +353,7 @@
 0.000000   MetaHookPost  CallFunction(current_time, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(filter_change_tracking, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(getenv, <null>, (CLUSTER_NODE)) -> <no result>
-0.000000   MetaHookPost  CallFunction(install_pcap_filter, <frame>, (PacketFilter::DefaultPcapFilter)) -> <no result>
 0.000000   MetaHookPost  CallFunction(network_time, <frame>, ()) -> <no result>
-0.000000   MetaHookPost  CallFunction(precompile_pcap_filter, <frame>, (PacketFilter::DefaultPcapFilter, ip or not ip)) -> <no result>
 0.000000   MetaHookPost  CallFunction(reading_live_traffic, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(reading_traces, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(set_to_regex, <frame>, ({}, (^\.?|\.)(~~)$)) -> <no result>
@@ -453,6 +453,7 @@
 0.000000   MetaHookPost  LoadFile(./exec) -> -1
 0.000000   MetaHookPost  LoadFile(./file_analysis.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./files) -> -1
+0.000000   MetaHookPost  LoadFile(./functions.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./gridftp) -> -1
 0.000000   MetaHookPost  LoadFile(./hll_unique) -> -1
 0.000000   MetaHookPost  LoadFile(./hooks.bif.bro) -> -1
@@ -473,7 +474,6 @@
 0.000000   MetaHookPost  LoadFile(./netstats) -> -1
 0.000000   MetaHookPost  LoadFile(./non-cluster) -> -1
 0.000000   MetaHookPost  LoadFile(./patterns) -> -1
-0.000000   MetaHookPost  LoadFile(./pcap.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./plugins) -> -1
 0.000000   MetaHookPost  LoadFile(./polling) -> -1
 0.000000   MetaHookPost  LoadFile(./postprocessors) -> -1
@@ -812,7 +812,7 @@
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql]))
-0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1439244305.210087, node=bro, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1440997649.720991, node=bro, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Communication::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Conn::LOG))
@@ -918,11 +918,13 @@
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql]))
-0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1439244305.210087, node=bro, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1440997649.720991, node=bro, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(Notice::want_pp, <frame>, ())
 0.000000   MetaHookPre   CallFunction(PacketFilter::build, <frame>, ())
 0.000000   MetaHookPre   CallFunction(PacketFilter::combine_filters, <frame>, (ip or not ip, and, ))
 0.000000   MetaHookPre   CallFunction(PacketFilter::install, <frame>, ())
+0.000000   MetaHookPre   CallFunction(Pcap::install_pcap_filter, <frame>, (PacketFilter::DefaultPcapFilter))
+0.000000   MetaHookPre   CallFunction(Pcap::precompile_pcap_filter, <frame>, (PacketFilter::DefaultPcapFilter, ip or not ip))
 0.000000   MetaHookPre   CallFunction(SumStats::add_observe_plugin_dependency, <frame>, (SumStats::STD_DEV, SumStats::VARIANCE))
 0.000000   MetaHookPre   CallFunction(SumStats::add_observe_plugin_dependency, <frame>, (SumStats::VARIANCE, SumStats::AVERAGE))
 0.000000   MetaHookPre   CallFunction(SumStats::register_observe_plugin, <frame>, (SumStats::AVERAGE, anonymous-function{ if (!SumStats::rv?$average) SumStats::rv$average = SumStats::valelseSumStats::rv$average += (SumStats::val - SumStats::rv$average) / (coerce SumStats::rv$num to double)}))
@@ -943,9 +945,7 @@
 0.000000   MetaHookPre   CallFunction(current_time, <frame>, ())
 0.000000   MetaHookPre   CallFunction(filter_change_tracking, <null>, ())
 0.000000   MetaHookPre   CallFunction(getenv, <null>, (CLUSTER_NODE))
-0.000000   MetaHookPre   CallFunction(install_pcap_filter, <frame>, (PacketFilter::DefaultPcapFilter))
 0.000000   MetaHookPre   CallFunction(network_time, <frame>, ())
-0.000000   MetaHookPre   CallFunction(precompile_pcap_filter, <frame>, (PacketFilter::DefaultPcapFilter, ip or not ip))
 0.000000   MetaHookPre   CallFunction(reading_live_traffic, <frame>, ())
 0.000000   MetaHookPre   CallFunction(reading_traces, <frame>, ())
 0.000000   MetaHookPre   CallFunction(set_to_regex, <frame>, ({}, (^\.?|\.)(~~)$))
@@ -1045,6 +1045,7 @@
 0.000000   MetaHookPre   LoadFile(./exec)
 0.000000   MetaHookPre   LoadFile(./file_analysis.bif.bro)
 0.000000   MetaHookPre   LoadFile(./files)
+0.000000   MetaHookPre   LoadFile(./functions.bif.bro)
 0.000000   MetaHookPre   LoadFile(./gridftp)
 0.000000   MetaHookPre   LoadFile(./hll_unique)
 0.000000   MetaHookPre   LoadFile(./hooks.bif.bro)
@@ -1065,7 +1066,6 @@
 0.000000   MetaHookPre   LoadFile(./netstats)
 0.000000   MetaHookPre   LoadFile(./non-cluster)
 0.000000   MetaHookPre   LoadFile(./patterns)
-0.000000   MetaHookPre   LoadFile(./pcap.bif.bro)
 0.000000   MetaHookPre   LoadFile(./plugins)
 0.000000   MetaHookPre   LoadFile(./polling)
 0.000000   MetaHookPre   LoadFile(./postprocessors)
@@ -1403,7 +1403,7 @@
 0.000000 | HookCallFunction Log::__create_stream(Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])
 0.000000 | HookCallFunction Log::__create_stream(X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])
 0.000000 | HookCallFunction Log::__create_stream(mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])
-0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1439244305.210087, node=bro, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1440997649.720991, node=bro, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction Log::add_default_filter(Cluster::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Communication::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Conn::LOG)
@@ -1509,11 +1509,13 @@
 0.000000 | HookCallFunction Log::create_stream(Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])
 0.000000 | HookCallFunction Log::create_stream(X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])
 0.000000 | HookCallFunction Log::create_stream(mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])
-0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1439244305.210087, node=bro, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1440997649.720991, node=bro, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction Notice::want_pp()
 0.000000 | HookCallFunction PacketFilter::build()
 0.000000 | HookCallFunction PacketFilter::combine_filters(ip or not ip, and, )
 0.000000 | HookCallFunction PacketFilter::install()
+0.000000 | HookCallFunction Pcap::install_pcap_filter(PacketFilter::DefaultPcapFilter)
+0.000000 | HookCallFunction Pcap::precompile_pcap_filter(PacketFilter::DefaultPcapFilter, ip or not ip)
 0.000000 | HookCallFunction SumStats::add_observe_plugin_dependency(SumStats::STD_DEV, SumStats::VARIANCE)
 0.000000 | HookCallFunction SumStats::add_observe_plugin_dependency(SumStats::VARIANCE, SumStats::AVERAGE)
 0.000000 | HookCallFunction SumStats::register_observe_plugin(SumStats::AVERAGE, anonymous-function{ if (!SumStats::rv?$average) SumStats::rv$average = SumStats::valelseSumStats::rv$average += (SumStats::val - SumStats::rv$average) / (coerce SumStats::rv$num to double)})
@@ -1534,9 +1536,7 @@
 0.000000 | HookCallFunction current_time()
 0.000000 | HookCallFunction filter_change_tracking()
 0.000000 | HookCallFunction getenv(CLUSTER_NODE)
-0.000000 | HookCallFunction install_pcap_filter(PacketFilter::DefaultPcapFilter)
 0.000000 | HookCallFunction network_time()
-0.000000 | HookCallFunction precompile_pcap_filter(PacketFilter::DefaultPcapFilter, ip or not ip)
 0.000000 | HookCallFunction reading_live_traffic()
 0.000000 | HookCallFunction reading_traces()
 0.000000 | HookCallFunction set_to_regex({}, (^\.?|\.)(~~)$)

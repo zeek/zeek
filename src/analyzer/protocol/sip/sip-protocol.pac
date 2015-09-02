@@ -10,6 +10,7 @@ type SIP_COLON	= RE/:/;
 type SIP_TO_EOL = RE/[^\r\n]*/;
 type SIP_EOL    = RE/(\r\n){1,2}/;
 type SIP_URI    = RE/[[:alnum:]@[:punct:]]+/;
+type SIP_NL	    = RE/(\r\n)/;
 
 type SIP_PDU(is_orig: bool) = case is_orig of {
 	true  ->	request:	SIP_Request;
@@ -18,13 +19,13 @@ type SIP_PDU(is_orig: bool) = case is_orig of {
 
 type SIP_Request = record {
 	request:	SIP_RequestLine;
-	newline:	padding[2];
+	newline:	SIP_NL;
 	msg:		SIP_Message;
 };
 
 type SIP_Reply = record {
 	reply:		SIP_ReplyLine;
-	newline:	padding[2];
+	newline:	SIP_NL;
 	msg:		SIP_Message;
 };
 
@@ -67,6 +68,7 @@ type SIP_Message = record {
 type SIP_HEADER_NAME = RE/[^: \t]+/;
 type SIP_Header = record {
 	name:	SIP_HEADER_NAME;
+	:	SIP_WS;
 	:	SIP_COLON;
 	:	SIP_WS;
 	value:	SIP_TO_EOL;

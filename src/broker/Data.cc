@@ -82,6 +82,10 @@ struct val_converter {
 		switch ( type->Tag() ) {
 		case TYPE_STRING:
 			return new StringVal(a.size(), a.data());
+		case TYPE_OPAQUE:
+			// FIXME convert from string to opaque here
+			//std::cout << " here we go with reconverting string to opaque" << std::endl; 
+			return nullptr;
 		case TYPE_FILE:
 			{
 			auto file = BroFile::GetFile(a.data());
@@ -537,6 +541,13 @@ broker::util::optional<broker::data> bro_broker::val_to_data(Val* v)
 			}
 
 		return {rval};
+		}
+	case TYPE_OPAQUE:
+		{
+		// FIXME convert from opaque to string here
+		//std::cout <<"val_to_data: opaque type found! " << TYPE_OPAQUE  << endl; 
+		auto vs = (static_cast<OpaqueVal*>(v))->to_string();
+		return {string(*vs)};
 		}
 	default:
 		reporter->Error("unsupported BrokerComm::Data type: %s",

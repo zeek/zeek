@@ -3152,11 +3152,20 @@ OpaqueVal::OpaqueVal(OpaqueType* t) : Val(t)
 	{
 	}
 
+OpaqueVal::OpaqueVal(OpaqueType* t, std::string* st) : Val(t)
+	{
+	}
+
 OpaqueVal::~OpaqueVal()
 	{
 	}
 
 IMPLEMENT_SERIAL(OpaqueVal, SER_OPAQUE_VAL);
+
+std::string* OpaqueVal::to_string()
+	{
+	return new std::string;
+	}
 
 bool OpaqueVal::DoSerialize(SerialInfo* info) const
 	{

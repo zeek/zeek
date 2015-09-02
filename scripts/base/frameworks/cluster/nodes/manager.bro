@@ -2,6 +2,8 @@
 ##! This is where the cluster manager sets it's specific settings for other
 ##! frameworks and in the core.
 
+@load ../main
+
 @prefixes += cluster-manager
 
 ## Don't do any local logging.

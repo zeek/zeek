@@ -2,6 +2,8 @@
 ##! In particular, worker nodes do not produce logs locally, instead they
 ##! send them off to a manager node for processing.
 
+@load ../main
+
 @prefixes += cluster-worker
 
 ## Don't do any local logging.

@@ -71,6 +71,7 @@ event connection_established(c: connection) &priority=5
 						local lookup_key = BrokerComm::data(BrokerComm::set_contains(BrokerComm::data("known_hosts"), BrokerComm::data(host)));
 	
 						when ( local res2 = BrokerStore::lookup(Cluster::cluster_store, lookup_key) )
+							{
 							local res2_bool = BrokerComm::refine_to_bool(BrokerComm::vector_lookup(res2$result, 1));
 							if(res2_bool) 
 								{

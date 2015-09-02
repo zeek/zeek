@@ -27,8 +27,8 @@ event bro_init() &priority=5
 	# Establish the communication configuration and only request response
 	# messages.
 	Communication::nodes["control"] = [$host=host, $zone_id=zone_id,
-	                                   $p=host_port, $sync=F, $connect=T,
-	                                   $class="control", $events=Control::controllee_events];
+	                                   $p=host_port, $connect=T,
+	                                   $class="control"];
 	}
 
 

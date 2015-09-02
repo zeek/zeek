@@ -3,6 +3,8 @@
 ##! to get the desired data from the workers.  This script will be 
 ##! automatically loaded if necessary based on the type of node being started.
 
+@load ../main
+
 @prefixes += cluster-datanode
 
 ## We are the datanode, so do local logging!

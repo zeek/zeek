@@ -72,9 +72,6 @@ export {
 	## The prefix used for subscribing and publishing events
 	const pub_sub_prefix : string = "bro/event/cluster/" &redef;
 
-	# TODO The IDs of the clusters this node is part of 
-	const cluster_prefix_set : set[string] = {""} &redef;
-
 	## Record type to indicate a node in a cluster.
 	type Node: record {
 		## Identifies the type of cluster node in this node's configuration.

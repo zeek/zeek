@@ -59,33 +59,32 @@ event connection_established(c: connection) &priority=5
 		if(Cluster::is_enabled())	
 			{
 
-			when (local res = BrokerStore::exists(Cluster::cluster_store, BrokerComm::data("known_hosts")))
+			if (c$orig$state == TCP_ESTABLISHED &&
+					c$resp$state == TCP_ESTABLISHED &&
+		    	addr_matches_host(host, host_tracking))
 				{
-				local res_bool = BrokerComm::refine_to_bool(BrokerComm::vector_lookup(res$result, 1));
-				if(res_bool)
+				when (local res = BrokerStore::exists(Cluster::cluster_store, BrokerComm::data("known_hosts")))
 					{
-					local lookup_key = BrokerComm::data(BrokerComm::set_contains(BrokerComm::data("known_hosts"), BrokerComm::data(host)));
-
-					when ( local res2 = BrokerStore::lookup(Cluster::cluster_store, lookup_key) )
+					local res_bool = BrokerComm::refine_to_bool(BrokerComm::vector_lookup(res$result, 1));
+					if(res_bool)
 						{
-
-						local res2_bool = BrokerComm::refine_to_bool(BrokerComm::vector_lookup(res2$result, 1));
-
-						if(res2_bool &&
-					     c$orig$state == TCP_ESTABLISHED &&
-					 	   c$resp$state == TCP_ESTABLISHED &&
-		    			 addr_matches_host(host, host_tracking))
+						local lookup_key = BrokerComm::data(BrokerComm::set_contains(BrokerComm::data("known_hosts"), BrokerComm::data(host)));
+	
+						when ( local res2 = BrokerStore::lookup(Cluster::cluster_store, lookup_key) )
 							{
-							print "new host ", host, " write to datatstore";
-							BrokerStore::add_to_set(Cluster::cluster_store, BrokerComm::data("known_hosts"), BrokerComm::data(host));
-							Log::write(Known::HOSTS_LOG, [$ts=network_time(), $host=host]);
-							}
+							local res2_bool = BrokerComm::refine_to_bool(BrokerComm::vector_lookup(res2$result, 1));
+							if(res2_bool) 
+								{
+								print "new host ", host, " write to datatstore";
+								BrokerStore::add_to_set(Cluster::cluster_store, BrokerComm::data("known_hosts"), BrokerComm::data(host));
+								Log::write(Known::HOSTS_LOG, [$ts=network_time(), $host=host]);
+								}
 
+							}
 						}
 					}
 				}
 			}
-
 		else if ( host !in known_hosts && 
 		     			c$orig$state == TCP_ESTABLISHED &&
 				      c$resp$state == TCP_ESTABLISHED &&

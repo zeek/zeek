@@ -43,7 +43,7 @@ event fully_connected()
 redef Cluster::worker2manager_events += /fully_connected/;
 redef Cluster::proxy2manager_events += /fully_connected/;
 
-event remote_connection_handshake_done(p: event_peer)
+function process_event(peer_name: string)
 	{
 	print "Connected to a peer";
 	peer_count = peer_count + 1;
@@ -59,7 +59,12 @@ event remote_connection_handshake_done(p: event_peer)
 		}
 	}
 
-event remote_connection_closed(p: event_peer)
+event BrokerComm::incoming_connection_established(peer_name: string)
 	{
-	terminate();
+	process_event(peer_name);
+	}
+
+event BrokerComm::outgoing_connection_established(peer_address: string, peer_port: port, peer_name: string)
+	{
+	process_event(peer_name);
 	}

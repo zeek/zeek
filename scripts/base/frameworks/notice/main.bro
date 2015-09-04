@@ -377,15 +377,15 @@ function notice_tags(n: Notice::Info) : table[string] of string
 	tgs["file_mime_type"] = n?$file_mime_type ? n$file_mime_type : "";
 	tgs["file_desc"] = n?$file_desc ? n$file_desc : "";
 	tgs["proto"] = n?$proto ? fmt("%s", n$proto) : "";
-	tgs["no"] = fmt("%s", n$note);
+	tgs["note"] = fmt("%s", n$note);
 
 	tgs["msg"] = n?$msg ? n$msg : "";
 	tgs["sub"] = n?$sub ? n$sub : "";
 
-	tgs["sa"] = n?$src ? fmt("%s", n$src) : "";
-	tgs["da"] = n?$dst ? fmt("%s", n$dst) : "";
+	tgs["src"] = n?$src ? fmt("%s", n$src) : "";
+	tgs["dst"] = n?$dst ? fmt("%s", n$dst) : "";
 	tgs["p"] = n?$p ? fmt("%s", n$p) : "";
-	tgs["num"] = n?$n ? fmt("%s", n$n) : "";
+	tgs["n"] = n?$n ? fmt("%s", n$n) : "";
 	tgs["src_peer"] = n?$src_peer ? fmt("%s", n$src_peer) : "";
 	tgs["peer_descr"] = n?$peer_descr ? n$peer_descr : "";
 

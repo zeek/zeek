@@ -1,4 +1,9 @@
 
+2.4-125 | 2015-09-03 20:10:36 -0700
+
+  * Move SIP analyzer to flowunit instead of datagram Addresses
+    BIT-1458 (Vlad Grigorescu)
+
 2.4-122 | 2015-08-31 14:39:41 -0700
 
   * Add a number of out-of-bound checks to layer 2 code. Addresses

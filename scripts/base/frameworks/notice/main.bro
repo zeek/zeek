@@ -361,23 +361,55 @@ event bro_init() &priority=5
 		     $interv=24hrs, $postprocessor=log_mailing_postprocessor]);
 	}
 
-# TODO: fix this.
-#function notice_tags(n: Notice::Info) : table[string] of string
-#	{
-#	local tgs: table[string] of string = table();
-#	if ( is_remote_event() )
-#		{
-#		if ( n$src_peer$descr != "" )
-#			tgs["es"] = n$src_peer$descr;
-#		else
-#			tgs["es"] = fmt("%s/%s", n$src_peer$host, n$src_peer$p);
-#		}
-#	else
-#		{
-#		tgs["es"] = peer_description;
-#		}
-#	return tgs;
-#	}
+function notice_tags(n: Notice::Info) : table[string] of string
+	{
+	local tgs: table[string] of string = table();
+        # Get time
+        local t = is_remote_event() ? current_time() : network_time();
+	# If there is a ts, use that, otherwise use t
+	tgs["t"] = n?$ts ? fmt("%.06f", n$ts) : fmt("%.06f", t);
+	tgs["uid"] = n?$uid ? n$uid : "";
+        tgs["id"] = n?$id ? id_string(n$id): "";
+        tgs["fuid"] = n?$fuid ? n$fuid : "";
+        tgs["file_mime_type"] = n?$file_mime_type ? n$file_mime_type : "";
+        tgs["file_desc"] = n?$file_desc ? n$file_desc : "";
+        tgs["proto"] =  n?$proto ? fmt("%s", n$proto) : "";;
+        tgs["no"] = fmt("%s", n$note);
+
+	tgs["msg"] = n?$msg ? n$msg : "";
+	tgs["sub"] = n?$sub ? n$sub : "";
+
+	tgs["sa"] = n?$src ? fmt("%s", n$src) : "";
+	tgs["da"] = n?$dst ? fmt("%s", n$dst) : "";
+	tgs["p"] = n?$p ? fmt("%s", n$p) : "";
+	tgs["num"] = n?$n ? fmt("%s", n$n) : "";
+	tgs["src_peer"] = n?$src_peer ? fmt("%s", n$src_peer) : "";
+	tgs["peer_descr"] = n?$peer_descr ? n$peer_descr : "";
+
+	tgs["actions"] = "";
+	if (n?$actions) {
+		local actionstr = "";
+		for (a in n$actions) {
+			actionstr = actionstr + " " + fmt("%s", a);
+		}		
+		tgs["actions"] = actionstr;
+	}
+	tgs["identifier"] = n?$identifier ? n$identifier : "";;
+	tgs["suppress_for"] = n?$suppress_for ? fmt("%s", n$suppress_for) : "";
+
+	if ( is_remote_event() )
+		{
+		if ( n$src_peer$descr != "" )
+			tgs["es"] = n$src_peer$descr;
+		else
+			tgs["es"] = fmt("%s/%s", n$src_peer$host, n$src_peer$p);
+		}
+	else
+		{
+		tgs["es"] = peer_description;
+		}
+	return tgs;
+	}
 
 function email_headers(subject_desc: string, dest: string): string
 	{
@@ -521,9 +553,8 @@ function is_being_suppressed(n: Notice::Info): bool
 # new process' environment as "BRO_ARG_<field>" variables.
 function execute_with_notice(cmd: string, n: Notice::Info)
 	{
-	# TODO: fix system calls
-	#local tgs = tags(n);
-	#system_env(cmd, tags);
+	local tgs = notice_tags(n);
+	system_env(cmd, tgs);
 	}
 
 function create_file_info(f: fa_file): Notice::FileInfo

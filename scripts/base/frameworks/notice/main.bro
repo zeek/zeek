@@ -364,17 +364,20 @@ event bro_init() &priority=5
 function notice_tags(n: Notice::Info) : table[string] of string
 	{
 	local tgs: table[string] of string = table();
-        # Get time
-        local t = is_remote_event() ? current_time() : network_time();
-	# If there is a ts, use that, otherwise use t
-	tgs["t"] = n?$ts ? fmt("%.06f", n$ts) : fmt("%.06f", t);
+	local is_remote = is_remote_event();
+
+	if ( n?$ts )
+		tgs["t"] = fmt("%.6f", n$ts);
+	else
+		tgs["t"] = fmt("%.6f", is_remote ? current_time() : network_time());
+
 	tgs["uid"] = n?$uid ? n$uid : "";
-        tgs["id"] = n?$id ? id_string(n$id): "";
-        tgs["fuid"] = n?$fuid ? n$fuid : "";
-        tgs["file_mime_type"] = n?$file_mime_type ? n$file_mime_type : "";
-        tgs["file_desc"] = n?$file_desc ? n$file_desc : "";
-        tgs["proto"] =  n?$proto ? fmt("%s", n$proto) : "";;
-        tgs["no"] = fmt("%s", n$note);
+	tgs["id"] = n?$id ? id_string(n$id) : "";
+	tgs["fuid"] = n?$fuid ? n$fuid : "";
+	tgs["file_mime_type"] = n?$file_mime_type ? n$file_mime_type : "";
+	tgs["file_desc"] = n?$file_desc ? n$file_desc : "";
+	tgs["proto"] = n?$proto ? fmt("%s", n$proto) : "";
+	tgs["no"] = fmt("%s", n$note);
 
 	tgs["msg"] = n?$msg ? n$msg : "";
 	tgs["sub"] = n?$sub ? n$sub : "";
@@ -387,27 +390,36 @@ function notice_tags(n: Notice::Info) : table[string] of string
 	tgs["peer_descr"] = n?$peer_descr ? n$peer_descr : "";
 
 	tgs["actions"] = "";
-	if (n?$actions) {
+	if ( n?$actions )
+		{
 		local actionstr = "";
-		for (a in n$actions) {
-			actionstr = actionstr + " " + fmt("%s", a);
-		}		
+		for (a in n$actions)
+			{
+			actionstr += fmt(" %s", a);
+			}
+
 		tgs["actions"] = actionstr;
-	}
-	tgs["identifier"] = n?$identifier ? n$identifier : "";;
+		}
+
+	tgs["identifier"] = n?$identifier ? n$identifier : "";
 	tgs["suppress_for"] = n?$suppress_for ? fmt("%s", n$suppress_for) : "";
 
-	if ( is_remote_event() )
+	tgs["es"] = "";
+	if ( is_remote )
 		{
-		if ( n$src_peer$descr != "" )
-			tgs["es"] = n$src_peer$descr;
-		else
-			tgs["es"] = fmt("%s/%s", n$src_peer$host, n$src_peer$p);
+		if ( n?$src_peer )
+			{
+			if ( n$src_peer$descr != "" )
+				tgs["es"] = n$src_peer$descr;
+			else
+				tgs["es"] = fmt("%s/%s", n$src_peer$host, n$src_peer$p);
+			}
 		}
 	else
 		{
 		tgs["es"] = peer_description;
 		}
+
 	return tgs;
 	}
 

@@ -5,7 +5,6 @@
 
 @load base/utils/directions-and-hosts
 @load base/frameworks/cluster
-#@load base/bif/store.bif
 
 module Known;
 
@@ -24,7 +23,8 @@ export {
 	
 	## The hosts whose existence should be logged and tracked.
 	## See :bro:type:`Host` for possible choices.
-	const host_tracking = LOCAL_HOSTS &redef;
+	#const host_tracking = LOCAL_HOSTS &redef;
+	const host_tracking = ALL_HOSTS &redef;
 	
 	## The set of all known addresses to store for preventing duplicate 
 	## logging of addresses.  It can also be used from other scripts to 
@@ -33,7 +33,8 @@ export {
 	## of each individual address is logged each day.
 	#global known_hosts: set[addr] &create_expire=1day &synchronized &redef;
 	# FIXME how to ensure expiration with broker stores?
-	global known_hosts: set[addr] &create_expire=1day &redef;
+	global known_hosts: set[addr] &redef;
+	global known_hosts_expire: interval = 1day &redef;
 
 	## An event that can be handled to access the :bro:type:`Known::HostsInfo`
 	## record as it is sent on to the logging framework.
@@ -44,45 +45,51 @@ event bro_init() &priority = -11
 	{
 	print "init connection logs";
 	Log::create_stream(Known::HOSTS_LOG, [$columns=HostsInfo, $ev=log_known_hosts, $path="known_hosts"]);
+	BrokerComm::enable();
 
+	local k_hosts: set[string] = {};
 	if(Cluster::is_enabled())	
-		BrokerStore::insert(Cluster::cluster_store, BrokerComm::data("known_hosts"), BrokerComm::data(known_hosts));
+		{
+		# FIXME ExpiryTime needs to be added
+		local res = BrokerStore::insert(Cluster::cluster_store, BrokerComm::data("known_hosts"), BrokerComm::data(k_hosts));
+		}
 	}
 
 event connection_established(c: connection) &priority=5
 	{
 	local id = c$id;
-	print "connection established!";	
 	for ( host in set(id$orig_h, id$resp_h) )
 		{
-
 		if(Cluster::is_enabled())	
 			{
-
 			if (c$orig$state == TCP_ESTABLISHED &&
 					c$resp$state == TCP_ESTABLISHED &&
 		    	addr_matches_host(host, host_tracking))
 				{
 				when (local res = BrokerStore::exists(Cluster::cluster_store, BrokerComm::data("known_hosts")))
 					{
-					local res_bool = BrokerComm::refine_to_bool(BrokerComm::vector_lookup(res$result, 1));
+					local res_bool = BrokerComm::refine_to_bool(res$result);
+
 					if(res_bool)
 						{
-						local lookup_key = BrokerComm::data(BrokerComm::set_contains(BrokerComm::data("known_hosts"), BrokerComm::data(host)));
-	
-						when ( local res2 = BrokerStore::lookup(Cluster::cluster_store, lookup_key) )
+						#print "doing a specific lookup for host ", host;
+						when ( local res2 = BrokerStore::lookup(Cluster::cluster_store, BrokerComm::data("known_hosts")) )
 							{
-							local res2_bool = BrokerComm::refine_to_bool(BrokerComm::vector_lookup(res2$result, 1));
-							if(res2_bool) 
+							local res2_bool = BrokerComm::set_contains(res2$result, BrokerComm::data(host));
+
+							if(!res2_bool) 
 								{
-								print "new host ", host, " write to datatstore";
+								#print "new host ", host, " write to datatstore";
 								BrokerStore::add_to_set(Cluster::cluster_store, BrokerComm::data("known_hosts"), BrokerComm::data(host));
 								Log::write(Known::HOSTS_LOG, [$ts=network_time(), $host=host]);
 								}
-
 							}
+						timeout 10sec
+							{ print "timeout"; }
 						}
 					}
+				timeout 20sec
+					{ print "timeout"; }
 				}
 			}
 		else if ( host !in known_hosts && 

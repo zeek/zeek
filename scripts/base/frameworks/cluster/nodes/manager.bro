@@ -23,7 +23,6 @@ redef Log::default_rotation_postprocessor_cmd = "archive-log";
 
 event bro_init() &priority = -10 
 	{
-	print "init manager";
 	# Subsribe to prefix
 	local prefix = fmt("%smanager/response/", Cluster::pub_sub_prefix);
 	BrokerComm::advertise_topic(prefix);

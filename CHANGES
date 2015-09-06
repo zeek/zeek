@@ -1,13 +1,18 @@
 
-2.4-12 | 2015-08-31 17:57:55 -0700
+2.4.1 | 2015-09-06 09:54:17 -0700
+
+  * Make dns_max_queries redef-able (Vlad Grigorescu)
+
+  * Move SIP analyzer to flowunit instead of datagram. Addresses
+    BIT-1458 (Vlad Grigorescu)
 
   * Add a number of out-of-bound checks to layer 2 code. Addresses
-    BIT-1463. (Johanna Amann)
+    BIT-1463. (Johanna Amann/Daniel Thayer)
 
   * Be more permissive on what characters we accept as an unquoted
     multipart boundary. Addresses BIT-1459. (Johanna Amann)
 
-  * Fix potential crash TCP headers were captured incompletely. Test
+  * Fix potential crash where TCP headers were captured incompletely. Test
     case provided by Jonathan Ganz. Addresses BIT-1425. (Robin Sommer)
 
   * Fix initialization of a pointer in RDP analyzer. (Daniel

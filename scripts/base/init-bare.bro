@@ -2469,7 +2469,7 @@ global dns_skip_all_addl = T &redef;
 
 ## If a DNS request includes more than this many queries, assume it's non-DNS
 ## traffic and do not process it.  Set to 0 to turn off this functionality.
-global dns_max_queries = 25 &redef;
+global dns_max_queries = 5 &redef;
 
 ## HTTP session statistics.
 ##

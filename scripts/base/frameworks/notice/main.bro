@@ -4,6 +4,8 @@
 ##! what is bad activity for sites.  More extensive documentation about using
 ##! the notice framework can be found in :doc:`/frameworks/notice`.
 
+@load base/utils/conn-ids
+
 module Notice;
 
 export {
@@ -298,6 +300,10 @@ export {
 	##          appended.
 	global email_headers: function(subject_desc: string, dest: string): string;
 
+	## Executes a program with all of the notice fields put into the
+	## new process' environment as "BRO_ARG_<field>" variables.
+	global execute_with_notice: function(cmd: string, n: Notice::Info);
+
 	## This event can be handled to access the :bro:type:`Notice::Info`
 	## record as it is sent on to the logging framework.
 	##
@@ -561,7 +567,7 @@ function is_being_suppressed(n: Notice::Info): bool
 		return F;
 	}
 
-# Executes a script with all of the notice fields put into the
+# Executes a program with all of the notice fields put into the
 # new process' environment as "BRO_ARG_<field>" variables.
 function execute_with_notice(cmd: string, n: Notice::Info)
 	{

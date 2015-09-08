@@ -10,8 +10,8 @@
 @TEST-START-FILE cluster-layout.bro
 redef Cluster::nodes = {
 	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=27757/tcp, $workers=set("worker-1")],
-	["proxy-1"] = [$node_type=Cluster::PROXY,     $ip=127.0.0.1, $p=27758/tcp, $manager="manager-1", $workers=set("worker-1")],
-	["worker-1"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=27760/tcp, $manager="manager-1", $proxy="proxy-1", $interface="eth0"],
+	["proxy-1"] = [$node_type=Cluster::DATANODE,     $ip=127.0.0.1, $p=27758/tcp, $manager="manager-1", $workers=set("worker-1")],
+	["worker-1"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=27760/tcp, $manager="manager-1", $datanode="proxy-1", $interface="eth0"],
 };
 @TEST-END-FILE
 
@@ -28,7 +28,7 @@ event remote_connection_closed(p: event_peer)
 
 global ready: event();
 
-redef Cluster::manager2worker_events += /ready/;
+redef Cluster::manager2worker_events += {"ready"};
 
 event delayed_notice()
 	{

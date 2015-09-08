@@ -45,7 +45,7 @@ event remote_connection_closed(p: event_peer)
 	}
 
 global ready_for_data: event();
-redef Cluster::manager2worker_events += /^ready_for_data$/;
+redef Cluster::manager2worker_events += {"ready_for_data"};
 
 event ready_for_data()
 	{

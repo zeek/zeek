@@ -58,7 +58,7 @@ export {
 	const datanode2worker_events : set[string] = {} &redef;
 	
 	## Events raised by workers and handled by a manager.
-	const worker2manager_events : set[string] += {} &redef;
+	const worker2manager_events : set[string] = {} &redef;
 	
 	## Events raised by workers and handled by proxies.
 	const worker2datanode_events : set[string] = {} &redef;

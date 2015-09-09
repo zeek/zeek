@@ -8,6 +8,5 @@ module Communication;
 
 event bro_init() &priority=-10
 	{
-	print "broker listens on", fmt("%s:%s", listen_interface, listen_port);
 	BrokerComm::listen(listen_port, fmt("%s", listen_interface));
 	}

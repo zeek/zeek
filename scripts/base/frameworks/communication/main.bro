@@ -184,7 +184,6 @@ function connect_peer(peer: string)
 	# ...and connect via broker
 	local succ = BrokerComm::connect(fmt("%s", node$host), p, node$retry);
 
-	
 	if ( !succ )
 		Log::write(Communication::LOG, [$ts = network_time(),
 		                                $peer = peer,
@@ -193,39 +192,36 @@ function connect_peer(peer: string)
 	}
 
 function setup_peer(peer_name: string, node: Node)
-    {
+	{
 	node$peer = peer_name;
-    #node$zone_id = "1";
+	# node$zone_id = "1";
 	node$connected = T;
-    nodes[peer_name] = node;
+	nodes[peer_name] = node;
 	connected_peers[peer_name] = node;
-    }
+	}
 
 event BrokerComm::incoming_connection_established(peer_name: string)
 	{
-	print "BrokerComm::incoming_connection_established by", peer_name;
 	do_script_log(BrokerComm::endpoint_name, fmt("incoming connection established by %s", peer_name));
-    local node = nodes[peer_name];
-    setup_peer(peer_name, node);
+	local node = nodes[peer_name];
+	setup_peer(peer_name, node);
 	}
 
 event BrokerComm::incoming_connection_broken(peer_name: string)
 	{
-	print "Incoming connection broken to", peer_name;
 	do_script_log(BrokerComm::endpoint_name, fmt("incoming connection broken to %s", peer_name));
 	}
 
 event BrokerComm::outgoing_connection_established(peer_address: string, peer_port: port, peer_name: string)
 	{
-	print "BrokerComm::outgoing_connection_established to", peer_address, peer_port, peer_name;
 	local id = fmt("%s:%s", peer_address, peer_port);
 	local node = pending_peers[peer_name];
 	delete pending_peers[peer_name];	
 
 	do_script_log(BrokerComm::endpoint_name, fmt("outgoing connection established to %s", peer_name));
 
-  setup_peer(peer_name, node);
-	peer_mapping[fmt("%s::%s", peer_address, peer_port)] =  peer_name;
+	setup_peer(peer_name, node);
+	peer_mapping[fmt("%s::%s", peer_address, peer_port)] = peer_name;
 
 	event outgoing_connection_established_event(peer_name);
 	}
@@ -237,12 +233,9 @@ event BrokerComm::outgoing_connection_broken(peer_address: string, peer_port: po
 	for ( i in connected_peers )
 		{
 			local n = connected_peers[i];
-			print "host ", n$host, " port ", n$p;
 			if ( fmt("%s", n$host) == peer_address && n$p == peer_port )
 				peer_name = i;
-				print "found", i;
 		}
-	print "Outgoing connection broken to", peer_name, "from ", peer_address, "port", peer_port;
 	do_script_log(BrokerComm::endpoint_name, fmt("connection closed/broken to %s", peer_name));
 
 	if ( peer_name in connected_peers )
@@ -259,7 +252,6 @@ event BrokerComm::outgoing_connection_broken(peer_address: string, peer_port: po
 
 event BrokerComm::outgoing_connection_incompatible(peer_address: string, peer_port: port)
 	{
-	print "Outgoing connection incompatible to", peer_address, peer_port;
 	do_script_log(peer_address, "outgoing connection incompatible");
 	}
 

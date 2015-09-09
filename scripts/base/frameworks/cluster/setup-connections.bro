@@ -40,7 +40,7 @@ function process_node_datanode(i: string, n: Cluster::Node, me: Cluster::Node)
 	# FIXME: Once we're using multiple proxies, we should also figure out some $class scheme ...
 	if ( n$node_type == DATANODE )
 		{
-		if ( n?$datanode)
+		if ( n?$datanode )
 			Communication::nodes[i]
 			     = [$host=n$ip, $zone_id=n$zone_id, $p=n$p, $connect=T, $retry=1mins];
 		else if ( me?$datanode && me$datanode == i )
@@ -50,7 +50,6 @@ function process_node_datanode(i: string, n: Cluster::Node, me: Cluster::Node)
 			
 	# Finally the manager, to send status updates to.
 	if ( n$node_type == MANAGER && me$manager == i )
-		## i = manager 
 		Communication::nodes[i] = [$host=nodes[i]$ip, 
 	                               $zone_id=nodes[i]$zone_id, 
 	                               $p=nodes[i]$p, 
@@ -62,7 +61,6 @@ function process_node_worker(i: string, n: Cluster::Node, me: Cluster::Node)
 	{
 
 	if ( n$node_type == MANAGER && me$manager == i )
-		## i = manager 
 		Communication::nodes[i] = [$host=nodes[i]$ip, 
 		                           $zone_id=nodes[i]$zone_id,
 		                           $p=nodes[i]$p,
@@ -70,7 +68,6 @@ function process_node_worker(i: string, n: Cluster::Node, me: Cluster::Node)
 		                           $class=node];
 			
 	if ( n$node_type == DATANODE && me$datanode == i )
-		## i = datanode 
 		Communication::nodes[i] = [$host=nodes[i]$ip, 
 		                           $zone_id=nodes[i]$zone_id,
 		                           $p=nodes[i]$p,
@@ -105,7 +102,7 @@ function process_node(i: string, n: Cluster::Node, me: Cluster::Node)
 event bro_init() &priority=9
 	{
 	local me = nodes[node];
-	
+
 	for ( i in Cluster::nodes )
 		{
 		local n = nodes[i];

@@ -49,8 +49,8 @@ export {
 	const manager2worker_events : set[string] = {} &redef;
 	
 	## Events raised by a manager and handled by proxies.
-	const manager2datanode_events : set[string] = {} &redef;	
-
+	const manager2datanode_events : set[string] = {} &redef;
+	
 	## Events raised by proxies and handled by a manager.
 	const datanode2manager_events : set[string] = {} &redef;
 	
@@ -75,8 +75,7 @@ export {
 	## Record type to indicate a node in a cluster.
 	type Node: record {
 		## Identifies the type of cluster node in this node's configuration.
-		## Roles of a node
-		node_type: NodeType;
+		node_type:    NodeType;
 		## The IP address of the cluster node.
 		ip:           addr;
 		## If the *ip* field is a non-global IPv6 address, this field
@@ -90,13 +89,12 @@ export {
 		## Name of the manager node this node uses.  For workers and proxies.
 		manager:      string      &optional;
 		## Name of the datanode this node uses.  For workers and managers.
-		datanode:        string      &optional;
+		datanode:     string      &optional;
 		## Names of worker nodes that this node connects with.
 		## For managers and proxies.
 		workers:      set[string] &optional;
 		## Name of a time machine node with which this node connects.
 		time_machine: string      &optional;
-
 	};
 	
 	## This function can be called at any time to determine if the cluster
@@ -111,8 +109,8 @@ export {
 	## :bro:enum:`Cluster::NONE` is returned.
 	##
 	## Returns: The :bro:type:`Cluster::NodeType` the calling node acts as.
-	global local_node_type: function(): NodeType;	
-
+	global local_node_type: function(): NodeType;
+	
 	## Register events with broker that the local node will publish
 	##
 	## prefix: the broker pub-sub prefix
@@ -163,16 +161,12 @@ event BrokerComm::incoming_connection_established(peer_name: string)
 	{
 	if ( peer_name in nodes && nodes[peer_name]$node_type == WORKER )
 		++worker_count;
-
-	Log::write(Cluster::LOG,[$ts=1, $message="incoming connection established"]);
-
 	}
 
 event BrokerComm::incoming_connection_broken(peer_name: string)
 	{
 	if ( peer_name in nodes && nodes[peer_name]$node_type == WORKER )
 		--worker_count;
-	Log::write(Cluster::LOG,[$ts=2, $message="incoming connection broken"]);
 	}
 
 event bro_init() &priority=5
@@ -188,7 +182,7 @@ event bro_init() &priority=5
 
 	Log::create_stream(Cluster::LOG, [$columns=Info, $path="cluster"]);
 
-	# All cluster nodes subscribe to control messages 
+	# All cluster nodes subscribe to control messages
 	local prefix = fmt("%srequest/", Control::pub_sub_prefix);
 	BrokerComm::advertise_topic(prefix);
 	BrokerComm::subscribe_to_events(prefix);

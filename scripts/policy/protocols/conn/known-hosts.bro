@@ -41,14 +41,13 @@ export {
 	global log_known_hosts: event(rec: HostsInfo);
 }
 
-event bro_init() &priority = -11 
+event bro_init() &priority = -11
 	{
-	print "init connection logs";
 	Log::create_stream(Known::HOSTS_LOG, [$columns=HostsInfo, $ev=log_known_hosts, $path="known_hosts"]);
 	BrokerComm::enable();
 
 	local k_hosts: set[string] = {};
-	if(Cluster::is_enabled())	
+	if(Cluster::is_enabled())
 		{
 		# FIXME ExpiryTime needs to be added
 		local res = BrokerStore::insert(Cluster::cluster_store, BrokerComm::data("known_hosts"), BrokerComm::data(k_hosts));
@@ -60,11 +59,11 @@ event connection_established(c: connection) &priority=5
 	local id = c$id;
 	for ( host in set(id$orig_h, id$resp_h) )
 		{
-		if(Cluster::is_enabled())	
+		if(Cluster::is_enabled())
 			{
 			if (c$orig$state == TCP_ESTABLISHED &&
 					c$resp$state == TCP_ESTABLISHED &&
-		    	addr_matches_host(host, host_tracking))
+					addr_matches_host(host, host_tracking))
 				{
 				when (local res = BrokerStore::exists(Cluster::cluster_store, BrokerComm::data("known_hosts")))
 					{
@@ -72,14 +71,12 @@ event connection_established(c: connection) &priority=5
 
 					if(res_bool)
 						{
-						#print "doing a specific lookup for host ", host;
 						when ( local res2 = BrokerStore::lookup(Cluster::cluster_store, BrokerComm::data("known_hosts")) )
 							{
 							local res2_bool = BrokerComm::set_contains(res2$result, BrokerComm::data(host));
 
-							if(!res2_bool) 
+							if(!res2_bool)
 								{
-								#print "new host ", host, " write to datatstore";
 								BrokerStore::add_to_set(Cluster::cluster_store, BrokerComm::data("known_hosts"), BrokerComm::data(host));
 								Log::write(Known::HOSTS_LOG, [$ts=network_time(), $host=host]);
 								}
@@ -92,10 +89,10 @@ event connection_established(c: connection) &priority=5
 					{ print "timeout"; }
 				}
 			}
-		else if ( host !in known_hosts && 
-		     			c$orig$state == TCP_ESTABLISHED &&
-				      c$resp$state == TCP_ESTABLISHED &&
-							addr_matches_host(host, host_tracking) )
+		else if ( host !in known_hosts &&
+					c$orig$state == TCP_ESTABLISHED &&
+					c$resp$state == TCP_ESTABLISHED &&
+					addr_matches_host(host, host_tracking) )
 			{
 			add known_hosts[host];
 			Log::write(Known::HOSTS_LOG, [$ts=network_time(), $host=host]);

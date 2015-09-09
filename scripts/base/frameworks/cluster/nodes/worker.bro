@@ -25,7 +25,7 @@ redef Log::default_rotation_postprocessor_cmd = "delete-log";
 ## Setting this does not turn recording on. Use '-w <trace>' for that.
 redef record_all_packets = T;
 
-event bro_init() &priority = -10 
+event bro_init() &priority = -10
 	{
 	# Subsribe to prefix
 	local prefix = fmt("%sworker/request/", Cluster::pub_sub_prefix);

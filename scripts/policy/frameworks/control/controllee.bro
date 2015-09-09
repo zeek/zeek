@@ -18,7 +18,6 @@ event Control::id_value_request(id: string)
 	{
 	local val = lookup_ID(id);
 	event Control::id_value_response(id, fmt("%s", val));
-	print "id_value_request received";
 	}
 
 event Control::peer_status_request()

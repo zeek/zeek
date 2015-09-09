@@ -6,10 +6,10 @@
 
 @prefixes += cluster-manager
 
-## Don't do any local logging.
+## Enable local logging.
 redef Log::enable_local_logging = T;
 
-## Turn on remote logging since 
+## Turn off remote logging since this is the manager and should only log here.
 redef Log::enable_remote_logging = F;
 
 ## Log rotation interval.
@@ -18,12 +18,12 @@ redef Log::default_rotation_interval = 1 hrs;
 ## Alarm summary mail interval.
 redef Log::default_mail_alarms_interval = 24 hrs;
 
-## Use the cluster's delete-log script.
+## Use the cluster's archive logging script.
 redef Log::default_rotation_postprocessor_cmd = "archive-log";
 
-event bro_init() &priority = -10 
+event bro_init() &priority = -10
 	{
-	# Subsribe to prefix
+	# Subscribe to prefix
 	local prefix = fmt("%smanager/response/", Cluster::pub_sub_prefix);
 	BrokerComm::advertise_topic(prefix);
 	BrokerComm::subscribe_to_events(prefix);

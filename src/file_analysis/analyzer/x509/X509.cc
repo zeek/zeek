@@ -620,15 +620,33 @@ double file_analysis::X509::GetTimeFromAsn1(const ASN1_TIME* atime, const char* 
 		}
 
 	tm lTime;
-	lTime.tm_sec  = ((lBuffer[10] - '0') * 10) + (lBuffer[11] - '0');
-	lTime.tm_min  = ((lBuffer[8] - '0') * 10) + (lBuffer[9] - '0');
-	lTime.tm_hour = ((lBuffer[6] - '0') * 10) + (lBuffer[7] - '0');
-	lTime.tm_mday = ((lBuffer[4] - '0') * 10) + (lBuffer[5] - '0');
-	lTime.tm_mon  = (((lBuffer[2] - '0') * 10) + (lBuffer[3] - '0')) - 1;
-	lTime.tm_year = ((lBuffer[0] - '0') * 10) + (lBuffer[1] - '0');
+	size_t i;
+	if ( atime->type == V_ASN1_GENERALIZEDTIME )
+		{
+		// YYYY format
+		lTime.tm_year =  (lBuffer[0] - '0') * 1000;
+		lTime.tm_year += (lBuffer[1] - '0') * 100;
+		lTime.tm_year += (lBuffer[2] - '0') * 10;
+		lTime.tm_year += (lBuffer[3] - '0');
+		if ( lTime.tm_year > 1900)
+			lTime.tm_year -= 1900;
+		i = 4;
+		}
+	else
+		{
+		// YY format
+		lTime.tm_year =  (lBuffer[0] - '0') * 10;
+		lTime.tm_year += (lBuffer[1] - '0');
+		if ( lTime.tm_year < 50 )
+			lTime.tm_year += 100; // RFC 2459
+		i = 2;
+		}
 
-	if ( lTime.tm_year < 50 )
-		lTime.tm_year += 100; // RFC 2459
+	lTime.tm_mon  = ((lBuffer[i+0] - '0') * 10) + (lBuffer[i+1] - '0') - 1; // MM
+	lTime.tm_mday = ((lBuffer[i+2] - '0') * 10) + (lBuffer[i+3] - '0');     // DD
+	lTime.tm_hour = ((lBuffer[i+4] - '0') * 10) + (lBuffer[i+5] - '0');     // hh
+	lTime.tm_min  = ((lBuffer[i+6] - '0') * 10) + (lBuffer[i+7] - '0');     // mm
+	lTime.tm_sec  = ((lBuffer[i+8] - '0') * 10) + (lBuffer[i+9] - '0');     // ss
 
 	lTime.tm_wday = 0;
 	lTime.tm_yday = 0;

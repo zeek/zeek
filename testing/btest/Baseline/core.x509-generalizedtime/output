@@ -1,0 +1,16 @@
+----- x509_certificate ----
+subject: CN=bro-generalizedtime-test,O=Bro,C=NL
+not_valid_before: 2015-09-01-13:33:37.000000000 (epoch: 1441114417.0)
+not_valid_after : 2025-09-01-13:33:37.000000000 (epoch: 1756733617.0)
+----- x509_certificate ----
+subject: CN=*.taleo.net,OU=Comodo PremiumSSL Wildcard,OU=Web,O=Taleo Inc.,street=4140 Dublin Boulevard,street=Suite 400,L=Dublin,ST=CA,postalCode=94568,C=US
+not_valid_before: 2011-05-04-00:00:00.000000000 (epoch: 1304467200.0)
+not_valid_after : 2016-07-04-23:59:59.000000000 (epoch: 1467676799.0)
+----- x509_certificate ----
+subject: CN=COMODO High-Assurance Secure Server CA,O=COMODO CA Limited,L=Salford,ST=Greater Manchester,C=GB
+not_valid_before: 2010-04-16-00:00:00.000000000 (epoch: 1271376000.0)
+not_valid_after : 2020-05-30-10:48:38.000000000 (epoch: 1590835718.0)
+----- x509_certificate ----
+subject: CN=AddTrust External CA Root,OU=AddTrust External TTP Network,O=AddTrust AB,C=SE
+not_valid_before: 2000-05-30-10:48:38.000000000 (epoch: 959683718.0)
+not_valid_after : 2020-05-30-10:48:38.000000000 (epoch: 1590835718.0)

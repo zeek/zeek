@@ -1,4 +1,8 @@
 
+2.4-131 | 2015-09-11 12:16:39 -0700
+
+  * Add README.rst symlink. Addresses BIT-1413 (Vlad Grigorescu)
+
 2.4-129 | 2015-09-11 11:56:04 -0700
 
   * hash-all-files.bro depends on base/files/hash (Richard van den Berg)

@@ -1,4 +1,11 @@
 
+2.4-129 | 2015-09-11 11:56:04 -0700
+
+  * hash-all-files.bro depends on base/files/hash (Richard van den Berg)
+
+  * Make dns_max_queries redef-able, and bump default to 25. Addresses
+    BIT-1460 (Vlad Grigorescu)
+
 2.4-125 | 2015-09-03 20:10:36 -0700
 
   * Move SIP analyzer to flowunit instead of datagram Addresses

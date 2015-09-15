@@ -178,8 +178,6 @@ event bro_init() &priority=5
 		terminate();
 		}
 
-	BrokerComm::enable();
-
 	Log::create_stream(Cluster::LOG, [$columns=Info, $path="cluster"]);
 
 	# All cluster nodes subscribe to control messages

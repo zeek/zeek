@@ -44,7 +44,6 @@ export {
 event bro_init() &priority = -11
 	{
 	Log::create_stream(Known::HOSTS_LOG, [$columns=HostsInfo, $ev=log_known_hosts, $path="known_hosts"]);
-	BrokerComm::enable();
 
 	local k_hosts: set[string] = {};
 	if(Cluster::is_enabled())

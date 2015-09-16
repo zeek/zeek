@@ -1,6 +1,7 @@
 # @TEST-SERIALIZE: comm
 #
 # @TEST-EXEC: btest-bg-run manager-1 BROPATH=$BROPATH:.. CLUSTER_NODE=manager-1 bro %INPUT
+# @TEST-EXEC: sleep 2
 # @TEST-EXEC: btest-bg-run proxy-1   BROPATH=$BROPATH:.. CLUSTER_NODE=proxy-1 bro %INPUT
 # @TEST-EXEC: sleep 2
 # @TEST-EXEC: btest-bg-run worker-1  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-1 bro %INPUT
@@ -23,7 +24,13 @@ redef enum Notice::Type += {
 	Test_Notice,
 };
 
-event remote_connection_closed(p: event_peer)
+event BrokerComm::incoming_connection_broken(peer_name: string)
+	{
+	terminate();
+	}
+
+event BrokerComm::outgoing_connection_broken(peer_address: string,
+                                        peer_port: port, peer_name: string)
 	{
 	terminate();
 	}
@@ -61,9 +68,9 @@ event Notice::suppressed(n: Notice::Info)
 
 global peer_count = 0;
 
-event remote_connection_handshake_done(p: event_peer)
+event BrokerComm::incoming_connection_established(peer_name: string)
 	{
-	peer_count = peer_count + 1;
+	peer_count += 1;
 	if ( peer_count == 3 )
 		event ready();
 	}

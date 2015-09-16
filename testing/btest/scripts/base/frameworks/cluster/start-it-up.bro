@@ -32,7 +32,7 @@ global fully_connected_nodes = 0;
 
 event fully_connected()
 	{
-	fully_connected_nodes = fully_connected_nodes + 1;
+	fully_connected_nodes += 1;
 	if ( Cluster::node == "manager-1" )
 		{
 		if ( peer_count == 4 && fully_connected_nodes == 4 )
@@ -46,7 +46,7 @@ redef Cluster::datanode2manager_events += {"fully_connected"};
 function process_event(peer_name: string)
 	{
 	print "Connected to a peer";
-	peer_count = peer_count + 1;
+	peer_count += 1;
 	if ( Cluster::node == "manager-1" )
 		{
 		if ( peer_count == 4 && fully_connected_nodes == 4 )
@@ -67,4 +67,14 @@ event BrokerComm::incoming_connection_established(peer_name: string)
 event BrokerComm::outgoing_connection_established(peer_address: string, peer_port: port, peer_name: string)
 	{
 	process_event(peer_name);
+	}
+
+event BrokerComm::outgoing_connection_broken(peer_address: string, peer_port: port, peer_name: string)
+	{
+	terminate();
+	}
+
+event BrokerComm::incoming_connection_broken(peer_name: string)
+	{
+	terminate();
 	}

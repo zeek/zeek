@@ -14,14 +14,21 @@
 @load base/frameworks/communication
 
 redef Communication::nodes += {
-    ["foo"] = [$host=[::1], $connect=T, $retry=1sec, $events=/my_event/]
+    ["foo"] = [$host=[::1], $connect=T, $retry=1sec]
 };
 
 global my_event: event(s: string);
 
-event remote_connection_handshake_done(p: event_peer)
+event bro_init() &priority=5
 	{
-	print fmt("handshake done with peer: %s", p$host);
+	BrokerComm::subscribe_to_events("bro/event/");
+	}
+
+event BrokerComm::outgoing_connection_established(peer_address: string,
+                                             peer_port: port,
+                                             peer_name: string)
+	{
+	print fmt("handshake done with peer: %s", peer_address);
 	}
 
 event my_event(s: string)
@@ -38,17 +45,18 @@ event my_event(s: string)
 
 @load frameworks/communication/listen
 
-redef Communication::listen_ipv6=T;
+redef exit_only_after_terminate = T;
+redef Communication::listen_interface=[::];
 
 global my_event: event(s: string);
 
-event remote_connection_handshake_done(p: event_peer)
+event BrokerComm::incoming_connection_established(peer_name: string)
 	{
-	print fmt("handshake done with peer: %s", p$host);
-	event my_event("hello world");
+	print fmt("handshake done with peer: %s", peer_name);
+	BrokerComm::event("bro/event/my_event", BrokerComm::event_args(my_event, "hello world"));
 	}
 
-event remote_connection_closed(p: event_peer)
+event BrokerComm::incoming_connection_broken(peer_name: string)
 	{
 	terminate();
 	}

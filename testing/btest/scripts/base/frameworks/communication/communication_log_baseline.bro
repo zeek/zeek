@@ -1,6 +1,7 @@
 # @TEST-SERIALIZE: comm
 #
 # @TEST-EXEC: btest-bg-run receiver bro -b ../receiver.bro
+# @TEST-EXEC: sleep 2
 # @TEST-EXEC: btest-bg-run sender   bro -b ../sender.bro
 # @TEST-EXEC: btest-bg-wait -k 10
 #
@@ -13,15 +14,17 @@
 @load base/frameworks/communication/main
 
 redef Communication::nodes += {
-    ["foo"] = [$host = 127.0.0.1, $events = /NOTHING/, $connect=T]
+    ["foo"] = [$host = 127.0.0.1, $connect=T]
 };
 
-event remote_connection_handshake_done(p: event_peer)
+event BrokerComm::outgoing_connection_established(peer_address: string,
+                                             peer_port: port,
+                                             peer_name: string)
 	{
 	terminate_communication();
 	}
 
-event remote_connection_closed(p: event_peer)
+event BrokerComm::outgoing_connection_broken(peer_address: string, peer_port: port, peer_name: string)
 	{
 	terminate();
 	}
@@ -34,7 +37,9 @@ event remote_connection_closed(p: event_peer)
 
 @load frameworks/communication/listen
 
-event remote_connection_closed(p: event_peer)
+redef exit_only_after_terminate = T;
+
+event BrokerComm::incoming_connection_broken(peer_name: string)
 	{
 	terminate();
 	}

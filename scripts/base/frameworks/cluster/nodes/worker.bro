@@ -25,17 +25,17 @@ redef Log::default_rotation_postprocessor_cmd = "delete-log";
 ## Setting this does not turn recording on. Use '-w <trace>' for that.
 redef record_all_packets = T;
 
-event bro_init() &priority = -10
+event bro_init() &priority=5
 	{
 	# Subsribe to prefix
-	local prefix = fmt("%sworker/request/", Cluster::pub_sub_prefix);
+	local prefix = fmt("%sworker/", Cluster::pub_sub_prefix);
 	BrokerComm::advertise_topic(prefix);
 	BrokerComm::subscribe_to_events(prefix);
 
 	# Publish: worker2manager_events, worker2datanode_events
-	prefix = fmt("%smanager/response/", Cluster::pub_sub_prefix);
+	prefix = fmt("%smanager/", Cluster::pub_sub_prefix);
 	Cluster::register_broker_events(prefix, Cluster::worker2manager_events);
-	prefix = fmt("%sdata/response/", Cluster::pub_sub_prefix);
+	prefix = fmt("%sdata/", Cluster::pub_sub_prefix);
 	Cluster::register_broker_events(prefix, Cluster::worker2datanode_events);
 
 	# Create clone of the master store

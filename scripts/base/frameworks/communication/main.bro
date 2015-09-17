@@ -188,7 +188,8 @@ function connect_peer(peer: string)
 		Log::write(Communication::LOG, [$ts = network_time(),
 		                                $peer = peer,
 		                                $message = "can't trigger connect"]);
-	pending_peers[peer] = node;
+	local id = fmt("%s:%s", node$host, p);
+	pending_peers[id] = node;
 	}
 
 function setup_peer(peer_name: string, node: Node)
@@ -203,8 +204,11 @@ function setup_peer(peer_name: string, node: Node)
 event BrokerComm::incoming_connection_established(peer_name: string)
 	{
 	do_script_log(BrokerComm::endpoint_name, fmt("incoming connection established by %s", peer_name));
-	local node = nodes[peer_name];
-	setup_peer(peer_name, node);
+	if ( peer_name in nodes )
+		{
+		local node = nodes[peer_name];
+		setup_peer(peer_name, node);
+		}
 	}
 
 event BrokerComm::incoming_connection_broken(peer_name: string)
@@ -215,21 +219,20 @@ event BrokerComm::incoming_connection_broken(peer_name: string)
 event BrokerComm::outgoing_connection_established(peer_address: string, peer_port: port, peer_name: string)
 	{
 	local id = fmt("%s:%s", peer_address, peer_port);
-	local node = pending_peers[peer_name];
-	delete pending_peers[peer_name];	
+	local node = pending_peers[id];
+	delete pending_peers[id];
 
 	do_script_log(BrokerComm::endpoint_name, fmt("outgoing connection established to %s", peer_name));
 
 	setup_peer(peer_name, node);
 	peer_mapping[fmt("%s::%s", peer_address, peer_port)] = peer_name;
 
-	event outgoing_connection_established_event(peer_name);
+	event Communication::outgoing_connection_established_event(peer_name);
 	}
 
 event BrokerComm::outgoing_connection_broken(peer_address: string, peer_port: port, peer_name: string)
 	{
 	# Retrieve the peer_name according to peer_address and peer_port
-	# TODO broker should return the peer_name also for broken connections 
 	for ( i in connected_peers )
 		{
 			local n = connected_peers[i];
@@ -246,7 +249,10 @@ event BrokerComm::outgoing_connection_broken(peer_address: string, peer_port: po
 	
 		# Broker will retry.
 		if ( reconnect_interval != 0secs )
-			pending_peers[peer_name] = nodes[peer_name];
+			{
+			local id = fmt("%s:%s", peer_address, peer_port);
+			pending_peers[id] = nodes[peer_name];
+			}
 		}
 	}
 
@@ -255,10 +261,14 @@ event BrokerComm::outgoing_connection_incompatible(peer_address: string, peer_po
 	do_script_log(peer_address, "outgoing connection incompatible");
 	}
 
+event bro_init() &priority=10
+	{
+	BrokerComm::enable();
+	}
+
 event bro_init() &priority=5
 	{
 	Log::create_stream(Communication::LOG, [$columns=Info, $path="communication"]);
-	BrokerComm::enable_remote_logs(Communication::LOG);
 	}
 
 # Actually initiate the connections that need to be established.

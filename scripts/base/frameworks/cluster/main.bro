@@ -7,7 +7,6 @@
 ##! ``@load base/frameworks/cluster``.
 
 @load base/frameworks/control
-@load base/frameworks/logging
 
 module Cluster;
 
@@ -152,18 +151,21 @@ function local_node_type(): NodeType
 
 function register_broker_events(prefix: string, event_list: set[string])
 	{
-	BrokerComm::publish_topic(prefix);
 	for ( e in event_list )
-		BrokerComm::auto_event(prefix, lookup_ID(e));
+		{
+		local topic = string_cat(prefix, e);
+		BrokerComm::publish_topic(topic);
+		BrokerComm::auto_event(topic, lookup_ID(e));
+		}
 	}
 
-event BrokerComm::incoming_connection_established(peer_name: string)
+event BrokerComm::incoming_connection_established(peer_name: string) &priority=5
 	{
 	if ( peer_name in nodes && nodes[peer_name]$node_type == WORKER )
 		++worker_count;
 	}
 
-event BrokerComm::incoming_connection_broken(peer_name: string)
+event BrokerComm::incoming_connection_broken(peer_name: string) &priority=5
 	{
 	if ( peer_name in nodes && nodes[peer_name]$node_type == WORKER )
 		--worker_count;
@@ -179,12 +181,4 @@ event bro_init() &priority=5
 		}
 
 	Log::create_stream(Cluster::LOG, [$columns=Info, $path="cluster"]);
-
-	# All cluster nodes subscribe to control messages
-	local prefix = fmt("%srequest/", Control::pub_sub_prefix);
-	BrokerComm::advertise_topic(prefix);
-	BrokerComm::subscribe_to_events(prefix);
-
-	# ... and all nodes publish replies to control messages
-	register_broker_events(fmt("%sresponse/", Control::pub_sub_prefix), Control::controllee_events);
 	}

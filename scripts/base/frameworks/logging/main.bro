@@ -478,7 +478,7 @@ function create_stream(id: ID, stream: Stream) : bool
 	active_streams[id] = stream;
 	all_streams[id] = stream;
 	
-	if(enable_remote_logging)
+	if (enable_remote_logging)
 		{
 		BrokerComm::enable_remote_logs(id);
 		BrokerComm::publish_topic(fmt("bro/log/%s", id));
@@ -554,9 +554,9 @@ function remove_default_filter(id: ID) : bool
 	return remove_filter(id, "default");
 	}
 
-event bro_init() &priority = -9 
+event bro_init() &priority=5
 	{
-	if(enable_local_logging)
+	if (enable_local_logging)
 		{
 		BrokerComm::advertise_topic("bro/log/");
 		BrokerComm::subscribe_to_logs("bro/log/");

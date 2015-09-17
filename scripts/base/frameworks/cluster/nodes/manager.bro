@@ -21,17 +21,17 @@ redef Log::default_mail_alarms_interval = 24 hrs;
 ## Use the cluster's archive logging script.
 redef Log::default_rotation_postprocessor_cmd = "archive-log";
 
-event bro_init() &priority = -10
+event bro_init() &priority=5
 	{
 	# Subscribe to prefix
-	local prefix = fmt("%smanager/response/", Cluster::pub_sub_prefix);
+	local prefix = fmt("%smanager/", Cluster::pub_sub_prefix);
 	BrokerComm::advertise_topic(prefix);
 	BrokerComm::subscribe_to_events(prefix);
 
 	# Need to publish: manager2worker_events, manager2datanode_events
-	prefix = fmt("%sworker/request/", Cluster::pub_sub_prefix);
+	prefix = fmt("%sworker/", Cluster::pub_sub_prefix);
 	Cluster::register_broker_events(prefix, Cluster::manager2worker_events);
-	prefix = fmt("%sdata/request/", Cluster::pub_sub_prefix);
+	prefix = fmt("%sdata/", Cluster::pub_sub_prefix);
 	Cluster::register_broker_events(prefix, Cluster::manager2datanode_events);
 
 	# Create clone of the master store

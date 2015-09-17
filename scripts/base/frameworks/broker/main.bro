@@ -101,8 +101,3 @@ export {
 		rocksdb: RocksDBOptions &default = RocksDBOptions();
 	};
 }
-
-event bro_init() &priority=10
-	{
-	BrokerComm::enable();
-	}

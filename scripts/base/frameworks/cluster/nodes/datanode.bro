@@ -25,17 +25,17 @@ redef Log::default_rotation_postprocessor_cmd = "delete-log";
 ## We're processing essentially *only* remote events.
 redef max_remote_events_processed = 10000;
 
-event bro_init() &priority = -10
+event bro_init() &priority=5
 	{
 	# Subscribe to prefix
-	local prefix = fmt("%sdata/request/", Cluster::pub_sub_prefix);
+	local prefix = fmt("%sdata/", Cluster::pub_sub_prefix);
 	BrokerComm::advertise_topic(prefix);
 	BrokerComm::subscribe_to_events(prefix);
 
 	# Publish: datanode2manager_events, datanode2worker_events
-	prefix = fmt("%smanager/response/", Cluster::pub_sub_prefix);
+	prefix = fmt("%smanager/", Cluster::pub_sub_prefix);
 	Cluster::register_broker_events(prefix, Cluster::datanode2manager_events);
-	prefix = fmt("%sworker/response/", Cluster::pub_sub_prefix);
+	prefix = fmt("%sworker/", Cluster::pub_sub_prefix);
 	Cluster::register_broker_events(prefix, Cluster::datanode2worker_events);
 
 	# Create the master store

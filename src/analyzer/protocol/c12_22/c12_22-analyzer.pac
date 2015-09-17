@@ -6,8 +6,23 @@ refine flow C12_22_Flow += {
 		BifEvent::generate_c12_22_event(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn());
 		return true;
 		%}
+
+	function proc_c12_22_epsem_msg(msg: C12_22_EPSEM_Msg): bool
+		%{
+		BifEvent::generate_c12_22_epsem_msg(connection()->bro_analyzer(), 
+			                            connection()->bro_analyzer()->Conn(),
+			                            ${msg.code});
+
+		return true;
+		%}
+
 };
 
 refine typeattr C12_22_PDU += &let {
 	proc: bool = $context.flow.proc_c12_22_message(this);
 };
+
+refine typeattr C12_22_EPSEM_Msg += &let {
+	proc: bool = $context.flow.proc_c12_22_epsem_msg(this);
+};
+

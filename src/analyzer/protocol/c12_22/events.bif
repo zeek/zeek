@@ -12,3 +12,5 @@
 ## c: The connection
 ##
 event c12_22_event%(c: connection%);
+
+event c12_22_epsem_msg%(c: connection, code: count%);

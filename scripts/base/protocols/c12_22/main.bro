@@ -15,8 +15,8 @@ export {
 		uid:    string  &log;
 		## The connection's 4-tuple of endpoint addresses/ports.
 		id:     conn_id &log;
-		
-		# ## TODO: Add other fields here that you'd like to log.
+	        ## The type of message
+	        code:   count   &log;
 	};
 
 	## Event that can be handled to access the c12_22 record as it is sent on
@@ -36,12 +36,13 @@ event bro_init() &priority=5
 	Analyzer::register_for_ports(Analyzer::ANALYZER_C12_22, ports);
 	}
 
-event c12_22_event(c: connection)
+event c12_22_epsem_msg(c: connection, code: count)
 	{
 	local info: Info;
-	info$ts  = network_time();
-	info$uid = c$uid;
-	info$id  = c$id;
+	info$ts   = network_time();
+	info$uid  = c$uid;
+	info$id   = c$id;
+	info$code = code;
 
 	Log::write(C12_22::LOG, info);
 	}

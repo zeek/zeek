@@ -28,10 +28,35 @@ type ACSE_Arg_Data(index: uint8) = case index of {
 	# Calling_Auth_Value     -> calling_auth_value       : NOT_IMPLEMENTED;
 	# P_Context              -> p_context                : NOT_IMPLEMENTED;
 	# Implementation_Info    -> calling_auth_value       : NOT_IMPLEMENTED;
-	User_Information         -> user_information         : C12_22_User_Info;
+	User_Information         -> user_information         : C12_22_EPSEM &restofdata;
 	default                  -> unknown                  : bytestring &restofdata;
 };
 
-type C12_22_User_Info = record {
-	unknown: bytestring &restofdata;
+type C12_22_EPSEM_Data = record {
+	svc_length: uint8;
+	msg       : C12_22_EPSEM_Msg &length=svc_length;
 };
+
+type C12_22_EPSEM_Msg = record {
+	code : uint8;
+	todo : bytestring &restofdata;
+};
+
+type C12_22_EPSEM = record {
+	seq_meta     : ASN1EncodingMeta;
+	ext_meta     : ASN1EncodingMeta;
+	epsem_control: uint8;
+	have_ed_class: case ed_class_included of {
+		true  -> ed_class : uint32;
+		false -> ignore: empty;
+	};
+	msgs         : C12_22_EPSEM_Data[];
+} &let {
+	recovery_session   : bool  = (epsem_control & 0x40) > 0;
+	proxy_service_used : bool  = (epsem_control & 0x20) > 0;
+	ed_class_included  : bool  = (epsem_control & 0x10) > 0;
+	security_mode      : uint8 =  epsem_control & 0x0c;
+	response_control   : uint8 =  epsem_control & 0x03;
+};
+
+

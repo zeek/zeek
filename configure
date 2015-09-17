@@ -41,7 +41,6 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --enable-perftools-debug use Google's perftools for debugging
     --enable-jemalloc      link against jemalloc
     --enable-ruby          build ruby bindings for broccoli (deprecated)
-    --disable-broker       disable use of the Broker communication library
     --disable-broccoli     don't build or install the Broccoli library
     --disable-broctl       don't install Broctl
     --disable-auxtools     don't build or install auxiliary tools
@@ -159,10 +158,7 @@ while [ $# -ne 0 ]; do
             append_cache_entry CMAKE_INSTALL_PREFIX PATH   $optarg
             append_cache_entry BRO_ROOT_DIR         PATH   $optarg
             append_cache_entry PY_MOD_INSTALL_DIR   PATH   $optarg/lib/broctl
-
-            if [ -z "$user_disabled_broker" ]; then
-                append_cache_entry BROKER_PYTHON_HOME   PATH   $optarg
-            fi
+            append_cache_entry BROKER_PYTHON_HOME   PATH   $optarg
             ;;
         --scriptdir=*)
             append_cache_entry BRO_SCRIPT_INSTALL_PATH STRING $optarg
@@ -196,11 +192,6 @@ while [ $# -ne 0 ]; do
             ;;
         --enable-jemalloc)
             append_cache_entry ENABLE_JEMALLOC     BOOL   true
-            ;;
-        --disable-broker)
-            append_cache_entry ENABLE_BROKER        BOOL   false
-            remove_cache_entry BROKER_PYTHON_HOME
-            user_disabled_broker="true"
             ;;
         --disable-broccoli)
             append_cache_entry INSTALL_BROCCOLI     BOOL   false

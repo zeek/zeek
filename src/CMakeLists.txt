@@ -160,14 +160,7 @@ add_subdirectory(input)
 add_subdirectory(iosource)
 add_subdirectory(logging)
 add_subdirectory(probabilistic)
-
-if ( ENABLE_BROKER )
-    add_subdirectory(broker)
-else ()
-    # Just to satisfy coverage unit tests until new Broker-based
-    # communication is enabled by default.
-    add_subdirectory(broker-dummy)
-endif ()
+add_subdirectory(broker)
 
 set(bro_SUBDIRS
     # Order is important here.

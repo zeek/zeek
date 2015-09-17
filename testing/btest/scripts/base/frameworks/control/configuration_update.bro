@@ -10,7 +10,7 @@
 
 redef Communication::nodes = {
 	# We're waiting for connections from this host for control.
-	["control"] = [$host=127.0.0.1, $class="control", $events=Control::controller_events],
+	["control"] = [$host=127.0.0.1, $class="control"],
 };
 
 const test_var = "ORIGINAL VALUE (this should be printed out first)" &redef;

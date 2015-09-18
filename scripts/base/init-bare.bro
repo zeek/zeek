@@ -2711,6 +2711,42 @@ type PE::SectionHeader: record {
 }
 module GLOBAL;
 
+@load base/bif/plugins/Bro_C12_22.types.bif
+
+module C12_22;
+export {
+	## Association Process Data Unit. See IEEE 1703.
+	type C12_22::APDU: record {
+		## Uniquely identifies the target of an ACSE message.
+		called_ap_title			: string &optional;
+		## Qualifies the application entity.
+		called_ae_qualifier		: count  &optional;
+		## Provides the called entity with information about a past APDU related to this one.
+		called_ap_invocation_id		: count  &optional;
+		## Used to identify an invocation instance for the called application entity.
+		called_ae_invocation_id		: count  &optional;
+		
+		## Uniquely identifies the initiator of an ACSE message.
+		calling_ap_title		: string &optional;
+		## Qualifies the information being transferred.
+		calling_ae_qualifier		: count  &optional;
+		## Provides for duplicate APDU rejection. Matched with called_ap_invocation_id.
+		calling_ap_invocation_id	: count  &optional;
+		## Used to identify an invocation instance for the calling application entity.
+		calling_ae_invocation_id	: count  &optional;
+
+		## The mechanism being called
+		mechanism_name			: string &optional;
+		## Authentication data
+		calling_authentication_value	: string &optional;
+		## Additional implementation data
+		implementation_information	: string &optional;
+	};
+
+}
+
+module GLOBAL;
+
 ## Deprecated.
 ##
 ## .. todo:: Remove. It's still declared internally but doesn't seem  used anywhere

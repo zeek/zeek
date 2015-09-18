@@ -15,19 +15,19 @@ type ACSE_Arg(is_orig: bool) = record {
 
 type ACSE_Arg_Data(index: uint8) = case index of {
 	Protocol_Version         -> version                  : ASN1Integer;
-	# ASO_Context            -> aso_context              : NOT_IMPLEMENTED;
-	# Called_AP_Title        -> called_ap_title          : NOT_IMPLEMENTED;
+	ASO_Context              -> aso_context              : ASN1ObjectIdentifier;
+	Called_AP_Title          -> called_ap_title          : ASN1ObjectIdentifier;
 	Called_AE_Qualifier      -> called_ae_qualifier      : ASN1Integer;
 	Called_AP_Invocation_ID  -> called_ap_invocation_id  : ASN1Integer;
 	Called_AE_Invocation_ID  -> called_ae_invocation_id  : ASN1Integer;
-	# Calling_AE_Title       -> calling_ae_title         : NOT_IMPLEMENTED;
-	Calling_AP_Qualifier     -> calling_ap_qualifier     : ASN1Integer;
+	Calling_AP_Title         -> calling_ap_title         : ASN1ObjectIdentifier;
+	Calling_AE_Qualifier     -> calling_ae_qualifier     : ASN1Integer;
 	Calling_AP_Invocation_ID -> calling_ap_invocation_id : ASN1Integer;
 	Calling_AE_Invocation_ID -> calling_ae_invocation_id : ASN1Integer;
-	# Mechanism_Name         -> mechanism_name           : NOT_IMPLEMENTED;
-	# Calling_Auth_Value     -> calling_auth_value       : NOT_IMPLEMENTED;
+	Mechanism_Name           -> mechanism_name           : ASN1ObjectIdentifier;
+	Calling_Auth_Value       -> calling_auth_value       : bytestring &restofdata; #TODO
 	# P_Context              -> p_context                : NOT_IMPLEMENTED;
-	# Implementation_Info    -> calling_auth_value       : NOT_IMPLEMENTED;
+	# Implementation_Info    -> implementation_info      : NOT_IMPLEMENTED;
 	User_Information         -> user_information         : C12_22_EPSEM &restofdata;
 	default                  -> unknown                  : bytestring &restofdata;
 };

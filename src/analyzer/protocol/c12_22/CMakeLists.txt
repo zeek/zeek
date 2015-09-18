@@ -6,6 +6,7 @@ include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DI
 
 bro_plugin_begin(Bro C12_22)
 	bro_plugin_cc(C12_22.cc Plugin.cc)
+	bro_plugin_bif(types.bif)
 	bro_plugin_bif(events.bif)
 	bro_plugin_pac(c12_22.pac c12_22-analyzer.pac c12_22-protocol.pac)
 bro_plugin_end()

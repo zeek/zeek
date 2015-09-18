@@ -1,0 +1,5 @@
+module C12_22;
+
+type APDU: record;
+
+module GLOBAL;

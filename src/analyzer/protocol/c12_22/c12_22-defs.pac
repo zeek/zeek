@@ -6,8 +6,8 @@ enum ASCEPDUTypes {
 	Called_AE_Qualifier      = 3,
 	Called_AP_Invocation_ID  = 4,
 	Called_AE_Invocation_ID  = 5,
-	Calling_AE_Title         = 6,
-	Calling_AP_Qualifier     = 7,
+	Calling_AP_Title         = 6,
+	Calling_AE_Qualifier     = 7,
 	Calling_AP_Invocation_ID = 8,
 	Calling_AE_Invocation_ID = 9,
 

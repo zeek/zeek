@@ -5,18 +5,70 @@
 
 module C12_22;
 
+@load ./consts
+
 export {
 	redef enum Log::ID += { LOG };
 
 	type Info: record {
 		## Timestamp for when the event happened.
-		ts:     time    &log;
+		ts:        time    &log;
 		## Unique ID for the connection.
-		uid:    string  &log;
+		uid:       string  &log;
 		## The connection's 4-tuple of endpoint addresses/ports.
-		id:     conn_id &log;
-	        ## The type of message
-	        code:   count   &log;
+		id:        conn_id &log;
+		## The AP invocation ID used for matching requests to responses.
+		invoc_id:  count &log;
+	        ## The request message code, if available
+	        req_code:  count  &optional;
+		## The request message description, if available
+		req:       string &log &optional;
+	        ## The response message code, if available
+	        resp_code: count  &optional;
+		## The response message description, if available
+		resp:      string &log &optional;
+	};
+
+	## A hook that is called whenever a session is being set.
+	## This can be used if additional initialization logic needs to happen
+	## when creating a new session value.
+	##
+	## c: The connection involved in the new session.
+	## 
+	## apdu: The C12.22 APDU message header information.
+	##
+	## is_request: Indicator for if this is being called for a request or a response.
+	global set_session: hook(c: connection, apdu: APDU, is_request: bool);
+
+	## Yields a queue of :bro:see:`C12_22::Info` objects for a given
+	## C12.22 message invocation ID.
+	type PendingMessages: table[count] of Queue::Queue;
+
+	## The amount of time that C12.22 requests or responses for a given
+	## invocation ID are allowed to be queued while waiting for
+	## a matching response or request.
+	const pending_msg_expiry_interval = 2min &redef;
+
+	## Give up trying to match pending C12.22 request or responses for a given
+	## invocation ID once this number of unmatched requests or responses
+	## is reached.
+	const max_pending_msgs = 50 &redef;
+
+	## Give up trying to match pending C12.22 requests or responses across all
+	## invocation IDs once there is at least one unmatched request or
+	## response across this number of different invocation IDs.
+	const max_pending_invocation_ids = 50 &redef;
+
+	## A record type which tracks the status of C12.22 requests for a given
+	## :bro:type:`connection`.
+	type State: record {
+		## Indexed by invocation id, returns Info record corresponding to
+		## requests that haven't been matched with a response yet.
+		pending_requests: PendingMessages;
+
+		## Indexed by invocation id, returns Info record corresponding to
+		## responses that haven't been matched with a query yet.
+		pending_responses: PendingMessages;
 	};
 
 	## Event that can be handled to access the c12_22 record as it is sent on
@@ -24,9 +76,12 @@ export {
 	global log_c12_22: event(rec: Info);
 }
 
+redef record connection += {
+	c12_22      : Info  &optional;
+	c12_22_state: State &optional;
+};	
+
 const ports = { 1153/udp };
-
-
 redef likely_server_ports += { ports };
 
 event bro_init() &priority=5
@@ -36,13 +91,142 @@ event bro_init() &priority=5
 	Analyzer::register_for_ports(Analyzer::ANALYZER_C12_22, ports);
 	}
 
-event c12_22_epsem_msg(c: connection, code: count)
+function new_session(c: connection, invoc_id: count): Info
 	{
 	local info: Info;
-	info$ts   = network_time();
-	info$uid  = c$uid;
-	info$id   = c$id;
-	info$code = code;
+	info$ts       = network_time();
+	info$id       = c$id;
+	info$uid      = c$uid;
+	info$invoc_id = invoc_id;
+	return info;
+	}
 
-	Log::write(C12_22::LOG, info);
+function log_unmatched_msgs_queue(q: Queue::Queue)
+	{
+	local infos: vector of Info;
+	Queue::get_vector(q, infos);
+
+	for ( i in infos )
+		{
+		event flow_weird("c12_22_unmatched_msg",
+		                 infos[i]$id$orig_h, infos[i]$id$resp_h);
+		Log::write(C12_22::LOG, infos[i]);
+		}
+	}
+
+function log_unmatched_msgs(msgs: PendingMessages)
+	{
+	for ( invoc_id in msgs )
+		log_unmatched_msgs_queue(msgs[invoc_id]);
+
+	clear_table(msgs);
+	}
+
+function enqueue_new_msg(msgs: PendingMessages, id: count, msg: Info)
+	{
+	if ( id !in msgs )
+		{
+		if ( |msgs| > max_pending_invocation_ids )
+			{
+			event flow_weird("c12_22_unmatched_invocation_id_quantity",
+			                 msg$id$orig_h, msg$id$resp_h);
+			# Throw away all unmatched on assumption they'll never be matched.
+			log_unmatched_msgs(msgs);
+			}
+
+		msgs[id] = Queue::init();
+		}
+	else
+		{
+		if ( Queue::len(msgs[id]) > max_pending_msgs )
+			{
+			event flow_weird("c12_22_unmatched_msg_quantity",
+			                 msg$id$orig_h, msg$id$resp_h);
+			log_unmatched_msgs_queue(msgs[id]);
+			# Throw away all unmatched on assumption they'll never be matched.
+			msgs[id] = Queue::init();
+			}
+		}
+
+	Queue::put(msgs[id], msg);
+	}
+
+function pop_msg(msgs: PendingMessages, id: count): Info
+	{
+	local info: Info = Queue::get(msgs[id]);
+
+	if ( Queue::len(msgs[id]) == 0 )
+		delete msgs[id];
+	
+	return info;
+	}
+
+hook set_session(c: connection, apdu: APDU, is_request: bool) &priority=5
+	{
+	if ( ! c?$c12_22_state )
+		{
+		local state: State;
+		c$c12_22_state = state;
+		}
+
+	local id: count;
+	
+	if ( is_request )
+		{
+		id = apdu?$calling_ap_invocation_id ? apdu$calling_ap_invocation_id : 0;
+		if ( id in c$c12_22_state$pending_responses &&
+		     Queue::len(c$c12_22_state$pending_responses[id]) > 0 )
+			{
+			# Match this request w/ what's at head of pending response queue.
+			c$c12_22 = pop_msg(c$c12_22_state$pending_responses, id);
+			}
+		else
+			{
+			# Create a new session and put it in the query queue so
+			# we can wait for a matching reply.
+			c$c12_22 = new_session(c, id);
+			enqueue_new_msg(c$c12_22_state$pending_requests, id, c$c12_22);
+			}
+		}
+	else
+		{
+		id = apdu?$called_ap_invocation_id ? apdu$called_ap_invocation_id : 0;
+		if ( id in c$c12_22_state$pending_requests &&
+		     Queue::len(c$c12_22_state$pending_requests[id]) > 0 )
+			{
+			# Match this response w/ what's at head of pending request queue.
+			c$c12_22 = pop_msg(c$c12_22_state$pending_requests, id);
+			}
+		else
+			{
+			# Create a new session and put it in the response queue so
+			# we can wait for a matching request.
+			c$c12_22 = new_session(c, id);
+			event conn_weird("c12_22_unmatched_response", c, "");
+			enqueue_new_msg(c$c12_22_state$pending_responses, id, c$c12_22);
+			}
+		}
+	}
+
+event c12_22_epsem_request(c: connection, apdu: C12_22::APDU, code: count)
+	{
+	hook set_session(c, apdu, T);
+	c$c12_22$req_code = code;
+	c$c12_22$req = request_strings[code];
+	}
+
+event c12_22_epsem_response(c: connection, apdu: C12_22::APDU, code: count)
+	{
+	hook set_session(c, apdu, F);
+	c$c12_22$resp_code = code;
+	c$c12_22$resp = response_strings[code];
+	}
+
+event c12_22_end(c: connection, apdu: C12_22::APDU) &priority=-5
+	{
+	if ( c?$c12_22 )
+		{
+		Log::write(C12_22::LOG, c$c12_22);
+		delete c$c12_22;
+		}
 	}

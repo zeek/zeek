@@ -1,7 +1,8 @@
-#! /usr/bin/awk -f
+#! /usr/bin/env bash
 #
 # A diff canonifier that removes all file IDs from files.log
 
+awk '
 BEGIN {
     FS="\t";
     OFS="\t";
@@ -28,6 +29,4 @@ process && column1 > 0 && column2 > 0 {
     }
 
 { print }
-
-
-
+'

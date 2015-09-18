@@ -535,7 +535,7 @@ double file_analysis::X509::GetTimeFromAsn1(const ASN1_TIME* atime, const char* 
 			return 0;
 			}
 
-		if ( pString[atime->length-1] != 'Z' )
+		if ( pString[remaining-1] != 'Z' )
 			{
 			// not valid according to RFC 2459 4.1.2.5.1
 			reporter->Weird(fmt("Could not parse UTC time in non-YY-format in X509 certificate (x509 %s)", fid));

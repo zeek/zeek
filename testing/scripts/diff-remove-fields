@@ -4,8 +4,8 @@
 # prefix.
 
 if [ $# != 1 ]; then
-   echo "usage: `basename $0` <field prefix>"
-   exit 1
+    echo "usage: `basename $0` <field prefix>"
+    exit 1
 fi
 
 awk -v "PREFIX=$1" '
@@ -18,17 +18,15 @@ BEGIN { FS="\t"; OFS="\t"; }
         if ( index($i, PREFIX) == 1 )
             rem[i-1] = 1;
         }
-     print;
-     next;
+}
+
+/^[^#]/ {
+    for ( i in rem )
+        # Mark that it is set, but ignore content.
+        $i = "+";
 }
 
 {
-    for ( i in rem )
-       # Mark that it iss set, but ignore content.
-       $i = "+";
-
     print;
 }
-
 '
-

@@ -31,20 +31,20 @@ export {
 
 	## Separator between fields.
 	## Please note that the separator has to be exactly one character long.
-	## Can be overwritten by individual writers.
+	## Individual readers can use a different value.
 	const separator = "\t" &redef;
 
 	## Separator between set elements.
 	## Please note that the separator has to be exactly one character long.
-	## Can be overwritten by individual writers.
+	## Individual readers can use a different value.
 	const set_separator = "," &redef;
 
 	## String to use for empty fields.
-	## Can be overwritten by individual writers.
+	## Individual readers can use a different value.
 	const empty_field = "(empty)" &redef;
 
 	## String to use for an unset &optional field.
-	## Can be overwritten by individual writers.
+	## Individual readers can use a different value.
 	const unset_field = "-" &redef;
 
 	## Flag that controls if the input framework accepts records

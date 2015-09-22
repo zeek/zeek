@@ -6,6 +6,7 @@
 #include <netinet/in.h>
 #include <assert.h>
 #include <openssl/ssl.h>
+#include <sys/poll.h>
 
 #include <algorithm>
 
@@ -493,18 +494,11 @@ bool ChunkedIOFd::ReadChunk(Chunk** chunk, bool may_block)
 	// If allowed, wait a bit for something to read.
 	if ( may_block )
 		{
-		fd_set fd_read, fd_write, fd_except;
+		struct pollfd fds[1];
+		fds[0].fd = fd;
+		fds[0].events = POLLIN;
 
-		FD_ZERO(&fd_read);
-		FD_ZERO(&fd_write);
-		FD_ZERO(&fd_except);
-		FD_SET(fd, &fd_read);
-
-		struct timeval small_timeout;
-		small_timeout.tv_sec = 0;
-		small_timeout.tv_usec = 50;
-
-		select(fd + 1, &fd_read, &fd_write, &fd_except, &small_timeout);
+		poll(fds, 1, 1);
 		}
 
 	// Make sure the process is still runnning
@@ -584,15 +578,10 @@ bool ChunkedIOFd::CanRead()
 	if ( ChunkAvailable() )
 		return true;
 
-	fd_set fd_read;
-	FD_ZERO(&fd_read);
-	FD_SET(fd, &fd_read);
-
-	struct timeval no_timeout;
-	no_timeout.tv_sec = 0;
-	no_timeout.tv_usec = 0;
-
-	return select(fd + 1, &fd_read, 0, 0, &no_timeout) > 0;
+	struct pollfd fds[1];
+	fds[0].fd = fd;
+	fds[0].events = POLLIN;
+	return poll(fds, 1, 0) > 0;
 	}
 
 bool ChunkedIOFd::CanWrite()
@@ -1089,15 +1078,11 @@ bool ChunkedIOSSL::CanRead()
 	if ( SSL_pending(ssl) )
 		return true;
 
-	fd_set fd_read;
-	FD_ZERO(&fd_read);
-	FD_SET(socket, &fd_read);
 
-	struct timeval notimeout;
-	notimeout.tv_sec = 0;
-	notimeout.tv_usec = 0;
-
-	return select(socket + 1, &fd_read, NULL, NULL, &notimeout) > 0;
+	struct pollfd fds[1];
+	fds[0].fd = socket;
+	fds[0].events = POLLIN;
+	return poll(fds, 1, 0) > 0;
 	}
 
 bool ChunkedIOSSL::CanWrite()

@@ -158,6 +158,7 @@
 #include <signal.h>
 #include <strings.h>
 #include <stdarg.h>
+#include <sys/poll.h>
 
 #include "config.h"
 #ifdef TIME_WITH_SYS_TIME
@@ -3373,9 +3374,13 @@ static void fd_vector_set(const std::vector<int>& fds, fd_set* set, int* max)
 void SocketComm::Run()
 	{
 	first_rtime = (unsigned int) current_time(true);
-
+	struct pollfd pfds[10000];
+	memset(pfds, 0 , sizeof(pfds));
+	std::map<int,int> fd_map; // map fd to pfds index
 	while ( true )
 		{
+		memset(pfds, 0 , sizeof(pfds));
+		int pfd_idx = 0;
 		// Logging signaled?
 		if ( log_stats )
 			LogStats();
@@ -3385,25 +3390,20 @@ void SocketComm::Run()
 			CheckFinished();
 
 		// Build FDSets for select.
-		fd_set fd_read, fd_write, fd_except;
 
-		FD_ZERO(&fd_read);
-		FD_ZERO(&fd_write);
-		FD_ZERO(&fd_except);
-
-		int max_fd = io->Fd();
-		FD_SET(io->Fd(), &fd_read);
-		max_fd = std::max(max_fd, io->ExtraReadFDs().Set(&fd_read));
+		fd_map[io->Fd()] = pfd_idx;
+		pfds[pfd_idx].fd = io->Fd();
+		pfds[pfd_idx++].events = POLLIN;
+		//fprintf(stderr, "XXX First fd=%d", io->Fd());
 
 		loop_over_list(peers, i)
 			{
 			if ( peers[i]->connected )
 				{
-				FD_SET(peers[i]->io->Fd(), &fd_read);
-				if ( peers[i]->io->Fd() > max_fd )
-					max_fd = peers[i]->io->Fd();
-				max_fd = std::max(max_fd,
-				                  peers[i]->io->ExtraReadFDs().Set(&fd_read));
+				fd_map[peers[i]->io->Fd()] = pfd_idx; //don't need right now
+				pfds[pfd_idx].fd = peers[i]->io->Fd();
+				pfds[pfd_idx++].events = POLLIN;
+				//fprintf(stderr, "XXX peer=%d fd=%d", i, peers[i]->io->Fd());
 				}
 			else
 				{
@@ -3419,9 +3419,10 @@ void SocketComm::Run()
 
 		for ( size_t i = 0; i < listen_fds.size(); ++i )
 			{
-			FD_SET(listen_fds[i], &fd_read);
-			if ( listen_fds[i] > max_fd )
-				max_fd = listen_fds[i];
+			fd_map[listen_fds[i]] = pfd_idx;
+			pfds[pfd_idx].fd = listen_fds[i];
+			pfds[pfd_idx++].events = POLLIN;
+			//fprintf(stderr, "XXX listen=%lu fd=%d", i, listen_fds[i]);
 			}
 
 		if ( io->IsFillingUp() && ! shutting_conns_down )
@@ -3461,7 +3462,7 @@ void SocketComm::Run()
 		if ( io->CanWrite() )
 			++canwrites;
 
-		int a = select(max_fd + 1, &fd_read, &fd_write, &fd_except, 0);
+		int a = poll(pfds, pfd_idx, -1);
 
 		if ( selects % 100000 == 0 )
 			Log(fmt("selects=%ld canwrites=%ld pending=%lu",
@@ -3490,9 +3491,13 @@ void SocketComm::Run()
 				}
 			}
 
-		for ( size_t i = 0; i < listen_fds.size(); ++i )
-			if ( FD_ISSET(listen_fds[i], &fd_read) )
+		for ( size_t i = 0; i < listen_fds.size(); ++i ) {
+			int p = fd_map[listen_fds[i]];
+			if (pfds[p].revents & POLLIN) {
 				AcceptConnection(listen_fds[i]);
+				pfds[p].revents = 0;
+			}
+		}
 
 		// Hack to display CPU usage of the child, triggered via
 		// SIGPROF.

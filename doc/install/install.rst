@@ -47,9 +47,7 @@ To build Bro from source, the following additional dependencies are required:
     * zlib headers
     * Python
 
-.. todo::
-
-    Update with instructions for installing CAF.
+To install CAF, first download the source code of the required version from: https://github.com/actor-framework/actor-framework/releases
 
 To install the required dependencies, you can use:
 
@@ -84,11 +82,11 @@ To install the required dependencies, you can use:
   "Preferences..." -> "Downloads" menus to install the "Command Line Tools"
   component).
 
-  OS X comes with all required dependencies except for CMake_ and SWIG_.
+  OS X comes with all required dependencies except for CMake_, SWIG_, and CAF.
   Distributions of these dependencies can likely be obtained from your
-  preferred Mac OS X package management system (e.g. MacPorts_, Fink_,
-  or Homebrew_).  Specifically for MacPorts, the ``cmake``, ``swig``,
-  and ``swig-python`` packages provide the required dependencies.
+  preferred Mac OS X package management system (e.g. Homebrew_, MacPorts_,
+  or Fink_).  Specifically for Homebrew, the ``cmake``, ``swig``,
+  and ``caf`` packages provide the required dependencies.
 
 
 Optional Dependencies

@@ -3462,7 +3462,7 @@ void SocketComm::Run()
 		if ( io->CanWrite() )
 			++canwrites;
 
-		int a = poll(pfds, pfd_idx, -1);
+		int a = poll(pfds, pfd_idx, 20);
 
 		if ( selects % 100000 == 0 )
 			Log(fmt("selects=%ld canwrites=%ld pending=%lu",
@@ -3482,6 +3482,11 @@ void SocketComm::Run()
 			// We have to be careful here as the peer may
 			// be removed when an error occurs.
 			Peer* current = peers[j];
+			current->io->Flush();
+			int p = fd_map[current->io->Fd()];
+			if (!pfds[p].revents & POLLIN)
+				continue;
+			pfds[p].revents = 0;
 			int round = 0;
 			while ( ++round <= 10 && j < peers.length() &&
 				peers[j] == current && current->connected &&

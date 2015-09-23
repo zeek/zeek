@@ -11,6 +11,8 @@
 #include "Net.h"
 #include "Sessions.h"
 
+#include "pcap/const.bif.h"
+
 using namespace iosource;
 
 PktSrc::Properties::Properties()
@@ -66,11 +68,6 @@ bool PktSrc::IsError() const
 	return ErrorMsg();
 	}
 
-int PktSrc::SnapLen() const
-	{
-	return snaplen; // That's a global. Change?
-	}
-
 bool PktSrc::IsLive() const
 	{
 	return props.is_live;
@@ -112,7 +109,7 @@ void PktSrc::Opened(const Properties& arg_props)
 		}
 
 	if ( props.is_live )
-		Info(fmt("listening on %s, capture length %d bytes\n", props.path.c_str(), SnapLen()));
+		Info(fmt("listening on %s\n", props.path.c_str()));
 
 	DBG_LOG(DBG_PKTIO, "Opened source %s", props.path.c_str());
 	}
@@ -325,7 +322,7 @@ bool PktSrc::PrecompileBPFFilter(int index, const std::string& filter)
 	// Compile filter.
 	BPF_Program* code = new BPF_Program();
 
-	if ( ! code->Compile(SnapLen(), LinkType(), filter.c_str(), Netmask(), errbuf, sizeof(errbuf)) )
+	if ( ! code->Compile(BifConst::Pcap::snaplen, LinkType(), filter.c_str(), Netmask(), errbuf, sizeof(errbuf)) )
 		{
 		string msg = fmt("cannot compile BPF filter \"%s\"", filter.c_str());
 

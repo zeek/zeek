@@ -96,11 +96,6 @@ public:
 	int HdrSize() const;
 
 	/**
-	 * Returns the snap length for this source.
-	 */
-	int SnapLen() const;
-
-	/**
 	 * In pseudo-realtime mode, returns the logical timestamp of the
 	 * current packet. Undefined if not running pseudo-realtime mode.
 	 */

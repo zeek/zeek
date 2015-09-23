@@ -1,4 +1,122 @@
 
+2.4-131 | 2015-09-11 12:16:39 -0700
+
+  * Add README.rst symlink. Addresses BIT-1413 (Vlad Grigorescu)
+
+2.4-129 | 2015-09-11 11:56:04 -0700
+
+  * hash-all-files.bro depends on base/files/hash (Richard van den Berg)
+
+  * Make dns_max_queries redef-able, and bump default to 25. Addresses
+    BIT-1460 (Vlad Grigorescu)
+
+2.4-125 | 2015-09-03 20:10:36 -0700
+
+  * Move SIP analyzer to flowunit instead of datagram Addresses
+    BIT-1458 (Vlad Grigorescu)
+
+2.4-122 | 2015-08-31 14:39:41 -0700
+
+  * Add a number of out-of-bound checks to layer 2 code. Addresses
+    BIT-1463 (Johanna Amann)
+
+  * Fix error in 2.4 release notes regarding SSH events. (Robin
+    Sommer)
+
+2.4-118 | 2015-08-31 10:55:29 -0700
+
+  * Fix FreeBSD build errors (Johanna Amann)
+
+2.4-117 | 2015-08-30 22:16:24 -0700
+
+  * Fix initialization of a pointer in RDP analyzer. (Daniel
+    Thayer/Robin Sommer)
+
+2.4-115 | 2015-08-30 21:57:35 -0700
+
+  * Enable Bro to leverage packet fanout mode on Linux. (Kris
+    Nielander).
+
+       ## Toggle whether to do packet fanout (Linux-only).
+       const Pcap::packet_fanout_enable = F &redef;
+
+       ## If packet fanout is enabled, the id to sue for it. This should be shared amongst
+       ## worker processes processing the same socket.
+       const Pcap::packet_fanout_id = 0 &redef;
+
+       ## If packet fanout is enabled, whether packets are to be defragmented before
+       ## fanout is applied.
+       const Pcap::packet_fanout_defrag = T &redef;
+
+  * Allow libpcap buffer size to be set via configuration. (Kris Nielander)
+
+       ## Number of Mbytes to provide as buffer space when capturing from live
+       ## interfaces.
+       const Pcap::bufsize = 128 &redef;
+
+  * Move the pcap-related script-level identifiers into the new Pcap
+    namespace. (Robin Sommer)
+
+        snaplen                  -> Pcap::snaplen
+        precompile_pcap_filter() -> Pcap::precompile_pcap_filter()
+        install_pcap_filter()    -> Pcap::install_pcap_filter()
+        pcap_error()             -> Pcap::pcap_error()
+
+
+2.4-108 | 2015-08-30 20:14:31 -0700
+
+   * Update Base64 decoding.  (Jan Grashoefer)
+
+        - A new built-in function, decode_base64_conn() for Base64
+          decoding. It works like decode_base64() but receives an
+          additional connection argument that will be used for
+          reporting decoding errors into weird.log (instead of
+          reporter.log).
+
+        - FTP, POP3, and HTTP analyzers now likewise log Base64
+          decoding errors to weird.log.
+
+        - The built-in functions decode_base64_custom() and
+          encode_base64_custom() are now deprecated. Their
+          functionality is provided directly by decode_base64() and
+          encode_base64(), which take an optional parameter to change
+          the Base64 alphabet.
+
+  * Fix potential crash if TCP header was captured incompletely.
+    (Robin Sommer)
+
+2.4-103 | 2015-08-29 10:51:55 -0700
+
+  * Make ASN.1 date/time parsing more robust. (Johanna Amann)
+
+  * Be more permissive on what characters we accept as an unquoted
+    multipart boundary. Addresses BIT-1459. (Johanna Amann)
+
+2.4-99 | 2015-08-25 07:56:57 -0700
+
+  * Add ``Q`` and update ``I`` documentation for connection history
+    field. Addresses BIT-1466. (Vlad Grigorescu)
+
+2.4-96 | 2015-08-21 17:37:56 -0700
+
+  * Update SIP analyzer. (balintm)
+
+        - Allows space on both sides of ':'.
+        - Require CR/LF after request/reply line.
+
+2.4-94 | 2015-08-21 17:31:32 -0700
+
+  * Add file type detection support for video/MP2T. (Mike Freemon)
+
+2.4-93 | 2015-08-21 17:23:39 -0700
+
+  * Make plugin install honor DESTDIR= convention. (Jeff Barber)
+
+2.4-89 | 2015-08-18 07:53:36 -0700
+
+  * Fix diff-canonifier-external to use basename of input file.
+  (Daniel Thayer)
+
 2.4-87 | 2015-08-14 08:34:41 -0700
 
   * Removing the yielding_teredo_decapsulation option. (Robin Sommer)

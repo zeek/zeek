@@ -48,7 +48,7 @@ received.
 
 .. btest-include:: ${DOC_ROOT}/frameworks/broker/printing-listener.bro
 
-To send remote print messages, just call :bro:see:`BrokerComm::print`.
+To send remote print messages, just call :bro:see:`BrokerComm::send_print`.
 
 .. btest-include:: ${DOC_ROOT}/frameworks/broker/printing-connector.bro
 
@@ -78,7 +78,7 @@ along with handlers that peers may want to send.
 .. btest-include:: ${DOC_ROOT}/frameworks/broker/events-listener.bro
 
 To send events, there are two choices.  The first is to use call
-:bro:see:`BrokerComm::event` directly.  The second option is to use
+:bro:see:`BrokerComm::send_event` directly.  The second option is to use
 :bro:see:`BrokerComm::auto_event` to make it so a particular event is
 automatically sent to peers whenever it is called locally via the normal
 event invocation syntax.
@@ -147,8 +147,8 @@ If not using the ``auto_publish`` flag, one can use the
 functions to manipulate the set of message topics (must match exactly)
 that are allowed to be sent to peer endpoints.  These settings take
 precedence over the per-message ``peers`` flag supplied to functions
-that take a :bro:see:`BrokerComm::SendFlags` such as :bro:see:`BrokerComm::print`,
-:bro:see:`BrokerComm::event`, :bro:see:`BrokerComm::auto_event` or
+that take a :bro:see:`BrokerComm::SendFlags` such as :bro:see:`BrokerComm::send_print`,
+:bro:see:`BrokerComm::send_event`, :bro:see:`BrokerComm::auto_event` or
 :bro:see:`BrokerComm::enable_remote_logs`.
 
 If not using the ``auto_advertise`` flag, one can use the

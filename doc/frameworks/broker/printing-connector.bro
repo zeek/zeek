@@ -14,9 +14,9 @@ event BrokerComm::outgoing_connection_established(peer_address: string,
 	{
 	print "BrokerComm::outgoing_connection_established",
 	      peer_address, peer_port, peer_name;
-	BrokerComm::print("bro/print/hi", "hello");
-	BrokerComm::print("bro/print/stuff", "...");
-	BrokerComm::print("bro/print/bye", "goodbye");
+	BrokerComm::send_print("bro/print/hi", "hello");
+	BrokerComm::send_print("bro/print/stuff", "...");
+	BrokerComm::send_print("bro/print/bye", "goodbye");
 	}
 
 event BrokerComm::outgoing_connection_broken(peer_address: string,

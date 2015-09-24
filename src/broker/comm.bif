@@ -9,70 +9,32 @@ module BrokerComm;
 
 type BrokerComm::EndpointFlags: record;
 
-## Enable use of communication.
-##
-## flags: used to tune the local Broker endpoint behavior.
-##
-## Returns: true if communication is successfully initialized.
-function BrokerComm::enable%(flags: EndpointFlags &default = EndpointFlags()%): bool
+function BrokerComm::__enable%(flags: EndpointFlags%): bool
 	%{
 	return new Val(broker_mgr->Enable(flags), TYPE_BOOL);
 	%}
 
-## Changes endpoint flags originally supplied to :bro:see:`BrokerComm::enable`.
-##
-## flags: the new endpoint behavior flags to use.
-##
-## Returns: true if flags were changed.
-function BrokerComm::set_endpoint_flags%(flags: EndpointFlags &default = EndpointFlags()%): bool
+function BrokerComm::__set_endpoint_flags%(flags: EndpointFlags%): bool
 	%{
 	return new Val(broker_mgr->SetEndpointFlags(flags), TYPE_BOOL);
 	%}
 
-## Allow sending messages to peers if associated with the given topic.
-## This has no effect if auto publication behavior is enabled via the flags
-## supplied to :bro:see:`BrokerComm::enable` or :bro:see:`BrokerComm::set_endpoint_flags`.
-##
-## topic: a topic to allow messages to be published under.
-##
-## Returns: true if successful.
-function BrokerComm::publish_topic%(topic: string%): bool
+function BrokerComm::__publish_topic%(topic: string%): bool
 	%{
 	return new Val(broker_mgr->PublishTopic(topic->CheckString()), TYPE_BOOL);
 	%}
 
-## Disallow sending messages to peers if associated with the given topic.
-## This has no effect if auto publication behavior is enabled via the flags
-## supplied to :bro:see:`BrokerComm::enable` or :bro:see:`BrokerComm::set_endpoint_flags`.
-##
-## topic: a topic to disallow messages to be published under.
-##
-## Returns: true if successful.
-function BrokerComm::unpublish_topic%(topic: string%): bool
+function BrokerComm::__unpublish_topic%(topic: string%): bool
 	%{
 	return new Val(broker_mgr->UnpublishTopic(topic->CheckString()), TYPE_BOOL);
 	%}
 
-## Allow advertising interest in the given topic to peers.
-## This has no effect if auto advertise behavior is enabled via the flags
-## supplied to :bro:see:`BrokerComm::enable` or :bro:see:`BrokerComm::set_endpoint_flags`.
-##
-## topic: a topic to allow advertising interest/subscription to peers.
-##
-## Returns: true if successful.
-function BrokerComm::advertise_topic%(topic: string%): bool
+function BrokerComm::__advertise_topic%(topic: string%): bool
 	%{
 	return new Val(broker_mgr->AdvertiseTopic(topic->CheckString()), TYPE_BOOL);
 	%}
 
-## Disallow advertising interest in the given topic to peers.
-## This has no effect if auto advertise behavior is enabled via the flags
-## supplied to :bro:see:`BrokerComm::enable` or :bro:see:`BrokerComm::set_endpoint_flags`.
-##
-## topic: a topic to disallow advertising interest/subscription to peers.
-##
-## Returns: true if successful.
-function BrokerComm::unadvertise_topic%(topic: string%): bool
+function BrokerComm::__unadvertise_topic%(topic: string%): bool
 	%{
 	return new Val(broker_mgr->UnadvertiseTopic(topic->CheckString()), TYPE_BOOL);
 	%}
@@ -125,20 +87,7 @@ event BrokerComm::incoming_connection_established%(peer_name: string%);
 ## .. bro:see:: BrokerComm::incoming_connection_established
 event BrokerComm::incoming_connection_broken%(peer_name: string%);
 
-## Listen for remote connections.
-##
-## p: the TCP port to listen on.
-##
-## a: an address string on which to accept connections, e.g.
-##    "127.0.0.1".  An empty string refers to @p INADDR_ANY.
-##
-## reuse: equivalent to behavior of SO_REUSEADDR.
-##
-## Returns: true if the local endpoint is now listening for connections.
-##
-## .. bro:see:: BrokerComm::incoming_connection_established
-function BrokerComm::listen%(p: port, a: string &default = "",
-					   reuse: bool &default = T%): bool
+function BrokerComm::__listen%(p: port, a: string, reuse: bool%): bool
 	%{
 	if ( ! p->IsTCP() )
 		{
@@ -151,22 +100,7 @@ function BrokerComm::listen%(p: port, a: string &default = "",
 	return new Val(rval, TYPE_BOOL);
 	%}
 
-## Initiate a remote connection.
-##
-## a: an address to connect to, e.g. "localhost" or "127.0.0.1".
-##
-## p: the TCP port on which the remote side is listening.
-##
-## retry: an interval at which to retry establishing the
-##        connection with the remote peer if it cannot be made initially, or
-##        if it ever becomes disconnected.
-##
-## Returns: true if it's possible to try connecting with the peer and
-##          it's a new peer.  The actual connection may not be established
-##          until a later point in time.
-##
-## .. bro:see:: BrokerComm::outgoing_connection_established
-function BrokerComm::connect%(a: string, p: port, retry: interval%): bool
+function BrokerComm::__connect%(a: string, p: port, retry: interval%): bool
 	%{
 	if ( ! p->IsTCP() )
 		{
@@ -179,15 +113,7 @@ function BrokerComm::connect%(a: string, p: port, retry: interval%): bool
 	return new Val(rval, TYPE_BOOL);
 	%}
 
-## Remove a remote connection.
-##
-## a: the address used in previous successful call to :bro:see:`BrokerComm::connect`.
-##
-## p: the port used in previous successful call to :bro:see:`BrokerComm::connect`.
-##
-## Returns: true if the arguments match a previously successful call to
-##          :bro:see:`BrokerComm::connect`.
-function BrokerComm::disconnect%(a: string, p: port%): bool
+function BrokerComm::__disconnect%(a: string, p: port%): bool
 	%{
 	if ( ! p->IsTCP() )
 		{

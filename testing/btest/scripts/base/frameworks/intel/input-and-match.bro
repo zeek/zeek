@@ -11,7 +11,7 @@
 e@mail.com	Intel::EMAIL	source1	Phishing email source	http://some-data-distributor.com/100000
 @TEST-END-FILE
 
-@load frameworks/communication/listen
+redef exit_only_after_terminate = T;
 
 redef Intel::read_files += { "../intel.dat" };
 redef enum Intel::Where += { SOMEWHERE };

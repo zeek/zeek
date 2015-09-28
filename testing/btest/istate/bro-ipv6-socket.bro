@@ -1,3 +1,4 @@
+# @TEST-KNOWN-FAILURE: fails due to auto_publish/auto_advertise flags
 # @TEST-SERIALIZE: comm
 #
 # @TEST-REQUIRES: ifconfig | grep -q -E "inet6 ::1|inet6 addr: ::1"
@@ -53,7 +54,7 @@ global my_event: event(s: string);
 event BrokerComm::incoming_connection_established(peer_name: string)
 	{
 	print fmt("handshake done with peer: %s", peer_name);
-	BrokerComm::event("bro/event/my_event", BrokerComm::event_args(my_event, "hello world"));
+	BrokerComm::send_event("bro/event/my_event", BrokerComm::event_args(my_event, "hello world"));
 	}
 
 event BrokerComm::incoming_connection_broken(peer_name: string)

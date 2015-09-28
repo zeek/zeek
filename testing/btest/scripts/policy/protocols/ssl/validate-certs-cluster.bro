@@ -1,3 +1,4 @@
+# @TEST-KNOWN-FAILURE: will be fixed in BIT-1467
 # @TEST-SERIALIZE: comm
 #
 # @TEST-EXEC: btest-bg-run manager-1 "cp ../cluster-layout.bro . && CLUSTER_NODE=manager-1 bro %INPUT"

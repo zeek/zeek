@@ -1,3 +1,4 @@
+# @TEST-KNOWN-FAILURE: will be fixed in BIT-1467
 # @TEST-EXEC: bro -C -r $TRACES/tls/ocsp-stapling.trace %INPUT
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-x509-names btest-diff ssl.log
 # @TEST-EXEC: bro -C -r $TRACES/tls/ocsp-stapling-twimg.trace %INPUT

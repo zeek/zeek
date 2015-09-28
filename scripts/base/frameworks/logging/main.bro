@@ -3,6 +3,8 @@
 ##! See :doc:`/frameworks/logging` for an introduction to Bro's
 ##! logging framework.
 
+@load base/frameworks/broker
+
 module Log;
 
 export {
@@ -394,8 +396,6 @@ global all_streams: table[ID] of Stream = table();
 global filters: table[ID, string] of Filter;
 
 @load base/bif/logging.bif # Needs Filter and Stream defined.
-@load base/bif/messaging.bif # Needed for broker 
-@load base/bif/comm.bif # Needed for broker
 
 module Log;
 

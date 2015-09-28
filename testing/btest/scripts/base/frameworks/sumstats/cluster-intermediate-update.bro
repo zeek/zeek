@@ -43,7 +43,9 @@ event bro_init() &priority=5
 	                  	}]);
 	}
 
-event remote_connection_closed(p: event_peer)
+event BrokerComm::outgoing_connection_broken(peer_address: string,
+                                        peer_port: port,
+                                        peer_name: string)
 	{
 	terminate();
 	}
@@ -56,18 +58,16 @@ event do_stats(i: count)
 	SumStats::observe("test.metric", [$host=1.2.3.4], [$num=i]);
 	}
 
-event remote_connection_handshake_done(p: event_peer)
+event BrokerComm::outgoing_connection_established(peer_address: string,
+                                             peer_port: port,
+                                             peer_name: string)
 	{
-	if ( p$descr == "manager-1" )
+	if ( Cluster::node == "worker-1" )
 		{
-		if ( Cluster::node == "worker-1" )
-			{
-			schedule 0.1sec { do_stats(1) };
-			schedule 5secs { do_stats(60) };
-			}
-		if ( Cluster::node == "worker-2" )
-			schedule 0.5sec { do_stats(40) };
+		schedule 0.1sec { do_stats(1) };
+		schedule 5secs { do_stats(60) };
 		}
+	if ( Cluster::node == "worker-2" )
+		schedule 0.5sec { do_stats(40) };
 	}
-
 

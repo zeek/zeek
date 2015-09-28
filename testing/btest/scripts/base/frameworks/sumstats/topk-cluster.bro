@@ -45,7 +45,9 @@ event bro_init() &priority=5
 
 	}
 
-event remote_connection_closed(p: event_peer)
+event BrokerComm::outgoing_connection_broken(peer_address: string,
+                                        peer_port: port,
+                                        peer_name: string)
 	{
 	terminate();
 	}
@@ -96,7 +98,7 @@ event ready_for_data()
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
 
 global peer_count = 0;
-event remote_connection_handshake_done(p: event_peer) &priority=-5
+event BrokerComm::incoming_connection_established(peer_name: string)
 	{
 	++peer_count;
 	if ( peer_count == 2 )

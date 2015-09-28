@@ -41,10 +41,13 @@ export {
 	global log_known_hosts: event(rec: HostsInfo);
 }
 
-event bro_init() &priority = -11
+event bro_init()
 	{
 	Log::create_stream(Known::HOSTS_LOG, [$columns=HostsInfo, $ev=log_known_hosts, $path="known_hosts"]);
+	}
 
+event bro_init() &priority=-11
+	{
 	local k_hosts: set[string] = {};
 	if(Cluster::is_enabled())
 		{

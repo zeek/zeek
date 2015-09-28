@@ -37,7 +37,10 @@ event bro_init() &priority=5
 	Cluster::register_broker_events(prefix, Cluster::worker2manager_events);
 	prefix = fmt("%sdata/", Cluster::pub_sub_prefix);
 	Cluster::register_broker_events(prefix, Cluster::worker2datanode_events);
+	}
 
+event bro_init() &priority=-10
+	{
 	# Create clone of the master store
 	Cluster::cluster_store = BrokerStore::create_clone("cluster-store");
 	}

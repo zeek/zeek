@@ -349,7 +349,7 @@ type connection: record {
 	## The outer VLAN, if applicable, for this connection.
 	vlan: int &optional;
 
-	## The VLAN vlan, if applicable, for this connection.
+	## The inner VLAN, if applicable, for this connection.
 	inner_vlan: int &optional;
 };
 

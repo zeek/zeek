@@ -18,7 +18,6 @@ fi
     | `dirname $0`/diff-remove-uids \
     | `dirname $0`/diff-remove-file-ids \
     | `dirname $0`/diff-remove-x509-names \
-    | `dirname $0`/diff-canon-notice-policy \
     | `dirname $0`/diff-sort \
     | eval $addl
 

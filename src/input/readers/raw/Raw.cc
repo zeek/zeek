@@ -302,7 +302,7 @@ bool Raw::OpenInput()
 
 		if ( offset )
 			{
-			int whence = (offset > 0) ? SEEK_SET : SEEK_END;
+			int whence = (offset >= 0) ? SEEK_SET : SEEK_END;
 			int64_t pos = (offset >= 0) ? offset : offset + 1; // we want -1 to be the end of the file
 
 			if ( fseek(file, pos, whence) < 0 )

@@ -1,4 +1,31 @@
 
+2.4-165 | 2015-10-01 17:02:46 -0700
+
+  * Fixed parsing of V_ASN1_GENERALIZEDTIME timestamps in x509
+    certificates. (Yun Zheng Hu)
+
+  * Improve X509 end-of-string-check code. (Johanna Amann)
+
+  * Refactor X509 generalizedtime support and test. (Johanna Amann)
+
+  * Fix case of offset=-1 (EOF) for RAW reader. Addresses BIT-1479.
+    (Johanna Amann)
+
+  * Improve a number of test canonifiers. (Daniel Thayer)
+    
+  * Remove unnecessary use of TEST_DIFF_CANONIFIER. (Daniel Thayer)
+
+  * Fixed some test canonifiers to read only from stdin
+
+  * Remove unused test canonifier scripts. (Daniel Thayer)
+
+  * A potpourri of updates and improvements across the documentation.
+    (Daniel Thayer)
+
+  * Add configure option to disable Broker Python bindings. Also
+    improve the configure summary output to more clearly show whether
+    or not Broker Python bindings will be built. (Daniel Thayer)
+
 2.4-131 | 2015-09-11 12:16:39 -0700
 
   * Add README.rst symlink. Addresses BIT-1413 (Vlad Grigorescu)

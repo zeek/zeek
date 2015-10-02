@@ -47,6 +47,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --disable-auxtools     don't build or install auxiliary tools
     --disable-perftools    don't try to build with Google Perftools
     --disable-python       don't try to build python bindings for broccoli
+    --disable-pybroker     don't try to build python bindings for broker
 
   Required Packages in Non-Standard Locations:
     --with-openssl=PATH    path to OpenSSL install root
@@ -121,6 +122,7 @@ append_cache_entry PY_MOD_INSTALL_DIR   PATH   $prefix/lib/broctl
 append_cache_entry BRO_SCRIPT_INSTALL_PATH STRING $prefix/share/bro
 append_cache_entry BRO_ETC_INSTALL_DIR  PATH   $prefix/etc
 append_cache_entry BROKER_PYTHON_HOME   PATH   $prefix
+append_cache_entry BROKER_PYTHON_BINDINGS BOOL false
 append_cache_entry ENABLE_DEBUG         BOOL   false
 append_cache_entry ENABLE_PERFTOOLS     BOOL   false
 append_cache_entry ENABLE_PERFTOOLS_DEBUG BOOL false
@@ -216,6 +218,9 @@ while [ $# -ne 0 ]; do
             ;;
         --disable-python)
             append_cache_entry DISABLE_PYTHON_BINDINGS     BOOL   true
+            ;;
+        --disable-pybroker)
+            append_cache_entry DISABLE_PYBROKER     BOOL   true
             ;;
         --enable-ruby)
             append_cache_entry DISABLE_RUBY_BINDINGS     BOOL   false

@@ -71,9 +71,11 @@ Statements
 Declarations
 ------------
 
-The following global declarations cannot occur within a function, hook, or
-event handler.  Also, these declarations cannot appear after any statements
-that are outside of a function, hook, or event handler.
+Declarations cannot occur within a function, hook, or event handler.
+
+Declarations must appear before any statements (except those statements
+that are in a function, hook, or event handler) in the concatenation of
+all loaded Bro scripts.
 
 .. bro:keyword:: module
 
@@ -126,9 +128,12 @@ that are outside of a function, hook, or event handler.
 .. bro:keyword:: global
 
     Variables declared with the "global" keyword will be global.
+
     If a type is not specified, then an initializer is required so that
     the type can be inferred.  Likewise, if an initializer is not supplied,
-    then the type must be specified.  Example::
+    then the type must be specified.  In some cases, when the type cannot
+    be correctly inferred, the type must be specified even when an
+    initializer is present.  Example::
 
         global pi = 3.14;
         global hosts: set[addr];
@@ -136,10 +141,11 @@ that are outside of a function, hook, or event handler.
 
     Variable declarations outside of any function, hook, or event handler are
     required to use this keyword (unless they are declared with the
-    :bro:keyword:`const` keyword).  Definitions of functions, hooks, and
-    event handlers are not allowed to use the "global"
-    keyword (they already have global scope), except function declarations
-    where no function body is supplied use the "global" keyword.
+    :bro:keyword:`const` keyword instead).
+
+    Definitions of functions, hooks, and event handlers are not allowed
+    to use the "global" keyword.  However, function declarations (i.e., no
+    function body is provided) can use the "global" keyword.
 
     The scope of a global variable begins where the declaration is located,
     and extends through all remaining Bro scripts that are loaded (however,
@@ -150,18 +156,22 @@ that are outside of a function, hook, or event handler.
 .. bro:keyword:: const
 
     A variable declared with the "const" keyword will be constant.
+
     Variables declared as constant are required to be initialized at the
-    time of declaration.  Example::
+    time of declaration.  Normally, the type is inferred from the initializer,
+    but the type can be explicitly specified.  Example::
 
         const pi = 3.14;
         const ssh_port: port = 22/tcp;
 
-    The value of a constant cannot be changed later (the only
-    exception is if the variable is global and has the :bro:attr:`&redef`
-    attribute, then its value can be changed only with a :bro:keyword:`redef`).
+    The value of a constant cannot be changed.  The only exception is if the
+    variable is a global constant and has the :bro:attr:`&redef`
+    attribute, but even then its value can be changed only with a
+    :bro:keyword:`redef`.
 
     The scope of a constant is local if the declaration is in a
     function, hook, or event handler, and global otherwise.
+
     Note that the "const" keyword cannot be used with either the "local"
     or "global" keywords (i.e., "const" replaces "local" and "global").
 
@@ -184,7 +194,8 @@ that are outside of a function, hook, or event handler.
 .. bro:keyword:: redef
 
     There are three ways that "redef" can be used:  to change the value of
-    a global variable, to extend a record type or enum type, or to specify
+    a global variable (but only if it has the :bro:attr:`&redef` attribute),
+    to extend a record type or enum type, or to specify
     a new event handler body that replaces all those that were previously
     defined.
 
@@ -237,12 +248,13 @@ that are outside of a function, hook, or event handler.
 Statements
 ----------
 
+Statements (except those contained within a function, hook, or event
+handler) can appear only after all global declarations in the concatenation
+of all loaded Bro scripts.
+
 Each statement in a Bro script must be terminated with a semicolon (with a
 few exceptions noted below).  An individual statement can span multiple
 lines.
-
-All statements (except those contained within a function, hook, or event
-handler) must appear after all global declarations.
 
 Here are the statements that the Bro scripting language supports.
 

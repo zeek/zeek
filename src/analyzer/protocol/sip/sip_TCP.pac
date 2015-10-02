@@ -24,7 +24,7 @@ connection SIP_Conn(bro_analyzer: BroAnalyzer) {
 %include sip-protocol.pac
 
 flow SIP_Flow(is_orig: bool) {
-	datagram = SIP_PDU(is_orig) withcontext(connection, this);
+	flowunit = SIP_PDU(is_orig) withcontext(connection, this);
 };
 
 %include sip-analyzer.pac

@@ -1,5 +1,5 @@
 
-2.4-165 | 2015-10-01 17:02:46 -0700
+2.4-169 | 2015-10-01 17:21:21 -0700
 
   * Fixed parsing of V_ASN1_GENERALIZEDTIME timestamps in x509
     certificates. (Yun Zheng Hu)
@@ -12,7 +12,7 @@
     (Johanna Amann)
 
   * Improve a number of test canonifiers. (Daniel Thayer)
-    
+
   * Remove unnecessary use of TEST_DIFF_CANONIFIER. (Daniel Thayer)
 
   * Fixed some test canonifiers to read only from stdin

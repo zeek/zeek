@@ -41,7 +41,7 @@ event event_handler(msg: string, n: count)
 
 	event auto_event_handler(msg, n);
 	local args = BrokerComm::event_args(event_handler, "pong", n);
-	BrokerComm::event("bro/event/my_topic", args);
+	BrokerComm::send_event("bro/event/my_topic", args);
 	}
 
 @TEST-END-FILE
@@ -69,7 +69,7 @@ event BrokerComm::outgoing_connection_established(peer_address: string,
 	{
 	print "BrokerComm::outgoing_connection_established", peer_address, peer_port;
 	local args = BrokerComm::event_args(event_handler, "ping", event_count);
-	BrokerComm::event("bro/event/hi", args);
+	BrokerComm::send_event("bro/event/hi", args);
 	++event_count;
 	}
 
@@ -84,7 +84,7 @@ event event_handler(msg: string, n: count)
 	{
 	print "got event msg", msg, n;
 	local args = BrokerComm::event_args(event_handler, "ping", event_count);
-    BrokerComm::event("bro/event/hi", args);
+	BrokerComm::send_event("bro/event/hi", args);
 	++event_count;
 	}
 

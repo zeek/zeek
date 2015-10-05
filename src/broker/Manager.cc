@@ -798,8 +798,8 @@ void bro_broker::Manager::Process()
 					vl->append(val);
 				else
 					{
-					reporter->Warning("failed to convert remote event arg # %d",
-					                  i - 1);
+					reporter->Warning("failed to convert remote event %s arg # %d",
+					                  event_name->c_str(), i);
 					break;
 					}
 				}

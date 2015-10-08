@@ -21,9 +21,9 @@ global auto_event_handler: event(msg: string, c: count);
 event bro_init()
 	{
 	BrokerComm::enable();
-	BrokerComm::listen(broker_port, "127.0.0.1");
 	BrokerComm::subscribe_to_events("bro/event/");
 	BrokerComm::auto_event("bro/event/my_topic", auto_event_handler);
+	BrokerComm::listen(broker_port, "127.0.0.1");
 	}
 
 global event_count = 0;
@@ -75,7 +75,8 @@ event BrokerComm::outgoing_connection_established(peer_address: string,
 	}
 
 event BrokerComm::outgoing_connection_broken(peer_address: string,
-                                       peer_port: port)
+                                       peer_port: port,
+                                       peer_name: string)
 	{
 	terminate();
 	}

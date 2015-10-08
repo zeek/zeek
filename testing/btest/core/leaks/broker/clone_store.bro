@@ -51,8 +51,8 @@ event ready()
 event bro_init()
 	{
 	BrokerComm::enable();
-	BrokerComm::listen(broker_port, "127.0.0.1");
 	BrokerComm::subscribe_to_events("bro/event/ready");
+	BrokerComm::listen(broker_port, "127.0.0.1");
 	}
 
 @TEST-END-FILE
@@ -74,7 +74,8 @@ function dv(d: BrokerComm::Data): BrokerComm::DataVector
 global ready: event();
 
 event BrokerComm::outgoing_connection_broken(peer_address: string,
-                                       peer_port: port)
+                                       peer_port: port,
+                                       peer_name: string)
 	{
 	terminate();
 	}
@@ -105,9 +106,9 @@ event BrokerComm::outgoing_connection_established(peer_address: string,
 event bro_init()
 	{
 	BrokerComm::enable();
+	BrokerComm::auto_event("bro/event/ready", ready);
 	h = BrokerStore::create_master("mystore");
 	BrokerComm::connect("127.0.0.1", broker_port, 1secs);
-	BrokerComm::auto_event("bro/event/ready", ready);
 	}
 
 @TEST-END-FILE

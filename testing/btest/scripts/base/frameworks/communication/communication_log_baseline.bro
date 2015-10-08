@@ -37,6 +37,7 @@ event BrokerComm::outgoing_connection_broken(peer_address: string, peer_port: po
 
 @load frameworks/communication/listen
 
+redef BrokerComm::endpoint_name = "test-receiver";
 redef exit_only_after_terminate = T;
 
 event BrokerComm::incoming_connection_broken(peer_name: string)

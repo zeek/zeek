@@ -196,7 +196,7 @@ bool ChunkedIOFd::WriteChunk(Chunk* chunk, bool partial)
 	else
 		pending_head = pending_tail = q;
 
-	write_flare.Fire();
+	//write_flare.Fire();
 	return Flush();
 	}
 
@@ -219,7 +219,7 @@ bool ChunkedIOFd::PutIntoWriteBuffer(Chunk* chunk)
 	write_len += len;
 
 	delete chunk;
-	write_flare.Fire();
+	//write_flare.Fire();
 
 	if ( network_time - last_flush > 0.005 )
 		FlushWriteBuffer();
@@ -258,8 +258,10 @@ bool ChunkedIOFd::FlushWriteBuffer()
 			{
 			write_pos = write_len = 0;
 
+/*
 			if ( ! pending_head )
 				write_flare.Extinguish();
+*/
 
 			return true;
 			}
@@ -312,8 +314,10 @@ bool ChunkedIOFd::Flush()
 
 	bool rval = FlushWriteBuffer();
 
+/*
 	if ( ! pending_head && write_len == 0 )
 		write_flare.Extinguish();
+*/
 
 	return rval;
 	}
@@ -391,8 +395,10 @@ bool ChunkedIOFd::Read(Chunk** chunk, bool may_block)
 #ifdef DEBUG_COMMUNICATION
 		AddToBuffer("<false:read-chunk>", true);
 #endif
+/*
 		if ( ! ChunkAvailable() )
 			read_flare.Extinguish();
+*/
 
 		return false;
 		}
@@ -402,14 +408,18 @@ bool ChunkedIOFd::Read(Chunk** chunk, bool may_block)
 #ifdef DEBUG_COMMUNICATION
 		AddToBuffer("<null:no-data>", true);
 #endif
+/*
 		read_flare.Extinguish();
+*/
 		return true;
 		}
 
+/*
 	if ( ChunkAvailable() )
 		read_flare.Fire();
 	else
 		read_flare.Extinguish();
+*/
 
 #ifdef DEBUG
 	if ( *chunk )
@@ -487,8 +497,10 @@ bool ChunkedIOFd::ReadChunk(Chunk** chunk, bool may_block)
 	read_pos = 0;
 	read_len = bytes_left;
 
+/*
 	if ( ! ChunkAvailable() )
 		read_flare.Extinguish();
+*/
 
 	// If allowed, wait a bit for something to read.
 	if ( may_block )
@@ -619,8 +631,10 @@ bool ChunkedIOFd::IsFillingUp()
 iosource::FD_Set ChunkedIOFd::ExtraReadFDs() const
 	{
 	iosource::FD_Set rval;
+/*
 	rval.Insert(write_flare.FD());
 	rval.Insert(read_flare.FD());
+*/
 	return rval;
 	}
 
@@ -636,8 +650,10 @@ void ChunkedIOFd::Clear()
 
 	pending_head = pending_tail = 0;
 
+/*
 	if ( write_len == 0 )
 		write_flare.Extinguish();
+*/
 	}
 
 const char* ChunkedIOFd::Error()
@@ -841,7 +857,7 @@ bool ChunkedIOSSL::Write(Chunk* chunk)
 	else
 		write_head = write_tail = q;
 
-	write_flare.Fire();
+	//write_flare.Fire();
 	Flush();
 	return true;
 	}
@@ -947,7 +963,7 @@ bool ChunkedIOSSL::Flush()
 		write_state = LEN;
 		}
 
-	write_flare.Extinguish();
+	//write_flare.Extinguish();
 	return true;
 	}
 
@@ -1120,7 +1136,7 @@ bool ChunkedIOSSL::IsFillingUp()
 iosource::FD_Set ChunkedIOSSL::ExtraReadFDs() const
 	{
 	iosource::FD_Set rval;
-	rval.Insert(write_flare.FD());
+	//rval.Insert(write_flare.FD());
 	return rval;
 	}
 
@@ -1134,7 +1150,7 @@ void ChunkedIOSSL::Clear()
 		write_head = next;
 		}
 	write_head = write_tail = 0;
-	write_flare.Extinguish();
+	//write_flare.Extinguish();
 	}
 
 const char* ChunkedIOSSL::Error()

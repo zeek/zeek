@@ -96,8 +96,8 @@ IOSource* Manager::FindSoonest(double* ts)
 	// return it.
 	int maxx = 0;
 
-	if ( soonest_src && (call_count % SELECT_FREQUENCY) != 0 )
-		goto finished;
+//	if ( soonest_src && (call_count % SELECT_FREQUENCY) != 0 )
+//		goto finished;
 
 	// Select on the join of all file descriptors.
 	fd_set fd_read, fd_write, fd_except;

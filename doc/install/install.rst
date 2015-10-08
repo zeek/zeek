@@ -4,7 +4,7 @@
 .. _MacPorts: http://www.macports.org
 .. _Fink: http://www.finkproject.org
 .. _Homebrew: http://brew.sh
-.. _bro downloads page: http://bro.org/download/index.html
+.. _bro downloads page: https://www.bro.org/download/index.html
 
 .. _installing-bro:
 
@@ -32,13 +32,13 @@ before you begin:
     * Libz
     * Bash (for BroControl)
     * Python (for BroControl)
-    * C++ Actor Framework (CAF)         (http://actor-framework.org)
+    * C++ Actor Framework (CAF) version 0.14 (http://actor-framework.org)
 
 To build Bro from source, the following additional dependencies are required:
 
     * CMake 2.8 or greater              (http://www.cmake.org)
     * Make
-    * C/C++ compiler with C++11 support
+    * C/C++ compiler with C++11 support (GCC 4.8+ or Clang 3.3+)
     * SWIG                              (http://www.swig.org)
     * Bison (GNU Parser Generator)
     * Flex  (Fast Lexical Analyzer)
@@ -47,9 +47,7 @@ To build Bro from source, the following additional dependencies are required:
     * zlib headers
     * Python
 
-.. todo::
-
-    Update with instructions for installing CAF.
+To install CAF, first download the source code of the required version from: https://github.com/actor-framework/actor-framework/releases
 
 To install the required dependencies, you can use:
 
@@ -84,11 +82,11 @@ To install the required dependencies, you can use:
   "Preferences..." -> "Downloads" menus to install the "Command Line Tools"
   component).
 
-  OS X comes with all required dependencies except for CMake_ and SWIG_.
+  OS X comes with all required dependencies except for CMake_, SWIG_, and CAF.
   Distributions of these dependencies can likely be obtained from your
-  preferred Mac OS X package management system (e.g. MacPorts_, Fink_,
-  or Homebrew_).  Specifically for MacPorts, the ``cmake``, ``swig``,
-  and ``swig-python`` packages provide the required dependencies.
+  preferred Mac OS X package management system (e.g. Homebrew_, MacPorts_,
+  or Fink_).  Specifically for Homebrew, the ``cmake``, ``swig``,
+  and ``caf`` packages provide the required dependencies.
 
 
 Optional Dependencies
@@ -101,6 +99,8 @@ build time:
     * sendmail (enables Bro and BroControl to send mail)
     * curl (used by a Bro script that implements active HTTP)
     * gperftools (tcmalloc is used to improve memory and CPU usage)
+    * jemalloc (http://www.canonware.com/jemalloc/)
+    * PF_RING (Linux only, see :doc:`Cluster Configuration <../configuration/index>`)
     * ipsumdump (for trace-summary; http://www.cs.ucla.edu/~kohler/ipsumdump)
 
 LibGeoIP is probably the most interesting and can be installed
@@ -117,7 +117,7 @@ code forms.
 
 
 Using Pre-Built Binary Release Packages
-=======================================
+---------------------------------------
 
 See the `bro downloads page`_ for currently supported/targeted
 platforms for binary releases and for installation instructions.
@@ -138,13 +138,15 @@ platforms for binary releases and for installation instructions.
 The primary install prefix for binary packages is ``/opt/bro``.
 
 Installing from Source
-======================
+----------------------
 
 Bro releases are bundled into source packages for convenience and are
-available on the `bro downloads page`_. Alternatively, the latest
-Bro development version can be obtained through git repositories
+available on the `bro downloads page`_.
+
+Alternatively, the latest Bro development version
+can be obtained through git repositories
 hosted at ``git.bro.org``.  See our `git development documentation
-<http://bro.org/development/howtos/process.html>`_ for comprehensive
+<https://www.bro.org/development/howtos/process.html>`_ for comprehensive
 information on Bro's use of git revision control, but the short story
 for downloading the full source code experience for Bro via git is:
 
@@ -165,12 +167,22 @@ run ``./configure --help``):
     make
     make install
 
+If the ``configure`` script fails, then it is most likely because it either
+couldn't find a required dependency or it couldn't find a sufficiently new
+version of a dependency.  Assuming that you already installed all required
+dependencies, then you may need to use one of the ``--with-*`` options
+that can be given to the ``configure`` script to help it locate a dependency.
+
 The default installation path is ``/usr/local/bro``, which would typically
 require root privileges when doing the ``make install``.  A different
-installation path can be chosen by specifying the ``--prefix`` option.
-Note that ``/usr`` and ``/opt/bro`` are the
+installation path can be chosen by specifying the ``configure`` script
+``--prefix`` option.  Note that ``/usr`` and ``/opt/bro`` are the
 standard prefixes for binary Bro packages to be installed, so those are
 typically not good choices unless you are creating such a package.
+
+OpenBSD users, please see our `FAQ
+<https://www.bro.org/documentation/faq.html>`_ if you are having
+problems installing Bro.
 
 Depending on the Bro package you downloaded, there may be auxiliary
 tools and libraries available in the ``aux/`` directory. Some of them
@@ -180,10 +192,6 @@ turn off unwanted auxiliary projects that would otherwise be installed
 automatically.  Finally, use ``make install-aux`` to install some of
 the other programs that are in the ``aux/bro-aux`` directory.
 
-OpenBSD users, please see our `FAQ
-<//www.bro.org/documentation/faq.html>`_ if you are having
-problems installing Bro.
-
 Finally, if you want to build the Bro documentation (not required, because
 all of the documentation for the latest Bro release is available on the
 Bro web site), there are instructions in ``doc/README`` in the source
@@ -192,7 +200,7 @@ distribution.
 Configure the Run-Time Environment
 ==================================
 
-Just remember that you may need to adjust your ``PATH`` environment variable
+You may want to adjust your ``PATH`` environment variable
 according to the platform/shell/package you're using.  For example:
 
 Bourne-Shell Syntax:

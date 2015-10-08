@@ -1,4 +1,47 @@
 
+2.4-169 | 2015-10-01 17:21:21 -0700
+
+  * Fixed parsing of V_ASN1_GENERALIZEDTIME timestamps in x509
+    certificates. (Yun Zheng Hu)
+
+  * Improve X509 end-of-string-check code. (Johanna Amann)
+
+  * Refactor X509 generalizedtime support and test. (Johanna Amann)
+
+  * Fix case of offset=-1 (EOF) for RAW reader. Addresses BIT-1479.
+    (Johanna Amann)
+
+  * Improve a number of test canonifiers. (Daniel Thayer)
+
+  * Remove unnecessary use of TEST_DIFF_CANONIFIER. (Daniel Thayer)
+
+  * Fixed some test canonifiers to read only from stdin
+
+  * Remove unused test canonifier scripts. (Daniel Thayer)
+
+  * A potpourri of updates and improvements across the documentation.
+    (Daniel Thayer)
+
+  * Add configure option to disable Broker Python bindings. Also
+    improve the configure summary output to more clearly show whether
+    or not Broker Python bindings will be built. (Daniel Thayer)
+
+2.4-131 | 2015-09-11 12:16:39 -0700
+
+  * Add README.rst symlink. Addresses BIT-1413 (Vlad Grigorescu)
+
+2.4-129 | 2015-09-11 11:56:04 -0700
+
+  * hash-all-files.bro depends on base/files/hash (Richard van den Berg)
+
+  * Make dns_max_queries redef-able, and bump default to 25. Addresses
+    BIT-1460 (Vlad Grigorescu)
+
+2.4-125 | 2015-09-03 20:10:36 -0700
+
+  * Move SIP analyzer to flowunit instead of datagram Addresses
+    BIT-1458 (Vlad Grigorescu)
+
 2.4-122 | 2015-08-31 14:39:41 -0700
 
   * Add a number of out-of-bound checks to layer 2 code. Addresses

@@ -4,7 +4,7 @@ type Service: record {
     rfc: count;
 };
 
-function print_service(serv: Service): string
+function print_service(serv: Service)
     {
     print fmt("Service: %s(RFC%d)",serv$name, serv$rfc);
     

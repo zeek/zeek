@@ -87,8 +87,8 @@ export {
 		## f       packet with FIN bit set
 		## r       packet with RST bit set
 		## c       packet with a bad checksum
-		## i       inconsistent packet (FIN+RST bits both set)
-		## q       multi-flag packet (SYN+FIN or SYN+RST bits both set)
+		## i       inconsistent packet (e.g. FIN+RST bits set)
+		## q       multi-flag packet (SYN+FIN or SYN+RST bits set)
 		## ======  ====================================================
 		##
 		## If the event comes from the originator, the letter is in

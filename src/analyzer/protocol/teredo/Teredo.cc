@@ -189,36 +189,7 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		else
 			valid_resp = true;
 
-		if ( BifConst::Tunnel::yielding_teredo_decapsulation &&
-		     ! ProtocolConfirmed() )
-			{
-			// Only confirm the Teredo tunnel and start decapsulating packets
-			// when no other sibling analyzer thinks it's already parsing the
-			// right protocol.
-			bool sibling_has_confirmed = false;
-			if ( Parent() )
-				{
-				LOOP_OVER_GIVEN_CONST_CHILDREN(i, Parent()->GetChildren())
-					{
-					if ( (*i)->ProtocolConfirmed() )
-						{
-						sibling_has_confirmed = true;
-						break;
-						}
-					}
-				}
-
-			if ( ! sibling_has_confirmed )
-				Confirm();
-			else
-				{
-				delete inner;
-				return;
-				}
-			}
-		else
-			// Aggressively decapsulate anything with valid Teredo encapsulation.
-			Confirm();
+		Confirm();
 		}
 
 	else

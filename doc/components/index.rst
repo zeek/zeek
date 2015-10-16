@@ -17,8 +17,11 @@ current, independent component releases.
    Broccoli - User Manual <broccoli/broccoli-manual>
    Broccoli Python Bindings <broccoli-python/README>
    Broccoli Ruby Bindings <broccoli-ruby/README>
+   Broker - Bro's (New) Messaging Library (README) <broker/README>
+   Broker - User Manual <broker/broker-manual.rst>
    BroControl - Interactive Bro management shell <broctl/README>
    Bro-Aux - Small auxiliary tools for Bro <bro-aux/README>
+   Bro-Plugins - A collection of plugins for Bro <bro-plugins/README>
    BTest - A unit testing framework <btest/README>
    Capstats - Command-line packet statistic tool <capstats/README>
    PySubnetTree - Python module for CIDR lookups<pysubnettree/README>

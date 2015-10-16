@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "config.h"
+#include "bro-config.h"
 
 #include "Attr.h"
 #include "Expr.h"
@@ -18,7 +18,7 @@ const char* attr_name(attr_tag t)
 		"&encrypt",
 		"&raw_output", "&mergeable", "&priority",
 		"&group", "&log", "&error_handler", "&type_column",
-		"(&tracked)",
+		"(&tracked)", "&deprecated",
 	};
 
 	return attr_names[int(t)];
@@ -76,11 +76,28 @@ void Attr::DescribeReST(ODesc* d) const
 			d->Add("`");
 			}
 
-		else
+		else if ( expr->Tag() == EXPR_CONST )
 			{
 			d->Add("``");
 			expr->Describe(d);
-			d-> Add("``");
+			d->Add("``");
+			}
+
+		else
+			{
+			d->Add("``");
+			Val* v = expr->Eval(0);
+			ODesc dd;
+			v->Describe(&dd);
+			Unref(v);
+			string s = dd.Description();
+
+			for ( size_t i = 0; i < s.size(); ++i )
+				if ( s[i] == '\n' )
+					s[i] = ' ';
+
+			d->Add(s);
+			d->Add("``");
 			}
 		}
 	}
@@ -212,6 +229,7 @@ void Attributes::DescribeReST(ODesc* d) const
 void Attributes::CheckAttr(Attr* a)
 	{
 	switch ( a->Tag() ) {
+	case ATTR_DEPRECATED:
 	case ATTR_OPTIONAL:
 	case ATTR_REDEF:
 		break;

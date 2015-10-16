@@ -32,6 +32,8 @@ export {
 		FILE_NAME,
 		## Certificate SHA-1 hash.
 		CERT_HASH,
+		## Public key MD5 hash. (SSH server host keys are a good example.)
+		PUBKEY_HASH,
 	};
 	
 	## Data about an :bro:type:`Intel::Item`.
@@ -174,7 +176,7 @@ global min_data_store: MinDataStore &redef;
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(LOG, [$columns=Info, $ev=log_intel]);
+	Log::create_stream(LOG, [$columns=Info, $ev=log_intel, $path="intel"]);
 	}
 
 function find(s: Seen): bool

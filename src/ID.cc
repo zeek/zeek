@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "config.h"
+#include "bro-config.h"
 
 #include "ID.h"
 #include "Expr.h"
@@ -246,6 +246,16 @@ void ID::UpdateValAttrs()
 				}
 			}
 		}
+	}
+
+void ID::MakeDeprecated()
+	{
+	if ( IsDeprecated() )
+		return;
+
+	attr_list* attr = new attr_list;
+	attr->append(new Attr(ATTR_DEPRECATED));
+	AddAttrs(new Attributes(attr, Type(), false));
 	}
 
 void ID::AddAttrs(Attributes* a)

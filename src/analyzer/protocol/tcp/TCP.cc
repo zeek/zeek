@@ -367,6 +367,41 @@ void TCP_Analyzer::Done()
 	finished = 1;
 	}
 
+analyzer::Analyzer* TCP_Analyzer::FindChild(ID arg_id)
+	{
+	analyzer::Analyzer* child = analyzer::TransportLayerAnalyzer::FindChild(arg_id);
+
+	if ( child )
+		return child;
+
+	LOOP_OVER_GIVEN_CHILDREN(i, packet_children)
+		{
+		analyzer::Analyzer* child = (*i)->FindChild(arg_id);
+		if ( child )
+			return child;
+		}
+
+	return 0;
+	}
+
+analyzer::Analyzer* TCP_Analyzer::FindChild(Tag arg_tag)
+	{
+	analyzer::Analyzer* child = analyzer::TransportLayerAnalyzer::FindChild(arg_tag);
+
+	if ( child )
+		return child;
+
+	LOOP_OVER_GIVEN_CHILDREN(i, packet_children)
+		{
+		analyzer::Analyzer* child = (*i)->FindChild(arg_tag);
+		if ( child )
+			return child;
+		}
+
+	return 0;
+	}
+
+
 void TCP_Analyzer::EnableReassembly()
 	{
 	SetReassembler(new TCP_Reassembler(this, this,
@@ -407,7 +442,7 @@ const struct tcphdr* TCP_Analyzer::ExtractTCP_Header(const u_char*& data,
 		}
 
 	if ( tcp_hdr_len > uint32(len) ||
-	     sizeof(struct tcphdr) > uint32(caplen) )
+	     tcp_hdr_len > uint32(caplen) )
 		{
 		// This can happen even with the above test, due to TCP
 		// options.
@@ -1762,6 +1797,15 @@ bool TCP_Analyzer::HadGap(bool is_orig) const
 	{
 	TCP_Endpoint* endp = is_orig ? orig : resp;
 	return endp && endp->HadGap();
+	}
+
+void TCP_Analyzer::AddChildPacketAnalyzer(analyzer::Analyzer* a)
+	{
+	DBG_LOG(DBG_ANALYZER, "%s added packet child %s",
+			this->GetAnalyzerName(), a->GetAnalyzerName());
+
+	packet_children.push_back(a);
+	a->SetParent(this);
 	}
 
 int TCP_Analyzer::DataPending(TCP_Endpoint* closing_endp)

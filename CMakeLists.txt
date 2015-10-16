@@ -31,12 +31,12 @@ configure_file(bro-path-dev.in ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev)
 
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev.sh
      "export BROPATH=`${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev`\n"
-     "export BRO_PLUGIN_PATH=\"${CMAKE_CURRENT_BINARY_DIR}/src:${BRO_PLUGIN_INSTALL_PATH}\"\n"
+     "export BRO_PLUGIN_PATH=\"${CMAKE_CURRENT_BINARY_DIR}/src\":${BRO_PLUGIN_PATH}\n"
      "export PATH=\"${CMAKE_CURRENT_BINARY_DIR}/src\":$PATH\n")
 
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev.csh
      "setenv BROPATH `${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev`\n"
-     "setenv BRO_PLUGIN_PATH \"${CMAKE_CURRENT_BINARY_DIR}/src:${BRO_PLUGIN_INSTALL_PATH}\"\n"
+     "setenv BRO_PLUGIN_PATH \"${CMAKE_CURRENT_BINARY_DIR}/src\":${BRO_PLUGIN_PATH}\n"
      "setenv PATH \"${CMAKE_CURRENT_BINARY_DIR}/src\":$PATH\n")
 
 file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" VERSION LIMIT_COUNT 1)
@@ -61,7 +61,7 @@ if (NOT SED_EXE)
     endif ()
 endif ()
 
-FindRequiredPackage(Perl)
+FindRequiredPackage(PythonInterp)
 FindRequiredPackage(FLEX)
 FindRequiredPackage(BISON)
 FindRequiredPackage(PCAP)
@@ -113,7 +113,7 @@ if (NOT DISABLE_PERFTOOLS)
    find_package(GooglePerftools)
 endif ()
 
-if (GOOGLEPERFTOOLS_FOUND)
+if (GOOGLEPERFTOOLS_FOUND OR TCMALLOC_FOUND)
     set(HAVE_PERFTOOLS true)
     # Non-Linux systems may not be well-supported by gperftools, so
     # require explicit request from user to enable it in that case.
@@ -155,6 +155,7 @@ include(TestBigEndian)
 test_big_endian(WORDS_BIGENDIAN)
 include(CheckSymbolExists)
 check_symbol_exists(htonll arpa/inet.h HAVE_BYTEORDER_64)
+check_symbol_exists(PACKET_FANOUT linux/if_packet.h HAVE_PACKET_FANOUT)
 
 include(OSSpecific)
 include(CheckTypes)
@@ -165,17 +166,25 @@ include(PCAPTests)
 include(OpenSSLTests)
 include(CheckNameserCompat)
 include(GetArchitecture)
+include(RequireCXX11)
 
 # Tell the plugin code that we're building as part of the main tree.
 set(BRO_PLUGIN_INTERNAL_BUILD true CACHE INTERNAL "" FORCE)
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in
-               ${CMAKE_CURRENT_BINARY_DIR}/config.h)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/bro-config.h.in
+               ${CMAKE_CURRENT_BINARY_DIR}/bro-config.h)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 ########################################################################
 ## Recurse on sub-directories
+
+if ( ENABLE_BROKER )
+    add_subdirectory(aux/broker)
+    set(brodeps ${brodeps} broker)
+    add_definitions(-DENABLE_BROKER)
+    include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/aux/broker)
+endif ()
 
 add_subdirectory(src)
 add_subdirectory(scripts)
@@ -224,6 +233,8 @@ message(
     "\nCXXFLAGS:          ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BuildType}}"
     "\nCPP:               ${CMAKE_CXX_COMPILER}"
     "\n"
+    "\nBroker:            ${ENABLE_BROKER}"
+    "\nBroker Python:     ${BROKER_PYTHON_BINDINGS}"
     "\nBroccoli:          ${INSTALL_BROCCOLI}"
     "\nBroctl:            ${INSTALL_BROCTL}"
     "\nAux. Tools:        ${INSTALL_AUX_TOOLS}"

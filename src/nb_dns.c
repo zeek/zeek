@@ -11,7 +11,7 @@
  * crack reply buffers is private.
  */
 
-#include "config.h"			/* must appear before first ifdef */
+#include "bro-config.h"			/* must appear before first ifdef */
 
 #include <sys/types.h>
 #include <sys/socket.h>

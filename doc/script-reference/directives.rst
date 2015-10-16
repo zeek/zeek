@@ -58,6 +58,23 @@ executed.  Directives are evaluated before script execution begins.
     for that script are ignored).
 
 
+.. bro:keyword:: @load-plugin
+
+    Activate a dynamic plugin with the specified plugin name.  The specified
+    plugin must be located in Bro's plugin search path.  Example::
+
+        @load-plugin Demo::Rot13
+
+    By default, Bro will automatically activate all dynamic plugins found
+    in the plugin search path (the search path can be changed by setting
+    the environment variable BRO_PLUGIN_PATH to a colon-separated list of
+    directories). However, in bare mode ("bro -b"), dynamic plugins can be
+    activated only by using "@load-plugin", or by specifying the full
+    plugin name on the Bro command-line (e.g., "bro Demo::Rot13"), or by
+    setting the environment variable BRO_PLUGIN_ACTIVATE to a
+    comma-separated list of plugin names.
+
+
 .. bro:keyword:: @load-sigs
 
     This works similarly to "@load", except that in this case the filename

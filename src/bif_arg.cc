@@ -1,4 +1,4 @@
-#include "config.h"
+#include "bro-config.h"
 
 #include <set>
 #include <string>

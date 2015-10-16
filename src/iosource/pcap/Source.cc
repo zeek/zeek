@@ -2,12 +2,19 @@
 
 #include <assert.h>
 
-#include "config.h"
+#include "bro-config.h"
 
 #include "Source.h"
+#include "iosource/Packet.h"
+
+#include "const.bif.h"
 
 #ifdef HAVE_PCAP_INT_H
 #include <pcap-int.h>
+#endif
+
+#ifdef HAVE_PACKET_FANOUT
+#include <linux/if_packet.h>
 #endif
 
 using namespace iosource::pcap;
@@ -77,30 +84,68 @@ void PcapSource::OpenLive()
 		props.netmask = 0xffffff00;
 		}
 
-	// We use the smallest time-out possible to return almost immediately if
-	// no packets are available. (We can't use set_nonblocking() as it's
-	// broken on FreeBSD: even when select() indicates that we can read
-	// something, we may get nothing if the store buffer hasn't filled up
-	// yet.)
-	pd = pcap_open_live(props.path.c_str(), SnapLen(), 1, 1, tmp_errbuf);
+#ifdef PCAP_NETMASK_UNKNOWN
+	// Defined in libpcap >= 1.1.1
+	if ( props.netmask == PCAP_NETMASK_UNKNOWN )
+		props.netmask = PktSrc::NETMASK_UNKNOWN;
+#endif
+
+	pd = pcap_create(props.path.c_str(), errbuf);
 
 	if ( ! pd )
 		{
-		Error(tmp_errbuf);
+		PcapError("pcap_create");
 		return;
 		}
 
-	// ### This needs autoconf'ing.
-#ifdef HAVE_PCAP_INT_H
-	Info(fmt("pcap bufsize = %d\n", ((struct pcap *) pd)->bufsize));
-#endif
+	if ( pcap_set_snaplen(pd, BifConst::Pcap::snaplen) )
+		{
+		PcapError("pcap_set_snaplen");
+		return;
+		}
+
+	if ( pcap_set_promisc(pd, 1) )
+		{
+		PcapError("pcap_set_promisc");
+		return;
+		}
+
+	// We use the smallest time-out possible to return almost immediately
+	// if no packets are available. (We can't use set_nonblocking() as
+	// it's broken on FreeBSD: even when select() indicates that we can
+	// read something, we may get nothing if the store buffer hasn't
+	// filled up yet.)
+	//
+	// TODO: The comment about FreeBSD is pretty old and may not apply
+	// anymore these days.
+	if ( pcap_set_timeout(pd, 1) )
+		{
+		PcapError("pcap_set_timeout");
+		return;
+		}
+
+	if ( pcap_set_buffer_size(pd, BifConst::Pcap::bufsize * 1024 * 1024) )
+		{
+		PcapError("pcap_set_buffer_size");
+		return;
+		}
+
+	if ( pcap_activate(pd) )
+		{
+		PcapError("pcap_activate");
+		return;
+		}
 
 #ifdef HAVE_LINUX
 	if ( pcap_setnonblock(pd, 1, tmp_errbuf) < 0 )
 		{
-		PcapError();
+		PcapError("pcap_setnonblock");
 		return;
 		}
+#endif
+
+#ifdef HAVE_PCAP_INT_H
+	Info(fmt("pcap bufsize = %d\n", ((struct pcap *) pd)->bufsize));
 #endif
 
 	props.selectable_fd = pcap_fileno(pd);
@@ -110,6 +155,24 @@ void PcapSource::OpenLive()
 	if ( ! pd )
 		// Was closed, couldn't get header size.
 		return;
+
+#ifdef HAVE_PACKET_FANOUT
+	// Turn on cluster mode for the device.
+	if ( BifConst::Pcap::packet_fanout_enable )
+		{
+		uint32_t packet_fanout_arg = (PACKET_FANOUT_HASH << 16)
+			| (BifConst::Pcap::packet_fanout_id & 0xffff);
+
+		if ( BifConst::Pcap::packet_fanout_defrag )
+			packet_fanout_arg |= (PACKET_FANOUT_FLAG_DEFRAG << 16);
+
+		if ( setsockopt(props.selectable_fd, SOL_PACKET, PACKET_FANOUT, &packet_fanout_arg, sizeof(packet_fanout_arg)) == -1 )
+			{
+			Error(fmt("packet fanout: %s", strerror(errno)));
+			return;
+			}
+		}
+#endif
 
 	props.is_live = true;
 
@@ -161,9 +224,8 @@ bool PcapSource::ExtractNextPacket(Packet* pkt)
 		return false;
 		}
 
-	pkt->ts = current_hdr.ts.tv_sec + double(current_hdr.ts.tv_usec) / 1e6;
-	pkt->hdr = &current_hdr;
-	pkt->data = last_data = data;
+	last_data = data;
+	pkt->Init(props.link_type, &current_hdr.ts, current_hdr.caplen, current_hdr.len, data);
 
 	if ( current_hdr.len == 0 || current_hdr.caplen == 0 )
 		{
@@ -174,6 +236,8 @@ bool PcapSource::ExtractNextPacket(Packet* pkt)
 	last_hdr = current_hdr;
 	last_data = data;
 	++stats.received;
+	stats.bytes_received += current_hdr.len;
+
 	return true;
 	}
 
@@ -213,7 +277,7 @@ bool PcapSource::SetFilter(int index)
 
 #ifndef HAVE_LINUX
 	// Linux doesn't clear counters when resetting filter.
-	stats.received = stats.dropped = stats.link = 0;
+	stats.received = stats.dropped = stats.link = stats.bytes_received = 0;
 #endif
 
 	return true;
@@ -224,7 +288,7 @@ void PcapSource::Statistics(Stats* s)
 	char errbuf[PCAP_ERRBUF_SIZE];
 
 	if ( ! (props.is_live && pd) )
-		s->received = s->dropped = s->link = 0;
+		s->received = s->dropped = s->link = s->bytes_received = 0;
 
 	else
 		{
@@ -232,7 +296,7 @@ void PcapSource::Statistics(Stats* s)
 		if ( pcap_stats(pd, &pstat) < 0 )
 			{
 			PcapError();
-			s->received = s->dropped = s->link = 0;
+			s->received = s->dropped = s->link = s->bytes_received = 0;
 			}
 
 		else
@@ -243,17 +307,23 @@ void PcapSource::Statistics(Stats* s)
 		}
 
 	s->received = stats.received;
+	s->bytes_received = stats.bytes_received;
 
 	if ( ! props.is_live )
 		s->dropped = 0;
 	}
 
-void PcapSource::PcapError()
+void PcapSource::PcapError(const char* where)
 	{
+	string location;
+
+	if ( where )
+		location = fmt(" (%s)", where);
+
 	if ( pd )
-		Error(fmt("pcap_error: %s", pcap_geterr(pd)));
+		Error(fmt("pcap_error: %s%s", pcap_geterr(pd), location.c_str()));
 	else
-		Error("pcap_error: not open");
+		Error(fmt("pcap_error: not open%s", location.c_str()));
 
 	Close();
 	}
@@ -266,7 +336,6 @@ void PcapSource::SetHdrSize()
 	char errbuf[PCAP_ERRBUF_SIZE];
 
 	props.link_type = pcap_datalink(pd);
-	props.hdr_size = GetLinkHeaderSize(props.link_type);
 	}
 
 iosource::PktSrc* PcapSource::Instantiate(const std::string& path, bool is_live)

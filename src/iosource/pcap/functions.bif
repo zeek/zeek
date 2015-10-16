@@ -1,0 +1,106 @@
+
+module Pcap;
+
+## Precompiles a PCAP filter and binds it to a given identifier.
+##
+## id: The PCAP identifier to reference the filter *s* later on.
+##
+## s: The PCAP filter. See ``man tcpdump`` for valid expressions.
+##
+## Returns: True if *s* is valid and precompiles successfully.
+##
+## .. bro:see:: install_pcap_filter
+##          install_src_addr_filter
+##          install_src_net_filter
+##          uninstall_src_addr_filter
+##          uninstall_src_net_filter
+##          install_dst_addr_filter
+##          install_dst_net_filter
+##          uninstall_dst_addr_filter
+##          uninstall_dst_net_filter
+##          pcap_error
+function precompile_pcap_filter%(id: PcapFilterID, s: string%): bool
+	%{
+	bool success = true;
+
+	const iosource::Manager::PktSrcList& pkt_srcs(iosource_mgr->GetPktSrcs());
+
+	for ( iosource::Manager::PktSrcList::const_iterator i = pkt_srcs.begin();
+	      i != pkt_srcs.end(); i++ )
+		{
+		iosource::PktSrc* ps = *i;
+
+		if ( ! ps->PrecompileFilter(id->ForceAsInt(),
+							s->CheckString()) )
+			success = false;
+		}
+
+	return new Val(success, TYPE_BOOL);
+	%}
+
+## Installs a PCAP filter that has been precompiled with
+## :bro:id:`precompile_pcap_filter`.
+##
+## id: The PCAP filter id of a precompiled filter.
+##
+## Returns: True if the filter associated with *id* has been installed
+##          successfully.
+##
+## .. bro:see:: precompile_pcap_filter
+##              install_src_addr_filter
+##              install_src_net_filter
+##              uninstall_src_addr_filter
+##              uninstall_src_net_filter
+##              install_dst_addr_filter
+##              install_dst_net_filter
+##              uninstall_dst_addr_filter
+##              uninstall_dst_net_filter
+##              pcap_error
+function install_pcap_filter%(id: PcapFilterID%): bool
+	%{
+	bool success = true;
+
+	const iosource::Manager::PktSrcList& pkt_srcs(iosource_mgr->GetPktSrcs());
+
+	for ( iosource::Manager::PktSrcList::const_iterator i = pkt_srcs.begin();
+	      i != pkt_srcs.end(); i++ )
+		{
+		iosource::PktSrc* ps = *i;
+
+		if ( ! ps->SetFilter(id->ForceAsInt()) )
+			success = false;
+		}
+
+	return new Val(success, TYPE_BOOL);
+	%}
+
+## Returns a string representation of the last PCAP error.
+##
+## Returns: A descriptive error message of the PCAP function that failed.
+##
+## .. bro:see:: precompile_pcap_filter
+##              install_pcap_filter
+##              install_src_addr_filter
+##              install_src_net_filter
+##              uninstall_src_addr_filter
+##              uninstall_src_net_filter
+##              install_dst_addr_filter
+##              install_dst_net_filter
+##              uninstall_dst_addr_filter
+##              uninstall_dst_net_filter
+function error%(%): string
+	%{
+	const iosource::Manager::PktSrcList& pkt_srcs(iosource_mgr->GetPktSrcs());
+
+	for ( iosource::Manager::PktSrcList::const_iterator i = pkt_srcs.begin();
+	      i != pkt_srcs.end(); i++ )
+		{
+		iosource::PktSrc* ps = *i;
+
+		const char* err = ps->ErrorMsg();
+		if ( *err )
+			return new StringVal(err);
+		}
+
+	return new StringVal("no error");
+	%}

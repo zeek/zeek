@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "config.h"
+#include "bro-config.h"
 
 #include <stdlib.h>
 #include <errno.h>
@@ -181,13 +181,7 @@ void ODesc::AddBytes(const BroString* s)
 			AddBytes(reinterpret_cast<const char*>(s->Bytes()), s->Len());
 		else
 			{
-			int render_style = BroString::EXPANDED_STRING;
-			if ( Style() == ALTERNATIVE_STYLE )
-				// Only change NULs, since we can't in any case
-				// cope with them.
-				render_style = BroString::ESC_NULL;
-
-			const char* str = s->Render(render_style);
+			const char* str = s->Render(BroString::EXPANDED_STRING);
 			Add(str);
 			delete [] str;
 			}
@@ -256,7 +250,7 @@ pair<const char*, size_t> ODesc::FirstEscapeLoc(const char* bytes, size_t n)
 
 	for ( size_t i = 0; i < n; ++i )
 		{
-		if ( ! isprint(bytes[i]) )
+		if ( ! isprint(bytes[i]) || bytes[i] == '\\' )
 			return escape_pos(bytes + i, 1);
 
 		size_t len = StartsWithEscapeSequence(bytes + i, bytes + n);

@@ -45,7 +45,7 @@ export {
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(Reporter::LOG, [$columns=Info]);
+	Log::create_stream(Reporter::LOG, [$columns=Info, $path="reporter"]);
 	}
 
 event reporter_info(t: time, msg: string, location: string) &priority=-5

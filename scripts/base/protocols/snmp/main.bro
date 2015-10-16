@@ -66,7 +66,7 @@ redef likely_server_ports += { ports };
 event bro_init() &priority=5
 	{
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SNMP, ports);
-	Log::create_stream(SNMP::LOG, [$columns=SNMP::Info, $ev=log_snmp]);
+	Log::create_stream(SNMP::LOG, [$columns=SNMP::Info, $ev=log_snmp, $path="snmp"]);
 	}
 
 function init_state(c: connection, h: SNMP::Header): Info

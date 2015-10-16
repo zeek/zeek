@@ -129,12 +129,11 @@ export {
 	## files based on the detected mime type of the file.
 	const analyze_by_mime_type_automatically = T &redef;
 
-	## The default setting for if the file reassembler is enabled for 
-	## each file.
+	## The default setting for file reassembly.
 	const enable_reassembler = T &redef;
 
 	## The default per-file reassembly buffer size.
-	const reassembly_buffer_size = 1048576 &redef;
+	const reassembly_buffer_size = 524288 &redef;
 
 	## Allows the file reassembler to be used if it's necessary because the
 	## file is transferred out of order.
@@ -267,7 +266,7 @@ export {
 	## mts: The set of MIME types, each in the form "foo/bar" (case-insensitive).
 	##
 	## Returns: True if the MIME types were successfully registered.
-	global register_for_mime_types: function(tag: Analyzer::Tag, mts: set[string]) : bool;
+	global register_for_mime_types: function(tag: Files::Tag, mts: set[string]) : bool;
 
 	## Registers a MIME type for an analyzer. If a future file with this type is seen,
 	## the analyzer will be automatically assigned to parsing it. The function *adds*
@@ -278,20 +277,20 @@ export {
 	## mt: The MIME type in the form "foo/bar" (case-insensitive).
 	##
 	## Returns: True if the MIME type was successfully registered.
-	global register_for_mime_type: function(tag: Analyzer::Tag, mt: string) : bool;
+	global register_for_mime_type: function(tag: Files::Tag, mt: string) : bool;
 
 	## Returns a set of all MIME types currently registered for a specific analyzer.
 	##
 	## tag: The tag of the analyzer.
 	##
 	## Returns: The set of MIME types.
-	global registered_mime_types: function(tag: Analyzer::Tag) : set[string];
+	global registered_mime_types: function(tag: Files::Tag) : set[string];
 
 	## Returns a table of all MIME-type-to-analyzer mappings currently registered.
 	##
 	## Returns: A table mapping each analyzer to the set of MIME types
 	##          registered for it.
-	global all_registered_mime_types: function() : table[Analyzer::Tag] of set[string];
+	global all_registered_mime_types: function() : table[Files::Tag] of set[string];
 
 	## Event that can be handled to access the Info record as it is sent on
 	## to the logging framework.
@@ -306,14 +305,14 @@ redef record fa_file += {
 global registered_protocols: table[Analyzer::Tag] of ProtoRegistration = table();
 
 # Store the MIME type to analyzer mappings.
-global mime_types: table[Analyzer::Tag] of set[string];
-global mime_type_to_analyzers: table[string] of set[Analyzer::Tag];
+global mime_types: table[Files::Tag] of set[string];
+global mime_type_to_analyzers: table[string] of set[Files::Tag];
 
 global analyzer_add_callbacks: table[Files::Tag] of function(f: fa_file, args: AnalyzerArgs) = table();
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(Files::LOG, [$columns=Info, $ev=log_files]);
+	Log::create_stream(Files::LOG, [$columns=Info, $ev=log_files, $path="files"]);
 	}
 
 function set_info(f: fa_file)
@@ -401,7 +400,7 @@ function register_protocol(tag: Analyzer::Tag, reg: ProtoRegistration): bool
 	return result;
 	}
 
-function register_for_mime_types(tag: Analyzer::Tag, mime_types: set[string]) : bool
+function register_for_mime_types(tag: Files::Tag, mime_types: set[string]) : bool
 	{
 	local rc = T;
 
@@ -414,7 +413,7 @@ function register_for_mime_types(tag: Analyzer::Tag, mime_types: set[string]) : 
 	return rc;
 	}
 
-function register_for_mime_type(tag: Analyzer::Tag, mt: string) : bool
+function register_for_mime_type(tag: Files::Tag, mt: string) : bool
 	{
 	if ( tag !in mime_types )
 		{
@@ -431,12 +430,12 @@ function register_for_mime_type(tag: Analyzer::Tag, mt: string) : bool
 	return T;
 	}
 
-function registered_mime_types(tag: Analyzer::Tag) : set[string]
+function registered_mime_types(tag: Files::Tag) : set[string]
 	{
 	return tag in mime_types ? mime_types[tag] : set();
 	}
 
-function all_registered_mime_types(): table[Analyzer::Tag] of set[string]
+function all_registered_mime_types(): table[Files::Tag] of set[string]
 	{
 	return mime_types;
 	}
@@ -451,7 +450,7 @@ function describe(f: fa_file): string
 	return handler$describe(f);
 	}
 
-event get_file_handle(tag: Analyzer::Tag, c: connection, is_orig: bool) &priority=5
+event get_file_handle(tag: Files::Tag, c: connection, is_orig: bool) &priority=5
 	{
 	if ( tag !in registered_protocols )
 		return;
@@ -484,16 +483,19 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 	add f$info$rx_hosts[f$is_orig ? cid$resp_h : cid$orig_h];
 	}
 
-event file_mime_type(f: fa_file, mime_type: string) &priority=10
+event file_sniff(f: fa_file, meta: fa_metadata) &priority=10
 	{
 	set_info(f);
 
-	f$info$mime_type = mime_type;
+	if ( ! meta?$mime_type )
+		return;
+
+	f$info$mime_type = meta$mime_type;
 
 	if ( analyze_by_mime_type_automatically &&
-	     mime_type in mime_type_to_analyzers )
+	     meta$mime_type in mime_type_to_analyzers )
 		{
-		local analyzers = mime_type_to_analyzers[mime_type];
+		local analyzers = mime_type_to_analyzers[meta$mime_type];
 		for ( a in analyzers )
 			{
 			add f$info$analyzers[Files::analyzer_name(a)];

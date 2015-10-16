@@ -1,8 +1,7 @@
-# @TEST-EXEC: bro %INPUT > output
+# @TEST-EXEC: bro -b %INPUT > output
 # @TEST-EXEC: btest-diff output
 
-# This is loaded by default
-#@load base/utils/addrs
+@load base/utils/addrs
 
 event bro_init()
 	{
@@ -98,8 +97,8 @@ event bro_init()
 	ip = "2001:db8:0:0:0:FFFF:192.168.0.256";
 	print is_valid_ip(ip);
 
-	print "============ test find_ip_addresses()";
-	print find_ip_addresses("this is 1.1.1.1 a test 2.2.2.2 string with ip addresses 3.3.3.3");
-	print find_ip_addresses("this is 1.1.1.1 a test 0:0:0:0:0:0:0:0 string with ip addresses 3.3.3.3");
+	print "============ test extract_ip_addresses()";
+	print extract_ip_addresses("this is 1.1.1.1 a test 2.2.2.2 string with ip addresses 3.3.3.3");
+	print extract_ip_addresses("this is 1.1.1.1 a test 0:0:0:0:0:0:0:0 string with ip addresses 3.3.3.3");
 
 	}

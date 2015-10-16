@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "config.h"
+#include "bro-config.h"
 
 #include <sys/types.h>
 #include <sys/param.h>
@@ -2985,8 +2985,10 @@ bool VectorVal::Assign(unsigned int index, Val* element, Opcode op)
 			}
 		}
 
+	Val* val_at_index = 0;
+
 	if ( index < val.vector_val->size() )
-		Unref((*val.vector_val)[index]);
+		val_at_index = (*val.vector_val)[index];
 	else
 		val.vector_val->resize(index + 1);
 
@@ -2999,9 +3001,11 @@ bool VectorVal::Assign(unsigned int index, Val* element, Opcode op)
 
 		StateAccess::Log(new StateAccess(op == OP_INCR ?
 				OP_INCR_IDX : OP_ASSIGN_IDX,
-				this, ival, element, (*val.vector_val)[index]));
+				this, ival, element, val_at_index));
 		Unref(ival);
 		}
+
+	Unref(val_at_index);
 
 	// Note: we do *not* Ref() the element, if any, at this point.
 	// AssignExpr::Eval() already does this; other callers must remember

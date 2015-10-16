@@ -59,7 +59,7 @@ const ports = { 1812/udp };
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(RADIUS::LOG, [$columns=Info, $ev=log_radius]);
+	Log::create_stream(RADIUS::LOG, [$columns=Info, $ev=log_radius, $path="radius"]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_RADIUS, ports);
 	}
 

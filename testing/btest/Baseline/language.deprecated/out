@@ -1,0 +1,28 @@
+warning in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.deprecated/deprecated.bro, line 30: deprecated (ONE)
+warning in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.deprecated/deprecated.bro, line 31: deprecated (TWO)
+warning in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.deprecated/deprecated.bro, line 33: deprecated (GREEN)
+warning in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.deprecated/deprecated.bro, line 34: deprecated (BLUE)
+warning in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.deprecated/deprecated.bro, line 36: deprecated (blah)
+warning in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.deprecated/deprecated.bro, line 40: deprecated (my_event)
+warning in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.deprecated/deprecated.bro, line 41: deprecated (my_event)
+warning in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.deprecated/deprecated.bro, line 42: deprecated (my_hook)
+warning in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.deprecated/deprecated.bro, line 44: deprecated (my_record$b)
+warning in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.deprecated/deprecated.bro, line 45: deprecated (my_record$b)
+warning in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.deprecated/deprecated.bro, line 46: deprecated (my_record$b)
+warning in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.deprecated/deprecated.bro, line 48: deprecated (my_record?$b)
+warning in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.deprecated/deprecated.bro, line 49: deprecated (my_record$b)
+warning in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.deprecated/deprecated.bro, line 52: deprecated (my_record$b)
+warning in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.deprecated/deprecated.bro, line 55: deprecated (my_event)
+warning in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.deprecated/deprecated.bro, line 60: deprecated (my_hook)
+warning in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.deprecated/deprecated.bro, line 65: deprecated (blah)
+warning in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.deprecated/deprecated.bro, line 74: deprecated (dont_use_me)
+warning in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.deprecated/deprecated.bro, line 79: deprecated (dont_use_me_either)
+ZERO
+ONE
+TWO
+RED
+GREEN
+BLUE
+generate my_hook please
+generate my_event please
+schedule my_event please

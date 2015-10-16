@@ -105,7 +105,7 @@ export {
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(Software::LOG, [$columns=Info, $ev=log_software]);
+	Log::create_stream(Software::LOG, [$columns=Info, $ev=log_software, $path="software"]);
 	}
 	
 type Description: record {
@@ -133,62 +133,62 @@ function parse(unparsed_version: string): Description
 		{
 		# The regular expression should match the complete version number
 		# and software name.
-		local version_parts = split_n(unparsed_version, /\/?( [\(])?v?[0-9\-\._, ]{2,}/, T, 1);
-		if ( 1 in version_parts )
+		local version_parts = split_string_n(unparsed_version, /\/?( [\(])?v?[0-9\-\._, ]{2,}/, T, 1);
+		if ( 0 in version_parts )
 			{
-			if ( /^\(/ in version_parts[1] )
-				software_name = strip(sub(version_parts[1], /[\(]/, ""));
+			if ( /^\(/ in version_parts[0] )
+				software_name = strip(sub(version_parts[0], /[\(]/, ""));
 			else
-				software_name = strip(version_parts[1]);
+				software_name = strip(version_parts[0]);
 			}
 		if ( |version_parts| >= 2 )
 			{
 			# Remove the name/version separator if it's left at the beginning
 			# of the version number from the previous split_all.
-			local sv = strip(version_parts[2]);
+			local sv = strip(version_parts[1]);
 			if ( /^[\/\-\._v\(]/ in sv )
-				sv = strip(sub(version_parts[2], /^\(?[\/\-\._v\(]/, ""));
-			local version_numbers = split_n(sv, /[\-\._,\[\(\{ ]/, F, 3);
-			if ( 5 in version_numbers && version_numbers[5] != "" )
-				v$addl = strip(version_numbers[5]);
-			else if ( 3 in version_parts && version_parts[3] != "" &&
-			          version_parts[3] != ")" )
+				sv = strip(sub(version_parts[1], /^\(?[\/\-\._v\(]/, ""));
+			local version_numbers = split_string_n(sv, /[\-\._,\[\(\{ ]/, F, 3);
+			if ( 4 in version_numbers && version_numbers[4] != "" )
+				v$addl = strip(version_numbers[4]);
+			else if ( 2 in version_parts && version_parts[2] != "" &&
+			          version_parts[2] != ")" )
 				{
-				if ( /^[[:blank:]]*\([a-zA-Z0-9\-\._[:blank:]]*\)/ in version_parts[3] )
+				if ( /^[[:blank:]]*\([a-zA-Z0-9\-\._[:blank:]]*\)/ in version_parts[2] )
 					{
-					v$addl = split_n(version_parts[3], /[\(\)]/, F, 2)[2];
+					v$addl = split_string_n(version_parts[2], /[\(\)]/, F, 2)[1];
 					}
 				else
 					{
-					local vp = split_n(version_parts[3], /[\-\._,;\[\]\(\)\{\} ]/, F, 3);
-					if ( |vp| >= 1 && vp[1] != "" )
+					local vp = split_string_n(version_parts[2], /[\-\._,;\[\]\(\)\{\} ]/, F, 3);
+					if ( |vp| >= 1 && vp[0] != "" )
+						{
+						v$addl = strip(vp[0]);
+						}
+					else if ( |vp| >= 2 && vp[1] != "" )
 						{
 						v$addl = strip(vp[1]);
 						}
-					else if ( |vp| >= 2 && vp[2] != "" )
+					else if ( |vp| >= 3 && vp[2] != "" )
 						{
 						v$addl = strip(vp[2]);
 						}
-					else if ( |vp| >= 3 && vp[3] != "" )
-						{
-						v$addl = strip(vp[3]);
-						}
 					else
 						{
-						v$addl = strip(version_parts[3]);
+						v$addl = strip(version_parts[2]);
 						}
 						
 					}
 				}
 			
-			if ( 4 in version_numbers && version_numbers[4] != "" )
-				v$minor3 = extract_count(version_numbers[4]);
 			if ( 3 in version_numbers && version_numbers[3] != "" )
-				v$minor2 = extract_count(version_numbers[3]);
+				v$minor3 = extract_count(version_numbers[3]);
 			if ( 2 in version_numbers && version_numbers[2] != "" )
-				v$minor = extract_count(version_numbers[2]);
+				v$minor2 = extract_count(version_numbers[2]);
 			if ( 1 in version_numbers && version_numbers[1] != "" )
-				v$major = extract_count(version_numbers[1]);
+				v$minor = extract_count(version_numbers[1]);
+			if ( 0 in version_numbers && version_numbers[0] != "" )
+				v$major = extract_count(version_numbers[0]);
 			}
 		}
 	
@@ -200,14 +200,14 @@ function parse_mozilla(unparsed_version: string): Description
 	{
 	local software_name = "<unknown browser>";
 	local v: Version;
-	local parts: table[count] of string;
+	local parts: string_vec;
 	
 	if ( /Opera [0-9\.]*$/ in unparsed_version )
 		{
 		software_name = "Opera";
-		parts = split_all(unparsed_version, /Opera [0-9\.]*$/);
-		if ( 2 in parts )
-			v = parse(parts[2])$version;
+		parts = split_string_all(unparsed_version, /Opera [0-9\.]*$/);
+		if ( 1 in parts )
+			v = parse(parts[1])$version;
 		}
 	else if ( / MSIE |Trident\// in unparsed_version )
 		{
@@ -222,28 +222,28 @@ function parse_mozilla(unparsed_version: string): Description
 			v = [$major=11,$minor=0];
 		else
 			{
-			parts = split_all(unparsed_version, /MSIE [0-9]{1,2}\.*[0-9]*b?[0-9]*/);
-			if ( 2 in parts )
-				v = parse(parts[2])$version;
+			parts = split_string_all(unparsed_version, /MSIE [0-9]{1,2}\.*[0-9]*b?[0-9]*/);
+			if ( 1 in parts )
+				v = parse(parts[1])$version;
 			}
 		}
 	else if ( /Version\/.*Safari\// in unparsed_version )
 		{
 		software_name = "Safari";
-		parts = split_all(unparsed_version, /Version\/[0-9\.]*/);
-		if ( 2 in parts )
+		parts = split_string_all(unparsed_version, /Version\/[0-9\.]*/);
+		if ( 1 in parts )
 			{
-			v = parse(parts[2])$version;
+			v = parse(parts[1])$version;
 			if ( / Mobile\/?.* Safari/ in unparsed_version )
 				v$addl = "Mobile";
 			}
 		}
 	else if ( /(Firefox|Netscape|Thunderbird)\/[0-9\.]*/ in unparsed_version )
 		{
-		parts = split_all(unparsed_version, /(Firefox|Netscape|Thunderbird)\/[0-9\.]*/);
-		if ( 2 in parts )
+		parts = split_string_all(unparsed_version, /(Firefox|Netscape|Thunderbird)\/[0-9\.]*/);
+		if ( 1 in parts )
 			{
-			local tmp_s = parse(parts[2]);
+			local tmp_s = parse(parts[1]);
 			software_name = tmp_s$name;
 			v = tmp_s$version;
 			}
@@ -251,48 +251,55 @@ function parse_mozilla(unparsed_version: string): Description
 	else if ( /Chrome\/.*Safari\// in unparsed_version )
 		{
 		software_name = "Chrome";
-		parts = split_all(unparsed_version, /Chrome\/[0-9\.]*/);
-		if ( 2 in parts )
-			v = parse(parts[2])$version;
+		parts = split_string_all(unparsed_version, /Chrome\/[0-9\.]*/);
+		if ( 1 in parts )
+			v = parse(parts[1])$version;
 		}
 	else if ( /^Opera\// in unparsed_version )
 		{
 		if ( /Opera M(ini|obi)\// in unparsed_version )
 			{
-			parts = split_all(unparsed_version, /Opera M(ini|obi)/);
-			if ( 2 in parts )
-				software_name = parts[2];
-			parts = split_all(unparsed_version, /Version\/[0-9\.]*/);
-			if ( 2 in parts )
-				v = parse(parts[2])$version;
+			parts = split_string_all(unparsed_version, /Opera M(ini|obi)/);
+			if ( 1 in parts )
+				software_name = parts[1];
+			parts = split_string_all(unparsed_version, /Version\/[0-9\.]*/);
+			if ( 1 in parts )
+				v = parse(parts[1])$version;
 			else
 				{
-				parts = split_all(unparsed_version, /Opera Mini\/[0-9\.]*/);
-				if ( 2 in parts )
-					v = parse(parts[2])$version;
+				parts = split_string_all(unparsed_version, /Opera Mini\/[0-9\.]*/);
+				if ( 1 in parts )
+					v = parse(parts[1])$version;
 				}
 			}
 		else
 			{
 			software_name = "Opera";
-			parts = split_all(unparsed_version, /Version\/[0-9\.]*/);
-			if ( 2 in parts )
-				v = parse(parts[2])$version;
+			parts = split_string_all(unparsed_version, /Version\/[0-9\.]*/);
+			if ( 1 in parts )
+				v = parse(parts[1])$version;
 			}
+		}
+	else if ( /AdobeAIR\/[0-9\.]*/ in unparsed_version )
+		{
+		software_name = "AdobeAIR";
+		parts = split_string_all(unparsed_version, /AdobeAIR\/[0-9\.]*/);
+		if ( 1 in parts )
+			v = parse(parts[1])$version;
 		}
 	else if ( /AppleWebKit\/[0-9\.]*/ in unparsed_version )
 		{
 		software_name = "Unspecified WebKit";
-		parts = split_all(unparsed_version, /AppleWebKit\/[0-9\.]*/);
-		if ( 2 in parts )
-			v = parse(parts[2])$version;
+		parts = split_string_all(unparsed_version, /AppleWebKit\/[0-9\.]*/);
+		if ( 1 in parts )
+			v = parse(parts[1])$version;
 		}
 	else if ( / Java\/[0-9]\./ in unparsed_version )
 		{
 		software_name = "Java";
-		parts = split_all(unparsed_version, /Java\/[0-9\._]*/);
-		if ( 2 in parts )
-			v = parse(parts[2])$version;
+		parts = split_string_all(unparsed_version, /Java\/[0-9\._]*/);
+		if ( 1 in parts )
+			v = parse(parts[1])$version;
 		}
 
 	return [$version=v, $unparsed_version=unparsed_version, $name=software_name];

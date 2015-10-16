@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "config.h"
+#include "bro-config.h"
 
 #include "Var.h"
 #include "NetVar.h"
@@ -10,6 +10,7 @@ RecordType* endpoint;
 RecordType* endpoint_stats;
 RecordType* connection_type;
 RecordType* fa_file_type;
+RecordType* fa_metadata_type;
 RecordType* icmp_conn;
 RecordType* icmp_context;
 RecordType* SYN_packet;
@@ -48,6 +49,7 @@ double tcp_partial_close_delay;
 int tcp_max_initial_window;
 int tcp_max_above_hole_without_any_acks;
 int tcp_excessive_data_without_further_acks;
+int tcp_max_old_segments;
 
 RecordType* socks_address;
 
@@ -178,6 +180,7 @@ RecordType* peer;
 int forward_remote_state_changes;
 int forward_remote_events;
 int remote_check_sync_consistency;
+bro_uint_t chunked_io_buffer_soft_cap;
 
 StringVal* ssl_ca_certificate;
 StringVal* ssl_private_key;
@@ -222,8 +225,6 @@ int dump_used_event_handlers;
 int suppress_local_output;
 
 double timer_mgr_inactivity_timeout;
-
-int time_machine_profiling;
 
 StringVal* trace_output_file;
 
@@ -276,6 +277,7 @@ void init_general_global_var()
 	forward_remote_events = opt_internal_int("forward_remote_events");
 	remote_check_sync_consistency =
 		opt_internal_int("remote_check_sync_consistency");
+	chunked_io_buffer_soft_cap = opt_internal_unsigned("chunked_io_buffer_soft_cap");
 
 	ssl_ca_certificate = internal_val("ssl_ca_certificate")->AsStringVal();
 	ssl_private_key = internal_val("ssl_private_key")->AsStringVal();
@@ -316,6 +318,7 @@ void init_net_var()
 	endpoint_stats = internal_type("endpoint_stats")->AsRecordType();
 	connection_type = internal_type("connection")->AsRecordType();
 	fa_file_type = internal_type("fa_file")->AsRecordType();
+	fa_metadata_type = internal_type("fa_metadata")->AsRecordType();
 	icmp_conn = internal_type("icmp_conn")->AsRecordType();
 	icmp_context = internal_type("icmp_context")->AsRecordType();
 	signature_state = internal_type("signature_state")->AsRecordType();
@@ -350,6 +353,7 @@ void init_net_var()
 		opt_internal_int("tcp_max_above_hole_without_any_acks");
 	tcp_excessive_data_without_further_acks =
 		opt_internal_int("tcp_excessive_data_without_further_acks");
+	tcp_max_old_segments = opt_internal_int("tcp_max_old_segments");
 
 	socks_address = internal_type("SOCKS::Address")->AsRecordType();
 
@@ -516,7 +520,6 @@ void init_net_var()
 
 	timer_mgr_inactivity_timeout =
 		opt_internal_double("timer_mgr_inactivity_timeout");
-	time_machine_profiling = opt_internal_int("time_machine_profiling");
 
 	script_id = internal_type("script_id")->AsRecordType();
 	id_table = internal_type("id_table")->AsTableType();

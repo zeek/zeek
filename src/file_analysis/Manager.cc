@@ -390,7 +390,7 @@ bool Manager::RemoveFile(const string& file_id)
 	if ( ! f )
 		return false;
 
-	DBG_LOG(DBG_FILE_ANALYSIS, "Remove FileID %s", file_id.c_str());
+	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Remove file", file_id.c_str());
 
 	f->EndOfFile();
 	delete f;
@@ -467,8 +467,8 @@ Analyzer* Manager::InstantiateAnalyzer(Tag tag, RecordVal* args, File* f) const
 		return 0;
 		}
 
-	DBG_LOG(DBG_FILE_ANALYSIS, "Instantiate analyzer %s for file %s",
-		GetComponentName(tag).c_str(), f->id.c_str());
+	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Instantiate analyzer %s",
+		f->id.c_str(), GetComponentName(tag).c_str());
 
 	Analyzer* a = c->Factory()(args, f);
 

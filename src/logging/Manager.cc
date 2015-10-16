@@ -16,6 +16,10 @@
 #include "WriterBackend.h"
 #include "logging.bif.h"
 
+#ifdef ENABLE_BROKER
+#include "broker/Manager.h"
+#endif
+
 using namespace logging;
 
 struct Manager::Filter {
@@ -68,6 +72,11 @@ struct Manager::Stream {
 	typedef map<WriterPathPair, WriterInfo*> WriterMap;
 
 	WriterMap writers;	// Writers indexed by id/path pair.
+
+#ifdef ENABLE_BROKER
+	bool enable_remote;
+	int remote_flags;
+#endif
 
 	~Stream();
 	};
@@ -286,6 +295,11 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 	streams[idx]->name = id->Type()->AsEnumType()->Lookup(idx);
 	streams[idx]->event = event ? event_registry->Lookup(event->Name()) : 0;
 	streams[idx]->columns = columns->Ref()->AsRecordType();
+
+#ifdef ENABLE_BROKER
+	streams[idx]->enable_remote = internal_val("Log::enable_remote_logging")->AsBool();
+	streams[idx]->remote_flags = broker::PEERS;
+#endif
 
 	DBG_LOG(DBG_LOGGING, "Created new logging stream '%s', raising event %s",
 		streams[idx]->name.c_str(), event ? streams[idx]->event->Name() : "<none>");
@@ -828,6 +842,12 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 #endif
 		}
 
+#ifdef ENABLE_BROKER
+	if ( stream->enable_remote &&
+	     ! broker_mgr->Log(id, columns, stream->columns, stream->remote_flags) )
+			stream->enable_remote = false;
+#endif
+
 	Unref(columns);
 
 	if ( error )
@@ -1205,6 +1225,53 @@ void Manager::Terminate()
 			i->second->writer->Stop();
 		}
 	}
+
+#ifdef ENABLE_BROKER
+
+bool Manager::EnableRemoteLogs(EnumVal* stream_id, int flags)
+	{
+	auto stream = FindStream(stream_id);
+
+	if ( ! stream )
+		return false;
+
+	stream->enable_remote = true;
+	stream->remote_flags = flags;
+	return true;
+	}
+
+bool Manager::DisableRemoteLogs(EnumVal* stream_id)
+	{
+	auto stream = FindStream(stream_id);
+
+	if ( ! stream )
+		return false;
+
+	stream->enable_remote = false;
+	return true;
+	}
+
+bool Manager::RemoteLogsAreEnabled(EnumVal* stream_id)
+	{
+	auto stream = FindStream(stream_id);
+
+	if ( ! stream )
+		return false;
+
+	return stream->enable_remote;
+	}
+
+RecordType* Manager::StreamColumns(EnumVal* stream_id)
+	{
+	auto stream = FindStream(stream_id);
+
+	if ( ! stream )
+		return nullptr;
+
+	return stream->columns;
+	}
+
+#endif
 
 // Timer which on dispatching rotates the filter.
 class RotationTimer : public Timer {

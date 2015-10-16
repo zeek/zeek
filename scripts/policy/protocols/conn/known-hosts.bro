@@ -38,7 +38,7 @@ export {
 
 event bro_init()
 	{
-	Log::create_stream(Known::HOSTS_LOG, [$columns=HostsInfo, $ev=log_known_hosts]);
+	Log::create_stream(Known::HOSTS_LOG, [$columns=HostsInfo, $ev=log_known_hosts, $path="known_hosts"]);
 	}
 
 event connection_established(c: connection) &priority=5

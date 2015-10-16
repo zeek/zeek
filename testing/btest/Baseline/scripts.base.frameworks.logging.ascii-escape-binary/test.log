@@ -1,0 +1,20 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	test
+#open	2015-04-17-03-37-33
+#fields	s
+#types	string
+AB\x00CD\x00
+AB\xffCD\x00
+AB\\xffCD\x00
+ 
+abc\\x00def
+ 
+abc\x00def
+ 
+foo \xc2\xae bar \\xc2\\xae baz
+foo\x00bar\\0baz
+foo \x0e bar ^N baz
+#close	2015-04-17-03-37-33

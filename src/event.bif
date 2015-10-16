@@ -225,17 +225,31 @@ event udp_session_done%(u: connection%);
 ##    ``ANALYZER_*`` constants right now.
 event scheduled_analyzer_applied%(c: connection, a: Analyzer::Tag%);
 
-## Generated for every packet Bro sees. This is a very low-level and expensive
-## event that should be avoided when at all possible. It's usually infeasible to
-## handle when processing even medium volumes of traffic in real-time. That
-## said, if you work from a trace and want to do some packet-level analysis,
-## it may come in handy.
+## Generated for every packet Bro sees that have a valid link-layer header. This
+## is a very very low-level and expensive event that should be avoided when at all
+## possible. It's usually infeasible to handle when processing even medium volumes
+## of traffic in real-time. That said, if you work from a trace and want to do some
+## packet-level analysis, it may come in handy.
+##
+## p: Information from the header of the packet that triggered the event.
+##
+## .. bro:see:: new_packet packet_contents
+event raw_packet%(p: raw_pkt_hdr%);
+
+## Generated for all packets that make it into Bro's connection processing. In
+## contrast to :bro:id:`raw_packet` this filters out some more packets that don't
+## pass certain sanity checks.
+##
+## This is a very low-level and expensive event that should be avoided when at all
+## possible. It's usually infeasible to handle when processing even medium volumes
+## of traffic in real-time. That said, if you work from a trace and want to do some
+## packet-level analysis, it may come in handy.
 ##
 ## c: The connection the packet is part of.
 ##
 ## p: Information from the header of the packet that triggered the event.
 ##
-## .. bro:see:: tcp_packet packet_contents
+## .. bro:see:: tcp_packet packet_contents raw_packet
 event new_packet%(c: connection, p: pkt_hdr%);
 
 ## Generated for every IPv6 packet that contains extension headers.
@@ -282,7 +296,8 @@ event packet_contents%(c: connection, contents: string%);
 ## reassembling a TCP stream, Bro buffers all payload until it sees the
 ## responder acking it. If during that time, the sender resends a chunk of
 ## payload but with different content than originally, this event will be
-## raised.
+## raised. In addition, if :bro:id:`tcp_max_old_segments` is larger than zero,
+## mismatches with that older still-buffered data will likewise trigger the event.
 ##
 ## c: The connection showing the inconsistency.
 ##
@@ -905,8 +920,8 @@ event get_file_handle%(tag: Analyzer::Tag, c: connection, is_orig: bool%);
 ##
 ## f: The file.
 ##
-## .. bro:see:: file_over_new_connection file_timeout file_gap file_mime_type
-##    file_state_remove
+## .. bro:see:: file_over_new_connection file_timeout file_gap
+##    file_sniff file_state_remove
 event file_new%(f: fa_file%);
 
 ## Indicates that a file has been seen being transferred over a connection
@@ -918,39 +933,35 @@ event file_new%(f: fa_file%);
 ##
 ## is_orig: true if the originator of *c* is the one sending the file.
 ##
-## .. bro:see:: file_new file_timeout file_gap file_mime_type 
+## .. bro:see:: file_new file_timeout file_gap file_sniff
 ##    file_state_remove
 event file_over_new_connection%(f: fa_file, c: connection, is_orig: bool%);
 
-## Provide the most likely matching MIME type for this file. The analysis 
-## can be augmented at this time via :bro:see:`Files::add_analyzer`.
+## Provide all metadata that has been inferred about a particular file
+## from inspection of the initial content that been seen at the beginning
+## of the file.  The analysis can be augmented at this time via
+## :bro:see:`Files::add_analyzer`.  The amount of data fed into the file
+## sniffing can be increased or decreased by changing either
+## :bro:see:`default_file_bof_buffer_size` or the `bof_buffer_size` field
+## in an `fa_file` record. The event will be raised even if content inspection
+## has been unable to infer any metadata, in which case the fields in *meta*
+## will be left all unset.
 ##
 ## f: The file.
 ##
-## mime_type: The mime type that was discovered.
+## meta: Metadata that's been discovered about the file.
 ##
-## .. bro:see:: file_over_new_connection file_timeout file_gap file_mime_type 
-##    file_mime_types file_state_remove
-event file_mime_type%(f: fa_file, mime_type: string%);
-
-## Provide all matching MIME types for this file. The analysis can be
-## augmented at this time via :bro:see:`Files::add_analyzer`.
-##
-## f: The file.
-##
-## mime_types: The mime types that were discovered.
-##
-## .. bro:see:: file_over_new_connection file_timeout file_gap file_mime_type 
-##    file_mime_types file_state_remove
-event file_mime_types%(f: fa_file, mime_types: mime_matches%);
+## .. bro:see:: file_over_new_connection file_timeout file_gap
+##    file_state_remove
+event file_sniff%(f: fa_file, meta: fa_metadata%);
 
 ## Indicates that file analysis has timed out because no activity was seen
 ## for the file in a while.
 ##
 ## f: The file.
 ##
-## .. bro:see:: file_new file_over_new_connection file_gap file_mime_type
-##    file_mime_types file_state_remove default_file_timeout_interval
+## .. bro:see:: file_new file_over_new_connection file_gap
+##    file_sniff file_state_remove default_file_timeout_interval
 ##    Files::set_timeout_interval
 event file_timeout%(f: fa_file%);
 
@@ -962,8 +973,8 @@ event file_timeout%(f: fa_file%);
 ##
 ## len: The number of missing bytes.
 ##
-## .. bro:see:: file_new file_over_new_connection file_timeout file_mime_type
-##    file_mime_types file_state_remove file_reassembly_overflow
+## .. bro:see:: file_new file_over_new_connection file_timeout
+##    file_sniff file_state_remove file_reassembly_overflow
 event file_gap%(f: fa_file, offset: count, len: count%);
 
 ## Indicates that the file had an overflow of the reassembly buffer.
@@ -978,10 +989,11 @@ event file_gap%(f: fa_file, offset: count, len: count%);
 ##          file data and get back under the reassembly buffer size limit.
 ##          This value will also be represented as a gap.
 ##
-## .. bro:see:: file_new file_over_new_connection file_timeout file_mime_type
-##    file_mime_types file_state_remove file_gap Files::enable_reassembler 
-##    Files::reassembly_buffer_size Files::enable_reassembly 
-##    Files::disable_reassembly Files::set_reassembly_buffer_size
+## .. bro:see:: file_new file_over_new_connection file_timeout
+##    file_sniff file_state_remove file_gap
+##    Files::enable_reassembler Files::reassembly_buffer_size
+##    Files::enable_reassembly Files::disable_reassembly
+##    Files::set_reassembly_buffer_size
 event file_reassembly_overflow%(f: fa_file, offset: count, skipped: count%);
 
 ## This event is generated each time file analysis is ending for a given file.
@@ -989,7 +1001,7 @@ event file_reassembly_overflow%(f: fa_file, offset: count, skipped: count%);
 ## f: The file.
 ##
 ## .. bro:see:: file_new file_over_new_connection file_timeout file_gap
-##    file_mime_type file_mime_types
+##    file_sniff
 event file_state_remove%(f: fa_file%);
 
 ## Generated when an internal DNS lookup produces the same result as last time.

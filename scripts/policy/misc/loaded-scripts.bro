@@ -30,7 +30,7 @@ const depth: table[count] of string = {
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(LoadedScripts::LOG, [$columns=Info]);
+	Log::create_stream(LoadedScripts::LOG, [$columns=Info, $path="loaded_scripts"]);
 	}
 
 event bro_script_loaded(path: string, level: count)

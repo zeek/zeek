@@ -54,7 +54,7 @@ redef record Modbus::Info += {
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(Modbus::REGISTER_CHANGE_LOG, [$columns=MemmapInfo]);
+	Log::create_stream(Modbus::REGISTER_CHANGE_LOG, [$columns=MemmapInfo, $path="modbus_register_change"]);
 	}
 
 event modbus_read_holding_registers_request(c: connection, headers: ModbusHeaders, start_address: count, quantity: count)

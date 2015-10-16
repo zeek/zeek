@@ -1,0 +1,2 @@
+@TEST-EXEC: btest-rst-cmd bro -C -r ${TRACES}/ssh/sshguess.pcap ${DOC_ROOT}/frameworks/notice_ssh_guesser.bro
+@TEST-EXEC: btest-rst-cmd cat notice.log

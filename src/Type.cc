@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "config.h"
+#include "bro-config.h"
 
 #include "Type.h"
 #include "Attr.h"
@@ -1434,7 +1434,7 @@ EnumType::~EnumType()
 // Note, we use reporter->Error() here (not Error()) to include the current script
 // location in the error message, rather than the one where the type was
 // originally defined.
-void EnumType::AddName(const string& module_name, const char* name, bool is_export)
+void EnumType::AddName(const string& module_name, const char* name, bool is_export, bool deprecated)
 	{
 	/* implicit, auto-increment */
 	if ( counter < 0)
@@ -1443,11 +1443,11 @@ void EnumType::AddName(const string& module_name, const char* name, bool is_expo
 		SetError();
 		return;
 		}
-	CheckAndAddName(module_name, name, counter, is_export);
+	CheckAndAddName(module_name, name, counter, is_export, deprecated);
 	counter++;
 	}
 
-void EnumType::AddName(const string& module_name, const char* name, bro_int_t val, bool is_export)
+void EnumType::AddName(const string& module_name, const char* name, bro_int_t val, bool is_export, bool deprecated)
 	{
 	/* explicit value specified */
 	if ( counter > 0 )
@@ -1457,11 +1457,11 @@ void EnumType::AddName(const string& module_name, const char* name, bro_int_t va
 		return;
 		}
 	counter = -1;
-	CheckAndAddName(module_name, name, val, is_export);
+	CheckAndAddName(module_name, name, val, is_export, deprecated);
 	}
 
 void EnumType::CheckAndAddName(const string& module_name, const char* name,
-                               bro_int_t val, bool is_export)
+                               bro_int_t val, bool is_export, bool deprecated)
 	{
 	if ( Lookup(val) )
 		{
@@ -1477,6 +1477,10 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 		id = install_ID(name, module_name.c_str(), true, is_export);
 		id->SetType(this->Ref());
 		id->SetEnumConst();
+
+		if ( deprecated )
+			id->MakeDeprecated();
+
 		broxygen_mgr->Identifier(id);
 		}
 	else
@@ -1967,18 +1971,33 @@ int same_attrs(const Attributes* a1, const Attributes* a2)
 	return (*a1 == *a2);
 	}
 
-int record_promotion_compatible(const RecordType* /* super_rec */,
-				const RecordType* /* sub_rec */)
+int record_promotion_compatible(const RecordType* super_rec,
+				const RecordType* sub_rec)
 	{
-#if 0
-	int n = sub_rec->NumFields();
-
-	for ( int i = 0; i < n; ++i )
+	for ( int i = 0; i < sub_rec->NumFields(); ++i )
 		{
-		if ( ! super_rec->HasField(sub_rec->FieldName(i)) )
+		int o = super_rec->FieldOffset(sub_rec->FieldName(i));
+
+		if ( o < 0 )
+			// Orphaned field.
+			continue;
+
+		BroType* sub_field_type = sub_rec->FieldType(i);
+		BroType* super_field_type = super_rec->FieldType(o);
+
+		if ( same_type(sub_field_type, super_field_type) )
+			continue;
+
+		if ( sub_field_type->Tag() != TYPE_RECORD )
+			return 0;
+
+		if ( super_field_type->Tag() != TYPE_RECORD )
+			return 0;
+
+		if ( ! record_promotion_compatible(super_field_type->AsRecordType(),
+		                                   sub_field_type->AsRecordType()) )
 			return 0;
 		}
-#endif
 
 	return 1;
 	}

@@ -1,6 +1,6 @@
 // Debugging support for Bro policy files.
 
-#include "config.h"
+#include "bro-config.h"
 
 #include <stdio.h>
 #include <stdarg.h>

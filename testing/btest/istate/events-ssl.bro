@@ -1,3 +1,5 @@
+# @TEST-KNOWN-FAILURE: this test relies on the old communication system
+
 # @TEST-SERIALIZE: comm
 #
 # @TEST-EXEC: btest-bg-run sender   bro -C -r $TRACES/web.trace --pseudo-realtime ../sender.bro

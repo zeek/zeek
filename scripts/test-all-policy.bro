@@ -35,6 +35,8 @@
 @load frameworks/software/version-changes.bro
 @load frameworks/software/vulnerable.bro
 @load frameworks/software/windows-version-detection.bro
+@load frameworks/tagging/conns-tag.bro
+@load frameworks/tagging/filter-to-tags.bro
 @load integration/barnyard2/__load__.bro
 @load integration/barnyard2/main.bro
 @load integration/barnyard2/types.bro

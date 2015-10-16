@@ -1,0 +1,3 @@
+This module can be used to store tags with assets.
+The only asset type at the moment is IP addresses and
+subnets.

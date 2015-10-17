@@ -59,6 +59,10 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 	     /[fF][iI][lL][eE][nN][aA][mM][eE]/ in value )
 		{
 		c$http$current_entity$filename = extract_filename_from_content_disposition(value);
+		if ( !is_orig && c$http$resp_mime_depth == 1 )
+			{
+			c$http$filename = c$http$current_entity$filename;
+			}
 		}
 	else if ( name == "CONTENT-TYPE" &&
 	          /[nN][aA][mM][eE][:blank:]*=/ in value )

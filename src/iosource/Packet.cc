@@ -256,21 +256,34 @@ void Packet::ProcessLayer2()
 
 	case DLT_IEEE802_11_RADIO:
 		{
-		protocol = (data[57] << 8) + data[58];
-		if ( (data[54] == 0 && data[55] == 0 && data[56] == 0) &&
-		     (protocol == 0x0800 || protocol == 0x86DD) )
+		//if ( ! (pdata[73] == 0 && pdata[74] == 0 && pdata[75] == 0) )
+		//	{
+		//	Weird("unknown_radiotap_packet");
+		//	return;
+		//	}
+
+		// Skip over the RadioTap header, the IEEE QoS header,
+		// and logical link control header.
+		//printf("link header size: %d\n", GetLinkHeaderSize(link_type));
+		// skip Radio Tap header.
+		pdata += (pdata[3] << 8) + pdata[2];
+		// skip QoS data header
+		pdata += 26;
+
+		int protocol = (pdata[6] << 8) + pdata[7];
+		if ( protocol == 0x0800 )
+			l3_proto = L3_IPV4;
+		else if ( protocol == 0x86DD )
+			l3_proto = L3_IPV6;
+		else 
 			{
-			// Found an IPv4 or IPv6 packet.
-			// Skip over the RadioTap header, the IEEE QoS header,
-			// and logical link control header.
-			data += GetLinkHeaderSize(props.link_type);
-			pkt_hdr_size = 0;
+			Weird("non_ip_packet_in_ieee802_11_radio_encapsulation");
+			return;
 			}
-		else
-			{
-			Weird("non_ip_packet_in_ieee802_11_radio_encapsulation", &current_packet);
-			goto done;
-			}
+
+		// skip logical link control header
+		pdata += 8;
+
 		break;
 		}
 

@@ -1,5 +1,5 @@
 
-2.4-184 | 2015-10-23 14:33:11 -0700
+2.4-186 | 2015-10-23 15:07:06 -0700
 
   * Removing pcap options for AF_PACKET support. Addresses BIT-1363.
     (Robin Sommer)

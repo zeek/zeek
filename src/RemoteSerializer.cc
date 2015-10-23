@@ -3361,15 +3361,6 @@ SocketComm::~SocketComm()
 
 static unsigned int first_rtime = 0;
 
-static void fd_vector_set(const std::vector<int>& fds, fd_set* set, int* max)
-	{
-	for ( size_t i = 0; i < fds.size(); ++i )
-		{
-		FD_SET(fds[i], set);
-		*max = ::max(fds[i], *max);
-		}
-	}
-
 void SocketComm::Run()
 	{
 	first_rtime = (unsigned int) current_time(true);
@@ -3454,18 +3445,38 @@ void SocketComm::Run()
 		if ( ! io->IsFillingUp() && shutting_conns_down )
 			shutting_conns_down = false;
 
+		// We cannot rely solely on select() as the there may
+		// be some data left in our input/output queues. So, we use
+		// a small timeout for select and check for data
+		// manually afterwards.
+
 		static long selects = 0;
 		static long canwrites = 0;
+		static long timeouts = 0;
 
 		++selects;
 		if ( io->CanWrite() )
 			++canwrites;
 
-		int a = select(max_fd + 1, &fd_read, &fd_write, &fd_except, 0);
+		// FIXME: Fine-tune this (timeouts, flush, etc.)
+		struct timeval small_timeout;
+		small_timeout.tv_sec = 0;
+		small_timeout.tv_usec =
+			io->CanWrite() || io->CanRead() ? 1 : 10;
+
+#if 0
+		if ( ! io->CanWrite() )
+			usleep(10);
+#endif
+
+		int a = select(max_fd + 1, &fd_read, &fd_write, &fd_except,
+				&small_timeout);
+
+		if ( a == 0 )
+			++timeouts;
 
 		if ( selects % 100000 == 0 )
-			Log(fmt("selects=%ld canwrites=%ld pending=%lu",
-			        selects, canwrites, io->Stats()->pending));
+			Log(fmt("selects=%ld canwrites=%ld timeouts=%ld", selects, canwrites, timeouts));
 
 		if ( a < 0 )
 			// Ignore errors for now.

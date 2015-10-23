@@ -6,8 +6,8 @@
 #include "config.h"
 #include "List.h"
 #include "util.h"
-#include "Flare.h"
 #include "iosource/FD_Set.h"
+
 #include <list>
 
 #ifdef NEED_KRB5_H
@@ -240,8 +240,6 @@ private:
 	ChunkQueue* pending_tail;
 
 	pid_t pid;
-	bro::Flare write_flare;
-	bro::Flare read_flare;
 };
 
 // Chunked I/O using an SSL connection.
@@ -304,8 +302,6 @@ private:
 
 	// One SSL for all connections.
 	static SSL_CTX* ctx;
-
-	bro::Flare write_flare;
 };
 
 #include <zlib.h>

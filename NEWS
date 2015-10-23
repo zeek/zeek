@@ -20,10 +20,6 @@ New Dependencies
 
 - The pcap buffer size can set through the new option Pcap::bufsize.
 
-- Bro can now leverage packet fanout mode on Linux through the new
-  options Pcap::packet_fanout_enable, Pcap::packet_fanout_id, and
-  Pcap::packet_fanout_defrag.
-
 
 New Functionality
 -----------------

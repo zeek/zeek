@@ -1,4 +1,29 @@
 
+2.4-184 | 2015-10-23 14:33:11 -0700
+
+  * Removing pcap options for AF_PACKET support. Addresses BIT-1363.
+    (Robin Sommer)
+
+  * Correct a typo in controller.bro documentation. (Daniel Thayer)
+
+  * Extend SSL DPD signature to allow alert before server_hello.
+    (Johanna Amann)
+
+  * Make join_string_vec work with vectors containing empty elements.
+    (Johanna Amann)
+
+  * Fix support for HTTP CONNECT when server adds headers to response.
+    (Eric Karasuda).
+
+  * Load static CA list for validation tests too. (Johanna Amann)
+
+  * Remove cluster certificate validation script. (Johanna Amann)
+
+  * Fix a bug in diff-remove-x509-names canonifier. (Daniel Thayer)
+
+  * Fix test canonifiers in scripts/policy/protocols/ssl. (Daniel
+    Thayer)
+
 2.4-169 | 2015-10-01 17:21:21 -0700
 
   * Fixed parsing of V_ASN1_GENERALIZEDTIME timestamps in x509

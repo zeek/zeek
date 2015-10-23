@@ -155,7 +155,6 @@ include(TestBigEndian)
 test_big_endian(WORDS_BIGENDIAN)
 include(CheckSymbolExists)
 check_symbol_exists(htonll arpa/inet.h HAVE_BYTEORDER_64)
-check_symbol_exists(PACKET_FANOUT linux/if_packet.h HAVE_PACKET_FANOUT)
 
 include(OSSpecific)
 include(CheckTypes)

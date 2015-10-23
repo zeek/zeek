@@ -21,10 +21,6 @@ export {
 	type EndpointFlags: record {
 		## Whether to restrict message topics that can be published to peers.
 		auto_publish: bool &default = F;
-		## Whether to restrict what message topics or data store identifiers
-		## the local endpoint advertises to peers (e.g. subscribing to
-		## events or making a master data store available).
-		auto_advertise: bool &default = F;
 	};
 
 	## Fine-grained tuning of communication behavior for a particular message.
@@ -93,24 +89,6 @@ export {
 	##
 	## Returns: true if successful.
 	global unpublish_topic: function(topic: string): bool;
-
-	## Allow advertising interest in the given topic to peers.
-	## This has no effect if auto advertise behavior is enabled via the flags
-	## supplied to :bro:see:`BrokerComm::enable` or :bro:see:`BrokerComm::set_endpoint_flags`.
-	##
-	## topic: a topic to allow advertising interest/subscription to peers.
-	##
-	## Returns: true if successful.
-	global advertise_topic: function(topic: string): bool;
-
-	## Disallow advertising interest in the given topic to peers.
-	## This has no effect if auto advertise behavior is enabled via the flags
-	## supplied to :bro:see:`BrokerComm::enable` or :bro:see:`BrokerComm::set_endpoint_flags`.
-	##
-	## topic: a topic to disallow advertising interest/subscription to peers.
-	##
-	## Returns: true if successful.
-	global unadvertise_topic: function(topic: string): bool;
 
 	## Listen for remote connections.
 	##
@@ -354,16 +332,6 @@ function publish_topic(topic: string): bool
 function unpublish_topic(topic: string): bool
     {
     return __unpublish_topic(topic);
-    }
-
-function advertise_topic(topic: string): bool
-    {
-    return __advertise_topic(topic);
-    }
-
-function unadvertise_topic(topic: string): bool
-    {
-    return __unadvertise_topic(topic);
     }
 
 function listen(p: port, a: string &default = "", reuse: bool &default = T): bool

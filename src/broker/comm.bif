@@ -29,16 +29,6 @@ function BrokerComm::__unpublish_topic%(topic: string%): bool
 	return new Val(broker_mgr->UnpublishTopic(topic->CheckString()), TYPE_BOOL);
 	%}
 
-function BrokerComm::__advertise_topic%(topic: string%): bool
-	%{
-	return new Val(broker_mgr->AdvertiseTopic(topic->CheckString()), TYPE_BOOL);
-	%}
-
-function BrokerComm::__unadvertise_topic%(topic: string%): bool
-	%{
-	return new Val(broker_mgr->UnadvertiseTopic(topic->CheckString()), TYPE_BOOL);
-	%}
-
 ## Generated when a connection has been established due to a previous call
 ## to :bro:see:`BrokerComm::connect`.
 ##

@@ -558,7 +558,6 @@ event bro_init() &priority=5
 	{
 	if (enable_local_logging)
 		{
-		BrokerComm::advertise_topic("bro/log/");
 		BrokerComm::subscribe_to_logs("bro/log/");
 		}
 	}

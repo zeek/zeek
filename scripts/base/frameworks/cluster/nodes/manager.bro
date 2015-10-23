@@ -25,7 +25,6 @@ event bro_init() &priority=5
 	{
 	# Subscribe to prefix
 	local prefix = fmt("%smanager/", Cluster::pub_sub_prefix);
-	BrokerComm::advertise_topic(prefix);
 	BrokerComm::subscribe_to_events(prefix);
 
 	# Need to publish: manager2worker_events, manager2datanode_events

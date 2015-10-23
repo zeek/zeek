@@ -72,7 +72,6 @@ event bro_init() &priority=5
 	{
 	# Subscribe: All nodes need to subscribe to control-related events
 	local prefix = fmt("%srequest/", Control::pub_sub_prefix);
-	BrokerComm::advertise_topic(prefix);
 	BrokerComm::subscribe_to_events(prefix);
 
 	# Publish: Register responses to control events with broker

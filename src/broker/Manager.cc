@@ -59,16 +59,13 @@ static int endpoint_flags_to_int(Val* broker_endpoint_flags)
 	int rval = 0;
 	auto r = broker_endpoint_flags->AsRecordVal();
 	Val* auto_publish_flag = r->Lookup("auto_publish", true);
-	Val* auto_advertise_flag = r->Lookup("auto_advertise", true);
 
 	if ( auto_publish_flag->AsBool() )
 		rval |= broker::AUTO_PUBLISH;
 
-	if ( auto_advertise_flag->AsBool() )
-		rval |= broker::AUTO_ADVERTISE;
+	rval |= broker::AUTO_ADVERTISE;
 
 	Unref(auto_publish_flag);
-	Unref(auto_advertise_flag);
 	return rval;
 	}
 

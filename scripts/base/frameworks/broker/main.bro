@@ -9,12 +9,12 @@ export {
     };
 }
 
-module BrokerComm;
+module Broker;
 
 export {
 
 	## A name used to identify this endpoint to peers.
-	## .. bro:see:: BrokerComm::connect BrokerComm::listen
+	## .. bro:see:: Broker::connect Broker::listen
 	const endpoint_name = "" &redef;
 
 	## Change communication behavior.
@@ -37,11 +37,11 @@ export {
 
 	## Opaque communication data.
 	type Data: record {
-		d: opaque of BrokerComm::Data &optional;
+		d: opaque of Broker::Data &optional;
 	};
 
 	## Opaque communication data.
-	type DataVector: vector of BrokerComm::Data;
+	type DataVector: vector of Broker::Data;
 
 	## Opaque event communication data.
 	type EventArgs: record {
@@ -54,8 +54,8 @@ export {
 	## Opaque communication data used as a convenient way to wrap key-value
 	## pairs that comprise table entries.
 	type TableItem : record {
-		key: BrokerComm::Data;
-		val: BrokerComm::Data;
+		key: Broker::Data;
+		val: Broker::Data;
 	};
 
 	## Enable use of communication.
@@ -65,7 +65,7 @@ export {
 	## Returns: true if communication is successfully initialized.
 	global enable: function(flags: EndpointFlags &default = EndpointFlags()): bool;
 
-	## Changes endpoint flags originally supplied to :bro:see:`BrokerComm::enable`.
+	## Changes endpoint flags originally supplied to :bro:see:`Broker::enable`.
 	##
 	## flags: the new endpoint behavior flags to use.
 	##
@@ -74,7 +74,7 @@ export {
 
 	## Allow sending messages to peers if associated with the given topic.
 	## This has no effect if auto publication behavior is enabled via the flags
-	## supplied to :bro:see:`BrokerComm::enable` or :bro:see:`BrokerComm::set_endpoint_flags`.
+	## supplied to :bro:see:`Broker::enable` or :bro:see:`Broker::set_endpoint_flags`.
 	##
 	## topic: a topic to allow messages to be published under.
 	##
@@ -83,7 +83,7 @@ export {
 
 	## Disallow sending messages to peers if associated with the given topic.
 	## This has no effect if auto publication behavior is enabled via the flags
-	## supplied to :bro:see:`BrokerComm::enable` or :bro:see:`BrokerComm::set_endpoint_flags`.
+	## supplied to :bro:see:`Broker::enable` or :bro:see:`Broker::set_endpoint_flags`.
 	##
 	## topic: a topic to disallow messages to be published under.
 	##
@@ -101,7 +101,7 @@ export {
 	##
 	## Returns: true if the local endpoint is now listening for connections.
 	##
-	## .. bro:see:: BrokerComm::incoming_connection_established
+	## .. bro:see:: Broker::incoming_connection_established
 	global listen: function(p: port, a: string &default = "", reuse: bool &default = T): bool;
 
 	## Initiate a remote connection.
@@ -118,21 +118,21 @@ export {
 	##          it's a new peer.  The actual connection may not be established
 	##          until a later point in time.
 	##
-	## .. bro:see:: BrokerComm::outgoing_connection_established
+	## .. bro:see:: Broker::outgoing_connection_established
 	global connect: function(a: string, p: port, retry: interval): bool;
 
 	## Remove a remote connection.
 	##
-	## a: the address used in previous successful call to :bro:see:`BrokerComm::connect`.
+	## a: the address used in previous successful call to :bro:see:`Broker::connect`.
 	##
-	## p: the port used in previous successful call to :bro:see:`BrokerComm::connect`.
+	## p: the port used in previous successful call to :bro:see:`Broker::connect`.
 	##
 	## Returns: true if the arguments match a previously successful call to
-	##          :bro:see:`BrokerComm::connect`.
+	##          :bro:see:`Broker::connect`.
 	global disconnect: function(a: string, p: port): bool;
 
 	## Print a simple message to any interested peers.  The receiver can use
-	## :bro:see:`BrokerComm::print_handler` to handle messages.
+	## :bro:see:`Broker::print_handler` to handle messages.
 	##
 	## topic: a topic associated with the printed message.
 	##
@@ -144,7 +144,7 @@ export {
 	global send_print: function(topic: string, msg: string, flags: SendFlags &default = SendFlags()): bool;
 
 	## Register interest in all peer print messages that use a certain topic
-	## prefix. Use :bro:see:`BrokerComm::print_handler` to handle received
+	## prefix. Use :bro:see:`Broker::print_handler` to handle received
 	## messages.
 	##
 	## topic_prefix: a prefix to match against remote message topics.
@@ -157,7 +157,7 @@ export {
 	## Unregister interest in all peer print messages that use a topic prefix.
 	##
 	## topic_prefix: a prefix previously supplied to a successful call to
-	##               :bro:see:`BrokerComm::subscribe_to_prints`.
+	##               :bro:see:`Broker::subscribe_to_prints`.
 	##
 	## Returns: true if interest in the topic prefix is no longer advertised.
 	global unsubscribe_to_prints: function(topic_prefix: string): bool;
@@ -166,7 +166,7 @@ export {
 	##
 	## topic: a topic associated with the event message.
 	##
-	## args: event arguments as made by :bro:see:`BrokerComm::event_args`.
+	## args: event arguments as made by :bro:see:`Broker::event_args`.
 	##
 	## flags: tune the behavior of how the message is sent.
 	##
@@ -189,9 +189,9 @@ export {
 
 	## Stop automatically sending an event to peers upon local dispatch.
 	##
-	## topic: a topic originally given to :bro:see:`BrokerComm::auto_event`.
+	## topic: a topic originally given to :bro:see:`Broker::auto_event`.
 	##
-	## ev: an event originally given to :bro:see:`BrokerComm::auto_event`.
+	## ev: an event originally given to :bro:see:`Broker::auto_event`.
 	##
 	## Returns: true if automatic events will not occur for the topic/event
 	##          pair.
@@ -210,7 +210,7 @@ export {
 	## Unregister interest in all peer event messages that use a topic prefix.
 	##
 	## topic_prefix: a prefix previously supplied to a successful call to
-	##               :bro:see:`BrokerComm::subscribe_to_events`.
+	##               :bro:see:`Broker::subscribe_to_events`.
 	##
 	## Returns: true if interest in the topic prefix is no longer advertised.
 	global unsubscribe_to_events: function(topic_prefix: string): bool;
@@ -254,7 +254,7 @@ export {
 	## receiving side processes them through the logging framework as usual.
 	##
 	## topic_prefix: a prefix previously supplied to a successful call to
-	##               :bro:see:`BrokerComm::subscribe_to_logs`.
+	##               :bro:see:`Broker::subscribe_to_logs`.
 	##
 	## Returns: true if interest in the topic prefix is no longer advertised.
 	global unsubscribe_to_logs: function(topic_prefix: string): bool;
@@ -287,7 +287,7 @@ export {
 		## The result of the query.  Certain queries may use a particular
 		## data type (e.g. querying store size always returns a count, but
 		## a lookup may return various data types).
-		result: BrokerComm::Data;
+		result: Broker::Data;
 	};
 
 	## Options to tune the SQLite storage backend.
@@ -312,7 +312,7 @@ export {
 @load base/bif/comm.bif
 @load base/bif/messaging.bif
 
-module BrokerComm;
+module Broker;
 
 function enable(flags: EndpointFlags &default = EndpointFlags()) : bool
     {

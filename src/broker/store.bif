@@ -155,7 +155,7 @@ function BrokerStore::close_by_handle%(h: opaque of BrokerStore::Handle%): bool
 ##
 ## Returns: false if the store handle was not valid.
 function BrokerStore::insert%(h: opaque of BrokerStore::Handle,
-                        k: BrokerComm::Data, v: BrokerComm::Data,
+                        k: Broker::Data, v: Broker::Data,
                         e: BrokerStore::ExpiryTime &default = BrokerStore::ExpiryTime()%): bool
 	%{
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
@@ -198,7 +198,7 @@ function BrokerStore::insert%(h: opaque of BrokerStore::Handle,
 ## k: the key to remove.
 ##
 ## Returns: false if the store handle was not valid.
-function BrokerStore::erase%(h: opaque of BrokerStore::Handle, k: BrokerComm::Data%): bool
+function BrokerStore::erase%(h: opaque of BrokerStore::Handle, k: Broker::Data%): bool
 	%{
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 
@@ -237,7 +237,7 @@ function BrokerStore::clear%(h: opaque of BrokerStore::Handle%): bool
 ##
 ## Returns: false if the store handle was not valid.
 function BrokerStore::increment%(h: opaque of BrokerStore::Handle,
-                           k: BrokerComm::Data, by: int &default = +1%): bool
+                           k: Broker::Data, by: int &default = +1%): bool
 	%{
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 
@@ -260,7 +260,7 @@ function BrokerStore::increment%(h: opaque of BrokerStore::Handle,
 ##
 ## Returns: false if the store handle was not valid.
 function BrokerStore::decrement%(h: opaque of BrokerStore::Handle,
-                           k: BrokerComm::Data, by: int &default = +1%): bool
+                           k: Broker::Data, by: int &default = +1%): bool
 	%{
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 
@@ -283,7 +283,7 @@ function BrokerStore::decrement%(h: opaque of BrokerStore::Handle,
 ##
 ## Returns: false if the store handle was not valid.
 function BrokerStore::add_to_set%(h: opaque of BrokerStore::Handle,
-                            k: BrokerComm::Data, element: BrokerComm::Data%): bool
+                            k: Broker::Data, element: Broker::Data%): bool
 	%{
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 
@@ -307,7 +307,7 @@ function BrokerStore::add_to_set%(h: opaque of BrokerStore::Handle,
 ##
 ## Returns: false if the store handle was not valid.
 function BrokerStore::remove_from_set%(h: opaque of BrokerStore::Handle,
-                                 k: BrokerComm::Data, element: BrokerComm::Data%): bool
+                                 k: Broker::Data, element: Broker::Data%): bool
 	%{
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 
@@ -330,8 +330,8 @@ function BrokerStore::remove_from_set%(h: opaque of BrokerStore::Handle,
 ##        create an empty vector value before modifying.
 ##
 ## Returns: false if the store handle was not valid.
-function BrokerStore::push_left%(h: opaque of BrokerStore::Handle, k: BrokerComm::Data,
-                           items: BrokerComm::DataVector%): bool
+function BrokerStore::push_left%(h: opaque of BrokerStore::Handle, k: Broker::Data,
+                           items: Broker::DataVector%): bool
 	%{
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 
@@ -363,8 +363,8 @@ function BrokerStore::push_left%(h: opaque of BrokerStore::Handle, k: BrokerComm
 ##        create an empty vector value before modifying.
 ##
 ## Returns: false if the store handle was not valid.
-function BrokerStore::push_right%(h: opaque of BrokerStore::Handle, k: BrokerComm::Data,
-                            items: BrokerComm::DataVector%): bool
+function BrokerStore::push_right%(h: opaque of BrokerStore::Handle, k: Broker::Data,
+                            items: Broker::DataVector%): bool
 	%{
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 
@@ -445,7 +445,7 @@ static bool prepare_for_query(Val* opaque, Frame* frame,
 ##
 ## Returns: the result of the query.
 function BrokerStore::pop_left%(h: opaque of BrokerStore::Handle,
-                          k: BrokerComm::Data%): BrokerStore::QueryResult
+                          k: Broker::Data%): BrokerStore::QueryResult
 	%{
 	if ( ! broker_mgr->Enabled() )
 		return bro_broker::query_result();
@@ -475,7 +475,7 @@ function BrokerStore::pop_left%(h: opaque of BrokerStore::Handle,
 ##
 ## Returns: the result of the query.
 function BrokerStore::pop_right%(h: opaque of BrokerStore::Handle,
-                           k: BrokerComm::Data%): BrokerStore::QueryResult
+                           k: Broker::Data%): BrokerStore::QueryResult
 	%{
 	if ( ! broker_mgr->Enabled() )
 		return bro_broker::query_result();
@@ -505,7 +505,7 @@ function BrokerStore::pop_right%(h: opaque of BrokerStore::Handle,
 ##
 ## Returns: the result of the query.
 function BrokerStore::lookup%(h: opaque of BrokerStore::Handle,
-                       k: BrokerComm::Data%): BrokerStore::QueryResult
+                       k: Broker::Data%): BrokerStore::QueryResult
 	%{
 	if ( ! broker_mgr->Enabled() )
 		return bro_broker::query_result();
@@ -533,9 +533,9 @@ function BrokerStore::lookup%(h: opaque of BrokerStore::Handle,
 ##
 ## k: the key to check for existence.
 ##
-## Returns: the result of the query (uses :bro:see:`BrokerComm::BOOL`).
+## Returns: the result of the query (uses :bro:see:`Broker::BOOL`).
 function BrokerStore::exists%(h: opaque of BrokerStore::Handle,
-                        k: BrokerComm::Data%): BrokerStore::QueryResult
+                        k: Broker::Data%): BrokerStore::QueryResult
 	%{
 	if ( ! broker_mgr->Enabled() )
 		return bro_broker::query_result();
@@ -561,7 +561,7 @@ function BrokerStore::exists%(h: opaque of BrokerStore::Handle,
 ##
 ## h: the handle of the store to query.
 ##
-## Returns: the result of the query (uses :bro:see:`BrokerComm::VECTOR`).
+## Returns: the result of the query (uses :bro:see:`Broker::VECTOR`).
 function BrokerStore::keys%(h: opaque of BrokerStore::Handle%): BrokerStore::QueryResult
 	%{
 	double timeout;
@@ -579,7 +579,7 @@ function BrokerStore::keys%(h: opaque of BrokerStore::Handle%): BrokerStore::Que
 ##
 ## h: the handle of the store to query.
 ##
-## Returns: the result of the query (uses :bro:see:`BrokerComm::COUNT`).
+## Returns: the result of the query (uses :bro:see:`Broker::COUNT`).
 function BrokerStore::size%(h: opaque of BrokerStore::Handle%): BrokerStore::QueryResult
 	%{
 	if ( ! broker_mgr->Enabled() )

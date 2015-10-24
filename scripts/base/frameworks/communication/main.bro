@@ -182,7 +182,7 @@ function connect_peer(peer: string)
 		p = node$p;
 
 	# ...and connect via broker
-	local succ = BrokerComm::connect(fmt("%s", node$host), p, node$retry);
+	local succ = Broker::connect(fmt("%s", node$host), p, node$retry);
 
 	if ( !succ )
 		Log::write(Communication::LOG, [$ts = network_time(),
@@ -201,9 +201,9 @@ function setup_peer(peer_name: string, node: Node)
 	connected_peers[peer_name] = node;
 	}
 
-event BrokerComm::incoming_connection_established(peer_name: string)
+event Broker::incoming_connection_established(peer_name: string)
 	{
-	do_script_log(BrokerComm::endpoint_name, fmt("incoming connection established by %s", peer_name));
+	do_script_log(Broker::endpoint_name, fmt("incoming connection established by %s", peer_name));
 	if ( peer_name in nodes )
 		{
 		local node = nodes[peer_name];
@@ -211,18 +211,18 @@ event BrokerComm::incoming_connection_established(peer_name: string)
 		}
 	}
 
-event BrokerComm::incoming_connection_broken(peer_name: string)
+event Broker::incoming_connection_broken(peer_name: string)
 	{
-	do_script_log(BrokerComm::endpoint_name, fmt("incoming connection broken to %s", peer_name));
+	do_script_log(Broker::endpoint_name, fmt("incoming connection broken to %s", peer_name));
 	}
 
-event BrokerComm::outgoing_connection_established(peer_address: string, peer_port: port, peer_name: string)
+event Broker::outgoing_connection_established(peer_address: string, peer_port: port, peer_name: string)
 	{
 	local id = fmt("%s:%s", peer_address, peer_port);
 	local node = pending_peers[id];
 	delete pending_peers[id];
 
-	do_script_log(BrokerComm::endpoint_name, fmt("outgoing connection established to %s", peer_name));
+	do_script_log(Broker::endpoint_name, fmt("outgoing connection established to %s", peer_name));
 
 	setup_peer(peer_name, node);
 	peer_mapping[fmt("%s::%s", peer_address, peer_port)] = peer_name;
@@ -230,7 +230,7 @@ event BrokerComm::outgoing_connection_established(peer_address: string, peer_por
 	event Communication::outgoing_connection_established_event(peer_name);
 	}
 
-event BrokerComm::outgoing_connection_broken(peer_address: string, peer_port: port, peer_name: string)
+event Broker::outgoing_connection_broken(peer_address: string, peer_port: port, peer_name: string)
 	{
 	# Retrieve the peer_name according to peer_address and peer_port
 	for ( i in connected_peers )
@@ -239,7 +239,7 @@ event BrokerComm::outgoing_connection_broken(peer_address: string, peer_port: po
 			if ( fmt("%s", n$host) == peer_address && n$p == peer_port )
 				peer_name = i;
 		}
-	do_script_log(BrokerComm::endpoint_name, fmt("connection closed/broken to %s", peer_name));
+	do_script_log(Broker::endpoint_name, fmt("connection closed/broken to %s", peer_name));
 
 	if ( peer_name in connected_peers )
 		{
@@ -256,14 +256,14 @@ event BrokerComm::outgoing_connection_broken(peer_address: string, peer_port: po
 		}
 	}
 
-event BrokerComm::outgoing_connection_incompatible(peer_address: string, peer_port: port)
+event Broker::outgoing_connection_incompatible(peer_address: string, peer_port: port)
 	{
 	do_script_log(peer_address, "outgoing connection incompatible");
 	}
 
 event bro_init() &priority=10
 	{
-	BrokerComm::enable();
+	Broker::enable();
 	}
 
 event bro_init() &priority=5

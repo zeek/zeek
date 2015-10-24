@@ -29,7 +29,7 @@ event bro_init() &priority=5
 	{
 	# Subsribe to prefix
 	local prefix = fmt("%sworker/", Cluster::pub_sub_prefix);
-	BrokerComm::subscribe_to_events(prefix);
+	Broker::subscribe_to_events(prefix);
 
 	# Publish: worker2manager_events, worker2datanode_events
 	prefix = fmt("%smanager/", Cluster::pub_sub_prefix);

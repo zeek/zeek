@@ -8,5 +8,5 @@ module Communication;
 
 event bro_init() &priority=-10
 	{
-	BrokerComm::listen(listen_port, fmt("%s", listen_interface));
+	Broker::listen(listen_port, fmt("%s", listen_interface));
 	}

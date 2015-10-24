@@ -136,7 +136,7 @@ export {
 	global cluster_store: opaque of BrokerStore::Handle;
 
 	# Set the correct name of this endpoint according to cluster-layout
-	redef BrokerComm::endpoint_name = node;
+	redef Broker::endpoint_name = node;
 }
 
 function is_enabled(): bool
@@ -154,18 +154,18 @@ function register_broker_events(prefix: string, event_list: set[string])
 	for ( e in event_list )
 		{
 		local topic = string_cat(prefix, e);
-		BrokerComm::publish_topic(topic);
-		BrokerComm::auto_event(topic, lookup_ID(e));
+		Broker::publish_topic(topic);
+		Broker::auto_event(topic, lookup_ID(e));
 		}
 	}
 
-event BrokerComm::incoming_connection_established(peer_name: string) &priority=5
+event Broker::incoming_connection_established(peer_name: string) &priority=5
 	{
 	if ( peer_name in nodes && nodes[peer_name]$node_type == WORKER )
 		++worker_count;
 	}
 
-event BrokerComm::incoming_connection_broken(peer_name: string) &priority=5
+event Broker::incoming_connection_broken(peer_name: string) &priority=5
 	{
 	if ( peer_name in nodes && nodes[peer_name]$node_type == WORKER )
 		--worker_count;

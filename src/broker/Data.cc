@@ -550,7 +550,7 @@ broker::util::optional<broker::data> bro_broker::val_to_data(Val* v)
 		return {string(*vs)};
 		}
 	default:
-		reporter->Error("unsupported BrokerComm::Data type: %s",
+		reporter->Error("unsupported Broker::Data type: %s",
 		                type_name(v->Type()->Tag()));
 		break;
 	}
@@ -560,7 +560,7 @@ broker::util::optional<broker::data> bro_broker::val_to_data(Val* v)
 
 RecordVal* bro_broker::make_data_val(Val* v)
 	{
-	auto rval = new RecordVal(BifType::Record::BrokerComm::Data);
+	auto rval = new RecordVal(BifType::Record::Broker::Data);
 	auto data = val_to_data(v);
 
 	if ( data )
@@ -571,7 +571,7 @@ RecordVal* bro_broker::make_data_val(Val* v)
 
 RecordVal* bro_broker::make_data_val(broker::data d)
 	{
-	auto rval = new RecordVal(BifType::Record::BrokerComm::Data);
+	auto rval = new RecordVal(BifType::Record::Broker::Data);
 	rval->Assign(0, new DataVal(move(d)));
 	return rval;
 	}
@@ -581,92 +581,92 @@ struct data_type_getter {
 
 	result_type operator()(bool a)
 		{
-		return new EnumVal(BifEnum::BrokerComm::BOOL,
-		                   BifType::Enum::BrokerComm::DataType);
+		return new EnumVal(BifEnum::Broker::BOOL,
+		                   BifType::Enum::Broker::DataType);
 		}
 
 	result_type operator()(uint64_t a)
 		{
-		return new EnumVal(BifEnum::BrokerComm::COUNT,
-		                   BifType::Enum::BrokerComm::DataType);
+		return new EnumVal(BifEnum::Broker::COUNT,
+		                   BifType::Enum::Broker::DataType);
 		}
 
 	result_type operator()(int64_t a)
 		{
-		return new EnumVal(BifEnum::BrokerComm::INT,
-		                   BifType::Enum::BrokerComm::DataType);
+		return new EnumVal(BifEnum::Broker::INT,
+		                   BifType::Enum::Broker::DataType);
 		}
 
 	result_type operator()(double a)
 		{
-		return new EnumVal(BifEnum::BrokerComm::DOUBLE,
-		                   BifType::Enum::BrokerComm::DataType);
+		return new EnumVal(BifEnum::Broker::DOUBLE,
+		                   BifType::Enum::Broker::DataType);
 		}
 
 	result_type operator()(const std::string& a)
 		{
-		return new EnumVal(BifEnum::BrokerComm::STRING,
-		                   BifType::Enum::BrokerComm::DataType);
+		return new EnumVal(BifEnum::Broker::STRING,
+		                   BifType::Enum::Broker::DataType);
 		}
 
 	result_type operator()(const broker::address& a)
 		{
-		return new EnumVal(BifEnum::BrokerComm::ADDR,
-		                   BifType::Enum::BrokerComm::DataType);
+		return new EnumVal(BifEnum::Broker::ADDR,
+		                   BifType::Enum::Broker::DataType);
 		}
 
 	result_type operator()(const broker::subnet& a)
 		{
-		return new EnumVal(BifEnum::BrokerComm::SUBNET,
-		                   BifType::Enum::BrokerComm::DataType);
+		return new EnumVal(BifEnum::Broker::SUBNET,
+		                   BifType::Enum::Broker::DataType);
 		}
 
 	result_type operator()(const broker::port& a)
 		{
-		return new EnumVal(BifEnum::BrokerComm::PORT,
-		                   BifType::Enum::BrokerComm::DataType);
+		return new EnumVal(BifEnum::Broker::PORT,
+		                   BifType::Enum::Broker::DataType);
 		}
 
 	result_type operator()(const broker::time_point& a)
 		{
-		return new EnumVal(BifEnum::BrokerComm::TIME,
-		                   BifType::Enum::BrokerComm::DataType);
+		return new EnumVal(BifEnum::Broker::TIME,
+		                   BifType::Enum::Broker::DataType);
 		}
 
 	result_type operator()(const broker::time_duration& a)
 		{
-		return new EnumVal(BifEnum::BrokerComm::INTERVAL,
-		                   BifType::Enum::BrokerComm::DataType);
+		return new EnumVal(BifEnum::Broker::INTERVAL,
+		                   BifType::Enum::Broker::DataType);
 		}
 
 	result_type operator()(const broker::enum_value& a)
 		{
-		return new EnumVal(BifEnum::BrokerComm::ENUM,
-		                   BifType::Enum::BrokerComm::DataType);
+		return new EnumVal(BifEnum::Broker::ENUM,
+		                   BifType::Enum::Broker::DataType);
 		}
 
 	result_type operator()(const broker::set& a)
 		{
-		return new EnumVal(BifEnum::BrokerComm::SET,
-		                   BifType::Enum::BrokerComm::DataType);
+		return new EnumVal(BifEnum::Broker::SET,
+		                   BifType::Enum::Broker::DataType);
 		}
 
 	result_type operator()(const broker::table& a)
 		{
-		return new EnumVal(BifEnum::BrokerComm::TABLE,
-		                   BifType::Enum::BrokerComm::DataType);
+		return new EnumVal(BifEnum::Broker::TABLE,
+		                   BifType::Enum::Broker::DataType);
 		}
 
 	result_type operator()(const broker::vector& a)
 		{
-		return new EnumVal(BifEnum::BrokerComm::VECTOR,
-		                   BifType::Enum::BrokerComm::DataType);
+		return new EnumVal(BifEnum::Broker::VECTOR,
+		                   BifType::Enum::Broker::DataType);
 		}
 
 	result_type operator()(const broker::record& a)
 		{
-		return new EnumVal(BifEnum::BrokerComm::RECORD,
-		                   BifType::Enum::BrokerComm::DataType);
+		return new EnumVal(BifEnum::Broker::RECORD,
+		                   BifType::Enum::Broker::DataType);
 		}
 };
 
@@ -681,7 +681,7 @@ broker::data& bro_broker::opaque_field_to_data(RecordVal* v, Frame* f)
 
 	if ( ! d )
 		reporter->RuntimeError(f->GetCall()->GetLocationInfo(),
-		                       "BrokerComm::Data's opaque field is not set");
+		                       "Broker::Data's opaque field is not set");
 
 	return static_cast<DataVal*>(d)->data;
 	}

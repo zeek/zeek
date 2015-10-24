@@ -32,15 +32,15 @@ event bro_init() &priority=5
 
 	# Subscribe: subscribe to control-related response events
 	local prefix = fmt("%sresponse/", Control::pub_sub_prefix);
-	BrokerComm::subscribe_to_events(prefix);
+	Broker::subscribe_to_events(prefix);
 
 	# Publish: Register requests to control events with broker
 	prefix = fmt("%srequest/", Control::pub_sub_prefix);
 	for ( e in Control::controller_events )
 		{
 		local topic = string_cat(prefix, e);
-		BrokerComm::publish_topic(topic);
-		BrokerComm::auto_event(topic, lookup_ID(e));
+		Broker::publish_topic(topic);
+		Broker::auto_event(topic, lookup_ID(e));
 		}
 	}
 

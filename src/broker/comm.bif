@@ -5,79 +5,79 @@
 #include "broker/Manager.h"
 %%}
 
-module BrokerComm;
+module Broker;
 
-type BrokerComm::EndpointFlags: record;
+type Broker::EndpointFlags: record;
 
-function BrokerComm::__enable%(flags: EndpointFlags%): bool
+function Broker::__enable%(flags: EndpointFlags%): bool
 	%{
 	return new Val(broker_mgr->Enable(flags), TYPE_BOOL);
 	%}
 
-function BrokerComm::__set_endpoint_flags%(flags: EndpointFlags%): bool
+function Broker::__set_endpoint_flags%(flags: EndpointFlags%): bool
 	%{
 	return new Val(broker_mgr->SetEndpointFlags(flags), TYPE_BOOL);
 	%}
 
-function BrokerComm::__publish_topic%(topic: string%): bool
+function Broker::__publish_topic%(topic: string%): bool
 	%{
 	return new Val(broker_mgr->PublishTopic(topic->CheckString()), TYPE_BOOL);
 	%}
 
-function BrokerComm::__unpublish_topic%(topic: string%): bool
+function Broker::__unpublish_topic%(topic: string%): bool
 	%{
 	return new Val(broker_mgr->UnpublishTopic(topic->CheckString()), TYPE_BOOL);
 	%}
 
 ## Generated when a connection has been established due to a previous call
-## to :bro:see:`BrokerComm::connect`.
+## to :bro:see:`Broker::connect`.
 ##
 ## peer_address: the address used to connect to the peer.
 ##
 ## peer_port: the port used to connect to the peer.
 ##
 ## peer_name: the name by which the peer identified itself.
-event BrokerComm::outgoing_connection_established%(peer_address: string,
+event Broker::outgoing_connection_established%(peer_address: string,
                                              peer_port: port,
                                              peer_name: string%);
 
 ## Generated when a previously established connection becomes broken.
 ## Reconnection will automatically be attempted at a frequency given
-## by the original call to :bro:see:`BrokerComm::connect`.
+## by the original call to :bro:see:`Broker::connect`.
 ##
 ## peer_address: the address used to connect to the peer.
 ##
 ## peer_port: the port used to connect to the peer.
 ##
-## .. bro:see:: BrokerComm::outgoing_connection_established
-event BrokerComm::outgoing_connection_broken%(peer_address: string,
+## .. bro:see:: Broker::outgoing_connection_established
+event Broker::outgoing_connection_broken%(peer_address: string,
                                         peer_port: port,
 										peer_name: string%);
 
-## Generated when a connection via :bro:see:`BrokerComm::connect` has failed
+## Generated when a connection via :bro:see:`Broker::connect` has failed
 ## because the remote side is incompatible.
 ##
 ## peer_address: the address used to connect to the peer.
 ##
 ## peer_port: the port used to connect to the peer.
-event BrokerComm::outgoing_connection_incompatible%(peer_address: string,
+event Broker::outgoing_connection_incompatible%(peer_address: string,
                                             peer_port: port%);
 
 ## Generated when a peer has established a connection with this process
-## as a result of previously performing a :bro:see:`BrokerComm::listen`.
+## as a result of previously performing a :bro:see:`Broker::listen`.
 ##
 ## peer_name: the name by which the peer identified itself.
-event BrokerComm::incoming_connection_established%(peer_name: string%);
+event Broker::incoming_connection_established%(peer_name: string%);
 
 ## Generated when a peer that previously established a connection with this
 ## process becomes disconnected.
 ##
 ## peer_name: the name by which the peer identified itself.
 ##
-## .. bro:see:: BrokerComm::incoming_connection_established
-event BrokerComm::incoming_connection_broken%(peer_name: string%);
+## .. bro:see:: Broker::incoming_connection_established
+event Broker::incoming_connection_broken%(peer_name: string%);
 
-function BrokerComm::__listen%(p: port, a: string, reuse: bool%): bool
+function Broker::__listen%(p: port, a: string, reuse: bool%): bool
 	%{
 	if ( ! p->IsTCP() )
 		{
@@ -90,7 +90,7 @@ function BrokerComm::__listen%(p: port, a: string, reuse: bool%): bool
 	return new Val(rval, TYPE_BOOL);
 	%}
 
-function BrokerComm::__connect%(a: string, p: port, retry: interval%): bool
+function Broker::__connect%(a: string, p: port, retry: interval%): bool
 	%{
 	if ( ! p->IsTCP() )
 		{
@@ -103,7 +103,7 @@ function BrokerComm::__connect%(a: string, p: port, retry: interval%): bool
 	return new Val(rval, TYPE_BOOL);
 	%}
 
-function BrokerComm::__disconnect%(a: string, p: port%): bool
+function Broker::__disconnect%(a: string, p: port%): bool
 	%{
 	if ( ! p->IsTCP() )
 		{

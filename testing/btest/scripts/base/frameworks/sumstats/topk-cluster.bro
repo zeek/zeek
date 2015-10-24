@@ -45,7 +45,7 @@ event bro_init() &priority=5
 
 	}
 
-event BrokerComm::outgoing_connection_broken(peer_address: string,
+event Broker::outgoing_connection_broken(peer_address: string,
                                         peer_port: port,
                                         peer_name: string)
 	{
@@ -98,7 +98,7 @@ event ready_for_data()
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
 
 global peer_count = 0;
-event BrokerComm::incoming_connection_established(peer_name: string)
+event Broker::incoming_connection_established(peer_name: string)
 	{
 	++peer_count;
 	if ( peer_count == 2 )

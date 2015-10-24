@@ -43,7 +43,7 @@ event bro_init() &priority=5
 	                  	}]);
 	}
 
-event BrokerComm::outgoing_connection_broken(peer_address: string,
+event Broker::outgoing_connection_broken(peer_address: string,
                                         peer_port: port,
                                         peer_name: string)
 	{
@@ -58,7 +58,7 @@ event do_stats(i: count)
 	SumStats::observe("test.metric", [$host=1.2.3.4], [$num=i]);
 	}
 
-event BrokerComm::outgoing_connection_established(peer_address: string,
+event Broker::outgoing_connection_established(peer_address: string,
                                              peer_port: port,
                                              peer_name: string)
 	{

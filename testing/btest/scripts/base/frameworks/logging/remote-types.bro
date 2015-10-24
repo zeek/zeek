@@ -55,7 +55,7 @@ module Test;
 
 redef exit_only_after_terminate = T;
 
-event BrokerComm::incoming_connection_established(peer_name: string)
+event Broker::incoming_connection_established(peer_name: string)
 	{
 	local empty_set: set[string];
 	local empty_vector: vector of string;

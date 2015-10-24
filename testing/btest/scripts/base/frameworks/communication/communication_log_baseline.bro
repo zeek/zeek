@@ -17,14 +17,14 @@ redef Communication::nodes += {
     ["foo"] = [$host = 127.0.0.1, $connect=T]
 };
 
-event BrokerComm::outgoing_connection_established(peer_address: string,
+event Broker::outgoing_connection_established(peer_address: string,
                                              peer_port: port,
                                              peer_name: string)
 	{
 	terminate_communication();
 	}
 
-event BrokerComm::outgoing_connection_broken(peer_address: string, peer_port: port, peer_name: string)
+event Broker::outgoing_connection_broken(peer_address: string, peer_port: port, peer_name: string)
 	{
 	terminate();
 	}
@@ -37,10 +37,10 @@ event BrokerComm::outgoing_connection_broken(peer_address: string, peer_port: po
 
 @load frameworks/communication/listen
 
-redef BrokerComm::endpoint_name = "test-receiver";
+redef Broker::endpoint_name = "test-receiver";
 redef exit_only_after_terminate = T;
 
-event BrokerComm::incoming_connection_broken(peer_name: string)
+event Broker::incoming_connection_broken(peer_name: string)
 	{
 	terminate();
 	}

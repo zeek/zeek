@@ -52,7 +52,7 @@ function fail(rec: Log): bool
 	return rec$status != "success";
 	}
 
-event BrokerComm::incoming_connection_established(peer_name: string)
+event Broker::incoming_connection_established(peer_name: string)
 	{
 	local config: table[string] of string;
 	config["tsv"] = "T";
@@ -83,7 +83,7 @@ redef Communication::nodes += {
     ["foo"] = [$host = 127.0.0.1, $connect=T, $request_logs=T]
 };
 
-event BrokerComm::outgoing_connection_broken(peer_address: string,
+event Broker::outgoing_connection_broken(peer_address: string,
                                         peer_port: port,
                                         peer_name: string)
 	{

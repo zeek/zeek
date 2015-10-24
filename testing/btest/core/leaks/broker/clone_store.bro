@@ -20,7 +20,7 @@ global key_count = 0;
 
 function do_lookup(key: string)
 	{
-	when ( local res = BrokerStore::lookup(h, BrokerComm::data(key)) )
+	when ( local res = BrokerStore::lookup(h, Broker::data(key)) )
 		{
 		++key_count;
 		print "lookup", key, res;
@@ -39,10 +39,10 @@ event ready()
 	when ( local res = BrokerStore::keys(h) )
 		{
 		print "clone keys", res;
-		do_lookup(BrokerComm::refine_to_string(BrokerComm::vector_lookup(res$result, 0)));
-		do_lookup(BrokerComm::refine_to_string(BrokerComm::vector_lookup(res$result, 1)));
-		do_lookup(BrokerComm::refine_to_string(BrokerComm::vector_lookup(res$result, 2)));
-		do_lookup(BrokerComm::refine_to_string(BrokerComm::vector_lookup(res$result, 3)));
+		do_lookup(Broker::refine_to_string(Broker::vector_lookup(res$result, 0)));
+		do_lookup(Broker::refine_to_string(Broker::vector_lookup(res$result, 1)));
+		do_lookup(Broker::refine_to_string(Broker::vector_lookup(res$result, 2)));
+		do_lookup(Broker::refine_to_string(Broker::vector_lookup(res$result, 3)));
 		}
 	timeout 10sec
 		{ print "timeout"; }
@@ -50,9 +50,9 @@ event ready()
 
 event bro_init()
 	{
-	BrokerComm::enable();
-	BrokerComm::subscribe_to_events("bro/event/ready");
-	BrokerComm::listen(broker_port, "127.0.0.1");
+	Broker::enable();
+	Broker::subscribe_to_events("bro/event/ready");
+	Broker::listen(broker_port, "127.0.0.1");
 	}
 
 @TEST-END-FILE
@@ -64,38 +64,38 @@ redef exit_only_after_terminate = T;
 
 global h: opaque of BrokerStore::Handle;
 
-function dv(d: BrokerComm::Data): BrokerComm::DataVector
+function dv(d: Broker::Data): Broker::DataVector
 	{
-	local rval: BrokerComm::DataVector;
+	local rval: Broker::DataVector;
 	rval[0] = d;
 	return rval;
 	}
 
 global ready: event();
 
-event BrokerComm::outgoing_connection_broken(peer_address: string,
+event Broker::outgoing_connection_broken(peer_address: string,
                                        peer_port: port,
                                        peer_name: string)
 	{
 	terminate();
 	}
 
-event BrokerComm::outgoing_connection_established(peer_address: string,
+event Broker::outgoing_connection_established(peer_address: string,
                                             peer_port: port,
                                             peer_name: string)
 	{
 	local myset: set[string] = {"a", "b", "c"};
 	local myvec: vector of string = {"alpha", "beta", "gamma"};
-	BrokerStore::insert(h, BrokerComm::data("one"), BrokerComm::data(110));
-	BrokerStore::insert(h, BrokerComm::data("two"), BrokerComm::data(223));
-	BrokerStore::insert(h, BrokerComm::data("myset"), BrokerComm::data(myset));
-	BrokerStore::insert(h, BrokerComm::data("myvec"), BrokerComm::data(myvec));
-	BrokerStore::increment(h, BrokerComm::data("one"));
-	BrokerStore::decrement(h, BrokerComm::data("two"));
-	BrokerStore::add_to_set(h, BrokerComm::data("myset"), BrokerComm::data("d"));
-	BrokerStore::remove_from_set(h, BrokerComm::data("myset"), BrokerComm::data("b"));
-	BrokerStore::push_left(h, BrokerComm::data("myvec"), dv(BrokerComm::data("delta")));
-	BrokerStore::push_right(h, BrokerComm::data("myvec"), dv(BrokerComm::data("omega")));
+	BrokerStore::insert(h, Broker::data("one"), Broker::data(110));
+	BrokerStore::insert(h, Broker::data("two"), Broker::data(223));
+	BrokerStore::insert(h, Broker::data("myset"), Broker::data(myset));
+	BrokerStore::insert(h, Broker::data("myvec"), Broker::data(myvec));
+	BrokerStore::increment(h, Broker::data("one"));
+	BrokerStore::decrement(h, Broker::data("two"));
+	BrokerStore::add_to_set(h, Broker::data("myset"), Broker::data("d"));
+	BrokerStore::remove_from_set(h, Broker::data("myset"), Broker::data("b"));
+	BrokerStore::push_left(h, Broker::data("myvec"), dv(Broker::data("delta")));
+	BrokerStore::push_right(h, Broker::data("myvec"), dv(Broker::data("omega")));
 
 	when ( local res = BrokerStore::size(h) )
 		{ event ready(); }
@@ -105,10 +105,10 @@ event BrokerComm::outgoing_connection_established(peer_address: string,
 
 event bro_init()
 	{
-	BrokerComm::enable();
-	BrokerComm::auto_event("bro/event/ready", ready);
+	Broker::enable();
+	Broker::auto_event("bro/event/ready", ready);
 	h = BrokerStore::create_master("mystore");
-	BrokerComm::connect("127.0.0.1", broker_port, 1secs);
+	Broker::connect("127.0.0.1", broker_port, 1secs);
 	}
 
 @TEST-END-FILE

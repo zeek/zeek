@@ -29,7 +29,7 @@ event bro_init() &priority=5
 	                  $reducers=set(r1)]);
 	}
 
-event BrokerComm::outgoing_connection_broken(peer_address: string,
+event Broker::outgoing_connection_broken(peer_address: string,
                                         peer_port: port,
                                         peer_name: string)
 	{
@@ -74,7 +74,7 @@ event ready_for_data()
 	}
 
 global peer_count = 0;
-event BrokerComm::incoming_connection_established(peer_name: string)
+event Broker::incoming_connection_established(peer_name: string)
 	{
 	++peer_count;
 	if ( peer_count == 2 )

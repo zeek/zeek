@@ -23,7 +23,7 @@ module Intel;
 
 redef Log::default_rotation_interval=0sec;
 
-event BrokerComm::incoming_connection_established(peer_name: string)
+event Broker::incoming_connection_established(peer_name: string)
 	{
 	# Insert the data once both workers are connected.
 	if ( Cluster::local_node_type() == Cluster::MANAGER && Cluster::worker_count == 2 )

@@ -22,10 +22,10 @@ global my_event: event(s: string);
 
 event bro_init() &priority=5
 	{
-	BrokerComm::subscribe_to_events("bro/event/");
+	Broker::subscribe_to_events("bro/event/");
 	}
 
-event BrokerComm::outgoing_connection_established(peer_address: string,
+event Broker::outgoing_connection_established(peer_address: string,
                                              peer_port: port,
                                              peer_name: string)
 	{
@@ -51,13 +51,13 @@ redef Communication::listen_interface=[::];
 
 global my_event: event(s: string);
 
-event BrokerComm::incoming_connection_established(peer_name: string)
+event Broker::incoming_connection_established(peer_name: string)
 	{
 	print fmt("handshake done with peer: %s", peer_name);
-	BrokerComm::send_event("bro/event/my_event", BrokerComm::event_args(my_event, "hello world"));
+	Broker::send_event("bro/event/my_event", Broker::event_args(my_event, "hello world"));
 	}
 
-event BrokerComm::incoming_connection_broken(peer_name: string)
+event Broker::incoming_connection_broken(peer_name: string)
 	{
 	terminate();
 	}

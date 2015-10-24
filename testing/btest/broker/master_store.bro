@@ -66,7 +66,7 @@ event test_keys()
 
 event test_pop(key: string)
 	{
-	when ( local lres = BrokerStore::pop_left(h, BrokerComm::data(key)) )
+	when ( local lres = BrokerStore::pop_left(h, Broker::data(key)) )
 		{
 		print fmt("pop_left(%s): %s", key, lres);
 		++pop_count;
@@ -83,7 +83,7 @@ event test_pop(key: string)
 			event test_keys();
 		}
 
-	when ( local rres = BrokerStore::pop_right(h, BrokerComm::data(key)) )
+	when ( local rres = BrokerStore::pop_right(h, Broker::data(key)) )
 		{
 		print fmt("pop_right(%s): %s", key, rres);
 		++pop_count;
@@ -103,7 +103,7 @@ event test_pop(key: string)
 
 function do_exists(key: string)
 	{
-	when ( local res = BrokerStore::exists(h, BrokerComm::data(key)) )
+	when ( local res = BrokerStore::exists(h, Broker::data(key)) )
 		{
 		print fmt("exists(%s): %s", key, res);
 		++exists_count;
@@ -123,7 +123,7 @@ function do_exists(key: string)
 
 event test_erase()
 	{
-	BrokerStore::erase(h, BrokerComm::data("two"));
+	BrokerStore::erase(h, Broker::data("two"));
 	do_exists("one");
 	do_exists("two");
 	do_exists("myset");
@@ -132,7 +132,7 @@ event test_erase()
 
 function do_lookup(key: string)
 	{
-	when ( local res = BrokerStore::lookup(h, BrokerComm::data(key)) )
+	when ( local res = BrokerStore::lookup(h, Broker::data(key)) )
 		{
 		print fmt("lookup(%s): %s", key, res);
 		++lookup_count;
@@ -150,29 +150,29 @@ function do_lookup(key: string)
 		}
 	}
 
-function dv(d: BrokerComm::Data): BrokerComm::DataVector
+function dv(d: Broker::Data): Broker::DataVector
 	{
-	local rval: BrokerComm::DataVector;
+	local rval: Broker::DataVector;
 	rval[0] = d;
 	return rval;
 	}
 
 event bro_init()
 	{
-	BrokerComm::enable();
+	Broker::enable();
 	local myset: set[string] = {"a", "b", "c"};
 	local myvec: vector of string = {"alpha", "beta", "gamma"};
 	h = BrokerStore::create_master("master");
-	BrokerStore::insert(h, BrokerComm::data("one"), BrokerComm::data(110));
-	BrokerStore::insert(h, BrokerComm::data("two"), BrokerComm::data(223));
-	BrokerStore::insert(h, BrokerComm::data("myset"), BrokerComm::data(myset));
-	BrokerStore::insert(h, BrokerComm::data("myvec"), BrokerComm::data(myvec));
-	BrokerStore::increment(h, BrokerComm::data("one"));
-	BrokerStore::decrement(h, BrokerComm::data("two"));
-	BrokerStore::add_to_set(h, BrokerComm::data("myset"), BrokerComm::data("d"));
-	BrokerStore::remove_from_set(h, BrokerComm::data("myset"), BrokerComm::data("b"));
-	BrokerStore::push_left(h, BrokerComm::data("myvec"), dv(BrokerComm::data("delta")));
-	BrokerStore::push_right(h, BrokerComm::data("myvec"), dv(BrokerComm::data("omega")));
+	BrokerStore::insert(h, Broker::data("one"), Broker::data(110));
+	BrokerStore::insert(h, Broker::data("two"), Broker::data(223));
+	BrokerStore::insert(h, Broker::data("myset"), Broker::data(myset));
+	BrokerStore::insert(h, Broker::data("myvec"), Broker::data(myvec));
+	BrokerStore::increment(h, Broker::data("one"));
+	BrokerStore::decrement(h, Broker::data("two"));
+	BrokerStore::add_to_set(h, Broker::data("myset"), Broker::data("d"));
+	BrokerStore::remove_from_set(h, Broker::data("myset"), Broker::data("b"));
+	BrokerStore::push_left(h, Broker::data("myvec"), dv(Broker::data("delta")));
+	BrokerStore::push_right(h, Broker::data("myvec"), dv(Broker::data("omega")));
 	do_lookup("one");
 	do_lookup("two");
 	do_lookup("myset");

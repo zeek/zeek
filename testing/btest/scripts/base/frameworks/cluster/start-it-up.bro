@@ -59,22 +59,22 @@ function process_event(peer_name: string)
 		}
 	}
 
-event BrokerComm::incoming_connection_established(peer_name: string)
+event Broker::incoming_connection_established(peer_name: string)
 	{
 	process_event(peer_name);
 	}
 
-event BrokerComm::outgoing_connection_established(peer_address: string, peer_port: port, peer_name: string)
+event Broker::outgoing_connection_established(peer_address: string, peer_port: port, peer_name: string)
 	{
 	process_event(peer_name);
 	}
 
-event BrokerComm::outgoing_connection_broken(peer_address: string, peer_port: port, peer_name: string)
+event Broker::outgoing_connection_broken(peer_address: string, peer_port: port, peer_name: string)
 	{
 	terminate();
 	}
 
-event BrokerComm::incoming_connection_broken(peer_name: string)
+event Broker::incoming_connection_broken(peer_name: string)
 	{
 	terminate();
 	}

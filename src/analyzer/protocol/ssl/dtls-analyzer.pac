@@ -34,8 +34,8 @@ refine connection SSL_Conn += {
 	function proc_handshake(pdu: SSLRecord, rec: Handshake): bool
 		%{
 		uint32 foffset = to_int()(${rec.fragment_offset});
-		uint32 flength = to_int()(${rec.fragment_length});
-		uint32 length = to_int()(${rec.length});
+		int64  flength = to_int()(${rec.fragment_length});
+		int64  length = to_int()(${rec.length});
 		uint64 sequence_number = to_int()(${pdu.sequence_number});
 		//fprintf(stderr, "Handshake type: %d, length: %u, seq: %u, foffset: %u, flength: %u\n", ${rec.msg_type}, to_int()(${rec.length}), ${rec.message_seq}, to_int()(${rec.fragment_offset}), to_int()(${rec.fragment_length}));
 
@@ -55,7 +55,7 @@ refine connection SSL_Conn += {
 
 		if ( length > MAX_DTLS_HANDSHAKE_RECORD )
 			{
-			bro_analyzer()->ProtocolViolation(fmt("DTLS record length %u larger than allowed maximum.", length));
+			bro_analyzer()->ProtocolViolation(fmt("DTLS record length %" PRId64 " larger than allowed maximum.", length));
 			return true;
 			}
 

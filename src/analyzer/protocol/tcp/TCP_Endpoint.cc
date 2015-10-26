@@ -201,13 +201,18 @@ int TCP_Endpoint::DataSent(double t, uint64 seq, int len, int caplen,
 	{
 	int status = 0;
 
-	if ( contents_processor && caplen >= len )
-		status = contents_processor->DataSent(t, seq, len, data);
+	if ( contents_processor )
+		{
+		if ( caplen >= len )
+			status = contents_processor->DataSent(t, seq, len, data, TCP_Flags(tp));
+		else
+			TCP()->Weird("truncated_tcp_payload");
+		}
 
 	if ( caplen <= 0 )
 		return status;
 
-	if ( contents_file && ! contents_processor && 
+	if ( contents_file && ! contents_processor &&
 	     seq + len > contents_start_seq )
 		{
 		int64 under_seq = contents_start_seq - seq;

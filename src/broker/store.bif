@@ -326,10 +326,10 @@ function BrokerStore::remove_from_set%(h: opaque of BrokerStore::Handle,
 ##
 ## k: the key whose associated value is to be modified.
 ##
-## item: the element to insert in to the vector.  A non-existent key will first
-##       create empty vector value before modifying.
+## items: the element to insert in to the vector.  A non-existent key will first
+##        create an empty vector value before modifying.
 ##
-## Returns: the handle of store to modify.
+## Returns: false if the store handle was not valid.
 function BrokerStore::push_left%(h: opaque of BrokerStore::Handle, k: BrokerComm::Data,
                            items: BrokerComm::DataVector%): bool
 	%{
@@ -359,10 +359,10 @@ function BrokerStore::push_left%(h: opaque of BrokerStore::Handle, k: BrokerComm
 ##
 ## k: the key whose associated value is to be modified.
 ##
-## item: the element to insert in to the vector.  A non-existent key will first
-##       create empty vector value before modifying.
+## items: the element to insert in to the vector.  A non-existent key will first
+##        create an empty vector value before modifying.
 ##
-## Returns: the handle of store to modify.
+## Returns: false if the store handle was not valid.
 function BrokerStore::push_right%(h: opaque of BrokerStore::Handle, k: BrokerComm::Data,
                             items: BrokerComm::DataVector%): bool
 	%{

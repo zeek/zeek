@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "config.h"
+#include "bro-config.h"
 
 #include <stdlib.h>
 
@@ -45,7 +45,7 @@ SMTP_Analyzer::SMTP_Analyzer(Connection* conn)
 	orig_is_sender = true;
 	line_after_gap = 0;
 	mail = 0;
-	UpdateState(first_cmd, 0);
+	UpdateState(first_cmd, 0, true);
 	cl_orig = new tcp::ContentLine_Analyzer(conn, true);
 	cl_orig->SetIsNULSensitive(true);
 	cl_orig->SetSkipPartial(true);
@@ -214,7 +214,7 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 				// but are now processing packets sent
 				// afterwards (because, e.g., the RST was
 				// dropped or ignored).
-				BeginData();
+				BeginData(orig);
 
 			ProcessData(data_len, line);
 
@@ -264,7 +264,7 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 			// RequestEvent() in different orders for the
 			// two commands.
 			if ( cmd_code == SMTP_CMD_END_OF_DATA )
-				UpdateState(cmd_code, 0);
+				UpdateState(cmd_code, 0, orig);
 
 			if ( smtp_request )
 				{
@@ -273,7 +273,7 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 				}
 
 			if ( cmd_code != SMTP_CMD_END_OF_DATA )
-				UpdateState(cmd_code, 0);
+				UpdateState(cmd_code, 0, orig);
 			}
 		}
 
@@ -312,7 +312,7 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 
 			if ( ! pending_reply && reply_code >= 0 )
 				// It is not a continuation.
-				NewReply(reply_code);
+				NewReply(reply_code, orig);
 
 			// Update pending_reply.
 			if ( reply_code >= 0 && length > 3 && line[3] == '-' )
@@ -419,7 +419,7 @@ void SMTP_Analyzer::StartTLS()
 // we want to understand the behavior of SMTP and check how far it may
 // deviate from our knowledge.
 
-void SMTP_Analyzer::NewReply(const int reply_code)
+void SMTP_Analyzer::NewReply(const int reply_code, bool orig)
 	{
 	if ( state == SMTP_AFTER_GAP && reply_code > 0 )
 		{
@@ -447,7 +447,7 @@ void SMTP_Analyzer::NewReply(const int reply_code)
 		pending_cmd_q.pop_front();
 		}
 
-	UpdateState(cmd_code, reply_code);
+	UpdateState(cmd_code, reply_code, orig);
 	}
 
 // Note: reply_code == 0 means we haven't seen the reply, in which case we
@@ -457,7 +457,7 @@ void SMTP_Analyzer::NewReply(const int reply_code)
 // in the RPC), and as a result we have to update the state following
 // the commands in addition to the replies.
 
-void SMTP_Analyzer::UpdateState(const int cmd_code, const int reply_code)
+void SMTP_Analyzer::UpdateState(const int cmd_code, const int reply_code, bool orig)
 	{
 	const int st = state;
 
@@ -588,7 +588,7 @@ void SMTP_Analyzer::UpdateState(const int cmd_code, const int reply_code)
 			case 0:
 				if ( state != SMTP_RCPT_OK )
 					UnexpectedCommand(cmd_code, reply_code);
-				BeginData();
+				BeginData(orig);
 				break;
 
 			case 354:
@@ -786,7 +786,7 @@ void SMTP_Analyzer::UpdateState(const int cmd_code, const int reply_code)
 	default:
 		if ( st == SMTP_GAP_RECOVERY && reply_code == 354 )
 			{
-			BeginData();
+			BeginData(orig);
 			}
 		break;
 	}
@@ -890,7 +890,7 @@ void SMTP_Analyzer::ProcessData(int length, const char* line)
 	mail->Deliver(length, line, 1 /* trailing_CRLF */);
 	}
 
-void SMTP_Analyzer::BeginData()
+void SMTP_Analyzer::BeginData(bool orig)
 	{
 	state = SMTP_IN_DATA;
 	skip_data = 0; // reset the flag at the beginning of the mail
@@ -901,7 +901,7 @@ void SMTP_Analyzer::BeginData()
 		delete mail;
 		}
 
-	mail = new mime::MIME_Mail(this);
+	mail = new mime::MIME_Mail(this, orig);
 	}
 
 void SMTP_Analyzer::EndData()

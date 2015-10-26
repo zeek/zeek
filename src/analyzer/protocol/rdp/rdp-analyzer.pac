@@ -9,19 +9,33 @@ refine flow RDP_Flow += {
 	function utf16_to_utf8_val(utf16: bytestring): StringVal
 		%{
 		std::string resultstring;
-		size_t widesize = utf16.length();
 
-		size_t utf8size = 3 * widesize + 1;
+		size_t utf8size = (3 * utf16.length() + 1);
+
+		if ( utf8size > resultstring.max_size() )
+			{
+			connection()->bro_analyzer()->Weird("excessive_utf16_length");
+			return new StringVal("");
+			}
+
 		resultstring.resize(utf8size, '\0');
-		const UTF16* sourcestart = reinterpret_cast<const UTF16*>(utf16.begin());
-		const UTF16* sourceend = sourcestart + widesize;
+
+		// We can't assume that the string data is properly aligned
+		// here, so make a copy.
+		UTF16 utf16_copy[utf16.length()]; // Twice as much memory than necessary.
+		memcpy(utf16_copy, utf16.begin(), utf16.length());
+
+		const char* utf16_copy_end = reinterpret_cast<const char*>(utf16_copy) + utf16.length();
+		const UTF16* sourcestart = utf16_copy;
+		const UTF16* sourceend = reinterpret_cast<const UTF16*>(utf16_copy_end);
+
 		UTF8* targetstart = reinterpret_cast<UTF8*>(&resultstring[0]);
 		UTF8* targetend = targetstart + utf8size;
 
-		ConversionResult res = ConvertUTF16toUTF8(&sourcestart, 
+		ConversionResult res = ConvertUTF16toUTF8(&sourcestart,
 		                                          sourceend,
-		                                          &targetstart, 
-		                                          targetend, 
+		                                          &targetstart,
+		                                          targetend,
 		                                          lenientConversion);
 		if ( res != conversionOK )
 			{
@@ -30,6 +44,7 @@ refine flow RDP_Flow += {
 			}
 
 		*targetstart = 0;
+
 		// We're relying on no nulls being in the string.
 		return new StringVal(resultstring.c_str());
 		%}
@@ -42,7 +57,7 @@ refine flow RDP_Flow += {
 			                                       connection()->bro_analyzer()->Conn(),
 			                                       bytestring_to_val(${cr.cookie_value}));
 			}
-		
+
 		return true;
 		%}
 
@@ -54,7 +69,7 @@ refine flow RDP_Flow += {
 			                                            connection()->bro_analyzer()->Conn(),
 			                                            ${nr.selected_protocol});
 			}
-		
+
 		return true;
 		%}
 
@@ -168,9 +183,9 @@ refine flow RDP_Flow += {
 		string file_id = file_mgr->HashHandle(file_handle.Description());
 
 		file_mgr->DataIn(reinterpret_cast<const u_char*>(cert.data()),
-		                 cert.length(), 
+		                 cert.length(),
 		                 connection()->bro_analyzer()->GetAnalyzerTag(),
-		                 connection()->bro_analyzer()->Conn(), 
+		                 connection()->bro_analyzer()->Conn(),
 		                 false, // It seems there are only server certs?
 		                 file_id);
 		file_mgr->EndOfFile(file_id);

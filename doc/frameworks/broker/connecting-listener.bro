@@ -1,5 +1,4 @@
-
-const broker_port: port &redef;
+const broker_port: port = 9999/tcp &redef;
 redef exit_only_after_terminate = T;
 redef BrokerComm::endpoint_name = "listener";
 

@@ -54,7 +54,7 @@
 
 #define IN_GETOPT_LONG_C 1
 
-#include <config.h>
+#include <bro-config.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>

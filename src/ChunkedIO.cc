@@ -9,7 +9,7 @@
 
 #include <algorithm>
 
-#include "config.h"
+#include "bro-config.h"
 #include "ChunkedIO.h"
 #include "NetVar.h"
 #include "RemoteSerializer.h"

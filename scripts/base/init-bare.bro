@@ -345,6 +345,12 @@ type connection: record {
 	## for the connection unless the :bro:id:`tunnel_changed` event is
 	## handled and reassigns this field to the new encapsulation.
 	tunnel: EncapsulatingConnVector &optional;
+
+	## The outer VLAN, if applicable, for this connection.
+	vlan: int &optional;
+
+	## The inner VLAN, if applicable, for this connection.
+	inner_vlan: int &optional;
 };
 
 ## Default amount of time a file can be inactive before the file analysis
@@ -740,6 +746,7 @@ type pcap_packet: record {
 	caplen: count;	##< The number of bytes captured (<= *len*).
 	len: count;	##< The length of the packet in bytes, including link-level header.
 	data: string;	##< The payload of the packet, including link-level header.
+	link_type: link_encap;	##< Layer 2 link encapsulation type.
 };
 
 ## GeoIP location information.
@@ -953,6 +960,11 @@ const tcp_max_above_hole_without_any_acks = 16384 &redef;
 ##
 ## .. bro:see:: tcp_max_initial_window tcp_max_above_hole_without_any_acks
 const tcp_excessive_data_without_further_acks = 10 * 1024 * 1024 &redef;
+
+## Number of TCP segments to buffer beyond what's been acknowledged already
+## to detect retransmission inconsistencies. Zero disables any additonal
+## buffering.
+const tcp_max_old_segments = 0 &redef;
 
 ## For services without a handler, these sets define originator-side ports
 ## that still trigger reassembly.
@@ -1488,6 +1500,34 @@ type icmp_hdr: record {
 ##
 ## .. bro:see:: new_packet
 type pkt_hdr: record {
+	ip: ip4_hdr &optional;		##< The IPv4 header if an IPv4 packet.
+	ip6: ip6_hdr &optional;		##< The IPv6 header if an IPv6 packet.
+	tcp: tcp_hdr &optional;		##< The TCP header if a TCP packet.
+	udp: udp_hdr &optional;		##< The UDP header if a UDP packet.
+	icmp: icmp_hdr &optional;	##< The ICMP header if an ICMP packet.
+};
+
+## Values extracted from the layer 2 header.
+##
+## .. bro:see:: pkt_hdr
+type l2_hdr: record {
+	encap: link_encap;      ##< L2 link encapsulation.
+	len: count;		##< Total frame length on wire.
+	cap_len: count;		##< Captured length.
+	src: string &optional;	##< L2 source (if Ethernet).
+	dst: string &optional;	##< L2 destination (if Ethernet).
+	vlan: count &optional;	##< Outermost VLAN tag if any (and Ethernet).
+	inner_vlan: count &optional;	##< Innermost VLAN tag if any (and Ethernet).
+	eth_type: count &optional;	##< Innermost Ethertype (if Ethernet).
+	proto: layer3_proto;	##< L3 protocol.
+};
+
+## A raw packet header, consisting of L2 header and everything in
+## :bro:id:`pkt_hdr`. .
+##
+## .. bro:see:: raw_packet pkt_hdr
+type raw_pkt_hdr: record {
+	l2: l2_hdr;			##< The layer 2 header.
 	ip: ip4_hdr &optional;		##< The IPv4 header if an IPv4 packet.
 	ip6: ip6_hdr &optional;		##< The IPv6 header if an IPv6 packet.
 	tcp: tcp_hdr &optional;		##< The TCP header if a TCP packet.
@@ -2469,7 +2509,7 @@ global dns_skip_all_addl = T &redef;
 
 ## If a DNS request includes more than this many queries, assume it's non-DNS
 ## traffic and do not process it.  Set to 0 to turn off this functionality.
-global dns_max_queries = 5;
+global dns_max_queries = 25 &redef;
 
 ## HTTP session statistics.
 ##
@@ -3115,6 +3155,186 @@ export {
 	};
 }
 
+@load base/bif/plugins/Bro_KRB.types.bif
+
+module KRB;
+export {
+	## KDC Options. See :rfc:`4120`
+	type KRB::KDC_Options: record {
+		## The ticket to be issued should have its forwardable flag set.
+		forwardable		: bool;
+		## A (TGT) request for forwarding.
+		forwarded		: bool;
+		## The ticket to be issued should have its proxiable flag set.
+		proxiable		: bool;
+		## A request for a proxy.
+		proxy			: bool;
+		## The ticket to be issued should have its may-postdate flag set.
+		allow_postdate		: bool;
+		## A request for a postdated ticket.
+		postdated		: bool;
+		## The ticket to be issued should have its renewable  flag set.
+		renewable		: bool;
+		## Reserved for opt_hardware_auth
+		opt_hardware_auth	: bool;
+		## Request that the KDC not check the transited field of a TGT against
+		## the policy of the local realm before it will issue derivative tickets
+		## based on the TGT.
+		disable_transited_check	: bool;
+		## If a ticket with the requested lifetime cannot be issued, a renewable
+		## ticket is acceptable
+		renewable_ok		: bool;
+		## The ticket for the end server is to be encrypted in the session key
+		## from the additional TGT provided
+		enc_tkt_in_skey		: bool;
+		## The request is for a renewal
+		renew			: bool;
+		## The request is to validate a postdated ticket.
+		validate		: bool;
+	};
+
+	## AP Options. See :rfc:`4120`
+	type KRB::AP_Options: record {
+		## Indicates that user-to-user-authentication is in use
+		use_session_key	: bool;
+		## Mutual authentication is required
+		mutual_required	: bool;
+	};
+
+	## Used in a few places in the Kerberos analyzer for elements
+	## that have a type and a string value.
+	type KRB::Type_Value: record {
+		## The data type
+		data_type	: count;
+		## The data value
+		val 		: string;
+	};
+
+	type KRB::Type_Value_Vector: vector of KRB::Type_Value;
+
+	## A Kerberos host address See :rfc:`4120`.
+	type KRB::Host_Address: record {
+		## IPv4 or IPv6 address
+		ip	: addr &log &optional;
+		## NetBIOS address
+		netbios : string &log &optional;
+		## Some other type that we don't support yet
+		unknown : KRB::Type_Value &optional;
+	};
+
+	type KRB::Host_Address_Vector: vector of KRB::Host_Address;
+
+	## The data from the SAFE message. See :rfc:`4120`.
+	type KRB::SAFE_Msg: record {
+		## Protocol version number (5 for KRB5)
+		pvno		: count;
+		## The message type (20 for SAFE_MSG)
+		msg_type	: count;
+		## The application-specific data that is being passed
+		## from the sender to the reciever
+		data		: string;
+		## Current time from the sender of the message
+		timestamp	: time &optional;
+		## Sequence number used to detect replays
+		seq		: count &optional;
+		## Sender address
+		sender		: Host_Address &optional;
+		## Recipient address
+		recipient    	: Host_Address &optional;
+	};
+
+	## The data from the ERROR_MSG message. See :rfc:`4120`.
+	type KRB::Error_Msg: record {
+		## Protocol version number (5 for KRB5)
+		pvno		: count;
+		## The message type (30 for ERROR_MSG)
+		msg_type	: count;
+		## Current time on the client
+		client_time	: time &optional;
+		## Current time on the server
+		server_time	: time;
+		## The specific error code
+		error_code	: count;
+		## Realm of the ticket
+		client_realm	: string &optional;
+		## Name on the ticket
+		client_name	: string &optional;
+		## Realm of the service
+		service_realm	: string;
+		## Name of the service
+		service_name	: string;
+		## Additional text to explain the error
+		error_text	: string &optional;
+		## Optional pre-authentication data
+		pa_data		: vector of KRB::Type_Value &optional;
+	};
+
+	## A Kerberos ticket. See :rfc:`4120`.
+	type KRB::Ticket: record {
+		## Protocol version number (5 for KRB5)
+		pvno		: count;
+		## Realm
+		realm		: string;
+		## Name of the service
+		service_name	: string;
+		## Cipher the ticket was encrypted with
+		cipher		: count;
+	};
+
+	type KRB::Ticket_Vector: vector of KRB::Ticket;
+
+	## The data from the AS_REQ and TGS_REQ messages. See :rfc:`4120`.
+	type KRB::KDC_Request: record {
+		## Protocol version number (5 for KRB5)
+		pvno			: count;
+		## The message type (10 for AS_REQ, 12 for TGS_REQ)
+		msg_type		: count;
+		## Optional pre-authentication data
+		pa_data			: vector of KRB::Type_Value &optional;
+		## Options specified in the request
+		kdc_options		: KRB::KDC_Options;
+		## Name on the ticket
+		client_name		: string &optional;
+
+		## Realm of the service
+		service_realm		: string;
+		## Name of the service
+		service_name		: string &optional;
+		## Time the ticket is good from
+		from			: time &optional;
+		## Time the ticket is good till
+		till			: time;
+		## The requested renew-till time
+		rtime			: time &optional;
+
+		## A random nonce generated by the client
+		nonce			: count;
+		## The desired encryption algorithms, in order of preference
+		encryption_types	: vector of count;
+		## Any additional addresses the ticket should be valid for
+		host_addrs		: vector of KRB::Host_Address &optional;
+		## Additional tickets may be included for certain transactions
+		additional_tickets	: vector of KRB::Ticket &optional;
+	};
+
+	## The data from the AS_REQ and TGS_REQ messages. See :rfc:`4120`.
+	type KRB::KDC_Response: record {
+		## Protocol version number (5 for KRB5)
+		pvno			: count;
+		## The message type (11 for AS_REP, 13 for TGS_REP)
+		msg_type		: count;
+		## Optional pre-authentication data
+		pa_data			: vector of KRB::Type_Value &optional;
+		## Realm on the ticket
+		client_realm		: string &optional;
+		## Name on the service
+		client_name		: string;
+
+		## The ticket that was issued
+		ticket			: KRB::Ticket;
+	};
+}
+
 module GLOBAL;
 
 @load base/bif/event.bif
@@ -3442,20 +3662,11 @@ export {
 	## Toggle whether to do GRE decapsulation.
 	const enable_gre = T &redef;
 
-	## With this option set, the Teredo analysis will first check to see if
-	## other protocol analyzers have confirmed that they think they're
-	## parsing the right protocol and only continue with Teredo tunnel
-	## decapsulation if nothing else has yet confirmed.  This can help
-	## reduce false positives of UDP traffic (e.g. DNS) that also happens
-	## to have a valid Teredo encapsulation.
-	const yielding_teredo_decapsulation = T &redef;
-
 	## With this set, the Teredo analyzer waits until it sees both sides
 	## of a connection using a valid Teredo encapsulation before issuing
 	## a :bro:see:`protocol_confirmation`.  If it's false, the first
 	## occurrence of a packet with valid Teredo encapsulation causes a
-	## confirmation.  Both cases are still subject to effects of
-	## :bro:see:`Tunnel::yielding_teredo_decapsulation`.
+	## confirmation.
 	const delay_teredo_confirmation = T &redef;
 
 	## With this set, the GTP analyzer waits until the most-recent upflow
@@ -3471,7 +3682,6 @@ export {
 	## (includes GRE tunnels).
 	const ip_tunnel_timeout = 24hrs &redef;
 } # end export
-module GLOBAL;
 
 module Reporter;
 export {
@@ -3490,10 +3700,18 @@ export {
 	## external harness and shouldn't output anything to the console.
 	const errors_to_stderr = T &redef;
 }
-module GLOBAL;
 
-## Number of bytes per packet to capture from live interfaces.
-const snaplen = 8192 &redef;
+module Pcap;
+export {
+	## Number of bytes per packet to capture from live interfaces.
+	const snaplen = 8192 &redef;
+
+	## Number of Mbytes to provide as buffer space when capturing from live
+	## interfaces.
+	const bufsize = 128 &redef;
+} # end export
+
+module GLOBAL;
 
 ## Seed for hashes computed internally for probabilistic data structures. Using
 ## the same value here will make the hashes compatible between independent Bro

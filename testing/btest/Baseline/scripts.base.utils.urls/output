@@ -1,0 +1,11 @@
+[scheme=https, netlocation=www.example.com, portnum=<uninitialized>, path=/, file_name=<uninitialized>, file_base=<uninitialized>, file_ext=<uninitialized>, params=<uninitialized>]
+[scheme=http, netlocation=example.com, portnum=99, path=/test//, file_name=<uninitialized>, file_base=<uninitialized>, file_ext=<uninitialized>, params={
+[foo] = bar
+}]
+[scheme=ftp, netlocation=1.2.3.4, portnum=<uninitialized>, path=/pub/files/something.exe, file_name=something.exe, file_base=something, file_ext=exe, params=<uninitialized>]
+[scheme=http, netlocation=hyphen-example.com, portnum=<uninitialized>, path=/index.asp, file_name=index.asp, file_base=index, file_ext=asp, params={
+[q] = 123
+}]
+[scheme=<uninitialized>, netlocation=dfasjdfasdfasdf, portnum=<uninitialized>, path=/, file_name=<uninitialized>, file_base=<uninitialized>, file_ext=<uninitialized>, params={
+
+}]

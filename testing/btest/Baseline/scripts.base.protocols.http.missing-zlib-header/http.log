@@ -1,0 +1,11 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	http
+#open	2015-05-12-16-26-53
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	trans_depth	method	host	uri	referrer	user_agent	request_body_len	response_body_len	status_code	status_msg	info_code	info_msg	filename	tags	username	password	proxied	orig_fuids	orig_mime_types	resp_fuids	resp_mime_types
+#types	time	string	addr	port	addr	port	count	string	string	string	string	string	count	count	count	string	count	string	string	set[enum]	string	string	set[string]	vector[string]	vector[string]	vector[string]	vector[string]
+1232039472.314927	CXWv6p3arKYeMETxOg	237.244.174.255	1905	79.218.110.244	80	1	GET	ads1.msn.com	/library/dap.js	http://zone.msn.com/en/root/default.htm	Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; .NET CLR 1.0.3705; .NET CLR 1.1.4322; Media Center PC 4.0; .NET CLR 2.0.50727)	0	13249	200	OK	-	-	-	(empty)	-	-	-	-	-	FBcNS3RwceOxW15xg	text/plain
+1232039472.446194	CXWv6p3arKYeMETxOg	237.244.174.255	1905	79.218.110.244	80	2	GET	ads1.msn.com	/library/dap.js	http://zone.msn.com/en/root/default.htm	Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; .NET CLR 1.0.3705; .NET CLR 1.1.4322; Media Center PC 4.0; .NET CLR 2.0.50727)	0	13249	200	OK	-	-	-	(empty)	-	-	-	-	-	FDWU85N0DpedJPh93	text/plain
+#close	2015-05-12-16-26-53

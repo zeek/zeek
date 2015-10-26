@@ -3,7 +3,7 @@
 Writing Bro Plugins
 ===================
 
-Bro internally provides plugin API that enables extending
+Bro internally provides a plugin API that enables extending
 the system dynamically, without modifying the core code base. That way
 custom code remains self-contained and can be maintained, compiled,
 and installed independently. Currently, plugins can add the following
@@ -32,7 +32,7 @@ Quick Start
 ===========
 
 Writing a basic plugin is quite straight-forward as long as one
-follows a few conventions. In the following we walk a simple example
+follows a few conventions. In the following we create a simple example
 plugin that adds a new built-in function (bif) to Bro: we'll add 
 ``rot13(s: string) : string``, a function that rotates every character
 in a string by 13 places.
@@ -81,7 +81,7 @@ The syntax of this file is just like any other ``*.bif`` file; we
 won't go into it here.
 
 Now we can already compile our plugin, we just need to tell the
-configure script that ``init-plugin`` put in place where the Bro
+configure script (that ``init-plugin`` created) where the Bro
 source tree is located (Bro needs to have been built there first)::
 
     # cd rot13-plugin
@@ -99,7 +99,7 @@ option::
     # export BRO_PLUGIN_PATH=/path/to/rot13-plugin/build
     # bro -N
     [...]
-    Plugin: Demo::Rot13 - <Insert brief description of plugin> (dynamic, version 1)
+    Demo::Rot13 - <Insert description> (dynamic, version 0.1)
     [...]
 
 That looks quite good, except for the dummy description that we should
@@ -108,28 +108,30 @@ is about.  We do this by editing the ``config.description`` line in
 ``src/Plugin.cc``, like this::
 
     [...]
-    plugin::Configuration Configure()
+    plugin::Configuration Plugin::Configure()
         {
         plugin::Configuration config;
         config.name = "Demo::Rot13";
         config.description = "Caesar cipher rotating a string's characters by 13 places.";
-        config.version.major = 1;
-        config.version.minor = 0;
+        config.version.major = 0;
+        config.version.minor = 1;
         return config;
         }
     [...]
 
+Now rebuild and verify that the description is visible::
+
     # make
     [...]
     # bro -N | grep Rot13
-    Plugin: Demo::Rot13 - Caesar cipher rotating a string's characters by 13 places. (dynamic, version 1)
+    Demo::Rot13 - Caesar cipher rotating a string's characters by 13 places. (dynamic, version 0.1)
 
-Better. Bro can also show us what exactly the plugin provides with the
+Bro can also show us what exactly the plugin provides with the
 more verbose option ``-NN``::
 
     # bro -NN
     [...]
-    Plugin: Demo::Rot13 - Caesar cipher rotating a string's characters by 13 places. (dynamic, version 1)
+    Demo::Rot13 - Caesar cipher rotating a string's characters by 13 places. (dynamic, version 0.1)
         [Function] Demo::rot13
     [...]
 
@@ -157,10 +159,12 @@ The installed version went into
 ``<bro-install-prefix>/lib/bro/plugins/Demo_Rot13``.
 
 One can distribute the plugin independently of Bro for others to use.
-To distribute in source form, just remove the ``build/`` (``make
-distclean`` does that) and then tar up the whole ``rot13-plugin/``
+To distribute in source form, just remove the ``build/`` directory
+(``make distclean`` does that) and then tar up the whole ``rot13-plugin/``
 directory. Others then follow the same process as above after
-unpacking. To distribute the plugin in binary form, the build process
+unpacking.
+
+To distribute the plugin in binary form, the build process
 conveniently creates a corresponding tarball in ``build/dist/``. In
 this case, it's called ``Demo_Rot13-0.1.tar.gz``, with the version
 number coming out of the ``VERSION`` file that ``init-plugin`` put
@@ -169,14 +173,14 @@ plugin, but no further source files. Optionally, one can include
 further files by specifying them in the plugin's ``CMakeLists.txt``
 through the ``bro_plugin_dist_files`` macro; the skeleton does that
 for ``README``, ``VERSION``, ``CHANGES``, and ``COPYING``. To use the
-plugin through the binary tarball, just unpack it and point
-``BRO_PLUGIN_PATH`` there; or copy it into
-``<bro-install-prefix>/lib/bro/plugins/`` directly.
+plugin through the binary tarball, just unpack it into
+``<bro-install-prefix>/lib/bro/plugins/``.  Alternatively, if you unpack
+it in another location, then you need to point ``BRO_PLUGIN_PATH`` there.
 
 Before distributing your plugin, you should edit some of the meta
 files that ``init-plugin`` puts in place. Edit ``README`` and
 ``VERSION``, and update ``CHANGES`` when you make changes. Also put a
-license file in place as ``COPYING``; if BSD is fine, you find a
+license file in place as ``COPYING``; if BSD is fine, you will find a
 template in ``COPYING.edit-me``.
 
 Plugin Directory Layout
@@ -193,7 +197,7 @@ directory. With the skeleton, ``<base>`` corresponds to ``build/``.
     must exist, and its content must consist of a single line with the
     qualified name of the plugin (e.g., "Demo::Rot13").
 
-``<base>/lib/<plugin-name>-<os>-<arch>.so``
+``<base>/lib/<plugin-name>.<os>-<arch>.so``
     The shared library containing the plugin's compiled code. Bro will
     load this in dynamically at run-time if OS and architecture match
     the current platform.
@@ -205,8 +209,15 @@ directory. With the skeleton, ``<base>`` corresponds to ``build/``.
     "@load"ed.
 
 ``scripts``/__load__.bro
-    A Bro script that will be loaded immediately when the plugin gets
-    activated. See below for more information on activating plugins.
+    A Bro script that will be loaded when the plugin gets activated.
+    When this script executes, any BiF elements that the plugin
+    defines will already be available. See below for more information
+    on activating plugins.
+
+``scripts``/__preload__.bro
+    A Bro script that will be loaded when the plugin gets activated,
+    but before any BiF elements become available. See below for more
+    information on activating plugins.
 
 ``lib/bif/``
     Directory with auto-generated Bro scripts that declare the plugin's
@@ -215,8 +226,8 @@ directory. With the skeleton, ``<base>`` corresponds to ``build/``.
 Any other files in ``<base>`` are ignored by Bro.
 
 By convention, a plugin should put its custom scripts into sub folders
-of ``scripts/``, i.e., ``scripts/<script-namespace>/<script>.bro`` to
-avoid conflicts. As usual, you can then put a ``__load__.bro`` in
+of ``scripts/``, i.e., ``scripts/<plugin-namespace>/<plugin-name>/<script>.bro``
+to avoid conflicts. As usual, you can then put a ``__load__.bro`` in
 there as well so that, e.g., ``@load Demo/Rot13`` could load a whole
 module in the form of multiple individual scripts.
 
@@ -242,7 +253,8 @@ as well as the ``__bro_plugin__`` magic file and any further
 distribution files specified in ``CMakeLists.txt`` (e.g., README,
 VERSION). You can find a full list of files installed in
 ``build/MANIFEST``. Behind the scenes, ``make install`` really just
-copies over the binary tarball in ``build/dist``. 
+unpacks the binary tarball from ``build/dist`` into the destination
+directory.
 
 ``init-plugin`` will never overwrite existing files. If its target
 directory already exists, it will by default decline to do anything.
@@ -274,7 +286,9 @@ Activating a plugin will:
     1. Load the dynamic module
     2. Make any bif items available
     3. Add the ``scripts/`` directory to ``BROPATH``
-    4. Load ``scripts/__load__.bro``
+    4. Load ``scripts/__preload__.bro``
+    5. Make BiF elements available to scripts.
+    6. Load ``scripts/__load__.bro``
 
 By default, Bro will automatically activate all dynamic plugins found
 in its search path ``BRO_PLUGIN_PATH``. However, in bare mode (``bro
@@ -369,18 +383,19 @@ Testing Plugins
 ===============
 
 A plugin should come with a test suite to exercise its functionality.
-The ``init-plugin`` script puts in place a basic </btest/README> setup
+The ``init-plugin`` script puts in place a basic
+:doc:`BTest <../../components/btest/README>` setup
 to start with. Initially, it comes with a single test that just checks
 that Bro loads the plugin correctly. It won't have a baseline yet, so
 let's get that in place::
 
     # cd tests
     # btest -d
-    [  0%] plugin.loading ... failed
+    [  0%] rot13.show-plugin ... failed
     % 'btest-diff output' failed unexpectedly (exit code 100)
     % cat .diag
     == File ===============================
-    Demo::Rot13 - Caesar cipher rotating a string's characters by 13 places. (dynamic, version 1.0)
+    Demo::Rot13 - Caesar cipher rotating a string's characters by 13 places. (dynamic, version 0.1)
         [Function] Demo::rot13
 
     == Error ===============================
@@ -413,8 +428,8 @@ correctly::
 
 Check the output::
 
-    # btest -d plugin/rot13.bro
-    [  0%] plugin.rot13 ... failed
+    # btest -d rot13/bif-rot13.bro
+    [  0%] rot13.bif-rot13 ... failed
     % 'btest-diff output' failed unexpectedly (exit code 100)
     % cat .diag
     == File ===============================
@@ -429,7 +444,7 @@ Check the output::
 
 Install the baseline::
 
-    # btest -U plugin/rot13.bro
+    # btest -U rot13/bif-rot13.bro
     all 1 tests successful
 
 Run the test-suite::
@@ -457,7 +472,7 @@ your plugin's debugging output with ``-B plugin-<name>``, where
 ``<name>`` is the name of the plugin as returned by its
 ``Configure()`` method, yet with the namespace-separator ``::``
 replaced with a simple dash. Example: If the plugin is called
-``Bro::Demo``, use ``-B plugin-Bro-Demo``. As usual, the debugging
+``Demo::Rot13``, use ``-B plugin-Demo-Rot13``. As usual, the debugging
 output will be recorded to ``debug.log`` if Bro's compiled in debug
 mode.
 

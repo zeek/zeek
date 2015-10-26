@@ -159,7 +159,7 @@
 #include <strings.h>
 #include <stdarg.h>
 
-#include "config.h"
+#include "bro-config.h"
 #ifdef TIME_WITH_SYS_TIME
 # include <sys/time.h>
 # include <time.h>
@@ -1453,7 +1453,7 @@ void RemoteSerializer::Process()
 	if ( packets.length() )
 		{
 		BufferedPacket* bp = packets[0];
-		Packet* p = bp->p;
+		const Packet* p = bp->p;
 
 		// FIXME: The following chunk of code is copied from
 		// net_packet_dispatch().  We should change that function
@@ -1465,14 +1465,12 @@ void RemoteSerializer::Process()
 		current_dispatched =
 			tmgr->Advance(network_time, max_timer_expires);
 
-		current_hdr = p->hdr;
-		current_pkt = p->pkt;
+		current_pkt = p;
 		current_pktsrc = 0;
 		current_iosrc = this;
-		sessions->NextPacket(p->time, p->hdr, p->pkt, p->hdr_size);
+		sessions->NextPacket(p->time, p);
 		mgr.Drain();
 
-		current_hdr = 0;	// done with these
 		current_pkt = 0;
 		current_iosrc = 0;
 

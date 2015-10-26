@@ -54,13 +54,16 @@ Here is a more detailed explanation of each attribute:
 
 .. bro:attr:: &redef
 
-    Allows for redefinition of initial values of global objects declared as
-    constant.
-
-    In this example, the constant (assuming it is global) can be redefined
-    with a :bro:keyword:`redef` at some later point::
+    Allows use of a :bro:keyword:`redef` to redefine initial values of
+    global variables (i.e., variables declared either :bro:keyword:`global`
+    or :bro:keyword:`const`).  Example::
 
         const clever = T &redef;
+        global cache_size = 256 &redef;
+
+    Note that a variable declared "global" can also have its value changed
+    with assignment statements (doesn't matter if it has the "&redef"
+    attribute or not).
 
 .. bro:attr:: &priority
 
@@ -173,13 +176,19 @@ Here is a more detailed explanation of each attribute:
 
     Rotates a file after a specified interval.
 
+    Note: This attribute is deprecated and will be removed in a future release.
+
 .. bro:attr:: &rotate_size
 
     Rotates a file after it has reached a given size in bytes.
 
+    Note: This attribute is deprecated and will be removed in a future release.
+
 .. bro:attr:: &encrypt
 
     Encrypts files right before writing them to disk.
+
+    Note: This attribute is deprecated and will be removed in a future release.
 
 .. bro:attr:: &raw_output
 
@@ -229,5 +238,4 @@ Here is a more detailed explanation of each attribute:
 
     The associated identifier is marked as deprecated and will be
     removed in a future version of Bro.  Look in the NEWS file for more
-    explanation and/or instructions to migrate code that uses deprecated
-    functionality.
+    instructions to migrate code that uses deprecated functionality.

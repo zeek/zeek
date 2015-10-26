@@ -225,17 +225,31 @@ event udp_session_done%(u: connection%);
 ##    ``ANALYZER_*`` constants right now.
 event scheduled_analyzer_applied%(c: connection, a: Analyzer::Tag%);
 
-## Generated for every packet Bro sees. This is a very low-level and expensive
-## event that should be avoided when at all possible. It's usually infeasible to
-## handle when processing even medium volumes of traffic in real-time. That
-## said, if you work from a trace and want to do some packet-level analysis,
-## it may come in handy.
+## Generated for every packet Bro sees that have a valid link-layer header. This
+## is a very very low-level and expensive event that should be avoided when at all
+## possible. It's usually infeasible to handle when processing even medium volumes
+## of traffic in real-time. That said, if you work from a trace and want to do some
+## packet-level analysis, it may come in handy.
+##
+## p: Information from the header of the packet that triggered the event.
+##
+## .. bro:see:: new_packet packet_contents
+event raw_packet%(p: raw_pkt_hdr%);
+
+## Generated for all packets that make it into Bro's connection processing. In
+## contrast to :bro:id:`raw_packet` this filters out some more packets that don't
+## pass certain sanity checks.
+##
+## This is a very low-level and expensive event that should be avoided when at all
+## possible. It's usually infeasible to handle when processing even medium volumes
+## of traffic in real-time. That said, if you work from a trace and want to do some
+## packet-level analysis, it may come in handy.
 ##
 ## c: The connection the packet is part of.
 ##
 ## p: Information from the header of the packet that triggered the event.
 ##
-## .. bro:see:: tcp_packet packet_contents
+## .. bro:see:: tcp_packet packet_contents raw_packet
 event new_packet%(c: connection, p: pkt_hdr%);
 
 ## Generated for every IPv6 packet that contains extension headers.
@@ -282,7 +296,8 @@ event packet_contents%(c: connection, contents: string%);
 ## reassembling a TCP stream, Bro buffers all payload until it sees the
 ## responder acking it. If during that time, the sender resends a chunk of
 ## payload but with different content than originally, this event will be
-## raised.
+## raised. In addition, if :bro:id:`tcp_max_old_segments` is larger than zero,
+## mismatches with that older still-buffered data will likewise trigger the event.
 ##
 ## c: The connection showing the inconsistency.
 ##
@@ -290,8 +305,14 @@ event packet_contents%(c: connection, contents: string%);
 ##
 ## t2: The new payload.
 ##
+## tcp_flags: A string with the TCP flags of the packet triggering the
+## inconsistency. In the string, each character corresponds to one set flag,
+## as follows: ``S`` -> SYN; ``F`` -> FIN; ``R`` -> RST; ``A`` -> ACK; ``P`` ->
+## PUSH. This string will not always be set, only if the information is available;
+## it's "best effort".
+##
 ## .. bro:see:: tcp_rexmit tcp_contents
-event rexmit_inconsistency%(c: connection, t1: string, t2: string%);
+event rexmit_inconsistency%(c: connection, t1: string, t2: string, tcp_flags: string%);
 
 ## Generated when a TCP endpoint acknowledges payload that Bro never saw.
 ##

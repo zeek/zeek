@@ -120,9 +120,9 @@ export {
 		[18] = "signed_certificate_timestamp",
 		[19] = "client_certificate_type",
 		[20] = "server_certificate_type",
-		[21] = "padding", # temporary till 2015-03-12
+		[21] = "padding", # temporary till 2016-03-12
 		[22] = "encrypt_then_mac",
-		[23] = "extended_master_secret", # temporary till 2015-09-26
+		[23] = "extended_master_secret",
 		[35] = "SessionTicket TLS",
 		[40] = "extended_random",
 		[13172] = "next_protocol_negotiation",
@@ -169,7 +169,8 @@ export {
 		[256] = "ffdhe2048",
 		[257] = "ffdhe3072",
 		[258] = "ffdhe4096",
-		[259] = "ffdhe8192",
+		[259] = "ffdhe6144",
+		[260] = "ffdhe8192",
 		[0xFF01] = "arbitrary_explicit_prime_curves",
 		[0xFF02] = "arbitrary_explicit_char2_curves"
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };

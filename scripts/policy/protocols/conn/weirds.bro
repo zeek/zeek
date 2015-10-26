@@ -19,12 +19,12 @@ export {
 	};
 }
 
-event rexmit_inconsistency(c: connection, t1: string, t2: string)
+event rexmit_inconsistency(c: connection, t1: string, t2: string, tcp_flags: string)
 	{
 	NOTICE([$note=Retransmission_Inconsistency,
 	        $conn=c,
-	        $msg=fmt("%s rexmit inconsistency (%s) (%s)",
-	                 id_string(c$id), t1, t2),
+	        $msg=fmt("%s rexmit inconsistency (%s) (%s) [%s]",
+	                 id_string(c$id), t1, t2, tcp_flags),
 	        $identifier=fmt("%s", c$id)]);
 	}
 

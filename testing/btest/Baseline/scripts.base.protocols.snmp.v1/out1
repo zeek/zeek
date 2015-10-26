@@ -55,7 +55,7 @@ snmp_response
     error_stat: 0
     error_idx:  0
     oid: 1.3.6.1.2.1.2.2.1.6.1
-    value (tag=0x04): ^H\07^U\xe6\xbc
+    value (tag=0x04): \x08\x007\x15\xe6\xbc
 snmp_get_request
   [orig_h=172.31.19.54, orig_p=15919/udp, resp_h=172.31.19.73, resp_p=161/udp]
   is_orig: T
@@ -175,7 +175,7 @@ snmp_response
     error_stat: 0
     error_idx:  0
     oid: 1.3.6.1.2.1.2.2.1.6.1
-    value (tag=0x04): ^H\07^U\xe6\xbc
+    value (tag=0x04): \x08\x007\x15\xe6\xbc
 snmp_get_request
   [orig_h=172.31.19.54, orig_p=15925/udp, resp_h=172.31.19.73, resp_p=161/udp]
   is_orig: T
@@ -295,7 +295,7 @@ snmp_response
     error_stat: 0
     error_idx:  0
     oid: 1.3.6.1.2.1.2.2.1.6.1
-    value (tag=0x04): ^H\07^U\xe6\xbc
+    value (tag=0x04): \x08\x007\x15\xe6\xbc
 snmp_get_request
   [orig_h=172.31.19.54, orig_p=15931/udp, resp_h=172.31.19.73, resp_p=161/udp]
   is_orig: T

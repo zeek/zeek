@@ -42,6 +42,9 @@ TCP_Reassembler::TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer,
 	seq_to_skip = 0;
 	in_delivery = false;
 
+	if ( tcp_max_old_segments )
+		SetMaxOldBlocks(tcp_max_old_segments);
+
 	if ( tcp_contents )
 		{
 		// Val dst_port_val(ntohs(Conn()->RespPort()), TYPE_PORT);
@@ -430,8 +433,13 @@ void TCP_Reassembler::Overlap(const u_char* b1, const u_char* b2, uint64 n)
 		{
 		BroString* b1_s = new BroString((const u_char*) b1, n, 0);
 		BroString* b2_s = new BroString((const u_char*) b2, n, 0);
-		tcp_analyzer->Event(rexmit_inconsistency,
-					new StringVal(b1_s), new StringVal(b2_s));
+
+		val_list* vl = new val_list(3);
+		vl->append(tcp_analyzer->BuildConnVal());
+		vl->append(new StringVal(b1_s));
+		vl->append(new StringVal(b2_s));
+		vl->append(new StringVal(flags.AsString()));
+		tcp_analyzer->ConnectionEvent(rexmit_inconsistency, vl);
 		}
 	}
 
@@ -458,7 +466,7 @@ void TCP_Reassembler::Deliver(uint64 seq, int len, const u_char* data)
 	}
 
 int TCP_Reassembler::DataSent(double t, uint64 seq, int len,
-				const u_char* data, bool replaying)
+				const u_char* data, TCP_Flags arg_flags, bool replaying)
 	{
 	uint64 ack = endp->ToRelativeSeqSpace(endp->AckSeq(), endp->AckWraps());
 	uint64 upper_seq = seq + len;
@@ -489,7 +497,9 @@ int TCP_Reassembler::DataSent(double t, uint64 seq, int len,
 		len -= amount_acked;
 		}
 
+	flags = arg_flags;
 	NewBlock(t, seq, len, data);
+	flags = TCP_Flags();
 
 	if ( Endpoint()->NoDataAcked() && tcp_max_above_hole_without_any_acks &&
 	     NumUndeliveredBytes() > static_cast<uint64>(tcp_max_above_hole_without_any_acks) )

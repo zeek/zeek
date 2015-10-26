@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "config.h"
+#include "bro-config.h"
 #include "util-config.h"
 
 #ifdef TIME_WITH_SYS_TIME
@@ -141,10 +141,16 @@ ODesc* get_escaped_string(ODesc* d, const char* str, size_t len,
 
 		if ( escape_all || isspace(c) || ! isascii(c) || ! isprint(c) )
 			{
-			char hex[4] = {'\\', 'x', '0', '0' };
-			bytetohex(c, hex + 2);
-			d->AddRaw(hex, 4);
+			if ( c == '\\' )
+				d->AddRaw("\\\\", 2);
+			else
+				{
+				char hex[4] = {'\\', 'x', '0', '0' };
+				bytetohex(c, hex + 2);
+				d->AddRaw(hex, 4);
+				}
 			}
+
 		else
 			d->AddRaw(&c, 1);
 		}

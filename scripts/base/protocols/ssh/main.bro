@@ -93,6 +93,10 @@ function set_session(c: connection)
 		info$ts  = network_time();
 		info$uid = c$uid;
 		info$id  = c$id;
+
+		# If both hosts are local or non-local, we can't reliably set a direction.
+		if ( Site::is_local_addr(c$id$orig_h) != Site::is_local_addr(c$id$resp_h) )
+			info$direction = Site::is_local_addr(c$id$orig_h) ? OUTBOUND: INBOUND;
 		c$ssh = info;
 		}
 	}
@@ -114,7 +118,7 @@ event ssh_client_version(c: connection, version: string)
 		c$ssh$version = 2;
 	}
 
-event ssh_auth_successful(c: connection, auth_method_none: bool)
+event ssh_auth_successful(c: connection, auth_method_none: bool) &priority=5
 	{
 	# TODO - what to do here?
 	if ( !c?$ssh || ( c$ssh?$auth_success && c$ssh$auth_success ) )
@@ -142,7 +146,7 @@ event ssh_auth_successful(c: connection, auth_method_none: bool) &priority=-5
 		}
 	}
 
-event ssh_auth_failed(c: connection)
+event ssh_auth_failed(c: connection) &priority=5
 	{
 	if ( !c?$ssh || ( c$ssh?$auth_success && !c$ssh$auth_success ) )
 		return;

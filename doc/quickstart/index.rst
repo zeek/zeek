@@ -24,9 +24,10 @@ Managing Bro with BroControl
 BroControl is an interactive shell for easily operating/managing Bro
 installations on a single system or even across multiple systems in a
 traffic-monitoring cluster.  This section explains how to use BroControl
-to manage a stand-alone Bro installation.  For instructions on how to
-configure a Bro cluster, see the :doc:`Cluster Configuration
-<../configuration/index>` documentation.
+to manage a stand-alone Bro installation.  For a complete reference on
+BroControl, see the :doc:`BroControl <../components/broctl/README>`
+documentation.  For instructions on how to configure a Bro cluster,
+see the :doc:`Cluster Configuration <../configuration/index>` documentation.
 
 A Minimal Starting Configuration
 --------------------------------

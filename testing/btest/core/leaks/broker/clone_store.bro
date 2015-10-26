@@ -14,13 +14,13 @@
 const broker_port: port &redef;
 redef exit_only_after_terminate = T;
 
-global h: opaque of BrokerStore::Handle;
+global h: opaque of Broker::Handle;
 global expected_key_count = 4;
 global key_count = 0;
 
 function do_lookup(key: string)
 	{
-	when ( local res = BrokerStore::lookup(h, Broker::data(key)) )
+	when ( local res = Broker::lookup(h, Broker::data(key)) )
 		{
 		++key_count;
 		print "lookup", key, res;
@@ -34,9 +34,9 @@ function do_lookup(key: string)
 
 event ready()
 	{
-	h = BrokerStore::create_clone("mystore");
+	h = Broker::create_clone("mystore");
 
-	when ( local res = BrokerStore::keys(h) )
+	when ( local res = Broker::keys(h) )
 		{
 		print "clone keys", res;
 		do_lookup(Broker::refine_to_string(Broker::vector_lookup(res$result, 0)));
@@ -62,7 +62,7 @@ event bro_init()
 const broker_port: port &redef;
 redef exit_only_after_terminate = T;
 
-global h: opaque of BrokerStore::Handle;
+global h: opaque of Broker::Handle;
 
 function dv(d: Broker::Data): Broker::DataVector
 	{
@@ -86,18 +86,18 @@ event Broker::outgoing_connection_established(peer_address: string,
 	{
 	local myset: set[string] = {"a", "b", "c"};
 	local myvec: vector of string = {"alpha", "beta", "gamma"};
-	BrokerStore::insert(h, Broker::data("one"), Broker::data(110));
-	BrokerStore::insert(h, Broker::data("two"), Broker::data(223));
-	BrokerStore::insert(h, Broker::data("myset"), Broker::data(myset));
-	BrokerStore::insert(h, Broker::data("myvec"), Broker::data(myvec));
-	BrokerStore::increment(h, Broker::data("one"));
-	BrokerStore::decrement(h, Broker::data("two"));
-	BrokerStore::add_to_set(h, Broker::data("myset"), Broker::data("d"));
-	BrokerStore::remove_from_set(h, Broker::data("myset"), Broker::data("b"));
-	BrokerStore::push_left(h, Broker::data("myvec"), dv(Broker::data("delta")));
-	BrokerStore::push_right(h, Broker::data("myvec"), dv(Broker::data("omega")));
+	Broker::insert(h, Broker::data("one"), Broker::data(110));
+	Broker::insert(h, Broker::data("two"), Broker::data(223));
+	Broker::insert(h, Broker::data("myset"), Broker::data(myset));
+	Broker::insert(h, Broker::data("myvec"), Broker::data(myvec));
+	Broker::increment(h, Broker::data("one"));
+	Broker::decrement(h, Broker::data("two"));
+	Broker::add_to_set(h, Broker::data("myset"), Broker::data("d"));
+	Broker::remove_from_set(h, Broker::data("myset"), Broker::data("b"));
+	Broker::push_left(h, Broker::data("myvec"), dv(Broker::data("delta")));
+	Broker::push_right(h, Broker::data("myvec"), dv(Broker::data("omega")));
 
-	when ( local res = BrokerStore::size(h) )
+	when ( local res = Broker::size(h) )
 		{ event ready(); }
 	timeout 10sec
 		{ print "timeout"; }
@@ -107,7 +107,7 @@ event bro_init()
 	{
 	Broker::enable();
 	Broker::auto_event("bro/event/ready", ready);
-	h = BrokerStore::create_master("mystore");
+	h = Broker::create_master("mystore");
 	Broker::connect("127.0.0.1", broker_port, 1secs);
 	}
 

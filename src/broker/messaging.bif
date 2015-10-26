@@ -36,7 +36,7 @@ function Broker::__unsubscribe_to_prints%(topic_prefix: string%): bool
 	%}
 
 ## Create a data structure that may be used to send a remote event via
-## :bro:see:`Broker::event`.
+## :bro:see:`Broker::send_event`.
 ##
 ## args: an event, followed by a list of argument values that may be used
 ##       to call it.

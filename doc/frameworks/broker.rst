@@ -192,8 +192,8 @@ last modification time.
 .. btest-include:: ${DOC_ROOT}/frameworks/broker/stores-connector.bro
 
 In the above example, if a local copy of the store contents isn't
-needed, just replace the :bro:see:`BrokerStore::create_clone` call with
-:bro:see:`BrokerStore::create_frontend`.  Queries will then be made against
+needed, just replace the :bro:see:`Broker::create_clone` call with
+:bro:see:`Broker::create_frontend`.  Queries will then be made against
 the remote master store instead of the local clone.
 
 Note that all data store queries must be made within Bro's asynchronous

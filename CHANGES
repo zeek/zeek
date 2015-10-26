@@ -1,4 +1,8 @@
 
+2.4-187 | 2015-10-26 13:43:32 -0700
+
+  * Updating NEWS for new plugins. (Robin Sommer)
+
 2.4-186 | 2015-10-23 15:07:06 -0700
 
   * Removing pcap options for AF_PACKET support. Addresses BIT-1363.

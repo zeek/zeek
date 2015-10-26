@@ -426,7 +426,7 @@ void* Dictionary::Insert(DictEntry* new_entry, int copy_key)
 				}
 			}
 		}
-	else 
+	else
 		// Create new chain.
 		chain = ttbl[h] = new PList(DictEntry);
 

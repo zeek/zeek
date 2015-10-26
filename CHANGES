@@ -1,4 +1,8 @@
 
+2.4-200 | 2015-10-26 16:57:39 -0700
+
+  * Adding missing file. (Robin Sommer)
+
 2.4-199 | 2015-10-26 16:51:47 -0700
 
   * Fix problem with the JSON Serialization code. (Aaron Eppert)

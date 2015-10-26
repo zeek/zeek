@@ -1,4 +1,10 @@
 
+2.4-188 | 2015-10-26 14:11:21 -0700
+
+  * Extending rexmit_inconsistency() event to receive an additional
+    parameter with the packet's TCP flags, if available. (Robin
+    Sommer)
+
 2.4-187 | 2015-10-26 13:43:32 -0700
 
   * Updating NEWS for new plugins. (Robin Sommer)

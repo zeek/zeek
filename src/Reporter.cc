@@ -88,11 +88,7 @@ void Reporter::FatalError(const char* fmt, ...)
 	va_end(ap);
 
 	set_processing_status("TERMINATED", "fatal_error");
-#ifdef DEBUG
-	abort();
-#else
 	exit(1);
-#endif // DEBUG
 	}
 
 void Reporter::FatalErrorWithCore(const char* fmt, ...)

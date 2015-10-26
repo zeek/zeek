@@ -86,7 +86,7 @@ bool bro_broker::Manager::Enable(Val* broker_endpoint_flags)
 	bro_broker::opaque_of_table_iterator = new OpaqueType("Broker::TableIterator");
 	bro_broker::opaque_of_vector_iterator = new OpaqueType("Broker::VectorIterator");
 	bro_broker::opaque_of_record_iterator = new OpaqueType("Broker::RecordIterator");
-	bro_broker::opaque_of_store_handle = new OpaqueType("BrokerStore::Handle");
+	bro_broker::opaque_of_store_handle = new OpaqueType("Broker::Handle");
 	vector_of_data_type = new VectorType(internal_type("Broker::Data")->Ref());
 
 	auto res = broker::init();

@@ -38,6 +38,6 @@ event bro_init() &priority=5
 	Cluster::register_broker_events(prefix, Cluster::datanode2worker_events);
 
 	# Create the master store
-	Cluster::cluster_store = BrokerStore::create_master("cluster-store");
+	Cluster::cluster_store = Broker::create_master("cluster-store");
 	}
 

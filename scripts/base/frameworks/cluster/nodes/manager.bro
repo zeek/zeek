@@ -37,5 +37,5 @@ event bro_init() &priority=5
 event bro_init() &priority=-10
 	{
 	# Create clone of the master store
-	Cluster::cluster_store = BrokerStore::create_clone("cluster-store");
+	Cluster::cluster_store = Broker::create_clone("cluster-store");
 	}

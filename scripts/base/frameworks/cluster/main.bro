@@ -133,7 +133,7 @@ export {
 	const node = getenv("CLUSTER_NODE") &redef;
 
 	## The local datastore that can be either master or clone
-	global cluster_store: opaque of BrokerStore::Handle;
+	global cluster_store: opaque of Broker::Handle;
 
 	# Set the correct name of this endpoint according to cluster-layout
 	redef Broker::endpoint_name = node;

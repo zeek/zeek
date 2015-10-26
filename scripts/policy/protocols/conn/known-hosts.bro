@@ -52,7 +52,7 @@ event bro_init() &priority=-11
 	if(Cluster::is_enabled())
 		{
 		# FIXME ExpiryTime needs to be added
-		local res = BrokerStore::insert(Cluster::cluster_store, Broker::data("known_hosts"), Broker::data(k_hosts));
+		local res = Broker::insert(Cluster::cluster_store, Broker::data("known_hosts"), Broker::data(k_hosts));
 		}
 	}
 
@@ -67,19 +67,19 @@ event connection_established(c: connection) &priority=5
 					c$resp$state == TCP_ESTABLISHED &&
 					addr_matches_host(host, host_tracking))
 				{
-				when (local res = BrokerStore::exists(Cluster::cluster_store, Broker::data("known_hosts")))
+				when (local res = Broker::exists(Cluster::cluster_store, Broker::data("known_hosts")))
 					{
 					local res_bool = Broker::refine_to_bool(res$result);
 
 					if(res_bool)
 						{
-						when ( local res2 = BrokerStore::lookup(Cluster::cluster_store, Broker::data("known_hosts")) )
+						when ( local res2 = Broker::lookup(Cluster::cluster_store, Broker::data("known_hosts")) )
 							{
 							local res2_bool = Broker::set_contains(res2$result, Broker::data(host));
 
 							if(!res2_bool)
 								{
-								BrokerStore::add_to_set(Cluster::cluster_store, Broker::data("known_hosts"), Broker::data(host));
+								Broker::add_to_set(Cluster::cluster_store, Broker::data("known_hosts"), Broker::data(host));
 								Log::write(Known::HOSTS_LOG, [$ts=network_time(), $host=host]);
 								}
 							}

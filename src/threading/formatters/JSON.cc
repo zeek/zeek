@@ -35,8 +35,14 @@ bool JSON::Describe(ODesc* desc, int num_fields, const Field* const * fields,
 		const u_char* bytes = desc->Bytes();
 		int len = desc->Len();
 
-		if ( i > 0 && len > 0 && bytes[len-1] != ',' && vals[i]->present )
-			desc->AddRaw(",");
+		if ( i > 0 && len > 0 && bytes[len-1] != ',' && vals[i]->present ) {
+			// Issue if the first value of a record is optional AND not present
+			// then an empty json field will be produced, which is invalid.
+			// - ANE - 10/26/2015
+			if (len > 1 && bytes[len-1] != '{') {
+				desc->AddRaw(",");
+			}
+		}
 
 		if ( ! Describe(desc, vals[i], fields[i]->name) )
 			return false;

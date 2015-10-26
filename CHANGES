@@ -1,4 +1,8 @@
 
+2.4-199 | 2015-10-26 16:51:47 -0700
+
+  * Fix problem with the JSON Serialization code. (Aaron Eppert)
+
 2.4-188 | 2015-10-26 14:11:21 -0700
 
   * Extending rexmit_inconsistency() event to receive an additional

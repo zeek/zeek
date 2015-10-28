@@ -1,4 +1,3 @@
-# @TEST-KNOWN-FAILURE: fails due to auto_publish/auto_advertise flags
 # @TEST-SERIALIZE: comm
 #
 # @TEST-REQUIRES: ifconfig | grep -q -E "inet6 ::1|inet6 addr: ::1"
@@ -18,6 +17,8 @@ redef Communication::nodes += {
     ["foo"] = [$host=[::1], $connect=T, $retry=1sec]
 };
 
+redef Broker::endpoint_name="sender";
+
 global my_event: event(s: string);
 
 event bro_init() &priority=5
@@ -29,7 +30,7 @@ event Broker::outgoing_connection_established(peer_address: string,
                                              peer_port: port,
                                              peer_name: string)
 	{
-	print fmt("handshake done with peer: %s", peer_address);
+	print fmt("outgoing connection established with peer: %s", peer_address);
 	}
 
 event my_event(s: string)
@@ -51,9 +52,14 @@ redef Communication::listen_interface=[::];
 
 global my_event: event(s: string);
 
+event bro_init() &priority=5
+	{
+	Broker::publish_topic("bro/event/my_event");
+	}
+
 event Broker::incoming_connection_established(peer_name: string)
 	{
-	print fmt("handshake done with peer: %s", peer_name);
+	print fmt("incoming connection established with peer: %s", peer_name);
 	Broker::send_event("bro/event/my_event", Broker::event_args(my_event, "hello world"));
 	}
 

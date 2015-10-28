@@ -1,4 +1,3 @@
-# @TEST-KNOWN-FAILURE: fails due to auto_publish/auto_advertise flags
 # @TEST-SERIALIZE: brokercomm
 # @TEST-REQUIRES: grep -q ENABLE_BROKER $BUILD/CMakeCache.txt
 
@@ -21,6 +20,7 @@ event bro_init()
 	{
 	Broker::enable();
 	Broker::subscribe_to_events("bro/event/");
+	Broker::publish_topic("bro/event/my_topic");
 	Broker::auto_event("bro/event/my_topic", auto_event_handler);
 	Broker::listen(broker_port, "127.0.0.1");
 	}
@@ -58,6 +58,7 @@ event bro_init()
 	{
 	Broker::enable();
 	Broker::subscribe_to_events("bro/event/my_topic");
+	Broker::publish_topic("bro/event/hi");
 	Broker::connect("127.0.0.1", broker_port, 1secs);
 	}
 

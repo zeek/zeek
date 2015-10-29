@@ -86,7 +86,7 @@ event Broker::incoming_connection_established(peer_name: string)
 
 #####
 
-redef Communication::nodes += {
+redef Broker::nodes += {
     ["foo"] = [$host = 127.0.0.1, $connect=T, $request_logs=T]
 };
 

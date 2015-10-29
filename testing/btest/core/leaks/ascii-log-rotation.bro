@@ -16,7 +16,7 @@
 @load base/frameworks/broker/communication
 @load base/protocols/dns
 
-redef Communication::nodes += {
+redef Broker::nodes += {
     ["foo"] = [$host = 127.0.0.1, $connect=T]
 };
 
@@ -55,7 +55,7 @@ event remote_connection_closed(p: event_peer)
 @load frameworks/broker/listen
 @load base/protocols/dns
 
-redef Communication::nodes += {
+redef Broker::nodes += {
 	["foo"] = [$host = 127.0.0.1, $connect=F, $request_logs=T]
 };
 

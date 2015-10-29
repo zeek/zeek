@@ -13,7 +13,7 @@
 
 @load base/frameworks/broker/communication
 
-redef Communication::nodes += {
+redef Broker::nodes += {
     ["foo"] = [$host=[::1], $connect=T, $retry=1sec]
 };
 
@@ -48,7 +48,7 @@ event my_event(s: string)
 @load frameworks/broker/listen
 
 redef exit_only_after_terminate = T;
-redef Communication::listen_interface=[::];
+redef Broker::listen_interface=[::];
 
 global my_event: event(s: string);
 

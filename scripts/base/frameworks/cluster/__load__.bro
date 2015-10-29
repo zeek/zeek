@@ -24,7 +24,7 @@ redef peer_description = Cluster::node;
 @load policy/frameworks/broker/listen
 
 ## Set the port that this node is supposed to listen on.
-redef Communication::listen_port = Cluster::nodes[Cluster::node]$p;
+redef Broker::listen_port = Cluster::nodes[Cluster::node]$p;
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
 @load ./nodes/manager

@@ -4,7 +4,7 @@
 #@load base/frameworks/packet-filter
 #@load base/utils/addrs
 
-module Communication;
+module Broker;
 
 export {
 
@@ -27,14 +27,14 @@ export {
 	## Note that this is overridden by the BroControl IPv6Comm option.
 	const listen_ipv6 = F &redef;
 
-	## If :bro:id:`Communication::listen_interface` is a non-global
+	## If :bro:id:`Broker::listen_interface` is a non-global
 	## IPv6 address and requires a specific :rfc:`4007` ``zone_id``,
 	## it can be specified here.
 	const listen_ipv6_zone_id = "" &redef;
 
 	## Defines the interval at which to retry binding to
-	## :bro:id:`Communication::listen_interface` on
-	## :bro:id:`Communication::listen_port` if it's already in use.
+	## :bro:id:`Broker::listen_interface` on
+	## :bro:id:`Broker::listen_port` if it's already in use.
 	const listen_retry = 30 secs &redef;
 
 	## Default compression level.  Compression level is 0-9, with 0 = no
@@ -121,7 +121,7 @@ export {
 	global nodes: table[string] of Node &redef;
 
 	## A table of peer nodes for which this node issued a
-	## :bro:id:`Communication::connect_peer` call but with which a connection
+	## :bro:id:`Broker::connect_peer` call but with which a connection
 	## has not yet been established or with which a connection has been
 	## closed and is currently in the process of retrying to establish.
 	## When a connection is successfully established, the peer is removed
@@ -139,11 +139,11 @@ export {
 	## TODO Currently this is a hack as broker should return the peer-name in call cases
 	global peer_mapping: table[string] of string;
 
-	## Connect to a node in :bro:id:`Communication::nodes` independent
+	## Connect to a node in :bro:id:`Broker::nodes` independent
 	## of its "connect" flag.
 	##
 	## peer: the string used to index a particular node within the
-	##      :bro:id:`Communication::nodes` table.
+	##      :bro:id:`Broker::nodes` table.
 	global connect_peer: function(peer: string);
 
 	global reconnect_interval: interval = 1 secs;
@@ -160,7 +160,7 @@ const src_names = {
 
 function do_script_log_common(peer_name: string, level: count, src: count, msg: string)
 	{
-	#Log::write(Communication::LOG, [$ts = network_time(),
+	#Log::write(Broker::LOG, [$ts = network_time(),
 	#                                $level = (level == REMOTE_LOG_INFO ? "info" : "error"),
 	#                                $src_name = src_names[src],
 	#                                $peer = peer_name,
@@ -185,7 +185,7 @@ function connect_peer(peer: string)
 	local succ = Broker::connect(fmt("%s", node$host), p, node$retry);
 
 	#if ( !succ )
-	#	Log::write(Communication::LOG, [$ts = network_time(),
+	#	Log::write(Broker::LOG, [$ts = network_time(),
 	#	                                $peer = peer,
 	#	                                $message = "can't trigger connect"]);
 	local id = fmt("%s:%s", node$host, p);
@@ -227,7 +227,7 @@ event Broker::outgoing_connection_established(peer_address: string, peer_port: p
 	setup_peer(peer_name, node);
 	peer_mapping[fmt("%s::%s", peer_address, peer_port)] = peer_name;
 
-	event Communication::outgoing_connection_established_event(peer_name);
+	event Broker::outgoing_connection_established_event(peer_name);
 	}
 
 event Broker::outgoing_connection_broken(peer_address: string, peer_port: port, peer_name: string)
@@ -268,7 +268,7 @@ event bro_init() &priority=10
 
 event bro_init() &priority=5
 	{
-	#Log::create_stream(Communication::LOG, [$columns=Info, $path="communication"]);
+	#Log::create_stream(Broker::LOG, [$columns=Info, $path="broker"]);
 	}
 
 # Actually initiate the connections that need to be established.

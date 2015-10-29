@@ -23,9 +23,9 @@ event Control::id_value_request(id: string)
 event Control::peer_status_request()
 	{
 	local status = "";
-	for ( p in Communication::nodes )
+	for ( p in Broker::nodes )
 		{
-		local peer = Communication::nodes[p];
+		local peer = Broker::nodes[p];
 		if ( ! peer$connected )
 			next;
 

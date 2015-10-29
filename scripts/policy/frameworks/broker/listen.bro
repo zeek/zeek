@@ -3,7 +3,7 @@
 
 @load base/frameworks/broker/communication
 
-module Communication;
+module Broker;
 
 event bro_init() &priority=-10
 	{

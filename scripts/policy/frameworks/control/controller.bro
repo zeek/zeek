@@ -26,7 +26,7 @@ event bro_init() &priority=5
 	
 	# Establish the communication configuration and only request response
 	# messages.
-	Communication::nodes["control"] = [$host=host, $zone_id=zone_id,
+	Broker::nodes["control"] = [$host=host, $zone_id=zone_id,
 	                                   $p=host_port, $connect=T,
 	                                   $class="control"];
 
@@ -101,7 +101,7 @@ function configuration_update_func(p: event_peer)
 	event terminate_event();
 	}
 
-event Communication::outgoing_connection_established_event(peer_name: string) &priority=-10
+event Broker::outgoing_connection_established_event(peer_name: string) &priority=-10
 	{
 	if ( cmd == "id_value" )
 		{

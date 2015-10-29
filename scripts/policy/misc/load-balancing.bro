@@ -83,7 +83,7 @@ event bro_init() &priority=5
 			if ( total_lb_procs > 1 )
 				{
 				that_node$lb_filter = PacketFilter::sampling_filter(total_lb_procs, this_lb_proc);
-				Communication::nodes[no]$capture_filter = that_node$lb_filter;
+				Broker::nodes[no]$capture_filter = that_node$lb_filter;
 				}
 			}
 		}

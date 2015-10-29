@@ -2,7 +2,8 @@
 
 # Scripts which are commented out in test-all-policy.bro.
 @load protocols/ssl/notary.bro
-@load frameworks/communication/listen.bro
+#@load frameworks/communication/listen.bro
+@load frameworks/broker/listen.bro
 @load frameworks/control/controllee.bro
 @load frameworks/control/controller.bro
 @load frameworks/files/extract-all-files.bro

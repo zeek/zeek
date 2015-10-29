@@ -7,7 +7,7 @@
 ##!     bro <scripts> frameworks/control/controller Control::host=<host_addr> Control::port=<host_port> Control::cmd=<command> [Control::arg=<arg>]
 
 @load base/frameworks/control
-@load base/frameworks/communication
+@load base/frameworks/broker/communication
 
 module Control;
 

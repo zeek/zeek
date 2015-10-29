@@ -2,7 +2,7 @@
 ##! as defined by :bro:id:`Cluster::nodes`.
 
 @load ./main
-@load base/frameworks/communication
+@load base/frameworks/broker/communication
 
 @if ( Cluster::node in Cluster::nodes )
 

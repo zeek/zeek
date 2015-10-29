@@ -2,6 +2,8 @@
 -./frameworks/cluster/nodes/manager.bro
 -./frameworks/cluster/nodes/worker.bro
 -./frameworks/cluster/setup-connections.bro
+-./frameworks/communication/__load__.bro
+-./frameworks/communication/main.bro
 -./frameworks/intel/cluster.bro
 -./frameworks/notice/cluster.bro
 -./frameworks/packet-filter/cluster.bro

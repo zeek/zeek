@@ -3,7 +3,7 @@
 # @TEST-EXEC: btest-diff out
 
 redef exit_only_after_terminate = T;
-@load base/frameworks/communication  # let network-time run. otherwise there are no heartbeats...
+@load base/frameworks/broker/communication  # let network-time run. otherwise there are no heartbeats...
 
 type Val: record {
 	s: string;

@@ -46,7 +46,7 @@ event bro_init()
 
 @TEST-START-FILE sender.bro
 
-@load frameworks/communication/listen
+@load frameworks/broker/listen
 
 module Test;
 
@@ -83,7 +83,7 @@ event remote_connection_closed(p: event_peer)
 
 #####
 
-@load base/frameworks/communication
+@load base/frameworks/broker/communication
 
 redef Communication::nodes += {
     ["foo"] = [$host = 127.0.0.1, $connect=T, $request_logs=T]

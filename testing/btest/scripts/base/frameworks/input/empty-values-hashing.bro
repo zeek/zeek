@@ -20,7 +20,7 @@
 2	TEST	TEST
 @TEST-END-FILE
 
-@load base/frameworks/communication  # let network-time run
+@load base/frameworks/broker/communication  # let network-time run
 
 redef exit_only_after_terminate = T;
 

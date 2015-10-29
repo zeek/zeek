@@ -51,7 +51,7 @@ event bro_init() &priority=5
 
 module Test;
 
-@load frameworks/communication/listen
+@load frameworks/broker/listen
 
 redef exit_only_after_terminate = T;
 

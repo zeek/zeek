@@ -13,7 +13,7 @@
 
 @TEST-START-FILE sender.bro
 
-@load base/frameworks/communication
+@load base/frameworks/broker/communication
 @load base/protocols/dns
 
 redef Communication::nodes += {
@@ -52,7 +52,7 @@ event remote_connection_closed(p: event_peer)
 
 @TEST-START-FILE receiver.bro
 
-@load frameworks/communication/listen
+@load frameworks/broker/listen
 @load base/protocols/dns
 
 redef Communication::nodes += {

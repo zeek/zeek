@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2015-09-28-21-35-19
+#open	2015-10-29-01-11-21
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -19,6 +19,8 @@ scripts/base/init-bare.bro
     scripts/base/frameworks/broker/main.bro
       build/scripts/base/bif/comm.bif.bro
       build/scripts/base/bif/messaging.bif.bro
+    scripts/base/frameworks/broker/store.bro
+      build/scripts/base/bif/store.bif.bro
   scripts/base/frameworks/logging/__load__.bro
     scripts/base/frameworks/logging/main.bro
       build/scripts/base/bif/logging.bif.bro
@@ -53,7 +55,6 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/cardinality-counter.bif.bro
     build/scripts/base/bif/top-k.bif.bro
     build/scripts/base/bif/data.bif.bro
-    build/scripts/base/bif/store.bif.bro
   build/scripts/base/bif/plugins/__load__.bro
     build/scripts/base/bif/plugins/Bro_ARP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_AYIYA.events.bif.bro
@@ -166,8 +167,7 @@ scripts/base/init-default.bro
     scripts/base/frameworks/packet-filter/netstats.bro
   scripts/base/frameworks/software/__load__.bro
     scripts/base/frameworks/software/main.bro
-  scripts/base/frameworks/communication/__load__.bro
-    scripts/base/frameworks/communication/main.bro
+  scripts/base/frameworks/broker/communication.bro
   scripts/base/frameworks/intel/__load__.bro
     scripts/base/frameworks/intel/main.bro
     scripts/base/frameworks/intel/input.bro
@@ -273,4 +273,4 @@ scripts/base/init-default.bro
   scripts/base/misc/find-checksum-offloading.bro
   scripts/base/misc/find-filtered-trace.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2015-09-28-21-35-19
+#close	2015-10-29-01-11-21

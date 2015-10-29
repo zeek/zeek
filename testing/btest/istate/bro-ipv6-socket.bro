@@ -11,7 +11,7 @@
 
 @TEST-START-FILE send.bro
 
-@load base/frameworks/communication
+@load base/frameworks/broker/communication
 
 redef Communication::nodes += {
     ["foo"] = [$host=[::1], $connect=T, $retry=1sec]
@@ -45,7 +45,7 @@ event my_event(s: string)
 
 @TEST-START-FILE recv.bro
 
-@load frameworks/communication/listen
+@load frameworks/broker/listen
 
 redef exit_only_after_terminate = T;
 redef Communication::listen_interface=[::];

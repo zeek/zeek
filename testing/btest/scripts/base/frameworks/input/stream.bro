@@ -21,7 +21,7 @@ T	-43	SSH::LOG	21	123	10.0.0.0/24	1.2.3.4	3.14	1315801931.273616	100.000000	hurz
 F	-43	SSH::LOG	21	123	10.0.0.0/24	1.2.3.4	3.14	1315801931.273616	100.000000	hurz	2,4,1,3	CC,AA,BB	EMPTY	10,20,30	EMPTY	SSH::foo\x0a{ \x0aif (0 < SSH::i) \x0a\x09return (Foo);\x0aelse\x0a\x09return (Bar);\x0a\x0a}
 @TEST-END-FILE
 
-@load base/frameworks/communication # keep network time running
+@load base/frameworks/broker/communication # keep network time running
 @load base/protocols/ssh
 redef exit_only_after_terminate = T;
 

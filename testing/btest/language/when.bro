@@ -4,7 +4,7 @@
 # @TEST-EXEC: mv test1/.stdout out
 # @TEST-EXEC: btest-diff out
 
-@load frameworks/communication/listen
+@load frameworks/broker/listen
 
 event bro_init()
 {

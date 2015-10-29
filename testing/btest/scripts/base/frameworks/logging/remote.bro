@@ -41,7 +41,7 @@ event bro_init() &priority=5
 
 @TEST-START-FILE sender.bro
 
-@load frameworks/communication/listen
+@load frameworks/broker/listen
 
 redef exit_only_after_terminate = T;
 
@@ -75,7 +75,7 @@ event Broker::incoming_connection_established(peer_name: string)
 
 #####
 
-@load base/frameworks/communication
+@load base/frameworks/broker/communication
 
 redef Communication::nodes += {
     ["foo"] = [$host = 127.0.0.1, $connect=T, $request_logs=T]

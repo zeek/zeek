@@ -2,8 +2,3 @@
 
 const Pcap::snaplen: count;
 const Pcap::bufsize: count;
-
-const Pcap::packet_fanout_enable: bool;
-const Pcap::packet_fanout_id: count;
-const Pcap::packet_fanout_defrag: bool;
-

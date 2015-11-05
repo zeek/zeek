@@ -349,7 +349,7 @@ type connection: record {
 	## The outer VLAN, if applicable, for this connection.
 	vlan: int &optional;
 
-	## The VLAN vlan, if applicable, for this connection.
+	## The inner VLAN, if applicable, for this connection.
 	inner_vlan: int &optional;
 };
 
@@ -3743,19 +3743,8 @@ export {
 	const snaplen = 8192 &redef;
 
 	## Number of Mbytes to provide as buffer space when capturing from live
-	## interfaces. 
+	## interfaces.
 	const bufsize = 128 &redef;
-
-	## Toggle whether to do packet fanout (Linux-only).
-	const packet_fanout_enable = F &redef;
-
-	## If packet fanout is enabled, the id to sue for it. This should be shared amongst
-	## worker processes processing the same socket.
-	const packet_fanout_id = 0 &redef;
-
-	## If packet fanout is enabled, whether packets are to be defragmented before
-	## fanout is applied.
-	const packet_fanout_defrag = T &redef;
 } # end export
 
 module GLOBAL;

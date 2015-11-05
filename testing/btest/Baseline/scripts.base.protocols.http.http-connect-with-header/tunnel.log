@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	tunnel
+#open	2015-10-23-20-09-55
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	tunnel_type	action
+#types	time	string	addr	port	addr	port	enum	enum
+1443732977.848660	-	::1	0	::1	80	Tunnel::HTTP	Tunnel::DISCOVER
+#close	2015-10-23-20-09-55

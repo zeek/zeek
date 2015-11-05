@@ -995,28 +995,9 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 
 				HTTP_Reply();
 
-				if ( connect_request && reply_code == 200 )
-					{
-					pia = new pia::PIA_TCP(Conn());
-
-					if ( AddChildAnalyzer(pia) )
-						{
-						pia->FirstPacket(true, 0);
-						pia->FirstPacket(false, 0);
-
-						// This connection has transitioned to no longer
-						// being http and the content line support analyzers
-						// need to be removed.
-						RemoveSupportAnalyzer(content_line_orig);
-						RemoveSupportAnalyzer(content_line_resp);
-
-						return;
-						}
-
-					else
-						// AddChildAnalyzer() will have deleted PIA.
-						pia = 0;
-					}
+				if ( connect_request && reply_code != 200 )
+					// Request failed, do not set up tunnel.
+					connect_request = false;
 
 				InitHTTPMessage(content_line,
 						reply_message, is_orig,
@@ -1036,6 +1017,30 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 
 		case EXPECT_REPLY_MESSAGE:
 			reply_message->Deliver(len, line, 1);
+
+			if ( connect_request && len == 0 )
+				{
+				// End of message header reached, set up
+				// tunnel decapsulation.
+				pia = new pia::PIA_TCP(Conn());
+
+				if ( AddChildAnalyzer(pia) )
+					{
+					pia->FirstPacket(true, 0);
+					pia->FirstPacket(false, 0);
+
+					// This connection has transitioned to no longer
+					// being http and the content line support analyzers
+					// need to be removed.
+					RemoveSupportAnalyzer(content_line_orig);
+					RemoveSupportAnalyzer(content_line_resp);
+					}
+
+				else
+					// AddChildAnalyzer() will have deleted PIA.
+					pia = 0;
+				}
+
 			break;
 
 		case EXPECT_REPLY_TRAILER:

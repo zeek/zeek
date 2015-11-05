@@ -30,13 +30,14 @@ event Intel::match_no_items(s: Seen) &priority=5
 	event Intel::match(s, Intel::get_items(s));
 	}
 
-event remote_connection_handshake_done(p: event_peer)
+event Broker::incoming_connection_established(peer_name: string)
 	{
 	# When a worker connects, send it the complete minimal data store.
 	# It will be kept up to date after this by the cluster_new_item event.
-	if ( Cluster::nodes[p$descr]$node_type == Cluster::WORKER )
+	if ( Cluster::nodes[peer_name]$node_type == Cluster::WORKER )
 		{
-		send_id(p, "Intel::min_data_store");
+		# TODO: fix
+		#send_id(p, "Intel::min_data_store");
 		}
 	}
 @endif

@@ -135,9 +135,8 @@ Tuning Access Control
 =====================
 
 By default, endpoints do not restrict the message topics that it sends
-to peers and do not restrict what message topics and data store
-identifiers get advertised to peers.  These are the default
-:bro:see:`Broker::EndpointFlags` supplied to :bro:see:`Broker::enable`.
+to peers.  This is the default :bro:see:`Broker::EndpointFlags` supplied
+to :bro:see:`Broker::enable`.
 
 If not using the ``auto_publish`` flag, one can use the
 :bro:see:`Broker::publish_topic` and :bro:see:`Broker::unpublish_topic`
@@ -147,16 +146,6 @@ precedence over the per-message ``peers`` flag supplied to functions
 that take a :bro:see:`Broker::SendFlags` such as :bro:see:`Broker::send_print`,
 :bro:see:`Broker::send_event`, :bro:see:`Broker::auto_event` or
 :bro:see:`Broker::enable_remote_logs`.
-
-If not using the ``auto_advertise`` flag, one can use the
-:bro:see:`Broker::advertise_topic` and
-:bro:see:`Broker::unadvertise_topic` functions
-to manipulate the set of topic prefixes that are allowed to be
-advertised to peers.  If an endpoint does not advertise a topic prefix, then
-the only way peers can send messages to it is via the ``unsolicited``
-flag of :bro:see:`Broker::SendFlags` and choosing a topic with a matching
-prefix (i.e. full topic may be longer than receivers prefix, just the
-prefix needs to match).
 
 Distributed Data Stores
 =======================

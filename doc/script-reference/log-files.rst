@@ -135,9 +135,6 @@ Bro Diagnostics
 +----------------------------+---------------------------------------+---------------------------------+
 | cluster.log                | Bro cluster messages                  | :bro:type:`Cluster::Info`       |
 +----------------------------+---------------------------------------+---------------------------------+
-| communication.log          | Communication events between Bro or   | :bro:type:`Communication::Info` |
-|                            | Broccoli instances                    |                                 |
-+----------------------------+---------------------------------------+---------------------------------+
 | loaded_scripts.log         | Shows all scripts loaded by Bro       | :bro:type:`LoadedScripts::Info` |
 +----------------------------+---------------------------------------+---------------------------------+
 | packet_filter.log          | List packet filters that were applied | :bro:type:`PacketFilter::Info`  |

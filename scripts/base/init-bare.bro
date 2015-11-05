@@ -648,7 +648,7 @@ type IPAddrAnonymizationClass: enum {
 ## A locally unique ID identifying a communication peer. The ID is returned by
 ## :bro:id:`connect`.
 ##
-## .. bro:see:: connect Communication
+## .. bro:see:: connect
 type peer_id: count;
 
 ## A communication peer.

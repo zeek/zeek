@@ -92,7 +92,8 @@ function configuration_update_func(p: event_peer)
 		# aren't sent.
 		if ( t$constant && t$redefinable && t$type_name != "func" )
 			{
-			send_id(p, id);
+			# TODO: implement this some other way
+			# send_id(p, id);
 			++cnt;
 			}
 		}

@@ -17,7 +17,7 @@ export {
 
 	## Which port to listen on.  Note that BroControl sets this
 	## automatically.
-	const listen_port = 47757/tcp &redef;
+	const listen_port = 9999/tcp &redef;
 
 	## This defines if a listening socket should use SSL.
 	const listen_ssl = F &redef;

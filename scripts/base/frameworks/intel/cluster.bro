@@ -36,8 +36,8 @@ event Broker::incoming_connection_established(peer_name: string)
 	# It will be kept up to date after this by the cluster_new_item event.
 	if ( Cluster::nodes[peer_name]$node_type == Cluster::WORKER )
 		{
-		# TODO: fix
-		#send_id(p, "Intel::min_data_store");
+		# TODO: implement this some other way
+		# send_id(p, "Intel::min_data_store");
 		}
 	}
 @endif

@@ -1,5 +1,3 @@
-# @TEST-KNOWN-FAILURE: this test relies on old communication system
-
 # @TEST-SERIALIZE: comm
 #
 # @TEST-EXEC: btest-bg-run sender   bro -b %INPUT ../sender.bro

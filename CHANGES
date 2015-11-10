@@ -1,4 +1,12 @@
 
+2.4-206 | 2015-11-10 13:31:51 -0800
+
+  * Fix to compile with OpenSSL that has SSLv3 disalbed. (Christoph
+    Pietsch)
+
+  * Fix potential race condition when logging VLAN info to conn.log.
+    (Daniel Thayer)
+
 2.4-201 | 2015-10-27 16:11:15 -0700
 
   * Updating NEWS. (Robin Sommer)

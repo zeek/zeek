@@ -20,7 +20,6 @@ New Dependencies
 
 - The pcap buffer size can set through the new option Pcap::bufsize.
 
-
 New Functionality
 -----------------
 

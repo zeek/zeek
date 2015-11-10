@@ -1,5 +1,5 @@
 
-2.4-206 | 2015-11-10 13:31:51 -0800
+2.4-207 | 2015-11-10 13:34:42 -0800
 
   * Fix to compile with OpenSSL that has SSLv3 disalbed. (Christoph
     Pietsch)

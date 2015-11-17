@@ -1,4 +1,10 @@
 
+2.4-211 | 2015-11-17 13:28:29 -0800
+
+  * Making cluster reconnect timeout configurable. (Robin Sommer)
+
+  * Bugfix for child process' communication loop. (Robin Sommer)
+
 2.4-209 | 2015-11-16 07:31:22 -0800
 
   * Updating submodule(s).

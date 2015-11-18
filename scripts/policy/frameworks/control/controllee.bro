@@ -79,7 +79,7 @@ event bro_init() &priority=-10
 	BrokerComm::subscribe_to_events(prefix);
 
 	# Publish: Register responses to control events with broker
-	prefix = fmt("%sresponse/", Control::pub_sub_prefix);
+	prefix = fmt("%sresponse/%s", Control::pub_sub_prefix, BrokerComm::endpoint_name);
 	BrokerComm::publish_topic(prefix);
 	for ( e in Control::controllee_events )
 		BrokerComm::auto_event(prefix, lookup_ID(e));

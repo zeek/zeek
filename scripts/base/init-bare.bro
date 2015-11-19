@@ -349,7 +349,7 @@ type connection: record {
 	## The outer VLAN, if applicable, for this connection.
 	vlan: int &optional;
 
-	## The VLAN vlan, if applicable, for this connection.
+	## The inner VLAN, if applicable, for this connection.
 	inner_vlan: int &optional;
 };
 
@@ -2509,7 +2509,7 @@ global dns_skip_all_addl = T &redef;
 
 ## If a DNS request includes more than this many queries, assume it's non-DNS
 ## traffic and do not process it.  Set to 0 to turn off this functionality.
-global dns_max_queries = 5;
+global dns_max_queries = 25 &redef;
 
 ## HTTP session statistics.
 ##
@@ -3682,7 +3682,6 @@ export {
 	## (includes GRE tunnels).
 	const ip_tunnel_timeout = 24hrs &redef;
 } # end export
-module GLOBAL;
 
 module Reporter;
 export {
@@ -3701,10 +3700,18 @@ export {
 	## external harness and shouldn't output anything to the console.
 	const errors_to_stderr = T &redef;
 }
-module GLOBAL;
 
-## Number of bytes per packet to capture from live interfaces.
-const snaplen = 8192 &redef;
+module Pcap;
+export {
+	## Number of bytes per packet to capture from live interfaces.
+	const snaplen = 8192 &redef;
+
+	## Number of Mbytes to provide as buffer space when capturing from live
+	## interfaces.
+	const bufsize = 128 &redef;
+} # end export
+
+module GLOBAL;
 
 ## Seed for hashes computed internally for probabilistic data structures. Using
 ## the same value here will make the hashes compatible between independent Bro

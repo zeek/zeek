@@ -302,8 +302,10 @@ bool Raw::OpenInput()
 
 		if ( offset )
 			{
-			int whence = (offset > 0) ? SEEK_SET : SEEK_END;
-			if ( fseek(file, offset, whence) < 0 )
+			int whence = (offset >= 0) ? SEEK_SET : SEEK_END;
+			int64_t pos = (offset >= 0) ? offset : offset + 1; // we want -1 to be the end of the file
+
+			if ( fseek(file, pos, whence) < 0 )
 				{
 				char buf[256];
 				strerror_r(errno, buf, sizeof(buf));
@@ -395,8 +397,6 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 		{
 		string offset_s = it->second;
 		offset = strtoll(offset_s.c_str(), 0, 10);
-		if ( offset < 0 )
-			offset++; // we want -1 to be the end of the file
 		}
 	else if ( it != info.config.end() )
 		{

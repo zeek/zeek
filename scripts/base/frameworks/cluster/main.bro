@@ -49,7 +49,7 @@ export {
 		## software.
 		TIME_MACHINE,
 	};
-	
+
 	## Events raised by a manager and handled by the workers.
 	const manager2worker_events : set[string] = {} &redef;
 	
@@ -206,23 +206,26 @@ export {
 	global node_updated: event(node_name: string);
 
 	## This gives the value for the number of workers currently connected to,
-	## and it's maintained internally by the cluster framework.  It's 
-	## primarily intended for use by managers to find out how many workers 
+	## and it's maintained internally by the cluster framework.  It's
+	## primarily intended for use by managers to find out how many workers
 	## should be responding to requests.
 	global worker_count: count = 0;
-	
+
 	## The cluster layout definition.  This should be placed into a filter
-	## named cluster-layout.bro somewhere in the BROPATH.  It will be 
+	## named cluster-layout.bro somewhere in the BROPATH.  It will be
 	## automatically loaded if the CLUSTER_NODE environment variable is set.
 	## Note that BroControl handles all of this automatically.
 	const nodes: table[string] of Node = {} &redef;
-	
+
 	## This is usually supplied on the command line for each instance
 	## of the cluster that is started up.
 	const node = getenv("CLUSTER_NODE") &redef;
 
 	## Set the correct name of this endpoint according to cluster-layout
 	redef BrokerComm::endpoint_name = node;
+
+	## Interval for retrying failed connections between cluster nodes.
+	const retry_interval = 1min &redef;
 }
 
 function get_set(st: string): set[string]

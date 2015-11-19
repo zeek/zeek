@@ -216,7 +216,13 @@ function join_string_vec%(vec: string_vec, sep: string%): string
 		if ( i > 0 )
 			d.Add(sep->CheckString(), 0);
 
-		v->Lookup(i)->Describe(&d);
+		Val* e = v->Lookup(i);
+
+		// If the element is empty, skip it.
+		if ( ! e )
+			continue;
+
+		e->Describe(&d);
 		}
 
 	BroString* s = new BroString(1, d.TakeBytes(), d.Len());

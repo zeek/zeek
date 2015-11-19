@@ -204,7 +204,7 @@ int TCP_Endpoint::DataSent(double t, uint64 seq, int len, int caplen,
 	if ( contents_processor )
 		{
 		if ( caplen >= len )
-			status = contents_processor->DataSent(t, seq, len, data);
+			status = contents_processor->DataSent(t, seq, len, data, TCP_Flags(tp));
 		else
 			TCP()->Weird("truncated_tcp_payload");
 		}

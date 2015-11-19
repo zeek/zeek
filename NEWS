@@ -18,6 +18,8 @@ New Dependencies
 
 - Bro now requires Python instead of Perl to compile the source code.
 
+- The pcap buffer size can set through the new option Pcap::bufsize.
+
 New Functionality
 -----------------
 
@@ -28,10 +30,38 @@ New Functionality
   information. Use with care, generating events per packet is
   expensive.
 
+- A new built-in function, decode_base64_conn() for Base64 decoding.
+  It works like decode_base64() but receives an additional connection
+  argument that will be used for decoding errors into weird.log
+  (instead of reporter.log).
+
 - New Bro plugins in aux/plugins:
 
+    - af_packet: Native AF_PACKET support.
+    - myricom: Native Myricom SNF v3 support.
     - pf_ring: Native PF_RING support.
-    - redis:   An experimental log writer for Redis.
+    - redis: An experimental log writer for Redis.
+    - tcprs: An TCP-level analyzer detecting retransmissions, reordering, and more.
+
+Changed Functionality
+---------------------
+
+- Some script-level identifier have changed their names:
+
+      snaplen                  -> Pcap::snaplen
+      precompile_pcap_filter() -> Pcap::precompile_pcap_filter()
+      install_pcap_filter()    -> Pcap::install_pcap_filter()
+      pcap_error()             -> Pcap::pcap_error()
+
+
+Deprecated Functionality
+------------------------
+
+    - The built-in functions decode_base64_custom() and
+      encode_base64_custom() are no longer needed and will be removed
+      in the future. Their functionality is now provided directly by
+      decode_base64() and encode_base64(), which take an optional
+      parameter to change the Base64 alphabet.
 
 Bro 2.4
 =======
@@ -193,8 +223,8 @@ Changed Functionality
 - The SSH changes come with a few incompatibilities. The following
   events have been renamed:
 
-    * ``SSH::heuristic_failed_login`` to ``SSH::ssh_auth_failed``
-    * ``SSH::heuristic_successful_login`` to ``SSH::ssh_auth_successful``
+    * ``SSH::heuristic_failed_login`` to ``ssh_auth_failed``
+    * ``SSH::heuristic_successful_login`` to ``ssh_auth_successful``
 
   The ``SSH::Info`` status field has been removed and replaced with
   the ``auth_success`` field.  This field has been changed from a

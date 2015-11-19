@@ -2723,14 +2723,17 @@ function hexstr_to_bytestring%(hexstr: string%): string
 
 ## Encodes a Base64-encoded string.
 ##
-## s: The string to encode
+## s: The string to encode.
+##
+## a: An optional custom alphabet. The empty string indicates the default
+##    alphabet. If given, the string must consist of 64 unique characters.
 ##
 ## Returns: The encoded version of *s*.
 ##
-## .. bro:see:: encode_base64_custom decode_base64
-function encode_base64%(s: string%): string
+## .. bro:see:: decode_base64
+function encode_base64%(s: string, a: string &default=""%): string
 	%{
-	BroString* t = encode_base64(s->AsString());
+	BroString* t = encode_base64(s->AsString(), a->AsString());
 	if ( t )
 		return new StringVal(t);
 	else
@@ -2740,18 +2743,18 @@ function encode_base64%(s: string%): string
 		}
 	%}
 
+
 ## Encodes a Base64-encoded string with a custom alphabet.
 ##
-## s: The string to encode
+## s: The string to encode.
 ##
-## a: The custom alphabet. The empty string indicates the default alphabet. The
-##    length of *a* must be 64. For example, a custom alphabet could be
-##    ``"!#$%&/(),-.:;<>@[]^ `_{|}~abcdefghijklmnopqrstuvwxyz0123456789+?"``.
+## a: The custom alphabet. The string must consist of 64 unique
+##    characters. The empty string indicates the default alphabet.
 ##
 ## Returns: The encoded version of *s*.
 ##
-## .. bro:see:: encode_base64 decode_base64_custom
-function encode_base64_custom%(s: string, a: string%): string
+## .. bro:see:: encode_base64
+function encode_base64_custom%(s: string, a: string%): string &deprecated
 	%{
 	BroString* t = encode_base64(s->AsString(), a->AsString());
 	if ( t )
@@ -2767,12 +2770,48 @@ function encode_base64_custom%(s: string, a: string%): string
 ##
 ## s: The Base64-encoded string.
 ##
+## a: An optional custom alphabet. The empty string indicates the default
+##    alphabet. If given, the string must consist of 64 unique characters.
+##
 ## Returns: The decoded version of *s*.
 ##
-## .. bro:see:: decode_base64_custom encode_base64
-function decode_base64%(s: string%): string
+## .. bro:see:: decode_base64_conn encode_base64
+function decode_base64%(s: string, a: string &default=""%): string
 	%{
-	BroString* t = decode_base64(s->AsString());
+	BroString* t = decode_base64(s->AsString(), a->AsString());
+	if ( t )
+		return new StringVal(t);
+	else
+		{
+		reporter->Error("error in decoding string %s", s->CheckString());
+		return new StringVal("");
+		}
+	%}
+
+## Decodes a Base64-encoded string that was derived from processing a connection.
+## If an error is encountered decoding the string, that will be logged to
+## ``weird.log`` with the associated connection.
+##
+## cid: The identifier of the connection that the encoding originates from.
+##
+## s: The Base64-encoded string.
+##
+## a: An optional custom alphabet. The empty string indicates the default
+##    alphabet. If given, the string must consist of 64 unique characters.
+##
+## Returns: The decoded version of *s*.
+##
+## .. bro:see:: decode_base64
+function decode_base64_conn%(cid: conn_id, s: string, a: string &default=""%): string
+	%{
+	Connection* conn = sessions->FindConnection(cid);
+	if ( ! conn )
+		{
+		builtin_error("connection ID not a known connection", cid);
+		return new StringVal("");
+		}
+
+	BroString* t = decode_base64(s->AsString(), a->AsString(), conn);
 	if ( t )
 		return new StringVal(t);
 	else
@@ -2786,14 +2825,13 @@ function decode_base64%(s: string%): string
 ##
 ## s: The Base64-encoded string.
 ##
-## a: The custom alphabet. The empty string indicates the default alphabet. The
-##    length of *a* must be 64. For example, a custom alphabet could be
-##    ``"!#$%&/(),-.:;<>@[]^ `_{|}~abcdefghijklmnopqrstuvwxyz0123456789+?"``.
+## a: The custom alphabet. The string must consist of 64 unique characters.
+##    The empty string indicates the default alphabet.
 ##
 ## Returns: The decoded version of *s*.
 ##
-## .. bro:see:: decode_base64 encode_base64_custom
-function decode_base64_custom%(s: string, a: string%): string
+## .. bro:see:: decode_base64 decode_base64_conn
+function decode_base64_custom%(s: string, a: string%): string &deprecated
 	%{
 	BroString* t = decode_base64(s->AsString(), a->AsString());
 	if ( t )

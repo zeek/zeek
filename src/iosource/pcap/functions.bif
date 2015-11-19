@@ -1,4 +1,6 @@
 
+module Pcap;
+
 ## Precompiles a PCAP filter and binds it to a given identifier.
 ##
 ## id: The PCAP identifier to reference the filter *s* later on.
@@ -86,7 +88,7 @@ function install_pcap_filter%(id: PcapFilterID%): bool
 ##              install_dst_net_filter
 ##              uninstall_dst_addr_filter
 ##              uninstall_dst_net_filter
-function pcap_error%(%): string
+function error%(%): string
 	%{
 	const iosource::Manager::PktSrcList& pkt_srcs(iosource_mgr->GetPktSrcs());
 

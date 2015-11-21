@@ -19,9 +19,9 @@ InstallPackageConfigFile(
     ${BRO_SCRIPT_INSTALL_PATH}/site
     local-manager.bro)
 InstallPackageConfigFile(
-    ${CMAKE_CURRENT_SOURCE_DIR}/site/local-proxy.bro
+    ${CMAKE_CURRENT_SOURCE_DIR}/site/local-datanode.bro
     ${BRO_SCRIPT_INSTALL_PATH}/site
-    local-proxy.bro)
+    local-datanode.bro)
 InstallPackageConfigFile(
     ${CMAKE_CURRENT_SOURCE_DIR}/site/local-worker.bro
     ${BRO_SCRIPT_INSTALL_PATH}/site

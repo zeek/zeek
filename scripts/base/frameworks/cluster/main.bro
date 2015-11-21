@@ -321,6 +321,7 @@ function has_local_role(role: NodeRole): bool
 
 function set_local_roles(reset: bool)
 	{
+	print " node is ", node;
 	# If reset is required, reset the node with the first call to a set_role_* function
 	local reset_node = reset;
 	for (r in nodes[node]$node_roles)
@@ -360,6 +361,12 @@ function set_role_manager(reset: bool)
 		register_broker_events(fmt("%s%sworker/request/", pub_sub_prefix, p), manager2worker_events);
 		register_broker_events(fmt("%s%sdata/request/", pub_sub_prefix, p), manager2datanode_events);
 		}
+
+	if(DATANODE !in nodes[node]$node_roles)
+		{
+		# Create a clone of the master store
+		Cluster::cluster_store = Broker::create_clone("cluster-store");
+		}
 	}
 
 function set_role_datanode(reset: bool)
@@ -387,6 +394,9 @@ function set_role_datanode(reset: bool)
 		prefix = fmt("%s%sworker/response/", pub_sub_prefix, p);
 		register_broker_events(prefix, datanode2worker_events);
 		}
+
+	# Create the master store
+	Cluster::cluster_store = Broker::create_master("cluster-store");
 	}
 
 function set_role_lognode(reset: bool)
@@ -416,6 +426,11 @@ function set_role_lognode(reset: bool)
 		register_broker_events(prefix, datanode2manager_events);
 		prefix = fmt("%s%sworker/response/", pub_sub_prefix, p);
 		register_broker_events(prefix, datanode2worker_events);
+		}
+	if(DATANODE !in nodes[node]$node_roles)
+		{
+		# Create a clone of the master store
+		Cluster::cluster_store = Broker::create_clone("cluster-store");
 		}
 	}
 
@@ -449,6 +464,12 @@ function set_role_worker(reset: bool)
 	# Setting this does not turn recording on. Use '-w <trace>' for that.
   TrimTraceFile::startTrimTraceFile();
 	record_all_packets = T;
+	
+	if(DATANODE !in nodes[node]$node_roles)
+		{
+		# Create a clone of the master store
+		Cluster::cluster_store = Broker::create_clone("cluster-store");
+		}
 	}
 
 event Broker::incoming_connection_established(peer_name: string) &priority=5

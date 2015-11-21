@@ -69,23 +69,15 @@ export {
 	## and request state, but not send us any.
 	type Node: record {
 		## Remote address.
-		host: addr;
+		ip: addr;
 
-		## If the *host* field is a non-global IPv6 address, this field
+		## If the *ip* field is a non-global IPv6 address, this field
 		## can specify a particular :rfc:`4007` ``zone_id``.
 		zone_id: string &optional;
 
 		## Port of the remote Bro communication endpoint if we are
 		## initiating the connection (based on the *connect* field).
 		p: port &optional;
-
-		## When accepting a connection, the configuration only
-		## applies if the class matches the one transmitted by
-		## the peer.
-		##
-		## When initiating a connection, the class is sent to
-		## the other side.
-		class: string &optional;
 
 		## Whether we are going to connect (rather than waiting
 		## for the other side to connect to us).
@@ -182,13 +174,13 @@ function connect_peer(peer: string)
 		p = node$p;
 
 	# ...and connect via broker
-	local succ = Broker::connect(fmt("%s", node$host), p, node$retry);
+	local succ = Broker::connect(fmt("%s", node$ip), p, node$retry);
 
 	#if ( !succ )
 	#	Log::write(Broker::LOG, [$ts = network_time(),
 	#	                                $peer = peer,
 	#	                                $message = "can't trigger connect"]);
-	local id = fmt("%s:%s", node$host, p);
+	local id = fmt("%s:%s", node$ip, p);
 	pending_peers[id] = node;
 	}
 
@@ -197,10 +189,10 @@ function disconnect_peer(peer: string)
 	if( !(peer in connected_peers) )
 		return;
 
-	print "  - disconnect from peer ", peer, " with ip ", connected_peers[peer]$host, " on port ", connected_peers[peer]$p;
+	print "  - disconnect from peer ", peer, " with ip ", connected_peers[peer]$ip, " on port ", connected_peers[peer]$p;
 	local node = connected_peers[peer];
 
-	local saddr = fmt("%s", node$host);
+	local saddr = fmt("%s", node$ip);
 	local p = listen_port;
 	# obtain port
 	if ( node?$p )
@@ -274,7 +266,7 @@ event Broker::outgoing_connection_broken(peer_address: string, peer_port: port, 
 	for ( i in connected_peers )
 		{
 			local n = connected_peers[i];
-			if ( fmt("%s", n$host) == peer_address && n$p == peer_port )
+			if ( fmt("%s", n$ip) == peer_address && n$p == peer_port )
 				peer_name = i;
 		}
 	do_script_log(Broker::endpoint_name, fmt("connection closed/broken to %s", peer_name));

@@ -10,7 +10,7 @@
 @load base/frameworks/control
 # If an instance is a controllee, it implicitly needs to listen for remote
 # connections.
-@load frameworks/broker/listen
+#@load frameworks/broker/listen
 
 module Control;
 

@@ -25,6 +25,7 @@ redef peer_description = Cluster::node;
 
 ## Set the port that this node is supposed to listen on.
 redef Broker::listen_port = Cluster::nodes[Cluster::node]$p;
+#redef Broker::listen_interface = Cluster::nodes[Cluster::node]$ip;
 
 @endif
 @endif

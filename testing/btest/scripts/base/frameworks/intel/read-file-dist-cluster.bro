@@ -12,9 +12,9 @@
 
 @TEST-START-FILE cluster-layout.bro
 redef Cluster::nodes = {
-	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=37757/tcp, $workers=set("worker-1", "worker-2")],
-	["worker-1"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=37760/tcp, $manager="manager-1"],
-	["worker-2"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=37761/tcp, $manager="manager-1"],
+	["manager-1"] = [$node_roles=set(Cluster::MANAGER), $ip=127.0.0.1, $p=37757/tcp, $workers=set("worker-1", "worker-2")],
+	["worker-1"]  = [$node_roles=set(Cluster::WORKER),  $ip=127.0.0.1, $p=37760/tcp, $manager="manager-1"],
+	["worker-2"]  = [$node_roles=set(Cluster::WORKER),  $ip=127.0.0.1, $p=37761/tcp, $manager="manager-1"],
 };
 @TEST-END-FILE
 
@@ -30,7 +30,7 @@ redef Log::default_rotation_interval=0sec;
 
 module Intel;
 
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
+@if ( Cluster::has_local_role(Cluster::MANAGER) )
 redef Intel::read_files += { "../intel.dat" };
 @endif
 
@@ -48,7 +48,7 @@ event bro_init()
 	{
 	# Delay the workers searching for hits briefly to allow for the data distribution
 	# mechanism to distribute the data to the workers.
-	if ( Cluster::local_node_type() == Cluster::WORKER )
+	if ( Cluster::has_local_role(Cluster::WORKER) )
 		schedule 2sec { do_it() };
 	}
 

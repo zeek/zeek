@@ -59,7 +59,7 @@ export {
 redef Cluster::manager2worker_events += {"SumStats::cluster_ss_request", "SumStats::cluster_get_result", "SumStats::cluster_threshold_crossed", "SumStats::get_a_key"};
 redef Cluster::worker2manager_events += {"SumStats::cluster_send_result", "SumStats::cluster_key_intermediate_response", "SumStats::send_a_key", "SumStats::send_no_key"};
 
-@if ( Cluster::local_node_type() != Cluster::MANAGER )
+@if ( ! Cluster::has_local_role(Cluster::MANAGER) )
 # This variable is maintained to know what keys have recently sent as
 # intermediate updates so they don't overwhelm their manager. The count that is
 # yielded is the number of times the percentage threshold has been crossed and
@@ -146,12 +146,13 @@ event SumStats::cluster_ss_request(uid: string, ss_name: string, cleanup: bool)
 
 event SumStats::cluster_get_result(uid: string, ss_name: string, key: Key, cleanup: bool)
 	{
-	#print fmt("WORKER %s: received the cluster_get_result event for %s=%s.", Cluster::node, key2str(key), data);
+	#print fmt("WORKER %s: received the cluster_get_result event for %s.", Cluster::node, key2str(key));
 
 	if ( cleanup ) # data will implicitly be in sending_results (i know this isn't great)
 		{
 		if ( uid in sending_results && key in sending_results[uid] )
 			{
+			#print "sending_results: ", sending_results[uid][key];
 			# Note: copy is needed to compensate serialization caching issue. This should be
 			# changed to something else later.
 			event SumStats::cluster_send_result(uid, ss_name, key, copy(sending_results[uid][key]), cleanup);
@@ -205,7 +206,7 @@ function request_key(ss_name: string, key: Key): Result
 @endif
 
 
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
+@if ( Cluster::has_local_role(Cluster::MANAGER) )
 
 # This variable is maintained by manager nodes as they collect and aggregate
 # results.
@@ -407,8 +408,8 @@ event SumStats::send_a_key(uid: string, ss_name: string, key: Key)
 
 event SumStats::cluster_send_result(uid: string, ss_name: string, key: Key, result: Result, cleanup: bool)
 	{
-	#print "cluster_send_result";
-	#print fmt("%0.6f MANAGER: receiving key data from %s - %s=%s", network_time(), get_event_peer()$descr, key2str(key), result);
+	print "cluster_send_result";
+	print fmt("%0.6f MANAGER: receiving key data from %s - %s=%s", network_time(), get_event_peer()$descr, key2str(key), result);
 
 	# We only want to try and do a value merge if there are actually measured datapoints
 	# in the Result.

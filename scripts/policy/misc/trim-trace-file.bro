@@ -13,11 +13,20 @@ export {
 	## the next trim likely won't happen on the
 	## :bro:id:`TrimTraceFile::trim_interval`.
 	global go: event(first_trim: bool);
+
+	## Function that starts this module from the outside
+	## instead of starting it via a bro_init call
+	global startTrimTraceFile: function();
+
+	## Function that stops this module from the outside 
+	global stopTrimTraceFile: function();
 	}
+
+global running: bool;
 
 event TrimTraceFile::go(first_trim: bool)
 	{
-	if ( bro_is_terminating() || trace_output_file == "" )
+	if ( bro_is_terminating() || trace_output_file == "" || !running )
 		return;
 	
 	if ( ! first_trim )
@@ -30,9 +39,22 @@ event TrimTraceFile::go(first_trim: bool)
 	schedule trim_interval { TrimTraceFile::go(F) };
 	}
 
-event bro_init()
+function startTrimTraceFile()
 	{
+	running = T;
 	if ( trim_interval > 0 secs )
 		schedule trim_interval { TrimTraceFile::go(T) };
 	}
+
+function stopTrimTraceFile()
+	{
+	running = F;
+	}
+
+#event bro_init()
+#	{
+#	print "ready to trim";
+#	if ( trim_interval > 0 secs )
+#		schedule trim_interval { TrimTraceFile::go(T) };
+#	}
 

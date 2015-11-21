@@ -192,13 +192,51 @@ function connect_peer(peer: string)
 	pending_peers[id] = node;
 	}
 
+function disconnect_peer(peer: string)
+	{
+	if( !(peer in connected_peers) )
+		return;
+
+	print "  - disconnect from peer ", peer, " with ip ", connected_peers[peer]$host, " on port ", connected_peers[peer]$p;
+	local node = connected_peers[peer];
+
+	local saddr = fmt("%s", node$host);
+	local p = listen_port;
+	# obtain port
+	if ( node?$p )
+		p = node$p;
+
+	# ... and disconnect via broker
+	local res = Broker::disconnect(saddr, p);
+	delete connected_peers[peer];
+	}
+
 function setup_peer(peer_name: string, node: Node)
 	{
 	node$peer = peer_name;
-	# node$zone_id = "1";
 	node$connected = T;
 	nodes[peer_name] = node;
 	connected_peers[peer_name] = node;
+	}
+
+event Cluster::node_updated(node_name: string)
+	{
+	# 1. disconnect from all peers we are not connected to anymore
+	for ( tag in connected_peers )
+		{
+			if( !( tag in nodes ) )
+				disconnect_peer(tag);
+		}
+
+	# 2. check all remaining peers if we might need to establish additional connections
+	for ( tag in nodes )
+		{
+		print "check node ", tag , " with connect ", nodes[tag]$connect;
+		if ( nodes[tag]$connect && !(tag in connected_peers) )
+			connect_peer(tag);
+		else if( !(nodes[tag]$connect) && tag in connected_peers && tag != "control" )
+			disconnect_peer(tag);
+		}
 	}
 
 event Broker::incoming_connection_established(peer_name: string)

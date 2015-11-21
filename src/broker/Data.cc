@@ -273,7 +273,7 @@ struct val_converter {
 
 				list_val->Append(index_val);
 				}
-
+			
 			auto value_val = bro_broker::data_to_val(move(item.second),
 			                                         tt->YieldType());
 
@@ -462,8 +462,9 @@ broker::util::optional<broker::data> bro_broker::val_to_data(Val* v)
 				{
 				auto key_part = val_to_data((*vl->Vals())[k]);
 
-				if ( ! key_part )
+				if ( ! key_part ) {
 					return {};
+				}
 
 				composite_key.emplace_back(move(*key_part));
 				}
@@ -488,7 +489,6 @@ broker::util::optional<broker::data> bro_broker::val_to_data(Val* v)
 				                                          move(*val));
 				}
 			}
-
 		return {rval};
 		}
 	case TYPE_VECTOR:
@@ -534,8 +534,9 @@ broker::util::optional<broker::data> bro_broker::val_to_data(Val* v)
 			auto item = val_to_data(item_val);
 			Unref(item_val);
 
-			if ( ! item )
+			if ( ! item ) {
 				return {};
+			}
 
 			rval.fields.emplace_back(broker::record::field{move(*item)});
 			}

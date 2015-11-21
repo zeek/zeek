@@ -1840,7 +1840,7 @@ const max_timer_expires = 300 &redef;
 
 ## With a similar trade-off, this gives the number of remote events
 ## to process in a batch before interleaving other activity.
-const max_remote_events_processed = 10 &redef;
+global max_remote_events_processed = 10 &redef;
 
 # These need to match the definitions in Login.h.
 #
@@ -3612,7 +3612,7 @@ const trace_output_file = "";
 ## analysis triggers a crash.
 ##
 ## .. bro:see:: trace_output_file
-const record_all_packets = F &redef;
+global record_all_packets = F &redef;
 
 ## Ignore certain TCP retransmissions for :bro:see:`conn_stats`.  Some
 ## connections (e.g., SSH) retransmit the acknowledged last byte to keep the
@@ -3707,19 +3707,8 @@ export {
 	const snaplen = 8192 &redef;
 
 	## Number of Mbytes to provide as buffer space when capturing from live
-	## interfaces. 
+	## interfaces.
 	const bufsize = 128 &redef;
-
-	## Toggle whether to do packet fanout (Linux-only).
-	const packet_fanout_enable = F &redef;
-
-	## If packet fanout is enabled, the id to sue for it. This should be shared amongst
-	## worker processes processing the same socket.
-	const packet_fanout_id = 0 &redef;
-
-	## If packet fanout is enabled, whether packets are to be defragmented before
-	## fanout is applied.
-	const packet_fanout_defrag = T &redef;
 } # end export
 
 module GLOBAL;

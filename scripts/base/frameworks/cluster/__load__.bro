@@ -26,17 +26,5 @@ redef peer_description = Cluster::node;
 ## Set the port that this node is supposed to listen on.
 redef Broker::listen_port = Cluster::nodes[Cluster::node]$p;
 
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
-@load ./nodes/manager
-@endif
-
-@if ( Cluster::local_node_type() == Cluster::DATANODE )
-@load ./nodes/datanode
-@endif
-
-@if ( Cluster::local_node_type() == Cluster::WORKER )
-@load ./nodes/worker
-@endif
-
 @endif
 @endif

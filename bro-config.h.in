@@ -213,9 +213,6 @@
 /* Common IPv6 extension structure */
 #cmakedefine HAVE_IP6_EXT
 
-/* Linux packet fanout */
-#cmakedefine HAVE_PACKET_FANOUT
-
 /* String with host architecture (e.g., "linux-x86_64") */
 #define HOST_ARCHITECTURE "@HOST_ARCHITECTURE@"
 

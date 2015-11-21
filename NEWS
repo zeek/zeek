@@ -20,11 +20,6 @@ New Dependencies
 
 - The pcap buffer size can set through the new option Pcap::bufsize.
 
-- Bro can now leverage packet fanout mode on Linux through the new
-  options Pcap::packet_fanout_enable, Pcap::packet_fanout_id, and
-  Pcap::packet_fanout_defrag.
-
-
 New Functionality
 -----------------
 
@@ -42,8 +37,11 @@ New Functionality
 
 - New Bro plugins in aux/plugins:
 
+    - af_packet: Native AF_PACKET support.
+    - myricom: Native Myricom SNF v3 support.
     - pf_ring: Native PF_RING support.
-    - redis:   An experimental log writer for Redis.
+    - redis: An experimental log writer for Redis.
+    - tcprs: An TCP-level analyzer detecting retransmissions, reordering, and more.
 
 Changed Functionality
 ---------------------

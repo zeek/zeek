@@ -11,9 +11,9 @@
 
 @TEST-START-FILE cluster-layout.bro
 redef Cluster::nodes = {
-	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=37757/tcp, $workers=set("worker-1", "worker-2")],
-	["worker-1"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=37760/tcp, $manager="manager-1"],
-	["worker-2"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=37761/tcp, $manager="manager-1"],
+	["manager-1"] = [$node_roles=set(Cluster::MANAGER), $ip=127.0.0.1, $p=37757/tcp, $workers=set("worker-1", "worker-2")],
+	["worker-1"]  = [$node_roles=set(Cluster::WORKER),  $ip=127.0.0.1, $p=37760/tcp, $manager="manager-1"],
+	["worker-2"]  = [$node_roles=set(Cluster::WORKER),  $ip=127.0.0.1, $p=37761/tcp, $manager="manager-1"],
 };
 @TEST-END-FILE
 
@@ -26,7 +26,7 @@ redef Log::default_rotation_interval=0sec;
 event Broker::incoming_connection_established(peer_name: string)
 	{
 	# Insert the data once both workers are connected.
-	if ( Cluster::local_node_type() == Cluster::MANAGER && Cluster::worker_count == 2 )
+	if ( Cluster::has_local_role(Cluster::MANAGER) && Cluster::worker_count == 2 )
 		{
 		Intel::insert([$indicator="1.2.3.4", $indicator_type=Intel::ADDR, $meta=[$source="manager"]]);
 		}

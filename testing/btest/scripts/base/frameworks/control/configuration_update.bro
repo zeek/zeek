@@ -10,7 +10,7 @@
 
 redef Broker::nodes = {
 	# We're waiting for connections from this host for control.
-	["control"] = [$host=127.0.0.1, $class="control"],
+	["control"] = [$host=127.0.0.1, $class=set("control"), $events=set("Control::controller_events")],
 };
 
 const test_var = "ORIGINAL VALUE (this should be printed out first)" &redef;

@@ -10,7 +10,7 @@
 @load base/frameworks/control
 # If an instance is a controllee, it implicitly needs to listen for remote
 # connections.
-#@load frameworks/broker/listen
+@load frameworks/broker/listen
 
 module Control;
 
@@ -30,9 +30,9 @@ event Control::peer_status_request()
 			next;
 
 		local res = resource_usage();
-		status += fmt("%.6f peer=%s host=%s events_in=%s events_out=%s ops_in=%s ops_out=%s bytes_in=? bytes_out=?\n",
+		status += fmt("%.6f peer=%s ip=%s events_in=%s events_out=%s ops_in=%s ops_out=%s bytes_in=? bytes_out=?\n",
 					network_time(),
-					peer$peer, peer$host,
+					peer$peer, peer$ip,
 					res$num_events_queued, res$num_events_dispatched,
 					res$blocking_input, res$blocking_output);
 		}

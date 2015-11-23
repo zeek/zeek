@@ -25,10 +25,10 @@ function update_node(cname: string, name: string, connect: bool, retry: interval
 		}
 	else
 		{
-		Broker::nodes[cname] = [$host=nodes[name]$ip, 
-		 	                         		$p=nodes[name]$p,
-	 			                       		$connect=connect, 
-																	$retry=retry];
+		Broker::nodes[cname] = [$ip=nodes[name]$ip, 
+		 	                      $p=nodes[name]$p,
+	 			                    $connect=connect, 
+														$retry=retry];
 		}
 	}
 
@@ -40,8 +40,8 @@ function process_node(name: string)
 	# Connections from the control node for runtime control
 	# Every node in a cluster is eligible for control from this host.
 	if ( CONTROL in n$node_roles )
-		Broker::nodes["control"] = [	$host=n$ip, 
-		                                   	$connect=F];
+		Broker::nodes["control"] = [	$ip=n$ip, 
+		                             	$connect=F];
 
 	for ( role in me$node_roles )
 		{
@@ -191,7 +191,7 @@ event Cluster::update_cluster_node(name: string, roles: set[string], ip: string,
 		}
 	else if (name in nodes ) # This is an update for another node
 		{
-		print " * We received an update for node ", name;
+		#print " * We received an update for node ", name;
 		update_connections = T;
 
 		# we have to rethink our relationship just to this node
@@ -200,13 +200,13 @@ event Cluster::update_cluster_node(name: string, roles: set[string], ip: string,
 		}
 	else # New node
 		{
-		print " * Node ", name, " joined the cluster";
+		#print " * Node ", name, " joined the cluster";
 		update_connections = T;
 		}
 
 	# ... and store the entry in the node list
 	Cluster::nodes[name] = new_node; 	
-	print "new_node data? ", new_node$datanode;
+	#print "new_node data? ", new_node$datanode;
 
 	for (name in nodes)
 		process_node(name);
@@ -217,6 +217,8 @@ event Cluster::update_cluster_node(name: string, roles: set[string], ip: string,
 		event Cluster::node_updated(name);
 }
 
+#TODO remove node from cluster
+# - remove it from nodes datastructure
 event Cluster::remove_cluster_node(name: string)
 	{
 	print "remove node ", name;

@@ -289,7 +289,7 @@ function string_set_eq(set1: set[string], set2: set[string]): bool
 
 function is_enabled(): bool
 	{
-	return (node != "");
+	return (node != "" && node in Cluster::nodes);
 	}
 
 
@@ -486,22 +486,12 @@ event Broker::incoming_connection_broken(peer_name: string) &priority=5
 	Log::write(Cluster::LOG,[$ts=2, $message="Cluster: incoming connection broken"]);
 	}
 
-event bro_init() &priority=5
-	{
-	# If a node is given, but it's an unknown name we need to fail.
-	if ( node != "" && node !in Cluster::nodes)
-		{
-		Reporter::error(fmt("'%s' is not a valid node in the Cluster::nodes configuration", node));
-		terminate();
-		}
-	
-	Broker::enable();
-
-	Log::create_stream(Cluster::LOG, [$columns=Info, $path="cluster"]);
-	}
-
 event bro_init() &priority=-10
 	{
-	# set all roles of local node
-	set_local_roles(T);
+	if (is_enabled())
+		{
+		# set all roles of local node
+		set_local_roles(T);
+		Log::create_stream(Cluster::LOG, [$columns=Info, $path="cluster"]);
+		}
 	}

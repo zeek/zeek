@@ -36,9 +36,7 @@ PktSrc::PktSrc()
 
 PktSrc::~PktSrc()
 	{
-	BPF_Program* code;
-	IterCookie* cookie = filters.InitForIteration();
-	while ( (code = filters.NextEntry(cookie)) )
+	for ( auto code : filters )
 		delete code;
 	}
 
@@ -335,16 +333,16 @@ bool PktSrc::PrecompileBPFFilter(int index, const std::string& filter)
 		return 0;
 		}
 
-	// Store it in hash.
-	HashKey* hash = new HashKey(HashKey(bro_int_t(index)));
-	BPF_Program* oldcode = filters.Lookup(hash);
-	if ( oldcode )
-		delete oldcode;
+	// Store it in vector.
+	if ( index >= static_cast<int>(filters.size()) )
+		filters.resize(index + 1);
 
-	filters.Insert(hash, code);
-	delete hash;
+	if ( auto old = filters[index] )
+		delete old;
 
-	return 1;
+	filters[index] = code;
+
+	return true;
 	}
 
 BPF_Program* PktSrc::GetBPFFilter(int index)
@@ -352,10 +350,7 @@ BPF_Program* PktSrc::GetBPFFilter(int index)
 	if ( index < 0 )
 		return 0;
 
-	HashKey* hash = new HashKey(HashKey(bro_int_t(index)));
-	BPF_Program* code = filters.Lookup(hash);
-	delete hash;
-	return code;
+	return (static_cast<int>(filters.size()) > index ? filters[index] : 0);
 	}
 
 bool PktSrc::ApplyBPFFilter(int index, const struct pcap_pkthdr *hdr, const u_char *pkt)

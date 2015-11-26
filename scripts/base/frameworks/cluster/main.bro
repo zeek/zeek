@@ -80,8 +80,8 @@ export {
 	## The prefix used for subscribing and publishing events
 	const pub_sub_prefix : string = "bro/event/cluster/" &redef;
 
-	# The Cluster-IDs of all clusters this node is part of 
-	const cluster_prefix_set : set[string] = {""} &redef;
+	# The Cluster-IDs of the particular cluster this node is part of 
+	const cluster_id : string = "" &redef;
 
 	## Record type to indicate a node in a cluster.
 	type Node: record {
@@ -351,16 +351,13 @@ function set_role_manager(reset: bool)
 	Log::update_logging(reset, F, T, 24hrs, 24hrs, "delete-log");
 
 	# Subscribe to events and register events with broker for publication by local node
-	for (p in Cluster::cluster_prefix_set )
-		{
-		# Subsribe to prefix
-		local prefix = fmt("%s%smanager/response/", pub_sub_prefix, p);
-		Broker::subscribe_to_events(prefix);
+	# Subsribe to prefix
+	local prefix = fmt("%s%s/manager/response/", pub_sub_prefix, cluster_id);
+	Broker::subscribe_to_events(prefix);
 
-		# Publish: manager2worker_events, manager2datanode_events
-		register_broker_events(fmt("%s%sworker/request/", pub_sub_prefix, p), manager2worker_events);
-		register_broker_events(fmt("%s%sdata/request/", pub_sub_prefix, p), manager2datanode_events);
-		}
+	# Publish: manager2worker_events, manager2datanode_events
+	register_broker_events(fmt("%s%s/worker/request/", pub_sub_prefix, cluster_id), manager2worker_events);
+	register_broker_events(fmt("%s%s/data/request/", pub_sub_prefix, cluster_id), manager2datanode_events);
 
 	if(DATANODE !in nodes[node]$node_roles)
 		{
@@ -382,18 +379,15 @@ function set_role_datanode(reset: bool)
 	max_remote_events_processed = 10000;
 
 	# Subscribe to events and register events with broker for publication by local node
-	for (p in Cluster::cluster_prefix_set )
-		{ 
-		# Subsribe to prefix
-		local prefix = fmt("%s%sdata/request/", pub_sub_prefix, p);
-		Broker::subscribe_to_events(prefix);
+	# Subsribe to prefix
+	local prefix = fmt("%s%s/data/request/", pub_sub_prefix, cluster_id);
+	Broker::subscribe_to_events(prefix);
 
-		# Publish: datanode2manager_events, datanode2worker_events
-		prefix = fmt("%s%smanager/response/", pub_sub_prefix, p);
-		register_broker_events(prefix, datanode2manager_events);
-		prefix = fmt("%s%sworker/response/", pub_sub_prefix, p);
-		register_broker_events(prefix, datanode2worker_events);
-		}
+	# Publish: datanode2manager_events, datanode2worker_events
+	prefix = fmt("%s%s/manager/response/", pub_sub_prefix, cluster_id);
+	register_broker_events(prefix, datanode2manager_events);
+	prefix = fmt("%s%s/worker/response/", pub_sub_prefix, cluster_id);
+	register_broker_events(prefix, datanode2worker_events);
 
 	# Create the master store
 	Cluster::cluster_store = Broker::create_master("cluster-store");
@@ -415,18 +409,16 @@ function set_role_lognode(reset: bool)
 	max_remote_events_processed = 10000;
 
 	# Subscribe to events and register events with broker for publication by local node
-	for (p in Cluster::cluster_prefix_set )
-		{
-		# Subsribe to prefix
-		local prefix = fmt("%s%sdata/request/", pub_sub_prefix, p);
-		Broker::subscribe_to_events(prefix);
+	# Subsribe to prefix
+	local prefix = fmt("%s%s/data/request/", pub_sub_prefix, cluster_id);
+	Broker::subscribe_to_events(prefix);
 
-		# Publish: datanode2manager_events, datanode2worker_events
-		prefix = fmt("%s%smanager/response/", pub_sub_prefix, p);
-		register_broker_events(prefix, datanode2manager_events);
-		prefix = fmt("%s%sworker/response/", pub_sub_prefix, p);
-		register_broker_events(prefix, datanode2worker_events);
-		}
+	# Publish: datanode2manager_events, datanode2worker_events
+	prefix = fmt("%s%s/manager/response/", pub_sub_prefix, cluster_id);
+	register_broker_events(prefix, datanode2manager_events);
+	prefix = fmt("%s%s/worker/response/", pub_sub_prefix, cluster_id);
+	register_broker_events(prefix, datanode2worker_events);
+		
 	if(DATANODE !in nodes[node]$node_roles)
 		{
 		# Create a clone of the master store
@@ -444,18 +436,15 @@ function set_role_worker(reset: bool)
 	Log::update_logging(reset, F, T, 24hrs, 24hrs, "delete-log");
 
 	# Subscribe to events and register events with broker for publication by local node
-	for ( p in Cluster::cluster_prefix_set )
-		{
-		# Subsribe to prefix
-		local prefix = fmt("%s%sworker/request/", pub_sub_prefix, p);
-		Broker::subscribe_to_events(prefix);
+	# Subsribe to prefix
+	local prefix = fmt("%s%s/worker/request/", pub_sub_prefix, cluster_id);
+	Broker::subscribe_to_events(prefix);
 
-		# Publish: worker2manager_events, worker2datanode_events
-		prefix = fmt("%s%smanager/response/", pub_sub_prefix, p);
-		register_broker_events(prefix, worker2manager_events);
-		prefix = fmt("%s%sdata/response/", pub_sub_prefix, p);
-		register_broker_events(prefix, worker2datanode_events);
-		}
+	# Publish: worker2manager_events, worker2datanode_events
+	prefix = fmt("%s%s/manager/response/", pub_sub_prefix, cluster_id);
+	register_broker_events(prefix, worker2manager_events);
+	prefix = fmt("%s%s/data/response/", pub_sub_prefix, cluster_id);
+	register_broker_events(prefix, worker2datanode_events);
 
 	# Record all packets into trace file.
 	#

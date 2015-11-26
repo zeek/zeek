@@ -152,6 +152,7 @@ function process_node_worker(name: string)
 		}
 	}
 
+# Event to add a new node or to update an existing node
 event Cluster::update_cluster_node(name: string, roles: set[string], ip: string, p: string, interface: string, manager: string, workers: set[string], datanode: string)
 	{
 	# Build the Node entry for the new/updated node

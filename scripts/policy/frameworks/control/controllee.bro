@@ -45,6 +45,8 @@ event Control::net_stats_request()
 	local ns = net_stats();
 	local reply = fmt("%.6f recvd=%d dropped=%d link=%d\n", network_time(), 
 	                  ns$pkts_recvd, ns$pkts_dropped, ns$pkts_link);
+	#local reply = fmt("%s: %.6f recvd=%d dropped=%d link=%d\n", Broker::node, network_time(), 
+	#                  ns$pkts_recvd, ns$pkts_dropped, ns$pkts_link);
 	event Control::net_stats_response(reply);
 	}
 	
@@ -70,13 +72,13 @@ event Control::shutdown_request()
 
 event bro_init() &priority=5
 	{
-	print "controllee functionality is loaded";
 	# Subscribe: All nodes need to subscribe to control-related events
-	local prefix = fmt("%srequest/", Control::pub_sub_prefix);
+	local prefix = fmt("%s%s/request/", Control::pub_sub_prefix, Cluster::cluster_id);
 	Broker::subscribe_to_events(prefix);
+	Broker::publish_topic(prefix);
 
 	# Publish: Register responses to control events with broker
-	prefix = fmt("%sresponse/%s", Control::pub_sub_prefix, Broker::endpoint_name);
+	prefix = fmt("%s%s/response/", Control::pub_sub_prefix, Cluster::cluster_id);
 	Broker::publish_topic(prefix);
 	for ( e in Control::controllee_events )
 		Broker::auto_event(prefix, lookup_ID(e));

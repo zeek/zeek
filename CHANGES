@@ -1,4 +1,8 @@
 
+2.4-213 | 2015-12-04 15:25:48 -0800
+
+  * Use better data structure for storing BPF filters. (Robin Sommer)
+
 2.4-211 | 2015-11-17 13:28:29 -0800
 
   * Making cluster reconnect timeout configurable. (Robin Sommer)

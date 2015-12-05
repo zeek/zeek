@@ -1,4 +1,9 @@
 
+2.4-214 | 2015-12-04 16:40:15 -0800
+
+  * Delaying BinPAC initializaton until afte plugins have been
+    activated. (Robin Sommer)
+
 2.4-213 | 2015-12-04 15:25:48 -0800
 
   * Use better data structure for storing BPF filters. (Robin Sommer)

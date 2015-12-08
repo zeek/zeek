@@ -494,6 +494,10 @@ function start_log_ocsp(rec: OCSP::Info)
 		info_ocsp_rec$delay = info_ocsp_rec$resp_ts - info_ocsp_rec$req_ts;
 
 	update_http_info(info_ocsp_rec, http);
+
+	if ( Site::is_private_addr(info_ocsp_rec$cid$orig_h) || !Site::is_local_addr(info_ocsp_rec$cid$orig_h) )
+		return;
+
 	Log::write(LOG_OCSP, info_ocsp_rec);
 	}
 
@@ -564,6 +568,10 @@ event connection_state_remove(c: connection) &priority= -20
 		if (|cert_recv_ts_str| > 0)
 			ssl_info_rec$cert_recv_ts = cert_recv_ts_str;
 		update_ssl_info(ssl_info_rec, c$ssl);
+
+		if ( Site::is_private_addr(ssl_info_rec$id$orig_h) || !Site::is_local_addr(ssl_info_rec$id$orig_h) )
+			return;
+
 		Log::write(LOG_SSL, ssl_info_rec);
 		#delete c$ssl$cert_ts[ocsp_uri, serial_number, issuer_name];
 		}

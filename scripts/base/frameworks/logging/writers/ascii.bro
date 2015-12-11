@@ -70,7 +70,7 @@ export {
 	## should not substantially exceed. It's not hard limit, but the writer will start
 	## truncating the output if it's reached. The writer will however still produce
 	## syntactically correct output.
-	const size_limit_hint: count = 1 * 1024 * 1024 &redef;
+	const size_limit_hint: count = 0 &redef;
 }
 
 # Default function to postprocess a rotated ASCII log file. It moves the rotated

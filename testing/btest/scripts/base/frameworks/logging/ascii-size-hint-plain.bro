@@ -60,5 +60,9 @@ event bro_init()
 		$s=long_string,
 		$sc=large_set,
 		$b=T]);
+
+	Log::write(Test::LOG, [
+		$a=42,
+		$b=T]);
 }
 

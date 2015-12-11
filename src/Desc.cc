@@ -351,3 +351,11 @@ void ODesc::Clear()
 		}
 	}
 
+void ODesc::Truncate(unsigned int arg_offset)
+	{
+	if ( arg_offset < offset )
+		{
+		offset = arg_offset;
+		((char*) base)[offset] = '\0';	// ensure that always NUL-term.
+		}
+	}

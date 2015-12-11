@@ -138,6 +138,13 @@ public:
 
 	int Len() const		{ return offset; }
 
+	// Truncates the data at the given offset. If there's data written
+	// beyond this location already, it will be discarded. Next time
+	// something's added, its first byte will have the given offset. If
+	// less data has been added so far than the given offset, the method
+	// does nothing.
+	void Truncate(unsigned int offset);
+
 	void Clear();
 
 protected:

@@ -43,8 +43,15 @@ public:
 	 *
 	 * @param info SeparatorInfo structure defining the necessary
 	 * separators.
+	 *
+	 * #@param size_limit_hint Specifies a maximum size that shouldn't be
+	 * significantly exceeded for the final ASCII representation of a log
+	 * entry. If necessary the formatter will truncate the data. It's not
+	 * a hard limit though, the result might still be slightly larger
+	 * than the limit. It will remain a syntactically valid log entry,
+	 * even if truncated. Set to zero to disable any truncation.
 	 */
-	Ascii(threading::MsgThread* t, const SeparatorInfo& info);
+	Ascii(threading::MsgThread* t, const SeparatorInfo& info, unsigned int size_limit_hint = 0);
 	virtual ~Ascii();
 
 	virtual bool Describe(ODesc* desc, threading::Value* val, const string& name = "") const;
@@ -56,6 +63,7 @@ private:
 	bool CheckNumberError(const char* start, const char* end) const;
 
 	SeparatorInfo separators;
+	unsigned int size_limit_hint;
 };
 
 }}

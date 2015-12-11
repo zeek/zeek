@@ -24,6 +24,7 @@ Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 	tsv = false;
 	use_json = false;
 	formatter = 0;
+	size_limit_hint = 0;
 
 	InitConfigOptions();
 	init_options = InitFilterOptions();
@@ -34,6 +35,7 @@ void Ascii::InitConfigOptions()
 	output_to_stdout = BifConst::LogAscii::output_to_stdout;
 	include_meta = BifConst::LogAscii::include_meta;
 	use_json = BifConst::LogAscii::use_json;
+	size_limit_hint = BifConst::LogAscii::size_limit_hint;
 
 	separator.assign(
 			(const char*) BifConst::LogAscii::separator->Bytes(),
@@ -162,7 +164,7 @@ bool Ascii::InitFormatter()
 			return false;
 			}
 
-		formatter = new formatter::JSON(this, tf);
+		formatter = new formatter::JSON(this, tf, size_limit_hint);
 		// Using JSON implicitly turns off the header meta fields.
 		include_meta = false;
 		}
@@ -172,7 +174,7 @@ bool Ascii::InitFormatter()
 		desc.EnableEscaping();
 		desc.AddEscapeSequence(separator);
 		formatter::Ascii::SeparatorInfo sep_info(separator, set_separator, unset_field, empty_field);
-		formatter = new formatter::Ascii(this, sep_info);
+		formatter = new formatter::Ascii(this, sep_info, size_limit_hint);
 		}
 
 	return true;

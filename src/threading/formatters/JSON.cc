@@ -15,9 +15,10 @@
 
 using namespace threading::formatter;
 
-JSON::JSON(MsgThread* t, TimeFormat tf) : Formatter(t), surrounding_braces(true)
+JSON::JSON(MsgThread* t, TimeFormat tf, unsigned int arg_size_limit_hint) : Formatter(t), surrounding_braces(true)
 	{
 	timestamps = tf;
+	size_limit_hint = arg_size_limit_hint;
 	}
 
 JSON::~JSON()
@@ -160,6 +161,8 @@ bool JSON::Describe(ODesc* desc, Value* val, const string& name) const
 			{
 			desc->AddRaw("\"", 1);
 
+			unsigned int orig_len = desc->Len();
+
 			for ( int i = 0; i < val->val.string_val.length; ++i )
 				{
 				char c = val->val.string_val.data[i];
@@ -177,6 +180,21 @@ bool JSON::Describe(ODesc* desc, Value* val, const string& name) const
 					desc->AddRaw(&c, 1);
 				}
 
+			if ( size_limit_hint && (unsigned int)desc->Len() > size_limit_hint )
+				{
+				// Cut off and add "truncated" note instead.
+				int delta = (desc->Len() - orig_len);
+				int keep = (size_limit_hint / 100);
+
+				if ( delta > keep )
+					{
+					desc->Truncate(orig_len + keep);
+					desc->Add("<truncated ");
+					desc->Add(delta - keep);
+					desc->Add(" bytes>");
+					}
+				}
+
 			desc->AddRaw("\"", 1);
 			break;
 			}
@@ -191,6 +209,9 @@ bool JSON::Describe(ODesc* desc, Value* val, const string& name) const
 					desc->AddRaw(",", 1);
 
 				Describe(desc, val->val.set_val.vals[j]);
+
+				if ( size_limit_hint && (unsigned int)desc->Len() > size_limit_hint )
+					break;
 				}
 
 			desc->AddRaw("]", 1);
@@ -205,7 +226,11 @@ bool JSON::Describe(ODesc* desc, Value* val, const string& name) const
 				{
 				if ( j > 0 )
 					desc->AddRaw(",", 1);
+
 				Describe(desc, val->val.vector_val.vals[j]);
+
+				if ( size_limit_hint && (unsigned int)desc->Len() > size_limit_hint )
+					break;
 				}
 
 			desc->AddRaw("]", 1);

@@ -19,7 +19,23 @@ public:
 		TS_MILLIS	// Milliseconds from the UNIX epoch.  Some consumers need this (e.g., elasticsearch).
 		};
 
-	JSON(threading::MsgThread* t, TimeFormat tf);
+	/**
+	 * Constructor.
+	 *
+	 * @param t The thread that uses this class instance. The class uses
+	 * some of the thread's methods, e.g., for error reporting and
+	 * internal formatting.
+	 *
+	 * @param tf TimeFormat The format to use for time fields.
+	 *
+	 * #@param size_limit_hint Specifies a maximum size that shouldn't be
+	 * significantly exceeded for the final JSON representation of a log
+	 * entry. If necessary the formatter will truncate the data. It's not
+	 * a hard limit though, the result might still be slightly larger
+	 * than the limit. It will remain a syntactically valid log entry,
+	 * even if truncated. Set to zero to disable any truncation.
+	 */
+	JSON(threading::MsgThread* t, TimeFormat tf, unsigned int size_limit_hint = 0);
 	virtual ~JSON();
 
 	virtual bool Describe(ODesc* desc, threading::Value* val, const string& name = "") const;
@@ -32,6 +48,7 @@ public:
 private:
 	TimeFormat timestamps;
 	bool surrounding_braces;
+	unsigned int size_limit_hint;
 };
 
 }}

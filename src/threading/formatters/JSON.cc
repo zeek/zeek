@@ -28,8 +28,14 @@ JSON::~JSON()
 bool JSON::Describe(ODesc* desc, int num_fields, const Field* const * fields,
                     Value** vals) const
 	{
+	std::vector<std::string> truncated;
+	std::vector<std::string>* ptruncated = 0;
+
 	if ( surrounding_braces )
+		{
 		desc->AddRaw("{");
+		ptruncated = &truncated;
+		}
 
 	for ( int i = 0; i < num_fields; i++ )
 		{
@@ -44,8 +50,26 @@ bool JSON::Describe(ODesc* desc, int num_fields, const Field* const * fields,
 		     vals[i]->present )
 			desc->AddRaw(",");
 
-		if ( ! Describe(desc, vals[i], fields[i]->name) )
+		if ( ! DescribeInternal(desc, vals[i], fields[i]->name, fields[i]->name, ptruncated) )
 			return false;
+		}
+
+	if ( truncated.size() )
+		{
+		// Add a list of fields we had to truncate.
+		desc->AddRaw(", _truncated: [");
+
+		for ( unsigned int i = 0; i < truncated.size(); i++ )
+			{
+			if ( i > 0 )
+				desc->AddRaw(", ");
+
+			desc->AddRaw("\"");
+			desc->AddRaw(truncated[i]);
+			desc->AddRaw("\"");
+			}
+
+		desc->AddRaw("]");
 		}
 
 	if ( surrounding_braces )
@@ -55,6 +79,11 @@ bool JSON::Describe(ODesc* desc, int num_fields, const Field* const * fields,
 	}
 
 bool JSON::Describe(ODesc* desc, Value* val, const string& name) const
+	{
+	return DescribeInternal(desc, val, name, name, 0);
+	}
+
+bool JSON::DescribeInternal(ODesc* desc, Value* val, const string& name, const string& last_name, std::vector<std::string>* ptruncated) const
 	{
 	if ( ! val->present )
 		return true;
@@ -192,6 +221,8 @@ bool JSON::Describe(ODesc* desc, Value* val, const string& name) const
 					desc->Add("<truncated ");
 					desc->Add(delta - keep);
 					desc->Add(" bytes>");
+
+					ptruncated->push_back(last_name.size() ? last_name : "???");
 					}
 				}
 
@@ -208,10 +239,13 @@ bool JSON::Describe(ODesc* desc, Value* val, const string& name) const
 				if ( j > 0 )
 					desc->AddRaw(",", 1);
 
-				Describe(desc, val->val.set_val.vals[j]);
+				DescribeInternal(desc, val->val.set_val.vals[j], "", name, ptruncated);
 
 				if ( size_limit_hint && (unsigned int)desc->Len() > size_limit_hint )
+					{
+					ptruncated->push_back(last_name.size() ? last_name : "???");
 					break;
+					}
 				}
 
 			desc->AddRaw("]", 1);
@@ -227,10 +261,13 @@ bool JSON::Describe(ODesc* desc, Value* val, const string& name) const
 				if ( j > 0 )
 					desc->AddRaw(",", 1);
 
-				Describe(desc, val->val.vector_val.vals[j]);
+				DescribeInternal(desc, val->val.vector_val.vals[j], "", name, ptruncated);
 
 				if ( size_limit_hint && (unsigned int)desc->Len() > size_limit_hint )
+					{
+					ptruncated->push_back(last_name.size() ? last_name : "???");
 					break;
+					}
 				}
 
 			desc->AddRaw("]", 1);

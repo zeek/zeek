@@ -46,6 +46,8 @@ public:
 	void SurroundingBraces(bool use_braces);
 
 private:
+	bool DescribeInternal(ODesc* desc, Value* val, const string& name, const string& last_name, std::vector<std::string>* ptruncated) const;
+
 	TimeFormat timestamps;
 	bool surrounding_braces;
 	unsigned int size_limit_hint;

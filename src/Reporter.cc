@@ -393,4 +393,3 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 	if ( alloced )
 		free(alloced);
 	}
-

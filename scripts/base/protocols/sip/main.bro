@@ -60,9 +60,9 @@ export {
 		## Contents of the Warning: header
 		warning:                 string            &log &optional;
 		## Contents of the Content-Length: header from the client
-		request_body_len:        string            &log &optional;
+		request_body_len:        count             &log &optional;
 		## Contents of the Content-Length: header from the server
-		response_body_len:       string            &log &optional;
+		response_body_len:       count             &log &optional;
 		## Contents of the Content-Type: header from the server
 		content_type:            string            &log &optional;
 	};
@@ -127,17 +127,6 @@ function set_state(c: connection, is_request: bool)
 		c$sip_state = s;
 		}
 
-	# These deal with new requests and responses.
-	if ( is_request && c$sip_state$current_request !in c$sip_state$pending )
-		c$sip_state$pending[c$sip_state$current_request] = new_sip_session(c);
-	if ( ! is_request && c$sip_state$current_response !in c$sip_state$pending )
-		c$sip_state$pending[c$sip_state$current_response] = new_sip_session(c);
-
-	if ( is_request )
-		c$sip = c$sip_state$pending[c$sip_state$current_request];
-	else
-		c$sip = c$sip_state$pending[c$sip_state$current_response];
-
 	if ( is_request )
 		{
 		if ( c$sip_state$current_request !in c$sip_state$pending )
@@ -152,7 +141,6 @@ function set_state(c: connection, is_request: bool)
 
 		c$sip = c$sip_state$pending[c$sip_state$current_response];
 		}
-
 	}
 
 function flush_pending(c: connection)
@@ -163,7 +151,9 @@ function flush_pending(c: connection)
 		for ( r in c$sip_state$pending )
 			{
 			# We don't use pending elements at index 0.
-			if ( r == 0 ) next;
+			if ( r == 0 )
+				next;
+			
 			Log::write(SIP::LOG, c$sip_state$pending[r]);
 			}
 		}
@@ -205,16 +195,39 @@ event sip_header(c: connection, is_request: bool, name: string, value: string) &
 		if ( c$sip_state$current_request !in c$sip_state$pending )
 			++c$sip_state$current_request;
 		set_state(c, is_request);
-		if ( name == "CALL-ID" )                            c$sip$call_id = value;
-		else if ( name == "CONTENT-LENGTH" || name == "L" ) c$sip$request_body_len = value;
-		else if ( name == "CSEQ" )                          c$sip$seq = value;
-		else if ( name == "DATE" )                          c$sip$date = value;
-		else if ( name == "FROM" || name == "F" )           c$sip$request_from = split_string1(value, /;[ ]?tag=/)[0];
-		else if ( name == "REPLY-TO" )                      c$sip$reply_to = value;
-		else if ( name == "SUBJECT" || name == "S" )        c$sip$subject = value;
-		else if ( name == "TO" || name == "T" )             c$sip$request_to = value;
-		else if ( name == "USER-AGENT" )                    c$sip$user_agent = value;
-		else if ( name == "VIA" || name == "V" )            c$sip$request_path[|c$sip$request_path|] = split_string1(value, /;[ ]?branch/)[0];
+		switch ( name )
+			{
+			case "CALL-ID":
+				c$sip$call_id = value;
+				break;
+			case "CONTENT-LENGTH", "L":
+				c$sip$request_body_len = to_count(value);
+				break;
+			case "CSEQ":
+				c$sip$seq = value;
+				break;
+			case "DATE":
+				c$sip$date = value;
+				break;
+			case "FROM", "F":
+				c$sip$request_from = split_string1(value, /;[ ]?tag=/)[0];
+				break;
+			case "REPLY-TO":
+				c$sip$reply_to = value;
+				break;
+			case "SUBJECT", "S":
+				c$sip$subject = value;
+				break;
+			case "TO", "T":
+				c$sip$request_to = value;
+				break;
+			case "USER-AGENT":
+				c$sip$user_agent = value;
+				break;
+			case "VIA", "V":
+				c$sip$request_path[|c$sip$request_path|] = split_string1(value, /;[ ]?branch/)[0];
+				break;
+			}
 
 		c$sip_state$pending[c$sip_state$current_request] = c$sip;
 		}
@@ -222,13 +235,29 @@ event sip_header(c: connection, is_request: bool, name: string, value: string) &
 		{
 		if ( c$sip_state$current_response !in c$sip_state$pending )
 			++c$sip_state$current_response;
+
 		set_state(c, is_request);
-		if ( name == "CONTENT-LENGTH" || name == "L" )    c$sip$response_body_len = value;
-		else if ( name == "CONTENT-TYPE" || name == "C" ) c$sip$content_type = value;
-		else if ( name == "WARNING" )                     c$sip$warning = value;
-		else if ( name == "FROM" || name == "F" )         c$sip$response_from = split_string1(value, /;[ ]?tag=/)[0];
-		else if ( name == "TO" || name == "T" )           c$sip$response_to = value;
-		else if ( name == "VIA" || name == "V" )          c$sip$response_path[|c$sip$response_path|] = split_string1(value, /;[ ]?branch/)[0];
+		switch ( name )
+			{
+			case "CONTENT-LENGTH", "L":
+				c$sip$response_body_len = to_count(value);
+				break;
+			case "CONTENT-TYPE", "C":
+				c$sip$content_type = value;
+				break;
+			case "WARNING":
+				c$sip$warning = value;
+				break;
+			case "FROM", "F":
+				c$sip$response_from = split_string1(value, /;[ ]?tag=/)[0];
+				break;
+			case "TO", "T":
+				c$sip$response_to = value;
+				break;
+			case "VIA", "V":
+				c$sip$response_path[|c$sip$response_path|] = split_string1(value, /;[ ]?branch/)[0];
+				break;
+			}
 
 		c$sip_state$pending[c$sip_state$current_response] = c$sip;
 		}

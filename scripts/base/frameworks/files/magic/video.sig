@@ -71,6 +71,14 @@ signature file-mp2p {
 	file-magic /\x00\x00\x01\xba([\x40-\x7f\xc0-\xff])/
 }
 
+# MPEG transport stream data. These files typically have the extension "ts".
+# Note: The 0x47 repeats every 188 bytes. Using four as the number of
+# occurrences for the test here is arbitrary.
+signature file-mp2t {
+	file-mime "video/mp2t", 40
+	file-magic /^(\x47.{187}){4}/
+}
+
 # Silicon Graphics video
 signature file-sgi-movie {
 	file-mime "video/x-sgi-movie", 70
@@ -94,3 +102,4 @@ signature file-3gpp {
 	file-mime "video/3gpp", 60
 	file-magic /^....ftyp(3g[egps2]|avc1|mmp4)/
 }
+

@@ -1,4 +1,6 @@
 
+module Pcap;
+
 ## Precompiles a PCAP filter and binds it to a given identifier.
 ##
 ## id: The PCAP identifier to reference the filter *s* later on.
@@ -19,6 +21,15 @@
 ##          pcap_error
 function precompile_pcap_filter%(id: PcapFilterID, s: string%): bool
 	%{
+	if ( id->AsEnum() >= 100 )
+		{
+		// We use a vector as underlying data structure for fast
+		// lookups and limit the ID space so that that doesn't grow too
+		// large.
+		builtin_error(fmt("PCAP filter ids must remain below 100 (is %ld)", id->AsInt()));
+		return new Val(false, TYPE_BOOL);
+		}
+
 	bool success = true;
 
 	const iosource::Manager::PktSrcList& pkt_srcs(iosource_mgr->GetPktSrcs());
@@ -86,7 +97,7 @@ function install_pcap_filter%(id: PcapFilterID%): bool
 ##              install_dst_net_filter
 ##              uninstall_dst_addr_filter
 ##              uninstall_dst_net_filter
-function pcap_error%(%): string
+function error%(%): string
 	%{
 	const iosource::Manager::PktSrcList& pkt_srcs(iosource_mgr->GetPktSrcs());
 

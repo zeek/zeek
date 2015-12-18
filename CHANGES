@@ -1,5 +1,5 @@
 
-2.4-225 | 2015-12-18 11:40:43 -0800
+2.4-226 | 2015-12-18 12:58:36 -0800
 
   * Update host name in windows-version-detection.bro. (Aaron Eppert)
 
@@ -9,6 +9,8 @@
   * Change a stale bro-ids.org to bro.org. (Johanna Amann)
 
   * StartTLS support for IRC. (Johanna Amann)
+
+  * Adding usage guard to canonifier script. (Robin Sommer)
 
 2.4-217 | 2015-12-04 16:50:46 -0800
 

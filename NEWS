@@ -35,6 +35,9 @@ New Functionality
   argument that will be used for decoding errors into weird.log
   (instead of reporter.log).
 
+- The IRC analyzer now recognizes StartTLS sessions and enable the SSL
+  analyzer for them.
+
 - New Bro plugins in aux/plugins:
 
     - af_packet: Native AF_PACKET support.

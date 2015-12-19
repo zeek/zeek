@@ -1,4 +1,8 @@
 
+2.4-228 | 2015-12-19 13:40:09 -0800
+
+  * Updating BroControl submodule.
+
 2.4-227 | 2015-12-18 17:47:24 -0800
 
   * Update host name in windows-version-detection.bro. (Aaron Eppert)

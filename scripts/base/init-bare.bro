@@ -462,34 +462,51 @@ type NetStats: record {
 ## .. note:: All process-level values refer to Bro's main process only, not to
 ##    the child process it spawns for doing communication.
 type bro_resources: record {
-	version: string;	##< Bro version string.
-	debug: bool;	##< True if compiled with --enable-debug.
-	start_time: time;	##< Start time of process.
-	real_time: interval;	##< Elapsed real time since Bro started running.
-	user_time: interval;	##< User CPU seconds.
-	system_time: interval;	##< System CPU seconds.
-	mem: count;		##< Maximum memory consumed, in KB.
-	minor_faults: count;	##< Page faults not requiring actual I/O.
-	major_faults: count;	##< Page faults requiring actual I/O.
-	num_swap: count;	##< Times swapped out.
-	blocking_input: count;	##< Blocking input operations.
-	blocking_output: count;	##< Blocking output operations.
-	num_context: count;	##< Number of involuntary context switches.
+	version: string;              ##< Bro version string.
+	debug: bool;                  ##< True if compiled with --enable-debug.
+	start_time: time;             ##< Start time of process.
+	real_time: interval;          ##< Elapsed real time since Bro started running.
+	user_time: interval;          ##< User CPU seconds.
+	system_time: interval;        ##< System CPU seconds.
+	mem: count;                   ##< Maximum memory consumed, in KB.
+	minor_faults: count;          ##< Page faults not requiring actual I/O.
+	major_faults: count;          ##< Page faults requiring actual I/O.
+	num_swap: count;              ##< Times swapped out.
+	blocking_input: count;        ##< Blocking input operations.
+	blocking_output: count;       ##< Blocking output operations.
+	num_context: count;           ##< Number of involuntary context switches.
+    
+	num_packets: count;           ##< Total number of packets processed to date.
+	num_fragments: count;         ##< Current number of fragments pending reassembly.
+	max_fragments: count;         ##< Maximum number of concurrently buffered fragments so far.
+    
+	num_tcp_conns: count;         ##< Current number of TCP connections in memory.
+	max_tcp_conns: count;         ##< Maximum number of concurrent TCP connections so far.
+	cumulative_tcp_conns: count;  ##< 
 
-	num_TCP_conns: count;	##< Current number of TCP connections in memory.
-	num_UDP_conns: count;	##< Current number of UDP flows in memory.
-	num_ICMP_conns: count;	##< Current number of ICMP flows in memory.
-	num_fragments: count;	##< Current number of fragments pending reassembly.
-	num_packets: count;	##< Total number of packets processed to date.
-	num_timers: count;	##< Current number of pending timers.
-	num_events_queued: count;	##< Total number of events queued so far.
-	num_events_dispatched: count;	##< Total number of events dispatched so far.
+	num_udp_conns: count;         ##< Current number of UDP flows in memory.
+	max_udp_conns: count;         ##< Maximum number of concurrent UDP connections so far.
+	cumulative_udp_conns: count;  ##< 
 
-	max_TCP_conns: count;	##< Maximum number of concurrent TCP connections so far.
-	max_UDP_conns: count;	##< Maximum number of concurrent UDP connections so far.
-	max_ICMP_conns: count;	##< Maximum number of concurrent ICMP connections so far.
-	max_fragments: count;	##< Maximum number of concurrently buffered fragments so far.
-	max_timers: count;	##< Maximum number of concurrent timers pending so far.
+	num_icmp_conns: count;        ##< Current number of ICMP flows in memory.
+	max_icmp_conns: count;        ##< Maximum number of concurrent ICMP connections so far.
+	cumulative_icmp_conns: count; ##< 
+
+	num_timers: count;            ##< Current number of pending timers.
+	max_timers: count;            ##< Maximum number of concurrent timers pending so far.
+
+	num_events_queued: count;     ##< Total number of events queued so far.
+	num_events_dispatched: count; ##< Total number of events dispatched so far.
+
+	total_conns: count;           ##< 
+	current_conns: count;         ##< 
+	current_conns_extern: count;  ##< 
+	sess_current_conns: count;    ##< 
+
+	reassem_file_size:    count;  ##< Size of File reassembly tracking.
+	reassem_frag_size:    count;  ##< Size of Fragment reassembly tracking.
+	reassem_tcp_size:     count;  ##< Size of TCP reassembly tracking.
+	reassem_unknown_size: count;  ##< Size of reassembly tracking for unknown purposes.
 };
 
 ## Summary statistics of all regular expression matchers.
@@ -507,7 +524,7 @@ type matcher_stats: record {
 
 ## Statistics about number of gaps in TCP connections.
 ##
-## .. bro:see:: gap_report get_gap_summary
+## .. bro:see:: get_gap_summary
 type gap_info: record {
 	ack_events: count;	##< How many ack events *could* have had gaps.
 	ack_bytes: count;	##< How many bytes those covered.
@@ -3416,23 +3433,17 @@ global pkt_profile_file: file &redef;
 ## .. bro:see:: load_sample
 global load_sample_freq = 20 &redef;
 
-## Rate at which to generate :bro:see:`gap_report` events assessing to what
-## degree the measurement process appears to exhibit loss.
-##
-## .. bro:see:: gap_report
-const gap_report_freq = 1.0 sec &redef;
-
 ## Whether to attempt to automatically detect SYN/FIN/RST-filtered trace
 ## and not report missing segments for such connections.
 ## If this is enabled, then missing data at the end of connections may not
 ## be reported via :bro:see:`content_gap`.
 const detect_filtered_trace = F &redef;
 
-## Whether we want :bro:see:`content_gap` and :bro:see:`gap_report` for partial
+## Whether we want :bro:see:`content_gap` and :bro:see:`get_gap_summary` for partial
 ## connections. A connection is partial if it is missing a full handshake. Note
 ## that gap reports for partial connections might not be reliable.
 ##
-## .. bro:see:: content_gap gap_report partial_connection
+## .. bro:see:: content_gap get_gap_summary partial_connection
 const report_gaps_for_partial = F &redef;
 
 ## Flag to prevent Bro from exiting automatically when input is exhausted.

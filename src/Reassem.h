@@ -6,10 +6,23 @@
 #include "Obj.h"
 #include "IPAddr.h"
 
+// Whenever subclassing the Reassembler class
+// you should add to this for known subclasses.
+enum ReassemblerType {
+	REASSEM_UNKNOWN,
+	REASSEM_TCP,
+	REASSEM_FRAG,
+	REASSEM_FILE,
+
+	// Terminal value. Add new above.
+	REASSEM_TERM,
+};
+
 class DataBlock {
 public:
 	DataBlock(const u_char* data, uint64 size, uint64 seq,
-			DataBlock* prev, DataBlock* next);
+			DataBlock* prev, DataBlock* next,
+			ReassemblerType reassem_type = REASSEM_UNKNOWN);
 
 	~DataBlock();
 
@@ -19,13 +32,12 @@ public:
 	DataBlock* prev;	// previous block with lower seq #
 	uint64 seq, upper;
 	u_char* block;
+	ReassemblerType rtype;
 };
-
-
 
 class Reassembler : public BroObj {
 public:
-	Reassembler(uint64 init_seq);
+	Reassembler(uint64 init_seq, ReassemblerType reassem_type = REASSEM_UNKNOWN);
 	virtual ~Reassembler();
 
 	void NewBlock(double t, uint64 seq, uint64 len, const u_char* data);
@@ -50,6 +62,9 @@ public:
 
 	// Sum over all data buffered in some reassembler.
 	static uint64 TotalMemoryAllocation()	{ return total_size; }
+
+	// Data buffered by type of reassembler.
+	static uint64 MemoryAllocation(ReassemblerType rtype);
 
 	void SetMaxOldBlocks(uint32 count)	{ max_old_blocks = count; }
 
@@ -82,12 +97,15 @@ protected:
 	uint32 max_old_blocks;
 	uint32 total_old_blocks;
 
+	ReassemblerType rtype;
 	static uint64 total_size;
+	static std::vector<uint64> sizes;
 };
 
 inline DataBlock::~DataBlock()
 	{
 	Reassembler::total_size -= pad_size(upper - seq) + padded_sizeof(DataBlock);
+	Reassembler::sizes[rtype] -= pad_size(upper - seq) + padded_sizeof(DataBlock);
 	delete [] block;
 	}
 

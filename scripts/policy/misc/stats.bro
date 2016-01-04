@@ -10,7 +10,7 @@ export {
 	redef enum Log::ID += { LOG };
 
 	## How often stats are reported.
-	const stats_report_interval = 1min &redef;
+	const stats_report_interval = 5min &redef;
 
 	type Info: record {
 		## Timestamp for the measurement.
@@ -26,6 +26,22 @@ export {
 		## Number of events that have been queued since the last stats
 		## interval.
 		events_queued: count     &log;
+
+		## TCP connections seen since last stats interval.
+		tcp_conns: count     &log;
+		## UDP connections seen since last stats interval.
+		udp_conns: count     &log;
+		## ICMP connections seen since last stats interval.
+		icmp_conns: count    &log;
+
+		## Current size of TCP data in reassembly.
+		reassem_tcp_size: count &log;
+		## Current size of File data in reassembly.
+		reassem_file_size: count &log;
+		## Current size of packet fragment data in reassembly.
+		reassem_frag_size: count &log;
+		## Current size of unkown data in reassembly (this is only PIA buffer right now).
+		reassem_unknown_size: count &log;
 
 		## Lag between the wall clock and packet timestamps if reading
 		## live traffic.
@@ -64,16 +80,27 @@ event check_stats(last_ts: time, last_ns: NetStats, last_res: bro_resources)
 		# shutting down.
 		return;
 
-	local info: Info = [$ts=now, $peer=peer_description, $mem=res$mem/1000000,
+	local info: Info = [$ts=now, 
+	                    $peer=peer_description,
+	                    $mem=res$mem/1000000,
 	                    $pkts_proc=res$num_packets - last_res$num_packets,
 	                    $events_proc=res$num_events_dispatched - last_res$num_events_dispatched,
-	                    $events_queued=res$num_events_queued - last_res$num_events_queued];
+	                    $events_queued=res$num_events_queued - last_res$num_events_queued,
+	                    $tcp_conns=res$cumulative_tcp_conns - last_res$cumulative_tcp_conns, 
+	                    $udp_conns=res$cumulative_udp_conns - last_res$cumulative_udp_conns,
+	                    $icmp_conns=res$cumulative_icmp_conns - last_res$cumulative_icmp_conns,
+	                    $reassem_tcp_size=res$reassem_tcp_size,
+	                    $reassem_file_size=res$reassem_file_size,
+	                    $reassem_frag_size=res$reassem_frag_size,
+	                    $reassem_unknown_size=res$reassem_unknown_size
+	                    ];
+
+	# Someone's going to have to explain what this is and add a field to the Info record.
+	# info$util = 100.0*((res$user_time + res$system_time) - (last_res$user_time + last_res$system_time))/(now-last_ts);
 
 	if ( reading_live_traffic() )
 		{
 		info$lag = now - network_time();
-		# Someone's going to have to explain what this is and add a field to the Info record.
-		# info$util = 100.0*((res$user_time + res$system_time) - (last_res$user_time + last_res$system_time))/(now-last_ts);
 		info$pkts_recv = ns$pkts_recvd - last_ns$pkts_recvd;
 		info$pkts_dropped = ns$pkts_dropped  - last_ns$pkts_dropped;
 		info$pkts_link = ns$pkts_link  - last_ns$pkts_link;

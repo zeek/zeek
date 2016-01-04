@@ -14,6 +14,9 @@
 /* We are on a Linux system */
 #cmakedefine HAVE_LINUX
 
+/* We are on a Mac OS X (Darwin) system */
+#cmakedefine HAVE_DARWIN
+
 /* Define if you have the `mallinfo' function. */
 #cmakedefine HAVE_MALLINFO
 

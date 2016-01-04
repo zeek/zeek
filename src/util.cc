@@ -14,6 +14,11 @@
 # endif
 #endif
 
+#ifdef HAVE_DARWIN
+#include <mach/task.h>
+#include <mach/mach_init.h>
+#endif
+
 #include <string>
 #include <vector>
 #include <algorithm>
@@ -1662,11 +1667,24 @@ void get_memory_usage(unsigned int* total, unsigned int* malloced)
 
 #endif
 
+#ifdef HAVE_DARWIN
+	struct task_basic_info t_info;
+	mach_msg_type_number_t t_info_count = TASK_BASIC_INFO_COUNT;
+	
+	if ( KERN_SUCCESS != task_info(mach_task_self(),
+	                               TASK_BASIC_INFO, 
+	                               (task_info_t)&t_info, 
+	                               &t_info_count) )
+		ret_total = 0;
+	else
+		ret_total = t_info.resident_size;
+#else
 	struct rusage r;
 	getrusage(RUSAGE_SELF, &r);
 
 	// In KB.
 	ret_total = r.ru_maxrss * 1024;
+#endif
 
 	if ( total )
 		*total = ret_total;

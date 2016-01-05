@@ -1766,34 +1766,29 @@ function resource_usage%(%): bro_resources
 	ADD_STAT(s.num_packets);
 	ADD_STAT(s.num_fragments);
 	ADD_STAT(s.max_fragments);
-
 	ADD_STAT(s.num_TCP_conns);
 	ADD_STAT(s.max_TCP_conns);
 	ADD_STAT(s.cumulative_TCP_conns);
-
 	ADD_STAT(s.num_UDP_conns);
 	ADD_STAT(s.max_UDP_conns);
 	ADD_STAT(s.cumulative_UDP_conns);
-
 	ADD_STAT(s.num_ICMP_conns);
 	ADD_STAT(s.max_ICMP_conns);
 	ADD_STAT(s.cumulative_ICMP_conns);
-
 	ADD_STAT(s.num_timers);
 	ADD_STAT(s.max_timers);
-
-	ADD_STAT(s.mem);
+	ADD_STAT(s.num_events_queued);
 	ADD_STAT(s.num_events_dispatched);
 
-	ADD_STAT(Connection::TotalConnections());
-	ADD_STAT(Connection::CurrentConnections());
-	ADD_STAT(Connection::CurrentExternalConnections());
-	ADD_STAT(sessions->CurrentConnections());
-	
-	ADD_STAT(Reassembler::MemoryAllocation(REASSEM_FILE));
-	ADD_STAT(Reassembler::MemoryAllocation(REASSEM_FRAG));
-	ADD_STAT(Reassembler::MemoryAllocation(REASSEM_TCP));
-	ADD_STAT(Reassembler::MemoryAllocation(REASSEM_UNKNOWN));
+	res->Assign(n++, new Val(unsigned(Connection::TotalConnections()), TYPE_COUNT));
+	res->Assign(n++, new Val(unsigned(Connection::CurrentConnections()), TYPE_COUNT));
+	res->Assign(n++, new Val(unsigned(Connection::CurrentExternalConnections()), TYPE_COUNT));
+	res->Assign(n++, new Val(unsigned(sessions->CurrentConnections()), TYPE_COUNT));
+
+	res->Assign(n++, new Val(unsigned(Reassembler::MemoryAllocation(REASSEM_FILE)), TYPE_COUNT));
+	res->Assign(n++, new Val(unsigned(Reassembler::MemoryAllocation(REASSEM_FRAG)), TYPE_COUNT));
+	res->Assign(n++, new Val(unsigned(Reassembler::MemoryAllocation(REASSEM_TCP)), TYPE_COUNT));
+	res->Assign(n++, new Val(unsigned(Reassembler::MemoryAllocation(REASSEM_UNKNOWN)), TYPE_COUNT));
 
 	return res;
 	%}

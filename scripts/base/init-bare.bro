@@ -475,11 +475,11 @@ type bro_resources: record {
 	blocking_input: count;        ##< Blocking input operations.
 	blocking_output: count;       ##< Blocking output operations.
 	num_context: count;           ##< Number of involuntary context switches.
-    
+
 	num_packets: count;           ##< Total number of packets processed to date.
 	num_fragments: count;         ##< Current number of fragments pending reassembly.
 	max_fragments: count;         ##< Maximum number of concurrently buffered fragments so far.
-    
+
 	num_tcp_conns: count;         ##< Current number of TCP connections in memory.
 	max_tcp_conns: count;         ##< Maximum number of concurrent TCP connections so far.
 	cumulative_tcp_conns: count;  ##< 

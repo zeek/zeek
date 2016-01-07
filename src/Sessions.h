@@ -46,10 +46,6 @@ struct SessionStats {
 	int num_fragments;
 	int max_fragments;
 	uint64 num_packets;
-	int num_timers;
-	int max_timers;
-	uint64 num_events_queued;
-	uint64 num_events_dispatched;
 };
 
 // Drains and deletes a timer manager if it hasn't seen any advances

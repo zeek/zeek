@@ -1172,8 +1172,8 @@ int main(int argc, char** argv)
 
 		double time_net_start = current_time(true);;
 
-		unsigned int mem_net_start_total;
-		unsigned int mem_net_start_malloced;
+		uint64 mem_net_start_total;
+		uint64 mem_net_start_malloced;
 
 		if ( time_bro )
 			{
@@ -1181,7 +1181,7 @@ int main(int argc, char** argv)
 
 			fprintf(stderr, "# initialization %.6f\n", time_net_start - time_start);
 
-			fprintf(stderr, "# initialization %uM/%uM\n",
+			fprintf(stderr, "# initialization %" PRIu64 "M/%" PRIu64 "M\n",
 				mem_net_start_total / 1024 / 1024,
 				mem_net_start_malloced / 1024 / 1024);
 			}
@@ -1190,8 +1190,8 @@ int main(int argc, char** argv)
 
 		double time_net_done = current_time(true);;
 
-		unsigned int mem_net_done_total;
-		unsigned int mem_net_done_malloced;
+		uint64 mem_net_done_total;
+		uint64 mem_net_done_malloced;
 
 		if ( time_bro )
 			{
@@ -1200,7 +1200,7 @@ int main(int argc, char** argv)
 			fprintf(stderr, "# total time %.6f, processing %.6f\n",
 				time_net_done - time_start, time_net_done - time_net_start);
 
-			fprintf(stderr, "# total mem %uM/%uM, processing %uM/%uM\n",
+			fprintf(stderr, "# total mem %" PRId64 "M/%" PRId64 "M, processing %" PRId64 "M/%" PRId64 "M\n",
 				mem_net_done_total / 1024 / 1024,
 				mem_net_done_malloced / 1024 / 1024,
 				(mem_net_done_total - mem_net_start_total) / 1024 / 1024,

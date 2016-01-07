@@ -1655,9 +1655,9 @@ extern "C" void out_of_memory(const char* where)
 	abort();
 	}
 
-void get_memory_usage(unsigned int* total, unsigned int* malloced)
+void get_memory_usage(uint64* total, uint64* malloced)
 	{
-	unsigned int ret_total;
+	uint64 ret_total;
 
 #ifdef HAVE_MALLINFO
 	struct mallinfo mi = mallinfo();

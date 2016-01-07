@@ -502,8 +502,7 @@ inline int safe_vsnprintf(char* str, size_t size, const char* format, va_list al
 
 // Returns total memory allocations and (if available) amount actually
 // handed out by malloc.
-extern void get_memory_usage(unsigned int* total,
-			     unsigned int* malloced);
+extern void get_memory_usage(uint64* total, uint64* malloced);
 
 // Class to be used as a third argument for STL maps to be able to use
 // char*'s as keys. Otherwise the pointer values will be compared instead of

@@ -26,14 +26,7 @@
 
 using namespace std;
 
-RecordType* net_stats;
-RecordType* bro_resources;
-RecordType* matcher_stats;
 TableType* var_sizes;
-
-// This one is extern, since it's used beyond just built-ins,
-// and hence it's declared in NetVar.{h,cc}.
-extern RecordType* gap_info;
 
 static iosource::PktDumper* addl_pkt_dumper = 0;
 
@@ -1661,169 +1654,6 @@ function reading_traces%(%): bool
 	return new Val(reading_traces, TYPE_BOOL);
 	%}
 
-## Returns packet capture statistics. Statistics include the number of
-## packets *(i)* received by Bro, *(ii)* dropped, and *(iii)* seen on the
-## link (not always available).
-##
-## Returns: A record of packet statistics.
-##
-## .. bro:see:: do_profiling
-##              resource_usage
-##              get_matcher_stats
-##              dump_rule_stats
-##              get_gap_summary
-function net_stats%(%): NetStats
-	%{
-	unsigned int recv = 0;
-	unsigned int drop = 0;
-	unsigned int link = 0;
-	unsigned int bytes_recv = 0;
-
-	const iosource::Manager::PktSrcList& pkt_srcs(iosource_mgr->GetPktSrcs());
-
-	for ( iosource::Manager::PktSrcList::const_iterator i = pkt_srcs.begin();
-	      i != pkt_srcs.end(); i++ )
-		{
-		iosource::PktSrc* ps = *i;
-
-		struct iosource::PktSrc::Stats stat;
-		ps->Statistics(&stat);
-		recv += stat.received;
-		drop += stat.dropped;
-		link += stat.link;
-		bytes_recv += stat.bytes_received;
-		}
-
-	RecordVal* ns = new RecordVal(net_stats);
-	ns->Assign(0, new Val(recv, TYPE_COUNT));
-	ns->Assign(1, new Val(drop, TYPE_COUNT));
-	ns->Assign(2, new Val(link, TYPE_COUNT));
-	ns->Assign(3, new Val(bytes_recv, TYPE_COUNT));
-
-	return ns;
-	%}
-
-## Returns Bro process statistics. Statistics include real/user/sys CPU time,
-## memory usage, page faults, number of TCP/UDP/ICMP connections, timers,
-## and events queued/dispatched.
-##
-## Returns: A record with resource usage statistics.
-##
-## .. bro:see:: do_profiling
-##              net_stats
-##              get_matcher_stats
-##              dump_rule_stats
-##              get_gap_summary
-function resource_usage%(%): bro_resources
-	%{
-	struct rusage r;
-
-	if ( getrusage(RUSAGE_SELF, &r) < 0 )
-		reporter->InternalError("getrusage() failed in bro_resource_usage()");
-
-	double elapsed_time = current_time() - bro_start_time;
-
-	double user_time =
-		double(r.ru_utime.tv_sec) + double(r.ru_utime.tv_usec) / 1e6;
-	double system_time =
-		double(r.ru_stime.tv_sec) + double(r.ru_stime.tv_usec) / 1e6;
-
-	RecordVal* res = new RecordVal(bro_resources);
-	int n = 0;
-
-	res->Assign(n++, new StringVal(bro_version()));
-
-#ifdef DEBUG
-	res->Assign(n++, new Val(1, TYPE_COUNT));
-#else
-	res->Assign(n++, new Val(0, TYPE_COUNT));
-#endif
-
-	res->Assign(n++, new Val(bro_start_time, TYPE_TIME));
-
-	res->Assign(n++, new IntervalVal(elapsed_time, Seconds));
-	res->Assign(n++, new IntervalVal(user_time, Seconds));
-	res->Assign(n++, new IntervalVal(system_time, Seconds));
-
-	unsigned int total_mem;
-	get_memory_usage(&total_mem, 0);
-	res->Assign(n++, new Val(unsigned(total_mem), TYPE_COUNT));
-
-	res->Assign(n++, new Val(unsigned(r.ru_minflt), TYPE_COUNT));
-	res->Assign(n++, new Val(unsigned(r.ru_majflt), TYPE_COUNT));
-	res->Assign(n++, new Val(unsigned(r.ru_nswap), TYPE_COUNT));
-	res->Assign(n++, new Val(unsigned(r.ru_inblock), TYPE_COUNT));
-	res->Assign(n++, new Val(unsigned(r.ru_oublock), TYPE_COUNT));
-	res->Assign(n++, new Val(unsigned(r.ru_nivcsw), TYPE_COUNT));
-
-	SessionStats s;
-	if ( sessions )
-		sessions->GetStats(s);
-
-#define ADD_STAT(x) \
-	res->Assign(n++, new Val(unsigned(sessions ? x : 0), TYPE_COUNT));
-
-	ADD_STAT(s.num_packets);
-	ADD_STAT(s.num_fragments);
-	ADD_STAT(s.max_fragments);
-	ADD_STAT(s.num_TCP_conns);
-	ADD_STAT(s.max_TCP_conns);
-	ADD_STAT(s.cumulative_TCP_conns);
-	ADD_STAT(s.num_UDP_conns);
-	ADD_STAT(s.max_UDP_conns);
-	ADD_STAT(s.cumulative_UDP_conns);
-	ADD_STAT(s.num_ICMP_conns);
-	ADD_STAT(s.max_ICMP_conns);
-	ADD_STAT(s.cumulative_ICMP_conns);
-	ADD_STAT(s.num_timers);
-	ADD_STAT(s.max_timers);
-	ADD_STAT(s.num_events_queued);
-	ADD_STAT(s.num_events_dispatched);
-
-	res->Assign(n++, new Val(unsigned(Connection::TotalConnections()), TYPE_COUNT));
-	res->Assign(n++, new Val(unsigned(Connection::CurrentConnections()), TYPE_COUNT));
-	res->Assign(n++, new Val(unsigned(Connection::CurrentExternalConnections()), TYPE_COUNT));
-	res->Assign(n++, new Val(unsigned(sessions->CurrentConnections()), TYPE_COUNT));
-
-	res->Assign(n++, new Val(unsigned(Reassembler::MemoryAllocation(REASSEM_FILE)), TYPE_COUNT));
-	res->Assign(n++, new Val(unsigned(Reassembler::MemoryAllocation(REASSEM_FRAG)), TYPE_COUNT));
-	res->Assign(n++, new Val(unsigned(Reassembler::MemoryAllocation(REASSEM_TCP)), TYPE_COUNT));
-	res->Assign(n++, new Val(unsigned(Reassembler::MemoryAllocation(REASSEM_UNKNOWN)), TYPE_COUNT));
-
-	return res;
-	%}
-
-## Returns statistics about the regular expression engine. Statistics include
-## the number of distinct matchers, DFA states, DFA state transitions, memory
-## usage of DFA states, cache hits/misses, and average number of NFA states
-## across all matchers.
-##
-## Returns: A record with matcher statistics.
-##
-## .. bro:see:: do_profiling
-##              net_stats
-##              resource_usage
-##              dump_rule_stats
-##              get_gap_summary
-function get_matcher_stats%(%): matcher_stats
-	%{
-	RuleMatcher::Stats s;
-	memset(&s, 0, sizeof(s));
-
-	if ( rule_matcher )
-		rule_matcher->GetStats(&s);
-
-	RecordVal* r = new RecordVal(matcher_stats);
-	r->Assign(0, new Val(s.matchers, TYPE_COUNT));
-	r->Assign(1, new Val(s.dfa_states, TYPE_COUNT));
-	r->Assign(2, new Val(s.computed, TYPE_COUNT));
-	r->Assign(3, new Val(s.mem, TYPE_COUNT));
-	r->Assign(4, new Val(s.hits, TYPE_COUNT));
-	r->Assign(5, new Val(s.misses, TYPE_COUNT));
-	r->Assign(6, new Val(s.avg_nfa_states, TYPE_COUNT));
-
-	return r;
-	%}
 
 ## Generates a table of the size of all global variables. The table index is
 ## the variable name and the value is the variable size in bytes.
@@ -1964,8 +1794,7 @@ function record_fields%(rec: any%): record_field_table
 ## .. bro:see:: net_stats
 ##              resource_usage
 ##              get_matcher_stats
-##              dump_rule_stats
-##              get_gap_summary
+##              get_gap_stats
 function do_profiling%(%) : any
 	%{
 	if ( profiling_logger )
@@ -2030,8 +1859,8 @@ function is_local_interface%(ip: addr%) : bool
 ## .. bro:see:: do_profiling
 ##              resource_usage
 ##              get_matcher_stats
-##              net_stats
-##              get_gap_summary
+##              get_net_stats
+##              get_gap_stats
 ##
 ## .. todo:: The return value should be changed to any or check appropriately.
 function dump_rule_stats%(f: file%): bool

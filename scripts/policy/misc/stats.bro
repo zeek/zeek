@@ -1,6 +1,4 @@
-##! Log memory/packet/lag statistics.  Differs from
-##! :doc:`/scripts/policy/misc/profiling.bro` in that this
-##! is lighter-weight (much less info, and less load to generate).
+##! Log memory/packet/lag statistics.
 
 @load base/frameworks/notice
 
@@ -10,7 +8,7 @@ export {
 	redef enum Log::ID += { LOG };
 
 	## How often stats are reported.
-	const stats_report_interval = 5min &redef;
+	const stats_report_interval = 1sec &redef;
 
 	type Info: record {
 		## Timestamp for the measurement.
@@ -27,12 +25,19 @@ export {
 		## interval.
 		events_queued: count     &log;
 
+		## TCP connections currently in memory.
+		active_tcp_conns: count  &log;
+		## UDP connections currently in memory.
+		active_udp_conns: count &log;
+		## ICMP connections currently in memory.
+		active_icmp_conns: count &log;
+
 		## TCP connections seen since last stats interval.
-		tcp_conns: count     &log;
+		tcp_conns:        count  &log;
 		## UDP connections seen since last stats interval.
-		udp_conns: count     &log;
+		udp_conns:        count &log;
 		## ICMP connections seen since last stats interval.
-		icmp_conns: count    &log;
+		icmp_conns:        count &log;
 
 		## Current size of TCP data in reassembly.
 		reassem_tcp_size: count &log;
@@ -69,11 +74,14 @@ event bro_init() &priority=5
 	Log::create_stream(Stats::LOG, [$columns=Info, $ev=log_stats, $path="stats"]);
 	}
 
-event check_stats(last_ts: time, last_ns: NetStats, last_res: bro_resources)
+event check_stats(last_ts: time, last_ns: NetStats, last_cs: ConnStats, last_ps: ProcStats, last_es: EventStats, last_rs: ReassemblerStats)
 	{
 	local now = current_time();
-	local ns = net_stats();
-	local res = resource_usage();
+	local ns = get_net_stats();
+	local cs = get_conn_stats();
+	local ps = get_proc_stats();
+	local es = get_event_stats();
+	local rs = get_reassembler_stats();
 
 	if ( bro_is_terminating() )
 		# No more stats will be written or scheduled when Bro is
@@ -82,21 +90,27 @@ event check_stats(last_ts: time, last_ns: NetStats, last_res: bro_resources)
 
 	local info: Info = [$ts=now, 
 	                    $peer=peer_description,
-	                    $mem=res$mem/1000000,
-	                    $pkts_proc=res$num_packets - last_res$num_packets,
-	                    $events_proc=res$num_events_dispatched - last_res$num_events_dispatched,
-	                    $events_queued=res$num_events_queued - last_res$num_events_queued,
-	                    $tcp_conns=res$cumulative_tcp_conns - last_res$cumulative_tcp_conns, 
-	                    $udp_conns=res$cumulative_udp_conns - last_res$cumulative_udp_conns,
-	                    $icmp_conns=res$cumulative_icmp_conns - last_res$cumulative_icmp_conns,
-	                    $reassem_tcp_size=res$reassem_tcp_size,
-	                    $reassem_file_size=res$reassem_file_size,
-	                    $reassem_frag_size=res$reassem_frag_size,
-	                    $reassem_unknown_size=res$reassem_unknown_size
+	                    $mem=ps$mem/1000000,
+	                    $pkts_proc=ns$pkts_recvd - last_ns$pkts_recvd,
+
+	                    $active_tcp_conns=cs$num_tcp_conns,
+	                    $tcp_conns=cs$cumulative_tcp_conns - last_cs$cumulative_tcp_conns, 
+	                    $active_udp_conns=cs$num_udp_conns,
+	                    $udp_conns=cs$cumulative_udp_conns - last_cs$cumulative_udp_conns,
+	                    $active_icmp_conns=cs$num_icmp_conns,
+	                    $icmp_conns=cs$cumulative_icmp_conns - last_cs$cumulative_icmp_conns,
+
+	                    $reassem_tcp_size=rs$tcp_size,
+	                    $reassem_file_size=rs$file_size,
+	                    $reassem_frag_size=rs$frag_size,
+	                    $reassem_unknown_size=rs$unknown_size,
+
+	                    $events_proc=es$num_events_dispatched - last_es$num_events_dispatched,
+	                    $events_queued=es$num_events_queued - last_es$num_events_queued
 	                    ];
 
 	# Someone's going to have to explain what this is and add a field to the Info record.
-	# info$util = 100.0*((res$user_time + res$system_time) - (last_res$user_time + last_res$system_time))/(now-last_ts);
+	# info$util = 100.0*((ps$user_time + ps$system_time) - (last_ps$user_time + last_ps$system_time))/(now-last_ts);
 
 	if ( reading_live_traffic() )
 		{
@@ -108,10 +122,10 @@ event check_stats(last_ts: time, last_ns: NetStats, last_res: bro_resources)
 		}
 
 	Log::write(Stats::LOG, info);
-	schedule stats_report_interval { check_stats(now, ns, res) };
+	schedule stats_report_interval { check_stats(now, ns, cs, ps, es, rs) };
 	}
 
 event bro_init()
 	{
-	schedule stats_report_interval { check_stats(current_time(), net_stats(), resource_usage()) };
+	schedule stats_report_interval { check_stats(current_time(), get_net_stats(), get_conn_stats(), get_proc_stats(), get_event_stats(), get_reassembler_stats()) };
 	}

@@ -14,7 +14,7 @@
 #include "broker/Manager.h"
 #endif
 
-int killed_by_inactivity = 0;
+uint64 killed_by_inactivity = 0;
 
 uint64 tot_ack_events = 0;
 uint64 tot_ack_bytes = 0;
@@ -82,7 +82,7 @@ void ProfileLogger::Log()
 	struct timeval tv_utime = r.ru_utime;
 	struct timeval tv_stime = r.ru_stime;
 
-	unsigned int total, malloced;
+	uint64 total, malloced;
 	get_memory_usage(&total, &malloced);
 
 	static unsigned int first_total = 0;
@@ -110,7 +110,7 @@ void ProfileLogger::Log()
 		file->Write(fmt("\n%.06f ------------------------\n", network_time));
 		}
 
-	file->Write(fmt("%.06f Memory: total=%dK total_adj=%dK malloced: %dK\n",
+	file->Write(fmt("%.06f Memory: total=%" PRId64 "K total_adj=%" PRId64 "K malloced: %" PRId64 "K\n",
 		network_time, total / 1024, (total - first_total) / 1024,
 		malloced / 1024));
 
@@ -120,7 +120,7 @@ void ProfileLogger::Log()
 
 	int conn_mem_use = expensive ? sessions->ConnectionMemoryUsage() : 0;
 
-	file->Write(fmt("%.06f Conns: total=%d current=%d/%d ext=%d mem=%dK avg=%.1f table=%dK connvals=%dK\n",
+	file->Write(fmt("%.06f Conns: total=%" PRIu64 " current=%" PRIu64 "/%" PRIi32 " ext=%" PRIu64 " mem=%" PRIi32 "K avg=%.1f table=%" PRIu32 "K connvals=%" PRIu32 "K\n",
 		network_time,
 		Connection::TotalConnections(),
 		Connection::CurrentConnections(),
@@ -161,10 +161,10 @@ void ProfileLogger::Log()
 		       ));
 	*/
 
-	file->Write(fmt("%.06f Connections expired due to inactivity: %d\n",
+	file->Write(fmt("%.06f Connections expired due to inactivity: %" PRIu64 "\n",
 		network_time, killed_by_inactivity));
 
-	file->Write(fmt("%.06f Total reassembler data: %" PRIu64"K\n", network_time,
+	file->Write(fmt("%.06f Total reassembler data: %" PRIu64 "K\n", network_time,
 		Reassembler::TotalMemoryAllocation() / 1024));
 
 	// Signature engine.
@@ -465,10 +465,10 @@ void PacketProfiler::ProfilePkt(double t, unsigned int bytes)
 		double curr_Rtime =
 			ptimestamp.tv_sec + ptimestamp.tv_usec / 1e6;
 
-		unsigned int curr_mem;
+		uint64 curr_mem;
 		get_memory_usage(&curr_mem, 0);
 
-		file->Write(fmt("%.06f %.03f %d %d %.03f %.03f %.03f %d\n",
+		file->Write(fmt("%.06f %.03f %" PRIu64 " %" PRIu64 " %.03f %.03f %.03f %" PRIu64 "\n",
 				t, time-last_timestamp, pkt_cnt, byte_cnt,
 				curr_Rtime - last_Rtime,
 				curr_Utime - last_Utime,

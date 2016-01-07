@@ -26,7 +26,7 @@ event ChecksumOffloading::check()
 	if ( done )
 		return;
 
-	local pkts_recvd = net_stats()$pkts_recvd;
+	local pkts_recvd = get_net_stats()$pkts_recvd;
 	local bad_ip_checksum_pct = (pkts_recvd != 0) ? (bad_ip_checksums*1.0 / pkts_recvd*1.0) : 0;
 	local bad_tcp_checksum_pct = (pkts_recvd != 0) ? (bad_tcp_checksums*1.0 / pkts_recvd*1.0) : 0;
 	local bad_udp_checksum_pct = (pkts_recvd != 0) ? (bad_udp_checksums*1.0 / pkts_recvd*1.0) : 0;

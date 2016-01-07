@@ -56,7 +56,7 @@ event CaptureLoss::take_measurement(last_ts: time, last_acks: count, last_gaps: 
 		}
 	
 	local now = network_time();
-	local g = get_gap_summary();
+	local g = get_gap_stats();
 	local acks = g$ack_events - last_acks;
 	local gaps = g$gap_events - last_gaps;
 	local pct_lost = (acks == 0) ? 0.0 : (100 * (1.0 * gaps) / (1.0 * acks));

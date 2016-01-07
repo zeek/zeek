@@ -200,9 +200,6 @@ extern Val* pkt_profile_file;
 
 extern int load_sample_freq;
 
-extern double gap_report_freq;
-extern RecordType* gap_info;
-
 extern int packet_filter_default;
 
 extern int sig_max_group_size;

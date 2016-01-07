@@ -19,6 +19,8 @@ class DFA_Machine;
 class DFA_State;
 struct CacheEntry;
 
+extern uint64 total_dfa_states;
+
 class DFA_State : public BroObj {
 public:
 	DFA_State(int state_num, const EquivClass* ec,
@@ -132,7 +134,6 @@ public:
 
 	void Describe(ODesc* d) const;
 	void Dump(FILE* f);
-	void DumpStats(FILE* f);
 
 	unsigned int MemoryAllocation() const;
 

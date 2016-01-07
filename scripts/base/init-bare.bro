@@ -455,30 +455,15 @@ type NetStats: record {
 	bytes_recvd:  count &default=0;	##< Bytes received by Bro.
 };
 
-## Statistics about Bro's resource consumption.
-##
-## .. bro:see:: resource_usage
-##
-## .. note:: All process-level values refer to Bro's main process only, not to
-##    the child process it spawns for doing communication.
-type bro_resources: record {
-	version: string;              ##< Bro version string.
-	debug: bool;                  ##< True if compiled with --enable-debug.
-	start_time: time;             ##< Start time of process.
-	real_time: interval;          ##< Elapsed real time since Bro started running.
-	user_time: interval;          ##< User CPU seconds.
-	system_time: interval;        ##< System CPU seconds.
-	mem: count;                   ##< Maximum memory consumed, in KB.
-	minor_faults: count;          ##< Page faults not requiring actual I/O.
-	major_faults: count;          ##< Page faults requiring actual I/O.
-	num_swap: count;              ##< Times swapped out.
-	blocking_input: count;        ##< Blocking input operations.
-	blocking_output: count;       ##< Blocking output operations.
-	num_context: count;           ##< Number of involuntary context switches.
+type ConnStats: record {
+	total_conns: count;           ##< 
+	current_conns: count;         ##< 
+	current_conns_extern: count;  ##< 
+	sess_current_conns: count;    ##< 
 
-	num_packets: count;           ##< Total number of packets processed to date.
-	num_fragments: count;         ##< Current number of fragments pending reassembly.
-	max_fragments: count;         ##< Maximum number of concurrently buffered fragments so far.
+	num_packets: count;
+	num_fragments: count;
+	max_fragments: count;
 
 	num_tcp_conns: count;         ##< Current number of TCP connections in memory.
 	max_tcp_conns: count;         ##< Maximum number of concurrent TCP connections so far.
@@ -492,44 +477,94 @@ type bro_resources: record {
 	max_icmp_conns: count;        ##< Maximum number of concurrent ICMP connections so far.
 	cumulative_icmp_conns: count; ##< 
 
-	num_timers: count;            ##< Current number of pending timers.
-	max_timers: count;            ##< Maximum number of concurrent timers pending so far.
+	killed_by_inactivity: count;
+};
 
+## Statistics about Bro's process.
+##
+## .. bro:see:: get_proc_stats
+##
+## .. note:: All process-level values refer to Bro's main process only, not to
+##    the child process it spawns for doing communication.
+type ProcStats: record {
+	debug: bool;                  ##< True if compiled with --enable-debug.
+	start_time: time;             ##< Start time of process.
+	real_time: interval;          ##< Elapsed real time since Bro started running.
+	user_time: interval;          ##< User CPU seconds.
+	system_time: interval;        ##< System CPU seconds.
+	mem: count;                   ##< Maximum memory consumed, in KB.
+	minor_faults: count;          ##< Page faults not requiring actual I/O.
+	major_faults: count;          ##< Page faults requiring actual I/O.
+	num_swap: count;              ##< Times swapped out.
+	blocking_input: count;        ##< Blocking input operations.
+	blocking_output: count;       ##< Blocking output operations.
+	num_context: count;           ##< Number of involuntary context switches.
+};
+
+type EventStats: record {
 	num_events_queued: count;     ##< Total number of events queued so far.
 	num_events_dispatched: count; ##< Total number of events dispatched so far.
+};
 
-	total_conns: count;           ##< 
-	current_conns: count;         ##< 
-	current_conns_extern: count;  ##< 
-	sess_current_conns: count;    ##< 
-
-	reassem_file_size:    count;  ##< Size of File reassembly tracking.
-	reassem_frag_size:    count;  ##< Size of Fragment reassembly tracking.
-	reassem_tcp_size:     count;  ##< Size of TCP reassembly tracking.
-	reassem_unknown_size: count;  ##< Size of reassembly tracking for unknown purposes.
+## Summary statistics of all regular expression matchers.
+##
+## .. bro:see:: get_reassembler_stats
+type ReassemblerStats: record {
+	file_size:    count;  ##< Byte size of File reassembly tracking.
+	frag_size:    count;  ##< Byte size of Fragment reassembly tracking.
+	tcp_size:     count;  ##< Byte size of TCP reassembly tracking.
+	unknown_size: count;  ##< Byte size of reassembly tracking for unknown purposes.
 };
 
 ## Summary statistics of all regular expression matchers.
 ##
 ## .. bro:see:: get_matcher_stats
-type matcher_stats: record {
-	matchers: count;	##< Number of distinct RE matchers.
-	dfa_states: count;	##< Number of DFA states across all matchers.
-	computed: count;	##< Number of computed DFA state transitions.
-	mem: count;		##< Number of bytes used by DFA states.
-	hits: count;		##< Number of cache hits.
-	misses: count;		##< Number of cache misses.
-	avg_nfa_states: count;	##< Average number of NFA states across all matchers.
+type MatcherStats: record {
+	matchers: count;       ##< Number of distinct RE matchers.
+	dfa_states: count;     ##< Number of DFA states across all matchers.
+	computed: count;       ##< Number of computed DFA state transitions.
+	mem: count;            ##< Number of bytes used by DFA states.
+	hits: count;           ##< Number of cache hits.
+	misses: count;         ##< Number of cache misses.
+	avg_nfa_states: count; ##< Average number of NFA states across all matchers.
+};
+
+type TimerStats: record {
+	num_timers: count; ##< Current number of pending timers.
+	max_timers: count; ##< Maximum number of concurrent timers pending so far.
+};
+
+type FileAnalysisStats: record {
+	current:    count;
+	max:        count;
+	cumulative: count;
+};
+
+type DNSStats: record {
+	requests:         count;
+	successful:       count;
+	failed:           count;
+	pending:          count;
+	cached_hosts:     count;
+	cached_addresses: count;
 };
 
 ## Statistics about number of gaps in TCP connections.
 ##
-## .. bro:see:: get_gap_summary
-type gap_info: record {
+## .. bro:see:: get_gap_stats
+type GapStats: record {
 	ack_events: count;	##< How many ack events *could* have had gaps.
 	ack_bytes: count;	##< How many bytes those covered.
 	gap_events: count;	##< How many *did* have gaps.
 	gap_bytes: count;	##< How many bytes were missing in the gaps.
+};
+
+type PatternStats: record {
+
+};
+
+type ThreadStats: record {
+	num_threads: count;
 };
 
 ## Deprecated.

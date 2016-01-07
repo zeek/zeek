@@ -197,7 +197,6 @@ Val* pkt_profile_file;
 int load_sample_freq;
 
 double gap_report_freq;
-RecordType* gap_info;
 
 int packet_filter_default;
 

@@ -366,26 +366,6 @@ event ack_above_hole%(c: connection%);
 ##    the two.
 event content_gap%(c: connection, is_orig: bool, seq: count, length: count%);
 
-## Summarizes the amount of missing TCP payload at regular intervals.
-## Internally, Bro tracks (1) the number of :bro:id:`ack_above_hole` events,
-## including the number of bytes missing; and (2) the total number of TCP
-## acks seen, with the total volume of bytes that have been acked. This event
-## reports these statistics in :bro:id:`gap_report_freq` intervals for the
-## purpose of determining packet loss.
-##
-## dt: The time that has passed since the last ``gap_report`` interval.
-##
-## info: The gap statistics.
-##
-## .. bro:see:: content_gap ack_above_hole
-##
-## .. note::
-##
-##    Bro comes with a script :doc:`/scripts/policy/misc/capture-loss.bro` that
-##    uses this event to estimate packet loss and report when a predefined
-##    threshold is exceeded.
-event gap_report%(dt: interval, info: gap_info%);
-
 ## Generated when a protocol analyzer confirms that a connection is indeed
 ## using that protocol. Bro's dynamic protocol detection heuristically activates
 ## analyzers as soon as it believes a connection *could* be using a particular

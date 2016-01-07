@@ -9,6 +9,8 @@
 
 unsigned int DFA_State::transition_counter = 0;
 
+uint64 total_dfa_states = 0;
+
 DFA_State::DFA_State(int arg_state_num, const EquivClass* ec,
 			NFA_state_list* arg_nfa_states,
 			AcceptingSet* arg_accept)
@@ -19,6 +21,8 @@ DFA_State::DFA_State(int arg_state_num, const EquivClass* ec,
 	accept = arg_accept;
 	mark = 0;
 	centry = 0;
+
+	++total_dfa_states;
 
 	SymPartition(ec);
 
@@ -431,19 +435,6 @@ void DFA_Machine::Dump(FILE* f)
 	{
 	start_state->Dump(f, this);
 	start_state->ClearMarks();
-	}
-
-void DFA_Machine::DumpStats(FILE* f)
-	{
-	DFA_State_Cache::Stats stats;
-	dfa_state_cache->GetStats(&stats);
-
-	fprintf(f, "Computed dfa_states = %d; Classes = %d; Computed trans. = %d; Uncomputed trans. = %d\n",
-		stats.dfa_states, EC()->NumClasses(),
-		stats.computed, stats.uncomputed);
-
-	fprintf(f, "DFA cache hits = %d; misses = %d\n",
-		stats.hits, stats.misses);
 	}
 
 unsigned int DFA_Machine::MemoryAllocation() const

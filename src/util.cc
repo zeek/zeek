@@ -1664,15 +1664,14 @@ void get_memory_usage(unsigned int* total, unsigned int* malloced)
 
 	if ( malloced )
 		*malloced = mi.uordblks;
-
 #endif
 
 #ifdef HAVE_DARWIN
-	struct task_basic_info t_info;
-	mach_msg_type_number_t t_info_count = TASK_BASIC_INFO_COUNT;
+	struct mach_task_basic_info t_info;
+	mach_msg_type_number_t t_info_count = MACH_TASK_BASIC_INFO;
 	
 	if ( KERN_SUCCESS != task_info(mach_task_self(),
-	                               TASK_BASIC_INFO, 
+	                               MACH_TASK_BASIC_INFO, 
 	                               (task_info_t)&t_info, 
 	                               &t_info_count) )
 		ret_total = 0;

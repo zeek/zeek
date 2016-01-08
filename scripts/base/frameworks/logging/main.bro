@@ -583,33 +583,33 @@ function update_logging(reset: bool, llocal: bool, lremote: bool, rinterval: int
 	enable_remote_logging = (!reset && enable_remote_logging) || lremote;
 
 	# Set log rotation interval
-	if ( default_rotation_interval == 0secs || default_rotation_interval > rinterval || reset)
+	if ( default_rotation_interval == 0sec || default_rotation_interval > rinterval || reset )
 		default_rotation_interval = rinterval;
 
 	# Set alarm summary mail interval.
-	if ( default_mail_alarms_interval  == 0secs || default_mail_alarms_interval > minterval || reset)
+	if ( default_mail_alarms_interval == 0sec || default_mail_alarms_interval > minterval || reset )
 		default_mail_alarms_interval = minterval;
 
 	# Update postprocessor command for logs
-	if (default_rotation_postprocessor_cmd != "archive-log" || reset)
+	if ( default_rotation_postprocessor_cmd != "archive-log" || reset )
 		default_rotation_postprocessor_cmd = pproc;
 
 	for ( [id, name] in filters )
 		{
 		# Turn on or off remote logs
-		if (enable_remote_logging)
+		if ( enable_remote_logging )
 			{
 			local topic = fmt("bro/log/%s", id);
 			Broker::publish_topic(topic);
 			Broker::enable_remote_logs(id);
 			}
-		else if (Broker::remote_logs_enabled(id))
+		else if ( Broker::remote_logs_enabled(id) )
 			Broker::disable_remote_logs(id);
 
 		# Update filter description
 		filters[id, name]$log_local = enable_local_logging;
 		filters[id, name]$log_remote = enable_remote_logging;
-		if (fmt("%s", id) == "Notice::ALARM_LOG")
+		if ( fmt("%s", id) == "Notice::ALARM_LOG" )
 			filters[id,name]$interv = default_mail_alarms_interval;
 		else
 			filters[id,name]$interv = default_rotation_interval;

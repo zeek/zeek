@@ -3,7 +3,7 @@
 ##! ``cluster-layout.bro`` must exist somewhere in Bro's script search path
 ##! which has a cluster definition of the :bro:id:`Cluster::nodes` variable.
 ##! The ``CLUSTER_NODE`` environment variable or :bro:id:`Cluster::node`
-##! must also be sent and the cluster framework loaded as a package like
+##! must also be set and the cluster framework loaded as a package like
 ##! ``@load base/frameworks/cluster``.
 
 @load base/frameworks/control
@@ -124,13 +124,13 @@ export {
 	## Returns: True if :bro:id:`Cluster::node` has been set.
 	global is_enabled: function(): bool;
 
-	## Register events with broker that the local node will publish
+	## Register events with broker that the local node will publish.
 	##
 	## prefix: the broker pub-sub prefix
 	## event_list: a list of events to be published via this prefix
 	global register_broker_events: function(prefix: string, event_list: set[string]);
 
-	## Unregister events with broker that the local node will publish
+	## Unregister events with broker that the local node will publish.
 	##
 	## prefix: the broker pub-sub prefix
 	## event_list: a list of events to be published via this prefix
@@ -141,14 +141,14 @@ export {
 	##
 	## Returns: true if local node has that role, false otherwise
 	global has_local_role: function(role: NodeRole): bool;
-	
-  ## Assign the local node all its assigned roles
+
+	## Assign the local node all of its assigned roles.
 	##
-	## reset: bool that determins if roles are assigned on the existing state (OR)
-	##	or if roles are assigned to a fresh initial state
+	## reset: bool that determines if roles are assigned on the existing state
+	##        or if roles are assigned to a fresh initial state
 	global set_local_roles:function(reset: bool);
 
-	## Functions to set the node role dynamically
+	## Functions to set the node role dynamically.
 	global set_role_manager:function(reset: bool);
 	global set_role_datanode:function(reset: bool);
 	global set_role_lognode:function(reset: bool);
@@ -166,35 +166,35 @@ export {
 	## Returns a set of strings
 	global get_set: function(st: string): set[string];
 
-	## Compares two enum sets with each other
+	## Compares two NodeRole sets with each other.
 	##
-	## set1: ste of NodeRoles
-	## set2: ste of NodeRoles
+	## set1: set of NodeRole
+	## set2: set of NodeRole
 	## return bool
 	global enum_set_eq: function(set1: set[NodeRole], set2: set[NodeRole]): bool;
 
-	## Compares to sets of strings with each other
+	## Compares two sets of strings with each other.
 	##
-	## set1: see of strings 
-	## set2: see of  stringsb
+	## set1: set of string
+	## set2: set of string
 	## return bool
 	global string_set_eq: function(set1: set[string], set2: set[string]): bool;
 
 	global update_node: function(cname: string, name: string, connect: bool, retry: interval);
 
-	## Add an additional node dynamically to an cluster
+	## Add an additional node dynamically to a cluster.
 	## 
-	## name: 			name of the node
-	## roles: 		supported roles by the node
-	## ip: 				ip of the node
-	## zone_id: 	zone_id of the node
-	## p: 				port this node listens on
-	## interface:	interface this node monitors
-	## manager: 	responsible manager node
-	## datanode: 	responsible datanode
+	## name: name of the node
+	## roles: supported roles by the node
+	## ip: ip of the node
+	## zone_id: zone_id of the node
+	## p: port this node listens on
+	## interface: interface this node monitors
+	## manager: responsible manager node
+	## datanode: responsible datanode
 	global update_cluster_node: event(name: string, roles: set[string], ip: string, p: string, interface: string, manager: string, workers: set[string], datanode: string);
 
-	## Remove a node dynamically from a cluster
+	## Remove a node dynamically from a cluster.
 	##
 	## name: the name of the node
 	global remove_cluster_node: event(name: string);
@@ -220,10 +220,10 @@ export {
 	## of the cluster that is started up.
 	const node = getenv("CLUSTER_NODE") &redef;
 
-	## The local datastore that can be either master or clone
+	## The local datastore that can be either master or clone.
 	global cluster_store: opaque of Broker::Handle;
 
-	# Set the correct name of this endpoint according to cluster-layout
+	# Set the correct name of this endpoint according to cluster-layout.
 	redef Broker::endpoint_name = node;
 
 	## Interval for retrying failed connections between cluster nodes.
@@ -234,27 +234,27 @@ function get_set(st: string): set[string]
 	{
 	local node_set: set[string];
 	local node_vec = split_string(st, /(, )/);
-	for (s in node_vec)
+	for ( s in node_vec )
 		{
 		local s2 = strip(node_vec[s]);
 		add node_set[s2];
 		}
-		return node_set;
+	return node_set;
 	}
 
 function get_roles_enum(roles: set[string]): set[NodeRole]
 	{
-	# Get roles of this node as enums! 
+	# Get roles of this node as enums.
 	local node_r: set[NodeRole];
 	for ( r in roles )
 		{
 		if ( r == "Cluster::MANAGER" )
 			add node_r[Cluster::MANAGER];
-		if( r == "Cluster::DATANODE" )
+		else if ( r == "Cluster::DATANODE" )
 			add node_r[Cluster::DATANODE];
-		if ( r == "Cluster::LOGNODE" )
+		else if ( r == "Cluster::LOGNODE" )
 			add node_r[Cluster::LOGNODE];
-		if( r == "Cluster::WORKER" )
+		else if ( r == "Cluster::WORKER" )
 			add node_r[Cluster::WORKER];
 		}
 
@@ -263,12 +263,12 @@ function get_roles_enum(roles: set[string]): set[NodeRole]
 
 function enum_set_eq(set1: set[NodeRole], set2: set[NodeRole]): bool
 	{
-	if(|set1| != |set2|)
+	if ( |set1| != |set2| )
 		return F;
 	else
 		{
-		for (e in set1)
-			if(! (e in set2) )
+		for ( e in set1 )
+			if ( e !in set2 )
 				return F;
 		}
 	return T;
@@ -276,12 +276,12 @@ function enum_set_eq(set1: set[NodeRole], set2: set[NodeRole]): bool
 
 function string_set_eq(set1: set[string], set2: set[string]): bool
 	{
-	if(|set1| != |set2|)
+	if ( |set1| != |set2| )
 		return F;
 	else
 		{
-		for (e in set1)
-			if(! (e in set2) )
+		for ( e in set1 )
+			if ( e !in set2 )
 				return F;
 		}
 	return T;
@@ -304,13 +304,13 @@ function register_broker_events(prefix: string, event_list: set[string])
 
 function unregister_broker_events(prefix: string, event_list: set[string])
 	{
-		for ( e in event_list )
-			Broker::auto_event_stop(prefix, lookup_ID(e));
+	for ( e in event_list )
+		Broker::auto_event_stop(prefix, lookup_ID(e));
 	}
 
 function has_local_role(role: NodeRole): bool
 	{
-	if (!is_enabled())
+	if ( !is_enabled() )
 		return F;
 
 	if ( node in nodes && nodes[node]?$node_roles && role in nodes[node]$node_roles )
@@ -322,20 +322,21 @@ function has_local_role(role: NodeRole): bool
 function set_local_roles(reset: bool)
 	{
 	print " node is ", node;
-	# If reset is required, reset the node with the first call to a set_role_* function
+	# If reset is required, reset the node with the first call to a set_role_*
+	# function.
 	local reset_node = reset;
-	for (r in nodes[node]$node_roles)
+	for ( r in nodes[node]$node_roles )
 		{
-		if (r == Cluster::MANAGER)
+		if ( r == Cluster::MANAGER )
 			set_role_manager(reset_node);
-		else if (r == Cluster::DATANODE)
+		else if ( r == Cluster::DATANODE )
 			set_role_datanode(reset_node);
-		else if (r == Cluster::LOGNODE)
+		else if ( r == Cluster::LOGNODE )
 			set_role_lognode(reset_node);
-		else if (r == Cluster::WORKER)
+		else if ( r == Cluster::WORKER )
 			set_role_worker(reset_node);
 		else
-			next;	
+			next;
 
 		reset_node = F;
 		}
@@ -359,7 +360,7 @@ function set_role_manager(reset: bool)
 	register_broker_events(fmt("%s%s/worker/request/", pub_sub_prefix, cluster_id), manager2worker_events);
 	register_broker_events(fmt("%s%s/data/request/", pub_sub_prefix, cluster_id), manager2datanode_events);
 
-	if(DATANODE !in nodes[node]$node_roles)
+	if ( DATANODE !in nodes[node]$node_roles )
 		{
 		# Create a clone of the master store
 		Cluster::cluster_store = Broker::create_clone("cluster-store");
@@ -419,7 +420,7 @@ function set_role_lognode(reset: bool)
 	prefix = fmt("%s%s/worker/response/", pub_sub_prefix, cluster_id);
 	register_broker_events(prefix, datanode2worker_events);
 		
-	if(DATANODE !in nodes[node]$node_roles)
+	if ( DATANODE !in nodes[node]$node_roles )
 		{
 		# Create a clone of the master store
 		Cluster::cluster_store = Broker::create_clone("cluster-store");
@@ -451,10 +452,10 @@ function set_role_worker(reset: bool)
 	# Note that this only indicates that *if* we are recording packets, we want all
 	# of them (rather than just those the core deems sufficiently important).
 	# Setting this does not turn recording on. Use '-w <trace>' for that.
-  TrimTraceFile::startTrimTraceFile();
+	TrimTraceFile::startTrimTraceFile();
 	record_all_packets = T;
-	
-	if(DATANODE !in nodes[node]$node_roles)
+
+	if ( DATANODE !in nodes[node]$node_roles )
 		{
 		# Create a clone of the master store
 		Cluster::cluster_store = Broker::create_clone("cluster-store");
@@ -463,25 +464,24 @@ function set_role_worker(reset: bool)
 
 event Broker::incoming_connection_established(peer_name: string) &priority=5
 	{
-	if ( peer_name in nodes && WORKER in nodes[peer_name]$node_roles)
+	if ( peer_name in nodes && WORKER in nodes[peer_name]$node_roles )
 		++worker_count;
-	Log::write(Cluster::LOG,[$ts=1, $message="Cluster: incoming connection established"]);
+	Log::write(Cluster::LOG, [$ts=1, $message="Cluster: incoming connection established"]);
 	}
 
 event Broker::incoming_connection_broken(peer_name: string) &priority=5
 	{
 	if ( peer_name in nodes && WORKER in nodes[peer_name]$node_roles )
 		--worker_count;
-	Log::write(Cluster::LOG,[$ts=2, $message="Cluster: incoming connection broken"]);
+	Log::write(Cluster::LOG, [$ts=2, $message="Cluster: incoming connection broken"]);
 	}
 
 event bro_init() &priority=5
 	{
-	if (is_enabled() && node in nodes)
+	if ( is_enabled() && node in nodes )
 		{
 		# set all roles of local node
 		set_local_roles(T);
 		Log::create_stream(Cluster::LOG, [$columns=Info, $path="cluster"]);
 		}
-	Broker::enable();
 	}

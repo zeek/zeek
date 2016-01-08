@@ -5,6 +5,7 @@ void *cq_dequeue(struct cq_handle *, double);
 void *cq_remove(struct cq_handle *, double, void *);
 int cq_size(struct cq_handle *);
 int cq_max_size(struct cq_handle *);
+uint64_t cq_cumulative_num(struct cq_handle *);
 unsigned int cq_memory_allocation(void);
 #ifdef DEBUG
 void cq_debug(struct cq_handle *, int);

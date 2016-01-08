@@ -530,8 +530,9 @@ type MatcherStats: record {
 };
 
 type TimerStats: record {
-	num_timers: count; ##< Current number of pending timers.
-	max_timers: count; ##< Maximum number of concurrent timers pending so far.
+	current:    count; ##< Current number of pending timers.
+	max:        count; ##< Maximum number of concurrent timers pending so far.
+	cumulative: count;
 };
 
 type FileAnalysisStats: record {

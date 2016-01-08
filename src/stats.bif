@@ -214,6 +214,7 @@ function get_timer_stats%(%): TimerStats
 
 	r->Assign(n++, new Val(unsigned(timer_mgr->Size()), TYPE_COUNT));
 	r->Assign(n++, new Val(unsigned(timer_mgr->PeakSize()), TYPE_COUNT));
+	r->Assign(n++, new Val(timer_mgr->CumulativeNum(), TYPE_COUNT));
 
 	return r;
 	%}

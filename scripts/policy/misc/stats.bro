@@ -39,6 +39,16 @@ export {
 		## ICMP connections seen since last stats interval.
 		icmp_conns:        count &log;
 
+		## Number of timers scheduled since last stats interval.
+		timers: count &log;
+		## Current number of scheduled timers.
+		active_timers: count &log;
+
+		## Number of files seen since last stats interval.
+		files: count &log;
+		## Current number of files actively being seen.
+		active_files: count &log;
+
 		## Current size of TCP data in reassembly.
 		reassem_tcp_size: count &log;
 		## Current size of File data in reassembly.
@@ -74,14 +84,16 @@ event bro_init() &priority=5
 	Log::create_stream(Stats::LOG, [$columns=Info, $ev=log_stats, $path="stats"]);
 	}
 
-event check_stats(last_ts: time, last_ns: NetStats, last_cs: ConnStats, last_ps: ProcStats, last_es: EventStats, last_rs: ReassemblerStats)
+event check_stats(then: time, last_ns: NetStats, last_cs: ConnStats, last_ps: ProcStats, last_es: EventStats, last_rs: ReassemblerStats, last_ts: TimerStats, last_fs: FileAnalysisStats)
 	{
-	local now = current_time();
+	local now = network_time();
 	local ns = get_net_stats();
 	local cs = get_conn_stats();
 	local ps = get_proc_stats();
 	local es = get_event_stats();
 	local rs = get_reassembler_stats();
+	local ts = get_timer_stats();
+	local fs = get_file_analysis_stats();
 
 	if ( bro_is_terminating() )
 		# No more stats will be written or scheduled when Bro is
@@ -90,7 +102,7 @@ event check_stats(last_ts: time, last_ns: NetStats, last_cs: ConnStats, last_ps:
 
 	local info: Info = [$ts=now, 
 	                    $peer=peer_description,
-	                    $mem=ps$mem/1000000,
+	                    $mem=ps$mem/1048576,
 	                    $pkts_proc=ns$pkts_recvd - last_ns$pkts_recvd,
 
 	                    $active_tcp_conns=cs$num_tcp_conns,
@@ -106,11 +118,17 @@ event check_stats(last_ts: time, last_ns: NetStats, last_cs: ConnStats, last_ps:
 	                    $reassem_unknown_size=rs$unknown_size,
 
 	                    $events_proc=es$num_events_dispatched - last_es$num_events_dispatched,
-	                    $events_queued=es$num_events_queued - last_es$num_events_queued
+	                    $events_queued=es$num_events_queued - last_es$num_events_queued,
+
+	                    $timers=ts$cumulative - last_ts$cumulative,
+	                    $active_timers=ts$current,
+
+	                    $files=fs$cumulative - last_fs$cumulative,
+	                    $active_files=fs$current
 	                    ];
 
 	# Someone's going to have to explain what this is and add a field to the Info record.
-	# info$util = 100.0*((ps$user_time + ps$system_time) - (last_ps$user_time + last_ps$system_time))/(now-last_ts);
+	# info$util = 100.0*((ps$user_time + ps$system_time) - (last_ps$user_time + last_ps$system_time))/(now-then);
 
 	if ( reading_live_traffic() )
 		{
@@ -122,10 +140,10 @@ event check_stats(last_ts: time, last_ns: NetStats, last_cs: ConnStats, last_ps:
 		}
 
 	Log::write(Stats::LOG, info);
-	schedule stats_report_interval { check_stats(now, ns, cs, ps, es, rs) };
+	schedule stats_report_interval { check_stats(now, ns, cs, ps, es, rs, ts, fs) };
 	}
 
 event bro_init()
 	{
-	schedule stats_report_interval { check_stats(current_time(), get_net_stats(), get_conn_stats(), get_proc_stats(), get_event_stats(), get_reassembler_stats()) };
+	schedule stats_report_interval { check_stats(network_time(), get_net_stats(), get_conn_stats(), get_proc_stats(), get_event_stats(), get_reassembler_stats(), get_timer_stats(), get_file_analysis_stats()) };
 	}

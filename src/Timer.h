@@ -109,6 +109,7 @@ public:
 
 	virtual int Size() const = 0;
 	virtual int PeakSize() const = 0;
+	virtual uint64 CumulativeNum() const = 0;
 
 	double LastTimestamp() const	{ return last_timestamp; }
 	// Returns time of last advance in global network time.
@@ -148,6 +149,7 @@ public:
 
 	int Size() const	{ return q->Size(); }
 	int PeakSize() const	{ return q->PeakSize(); }
+	uint64 CumulativeNum() const	{ return q->CumulativeNum(); }
 	unsigned int MemoryUsage() const;
 
 protected:
@@ -170,6 +172,7 @@ public:
 
 	int Size() const	{ return cq_size(cq); }
 	int PeakSize() const	{ return cq_max_size(cq); }
+	uint64 CumulativeNum() const	{ return cq_cumulative_num(cq); }
 	unsigned int MemoryUsage() const;
 
 protected:

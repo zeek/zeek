@@ -42,6 +42,7 @@ struct cq_handle {
 	int lowmark;			/* low bucket threshold */
 	int nextbucket;			/* next bucket to check */
 	int noresize;			/* don't resize while we're resizing */
+	uint64_t cumulative_num;	/* cumulative entries ever enqueued */
 	double lastpri;			/* last priority */
 	double ysize;			/* length of a year */
 	double bwidth;			/* width of each bucket */
@@ -175,6 +176,7 @@ cq_enqueue(register struct cq_handle *hp, register double pri,
 	}
 	bp->pri = pri;
 	bp->cookie = cookie;
+	++hp->cumulative_num;
 	if (++hp->qlen > hp->max_qlen)
 		hp->max_qlen = hp->qlen;
 #ifdef DEBUG
@@ -413,6 +415,13 @@ cq_max_size(struct cq_handle *hp)
 {
 	return hp->max_qlen;
 }
+
+uint64_t
+cq_cumulative_num(struct cq_handle *hp)
+{
+	return hp->cumulative_num;
+}
+
 
 /* Return without doing anything if we fail to allocate a new bucket array */
 static int

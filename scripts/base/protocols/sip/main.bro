@@ -80,7 +80,7 @@ export {
 	## that the SIP analyzer will only accept methods consisting solely
 	## of letters ``[A-Za-z]``.
 	const sip_methods: set[string] = {
-		"REGISTER", "INVITE", "ACK", "CANCEL", "BYE", "OPTIONS"
+		"REGISTER", "INVITE", "ACK", "CANCEL", "BYE", "OPTIONS", "NOTIFY"
 	} &redef;
 
 	## Event that can be handled to access the SIP record as it is sent on

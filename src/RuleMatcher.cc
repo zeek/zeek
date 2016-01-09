@@ -1174,7 +1174,7 @@ void RuleMatcher::GetStats(Stats* stats, RuleHdrTest* hdr_test)
 		stats->mem = 0;
 		stats->hits = 0;
 		stats->misses = 0;
-		stats->avg_nfa_states = 0;
+		stats->nfa_states = 0;
 		hdr_test = root;
 		}
 
@@ -1195,14 +1195,9 @@ void RuleMatcher::GetStats(Stats* stats, RuleHdrTest* hdr_test)
 			stats->mem += cstats.mem;
 			stats->hits += cstats.hits;
 			stats->misses += cstats.misses;
-			stats->avg_nfa_states += cstats.nfa_states;
+			stats->nfa_states += cstats.nfa_states;
 			}
 		}
-
-	if (  stats->dfa_states )
-		stats->avg_nfa_states /= stats->dfa_states;
-	else
-		stats->avg_nfa_states = 0;
 
 	for ( RuleHdrTest* h = hdr_test->child; h; h = h->sibling )
 		GetStats(stats, h);

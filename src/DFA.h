@@ -19,8 +19,6 @@ class DFA_Machine;
 class DFA_State;
 struct CacheEntry;
 
-extern uint64 total_dfa_states;
-
 class DFA_State : public BroObj {
 public:
 	DFA_State(int state_num, const EquivClass* ec,
@@ -91,10 +89,9 @@ public:
 	int NumEntries() const	{ return states.Length(); }
 
 	struct Stats {
-		unsigned int dfa_states;
-
-		// Sum over all NFA states per DFA state.
+		// Sum of all NFA states
 		unsigned int nfa_states;
+		unsigned int dfa_states;
 		unsigned int computed;
 		unsigned int uncomputed;
 		unsigned int mem;

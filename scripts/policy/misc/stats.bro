@@ -117,8 +117,8 @@ event check_stats(then: time, last_ns: NetStats, last_cs: ConnStats, last_ps: Pr
 	                    $reassem_frag_size=rs$frag_size,
 	                    $reassem_unknown_size=rs$unknown_size,
 
-	                    $events_proc=es$num_events_dispatched - last_es$num_events_dispatched,
-	                    $events_queued=es$num_events_queued - last_es$num_events_queued,
+	                    $events_proc=es$dispatched - last_es$dispatched,
+	                    $events_queued=es$queued - last_es$queued,
 
 	                    $timers=ts$cumulative - last_ts$cumulative,
 	                    $active_timers=ts$current,

@@ -653,7 +653,6 @@ void init_builtin_funcs()
 	TimerStats = internal_type("TimerStats")->AsRecordType();
 	FileAnalysisStats = internal_type("FileAnalysisStats")->AsRecordType();
 	ThreadStats = internal_type("ThreadStats")->AsRecordType();
-	PatternStats = internal_type("PatternStats")->AsRecordType();
 
 	var_sizes = internal_type("var_sizes")->AsTableType();
 

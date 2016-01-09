@@ -9,8 +9,6 @@
 
 unsigned int DFA_State::transition_counter = 0;
 
-uint64 total_dfa_states = 0;
-
 DFA_State::DFA_State(int arg_state_num, const EquivClass* ec,
 			NFA_state_list* arg_nfa_states,
 			AcceptingSet* arg_accept)
@@ -21,8 +19,6 @@ DFA_State::DFA_State(int arg_state_num, const EquivClass* ec,
 	accept = arg_accept;
 	mark = 0;
 	centry = 0;
-
-	++total_dfa_states;
 
 	SymPartition(ec);
 
@@ -350,6 +346,7 @@ DFA_State* DFA_State_Cache::Lookup(const NFA_state_list& nfas,
 		++misses;
 		return 0;
 		}
+	++hits;
 
 	delete *hash;
 	*hash = 0;

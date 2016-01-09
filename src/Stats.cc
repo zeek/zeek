@@ -173,9 +173,9 @@ void ProfileLogger::Log()
 		RuleMatcher::Stats stats;
 		rule_matcher->GetStats(&stats);
 
-		file->Write(fmt("%06f RuleMatcher: matchers=%d dfa_states=%d ncomputed=%d "
-			"mem=%dK avg_nfa_states=%d\n", network_time, stats.matchers,
-			stats.dfa_states, stats.computed, stats.mem / 1024, stats.avg_nfa_states));
+		file->Write(fmt("%06f RuleMatcher: matchers=%d nfa_states=%d dfa_states=%d "
+			"ncomputed=%d mem=%dK\n", network_time, stats.matchers,
+			stats.nfa_states, stats.dfa_states, stats.computed, stats.mem / 1024));
 		}
 
 	file->Write(fmt("%.06f Timers: current=%d max=%d mem=%dK lag=%.2fs\n",

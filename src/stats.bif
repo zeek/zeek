@@ -12,7 +12,6 @@ RecordType* ConnStats;
 RecordType* GapStats;
 RecordType* EventStats;
 RecordType* ThreadStats;
-RecordType* PatternStats;
 RecordType* TimerStats;
 RecordType* FileAnalysisStats;
 %%}
@@ -157,6 +156,13 @@ function get_event_stats%(%): EventStats
 	return r;
 	%}
 
+## Returns statistics about reassembler usage.
+##
+## Returns: A record with reassembler statistics.
+##
+## .. bro:see:: get_net_stats
+##              get_proc_stats
+##              get_matcher_stats
 function get_reassembler_stats%(%): ReassemblerStats
 	%{
 	RecordVal* r = new RecordVal(ReassemblerStats);
@@ -170,6 +176,13 @@ function get_reassembler_stats%(%): ReassemblerStats
 	return r;
 	%}
 
+## Returns statistics about DNS lookup activity.
+##
+## Returns: A record with DNS lookup statistics.
+##
+## .. bro:see:: get_net_stats
+##              get_proc_stats
+##              get_matcher_stats
 function get_dns_stats%(%): DNSStats
 	%{
 	RecordVal* r = new RecordVal(DNSStats);
@@ -188,25 +201,13 @@ function get_dns_stats%(%): DNSStats
 	return r;
 	%}
 
-function get_pattern_stats%(%): PatternStats
-	%{
-	RecordVal* r = new RecordVal(PatternStats);
-	int n = 0;
-
-	//DFA_State_Cache::Stats stats;
-	//dfa_state_cache->GetStats(&stats);
-
-	//fprintf(f, "Computed dfa_states = %d; Classes = %d; Computed trans. = %d; Uncomputed trans. = %d\n",
-	//	stats.dfa_states, EC()->NumClasses(),
-	//	stats.computed, stats.uncomputed);
-//
-	//fprintf(f, "DFA cache hits = %d; misses = %d\n",
-	//	stats.hits, stats.misses);
-
-	return r;
-
-	%}
-
+## Returns statistics about timer usage.
+##
+## Returns: A record with timer usage statistics.
+##
+## .. bro:see:: get_net_stats
+##              get_proc_stats
+##              get_matcher_stats
 function get_timer_stats%(%): TimerStats
 	%{
 	RecordVal* r = new RecordVal(TimerStats);
@@ -219,6 +220,13 @@ function get_timer_stats%(%): TimerStats
 	return r;
 	%}
 
+## Returns statistics about file analysis.
+##
+## Returns: A record with file analysis statistics.
+##
+## .. bro:see:: get_net_stats
+##              get_proc_stats
+##              get_matcher_stats
 function get_file_analysis_stats%(%): FileAnalysisStats
 	%{
 	RecordVal* r = new RecordVal(FileAnalysisStats);
@@ -231,6 +239,13 @@ function get_file_analysis_stats%(%): FileAnalysisStats
 	return r;
 	%}
 
+## Returns statistics about thread usage.
+##
+## Returns: A record with thread usage statistics.
+##
+## .. bro:see:: get_net_stats
+##              get_proc_stats
+##              get_matcher_stats
 function get_thread_stats%(%): ThreadStats
 	%{
 	RecordVal* r = new RecordVal(ThreadStats);
@@ -245,8 +260,7 @@ function get_thread_stats%(%): ThreadStats
 ##
 ## Returns: A record with TCP gap statistics.
 ##
-## .. bro:see:: do_profiling
-##              get_net_stats
+## .. bro:see:: get_net_stats
 ##              get_proc_stats
 ##              get_matcher_stats
 function get_gap_stats%(%): GapStats
@@ -283,12 +297,12 @@ function get_matcher_stats%(%): MatcherStats
 		rule_matcher->GetStats(&s);
 
 	r->Assign(n++, new Val(s.matchers, TYPE_COUNT));
+	r->Assign(n++, new Val(s.nfa_states, TYPE_COUNT));
 	r->Assign(n++, new Val(s.dfa_states, TYPE_COUNT));
 	r->Assign(n++, new Val(s.computed, TYPE_COUNT));
 	r->Assign(n++, new Val(s.mem, TYPE_COUNT));
 	r->Assign(n++, new Val(s.hits, TYPE_COUNT));
 	r->Assign(n++, new Val(s.misses, TYPE_COUNT));
-	r->Assign(n++, new Val(s.avg_nfa_states, TYPE_COUNT));
 
 	return r;
 	%}

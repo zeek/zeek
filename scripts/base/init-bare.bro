@@ -502,8 +502,8 @@ type ProcStats: record {
 };
 
 type EventStats: record {
-	num_events_queued: count;     ##< Total number of events queued so far.
-	num_events_dispatched: count; ##< Total number of events dispatched so far.
+	queued:     count; ##< Total number of events queued so far.
+	dispatched: count; ##< Total number of events dispatched so far.
 };
 
 ## Summary statistics of all regular expression matchers.
@@ -520,13 +520,13 @@ type ReassemblerStats: record {
 ##
 ## .. bro:see:: get_matcher_stats
 type MatcherStats: record {
-	matchers: count;       ##< Number of distinct RE matchers.
-	dfa_states: count;     ##< Number of DFA states across all matchers.
-	computed: count;       ##< Number of computed DFA state transitions.
-	mem: count;            ##< Number of bytes used by DFA states.
-	hits: count;           ##< Number of cache hits.
-	misses: count;         ##< Number of cache misses.
-	avg_nfa_states: count; ##< Average number of NFA states across all matchers.
+	matchers: count;    ##< Number of distinct RE matchers.
+	nfa_states: count;  ##< Number of NFA states across all matchers.
+	dfa_states: count;  ##< Number of DFA states across all matchers.
+	computed: count;    ##< Number of computed DFA state transitions.
+	mem: count;         ##< Number of bytes used by DFA states.
+	hits: count;        ##< Number of cache hits.
+	misses: count;      ##< Number of cache misses.
 };
 
 type TimerStats: record {
@@ -558,10 +558,6 @@ type GapStats: record {
 	ack_bytes: count;	##< How many bytes those covered.
 	gap_events: count;	##< How many *did* have gaps.
 	gap_bytes: count;	##< How many bytes were missing in the gaps.
-};
-
-type PatternStats: record {
-
 };
 
 type ThreadStats: record {

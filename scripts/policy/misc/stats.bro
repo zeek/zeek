@@ -19,6 +19,20 @@ export {
 		mem:           count     &log;
 		## Number of packets processed since the last stats interval.
 		pkts_proc:     count     &log;
+		## Number of bytes received since the last stats interval if
+		## reading live traffic.
+		bytes_recv:    count     &log;
+
+		## Number of packets dropped since the last stats interval if
+		## reading live traffic.
+		pkts_dropped:  count     &log &optional;
+		## Number of packets seen on the link since the last stats
+		## interval if reading live traffic.
+		pkts_link:     count     &log &optional;
+		## Lag between the wall clock and packet timestamps if reading
+		## live traffic.
+		pkt_lag:       interval  &log &optional;
+
 		## Number of events processed since the last stats interval.
 		events_proc:   count     &log;
 		## Number of events that have been queued since the last stats
@@ -57,22 +71,6 @@ export {
 		reassem_frag_size: count &log;
 		## Current size of unkown data in reassembly (this is only PIA buffer right now).
 		reassem_unknown_size: count &log;
-
-		## Lag between the wall clock and packet timestamps if reading
-		## live traffic.
-		lag:           interval  &log &optional;
-		## Number of packets received since the last stats interval if
-		## reading live traffic.
-		pkts_recv:     count     &log &optional;
-		## Number of packets dropped since the last stats interval if
-		## reading live traffic.
-		pkts_dropped:  count     &log &optional;
-		## Number of packets seen on the link since the last stats
-		## interval if reading live traffic.
-		pkts_link:     count     &log &optional;
-		## Number of bytes received since the last stats interval if
-		## reading live traffic.
-		bytes_recv:   count     &log &optional;
 	};
 
 	## Event to catch stats as they are written to the logging stream.
@@ -86,7 +84,7 @@ event bro_init() &priority=5
 
 event check_stats(then: time, last_ns: NetStats, last_cs: ConnStats, last_ps: ProcStats, last_es: EventStats, last_rs: ReassemblerStats, last_ts: TimerStats, last_fs: FileAnalysisStats)
 	{
-	local now = network_time();
+	local nettime = network_time();
 	local ns = get_net_stats();
 	local cs = get_conn_stats();
 	local ps = get_proc_stats();
@@ -100,10 +98,11 @@ event check_stats(then: time, last_ns: NetStats, last_cs: ConnStats, last_ps: Pr
 		# shutting down.
 		return;
 
-	local info: Info = [$ts=now, 
+	local info: Info = [$ts=nettime, 
 	                    $peer=peer_description,
 	                    $mem=ps$mem/1048576,
 	                    $pkts_proc=ns$pkts_recvd - last_ns$pkts_recvd,
+	                    $bytes_recv = ns$bytes_recvd  - last_ns$bytes_recvd,
 
 	                    $active_tcp_conns=cs$num_tcp_conns,
 	                    $tcp_conns=cs$cumulative_tcp_conns - last_cs$cumulative_tcp_conns, 
@@ -132,15 +131,13 @@ event check_stats(then: time, last_ns: NetStats, last_cs: ConnStats, last_ps: Pr
 
 	if ( reading_live_traffic() )
 		{
-		info$lag = now - network_time();
-		info$pkts_recv = ns$pkts_recvd - last_ns$pkts_recvd;
+		info$pkt_lag = current_time() - nettime;
 		info$pkts_dropped = ns$pkts_dropped  - last_ns$pkts_dropped;
 		info$pkts_link = ns$pkts_link  - last_ns$pkts_link;
-		info$bytes_recv = ns$bytes_recvd  - last_ns$bytes_recvd;
 		}
 
 	Log::write(Stats::LOG, info);
-	schedule stats_report_interval { check_stats(now, ns, cs, ps, es, rs, ts, fs) };
+	schedule stats_report_interval { check_stats(nettime, ns, cs, ps, es, rs, ts, fs) };
 	}
 
 event bro_init()

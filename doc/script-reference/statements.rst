@@ -277,15 +277,24 @@ Here are the statements that the Bro scripting language supports.
 .. bro:keyword:: delete
 
     The "delete" statement is used to remove an element from a
-    :bro:type:`set` or :bro:type:`table`.  Nothing happens if the
-    specified element does not exist in the set or table.
+    :bro:type:`set` or :bro:type:`table`, or to remove a value from
+    a :bro:type:`record` field that has the :bro:attr:`&optional` attribute.
+    When attempting to remove an element from a set or table,
+    nothing happens if the specified index does not exist.
+    When attempting to remove a value from an "&optional" record field,
+    nothing happens if that field doesn't have a value.
 
     Example::
 
         local myset = set("this", "test");
         local mytable = table(["key1"] = 80/tcp, ["key2"] = 53/udp);
+        local myrec = MyRecordType($a = 1, $b = 2);
+
         delete myset["test"];
         delete mytable["key1"];
+
+        # In this example, "b" must have the "&optional" attribute
+        delete myrec$b;
 
 .. bro:keyword:: event
 
@@ -532,8 +541,6 @@ Here are the statements that the Bro scripting language supports.
     end with either a :bro:keyword:`break`, :bro:keyword:`fallthrough`, or
     :bro:keyword:`return` statement (although "return" is allowed only
     if the "switch" statement is inside a function, hook, or event handler).
-    If a "case" (or "default") block contain more than one statement, then
-    there is no need to wrap them in braces.
 
     Note that the braces in a "switch" statement are always required (these
     do not indicate the presence of a `compound statement`_), and that no
@@ -604,12 +611,9 @@ Here are the statements that the Bro scripting language supports.
             if ( skip_ahead() )
                 next;
 
-            [...]
-
             if ( finish_up )
                 break;
 
-            [...]
             }
 
 .. _compound statement:

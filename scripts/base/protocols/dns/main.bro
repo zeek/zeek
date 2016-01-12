@@ -52,7 +52,7 @@ export {
 		## The Recursion Available bit in a response message indicates
 		## that the name server supports recursive queries.
 		RA:            bool               &log &default=F;
-		## A reserved field that is currently supposed to be zero in all
+		## A reserved field that is usually zero in
 		## queries and responses.
 		Z:             count              &log &default=0;
 		## The set of resource descriptions in the query answer.

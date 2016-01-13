@@ -26,9 +26,8 @@ event bro_init() &priority=5
 	
 	# Establish the communication configuration and only request response
 	# messages.
-	Broker::nodes["control"] = [$host=host, $zone_id=zone_id,
-	                                   $p=host_port, $connect=T,
-	                                   $class="control"];
+	Broker::nodes["control"] = [$ip=host, $zone_id=zone_id,
+	                                   $p=host_port, $connect=T];
 
 	# Subscribe: subscribe to control-related response events
 	local prefix = fmt("%sresponse/", Control::pub_sub_prefix);

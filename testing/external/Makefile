@@ -1,5 +1,5 @@
 
-PUBLIC_REPO=git://git.bro-ids.org/bro-testing
+PUBLIC_REPO=git://git.bro.org/bro-testing
 REPOS=`./scripts/find-git-repos `
 
 DIAG=diag.log

@@ -13,10 +13,6 @@
 #include <pcap-int.h>
 #endif
 
-#ifdef HAVE_PACKET_FANOUT
-#include <linux/if_packet.h>
-#endif
-
 using namespace iosource::pcap;
 
 PcapSource::~PcapSource()
@@ -155,24 +151,6 @@ void PcapSource::OpenLive()
 	if ( ! pd )
 		// Was closed, couldn't get header size.
 		return;
-
-#ifdef HAVE_PACKET_FANOUT
-	// Turn on cluster mode for the device.
-	if ( BifConst::Pcap::packet_fanout_enable )
-		{
-		uint32_t packet_fanout_arg = (PACKET_FANOUT_HASH << 16)
-			| (BifConst::Pcap::packet_fanout_id & 0xffff);
-
-		if ( BifConst::Pcap::packet_fanout_defrag )
-			packet_fanout_arg |= (PACKET_FANOUT_FLAG_DEFRAG << 16);
-
-		if ( setsockopt(props.selectable_fd, SOL_PACKET, PACKET_FANOUT, &packet_fanout_arg, sizeof(packet_fanout_arg)) == -1 )
-			{
-			Error(fmt("packet fanout: %s", strerror(errno)));
-			return;
-			}
-		}
-#endif
 
 	props.is_live = true;
 

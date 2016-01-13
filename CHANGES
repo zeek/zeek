@@ -1,4 +1,106 @@
 
+2.4-228 | 2015-12-19 13:40:09 -0800
+
+  * Updating BroControl submodule.
+
+2.4-227 | 2015-12-18 17:47:24 -0800
+
+  * Update host name in windows-version-detection.bro. (Aaron Eppert)
+
+  * Update installation instructions to mention OpenSSL dependency for
+    newer OS X version. (Johanna Amann)
+
+  * Change a stale bro-ids.org to bro.org. (Johanna Amann)
+
+  * StartTLS support for IRC. (Johanna Amann)
+
+  * Adding usage guard to canonifier script. (Robin Sommer)
+
+2.4-217 | 2015-12-04 16:50:46 -0800
+
+  * SIP scripts code cleanup. (Seth Hall)
+
+     - Daniel Guerra pointed out a type issue for SIP request and
+       response code length fields which is now corrected.
+
+     - Some redundant code was removed.
+
+     - if/else tree modified to use switch instead.
+
+2.4-214 | 2015-12-04 16:40:15 -0800
+
+  * Delaying BinPAC initializaton until afte plugins have been
+    activated. (Robin Sommer)
+
+2.4-213 | 2015-12-04 15:25:48 -0800
+
+  * Use better data structure for storing BPF filters. (Robin Sommer)
+
+2.4-211 | 2015-11-17 13:28:29 -0800
+
+  * Making cluster reconnect timeout configurable. (Robin Sommer)
+
+  * Bugfix for child process' communication loop. (Robin Sommer)
+
+2.4-209 | 2015-11-16 07:31:22 -0800
+
+  * Updating submodule(s).
+
+2.4-207 | 2015-11-10 13:34:42 -0800
+
+  * Fix to compile with OpenSSL that has SSLv3 disalbed. (Christoph
+    Pietsch)
+
+  * Fix potential race condition when logging VLAN info to conn.log.
+    (Daniel Thayer)
+
+2.4-201 | 2015-10-27 16:11:15 -0700
+
+  * Updating NEWS. (Robin Sommer)
+
+2.4-200 | 2015-10-26 16:57:39 -0700
+
+  * Adding missing file. (Robin Sommer)
+
+2.4-199 | 2015-10-26 16:51:47 -0700
+
+  * Fix problem with the JSON Serialization code. (Aaron Eppert)
+
+2.4-188 | 2015-10-26 14:11:21 -0700
+
+  * Extending rexmit_inconsistency() event to receive an additional
+    parameter with the packet's TCP flags, if available. (Robin
+    Sommer)
+
+2.4-187 | 2015-10-26 13:43:32 -0700
+
+  * Updating NEWS for new plugins. (Robin Sommer)
+
+2.4-186 | 2015-10-23 15:07:06 -0700
+
+  * Removing pcap options for AF_PACKET support. Addresses BIT-1363.
+    (Robin Sommer)
+
+  * Correct a typo in controller.bro documentation. (Daniel Thayer)
+
+  * Extend SSL DPD signature to allow alert before server_hello.
+    (Johanna Amann)
+
+  * Make join_string_vec work with vectors containing empty elements.
+    (Johanna Amann)
+
+  * Fix support for HTTP CONNECT when server adds headers to response.
+    (Eric Karasuda).
+
+  * Load static CA list for validation tests too. (Johanna Amann)
+
+  * Remove cluster certificate validation script. (Johanna Amann)
+
+  * Fix a bug in diff-remove-x509-names canonifier. (Daniel Thayer)
+
+  * Fix test canonifiers in scripts/policy/protocols/ssl. (Daniel
+    Thayer)
+
 2.4-169 | 2015-10-01 17:21:21 -0700
 
   * Fixed parsing of V_ASN1_GENERALIZEDTIME timestamps in x509

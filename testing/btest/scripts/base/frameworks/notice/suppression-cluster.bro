@@ -11,10 +11,10 @@
 
 @TEST-START-FILE cluster-layout.bro
 redef Cluster::nodes = {
-	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=27757/tcp, $workers=set("worker-1", "worker-2")],
-	["proxy-1"] = [$node_type=Cluster::DATANODE,     $ip=127.0.0.1, $p=27758/tcp, $manager="manager-1", $workers=set("worker-1", "worker-2")],
-	["worker-1"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=27760/tcp, $manager="manager-1", $datanode="proxy-1"],
-	["worker-2"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=27761/tcp, $manager="manager-1", $datanode="proxy-1"],
+	["manager-1"] = [$node_roles=set(Cluster::MANAGER), $ip=127.0.0.1, $p=27757/tcp, $workers=set("worker-1", "worker-2")],
+	["proxy-1"] = [$node_roles=set(Cluster::DATANODE),  $ip=127.0.0.1, $p=27758/tcp, $manager="manager-1", $workers=set("worker-1", "worker-2")],
+	["worker-1"] = [$node_roles=set(Cluster::WORKER),   $ip=127.0.0.1, $p=27760/tcp, $manager="manager-1", $datanode="proxy-1"],
+	["worker-2"] = [$node_roles=set(Cluster::WORKER),   $ip=127.0.0.1, $p=27761/tcp, $manager="manager-1", $datanode="proxy-1"],
 };
 @TEST-END-FILE
 

@@ -14,7 +14,7 @@
 @load base/frameworks/broker/communication
 
 redef Broker::nodes += {
-    ["foo"] = [$host=[::1], $connect=T, $retry=1sec]
+    ["foo"] = [$ip=[::1], $connect=T, $retry=1sec]
 };
 
 redef Broker::endpoint_name="sender";

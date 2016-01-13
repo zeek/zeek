@@ -80,7 +80,7 @@ event Broker::incoming_connection_established(peer_name: string)
 @load base/frameworks/broker/communication
 
 redef Broker::nodes += {
-    ["foo"] = [$host = 127.0.0.1, $connect=T, $request_logs=T]
+    ["foo"] = [$ip = 127.0.0.1, $connect=T, $request_logs=T]
 };
 
 event Broker::outgoing_connection_broken(peer_address: string,

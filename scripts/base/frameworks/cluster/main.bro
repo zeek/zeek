@@ -8,7 +8,7 @@
 
 @load base/frameworks/control
 @load base/frameworks/logging
-@load misc/trim-trace-file
+@load base/misc/trim-trace-file
 
 module Cluster;
 

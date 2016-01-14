@@ -63,6 +63,11 @@ export {
 		## Current number of files actively being seen.
 		active_files: count &log;
 
+		## Number of DNS requests seen since last stats interval.
+		dns_requests: count &log;
+		## Current number of DNS requests awaiting a reply.
+		active_dns_requests: count &log;
+
 		## Current size of TCP data in reassembly.
 		reassem_tcp_size: count &log;
 		## Current size of File data in reassembly.
@@ -82,7 +87,7 @@ event bro_init() &priority=5
 	Log::create_stream(Stats::LOG, [$columns=Info, $ev=log_stats, $path="stats"]);
 	}
 
-event check_stats(then: time, last_ns: NetStats, last_cs: ConnStats, last_ps: ProcStats, last_es: EventStats, last_rs: ReassemblerStats, last_ts: TimerStats, last_fs: FileAnalysisStats)
+event check_stats(then: time, last_ns: NetStats, last_cs: ConnStats, last_ps: ProcStats, last_es: EventStats, last_rs: ReassemblerStats, last_ts: TimerStats, last_fs: FileAnalysisStats, last_ds: DNSStats)
 	{
 	local nettime = network_time();
 	local ns = get_net_stats();
@@ -92,6 +97,7 @@ event check_stats(then: time, last_ns: NetStats, last_cs: ConnStats, last_ps: Pr
 	local rs = get_reassembler_stats();
 	local ts = get_timer_stats();
 	local fs = get_file_analysis_stats();
+	local ds = get_dns_stats();
 
 	if ( bro_is_terminating() )
 		# No more stats will be written or scheduled when Bro is
@@ -123,7 +129,10 @@ event check_stats(then: time, last_ns: NetStats, last_cs: ConnStats, last_ps: Pr
 	                    $active_timers=ts$current,
 
 	                    $files=fs$cumulative - last_fs$cumulative,
-	                    $active_files=fs$current
+	                    $active_files=fs$current,
+
+	                    $dns_requests=ds$requests - last_ds$requests,
+	                    $active_dns_requests=ds$pending
 	                    ];
 
 	# Someone's going to have to explain what this is and add a field to the Info record.
@@ -137,10 +146,10 @@ event check_stats(then: time, last_ns: NetStats, last_cs: ConnStats, last_ps: Pr
 		}
 
 	Log::write(Stats::LOG, info);
-	schedule stats_report_interval { check_stats(nettime, ns, cs, ps, es, rs, ts, fs) };
+	schedule stats_report_interval { check_stats(nettime, ns, cs, ps, es, rs, ts, fs, ds) };
 	}
 
 event bro_init()
 	{
-	schedule stats_report_interval { check_stats(network_time(), get_net_stats(), get_conn_stats(), get_proc_stats(), get_event_stats(), get_reassembler_stats(), get_timer_stats(), get_file_analysis_stats()) };
+	schedule stats_report_interval { check_stats(network_time(), get_net_stats(), get_conn_stats(), get_proc_stats(), get_event_stats(), get_reassembler_stats(), get_timer_stats(), get_file_analysis_stats(), get_dns_stats()) };
 	}

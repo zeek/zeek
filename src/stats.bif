@@ -22,8 +22,7 @@ RecordType* FileAnalysisStats;
 ##
 ## Returns: A record of packet statistics.
 ##
-## .. bro:see:: do_profiling
-##              get_proc_stats
+## .. bro:see:: get_proc_stats
 ##              get_matcher_stats
 ##              get_gap_stats
 function get_net_stats%(%): NetStats
@@ -100,8 +99,7 @@ function get_conn_stats%(%): ConnStats
 ##
 ## Returns: A record with resource usage statistics.
 ##
-## .. bro:see:: do_profiling
-##              get_net_stats
+## .. bro:see:: get_net_stats
 ##              get_matcher_stats
 ##              get_gap_stats
 function get_proc_stats%(%): ProcStats
@@ -314,29 +312,29 @@ function get_matcher_stats%(%): MatcherStats
 	return r;
 	%}
 
-function get_broker_stats%(%): BrokerStats
-	%{
-	RecordVal* r = new RecordVal(CommunicationStats);
-	int n = 0;
-
-#ifdef ENABLE_BROKER
-	auto cs = broker_mgr->ConsumeStatistics();
-
-	r->Assign(n++, new Val(cs.outgoing_peer_count, TYPE_COUNT));
-	r->Assign(n++, new Val(cs.data_store_count, TYPE_COUNT));
-	r->Assign(n++, new Val(cs.pending_query_count, TYPE_COUNT));
-	r->Assign(n++, new Val(cs.response_count, TYPE_COUNT));
-	r->Assign(n++, new Val(cs.outgoing_conn_status_count, TYPE_COUNT));
-	r->Assign(n++, new Val(cs.incoming_conn_status_count, TYPE_COUNT));
-	r->Assign(n++, new Val(cs.report_count, TYPE_COUNT));
-
-	//for ( const auto& s : cs.print_count )
-	//	file->Write(fmt("    %-25s prints dequeued=%zu\n", s.first.data(), s.second));
-	//for ( const auto& s : cs.event_count )
-	//	file->Write(fmt("    %-25s events dequeued=%zu\n", s.first.data(), s.second));
-	//for ( const auto& s : cs.log_count )
-	//	file->Write(fmt("    %-25s logs dequeued=%zu\n", s.first.data(), s.second));
-#endif
-
-	return r;
-	%}
+# function get_broker_stats%(%): BrokerStats
+# 	%{
+# 	RecordVal* r = new RecordVal(CommunicationStats);
+# 	int n = 0;
+# 
+# #ifdef ENABLE_BROKER
+# 	auto cs = broker_mgr->ConsumeStatistics();
+# 
+# 	r->Assign(n++, new Val(cs.outgoing_peer_count, TYPE_COUNT));
+# 	r->Assign(n++, new Val(cs.data_store_count, TYPE_COUNT));
+# 	r->Assign(n++, new Val(cs.pending_query_count, TYPE_COUNT));
+# 	r->Assign(n++, new Val(cs.response_count, TYPE_COUNT));
+# 	r->Assign(n++, new Val(cs.outgoing_conn_status_count, TYPE_COUNT));
+# 	r->Assign(n++, new Val(cs.incoming_conn_status_count, TYPE_COUNT));
+# 	r->Assign(n++, new Val(cs.report_count, TYPE_COUNT));
+# 
+# 	//for ( const auto& s : cs.print_count )
+# 	//	file->Write(fmt("    %-25s prints dequeued=%zu\n", s.first.data(), s.second));
+# 	//for ( const auto& s : cs.event_count )
+# 	//	file->Write(fmt("    %-25s events dequeued=%zu\n", s.first.data(), s.second));
+# 	//for ( const auto& s : cs.log_count )
+# 	//	file->Write(fmt("    %-25s logs dequeued=%zu\n", s.first.data(), s.second));
+# #endif
+# 
+# 	return r;
+# 	%}

@@ -1792,7 +1792,6 @@ function record_fields%(rec: any%): record_field_table
 ## holds the name of the file.
 ##
 ## .. bro:see:: net_stats
-##              resource_usage
 ##              get_matcher_stats
 ##              get_gap_stats
 function do_profiling%(%) : any
@@ -1857,7 +1856,6 @@ function is_local_interface%(ip: addr%) : bool
 ## Returns: True (unconditionally).
 ##
 ## .. bro:see:: do_profiling
-##              resource_usage
 ##              get_matcher_stats
 ##              get_net_stats
 ##              get_gap_stats

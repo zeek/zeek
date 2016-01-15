@@ -1,0 +1,5 @@
+clone keys, [status=BrokerStore::SUCCESS, result=[d=broker::data{[one, two, myset, myvec]}]]
+lookup, one, [status=BrokerStore::SUCCESS, result=[d=broker::data{111}]]
+lookup, myset, [status=BrokerStore::SUCCESS, result=[d=broker::data{{a, c, d}}]]
+lookup, two, [status=BrokerStore::SUCCESS, result=[d=broker::data{222}]]
+lookup, myvec, [status=BrokerStore::SUCCESS, result=[d=broker::data{[delta, alpha, beta, gamma, omega]}]]

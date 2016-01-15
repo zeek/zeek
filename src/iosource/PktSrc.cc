@@ -3,7 +3,7 @@
 #include <errno.h>
 #include <sys/stat.h>
 
-#include "config.h"
+#include "bro-config.h"
 
 #include "util.h"
 #include "PktSrc.h"
@@ -11,7 +11,17 @@
 #include "Net.h"
 #include "Sessions.h"
 
+#include "pcap/const.bif.h"
+
 using namespace iosource;
+
+PktSrc::Properties::Properties()
+	{
+	selectable_fd = -1;
+	link_type = -1;
+	netmask = NETMASK_UNKNOWN;
+	is_live = false;
+	}
 
 PktSrc::PktSrc()
 	{
@@ -26,9 +36,7 @@ PktSrc::PktSrc()
 
 PktSrc::~PktSrc()
 	{
-	BPF_Program* code;
-	IterCookie* cookie = filters.InitForIteration();
-	while ( (code = filters.NextEntry(cookie)) )
+	for ( auto code : filters )
 		delete code;
 	}
 
@@ -50,22 +58,12 @@ int PktSrc::LinkType() const
 
 uint32 PktSrc::Netmask() const
 	{
-	return IsOpen() ? props.netmask : PCAP_NETMASK_UNKNOWN;
+	return IsOpen() ? props.netmask : NETMASK_UNKNOWN;
 	}
 
 bool PktSrc::IsError() const
 	{
 	return ErrorMsg();
-	}
-
-int PktSrc::HdrSize() const
-	{
-	return IsOpen() ? props.hdr_size : -1;
-	}
-
-int PktSrc::SnapLen() const
-	{
-	return snaplen; // That's a global. Change?
 	}
 
 bool PktSrc::IsLive() const
@@ -89,7 +87,7 @@ double PktSrc::CurrentPacketWallClock()
 
 void PktSrc::Opened(const Properties& arg_props)
 	{
-	if ( arg_props.hdr_size < 0 )
+	if ( Packet::GetLinkHeaderSize(arg_props.link_type) < 0 )
 		{
 		char buf[512];
 		safe_snprintf(buf, sizeof(buf),
@@ -109,7 +107,7 @@ void PktSrc::Opened(const Properties& arg_props)
 		}
 
 	if ( props.is_live )
-		Info(fmt("listening on %s, capture length %d bytes\n", props.path.c_str(), SnapLen()));
+		Info(fmt("listening on %s\n", props.path.c_str()));
 
 	DBG_LOG(DBG_PKTIO, "Opened source %s", props.path.c_str());
 	}
@@ -138,7 +136,7 @@ void PktSrc::Info(const std::string& msg)
 
 void PktSrc::Weird(const std::string& msg, const Packet* p)
 	{
-	sessions->Weird(msg.c_str(), p->hdr, p->data, 0);
+	sessions->Weird(msg.c_str(), p, 0);
 	}
 
 void PktSrc::InternalError(const std::string& msg)
@@ -151,33 +149,6 @@ void PktSrc::ContinueAfterSuspend()
 	current_wallclock = current_time(true);
 	}
 
-int PktSrc::GetLinkHeaderSize(int link_type)
-	{
-	switch ( link_type ) {
-	case DLT_NULL:
-		return 4;
-
-	case DLT_EN10MB:
-		return 14;
-
-	case DLT_FDDI:
-		return 13 + 8;	// fddi_header + LLC
-
-#ifdef DLT_LINUX_SLL
-	case DLT_LINUX_SLL:
-		return 16;
-#endif
-
-	case DLT_PPP_SERIAL:	// PPP_SERIAL
-		return 4;
-
-	case DLT_RAW:
-		return 0;
-	}
-
-	return -1;
-	}
-
 double PktSrc::CheckPseudoTime()
 	{
 	if ( ! IsOpen() )
@@ -188,20 +159,20 @@ double PktSrc::CheckPseudoTime()
 
 	if ( remote_trace_sync_interval )
 		{
-		if ( next_sync_point == 0 || current_packet.ts >= next_sync_point )
+		if ( next_sync_point == 0 || current_packet.time >= next_sync_point )
 			{
 			int n = remote_serializer->SendSyncPoint();
 			next_sync_point = first_timestamp +
 						n * remote_trace_sync_interval;
 			remote_serializer->Log(RemoteSerializer::LogInfo,
 				fmt("stopping at packet %.6f, next sync-point at %.6f",
-					current_packet.ts, next_sync_point));
+					current_packet.time, next_sync_point));
 
 			return 0;
 			}
 		}
 
-	double pseudo_time = current_packet.ts - first_timestamp;
+	double pseudo_time = current_packet.time - first_timestamp;
 	double ct = (current_time(true) - first_wallclock) * pseudo_realtime;
 
 	return pseudo_time <= ct ? bro_start_time + pseudo_time : 0;
@@ -231,6 +202,18 @@ void PktSrc::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
 
 	if ( IsOpen() && props.selectable_fd >= 0 )
 		read->Insert(props.selectable_fd);
+
+	// TODO: This seems like a hack that should be removed, but doing so
+	// causes the main run loop to spin more frequently and increase cpu usage.
+	// See also commit 9cd85be308.
+	if ( read->Empty() )
+		read->Insert(0);
+
+	if ( write->Empty() )
+		write->Insert(0);
+
+	if ( except->Empty() )
+		except->Insert(0);
 	}
 
 double PktSrc::NextTimestamp(double* local_network_time)
@@ -252,7 +235,7 @@ double PktSrc::NextTimestamp(double* local_network_time)
 		return -1.0;
 		}
 
-	return current_packet.ts;
+	return current_packet.time;
 	}
 
 void PktSrc::Process()
@@ -263,145 +246,20 @@ void PktSrc::Process()
 	if ( ! ExtractNextPacketInternal() )
 		return;
 
-	int pkt_hdr_size = props.hdr_size;
-
-	// Unfortunately some packets on the link might have MPLS labels
-	// while others don't. That means we need to ask the link-layer if
-	// labels are in place.
-	bool have_mpls = false;
-
-	int protocol = 0;
-	const u_char* data = current_packet.data;
-
-	switch ( props.link_type ) {
-	case DLT_NULL:
+	if ( current_packet.Layer2Valid() )
 		{
-		protocol = (data[3] << 24) + (data[2] << 16) + (data[1] << 8) + data[0];
-
-		// From the Wireshark Wiki: "AF_INET6, unfortunately, has
-		// different values in {NetBSD,OpenBSD,BSD/OS},
-		// {FreeBSD,DragonFlyBSD}, and {Darwin/Mac OS X}, so an IPv6
-		// packet might have a link-layer header with 24, 28, or 30
-		// as the AF_ value." As we may be reading traces captured on
-		// platforms other than what we're running on, we accept them
-		// all here.
-		if ( protocol != AF_INET
-		     && protocol != AF_INET6
-		     && protocol != 24
-		     && protocol != 28
-		     && protocol != 30 )
+		if ( pseudo_realtime )
 			{
-			Weird("non_ip_packet_in_null_transport", &current_packet);
-			goto done;
+			current_pseudo = CheckPseudoTime();
+			net_packet_dispatch(current_pseudo, &current_packet, this);
+			if ( ! first_wallclock )
+				first_wallclock = current_time(true);
 			}
 
-		break;
+		else
+			net_packet_dispatch(current_packet.time, &current_packet, this);
 		}
 
-	case DLT_EN10MB:
-		{
-		// Get protocol being carried from the ethernet frame.
-		protocol = (data[12] << 8) + data[13];
-
-		switch ( protocol )
-			{
-			// MPLS carried over the ethernet frame.
-			case 0x8847:
-				// Remove the data link layer and denote a
-				// header size of zero before the IP header.
-				have_mpls = true;
-				data += GetLinkHeaderSize(props.link_type);
-				pkt_hdr_size = 0;
-				break;
-
-			// VLAN carried over the ethernet frame.
-			case 0x8100:
-				data += GetLinkHeaderSize(props.link_type);
-
-				// Check for MPLS in VLAN.
-				if ( ((data[2] << 8) + data[3]) == 0x8847 )
-					have_mpls = true;
-
-				data += 4; // Skip the vlan header
-				pkt_hdr_size = 0;
-
-				// Check for 802.1ah (Q-in-Q) containing IP.
-				// Only do a second layer of vlan tag
-				// stripping because there is no
-				// specification that allows for deeper
-				// nesting.
-				if ( ((data[2] << 8) + data[3]) == 0x0800 )
-					data += 4;
-
-				break;
-
-			// PPPoE carried over the ethernet frame.
-			case 0x8864:
-				data += GetLinkHeaderSize(props.link_type);
-				protocol = (data[6] << 8) + data[7];
-				data += 8; // Skip the PPPoE session and PPP header
-				pkt_hdr_size = 0;
-
-				if ( protocol != 0x0021 && protocol != 0x0057 )
-					{
-					// Neither IPv4 nor IPv6.
-					Weird("non_ip_packet_in_pppoe_encapsulation", &current_packet);
-					goto done;
-					}
-				break;
-			}
-
-		break;
-		}
-
-	case DLT_PPP_SERIAL:
-		{
-		// Get PPP protocol.
-		protocol = (data[2] << 8) + data[3];
-
-		if ( protocol == 0x0281 )
-			{
-			// MPLS Unicast. Remove the data link layer and
-			// denote a header size of zero before the IP header.
-			have_mpls = true;
-				data += GetLinkHeaderSize(props.link_type);
-			pkt_hdr_size = 0;
-			}
-
-		else if ( protocol != 0x0021 && protocol != 0x0057 )
-			{
-			// Neither IPv4 nor IPv6.
-			Weird("non_ip_packet_in_ppp_encapsulation", &current_packet);
-			goto done;
-			}
-		break;
-		}
-	}
-
-	if ( have_mpls )
-		{
-		// Skip the MPLS label stack.
-		bool end_of_stack = false;
-
-		while ( ! end_of_stack )
-			{
-			end_of_stack = *(data + 2) & 0x01;
-			data += 4;
-			}
-		}
-
-	if ( pseudo_realtime )
-		{
-		current_pseudo = CheckPseudoTime();
-		net_packet_dispatch(current_pseudo, current_packet.hdr, data, pkt_hdr_size, this);
-		if ( ! first_wallclock )
-			first_wallclock = current_time(true);
-		}
-
-	else
-		net_packet_dispatch(current_packet.ts, current_packet.hdr, data, pkt_hdr_size, this);
-
-done:
 	have_packet = 0;
 	DoneWithPacket();
 	}
@@ -432,7 +290,7 @@ bool PktSrc::ExtractNextPacketInternal()
 	if ( ExtractNextPacket(&current_packet) )
 		{
 		if ( ! first_timestamp )
-			first_timestamp = current_packet.ts;
+			first_timestamp = current_packet.time;
 
 		SetIdle(false);
 		have_packet = true;
@@ -462,7 +320,7 @@ bool PktSrc::PrecompileBPFFilter(int index, const std::string& filter)
 	// Compile filter.
 	BPF_Program* code = new BPF_Program();
 
-	if ( ! code->Compile(SnapLen(), LinkType(), filter.c_str(), Netmask(), errbuf, sizeof(errbuf)) )
+	if ( ! code->Compile(BifConst::Pcap::snaplen, LinkType(), filter.c_str(), Netmask(), errbuf, sizeof(errbuf)) )
 		{
 		string msg = fmt("cannot compile BPF filter \"%s\"", filter.c_str());
 
@@ -475,16 +333,16 @@ bool PktSrc::PrecompileBPFFilter(int index, const std::string& filter)
 		return 0;
 		}
 
-	// Store it in hash.
-	HashKey* hash = new HashKey(HashKey(bro_int_t(index)));
-	BPF_Program* oldcode = filters.Lookup(hash);
-	if ( oldcode )
-		delete oldcode;
+	// Store it in vector.
+	if ( index >= static_cast<int>(filters.size()) )
+		filters.resize(index + 1);
 
-	filters.Insert(hash, code);
-	delete hash;
+	if ( auto old = filters[index] )
+		delete old;
 
-	return 1;
+	filters[index] = code;
+
+	return true;
 	}
 
 BPF_Program* PktSrc::GetBPFFilter(int index)
@@ -492,10 +350,7 @@ BPF_Program* PktSrc::GetBPFFilter(int index)
 	if ( index < 0 )
 		return 0;
 
-	HashKey* hash = new HashKey(HashKey(bro_int_t(index)));
-	BPF_Program* code = filters.Lookup(hash);
-	delete hash;
-	return code;
+	return (static_cast<int>(filters.size()) > index ? filters[index] : 0);
 	}
 
 bool PktSrc::ApplyBPFFilter(int index, const struct pcap_pkthdr *hdr, const u_char *pkt)
@@ -515,12 +370,11 @@ bool PktSrc::ApplyBPFFilter(int index, const struct pcap_pkthdr *hdr, const u_ch
 	return pcap_offline_filter(code->GetProgram(), hdr, pkt);
 	}
 
-bool PktSrc::GetCurrentPacket(const pcap_pkthdr** hdr, const u_char** pkt)
+bool PktSrc::GetCurrentPacket(const Packet** pkt)
 	{
 	if ( ! have_packet )
 		return false;
 
-	*hdr = current_packet.hdr;
-	*pkt = current_packet.data;
+	*pkt = &current_packet;
 	return true;
 	}

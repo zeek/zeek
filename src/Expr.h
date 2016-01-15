@@ -47,11 +47,6 @@ typedef enum {
 #define NUM_EXPRS (int(EXPR_FLATTEN) + 1)
 } BroExprTag;
 
-typedef enum {
-	SIMPLIFY_GENERAL,	// regular simplification
-	SIMPLIFY_LHS,		// simplify as the LHS of an assignment
-} SimplifyType;
-
 extern const char* expr_name(BroExprTag t);
 
 class Stmt;
@@ -71,11 +66,6 @@ public:
 	virtual ~Expr();
 
 	Expr* Ref()			{ ::Ref(this); return this; }
-
-	// Returns a fully simplified version of the expression (this
-	// may be the same expression, or a newly created one).  simp_type
-	// gives the context of the simplification.
-	virtual Expr* Simplify(SimplifyType simp_type) = 0;
 
 	// Evaluates the expression and returns a corresponding Val*,
 	// or nil if the expression's value isn't fixed.
@@ -230,7 +220,6 @@ public:
 
 	ID* Id() const		{ return id; }
 
-	Expr* Simplify(SimplifyType simp_type);
 	Val* Eval(Frame* f) const;
 	void Assign(Frame* f, Val* v, Opcode op = OP_ASSIGN);
 	Expr* MakeLvalue();
@@ -257,7 +246,6 @@ public:
 
 	Val* Value() const	{ return val; }
 
-	Expr* Simplify(SimplifyType simp_type);
 	Val* Eval(Frame* f) const;
 
 	TraversalCode Traverse(TraversalCallback* cb) const;
@@ -275,9 +263,6 @@ protected:
 class UnaryExpr : public Expr {
 public:
 	Expr* Op() const	{ return op; }
-
-	// Simplifies the operand and calls DoSimplify().
-	virtual Expr* Simplify(SimplifyType simp_type);
 
 	// UnaryExpr::Eval correctly handles vector types.  Any child
 	// class that overrides Eval() should be modified to handle
@@ -297,10 +282,6 @@ protected:
 
 	void ExprDescribe(ODesc* d) const;
 
-	// Can be overridden by subclasses that want to take advantage
-	// of UnaryExpr's Simplify() method.
-	virtual Expr* DoSimplify();
-
 	// Returns the expression folded using the given constant.
 	virtual Val* Fold(Val* v) const;
 
@@ -314,9 +295,6 @@ public:
 	Expr* Op1() const	{ return op1; }
 	Expr* Op2() const	{ return op2; }
 
-	// Simplifies both operands, folds them if constant,
-	// otherwise calls DoSimplify().
-	virtual Expr* Simplify(SimplifyType simp_type);
 	int IsPure() const;
 
 	// BinaryExpr::Eval correctly handles vector types.  Any child
@@ -340,10 +318,6 @@ protected:
 		}
 	virtual ~BinaryExpr();
 
-	// Can be overridden by subclasses that want to take advantage
-	// of BinaryExpr's Simplify() method.
-	virtual Expr* DoSimplify();
-
 	// Returns the expression folded using the given constants.
 	virtual Val* Fold(Val* v1, Val* v2) const;
 
@@ -355,9 +329,6 @@ protected:
 	virtual Val* SubNetFold(Val* v1, Val* v2) const;
 
 	int BothConst() const	{ return op1->IsConst() && op2->IsConst(); }
-
-	// Simplify both operands and canonicize.
-	void SimplifyOps();
 
 	// Exchange op1 and op2.
 	void SwapOps();
@@ -414,7 +385,6 @@ protected:
 	friend class Expr;
 	NotExpr()	{ }
 
-	Expr* DoSimplify();
 	Val* Fold(Val* v) const;
 
 	DECLARE_SERIAL(NotExpr);
@@ -428,7 +398,6 @@ protected:
 	friend class Expr;
 	PosExpr()	{ }
 
-	Expr* DoSimplify();
 	Val* Fold(Val* v) const;
 
 	DECLARE_SERIAL(PosExpr);
@@ -442,7 +411,6 @@ protected:
 	friend class Expr;
 	NegExpr()	{ }
 
-	Expr* DoSimplify();
 	Val* Fold(Val* v) const;
 
 	DECLARE_SERIAL(NegExpr);
@@ -469,8 +437,6 @@ public:
 protected:
 	friend class Expr;
 	AddExpr()	{ }
-
-	Expr* DoSimplify();
 
 	DECLARE_SERIAL(AddExpr);
 
@@ -508,8 +474,6 @@ protected:
 	friend class Expr;
 	SubExpr()	{ }
 
-	Expr* DoSimplify();
-
 	DECLARE_SERIAL(SubExpr);
 
 };
@@ -522,8 +486,6 @@ public:
 protected:
 	friend class Expr;
 	TimesExpr()	{ }
-
-	Expr* DoSimplify();
 
 	DECLARE_SERIAL(TimesExpr);
 
@@ -538,7 +500,6 @@ protected:
 	DivideExpr()	{ }
 
 	Val* AddrFold(Val* v1, Val* v2) const;
-	Expr* DoSimplify();
 
 	DECLARE_SERIAL(DivideExpr);
 
@@ -551,8 +512,6 @@ public:
 protected:
 	friend class Expr;
 	ModExpr()	{ }
-
-	Expr* DoSimplify();
 
 	DECLARE_SERIAL(ModExpr);
 };
@@ -568,8 +527,6 @@ protected:
 	friend class Expr;
 	BoolExpr()	{ }
 
-	Expr* DoSimplify();
-
 	DECLARE_SERIAL(BoolExpr);
 };
 
@@ -581,8 +538,6 @@ public:
 protected:
 	friend class Expr;
 	EqExpr()	{ }
-
-	Expr* DoSimplify();
 
 	Val* Fold(Val* v1, Val* v2) const;
 
@@ -598,8 +553,6 @@ protected:
 	friend class Expr;
 	RelExpr()	{ }
 
-	Expr* DoSimplify();
-
 	DECLARE_SERIAL(RelExpr);
 };
 
@@ -612,7 +565,6 @@ public:
 	const Expr* Op2() const	{ return op2; }
 	const Expr* Op3() const	{ return op3; }
 
-	Expr* Simplify(SimplifyType simp_type);
 	Val* Eval(Frame* f) const;
 	int IsPure() const;
 
@@ -652,7 +604,6 @@ public:
 	AssignExpr(Expr* op1, Expr* op2, int is_init, Val* val = 0, attr_list* attrs = 0);
 	virtual ~AssignExpr()	{ Unref(val); }
 
-	Expr* Simplify(SimplifyType simp_type);
 	Val* Eval(Frame* f) const;
 	void EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const;
 	BroType* InitType() const;
@@ -683,7 +634,6 @@ public:
 	void Add(Frame* f);
 	void Delete(Frame* f);
 
-	Expr* Simplify(SimplifyType simp_type);
 	void Assign(Frame* f, Val* v, Opcode op = OP_ASSIGN);
 	Expr* MakeLvalue();
 
@@ -714,7 +664,6 @@ public:
 
 	int CanDel() const;
 
-	Expr* Simplify(SimplifyType simp_type);
 	void Assign(Frame* f, Val* v, Opcode op = OP_ASSIGN);
 	void Delete(Frame* f);
 
@@ -866,8 +815,6 @@ protected:
 	friend class Expr;
 	ArithCoerceExpr()	{ }
 
-	Expr* DoSimplify();
-
 	Val* FoldSingleVal(Val* v, InternalTypeTag t) const;
 	Val* Fold(Val* v) const;
 
@@ -962,8 +909,6 @@ public:
 
 	int IsPure() const;
 
-	Expr* Simplify(SimplifyType simp_type);
-
 	Val* Eval(Frame* f) const;
 
 	Expr* When() const	{ return when; }
@@ -1007,7 +952,6 @@ public:
 
 	int IsPure() const;
 
-	Expr* Simplify(SimplifyType simp_type);
 	Val* Eval(Frame* f) const;
 
 	TraversalCode Traverse(TraversalCallback* cb) const;
@@ -1033,7 +977,6 @@ public:
 	ListExpr* Args() const		{ return args; }
 	EventHandlerPtr Handler()  const	{ return handler; }
 
-	Expr* Simplify(SimplifyType simp_type);
 	Val* Eval(Frame* f) const;
 
 	TraversalCode Traverse(TraversalCallback* cb) const;
@@ -1068,7 +1011,6 @@ public:
 	// True if the entire list represents constant values.
 	int AllConst() const;
 
-	Expr* Simplify(SimplifyType simp_type);
 	Val* Eval(Frame* f) const;
 
 	BroType* InitType() const;
@@ -1127,20 +1069,9 @@ extern int check_and_promote_exprs(ListExpr*& elements, TypeList* types);
 extern int check_and_promote_args(ListExpr*& args, RecordType* types);
 extern int check_and_promote_exprs_to_type(ListExpr*& elements, BroType* type);
 
-// Returns a fully simplified form of the expression.  Note that passed
-// expression and its subexpressions may be modified, Unref()'d, etc.
-Expr* simplify_expr(Expr* e, SimplifyType simp_type);
-
-// Returns a simplified ListExpr - guaranteed to still be a ListExpr,
-// even if it only contains one expr.
-ListExpr* simplify_expr_list(ListExpr* l, SimplifyType simp_type);
-
 // Returns a ListExpr simplified down to a list a values, or a nil
 // pointer if they couldn't all be reduced.
 val_list* eval_list(Frame* f, const ListExpr* l);
-
-// Returns true if two expressions are identical.
-extern int same_expr(const Expr* e1, const Expr* e2);
 
 // Returns true if e1 is "greater" than e2 - here "greater" is just
 // a heuristic, used with commutative operators to put them into

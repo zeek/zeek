@@ -13,6 +13,7 @@ extern RecordType* endpoint;
 extern RecordType* endpoint_stats;
 extern RecordType* connection_type;
 extern RecordType* fa_file_type;
+extern RecordType* fa_metadata_type;
 extern RecordType* icmp_conn;
 extern RecordType* icmp_context;
 extern RecordType* signature_state;
@@ -52,6 +53,7 @@ extern double tcp_reset_delay;
 extern int tcp_max_initial_window;
 extern int tcp_max_above_hole_without_any_acks;
 extern int tcp_excessive_data_without_further_acks;
+extern int tcp_max_old_segments;
 
 extern RecordType* socks_address;
 
@@ -175,6 +177,7 @@ extern RecordType* peer;
 extern int forward_remote_state_changes;
 extern int forward_remote_events;
 extern int remote_check_sync_consistency;
+extern bro_uint_t chunked_io_buffer_soft_cap;
 
 extern StringVal* ssl_ca_certificate;
 extern StringVal* ssl_private_key;
@@ -220,8 +223,6 @@ extern int dump_used_event_handlers;
 extern int suppress_local_output;
 
 extern double timer_mgr_inactivity_timeout;
-
-extern int time_machine_profiling;
 
 extern StringVal* trace_output_file;
 

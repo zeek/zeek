@@ -8,10 +8,12 @@ How to Upgrade
 If you're doing an upgrade install (rather than a fresh install),
 there's two suggested approaches: either install Bro using the same
 installation prefix directory as before, or pick a new prefix and copy
-local customizations over.  Regardless of which approach you choose,
-if you are using BroControl, then after upgrading Bro you will need to
-run "broctl check" (to verify that your new configuration is OK)
-and "broctl install" to complete the upgrade process.
+local customizations over.
+
+Regardless of which approach you choose, if you are using BroControl, then
+before doing the upgrade you should stop all running Bro processes with the
+"broctl stop" command.  After the upgrade is complete then you will need
+to run "broctl deploy".
 
 In the following we summarize general guidelines for upgrading, see
 the :ref:`release-notes` for version-specific information.
@@ -44,4 +46,4 @@ where Bro was originally installed).  Review the files for differences
 before copying and make adjustments as necessary (use the new version for
 differences that aren't a result of a local change).  Of particular note,
 the copied version of ``$prefix/etc/broctl.cfg`` is likely to need changes
-to the ``SpoolDir`` and ``LogDir`` settings.
+to any settings that specify a pathname.

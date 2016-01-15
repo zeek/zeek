@@ -2,7 +2,6 @@
 
 #include <iostream>
 #include "IRC.h"
-#include "analyzer/protocol/tcp/ContentLine.h"
 #include "NetVar.h"
 #include "Event.h"
 #include "analyzer/protocol/zip/ZIP.h"
@@ -21,8 +20,11 @@ IRC_Analyzer::IRC_Analyzer(Connection* conn)
 	resp_status = WAIT_FOR_REGISTRATION;
 	orig_zip_status = NO_ZIP;
 	resp_zip_status = NO_ZIP;
-	AddSupportAnalyzer(new tcp::ContentLine_Analyzer(conn, true));
-	AddSupportAnalyzer(new tcp::ContentLine_Analyzer(conn, false));
+	starttls = false;
+	cl_orig = new tcp::ContentLine_Analyzer(conn, true);
+	AddSupportAnalyzer(cl_orig);
+	cl_resp = new tcp::ContentLine_Analyzer(conn, false);
+	AddSupportAnalyzer(cl_resp);
 	}
 
 void IRC_Analyzer::Done()
@@ -33,6 +35,12 @@ void IRC_Analyzer::Done()
 void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverStream(length, line, orig);
+
+	if ( starttls )
+		{
+		ForwardStream(length, line, orig);
+		return;
+		}
 
 	// check line size
 	if ( length > 512 )
@@ -98,6 +106,11 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		}
 	else
 		{ // get command
+
+		// special case that has no arguments
+		if ( myline == "STARTTLS" )
+			return;
+
 		unsigned int pos = myline.find(' ');
 		if ( pos > (unsigned int) length )
 			{
@@ -555,6 +568,10 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				ConnectionEvent(irc_oper_response, vl);
 				}
 			break;
+
+		case 670:
+			// StartTLS success reply to StartTLS
+			StartTLS();
 
 		// All other server replies.
 		default:
@@ -1167,6 +1184,25 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		}
 
 	return;
+	}
+
+void IRC_Analyzer::StartTLS()
+	{
+	// STARTTLS was succesful. Remove support analyzers, add SSL
+	// analyzer, and throw event signifying the change.
+	starttls = true;
+
+	RemoveSupportAnalyzer(cl_orig);
+	RemoveSupportAnalyzer(cl_resp);
+
+	Analyzer* ssl = analyzer_mgr->InstantiateAnalyzer("SSL", Conn());
+	if ( ssl )
+		AddChildAnalyzer(ssl);
+
+	val_list* vl = new val_list;
+	vl->append(BuildConnVal());
+
+	ConnectionEvent(irc_starttls, vl);
 	}
 
 vector<string> IRC_Analyzer::SplitWords(const string input, const char split)

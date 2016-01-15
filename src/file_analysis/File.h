@@ -3,7 +3,6 @@
 #ifndef FILE_ANALYSIS_FILE_H
 #define FILE_ANALYSIS_FILE_H
 
-#include <queue>
 #include <string>
 #include <utility>
 #include <vector>
@@ -89,10 +88,10 @@ public:
 	void SetTotalBytes(uint64 size);
 
 	/**
-	 * Compares "seen_bytes" field to "total_bytes" field of #val record to
-	 * determine if the full file has been seen.
-	 * @return false if "total_bytes" hasn't been set yet or "seen_bytes" is
-	 *         less than it, else true.
+	 * @return true if file analysis is complete for the file, else false.
+	 * It is incomplete if the total size is unknown or if the number of bytes
+	 * streamed to analyzers (either as data delivers or gap information)
+	 * matches the known total size.
 	 */
 	bool IsComplete() const;
 
@@ -175,13 +174,14 @@ protected:
 	 * Constructor; only file_analysis::Manager should be creating these.
 	 * @param file_id an identifier string for the file in pretty hash form
 	 *        (similar to connection uids).
+	 * @param source_name the value for the source field to fill in.
 	 * @param conn a network connection over which the file is transferred.
 	 * @param tag the network protocol over which the file is transferred.
 	 * @param is_orig true if the file is being transferred from the originator
 	 *        of the connection to the responder.  False indicates the other
 	 *        direction.
 	 */
-	File(const string& file_id, Connection* conn = 0,
+	File(const string& file_id, const string& source_name, Connection* conn = 0,
 	     analyzer::Tag tag = analyzer::Tag::Error, bool is_orig = false);
 
 	/**
@@ -189,8 +189,14 @@ protected:
 	 * \c conn_id and UID taken from \a conn.
 	 * @param conn the connection over which a part of the file has been seen.
 	 * @param is_orig true if the connection originator is sending the file.
+	 * @return true if the connection was previously unknown.
 	 */
-	void UpdateConnectionFields(Connection* conn, bool is_orig);
+	bool UpdateConnectionFields(Connection* conn, bool is_orig);
+
+	/**
+	 * Raise the file_over_new_connection event with given arguments.
+	 */
+	void RaiseFileOverNewConnection(Connection* conn, bool is_orig);
 
 	/**
 	 * Increment a byte count field of #val record by \a size.
@@ -224,17 +230,11 @@ protected:
 	bool BufferBOF(const u_char* data, uint64 len);
 
 	/**
-	 * Forward any beginning-of-file buffered data on to DataIn stream.
+	 * Does metadata inference (e.g. mime type detection via file
+	 * magic signatures) using data in the BOF (beginning-of-file) buffer
+	 * and raises an event with the metadata.
 	 */
-	void ReplayBOF();
-
-	/**
-	 * Does mime type detection via file magic signatures and assigns
-	 * strongest matching mime type (if available) to \c mime_type
-	 * field in #val.  It uses the data in the BOF buffer
-	 * @return whether a mime type match was found.
-	 */
-	bool DetectMIME();
+	void InferMetadata();
 
 	/**
 	 * Enables reassembly on the file.
@@ -265,10 +265,11 @@ protected:
 
 	/**
 	 * Lookup a record field index/offset by name.
-	 * @param field_name the name of the \c fa_file record field.
+	 * @param field_name the name of the record field.
+	 * @param type the record type for which the field will be looked up.
 	 * @return the field offset in #val record corresponding to \a field_name.
 	 */
-	static int Idx(const string& field_name);
+	static int Idx(const string& field_name, const RecordType* type);
 
 	/**
 	 * Initializes static member.
@@ -278,10 +279,10 @@ protected:
 protected:
 	string id;                 /**< A pretty hash that likely identifies file */
 	RecordVal* val;            /**< \c fa_file from script layer. */
-	FileReassembler *file_reassembler; /**< A reassembler for the file if it's needed. */
+	FileReassembler* file_reassembler; /**< A reassembler for the file if it's needed. */
 	uint64 stream_offset;      /**< The offset of the file which has been forwarded. */
 	uint64 reassembly_max_buffer;      /**< Maximum allowed buffer for reassembly. */
-	bool did_mime_type;        /**< Whether the mime type ident has already been attempted. */
+	bool did_metadata_inference;        /**< Whether the metadata inference has already been attempted. */
 	bool reassembly_enabled;           /**< Whether file stream reassembly is needed. */
 	bool postpone_timeout;     /**< Whether postponing timeout is requested. */
 	bool done;                 /**< If this object is about to be deleted. */
@@ -312,6 +313,9 @@ protected:
 	static int bof_buffer_idx;
 	static int mime_type_idx;
 	static int mime_types_idx;
+
+	static int meta_mime_type_idx;
+	static int meta_mime_types_idx;
 };
 
 } // namespace file_analysis

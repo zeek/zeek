@@ -43,7 +43,7 @@ export {
 
 event http_begin_entity(c: connection, is_orig: bool) &priority=10
 	{
-	set_state(c, F, is_orig);
+	set_state(c, is_orig);
 
 	if ( is_orig )
 		++c$http$orig_mime_depth;
@@ -93,24 +93,27 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 		}
 	}
 
-event file_mime_type(f: fa_file, mime_type: string) &priority=5
+event file_sniff(f: fa_file, meta: fa_metadata) &priority=5
 	{
 	if ( ! f?$http || ! f?$is_orig )
+		return;
+
+	if ( ! meta?$mime_type )
 		return;
 
 	if ( f$is_orig )
 		{
 		if ( ! f$http?$orig_mime_types )
-			f$http$orig_mime_types = string_vec(mime_type);
+			f$http$orig_mime_types = string_vec(meta$mime_type);
 		else
-			f$http$orig_mime_types[|f$http$orig_mime_types|] = mime_type;
+			f$http$orig_mime_types[|f$http$orig_mime_types|] = meta$mime_type;
 		}
 	else
 		{
 		if ( ! f$http?$resp_mime_types )
-			f$http$resp_mime_types = string_vec(mime_type);
+			f$http$resp_mime_types = string_vec(meta$mime_type);
 		else
-			f$http$resp_mime_types[|f$http$resp_mime_types|] = mime_type;
+			f$http$resp_mime_types[|f$http$resp_mime_types|] = meta$mime_type;
 		}
 	}
 

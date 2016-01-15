@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "config.h"
+#include "bro-config.h"
 
 #include <openssl/md5.h>
 #include <sys/types.h>
@@ -1219,6 +1219,9 @@ void DNS_Mgr::IssueAsyncRequests()
 void DNS_Mgr::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
                      iosource::FD_Set* except)
 	{
+	if ( ! nb_dns )
+		return;
+
 	read->Insert(nb_dns_fd(nb_dns));
 	}
 
@@ -1358,6 +1361,9 @@ void DNS_Mgr::Process()
 
 void DNS_Mgr::DoProcess(bool flush)
 	{
+	if ( ! nb_dns )
+		return;
+
 	while ( asyncs_timeouts.size() > 0 )
 		{
 		AsyncRequest* req = asyncs_timeouts.top();
@@ -1422,6 +1428,9 @@ void DNS_Mgr::DoProcess(bool flush)
 
 int DNS_Mgr::AnswerAvailable(int timeout)
 	{
+	if ( ! nb_dns )
+		return -1;
+
 	int fd = nb_dns_fd(nb_dns);
 	if ( fd < 0 )
 		{

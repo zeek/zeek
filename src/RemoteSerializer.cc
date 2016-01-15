@@ -159,7 +159,7 @@
 #include <strings.h>
 #include <stdarg.h>
 
-#include "config.h"
+#include "bro-config.h"
 #ifdef TIME_WITH_SYS_TIME
 # include <sys/time.h>
 # include <time.h>
@@ -542,6 +542,9 @@ RemoteSerializer::RemoteSerializer()
 	current_msgtype = 0;
 	current_args = 0;
 	source_peer = 0;
+
+	// Register as a "dont-count" source first, we may change that later.
+	iosource_mgr->Register(this, true);
 	}
 
 RemoteSerializer::~RemoteSerializer()
@@ -570,8 +573,6 @@ void RemoteSerializer::Enable()
 		}
 
 	Fork();
-
-	iosource_mgr->Register(this);
 
 	Log(LogInfo, fmt("communication started, parent pid is %d, child pid is %d", getpid(), child_pid));
 	initialized = 1;
@@ -611,6 +612,9 @@ void RemoteSerializer::Fork()
 	{
 	if ( child_pid )
 		return;
+
+	// Register as a "does-count" source now.
+	iosource_mgr->Register(this, false);
 
 	// If we are re-forking, remove old entries
 	loop_over_list(peers, i)
@@ -1449,7 +1453,7 @@ void RemoteSerializer::Process()
 	if ( packets.length() )
 		{
 		BufferedPacket* bp = packets[0];
-		Packet* p = bp->p;
+		const Packet* p = bp->p;
 
 		// FIXME: The following chunk of code is copied from
 		// net_packet_dispatch().  We should change that function
@@ -1461,14 +1465,12 @@ void RemoteSerializer::Process()
 		current_dispatched =
 			tmgr->Advance(network_time, max_timer_expires);
 
-		current_hdr = p->hdr;
-		current_pkt = p->pkt;
+		current_pkt = p;
 		current_pktsrc = 0;
 		current_iosrc = this;
-		sessions->NextPacket(p->time, p->hdr, p->pkt, p->hdr_size);
+		sessions->NextPacket(p->time, p);
 		mgr.Drain();
 
-		current_hdr = 0;	// done with these
 		current_pkt = 0;
 		current_iosrc = 0;
 
@@ -3457,10 +3459,15 @@ void SocketComm::Run()
 		if ( io->CanWrite() )
 			++canwrites;
 
-		int a = select(max_fd + 1, &fd_read, &fd_write, &fd_except, 0);
+		struct timeval timeout;
+		timeout.tv_sec = 1;
+		timeout.tv_usec = 0;
+
+		int a = select(max_fd + 1, &fd_read, &fd_write, &fd_except, &timeout);
 
 		if ( selects % 100000 == 0 )
-			Log(fmt("selects=%ld canwrites=%ld", selects, canwrites));
+			Log(fmt("selects=%ld canwrites=%ld pending=%lu",
+			        selects, canwrites, io->Stats()->pending));
 
 		if ( a < 0 )
 			// Ignore errors for now.

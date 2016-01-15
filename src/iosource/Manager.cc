@@ -24,6 +24,7 @@ Manager::~Manager()
 	for ( SourceList::iterator i = sources.begin(); i != sources.end(); ++i )
 		{
 		(*i)->src->Done();
+		delete (*i)->src;
 		delete *i;
 		}
 
@@ -117,9 +118,6 @@ IOSource* Manager::FindSoonest(double* ts)
 
 		src->Clear();
 		src->src->GetFds(&src->fd_read, &src->fd_write, &src->fd_except);
-		if ( src->fd_read.Empty() ) src->fd_read.Insert(0);
-		if ( src->fd_write.Empty() ) src->fd_write.Insert(0);
-		if ( src->fd_except.Empty() ) src->fd_except.Insert(0);
 		src->SetFds(&fd_read, &fd_write, &fd_except, &maxx);
 		}
 
@@ -183,9 +181,24 @@ finished:
 
 void Manager::Register(IOSource* src, bool dont_count)
 	{
+	// First see if we already have registered that source. If so, just
+	// adjust dont_count.
+	for ( SourceList::iterator i = sources.begin(); i != sources.end(); ++i )
+		{
+		if ( (*i)->src == src )
+			{
+			if ( (*i)->dont_count != dont_count )
+				// Adjust the global counter.
+				dont_counts += (dont_count ? 1 : -1);
+
+			return;
+			}
+		}
+
 	src->Init();
 	Source* s = new Source;
 	s->src = src;
+	s->dont_count = dont_count;
 	if ( dont_count )
 		++dont_counts;
 

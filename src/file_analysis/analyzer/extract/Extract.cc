@@ -68,7 +68,6 @@ static bool check_limit_exceeded(uint64 lim, uint64 depth, uint64 len, uint64* n
 		}
 	else if ( depth + len > lim )
 		{
-		printf("exceeded the maximum extraction lenght depth: %llu len: %llu lim: %llu\n", depth, len, lim);
 		*n = lim - depth;
 		return true;
 		}
@@ -104,7 +103,7 @@ bool Extract::DeliverStream(const u_char* data, uint64 len)
 
 	if ( towrite > 0 )
 		{
-		safe_pwrite(fd, (const u_char *) data, towrite, depth);
+		safe_write(fd, reinterpret_cast<const char*>(data), towrite);
 		depth += towrite;
 		}
 
@@ -113,6 +112,13 @@ bool Extract::DeliverStream(const u_char* data, uint64 len)
 
 bool Extract::Undelivered(uint64 offset, uint64 len)
 	{
-	depth += len;
+	if ( depth == offset )
+		{
+		char* tmp = new char[len]();
+		safe_write(fd, tmp, len);
+		delete [] tmp;
+		depth += len;
+		}
+
 	return true;
 	}

@@ -21,6 +21,13 @@ cleanup:
 	@rm -f $(DIAG)
 	@rm -f .tmp/script-coverage*
 
+distclean: cleanup
+	@rm -rf .btest.failed.dat \
+	        coverage.log \
+	        diag.log \
+	        .tmp/
+
+
 # Updates the three coverage tests that usually need tweaking when
 # scripts get added/removed.
 update-coverage-tests:

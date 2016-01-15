@@ -3,6 +3,7 @@
 
 #include "Reassem.h"
 #include "TCP_Endpoint.h"
+#include "TCP_Flags.h"
 
 class BroFile;
 class Connection;
@@ -10,9 +11,6 @@ class Connection;
 namespace analyzer { namespace tcp {
 
 class TCP_Analyzer;
-
-const int STOP_ON_GAP = 1;
-const int PUNT_ON_PARTIAL = 1;
 
 class TCP_Reassembler : public Reassembler {
 public:
@@ -64,7 +62,7 @@ public:
 	void SkipToSeq(uint64 seq);
 
 	int DataSent(double t, uint64 seq, int len, const u_char* data,
-			bool replaying=true);
+		     analyzer::tcp::TCP_Flags flags, bool replaying=true);
 	void AckReceived(uint64 seq);
 
 	// Checks if we have delivered all contents that we can possibly
@@ -113,6 +111,7 @@ private:
 	uint64 seq_to_skip;
 
 	bool in_delivery;
+	analyzer::tcp::TCP_Flags flags;
 
 	BroFile* record_contents_file;	// file on which to reassemble contents
 

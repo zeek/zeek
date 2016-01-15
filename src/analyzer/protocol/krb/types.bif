@@ -1,0 +1,17 @@
+module KRB;
+
+type Error_Msg: record;
+type SAFE_Msg: record;
+
+type KDC_Options: record;
+type AP_Options: record;
+type Type_Value: record;
+type Ticket: record;
+type Ticket_Vector: vector;
+type Host_Address: record;
+
+type KDC_Request: record;
+
+type KDC_Response: record;
+
+module GLOBAL;

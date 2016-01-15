@@ -319,6 +319,7 @@ protected:
 	 *        this file isn't related to a connection).
 	 * @param update_conn whether we need to update connection-related field
 	 *        in the \c fa_file record value associated with the file.
+	 * @param an optional value of the source field to fill in.
 	 * @return the File object mapped to \a file_id or a null pointer if
 	 *         analysis is being ignored for the associated file.  An File
 	 *         object may be created if a mapping doesn't exist, and if it did
@@ -327,7 +328,8 @@ protected:
 	 */
 	File* GetFile(const string& file_id, Connection* conn = 0,
 	              analyzer::Tag tag = analyzer::Tag::Error,
-	              bool is_orig = false, bool update_conn = true);
+	              bool is_orig = false, bool update_conn = true,
+	              const char* source_name = 0);
 
 	/**
 	 * Try to retrieve a file that's being analyzed, using its identifier/hash.

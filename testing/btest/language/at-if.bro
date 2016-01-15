@@ -6,6 +6,10 @@ function test_case(msg: string, expect: bool)
         print fmt("%s (%s)", msg, expect ? "PASS" : "FAIL");
         }
 
+function foo(c: count): bool
+	{ return c == 42 ? T : F; }
+
+global TRUE_CONDITION = T;
 
 event bro_init()
 {
@@ -17,7 +21,11 @@ event bro_init()
 		xyz += 1;
 	@endif
 
-	@if ( T )
+	@if ( foo(0) )
+		xyz += 1;
+	@endif
+
+	@if ( T && foo(42) )
 		xyz += 2;
 	@endif
 
@@ -37,7 +45,7 @@ event bro_init()
 
 	xyz = 0;
 
-	@if ( T )
+	@if ( T && TRUE_CONDITION )
 		xyz += 1;
 	@else
 		xyz += 2;

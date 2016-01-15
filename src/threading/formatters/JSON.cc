@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "config.h"
+#include "bro-config.h"
 
 #ifndef __STDC_LIMIT_MACROS
 #define __STDC_LIMIT_MACROS
@@ -15,7 +15,7 @@
 
 using namespace threading::formatter;
 
-JSON::JSON(MsgThread* t, TimeFormat tf) : Formatter(t)
+JSON::JSON(MsgThread* t, TimeFormat tf) : Formatter(t), surrounding_braces(true)
 	{
 	timestamps = tf;
 	}
@@ -27,21 +27,28 @@ JSON::~JSON()
 bool JSON::Describe(ODesc* desc, int num_fields, const Field* const * fields,
                     Value** vals) const
 	{
-	desc->AddRaw("{");
+	if ( surrounding_braces )
+		desc->AddRaw("{");
 
 	for ( int i = 0; i < num_fields; i++ )
 		{
 		const u_char* bytes = desc->Bytes();
 		int len = desc->Len();
 
-		if ( i > 0 && len > 0 && bytes[len-1] != ',' && vals[i]->present )
+		if ( i > 0 &&
+		     len > 0 &&
+		     bytes[len-1] != ',' &&
+		     bytes[len-1] != '{' &&
+		     bytes[len-1] != '[' &&
+		     vals[i]->present )
 			desc->AddRaw(",");
 
 		if ( ! Describe(desc, vals[i], fields[i]->name) )
 			return false;
 		}
 
-	desc->AddRaw("}");
+	if ( surrounding_braces )
+		desc->AddRaw("}");
 
 	return true;
 	}
@@ -216,4 +223,9 @@ threading::Value* JSON::ParseValue(const string& s, const string& name, TypeTag 
 	{
 	GetThread()->Error("JSON formatter does not support parsing yet.");
 	return NULL;
+	}
+
+void JSON::SurroundingBraces(bool use_braces)
+	{
+	surrounding_braces = use_braces;
 	}

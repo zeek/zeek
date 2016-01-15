@@ -3,9 +3,12 @@
 #ifndef IOSOURCE_PKTSRC_PKTSRC_H
 #define IOSOURCE_PKTSRC_PKTSRC_H
 
+#include <vector>
+
 #include "IOSource.h"
 #include "BPF_Program.h"
 #include "Dict.h"
+#include "Packet.h"
 
 declare(PDict,BPF_Program);
 
@@ -16,6 +19,8 @@ namespace iosource {
  */
 class PktSrc : public IOSource {
 public:
+	static const int NETMASK_UNKNOWN = 0xffffffff;
+
 	/**
 	 * Struct for returning statistics on a packet source.
 	 */
@@ -36,7 +41,12 @@ public:
 		 */
 		unsigned int link;
 
-		Stats()	{ received = dropped = link = 0; }
+		/**
+		  * Bytes received by source after filtering (w/o drops).
+		*/
+		uint64 bytes_received;
+
+		Stats()	{ received = dropped = link = bytes_received = 0; }
 	};
 
 	/**
@@ -67,7 +77,7 @@ public:
 
 	/**
 	 * Returns the netmask associated with the source, or \c
-	 * PCAP_NETMASK_UNKNOWN if unknown.
+	 * NETMASK_UNKNOWN if unknown.
 	 */
 	uint32 Netmask() const;
 
@@ -86,11 +96,6 @@ public:
 	 * Returns the size of the link-layer header for this source.
 	 */
 	int HdrSize() const;
-
-	/**
-	 * Returns the snap length for this source.
-	 */
-	int SnapLen() const;
 
 	/**
 	 * In pseudo-realtime mode, returns the logical timestamp of the
@@ -158,14 +163,12 @@ public:
 	/**
 	 * Returns the packet currently being processed, if available.
 	 *
-	 * @param hdr A pointer to pass the header of the current packet back.
-	 *
 	 * @param pkt A pointer to pass the content of the current packet
 	 * back.
 	 *
 	 * @return True if the current packet is available, or false if not.
 	 */
-	bool GetCurrentPacket(const pcap_pkthdr** hdr, const u_char** pkt);
+	bool GetCurrentPacket(const Packet** hdr);
 
 	// PacketSource interace for derived classes to override.
 
@@ -209,15 +212,6 @@ public:
 	 */
 	virtual void Statistics(Stats* stats) = 0;
 
-	/**
-	 * Helper method to return the header size for a given link tyoe.
-	 *
-	 * @param link_type The link tyoe.
-	 *
-	 * @return The header size in bytes.
-	 */
-	static int GetLinkHeaderSize(int link_type);
-
 protected:
 	friend class Manager;
 
@@ -246,15 +240,8 @@ protected:
 		int link_type;
 
 		/**
-		 * The size of the link-layer header for packets from this
-		 * source. \a GetLinkHeaderSize() may be used to derive this
-		 * value.
-		 */
-		int hdr_size;
-
-		/**
-		 * The netmask associated with the source, or \c
-		 * PCAP_NETMASK_UNKNOWN if unknown.
+		 * Returns the netmask associated with the source, or \c
+		 * NETMASK_UNKNOWN if unknown.
 		 */
 		uint32 netmask;
 
@@ -264,34 +251,7 @@ protected:
 		 */
 		bool is_live;
 
-		Properties()
-			{
-			selectable_fd = -1;
-			link_type = -1;
-			hdr_size = -1;
-			netmask = PCAP_NETMASK_UNKNOWN;
-			is_live = false;
-			}
-	};
-
-	/**
-	 * Structure describing a packet.
-	 */
-	struct Packet {
-		/**
-		 *  Time associated with the packet.
-		 */
-		double ts;
-
-		/**
-		 *  The pcap header associated with the packet.
-		 */
-		const struct ::pcap_pkthdr* hdr;
-
-		/**
-		 * The full content of the packet.
-		 */
-		const u_char* data;
+		Properties();
 	};
 
 	/**
@@ -404,7 +364,7 @@ private:
 	Packet current_packet;
 
 	// For BPF filtering support.
-	PDict(BPF_Program) filters;
+	std::vector<BPF_Program *> filters;
 
 	// Only set in pseudo-realtime mode.
 	double first_timestamp;

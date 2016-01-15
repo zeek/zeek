@@ -95,7 +95,7 @@ protected:
 	void NotAllowed(const char* cmd, const char* state);
 	void ProcessClientCmd();
 	void FinishClientCmd();
-	void BeginData();
+	void BeginData(bool orig);
 	void ProcessData(int length, const char* line);
 	void EndData();
 	void StartTLS();

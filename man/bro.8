@@ -1,0 +1,165 @@
+.TH BRO "8" "November 2014" "bro" "System Administration Utilities"
+.SH NAME
+bro \- passive network traffic analyzer
+.SH SYNOPSIS
+.B bro
+\/\fP [\fIoptions\fR] [\fIfile\fR ...]
+.SH DESCRIPTION
+Bro is primarily a security monitor that inspects all traffic on a link in
+depth for signs of suspicious activity. More generally, however, Bro
+supports a wide range of traffic analysis tasks even outside of the
+security domain, including performance measurements and helping with
+trouble-shooting.
+
+Bro comes with built-in functionality for a range of analysis and detection
+tasks, including detecting malware by interfacing to external registries,
+reporting vulnerable versions of software seen on the network, identifying
+popular web applications, detecting SSH brute-forcing, validating SSL
+certificate chains, among others.
+.SH OPTIONS
+.TP
+.B <file>
+policy file, or read stdin
+.TP
+\fB\-a\fR,\ \-\-parse\-only
+exit immediately after parsing scripts
+.TP
+\fB\-b\fR,\ \-\-bare\-mode
+don't load scripts from the base/ directory
+.TP
+\fB\-d\fR,\ \-\-debug\-policy
+activate policy file debugging
+.TP
+\fB\-e\fR,\ \-\-exec <bro code>
+augment loaded policies by given code
+.TP
+\fB\-f\fR,\ \-\-filter <filter>
+tcpdump filter
+.TP
+\fB\-g\fR,\ \-\-dump\-config
+dump current config into .state dir
+.TP
+\fB\-h\fR,\ \-\-help|\-?
+command line help
+.TP
+\fB\-i\fR,\ \-\-iface <interface>
+read from given interface
+.TP
+\fB\-p\fR,\ \-\-prefix <prefix>
+add given prefix to policy file resolution
+.TP
+\fB\-r\fR,\ \-\-readfile <readfile>
+read from given tcpdump file
+.TP
+\fB\-s\fR,\ \-\-rulefile <rulefile>
+read rules from given file
+.TP
+\fB\-t\fR,\ \-\-tracefile <tracefile>
+activate execution tracing
+.TP
+\fB\-w\fR,\ \-\-writefile <writefile>
+write to given tcpdump file
+.TP
+\fB\-v\fR,\ \-\-version
+print version and exit
+.TP
+\fB\-x\fR,\ \-\-print\-state <file.bst>
+print contents of state file
+.TP
+\fB\-z\fR,\ \-\-analyze <analysis>
+run the specified policy file analysis
+.TP
+\fB\-C\fR,\ \-\-no\-checksums
+ignore checksums
+.TP
+\fB\-F\fR,\ \-\-force\-dns
+force DNS
+.TP
+\fB\-I\fR,\ \-\-print\-id <ID name>
+print out given ID
+.TP
+\fB\-J\fR,\ \-\-set\-seed <seed>
+set the random number seed
+.TP
+\fB\-K\fR,\ \-\-md5\-hashkey <hashkey>
+set key for MD5\-keyed hashing
+.TP
+\fB\-N\fR,\ \-\-print\-plugins
+print available plugins and exit (\fB\-NN\fR for verbose)
+.TP
+\fB\-P\fR,\ \-\-prime\-dns
+prime DNS
+.TP
+\fB\-Q\fR,\ \-\-time
+print execution time summary to stderr
+.TP
+\fB\-R\fR,\ \-\-replay <events.bst>
+replay events
+.TP
+\fB\-S\fR,\ \-\-debug\-rules
+enable rule debugging
+.TP
+\fB\-T\fR,\ \-\-re\-level <level>
+set 'RE_level' for rules
+.TP
+\fB\-U\fR,\ \-\-status\-file <file>
+Record process status in file
+.TP
+\fB\-W\fR,\ \-\-watchdog
+activate watchdog timer
+.TP
+\fB\-X\fR,\ \-\-broxygen <cfgfile>
+generate documentation based on config file
+.TP
+\fB\-\-pseudo\-realtime[=\fR<speedup>]
+enable pseudo\-realtime for performance evaluation (default 1)
+.TP
+\fB\-\-load\-seeds\fR <file>
+load seeds from given file
+.TP
+\fB\-\-save\-seeds\fR <file>
+save seeds to given file
+.TP
+The following option is available only when Bro is built with the \-\-enable\-debug configure option:
+.TP
+\fB\-B\fR,\ \-\-debug <dbgstreams>
+Enable debugging output for selected streams ('-B help' for help)
+.TP
+The following options are available only when Bro is built with gperftools support (use the \-\-enable\-perftools and \-\-enable\-perftools\-debug configure options):
+.TP
+\fB\-m\fR,\ \-\-mem-leaks
+show leaks
+.TP
+\fB\-M\fR,\ \-\-mem-profile
+record heap
+.SH ENVIRONMENT
+.TP
+.B BROPATH
+file search path
+.TP
+.B BRO_PLUGIN_PATH
+plugin search path
+.TP
+.B BRO_PLUGIN_ACTIVATE
+plugins to always activate
+.TP
+.B BRO_PREFIXES
+prefix list
+.TP
+.B BRO_DNS_FAKE
+disable DNS lookups
+.TP
+.B BRO_SEED_FILE
+file to load seeds from
+.TP
+.B BRO_LOG_SUFFIX
+ASCII log file extension
+.TP
+.B BRO_PROFILER_FILE
+Output file for script execution statistics
+.TP
+.B BRO_DISABLE_BROXYGEN
+Disable Broxygen documentation support
+.SH AUTHOR
+.B bro
+was written by The Bro Project <info@bro.org>.

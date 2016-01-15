@@ -29,7 +29,7 @@ function Files::__disable_reassembly%(file_id: string%): bool
 	return new Val(result, TYPE_BOOL);
 	%}
 
-## :bro:see:`Files::set_reassembly_buffer`.
+## :bro:see:`Files::set_reassembly_buffer_size`.
 function Files::__set_reassembly_buffer%(file_id: string, max: count%): bool
 	%{
 	bool result = file_mgr->SetReassemblyBuffer(file_id->CheckString(), max);

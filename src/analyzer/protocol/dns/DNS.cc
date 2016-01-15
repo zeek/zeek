@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "config.h"
+#include "bro-config.h"
 
 #include <ctype.h>
 #include <sys/types.h>
@@ -19,6 +19,7 @@ using namespace analyzer::dns;
 DNS_Interpreter::DNS_Interpreter(analyzer::Analyzer* arg_analyzer)
 	{
 	analyzer = arg_analyzer;
+	first_message = true;
 	}
 
 int DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query)
@@ -32,6 +33,16 @@ int DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query)
 		}
 
 	DNS_MsgInfo msg((DNS_RawMsgHdr*) data, is_query);
+
+	if ( first_message && msg.QR && is_query == 1 )
+		{
+		is_query = msg.is_query = 0;
+
+		if ( ! analyzer->Conn()->RespAddr().IsMulticast() )
+			analyzer->Conn()->FlipRoles();
+		}
+
+	first_message = false;
 
 	if ( dns_message )
 		{
@@ -308,7 +319,7 @@ int DNS_Interpreter::ParseAnswer(DNS_MsgInfo* msg,
 				analyzer->ConnectionEvent(dns_unknown_reply, vl);
 				}
 
-			analyzer->Weird("DNS_RR_unknown_type");
+			analyzer->Weird("DNS_RR_unknown_type", fmt("%d", msg->atype));
 			data += rdlength;
 			len -= rdlength;
 			status = 1;
@@ -1064,7 +1075,8 @@ void Contents_DNS::Flush()
 	{
 	if ( buf_n > 0 )
 		{ // Deliver partial message.
-		interp->ParseMessage(msg_buf, buf_n, true);
+		// '2' here means whether it's a query is unknown.
+		interp->ParseMessage(msg_buf, buf_n, 2);
 		msg_size = 0;
 		}
 	}

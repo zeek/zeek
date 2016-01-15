@@ -22,16 +22,19 @@
 @load frameworks/intel/seen/file-names.bro
 @load frameworks/intel/seen/http-headers.bro
 @load frameworks/intel/seen/http-url.bro
+@load frameworks/intel/seen/pubkey-hashes.bro
 @load frameworks/intel/seen/smtp-url-extraction.bro
 @load frameworks/intel/seen/smtp.bro
 @load frameworks/intel/seen/ssl.bro
 @load frameworks/intel/seen/where-locations.bro
 @load frameworks/intel/seen/x509.bro
 @load frameworks/files/detect-MHR.bro
+#@load frameworks/files/extract-all-files.bro
 @load frameworks/files/hash-all-files.bro
 @load frameworks/packet-filter/shunt.bro
 @load frameworks/software/version-changes.bro
 @load frameworks/software/vulnerable.bro
+@load frameworks/software/windows-version-detection.bro
 @load integration/barnyard2/__load__.bro
 @load integration/barnyard2/main.bro
 @load integration/barnyard2/types.bro
@@ -59,6 +62,7 @@
 @load misc/trim-trace-file.bro
 @load protocols/conn/known-hosts.bro
 @load protocols/conn/known-services.bro
+@load protocols/conn/vlan-logging.bro
 @load protocols/conn/weirds.bro
 @load protocols/dhcp/known-devices-and-hostnames.bro
 @load protocols/dns/auth-addl.bro
@@ -75,6 +79,8 @@
 @load protocols/http/var-extraction-uri.bro
 @load protocols/modbus/known-masters-slaves.bro
 @load protocols/modbus/track-memmap.bro
+@load protocols/mysql/software.bro
+@load protocols/rdp/indicate_ssl.bro
 @load protocols/smtp/blocklists.bro
 @load protocols/smtp/detect-suspicious-orig.bro
 @load protocols/smtp/entities-excerpt.bro

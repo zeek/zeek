@@ -1,0 +1,65 @@
+## Generated for a command request from a MySQL client.
+##
+## See the MySQL `documentation <http://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
+## for more information about the MySQL protocol.
+##
+## c: The connection.
+##
+## command: The numerical code of the command issued.
+##
+## arg: The argument for the command (empty string if not provided).
+##
+## .. bro:see:: mysql_error mysql_ok mysql_server_version mysql_handshake
+event mysql_command_request%(c: connection, command: count, arg: string%);
+
+## Generated for an unsuccessful MySQL response.
+##
+## See the MySQL `documentation <http://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
+## for more information about the MySQL protocol.
+##
+## c: The connection.
+##
+## code: The error code.
+##
+## msg: Any extra details about the error (empty string if not provided).
+##
+## .. bro:see:: mysql_command_request mysql_ok mysql_server_version mysql_handshake
+event mysql_error%(c: connection, code: count, msg: string%);
+
+## Generated for a successful MySQL response.
+##
+## See the MySQL `documentation <http://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
+## for more information about the MySQL protocol.
+##
+## c: The connection.
+##
+## affected_rows: The number of rows that were affected.
+##
+## .. bro:see:: mysql_command_request mysql_error mysql_server_version mysql_handshake
+event mysql_ok%(c: connection, affected_rows: count%);
+
+## Generated for the initial server handshake packet, which includes the MySQL server version.
+##
+## See the MySQL `documentation <http://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
+## for more information about the MySQL protocol.
+##
+## c: The connection.
+##
+## ver: The server version string.
+##
+## .. bro:see:: mysql_command_request mysql_error mysql_ok mysql_handshake
+event mysql_server_version%(c: connection, ver: string%);
+
+## Generated for a client handshake response packet, which includes the username the client is attempting
+## to connect as.
+##
+## See the MySQL `documentation <http://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
+## for more information about the MySQL protocol.
+##
+## c: The connection.
+##
+## username: The username supplied by the client
+##
+## .. bro:see:: mysql_command_request mysql_error mysql_ok mysql_server_version
+event mysql_handshake%(c: connection, username: string%);
+

@@ -4,11 +4,70 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as BroControl and Broccoli, come with
 their own ``CHANGES``.)
 
-Bro 2.4 (in progress)
+Bro 2.5 (in progress)
 =====================
 
-Dependencies
-------------
+New Dependencies
+----------------
+
+- Bro now requires a compiler with C++11 support for building the
+  source code.
+
+- Bro now requires the C++ Actor Framework, CAF, which must be
+  installed first. See http://actor-framework.org.
+
+- Bro now requires Python instead of Perl to compile the source code.
+
+- The pcap buffer size can set through the new option Pcap::bufsize.
+
+New Functionality
+-----------------
+
+- Bro now tracks VLAN IDs. To record them inside the connection log,
+  load protocols/conn/vlan-logging.bro.
+
+- A new per-packet event raw_packet() provides access to layer 2
+  information. Use with care, generating events per packet is
+  expensive.
+
+- A new built-in function, decode_base64_conn() for Base64 decoding.
+  It works like decode_base64() but receives an additional connection
+  argument that will be used for decoding errors into weird.log
+  (instead of reporter.log).
+
+- The IRC analyzer now recognizes StartTLS sessions and enable the SSL
+  analyzer for them.
+
+- New Bro plugins in aux/plugins:
+
+    - af_packet: Native AF_PACKET support.
+    - myricom: Native Myricom SNF v3 support.
+    - pf_ring: Native PF_RING support.
+    - redis: An experimental log writer for Redis.
+    - tcprs: An TCP-level analyzer detecting retransmissions, reordering, and more.
+
+Changed Functionality
+---------------------
+
+- Some script-level identifier have changed their names:
+
+      snaplen                  -> Pcap::snaplen
+      precompile_pcap_filter() -> Pcap::precompile_pcap_filter()
+      install_pcap_filter()    -> Pcap::install_pcap_filter()
+      pcap_error()             -> Pcap::pcap_error()
+
+
+Deprecated Functionality
+------------------------
+
+    - The built-in functions decode_base64_custom() and
+      encode_base64_custom() are no longer needed and will be removed
+      in the future. Their functionality is now provided directly by
+      decode_base64() and encode_base64(), which take an optional
+      parameter to change the Base64 alphabet.
+
+Bro 2.4
+=======
 
 New Functionality
 -----------------
@@ -16,19 +75,256 @@ New Functionality
 - Bro now has support for external plugins that can extend its core
   functionality, like protocol/file analysis, via shared libraries.
   Plugins can be developed and distributed externally, and will be
-  pulled in dynamically at startup. Currently, a plugin can provide
-  custom protocol analyzers, file analyzers, log writers[TODO], input
-  readers[TODO], packet sources[TODO], and new built-in functions. A
-  plugin can furthermore hook into Bro's processing a number of places
-  to add custom logic.
+  pulled in dynamically at startup (the environment variables
+  BRO_PLUGIN_PATH and BRO_PLUGIN_ACTIVATE can be used to specify the
+  locations and names of plugins to activate). Currently, a plugin
+  can provide custom protocol analyzers, file analyzers, log writers,
+  input readers, packet sources and dumpers, and new built-in functions.
+  A plugin can furthermore hook into Bro's processing at a number of
+  places to add custom logic.
 
   See https://www.bro.org/sphinx-git/devel/plugins.html for more
   information on writing plugins.
+
+- Bro now has support for the MySQL wire protocol. Activity gets
+  logged into mysql.log.
+
+- Bro now parses DTLS traffic. Activity gets logged into ssl.log.
+
+- Bro now has support for the Kerberos KRB5 protocol over TCP and
+  UDP. Activity gets logged into kerberos.log.
+
+- Bro now has an RDP analyzer. Activity gets logged into rdp.log.
+
+- Bro now has a file analyzer for Portable Executables. Activity gets
+  logged into pe.log.
+
+- Bro now has support for the SIP protocol over UDP. Activity gets
+  logged into sip.log.
+
+- Bro now features a completely rewritten, enhanced SSH analyzer.  The
+  new analyzer is able to determine if logins failed or succeeded in
+  most circumstances, logs a lot more more information about SSH
+  sessions, supports v1, and introduces the intelligence type
+  ``Intel::PUBKEY_HASH`` and location ``SSH::IN_SERVER_HOST_KEY``. The
+  analayzer also generates a set of additional events
+  (``ssh_auth_successful``, ``ssh_auth_failed``, ``ssh_capabilities``,
+  ``ssh2_server_host_key``, ``ssh1_server_host_key``,
+  ``ssh_encrypted_packet``, ``ssh2_dh_server_params``,
+  ``ssh2_gss_error``, ``ssh2_ecc_key``). See next section for
+  incompatible SSH changes.
+
+- Bro's file analysis now supports reassembly of files that are not
+  transferred/seen sequentially.  The default file reassembly buffer
+  size is set with the ``Files::reassembly_buffer_size`` variable.
+
+- Bro's file type identification has been greatly improved (new file types,
+  bug fixes, and performance improvements).
+
+- Bro's scripting language now has a ``while`` statement::
+
+        while ( i < 5 )
+            print ++i;
+
+  ``next`` and ``break`` can be used inside the loop's body just like
+  with ``for`` loops.
+
+- Bro now integrates Broker, a new communication library. See
+  aux/broker/README for more information on Broker, and
+  doc/frameworks/broker.rst for the corresponding Bro script API.
+
+  With Broker, Bro has the similar capabilities of exchanging events and
+  logs with remote peers (either another Bro process or some other
+  application that uses Broker).  It also includes a key-value store
+  API that can be used to share state between peers and optionally
+  allow data to persist on disk for longer-term storage.
+
+  Broker support is by default off for now; it can be enabled at
+  configure time with --enable-broker. It requires CAF version 0.13+
+  (https://github.com/actor-framework/actor-framework) as well as a
+  C++11 compiler (e.g. GCC 4.8+ or Clang 3.3+).
+
+  Broker will become a mandatory dependency in future Bro versions and
+  replace the current communication and serialization system.
+
+- Add --enable-c++11 configure flag to compile Bro's source code in
+  C++11 mode with a corresponding compiler. Note that 2.4 will be the
+  last version of Bro that compiles without C++11 support.
+
+- The SSL analysis now alerts when encountering SSL connections with
+  old protocol versions or unsafe cipher suites. It also gained
+  extended reporting of weak keys, caching of already validated
+  certificates, and full support for TLS record defragmentation. SSL generally
+  became much more robust and added several fields to ssl.log (while
+  removing some others).
+
+- A new icmp_sent_payload event provides access to ICMP payload.
+
+- The input framework's raw reader now supports seeking by adding an
+  option "offset" to the config map. Positive offsets are interpreted
+  to be from the beginning of the file, negative from the end of the
+  file (-1 is end of file).
+
+- One can now raise events when a connection crosses a given size
+  threshold in terms of packets or bytes. The primary API for that
+  functionality is in base/protocols/conn/thresholds.bro.
+
+- There is a new command-line option -Q/--time that prints Bro's execution
+  time and memory usage to stderr.
+
+- BroControl now has a new command "deploy" which is equivalent to running
+  the "check", "install", "stop", and "start" commands (in that order).
+
+- BroControl now has a new option "StatusCmdShowAll" that controls whether
+  or not the broctl "status" command gathers all of the status information.
+  This option can be used to make the "status" command run significantly
+  faster (in this case, the "Peers" column will not be shown in the output).
+
+- BroControl now has a new option "StatsLogEnable" that controls whether
+  or not broctl will record information to the "stats.log" file.  This option
+  can be used to make the "broctl cron" command run slightly faster (in this
+  case, "broctl cron" will also no longer send email about not seeing any
+  packets on the monitoring interfaces).
+
+- BroControl now has a new option "MailHostUpDown" which controls whether or
+  not the "broctl cron" command will send email when it notices that a host
+  in the cluster is up or down.
+
+- BroControl now has a new option "CommandTimeout" which specifies the number
+  of seconds to wait for a command that broctl ran to return results.
 
 Changed Functionality
 ---------------------
 
 - bro-cut has been rewritten in C, and is hence much faster.
+
+- File analysis
+
+    * Removed ``fa_file`` record's ``mime_type`` and ``mime_types``
+      fields.  The event ``file_sniff`` has been added which provides
+      the same information.  The ``mime_type`` field of ``Files::Info``
+      also still has this info.
+
+    * The earliest point that new mime type information is available is
+      in the ``file_sniff`` event which comes after the ``file_new`` and
+      ``file_over_new_connection`` events.  Scripts which inspected mime
+      type info within those events will need to be adapted.  (Note: for
+      users that worked w/ versions of Bro from git, for a while there was
+      also an event called ``file_mime_type`` which is now replaced with
+      the ``file_sniff`` event).
+
+    * Removed ``Files::add_analyzers_for_mime_type`` function.
+
+    * Removed ``offset`` parameter of the ``file_extraction_limit``
+      event.  Since file extraction now internally depends on file
+      reassembly for non-sequential files, "offset" can be obtained
+      with other information already available -- adding together
+      ``seen_bytes`` and ``missed_bytes`` fields of the ``fa_file``
+      record gives how many bytes have been written so far (i.e.
+      the "offset").
+
+- The SSH changes come with a few incompatibilities. The following
+  events have been renamed:
+
+    * ``SSH::heuristic_failed_login`` to ``ssh_auth_failed``
+    * ``SSH::heuristic_successful_login`` to ``ssh_auth_successful``
+
+  The ``SSH::Info`` status field has been removed and replaced with
+  the ``auth_success`` field.  This field has been changed from a
+  string that was previously ``success``, ``failure`` or
+  ``undetermined`` to a boolean. a boolean that is ``T``, ``F``, or
+  unset.
+
+- The has_valid_octets function now uses a string_vec parameter instead of
+  string_array.
+
+- conn.log gained a new field local_resp that works like local_orig,
+  just for the responder address of the connection.
+
+- GRE tunnels are now identified as ``Tunnel::GRE`` instead of
+  ``Tunnel::IP``.
+
+- The default name for extracted files changed from extract-protocol-id
+  to extract-timestamp-protocol-id.
+
+- The weird named "unmatched_HTTP_reply" has been removed since it can
+  be detected at the script-layer and is handled correctly by the
+  default HTTP scripts.
+
+- When adding a logging filter to a stream, the filter can now inherit
+  a default ``path`` field from the associated ``Log::Stream`` record.
+
+- When adding a logging filter to a stream, the
+  ``Log::default_path_func`` is now only automatically added to the
+  filter if it has neither a ``path`` nor a ``path_func`` already
+  explicitly set.  Before, the default path function would always be set
+  for all filters which didn't specify their own ``path_func``.
+
+- BroControl now establishes only one ssh connection from the manager to
+  each remote host in a cluster configuration (previously, there would be
+  one ssh connection per remote Bro process).
+
+- BroControl now uses SQLite to record state information instead of a
+  plain text file (the file "spool/broctl.dat" is no longer used).
+  On FreeBSD, this means that there is a new dependency on the package
+  "py27-sqlite3".
+
+- BroControl now records the expected running state of each Bro node right
+  before each start or stop.  The "broctl cron" command uses this info to
+  either start or stop Bro nodes as needed so that the actual state matches
+  the expected state (previously, "broctl cron" could only start nodes in
+  the "crashed" state, and could never stop a node).
+
+- BroControl now sends all normal command output (i.e., not error messages)
+  to stdout.  Error messages are still sent to stderr, however.
+
+- The capability of processing NetFlow input has been removed for the
+  time being.  Therefore, the -y/--flowfile and -Y/--netflow command-line
+  options have been removed, and the netflow_v5_header and netflow_v5_record
+  events have been removed.
+
+- The -D/--dfa-size command-line option has been removed.
+
+- The -L/--rule-benchmark command-line option has been removed.
+
+- The -O/--optimize command-line option has been removed.
+
+- The deprecated fields "hot" and "addl" have been removed from the
+  connection record. Likewise, the functions append_addl() and
+  append_addl_marker() have been removed.
+
+- Log files now escape non-printable characters consistently as "\xXX'.
+  Furthermore, backslashes are escaped as "\\", making the
+  representation fully reversible.
+
+Deprecated Functionality
+------------------------
+
+- The split* family of functions are to be replaced with alternate
+  versions that return a vector of strings rather than a table of
+  strings. This also allows deprecation for some related string
+  concatenation/extraction functions. Note that the new functions use
+  0-based indexing, rather than 1-based.
+
+  The full list of now deprecated functions is:
+
+    * split: use split_string instead.
+
+    * split1: use split_string1 instead.
+
+    * split_all: use split_string_all instead.
+
+    * split_n: use split_string_n instead.
+
+    * cat_string_array: see join_string_vec instead.
+
+    * cat_string_array_n: see join_string_vec instead.
+
+    * join_string_array: see join_string_vec instead.
+
+    * sort_string_array: use sort instead.
+
+    * find_ip_addresses: use extract_ip_addresses instead.
 
 Bro 2.3
 =======

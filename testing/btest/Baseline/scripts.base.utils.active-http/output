@@ -4,7 +4,7 @@
 [Date] =  July 22, 2013
 [Server] =  1.0,
 [Server] =  1.0,
-test1, [code=200, msg=OK^M, body=It works!, headers={
-test2, [code=200, msg=OK^M, body=, headers={
+test1, [code=200, msg=OK\x0d, body=It works!, headers={
+test2, [code=200, msg=OK\x0d, body=, headers={
 }]
 }]

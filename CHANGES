@@ -1,4 +1,16 @@
 
+2.4-236 | 2016-01-15 10:35:21 -0800
+
+  * Add HTTP version information to HTTP log file. (Aaron Eppert)
+
+  * Add NOTIFY as a valid SIP message, per RFC 3265. (Aaron Eppert)
+
+  * Let HTTP parser reject requests that don't have both URI and
+    version. (William Glodek)
+
+  * Fix crash when deleting non existing record member. Addresses
+    BIT-1519. (Johanna Amann)
+
 2.4-228 | 2015-12-19 13:40:09 -0800
 
   * Updating BroControl submodule.

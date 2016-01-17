@@ -11,9 +11,7 @@
 ##
 ## limit: The limit, in bytes, the extracted file is about to breach.
 ##
-## offset: The offset at which a file chunk is about to be written.
-##
 ## len: The length of the file chunk about to be written.
 ##
 ## .. bro:see:: Files::add_analyzer Files::ANALYZER_EXTRACT
-event file_extraction_limit%(f: fa_file, args: any, limit: count, offset: count, len: count%);
+event file_extraction_limit%(f: fa_file, args: any, limit: count, len: count%);

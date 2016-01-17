@@ -9,8 +9,8 @@ redef enum PcapFilterID += { A };
 
 event bro_init()
 	{
-	if ( ! precompile_pcap_filter(A, "kaputt, too") )
-		print "error", pcap_error();
+	if ( ! Pcap::precompile_pcap_filter(A, "kaputt, too") )
+		print "error", Pcap::error();
 	}
 
 

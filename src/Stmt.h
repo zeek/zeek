@@ -33,10 +33,6 @@ public:
 		{ return Stmt::SetLocationInfo(loc, loc); }
 	bool SetLocationInfo(const Location* start, const Location* end);
 
-	// Returns a fully simplified version of the statement (this
-	// may be the same statement, or a newly created one).
-	virtual Stmt* Simplify();
-
 	// True if the statement has no side effects, false otherwise.
 	virtual int IsPure() const;
 
@@ -112,9 +108,6 @@ protected:
 	Val* Exec(Frame* f, stmt_flow_type& flow) const;
 	virtual Val* DoExec(val_list* vals, stmt_flow_type& flow) const = 0;
 
-	Stmt* Simplify();
-	virtual Stmt* DoSimplify();
-
 	void Describe(ODesc* d) const;
 	void PrintVals(ODesc* d, val_list* vals, int offset) const;
 
@@ -156,11 +149,7 @@ protected:
 
 	virtual Val* DoExec(Frame* f, Val* v, stmt_flow_type& flow) const;
 
-	Stmt* Simplify();
 	int IsPure() const;
-
-	// Called by Simplify(), after the expression's been simplified.
-	virtual Stmt* DoSimplify();
 
 	DECLARE_SERIAL(ExprStmt);
 
@@ -184,7 +173,6 @@ protected:
 	IfStmt()	{ s1 = s2 = 0; }
 
 	Val* DoExec(Frame* f, Val* v, stmt_flow_type& flow) const;
-	Stmt* DoSimplify();
 	int IsPure() const;
 
 	DECLARE_SERIAL(IfStmt);
@@ -237,7 +225,6 @@ protected:
 	SwitchStmt()	{ cases = 0; default_case_idx = -1; comp_hash = 0; }
 
 	Val* DoExec(Frame* f, Val* v, stmt_flow_type& flow) const;
-	Stmt* DoSimplify();
 	int IsPure() const;
 
 	DECLARE_SERIAL(SwitchStmt);
@@ -310,6 +297,32 @@ protected:
 	EventExpr* event_expr;
 };
 
+class WhileStmt : public Stmt {
+public:
+
+	WhileStmt(Expr* loop_condition, Stmt* body);
+	~WhileStmt();
+
+	int IsPure() const;
+
+	void Describe(ODesc* d) const;
+
+	TraversalCode Traverse(TraversalCallback* cb) const;
+
+protected:
+	friend class Stmt;
+
+	WhileStmt()
+		{ loop_condition = 0; body = 0; }
+
+	Val* Exec(Frame* f, stmt_flow_type& flow) const;
+
+	DECLARE_SERIAL(WhileStmt);
+
+	Expr* loop_condition;
+	Stmt* body;
+};
+
 class ForStmt : public ExprStmt {
 public:
 	ForStmt(id_list* loop_vars, Expr* loop_expr);
@@ -332,7 +345,6 @@ protected:
 	ForStmt()	{ loop_vars = 0; body = 0; }
 
 	Val* DoExec(Frame* f, Val* v, stmt_flow_type& flow) const;
-	Stmt* DoSimplify();
 
 	DECLARE_SERIAL(ForStmt);
 
@@ -415,7 +427,6 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const;
 
 protected:
-	Stmt* Simplify();
 	int IsPure() const;
 
 	DECLARE_SERIAL(StmtList);
@@ -437,7 +448,6 @@ public:
 	// bool IsTopmost()	{ return topmost; }
 
 protected:
-	Stmt* Simplify();
 
 	DECLARE_SERIAL(EventBodyList);
 
@@ -495,7 +505,6 @@ public:
 
 	Val* Exec(Frame* f, stmt_flow_type& flow) const;
 	int IsPure() const;
-	Stmt* Simplify();
 
 	const Expr* Cond() const	{ return cond; }
 	const Stmt* Body() const	{ return s1; }
@@ -517,8 +526,5 @@ protected:
 	Expr* timeout;
 	bool is_return;
 };
-
-extern Stmt* simplify_stmt(Stmt* s);
-extern int same_stmt(const Stmt* s1, const Stmt* s2);
 
 #endif

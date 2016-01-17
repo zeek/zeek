@@ -1,0 +1,22 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	intel
+#open	2015-03-14-01-47-46
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	fuid	file_mime_type	file_desc	seen.indicator	seen.indicator_type	seen.where	seen.node	sources
+#types	time	string	addr	port	addr	port	string	string	string	string	enum	enum	string	set[string]
+1416942644.593119	CXWv6p3arKYeMETxOg	192.168.4.149	49422	23.92.19.75	443	F0txuw2pvrkZOn04a8	application/pkix-cert	23.92.19.75:443/tcp	www.pantz.org	Intel::DOMAIN	X509::IN_CERT	bro	source1
+#close	2015-03-14-01-47-46
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	intel
+#open	2015-03-14-01-47-46
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	fuid	file_mime_type	file_desc	seen.indicator	seen.indicator_type	seen.where	seen.node	sources
+#types	time	string	addr	port	addr	port	string	string	string	string	enum	enum	string	set[string]
+1170717505.934612	CXWv6p3arKYeMETxOg	192.150.187.164	58868	194.127.84.106	443	-	-	-	www.dresdner-privat.de	Intel::DOMAIN	X509::IN_CERT	bro	source1
+1170717509.082241	CjhGID4nQcgTWjvg4c	192.150.187.164	58869	194.127.84.106	443	-	-	-	www.dresdner-privat.de	Intel::DOMAIN	X509::IN_CERT	bro	source1
+1170717512.108799	CCvvfg3TEfuqmmG4bh	192.150.187.164	58870	194.127.84.106	443	-	-	-	www.dresdner-privat.de	Intel::DOMAIN	X509::IN_CERT	bro	source1
+#close	2015-03-14-01-47-46

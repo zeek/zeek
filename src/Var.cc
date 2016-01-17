@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "config.h"
+#include "bro-config.h"
 
 #include "Var.h"
 #include "Func.h"
@@ -63,9 +63,6 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 			return;
 			}
 		}
-
-	if ( init && optimize )
-		init = init->Simplify(SIMPLIFY_GENERAL);
 
 	if ( t && t->IsSet() )
 		{ // Check for set with explicit elements.
@@ -435,6 +432,10 @@ void end_func(Stmt* body, attr_list* attrs)
 		loop_over_list(*attrs, i)
 			{
 			Attr* a = (*attrs)[i];
+
+			if ( a->Tag() == ATTR_DEPRECATED )
+				continue;
+
 			if ( a->Tag() != ATTR_PRIORITY )
 				{
 				a->Error("illegal attribute for function body");

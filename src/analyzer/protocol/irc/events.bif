@@ -797,3 +797,10 @@ event irc_user_message%(c: connection, is_orig: bool, user: string, host: string
 ##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response
 ##    irc_part_message
 event irc_password_message%(c: connection, is_orig: bool, password: string%);
+
+## Generated if an IRC connection switched to TLS using STARTTLS. After this
+## event no more IRC events will be raised for the connection. See the SSL
+## analyzer for related SSL events, which will now be generated.
+##
+## c: The connection.
+event irc_starttls%(c: connection%);

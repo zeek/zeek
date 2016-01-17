@@ -17,6 +17,10 @@ export {
 
 	## Describe the file being transferred.
 	global describe_file: function(f: fa_file): string;
+
+	redef record fa_file += { 
+		ftp: FTP::Info &optional;
+	};
 }
 
 function get_file_handle(c: connection, is_orig: bool): string
@@ -48,7 +52,6 @@ event bro_init() &priority=5
 	                          $describe        = FTP::describe_file]);
 	}
 
-
 event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priority=5
 	{
 	if ( [c$id$resp_h, c$id$resp_p] !in ftp_data_expected ) 
@@ -56,6 +59,17 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 
 	local ftp = ftp_data_expected[c$id$resp_h, c$id$resp_p];
 	ftp$fuid = f$id;
-	if ( f?$mime_type )
-		ftp$mime_type = f$mime_type;
+
+	f$ftp = ftp;
+	}
+
+event file_sniff(f: fa_file, meta: fa_metadata) &priority=5
+	{
+	if ( ! f?$ftp )
+		return;
+
+	if ( ! meta?$mime_type )
+		return;
+
+	f$ftp$mime_type = meta$mime_type;
 	}

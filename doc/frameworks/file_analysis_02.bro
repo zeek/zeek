@@ -1,7 +1,8 @@
-event file_new(f: fa_file)
+event file_sniff(f: fa_file, meta: fa_metadata)
     {
+	if ( ! meta?$mime_type ) return;
     print "new file", f$id;
-    if ( f?$mime_type && f$mime_type == "text/plain" )
+    if ( meta$mime_type == "text/plain" )
         Files::add_analyzer(f, Files::ANALYZER_MD5);
     }
 

@@ -12,14 +12,14 @@ export {
 		## notice will be generated.
 		Watched_Country_Login,
 	};
-	
+
 	redef record Info += {
 		## Add geographic data related to the "remote" host of the
 		## connection.
 		remote_location: geo_location &log &optional;
 	};
-	
-	## The set of countries for which you'd like to generate notices upon 
+
+	## The set of countries for which you'd like to generate notices upon
 	## successful login.
 	const watched_countries: set[string] = {"RO"} &redef;
 }
@@ -30,23 +30,29 @@ function get_location(c: connection): geo_location
 	return lookup_location(lookup_ip);
 	}
 
-event SSH::heuristic_successful_login(c: connection) &priority=5
+event ssh_auth_successful(c: connection, auth_method_none: bool) &priority=3
 	{
+	if ( ! c$ssh?$direction )
+		return;
+
 	# Add the location data to the SSH record.
 	c$ssh$remote_location = get_location(c);
-	
+
 	if ( c$ssh$remote_location?$country_code && c$ssh$remote_location$country_code in watched_countries )
 		{
 		NOTICE([$note=Watched_Country_Login,
 		        $conn=c,
-		        $msg=fmt("SSH login %s watched country: %s", 
-		                 (c$ssh$direction == OUTBOUND) ? "to" : "from", 
+		        $msg=fmt("SSH login %s watched country: %s",
+		                 (c$ssh$direction == OUTBOUND) ? "to" : "from",
 		                 c$ssh$remote_location$country_code)]);
 		}
 	}
 
-event SSH::heuristic_failed_login(c: connection) &priority=5
+event ssh_auth_failed(c: connection) &priority=3
 	{
+	if ( ! c$ssh?$direction )
+		return;
+
 	# Add the location data to the SSH record.
 	c$ssh$remote_location = get_location(c);
 	}

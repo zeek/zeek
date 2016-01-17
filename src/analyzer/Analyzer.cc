@@ -598,7 +598,7 @@ SupportAnalyzer* Analyzer::FirstSupportAnalyzer(bool orig)
 void Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 				uint64 seq, const IP_Hdr* ip, int caplen)
 	{
-	DBG_LOG(DBG_ANALYZER, "%s DeliverPacket(%d, %s, %"PRIu64", %p, %d) [%s%s]",
+	DBG_LOG(DBG_ANALYZER, "%s DeliverPacket(%d, %s, %" PRIu64", %p, %d) [%s%s]",
 			fmt_analyzer(this).c_str(), len, is_orig ? "T" : "F", seq, ip, caplen,
 			fmt_bytes((const char*) data, min(40, len)), len > 40 ? "..." : "");
 	}
@@ -612,7 +612,7 @@ void Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 
 void Analyzer::Undelivered(uint64 seq, int len, bool is_orig)
 	{
-	DBG_LOG(DBG_ANALYZER, "%s Undelivered(%"PRIu64", %d, %s)",
+	DBG_LOG(DBG_ANALYZER, "%s Undelivered(%" PRIu64", %d, %s)",
 			fmt_analyzer(this).c_str(), seq, len, is_orig ? "T" : "F");
 	}
 

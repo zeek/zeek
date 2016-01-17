@@ -2,7 +2,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 %}
 
-%expect 75
+%expect 78
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
@@ -16,6 +16,7 @@
 %token TOK_REMOVE_FROM TOK_RETURN TOK_SCHEDULE TOK_SET
 %token TOK_STRING TOK_SUBNET TOK_SWITCH TOK_TABLE
 %token TOK_TIME TOK_TIMEOUT TOK_TIMER TOK_TYPE TOK_UNION TOK_VECTOR TOK_WHEN
+%token TOK_WHILE
 
 %token TOK_ATTR_ADD_FUNC TOK_ATTR_ENCRYPT TOK_ATTR_DEFAULT
 %token TOK_ATTR_OPTIONAL TOK_ATTR_REDEF TOK_ATTR_ROTATE_INTERVAL
@@ -24,7 +25,7 @@
 %token TOK_ATTR_PERSISTENT TOK_ATTR_SYNCHRONIZED
 %token TOK_ATTR_RAW_OUTPUT TOK_ATTR_MERGEABLE
 %token TOK_ATTR_PRIORITY TOK_ATTR_LOG TOK_ATTR_ERROR_HANDLER
-%token TOK_ATTR_TYPE_COLUMN
+%token TOK_ATTR_TYPE_COLUMN TOK_ATTR_DEPRECATED
 
 %token TOK_DEBUG
 
@@ -44,7 +45,7 @@
 %right '!'
 %left '$' '[' ']' '(' ')' TOK_HAS_FIELD TOK_HAS_ATTR
 
-%type <b> opt_no_test opt_no_test_block
+%type <b> opt_no_test opt_no_test_block opt_deprecated
 %type <str> TOK_ID TOK_PATTERN_TEXT single_pattern
 %type <id> local_id global_id def_global_id event_id global_or_event_id resolve_id begin_func
 %type <id_l> local_id_list
@@ -127,7 +128,11 @@ static void parser_new_enum (void)
 	{
 	/* Starting a new enum definition. */
 	assert(cur_enum_type == NULL);
-	cur_enum_type = new EnumType(cur_decl_type_id->Name());
+
+	if ( cur_decl_type_id )
+		cur_enum_type = new EnumType(cur_decl_type_id->Name());
+	else
+		reporter->FatalError("incorrect syntax for enum type declaration");
 	}
 
 static void parser_redef_enum (ID *id)
@@ -223,6 +228,18 @@ static bool expr_is_table_type_name(const Expr* expr)
 
 	return false;
 	}
+
+static bool has_attr(const attr_list* al, attr_tag tag)
+	{
+	if ( ! al )
+		return false;
+
+	for ( int i = 0; i < al->length(); ++i )
+		if ( (*al)[i]->Tag() == tag )
+			return true;
+
+	return false;
+	}
 %}
 
 %union {
@@ -255,9 +272,6 @@ static bool expr_is_table_type_name(const Expr* expr)
 bro:
 		decl_list stmt_list
 			{
-			if ( optimize )
-				$2 = $2->Simplify();
-
 			if ( stmts )
 				stmts->AsStmtList()->Stmts().append($2);
 			else
@@ -667,6 +681,9 @@ expr:
 					}
 				else
 					$$ = new NameExpr(id);
+
+				if ( id->IsDeprecated() )
+					reporter->Warning("deprecated (%s)", id->Name());
 				}
 			}
 
@@ -755,7 +772,7 @@ enum_body_elem:
 		   error messages if someboy tries to use constant variables as
 		   enumerator.
 		*/
-		TOK_ID '=' TOK_CONSTANT
+		TOK_ID '=' TOK_CONSTANT opt_deprecated
 			{
 			set_location(@1, @3);
 			assert(cur_enum_type);
@@ -764,7 +781,7 @@ enum_body_elem:
 				reporter->Error("enumerator is not a count constant");
 			else
 				cur_enum_type->AddName(current_module, $1,
-				                       $3->InternalUnsigned(), is_export);
+				                       $3->InternalUnsigned(), is_export, $4);
 			}
 
 	|	TOK_ID '=' '-' TOK_CONSTANT
@@ -776,11 +793,11 @@ enum_body_elem:
 			reporter->Error("enumerator is not a count constant");
 			}
 
-	|	TOK_ID
+	|	TOK_ID opt_deprecated
 			{
 			set_location(@1);
 			assert(cur_enum_type);
-			cur_enum_type->AddName(current_module, $1, is_export);
+			cur_enum_type->AddName(current_module, $1, is_export, $2);
 			}
 	;
 
@@ -959,7 +976,12 @@ type:
 				$$ = error_type();
 				}
 			else
+				{
 				Ref($$);
+
+				if ( $1->IsDeprecated() )
+					reporter->Warning("deprecated (%s)", $1->Name());
+				}
 			}
 	;
 
@@ -1135,6 +1157,9 @@ func_body:
 			{
 			saved_in_init.push_back(in_init);
 			in_init = 0;
+
+			if ( has_attr($1, ATTR_DEPRECATED) )
+				current_scope()->ScopeID()->MakeDeprecated();
 			}
 
 		stmt_list
@@ -1145,9 +1170,6 @@ func_body:
 
 		'}'
 			{
-			if ( optimize )
-				$4 = $4->Simplify();
-
 			end_func($4, $1);
 			}
 	;
@@ -1261,6 +1283,8 @@ attr:
 			{ $$ = new Attr(ATTR_LOG); }
 	|	TOK_ATTR_ERROR_HANDLER
 			{ $$ = new Attr(ATTR_ERROR_HANDLER); }
+	|	TOK_ATTR_DEPRECATED
+			{ $$ = new Attr(ATTR_DEPRECATED); }
 	;
 
 stmt:
@@ -1309,6 +1333,11 @@ stmt:
 	|	for_head stmt
 			{
 			$1->AsForStmt()->AddBody($2);
+			}
+
+	|	TOK_WHILE '(' expr ')' stmt
+			{
+			$$ = new WhileStmt($3, $5);
 			}
 
 	|	TOK_NEXT ';' opt_no_test
@@ -1446,6 +1475,10 @@ event:
 			{
 			set_location(@1, @4);
 			$$ = new EventExpr($1, $3);
+			ID* id = lookup_ID($1, current_module.c_str());
+
+			if ( id && id->IsDeprecated() )
+				reporter->Warning("deprecated (%s)", id->Name());
 			}
 	;
 
@@ -1552,6 +1585,15 @@ global_or_event_id:
 				if ( ! $$->IsGlobal() )
 					$$->Error("already a local identifier");
 
+				if ( $$->IsDeprecated() )
+					{
+					BroType* t = $$->Type();
+
+					if ( t->Tag() != TYPE_FUNC ||
+					     t->AsFuncType()->Flavor() != FUNC_FLAVOR_FUNCTION )
+						reporter->Warning("deprecated (%s)", $$->Name());
+					}
+
 				delete [] $1;
 				}
 
@@ -1590,6 +1632,12 @@ opt_no_test:
 opt_no_test_block:
 		TOK_NO_TEST
 			{ $$ = true; brofiler.IncIgnoreDepth(); }
+	|
+			{ $$ = false; }
+
+opt_deprecated:
+		TOK_ATTR_DEPRECATED
+			{ $$ = true; }
 	|
 			{ $$ = false; }
 

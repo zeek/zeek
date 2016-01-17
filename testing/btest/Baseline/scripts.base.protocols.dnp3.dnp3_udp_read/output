@@ -1,0 +1,2995 @@
+dnp3_header_block, T, 25605, 20, 196, 1, 100
+dnp3_application_request_header, T, 199, 1
+dnp3_object_header, T, 15362, 6, 0, 65535, 65535
+dnp3_object_header, T, 15363, 6, 0, 65535, 65535
+dnp3_object_header, T, 15364, 6, 0, 65535, 65535
+dnp3_object_header, T, 15361, 6, 0, 65535, 65535
+dnp3_header_block, F, 25605, 255, 68, 100, 1
+dnp3_application_response_header, F, 135, 129, 36864
+dnp3_object_header, F, 257, 1, 1024, 0, 1023
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 3
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 0
+dnp3_object_header, F, 2562, 1, 512, 0, 511
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 1
+dnp3_object_header, F, 7685, 1, 276, 0, 275
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 1124382111
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 3242862076
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_header_block, F, 25605, 255, 68, 100, 1
+dnp3_application_response_header, F, 72, 129, 36864
+dnp3_object_header, F, 7685, 1, 224, 276, 499
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_analog_input_SPwFlag, F, 1, 0
+dnp3_response_data_object, F, 255
+dnp3_object_header, F, 10243, 0, 100, 0, 99
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255
+dnp3_object_prefix, F, 0
+dnp3_response_data_object, F, 255

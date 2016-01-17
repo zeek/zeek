@@ -5,6 +5,7 @@
 @load frameworks/communication/listen.bro
 @load frameworks/control/controllee.bro
 @load frameworks/control/controller.bro
+@load frameworks/files/extract-all-files.bro
 @load policy/misc/dump-events.bro
 
 @load ./example.bro

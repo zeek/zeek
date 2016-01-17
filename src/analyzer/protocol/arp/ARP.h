@@ -3,7 +3,7 @@
 #ifndef ANALYZER_PROTOCOL_ARP_ARP_H
 #define ANALYZER_PROTOCOL_ARP_ARP_H
 
-#include "config.h"
+#include "bro-config.h"
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -25,6 +25,8 @@
 
 #include "NetVar.h"
 
+class Packet;
+
 extern "C" {
 #include <pcap.h>
 }
@@ -36,16 +38,12 @@ public:
 	ARP_Analyzer();
 	virtual ~ARP_Analyzer();
 
-	void NextPacket(double t, const struct pcap_pkthdr* hdr,
-			const u_char* const pkt, int hdr_size);
+	void NextPacket(double t, const Packet* pkt);
 
 	void Describe(ODesc* d) const;
 	void RREvent(EventHandlerPtr e, const u_char* src, const u_char* dst,
 			const char* spa, const char* sha,
 			const char* tpa, const char* tha);
-
-	// Whether a packet is of interest for ARP analysis.
-	static bool IsARP(const u_char* pkt, int hdr_size);
 
 protected:
 	AddrVal* ConstructAddrVal(const void* addr);

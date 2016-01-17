@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "config.h"
+#include "bro-config.h"
 
 #include "util.h"
 #include "Hash.h"
@@ -28,7 +28,7 @@ void FragTimer::Dispatch(double t, int /* is_expire */)
 FragReassembler::FragReassembler(NetSessions* arg_s,
 			const IP_Hdr* ip, const u_char* pkt,
 			HashKey* k, double t)
-	: Reassembler(0, REASSEM_IP)
+	: Reassembler(0)
 	{
 	s = arg_s;
 	key = k;

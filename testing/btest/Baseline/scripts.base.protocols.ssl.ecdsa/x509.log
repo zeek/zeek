@@ -1,0 +1,11 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	x509
+#open	2014-11-25-19-15-51
+#fields	ts	id	certificate.version	certificate.serial	certificate.subject	certificate.issuer	certificate.not_valid_before	certificate.not_valid_after	certificate.key_alg	certificate.sig_alg	certificate.key_type	certificate.key_length	certificate.exponent	certificate.curve	san.dns	san.uri	san.email	san.ip	basic_constraints.ca	basic_constraints.path_len
+#types	time	string	count	string	string	string	time	time	string	string	string	count	string	string	vector[string]	vector[string]	vector[string]	vector[addr]	bool	count
+1416942644.593119	Fi6J8q3lDJpbQWAnvi	3	F0AFBBF558BF4D1B71FED9CB33793EE4	CN=pantz.org,OU=PositiveSSL,OU=Domain Control Validated	CN=COMODO ECC Domain Validation Secure Server CA,O=COMODO CA Limited,L=Salford,ST=Greater Manchester,C=GB	1415404800.000000	1573171199.000000	id-ecPublicKey	ecdsa-with-SHA256	ecdsa	384	-	secp384r1	pantz.org,www.pantz.org	-	-	-	F	-
+1416942644.593119	FDXMnz1NjsQeaBxCU	3	510601E63B50673C55EE4E19DA304CA8	CN=COMODO ECC Domain Validation Secure Server CA,O=COMODO CA Limited,L=Salford,ST=Greater Manchester,C=GB	CN=COMODO ECC Certification Authority,O=COMODO CA Limited,L=Salford,ST=Greater Manchester,C=GB	1394668800.000000	1868054399.000000	id-ecPublicKey	ecdsa-with-SHA384	ecdsa	256	-	prime256v1	-	-	-	-	T	0
+#close	2014-11-25-19-15-52

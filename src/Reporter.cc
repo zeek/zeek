@@ -4,7 +4,7 @@
 
 #include <syslog.h>
 
-#include "config.h"
+#include "bro-config.h"
 #include "Reporter.h"
 #include "Event.h"
 #include "NetVar.h"
@@ -118,6 +118,19 @@ void Reporter::ExprRuntimeError(const Expr* expr, const char* fmt, ...)
 	FILE* out = errors_to_stderr ? stderr : 0;
 	DoLog("expression error", reporter_error, out, 0, 0, true, true,
 	      d.Description(), fmt, ap);
+	va_end(ap);
+	PopLocation();
+	throw InterpreterException();
+	}
+
+void Reporter::RuntimeError(const Location* location, const char* fmt, ...)
+	{
+	++errors;
+	PushLocation(location);
+	va_list ap;
+	va_start(ap, fmt);
+	FILE* out = errors_to_stderr ? stderr : 0;
+	DoLog("runtime error", reporter_error, out, 0, 0, true, true, "", fmt, ap);
 	va_end(ap);
 	PopLocation();
 	throw InterpreterException();
@@ -380,4 +393,3 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 	if ( alloced )
 		free(alloced);
 	}
-

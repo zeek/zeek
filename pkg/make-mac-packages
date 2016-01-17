@@ -3,14 +3,6 @@
 # This script creates binary packages for Mac OS X.
 # They can be found in ../build/ after running.
 
-cmake -P /dev/stdin << "EOF"
-if ( ${CMAKE_VERSION} VERSION_LESS 2.8.9 )
-    message(FATAL_ERROR "CMake >= 2.8.9 required to build package")
-endif ()
-EOF
-
-[ $? -ne 0 ] && exit 1;
-
 type sw_vers > /dev/null 2>&1 || {
     echo "Unable to get Mac OS X version" >&2;
     exit 1;

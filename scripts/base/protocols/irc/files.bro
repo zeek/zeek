@@ -12,6 +12,10 @@ export {
 
 	## Default file handle provider for IRC.
 	global get_file_handle: function(c: connection, is_orig: bool): string;
+
+	redef record fa_file += {
+		irc: IRC::Info &optional;
+	};
 }
 
 function get_file_handle(c: connection, is_orig: bool): string
@@ -34,6 +38,12 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 	irc$fuid = f$id;
 	if ( irc?$dcc_file_name )
 		f$info$filename = irc$dcc_file_name;
-	if ( f?$mime_type )
-		irc$dcc_mime_type = f$mime_type;
+
+	f$irc = irc;
+	}
+
+event file_sniff(f: fa_file, meta: fa_metadata) &priority=5
+	{
+	if ( f?$irc && meta?$mime_type )
+		f$irc$dcc_mime_type = meta$mime_type;
 	}

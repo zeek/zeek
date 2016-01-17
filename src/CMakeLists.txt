@@ -48,7 +48,7 @@ set(BISON_FLAGS "--debug")
 bison_target(BIFParser builtin-func.y
              ${CMAKE_CURRENT_BINARY_DIR}/bif_parse.cc
              HEADER ${CMAKE_CURRENT_BINARY_DIR}/bif_parse.h
-             VERBOSE ${CMAKE_CURRENT_BINARY_DIR}/bif_parse.output
+             #VERBOSE ${CMAKE_CURRENT_BINARY_DIR}/bif_parse.output
              COMPILE_FLAGS "${BISON_FLAGS}")
 flex_target(BIFScanner builtin-func.l ${CMAKE_CURRENT_BINARY_DIR}/bif_lex.cc)
 add_flex_bison_dependency(BIFScanner BIFParser)
@@ -57,7 +57,7 @@ add_flex_bison_dependency(BIFScanner BIFParser)
 bison_target(RuleParser rule-parse.y
              ${CMAKE_CURRENT_BINARY_DIR}/rup.cc
              HEADER ${CMAKE_CURRENT_BINARY_DIR}/rup.h
-             VERBOSE ${CMAKE_CURRENT_BINARY_DIR}/rule_parse.output
+             #VERBOSE ${CMAKE_CURRENT_BINARY_DIR}/rule_parse.output
              COMPILE_FLAGS "${BISON_FLAGS}")
 replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/rup.cc
                          ${CMAKE_CURRENT_BINARY_DIR}/rule-parse.cc
@@ -72,7 +72,7 @@ flex_target(RuleScanner rule-scan.l ${CMAKE_CURRENT_BINARY_DIR}/rule-scan.cc
 bison_target(REParser re-parse.y
              ${CMAKE_CURRENT_BINARY_DIR}/rep.cc
              HEADER ${CMAKE_CURRENT_BINARY_DIR}/re-parse.h
-             VERBOSE ${CMAKE_CURRENT_BINARY_DIR}/re_parse.output
+             #VERBOSE ${CMAKE_CURRENT_BINARY_DIR}/re_parse.output
              COMPILE_FLAGS "${BISON_FLAGS}")
 replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/rep.cc
                          ${CMAKE_CURRENT_BINARY_DIR}/re-parse.cc
@@ -85,7 +85,7 @@ add_flex_bison_dependency(REScanner REParser)
 bison_target(Parser parse.y
              ${CMAKE_CURRENT_BINARY_DIR}/p.cc
              HEADER ${CMAKE_CURRENT_BINARY_DIR}/broparse.h
-             VERBOSE ${CMAKE_CURRENT_BINARY_DIR}/parse.output
+             #VERBOSE ${CMAKE_CURRENT_BINARY_DIR}/parse.output
              COMPILE_FLAGS "${BISON_FLAGS}")
 replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/p.cc
                          ${CMAKE_CURRENT_BINARY_DIR}/parse.cc
@@ -161,6 +161,14 @@ add_subdirectory(iosource)
 add_subdirectory(logging)
 add_subdirectory(probabilistic)
 
+if ( ENABLE_BROKER )
+    add_subdirectory(broker)
+else ()
+    # Just to satisfy coverage unit tests until new Broker-based
+    # communication is enabled by default.
+    add_subdirectory(broker-dummy)
+endif ()
+
 set(bro_SUBDIRS
     # Order is important here.
     ${bro_PLUGIN_LIBS}
@@ -215,16 +223,16 @@ endmacro(COLLECT_HEADERS _var)
 
 cmake_policy(POP)
 
-# define a command that's used to run the make_dbg_constants.pl script
+# define a command that's used to run the make_dbg_constants.py script
 # building the bro binary depends on the outputs of this script
 add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
                           ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdInfoConstants.cc
-                   COMMAND ${PERL_EXECUTABLE}
-                   ARGS ${CMAKE_CURRENT_SOURCE_DIR}/make_dbg_constants.pl
+                   COMMAND ${PYTHON_EXECUTABLE}
+                   ARGS ${CMAKE_CURRENT_SOURCE_DIR}/make_dbg_constants.py
                         ${CMAKE_CURRENT_SOURCE_DIR}/DebugCmdInfoConstants.in
-                   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/make_dbg_constants.pl
+                   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/make_dbg_constants.py
                            ${CMAKE_CURRENT_SOURCE_DIR}/DebugCmdInfoConstants.in
-                   COMMENT "[Perl] Processing debug commands"
+                   COMMENT "[Python] Processing debug commands"
                    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
 
@@ -261,6 +269,7 @@ set(bro_SRCS
     ChunkedIO.cc
     CompHash.cc
     Conn.cc
+    ConvertUTF.c
     DFA.cc
     DbgBreakpoint.cc
     DbgHelp.cc
@@ -279,6 +288,7 @@ set(bro_SRCS
     EventRegistry.cc
     Expr.cc
     File.cc
+    Flare.cc
     Frag.cc
     Frame.cc
     Func.cc
@@ -297,6 +307,7 @@ set(bro_SRCS
     OSFinger.cc
     PacketFilter.cc
     PersistenceSerializer.cc
+    Pipe.cc
     PolicyFile.cc
     PrefixTable.cc
     PriorityQueue.cc
@@ -406,6 +417,18 @@ add_dependencies(bro bif_loader_plugins)
 # Install *.bif.bro.
 install(DIRECTORY ${CMAKE_BINARY_DIR}/scripts/base/bif DESTINATION ${BRO_SCRIPT_INSTALL_PATH}/base)
 
+# Create plugin directory at install time.
+install(DIRECTORY DESTINATION ${BRO_PLUGIN_INSTALL_PATH})
+
 # Make clean removes the bif directory.
 set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES ${CMAKE_BINARY_DIR}/scripts/base/bif)
 
+# Remove some stale files and scripts that previous Bro versions put in
+# place, yet make confuse us now. This makes upgrading easier.
+install(CODE "
+   file(REMOVE_RECURSE
+       ${BRO_SCRIPT_INSTALL_PATH}/base/frameworks/logging/writers/dataseries.bro
+       ${BRO_SCRIPT_INSTALL_PATH}/base/frameworks/logging/writers/elasticsearch.bro
+       ${BRO_SCRIPT_INSTALL_PATH}/policy/tuning/logs-to-elasticsearch.bro
+   )
+")

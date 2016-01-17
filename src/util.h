@@ -23,7 +23,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <libgen.h>
-#include "config.h"
+#include "bro-config.h"
 
 #if __STDC__
 #define myattribute __attribute__
@@ -48,8 +48,8 @@
 #endif
 
 #ifdef USE_PERFTOOLS_DEBUG
-#include <google/heap-checker.h>
-#include <google/heap-profiler.h>
+#include <gperftools/heap-checker.h>
+#include <gperftools/heap-profiler.h>
 extern HeapLeakChecker* heap_checker;
 #endif
 
@@ -158,6 +158,9 @@ int strstr_n(const int big_len, const unsigned char* big,
 		const int little_len, const unsigned char* little);
 extern int fputs(int len, const char* s, FILE* fp);
 extern bool is_printable(const char* s, int len);
+
+// Return a lower-cased version of the string.
+extern std::string strtolower(const std::string& s);
 
 extern const char* fmt_bytes(const char* data, int len);
 

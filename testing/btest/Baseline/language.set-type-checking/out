@@ -18,4 +18,7 @@ error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.set-type-che
 error in port and /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.set-type-checking/set-type-checking.bro, line 38: arithmetic mixed with non-arithmetic (port and 1002)
 error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.set-type-checking/set-type-checking.bro, line 38 and port: type mismatch (1002 and port)
 error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.set-type-checking/set-type-checking.bro, line 38: inconsistent type in set constructor (set(1002))
+error in port and /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.set-type-checking/set-type-checking.bro, line 44: arithmetic mixed with non-arithmetic (port and 1003)
+error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.set-type-checking/set-type-checking.bro, line 44 and port: type mismatch (1003 and port)
+error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.set-type-checking/set-type-checking.bro, line 44: inconsistent type in set constructor (set(1003))
 error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.set-type-checking/set-type-checking.bro, line 44: type clash in assignment (lea = set(1003))

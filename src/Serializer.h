@@ -355,7 +355,8 @@ public:
 	EventPlayer(const char* file);
 	virtual ~EventPlayer();
 
-	virtual void GetFds(int* read, int* write, int* except);
+	virtual void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
+	                    iosource::FD_Set* except);
 	virtual double NextTimestamp(double* local_network_time);
 	virtual void Process();
 	virtual const char* Tag()	{ return "EventPlayer"; }
@@ -375,64 +376,6 @@ protected:
 	EventHandlerPtr ne_handler;
 	val_list* ne_args;
 
-};
-
-
-// A link-layer packet.
-//
-// Eventually we should use something like this consistently throughout Bro,
-// replacing the current packet arguments in functions like *::NextPacket().
-// Before doing this, though, we should consider provisioning for packet
-// formats other than just libpcap by designing a more abstract interface.
-//
-// Note that for serialization we don't use much of the support provided by
-// the serialization framework. Serialize/Unserialize do all the work by
-// themselves. In particular, Packets aren't derived from SerialObj. They are
-// completely seperate and self-contained entities, and we don't need any of
-// the sophisticated features like object caching.
-
-class Packet {
-public:
-	// Argument is whether we should delete associatd memory upon
-	// destruction.
-	Packet(TimerMgr::Tag arg_tag, bool arg_free = false)
-		{
-		time = 0.0;
-		hdr = 0;
-		pkt = 0;
-		hdr_size = 0;
-		free = arg_free;
-		tag = arg_tag;
-		link_type = 0;
-		}
-
-	~Packet()
-		{
-		if ( free )
-			{
-			delete hdr;
-			delete [] pkt;
-			}
-		}
-
-	const IP_Hdr IP() const
-		{ return IP_Hdr((struct ip *) (pkt + hdr_size), true); }
-
-	void Describe(ODesc* d) const;
-
-	bool Serialize(SerialInfo* info) const;
-	static Packet* Unserialize(UnserialInfo* info);
-
-	const struct pcap_pkthdr* hdr;
-	const u_char* pkt;
-	TimerMgr::Tag tag;
-	uint32 link_type;
-
-	double time;
-	int hdr_size;
-
-private:
-	bool free;
 };
 
 extern FileSerializer* event_serializer;

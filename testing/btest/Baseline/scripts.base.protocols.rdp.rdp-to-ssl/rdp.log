@@ -1,0 +1,11 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	rdp
+#open	2015-03-05-18-38-05
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	cookie	result	security_protocol	keyboard_layout	client_build	client_name	client_dig_product_id	desktop_width	desktop_height	requested_color_depth	cert_type	cert_count	cert_permanent	encryption_level	encryption_method
+#types	time	string	addr	port	addr	port	string	string	string	string	string	string	string	count	count	string	string	count	bool	string	string
+1297551041.284715	CXWv6p3arKYeMETxOg	192.168.1.200	49206	192.168.1.150	3389	AWAKECODI	encrypted	HYBRID	-	-	-	-	-	-	-	-	0	-	-	-
+1297551078.958821	CjhGID4nQcgTWjvg4c	192.168.1.200	49207	192.168.1.150	3389	AWAKECODI	encrypted	HYBRID	-	-	-	-	-	-	-	-	0	-	-	-
+#close	2015-03-05-18-38-05

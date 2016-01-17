@@ -1,10 +1,10 @@
-# @TEST-EXEC: ${DIST}/aux/bro-aux/plugin-support/init-plugin Demo Foo
+# @TEST-EXEC: ${DIST}/aux/bro-aux/plugin-support/init-plugin -u . Demo Foo
 # @TEST-EXEC: bash %INPUT
 # @TEST-EXEC: ./configure --bro-dist=${DIST} --install-root=`pwd`/test-install
 # @TEST-EXEC: make
 # @TEST-EXEC: make install
 # @TEST-EXEC: BRO_PLUGIN_PATH=`pwd`/test-install bro -NN Demo::Foo >>output
-# @TEST-EXEC: BRO_PLUGIN_PATH=`pwd` bro demo/foo -r $TRACES/empty.trace >>output
+# @TEST-EXEC: BRO_PLUGIN_PATH=`pwd`/test-install bro demo/foo -r $TRACES/empty.trace >>output
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff output
 
 mkdir -p scripts/demo/foo/base/
@@ -21,6 +21,7 @@ cat >scripts/demo/foo/manually.bro <<EOF
 event bro_init() &priority=-10
         {
         print "plugin: manually loaded";
+        print "calling bif", hello_plugin_world();
         }
 EOF
 
@@ -28,7 +29,6 @@ cat >scripts/demo/foo/base/at-startup.bro <<EOF
 event bro_init() &priority=10
         {
         print "plugin: automatically loaded at startup";
-        print "calling bif", hello_plugin_world();
         }
 EOF
 

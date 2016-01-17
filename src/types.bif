@@ -163,6 +163,11 @@ type ModbusHeaders: record;
 type ModbusCoils: vector;
 type ModbusRegisters: vector;
 
+type PE::DOSHeader: record;
+type PE::FileHeader: record;
+type PE::OptionalHeader: record;
+type PE::SectionHeader: record;
+
 module Tunnel;
 enum Type %{
 	NONE,
@@ -172,11 +177,24 @@ enum Type %{
 	SOCKS,
 	GTPv1,
 	HTTP,
+	GRE,
 %}
 
 type EncapsulatingConn: record;
 
 module GLOBAL;
+
+enum link_encap %{
+	LINK_ETHERNET,
+	LINK_UNKNOWN,
+%}
+
+enum layer3_proto %{
+	L3_IPV4,
+	L3_IPV6,
+	L3_ARP,
+	L3_UNKNOWN,
+%}
 
 type gtpv1_hdr: record;
 type gtp_create_pdp_ctx_request_elements: record;

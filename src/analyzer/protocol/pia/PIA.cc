@@ -1,5 +1,6 @@
 #include "PIA.h"
 #include "RuleMatcher.h"
+#include "analyzer/protocol/tcp/TCP_Flags.h"
 #include "analyzer/protocol/tcp/TCP_Reassembler.h"
 
 #include "events.bif.h"
@@ -22,6 +23,7 @@ void PIA::ClearBuffer(Buffer* buffer)
 	for ( DataBlock* b = buffer->head; b; b = next )
 		{
 		next = b->next;
+		delete b->ip;
 		delete [] b->data;
 		delete b;
 		}
@@ -31,7 +33,7 @@ void PIA::ClearBuffer(Buffer* buffer)
 	}
 
 void PIA::AddToBuffer(Buffer* buffer, uint64 seq, int len, const u_char* data,
-			bool is_orig)
+			bool is_orig, const IP_Hdr* ip)
 	{
 	u_char* tmp = 0;
 
@@ -42,6 +44,7 @@ void PIA::AddToBuffer(Buffer* buffer, uint64 seq, int len, const u_char* data,
 		}
 
 	DataBlock* b = new DataBlock;
+	b->ip = ip ? ip->Copy() : 0;
 	b->data = tmp;
 	b->is_orig = is_orig;
 	b->len = len;
@@ -59,9 +62,10 @@ void PIA::AddToBuffer(Buffer* buffer, uint64 seq, int len, const u_char* data,
 	buffer->size += len;
 	}
 
-void PIA::AddToBuffer(Buffer* buffer, int len, const u_char* data, bool is_orig)
+void PIA::AddToBuffer(Buffer* buffer, int len, const u_char* data, bool is_orig,
+                      const IP_Hdr* ip)
 	{
-	AddToBuffer(buffer, -1, len, data, is_orig);
+	AddToBuffer(buffer, -1, len, data, is_orig, ip);
 	}
 
 void PIA::ReplayPacketBuffer(analyzer::Analyzer* analyzer)
@@ -69,7 +73,7 @@ void PIA::ReplayPacketBuffer(analyzer::Analyzer* analyzer)
 	DBG_LOG(DBG_ANALYZER, "PIA replaying %d total packet bytes", pkt_buffer.size);
 
 	for ( DataBlock* b = pkt_buffer.head; b; b = b->next )
-		analyzer->DeliverPacket(b->len, b->data, b->is_orig, -1, 0, 0);
+		analyzer->DeliverPacket(b->len, b->data, b->is_orig, -1, b->ip, 0);
 	}
 
 void PIA::PIA_Done()
@@ -78,7 +82,7 @@ void PIA::PIA_Done()
 	}
 
 void PIA::PIA_DeliverPacket(int len, const u_char* data, bool is_orig, uint64 seq,
-				const IP_Hdr* ip, int caplen)
+				const IP_Hdr* ip, int caplen, bool clear_state)
 	{
 	if ( pkt_buffer.state == SKIPPING )
 		return;
@@ -96,7 +100,7 @@ void PIA::PIA_DeliverPacket(int len, const u_char* data, bool is_orig, uint64 se
 	if ( (pkt_buffer.state == BUFFERING || new_state == BUFFERING) &&
 	     len > 0 )
 		{
-		AddToBuffer(&pkt_buffer, seq, len, data, is_orig);
+		AddToBuffer(&pkt_buffer, seq, len, data, is_orig, ip);
 		if ( pkt_buffer.size > dpd_buffer_size )
 			new_state = dpd_match_only_beginning ?
 						SKIPPING : MATCHING_ONLY;
@@ -104,6 +108,9 @@ void PIA::PIA_DeliverPacket(int len, const u_char* data, bool is_orig, uint64 se
 
 	// FIXME: I'm not sure why it does not work with eol=true...
 	DoMatch(data, len, is_orig, true, false, false, ip);
+
+	if ( clear_state )
+		RuleMatcherState::ClearMatchState(is_orig);
 
 	pkt_buffer.state = new_state;
 
@@ -342,12 +349,16 @@ void PIA_TCP::ActivateAnalyzer(analyzer::Tag tag, const Rule* rule)
 
 	for ( DataBlock* b = pkt_buffer.head; b; b = b->next )
 		{
+		// We don't have the TCP flags here during replay. We could
+		// funnel them through, but it's non-trivial and doesn't seem
+		// worth the effort.
+
 		if ( b->is_orig )
 			reass_orig->DataSent(network_time, orig_seq = b->seq,
-						b->len, b->data, true);
+					     b->len, b->data, tcp::TCP_Flags(), true);
 		else
 			reass_resp->DataSent(network_time, resp_seq = b->seq,
-						b->len, b->data, true);
+					     b->len, b->data, tcp::TCP_Flags(), true);
 		}
 
 	// We also need to pass the current packet on.
@@ -357,11 +368,11 @@ void PIA_TCP::ActivateAnalyzer(analyzer::Tag tag, const Rule* rule)
 		if ( current->is_orig )
 			reass_orig->DataSent(network_time,
 					orig_seq = current->seq,
-					current->len, current->data, true);
+					current->len, current->data, analyzer::tcp::TCP_Flags(), true);
 		else
 			reass_resp->DataSent(network_time,
 					resp_seq = current->seq,
-					current->len, current->data, true);
+					current->len, current->data, analyzer::tcp::TCP_Flags(), true);
 		}
 
 	ClearBuffer(&pkt_buffer);

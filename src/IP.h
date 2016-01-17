@@ -3,7 +3,7 @@
 #ifndef ip_h
 #define ip_h
 
-#include "config.h"
+#include "bro-config.h"
 #include "net_util.h"
 #include "IPAddr.h"
 #include "Reporter.h"
@@ -158,6 +158,12 @@ public:
 		}
 
 	/**
+	 * @return a copy of the header chain, but with pointers to individual
+	 * IPv6 headers now pointing within \a new_hdr.
+	 */
+	IPv6_Hdr_Chain* Copy(const struct ip6_hdr* new_hdr) const;
+
+	/**
 	 * Returns the number of headers in the chain.
 	 */
 	size_t Size() const { return chain.size(); }
@@ -264,6 +270,14 @@ protected:
 	// point to a fragment
 	friend class FragReassembler;
 
+	IPv6_Hdr_Chain() :
+		length(0),
+#ifdef ENABLE_MOBILE_IPV6
+		homeAddr(0),
+#endif
+		finalDst(0)
+		{}
+
 	/**
 	 * Initializes the header chain from an IPv6 header structure, and replaces
 	 * the first next protocol pointer field that points to a fragment header.
@@ -352,6 +366,13 @@ public:
 		  ip6_hdrs(c ? c : new IPv6_Hdr_Chain(ip6, len))
 		{
 		}
+
+	/**
+	 * Copy a header.  The internal buffer which contains the header data
+	 * must not be truncated.  Also note that if that buffer points to a full
+	 * packet payload, only the IP header portion is copied.
+	 */
+	IP_Hdr* Copy() const;
 
 	/**
 	 * Destructor.
@@ -552,6 +573,12 @@ public:
 	 * also upper-layer (tcp/udp/icmp) headers.
 	 */
 	RecordVal* BuildPktHdrVal() const;
+
+	/**
+	 * Same as above, but simply add our values into the record at the
+	 * specified starting index.
+	 */
+	RecordVal* BuildPktHdrVal(RecordVal* pkt_hdr, int sindex) const;
 
 private:
 	const struct ip* ip4;

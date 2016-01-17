@@ -157,6 +157,34 @@ public:
 	 */
 	void Terminate();
 
+#ifdef ENABLE_BROKER
+	/**
+	 * Enable remote logs for a given stream.
+	 * @param stream_id the stream to enable remote logs for.
+	 * @param flags tune behavior of how log entries are sent to peer endpoints.
+	 * @return true if remote logs are enabled.
+	 */
+	bool EnableRemoteLogs(EnumVal* stream_id, int flags);
+
+	/**
+	 * Disable remote logs for a given stream.
+	 * @param stream_id the stream to disable remote logs for.
+	 * @return true if remote logs are disabled.
+	 */
+	bool DisableRemoteLogs(EnumVal* stream_id);
+
+	/**
+	 * @return true if remote logs are enabled for a given stream.
+	 */
+	bool RemoteLogsAreEnabled(EnumVal* stream_id);
+
+	/**
+	 * @return the type which corresponds to the columns in a log entry for
+	 * a given log stream.
+	 */
+	RecordType* StreamColumns(EnumVal* stream_id);
+#endif
+
 protected:
 	friend class WriterFrontend;
 	friend class RotationFinishedMessage;

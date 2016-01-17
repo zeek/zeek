@@ -6,6 +6,11 @@ export {
 	const TLSv10 = 0x0301;
 	const TLSv11 = 0x0302;
 	const TLSv12 = 0x0303;
+
+	const DTLSv10 = 0xFEFF;
+	# DTLSv11 does not exist
+	const DTLSv12 = 0xFEFD;
+
 	## Mapping between the constants and string values for SSL/TLS versions.
 	const version_strings: table[count] of string = {
 		[SSLv2] = "SSLv2",
@@ -13,6 +18,8 @@ export {
 		[TLSv10] = "TLSv10",
 		[TLSv11] = "TLSv11",
 		[TLSv12] = "TLSv12",
+		[DTLSv10] = "DTLSv10",
+		[DTLSv12] = "DTLSv12"
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };
 
 	## TLS content types:
@@ -30,6 +37,7 @@ export {
 	const HELLO_REQUEST       = 0;
 	const CLIENT_HELLO        = 1;
 	const SERVER_HELLO        = 2;
+	const HELLO_VERIFY_REQUEST = 3; # RFC 6347
 	const SESSION_TICKET      = 4; # RFC 5077
 	const CERTIFICATE         = 11;
 	const SERVER_KEY_EXCHANGE = 12;
@@ -40,6 +48,7 @@ export {
 	const FINISHED            = 20;
 	const CERTIFICATE_URL     = 21; # RFC 3546
 	const CERTIFICATE_STATUS  = 22; # RFC 3546
+	const SUPPLEMENTAL_DATA   = 23; # RFC 4680
 
 	## Mapping between numeric codes and human readable strings for alert
 	## levels.
@@ -111,8 +120,9 @@ export {
 		[18] = "signed_certificate_timestamp",
 		[19] = "client_certificate_type",
 		[20] = "server_certificate_type",
-		[21] = "padding", # temporary till 2015-03-12
-		[22] = "encrypt_then_mac", # temporary till 2015-06-05
+		[21] = "padding", # temporary till 2016-03-12
+		[22] = "encrypt_then_mac",
+		[23] = "extended_master_secret",
 		[35] = "SessionTicket TLS",
 		[40] = "extended_random",
 		[13172] = "next_protocol_negotiation",
@@ -155,6 +165,12 @@ export {
 		[26] = "brainpoolP256r1",
 		[27] = "brainpoolP384r1",
 		[28] = "brainpoolP512r1",
+		# draft-ietf-tls-negotiated-ff-dhe-05
+		[256] = "ffdhe2048",
+		[257] = "ffdhe3072",
+		[258] = "ffdhe4096",
+		[259] = "ffdhe6144",
+		[260] = "ffdhe8192",
 		[0xFF01] = "arbitrary_explicit_prime_curves",
 		[0xFF02] = "arbitrary_explicit_char2_curves"
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };

@@ -1,4 +1,4 @@
-# @TEST-EXEC: ${DIST}/aux/bro-aux/plugin-support/init-plugin Demo Foo
+# @TEST-EXEC: ${DIST}/aux/bro-aux/plugin-support/init-plugin -u . Demo Foo
 # @TEST-EXEC: bash %INPUT
 # @TEST-EXEC: ./configure --bro-dist=${DIST} && make
 # @TEST-EXEC: BRO_PLUGIN_PATH=`pwd` bro -NN Demo::Foo >>output
@@ -37,6 +37,7 @@ cat >scripts/demo/foo/manually.bro <<EOF
 event bro_init() &priority=-10
         {
         print "plugin: manually loaded";
+        print "calling bif", hello_plugin_world();
         }
 EOF
 
@@ -44,7 +45,6 @@ cat >scripts/demo/foo/base/at-startup.bro <<EOF
 event bro_init() &priority=10
         {
         print "plugin: automatically loaded at startup";
-        print "calling bif", hello_plugin_world();
         }
 EOF
 

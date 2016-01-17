@@ -164,7 +164,7 @@ const src_names = {
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(Communication::LOG, [$columns=Info]);
+	Log::create_stream(Communication::LOG, [$columns=Info, $path="communication"]);
 	}
 
 function do_script_log_common(level: count, src: count, msg: string)

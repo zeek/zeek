@@ -28,7 +28,7 @@ TCP_Reassembler::TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer,
 				TCP_Analyzer* arg_tcp_analyzer,
 				TCP_Reassembler::Type arg_type,
 				TCP_Endpoint* arg_endp)
-	: Reassembler(1, REASSEM_TCP)
+	: Reassembler(1)
 	{
 	dst_analyzer = arg_dst_analyzer;
 	tcp_analyzer = arg_tcp_analyzer;
@@ -41,6 +41,9 @@ TCP_Reassembler::TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer,
 	did_EOF = 0;
 	seq_to_skip = 0;
 	in_delivery = false;
+
+	if ( tcp_max_old_segments )
+		SetMaxOldBlocks(tcp_max_old_segments);
 
 	if ( tcp_contents )
 		{
@@ -188,7 +191,7 @@ void TCP_Reassembler::Undelivered(uint64 up_to_seq)
 
 	if ( DEBUG_tcp_contents )
 		{
-		DEBUG_MSG("%.6f Undelivered: IsOrig()=%d up_to_seq=%"PRIu64", last_reassm=%"PRIu64", "
+		DEBUG_MSG("%.6f Undelivered: IsOrig()=%d up_to_seq=%" PRIu64", last_reassm=%" PRIu64", "
 		          "endp: FIN_cnt=%d, RST_cnt=%d, "
 		          "peer: FIN_cnt=%d, RST_cnt=%d\n",
 		          network_time, IsOrig(), up_to_seq, last_reassem_seq,
@@ -219,7 +222,7 @@ void TCP_Reassembler::Undelivered(uint64 up_to_seq)
 		{
 		if ( DEBUG_tcp_contents )
 			{
-			DEBUG_MSG("%.6f Undelivered: IsOrig()=%d, seq=%"PRIu64", len=%"PRIu64", "
+			DEBUG_MSG("%.6f Undelivered: IsOrig()=%d, seq=%" PRIu64", len=%" PRIu64", "
 					  "skip_deliveries=%d\n",
 					  network_time, IsOrig(), last_reassem_seq,
 					  up_to_seq - last_reassem_seq,
@@ -249,7 +252,9 @@ void TCP_Reassembler::Undelivered(uint64 up_to_seq)
 				Gap(gap_at_seq, gap_len);
 				last_reassem_seq += gap_len;
 				BlockInserted(b);
-				b = b->next;
+				// Inserting a block may cause trimming of what's buffered,
+				// so have to assume 'b' is invalid, hence re-assign to start.
+				b = blocks;
 				}
 
 			if ( up_to_seq > last_reassem_seq )
@@ -348,7 +353,7 @@ void TCP_Reassembler::RecordBlock(DataBlock* b, BroFile* f)
 
 void TCP_Reassembler::RecordGap(uint64 start_seq, uint64 upper_seq, BroFile* f)
 	{
-	if ( f->Write(fmt("\n<<gap %"PRIu64">>\n", upper_seq - start_seq)) )
+	if ( f->Write(fmt("\n<<gap %" PRIu64">>\n", upper_seq - start_seq)) )
 		return;
 
 	reporter->Error("TCP_Reassembler contents gap write failed");
@@ -418,7 +423,7 @@ void TCP_Reassembler::BlockInserted(DataBlock* start_block)
 void TCP_Reassembler::Overlap(const u_char* b1, const u_char* b2, uint64 n)
 	{
 	if ( DEBUG_tcp_contents )
-		DEBUG_MSG("%.6f TCP contents overlap: %"PRIu64" IsOrig()=%d\n", network_time,  n, IsOrig());
+		DEBUG_MSG("%.6f TCP contents overlap: %" PRIu64" IsOrig()=%d\n", network_time,  n, IsOrig());
 
 	if ( rexmit_inconsistency &&
 	     memcmp((const void*) b1, (const void*) b2, n) &&
@@ -428,8 +433,13 @@ void TCP_Reassembler::Overlap(const u_char* b1, const u_char* b2, uint64 n)
 		{
 		BroString* b1_s = new BroString((const u_char*) b1, n, 0);
 		BroString* b2_s = new BroString((const u_char*) b2, n, 0);
-		tcp_analyzer->Event(rexmit_inconsistency,
-					new StringVal(b1_s), new StringVal(b2_s));
+
+		val_list* vl = new val_list(3);
+		vl->append(tcp_analyzer->BuildConnVal());
+		vl->append(new StringVal(b1_s));
+		vl->append(new StringVal(b2_s));
+		vl->append(new StringVal(flags.AsString()));
+		tcp_analyzer->ConnectionEvent(rexmit_inconsistency, vl);
 		}
 	}
 
@@ -456,14 +466,14 @@ void TCP_Reassembler::Deliver(uint64 seq, int len, const u_char* data)
 	}
 
 int TCP_Reassembler::DataSent(double t, uint64 seq, int len,
-				const u_char* data, bool replaying)
+				const u_char* data, TCP_Flags arg_flags, bool replaying)
 	{
 	uint64 ack = endp->ToRelativeSeqSpace(endp->AckSeq(), endp->AckWraps());
 	uint64 upper_seq = seq + len;
 
 	if ( DEBUG_tcp_contents )
 		{
-		DEBUG_MSG("%.6f DataSent: IsOrig()=%d seq=%"PRIu64" upper=%"PRIu64" ack=%"PRIu64"\n",
+		DEBUG_MSG("%.6f DataSent: IsOrig()=%d seq=%" PRIu64" upper=%" PRIu64" ack=%" PRIu64"\n",
 		          network_time, IsOrig(), seq, upper_seq, ack);
 		}
 
@@ -487,7 +497,9 @@ int TCP_Reassembler::DataSent(double t, uint64 seq, int len,
 		len -= amount_acked;
 		}
 
+	flags = arg_flags;
 	NewBlock(t, seq, len, data);
+	flags = TCP_Flags();
 
 	if ( Endpoint()->NoDataAcked() && tcp_max_above_hole_without_any_acks &&
 	     NumUndeliveredBytes() > static_cast<uint64>(tcp_max_above_hole_without_any_acks) )

@@ -367,6 +367,41 @@ void TCP_Analyzer::Done()
 	finished = 1;
 	}
 
+analyzer::Analyzer* TCP_Analyzer::FindChild(ID arg_id)
+	{
+	analyzer::Analyzer* child = analyzer::TransportLayerAnalyzer::FindChild(arg_id);
+
+	if ( child )
+		return child;
+
+	LOOP_OVER_GIVEN_CHILDREN(i, packet_children)
+		{
+		analyzer::Analyzer* child = (*i)->FindChild(arg_id);
+		if ( child )
+			return child;
+		}
+
+	return 0;
+	}
+
+analyzer::Analyzer* TCP_Analyzer::FindChild(Tag arg_tag)
+	{
+	analyzer::Analyzer* child = analyzer::TransportLayerAnalyzer::FindChild(arg_tag);
+
+	if ( child )
+		return child;
+
+	LOOP_OVER_GIVEN_CHILDREN(i, packet_children)
+		{
+		analyzer::Analyzer* child = (*i)->FindChild(arg_tag);
+		if ( child )
+			return child;
+		}
+
+	return 0;
+	}
+
+
 void TCP_Analyzer::EnableReassembly()
 	{
 	SetReassembler(new TCP_Reassembler(this, this,
@@ -407,7 +442,7 @@ const struct tcphdr* TCP_Analyzer::ExtractTCP_Header(const u_char*& data,
 		}
 
 	if ( tcp_hdr_len > uint32(len) ||
-	     sizeof(struct tcphdr) > uint32(caplen) )
+	     tcp_hdr_len > uint32(caplen) )
 		{
 		// This can happen even with the above test, due to TCP
 		// options.
@@ -911,23 +946,11 @@ void TCP_Analyzer::GeneratePacketEvent(
 					const u_char* data, int len, int caplen,
 					int is_orig, TCP_Flags flags)
 	{
-	char tcp_flags[256];
-	int tcp_flag_len = 0;
-
-	if ( flags.SYN() ) tcp_flags[tcp_flag_len++] = 'S';
-	if ( flags.FIN() ) tcp_flags[tcp_flag_len++] = 'F';
-	if ( flags.RST() ) tcp_flags[tcp_flag_len++] = 'R';
-	if ( flags.ACK() ) tcp_flags[tcp_flag_len++] = 'A';
-	if ( flags.PUSH() ) tcp_flags[tcp_flag_len++] = 'P';
-	if ( flags.URG() ) tcp_flags[tcp_flag_len++] = 'U';
-
-	tcp_flags[tcp_flag_len] = '\0';
-
 	val_list* vl = new val_list();
 
 	vl->append(BuildConnVal());
 	vl->append(new Val(is_orig, TYPE_BOOL));
-	vl->append(new StringVal(tcp_flags));
+	vl->append(new StringVal(flags.AsString()));
 	vl->append(new Val(rel_seq, TYPE_COUNT));
 	vl->append(new Val(flags.ACK() ? rel_ack : 0, TYPE_COUNT));
 	vl->append(new Val(len, TYPE_COUNT));
@@ -1764,6 +1787,15 @@ bool TCP_Analyzer::HadGap(bool is_orig) const
 	return endp && endp->HadGap();
 	}
 
+void TCP_Analyzer::AddChildPacketAnalyzer(analyzer::Analyzer* a)
+	{
+	DBG_LOG(DBG_ANALYZER, "%s added packet child %s",
+			this->GetAnalyzerName(), a->GetAnalyzerName());
+
+	packet_children.push_back(a);
+	a->SetParent(this);
+	}
+
 int TCP_Analyzer::DataPending(TCP_Endpoint* closing_endp)
 	{
 	if ( Skipping() )
@@ -1901,7 +1933,7 @@ void TCP_ApplicationAnalyzer::DeliverPacket(int len, const u_char* data,
 						const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
-	DBG_LOG(DBG_ANALYZER, "TCP_ApplicationAnalyzer ignoring DeliverPacket(%d, %s, %"PRIu64", %p, %d) [%s%s]",
+	DBG_LOG(DBG_ANALYZER, "TCP_ApplicationAnalyzer ignoring DeliverPacket(%d, %s, %" PRIu64", %p, %d) [%s%s]",
 			len, is_orig ? "T" : "F", seq, ip, caplen,
 			fmt_bytes((const char*) data, min(40, len)), len > 40 ? "..." : "");
 	}
@@ -2053,7 +2085,7 @@ int TCPStats_Endpoint::DataSent(double /* t */, uint64 seq, int len, int caplen,
 			num_rxmit_bytes += len;
 			}
 
-		DEBUG_MSG("%.6f rexmit %"PRIu64" + %d <= %"PRIu64" data_in_flight = %d\n",
+		DEBUG_MSG("%.6f rexmit %" PRIu64" + %d <= %" PRIu64" data_in_flight = %d\n",
 		 	network_time, seq, len, max_top_seq, data_in_flight);
 
 		if ( tcp_rexmit )

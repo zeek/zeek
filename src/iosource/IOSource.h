@@ -8,7 +8,7 @@ extern "C" {
 }
 
 #include <string>
-
+#include "FD_Set.h"
 #include "Timer.h"
 
 namespace iosource {
@@ -55,13 +55,13 @@ public:
 	 * Returns select'able file descriptors for this source. Leaves the
 	 * passed values untouched if not available.
 	 *
-	 * @param read Pointer to where to store a read descriptor.
+	 * @param read Pointer to container where to insert a read descriptor.
 	 *
-	 * @param write Pointer to where to store a write descriptor.
+	 * @param write Pointer to container where to insert a write descriptor.
 	 *
-	 * @param except Pointer to where to store a except descriptor.
+	 * @param except Pointer to container where to insert a except descriptor.
 	 */
-	virtual void GetFds(int* read, int* write, int* except) = 0;
+	virtual void GetFds(FD_Set* read, FD_Set* write, FD_Set* except) = 0;
 
 	/**
 	 * Returns the timestamp (in \a global network time) associated with

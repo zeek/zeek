@@ -32,6 +32,10 @@ public:
 	// Executes timeout code and deletes the object.
 	void Timeout();
 
+	// Return the timeout interval (negative if none was specified).
+	double TimeoutValue() const
+		{ return timeout_value; }
+
 	// Called if another entity needs to complete its operations first
 	// in any case before this trigger can proceed.
 	void Hold()	{ delayed = true; }
@@ -50,6 +54,8 @@ public:
 	// Disable this trigger completely. Needed because Unref'ing the trigger
 	// may not immediately delete it as other references may still exist.
 	void Disable();
+
+	bool Disabled() const { return disabled; }
 
 	virtual void Describe(ODesc* d) const { d->Add("<trigger>"); }
 
@@ -87,6 +93,7 @@ private:
 	Stmt* body;
 	Stmt* timeout_stmts;
 	Expr* timeout;
+	double timeout_value;
 	Frame* frame;
 	bool is_return;
 	const Location* location;

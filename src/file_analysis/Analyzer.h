@@ -111,6 +111,18 @@ public:
 	 */
 	void SetAnalyzerTag(const file_analysis::Tag& tag);
 
+	/**
+	 * @return true if the analyzer has ever seen a stream-wise delivery.
+	 */
+	bool GotStreamDelivery() const
+		{ return got_stream_delivery; }
+
+	/**
+	 * Flag the analyzer as having seen a stream-wise delivery.
+	 */
+	void SetGotStreamDelivery()
+		{ got_stream_delivery = true; }
+
 protected:
 
 	/**
@@ -123,7 +135,8 @@ protected:
 	Analyzer(file_analysis::Tag arg_tag, RecordVal* arg_args, File* arg_file)
 	    : tag(arg_tag),
 	      args(arg_args->Ref()->AsRecordVal()),
-	      file(arg_file)
+	      file(arg_file),
+	      got_stream_delivery(false)
 		{
 		id = ++id_counter;
 		}
@@ -140,7 +153,8 @@ protected:
 	Analyzer(RecordVal* arg_args, File* arg_file)
 	    : tag(),
 	      args(arg_args->Ref()->AsRecordVal()),
-	      file(arg_file)
+	      file(arg_file),
+	      got_stream_delivery(false)
 		{
 		id = ++id_counter;
 		}
@@ -151,6 +165,7 @@ private:
 	file_analysis::Tag tag;	/**< The particular type of the analyzer instance. */
 	RecordVal* args;	/**< \c AnalyzerArgs val gives tunable analyzer params. */
 	File* file;	/**< The file to which the analyzer is attached. */
+	bool got_stream_delivery;
 
 	static ID id_counter;
 };

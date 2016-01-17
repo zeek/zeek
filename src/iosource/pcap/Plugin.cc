@@ -17,7 +17,7 @@ public:
 
 		plugin::Configuration config;
 		config.name = "Bro::Pcap";
-		config.description = "Packet aquisition via libpcap";
+		config.description = "Packet acquisition via libpcap";
 		return config;
 		}
 } plugin;

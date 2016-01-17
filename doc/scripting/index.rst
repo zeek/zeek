@@ -103,9 +103,9 @@ In the ``file_hash`` event handler, there is an ``if`` statement that is used
 to check for the correct type of hash, in this case
 a SHA1 hash.  It also checks for a mime type we've defined as
 being of interest as defined in the constant ``match_file_types``.
-The comparison is made against the expression ``f$mime_type``, which uses
+The comparison is made against the expression ``f$info$mime_type``, which uses
 the ``$`` dereference operator to check the value ``mime_type``
-inside the variable ``f``.  If the entire expression evaluates to true,
+inside the variable ``f$info``.  If the entire expression evaluates to true,
 then a helper function is called to do the rest of the work.  In that
 function, a local variable is defined to hold a string comprised of
 the SHA1 hash concatenated with ``.malware.hash.cymru.com``; this
@@ -260,7 +260,7 @@ originating host is referenced by ``c$id$orig_h`` which if given a
 narrative relates to ``orig_h`` which is a member of ``id`` which is
 a member of the data structure referred to as ``c`` that was passed
 into the event handler. Given that the responder port
-``c$id$resp_p`` is ``53/tcp``, it's likely that Bro's base HTTP scripts
+``c$id$resp_p`` is ``80/tcp``, it's likely that Bro's base HTTP scripts
 can further populate the connection record.  Let's load the
 ``base/protocols/http`` scripts and check the output of our script. 
 
@@ -363,7 +363,7 @@ decrypted from HTTP streams is stored in
 excerpt from :doc:`/scripts/base/protocols/http/main.bro` below.
 
 .. btest-include:: ${BRO_SRC_ROOT}/scripts/base/protocols/http/main.bro
-   :lines: 9-11,20-22,121
+   :lines: 9-11,20-22,125
 
 Because the constant was declared with the ``&redef`` attribute, if we
 needed to turn this option on globally, we could do so by adding the
@@ -826,7 +826,7 @@ example of the ``record`` data type in the earlier sections, the
 ``conn.log``, is shown by the excerpt below.
 
 .. btest-include:: ${BRO_SRC_ROOT}/scripts/base/protocols/conn/main.bro
-   :lines: 10-12,16-17,19,21,23,25,28,31,35,38,57,63,69,92,95,99,102,106,110-111,116
+   :lines: 10-12,16-17,19,21,23,25,28,31,35,38,57,63,69,75,98,101,105,108,112,116-117,122
 
 Looking at the structure of the definition, a new collection of data
 types is being defined as a type called ``Info``.  Since this type

@@ -1,0 +1,1 @@
+error in /Users/jon/Projects/bro/bro/testing/btest/.tmp/language.record-coerce-clash/record-coerce-clash.bro, line 13: type clash for field "cid" ((coerce [$cid=[$orig_h=1.2.3.4, $orig_p=0/tcp, $resp_h=0.0.0.0, $resp_p=wrong]] to myrec) and record { orig_h:addr; orig_p:port; resp_h:addr; resp_p:string; })

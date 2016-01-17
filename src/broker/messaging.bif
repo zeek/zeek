@@ -1,0 +1,215 @@
+
+##! Functions for peering and various messaging patterns (e.g. print/log/event).
+
+%%{
+#include "broker/Manager.h"
+#include "logging/Manager.h"
+%%}
+
+module BrokerComm;
+
+type BrokerComm::SendFlags: record;
+
+type BrokerComm::EventArgs: record;
+
+## Used to handle remote print messages from peers that call
+## :bro:see:`BrokerComm::print`.
+event BrokerComm::print_handler%(msg: string%);
+
+## Print a simple message to any interested peers.  The receiver can use
+## :bro:see:`BrokerComm::print_handler` to handle messages.
+##
+## topic: a topic associated with the printed message.
+##
+## msg: the print message to send to peers.
+##
+## flags: tune the behavior of how the message is sent.
+##
+## Returns: true if the message is sent.
+function BrokerComm::print%(topic: string, msg: string,
+                      flags: SendFlags &default = SendFlags()%): bool
+	%{
+	auto rval = broker_mgr->Print(topic->CheckString(), msg->CheckString(),
+	                            flags);
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+## Register interest in all peer print messages that use a certain topic prefix.
+## Use :bro:see:`BrokerComm::print_handler` to handle received messages.
+##
+## topic_prefix: a prefix to match against remote message topics.
+##               e.g. an empty prefix matches everything and "a" matches
+##               "alice" and "amy" but not "bob".
+##
+## Returns: true if it's a new print subscription and it is now registered.
+function BrokerComm::subscribe_to_prints%(topic_prefix: string%): bool
+	%{
+	auto rval = broker_mgr->SubscribeToPrints(topic_prefix->CheckString());
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+## Unregister interest in all peer print messages that use a topic prefix.
+##
+## topic_prefix: a prefix previously supplied to a successful call to
+##               :bro:see:`BrokerComm::subscribe_to_prints`.
+##
+## Returns: true if interest in the topic prefix is no longer advertised.
+function BrokerComm::unsubscribe_to_prints%(topic_prefix: string%): bool
+	%{
+	auto rval = broker_mgr->UnsubscribeToPrints(topic_prefix->CheckString());
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+## Create a data structure that may be used to send a remote event via
+## :bro:see:`BrokerComm::event`.
+##
+## args: an event, followed by a list of argument values that may be used
+##       to call it.
+##
+## Returns: opaque communication data that may be used to send a remote event.
+function BrokerComm::event_args%(...%): BrokerComm::EventArgs
+	%{
+	auto rval = broker_mgr->MakeEventArgs(@ARGS@);
+	return rval;
+	%}
+
+## Send an event to any interested peers.
+##
+## topic: a topic associated with the event message.
+##
+## args: event arguments as made by :bro:see:`BrokerComm::event_args`.
+##
+## flags: tune the behavior of how the message is sent.
+##
+## Returns: true if the message is sent.
+function BrokerComm::event%(topic: string, args: BrokerComm::EventArgs,
+                      flags: SendFlags &default = SendFlags()%): bool
+	%{
+	auto rval = broker_mgr->Event(topic->CheckString(), args->AsRecordVal(),
+	                            flags);
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+## Automatically send an event to any interested peers whenever it is
+## locally dispatched (e.g. using "event my_event(...);" in a script).
+##
+## topic: a topic string associated with the event message.
+##        Peers advertise interest by registering a subscription to some prefix
+##        of this topic name.
+##
+## ev: a Bro event value.
+##
+## flags: tune the behavior of how the message is sent.
+##
+## Returns: true if automatic event sending is now enabled.
+function BrokerComm::auto_event%(topic: string, ev: any,
+                           flags: SendFlags &default = SendFlags()%): bool
+	%{
+	auto rval = broker_mgr->AutoEvent(topic->CheckString(), ev, flags);
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+## Stop automatically sending an event to peers upon local dispatch.
+##
+## topic: a topic originally given to :bro:see:`BrokerComm::auto_event`.
+##
+## ev: an event originally given to :bro:see:`BrokerComm::auto_event`.
+##
+## Returns: true if automatic events will not occur for the topic/event pair.
+function BrokerComm::auto_event_stop%(topic: string, ev: any%): bool
+	%{
+	auto rval = broker_mgr->AutoEventStop(topic->CheckString(), ev);
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+## Register interest in all peer event messages that use a certain topic prefix.
+##
+## topic_prefix: a prefix to match against remote message topics.
+##               e.g. an empty prefix matches everything and "a" matches
+##               "alice" and "amy" but not "bob".
+##
+## Returns: true if it's a new event subscription and it is now registered.
+function BrokerComm::subscribe_to_events%(topic_prefix: string%): bool
+	%{
+	auto rval = broker_mgr->SubscribeToEvents(topic_prefix->CheckString());
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+## Unregister interest in all peer event messages that use a topic prefix.
+##
+## topic_prefix: a prefix previously supplied to a successful call to
+##               :bro:see:`BrokerComm::subscribe_to_events`.
+##
+## Returns: true if interest in the topic prefix is no longer advertised.
+function BrokerComm::unsubscribe_to_events%(topic_prefix: string%): bool
+	%{
+	auto rval = broker_mgr->UnsubscribeToEvents(topic_prefix->CheckString());
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+## Enable remote logs for a given log stream.
+##
+## id: the log stream to enable remote logs for.
+##
+## flags: tune the behavior of how log entry messages are sent.
+##
+## Returns: true if remote logs are enabled for the stream.
+function
+BrokerComm::enable_remote_logs%(id: Log::ID,
+                          flags: SendFlags &default = SendFlags()%): bool
+	%{
+	auto rval = log_mgr->EnableRemoteLogs(id->AsEnumVal(),
+	                                   bro_broker::Manager::send_flags_to_int(flags));
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+## Disable remote logs for a given log stream.
+##
+## id: the log stream to disable remote logs for.
+##
+## Returns: true if remote logs are disabled for the stream.
+function BrokerComm::disable_remote_logs%(id: Log::ID%): bool
+	%{
+	auto rval = log_mgr->DisableRemoteLogs(id->AsEnumVal());
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+## Check if remote logs are enabled for a given log stream.
+##
+## id: the log stream to check.
+##
+## Returns: true if remote logs are enabled for the given stream.
+function BrokerComm::remote_logs_enabled%(id: Log::ID%): bool
+	%{
+	auto rval = log_mgr->RemoteLogsAreEnabled(id->AsEnumVal());
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+## Register interest in all peer log messages that use a certain topic prefix.
+## Logs are implicitly sent with topic "bro/log/<stream-name>" and the
+## receiving side processes them through the logging framework as usual.
+##
+## topic_prefix: a prefix to match against remote message topics.
+##               e.g. an empty prefix matches everything and "a" matches
+##               "alice" and "amy" but not "bob".
+##
+## Returns: true if it's a new log subscription and it is now registered.
+function BrokerComm::subscribe_to_logs%(topic_prefix: string%): bool
+	%{
+	auto rval = broker_mgr->SubscribeToLogs(topic_prefix->CheckString());
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+## Unregister interest in all peer log messages that use a topic prefix.
+## Logs are implicitly sent with topic "bro/log/<stream-name>" and the
+## receiving side processes them through the logging framework as usual.
+##
+## topic_prefix: a prefix previously supplied to a successful call to
+##               :bro:see:`BrokerComm::subscribe_to_logs`.
+##
+## Returns: true if interest in the topic prefix is no longer advertised.
+function BrokerComm::unsubscribe_to_logs%(topic_prefix: string%): bool
+	%{
+	auto rval = broker_mgr->UnsubscribeToLogs(topic_prefix->CheckString());
+	return new Val(rval, TYPE_BOOL);
+	%}

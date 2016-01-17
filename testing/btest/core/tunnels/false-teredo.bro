@@ -1,9 +1,6 @@
 # @TEST-EXEC: bro -r $TRACES/tunnels/false-teredo.pcap %INPUT >output
 # @TEST-EXEC: test ! -e weird.log
 # @TEST-EXEC: test ! -e dpd.log
-# @TEST-EXEC: bro -r $TRACES/tunnels/false-teredo.pcap %INPUT Tunnel::yielding_teredo_decapsulation=F >output
-# @TEST-EXEC: btest-diff weird.log
-# @TEST-EXEC: test ! -e dpd.log
 
 # In the first case, there isn't any weird or protocol violation logged
 # since the teredo analyzer recognizes that the DNS analyzer has confirmed

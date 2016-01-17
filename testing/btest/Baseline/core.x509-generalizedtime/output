@@ -1,0 +1,16 @@
+----- x509_certificate ----
+serial: 03E8
+not_valid_before: 2015-09-01-13:33:37.000000000 (epoch: 1441114417.0)
+not_valid_after : 2025-09-01-13:33:37.000000000 (epoch: 1756733617.0)
+----- x509_certificate ----
+serial: 99FAA8037A4EB2FAEF84EB5E55D5B8C8
+not_valid_before: 2011-05-04-00:00:00.000000000 (epoch: 1304467200.0)
+not_valid_after : 2016-07-04-23:59:59.000000000 (epoch: 1467676799.0)
+----- x509_certificate ----
+serial: 1690C329B6780607511F05B0344846CB
+not_valid_before: 2010-04-16-00:00:00.000000000 (epoch: 1271376000.0)
+not_valid_after : 2020-05-30-10:48:38.000000000 (epoch: 1590835718.0)
+----- x509_certificate ----
+serial: 01
+not_valid_before: 2000-05-30-10:48:38.000000000 (epoch: 959683718.0)
+not_valid_after : 2020-05-30-10:48:38.000000000 (epoch: 1590835718.0)

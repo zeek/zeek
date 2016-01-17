@@ -24,6 +24,7 @@ Manager::~Manager()
 	for ( SourceList::iterator i = sources.begin(); i != sources.end(); ++i )
 		{
 		(*i)->src->Done();
+		delete (*i)->src;
 		delete *i;
 		}
 
@@ -115,16 +116,9 @@ IOSource* Manager::FindSoonest(double* ts)
 			// be ready.
 			continue;
 
-		src->fd_read = src->fd_write = src->fd_except = 0;
+		src->Clear();
 		src->src->GetFds(&src->fd_read, &src->fd_write, &src->fd_except);
-
-		FD_SET(src->fd_read, &fd_read);
-		FD_SET(src->fd_write, &fd_write);
-		FD_SET(src->fd_except, &fd_except);
-
-		maxx = std::max(src->fd_read, maxx);
-		maxx = std::max(src->fd_write, maxx);
-		maxx = std::max(src->fd_except, maxx);
+		src->SetFds(&fd_read, &fd_write, &fd_except, &maxx);
 		}
 
 	// We can't block indefinitely even when all sources are dry:
@@ -164,9 +158,7 @@ IOSource* Manager::FindSoonest(double* ts)
 			if ( ! src->src->IsIdle() )
 				continue;
 
-			if ( FD_ISSET(src->fd_read, &fd_read) ||
-			     FD_ISSET(src->fd_write, &fd_write) ||
-			     FD_ISSET(src->fd_except, &fd_except) )
+			if ( src->Ready(&fd_read, &fd_write, &fd_except) )
 				{
 				double local_network_time = 0;
 				double ts = src->src->NextTimestamp(&local_network_time);
@@ -189,9 +181,24 @@ finished:
 
 void Manager::Register(IOSource* src, bool dont_count)
 	{
+	// First see if we already have registered that source. If so, just
+	// adjust dont_count.
+	for ( SourceList::iterator i = sources.begin(); i != sources.end(); ++i )
+		{
+		if ( (*i)->src == src )
+			{
+			if ( (*i)->dont_count != dont_count )
+				// Adjust the global counter.
+				dont_counts += (dont_count ? 1 : -1);
+
+			return;
+			}
+		}
+
 	src->Init();
 	Source* s = new Source;
 	s->src = src;
+	s->dont_count = dont_count;
 	if ( dont_count )
 		++dont_counts;
 
@@ -210,11 +217,11 @@ static std::pair<std::string, std::string> split_prefix(std::string path)
 	// PktSrc to use. If not, choose default.
 	std::string prefix;
 
-	std::string::size_type i = path.find(":");
+	std::string::size_type i = path.find("::");
 	if ( i != std::string::npos )
 		{
 		prefix = path.substr(0, i);
-		path = path.substr(++i, std::string::npos);
+		path = path.substr(i + 2, std::string::npos);
 		}
 
 	else
@@ -309,4 +316,12 @@ PktDumper* Manager::OpenPktDumper(const string& path, bool append)
 	pkt_dumpers.push_back(pd);
 
 	return pd;
+	}
+
+void Manager::Source::SetFds(fd_set* read, fd_set* write, fd_set* except,
+                             int* maxx) const
+	{
+	*maxx = std::max(*maxx, fd_read.Set(read));
+	*maxx = std::max(*maxx, fd_write.Set(write));
+	*maxx = std::max(*maxx, fd_except.Set(except));
 	}

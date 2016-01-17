@@ -142,7 +142,7 @@ global did_sig_log: set[string] &read_expire = 1 hr;
 
 event bro_init()
 	{
-	Log::create_stream(Signatures::LOG, [$columns=Info, $ev=log_signature]);
+	Log::create_stream(Signatures::LOG, [$columns=Info, $ev=log_signature, $path="signatures"]);
 	}
 		
 # Returns true if the given signature has already been triggered for the given
@@ -277,7 +277,7 @@ event signature_match(state: signature_state, msg: string, data: string)
 				orig, sig_id, hcount);
 
 		Log::write(Signatures::LOG, 
-			[$note=Multiple_Sig_Responders,
+			[$ts=network_time(), $note=Multiple_Sig_Responders,
 		     $src_addr=orig, $sig_id=sig_id, $event_msg=msg,
 		     $host_count=hcount, $sub_msg=horz_scan_msg]);
 

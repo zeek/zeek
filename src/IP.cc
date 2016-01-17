@@ -327,24 +327,31 @@ RecordVal* IP_Hdr::BuildIPHdrVal() const
 RecordVal* IP_Hdr::BuildPktHdrVal() const
 	{
 	static RecordType* pkt_hdr_type = 0;
+
+	if ( ! pkt_hdr_type )
+		pkt_hdr_type = internal_type("pkt_hdr")->AsRecordType();
+
+	RecordVal* pkt_hdr = new RecordVal(pkt_hdr_type);
+	return BuildPktHdrVal(pkt_hdr, 0);
+	}
+
+RecordVal* IP_Hdr::BuildPktHdrVal(RecordVal* pkt_hdr, int sindex) const
+	{
 	static RecordType* tcp_hdr_type = 0;
 	static RecordType* udp_hdr_type = 0;
 	static RecordType* icmp_hdr_type = 0;
 
-	if ( ! pkt_hdr_type )
+	if ( ! tcp_hdr_type )
 		{
-		pkt_hdr_type = internal_type("pkt_hdr")->AsRecordType();
 		tcp_hdr_type = internal_type("tcp_hdr")->AsRecordType();
 		udp_hdr_type = internal_type("udp_hdr")->AsRecordType();
 		icmp_hdr_type = internal_type("icmp_hdr")->AsRecordType();
 		}
 
-	RecordVal* pkt_hdr = new RecordVal(pkt_hdr_type);
-
 	if ( ip4 )
-		pkt_hdr->Assign(0, BuildIPHdrVal());
+		pkt_hdr->Assign(sindex + 0, BuildIPHdrVal());
 	else
-		pkt_hdr->Assign(1, BuildIPHdrVal());
+		pkt_hdr->Assign(sindex + 1, BuildIPHdrVal());
 
 	// L4 header.
 	const u_char* data = Payload();
@@ -368,7 +375,7 @@ RecordVal* IP_Hdr::BuildPktHdrVal() const
 		tcp_hdr->Assign(6, new Val(tp->th_flags, TYPE_COUNT));
 		tcp_hdr->Assign(7, new Val(ntohs(tp->th_win), TYPE_COUNT));
 
-		pkt_hdr->Assign(2, tcp_hdr);
+		pkt_hdr->Assign(sindex + 2, tcp_hdr);
 		break;
 		}
 
@@ -381,7 +388,7 @@ RecordVal* IP_Hdr::BuildPktHdrVal() const
 		udp_hdr->Assign(1, new PortVal(ntohs(up->uh_dport), TRANSPORT_UDP));
 		udp_hdr->Assign(2, new Val(ntohs(up->uh_ulen), TYPE_COUNT));
 
-		pkt_hdr->Assign(3, udp_hdr);
+		pkt_hdr->Assign(sindex + 3, udp_hdr);
 		break;
 		}
 
@@ -392,7 +399,7 @@ RecordVal* IP_Hdr::BuildPktHdrVal() const
 
 		icmp_hdr->Assign(0, new Val(icmpp->icmp_type, TYPE_COUNT));
 
-		pkt_hdr->Assign(4, icmp_hdr);
+		pkt_hdr->Assign(sindex + 4, icmp_hdr);
 		break;
 		}
 
@@ -632,6 +639,54 @@ VectorVal* IPv6_Hdr_Chain::BuildVal() const
 		}
 
 		rval->Assign(rval->Size(), ext_hdr);
+		}
+
+	return rval;
+	}
+
+IP_Hdr* IP_Hdr::Copy() const
+	{
+	char* new_hdr = new char[HdrLen()];
+
+	if ( ip4 )
+		{
+		memcpy(new_hdr, ip4, HdrLen());
+		return new IP_Hdr((const struct ip*) new_hdr, true);
+		}
+
+	memcpy(new_hdr, ip6, HdrLen());
+	const struct ip6_hdr* new_ip6 = (const struct ip6_hdr*)new_hdr;
+	IPv6_Hdr_Chain* new_ip6_hdrs = ip6_hdrs->Copy(new_ip6);
+	return new IP_Hdr(new_ip6, true, 0, new_ip6_hdrs);
+	}
+
+IPv6_Hdr_Chain* IPv6_Hdr_Chain::Copy(const ip6_hdr* new_hdr) const
+	{
+	IPv6_Hdr_Chain* rval = new IPv6_Hdr_Chain;
+	rval->length = length;
+
+#ifdef ENABLE_MOBILE_IPV6
+	if ( homeAddr )
+		rval->homeAddr = new IPAddr(*homeAddr);
+#endif
+
+	if ( finalDst )
+		rval->finalDst = new IPAddr(*finalDst);
+
+	if ( chain.empty() )
+		{
+		reporter->InternalWarning("empty IPv6 header chain");
+		delete rval;
+		return 0;
+		}
+
+	const u_char* new_data = (const u_char*)new_hdr;
+	const u_char* old_data = chain[0]->Data();
+
+	for ( size_t i = 0; i < chain.size(); ++i )
+		{
+		int off = chain[i]->Data() - old_data;
+		rval->chain.push_back(new IPv6_Hdr(chain[i]->Type(), new_data + off));
 		}
 
 	return rval;

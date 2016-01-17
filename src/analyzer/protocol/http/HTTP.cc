@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "config.h"
+#include "bro-config.h"
 
 #include <ctype.h>
 #include <math.h>
@@ -239,7 +239,9 @@ int HTTP_Entity::Undelivered(int64_t len)
 			  len, expect_data_length);
 		}
 
-	if ( end_of_data && in_header )
+	// Don't propogate an entity (file) gap if we're still in the headers,
+	// or the body length was declared to be zero.
+	if ( (end_of_data && in_header) || body_length == 0 )
 		return 0;
 
 	if ( is_partial_content )
@@ -416,7 +418,7 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 		int64_t len = l - f + 1;
 
 		if ( DEBUG_http )
-			DEBUG_MSG("Content-Range length = %"PRId64"\n", len);
+			DEBUG_MSG("Content-Range length = %" PRId64"\n", len);
 
 		if ( len > 0 )
 			{
@@ -465,6 +467,20 @@ void HTTP_Entity::SubmitAllHeaders()
 
 	if ( DEBUG_http )
 		DEBUG_MSG("%.6f end of headers\n", network_time);
+
+	if ( Parent() &&
+	     Parent()->MIMEContentType() == mime::CONTENT_TYPE_MULTIPART )
+		{
+		// Don't treat single \r or \n characters in the multipart body content
+		// as lines because the MIME_Entity code will implicitly add back a
+		// \r\n for each line it receives.  We do this instead of setting
+		// plain delivery mode for the content line analyzer because
+		// the size of the content to deliver "plainly" may be unknown
+		// and just leaving it in that mode indefinitely screws up the
+		// detection of multipart boundaries.
+		http_message->content_line->SupressWeirds(true);
+		http_message->content_line->SetCRLFAsEOL(0);
+		}
 
 	// The presence of a message-body in a request is signaled by
 	// the inclusion of a Content-Length or Transfer-Encoding
@@ -654,6 +670,13 @@ void HTTP_Message::EndEntity(mime::MIME_Entity* entity)
 		}
 
 	current_entity = (HTTP_Entity*) entity->Parent();
+
+	if ( entity->Parent() &&
+	     entity->Parent()->MIMEContentType() == mime::CONTENT_TYPE_MULTIPART )
+		{
+		content_line->SupressWeirds(false);
+		content_line->SetCRLFAsEOL();
+		}
 
 	// It is necessary to call Done when EndEntity is triggered by
 	// SubmitAllHeaders (through EndOfData).
@@ -964,9 +987,7 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 				{
 				++num_replies;
 
-				if ( unanswered_requests.empty() )
-					Weird("unmatched_HTTP_reply");
-				else
+				if ( ! unanswered_requests.empty() )
 					ProtocolConfirmation();
 
 				reply_state = EXPECT_REPLY_MESSAGE;
@@ -974,28 +995,9 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 
 				HTTP_Reply();
 
-				if ( connect_request && reply_code == 200 )
-					{
-					pia = new pia::PIA_TCP(Conn());
-
-					if ( AddChildAnalyzer(pia) )
-						{
-						pia->FirstPacket(true, 0);
-						pia->FirstPacket(false, 0);
-
-						// This connection has transitioned to no longer
-						// being http and the content line support analyzers
-						// need to be removed.
-						RemoveSupportAnalyzer(content_line_orig);
-						RemoveSupportAnalyzer(content_line_resp);
-
-						return;
-						}
-
-					else
-						// AddChildAnalyzer() will have deleted PIA.
-						pia = 0;
-					}
+				if ( connect_request && reply_code != 200 )
+					// Request failed, do not set up tunnel.
+					connect_request = false;
 
 				InitHTTPMessage(content_line,
 						reply_message, is_orig,
@@ -1004,14 +1006,41 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 				}
 			else
 				{
-				ProtocolViolation("not a http reply line");
-				reply_state = EXPECT_REPLY_NOTHING;
+				if ( line != end_of_line )
+					{
+					ProtocolViolation("not a http reply line");
+					reply_state = EXPECT_REPLY_NOTHING;
+					}
 				}
 
 			break;
 
 		case EXPECT_REPLY_MESSAGE:
 			reply_message->Deliver(len, line, 1);
+
+			if ( connect_request && len == 0 )
+				{
+				// End of message header reached, set up
+				// tunnel decapsulation.
+				pia = new pia::PIA_TCP(Conn());
+
+				if ( AddChildAnalyzer(pia) )
+					{
+					pia->FirstPacket(true, 0);
+					pia->FirstPacket(false, 0);
+
+					// This connection has transitioned to no longer
+					// being http and the content line support analyzers
+					// need to be removed.
+					RemoveSupportAnalyzer(content_line_orig);
+					RemoveSupportAnalyzer(content_line_resp);
+					}
+
+				else
+					// AddChildAnalyzer() will have deleted PIA.
+					pia = 0;
+				}
+
 			break;
 
 		case EXPECT_REPLY_TRAILER:
@@ -1039,7 +1068,7 @@ void HTTP_Analyzer::Undelivered(uint64 seq, int len, bool is_orig)
 		{
 		if ( msg )
 			msg->SubmitEvent(mime::MIME_EVENT_CONTENT_GAP,
-				fmt("seq=%"PRIu64", len=%d", seq, len));
+				fmt("seq=%" PRIu64", len=%d", seq, len));
 		}
 
 	// Check if the content gap falls completely within a message body

@@ -1,0 +1,96 @@
+# @TEST-SERIALIZE: brokercomm
+# @TEST-REQUIRES: grep -q ENABLE_BROKER $BUILD/CMakeCache.txt
+# @TEST-REQUIRES: bro --help 2>&1 | grep -q mem-leaks
+# @TEST-GROUP: leak
+
+# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run recv "bro -m -b ../recv.bro broker_port=$BROKER_PORT >recv.out"
+# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run send "bro -m -b ../send.bro broker_port=$BROKER_PORT >send.out"
+
+# @TEST-EXEC: btest-bg-wait 45
+# @TEST-EXEC: btest-diff recv/recv.out
+# @TEST-EXEC: btest-diff send/send.out
+
+@TEST-START-FILE recv.bro
+
+const broker_port: port &redef;
+redef exit_only_after_terminate = T;
+
+global event_handler: event(msg: string, c: count);
+global auto_event_handler: event(msg: string, c: count);
+
+event bro_init()
+	{
+	BrokerComm::enable();
+	BrokerComm::listen(broker_port, "127.0.0.1");
+	BrokerComm::subscribe_to_events("bro/event/");
+	BrokerComm::auto_event("bro/event/my_topic", auto_event_handler);
+	}
+
+global event_count = 0;
+global events_to_recv = 6;
+
+event event_handler(msg: string, n: count)
+	{
+	++event_count;
+	print "got event msg", msg, n;
+
+	if ( event_count == events_to_recv )
+		{
+		terminate();
+		return;
+		}
+
+	event auto_event_handler(msg, n);
+	local args = BrokerComm::event_args(event_handler, "pong", n);
+	BrokerComm::event("bro/event/my_topic", args);
+	}
+
+@TEST-END-FILE
+
+@TEST-START-FILE send.bro
+
+const broker_port: port &redef;
+redef exit_only_after_terminate = T;
+
+global event_handler: event(msg: string, c: count);
+global auto_event_handler: event(msg: string, c: count);
+
+event bro_init()
+	{
+	BrokerComm::enable();
+	BrokerComm::subscribe_to_events("bro/event/my_topic");
+	BrokerComm::connect("127.0.0.1", broker_port, 1secs);
+	}
+
+global event_count = 0;
+
+event BrokerComm::outgoing_connection_established(peer_address: string,
+                                            peer_port: port,
+                                            peer_name: string)
+	{
+	print "BrokerComm::outgoing_connection_established", peer_address, peer_port;
+	local args = BrokerComm::event_args(event_handler, "ping", event_count);
+	BrokerComm::event("bro/event/hi", args);
+	++event_count;
+	}
+
+event BrokerComm::outgoing_connection_broken(peer_address: string,
+                                       peer_port: port)
+	{
+	terminate();
+	}
+
+event event_handler(msg: string, n: count)
+	{
+	print "got event msg", msg, n;
+	local args = BrokerComm::event_args(event_handler, "ping", event_count);
+    BrokerComm::event("bro/event/hi", args);
+	++event_count;
+	}
+
+event auto_event_handler(msg: string, n: count)
+	{
+	print "got auto event msg", msg, n;
+	}
+	
+@TEST-END-FILE

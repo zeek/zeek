@@ -11,7 +11,7 @@ public:
 	explicit PacPrimitive(PrimitiveType type) : type_(type) {}
 	virtual ~PacPrimitive() {}
 
-	PrimitiveType type() const	{ return type(); }
+	PrimitiveType type() const	{ return type_; }
 
 	virtual string ToCode(Env *env) = 0;
 

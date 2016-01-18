@@ -3,6 +3,7 @@
 #ifndef ANALYZER_PROTOCOL_IRC_IRC_H
 #define ANALYZER_PROTOCOL_IRC_IRC_H
 #include "analyzer/protocol/tcp/TCP.h"
+#include "analyzer/protocol/tcp/ContentLine.h"
 
 namespace analyzer { namespace irc {
 
@@ -44,6 +45,8 @@ protected:
 	int resp_zip_status;
 
 private:
+	void StartTLS();
+
 	/** \brief counts number of invalid IRC messages */
 	int invalid_msg_count;
 
@@ -60,6 +63,9 @@ private:
 	*/
 	vector<string> SplitWords(const string input, const char split);
 
+	tcp::ContentLine_Analyzer* cl_orig;
+	tcp::ContentLine_Analyzer* cl_resp;
+	bool starttls; // if true, connection has been upgraded to tls
 };
 
 } } // namespace analyzer::* 

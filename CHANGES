@@ -1,4 +1,10 @@
 
+2.4-247 | 2016-01-19 10:19:48 -0800
+
+  * Fixing C++11 compiler warnings. (Seth Hall)
+
+  * Updating plugin documentation building. (Johanna Amann)
+
 2.4-238 | 2016-01-15 12:56:33 -0800
 
   * Add HTTP version information to HTTP log file. (Aaron Eppert)

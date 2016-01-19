@@ -201,7 +201,7 @@ public:
 
 	bool IsPersistent()	{ return persistent; }
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 	void IDString(ODesc* d) const;
 
 	TimerMgr* GetTimerMgr() const;
@@ -336,7 +336,7 @@ public:
 		{ Init(arg_conn, arg_timer, arg_do_expire); }
 	virtual ~ConnectionTimer();
 
-	void Dispatch(double t, int is_expire);
+	void Dispatch(double t, int is_expire) override;
 
 protected:
 	ConnectionTimer()	{}

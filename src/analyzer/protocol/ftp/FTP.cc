@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "config.h"
+#include "bro-config.h"
 
 #include <stdlib.h>
 
@@ -206,7 +206,7 @@ void FTP_ADAT_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 			{
 			line = skip_whitespace(line + cmd_len, end_of_line);
 			StringVal encoded(end_of_line - line, line);
-			decoded_adat = decode_base64(encoded.AsString());
+			decoded_adat = decode_base64(encoded.AsString(), 0, Conn());
 
 			if ( first_token )
 				{
@@ -273,7 +273,7 @@ void FTP_ADAT_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 				{
 				line += 5;
 				StringVal encoded(end_of_line - line, line);
-				decoded_adat = decode_base64(encoded.AsString());
+				decoded_adat = decode_base64(encoded.AsString(), 0, Conn());
 				}
 
 			break;

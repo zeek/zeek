@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "config.h"
+#include "bro-config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -121,7 +121,6 @@ char* command_line_policy = 0;
 vector<string> params;
 set<string> requested_plugins;
 char* proc_status_file = 0;
-int snaplen = 0;	// this gets set from the scripting-layer's value
 
 OpaqueType* md5_type = 0;
 OpaqueType* sha1_type = 0;
@@ -762,9 +761,6 @@ int main(int argc, char** argv)
 	// DEBUG_MSG("HMAC key: %s\n", md5_digest_print(shared_hmac_md5_key));
 	init_hash_function();
 
-	// Must come after hash initialization.
-	binpac::init();
-
 	ERR_load_crypto_strings();
 	OPENSSL_add_all_algorithms_conf();
 	SSL_library_init();
@@ -863,6 +859,10 @@ int main(int argc, char** argv)
 
 	if ( events_file )
 		event_player = new EventPlayer(events_file);
+
+	// Must come after plugin activation (and also after hash
+	// initialization).
+	binpac::init();
 
 	init_event_handlers();
 
@@ -988,8 +988,6 @@ int main(int argc, char** argv)
 			delete [] interfaces_str;
 			}
 		}
-
-	snaplen = internal_val("snaplen")->AsCount();
 
 	if ( dns_type != DNS_PRIME )
 		net_init(interfaces, read_files, writefile, do_watchdog);

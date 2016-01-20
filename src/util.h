@@ -23,7 +23,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <libgen.h>
-#include "config.h"
+#include "bro-config.h"
 
 #if __STDC__
 #define myattribute __attribute__

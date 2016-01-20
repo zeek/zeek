@@ -1,4 +1,325 @@
 
+2.4-247 | 2016-01-19 10:19:48 -0800
+
+  * Fixing C++11 compiler warnings. (Seth Hall)
+
+  * Updating plugin documentation building. (Johanna Amann)
+
+2.4-238 | 2016-01-15 12:56:33 -0800
+
+  * Add HTTP version information to HTTP log file. (Aaron Eppert)
+
+  * Add NOTIFY as a valid SIP message, per RFC 3265. (Aaron Eppert)
+
+  * Improve HTTP parser's handling of requests that don't have a URI.
+    (William Glodek/Robin Sommer)
+
+  * Fix crash when deleting non existing record member. Addresses
+    BIT-1519. (Johanna Amann)
+
+2.4-228 | 2015-12-19 13:40:09 -0800
+
+  * Updating BroControl submodule.
+
+2.4-227 | 2015-12-18 17:47:24 -0800
+
+  * Update host name in windows-version-detection.bro. (Aaron Eppert)
+
+  * Update installation instructions to mention OpenSSL dependency for
+    newer OS X version. (Johanna Amann)
+
+  * Change a stale bro-ids.org to bro.org. (Johanna Amann)
+
+  * StartTLS support for IRC. (Johanna Amann)
+
+  * Adding usage guard to canonifier script. (Robin Sommer)
+
+2.4-217 | 2015-12-04 16:50:46 -0800
+
+  * SIP scripts code cleanup. (Seth Hall)
+
+     - Daniel Guerra pointed out a type issue for SIP request and
+       response code length fields which is now corrected.
+
+     - Some redundant code was removed.
+
+     - if/else tree modified to use switch instead.
+
+2.4-214 | 2015-12-04 16:40:15 -0800
+
+  * Delaying BinPAC initializaton until afte plugins have been
+    activated. (Robin Sommer)
+
+2.4-213 | 2015-12-04 15:25:48 -0800
+
+  * Use better data structure for storing BPF filters. (Robin Sommer)
+
+2.4-211 | 2015-11-17 13:28:29 -0800
+
+  * Making cluster reconnect timeout configurable. (Robin Sommer)
+
+  * Bugfix for child process' communication loop. (Robin Sommer)
+
+2.4-209 | 2015-11-16 07:31:22 -0800
+
+  * Updating submodule(s).
+
+2.4-207 | 2015-11-10 13:34:42 -0800
+
+  * Fix to compile with OpenSSL that has SSLv3 disalbed. (Christoph
+    Pietsch)
+
+  * Fix potential race condition when logging VLAN info to conn.log.
+    (Daniel Thayer)
+
+2.4-201 | 2015-10-27 16:11:15 -0700
+
+  * Updating NEWS. (Robin Sommer)
+
+2.4-200 | 2015-10-26 16:57:39 -0700
+
+  * Adding missing file. (Robin Sommer)
+
+2.4-199 | 2015-10-26 16:51:47 -0700
+
+  * Fix problem with the JSON Serialization code. (Aaron Eppert)
+
+2.4-188 | 2015-10-26 14:11:21 -0700
+
+  * Extending rexmit_inconsistency() event to receive an additional
+    parameter with the packet's TCP flags, if available. (Robin
+    Sommer)
+
+2.4-187 | 2015-10-26 13:43:32 -0700
+
+  * Updating NEWS for new plugins. (Robin Sommer)
+
+2.4-186 | 2015-10-23 15:07:06 -0700
+
+  * Removing pcap options for AF_PACKET support. Addresses BIT-1363.
+    (Robin Sommer)
+
+  * Correct a typo in controller.bro documentation. (Daniel Thayer)
+
+  * Extend SSL DPD signature to allow alert before server_hello.
+    (Johanna Amann)
+
+  * Make join_string_vec work with vectors containing empty elements.
+    (Johanna Amann)
+
+  * Fix support for HTTP CONNECT when server adds headers to response.
+    (Eric Karasuda).
+
+  * Load static CA list for validation tests too. (Johanna Amann)
+
+  * Remove cluster certificate validation script. (Johanna Amann)
+
+  * Fix a bug in diff-remove-x509-names canonifier. (Daniel Thayer)
+
+  * Fix test canonifiers in scripts/policy/protocols/ssl. (Daniel
+    Thayer)
+
+2.4-169 | 2015-10-01 17:21:21 -0700
+
+  * Fixed parsing of V_ASN1_GENERALIZEDTIME timestamps in x509
+    certificates. (Yun Zheng Hu)
+
+  * Improve X509 end-of-string-check code. (Johanna Amann)
+
+  * Refactor X509 generalizedtime support and test. (Johanna Amann)
+
+  * Fix case of offset=-1 (EOF) for RAW reader. Addresses BIT-1479.
+    (Johanna Amann)
+
+  * Improve a number of test canonifiers. (Daniel Thayer)
+
+  * Remove unnecessary use of TEST_DIFF_CANONIFIER. (Daniel Thayer)
+
+  * Fixed some test canonifiers to read only from stdin
+
+  * Remove unused test canonifier scripts. (Daniel Thayer)
+
+  * A potpourri of updates and improvements across the documentation.
+    (Daniel Thayer)
+
+  * Add configure option to disable Broker Python bindings. Also
+    improve the configure summary output to more clearly show whether
+    or not Broker Python bindings will be built. (Daniel Thayer)
+
+2.4-131 | 2015-09-11 12:16:39 -0700
+
+  * Add README.rst symlink. Addresses BIT-1413 (Vlad Grigorescu)
+
+2.4-129 | 2015-09-11 11:56:04 -0700
+
+  * hash-all-files.bro depends on base/files/hash (Richard van den Berg)
+
+  * Make dns_max_queries redef-able, and bump default to 25. Addresses
+    BIT-1460 (Vlad Grigorescu)
+
+2.4-125 | 2015-09-03 20:10:36 -0700
+
+  * Move SIP analyzer to flowunit instead of datagram Addresses
+    BIT-1458 (Vlad Grigorescu)
+
+2.4-122 | 2015-08-31 14:39:41 -0700
+
+  * Add a number of out-of-bound checks to layer 2 code. Addresses
+    BIT-1463 (Johanna Amann)
+
+  * Fix error in 2.4 release notes regarding SSH events. (Robin
+    Sommer)
+
+2.4-118 | 2015-08-31 10:55:29 -0700
+
+  * Fix FreeBSD build errors (Johanna Amann)
+
+2.4-117 | 2015-08-30 22:16:24 -0700
+
+  * Fix initialization of a pointer in RDP analyzer. (Daniel
+    Thayer/Robin Sommer)
+
+2.4-115 | 2015-08-30 21:57:35 -0700
+
+  * Enable Bro to leverage packet fanout mode on Linux. (Kris
+    Nielander).
+
+       ## Toggle whether to do packet fanout (Linux-only).
+       const Pcap::packet_fanout_enable = F &redef;
+
+       ## If packet fanout is enabled, the id to sue for it. This should be shared amongst
+       ## worker processes processing the same socket.
+       const Pcap::packet_fanout_id = 0 &redef;
+
+       ## If packet fanout is enabled, whether packets are to be defragmented before
+       ## fanout is applied.
+       const Pcap::packet_fanout_defrag = T &redef;
+
+  * Allow libpcap buffer size to be set via configuration. (Kris Nielander)
+
+       ## Number of Mbytes to provide as buffer space when capturing from live
+       ## interfaces.
+       const Pcap::bufsize = 128 &redef;
+
+  * Move the pcap-related script-level identifiers into the new Pcap
+    namespace. (Robin Sommer)
+
+        snaplen                  -> Pcap::snaplen
+        precompile_pcap_filter() -> Pcap::precompile_pcap_filter()
+        install_pcap_filter()    -> Pcap::install_pcap_filter()
+        pcap_error()             -> Pcap::pcap_error()
+
+
+2.4-108 | 2015-08-30 20:14:31 -0700
+
+   * Update Base64 decoding.  (Jan Grashoefer)
+
+        - A new built-in function, decode_base64_conn() for Base64
+          decoding. It works like decode_base64() but receives an
+          additional connection argument that will be used for
+          reporting decoding errors into weird.log (instead of
+          reporter.log).
+
+        - FTP, POP3, and HTTP analyzers now likewise log Base64
+          decoding errors to weird.log.
+
+        - The built-in functions decode_base64_custom() and
+          encode_base64_custom() are now deprecated. Their
+          functionality is provided directly by decode_base64() and
+          encode_base64(), which take an optional parameter to change
+          the Base64 alphabet.
+
+  * Fix potential crash if TCP header was captured incompletely.
+    (Robin Sommer)
+
+2.4-103 | 2015-08-29 10:51:55 -0700
+
+  * Make ASN.1 date/time parsing more robust. (Johanna Amann)
+
+  * Be more permissive on what characters we accept as an unquoted
+    multipart boundary. Addresses BIT-1459. (Johanna Amann)
+
+2.4-99 | 2015-08-25 07:56:57 -0700
+
+  * Add ``Q`` and update ``I`` documentation for connection history
+    field. Addresses BIT-1466. (Vlad Grigorescu)
+
+2.4-96 | 2015-08-21 17:37:56 -0700
+
+  * Update SIP analyzer. (balintm)
+
+        - Allows space on both sides of ':'.
+        - Require CR/LF after request/reply line.
+
+2.4-94 | 2015-08-21 17:31:32 -0700
+
+  * Add file type detection support for video/MP2T. (Mike Freemon)
+
+2.4-93 | 2015-08-21 17:23:39 -0700
+
+  * Make plugin install honor DESTDIR= convention. (Jeff Barber)
+
+2.4-89 | 2015-08-18 07:53:36 -0700
+
+  * Fix diff-canonifier-external to use basename of input file.
+  (Daniel Thayer)
+
+2.4-87 | 2015-08-14 08:34:41 -0700
+
+  * Removing the yielding_teredo_decapsulation option. (Robin Sommer)
+
+2.4-86 | 2015-08-12 17:02:24 -0700
+
+  * Make Teredo DPD signature more precise. (Martina Balint)
+
+2.4-84 | 2015-08-10 14:44:39 -0700
+
+  * Add hook 'HookSetupAnalyzerTree' to allow plugins access to a
+    connection's initial analyzer tree for customization. (James
+    Swaro)
+
+  * Plugins now look for a file "__preload__.bro" in the top-level
+    script directory. If found, they load it first, before any scripts
+    defining BiF elements. This can be used to define types that the
+    BiFs already depend on (like a custom type for an event argument).
+    (Robin Sommer)
+
+2.4-81 | 2015-08-08 07:38:42 -0700
+
+  * Fix a test that is failing very frequently. (Daniel Thayer)
+
+2.4-78 | 2015-08-06 22:25:19 -0400
+
+  * Remove build dependency on Perl (now requiring Python instad).
+    (Daniel Thayer)
+
+  * CID 1314754: Fixing unreachable code in RSH analyzer. (Robin
+    Sommer)
+
+  * CID 1312752: Add comment to mark 'case' fallthrough as ok. (Robin
+    Sommer)
+
+  * CID 1312751: Removing redundant assignment. (Robin Sommer)
+
+2.4-73 | 2015-07-31 08:53:49 -0700
+
+  * BIT-1429: SMTP logs now include CC: addresses. (Albert Zaharovits)
+
+2.4-70 | 2015-07-30 07:23:44 -0700
+
+  * Updated detection of Flash and AdobeAIR. (Jan Grashoefer)
+
+  * Adding tests for Flash version parsing and browser plugin
+    detection. (Robin Sommer)
+
+2.4-63 | 2015-07-28 12:26:37 -0700
+
+  * Updating submodule(s).
+
+2.4-61 | 2015-07-28 12:13:39 -0700
+
+  * Renaming config.h to bro-config.h. (Robin Sommer)
+
 2.4-58 | 2015-07-24 15:06:07 -0700
 
   * Add script protocols/conn/vlan-logging.bro to record VLAN data in

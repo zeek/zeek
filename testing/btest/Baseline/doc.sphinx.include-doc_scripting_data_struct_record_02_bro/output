@@ -13,7 +13,7 @@ type System: record {
     services: set[Service];
     };
 
-function print_service(serv: Service): string
+function print_service(serv: Service)
     {
     print fmt("  Service: %s(RFC%d)",serv$name, serv$rfc);
     
@@ -21,7 +21,7 @@ function print_service(serv: Service): string
         print fmt("    port: %s", p);
     }
 
-function print_system(sys: System): string
+function print_system(sys: System)
     {
     print fmt("System: %s", sys$name);
     

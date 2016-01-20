@@ -49,7 +49,7 @@ public:
 	// closed, not active, or whatever.
 	int Close();
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 
 	void SetRotateInterval(double secs);
 

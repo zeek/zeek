@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "config.h"
+#include "bro-config.h"
 
 #include "NetVar.h"
 #include "Event.h"
@@ -93,8 +93,7 @@ void Contents_Rsh_Analyzer::DoDeliver(int len, const u_char* data)
 		case RSH_LINE_MODE:
 		case RSH_UNKNOWN:
 		case RSH_PRESUMED_REJECTED:
-			if ( state == RSH_LINE_MODE &&
-			     state == RSH_PRESUMED_REJECTED )
+			if ( state == RSH_PRESUMED_REJECTED )
 				{
 				Conn()->Weird("rsh_text_after_rejected");
 				state = RSH_UNKNOWN;

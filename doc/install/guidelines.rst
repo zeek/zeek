@@ -46,4 +46,4 @@ where Bro was originally installed).  Review the files for differences
 before copying and make adjustments as necessary (use the new version for
 differences that aren't a result of a local change).  Of particular note,
 the copied version of ``$prefix/etc/broctl.cfg`` is likely to need changes
-to the ``SpoolDir`` and ``LogDir`` settings.
+to any settings that specify a pathname.

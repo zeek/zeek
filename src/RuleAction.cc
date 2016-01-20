@@ -1,7 +1,7 @@
 #include <string>
 using std::string;
 
-#include "config.h"
+#include "bro-config.h"
 
 #include "RuleAction.h"
 #include "RuleMatcher.h"

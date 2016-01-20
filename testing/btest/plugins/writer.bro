@@ -4,5 +4,5 @@
 # @TEST-EXEC: BRO_PLUGIN_PATH=`pwd` bro -NN Demo::Foo >>output
 # @TEST-EXEC: echo === >>output
 # @TEST-EXEC: BRO_PLUGIN_PATH=`pwd` bro -r $TRACES/socks.trace Log::default_writer=Log::WRITER_FOO %INPUT | sort >>output
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-timestamps btest-diff output
+# @TEST-EXEC: btest-diff output
 

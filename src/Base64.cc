@@ -1,4 +1,4 @@
-#include "config.h"
+#include "bro-config.h"
 #include "Base64.h"
 #include <math.h>
 
@@ -82,7 +82,7 @@ int* Base64Converter::InitBase64Table(const string& alphabet)
 	return base64_table;
 	}
 
-Base64Converter::Base64Converter(analyzer::Analyzer* arg_analyzer, const string& arg_alphabet)
+Base64Converter::Base64Converter(Connection* arg_conn, const string& arg_alphabet)
 	{
 	if ( arg_alphabet.size() > 0 )
 		{
@@ -98,7 +98,7 @@ Base64Converter::Base64Converter(analyzer::Analyzer* arg_analyzer, const string&
 	base64_group_next = 0;
 	base64_padding = base64_after_padding = 0;
 	errored = 0;
-	analyzer = arg_analyzer;
+	conn = arg_conn;
 	}
 
 Base64Converter::~Base64Converter()
@@ -216,9 +216,9 @@ int Base64Converter::Done(int* pblen, char** pbuf)
 	}
 
 
-BroString* decode_base64(const BroString* s, const BroString* a)
+BroString* decode_base64(const BroString* s, const BroString* a, Connection* conn)
 	{
-	if ( a && a->Len() != 64 )
+	if ( a && a->Len() != 0 && a->Len() != 64 )
 		{
 		reporter->Error("base64 decoding alphabet is not 64 characters: %s",
 		                a->CheckString());
@@ -229,7 +229,7 @@ BroString* decode_base64(const BroString* s, const BroString* a)
 	int rlen2, rlen = buf_len;
 	char* rbuf2, *rbuf = new char[rlen];
 
-	Base64Converter dec(0, a ? a->CheckString() : "");
+	Base64Converter dec(conn, a ? a->CheckString() : "");
 	if ( dec.Decode(s->Len(), (const char*) s->Bytes(), &rlen, &rbuf) == -1 )
 		goto err;
 
@@ -248,9 +248,9 @@ err:
 	return 0;
 	}
 
-BroString* encode_base64(const BroString* s, const BroString* a)
+BroString* encode_base64(const BroString* s, const BroString* a, Connection* conn)
 	{
-	if ( a && a->Len() != 64 )
+	if ( a && a->Len() != 0 && a->Len() != 64 )
 		{
 		reporter->Error("base64 alphabet is not 64 characters: %s",
 		                a->CheckString());
@@ -259,7 +259,7 @@ BroString* encode_base64(const BroString* s, const BroString* a)
 
 	char* outbuf = 0;
 	int outlen = 0;
-	Base64Converter enc(0, a ? a->CheckString() : "");
+	Base64Converter enc(conn, a ? a->CheckString() : "");
 	enc.Encode(s->Len(), (const unsigned char*) s->Bytes(), &outlen, &outbuf);
 
 	return new BroString(1, (u_char*)outbuf, outlen);

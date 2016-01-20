@@ -41,6 +41,8 @@ export {
 		## misspelled like the standard declares, but the name used here
 		## is "referrer" spelled correctly.
 		referrer:                string    &log &optional;
+		## Value of the version portion of the request.
+		version:		string	   &log &optional;
 		## Value of the User-Agent header from the client.
 		user_agent:              string    &log &optional;
 		## Actual uncompressed content size of the data transferred from
@@ -222,6 +224,8 @@ event http_reply(c: connection, version: string, code: count, reason: string) &p
 
 	c$http$status_code = code;
 	c$http$status_msg = reason;
+	c$http$version = version;
+
 	if ( code_in_range(code, 100, 199) )
 		{
 		c$http$info_code = code;
@@ -270,7 +274,7 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 			{
 			if ( /^[bB][aA][sS][iI][cC] / in value )
 				{
-				local userpass = decode_base64(sub(value, /[bB][aA][sS][iI][cC][[:blank:]]/, ""));
+				local userpass = decode_base64_conn(c$id, sub(value, /[bB][aA][sS][iI][cC][[:blank:]]/, ""));
 				local up = split_string(userpass, /:/);
 				if ( |up| >= 2 )
 					{

@@ -3,7 +3,7 @@
 #ifndef TUNNELS_H
 #define TUNNELS_H
 
-#include "config.h"
+#include "bro-config.h"
 #include "NetVar.h"
 #include "IPAddr.h"
 #include "Val.h"

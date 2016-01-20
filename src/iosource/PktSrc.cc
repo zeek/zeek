@@ -3,13 +3,15 @@
 #include <errno.h>
 #include <sys/stat.h>
 
-#include "config.h"
+#include "bro-config.h"
 
 #include "util.h"
 #include "PktSrc.h"
 #include "Hash.h"
 #include "Net.h"
 #include "Sessions.h"
+
+#include "pcap/const.bif.h"
 
 using namespace iosource;
 
@@ -34,9 +36,7 @@ PktSrc::PktSrc()
 
 PktSrc::~PktSrc()
 	{
-	BPF_Program* code;
-	IterCookie* cookie = filters.InitForIteration();
-	while ( (code = filters.NextEntry(cookie)) )
+	for ( auto code : filters )
 		delete code;
 	}
 
@@ -64,11 +64,6 @@ uint32 PktSrc::Netmask() const
 bool PktSrc::IsError() const
 	{
 	return ErrorMsg();
-	}
-
-int PktSrc::SnapLen() const
-	{
-	return snaplen; // That's a global. Change?
 	}
 
 bool PktSrc::IsLive() const
@@ -112,7 +107,7 @@ void PktSrc::Opened(const Properties& arg_props)
 		}
 
 	if ( props.is_live )
-		Info(fmt("listening on %s, capture length %d bytes\n", props.path.c_str(), SnapLen()));
+		Info(fmt("listening on %s\n", props.path.c_str()));
 
 	DBG_LOG(DBG_PKTIO, "Opened source %s", props.path.c_str());
 	}
@@ -325,7 +320,7 @@ bool PktSrc::PrecompileBPFFilter(int index, const std::string& filter)
 	// Compile filter.
 	BPF_Program* code = new BPF_Program();
 
-	if ( ! code->Compile(SnapLen(), LinkType(), filter.c_str(), Netmask(), errbuf, sizeof(errbuf)) )
+	if ( ! code->Compile(BifConst::Pcap::snaplen, LinkType(), filter.c_str(), Netmask(), errbuf, sizeof(errbuf)) )
 		{
 		string msg = fmt("cannot compile BPF filter \"%s\"", filter.c_str());
 
@@ -338,16 +333,16 @@ bool PktSrc::PrecompileBPFFilter(int index, const std::string& filter)
 		return 0;
 		}
 
-	// Store it in hash.
-	HashKey* hash = new HashKey(HashKey(bro_int_t(index)));
-	BPF_Program* oldcode = filters.Lookup(hash);
-	if ( oldcode )
-		delete oldcode;
+	// Store it in vector.
+	if ( index >= static_cast<int>(filters.size()) )
+		filters.resize(index + 1);
 
-	filters.Insert(hash, code);
-	delete hash;
+	if ( auto old = filters[index] )
+		delete old;
 
-	return 1;
+	filters[index] = code;
+
+	return true;
 	}
 
 BPF_Program* PktSrc::GetBPFFilter(int index)
@@ -355,10 +350,7 @@ BPF_Program* PktSrc::GetBPFFilter(int index)
 	if ( index < 0 )
 		return 0;
 
-	HashKey* hash = new HashKey(HashKey(bro_int_t(index)));
-	BPF_Program* code = filters.Lookup(hash);
-	delete hash;
-	return code;
+	return (static_cast<int>(filters.size()) > index ? filters[index] : 0);
 	}
 
 bool PktSrc::ApplyBPFFilter(int index, const struct pcap_pkthdr *hdr, const u_char *pkt)

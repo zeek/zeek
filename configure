@@ -47,6 +47,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --disable-auxtools     don't build or install auxiliary tools
     --disable-perftools    don't try to build with Google Perftools
     --disable-python       don't try to build python bindings for broccoli
+    --disable-pybroker     don't try to build python bindings for broker
 
   Required Packages in Non-Standard Locations:
     --with-openssl=PATH    path to OpenSSL install root
@@ -55,7 +56,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-binpac=PATH     path to BinPAC install root
     --with-flex=PATH       path to flex executable
     --with-bison=PATH      path to bison executable
-    --with-perl=PATH       path to perl executable
+    --with-python=PATH     path to Python executable
     --with-libcaf=PATH     path to C++ Actor Framework installation
                            (a required Broker dependency)
 
@@ -63,7 +64,6 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-geoip=PATH      path to the libGeoIP install root
     --with-perftools=PATH  path to Google Perftools install root
     --with-jemalloc=PATH   path to jemalloc install root
-    --with-python=PATH     path to Python interpreter
     --with-python-lib=PATH path to libpython
     --with-python-inc=PATH path to Python headers
     --with-ruby=PATH       path to ruby interpreter
@@ -122,6 +122,7 @@ append_cache_entry PY_MOD_INSTALL_DIR   PATH   $prefix/lib/broctl
 append_cache_entry BRO_SCRIPT_INSTALL_PATH STRING $prefix/share/bro
 append_cache_entry BRO_ETC_INSTALL_DIR  PATH   $prefix/etc
 append_cache_entry BROKER_PYTHON_HOME   PATH   $prefix
+append_cache_entry BROKER_PYTHON_BINDINGS BOOL false
 append_cache_entry ENABLE_DEBUG         BOOL   false
 append_cache_entry ENABLE_PERFTOOLS     BOOL   false
 append_cache_entry ENABLE_PERFTOOLS_DEBUG BOOL false
@@ -218,6 +219,9 @@ while [ $# -ne 0 ]; do
         --disable-python)
             append_cache_entry DISABLE_PYTHON_BINDINGS     BOOL   true
             ;;
+        --disable-pybroker)
+            append_cache_entry DISABLE_PYBROKER     BOOL   true
+            ;;
         --enable-ruby)
             append_cache_entry DISABLE_RUBY_BINDINGS     BOOL   false
             ;;
@@ -238,9 +242,6 @@ while [ $# -ne 0 ]; do
             ;;
         --with-bison=*)
             append_cache_entry BISON_EXECUTABLE PATH $optarg
-            ;;
-        --with-perl=*)
-            append_cache_entry PERL_EXECUTABLE PATH $optarg
             ;;
         --with-geoip=*)
             append_cache_entry LibGeoIP_ROOT_DIR PATH $optarg

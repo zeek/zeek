@@ -1,4 +1,4 @@
-#include "config.h"
+#include "bro-config.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>

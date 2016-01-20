@@ -223,16 +223,16 @@ endmacro(COLLECT_HEADERS _var)
 
 cmake_policy(POP)
 
-# define a command that's used to run the make_dbg_constants.pl script
+# define a command that's used to run the make_dbg_constants.py script
 # building the bro binary depends on the outputs of this script
 add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
                           ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdInfoConstants.cc
-                   COMMAND ${PERL_EXECUTABLE}
-                   ARGS ${CMAKE_CURRENT_SOURCE_DIR}/make_dbg_constants.pl
+                   COMMAND ${PYTHON_EXECUTABLE}
+                   ARGS ${CMAKE_CURRENT_SOURCE_DIR}/make_dbg_constants.py
                         ${CMAKE_CURRENT_SOURCE_DIR}/DebugCmdInfoConstants.in
-                   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/make_dbg_constants.pl
+                   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/make_dbg_constants.py
                            ${CMAKE_CURRENT_SOURCE_DIR}/DebugCmdInfoConstants.in
-                   COMMENT "[Perl] Processing debug commands"
+                   COMMENT "[Python] Processing debug commands"
                    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
 

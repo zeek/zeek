@@ -3,7 +3,7 @@
 #ifndef CHUNKEDIO_H
 #define CHUNKEDIO_H
 
-#include "config.h"
+#include "bro-config.h"
 #include "List.h"
 #include "util.h"
 #include "Flare.h"

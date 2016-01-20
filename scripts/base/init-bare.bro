@@ -361,7 +361,7 @@ type connection: record {
 	## The outer VLAN, if applicable, for this connection.
 	vlan: int &optional;
 
-	## The VLAN vlan, if applicable, for this connection.
+	## The inner VLAN, if applicable, for this connection.
 	inner_vlan: int &optional;
 };
 
@@ -2521,7 +2521,7 @@ global dns_skip_all_addl = T &redef;
 
 ## If a DNS request includes more than this many queries, assume it's non-DNS
 ## traffic and do not process it.  Set to 0 to turn off this functionality.
-global dns_max_queries = 5;
+global dns_max_queries = 25 &redef;
 
 ## HTTP session statistics.
 ##
@@ -3674,20 +3674,11 @@ export {
 	## Toggle whether to do GRE decapsulation.
 	const enable_gre = T &redef;
 
-	## With this option set, the Teredo analysis will first check to see if
-	## other protocol analyzers have confirmed that they think they're
-	## parsing the right protocol and only continue with Teredo tunnel
-	## decapsulation if nothing else has yet confirmed.  This can help
-	## reduce false positives of UDP traffic (e.g. DNS) that also happens
-	## to have a valid Teredo encapsulation.
-	const yielding_teredo_decapsulation = T &redef;
-
 	## With this set, the Teredo analyzer waits until it sees both sides
 	## of a connection using a valid Teredo encapsulation before issuing
 	## a :bro:see:`protocol_confirmation`.  If it's false, the first
 	## occurrence of a packet with valid Teredo encapsulation causes a
-	## confirmation.  Both cases are still subject to effects of
-	## :bro:see:`Tunnel::yielding_teredo_decapsulation`.
+	## confirmation.
 	const delay_teredo_confirmation = T &redef;
 
 	## With this set, the GTP analyzer waits until the most-recent upflow
@@ -3703,7 +3694,6 @@ export {
 	## (includes GRE tunnels).
 	const ip_tunnel_timeout = 24hrs &redef;
 } # end export
-module GLOBAL;
 
 module Reporter;
 export {
@@ -3722,10 +3712,18 @@ export {
 	## external harness and shouldn't output anything to the console.
 	const errors_to_stderr = T &redef;
 }
-module GLOBAL;
 
-## Number of bytes per packet to capture from live interfaces.
-const snaplen = 8192 &redef;
+module Pcap;
+export {
+	## Number of bytes per packet to capture from live interfaces.
+	const snaplen = 8192 &redef;
+
+	## Number of Mbytes to provide as buffer space when capturing from live
+	## interfaces.
+	const bufsize = 128 &redef;
+} # end export
+
+module GLOBAL;
 
 ## Seed for hashes computed internally for probabilistic data structures. Using
 ## the same value here will make the hashes compatible between independent Bro

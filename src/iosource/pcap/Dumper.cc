@@ -7,6 +7,8 @@
 #include "../PktSrc.h"
 #include "../../Net.h"
 
+#include "const.bif.h"
+
 using namespace iosource::pcap;
 
 PcapDumper::PcapDumper(const std::string& path, bool arg_append)
@@ -25,7 +27,8 @@ void PcapDumper::Open()
 	{
 	int linktype = -1;
 
-	pd = pcap_open_dead(DLT_EN10MB, snaplen);
+	pd = pcap_open_dead(DLT_EN10MB, BifConst::Pcap::snaplen);
+
 	if ( ! pd )
 		{
 		Error("error for pcap_open_dead");

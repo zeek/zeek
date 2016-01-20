@@ -32,7 +32,8 @@ For this example we assume that we want to import data from a blacklist
 that contains server IP addresses as well as the timestamp and the reason
 for the block.
 
-An example input file could look like this:
+An example input file could look like this (note that all fields must be
+tab-separated):
 
 ::
 
@@ -63,19 +64,23 @@ The two records are defined as:
                 reason: string;
         };
 
-Note that the names of the fields in the record definitions have to correspond
+Note that the names of the fields in the record definitions must correspond
 to the column names listed in the '#fields' line of the log file, in this
-case 'ip', 'timestamp', and 'reason'.
+case 'ip', 'timestamp', and 'reason'.  Also note that the ordering of the
+columns does not matter, because each column is identified by name.
 
-The log file is read into the table with a simple call of the ``add_table``
-function:
+The log file is read into the table with a simple call of the
+:bro:id:`Input::add_table` function:
 
 .. code:: bro
 
         global blacklist: table[addr] of Val = table();
 
-        Input::add_table([$source="blacklist.file", $name="blacklist", $idx=Idx, $val=Val, $destination=blacklist]);
-        Input::remove("blacklist");
+        event bro_init() {
+            Input::add_table([$source="blacklist.file", $name="blacklist",
+                              $idx=Idx, $val=Val, $destination=blacklist]);
+            Input::remove("blacklist");
+        }
 
 With these three lines we first create an empty table that should contain the
 blacklist data and then instruct the input framework to open an input stream
@@ -92,7 +97,7 @@ Because of this, the data is not immediately accessible. Depending on the
 size of the data source it might take from a few milliseconds up to a few
 seconds until all data is present in the table. Please note that this means
 that when Bro is running without an input source or on very short captured
-files, it might terminate before the data is present in the system (because
+files, it might terminate before the data is present in the table (because
 Bro already handled all packets before the import thread finished).
 
 Subsequent calls to an input source are queued until the previous action has
@@ -101,8 +106,8 @@ been completed. Because of this, it is, for example, possible to call
 will remain queued until the first read has been completed.
 
 Once the input framework finishes reading from a data source, it fires
-the ``end_of_data`` event. Once this event has been received all data
-from the input file is available in the table.
+the :bro:id:`Input::end_of_data` event. Once this event has been received all
+data from the input file is available in the table.
 
 .. code:: bro
 
@@ -111,9 +116,9 @@ from the input file is available in the table.
                 print blacklist;
         }
 
-The table can also already be used while the data is still being read - it
-just might not contain all lines in the input file when the event has not
-yet fired. After it has been populated it can be used like any other Bro
+The table can be used while the data is still being read - it
+just might not contain all lines from the input file before the event has
+fired. After the table has been populated it can be used like any other Bro
 table and blacklist entries can easily be tested:
 
 .. code:: bro
@@ -130,10 +135,11 @@ changing. For these cases, the Bro input framework supports several ways to
 deal with changing data files.
 
 The first, very basic method is an explicit refresh of an input stream. When
-an input stream is open, the function ``force_update`` can be called. This
-will trigger a complete refresh of the table; any changed elements from the
-file will be updated.  After the update is finished the ``end_of_data``
-event will be raised.
+an input stream is open (this means it has not yet been removed by a call to
+:bro:id:`Input::remove`), the function :bro:id:`Input::force_update` can be
+called.  This will trigger a complete refresh of the table; any changed
+elements from the file will be updated.  After the update is finished the
+:bro:id:`Input::end_of_data` event will be raised.
 
 In our example the call would look like:
 
@@ -141,30 +147,35 @@ In our example the call would look like:
 
         Input::force_update("blacklist");
 
-The input framework also supports two automatic refresh modes. The first mode
-continually checks if a file has been changed. If the file has been changed, it
+Alternatively, the input framework can automatically refresh the table
+contents when it detects a change to the input file.  To use this feature,
+you need to specify a non-default read mode by setting the ``mode`` option
+of the :bro:id:`Input::add_table` call.  Valid values are ``Input::MANUAL``
+(the default), ``Input::REREAD`` and ``Input::STREAM``.  For example,
+setting the value of the ``mode`` option in the previous example
+would look like this:
+
+.. code:: bro
+
+        Input::add_table([$source="blacklist.file", $name="blacklist",
+                          $idx=Idx, $val=Val, $destination=blacklist,
+                          $mode=Input::REREAD]);
+
+When using the reread mode (i.e., ``$mode=Input::REREAD``), Bro continually
+checks if the input file has been changed. If the file has been changed, it
 is re-read and the data in the Bro table is updated to reflect the current
 state.  Each time a change has been detected and all the new data has been
 read into the table, the ``end_of_data`` event is raised.
 
-The second mode is a streaming mode. This mode assumes that the source data
-file is an append-only file to which new data is continually appended. Bro
-continually checks for new data at the end of the file and will add the new
-data to the table.  If newer lines in the file have the same index as previous
-lines, they will overwrite the values in the output table.  Because of the
-nature of streaming reads (data is continually added to the table),
-the ``end_of_data`` event is never raised when using streaming reads.
+When using the streaming mode (i.e., ``$mode=Input::STREAM``), Bro assumes
+that the source data file is an append-only file to which new data is
+continually appended. Bro continually checks for new data at the end of
+the file and will add the new data to the table.  If newer lines in the
+file have the same index as previous lines, they will overwrite the
+values in the output table.  Because of the nature of streaming reads
+(data is continually added to the table), the ``end_of_data`` event
+is never raised when using streaming reads.
 
-The reading mode can be selected by setting the ``mode`` option of the
-add_table call.  Valid values are ``MANUAL`` (the default), ``REREAD``
-and ``STREAM``.
-
-Hence, when adding ``$mode=Input::REREAD`` to the previous example, the
-blacklist table will always reflect the state of the blacklist input file.
-
-.. code:: bro
-
-        Input::add_table([$source="blacklist.file", $name="blacklist", $idx=Idx, $val=Val, $destination=blacklist, $mode=Input::REREAD]);
 
 Receiving change events
 -----------------------
@@ -173,34 +184,40 @@ When re-reading files, it might be interesting to know exactly which lines in
 the source files have changed.
 
 For this reason, the input framework can raise an event each time when a data
-item is added to, removed from or changed in a table.
+item is added to, removed from, or changed in a table.
 
-The event definition looks like this:
+The event definition looks like this (note that you can change the name of
+this event in your own Bro script):
 
 .. code:: bro
 
-        event entry(description: Input::TableDescription, tpe: Input::Event, left: Idx, right: Val) {
-                # act on values
+        event entry(description: Input::TableDescription, tpe: Input::Event,
+                    left: Idx, right: Val) {
+                # do something here...
+                print fmt("%s = %s", left, right);
         }
 
-The event has to be specified in ``$ev`` in the ``add_table`` call:
+The event must be specified in ``$ev`` in the ``add_table`` call:
 
 .. code:: bro
 
-        Input::add_table([$source="blacklist.file", $name="blacklist", $idx=Idx, $val=Val, $destination=blacklist, $mode=Input::REREAD, $ev=entry]);
+        Input::add_table([$source="blacklist.file", $name="blacklist",
+                          $idx=Idx, $val=Val, $destination=blacklist,
+                          $mode=Input::REREAD, $ev=entry]);
 
-The ``description`` field of the event contains the arguments that were
+The ``description`` argument of the event contains the arguments that were
 originally supplied to the add_table call.  Hence, the name of the stream can,
-for example, be accessed with ``description$name``. ``tpe`` is an enum
-containing the type of the change that occurred.
+for example, be accessed with ``description$name``. The ``tpe`` argument of the
+event is an enum containing the type of the change that occurred.
 
 If a line that was not previously present in the table has been added,
-then ``tpe`` will contain ``Input::EVENT_NEW``. In this case ``left`` contains
-the index of the added table entry and ``right`` contains the values of the
-added entry.
+then the value of ``tpe`` will be ``Input::EVENT_NEW``. In this case ``left``
+contains the index of the added table entry and ``right`` contains the
+values of the added entry.
 
 If a table entry that already was present is altered during the re-reading or
-streaming read of a file, ``tpe`` will contain ``Input::EVENT_CHANGED``. In
+streaming read of a file, then the value of ``tpe`` will be
+``Input::EVENT_CHANGED``. In
 this case ``left`` contains the index of the changed table entry and ``right``
 contains the values of the entry before the change. The reason for this is
 that the table already has been updated when the event is raised. The current
@@ -208,8 +225,9 @@ value in the table can be ascertained by looking up the current table value.
 Hence it is possible to compare the new and the old values of the table.
 
 If a table element is removed because it was no longer present during a
-re-read, then ``tpe`` will contain ``Input::REMOVED``.  In this case ``left``
-contains the index and ``right`` the values of the removed element.
+re-read, then the value of ``tpe`` will be ``Input::EVENT_REMOVED``.  In this
+case ``left`` contains the index and ``right`` the values of the removed
+element.
 
 
 Filtering data during import
@@ -222,24 +240,26 @@ can either accept or veto the change by returning true for an accepted
 change and false for a rejected change. Furthermore, it can alter the data
 before it is written to the table.
 
-The following example filter will reject to add entries to the table when
+The following example filter will reject adding entries to the table when
 they were generated over a month ago. It will accept all changes and all
 removals of values that are already present in the table.
 
 .. code:: bro
 
-        Input::add_table([$source="blacklist.file", $name="blacklist", $idx=Idx, $val=Val, $destination=blacklist, $mode=Input::REREAD,
-                        $pred(typ: Input::Event, left: Idx, right: Val) = {
-                                if ( typ != Input::EVENT_NEW ) {
-                                        return T;
-                                }
-                                return ( ( current_time() - right$timestamp ) < (30 day) );
-                        }]);
+        Input::add_table([$source="blacklist.file", $name="blacklist",
+                          $idx=Idx, $val=Val, $destination=blacklist,
+                          $mode=Input::REREAD,
+                          $pred(typ: Input::Event, left: Idx, right: Val) = {
+                            if ( typ != Input::EVENT_NEW ) {
+                                return T;
+                            }
+                            return (current_time() - right$timestamp) < 30day;
+                          }]);
 
 To change elements while they are being imported, the predicate function can
 manipulate ``left`` and ``right``. Note that predicate functions are called
 before the change is committed to the table. Hence, when a table element is
-changed (``tpe`` is ``INPUT::EVENT_CHANGED``), ``left`` and ``right``
+changed (``typ`` is ``Input::EVENT_CHANGED``), ``left`` and ``right``
 contain the new values, but the destination (``blacklist`` in our example)
 still contains the old values. This allows predicate functions to examine
 the changes between the old and the new version before deciding if they
@@ -250,14 +270,19 @@ Different readers
 
 The input framework supports different kinds of readers for different kinds
 of source data files. At the moment, the default reader reads ASCII files
-formatted in the Bro log file format (tab-separated values). At the moment,
-Bro comes with two other readers. The ``RAW`` reader reads a file that is
-split by a specified record separator (usually newline). The contents are
+formatted in the Bro log file format (tab-separated values with a "#fields"
+header line).  Several other readers are included in Bro.
+
+The raw reader reads a file that is
+split by a specified record separator (newline by default). The contents are
 returned line-by-line as strings; it can, for example, be used to read
 configuration files and the like and is probably
 only useful in the event mode and not for reading data to tables.
 
-Another included reader is the ``BENCHMARK`` reader, which is being used
+The binary reader is intended to be used with file analysis input streams (and
+is the default type of reader for those streams).
+
+The benchmark reader is being used
 to optimize the speed of the input framework. It can generate arbitrary
 amounts of semi-random data in all Bro data types supported by the input
 framework.
@@ -270,75 +295,17 @@ aforementioned ones:
 
    logging-input-sqlite
 
-Add_table options
------------------
-
-This section lists all possible options that can be used for the add_table
-function and gives a short explanation of their use. Most of the options
-already have been discussed in the previous sections.
-
-The possible fields that can be set for a table stream are:
-
-        ``source``
-                A mandatory string identifying the source of the data.
-                For the ASCII reader this is the filename.
-
-        ``name``
-                A mandatory name for the filter that can later be used
-                to manipulate it further.
-
-        ``idx``
-                Record type that defines the index of the table.
-
-        ``val``
-                Record type that defines the values of the table.
-
-        ``reader``
-                The reader used for this stream. Default is ``READER_ASCII``.
-
-        ``mode``
-                The mode in which the stream is opened. Possible values are
-                ``MANUAL``, ``REREAD`` and ``STREAM``.  Default is ``MANUAL``.
-                ``MANUAL`` means that the file is not updated after it has
-                been read. Changes to the file will not be reflected in the
-                data Bro knows.  ``REREAD`` means that the whole file is read
-                again each time a change is found. This should be used for
-                files that are mapped to a table where individual lines can
-                change.  ``STREAM`` means that the data from the file is
-                streamed. Events / table entries will be generated as new
-                data is appended to the file.
-
-        ``destination``
-                The destination table.
-
-        ``ev``
-                Optional event that is raised, when values are added to,
-                changed in, or deleted from the table.  Events are passed an
-                Input::Event description as the first argument, the index
-                record as the second argument and the values as the third
-                argument.
-
-        ``pred``
-                Optional predicate, that can prevent entries from being added
-                to the table and events from being sent.
-
-        ``want_record``
-                Boolean value, that defines if the event wants to receive the
-                fields inside of a single record value, or individually
-                (default).  This can be used if ``val`` is a record
-                containing only one type. In this case, if ``want_record`` is
-                set to false, the table will contain elements of the type
-                contained in ``val``.
 
 Reading Data to Events
 ======================
 
 The second supported mode of the input framework is reading data to Bro
-events instead of reading them to a table using event streams.
+events instead of reading them to a table.
 
 Event streams work very similarly to table streams that were already
 discussed in much detail. To read the blacklist of the previous example
-into an event stream, the following Bro code could be used:
+into an event stream, the :bro:id:`Input::add_event` function is used.
+For example:
 
 .. code:: bro
 
@@ -348,12 +315,15 @@ into an event stream, the following Bro code could be used:
                 reason: string;
         };
 
-        event blacklistentry(description: Input::EventDescription, tpe: Input::Event, ip: addr, timestamp: time, reason: string) {
-                # work with event data
+        event blacklistentry(description: Input::EventDescription,
+                             t: Input::Event, data: Val) {
+                # do something here...
+                print "data:", data;
         }
 
         event bro_init() {
-                Input::add_event([$source="blacklist.file", $name="blacklist", $fields=Val, $ev=blacklistentry]);
+                Input::add_event([$source="blacklist.file", $name="blacklist",
+                                  $fields=Val, $ev=blacklistentry]);
         }
 
 
@@ -363,53 +333,4 @@ data types are provided in a single record definition.
 
 Apart from this, event streams work exactly the same as table streams and
 support most of the options that are also supported for table streams.
-
-The options that can be set when creating an event stream with
-``add_event`` are:
-
-        ``source``
-                A mandatory string identifying the source of the data.
-                For the ASCII reader this is the filename.
-
-        ``name``
-                A mandatory name for the stream that can later be used
-                to remove it.
-
-        ``fields``
-                Name of a record type containing the fields, which should be
-                retrieved from the input stream.
-
-        ``ev``
-                The event which is fired, after a line has been read from the
-                input source.  The first argument that is passed to the event
-                is an Input::Event structure, followed by the data, either
-                inside of a record (if ``want_record is set``) or as
-                individual fields.  The Input::Event structure can contain
-                information, if the received line is ``NEW``, has been
-                ``CHANGED`` or ``DELETED``. Since the ASCII reader cannot
-                track this information for event filters, the value is
-                always ``NEW`` at the moment.
-
-        ``mode``
-                The mode in which the stream is opened. Possible values are
-                ``MANUAL``, ``REREAD`` and ``STREAM``.  Default is ``MANUAL``.
-                ``MANUAL`` means that the file is not updated after it has
-                been read. Changes to the file will not be reflected in the
-                data Bro knows.  ``REREAD`` means that the whole file is read
-                again each time a change is found. This should be used for
-                files that are mapped to a table where individual lines can
-                change.  ``STREAM`` means that the data from the file is
-                streamed. Events / table entries will be generated as new
-                data is appended to the file.
-
-        ``reader``
-                The reader used for this stream. Default is ``READER_ASCII``.
-
-        ``want_record``
-                Boolean value, that defines if the event wants to receive the
-                fields inside of a single record value, or individually
-                (default). If this is set to true, the event will receive a
-                single record of the type provided in ``fields``.
-
-
 

@@ -60,7 +60,6 @@
 @load misc/profiling.bro
 @load misc/scan.bro
 @load misc/stats.bro
-@load misc/trim-trace-file.bro
 @load protocols/conn/known-hosts.bro
 @load protocols/conn/known-services.bro
 @load protocols/conn/vlan-logging.bro

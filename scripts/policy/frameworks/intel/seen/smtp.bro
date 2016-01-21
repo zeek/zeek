@@ -2,6 +2,19 @@
 @load base/protocols/smtp
 @load ./where-locations
 
+# Extract mail addresses out of address specifications conforming RFC 5322
+function extract_mail_addrs(str: string) : set[string]
+	{
+	local raw_addrs = find_all(str, /(^|[<,:[:blank:]])[^<,:[:blank:]@]+"@"[^>,;[:blank:]]+([>,;[:blank:]]|$)/);
+	local addrs: set[string];
+
+	for ( raw_addr in raw_addrs )
+		add addrs[gsub(raw_addr, /[<>,:;[:blank:]]/, "")];
+
+	return addrs;
+	}
+
+
 event mime_end_entity(c: connection)
 	{
 	if ( c?$smtp )
@@ -30,10 +43,10 @@ event mime_end_entity(c: connection)
 
 		if ( c$smtp?$mailfrom )
 			{
-			local mailfromparts = split_string_n(c$smtp$mailfrom, /<.+>/, T, 1);
-			if ( |mailfromparts| > 2 )
+			local mailfrom_addrs = extract_mail_addrs(c$smtp$mailfrom);
+			for ( mailfrom_addr in mailfrom_addrs )
 				{
-				Intel::seen([$indicator=mailfromparts[1][1:-2],
+				Intel::seen([$indicator=mailfrom_addr,
 				             $indicator_type=Intel::EMAIL,
 				             $conn=c,
 				             $where=SMTP::IN_MAIL_FROM]);
@@ -44,10 +57,10 @@ event mime_end_entity(c: connection)
 			{
 			for ( rcptto in c$smtp$rcptto )
 				{
-				local rcpttoparts = split_string_n(rcptto, /<.+>/, T, 1);
-				if ( |rcpttoparts| > 2 )
+				local rcptto_addrs = extract_mail_addrs(rcptto);
+				for ( rcptto_addr in rcptto_addrs )
 					{
-					Intel::seen([$indicator=rcpttoparts[1][1:-2],
+					Intel::seen([$indicator=rcptto_addr,
 					             $indicator_type=Intel::EMAIL,
 					             $conn=c,
 					             $where=SMTP::IN_RCPT_TO]);
@@ -57,10 +70,10 @@ event mime_end_entity(c: connection)
 
 		if ( c$smtp?$from )
 			{
-			local fromparts = split_string_n(c$smtp$from, /<.+>/, T, 1);
-			if ( |fromparts| > 2 )
+			local from_addrs = extract_mail_addrs(c$smtp$from);
+			for ( from_addr in from_addrs )
 				{
-				Intel::seen([$indicator=fromparts[1][1:-2],
+				Intel::seen([$indicator=from_addr,
 				             $indicator_type=Intel::EMAIL,
 				             $conn=c,
 				             $where=SMTP::IN_FROM]);
@@ -71,10 +84,10 @@ event mime_end_entity(c: connection)
 			{
 			for ( email_to in c$smtp$to )
 				{
-				local toparts = split_string_n(email_to, /<.+>/, T, 1);
-				if ( |toparts| > 2 )
+				local email_to_addrs = extract_mail_addrs(email_to);
+				for ( email_to_addr in email_to_addrs )
 					{
-					Intel::seen([$indicator=toparts[1][1:-2],
+					Intel::seen([$indicator=email_to_addr,
 					             $indicator_type=Intel::EMAIL,
 					             $conn=c,
 					             $where=SMTP::IN_TO]);
@@ -84,10 +97,10 @@ event mime_end_entity(c: connection)
 
 		if ( c$smtp?$reply_to )
 			{
-			local replytoparts = split_string_n(c$smtp$reply_to, /<.+>/, T, 1);
-			if ( |replytoparts| > 2 )
+			local replyto_addrs = extract_mail_addrs(c$smtp$reply_to);
+			for ( replyto_addr in replyto_addrs )
 				{
-				Intel::seen([$indicator=replytoparts[1][1:-2],
+				Intel::seen([$indicator=replyto_addr,
 				             $indicator_type=Intel::EMAIL,
 				             $conn=c,
 				             $where=SMTP::IN_REPLY_TO]);

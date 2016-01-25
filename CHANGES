@@ -1,4 +1,8 @@
 
+2.4-256 | 2016-01-25 14:23:33 -0800
+
+  * Update copyright year for Sphinx. (Johanna Amann)
+
 2.4-253 | 2016-01-20 17:41:20 -0800
 
   * Support of RadioTap encapsulation for 802.11 (Seth Hall)

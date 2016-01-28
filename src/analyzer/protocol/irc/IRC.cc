@@ -601,7 +601,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		return;
 		}
 
-	else if ( irc_privmsg_message || (irc_dcc_message && command == "PRIVMSG") )
+	else if ( ( irc_privmsg_message || irc_dcc_message ) && command == "PRIVMSG")
 		{
 		unsigned int pos = params.find(' ');
 		if ( pos >= params.size() )

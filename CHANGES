@@ -1,5 +1,7 @@
 
-2.4-256 | 2016-01-25 14:23:33 -0800
+2.4-260 | 2016-01-28 08:05:27 -0800
+
+  * Correct irc_privmsg_message event handling bug. (Mark Taylor)
 
   * Update copyright year for Sphinx. (Johanna Amann)
 

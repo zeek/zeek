@@ -46,7 +46,7 @@ event delayed_notice()
 	        $identifier="this identifier is static"]);
 	}
 
-@if ( Cluster::local_node_type() == Cluster::WORKER )
+@if ( Cluster::has_local_role(Cluster::WORKER) )
 
 event ready()
     {
@@ -64,7 +64,7 @@ event Notice::suppressed(n: Notice::Info)
 
 @endif
 
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
+@if ( Cluster::has_local_role(Cluster::MANAGER) )
 
 global peer_count = 0;
 

@@ -39,7 +39,7 @@ event delayed_notice()
 		NOTICE([$note=Test_Notice, $msg="test notice!"]);
 	}
 
-@if ( Cluster::local_node_type() == Cluster::WORKER )
+@if ( Cluster::has_local_role(Cluster::WORKER) )
 
 event ready()
 	{
@@ -48,7 +48,7 @@ event ready()
 
 @endif
 
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
+@if ( Cluster::has_local_role(Cluster::MANAGER) )
 
 global peer_count = 0;
 

@@ -100,7 +100,7 @@ event ready_for_data()
 		}
 	}
 
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
+@if ( Cluster::has_local_role(Cluster::MANAGER) )
 
 global peer_count = 0;
 event Broker::incoming_connection_established(peer_name: string)

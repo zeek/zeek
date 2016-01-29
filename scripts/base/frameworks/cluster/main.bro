@@ -313,7 +313,7 @@ function has_local_role(role: NodeRole): bool
 	if ( !is_enabled() )
 		return F;
 
-	if ( node in nodes && nodes[node]?$node_roles && role in nodes[node]$node_roles )
+	if ( node in nodes && role in nodes[node]$node_roles )
 		return T;
 		
 	return F;
@@ -321,7 +321,6 @@ function has_local_role(role: NodeRole): bool
 
 function set_local_roles(reset: bool)
 	{
-	print " node is ", node;
 	# If reset is required, reset the node with the first call to a set_role_*
 	# function.
 	local reset_node = reset;
@@ -466,14 +465,12 @@ event Broker::incoming_connection_established(peer_name: string) &priority=5
 	{
 	if ( peer_name in nodes && WORKER in nodes[peer_name]$node_roles )
 		++worker_count;
-	Log::write(Cluster::LOG, [$ts=1, $message="Cluster: incoming connection established"]);
 	}
 
 event Broker::incoming_connection_broken(peer_name: string) &priority=5
 	{
 	if ( peer_name in nodes && WORKER in nodes[peer_name]$node_roles )
 		--worker_count;
-	Log::write(Cluster::LOG, [$ts=2, $message="Cluster: incoming connection broken"]);
 	}
 
 event bro_init() &priority=5

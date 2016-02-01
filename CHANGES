@@ -1,4 +1,10 @@
 
+2.4-266 | 2016-02-01 12:36:30 -0800
+
+  * Add testcase for CVE-2015-3194. (Johanna Amann)
+
+  * Fix portability issue with use of mktemp. (Daniel Thayer)
+
 2.4-260 | 2016-01-28 08:05:27 -0800
 
   * Correct irc_privmsg_message event handling bug. (Mark Taylor)

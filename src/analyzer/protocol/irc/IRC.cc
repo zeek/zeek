@@ -268,7 +268,9 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				{
 				if ( parts[i][0] == '@' )
 					parts[i] = parts[i].substr(1);
-				set->Assign(new StringVal(parts[i].c_str()), 0);
+				Val* idx = new StringVal(parts[i].c_str());
+				set->Assign(idx, 0);
+				Unref(idx);
 				}
 			vl->append(set);
 

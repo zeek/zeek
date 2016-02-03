@@ -276,7 +276,6 @@ when	return TOK_WHEN;
 &type_column	return TOK_ATTR_TYPE_COLUMN;
 &read_expire	return TOK_ATTR_EXPIRE_READ;
 &redef		return TOK_ATTR_REDEF;
-&weaken	return TOK_ATTR_WEAKEN;
 &write_expire	return TOK_ATTR_EXPIRE_WRITE;
 
 &encrypt {

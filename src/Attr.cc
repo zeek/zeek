@@ -18,7 +18,7 @@ const char* attr_name(attr_tag t)
 		"&encrypt",
 		"&raw_output", "&mergeable", "&priority",
 		"&group", "&log", "&error_handler", "&type_column",
-		"(&tracked)", "&deprecated", "&weaken",
+		"(&tracked)", "&deprecated",
 	};
 
 	return attr_names[int(t)];
@@ -451,11 +451,6 @@ void Attributes::CheckAttr(Attr* a)
 	case ATTR_LOG:
 		if ( ! threading::Value::IsCompatibleType(type) )
 			Error("&log applied to a type that cannot be logged");
-		break;
-
-	case ATTR_WEAKEN:
-		if ( ! in_record )
-			Error("&weaken applied outside of record");
 		break;
 
 	case ATTR_TYPE_COLUMN:

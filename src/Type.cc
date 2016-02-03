@@ -1129,10 +1129,7 @@ void RecordType::DescribeFields(ODesc* d) const
 			const TypeDecl* td = FieldDecl(i);
 			d->Add(td->id);
 			d->Add(":");
-			if ( td->FindAttr(ATTR_WEAKEN) )
-				d->Add("<weakened>");
-			else
-				td->type->Describe(d);
+			td->type->Describe(d);
 			d->Add(";");
 			}
 		}
@@ -1173,10 +1170,7 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 			}
 
 		const TypeDecl* td = FieldDecl(i);
-		if ( td->FindAttr(ATTR_WEAKEN) )
-			d->Add("<weakened>");
-		else
-			td->DescribeReST(d);
+		td->DescribeReST(d);
 
 		if ( func_args )
 			continue;

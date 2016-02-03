@@ -351,3 +351,24 @@ void ODesc::Clear()
 		}
 	}
 
+bool ODesc::PushType(const BroType* type)
+	{
+	auto res = encountered_types.insert(type);
+	return std::get<1>(res);
+	}
+
+bool ODesc::PopType(const BroType* type)
+	{
+	size_t res = encountered_types.erase(type);
+	return (res == 1);
+	}
+
+bool ODesc::FindType(const BroType* type)
+	{
+	auto res = encountered_types.find(type);
+
+	if ( res != encountered_types.end() )
+		return true;
+
+	return false;
+	}

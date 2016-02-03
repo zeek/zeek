@@ -182,6 +182,7 @@ public:
 		CHECK_TYPE_TAG(TYPE_FUNC, "BroType::AsFuncType");
 		return (const FuncType*) this;
 		}
+
 	FuncType* AsFuncType()
 		{
 		CHECK_TYPE_TAG(TYPE_FUNC, "BroType::AsFuncType");
@@ -201,7 +202,7 @@ public:
 		}
 
 	const VectorType* AsVectorType() const
-	        {
+		{
 		CHECK_TYPE_TAG(TYPE_VECTOR, "BroType::AsVectorType");
 		return (VectorType*) this;
 		}
@@ -219,19 +220,19 @@ public:
 		}
 
 	VectorType* AsVectorType()
-	        {
+		{
 		CHECK_TYPE_TAG(TYPE_VECTOR, "BroType::AsVectorType");
 		return (VectorType*) this;
 		}
 
 	const TypeType* AsTypeType() const
-	        {
+		{
 		CHECK_TYPE_TAG(TYPE_TYPE, "BroType::AsTypeType");
 		return (TypeType*) this;
 		}
 
 	TypeType* AsTypeType()
-	        {
+		{
 		CHECK_TYPE_TAG(TYPE_TYPE, "BroType::AsTypeType");
 		return (TypeType*) this;
 		}

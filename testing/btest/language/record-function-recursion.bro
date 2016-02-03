@@ -16,4 +16,5 @@ redef record Outer += {
 event bro_init() {
 	local o = Outer();
 	print o;
+	print type_name(o);
 }

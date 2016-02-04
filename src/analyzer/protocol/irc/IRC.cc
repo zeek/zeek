@@ -572,6 +572,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		case 670:
 			// StartTLS success reply to StartTLS
 			StartTLS();
+			break;
 
 		// All other server replies.
 		default:

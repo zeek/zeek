@@ -982,7 +982,6 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		val_list* vl = new val_list;
 		vl->append(BuildConnVal());
 		vl->append(new Val(orig, TYPE_BOOL));
-		vl->append(new Val(orig, TYPE_BOOL));
 		vl->append(new StringVal(nickname.c_str()));
 		vl->append(new StringVal(message.c_str()));
 

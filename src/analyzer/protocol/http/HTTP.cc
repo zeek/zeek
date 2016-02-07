@@ -1209,7 +1209,14 @@ int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 	const char* end_of_method = get_HTTP_token(line, end_of_line);
 
 	if ( end_of_method == line )
+        {
+            // something went wrong with get_HTTP_token
+            // perform a weak test to see if the string "HTTP/"
+            // is found at the end of the RequestLine
+            if ( strcasecmp_n(6, end_of_line - 9, " HTTP/") == 0 )
+                goto evasion;
 		goto error;
+        }
 
 	rest = skip_whitespace(end_of_method, end_of_line);
 
@@ -1229,6 +1236,10 @@ int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 			unescaped_URI->AsString()->Len(), true, true, true, true);
 
 	return 1;
+
+evasion:
+    reporter->Weird(Conn(), "possible_evasion_attempt");
+    return 0;
 
 error:
 	reporter->Weird(Conn(), "bad_HTTP_request");

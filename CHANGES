@@ -1,4 +1,8 @@
 
+2.4-272 | 2016-02-08 14:27:58 -0800
+
+  * fix memory leaks in find_all() and IRC analyzer. (Dirk Leinenbach)
+
 2.4-270 | 2016-02-08 13:00:57 -0800
 
   * Removed duplicate parameter for IRC "QUIT" event handler. (Mark Taylor)

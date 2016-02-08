@@ -1,4 +1,8 @@
 
+2.4-270 | 2016-02-08 13:00:57 -0800
+
+  * Removed duplicate parameter for IRC "QUIT" event handler. (Mark Taylor)
+
 2.4-267 | 2016-02-01 12:38:32 -0800
 
   * Add testcase for CVE-2015-3194. (Johanna Amann)

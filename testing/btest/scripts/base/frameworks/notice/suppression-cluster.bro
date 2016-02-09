@@ -59,7 +59,7 @@ event ready()
 event Notice::suppressed(n: Notice::Info)
 	{
 	if ( Cluster::node == "worker-1" )
-		terminate_communication();
+		terminate();
 	}
 
 @endif

@@ -61,7 +61,7 @@ event Broker::incoming_connection_established(peer_name: string)
 
 event Notice::log_notice(rec: Notice::Info)
 	{
-	terminate_communication();
+	terminate();
 	}
 
 @endif

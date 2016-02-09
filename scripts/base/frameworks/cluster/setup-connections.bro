@@ -212,7 +212,7 @@ event Cluster::update_cluster_node(name: string, roles: set[string], ip: string,
 		process_node(name);
 
 	if ( set_roles )
-		Cluster::set_local_roles(T);
+		Cluster::set_local_roles();
 	if ( update_connections )
 		event Cluster::node_updated(name);
 }

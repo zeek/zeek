@@ -1840,7 +1840,7 @@ const max_timer_expires = 300 &redef;
 
 ## With a similar trade-off, this gives the number of remote events
 ## to process in a batch before interleaving other activity.
-global max_remote_events_processed = 10 &redef;
+const max_remote_events_processed = 10 &redef;
 
 # These need to match the definitions in Login.h.
 #
@@ -3612,7 +3612,7 @@ const trace_output_file = "";
 ## analysis triggers a crash.
 ##
 ## .. bro:see:: trace_output_file
-global record_all_packets = F &redef;
+const record_all_packets = F &redef;
 
 ## Ignore certain TCP retransmissions for :bro:see:`conn_stats`.  Some
 ## connections (e.g., SSH) retransmit the acknowledged last byte to keep the

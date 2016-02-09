@@ -20,12 +20,10 @@ export {
 	#global flist: set[string] &optional;
 
 	## If true, local logging is by default enabled for all filters.
-	#const enable_local_logging = T &redef;
-	global enable_local_logging = T &redef;
+	const enable_local_logging = T &redef;
 
 	## If true, remote logging is by default enabled for all filters.
-	#const enable_remote_logging = T &redef;
-	global enable_remote_logging = T &redef;
+	const enable_remote_logging = T &redef;
 
 	## Default writer to use if a filter does not specify anything else.
 	const default_writer = WRITER_ASCII &redef;
@@ -98,37 +96,25 @@ export {
 	##
 	## Note that this is overridden by the BroControl LogRotationInterval
 	## option.
-	#const default_rotation_interval = 0secs &redef;
-	global default_rotation_interval = 0secs &redef;
+	const default_rotation_interval = 0secs &redef;
 
 	## Default alarm summary mail interval. Zero disables alarm summary
 	## mails.
 	##
 	## Note that this is overridden by the BroControl MailAlarmsInterval
 	## option.
-	#const default_mail_alarms_interval = 0secs &redef;
-	global default_mail_alarms_interval = 0secs &redef;
+	const default_mail_alarms_interval = 0secs &redef;
 
 	## Default naming format for timestamps embedded into filenames.
 	## Uses a ``strftime()`` style.
 	const default_rotation_date_format = "%Y-%m-%d-%H-%M-%S" &redef;
 
 	## Default shell command to run on rotated files. Empty for none.
-	#const default_rotation_postprocessor_cmd = "" &redef;
-	global default_rotation_postprocessor_cmd = "" &redef;
+	const default_rotation_postprocessor_cmd = "" &redef;
 
 	## Specifies the default postprocessor function per writer type.
 	## Entries in this table are initialized by each writer type.
 	const default_rotation_postprocessors: table[Writer] of function(info: RotationInfo) : bool &redef;
-
-	## Update logging after role change
-	##
-	## llocal: bool that determines if node does local logging
-	## lremote: bool that determines if node does remote logging
-	## rinterval: log rotation interval
-	## minterval: mail alarms interval
-	## pproc: string rotation postprocessors cmd 
-	global update_logging: function(reset: bool, llocal: bool, lremote: bool, rinterval: interval, minterval: interval, pproc: string);
 
 	## A filter type describes how to customize logging streams.
 	type Filter: record {
@@ -577,44 +563,8 @@ function remove_default_filter(id: ID) : bool
 	return remove_filter(id, "default");
 	}
 
-function update_logging(reset: bool, llocal: bool, lremote: bool, rinterval: interval, minterval: interval, pproc: string)
+event bro_init() &priority=5
 	{
-	enable_local_logging = (!reset && enable_local_logging) || llocal;
-	enable_remote_logging = (!reset && enable_remote_logging) || lremote;
-
-	# Set log rotation interval
-	if ( default_rotation_interval == 0sec || default_rotation_interval > rinterval || reset )
-		default_rotation_interval = rinterval;
-
-	# Set alarm summary mail interval.
-	if ( default_mail_alarms_interval == 0sec || default_mail_alarms_interval > minterval || reset )
-		default_mail_alarms_interval = minterval;
-
-	# Update postprocessor command for logs
-	if ( default_rotation_postprocessor_cmd != "archive-log" || reset )
-		default_rotation_postprocessor_cmd = pproc;
-
-	for ( [id, name] in filters )
-		{
-		# Turn on or off remote logs
-		if ( enable_remote_logging )
-			{
-			local topic = fmt("bro/log/%s", id);
-			Broker::publish_topic(topic);
-			Broker::enable_remote_logs(id);
-			}
-		else if ( Broker::remote_logs_enabled(id) )
-			Broker::disable_remote_logs(id);
-
-		# Update filter description
-		filters[id, name]$log_local = enable_local_logging;
-		filters[id, name]$log_remote = enable_remote_logging;
-		if ( fmt("%s", id) == "Notice::ALARM_LOG" )
-			filters[id,name]$interv = default_mail_alarms_interval;
-		else
-			filters[id,name]$interv = default_rotation_interval;
-
-		__remove_filter(id, name);
-		__add_filter(id, filters[id,name]);
-		}
+	if (enable_local_logging)
+		Broker::subscribe_to_logs("bro/log/");
 	}

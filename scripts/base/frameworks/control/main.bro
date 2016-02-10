@@ -79,6 +79,6 @@ export {
 
 event terminate_event()
 	{
-	terminate_communication();
+	terminate();
 	}
 

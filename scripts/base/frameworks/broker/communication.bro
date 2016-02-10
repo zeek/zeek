@@ -60,7 +60,7 @@ export {
 		## The severity of the communication event message.
 		level:               string &log &optional;
 		## A message describing the communication event between Bro or
-		## Broccoli instances.
+		## Broker instances.
 		message:             string &log;
 	};
 
@@ -107,7 +107,7 @@ export {
 
 	};
 
-	## The table of Bro or Broccoli nodes that Bro will initiate connections
+	## The table of Bro or Broker nodes that Bro will initiate connections
 	## to or respond to connections from.  Note that BroControl sets this
 	## automatically.
 	global nodes: table[string] of Node &redef;

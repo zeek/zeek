@@ -112,16 +112,16 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			return;
 
 		unsigned int pos = myline.find(' ');
+		// Not all commands require parameters
 		if ( pos > (unsigned int) length )
-			{
-			Weird("irc_invalid_line");
-			return;
-			}
-
+			pos = (unsigned int) length;
 		command = myline.substr(0, pos);
 		for ( unsigned int i = 0; i < command.size(); ++i )
 			command[i] = toupper(command[i]);
 
+                // Adjust for the no-parameter case
+                if ( pos == (unsigned int) length )
+                        pos--;
 		myline = myline.substr(pos + 1);
 		}
 

@@ -21,11 +21,11 @@ export {
 		## Broker port to connect to
 		acld_port: port;
 		## Function that can decide weather to accept add request
-		add_pred: function(p: PluginState, r: Rule, ar: AclRule): bool &optional &weaken;
+		add_pred: function(p: PluginState, r: Rule, ar: AclRule): bool &optional;
 	};
 
 	## Instantiates the acld plugin.
-	global create_acld: function(config: AcldConfig) : PluginState;	
+	global create_acld: function(config: AcldConfig) : PluginState;
 
 	redef record PluginState += {
 		acld_config: AcldConfig &optional;

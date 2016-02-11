@@ -91,7 +91,7 @@ function ryu_flow_mod(state: OpenFlow::ControllerState, match: ofp_match, flow_m
 	# Generate our ryu_flow_mod record for the ReST API call.
 	local mod: ryu_ofp_flow_mod = ryu_ofp_flow_mod(
 		$dpid=state$ryu_dpid,
-		$cookie=OpenFlow::generate_cookie(flow_mod$cookie),
+		$cookie=flow_mod$cookie,
 		$idle_timeout=flow_mod$idle_timeout,
 		$hard_timeout=flow_mod$hard_timeout,
 		$priority=flow_mod$priority,
@@ -122,7 +122,7 @@ function ryu_flow_mod(state: OpenFlow::ControllerState, match: ofp_match, flow_m
 		{
 		print url;
 		print to_json(mod);
-		event OpenFlow::flow_mod_success(match, flow_mod);
+		event OpenFlow::flow_mod_success(state$_name, match, flow_mod);
 		return T;
 		}
 
@@ -137,11 +137,11 @@ function ryu_flow_mod(state: OpenFlow::ControllerState, match: ofp_match, flow_m
 	when ( local result = ActiveHTTP::request(request) )
 		{
 		if(result$code == 200)
-			event OpenFlow::flow_mod_success(match, flow_mod, result$body);
+			event OpenFlow::flow_mod_success(state$_name, match, flow_mod, result$body);
 		else
 			{
 			Reporter::warning(fmt("Flow modification failed with error: %s", result$body));
-			event OpenFlow::flow_mod_failure(match, flow_mod, result$body);
+			event OpenFlow::flow_mod_failure(state$_name, match, flow_mod, result$body);
 			return F;
 			}
 		}

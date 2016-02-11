@@ -24,6 +24,15 @@ function register_controller(tpe: OpenFlow::Plugin, name: string, controller: Co
 	controller$state$_name = cat(tpe, name);
 	controller$state$_plugin = tpe;
 
-	if ( controller?$init )
-		controller$init(controller$state);
+	register_controller_impl(tpe, name, controller);
+	}
+
+function unregister_controller(controller: Controller)
+	{
+	unregister_controller_impl(controller);
+	}
+
+function lookup_controller(name: string): vector of Controller
+	{
+	return lookup_controller_impl(name);
 	}

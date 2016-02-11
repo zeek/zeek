@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	netcontrol
-#open	2015-07-08-19-33-52
+#open	2016-02-11-21-07-34
 #fields	ts	category	cmd	state	action	target	entity_type	entity	msg	location	plugin
 #types	time	enum	string	enum	string	enum	string	string	string	string	string
 0.000000	NetControl::MESSAGE	-	-	-	-	-	-	activated plugin with priority 0	-	Openflow - OpenFlog Log Plugin - DPID 42
@@ -11,4 +11,12 @@
 1254722767.875996	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	10.10.1.4/32	-	(empty)	Openflow - OpenFlog Log Plugin - DPID 42
 1254722767.875996	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	10.10.1.4/32/1470->74.53.140.153/32/25	-	(empty)	Openflow - OpenFlog Log Plugin - DPID 42
 1254722767.875996	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	10.10.1.4/32	-	(empty)	Openflow - OpenFlog Log Plugin - DPID 42
-#close	2015-07-08-19-33-52
+1437831787.861602	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	192.168.133.100/32/49648->192.168.133.102/32/25	-	(empty)	Openflow - OpenFlog Log Plugin - DPID 42
+1437831787.861602	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	192.168.133.100/32	-	(empty)	Openflow - OpenFlog Log Plugin - DPID 42
+1437831787.861602	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	192.168.133.100/32/49648->192.168.133.102/32/25	-	(empty)	Openflow - OpenFlog Log Plugin - DPID 42
+1437831787.861602	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	192.168.133.100/32	-	(empty)	Openflow - OpenFlog Log Plugin - DPID 42
+1437831799.610433	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	192.168.133.100/32/49655->17.167.150.73/32/443	-	(empty)	Openflow - OpenFlog Log Plugin - DPID 42
+1437831799.610433	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	192.168.133.100/32	-	(empty)	Openflow - OpenFlog Log Plugin - DPID 42
+1437831799.610433	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	192.168.133.100/32/49655->17.167.150.73/32/443	-	(empty)	Openflow - OpenFlog Log Plugin - DPID 42
+1437831799.610433	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	192.168.133.100/32	-	(empty)	Openflow - OpenFlog Log Plugin - DPID 42
+#close	2016-02-11-21-07-34

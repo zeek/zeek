@@ -30,7 +30,7 @@ event BrokerComm::outgoing_connection_established(peer_address: string,
 	print "BrokerComm::outgoing_connection_established", peer_address, peer_port;
 	continue_processing();
 	OpenFlow::flow_clear(of_controller);
-	OpenFlow::flow_mod(of_controller, [], [$cookie=1, $command=OpenFlow::OFPFC_ADD, $actions=[$out_ports=vector(3, 7)]]);
+	OpenFlow::flow_mod(of_controller, [], [$cookie=OpenFlow::generate_cookie(1), $command=OpenFlow::OFPFC_ADD, $actions=[$out_ports=vector(3, 7)]]);
 	}
 
 event BrokerComm::outgoing_connection_broken(peer_address: string,
@@ -46,7 +46,7 @@ event connection_established(c: connection)
 	local match_rev = OpenFlow::match_conn(c$id, T);
 
 	local flow_mod: OpenFlow::ofp_flow_mod = [
-		$cookie=42,
+		$cookie=OpenFlow::generate_cookie(42),
 		$command=OpenFlow::OFPFC_ADD,
 		$idle_timeout=30,
 		$priority=5
@@ -56,12 +56,12 @@ event connection_established(c: connection)
 	OpenFlow::flow_mod(of_controller, match_rev, flow_mod);
 	}
 
-event OpenFlow::flow_mod_success(match: OpenFlow::ofp_match, flow_mod: OpenFlow::ofp_flow_mod, msg: string)
+event OpenFlow::flow_mod_success(name: string, match: OpenFlow::ofp_match, flow_mod: OpenFlow::ofp_flow_mod, msg: string)
 	{
 	print "Flow_mod_success";
 	}
 
-event OpenFlow::flow_mod_failure(match: OpenFlow::ofp_match, flow_mod: OpenFlow::ofp_flow_mod, msg: string)
+event OpenFlow::flow_mod_failure(name: string, match: OpenFlow::ofp_match, flow_mod: OpenFlow::ofp_flow_mod, msg: string)
 	{
 	print "Flow_mod_failure";
 	}
@@ -97,15 +97,15 @@ function got_message()
 		terminate();
 	}
 
-event OpenFlow::broker_flow_mod(dpid: count, match: OpenFlow::ofp_match, flow_mod: OpenFlow::ofp_flow_mod)
+event OpenFlow::broker_flow_mod(name: string, dpid: count, match: OpenFlow::ofp_match, flow_mod: OpenFlow::ofp_flow_mod)
 	{
 	print "got flow_mod", dpid, match, flow_mod;
-	BrokerComm::event("bro/event/openflow", BrokerComm::event_args(OpenFlow::flow_mod_success, match, flow_mod, ""));
-	BrokerComm::event("bro/event/openflow", BrokerComm::event_args(OpenFlow::flow_mod_failure, match, flow_mod, ""));
+	BrokerComm::event("bro/event/openflow", BrokerComm::event_args(OpenFlow::flow_mod_success, name, match, flow_mod, ""));
+	BrokerComm::event("bro/event/openflow", BrokerComm::event_args(OpenFlow::flow_mod_failure, name, match, flow_mod, ""));
 	got_message();
 	}
 
-event OpenFlow::broker_flow_clear(dpid: count)
+event OpenFlow::broker_flow_clear(name: string, dpid: count)
 	{
 	print "flow_clear", dpid;
 	got_message();

@@ -11,9 +11,9 @@ export {
 		table_id: count &optional;
 		priority_offset: int &default=+0; ##< add this to all rule priorities. Can be useful if you want the openflow priorities be offset from the netcontrol priorities without having to write a filter function.
 
-		check_pred: function(p: PluginState, r: Rule): bool &optional &weaken;
-		match_pred: function(p: PluginState, e: Entity, m: vector of OpenFlow::ofp_match): vector of OpenFlow::ofp_match &optional &weaken;
-		flow_mod_pred: function(p: PluginState, r: Rule, m: OpenFlow::ofp_flow_mod): OpenFlow::ofp_flow_mod &optional &weaken;
+		check_pred: function(p: PluginState, r: Rule): bool &optional;
+		match_pred: function(p: PluginState, e: Entity, m: vector of OpenFlow::ofp_match): vector of OpenFlow::ofp_match &optional;
+		flow_mod_pred: function(p: PluginState, r: Rule, m: OpenFlow::ofp_flow_mod): OpenFlow::ofp_flow_mod &optional;
 	};
 
 	redef record PluginState += {
@@ -318,7 +318,7 @@ function openflow_remove_rule(p: PluginState, r: Rule) : bool
 	return T;
 	}
 
-event OpenFlow::flow_mod_success(match: OpenFlow::ofp_match, flow_mod: OpenFlow::ofp_flow_mod, msg: string) &priority=3
+event OpenFlow::flow_mod_success(name: string, match: OpenFlow::ofp_match, flow_mod: OpenFlow::ofp_flow_mod, msg: string) &priority=3
 	{
 	local id = OpenFlow::get_cookie_uid(flow_mod$cookie)/2;
 	if ( [id, flow_mod$command] !in of_messages )
@@ -346,7 +346,7 @@ event OpenFlow::flow_mod_success(match: OpenFlow::ofp_match, flow_mod: OpenFlow:
 		event NetControl::rule_removed(r, p, msg);
 	}
 
-event OpenFlow::flow_mod_failure(match: OpenFlow::ofp_match, flow_mod: OpenFlow::ofp_flow_mod, msg: string) &priority=3
+event OpenFlow::flow_mod_failure(name: string, match: OpenFlow::ofp_match, flow_mod: OpenFlow::ofp_flow_mod, msg: string) &priority=3
 	{
 	local id = OpenFlow::get_cookie_uid(flow_mod$cookie)/2;
 	if ( [id, flow_mod$command] !in of_messages )
@@ -359,7 +359,7 @@ event OpenFlow::flow_mod_failure(match: OpenFlow::ofp_match, flow_mod: OpenFlow:
 	event NetControl::rule_error(r, p, msg);
 	}
 
-event OpenFlow::flow_removed(match: OpenFlow::ofp_match, cookie: count, priority: count, reason: count, duration_sec: count, idle_timeout: count, packet_count: count, byte_count: count)
+event OpenFlow::flow_removed(name: string, match: OpenFlow::ofp_match, cookie: count, priority: count, reason: count, duration_sec: count, idle_timeout: count, packet_count: count, byte_count: count)
 	{
 	local id = OpenFlow::get_cookie_uid(cookie)/2;
 	if ( id !in of_flows )

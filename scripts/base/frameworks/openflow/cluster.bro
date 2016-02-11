@@ -14,8 +14,6 @@ export {
 ## Workers need ability to forward commands to manager.
 redef Cluster::worker2manager_events += /OpenFlow::cluster_flow_(mod|clear)/;
 
-global name_to_controller: table[string] of Controller;
-
 # the flow_mod function wrapper
 function flow_mod(controller: Controller, match: ofp_match, flow_mod: ofp_flow_mod): bool
 	{
@@ -81,14 +79,33 @@ function register_controller(tpe: OpenFlow::Plugin, name: string, controller: Co
 	if ( Cluster::local_node_type() != Cluster::MANAGER )
 		return;
 
-	if ( controller$state$_name in name_to_controller )
-		{
-		Reporter::error("OpenFlow Controller %s was already registered. Ignored duplicate registration");
+	register_controller_impl(tpe, name, controller);
+	}
+
+function unregister_controller(controller: Controller)
+	{
+	# we only run the on the manager.
+	if ( Cluster::local_node_type() != Cluster::MANAGER )
 		return;
-		}
 
-	name_to_controller[controller$state$_name] = controller;
+	unregister_controller_impl(controller);
+	}
 
-	if ( controller?$init )
-		controller$init(controller$state);
+function lookup_controller(name: string): vector of Controller
+	{
+	# we only run the on the manager. Otherwhise we don't have a mapping or state -> return empty
+	if ( Cluster::local_node_type() != Cluster::MANAGER )
+		return vector();
+
+	# I am not quite sure if we can actually get away with this - in the 
+	# current state, this means that the individual nodes cannot lookup
+	# a controller by name.
+	#
+	# This means that there can be no reactions to things on the actual
+	# worker nodes - because they cannot look up a name. On the other hand - 
+	# currently we also do not even send the events to the worker nodes (at least
+	# not if we are using broker). Because of that I am not really feeling that
+	# badly about it...
+
+	return lookup_controller_impl(name);
 	}

@@ -108,35 +108,6 @@ export {
 		actions: ofp_flow_action &default=ofp_flow_action();
 	} &log;
 
-# Functionality using this is currently not implemented. At all.
-#	## Body of reply to OFPST_FLOW request.
-#	type ofp_flow_stats: record {
-#		## ID of table flow came from.
-#		table_id: count;
-#		## Description of fields.
-#		match: ofp_match;
-#		## Time flow has been alive in seconds.
-#		duration_sec: count;
-#		## Time flow has been alive in nanoseconds beyond
-#		## duration_sec.
-#		duration_nsec: count;
-#		## Priority of the entry. Only meaningful
-#		## when this is not an exact-match entry.
-#		priority: count;
-#		## Number of seconds idle before expiration.
-#		idle_timeout: count;
-#		## Number of seconds before expiration.
-#		hard_timeout: count;
-#		## Opaque controller-issued identifier.
-#		cookie: count;
-#		## Number of packets in flow.
-#		packet_count: count;
-#		## Number of bytes in flow.
-#		byte_count: count;
-#		## Actions
-#		actions: vector of ofp_action_output;
-#	};
-
 	## Controller record representing an openflow controller
 	type Controller: record {
 		## Controller related state.
@@ -147,6 +118,8 @@ export {
 		describe: function(state: ControllerState): string;
 		## one-time initialization function.
 		init: function (state: ControllerState) &optional;
+		## one-time destruction function
+		destroy: function (state: ControllerState) &optional;
 		## flow_mod function
 		flow_mod: function(state: ControllerState, match: ofp_match, flow_mod: ofp_flow_mod): bool &optional;
 		## flow_clear function

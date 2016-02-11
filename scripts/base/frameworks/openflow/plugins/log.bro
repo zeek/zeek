@@ -55,7 +55,7 @@ function log_flow_mod(state: ControllerState, match: ofp_match, flow_mod: OpenFl
 	{
 	Log::write(OpenFlow::LOG, [$ts=network_time(), $dpid=state$log_dpid, $match=match, $flow_mod=flow_mod]);
 	if ( state$log_success_event )
-		event OpenFlow::flow_mod_success(match, flow_mod);
+		event OpenFlow::flow_mod_success(state$_name, match, flow_mod);
 
 	return T;
 	}

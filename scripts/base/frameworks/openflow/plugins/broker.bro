@@ -32,8 +32,8 @@ export {
 		broker_topic: string &optional;
 	};
 
-	global broker_flow_mod: event(dpid: count, match: ofp_match, flow_mod: ofp_flow_mod);
-	global broker_flow_clear: event(dpid: count);
+	global broker_flow_mod: event(name: string, dpid: count, match: ofp_match, flow_mod: ofp_flow_mod);
+	global broker_flow_clear: event(name: string, dpid: count);
 }
 
 function broker_describe(state: ControllerState): string
@@ -43,14 +43,14 @@ function broker_describe(state: ControllerState): string
 
 function broker_flow_mod_fun(state: ControllerState, match: ofp_match, flow_mod: OpenFlow::ofp_flow_mod): bool
 	{
-	BrokerComm::event(state$broker_topic, BrokerComm::event_args(broker_flow_mod, state$broker_dpid, match, flow_mod));
+	BrokerComm::event(state$broker_topic, BrokerComm::event_args(broker_flow_mod, state$_name, state$broker_dpid, match, flow_mod));
 
 	return T;
 	}
 
 function broker_flow_clear_fun(state: OpenFlow::ControllerState): bool
 	{
-	BrokerComm::event(state$broker_topic, BrokerComm::event_args(broker_flow_clear, state$broker_dpid));
+	BrokerComm::event(state$broker_topic, BrokerComm::event_args(broker_flow_clear, state$_name, state$broker_dpid));
 
 	return T;
 	}

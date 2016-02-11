@@ -12,7 +12,7 @@ event bro_init()
 	of_controller$state$ryu_debug=T;
 
 	OpenFlow::flow_clear(of_controller);
-	OpenFlow::flow_mod(of_controller, [], [$cookie=1, $command=OpenFlow::OFPFC_ADD, $actions=[$out_ports=vector(3, 7)]]);
+	OpenFlow::flow_mod(of_controller, [], [$cookie=OpenFlow::generate_cookie(1), $command=OpenFlow::OFPFC_ADD, $actions=[$out_ports=vector(3, 7)]]);
 	}
 
 event connection_established(c: connection)
@@ -21,7 +21,7 @@ event connection_established(c: connection)
 	local match_rev = OpenFlow::match_conn(c$id, T);
 
 	local flow_mod: OpenFlow::ofp_flow_mod = [
-		$cookie=42,
+		$cookie=OpenFlow::generate_cookie(42),
 		$command=OpenFlow::OFPFC_ADD,
 		$idle_timeout=30,
 		$priority=5
@@ -31,7 +31,7 @@ event connection_established(c: connection)
 	OpenFlow::flow_mod(of_controller, match_rev, flow_mod);
 	}
 
-event OpenFlow::flow_mod_success(match: OpenFlow::ofp_match, flow_mod: OpenFlow::ofp_flow_mod, msg: string)
+event OpenFlow::flow_mod_success(name: string, match: OpenFlow::ofp_match, flow_mod: OpenFlow::ofp_flow_mod, msg: string)
 	{
 	print "Flow_mod_success";
 	}

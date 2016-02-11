@@ -33,7 +33,7 @@ event connection_established(c: connection)
 	local match_rev = OpenFlow::match_conn(c$id, T);
 
 	local flow_mod: OpenFlow::ofp_flow_mod = [
-		$cookie=42,
+		$cookie=OpenFlow::generate_cookie(42),
 		$command=OpenFlow::OFPFC_ADD,
 		$idle_timeout=30,
 		$priority=5
@@ -41,6 +41,8 @@ event connection_established(c: connection)
 
 	OpenFlow::flow_mod(of_controller, match, flow_mod);
 	OpenFlow::flow_mod(of_controller, match_rev, flow_mod);
+
+	terminate();
 	}
 
 event terminate_me() {

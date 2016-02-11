@@ -1,4 +1,8 @@
 
+2.4-276 | 2016-02-10 21:29:33 -0800
+
+  * Allow IRC commands to not have parameters. (Mark Taylor)
+
 2.4-272 | 2016-02-08 14:27:58 -0800
 
   * fix memory leaks in find_all() and IRC analyzer. (Dirk Leinenbach)

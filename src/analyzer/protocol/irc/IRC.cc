@@ -55,7 +55,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		return;
 		}
 
-	string myline = string((const char*) line);
+	string myline = string((const char*) line, length);
 
 	// Check for prefix.
 	string prefix = "";
@@ -106,27 +106,28 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		}
 	else
 		{ // get command
-
-		// special case that has no arguments
-		if ( myline == "STARTTLS" )
-			return;
-
 		unsigned int pos = myline.find(' ');
+		// Not all commands require parameters
 		if ( pos > (unsigned int) length )
-			{
-			Weird("irc_invalid_line");
-			return;
-			}
+			pos = (unsigned int) length;
 
 		command = myline.substr(0, pos);
 		for ( unsigned int i = 0; i < command.size(); ++i )
 			command[i] = toupper(command[i]);
+
+		// Adjust for the no-parameter case
+		if ( pos == (unsigned int) length )
+			pos--;
 
 		myline = myline.substr(pos + 1);
 		}
 
 	// Extract parameters.
 	string params = myline;
+
+	// special case
+	if ( command == "STARTTLS" )
+		return;
 
 	// Check for Server2Server - connections with ZIP enabled.
 	if ( orig && orig_status == WAIT_FOR_REGISTRATION )

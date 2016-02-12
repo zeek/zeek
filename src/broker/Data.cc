@@ -83,9 +83,14 @@ struct val_converter {
 		case TYPE_STRING:
 			return new StringVal(a.size(), a.data());
 		case TYPE_OPAQUE:
-			// FIXME convert from string to opaque here
-			//std::cout << " here we go with reconverting string to opaque" << std::endl; 
-			return nullptr;
+			{
+			SerializationFormat* form = new BinarySerializationFormat();
+			form->StartRead(a.data(), a.size());
+			CloneSerializer ss(form);
+			UnserialInfo uinfo(&ss);
+			uinfo.cache = false;
+			return Val::Unserialize(&uinfo, TYPE_OPAQUE);
+			}
 		case TYPE_FILE:
 			{
 			auto file = BroFile::GetFile(a.data());
@@ -545,10 +550,21 @@ broker::util::optional<broker::data> bro_broker::val_to_data(Val* v)
 		}
 	case TYPE_OPAQUE:
 		{
-		// FIXME convert from opaque to string here
-		//std::cout <<"val_to_data: opaque type found! " << TYPE_OPAQUE  << endl; 
-		auto vs = (static_cast<OpaqueVal*>(v))->to_string();
-		return {string(*vs)};
+		SerializationFormat* form = new BinarySerializationFormat();
+		form->StartWrite();
+		CloneSerializer ss(form);
+		SerialInfo sinfo(&ss);
+		sinfo.cache = false;
+		sinfo.include_locations = false;
+
+		if ( ! v->Serialize(&sinfo) )
+			return {};
+
+		char* data;
+		uint32 len = form->EndWrite(&data);
+		string rval(data, len);
+		free(data);
+		return {rval};
 		}
 	default:
 		reporter->Error("unsupported Broker::Data type: %s",

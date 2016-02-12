@@ -32,6 +32,9 @@ void IRC_Analyzer::Done()
 	tcp::TCP_ApplicationAnalyzer::Done();
 	}
 
+#define SKIP_LEADING_WHITESPACE_CSTR(cstr, l) while ((l > 0) && (cstr[0] == ' ')) { cstr++; l--; }
+#define SKIP_LEADING_WHITESPACE_STR(str, l) while ((l > 0) && str[0] == ' ') { str = str.substr(1); l--; }
+
 void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverStream(length, line, orig);
@@ -49,7 +52,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		return;
 		}
 
-	if ( length < 2 )
+	SKIP_LEADING_WHITESPACE_CSTR(line, length);
+	if ( length < 3 )
 		{
 		Weird("irc_line_too_short");
 		return;
@@ -70,6 +74,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 		prefix = myline.substr(1, pos - 1);
 		myline = myline.substr(pos + 1);  // remove prefix from line
+		length -= pos + 1;
+		SKIP_LEADING_WHITESPACE_STR(myline, length);
 		}
 
 
@@ -80,7 +86,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 	string command = "";
 
 	// Check if line is long enough to include status code or command.
-	if ( myline.size() < 4 )
+	// (shortest command with optional params is "WHO")
+	if ( myline.size() < 3 )
 		{
 		Weird("irc_invalid_line");
 		ProtocolViolation("line too short");
@@ -96,6 +103,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			code = (myline[0] - '0') * 100 +
 				(myline[1] - '0') * 10 + (myline[2] - '0');
 			myline = myline.substr(4);
+			length -= 4;
 			}
 		else
 			{
@@ -123,6 +131,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
                 if ( pos == (unsigned int) length )
                         pos--;
 		myline = myline.substr(pos + 1);
+		length -= pos + 1;
+		SKIP_LEADING_WHITESPACE_STR(myline, length);
 		}
 
 	// Extract parameters.
@@ -1008,24 +1018,28 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 	else if ( irc_who_message && command == "WHO" )
 		{
 		vector<string> parts = SplitWords(params, ' ');
-		if ( parts.size() < 1 || parts.size() > 2 )
+		if ( parts.size() > 2 )
 			{
 			Weird("irc_invalid_who_message_format");
 			return;
 			}
 
+		string empty_string = "";
 		bool oper = false;
 		if ( parts.size() == 2 && parts[1] == "o" )
 			oper = true;
 
 		// Remove ":" from mask.
-		if ( parts[0].size() > 0 && parts[0][0] == ':' )
+		if ( parts.size() > 0 && parts[0].size() > 0 && parts[0][0] == ':' )
 			parts[0] = parts[0].substr(1);
 
 		val_list* vl = new val_list;
 		vl->append(BuildConnVal());
 		vl->append(new Val(orig, TYPE_BOOL));
-		vl->append(new StringVal(parts[0].c_str()));
+		if ( parts.size() > 0 )
+			vl->append(new StringVal(parts[0].c_str()));
+		else
+			vl->append(new StringVal(empty_string.c_str()));
 		vl->append(new Val(oper, TYPE_BOOL));
 
 		ConnectionEvent(irc_who_message, vl);

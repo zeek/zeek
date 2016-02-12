@@ -56,4 +56,11 @@ event bro_init()
 	print (Broker::data(vector("zero", "one", "two")) as vector of string);
 	print (Broker::data(R1($s="abc")) as R1);
 	print (Broker::data(R2($c=123, $r1=R1($s="xyz"))) as R2);
+
+	local h1 = sha256_hash_init();
+	sha256_hash_update(h1, "abc");
+	local h2 = (Broker::data(h1) as opaque of sha256);
+	local s1 = sha256_hash_finish(h1);
+	local s2 = sha256_hash_finish(h2);
+	print "opaque of sha256", s1 == s2;
 	}

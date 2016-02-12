@@ -113,6 +113,15 @@ struct val_converter {
 
 			return nullptr;
 			}
+		case TYPE_OPAQUE:
+			{
+			SerializationFormat* form = new BinarySerializationFormat();
+			form->StartRead(a.data(), a.size());
+			CloneSerializer ss(form);
+			UnserialInfo uinfo(&ss);
+			uinfo.cache = false;
+			return Val::Unserialize(&uinfo, TYPE_OPAQUE);
+			}
 		default:
 			return nullptr;
 		}

@@ -37,7 +37,9 @@ event bro_init() &priority=5
 	                  	}]);
 	}
 
-event Broker::incoming_connection_broken(peer_name: string)
+event Broker::outgoing_connection_broken(peer_address: string,
+                                        peer_port: port,
+                                        peer_name: string)
 	{
 	terminate();
 	}

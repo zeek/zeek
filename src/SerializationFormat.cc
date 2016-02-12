@@ -18,7 +18,7 @@ SerializationFormat::~SerializationFormat()
 	free(output);
 	}
 
-void SerializationFormat::StartRead(char* data, uint32 arg_len)
+void SerializationFormat::StartRead(const char* data, uint32 arg_len)
 	{
 	input = data;
 	input_len = arg_len;

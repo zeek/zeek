@@ -19,7 +19,7 @@ public:
 	virtual ~SerializationFormat();
 
 	// Unserialization.
-	virtual void StartRead(char* data, uint32 len);
+	virtual void StartRead(const char* data, uint32 len);
 	virtual void EndRead();
 
 	virtual bool Read(int* v, const char* tag) = 0;
@@ -87,7 +87,7 @@ protected:
 	uint32 output_size;
 	uint32 output_pos;
 
-	char* input;
+	const char* input;
 	uint32 input_len;
 	uint32 input_pos;
 

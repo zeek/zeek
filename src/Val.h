@@ -1011,9 +1011,7 @@ protected:
 class OpaqueVal : public Val {
 public:
 	OpaqueVal(OpaqueType* t);
-	OpaqueVal(OpaqueType* t, std::string* st);
 	virtual ~OpaqueVal();
-	virtual std::string* to_string();
 
 protected:
 	friend class Val;

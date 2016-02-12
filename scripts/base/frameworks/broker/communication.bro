@@ -304,9 +304,6 @@ event bro_init() &priority=5
 # Actually initiate the connections that need to be established.
 event bro_init() &priority = -10 # let others modify nodes
 	{
-	if ( |nodes| > 0 )
-		enable_communication();
-
 	for ( tag in nodes )
 		{
 		if ( ! nodes[tag]$connect )

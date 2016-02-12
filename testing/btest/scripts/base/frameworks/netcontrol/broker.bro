@@ -4,6 +4,7 @@
 # @TEST-EXEC: btest-bg-run send "bro -b -r $TRACES/smtp.trace --pseudo-realtime ../send.bro broker_port=$BROKER_PORT >send.out"
 
 # @TEST-EXEC: btest-bg-wait 20
+# @TEST-EXEC: btest-diff send/netcontrol.log
 # @TEST-EXEC: btest-diff recv/recv.out
 # @TEST-EXEC: btest-diff send/send.out
 

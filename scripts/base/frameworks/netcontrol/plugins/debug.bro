@@ -4,7 +4,7 @@
 module NetControl;
 
 export {
-	## Instantiates a debug plugin for the PACF framework. The debug
+	## Instantiates a debug plugin for the NetControl framework. The debug
 	## plugin simply logs the operations it receives.
 	##
 	## do_something: If true, the plugin will claim it supports all operations; if

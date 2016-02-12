@@ -89,10 +89,7 @@ export {
 		priority: int &default=default_priority;	##< Priority if multiple rules match an entity (larger value is higher priority).
 		location: string &optional;	##< Optional string describing where/what installed the rule.
 
-		c: count &optional;		##< Argument for rule types requiring an count argument.
-		i: int &optional;		##< Argument for rule types requiring an integer argument.
-		d: double &optional;		##< Argument for rule types requiring a double argument.
-		s: string &optional;		##< Argument for rule types requiring a string argument.
+		out_port: count &optional;		##< Argument for bro:id:`REDIRECT` rules.
 		mod: FlowMod &optional; ##< Argument for :bro:id:`MODIFY` rules.
 
 		id: string &default="";		##< Internally determined unique ID for this rule. Will be set when added.

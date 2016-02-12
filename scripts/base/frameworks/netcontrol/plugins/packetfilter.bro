@@ -1,4 +1,4 @@
-# PACF plugin for the PacketFilter handling that comes with
+# NetControl plugin for the PacketFilter handling that comes with
 # Bro. Since the PacketFilter in Bro is quite limited in scope
 # and can only add/remove filters for addresses, this is quite
 # limited in scope at the moment.
@@ -67,7 +67,7 @@ function packetfilter_remove_rule(p: PluginState, r: Rule) : bool
 	{
 	if ( ! packetfilter_check_rule(r) )
 		return F;
-	
+
 	local e = r$entity;
 	if ( e$ty == ADDRESS )
 		{
@@ -92,7 +92,7 @@ function packetfilter_remove_rule(p: PluginState, r: Rule) : bool
 
 function packetfilter_name(p: PluginState) : string
 	{
-	return "PACF plugin for the Bro packetfilter";
+	return "Packetfilter";
 	}
 
 global packetfilter_plugin = Plugin(

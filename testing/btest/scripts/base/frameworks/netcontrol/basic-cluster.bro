@@ -2,13 +2,11 @@
 #
 # @TEST-EXEC: btest-bg-run manager-1 "cp ../cluster-layout.bro . && CLUSTER_NODE=manager-1 bro %INPUT"
 # @TEST-EXEC: sleep 1
-# @TEST-EXEC: btest-bg-run worker-1  "cp ../cluster-layout.bro . && CLUSTER_NODE=worker-1 bro --pseudo-realtime -C -r $TRACES/smtp.trace %INPUT"
+# @TEST-EXEC: btest-bg-run worker-1  "cp ../cluster-layout.bro . && CLUSTER_NODE=worker-1 bro --pseudo-realtime -C -r $TRACES/tls/ecdhe.pcap %INPUT"
 # @TEST-EXEC: sleep 1
-# @TEST-EXEC: btest-bg-run worker-2  "cp ../cluster-layout.bro . && CLUSTER_NODE=worker-2 bro --pseudo-realtime -C -r $TRACES/smtp.trace %INPUT"
+# @TEST-EXEC: btest-bg-run worker-2  "cp ../cluster-layout.bro . && CLUSTER_NODE=worker-2 bro --pseudo-realtime -C -r $TRACES/tls/ecdhe.pcap %INPUT"
 # @TEST-EXEC: btest-bg-wait 20
 # @TEST-EXEC: btest-diff manager-1/netcontrol.log
-# @TEST-EXEC: btest-diff worker-1/.stdout
-# @TEST-EXEC: btest-diff worker-2/.stdout
 
 @TEST-START-FILE cluster-layout.bro
 redef Cluster::nodes = {

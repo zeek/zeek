@@ -38,7 +38,7 @@ export {
 
 function broker_describe(state: ControllerState): string
 	{
-	return fmt("Broker Plugin - %s:%d - DPID: %d", state$broker_host, state$broker_port, state$broker_dpid);
+	return fmt("Broker-%s:%d-%d", state$broker_host, state$broker_port, state$broker_dpid);
 	}
 
 function broker_flow_mod_fun(state: ControllerState, match: ofp_match, flow_mod: OpenFlow::ofp_flow_mod): bool

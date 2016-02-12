@@ -41,7 +41,7 @@ export {
 	## buildup for quite a while if keeping this around...
 	const openflow_flow_timeout = 24hrs &redef;
 
-	## Instantiates an openflow plugin for the PACF framework.
+	## Instantiates an openflow plugin for the NetControl framework.
 	global create_openflow: function(controller: OpenFlow::Controller, config: OfConfig &default=[]) : PluginState;
 }
 
@@ -62,7 +62,7 @@ global of_flows: table[count] of OfTable &create_expire=openflow_flow_timeout;
 
 function openflow_name(p: PluginState) : string
 	{
-	return fmt("Openflow - %s", p$of_controller$describe(p$of_controller$state));
+	return fmt("Openflow-%s", p$of_controller$describe(p$of_controller$state));
 	}
 
 function openflow_check_rule(p: PluginState, r: Rule) : bool
@@ -256,7 +256,7 @@ function openflow_rule_to_flow_mod(p: PluginState, r: Rule) : OpenFlow::ofp_flow
 	else if ( r$ty == REDIRECT )
 		{
 		# redirect to port c
-		flow_mod$actions$out_ports = vector(r$c);
+		flow_mod$actions$out_ports = vector(r$out_port);
 		}
 	else
 		{

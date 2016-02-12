@@ -1,6 +1,6 @@
-# @TEST-EXEC: bro -r $TRACES/smtp.trace %INPUT
-# @TEST-EXEC: TEST_DIFF_CANONIFIER='grep -v ^# | $SCRIPTS/diff-sort' btest-diff netcontrol.log
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff .stdout
+# @TEST-EXEC: bro %INPUT
+# @TEST-EXEC: btest-diff netcontrol.log
+# @TEST-EXEC: btest-diff .stdout
 
 @load base/frameworks/netcontrol
 
@@ -10,11 +10,33 @@ event bro_init()
 	NetControl::activate(netcontrol_debug, 0);
 	}
 
-event connection_established(c: connection)
+function test_mac_flow()
 	{
-	local id = c$id;
-	NetControl::shunt_flow([$src_h=id$orig_h, $src_p=id$orig_p, $dst_h=id$resp_h, $dst_p=id$resp_p], 30sec);
-	NetControl::drop_address(id$orig_h, 15sec);
-	NetControl::whitelist_address(id$orig_h, 15sec);
-	NetControl::redirect_flow([$src_h=id$orig_h, $src_p=id$orig_p, $dst_h=id$resp_h, $dst_p=id$resp_p], 5, 30sec);
+	local flow = NetControl::Flow(
+		$src_m = "FF:FF:FF:FF:FF:FF"
+	);
+	local e: NetControl::Entity = [$ty=NetControl::FLOW, $flow=flow];
+	local r: NetControl::Rule = [$ty=NetControl::DROP, $target=NetControl::FORWARD, $entity=e, $expire=15sec];
+
+	NetControl::add_rule(r);
 	}
+
+function test_mac()
+	{
+	local e: NetControl::Entity = [$ty=NetControl::MAC, $mac="FF:FF:FF:FF:FF:FF"];
+	local r: NetControl::Rule = [$ty=NetControl::DROP, $target=NetControl::FORWARD, $entity=e, $expire=15sec];
+
+	NetControl::add_rule(r);
+	}
+
+event bro_init() &priority=-5
+	{
+	NetControl::shunt_flow([$src_h=192.168.17.1, $src_p=32/tcp, $dst_h=192.168.17.2, $dst_p=32/tcp], 30sec);
+	NetControl::drop_address(1.1.2.2, 15sec, "Hi there");
+	NetControl::whitelist_address(1.2.3.4, 15sec);
+	NetControl::redirect_flow([$src_h=192.168.17.1, $src_p=32/tcp, $dst_h=192.168.17.2, $dst_p=32/tcp], 5, 30sec);
+	NetControl::quarantine_host(127.0.0.2, 8.8.8.8, 127.0.0.3, 15sec);
+	test_mac();
+	test_mac_flow();
+	}
+

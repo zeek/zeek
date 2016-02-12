@@ -89,7 +89,7 @@ event NetControl::broker_rule_timeout(id: count, r: Rule, i: FlowInfo)
 
 function broker_name(p: PluginState) : string
 	{
-	return fmt("PACF Broker plugin - topic %s", p$broker_topic);
+	return fmt("Broker-%s", p$broker_topic);
 	}
 
 function broker_add_rule_fun(p: PluginState, r: Rule) : bool

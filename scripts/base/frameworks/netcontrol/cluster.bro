@@ -64,3 +64,34 @@ event NetControl::cluster_netcontrol_remove_rule(id: string)
 	remove_rule_impl(id);
 	}
 @endif
+
+@if ( Cluster::local_node_type() == Cluster::MANAGER )
+event rule_expire(r: Rule, p: PluginState) &priority=-5
+	{
+	rule_expire_impl(r, p);
+	}
+
+event rule_added(r: Rule, p: PluginState, msg: string &default="") &priority=5
+	{
+	rule_added_impl(r, p, msg);
+
+	if ( r?$expire && ! p$plugin$can_expire )
+		schedule r$expire { rule_expire(r, p) };
+	}
+
+event rule_removed(r: Rule, p: PluginState, msg: string &default="") &priority=-5
+	{
+	rule_removed_impl(r, p, msg);
+	}
+
+event rule_timeout(r: Rule, i: FlowInfo, p: PluginState) &priority=-5
+	{
+	rule_timeout_impl(r, i, p);
+	}
+
+event rule_error(r: Rule, p: PluginState, msg: string &default="") &priority=-5
+	{
+	rule_error_impl(r, p, msg);
+	}
+@endif
+

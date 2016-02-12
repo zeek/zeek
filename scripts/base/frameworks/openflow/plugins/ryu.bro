@@ -173,7 +173,7 @@ function ryu_flow_clear(state: OpenFlow::ControllerState): bool
 
 function ryu_describe(state: ControllerState): string
 	{
-	return fmt("Ryu Plugin - http://%s:%d - DPID: %d", state$ryu_host, state$ryu_port, state$ryu_dpid);
+	return fmt("Ryu-%d-http://%s:%d", state$ryu_dpid, state$ryu_host, state$ryu_port);
 	}
 
 # Ryu controller constructor

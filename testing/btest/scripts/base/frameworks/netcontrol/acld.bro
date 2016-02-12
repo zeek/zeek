@@ -1,7 +1,7 @@
 # @TEST-SERIALIZE: brokercomm
 # @TEST-REQUIRES: grep -q ENABLE_BROKER $BUILD/CMakeCache.txt
 # @TEST-EXEC: btest-bg-run recv "bro -b ../recv.bro broker_port=$BROKER_PORT >recv.out"
-# @TEST-EXEC: btest-bg-run send "bro -b -r $TRACES/smtp.trace --pseudo-realtime ../send.bro broker_port=$BROKER_PORT >send.out"
+# @TEST-EXEC: btest-bg-run send "bro -b -r $TRACES/tls/ecdhe.pcap --pseudo-realtime ../send.bro broker_port=$BROKER_PORT >send.out"
 
 # @TEST-EXEC: btest-bg-wait 20
 # @TEST-EXEC: btest-diff recv/recv.out
@@ -50,7 +50,7 @@ event connection_established(c: connection)
 		$dst_p=c$id$resp_p
 	);
 	local e2: NetControl::Entity = [$ty=NetControl::FLOW, $flow=flow2];
-	local r2: NetControl::Rule = [$ty=NetControl::DROP, $target=NetControl::FORWARD, $entity=e2, $expire=10hrs, $location="here"];
+	local r2: NetControl::Rule = [$ty=NetControl::DROP, $target=NetControl::FORWARD, $entity=e2, $expire=10hrs, $location="there"];
 
 	NetControl::add_rule(r1);
 	NetControl::add_rule(r2);

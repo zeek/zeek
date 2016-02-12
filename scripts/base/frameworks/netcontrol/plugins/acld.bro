@@ -99,7 +99,7 @@ event NetControl::acld_rule_error(id: count, r: Rule, msg: string)
 
 function acld_name(p: PluginState) : string
 	{
-	return fmt("PACF acld plugin - using broker topic %s", p$acld_config$acld_topic);
+	return fmt("Acld-%s", p$acld_config$acld_topic);
 	}
 
 # check that subnet specifies an addr

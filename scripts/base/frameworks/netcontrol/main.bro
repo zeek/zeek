@@ -116,7 +116,7 @@ export {
 	## t: how long to leave the quarantine in place
 	##
 	## Returns: Vector of inserted rules on success, empty list on failure.
-	global quarantine_host: function(infected: addr, dns: addr, quarantine: addr, t: interval, location: string) : vector of string;
+	global quarantine_host: function(infected: addr, dns: addr, quarantine: addr, t: interval, location: string &default="") : vector of string;
 
 	## Flushes all state.
 	global clear: function();
@@ -197,7 +197,7 @@ export {
 	## r: The rule to be added
 	global NetControl::rule_policy: hook(r: Rule);
 
-	## Type of an entry in the PACF log.
+	## Type of an entry in the NetControl log.
 	type InfoCategory: enum {
 		## A log entry reflecting a framework message.
 		MESSAGE,
@@ -207,7 +207,7 @@ export {
 		RULE
 	};
 
-	## State of an  entry in the PACF log.
+	## State of an  entry in the NetControl log.
 	type InfoState: enum {
 		REQUESTED,
 		SUCCEEDED,
@@ -216,10 +216,12 @@ export {
 		TIMEOUT,
 	};
 
-	## The record type which contains column fields of the PACF log.
+	## The record type which contains column fields of the NetControl log.
 	type Info: record {
 		## Time at which the recorded activity occurred.
 		ts: time		&log;
+		## ID of the rule; unique during each Bro run
+		rule_id: string  &log &optional;
 		## Type of the log entry.
 		category: InfoCategory	&log &optional;
 		## The command the log entry is about.
@@ -234,13 +236,23 @@ export {
 		entity_type: string		&log &optional;
 		## String describing the entity the log entry is about.
 		entity: string		&log &optional;
+		## String describing the optional modification of the entry (e.h. redirect)
+		mod: string		&log &optional;
 		## String with an additional message.
 		msg: string		&log &optional;
-		## Logcation where the underlying action was triggered.
+		## Number describing the priority of the log entry
+		priority: int &log &optional;
+		## Expiry time of the log entry
+		expire: interval &log &optional;
+		## Location where the underlying action was triggered.
 		location: string	&log &optional;
 		## Plugin triggering the log entry.
 		plugin: string		&log &optional;
 	};
+
+#	type ShuntInfo: record {
+#		## Time at which the recorded activity occurred.
+#		ts: time		&log;
 
 	## Event that can be handled to access the :bro:type:`NetControl::Info`
 	## record as it is sent on to the logging framework.
@@ -262,6 +274,7 @@ global id_to_cids: table[string] of set[count]; # id to cid
 event bro_init() &priority=5
 	{
 	Log::create_stream(NetControl::LOG, [$columns=Info, $ev=log_netcontrol, $path="netcontrol"]);
+#	Log::create_stream(NetControl::SHUNT, [$columns=ShuntInfo, $ev=log_netcontrol_shung, $path="netcontrol_shunt"]);
 	}
 
 function entity_to_info(info: Info, e: Entity)
@@ -284,6 +297,8 @@ function entity_to_info(info: Info, e: Entity)
 			local ffrom_port = "*";
 			local fto_ip = "*";
 			local fto_port = "*";
+			local ffrom_mac = "*";
+			local fto_mac = "*";
 			if ( e$flow?$src_h )
 				ffrom_ip = cat(e$flow$src_h);
 			if ( e$flow?$src_p )
@@ -295,6 +310,15 @@ function entity_to_info(info: Info, e: Entity)
 			info$entity = fmt("%s/%s->%s/%s",
 					  ffrom_ip, ffrom_port,
 					  fto_ip, fto_port);
+			if ( e$flow?$src_m || e$flow?$dst_m )
+				{
+				if ( e$flow?$src_m )
+					ffrom_mac = e$flow$src_m;
+				if ( e$flow?$dst_m )
+					fto_mac = e$flow$dst_m;
+
+				info$entity = fmt("%s (%s->%s)", info$entity, ffrom_mac, fto_mac);
+				}
 			break;
 
 		case MAC:
@@ -311,9 +335,45 @@ function rule_to_info(info: Info, r: Rule)
 	{
 	info$action = fmt("%s", r$ty);
 	info$target = r$target;
+	info$rule_id = r$id;
+	info$expire = r$expire;
+	info$priority = r$priority;
 
-	if ( r?$location )
+	if ( r?$location && r$location != "" )
 		info$location = r$location;
+
+	if ( r$ty == REDIRECT )
+		info$mod = fmt("-> %d", r$out_port);
+
+	if ( r$ty == MODIFY )
+		{
+		local mfrom_ip = "_";
+		local mfrom_port = "_";
+		local mto_ip = "_";
+		local mto_port = "_";
+		local mfrom_mac = "_";
+		local mto_mac = "_";
+		if ( r$mod?$src_h )
+			mfrom_ip = cat(r$mod$src_h);
+		if ( r$mod?$src_p )
+			mfrom_port = fmt("%d", r$mod$src_p);
+		if ( r$mod?$dst_h )
+			mto_ip = cat(r$mod$dst_h);
+		if ( r$mod?$dst_p )
+			mto_port = fmt("%d", r$mod$dst_p);
+
+		if ( r$mod?$src_m )
+			mfrom_mac = r$mod$src_m;
+		if ( r$mod?$dst_m )
+			mto_mac = r$mod$dst_m;
+
+		info$mod = fmt("Src: %s/%s (%s) Dst: %s/%s (%s)",
+			mfrom_ip, mfrom_port, mfrom_mac, mto_ip, mto_port, mto_mac);
+
+		if ( r$mod?$redirect_port )
+			info$mod = fmt("%s -> %d", info$mod, r$mod$redirect_port);
+
+		}
 
 	entity_to_info(info, r$entity);
 	}
@@ -328,13 +388,15 @@ function log_error(msg: string, p: PluginState)
 	Log::write(LOG, [$ts=network_time(), $category=ERROR, $msg=msg, $plugin=p$plugin$name(p)]);
 	}
 
-function log_rule(r: Rule, cmd: string, state: InfoState, p: PluginState)
+function log_rule(r: Rule, cmd: string, state: InfoState, p: PluginState, msg: string &default="")
 	{
 	local info: Info = [$ts=network_time()];
 	info$category = RULE;
 	info$cmd = cmd;
 	info$state = state;
 	info$plugin = p$plugin$name(p);
+	if ( msg != "" )
+		info$msg = msg;
 
 	rule_to_info(info, r);
 
@@ -415,7 +477,7 @@ function redirect_flow(f: flow_id, out_port: count, t: interval, location: strin
 		$dst_p=f$dst_p
 	);
 	local e: Entity = [$ty=FLOW, $flow=flow];
-	local r: Rule = [$ty=REDIRECT, $target=FORWARD, $entity=e, $expire=t, $location=location, $c=out_port];
+	local r: Rule = [$ty=REDIRECT, $target=FORWARD, $entity=e, $expire=t, $location=location, $out_port=out_port];
 
 	return add_rule(r);
 	}
@@ -559,7 +621,7 @@ function remove_rule_impl(id: string) : bool
 	return success;
 	}
 
-event rule_expire(r: Rule, p: PluginState)
+function rule_expire_impl(r: Rule, p: PluginState) &priority=-5
 	{
 	if ( [r$id,r$cid] !in rules )
 		# Removed already.
@@ -569,41 +631,54 @@ event rule_expire(r: Rule, p: PluginState)
 	remove_single_rule(r$id, r$cid);
 	}
 
-event rule_added(r: Rule, p: PluginState, msg: string &default="")
+function rule_added_impl(r: Rule, p: PluginState, msg: string &default="")
 	{
-	log_rule(r, "ADD", SUCCEEDED, p);
+	log_rule(r, "ADD", SUCCEEDED, p, msg);
 
 	rules[r$id,r$cid] = r;
 	if ( r$id !in id_to_cids )
 		id_to_cids[r$id] = set();
 
 	add id_to_cids[r$id][r$cid];
-
-	if ( r?$expire && ! p$plugin$can_expire )
-		schedule r$expire { rule_expire(r, p) };
 	}
 
-event rule_removed(r: Rule, p: PluginState, msg: string &default="")
+function rule_removed_impl(r: Rule, p: PluginState, msg: string &default="")
+	{
+	if ( [r$id,r$cid] !in rules )
+		{
+		log_rule_error(r, "Removal of non-existing rule", p);
+		return;
+		}
+
+	delete rules[r$id,r$cid];
+	delete id_to_cids[r$id][r$cid];
+	if ( |id_to_cids[r$id]| == 0 )
+		delete id_to_cids[r$id];
+
+	log_rule(r, "REMOVE", SUCCEEDED, p, msg);
+	}
+
+function rule_timeout_impl(r: Rule, i: FlowInfo, p: PluginState)
 	{
 	delete rules[r$id,r$cid];
 	delete id_to_cids[r$id][r$cid];
 	if ( |id_to_cids[r$id]| == 0 )
 		delete id_to_cids[r$id];
 
-	log_rule(r, "REMOVE", SUCCEEDED, p);
+	local msg = "";
+	if ( i?$packet_count )
+		msg = fmt("Packets: %d", i$packet_count);
+	if ( i?$byte_count )
+		{
+		if ( msg != "" )
+			msg = msg + " ";
+		msg = fmt("%sBytes: %s", msg, i$byte_count);
+		}
+
+	log_rule(r, "EXPIRE", TIMEOUT, p, msg);
 	}
 
-event rule_timeout(r: Rule, i: FlowInfo, p: PluginState)
-	{
-	delete rules[r$id,r$cid];
-	delete id_to_cids[r$id][r$cid];
-	if ( |id_to_cids[r$id]| == 0 )
-		delete id_to_cids[r$id];
-
-	log_rule(r, "EXPIRE", TIMEOUT, p);
-	}
-
-event rule_error(r: Rule, p: PluginState, msg: string &default="")
+function rule_error_impl(r: Rule, p: PluginState, msg: string &default="")
 	{
 	log_rule_error(r, msg, p);
 	# errors can occur during deletion. Since this probably means we wo't hear

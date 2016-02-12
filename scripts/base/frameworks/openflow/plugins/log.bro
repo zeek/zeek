@@ -62,7 +62,7 @@ function log_flow_mod(state: ControllerState, match: ofp_match, flow_mod: OpenFl
 
 function log_describe(state: ControllerState): string
 	{
-	return fmt("OpenFlog Log Plugin - DPID %d", state$log_dpid);
+	return fmt("Log-%d", state$log_dpid);
 	}
 
 function log_new(dpid: count, success_event: bool &default=T): OpenFlow::Controller

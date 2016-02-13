@@ -1,4 +1,8 @@
 
+2.4-280 | 2016-02-13 10:40:16 -0800
+
+  * Fix memory leaks in stats.cc and smb.cc. (Johanna Amann)
+
 2.4-278 | 2016-02-12 18:53:35 -0800
 
   * Better multi-space separator handline. (Mark Taylor & Johanna Amann)

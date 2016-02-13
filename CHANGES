@@ -1,4 +1,9 @@
 
+2.4-282 | 2016-02-13 10:48:21 -0800
+
+  * Add missing break in in StartTLS case of IRC analyzer. Found by
+    Aaron Eppert. (Johanna Amann)
+
 2.4-280 | 2016-02-13 10:40:16 -0800
 
   * Fix memory leaks in stats.cc and smb.cc. (Johanna Amann)

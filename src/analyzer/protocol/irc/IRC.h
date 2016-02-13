@@ -22,7 +22,7 @@ public:
 	/**
 	* \brief Called when connection is closed.
 	*/
-	virtual void Done();
+	void Done() override;
 
 	/**
 	* \brief New input line in network stream.
@@ -31,7 +31,7 @@ public:
 	* \param data pointer to line start
 	* \param orig was this data sent from connection originator?
 	*/
-	virtual void DeliverStream(int len, const u_char* data, bool orig);
+	void DeliverStream(int len, const u_char* data, bool orig) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{
@@ -46,6 +46,8 @@ protected:
 
 private:
 	void StartTLS();
+
+	inline void SkipLeadingWhitespace(string& str);
 
 	/** \brief counts number of invalid IRC messages */
 	int invalid_msg_count;

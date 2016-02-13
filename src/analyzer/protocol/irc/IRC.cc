@@ -32,6 +32,15 @@ void IRC_Analyzer::Done()
 	tcp::TCP_ApplicationAnalyzer::Done();
 	}
 
+inline void IRC_Analyzer::SkipLeadingWhitespace(string& str)
+	{
+	const auto first_char = str.find_first_not_of(" ");
+	if ( first_char == string::npos )
+		str = "";
+	else
+		str = str.substr(first_char);
+	}
+
 void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverStream(length, line, orig);
@@ -49,20 +58,21 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		return;
 		}
 
-	if ( length < 2 )
+	string myline = string((const char*) line, length);
+	SkipLeadingWhitespace(myline);
+
+	if ( myline.length() < 3 )
 		{
 		Weird("irc_line_too_short");
 		return;
 		}
 
-	string myline = string((const char*) line, length);
-
 	// Check for prefix.
 	string prefix = "";
-	if ( line[0] == ':' )
+	if ( myline[0] == ':' )
 		{ // find end of prefix and extract it
-		unsigned int pos = myline.find(' ');
-		if ( pos > (unsigned int) length )
+		auto pos = myline.find(' ');
+		if ( pos == string::npos )
 			{
 			Weird("irc_invalid_line");
 			return;
@@ -70,8 +80,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 		prefix = myline.substr(1, pos - 1);
 		myline = myline.substr(pos + 1);  // remove prefix from line
+		SkipLeadingWhitespace(myline);
 		}
-
 
 	if ( orig )
 		ProtocolConfirmation();
@@ -80,7 +90,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 	string command = "";
 
 	// Check if line is long enough to include status code or command.
-	if ( myline.size() < 4 )
+	// (shortest command with optional params is "WHO")
+	if ( myline.length() < 3 )
 		{
 		Weird("irc_invalid_line");
 		ProtocolViolation("line too short");
@@ -106,20 +117,21 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		}
 	else
 		{ // get command
-		unsigned int pos = myline.find(' ');
+		auto pos = myline.find(' ');
 		// Not all commands require parameters
-		if ( pos > (unsigned int) length )
-			pos = (unsigned int) length;
+		if ( pos == string::npos )
+			pos = myline.length();
 
 		command = myline.substr(0, pos);
 		for ( unsigned int i = 0; i < command.size(); ++i )
 			command[i] = toupper(command[i]);
 
 		// Adjust for the no-parameter case
-		if ( pos == (unsigned int) length )
+		if ( pos == myline.length() )
 			pos--;
 
 		myline = myline.substr(pos + 1);
+		SkipLeadingWhitespace(myline);
 		}
 
 	// Extract parameters.
@@ -149,7 +161,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		//
 		// (### This seems not quite prudent to me - VP)
 		if ( command == "SERVER" && prefix == "")
-		        {
+			{
 			orig_status = REGISTERED;
 			}
 		}
@@ -157,7 +169,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 	if ( ! orig && resp_status == WAIT_FOR_REGISTRATION )
 		{
 		if ( command == "PASS" )
-		        {
+			{
 			vector<string> p = SplitWords(params,' ');
 			if ( p.size() > 3 &&
 			     (p[3].find('Z')<=p[3].size() ||
@@ -615,6 +627,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 		string target = params.substr(0, pos);
 		string message = params.substr(pos + 1);
+		SkipLeadingWhitespace(message);
 
 		if ( message.size() > 0 && message[0] == ':' )
 			message = message.substr(1);
@@ -689,6 +702,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 		string target = params.substr(0, pos);
 		string message = params.substr(pos + 1);
+		SkipLeadingWhitespace(message);
 		if ( message[0] == ':' )
 			message = message.substr(1);
 
@@ -713,6 +727,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 		string target = params.substr(0, pos);
 		string message = params.substr(pos + 1);
+		SkipLeadingWhitespace(message);
 		if ( message[0] == ':' )
 			message = message.substr(1);
 
@@ -938,7 +953,10 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			{
 			channels = params.substr(0, pos);
 			if ( params.size() > pos + 1 )
+				{
 				message = params.substr(pos + 1);
+				SkipLeadingWhitespace(message);
+				}
 			if ( message[0] == ':' )
 				message = message.substr(1);
 			}
@@ -1009,7 +1027,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 	else if ( irc_who_message && command == "WHO" )
 		{
 		vector<string> parts = SplitWords(params, ' ');
-		if ( parts.size() < 1 || parts.size() > 2 )
+		if ( parts.size() > 2 )
 			{
 			Weird("irc_invalid_who_message_format");
 			return;
@@ -1020,13 +1038,16 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			oper = true;
 
 		// Remove ":" from mask.
-		if ( parts[0].size() > 0 && parts[0][0] == ':' )
+		if ( parts.size() > 0 && parts[0].size() > 0 && parts[0][0] == ':' )
 			parts[0] = parts[0].substr(1);
 
 		val_list* vl = new val_list;
 		vl->append(BuildConnVal());
 		vl->append(new Val(orig, TYPE_BOOL));
-		vl->append(new StringVal(parts[0].c_str()));
+		if ( parts.size() > 0 )
+			vl->append(new StringVal(parts[0].c_str()));
+		else
+			vl->append(new StringVal(""));
 		vl->append(new Val(oper, TYPE_BOOL));
 
 		ConnectionEvent(irc_who_message, vl);
@@ -1131,6 +1152,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			{
 			server = params.substr(0, pos);
 			message = params.substr(pos + 1);
+			SkipLeadingWhitespace(message);
 			if ( message[0] == ':' )
 				message = message.substr(1);
 			}

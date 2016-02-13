@@ -1,4 +1,8 @@
 
+2.4-278 | 2016-02-12 18:53:35 -0800
+
+  * Better multi-space separator handline. (Mark Taylor & Johanna Amann)
+
 2.4-276 | 2016-02-10 21:29:33 -0800
 
   * Allow IRC commands to not have parameters. (Mark Taylor)

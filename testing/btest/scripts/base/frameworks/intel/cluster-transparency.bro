@@ -39,6 +39,8 @@ event Intel::cluster_new_item(item: Intel::Item)
 	if ( ! is_remote_event() )
 		return;
 
+	print fmt("cluster_new_item: %s inserted by %s", item$indicator, item$meta$source);
+
 	if ( ! sent_data )
 		{
 		# We wait to insert data here because we can now be sure the 

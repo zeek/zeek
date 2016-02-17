@@ -33,7 +33,7 @@ export {
 	## Tracks the set of daily-detected services for preventing the logging
 	## of duplicates, but can also be inspected by other scripts for
 	## different purposes.
-	global known_services: set[addr, port, string] &create_expire=1day &synchronized;
+	global known_services: table[addr, port] of set[string] &create_expire=1day &synchronized;
 
 	## Event that can be handled to access the :bro:type:`Known::ServicesInfo`
 	## record as it is sent on to the logging framework.
@@ -65,12 +65,16 @@ event bro_init() &priority=5
 event log_it(ts: time, a: addr, p: port, services: set[string])
 	{
 	local added = F;
+	if([a, p] !in known_services) {
+		known_services[a,p] = set();
+		added = T;
+	}
 	for(s in services) 
 		{
-		if ( [a, p, s] !in known_services )
+		if ( s !in known_services[a, p] )
 			{
 			added = T;
-			add known_services[a, p, s];
+			add known_services[a, p][s];
 			}
 		}
 	if(added)

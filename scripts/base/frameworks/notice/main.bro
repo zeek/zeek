@@ -605,9 +605,7 @@ function apply_policy(n: Notice::Info)
 			n$dst = n$iconn$resp_h;
 		}
 
-	if ( ! n?$src_peer )
-		n$src_peer = get_event_peer();
-	if ( ! n?$peer_descr )
+	if ( ! n?$peer_descr && n?$src_peer )
 		n$peer_descr = n$src_peer?$descr ?
 		                   n$src_peer$descr : fmt("%s", n$src_peer$host);
 

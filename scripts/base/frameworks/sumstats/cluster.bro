@@ -409,7 +409,7 @@ event SumStats::send_a_key(uid: string, ss_name: string, key: Key)
 event SumStats::cluster_send_result(uid: string, ss_name: string, key: Key, result: Result, cleanup: bool)
 	{
 	print "cluster_send_result";
-	print fmt("%0.6f MANAGER: receiving key data from %s - %s=%s", network_time(), get_event_peer()$descr, key2str(key), result);
+	print fmt("%0.6f MANAGER: receiving key data %s=%s", network_time(), key2str(key), result);
 
 	# We only want to try and do a value merge if there are actually measured datapoints
 	# in the Result.
@@ -422,7 +422,7 @@ event SumStats::cluster_send_result(uid: string, ss_name: string, key: Key, resu
 	if ( uid !in done_with )
 		done_with[uid] = 0;
 
-	#print fmt("MANAGER: got a result for %s %s from %s", uid, key, get_event_peer()$descr);
+	#print fmt("MANAGER: got a result for %s %s", uid, key);
 	++done_with[uid];
 
 	if ( uid !in dynamic_requests &&
@@ -438,7 +438,7 @@ event SumStats::cluster_send_result(uid: string, ss_name: string, key: Key, resu
 # Managers handle intermediate updates here.
 event SumStats::cluster_key_intermediate_response(ss_name: string, key: Key)
 	{
-	#print fmt("MANAGER: receiving intermediate key data from %s", get_event_peer()$descr);
+	#print "MANAGER: receiving intermediate key data";
 	#print fmt("MANAGER: requesting key data for %s", key);
 
 	if ( ss_name in outstanding_global_views &&

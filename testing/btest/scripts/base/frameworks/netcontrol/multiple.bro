@@ -3,6 +3,8 @@
 
 @load base/frameworks/netcontrol
 
+global rules: vector of string;
+
 event bro_init()
 	{
 	local netcontrol_debug = NetControl::create_debug(T);
@@ -14,11 +16,20 @@ event bro_init()
 	NetControl::activate(netcontrol_debug_2, 0);
 	}
 
+event remove_all()
+	{
+	for ( i in rules )
+		NetControl::remove_rule(rules[i]);
+	}
+
 event connection_established(c: connection)
 	{
 	local id = c$id;
-	NetControl::shunt_flow([$src_h=id$orig_h, $src_p=id$orig_p, $dst_h=id$resp_h, $dst_p=id$resp_p], 30sec);
-	NetControl::drop_address(id$orig_h, 15sec);
-	NetControl::whitelist_address(id$orig_h, 15sec);
-	NetControl::redirect_flow([$src_h=id$orig_h, $src_p=id$orig_p, $dst_h=id$resp_h, $dst_p=id$resp_p], 5, 30sec);
+	rules[|rules|] = NetControl::shunt_flow([$src_h=id$orig_h, $src_p=id$orig_p, $dst_h=id$resp_h, $dst_p=id$resp_p], 0secs);
+	rules[|rules|] = NetControl::drop_address(id$orig_h, 0secs);
+	rules[|rules|] = NetControl::whitelist_address(id$orig_h, 0secs);
+	rules[|rules|] = NetControl::redirect_flow([$src_h=id$orig_h, $src_p=id$orig_p, $dst_h=id$resp_h, $dst_p=id$resp_p], 5, 0secs);
+
+	schedule 10sec { remove_all() };
 	}
+

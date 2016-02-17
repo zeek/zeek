@@ -1,5 +1,6 @@
 
 @load ../plugin
+@load ../main
 
 module NetControl;
 

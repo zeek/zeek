@@ -2,6 +2,9 @@
 
 module NetControl;
 
+@load ./main
+@load ./drop
+
 export {
 	## Stops all packets involving an IP address from being forwarded. This function
 	## uses catch-and-release functionality, where the IP address is only dropped for

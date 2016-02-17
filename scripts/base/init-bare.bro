@@ -130,7 +130,7 @@ type flow_id : record {
 	src_p: port;	##< The source port number.
 	dst_h: addr;	##< The destination IP address.
 	dst_p: port;	##< The desintation port number.
-};
+} &log;
 
 ## Specifics about an ICMP conversation. ICMP events typically pass this in
 ## addition to :bro:type:`conn_id`.

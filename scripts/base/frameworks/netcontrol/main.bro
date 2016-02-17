@@ -35,38 +35,8 @@ export {
 	# ### High-level API.
 	# ###
 
-	## Stops all packets involving an IP address from being forwarded.
-	##
-	## a: The address to be dropped.
-	##
-	## t: How long to drop it, with 0 being indefinitly.
-	##
-	## location: An optional string describing where the drop was triggered.
-	##
-	## Returns: The id of the inserted rule on succes and zero on failure.
-	global drop_address: function(a: addr, t: interval, location: string &default="") : string;
-
-	## Stops all packets involving an connection address from being forwarded.
-	##
-	## c: The connection to be dropped.
-	##
-	## t: How long to drop it, with 0 being indefinitly.
-	##
-	## location: An optional string describing where the drop was triggered.
-	##
-	## Returns: The id of the inserted rule on succes and zero on failure.
-	global drop_connection: function(c: conn_id, t: interval, location: string &default="") : string;
-
-	## Stops forwarding a uni-directional flow's packets to Bro.
-	##
-	## f: The flow to shunt.
-	##
-	## t: How long to leave the shunt in place, with 0 being indefinitly.
-	##
-	## location: An optional string describing where the shunt was triggered.
-	##
-	## Returns: The id of the inserted rule on succes and zero on failure.
-	global shunt_flow: function(f: flow_id, t: interval, location: string &default="") : string;
+	# ### Note - other high level primitives are in catch-and-release.bro, shunt.bro and
+	# ### drop.bro
 
 	## Allows all traffic involving a specific IP address to be forwarded.
 	##
@@ -142,7 +112,7 @@ export {
 	##
 	## id: The rule to remove, specified as the ID returned by :bro:id:`add_rule` .
 	##
-	## Returns: True if succesful, the relevant plugin indicated that ity knew how
+	## Returns: True if succesful, the relevant plugin indicated that it knew how
 	## to handle the removal. Note that again "success" means the plugin accepted the
 	## removal. They might still fail to put it into effect, as that  might happen
 	## asynchronously and thus go wrong at that point.
@@ -250,9 +220,6 @@ export {
 		plugin: string		&log &optional;
 	};
 
-#	type ShuntInfo: record {
-#		## Time at which the recorded activity occurred.
-#		ts: time		&log;
 
 	## Event that can be handled to access the :bro:type:`NetControl::Info`
 	## record as it is sent on to the logging framework.
@@ -266,15 +233,16 @@ redef record Rule += {
 
 global plugins: vector of PluginState;
 global plugin_ids: table[count] of PluginState;
+
 global rule_counter: count = 1;
 global plugin_counter: count = 1;
+
 global rules: table[string,count] of Rule; # Rules indexed by id and cid
 global id_to_cids: table[string] of set[count]; # id to cid
 
 event bro_init() &priority=5
 	{
 	Log::create_stream(NetControl::LOG, [$columns=Info, $ev=log_netcontrol, $path="netcontrol"]);
-#	Log::create_stream(NetControl::SHUNT, [$columns=ShuntInfo, $ev=log_netcontrol_shung, $path="netcontrol_shunt"]);
 	}
 
 function entity_to_info(info: Info, e: Entity)
@@ -422,22 +390,6 @@ function log_rule_no_plugin(r: Rule, state: InfoState, msg: string)
 	Log::write(LOG, info);
 	}
 
-function drop_connection(c: conn_id, t: interval, location: string &default="") : string
-	{
-	local e: Entity = [$ty=CONNECTION, $conn=c];
-	local r: Rule = [$ty=DROP, $target=FORWARD, $entity=e, $expire=t, $location=location];
-
-	return add_rule(r);
-	}
-
-function drop_address(a: addr, t: interval, location: string &default="") : string
-	{
-	local e: Entity = [$ty=ADDRESS, $ip=addr_to_subnet(a)];
-	local r: Rule = [$ty=DROP, $target=FORWARD, $entity=e, $expire=t, $location=location];
-
-	return add_rule(r);
-	}
-
 function whitelist_address(a: addr, t: interval, location: string &default="") : string
 	{
 	local e: Entity = [$ty=ADDRESS, $ip=addr_to_subnet(a)];
@@ -454,19 +406,6 @@ function whitelist_subnet(s: subnet, t: interval, location: string &default="") 
 	return add_rule(r);
 	}
 
-function shunt_flow(f: flow_id, t: interval, location: string &default="") : string
-	{
-	local flow = NetControl::Flow(
-		$src_h=addr_to_subnet(f$src_h),
-		$src_p=f$src_p,
-		$dst_h=addr_to_subnet(f$dst_h),
-		$dst_p=f$dst_p
-	);
-	local e: Entity = [$ty=FLOW, $flow=flow];
-	local r: Rule = [$ty=DROP, $target=MONITOR, $entity=e, $expire=t, $location=location];
-
-	return add_rule(r);
-	}
 
 function redirect_flow(f: flow_id, out_port: count, t: interval, location: string &default="") : string
 	{
@@ -517,7 +456,7 @@ function activate_impl(p: PluginState, priority: int)
 	p$_id = plugin_counter;
 	++plugin_counter;
 
-	# perform one-timi initialization
+	# perform one-time initialization
 	if ( p$plugin?$init )
 		p$plugin$init(p);
 

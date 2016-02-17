@@ -1,5 +1,7 @@
 # @TEST-EXEC: bro %INPUT
 # @TEST-EXEC: btest-diff netcontrol.log
+# @TEST-EXEC: btest-diff netcontrol_shunt.log
+# @TEST-EXEC: btest-diff netcontrol_drop.log
 # @TEST-EXEC: btest-diff .stdout
 
 @load base/frameworks/netcontrol

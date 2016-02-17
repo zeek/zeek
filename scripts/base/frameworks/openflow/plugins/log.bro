@@ -68,7 +68,7 @@ function log_describe(state: ControllerState): string
 function log_new(dpid: count, success_event: bool &default=T): OpenFlow::Controller
 	{
 	local c = OpenFlow::Controller($state=OpenFlow::ControllerState($log_dpid=dpid, $log_success_event=success_event),
-		$flow_mod=log_flow_mod, $flow_clear=ryu_flow_clear, $describe=log_describe, $supports_flow_removed=F);
+		$flow_mod=log_flow_mod, $describe=log_describe, $supports_flow_removed=F);
 
 	register_controller(OpenFlow::OFLOG, cat(dpid), c);
 

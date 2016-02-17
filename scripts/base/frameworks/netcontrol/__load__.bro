@@ -1,6 +1,8 @@
 @load ./types
 @load ./main
 @load ./plugins
+@load ./drop
+@load ./shunt
 @load ./catch-and-release
 
 # The cluster framework must be loaded first.

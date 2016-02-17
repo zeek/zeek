@@ -1,4 +1,8 @@
 
+2.4-284 | 2016-02-17 14:12:15 -0800
+
+  * Fix sometimes failing dump-events test. (Johanna Amann)
+
 2.4-282 | 2016-02-13 10:48:21 -0800
 
   * Add missing break in in StartTLS case of IRC analyzer. Found by

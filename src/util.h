@@ -227,6 +227,13 @@ typedef ptr_compat_uint SourceID;
 #define PRI_SOURCE_ID PRI_PTR_COMPAT_UINT
 static const SourceID SOURCE_LOCAL = 0;
 
+// TODO: This is a temporary marker to flag events coming in via Broker.
+// Those are remote events but we don't have any further peer informationa
+// available for them (as the old communication code would have). Once we
+// remove RemoteSerializer, we can turn the SourceID into a simple boolean
+// indicating whether it's a local or remote event.
+static const SourceID SOURCE_BROKER = 0xffffffff;
+
 extern void pinpoint();
 extern int int_list_cmp(const void* v1, const void* v2);
 

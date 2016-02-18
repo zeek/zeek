@@ -4883,15 +4883,27 @@ function send_current_packet%(p: event_peer%) : bool
 
 ## Returns the peer who generated the last event.
 ##
+## Note, this function is deprecated. It works correctly only for local events and
+## events received through the legacy communication system. It does *not* work for
+## events received through Broker and will report an error in that case.
+##
 ## Returns: The ID of the peer who generated the last event.
 ##
 ## .. bro:see:: get_local_event_peer
-function get_event_peer%(%) : event_peer
+function get_event_peer%(%) : event_peer &deprecated
 	%{
 	SourceID src = mgr.CurrentSource();
 
 	if ( src == SOURCE_LOCAL )
 		{
+		RecordVal* p = mgr.GetLocalPeerVal();
+		Ref(p);
+		return p;
+		}
+
+	if ( src == SOURCE_BROKER )
+		{
+		reporter->Error("get_event_peer() does not support Broker events");
 		RecordVal* p = mgr.GetLocalPeerVal();
 		Ref(p);
 		return p;
@@ -4917,7 +4929,7 @@ function get_event_peer%(%) : event_peer
 ## Returns: The peer ID of the local Bro instance.
 ##
 ## .. bro:see:: get_event_peer
-function get_local_event_peer%(%) : event_peer
+function get_local_event_peer%(%) : event_peer &deprecated
 	%{
 	RecordVal* p = mgr.GetLocalPeerVal();
 	Ref(p);

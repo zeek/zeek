@@ -705,7 +705,7 @@ void Manager::ProcessEvent(const broker::vector xs)
 		}
 
 	if ( static_cast<size_t>(vl->length()) == xs.size() - 1 )
-		mgr.QueueEvent(handler, vl);
+		mgr.QueueEvent(handler, vl, SOURCE_BROKER);
 	else
 		delete_vals(vl);
 	}

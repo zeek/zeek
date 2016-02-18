@@ -21,6 +21,7 @@ event bro_init()
     {
     Broker::subscribe("bro/event/my_topic");
     Broker::peer("127.0.0.1");
+    print "is_remote should be F, and is", is_remote_event();
     }
 
 function send_event()
@@ -46,6 +47,7 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 
 event pong(msg: string, n: count)
     {
+    print "is_remote should be T, and is", is_remote_event();
     print fmt("sender got pong: %s, %s", msg, n);
     send_event();
     }
@@ -84,6 +86,7 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 
 event ping(msg: string, n: count)
         {
+	print "is_remote should be T, and is", is_remote_event();
         print fmt("receiver got ping: %s, %s", msg, n);
 
         if ( n == events_to_recv )

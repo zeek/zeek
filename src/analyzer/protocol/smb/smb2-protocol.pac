@@ -30,7 +30,8 @@ type SMB2_PDU(is_orig: bool) = record {
 		# request this should just happen to work out due to
 		# how the fields are set.
 		0          -> msg                      : SMB2_Message(header, is_orig);
-		0xC0000016 -> more_processing_required : SMB2_Message(header, is_orig);
+		STATUS_BUFFER_OVERFLOW          -> buffer_overflow : SMB2_Message(header, is_orig);
+		STATUS_MORE_PROCESSING_REQUIRED -> more_processing_required : SMB2_Message(header, is_orig);
 		default    -> err                      : SMB2_error_response(header);
 	};
 };
@@ -239,16 +240,16 @@ type SMB2_symlink_error(byte_count: uint32) = record {
 	symlink_flag_relative = (flags == 0x00000001);
 } &byteorder = littleendian;
 
-type SMB2_error_data(byte_count: uint32) = case byte_count of {
-	0       -> empty: empty;
-	default -> error: SMB2_symlink_error(byte_count);
+type SMB2_error_data(header: SMB2_Header, byte_count: uint32) = case byte_count of {
+	0                      -> empty:        empty;
+	default                -> error:        SMB2_symlink_error(byte_count);
 } &byteorder = littleendian;
 
 type SMB2_error_response(header: SMB2_Header) = record {
 	structure_size    : uint16;
 	reserved          : padding[2];
 	byte_count        : uint32;
-	error_data        : SMB2_error_data(byte_count);
+	error_data        : SMB2_error_data(header, byte_count);
 } &byteorder = littleendian;
 
 type SMB2_logoff_request(header: SMB2_Header) = record {

@@ -1249,6 +1249,12 @@ int HTTP_Analyzer::ParseRequest(const char* line, const char* end_of_line)
 			break;
 		}
 
+	if ( end_of_uri >= end_of_line && PrefixMatch(line, end_of_line, "HTTP/") )
+		{
+		Weird("missing_HTTP_uri");
+		end_of_uri = line; // Leave URI empty.
+		}
+
 	for ( version_start = end_of_uri; version_start < end_of_line; ++version_start )
 		{
 		end_of_uri = version_start;

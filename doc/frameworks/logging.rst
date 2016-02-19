@@ -537,6 +537,5 @@ Additional writers are available as external plugins:
 .. toctree::
    :maxdepth: 1
 
-   ../components/bro-plugins/dataseries/README
-   ../components/bro-plugins/elasticsearch/README
+   ../components/bro-plugins/README
 

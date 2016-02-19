@@ -362,12 +362,16 @@ SampleLogger::~SampleLogger()
 
 void SampleLogger::FunctionSeen(const Func* func)
 	{
-	load_samples->Assign(new StringVal(func->Name()), 0);
+	Val* idx = new StringVal(func->Name());
+	load_samples->Assign(idx, 0);
+	Unref(idx);
 	}
 
 void SampleLogger::LocationSeen(const Location* loc)
 	{
-	load_samples->Assign(new StringVal(loc->filename), 0);
+	Val* idx = new StringVal(loc->filename);
+	load_samples->Assign(idx, 0);
+	Unref(idx);
 	}
 
 void SampleLogger::SegmentProfile(const char* /* name */,

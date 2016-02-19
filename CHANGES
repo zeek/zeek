@@ -1,4 +1,71 @@
 
+2.4-284 | 2016-02-17 14:12:15 -0800
+
+  * Fix sometimes failing dump-events test. (Johanna Amann)
+
+2.4-282 | 2016-02-13 10:48:21 -0800
+
+  * Add missing break in in StartTLS case of IRC analyzer. Found by
+    Aaron Eppert. (Johanna Amann)
+
+2.4-280 | 2016-02-13 10:40:16 -0800
+
+  * Fix memory leaks in stats.cc and smb.cc. (Johanna Amann)
+
+2.4-278 | 2016-02-12 18:53:35 -0800
+
+  * Better multi-space separator handline. (Mark Taylor & Johanna Amann)
+
+2.4-276 | 2016-02-10 21:29:33 -0800
+
+  * Allow IRC commands to not have parameters. (Mark Taylor)
+
+2.4-272 | 2016-02-08 14:27:58 -0800
+
+  * fix memory leaks in find_all() and IRC analyzer. (Dirk Leinenbach)
+
+2.4-270 | 2016-02-08 13:00:57 -0800
+
+  * Removed duplicate parameter for IRC "QUIT" event handler. (Mark Taylor)
+
+2.4-267 | 2016-02-01 12:38:32 -0800
+
+  * Add testcase for CVE-2015-3194. (Johanna Amann)
+
+  * Fix portability issue with use of mktemp. (Daniel Thayer)
+
+2.4-260 | 2016-01-28 08:05:27 -0800
+
+  * Correct irc_privmsg_message event handling bug. (Mark Taylor)
+
+  * Update copyright year for Sphinx. (Johanna Amann)
+
+2.4-253 | 2016-01-20 17:41:20 -0800
+
+  * Support of RadioTap encapsulation for 802.11 (Seth Hall)
+
+    Radiotap support should be fully functional with Radiotap
+    packets that include IPv4 and IPv6. Other radiotap packets are
+    silently ignored.
+
+2.4-247 | 2016-01-19 10:19:48 -0800
+
+  * Fixing C++11 compiler warnings. (Seth Hall)
+
+  * Updating plugin documentation building. (Johanna Amann)
+
+2.4-238 | 2016-01-15 12:56:33 -0800
+
+  * Add HTTP version information to HTTP log file. (Aaron Eppert)
+
+  * Add NOTIFY as a valid SIP message, per RFC 3265. (Aaron Eppert)
+
+  * Improve HTTP parser's handling of requests that don't have a URI.
+    (William Glodek/Robin Sommer)
+
+  * Fix crash when deleting non existing record member. Addresses
+    BIT-1519. (Johanna Amann)
+
 2.4-228 | 2015-12-19 13:40:09 -0800
 
   * Updating BroControl submodule.

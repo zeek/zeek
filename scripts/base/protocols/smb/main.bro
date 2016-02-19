@@ -130,6 +130,10 @@ export {
 		smb : Info &optional;
 	};
 
+	## Optionally write out the SMB commands log.  This is 
+	## primarily useful for debugging so is disabled by default.
+	const write_cmd_log = F &redef;
+
 	## This is an internally used function.
 	const set_current_file: function(smb: Info, file_id: count) &redef;
 

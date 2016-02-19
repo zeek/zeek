@@ -64,7 +64,7 @@ event smb2_message(c: connection, hdr: SMB2::Header, is_orig: bool) &priority=-5
 		# so let's get rid of it.
 		delete c$smb$pending_cmds[hdr$message_id];
 
-	if ( c?$smb )
+	if ( SMB::write_cmd_log && c?$smb )
 		Log::write(SMB::CMD_LOG, c$smb);
 	}
 

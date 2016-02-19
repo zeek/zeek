@@ -23,6 +23,8 @@ New Dependencies
 New Functionality
 -----------------
 
+- Bro now supports the Radiotap header for 802.11 frames.
+
 - Bro now tracks VLAN IDs. To record them inside the connection log,
   load protocols/conn/vlan-logging.bro.
 
@@ -34,6 +36,9 @@ New Functionality
   It works like decode_base64() but receives an additional connection
   argument that will be used for decoding errors into weird.log
   (instead of reporter.log).
+
+- The IRC analyzer now recognizes StartTLS sessions and enable the SSL
+  analyzer for them.
 
 - New Bro plugins in aux/plugins:
 

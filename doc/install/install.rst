@@ -82,11 +82,14 @@ To install the required dependencies, you can use:
   "Preferences..." -> "Downloads" menus to install the "Command Line Tools"
   component).
 
-  OS X comes with all required dependencies except for CMake_, SWIG_, and CAF.
-  Distributions of these dependencies can likely be obtained from your
-  preferred Mac OS X package management system (e.g. Homebrew_, MacPorts_,
-  or Fink_).  Specifically for Homebrew, the ``cmake``, ``swig``,
-  and ``caf`` packages provide the required dependencies.
+  OS X comes with all required dependencies except for CMake_, SWIG_,
+  OpenSSL, and CAF. (OpenSSL used to be part of OS X versions 10.10
+  and older, for which it does not need to be installed manually. It
+  was removed in OS X 10.11). Distributions of these dependencies can
+  likely be obtained from your preferred Mac OS X package management
+  system (e.g. Homebrew_, MacPorts_, or Fink_). Specifically for
+  Homebrew, the ``cmake``, ``swig``, ``openssl`` and ``caf`` packages
+  provide the required dependencies.
 
 
 Optional Dependencies
@@ -126,14 +129,8 @@ platforms for binary releases and for installation instructions.
 
   Linux based binary installations are usually performed by adding
   information about the Bro packages to the respective system packaging
-  tool. Then the usual system utilities such as ``apt``, ``yum``
-  or ``zypper`` are used to perform the installation. By default,
-  installations of binary packages will go into ``/opt/bro``.
-
-* MacOS Disk Image with Installer
-
-  Just open the ``Bro-*.dmg`` and then run the ``.pkg`` installer.
-  Everything installed by the package will go into ``/opt/bro``.
+  tool. Then the usual system utilities such as ``apt``, ``dnf``, ``yum``,
+  or ``zypper`` are used to perform the installation.
 
 The primary install prefix for binary packages is ``/opt/bro``.
 

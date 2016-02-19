@@ -53,7 +53,7 @@ export {
 
 event HTTP::log_http(rec: HTTP::Info) &priority=5
         {
-        if ( rec?$host && rec?$user_agent && rec$host == "crl.microsoft.com" &&
+        if ( rec?$host && rec?$user_agent && /crl.microsoft.com/ in rec$host &&
              /Microsoft-CryptoAPI\// in rec$user_agent )
                 {
                 if ( rec$user_agent !in crypto_api_mapping )

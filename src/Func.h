@@ -92,15 +92,15 @@ public:
 	BroFunc(ID* id, Stmt* body, id_list* inits, int frame_size, int priority);
 	~BroFunc();
 
-	int IsPure() const;
-	Val* Call(val_list* args, Frame* parent) const;
+	int IsPure() const override;
+	Val* Call(val_list* args, Frame* parent) const override;
 
 	void AddBody(Stmt* new_body, id_list* new_inits, int new_frame_size,
-			int priority);
+			int priority) override;
 
 	int FrameSize() const {	return frame_size; }
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 
 protected:
 	BroFunc() : Func(BRO_FUNC)	{}
@@ -118,11 +118,11 @@ public:
 	BuiltinFunc(built_in_func func, const char* name, int is_pure);
 	~BuiltinFunc();
 
-	int IsPure() const;
-	Val* Call(val_list* args, Frame* parent) const;
+	int IsPure() const override;
+	Val* Call(val_list* args, Frame* parent) const override;
 	built_in_func TheFunc() const	{ return func; }
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 
 protected:
 	BuiltinFunc()	{ func = 0; is_pure = 0; }

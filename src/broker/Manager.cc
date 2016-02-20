@@ -740,7 +740,7 @@ void bro_broker::Manager::Process()
 
 			val_list* vl = new val_list;
 			vl->append(new StringVal(move(*msg)));
-			mgr.QueueEvent(Broker::print_handler, vl);
+			mgr.QueueEvent(Broker::print_handler, vl, SOURCE_BROKER);
 			}
 		}
 
@@ -802,7 +802,7 @@ void bro_broker::Manager::Process()
 				}
 
 			if ( static_cast<size_t>(vl->length()) == em.size() - 1 )
-				mgr.QueueEvent(ehp, vl);
+				mgr.QueueEvent(ehp, vl, SOURCE_BROKER);
 			else
 				delete_vals(vl);
 			}

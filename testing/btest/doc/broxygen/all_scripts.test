@@ -7,7 +7,7 @@
 # @TEST-SERIALIZE: comm
 # @TEST-EXEC: bro -X broxygen.config broxygen DumpEvents::include=/NOTHING_MATCHES/
 # @TEST-EXEC: btest-diff .stdout
-# @TEST-EXEC: btest-diff .stderr
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
 
 @TEST-START-FILE broxygen.config
 script	*	scripts/

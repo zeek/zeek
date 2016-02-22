@@ -1,2 +1,5 @@
+warning in /Users/repo/bro/scripts/base/frameworks/communication/./main.bro, line 175: deprecated (get_event_peer)
+warning in /Users/repo/bro/scripts/base/frameworks/communication/./main.bro, line 211: deprecated (get_event_peer)
+warning in /Users/repo/bro/scripts/base/frameworks/communication/./main.bro, line 336: deprecated (get_event_peer)
 [ERROR] NONE::new_tcp_connection_impl: could not connect to to 0.0.0.0 on port 0
 <params>, line 1: received termination signal

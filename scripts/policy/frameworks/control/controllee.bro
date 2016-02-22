@@ -50,18 +50,6 @@ event Control::net_stats_request()
 	event Control::net_stats_response(reply);
 	}
 	
-event Control::configuration_update_request()
-	{
-	# Generate the alias event. 
-	event Control::configuration_update();
-	
-	# Don't need to do anything in particular here, it's just indicating that
-	# the configuration is going to be updated.  This event could be handled
-	# by other scripts if they need to do some ancilliary processing if 
-	# redef-able consts are modified at runtime.
-	event Control::configuration_update_response();
-	}
-	
 event Control::shutdown_request()
 	{
 	# Send the acknowledgement event.

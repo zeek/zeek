@@ -23,10 +23,10 @@ export {
 	const arg = "" &redef;
 
 	## Events that need to be handled by controllers.
-	const controller_events : set[string] = {"Control::id_value_request", "Control::peer_status_request", "Control::net_stats_request", "Control::configuration_update_request", "Control::shutdown_request"} &redef;
+	const controller_events : set[string] = {"Control::id_value_request", "Control::peer_status_request", "Control::net_stats_request", "Control::shutdown_request"} &redef;
 	
 	## Events that need to be handled by controllees.
-	const controllee_events : set[string] = {"Control::id_value_response", "Control::peer_status_response", "Control::net_stats_response", "Control::configuration_update_response", "Control::shutdown_response"} &redef;
+	const controllee_events : set[string] = {"Control::id_value_response", "Control::peer_status_response", "Control::net_stats_response", "Control::shutdown_response"} &redef;
 
 	## The commands that can currently be given on the command line for
 	## remote control.
@@ -34,7 +34,6 @@ export {
 		"id_value",
 		"peer_status",
 		"net_stats",
-		"configuration_update",
 		"shutdown",
 	} &redef;
 
@@ -56,16 +55,6 @@ export {
 	global net_stats_request: event();
 	## Returns the current net_stats.
 	global net_stats_response: event(s: string);
-
-	## Inform the remote Bro instance that it's configuration may have been
-	## updated.
-	global configuration_update_request: event();
-	## This event is a wrapper and alias for the
-	## :bro:id:`Control::configuration_update_request` event.
-	## This event is also a primary hooking point for the control framework.
-	global configuration_update: event();
-	## Message in response to a configuration update request.
-	global configuration_update_response: event();
 
 	## Requests that the Bro instance begins shutting down.
 	global shutdown_request: event();

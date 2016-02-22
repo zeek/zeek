@@ -2,7 +2,6 @@
 ##! a version of that software is as old or older than the defined version a
 ##! notice will be generated.
 
-@load base/frameworks/control
 @load base/frameworks/notice
 @load base/frameworks/software
 
@@ -118,11 +117,6 @@ function update_vulnerable_sw()
 	}
 
 event bro_init() &priority=3
-	{
-	update_vulnerable_sw();
-	}
-
-event Control::configuration_update() &priority=3
 	{
 	update_vulnerable_sw();
 	}

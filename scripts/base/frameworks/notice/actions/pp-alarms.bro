@@ -156,8 +156,8 @@ function pretty_print_alarm(out: file, n: Info)
 @if ( Cluster::is_enabled() )
 	pdescr = "local";
 	
-	if ( n?$src_peer )
-		pdescr = n$src_peer?$descr ? n$src_peer$descr : fmt("%s", n$src_peer$host);
+	if ( n?$peer_descr )
+		pdescr = n$peer_descr;
 
 	pdescr = fmt("<%s> ", pdescr);
 @endif

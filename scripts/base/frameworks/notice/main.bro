@@ -115,8 +115,6 @@ export {
 		## Associated count, or perhaps a status code.
 		n:              count          &log &optional;
 
-		## Peer that raised this notice.
-		src_peer:       event_peer     &optional;
 		## Textual description for the peer that raised this notice.
 		peer_descr:     string         &log &optional;
 
@@ -605,9 +603,8 @@ function apply_policy(n: Notice::Info)
 			n$dst = n$iconn$resp_h;
 		}
 
-	if ( ! n?$peer_descr && n?$src_peer )
-		n$peer_descr = n$src_peer?$descr ?
-		                   n$src_peer$descr : fmt("%s", n$src_peer$host);
+	if ( ! n?$peer_descr )
+		n$peer_descr = peer_description;
 
 	if ( ! n?$email_body_sections )
 		n$email_body_sections = vector();

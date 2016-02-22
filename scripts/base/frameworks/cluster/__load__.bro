@@ -31,6 +31,10 @@ redef Broker::listen_port = Cluster::nodes[Cluster::node]$p;
 @load ./nodes/manager
 @endif
 
+@if ( Cluster::has_local_role(Cluster::LOGNODE) )
+@load ./nodes/lognode
+@endif
+
 @if ( Cluster::has_local_role(Cluster::DATANODE) )
 @load ./nodes/datanode
 @endif

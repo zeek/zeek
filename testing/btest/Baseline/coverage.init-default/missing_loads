@@ -1,4 +1,5 @@
 -./frameworks/cluster/nodes/datanode.bro
+-./frameworks/cluster/nodes/lognode.bro
 -./frameworks/cluster/nodes/manager.bro
 -./frameworks/cluster/nodes/worker.bro
 -./frameworks/cluster/setup-connections.bro

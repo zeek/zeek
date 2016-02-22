@@ -104,8 +104,11 @@ function process_node_lognode(name: string)
 	local n = nodes[name];
 	local me = nodes[node];
 
-	if ( WORKER in n$node_roles && n$datanode == node )
-		update_node(name, name, F, 1sec);
+	if ( WORKER in n$node_roles )
+		{
+		if ( n?$datanode && n$datanode == node )
+			update_node(name, name, F, 1sec);
+		}
 
 	# accepts connections from the previous one. 
 	# FIXME: Once we're using multiple proxies, we should also figure out
@@ -122,7 +125,7 @@ function process_node_lognode(name: string)
 	# Finally the manager, to send status updates to.
 	if ( MANAGER in n$node_roles )
 		{
-		if ( me$manager == name ) # name = manager
+		if ( me?$manager && me$manager == name ) # name = manager
 			update_node(name, name, T, 1mins);
 		}
 	}

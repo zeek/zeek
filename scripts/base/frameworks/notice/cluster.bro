@@ -48,6 +48,9 @@ function NOTICE(n: Notice::Info)
 	if ( Cluster::has_local_role(Cluster::MANAGER) )
 		Notice::internal_NOTICE(n);
 	else
+		{
+		n$peer_descr = peer_description;
 		# For non-managers, send the notice on to the manager.
 		event Notice::cluster_notice(n);
+		}
 	}

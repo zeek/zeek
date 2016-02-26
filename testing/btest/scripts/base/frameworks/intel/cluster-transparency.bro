@@ -72,9 +72,10 @@ event Intel::log_intel(rec: Intel::Info)
 	event Control::shutdown_request();
 	}
 
-event remote_connection_closed(p: event_peer)
+event Broker::outgoing_connection_broken(peer_address: string,
+                                        peer_port: port,
+                                        peer_name: string)
 	{
 	# Cascading termination
-	#print fmt("disconnected from: %s", p);
-	terminate_communication();
+	terminate();
 	}

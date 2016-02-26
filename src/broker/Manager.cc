@@ -134,6 +134,7 @@ void Manager::InitPostScript()
 	opaque_of_store_handle = new OpaqueType("Broker::Store");
 	vector_of_data_type = new VectorType(internal_type("Broker::Data")->Ref());
 
+	// Register as a "dont-count" source first, we may change that later.
 	iosource_mgr->Register(this, true);
 
 	bstate = std::shared_ptr<BrokerState>(new BrokerState());
@@ -187,6 +188,9 @@ uint16_t Manager::Listen(const string& addr, uint16_t port)
 		reporter->Error("Failed to listen on %s:%" PRIu16,
 		                addr.empty() ? "INADDR_ANY" : addr.c_str(), port);
 
+	// Register as a "does-count" source now.
+	iosource_mgr->Register(this, false);
+
 	DBG_LOG(DBG_BROKER, "Listening on %s:%" PRIu16,
 		addr.empty() ? "INADDR_ANY" : addr.c_str(), port);
 
@@ -204,6 +208,9 @@ void Manager::Peer(const string& addr, uint16_t port, double retry)
 
 	auto ms = broker::timeout::seconds(static_cast<uint64>(retry));
 	bstate->endpoint.peer_nosync(addr, port, ms);
+
+	// // Register as a "does-count" source now.
+	iosource_mgr->Register(this, false);
 	}
 
 void Manager::Unpeer(const string& addr, uint16_t port)

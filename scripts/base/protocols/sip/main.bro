@@ -80,7 +80,7 @@ export {
 	## that the SIP analyzer will only accept methods consisting solely
 	## of letters ``[A-Za-z]``.
 	const sip_methods: set[string] = {
-		"REGISTER", "INVITE", "ACK", "CANCEL", "BYE", "OPTIONS", "NOTIFY"
+		"REGISTER", "INVITE", "ACK", "CANCEL", "BYE", "OPTIONS", "NOTIFY", "SUBSCRIBE"
 	} &redef;
 
 	## Event that can be handled to access the SIP record as it is sent on
@@ -153,7 +153,7 @@ function flush_pending(c: connection)
 			# We don't use pending elements at index 0.
 			if ( r == 0 )
 				next;
-			
+
 			Log::write(SIP::LOG, c$sip_state$pending[r]);
 			}
 		}

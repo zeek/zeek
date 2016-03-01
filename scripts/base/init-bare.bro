@@ -2689,6 +2689,34 @@ export {
 		security_blob	: string &optional;
 	};
 
+	type SMB1::Find_First2_Request_Args: record {
+		## File attributes to apply as a constraint to the search
+		search_attrs		: count;
+		## Max search results
+		search_count		: count;
+		## Misc. flags for how the server should manage the transaction
+		## once results are returned
+		flags				: count;
+		## How detailed the information returned in the results should be
+		info_level			: count;
+		## Specify whether to search for directories or files
+		search_storage_type	: count;
+		## The string to serch for (note: may contain wildcards)
+		file_name			: string;
+	};
+
+	type SMB1::Find_First2_Response_Args: record {
+		## The server generated search identifier
+		sid				: count;
+		## Number of results returned by the search
+		search_count	: count;
+		## Whether or not the search can be continued using
+		## the TRANS2_FIND_NEXT2 transaction
+		end_of_search	: bool;
+		## An extended attribute name that couldn't be retrieved
+		ext_attr_error	: string &optional;
+	};
+
 
 }
 

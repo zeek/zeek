@@ -21,6 +21,8 @@
 #include "smb1_com_query_information.bif.h"
 #include "smb1_com_read_andx.bif.h"
 #include "smb1_com_session_setup_andx.bif.h"
+#include "smb1_com_transaction.bif.h"
+#include "smb1_com_transaction2.bif.h"
 #include "smb1_com_tree_connect_andx.bif.h"
 #include "smb1_com_tree_disconnect.bif.h"
 #include "smb1_com_write_andx.bif.h"
@@ -50,6 +52,7 @@ connection SMB_Conn(bro_analyzer: BroAnalyzer) {
 %include smb-common.pac
 %include smb-time.pac
 
+%include smb-ntlmssp-asn1.pac
 %include smb-ntlmssp.pac
 
 # SMB1 Commands

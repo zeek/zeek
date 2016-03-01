@@ -13,6 +13,7 @@ refine connection SMB_Conn += {
 
 	function proc_smb1_tree_connect_andx_response(header: SMB_Header, val: SMB1_tree_connect_andx_response): bool
 		%{
+		set_tree_is_pipe(${header.tid}, strcmp((const char*) smb_string2stringval(${val.service})->Bytes(), "IPC") == 0);
 		if ( smb1_tree_connect_andx_response )
 			BifEvent::generate_smb1_tree_connect_andx_response(bro_analyzer(),
 			                                                   bro_analyzer()->Conn(),

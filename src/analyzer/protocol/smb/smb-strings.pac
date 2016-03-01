@@ -47,7 +47,6 @@ function uint8s_to_stringval(s: uint8[]): StringVal
 		// If the last 2 bytes are nulls, cut them with the length.
 		length = length-2;
 		}
-
 	StringVal *output = new StringVal(length, buf);
 	delete [] buf;
 	return output;
@@ -71,7 +70,7 @@ function extract_string(s: SMB_string) : StringVal
 			buf[i] = t;
 			}
 
-		if ( length > 0 && buf[length] == 0x00 )
+		if ( length > 0 && buf[length-1] == 0x00 )
 			length--;
 
 		StringVal *ret = new StringVal(length, buf);

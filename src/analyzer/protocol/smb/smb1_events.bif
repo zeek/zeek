@@ -25,5 +25,8 @@ event smb1_empty_response%(c: connection, hdr: SMB1::Header%);
 ## c: The connection.
 ##
 ## hdr: The parsed header of the SMB message.
-event smb1_error%(c: connection, hdr: SMB1::Header%);
+##
+## is_orig: True if the message was sent by the originator of the underlying
+##       transport-level connection.
+event smb1_error%(c: connection, hdr: SMB1::Header, is_orig: bool%);
 

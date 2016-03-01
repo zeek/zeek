@@ -52,7 +52,10 @@ type SMB1_write_andx_request(header: SMB_Header) = record {
 	
 	byte_count    : uint16;
 	pad           : padding to data_offset - SMB_Header_length;
-	data          : bytestring &length=data_len;
+	is_pipe		  : case $context.connection.get_tree_is_pipe(header.tid) of {
+		true  -> pipe_data : SMB_Pipe_message(header, byte_count) &length=data_len;
+		default -> data : bytestring &length=data_len;
+	} &requires(data_len);
 } &let {
 	data_len    : uint32 = (data_len_high << 16) + data_len_low;
 	offset_high : uint32 = (word_count == 0x0E) ? offset_high_tmp : 0;

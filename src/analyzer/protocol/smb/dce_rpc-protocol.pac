@@ -88,6 +88,16 @@ type DCE_RPC_Bind = record {
 	p_context_elem	: p_cont_list_t;
 };
 
+type DCE_RPC_Bind_Ack = record {
+	max_xmit_frag	: uint16;
+	max_recv_frag	: uint16;
+	assoc_group_id	: uint32;
+	sec_addr_length : uint16;
+	sec_addr		: bytestring &length=sec_addr_length;
+	pad				: padding align 4;
+	p_context_elem	: p_cont_list_t;
+};
+
 type DCE_RPC_AlterContext = record {
 	max_xmit_frag	: uint16;
 	max_recv_frag	: uint16;
@@ -115,6 +125,7 @@ type DCE_RPC_Response = record {
 
 type DCE_RPC_Body(header: DCE_RPC_Header) = case header.PTYPE of {
 	DCE_RPC_BIND	 -> bind	: DCE_RPC_Bind;
+	DCE_RPC_BIND_ACK -> bind_ack: DCE_RPC_Bind_Ack;
 	DCE_RPC_REQUEST	 -> request	: DCE_RPC_Request;
 	DCE_RPC_RESPONSE -> response	: DCE_RPC_Response;
 	default		 -> other	: bytestring &restofdata;

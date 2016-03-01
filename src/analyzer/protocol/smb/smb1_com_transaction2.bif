@@ -1,0 +1,53 @@
+### Requests
+
+
+# TODO - Description
+event smb1_transaction2_request%(c: connection, hdr: SMB1::Header, sub_cmd: count%);
+
+# TODO - Description
+event smb1_trans2_find_first2_request%(c: connection, hdr: SMB1::Header, args: SMB1::Find_First2_Request_Args%);
+
+# TODO - Implementation
+# event smb1_trans2_fs_info_request%(c: connection, hdr: SMB1::Header, ??? %);
+
+# TODO - Description
+event smb1_trans2_query_path_info_request%(c: connection, hdr: SMB1::Header, file_name: string, level_of_interest: count%);
+
+# TODO - Description
+event smb1_trans2_query_file_info_request%(c: connection, hdr: SMB1::Header, file_id: count, level_of_interest: count%);
+
+# TODO - Implementation
+# event smb1_trans2_set_file_info_request(c: connection, hdr: SMB1::Header, ??? %);
+
+# TODO - Description
+event smb1_trans2_get_dfs_referral_request%(c: connection, hdr: SMB1::Header, file_name: string, max_referral_level: count%);
+
+### Responses
+
+
+# TODO - Description
+event smb1_transaction2_response%(c: connection, hdr: SMB1::Header, sub_cmd: count%);
+
+# TODO - Description
+event smb1_trans2_find_first2_response%(c: connection, hdr: SMB1::Header, args: SMB1::Find_First2_Response_Args%);
+
+# TODO - Implementation
+# event smb1_trans2_fs_info_response%(c: connection, hdr: SMB1::Header, ??? %);
+
+# TODO - Implementation
+# event smb1_trans2_query_path_info_response%(c: connection, hdr: SMB1::Header, ??? %);
+
+# TODO - Implementation
+# event smb1_trans2_query_file_info_response%(c: connection, hdr: SMB1::Header, ??? %);
+
+# TODO - Implementation
+# event smb1_trans2_set_file_info_response%(c: connection, hdr: SMB1::Header, ??? %);
+
+# TODO - Implementation
+# event smb1_trans2_get_dfs_referral_response%(c: connection, hdr: SMB1::Header, ??? %);
+
+
+### Types
+
+type SMB1::Find_First2_Request_Args: record;
+type SMB1::Find_First2_Response_Args: record;

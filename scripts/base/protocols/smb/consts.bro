@@ -9,6 +9,113 @@ export {
 	const statuses: table[count] of StatusCode = {
 		[0x00000000] = [$id="SUCCESS", $desc="The operation completed successfully."],
 	} &redef &default=function(i: count):StatusCode { local unknown=fmt("unknown-%d", i); return [$id=unknown, $desc=unknown]; };
+
+	## These are files names that are used for special 
+	## cases by the file system and would not be 
+	## considered "normal" files.
+	const pipe_names: set[string] = {
+		"\\netdfs",
+		"\\spoolss",
+		"\\NETLOGON",
+		"\\winreg",
+		"\\lsarpc",
+		"\\samr",
+		"\\srvsvc",
+		"srvsvc",
+		"MsFteWds",
+		"\\wkssvc",
+	};
+
+	## The UUIDs used by the various RPC endpoints
+	const rpc_uuids: table[string] of string = {
+		["4b324fc8-1670-01d3-1278-5a47bf6ee188"] = "Server Service",
+		["6bffd098-a112-3610-9833-46c3f87e345a"] = "Workstation Service",
+	} &redef &default=function(i: string):string { return fmt("unknown-uuid-%s", i); };
+
+	## Server service sub commands
+	const srv_cmds: table[count] of string = {
+		[8]  = "NetrConnectionEnum",
+		[9]  = "NetrFileEnum",
+		[10] = "NetrFileGetInfo",
+		[11] = "NetrFileClose",
+		[12] = "NetrSessionEnum",
+		[13] = "NetrSessionDel",
+		[14] = "NetrShareAdd",
+		[15] = "NetrShareEnum",
+		[16] = "NetrShareGetInfo",
+		[17] = "NetrShareSetInfo",
+		[18] = "NetrShareDel",
+		[19] = "NetrShareDelSticky",
+		[20] = "NetrShareCheck",
+		[21] = "NetrServerGetInfo",
+		[22] = "NetrServerSetInfo",
+		[23] = "NetrServerDiskEnum",
+		[24] = "NetrServerStatisticsGet",
+		[25] = "NetrServerTransportAdd",
+		[26] = "NetrServerTransportEnum",
+		[27] = "NetrServerTransportDel",
+		[28] = "NetrRemoteTOD",
+		[30] = "NetprPathType",
+		[31] = "NetprPathCanonicalize",
+		[32] = "NetprPathCompare",
+		[33] = "NetprNameValidate",
+		[34] = "NetprNameCanonicalize",
+		[35] = "NetprNameCompare",
+		[36] = "NetrShareEnumSticky",
+		[37] = "NetrShareDelStart",
+		[38] = "NetrShareDelCommit",
+		[39] = "NetrGetFileSecurity",
+		[40] = "NetrSetFileSecurity",
+		[41] = "NetrServerTransportAddEx",
+		[43] = "NetrDfsGetVersion",
+		[44] = "NetrDfsCreateLocalPartition",
+		[45] = "NetrDfsDeleteLocalPartition",
+		[46] = "NetrDfsSetLocalVolumeState",
+		[48] = "NetrDfsCreateExitPoint",
+		[49] = "NetrDfsDeleteExitPoint",
+		[50] = "NetrDfsModifyPrefix",
+		[51] = "NetrDfsFixLocalVolume",
+		[52] = "NetrDfsManagerReportSiteInfo",
+		[53] = "NetrServerTransportDelEx",
+		[54] = "NetrServerAliasAdd",
+		[55] = "NetrServerAliasEnum",
+		[56] = "NetrServerAliasDel",
+		[57] = "NetrShareDelEx",
+	} &redef &default=function(i: count):string { return fmt("unknown-srv-command-%d", i); };
+
+	## Workstation service sub commands
+	const wksta_cmds: table[count] of string = {
+		[0]  = "NetrWkstaGetInfo",
+		[1]  = "NetrWkstaSetInfo",
+		[2]  = "NetrWkstaUserEnum",
+		[5]  = "NetrWkstaTransportEnum",
+		[6]  = "NetrWkstaTransportAdd",
+		[7]  = "NetrWkstaTransportDel",
+		[8]  = "NetrUseAdd",
+		[9]  = "NetrUseGetInfo",
+		[10] = "NetrUseDel",
+		[11] = "NetrUseEnum",
+		[13] = "NetrWorkstationStatisticsGet",
+		[20] = "NetrGetJoinInformation",
+		[22] = "NetrJoinDomain2",
+		[23] = "NetrUnjoinDomain2",
+		[24] = "NetrRenameMachineInDomain2",
+		[25] = "NetrValidateName2",
+		[26] = "NetrGetJoinableOUs2",
+		[27] = "NetrAddAlternateComputerName",
+		[28] = "NetrRemoveAlternateComputerName",
+		[29] = "NetrSetPrimaryComputerName",
+		[30] = "NetrEnumerateComputerNames",
+	} &redef &default=function(i: count):string { return fmt("unknown-wksta-command-%d", i); };
+
+	type rpc_cmd_table: table[count] of string;
+	
+	## The subcommands for RPC endpoints
+	const rpc_sub_cmds: table[string] of rpc_cmd_table = {
+		["4b324fc8-1670-01d3-1278-5a47bf6ee188"] = srv_cmds,
+		["6bffd098-a112-3610-9833-46c3f87e345a"] = wksta_cmds,	
+	} &redef &default=function(i: string):rpc_cmd_table { return table() &default=function(j: string):string { return fmt("unknown-uuid-%s", j); }; };
+	
 }
 
 module SMB1;
@@ -88,6 +195,40 @@ export {
 		[0xD9] = "WRITE_BULK",
 		[0xDA] = "WRITE_BULK_DATA",
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };
+
+	const trans2_sub_commands: table[count] of string = {
+		[0x00] = "OPEN2",	
+		[0x01] = "FIND_FIRST2",	
+		[0x02] = "FIND_NEXT2",	
+		[0x03] = "QUERY_FS_INFORMATION",	
+		[0x04] = "SET_FS_INFORMATION",	
+		[0x05] = "QUERY_PATH_INFORMATION",	
+		[0x06] = "SET_PATH_INFORMATION",	
+		[0x07] = "QUERY_FILE_INFORMATION",	
+		[0x08] = "SET_FILE_INFORMATION",	
+		[0x09] = "FSCTL",	
+		[0x0A] = "IOCTL",	
+		[0x0B] = "FIND_NOTIFY_FIRST",	
+		[0x0C] = "FIND_NOTIFY_NEXT",	
+		[0x0D] = "CREATE_DIRECTORY",	
+		[0x0E] = "SESSION_SETUP",	
+		[0x10] = "GET_DFS_REFERRAL",	
+		[0x11] = "REPORT_DFS_INCONSISTENCY",	
+	} &default=function(i: count):string { return fmt("unknown-trans2-sub-cmd-%d", i); };
+
+	const trans_sub_commands: table[count] of string = {
+		[0x01] = "SET_NMPIPE_STATE",	
+		[0x11] = "RAW_READ_NMPIPE",	
+		[0x21] = "QUERY_NMPIPE_STATE",	
+		[0x22] = "QUERY_NMPIPE_INFO",	
+		[0x23] = "PEEK_NMPIPE",	
+		[0x26] = "TRANSACT_NMPIPE",	
+		[0x31] = "RAW_WRITE_NMPIPE",	
+		[0x36] = "READ_NMPIPE",	
+		[0x37] = "WRITE_NMPIPE",	
+		[0x53] = "WAIT_NMPIPE",	
+		[0x54] = "CALL_NMPIPE",	
+	} &default=function(i: count):string { return fmt("unknown-trans-sub-cmd-%d", i); };
 }
 
 module SMB2;

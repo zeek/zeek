@@ -31,23 +31,40 @@ refine connection SMB_Conn += {
 		switch ( ${val.rpc_header.PTYPE} ) {
 		case DCE_RPC_REQUEST:
 			if ( smb_pipe_request )
-				BifEvent::generate_smb_pipe_request(bro_analyzer(), bro_analyzer()->Conn(), BuildHeaderVal(header), \
-													${val.rpc_body.request.opnum});
+				BifEvent::generate_smb_pipe_request(bro_analyzer(), 
+				                                    bro_analyzer()->Conn(),
+				                                    BuildHeaderVal(header),
+				                                    ${val.rpc_body.request.opnum});
 			break;
 		case DCE_RPC_RESPONSE:
 			if ( smb_pipe_response )
-				BifEvent::generate_smb_pipe_response(bro_analyzer(), bro_analyzer()->Conn(), BuildHeaderVal(header));
+				BifEvent::generate_smb_pipe_response(bro_analyzer(), 
+				                                     bro_analyzer()->Conn(), 
+				                                     BuildHeaderVal(header));
 			break;
 		case DCE_RPC_BIND_ACK:
 			if ( smb_pipe_bind_ack_response )
-				BifEvent::generate_smb_pipe_bind_ack_response(bro_analyzer(), bro_analyzer()->Conn(), BuildHeaderVal(header));
+				BifEvent::generate_smb_pipe_bind_ack_response(bro_analyzer(), 
+				                                              bro_analyzer()->Conn(),
+				                                              BuildHeaderVal(header));
 			break;
 		case DCE_RPC_BIND:
 			if ( smb_pipe_bind_request )
-			   // TODO - the version number needs to be calculated properly
-				BifEvent::generate_smb_pipe_bind_request(bro_analyzer(), bro_analyzer()->Conn(), BuildHeaderVal(header), \
-												    new StringVal(analyzer::dce_rpc::uuid_to_string(bytestring_to_val(${val.rpc_body.bind.p_context_elem.p_cont_elem[0].abstract_syntax.if_uuid})->Bytes())), new StringVal(fmt("%d.0", ${val.rpc_body.bind.p_context_elem.p_cont_elem[0].abstract_syntax.if_version})));
-			break;			
+				{
+				// TODO - the version number needs to be calculated properly
+				if ( ${val.rpc_body.bind.p_context_elem.n_context_elem} > 0 )
+					{
+					const char * uuid = analyzer::dce_rpc::uuid_to_string(${val.rpc_body.bind.p_context_elem.p_cont_elem[0].abstract_syntax.if_uuid}.begin());
+					uint32_t version = ${val.rpc_body.bind.p_context_elem.p_cont_elem[0].abstract_syntax.if_version};
+
+					BifEvent::generate_smb_pipe_bind_request(bro_analyzer(), 
+					                                         bro_analyzer()->Conn(), 
+					                                         BuildHeaderVal(header),
+					                                         new StringVal(uuid), 
+					                                         new StringVal(fmt("%d.0", version)));
+					}
+				}
+			break;
 		}
 		
 		return true;

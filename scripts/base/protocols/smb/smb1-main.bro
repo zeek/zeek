@@ -168,7 +168,6 @@ event smb1_nt_create_andx_response(c: connection, hdr: SMB1::Header, file_id: co
 	
 	c$smb_state$current_file = c$smb_state$fid_map[file_id];
 	
-
 	SMB::write_file_log(c$smb_state$current_file);
 	}
 
@@ -176,7 +175,8 @@ event smb1_read_andx_request(c: connection, hdr: SMB1::Header, file_id: count, o
 	{
 	SMB::set_current_file(c$smb_state, file_id);
 	c$smb_state$current_file$action = SMB::FILE_READ;
-	c$smb_state$current_cmd$argument = c$smb_state$current_file$name;
+	if ( c$smb_state$current_file?$name )
+		c$smb_state$current_cmd$argument = c$smb_state$current_file$name;
 	}
 	
 event smb1_read_andx_request(c: connection, hdr: SMB1::Header, file_id: count, offset: count, length: count) &priority=-5
@@ -323,7 +323,8 @@ event smb1_transaction_request(c: connection, hdr: SMB1::Header, name: string, s
 
 event smb1_write_andx_request(c: connection, hdr: SMB1::Header, file_id: count, offset: count, data_len: count)
 	{
-	c$smb_state$pipe_map[file_id] = c$smb_state$current_file$uuid;
+	if ( c$smb_state$current_file?$uuid )
+		c$smb_state$pipe_map[file_id] = c$smb_state$current_file$uuid;
 	}
 
 event smb_pipe_bind_ack_response(c: connection, hdr: SMB1::Header)

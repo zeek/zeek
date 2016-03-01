@@ -142,7 +142,7 @@ event smb2_create_response(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID
 
 event smb2_set_info_request(c: connection, hdr: SMB2::Header, request: SMB2::SetInfoRequest) &priority=5
 	{
-	c$smb$current_file$size = request$eof;
+	c$smb_state$current_file$size = request$eof;
 	}
 
 event smb2_read_request(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, offset: count, length: count) &priority=5

@@ -87,7 +87,8 @@ event smb2_negotiate_response(c: connection, hdr: SMB2::Header, response: SMB2::
 
 event smb2_negotiate_response(c: connection, hdr: SMB2::Header, response: SMB2::NegotiateResponse) &priority=5
 	{
-	if ( c$smb_state$current_cmd$status !in SMB::ignored_command_statuses )
+	if ( SMB::write_cmd_log &&
+	     c$smb_state$current_cmd$status !in SMB::ignored_command_statuses )
 		{
 		Log::write(SMB::CMD_LOG, c$smb_state$current_cmd);
 		}	

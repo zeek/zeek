@@ -107,7 +107,8 @@ event smb1_negotiate_response(c: connection, hdr: SMB1::Header, response: SMB1::
 	
 event smb1_negotiate_response(c: connection, hdr: SMB1::Header, response: SMB1::NegotiateResponse) &priority=-5
 	{
-	if ( c$smb_state$current_cmd$status !in SMB::ignored_command_statuses )
+	if ( SMB::write_cmd_log &&
+	     c$smb_state$current_cmd$status !in SMB::ignored_command_statuses )
 		{
 		Log::write(SMB::CMD_LOG, c$smb_state$current_cmd);
 		}
@@ -136,7 +137,8 @@ event smb1_tree_connect_andx_response(c: connection, hdr: SMB1::Header, service:
 	{
 	Log::write(SMB::MAPPING_LOG, c$smb_state$current_tree);
 
-	if ( c$smb_state$current_cmd$status !in SMB::ignored_command_statuses )
+	if ( SMB::write_cmd_log &&
+	     c$smb_state$current_cmd$status !in SMB::ignored_command_statuses )
 		{
 		Log::write(SMB::CMD_LOG, c$smb_state$current_cmd);
 		}
@@ -146,6 +148,7 @@ event smb1_nt_create_andx_request(c: connection, hdr: SMB1::Header, name: string
 	{
 	local tmp_file: SMB::FileInfo = [$ts=network_time(), $uid=c$uid, $id=c$id];
 	c$smb_state$current_cmd$referenced_file = tmp_file;
+
 	c$smb_state$current_cmd$referenced_file$name = name;
 	c$smb_state$current_cmd$referenced_file$action = SMB::FILE_OPEN;
 	c$smb_state$current_file = c$smb_state$current_cmd$referenced_file;
@@ -190,7 +193,8 @@ event smb1_read_andx_request(c: connection, hdr: SMB1::Header, file_id: count, o
 	
 event smb1_read_andx_response(c: connection, hdr: SMB1::Header, data_len: count) &priority=5
 	{
-	if ( c$smb_state$current_cmd$status !in SMB::ignored_command_statuses )
+	if ( SMB::write_cmd_log && 
+	     c$smb_state$current_cmd$status !in SMB::ignored_command_statuses )
 		{
 		Log::write(SMB::CMD_LOG, c$smb_state$current_cmd);
 		}
@@ -267,7 +271,8 @@ event smb1_trans2_find_first2_request(c: connection, hdr: SMB1::Header, args: SM
 	
 event smb1_session_setup_andx_response(c: connection, hdr: SMB1::Header, response: SMB1::SessionSetupAndXResponse) &priority=-5
 	{
-	if ( c$smb_state$current_cmd$status !in SMB::ignored_command_statuses )
+	if ( SMB::write_cmd_log &&
+	     c$smb_state$current_cmd$status !in SMB::ignored_command_statuses )
 		{
 		Log::write(SMB::CMD_LOG, c$smb_state$current_cmd);
 		}
@@ -284,7 +289,8 @@ event smb1_error(c: connection, hdr: SMB1::Header, is_orig: bool)
 		{
 		# This is for deferred commands only.
 		# The more specific messages won't fire for errors
-		if ( ( c$smb_state$current_cmd$status !in SMB::ignored_command_statuses ) &&
+		if ( SMB::write_cmd_log &&
+		     ( c$smb_state$current_cmd$status !in SMB::ignored_command_statuses ) &&
 		     ( c$smb_state$current_cmd$command in SMB::deferred_logging_cmds ) )
 			{
 			Log::write(SMB::CMD_LOG, c$smb_state$current_cmd);

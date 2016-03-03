@@ -6,25 +6,18 @@ export {
 	};
 
 	type ATSvcInfo: record {
-	## Time of the request
-	ts	: time &log;
-	## UID of the connection
-	uid	: string &log;
-	## Connection info
-	id	: conn_id &log;
-	## Command (add, enum, delete, etc.)
-	command : string &log;
-	## Argument
-	arg	: string &log;
-	## Server the command was issued to
-	server	: string &log;
-	## Result of the command
-	result	: string &log &optional;
+		ts       : time    &log; ##< Time of the request
+		uid      : string  &log; ##< UID of the connection
+		id       : conn_id &log; ##< Connection info
+		command  : string  &log; ##< Command (add, enum, delete, etc.)
+		arg      : string  &log; ##< Argument
+		server   : string  &log; ##< Server the command was issued to
+		result   : string  &log &optional; ##< Result of the command
 	};
 }
 
-redef record connection += {
-	smb_atsvc: ATSvcInfo &optional;
+redef record SMB::State += {
+	pipe_atsvc: ATSvcInfo &optional;
 };
 
 event bro_init() &priority=5
@@ -32,28 +25,28 @@ event bro_init() &priority=5
 	Log::create_stream(ATSVC_LOG, [$columns=ATSvcInfo]);
 	}
 
-event smb_atsvc_job_add(c: connection, server: string, job: string)
+event smb_atsvc_job_add(c: connection, server: string, job: string) &priority=5
 	{
-	local info: ATSvcInfo;
-	info$ts = network_time();
-	info$uid = c$uid;
-	info$id = c$id;
-	info$command = "Add job";
-	info$arg = job;
-	info$server = server;
-
-	c$smb_atsvc = info;
+	local info = ATSvcInfo($ts=network_time(),
+	                       $uid = c$uid,
+	                       $id = c$id,
+	                       $command = "Add job",
+	                       $arg = job,
+	                       $server = server);
+	c$smb_state$pipe_atsvc = info;
 	}
 
-event smb_atsvc_job_id(c: connection, id: count, status: count)
+event smb_atsvc_job_id(c: connection, id: count, status: count) &priority=5
 	{
-	if ( !c?$smb_atsvc )
-		return;
-	if ( status == 0 )
-		c$smb_atsvc$result = "success";
-	else
-		c$smb_atsvc$result = "failed";
+	if ( c$smb_state?$pipe_atsvc )
+		c$smb_state$pipe_atsvc$result = (status==0) ? "success" : "failed";
+	}
 
-	Log::write(ATSVC_LOG, c$smb_atsvc);
-	delete c$smb_atsvc;
+event smb_atsvc_job_id(c: connection, id: count, status: count) &priority=-5
+	{
+	if ( c$smb_state?$pipe_atsvc )
+		{
+		Log::write(ATSVC_LOG, c$smb_state$pipe_atsvc);
+		delete c$smb_state$pipe_atsvc;
+		}
 	}

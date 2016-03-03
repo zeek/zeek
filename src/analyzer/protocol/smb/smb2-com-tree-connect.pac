@@ -13,10 +13,11 @@ refine connection SMB_Conn += {
 
 	function proc_smb2_tree_connect_response(header: SMB2_Header, val: SMB2_tree_connect_response): bool
 		%{
+		set_tree_is_pipe(${header.tree_id}, ${val.share_type} == SMB2_SHARE_TYPE_PIPE);
+
 		if ( smb2_tree_connect_response )
 			{
 			RecordVal* resp = new RecordVal(BifType::Record::SMB2::TreeConnectResponse);
-
 			resp->Assign(0, new Val(${val.share_type}, TYPE_COUNT));
 
 			BifEvent::generate_smb2_tree_connect_response(bro_analyzer(),

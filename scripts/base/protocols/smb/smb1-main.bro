@@ -168,7 +168,7 @@ event smb1_nt_create_andx_response(c: connection, hdr: SMB1::Header, file_id: co
 	
 	c$smb_state$current_file = c$smb_state$fid_map[file_id];
 	
-	SMB::write_file_log(c$smb_state$current_file);
+	SMB::write_file_log(c$smb_state);
 	}
 
 event smb1_read_andx_request(c: connection, hdr: SMB1::Header, file_id: count, offset: count, length: count) &priority=5
@@ -237,7 +237,7 @@ event smb1_close_request(c: connection, hdr: SMB1::Header, file_id: count) &prio
 		
 		delete c$smb_state$fid_map[file_id];
 
-		SMB::write_file_log(fl);
+		SMB::write_file_log(c$smb_state);
 		}
 	else
 		{

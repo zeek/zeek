@@ -10,19 +10,42 @@ export {
 	};
 	
 	## Abstracted actions for SMB file actions.
-	type FileAction: enum {
+	type Action: enum {
 		FILE_READ,
 		FILE_WRITE,
 		FILE_OPEN,
 		FILE_CLOSE,
 		FILE_UNKNOWN,
+
+		PIPE_READ,
+		PIPE_WRITE,
+		PIPE_OPEN,
+		PIPE_CLOSE,
+
+		PRINT_READ,
+		PRINT_WRITE,
+		PRINT_OPEN,
+		PRINT_CLOSE,
+
+		UNKNOWN_READ,
+		UNKNOWN_WRITE,
+		UNKNOWN_OPEN,
+		UNKNOWN_CLOSE,
 	};
 
 	## The file actions which are logged.
-	const logged_file_actions: set[FileAction] = {
+	const logged_file_actions: set[Action] = {
 		FILE_OPEN,
 		FILE_READ,
 		FILE_WRITE,
+
+		PIPE_OPEN,
+		PIPE_CLOSE,
+
+		PRINT_OPEN,
+		PRINT_CLOSE,
+
+		UNKNOWN_OPEN,
 	} &redef;
 
 	## The server response statuses which are *not* logged.
@@ -42,7 +65,7 @@ export {
 		fuid			: string  &log &optional;
 		
 		## Action this log record represents.
-		action			: FileAction  &log &default=FILE_UNKNOWN;
+		action			: Action  &log &optional;
 		## Path pulled from the tree this file was transferred to or from.
 		path			: string  &log &optional;
 		## Filename if one was seen.
@@ -50,26 +73,26 @@ export {
 		## Total size of the file.
 		size			: count   &log &default=0;
 		## Last time this file was modified.
-		times			: SMB::MACTimes    &log &optional;
+		times			: SMB::MACTimes &log &optional;
 	};
 
 	## This record is for the smb_mapping.log
 	type TreeInfo: record {
 		## Time when the tree was mapped.
-		ts					: time   &log &optional;
+		ts                  : time   &log &optional;
 		## Unique ID of the connection the tree was mapped over.
-		uid					: string  &log;
+		uid                 : string  &log;
 		## ID of the connection the tree was mapped over.
-		id					: conn_id &log;
+		id                  : conn_id &log;
 
 		## Name of the tree path.
-		path				: string &log &optional;
+		path                : string &log &optional;
 		## The type of resource of the tree (disk share, printer share, named pipe, etc.)
-		service				: string &log &optional;
+		service             : string &log &optional;
 		## File system of the tree.
-		native_file_system	: string &log &optional;
+		native_file_system  : string &log &optional;
 		## If this is SMB2, a share type will be included.
-		share_type			: string &log &optional;
+		share_type          : string &log &default="UNKNOWN";
 	};
 
 	## This record is for the smb_cmd.log
@@ -121,15 +144,20 @@ export {
 		current_tree   : TreeInfo    &optional;
 		
 		## Indexed on MID to map responses to requests.
-		pending_cmds: table[count] of CmdInfo   &optional;
+		pending_cmds : table[count] of CmdInfo   &optional;
 		## File map to retrieve file information based on the file ID.
-		fid_map     : table[count] of FileInfo  &optional;
+		fid_map      : table[count] of FileInfo  &optional;
 		## Tree map to retrieve tree information based on the tree ID.
-		tid_map     : table[count] of TreeInfo  &optional;
+		tid_map      : table[count] of TreeInfo  &optional;
 		## User map to retrieve user name based on the user ID.
-		uid_map		: table[count] of string	&optional;
+		uid_map      : table[count] of string    &optional;
 		## Pipe map to retrieve UUID based on the file ID of a pipe.
-		pipe_map	: table[count] of string	&optional;
+		pipe_map     : table[count] of string    &optional;
+
+		## A set of recent files to avoid logging the same
+		## files over and over in the smb files log.
+		## This only applies to files seen in a single connection.
+		recent_files : set[string] &default=string_set() &read_expire=3min;
 	};
 	
 	redef record connection += {
@@ -154,18 +182,18 @@ export {
 	const set_current_file: function(smb_state: State, file_id: count) &redef;
 
 	## This is an internally used function.
-	const write_file_log: function(f: FileInfo) &redef;
+	const write_file_log: function(state: State) &redef;
 }
 
 redef record FileInfo += {
 	## ID referencing this file.
-	fid	: count   &optional;
+	fid  : count   &optional;
 
 	## Maintain a reference to the file record.
-	f	: fa_file &optional;
+	f    : fa_file &optional;
 
 	## UUID referencing this file if DCE/RPC
-	uuid: string &optional;
+	uuid : string &optional;
 };
 
 const ports = { 139/tcp, 445/tcp };
@@ -191,12 +219,33 @@ function set_current_file(smb_state: State, file_id: count)
 	smb_state$current_file = smb_state$fid_map[file_id];
 	}
 
-function write_file_log(f: FileInfo)
+function write_file_log(state: State)
 	{
+	local f = state$current_file;
 	if ( f?$name && 
 	     f$name !in pipe_names &&
 	     f$action in logged_file_actions )
 		{
+		# Everything in this if statement is to avoid overlogging
+		# of the same data from a single connection based on recently
+		# seen files in the SMB::State $recent_files field.
+		if ( f?$times )
+			{
+			local file_ident = cat(f$action,
+			                       f?$fuid ? f$fuid : "",
+			                       f?$name ? f$name : "",
+			                       f?$path ? f$path : "",
+			                       f$size,
+			                       f$times);
+			if ( file_ident in state$recent_files )
+				{
+				# We've already seen this file and don't want to log it again.
+				return;
+				}
+			else
+				add state$recent_files[file_ident];
+			}
+		
 		Log::write(FILES_LOG, f);
 		}
 	}
@@ -211,7 +260,7 @@ event file_state_remove(f: fa_file) &priority=-5
 		local c = f$conns[id];
 		if ( c?$smb_state && c$smb_state?$current_file)
 			{
-			write_file_log(c$smb_state$current_file);
+			write_file_log(c$smb_state);
 			}
 		return;
 		}

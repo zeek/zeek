@@ -58,8 +58,8 @@ void SMB_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		}
 	catch ( const binpac::Exception& e )
 		{
-		  ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
-		  //printf(fmt("Binpac exception: %s", e.c_msg()));
+		ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
+		//printf(fmt("Binpac exception: %s", e.c_msg()));
 		}
 	}
 
@@ -161,11 +161,6 @@ void Contents_SMB::DeliverStream(int len, const u_char* data, bool orig)
 		case WAIT_FOR_HDR:
 			{
 			// We have the 4 bytes header now
-
-			// This does not abide the spec, but we've seen it 
-			// in real traffic.
-			if (data[1] > 2)
-				Conn()->Weird(fmt("NetBIOS session flags > 2: %d", data[1]));
 			msg_len = 0;
 			msg_type = data[0];
 			for ( int i = 1; i < 4; i++)

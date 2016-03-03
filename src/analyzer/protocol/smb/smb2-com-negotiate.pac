@@ -43,7 +43,7 @@ type SMB2_negotiate_request(header: SMB2_Header) = record {
 	security_mode     : uint16;          # there is a list of required modes
 	reserved          : padding[2];      # must be set to 0
 	capabilities      : uint32;          # must be set to 0
-	client_guid       : SMB2_guid;    # guid if client implements SMB 2.1 dialect, otherwise set to 0
+	client_guid       : SMB2_guid;       # guid if client implements SMB 2.1 dialect, otherwise set to 0
 	client_start_time : SMB_timestamp;   # must be set to 0
 	dialects          : uint16[dialect_count];
 } &byteorder=littleendian, &let {

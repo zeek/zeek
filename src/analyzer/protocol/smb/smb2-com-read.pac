@@ -25,7 +25,7 @@ refine connection SMB_Conn += {
 
 	function proc_smb2_read_response(h: SMB2_Header, val: SMB2_read_response) : bool
 		%{
-		if ( ${val.data_len} > 0 )
+		if ( ! ${val.is_pipe} && ${val.data_len} > 0 )
 			{
 			uint64 offset = smb2_read_offsets[${h.message_id}];
 			smb2_read_offsets.erase(${h.message_id});
@@ -67,7 +67,13 @@ type SMB2_read_response(header: SMB2_Header) = record {
 	data_remaining    : uint32;
 	reserved          : uint32;
 	pad               : padding to data_offset - header.head_length;
-	data              : bytestring &length=data_len;
+	pipe_file_switch  : case is_pipe of {
+		# The SMB_Pipe_message type doesn't support smb2 pipes yet.
+		#true  -> pipe_data : SMB_Pipe_message(header, data_len) &length=data_len;
+		false -> data      : bytestring &length=data_len;
+	};
 } &let {
+	is_pipe: bool = $context.connection.get_tree_is_pipe(header.tree_id);
+
 	proc: bool = $context.connection.proc_smb2_read_response(header, this);
 };

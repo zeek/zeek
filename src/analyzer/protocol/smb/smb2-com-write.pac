@@ -12,7 +12,7 @@ refine connection SMB_Conn += {
 			                                      ${val.data_len});
 			}
 
-		if ( ${val.data}.length() > 0 )
+		if ( ! ${val.is_pipe} && ${val.data}.length() > 0 )
 			{
 			file_mgr->DataIn(${val.data}.begin(), ${val.data_len}, ${val.offset},
 			                 bro_analyzer()->GetAnalyzerTag(),
@@ -32,19 +32,25 @@ refine connection SMB_Conn += {
 
 
 type SMB2_write_request(header: SMB2_Header) = record {
-	structure_size    : uint16;
-	data_offset       : uint16;
-	data_len          : uint32;
-	offset            : uint64;
-	file_id           : SMB2_guid;
-	channel           : uint32; # ignore
-	data_remaining    : uint32;
+	structure_size      : uint16;
+	data_offset         : uint16;
+	data_len            : uint32;
+	offset              : uint64;
+	file_id             : SMB2_guid;
+	channel             : uint32; # ignore
+	data_remaining      : uint32;
 	channel_info_offset : uint16; # ignore
-	channel_info_len  : uint16; # ignore
-	flags             : uint32;
-	pad               : padding to data_offset - header.head_length;
-	data              : bytestring &length=data_len;
+	channel_info_len    : uint16; # ignore
+	flags               : uint32;
+	pad                 : padding to data_offset - header.head_length;
+	pipe_file_switch    : case is_pipe of {
+		# The SMB_Pipe_message type doesn't support smb2 pipes yet.
+		#true  -> pipe_data : SMB_Pipe_message(header, data_len) &length=data_len;
+		default -> data      : bytestring &length=data_len;
+	};
 } &let {
+	is_pipe: bool = $context.connection.get_tree_is_pipe(header.tree_id);
+
 	proc : bool = $context.connection.proc_smb2_write_request(header, this);
 };
 

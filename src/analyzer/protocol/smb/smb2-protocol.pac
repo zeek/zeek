@@ -23,6 +23,12 @@ enum smb2_commands {
 	SMB2_OPLOCK_BREAK       = 18,
 };
 
+enum smb2_share_types {
+	SMB2_SHARE_TYPE_DISK = 0x01,
+	SMB2_SHARE_TYPE_PIPE = 0x02,
+	SMB2_SHARE_TYPE_PRINT = 0x03,
+};
+
 type SMB2_PDU(is_orig: bool) = record {
 	header     : SMB2_Header(is_orig);
 	message    : case header.status of {

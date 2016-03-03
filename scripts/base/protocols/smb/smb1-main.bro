@@ -184,8 +184,8 @@ event smb1_read_andx_request(c: connection, hdr: SMB1::Header, file_id: count, o
 	if ( c$smb_state$current_tree?$path && !c$smb_state$current_file?$path )
 		c$smb_state$current_file$path = c$smb_state$current_tree$path;
 
-	# TODO - Why is this commented out?
-	#write_file_log(c$smb_state$current_file);
+	# We don't even try to log reads and writes to the files log.
+	#write_file_log(c$smb_state);
 	}
 	
 event smb1_read_andx_response(c: connection, hdr: SMB1::Header, data_len: count) &priority=5
@@ -200,7 +200,9 @@ event smb1_write_andx_request(c: connection, hdr: SMB1::Header, file_id: count, 
 	{
 	SMB::set_current_file(c$smb_state, file_id);
 	c$smb_state$current_file$action = SMB::FILE_WRITE;
-	if ( !c$smb_state$current_cmd?$argument )
+	if ( !c$smb_state$current_cmd?$argument && 
+	     # TODO: figure out why name isn't getting set sometimes.
+	     c$smb_state$current_file?$name )
 		c$smb_state$current_cmd$argument = c$smb_state$current_file$name;
 	}
 	
@@ -209,8 +211,8 @@ event smb1_write_andx_request(c: connection, hdr: SMB1::Header, file_id: count, 
 	if ( c$smb_state$current_tree?$path && !c$smb_state$current_file?$path )
 		c$smb_state$current_file$path = c$smb_state$current_tree$path;
 
-	# TODO - Why is this commented out?
-	#write_file_log(c$smb_state$current_file);
+	# We don't even try to log reads and writes to the files log.
+	#write_file_log(c$smb_state);
 	}
 
 #event smb1_write_andx_response(c: connection, hdr: SMB1::Header, written_bytes: count) &priority=5
@@ -233,7 +235,8 @@ event smb1_close_request(c: connection, hdr: SMB1::Header, file_id: count) &prio
 		if ( c$smb_state$current_tree?$path )
 			fl$path = c$smb_state$current_tree$path;
 
-		c$smb_state$current_cmd$argument = fl$name;
+		if ( fl?$name )
+			c$smb_state$current_cmd$argument = fl$name;
 		
 		delete c$smb_state$fid_map[file_id];
 
@@ -323,18 +326,35 @@ event smb1_transaction_request(c: connection, hdr: SMB1::Header, name: string, s
 
 event smb1_write_andx_request(c: connection, hdr: SMB1::Header, file_id: count, offset: count, data_len: count)
 	{
-	if ( c$smb_state$current_file?$uuid )
-		c$smb_state$pipe_map[file_id] = c$smb_state$current_file$uuid;
+	if ( ! c$smb_state?$current_file || ! c$smb_state$current_file?$uuid )
+		{
+		# TODO: figure out why the uuid isn't getting set sometimes.
+		return;
+		}
+	
+	c$smb_state$pipe_map[file_id] = c$smb_state$current_file$uuid;
 	}
 
 event smb_pipe_bind_ack_response(c: connection, hdr: SMB1::Header)
 	{
+	if ( ! c$smb_state?$current_file || ! c$smb_state$current_file?$uuid )
+		{
+		# TODO: figure out why the uuid isn't getting set sometimes.
+		return;
+		}
+	
 	c$smb_state$current_cmd$sub_command = "RPC_BIND_ACK";
-	c$smb_state$current_cmd$argument = SMB::rpc_uuids[c$smb_state$current_file$uuid];	
+	c$smb_state$current_cmd$argument = SMB::rpc_uuids[c$smb_state$current_file$uuid];
 	}
 	
 event smb_pipe_bind_request(c: connection, hdr: SMB1::Header, uuid: string, version: string)
 	{
+	if ( ! c$smb_state?$current_file || ! c$smb_state$current_file?$uuid )
+		{
+		# TODO: figure out why the current_file isn't getting set sometimes.
+		return;
+		}
+
 	c$smb_state$current_cmd$sub_command = "RPC_BIND";
 	c$smb_state$current_file$uuid = uuid;
 	c$smb_state$current_cmd$argument = fmt("%s v%s", SMB::rpc_uuids[uuid], version);
@@ -342,8 +362,24 @@ event smb_pipe_bind_request(c: connection, hdr: SMB1::Header, uuid: string, vers
 
 event smb_pipe_request(c: connection, hdr: SMB1::Header, op_num: count)
 	{
-	c$smb_state$current_cmd$argument = fmt("%s: %s", SMB::rpc_uuids[c$smb_state$current_file$uuid],
-									   				 SMB::rpc_sub_cmds[c$smb_state$current_file$uuid][op_num]);
+	if ( ! c$smb_state?$current_file )
+		{
+		# TODO: figure out why the current file isn't being set sometimes.
+		return;
+		}
+
+	local f = c$smb_state$current_file;
+	if ( ! f?$uuid )
+		{
+		# TODO: figure out why this is happening.
+		event conn_weird("smb_pipe_request_missing_uuid", c, "");
+		return;
+		}
+	local arg = fmt("%s: %s",
+	                SMB::rpc_uuids[f$uuid],
+	                SMB::rpc_sub_cmds[f$uuid][op_num]);
+
+	c$smb_state$current_cmd$argument = arg;
 	}
 	
 #event smb1_transaction_setup(c: connection, hdr: SMB1::Header, op_code: count, file_id: count)

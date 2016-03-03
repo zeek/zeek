@@ -25,8 +25,11 @@ function get_file_handle(c: connection, is_orig: bool): string
 	local file_name = current_file?$name ? current_file$name : "";
 	# Include last_mod time if available because if a file has been modified it
 	# should be considered a new file.
-	local last_mod  = current_file?$times ? current_file$times$modified : double_to_time(0.0);
-	return cat(Analyzer::ANALYZER_SMB, c$id$orig_h, c$id$resp_h, path_name, file_name, last_mod);
+	local last_mod  = cat(current_file?$times ? current_file$times$modified : double_to_time(0.0));
+	# TODO: This is doing hexdump to avoid problems due to file analysis handling
+	#       using CheckString which is not immune to encapsulated null bytes.
+	#       This needs to be fixed lower in the file analysis code later.
+	return hexdump(cat(Analyzer::ANALYZER_SMB, c$id$orig_h, c$id$resp_h, path_name, file_name, last_mod));
 	}
 
 function describe_file(f: fa_file): string

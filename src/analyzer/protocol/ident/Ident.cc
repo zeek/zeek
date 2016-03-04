@@ -153,8 +153,9 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 		else
 			{
 			const char* sys_type = line;
-			const char* colon = strchr_n(line, end_of_line, ':');
-			const char* comma = strchr_n(line, end_of_line, ',');
+			assert(line <= end_of_line);
+			const char* colon = reinterpret_cast<const char*>(memchr(line, ':', end_of_line - line));
+			const char* comma = reinterpret_cast<const char*>(memchr(line, ':', end_of_line - line));
 			if ( ! colon )
 				{
 				BadReply(length, orig_line);

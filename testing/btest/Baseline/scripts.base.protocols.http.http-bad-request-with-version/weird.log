@@ -6,5 +6,5 @@
 #open	2016-02-05-13-13-06
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1452204358.172926	CXWv6p3arKYeMETxOg	192.168.122.130	49157	202.7.177.41	80	possible_evasion_attempt	-	F	bro
+1452204358.172926	CXWv6p3arKYeMETxOg	192.168.122.130	49157	202.7.177.41	80	bad_HTTP_request_with_version_field	-	F	bro
 #close	2016-02-05-13-13-06

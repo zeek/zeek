@@ -1,9 +1,9 @@
 
-2.4-297 | 2016-03-04 12:38:41 -0800
+2.4-298 | 2016-03-04 12:39:55 -0800
 
   * More detailed installation instructions for FreeBSD 9.X. (Johanna Amann)
 
-  * Update cmake OpenSSL checks. (Johanna Amann)
+  * Update CMake OpenSSL checks. (Johanna Amann)
 
   * "SUBSCRIBE" is a valid SIP. message per RFC 3265. Addresses
      BIT-1529. (Johanna Amann)

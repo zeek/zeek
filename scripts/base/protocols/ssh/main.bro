@@ -49,8 +49,13 @@ export {
 	## If true, we tell the event engine to not look at further data
 	## packets after the initial SSH handshake. Helps with performance
 	## (especially with large file transfers) but precludes some
-	## kinds of analyses. Defaults to T.
-	const skip_processing_after_detection = T &redef;
+	## kinds of analyses. Defaults to F.
+	const skip_processing_after_detection = F &redef;
+	
+	## If true, after detection the analyzer will be disabled and the
+    	## flow data will continue, thus a conn.log will be written with
+    	## appropriate counter increments. Defaults to T.
+	const disable_analyzer_after_detection = T &redef;
 
 	## Event that can be handled to access the SSH record as it is sent on
 	## to the logging framework.
@@ -70,6 +75,8 @@ redef record Info += {
 	# Store capabilities from the first host for
 	# comparison with the second (internal use)
 	capabilities: Capabilities &optional;
+	## Analzyer ID
+    	analyzer_id: count         &optional;
 };
 
 redef record connection += {
@@ -83,6 +90,11 @@ event bro_init() &priority=5
 	{
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SSH, ports);
 	Log::create_stream(SSH::LOG, [$columns=Info, $ev=log_ssh, $path="ssh"]);
+	
+	if ( skip_processing_after_detection && disable_analyzer_after_detection )
+    		{
+        	Reporter::warning(fmt("SSH::bro_init - skip_processing_after_detection and disable_analyzer_after_detection both enabled!"));
+    		}
 	}
 
 function set_session(c: connection)
@@ -135,6 +147,11 @@ event ssh_auth_successful(c: connection, auth_method_none: bool) &priority=5
 		skip_further_processing(c$id);
 		set_record_packets(c$id, F);
 		}
+		
+	if ( disable_analyzer_after_detection ) 
+        	{
+        	disable_analyzer(c$id, c$ssh$analyzer_id);
+        	}
 	}
 
 event ssh_auth_successful(c: connection, auth_method_none: bool) &priority=-5
@@ -233,3 +250,17 @@ event ssh2_server_host_key(c: connection, key: string) &priority=5
 	{
 	generate_fingerprint(c, key);
 	}
+	
+event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &priority=20
+    {
+        if ( atype == Analyzer::ANALYZER_SSH ) 
+        {
+            if ( ! c?$ssh ) 
+            {
+                local s: Info;
+                c$ssh = s;
+            }
+
+            c$ssh$analyzer_id = aid;
+        }
+    }

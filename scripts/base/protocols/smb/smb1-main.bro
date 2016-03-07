@@ -282,29 +282,22 @@ event smb_ntlm_negotiate(c: connection, hdr: SMB1::Header, request: SMB::NTLMNeg
 	{
 	c$smb_state$current_cmd$sub_command = "NTLMSSP_NEGOTIATE";
 	}
-
-event smb1_error(c: connection, hdr: SMB1::Header, is_orig: bool)
-	{
-	if ( ! is_orig )
-		{
-		# This is for deferred commands only.
-		# The more specific messages won't fire for errors
-		if ( SMB::write_cmd_log &&
-		     ( c$smb_state$current_cmd$status !in SMB::ignored_command_statuses ) &&
-		     ( c$smb_state$current_cmd$command in SMB::deferred_logging_cmds ) )
-			{
-			Log::write(SMB::CMD_LOG, c$smb_state$current_cmd);
-			}
-		}
-	}
 	
-event smb_ntlm_authenticate(c: connection, hdr: SMB1::Header, request: SMB::NTLMAuthenticate)
+event smb_ntlm_authenticate(c: connection, hdr: SMB1::Header, request: SMB::NTLMAuthenticate) &priority=5
 	{
 	c$smb_state$current_cmd$sub_command = "NTLMSSP_AUTHENTICATE";
 
+	c$smb_state$current_auth = SMB::AuthInfo($ts=network_time());
+	if ( request?$domain_name )
+		c$smb_state$current_auth$domainname = request$domain_name;
+	if ( request?$workstation )
+		c$smb_state$current_auth$hostname = request$workstation;
+	if ( request?$user_name )
+		c$smb_state$current_auth$username = request$user_name;
+
 	local user: string = "";
 	if ( ( request?$domain_name && request$domain_name != "" ) && ( request?$user_name && request$user_name != "" ) )
-		user = fmt("%s\\%s", request$domain_name, request$user_name);	
+		user = fmt("%s\\%s", request$domain_name, request$user_name);
 	else if ( ( request?$workstation && request$workstation != "" ) && ( request?$user_name && request$user_name != "" ) )
 		user = fmt("%s\\%s", request$workstation, request$user_name);
 	else if ( request?$user_name && request$user_name != "" )
@@ -323,6 +316,11 @@ event smb_ntlm_authenticate(c: connection, hdr: SMB1::Header, request: SMB::NTLM
 		{
 		c$smb_state$uid_map[hdr$uid] = user;
 		}
+	}
+
+event smb_ntlm_authenticate(c: connection, hdr: SMB1::Header, request: SMB::NTLMAuthenticate) &priority=5
+	{
+	Log::write(SMB::AUTH_LOG, c$smb_state$current_auth);
 	}
 
 event smb1_transaction_request(c: connection, hdr: SMB1::Header, name: string, sub_cmd: count)
@@ -387,7 +385,22 @@ event smb_pipe_request(c: connection, hdr: SMB1::Header, op_num: count)
 
 	c$smb_state$current_cmd$argument = arg;
 	}
-	
+
+event smb1_error(c: connection, hdr: SMB1::Header, is_orig: bool)
+	{
+	if ( ! is_orig )
+		{
+		# This is for deferred commands only.
+		# The more specific messages won't fire for errors
+		if ( SMB::write_cmd_log &&
+		     c$smb_state$current_cmd$status !in SMB::ignored_command_statuses &&
+		     c$smb_state$current_cmd$command in SMB::deferred_logging_cmds )
+			{
+			Log::write(SMB::CMD_LOG, c$smb_state$current_cmd);
+			}
+		}
+	}
+
 #event smb1_transaction_setup(c: connection, hdr: SMB1::Header, op_code: count, file_id: count)
 #	{
 #	local uuid = SMB::rpc_uuids[c$smb_state$pipe_map[file_id]];

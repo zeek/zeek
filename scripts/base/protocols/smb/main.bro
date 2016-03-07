@@ -5,6 +5,7 @@ module SMB;
 export {
 	redef enum Log::ID += { 
 		CMD_LOG,
+		AUTH_LOG,
 		MAPPING_LOG,
 		FILES_LOG
 	};
@@ -36,8 +37,7 @@ export {
 	## The file actions which are logged.
 	const logged_file_actions: set[Action] = {
 		FILE_OPEN,
-		FILE_READ,
-		FILE_WRITE,
+		FILE_CLOSE, 
 
 		PIPE_OPEN,
 		PIPE_CLOSE,
@@ -95,6 +95,13 @@ export {
 		share_type          : string &log &default="UNKNOWN";
 	};
 
+	type AuthInfo: record {
+		ts         : time   &log &optional;
+		username   : string &log &optional;
+		hostname   : string &log &optional;
+		domainname : string &log &optional;
+	};
+
 	## This record is for the smb_cmd.log
 	type CmdInfo: record {
 		## Timestamp of the command request
@@ -142,6 +149,8 @@ export {
 		current_file   : FileInfo    &optional;
 		## A reference to the current tree.
 		current_tree   : TreeInfo    &optional;
+		## A reference to the currently authenticated user.
+		current_auth   : AuthInfo    &optional;
 		
 		## Indexed on MID to map responses to requests.
 		pending_cmds : table[count] of CmdInfo   &optional;
@@ -202,6 +211,7 @@ redef likely_server_ports += { ports };
 event bro_init() &priority=5
 	{
 	Log::create_stream(CMD_LOG, [$columns=SMB::CmdInfo]);
+	Log::create_stream(AUTH_LOG, [$columns=SMB::AuthInfo]);
 	Log::create_stream(FILES_LOG, [$columns=SMB::FileInfo]);
 	Log::create_stream(MAPPING_LOG, [$columns=SMB::TreeInfo]);
 

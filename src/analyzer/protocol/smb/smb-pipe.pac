@@ -51,10 +51,10 @@ refine connection SMB_Conn += {
 			if ( smb_pipe_bind_request )
 				{
 				// TODO - the version number needs to be calculated properly
-				if ( ${val.rpc_body.bind.p_context_elem.n_context_elem} > 0 )
+				if ( ${val.rpc_body.bind.context_list.num_contexts} > 0 )
 					{
-					const char * uuid = analyzer::dce_rpc::uuid_to_string(${val.rpc_body.bind.p_context_elem.p_cont_elem[0].abstract_syntax.if_uuid}.begin());
-					uint32_t version = ${val.rpc_body.bind.p_context_elem.p_cont_elem[0].abstract_syntax.if_version};
+					const char * uuid = analyzer::dce_rpc::uuid_to_string(${val.rpc_body.bind.context_list.request_contexts[0].abstract_syntax.uuid}.begin());
+					uint32_t version = ${val.rpc_body.bind.context_list.request_contexts[0].abstract_syntax.version};
 
 					BifEvent::generate_smb_pipe_bind_request(bro_analyzer(), 
 					                                         bro_analyzer()->Conn(), 

@@ -168,12 +168,17 @@ export {
 		## This only applies to files seen in a single connection.
 		recent_files : set[string] &default=string_set() &read_expire=3min;
 	};
-	
+
+	## Optionally write out the SMB commands log.  This is 
+	## primarily useful for debugging so is disabled by default.
+	const write_cmd_log = F &redef;
+
+	## Everything below here is used internally in the SMB scripts.
+
 	redef record connection += {
 		smb_state : State &optional;
 	};
 	
-
 	## Internal use only
 	## Some commands shouldn't be logged by the smb1_message event
 	const deferred_logging_cmds: set[string] = {
@@ -182,10 +187,6 @@ export {
 		"SESSION_SETUP_ANDX",
 		"TREE_CONNECT_ANDX",
 	};
-	
-	## Optionally write out the SMB commands log.  This is 
-	## primarily useful for debugging so is disabled by default.
-	const write_cmd_log = F &redef;
 
 	## This is an internally used function.
 	const set_current_file: function(smb_state: State, file_id: count) &redef;
@@ -197,9 +198,6 @@ export {
 redef record FileInfo += {
 	## ID referencing this file.
 	fid  : count   &optional;
-
-	## Maintain a reference to the file record.
-	f    : fa_file &optional;
 
 	## UUID referencing this file if DCE/RPC
 	uuid : string &optional;

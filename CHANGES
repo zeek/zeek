@@ -1,4 +1,12 @@
 
+2.4-307 | 2016-03-07 13:33:45 -0800
+
+  * Add "disable_analyzer_after_detection" and remove
+    "skip_processing_after_detection". Addresses BIT-1545.
+    (Aaron Eppert & Johanna Amann)
+
+  * Add bad_HTTP_request_with_version weird (William Glodek)
+
 2.4-299 | 2016-03-04 12:51:55 -0800
 
   * More detailed installation instructions for FreeBSD 9.X. (Johanna Amann)

@@ -51,6 +51,9 @@ New Functionality
 Changed Functionality
 ---------------------
 
+- ``SSH::skip_processing_after_detection`` was removed. The functionality was
+  replaced by ``SSH::disable_analyzer_after_detection``.
+
 - Some script-level identifier have changed their names:
 
       snaplen                  -> Pcap::snaplen

@@ -753,10 +753,11 @@ public:
 	TableVal(TableType* t, Attributes* attrs = 0);
 	~TableVal();
 
-	// Returns true if the assignment typechecked, false if not.
-	// Second version takes a HashKey and Unref()'s it when done.
-	// If we're a set, new_val has to be nil.
-	// If we aren't a set, index may be nil in the second version.
+	// Returns true if the assignment typechecked, false if not. The
+	// methods take ownership of new_val, but not of the index. Second
+	// version takes a HashKey and Unref()'s it when done. If we're a
+	// set, new_val has to be nil. If we aren't a set, index may be nil
+	// in the second version.
 	int Assign(Val* index, Val* new_val, Opcode op = OP_ASSIGN);
 	int Assign(Val* index, HashKey* k, Val* new_val, Opcode op = OP_ASSIGN);
 

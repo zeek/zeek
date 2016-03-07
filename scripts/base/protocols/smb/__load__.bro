@@ -6,3 +6,5 @@
 @load ./smb1-main
 @load ./smb2-main
 @load ./files
+
+@load-sigs ./dpd.sig

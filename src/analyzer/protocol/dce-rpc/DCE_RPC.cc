@@ -190,7 +190,7 @@ DCE_RPC_Header::DCE_RPC_Header(analyzer::Analyzer* a, const u_char* b)
 
 DCE_RPC_Session::DCE_RPC_Session(analyzer::Analyzer* a)
 : analyzer(a),
-  if_uuid("00000000-0000-0000-0000-000000000000"),
+  uuid("00000000-0000-0000-0000-000000000000"),
   if_id(BifEnum::DCE_RPC_unknown_if)
 	{
 	opnum = -1;
@@ -203,7 +203,7 @@ bool DCE_RPC_Session::LooksLikeRPC(int len, const u_char* msg)
 
 	try
 		{
-		binpac::DCE_RPC_Simple::DCE_RPC_Header h;
+		binpac::DCE_RPC::DCE_RPC_Header h;
 		h.Parse(msg, msg + len);
 		if ( h.rpc_vers() == 5 && h.rpc_vers_minor() == 0 )
 			{
@@ -241,20 +241,20 @@ void DCE_RPC_Session::DeliverPDU(int is_orig, int len, const u_char* data)
 	try
 		{
 		// TODO: handle incremental input
-		binpac::DCE_RPC_Simple::DCE_RPC_PDU pdu;
+		binpac::DCE_RPC::DCE_RPC_PDU pdu;
 		pdu.Parse(data, data + len);
 
 		switch ( pdu.header()->PTYPE() ) {
-		case binpac::DCE_RPC_Simple::DCE_RPC_BIND:
-		case binpac::DCE_RPC_Simple::DCE_RPC_ALTER_CONTEXT:
+		case binpac::DCE_RPC::DCE_RPC_BIND:
+		case binpac::DCE_RPC::DCE_RPC_ALTER_CONTEXT:
 			DeliverBind(&pdu);
 			break;
 
-		case binpac::DCE_RPC_Simple::DCE_RPC_REQUEST:
+		case binpac::DCE_RPC::DCE_RPC_REQUEST:
 			DeliverRequest(&pdu);
 			break;
 
-		case binpac::DCE_RPC_Simple::DCE_RPC_RESPONSE:
+		case binpac::DCE_RPC::DCE_RPC_RESPONSE:
 			DeliverResponse(&pdu);
 			break;
 		}
@@ -265,24 +265,24 @@ void DCE_RPC_Session::DeliverPDU(int is_orig, int len, const u_char* data)
 		}
 	}
 
-void DCE_RPC_Session::DeliverBind(const binpac::DCE_RPC_Simple::DCE_RPC_PDU* pdu)
+void DCE_RPC_Session::DeliverBind(const binpac::DCE_RPC::DCE_RPC_PDU* pdu)
 	{
-	binpac::DCE_RPC_Simple::DCE_RPC_Bind* bind = pdu->body()->bind();
+	binpac::DCE_RPC::DCE_RPC_Bind* bind = pdu->body()->bind();
 
-	for ( int i = 0; i < bind->p_context_elem()->n_context_elem(); ++i )
+	for ( int i = 0; i < bind->context_list()->num_contexts(); ++i )
 		{
-		binpac::DCE_RPC_Simple::p_cont_elem_t* elem =
-			(*bind->p_context_elem()->p_cont_elem())[i];
+		binpac::DCE_RPC::ContextRequest* elem =
+			(*bind->context_list()->request_contexts())[i];
 
-		if_uuid = UUID(elem->abstract_syntax()->if_uuid().begin());
+		uuid = UUID(elem->abstract_syntax()->uuid().begin());
 		uuid_map_t::const_iterator uuid_it =
-			well_known_uuid_map().find(if_uuid);
+			well_known_uuid_map().find(uuid);
 
 		if ( uuid_it == well_known_uuid_map().end() )
 			{
 #ifdef DEBUG
 			// conn->Weird(fmt("Unknown DCE_RPC interface %s",
-			// 		if_uuid.to_string()));
+			// 		uuid.to_string()));
 #endif
 			if_id = BifEnum::DCE_RPC_unknown_if;
 			}
@@ -293,7 +293,7 @@ void DCE_RPC_Session::DeliverBind(const binpac::DCE_RPC_Simple::DCE_RPC_PDU* pdu
 			{
 			val_list* vl = new val_list;
 			vl->append(analyzer->BuildConnVal());
-			vl->append(new StringVal(if_uuid.to_string()));
+			vl->append(new StringVal(uuid.to_string()));
 			// vl->append(new EnumVal(if_id, BifType::Enum::dce_rpc_if_id));
 
 			analyzer->ConnectionEvent(dce_rpc_bind, vl);
@@ -301,9 +301,9 @@ void DCE_RPC_Session::DeliverBind(const binpac::DCE_RPC_Simple::DCE_RPC_PDU* pdu
 		}
 	}
 
-void DCE_RPC_Session::DeliverRequest(const binpac::DCE_RPC_Simple::DCE_RPC_PDU* pdu)
+void DCE_RPC_Session::DeliverRequest(const binpac::DCE_RPC::DCE_RPC_PDU* pdu)
 	{
-	binpac::DCE_RPC_Simple::DCE_RPC_Request* req = pdu->body()->request();
+	binpac::DCE_RPC::DCE_RPC_Request* req = pdu->body()->request();
 
 	opnum = req->opnum();
 
@@ -328,9 +328,9 @@ void DCE_RPC_Session::DeliverRequest(const binpac::DCE_RPC_Simple::DCE_RPC_PDU* 
 	}
 	}
 
-void DCE_RPC_Session::DeliverResponse(const binpac::DCE_RPC_Simple::DCE_RPC_PDU* pdu)
+void DCE_RPC_Session::DeliverResponse(const binpac::DCE_RPC::DCE_RPC_PDU* pdu)
 	{
-	binpac::DCE_RPC_Simple::DCE_RPC_Response* resp = pdu->body()->response();
+	binpac::DCE_RPC::DCE_RPC_Response* resp = pdu->body()->response();
 
 	if ( dce_rpc_response )
 		{
@@ -353,16 +353,16 @@ void DCE_RPC_Session::DeliverResponse(const binpac::DCE_RPC_Simple::DCE_RPC_PDU*
 	}
 
 void DCE_RPC_Session::DeliverEpmapperRequest(
-	const binpac::DCE_RPC_Simple::DCE_RPC_PDU* /* pdu */,
-	const binpac::DCE_RPC_Simple::DCE_RPC_Request* /* req */)
+	const binpac::DCE_RPC::DCE_RPC_PDU* /* pdu */,
+	const binpac::DCE_RPC::DCE_RPC_Request* /* req */)
 	{
 	// DEBUG_MSG("Epmapper request opnum = %d\n", req->opnum());
 	// ### TODO(rpang): generate an event on epmapper request
 	}
 
 void DCE_RPC_Session::DeliverEpmapperResponse(
-	const binpac::DCE_RPC_Simple::DCE_RPC_PDU* pdu,
-	const binpac::DCE_RPC_Simple::DCE_RPC_Response* resp)
+	const binpac::DCE_RPC::DCE_RPC_PDU* pdu,
+	const binpac::DCE_RPC::DCE_RPC_Response* resp)
 	{
 	// DEBUG_MSG("Epmapper request opnum = %d\n", req->opnum());
 	switch ( opnum ) {
@@ -374,12 +374,12 @@ void DCE_RPC_Session::DeliverEpmapperResponse(
 
 
 void DCE_RPC_Session::DeliverEpmapperMapResponse(
-	const binpac::DCE_RPC_Simple::DCE_RPC_PDU* pdu,
-	const binpac::DCE_RPC_Simple::DCE_RPC_Response* resp)
+	const binpac::DCE_RPC::DCE_RPC_PDU* pdu,
+	const binpac::DCE_RPC::DCE_RPC_Response* resp)
 	{
 	try
 		{
-		binpac::DCE_RPC_Simple::epmapper_map_resp epm_resp;
+		binpac::DCE_RPC::epmapper_map_resp epm_resp;
 
 		epm_resp.Parse(resp->stub().begin(), resp->stub().end(),
 				pdu->byteorder());
@@ -387,7 +387,7 @@ void DCE_RPC_Session::DeliverEpmapperMapResponse(
 		for ( unsigned int twr_i = 0;
 		      twr_i < epm_resp.towers()->actual_count(); ++twr_i )
 			{
-			binpac::DCE_RPC_Simple::epm_tower* twr =
+			binpac::DCE_RPC::epm_tower* twr =
 				(*epm_resp.towers()->towers())[twr_i]->tower();
 
 			mapped.addr = dce_rpc_endpoint_addr();
@@ -396,28 +396,28 @@ void DCE_RPC_Session::DeliverEpmapperMapResponse(
 			for ( int floor_i = 0; floor_i < twr->num_floors();
 			      ++floor_i )
 				{
-				binpac::DCE_RPC_Simple::epm_floor* floor =
+				binpac::DCE_RPC::epm_floor* floor =
 						(*twr->floors())[floor_i];
 
 				switch ( floor->protocol() ) {
-				case binpac::DCE_RPC_Simple::EPM_PROTOCOL_UUID:
+				case binpac::DCE_RPC::EPM_PROTOCOL_UUID:
 					if ( floor_i == 0 )
 						mapped.uuid = UUID(floor->lhs()->data()->uuid()->if_uuid());
 					break;
 
-				case binpac::DCE_RPC_Simple::EPM_PROTOCOL_TCP:
+				case binpac::DCE_RPC::EPM_PROTOCOL_TCP:
 					mapped.addr.port =
 						floor->rhs()->data()->tcp();
 					mapped.addr.proto = TRANSPORT_TCP;
 					break;
 
-				case binpac::DCE_RPC_Simple::EPM_PROTOCOL_UDP:
+				case binpac::DCE_RPC::EPM_PROTOCOL_UDP:
 					mapped.addr.port =
 						floor->rhs()->data()->udp();
 					mapped.addr.proto = TRANSPORT_UDP;
 					break;
 
-				case binpac::DCE_RPC_Simple::EPM_PROTOCOL_IP:
+				case binpac::DCE_RPC::EPM_PROTOCOL_IP:
 					uint32 hostip = floor->rhs()->data()->ip();
 					mapped.addr.addr = IPAddr(IPv4, &hostip, IPAddr::Host);
 					break;

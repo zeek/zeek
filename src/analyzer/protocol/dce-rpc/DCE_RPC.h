@@ -11,7 +11,7 @@
 #include "analyzer/protocol/dce-rpc/events.bif.h"
 #include "IPAddr.h"
 
-#include "dce_rpc_simple_pac.h"
+#include "dce_rpc_pac.h"
 
 
 namespace analyzer { namespace dce_rpc {
@@ -125,22 +125,22 @@ public:
 		{ return dce_rpc_message || dce_rpc_bind || dce_rpc_request; }
 
 protected:
-	void DeliverBind(const binpac::DCE_RPC_Simple::DCE_RPC_PDU* pdu);
-	void DeliverRequest(const binpac::DCE_RPC_Simple::DCE_RPC_PDU* pdu);
-	void DeliverResponse(const binpac::DCE_RPC_Simple::DCE_RPC_PDU* pdu);
+	void DeliverBind(const binpac::DCE_RPC::DCE_RPC_PDU* pdu);
+	void DeliverRequest(const binpac::DCE_RPC::DCE_RPC_PDU* pdu);
+	void DeliverResponse(const binpac::DCE_RPC::DCE_RPC_PDU* pdu);
 
 	void DeliverEpmapperRequest(
-			const binpac::DCE_RPC_Simple::DCE_RPC_PDU* pdu,
-			const binpac::DCE_RPC_Simple::DCE_RPC_Request* req);
+			const binpac::DCE_RPC::DCE_RPC_PDU* pdu,
+			const binpac::DCE_RPC::DCE_RPC_Request* req);
 	void DeliverEpmapperResponse(
-			const binpac::DCE_RPC_Simple::DCE_RPC_PDU* pdu,
-			const binpac::DCE_RPC_Simple::DCE_RPC_Response* resp);
+			const binpac::DCE_RPC::DCE_RPC_PDU* pdu,
+			const binpac::DCE_RPC::DCE_RPC_Response* resp);
 	void DeliverEpmapperMapResponse(
-			const binpac::DCE_RPC_Simple::DCE_RPC_PDU* pdu,
-			const binpac::DCE_RPC_Simple::DCE_RPC_Response* resp);
+			const binpac::DCE_RPC::DCE_RPC_PDU* pdu,
+			const binpac::DCE_RPC::DCE_RPC_Response* resp);
 
 	analyzer::Analyzer* analyzer;
-	UUID if_uuid;
+	UUID uuid;
 	BifEnum::dce_rpc_if_id if_id;
 	int opnum;
 	struct {

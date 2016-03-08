@@ -1,4 +1,9 @@
 
+2.4-313 | 2016-03-08 07:47:57 -0800
+
+  * Remove old string functions in C++ code. This removes the
+    functions: strcasecmp_n, strchr_n, and strrchr_n. (Johanna Amann)
+
 2.4-307 | 2016-03-07 13:33:45 -0800
 
   * Add "disable_analyzer_after_detection" and remove

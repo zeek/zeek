@@ -213,6 +213,7 @@ type GSSAPI_NEG_TOKEN_RESP_Arg_Data(header: SMB_Header, index: uint8) = case ind
 	1        -> supported_mech : ASN1Encoding;
 	2        -> response_token : SMB_NTLM_SSP_Token(header);
 	3        -> mech_list_mic  : ASN1OctetString;
+	default  -> def            : bytestring &restofdata &transient;
 };
 
 type SMB_NTLM_SSP(header: SMB_Header) = record {
@@ -229,6 +230,7 @@ type SMB_NTLM_SSP_Token(header: SMB_Header) = record {
 		1       -> negotiate    : SMB_NTLM_Negotiate(header, offsetof(msg) - offsetof(signature));
 		2       -> challenge    : SMB_NTLM_Challenge(header, offsetof(msg) - offsetof(signature));
 		3       -> authenticate : SMB_NTLM_Authenticate(header, offsetof(msg) - offsetof(signature));
+		default -> def          : bytestring &restofdata &transient;
 	};
 };
 

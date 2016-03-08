@@ -3,6 +3,7 @@
 #include "bro-config.h"
 
 #include <ctype.h>
+#include <algorithm>
 
 #include "NetVar.h"
 #include "Finger.h"
@@ -55,7 +56,7 @@ void Finger_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig
 			line = skip_whitespace(line+2, end_of_line);
 
 		assert(line <= end_of_line);
-		int n = min(end_of_line - line, 0);	// just to be sure if assertions aren't on.
+		long n = std::min(end_of_line - line, 0L);	// just to be sure if assertions aren't on.
 		const char* at = reinterpret_cast<const char*>(memchr(line, '@', n));
 		const char* host = 0;
 		if ( ! at )

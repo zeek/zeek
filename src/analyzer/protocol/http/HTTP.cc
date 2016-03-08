@@ -1370,7 +1370,7 @@ void HTTP_Analyzer::HTTP_Request()
 	const char* method = (const char*) request_method->AsString()->Bytes();
 	int method_len = request_method->AsString()->Len();
 
-	if ( strcasecmp_n(method_len, method, "CONNECT") == 0 )
+	if ( strncasecmp(method, "CONNECT", method_len) == 0 )
 		connect_request = true;
 
 	if ( http_request )
@@ -1564,7 +1564,7 @@ int HTTP_Analyzer::ExpectReplyMessageBody()
 
 	const BroString* method = UnansweredRequestMethod();
 
-	if ( method && strcasecmp_n(method->Len(), (const char*) (method->Bytes()), "HEAD") == 0 )
+	if ( method && strncasecmp((const char*) (method->Bytes()), "HEAD", method->Len()) == 0 )
 		return HTTP_BODY_NOT_EXPECTED;
 
 	if ( (reply_code >= 100 && reply_code < 200) ||

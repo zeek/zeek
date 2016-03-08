@@ -9,19 +9,19 @@ refine connection SMB_Conn += {
 
 	function proc_smb2_set_info_request(h: SMB2_Header, val: SMB2_set_info_request): bool
 		%{
-		if ( smb2_set_info_request && 
-		     ${val.info_type} == SMB2_0_INFO_FILE &&
-		     ${val.file_info_class} == 0x14 )
-			{
-			RecordVal* req = new RecordVal(BifType::Record::SMB2::SetInfoRequest);
-			//req->Assign(0, new Val(${val.eof}, TYPE_COUNT));
-			req->Assign(0, new Val(0, TYPE_COUNT));
-
-			BifEvent::generate_smb2_set_info_request(bro_analyzer(),
-			                                         bro_analyzer()->Conn(),
-			                                         BuildSMB2HeaderVal(h),
-			                                         req);
-			}
+		//if ( smb2_set_info_request && 
+		//     ${val.info_type} == SMB2_0_INFO_FILE &&
+		//     ${val.file_info_class} == 0x14 )
+		//	{
+		//	RecordVal* req = new RecordVal(BifType::Record::SMB2::SetInfoRequest);
+		//	//req->Assign(0, new Val(${val.eof}, TYPE_COUNT));
+		//	req->Assign(0, new Val(0, TYPE_COUNT));
+		//	
+		//	BifEvent::generate_smb2_set_info_request(bro_analyzer(),
+		//	                                         bro_analyzer()->Conn(),
+		//	                                         BuildSMB2HeaderVal(h),
+		//	                                         req);
+		//	}
 
 		return true;
 		%}
@@ -43,7 +43,7 @@ type SMB2_set_info_request(header: SMB2_Header) = record {
 	# TODO: a new structure needs to be created for this.
 	#eof                 : uint64;
 } &let {
-	proc: bool = $context.connection.proc_smb2_set_info_request(header, this);
+	#proc: bool = $context.connection.proc_smb2_set_info_request(header, this);
 };
 
 type SMB2_set_info_response(header: SMB2_Header) = record {

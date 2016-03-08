@@ -14,6 +14,9 @@ export {
 
 		## Set internally.
 		_priority: int &default=+0;
+
+		## Set internally. Signifies if the plugin has returned that it has activated succesfully
+		_activated: bool &default=F;
 	};
 
 	# Definition of a plugin.
@@ -40,6 +43,11 @@ export {
 
 		# One-time initialization function called when plugin gets registered, and
 		# before any other methods are called.
+		#
+		# If this function is provided, NetControl assumes that the plugin has to
+		# perform, potentially lengthy, initialization before the plugin will become
+		# active. In this case, the plugin has to call ``NetControl::plugin_activated``,
+		# once initialization finishes.
 		init: function(state: PluginState) &optional;
 
 		# One-time finalization function called when a plugin is shutdown; no further

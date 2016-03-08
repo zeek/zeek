@@ -36,6 +36,8 @@ export {
 	global broker_flow_clear: event(name: string, dpid: count);
 }
 
+global broker_peers: table[port, string] of Controller;
+
 function broker_describe(state: ControllerState): string
 	{
 	return fmt("Broker-%s:%d-%d", state$broker_host, state$broker_port, state$broker_dpid);
@@ -62,6 +64,17 @@ function broker_init(state: OpenFlow::ControllerState)
 	BrokerComm::subscribe_to_events(state$broker_topic); # openflow success and failure events are directly sent back via the other plugin via broker.
 	}
 
+event BrokerComm::outgoing_connection_established(peer_address: string, peer_port: port, peer_name: string)
+	{
+	if ( [peer_port, peer_address] !in broker_peers )
+		# ok, this one was none of ours...
+		return;
+
+	local p = broker_peers[peer_port, peer_address];
+	controller_init_done(p);
+	delete broker_peers[peer_port, peer_address];
+	}
+
 # broker controller constructor
 function broker_new(name: string, host: addr, host_port: port, topic: string, dpid: count): OpenFlow::Controller
 	{
@@ -69,6 +82,11 @@ function broker_new(name: string, host: addr, host_port: port, topic: string, dp
 		$flow_mod=broker_flow_mod_fun, $flow_clear=broker_flow_clear_fun, $describe=broker_describe, $supports_flow_removed=T, $init=broker_init);
 
 	register_controller(OpenFlow::BROKER, name, c);
+
+	if ( [host_port, cat(host)] in broker_peers )
+		Reporter::warning(fmt("Peer %s:%s was added to NetControl acld plugin twice.", host, host_port));
+	else
+		broker_peers[host_port, cat(host)] = c;
 
 	return c;
 	}

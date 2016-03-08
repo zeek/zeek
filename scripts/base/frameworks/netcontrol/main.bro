@@ -20,7 +20,7 @@ export {
 	redef enum Log::ID += { LOG };
 
 	# ###
-	# ###  Generic functions.
+	# ###  Generic functions and events.
 	# ###
 
 	# Activates a plugin.
@@ -30,6 +30,14 @@ export {
 	# priority: The higher the priority, the earlier this plugin will be checked
 	# whether it supports an operation, relative to other plugins.
 	global activate: function(p: PluginState, priority: int);
+
+	# Event that is used to initialize plugins. Place all plugin initialization
+	# related functionality in this event.
+	global NetControl::init: event();
+
+	# Event that is raised once all plugins activated in ``NetControl::init`` have finished
+	# their initialization
+	global NetControl::init_done: event();
 
 	# ###
 	# ### High-level API.
@@ -167,6 +175,14 @@ export {
 	## r: The rule to be added
 	global NetControl::rule_policy: hook(r: Rule);
 
+	##### Plugin functions
+
+	## Function called by plugins once they finished their activation. After all
+	## plugins defined in bro_init finished to activate, rules will start to be sent
+	## to the plugins. Rules that scripts try to set before the backends are ready
+	## will be discarded.
+	global plugin_activated: function(p: PluginState);
+
 	## Type of an entry in the NetControl log.
 	type InfoCategory: enum {
 		## A log entry reflecting a framework message.
@@ -231,12 +247,25 @@ redef record Rule += {
 	_plugin_id: count &optional;
 };
 
-global plugins: vector of PluginState;
-global plugin_ids: table[count] of PluginState;
+# Variable tracking the state of plugin activation. Once all plugins that
+# have been added in bro_init are activated, this will switch to T and
+# the event NetControl::init_done will be raised.
+global plugins_active: bool = F;
+# Set to true at the end of bro_init (with very low priority).
+# Used to track when plugin activation could potentially be finished
+global bro_init_done: bool = F;
 
+# The counters that are used to generate the rule and plugin IDs
 global rule_counter: count = 1;
 global plugin_counter: count = 1;
 
+# List of the currently active plugins
+global plugins: vector of PluginState;
+global plugin_ids: table[count] of PluginState;
+
+# These tables hold informations about rules _after_ they have been
+# succesfully added. Currently no information about the rules is held
+# in these tables while they are in the process of being added.
 global rules: table[string,count] of Rule; # Rules indexed by id and cid
 global id_to_cids: table[string] of set[count]; # id to cid
 
@@ -356,6 +385,11 @@ function log_error(msg: string, p: PluginState)
 	Log::write(LOG, [$ts=network_time(), $category=ERROR, $msg=msg, $plugin=p$plugin$name(p)]);
 	}
 
+function log_msg_no_plugin(msg: string)
+	{
+	Log::write(LOG, [$ts=network_time(), $category=MESSAGE, $msg=msg]);
+	}
+
 function log_rule(r: Rule, cmd: string, state: InfoState, p: PluginState, msg: string &default="")
 	{
 	local info: Info = [$ts=network_time()];
@@ -443,6 +477,56 @@ function quarantine_host(infected: addr, dns: addr, quarantine: addr, t: interva
 	return orules;
 	}
 
+function check_plugins()
+	{
+	if ( plugins_active )
+		return;
+
+	local all_active = T;
+	for ( i in plugins )
+		{
+		local p = plugins[i];
+		if ( p$_activated == F )
+			all_active = F;
+		}
+
+	if ( all_active )
+		{
+		plugins_active = T;
+		log_msg_no_plugin("plugin initialization done");
+		event NetControl::init_done();
+		}
+	}
+
+function plugin_activated(p: PluginState)
+	{
+	local id = p$_id;
+	if ( id !in plugin_ids )
+		{
+		log_error("unknown plugin activated", p);
+		return;
+		}
+	plugin_ids[id]$_activated = T;
+	log_msg("activation finished", p);
+
+	if ( bro_init_done )
+		check_plugins();
+	}
+
+event bro_init() &priority=-5
+	{
+	event NetControl::init();
+	}
+
+event NetControl::init() &priority=-20
+	{
+	bro_init_done = T;
+
+	check_plugins();
+
+	if ( plugins_active == F )
+		log_msg_no_plugin("waiting for plugins to initialize");
+	}
 
 # Low-level functions that only runs on the manager (or standalone) Bro node.
 
@@ -458,13 +542,26 @@ function activate_impl(p: PluginState, priority: int)
 
 	# perform one-time initialization
 	if ( p$plugin?$init )
+		{
+		log_msg(fmt("activating plugin with priority %d", priority), p);
 		p$plugin$init(p);
+		}
+	else
+		{
+		# no initialization necessary, mark plugin as active right away
+		plugin_activated(p);
+		}
 
-	log_msg(fmt("activated plugin with priority %d", priority), p);
 	}
 
 function add_rule_impl(rule: Rule) : string
 	{
+	if ( ! plugins_active )
+		{
+		log_rule_no_plugin(rule, FAILED, "plugins not initialized yet");
+		return "";
+		}
+
 	rule$cid = ++rule_counter; # numeric id that can be used by plugins for their rules.
 
 	if ( ! rule?$id || rule$id == "" )
@@ -480,6 +577,9 @@ function add_rule_impl(rule: Rule) : string
 	for ( i in plugins )
 		{
 		local p = plugins[i];
+
+		if ( p$_activated == F )
+			next;
 
 		# in this case, rule was accepted by earlier plugin and thus plugin has same
 		# priority. accept, but give out new rule id.

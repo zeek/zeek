@@ -67,6 +67,7 @@ global of_messages: table[count, OpenFlow::ofp_flow_mod_command] of OfTable &cre
 		};
 
 global of_flows: table[count] of OfTable &create_expire=openflow_flow_timeout;
+global of_instances: table[string] of PluginState;
 
 function openflow_name(p: PluginState) : string
 	{
@@ -391,10 +392,29 @@ event OpenFlow::flow_removed(name: string, match: OpenFlow::ofp_match, cookie: c
 	event NetControl::rule_timeout(r, FlowInfo($duration=double_to_interval(duration_sec+0.0), $packet_count=packet_count, $byte_count=byte_count), p);
 	}
 
+function openflow_init(p: PluginState)
+	{
+	local name = p$of_controller$state$_name;
+	if ( name in of_instances )
+		Reporter::error(fmt("OpenFlow instance %s added to NetControl twice.", name));
+
+	of_instances[name] = p;
+
+	# let's check, if our OpenFlow controller is already active. If not, we have to wait for it to become active.
+	if ( p$of_controller$state$_activated )
+		plugin_activated(p);
+	}
+
+event OpenFlow::controller_activated(name: string, controller: OpenFlow::Controller)
+	{
+	if ( name in of_instances )
+		plugin_activated(of_instances[name]);
+	}
+
 global openflow_plugin = Plugin(
 	$name=openflow_name,
 	$can_expire = T,
-#	$init = openflow_init,
+	$init = openflow_init,
 #	$done = openflow_done,
 	$add_rule = openflow_add_rule,
 	$remove_rule = openflow_remove_rule

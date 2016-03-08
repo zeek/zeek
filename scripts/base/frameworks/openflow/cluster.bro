@@ -51,6 +51,10 @@ event OpenFlow::cluster_flow_mod(name: string, match: ofp_match, flow_mod: ofp_f
 		}
 
 	local c = name_to_controller[name];
+
+	if ( ! c$state$_activated )
+		return;
+
 	if ( c?$flow_mod )
 		c$flow_mod(c$state, match, flow_mod);
 	}
@@ -64,6 +68,9 @@ event OpenFlow::cluster_flow_clear(name: string)
 		}
 
 	local c = name_to_controller[name];
+
+	if ( ! c$state$_activated )
+		return;
 
 	if ( c?$flow_clear )
 		c$flow_clear(c$state);

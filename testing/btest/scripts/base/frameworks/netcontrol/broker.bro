@@ -15,11 +15,16 @@
 const broker_port: port &redef;
 redef exit_only_after_terminate = T;
 
-event bro_init()
+event NetControl::init()
 	{
 	suspend_processing();
 	local netcontrol_broker = NetControl::create_broker(127.0.0.1, broker_port, "bro/event/netcontroltest", T);
 	NetControl::activate(netcontrol_broker, 0);
+	}
+
+event NetControl::init_done()
+	{
+	continue_processing();
 	}
 
 event BrokerComm::outgoing_connection_established(peer_address: string,
@@ -27,7 +32,6 @@ event BrokerComm::outgoing_connection_established(peer_address: string,
                                             peer_name: string)
 	{
 	print "BrokerComm::outgoing_connection_established", peer_address, peer_port;
-	continue_processing();
 	}
 
 event BrokerComm::outgoing_connection_broken(peer_address: string,

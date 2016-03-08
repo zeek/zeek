@@ -3,7 +3,7 @@
 
 @load base/frameworks/netcontrol
 
-event bro_init()
+event NetControl::init()
 	{
 	local netcontrol_debug = NetControl::create_debug(T);
 	NetControl::activate(netcontrol_debug, 0);

@@ -3,7 +3,7 @@
 
 @load base/frameworks/netcontrol
 
-event bro_init()
+event NetControl::init()
 	{
 	local netcontrol_packetfilter = NetControl::create_packetfilter();
 	NetControl::activate(netcontrol_packetfilter, 0);

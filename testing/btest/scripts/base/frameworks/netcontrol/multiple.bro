@@ -5,7 +5,7 @@
 
 global rules: vector of string;
 
-event bro_init()
+event NetControl::init()
 	{
 	local netcontrol_debug = NetControl::create_debug(T);
 	local netcontrol_debug_2 = NetControl::create_debug(T);

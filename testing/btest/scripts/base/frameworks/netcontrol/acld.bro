@@ -14,7 +14,7 @@
 const broker_port: port &redef;
 redef exit_only_after_terminate = T;
 
-event bro_init()
+event NetControl::init()
 	{
 	suspend_processing();
 	local netcontrol_acld = NetControl::create_acld(NetControl::AcldConfig($acld_host=127.0.0.1, $acld_port=broker_port, $acld_topic="bro/event/netcontroltest"));
@@ -26,6 +26,10 @@ event BrokerComm::outgoing_connection_established(peer_address: string,
                                             peer_name: string)
 	{
 	print "BrokerComm::outgoing_connection_established", peer_address, peer_port;
+	}
+
+event NetControl::init_done()
+	{
 	continue_processing();
 	}
 

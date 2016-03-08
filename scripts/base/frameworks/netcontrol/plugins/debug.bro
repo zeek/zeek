@@ -31,6 +31,7 @@ function debug_log(p: PluginState, msg: string)
 function debug_init(p: PluginState)
 	{
 	debug_log(p, "init");
+	plugin_activated(p);
 	}
 
 function debug_done(p: PluginState)

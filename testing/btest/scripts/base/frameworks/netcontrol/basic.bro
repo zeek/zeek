@@ -6,7 +6,7 @@
 
 @load base/frameworks/netcontrol
 
-event bro_init()
+event NetControl::init()
 	{
 	local netcontrol_debug = NetControl::create_debug(T);
 	NetControl::activate(netcontrol_debug, 0);
@@ -31,7 +31,7 @@ function test_mac()
 	NetControl::add_rule(r);
 	}
 
-event bro_init() &priority=-5
+event NetControl::init_done() &priority=-5
 	{
 	NetControl::shunt_flow([$src_h=192.168.17.1, $src_p=32/tcp, $dst_h=192.168.17.2, $dst_p=32/tcp], 30sec);
 	NetControl::drop_address(1.1.2.2, 15sec, "Hi there");

@@ -32,6 +32,7 @@ export {
 	global broker_rule_timeout: event(id: count, r: Rule, i: FlowInfo);
 }
 
+global netcontrol_broker_peers: table[port, string] of PluginState;
 global netcontrol_broker_topics: set[string] = set();
 global netcontrol_broker_id: table[count] of PluginState = table();
 global netcontrol_broker_current_id: count = 0;
@@ -112,6 +113,15 @@ function broker_init(p: PluginState)
 	BrokerComm::subscribe_to_events(p$broker_topic);
 	}
 
+event BrokerComm::outgoing_connection_established(peer_address: string, peer_port: port, peer_name: string)
+	{
+	if ( [peer_port, peer_address] !in netcontrol_broker_peers )
+		return;
+
+	local p = netcontrol_broker_peers[peer_port, peer_address];
+	plugin_activated(p);
+	}
+
 global broker_plugin = Plugin(
 	$name=broker_name,
 	$can_expire = F,
@@ -140,6 +150,11 @@ function create_broker(host: addr, host_port: port, topic: string, can_expire: b
 		plugin = broker_plugin_can_expire;
 
 	local p: PluginState = [$broker_host=host, $broker_port=host_port, $plugin=plugin, $broker_topic=topic, $broker_id=netcontrol_broker_current_id];
+
+	if ( [host_port, cat(host)] in netcontrol_broker_peers )
+		Reporter::warning(fmt("Peer %s:%s was added to NetControl broker plugin twice.", host, host_port));
+	else
+		netcontrol_broker_peers[host_port, cat(host)] = p;
 
 	netcontrol_broker_id[netcontrol_broker_current_id] = p;
 	++netcontrol_broker_current_id;

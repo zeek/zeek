@@ -6,7 +6,7 @@
 
 global of_controller: OpenFlow::Controller;
 
-event bro_init()
+event NetControl::init()
 	{
 	of_controller = OpenFlow::log_new(42);
 	local netcontrol_of = NetControl::create_openflow(of_controller);

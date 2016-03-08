@@ -127,6 +127,18 @@ export {
 	## controller: The controller to unregister
 	global unregister_controller: function(controller: Controller);
 
+	## Function to signal that a controller finished activation and is
+	## ready to use. Will throw the ``OpenFlow::controller_activated``
+	## event.
+	global controller_init_done: function(controller: Controller);
+
+	## Event that is raised once a controller finishes initialization
+	## and is completely activated.
+	## name: unique name of this controller instance.
+	##
+	## controller: The controller that finished activation.
+	global OpenFlow::controller_activated: event(name: string, controller: Controller);
+
 	## Function to lookup a controller instance by name
 	##
 	## name: unique name of the controller to look up
@@ -227,13 +239,25 @@ function get_cookie_gid(cookie: count): count
 	return INVALID_COOKIE;
 	}
 
+function controller_init_done(controller: Controller)
+	{
+	if ( controller$state$_name !in name_to_controller )
+		{
+		Reporter::error(fmt("Openflow initialized unknown plugin %s successfully?", controller$state$_name));
+		return;
+		}
+
+	controller$state$_activated = T;
+	event OpenFlow::controller_activated(controller$state$_name, controller);
+	}
+
 # Functions that are called from cluster.bro and non-cluster.bro
 
 function register_controller_impl(tpe: OpenFlow::Plugin, name: string, controller: Controller)
 	{
 	if ( controller$state$_name in name_to_controller )
 		{
-		Reporter::error("OpenFlow Controller %s was already registered. Ignored duplicate registration");
+		Reporter::error(fmt("OpenFlow Controller %s was already registered. Ignored duplicate registration", controller$state$_name));
 		return;
 		}
 
@@ -241,6 +265,8 @@ function register_controller_impl(tpe: OpenFlow::Plugin, name: string, controlle
 
 	if ( controller?$init )
 		controller$init(controller$state);
+	else
+		controller_init_done(controller);
 	}
 
 function unregister_controller_impl(controller: Controller)

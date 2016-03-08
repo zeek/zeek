@@ -17,6 +17,8 @@ export {
 		_plugin: Plugin &optional;
 		## Internally set to the unique name of the controller.
 		_name: string &optional;
+		## Internally set to true once the controller is activated
+		_activated: bool &default=F;
 	} &redef;
 
 	## Openflow match definition.
@@ -116,7 +118,7 @@ export {
 		supports_flow_removed: bool;
 		## function that describes the controller. Has to be implemented.
 		describe: function(state: ControllerState): string;
-		## one-time initialization function.
+		## one-time initialization function. If defined, controller_init_done has to be called once initialization finishes.
 		init: function (state: ControllerState) &optional;
 		## one-time destruction function
 		destroy: function (state: ControllerState) &optional;

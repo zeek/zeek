@@ -5,6 +5,9 @@ module OpenFlow;
 # the flow_mod function wrapper
 function flow_mod(controller: Controller, match: ofp_match, flow_mod: ofp_flow_mod): bool
 	{
+	if ( ! controller$state$_activated )
+		return F;
+
 	if ( controller?$flow_mod )
 		return controller$flow_mod(controller$state, match, flow_mod);
 	else
@@ -13,6 +16,9 @@ function flow_mod(controller: Controller, match: ofp_match, flow_mod: ofp_flow_m
 
 function flow_clear(controller: Controller): bool
 	{
+	if ( ! controller$state$_activated )
+		return F;
+
 	if ( controller?$flow_clear )
 		return controller$flow_clear(controller$state);
 	else

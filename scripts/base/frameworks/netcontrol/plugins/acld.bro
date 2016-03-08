@@ -67,6 +67,7 @@ export {
 	global acld_rule_error: event(id: count, r: Rule, msg: string);
 }
 
+global netcontrol_acld_peers: table[port, string] of PluginState;
 global netcontrol_acld_topics: set[string] = set();
 global netcontrol_acld_id: table[count] of PluginState = table();
 global netcontrol_acld_current_id: count = 0;
@@ -252,6 +253,16 @@ function acld_init(p: PluginState)
 	BrokerComm::subscribe_to_events(p$acld_config$acld_topic);
 	}
 
+event BrokerComm::outgoing_connection_established(peer_address: string, peer_port: port, peer_name: string)
+	{
+	if ( [peer_port, peer_address] !in netcontrol_acld_peers )
+		# ok, this one was none of ours...
+		return;
+
+	local p = netcontrol_acld_peers[peer_port, peer_address];
+	plugin_activated(p);
+	}
+
 global acld_plugin = Plugin(
 	$name=acld_name,
 	$can_expire = F,
@@ -267,7 +278,13 @@ function create_acld(config: AcldConfig) : PluginState
 	else
 		add netcontrol_acld_topics[config$acld_topic];
 
+	local host = cat(config$acld_host);
 	local p: PluginState = [$acld_config=config, $plugin=acld_plugin, $acld_id=netcontrol_acld_current_id];
+
+	if ( [config$acld_port, host] in netcontrol_acld_peers )
+		Reporter::warning(fmt("Peer %s:%s was added to NetControl acld plugin twice.", host, config$acld_port));
+	else
+		netcontrol_acld_peers[config$acld_port, host] = p;
 
 	netcontrol_acld_id[netcontrol_acld_current_id] = p;
 	++netcontrol_acld_current_id;

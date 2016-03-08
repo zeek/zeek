@@ -12,6 +12,13 @@ export {
 		table_id: count &optional;
 		priority_offset: int &default=+0; ##< add this to all rule priorities. Can be useful if you want the openflow priorities be offset from the netcontrol priorities without having to write a filter function.
 
+		## Predicate that is called on rule insertion or removal.
+		##
+		## p: Current plugin state
+		##
+		## r: The rule to be inserted or removed
+		##
+		## Returns: T if the rule can be handled by the current backend, F otherwhise
 		check_pred: function(p: PluginState, r: Rule): bool &optional;
 		match_pred: function(p: PluginState, e: Entity, m: vector of OpenFlow::ofp_match): vector of OpenFlow::ofp_match &optional;
 		flow_mod_pred: function(p: PluginState, r: Rule, m: OpenFlow::ofp_flow_mod): OpenFlow::ofp_flow_mod &optional;

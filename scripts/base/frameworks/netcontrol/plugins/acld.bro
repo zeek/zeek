@@ -21,8 +21,19 @@ export {
 		acld_host: addr;
 		## Broker port to connect to
 		acld_port: port;
-		## Function that can decide weather to accept add request
-		add_pred: function(p: PluginState, r: Rule, ar: AclRule): bool &optional;
+		## Do we accept rules for the monitor path? Default false
+		monitor: bool &default=F;
+		## Do we accept rules for the forward path? Default true
+		forward: bool &default=T;
+
+		## Predicate that is called on rule insertion or removal.
+		##
+		## p: Current plugin state
+		##
+		## r: The rule to be inserted or removed
+		##
+		## Returns: T if the rule can be handled by the current backend, F otherwhise
+		check_pred: function(p: PluginState, r: Rule): bool &optional;
 	};
 
 	## Instantiates the acld plugin.
@@ -34,9 +45,23 @@ export {
 		acld_id: count &optional;
 	};
 
+	## Hook that is called after a rule is converted to an acld rule.
+	## The hook may modify the rule before it is sent to acld.
+	## Setting the acld command to F will cause the rule to be rejected
+	## by the plugin
+	##
+	## p: Current plugin state
+	##
+	## r: The rule to be inserted or removed
+	##
+	## ar: The acld rule to be inserted or removed
+	global NetControl::acld_rule_policy: hook(p: PluginState, r: Rule, ar: AclRule);
+
+	## Events that are sent from us to Broker
 	global acld_add_rule: event(id: count, r: Rule, ar: AclRule);
 	global acld_remove_rule: event(id: count, r: Rule, ar: AclRule);
 
+	## Events that are sent from Broker to us
 	global acld_rule_added: event(id: count, r: Rule, msg: string);
 	global acld_rule_removed: event(id: count, r: Rule, msg: string);
 	global acld_rule_error: event(id: count, r: Rule, msg: string);
@@ -115,7 +140,7 @@ function check_sn(sn: subnet) : bool
 	return F;
 	}
 
-function rule_to_acl_rule(r: Rule) : AclRule
+function rule_to_acl_rule(p: PluginState, r: Rule) : AclRule
 	{
 	local e = r$entity;
 
@@ -169,16 +194,34 @@ function rule_to_acl_rule(r: Rule) : AclRule
 	local ar = AclRule($command=command, $cookie=r$cid, $arg=arg);
 	if ( r?$location )
 		ar$comment = r$location;
+
+	hook NetControl::acld_rule_policy(p, r, ar);
+
 	return ar;
+	}
+
+function acld_check_rule(p: PluginState, r: Rule) : bool
+	{
+	local c = p$acld_config;
+
+	if ( p$acld_config?$check_pred )
+		return p$acld_config$check_pred(p, r);
+
+	if ( r$target == MONITOR && c$monitor )
+		return T;
+
+	if ( r$target == FORWARD && c$forward )
+		return T;
+
+	return F;
 	}
 
 function acld_add_rule_fun(p: PluginState, r: Rule) : bool
 	{
-	local ar = rule_to_acl_rule(r);
+	if ( ! acld_check_rule(p, r) )
+		return F;
 
-	if ( p$acld_config?$add_pred )
-		if ( ! p$acld_config$add_pred(p, r, ar) )
-			return F;
+	local ar = rule_to_acl_rule(p, r);
 
 	if ( ar$command == "" )
 		return F;
@@ -189,7 +232,10 @@ function acld_add_rule_fun(p: PluginState, r: Rule) : bool
 
 function acld_remove_rule_fun(p: PluginState, r: Rule) : bool
 	{
-	local ar = rule_to_acl_rule(r);
+	if ( ! acld_check_rule(p, r) )
+		return F;
+
+	local ar = rule_to_acl_rule(p, r);
 	if ( ar$command in acld_add_to_remove )
 		ar$command = acld_add_to_remove[ar$command];
 	else

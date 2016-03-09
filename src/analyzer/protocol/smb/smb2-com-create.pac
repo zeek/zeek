@@ -49,9 +49,12 @@ type SMB2_create_context = record {
 	data_offset       : uint16;
 	data_len          : uint32;
 	name_pad          : padding to name_offset;
-	name              : SMB2_string(name_len);
+	# The strings with +2 are to account for terminating null bytes (UTF-16 NULLS)
+	# TODO-I'm not sure if what I'm doing here is correct.  This may need to be
+	# evaluated still.
+	name              : SMB2_string(name_len==0 ? 2 : name_len);
 	data_pad          : padding to data_offset;
-	data              : SMB2_string(data_len);
+	data              : SMB2_string(data_len==0 ? 2 : data_len);
 	next_context_pad  : padding to next_offset;
 };
 
@@ -77,10 +80,12 @@ type SMB2_create_request(header: SMB2_Header) = record {
 	# be set to zero so we need to deal with that to avoid
 	# negative wrap around in the padding.
 	context_pad         : padding to (context_offset==0 ? 0 : context_offset - header.head_length);
-	create : case context_len of {
-		0       -> blank    : empty;
-		default -> contexts : SMB2_create_context[] &length=context_len;
-	};
+	# TODO: skip this data for now.  It's shown to be a bit difficult.
+	#create : case context_len of {
+	#	0       -> blank    : empty;
+	#	default -> contexts : SMB2_create_context[] &length=context_len;
+	#};
+	contexts : bytestring &length=context_len &transient;
 } &let {
 	proc : bool = $context.connection.proc_smb2_create_request(header, this);
 };

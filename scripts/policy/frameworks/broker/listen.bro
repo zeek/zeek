@@ -1,4 +1,4 @@
-##! Loading this script will make the Bro instance listen for remote 
+##! Loading this script will make the Bro instance listen for remote
 ##! Bro instances to connect.
 
 @load base/frameworks/broker/communication

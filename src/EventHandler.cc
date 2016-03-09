@@ -76,6 +76,7 @@ void EventHandler::Call(val_list* vl, bool no_remote)
 	if ( new_event )
 		NewEvent(vl);
 
+  // we are allowed to send to remote
 	if ( ! no_remote )
 		{
 		loop_over_list(receivers, i)
@@ -86,7 +87,7 @@ void EventHandler::Call(val_list* vl, bool no_remote)
 
 #ifdef ENABLE_BROKER
 
-		if ( ! auto_remote_send.empty() )
+		if ( ! auto_remote_send.empty())
 			{
 			// TODO: also short-circuit based on interested subscribers/flags?
 			broker::message msg;
@@ -131,7 +132,7 @@ void EventHandler::Call(val_list* vl, bool no_remote)
 	else
 		{
 		loop_over_list(*vl, i)
-			Unref((*vl)[i]);
+		Unref((*vl)[i]);
 		}
 	}
 

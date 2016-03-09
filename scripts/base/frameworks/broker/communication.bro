@@ -107,7 +107,7 @@ export {
 
 	};
 
-	## The table of Bro or Broccoli nodes that Bro will initiate connections
+	## The table of Bro nodes that Bro will initiate connections
 	## to or respond to connections from.  Note that BroControl sets this
 	## automatically.
 	global nodes: table[string] of Node &redef;
@@ -127,7 +127,7 @@ export {
 	#global connected_peers: table[peer_id] of Node;
 	global connected_peers: table[string] of Node;
 
-	## Data structure that keeps mappings between IP::port and the broker-name of peers 
+	## Data structure that keeps mappings between IP::port and the broker-name of peers
 	## TODO Currently this is a hack as broker should return the peer-name in call cases
 	global peer_mapping: table[string] of string;
 
@@ -249,14 +249,16 @@ event Broker::incoming_connection_broken(peer_name: string)
 event Broker::outgoing_connection_established(peer_address: string, peer_port: port, peer_name: string)
 	{
 	local id = fmt("%s:%s", peer_address, peer_port);
-	local node = pending_peers[id];
-	delete pending_peers[id];
 
-	do_script_log(Broker::endpoint_name, fmt("outgoing connection established to %s", peer_name));
+	if(id in pending_peers)
+		{
+		local node = pending_peers[id];
+		delete pending_peers[id];
 
-	setup_peer(peer_name, node);
-	peer_mapping[fmt("%s::%s", peer_address, peer_port)] = peer_name;
-
+		do_script_log(Broker::endpoint_name, fmt("outgoing connection established to %s", peer_name));
+		setup_peer(peer_name, node);
+		peer_mapping[fmt("%s::%s", peer_address, peer_port)] = peer_name;
+		}
 	event Broker::outgoing_connection_established_event(peer_name);
 	}
 
@@ -276,7 +278,7 @@ event Broker::outgoing_connection_broken(peer_address: string, peer_port: port, 
 		local node = connected_peers[peer_name];
 		node$connected = F;
 		delete connected_peers[peer_name];
-	
+
 		# Broker will retry.
 		if ( reconnect_interval != 0secs )
 			{

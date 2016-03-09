@@ -21,6 +21,8 @@ export {
 	type EndpointFlags: record {
 		## Whether to restrict message topics that can be published to peers.
 		auto_publish: bool &default = F;
+		## Whether to forward broker messages on behalf of other peers
+		auto_routing: bool &default = F;
 	};
 
 	## Fine-grained tuning of communication behavior for a particular message.
@@ -153,6 +155,7 @@ export {
 	##
 	## Returns: true if it's a new print subscription and it is now registered.
 	global subscribe_to_prints: function(topic_prefix: string): bool;
+	global subscribe_to_prints_multi: function(topic_prefix: string): bool;
 
 	## Unregister interest in all peer print messages that use a topic prefix.
 	##
@@ -206,6 +209,8 @@ export {
 	##
 	## Returns: true if it's a new event subscription and it is now registered.
 	global subscribe_to_events: function(topic_prefix: string): bool;
+	global subscribe_to_events_multi: function(topic_prefix: string): bool;
+
 
 	## Unregister interest in all peer event messages that use a topic prefix.
 	##
@@ -248,6 +253,7 @@ export {
 	##
 	## Returns: true if it's a new log subscription and it is now registered.
 	global subscribe_to_logs: function(topic_prefix: string): bool;
+	global subscribe_to_logs_multi: function(topic_prefix: string): bool;
 
 	## Unregister interest in all peer log messages that use a topic prefix.
 	## Logs are implicitly sent with topic "bro/log/<stream-name>" and the
@@ -259,6 +265,8 @@ export {
 	## Returns: true if interest in the topic prefix is no longer advertised.
 	global unsubscribe_to_logs: function(topic_prefix: string): bool;
 
+	## Turns on the broker debug output
+	global init_debug: function(): bool;
 }
 
 @load base/bif/comm.bif
@@ -308,7 +316,12 @@ function send_print(topic: string, msg: string, flags: SendFlags &default = Send
 
 function subscribe_to_prints(topic_prefix: string): bool
     {
-    return __subscribe_to_prints(topic_prefix);
+    return __subscribe_to_prints(topic_prefix, F);
+    }
+
+function subscribe_to_prints_multi(topic_prefix: string): bool
+    {
+    return __subscribe_to_prints(topic_prefix, T);
     }
 
 function unsubscribe_to_prints(topic_prefix: string): bool
@@ -333,7 +346,12 @@ function auto_event_stop(topic: string, ev: any): bool
 
 function subscribe_to_events(topic_prefix: string): bool
     {
-    return __subscribe_to_events(topic_prefix);
+    return __subscribe_to_events(topic_prefix, F);
+    }
+
+function subscribe_to_events_multi(topic_prefix: string): bool
+    {
+    return __subscribe_to_events(topic_prefix, T);
     }
 
 function unsubscribe_to_events(topic_prefix: string): bool
@@ -358,11 +376,21 @@ function remote_logs_enabled(id: Log::ID): bool
 
 function subscribe_to_logs(topic_prefix: string): bool
     {
-    return __subscribe_to_logs(topic_prefix);
+    return __subscribe_to_logs(topic_prefix, F);
     }
+
+function subscribe_to_logs_multi(topic_prefix: string): bool
+    {
+    return __subscribe_to_logs(topic_prefix, T);
+    }
+
 
 function unsubscribe_to_logs(topic_prefix: string): bool
     {
     return __unsubscribe_to_logs(topic_prefix);
     }
 
+function init_debug(): bool
+	{
+	return __init_debug();
+	}

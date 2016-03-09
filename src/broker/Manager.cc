@@ -43,6 +43,13 @@ bro_broker::Manager::~Manager()
 		CloseStore(s.first, s.second);
 	}
 
+bool bro_broker::Manager::init_debug()
+	{
+	// debug output
+	broker::report::init();
+	return true;
+	}
+
 static int require_field(RecordType* rt, const char* name)
 	{
 	auto rval = rt->FieldOffset(name);
@@ -59,9 +66,13 @@ static int endpoint_flags_to_int(Val* broker_endpoint_flags)
 	int rval = 0;
 	auto r = broker_endpoint_flags->AsRecordVal();
 	Val* auto_publish_flag = r->Lookup("auto_publish", true);
+	Val* auto_routing_flag = r->Lookup("auto_routing", true);
 
 	if ( auto_publish_flag->AsBool() )
 		rval |= broker::AUTO_PUBLISH;
+
+	if (auto_routing_flag->AsBool() )
+		rval |= broker::AUTO_ROUTING;
 
 	rval |= broker::AUTO_ADVERTISE;
 
@@ -415,7 +426,7 @@ RecordVal* bro_broker::Manager::MakeEventArgs(val_list* args)
 	return rval;
 	}
 
-bool bro_broker::Manager::SubscribeToPrints(string topic_prefix)
+bool bro_broker::Manager::SubscribeToPrints(string topic_prefix, int flag)
 	{
 	if ( ! Enabled() )
 		return false;
@@ -425,7 +436,11 @@ bool bro_broker::Manager::SubscribeToPrints(string topic_prefix)
 	if ( q )
 		return false;
 
-	q = broker::message_queue(move(topic_prefix), *endpoint);
+	if (flag == broker::MULTI_HOP)
+		q = broker::message_queue(move(topic_prefix), *endpoint, broker::MULTI_HOP);
+	else
+		q = broker::message_queue(move(topic_prefix), *endpoint);
+
 	return true;
 	}
 
@@ -437,7 +452,7 @@ bool bro_broker::Manager::UnsubscribeToPrints(const string& topic_prefix)
 	return print_subscriptions.erase(topic_prefix);
 	}
 
-bool bro_broker::Manager::SubscribeToEvents(string topic_prefix)
+bool bro_broker::Manager::SubscribeToEvents(string topic_prefix, int flag)
 	{
 	if ( ! Enabled() )
 		return false;
@@ -447,7 +462,11 @@ bool bro_broker::Manager::SubscribeToEvents(string topic_prefix)
 	if ( q )
 		return false;
 
-	q = broker::message_queue(move(topic_prefix), *endpoint);
+	if (flag == broker::MULTI_HOP)
+		q = broker::message_queue(move(topic_prefix), *endpoint, broker::MULTI_HOP);
+	else
+		q = broker::message_queue(move(topic_prefix), *endpoint);
+
 	return true;
 	}
 
@@ -459,7 +478,7 @@ bool bro_broker::Manager::UnsubscribeToEvents(const string& topic_prefix)
 	return event_subscriptions.erase(topic_prefix);
 	}
 
-bool bro_broker::Manager::SubscribeToLogs(string topic_prefix)
+bool bro_broker::Manager::SubscribeToLogs(string topic_prefix, int flag)
 	{
 	if ( ! Enabled() )
 		return false;
@@ -469,7 +488,11 @@ bool bro_broker::Manager::SubscribeToLogs(string topic_prefix)
 	if ( q )
 		return false;
 
-	q = broker::message_queue(move(topic_prefix), *endpoint);
+	if (flag == broker::MULTI_HOP)
+		q = broker::message_queue(move(topic_prefix), *endpoint, broker::MULTI_HOP);
+	else
+		q = broker::message_queue(move(topic_prefix), *endpoint);
+
 	return true;
 	}
 
@@ -740,7 +763,7 @@ void bro_broker::Manager::Process()
 
 			val_list* vl = new val_list;
 			vl->append(new StringVal(move(*msg)));
-			mgr.QueueEvent(Broker::print_handler, vl);
+			mgr.QueueEvent(Broker::print_handler, vl, 1);
 			}
 		}
 
@@ -802,7 +825,7 @@ void bro_broker::Manager::Process()
 				}
 
 			if ( static_cast<size_t>(vl->length()) == em.size() - 1 )
-				mgr.QueueEvent(ehp, vl);
+				mgr.QueueEvent(ehp, vl, 1);
 			else
 				delete_vals(vl);
 			}

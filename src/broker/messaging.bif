@@ -16,6 +16,12 @@ type Broker::EventArgs: record;
 ## :bro:see:`Broker::send_print`.
 event Broker::print_handler%(msg: string%);
 
+function Broker::__init_debug%(%): bool
+	%{
+	auto rval = broker_mgr->init_debug();
+	return new Val(rval, TYPE_BOOL);
+	%}
+
 function Broker::__print%(topic: string, msg: string, flags: Broker::SendFlags%): bool
 	%{
 	auto rval = broker_mgr->Print(topic->CheckString(), msg->CheckString(),
@@ -23,9 +29,10 @@ function Broker::__print%(topic: string, msg: string, flags: Broker::SendFlags%)
 	return new Val(rval, TYPE_BOOL);
 	%}
 
-function Broker::__subscribe_to_prints%(topic_prefix: string%): bool
+function Broker::__subscribe_to_prints%(topic_prefix: string, multi_hop: bool%): bool
 	%{
-	auto rval = broker_mgr->SubscribeToPrints(topic_prefix->CheckString());
+	 auto	rval = broker_mgr->SubscribeToPrints(topic_prefix->CheckString(), multi_hop);
+
 	return new Val(rval, TYPE_BOOL);
 	%}
 
@@ -51,8 +58,7 @@ function Broker::event_args%(...%): Broker::EventArgs
 
 function Broker::__event%(topic: string, args: Broker::EventArgs, flags: Broker::SendFlags%): bool
 	%{
-	auto rval = broker_mgr->Event(topic->CheckString(), args->AsRecordVal(),
-	                            flags);
+	auto rval = broker_mgr->Event(topic->CheckString(), args->AsRecordVal(), flags);
 	return new Val(rval, TYPE_BOOL);
 	%}
 
@@ -68,13 +74,13 @@ function Broker::__auto_event_stop%(topic: string, ev: any%): bool
 	return new Val(rval, TYPE_BOOL);
 	%}
 
-function Broker::__subscribe_to_events%(topic_prefix: string%): bool
+function Broker::__subscribe_to_events%(topic_prefix: string, multi_hop: bool%): bool
 	%{
-	auto rval = broker_mgr->SubscribeToEvents(topic_prefix->CheckString());
-	return new Val(rval, TYPE_BOOL);
-	%}
+		auto rval = broker_mgr->SubscribeToEvents(topic_prefix->CheckString(), multi_hop);
+		return new Val(rval, TYPE_BOOL);
+		%}
 
-function Broker::__unsubscribe_to_events%(topic_prefix: string%): bool
+	function Broker::__unsubscribe_to_events%(topic_prefix: string%): bool
 	%{
 	auto rval = broker_mgr->UnsubscribeToEvents(topic_prefix->CheckString());
 	return new Val(rval, TYPE_BOOL);
@@ -99,9 +105,9 @@ function Broker::__remote_logs_enabled%(id: Log::ID%): bool
 	return new Val(rval, TYPE_BOOL);
 	%}
 
-function Broker::__subscribe_to_logs%(topic_prefix: string%): bool
+function Broker::__subscribe_to_logs%(topic_prefix: string, multi_hop: bool%): bool
 	%{
-	auto rval = broker_mgr->SubscribeToLogs(topic_prefix->CheckString());
+	auto rval = broker_mgr->SubscribeToLogs(topic_prefix->CheckString(), multi_hop);
 	return new Val(rval, TYPE_BOOL);
 	%}
 

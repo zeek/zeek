@@ -203,7 +203,7 @@ public:
 	 * and "amy" but not "bob".
 	 * @return true if it's a new print subscriptions and it is now registered.
 	 */
-	bool SubscribeToPrints(std::string topic_prefix);
+	bool SubscribeToPrints(std::string topic_prefix, int flag = broker::SINGLE_HOP);
 
 	/**
 	 * Unregister interest in peer print messages.
@@ -220,7 +220,7 @@ public:
 	 * and "amy" but not "bob".
 	 * @return true if it's a new event subscription and it is now registered.
 	 */
-	bool SubscribeToEvents(std::string topic_prefix);
+	bool SubscribeToEvents(std::string topic_prefix, int flag = broker::SINGLE_HOP);
 
 	/**
 	 * Unregister interest in peer event messages.
@@ -237,7 +237,7 @@ public:
 	 * and "amy" but not "bob".
 	 * @return true if it's a new log subscription and it is now registered.
 	 */
-	bool SubscribeToLogs(std::string topic_prefix);
+	bool SubscribeToLogs(std::string topic_prefix, int flag = broker::SINGLE_HOP);
 
 	/**
 	 * Unregister interest in peer log messages.
@@ -323,6 +323,12 @@ public:
 	 * Convert Broker::SendFlags to int flags for use with broker::send().
 	 */
 	static int send_flags_to_int(Val* flags);
+
+
+	/**
+	 * Turn on debugging output for the broker library
+	 */
+	bool init_debug();
 
 private:
 

@@ -31,15 +31,18 @@ event smb2_message(c: connection, hdr: SMB2::Header, is_orig: bool) &priority=5
 
 	if ( mid !in smb_state$pending_cmds )
 		{
-		local tmp_cmd: SMB::CmdInfo = [$ts=network_time(), $uid=c$uid, $id=c$id, $version="SMB2", $command = SMB2::commands[hdr$command]];
+		local tmp_cmd = SMB::CmdInfo($ts=network_time(), $uid=c$uid, $id=c$id, $version="SMB2", $command = SMB2::commands[hdr$command]);
 
-		local tmp_file: SMB::FileInfo = [$ts=network_time(), $uid=c$uid, $id=c$id];
+		local tmp_file = SMB::FileInfo($ts=network_time(), $uid=c$uid, $id=c$id);
+		if ( smb_state$current_tree?$path )
+			tmp_file$path = smb_state$current_tree$path;
+
 		tmp_cmd$referenced_file = tmp_file;
 		tmp_cmd$referenced_tree = smb_state$current_tree;
 		
 		smb_state$pending_cmds[mid] = tmp_cmd;
 		}
-	
+
 	smb_state$current_cmd = smb_state$pending_cmds[mid];
 
 	if ( !is_orig )
@@ -91,12 +94,12 @@ event smb2_negotiate_response(c: connection, hdr: SMB2::Header, response: SMB2::
 	     c$smb_state$current_cmd$status !in SMB::ignored_command_statuses )
 		{
 		Log::write(SMB::CMD_LOG, c$smb_state$current_cmd);
-		}	
+		}
 	}
 	
 event smb2_tree_connect_request(c: connection, hdr: SMB2::Header, path: string) &priority=5
 	{
-	local tmp_tree: SMB::TreeInfo = [$ts=network_time(), $uid=c$uid, $id=c$id, $path=path];
+	local tmp_tree = SMB::TreeInfo($ts=network_time(), $uid=c$uid, $id=c$id, $path=path);
 
 	c$smb_state$current_cmd$referenced_tree = tmp_tree;
 	}
@@ -115,7 +118,10 @@ event smb2_tree_connect_response(c: connection, hdr: SMB2::Header, response: SMB
 
 event smb2_create_request(c: connection, hdr: SMB2::Header, name: string) &priority=5
 	{
-	local tmp_file: SMB::FileInfo = [$ts=network_time(), $uid=c$uid, $id=c$id, $name=name];
+	if ( name == "")
+		name = "<share_root>";
+
+	local tmp_file = SMB::FileInfo($ts=network_time(), $uid=c$uid, $id=c$id, $name=name);
 
 	switch ( c$smb_state$current_cmd$referenced_tree$share_type )
 		{

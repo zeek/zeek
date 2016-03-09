@@ -30,8 +30,8 @@ event NetControl::init()
 event connection_established(c: connection)
 	{
 	local id = c$id;
-	NetControl::shunt_flow([$src_h=id$orig_h, $src_p=id$orig_p, $dst_h=id$resp_h, $dst_p=id$resp_p], 30sec);
-	NetControl::drop_address(id$orig_h, 15sec);
+	NetControl::shunt_flow([$src_h=id$orig_h, $src_p=id$orig_p, $dst_h=id$resp_h, $dst_p=id$resp_p], 1sec);
+	NetControl::drop_address(id$orig_h, 1sec);
 	}
 
 event terminate_me() {

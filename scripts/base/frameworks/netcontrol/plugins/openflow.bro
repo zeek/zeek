@@ -304,7 +304,7 @@ function openflow_remove_rule(p: PluginState, r: Rule) : bool
 		return F;
 
 	local flow_mod: OpenFlow::ofp_flow_mod = [
-		$cookie=OpenFlow::generate_cookie(r$cid),
+		$cookie=OpenFlow::generate_cookie(r$cid*2),
 		$command=OpenFlow::OFPFC_DELETE
 	];
 

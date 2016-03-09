@@ -63,13 +63,13 @@ event connection_established(c: connection)
 
 event NetControl::rule_added(r: NetControl::Rule, p: NetControl::PluginState, msg: string)
 	{
-	print "rule added", r;
+	print "rule added", r$entity, r$ty;
 	NetControl::remove_rule(r$id);
 	}
 
 event NetControl::rule_removed(r: NetControl::Rule, p: NetControl::PluginState, msg: string)
 	{
-	print "rule removed", r;
+	print "rule removed", r$entity, r$ty;
 	}
 
 @TEST-END-FILE
@@ -96,14 +96,14 @@ event BrokerComm::incoming_connection_established(peer_name: string)
 
 event NetControl::acld_add_rule(id: count, r: NetControl::Rule, ar: NetControl::AclRule)
 	{
-	print "add_rule", id, r, ar;
+	print "add_rule", id, r$entity, r$ty, ar;
 
 	BrokerComm::event("bro/event/netcontroltest", BrokerComm::event_args(NetControl::acld_rule_added, id, r, ar$command));
 	}
 
 event NetControl::acld_remove_rule(id: count, r: NetControl::Rule, ar: NetControl::AclRule)
 	{
-	print "remove_rule", id, r, ar;
+	print "remove_rule", id, r$entity, r$ty, ar;
 
 	BrokerComm::event("bro/event/netcontroltest", BrokerComm::event_args(NetControl::acld_rule_removed, id, r, ar$command));
 

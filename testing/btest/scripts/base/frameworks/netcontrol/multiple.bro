@@ -1,5 +1,6 @@
 # @TEST-EXEC: bro -r $TRACES/tls/ecdhe.pcap %INPUT
 # @TEST-EXEC: TEST_DIFF_CANONIFIER='grep -v ^# | $SCRIPTS/diff-sort' btest-diff netcontrol.log
+# @TEST-EXEC: btest-diff openflow.log
 
 @load base/frameworks/netcontrol
 
@@ -22,6 +23,7 @@ event remove_all()
 		NetControl::remove_rule(rules[i]);
 	}
 
+
 event connection_established(c: connection)
 	{
 	local id = c$id;
@@ -30,6 +32,6 @@ event connection_established(c: connection)
 	rules[|rules|] = NetControl::whitelist_address(id$orig_h, 0secs);
 	rules[|rules|] = NetControl::redirect_flow([$src_h=id$orig_h, $src_p=id$orig_p, $dst_h=id$resp_h, $dst_p=id$resp_p], 5, 0secs);
 
-	schedule 10sec { remove_all() };
+	schedule 1sec { remove_all() };
 	}
 

@@ -49,18 +49,18 @@ event connection_established(c: connection)
 
 event NetControl::rule_added(r: NetControl::Rule, p: NetControl::PluginState, msg: string)
 	{
-	print "rule added", r;
+	print "rule added", r$entity, r$ty;
 	NetControl::remove_rule(r$id);
 	}
 
 event NetControl::rule_removed(r: NetControl::Rule, p: NetControl::PluginState, msg: string)
 	{
-	print "rule removed", r;
+	print "rule removed", r$entity, r$ty;
 	}
 
 event NetControl::rule_timeout(r: NetControl::Rule, i: NetControl::FlowInfo, p: NetControl::PluginState)
 	{
-	print "rule timeout", r, i;
+	print "rule timeout", r$entity, r$ty, i;
 	}
 
 @TEST-END-FILE
@@ -87,14 +87,14 @@ event BrokerComm::incoming_connection_established(peer_name: string)
 
 event NetControl::broker_add_rule(id: count, r: NetControl::Rule)
 	{
-	print "add_rule", id, r;
+	print "add_rule", id, r$entity, r$ty;
 
 	BrokerComm::event("bro/event/netcontroltest", BrokerComm::event_args(NetControl::broker_rule_added, id, r, ""));
 	}
 
 event NetControl::broker_remove_rule(id: count, r: NetControl::Rule)
 	{
-	print "remove_rule", id, r;
+	print "remove_rule", id, r$entity, r$ty;
 
 	BrokerComm::event("bro/event/netcontroltest", BrokerComm::event_args(NetControl::broker_rule_timeout, id, r, NetControl::FlowInfo()));
 	BrokerComm::event("bro/event/netcontroltest", BrokerComm::event_args(NetControl::broker_rule_removed, id, r, ""));

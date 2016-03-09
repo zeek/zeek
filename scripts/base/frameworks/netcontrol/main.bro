@@ -243,8 +243,12 @@ export {
 }
 
 redef record Rule += {
-	##< Internally set to the plugin handling the rule.
-	_plugin_id: count &optional;
+	##< Internally set to the plugins handling the rule.
+	_plugin_ids: set[count] &default=count_set();
+	##< Internally set to the plugins on which the rule is currently active.
+	_active_plugin_ids: set[count] &default=count_set();
+	##< Track if the rule was added succesfully by all responsible plugins.
+	_added: bool &default=F;
 };
 
 # Variable tracking the state of plugin activation. Once all plugins that
@@ -263,11 +267,16 @@ global plugin_counter: count = 1;
 global plugins: vector of PluginState;
 global plugin_ids: table[count] of PluginState;
 
-# These tables hold information about rules _after_ they have been
-# succesfully added. Currently no information about the rules is held
-# in these tables while they are in the process of being added.
-global rules: table[string,count] of Rule; # Rules indexed by id and cid
-global id_to_cids: table[string] of set[count]; # id to cid
+# These tables hold information about rules.
+global rules: table[string] of Rule; # Rules indexed by id and cid
+
+# All rules that apply to a certain subnet/IP address.
+# Contains only succesfully added rules.
+global rules_by_subnets: table[subnet] of set[Rule];
+
+# Rules pertaining to a specific entity.
+# There always only can be one rule of each type for one entity.
+global rule_entities: table[Entity, RuleType] of Rule;
 
 event bro_init() &priority=5
 	{
@@ -570,9 +579,14 @@ function add_rule_impl(rule: Rule) : string
 	if ( ! hook NetControl::rule_policy(rule) )
 		return "";
 
+	if ( [rule$entity, rule$ty] in rule_entities )
+		{
+		log_rule_no_plugin(rule, FAILED, "discarded duplicate insertion");
+		return "";
+		}
+
 	local accepted = F;
 	local priority: int = +0;
-	local r = rule;
 
 	for ( i in plugins )
 		{
@@ -581,80 +595,65 @@ function add_rule_impl(rule: Rule) : string
 		if ( p$_activated == F )
 			next;
 
-		# in this case, rule was accepted by earlier plugin and thus plugin has same
-		# priority. accept, but give out new rule id.
-		if ( accepted == T && p$_priority == priority )
-			{
-			r = copy(rule);
-			r$cid = ++rule_counter;
-			}
-		else if ( accepted == T )
 		# in this case, rule was accepted by earlier plugin and this plugin has a lower
 		# priority. Abort and do not send there...
+		if ( accepted == T && p$_priority != priority )
 			break;
 
-		# set before, in case the plugins sends and regenerates the plugin record later.
-		r$_plugin_id = p$_id;
-
-		if ( p$plugin$add_rule(p, r) )
+		if ( p$plugin$add_rule(p, rule) )
 			{
 			accepted = T;
 			priority = p$_priority;
-			log_rule(r, "ADD", REQUESTED, p);
+			log_rule(rule, "ADD", REQUESTED, p);
+
+			add rule$_plugin_ids[p$_id];
 			}
 		}
 
 	if ( accepted )
+		{
+		rules[rule$id] = rule;
+		rule_entities[rule$entity, rule$ty] = rule;
 		return rule$id;
+		}
 
-	log_rule_no_plugin(r, FAILED, "not supported");
+	log_rule_no_plugin(rule, FAILED, "not supported");
 	return "";
 	}
 
-function remove_single_rule(id: string, cid: count) : bool
+function remove_rule_plugin(r: Rule, p: PluginState): bool
 	{
-	if ( [id,cid] !in rules )
-		{
-		Reporter::error(fmt("Rule %s -- %d does not exist in NetControl::remove_single_rule", id, cid));
-		return F;
-		}
+	local success = T;
 
-	local r = rules[id,cid];
-	local p = plugin_ids[r$_plugin_id];
-
-	# remove the respective rules from its plugins..
 	if ( ! p$plugin$remove_rule(p, r) )
 		{
+		# still continue and send to other plugins
 		log_rule_error(r, "remove failed", p);
-		return F;
+		success = F;
+		}
+		else
+		{
+		log_rule(r, "REMOVE", REQUESTED, p);
 		}
 
-	log_rule(r, "REMOVE", REQUESTED, p);
-	return T;
+	return success;
 	}
 
 function remove_rule_impl(id: string) : bool
 	{
-	if ( id !in id_to_cids )
+	if ( id !in rules )
 		{
 		Reporter::error(fmt("Rule %s does not exist in NetControl::remove_rule", id));
 		return F;
 		}
 
-	local cids = id_to_cids[id];
+	local r = rules[id];
 
 	local success = T;
-	for ( cid in cids )
+	for ( plugin_id in r$_active_plugin_ids )
 		{
-		if ( [id,cid] !in rules )
-			{
-			Reporter::error(fmt("Internal error in netcontrol::remove_rule - cid %d does not belong to rule %s", cid, id));
-			delete cids[cid];
-			next;
-			}
-
-		if ( ! remove_single_rule(id, cid) )
-			success = F;
+		local p = plugin_ids[plugin_id];
+		success = remove_rule_plugin(r, p);
 		}
 
 	return success;
@@ -662,47 +661,87 @@ function remove_rule_impl(id: string) : bool
 
 function rule_expire_impl(r: Rule, p: PluginState) &priority=-5
 	{
-	if ( [r$id,r$cid] !in rules )
+	# do not emit timeout events on shutdown
+	if ( bro_is_terminating() )
+		return;
+
+	if ( r$id !in rules )
 		# Removed already.
 		return;
 
-	event rule_timeout(r, FlowInfo(), p);
-	remove_single_rule(r$id, r$cid);
+	event NetControl::rule_timeout(r, FlowInfo(), p); # timeout implementation will handle the removal
 	}
 
 function rule_added_impl(r: Rule, p: PluginState, msg: string &default="")
 	{
+	if ( r$id !in rules )
+		{
+		log_rule_error(r, "Addition of unknown rule", p);
+		return;
+		}
+
+	# use our version to prevent operating on copies.
+	local rule = rules[r$id];
+	if ( p$_id !in rule$_plugin_ids )
+		{
+		log_rule_error(rule, "Rule added to non-responsible plugin", p);
+		return;
+		}
+
 	log_rule(r, "ADD", SUCCEEDED, p, msg);
 
-	rules[r$id,r$cid] = r;
-	if ( r$id !in id_to_cids )
-		id_to_cids[r$id] = set();
+	add rule$_active_plugin_ids[p$_id];
+	if ( |rule$_plugin_ids| == |rule$_active_plugin_ids| )
+		{
+		# rule was completely added.
+		rule$_added = T;
+		}
+	}
 
-	add id_to_cids[r$id][r$cid];
+function rule_cleanup(r: Rule)
+	{
+	if ( |r$_active_plugin_ids| > 0 )
+		return;
+
+	delete rule_entities[r$entity, r$ty];
+	delete rules[r$id];
 	}
 
 function rule_removed_impl(r: Rule, p: PluginState, msg: string &default="")
 	{
-	if ( [r$id,r$cid] !in rules )
+	if ( r$id !in rules )
 		{
 		log_rule_error(r, "Removal of non-existing rule", p);
 		return;
 		}
 
-	delete rules[r$id,r$cid];
-	delete id_to_cids[r$id][r$cid];
-	if ( |id_to_cids[r$id]| == 0 )
-		delete id_to_cids[r$id];
+	# use our version to prevent operating on copies.
+	local rule = rules[r$id];
 
-	log_rule(r, "REMOVE", SUCCEEDED, p, msg);
+	if ( p$_id !in rule$_plugin_ids )
+		{
+		log_rule_error(r, "Removed from non-assigned plugin", p);
+		return;
+		}
+
+	if ( p$_id in rule$_active_plugin_ids )
+		{
+		delete rule$_active_plugin_ids[p$_id];
+		}
+
+	log_rule(rule, "REMOVE", SUCCEEDED, p, msg);
+	rule_cleanup(rule);
 	}
 
 function rule_timeout_impl(r: Rule, i: FlowInfo, p: PluginState)
 	{
-	delete rules[r$id,r$cid];
-	delete id_to_cids[r$id][r$cid];
-	if ( |id_to_cids[r$id]| == 0 )
-		delete id_to_cids[r$id];
+	if ( r$id !in rules )
+		{
+		log_rule_error(r, "Timeout of non-existing rule", p);
+		return;
+		}
+
+	local rule = rules[r$id];
 
 	local msg = "";
 	if ( i?$packet_count )
@@ -714,22 +753,71 @@ function rule_timeout_impl(r: Rule, i: FlowInfo, p: PluginState)
 		msg = fmt("%sBytes: %s", msg, i$byte_count);
 		}
 
-	log_rule(r, "EXPIRE", TIMEOUT, p, msg);
+	log_rule(rule, "EXPIRE", TIMEOUT, p, msg);
+
+	if ( ! p$plugin$can_expire )
+		{
+		# in this case, we actually have to delete the rule and the timeout
+		# call just originated locally
+		remove_rule_plugin(rule, p);
+		return;
+		}
+
+	if ( p$_id !in rule$_plugin_ids )
+		{
+		log_rule_error(r, "Timeout from non-assigned plugin", p);
+		return;
+		}
+
+	if ( p$_id in rule$_active_plugin_ids )
+		{
+		delete rule$_active_plugin_ids[p$_id];
+		}
+
+	rule_cleanup(rule);
 	}
 
 function rule_error_impl(r: Rule, p: PluginState, msg: string &default="")
 	{
-	log_rule_error(r, msg, p);
-	# errors can occur during deletion. Since this probably means we wo't hear
-	# from it again, let's just remove it if it exists...
-	delete rules[r$id,r$cid];
-	delete id_to_cids[r$id][r$cid];
-	if ( |id_to_cids[r$id]| == 0 )
-		delete id_to_cids[r$id];
+	if ( r$id !in rules )
+		{
+		log_rule_error(r, "Error of non-existing rule", p);
+		return;
+		}
+
+	local rule = rules[r$id];
+
+	log_rule_error(rule, msg, p);
+
+	# Remove the plugin both from active and all plugins of the rule. If there
+	# are no plugins left afterwards - delete it
+	if ( p$_id !in rule$_plugin_ids )
+		{
+		log_rule_error(r, "Error from non-assigned plugin", p);
+		return;
+		}
+
+	if ( p$_id in rule$_active_plugin_ids )
+		{
+		# error during removal. Let's pretend it worked.
+		delete rule$_plugin_ids[p$_id];
+		delete rule$_active_plugin_ids[p$_id];
+		rule_cleanup(rule);
+		}
+	else
+		{
+		# error during insertion. Meh. If we are the only plugin, remove the rule again.
+		# Otherwhise - keep it, minus us.
+		delete rule$_plugin_ids[p$_id];
+		if ( |rule$_plugin_ids| == 0 )
+			{
+			rule_cleanup(rule);
+			}
+		}
 	}
 
 function clear()
 	{
-	for ( [id,cid] in rules )
-		remove_single_rule(id, cid);
+	for ( id in rules )
+		remove_rule(id);
 	}

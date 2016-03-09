@@ -3,6 +3,8 @@
 #ifndef IOSOURCE_PKTSRC_PKTSRC_H
 #define IOSOURCE_PKTSRC_PKTSRC_H
 
+#include <vector>
+
 #include "IOSource.h"
 #include "BPF_Program.h"
 #include "Dict.h"
@@ -362,7 +364,7 @@ private:
 	Packet current_packet;
 
 	// For BPF filtering support.
-	PDict(BPF_Program) filters;
+	std::vector<BPF_Program *> filters;
 
 	// Only set in pseudo-realtime mode.
 	double first_timestamp;

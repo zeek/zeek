@@ -2,6 +2,11 @@
 #
 # Default canonifier used with the trace-based tests in testing/external/*.
 
+if [ $# != 1 ]; then
+    echo "usage: `basename $0` <filename>"
+    exit 1
+fi
+
 filename=`basename $1`
 
 addl="cat"

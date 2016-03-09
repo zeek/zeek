@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	http-2
-#open	2011-03-18-19-06-08
+#open	2016-01-15-18-40-59
 #fields	host
 #types	string
 bits.wikimedia.org
@@ -20,4 +20,4 @@ upload.wikimedia.org
 upload.wikimedia.org
 upload.wikimedia.org
 upload.wikimedia.org
-#close	2011-03-18-19-06-13
+#close	2016-01-15-18-40-59

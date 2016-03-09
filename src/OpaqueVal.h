@@ -49,9 +49,9 @@ public:
 protected:
 	friend class Val;
 
-	virtual bool DoInit() /* override */;
-	virtual bool DoFeed(const void* data, size_t size) /* override */;
-	virtual StringVal* DoGet() /* override */;
+	virtual bool DoInit() override;
+	virtual bool DoFeed(const void* data, size_t size) override;
+	virtual StringVal* DoGet() override;
 
 	DECLARE_SERIAL(MD5Val);
 
@@ -68,9 +68,9 @@ public:
 protected:
 	friend class Val;
 
-	virtual bool DoInit() /* override */;
-	virtual bool DoFeed(const void* data, size_t size) /* override */;
-	virtual StringVal* DoGet() /* override */;
+	virtual bool DoInit() override;
+	virtual bool DoFeed(const void* data, size_t size) override;
+	virtual StringVal* DoGet() override;
 
 	DECLARE_SERIAL(SHA1Val);
 
@@ -87,9 +87,9 @@ public:
 protected:
 	friend class Val;
 
-	virtual bool DoInit() /* override */;
-	virtual bool DoFeed(const void* data, size_t size) /* override */;
-	virtual StringVal* DoGet() /* override */;
+	virtual bool DoInit() override;
+	virtual bool DoFeed(const void* data, size_t size) override;
+	virtual StringVal* DoGet() override;
 
 	DECLARE_SERIAL(SHA256Val);
 

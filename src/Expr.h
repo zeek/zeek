@@ -220,18 +220,18 @@ public:
 
 	ID* Id() const		{ return id; }
 
-	Val* Eval(Frame* f) const;
-	void Assign(Frame* f, Val* v, Opcode op = OP_ASSIGN);
-	Expr* MakeLvalue();
-	int IsPure() const;
+	Val* Eval(Frame* f) const override;
+	void Assign(Frame* f, Val* v, Opcode op = OP_ASSIGN) override;
+	Expr* MakeLvalue() override;
+	int IsPure() const override;
 
-	TraversalCode Traverse(TraversalCallback* cb) const;
+	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
 	friend class Expr;
 	NameExpr()	{ id = 0; }
 
-	void ExprDescribe(ODesc* d) const;
+	void ExprDescribe(ODesc* d) const override;
 
 	DECLARE_SERIAL(NameExpr);
 
@@ -246,15 +246,15 @@ public:
 
 	Val* Value() const	{ return val; }
 
-	Val* Eval(Frame* f) const;
+	Val* Eval(Frame* f) const override;
 
-	TraversalCode Traverse(TraversalCallback* cb) const;
+	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
 	friend class Expr;
 	ConstExpr()	{ val = 0; }
 
-	void ExprDescribe(ODesc* d) const;
+	void ExprDescribe(ODesc* d) const override;
 	DECLARE_SERIAL(ConstExpr);
 
 	Val* val;
@@ -267,11 +267,11 @@ public:
 	// UnaryExpr::Eval correctly handles vector types.  Any child
 	// class that overrides Eval() should be modified to handle
 	// vectors correctly as necessary.
-	Val* Eval(Frame* f) const;
+	Val* Eval(Frame* f) const override;
 
-	int IsPure() const;
+	int IsPure() const override;
 
-	TraversalCode Traverse(TraversalCallback* cb) const;
+	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
 	friend class Expr;
@@ -280,7 +280,7 @@ protected:
 	UnaryExpr(BroExprTag arg_tag, Expr* arg_op);
 	virtual ~UnaryExpr();
 
-	void ExprDescribe(ODesc* d) const;
+	void ExprDescribe(ODesc* d) const override;
 
 	// Returns the expression folded using the given constant.
 	virtual Val* Fold(Val* v) const;
@@ -295,14 +295,14 @@ public:
 	Expr* Op1() const	{ return op1; }
 	Expr* Op2() const	{ return op2; }
 
-	int IsPure() const;
+	int IsPure() const override;
 
 	// BinaryExpr::Eval correctly handles vector types.  Any child
 	// class that overrides Eval() should be modified to handle
 	// vectors correctly as necessary.
-	Val* Eval(Frame* f) const;
+	Val* Eval(Frame* f) const override;
 
-	TraversalCode Traverse(TraversalCallback* cb) const;
+	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
 	friend class Expr;
@@ -340,7 +340,7 @@ protected:
 	// operands and also set expression's type).
 	void PromoteType(TypeTag t, bool is_vector);
 
-	void ExprDescribe(ODesc* d) const;
+	void ExprDescribe(ODesc* d) const override;
 
 	DECLARE_SERIAL(BinaryExpr);
 
@@ -351,13 +351,13 @@ protected:
 class CloneExpr : public UnaryExpr {
 public:
 	CloneExpr(Expr* op);
-	Val* Eval(Frame* f) const;
+	Val* Eval(Frame* f) const override;
 
 protected:
 	friend class Expr;
 	CloneExpr()	{ }
 
-	Val* Fold(Val* v) const;
+	Val* Fold(Val* v) const override;
 
 	DECLARE_SERIAL(CloneExpr);
 };
@@ -366,9 +366,9 @@ class IncrExpr : public UnaryExpr {
 public:
 	IncrExpr(BroExprTag tag, Expr* op);
 
-	Val* Eval(Frame* f) const;
+	Val* Eval(Frame* f) const override;
 	Val* DoSingleEval(Frame* f, Val* v) const;
-	int IsPure() const;
+	int IsPure() const override;
 
 protected:
 	friend class Expr;
@@ -385,7 +385,7 @@ protected:
 	friend class Expr;
 	NotExpr()	{ }
 
-	Val* Fold(Val* v) const;
+	Val* Fold(Val* v) const override;
 
 	DECLARE_SERIAL(NotExpr);
 };
@@ -398,7 +398,7 @@ protected:
 	friend class Expr;
 	PosExpr()	{ }
 
-	Val* Fold(Val* v) const;
+	Val* Fold(Val* v) const override;
 
 	DECLARE_SERIAL(PosExpr);
 };
@@ -411,7 +411,7 @@ protected:
 	friend class Expr;
 	NegExpr()	{ }
 
-	Val* Fold(Val* v) const;
+	Val* Fold(Val* v) const override;
 
 	DECLARE_SERIAL(NegExpr);
 };
@@ -419,20 +419,20 @@ protected:
 class SizeExpr : public UnaryExpr {
 public:
 	SizeExpr(Expr* op);
-	Val* Eval(Frame* f) const;
+	Val* Eval(Frame* f) const override;
 
 protected:
 	friend class Expr;
 	SizeExpr()	{ }
 
-	Val* Fold(Val* v) const;
+	Val* Fold(Val* v) const override;
 	DECLARE_SERIAL(SizeExpr);
 };
 
 class AddExpr : public BinaryExpr {
 public:
 	AddExpr(Expr* op1, Expr* op2);
-	void Canonicize();
+	void Canonicize() override;
 
 protected:
 	friend class Expr;
@@ -445,7 +445,7 @@ protected:
 class AddToExpr : public BinaryExpr {
 public:
 	AddToExpr(Expr* op1, Expr* op2);
-	Val* Eval(Frame* f) const;
+	Val* Eval(Frame* f) const override;
 
 protected:
 	friend class Expr;
@@ -457,7 +457,7 @@ protected:
 class RemoveFromExpr : public BinaryExpr {
 public:
 	RemoveFromExpr(Expr* op1, Expr* op2);
-	Val* Eval(Frame* f) const;
+	Val* Eval(Frame* f) const override;
 
 protected:
 	friend class Expr;
@@ -481,7 +481,7 @@ protected:
 class TimesExpr : public BinaryExpr {
 public:
 	TimesExpr(Expr* op1, Expr* op2);
-	void Canonicize();
+	void Canonicize() override;
 
 protected:
 	friend class Expr;
@@ -499,7 +499,7 @@ protected:
 	friend class Expr;
 	DivideExpr()	{ }
 
-	Val* AddrFold(Val* v1, Val* v2) const;
+	Val* AddrFold(Val* v1, Val* v2) const override;
 
 	DECLARE_SERIAL(DivideExpr);
 
@@ -520,7 +520,7 @@ class BoolExpr : public BinaryExpr {
 public:
 	BoolExpr(BroExprTag tag, Expr* op1, Expr* op2);
 
-	Val* Eval(Frame* f) const;
+	Val* Eval(Frame* f) const override;
 	Val* DoSingleEval(Frame* f, Val* v1, Expr* op2) const;
 
 protected:
@@ -533,13 +533,13 @@ protected:
 class EqExpr : public BinaryExpr {
 public:
 	EqExpr(BroExprTag tag, Expr* op1, Expr* op2);
-	void Canonicize();
+	void Canonicize() override;
 
 protected:
 	friend class Expr;
 	EqExpr()	{ }
 
-	Val* Fold(Val* v1, Val* v2) const;
+	Val* Fold(Val* v1, Val* v2) const override;
 
 	DECLARE_SERIAL(EqExpr);
 };
@@ -547,7 +547,7 @@ protected:
 class RelExpr : public BinaryExpr {
 public:
 	RelExpr(BroExprTag tag, Expr* op1, Expr* op2);
-	void Canonicize();
+	void Canonicize() override;
 
 protected:
 	friend class Expr;
@@ -565,16 +565,16 @@ public:
 	const Expr* Op2() const	{ return op2; }
 	const Expr* Op3() const	{ return op3; }
 
-	Val* Eval(Frame* f) const;
-	int IsPure() const;
+	Val* Eval(Frame* f) const override;
+	int IsPure() const override;
 
-	TraversalCode Traverse(TraversalCallback* cb) const;
+	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
 	friend class Expr;
 	CondExpr()	{ op1 = op2 = op3 = 0; }
 
-	void ExprDescribe(ODesc* d) const;
+	void ExprDescribe(ODesc* d) const override;
 
 	DECLARE_SERIAL(CondExpr);
 
@@ -587,8 +587,8 @@ class RefExpr : public UnaryExpr {
 public:
 	RefExpr(Expr* op);
 
-	void Assign(Frame* f, Val* v, Opcode op = OP_ASSIGN);
-	Expr* MakeLvalue();
+	void Assign(Frame* f, Val* v, Opcode op = OP_ASSIGN) override;
+	Expr* MakeLvalue() override;
 
 protected:
 	friend class Expr;
@@ -604,12 +604,12 @@ public:
 	AssignExpr(Expr* op1, Expr* op2, int is_init, Val* val = 0, attr_list* attrs = 0);
 	virtual ~AssignExpr()	{ Unref(val); }
 
-	Val* Eval(Frame* f) const;
-	void EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const;
-	BroType* InitType() const;
-	int IsRecordElement(TypeDecl* td) const;
-	Val* InitVal(const BroType* t, Val* aggr) const;
-	int IsPure() const;
+	Val* Eval(Frame* f) const override;
+	void EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const override;
+	BroType* InitType() const override;
+	int IsRecordElement(TypeDecl* td) const override;
+	Val* InitVal(const BroType* t, Val* aggr) const override;
+	int IsPure() const override;
 
 protected:
 	friend class Expr;
@@ -628,28 +628,28 @@ class IndexExpr : public BinaryExpr {
 public:
 	IndexExpr(Expr* op1, ListExpr* op2, bool is_slice = false);
 
-	int CanAdd() const;
-	int CanDel() const;
+	int CanAdd() const override;
+	int CanDel() const override;
 
-	void Add(Frame* f);
-	void Delete(Frame* f);
+	void Add(Frame* f) override;
+	void Delete(Frame* f) override;
 
-	void Assign(Frame* f, Val* v, Opcode op = OP_ASSIGN);
-	Expr* MakeLvalue();
+	void Assign(Frame* f, Val* v, Opcode op = OP_ASSIGN) override;
+	Expr* MakeLvalue() override;
 
 	// Need to override Eval since it can take a vector arg but does
 	// not necessarily return a vector.
-	Val* Eval(Frame* f) const;
+	Val* Eval(Frame* f) const override;
 
-	TraversalCode Traverse(TraversalCallback* cb) const;
+	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
 	friend class Expr;
 	IndexExpr()	{ }
 
-	Val* Fold(Val* v1, Val* v2) const;
+	Val* Fold(Val* v1, Val* v2) const override;
 
-	void ExprDescribe(ODesc* d) const;
+	void ExprDescribe(ODesc* d) const override;
 
 	DECLARE_SERIAL(IndexExpr);
 };
@@ -662,20 +662,20 @@ public:
 	int Field() const	{ return field; }
 	const char* FieldName() const	{ return field_name; }
 
-	int CanDel() const;
+	int CanDel() const override;
 
-	void Assign(Frame* f, Val* v, Opcode op = OP_ASSIGN);
-	void Delete(Frame* f);
+	void Assign(Frame* f, Val* v, Opcode op = OP_ASSIGN) override;
+	void Delete(Frame* f) override;
 
-	Expr* MakeLvalue();
+	Expr* MakeLvalue() override;
 
 protected:
 	friend class Expr;
 	FieldExpr()	{ field_name = 0; td = 0; }
 
-	Val* Fold(Val* v) const;
+	Val* Fold(Val* v) const override;
 
-	void ExprDescribe(ODesc* d) const;
+	void ExprDescribe(ODesc* d) const override;
 
 	DECLARE_SERIAL(FieldExpr);
 
@@ -697,9 +697,9 @@ protected:
 	friend class Expr;
 	HasFieldExpr()	{ field_name = 0; }
 
-	Val* Fold(Val* v) const;
+	Val* Fold(Val* v) const override;
 
-	void ExprDescribe(ODesc* d) const;
+	void ExprDescribe(ODesc* d) const override;
 
 	DECLARE_SERIAL(HasFieldExpr);
 
@@ -716,10 +716,10 @@ protected:
 	friend class Expr;
 	RecordConstructorExpr()	{ }
 
-	Val* InitVal(const BroType* t, Val* aggr) const;
-	Val* Fold(Val* v) const;
+	Val* InitVal(const BroType* t, Val* aggr) const override;
+	Val* Fold(Val* v) const override;
 
-	void ExprDescribe(ODesc* d) const;
+	void ExprDescribe(ODesc* d) const override;
 
 	DECLARE_SERIAL(RecordConstructorExpr);
 };
@@ -732,15 +732,15 @@ public:
 
 	Attributes* Attrs() { return attrs; }
 
-	Val* Eval(Frame* f) const;
+	Val* Eval(Frame* f) const override;
 
 protected:
 	friend class Expr;
 	TableConstructorExpr()	{ }
 
-	Val* InitVal(const BroType* t, Val* aggr) const;
+	Val* InitVal(const BroType* t, Val* aggr) const override;
 
-	void ExprDescribe(ODesc* d) const;
+	void ExprDescribe(ODesc* d) const override;
 
 	DECLARE_SERIAL(TableConstructorExpr);
 
@@ -755,15 +755,15 @@ public:
 
 	Attributes* Attrs() { return attrs; }
 
-	Val* Eval(Frame* f) const;
+	Val* Eval(Frame* f) const override;
 
 protected:
 	friend class Expr;
 	SetConstructorExpr()	{ }
 
-	Val* InitVal(const BroType* t, Val* aggr) const;
+	Val* InitVal(const BroType* t, Val* aggr) const override;
 
-	void ExprDescribe(ODesc* d) const;
+	void ExprDescribe(ODesc* d) const override;
 
 	DECLARE_SERIAL(SetConstructorExpr);
 
@@ -774,15 +774,15 @@ class VectorConstructorExpr : public UnaryExpr {
 public:
 	VectorConstructorExpr(ListExpr* constructor_list, BroType* arg_type = 0);
 
-	Val* Eval(Frame* f) const;
+	Val* Eval(Frame* f) const override;
 
 protected:
 	friend class Expr;
 	VectorConstructorExpr()	{ }
 
-	Val* InitVal(const BroType* t, Val* aggr) const;
+	Val* InitVal(const BroType* t, Val* aggr) const override;
 
-	void ExprDescribe(ODesc* d) const;
+	void ExprDescribe(ODesc* d) const override;
 
 	DECLARE_SERIAL(VectorConstructorExpr);
 };
@@ -793,14 +793,14 @@ public:
 
 	const char* FieldName() const	{ return field_name.c_str(); }
 
-	void EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const;
-	int IsRecordElement(TypeDecl* td) const;
+	void EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const override;
+	int IsRecordElement(TypeDecl* td) const override;
 
 protected:
 	friend class Expr;
 	FieldAssignExpr()	{ }
 
-	void ExprDescribe(ODesc* d) const;
+	void ExprDescribe(ODesc* d) const override;
 
 	DECLARE_SERIAL(FieldAssignExpr);
 
@@ -816,7 +816,7 @@ protected:
 	ArithCoerceExpr()	{ }
 
 	Val* FoldSingleVal(Val* v, InternalTypeTag t) const;
-	Val* Fold(Val* v) const;
+	Val* Fold(Val* v) const override;
 
 	DECLARE_SERIAL(ArithCoerceExpr);
 };
@@ -830,8 +830,8 @@ protected:
 	friend class Expr;
 	RecordCoerceExpr()	{ map = 0; }
 
-	Val* InitVal(const BroType* t, Val* aggr) const;
-	Val* Fold(Val* v) const;
+	Val* InitVal(const BroType* t, Val* aggr) const override;
+	Val* Fold(Val* v) const override;
 
 	DECLARE_SERIAL(RecordCoerceExpr);
 
@@ -850,7 +850,7 @@ protected:
 	friend class Expr;
 	TableCoerceExpr()	{ }
 
-	Val* Fold(Val* v) const;
+	Val* Fold(Val* v) const override;
 
 	DECLARE_SERIAL(TableCoerceExpr);
 };
@@ -864,7 +864,7 @@ protected:
 	friend class Expr;
 	VectorCoerceExpr()	{ }
 
-	Val* Fold(Val* v) const;
+	Val* Fold(Val* v) const override;
 
 	DECLARE_SERIAL(VectorCoerceExpr);
 };
@@ -879,7 +879,7 @@ protected:
 	friend class Expr;
 	FlattenExpr()	{ }
 
-	Val* Fold(Val* v) const;
+	Val* Fold(Val* v) const override;
 
 	DECLARE_SERIAL(FlattenExpr);
 
@@ -907,20 +907,20 @@ public:
 	ScheduleExpr(Expr* when, EventExpr* event);
 	~ScheduleExpr();
 
-	int IsPure() const;
+	int IsPure() const override;
 
-	Val* Eval(Frame* f) const;
+	Val* Eval(Frame* f) const override;
 
 	Expr* When() const	{ return when; }
 	EventExpr* Event() const	{ return event; }
 
-	TraversalCode Traverse(TraversalCallback* cb) const;
+	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
 	friend class Expr;
 	ScheduleExpr()	{ when = 0; event = 0; }
 
-	void ExprDescribe(ODesc* d) const;
+	void ExprDescribe(ODesc* d) const override;
 
 	DECLARE_SERIAL(ScheduleExpr);
 
@@ -936,7 +936,7 @@ protected:
 	friend class Expr;
 	InExpr()	{ }
 
-	Val* Fold(Val* v1, Val* v2) const;
+	Val* Fold(Val* v1, Val* v2) const override;
 
 	DECLARE_SERIAL(InExpr);
 
@@ -950,17 +950,17 @@ public:
 	Expr* Func() const	{ return func; }
 	ListExpr* Args() const	{ return args; }
 
-	int IsPure() const;
+	int IsPure() const override;
 
-	Val* Eval(Frame* f) const;
+	Val* Eval(Frame* f) const override;
 
-	TraversalCode Traverse(TraversalCallback* cb) const;
+	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
 	friend class Expr;
 	CallExpr()	{ func = 0; args = 0; }
 
-	void ExprDescribe(ODesc* d) const;
+	void ExprDescribe(ODesc* d) const override;
 
 	DECLARE_SERIAL(CallExpr);
 
@@ -977,15 +977,15 @@ public:
 	ListExpr* Args() const		{ return args; }
 	EventHandlerPtr Handler()  const	{ return handler; }
 
-	Val* Eval(Frame* f) const;
+	Val* Eval(Frame* f) const override;
 
-	TraversalCode Traverse(TraversalCallback* cb) const;
+	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
 	friend class Expr;
 	EventExpr()	{ args = 0; }
 
-	void ExprDescribe(ODesc* d) const;
+	void ExprDescribe(ODesc* d) const override;
 
 	DECLARE_SERIAL(EventExpr);
 
@@ -1006,24 +1006,24 @@ public:
 	expr_list& Exprs()		{ return exprs; }
 
 	// True if the entire list represents pure values.
-	int IsPure() const;
+	int IsPure() const override;
 
 	// True if the entire list represents constant values.
 	int AllConst() const;
 
-	Val* Eval(Frame* f) const;
+	Val* Eval(Frame* f) const override;
 
-	BroType* InitType() const;
-	Val* InitVal(const BroType* t, Val* aggr) const;
-	Expr* MakeLvalue();
-	void Assign(Frame* f, Val* v, Opcode op = OP_ASSIGN);
+	BroType* InitType() const override;
+	Val* InitVal(const BroType* t, Val* aggr) const override;
+	Expr* MakeLvalue() override;
+	void Assign(Frame* f, Val* v, Opcode op = OP_ASSIGN) override;
 
-	TraversalCode Traverse(TraversalCallback* cb) const;
+	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
 	Val* AddSetInit(const BroType* t, Val* aggr) const;
 
-	void ExprDescribe(ODesc* d) const;
+	void ExprDescribe(ODesc* d) const override;
 
 	DECLARE_SERIAL(ListExpr);
 
@@ -1035,7 +1035,7 @@ class RecordAssignExpr : public ListExpr {
 public:
 	RecordAssignExpr(Expr* record, Expr* init_list, int is_init);
 
-	Val* Eval(Frame* f) const	{ return ListExpr::Eval(f); }
+	Val* Eval(Frame* f) const override	{ return ListExpr::Eval(f); }
 
 protected:
 	friend class Expr;

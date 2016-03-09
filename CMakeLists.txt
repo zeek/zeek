@@ -88,7 +88,7 @@ endif ()
 
 include_directories(BEFORE
                     ${PCAP_INCLUDE_DIR}
-                    ${OpenSSL_INCLUDE_DIR}
+                    ${OPENSSL_INCLUDE_DIR}
                     ${BIND_INCLUDE_DIR}
                     ${BinPAC_INCLUDE_DIR}
                     ${ZLIB_INCLUDE_DIR}
@@ -141,7 +141,7 @@ endif ()
 set(brodeps
     ${BinPAC_LIBRARY}
     ${PCAP_LIBRARY}
-    ${OpenSSL_LIBRARIES}
+    ${OPENSSL_LIBRARIES}
     ${BIND_LIBRARY}
     ${ZLIB_LIBRARY}
     ${JEMALLOC_LIBRARIES}

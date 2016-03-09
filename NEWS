@@ -23,6 +23,8 @@ New Dependencies
 New Functionality
 -----------------
 
+- Bro now supports the Radiotap header for 802.11 frames.
+
 - Bro now tracks VLAN IDs. To record them inside the connection log,
   load protocols/conn/vlan-logging.bro.
 
@@ -35,6 +37,9 @@ New Functionality
   argument that will be used for decoding errors into weird.log
   (instead of reporter.log).
 
+- The IRC analyzer now recognizes StartTLS sessions and enable the SSL
+  analyzer for them.
+
 - New Bro plugins in aux/plugins:
 
     - af_packet: Native AF_PACKET support.
@@ -45,6 +50,9 @@ New Functionality
 
 Changed Functionality
 ---------------------
+
+- ``SSH::skip_processing_after_detection`` was removed. The functionality was
+  replaced by ``SSH::disable_analyzer_after_detection``.
 
 - Some script-level identifier have changed their names:
 

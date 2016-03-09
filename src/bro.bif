@@ -1031,6 +1031,40 @@ function clear_table%(v: any%): any
 	return 0;
 	%}
 
+## Gets all subnets that match a given subnet from a set/table[subnet]
+##
+## search: the subnet to search for.
+##
+## t: the set[subnet] or table[subnet].
+##
+## Returns: All the keys of the set or table that cover the subnet searched for.
+function matching_subnets%(search: subnet, t: any%): subnet_vec
+	%{
+	if ( t->Type()->Tag() != TYPE_TABLE || ! t->Type()->AsTableType()->IsSubNetIndex() )
+		{
+		reporter->Error("matching_subnets needs to be called on a set[subnet]/table[subnet].");
+		return nullptr;
+		}
+
+	const PrefixTable* pt = t->AsTableVal()->Subnets();
+	if ( !pt )
+		{
+		reporter->Error("matching_subnets encountered nonexisting prefix table.");
+		return nullptr;
+		}
+
+	VectorVal* result_v = new VectorVal(internal_type("subnet_vec")->AsVectorType());
+
+	auto matches = pt->FindAll(search);
+	for ( auto element : matches )
+		{
+		SubNetVal* s = new SubNetVal(element);
+		result_v->Assign(result_v->Size(), s);
+		}
+
+	return result_v;
+	%}
+
 ## Checks whether two objects reference the same internal object. This function
 ## uses equality comparison of C++ raw pointer values to determine if the two
 ## objects are the same.

@@ -263,7 +263,7 @@ global plugin_counter: count = 1;
 global plugins: vector of PluginState;
 global plugin_ids: table[count] of PluginState;
 
-# These tables hold informations about rules _after_ they have been
+# These tables hold information about rules _after_ they have been
 # succesfully added. Currently no information about the rules is held
 # in these tables while they are in the process of being added.
 global rules: table[string,count] of Rule; # Rules indexed by id and cid

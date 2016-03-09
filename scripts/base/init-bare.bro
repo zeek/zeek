@@ -39,6 +39,13 @@ type count_set: set[count];
 ##    directly and then remove this alias.
 type index_vec: vector of count;
 
+## A vector of subnets.
+##
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
+type subnet_vec: vector of subnet;
+
 ## A vector of any, used by some builtin functions to store a list of varying
 ## types.
 ##

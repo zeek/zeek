@@ -1,21 +1,48 @@
 #include "PrefixTable.h"
 #include "Reporter.h"
 
-inline static prefix_t* make_prefix(const IPAddr& addr, int width)
+prefix_t* PrefixTable::MakePrefix(const IPAddr& addr, int width)
 	{
 	prefix_t* prefix = (prefix_t*) safe_malloc(sizeof(prefix_t));
 
-	addr.CopyIPv6(&prefix->add.sin6);
-	prefix->family = AF_INET6;
-	prefix->bitlen = width;
-	prefix->ref_count = 1;
+	if ( addr.GetFamily() == IPv4 )
+		{
+		addr.CopyIPv4(&prefix->add.sin);
+		prefix->family = AF_INET;
+		prefix->bitlen = width;
+		prefix->ref_count = 1;
+		}
+	else
+		{
+		addr.CopyIPv6(&prefix->add.sin6);
+		prefix->family = AF_INET6;
+		prefix->bitlen = width;
+		prefix->ref_count = 1;
+		}
 
 	return prefix;
 	}
 
+IPPrefix PrefixTable::PrefixToIPPrefix(prefix_t* prefix)
+	{
+	if ( prefix->family == AF_INET )
+		{
+		return IPPrefix(IPAddr(IPv4, reinterpret_cast<const uint32_t*>(&prefix->add.sin), IPAddr::Network), prefix->bitlen);
+		}
+	else if ( prefix->family == AF_INET6 )
+		{
+		return IPPrefix(IPAddr(IPv6, reinterpret_cast<const uint32_t*>(&prefix->add.sin6), IPAddr::Network), prefix->bitlen, 0);
+		}
+	else
+		{
+		reporter->InternalWarning("Unknown prefix family for PrefixToIPAddr");
+		return IPPrefix();
+		}
+	}
+
 void* PrefixTable::Insert(const IPAddr& addr, int width, void* data)
 	{
-	prefix_t* prefix = make_prefix(addr, width);
+	prefix_t* prefix = MakePrefix(addr, width);
 	patricia_node_t* node = patricia_lookup(tree, prefix);
 	Deref_Prefix(prefix);
 
@@ -43,12 +70,12 @@ void* PrefixTable::Insert(const Val* value, void* data)
 
 	switch ( value->Type()->Tag() ) {
 	case TYPE_ADDR:
-		return Insert(value->AsAddr(), 128, data);
+		return Insert(value->AsAddr(), value->AsAddr().GetFamily() == IPv4 ? 32 : 128, data);
 		break;
 
 	case TYPE_SUBNET:
 		return Insert(value->AsSubNet().Prefix(),
-				value->AsSubNet().LengthIPv6(), data);
+				value->AsSubNet().Length(), data);
 		break;
 
 	default:
@@ -57,12 +84,40 @@ void* PrefixTable::Insert(const Val* value, void* data)
 	}
 	}
 
+list<IPPrefix> PrefixTable::FindAll(const IPAddr& addr, int width) const
+	{
+	std::list<IPPrefix> out;
+	prefix_t* prefix = MakePrefix(addr, width);
+
+	int elems = 0;
+	patricia_node_t** list = nullptr;
+
+	patricia_search_all(tree, prefix, &list, &elems);
+
+	for ( int i = 0; i < elems; ++i )
+		{
+		out.push_back(PrefixToIPPrefix(list[i]->prefix));
+		}
+
+	Deref_Prefix(prefix);
+	free(list);
+	return out;
+	}
+
+list<IPPrefix> PrefixTable::FindAll(const SubNetVal* value) const
+	{
+	return FindAll(value->AsSubNet().Prefix(), value->AsSubNet().LengthIPv6());
+	}
+
 void* PrefixTable::Lookup(const IPAddr& addr, int width, bool exact) const
 	{
-	prefix_t* prefix = make_prefix(addr, width);
+	prefix_t* prefix = MakePrefix(addr, width);
 	patricia_node_t* node =
 		exact ? patricia_search_exact(tree, prefix) :
 			patricia_search_best(tree, prefix);
+
+	int elems = 0;
+	patricia_node_t** list = nullptr;
 
 	Deref_Prefix(prefix);
 	return node ? node->data : 0;
@@ -94,7 +149,7 @@ void* PrefixTable::Lookup(const Val* value, bool exact) const
 
 void* PrefixTable::Remove(const IPAddr& addr, int width)
 	{
-	prefix_t* prefix = make_prefix(addr, width);
+	prefix_t* prefix = MakePrefix(addr, width);
 	patricia_node_t* node = patricia_search_exact(tree, prefix);
 	Deref_Prefix(prefix);
 

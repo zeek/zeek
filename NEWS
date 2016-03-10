@@ -43,6 +43,7 @@ New Functionality
 - New Bro plugins in aux/plugins:
 
     - af_packet: Native AF_PACKET support.
+    - kafka : Log writer interfacing to Kafka.
     - myricom: Native Myricom SNF v3 support.
     - pf_ring: Native PF_RING support.
     - redis: An experimental log writer for Redis.

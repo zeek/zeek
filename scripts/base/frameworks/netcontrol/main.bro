@@ -126,6 +126,20 @@ export {
 	## asynchronously and thus go wrong at that point.
 	global remove_rule: function(id: string) : bool;
 
+	## Searches all rules affecting a certain IP address
+	##
+	## ip: The ip address to search for
+	##
+	## Returns: vector of all rules affecting the IP address
+	global find_rules_addr: function(ip: addr) : vector of Rule;
+
+	## Searches all rules affecting a certain subnet
+	##
+	## sn: The subnet to search for
+	##
+	## Returns: vector of all rules affecting the subnet
+	global find_rules_subnet: function(sn: subnet) : vector of Rule;
+
 	###### Asynchronous feedback on rules.
 
 	## Confirms that a rule was put in place.
@@ -271,8 +285,7 @@ global plugin_ids: table[count] of PluginState;
 global rules: table[string] of Rule; # Rules indexed by id and cid
 
 # All rules that apply to a certain subnet/IP address.
-# Contains only succesfully added rules.
-global rules_by_subnets: table[subnet] of set[Rule];
+global rules_by_subnets: table[subnet] of set[string];
 
 # Rules pertaining to a specific entity.
 # There always only can be one rule of each type for one entity.
@@ -563,6 +576,96 @@ function activate_impl(p: PluginState, priority: int)
 
 	}
 
+function add_one_subnet_entry(s: subnet, r: Rule)
+	{
+	if ( ! check_subnet(s, rules_by_subnets) )
+		rules_by_subnets[s] = set(r$id);
+	else
+		add rules_by_subnets[s][r$id];
+	}
+
+function add_subnet_entry(rule: Rule)
+	{
+	local e = rule$entity;
+	if ( e$ty == ADDRESS )
+		{
+		add_one_subnet_entry(e$ip, rule);
+		}
+	else if ( e$ty == CONNECTION )
+		{
+		add_one_subnet_entry(addr_to_subnet(e$conn$orig_h), rule);
+		add_one_subnet_entry(addr_to_subnet(e$conn$resp_h), rule);
+		}
+	else if ( e$ty == FLOW )
+		{
+		if ( e$flow?$src_h )
+			add_one_subnet_entry(e$flow$src_h, rule);
+		if ( e$flow?$dst_h )
+			add_one_subnet_entry(e$flow$dst_h, rule);
+		}
+	}
+
+function remove_one_subnet_entry(s: subnet, r: Rule)
+	{
+	if ( ! check_subnet(s, rules_by_subnets) )
+		return;
+
+	if ( r$id !in rules_by_subnets[s] )
+		return;
+
+	delete rules_by_subnets[s][r$id];
+	if ( |rules_by_subnets[s]| == 0 )
+		delete rules_by_subnets[s];
+	}
+
+function remove_subnet_entry(rule: Rule)
+	{
+	local e = rule$entity;
+	if ( e$ty == ADDRESS )
+		{
+		remove_one_subnet_entry(e$ip, rule);
+		}
+	else if ( e$ty == CONNECTION )
+		{
+		remove_one_subnet_entry(addr_to_subnet(e$conn$orig_h), rule);
+		remove_one_subnet_entry(addr_to_subnet(e$conn$resp_h), rule);
+		}
+	else if ( e$ty == FLOW )
+		{
+		if ( e$flow?$src_h )
+			remove_one_subnet_entry(e$flow$src_h, rule);
+		if ( e$flow?$dst_h )
+			remove_one_subnet_entry(e$flow$dst_h, rule);
+		}
+	}
+
+function find_rules_subnet(sn: subnet) : vector of Rule
+	{
+	local ret: vector of Rule = vector();
+
+	local matches = matching_subnets(sn, rules_by_subnets);
+
+	for ( m in matches )
+		{
+		local sn_entry = matches[m];
+		local rule_ids = rules_by_subnets[sn_entry];
+		for ( rule_id in rules_by_subnets[sn_entry] )
+			{
+			if ( rule_id in rules )
+				ret[|ret|] = rules[rule_id];
+			else
+				Reporter::error("find_rules_subnet - internal data structure error, missing rule");
+			}
+		}
+
+		return ret;
+	}
+
+function find_rules_addr(ip: addr) : vector of Rule
+	{
+	return find_rules_subnet(addr_to_subnet(ip));
+	}
+
 function add_rule_impl(rule: Rule) : string
 	{
 	if ( ! plugins_active )
@@ -614,6 +717,9 @@ function add_rule_impl(rule: Rule) : string
 		{
 		rules[rule$id] = rule;
 		rule_entities[rule$entity, rule$ty] = rule;
+
+		add_subnet_entry(rule);
+
 		return rule$id;
 		}
 
@@ -702,6 +808,8 @@ function rule_cleanup(r: Rule)
 	{
 	if ( |r$_active_plugin_ids| > 0 )
 		return;
+
+	remove_subnet_entry(r);
 
 	delete rule_entities[r$entity, r$ty];
 	delete rules[r$id];

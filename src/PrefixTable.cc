@@ -106,7 +106,7 @@ list<IPPrefix> PrefixTable::FindAll(const IPAddr& addr, int width) const
 
 list<IPPrefix> PrefixTable::FindAll(const SubNetVal* value) const
 	{
-	return FindAll(value->AsSubNet().Prefix(), value->AsSubNet().LengthIPv6());
+	return FindAll(value->AsSubNet().Prefix(), value->AsSubNet().Length());
 	}
 
 void* PrefixTable::Lookup(const IPAddr& addr, int width, bool exact) const
@@ -132,12 +132,12 @@ void* PrefixTable::Lookup(const Val* value, bool exact) const
 
 	switch ( value->Type()->Tag() ) {
 	case TYPE_ADDR:
-		return Lookup(value->AsAddr(), 128, exact);
+		return Lookup(value->AsAddr(), value->AsAddr().GetFamily() == IPv4 ? 32 : 128, exact);
 		break;
 
 	case TYPE_SUBNET:
 		return Lookup(value->AsSubNet().Prefix(),
-				value->AsSubNet().LengthIPv6(), exact);
+				value->AsSubNet().Length(), exact);
 		break;
 
 	default:
@@ -171,12 +171,12 @@ void* PrefixTable::Remove(const Val* value)
 
 	switch ( value->Type()->Tag() ) {
 	case TYPE_ADDR:
-		return Remove(value->AsAddr(), 128);
+		return Remove(value->AsAddr(), value->AsAddr().GetFamily() == IPv4 ? 32 : 128);
 		break;
 
 	case TYPE_SUBNET:
 		return Remove(value->AsSubNet().Prefix(),
-				value->AsSubNet().LengthIPv6());
+				value->AsSubNet().Length());
 		break;
 
 	default:

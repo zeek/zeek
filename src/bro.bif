@@ -1065,6 +1065,36 @@ function matching_subnets%(search: subnet, t: any%): subnet_vec
 	return result_v;
 	%}
 
+## Checks if a specific subnet is a member of a set/table[subnet].
+## In difference to the in operator, this performs an exact match, not
+## a longest prefix match
+##
+## search: the subnet to search for.
+##
+## t: the set[subnet] or table[subnet].
+##
+##
+## Returns: True if the exact subnet is a member, false otherwise.
+function check_subnet%(search: subnet, t: any%): bool
+	%{
+	if ( t->Type()->Tag() != TYPE_TABLE || ! t->Type()->AsTableType()->IsSubNetIndex() )
+		{
+		reporter->Error("matching_subnets needs to be called on a set[subnet]/table[subnet].");
+		return nullptr;
+		}
+
+	const PrefixTable* pt = t->AsTableVal()->Subnets();
+	if ( !pt )
+		{
+		reporter->Error("matching_subnets encountered nonexisting prefix table.");
+		return nullptr;
+		}
+
+	void* res = pt->Lookup(search, true);
+
+	return new Val (res != nullptr, TYPE_BOOL);
+	%}
+
 ## Checks whether two objects reference the same internal object. This function
 ## uses equality comparison of C++ raw pointer values to determine if the two
 ## objects are the same.

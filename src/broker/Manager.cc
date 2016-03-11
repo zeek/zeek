@@ -134,6 +134,8 @@ bool bro_broker::Manager::Enable(Val* broker_endpoint_flags)
 
 	int flags = endpoint_flags_to_int(broker_endpoint_flags);
 	endpoint = unique_ptr<broker::endpoint>(new broker::endpoint(name, flags));
+
+	// Register as a "dont-count" source first, we may change that later.
 	iosource_mgr->Register(this, true);
 	return true;
 	}
@@ -162,6 +164,9 @@ bool bro_broker::Manager::Listen(uint16_t port, const char* addr, bool reuse_add
 		                endpoint->last_error().data());
 		}
 
+	// Register as a "does-count" source now.
+	iosource_mgr->Register(this, false);
+
 	return rval;
 	}
 
@@ -175,6 +180,9 @@ bool bro_broker::Manager::Connect(string addr, uint16_t port,
 
 	if ( peer )
 		return false;
+
+	// Register as a "does-count" source now.
+	iosource_mgr->Register(this, false);
 
 	peer = endpoint->peer(move(addr), port, retry_interval);
 	return true;
@@ -763,7 +771,7 @@ void bro_broker::Manager::Process()
 
 			val_list* vl = new val_list;
 			vl->append(new StringVal(move(*msg)));
-			mgr.QueueEvent(Broker::print_handler, vl, 1);
+			mgr.QueueEvent(Broker::print_handler, vl, SOURCE_BROKER);
 			}
 		}
 
@@ -825,7 +833,7 @@ void bro_broker::Manager::Process()
 				}
 
 			if ( static_cast<size_t>(vl->length()) == em.size() - 1 )
-				mgr.QueueEvent(ehp, vl, 1);
+				mgr.QueueEvent(ehp, vl, SOURCE_BROKER);
 			else
 				delete_vals(vl);
 			}

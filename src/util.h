@@ -143,8 +143,11 @@ extern char* get_word(char*& s);
 extern void get_word(int length, const char* s, int& pwlen, const char*& pw);
 extern void to_upper(char* s);
 extern std::string to_upper(const std::string& s);
+extern const char* strchr_n(const char* s, const char* end_of_s, char ch);
+extern const char* strrchr_n(const char* s, const char* end_of_s, char ch);
 extern int decode_hex(char ch);
 extern unsigned char encode_hex(int h);
+extern int strcasecmp_n(int s_len, const char* s, const char* t);
 #ifndef HAVE_STRCASESTR
 extern char* strcasestr(const char* s, const char* find);
 #endif
@@ -230,6 +233,13 @@ extern uint64 rand64bit();
 typedef ptr_compat_uint SourceID;
 #define PRI_SOURCE_ID PRI_PTR_COMPAT_UINT
 static const SourceID SOURCE_LOCAL = 0;
+
+// TODO: This is a temporary marker to flag events coming in via Broker.
+// Those are remote events but we don't have any further peer information
+// available for them (as the old communication code would have). Once we
+// remove RemoteSerializer, we can turn the SourceID into a simple boolean
+// indicating whether it's a local or remote event.
+static const SourceID SOURCE_BROKER = 0xffffffff;
 
 extern void pinpoint();
 extern int int_list_cmp(const void* v1, const void* v2);

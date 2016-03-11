@@ -5,39 +5,17 @@ prefix_t* PrefixTable::MakePrefix(const IPAddr& addr, int width)
 	{
 	prefix_t* prefix = (prefix_t*) safe_malloc(sizeof(prefix_t));
 
-	if ( addr.GetFamily() == IPv4 )
-		{
-		addr.CopyIPv4(&prefix->add.sin);
-		prefix->family = AF_INET;
-		prefix->bitlen = width;
-		prefix->ref_count = 1;
-		}
-	else
-		{
-		addr.CopyIPv6(&prefix->add.sin6);
-		prefix->family = AF_INET6;
-		prefix->bitlen = width;
-		prefix->ref_count = 1;
-		}
+	addr.CopyIPv6(&prefix->add.sin6);
+	prefix->family = AF_INET6;
+	prefix->bitlen = width;
+	prefix->ref_count = 1;
 
 	return prefix;
 	}
 
 IPPrefix PrefixTable::PrefixToIPPrefix(prefix_t* prefix)
 	{
-	if ( prefix->family == AF_INET )
-		{
-		return IPPrefix(IPAddr(IPv4, reinterpret_cast<const uint32_t*>(&prefix->add.sin), IPAddr::Network), prefix->bitlen);
-		}
-	else if ( prefix->family == AF_INET6 )
-		{
-		return IPPrefix(IPAddr(IPv6, reinterpret_cast<const uint32_t*>(&prefix->add.sin6), IPAddr::Network), prefix->bitlen, 0);
-		}
-	else
-		{
-		reporter->InternalWarning("Unknown prefix family for PrefixToIPAddr");
-		return IPPrefix();
-		}
+	return IPPrefix(IPAddr(IPv6, reinterpret_cast<const uint32_t*>(&prefix->add.sin6), IPAddr::Network), prefix->bitlen, 1);
 	}
 
 void* PrefixTable::Insert(const IPAddr& addr, int width, void* data)
@@ -70,12 +48,12 @@ void* PrefixTable::Insert(const Val* value, void* data)
 
 	switch ( value->Type()->Tag() ) {
 	case TYPE_ADDR:
-		return Insert(value->AsAddr(), value->AsAddr().GetFamily() == IPv4 ? 32 : 128, data);
+		return Insert(value->AsAddr(), 128, data);
 		break;
 
 	case TYPE_SUBNET:
 		return Insert(value->AsSubNet().Prefix(),
-				value->AsSubNet().Length(), data);
+				value->AsSubNet().LengthIPv6(), data);
 		break;
 
 	default:
@@ -106,7 +84,7 @@ list<IPPrefix> PrefixTable::FindAll(const IPAddr& addr, int width) const
 
 list<IPPrefix> PrefixTable::FindAll(const SubNetVal* value) const
 	{
-	return FindAll(value->AsSubNet().Prefix(), value->AsSubNet().Length());
+	return FindAll(value->AsSubNet().Prefix(), value->AsSubNet().LengthIPv6());
 	}
 
 void* PrefixTable::Lookup(const IPAddr& addr, int width, bool exact) const
@@ -132,12 +110,12 @@ void* PrefixTable::Lookup(const Val* value, bool exact) const
 
 	switch ( value->Type()->Tag() ) {
 	case TYPE_ADDR:
-		return Lookup(value->AsAddr(), value->AsAddr().GetFamily() == IPv4 ? 32 : 128, exact);
+		return Lookup(value->AsAddr(), 128, exact);
 		break;
 
 	case TYPE_SUBNET:
 		return Lookup(value->AsSubNet().Prefix(),
-				value->AsSubNet().Length(), exact);
+				value->AsSubNet().LengthIPv6(), exact);
 		break;
 
 	default:
@@ -171,12 +149,12 @@ void* PrefixTable::Remove(const Val* value)
 
 	switch ( value->Type()->Tag() ) {
 	case TYPE_ADDR:
-		return Remove(value->AsAddr(), value->AsAddr().GetFamily() == IPv4 ? 32 : 128);
+		return Remove(value->AsAddr(), 128);
 		break;
 
 	case TYPE_SUBNET:
 		return Remove(value->AsSubNet().Prefix(),
-				value->AsSubNet().Length());
+				value->AsSubNet().LengthIPv6());
 		break;
 
 	default:

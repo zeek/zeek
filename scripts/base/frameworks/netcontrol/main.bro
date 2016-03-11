@@ -515,7 +515,11 @@ function check_plugins()
 	if ( all_active )
 		{
 		plugins_active = T;
-		log_msg_no_plugin("plugin initialization done");
+
+		# Skip log message if there are no plugins
+		if ( |plugins| > 0 )
+			log_msg_no_plugin("plugin initialization done");
+
 		event NetControl::init_done();
 		}
 	}

@@ -21,11 +21,25 @@ redef Log::default_rotation_interval = 0secs;
 
 @load base/frameworks/netcontrol
 
+@if ( Cluster::local_node_type() == Cluster::WORKER )
+event bro_init()
+	{
+	suspend_processing();
+	}
+@endif
+
 event NetControl::init()
 	{
 	local netcontrol_debug = NetControl::create_debug(T);
 	NetControl::activate(netcontrol_debug, 0);
 	}
+
+@if ( Cluster::local_node_type() == Cluster::WORKER )
+event remote_connection_handshake_done(p: event_peer)
+	{
+	continue_processing();
+	}
+@endif
 
 event connection_established(c: connection)
 	{

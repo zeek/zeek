@@ -3,7 +3,6 @@
 #include "bro-config.h"
 
 #include <ctype.h>
-#include <algorithm>
 
 #include "NetVar.h"
 #include "Ident.h"
@@ -155,7 +154,7 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 			{
 			const char* sys_type = line;
 			assert(line <= end_of_line);
-			int n = std::min(end_of_line - line, 0L);	// just to be sure if assertions aren't on.
+			size_t n = end_of_line >= line ? end_of_line - line : 0; // just to be sure if assertions aren't on.
 			const char* colon = reinterpret_cast<const char*>(memchr(line, ':', n));
 			const char* comma = reinterpret_cast<const char*>(memchr(line, ',', n));
 			if ( ! colon )

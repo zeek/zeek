@@ -60,7 +60,7 @@ export {
 		## The severity of the communication event message.
 		level:               string &log &optional;
 		## A message describing the communication event between Bro or
-		## Broccoli instances.
+		## Broker instances.
 		message:             string &log;
 	};
 

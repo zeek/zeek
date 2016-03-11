@@ -1,5 +1,6 @@
          0.000000 bro_init
          0.000000 filter_change_tracking
+         0.000000 NetControl::init
 1254722767.492060 protocol_confirmation
 1254722767.492060 ChecksumOffloading::check
 1254722767.492060 filter_change_tracking

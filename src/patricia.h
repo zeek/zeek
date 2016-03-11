@@ -104,6 +104,7 @@ typedef struct _patricia_tree_t {
 
 
 patricia_node_t *patricia_search_exact (patricia_tree_t *patricia, prefix_t *prefix);
+bool patricia_search_all (patricia_tree_t *patricia, prefix_t *prefix, patricia_node_t ***list, int *n);
 patricia_node_t *patricia_search_best (patricia_tree_t *patricia, prefix_t *prefix);
 patricia_node_t * patricia_search_best2 (patricia_tree_t *patricia, prefix_t *prefix, 
 				   int inclusive);

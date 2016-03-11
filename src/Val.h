@@ -814,6 +814,11 @@ public:
 	int Size() const	{ return AsTable()->Length(); }
 	int RecursiveSize() const;
 
+	// Returns the Prefix table used inside the table (if present).
+	// This allows us to do more direct queries to this specialized
+	// type that the general Table API does not allow.
+	const PrefixTable* Subnets() const { return subnets; }
+
 	void Describe(ODesc* d) const override;
 
 	void InitTimer(double delay);

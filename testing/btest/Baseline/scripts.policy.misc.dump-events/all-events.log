@@ -1,5 +1,6 @@
          0.000000 bro_init
          0.000000 filter_change_tracking
+         0.000000 NetControl::init
 1254722767.492060 protocol_confirmation
                   [0] c: connection      = [id=[orig_h=10.10.1.4, orig_p=56166/udp, resp_h=10.10.1.1, resp_p=53/udp], orig=[size=34, state=1, num_pkts=0, num_bytes_ip=0, flow_label=0], resp=[size=0, state=0, num_pkts=0, num_bytes_ip=0, flow_label=0], start_time=1254722767.49206, duration=0.0, service={\x0a\x0a}, history=D, uid=CXWv6p3arKYeMETxOg, tunnel=<uninitialized>, vlan=<uninitialized>, inner_vlan=<uninitialized>, dpd=<uninitialized>, conn=<uninitialized>, extract_orig=F, extract_resp=F, thresholds=<uninitialized>, dhcp=<uninitialized>, dnp3=<uninitialized>, dns=<uninitialized>, dns_state=<uninitialized>, ftp=<uninitialized>, ftp_data_reuse=F, ssl=<uninitialized>, http=<uninitialized>, http_state=<uninitialized>, irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>]
                   [1] atype: enum        = Analyzer::ANALYZER_DNS

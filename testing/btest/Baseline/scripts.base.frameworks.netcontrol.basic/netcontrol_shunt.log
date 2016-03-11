@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	netcontrol_shunt
+#open	2016-02-17-19-21-47
+#fields	ts	rule_id	f.src_h	f.src_p	f.dst_h	f.dst_p	expire	location
+#types	time	string	addr	port	addr	port	interval	string
+1455736907.597588	2	192.168.17.1	32	192.168.17.2	32	30.000000	-
+#close	2016-02-17-19-21-47

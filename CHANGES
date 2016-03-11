@@ -1,4 +1,8 @@
 
+2.4-406 | 2016-03-11 14:27:47 -0800
+
+  * Add NetControl and OpenFlow frameworks.  (Johanna Amann)
+
 2.4-313 | 2016-03-08 07:47:57 -0800
 
   * Remove old string functions in C++ code. This removes the

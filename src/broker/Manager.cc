@@ -23,6 +23,7 @@ EnumType* bro_broker::Manager::log_id_type;
 int bro_broker::Manager::send_flags_self_idx;
 int bro_broker::Manager::send_flags_peers_idx;
 int bro_broker::Manager::send_flags_unsolicited_idx;
+bool using_communication_broker = false;
 
 bro_broker::Manager::Manager()
 	: iosource::IOSource(), next_timestamp(-1)
@@ -73,6 +74,9 @@ bool bro_broker::Manager::Enable(Val* broker_endpoint_flags)
 	{
 	if ( endpoint != nullptr )
 		return true;
+
+	if ( ! reading_traces )
+		using_communication_broker = true;
 
 	auto send_flags_type = internal_type("Broker::SendFlags")->AsRecordType();
 	send_flags_self_idx = require_field(send_flags_type, "self");
@@ -141,7 +145,7 @@ bool bro_broker::Manager::SetEndpointFlags(Val* broker_endpoint_flags)
 
 bool bro_broker::Manager::Listen(uint16_t port, const char* addr, bool reuse_addr)
 	{
-	if ( ! Enabled() )
+	if ( ! Enabled() || ! using_communication_broker )
 		return false;
 
 	auto rval = endpoint->listen(port, addr, reuse_addr);

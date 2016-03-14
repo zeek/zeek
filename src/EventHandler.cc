@@ -121,10 +121,7 @@ void EventHandler::Call(val_list* vl, bool no_remote)
 						broker_mgr->Event(it->first, move(msg), it->second);
 					else
 						broker_mgr->Event(it->first, msg, it->second);
-
-					// check if peer wants to obtain the event itself
-					if(!(it->second & broker::SELF))
-						send_local = false;
+					send_local = false;
 					}
 				}
 			}

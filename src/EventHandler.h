@@ -41,7 +41,6 @@ public:
 		}
 #endif
 
-	//void Call(val_list* vl, bool no_remote = false, bool remote_origin=false);
 	void Call(val_list* vl, bool no_remote = false);
 
 	// Returns true if there is at least one local or remote handler.

@@ -1,4 +1,4 @@
-##! Bro's packet aquisition and control framework.
+##! Bro's NetControl framework.
 ##!
 ##! This plugin-based framework allows to control the traffic that Bro monitors
 ##! as well as, if having access to the forwarding path, the traffic the network

@@ -12,15 +12,33 @@ export {
 	## Instantiates the broker plugin.
 	global create_broker: function(host: addr, host_port: port, topic: string, can_expire: bool &default=F) : PluginState;
 
-	redef record PluginState += {
+	type BrokerConfig: record {
 		## The broker topic used to send events to
-		broker_topic: string &optional;
+		topic: string &optional;
 		## The ID of this broker instance - for the mapping to PluginStates
-		broker_id: count &optional;
+		id: count &optional;
 		## Broker host to connect to
-		broker_host: addr &optional;
+		host: addr &optional;
 		## Broker port to connect to
-		broker_port: port &optional;
+		bport: port &optional;
+
+		## Do we accept rules for the monitor path? Default true
+		monitor: bool &default=T;
+		## Do we accept rules for the forward path? Default true
+		forward: bool &default=T;
+
+		## Predicate that is called on rule insertion or removal.
+		##
+		## p: Current plugin state
+		##
+		## r: The rule to be inserted or removed
+		##
+		## Returns: T if the rule can be handled by the current backend, F otherwhise
+		check_pred: function(p: PluginState, r: Rule): bool &optional;
+	};
+
+	redef record PluginState += {
+		broker_config: BrokerConfig &optional;
 	};
 
 	global broker_add_rule: event(id: count, r: Rule);
@@ -91,26 +109,48 @@ event NetControl::broker_rule_timeout(id: count, r: Rule, i: FlowInfo)
 
 function broker_name(p: PluginState) : string
 	{
-	return fmt("Broker-%s", p$broker_topic);
+	return fmt("Broker-%s", p$broker_config$topic);
+	}
+
+function broker_check_rule(p: PluginState, r: Rule) : bool
+	{
+	local c = p$broker_config;
+
+	if ( p$broker_config?$check_pred )
+		return p$broker_config$check_pred(p, r);
+
+	if ( r$target == MONITOR && c$monitor )
+		return T;
+
+	if ( r$target == FORWARD && c$forward )
+		return T;
+
+	return F;
 	}
 
 function broker_add_rule_fun(p: PluginState, r: Rule) : bool
 	{
-	BrokerComm::event(p$broker_topic, BrokerComm::event_args(broker_add_rule, p$broker_id, r));
+	if ( ! broker_check_rule(p, r) )
+		return F;
+
+	BrokerComm::event(p$broker_config$topic, BrokerComm::event_args(broker_add_rule, p$broker_config$id, r));
 	return T;
 	}
 
 function broker_remove_rule_fun(p: PluginState, r: Rule) : bool
 	{
-	BrokerComm::event(p$broker_topic, BrokerComm::event_args(broker_remove_rule, p$broker_id, r));
+	if ( ! broker_check_rule(p, r) )
+		return F;
+
+	BrokerComm::event(p$broker_config$topic, BrokerComm::event_args(broker_remove_rule, p$broker_config$id, r));
 	return T;
 	}
 
 function broker_init(p: PluginState)
 	{
 	BrokerComm::enable();
-	BrokerComm::connect(cat(p$broker_host), p$broker_port, 1sec);
-	BrokerComm::subscribe_to_events(p$broker_topic);
+	BrokerComm::connect(cat(p$broker_config$host), p$broker_config$bport, 1sec);
+	BrokerComm::subscribe_to_events(p$broker_config$topic);
 	}
 
 event BrokerComm::outgoing_connection_established(peer_address: string, peer_port: port, peer_name: string)
@@ -149,7 +189,7 @@ function create_broker(host: addr, host_port: port, topic: string, can_expire: b
 	if ( can_expire )
 		plugin = broker_plugin_can_expire;
 
-	local p: PluginState = [$broker_host=host, $broker_port=host_port, $plugin=plugin, $broker_topic=topic, $broker_id=netcontrol_broker_current_id];
+	local p = PluginState($plugin=plugin, $broker_config=BrokerConfig($host=host, $bport=host_port, $topic=topic, $id=netcontrol_broker_current_id));
 
 	if ( [host_port, cat(host)] in netcontrol_broker_peers )
 		Reporter::warning(fmt("Peer %s:%s was added to NetControl broker plugin twice.", host, host_port));

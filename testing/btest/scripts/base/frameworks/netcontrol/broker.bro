@@ -18,7 +18,7 @@ redef exit_only_after_terminate = T;
 event NetControl::init()
 	{
 	suspend_processing();
-	local netcontrol_broker = NetControl::create_broker(127.0.0.1, broker_port, "bro/event/netcontroltest", T);
+	local netcontrol_broker = NetControl::create_broker(NetControl::BrokerConfig($host=127.0.0.1, $bport=broker_port, $topic="bro/event/netcontroltest"), T);
 	NetControl::activate(netcontrol_broker, 0);
 	}
 

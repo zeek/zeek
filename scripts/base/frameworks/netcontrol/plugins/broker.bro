@@ -9,14 +9,9 @@ module NetControl;
 @load base/frameworks/broker
 
 export {
-	## Instantiates the broker plugin.
-	global create_broker: function(host: addr, host_port: port, topic: string, can_expire: bool &default=F) : PluginState;
-
 	type BrokerConfig: record {
 		## The broker topic used to send events to
 		topic: string &optional;
-		## The ID of this broker instance - for the mapping to PluginStates
-		id: count &optional;
 		## Broker host to connect to
 		host: addr &optional;
 		## Broker port to connect to
@@ -37,8 +32,13 @@ export {
 		check_pred: function(p: PluginState, r: Rule): bool &optional;
 	};
 
+	## Instantiates the broker plugin.
+	global create_broker: function(config: BrokerConfig, can_expire: bool) : PluginState;
+
 	redef record PluginState += {
 		broker_config: BrokerConfig &optional;
+		## The ID of this broker instance - for the mapping to PluginStates
+		broker_id: count &optional;
 	};
 
 	global broker_add_rule: event(id: count, r: Rule);
@@ -133,7 +133,7 @@ function broker_add_rule_fun(p: PluginState, r: Rule) : bool
 	if ( ! broker_check_rule(p, r) )
 		return F;
 
-	BrokerComm::event(p$broker_config$topic, BrokerComm::event_args(broker_add_rule, p$broker_config$id, r));
+	BrokerComm::event(p$broker_config$topic, BrokerComm::event_args(broker_add_rule, p$broker_id, r));
 	return T;
 	}
 
@@ -142,7 +142,7 @@ function broker_remove_rule_fun(p: PluginState, r: Rule) : bool
 	if ( ! broker_check_rule(p, r) )
 		return F;
 
-	BrokerComm::event(p$broker_config$topic, BrokerComm::event_args(broker_remove_rule, p$broker_config$id, r));
+	BrokerComm::event(p$broker_config$topic, BrokerComm::event_args(broker_remove_rule, p$broker_id, r));
 	return T;
 	}
 
@@ -178,23 +178,23 @@ global broker_plugin_can_expire = Plugin(
 	$init = broker_init
 	);
 
-function create_broker(host: addr, host_port: port, topic: string, can_expire: bool &default=F) : PluginState
+function create_broker(config: BrokerConfig, can_expire: bool) : PluginState
 	{
-	if ( topic in netcontrol_broker_topics )
-		Reporter::warning(fmt("Topic %s was added to NetControl broker plugin twice. Possible duplication of commands", topic));
+	if ( config$topic in netcontrol_broker_topics )
+		Reporter::warning(fmt("Topic %s was added to NetControl broker plugin twice. Possible duplication of commands", config$topic));
 	else
-		add netcontrol_broker_topics[topic];
+		add netcontrol_broker_topics[config$topic];
 
 	local plugin = broker_plugin;
 	if ( can_expire )
 		plugin = broker_plugin_can_expire;
 
-	local p = PluginState($plugin=plugin, $broker_config=BrokerConfig($host=host, $bport=host_port, $topic=topic, $id=netcontrol_broker_current_id));
+	local p = PluginState($plugin=plugin, $broker_id=netcontrol_broker_current_id, $broker_config=config);
 
-	if ( [host_port, cat(host)] in netcontrol_broker_peers )
-		Reporter::warning(fmt("Peer %s:%s was added to NetControl broker plugin twice.", host, host_port));
+	if ( [config$bport, cat(config$host)] in netcontrol_broker_peers )
+		Reporter::warning(fmt("Peer %s:%s was added to NetControl broker plugin twice.", config$host, config$bport));
 	else
-		netcontrol_broker_peers[host_port, cat(host)] = p;
+		netcontrol_broker_peers[config$bport, cat(config$host)] = p;
 
 	netcontrol_broker_id[netcontrol_broker_current_id] = p;
 	++netcontrol_broker_current_id;

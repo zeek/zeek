@@ -532,6 +532,11 @@ function plugin_activated(p: PluginState)
 		log_error("unknown plugin activated", p);
 		return;
 		}
+
+	# Suppress duplicate activation
+	if ( plugin_ids[id]$_activated == T )
+		return;
+
 	plugin_ids[id]$_activated = T;
 	log_msg("activation finished", p);
 

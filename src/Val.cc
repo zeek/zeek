@@ -1787,7 +1787,18 @@ Val* TableVal::Lookup(Val* index, bool use_default_val)
 		{
 		TableEntryVal* v = (TableEntryVal*) subnets->Lookup(index);
 		if ( v )
+			{
+			if ( attrs &&
+				     ! (attrs->FindAttr(ATTR_EXPIRE_WRITE) ||
+					attrs->FindAttr(ATTR_EXPIRE_CREATE)) )
+					{
+					v->SetExpireAccess(network_time);
+					if ( LoggingAccess() && expire_time )
+						ReadOperation(index, v);
+					}
+
 			return v->Value() ? v->Value() : this;
+			}
 
 		if ( ! use_default_val )
 			return 0;

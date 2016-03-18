@@ -1787,7 +1787,16 @@ Val* TableVal::Lookup(Val* index, bool use_default_val)
 		{
 		TableEntryVal* v = (TableEntryVal*) subnets->Lookup(index);
 		if ( v )
+			{
+			if ( attrs && attrs->FindAttr(ATTR_EXPIRE_READ) )
+					{
+					v->SetExpireAccess(network_time);
+					if ( LoggingAccess() && expire_time )
+						ReadOperation(index, v);
+					}
+
 			return v->Value() ? v->Value() : this;
+			}
 
 		if ( ! use_default_val )
 			return 0;
@@ -1810,9 +1819,7 @@ Val* TableVal::Lookup(Val* index, bool use_default_val)
 
 			if ( v )
 				{
-				if ( attrs &&
-				     ! (attrs->FindAttr(ATTR_EXPIRE_WRITE) ||
-					attrs->FindAttr(ATTR_EXPIRE_CREATE)) )
+				if ( attrs && attrs->FindAttr(ATTR_EXPIRE_READ) )
 					{
 					v->SetExpireAccess(network_time);
 					if ( LoggingAccess() && expire_time )
@@ -1836,7 +1843,7 @@ Val* TableVal::Lookup(Val* index, bool use_default_val)
 VectorVal* TableVal::LookupSubnets(const SubNetVal* search)
 	{
 	if ( ! subnets )
-			reporter->InternalError("LookupSubnets called on wrong table type");
+		reporter->InternalError("LookupSubnets called on wrong table type");
 
 	VectorVal* result = new VectorVal(internal_type("subnet_vec")->AsVectorType());
 
@@ -1853,7 +1860,7 @@ VectorVal* TableVal::LookupSubnets(const SubNetVal* search)
 TableVal* TableVal::LookupSubnetValues(const SubNetVal* search)
 	{
 	if ( ! subnets )
-			reporter->InternalError("LookupSubnetValues called on wrong table type");
+		reporter->InternalError("LookupSubnetValues called on wrong table type");
 
 	TableVal* nt = new TableVal(this->Type()->Ref()->AsTableType());
 
@@ -1870,9 +1877,12 @@ TableVal* TableVal::LookupSubnetValues(const SubNetVal* search)
 
 		if ( entry )
 			{
-			entry->SetExpireAccess(network_time);
-			if ( LoggingAccess() && attrs->FindAttr(ATTR_EXPIRE_READ) )
-				ReadOperation(s, entry);
+			if ( attrs && attrs->FindAttr(ATTR_EXPIRE_READ) )
+				{
+				entry->SetExpireAccess(network_time);
+				if ( LoggingAccess() && expire_time )
+					ReadOperation(s, entry);
+				}
 			}
 
 		Unref(s); // assign does not consume index
@@ -2526,7 +2536,7 @@ bool TableVal::DoUnserialize(UnserialInfo* info)
 		}
 
 	// If necessary, activate the expire timer.
-	if ( attrs)
+	if ( attrs )
 		{
 		CheckExpireAttr(ATTR_EXPIRE_READ);
 		CheckExpireAttr(ATTR_EXPIRE_WRITE);

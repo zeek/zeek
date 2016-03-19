@@ -327,25 +327,27 @@ struct val_converter {
 
 		auto rt = type->AsRecordType();
 		auto rval = new RecordVal(rt);
+		auto idx = 0u;
 
 		for ( auto i = 0u; i < static_cast<size_t>(rt->NumFields()); ++i )
 			{
 			if ( require_log_attr && ! rt->FieldDecl(i)->FindAttr(ATTR_LOG) )
 				continue;
 
-			if ( i >= a.fields.size() )
+			if ( idx >= a.fields.size() )
 				{
 				Unref(rval);
 				return nullptr;
 				}
 
-			if ( ! a.fields[i] )
+			if ( ! a.fields[idx] )
 				{
 				rval->Assign(i, nullptr);
+				++idx;
 				continue;
 				}
 
-			auto item_val = bro_broker::data_to_val(move(*a.fields[i]),
+			auto item_val = bro_broker::data_to_val(move(*a.fields[idx]),
 			                                        rt->FieldType(i));
 
 			if ( ! item_val )
@@ -355,6 +357,7 @@ struct val_converter {
 				}
 
 			rval->Assign(i, item_val);
+			++idx;
 			}
 
 		return rval;

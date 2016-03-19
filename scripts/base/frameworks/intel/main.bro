@@ -151,16 +151,18 @@ global match_no_items: event(s: Seen);
 
 # Internal events for cluster data distribution.
 global new_item: event(item: Item);
-global updated_item: event(item: Item);
 
 # Optionally store metadata.  This is used internally depending on
 # if this is a cluster deployment or not.
 const have_full_data = T &redef;
 
+# Table of meta data, indexed by source string.
+type MetaDataTable: table[string] of MetaData;
+
 # The in memory data structure for holding intelligence.
 type DataStore: record {
-	host_data:    table[addr] of set[MetaData];
-	string_data:  table[string, Type] of set[MetaData];
+	host_data:    table[addr] of MetaDataTable;
+	string_data:  table[string, Type] of MetaDataTable;
 };
 global data_store: DataStore &redef;
 
@@ -186,26 +188,23 @@ function find(s: Seen): bool
 		return ((s$host in min_data_store$host_data) || 
 		        (have_full_data && s$host in data_store$host_data));
 		}
-	else if ( ([to_lower(s$indicator), s$indicator_type] in min_data_store$string_data) ||
-	           (have_full_data && [to_lower(s$indicator), s$indicator_type] in data_store$string_data) )
-		{
-		return T;
-		}
 	else
 		{
-		return F;
+		return (([to_lower(s$indicator), s$indicator_type] in min_data_store$string_data) ||
+		        (have_full_data && [to_lower(s$indicator), s$indicator_type] in data_store$string_data));
 		}
 	}
 
+# Function to abstract from different data stores for different indicator types.
 function get_items(s: Seen): set[Item]
 	{
 	local return_data: set[Item];
+	local mt: MetaDataTable;
 
 	if ( ! have_full_data )
 		{
-		# A reporter warning should be generated here because this function
-		# should never be called from a host that doesn't have the full data.
-		# TODO: do a reporter warning.
+		Reporter::warning(fmt("Intel::get_items was called from a host (%s) that doesn't have the full data.",
+			peer_description));
 		return return_data;
 		}
 
@@ -214,9 +213,10 @@ function get_items(s: Seen): set[Item]
 		# See if the host is known about and it has meta values
 		if ( s$host in data_store$host_data )
 			{
-			for ( m in data_store$host_data[s$host] )
+			mt = data_store$host_data[s$host];
+			for ( m in mt )
 				{
-				add return_data[Item($indicator=cat(s$host), $indicator_type=ADDR, $meta=m)];
+				add return_data[Item($indicator=cat(s$host), $indicator_type=ADDR, $meta=mt[m])];
 				}
 			}
 		}
@@ -226,9 +226,10 @@ function get_items(s: Seen): set[Item]
 		# See if the string is known about and it has meta values
 		if ( [lower_indicator, s$indicator_type] in data_store$string_data )
 			{
-			for ( m in data_store$string_data[lower_indicator, s$indicator_type] )
+			mt = data_store$string_data[lower_indicator, s$indicator_type];
+			for ( m in mt )
 				{
-				add return_data[Item($indicator=s$indicator, $indicator_type=s$indicator_type, $meta=m)];
+				add return_data[Item($indicator=s$indicator, $indicator_type=s$indicator_type, $meta=mt[m])];
 				}
 			}
 		}
@@ -261,20 +262,6 @@ function Intel::seen(s: Seen)
 			event Intel::match_no_items(s);
 			}
 		}
-	}
-
-
-function has_meta(check: MetaData, metas: set[MetaData]): bool
-	{
-	local check_hash = md5_hash(check);
-	for ( m in metas )
-		{
-		if ( check_hash == md5_hash(m) )
-			return T;
-		}
-
-	# The records must not be equivalent if we made it this far.
-	return F;
 	}
 
 event Intel::match(s: Seen, items: set[Item]) &priority=5
@@ -315,7 +302,8 @@ function insert(item: Item)
 	{
 	# Create and fill out the meta data item.
 	local meta = item$meta;
-	local metas: set[MetaData];
+	local meta_tbl: table [string] of MetaData;
+	local is_new: bool = T;
 
 	# All intelligence is case insensitive at the moment.
 	local lower_indicator = to_lower(item$indicator);
@@ -326,9 +314,11 @@ function insert(item: Item)
 		if ( have_full_data )
 			{
 			if ( host !in data_store$host_data )
-				data_store$host_data[host] = set();
+				data_store$host_data[host] = table();
+			else
+				is_new = F;
 
-			metas = data_store$host_data[host];
+			meta_tbl = data_store$host_data[host];
 			}
 
 		add min_data_store$host_data[host];
@@ -338,39 +328,25 @@ function insert(item: Item)
 		if ( have_full_data )
 			{
 			if ( [lower_indicator, item$indicator_type] !in data_store$string_data )
-				data_store$string_data[lower_indicator, item$indicator_type] = set();
+				data_store$string_data[lower_indicator, item$indicator_type] = table();
+			else
+				is_new = F;
 
-			metas = data_store$string_data[lower_indicator, item$indicator_type];
+			meta_tbl = data_store$string_data[lower_indicator, item$indicator_type];
 			}
 
 		add min_data_store$string_data[lower_indicator, item$indicator_type];
 		}
 
-	local updated = F;
 	if ( have_full_data )
 		{
-		for ( m in metas )
-			{
-			if ( meta$source == m$source )
-				{
-				if ( has_meta(meta, metas) )
-					{
-					# It's the same item being inserted again.
-					return;
-					}
-				else
-					{
-					# Same source, different metadata means updated item.
-					updated = T;
-					}
-				}
-			}
-		add metas[item$meta];
+		# Insert new meta data or update if already present
+		meta_tbl[meta$source] = meta;
 		}
-	
-	if ( updated )
-		event Intel::updated_item(item);
-	else
+
+	if ( is_new )
+		# Trigger insert for cluster in case the item is new
+		# or insert was called on a worker
 		event Intel::new_item(item);
 	}
 	

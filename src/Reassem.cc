@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#include "config.h"
+#include "bro-config.h"
 
 #include "Reassem.h"
 #include "Serializer.h"
@@ -34,12 +34,52 @@ uint64 Reassembler::total_size = 0;
 Reassembler::Reassembler(uint64 init_seq)
 	{
 	blocks = last_block = 0;
+	old_blocks = last_old_block = 0;
+	total_old_blocks = max_old_blocks = 0;
 	trim_seq = last_reassem_seq = init_seq;
 	}
 
 Reassembler::~Reassembler()
 	{
 	ClearBlocks();
+	ClearOldBlocks();
+	}
+
+void Reassembler::CheckOverlap(DataBlock *head, DataBlock *tail,
+					uint64 seq, uint64 len, const u_char* data)
+	{
+	if ( ! head || ! tail )
+		return;
+
+	uint64 upper = (seq + len);
+
+	for ( DataBlock* b = head; b; b = b->next )
+		{
+		uint64 nseq = seq;
+		uint64 nupper = upper;
+		const u_char* ndata = data;
+
+		if ( nupper <= b->seq )
+			continue;
+
+		if ( nseq >= b->upper )
+			continue;
+
+		if ( nseq < b->seq )
+			{
+			ndata += (b->seq - seq);
+			nseq = b->seq;
+			}
+
+		if ( nupper > b->upper )
+			nupper = b->upper;
+
+		uint64 overlap_offset = (nseq - b->seq);
+		uint64 overlap_len = (nupper - nseq);
+
+		if ( overlap_len )
+			Overlap(&b->block[overlap_offset], ndata, overlap_len);
+		}
 	}
 
 void Reassembler::NewBlock(double t, uint64 seq, uint64 len, const u_char* data)
@@ -49,9 +89,13 @@ void Reassembler::NewBlock(double t, uint64 seq, uint64 len, const u_char* data)
 
 	uint64 upper_seq = seq + len;
 
+	CheckOverlap(old_blocks, last_old_block, seq, len, data);
+
 	if ( upper_seq <= trim_seq )
 		// Old data, don't do any work for it.
 		return;
+
+	CheckOverlap(blocks, last_block, seq, len, data);
 
 	if ( seq < trim_seq )
 		{ // Partially old data, just keep the good stuff.
@@ -119,7 +163,36 @@ uint64 Reassembler::TrimToSeq(uint64 seq)
 				num_missing += seq - blocks->upper;
 			}
 
-		delete blocks;
+		if ( max_old_blocks )
+			{
+			// Move block over to old_blocks queue.
+			blocks->next = 0;
+
+			if ( last_old_block )
+				{
+				blocks->prev = last_old_block;
+				last_old_block->next = blocks;
+				}
+			else
+				{
+				blocks->prev = 0;
+				old_blocks = blocks;
+				}
+
+			last_old_block = blocks;
+			total_old_blocks++;
+
+			while ( old_blocks && total_old_blocks > max_old_blocks )
+				{
+				DataBlock* next = old_blocks->next;
+				delete old_blocks;
+				old_blocks = next;
+				total_old_blocks--;
+				}
+			}
+
+		else
+			delete blocks;
 
 		blocks = b;
 		}
@@ -154,6 +227,18 @@ void Reassembler::ClearBlocks()
 		}
 
 	last_block = 0;
+	}
+
+void Reassembler::ClearOldBlocks()
+	{
+	while ( old_blocks )
+		{
+		DataBlock* b = old_blocks->next;
+		delete old_blocks;
+		old_blocks = b;
+		}
+
+	last_old_block = 0;
 	}
 
 uint64 Reassembler::TotalSize() const
@@ -218,7 +303,7 @@ DataBlock* Reassembler::AddAndCheck(DataBlock* b, uint64 seq, uint64 upper,
 		return new_b;
 		}
 
-	// The blocks overlap, complain.
+	// The blocks overlap.
 	if ( seq < b->seq )
 		{
 		// The new block has a prefix that comes before b.
@@ -238,8 +323,6 @@ DataBlock* Reassembler::AddAndCheck(DataBlock* b, uint64 seq, uint64 upper,
 	uint64 new_b_len = upper - seq;
 	uint64 b_len = b->upper - overlap_start;
 	uint64 overlap_len = min(new_b_len, b_len);
-
-	Overlap(&b->block[overlap_offset], data, overlap_len);
 
 	if ( overlap_len < new_b_len )
 		{

@@ -52,9 +52,10 @@ bool AnalyzerSet::Add(file_analysis::Tag tag, RecordVal* args)
 
 	if ( analyzer_map.Lookup(key) )
 		{
-		DBG_LOG(DBG_FILE_ANALYSIS, "Instantiate analyzer %s skipped for file id"
-		        " %s: already exists", file_mgr->GetComponentName(tag).c_str(),
-		        file->GetID().c_str());
+		DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Instantiate analyzer %s skipped: already exists",
+		        file->GetID().c_str(),
+		        file_mgr->GetComponentName(tag).c_str());
+
 		delete key;
 		return true;
 		}
@@ -92,9 +93,9 @@ bool AnalyzerSet::AddMod::Perform(AnalyzerSet* set)
 	{
 	if ( set->analyzer_map.Lookup(key) )
 		{
-		DBG_LOG(DBG_FILE_ANALYSIS, "Add analyzer %s skipped for file id"
-		        " %s: already exists", file_mgr->GetComponentName(a->Tag()).c_str(),
-		        a->GetFile()->GetID().c_str());
+		DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Add analyzer %s skipped: already exists",
+		        a->GetFile()->GetID().c_str(),
+		        file_mgr->GetComponentName(a->Tag()).c_str());
 
 		Abort();
 		return true;
@@ -119,14 +120,14 @@ bool AnalyzerSet::Remove(file_analysis::Tag tag, HashKey* key)
 
 	if ( ! a )
 		{
-		DBG_LOG(DBG_FILE_ANALYSIS, "Skip remove analyzer %s for file id %s",
-		        file_mgr->GetComponentName(tag).c_str(), file->GetID().c_str());
+		DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Skip remove analyzer %s",
+		        file->GetID().c_str(), file_mgr->GetComponentName(tag).c_str());
 		return false;
 		}
 
-	DBG_LOG(DBG_FILE_ANALYSIS, "Remove analyzer %s for file id %s",
-	        file_mgr->GetComponentName(tag).c_str(),
-	        file->GetID().c_str());
+	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Remove analyzer %s",
+	        file->GetID().c_str(),
+	        file_mgr->GetComponentName(tag).c_str());
 
 	a->Done();
 	delete a;
@@ -168,8 +169,9 @@ file_analysis::Analyzer* AnalyzerSet::InstantiateAnalyzer(Tag tag,
 
 	if ( ! a )
 		{
-		reporter->Error("Failed file analyzer %s instantiation for file id %s",
-		                file_mgr->GetComponentName(tag).c_str(), file->GetID().c_str());
+		reporter->Error("[%s] Failed file analyzer %s instantiation",
+		                file->GetID().c_str(),
+		                file_mgr->GetComponentName(tag).c_str());
 		return 0;
 		}
 
@@ -178,8 +180,8 @@ file_analysis::Analyzer* AnalyzerSet::InstantiateAnalyzer(Tag tag,
 
 void AnalyzerSet::Insert(file_analysis::Analyzer* a, HashKey* key)
 	{
-	DBG_LOG(DBG_FILE_ANALYSIS, "Add analyzer %s for file id %s",
-	        file_mgr->GetComponentName(a->Tag()).c_str(), file->GetID().c_str());
+	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Add analyzer %s",
+	        file->GetID().c_str(), file_mgr->GetComponentName(a->Tag()).c_str());
 	analyzer_map.Insert(key, a);
 	delete key;
 
@@ -191,7 +193,7 @@ void AnalyzerSet::DrainModifications()
 	if ( mod_queue.empty() )
 		return;
 
-	DBG_LOG(DBG_FILE_ANALYSIS, "Start analyzer mod queue flush of file id %s",
+	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Start analyzer mod queue flush",
 	        file->GetID().c_str());
 	do
 		{
@@ -200,6 +202,6 @@ void AnalyzerSet::DrainModifications()
 		delete mod;
 		mod_queue.pop();
 		} while ( ! mod_queue.empty() );
-	DBG_LOG(DBG_FILE_ANALYSIS, "End flushing analyzer mod queue of file id %s",
+	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] End flushing analyzer mod queue.",
 	        file->GetID().c_str());
 	}

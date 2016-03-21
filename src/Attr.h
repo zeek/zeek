@@ -93,7 +93,7 @@ public:
 
 	void RemoveAttr(attr_tag t);
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d) const;
 
 	attr_list* Attrs()	{ return attrs; }

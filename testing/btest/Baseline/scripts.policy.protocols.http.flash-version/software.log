@@ -1,0 +1,12 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	software
+#open	2015-07-29-15-59-23
+#fields	ts	host	host_p	software_type	name	version.major	version.minor	version.minor2	version.minor3	version.addl	unparsed_version
+#types	time	addr	port	enum	string	count	count	count	count	string	string
+1320279616.824058	192.168.2.76	-	HTTP::BROWSER	AdobeAIR	2	6	-	-	-	Mozilla/5.0 (Macintosh; U; Intel Mac OS X; en) AppleWebKit/531.9 (KHTML, like Gecko) AdobeAIR/2.6
+1320279616.824058	192.168.2.76	-	HTTP::BROWSER_PLUGIN	AdobeAIR-Flash	10	2	159	1	-	AdobeAIR-Flash/10,2,159,1
+1320279616.907315	208.85.41.42	80	HTTP::SERVER	Apache	-	-	-	-	-	Apache
+#close	2015-07-29-15-59-23

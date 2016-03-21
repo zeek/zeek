@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	x509
+#open	2015-03-12-22-40-14
+#fields	ts	id	certificate.version	certificate.serial	certificate.subject	certificate.issuer	certificate.not_valid_before	certificate.not_valid_after	certificate.key_alg	certificate.sig_alg	certificate.key_type	certificate.key_length	certificate.exponent	certificate.curve	san.dns	san.uri	san.email	san.ip	basic_constraints.ca	basic_constraints.path_len
+#types	time	string	count	string	string	string	time	time	string	string	string	count	string	string	vector[string]	vector[string]	vector[string]	vector[addr]	bool	count
+1425932016.611299	FZi2Ct2AcCswhiIjKe	3	E8E48E456C32945F	CN=bro	CN=bro	1425931873.000000	1457467873.000000	rsaEncryption	sha1WithRSAEncryption	rsa	2048	65537	-	-	-	-	-	T	-
+#close	2015-03-12-22-40-14

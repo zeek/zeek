@@ -1,0 +1,5 @@
+# This tests a normal SSL connection and the log it outputs.
+
+# @TEST-EXEC: bro -r $TRACES/tls/dtls-openssl.pcap %INPUT
+# @TEST-EXEC: btest-diff ssl.log
+# @TEST-EXEC: btest-diff x509.log

@@ -9,7 +9,7 @@
 # @TEST-EXEC: sleep 1
 # @TEST-EXEC: btest-bg-run receiver HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local bro -b -m --pseudo-realtime %INPUT ../receiver.bro
 # @TEST-EXEC: sleep 1
-# @TEST-EXEC: btest-bg-wait 30
+# @TEST-EXEC: btest-bg-wait 60
 # @TEST-EXEC: btest-diff sender/test.log
 # @TEST-EXEC: btest-diff sender/test.failure.log
 # @TEST-EXEC: btest-diff sender/test.success.log

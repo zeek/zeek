@@ -143,6 +143,17 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 		if ( ok_if_not_found )
 			return true;
 
+		// Check if it's a static built-in plugin; they are always
+		// active, so just ignore. Not the most efficient way, but
+		// this should be rare to begin with.
+		plugin_list* all_plugins = Manager::ActivePluginsInternal();
+
+		for ( plugin::Manager::plugin_list::const_iterator i = all_plugins->begin(); i != all_plugins->end(); i++ )
+			{
+			if ( (*i)->Name() == name )
+				return true;
+			}
+
 		reporter->Error("plugin %s is not available", name.c_str());
 		return false;
 		}
@@ -171,9 +182,17 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 		add_to_bro_path(scripts);
 		}
 
-	// Load {bif,scripts}/__load__.bro automatically.
+	// First load {scripts}/__preload__.bro automatically.
+	string init = dir + "scripts/__preload__.bro";
 
-	string init = dir + "lib/bif/__load__.bro";
+	if ( is_file(init) )
+		{
+		DBG_LOG(DBG_PLUGINS, "  Loading %s", init.c_str());
+		scripts_to_load.push_back(init);
+		}
+
+	// Load {bif,scripts}/__load__.bro automatically.
+	init = dir + "lib/bif/__load__.bro";
 
 	if ( is_file(init) )
 		{
@@ -333,7 +352,7 @@ void Manager::InitPreScript()
 	assert(! init);
 
 	for ( plugin_list::iterator i = Manager::ActivePluginsInternal()->begin();
-          i != Manager::ActivePluginsInternal()->end(); i++ )
+	      i != Manager::ActivePluginsInternal()->end(); i++ )
 		{
 		Plugin* plugin = *i;
 		plugin->DoConfigure();
@@ -348,7 +367,7 @@ void Manager::InitBifs()
 	bif_init_func_map* bifs = BifFilesInternal();
 
 	for ( plugin_list::iterator i = Manager::ActivePluginsInternal()->begin();
-          i != Manager::ActivePluginsInternal()->end(); i++ )
+	      i != Manager::ActivePluginsInternal()->end(); i++ )
 		{
 		bif_init_func_map::const_iterator b = bifs->find(strtolower((*i)->Name()));
 
@@ -365,7 +384,7 @@ void Manager::InitPostScript()
 	assert(init);
 
 	for ( plugin_list::iterator i = Manager::ActivePluginsInternal()->begin();
-          i != Manager::ActivePluginsInternal()->end(); i++ )
+	      i != Manager::ActivePluginsInternal()->end(); i++ )
 		(*i)->InitPostScript();
 	}
 
@@ -374,7 +393,7 @@ void Manager::FinishPlugins()
 	assert(init);
 
 	for ( plugin_list::iterator i = Manager::ActivePluginsInternal()->begin();
-          i != Manager::ActivePluginsInternal()->end(); i++ )
+	      i != Manager::ActivePluginsInternal()->end(); i++ )
 		(*i)->Done();
 
 	Manager::ActivePluginsInternal()->clear();
@@ -507,13 +526,13 @@ void Manager::DisableHook(HookType hook, Plugin* plugin)
 void Manager::RequestEvent(EventHandlerPtr handler, Plugin* plugin)
 	{
 	DBG_LOG(DBG_PLUGINS, "Plugin %s requested event %s",
-            plugin->Name().c_str(), handler->Name());
+	        plugin->Name().c_str(), handler->Name());
 	handler->SetGenerateAlways();
 	}
 
 void Manager::RequestBroObjDtor(BroObj* obj, Plugin* plugin)
 	{
-    obj->NotifyPluginsOnDtor();
+	obj->NotifyPluginsOnDtor();
 	}
 
 int Manager::HookLoadFile(const string& file)
@@ -561,31 +580,34 @@ int Manager::HookLoadFile(const string& file)
 	return rc;
 	}
 
-Val* Manager::HookCallFunction(const Func* func, val_list* vargs) const
+std::pair<bool, Val*> Manager::HookCallFunction(const Func* func, Frame* parent, val_list* vargs) const
 	{
 	HookArgumentList args;
 
 	if ( HavePluginForHook(META_HOOK_PRE) )
 		{
 		args.push_back(HookArgument(func));
+		args.push_back(HookArgument(parent));
 		args.push_back(HookArgument(vargs));
 		MetaHookPre(HOOK_CALL_FUNCTION, args);
 		}
 
 	hook_list* l = hooks[HOOK_CALL_FUNCTION];
 
-	Val* v = 0;
+	std::pair<bool, Val*> v = std::pair<bool, Val*>(false, NULL);
 
 	if ( l )
+		{
 		for ( hook_list::iterator i = l->begin(); i != l->end(); ++i )
 			{
 			Plugin* p = (*i).second;
 
-			v = p->HookCallFunction(func, vargs);
+			v = p->HookCallFunction(func, parent, vargs);
 
-			if ( v )
+			if ( v.first )
 				break;
 			}
+		}
 
 	if ( HavePluginForHook(META_HOOK_POST) )
 		MetaHookPost(HOOK_CALL_FUNCTION, args, HookArgument(v));
@@ -646,6 +668,33 @@ void Manager::HookDrainEvents() const
 
 	}
 
+void Manager::HookSetupAnalyzerTree(Connection *conn) const
+	{
+	HookArgumentList args;
+
+	if ( HavePluginForHook(META_HOOK_PRE) )
+		{
+		args.push_back(conn);
+		MetaHookPre(HOOK_SETUP_ANALYZER_TREE, args);
+		}
+
+	hook_list *l = hooks[HOOK_SETUP_ANALYZER_TREE];
+
+	if ( l )
+		{
+		for (hook_list::iterator i = l->begin() ; i != l->end(); ++i)
+			{
+			Plugin *p = (*i).second;
+			p->HookSetupAnalyzerTree(conn);
+			}
+		}
+
+	if ( HavePluginForHook(META_HOOK_POST) )
+		{
+		MetaHookPost(HOOK_SETUP_ANALYZER_TREE, args, HookArgument());
+		}
+	}
+
 void Manager::HookUpdateNetworkTime(double network_time) const
 	{
 	HookArgumentList args;
@@ -673,7 +722,7 @@ void Manager::HookBroObjDtor(void* obj) const
 	{
 	HookArgumentList args;
 
-        if ( HavePluginForHook(META_HOOK_PRE) )
+	if ( HavePluginForHook(META_HOOK_PRE) )
 		{
 		args.push_back(obj);
 		MetaHookPre(HOOK_BRO_OBJ_DTOR, args);

@@ -3,7 +3,7 @@
 #ifndef ANALYZER_PROTOCOL_ZIP_ZIP_H
 #define ANALYZER_PROTOCOL_ZIP_ZIP_H
 
-#include "config.h"
+#include "bro-config.h"
 
 #include "zlib.h"
 #include "analyzer/protocol/tcp/TCP.h"

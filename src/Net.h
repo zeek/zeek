@@ -19,8 +19,7 @@ extern void net_get_final_stats();
 extern void net_finish(int drain_events);
 extern void net_delete();	// Reclaim all memory, etc.
 extern void net_update_time(double new_network_time);
-extern void net_packet_dispatch(double t, const struct pcap_pkthdr* hdr,
-			const u_char* pkt, int hdr_size,
+extern void net_packet_dispatch(double t, const Packet* pkt,
 			iosource::PktSrc* src_ps);
 extern void expire_timers(iosource::PktSrc* src_ps = 0);
 extern void termination_signal();
@@ -71,13 +70,8 @@ extern bool terminating;
 // True if the remote serializer is to be activated.
 extern bool using_communication;
 
-// Snaplen passed to libpcap.
-extern int snaplen;
-
-extern const struct pcap_pkthdr* current_hdr;
-extern const u_char* current_pkt;
+extern const Packet* current_pkt;
 extern int current_dispatched;
-extern int current_hdr_size;
 extern double current_timestamp;
 extern iosource::PktSrc* current_pktsrc;
 extern iosource::IOSource* current_iosrc;

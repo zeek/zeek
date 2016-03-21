@@ -52,7 +52,8 @@ bool file_analysis::X509::EndOfFile()
 
 	X509Val* cert_val = new X509Val(ssl_cert); // cert_val takes ownership of ssl_cert
 
-	RecordVal* cert_record = ParseCertificate(cert_val); // parse basic information into record
+	// parse basic information into record.
+	RecordVal* cert_record = ParseCertificate(cert_val, GetFile()->GetID().c_str());
 
 	// and send the record on to scriptland
 	val_list* vl = new val_list();
@@ -84,7 +85,7 @@ bool file_analysis::X509::EndOfFile()
 	return false;
 	}
 
-RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val)
+RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val, const char* fid)
 	{
 	::X509* ssl_cert = cert_val->GetCertificate();
 
@@ -104,13 +105,35 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val)
 	len = BIO_gets(bio, buf, sizeof(buf));
 	pX509Cert->Assign(2, new StringVal(len, buf));
 	BIO_reset(bio);
+
+	X509_NAME *subject_name = X509_get_subject_name(ssl_cert);
+	// extract the most specific (last) common name from the subject
+	int namepos = -1;
+	for ( ;; )
+		{
+		int j = X509_NAME_get_index_by_NID(subject_name, NID_commonName, namepos);
+		if ( j == -1 )
+			break;
+
+		namepos = j;
+		}
+
+	if ( namepos != -1 )
+		{
+		// we found a common name
+		ASN1_STRING_print(bio, X509_NAME_ENTRY_get_data(X509_NAME_get_entry(subject_name, namepos)));
+		len = BIO_gets(bio, buf, sizeof(buf));
+		pX509Cert->Assign(4, new StringVal(len, buf));
+		BIO_reset(bio);
+		}
+
 	X509_NAME_print_ex(bio, X509_get_issuer_name(ssl_cert), 0, XN_FLAG_RFC2253);
 	len = BIO_gets(bio, buf, sizeof(buf));
 	pX509Cert->Assign(3, new StringVal(len, buf));
 	BIO_free(bio);
 
-	pX509Cert->Assign(4, new Val(GetTimeFromAsn1(X509_get_notBefore(ssl_cert)), TYPE_TIME));
-	pX509Cert->Assign(5, new Val(GetTimeFromAsn1(X509_get_notAfter(ssl_cert)), TYPE_TIME));
+	pX509Cert->Assign(5, new Val(GetTimeFromAsn1(X509_get_notBefore(ssl_cert), fid), TYPE_TIME));
+	pX509Cert->Assign(6, new Val(GetTimeFromAsn1(X509_get_notAfter(ssl_cert), fid), TYPE_TIME));
 
 	// we only read 255 bytes because byte 256 is always 0.
 	// if the string is longer than 255, that will be our null-termination,
@@ -118,28 +141,41 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val)
 	if ( ! i2t_ASN1_OBJECT(buf, 255, ssl_cert->cert_info->key->algor->algorithm) )
 		buf[0] = 0;
 
-	pX509Cert->Assign(6, new StringVal(buf));
+	pX509Cert->Assign(7, new StringVal(buf));
+
+	// Special case for RDP server certificates. For some reason some (all?) RDP server
+	// certificates like to specify their key algorithm as md5WithRSAEncryption, which
+	// is wrong on so many levels. We catch this special case here and set it to what is
+	// actually should be (namely - rsaEncryption), so that OpenSSL will parse out the
+	// key later. Otherwise it will just fail to parse the certificate key.
+
+	ASN1_OBJECT* old_algorithm = 0;
+	if ( OBJ_obj2nid(ssl_cert->cert_info->key->algor->algorithm) == NID_md5WithRSAEncryption )
+		{
+		old_algorithm = ssl_cert->cert_info->key->algor->algorithm;
+		ssl_cert->cert_info->key->algor->algorithm = OBJ_nid2obj(NID_rsaEncryption);
+		}
 
 	if ( ! i2t_ASN1_OBJECT(buf, 255, ssl_cert->sig_alg->algorithm) )
 		buf[0] = 0;
 
-	pX509Cert->Assign(7, new StringVal(buf));
+	pX509Cert->Assign(8, new StringVal(buf));
 
 	// Things we can do when we have the key...
 	EVP_PKEY *pkey = X509_extract_key(ssl_cert);
 	if ( pkey != NULL )
 		{
 		if ( pkey->type == EVP_PKEY_DSA )
-			pX509Cert->Assign(8, new StringVal("dsa"));
+			pX509Cert->Assign(9, new StringVal("dsa"));
 
 		else if ( pkey->type == EVP_PKEY_RSA )
 			{
-			pX509Cert->Assign(8, new StringVal("rsa"));
+			pX509Cert->Assign(9, new StringVal("rsa"));
 
 			char *exponent = BN_bn2dec(pkey->pkey.rsa->e);
 			if ( exponent != NULL )
 				{
-				pX509Cert->Assign(10, new StringVal(exponent));
+				pX509Cert->Assign(11, new StringVal(exponent));
 				OPENSSL_free(exponent);
 				exponent = NULL;
 				}
@@ -147,14 +183,19 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val)
 #ifndef OPENSSL_NO_EC
 		else if ( pkey->type == EVP_PKEY_EC )
 			{
-			pX509Cert->Assign(8, new StringVal("ecdsa"));
-			pX509Cert->Assign(11, KeyCurve(pkey));
+			pX509Cert->Assign(9, new StringVal("ecdsa"));
+			pX509Cert->Assign(12, KeyCurve(pkey));
 			}
 #endif
 
+		// set key algorithm back. We do not have to free the value that we created because (I think) it
+		// comes out of a static array from OpenSSL memory.
+		if ( old_algorithm )
+			ssl_cert->cert_info->key->algor->algorithm = old_algorithm;
+
 		unsigned int length = KeyLength(pkey);
 		if ( length > 0 )
-			pX509Cert->Assign(9, new Val(length, TYPE_COUNT));
+			pX509Cert->Assign(10, new Val(length, TYPE_COUNT));
 
 		EVP_PKEY_free(pkey);
 		}
@@ -475,54 +516,103 @@ unsigned int file_analysis::X509::KeyLength(EVP_PKEY *key)
 	reporter->InternalError("cannot be reached");
 	}
 
-double file_analysis::X509::GetTimeFromAsn1(const ASN1_TIME* atime)
+double file_analysis::X509::GetTimeFromAsn1(const ASN1_TIME* atime, const char* arg_fid)
 	{
+	const char *fid = arg_fid ? arg_fid : "";
 	time_t lResult = 0;
 
-	char lBuffer[24];
+	char lBuffer[26];
 	char* pBuffer = lBuffer;
 
-	size_t lTimeLength = atime->length;
-	char * pString = (char *) atime->data;
+	const char *pString = (const char *) atime->data;
+	unsigned int remaining = atime->length;
 
 	if ( atime->type == V_ASN1_UTCTIME )
 		{
-		if ( lTimeLength < 11 || lTimeLength > 17 )
+		if ( remaining < 11 || remaining > 17 )
+			{
+			reporter->Weird(fmt("Could not parse time in X509 certificate (fuid %s) -- UTCTime has wrong length", fid));
 			return 0;
+			}
+
+		if ( pString[remaining-1] != 'Z' )
+			{
+			// not valid according to RFC 2459 4.1.2.5.1
+			reporter->Weird(fmt("Could not parse UTC time in non-YY-format in X509 certificate (x509 %s)", fid));
+			return 0;
+			}
+
+		// year is first two digits in YY format. Buffer expects YYYY format.
+		if ( pString[0] - '0' < 50 ) // RFC 2459 4.1.2.5.1
+			{
+			*(pBuffer++) = '2';
+			*(pBuffer++) = '0';
+			}
+		else
+			{
+			*(pBuffer++) = '1';
+			*(pBuffer++) = '9';
+			}
 
 		memcpy(pBuffer, pString, 10);
 		pBuffer += 10;
 		pString += 10;
+		remaining -= 10;
 		}
-
-	else
+	else if ( atime->type == V_ASN1_GENERALIZEDTIME )
 		{
-		if ( lTimeLength < 13 )
+		// generalized time. We apparently ignore the YYYYMMDDHH case
+		// for now and assume we always have minutes and seconds.
+		// This should be ok because it is specified as a requirement in RFC 2459 4.1.2.5.2
+
+		if ( remaining < 12 || remaining > 23 )
+			{
+			reporter->Weird(fmt("Could not parse time in X509 certificate (fuid %s) -- Generalized time has wrong length", fid));
 			return 0;
+			}
 
 		memcpy(pBuffer, pString, 12);
 		pBuffer += 12;
 		pString += 12;
+		remaining -= 12;
+		}
+	else
+		{
+		reporter->Weird(fmt("Invalid time type in X509 certificate (fuid %s)", fid));
+		return 0;
 		}
 
-	if ((*pString == 'Z') || (*pString == '-') || (*pString == '+'))
+	if ( (remaining == 0) || (*pString == 'Z') || (*pString == '-') || (*pString == '+') )
 		{
 		*(pBuffer++) = '0';
 		*(pBuffer++) = '0';
+		}
+
+	else if ( remaining >= 2 )
+		{
+		*(pBuffer++) = *(pString++);
+		*(pBuffer++) = *(pString++);
+
+		remaining -= 2;
+
+		// Skip any fractional seconds...
+		if ( (remaining > 0) && (*pString == '.') )
+			{
+			pString++;
+			remaining--;
+
+			while ( (remaining > 0) && (*pString >= '0') && (*pString <= '9') )
+				{
+				pString++;
+				remaining--;
+				}
+			}
 		}
 
 	else
 		{
-		*(pBuffer++) = *(pString++);
-		*(pBuffer++) = *(pString++);
-
-		// Skip any fractional seconds...
-		if (*pString == '.')
-			{
-			pString++;
-			while ((*pString >= '0') && (*pString <= '9'))
-				pString++;
-			}
+		reporter->Weird(fmt("Could not parse time in X509 certificate (fuid %s) -- additional char after time", fid));
+		return 0;
 		}
 
 	*(pBuffer++) = 'Z';
@@ -530,31 +620,39 @@ double file_analysis::X509::GetTimeFromAsn1(const ASN1_TIME* atime)
 
 	time_t lSecondsFromUTC;
 
-	if ( *pString == 'Z' )
+	if ( remaining == 0 || *pString == 'Z' )
 		lSecondsFromUTC = 0;
-
 	else
 		{
-		if ((*pString != '+') && (pString[5] != '-'))
+		if ( remaining < 5 )
+			{
+			reporter->Weird(fmt("Could not parse time in X509 certificate (fuid %s) -- not enough bytes remaining for offset", fid));
 			return 0;
+			}
 
-		lSecondsFromUTC = ((pString[1]-'0') * 10 + (pString[2]-'0')) * 60;
-		lSecondsFromUTC += (pString[3]-'0') * 10 + (pString[4]-'0');
+		if ((*pString != '+') && (*pString != '-'))
+			{
+			reporter->Weird(fmt("Could not parse time in X509 certificate (fuid %s) -- unknown offset type", fid));
+			return 0;
+			}
+
+		lSecondsFromUTC = ((pString[1] - '0') * 10 + (pString[2] - '0')) * 60;
+		lSecondsFromUTC += (pString[3] - '0') * 10 + (pString[4] - '0');
 
 		if (*pString == '-')
 			lSecondsFromUTC = -lSecondsFromUTC;
 		}
 
 	tm lTime;
-	lTime.tm_sec  = ((lBuffer[10] - '0') * 10) + (lBuffer[11] - '0');
-	lTime.tm_min  = ((lBuffer[8] - '0') * 10) + (lBuffer[9] - '0');
-	lTime.tm_hour = ((lBuffer[6] - '0') * 10) + (lBuffer[7] - '0');
-	lTime.tm_mday = ((lBuffer[4] - '0') * 10) + (lBuffer[5] - '0');
-	lTime.tm_mon  = (((lBuffer[2] - '0') * 10) + (lBuffer[3] - '0')) - 1;
-	lTime.tm_year = ((lBuffer[0] - '0') * 10) + (lBuffer[1] - '0');
+	lTime.tm_sec  = ((lBuffer[12] - '0') * 10) + (lBuffer[13] - '0');
+	lTime.tm_min  = ((lBuffer[10] - '0') * 10) + (lBuffer[11] - '0');
+	lTime.tm_hour = ((lBuffer[8] - '0') * 10) + (lBuffer[9] - '0');
+	lTime.tm_mday = ((lBuffer[6] - '0') * 10) + (lBuffer[7] - '0');
+	lTime.tm_mon  = (((lBuffer[4] - '0') * 10) + (lBuffer[5] - '0')) - 1;
+	lTime.tm_year = (lBuffer[0] - '0') * 1000 + (lBuffer[1] - '0') * 100 + ((lBuffer[2] - '0') * 10) + (lBuffer[3] - '0');
 
-	if ( lTime.tm_year < 50 )
-		lTime.tm_year += 100; // RFC 2459
+	if ( lTime.tm_year > 1900)
+		lTime.tm_year -= 1900;
 
 	lTime.tm_wday = 0;
 	lTime.tm_yday = 0;
@@ -564,7 +662,7 @@ double file_analysis::X509::GetTimeFromAsn1(const ASN1_TIME* atime)
 
 	if ( lResult )
 		{
-		if ( 0 != lTime.tm_isdst )
+		if ( lTime.tm_isdst  != 0 )
 			lResult -= 3600;  // mktime may adjust for DST  (OS dependent)
 
 		lResult += lSecondsFromUTC;

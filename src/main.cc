@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "config.h"
+#include "bro-config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -63,6 +63,10 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 
 #include "3rdparty/sqlite3.h"
 
+#ifdef ENABLE_BROKER
+#include "broker/Manager.h"
+#endif
+
 Brofiler brofiler;
 
 #ifndef HAVE_STRSEP
@@ -81,9 +85,6 @@ int perftools_leaks = 0;
 int perftools_profile = 0;
 #endif
 
-const char* prog;
-char* writefile = 0;
-name_list prefixes;
 DNS_Mgr* dns_mgr;
 TimerMgr* timer_mgr;
 logging::Manager* log_mgr = 0;
@@ -94,6 +95,13 @@ analyzer::Manager* analyzer_mgr = 0;
 file_analysis::Manager* file_mgr = 0;
 broxygen::Manager* broxygen_mgr = 0;
 iosource::Manager* iosource_mgr = 0;
+#ifdef ENABLE_BROKER
+bro_broker::Manager* broker_mgr = 0;
+#endif
+
+const char* prog;
+char* writefile = 0;
+name_list prefixes;
 Stmt* stmts;
 EventHandlerPtr net_done = 0;
 RuleMatcher* rule_matcher = 0;
@@ -107,15 +115,12 @@ ProfileLogger* profiling_logger = 0;
 ProfileLogger* segment_logger = 0;
 SampleLogger* sample_logger = 0;
 int signal_val = 0;
-int optimize = 0;
 int do_notice_analysis = 0;
-int rule_bench = 0;
 extern char version[];
 char* command_line_policy = 0;
 vector<string> params;
 set<string> requested_plugins;
 char* proc_status_file = 0;
-int snaplen = 0;	// this gets set from the scripting-layer's value
 
 OpaqueType* md5_type = 0;
 OpaqueType* sha1_type = 0;
@@ -171,25 +176,23 @@ void usage()
 	fprintf(stderr, "    -i|--iface <interface>         | read from given interface\n");
 	fprintf(stderr, "    -p|--prefix <prefix>           | add given prefix to policy file resolution\n");
 	fprintf(stderr, "    -r|--readfile <readfile>       | read from given tcpdump file\n");
-	fprintf(stderr, "    -y|--flowfile <file>[=<ident>] | read from given flow file\n");
-	fprintf(stderr, "    -Y|--netflow <ip>:<prt>[=<id>] | read flow from socket\n");
 	fprintf(stderr, "    -s|--rulefile <rulefile>       | read rules from given file\n");
 	fprintf(stderr, "    -t|--tracefile <tracefile>     | activate execution tracing\n");
-	fprintf(stderr, "    -w|--writefile <writefile>     | write to given tcpdump file\n");
 	fprintf(stderr, "    -v|--version                   | print version and exit\n");
+	fprintf(stderr, "    -w|--writefile <writefile>     | write to given tcpdump file\n");
 	fprintf(stderr, "    -x|--print-state <file.bst>    | print contents of state file\n");
 	fprintf(stderr, "    -z|--analyze <analysis>        | run the specified policy file analysis\n");
 #ifdef DEBUG
-	fprintf(stderr, "    -B|--debug <dbgstreams>        | Enable debugging output for selected streams\n");
+	fprintf(stderr, "    -B|--debug <dbgstreams>        | Enable debugging output for selected streams ('-B help' for help)\n");
 #endif
 	fprintf(stderr, "    -C|--no-checksums              | ignore checksums\n");
-	fprintf(stderr, "    -D|--dfa-size <size>           | DFA state cache size\n");
 	fprintf(stderr, "    -F|--force-dns                 | force DNS\n");
+	fprintf(stderr, "    -G|--load-seeds <file>         | load seeds from given file\n");
+	fprintf(stderr, "    -H|--save-seeds <file>         | save seeds to given file\n");
 	fprintf(stderr, "    -I|--print-id <ID name>        | print out given ID\n");
+	fprintf(stderr, "    -J|--set-seed <seed>           | set the random number seed\n");
 	fprintf(stderr, "    -K|--md5-hashkey <hashkey>     | set key for MD5-keyed hashing\n");
-	fprintf(stderr, "    -L|--rule-benchmark            | benchmark for rules\n");
 	fprintf(stderr, "    -N|--print-plugins             | print available plugins and exit (-NN for verbose)\n");
-	fprintf(stderr, "    -O|--optimize                  | optimize policy script\n");
 	fprintf(stderr, "    -P|--prime-dns                 | prime DNS\n");
 	fprintf(stderr, "    -Q|--time                      | print execution time summary to stderr\n");
 	fprintf(stderr, "    -R|--replay <events.bst>       | replay events\n");
@@ -197,7 +200,7 @@ void usage()
 	fprintf(stderr, "    -T|--re-level <level>          | set 'RE_level' for rules\n");
 	fprintf(stderr, "    -U|--status-file <file>        | Record process status in file\n");
 	fprintf(stderr, "    -W|--watchdog                  | activate watchdog timer\n");
-	fprintf(stderr, "    -X|--broxygen                  | generate documentation based on config file\n");
+	fprintf(stderr, "    -X|--broxygen <cfgfile>        | generate documentation based on config file\n");
 
 #ifdef USE_PERFTOOLS_DEBUG
 	fprintf(stderr, "    -m|--mem-leaks                 | show leaks  [perftools]\n");
@@ -207,8 +210,6 @@ void usage()
 	fprintf(stderr, "    -X <file.bst>                  | print contents of state file as XML\n");
 #endif
 	fprintf(stderr, "    --pseudo-realtime[=<speedup>]  | enable pseudo-realtime for performance evaluation (default 1)\n");
-	fprintf(stderr, "    --load-seeds <file>            | load seeds from given file\n");
-	fprintf(stderr, "    --save-seeds <file>            | save seeds to given file\n");
 
 #ifdef USE_IDMEF
 	fprintf(stderr, "    -n|--idmef-dtd <idmef-msg.dtd> | specify path to IDMEF DTD file\n");
@@ -480,8 +481,6 @@ int main(int argc, char** argv)
 		{"broxygen",		required_argument,		0,	'X'},
 		{"prefix",		required_argument,	0,	'p'},
 		{"readfile",		required_argument,	0,	'r'},
-		{"flowfile",		required_argument,	0,	'y'},
-		{"netflow",		required_argument,	0,	'Y'},
 		{"rulefile",		required_argument,	0,	's'},
 		{"tracefile",		required_argument,	0,	't'},
 		{"writefile",		required_argument,	0,	'w'},
@@ -489,19 +488,17 @@ int main(int argc, char** argv)
 		{"print-state",		required_argument,	0,	'x'},
 		{"analyze",		required_argument,	0,	'z'},
 		{"no-checksums",	no_argument,		0,	'C'},
-		{"dfa-cache",		required_argument,	0,	'D'},
 		{"force-dns",		no_argument,		0,	'F'},
 		{"load-seeds",		required_argument,	0,	'G'},
 		{"save-seeds",		required_argument,	0,	'H'},
 		{"set-seed",		required_argument,	0,	'J'},
 		{"md5-hashkey",		required_argument,	0,	'K'},
-		{"rule-benchmark",	no_argument,		0,	'L'},
 		{"print-plugins",	no_argument,		0,	'N'},
-		{"optimize",		no_argument,		0,	'O'},
 		{"prime-dns",		no_argument,		0,	'P'},
+		{"time",		no_argument,		0,	'Q'},
 		{"replay",		required_argument,	0,	'R'},
 		{"debug-rules",		no_argument,		0,	'S'},
-		{"re-level",		required_argument,	0,	'R'},
+		{"re-level",		required_argument,	0,	'T'},
 		{"watchdog",		no_argument,		0,	'W'},
 		{"print-id",		required_argument,	0,	'I'},
 		{"status-file",		required_argument,	0,	'U'},
@@ -549,7 +546,7 @@ int main(int argc, char** argv)
 	opterr = 0;
 
 	char opts[256];
-	safe_strncpy(opts, "B:D:e:f:I:i:K:l:n:p:R:r:s:T:t:U:w:x:X:z:CFGLNOPSWabdghvZQ",
+	safe_strncpy(opts, "B:e:f:G:H:I:i:J:K:n:p:R:r:s:T:t:U:w:x:X:z:CFNPQSWabdghv",
 		     sizeof(opts));
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -584,6 +581,10 @@ int main(int argc, char** argv)
 			dump_cfg = true;
 			break;
 
+		case 'h':
+			usage();
+			break;
+
 		case 'i':
 			interfaces.append(optarg);
 			break;
@@ -605,8 +606,17 @@ int main(int argc, char** argv)
 			g_trace_state.TraceOn();
 			break;
 
+		case 'v':
+			fprintf(stderr, "%s version %s\n", prog, bro_version());
+			exit(0);
+			break;
+
 		case 'w':
 			writefile = optarg;
+			break;
+
+		case 'x':
+			bst_file = optarg;
 			break;
 
 		case 'z':
@@ -619,12 +629,12 @@ int main(int argc, char** argv)
 				}
 			break;
 
-		case 'C':
-			override_ignore_checksums = 1;
+		case 'B':
+			debug_streams = optarg;
 			break;
 
-		case 'D':
-			dfa_state_cache_size = atoi(optarg);
+		case 'C':
+			override_ignore_checksums = 1;
 			break;
 
 		case 'E':
@@ -660,16 +670,8 @@ int main(int argc, char** argv)
 			hmac_key_set = 1;
 			break;
 
-		case 'L':
-			++rule_bench;
-			break;
-
 		case 'N':
 			++print_plugins;
-			break;
-
-		case 'O':
-			optimize = 1;
 			break;
 
 		case 'P':
@@ -702,13 +704,8 @@ int main(int argc, char** argv)
 			do_watchdog = 1;
 			break;
 
-		case 'h':
-			usage();
-			break;
-
-		case 'v':
-			fprintf(stderr, "%s version %s\n", prog, bro_version());
-			exit(0);
+		case 'X':
+			broxygen_config = optarg;
 			break;
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -721,9 +718,6 @@ int main(int argc, char** argv)
 			break;
 #endif
 
-		case 'x':
-			bst_file = optarg;
-			break;
 #if 0 // broken
 		case 'X':
 			bst_file = optarg;
@@ -731,20 +725,12 @@ int main(int argc, char** argv)
 			break;
 #endif
 
-		case 'X':
-			broxygen_config = optarg;
-			break;
-
 #ifdef USE_IDMEF
 		case 'n':
 			fprintf(stderr, "Using IDMEF XML DTD from %s\n", optarg);
 			libidmef_dtd_path = optarg;
 			break;
 #endif
-
-		case 'B':
-			debug_streams = optarg;
-			break;
 
 		case 0:
 			// This happens for long options that don't have
@@ -774,9 +760,6 @@ int main(int argc, char** argv)
 	init_random_seed(seed, (seed_load_file && *seed_load_file ? seed_load_file : 0) , seed_save_file);
 	// DEBUG_MSG("HMAC key: %s\n", md5_digest_print(shared_hmac_md5_key));
 	init_hash_function();
-
-	// Must come after hash initialization.
-	binpac::init();
 
 	ERR_load_crypto_strings();
 	OPENSSL_add_all_algorithms_conf();
@@ -851,6 +834,10 @@ int main(int argc, char** argv)
 	input_mgr = new input::Manager();
 	file_mgr = new file_analysis::Manager();
 
+#ifdef ENABLE_BROKER
+	broker_mgr = new bro_broker::Manager();
+#endif
+
 	plugin_mgr->InitPreScript();
 	analyzer_mgr->InitPreScript();
 	file_mgr->InitPreScript();
@@ -872,6 +859,10 @@ int main(int argc, char** argv)
 
 	if ( events_file )
 		event_player = new EventPlayer(events_file);
+
+	// Must come after plugin activation (and also after hash
+	// initialization).
+	binpac::init();
 
 	init_event_handlers();
 
@@ -997,8 +988,6 @@ int main(int argc, char** argv)
 			delete [] interfaces_str;
 			}
 		}
-
-	snaplen = internal_val("snaplen")->AsCount();
 
 	if ( dns_type != DNS_PRIME )
 		net_init(interfaces, read_files, writefile, do_watchdog);

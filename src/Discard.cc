@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#include "config.h"
+#include "bro-config.h"
 
 #include "Net.h"
 #include "Var.h"

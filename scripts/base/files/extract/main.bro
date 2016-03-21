@@ -53,7 +53,8 @@ function set_limit(f: fa_file, args: Files::AnalyzerArgs, n: count): bool
 function on_add(f: fa_file, args: Files::AnalyzerArgs)
 	{
 	if ( ! args?$extract_filename )
-		args$extract_filename = cat("extract-", f$source, "-", f$id);
+		args$extract_filename = cat("extract-", f$last_active, "-", f$source,
+		                            "-", f$id);
 
 	f$info$extracted = args$extract_filename;
 	args$extract_filename = build_path_compressed(prefix, args$extract_filename);

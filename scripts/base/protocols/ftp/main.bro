@@ -52,7 +52,7 @@ redef likely_server_ports += { ports };
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(FTP::LOG, [$columns=Info, $ev=log_ftp]);
+	Log::create_stream(FTP::LOG, [$columns=Info, $ev=log_ftp, $path="ftp"]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_FTP, ports);
 	}
 
@@ -213,7 +213,7 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &prior
 		#       on a different file could be checked, but the file size will
 		#       be overwritten by the server response to the RETR command
 		#       if that's given as well which would be more correct.
-		c$ftp$file_size = extract_count(msg);
+		c$ftp$file_size = extract_count(msg, F);
 		}
 
 	# PASV and EPSV processing

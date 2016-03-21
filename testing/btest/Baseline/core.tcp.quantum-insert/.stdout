@@ -1,0 +1,5 @@
+----- rexmit_inconsistency -----
+1429652006.683290 c: [orig_h=178.200.100.200, orig_p=39976/tcp, resp_h=96.126.98.124, resp_p=80/tcp]
+1429652006.683290 t1: HTTP/1.1 200 OK\x0d\x0aContent-Length: 5\x0d\x0a\x0d\x0aBANG!
+1429652006.683290 t2: HTTP/1.1 200 OK\x0d\x0aServer: nginx/1.4.4\x0d\x0aDate:
+1429652006.683290 tcp_flags: AP

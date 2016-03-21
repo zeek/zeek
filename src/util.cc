@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "config.h"
+#include "bro-config.h"
 #include "util-config.h"
 
 #ifdef TIME_WITH_SYS_TIME
@@ -141,10 +141,16 @@ ODesc* get_escaped_string(ODesc* d, const char* str, size_t len,
 
 		if ( escape_all || isspace(c) || ! isascii(c) || ! isprint(c) )
 			{
-			char hex[4] = {'\\', 'x', '0', '0' };
-			bytetohex(c, hex + 2);
-			d->AddRaw(hex, 4);
+			if ( c == '\\' )
+				d->AddRaw("\\\\", 2);
+			else
+				{
+				char hex[4] = {'\\', 'x', '0', '0' };
+				bytetohex(c, hex + 2);
+				d->AddRaw(hex, 4);
+				}
 			}
+
 		else
 			d->AddRaw(&c, 1);
 		}
@@ -317,24 +323,6 @@ string to_upper(const std::string& s)
 	return t;
 	}
 
-const char* strchr_n(const char* s, const char* end_of_s, char ch)
-	{
-	for ( ; s < end_of_s; ++s )
-		if ( *s == ch )
-			return s;
-
-	return 0;
-	}
-
-const char* strrchr_n(const char* s, const char* end_of_s, char ch)
-	{
-	for ( --end_of_s; end_of_s >= s; --end_of_s )
-		if ( *end_of_s == ch )
-			return end_of_s;
-
-	return 0;
-	}
-
 int decode_hex(char ch)
 	{
 	if ( ch >= '0' && ch <= '9' )
@@ -376,27 +364,6 @@ const char* strpbrk_n(size_t len, const char* s, const char* charset)
 	return 0;
 	}
 
-int strcasecmp_n(int b_len, const char* b, const char* t)
-	{
-	if ( ! b )
-		return -1;
-
-	int i;
-	for ( i = 0; i < b_len; ++i )
-		{
-		char c1 = islower(b[i]) ? toupper(b[i]) : b[i];
-		char c2 = islower(t[i]) ? toupper(t[i]) : t[i];
-
-		if ( c1 < c2 )
-			return -1;
-
-		if ( c1 > c2 )
-			return 1;
-		}
-
-	return t[i] != '\0';
-	}
-
 #ifndef HAVE_STRCASESTR
 // This code is derived from software contributed to BSD by Chris Torek.
 char* strcasestr(const char* s, const char* find)
@@ -415,7 +382,7 @@ char* strcasestr(const char* s, const char* find)
 				if ( sc == 0 )
 					return 0;
 			} while ( char(tolower((unsigned char) sc)) != c );
-		} while ( strcasecmp_n(len, s, find) != 0 );
+		} while ( strncasecmp(s, find, len) != 0 );
 
 		--s;
 		}
@@ -1352,19 +1319,32 @@ double parse_rotate_base_time(const char* rotate_base_time)
 
 double calc_next_rotate(double current, double interval, double base)
 	{
+	if ( ! interval )
+		{
+		reporter->Error("calc_next_rotate(): interval is zero, falling back to 24hrs");
+		interval = 86400;
+		}
+
 	// Calculate start of day.
 	time_t teatime = time_t(current);
 
 	struct tm t;
-	t = *localtime_r(&teatime, &t);
-	t.tm_hour = t.tm_min = t.tm_sec = 0;
-	double startofday = mktime(&t);
+	if ( ! localtime_r(&teatime, &t) )
+		{
+		reporter->Error("calc_next_rotate(): failure processing current time (%.6f)", current);
+
+		// fall back to the method used if no base time is given
+		base = -1;
+		}
 
 	if ( base < 0 )
 		// No base time given. To get nice timestamps, we round
 		// the time up to the next multiple of the rotation interval.
 		return floor(current / interval) * interval
 			+ interval - current;
+
+	t.tm_hour = t.tm_min = t.tm_sec = 0;
+	double startofday = mktime(&t);
 
 	// current < startofday + base + i * interval <= current + interval
 	return startofday + base +

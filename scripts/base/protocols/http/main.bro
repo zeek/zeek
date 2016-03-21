@@ -41,6 +41,8 @@ export {
 		## misspelled like the standard declares, but the name used here
 		## is "referrer" spelled correctly.
 		referrer:                string    &log &optional;
+		## Value of the version portion of the request.
+		version:		string	   &log &optional;
 		## Value of the User-Agent header from the client.
 		user_agent:              string    &log &optional;
 		## Actual uncompressed content size of the data transferred from
@@ -89,6 +91,10 @@ export {
 		current_request:  count                &default=0;
 		## Current response in the pending queue.
 		current_response: count                &default=0;
+		## Track the current deepest transaction.
+		## This is meant to cope with missing requests
+		## and responses.
+		trans_depth:      count                &default=0;
 	};
 
 	## A list of HTTP headers typically used to indicate proxied requests.
@@ -135,7 +141,7 @@ redef likely_server_ports += { ports };
 # Initialize the HTTP logging stream and ports.
 event bro_init() &priority=5
 	{
-	Log::create_stream(HTTP::LOG, [$columns=Info, $ev=log_http]);
+	Log::create_stream(HTTP::LOG, [$columns=Info, $ev=log_http, $path="http"]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_HTTP, ports);
 	}
 
@@ -150,13 +156,11 @@ function new_http_session(c: connection): Info
 	tmp$ts=network_time();
 	tmp$uid=c$uid;
 	tmp$id=c$id;
-	# $current_request is set prior to the Info record creation so we
-	# can use the value directly here.
-	tmp$trans_depth = c$http_state$current_request;
+	tmp$trans_depth = ++c$http_state$trans_depth;
 	return tmp;
 	}
 
-function set_state(c: connection, request: bool, is_orig: bool)
+function set_state(c: connection, is_orig: bool)
 	{
 	if ( ! c?$http_state )
 		{
@@ -165,15 +169,20 @@ function set_state(c: connection, request: bool, is_orig: bool)
 		}
 
 	# These deal with new requests and responses.
-	if ( request || c$http_state$current_request !in c$http_state$pending )
-		c$http_state$pending[c$http_state$current_request] = new_http_session(c);
-	if ( ! is_orig && c$http_state$current_response !in c$http_state$pending )
-		c$http_state$pending[c$http_state$current_response] = new_http_session(c);
-
 	if ( is_orig )
+		{
+		if ( c$http_state$current_request !in c$http_state$pending )
+			c$http_state$pending[c$http_state$current_request] = new_http_session(c);
+
 		c$http = c$http_state$pending[c$http_state$current_request];
+		}
 	else
+		{
+		if ( c$http_state$current_response !in c$http_state$pending )
+			c$http_state$pending[c$http_state$current_response] = new_http_session(c);
+
 		c$http = c$http_state$pending[c$http_state$current_response];
+		}
 	}
 
 event http_request(c: connection, method: string, original_URI: string,
@@ -186,7 +195,7 @@ event http_request(c: connection, method: string, original_URI: string,
 		}
 
 	++c$http_state$current_request;
-	set_state(c, T, T);
+	set_state(c, T);
 
 	c$http$method = method;
 	c$http$uri = unescaped_URI;
@@ -208,11 +217,15 @@ event http_reply(c: connection, version: string, code: count, reason: string) &p
 	if ( c$http_state$current_response !in c$http_state$pending ||
 	     (c$http_state$pending[c$http_state$current_response]?$status_code &&
 	       ! code_in_range(c$http_state$pending[c$http_state$current_response]$status_code, 100, 199)) )
+		{
 		++c$http_state$current_response;
-	set_state(c, F, F);
+		}
+	set_state(c, F);
 
 	c$http$status_code = code;
 	c$http$status_msg = reason;
+	c$http$version = version;
+
 	if ( code_in_range(code, 100, 199) )
 		{
 		c$http$info_code = code;
@@ -233,7 +246,7 @@ event http_reply(c: connection, version: string, code: count, reason: string) &p
 
 event http_header(c: connection, is_orig: bool, name: string, value: string) &priority=5
 	{
-	set_state(c, F, is_orig);
+	set_state(c, is_orig);
 
 	if ( is_orig ) # client headers
 		{
@@ -257,11 +270,11 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 				add c$http$proxied[fmt("%s -> %s", name, value)];
 				}
 
-		else if ( name == "AUTHORIZATION" )
+		else if ( name == "AUTHORIZATION" || name == "PROXY-AUTHORIZATION" )
 			{
 			if ( /^[bB][aA][sS][iI][cC] / in value )
 				{
-				local userpass = decode_base64(sub(value, /[bB][aA][sS][iI][cC][[:blank:]]/, ""));
+				local userpass = decode_base64_conn(c$id, sub(value, /[bB][aA][sS][iI][cC][[:blank:]]/, ""));
 				local up = split_string(userpass, /:/);
 				if ( |up| >= 2 )
 					{
@@ -278,12 +291,11 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 				}
 			}
 		}
-
 	}
 
 event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &priority = 5
 	{
-	set_state(c, F, is_orig);
+	set_state(c, is_orig);
 
 	if ( is_orig )
 		c$http$request_body_len = stat$body_length;

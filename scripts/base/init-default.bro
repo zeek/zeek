@@ -37,6 +37,8 @@
 @load base/frameworks/reporter
 @load base/frameworks/sumstats
 @load base/frameworks/tunnels
+@load base/frameworks/openflow
+@load base/frameworks/netcontrol
 
 @load base/protocols/conn
 @load base/protocols/dhcp
@@ -45,10 +47,13 @@
 @load base/protocols/ftp
 @load base/protocols/http
 @load base/protocols/irc
+@load base/protocols/krb
 @load base/protocols/modbus
 @load base/protocols/mysql
 @load base/protocols/pop3
 @load base/protocols/radius
+@load base/protocols/rdp
+@load base/protocols/sip
 @load base/protocols/snmp
 @load base/protocols/smtp
 @load base/protocols/socks
@@ -57,6 +62,7 @@
 @load base/protocols/syslog
 @load base/protocols/tunnels
 
+@load base/files/pe
 @load base/files/hash
 @load base/files/extract
 @load base/files/unified2

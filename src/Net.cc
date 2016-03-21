@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "config.h"
+#include "bro-config.h"
 
 #include <sys/types.h>
 #ifdef TIME_WITH_SYS_TIME
@@ -34,6 +34,10 @@
 #include "iosource/PktDumper.h"
 #include "plugin/Manager.h"
 
+#ifdef ENABLE_BROKER
+#include "broker/Manager.h"
+#endif
+
 extern "C" {
 #include "setsignal.h"
 };
@@ -58,10 +62,8 @@ double bro_start_network_time;	// timestamp of first packet
 double last_watchdog_proc_time = 0.0;	// value of above during last watchdog
 bool terminating = false;	// whether we're done reading and finishing up
 
-const struct pcap_pkthdr* current_hdr = 0;
-const u_char* current_pkt = 0;
+const Packet *current_pkt = 0;
 int current_dispatched = 0;
-int current_hdr_size = 0;
 double current_timestamp = 0.0;
 iosource::PktSrc* current_pktsrc = 0;
 iosource::IOSource* current_iosrc = 0;
@@ -105,7 +107,7 @@ RETSIGTYPE watchdog(int /* signo */)
 			int frac_pst =
 				int((processing_start_time - int_pst) * 1e6);
 
-			if ( current_hdr )
+			if ( current_pkt )
 				{
 				if ( ! pkt_dumper )
 					{
@@ -122,12 +124,8 @@ RETSIGTYPE watchdog(int /* signo */)
 					}
 
 				if ( pkt_dumper )
-					{
-					iosource::PktDumper::Packet p;
-					p.hdr = current_hdr;
-					p.data = current_pkt;
-					pkt_dumper->Dump(&p);
-					}
+					pkt_dumper->Dump(current_pkt);
+
 				}
 
 			net_get_final_stats();
@@ -236,9 +234,7 @@ void expire_timers(iosource::PktSrc* src_ps)
 				max_timer_expires - current_dispatched);
 	}
 
-void net_packet_dispatch(double t, const struct pcap_pkthdr* hdr,
-			 const u_char* pkt, int hdr_size,
-			 iosource::PktSrc* src_ps)
+void net_packet_dispatch(double t, const Packet* pkt, iosource::PktSrc* src_ps)
 	{
 	if ( ! bro_start_network_time )
 		bro_start_network_time = t;
@@ -274,7 +270,7 @@ void net_packet_dispatch(double t, const struct pcap_pkthdr* hdr,
 			}
 		}
 
-	sessions->DispatchPacket(t, hdr, pkt, hdr_size, src_ps);
+	sessions->NextPacket(t, pkt);
 	mgr.Drain();
 
 	if ( sp )
@@ -315,6 +311,11 @@ void net_run()
 			}
 #endif
 		current_iosrc = src;
+		bool communication_enabled = using_communication;
+
+#ifdef ENABLE_BROKER
+		communication_enabled |= broker_mgr->Enabled();
+#endif
 
 		if ( src )
 			src->Process();	// which will call net_packet_dispatch()
@@ -332,7 +333,7 @@ void net_run()
 				}
 			}
 
-		else if ( (have_pending_timers || using_communication) &&
+		else if ( (have_pending_timers || communication_enabled) &&
 			  ! pseudo_realtime )
 			{
 			// Take advantage of the lull to get up to
@@ -347,7 +348,7 @@ void net_run()
 			// us a lot of idle time, but doesn't delay near-term
 			// timers too much.  (Delaying them somewhat is okay,
 			// since Bro timers are not high-precision anyway.)
-			if ( ! using_communication )
+			if ( ! communication_enabled )
 				usleep(100000);
 			else
 				usleep(1000);

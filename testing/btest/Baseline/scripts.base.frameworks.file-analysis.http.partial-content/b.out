@@ -5,7 +5,7 @@ FILE_STATE_REMOVE
 file #0, 1022920, 0
 [orig_h=192.168.72.14, orig_p=3254/tcp, resp_h=65.54.95.206, resp_p=80/tcp]
 FILE_BOF_BUFFER
-MZ\x90\0^C\0\0\0^D\0\0
+MZ\x90\x00\x03\x00\x00\x00\x04\x00\x00
 MIME_TYPE
 application/x-dosexec
 total bytes: 1022920
@@ -21,7 +21,5 @@ FILE_GAP
 FILE_STATE_REMOVE
 file #1, 206024, 816896
 [orig_h=192.168.72.14, orig_p=3257/tcp, resp_h=65.54.95.14, resp_p=80/tcp]
-FILE_BOF_BUFFER
-\x1b\xb8=\xb1\xff^PU^P\xce\xc3^
 total bytes: 1022920
 source: HTTP

@@ -1,0 +1,18 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	conn
+#open	2015-06-19-21-05-46
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	local_resp	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents
+#types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	bool	count	string	count	count	count	count	set[string]
+1093521678.945447	CXWv6p3arKYeMETxOg	10.0.0.57	2387	10.0.0.3	502	tcp	-	0.000493	0	0	SF	-	-	0	FafA	2	80	2	80	(empty)
+1093521953.490353	CCvvfg3TEfuqmmG4bh	10.0.0.57	2579	10.0.0.8	502	tcp	modbus	23.256631	24	0	SF	-	-	0	ShADaFf	6	272	5	208	(empty)
+1093521681.696827	CjhGID4nQcgTWjvg4c	10.0.0.57	2578	10.0.0.3	502	tcp	modbus	385.694948	112	138	S3	-	-	0	ShADdf	20	920	12	626	(empty)
+1093522326.102435	CsRx2w45OKnoww6xl4	10.0.0.9	3082	10.0.0.3	502	tcp	modbus	177.095534	72	69	SF	-	-	0	ShADdFaf	16	720	9	437	(empty)
+1093522946.554059	CRJuHdVW0XPVINV8a	10.0.0.57	2585	10.0.0.8	502	tcp	-	76.561880	926	0	SF	-	-	0	ShADafF	8	1254	7	288	(empty)
+1093523065.562221	CPbrpk1qSsw6ESzHV4	10.0.0.8	502	10.0.0.57	4446	tcp	-	155.114237	128	0	SF	-	-	0	ShADaFf	16	776	15	608	(empty)
+1153491879.610371	C6pKV8GSxOnSLghOa	192.168.66.235	2582	166.161.16.230	502	tcp	-	2.905078	0	0	S0	-	-	0	S	2	96	0	0	(empty)
+1153491888.530306	CIPOse170MGiRM1Qf4	192.168.66.235	2582	166.161.16.230	502	tcp	modbus	85.560847	1692	1278	S1	-	-	0	ShADad	167	8380	181	8522	(empty)
+1342774499.588269	C7XEbhP654jzLoe3a	10.1.1.234	51411	10.10.5.85	502	tcp	modbus	2100.811351	237936	4121200	S2	-	-	0	ShADdaF	39659	2300216	20100	5166412	(empty)
+#close	2015-06-19-21-05-51

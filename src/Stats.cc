@@ -10,6 +10,10 @@
 #include "Trigger.h"
 #include "threading/Manager.h"
 
+#ifdef ENABLE_BROKER
+#include "broker/Manager.h"
+#endif
+
 int killed_by_inactivity = 0;
 
 uint64 tot_ack_events = 0;
@@ -222,6 +226,26 @@ void ProfileLogger::Log()
 			    ));
 		}
 
+#ifdef ENABLE_BROKER
+	auto cs = broker_mgr->ConsumeStatistics();
+
+	file->Write(fmt("%0.6f Comm: peers=%zu stores=%zu "
+	                "store_queries=%zu store_responses=%zu "
+	                "outgoing_conn_status=%zu incoming_conn_status=%zu "
+	                "reports=%zu\n",
+	                network_time, cs.outgoing_peer_count, cs.data_store_count,
+	                cs.pending_query_count, cs.response_count,
+	                cs.outgoing_conn_status_count, cs.incoming_conn_status_count,
+	                cs.report_count));
+
+	for ( const auto& s : cs.print_count )
+		file->Write(fmt("    %-25s prints dequeued=%zu\n", s.first.data(), s.second));
+	for ( const auto& s : cs.event_count )
+		file->Write(fmt("    %-25s events dequeued=%zu\n", s.first.data(), s.second));
+	for ( const auto& s : cs.log_count )
+		file->Write(fmt("    %-25s logs dequeued=%zu\n", s.first.data(), s.second));
+#endif
+
 	// Script-level state.
 	unsigned int size, mem = 0;
 	PDict(ID)* globals = global_scope()->Vars();
@@ -338,12 +362,16 @@ SampleLogger::~SampleLogger()
 
 void SampleLogger::FunctionSeen(const Func* func)
 	{
-	load_samples->Assign(new StringVal(func->Name()), 0);
+	Val* idx = new StringVal(func->Name());
+	load_samples->Assign(idx, 0);
+	Unref(idx);
 	}
 
 void SampleLogger::LocationSeen(const Location* loc)
 	{
-	load_samples->Assign(new StringVal(loc->filename), 0);
+	Val* idx = new StringVal(loc->filename);
+	load_samples->Assign(idx, 0);
+	Unref(idx);
 	}
 
 void SampleLogger::SegmentProfile(const char* /* name */,

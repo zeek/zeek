@@ -363,7 +363,7 @@ decrypted from HTTP streams is stored in
 excerpt from :doc:`/scripts/base/protocols/http/main.bro` below.
 
 .. btest-include:: ${BRO_SRC_ROOT}/scripts/base/protocols/http/main.bro
-   :lines: 9-11,20-22,121
+   :lines: 9-11,20-22,125
 
 Because the constant was declared with the ``&redef`` attribute, if we
 needed to turn this option on globally, we could do so by adding the
@@ -826,7 +826,7 @@ example of the ``record`` data type in the earlier sections, the
 ``conn.log``, is shown by the excerpt below.
 
 .. btest-include:: ${BRO_SRC_ROOT}/scripts/base/protocols/conn/main.bro
-   :lines: 10-12,16-17,19,21,23,25,28,31,35,38,57,63,69,92,95,99,102,106,110-111,116
+   :lines: 10-12,16-17,19,21,23,25,28,31,35,38,57,63,69,75,98,101,105,108,112,116-117,122
 
 Looking at the structure of the definition, a new collection of data
 types is being defined as a type called ``Info``.  Since this type

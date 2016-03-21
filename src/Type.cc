@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "config.h"
+#include "bro-config.h"
 
 #include "Type.h"
 #include "Attr.h"
@@ -1045,6 +1045,8 @@ TypeDecl* RecordType::FieldDecl(int field)
 
 void RecordType::Describe(ODesc* d) const
 	{
+	d->PushType(this);
+
 	if ( d->IsReadable() )
 		{
 		if ( d->IsShort() && GetName().size() )
@@ -1064,10 +1066,13 @@ void RecordType::Describe(ODesc* d) const
 		d->Add(int(Tag()));
 		DescribeFields(d);
 		}
+
+	d->PopType(this);
 	}
 
 void RecordType::DescribeReST(ODesc* d, bool roles_only) const
 	{
+	d->PushType(this);
 	d->Add(":bro:type:`record`");
 
 	if ( num_fields == 0 )
@@ -1075,6 +1080,7 @@ void RecordType::DescribeReST(ODesc* d, bool roles_only) const
 
 	d->NL();
 	DescribeFieldsReST(d, false);
+	d->PopType(this);
 	}
 
 const char* RecordType::AddFields(type_decl_list* others, attr_list* attr)
@@ -1129,7 +1135,12 @@ void RecordType::DescribeFields(ODesc* d) const
 			const TypeDecl* td = FieldDecl(i);
 			d->Add(td->id);
 			d->Add(":");
-			td->type->Describe(d);
+
+			if ( d->FindType(td->type) )
+				d->Add("<recursion>");
+			else
+				td->type->Describe(d);
+
 			d->Add(";");
 			}
 		}
@@ -1170,7 +1181,11 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 			}
 
 		const TypeDecl* td = FieldDecl(i);
-		td->DescribeReST(d);
+
+		if ( d->FindType(td->type) )
+			d->Add("<recursion>");
+		else
+			td->DescribeReST(d);
 
 		if ( func_args )
 			continue;
@@ -1971,18 +1986,33 @@ int same_attrs(const Attributes* a1, const Attributes* a2)
 	return (*a1 == *a2);
 	}
 
-int record_promotion_compatible(const RecordType* /* super_rec */,
-				const RecordType* /* sub_rec */)
+int record_promotion_compatible(const RecordType* super_rec,
+				const RecordType* sub_rec)
 	{
-#if 0
-	int n = sub_rec->NumFields();
-
-	for ( int i = 0; i < n; ++i )
+	for ( int i = 0; i < sub_rec->NumFields(); ++i )
 		{
-		if ( ! super_rec->HasField(sub_rec->FieldName(i)) )
+		int o = super_rec->FieldOffset(sub_rec->FieldName(i));
+
+		if ( o < 0 )
+			// Orphaned field.
+			continue;
+
+		BroType* sub_field_type = sub_rec->FieldType(i);
+		BroType* super_field_type = super_rec->FieldType(o);
+
+		if ( same_type(sub_field_type, super_field_type) )
+			continue;
+
+		if ( sub_field_type->Tag() != TYPE_RECORD )
+			return 0;
+
+		if ( super_field_type->Tag() != TYPE_RECORD )
+			return 0;
+
+		if ( ! record_promotion_compatible(super_field_type->AsRecordType(),
+		                                   sub_field_type->AsRecordType()) )
 			return 0;
 		}
-#endif
 
 	return 1;
 	}

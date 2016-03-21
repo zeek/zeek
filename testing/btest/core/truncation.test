@@ -19,4 +19,10 @@
 
 # @TEST-EXEC: bro -r $TRACES/trunc/icmp-header-trunc.pcap
 # @TEST-EXEC: cat weird.log >> output
+
+# Truncated packets where the captured length is less than the length required
+# for the packet header should also raise a Weird
+# @TEST-EXEC: bro -r $TRACES/trunc/trunc-hdr.pcap
+# @TEST-EXEC: cat weird.log >> output
+
 # @TEST-EXEC: btest-diff output

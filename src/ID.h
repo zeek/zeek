@@ -87,7 +87,7 @@ public:
 
 	void Error(const char* msg, const BroObj* o2 = 0);
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 	// Adds type and value to description.
 	void DescribeExtended(ODesc* d) const;
 	// Produces a description that's reST-ready.

@@ -43,7 +43,7 @@ redef likely_server_ports += { ports };
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(SOCKS::LOG, [$columns=Info, $ev=log_socks]);
+	Log::create_stream(SOCKS::LOG, [$columns=Info, $ev=log_socks, $path="socks"]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SOCKS, ports);
 	}
 

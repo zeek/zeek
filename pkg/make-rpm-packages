@@ -3,8 +3,6 @@
 # This script generates binary RPM packages.
 # They can be found in ../build/ after running.
 
-./check-cmake || { exit 1; }
-
 # The RPM CPack generator depends on `rpmbuild` to create packages
 type rpmbuild > /dev/null 2>&1 || {
     echo "\

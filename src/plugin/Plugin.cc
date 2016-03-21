@@ -23,6 +23,7 @@ const char* plugin::hook_name(HookType h)
 		"DrainEvents",
 		"UpdateNetworkTime",
 		"BroObjDtor",
+		"SetupAnalyzerTree",
 		// MetaHooks
 		"MetaHookPre",
 		"MetaHookPost",
@@ -79,6 +80,26 @@ void HookArgument::Describe(ODesc* d) const
 			describe_vals(arg.event->Args(), d);
 			d->Add(")");
 			}
+		else
+			d->Add("<null>");
+		break;
+
+	case FUNC_RESULT:
+		if ( func_result.first )
+			{
+			if( func_result.second )
+				func_result.second->Describe(d);
+			else
+				d->Add("<null>");
+			}
+		else
+			d->Add("<no result>");
+
+		break;
+
+	case FRAME:
+		if ( arg.frame )
+			d->Add("<frame>");
 		else
 			d->Add("<null>");
 		break;
@@ -199,7 +220,7 @@ void Plugin::InitPostScript()
 
 Plugin::bif_item_list Plugin::BifItems() const
 	{
-    return bif_items;
+	return bif_items;
 	}
 
 void Plugin::Done()
@@ -271,9 +292,10 @@ int Plugin::HookLoadFile(const std::string& file, const std::string& ext)
 	return -1;
 	}
 
-Val* Plugin::HookCallFunction(const Func* func, val_list* args)
+std::pair<bool, Val*> Plugin::HookCallFunction(const Func* func, Frame *parent, val_list* args)
 	{
-	return 0;
+	std::pair<bool, Val*> result(false, NULL);
+	return result;
 	}
 
 bool Plugin::HookQueueEvent(Event* event)
@@ -286,6 +308,10 @@ void Plugin::HookDrainEvents()
 	}
 
 void Plugin::HookUpdateNetworkTime(double network_time)
+	{
+	}
+
+void Plugin::HookSetupAnalyzerTree(Connection *conn)
 	{
 	}
 

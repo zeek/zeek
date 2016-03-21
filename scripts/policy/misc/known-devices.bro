@@ -38,5 +38,5 @@ export {
 
 event bro_init()
 	{
-	Log::create_stream(Known::DEVICES_LOG, [$columns=DevicesInfo, $ev=log_known_devices]);
+	Log::create_stream(Known::DEVICES_LOG, [$columns=DevicesInfo, $ev=log_known_devices, $path="known_devices"]);
 	}

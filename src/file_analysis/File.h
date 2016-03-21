@@ -230,12 +230,11 @@ protected:
 	bool BufferBOF(const u_char* data, uint64 len);
 
 	/**
-	 * Does mime type detection via file magic signatures and assigns
-	 * strongest matching mime type (if available) to \c mime_type
-	 * field in #val.  It uses the data in the BOF buffer.
-	 * @return whether a mime type match was found.
+	 * Does metadata inference (e.g. mime type detection via file
+	 * magic signatures) using data in the BOF (beginning-of-file) buffer
+	 * and raises an event with the metadata.
 	 */
-	bool DetectMIME();
+	void InferMetadata();
 
 	/**
 	 * Enables reassembly on the file.
@@ -266,10 +265,11 @@ protected:
 
 	/**
 	 * Lookup a record field index/offset by name.
-	 * @param field_name the name of the \c fa_file record field.
+	 * @param field_name the name of the record field.
+	 * @param type the record type for which the field will be looked up.
 	 * @return the field offset in #val record corresponding to \a field_name.
 	 */
-	static int Idx(const string& field_name);
+	static int Idx(const string& field_name, const RecordType* type);
 
 	/**
 	 * Initializes static member.
@@ -282,7 +282,7 @@ protected:
 	FileReassembler* file_reassembler; /**< A reassembler for the file if it's needed. */
 	uint64 stream_offset;      /**< The offset of the file which has been forwarded. */
 	uint64 reassembly_max_buffer;      /**< Maximum allowed buffer for reassembly. */
-	bool did_mime_type;        /**< Whether the mime type ident has already been attempted. */
+	bool did_metadata_inference;        /**< Whether the metadata inference has already been attempted. */
 	bool reassembly_enabled;           /**< Whether file stream reassembly is needed. */
 	bool postpone_timeout;     /**< Whether postponing timeout is requested. */
 	bool done;                 /**< If this object is about to be deleted. */
@@ -313,6 +313,9 @@ protected:
 	static int bof_buffer_idx;
 	static int mime_type_idx;
 	static int mime_types_idx;
+
+	static int meta_mime_type_idx;
+	static int meta_mime_types_idx;
 };
 
 } // namespace file_analysis

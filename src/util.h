@@ -23,7 +23,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <libgen.h>
-#include "config.h"
+#include "bro-config.h"
 
 #if __STDC__
 #define myattribute __attribute__
@@ -143,11 +143,8 @@ extern char* get_word(char*& s);
 extern void get_word(int length, const char* s, int& pwlen, const char*& pw);
 extern void to_upper(char* s);
 extern std::string to_upper(const std::string& s);
-extern const char* strchr_n(const char* s, const char* end_of_s, char ch);
-extern const char* strrchr_n(const char* s, const char* end_of_s, char ch);
 extern int decode_hex(char ch);
 extern unsigned char encode_hex(int h);
-extern int strcasecmp_n(int s_len, const char* s, const char* t);
 #ifndef HAVE_STRCASESTR
 extern char* strcasestr(const char* s, const char* find);
 #endif

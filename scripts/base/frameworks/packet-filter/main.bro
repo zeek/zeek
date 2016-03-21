@@ -138,7 +138,7 @@ redef enum PcapFilterID += {
 
 function test_filter(filter: string): bool
 	{
-	if ( ! precompile_pcap_filter(FilterTester, filter) )
+	if ( ! Pcap::precompile_pcap_filter(FilterTester, filter) )
 		{
 		# The given filter was invalid
 		# TODO: generate a notice.
@@ -159,7 +159,7 @@ event filter_change_tracking()
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(PacketFilter::LOG, [$columns=Info]);
+	Log::create_stream(PacketFilter::LOG, [$columns=Info, $path="packet_filter"]);
 
 	# Preverify the capture and restrict filters to give more granular failure messages.
 	for ( id in capture_filters )
@@ -273,7 +273,7 @@ function install(): bool
 		return F;
 
 	local ts = current_time();
-	if ( ! precompile_pcap_filter(DefaultPcapFilter, tmp_filter) )
+	if ( ! Pcap::precompile_pcap_filter(DefaultPcapFilter, tmp_filter) )
 		{
 		NOTICE([$note=Compile_Failure,
 		        $msg=fmt("Compiling packet filter failed"),
@@ -303,7 +303,7 @@ function install(): bool
 		}
 	info$filter = current_filter;
 
-	if ( ! install_pcap_filter(DefaultPcapFilter) )
+	if ( ! Pcap::install_pcap_filter(DefaultPcapFilter) )
 		{
 		# Installing the filter failed for some reason.
 		info$success = F;

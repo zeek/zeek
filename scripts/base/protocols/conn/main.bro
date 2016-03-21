@@ -47,7 +47,7 @@ export {
 		## S2           Connection established and close attempt by originator seen (but no reply from responder).
 		## S3           Connection established and close attempt by responder seen (but no reply from originator).
 		## RSTO         Connection established, originator aborted (sent a RST).
-		## RSTR         Established, responder aborted.
+		## RSTR         Responder sent a RST.
 		## RSTOS0       Originator sent a SYN followed by a RST, we never saw a SYN-ACK from the responder.
 		## RSTRH        Responder sent a SYN ACK followed by a RST, we never saw a SYN from the (purported) originator.
 		## SH           Originator sent a SYN followed by a FIN, we never saw a SYN ACK from the responder (hence the connection was "half" open).
@@ -87,7 +87,8 @@ export {
 		## f       packet with FIN bit set
 		## r       packet with RST bit set
 		## c       packet with a bad checksum
-		## i       inconsistent packet (e.g. SYN+RST bits both set)
+		## i       inconsistent packet (e.g. FIN+RST bits set)
+		## q       multi-flag packet (SYN+FIN or SYN+RST bits set)
 		## ======  ====================================================
 		##
 		## If the event comes from the originator, the letter is in
@@ -127,7 +128,7 @@ redef record connection += {
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(Conn::LOG, [$columns=Info, $ev=log_conn]);
+	Log::create_stream(Conn::LOG, [$columns=Info, $ev=log_conn, $path="conn"]);
 	}
 
 function conn_state(c: connection, trans: transport_proto): string

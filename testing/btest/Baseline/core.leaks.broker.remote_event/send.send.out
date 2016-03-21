@@ -1,0 +1,11 @@
+BrokerComm::outgoing_connection_established, 127.0.0.1, 9999/tcp
+got event msg, pong, 0
+got auto event msg, ping, 0
+got event msg, pong, 1
+got auto event msg, ping, 1
+got event msg, pong, 2
+got auto event msg, ping, 2
+got event msg, pong, 3
+got auto event msg, ping, 3
+got event msg, pong, 4
+got auto event msg, ping, 4

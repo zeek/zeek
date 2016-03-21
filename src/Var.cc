@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "config.h"
+#include "bro-config.h"
 
 #include "Var.h"
 #include "Func.h"
@@ -63,9 +63,6 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 			return;
 			}
 		}
-
-	if ( init && optimize )
-		init = init->Simplify(SIMPLIFY_GENERAL);
 
 	if ( t && t->IsSet() )
 		{ // Check for set with explicit elements.

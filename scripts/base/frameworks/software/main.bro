@@ -105,7 +105,7 @@ export {
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(Software::LOG, [$columns=Info, $ev=log_software]);
+	Log::create_stream(Software::LOG, [$columns=Info, $ev=log_software, $path="software"]);
 	}
 	
 type Description: record {
@@ -279,6 +279,13 @@ function parse_mozilla(unparsed_version: string): Description
 			if ( 1 in parts )
 				v = parse(parts[1])$version;
 			}
+		}
+	else if ( /AdobeAIR\/[0-9\.]*/ in unparsed_version )
+		{
+		software_name = "AdobeAIR";
+		parts = split_string_all(unparsed_version, /AdobeAIR\/[0-9\.]*/);
+		if ( 1 in parts )
+			v = parse(parts[1])$version;
 		}
 	else if ( /AppleWebKit\/[0-9\.]*/ in unparsed_version )
 		{

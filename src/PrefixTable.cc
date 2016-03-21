@@ -62,9 +62,9 @@ void* PrefixTable::Insert(const Val* value, void* data)
 	}
 	}
 
-list<IPPrefix> PrefixTable::FindAll(const IPAddr& addr, int width) const
+list<tuple<IPPrefix,void*>> PrefixTable::FindAll(const IPAddr& addr, int width) const
 	{
-	std::list<IPPrefix> out;
+	std::list<tuple<IPPrefix,void*>> out;
 	prefix_t* prefix = MakePrefix(addr, width);
 
 	int elems = 0;
@@ -73,14 +73,14 @@ list<IPPrefix> PrefixTable::FindAll(const IPAddr& addr, int width) const
 	patricia_search_all(tree, prefix, &list, &elems);
 
 	for ( int i = 0; i < elems; ++i )
-		out.push_back(PrefixToIPPrefix(list[i]->prefix));
+		out.push_back(std::make_tuple(PrefixToIPPrefix(list[i]->prefix), list[i]->data));
 
 	Deref_Prefix(prefix);
 	free(list);
 	return out;
 	}
 
-list<IPPrefix> PrefixTable::FindAll(const SubNetVal* value) const
+list<tuple<IPPrefix,void*>> PrefixTable::FindAll(const SubNetVal* value) const
 	{
 	return FindAll(value->AsSubNet().Prefix(), value->AsSubNet().LengthIPv6());
 	}

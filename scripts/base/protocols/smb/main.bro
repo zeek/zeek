@@ -173,7 +173,7 @@ export {
 	## primarily useful for debugging so is disabled by default.
 	const write_cmd_log = F &redef;
 	
-	## Optionally disablethe SMB files log.
+	## Optionally disable the SMB files log.
 	const write_files_log = T &redef;
 
 	## Everything below here is used internally in the SMB scripts.

@@ -1,4 +1,11 @@
 
+2.4-422 | 2016-03-21 19:48:30 -0700
+
+  * Adapt to recent change in CAF CMake script. (Matthias Vallentin)
+
+  * Deprecate --with-libcaf in favor of --with-caf, as already done in
+    Broker. (Matthias Vallentin)
+
 2.4-418 | 2016-03-21 12:22:15 -0700
 
   * Add protocol confirmation to MySQL analyzer. (Vlad Grigorescu)

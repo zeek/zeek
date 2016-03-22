@@ -1,5 +1,3 @@
-# @TEST-REQUIRES: grep -q ENABLE_BROKER $BUILD/CMakeCache.txt
-
 # @TEST-EXEC: bro -b %INPUT >output
 # @TEST-EXEC: btest-diff output
 

@@ -1,5 +1,4 @@
 # @TEST-SERIALIZE: brokercomm
-# @TEST-REQUIRES: grep -q ENABLE_BROKER $BUILD/CMakeCache.txt
 
 # @TEST-EXEC: btest-bg-run recv "bro -b ../recv.bro broker_port=$BROKER_PORT >recv.out"
 # @TEST-EXEC: btest-bg-run send "bro -b ../send.bro broker_port=$BROKER_PORT >send.out"
@@ -22,12 +21,12 @@ event bro_init()
 
 event Broker::incoming_connection_established(peer_name: string)
 	{
-	print "Broker::incoming_connection_established", peer_name;;
+	print "Broker::incoming_connection_established", peer_name;
 	}
 
 event Broker::incoming_connection_broken(peer_name: string)
 	{
-	print "Broker::incoming_connection_broken", peer_name;;
+	print "Broker::incoming_connection_broken", peer_name;
 	terminate();
 	}
 
@@ -50,7 +49,7 @@ event Broker::outgoing_connection_established(peer_address: string,
                                             peer_name: string)
 	{
 	print "Broker::outgoing_connection_established",
-	      peer_address, peer_port, peer_name;;
+	      peer_address, peer_port, peer_name;
 	terminate();
 	}
 

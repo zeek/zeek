@@ -1,5 +1,4 @@
 # @TEST-SERIALIZE: brokercomm
-# @TEST-REQUIRES: grep -q ENABLE_BROKER $BUILD/CMakeCache.txt
 
 # @TEST-EXEC: btest-bg-run clone "bro -b ../clone.bro broker_port=$BROKER_PORT >clone.out"
 # @TEST-EXEC: btest-bg-run master "bro -b ../master.bro broker_port=$BROKER_PORT >master.out"

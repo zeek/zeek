@@ -101,6 +101,9 @@ function broker_to_bro_vector(d: Broker::Data): bro_vector
 event bro_init()
 {
 Broker::enable();
+
+### Print every broker data type
+
 print Broker::data_type(Broker::data(T));
 print Broker::data_type(Broker::data(+1));
 print Broker::data_type(Broker::data(1));
@@ -123,6 +126,8 @@ print Broker::data_type(Broker::data(r));
 
 print "***************************";
 
+### Convert a Bro value to a broker value, then print the result
+
 print Broker::refine_to_bool(Broker::data(T));
 print Broker::refine_to_bool(Broker::data(F));
 print Broker::refine_to_int(Broker::data(+1));
@@ -140,10 +145,30 @@ print Broker::refine_to_time(Broker::data(double_to_time(42)));
 print Broker::refine_to_interval(Broker::data(3min));
 print Broker::refine_to_enum_name(Broker::data(Broker::BOOL));
 
-print "***************************";
-
 local cs = Broker::data(s);
 print broker_to_bro_set(cs);
+
+local ct = Broker::data(t);
+print broker_to_bro_table(ct);
+
+local cv = Broker::data(v);
+print broker_to_bro_vector(cv);
+
+local cr = Broker::data(r);
+print broker_to_bro_record(cr);
+
+r$a = "test";
+cr = Broker::data(r);
+print broker_to_bro_record(cr);
+
+r$b = "testagain";
+cr = Broker::data(r);
+print broker_to_bro_record(cr);
+
+print "***************************";
+
+### Test the broker set BIFs
+
 cs = Broker::set_create();
 print Broker::set_size(cs);
 print Broker::set_insert(cs, Broker::data("hi"));
@@ -152,17 +177,20 @@ print Broker::set_contains(cs, Broker::data("hi"));
 print Broker::set_contains(cs, Broker::data("bye"));
 print Broker::set_insert(cs, Broker::data("bye"));
 print Broker::set_size(cs);
+print Broker::set_insert(cs, Broker::data("bye"));
+print Broker::set_size(cs);
 print Broker::set_remove(cs, Broker::data("hi"));
 print Broker::set_size(cs);
 print Broker::set_remove(cs, Broker::data("hi"));
 print broker_to_bro_set(cs);
-Broker::set_clear(cs);
+print Broker::set_clear(cs);
 print Broker::set_size(cs);
+print broker_to_bro_set(cs);
 
 print "***************************";
 
-local ct = Broker::data(t);
-print broker_to_bro_table(ct);
+### Test the broker table BIFs
+
 ct = Broker::table_create();
 print Broker::table_size(ct);
 print Broker::table_insert(ct, Broker::data("hi"), Broker::data(42));
@@ -177,11 +205,16 @@ print Broker::table_size(ct);
 print Broker::refine_to_count(Broker::table_lookup(ct, Broker::data("bye")));
 print Broker::table_remove(ct, Broker::data("hi"));
 print Broker::table_size(ct);
+print Broker::table_remove(ct, Broker::data("hi"));
+print Broker::table_size(ct);
+print Broker::table_clear(ct);
+print Broker::table_size(ct);
+print broker_to_bro_table(ct);
 
 print "***************************";
 
-local cv = Broker::data(v);
-print broker_to_bro_vector(cv);
+### Test the broker vector BIFs
+
 cv = Broker::vector_create();
 print Broker::vector_size(cv);
 print Broker::vector_insert(cv, Broker::data("hi"), 0);
@@ -197,17 +230,14 @@ print broker_to_bro_vector(cv);
 print Broker::vector_remove(cv, 2);
 print broker_to_bro_vector(cv);
 print Broker::vector_size(cv);
+print Broker::vector_clear(cv);
+print Broker::vector_size(cv);
+print broker_to_bro_vector(cv);
 
 print "***************************";
 
-local cr = Broker::data(r);
-print broker_to_bro_record(cr);
-r$a = "test";
-cr = Broker::data(r);
-print broker_to_bro_record(cr);
-r$b = "testagain";
-cr = Broker::data(r);
-print broker_to_bro_record(cr);
+### Test the broker record BIFs
+
 cr = Broker::record_create(3);
 print Broker::record_size(cr);
 print Broker::record_assign(cr, Broker::data("hi"), 0);
@@ -217,4 +247,7 @@ print Broker::record_lookup(cr, 0);
 print Broker::record_lookup(cr, 1);
 print Broker::record_lookup(cr, 2);
 print Broker::record_size(cr);
+print Broker::record_assign(cr, Broker::data("goodbye"), 1);
+print Broker::record_size(cr);
+print Broker::record_lookup(cr, 1);
 }

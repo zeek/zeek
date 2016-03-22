@@ -14,6 +14,8 @@ export {
 	type Type: enum {
 		## An IP address.
 		ADDR,
+		## A subnet in CIDR notation.
+		SUBNET,
 		## A complete URL without the prefix ``"http://"``.
 		URL,
 		## Software name.
@@ -35,7 +37,9 @@ export {
 		## Public key MD5 hash. (SSH server host keys are a good example.)
 		PUBKEY_HASH,
 	};
-	
+	## Set of intelligence data types.
+	type TypeSet: set[Type];
+
 	## Data about an :bro:type:`Intel::Item`.
 	type MetaData: record {
 		## An arbitrary string value representing the data source.
@@ -123,6 +127,8 @@ export {
 
 		## Where the data was seen.
 		seen:     Seen           &log;
+		## Which indicator types matched.
+		matched:  TypeSet        &log;
 		## Sources which supplied data that resulted in this match.
 		sources:  set[string]    &log &default=string_set();
 	};
@@ -162,6 +168,7 @@ type MetaDataTable: table[string] of MetaData;
 # The in memory data structure for holding intelligence.
 type DataStore: record {
 	host_data:    table[addr] of MetaDataTable;
+	subnet_data:  table[subnet] of MetaDataTable;
 	string_data:  table[string, Type] of MetaDataTable;
 };
 global data_store: DataStore &redef;
@@ -171,6 +178,7 @@ global data_store: DataStore &redef;
 # a minimal amount of data for the full match to happen on the manager.
 type MinDataStore: record {
 	host_data:    set[addr];
+	subnet_data:  set[subnet];
 	string_data:  set[string, Type];
 };
 global min_data_store: MinDataStore &redef;
@@ -186,12 +194,11 @@ function find(s: Seen): bool
 	if ( s?$host )
 		{
 		return ((s$host in min_data_store$host_data) || 
-		        (have_full_data && s$host in data_store$host_data));
+		        (|matching_subnets(addr_to_subnet(s$host), min_data_store$subnet_data)| > 0));
 		}
 	else
 		{
-		return (([to_lower(s$indicator), s$indicator_type] in min_data_store$string_data) ||
-		        (have_full_data && [to_lower(s$indicator), s$indicator_type] in data_store$string_data));
+		return ([to_lower(s$indicator), s$indicator_type] in min_data_store$string_data);
 		}
 	}
 
@@ -218,6 +225,17 @@ function get_items(s: Seen): set[Item]
 				{
 				add return_data[Item($indicator=cat(s$host), $indicator_type=ADDR, $meta=mt[m])];
 				}
+			}
+		# See if the host is part of a known subnet, which has meta values
+		local nets: table[subnet] of MetaDataTable;
+		nets = filter_subnet_table(addr_to_subnet(s$host), data_store$subnet_data);
+		for ( n in nets )
+			{
+				mt = nets[n];
+				for ( m in mt )
+					{
+					add return_data[Item($indicator=cat(n), $indicator_type=SUBNET, $meta=mt[m])];
+					}
 			}
 		}
 	else
@@ -266,7 +284,7 @@ function Intel::seen(s: Seen)
 
 event Intel::match(s: Seen, items: set[Item]) &priority=5
 	{
-	local info = Info($ts=network_time(), $seen=s);
+	local info = Info($ts=network_time(), $seen=s, $matched=TypeSet());
 
 	if ( s?$f )
 		{
@@ -293,7 +311,10 @@ event Intel::match(s: Seen, items: set[Item]) &priority=5
 		}
 
 	for ( item in items )
+		{
 		add info$sources[item$meta$source];
+		add info$matched[item$indicator_type];
+		}
 
 	Log::write(Intel::LOG, info);
 	}
@@ -322,6 +343,21 @@ function insert(item: Item)
 			}
 
 		add min_data_store$host_data[host];
+		}
+	else if ( item$indicator_type == SUBNET )
+		{
+		local net = to_subnet(item$indicator);
+		if ( have_full_data )
+			{
+			if ( net !in data_store$subnet_data )
+				data_store$subnet_data[net] = table();
+			else
+				is_new = F;
+
+			meta_tbl = data_store$subnet_data[net];
+			}
+
+		add min_data_store$subnet_data[net];
 		}
 	else
 		{

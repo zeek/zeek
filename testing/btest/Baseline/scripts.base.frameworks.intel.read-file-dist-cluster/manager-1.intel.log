@@ -3,11 +3,11 @@
 #empty_field	(empty)
 #unset_field	-
 #path	intel
-#open	2014-09-23-16-15-00
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	fuid	file_mime_type	file_desc	seen.indicator	seen.indicator_type	seen.where	seen.node	sources
-#types	time	string	addr	port	addr	port	string	string	string	string	enum	enum	string	set[string]
-1411488900.900403	-	-	-	-	-	-	-	-	1.2.3.4	Intel::ADDR	Intel::IN_A_TEST	worker-1	source1
-1411488900.900403	-	-	-	-	-	-	-	-	e@mail.com	Intel::EMAIL	Intel::IN_A_TEST	worker-1	source1
-1411488901.923543	-	-	-	-	-	-	-	-	1.2.3.4	Intel::ADDR	Intel::IN_A_TEST	worker-2	source1
-1411488901.923543	-	-	-	-	-	-	-	-	e@mail.com	Intel::EMAIL	Intel::IN_A_TEST	worker-2	source1
-#close	2014-09-23-16-15-09
+#open	2016-03-22-18-11-40
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	fuid	file_mime_type	file_desc	seen.indicator	seen.indicator_type	seen.where	seen.node	matched	sources
+#types	time	string	addr	port	addr	port	string	string	string	string	enum	enum	string	set[enum]	set[string]
+1458670300.363597	-	-	-	-	-	-	-	-	1.2.3.4	Intel::ADDR	Intel::IN_A_TEST	worker-1	Intel::ADDR	source1
+1458670300.363597	-	-	-	-	-	-	-	-	e@mail.com	Intel::EMAIL	Intel::IN_A_TEST	worker-1	Intel::EMAIL	source1
+1458670301.370555	-	-	-	-	-	-	-	-	1.2.3.4	Intel::ADDR	Intel::IN_A_TEST	worker-2	Intel::ADDR	source1
+1458670301.370555	-	-	-	-	-	-	-	-	e@mail.com	Intel::EMAIL	Intel::IN_A_TEST	worker-2	Intel::EMAIL	source1
+#close	2016-03-22-18-11-49

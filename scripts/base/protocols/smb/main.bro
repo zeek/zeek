@@ -172,6 +172,9 @@ export {
 	## Optionally write out the SMB commands log.  This is 
 	## primarily useful for debugging so is disabled by default.
 	const write_cmd_log = F &redef;
+	
+	## Optionally disablethe SMB files log.
+	const write_files_log = T &redef;
 
 	## Everything below here is used internally in the SMB scripts.
 
@@ -229,6 +232,9 @@ function set_current_file(smb_state: State, file_id: count)
 
 function write_file_log(state: State)
 	{
+	if ( !write_files_log )
+	     return;
+	   
 	local f = state$current_file;
 	if ( f?$name && 
 	     f$name !in pipe_names &&

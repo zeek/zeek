@@ -375,11 +375,32 @@ void Attributes::CheckAttr(Attr* a)
 	case ATTR_EXPIRE_READ:
 	case ATTR_EXPIRE_WRITE:
 	case ATTR_EXPIRE_CREATE:
+		{
 		if ( type->Tag() != TYPE_TABLE )
 			{
 			Error("expiration only applicable to tables");
 			break;
 			}
+
+		int num_expires = 0;
+		if ( attrs )
+			{
+			loop_over_list(*attrs, i)
+				{
+				Attr* a = (*attrs)[i];
+				if ( a->Tag() == ATTR_EXPIRE_READ ||
+				     a->Tag() == ATTR_EXPIRE_WRITE ||
+				     a->Tag() == ATTR_EXPIRE_CREATE )
+					num_expires++;
+				}
+			}
+
+		if ( num_expires > 1 )
+			{
+			Error("set/table can only have one of &read_expire, &write_expire, &create_expire");
+			break;
+			}
+		}
 
 #if 0
 		//### not easy to test this w/o knowing the ID.

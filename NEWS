@@ -23,6 +23,9 @@ New Dependencies
 New Functionality
 -----------------
 
+- Bro now includes the NetControl framework. The framework allows for easy
+  interaction of Bro with hard- and software switches, firewalls, etc.
+
 - Bro now supports the Radiotap header for 802.11 frames.
 
 - Bro now tracks VLAN IDs. To record them inside the connection log,
@@ -37,12 +40,37 @@ New Functionality
   argument that will be used for decoding errors into weird.log
   (instead of reporter.log).
 
+- Two new built-in functions for handling set[subnet] and table[subnet]:
+
+  - check_subnet(subnet, table) checks if a specific subnet is a member
+    of a set/table. This is different from the "in" operator, which always
+    performs a longest prefix match.
+
+  - matching_subnets(subnet, table) returns all subnets of the set or table
+    that contain the given subnet.
+
+  - filter_subnet_table(subnet, table) works like check_subnet, but returns
+    a table containing all matching entries.
+
+- Several built-in functions for handling IP addresses and subnets were added:
+
+  - is_v4_subnet(subnet) checks whether a subnet specification is IPv4.
+
+  - is_v6_subnet(subnet) checks whether a subnet specification is IPv6.
+
+  - addr_to_subnet(addr) converts an IP address to a /32 subnet.
+
+  - subnet_to_addr(subnet) returns the IP address part of a subnet.
+
+  - subnet_width(subnet) returns the width of a subnet.
+
 - The IRC analyzer now recognizes StartTLS sessions and enable the SSL
   analyzer for them.
 
 - New Bro plugins in aux/plugins:
 
     - af_packet: Native AF_PACKET support.
+    - kafka : Log writer interfacing to Kafka.
     - myricom: Native Myricom SNF v3 support.
     - pf_ring: Native PF_RING support.
     - redis: An experimental log writer for Redis.

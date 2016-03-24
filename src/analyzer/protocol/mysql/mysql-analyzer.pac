@@ -19,6 +19,9 @@ refine flow MySQL_Flow += {
 
 	function proc_mysql_handshake_response_packet(msg: Handshake_Response_Packet): bool
 		%{
+		if ( ${msg.version} == 9 || ${msg.version == 10} )
+			connection()->bro_analyzer()->ProtocolConfirmation();
+
 		if ( mysql_handshake )
 			{
 			if ( ${msg.version} == 10 )

@@ -37,8 +37,8 @@ public:
 	void* Lookup(const Val* value, bool exact = false) const;
 
 	// Returns list of all found matches or empty list otherwise.
-	list<IPPrefix> FindAll(const IPAddr& addr, int width) const;
-	list<IPPrefix> FindAll(const SubNetVal* value) const;
+	list<tuple<IPPrefix,void*>> FindAll(const IPAddr& addr, int width) const;
+	list<tuple<IPPrefix,void*>> FindAll(const SubNetVal* value) const;
 
 	// Returns pointer to data or nil if not found.
 	void* Remove(const IPAddr& addr, int width);

@@ -1,4 +1,30 @@
 
+2.4-422 | 2016-03-21 19:48:30 -0700
+
+  * Adapt to recent change in CAF CMake script. (Matthias Vallentin)
+
+  * Deprecate --with-libcaf in favor of --with-caf, as already done in
+    Broker. (Matthias Vallentin)
+
+2.4-418 | 2016-03-21 12:22:15 -0700
+
+  * Add protocol confirmation to MySQL analyzer. (Vlad Grigorescu)
+
+  * Check that there is only one of &read_expire, &write_expire,
+    &create_expire. (Johanna Amann)
+
+  * Fixed &read_expire for subnet-indexed tables, plus test case. (Jan
+    Grashoefer)
+
+  * Add filter_subnet_table() that works similar to matching_subnet()
+    but returns a filtered view of the original set/table only
+    containing the changed subnets. (Jan Grashoefer)
+
+  * Fix bug in tablue values' tracking read operations. (Johanna
+    Amann)
+
+  * Update TLS constants and extensions from IANA. (Johanna Amann)
+
 2.4-406 | 2016-03-11 14:27:47 -0800
 
   * Add NetControl and OpenFlow frameworks.  (Johanna Amann)

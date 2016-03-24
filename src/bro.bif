@@ -1031,7 +1031,7 @@ function clear_table%(v: any%): any
 	return 0;
 	%}
 
-## Gets all subnets that match a given subnet from a set/table[subnet]
+## Gets all subnets that contain a given subnet from a set/table[subnet]
 ##
 ## search: the subnet to search for.
 ##
@@ -1046,23 +1046,26 @@ function matching_subnets%(search: subnet, t: any%): subnet_vec
 		return nullptr;
 		}
 
-	const PrefixTable* pt = t->AsTableVal()->Subnets();
-	if ( ! pt )
+	return t->AsTableVal()->LookupSubnets(search);
+	%}
+
+## For a set[subnet]/table[subnet], create a new table that contains all entries that
+## contain a given subnet.
+##
+## search: the subnet to search for.
+##
+## t: the set[subnet] or table[subnet].
+##
+## Returns: A new table that contains all the entries that cover the subnet searched for.
+function filter_subnet_table%(search: subnet, t: any%): any
+	%{
+	if ( t->Type()->Tag() != TYPE_TABLE || ! t->Type()->AsTableType()->IsSubNetIndex() )
 		{
-		reporter->Error("matching_subnets encountered nonexisting prefix table.");
+		reporter->Error("filter_subnet_table needs to be called on a set[subnet]/table[subnet].");
 		return nullptr;
 		}
 
-	VectorVal* result_v = new VectorVal(internal_type("subnet_vec")->AsVectorType());
-
-	auto matches = pt->FindAll(search);
-	for ( auto element : matches )
-		{
-		SubNetVal* s = new SubNetVal(element);
-		result_v->Assign(result_v->Size(), s);
-		}
-
-	return result_v;
+	return t->AsTableVal()->LookupSubnetValues(search);
 	%}
 
 ## Checks if a specific subnet is a member of a set/table[subnet].
@@ -1078,14 +1081,14 @@ function check_subnet%(search: subnet, t: any%): bool
 	%{
 	if ( t->Type()->Tag() != TYPE_TABLE || ! t->Type()->AsTableType()->IsSubNetIndex() )
 		{
-		reporter->Error("matching_subnets needs to be called on a set[subnet]/table[subnet].");
+		reporter->Error("check_subnet needs to be called on a set[subnet]/table[subnet].");
 		return nullptr;
 		}
 
 	const PrefixTable* pt = t->AsTableVal()->Subnets();
 	if ( ! pt )
 		{
-		reporter->Error("matching_subnets encountered nonexisting prefix table.");
+		reporter->Error("check_subnet encountered nonexisting prefix table.");
 		return nullptr;
 		}
 

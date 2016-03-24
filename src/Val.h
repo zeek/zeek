@@ -790,6 +790,16 @@ public:
 	// need to Ref/Unref it when calling the default function.
 	Val* Lookup(Val* index, bool use_default_val = true);
 
+	// For a table[subnet]/set[subnet], return all subnets that cover
+	// the given subnet.
+	// Causes an internal error if called for any other kind of table.
+	VectorVal* LookupSubnets(const SubNetVal* s);
+
+	// For a set[subnet]/table[subnet], return a new table that only contains
+	// entries that cover the given subnet.
+	// Causes an internal error if called for any other kind of table.
+	TableVal* LookupSubnetValues(const SubNetVal* s);
+
 	// Sets the timestamp for the given index to network time.
 	// Returns false if index does not exist.
 	bool UpdateTimestamp(Val* index);

@@ -1,0 +1,1 @@
+error in /Users/johanna/bro/master/testing/btest/.tmp/language.expire_multiple/expire_multiple.test, line 4: set/table can only have one of &read_expire, &write_expire, &create_expire (&create_expire=1.0 sec, &read_expire=1.0 sec)

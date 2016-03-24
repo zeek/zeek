@@ -97,6 +97,7 @@ export {
 
 	type AuthInfo: record {
 		ts         : time   &log &optional;
+		uid        : string  &log;
 		username   : string &log &optional;
 		hostname   : string &log &optional;
 		domainname : string &log &optional;

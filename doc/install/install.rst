@@ -75,6 +75,21 @@ To install the required dependencies, you can use:
   Note that in older versions of FreeBSD, you might have to use the
   "pkg_add -r" command instead of "pkg install".
 
+  For older versions of FreeBSD (especially FreeBSD 9.x), the system compiler
+  is not new enough to compile Bro. For these systems, you will have to install
+  a newer compiler using pkg; the ``clang34`` package should work.
+
+  You will also have to define several environment variables on these older
+  systems to use the new compiler and headers similar to this before calling
+  configure:
+
+  .. console::
+
+     export CC=clang34
+     export CXX=clang++34
+     export CXXFLAGS="-stdlib=libc++ -I${LOCALBASE}/include/c++/v1 -L${LOCALBASE}/lib"
+     export LDFLAGS="-pthread"
+
 * Mac OS X:
 
   Compiling source code on Macs requires first installing Xcode_ (in older

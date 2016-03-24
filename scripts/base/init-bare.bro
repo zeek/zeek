@@ -39,6 +39,13 @@ type count_set: set[count];
 ##    directly and then remove this alias.
 type index_vec: vector of count;
 
+## A vector of subnets.
+##
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
+type subnet_vec: vector of subnet;
+
 ## A vector of any, used by some builtin functions to store a list of varying
 ## types.
 ##
@@ -118,6 +125,18 @@ type conn_id: record {
 	orig_p: port;	##< The originator's port number.
 	resp_h: addr;	##< The responder's IP address.
 	resp_p: port;	##< The responder's port number.
+} &log;
+
+## The identifying 4-tuple of a uni-directional flow.
+##
+## .. note:: It's actually a 5-tuple: the transport-layer protocol is stored as
+##    part of the port values, `src_p` and `dst_p`, and can be extracted from
+##    them with :bro:id:`get_port_transport_proto`.
+type flow_id : record {
+	src_h: addr;	##< The source IP address.
+	src_p: port;	##< The source port number.
+	dst_h: addr;	##< The destination IP address.
+	dst_p: port;	##< The desintation port number.
 } &log;
 
 ## Specifics about an ICMP conversation. ICMP events typically pass this in

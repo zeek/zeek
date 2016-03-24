@@ -64,6 +64,7 @@ export {
 	## Events that are sent from Broker to us
 	global acld_rule_added: event(id: count, r: Rule, msg: string);
 	global acld_rule_removed: event(id: count, r: Rule, msg: string);
+	global acld_rule_exists: event(id: count, r: Rule, msg: string);
 	global acld_rule_error: event(id: count, r: Rule, msg: string);
 }
 
@@ -96,6 +97,19 @@ event NetControl::acld_rule_added(id: count, r: Rule, msg: string)
 	local p = netcontrol_acld_id[id];
 
 	event NetControl::rule_added(r, p, msg);
+	}
+
+event NetControl::acld_rule_exists(id: count, r: Rule, msg: string)
+	{
+	if ( id !in netcontrol_acld_id )
+		{
+		Reporter::error(fmt("NetControl acld plugin with id %d not found, aborting", id));
+		return;
+		}
+
+	local p = netcontrol_acld_id[id];
+
+	event NetControl::rule_exists(r, p, msg);
 	}
 
 event NetControl::acld_rule_removed(id: count, r: Rule, msg: string)

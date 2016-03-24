@@ -126,6 +126,17 @@ export {
 	## asynchronously and thus go wrong at that point.
 	global remove_rule: function(id: string) : bool;
 
+	## Deletes a rule without removing in from the backends to which it has been
+	## added before. This mean that no messages will be sent to the switches to which
+	## the rule has been added; if it is not removed from them by a separate mechanism,
+	## it will stay installed and not be removed later.
+	##
+	## id: The rule to delete, specified as the ID returned by :bro:id:`add_rule` .
+	##
+	## Returns: True if removal is successful, or sent to manager. 
+	## False if the rule could not be found.
+	global delete_rule: function(id: string) : bool;
+
 	## Searches all rules affecting a certain IP address.
 	##
 	## ip: The ip address to search for
@@ -150,6 +161,19 @@ export {
 	##
 	## msg: An optional informational message by the plugin.
 	global rule_added: event(r: Rule, p: PluginState, msg: string &default="");
+
+	## Signals that a rule that was supposed to be put in place was already
+	## existing at the specified plugin. Rules that already have been existing
+	## continue to be tracked like normal, but no timeout calls will be sent
+	## to the specified plugins. Removal of the rule from the hardware can
+	## still be forced by manually issuing a remove_rule call.
+	##
+	## r: The rule that was already in place.
+	##
+	## p: The plugin that reported that the rule already was in place.
+	##
+	## msg: An optional informational message by the plugin.
+	global rule_exists: event(r: Rule, p: PluginState, msg: string &default="");
 
 	## Reports that a rule was removed due to a remove: function() call.
 	##
@@ -211,6 +235,7 @@ export {
 	type InfoState: enum {
 		REQUESTED,
 		SUCCEEDED,
+		EXISTS,
 		FAILED,
 		REMOVED,
 		TIMEOUT,
@@ -260,6 +285,8 @@ redef record Rule += {
 	_plugin_ids: set[count] &default=count_set();
 	##< Internally set to the plugins on which the rule is currently active.
 	_active_plugin_ids: set[count] &default=count_set();
+	##< Internally set to plugins where the rule should not be removed upon timeout.
+	_no_expire_plugins: set[count] &default=count_set();
 	##< Track if the rule was added succesfully by all responsible plugins.
 	_added: bool &default=F;
 };
@@ -736,6 +763,29 @@ function add_rule_impl(rule: Rule) : string
 	return "";
 	}
 
+function rule_cleanup(r: Rule)
+	{
+	if ( |r$_active_plugin_ids| > 0 )
+		return;
+
+	remove_subnet_entry(r);
+
+	delete rule_entities[r$entity, r$ty];
+	delete rules[r$id];
+	}
+
+function delete_rule_impl(id: string): bool
+	{
+	if ( id !in rules )
+		return F;
+
+	local rule = rules[id];
+
+	rule$_active_plugin_ids = set();
+
+	rule_cleanup(rule);
+	}
+
 function remove_rule_plugin(r: Rule, p: PluginState): bool
 	{
 	local success = T;
@@ -784,10 +834,21 @@ function rule_expire_impl(r: Rule, p: PluginState) &priority=-5
 		# Removed already.
 		return;
 
-	event NetControl::rule_timeout(r, FlowInfo(), p); # timeout implementation will handle the removal
+	local rule = rules[r$id];
+
+	if ( p$_id in rule$_no_expire_plugins )
+		{
+		# in this case - don't log anything, just remove the plugin from the rule
+		# and cleaup
+		delete rule$_active_plugin_ids[p$_id];
+		delete rule$_no_expire_plugins[p$_id];
+		rule_cleanup(rule);
+		}
+	else
+		event NetControl::rule_timeout(r, FlowInfo(), p); # timeout implementation will handle the removal
 	}
 
-function rule_added_impl(r: Rule, p: PluginState, msg: string &default="")
+function rule_added_impl(r: Rule, p: PluginState, exists: bool, msg: string &default="")
 	{
 	if ( r$id !in rules )
 		{
@@ -803,7 +864,15 @@ function rule_added_impl(r: Rule, p: PluginState, msg: string &default="")
 		return;
 		}
 
-	log_rule(r, "ADD", SUCCEEDED, p, msg);
+	# The rule was already existing on the backend. Mark this so we don't timeout
+	# it on this backend.
+	if ( exists )
+		{
+		add rule$_no_expire_plugins[p$_id];
+		log_rule(r, "ADD", EXISTS, p, msg);
+		}
+	else
+		log_rule(r, "ADD", SUCCEEDED, p, msg);
 
 	add rule$_active_plugin_ids[p$_id];
 	if ( |rule$_plugin_ids| == |rule$_active_plugin_ids| )
@@ -811,17 +880,6 @@ function rule_added_impl(r: Rule, p: PluginState, msg: string &default="")
 		# rule was completely added.
 		rule$_added = T;
 		}
-	}
-
-function rule_cleanup(r: Rule)
-	{
-	if ( |r$_active_plugin_ids| > 0 )
-		return;
-
-	remove_subnet_entry(r);
-
-	delete rule_entities[r$entity, r$ty];
-	delete rules[r$id];
 	}
 
 function rule_removed_impl(r: Rule, p: PluginState, msg: string &default="")

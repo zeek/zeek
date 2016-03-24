@@ -53,6 +53,11 @@ event NetControl::rule_added(r: NetControl::Rule, p: NetControl::PluginState, ms
 	NetControl::remove_rule(r$id);
 	}
 
+event NetControl::rule_exists(r: NetControl::Rule, p: NetControl::PluginState, msg: string)
+	{
+	print "rule exists", r$entity, r$ty;
+	}
+
 event NetControl::rule_removed(r: NetControl::Rule, p: NetControl::PluginState, msg: string)
 	{
 	print "rule removed", r$entity, r$ty;
@@ -89,14 +94,19 @@ event NetControl::broker_add_rule(id: count, r: NetControl::Rule)
 	{
 	print "add_rule", id, r$entity, r$ty;
 
-	BrokerComm::event("bro/event/netcontroltest", BrokerComm::event_args(NetControl::broker_rule_added, id, r, ""));
+	if ( r$cid == 3 )
+		BrokerComm::event("bro/event/netcontroltest", BrokerComm::event_args(NetControl::broker_rule_added, id, r, ""));
+	if ( r$cid == 2 )
+		BrokerComm::event("bro/event/netcontroltest", BrokerComm::event_args(NetControl::broker_rule_exists, id, r, ""));
+
+	if ( r$cid == 2 )
+		BrokerComm::event("bro/event/netcontroltest", BrokerComm::event_args(NetControl::broker_rule_timeout, id, r, NetControl::FlowInfo()));
 	}
 
 event NetControl::broker_remove_rule(id: count, r: NetControl::Rule)
 	{
 	print "remove_rule", id, r$entity, r$ty;
 
-	BrokerComm::event("bro/event/netcontroltest", BrokerComm::event_args(NetControl::broker_rule_timeout, id, r, NetControl::FlowInfo()));
 	BrokerComm::event("bro/event/netcontroltest", BrokerComm::event_args(NetControl::broker_rule_removed, id, r, ""));
 
 	if ( r$cid == 3 )

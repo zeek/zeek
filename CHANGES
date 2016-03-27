@@ -1,4 +1,10 @@
 
+2.4-424 | 2016-03-24 13:38:47 -0700
+
+  * Only load openflow/netcontrol if compiled with broker. (Johanna Amann)
+
+  * Adding canonifier to test. (Robin Sommer)
+
 2.4-422 | 2016-03-21 19:48:30 -0700
 
   * Adapt to recent change in CAF CMake script. (Matthias Vallentin)

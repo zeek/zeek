@@ -287,7 +287,7 @@ event smb_ntlm_authenticate(c: connection, hdr: SMB1::Header, request: SMB::NTLM
 	{
 	c$smb_state$current_cmd$sub_command = "NTLMSSP_AUTHENTICATE";
 
-	c$smb_state$current_auth = SMB::AuthInfo($ts=network_time());
+	c$smb_state$current_auth = SMB::AuthInfo($ts=network_time(), $uid=c$uid, $id=c$id);
 	if ( request?$domain_name )
 		c$smb_state$current_auth$domainname = request$domain_name;
 	if ( request?$workstation )

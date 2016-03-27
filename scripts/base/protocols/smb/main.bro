@@ -96,10 +96,12 @@ export {
 	};
 
 	type AuthInfo: record {
-		ts         : time   &log &optional;
-		username   : string &log &optional;
-		hostname   : string &log &optional;
-		domainname : string &log &optional;
+		ts         : time    &log;
+		uid        : string  &log;
+		id         : conn_id &log;
+		username   : string  &log &optional;
+		hostname   : string  &log &optional;
+		domainname : string  &log &optional;
 	};
 
 	## This record is for the smb_cmd.log

@@ -243,7 +243,7 @@ public:
 
 	RecordIterator(RecordVal* v, TypeTag tag, Frame* f)
 	    : OpaqueVal(bro_broker::opaque_of_record_iterator),
-	      dat(require_data_type<broker::record>(v, TYPE_VECTOR, f)),
+	      dat(require_data_type<broker::record>(v, TYPE_RECORD, f)),
 	      it(dat.fields.begin())
 		{}
 

@@ -148,7 +148,7 @@ function Broker::refine_to_subnet%(d: Broker::Data%): subnet
 function Broker::refine_to_port%(d: Broker::Data%): port
 	%{
 	auto& a = bro_broker::require_data_type<broker::port>(d->AsRecordVal(),
-													TYPE_SUBNET, frame);
+													TYPE_PORT, frame);
 	return new PortVal(a.number(), bro_broker::to_bro_port_proto(a.type()));
 	%}
 
@@ -174,7 +174,7 @@ function Broker::refine_to_time%(d: Broker::Data%): time
 function Broker::refine_to_interval%(d: Broker::Data%): interval
 	%{
 	auto v = bro_broker::require_data_type<broker::time_duration>(d->AsRecordVal(),
-														TYPE_TIME, frame).value;
+														TYPE_INTERVAL, frame).value;
 	return new Val(v, TYPE_INTERVAL);
 	%}
 

@@ -1,6 +1,23 @@
-wrote log, [msg=ping, nolog=no, num=0]
-wrote log, [msg=ping, nolog=no, num=1]
-wrote log, [msg=ping, nolog=no, num=2]
-wrote log, [msg=ping, nolog=no, num=3]
-wrote log, [msg=ping, nolog=no, num=4]
-wrote log, [msg=ping, nolog=no, num=5]
+wrote log, [msg=ping, nolog=no, num=0, inum=-2, dnum=3.14, b=T, ip=10.20.30.40, sn=10.2.0.0/16, p=22/tcp, t=1.5, ti=60.0, en=Test::testenum, se={
+hello,
+hi
+}, re=[a=msg, b=3], ve=[1st, 2nd, 3rd]]
+wrote log, [msg=, nolog=no, num=1, inum=-2, dnum=3.14, b=T, ip=fe80:abcd::1, sn=fe80::/64, p=53/udp, t=1.5, ti=60.0, en=Test::testenum, se={
+
+}, re=[a=msg, b=<uninitialized>], ve=[]]
+wrote log, [msg=ping, nolog=no, num=2, inum=-2, dnum=3.14, b=T, ip=10.20.30.40, sn=10.2.0.0/16, p=8/icmp, t=1.5, ti=60.0, en=Test::testenum, se={
+hello,
+hi
+}, re=[a=msg, b=3], ve=[1st, 2nd, 3rd]]
+wrote log, [msg=ping, nolog=no, num=3, inum=-2, dnum=3.14, b=T, ip=fe80:abcd::1, sn=fe80::/64, p=0/unknown, t=1.5, ti=60.0, en=Test::testenum, se={
+hello,
+hi
+}, re=[a=msg, b=3], ve=[1st, 2nd, 3rd]]
+wrote log, [msg=ping, nolog=no, num=4, inum=-2, dnum=3.14, b=T, ip=10.20.30.40, sn=10.2.0.0/16, p=22/tcp, t=1.5, ti=60.0, en=Test::testenum, se={
+hello,
+hi
+}, re=[a=msg, b=3], ve=[1st, 2nd, 3rd]]
+wrote log, [msg=ping, nolog=no, num=5, inum=-2, dnum=3.14, b=T, ip=fe80:abcd::1, sn=fe80::/64, p=53/udp, t=1.5, ti=60.0, en=Test::testenum, se={
+hello,
+hi
+}, re=[a=msg, b=3], ve=[1st, 2nd, 3rd]]

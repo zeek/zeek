@@ -1,5 +1,8 @@
+# Test that remote logging via broker works for all data types and values
+# (including values that are &optional or do not have &log).
+#
 # @TEST-SERIALIZE: brokercomm
-
+#
 # @TEST-EXEC: btest-bg-run recv "bro -b ../common.bro ../recv.bro broker_port=$BROKER_PORT >recv.out"
 # @TEST-EXEC: btest-bg-run send "bro -b ../common.bro ../send.bro broker_port=$BROKER_PORT >send.out"
 
@@ -16,10 +19,29 @@ module Test;
 export {
 	redef enum Log::ID += { LOG };
 
+	type my_enum: enum { testenum };
+
+	type my_rec: record {
+		a: string;
+		b: count &optional;
+	} &log;
+
 	type Info: record {
 		msg: string &log;
 		nolog: string &default="no";
 		num: count &log;
+		inum: int &log;
+		dnum: double &log;
+		b: bool &log;
+		ip: addr &log;
+		sn: subnet &log;
+		p: port &log;
+		t: time &log;
+		ti: interval &log;
+		en: my_enum &log;
+		se: set[string] &log;
+		re: my_rec &log;
+		ve: vector of string &log;
 	};
 
 	global log_test: event(rec: Test::Info);
@@ -67,16 +89,36 @@ event bro_init()
 
 global n = 0;
 
+# Test both IPv4 and IPv6 addrs, and test all port types.
+global ports: vector of port = vector(22/tcp, 53/udp, 8/icmp, 0/unknown);
+global addrs: vector of addr = vector(10.20.30.40, [fe80:abcd::1]);
+global subnets: vector of subnet = vector(10.2.0.0/16, [fe80::]/64);
+
+# Test some empty objects.
+global emptyset: set[string];
+global emptyvector: vector of string;
+
 event do_write()
 	{
-	if ( n == 6 )
-		return;
-	else
+	local logrec: Test::Info = [$msg = "ping", $num = n, $inum = -2,
+		$dnum = 3.14, $b = T, $ip = addrs[n%2], $sn = subnets[n%2],
+		$p = ports[n%4], $t = double_to_time(1.5), $ti = 1min,
+		$en = Test::testenum, $se = set("hi", "hello"),
+		$re = [$a="msg", $b=3], $ve = vector("1st", "2nd", "3rd")];
+
+	if ( n == 1 )
 		{
-		Log::write(Test::LOG, [$msg = "ping", $num = n]);
-		++n;
-		event do_write();
+		# Test that some empty or uninitialized values can be sent.
+		logrec$msg = "";
+		logrec$re = [$a="msg"];
+		logrec$se = emptyset;
+		logrec$ve = emptyvector;
 		}
+
+	Log::write(Test::LOG, logrec);
+	++n;
+	if ( n < 6 )
+		event do_write();
 	}
 
 event Broker::outgoing_connection_established(peer_address: string,

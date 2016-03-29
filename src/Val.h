@@ -790,6 +790,16 @@ public:
 	// need to Ref/Unref it when calling the default function.
 	Val* Lookup(Val* index, bool use_default_val = true);
 
+	// For a table[subnet]/set[subnet], return all subnets that cover
+	// the given subnet.
+	// Causes an internal error if called for any other kind of table.
+	VectorVal* LookupSubnets(const SubNetVal* s);
+
+	// For a set[subnet]/table[subnet], return a new table that only contains
+	// entries that cover the given subnet.
+	// Causes an internal error if called for any other kind of table.
+	TableVal* LookupSubnetValues(const SubNetVal* s);
+
 	// Sets the timestamp for the given index to network time.
 	// Returns false if index does not exist.
 	bool UpdateTimestamp(Val* index);
@@ -813,6 +823,11 @@ public:
 	// Returns the size of the table.
 	int Size() const	{ return AsTable()->Length(); }
 	int RecursiveSize() const;
+
+	// Returns the Prefix table used inside the table (if present).
+	// This allows us to do more direct queries to this specialized
+	// type that the general Table API does not allow.
+	const PrefixTable* Subnets() const { return subnets; }
 
 	void Describe(ODesc* d) const override;
 

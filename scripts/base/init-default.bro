@@ -38,6 +38,10 @@
 @load base/frameworks/reporter
 @load base/frameworks/sumstats
 @load base/frameworks/tunnels
+@ifdef ( BrokerComm::enable )
+@load base/frameworks/openflow
+@load base/frameworks/netcontrol
+@endif
 
 @load base/protocols/conn
 @load base/protocols/dhcp

@@ -1787,7 +1787,16 @@ Val* TableVal::Lookup(Val* index, bool use_default_val)
 		{
 		TableEntryVal* v = (TableEntryVal*) subnets->Lookup(index);
 		if ( v )
+			{
+			if ( attrs && attrs->FindAttr(ATTR_EXPIRE_READ) )
+					{
+					v->SetExpireAccess(network_time);
+					if ( LoggingAccess() && expire_time )
+						ReadOperation(index, v);
+					}
+
 			return v->Value() ? v->Value() : this;
+			}
 
 		if ( ! use_default_val )
 			return 0;
@@ -1810,9 +1819,7 @@ Val* TableVal::Lookup(Val* index, bool use_default_val)
 
 			if ( v )
 				{
-				if ( attrs &&
-				     ! (attrs->FindAttr(ATTR_EXPIRE_WRITE) ||
-					attrs->FindAttr(ATTR_EXPIRE_CREATE)) )
+				if ( attrs && attrs->FindAttr(ATTR_EXPIRE_READ) )
 					{
 					v->SetExpireAccess(network_time);
 					if ( LoggingAccess() && expire_time )
@@ -1831,6 +1838,57 @@ Val* TableVal::Lookup(Val* index, bool use_default_val)
 
 	last_default = def;
 	return def;
+	}
+
+VectorVal* TableVal::LookupSubnets(const SubNetVal* search)
+	{
+	if ( ! subnets )
+		reporter->InternalError("LookupSubnets called on wrong table type");
+
+	VectorVal* result = new VectorVal(internal_type("subnet_vec")->AsVectorType());
+
+	auto matches = subnets->FindAll(search);
+	for ( auto element : matches )
+		{
+		SubNetVal* s = new SubNetVal(get<0>(element));
+		result->Assign(result->Size(), s);
+		}
+
+	return result;
+	}
+
+TableVal* TableVal::LookupSubnetValues(const SubNetVal* search)
+	{
+	if ( ! subnets )
+		reporter->InternalError("LookupSubnetValues called on wrong table type");
+
+	TableVal* nt = new TableVal(this->Type()->Ref()->AsTableType());
+
+	auto matches = subnets->FindAll(search);
+	for ( auto element : matches )
+		{
+		SubNetVal* s = new SubNetVal(get<0>(element));
+		TableEntryVal* entry = reinterpret_cast<TableEntryVal*>(get<1>(element));
+
+		if ( entry && entry->Value() )
+			nt->Assign(s, entry->Value()->Ref());
+		else
+			nt->Assign(s, 0); // set
+
+		if ( entry )
+			{
+			if ( attrs && attrs->FindAttr(ATTR_EXPIRE_READ) )
+				{
+				entry->SetExpireAccess(network_time);
+				if ( LoggingAccess() && expire_time )
+					ReadOperation(s, entry);
+				}
+			}
+
+		Unref(s); // assign does not consume index
+		}
+
+	return nt;
 	}
 
 bool TableVal::UpdateTimestamp(Val* index)
@@ -1854,7 +1912,7 @@ bool TableVal::UpdateTimestamp(Val* index)
 		return false;
 
 	v->SetExpireAccess(network_time);
-	if ( attrs->FindAttr(ATTR_EXPIRE_READ) )
+	if ( LoggingAccess() && attrs->FindAttr(ATTR_EXPIRE_READ) )
 		ReadOperation(index, v);
 
 	return true;
@@ -2478,7 +2536,7 @@ bool TableVal::DoUnserialize(UnserialInfo* info)
 		}
 
 	// If necessary, activate the expire timer.
-	if ( attrs)
+	if ( attrs )
 		{
 		CheckExpireAttr(ATTR_EXPIRE_READ);
 		CheckExpireAttr(ATTR_EXPIRE_WRITE);

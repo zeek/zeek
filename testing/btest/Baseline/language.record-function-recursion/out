@@ -1,0 +1,2 @@
+[id=<uninitialized>, inner=<uninitialized>]
+record { id:count; inner:record { create:function(input:<recursion>;) : string; }; }

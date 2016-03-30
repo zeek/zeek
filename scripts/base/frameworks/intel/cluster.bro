@@ -20,16 +20,11 @@ redef have_full_data = F;
 global cluster_new_item: event(item: Item);
 
 # Primary intelligence distribution comes from manager.
-redef Cluster::manager2worker_events += /^Intel::(cluster_new_item)$/;
+redef Cluster::manager2worker_events += /^Intel::(cluster_new_item|purge_item)$/;
 # If a worker finds intelligence and adds it, it should share it back to the manager.
-redef Cluster::worker2manager_events += /^Intel::(cluster_new_item|match_no_items)$/;
+redef Cluster::worker2manager_events += /^Intel::(cluster_new_item|remove_item|match_no_items)$/;
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
-event Intel::match_no_items(s: Seen) &priority=5
-	{
-	event Intel::match(s, Intel::get_items(s));
-	}
-
 event remote_connection_handshake_done(p: event_peer)
 	{
 	# When a worker connects, send it the complete minimal data store.
@@ -38,6 +33,17 @@ event remote_connection_handshake_done(p: event_peer)
 		{
 		send_id(p, "Intel::min_data_store");
 		}
+	}
+
+event Intel::match_no_items(s: Seen) &priority=5
+	{
+	if ( Intel::find(s) )
+		event Intel::match(s, Intel::get_items(s));
+	}
+
+event Intel::remove_item(item: Item, purge_indicator: bool)
+	{
+	remove(item, purge_indicator);
 	}
 @endif
 

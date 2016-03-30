@@ -136,6 +136,10 @@ export {
 	## Intelligence data manipulation function.
 	global insert: function(item: Item);
 
+	## Function to remove intelligence data. If purge_indicator is set, the
+	## given meta data is ignored and the indicator is removed completely.
+	global remove: function(item: Item, purge_indicator: bool &default = F);
+
 	## Function to declare discovery of a piece of data in order to check
 	## it against known intelligence for matches.
 	global seen: function(s: Seen);
@@ -157,6 +161,8 @@ global match_no_items: event(s: Seen);
 
 # Internal events for cluster data distribution.
 global new_item: event(item: Item);
+global remove_item: event(item: Item, purge_indicator: bool);
+global purge_item: event(item: Item);
 
 # Optionally store metadata.  This is used internally depending on
 # if this is a cluster deployment or not.
@@ -191,14 +197,16 @@ event bro_init() &priority=5
 
 function find(s: Seen): bool
 	{
+	local ds = have_full_data ? data_store : min_data_store;
+
 	if ( s?$host )
 		{
-		return ((s$host in min_data_store$host_data) || 
-		        (|matching_subnets(addr_to_subnet(s$host), min_data_store$subnet_data)| > 0));
+		return ((s$host in ds$host_data) ||
+		        (|matching_subnets(addr_to_subnet(s$host), ds$subnet_data)| > 0));
 		}
 	else
 		{
-		return ([to_lower(s$indicator), s$indicator_type] in min_data_store$string_data);
+		return ([to_lower(s$indicator), s$indicator_type] in ds$string_data);
 		}
 	}
 
@@ -385,4 +393,83 @@ function insert(item: Item)
 		# or insert was called on a worker
 		event Intel::new_item(item);
 	}
-	
+
+# Function to remove meta data of an item. The function returns T
+# if there is no meta data left for the given indicator.
+function remove_meta_data(item: Item): bool
+	{
+	if ( ! have_full_data )
+		{
+		Reporter::warning(fmt("Intel::remove_meta_data was called from a host (%s) that doesn't have the full data.",
+			peer_description));
+		return F;
+		}
+
+	switch ( item$indicator_type )
+		{
+		case ADDR:
+			local host = to_addr(item$indicator);
+			delete data_store$host_data[host][item$meta$source];
+			return (|data_store$host_data[host]| == 0);
+		case SUBNET:
+			local net = to_subnet(item$indicator);
+			delete data_store$subnet_data[net][item$meta$source];
+			return (|data_store$subnet_data[net]| == 0);
+		default:
+			delete data_store$string_data[item$indicator, item$indicator_type][item$meta$source];
+			return (|data_store$string_data[item$indicator, item$indicator_type]| == 0);
+		}
+	}
+
+function remove(item: Item, purge_indicator: bool)
+	{
+	# Delegate removal if we are on a worker
+	if ( !have_full_data )
+		{
+		event Intel::remove_item(item, purge_indicator);
+		return;
+		}
+
+	# Remove meta data from manager's data store
+	local no_meta_data = remove_meta_data(item);
+	# Remove whole indicator if necessary
+	if ( no_meta_data || purge_indicator )
+		{
+		switch ( item$indicator_type )
+			{
+			case ADDR:
+				local host = to_addr(item$indicator);
+				delete data_store$host_data[host];
+				break;
+			case SUBNET:
+				local net = to_subnet(item$indicator);
+				delete data_store$subnet_data[net];
+				break;
+			default:
+				delete data_store$string_data[item$indicator, item$indicator_type];
+				break;
+			}
+		# Trigger deletion in min data stores
+		event Intel::purge_item(item);
+		}
+	}
+
+event purge_item(item: Item)
+	{
+	# Remove data from min data store
+	switch ( item$indicator_type )
+		{
+		case ADDR:
+			local host = to_addr(item$indicator);
+			delete min_data_store$host_data[host];
+			break;
+		case SUBNET:
+			local net = to_subnet(item$indicator);
+			delete min_data_store$subnet_data[net];
+			break;
+		default:
+			delete min_data_store$string_data[item$indicator, item$indicator_type];
+			break;
+		}
+	}
+

@@ -54,7 +54,7 @@ export {
 	};
 }
 
-module BrokerStore;
+module Broker;
 
 export {
 
@@ -76,7 +76,7 @@ export {
 	## The result of a data store query.
 	type QueryResult: record {
 		## Whether the query completed or not.
-		status: BrokerStore::QueryStatus;
+		status: Broker::QueryStatus;
 		## The result of the query.  Certain queries may use a particular
 		## data type (e.g. querying store size always returns a count, but
 		## a lookup may return various data types).

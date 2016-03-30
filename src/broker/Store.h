@@ -53,7 +53,7 @@ inline RecordVal* query_result()
 	{
 	auto rval = new RecordVal(BifType::Record::BrokerStore::QueryResult);
 	rval->Assign(0, query_status(false));
-	rval->Assign(1, new RecordVal(BifType::Record::BrokerComm::Data));
+	rval->Assign(1, new RecordVal(BifType::Record::Broker::Data));
 	return rval;
 	}
 

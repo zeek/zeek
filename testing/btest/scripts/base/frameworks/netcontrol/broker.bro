@@ -27,14 +27,14 @@ event NetControl::init_done()
 	continue_processing();
 	}
 
-event BrokerComm::outgoing_connection_established(peer_address: string,
+event Broker::outgoing_connection_established(peer_address: string,
                                             peer_port: port,
                                             peer_name: string)
 	{
-	print "BrokerComm::outgoing_connection_established", peer_address, peer_port;
+	print "Broker::outgoing_connection_established", peer_address, peer_port;
 	}
 
-event BrokerComm::outgoing_connection_broken(peer_address: string,
+event Broker::outgoing_connection_broken(peer_address: string,
                                        peer_port: port)
 	{
 	terminate();
@@ -75,29 +75,29 @@ redef exit_only_after_terminate = T;
 
 event bro_init()
 	{
-	BrokerComm::enable();
-	BrokerComm::subscribe_to_events("bro/event/netcontroltest");
-	BrokerComm::listen(broker_port, "127.0.0.1");
+	Broker::enable();
+	Broker::subscribe_to_events("bro/event/netcontroltest");
+	Broker::listen(broker_port, "127.0.0.1");
 	}
 
-event BrokerComm::incoming_connection_established(peer_name: string)
+event Broker::incoming_connection_established(peer_name: string)
 	{
-	print "BrokerComm::incoming_connection_established";
+	print "Broker::incoming_connection_established";
 	}
 
 event NetControl::broker_add_rule(id: count, r: NetControl::Rule)
 	{
 	print "add_rule", id, r$entity, r$ty;
 
-	BrokerComm::event("bro/event/netcontroltest", BrokerComm::event_args(NetControl::broker_rule_added, id, r, ""));
+	Broker::event("bro/event/netcontroltest", Broker::event_args(NetControl::broker_rule_added, id, r, ""));
 	}
 
 event NetControl::broker_remove_rule(id: count, r: NetControl::Rule)
 	{
 	print "remove_rule", id, r$entity, r$ty;
 
-	BrokerComm::event("bro/event/netcontroltest", BrokerComm::event_args(NetControl::broker_rule_timeout, id, r, NetControl::FlowInfo()));
-	BrokerComm::event("bro/event/netcontroltest", BrokerComm::event_args(NetControl::broker_rule_removed, id, r, ""));
+	Broker::event("bro/event/netcontroltest", Broker::event_args(NetControl::broker_rule_timeout, id, r, NetControl::FlowInfo()));
+	Broker::event("bro/event/netcontroltest", Broker::event_args(NetControl::broker_rule_removed, id, r, ""));
 
 	if ( r$cid == 3 )
 		terminate();

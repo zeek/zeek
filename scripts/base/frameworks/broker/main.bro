@@ -1,11 +1,11 @@
 ##! Various data structure definitions for use with Bro's communication system.
 
-module BrokerComm;
+module Broker;
 
 export {
 
 	## A name used to identify this endpoint to peers.
-	## .. bro:see:: BrokerComm::connect BrokerComm::listen
+	## .. bro:see:: Broker::connect Broker::listen
 	const endpoint_name = "" &redef;
 
 	## Change communication behavior.
@@ -32,11 +32,11 @@ export {
 
 	## Opaque communication data.
 	type Data: record {
-		d: opaque of BrokerComm::Data &optional;
+		d: opaque of Broker::Data &optional;
 	};
 
 	## Opaque communication data.
-	type DataVector: vector of BrokerComm::Data;
+	type DataVector: vector of Broker::Data;
 
 	## Opaque event communication data.
 	type EventArgs: record {
@@ -49,8 +49,8 @@ export {
 	## Opaque communication data used as a convenient way to wrap key-value
 	## pairs that comprise table entries.
 	type TableItem : record {
-		key: BrokerComm::Data;
-		val: BrokerComm::Data;
+		key: Broker::Data;
+		val: Broker::Data;
 	};
 }
 
@@ -80,7 +80,7 @@ export {
 		## The result of the query.  Certain queries may use a particular
 		## data type (e.g. querying store size always returns a count, but
 		## a lookup may return various data types).
-		result: BrokerComm::Data;
+		result: Broker::Data;
 	};
 
 	## Options to tune the SQLite storage backend.

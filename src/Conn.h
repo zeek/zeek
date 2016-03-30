@@ -107,7 +107,9 @@ public:
 	analyzer::Analyzer* FindAnalyzer(analyzer::ID id);
 	analyzer::Analyzer* FindAnalyzer(analyzer::Tag tag);	// find first in tree.
 	analyzer::Analyzer* FindAnalyzer(const char* name);	// find first in tree.
-
+    
+    const analyzer::analyzer_list& GetAnalyzers();
+    
 	TransportProto ConnTransport() const { return proto; }
 
 	// True if we should record subsequent packets (either headers or

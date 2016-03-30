@@ -4051,6 +4051,30 @@ function disable_analyzer%(cid: conn_id, aid: count%) : bool
 	return new Val(1, TYPE_BOOL);
 	%}
 
+
+## Disables all analyzers associated to cid
+##
+## cid: The connection identifier
+##
+## Returns: True if the connection identified by *cid* exists and has analyzers attached
+##
+function disable_all_analyzers%(cid: conn_id%) : bool
+	%{
+	Connection* c = sessions->FindConnection(cid);
+	if ( ! c )
+		{
+		return new Val(0, TYPE_BOOL);
+		}
+
+	const analyzer::analyzer_list& a_l = c->GetAnalyzers();
+	for ( analyzer::analyzer_list::const_iterator al_iter = a_l.begin(); al_iter != a_l.end(); al_iter++ )
+		{
+		(*al_iter)->Remove();
+		}
+
+	return new Val(1, TYPE_BOOL);
+	%}
+
 ## Informs Bro that it should skip any further processing of the contents of
 ## a given connection. In particular, Bro will refrain from reassembling the
 ## TCP byte stream and from generating events relating to any analyzers that

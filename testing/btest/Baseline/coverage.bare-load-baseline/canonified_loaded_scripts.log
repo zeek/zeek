@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2015-08-31-04-50-43
+#open	2016-03-30-22-54-40
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -17,6 +17,7 @@ scripts/base/init-bare.bro
   build/scripts/base/bif/event.bif.bro
   scripts/base/frameworks/broker/__load__.bro
     scripts/base/frameworks/broker/main.bro
+    scripts/base/frameworks/broker/store.bro
   scripts/base/frameworks/logging/__load__.bro
     scripts/base/frameworks/logging/main.bro
       build/scripts/base/bif/logging.bif.bro
@@ -128,4 +129,4 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_SQLiteWriter.sqlite.bif.bro
 scripts/policy/misc/loaded-scripts.bro
   scripts/base/utils/paths.bro
-#close	2015-08-31-04-50-43
+#close	2016-03-30-22-54-40

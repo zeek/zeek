@@ -31,12 +31,14 @@ export {
 	) &redef;
 }
 
-redef record Info += {
-	uuid: string &optional;
+type State: record {
+	uuid       : string &optional;
+	named_pipe : string &optional;
 };
 
 redef record connection += {
 	dce_rpc: Info &optional;
+	dce_rpc_state: State &default=State();
 };
 
 const ports = { 135/tcp };
@@ -56,6 +58,11 @@ function set_session(c: connection)
 		             $id=c$id,
 		             $uid=c$uid];
 		}
+
+	if ( c$dce_rpc_state?$uuid )
+		c$dce_rpc$endpoint = uuid_endpoint_map[c$dce_rpc_state$uuid];
+	if ( c$dce_rpc_state?$named_pipe )
+		c$dce_rpc$named_pipe = c$dce_rpc_state$named_pipe;
 	}
 
 event dce_rpc_bind(c: connection, uuid: string, ver_major: count, ver_minor: count) &priority=5
@@ -66,7 +73,7 @@ event dce_rpc_bind(c: connection, uuid: string, ver_major: count, ver_minor: cou
 	if ( uuid_str in ignored_uuids )
 		return;
 
-	c$dce_rpc$uuid = uuid_str;
+	c$dce_rpc_state$uuid = uuid_str;
 	c$dce_rpc$endpoint = uuid_endpoint_map[uuid_str];
 	}
 
@@ -75,7 +82,10 @@ event dce_rpc_bind_ack(c: connection, sec_addr: string) &priority=5
 	set_session(c);
 
 	if ( sec_addr != "" )
+		{
+		c$dce_rpc_state$named_pipe = sec_addr;
 		c$dce_rpc$named_pipe = sec_addr;
+		}
 	}
 
 event dce_rpc_request(c: connection, opnum: count, stub_len: count) &priority=5
@@ -94,7 +104,7 @@ event dce_rpc_response(c: connection, opnum: count, stub_len: count) &priority=5
 
 	if ( c?$dce_rpc && c$dce_rpc?$endpoint )
 		{
-		c$dce_rpc$operation = operations[c$dce_rpc$uuid, opnum];
+		c$dce_rpc$operation = operations[c$dce_rpc_state$uuid, opnum];
 		if ( c$dce_rpc$ts != network_time() )
 			c$dce_rpc$rtt = network_time() - c$dce_rpc$ts;
 		}

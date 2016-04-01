@@ -12,8 +12,6 @@ export {
 
 function get_file_handle(c: connection, is_orig: bool): string
 	{
-		print "getting a file handle";
-print c$smb_state$current_cmd$referenced_file;
 	if ( ! (c$smb_state?$current_file &&
 	        (c$smb_state$current_file?$name || 
 	         c$smb_state$current_file?$path)) )

@@ -2,6 +2,10 @@
 %include bro.pac
 
 %extern{
+#include "analyzer/Manager.h"
+#include "analyzer/Analyzer.h"
+// #include "analyzer/protocol/dce-rpc/DCE_RPC.h"
+
 #include "smb1_events.bif.h"
 #include "smb2_events.bif.h"
 
@@ -133,4 +137,19 @@ type SMB_Protocol_Identifier(is_orig: bool, msg_len: uint32) = record {
 
 flow SMB_Flow(is_orig: bool) {
 	flowunit = SMB_TCP(is_orig) withcontext(connection, this);
+};
+
+refine connection SMB_Conn += {
+	%member{
+		analyzer::Analyzer *dcerpc;
+	%}
+
+	%init{
+		dcerpc = analyzer_mgr->InstantiateAnalyzer("DCE_RPC", bro_analyzer->Conn());
+	%}
+
+	%cleanup{
+		if ( dcerpc )
+			delete dcerpc;
+	%}
 };

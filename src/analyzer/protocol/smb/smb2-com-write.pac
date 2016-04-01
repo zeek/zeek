@@ -43,14 +43,10 @@ type SMB2_write_request(header: SMB2_Header) = record {
 	channel_info_len    : uint16; # ignore
 	flags               : uint32;
 	pad                 : padding to data_offset - header.head_length;
-	pipe_or_not         : case is_pipe of {
-		# The SMB_Pipe_message type doesn't support smb2 pipes yet.
-		#true  -> pipe_data : SMB_Pipe_message(header, data_len) &length=data_len;
-		true  -> pipe_data : bytestring &length=data_len;
-		false -> data      : bytestring &length=data_len;
-	};
+	data                : bytestring &length=data_len;
 } &let {
 	is_pipe: bool = $context.connection.get_tree_is_pipe(header.tree_id);
+	pipe_proc : bool = $context.connection.forward_dce_rpc(data, true) &if(is_pipe);
 
 	proc : bool = $context.connection.proc_smb2_write_request(header, this);
 };

@@ -35,7 +35,7 @@ protected:
 	string s;
 };
 
-const char* uuid_to_string(const u_char* uuid_data);
+//const char* uuid_to_string(const u_char* uuid_data);
 
 struct dce_rpc_endpoint_addr {
 	// All fields are in host byteorder.
@@ -88,6 +88,7 @@ enum DCE_RPC_PTYPE {
 };
 */
 
+/*
 #define DCE_RPC_HEADER_LENGTH 16
 
 class DCE_RPC_Header {
@@ -172,18 +173,23 @@ protected:
 
 	DCE_RPC_Session* session;
 };
+*/
 
 class DCE_RPC_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
-	DCE_RPC_Analyzer(Connection* conn, bool speculative = false);
+	DCE_RPC_Analyzer(Connection* conn);
 	~DCE_RPC_Analyzer();
+
+	virtual void Done();
+	virtual void DeliverStream(int len, const u_char* data, bool orig);
+	virtual void Undelivered(uint64 seq, int len, bool orig);
+	virtual void EndpointEOF(bool is_orig);
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new DCE_RPC_Analyzer(conn); }
 
 protected:
-	DCE_RPC_Session* session;
-	bool speculative;
+	binpac::DCE_RPC::DCE_RPC_Conn* interp;
 };
 
 } } // namespace analyzer::* 

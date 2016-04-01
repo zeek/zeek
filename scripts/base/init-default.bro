@@ -43,6 +43,7 @@
 @endif
 
 @load base/protocols/conn
+@load base/protocols/dce-rpc
 @load base/protocols/dhcp
 @load base/protocols/dnp3
 @load base/protocols/dns

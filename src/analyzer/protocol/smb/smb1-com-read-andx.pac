@@ -80,12 +80,10 @@ type SMB1_read_andx_response(header: SMB_Header) = record {
 	
 	byte_count        : uint16;
 	pad               : padding to data_offset - SMB_Header_length;
-	pipe_or_not       : case is_pipe of {
-		true    -> pipe_data : SMB_Pipe_message(header, byte_count) &length=data_len;
-		default -> data      : bytestring &length=data_len;
-	} &requires(data_len);
+	data              : bytestring &length=data_len;
 } &let {
 	is_pipe     : bool   = $context.connection.get_tree_is_pipe(header.tid);
+	pipe_proc   : bool   = $context.connection.forward_dce_rpc(data, false) &if(is_pipe);
 
 	padding_len : uint8  = (header.unicode == 1) ? 1 : 0;
 	data_len    : uint32 = (data_len_high << 16) + data_len_low;

@@ -47,7 +47,6 @@ bro_plugin_pac(
 	smb-pipe.pac
 	smb-mailslot.pac
 	smb-ntlmssp.pac
-	dce_rpc-protocol.pac
 
 	smb1-protocol.pac
 	smb1-com-check-directory.pac

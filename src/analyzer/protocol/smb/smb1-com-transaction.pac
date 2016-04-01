@@ -4,8 +4,30 @@ enum Trans_subcommands {
 	NT_TRANSACT_CREATE2 = 0x0009,
 };
 
-
 refine connection SMB_Conn += {
+
+	%member{
+		map<uint16, bool> is_file_a_pipe;
+	%}
+
+	function get_is_file_a_pipe(id: uint16): bool
+		%{
+		if ( is_file_a_pipe.count(id) > 0 )
+			{
+			bool is_pipe = is_file_a_pipe.at(id);
+			is_file_a_pipe.erase(id);
+
+			return is_pipe;
+			}
+		else
+			return false;
+		%}
+
+	function set_is_file_a_pipe(id: uint16, is_it: bool): bool
+		%{
+		is_file_a_pipe[id] = is_it;
+		return true;
+		%}
 
 	function proc_smb1_transaction_request(header: SMB_Header, val: SMB1_transaction_request): bool
 		%{
@@ -15,6 +37,7 @@ refine connection SMB_Conn += {
 			                                            BuildHeaderVal(header),
 			                                            smb_string2stringval(${val.name}), 
 			                                            ${val.sub_cmd});
+
 		return true;
 		%}
 
@@ -38,14 +61,16 @@ refine connection SMB_Conn += {
 };
 
 
-type SMB1_transaction_data(header: SMB_Header, count: uint16, sub_cmd: uint16,
-                           trans_type: TransactionType) = case trans_type of {
-#	SMB_MAILSLOT_BROWSE -> mailslot : SMB_MailSlot_message(header.unicode, count);
-#	SMB_MAILSLOT_LANMAN -> lanman   : SMB_MailSlot_message(header.unicode, count);
-#	SMB_RAP             -> rap      : SMB_Pipe_message(header.unicode, count);
-	SMB_PIPE            -> pipe     : SMB_Pipe_message(header, count);
-	SMB_UNKNOWN         -> unknown  : bytestring &restofdata &transient;
-	default             -> data     : bytestring &restofdata &transient;
+type SMB1_transaction_data(header: SMB_Header, is_orig: bool, count: uint16, sub_cmd: uint16,
+                           trans_type: int) = case trans_type of {
+#	SMB_MAILSLOT_BROWSE -> mailslot  : SMB_MailSlot_message(header.unicode, count);
+#	SMB_MAILSLOT_LANMAN -> lanman    : SMB_MailSlot_message(header.unicode, count);
+#	SMB_RAP             -> rap       : SMB_Pipe_message(header.unicode, count);
+	SMB_PIPE            -> pipe_data : bytestring &restofdata;
+	SMB_UNKNOWN         -> unknown   : bytestring &restofdata &transient;
+	default             -> data      : bytestring &restofdata &transient;
+} &let {
+	pipe_proc : bool = $context.connection.forward_dce_rpc(pipe_data, is_orig) &if(trans_type == SMB_PIPE);
 };
 
 type SMB1_transaction_setup(header: SMB_Header) = record {
@@ -79,9 +104,13 @@ type SMB1_transaction_request(header: SMB_Header) = record {
 	pad1                : padding to param_offset - SMB_Header_length;
 	parameters          : bytestring &length = param_count;
 	pad2                : padding to data_offset - SMB_Header_length;
-	data                : SMB1_transaction_data(header, data_count, sub_cmd, determine_transaction_type(setup_count, name));
+	data                : SMB1_transaction_data(header, true, data_count, sub_cmd, transtype);
 } &let {
 	sub_cmd : uint16 = setup_count ? setup.op_code : 0;
+	transtype : int = determine_transaction_type(setup_count, name);
+	is_pipe : bool = (transtype == SMB_PIPE);
+
+	proc_set_pipe : bool = $context.connection.set_is_file_a_pipe(header.mid, is_pipe);
 	proc : bool = $context.connection.proc_smb1_transaction_request(header, this);
 };
 
@@ -104,8 +133,8 @@ type SMB1_transaction_response(header: SMB_Header) = record {
 	pad0                : padding to param_offset - SMB_Header_length;
 	parameters          : bytestring &length = param_count;
 	pad1                : padding to data_offset - SMB_Header_length;
-	data                : SMB1_transaction_data(header, data_count, 0, is_tree_a_pipe ? SMB_PIPE : SMB_UNKNOWN)[data_count>0 ? 1 : 0];
+	data                : SMB1_transaction_data(header, false, data_count, 0, is_pipe ? SMB_PIPE : SMB_UNKNOWN)[data_count>0 ? 1 : 0];
 } &let {
 	proc : bool = $context.connection.proc_smb1_transaction_response(header, this);
-	is_tree_a_pipe: bool = $context.connection.get_tree_is_pipe(header.tid);
+	is_pipe: bool = $context.connection.get_is_file_a_pipe(header.mid);
 };

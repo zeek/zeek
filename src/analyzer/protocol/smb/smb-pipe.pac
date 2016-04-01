@@ -1,11 +1,3 @@
-# this won't work correctly yet, since sometimes the parameters
-# field in the transaction takes up all of the data field
-
-%include dce_rpc-protocol.pac
-
-%extern{
-	#include "DCE_RPC.h"
-%}
 
 refine connection SMB_Conn += {
 	%member{
@@ -14,9 +6,10 @@ refine connection SMB_Conn += {
 
 	function get_tree_is_pipe(tree_id: uint16): bool
 		%{
-		if ( tree_is_pipe_map.count(tree_id) == 0 )
+		if ( tree_is_pipe_map.count(tree_id) > 0 )
+			return tree_is_pipe_map.at(tree_id);
+		else
 			return false;
-		return tree_is_pipe_map[tree_id];
 		%}
 
 	function set_tree_is_pipe(tree_id: uint16, is_pipe: bool): bool
@@ -25,72 +18,36 @@ refine connection SMB_Conn += {
 		return true;
 		%}
 
-	function proc_smb_pipe_message(val: SMB_Pipe_message, header: SMB_Header): bool
+	function forward_dce_rpc(pipe_data: bytestring, is_orig: bool): bool
 		%{
-		switch ( ${val.rpc_header.PTYPE} ) {
-		case DCE_RPC_REQUEST:
-			if ( smb_pipe_request )
-				BifEvent::generate_smb_pipe_request(bro_analyzer(), 
-				                                    bro_analyzer()->Conn(),
-				                                    BuildHeaderVal(header),
-				                                    ${val.rpc_body.request.opnum});
-			break;
-		case DCE_RPC_RESPONSE:
-			if ( smb_pipe_response )
-				BifEvent::generate_smb_pipe_response(bro_analyzer(), 
-				                                     bro_analyzer()->Conn(), 
-				                                     BuildHeaderVal(header));
-			break;
-		case DCE_RPC_BIND_ACK:
-			if ( smb_pipe_bind_ack_response )
-				BifEvent::generate_smb_pipe_bind_ack_response(bro_analyzer(), 
-				                                              bro_analyzer()->Conn(),
-				                                              BuildHeaderVal(header));
-			break;
-		case DCE_RPC_BIND:
-			if ( smb_pipe_bind_request )
-				{
-				// TODO - the version number needs to be calculated properly
-				if ( ${val.rpc_body.bind.context_list.num_contexts} > 0 )
-					{
-					const char * uuid = analyzer::dce_rpc::uuid_to_string(${val.rpc_body.bind.context_list.request_contexts[0].abstract_syntax.uuid}.begin());
-					uint32_t version = ${val.rpc_body.bind.context_list.request_contexts[0].abstract_syntax.version};
-
-					BifEvent::generate_smb_pipe_bind_request(bro_analyzer(), 
-					                                         bro_analyzer()->Conn(), 
-					                                         BuildHeaderVal(header),
-					                                         new StringVal(uuid), 
-					                                         new StringVal(fmt("%d.0", version)));
-					}
-				}
-			break;
-		}
-		
+		if ( dcerpc )
+			dcerpc->DeliverStream(${pipe_data}.length(), ${pipe_data}.begin(), is_orig);
 		return true;
 		%}
 };
 
-type SMB_Pipe_message(header: SMB_Header, byte_count: uint16) = record { 
-	rpc_header : DCE_RPC_Header;
-	rpc_body   : DCE_RPC_Body(rpc_header);
+
+#type SMB_Pipe_message(header: SMB_Header, byte_count: uint16) = record { 
+#	rpc_header : DCE_RPC_Header;
+#	rpc_body   : DCE_RPC_Body(rpc_header);
 #	pipe_type: case $context.connection.determine_pipe_msg_type(rpc, opnum) of {
 #		1       -> atsvc_request : AT_SVC_Request(unicode, opnum);
 #		2       -> atsvc_reply   : AT_SVC_Reply(unicode, opnum);
 #		default -> unknown       : bytestring &restofdata; 
 #	};
-} &let {
-	proc: bool = $context.connection.proc_smb_pipe_message(this, header);
-} &byteorder = littleendian;
-
-type SMB_RAP_message(unicode: bool, byte_count: uint16) = record { 
-	rap_code   : uint16;
-	param_desc : SMB_string(unicode, offsetof(param_desc));
-	data_desc  : SMB_string(unicode, offsetof(data_desc));
-	data       : bytestring &restofdata; 
-} &byteorder = littleendian;
+#} &let {
+#	proc: bool = $context.connection.proc_smb_pipe_message(this, header);
+#} &byteorder = littleendian;
+#
+#type SMB_RAP_message(unicode: bool, byte_count: uint16) = record { 
+#	rap_code   : uint16;
+#	param_desc : SMB_string(unicode, offsetof(param_desc));
+#	data_desc  : SMB_string(unicode, offsetof(data_desc));
+#	data       : bytestring &restofdata; 
+#} &byteorder = littleendian;
 
 type AT_SVC_Request(unicode: bool, opnum: uint8) = record {
- 	empty: padding[1];
+	empty: padding[1];
 	op: case opnum of {
 		0       -> add     : AT_SVC_NetrJobAdd(unicode);
 		default -> unknown : bytestring &restofdata;
@@ -124,6 +81,6 @@ type AT_SVC_Reply(unicode: bool, opnum: uint16) = record {
 };
 
 type AT_SVC_JobID(unicode: bool) = record {
-	id: uint32;
-	status: uint32;
+	id     : uint32;
+	status : uint32;
 };

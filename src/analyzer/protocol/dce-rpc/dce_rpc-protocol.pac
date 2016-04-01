@@ -29,6 +29,23 @@ type context_handle = record {
 	uuid  : bytestring &length = 16;
 };
 
+type DCE_RPC_PDU(is_orig: bool) = record {
+	# Set header's byteorder to little-endian (or big-endian) to
+	# avoid cyclic dependency.
+	header	: DCE_RPC_Header(is_orig);
+	# TODO: bring back reassembly.  It was having trouble.
+	#frag	: bytestring &length = body_length;
+	body    : DCE_RPC_Body(header);
+	auth	: DCE_RPC_Auth(header);
+} &let {
+	#body_length      : int  = header.frag_length - sizeof(header) - header.auth_length;
+	#frag_reassembled : bool = $context.flow.reassemble_fragment(frag, header.lastfrag);
+	#body             : DCE_RPC_Body(header)
+	#	withinput $context.flow.reassembled_body()
+	#	&if frag_reassembled;
+} &byteorder = header.byteorder, &length = header.frag_length;
+
+
 #type rpc_if_id_t = record {
 #	if_uuid    : bytestring &length = 16;
 #	vers_major : uint16;
@@ -46,7 +63,7 @@ type NDR_Format = record {
 #### There might be a endianness problem here: the frag_length
 # causes problems despite the NDR_Format having a byteorder set.
 
-type DCE_RPC_Header = record {
+type DCE_RPC_Header(is_orig: bool) = record {
 	rpc_vers       : uint8 &check(rpc_vers == 5);
 	rpc_vers_minor : uint8;
 	PTYPE          : uint8;

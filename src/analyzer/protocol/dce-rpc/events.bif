@@ -2,54 +2,31 @@
 ##
 ## .. bro:see:: rpc_call rpc_dialogue rpc_reply dce_rpc_bind dce_rpc_request
 ##    dce_rpc_response rpc_timeout
-##
-## .. todo:: Bro's current default configuration does not activate the protocol
-##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to
-##    register a port for it or add a DPD payload signature.
-event dce_rpc_message%(c: connection, is_orig: bool, ptype: dce_rpc_ptype, msg: string%);
+event dce_rpc_message%(c: connection, is_orig: bool, ptype_id: count, ptype: DCE_RPC::PType%);
 
 ## TODO.
 ##
 ## .. bro:see:: rpc_call rpc_dialogue rpc_reply  dce_rpc_message dce_rpc_request
 ##    dce_rpc_response rpc_timeout
-##
-## .. todo:: Bro's current default configuration does not activate the protocol
-##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to
-##    register a port for it or add a DPD payload signature.
-event dce_rpc_bind%(c: connection, uuid: string%);
+event dce_rpc_bind%(c: connection, uuid: string, version: string%);
+
+event dce_rpc_bind_ack%(c: connection, sec_addr: string%);
 
 ## TODO.
 ##
 ## .. bro:see:: rpc_call rpc_dialogue rpc_reply dce_rpc_bind dce_rpc_message
 ##    dce_rpc_response rpc_timeout
-##
-## .. todo:: Bro's current default configuration does not activate the protocol
-##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to
-##    register a port for it or add a DPD payload signature.
 event dce_rpc_request%(c: connection, opnum: count, stub: string%);
 
 ## TODO.
 ##
 ## .. bro:see:: rpc_call rpc_dialogue rpc_reply dce_rpc_bind dce_rpc_message
 ##    dce_rpc_request  rpc_timeout
-##
-## .. todo:: Bro's current default configuration does not activate the protocol
-##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to
-##    register a port for it or add a DPD payload signature.
 event dce_rpc_response%(c: connection, opnum: count, stub: string%);
 
 ## TODO.
 ##
 ## .. bro:see:: rpc_call rpc_dialogue rpc_reply dce_rpc_bind dce_rpc_message
 ##    dce_rpc_request dce_rpc_response rpc_timeout
-##
-## .. todo:: Bro's current default configuration does not activate the protocol
-##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to
-##    register a port for it or add a DPD payload signature.
 event epm_map_response%(c: connection, uuid: string, p: port, h: addr%);
 

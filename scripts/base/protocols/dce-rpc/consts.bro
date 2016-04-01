@@ -1405,5 +1405,16 @@ export {
 		["6bffd098-a112-3610-9833-46c3f87e345a",0x1d] = "NetrSetPrimaryComputerName",
 		["6bffd098-a112-3610-9833-46c3f87e345a",0x1e] = "NetrEnumerateComputerNames",
 		["6bffd098-a112-3610-9833-46c3f87e345a",0x1f] = "NetrWorkstationResetDfsCache",
+
+		# epmp
+		["e1af8308-5d1f-11c9-91a4-08002b14a0fa",0x00] = "ept_insert",
+		["e1af8308-5d1f-11c9-91a4-08002b14a0fa",0x01] = "ept_delete",
+		["e1af8308-5d1f-11c9-91a4-08002b14a0fa",0x02] = "ept_lookup",
+		["e1af8308-5d1f-11c9-91a4-08002b14a0fa",0x03] = "ept_map",
+		["e1af8308-5d1f-11c9-91a4-08002b14a0fa",0x04] = "ept_lookup_handle_free",
+		["e1af8308-5d1f-11c9-91a4-08002b14a0fa",0x05] = "ept_inq_object",
+		["e1af8308-5d1f-11c9-91a4-08002b14a0fa",0x06] = "ept_mgmt_delete",
+		["e1af8308-5d1f-11c9-91a4-08002b14a0fa",0x07] = "ept_map_auth",
+		["e1af8308-5d1f-11c9-91a4-08002b14a0fa",0x08] = "ept_map_auth_async",
 	} &redef &default=function(uuid: string, i: count): string { return fmt("unknown-%d", i); };
 }

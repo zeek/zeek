@@ -8,7 +8,7 @@ event dce_rpc_message%(c: connection, is_orig: bool, ptype_id: count, ptype: DCE
 ##
 ## .. bro:see:: rpc_call rpc_dialogue rpc_reply  dce_rpc_message dce_rpc_request
 ##    dce_rpc_response rpc_timeout
-event dce_rpc_bind%(c: connection, uuid: string, version: string%);
+event dce_rpc_bind%(c: connection, uuid: string, ver_major: count, ver_minor: count%);
 
 event dce_rpc_bind_ack%(c: connection, sec_addr: string%);
 
@@ -16,13 +16,13 @@ event dce_rpc_bind_ack%(c: connection, sec_addr: string%);
 ##
 ## .. bro:see:: rpc_call rpc_dialogue rpc_reply dce_rpc_bind dce_rpc_message
 ##    dce_rpc_response rpc_timeout
-event dce_rpc_request%(c: connection, opnum: count, stub: string%);
+event dce_rpc_request%(c: connection, opnum: count, stub_len: count%);
 
 ## TODO.
 ##
 ## .. bro:see:: rpc_call rpc_dialogue rpc_reply dce_rpc_bind dce_rpc_message
 ##    dce_rpc_request  rpc_timeout
-event dce_rpc_response%(c: connection, opnum: count, stub: string%);
+event dce_rpc_response%(c: connection, opnum: count, stub_len: count%);
 
 ## TODO.
 ##

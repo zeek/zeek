@@ -26,7 +26,9 @@ export {
 	};
 
 	## Set of interface UUID values to ignore.
-	const ignored_uuids = set("e1af8308-5d1f-11c9-91a4-08002b14a0fa") &redef;
+	const ignored_uuids: set[string] = set(
+		"e1af8308-5d1f-11c9-91a4-08002b14a0fa" #epmapper
+	) &redef;
 }
 
 redef record Info += {
@@ -56,7 +58,7 @@ function set_session(c: connection)
 		}
 	}
 
-event dce_rpc_bind(c: connection, uuid: string, version: string) &priority=5
+event dce_rpc_bind(c: connection, uuid: string, ver_major: count, ver_minor: count) &priority=5
 	{
 	set_session(c);
 
@@ -76,7 +78,7 @@ event dce_rpc_bind_ack(c: connection, sec_addr: string) &priority=5
 		c$dce_rpc$named_pipe = sec_addr;
 	}
 
-event dce_rpc_request(c: connection, opnum: count, stub: string) &priority=5
+event dce_rpc_request(c: connection, opnum: count, stub_len: count) &priority=5
 	{
 	set_session(c);
 
@@ -86,7 +88,7 @@ event dce_rpc_request(c: connection, opnum: count, stub: string) &priority=5
 		}
 	}
 
-event dce_rpc_response(c: connection, opnum: count, stub: string) &priority=5
+event dce_rpc_response(c: connection, opnum: count, stub_len: count) &priority=5
 	{
 	set_session(c);
 
@@ -98,11 +100,14 @@ event dce_rpc_response(c: connection, opnum: count, stub: string) &priority=5
 		}
 	}
 
-event dce_rpc_response(c: connection, opnum: count, stub: string) &priority=-5
+event dce_rpc_response(c: connection, opnum: count, stub_len: count) &priority=-5
 	{
 	if ( c?$dce_rpc )
 		{
-		Log::write(LOG, c$dce_rpc);
+		# If there is not endpoint, there isn't much reason to log.
+		# This can happen if the request isn't seen.
+		if ( c$dce_rpc?$endpoint )
+			Log::write(LOG, c$dce_rpc);
 		delete c$dce_rpc;
 		}
 	}

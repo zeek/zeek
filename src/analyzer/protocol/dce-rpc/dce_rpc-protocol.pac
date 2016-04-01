@@ -32,11 +32,11 @@ type context_handle = record {
 type DCE_RPC_PDU(is_orig: bool) = record {
 	# Set header's byteorder to little-endian (or big-endian) to
 	# avoid cyclic dependency.
-	header	: DCE_RPC_Header(is_orig);
+	header  : DCE_RPC_Header(is_orig);
 	# TODO: bring back reassembly.  It was having trouble.
-	#frag	: bytestring &length = body_length;
+	#frag    : bytestring &length = body_length;
 	body    : DCE_RPC_Body(header);
-	auth	: DCE_RPC_Auth(header);
+	#auth    : DCE_RPC_Auth_wrapper(header);
 } &let {
 	#body_length      : int  = header.frag_length - sizeof(header) - header.auth_length;
 	#frag_reassembled : bool = $context.flow.reassemble_fragment(frag, header.lastfrag);
@@ -78,8 +78,9 @@ type DCE_RPC_Header(is_orig: bool) = record {
 } &byteorder = packed_drep.byteorder;
 
 type Syntax = record {
-	uuid    : bytestring &length = 16;
-	version : uint32;
+	uuid      : bytestring &length = 16;
+	ver_major : uint16;
+	ver_minor : uint16;
 };
 
 type ContextRequest = record {
@@ -153,6 +154,19 @@ type DCE_RPC_Body(header: DCE_RPC_Header) = case header.PTYPE of {
 	DCE_RPC_REQUEST  -> request  : DCE_RPC_Request;
 	DCE_RPC_RESPONSE -> response : DCE_RPC_Response;
 	default          -> other    : bytestring &restofdata;
+} &length=header.frag_length-16-header.auth_length;
+# sizeof(DCE_RPC_Header) <- doesn't work, it's the "16" above
+
+type DCE_RPC_Auth_wrapper(header: DCE_RPC_Header) = case header.auth_length of {
+	0       -> none : empty;
+	default -> auth : DCE_RPC_Auth(header);
 };
 
-type DCE_RPC_Auth(header: DCE_RPC_Header) = uint8[header.auth_length];
+type DCE_RPC_Auth(header: DCE_RPC_Header) = record {
+	type       : uint8;
+	level      : uint8;
+	pad_len    : uint8;
+	reserved   : uint8;
+	context_id : uint32;
+	blob       : bytestring &length=header.auth_length;
+};

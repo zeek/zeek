@@ -46,13 +46,15 @@ refine connection DCE_RPC_Conn += {
 			for ( int i = 0; i < ${bind_elems.num_contexts}; ++i )
 				{
 				$const_def{uuid = bind_elems.request_contexts[i].abstract_syntax.uuid};
-				$const_def{version = bind_elems.request_contexts[i].abstract_syntax.version};
+				$const_def{ver_major = bind_elems.request_contexts[i].abstract_syntax.ver_major};
+				$const_def{ver_minor = bind_elems.request_contexts[i].abstract_syntax.ver_minor};
 
 				// Queue the event
 				BifEvent::generate_dce_rpc_bind(bro_analyzer(),
 				                                bro_analyzer()->Conn(),
 				                                bytestring_to_val(${uuid}),
-				                                new StringVal(fmt("%d.0", ${version})));
+				                                ${ver_major},
+				                                ${ver_minor});
 				}
 			}
 
@@ -84,7 +86,7 @@ refine connection DCE_RPC_Conn += {
 			BifEvent::generate_dce_rpc_request(bro_analyzer(),
 			                                   bro_analyzer()->Conn(),
 			                                   ${req.opnum},
-			                                   bytestring_to_val(${req.stub}));
+			                                   ${req.stub}.length());
 			}
 
 		set_cont_id_opnum_map(${req.context_id},
@@ -99,7 +101,7 @@ refine connection DCE_RPC_Conn += {
 			BifEvent::generate_dce_rpc_response(bro_analyzer(),
 			                                    bro_analyzer()->Conn(),
 			                                    get_cont_id_opnum_map(${resp.context_id}),
-			                                    bytestring_to_val(${resp.stub}));
+			                                    ${resp.stub}.length());
 			}
 
 		return true;

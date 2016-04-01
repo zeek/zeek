@@ -23,8 +23,7 @@ export {
 	
 	## The hosts whose existence should be logged and tracked.
 	## See :bro:type:`Host` for possible choices.
-	#const host_tracking = LOCAL_HOSTS &redef;
-	const host_tracking = ALL_HOSTS &redef;
+	const host_tracking = LOCAL_HOSTS &redef;
 	
 	## The set of all known addresses to store for preventing duplicate 
 	## logging of addresses.  It can also be used from other scripts to 

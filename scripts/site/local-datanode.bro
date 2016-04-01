@@ -1,1 +1,1 @@
-##! Local site policy loaded only by the proxies if Bro is running as a cluster.
+##! Local site policy loaded only by the datanode if Bro is running as a cluster.

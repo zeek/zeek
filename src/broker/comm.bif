@@ -52,7 +52,7 @@ event Broker::outgoing_connection_established%(peer_address: string,
 ## .. bro:see:: Broker::outgoing_connection_established
 event Broker::outgoing_connection_broken%(peer_address: string,
                                         peer_port: port,
-										peer_name: string%);
+                                        peer_name: string%);
 
 ## Generated when a connection via :bro:see:`Broker::connect` has failed
 ## because the remote side is incompatible.

@@ -152,7 +152,6 @@ event SumStats::cluster_get_result(uid: string, ss_name: string, key: Key, clean
 		{
 		if ( uid in sending_results && key in sending_results[uid] )
 			{
-			#print "sending_results: ", sending_results[uid][key];
 			# Note: copy is needed to compensate serialization caching issue. This should be
 			# changed to something else later.
 			event SumStats::cluster_send_result(uid, ss_name, key, copy(sending_results[uid][key]), cleanup);
@@ -408,8 +407,8 @@ event SumStats::send_a_key(uid: string, ss_name: string, key: Key)
 
 event SumStats::cluster_send_result(uid: string, ss_name: string, key: Key, result: Result, cleanup: bool)
 	{
-	print "cluster_send_result";
-	print fmt("%0.6f MANAGER: receiving key data %s=%s", network_time(), key2str(key), result);
+	#print "cluster_send_result";
+	#print fmt("%0.6f MANAGER: receiving key data %s=%s", network_time(), key2str(key), result);
 
 	# We only want to try and do a value merge if there are actually measured datapoints
 	# in the Result.

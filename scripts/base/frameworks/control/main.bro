@@ -70,4 +70,3 @@ event terminate_event()
 	{
 	terminate();
 	}
-

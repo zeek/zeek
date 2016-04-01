@@ -45,8 +45,6 @@ event Control::net_stats_request()
 	local ns = net_stats();
 	local reply = fmt("%.6f recvd=%d dropped=%d link=%d\n", network_time(), 
 	                  ns$pkts_recvd, ns$pkts_dropped, ns$pkts_link);
-	#local reply = fmt("%s: %.6f recvd=%d dropped=%d link=%d\n", Broker::node, network_time(), 
-	#                  ns$pkts_recvd, ns$pkts_dropped, ns$pkts_link);
 	event Control::net_stats_response(reply);
 	}
 	

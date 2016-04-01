@@ -52,36 +52,33 @@ export {
 
 	## Events raised by a manager and handled by the workers.
 	const manager2worker_events : set[string] = {} &redef;
-	
+
 	## Events raised by a manager and handled by proxies.
 	const manager2datanode_events : set[string] = {} &redef;
-	
+
 	## Events raised by proxies and handled by a manager.
 	const datanode2manager_events : set[string] = {} &redef;
-	
+
 	## Events raised by proxies and handled by workers.
 	const datanode2worker_events : set[string] = {} &redef;
-	
+
 	## Events raised by workers and handled by a manager.
 	const worker2manager_events : set[string] = {} &redef;
-	
+
 	## Events raised by workers and handled by proxies.
 	const worker2datanode_events : set[string] = {} &redef;
-	
+
 	## Events raised by TimeMachine instances and handled by a manager.
 	const tm2manager_events : set[string] = {} &redef;
-	
+
 	## Events raised by TimeMachine instances and handled by workers.
 	const tm2worker_events : set[string] = {} &redef;
-	
+
 	## Add events for adding new nodes and removing old nodes
 	redef Control::controllee_events: set[string] += {"Cluster::update_cluster_node", "Cluster::remove_cluster_node"};
 
 	## The prefix used for subscribing and publishing events
 	const pub_sub_prefix : string = "bro/event/cluster/" &redef;
-
-	# The Cluster-IDs of the particular cluster this node is part of 
-	const cluster_id : string = "" &redef;
 
 	## Record type to indicate a node in a cluster.
 	type Node: record {
@@ -108,7 +105,7 @@ export {
 		## Name of a time machine node with which this node connects.
 		time_machine: string      &optional;
 	};
-	
+
 	## Process the cluster-layout entry and add entries to Communication::nodes
 	##
 	## name: the name of the node
@@ -153,7 +150,7 @@ export {
 
 	## Helper function
 	##
-	## string of NodeRoles as input, 
+	## string of NodeRoles as input,
 	## returns the node roles as a set of enums
 	global get_roles_enum: function(roles: set[string]): set[NodeRole];
 
@@ -180,7 +177,7 @@ export {
 	global update_node: function(cname: string, name: string, connect: bool, retry: interval);
 
 	## Add an additional node dynamically to a cluster.
-	## 
+	##
 	## name: name of the node
 	## roles: supported roles by the node
 	## ip: ip of the node
@@ -312,7 +309,7 @@ function has_local_role(role: NodeRole): bool
 
 	if ( node in nodes && role in nodes[node]$node_roles )
 		return T;
-		
+
 	return F;
 	}
 

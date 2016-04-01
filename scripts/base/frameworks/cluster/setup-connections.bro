@@ -57,13 +57,13 @@ function process_node_manager(name: string)
 	{
 	local n = nodes[name];
 	local me = nodes[node];
-		
+
 	if ( WORKER in n$node_roles && n$manager == node )
 		update_node(name, name, F, 1sec);
-			
+
 	if ( DATANODE in n$node_roles && n$manager == node )
 		update_node(name, name, F, 1sec);
-				
+
 	if ( TIME_MACHINE in n$node_roles && me?$time_machine && me$time_machine == name )
 		update_node("time-machine", name, T, 1min);
 	}
@@ -76,7 +76,7 @@ function process_node_datanode(name: string)
 	if ( WORKER in n$node_roles && n$datanode == node )
 		update_node(name, name, F, 1sec);
 
-	# accepts connections from the previous one. 
+	# accepts connections from the previous one.
 	# FIXME: Once we're using multiple proxies, we should also figure out
 	# some $class scheme ...
 	if ( DATANODE in n$node_roles )
@@ -110,7 +110,7 @@ function process_node_lognode(name: string)
 			update_node(name, name, F, 1sec);
 		}
 
-	# accepts connections from the previous one. 
+	# accepts connections from the previous one.
 	# FIXME: Once we're using multiple proxies, we should also figure out
 	# some $class scheme ...
 	if ( DATANODE in n$node_roles )
@@ -180,7 +180,7 @@ event Cluster::update_cluster_node(name: string, roles: set[string], ip: string,
 			update_connections = T;
 
 		if ( new_node?$workers != lnode?$workers
-				|| !string_set_eq(new_node$workers, lnode$workers) ) 
+				|| !string_set_eq(new_node$workers, lnode$workers) )
 			update_connections = T;
 
 		if ( new_node?$manager != lnode?$manager

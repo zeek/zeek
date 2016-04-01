@@ -17,8 +17,6 @@ export {
 		UNKNOWN
 	};
 
-	#global flist: set[string] &optional;
-
 	## If true, local logging is by default enabled for all filters.
 	const enable_local_logging = T &redef;
 
@@ -403,7 +401,7 @@ global all_streams: table[ID] of Stream = table();
 global filters: table[ID, string] of Filter;
 
 @load base/bif/logging.bif # Needs Filter and Stream defined.
-@load base/bif/messaging.bif # Needed for broker 
+@load base/bif/messaging.bif # Needed for broker
 @load base/bif/comm.bif # Needed for broker
 
 module Log;
@@ -486,7 +484,7 @@ function create_stream(id: ID, stream: Stream) : bool
 
 	active_streams[id] = stream;
 	all_streams[id] = stream;
-	
+
 	if (enable_remote_logging)
 		{
 		Broker::enable_remote_logs(id);

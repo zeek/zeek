@@ -2714,7 +2714,6 @@ Val* RecordVal::LookupWithDefault(int field) const
 	if ( val )
 		return val->Ref();
 
-	//std::cout << " record field type is " << record_type->FieldType(field)->Tag() << std::endl;
 	return record_type->FieldDefault(field);
 	}
 

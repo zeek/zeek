@@ -80,9 +80,9 @@ event dce_rpc_request(c: connection, opnum: count, stub: string) &priority=5
 	{
 	set_session(c);
 
-	if ( c?$dce_rpc && c$dce_rpc?$endpoint )
+	if ( c?$dce_rpc  )
 		{
-
+		c$dce_rpc$ts = network_time();
 		}
 	}
 
@@ -95,8 +95,15 @@ event dce_rpc_response(c: connection, opnum: count, stub: string) &priority=5
 		c$dce_rpc$operation = operations[c$dce_rpc$uuid, opnum];
 		if ( c$dce_rpc$ts != network_time() )
 			c$dce_rpc$rtt = network_time() - c$dce_rpc$ts;
+		}
+	}
 
+event dce_rpc_response(c: connection, opnum: count, stub: string) &priority=-5
+	{
+	if ( c?$dce_rpc )
+		{
 		Log::write(LOG, c$dce_rpc);
+		delete c$dce_rpc;
 		}
 	}
 

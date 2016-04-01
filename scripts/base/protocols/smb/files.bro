@@ -12,14 +12,15 @@ export {
 
 function get_file_handle(c: connection, is_orig: bool): string
 	{
+		print "getting a file handle";
+print c$smb_state$current_cmd$referenced_file;
 	if ( ! (c$smb_state?$current_file &&
-	        ((c$smb_state$current_file?$name && c$smb_state$current_file$name !in pipe_names) || 
+	        (c$smb_state$current_file?$name || 
 	         c$smb_state$current_file?$path)) )
 		{
 		# TODO - figure out what are the cases where this happens.
 		return "";
 		}
-
 	local current_file = c$smb_state$current_file;
 	local path_name = current_file?$path ? current_file$path : "";
 	local file_name = current_file?$name ? current_file$name : "";

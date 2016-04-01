@@ -16,7 +16,8 @@ export {
 		FILE_WRITE,
 		FILE_OPEN,
 		FILE_CLOSE,
-		FILE_UNKNOWN,
+		FILE_DELETE,
+		FILE_RENAME,
 
 		PIPE_READ,
 		PIPE_WRITE,
@@ -91,7 +92,8 @@ export {
 		service             : string &log &optional;
 		## File system of the tree.
 		native_file_system  : string &log &optional;
-		## If this is SMB2, a share type will be included.
+		## If this is SMB2, a share type will be included.  For SMB1,
+		## the type of share will be deduced and included as well.
 		share_type          : string &log &default="UNKNOWN";
 	};
 
@@ -137,7 +139,7 @@ export {
 		tree_service	: string &log &optional;
 		
 		## If the command referenced a file, store it here.
-		referenced_file	: FileInfo &optional;
+		referenced_file	: FileInfo &log &optional;
 		## If the command referenced a tree, store it here.
 		referenced_tree	: TreeInfo &optional;
 	};
@@ -226,7 +228,8 @@ function set_current_file(smb_state: State, file_id: count)
 		smb_state$fid_map[file_id]$fid = file_id;
 		}
 	
-	smb_state$current_file = smb_state$fid_map[file_id];
+	smb_state$current_cmd$referenced_file = smb_state$fid_map[file_id];
+	smb_state$current_file = smb_state$current_cmd$referenced_file;
 	}
 
 function write_file_log(state: State)

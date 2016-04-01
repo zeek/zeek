@@ -21,29 +21,36 @@ event smb2_message(c: connection, hdr: SMB2::Header, is_orig: bool) &priority=5
 	local pid = hdr$process_id;
 	local mid = hdr$message_id;
 	local sid = hdr$session_id;
-	
-	if ( tid !in smb_state$tid_map )
-		{
-		local tmp_tree: SMB::TreeInfo = [$uid=c$uid, $id=c$id];
-		smb_state$tid_map[tid] = tmp_tree;
-		}
-	smb_state$current_tree = smb_state$tid_map[tid];
 
 	if ( mid !in smb_state$pending_cmds )
 		{
-		local tmp_cmd = SMB::CmdInfo($ts=network_time(), $uid=c$uid, $id=c$id, $version="SMB2", $command = SMB2::commands[hdr$command]);
-
 		local tmp_file = SMB::FileInfo($ts=network_time(), $uid=c$uid, $id=c$id);
-		if ( smb_state$current_tree?$path )
-			tmp_file$path = smb_state$current_tree$path;
-
+		local tmp_cmd = SMB::CmdInfo($ts=network_time(), $uid=c$uid, $id=c$id, $version="SMB2", $command = SMB2::commands[hdr$command]);
 		tmp_cmd$referenced_file = tmp_file;
-		tmp_cmd$referenced_tree = smb_state$current_tree;
-		
 		smb_state$pending_cmds[mid] = tmp_cmd;
 		}
-
 	smb_state$current_cmd = smb_state$pending_cmds[mid];
+
+	if ( tid > 0 )
+		{
+		if ( smb_state$current_cmd?$referenced_tree )
+			{
+			smb_state$tid_map[tid] = smb_state$current_cmd$referenced_tree;
+			}
+		else if ( tid !in smb_state$tid_map )
+			{
+			local tmp_tree = SMB::TreeInfo($ts=network_time(), $uid=c$uid, $id=c$id);
+			smb_state$tid_map[tid] = tmp_tree;
+			}
+		smb_state$current_cmd$referenced_tree = smb_state$tid_map[tid];
+		}
+	else
+		{
+		smb_state$current_cmd$referenced_tree = SMB::TreeInfo($ts=network_time(), $uid=c$uid, $id=c$id);
+		}
+
+	smb_state$current_file = smb_state$current_cmd$referenced_file;
+	smb_state$current_tree = smb_state$current_cmd$referenced_tree;
 
 	if ( !is_orig )
 		{
@@ -99,16 +106,12 @@ event smb2_negotiate_response(c: connection, hdr: SMB2::Header, response: SMB2::
 	
 event smb2_tree_connect_request(c: connection, hdr: SMB2::Header, path: string) &priority=5
 	{
-	local tmp_tree = SMB::TreeInfo($ts=network_time(), $uid=c$uid, $id=c$id, $path=path);
-
-	c$smb_state$current_cmd$referenced_tree = tmp_tree;
+	c$smb_state$current_tree$path = path;
 	}
 
 event smb2_tree_connect_response(c: connection, hdr: SMB2::Header, response: SMB2::TreeConnectResponse) &priority=5
 	{
-	c$smb_state$current_cmd$referenced_tree$share_type = SMB2::share_types[response$share_type];
-	c$smb_state$current_tree = c$smb_state$current_cmd$referenced_tree;
-	c$smb_state$tid_map[hdr$tree_id] = c$smb_state$current_tree;
+	c$smb_state$current_tree$share_type = SMB2::share_types[response$share_type];
 	}
 
 event smb2_tree_connect_response(c: connection, hdr: SMB2::Header, response: SMB2::TreeConnectResponse) &priority=-5
@@ -121,42 +124,43 @@ event smb2_create_request(c: connection, hdr: SMB2::Header, name: string) &prior
 	if ( name == "")
 		name = "<share_root>";
 
-	local tmp_file = SMB::FileInfo($ts=network_time(), $uid=c$uid, $id=c$id, $name=name);
+	c$smb_state$current_file$name = name;
 
-	switch ( c$smb_state$current_cmd$referenced_tree$share_type )
+	switch ( c$smb_state$current_tree$share_type )
 		{
 		case "DISK":
-			tmp_file$action = SMB::FILE_OPEN;
+			c$smb_state$current_file$action = SMB::FILE_OPEN;
 			break;
 		case "PIPE":
-			tmp_file$action = SMB::PIPE_OPEN;
+			c$smb_state$current_file$action = SMB::PIPE_OPEN;
 			break;
 		case "PRINT":
-			tmp_file$action = SMB::PRINT_OPEN;
+			c$smb_state$current_file$action = SMB::PRINT_OPEN;
 			break;
 		default:
-			tmp_file$action = SMB::UNKNOWN_OPEN;
+			#c$smb_state$current_file$action = SMB::UNKNOWN_OPEN;
+			c$smb_state$current_file$action = SMB::FILE_OPEN;
 			break;
 		}
-	c$smb_state$current_cmd$referenced_file = tmp_file;
-	c$smb_state$current_file = c$smb_state$current_cmd$referenced_file;
 	}
 
 event smb2_create_response(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, file_size: count, times: SMB::MACTimes, attrs: SMB2::FileAttrs) &priority=5
 	{
-	c$smb_state$current_cmd$referenced_file$fid = file_id$persistent+file_id$volatile;
-	c$smb_state$current_cmd$referenced_file$size = file_size;
+	c$smb_state$current_file$fid = file_id$persistent+file_id$volatile;
+	c$smb_state$current_file$size = file_size;
+
+	if ( c$smb_state$current_tree?$path )
+		c$smb_state$current_file$path = c$smb_state$current_tree$path;
 
 	# I'm seeing negative data from IPC tree transfers
 	if ( time_to_double(times$modified) > 0.0 )
-		c$smb_state$current_cmd$referenced_file$times = times;
+		c$smb_state$current_file$times = times;
 
 	# We can identify the file by its file id now so let's stick it 
 	# in the file map.
-	c$smb_state$fid_map[file_id$persistent+file_id$volatile] = c$smb_state$current_cmd$referenced_file;
+	c$smb_state$fid_map[file_id$persistent+file_id$volatile] = c$smb_state$current_file;
 	
 	c$smb_state$current_file = c$smb_state$fid_map[file_id$persistent+file_id$volatile];
-
 	SMB::write_file_log(c$smb_state);
 	}
 
@@ -171,7 +175,7 @@ event smb2_read_request(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, o
 	{
 	SMB::set_current_file(c$smb_state, file_id$persistent+file_id$volatile);
 
-	switch ( c$smb_state$current_cmd$referenced_tree$share_type )
+	switch ( c$smb_state$current_tree$share_type )
 		{
 		case "DISK":
 			c$smb_state$current_file$action = SMB::FILE_READ;
@@ -183,25 +187,21 @@ event smb2_read_request(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, o
 			c$smb_state$current_file$action = SMB::PRINT_READ;
 			break;
 		default:
-			c$smb_state$current_file$action = SMB::UNKNOWN_OPEN;
+			#c$smb_state$current_file$action = SMB::UNKNOWN_OPEN;
+			c$smb_state$current_file$action = SMB::FILE_OPEN;
 			break;
 		}
 	}
 
 event smb2_read_request(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, offset: count, length: count) &priority=-5
 	{ 
-	if ( c$smb_state$current_tree?$path && !c$smb_state$current_file?$path )
-		c$smb_state$current_file$path = c$smb_state$current_tree$path;
-
-	# TODO - Why is this commented out?
-	#write_file_log(c$smb_state);
 	}
 
 event smb2_write_request(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, offset: count, length: count) &priority=5
 	{
 	SMB::set_current_file(c$smb_state, file_id$persistent+file_id$volatile);
 
-	switch ( c$smb_state$current_cmd$referenced_tree$share_type )
+	switch ( c$smb_state$current_tree$share_type )
 		{
 		case "DISK":
 			c$smb_state$current_file$action = SMB::FILE_WRITE;
@@ -213,25 +213,21 @@ event smb2_write_request(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, 
 			c$smb_state$current_file$action = SMB::PRINT_WRITE;
 			break;
 		default:
-			c$smb_state$current_file$action = SMB::UNKNOWN_WRITE;
+			#c$smb_state$current_file$action = SMB::UNKNOWN_WRITE;
+			c$smb_state$current_file$action = SMB::FILE_WRITE;
 			break;
 		}
 	}
 
 event smb2_write_request(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, offset: count, length: count) &priority=-5
 	{
-	if ( c$smb_state$current_tree?$path && ! c$smb_state$current_file?$path )
-		c$smb_state$current_file$path = c$smb_state$current_tree$path;
-
-	# TODO - Why is this commented out?
-	#write_file_log(c$smb_state);
 	}
 
 event smb2_close_request(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID) &priority=5
 	{
 	SMB::set_current_file(c$smb_state, file_id$persistent+file_id$volatile);
 
-	switch ( c$smb_state$current_cmd$referenced_tree$share_type )
+	switch ( c$smb_state$current_tree$share_type )
 		{
 		case "DISK":
 			c$smb_state$current_file$action = SMB::FILE_CLOSE;
@@ -243,7 +239,8 @@ event smb2_close_request(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID) 
 			c$smb_state$current_file$action = SMB::PRINT_CLOSE;
 			break;
 		default:
-			c$smb_state$current_file$action = SMB::UNKNOWN_CLOSE;
+			#c$smb_state$current_file$action = SMB::UNKNOWN_CLOSE;
+			c$smb_state$current_file$action = SMB::FILE_CLOSE;
 			break;
 		}
 	}

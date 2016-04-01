@@ -13,7 +13,7 @@ SMB_Analyzer::SMB_Analyzer(Connection *conn)
 	interp = new binpac::SMB::SMB_Conn(this);
 	AddSupportAnalyzer(new Contents_SMB(conn, true));
 	AddSupportAnalyzer(new Contents_SMB(conn, false));
-}
+	}
 
 SMB_Analyzer::~SMB_Analyzer()
 	{

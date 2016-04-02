@@ -29,6 +29,8 @@ bro_plugin_bif(
 
 	smb2_com_close.bif
 	smb2_com_create.bif
+	smb2_com_ioctl.bif
+	smb2_com_lock.bif
 	smb2_com_negotiate.bif
 	smb2_com_read.bif
 	smb2_com_session_setup.bif
@@ -72,6 +74,8 @@ bro_plugin_pac(
 	smb2-protocol.pac
 	smb2-com-close.pac
 	smb2-com-create.pac
+	smb2-com-ioctl.pac
+	smb2-com-lock.pac
 	smb2-com-negotiate.pac
 	smb2-com-read.pac
 	smb2-com-session-setup.pac

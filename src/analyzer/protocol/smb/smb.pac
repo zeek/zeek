@@ -33,6 +33,8 @@
 
 #include "smb2_com_close.bif.h"
 #include "smb2_com_create.bif.h"
+#include "smb2_com_ioctl.bif.h"
+#include "smb2_com_lock.bif.h"
 #include "smb2_com_negotiate.bif.h"
 #include "smb2_com_read.bif.h"
 #include "smb2_com_session_setup.bif.h"
@@ -86,6 +88,8 @@ connection SMB_Conn(bro_analyzer: BroAnalyzer) {
 # SMB2 Commands
 %include smb2-com-close.pac
 %include smb2-com-create.pac
+%include smb2-com-ioctl.pac
+%include smb2-com-lock.pac
 %include smb2-com-negotiate.pac
 %include smb2-com-read.pac
 %include smb2-com-session-setup.pac

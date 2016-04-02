@@ -55,9 +55,7 @@ export {
 		["423ec01e-2e35-11d2-b604-00104b703efd"] = "IWbemWCOSmartEnum interface",
 		["1c1c45ee-4395-11d2-b60b-00104b703efd"] = "IWbemFetchSmartEnum interface",
 		["541679AB-2E5F-11d3-B34E-00104BCC4B4A"] = "IWbemLoginHelper interface",
-		# KMS?
 		["51c82175-844e-4750-b0d8-ec255555bc06"] = "KMS",
-
 		["50abc2a4-574d-40b3-9d66-ee4fd5fba076"] = "dnsserver",
 		["3faf4738-3a21-4307-b46c-fdda9bb8c0d5"] = "AudioSrv",
 		["c386ca3e-9061-4a72-821e-498d83be188f"] = "AudioRpc",

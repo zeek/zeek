@@ -6,6 +6,11 @@ include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DI
 bro_plugin_begin(Bro DCE_RPC)
 bro_plugin_cc(DCE_RPC.cc Plugin.cc)
 bro_plugin_bif(types.bif events.bif)
-bro_plugin_pac(dce_rpc.pac dce_rpc-protocol.pac dce_rpc-analyzer.pac epmapper.pac)
+bro_plugin_pac(
+    dce_rpc.pac 
+    dce_rpc-protocol.pac
+    dce_rpc-analyzer.pac
+    endpoint-epmapper.pac
+    endpoint-atsvc.pac)
 bro_plugin_end()
 

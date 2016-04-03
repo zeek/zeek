@@ -1,4 +1,4 @@
-module SMB;
+module DCE_RPC;
 
 export {
 	redef enum Log::ID += {
@@ -16,16 +16,16 @@ export {
 	};
 }
 
-redef record SMB::State += {
-	pipe_atsvc: ATSvcInfo &optional;
+redef record DCE_RPC::State += {
+	endpoint_atsvc: ATSvcInfo &optional;
 };
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(ATSVC_LOG, [$columns=ATSvcInfo]);
+	Log::create_stream(ATSVC_LOG, [$columns=ATSvcInfo, $path="dce_rpc_atsvc"]);
 	}
 
-event smb_atsvc_job_add(c: connection, server: string, job: string) &priority=5
+event atsvc_job_add(c: connection, server: string, job: string) &priority=5
 	{
 	local info = ATSvcInfo($ts=network_time(),
 	                       $uid = c$uid,
@@ -33,20 +33,20 @@ event smb_atsvc_job_add(c: connection, server: string, job: string) &priority=5
 	                       $command = "Add job",
 	                       $arg = job,
 	                       $server = server);
-	c$smb_state$pipe_atsvc = info;
+	c$dce_rpc_state$endpoint_atsvc = info;
 	}
 
-event smb_atsvc_job_id(c: connection, id: count, status: count) &priority=5
+event atsvc_job_id(c: connection, id: count, status: count) &priority=5
 	{
-	if ( c$smb_state?$pipe_atsvc )
-		c$smb_state$pipe_atsvc$result = (status==0) ? "success" : "failed";
+	if ( c$dce_rpc_state?$endpoint_atsvc )
+		c$dce_rpc_state$endpoint_atsvc$result = (status==0) ? "success" : "failed";
 	}
 
-event smb_atsvc_job_id(c: connection, id: count, status: count) &priority=-5
+event atsvc_job_id(c: connection, id: count, status: count) &priority=-5
 	{
-	if ( c$smb_state?$pipe_atsvc )
+	if ( c$dce_rpc_state?$endpoint_atsvc )
 		{
-		Log::write(ATSVC_LOG, c$smb_state$pipe_atsvc);
-		delete c$smb_state$pipe_atsvc;
+		Log::write(ATSVC_LOG, c$dce_rpc_state$endpoint_atsvc);
+		delete c$dce_rpc_state$endpoint_atsvc;
 		}
 	}

@@ -1,0 +1,5 @@
+## Generated for GSSAPI messages of type *accept-completed*.
+##
+## c: The connection.
+##
+event gssapi_accepted%(c: connection%);

@@ -94,16 +94,7 @@ export {
 		native_file_system  : string &log &optional;
 		## If this is SMB2, a share type will be included.  For SMB1,
 		## the type of share will be deduced and included as well.
-		share_type          : string &log &default="UNKNOWN";
-	};
-
-	type AuthInfo: record {
-		ts         : time    &log;
-		uid        : string  &log;
-		id         : conn_id &log;
-		username   : string  &log &optional;
-		hostname   : string  &log &optional;
-		domainname : string  &log &optional;
+		share_type          : string &log &default="DISK";
 	};
 
 	## This record is for the smb_cmd.log
@@ -153,8 +144,6 @@ export {
 		current_file   : FileInfo    &optional;
 		## A reference to the current tree.
 		current_tree   : TreeInfo    &optional;
-		## A reference to the currently authenticated user.
-		current_auth   : AuthInfo    &optional;
 		
 		## Indexed on MID to map responses to requests.
 		pending_cmds : table[count] of CmdInfo   &optional;
@@ -213,7 +202,6 @@ redef likely_server_ports += { ports };
 event bro_init() &priority=5
 	{
 	Log::create_stream(CMD_LOG, [$columns=SMB::CmdInfo]);
-	Log::create_stream(AUTH_LOG, [$columns=SMB::AuthInfo]);
 	Log::create_stream(FILES_LOG, [$columns=SMB::FileInfo]);
 	Log::create_stream(MAPPING_LOG, [$columns=SMB::TreeInfo]);
 

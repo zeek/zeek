@@ -5,10 +5,7 @@ include_directories(AFTER  ${CMAKE_CURRENT_BINARY_DIR}/../dce-rpc)
 
 bro_plugin_begin(Bro SMB)
 bro_plugin_cc(SMB.cc Plugin.cc)
-bro_plugin_bif(
-	smb_ntlmssp.bif
-	smb_pipe.bif
-  
+bro_plugin_bif(  
 	smb1_com_check_directory.bif
 	smb1_com_close.bif
 	smb1_com_create_directory.bif
@@ -40,6 +37,7 @@ bro_plugin_bif(
 	smb2_com_write.bif
 	smb2_events.bif
 
+	smb_pipe.bif
 	types.bif)
 bro_plugin_pac(
 	smb.pac
@@ -47,8 +45,8 @@ bro_plugin_pac(
 	smb-strings.pac
 	smb-time.pac
 	smb-pipe.pac
+	smb-gssapi.pac
 	smb-mailslot.pac
-	smb-ntlmssp.pac
 
 	smb1-protocol.pac
 	smb1-com-check-directory.pac

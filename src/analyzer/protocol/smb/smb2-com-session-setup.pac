@@ -45,20 +45,27 @@ type SMB2_session_setup_request(header: SMB2_Header) = record {
 	security_mode     : uint8;
 	capabilities      : uint32;
 	channel           : uint32;
-	security          : SMB2_security;
+	security_offset   : uint16;
+	security_length   : uint16;
+	pad1              : padding to security_offset - header.head_length;
+	security_blob     : bytestring &length=security_length;
 } &let {
 	proc: bool = $context.connection.proc_smb2_session_setup_request(header, this);
+	gssapi_proc : bool = $context.connection.forward_gssapi(security_blob, true);
 };
 
 type SMB2_session_setup_response(header: SMB2_Header) = record {
 	structure_size    : uint16;
 	session_flags     : uint16;
-	security          : SMB2_security;
+	security_offset   : uint16;
+	security_length   : uint16;
+	pad1              : padding to security_offset - header.head_length;
+	security_blob     : bytestring &length=security_length;
 } &let {
 	flag_guest     = (session_flags & 0x1) > 0;
 	flag_anonymous = (session_flags & 0x2) > 0;
-	flag_encrypt = (session_flags & 0x4) > 0;
+	flag_encrypt   = (session_flags & 0x4) > 0;
 
-} &let {
 	proc: bool = $context.connection.proc_smb2_session_setup_response(header, this);
+	gssapi_proc : bool = $context.connection.forward_gssapi(security_blob, false);
 };

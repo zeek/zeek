@@ -62,7 +62,12 @@ type SMB2_negotiate_response(header: SMB2_Header) = record {
 	max_write_size    : uint32;
 	system_time       : SMB_timestamp;
 	server_start_time : SMB_timestamp;
-	security          : SMB2_security;
+	security_offset   : uint16;
+	security_length   : uint16;
+	pad1              : padding to security_offset - header.head_length;
+	security_blob     : bytestring &length=security_length;
 } &byteorder=littleendian, &let {
 	proc : bool = $context.connection.proc_smb2_negotiate_response(header, this);
+	gssapi_proc : bool = $context.connection.forward_gssapi(security_blob, false);
+
 };

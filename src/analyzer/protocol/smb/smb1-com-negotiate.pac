@@ -161,7 +161,6 @@ refine connection SMB_Conn += {
 					else
 						{
 						ntlm->Assign(12, bytestring_to_val(${val.ntlm.server_guid}));
-	//					ntlm->Assign(13, bytestring_to_val(${val.ntlm.security_blob}));
 						}
 					
 					response->Assign(2, ntlm);
@@ -204,78 +203,80 @@ type SMB1_negotiate_core_response = record {
 };
 
 type SMB1_negotiate_lanman_response(header: SMB_Header) = record {
-	security_flags:        uint16; # expanded in &let
-	max_buffer_size:       uint16;
-	max_mpx_count:         uint16;
-	max_number_vcs:        uint16;
-	raw_mode:	       uint16; # expanded in &let
-	session_key:	       uint32;
-	server_time:	       SMB_time;
-	server_date:	       SMB_date;
-	server_tz:	       uint16;
-	encryption_key_length: uint16;
-	reserved:	       uint16; # must be zero
-	byte_count:	       uint16; # count of data bytes
-	encryption_key:	       bytestring &length=encryption_key_length;
-	primary_domain:	       SMB_string(header.unicode, offsetof(primary_domain));
+	security_flags        : uint16; # expanded in &let
+	max_buffer_size       : uint16;
+	max_mpx_count         : uint16;
+	max_number_vcs        : uint16;
+	raw_mode              : uint16; # expanded in &let
+	session_key           : uint32;
+	server_time           : SMB_time;
+	server_date           : SMB_date;
+	server_tz             : uint16;
+	encryption_key_length : uint16;
+	reserved              : uint16; # must be zero
+	byte_count            : uint16; # count of data bytes
+	encryption_key        : bytestring &length=encryption_key_length;
+	primary_domain        : SMB_string(header.unicode, offsetof(primary_domain));
 } &let {
-	security_user_level:         bool = ( security_flags & 0x1 ) > 0;
-	security_challenge_response: bool = ( security_flags & 0x2 ) > 0;
-	raw_read_supported:	     bool = ( raw_mode & 0x1 ) > 0;
-	raw_write_supported:	     bool = ( raw_mode & 0x2 ) > 0;
+	security_user_level         : bool = ( security_flags & 0x1 ) > 0;
+	security_challenge_response : bool = ( security_flags & 0x2 ) > 0;
+	raw_read_supported          : bool = ( raw_mode & 0x1 ) > 0;
+	raw_write_supported         : bool = ( raw_mode & 0x2 ) > 0;
 };
 
 type SMB1_negotiate_ntlm_response(header: SMB_Header) = record {
-	security_flags:         uint8;  # Expanded in &let
-	max_mpx_count:          uint16;
-	max_number_vcs:         uint16;
-	max_buffer_size:        uint32;
-	max_raw_size: 	        uint32;
-	session_key: 	        uint32;
-	capabilities: 	        uint32; # Expanded in &let
-	server_time: 	        uint64;
-	server_tz: 	        uint16;
-	encryption_key_length:  uint8;
-	byte_count: 	        uint16;
+	security_flags        : uint8;  # Expanded in &let
+	max_mpx_count         : uint16;
+	max_number_vcs        : uint16;
+	max_buffer_size       : uint32;
+	max_raw_size          : uint32;
+	session_key           : uint32;
+	capabilities          : uint32; # Expanded in &let
+	server_time           : uint64;
+	server_tz             : uint16;
+	encryption_key_length : uint8;
+	byte_count            : uint16;
 	encryption_key_present: case capabilities_extended_security of {
-		false	-> encryption_key: bytestring &length=encryption_key_length;
-		true	-> no_key: empty;
+		false	-> encryption_key : bytestring &length=encryption_key_length;
+		true	-> no_key         : empty;
 	} &requires(capabilities_extended_security);
 	domain_name_present: case capabilities_extended_security of {
-		false	-> domain_name: SMB_string(header.unicode, offsetof(domain_name_present));
-		true	-> no_name: empty;
+		false	-> domain_name : SMB_string(header.unicode, offsetof(domain_name_present));
+		true	-> no_name     : empty;
 	} &requires(capabilities_extended_security);
 	server_guid_present: case capabilities_extended_security of {
-		true	-> server_guid: bytestring &length=16;
-		false	-> no_guid: empty;
+		true	-> server_guid : bytestring &length=16;
+		false	-> no_guid     : empty;
 	} &requires(capabilities_extended_security);
 	security_blob_present: case capabilities_extended_security of {
-		true	-> security_blob: SMB_NTLM_SSP(header) &length=(byte_count-16);
-		false	-> no_blob: empty;
+		true	-> security_blob : bytestring &length=(byte_count-16);
+		false	-> no_blob       : empty;
 	} &requires(capabilities_extended_security);
 } &let {
-	security_user_level:             bool = ( security_flags & 0x1 ) > 0;
-	security_challenge_response:  	 bool = ( security_flags & 0x2 ) > 0;
-	security_signatures_enabled:  	 bool = ( security_flags & 0x4 ) > 0;
-	security_signatures_required: 	 bool = ( security_flags & 0x8 ) > 0;
-	capabilities_raw_mode:        	 bool = (capabilities & 0x1 ) > 0;
-	capabilities_mpx_mode:        	 bool = (capabilities & 0x2 ) > 0;
-	capabilities_unicode:         	 bool = (capabilities & 0x4 ) > 0;
-	capabilities_large_files:     	 bool = (capabilities & 0x8 ) > 0;
-	capabilities_nt_smbs:         	 bool = (capabilities & 0x10 ) > 0;
-	capabilities_rpc_remote_apis: 	 bool = (capabilities & 0x20 ) > 0;
-	capabilities_status32: 	      	 bool = (capabilities & 0x40 ) > 0;
-	capabilities_level_2_oplocks: 	 bool = (capabilities & 0x80 ) > 0;
-	capabilities_lock_and_read:   	 bool = (capabilities & 0x100 ) > 0;
-	capabilities_nt_find:         	 bool = (capabilities & 0x200 ) > 0;
-	capabilities_dfs:     	      	 bool = (capabilities & 0x1000 ) > 0;
-	capabilities_infolevel_passthru: bool = (capabilities & 0x2000 ) > 0;
-	capabilities_large_readx:     	 bool = (capabilities & 0x4000 ) > 0;
-	capabilities_large_writex: 	 bool = (capabilities & 0x8000 ) > 0;
-	capabilities_unix:     	      	 bool = (capabilities & 0x00800000 ) > 0;
-	capabilities_reserved: 		 bool = (capabilities & 0x02000000 ) > 0;
-	capabilities_bulk_transfer:      bool = (capabilities & 0x20000000 ) > 0;
-	capabilities_compressed_data: 	 bool = (capabilities & 0x40000000 ) > 0;
-	capabilities_extended_security:  bool = (capabilities & 0x80000000 ) > 0;
+	security_user_level             : bool = (security_flags & 0x1) > 0;
+	security_challenge_response     : bool = (security_flags & 0x2) > 0;
+	security_signatures_enabled     : bool = (security_flags & 0x4) > 0;
+	security_signatures_required    : bool = (security_flags & 0x8) > 0;
+	capabilities_raw_mode           : bool = (capabilities & 0x1) > 0;
+	capabilities_mpx_mode           : bool = (capabilities & 0x2) > 0;
+	capabilities_unicode            : bool = (capabilities & 0x4) > 0;
+	capabilities_large_files        : bool = (capabilities & 0x8) > 0;
+	capabilities_nt_smbs            : bool = (capabilities & 0x10) > 0;
+	capabilities_rpc_remote_apis    : bool = (capabilities & 0x20) > 0;
+	capabilities_status32           : bool = (capabilities & 0x40) > 0;
+	capabilities_level_2_oplocks    : bool = (capabilities & 0x80) > 0;
+	capabilities_lock_and_read      : bool = (capabilities & 0x100) > 0;
+	capabilities_nt_find            : bool = (capabilities & 0x200) > 0;
+	capabilities_dfs                : bool = (capabilities & 0x1000) > 0;
+	capabilities_infolevel_passthru : bool = (capabilities & 0x2000) > 0;
+	capabilities_large_readx        : bool = (capabilities & 0x4000) > 0;
+	capabilities_large_writex       : bool = (capabilities & 0x8000) > 0;
+	capabilities_unix               : bool = (capabilities & 0x00800000) > 0;
+	capabilities_reserved           : bool = (capabilities & 0x02000000) > 0;
+	capabilities_bulk_transfer      : bool = (capabilities & 0x20000000) > 0;
+	capabilities_compressed_data    : bool = (capabilities & 0x40000000) > 0;
+	capabilities_extended_security  : bool = (capabilities & 0x80000000) > 0;
+
+	gssapi_proc : bool = $context.connection.forward_gssapi(security_blob, false) &if(capabilities_extended_security);
 };
 

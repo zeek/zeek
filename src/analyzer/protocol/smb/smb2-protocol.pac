@@ -202,14 +202,6 @@ type SMB2_Header(is_orig: bool) = record {
 	proc : bool = $context.connection.proc_smb2_message(this, is_orig);
 } &byteorder=littleendian;
 
-type SMB2_security = record {
-	buffer_offset     : uint16;
-	buffer_len        : uint16;
-	# TODO: handle previous session IDs
-	sec_buffer        : bytestring &length = buffer_len;
-} &byteorder = littleendian;
-
-
 # file ids and guids are the same thing and need unified somehow.
 type SMB2_guid = record {
 	persistent : uint64;

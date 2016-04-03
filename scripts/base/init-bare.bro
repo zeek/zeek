@@ -2315,6 +2315,140 @@ type ntp_msg: record {
 };
 
 
+module NTLM;
+
+export {
+	type NTLM::Version: record {
+		## The major version of the Windows operating system in use
+		major   : count;
+		## The minor version of the Windows operating system in use
+		minor   : count;
+		## The build number of the Windows operating system in use
+		build   : count;
+		## The current revision of NTLMSSP in use
+		ntlmssp : count;
+	};
+
+	type NTLM::NegotiateFlags: record {
+		## If set, requires 56-bit encryption
+		negotiate_56               : bool;
+		## If set, requests an explicit key exchange
+		negotiate_key_exch         : bool;
+		## If set, requests 128-bit session key negotiation
+		negotiate_128              : bool;
+		## If set, requests the protocol version number
+		negotiate_version          : bool;
+		## If set, indicates that the TargetInfo fields in the
+		## CHALLENGE_MESSAGE are populated
+		negotiate_target_info      : bool;
+		## If set, requests the usage of the LMOWF function
+		request_non_nt_session_key : bool;
+		## If set, requests and identify level token
+		negotiate_identify         : bool;
+		## If set, requests usage of NTLM v2 session security
+		## Note: NTML v2 session security is actually NTLM v1
+		negotiate_extended_sessionsecurity : bool;
+		## If set, TargetName must be a server name
+		target_type_server         : bool;
+		## If set, TargetName must be a domain name
+		target_type_domain         : bool;
+
+		## If set, requests the presence of a signature block
+		## on all messages
+		negotiate_always_sign              : bool;
+		## If set, the workstation name is provided
+		negotiate_oem_workstation_supplied : bool;
+		## If set, the domain name is provided
+		negotiate_oem_domain_supplied      : bool;
+		## If set, the connection should be anonymous
+		negotiate_anonymous_connection     : bool;
+		## If set, requests usage of NTLM v1
+		negotiate_ntlm                     : bool;
+
+		## If set, requests LAN Manager session key computation
+		negotiate_lm_key       : bool;
+		## If set, requests connectionless authentication
+		negotiate_datagram     : bool;
+		## If set, requests session key negotiation for message 
+		## confidentiality
+		negotiate_seal         : bool;
+		## If set, requests session key negotiation for message
+		## signatures
+		negotiate_sign         : bool;
+		## If set, the TargetName field is present
+		request_target         : bool;
+
+		## If set, requests OEM character set encoding
+		negotiate_oem          : bool;
+		## If set, requests Unicode character set encoding
+		negotiate_unicode      : bool;
+	};
+
+	type NTLM::Negotiate: record {
+		## The negotiate flags
+		flags       : NTLM::NegotiateFlags;
+		## The domain name of the client, if known
+		domain_name : string &optional;
+		## The machine name of the client, if known
+		workstation : string &optional;
+		## The Windows version information, if supplied
+		version     : NTLM::Version &optional;
+	};
+
+	type NTLM::AVs: record {
+		## The server's NetBIOS computer name
+		nb_computer_name  : string;
+		## The server's NetBIOS domain name
+		nb_domain_name    : string;
+		## The FQDN of the computer
+		dns_computer_name : string &optional;
+		## The FQDN of the domain
+		dns_domain_name   : string &optional;
+		## The FQDN of the forest
+		dns_tree_name     : string &optional;
+
+		## Indicates to the client that the account
+		## authentication is constrained
+		constrained_auth  : bool &optional;
+		## The associated timestamp, if present
+		timestamp         : time &optional;
+		## Indicates that the client is providing
+		## a machine ID created at computer startup to
+		## identify the calling machine
+		single_host_id    : count &optional;
+
+		## The SPN of the target server
+		target_name       : string &optional;
+	};
+
+	type NTLM::Challenge: record {
+		## The negotiate flags
+		flags       : NTLM::NegotiateFlags;
+		## The server authentication realm. If the server is
+		## domain-joined, the name of the domain. Otherwise
+		## the server name. See flags.target_type_domain
+		## and flags.target_type_server
+		target_name : string &optional;
+		## The Windows version information, if supplied
+		version     : NTLM::Version &optional;
+		## Attribute-value pairs specified by the server
+		target_info : NTLM::AVs &optional;
+	};
+
+	type NTLM::Authenticate: record {
+		## The negotiate flags
+		flags       : NTLM::NegotiateFlags;
+		## The domain or computer name hosting the account
+		domain_name : string;
+		## The name of the user to be authenticated.
+		user_name   : string;
+		## The name of the computer to which the user was logged on.
+		workstation : string;
+		## The Windows version information, if supplied
+		version     : NTLM::Version &optional;
+	};
+}
+
 module SMB;
 
 export {
@@ -2325,138 +2459,6 @@ export {
 		created  : time &log;
 		changed  : time &log;
 	} &log;
-
-	type SMB::NTLMVersion: record {
-		## The major version of the Windows operating system in use
-		major	: count;
-		## The minor version of the Windows operating system in use
-		minor	: count;
-		## The build number of the Windows operating system in use
-		build	: count;
-		## The current revision of NTLMSSP in use
-		ntlmssp : count;
-	};
-
-	type SMB::NTLMNegotiateFlags: record {
-		## If set, requires 56-bit encryption
-		negotiate_56			   : bool;
-		## If set, requests an explicit key exchange
-		negotiate_key_exch         	   : bool;
-		## If set, requests 128-bit session key negotiation
-		negotiate_128	           	   : bool;
-		## If set, requests the protocol version number
-		negotiate_version          	   : bool;
-		## If set, indicates that the TargetInfo fields in the
-		## CHALLENGE_MESSAGE are populated
-		negotiate_target_info              : bool;
-
-		## If set, requests the usage of the LMOWF function
-		request_non_nt_session_key         : bool;
-		## If set, requests and identify level token
-		negotiate_identify	           : bool;
-		## If set, requests usage of NTLM v2 session security
-		## Note: NTML v2 session security is actually NTLM v1
-		negotiate_extended_sessionsecurity : bool;
-		## If set, TargetName must be a server name
-		target_type_server	   	   : bool;
-		## If set, TargetName must be a domain name
-		target_type_domain	   	   : bool;
-
-		## If set, requests the presence of a signature block
-		## on all messages
-		negotiate_always_sign	   	   : bool;
-		## If set, the workstation name is provided
-		negotiate_oem_workstation_supplied : bool;
-		## If set, the domain name is provided
-		negotiate_oem_domain_supplied  	   : bool;
-		## If set, the connection should be anonymous
-		negotiate_anonymous_connection 	   : bool;
-		## If set, requests usage of NTLM v1
-		negotiate_ntlm                     : bool;
-
-		## If set, requests LAN Manager session key computation
-		negotiate_lm_key 	           : bool;
-		## If set, requests connectionless authentication
-		negotiate_datagram                 : bool;
-		## If set, requests session key negotiation for message 
-		## confidentiality
-		negotiate_seal                     : bool;
-		## If set, requests session key negotiation for message
-		## signatures
-		negotiate_sign 	                   : bool;
-		## If set, the TargetName field is present
-		request_target                     : bool;
-
-		## If set, requests OEM character set encoding
-		negotiate_oem   	           : bool;
-		## If set, requests Unicode character set encoding
-		negotiate_unicode                  : bool;
-	};
-
-	type SMB::NTLMNegotiate: record {
-		## The negotiate flags
-		flags		: SMB::NTLMNegotiateFlags;
-		## The domain name of the client, if known
-		domain_name	: string &optional;
-		## The machine name of the client, if known
-		workstation	: string &optional;
-		## The Windows version information, if supplied
-		version		: SMB::NTLMVersion &optional;
-	};
-
-	type SMB::NTLMAVs: record {
-		## The server's NetBIOS computer name
-		nb_computer_name	: string;
-		## The server's NetBIOS domain name
-		nb_domain_name		: string;
-		## The FQDN of the computer
-		dns_computer_name	: string &optional;
-		## The FQDN of the domain
-		dns_domain_name		: string &optional;
-		## The FQDN of the forest
-		dns_tree_name		: string &optional;
-
-		## Indicates to the client that the account
-		## authentication is constrained
-		constrained_auth	: bool &optional;
-		## The associated timestamp, if present
-		timestamp	  	: time &optional;
-		## Indicates that the client is providing
-		## mess achine ID created at computer startup to
-		## identify the calling machine
-		single_host_id		: count &optional;
-
-		## The SPN of the target server
-		target_name		: string &optional;
-	};
-
-	type SMB::NTLMChallenge: record {
-		## The negotiate flags
-		flags		: SMB::NTLMNegotiateFlags;
-		## The server authentication realm. If the server is
-		## domain-joined, the name of the domain. Otherwise
-		## the server name. See flags.target_type_domain
-		## and flags.target_type_server
-		target_name	: string &optional;
-		## The Windows version information, if supplied
-		version		: SMB::NTLMVersion &optional;
-		## Attribute-value pairs specified by the server
-		target_info	: SMB::NTLMAVs &optional;
-	};
-
-	type SMB::NTLMAuthenticate: record {
-		## The negotiate flags
-		flags		: SMB::NTLMNegotiateFlags;
-		## The domain or computer name hosting the account
-		domain_name	: string;
-		## The name of the user to be authenticated.
-		user_name	: string;
-		## The name of the computer to which the user was logged on.
-		workstation	: string;
-		## The Windows version information, if supplied
-		version		: SMB::NTLMVersion &optional;
-	};
-
 }
 
 module SMB1;

@@ -10,7 +10,9 @@ bro_plugin_pac(
     dce_rpc.pac 
     dce_rpc-protocol.pac
     dce_rpc-analyzer.pac
+    dce_rpc-gssapi.pac
+    endpoint-atsvc.pac
     endpoint-epmapper.pac
-    endpoint-atsvc.pac)
+    )
 bro_plugin_end()
 

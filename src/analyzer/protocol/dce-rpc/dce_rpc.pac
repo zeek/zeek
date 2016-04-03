@@ -23,5 +23,6 @@ flow DCE_RPC_Flow(is_orig: bool) {
 	flowunit = DCE_RPC_PDU(is_orig) withcontext(connection, this);
 };
 
-%include epmapper.pac
+%include endpoint-atsvc.pac
+%include endpoint-epmapper.pac
 %include dce_rpc-analyzer.pac

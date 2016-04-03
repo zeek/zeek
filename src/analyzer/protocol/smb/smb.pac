@@ -4,15 +4,11 @@
 %extern{
 #include "analyzer/Manager.h"
 #include "analyzer/Analyzer.h"
-// #include "analyzer/protocol/dce-rpc/DCE_RPC.h"
 
 #include "smb1_events.bif.h"
 #include "smb2_events.bif.h"
 
 #include "types.bif.h"
-
-#include "smb_ntlmssp.bif.h"
-#include "smb_pipe.bif.h"
 
 #include "smb1_com_check_directory.bif.h"
 #include "smb1_com_close.bif.h"
@@ -57,9 +53,9 @@ connection SMB_Conn(bro_analyzer: BroAnalyzer) {
 %include smb-strings.pac
 %include smb-common.pac
 %include smb-time.pac
-
-%include smb-ntlmssp-asn1.pac
-%include smb-ntlmssp.pac
+%include smb-mailslot.pac
+%include smb-pipe.pac
+%include smb-gssapi.pac
 
 # SMB1 Commands
 %include smb1-com-check-directory.pac
@@ -81,9 +77,6 @@ connection SMB_Conn(bro_analyzer: BroAnalyzer) {
 %include smb1-com-tree-connect-andx.pac
 %include smb1-com-tree-disconnect.pac
 %include smb1-com-write-andx.pac
-
-%include smb-mailslot.pac
-%include smb-pipe.pac
 
 # SMB2 Commands
 %include smb2-com-close.pac
@@ -146,14 +139,18 @@ flow SMB_Flow(is_orig: bool) {
 refine connection SMB_Conn += {
 	%member{
 		analyzer::Analyzer *dcerpc;
+		analyzer::Analyzer *gssapi;
 	%}
 
 	%init{
 		dcerpc = analyzer_mgr->InstantiateAnalyzer("DCE_RPC", bro_analyzer->Conn());
+		gssapi = analyzer_mgr->InstantiateAnalyzer("GSSAPI", bro_analyzer->Conn());
 	%}
 
 	%cleanup{
 		if ( dcerpc )
 			delete dcerpc;
+		if ( gssapi )
+			delete gssapi;
 	%}
 };

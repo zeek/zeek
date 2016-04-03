@@ -10,14 +10,6 @@
 
 namespace analyzer { namespace smb {
 
-enum IPC_named_pipe {
-	IPC_NONE,
-	IPC_LOCATOR,
-	IPC_EPMAPPER,
-	IPC_SAMR,	// Security Account Manager
-};
-
-
 class Contents_SMB : public tcp::TCP_SupportAnalyzer {
 public:
 	Contents_SMB(Connection* conn, bool orig);

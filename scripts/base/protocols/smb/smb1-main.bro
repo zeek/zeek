@@ -281,51 +281,6 @@ event smb1_session_setup_andx_response(c: connection, hdr: SMB1::Header, respons
 		}
 	}
 	
-event smb_ntlm_negotiate(c: connection, hdr: SMB1::Header, request: SMB::NTLMNegotiate)
-	{
-	c$smb_state$current_cmd$sub_command = "NTLMSSP_NEGOTIATE";
-	}
-	
-event smb_ntlm_authenticate(c: connection, hdr: SMB1::Header, request: SMB::NTLMAuthenticate) &priority=5
-	{
-	c$smb_state$current_cmd$sub_command = "NTLMSSP_AUTHENTICATE";
-
-	c$smb_state$current_auth = SMB::AuthInfo($ts=network_time(), $uid=c$uid, $id=c$id);
-	if ( request?$domain_name )
-		c$smb_state$current_auth$domainname = request$domain_name;
-	if ( request?$workstation )
-		c$smb_state$current_auth$hostname = request$workstation;
-	if ( request?$user_name )
-		c$smb_state$current_auth$username = request$user_name;
-
-	local user: string = "";
-	if ( ( request?$domain_name && request$domain_name != "" ) && ( request?$user_name && request$user_name != "" ) )
-		user = fmt("%s\\%s", request$domain_name, request$user_name);
-	else if ( ( request?$workstation && request$workstation != "" ) && ( request?$user_name && request$user_name != "" ) )
-		user = fmt("%s\\%s", request$workstation, request$user_name);
-	else if ( request?$user_name && request$user_name != "" )
-		user = request$user_name;
-	else if ( request?$domain_name && request$domain_name != "" )
-		user = fmt("%s\\", request$domain_name);
-	else if ( request?$workstation && request$workstation != "" )
-		user = fmt("%s", request$workstation);
-
-	if ( user != "" )
-		{
-		c$smb_state$current_cmd$argument = user;
-		}
-
-	if ( hdr$uid !in c$smb_state$uid_map )
-		{
-		c$smb_state$uid_map[hdr$uid] = user;
-		}
-	}
-
-event smb_ntlm_authenticate(c: connection, hdr: SMB1::Header, request: SMB::NTLMAuthenticate) &priority=5
-	{
-	Log::write(SMB::AUTH_LOG, c$smb_state$current_auth);
-	}
-
 event smb1_transaction_request(c: connection, hdr: SMB1::Header, name: string, sub_cmd: count)
 	{
 	c$smb_state$current_cmd$sub_command = SMB1::trans_sub_commands[sub_cmd];

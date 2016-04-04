@@ -1,56 +1,5 @@
 
-%extern{
-#include "ConvertUTF.h"
-%}
-
 refine connection NTLM_Conn += {
-
-	# This is copied from the RDP analyzer :(
-	function utf16_to_utf8_val(utf16: bytestring): StringVal
-		%{
-		std::string resultstring;
-
-		size_t utf8size = (3 * utf16.length() + 1);
-
-		if ( utf8size > resultstring.max_size() )
-			{
-			bro_analyzer()->Weird("excessive_utf16_length");
-			// If the conversion didn't go well, return the original data.
-			return bytestring_to_val(utf16);
-			}
-
-		resultstring.resize(utf8size, '\0');
-
-		// We can't assume that the string data is properly aligned
-		// here, so make a copy.
-		UTF16 utf16_copy[utf16.length()]; // Twice as much memory than necessary.
-		memcpy(utf16_copy, utf16.begin(), utf16.length());
-
-		const char* utf16_copy_end = reinterpret_cast<const char*>(utf16_copy) + utf16.length();
-		const UTF16* sourcestart = utf16_copy;
-		const UTF16* sourceend = reinterpret_cast<const UTF16*>(utf16_copy_end);
-
-		UTF8* targetstart = reinterpret_cast<UTF8*>(&resultstring[0]);
-		UTF8* targetend = targetstart + utf8size;
-
-		ConversionResult res = ConvertUTF16toUTF8(&sourcestart,
-		                                          sourceend,
-		                                          &targetstart,
-		                                          targetend,
-		                                          lenientConversion);
-		if ( res != conversionOK )
-			{
-			bro_analyzer()->Weird("utf16_conversion_failed");
-			// If the conversion didn't go well, return the original data.
-			return bytestring_to_val(utf16);
-			}
-
-		*targetstart = 0;
-
-		// We're relying on no nulls being in the string.
-		//return new StringVal(resultstring.length(), (const char *) resultstring.data());
-		return new StringVal(resultstring.c_str());
-		%}
 
 	# This is replicated from the SMB analyzer. :(
 	function filetime2brotime(ts: uint64): Val
@@ -83,19 +32,19 @@ refine connection NTLM_Conn += {
 			switch ( ${val.pairs[i].id} ) 
 				{
 				case 1:
-					result->Assign(0, utf16_to_utf8_val(${val.pairs[i].nb_computer_name.data}));
+					result->Assign(0, utf16_bytestring_to_utf8_val(${val.pairs[i].nb_computer_name.data}));
 					break;
 				case 2:
-					result->Assign(1, utf16_to_utf8_val(${val.pairs[i].nb_domain_name.data}));
+					result->Assign(1, utf16_bytestring_to_utf8_val(${val.pairs[i].nb_domain_name.data}));
 					break;
 				case 3:
-					result->Assign(2, utf16_to_utf8_val(${val.pairs[i].dns_computer_name.data}));
+					result->Assign(2, utf16_bytestring_to_utf8_val(${val.pairs[i].dns_computer_name.data}));
 					break;
 				case 4:
-					result->Assign(3, utf16_to_utf8_val(${val.pairs[i].dns_domain_name.data}));
+					result->Assign(3, utf16_bytestring_to_utf8_val(${val.pairs[i].dns_domain_name.data}));
 					break;
 				case 5:
-					result->Assign(4, utf16_to_utf8_val(${val.pairs[i].dns_tree_name.data}));
+					result->Assign(4, utf16_bytestring_to_utf8_val(${val.pairs[i].dns_tree_name.data}));
 					break;
 				case 6:
 					result->Assign(5, new Val(${val.pairs[i].constrained_auth}, TYPE_BOOL));
@@ -107,7 +56,7 @@ refine connection NTLM_Conn += {
 					result->Assign(7, new Val(${val.pairs[i].single_host.machine_id}, TYPE_COUNT));
 					break;
 				case 9:
-					result->Assign(8, utf16_to_utf8_val(${val.pairs[i].target_name.data}));
+					result->Assign(8, utf16_bytestring_to_utf8_val(${val.pairs[i].target_name.data}));
 					break;
 				}
 			}
@@ -149,10 +98,10 @@ refine connection NTLM_Conn += {
 		result->Assign(0, build_negotiate_flag_record(${val.flags}));
 
 		if ( ${val.flags.negotiate_oem_domain_supplied} )
-		        result->Assign(1, utf16_to_utf8_val(${val.domain_name.string.data}));
+		        result->Assign(1, utf16_bytestring_to_utf8_val(${val.domain_name.string.data}));
 
 		if ( ${val.flags.negotiate_oem_workstation_supplied} )
-		        result->Assign(2, utf16_to_utf8_val(${val.workstation.string.data}));
+		        result->Assign(2, utf16_bytestring_to_utf8_val(${val.workstation.string.data}));
 
 		if ( ${val.flags.negotiate_version} )
 		        result->Assign(3, build_version_record(${val.version}));
@@ -170,7 +119,7 @@ refine connection NTLM_Conn += {
 		result->Assign(0, build_negotiate_flag_record(${val.flags}));
 
 		if ( ${val.flags.request_target} )
-			result->Assign(1, utf16_to_utf8_val(${val.target_name.string.data}));
+			result->Assign(1, utf16_bytestring_to_utf8_val(${val.target_name.string.data}));
 
 		if ( ${val.flags.negotiate_version} )
 			result->Assign(2, build_version_record(${val.version}));
@@ -191,13 +140,13 @@ refine connection NTLM_Conn += {
 		result->Assign(0, build_negotiate_flag_record(${val.flags}));
 
 		if ( ${val.domain_name_fields.length} > 0 )
-			result->Assign(1, utf16_to_utf8_val(${val.domain_name.string.data}));
+			result->Assign(1, utf16_bytestring_to_utf8_val(${val.domain_name.string.data}));
 
 		if ( ${val.user_name_fields.length} > 0 )
-			result->Assign(2, utf16_to_utf8_val(${val.user_name.string.data}));
+			result->Assign(2, utf16_bytestring_to_utf8_val(${val.user_name.string.data}));
 
 		if ( ${val.workstation_fields.length} > 0 )
-			result->Assign(3, utf16_to_utf8_val(${val.workstation.string.data}));
+			result->Assign(3, utf16_bytestring_to_utf8_val(${val.workstation.string.data}));
 
 		if ( ${val.flags.negotiate_version} )
 			result->Assign(4, build_version_record(${val.version}));

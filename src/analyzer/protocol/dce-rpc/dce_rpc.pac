@@ -2,8 +2,8 @@
 %include bro.pac
 
 %extern{
-	#include "types.bif.h"
-	#include "events.bif.h"
+#include "types.bif.h"
+#include "events.bif.h"
 %}
 
 analyzer DCE_RPC withcontext {
@@ -15,7 +15,6 @@ connection DCE_RPC_Conn(bro_analyzer: BroAnalyzer) {
 	upflow   = DCE_RPC_Flow(true);
 	downflow = DCE_RPC_Flow(false);
 };
-
 %include dce_rpc-protocol.pac
 
 # Now we define the flow:

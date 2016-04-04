@@ -1,32 +1,15 @@
-## TODO.
-##
-## .. bro:see:: rpc_call rpc_dialogue rpc_reply dce_rpc_bind dce_rpc_request
-##    dce_rpc_response rpc_timeout
+## .. bro:see:: dce_rpc_bind dce_rpc_bind_ack dce_rpc_request dce_rpc_response
 event dce_rpc_message%(c: connection, is_orig: bool, ptype_id: count, ptype: DCE_RPC::PType%);
 
-## TODO.
-##
-## .. bro:see:: rpc_call rpc_dialogue rpc_reply  dce_rpc_message dce_rpc_request
-##    dce_rpc_response rpc_timeout
+## .. bro:see:: dce_rpc_message dce_rpc_bind_ack dce_rpc_request dce_rpc_response
 event dce_rpc_bind%(c: connection, uuid: string, ver_major: count, ver_minor: count%);
 
+## .. bro:see:: dce_rpc_message dce_rpc_bind dce_rpc_request dce_rpc_response
 event dce_rpc_bind_ack%(c: connection, sec_addr: string%);
 
-## TODO.
-##
-## .. bro:see:: rpc_call rpc_dialogue rpc_reply dce_rpc_bind dce_rpc_message
-##    dce_rpc_response rpc_timeout
+## .. bro:see:: dce_rpc_message dce_rpc_bind dce_rpc_bind_ack dce_rpc_response
 event dce_rpc_request%(c: connection, opnum: count, stub_len: count%);
 
-## TODO.
-##
-## .. bro:see:: rpc_call rpc_dialogue rpc_reply dce_rpc_bind dce_rpc_message
-##    dce_rpc_request  rpc_timeout
+## .. bro:see:: dce_rpc_message dce_rpc_bind dce_rpc_bind_ack dce_rpc_request
 event dce_rpc_response%(c: connection, opnum: count, stub_len: count%);
-
-## TODO.
-##
-## .. bro:see:: rpc_call rpc_dialogue rpc_reply dce_rpc_bind dce_rpc_message
-##    dce_rpc_request dce_rpc_response rpc_timeout
-event epm_map_response%(c: connection, uuid: string, p: port, h: addr%);
 

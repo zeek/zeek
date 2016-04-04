@@ -60,7 +60,7 @@ type NDR_Format = record {
 	byteorder = (intchar >> 4) ? littleendian : bigendian;
 };
 
-#### There might be a endianness problem here: the frag_length
+# There might be a endianness problem here: the frag_length
 # causes problems despite the NDR_Format having a byteorder set.
 
 type DCE_RPC_Header(is_orig: bool) = record {

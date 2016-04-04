@@ -74,12 +74,11 @@ refine connection SMB_Conn += {
 				{
 				case 0x01:
 					core = new RecordVal(BifType::Record::SMB1::NegotiateResponseCore);
-					core->Assign(0, new Val(${val.word_count}, TYPE_COUNT));
-					core->Assign(1, new Val(${val.dialect_index}, TYPE_COUNT));
-					core->Assign(2, new Val(${val.core.byte_count}, TYPE_COUNT));
-
+					core->Assign(0, new Val(${val.dialect_index}, TYPE_COUNT));
+					
 					response->Assign(0, core);
 					break;
+
 				case 0x0d:
 					security = new RecordVal(BifType::Record::SMB1::NegotiateResponseSecurity);
 					security->Assign(0, new Val(${val.lanman.security_user_level}, TYPE_BOOL));

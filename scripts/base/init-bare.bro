@@ -2552,8 +2552,6 @@ export {
 	};
 
 	type SMB1::NegotiateResponseCore: record {
-		## Count of parameter words (should be 1)
-		word_count	: count;
 		## Index of selected dialect
 		dialect_index	: count;
 	};

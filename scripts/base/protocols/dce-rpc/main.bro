@@ -36,9 +36,15 @@ type State: record {
 	named_pipe : string &optional;
 };
 
+type Stuff: record {
+	info: Info;
+	state: State;
+};
+
 redef record connection += {
 	dce_rpc: Info &optional;
-	dce_rpc_state: State &default=State();
+	dce_rpc_state: State &optional;
+	dce_rpc_state_x: table[count] of Stuff &optional;
 };
 
 const ports = { 135/tcp };
@@ -50,14 +56,10 @@ event bro_init() &priority=5
 	Analyzer::register_for_ports(Analyzer::ANALYZER_DCE_RPC, ports);
 	}
 
-function set_session(c: connection)
+function set_state(c: connection, state_x: Stuff)
 	{
-	if ( ! c?$dce_rpc )
-		{
-		c$dce_rpc = [$ts=network_time(),
-		             $id=c$id,
-		             $uid=c$uid];
-		}
+	c$dce_rpc = state_x$info;
+	c$dce_rpc_state = state_x$state;
 
 	if ( c$dce_rpc_state?$uuid )
 		c$dce_rpc$endpoint = uuid_endpoint_map[c$dce_rpc_state$uuid];
@@ -65,9 +67,25 @@ function set_session(c: connection)
 		c$dce_rpc$named_pipe = c$dce_rpc_state$named_pipe;
 	}
 
-event dce_rpc_bind(c: connection, uuid: string, ver_major: count, ver_minor: count) &priority=5
+function set_session(c: connection, fid: count)
 	{
-	set_session(c);
+	if ( ! c?$dce_rpc_state_x )
+		{
+		c$dce_rpc_state_x = table();
+		}
+	if ( fid !in c$dce_rpc_state_x )
+		{
+		local info = Info($ts=network_time(),$id=c$id,$uid=c$uid);
+		c$dce_rpc_state_x[fid] = Stuff($info=info, $state=State());
+		}
+
+	local state_x = c$dce_rpc_state_x[fid];
+	set_state(c, state_x);
+	}
+
+event dce_rpc_bind(c: connection, fid: count, uuid: string, ver_major: count, ver_minor: count) &priority=5
+	{
+	set_session(c, fid);
 
 	local uuid_str = uuid_to_string(uuid);
 	if ( uuid_str in ignored_uuids )
@@ -77,9 +95,9 @@ event dce_rpc_bind(c: connection, uuid: string, ver_major: count, ver_minor: cou
 	c$dce_rpc$endpoint = uuid_endpoint_map[uuid_str];
 	}
 
-event dce_rpc_bind_ack(c: connection, sec_addr: string) &priority=5
+event dce_rpc_bind_ack(c: connection, fid: count, sec_addr: string) &priority=5
 	{
-	set_session(c);
+	set_session(c, fid);
 
 	if ( sec_addr != "" )
 		{
@@ -88,19 +106,19 @@ event dce_rpc_bind_ack(c: connection, sec_addr: string) &priority=5
 		}
 	}
 
-event dce_rpc_request(c: connection, opnum: count, stub_len: count) &priority=5
+event dce_rpc_request(c: connection, fid: count, opnum: count, stub_len: count) &priority=5
 	{
-	set_session(c);
+	set_session(c, fid);
 
-	if ( c?$dce_rpc  )
+	if ( c?$dce_rpc )
 		{
 		c$dce_rpc$ts = network_time();
 		}
 	}
 
-event dce_rpc_response(c: connection, opnum: count, stub_len: count) &priority=5
+event dce_rpc_response(c: connection, fid: count, opnum: count, stub_len: count) &priority=5
 	{
-	set_session(c);
+	set_session(c, fid);
 
 	if ( c?$dce_rpc && c$dce_rpc?$endpoint )
 		{
@@ -110,11 +128,11 @@ event dce_rpc_response(c: connection, opnum: count, stub_len: count) &priority=5
 		}
 	}
 
-event dce_rpc_response(c: connection, opnum: count, stub_len: count) &priority=-5
+event dce_rpc_response(c: connection, fid: count, opnum: count, stub_len: count) &priority=-5
 	{
 	if ( c?$dce_rpc )
 		{
-		# If there is not endpoint, there isn't much reason to log.
+		# If there is not an endpoint, there isn't much reason to log.
 		# This can happen if the request isn't seen.
 		if ( c$dce_rpc?$endpoint )
 			Log::write(LOG, c$dce_rpc);
@@ -128,4 +146,11 @@ event connection_state_remove(c: connection)
 		return;
 
 	# TODO: Go through any remaining dce_rpc requests that haven't been processed with replies.
+	for ( i in c$dce_rpc_state_x )
+		{
+		local x = c$dce_rpc_state_x[i];
+		set_state(c, x);
+		if ( c$dce_rpc?$endpoint )
+			Log::write(LOG, c$dce_rpc);
+		}
 	}

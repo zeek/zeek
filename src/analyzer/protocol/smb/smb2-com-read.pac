@@ -4,7 +4,20 @@ refine connection SMB_Conn += {
 		// Track read offsets to provide correct 
 		// offsets for file manager.
 		std::map<uint16,uint64> smb2_read_offsets;
+		std::map<uint64,uint64> smb2_read_fids;
 	%}
+
+	function get_file_id(message_id: uint64): uint64
+		%{
+		if ( smb2_read_fids.count(message_id) == 0 )
+			return 0;
+		else
+			{
+			uint64 fid = smb2_read_fids[message_id];
+			smb2_read_fids.erase(message_id);
+			return fid;
+			}
+		%}
 
 	function proc_smb2_read_request(h: SMB2_Header, val: SMB2_read_request) : bool
 		%{
@@ -19,20 +32,26 @@ refine connection SMB_Conn += {
 			}
 		
 		smb2_read_offsets[${h.message_id}] = ${val.offset};
+		smb2_read_fids[${h.message_id}] = ${val.file_id.persistent} + ${val.file_id._volatile};
 
 		return true;
 		%}
 
 	function proc_smb2_read_response(h: SMB2_Header, val: SMB2_read_response) : bool
 		%{
+		uint64 offset = smb2_read_offsets[${h.message_id}];
+		smb2_read_offsets.erase(${h.message_id});
+
 		if ( ! ${val.is_pipe} && ${val.data_len} > 0 )
 			{
-			uint64 offset = smb2_read_offsets[${h.message_id}];
-			smb2_read_offsets.erase(${h.message_id});
-
 			file_mgr->DataIn(${val.data}.begin(), ${val.data_len}, offset,
 			                 bro_analyzer()->GetAnalyzerTag(),
 			                 bro_analyzer()->Conn(), h->is_orig());
+			}
+
+
+		if ( ${val.is_pipe} )
+			{
 			}
 
 		return true;
@@ -69,8 +88,9 @@ type SMB2_read_response(header: SMB2_Header) = record {
 	pad               : padding to data_offset - header.head_length;
 	data              : bytestring &length=data_len;
 } &let {
-	is_pipe   : bool = $context.connection.get_tree_is_pipe(header.tree_id);
-	pipe_proc : bool = $context.connection.forward_dce_rpc(data, false) &if(is_pipe);
+	is_pipe   : bool   = $context.connection.get_tree_is_pipe(header.tree_id);
+	fid       : uint64 = $context.connection.get_file_id(header.message_id);
+	pipe_proc : bool   = $context.connection.forward_dce_rpc(data, fid, false) &if(is_pipe);
 
 	proc: bool = $context.connection.proc_smb2_read_response(header, this);
 };

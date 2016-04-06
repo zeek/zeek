@@ -1,4 +1,25 @@
 refine connection SMB_Conn += {
+	%member{
+		std::map<uint64,uint64> smb2_ioctl_fids;
+	%}
+
+	function get_ioctl_fid(message_id: uint64): uint64
+		%{
+		if ( smb2_ioctl_fids.count(message_id) == 0 )
+			return 0;
+		else
+			{
+			uint64 fid = smb2_ioctl_fids[message_id];
+			smb2_ioctl_fids.erase(message_id);
+			return fid;
+			}
+		%}
+
+	function proc_smb2_ioctl_request(val: SMB2_ioctl_request) : bool
+		%{
+		smb2_ioctl_fids[${val.header.message_id}] = ${val.file_id.persistent} + ${val.file_id._volatile};
+		return true;
+		%}
 	
 };
 
@@ -22,7 +43,9 @@ type SMB2_ioctl_request(header: SMB2_Header) = record {
 } &let {
 	# We only handle FSCTL_PIPE_TRANSCEIVE messages right now.
 	is_pipe: bool = (ctl_code == 0x0011C017);
-	pipe_proc : bool = $context.connection.forward_dce_rpc(input_buffer, true) &if(is_pipe);
+	fid: uint64 = file_id.persistent + file_id._volatile;
+	pipe_proc : bool = $context.connection.forward_dce_rpc(input_buffer, fid, true) &if(is_pipe);
+	proc : bool = $context.connection.proc_smb2_ioctl_request(this);
 };
 
 type SMB2_ioctl_response(header: SMB2_Header) = record {
@@ -42,6 +65,7 @@ type SMB2_ioctl_response(header: SMB2_Header) = record {
 	output_buffer     : bytestring &length=output_count;
 } &let {
 	# We only handle FSCTL_PIPE_TRANSCEIVE messages right now.
-	is_pipe: bool = (ctl_code == 0x0011C017);
-	pipe_proc : bool = $context.connection.forward_dce_rpc(output_buffer, false) &if(is_pipe);
+	is_pipe   : bool = (ctl_code == 0x0011C017);
+	fid       : uint64 = $context.connection.get_ioctl_fid(header.message_id);
+	pipe_proc : bool = $context.connection.forward_dce_rpc(output_buffer, fid, false) &if(is_pipe);
 };

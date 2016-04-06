@@ -70,7 +70,7 @@ type SMB1_transaction_data(header: SMB_Header, is_orig: bool, count: uint16, sub
 	SMB_UNKNOWN         -> unknown   : bytestring &restofdata &transient;
 	default             -> data      : bytestring &restofdata &transient;
 } &let {
-	pipe_proc : bool = $context.connection.forward_dce_rpc(pipe_data, is_orig) &if(trans_type == SMB_PIPE);
+	pipe_proc : bool = $context.connection.forward_dce_rpc(pipe_data, 0, is_orig) &if(trans_type == SMB_PIPE);
 };
 
 type SMB1_transaction_setup(header: SMB_Header) = record {

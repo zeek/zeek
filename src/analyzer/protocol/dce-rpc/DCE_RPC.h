@@ -185,6 +185,9 @@ public:
 	virtual void Undelivered(uint64 seq, int len, bool orig);
 	virtual void EndpointEOF(bool is_orig);
 
+	bool SetFileID(uint64 fid_in)
+		{ interp->set_file_id(fid_in); return true; }
+
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new DCE_RPC_Analyzer(conn); }
 

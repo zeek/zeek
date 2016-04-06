@@ -55,7 +55,7 @@ type SMB1_write_andx_request(header: SMB_Header) = record {
 	data          : bytestring &length=data_len;
 } &let {
 	is_pipe     : bool   = $context.connection.get_tree_is_pipe(header.tid);
-	pipe_proc   : bool   = $context.connection.forward_dce_rpc(data, true) &if(is_pipe);
+	pipe_proc   : bool   = $context.connection.forward_dce_rpc(data, 0, true) &if(is_pipe);
 
 	data_len    : uint32 = (data_len_high << 16) + data_len_low;
 	offset_high : uint32 = (word_count == 0x0E) ? offset_high_tmp : 0;

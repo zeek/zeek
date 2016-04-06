@@ -46,7 +46,7 @@ type SMB2_write_request(header: SMB2_Header) = record {
 	data                : bytestring &length=data_len;
 } &let {
 	is_pipe: bool = $context.connection.get_tree_is_pipe(header.tree_id);
-	pipe_proc : bool = $context.connection.forward_dce_rpc(data, true) &if(is_pipe);
+	pipe_proc : bool = $context.connection.forward_dce_rpc(data, file_id.persistent+file_id._volatile, true) &if(is_pipe);
 
 	proc : bool = $context.connection.proc_smb2_write_request(header, this);
 };

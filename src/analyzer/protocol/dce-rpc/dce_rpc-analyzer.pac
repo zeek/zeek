@@ -3,7 +3,18 @@
 refine connection DCE_RPC_Conn += {
 	%member{
 		map<uint16, uint16> cont_id_opnum_map;
+		uint64 fid;
 	%}
+
+	%init{
+		fid=0;
+	%}
+
+	function set_file_id(fid_in: uint64): bool
+		%{
+		fid = fid_in;
+		return true;
+		%}
 
 	function get_cont_id_opnum_map(cont_id: uint16): uint16
 		%{
@@ -30,6 +41,7 @@ refine connection DCE_RPC_Conn += {
 			BifEvent::generate_dce_rpc_message(bro_analyzer(),
 			                                   bro_analyzer()->Conn(),
 			                                   ${header.is_orig},
+			                                   fid,
 			                                   ${header.PTYPE},
 			                                   new EnumVal(${header.PTYPE}, BifType::Enum::DCE_RPC::PType));
 			}
@@ -52,6 +64,7 @@ refine connection DCE_RPC_Conn += {
 				// Queue the event
 				BifEvent::generate_dce_rpc_bind(bro_analyzer(),
 				                                bro_analyzer()->Conn(),
+				                                fid,
 				                                bytestring_to_val(${uuid}),
 				                                ${ver_major},
 				                                ${ver_minor});
@@ -67,13 +80,19 @@ refine connection DCE_RPC_Conn += {
 			{
 			StringVal *sec_addr;
 			// Remove the null from the end of the string if it's there.
-			if ( *(${bind.sec_addr}.begin() + ${bind.sec_addr}.length()) == 0 )
+			if ( ${bind.sec_addr}.length() > 0 &&
+			     *(${bind.sec_addr}.begin() + ${bind.sec_addr}.length()) == 0 )
+				{
 				sec_addr = new StringVal(${bind.sec_addr}.length()-1, (const char*) ${bind.sec_addr}.begin());
+				}
 			else
+				{
 				sec_addr = new StringVal(${bind.sec_addr}.length(), (const char*) ${bind.sec_addr}.begin());
+				}
 
 			BifEvent::generate_dce_rpc_bind_ack(bro_analyzer(),
 			                                    bro_analyzer()->Conn(),
+			                                    fid,
 			                                    sec_addr);
 			}
 		return true;
@@ -85,6 +104,7 @@ refine connection DCE_RPC_Conn += {
 			{
 			BifEvent::generate_dce_rpc_request(bro_analyzer(),
 			                                   bro_analyzer()->Conn(),
+			                                   fid,
 			                                   ${req.opnum},
 			                                   ${req.stub}.length());
 			}
@@ -100,6 +120,7 @@ refine connection DCE_RPC_Conn += {
 			{
 			BifEvent::generate_dce_rpc_response(bro_analyzer(),
 			                                    bro_analyzer()->Conn(),
+			                                    fid,
 			                                    get_cont_id_opnum_map(${resp.context_id}),
 			                                    ${resp.stub}.length());
 			}

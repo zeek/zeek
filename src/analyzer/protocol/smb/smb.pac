@@ -135,22 +135,3 @@ type SMB_Protocol_Identifier(is_orig: bool, msg_len: uint32) = record {
 flow SMB_Flow(is_orig: bool) {
 	flowunit = SMB_TCP(is_orig) withcontext(connection, this);
 };
-
-refine connection SMB_Conn += {
-	%member{
-		analyzer::Analyzer *dcerpc;
-		analyzer::Analyzer *gssapi;
-	%}
-
-	%init{
-		dcerpc = analyzer_mgr->InstantiateAnalyzer("DCE_RPC", bro_analyzer->Conn());
-		gssapi = analyzer_mgr->InstantiateAnalyzer("GSSAPI", bro_analyzer->Conn());
-	%}
-
-	%cleanup{
-		if ( dcerpc )
-			delete dcerpc;
-		if ( gssapi )
-			delete gssapi;
-	%}
-};

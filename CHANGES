@@ -1,4 +1,9 @@
 
+2.4-428 | 2016-04-07 13:33:08 -0700
+
+  * Confirm protocol in SNMP/SIP only if we saw a response SNMP/SIP
+    packet. (Vlad Grigorescu)
+
 2.4-424 | 2016-03-24 13:38:47 -0700
 
   * Only load openflow/netcontrol if compiled with broker. (Johanna Amann)

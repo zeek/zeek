@@ -45,13 +45,6 @@ type DCE_RPC_PDU(is_orig: bool) = record {
 	#	&if frag_reassembled;
 } &byteorder = header.byteorder, &length = header.frag_length;
 
-
-#type rpc_if_id_t = record {
-#	if_uuid    : bytestring &length = 16;
-#	vers_major : uint16;
-#	vers_minor : uint16;
-#};
-
 type NDR_Format = record {
 	intchar    : uint8;
 	floatspec  : uint8;

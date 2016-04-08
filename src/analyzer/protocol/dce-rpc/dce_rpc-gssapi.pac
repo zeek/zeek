@@ -5,8 +5,8 @@ refine connection DCE_RPC_Conn += {
 	%}
 
 	%init{
-		gssapi = analyzer_mgr->InstantiateAnalyzer("GSSAPI", bro_analyzer->Conn());
-		ntlm = analyzer_mgr->InstantiateAnalyzer("NTLM", bro_analyzer->Conn());
+		ntlm = 0;
+		gssapi = 0;
 	%}
 
 	%cleanup{
@@ -21,10 +21,14 @@ refine connection DCE_RPC_Conn += {
 		switch ( ${auth.type} )
 			{
 			case 0x0a:
+				if ( ! ntlm )
+					ntlm = analyzer_mgr->InstantiateAnalyzer("NTLM", bro_analyzer->Conn());
 				if ( ntlm )
 					ntlm->DeliverStream(${auth.blob}.length(), ${auth.blob}.begin(), is_orig);
 				break;
 			//case 0xXX:
+			//	if ( ! gssapi )
+			//		gssapi = analyzer_mgr->InstantiateAnalyzer("GSSAPI", bro_analyzer->Conn());
 			//	if ( gssapi )
 			//		gssapi->DeliverStream(${data}.length(), ${data}.begin(), is_orig);
 			//	break;

@@ -50,24 +50,26 @@ refine connection DCE_RPC_Conn += {
 
 	function process_dce_rpc_bind(bind: DCE_RPC_Bind): bool
 		%{
-
 		if ( dce_rpc_bind )
 			{
 			// Go over the elements, each having a UUID
 			$const_def{bind_elems = bind.context_list};
 			for ( int i = 0; i < ${bind_elems.num_contexts}; ++i )
 				{
-				$const_def{uuid = bind_elems.request_contexts[i].abstract_syntax.uuid};
-				$const_def{ver_major = bind_elems.request_contexts[i].abstract_syntax.ver_major};
-				$const_def{ver_minor = bind_elems.request_contexts[i].abstract_syntax.ver_minor};
+				if ( ${bind_elems.request_contexts[i].abstract_syntax} )
+					{
+					$const_def{uuid = bind_elems.request_contexts[i].abstract_syntax.uuid};
+					$const_def{ver_major = bind_elems.request_contexts[i].abstract_syntax.ver_major};
+					$const_def{ver_minor = bind_elems.request_contexts[i].abstract_syntax.ver_minor};
 
-				// Queue the event
-				BifEvent::generate_dce_rpc_bind(bro_analyzer(),
-				                                bro_analyzer()->Conn(),
-				                                fid,
-				                                bytestring_to_val(${uuid}),
-				                                ${ver_major},
-				                                ${ver_minor});
+					// Queue the event
+					BifEvent::generate_dce_rpc_bind(bro_analyzer(),
+					                                bro_analyzer()->Conn(),
+					                                fid,
+					                                bytestring_to_val(${uuid}),
+					                                ${ver_major},
+					                                ${ver_minor});
+					}
 				}
 			}
 

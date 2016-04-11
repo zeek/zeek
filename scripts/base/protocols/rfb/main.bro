@@ -106,7 +106,6 @@ event rfb_server_version(c: connection, major_version: string, minor_version: st
 	set_session(c);
 	c$rfb_state$server_major_version = major_version;
 	c$rfb_state$server_minor_version = minor_version;
-	add c$service["rfb"];
 	}
 
 event rfb_authentication_type(c: connection, authtype: count)

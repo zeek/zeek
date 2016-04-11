@@ -1,4 +1,4 @@
-module Rfb;
+module RFB;
 
 export {
 	redef enum Log::ID += { LOG };
@@ -11,17 +11,27 @@ export {
 		## The connection's 4-tuple of endpoint addresses/ports.
 		id:     conn_id &log;
 
+		## Major version of the client.
 		client_major_version: string &log &optional;
+		## Minor version of the client.
 		client_minor_version: string &log &optional;
+		## Major version of the server.
 		server_major_version: string &log &optional;
+		## Major version of the client.
 		server_minor_version: string &log &optional;
 
+		## Identifier of authentication method used.
 		authentication_method: string &log &optional;
+		## Whether or not authentication was succesful.
 		auth: bool &log &optional;
 
+		## Whether the client has an exclusive or a shared session.
 		share_flag: bool &log &optional;
+		## Name of the screen that is being shared.
 		desktop_name: string &log &optional;
+		## Width of the screen that is being shared.
 		width: count &log &optional;
+		## Height of the screen that is being shared.
 		height: count &log &optional;
 
 		done: bool  &default=F;
@@ -30,7 +40,8 @@ export {
 	global log_rfb: event(rec: Info);
 }
 
-function friendly_auth_name(auth: count): string {
+function friendly_auth_name(auth: count): string
+	{
 	switch (auth) {
 		case 0:
 			return "Invalid";
@@ -56,9 +67,7 @@ function friendly_auth_name(auth: count): string {
 			return "Apple Remote Desktop";
 	}
 	return "RealVNC";
-
 }
-
 
 redef record connection += {
 	rfb_state: Info &optional;
@@ -66,27 +75,32 @@ redef record connection += {
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(Rfb::LOG, [$columns=Info, $ev=log_rfb, $path="rfb"]);
+	Log::create_stream(RFB::LOG, [$columns=Info, $ev=log_rfb, $path="rfb"]);
 	}
 
-function write_log(c:connection) {
+function write_log(c:connection)
+	{
 	local state = c$rfb_state;
-	if ( state?$done && state$done == T) {
+	if ( state?$done && state$done == T )
+		{
 		return;
-	}
-	Log::write(Rfb::LOG, c$rfb_state);
-	c$rfb_state$done = T;
-}
+		}
 
-function set_session(c: connection) {
-	if ( ! c?$rfb_state ) {
+	Log::write(RFB::LOG, c$rfb_state);
+	c$rfb_state$done = T;
+	}
+
+function set_session(c: connection)
+	{
+	if ( ! c?$rfb_state )
+		{
 		local info: Info;
 		info$ts  = network_time();
 		info$uid = c$uid;
 		info$id  = c$id;
 
 		c$rfb_state = info;
-	}
+		}
 	}
 
 event rfb_event(c: connection)
@@ -121,13 +135,9 @@ event rfb_server_parameters(c: connection, name: string, width: count, height: c
 	write_log(c);
 	}
 
-event rfb_auth_result(c: connection, result: count)
+event rfb_auth_result(c: connection, result: bool)
 	{
-	if ( result ==0 ) {
-		c$rfb_state$auth = T;
-	} else {
-		c$rfb_state$auth = F;
-	}
+	c$rfb_state$auth = !result;
 	}
 
 event rfb_share_flag(c: connection, flag: bool)
@@ -135,8 +145,10 @@ event rfb_share_flag(c: connection, flag: bool)
 	c$rfb_state$share_flag = flag;
 	}
 
-event connection_state_remove(c: connection) {
-	if ( c?$rfb_state ) {
-	write_log(c);
+event connection_state_remove(c: connection)
+	{
+	if ( c?$rfb_state )
+		{
+		write_log(c);
+		}
 	}
-}

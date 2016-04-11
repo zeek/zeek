@@ -15,7 +15,7 @@ event rfb_authentication_type%(c: connection, authtype: count%);
 ## c: The connection record for the underlying transport-layer session/flow.
 ##
 ## result: whether or not authentication was succesful
-event rfb_auth_result%(c: connection, result: count%);
+event rfb_auth_result%(c: connection, result: bool%);
 
 ## Generated for RFB event share flag messages
 ##

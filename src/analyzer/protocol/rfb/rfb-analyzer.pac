@@ -7,14 +7,16 @@ refine flow RFB_Flow += {
 
 	function proc_rfb_version(client: bool, major: bytestring, minor: bytestring) : bool
 		%{
-		if (client) {
+		if (client)
+			{
 			BifEvent::generate_rfb_client_version(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), bytestring_to_val(major), bytestring_to_val(minor));
 
 			connection()->bro_analyzer()->ProtocolConfirmation();
-
-		} else {
+			}
+			else
+			{
 			BifEvent::generate_rfb_server_version(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), bytestring_to_val(major), bytestring_to_val(minor));
-		}
+			}
 		return true;
 		%}
 
@@ -25,28 +27,28 @@ refine flow RFB_Flow += {
 		%}
 
 	function proc_security_types(msg: RFBSecurityTypes) : bool
-	%{
+		%{
 		BifEvent::generate_rfb_authentication_type(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), ${msg.sectype});
 		return true;
-	%}
+		%}
 
 	function proc_security_types37(msg: RFBAuthTypeSelected) : bool
-	%{
+		%{
 		BifEvent::generate_rfb_authentication_type(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), ${msg.type});
 		return true;
-	%}
+		%}
 
 	function proc_handle_server_params(msg:RFBServerInit) : bool
-	%{
+		%{
 		BifEvent::generate_rfb_server_parameters(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), bytestring_to_val(${msg.name}), ${msg.width}, ${msg.height});
 		return true;
-	%}
+		%}
 
 	function proc_handle_security_result(result : uint32) : bool
-	%{
+		%{
 		BifEvent::generate_rfb_auth_result(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), result);
 		return true;
-	%}
+		%}
 };
 
 refine connection RFB_Conn += {
@@ -70,113 +72,115 @@ refine connection RFB_Conn += {
 	%}
 
 	function get_state(client: bool) : int
-	%{
+		%{
 		return state;
-	%}
+		%}
 
 	function handle_banners(client: bool, msg: RFBProtocolVersion) : bool
-	%{
-		if ( client ) {
+		%{
+		if ( client )
+			{
 			// Set protocol version on client's version
 			int minor_version = bytestring_to_int(${msg.minor},10);
 
 			// Apple specifies minor version "889" but talks v37
-			if ( minor_version >= 7 ) {
+			if ( minor_version >= 7 )
 				state = AWAITING_SERVER_AUTH_TYPES37;
-			} else {
+			else
 				state = AWAITING_SERVER_AUTH_TYPES;
 			}
-		} else {
-			if ( !client ) {
+			else
 				state = AWAITING_CLIENT_BANNER;
-			}
-		}
+
 		return true;
-	%}
+		%}
 
 	function handle_ard_challenge() : bool
-	%{
+		%{
 		state = AWAITING_CLIENT_ARD_RESPONSE;
 		return true;
-	%}
+		%}
 
 	function handle_ard_response() : bool
-	%{
+		%{
 		state = AWAITING_SERVER_AUTH_RESULT;
 		return true;
-	%}
+		%}
 
 	function handle_auth_request() : bool
-	%{
+		%{
 		state = AWAITING_CLIENT_RESPONSE;
 		return true;
-	%}
+		%}
 
 	function handle_auth_response() : bool
-	%{
+		%{
 		state = AWAITING_SERVER_AUTH_RESULT;
 		return true;
-	%}
+		%}
 
 	function handle_security_result(msg: RFBSecurityResult) : bool
-	%{
-		if ( ${msg.result} == 0 ) //FIXME
-		{
+		%{
+		if ( ${msg.result} == 0 )
+			{
 			state = AWAITING_CLIENT_SHARE_FLAG;
-		}
+			}
 		return true;
-	%}
+		%}
 
 	function handle_client_init(msg: RFBClientInit) : bool
-	%{
+		%{
 		state = AWAITING_SERVER_PARAMS;
-
 		return true;
-	%}
+		%}
 
 	function handle_server_init(msg: RFBServerInit) : bool
-	%{
+		%{
 		state = RFB_MESSAGE;
 		return true;
-	%}
+		%}
 
 	function handle_security_types(msg: RFBSecurityTypes): bool
-	%{
-		if ( msg->sectype() == 0 ) { // No auth
+		%{
+		if ( msg->sectype() == 0 )
+			{ // No auth
 			state = AWAITING_CLIENT_SHARE_FLAG;
 			return true;
-		}
-		if ( msg->sectype() == 2 ) { //VNC
+			}
+
+		if ( msg->sectype() == 2 )
+			{ //VNC
 			state = AWAITING_SERVER_CHALLENGE;
-		}
-		return false;
-	%}
+			}
+		return true;
+		%}
 
 	function handle_security_types37(msg: RFBSecurityTypes37): bool
-	%{
-		if ( ${msg.count} == 0 ) { // No auth
+		%{
+		if ( ${msg.count} == 0 )
+			{ // No auth
 			state = AWAITING_CLIENT_SHARE_FLAG;
 			return true;
-		}
+			}
 		state = AWAITING_CLIENT_AUTH_TYPE_SELECTED37;
 		return true;
-	%}
+		%}
 
 	function handle_auth_type_selected(msg: RFBAuthTypeSelected): bool
-	%{
-		if ( ${msg.type} == 30 ) { // Apple Remote Desktop
-			state = AWAITING_SERVER_ARD_CHALLENGE;
-			return true;
-		}
+		%{
+		if ( ${msg.type} == 30 )
+			{ // Apple Remote Desktop
+				state = AWAITING_SERVER_ARD_CHALLENGE;
+				return true;
+			}
 
-		if ( ${msg.type} == 1 ) { // No Auth
+		if ( ${msg.type} == 1 )
 			state = AWAITING_SERVER_AUTH_RESULT;
-		} else {
-			// Assume VNC
+		else
 			state = AWAITING_SERVER_CHALLENGE;
-		}
+
 		return true;
-	%}
+		%}
 
 	%member{
 		uint8 state = AWAITING_SERVER_BANNER;

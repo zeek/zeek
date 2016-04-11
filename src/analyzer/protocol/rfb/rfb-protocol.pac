@@ -16,8 +16,8 @@ enum states {
 		};
 
 type RFBProtocolVersion (client: bool) = record {
-	header : "RFB ";
-	major :bytestring &length=3;
+	header: "RFB ";
+	major: bytestring &length=3;
 	dot: ".";
 	minor: bytestring &length=3;
 	pad: uint8;
@@ -108,8 +108,8 @@ type RFB_PDU_request = record {
 		AWAITING_CLIENT_SHARE_FLAG -> shareflag: RFBClientInit;
 		AWAITING_CLIENT_AUTH_TYPE_SELECTED37 -> authtype: RFBAuthTypeSelected;
 		AWAITING_CLIENT_ARD_RESPONSE -> ard_response: RFBSecurityARDResponse;
-		RFB_MESSAGE -> ignore: bytestring &restofdata;
-		default -> data: bytestring &restofdata;
+		RFB_MESSAGE -> ignore: bytestring &restofdata &transient;
+		default -> data: bytestring &restofdata &transient;
 	} &requires(state);
 	} &let {
 		state: uint8 = $context.connection.get_state(true);
@@ -124,8 +124,8 @@ type RFB_PDU_response = record {
 		AWAITING_SERVER_AUTH_RESULT -> authresult : RFBSecurityResult;
 		AWAITING_SERVER_ARD_CHALLENGE -> ard_challenge: RFBSecurityARDChallenge;
 		AWAITING_SERVER_PARAMS -> serverinit: RFBServerInit;
-		RFB_MESSAGE -> ignore: bytestring &restofdata;
-		default -> data: bytestring &restofdata;
+		RFB_MESSAGE -> ignore: bytestring &restofdata &transient;
+		default -> data: bytestring &restofdata &transient;
 	} &requires(rstate);
 	} &let {
 		rstate: uint8 = $context.connection.get_state(false);

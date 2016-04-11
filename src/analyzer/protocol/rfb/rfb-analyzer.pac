@@ -82,6 +82,7 @@ refine connection RFB_Conn += {
 			{
 			// Set protocol version on client's version
 			int minor_version = bytestring_to_int(${msg.minor},10);
+			version = minor_version;
 
 			// Apple specifies minor version "889" but talks v37
 			if ( minor_version >= 7 )
@@ -175,7 +176,12 @@ refine connection RFB_Conn += {
 			}
 
 		if ( ${msg.type} == 1 )
-			state = AWAITING_SERVER_AUTH_RESULT;
+			{
+				if ( version > 7 )
+					state = AWAITING_SERVER_AUTH_RESULT;
+				else
+					state = AWAITING_CLIENT_SHARE_FLAG;
+			}
 		else
 			state = AWAITING_SERVER_CHALLENGE;
 
@@ -184,6 +190,7 @@ refine connection RFB_Conn += {
 
 	%member{
 		uint8 state = AWAITING_SERVER_BANNER;
+		int version = 0;
 	%}
 };
 

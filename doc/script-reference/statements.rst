@@ -315,29 +315,32 @@ Here are the statements that the Bro scripting language supports.
 .. bro:keyword:: for
 
     A "for" loop iterates over each element in a string, set, vector, or
-    table and executes a statement for each iteration.  Currently,
-    modifying a container's membership while iterating over it may
-    result in undefined behavior, so avoid adding or removing elements
-    inside the loop.
+    table and executes a statement for each iteration (note that the order
+    in which the loop iterates over the elements in a set or a table is
+    nondeterministic).  However, no loop iterations occur if the string,
+    set, vector, or table is empty.
 
     For each iteration of the loop, a loop variable will be assigned to an
     element if the expression evaluates to a string or set, or an index if
     the expression evaluates to a vector or table.  Then the statement
-    is executed.  However, the statement will not be executed if the expression
-    evaluates to an object with no elements.
+    is executed.
 
     If the expression is a table or a set with more than one index, then the
     loop variable must be specified as a comma-separated list of different
     loop variables (one for each index), enclosed in brackets.
 
-    A :bro:keyword:`break` statement can be used at any time to immediately
-    terminate the "for" loop, and a :bro:keyword:`next` statement can be
-    used to skip to the next loop iteration.
-
     Note that the loop variable in a "for" statement is not allowed to be
     a global variable, and it does not need to be declared prior to the "for"
     statement.  The type will be inferred from the elements of the
     expression.
+
+    Currently, modifying a container's membership while iterating over it may
+    result in undefined behavior, so do not add or remove elements
+    inside the loop.
+
+    A :bro:keyword:`break` statement will immediately terminate the "for"
+    loop, and a :bro:keyword:`next` statement will skip to the next loop
+    iteration.
 
     Example::
 

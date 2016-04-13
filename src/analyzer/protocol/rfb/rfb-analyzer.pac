@@ -81,7 +81,7 @@ refine connection RFB_Conn += {
 		if ( client )
 			{
 			// Set protocol version on client's version
-			int minor_version = bytestring_to_int(${msg.minor},10);
+			int minor_version = bytestring_to_int(${msg.versionminor},10);
 			version = minor_version;
 
 			// Apple specifies minor version "889" but talks v37

@@ -36,7 +36,9 @@ type State: record {
 	named_pipe : string &optional;
 };
 
-type Stuff: record {
+# This is to store the log and state information 
+# for multiple DCE/RPC bindings over a single TCP connection (named pipes).
+type BackingState: record {
 	info: Info;
 	state: State;
 };
@@ -44,7 +46,7 @@ type Stuff: record {
 redef record connection += {
 	dce_rpc: Info &optional;
 	dce_rpc_state: State &optional;
-	dce_rpc_state_x: table[count] of Stuff &optional;
+	dce_rpc_state_x: table[count] of BackingState &optional;
 };
 
 const ports = { 135/tcp };
@@ -56,7 +58,16 @@ event bro_init() &priority=5
 	Analyzer::register_for_ports(Analyzer::ANALYZER_DCE_RPC, ports);
 	}
 
-function set_state(c: connection, state_x: Stuff)
+function normalize_named_pipe_name(pn: string): string
+	{
+	local parts = split_string(pn, /\\[pP][iI][pP][eE]\\/);
+	if ( 1 in parts )
+		return to_lower(parts[1]);
+	else
+		return to_lower(pn);
+	}
+
+function set_state(c: connection, state_x: BackingState)
 	{
 	c$dce_rpc = state_x$info;
 	c$dce_rpc_state = state_x$state;
@@ -76,7 +87,7 @@ function set_session(c: connection, fid: count)
 	if ( fid !in c$dce_rpc_state_x )
 		{
 		local info = Info($ts=network_time(),$id=c$id,$uid=c$uid);
-		c$dce_rpc_state_x[fid] = Stuff($info=info, $state=State());
+		c$dce_rpc_state_x[fid] = BackingState($info=info, $state=State());
 		}
 
 	local state_x = c$dce_rpc_state_x[fid];
@@ -120,6 +131,18 @@ event dce_rpc_response(c: connection, fid: count, opnum: count, stub_len: count)
 	{
 	set_session(c, fid);
 
+	# In the event that the binding wasn't seen, but the pipe
+	# name is known, go ahead and see if we have a pipe name to
+	# uuid mapping...
+	if ( ! c$dce_rpc?$endpoint && c$dce_rpc?$named_pipe )
+		{
+		local npn = normalize_named_pipe_name(c$dce_rpc$named_pipe);
+		if ( npn in pipe_name_to_common_uuid )
+			{
+			c$dce_rpc_state$uuid = pipe_name_to_common_uuid[npn];
+			}
+		}
+
 	if ( c?$dce_rpc && c$dce_rpc?$endpoint )
 		{
 		c$dce_rpc$operation = operations[c$dce_rpc_state$uuid, opnum];
@@ -134,7 +157,7 @@ event dce_rpc_response(c: connection, fid: count, opnum: count, stub_len: count)
 		{
 		# If there is not an endpoint, there isn't much reason to log.
 		# This can happen if the request isn't seen.
-		if ( c$dce_rpc?$endpoint )
+		if ( c$dce_rpc?$endpoint && c$dce_rpc?$operation )
 			Log::write(LOG, c$dce_rpc);
 		delete c$dce_rpc;
 		}
@@ -150,7 +173,20 @@ event connection_state_remove(c: connection)
 		{
 		local x = c$dce_rpc_state_x[i];
 		set_state(c, x);
-		if ( c$dce_rpc?$endpoint )
+
+		# In the event that the binding wasn't seen, but the pipe
+		# name is known, go ahead and see if we have a pipe name to
+		# uuid mapping...
+		if ( ! c$dce_rpc?$endpoint && c$dce_rpc?$named_pipe )
+			{
+			local npn = normalize_named_pipe_name(c$dce_rpc$named_pipe);
+			if ( npn in pipe_name_to_common_uuid )
+				{
+				c$dce_rpc_state$uuid = pipe_name_to_common_uuid[npn];
+				}
+			}
+
+		if ( c$dce_rpc?$endpoint && c$dce_rpc?$operation )
 			Log::write(LOG, c$dce_rpc);
 		}
 	}

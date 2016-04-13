@@ -26,6 +26,11 @@ New Functionality
 - Bro now includes the NetControl framework. The framework allows for easy
   interaction of Bro with hard- and software switches, firewalls, etc.
 
+- There is a new file entropy analyzer for files.
+
+- Bro now supports the remote framebuffer protocol (RFB) that is used by
+  VNC servers for remote graphical displays.
+
 - Bro now supports the Radiotap header for 802.11 frames.
 
 - Bro now tracks VLAN IDs. To record them inside the connection log,

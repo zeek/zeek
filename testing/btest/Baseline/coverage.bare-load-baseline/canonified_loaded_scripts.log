@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2016-04-12-20-52-34
+#open	2016-03-21-16-06-31
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -110,6 +110,7 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_Teredo.events.bif.bro
     build/scripts/base/bif/plugins/Bro_UDP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_ZIP.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_FileEntropy.events.bif.bro
     build/scripts/base/bif/plugins/Bro_FileExtract.events.bif.bro
     build/scripts/base/bif/plugins/Bro_FileExtract.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_FileHash.events.bif.bro
@@ -129,4 +130,4 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_SQLiteWriter.sqlite.bif.bro
 scripts/policy/misc/loaded-scripts.bro
   scripts/base/utils/paths.bro
-#close	2016-04-12-20-52-34
+#close	2016-03-21-16-06-31

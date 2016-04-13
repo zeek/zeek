@@ -406,6 +406,7 @@
 0.000000   MetaHookPost  LoadFile(./Bro_FTP.events.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./Bro_FTP.functions.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./Bro_File.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(./Bro_FileEntropy.events.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./Bro_FileExtract.events.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./Bro_FileExtract.functions.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./Bro_FileHash.events.bif.bro) -> -1
@@ -1044,6 +1045,7 @@
 0.000000   MetaHookPre   LoadFile(./Bro_FTP.events.bif.bro)
 0.000000   MetaHookPre   LoadFile(./Bro_FTP.functions.bif.bro)
 0.000000   MetaHookPre   LoadFile(./Bro_File.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(./Bro_FileEntropy.events.bif.bro)
 0.000000   MetaHookPre   LoadFile(./Bro_FileExtract.events.bif.bro)
 0.000000   MetaHookPre   LoadFile(./Bro_FileExtract.functions.bif.bro)
 0.000000   MetaHookPre   LoadFile(./Bro_FileHash.events.bif.bro)

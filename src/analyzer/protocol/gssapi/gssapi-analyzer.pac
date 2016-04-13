@@ -1,3 +1,4 @@
+
 refine connection GSSAPI_Conn += {
 	%member{
 		analyzer::Analyzer *ntlm;
@@ -19,31 +20,25 @@ refine connection GSSAPI_Conn += {
 		return true;
 		%}
 
-	function proc_gssapi_neg_token(val: GSSAPI_NEG_TOKEN): bool
+	function proc_gssapi_neg_result(val: GSSAPI_NEG_TOKEN_RESP_Arg): bool
 		%{
-		if ( ${val.is_init} )
-			return true;
-		
-		for ( uint i = 0; i < ${val.resp.args}->size(); ++i )
+		if ( gssapi_neg_result )
 			{
-			switch ( ${val.resp.args[i].seq_meta.index} )
-				{
-				case 0:
-					if ( ${val.resp.args[i].args.neg_state} == 0 )
-						{
-						BifEvent::generate_gssapi_accepted(bro_analyzer(), 
-						                                   bro_analyzer()->Conn());
-						}
-					break;
-				
-				default:
-					break;
-				}
+			BifEvent::generate_gssapi_neg_result(bro_analyzer(),
+			                                     bro_analyzer()->Conn(),
+			                                     binary_to_int64(${val.neg_state.encoding.content}));
 			}
+
 		return true;
 		%}
 }
 
-refine typeattr GSSAPI_NEG_TOKEN += &let {
-	proc : bool = $context.connection.proc_gssapi_neg_token(this);
+refine typeattr GSSAPI_NEG_TOKEN_INIT_Arg_Data += &let {
+	fwd: bool = $context.connection.forward_ntlm(mech_token, true) &if(index==2); 
 };
+
+refine typeattr GSSAPI_NEG_TOKEN_RESP_Arg += &let {
+	proc: bool = $context.connection.proc_gssapi_neg_result(this) &if(seq_meta.index==0);
+	fwd: bool = $context.connection.forward_ntlm(response_token, false) &if(seq_meta.index==2);
+};
+

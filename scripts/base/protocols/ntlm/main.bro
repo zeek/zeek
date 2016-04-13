@@ -14,6 +14,13 @@ export {
 		username: string &log &optional;
 		hostname: string &log &optional;
 		domainname: string &log &optional;
+
+		## Indicate whether or not the authentication was successful.
+		success: bool &log &default=F;
+
+		## Internally used field to indicate if the login attempt 
+		## has already been logged.
+		done: bool &default=F;
 	};
 }
 
@@ -28,13 +35,10 @@ event bro_init() &priority=5
 
 event ntlm_negotiate(c: connection, request: NTLM::Negotiate) &priority=5
 	{
-	#print request;
 	}
 
 event ntlm_challenge(c: connection, challenge: NTLM::Challenge) &priority=5
 	{
-	#print "challenge!!!!!";
-	#print challenge;
 	}
 
 event ntlm_authenticate(c: connection, request: NTLM::Authenticate) &priority=5
@@ -48,7 +52,28 @@ event ntlm_authenticate(c: connection, request: NTLM::Authenticate) &priority=5
 		c$ntlm$username = request$user_name;
 	}
 
-event ntlm_authenticate(c: connection, request: NTLM::Authenticate) &priority=-5
+event gssapi_neg_result(c: connection, state: count) &priority=5
 	{
-	Log::write(NTLM::LOG, c$ntlm);
+	if ( c?$ntlm )
+		c$ntlm$success = (state == 0);
+	}
+
+event gssapi_neg_result(c: connection, state: count) &priority=-5
+	{
+	if ( c?$ntlm )
+		{
+		if ( c$ntlm?$username || c$ntlm?$hostname )
+			{
+			Log::write(NTLM::LOG, c$ntlm);
+			c$ntlm$done = T;
+			}
+		}
+	}
+
+event connection_state_remove(c: connection) &priority=-5
+	{
+	if ( c?$ntlm && ! c$ntlm$done )
+		{
+		Log::write(NTLM::LOG, c$ntlm);
+		}
 	}

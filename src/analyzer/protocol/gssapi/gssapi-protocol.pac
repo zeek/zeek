@@ -32,8 +32,6 @@ type GSSAPI_NEG_TOKEN_INIT_Arg_Data(index: uint8) = case index of {
 	1 -> req_flags      : ASN1Encoding;
 	2 -> mech_token     : bytestring &restofdata;
 	3 -> mech_list_mic  : ASN1OctetString;
-} &let { 
-	fwd: bool = $context.connection.forward_ntlm(mech_token, true) &if(index==2); 
 };
 
 type GSSAPI_NEG_TOKEN_RESP = record {
@@ -43,14 +41,10 @@ type GSSAPI_NEG_TOKEN_RESP = record {
 
 type GSSAPI_NEG_TOKEN_RESP_Arg = record {
 	seq_meta : ASN1EncodingMeta;
-	args     : GSSAPI_NEG_TOKEN_RESP_Arg_Data(seq_meta.index) &length=seq_meta.length;
-};
-
-type GSSAPI_NEG_TOKEN_RESP_Arg_Data(index: uint8) = case index of {
-	0 -> neg_state      : ASN1Integer;
-	1 -> supported_mech : ASN1Encoding;
-	2 -> response_token : bytestring &restofdata;
-	3 -> mech_list_mic  : ASN1OctetString;
-} &let { 
-	fwd: bool = $context.connection.forward_ntlm(response_token, false) &if(index==2);
+	args     : case seq_meta.index of {
+		0       -> neg_state      : ASN1Integer;
+		1       -> supported_mech : ASN1Encoding;
+		2       -> response_token : bytestring &restofdata;
+		3       -> mech_list_mic  : ASN1OctetString;
+	} &length=seq_meta.length;
 };

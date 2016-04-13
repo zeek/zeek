@@ -16,7 +16,7 @@ export {
 		domainname: string &log &optional;
 
 		## Indicate whether or not the authentication was successful.
-		success: bool &log &default=F;
+		success: bool &log &optional;
 
 		## Internally used field to indicate if the login attempt 
 		## has already been logged.

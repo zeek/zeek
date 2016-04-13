@@ -10,6 +10,7 @@ bro_plugin_pac(
     gssapi.pac 
     gssapi-protocol.pac
     gssapi-analyzer.pac
+    ../asn1/asn1.pac
     )
 bro_plugin_end()
 

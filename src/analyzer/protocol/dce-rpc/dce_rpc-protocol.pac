@@ -36,7 +36,7 @@ type DCE_RPC_PDU(is_orig: bool) = record {
 	# TODO: bring back reassembly.  It was having trouble.
 	#frag    : bytestring &length = body_length;
 	body    : DCE_RPC_Body(header);
-	#auth    : DCE_RPC_Auth_wrapper(header);
+	auth    : DCE_RPC_Auth_wrapper(header);
 } &let {
 	#body_length      : int  = header.frag_length - sizeof(header) - header.auth_length;
 	#frag_reassembled : bool = $context.flow.reassemble_fragment(frag, header.lastfrag);
@@ -147,7 +147,8 @@ type DCE_RPC_Body(header: DCE_RPC_Header) = case header.PTYPE of {
 	DCE_RPC_REQUEST  -> request  : DCE_RPC_Request;
 	DCE_RPC_RESPONSE -> response : DCE_RPC_Response;
 	default          -> other    : bytestring &restofdata;
-} &length=header.frag_length-16-header.auth_length;
+};
+#} &length=header.frag_length - 16 - header.auth_length - (header.auth_length==0 ? 0 : 8);
 # sizeof(DCE_RPC_Header) <- doesn't work, it's the "16" above
 
 type DCE_RPC_Auth_wrapper(header: DCE_RPC_Header) = case header.auth_length of {
@@ -161,5 +162,5 @@ type DCE_RPC_Auth(header: DCE_RPC_Header) = record {
 	pad_len    : uint8;
 	reserved   : uint8;
 	context_id : uint32;
-	blob       : bytestring &length=header.auth_length;
-};
+	blob       : bytestring &length=header.auth_length-8;
+} &length=header.auth_length;

@@ -25,3 +25,4 @@ flow DCE_RPC_Flow(is_orig: bool) {
 %include endpoint-atsvc.pac
 %include endpoint-epmapper.pac
 %include dce_rpc-analyzer.pac
+%include dce_rpc-auth.pac

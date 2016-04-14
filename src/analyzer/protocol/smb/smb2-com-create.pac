@@ -111,10 +111,12 @@ type SMB2_create_response(header: SMB2_Header) = record {
 	# be set to zero so we need to deal with that to avoid
 	# negative wrap around in the padding.
 	context_pad      : padding to (context_offset==0 ? 0 : context_offset - header.head_length);
-	create : case context_len of {
-		0       -> blank    : empty;
-		default -> contexts : SMB2_create_context[] &length=context_len;
-	};
+	# TODO: skip this data for now.  It's shown to be a bit difficult.
+	#create : case context_len of {
+	#	0       -> blank    : empty;
+	#	default -> contexts : SMB2_create_context[] &length=context_len;
+	#};
+	contexts : bytestring &length=context_len &transient;
 } &let {
 	proc : bool = $context.connection.proc_smb2_create_response(header, this);
 };

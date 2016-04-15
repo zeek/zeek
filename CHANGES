@@ -1,4 +1,22 @@
 
+2.4-454 | 2016-04-14 10:06:58 -0400
+
+  * Additional mime types for file identification and a few fixes. (Seth Hall)
+
+    New file mime types:
+     - .ini files
+     - MS Registry policy files
+     - MS Registry files
+     - MS Registry format files (e.g. DESKTOP.DAT)
+     - MS Outlook PST files
+     - Apple AFPInfo files
+
+    Mime type fixes:
+     - MP3 files with ID3 tags.
+     - JSON and XML matchers were extended
+
+  * Avoid a macro name conflict on FreeBSD. (Seth Hall, Daniel Thayer)
+
 2.4-452 | 2016-04-13 01:15:20 -0400
 
   * Add a simple file entropy analyzer. (Seth Hall)

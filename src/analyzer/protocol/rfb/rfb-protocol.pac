@@ -17,13 +17,13 @@ enum states {
 
 type RFBProtocolVersion (client: bool) = record {
 	header: "RFB ";
-	major: bytestring &length=3;
+	major_ver: bytestring &length=3;
 	dot: ".";
-	minor: bytestring &length=3;
+	minor_ver: bytestring &length=3;
 	pad: uint8;
 } &let {
 	proc: bool = $context.connection.handle_banners(client, this);
-	proc2: bool = $context.flow.proc_rfb_version(client, major, minor);
+	proc2: bool = $context.flow.proc_rfb_version(client, major_ver, minor_ver);
 }
 
 type RFBSecurityTypes = record {

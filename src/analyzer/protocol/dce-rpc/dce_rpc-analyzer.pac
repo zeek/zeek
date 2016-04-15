@@ -1,4 +1,3 @@
-# DCE/RPC protocol data unit.
 
 refine connection DCE_RPC_Conn += {
 	%member{

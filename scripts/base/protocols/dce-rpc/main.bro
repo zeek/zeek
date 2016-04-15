@@ -25,10 +25,11 @@ export {
 		operation  : string   &log &optional;
 	};
 
-	## Set of interface UUID values to ignore.
-	const ignored_uuids: set[string] = set(
-		"e1af8308-5d1f-11c9-91a4-08002b14a0fa" #epmapper
-	) &redef;
+	const ignored_operations: table[string] of set[string] = {
+		["winreg"] = set("BaseRegCloseKey", "BaseRegGetVersion", "BaseRegOpenKey", "OpenLocalMachine", "BaseRegEnumKey"),
+		["spoolss"] = set("RpcSplOpenPrinter", "RpcClosePrinter"),
+		["wkssvc"] = set("NetrWkstaGetInfo"),
+	} &redef;
 }
 
 type State: record {
@@ -46,7 +47,7 @@ type BackingState: record {
 redef record connection += {
 	dce_rpc: Info &optional;
 	dce_rpc_state: State &optional;
-	dce_rpc_state_x: table[count] of BackingState &optional;
+	dce_rpc_backing: table[count] of BackingState &optional;
 };
 
 const ports = { 135/tcp };
@@ -80,17 +81,17 @@ function set_state(c: connection, state_x: BackingState)
 
 function set_session(c: connection, fid: count)
 	{
-	if ( ! c?$dce_rpc_state_x )
+	if ( ! c?$dce_rpc_backing )
 		{
-		c$dce_rpc_state_x = table();
+		c$dce_rpc_backing = table();
 		}
-	if ( fid !in c$dce_rpc_state_x )
+	if ( fid !in c$dce_rpc_backing )
 		{
 		local info = Info($ts=network_time(),$id=c$id,$uid=c$uid);
-		c$dce_rpc_state_x[fid] = BackingState($info=info, $state=State());
+		c$dce_rpc_backing[fid] = BackingState($info=info, $state=State());
 		}
 
-	local state_x = c$dce_rpc_state_x[fid];
+	local state_x = c$dce_rpc_backing[fid];
 	set_state(c, state_x);
 	}
 
@@ -99,9 +100,6 @@ event dce_rpc_bind(c: connection, fid: count, uuid: string, ver_major: count, ve
 	set_session(c, fid);
 
 	local uuid_str = uuid_to_string(uuid);
-	if ( uuid_str in ignored_uuids )
-		return;
-
 	c$dce_rpc_state$uuid = uuid_str;
 	c$dce_rpc$endpoint = uuid_endpoint_map[uuid_str];
 	}
@@ -157,8 +155,13 @@ event dce_rpc_response(c: connection, fid: count, opnum: count, stub_len: count)
 		{
 		# If there is not an endpoint, there isn't much reason to log.
 		# This can happen if the request isn't seen.
-		if ( c$dce_rpc?$endpoint && c$dce_rpc?$operation )
+		if ( (c$dce_rpc?$endpoint && (c$dce_rpc$endpoint !in ignored_operations || |ignored_operations[c$dce_rpc$endpoint]| != 0))
+		     ||
+		     (c$dce_rpc?$endpoint && c$dce_rpc?$operation &&
+		      c$dce_rpc?$operation && c$dce_rpc$operation !in ignored_operations[c$dce_rpc$endpoint]) )
+			{
 			Log::write(LOG, c$dce_rpc);
+			}
 		delete c$dce_rpc;
 		}
 	}
@@ -169,9 +172,9 @@ event connection_state_remove(c: connection)
 		return;
 
 	# TODO: Go through any remaining dce_rpc requests that haven't been processed with replies.
-	for ( i in c$dce_rpc_state_x )
+	for ( i in c$dce_rpc_backing )
 		{
-		local x = c$dce_rpc_state_x[i];
+		local x = c$dce_rpc_backing[i];
 		set_state(c, x);
 
 		# In the event that the binding wasn't seen, but the pipe
@@ -186,7 +189,12 @@ event connection_state_remove(c: connection)
 				}
 			}
 
-		if ( c$dce_rpc?$endpoint && c$dce_rpc?$operation )
+		if ( (c$dce_rpc?$endpoint && |ignored_operations[c$dce_rpc$endpoint]| != 0)
+		     ||
+		     (c$dce_rpc?$endpoint && c$dce_rpc?$operation &&
+		      c$dce_rpc?$operation && c$dce_rpc$operation !in ignored_operations[c$dce_rpc$endpoint]) )
+			{
 			Log::write(LOG, c$dce_rpc);
+			}
 		}
 	}

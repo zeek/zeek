@@ -52,13 +52,13 @@ event ntlm_authenticate(c: connection, request: NTLM::Authenticate) &priority=5
 		c$ntlm$username = request$user_name;
 	}
 
-event gssapi_neg_result(c: connection, state: count) &priority=5
+event gssapi_neg_result(c: connection, state: count) &priority=3
 	{
 	if ( c?$ntlm )
 		c$ntlm$success = (state == 0);
 	}
 
-event gssapi_neg_result(c: connection, state: count) &priority=-5
+event gssapi_neg_result(c: connection, state: count) &priority=-3
 	{
 	if ( c?$ntlm )
 		{
@@ -67,6 +67,18 @@ event gssapi_neg_result(c: connection, state: count) &priority=-5
 			Log::write(NTLM::LOG, c$ntlm);
 			c$ntlm$done = T;
 			}
+		}
+	}
+
+event smb2_message(c: connection, hdr: SMB2::Header, is_orig: bool) &priority=3
+	{
+	if ( c?$ntlm &&
+	     ( c$ntlm?$username || c$ntlm?$hostname ) &&
+	     hdr$status == 0xC000006D )
+		{
+		c$ntlm$success = F;
+		Log::write(NTLM::LOG, c$ntlm);
+		c$ntlm$done = T;
 		}
 	}
 

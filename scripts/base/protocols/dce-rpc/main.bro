@@ -26,7 +26,7 @@ export {
 	};
 
 	const ignored_operations: table[string] of set[string] = {
-		["winreg"] = set("BaseRegCloseKey", "BaseRegGetVersion", "BaseRegOpenKey", "OpenLocalMachine", "BaseRegEnumKey"),
+		["winreg"] = set("BaseRegCloseKey", "BaseRegGetVersion", "BaseRegOpenKey", "BaseRegQueryValue", "BaseRegDeleteKeyEx", "OpenLocalMachine", "BaseRegEnumKey"),
 		["spoolss"] = set("RpcSplOpenPrinter", "RpcClosePrinter"),
 		["wkssvc"] = set("NetrWkstaGetInfo"),
 	} &redef;
@@ -155,10 +155,11 @@ event dce_rpc_response(c: connection, fid: count, opnum: count, stub_len: count)
 		{
 		# If there is not an endpoint, there isn't much reason to log.
 		# This can happen if the request isn't seen.
-		if ( (c$dce_rpc?$endpoint && (c$dce_rpc$endpoint !in ignored_operations || |ignored_operations[c$dce_rpc$endpoint]| != 0))
-		     ||
+		if ( (c$dce_rpc?$endpoint && c$dce_rpc$endpoint !in ignored_operations)
+		     || 
 		     (c$dce_rpc?$endpoint && c$dce_rpc?$operation &&
-		      c$dce_rpc?$operation && c$dce_rpc$operation !in ignored_operations[c$dce_rpc$endpoint]) )
+		      c$dce_rpc$operation !in ignored_operations[c$dce_rpc$endpoint] &&
+		      "*" !in ignored_operations[c$dce_rpc$endpoint]) )
 			{
 			Log::write(LOG, c$dce_rpc);
 			}
@@ -189,10 +190,11 @@ event connection_state_remove(c: connection)
 				}
 			}
 
-		if ( (c$dce_rpc?$endpoint && |ignored_operations[c$dce_rpc$endpoint]| != 0)
-		     ||
+		if ( (c$dce_rpc?$endpoint && c$dce_rpc$endpoint !in ignored_operations)
+		     || 
 		     (c$dce_rpc?$endpoint && c$dce_rpc?$operation &&
-		      c$dce_rpc?$operation && c$dce_rpc$operation !in ignored_operations[c$dce_rpc$endpoint]) )
+		      c$dce_rpc$operation !in ignored_operations[c$dce_rpc$endpoint] &&
+		      "*" !in ignored_operations[c$dce_rpc$endpoint]) )
 			{
 			Log::write(LOG, c$dce_rpc);
 			}

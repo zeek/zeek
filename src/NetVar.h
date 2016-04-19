@@ -19,6 +19,8 @@ extern RecordType* icmp_context;
 extern RecordType* signature_state;
 extern RecordType* SYN_packet;
 extern RecordType* pcap_packet;
+extern RecordType* raw_pkt_hdr_type;
+extern RecordType* l2_hdr_type;
 extern EnumType* transport_proto;
 extern TableType* string_set;
 extern TableType* string_array;

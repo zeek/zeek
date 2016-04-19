@@ -393,6 +393,7 @@ RecordVal* IP_Hdr::BuildPktHdrVal(RecordVal* pkt_hdr, int sindex) const
 		}
 
 	case IPPROTO_ICMP:
+	case IPPROTO_ICMPV6:
 		{
 		const struct icmp* icmpp = (const struct icmp *) data;
 		RecordVal* icmp_hdr = new RecordVal(icmp_hdr_type);

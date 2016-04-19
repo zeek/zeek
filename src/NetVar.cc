@@ -75,7 +75,6 @@ bool udp_content_deliver_all_orig;
 bool udp_content_deliver_all_resp;
 
 double dns_session_timeout;
-double ntp_session_timeout;
 double rpc_timeout;
 
 ListVal* skip_authentication;
@@ -100,8 +99,6 @@ RecordType* pm_mapping;
 TableType* pm_mappings;
 RecordType* pm_port_request;
 RecordType* pm_callit_request;
-
-RecordType* ntp_msg;
 
 TableVal* samba_cmds;
 RecordType* smb_hdr;
@@ -390,7 +387,6 @@ void init_net_var()
 		bool(internal_val("udp_content_deliver_all_resp")->AsBool());
 
 	dns_session_timeout = opt_internal_double("dns_session_timeout");
-	ntp_session_timeout = opt_internal_double("ntp_session_timeout");
 	rpc_timeout = opt_internal_double("rpc_timeout");
 
 	watchdog_interval = int(opt_internal_double("watchdog_interval"));
@@ -421,8 +417,6 @@ void init_net_var()
 	pm_mappings = internal_type("pm_mappings")->AsTableType();
 	pm_port_request = internal_type("pm_port_request")->AsRecordType();
 	pm_callit_request = internal_type("pm_callit_request")->AsRecordType();
-
-	ntp_msg = internal_type("ntp_msg")->AsRecordType();
 
 	samba_cmds = internal_val("samba_cmds")->AsTableVal();
 	smb_hdr = internal_type("smb_hdr")->AsRecordType();

@@ -24,22 +24,16 @@ export {
 	global log_ntp: event(rec: Info);
 }
 
-# TODO: The recommended method to do dynamic protocol detection
-# (DPD) is with the signatures in dpd.sig. If you can't come up
-# with any signatures, then you can do port-based detection by
-# uncommenting the following and specifying the port(s):
-
-# const ports = { 1234/udp, 5678/udp };
+const ports = { 123/udp};
 
 
-# redef likely_server_ports += { ports };
+redef likely_server_ports += { ports };
 
 event bro_init() &priority=5
 	{
 	Log::create_stream(Ntp::LOG, [$columns=Info, $ev=log_ntp, $path="ntp"]);
 
-	# TODO: If you're using port-based DPD, uncomment this.
-	# Analyzer::register_for_ports(Analyzer::ANALYZER_NTP, ports);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_NTP, ports);
 	}
 
 event ntp_event(c: connection)

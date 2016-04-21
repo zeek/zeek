@@ -49,7 +49,6 @@ refine connection SMB_Conn += {
 			                 bro_analyzer()->Conn(), h->is_orig());
 			}
 
-
 		if ( ${val.is_pipe} )
 			{
 			}

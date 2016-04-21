@@ -42,7 +42,7 @@ type SMB1_tree_connect_andx_request(header: SMB_Header) = record {
 
 type SMB1_tree_connect_andx_response(header: SMB_Header) = record {
 	word_count         : uint8;
-	andx		   : SMB_andx;
+	andx               : SMB_andx;
 	optional_support   : uint16;
 	pad                : padding[(word_count-3)*2];
 	

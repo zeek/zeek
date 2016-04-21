@@ -5,7 +5,7 @@ refine connection SMB_Conn += {
 	%}
 
 	%init{
-		gssapi = analyzer_mgr->InstantiateAnalyzer("GSSAPI", bro_analyzer->Conn());
+		gssapi = 0;
 	%}
 
 	%cleanup{
@@ -15,6 +15,9 @@ refine connection SMB_Conn += {
 
 	function forward_gssapi(data: bytestring, is_orig: bool): bool
 		%{
+		if ( ! gssapi )
+			gssapi = analyzer_mgr->InstantiateAnalyzer("GSSAPI", bro_analyzer()->Conn());
+
 		if ( gssapi )
 			gssapi->DeliverStream(${data}.length(), ${data}.begin(), is_orig);
 

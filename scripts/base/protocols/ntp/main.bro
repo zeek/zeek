@@ -15,7 +15,10 @@ export {
 		uid:    string  &log;
 		## The connection's 4-tuple of endpoint addresses/ports.
 		id:     conn_id &log;
-		
+    ## The version of NTP
+		ver:    count &log;
+    ## The mode
+    mode:   count &log;
 		# ## TODO: Add other fields here that you'd like to log.
 	};
 
@@ -36,12 +39,14 @@ event bro_init() &priority=5
 	Analyzer::register_for_ports(Analyzer::ANALYZER_NTP, ports);
 	}
 
-event ntp_event(c: connection)
+event ntp_message(c: connection, msg: NTP::Message)
 	{
 	local info: Info;
 	info$ts  = network_time();
 	info$uid = c$uid;
 	info$id  = c$id;
+  info$ver = msg$version;
+  info$mode = msg$mode;
 
 	Log::write(Ntp::LOG, info);
 	}

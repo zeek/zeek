@@ -4,6 +4,7 @@
 #define ANALYZER_PROTOCOL_NTP_NTP_H
 
 #include "events.bif.h"
+#include "types.bif.h"
 
 
 #include "analyzer/protocol/udp/UDP.h"

@@ -6,4 +6,4 @@
 ##
 ## msg: The NTP message record
 ##
-event ntp_message%(c: connection, msg: NTP::Message%);
+event ntp_message%(c: connection, is_orig: bool, msg: NTP::Message%);

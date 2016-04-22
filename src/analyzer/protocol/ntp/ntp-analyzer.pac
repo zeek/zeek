@@ -68,7 +68,7 @@ refine flow NTP_Flow += {
 
 		BifEvent::generate_ntp_message(connection()->bro_analyzer(),
                                    connection()->bro_analyzer()->Conn(),
-                                   rv);
+                                   is_orig(), rv);
 		return true;
 		%}
 };

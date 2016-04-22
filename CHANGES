@@ -1,4 +1,8 @@
 
+2.4-457 | 2016-04-22 08:36:27 -0700
+
+  * Fix Intel framework not checking the CERT_HASH indicator type. (Johanna Amann)
+
 2.4-454 | 2016-04-14 10:06:58 -0400
 
   * Additional mime types for file identification and a few fixes. (Seth Hall)

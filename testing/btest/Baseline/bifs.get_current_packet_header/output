@@ -1,0 +1,1 @@
+[l2=[encap=LINK_ETHERNET, len=78, cap_len=78, src=00:00:00:00:00:00, dst=ff:ff:ff:ff:ff:ff, vlan=<uninitialized>, inner_vlan=<uninitialized>, eth_type=34525, proto=L3_IPV6], ip=<uninitialized>, ip6=[class=0, flow=0, len=24, nxt=58, hlim=255, src=fe80::dead, dst=fe80::beef, exts=[]], tcp=<uninitialized>, udp=<uninitialized>, icmp=[icmp_type=135]]

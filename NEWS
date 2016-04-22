@@ -45,6 +45,9 @@ New Functionality
   argument that will be used for decoding errors into weird.log
   (instead of reporter.log).
 
+- A new get_current_packet_header bif returning the headers of the current
+  packet
+
 - Two new built-in functions for handling set[subnet] and table[subnet]:
 
   - check_subnet(subnet, table) checks if a specific subnet is a member
@@ -83,6 +86,8 @@ New Functionality
 
 Changed Functionality
 ---------------------
+
+- The BrokerComm and BrokerStore namespaces were renamed to Broker
 
 - ``SSH::skip_processing_after_detection`` was removed. The functionality was
   replaced by ``SSH::disable_analyzer_after_detection``.

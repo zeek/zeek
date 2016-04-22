@@ -1,0 +1,14 @@
+before_install:
+  - git submodule update --init --recursive
+addons:
+  apt:
+    packages:
+      - cmake
+      - flex
+      - bison
+      - google-perftool
+      - libpcap-dev
+      - libssl-dev
+      - python-dev
+      - swig
+      - zlib1g-dev

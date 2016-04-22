@@ -1,12 +1,15 @@
 before_install:
   - git submodule update --init --recursive
 language: cpp
+  compiler: gcc-4.8
 addons:
   apt:
     packages:
+      - bison
       - cmake
       - flex
-      - bison
+      - gcc-4.8
+      - g++-4.8
       - google-perftools
       - libpcap-dev
       - libssl-dev

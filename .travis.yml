@@ -4,6 +4,8 @@ language: cpp
 compiler: gcc-4.8
 addons:
   apt:
+    sources:
+      - ubuntu-toolchain-r-test
     packages:
       - bison
       - cmake

@@ -1,12 +1,13 @@
 before_install:
   - git submodule update --init --recursive
+language: cpp
 addons:
   apt:
     packages:
       - cmake
       - flex
       - bison
-      - google-perftool
+      - google-perftools
       - libpcap-dev
       - libssl-dev
       - python-dev

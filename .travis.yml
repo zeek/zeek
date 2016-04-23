@@ -8,6 +8,7 @@ addons:
       - ubuntu-toolchain-r-test
     packages:
       - bison
+      - caf
       - cmake
       - flex
       - google-perftools

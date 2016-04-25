@@ -1,4 +1,12 @@
 
+2.4-471 | 2016-04-25 15:37:15 -0700
+
+  * Add DNS tests for huge TLLs and CAA. (Johanna Amann)
+
+  * Add DNS "CAA" RR type and event. (Mark Taylor)
+
+  * Fix DNS response parsing: TTLs are unsigned. (Mark Taylor)
+
 2.4-466 | 2016-04-22 16:25:33 -0700
 
   * Rename BrokerStore and BrokerComm to Broker. Also split broker main.bro

@@ -132,7 +132,7 @@ public:
 	StringVal* query_name;
 	RR_Type atype;
 	int aclass;	///< normally = 1, inet
-	int ttl;
+	uint32 ttl;
 
 	DNS_AnswerType answer_type;
 	int skip_event;		///< if true, don't generate corresponding events

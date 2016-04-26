@@ -3460,7 +3460,7 @@ function get_current_packet%(%) : pcap_packet
 
 ## Function to get the raw headers of the currently processed packet.
 ##
-## Returns: The :bro:type:`connection` record containing the Layer 2, 3 and
+## Returns: The :bro:type:`raw_pkt_hdr` record containing the Layer 2, 3 and
 ##          4 headers of the currently processed packet.
 ##
 ## .. bro:see:: raw_pkt_hdr get_current_packet

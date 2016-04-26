@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2015-04-21-22-29-27
+#open	2016-04-22-23-21-18
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -17,6 +17,7 @@ scripts/base/init-bare.bro
   build/scripts/base/bif/event.bif.bro
   scripts/base/frameworks/broker/__load__.bro
     scripts/base/frameworks/broker/main.bro
+    scripts/base/frameworks/broker/store.bro
   scripts/base/frameworks/logging/__load__.bro
     scripts/base/frameworks/logging/main.bro
       build/scripts/base/bif/logging.bif.bro
@@ -46,7 +47,7 @@ scripts/base/init-bare.bro
     scripts/base/frameworks/files/magic/__load__.bro
   build/scripts/base/bif/__load__.bro
     build/scripts/base/bif/broxygen.bif.bro
-    build/scripts/base/bif/pcap.bif.bro
+    build/scripts/base/bif/functions.bif.bro
     build/scripts/base/bif/bloom-filter.bif.bro
     build/scripts/base/bif/cardinality-counter.bif.bro
     build/scripts/base/bif/top-k.bif.bro
@@ -92,6 +93,7 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_RADIUS.events.bif.bro
     build/scripts/base/bif/plugins/Bro_RDP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_RDP.types.bif.bro
+    build/scripts/base/bif/plugins/Bro_RFB.events.bif.bro
     build/scripts/base/bif/plugins/Bro_RPC.events.bif.bro
     build/scripts/base/bif/plugins/Bro_SIP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_SNMP.events.bif.bro
@@ -109,6 +111,7 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_Teredo.events.bif.bro
     build/scripts/base/bif/plugins/Bro_UDP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_ZIP.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_FileEntropy.events.bif.bro
     build/scripts/base/bif/plugins/Bro_FileExtract.events.bif.bro
     build/scripts/base/bif/plugins/Bro_FileExtract.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_FileHash.events.bif.bro
@@ -188,6 +191,30 @@ scripts/base/init-default.bro
     scripts/base/frameworks/sumstats/non-cluster.bro
   scripts/base/frameworks/tunnels/__load__.bro
     scripts/base/frameworks/tunnels/main.bro
+  scripts/base/frameworks/openflow/__load__.bro
+    scripts/base/frameworks/openflow/consts.bro
+    scripts/base/frameworks/openflow/types.bro
+    scripts/base/frameworks/openflow/main.bro
+    scripts/base/frameworks/openflow/plugins/__load__.bro
+      scripts/base/frameworks/openflow/plugins/ryu.bro
+        scripts/base/utils/json.bro
+      scripts/base/frameworks/openflow/plugins/log.bro
+      scripts/base/frameworks/openflow/plugins/broker.bro
+    scripts/base/frameworks/openflow/non-cluster.bro
+  scripts/base/frameworks/netcontrol/__load__.bro
+    scripts/base/frameworks/netcontrol/types.bro
+    scripts/base/frameworks/netcontrol/main.bro
+      scripts/base/frameworks/netcontrol/plugin.bro
+    scripts/base/frameworks/netcontrol/plugins/__load__.bro
+      scripts/base/frameworks/netcontrol/plugins/debug.bro
+      scripts/base/frameworks/netcontrol/plugins/openflow.bro
+      scripts/base/frameworks/netcontrol/plugins/packetfilter.bro
+      scripts/base/frameworks/netcontrol/plugins/broker.bro
+      scripts/base/frameworks/netcontrol/plugins/acld.bro
+    scripts/base/frameworks/netcontrol/drop.bro
+    scripts/base/frameworks/netcontrol/shunt.bro
+    scripts/base/frameworks/netcontrol/catch-and-release.bro
+    scripts/base/frameworks/netcontrol/non-cluster.bro
   scripts/base/protocols/conn/__load__.bro
     scripts/base/protocols/conn/main.bro
     scripts/base/protocols/conn/contents.bro
@@ -246,6 +273,8 @@ scripts/base/init-default.bro
   scripts/base/protocols/rdp/__load__.bro
     scripts/base/protocols/rdp/consts.bro
     scripts/base/protocols/rdp/main.bro
+  scripts/base/protocols/rfb/__load__.bro
+    scripts/base/protocols/rfb/main.bro
   scripts/base/protocols/sip/__load__.bro
     scripts/base/protocols/sip/main.bro
   scripts/base/protocols/snmp/__load__.bro
@@ -273,4 +302,4 @@ scripts/base/init-default.bro
   scripts/base/misc/find-checksum-offloading.bro
   scripts/base/misc/find-filtered-trace.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2015-04-21-22-29-27
+#close	2016-04-22-23-21-18

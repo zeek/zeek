@@ -1,4 +1,4 @@
-#include "config.h"
+#include "bro-config.h"
 
 #include "RuleCondition.h"
 #include "analyzer/protocol/tcp/TCP.h"

@@ -1,0 +1,22 @@
+http://127.0.0.1:8080/stats/flowentry/clear/42
+http://127.0.0.1:8080/stats/flowentry/add
+{"match": {}, "dpid": 42, "flags": 0, "hard_timeout": 0, "priority": 0, "actions": [{"port": 3, "type": "OUTPUT"}, {"port": 7, "type": "OUTPUT"}], "cookie": 4398046511105, "idle_timeout": 0}
+Flow_mod_success
+http://127.0.0.1:8080/stats/flowentry/add
+{"match": {"tp_dst": 25, "nw_dst": "74.53.140.153/32", "nw_src": "10.10.1.4/32", "dl_type": 2048, "tp_src": 1470, "nw_proto": 6}, "dpid": 42, "flags": 0, "hard_timeout": 0, "priority": 5, "actions": [], "cookie": 4398046511146, "idle_timeout": 30}
+http://127.0.0.1:8080/stats/flowentry/add
+{"match": {"tp_dst": 1470, "nw_dst": "10.10.1.4/32", "nw_src": "74.53.140.153/32", "dl_type": 2048, "tp_src": 25, "nw_proto": 6}, "dpid": 42, "flags": 0, "hard_timeout": 0, "priority": 5, "actions": [], "cookie": 4398046511146, "idle_timeout": 30}
+Flow_mod_success
+Flow_mod_success
+http://127.0.0.1:8080/stats/flowentry/add
+{"match": {"tp_dst": 25, "nw_dst": "192.168.133.102/32", "nw_src": "192.168.133.100/32", "dl_type": 2048, "tp_src": 49648, "nw_proto": 6}, "dpid": 42, "flags": 0, "hard_timeout": 0, "priority": 5, "actions": [], "cookie": 4398046511146, "idle_timeout": 30}
+http://127.0.0.1:8080/stats/flowentry/add
+{"match": {"tp_dst": 49648, "nw_dst": "192.168.133.100/32", "nw_src": "192.168.133.102/32", "dl_type": 2048, "tp_src": 25, "nw_proto": 6}, "dpid": 42, "flags": 0, "hard_timeout": 0, "priority": 5, "actions": [], "cookie": 4398046511146, "idle_timeout": 30}
+Flow_mod_success
+Flow_mod_success
+http://127.0.0.1:8080/stats/flowentry/add
+{"match": {"tp_dst": 443, "nw_dst": "17.167.150.73/32", "nw_src": "192.168.133.100/32", "dl_type": 2048, "tp_src": 49655, "nw_proto": 6}, "dpid": 42, "flags": 0, "hard_timeout": 0, "priority": 5, "actions": [], "cookie": 4398046511146, "idle_timeout": 30}
+http://127.0.0.1:8080/stats/flowentry/add
+{"match": {"tp_dst": 49655, "nw_dst": "192.168.133.100/32", "nw_src": "17.167.150.73/32", "dl_type": 2048, "tp_src": 443, "nw_proto": 6}, "dpid": 42, "flags": 0, "hard_timeout": 0, "priority": 5, "actions": [], "cookie": 4398046511146, "idle_timeout": 30}
+Flow_mod_success
+Flow_mod_success

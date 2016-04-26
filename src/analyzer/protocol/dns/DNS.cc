@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "config.h"
+#include "bro-config.h"
 
 #include <ctype.h>
 #include <sys/types.h>
@@ -280,6 +280,10 @@ int DNS_Interpreter::ParseAnswer(DNS_MsgInfo* msg,
 
 		case TYPE_TXT:
 			status = ParseRR_TXT(msg, data, len, rdlength, msg_start);
+			break;
+
+		case TYPE_CAA:
+			status = ParseRR_CAA(msg, data, len, rdlength, msg_start);
 			break;
 
 		case TYPE_NBS:
@@ -903,6 +907,51 @@ int DNS_Interpreter::ParseRR_TXT(DNS_MsgInfo* msg,
 
 	return rdlength == 0;
 	}
+
+int DNS_Interpreter::ParseRR_CAA(DNS_MsgInfo* msg,
+				const u_char*& data, int& len, int rdlength,
+				const u_char* msg_start)
+	{
+	if ( ! dns_CAA_reply || msg->skip_event )
+		{
+		data += rdlength;
+		len -= rdlength;
+		return 1;
+		}
+
+	unsigned int flags = ExtractShort(data, len);
+	unsigned int tagLen = flags & 0xff;
+	flags = flags >> 8;
+	rdlength -= 2;
+	if ( (int) tagLen >= rdlength )
+		{
+		analyzer->Weird("DNS_CAA_char_str_past_rdlen");
+		return 0;
+		}
+	BroString* tag = new BroString(data, tagLen, 1);
+	len -= tagLen;
+	data += tagLen;
+	rdlength -= tagLen;
+	BroString* value = new BroString(data, rdlength, 0);
+
+	len -= value->Len();
+	data += value->Len();
+	rdlength -= value->Len();
+
+	val_list* vl = new val_list;
+
+	vl->append(analyzer->BuildConnVal());
+	vl->append(msg->BuildHdrVal());
+	vl->append(msg->BuildAnswerVal());
+	vl->append(new Val(flags, TYPE_COUNT));
+	vl->append(new StringVal(tag));
+	vl->append(new StringVal(value));
+
+	analyzer->ConnectionEvent(dns_CAA_reply, vl);
+
+	return rdlength == 0;
+	}
+
 
 void DNS_Interpreter::SendReplyOrRejectEvent(DNS_MsgInfo* msg,
 						EventHandlerPtr event,

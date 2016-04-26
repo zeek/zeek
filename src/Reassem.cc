@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#include "config.h"
+#include "bro-config.h"
 
 #include "Reassem.h"
 #include "Serializer.h"

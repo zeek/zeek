@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2015-04-21-22-29-19
+#open	2016-04-22-23-21-01
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -17,6 +17,7 @@ scripts/base/init-bare.bro
   build/scripts/base/bif/event.bif.bro
   scripts/base/frameworks/broker/__load__.bro
     scripts/base/frameworks/broker/main.bro
+    scripts/base/frameworks/broker/store.bro
   scripts/base/frameworks/logging/__load__.bro
     scripts/base/frameworks/logging/main.bro
       build/scripts/base/bif/logging.bif.bro
@@ -46,7 +47,7 @@ scripts/base/init-bare.bro
     scripts/base/frameworks/files/magic/__load__.bro
   build/scripts/base/bif/__load__.bro
     build/scripts/base/bif/broxygen.bif.bro
-    build/scripts/base/bif/pcap.bif.bro
+    build/scripts/base/bif/functions.bif.bro
     build/scripts/base/bif/bloom-filter.bif.bro
     build/scripts/base/bif/cardinality-counter.bif.bro
     build/scripts/base/bif/top-k.bif.bro
@@ -92,6 +93,7 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_RADIUS.events.bif.bro
     build/scripts/base/bif/plugins/Bro_RDP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_RDP.types.bif.bro
+    build/scripts/base/bif/plugins/Bro_RFB.events.bif.bro
     build/scripts/base/bif/plugins/Bro_RPC.events.bif.bro
     build/scripts/base/bif/plugins/Bro_SIP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_SNMP.events.bif.bro
@@ -109,6 +111,7 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_Teredo.events.bif.bro
     build/scripts/base/bif/plugins/Bro_UDP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_ZIP.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_FileEntropy.events.bif.bro
     build/scripts/base/bif/plugins/Bro_FileExtract.events.bif.bro
     build/scripts/base/bif/plugins/Bro_FileExtract.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_FileHash.events.bif.bro
@@ -128,4 +131,4 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_SQLiteWriter.sqlite.bif.bro
 scripts/policy/misc/loaded-scripts.bro
   scripts/base/utils/paths.bro
-#close	2015-04-21-22-29-19
+#close	2016-04-22-23-21-01

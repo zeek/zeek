@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "config.h"
+#include "bro-config.h"
 
 #include "Expr.h"
 #include "Event.h"
@@ -994,6 +994,9 @@ bool AddStmt::DoUnserialize(UnserialInfo* info)
 
 DelStmt::DelStmt(Expr* arg_e) : ExprStmt(STMT_DELETE, arg_e)
 	{
+	if ( e->IsError() )
+		return;
+
 	if ( ! e->CanDel() )
 		Error("illegal delete statement");
 	}

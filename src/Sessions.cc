@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 
-#include "config.h"
+#include "bro-config.h"
 
 #include <arpa/inet.h>
 
@@ -674,7 +674,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 	conn = (Connection*) d->Lookup(h);
 	if ( ! conn )
 		{
-		conn = NewConn(h, t, &id, data, proto, ip_hdr->FlowLabel(), encapsulation);
+		conn = NewConn(h, t, &id, data, proto, ip_hdr->FlowLabel(), pkt->vlan, pkt->inner_vlan, encapsulation);
 		if ( conn )
 			d->Insert(h, conn);
 		}
@@ -694,7 +694,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 				conn->Event(connection_reused, 0);
 
 			Remove(conn);
-			conn = NewConn(h, t, &id, data, proto, ip_hdr->FlowLabel(), encapsulation);
+			conn = NewConn(h, t, &id, data, proto, ip_hdr->FlowLabel(), pkt->vlan, pkt->inner_vlan, encapsulation);
 			if ( conn )
 				d->Insert(h, conn);
 			}
@@ -1173,6 +1173,7 @@ void NetSessions::GetStats(SessionStats& s) const
 
 Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 					const u_char* data, int proto, uint32 flow_label,
+					uint32 vlan, uint32 inner_vlan,
 					const EncapsulationStack* encapsulation)
 	{
 	// FIXME: This should be cleaned up a bit, it's too protocol-specific.
@@ -1229,7 +1230,7 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 		id = &flip_id;
 		}
 
-	Connection* conn = new Connection(this, k, t, id, flow_label, encapsulation);
+	Connection* conn = new Connection(this, k, t, id, flow_label, vlan, inner_vlan, encapsulation);
 	conn->SetTransport(tproto);
 
 	if ( ! analyzer_mgr->BuildInitialAnalyzerTree(conn) )

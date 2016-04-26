@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "config.h"
+#include "bro-config.h"
 
 #ifndef __STDC_LIMIT_MACROS
 #define __STDC_LIMIT_MACROS
@@ -35,7 +35,12 @@ bool JSON::Describe(ODesc* desc, int num_fields, const Field* const * fields,
 		const u_char* bytes = desc->Bytes();
 		int len = desc->Len();
 
-		if ( i > 0 && len > 0 && bytes[len-1] != ',' && vals[i]->present )
+		if ( i > 0 &&
+		     len > 0 &&
+		     bytes[len-1] != ',' &&
+		     bytes[len-1] != '{' &&
+		     bytes[len-1] != '[' &&
+		     vals[i]->present )
 			desc->AddRaw(",");
 
 		if ( ! Describe(desc, vals[i], fields[i]->name) )

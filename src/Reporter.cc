@@ -4,7 +4,7 @@
 
 #include <syslog.h>
 
-#include "config.h"
+#include "bro-config.h"
 #include "Reporter.h"
 #include "Event.h"
 #include "NetVar.h"
@@ -393,4 +393,3 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 	if ( alloced )
 		free(alloced);
 	}
-

@@ -9,10 +9,7 @@ Broker-Enabled Communication Framework
 
     Bro can now use the `Broker Library
     <../components/broker/README.html>`_ to exchange information with
-    other Bro processes.  To enable it run Bro's ``configure`` script
-    with the ``--enable-broker`` option.  Note that a C++11 compatible
-    compiler (e.g. GCC 4.8+ or Clang 3.3+) is required as well as the
-    `C++ Actor Framework <http://actor-framework.org/>`_.
+    other Bro processes.
 
 .. contents::
 
@@ -20,35 +17,35 @@ Connecting to Peers
 ===================
 
 Communication via Broker must first be turned on via
-:bro:see:`BrokerComm::enable`.
+:bro:see:`Broker::enable`.
 
-Bro can accept incoming connections by calling :bro:see:`BrokerComm::listen`
-and then monitor connection status updates via
-:bro:see:`BrokerComm::incoming_connection_established` and
-:bro:see:`BrokerComm::incoming_connection_broken`.
+Bro can accept incoming connections by calling :bro:see:`Broker::listen`
+and then monitor connection status updates via the
+:bro:see:`Broker::incoming_connection_established` and
+:bro:see:`Broker::incoming_connection_broken` events.
 
 .. btest-include:: ${DOC_ROOT}/frameworks/broker/connecting-listener.bro
 
-Bro can initiate outgoing connections by calling :bro:see:`BrokerComm::connect`
-and then monitor connection status updates via
-:bro:see:`BrokerComm::outgoing_connection_established`,
-:bro:see:`BrokerComm::outgoing_connection_broken`, and
-:bro:see:`BrokerComm::outgoing_connection_incompatible`.
+Bro can initiate outgoing connections by calling :bro:see:`Broker::connect`
+and then monitor connection status updates via the
+:bro:see:`Broker::outgoing_connection_established`,
+:bro:see:`Broker::outgoing_connection_broken`, and
+:bro:see:`Broker::outgoing_connection_incompatible` events.
 
 .. btest-include:: ${DOC_ROOT}/frameworks/broker/connecting-connector.bro
 
 Remote Printing
 ===============
 
-To receive remote print messages, first use
-:bro:see:`BrokerComm::subscribe_to_prints` to advertise to peers a topic
-prefix of interest and then create an event handler for
-:bro:see:`BrokerComm::print_handler` to handle any print messages that are
+To receive remote print messages, first use the
+:bro:see:`Broker::subscribe_to_prints` function to advertise to peers a
+topic prefix of interest and then create an event handler for
+:bro:see:`Broker::print_handler` to handle any print messages that are
 received.
 
 .. btest-include:: ${DOC_ROOT}/frameworks/broker/printing-listener.bro
 
-To send remote print messages, just call :bro:see:`BrokerComm::print`.
+To send remote print messages, just call :bro:see:`Broker::print`.
 
 .. btest-include:: ${DOC_ROOT}/frameworks/broker/printing-connector.bro
 
@@ -71,17 +68,17 @@ the Broker message format is simply:
 Remote Events
 =============
 
-Receiving remote events is similar to remote prints.  Just use
-:bro:see:`BrokerComm::subscribe_to_events` and possibly define any new events
-along with handlers that peers may want to send.
+Receiving remote events is similar to remote prints.  Just use the
+:bro:see:`Broker::subscribe_to_events` function and possibly define any
+new events along with handlers that peers may want to send.
 
 .. btest-include:: ${DOC_ROOT}/frameworks/broker/events-listener.bro
 
-To send events, there are two choices.  The first is to use call
-:bro:see:`BrokerComm::event` directly.  The second option is to use
-:bro:see:`BrokerComm::auto_event` to make it so a particular event is
-automatically sent to peers whenever it is called locally via the normal
-event invocation syntax.
+There are two different ways to send events.  The first is to call the
+:bro:see:`Broker::event` function directly.  The second option is to call
+the :bro:see:`Broker::auto_event` function where you specify a
+particular event that will be automatically sent to peers whenever the
+event is called locally via the normal event invocation syntax.
 
 .. btest-include:: ${DOC_ROOT}/frameworks/broker/events-connector.bro
 
@@ -98,7 +95,7 @@ the Broker message format is:
     broker::message{std::string{}, ...};
 
 The first parameter is the name of the event and the remaining ``...``
-are its arguments, which are any of the support Broker data types as
+are its arguments, which are any of the supported Broker data types as
 they correspond to the Bro types for the event named in the first
 parameter of the message.
 
@@ -107,23 +104,23 @@ Remote Logging
 
 .. btest-include:: ${DOC_ROOT}/frameworks/broker/testlog.bro
 
-Use :bro:see:`BrokerComm::subscribe_to_logs` to advertise interest in logs
-written by peers.  The topic names that Bro uses are implicitly of the
+Use the :bro:see:`Broker::subscribe_to_logs` function to advertise interest
+in logs written by peers.  The topic names that Bro uses are implicitly of the
 form "bro/log/<stream-name>".
 
 .. btest-include:: ${DOC_ROOT}/frameworks/broker/logs-listener.bro
 
-To send remote logs either use :bro:see:`Log::enable_remote_logging` or
-:bro:see:`BrokerComm::enable_remote_logs`.  The former allows any log stream
-to be sent to peers while the later toggles remote logging for
-particular streams.
+To send remote logs either redef :bro:see:`Log::enable_remote_logging` or
+use the :bro:see:`Broker::enable_remote_logs` function.  The former
+allows any log stream to be sent to peers while the latter enables remote
+logging for particular streams.
 
 .. btest-include:: ${DOC_ROOT}/frameworks/broker/logs-connector.bro
 
 Message Format
 --------------
 
-For other applications that want to exchange logs messages with Bro,
+For other applications that want to exchange log messages with Bro,
 the Broker message format is:
 
 .. code:: c++
@@ -132,7 +129,7 @@ the Broker message format is:
 
 The enum value corresponds to the stream's :bro:see:`Log::ID` value, and
 the record corresponds to a single entry of that log's columns record,
-in this case a ``Test::INFO`` value.
+in this case a ``Test::Info`` value.
 
 Tuning Access Control
 =====================
@@ -140,23 +137,24 @@ Tuning Access Control
 By default, endpoints do not restrict the message topics that it sends
 to peers and do not restrict what message topics and data store
 identifiers get advertised to peers.  These are the default
-:bro:see:`BrokerComm::EndpointFlags` supplied to :bro:see:`BrokerComm::enable`.
+:bro:see:`Broker::EndpointFlags` supplied to :bro:see:`Broker::enable`.
 
 If not using the ``auto_publish`` flag, one can use the
-:bro:see:`BrokerComm::publish_topic` and :bro:see:`BrokerComm::unpublish_topic`
+:bro:see:`Broker::publish_topic` and :bro:see:`Broker::unpublish_topic`
 functions to manipulate the set of message topics (must match exactly)
 that are allowed to be sent to peer endpoints.  These settings take
 precedence over the per-message ``peers`` flag supplied to functions
-that take a :bro:see:`BrokerComm::SendFlags` such as :bro:see:`BrokerComm::print`,
-:bro:see:`BrokerComm::event`, :bro:see:`BrokerComm::auto_event` or
-:bro:see:`BrokerComm::enable_remote_logs`.
+that take a :bro:see:`Broker::SendFlags` such as :bro:see:`Broker::print`,
+:bro:see:`Broker::event`, :bro:see:`Broker::auto_event` or
+:bro:see:`Broker::enable_remote_logs`.
 
 If not using the ``auto_advertise`` flag, one can use the
-:bro:see:`BrokerComm::advertise_topic` and :bro:see:`BrokerComm::unadvertise_topic`
-to manupulate the set of topic prefixes that are allowed to be
-advertised to peers.  If an endpoint does not advertise a topic prefix,
-the only way a peers can send messages to it is via the ``unsolicited``
-flag of :bro:see:`BrokerComm::SendFlags`  and choosing a topic with a matching
+:bro:see:`Broker::advertise_topic` and
+:bro:see:`Broker::unadvertise_topic` functions
+to manipulate the set of topic prefixes that are allowed to be
+advertised to peers.  If an endpoint does not advertise a topic prefix, then
+the only way peers can send messages to it is via the ``unsolicited``
+flag of :bro:see:`Broker::SendFlags` and choosing a topic with a matching
 prefix (i.e. full topic may be longer than receivers prefix, just the
 prefix needs to match).
 
@@ -172,7 +170,7 @@ specific type of frontend, but a standalone frontend can also exist to
 e.g. query and modify the contents of a remote master store without
 actually "owning" any of the contents itself.
 
-A master data store can be be cloned from remote peers which may then
+A master data store can be cloned from remote peers which may then
 perform lightweight, local queries against the clone, which
 automatically stays synchronized with the master store.  Clones cannot
 modify their content directly, instead they send modifications to the
@@ -181,7 +179,7 @@ all clones.
 
 Master and clone stores get to choose what type of storage backend to
 use.  E.g. In-memory versus SQLite for persistence.  Note that if clones
-are used, data store sizes should still be able to fit within memory
+are used, then data store sizes must be able to fit within memory
 regardless of the storage backend as a single snapshot of the master
 store is sent in a single chunk to initialize the clone.
 
@@ -194,9 +192,9 @@ last modification time.
 .. btest-include:: ${DOC_ROOT}/frameworks/broker/stores-connector.bro
 
 In the above example, if a local copy of the store contents isn't
-needed, just replace the :bro:see:`BrokerStore::create_clone` call with
-:bro:see:`BrokerStore::create_frontend`.  Queries will then be made against
+needed, just replace the :bro:see:`Broker::create_clone` call with
+:bro:see:`Broker::create_frontend`.  Queries will then be made against
 the remote master store instead of the local clone.
 
-Note that all queries are made within Bro's asynchrounous ``when``
-statements and must specify a timeout block.
+Note that all data store queries must be made within Bro's asynchronous
+``when`` statements and must specify a timeout block.

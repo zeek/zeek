@@ -1,8 +1,5 @@
 // See the file  in the main distribution directory for copyright.
-
-
 #include "plugin/Plugin.h"
-
 #include "IMAP.h"
 
 namespace plugin {
@@ -14,10 +11,9 @@ public:
 		{
 		AddComponent(new ::analyzer::Component("IMAP", ::analyzer::imap::IMAP_Analyzer::Instantiate));
 
-
 		plugin::Configuration config;
 		config.name = "Bro::IMAP";
-		config.description = "IMAP analyzer StartTLS only";
+		config.description = "IMAP analyzer (StartTLS only)";
 		return config;
 		}
 } plugin;

@@ -77,7 +77,6 @@ void IMAP_Analyzer::StartTLS()
 	// StartTLS was called. This means we saw a client starttls followed
 	// by a server proceed. From here on, everything should be a binary
 	// TLS datastream.
-
 	tls_active = true;
 
 	Analyzer* ssl = analyzer_mgr->InstantiateAnalyzer("SSL", Conn());

@@ -3,6 +3,8 @@
 #ifndef ANALYZER_PROTOCOL_IMAP_IMAP_H
 #define ANALYZER_PROTOCOL_IMAP_IMAP_H
 
+// for std::transform
+#include <algorithm>
 #include "analyzer/protocol/tcp/TCP.h"
 
 #include "imap_pac.h"

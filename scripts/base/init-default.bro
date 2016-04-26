@@ -38,7 +38,7 @@
 @load base/frameworks/reporter
 @load base/frameworks/sumstats
 @load base/frameworks/tunnels
-@ifdef ( BrokerComm::enable )
+@ifdef ( Broker::enable )
 @load base/frameworks/openflow
 @load base/frameworks/netcontrol
 @endif
@@ -56,6 +56,7 @@
 @load base/protocols/pop3
 @load base/protocols/radius
 @load base/protocols/rdp
+@load base/protocols/rfb
 @load base/protocols/sip
 @load base/protocols/snmp
 @load base/protocols/smtp

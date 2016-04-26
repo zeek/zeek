@@ -33,6 +33,7 @@ pe
 radius
 rdp
 reporter
+rfb
 signatures
 sip
 smtp

@@ -1,4 +1,67 @@
 
+2.4-471 | 2016-04-25 15:37:15 -0700
+
+  * Add DNS tests for huge TLLs and CAA. (Johanna Amann)
+
+  * Add DNS "CAA" RR type and event. (Mark Taylor)
+
+  * Fix DNS response parsing: TTLs are unsigned. (Mark Taylor)
+
+2.4-466 | 2016-04-22 16:25:33 -0700
+
+  * Rename BrokerStore and BrokerComm to Broker. Also split broker main.bro
+    into two scripts. (Daniel Thayer)
+
+  * Add get_current_packet_header bif. (Jan Grashoefer)
+
+2.4-457 | 2016-04-22 08:36:27 -0700
+
+  * Fix Intel framework not checking the CERT_HASH indicator type. (Johanna Amann)
+
+2.4-454 | 2016-04-14 10:06:58 -0400
+
+  * Additional mime types for file identification and a few fixes. (Seth Hall)
+
+    New file mime types:
+     - .ini files
+     - MS Registry policy files
+     - MS Registry files
+     - MS Registry format files (e.g. DESKTOP.DAT)
+     - MS Outlook PST files
+     - Apple AFPInfo files
+
+    Mime type fixes:
+     - MP3 files with ID3 tags.
+     - JSON and XML matchers were extended
+
+  * Avoid a macro name conflict on FreeBSD. (Seth Hall, Daniel Thayer)
+
+2.4-452 | 2016-04-13 01:15:20 -0400
+
+  * Add a simple file entropy analyzer. (Seth Hall)
+
+  * Analyzer and bro script for RFB/VNC protocol (Martin van Hensbergen)
+
+    This analyzer parses the Remote Frame Buffer
+    protocol, usually referred to as the 'VNC protocol'.
+
+    It supports several dialects (3.3, 3.7, 3.8) and
+    also handles the Apple Remote Desktop variant.
+
+    It will log such facts as client/server versions,
+    authentication method used, authentication result,
+    height, width and name of the shared screen.
+
+
+2.4-430 | 2016-04-07 13:36:36 -0700
+
+  * Fix regex literal in scripting documentation. (William Tom)
+
+2.4-428 | 2016-04-07 13:33:08 -0700
+
+  * Confirm protocol in SNMP/SIP only if we saw a response SNMP/SIP
+    packet. (Vlad Grigorescu)
+
 2.4-424 | 2016-03-24 13:38:47 -0700
 
   * Only load openflow/netcontrol if compiled with broker. (Johanna Amann)

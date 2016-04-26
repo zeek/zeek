@@ -23,11 +23,11 @@ event bro_init()
 	of_controller = OpenFlow::broker_new("broker1", 127.0.0.1, broker_port, "bro/event/openflow", 42);
 	}
 
-event BrokerComm::outgoing_connection_established(peer_address: string,
+event Broker::outgoing_connection_established(peer_address: string,
                                             peer_port: port,
                                             peer_name: string)
 	{
-	print "BrokerComm::outgoing_connection_established", peer_address, peer_port;
+	print "Broker::outgoing_connection_established", peer_address, peer_port;
 	}
 
 event OpenFlow::controller_activated(name: string, controller: OpenFlow::Controller)
@@ -37,7 +37,7 @@ event OpenFlow::controller_activated(name: string, controller: OpenFlow::Control
 	OpenFlow::flow_mod(of_controller, [], [$cookie=OpenFlow::generate_cookie(1), $command=OpenFlow::OFPFC_ADD, $actions=[$out_ports=vector(3, 7)]]);
 	}
 
-event BrokerComm::outgoing_connection_broken(peer_address: string,
+event Broker::outgoing_connection_broken(peer_address: string,
                                        peer_port: port)
 	{
 	terminate();
@@ -83,14 +83,14 @@ global msg_count: count = 0;
 
 event bro_init()
 	{
-	BrokerComm::enable();
-	BrokerComm::subscribe_to_events("bro/event/openflow");
-	BrokerComm::listen(broker_port, "127.0.0.1");
+	Broker::enable();
+	Broker::subscribe_to_events("bro/event/openflow");
+	Broker::listen(broker_port, "127.0.0.1");
 	}
 
-event BrokerComm::incoming_connection_established(peer_name: string)
+event Broker::incoming_connection_established(peer_name: string)
 	{
-	print "BrokerComm::incoming_connection_established";
+	print "Broker::incoming_connection_established";
 	}
 
 function got_message()
@@ -104,8 +104,8 @@ function got_message()
 event OpenFlow::broker_flow_mod(name: string, dpid: count, match: OpenFlow::ofp_match, flow_mod: OpenFlow::ofp_flow_mod)
 	{
 	print "got flow_mod", dpid, match, flow_mod;
-	BrokerComm::event("bro/event/openflow", BrokerComm::event_args(OpenFlow::flow_mod_success, name, match, flow_mod, ""));
-	BrokerComm::event("bro/event/openflow", BrokerComm::event_args(OpenFlow::flow_mod_failure, name, match, flow_mod, ""));
+	Broker::event("bro/event/openflow", Broker::event_args(OpenFlow::flow_mod_success, name, match, flow_mod, ""));
+	Broker::event("bro/event/openflow", Broker::event_args(OpenFlow::flow_mod_failure, name, match, flow_mod, ""));
 	got_message();
 	}
 

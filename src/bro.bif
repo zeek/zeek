@@ -1480,8 +1480,6 @@ function cat_sep%(sep: string, def: string, ...%): string
 ##
 ##    - ``.``: Precision of floating point specifiers ``[efg]`` (< 128)
 ##
-##    - ``A``: Escape only NUL bytes (each one replaced with ``\0``) in a string
-##
 ##    - ``[DTdxsefg]``: Format specifier
 ##
 ##        - ``[DT]``: ISO timestamp with microsecond precision

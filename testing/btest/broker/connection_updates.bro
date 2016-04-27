@@ -22,12 +22,12 @@ event bro_init()
 
 event Broker::incoming_connection_established(peer_name: string)
 	{
-	print "Broker::incoming_connection_established", peer_name;;
+	print "Broker::incoming_connection_established", peer_name;
 	}
 
 event Broker::incoming_connection_broken(peer_name: string)
 	{
-	print "Broker::incoming_connection_broken", peer_name;;
+	print "Broker::incoming_connection_broken", peer_name;
 	terminate();
 	}
 
@@ -50,7 +50,7 @@ event Broker::outgoing_connection_established(peer_address: string,
                                             peer_name: string)
 	{
 	print "Broker::outgoing_connection_established",
-	      peer_address, peer_port, peer_name;;
+	      peer_address, peer_port, peer_name;
 	terminate();
 	}
 

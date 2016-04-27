@@ -16,8 +16,8 @@ redef exit_only_after_terminate = T;
 event bro_init()
 	{
 	Broker::enable();
-	Broker::listen(broker_port, "127.0.0.1");
 	Broker::subscribe_to_prints("bro/print/");
+	Broker::listen(broker_port, "127.0.0.1");
 	}
 
 global messages_to_recv = 6;

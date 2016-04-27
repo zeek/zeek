@@ -1,4 +1,41 @@
 
+2.4-471 | 2016-04-25 15:37:15 -0700
+
+  * Add DNS tests for huge TLLs and CAA. (Johanna Amann)
+
+  * Add DNS "CAA" RR type and event. (Mark Taylor)
+
+  * Fix DNS response parsing: TTLs are unsigned. (Mark Taylor)
+
+2.4-466 | 2016-04-22 16:25:33 -0700
+
+  * Rename BrokerStore and BrokerComm to Broker. Also split broker main.bro
+    into two scripts. (Daniel Thayer)
+
+  * Add get_current_packet_header bif. (Jan Grashoefer)
+
+2.4-457 | 2016-04-22 08:36:27 -0700
+
+  * Fix Intel framework not checking the CERT_HASH indicator type. (Johanna Amann)
+
+2.4-454 | 2016-04-14 10:06:58 -0400
+
+  * Additional mime types for file identification and a few fixes. (Seth Hall)
+
+    New file mime types:
+     - .ini files
+     - MS Registry policy files
+     - MS Registry files
+     - MS Registry format files (e.g. DESKTOP.DAT)
+     - MS Outlook PST files
+     - Apple AFPInfo files
+
+    Mime type fixes:
+     - MP3 files with ID3 tags.
+     - JSON and XML matchers were extended
+
+  * Avoid a macro name conflict on FreeBSD. (Seth Hall, Daniel Thayer)
+
 2.4-452 | 2016-04-13 01:15:20 -0400
 
   * Add a simple file entropy analyzer. (Seth Hall)

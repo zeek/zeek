@@ -10,9 +10,6 @@ using namespace analyzer::arp;
 
 ARP_Analyzer::ARP_Analyzer()
 	{
-	bad_arp = internal_handler("bad_arp");
-	arp_request = internal_handler("arp_request");
-	arp_reply = internal_handler("arp_reply");
 	}
 
 ARP_Analyzer::~ARP_Analyzer()

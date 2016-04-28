@@ -1,5 +1,5 @@
 
-2.4-493 | 2016-04-28 11:29:00 -0700
+2.4-498 | 2016-04-28 11:34:52 -0700
 
   * Rename Broker::print to Broker::send_print and Broker::event to
     Broker::send_event to avoid using reserved keywords as function
@@ -9,8 +9,6 @@
     documenting them through Broxygen. (Daniel Thayer)
 
   * Extend, update, and clean up Broker tests. (Daniel Thayer)
-
-2.4-485 | 2016-04-28 10:18:46 -0700
 
   * Intel: Allow to provide uid/fuid instead of conn/file. (Johanna
     Amann)
@@ -22,12 +20,21 @@
     IMAP connections using StartTLS. It aborts processing if StartTLS
     is not found. (Johanna Amann)
 
-  * ARP: remove unnecessary variables and add testcase. (Johanna
-    Amann)
+2.4-478 | 2016-04-28 09:56:24
 
   * Fix parsing of x509 pre-y2k dates. (Johanna Amann)
 
   * Fix small error in bif documentation. (Johanna Amann)
+
+  * Fix unknown data link type error message. (Vitaly Repin)
+
+  * Correcting spelling errors. (Jeannette Dopheide)
+
+  * Minor cleanup in ARP analyzer. (Johanna Amann)
+
+  * Fix parsing of pre-y2k dates in X509 certificates. (Johanna Amann)
+
+  * Fix small error in get_current_packet documentation. (Johanna Amann)
 
 2.4-471 | 2016-04-25 15:37:15 -0700
 

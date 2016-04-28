@@ -26,6 +26,7 @@ export {
 		[49] = "DHCID", [99] = "SPF", [100] = "DINFO", [101] = "UID",
 		[102] = "GID", [103] = "UNSPEC", [249] = "TKEY", [250] = "TSIG",
 		[251] = "IXFR", [252] = "AXFR", [253] = "MAILB", [254] = "MAILA",
+		[257] = "CAA",
 		[32768] = "TA", [32769] = "DLV",
 		[ANY] = "*",
 	} &default = function(n: count): string { return fmt("query-%d", n); };

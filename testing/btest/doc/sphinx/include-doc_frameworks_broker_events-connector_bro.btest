@@ -21,11 +21,11 @@ event Broker::outgoing_connection_established(peer_address: string,
 	{
 	print "Broker::outgoing_connection_established",
 	      peer_address, peer_port, peer_name;
-	Broker::event("bro/event/my_event", Broker::event_args(my_event, "hi", 0));
+	Broker::send_event("bro/event/my_event", Broker::event_args(my_event, "hi", 0));
 	event my_auto_event("stuff", 88);
-	Broker::event("bro/event/my_event", Broker::event_args(my_event, "...", 1));
+	Broker::send_event("bro/event/my_event", Broker::event_args(my_event, "...", 1));
 	event my_auto_event("more stuff", 51);
-	Broker::event("bro/event/my_event", Broker::event_args(my_event, "bye", 2));
+	Broker::send_event("bro/event/my_event", Broker::event_args(my_event, "bye", 2));
 	}
 
 event Broker::outgoing_connection_broken(peer_address: string,

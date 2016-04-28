@@ -89,15 +89,15 @@ event NetControl::broker_add_rule(id: count, r: NetControl::Rule)
 	{
 	print "add_rule", id, r$entity, r$ty;
 
-	Broker::event("bro/event/netcontroltest", Broker::event_args(NetControl::broker_rule_added, id, r, ""));
+	Broker::send_event("bro/event/netcontroltest", Broker::event_args(NetControl::broker_rule_added, id, r, ""));
 	}
 
 event NetControl::broker_remove_rule(id: count, r: NetControl::Rule)
 	{
 	print "remove_rule", id, r$entity, r$ty;
 
-	Broker::event("bro/event/netcontroltest", Broker::event_args(NetControl::broker_rule_timeout, id, r, NetControl::FlowInfo()));
-	Broker::event("bro/event/netcontroltest", Broker::event_args(NetControl::broker_rule_removed, id, r, ""));
+	Broker::send_event("bro/event/netcontroltest", Broker::event_args(NetControl::broker_rule_timeout, id, r, NetControl::FlowInfo()));
+	Broker::send_event("bro/event/netcontroltest", Broker::event_args(NetControl::broker_rule_removed, id, r, ""));
 
 	if ( r$cid == 3 )
 		terminate();

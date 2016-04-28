@@ -227,7 +227,7 @@ function acld_add_rule_fun(p: PluginState, r: Rule) : bool
 	if ( ar$command == "" )
 		return F;
 
-	Broker::event(p$acld_config$acld_topic, Broker::event_args(acld_add_rule, p$acld_id, r, ar));
+	Broker::send_event(p$acld_config$acld_topic, Broker::event_args(acld_add_rule, p$acld_id, r, ar));
 	return T;
 	}
 
@@ -242,7 +242,7 @@ function acld_remove_rule_fun(p: PluginState, r: Rule) : bool
 	else
 		return F;
 
-	Broker::event(p$acld_config$acld_topic, Broker::event_args(acld_remove_rule, p$acld_id, r, ar));
+	Broker::send_event(p$acld_config$acld_topic, Broker::event_args(acld_remove_rule, p$acld_id, r, ar));
 	return T;
 	}
 

@@ -1,4 +1,16 @@
 
+2.4-478 | 2016-04-28 09:56:24 -0700
+
+  * Fix unknown data link type error message. (Vitaly Repin)
+
+  * Correcting spelling errors. (Jeannette Dopheide)
+
+  * Minor cleanup in ARP analyzer. (Johanna Amann)
+
+  * Fix parsing of pre-y2k dates in X509 certificates. (Johanna Amann)
+
+  * Fix small error in get_current_packet documentation. (Johanna Amann)
+
 2.4-471 | 2016-04-25 15:37:15 -0700
 
   * Add DNS tests for huge TLLs and CAA. (Johanna Amann)

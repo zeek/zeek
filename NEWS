@@ -33,6 +33,11 @@ New Functionality
 
 - Bro now supports the Radiotap header for 802.11 frames.
 
+- Bro now has a rudimentary IMAP analyzer examinig the initial phase
+  of the protocol. Right now the analyzer only identify STARTTLS
+  sessions, handing them over to TLS analysis. The analyzer does not
+  yet analyze any further IMAP content.
+
 - Bro now tracks VLAN IDs. To record them inside the connection log,
   load protocols/conn/vlan-logging.bro.
 

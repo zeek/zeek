@@ -1,4 +1,23 @@
 
+2.4-485 | 2016-04-28 10:18:46 -0700
+
+  * Intel: Allow to provide uid/fuid instead of conn/file. (Johanna
+    Amann)
+
+  * Provide file IDs for hostname matches in certificates. (Johanna
+    Amann)
+
+  * Rudimentary IMAP StartTLS analyzer. It parses certificates out of
+    IMAP connections using StartTLS. It aborts processing if StartTLS
+    is not found. (Johanna Amann)
+
+  * ARP: remove unnecessary variables and add testcase. (Johanna
+    Amann)
+
+  * Fix parsing of x509 pre-y2k dates. (Johanna Amann)
+
+  * Fix small error in bif documentation. (Johanna Amann)
+
 2.4-471 | 2016-04-25 15:37:15 -0700
 
   * Add DNS tests for huge TLLs and CAA. (Johanna Amann)

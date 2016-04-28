@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2016-04-22-23-21-18
+#open	2016-04-26-18-11-49
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -76,6 +76,7 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_HTTP.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_ICMP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Ident.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_IMAP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_InterConn.events.bif.bro
     build/scripts/base/bif/plugins/Bro_IRC.events.bif.bro
     build/scripts/base/bif/plugins/Bro_KRB.events.bif.bro
@@ -252,6 +253,8 @@ scripts/base/init-default.bro
     scripts/base/protocols/http/entities.bro
     scripts/base/protocols/http/utils.bro
     scripts/base/protocols/http/files.bro
+  scripts/base/protocols/imap/__load__.bro
+    scripts/base/protocols/imap/main.bro
   scripts/base/protocols/irc/__load__.bro
     scripts/base/protocols/irc/main.bro
     scripts/base/protocols/irc/dcc-send.bro
@@ -302,4 +305,4 @@ scripts/base/init-default.bro
   scripts/base/misc/find-checksum-offloading.bro
   scripts/base/misc/find-filtered-trace.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2016-04-22-23-21-18
+#close	2016-04-26-18-11-49

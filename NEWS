@@ -96,6 +96,8 @@ Changed Functionality
 ---------------------
 
 - The BrokerComm and BrokerStore namespaces were renamed to Broker.
+  The Broker "print" function was renamed to Broker::send_print, and
+  "event" to "Broker::send_event".
 
 - ``SSH::skip_processing_after_detection`` was removed. The functionality was
   replaced by ``SSH::disable_analyzer_after_detection``.

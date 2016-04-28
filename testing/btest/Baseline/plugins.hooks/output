@@ -233,7 +233,7 @@
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1461694342.200388, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1461868125.285894, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Communication::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Conn::LOG)) -> <no result>
@@ -354,7 +354,7 @@
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1461694342.200388, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1461868125.285894, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
 0.000000   MetaHookPost  CallFunction(NetControl::check_plugins, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(NetControl::init, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Notice::want_pp, <frame>, ()) -> <no result>
@@ -570,11 +570,13 @@
 0.000000   MetaHookPost  LoadFile(base<...>/bro.bif) -> -1
 0.000000   MetaHookPost  LoadFile(base<...>/broker) -> -1
 0.000000   MetaHookPost  LoadFile(base<...>/cluster) -> -1
+0.000000   MetaHookPost  LoadFile(base<...>/comm.bif) -> -1
 0.000000   MetaHookPost  LoadFile(base<...>/communication) -> -1
 0.000000   MetaHookPost  LoadFile(base<...>/conn) -> -1
 0.000000   MetaHookPost  LoadFile(base<...>/conn-ids) -> -1
 0.000000   MetaHookPost  LoadFile(base<...>/const.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(base<...>/control) -> -1
+0.000000   MetaHookPost  LoadFile(base<...>/data.bif) -> -1
 0.000000   MetaHookPost  LoadFile(base<...>/dhcp) -> -1
 0.000000   MetaHookPost  LoadFile(base<...>/dir) -> -1
 0.000000   MetaHookPost  LoadFile(base<...>/directions-and-hosts) -> -1
@@ -601,6 +603,7 @@
 0.000000   MetaHookPost  LoadFile(base<...>/logging) -> -1
 0.000000   MetaHookPost  LoadFile(base<...>/logging.bif) -> -1
 0.000000   MetaHookPost  LoadFile(base<...>/main) -> -1
+0.000000   MetaHookPost  LoadFile(base<...>/messaging.bif) -> -1
 0.000000   MetaHookPost  LoadFile(base<...>/modbus) -> -1
 0.000000   MetaHookPost  LoadFile(base<...>/mysql) -> -1
 0.000000   MetaHookPost  LoadFile(base<...>/netcontrol) -> -1
@@ -628,6 +631,7 @@
 0.000000   MetaHookPost  LoadFile(base<...>/software) -> -1
 0.000000   MetaHookPost  LoadFile(base<...>/ssh) -> -1
 0.000000   MetaHookPost  LoadFile(base<...>/ssl) -> -1
+0.000000   MetaHookPost  LoadFile(base<...>/store.bif) -> -1
 0.000000   MetaHookPost  LoadFile(base<...>/strings) -> -1
 0.000000   MetaHookPost  LoadFile(base<...>/strings.bif) -> -1
 0.000000   MetaHookPost  LoadFile(base<...>/sumstats) -> -1
@@ -878,7 +882,7 @@
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql]))
-0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1461694342.200388, node=bro, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1461868125.285894, node=bro, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Communication::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Conn::LOG))
@@ -999,7 +1003,7 @@
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql]))
-0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1461694342.200388, node=bro, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1461868125.285894, node=bro, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(NetControl::check_plugins, <frame>, ())
 0.000000   MetaHookPre   CallFunction(NetControl::init, <null>, ())
 0.000000   MetaHookPre   CallFunction(Notice::want_pp, <frame>, ())
@@ -1215,11 +1219,13 @@
 0.000000   MetaHookPre   LoadFile(base<...>/bro.bif)
 0.000000   MetaHookPre   LoadFile(base<...>/broker)
 0.000000   MetaHookPre   LoadFile(base<...>/cluster)
+0.000000   MetaHookPre   LoadFile(base<...>/comm.bif)
 0.000000   MetaHookPre   LoadFile(base<...>/communication)
 0.000000   MetaHookPre   LoadFile(base<...>/conn)
 0.000000   MetaHookPre   LoadFile(base<...>/conn-ids)
 0.000000   MetaHookPre   LoadFile(base<...>/const.bif.bro)
 0.000000   MetaHookPre   LoadFile(base<...>/control)
+0.000000   MetaHookPre   LoadFile(base<...>/data.bif)
 0.000000   MetaHookPre   LoadFile(base<...>/dhcp)
 0.000000   MetaHookPre   LoadFile(base<...>/dir)
 0.000000   MetaHookPre   LoadFile(base<...>/directions-and-hosts)
@@ -1246,6 +1252,7 @@
 0.000000   MetaHookPre   LoadFile(base<...>/logging)
 0.000000   MetaHookPre   LoadFile(base<...>/logging.bif)
 0.000000   MetaHookPre   LoadFile(base<...>/main)
+0.000000   MetaHookPre   LoadFile(base<...>/messaging.bif)
 0.000000   MetaHookPre   LoadFile(base<...>/modbus)
 0.000000   MetaHookPre   LoadFile(base<...>/mysql)
 0.000000   MetaHookPre   LoadFile(base<...>/netcontrol)
@@ -1273,6 +1280,7 @@
 0.000000   MetaHookPre   LoadFile(base<...>/software)
 0.000000   MetaHookPre   LoadFile(base<...>/ssh)
 0.000000   MetaHookPre   LoadFile(base<...>/ssl)
+0.000000   MetaHookPre   LoadFile(base<...>/store.bif)
 0.000000   MetaHookPre   LoadFile(base<...>/strings)
 0.000000   MetaHookPre   LoadFile(base<...>/strings.bif)
 0.000000   MetaHookPre   LoadFile(base<...>/sumstats)
@@ -1522,7 +1530,7 @@
 0.000000 | HookCallFunction Log::__create_stream(Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])
 0.000000 | HookCallFunction Log::__create_stream(X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])
 0.000000 | HookCallFunction Log::__create_stream(mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])
-0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1461694342.200388, node=bro, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1461868125.285894, node=bro, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction Log::add_default_filter(Cluster::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Communication::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Conn::LOG)
@@ -1643,7 +1651,7 @@
 0.000000 | HookCallFunction Log::create_stream(Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])
 0.000000 | HookCallFunction Log::create_stream(X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])
 0.000000 | HookCallFunction Log::create_stream(mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])
-0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1461694342.200388, node=bro, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1461868125.285894, node=bro, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction NetControl::check_plugins()
 0.000000 | HookCallFunction NetControl::init()
 0.000000 | HookCallFunction Notice::want_pp()

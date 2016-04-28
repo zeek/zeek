@@ -1,4 +1,15 @@
 
+2.4-493 | 2016-04-28 11:29:00 -0700
+
+  * Rename Broker::print to Broker::send_print and Broker::event to
+    Broker::send_event to avoid using reserved keywords as function
+    names. (Daniel Thayer)
+
+  * Add script wrapper functions for Broker BIFs. This faciliates
+    documenting them through Broxygen. (Daniel Thayer)
+
+  * Extend, update, and clean up Broker tests. (Daniel Thayer)
+
 2.4-485 | 2016-04-28 10:18:46 -0700
 
   * Intel: Allow to provide uid/fuid instead of conn/file. (Johanna

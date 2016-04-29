@@ -65,7 +65,7 @@ Config::Config(const string& arg_file, const string& delim)
 		Target* target = target_factory.Create(tokens[0], tokens[2], tokens[1]);
 
 		if ( ! target )
-			reporter->FatalError("unkown Broxygen target type: %s",
+			reporter->FatalError("unknown Broxygen target type: %s",
 			                     tokens[0].c_str());
 
 		targets.push_back(target);

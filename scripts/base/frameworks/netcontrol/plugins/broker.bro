@@ -96,13 +96,13 @@ function broker_name(p: PluginState) : string
 
 function broker_add_rule_fun(p: PluginState, r: Rule) : bool
 	{
-	Broker::event(p$broker_topic, Broker::event_args(broker_add_rule, p$broker_id, r));
+	Broker::send_event(p$broker_topic, Broker::event_args(broker_add_rule, p$broker_id, r));
 	return T;
 	}
 
 function broker_remove_rule_fun(p: PluginState, r: Rule) : bool
 	{
-	Broker::event(p$broker_topic, Broker::event_args(broker_remove_rule, p$broker_id, r));
+	Broker::send_event(p$broker_topic, Broker::event_args(broker_remove_rule, p$broker_id, r));
 	return T;
 	}
 

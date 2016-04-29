@@ -437,7 +437,7 @@ bool Serializer::UnserializeCall(UnserialInfo* info)
 
 bool Serializer::UnserializeStateAccess(UnserialInfo* info)
 	{
-	SetErrorDescr("unserializing state acess");
+	SetErrorDescr("unserializing state access");
 
 	StateAccess* s = StateAccess::Unserialize(info);
 

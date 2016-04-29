@@ -1,4 +1,41 @@
 
+2.4-498 | 2016-04-28 11:34:52 -0700
+
+  * Rename Broker::print to Broker::send_print and Broker::event to
+    Broker::send_event to avoid using reserved keywords as function
+    names. (Daniel Thayer)
+
+  * Add script wrapper functions for Broker BIFs. This faciliates
+    documenting them through Broxygen. (Daniel Thayer)
+
+  * Extend, update, and clean up Broker tests. (Daniel Thayer)
+
+  * Intel: Allow to provide uid/fuid instead of conn/file. (Johanna
+    Amann)
+
+  * Provide file IDs for hostname matches in certificates. (Johanna
+    Amann)
+
+  * Rudimentary IMAP StartTLS analyzer. It parses certificates out of
+    IMAP connections using StartTLS. It aborts processing if StartTLS
+    is not found. (Johanna Amann)
+
+2.4-478 | 2016-04-28 09:56:24
+
+  * Fix parsing of x509 pre-y2k dates. (Johanna Amann)
+
+  * Fix small error in bif documentation. (Johanna Amann)
+
+  * Fix unknown data link type error message. (Vitaly Repin)
+
+  * Correcting spelling errors. (Jeannette Dopheide)
+
+  * Minor cleanup in ARP analyzer. (Johanna Amann)
+
+  * Fix parsing of pre-y2k dates in X509 certificates. (Johanna Amann)
+
+  * Fix small error in get_current_packet documentation. (Johanna Amann)
+
 2.4-471 | 2016-04-25 15:37:15 -0700
 
   * Add DNS tests for huge TLLs and CAA. (Johanna Amann)

@@ -104,8 +104,8 @@ function got_message()
 event OpenFlow::broker_flow_mod(name: string, dpid: count, match: OpenFlow::ofp_match, flow_mod: OpenFlow::ofp_flow_mod)
 	{
 	print "got flow_mod", dpid, match, flow_mod;
-	Broker::event("bro/event/openflow", Broker::event_args(OpenFlow::flow_mod_success, name, match, flow_mod, ""));
-	Broker::event("bro/event/openflow", Broker::event_args(OpenFlow::flow_mod_failure, name, match, flow_mod, ""));
+	Broker::send_event("bro/event/openflow", Broker::event_args(OpenFlow::flow_mod_success, name, match, flow_mod, ""));
+	Broker::send_event("bro/event/openflow", Broker::event_args(OpenFlow::flow_mod_failure, name, match, flow_mod, ""));
 	got_message();
 	}
 

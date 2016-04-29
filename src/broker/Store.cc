@@ -14,12 +14,12 @@ OpaqueType* bro_broker::opaque_of_store_handle;
 
 bro_broker::StoreHandleVal::StoreHandleVal(broker::store::identifier id,
                                      bro_broker::StoreType arg_type,
-                                     broker::util::optional<BifEnum::BrokerStore::BackendType> arg_back,
+                                     broker::util::optional<BifEnum::Broker::BackendType> arg_back,
                                      RecordVal* backend_options, std::chrono::duration<double> resync)
 	: OpaqueVal(opaque_of_store_handle),
 	  store(), store_type(arg_type), backend_type(arg_back)
 	{
-	using BifEnum::BrokerStore::BackendType;
+	using BifEnum::Broker::BackendType;
 	std::unique_ptr<broker::store::backend> backend;
 
 	if ( backend_type )
@@ -91,7 +91,7 @@ bro_broker::StoreHandleVal::StoreHandleVal(broker::store::identifier id,
 
 void bro_broker::StoreHandleVal::ValDescribe(ODesc* d) const
 	{
-	using BifEnum::BrokerStore::BackendType;
+	using BifEnum::Broker::BackendType;
 	d->Add("broker::store::");
 
 	switch ( store_type ) {

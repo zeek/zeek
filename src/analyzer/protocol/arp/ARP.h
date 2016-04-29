@@ -3,7 +3,7 @@
 #ifndef ANALYZER_PROTOCOL_ARP_ARP_H
 #define ANALYZER_PROTOCOL_ARP_ARP_H
 
-#include "config.h"
+#include "bro-config.h"
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -50,10 +50,6 @@ protected:
 	StringVal* EthAddrToStr(const u_char* addr);
 	void BadARP(const struct arp_pkthdr* hdr, const char* string);
 	void Corrupted(const char* string);
-
-	EventHandlerPtr arp_corrupted_packet;
-	EventHandlerPtr arp_request;
-	EventHandlerPtr arp_reply;
 };
 
 } } // namespace analyzer::* 

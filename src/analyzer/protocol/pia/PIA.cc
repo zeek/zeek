@@ -1,5 +1,6 @@
 #include "PIA.h"
 #include "RuleMatcher.h"
+#include "analyzer/protocol/tcp/TCP_Flags.h"
 #include "analyzer/protocol/tcp/TCP_Reassembler.h"
 
 #include "events.bif.h"
@@ -348,12 +349,16 @@ void PIA_TCP::ActivateAnalyzer(analyzer::Tag tag, const Rule* rule)
 
 	for ( DataBlock* b = pkt_buffer.head; b; b = b->next )
 		{
+		// We don't have the TCP flags here during replay. We could
+		// funnel them through, but it's non-trivial and doesn't seem
+		// worth the effort.
+
 		if ( b->is_orig )
 			reass_orig->DataSent(network_time, orig_seq = b->seq,
-						b->len, b->data, true);
+					     b->len, b->data, tcp::TCP_Flags(), true);
 		else
 			reass_resp->DataSent(network_time, resp_seq = b->seq,
-						b->len, b->data, true);
+					     b->len, b->data, tcp::TCP_Flags(), true);
 		}
 
 	// We also need to pass the current packet on.
@@ -363,11 +368,11 @@ void PIA_TCP::ActivateAnalyzer(analyzer::Tag tag, const Rule* rule)
 		if ( current->is_orig )
 			reass_orig->DataSent(network_time,
 					orig_seq = current->seq,
-					current->len, current->data, true);
+					current->len, current->data, analyzer::tcp::TCP_Flags(), true);
 		else
 			reass_resp->DataSent(network_time,
 					resp_seq = current->seq,
-					current->len, current->data, true);
+					current->len, current->data, analyzer::tcp::TCP_Flags(), true);
 		}
 
 	ClearBuffer(&pkt_buffer);

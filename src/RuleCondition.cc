@@ -1,4 +1,4 @@
-#include "config.h"
+#include "bro-config.h"
 
 #include "RuleCondition.h"
 #include "analyzer/protocol/tcp/TCP.h"
@@ -111,7 +111,7 @@ bool RuleConditionPayloadSize::DoMatch(Rule* rule, RuleEndpointState* state,
 		return payload_size >= val;
 
 	default:
-		reporter->InternalError("unknown comparision type");
+		reporter->InternalError("unknown comparison type");
 	}
 
 	// Should not be reached

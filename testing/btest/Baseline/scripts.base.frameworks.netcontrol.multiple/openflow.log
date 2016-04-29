@@ -1,0 +1,21 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	openflow
+#open	2016-03-09-23-40-54
+#fields	ts	dpid	match.in_port	match.dl_src	match.dl_dst	match.dl_vlan	match.dl_vlan_pcp	match.dl_type	match.nw_tos	match.nw_proto	match.nw_src	match.nw_dst	match.tp_src	match.tp_dst	flow_mod.cookie	flow_mod.table_id	flow_mod.command	flow_mod.idle_timeout	flow_mod.hard_timeout	flow_mod.priority	flow_mod.out_port	flow_mod.out_group	flow_mod.flags	flow_mod.actions.out_ports	flow_mod.actions.vlan_vid	flow_mod.actions.vlan_pcp	flow_mod.actions.vlan_strip	flow_mod.actions.dl_src	flow_mod.actions.dl_dst	flow_mod.actions.nw_tos	flow_mod.actions.nw_src	flow_mod.actions.nw_dst	flow_mod.actions.tp_src	flow_mod.actions.tp_dst
+#types	time	count	count	string	string	count	count	count	count	count	subnet	subnet	count	count	count	count	enum	count	count	count	count	count	count	vector[count]	count	count	bool	string	string	count	addr	addr	count	count
+1398529018.678276	42	-	-	-	-	-	2048	-	6	192.168.18.50/32	74.125.239.97/32	56981	443	4398046511108	-	OpenFlow::OFPFC_ADD	0	0	0	-	-	1	(empty)	-	-	F	-	-	-	-	-	-	-
+1398529018.678276	42	-	-	-	-	-	2048	-	-	192.168.18.50/32	-	-	-	4398046511110	-	OpenFlow::OFPFC_ADD	0	0	0	-	-	1	(empty)	-	-	F	-	-	-	-	-	-	-
+1398529018.678276	42	-	-	-	-	-	2048	-	-	-	192.168.18.50/32	-	-	4398046511111	-	OpenFlow::OFPFC_ADD	0	0	0	-	-	1	(empty)	-	-	F	-	-	-	-	-	-	-
+1398529018.678276	42	-	-	-	-	-	2048	-	-	192.168.18.50/32	-	-	-	4398046511112	-	OpenFlow::OFPFC_ADD	0	0	5	-	-	1	4294967290	-	-	F	-	-	-	-	-	-	-
+1398529018.678276	42	-	-	-	-	-	2048	-	-	-	192.168.18.50/32	-	-	4398046511113	-	OpenFlow::OFPFC_ADD	0	0	5	-	-	1	4294967290	-	-	F	-	-	-	-	-	-	-
+1398529018.678276	42	-	-	-	-	-	2048	-	6	192.168.18.50/32	74.125.239.97/32	56981	443	4398046511114	-	OpenFlow::OFPFC_ADD	0	0	0	-	-	1	5	-	-	F	-	-	-	-	-	-	-
+1398529020.091883	42	-	-	-	-	-	-	-	-	-	-	-	-	4398046511108	-	OpenFlow::OFPFC_DELETE	0	0	0	-	-	0	(empty)	-	-	F	-	-	-	-	-	-	-
+1398529020.091883	42	-	-	-	-	-	-	-	-	-	-	-	-	4398046511110	-	OpenFlow::OFPFC_DELETE	0	0	0	-	-	0	(empty)	-	-	F	-	-	-	-	-	-	-
+1398529020.091883	42	-	-	-	-	-	-	-	-	-	-	-	-	4398046511111	-	OpenFlow::OFPFC_DELETE	0	0	0	-	-	0	(empty)	-	-	F	-	-	-	-	-	-	-
+1398529020.091883	42	-	-	-	-	-	-	-	-	-	-	-	-	4398046511112	-	OpenFlow::OFPFC_DELETE	0	0	0	-	-	0	(empty)	-	-	F	-	-	-	-	-	-	-
+1398529020.091883	42	-	-	-	-	-	-	-	-	-	-	-	-	4398046511113	-	OpenFlow::OFPFC_DELETE	0	0	0	-	-	0	(empty)	-	-	F	-	-	-	-	-	-	-
+1398529020.091883	42	-	-	-	-	-	-	-	-	-	-	-	-	4398046511114	-	OpenFlow::OFPFC_DELETE	0	0	0	-	-	0	(empty)	-	-	F	-	-	-	-	-	-	-
+#close	2016-03-09-23-40-54

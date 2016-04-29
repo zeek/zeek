@@ -3,7 +3,7 @@
 #ifndef INPUT_READERS_SQLITE_H
 #define INPUT_READERS_SQLITE_H
 
-#include "config.h"
+#include "bro-config.h"
 
 #include <iostream>
 #include <vector>

@@ -1,0 +1,7 @@
+Broker::outgoing_connection_established, 127.0.0.1, 9999/tcp
+rule added, [ty=NetControl::FLOW, conn=<uninitialized>, flow=[src_h=192.168.18.50/32, src_p=<uninitialized>, dst_h=74.125.239.97/32, dst_p=<uninitialized>, src_m=<uninitialized>, dst_m=<uninitialized>], ip=<uninitialized>, mac=<uninitialized>], NetControl::DROP
+rule added, [ty=NetControl::FLOW, conn=<uninitialized>, flow=[src_h=<uninitialized>, src_p=<uninitialized>, dst_h=<uninitialized>, dst_p=443/tcp, src_m=<uninitialized>, dst_m=<uninitialized>], ip=<uninitialized>, mac=<uninitialized>], NetControl::DROP
+rule added, [ty=NetControl::ADDRESS, conn=<uninitialized>, flow=<uninitialized>, ip=192.168.18.50/32, mac=<uninitialized>], NetControl::DROP
+rule removed, [ty=NetControl::FLOW, conn=<uninitialized>, flow=[src_h=192.168.18.50/32, src_p=<uninitialized>, dst_h=74.125.239.97/32, dst_p=<uninitialized>, src_m=<uninitialized>, dst_m=<uninitialized>], ip=<uninitialized>, mac=<uninitialized>], NetControl::DROP
+rule removed, [ty=NetControl::FLOW, conn=<uninitialized>, flow=[src_h=<uninitialized>, src_p=<uninitialized>, dst_h=<uninitialized>, dst_p=443/tcp, src_m=<uninitialized>, dst_m=<uninitialized>], ip=<uninitialized>, mac=<uninitialized>], NetControl::DROP
+rule removed, [ty=NetControl::ADDRESS, conn=<uninitialized>, flow=<uninitialized>, ip=192.168.18.50/32, mac=<uninitialized>], NetControl::DROP

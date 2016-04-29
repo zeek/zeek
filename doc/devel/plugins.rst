@@ -209,8 +209,15 @@ directory. With the skeleton, ``<base>`` corresponds to ``build/``.
     "@load"ed.
 
 ``scripts``/__load__.bro
-    A Bro script that will be loaded immediately when the plugin gets
-    activated. See below for more information on activating plugins.
+    A Bro script that will be loaded when the plugin gets activated.
+    When this script executes, any BiF elements that the plugin
+    defines will already be available. See below for more information
+    on activating plugins.
+
+``scripts``/__preload__.bro
+    A Bro script that will be loaded when the plugin gets activated,
+    but before any BiF elements become available. See below for more
+    information on activating plugins.
 
 ``lib/bif/``
     Directory with auto-generated Bro scripts that declare the plugin's
@@ -279,7 +286,9 @@ Activating a plugin will:
     1. Load the dynamic module
     2. Make any bif items available
     3. Add the ``scripts/`` directory to ``BROPATH``
-    4. Load ``scripts/__load__.bro``
+    4. Load ``scripts/__preload__.bro``
+    5. Make BiF elements available to scripts.
+    6. Load ``scripts/__load__.bro``
 
 By default, Bro will automatically activate all dynamic plugins found
 in its search path ``BRO_PLUGIN_PATH``. However, in bare mode (``bro

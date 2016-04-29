@@ -11,7 +11,7 @@
  * crack reply buffers is private.
  */
 
-#include "config.h"			/* must appear before first ifdef */
+#include "bro-config.h"			/* must appear before first ifdef */
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -389,7 +389,7 @@ nb_dns_addr_request2(register struct nb_dns_info *nd, char *addrp,
 
 	default:
 		snprintf(errstr, NB_DNS_ERRSIZE,
-		    "nb_dns_addr_request2(): uknown address family %d", af);
+		    "nb_dns_addr_request2(): unknown address family %d", af);
 		return (-1);
 	}
 

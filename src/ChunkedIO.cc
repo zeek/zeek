@@ -9,7 +9,7 @@
 
 #include <algorithm>
 
-#include "config.h"
+#include "bro-config.h"
 #include "ChunkedIO.h"
 #include "NetVar.h"
 #include "RemoteSerializer.h"
@@ -709,7 +709,7 @@ bool ChunkedIOSSL::Init()
 		{
 		SSL_load_error_strings();
 
-		ctx = SSL_CTX_new(SSLv3_method());
+		ctx = SSL_CTX_new(SSLv23_method());
 		if ( ! ctx )
 			{
 			Log("can't create SSL context");

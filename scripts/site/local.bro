@@ -1,4 +1,4 @@
-##! Local site policy. Customize as appropriate. 
+##! Local site policy. Customize as appropriate.
 ##!
 ##! This file will not be overwritten when upgrading or reinstalling!
 
@@ -11,16 +11,16 @@
 # Load the scan detection script.
 @load misc/scan
 
-# Log some information about web applications being used by users 
+# Log some information about web applications being used by users
 # on your network.
 @load misc/app-stats
 
-# Detect traceroute being run on the network.  
+# Detect traceroute being run on the network.
 @load misc/detect-traceroute
 
 # Generate notices when vulnerable versions of software are discovered.
 # The default is to only monitor software found in the address space defined
-# as "local".  Refer to the software framework's documentation for more 
+# as "local".  Refer to the software framework's documentation for more
 # information.
 @load frameworks/software/vulnerable
 
@@ -35,12 +35,12 @@
 @load protocols/smtp/software
 @load protocols/ssh/software
 @load protocols/http/software
-# The detect-webapps script could possibly cause performance trouble when 
+# The detect-webapps script could possibly cause performance trouble when
 # running on live traffic.  Enable it cautiously.
 #@load protocols/http/detect-webapps
 
-# This script detects DNS results pointing toward your Site::local_nets 
-# where the name is not part of your local DNS zone and is being hosted 
+# This script detects DNS results pointing toward your Site::local_nets
+# where the name is not part of your local DNS zone and is being hosted
 # externally.  Requires that the Site::local_zones variable is defined.
 @load protocols/dns/detect-external-names
 
@@ -62,7 +62,7 @@
 # certificate notary service; see http://notary.icsi.berkeley.edu .
 # @load protocols/ssl/notary
 
-# If you have libGeoIP support built in, do some geographic detections and 
+# If you have libGeoIP support built in, do some geographic detections and
 # logging for SSH traffic.
 @load protocols/ssh/geo-data
 # Detect hosts doing SSH bruteforce attacks.
@@ -84,3 +84,7 @@
 # Uncomment the following line to enable detection of the heartbleed attack. Enabling
 # this might impact performance a bit.
 # @load policy/protocols/ssl/heartbleed
+
+# Uncomment the following line to enable logging of connection VLANs. Enabling
+# this adds two VLAN fields to the conn.log file.
+# @load policy/protocols/conn/vlan-logging

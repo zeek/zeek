@@ -4,7 +4,7 @@
 #include <errno.h>
 #include <sys/stat.h>
 
-#include "config.h"
+#include "bro-config.h"
 
 #include "PktDumper.h"
 

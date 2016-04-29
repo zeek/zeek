@@ -1,7 +1,7 @@
 #include "PrefixTable.h"
 #include "Reporter.h"
 
-inline static prefix_t* make_prefix(const IPAddr& addr, int width)
+prefix_t* PrefixTable::MakePrefix(const IPAddr& addr, int width)
 	{
 	prefix_t* prefix = (prefix_t*) safe_malloc(sizeof(prefix_t));
 
@@ -13,9 +13,14 @@ inline static prefix_t* make_prefix(const IPAddr& addr, int width)
 	return prefix;
 	}
 
+IPPrefix PrefixTable::PrefixToIPPrefix(prefix_t* prefix)
+	{
+	return IPPrefix(IPAddr(IPv6, reinterpret_cast<const uint32_t*>(&prefix->add.sin6), IPAddr::Network), prefix->bitlen, 1);
+	}
+
 void* PrefixTable::Insert(const IPAddr& addr, int width, void* data)
 	{
-	prefix_t* prefix = make_prefix(addr, width);
+	prefix_t* prefix = MakePrefix(addr, width);
 	patricia_node_t* node = patricia_lookup(tree, prefix);
 	Deref_Prefix(prefix);
 
@@ -57,12 +62,38 @@ void* PrefixTable::Insert(const Val* value, void* data)
 	}
 	}
 
+list<tuple<IPPrefix,void*>> PrefixTable::FindAll(const IPAddr& addr, int width) const
+	{
+	std::list<tuple<IPPrefix,void*>> out;
+	prefix_t* prefix = MakePrefix(addr, width);
+
+	int elems = 0;
+	patricia_node_t** list = nullptr;
+
+	patricia_search_all(tree, prefix, &list, &elems);
+
+	for ( int i = 0; i < elems; ++i )
+		out.push_back(std::make_tuple(PrefixToIPPrefix(list[i]->prefix), list[i]->data));
+
+	Deref_Prefix(prefix);
+	free(list);
+	return out;
+	}
+
+list<tuple<IPPrefix,void*>> PrefixTable::FindAll(const SubNetVal* value) const
+	{
+	return FindAll(value->AsSubNet().Prefix(), value->AsSubNet().LengthIPv6());
+	}
+
 void* PrefixTable::Lookup(const IPAddr& addr, int width, bool exact) const
 	{
-	prefix_t* prefix = make_prefix(addr, width);
+	prefix_t* prefix = MakePrefix(addr, width);
 	patricia_node_t* node =
 		exact ? patricia_search_exact(tree, prefix) :
 			patricia_search_best(tree, prefix);
+
+	int elems = 0;
+	patricia_node_t** list = nullptr;
 
 	Deref_Prefix(prefix);
 	return node ? node->data : 0;
@@ -94,7 +125,7 @@ void* PrefixTable::Lookup(const Val* value, bool exact) const
 
 void* PrefixTable::Remove(const IPAddr& addr, int width)
 	{
-	prefix_t* prefix = make_prefix(addr, width);
+	prefix_t* prefix = MakePrefix(addr, width);
 	patricia_node_t* node = patricia_search_exact(tree, prefix);
 	Deref_Prefix(prefix);
 

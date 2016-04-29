@@ -1,21 +1,22 @@
-#! /usr/bin/awk -f
+#! /usr/bin/env bash
 #
 # A diff canonifier that removes all connection UIDs.
 
+awk '
 BEGIN { FS="\t"; OFS="\t"; }
 
-column > 0 {
-    $column = "XXXXXXXXXXX";
+/^[^#]/ {
+    if ( column > 0 ) {
+        $column = "XXXXXXXXXXX";
     }
+}
 
-/^#/ {
-    for ( i = 0; i < NF; ++i ) {
+/^#fields/ {
+    for ( i = 2; i <= NF; ++i ) {
         if ( $i == "uid" )
             column = i - 1;
         }
     }
 
 { print }
-
-
-
+'

@@ -1,72 +1,80 @@
-#! /usr/bin/awk -f
+#! /usr/bin/env bash
 #
 # A diff canonifier that removes all X.509 Distinguished Name subject fields
 # because that output can differ depending on installed OpenSSL version.
 
+awk '
 BEGIN { FS="\t"; OFS="\t"; s_col = -1; i_col = -1; is_col = -1; cs_col = -1; ci_col = -1; cert_subj_col = -1; cert_issuer_col = -1 }
 
-/^#fields/ {
-    for ( i = 2; i < NF; ++i )
+/^#/ {
+    if ( $1 == "#fields" )
         {
-        if ( $i == "subject" )
-            s_col = i-1;
-        if ( $i == "issuer" )
-            i_col = i-1;
-        if ( $i == "issuer_subject" )
-            is_col = i-1;
-        if ( $i == "client_subject" )
-            cs_col = i-1;
-        if ( $i == "client_issuer" )
-            ci_col = i-1;
-        if ( $i == "certificate.subject" )
-            cert_subj_col = i-1;
-        if ( $i == "certificate.issuer" )
-            cert_issuer_col = i-1;
+        for ( i = 2; i <= NF; ++i )
+            {
+            if ( $i == "subject" )
+                s_col = i-1;
+            if ( $i == "issuer" )
+                i_col = i-1;
+            if ( $i == "issuer_subject" )
+                is_col = i-1;
+            if ( $i == "client_subject" )
+                cs_col = i-1;
+            if ( $i == "client_issuer" )
+                ci_col = i-1;
+            if ( $i == "certificate.subject" )
+                cert_subj_col = i-1;
+            if ( $i == "certificate.issuer" )
+                cert_issuer_col = i-1;
+            }
         }
+
+    print;
+    next;
 }
 
-s_col >= 0 {
+s_col > 0 {
     if ( $s_col != "-" )
-        # Mark that it's set, but ignore content.
+        # Mark that it is set, but ignore content.
         $s_col = "+";
 }
 
-i_col >= 0 {
+i_col > 0 {
     if ( $i_col != "-" )
-        # Mark that it's set, but ignore content.
+        # Mark that it is set, but ignore content.
         $i_col = "+";
 }
 
-is_col >= 0 {
+is_col > 0 {
     if ( $is_col != "-" )
-        # Mark that it's set, but ignore content.
+        # Mark that it is set, but ignore content.
         $is_col = "+";
 }
 
-cs_col >= 0 {
+cs_col > 0 {
     if ( $cs_col != "-" )
-        # Mark that it's set, but ignore content.
+        # Mark that it is set, but ignore content.
         $cs_col = "+";
 }
 
-ci_col >= 0 {
+ci_col > 0 {
     if ( $ci_col != "-" )
-        # Mark that it's set, but ignore content.
+        # Mark that it is set, but ignore content.
         $ci_col = "+";
 }
 
-cert_subj_col >= 0 {
+cert_subj_col > 0 {
     if ( $cert_subj_col != "-" )
-        # Mark that it's set, but ignore content.
+        # Mark that it is set, but ignore content.
         $cert_subj_col = "+";
 }
 
-cert_issuer_col >= 0 {
+cert_issuer_col > 0 {
     if ( $cert_issuer_col != "-" )
-        # Mark that it's set, but ignore content.
+        # Mark that it is set, but ignore content.
         $cert_issuer_col = "+";
 }
 
 {
     print;
 }
+'

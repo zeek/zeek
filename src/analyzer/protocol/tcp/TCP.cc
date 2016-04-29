@@ -442,7 +442,7 @@ const struct tcphdr* TCP_Analyzer::ExtractTCP_Header(const u_char*& data,
 		}
 
 	if ( tcp_hdr_len > uint32(len) ||
-	     sizeof(struct tcphdr) > uint32(caplen) )
+	     tcp_hdr_len > uint32(caplen) )
 		{
 		// This can happen even with the above test, due to TCP
 		// options.
@@ -946,23 +946,11 @@ void TCP_Analyzer::GeneratePacketEvent(
 					const u_char* data, int len, int caplen,
 					int is_orig, TCP_Flags flags)
 	{
-	char tcp_flags[256];
-	int tcp_flag_len = 0;
-
-	if ( flags.SYN() ) tcp_flags[tcp_flag_len++] = 'S';
-	if ( flags.FIN() ) tcp_flags[tcp_flag_len++] = 'F';
-	if ( flags.RST() ) tcp_flags[tcp_flag_len++] = 'R';
-	if ( flags.ACK() ) tcp_flags[tcp_flag_len++] = 'A';
-	if ( flags.PUSH() ) tcp_flags[tcp_flag_len++] = 'P';
-	if ( flags.URG() ) tcp_flags[tcp_flag_len++] = 'U';
-
-	tcp_flags[tcp_flag_len] = '\0';
-
 	val_list* vl = new val_list();
 
 	vl->append(BuildConnVal());
 	vl->append(new Val(is_orig, TYPE_BOOL));
-	vl->append(new StringVal(tcp_flags));
+	vl->append(new StringVal(flags.AsString()));
 	vl->append(new Val(rel_seq, TYPE_COUNT));
 	vl->append(new Val(flags.ACK() ? rel_ack : 0, TYPE_COUNT));
 	vl->append(new Val(len, TYPE_COUNT));

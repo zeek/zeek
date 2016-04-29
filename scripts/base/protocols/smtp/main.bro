@@ -29,6 +29,8 @@ export {
 		from:              string          &log &optional;
 		## Contents of the To header.
 		to:                set[string]     &log &optional;
+		## Contents of the CC header.
+		cc:                set[string]     &log &optional;
 		## Contents of the ReplyTo header.
 		reply_to:          string          &log &optional;
 		## Contents of the MsgID header.
@@ -237,6 +239,16 @@ event mime_one_header(c: connection, h: mime_header_rec) &priority=5
 		local to_parts = split_string(h$value, /[[:blank:]]*,[[:blank:]]*/);
 		for ( i in to_parts )
 			add c$smtp$to[to_parts[i]];
+		}
+
+	else if ( h$name == "CC" )
+		{
+		if ( ! c$smtp?$cc )
+			c$smtp$cc = set();
+
+		local cc_parts = split_string(h$value, /[[:blank:]]*,[[:blank:]]*/);
+		for ( i in cc_parts )
+			add c$smtp$cc[cc_parts[i]];
 		}
 
 	else if ( h$name == "X-ORIGINATING-IP" )

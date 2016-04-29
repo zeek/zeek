@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "config.h"
+#include "bro-config.h"
 
 #include <ctype.h>
 #include <math.h>
@@ -995,28 +995,9 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 
 				HTTP_Reply();
 
-				if ( connect_request && reply_code == 200 )
-					{
-					pia = new pia::PIA_TCP(Conn());
-
-					if ( AddChildAnalyzer(pia) )
-						{
-						pia->FirstPacket(true, 0);
-						pia->FirstPacket(false, 0);
-
-						// This connection has transitioned to no longer
-						// being http and the content line support analyzers
-						// need to be removed.
-						RemoveSupportAnalyzer(content_line_orig);
-						RemoveSupportAnalyzer(content_line_resp);
-
-						return;
-						}
-
-					else
-						// AddChildAnalyzer() will have deleted PIA.
-						pia = 0;
-					}
+				if ( connect_request && reply_code != 200 )
+					// Request failed, do not set up tunnel.
+					connect_request = false;
 
 				InitHTTPMessage(content_line,
 						reply_message, is_orig,
@@ -1036,6 +1017,30 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 
 		case EXPECT_REPLY_MESSAGE:
 			reply_message->Deliver(len, line, 1);
+
+			if ( connect_request && len == 0 )
+				{
+				// End of message header reached, set up
+				// tunnel decapsulation.
+				pia = new pia::PIA_TCP(Conn());
+
+				if ( AddChildAnalyzer(pia) )
+					{
+					pia->FirstPacket(true, 0);
+					pia->FirstPacket(false, 0);
+
+					// This connection has transitioned to no longer
+					// being http and the content line support analyzers
+					// need to be removed.
+					RemoveSupportAnalyzer(content_line_orig);
+					RemoveSupportAnalyzer(content_line_resp);
+					}
+
+				else
+					// AddChildAnalyzer() will have deleted PIA.
+					pia = 0;
+				}
+
 			break;
 
 		case EXPECT_REPLY_TRAILER:
@@ -1204,7 +1209,15 @@ int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 	const char* end_of_method = get_HTTP_token(line, end_of_line);
 
 	if ( end_of_method == line )
+		{
+		// something went wrong with get_HTTP_token
+		// perform a weak test to see if the string "HTTP/"
+		// is found at the end of the RequestLine
+		if ( end_of_line - 9 >= line && strncasecmp(end_of_line - 9, " HTTP/", 6) == 0 )
+			goto bad_http_request_with_version;
+
 		goto error;
+	}
 
 	rest = skip_whitespace(end_of_method, end_of_line);
 
@@ -1225,6 +1238,10 @@ int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 
 	return 1;
 
+bad_http_request_with_version:
+	reporter->Weird(Conn(), "bad_HTTP_request_with_version");
+	return 0;
+
 error:
 	reporter->Weird(Conn(), "bad_HTTP_request");
 	return 0;
@@ -1242,6 +1259,12 @@ int HTTP_Analyzer::ParseRequest(const char* line, const char* end_of_line)
 		     ! is_unreserved_URI_char(*end_of_uri) &&
 		     *end_of_uri != '%' )
 			break;
+		}
+
+	if ( end_of_uri >= end_of_line && PrefixMatch(line, end_of_line, "HTTP/") )
+		{
+		Weird("missing_HTTP_uri");
+		end_of_uri = line; // Leave URI empty.
 		}
 
 	for ( version_start = end_of_uri; version_start < end_of_line; ++version_start )
@@ -1359,7 +1382,7 @@ void HTTP_Analyzer::HTTP_Request()
 	const char* method = (const char*) request_method->AsString()->Bytes();
 	int method_len = request_method->AsString()->Len();
 
-	if ( strcasecmp_n(method_len, method, "CONNECT") == 0 )
+	if ( strncasecmp(method, "CONNECT", method_len) == 0 )
 		connect_request = true;
 
 	if ( http_request )
@@ -1553,7 +1576,7 @@ int HTTP_Analyzer::ExpectReplyMessageBody()
 
 	const BroString* method = UnansweredRequestMethod();
 
-	if ( method && strcasecmp_n(method->Len(), (const char*) (method->Bytes()), "HEAD") == 0 )
+	if ( method && strncasecmp((const char*) (method->Bytes()), "HEAD", method->Len()) == 0 )
 		return HTTP_BODY_NOT_EXPECTED;
 
 	if ( (reply_code >= 100 && reply_code < 200) ||

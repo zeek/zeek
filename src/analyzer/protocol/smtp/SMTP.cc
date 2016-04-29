@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "config.h"
+#include "bro-config.h"
 
 #include <stdlib.h>
 
@@ -809,7 +809,7 @@ void SMTP_Analyzer::ProcessExtension(int ext_len, const char* ext)
 	if ( ! ext )
 		return;
 
-	if ( ! strcasecmp_n(ext_len, ext, "PIPELINING") )
+	if ( ! strncasecmp(ext, "PIPELINING", ext_len) )
 		pipelining = 1;
 	}
 
@@ -819,7 +819,7 @@ int SMTP_Analyzer::ParseCmd(int cmd_len, const char* cmd)
 		return -1;
 
 	for ( int code = SMTP_CMD_EHLO; code < SMTP_CMD_LAST; ++code )
-		if ( ! strcasecmp_n(cmd_len, cmd, smtp_cmd_word[code - SMTP_CMD_EHLO]) )
+		if ( ! strncasecmp(cmd, smtp_cmd_word[code - SMTP_CMD_EHLO], cmd_len) )
 			return code;
 
 	return -1;

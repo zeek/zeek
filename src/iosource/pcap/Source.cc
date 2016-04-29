@@ -2,10 +2,12 @@
 
 #include <assert.h>
 
-#include "config.h"
+#include "bro-config.h"
 
 #include "Source.h"
 #include "iosource/Packet.h"
+
+#include "const.bif.h"
 
 #ifdef HAVE_PCAP_INT_H
 #include <pcap-int.h>
@@ -84,30 +86,62 @@ void PcapSource::OpenLive()
 		props.netmask = PktSrc::NETMASK_UNKNOWN;
 #endif
 
-	// We use the smallest time-out possible to return almost immediately if
-	// no packets are available. (We can't use set_nonblocking() as it's
-	// broken on FreeBSD: even when select() indicates that we can read
-	// something, we may get nothing if the store buffer hasn't filled up
-	// yet.)
-	pd = pcap_open_live(props.path.c_str(), SnapLen(), 1, 1, tmp_errbuf);
+	pd = pcap_create(props.path.c_str(), errbuf);
 
 	if ( ! pd )
 		{
-		Error(tmp_errbuf);
+		PcapError("pcap_create");
 		return;
 		}
 
-	// ### This needs autoconf'ing.
-#ifdef HAVE_PCAP_INT_H
-	Info(fmt("pcap bufsize = %d\n", ((struct pcap *) pd)->bufsize));
-#endif
+	if ( pcap_set_snaplen(pd, BifConst::Pcap::snaplen) )
+		{
+		PcapError("pcap_set_snaplen");
+		return;
+		}
+
+	if ( pcap_set_promisc(pd, 1) )
+		{
+		PcapError("pcap_set_promisc");
+		return;
+		}
+
+	// We use the smallest time-out possible to return almost immediately
+	// if no packets are available. (We can't use set_nonblocking() as
+	// it's broken on FreeBSD: even when select() indicates that we can
+	// read something, we may get nothing if the store buffer hasn't
+	// filled up yet.)
+	//
+	// TODO: The comment about FreeBSD is pretty old and may not apply
+	// anymore these days.
+	if ( pcap_set_timeout(pd, 1) )
+		{
+		PcapError("pcap_set_timeout");
+		return;
+		}
+
+	if ( pcap_set_buffer_size(pd, BifConst::Pcap::bufsize * 1024 * 1024) )
+		{
+		PcapError("pcap_set_buffer_size");
+		return;
+		}
+
+	if ( pcap_activate(pd) )
+		{
+		PcapError("pcap_activate");
+		return;
+		}
 
 #ifdef HAVE_LINUX
 	if ( pcap_setnonblock(pd, 1, tmp_errbuf) < 0 )
 		{
-		PcapError();
+		PcapError("pcap_setnonblock");
 		return;
 		}
+#endif
+
+#ifdef HAVE_PCAP_INT_H
+	Info(fmt("pcap bufsize = %d\n", ((struct pcap *) pd)->bufsize));
 #endif
 
 	props.selectable_fd = pcap_fileno(pd);
@@ -257,12 +291,17 @@ void PcapSource::Statistics(Stats* s)
 		s->dropped = 0;
 	}
 
-void PcapSource::PcapError()
+void PcapSource::PcapError(const char* where)
 	{
+	string location;
+
+	if ( where )
+		location = fmt(" (%s)", where);
+
 	if ( pd )
-		Error(fmt("pcap_error: %s", pcap_geterr(pd)));
+		Error(fmt("pcap_error: %s%s", pcap_geterr(pd), location.c_str()));
 	else
-		Error("pcap_error: not open");
+		Error(fmt("pcap_error: not open%s", location.c_str()));
 
 	Close();
 	}

@@ -54,13 +54,16 @@ Here is a more detailed explanation of each attribute:
 
 .. bro:attr:: &redef
 
-    Allows for redefinition of initial values of global objects declared as
-    constant.
-
-    In this example, the constant (assuming it is global) can be redefined
-    with a :bro:keyword:`redef` at some later point::
+    Allows use of a :bro:keyword:`redef` to redefine initial values of
+    global variables (i.e., variables declared either :bro:keyword:`global`
+    or :bro:keyword:`const`).  Example::
 
         const clever = T &redef;
+        global cache_size = 256 &redef;
+
+    Note that a variable declared "global" can also have its value changed
+    with assignment statements (doesn't matter if it has the "&redef"
+    attribute or not).
 
 .. bro:attr:: &priority
 

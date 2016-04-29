@@ -8,6 +8,7 @@
 #include "PacketDumper.h"
 #include "IPAddr.h"
 #include "TCP_Endpoint.h"
+#include "TCP_Flags.h"
 #include "Conn.h"
 
 // We define two classes here:
@@ -22,21 +23,6 @@ namespace analyzer { namespace tcp {
 class TCP_Endpoint;
 class TCP_ApplicationAnalyzer;
 class TCP_Reassembler;
-
-class TCP_Flags {
-public:
-	TCP_Flags(const struct tcphdr* tp)	{ flags = tp->th_flags; }
-
-	bool SYN()	{ return flags & TH_SYN; }
-	bool FIN()	{ return flags & TH_FIN; }
-	bool RST()	{ return flags & TH_RST; }
-	bool ACK()	{ return flags & TH_ACK; }
-	bool URG()	{ return flags & TH_URG; }
-	bool PUSH()	{ return flags & TH_PUSH; }
-
-protected:
-	u_char flags;
-};
 
 class TCP_Analyzer : public analyzer::TransportLayerAnalyzer {
 public:

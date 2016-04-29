@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2015-10-29-01-09-41
+#open	2016-04-26-18-11-39
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -20,6 +20,7 @@ scripts/base/init-bare.bro
       build/scripts/base/bif/comm.bif.bro
       build/scripts/base/bif/messaging.bif.bro
     scripts/base/frameworks/broker/store.bro
+      build/scripts/base/bif/data.bif.bro
       build/scripts/base/bif/store.bif.bro
   scripts/base/frameworks/logging/__load__.bro
     scripts/base/frameworks/logging/main.bro
@@ -54,7 +55,6 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/bloom-filter.bif.bro
     build/scripts/base/bif/cardinality-counter.bif.bro
     build/scripts/base/bif/top-k.bif.bro
-    build/scripts/base/bif/data.bif.bro
   build/scripts/base/bif/plugins/__load__.bro
     build/scripts/base/bif/plugins/Bro_ARP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_AYIYA.events.bif.bro
@@ -76,6 +76,7 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_HTTP.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_ICMP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Ident.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_IMAP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_InterConn.events.bif.bro
     build/scripts/base/bif/plugins/Bro_IRC.events.bif.bro
     build/scripts/base/bif/plugins/Bro_KRB.events.bif.bro
@@ -131,4 +132,4 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_SQLiteWriter.sqlite.bif.bro
 scripts/policy/misc/loaded-scripts.bro
   scripts/base/utils/paths.bro
-#close	2015-10-29-01-09-41
+#close	2016-04-26-18-11-39

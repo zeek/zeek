@@ -16,7 +16,7 @@ type Broker::EventArgs: record;
 ## :bro:see:`Broker::send_print`.
 event Broker::print_handler%(msg: string%);
 
-function Broker::__print%(topic: string, msg: string, flags: Broker::SendFlags%): bool
+function Broker::__send_print%(topic: string, msg: string, flags: Broker::SendFlags%): bool
 	%{
 	auto rval = broker_mgr->Print(topic->CheckString(), msg->CheckString(),
 	                            flags);

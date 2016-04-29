@@ -303,7 +303,7 @@ function disconnect(a: string, p: port): bool
 
 function send_print(topic: string, msg: string, flags: SendFlags &default = SendFlags()): bool
     {
-    return __print(topic, msg, flags);
+    return __send_print(topic, msg, flags);
     }
 
 function subscribe_to_prints(topic_prefix: string): bool

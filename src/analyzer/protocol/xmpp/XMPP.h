@@ -14,12 +14,12 @@ public:
 	XMPP_Analyzer(Connection* conn);
 	virtual ~XMPP_Analyzer();
 
-	virtual void Done();
-	virtual void DeliverStream(int len, const u_char* data, bool orig);
-	virtual void Undelivered(uint64 seq, int len, bool orig);
+	void Done() override;
+	void DeliverStream(int len, const u_char* data, bool orig) override;
+	void Undelivered(uint64 seq, int len, bool orig) override;
 
 	// Overriden from tcp::TCP_ApplicationAnalyzer.
-	virtual void EndpointEOF(bool is_orig);
+	void EndpointEOF(bool is_orig) override;
 
 	void StartTLS();
 
@@ -27,7 +27,7 @@ public:
 		{ return new XMPP_Analyzer(conn); }
 
 protected:
-	binpac::XMPP::XMPP_Conn* interp;
+	std::unique_ptr<binpac::XMPP::XMPP_Conn> interp;
 	bool had_gap;
 
 	bool tls_active;

@@ -9,14 +9,13 @@ using namespace analyzer::xmpp;
 XMPP_Analyzer::XMPP_Analyzer(Connection* conn)
 	: tcp::TCP_ApplicationAnalyzer("XMPP", conn)
 	{
-	interp = new binpac::XMPP::XMPP_Conn(this);
+	interp = unique_ptr<binpac::XMPP::XMPP_Conn>(new binpac::XMPP::XMPP_Conn(this));
 	had_gap = false;
 	tls_active = false;
 	}
 
 XMPP_Analyzer::~XMPP_Analyzer()
 	{
-	delete interp;
 	}
 
 void XMPP_Analyzer::Done()

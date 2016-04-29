@@ -25,7 +25,10 @@ refine connection XMPP_Conn += {
 			client_starttls = true;
 
 		if ( !is_orig && token == "proceed" && client_starttls )
+			{
 			bro_analyzer()->StartTLS();
+			BifEvent::generate_xmpp_starttls(bro_analyzer(), bro_analyzer()->Conn());
+			}
 		else if ( !is_orig && token == "proceed" )
 			reporter->Weird(bro_analyzer()->Conn(), "XMPP: proceed without starttls");
 
@@ -37,6 +40,6 @@ refine connection XMPP_Conn += {
 };
 
 refine typeattr XMPP_TOKEN += &let {
-       proc: bool = $context.connection.proc_xmpp_token(is_orig, name, rest);
+	proc: bool = $context.connection.proc_xmpp_token(is_orig, name, rest);
 };
 

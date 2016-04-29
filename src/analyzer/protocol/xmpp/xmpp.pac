@@ -6,7 +6,10 @@
 %include binpac.pac
 %include bro.pac
 
+
 %extern{
+#include "events.bif.h"
+
 namespace analyzer { namespace xmpp { class XMPP_Analyzer; } }
 namespace binpac { namespace XMPP { class XMPP_Conn; } }
 typedef analyzer::xmpp::XMPP_Analyzer* XMPPAnalyzer;

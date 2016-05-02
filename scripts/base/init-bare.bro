@@ -535,7 +535,7 @@ type ReassemblerStats: record {
 	unknown_size: count;  ##< Byte size of reassembly tracking for unknown purposes.
 };
 
-## Summary statistics of all regular expression matchers.
+## Statistics of all regular expression matchers.
 ##
 ## .. bro:see:: get_matcher_stats
 type MatcherStats: record {
@@ -548,37 +548,51 @@ type MatcherStats: record {
 	misses: count;      ##< Number of cache misses.
 };
 
+## Statistics of timers.
+##
+## .. bro:see:: get_timer_stats
 type TimerStats: record {
 	current:    count; ##< Current number of pending timers.
 	max:        count; ##< Maximum number of concurrent timers pending so far.
-	cumulative: count;
+	cumulative: count; ##< Cumulative number of timers scheduled.
 };
 
+## Statistics of file analysis.
+##
+## .. bro:see:: get_file_analysis_stats
 type FileAnalysisStats: record {
-	current:    count;
-	max:        count;
-	cumulative: count;
+	current:    count; ##< Current number of files being analyzed.
+	max:        count; ##< Maximum number of concurrent files so far.
+	cumulative: count; ##< Cumulative number of files analyzed.
 };
 
+## Statistics related to Bro's active use of DNS.  These numbers are
+## about Bro performing DNS queries on it's own, not traffic
+## being seen.
+##
+## .. bro:see:: get_dns_stats
 type DNSStats: record {
-	requests:         count;
-	successful:       count;
-	failed:           count;
-	pending:          count;
-	cached_hosts:     count;
-	cached_addresses: count;
+	requests:         count; ##< Number of DNS requests made
+	successful:       count; ##< Number of successful DNS replies.
+	failed:           count; ##< Number of DNS reply failures.
+	pending:          count; ##< Current pending queries.
+	cached_hosts:     count; ##< Number of cached hosts.
+	cached_addresses: count; ##< Number of cached addresses.
 };
 
 ## Statistics about number of gaps in TCP connections.
 ##
 ## .. bro:see:: get_gap_stats
 type GapStats: record {
-	ack_events: count;	##< How many ack events *could* have had gaps.
-	ack_bytes: count;	##< How many bytes those covered.
-	gap_events: count;	##< How many *did* have gaps.
-	gap_bytes: count;	##< How many bytes were missing in the gaps.
+	ack_events: count;  ##< How many ack events *could* have had gaps.
+	ack_bytes: count;   ##< How many bytes those covered.
+	gap_events: count;  ##< How many *did* have gaps.
+	gap_bytes: count;   ##< How many bytes were missing in the gaps.
 };
 
+## Statistics about threads.
+##
+## .. bro:see:: get_thread_stats
 type ThreadStats: record {
 	num_threads: count;
 };

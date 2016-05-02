@@ -233,7 +233,7 @@
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1461868125.285894, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1462221741.258723, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Communication::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Conn::LOG)) -> <no result>
@@ -354,7 +354,7 @@
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1461868125.285894, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1462221741.258723, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
 0.000000   MetaHookPost  CallFunction(NetControl::check_plugins, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(NetControl::init, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Notice::want_pp, <frame>, ()) -> <no result>
@@ -527,6 +527,7 @@
 0.000000   MetaHookPost  LoadFile(./sftp) -> -1
 0.000000   MetaHookPost  LoadFile(./shunt) -> -1
 0.000000   MetaHookPost  LoadFile(./site) -> -1
+0.000000   MetaHookPost  LoadFile(./stats.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./std-dev) -> -1
 0.000000   MetaHookPost  LoadFile(./store) -> -1
 0.000000   MetaHookPost  LoadFile(./store.bif.bro) -> -1
@@ -882,7 +883,7 @@
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql]))
-0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1461868125.285894, node=bro, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1462221741.258723, node=bro, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Communication::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Conn::LOG))
@@ -1003,7 +1004,7 @@
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql]))
-0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1461868125.285894, node=bro, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1462221741.258723, node=bro, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(NetControl::check_plugins, <frame>, ())
 0.000000   MetaHookPre   CallFunction(NetControl::init, <null>, ())
 0.000000   MetaHookPre   CallFunction(Notice::want_pp, <frame>, ())
@@ -1176,6 +1177,7 @@
 0.000000   MetaHookPre   LoadFile(./sftp)
 0.000000   MetaHookPre   LoadFile(./shunt)
 0.000000   MetaHookPre   LoadFile(./site)
+0.000000   MetaHookPre   LoadFile(./stats.bif.bro)
 0.000000   MetaHookPre   LoadFile(./std-dev)
 0.000000   MetaHookPre   LoadFile(./store)
 0.000000   MetaHookPre   LoadFile(./store.bif.bro)
@@ -1530,7 +1532,7 @@
 0.000000 | HookCallFunction Log::__create_stream(Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])
 0.000000 | HookCallFunction Log::__create_stream(X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])
 0.000000 | HookCallFunction Log::__create_stream(mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])
-0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1461868125.285894, node=bro, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1462221741.258723, node=bro, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction Log::add_default_filter(Cluster::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Communication::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Conn::LOG)
@@ -1651,7 +1653,7 @@
 0.000000 | HookCallFunction Log::create_stream(Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])
 0.000000 | HookCallFunction Log::create_stream(X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])
 0.000000 | HookCallFunction Log::create_stream(mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])
-0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1461868125.285894, node=bro, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1462221741.258723, node=bro, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction NetControl::check_plugins()
 0.000000 | HookCallFunction NetControl::init()
 0.000000 | HookCallFunction Notice::want_pp()
@@ -1699,7 +1701,7 @@
 1362692526.869344   MetaHookPost  CallFunction(ChecksumOffloading::check, <null>, ()) -> <no result>
 1362692526.869344   MetaHookPost  CallFunction(NetControl::check_conn, <frame>, (141.142.228.5)) -> <no result>
 1362692526.869344   MetaHookPost  CallFunction(filter_change_tracking, <null>, ()) -> <no result>
-1362692526.869344   MetaHookPost  CallFunction(net_stats, <frame>, ()) -> <no result>
+1362692526.869344   MetaHookPost  CallFunction(get_net_stats, <frame>, ()) -> <no result>
 1362692526.869344   MetaHookPost  CallFunction(new_connection, <null>, ([id=[orig_h=141.142.228.5, orig_p=59856<...>/tcp], orig=[size=0, state=0, num_pkts=0, num_bytes_ip=0, flow_label=0], resp=[size=0, state=0, num_pkts=0, num_bytes_ip=0, flow_label=0], start_time=1362692526.869344, duration=0.0, service={}, history=, uid=CXWv6p3arKYeMETxOg, tunnel=<uninitialized>, vlan=<uninitialized>, inner_vlan=<uninitialized>, dpd=<uninitialized>, conn=<uninitialized>, extract_orig=F, extract_resp=F, thresholds=<uninitialized>, dhcp=<uninitialized>, dnp3=<uninitialized>, dns=<uninitialized>, dns_state=<uninitialized>, ftp=<uninitialized>, ftp_data_reuse=F, ssl=<uninitialized>, http=<uninitialized>, http_state=<uninitialized>, irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, rfb=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>])) -> <no result>
 1362692526.869344   MetaHookPost  DrainEvents() -> <void>
 1362692526.869344   MetaHookPost  QueueEvent(ChecksumOffloading::check()) -> false
@@ -1710,7 +1712,7 @@
 1362692526.869344   MetaHookPre   CallFunction(ChecksumOffloading::check, <null>, ())
 1362692526.869344   MetaHookPre   CallFunction(NetControl::check_conn, <frame>, (141.142.228.5))
 1362692526.869344   MetaHookPre   CallFunction(filter_change_tracking, <null>, ())
-1362692526.869344   MetaHookPre   CallFunction(net_stats, <frame>, ())
+1362692526.869344   MetaHookPre   CallFunction(get_net_stats, <frame>, ())
 1362692526.869344   MetaHookPre   CallFunction(new_connection, <null>, ([id=[orig_h=141.142.228.5, orig_p=59856<...>/tcp], orig=[size=0, state=0, num_pkts=0, num_bytes_ip=0, flow_label=0], resp=[size=0, state=0, num_pkts=0, num_bytes_ip=0, flow_label=0], start_time=1362692526.869344, duration=0.0, service={}, history=, uid=CXWv6p3arKYeMETxOg, tunnel=<uninitialized>, vlan=<uninitialized>, inner_vlan=<uninitialized>, dpd=<uninitialized>, conn=<uninitialized>, extract_orig=F, extract_resp=F, thresholds=<uninitialized>, dhcp=<uninitialized>, dnp3=<uninitialized>, dns=<uninitialized>, dns_state=<uninitialized>, ftp=<uninitialized>, ftp_data_reuse=F, ssl=<uninitialized>, http=<uninitialized>, http_state=<uninitialized>, irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, rfb=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>]))
 1362692526.869344   MetaHookPre   DrainEvents()
 1362692526.869344   MetaHookPre   QueueEvent(ChecksumOffloading::check())
@@ -1722,7 +1724,7 @@
 1362692526.869344 | HookCallFunction ChecksumOffloading::check()
 1362692526.869344 | HookCallFunction NetControl::check_conn(141.142.228.5)
 1362692526.869344 | HookCallFunction filter_change_tracking()
-1362692526.869344 | HookCallFunction net_stats()
+1362692526.869344 | HookCallFunction get_net_stats()
 1362692526.869344 | HookCallFunction new_connection([id=[orig_h=141.142.228.5, orig_p=59856<...>/tcp], orig=[size=0, state=0, num_pkts=0, num_bytes_ip=0, flow_label=0], resp=[size=0, state=0, num_pkts=0, num_bytes_ip=0, flow_label=0], start_time=1362692526.869344, duration=0.0, service={}, history=, uid=CXWv6p3arKYeMETxOg, tunnel=<uninitialized>, vlan=<uninitialized>, inner_vlan=<uninitialized>, dpd=<uninitialized>, conn=<uninitialized>, extract_orig=F, extract_resp=F, thresholds=<uninitialized>, dhcp=<uninitialized>, dnp3=<uninitialized>, dns=<uninitialized>, dns_state=<uninitialized>, ftp=<uninitialized>, ftp_data_reuse=F, ssl=<uninitialized>, http=<uninitialized>, http_state=<uninitialized>, irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, rfb=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>])
 1362692526.869344 | HookDrainEvents
 1362692526.869344 | HookQueueEvent ChecksumOffloading::check()
@@ -2127,11 +2129,11 @@
 1362692527.080972   MetaHookPost  CallFunction(filter_change_tracking, <null>, ()) -> <no result>
 1362692527.080972   MetaHookPost  CallFunction(fmt, <frame>, (%s:%d > %s:%d, 141.142.228.5, 59856<...>/tcp)) -> <no result>
 1362692527.080972   MetaHookPost  CallFunction(get_file_handle, <null>, (Analyzer::ANALYZER_HTTP, [id=[orig_h=141.142.228.5, orig_p=59856<...>/plain], current_entity=<uninitialized>, orig_mime_depth=1, resp_mime_depth=1], http_state=[pending={}, current_request=1, current_response=1, trans_depth=1], irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, rfb=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>], T)) -> <no result>
+1362692527.080972   MetaHookPost  CallFunction(get_net_stats, <frame>, ()) -> <no result>
 1362692527.080972   MetaHookPost  CallFunction(get_port_transport_proto, <frame>, (80/tcp)) -> <no result>
 1362692527.080972   MetaHookPost  CallFunction(id_string, <frame>, ([orig_h=141.142.228.5, orig_p=59856<...>/tcp])) -> <no result>
 1362692527.080972   MetaHookPost  CallFunction(is_tcp_port, <frame>, (59856/tcp)) -> <no result>
 1362692527.080972   MetaHookPost  CallFunction(net_done, <null>, (1362692527.080972)) -> <no result>
-1362692527.080972   MetaHookPost  CallFunction(net_stats, <frame>, ()) -> <no result>
 1362692527.080972   MetaHookPost  CallFunction(reading_traces, <frame>, ()) -> <no result>
 1362692527.080972   MetaHookPost  CallFunction(set_file_handle, <frame>, (Analyzer::ANALYZER_HTTP1362692526.869344T11141.142.228.5:59856 > 192.150.187.43:80)) -> <no result>
 1362692527.080972   MetaHookPost  CallFunction(sub_bytes, <frame>, (HTTP, 0, 1)) -> <no result>
@@ -2157,11 +2159,11 @@
 1362692527.080972   MetaHookPre   CallFunction(filter_change_tracking, <null>, ())
 1362692527.080972   MetaHookPre   CallFunction(fmt, <frame>, (%s:%d > %s:%d, 141.142.228.5, 59856<...>/tcp))
 1362692527.080972   MetaHookPre   CallFunction(get_file_handle, <null>, (Analyzer::ANALYZER_HTTP, [id=[orig_h=141.142.228.5, orig_p=59856<...>/plain], current_entity=<uninitialized>, orig_mime_depth=1, resp_mime_depth=1], http_state=[pending={}, current_request=1, current_response=1, trans_depth=1], irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, rfb=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>], T))
+1362692527.080972   MetaHookPre   CallFunction(get_net_stats, <frame>, ())
 1362692527.080972   MetaHookPre   CallFunction(get_port_transport_proto, <frame>, (80/tcp))
 1362692527.080972   MetaHookPre   CallFunction(id_string, <frame>, ([orig_h=141.142.228.5, orig_p=59856<...>/tcp]))
 1362692527.080972   MetaHookPre   CallFunction(is_tcp_port, <frame>, (59856/tcp))
 1362692527.080972   MetaHookPre   CallFunction(net_done, <null>, (1362692527.080972))
-1362692527.080972   MetaHookPre   CallFunction(net_stats, <frame>, ())
 1362692527.080972   MetaHookPre   CallFunction(reading_traces, <frame>, ())
 1362692527.080972   MetaHookPre   CallFunction(set_file_handle, <frame>, (Analyzer::ANALYZER_HTTP1362692526.869344T11141.142.228.5:59856 > 192.150.187.43:80))
 1362692527.080972   MetaHookPre   CallFunction(sub_bytes, <frame>, (HTTP, 0, 1))
@@ -2188,11 +2190,11 @@
 1362692527.080972 | HookCallFunction filter_change_tracking()
 1362692527.080972 | HookCallFunction fmt(%s:%d > %s:%d, 141.142.228.5, 59856<...>/tcp)
 1362692527.080972 | HookCallFunction get_file_handle(Analyzer::ANALYZER_HTTP, [id=[orig_h=141.142.228.5, orig_p=59856<...>/plain], current_entity=<uninitialized>, orig_mime_depth=1, resp_mime_depth=1], http_state=[pending={}, current_request=1, current_response=1, trans_depth=1], irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, rfb=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>], T)
+1362692527.080972 | HookCallFunction get_net_stats()
 1362692527.080972 | HookCallFunction get_port_transport_proto(80/tcp)
 1362692527.080972 | HookCallFunction id_string([orig_h=141.142.228.5, orig_p=59856<...>/tcp])
 1362692527.080972 | HookCallFunction is_tcp_port(59856/tcp)
 1362692527.080972 | HookCallFunction net_done(1362692527.080972)
-1362692527.080972 | HookCallFunction net_stats()
 1362692527.080972 | HookCallFunction reading_traces()
 1362692527.080972 | HookCallFunction set_file_handle(Analyzer::ANALYZER_HTTP1362692526.869344T11141.142.228.5:59856 > 192.150.187.43:80)
 1362692527.080972 | HookCallFunction sub_bytes(HTTP, 0, 1)

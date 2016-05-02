@@ -83,6 +83,9 @@ int Packet::GetLinkHeaderSize(int link_type)
 	case DLT_PPP_SERIAL:	// PPP_SERIAL
 		return 4;
 
+	case DLT_IEEE802_11_RADIO:	// 802.11 plus RadioTap
+		return 59;
+
 	case DLT_RAW:
 		return 0;
 	}
@@ -251,6 +254,80 @@ void Packet::ProcessLayer2()
 		break;
 		}
 
+	case DLT_IEEE802_11_RADIO:
+		{
+		if ( pdata + 3 >= end_of_data )
+			{
+			Weird("truncated_radiotap_header");
+			return;
+			}
+		// Skip over the RadioTap header
+		int rtheader_len = (pdata[3] << 8) + pdata[2];
+		if ( pdata + rtheader_len >= end_of_data )
+			{
+			Weird("truncated_radiotap_header");
+			return;
+			}
+		pdata += rtheader_len;
+
+		int type_80211 = pdata[0];
+		int len_80211 = 0;
+		if ( (type_80211 >> 4) & 0x04 )
+			{
+			//identified a null frame (we ignore for now).  no weird.
+			return;
+			}
+		// Look for the QoS indicator bit.
+		if ( (type_80211 >> 4) & 0x08 )
+			len_80211 = 26;
+		else
+			len_80211 = 24;
+
+		if ( pdata + len_80211 >= end_of_data )
+			{
+			Weird("truncated_radiotap_header");
+			return;
+			}
+		// skip 802.11 data header
+		pdata += len_80211;
+
+		if ( pdata + 8 >= end_of_data )
+			{
+			Weird("truncated_radiotap_header");
+			return;
+			}
+		// Check that the DSAP and SSAP are both SNAP and that the control
+		// field indicates that this is an unnumbered frame.
+		// The organization code (24bits) needs to also be zero to
+		// indicate that this is encapsulated ethernet.
+		if ( pdata[0] == 0xAA && pdata[1] == 0xAA && pdata[2] == 0x03 &&
+		     pdata[3] == 0 && pdata[4] == 0 && pdata[5] == 0 )
+			{
+			pdata += 6;
+			}
+		else
+			{
+			// If this is a logical link control frame without the
+			// possibility of having a protocol we care about, we'll
+			// just skip it for now.
+			return;
+			}
+
+		int protocol = (pdata[0] << 8) + pdata[1];
+		if ( protocol == 0x0800 )
+			l3_proto = L3_IPV4;
+		else if ( protocol == 0x86DD )
+			l3_proto = L3_IPV6;
+		else
+			{
+			Weird("non_ip_packet_in_ieee802_11_radio_encapsulation");
+			return;
+			}
+		pdata += 2;
+
+		break;
+		}
+
 	default:
 		{
 		// Assume we're pointing at IP. Just figure out which version.
@@ -351,15 +428,6 @@ void Packet::ProcessLayer2()
 
 RecordVal* Packet::BuildPktHdrVal() const
 	{
-	static RecordType* l2_hdr_type = 0;
-	static RecordType* raw_pkt_hdr_type = 0;
-
-	if ( ! raw_pkt_hdr_type )
-		{
-		raw_pkt_hdr_type = internal_type("raw_pkt_hdr")->AsRecordType();
-		l2_hdr_type = internal_type("l2_hdr")->AsRecordType();
-		}
-
 	RecordVal* pkt_hdr = new RecordVal(raw_pkt_hdr_type);
 	RecordVal* l2_hdr = new RecordVal(l2_hdr_type);
 

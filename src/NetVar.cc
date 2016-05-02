@@ -15,6 +15,8 @@ RecordType* icmp_conn;
 RecordType* icmp_context;
 RecordType* SYN_packet;
 RecordType* pcap_packet;
+RecordType* raw_pkt_hdr_type;
+RecordType* l2_hdr_type;
 RecordType* signature_state;
 EnumType* transport_proto;
 TableType* string_set;
@@ -323,6 +325,8 @@ void init_net_var()
 	signature_state = internal_type("signature_state")->AsRecordType();
 	SYN_packet = internal_type("SYN_packet")->AsRecordType();
 	pcap_packet = internal_type("pcap_packet")->AsRecordType();
+	raw_pkt_hdr_type = internal_type("raw_pkt_hdr")->AsRecordType();
+	l2_hdr_type = internal_type("l2_hdr")->AsRecordType();
 	transport_proto = internal_type("transport_proto")->AsEnumType();
 	string_set = internal_type("string_set")->AsTableType();
 	string_array = internal_type("string_array")->AsTableType();

@@ -91,7 +91,7 @@ void PktSrc::Opened(const Properties& arg_props)
 		{
 		char buf[512];
 		safe_snprintf(buf, sizeof(buf),
-			 "unknown data link type 0x%x", props.link_type);
+			 "unknown data link type 0x%x", arg_props.link_type);
 		Error(buf);
 		Close();
 		return;

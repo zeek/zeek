@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	conn
-#open	2015-02-23-21-33-21
+#open	2016-01-15-18-40-17
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	local_resp	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents
 #types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	bool	count	string	count	count	count	count	set[string]
 1340127577.354166	C6pKV8GSxOnSLghOa	2001:0:4137:9e50:8000:f12a:b9c8:2815	1286	2001:4860:0:2001::68	80	tcp	http	0.052829	1675	10467	S1	-	-	0	ShADad	10	2279	12	11191	CRJuHdVW0XPVINV8a
@@ -13,4 +13,4 @@
 1340127577.339015	CsRx2w45OKnoww6xl4	fe80::8000:f227:bec8:61af	134	fe80::8000:ffff:ffff:fffd	133	icmp	-	-	-	-	OTH	-	-	0	-	1	88	0	0	CCvvfg3TEfuqmmG4bh
 1340127577.343969	CPbrpk1qSsw6ESzHV4	2001:0:4137:9e50:8000:f12a:b9c8:2815	128	2001:4860:0:2001::68	129	icmp	-	0.007778	4	4	OTH	-	-	0	-	1	52	1	52	CXWv6p3arKYeMETxOg,CRJuHdVW0XPVINV8a
 1340127577.336558	CjhGID4nQcgTWjvg4c	fe80::8000:ffff:ffff:fffd	133	ff02::2	134	icmp	-	-	-	-	OTH	-	-	0	-	1	64	0	0	CXWv6p3arKYeMETxOg
-#close	2015-02-23-21-33-21
+#close	2016-01-15-18-40-17

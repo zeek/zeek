@@ -39,6 +39,13 @@ type count_set: set[count];
 ##    directly and then remove this alias.
 type index_vec: vector of count;
 
+## A vector of subnets.
+##
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
+type subnet_vec: vector of subnet;
+
 ## A vector of any, used by some builtin functions to store a list of varying
 ## types.
 ##
@@ -118,6 +125,18 @@ type conn_id: record {
 	orig_p: port;	##< The originator's port number.
 	resp_h: addr;	##< The responder's IP address.
 	resp_p: port;	##< The responder's port number.
+} &log;
+
+## The identifying 4-tuple of a uni-directional flow.
+##
+## .. note:: It's actually a 5-tuple: the transport-layer protocol is stored as
+##    part of the port values, `src_p` and `dst_p`, and can be extracted from
+##    them with :bro:id:`get_port_transport_proto`.
+type flow_id : record {
+	src_h: addr;	##< The source IP address.
+	src_p: port;	##< The source port number.
+	dst_h: addr;	##< The destination IP address.
+	dst_p: port;	##< The desintation port number.
 } &log;
 
 ## Specifics about an ICMP conversation. ICMP events typically pass this in
@@ -822,71 +841,6 @@ type entropy_test_result: record {
 	monte_carlo_pi: double;	##< Monte-carlo value for pi.
 	serial_correlation: double;	##< Serial correlation coefficient.
 };
-
-# Prototypes of Bro built-in functions.
-@load base/bif/strings.bif
-@load base/bif/bro.bif
-@load base/bif/reporter.bif
-
-## Deprecated. This is superseded by the new logging framework.
-global log_file_name: function(tag: string): string &redef;
-
-## Deprecated. This is superseded by the new logging framework.
-global open_log_file: function(tag: string): file &redef;
-
-## Specifies a directory for Bro to store its persistent state. All globals can
-## be declared persistent via the :bro:attr:`&persistent` attribute.
-const state_dir = ".state" &redef;
-
-## Length of the delays inserted when storing state incrementally. To avoid
-## dropping packets when serializing larger volumes of persistent state to
-## disk, Bro interleaves the operation with continued packet processing.
-const state_write_delay = 0.01 secs &redef;
-
-global done_with_network = F;
-event net_done(t: time) { done_with_network = T; }
-
-function log_file_name(tag: string): string
-	{
-	local suffix = getenv("BRO_LOG_SUFFIX") == "" ? "log" : getenv("BRO_LOG_SUFFIX");
-	return fmt("%s.%s", tag, suffix);
-	}
-
-function open_log_file(tag: string): file
-	{
-	return open(log_file_name(tag));
-	}
-
-## Internal function.
-function add_interface(iold: string, inew: string): string
-	{
-	if ( iold == "" )
-		return inew;
-	else
-		return fmt("%s %s", iold, inew);
-	}
-
-## Network interfaces to listen on. Use ``redef interfaces += "eth0"`` to
-## extend.
-global interfaces = "" &add_func = add_interface;
-
-## Internal function.
-function add_signature_file(sold: string, snew: string): string
-	{
-	if ( sold == "" )
-		return snew;
-	else
-		return cat(sold, " ", snew);
-	}
-
-## Signature files to read. Use ``redef signature_files  += "foo.sig"`` to
-## extend. Signature files added this way will be searched relative to
-## ``BROPATH``.  Using the ``@load-sigs`` directive instead is preferred
-## since that can search paths relative to the current script.
-global signature_files = "" &add_func = add_signature_file;
-
-## ``p0f`` fingerprint file to use. Will be searched relative to ``BROPATH``.
-const passive_fingerprint_file = "base/misc/p0f.fp" &redef;
 
 # TCP values for :bro:see:`endpoint` *state* field.
 # todo:: these should go into an enum to make them autodoc'able.
@@ -1797,6 +1751,71 @@ type gtp_delete_pdp_ctx_response_elements: record {
 	cause: gtp_cause;
 	ext:   gtp_private_extension &optional;
 };
+
+# Prototypes of Bro built-in functions.
+@load base/bif/strings.bif
+@load base/bif/bro.bif
+@load base/bif/reporter.bif
+
+## Deprecated. This is superseded by the new logging framework.
+global log_file_name: function(tag: string): string &redef;
+
+## Deprecated. This is superseded by the new logging framework.
+global open_log_file: function(tag: string): file &redef;
+
+## Specifies a directory for Bro to store its persistent state. All globals can
+## be declared persistent via the :bro:attr:`&persistent` attribute.
+const state_dir = ".state" &redef;
+
+## Length of the delays inserted when storing state incrementally. To avoid
+## dropping packets when serializing larger volumes of persistent state to
+## disk, Bro interleaves the operation with continued packet processing.
+const state_write_delay = 0.01 secs &redef;
+
+global done_with_network = F;
+event net_done(t: time) { done_with_network = T; }
+
+function log_file_name(tag: string): string
+	{
+	local suffix = getenv("BRO_LOG_SUFFIX") == "" ? "log" : getenv("BRO_LOG_SUFFIX");
+	return fmt("%s.%s", tag, suffix);
+	}
+
+function open_log_file(tag: string): file
+	{
+	return open(log_file_name(tag));
+	}
+
+## Internal function.
+function add_interface(iold: string, inew: string): string
+	{
+	if ( iold == "" )
+		return inew;
+	else
+		return fmt("%s %s", iold, inew);
+	}
+
+## Network interfaces to listen on. Use ``redef interfaces += "eth0"`` to
+## extend.
+global interfaces = "" &add_func = add_interface;
+
+## Internal function.
+function add_signature_file(sold: string, snew: string): string
+	{
+	if ( sold == "" )
+		return snew;
+	else
+		return cat(sold, " ", snew);
+	}
+
+## Signature files to read. Use ``redef signature_files  += "foo.sig"`` to
+## extend. Signature files added this way will be searched relative to
+## ``BROPATH``.  Using the ``@load-sigs`` directive instead is preferred
+## since that can search paths relative to the current script.
+global signature_files = "" &add_func = add_signature_file;
+
+## ``p0f`` fingerprint file to use. Will be searched relative to ``BROPATH``.
+const passive_fingerprint_file = "base/misc/p0f.fp" &redef;
 
 ## Definition of "secondary filters". A secondary filter is a BPF filter given
 ## as index in this table. For each such filter, the corresponding event is

@@ -776,7 +776,7 @@ string against which it will be tested to be on the right.
 In the sample above, two local variables are declared to hold our
 sample sentence and regular expression.  Our regular expression in
 this case will return true if the string contains either the word
-``quick`` or the word ``fox``. The ``if`` statement in the script uses
+``quick`` or the word ``lazy``. The ``if`` statement in the script uses
 embedded matching and the ``in`` operator to check for the existence
 of the pattern within the string.  If the statement resolves to true,
 :bro:id:`split` is called to break the string into separate pieces.

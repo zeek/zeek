@@ -124,7 +124,7 @@ protected:
 	friend class Stmt;
 	PrintStmt()	{}
 
-	Val* DoExec(val_list* vals, stmt_flow_type& flow) const;
+	Val* DoExec(val_list* vals, stmt_flow_type& flow) const override;
 
 	DECLARE_SERIAL(PrintStmt);
 };
@@ -134,13 +134,13 @@ public:
 	ExprStmt(Expr* e);
 	virtual ~ExprStmt();
 
-	Val* Exec(Frame* f, stmt_flow_type& flow) const;
+	Val* Exec(Frame* f, stmt_flow_type& flow) const override;
 
 	const Expr* StmtExpr() const	{ return e; }
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 
-	TraversalCode Traverse(TraversalCallback* cb) const;
+	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
 	friend class Stmt;
@@ -149,7 +149,7 @@ protected:
 
 	virtual Val* DoExec(Frame* f, Val* v, stmt_flow_type& flow) const;
 
-	int IsPure() const;
+	int IsPure() const override;
 
 	DECLARE_SERIAL(ExprStmt);
 
@@ -164,16 +164,16 @@ public:
 	const Stmt* TrueBranch() const	{ return s1; }
 	const Stmt* FalseBranch() const	{ return s2; }
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 
-	TraversalCode Traverse(TraversalCallback* cb) const;
+	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
 	friend class Stmt;
 	IfStmt()	{ s1 = s2 = 0; }
 
-	Val* DoExec(Frame* f, Val* v, stmt_flow_type& flow) const;
-	int IsPure() const;
+	Val* DoExec(Frame* f, Val* v, stmt_flow_type& flow) const override;
+	int IsPure() const override;
 
 	DECLARE_SERIAL(IfStmt);
 
@@ -192,7 +192,7 @@ public:
 	const Stmt* Body() const	{ return s; }
 	Stmt* Body()			{ return s; }
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 
 	bool Serialize(SerialInfo* info) const;
 	static Case* Unserialize(UnserialInfo* info);
@@ -216,16 +216,16 @@ public:
 
 	const case_list* Cases() const	{ return cases; }
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 
-	TraversalCode Traverse(TraversalCallback* cb) const;
+	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
 	friend class Stmt;
 	SwitchStmt()	{ cases = 0; default_case_idx = -1; comp_hash = 0; }
 
-	Val* DoExec(Frame* f, Val* v, stmt_flow_type& flow) const;
-	int IsPure() const;
+	Val* DoExec(Frame* f, Val* v, stmt_flow_type& flow) const override;
+	int IsPure() const override;
 
 	DECLARE_SERIAL(SwitchStmt);
 
@@ -252,10 +252,10 @@ class AddStmt : public ExprStmt {
 public:
 	AddStmt(Expr* e);
 
-	int IsPure() const;
-	Val* Exec(Frame* f, stmt_flow_type& flow) const;
+	int IsPure() const override;
+	Val* Exec(Frame* f, stmt_flow_type& flow) const override;
 
-	TraversalCode Traverse(TraversalCallback* cb) const;
+	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
 	friend class Stmt;
@@ -268,10 +268,10 @@ class DelStmt : public ExprStmt {
 public:
 	DelStmt(Expr* e);
 
-	int IsPure() const;
-	Val* Exec(Frame* f, stmt_flow_type& flow) const;
+	int IsPure() const override;
+	Val* Exec(Frame* f, stmt_flow_type& flow) const override;
 
-	TraversalCode Traverse(TraversalCallback* cb) const;
+	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
 	friend class Stmt;
@@ -284,9 +284,9 @@ class EventStmt : public ExprStmt {
 public:
 	EventStmt(EventExpr* e);
 
-	Val* Exec(Frame* f, stmt_flow_type& flow) const;
+	Val* Exec(Frame* f, stmt_flow_type& flow) const override;
 
-	TraversalCode Traverse(TraversalCallback* cb) const;
+	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
 	friend class Stmt;
@@ -303,11 +303,11 @@ public:
 	WhileStmt(Expr* loop_condition, Stmt* body);
 	~WhileStmt();
 
-	int IsPure() const;
+	int IsPure() const override;
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 
-	TraversalCode Traverse(TraversalCallback* cb) const;
+	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
 	friend class Stmt;
@@ -315,7 +315,7 @@ protected:
 	WhileStmt()
 		{ loop_condition = 0; body = 0; }
 
-	Val* Exec(Frame* f, stmt_flow_type& flow) const;
+	Val* Exec(Frame* f, stmt_flow_type& flow) const override;
 
 	DECLARE_SERIAL(WhileStmt);
 
@@ -334,17 +334,17 @@ public:
 	const Expr* LoopExpr() const	{ return e; }
 	const Stmt* LoopBody() const	{ return body; }
 
-	int IsPure() const;
+	int IsPure() const override;
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 
-	TraversalCode Traverse(TraversalCallback* cb) const;
+	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
 	friend class Stmt;
 	ForStmt()	{ loop_vars = 0; body = 0; }
 
-	Val* DoExec(Frame* f, Val* v, stmt_flow_type& flow) const;
+	Val* DoExec(Frame* f, Val* v, stmt_flow_type& flow) const override;
 
 	DECLARE_SERIAL(ForStmt);
 
@@ -356,12 +356,12 @@ class NextStmt : public Stmt {
 public:
 	NextStmt() : Stmt(STMT_NEXT)	{ }
 
-	Val* Exec(Frame* f, stmt_flow_type& flow) const;
-	int IsPure() const;
+	Val* Exec(Frame* f, stmt_flow_type& flow) const override;
+	int IsPure() const override;
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 
-	TraversalCode Traverse(TraversalCallback* cb) const;
+	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
 	DECLARE_SERIAL(NextStmt);
@@ -371,12 +371,12 @@ class BreakStmt : public Stmt {
 public:
 	BreakStmt() : Stmt(STMT_BREAK)	{ }
 
-	Val* Exec(Frame* f, stmt_flow_type& flow) const;
-	int IsPure() const;
+	Val* Exec(Frame* f, stmt_flow_type& flow) const override;
+	int IsPure() const override;
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 
-	TraversalCode Traverse(TraversalCallback* cb) const;
+	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
 	DECLARE_SERIAL(BreakStmt);
@@ -386,12 +386,12 @@ class FallthroughStmt : public Stmt {
 public:
 	FallthroughStmt() : Stmt(STMT_FALLTHROUGH)	{ }
 
-	Val* Exec(Frame* f, stmt_flow_type& flow) const;
-	int IsPure() const;
+	Val* Exec(Frame* f, stmt_flow_type& flow) const override;
+	int IsPure() const override;
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 
-	TraversalCode Traverse(TraversalCallback* cb) const;
+	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
 	DECLARE_SERIAL(FallthroughStmt);
@@ -401,9 +401,9 @@ class ReturnStmt : public ExprStmt {
 public:
 	ReturnStmt(Expr* e);
 
-	Val* Exec(Frame* f, stmt_flow_type& flow) const;
+	Val* Exec(Frame* f, stmt_flow_type& flow) const override;
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 
 protected:
 	friend class Stmt;
@@ -417,17 +417,17 @@ public:
 	StmtList();
 	~StmtList();
 
-	Val* Exec(Frame* f, stmt_flow_type& flow) const;
+	Val* Exec(Frame* f, stmt_flow_type& flow) const override;
 
 	const stmt_list& Stmts() const	{ return stmts; }
 	stmt_list& Stmts()		{ return stmts; }
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 
-	TraversalCode Traverse(TraversalCallback* cb) const;
+	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	int IsPure() const;
+	int IsPure() const override;
 
 	DECLARE_SERIAL(StmtList);
 
@@ -439,9 +439,9 @@ public:
 	EventBodyList() : StmtList()
 		{ topmost = false; tag = STMT_EVENT_BODY_LIST; }
 
-	Val* Exec(Frame* f, stmt_flow_type& flow) const;
+	Val* Exec(Frame* f, stmt_flow_type& flow) const override;
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 
 	// "Topmost" means that this is the main body of a function or event.
 	// void SetTopmost(bool is_topmost)	{ topmost = is_topmost; }
@@ -465,13 +465,13 @@ public:
 
 	~InitStmt();
 
-	Val* Exec(Frame* f, stmt_flow_type& flow) const;
+	Val* Exec(Frame* f, stmt_flow_type& flow) const override;
 
 	const id_list* Inits() const	{ return inits; }
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 
-	TraversalCode Traverse(TraversalCallback* cb) const;
+	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
 	friend class Stmt;
@@ -486,12 +486,12 @@ class NullStmt : public Stmt {
 public:
 	NullStmt() : Stmt(STMT_NULL)	{ }
 
-	Val* Exec(Frame* f, stmt_flow_type& flow) const;
-	int IsPure() const;
+	Val* Exec(Frame* f, stmt_flow_type& flow) const override;
+	int IsPure() const override;
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 
-	TraversalCode Traverse(TraversalCallback* cb) const;
+	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
 	DECLARE_SERIAL(NullStmt);
@@ -503,17 +503,17 @@ public:
 	WhenStmt(Expr* cond, Stmt* s1, Stmt* s2, Expr* timeout, bool is_return);
 	~WhenStmt();
 
-	Val* Exec(Frame* f, stmt_flow_type& flow) const;
-	int IsPure() const;
+	Val* Exec(Frame* f, stmt_flow_type& flow) const override;
+	int IsPure() const override;
 
 	const Expr* Cond() const	{ return cond; }
 	const Stmt* Body() const	{ return s1; }
 	const Expr* TimeoutExpr() const	{ return timeout; }
 	const Stmt* TimeoutBody() const	{ return s2; }
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 
-	TraversalCode Traverse(TraversalCallback* cb) const;
+	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
 	WhenStmt()	{ cond = 0; s1 = s2 = 0; timeout = 0; is_return = 0; }

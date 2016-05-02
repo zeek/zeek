@@ -29,6 +29,7 @@
 @load frameworks/intel/seen/where-locations.bro
 @load frameworks/intel/seen/x509.bro
 @load frameworks/files/detect-MHR.bro
+@load frameworks/files/entropy-test-all-files.bro
 #@load frameworks/files/extract-all-files.bro
 @load frameworks/files/hash-all-files.bro
 @load frameworks/packet-filter/shunt.bro

@@ -169,10 +169,10 @@ public:
 #define DECLARE_SERIAL(classname) \
 	static classname* Instantiate(); \
 	static SerialTypeRegistrator register_type; \
-	virtual bool DoSerialize(SerialInfo*) const; \
-	virtual bool DoUnserialize(UnserialInfo*); \
-	virtual const TransientID*  GetTID() const	{ return &tid; } \
-	virtual SerialType GetSerialType() const; \
+	virtual bool DoSerialize(SerialInfo*) const override; \
+	virtual bool DoUnserialize(UnserialInfo*) override; \
+	virtual const TransientID*  GetTID() const override	{ return &tid; } \
+	virtual SerialType GetSerialType() const override; \
 	TransientID tid;
 
 // Only needed (and usable) for non-abstract classes.

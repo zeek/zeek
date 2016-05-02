@@ -994,6 +994,9 @@ bool AddStmt::DoUnserialize(UnserialInfo* info)
 
 DelStmt::DelStmt(Expr* arg_e) : ExprStmt(STMT_DELETE, arg_e)
 	{
+	if ( e->IsError() )
+		return;
+
 	if ( ! e->CanDel() )
 		Error("illegal delete statement");
 	}

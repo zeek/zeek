@@ -373,10 +373,12 @@ refine connection SNMP_Conn += {
 
 	function proc_header(rec: Header): bool
 		%{
+		if ( ! ${rec.is_orig} )
+			bro_analyzer()->ProtocolConfirmation();
+ 
 		if ( rec->unknown() )
 			return false;
 
-		bro_analyzer()->ProtocolConfirmation();
 		return true;
 		%}
 

@@ -1045,6 +1045,8 @@ TypeDecl* RecordType::FieldDecl(int field)
 
 void RecordType::Describe(ODesc* d) const
 	{
+	d->PushType(this);
+
 	if ( d->IsReadable() )
 		{
 		if ( d->IsShort() && GetName().size() )
@@ -1064,10 +1066,13 @@ void RecordType::Describe(ODesc* d) const
 		d->Add(int(Tag()));
 		DescribeFields(d);
 		}
+
+	d->PopType(this);
 	}
 
 void RecordType::DescribeReST(ODesc* d, bool roles_only) const
 	{
+	d->PushType(this);
 	d->Add(":bro:type:`record`");
 
 	if ( num_fields == 0 )
@@ -1075,6 +1080,7 @@ void RecordType::DescribeReST(ODesc* d, bool roles_only) const
 
 	d->NL();
 	DescribeFieldsReST(d, false);
+	d->PopType(this);
 	}
 
 const char* RecordType::AddFields(type_decl_list* others, attr_list* attr)
@@ -1129,7 +1135,12 @@ void RecordType::DescribeFields(ODesc* d) const
 			const TypeDecl* td = FieldDecl(i);
 			d->Add(td->id);
 			d->Add(":");
-			td->type->Describe(d);
+
+			if ( d->FindType(td->type) )
+				d->Add("<recursion>");
+			else
+				td->type->Describe(d);
+
 			d->Add(";");
 			}
 		}
@@ -1170,7 +1181,11 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 			}
 
 		const TypeDecl* td = FieldDecl(i);
-		td->DescribeReST(d);
+
+		if ( d->FindType(td->type) )
+			d->Add("<recursion>");
+		else
+			td->DescribeReST(d);
 
 		if ( func_args )
 			continue;

@@ -1,5 +1,9 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <netinet/icmp6.h>
+
 #include "IP.h"
 #include "Type.h"
 #include "Val.h"
@@ -398,6 +402,17 @@ RecordVal* IP_Hdr::BuildPktHdrVal(RecordVal* pkt_hdr, int sindex) const
 		RecordVal* icmp_hdr = new RecordVal(icmp_hdr_type);
 
 		icmp_hdr->Assign(0, new Val(icmpp->icmp_type, TYPE_COUNT));
+
+		pkt_hdr->Assign(sindex + 4, icmp_hdr);
+		break;
+		}
+
+	case IPPROTO_ICMPV6:
+		{
+		const struct icmp6_hdr* icmpp = (const struct icmp6_hdr*) data;
+		RecordVal* icmp_hdr = new RecordVal(icmp_hdr_type);
+
+		icmp_hdr->Assign(0, new Val(icmpp->icmp6_type, TYPE_COUNT));
 
 		pkt_hdr->Assign(sindex + 4, icmp_hdr);
 		break;

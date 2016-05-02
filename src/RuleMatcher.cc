@@ -21,7 +21,7 @@
 //			it may fail to match. Work-around: Insert an always
 //			matching "payload" pattern (not done in snort2bro yet)
 //		  - tcp-state always evaluates to true
-//			(implemented but deactivated for comparision to Snort)
+//			(implemented but deactivated for comparison to Snort)
 
 uint32 RuleHdrTest::idcounter = 0;
 

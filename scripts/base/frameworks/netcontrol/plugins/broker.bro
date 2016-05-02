@@ -147,7 +147,7 @@ function broker_add_rule_fun(p: PluginState, r: Rule) : bool
 	if ( ! broker_check_rule(p, r) )
 		return F;
 
-	BrokerComm::event(p$broker_config$topic, BrokerComm::event_args(broker_add_rule, p$broker_id, r));
+	Broker::send_event(p$broker_config$topic, Broker::event_args(broker_add_rule, p$broker_id, r));
 	return T;
 	}
 
@@ -156,18 +156,18 @@ function broker_remove_rule_fun(p: PluginState, r: Rule) : bool
 	if ( ! broker_check_rule(p, r) )
 		return F;
 
-	BrokerComm::event(p$broker_config$topic, BrokerComm::event_args(broker_remove_rule, p$broker_id, r));
+	Broker::send_event(p$broker_config$topic, Broker::event_args(broker_remove_rule, p$broker_id, r));
 	return T;
 	}
 
 function broker_init(p: PluginState)
 	{
-	BrokerComm::enable();
-	BrokerComm::connect(cat(p$broker_config$host), p$broker_config$bport, 1sec);
-	BrokerComm::subscribe_to_events(p$broker_config$topic);
+	Broker::enable();
+	Broker::connect(cat(p$broker_config$host), p$broker_config$bport, 1sec);
+	Broker::subscribe_to_events(p$broker_config$topic);
 	}
 
-event BrokerComm::outgoing_connection_established(peer_address: string, peer_port: port, peer_name: string)
+event Broker::outgoing_connection_established(peer_address: string, peer_port: port, peer_name: string)
 	{
 	if ( [peer_port, peer_address] !in netcontrol_broker_peers )
 		return;

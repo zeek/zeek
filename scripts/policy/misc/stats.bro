@@ -8,7 +8,7 @@ export {
 	redef enum Log::ID += { LOG };
 
 	## How often stats are reported.
-	const stats_report_interval = 5min &redef;
+	const report_interval = 5min &redef;
 
 	type Info: record {
 		## Timestamp for the measurement.
@@ -146,10 +146,10 @@ event check_stats(then: time, last_ns: NetStats, last_cs: ConnStats, last_ps: Pr
 		}
 
 	Log::write(Stats::LOG, info);
-	schedule stats_report_interval { check_stats(nettime, ns, cs, ps, es, rs, ts, fs, ds) };
+	schedule report_interval { check_stats(nettime, ns, cs, ps, es, rs, ts, fs, ds) };
 	}
 
 event bro_init()
 	{
-	schedule stats_report_interval { check_stats(network_time(), get_net_stats(), get_conn_stats(), get_proc_stats(), get_event_stats(), get_reassembler_stats(), get_timer_stats(), get_file_analysis_stats(), get_dns_stats()) };
+	schedule report_interval { check_stats(network_time(), get_net_stats(), get_conn_stats(), get_proc_stats(), get_event_stats(), get_reassembler_stats(), get_timer_stats(), get_file_analysis_stats(), get_dns_stats()) };
 	}

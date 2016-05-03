@@ -1,4 +1,11 @@
 
+2.4-507 | 2016-05-03 11:18:16 -0700
+
+  * Fix incorrect type tags in Bro broker source code. These are just
+    used for error reporting. (Daniel Thayer)
+
+  * Update docs and tests of the fmt() function. (Daniel Thayer)
+
 2.4-500 | 2016-05-03 11:16:50 -0700
 
   * Updating submodule(s).

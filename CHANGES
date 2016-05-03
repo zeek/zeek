@@ -1,4 +1,8 @@
 
+2.4-500 | 2016-05-03 11:16:50 -0700
+
+  * Updating submodule(s).
+
 2.4-498 | 2016-04-28 11:34:52 -0700
 
   * Rename Broker::print to Broker::send_print and Broker::event to

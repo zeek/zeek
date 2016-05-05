@@ -2465,7 +2465,7 @@ function to_subnet%(sn: string%): subnet
 ##
 ## Returns: The *a* address as a :bro:type:`subnet`.
 ##
-## .. bro:see:: to_subset
+## .. bro:see:: to_subnet
 function addr_to_subnet%(a: addr%): subnet
 	%{
 	int width = (a->AsAddr().GetFamily() == IPv4 ? 32 : 128);
@@ -2479,7 +2479,7 @@ function addr_to_subnet%(a: addr%): subnet
 ##
 ## Returns: The *s* subnet as a :bro:type:`addr`.
 ##
-## .. bro:see:: to_subset
+## .. bro:see:: to_subnet
 function subnet_to_addr%(sn: subnet%): addr
 	%{
 	return new AddrVal(sn->Prefix());
@@ -2491,7 +2491,7 @@ function subnet_to_addr%(sn: subnet%): addr
 ##
 ## Returns: The width of the subnet.
 ##
-## .. bro:see:: to_subset
+## .. bro:see:: to_subnet
 function subnet_width%(sn: subnet%): count
 	%{
 	return new Val(sn->Width(), TYPE_COUNT);

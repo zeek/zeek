@@ -120,7 +120,7 @@ export {
 
 	## Removes a rule.
 	##
-	## id: The rule to remove, specified as the ID returned by :bro:id:`add_rule` .
+	## id: The rule to remove, specified as the ID returned by :bro:id:`NetControl::add_rule`.
 	##
 	## Returns: True if succesful, the relevant plugin indicated that it knew
 	##          how to handle the removal. Note that again "success" means the

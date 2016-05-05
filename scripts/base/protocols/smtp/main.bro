@@ -7,6 +7,7 @@ module SMTP;
 export {
 	redef enum Log::ID += { LOG };
 
+	## The record type which contains the fields of the SMTP log.
 	type Info: record {
 		## Time when the message was first seen.
 		ts:                time            &log;

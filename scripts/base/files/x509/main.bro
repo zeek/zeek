@@ -6,6 +6,7 @@ module X509;
 export {
 	redef enum Log::ID += { LOG };
 
+	## The record type which contains the fields of the X.509 log.
 	type Info: record {
 		## Current timestamp.
 		ts: time &log;

@@ -23,20 +23,20 @@ export {
 	# ###  Generic functions and events.
 	# ###
 
-	# Activates a plugin.
-	#
-	# p: The plugin to acticate.
-	#
-	# priority: The higher the priority, the earlier this plugin will be checked
-	# whether it supports an operation, relative to other plugins.
+	## Activates a plugin.
+	##
+	## p: The plugin to acticate.
+	##
+	## priority: The higher the priority, the earlier this plugin will be checked
+	##           whether it supports an operation, relative to other plugins.
 	global activate: function(p: PluginState, priority: int);
 
-	# Event that is used to initialize plugins. Place all plugin initialization
-	# related functionality in this event.
+	## Event that is used to initialize plugins. Place all plugin initialization
+	## related functionality in this event.
 	global NetControl::init: event();
 
-	# Event that is raised once all plugins activated in ``NetControl::init`` have finished
-	# their initialization.
+	## Event that is raised once all plugins activated in ``NetControl::init``
+	## have finished their initialization.
 	global NetControl::init_done: event();
 
 	# ###

@@ -7,7 +7,8 @@ module Syslog;
 
 export {
 	redef enum Log::ID += { LOG };
-	
+
+	## The record type which contains the fields of the syslog log.
 	type Info: record {
 		## Timestamp when the syslog message was seen.
 		ts:        time            &log;

@@ -3,6 +3,7 @@ module RFB;
 export {
 	redef enum Log::ID += { LOG };
 
+	## The record type which contains the fields of the RFB log.
 	type Info: record {
 		## Timestamp for when the event happened.
 		ts:     time    &log;

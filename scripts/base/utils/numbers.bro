@@ -1,10 +1,26 @@
-## Extract the first integer found in the given string.
-## If no integer can be found, 0 is returned.
-function extract_count(s: string): count
+
+## Extract an integer from a string.
+## 
+## s: The string to search for a number.
+## 
+## get_first: Provide `F` if you would like the last number found.
+##
+## Returns: The request integer from the given string or 0 if
+##          no integer was found.
+function extract_count(s: string, get_first: bool &default=T): count
 	{
-	local parts = split_string_n(s, /[0-9]+/, T, 1);
-	if ( 1 in parts )
-		return to_count(parts[1]);
+	local extract_num_pattern = /[0-9]+/;
+	if ( get_first )
+		{
+		local first_parts = split_string_n(s, extract_num_pattern, T, 1);
+		if ( 1 in first_parts )
+			return to_count(first_parts[1]);
+		}
 	else
-		return 0;
+		{
+		local last_parts = split_string_all(s, extract_num_pattern);
+		if ( |last_parts| > 1 )
+			return to_count(last_parts[|last_parts|-2]);
+		}
+	return 0;
 	}

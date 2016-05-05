@@ -336,7 +336,9 @@ int SMB_Session::ParseNegotiate(binpac::SMB::SMB_header const& hdr,
 			{
 			binpac::SMB::SMB_dialect* d = (*msg.dialects())[i];
 			BroString* tmp = ExtractString(d->dialectname());
-			t->Assign(new Val(i, TYPE_COUNT), new StringVal(tmp));
+			Val* idx = new Val(i, TYPE_COUNT);
+			t->Assign(idx, new StringVal(tmp));
+			Unref(idx);
 			}
 
 		val_list* vl = new val_list;

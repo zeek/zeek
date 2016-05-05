@@ -1,4 +1,243 @@
 
+2.4-507 | 2016-05-03 11:18:16 -0700
+
+  * Fix incorrect type tags in Bro broker source code. These are just
+    used for error reporting. (Daniel Thayer)
+
+  * Update docs and tests of the fmt() function. (Daniel Thayer)
+
+2.4-500 | 2016-05-03 11:16:50 -0700
+
+  * Updating submodule(s).
+
+2.4-498 | 2016-04-28 11:34:52 -0700
+
+  * Rename Broker::print to Broker::send_print and Broker::event to
+    Broker::send_event to avoid using reserved keywords as function
+    names. (Daniel Thayer)
+
+  * Add script wrapper functions for Broker BIFs. This faciliates
+    documenting them through Broxygen. (Daniel Thayer)
+
+  * Extend, update, and clean up Broker tests. (Daniel Thayer)
+
+  * Intel: Allow to provide uid/fuid instead of conn/file. (Johanna
+    Amann)
+
+  * Provide file IDs for hostname matches in certificates. (Johanna
+    Amann)
+
+  * Rudimentary IMAP StartTLS analyzer. It parses certificates out of
+    IMAP connections using StartTLS. It aborts processing if StartTLS
+    is not found. (Johanna Amann)
+
+2.4-478 | 2016-04-28 09:56:24
+
+  * Fix parsing of x509 pre-y2k dates. (Johanna Amann)
+
+  * Fix small error in bif documentation. (Johanna Amann)
+
+  * Fix unknown data link type error message. (Vitaly Repin)
+
+  * Correcting spelling errors. (Jeannette Dopheide)
+
+  * Minor cleanup in ARP analyzer. (Johanna Amann)
+
+  * Fix parsing of pre-y2k dates in X509 certificates. (Johanna Amann)
+
+  * Fix small error in get_current_packet documentation. (Johanna Amann)
+
+2.4-471 | 2016-04-25 15:37:15 -0700
+
+  * Add DNS tests for huge TLLs and CAA. (Johanna Amann)
+
+  * Add DNS "CAA" RR type and event. (Mark Taylor)
+
+  * Fix DNS response parsing: TTLs are unsigned. (Mark Taylor)
+
+2.4-466 | 2016-04-22 16:25:33 -0700
+
+  * Rename BrokerStore and BrokerComm to Broker. Also split broker main.bro
+    into two scripts. (Daniel Thayer)
+
+  * Add get_current_packet_header bif. (Jan Grashoefer)
+
+2.4-457 | 2016-04-22 08:36:27 -0700
+
+  * Fix Intel framework not checking the CERT_HASH indicator type. (Johanna Amann)
+
+2.4-454 | 2016-04-14 10:06:58 -0400
+
+  * Additional mime types for file identification and a few fixes. (Seth Hall)
+
+    New file mime types:
+     - .ini files
+     - MS Registry policy files
+     - MS Registry files
+     - MS Registry format files (e.g. DESKTOP.DAT)
+     - MS Outlook PST files
+     - Apple AFPInfo files
+
+    Mime type fixes:
+     - MP3 files with ID3 tags.
+     - JSON and XML matchers were extended
+
+  * Avoid a macro name conflict on FreeBSD. (Seth Hall, Daniel Thayer)
+
+2.4-452 | 2016-04-13 01:15:20 -0400
+
+  * Add a simple file entropy analyzer. (Seth Hall)
+
+  * Analyzer and bro script for RFB/VNC protocol (Martin van Hensbergen)
+
+    This analyzer parses the Remote Frame Buffer
+    protocol, usually referred to as the 'VNC protocol'.
+
+    It supports several dialects (3.3, 3.7, 3.8) and
+    also handles the Apple Remote Desktop variant.
+
+    It will log such facts as client/server versions,
+    authentication method used, authentication result,
+    height, width and name of the shared screen.
+
+
+2.4-430 | 2016-04-07 13:36:36 -0700
+
+  * Fix regex literal in scripting documentation. (William Tom)
+
+2.4-428 | 2016-04-07 13:33:08 -0700
+
+  * Confirm protocol in SNMP/SIP only if we saw a response SNMP/SIP
+    packet. (Vlad Grigorescu)
+
+2.4-424 | 2016-03-24 13:38:47 -0700
+
+  * Only load openflow/netcontrol if compiled with broker. (Johanna Amann)
+
+  * Adding canonifier to test. (Robin Sommer)
+
+2.4-422 | 2016-03-21 19:48:30 -0700
+
+  * Adapt to recent change in CAF CMake script. (Matthias Vallentin)
+
+  * Deprecate --with-libcaf in favor of --with-caf, as already done in
+    Broker. (Matthias Vallentin)
+
+2.4-418 | 2016-03-21 12:22:15 -0700
+
+  * Add protocol confirmation to MySQL analyzer. (Vlad Grigorescu)
+
+  * Check that there is only one of &read_expire, &write_expire,
+    &create_expire. (Johanna Amann)
+
+  * Fixed &read_expire for subnet-indexed tables, plus test case. (Jan
+    Grashoefer)
+
+  * Add filter_subnet_table() that works similar to matching_subnet()
+    but returns a filtered view of the original set/table only
+    containing the changed subnets. (Jan Grashoefer)
+
+  * Fix bug in tablue values' tracking read operations. (Johanna
+    Amann)
+
+  * Update TLS constants and extensions from IANA. (Johanna Amann)
+
+2.4-406 | 2016-03-11 14:27:47 -0800
+
+  * Add NetControl and OpenFlow frameworks.  (Johanna Amann)
+
+2.4-313 | 2016-03-08 07:47:57 -0800
+
+  * Remove old string functions in C++ code. This removes the
+    functions: strcasecmp_n, strchr_n, and strrchr_n. (Johanna Amann)
+
+2.4-307 | 2016-03-07 13:33:45 -0800
+
+  * Add "disable_analyzer_after_detection" and remove
+    "skip_processing_after_detection". Addresses BIT-1545.
+    (Aaron Eppert & Johanna Amann)
+
+  * Add bad_HTTP_request_with_version weird (William Glodek)
+
+2.4-299 | 2016-03-04 12:51:55 -0800
+
+  * More detailed installation instructions for FreeBSD 9.X. (Johanna Amann)
+
+  * Update CMake OpenSSL checks. (Johanna Amann)
+
+  * "SUBSCRIBE" is a valid SIP. message per RFC 3265. Addresses
+     BIT-1529. (Johanna Amann)
+
+  * Update documentation for connection log's RSTR. Addresses BIT-1535
+    (Johanna Amann)
+
+2.4-284 | 2016-02-17 14:12:15 -0800
+
+  * Fix sometimes failing dump-events test. (Johanna Amann)
+
+2.4-282 | 2016-02-13 10:48:21 -0800
+
+  * Add missing break in in StartTLS case of IRC analyzer. Found by
+    Aaron Eppert. (Johanna Amann)
+
+2.4-280 | 2016-02-13 10:40:16 -0800
+
+  * Fix memory leaks in stats.cc and smb.cc. (Johanna Amann)
+
+2.4-278 | 2016-02-12 18:53:35 -0800
+
+  * Better multi-space separator handline. (Mark Taylor & Johanna Amann)
+
+2.4-276 | 2016-02-10 21:29:33 -0800
+
+  * Allow IRC commands to not have parameters. (Mark Taylor)
+
+2.4-272 | 2016-02-08 14:27:58 -0800
+
+  * fix memory leaks in find_all() and IRC analyzer. (Dirk Leinenbach)
+
+2.4-270 | 2016-02-08 13:00:57 -0800
+
+  * Removed duplicate parameter for IRC "QUIT" event handler. (Mark Taylor)
+
+2.4-267 | 2016-02-01 12:38:32 -0800
+
+  * Add testcase for CVE-2015-3194. (Johanna Amann)
+
+  * Fix portability issue with use of mktemp. (Daniel Thayer)
+
+2.4-260 | 2016-01-28 08:05:27 -0800
+
+  * Correct irc_privmsg_message event handling bug. (Mark Taylor)
+
+  * Update copyright year for Sphinx. (Johanna Amann)
+
+2.4-253 | 2016-01-20 17:41:20 -0800
+
+  * Support of RadioTap encapsulation for 802.11 (Seth Hall)
+
+    Radiotap support should be fully functional with Radiotap
+    packets that include IPv4 and IPv6. Other radiotap packets are
+    silently ignored.
+
+2.4-247 | 2016-01-19 10:19:48 -0800
+
+  * Fixing C++11 compiler warnings. (Seth Hall)
+
+  * Updating plugin documentation building. (Johanna Amann)
+
+2.4-238 | 2016-01-15 12:56:33 -0800
+
+  * Add HTTP version information to HTTP log file. (Aaron Eppert)
+
+  * Add NOTIFY as a valid SIP message, per RFC 3265. (Aaron Eppert)
+
+  * Improve HTTP parser's handling of requests that don't have a URI.
+    (William Glodek/Robin Sommer)
+
+  * Fix crash when deleting non existing record member. Addresses
+    BIT-1519. (Johanna Amann)
+
 2.4-228 | 2015-12-19 13:40:09 -0800
 
   * Updating BroControl submodule.
@@ -1869,21 +2108,21 @@
 2.3-beta-18 | 2014-06-06 13:11:50 -0700
 
   * Add two more SSL events, one triggered for each handshake message
-    and one triggered for the tls change cipherspec message. (Bernhard
+    and one triggered for the tls change cipherspec message. (Johanna
     Amann)
 
   * Small SSL bug fix. In case SSL::disable_analyzer_after_detection
     was set to false, the ssl_established event would fire after each
-    data packet once the session is established. (Bernhard Amann)
+    data packet once the session is established. (Johanna Amann)
 
 2.3-beta-16 | 2014-06-06 13:05:44 -0700
 
   * Re-activate notice suppression for expiring certificates.
-    (Bernhard Amann)
+    (Johanna Amann)
 
 2.3-beta-14 | 2014-06-05 14:43:33 -0700
 
-  * Add new TLS extension type numbers from IANA (Bernhard Amann)
+  * Add new TLS extension type numbers from IANA (Johanna Amann)
 
   * Switch to double hashing for Bloomfilters for better performance.
     (Matthias Vallentin)
@@ -1893,7 +2132,7 @@
     (Matthias Vallentin)
 
   * Make buffer for X509 certificate subjects larger. Addresses
-    BIT-1195 (Bernhard Amann)
+    BIT-1195 (Johanna Amann)
 
 2.3-beta-5 | 2014-05-29 15:34:42 -0500
 
@@ -1915,19 +2154,19 @@
 
   * Release 2.3-beta
 
-  * Clean up OpenSSL data structures on exit. (Bernhard Amann)
+  * Clean up OpenSSL data structures on exit. (Johanna Amann)
 
-  * Fixes for OCSP & x509 analysis memory leak issues. (Bernhard Amann)
+  * Fixes for OCSP & x509 analysis memory leak issues. (Johanna Amann)
 
   * Remove remaining references to BROMAGIC (Daniel Thayer)
 
   * Fix typos and formatting in event and BiF documentation (Daniel Thayer)
 
   * Update intel framework plugin for ssl server_name extension API
-    changes. (Bernhard Amann, Justin Azoff)
+    changes. (Johanna Amann, Justin Azoff)
 
   * Fix expression errors in SSL/x509 scripts when unparseable data
-    is in certificate chain. (Bernhard Amann)
+    is in certificate chain. (Johanna Amann)
 
 2.2-478 | 2014-05-19 15:31:33 -0500
 
@@ -1936,7 +2175,7 @@
 
 2.2-477 | 2014-05-19 14:13:00 -0500
 
-  * Fix X509::Result record's "result" field to be set internally as type int instead of type count. (Bernhard Amann)
+  * Fix X509::Result record's "result" field to be set internally as type int instead of type count. (Johanna Amann)
 
   * Fix a couple of doc build warnings (Daniel Thayer)
 
@@ -1954,19 +2193,19 @@
 
   * New script policy/protocols/ssl/validate-ocsp.bro that adds OSCP
     validation to ssl.log. The work is done by a new bif
-    x509_ocsp_verify(). (Bernhard Amann)
+    x509_ocsp_verify(). (Johanna Amann)
 
   * STARTTLS support for POP3 and SMTP. The SSL analyzer takes over
     when seen. smtp.log now logs when a connection switches to SSL.
-    (Bernhard Amann)
+    (Johanna Amann)
 
-  * Replace errors when parsing x509 certs with weirds. (Bernhard
+  * Replace errors when parsing x509 certs with weirds. (Johanna
     Amann)
 
-  * Improved Heartbleed attack/scan detection. (Bernhard Amann)
+  * Improved Heartbleed attack/scan detection. (Johanna Amann)
 
   * Let TLS analyzer fail better when no longer in sync with the data
-    stream. (Bernhard Amann)
+    stream. (Johanna Amann)
 
 2.2-444 | 2014-05-16 14:10:32 -0500
 
@@ -1985,7 +2224,7 @@
 
 2.2-427 | 2014-05-15 13:37:23 -0400
 
-  * Fix dynamic SumStats update on clusters (Bernhard Amann)
+  * Fix dynamic SumStats update on clusters (Johanna Amann)
 
 2.2-425 | 2014-05-08 16:34:44 -0700
 
@@ -2037,11 +2276,11 @@
 
   * Add DH support to SSL analyzer.  When using DHE or DH-Anon, sever
     key parameters are now available in scriptland.  Also add script to
-    alert on weak certificate keys or weak dh-params. (Bernhard Amann)
+    alert on weak certificate keys or weak dh-params. (Johanna Amann)
 
-  * Add a few more ciphers Bro did not know at all so far. (Bernhard Amann)
+  * Add a few more ciphers Bro did not know at all so far. (Johanna Amann)
 
-  * Log chosen curve when using ec cipher suite in TLS. (Bernhard Amann)
+  * Log chosen curve when using ec cipher suite in TLS. (Johanna Amann)
 
 2.2-397 | 2014-05-01 20:29:20 -0700
 
@@ -2053,7 +2292,7 @@
     (Jon Siwek)
 
   * Correct a notice for heartbleed. The notice is thrown correctly,
-    just the message conteined wrong values. (Bernhard Amann)
+    just the message conteined wrong values. (Johanna Amann)
 
   * Improve/standardize some malloc/realloc return value checks. (Jon
     Siwek)
@@ -2080,7 +2319,7 @@
 2.2-377 | 2014-04-24 16:57:54 -0700
 
   * A larger set of SSL improvements and extensions. Addresses
-    BIT-1178. (Bernhard Amann)
+    BIT-1178. (Johanna Amann)
 
         - Fixes TLS protocol version detection. It also should
           bail-out correctly on non-tls-connections now
@@ -2141,9 +2380,9 @@
 
 2.2-335 | 2014-04-10 15:04:57 -0700
 
-  * Small logic fix for main SSL script. (Bernhard Amann)
+  * Small logic fix for main SSL script. (Johanna Amann)
 
-  * Update DPD signatures for detecting TLS 1.2. (Bernhard Amann)
+  * Update DPD signatures for detecting TLS 1.2. (Johanna Amann)
 
   * Remove unused data member of SMTP_Analyzer to silence a Coverity
     warning. (Jon Siwek)
@@ -2172,7 +2411,7 @@
 2.2-315 | 2014-04-01 16:50:01 -0700
 
   * Change logging's "#types" description of sets to "set". Addresses
-    BIT-1163 (Bernhard Amann)
+    BIT-1163 (Johanna Amann)
 
 2.2-313 | 2014-04-01 16:40:19 -0700
 
@@ -2187,7 +2426,7 @@
     (Jon Siwek)
 
   * Fix potential memory leak in x509 parser reported by Coverity.
-    (Bernhard Amann)
+    (Johanna Amann)
 
 2.2-304 | 2014-03-30 23:05:54 +0200
 
@@ -2258,7 +2497,7 @@
     from the certificates (e.g. elliptic curve information, subject
     alternative names, basic constraints). Certificate validation also
     was improved, should be easier to use and exposes information like
-    the full verified certificate chain. (Bernhard Amann)
+    the full verified certificate chain. (Johanna Amann)
 
     This update changes the format of ssl.log and adds a new x509.log
     with certificate information. Furthermore all x509 events and
@@ -2296,7 +2535,7 @@
 2.2-256 | 2014-03-30 19:57:28 +0200
 
   * For the summary statistics framewirk, change all &create_expire
-    attributes to &read_expire in the cluster part. (Bernhard Amann)
+    attributes to &read_expire in the cluster part. (Johanna Amann)
 
 2.2-254 | 2014-03-30 19:55:22 +0200
 
@@ -2320,7 +2559,7 @@
 2.2-244 | 2014-03-17 08:24:17 -0700
 
   * Fix compile errror on FreeBSD caused by wrong include file order.
-    (Bernhard Amann)
+    (Johanna Amann)
 
 2.2-240 | 2014-03-14 10:23:54 -0700
 
@@ -2416,7 +2655,7 @@
 
   * Improve SSL logging so that connections are logged even when the
     ssl_established event is not generated as well as other small SSL
-    fixes. (Bernhard Amann)
+    fixes. (Johanna Amann)
 
 2.2-206 | 2014-03-03 16:52:28 -0800
 
@@ -2433,7 +2672,7 @@
   * Allow iterating over bif functions with result type vector of any.
     This changes the internal type that is used to signal that a
     vector is unspecified from any to void. Addresses BIT-1144
-    (Bernhard Amann)
+    (Johanna Amann)
 
 2.2-197 | 2014-02-28 15:36:58 -0800
 
@@ -2441,37 +2680,37 @@
 
 2.2-194 | 2014-02-28 14:50:53 -0800
 
-  * Remove packet sorter. Addresses BIT-700. (Bernhard Amann)
+  * Remove packet sorter. Addresses BIT-700. (Johanna Amann)
 
 2.2-192 | 2014-02-28 09:46:43 -0800
 
-  * Update Mozilla root bundle. (Bernhard Amann)
+  * Update Mozilla root bundle. (Johanna Amann)
 
 2.2-190 | 2014-02-27 07:34:44 -0800
 
-  * Adjust timings of a few leak tests. (Bernhard Amann)
+  * Adjust timings of a few leak tests. (Johanna Amann)
 
 2.2-187 | 2014-02-25 07:24:42 -0800
 
-  * More Google TLS extensions that are being actively used. (Bernhard
+  * More Google TLS extensions that are being actively used. Johanna(
     Amann)
 
   * Remove unused, and potentially unsafe, function
-    ListVal::IncludedInString. (Bernhard Amann)
+    ListVal::IncludedInString. (Johanna Amann)
 
 2.2-184 | 2014-02-24 07:28:18 -0800
 
   * New TLS constants from
     https://tools.ietf.org/html/draft-bmoeller-tls-downgrade-scsv-01.
-    (Bernhard Amann)
+    (Johanna Amann)
 
 2.2-180 | 2014-02-20 17:29:14 -0800
 
   * New SSL alert descriptions from
     https://tools.ietf.org/html/draft-ietf-tls-applayerprotoneg-04.
-    (Bernhard Amann)
+    (Johanna Amann)
 
-  * Update SQLite. (Bernhard Amann)
+  * Update SQLite. (Johanna Amann)
 
 2.2-177 | 2014-02-20 17:27:46 -0800
 
@@ -2502,7 +2741,7 @@
     'modbus_read_fifo_queue_response' event handler. (Jon Siwek)
 
   * Add channel_id TLS extension number. This number is not IANA
-    defined, but we see it being actively used. (Bernhard Amann)
+    defined, but we see it being actively used. (Johanna Amann)
 
   * Test baseline updates for DNS change. (Robin Sommer)
 
@@ -2544,7 +2783,7 @@
 
 2.2-147 | 2014-02-07 08:06:53 -0800
 
-  * Fix x509-extension test sometimes failing. (Bernhard Amann)
+  * Fix x509-extension test sometimes failing. (Johanna Amann)
 
 2.2-144 | 2014-02-06 20:31:18 -0800
 
@@ -2580,7 +2819,7 @@
 
 2.2-128 | 2014-01-30 15:58:47 -0800
 
-  * Add leak test for Exec module. (Bernhard Amann)
+  * Add leak test for Exec module. (Johanna Amann)
 
   * Fix file_over_new_connection event to trigger when entire file is
     missed. (Jon Siwek)
@@ -2598,7 +2837,7 @@
 2.2-120 | 2014-01-28 10:25:23 -0800
 
   * Fix and extend x509_extension() event, which now actually returns
-    the extension. (Bernhard Amann)
+    the extension. (Johanna Amann)
 
     New event signauture:
 
@@ -2713,7 +2952,7 @@
 
   * Several improvements to input framework error handling for more
     robustness and more helpful error messages. Includes tests for
-    many cases. (Bernhard Amann)
+    many cases. (Johanna Amann)
 
 2.2-66 | 2013-12-09 13:54:16 -0800
 
@@ -2739,7 +2978,7 @@
   * Fix memory leak in input framework. If the input framework was
     used to read event streams and those streams contained records
     with more than one field, not all elements of the threading Values
-    were cleaned up. Addresses BIT-1103. (Bernhard Amann)
+    were cleaned up. Addresses BIT-1103. (Johanna Amann)
 
   * Minor Broxygen improvements. Addresses BIT-1098. (Jon Siwek)
 
@@ -2783,7 +3022,7 @@
 2.2-40 | 2013-12-04 12:16:38 -0800
 
   * ssl_client_hello() now receives a vector of ciphers, instead of a
-    set, to preserve their order. (Bernhard Amann)
+    set, to preserve their order. (Johanna Amann)
 
 2.2-38 | 2013-12-04 12:10:54 -0800
 
@@ -2920,13 +3159,13 @@
 2.2-beta-157 | 2013-10-25 11:11:17 -0700
 
   * Extend the documentation of the SQLite reader/writer framework.
-    (Bernhard Amann)
+    (Johanna Amann)
 
   * Fix inclusion of wrong example file in scripting tutorial.
-    Reported by Michael Auger @LM4K. (Bernhard Amann)
+    Reported by Michael Auger @LM4K. (Johanna Amann)
 
   * Alternative fix for the thrading deadlock issue to avoid potential
-    performance impact. (Bernhard Amann)
+    performance impact. (Johanna Amann)
 
 2.2-beta-152 | 2013-10-24 18:16:49 -0700
 
@@ -2939,7 +3178,7 @@
 2.2-beta-150 | 2013-10-24 16:32:14 -0700
 
   * Change temporary ASCII reader workaround for getline() on
-    Mavericks to permanent fix. (Bernhard Amann)
+    Mavericks to permanent fix. (Johanna Amann)
 
 2.2-beta-148 | 2013-10-24 14:34:35 -0700
 
@@ -2953,7 +3192,7 @@
   * Intel framework notes added to NEWS. (Seth Hall)
 
   * Temporary OSX Mavericks libc++ issue workaround for getline()
-    problem in ASCII reader. (Bernhard Amann)
+    problem in ASCII reader. (Johanna Amann)
 
   * Change test of identify_data BIF to ignore charset as it may vary
     with libmagic version. (Jon Siwek)
@@ -2996,16 +3235,16 @@
 
 2.2-beta-80 | 2013-10-18 13:18:05 -0700
 
-  * SQLite reader/writer documentation. (Bernhard Amann)
+  * SQLite reader/writer documentation. (Johanna Amann)
 
   * Check that the SQLite reader is only used in MANUAL reading mode.
-    (Bernhard Amann)
+    (Johanna Amann)
 
   * Rename the SQLite writer "dbname" configuration option to
-    "tablename". (Bernhard Amann)
+    "tablename". (Johanna Amann)
 
   * Remove the "dbname" configuration option from the SQLite reader as
-    it wasn't used there. (Bernhard Amann)
+    it wasn't used there. (Johanna Amann)
 
 2.2-beta-73 | 2013-10-14 14:28:25 -0700
 
@@ -3037,9 +3276,9 @@
 
 2.2-beta-55 | 2013-10-10 13:36:38 -0700
 
-  * A couple of new TLS extension numbers. (Bernhard Amann)
+  * A couple of new TLS extension numbers. (Johanna Amann)
 
-  * Suport for three more new TLS ciphers. (Bernhard Amann)
+  * Suport for three more new TLS ciphers. (Johanna Amann)
 
   * Removing ICSI notary from default site config. (Robin Sommer)
 
@@ -3084,7 +3323,7 @@
 
 2.2-beta-18 | 2013-10-02 10:28:17 -0700
 
-  * Add support for further TLS cipher suites. (Bernhard Amann)
+  * Add support for further TLS cipher suites. (Johanna Amann)
 
 2.2-beta-13 | 2013-10-01 11:31:55 -0700
 
@@ -3134,7 +3373,7 @@
 
   * Add links to Intelligence Framework documentation. (Daniel Thayer)
 
-  * Update Mozilla root CA list. (Bernhard Amann, Jon Siwek)
+  * Update Mozilla root CA list. (Johanna Amann, Jon Siwek)
 
   * Update documentation of required packages. (Daniel Thayer)
 
@@ -3145,10 +3384,10 @@
 
 2.1-1357 | 2013-09-18 14:58:52 -0700
 
-  * Update HLL API and its documentation. (Bernhard Amann)
+  * Update HLL API and its documentation. (Johanna Amann)
 
   * Fix case in HLL where hll_error_margin could be undefined.
-    (Bernhard Amann)
+    (Johanna Amann)
 
 2.1-1352 | 2013-09-18 14:42:28 -0700
 
@@ -3209,7 +3448,7 @@
 
 
   * Support for probabilistic set cardinality, using the HyperLogLog
-    algorithm. (Bernhard Amann, Soumya Basu)
+    algorithm. (Johanna Amann, Soumya Basu)
 
     Bro now provides the following BiFs:
 
@@ -3248,7 +3487,7 @@
 2.1-1137 | 2013-08-27 13:26:44 -0700
 
   * Add BiF hexstr_to_bytestring() that does exactly the opposite of
-    bytestring_to_hexstr(). (Bernhard Amann)
+    bytestring_to_hexstr(). (Johanna Amann)
 
 2.1-1135 | 2013-08-27 12:16:26 -0700
 
@@ -3320,7 +3559,7 @@
 
 2.1-1078 | 2013-08-19 09:29:30 -0700
 
-  * Moving sqlite code into new external 3rdparty submodule. (Bernhard
+  * Moving sqlite code into new external 3rdparty submodule. Johanna(
     Amann)
 
 2.1-1074 | 2013-08-14 10:29:54 -0700
@@ -3420,12 +3659,12 @@
 
 2.1-1007 | 2013-08-01 15:41:54 -0700
 
-  * More function documentation. (Bernhard Amann)
+  * More function documentation. (Johanna Amann)
 
 2.1-1004 | 2013-08-01 14:37:43 -0700
 
   * Adding a probabilistic data structure for computing "top k"
-    elements. (Bernhard Amann)
+    elements. (Johanna Amann)
 
     The corresponding functions are:
 
@@ -3459,7 +3698,7 @@
 2.1-948 | 2013-07-31 20:08:28 -0700
 
   * Fix segfault caused by merging an empty bloom-filter with a
-    bloom-filter already containing values. (Bernhard Amann)
+    bloom-filter already containing values. (Johanna Amann)
 
 2.1-945 | 2013-07-30 10:05:10 -0700
 
@@ -3599,12 +3838,12 @@
 2.1-814 | 2013-07-15 18:18:20 -0700
 
   * Fixing raw reader crash when accessing nonexistant file, and
-    memory leak when reading from file. Addresses #1038. (Bernhard
+    memory leak when reading from file. Addresses #1038. (Johanna
     Amann)
 
 2.1-811 | 2013-07-14 08:01:54 -0700
 
-  * Bump sqlite to 3.7.17. (Bernhard Amann)
+  * Bump sqlite to 3.7.17. (Johanna Amann)
 
   * Small test fixes. (Seth Hall)
 
@@ -3654,7 +3893,7 @@
 2.1-780 | 2013-07-03 16:46:26 -0700
 
   * Rewrite of the RAW input reader for improved robustness and new
-    features. (Bernhard Amann) This includes:
+    features. (Johanna Amann) This includes:
 
         - Send "end_of_data" event for all kind of streams.
         - Send "process_finished" event with exit code of child
@@ -3783,12 +4022,12 @@
 
 2.1-656 | 2013-05-17 15:58:07 -0700
 
-  * Fix mutex lock problem for writers. (Bernhard Amann)
+  * Fix mutex lock problem for writers. (Johanna Amann)
 
 2.1-654 | 2013-05-17 13:49:52 -0700
 
   * Tweaks to sqlite3 configuration to address threading issues.
-    (Bernhard Amann)
+    (Johanna Amann)
 
 2.1-651 | 2013-05-17 13:37:16 -0700
 
@@ -3814,7 +4053,7 @@
 
 2.1-640 | 2013-05-15 17:24:09 -0700
 
-  * Support for cleaning up threads that have terminated. (Bernhard
+  * Support for cleaning up threads that have terminated. (Johanna
     Amann and Robin Sommer). Includes:
 
       - Both logging and input frameworks now clean up threads once
@@ -3831,14 +4070,14 @@
 2.1-626 | 2013-05-15 16:09:31 -0700
 
   * Add "reservoir" sampler for SumStats framework. This maintains
-    a set of N uniquely distributed random samples. (Bernhard Amann)
+    a set of N uniquely distributed random samples. (Johanna Amann)
 
 2.1-619 | 2013-05-15 16:01:42 -0700
 
   * SQLite reader and writer combo. This allows to read/write
     persistent data from on disk SQLite databases. The current
     interface is quite low-level, we'll add higher-level abstractions
-    in the future. (Bernhard Amann)
+    in the future. (Johanna Amann)
 
 2.1-576 | 2013-05-15 14:29:09 -0700
 
@@ -3859,7 +4098,7 @@
 2.1-500 | 2013-05-10 19:22:24 -0700
 
   * Fix to prevent merge-hook of SumStat's unique plugin from damaging
-    source data. (Bernhard Amann)
+    source data. (Johanna Amann)
 
 2.1-498 | 2013-05-03 17:44:08 -0700
 
@@ -3875,7 +4114,7 @@
 2.1-492 | 2013-05-02 12:46:26 -0700
 
   * Work-around for sumstats framework not propagating updates after
-    intermediate check in cluster environments. (Bernhard Amann)
+    intermediate check in cluster environments. (Johanna Amann)
 
   * Always apply tcp_connection_attempt. Before this change it was
     only applied when a connection_attempt() event handler was
@@ -3930,7 +4169,7 @@
 2.1-380 | 2013-03-18 12:18:10 -0700
 
   * Fix gcc compile warnings in base64 encoder and benchmark reader.
-    (Bernhard Amann)
+    (Johanna Amann)
 
 2.1-377 | 2013-03-17 17:36:09 -0700
 
@@ -3939,10 +4178,10 @@
 2.1-375 | 2013-03-17 13:14:26 -0700
 
   * Add base64 encoding functionality, including new BiFs
-	encode_base64() and encode_base64_custom(). (Bernhard Amann)
+	encode_base64() and encode_base64_custom(). (Johanna Amann)
 
   * Replace call to external "openssl" in extract-certs-pem.bro with
-	that encode_base64(). (Bernhard Amann)
+	that encode_base64(). (Johanna Amann)
 
   * Adding a test for extract-certs-pem.pem. (Robin Sommer)
 
@@ -3976,7 +4215,7 @@
 
 2.1-357 | 2013-03-08 09:18:35 -0800
 
-  * Fix race-condition in table-event test. (Bernhard Amann)
+  * Fix race-condition in table-event test. (Johanna Amann)
 
   * s/bro-ids.org/bro.org/g. (Robin Sommer)
 
@@ -3993,9 +4232,9 @@
 
 2.1-347 | 2013-03-06 16:48:44 -0800
 
-  * Remove unused parameter from vector assignment method. (Bernhard Amann)
+  * Remove unused parameter from vector assignment method. (Johanna Amann)
 
-  * Remove the byte_len() and length() bifs. (Bernhard Amann)
+  * Remove the byte_len() and length() bifs. (Johanna Amann)
 
 2.1-342 | 2013-03-06 15:42:52 -0800
 
@@ -4047,7 +4286,7 @@
 
 2.1-319 | 2013-02-04 09:45:34 -0800
 
-  * Update input tests to use exit_only_after_terminate. (Bernhard
+  * Update input tests to use exit_only_after_terminate. (Johanna
     Amann)
 
   * New option exit_only_after_terminate to prevent Bro from exiting.
@@ -4079,7 +4318,7 @@
 2.1-302 | 2013-01-23 16:17:29 -0800
 
   * Refactoring ASCII formatting/parsing from loggers/readers into a
-    separate AsciiFormatter class. (Bernhard Amann)
+    separate AsciiFormatter class. (Johanna Amann)
 
   * Fix uninitialized locals in event/hook handlers from having a
     value. Addresses #932. (Jon Siwek)
@@ -4110,7 +4349,7 @@
   * Removing unused class member. (Robin Sommer)
 
   * Add opaque type-ignoring for the accept_unsupported_types input
-    framework option. (Bernhard Amann)
+    framework option. (Johanna Amann)
 
 2.1-271 | 2013-01-08 10:18:57 -0800
 
@@ -4191,7 +4430,7 @@
 2.1-229 | 2012-12-14 14:46:12 -0800
 
   * Fix memory leak in ASCII reader when encoutering errors in input.
-    (Bernhard Amann)
+    (Johanna Amann)
 
   * Improvements for the "bad checksums" detector to make it detect
     bad TCP checksums. (Seth Hall)
@@ -4262,7 +4501,7 @@
     yet. Addresses #66. (Jon Siwek)
 
   * Fix segfault: Delete correct entry in error case in input
-    framework. (Bernhard Amann)
+    framework. (Johanna Amann)
 
   * Bad record constructor initializers now give an error. Addresses
     #34. (Jon Siwek)
@@ -4520,7 +4759,7 @@
   * Rename the Input Framework's update_finished event to end_of_data.
     It will now not only fire after table-reads have been completed,
     but also after the last event of a whole-file-read (or
-    whole-db-read, etc.). (Bernhard Amann)
+    whole-db-read, etc.). (Johanna Amann)
 
   * Fix for DNS log problem when a DNS response is seen with 0 RRs.
     (Seth Hall)
@@ -4535,7 +4774,7 @@
 2.1-61 | 2012-10-12 09:32:48 -0700
 
   * Fix bug in the input framework: the config table did not work.
-    (Bernhard Amann)
+    (Johanna Amann)
 
 2.1-58 | 2012-10-08 10:10:09 -0700
 
@@ -4570,7 +4809,7 @@
 
   * Fix for the input framework: BroStrings were constructed without a
     final \0, which makes them unusable by basically all internal
-    functions (like to_count). (Bernhard Amann)
+    functions (like to_count). (Johanna Amann)
 
   * Remove deprecated script functionality (see NEWS for details).
     (Daniel Thayer)
@@ -4622,7 +4861,7 @@
   * Small change to non-blocking DNS initialization. (Jon Siwek)
 
   * Reorder a few statements in scan.l to make 1.5msecs etc work.
-    Adresses #872. (Bernhard Amann)
+    Adresses #872. (Johanna Amann)
 
 2.1-6 | 2012-09-06 23:23:14 -0700
 
@@ -4651,11 +4890,11 @@
   * Fix uninitialized value for 'is_partial' in TCP analyzer. (Jon
     Siwek)
 
-  * Parse 64-bit consts in Bro scripts correctly. (Bernhard Amann)
+  * Parse 64-bit consts in Bro scripts correctly. (Johanna Amann)
 
-  * Output 64-bit counts correctly on 32-bit machines (Bernhard Amann)
+  * Output 64-bit counts correctly on 32-bit machines (Johanna Amann)
 
-  * Input framework fixes, including:  (Bernhard Amann)
+  * Input framework fixes, including:  (Johanna Amann)
 
     - One of the change events got the wrong parameters.
 
@@ -4696,7 +4935,7 @@
 2.1-beta-45 | 2012-08-22 16:11:10 -0700
 
   * Add an option to the input framework that allows the user to chose
-    to not die upon encountering files/functions. (Bernhard Amann)
+    to not die upon encountering files/functions. (Johanna Amann)
 
 2.1-beta-41 | 2012-08-22 16:05:21 -0700
 
@@ -4715,7 +4954,7 @@
 2.1-beta-35 | 2012-08-22 08:44:52 -0700
 
   * Add testcase for input framework reading sets (rather than
-    tables). (Bernhard Amann)
+    tables). (Johanna Amann)
 
 2.1-beta-31 | 2012-08-21 15:46:05 -0700
 
@@ -4774,9 +5013,9 @@
 
 2.1-beta-6 | 2012-08-10 12:22:52 -0700
 
-  * Fix bug in input framework with an edge case. (Bernhard Amann)
+  * Fix bug in input framework with an edge case. (Johanna Amann)
 
-  * Fix small bug in input framework test script. (Bernhard Amann)
+  * Fix small bug in input framework test script. (Johanna Amann)
 
 2.1-beta-3 | 2012-08-03 10:46:49 -0700
 
@@ -4825,13 +5064,13 @@
     writers that don't have a postprocessor. (Seth Hall)
 
   * Update input framework documentation to reflect want_record
-    change. (Bernhard Amann)
+    change. (Johanna Amann)
 
   * Fix crash when encountering an InterpreterException in a predicate
-    in logging or input Framework. (Bernhard Amann)
+    in logging or input Framework. (Johanna Amann)
 
   * Input framework: Make want_record=T the default for events
-    (Bernhard Amann)
+    (Johanna Amann)
 
   * Changing the start/end markers in logs to open/close now
     reflecting wall clock. (Robin Sommer)
@@ -4853,10 +5092,10 @@
 
   * Add comprehensive error handling for close() calls. (Jon Siwek)
 
-  * Add more test cases for input framework. (Bernhard Amann)
+  * Add more test cases for input framework. (Johanna Amann)
 
   * Input framework: make error output for non-matching event types
-    much more verbose. (Bernhard Amann)
+    much more verbose. (Johanna Amann)
 
 2.0-877 | 2012-07-25 17:20:34 -0700
 
@@ -4896,12 +5135,12 @@
   * Fix initialization problem in logging class. (Jon Siwek)
 
   * Input framework now accepts escaped ASCII values as input (\x##),
-    and unescapes appropiately. (Bernhard Amann)
+    and unescapes appropiately. (Johanna Amann)
 
   * Make reading ASCII logfiles work when the input separator is
-    different from \t. (Bernhard Amann)
+    different from \t. (Johanna Amann)
 
-  * A number of smaller fixes for input framework. (Bernhard Amann)
+  * A number of smaller fixes for input framework. (Johanna Amann)
 
 2.0-851 | 2012-07-24 15:04:14 -0700
 
@@ -4921,7 +5160,7 @@
   * Reworking parts of the internal threading/logging/input APIs for
     thread-safety. (Robin Sommer)
 
-  * Bugfix for SSL version check. (Bernhard Amann)
+  * Bugfix for SSL version check. (Johanna Amann)
 
   * Changing a HTTP DPD from port 3138 to 3128. Addresses #857. (Robin
     Sommer)
@@ -4941,7 +5180,7 @@
     #763. (Robin Sommer)
 
   * Fix bug, where in dns.log rcode always was set to 0/NOERROR when
-    no reply package was seen. (Bernhard Amann)
+    no reply package was seen. (Johanna Amann)
 
   * Updating to Mozilla's current certificate bundle. (Seth Hall)
 
@@ -4957,7 +5196,7 @@
   * Remove baselines for some leak-detecting unit tests. (Jon Siwek)
 
   * Unblock SIGFPE, SIGILL, SIGSEGV and SIGBUS for threads, so that
-    they now propagate to the main thread. Adresses #848. (Bernhard
+    they now propagate to the main thread. Adresses #848. (Johanna
     Amann)
 
 2.0-761 | 2012-07-12 08:14:38 -0700
@@ -4965,7 +5204,7 @@
   * Some small fixes to further reduce SOCKS false positive logs. (Seth Hall)
 
   * Calls to pthread_mutex_unlock now log the reason for failures.
-    (Bernhard Amann)
+    (Johanna Amann)
 
 2.0-757 | 2012-07-11 08:30:19 -0700
 
@@ -4996,11 +5235,11 @@
 
 2.0-733 | 2012-07-02 15:31:24 -0700
 
-  * Extending the input reader DoInit() API. (Bernhard Amann). It now
+  * Extending the input reader DoInit() API. (Johanna Amann). It now
     provides a Info struct similar to what we introduced for log
     writers, including a corresponding "config" key/value table.
 
-  * Fix to make writer-info work when debugging is enabled. (Bernhard
+  * Fix to make writer-info work when debugging is enabled. (Johanna
     Amann)
 
 2.0-726 | 2012-07-02 15:19:15 -0700
@@ -5039,7 +5278,7 @@
 
   * Set input frontend type before starting the thread. This means
     that the thread type will be output correctly in the error
-    message. (Bernhard Amann)
+    message. (Johanna Amann)
 
 2.0-719 | 2012-07-02 14:49:03 -0700
 
@@ -5128,7 +5367,7 @@
 
 2.0-622 | 2012-06-15 15:38:43 -0700
 
-  * Input framework updates. (Bernhard Amann)
+  * Input framework updates. (Johanna Amann)
 
     - Disable streaming reads from executed commands. This lead to
       hanging Bros because pclose apparently can wait for eternity if
@@ -5207,7 +5446,7 @@
 
   * A new input framework enables scripts to read in external data
     dynamically on the fly as Bro is processing network traffic.
-    (Bernhard Amann)
+    (Johanna Amann)
 
     Currently, the framework supports reading ASCII input that's
     structured similar as Bro's log files as well as raw blobs of
@@ -5374,7 +5613,7 @@
 2.0-315 | 2012-05-03 11:44:17 -0700
 
   * Add two more TLS extension values that we see in live traffic.
-    (Bernhard Amann)
+    (Johanna Amann)
 
   * Fixed IPv6 link local unicast CIDR and added IPv6 loopback to
     private address space. (Seth Hall)
@@ -5762,7 +6001,7 @@
 
 2.0-41 | 2012-02-03 04:10:53 -0500
 
-  * Updates to the Software framework to simplify the API. (Bernhard
+  * Updates to the Software framework to simplify the API. (Johanna
     Amann)
 
 2.0-40 | 2012-02-03 01:55:27 -0800
@@ -5905,7 +6144,7 @@
 
 2.0-beta-152 | 2012-01-03 14:51:34 -0800
 
-  * Notices now record the transport-layer protocol. (Bernhard Amann)
+  * Notices now record the transport-layer protocol. (Johanna Amann)
 
 2.0-beta-150 | 2012-01-03 14:42:45 -0800
 
@@ -5932,7 +6171,7 @@
     assignments. Addresses #722. (Jon Siwek)
 
   * Make log headers include the type of data stored inside a set or
-    vector ("vector[string]"). (Bernhard Amann)
+    vector ("vector[string]"). (Johanna Amann)
 
 2.0-beta-126 | 2011-12-18 15:18:05 -0800
 
@@ -6069,11 +6308,11 @@
   * Fix order of include directories. (Jon Siwek)
 
   * Catch if logged vectors do not contain only atomic types.
-    (Bernhard Amann)
+    (Johanna Amann)
 
 2.0-beta-47 | 2011-11-16 08:24:33 -0800
 
-  * Catch if logged sets do not contain only atomic types. (Bernhard
+  * Catch if logged sets do not contain only atomic types. (Johanna
     Amann)
 
   * Promote libz and libmagic to required dependencies. (Jon Siwek)

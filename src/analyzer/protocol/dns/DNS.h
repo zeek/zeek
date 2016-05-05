@@ -56,6 +56,7 @@ typedef enum {
 	TYPE_EDNS = 41,		///< OPT pseudo-RR (RFC 2671)
 	TYPE_TKEY = 249,	///< Transaction Key (RFC 2930)
 	TYPE_TSIG = 250,	///< Transaction Signature (RFC 2845)
+	TYPE_CAA = 257,		///< Certification Authority Authorization (RFC 6844)
 
 	// The following are only valid in queries.
 	TYPE_AXFR = 252,
@@ -132,7 +133,7 @@ public:
 	StringVal* query_name;
 	RR_Type atype;
 	int aclass;	///< normally = 1, inet
-	int ttl;
+	uint32 ttl;
 
 	DNS_AnswerType answer_type;
 	int skip_event;		///< if true, don't generate corresponding events
@@ -209,6 +210,9 @@ protected:
 	int ParseRR_HINFO(DNS_MsgInfo* msg,
 				const u_char*& data, int& len, int rdlength);
 	int ParseRR_TXT(DNS_MsgInfo* msg,
+				const u_char*& data, int& len, int rdlength,
+				const u_char* msg_start);
+	int ParseRR_CAA(DNS_MsgInfo* msg,
 				const u_char*& data, int& len, int rdlength,
 				const u_char* msg_start);
 	int ParseRR_TSIG(DNS_MsgInfo* msg,

@@ -23,8 +23,26 @@ New Dependencies
 New Functionality
 -----------------
 
+- Bro now includes the NetControl framework. The framework allows for easy
+  interaction of Bro with hard- and software switches, firewalls, etc.
+
+- There is a new file entropy analyzer for files.
+
+- Bro now supports the remote framebuffer protocol (RFB) that is used by
+  VNC servers for remote graphical displays.
+
+- Bro now supports the Radiotap header for 802.11 frames.
+
+- Bro now has a rudimentary IMAP analyzer examinig the initial phase
+  of the protocol. Right now the analyzer only identify STARTTLS
+  sessions, handing them over to TLS analysis. The analyzer does not
+  yet analyze any further IMAP content.
+
 - Bro now tracks VLAN IDs. To record them inside the connection log,
   load protocols/conn/vlan-logging.bro.
+
+- A new dns_CAA_reply event gives access to DNS Certification Authority
+  Authorization replies.
 
 - A new per-packet event raw_packet() provides access to layer 2
   information. Use with care, generating events per packet is
@@ -35,12 +53,40 @@ New Functionality
   argument that will be used for decoding errors into weird.log
   (instead of reporter.log).
 
+- A new get_current_packet_header bif returns the headers of the current
+  packet.
+
+- Two new built-in functions for handling set[subnet] and table[subnet]:
+
+  - check_subnet(subnet, table) checks if a specific subnet is a member
+    of a set/table. This is different from the "in" operator, which always
+    performs a longest prefix match.
+
+  - matching_subnets(subnet, table) returns all subnets of the set or table
+    that contain the given subnet.
+
+  - filter_subnet_table(subnet, table) works like check_subnet, but returns
+    a table containing all matching entries.
+
+- Several built-in functions for handling IP addresses and subnets were added:
+
+  - is_v4_subnet(subnet) checks whether a subnet specification is IPv4.
+
+  - is_v6_subnet(subnet) checks whether a subnet specification is IPv6.
+
+  - addr_to_subnet(addr) converts an IP address to a /32 subnet.
+
+  - subnet_to_addr(subnet) returns the IP address part of a subnet.
+
+  - subnet_width(subnet) returns the width of a subnet.
+
 - The IRC analyzer now recognizes StartTLS sessions and enable the SSL
   analyzer for them.
 
 - New Bro plugins in aux/plugins:
 
     - af_packet: Native AF_PACKET support.
+    - kafka : Log writer interfacing to Kafka.
     - myricom: Native Myricom SNF v3 support.
     - pf_ring: Native PF_RING support.
     - redis: An experimental log writer for Redis.
@@ -48,6 +94,13 @@ New Functionality
 
 Changed Functionality
 ---------------------
+
+- The BrokerComm and BrokerStore namespaces were renamed to Broker.
+  The Broker "print" function was renamed to Broker::send_print, and
+  "event" to "Broker::send_event".
+
+- ``SSH::skip_processing_after_detection`` was removed. The functionality was
+  replaced by ``SSH::disable_analyzer_after_detection``.
 
 - Some script-level identifier have changed their names:
 

@@ -46,11 +46,10 @@ export {
 	## authentication success or failure when compression is enabled.
 	const compression_algorithms = set("zlib", "zlib@openssh.com") &redef;
 
-	## If true, we tell the event engine to not look at further data
-	## packets after the initial SSH handshake. Helps with performance
-	## (especially with large file transfers) but precludes some
-	## kinds of analyses. Defaults to T.
-	const skip_processing_after_detection = T &redef;
+	## If true, after detection detach the SSH analyzer from the connection
+	## to prevent continuing to process encrypted traffic. Helps with performance
+	## (especially with large file transfers).
+	const disable_analyzer_after_detection = T &redef;
 
 	## Event that can be handled to access the SSH record as it is sent on
 	## to the logging framework.
@@ -70,6 +69,8 @@ redef record Info += {
 	# Store capabilities from the first host for
 	# comparison with the second (internal use)
 	capabilities: Capabilities &optional;
+	## Analzyer ID
+	analyzer_id: count         &optional;
 };
 
 redef record connection += {
@@ -130,11 +131,8 @@ event ssh_auth_successful(c: connection, auth_method_none: bool) &priority=5
 
 	c$ssh$auth_success = T;
 
-	if ( skip_processing_after_detection)
-		{
-		skip_further_processing(c$id);
-		set_record_packets(c$id, F);
-		}
+	if ( disable_analyzer_after_detection )
+		disable_analyzer(c$id, c$ssh$analyzer_id);
 	}
 
 event ssh_auth_successful(c: connection, auth_method_none: bool) &priority=-5
@@ -179,7 +177,7 @@ function find_bidirectional_alg(client_prefs: Algorithm_Prefs, server_prefs: Alg
 	# Usually these are the same, but if they're not, return the details
 	return c_to_s == s_to_c ? c_to_s : fmt("To server: %s, to client: %s", c_to_s, s_to_c);
 	}
-	
+
 event ssh_capabilities(c: connection, cookie: string, capabilities: Capabilities)
 	{
 	if ( !c?$ssh || ( c$ssh?$capabilities && c$ssh$capabilities$is_server == capabilities$is_server ) )
@@ -232,4 +230,13 @@ event ssh1_server_host_key(c: connection, p: string, e: string) &priority=5
 event ssh2_server_host_key(c: connection, key: string) &priority=5
 	{
 	generate_fingerprint(c, key);
+	}
+
+event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &priority=20
+	{
+		if ( atype == Analyzer::ANALYZER_SSH )
+		{
+		set_session(c);
+		c$ssh$analyzer_id = aid;
+		}
 	}

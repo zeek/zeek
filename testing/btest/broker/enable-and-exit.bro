@@ -11,7 +11,7 @@ event terminate_me() {
 }
 
 event bro_init() {
-        BrokerComm::enable();
+        Broker::enable();
 
         print "1";
         schedule 1sec { terminate_me() };

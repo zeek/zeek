@@ -65,6 +65,7 @@
 @load base/protocols/ssl
 @load base/protocols/syslog
 @load base/protocols/tunnels
+@load base/protocols/xmpp
 
 @load base/files/pe
 @load base/files/hash

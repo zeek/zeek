@@ -68,7 +68,7 @@ export {
 	## Events raised by TimeMachine instances and handled by workers.
 	const tm2worker_events = /EMPTY/ &redef;
 
-	## Events sent by the control host (i.e. BroControl) when dynamically
+	## Events sent by the control host (i.e., BroControl) when dynamically
 	## connecting to a running instance to update settings or request data.
 	const control_events = Control::controller_events &redef;
 

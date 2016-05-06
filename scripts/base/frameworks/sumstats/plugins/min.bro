@@ -1,3 +1,5 @@
+##! Find the minimum value.
+
 @load ../main
 
 module SumStats;
@@ -9,7 +11,7 @@ export {
 	};
 
 	redef record ResultVal += {
-		## For numeric data, this tracks the minimum value given.
+		## For numeric data, this tracks the minimum value.
 		min: double &optional;
 	};
 }

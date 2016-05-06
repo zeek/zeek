@@ -6,6 +6,7 @@ module SOCKS;
 export {
 	redef enum Log::ID += { LOG };
 
+	## The record type which contains the fields of the SOCKS log.
 	type Info: record {
 		## Time when the proxy connection was first detected.
 		ts:          time            &log;

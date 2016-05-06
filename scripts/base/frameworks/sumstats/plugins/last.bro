@@ -1,3 +1,5 @@
+##! Keep the last X observations.
+
 @load base/frameworks/sumstats
 @load base/utils/queue
 

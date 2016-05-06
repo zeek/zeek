@@ -446,6 +446,7 @@ void RecordDataField::GenParseCode(Output* out_cc, Env* env)
 		out_cc->println("%s = %d;", 
 			env->LValue(parsing_state_id),
 			parsing_state_seq());
+		out_cc->println("/* fall through */");
 		out_cc->dec_indent();
 		out_cc->println("case %d:", parsing_state_seq());
 		out_cc->inc_indent();

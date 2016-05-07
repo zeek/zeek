@@ -571,7 +571,14 @@ const char* fmt_access_time(double t)
 	{
 	static char buf[256];
 	time_t time = (time_t) t;
-	strftime(buf, sizeof(buf), "%d/%m-%H:%M", localtime(&time));
+	struct tm ts;
+
+	if ( ! localtime_r(&time, &ts) )
+		{
+		reporter->InternalError("unable to get time");
+		}
+
+	strftime(buf, sizeof(buf), "%d/%m-%H:%M", &ts);
 	return buf;
 	}
 

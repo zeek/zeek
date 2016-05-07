@@ -145,12 +145,17 @@ static void do_fmt(const char*& fmt, Val* v, ODesc* d)
 			}
 
 		time_t time = time_t(v->InternalDouble());
+		struct tm t;
+
 		int is_time_fmt = *fmt == 'T';
+
+		if ( ! localtime_r(&time, &t) )
+			s.AddSP("<problem getting time>");
 
 		if ( ! strftime(out_buf, sizeof(out_buf),
 				is_time_fmt ?
 					"%Y-%m-%d-%H:%M" : "%Y-%m-%d-%H:%M:%S",
-				localtime(&time)) )
+				&t) )
 			s.AddSP("<bad time>");
 
 		else
@@ -3140,9 +3145,11 @@ function strftime%(fmt: string, d: time%) : string
 	%{
 	static char buffer[128];
 
-	time_t t = time_t(d);
+	time_t timeval = time_t(d);
+	struct tm t;
 
-	if ( strftime(buffer, 128, fmt->CheckString(), localtime(&t)) == 0 )
+	if ( ! localtime_r(&timeval, &t) ||
+	     ! strftime(buffer, 128, fmt->CheckString(), &t) )
 		return new StringVal("<strftime error>");
 
 	return new StringVal(buffer);
@@ -3160,9 +3167,10 @@ function strftime%(fmt: string, d: time%) : string
 function strptime%(fmt: string, d: string%) : time
 	%{
 	const time_t timeval = time_t();
-	struct tm t = *localtime(&timeval);
+	struct tm t;
 
-	if ( strptime(d->CheckString(), fmt->CheckString(), &t) == NULL )
+	if ( ! localtime_r(&timeval, &t) || 
+	     ! strptime(d->CheckString(), fmt->CheckString(), &t) )
 		{
 		reporter->Warning("strptime conversion failed: fmt:%s d:%s", fmt->CheckString(), d->CheckString());
 		return new Val(0.0, TYPE_TIME);

@@ -1,4 +1,25 @@
 
+2.4-541 | 2016-05-06 17:58:45 -0700
+
+  * A set of new built-in function for gathering execution statistics:
+
+      get_net_stats(), get_conn_stats(), get_proc_stats(),
+      get_event_stats(), get_reassembler_stats(), get_dns_stats(),
+      get_timer_stats(), get_file_analysis_stats(), get_thread_stats(),
+      get_gap_stats(), get_matcher_stats().
+
+    net_stats() resource_usage() have been superseded by these. (Seth
+    Hall)
+
+  * New policy script misc/stats.bro that records Bro execution
+    statistics in a standard Bro log file. (Seth Hall)
+
+  * A series of documentation improvements. (Daniel Thayer)
+
+  * Rudimentary XMPP StartTLS analyzer. It parses certificates out of
+    XMPP connections using StartTLS. It aborts processing if StartTLS
+    is not found. (Johanna Amann)
+
 2.4-507 | 2016-05-03 11:18:16 -0700
 
   * Fix incorrect type tags in Bro broker source code. These are just

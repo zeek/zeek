@@ -1156,19 +1156,18 @@ void NetSessions::Drain()
 void NetSessions::GetStats(SessionStats& s) const
 	{
 	s.num_TCP_conns = tcp_conns.Length();
+	s.cumulative_TCP_conns = tcp_conns.NumCumulativeInserts();
 	s.num_UDP_conns = udp_conns.Length();
+	s.cumulative_UDP_conns = udp_conns.NumCumulativeInserts();
 	s.num_ICMP_conns = icmp_conns.Length();
+	s.cumulative_ICMP_conns = icmp_conns.NumCumulativeInserts();
 	s.num_fragments = fragments.Length();
 	s.num_packets = num_packets_processed;
-	s.num_timers = timer_mgr->Size();
-	s.num_events_queued = num_events_queued;
-	s.num_events_dispatched = num_events_dispatched;
 
 	s.max_TCP_conns = tcp_conns.MaxLength();
 	s.max_UDP_conns = udp_conns.MaxLength();
 	s.max_ICMP_conns = icmp_conns.MaxLength();
 	s.max_fragments = fragments.MaxLength();
-	s.max_timers = timer_mgr->PeakSize();
 	}
 
 Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,

@@ -1,4 +1,9 @@
 
+2.4-544 | 2016-05-07 12:19:07 -0700
+
+  * Switching all use of gmtime and localtime to use reentrant
+    variants. (Seth Hall)
+
 2.4-541 | 2016-05-06 17:58:45 -0700
 
   * A set of new built-in function for gathering execution statistics:

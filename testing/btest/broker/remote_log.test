@@ -19,8 +19,8 @@ export {
 
 	type Info: record {
 		msg: string &log;
-		num: count &log;
 		nolog: string &default="no";
+		num: count &log;
 	};
 
 	global log_test: event(rec: Test::Info);

@@ -1,3 +1,5 @@
+##! Calculate the number of unique values (using the HyperLogLog algorithm).
+
 @load base/frameworks/sumstats
 
 module SumStats;

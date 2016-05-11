@@ -37,8 +37,10 @@
 @load base/frameworks/reporter
 @load base/frameworks/sumstats
 @load base/frameworks/tunnels
+@ifdef ( Broker::enable )
 @load base/frameworks/openflow
 @load base/frameworks/netcontrol
+@endif
 
 @load base/protocols/conn
 @load base/protocols/dhcp
@@ -46,6 +48,7 @@
 @load base/protocols/dns
 @load base/protocols/ftp
 @load base/protocols/http
+@load base/protocols/imap
 @load base/protocols/irc
 @load base/protocols/krb
 @load base/protocols/modbus
@@ -53,6 +56,7 @@
 @load base/protocols/pop3
 @load base/protocols/radius
 @load base/protocols/rdp
+@load base/protocols/rfb
 @load base/protocols/sip
 @load base/protocols/snmp
 @load base/protocols/smtp
@@ -61,6 +65,7 @@
 @load base/protocols/ssl
 @load base/protocols/syslog
 @load base/protocols/tunnels
+@load base/protocols/xmpp
 
 @load base/files/pe
 @load base/files/hash

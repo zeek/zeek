@@ -474,64 +474,127 @@ type NetStats: record {
 	bytes_recvd:  count &default=0;	##< Bytes received by Bro.
 };
 
-## Statistics about Bro's resource consumption.
+type ConnStats: record {
+	total_conns: count;           ##<
+	current_conns: count;         ##<
+	current_conns_extern: count;  ##<
+	sess_current_conns: count;    ##<
+
+	num_packets: count;
+	num_fragments: count;
+	max_fragments: count;
+
+	num_tcp_conns: count;         ##< Current number of TCP connections in memory.
+	max_tcp_conns: count;         ##< Maximum number of concurrent TCP connections so far.
+	cumulative_tcp_conns: count;  ##< Total number of TCP connections so far.
+
+	num_udp_conns: count;         ##< Current number of UDP flows in memory.
+	max_udp_conns: count;         ##< Maximum number of concurrent UDP flows so far.
+	cumulative_udp_conns: count;  ##< Total number of UDP flows so far.
+
+	num_icmp_conns: count;        ##< Current number of ICMP flows in memory.
+	max_icmp_conns: count;        ##< Maximum number of concurrent ICMP flows so far.
+	cumulative_icmp_conns: count; ##< Total number of ICMP flows so far.
+
+	killed_by_inactivity: count;
+};
+
+## Statistics about Bro's process.
 ##
-## .. bro:see:: resource_usage
+## .. bro:see:: get_proc_stats
 ##
 ## .. note:: All process-level values refer to Bro's main process only, not to
 ##    the child process it spawns for doing communication.
-type bro_resources: record {
-	version: string;	##< Bro version string.
-	debug: bool;	##< True if compiled with --enable-debug.
-	start_time: time;	##< Start time of process.
-	real_time: interval;	##< Elapsed real time since Bro started running.
-	user_time: interval;	##< User CPU seconds.
-	system_time: interval;	##< System CPU seconds.
-	mem: count;		##< Maximum memory consumed, in KB.
-	minor_faults: count;	##< Page faults not requiring actual I/O.
-	major_faults: count;	##< Page faults requiring actual I/O.
-	num_swap: count;	##< Times swapped out.
-	blocking_input: count;	##< Blocking input operations.
-	blocking_output: count;	##< Blocking output operations.
-	num_context: count;	##< Number of involuntary context switches.
+type ProcStats: record {
+	debug: bool;                  ##< True if compiled with --enable-debug.
+	start_time: time;             ##< Start time of process.
+	real_time: interval;          ##< Elapsed real time since Bro started running.
+	user_time: interval;          ##< User CPU seconds.
+	system_time: interval;        ##< System CPU seconds.
+	mem: count;                   ##< Maximum memory consumed, in KB.
+	minor_faults: count;          ##< Page faults not requiring actual I/O.
+	major_faults: count;          ##< Page faults requiring actual I/O.
+	num_swap: count;              ##< Times swapped out.
+	blocking_input: count;        ##< Blocking input operations.
+	blocking_output: count;       ##< Blocking output operations.
+	num_context: count;           ##< Number of involuntary context switches.
+};
 
-	num_TCP_conns: count;	##< Current number of TCP connections in memory.
-	num_UDP_conns: count;	##< Current number of UDP flows in memory.
-	num_ICMP_conns: count;	##< Current number of ICMP flows in memory.
-	num_fragments: count;	##< Current number of fragments pending reassembly.
-	num_packets: count;	##< Total number of packets processed to date.
-	num_timers: count;	##< Current number of pending timers.
-	num_events_queued: count;	##< Total number of events queued so far.
-	num_events_dispatched: count;	##< Total number of events dispatched so far.
-
-	max_TCP_conns: count;	##< Maximum number of concurrent TCP connections so far.
-	max_UDP_conns: count;	##< Maximum number of concurrent UDP connections so far.
-	max_ICMP_conns: count;	##< Maximum number of concurrent ICMP connections so far.
-	max_fragments: count;	##< Maximum number of concurrently buffered fragments so far.
-	max_timers: count;	##< Maximum number of concurrent timers pending so far.
+type EventStats: record {
+	queued:     count; ##< Total number of events queued so far.
+	dispatched: count; ##< Total number of events dispatched so far.
 };
 
 ## Summary statistics of all regular expression matchers.
 ##
+## .. bro:see:: get_reassembler_stats
+type ReassemblerStats: record {
+	file_size:    count;  ##< Byte size of File reassembly tracking.
+	frag_size:    count;  ##< Byte size of Fragment reassembly tracking.
+	tcp_size:     count;  ##< Byte size of TCP reassembly tracking.
+	unknown_size: count;  ##< Byte size of reassembly tracking for unknown purposes.
+};
+
+## Statistics of all regular expression matchers.
+##
 ## .. bro:see:: get_matcher_stats
-type matcher_stats: record {
-	matchers: count;	##< Number of distinct RE matchers.
-	dfa_states: count;	##< Number of DFA states across all matchers.
-	computed: count;	##< Number of computed DFA state transitions.
-	mem: count;		##< Number of bytes used by DFA states.
-	hits: count;		##< Number of cache hits.
-	misses: count;		##< Number of cache misses.
-	avg_nfa_states: count;	##< Average number of NFA states across all matchers.
+type MatcherStats: record {
+	matchers: count;    ##< Number of distinct RE matchers.
+	nfa_states: count;  ##< Number of NFA states across all matchers.
+	dfa_states: count;  ##< Number of DFA states across all matchers.
+	computed: count;    ##< Number of computed DFA state transitions.
+	mem: count;         ##< Number of bytes used by DFA states.
+	hits: count;        ##< Number of cache hits.
+	misses: count;      ##< Number of cache misses.
+};
+
+## Statistics of timers.
+##
+## .. bro:see:: get_timer_stats
+type TimerStats: record {
+	current:    count; ##< Current number of pending timers.
+	max:        count; ##< Maximum number of concurrent timers pending so far.
+	cumulative: count; ##< Cumulative number of timers scheduled.
+};
+
+## Statistics of file analysis.
+##
+## .. bro:see:: get_file_analysis_stats
+type FileAnalysisStats: record {
+	current:    count; ##< Current number of files being analyzed.
+	max:        count; ##< Maximum number of concurrent files so far.
+	cumulative: count; ##< Cumulative number of files analyzed.
+};
+
+## Statistics related to Bro's active use of DNS.  These numbers are
+## about Bro performing DNS queries on it's own, not traffic
+## being seen.
+##
+## .. bro:see:: get_dns_stats
+type DNSStats: record {
+	requests:         count; ##< Number of DNS requests made
+	successful:       count; ##< Number of successful DNS replies.
+	failed:           count; ##< Number of DNS reply failures.
+	pending:          count; ##< Current pending queries.
+	cached_hosts:     count; ##< Number of cached hosts.
+	cached_addresses: count; ##< Number of cached addresses.
 };
 
 ## Statistics about number of gaps in TCP connections.
 ##
-## .. bro:see:: gap_report get_gap_summary
-type gap_info: record {
-	ack_events: count;	##< How many ack events *could* have had gaps.
-	ack_bytes: count;	##< How many bytes those covered.
-	gap_events: count;	##< How many *did* have gaps.
-	gap_bytes: count;	##< How many bytes were missing in the gaps.
+## .. bro:see:: get_gap_stats
+type GapStats: record {
+	ack_events: count;  ##< How many ack events *could* have had gaps.
+	ack_bytes: count;   ##< How many bytes those covered.
+	gap_events: count;  ##< How many *did* have gaps.
+	gap_bytes: count;   ##< How many bytes were missing in the gaps.
+};
+
+## Statistics about threads.
+##
+## .. bro:see:: get_thread_stats
+type ThreadStats: record {
+	num_threads: count;
 };
 
 ## Deprecated.
@@ -792,71 +855,6 @@ type entropy_test_result: record {
 	monte_carlo_pi: double;	##< Monte-carlo value for pi.
 	serial_correlation: double;	##< Serial correlation coefficient.
 };
-
-# Prototypes of Bro built-in functions.
-@load base/bif/strings.bif
-@load base/bif/bro.bif
-@load base/bif/reporter.bif
-
-## Deprecated. This is superseded by the new logging framework.
-global log_file_name: function(tag: string): string &redef;
-
-## Deprecated. This is superseded by the new logging framework.
-global open_log_file: function(tag: string): file &redef;
-
-## Specifies a directory for Bro to store its persistent state. All globals can
-## be declared persistent via the :bro:attr:`&persistent` attribute.
-const state_dir = ".state" &redef;
-
-## Length of the delays inserted when storing state incrementally. To avoid
-## dropping packets when serializing larger volumes of persistent state to
-## disk, Bro interleaves the operation with continued packet processing.
-const state_write_delay = 0.01 secs &redef;
-
-global done_with_network = F;
-event net_done(t: time) { done_with_network = T; }
-
-function log_file_name(tag: string): string
-	{
-	local suffix = getenv("BRO_LOG_SUFFIX") == "" ? "log" : getenv("BRO_LOG_SUFFIX");
-	return fmt("%s.%s", tag, suffix);
-	}
-
-function open_log_file(tag: string): file
-	{
-	return open(log_file_name(tag));
-	}
-
-## Internal function.
-function add_interface(iold: string, inew: string): string
-	{
-	if ( iold == "" )
-		return inew;
-	else
-		return fmt("%s %s", iold, inew);
-	}
-
-## Network interfaces to listen on. Use ``redef interfaces += "eth0"`` to
-## extend.
-global interfaces = "" &add_func = add_interface;
-
-## Internal function.
-function add_signature_file(sold: string, snew: string): string
-	{
-	if ( sold == "" )
-		return snew;
-	else
-		return cat(sold, " ", snew);
-	}
-
-## Signature files to read. Use ``redef signature_files  += "foo.sig"`` to
-## extend. Signature files added this way will be searched relative to
-## ``BROPATH``.  Using the ``@load-sigs`` directive instead is preferred
-## since that can search paths relative to the current script.
-global signature_files = "" &add_func = add_signature_file;
-
-## ``p0f`` fingerprint file to use. Will be searched relative to ``BROPATH``.
-const passive_fingerprint_file = "base/misc/p0f.fp" &redef;
 
 # TCP values for :bro:see:`endpoint` *state* field.
 # todo:: these should go into an enum to make them autodoc'able.
@@ -1767,6 +1765,71 @@ type gtp_delete_pdp_ctx_response_elements: record {
 	cause: gtp_cause;
 	ext:   gtp_private_extension &optional;
 };
+
+# Prototypes of Bro built-in functions.
+@load base/bif/strings.bif
+@load base/bif/bro.bif
+@load base/bif/reporter.bif
+
+## Deprecated. This is superseded by the new logging framework.
+global log_file_name: function(tag: string): string &redef;
+
+## Deprecated. This is superseded by the new logging framework.
+global open_log_file: function(tag: string): file &redef;
+
+## Specifies a directory for Bro to store its persistent state. All globals can
+## be declared persistent via the :bro:attr:`&persistent` attribute.
+const state_dir = ".state" &redef;
+
+## Length of the delays inserted when storing state incrementally. To avoid
+## dropping packets when serializing larger volumes of persistent state to
+## disk, Bro interleaves the operation with continued packet processing.
+const state_write_delay = 0.01 secs &redef;
+
+global done_with_network = F;
+event net_done(t: time) { done_with_network = T; }
+
+function log_file_name(tag: string): string
+	{
+	local suffix = getenv("BRO_LOG_SUFFIX") == "" ? "log" : getenv("BRO_LOG_SUFFIX");
+	return fmt("%s.%s", tag, suffix);
+	}
+
+function open_log_file(tag: string): file
+	{
+	return open(log_file_name(tag));
+	}
+
+## Internal function.
+function add_interface(iold: string, inew: string): string
+	{
+	if ( iold == "" )
+		return inew;
+	else
+		return fmt("%s %s", iold, inew);
+	}
+
+## Network interfaces to listen on. Use ``redef interfaces += "eth0"`` to
+## extend.
+global interfaces = "" &add_func = add_interface;
+
+## Internal function.
+function add_signature_file(sold: string, snew: string): string
+	{
+	if ( sold == "" )
+		return snew;
+	else
+		return cat(sold, " ", snew);
+	}
+
+## Signature files to read. Use ``redef signature_files  += "foo.sig"`` to
+## extend. Signature files added this way will be searched relative to
+## ``BROPATH``.  Using the ``@load-sigs`` directive instead is preferred
+## since that can search paths relative to the current script.
+global signature_files = "" &add_func = add_signature_file;
+
+## ``p0f`` fingerprint file to use. Will be searched relative to ``BROPATH``.
+const passive_fingerprint_file = "base/misc/p0f.fp" &redef;
 
 ## Definition of "secondary filters". A secondary filter is a BPF filter given
 ## as index in this table. For each such filter, the corresponding event is
@@ -3435,23 +3498,17 @@ global pkt_profile_file: file &redef;
 ## .. bro:see:: load_sample
 global load_sample_freq = 20 &redef;
 
-## Rate at which to generate :bro:see:`gap_report` events assessing to what
-## degree the measurement process appears to exhibit loss.
-##
-## .. bro:see:: gap_report
-const gap_report_freq = 1.0 sec &redef;
-
 ## Whether to attempt to automatically detect SYN/FIN/RST-filtered trace
 ## and not report missing segments for such connections.
 ## If this is enabled, then missing data at the end of connections may not
 ## be reported via :bro:see:`content_gap`.
 const detect_filtered_trace = F &redef;
 
-## Whether we want :bro:see:`content_gap` and :bro:see:`gap_report` for partial
+## Whether we want :bro:see:`content_gap` and :bro:see:`get_gap_summary` for partial
 ## connections. A connection is partial if it is missing a full handshake. Note
 ## that gap reports for partial connections might not be reliable.
 ##
-## .. bro:see:: content_gap gap_report partial_connection
+## .. bro:see:: content_gap get_gap_summary partial_connection
 const report_gaps_for_partial = F &redef;
 
 ## Flag to prevent Bro from exiting automatically when input is exhausted.

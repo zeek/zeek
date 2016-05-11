@@ -116,21 +116,28 @@ bool JSON::Describe(ODesc* desc, Value* val, const string& name) const
 				{
 				char buffer[40];
 				char buffer2[40];
-				time_t t = time_t(val->val.double_val);
+				time_t the_time = time_t(val->val.double_val);
+				struct tm t;
 
-				if ( strftime(buffer, sizeof(buffer), "%Y-%m-%dT%H:%M:%S", gmtime(&t)) > 0 )
+				desc->AddRaw("\"", 1);
+
+				if ( ! gmtime_r(&the_time, &t) ||
+				     ! strftime(buffer, sizeof(buffer), "%Y-%m-%dT%H:%M:%S", &t) )
+					{
+					GetThread()->Error(GetThread()->Fmt("json formatter: failure getting time: (%" PRIu64 ")", val->val.double_val));
+					// This was a failure, doesn't really matter what gets put here
+					// but it should probably stand out...
+					desc->Add("2000-01-01T00:00:00.000000");
+					}
+				else
 					{
 					double integ;
 					double frac = modf(val->val.double_val, &integ);
 					snprintf(buffer2, sizeof(buffer2), "%s.%06.0fZ", buffer, frac * 1000000);
-					desc->AddRaw("\"", 1);
 					desc->Add(buffer2);
-					desc->AddRaw("\"", 1);
 					}
 
-				else
-					GetThread()->Error(GetThread()->Fmt("strftime error for JSON: %" PRIu64));
-
+				desc->AddRaw("\"", 1);
 				}
 
 			else if ( timestamps == TS_EPOCH )

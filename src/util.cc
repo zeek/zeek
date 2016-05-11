@@ -14,6 +14,11 @@
 # endif
 #endif
 
+#ifdef HAVE_DARWIN
+#include <mach/task.h>
+#include <mach/mach_init.h>
+#endif
+
 #include <string>
 #include <vector>
 #include <algorithm>
@@ -571,7 +576,14 @@ const char* fmt_access_time(double t)
 	{
 	static char buf[256];
 	time_t time = (time_t) t;
-	strftime(buf, sizeof(buf), "%d/%m-%H:%M", localtime(&time));
+	struct tm ts;
+
+	if ( ! localtime_r(&time, &ts) )
+		{
+		reporter->InternalError("unable to get time");
+		}
+
+	strftime(buf, sizeof(buf), "%d/%m-%H:%M", &ts);
 	return buf;
 	}
 
@@ -1611,23 +1623,35 @@ extern "C" void out_of_memory(const char* where)
 	abort();
 	}
 
-void get_memory_usage(unsigned int* total, unsigned int* malloced)
+void get_memory_usage(uint64* total, uint64* malloced)
 	{
-	unsigned int ret_total;
+	uint64 ret_total;
 
 #ifdef HAVE_MALLINFO
 	struct mallinfo mi = mallinfo();
 
 	if ( malloced )
 		*malloced = mi.uordblks;
-
 #endif
 
+#ifdef HAVE_DARWIN
+	struct mach_task_basic_info t_info;
+	mach_msg_type_number_t t_info_count = MACH_TASK_BASIC_INFO;
+
+	if ( KERN_SUCCESS != task_info(mach_task_self(),
+	                               MACH_TASK_BASIC_INFO,
+	                               (task_info_t)&t_info,
+	                               &t_info_count) )
+		ret_total = 0;
+	else
+		ret_total = t_info.resident_size;
+#else
 	struct rusage r;
 	getrusage(RUSAGE_SELF, &r);
 
 	// In KB.
 	ret_total = r.ru_maxrss * 1024;
+#endif
 
 	if ( total )
 		*total = ret_total;

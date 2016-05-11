@@ -1,0 +1,12 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	x509
+#open	2016-04-26-19-27-59
+#fields	ts	id	certificate.version	certificate.serial	certificate.subject	certificate.issuer	certificate.not_valid_before	certificate.not_valid_after	certificate.key_alg	certificate.sig_alg	certificate.key_type	certificate.key_length	certificate.exponent	certificate.curve	san.dns	san.uri	san.email	san.ip	basic_constraints.ca	basic_constraints.path_len
+#types	time	string	count	string	string	string	time	time	string	string	string	count	string	string	vector[string]	vector[string]	vector[string]	vector[addr]	bool	count
+1461697070.246986	Feyr3x4h8S7yqikqYd	3	339D9ED8E73927C9	CN=imap.gmx.net,emailAddress=server-certs@1und1.de,L=Montabaur,ST=Rhineland-Palatinate,O=1&1 Mail & Media GmbH,C=DE	CN=TeleSec ServerPass DE-1,street=Untere Industriestr. 20,L=Netphen,postalCode=57250,ST=NRW,OU=T-Systems Trust Center,O=T-Systems International GmbH,C=DE	1384251451.000000	1479427199.000000	rsaEncryption	sha1WithRSAEncryption	rsa	2048	65537	-	imap.gmx.net,imap.gmx.de	-	-	-	F	-
+1461697070.246986	FdSwvBrmfL9It607b	3	21B6777E8CBD0EA8	CN=TeleSec ServerPass DE-1,street=Untere Industriestr. 20,L=Netphen,postalCode=57250,ST=NRW,OU=T-Systems Trust Center,O=T-Systems International GmbH,C=DE	CN=Deutsche Telekom Root CA 2,OU=T-TeleSec Trust Center,O=Deutsche Telekom AG,C=DE	1362146309.000000	1562716740.000000	rsaEncryption	sha1WithRSAEncryption	rsa	2048	65537	-	-	-	-	-	T	0
+1461697070.246986	F7YtKFoAux1T0Ycb3	3	26	CN=Deutsche Telekom Root CA 2,OU=T-TeleSec Trust Center,O=Deutsche Telekom AG,C=DE	CN=Deutsche Telekom Root CA 2,OU=T-TeleSec Trust Center,O=Deutsche Telekom AG,C=DE	931522260.000000	1562716740.000000	rsaEncryption	sha1WithRSAEncryption	rsa	2048	65537	-	-	-	-	-	T	5
+#close	2016-04-26-19-27-59

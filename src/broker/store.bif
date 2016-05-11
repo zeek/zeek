@@ -8,13 +8,13 @@
 #include "Trigger.h"
 %%}
 
-module BrokerStore;
+module Broker;
 
-type BrokerStore::ExpiryTime: record;
+type Broker::ExpiryTime: record;
 
-type BrokerStore::QueryResult: record;
+type Broker::QueryResult: record;
 
-type BrokerStore::BackendOptions: record;
+type Broker::BackendOptions: record;
 
 ## Enumerates the possible storage backends.
 enum BackendType %{
@@ -23,17 +23,8 @@ enum BackendType %{
 	ROCKSDB,
 %}
 
-## Create a master data store which contains key-value pairs.
-##
-## id: a unique name for the data store.
-##
-## b: the storage backend to use.
-##
-## options: tunes how some storage backends operate.
-##
-## Returns: a handle to the data store.
-function BrokerStore::create_master%(id: string, b: BackendType &default = MEMORY,
-                               options: BackendOptions &default = BackendOptions()%): opaque of BrokerStore::Handle
+function Broker::__create_master%(id: string, b: BackendType,
+                               options: BackendOptions &default = BackendOptions()%): opaque of Broker::Handle
 	%{
 	auto id_str = id->CheckString();
 	auto type = bro_broker::StoreType::MASTER;
@@ -46,38 +37,16 @@ function BrokerStore::create_master%(id: string, b: BackendType &default = MEMOR
 		}
 
 	rval = new bro_broker::StoreHandleVal(id_str, type,
-	                                static_cast<BifEnum::BrokerStore::BackendType>(b->AsEnum()),
+	                                static_cast<BifEnum::Broker::BackendType>(b->AsEnum()),
 	                                options->AsRecordVal());
 	auto added = broker_mgr->AddStore(rval);
 	assert(added);
 	return rval;
 	%}
 
-## Create a clone of a master data store which may live with a remote peer.
-## A clone automatically synchronizes to the master by automatically receiving
-## modifications and applying them locally.  Direct modifications are not
-## possible, they must be sent through the master store, which then
-## automatically broadcasts the changes out to clones.  But queries may be made
-## directly against the local cloned copy, which may be resolved quicker than
-## reaching out to a remote master store.
-##
-## id: the unique name which identifies the master data store.
-##
-## b: the storage backend to use.
-##
-## options: tunes how some storage backends operate.
-##
-## resync: the interval at which to re-attempt synchronizing with the master
-##         store should the connection be lost.  If the clone has not yet
-##         synchronized for the first time, updates and queries queue up until
-##         the synchronization completes.  After, if the connection to the
-##         master store is lost, queries continue to use the clone's version,
-##         but updates will be lost until the master is once again available.
-##
-## Returns: a handle to the data store.
-function BrokerStore::create_clone%(id: string, b: BackendType &default = MEMORY,
+function Broker::__create_clone%(id: string, b: BackendType,
                               options: BackendOptions &default = BackendOptions(),
-                              resync: interval &default = 1sec%): opaque of BrokerStore::Handle
+                              resync: interval &default = 1sec%): opaque of Broker::Handle
 	%{
 	auto id_str = id->CheckString();
 	auto type = bro_broker::StoreType::CLONE;
@@ -90,7 +59,7 @@ function BrokerStore::create_clone%(id: string, b: BackendType &default = MEMORY
 		}
 
 	rval = new bro_broker::StoreHandleVal(id_str, type,
-	                                static_cast<BifEnum::BrokerStore::BackendType>(b->AsEnum()),
+	                                static_cast<BifEnum::Broker::BackendType>(b->AsEnum()),
 	                                options->AsRecordVal(),
 	                                std::chrono::duration<double>(resync));
 	auto added = broker_mgr->AddStore(rval);
@@ -98,13 +67,7 @@ function BrokerStore::create_clone%(id: string, b: BackendType &default = MEMORY
 	return rval;
 	%}
 
-## Create a frontend interface to an existing master data store that allows
-## querying and updating its contents.
-##
-## id: the unique name which identifies the master data store.
-##
-## Returns: a handle to the data store.
-function BrokerStore::create_frontend%(id: string%): opaque of BrokerStore::Handle
+function Broker::__create_frontend%(id: string%): opaque of Broker::Handle
 	%{
 	auto id_str = id->CheckString();
 	auto type = bro_broker::StoreType::FRONTEND;
@@ -122,13 +85,7 @@ function BrokerStore::create_frontend%(id: string%): opaque of BrokerStore::Hand
 	return rval;
 	%}
 
-## Close a data store.
-##
-## h: a data store handle.
-##
-## Returns: true if store was valid and is now closed.  The handle can no
-##          longer be used for data store operations.
-function BrokerStore::close_by_handle%(h: opaque of BrokerStore::Handle%): bool
+function Broker::__close_by_handle%(h: opaque of Broker::Handle%): bool
 	%{
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 
@@ -143,20 +100,9 @@ function BrokerStore::close_by_handle%(h: opaque of BrokerStore::Handle%): bool
 # non-blocking update API #
 ###########################
 
-## Insert a key-value pair in to the store.
-##
-## h: the handle of the store to modify.
-##
-## k: the key to insert.
-##
-## v: the value to insert.
-##
-## e: the expiration time of the key-value pair.
-##
-## Returns: false if the store handle was not valid.
-function BrokerStore::insert%(h: opaque of BrokerStore::Handle,
-                        k: BrokerComm::Data, v: BrokerComm::Data,
-                        e: BrokerStore::ExpiryTime &default = BrokerStore::ExpiryTime()%): bool
+function Broker::__insert%(h: opaque of Broker::Handle,
+                        k: Broker::Data, v: Broker::Data,
+                        e: Broker::ExpiryTime &default = Broker::ExpiryTime()%): bool
 	%{
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 
@@ -191,14 +137,7 @@ function BrokerStore::insert%(h: opaque of BrokerStore::Handle,
 	return new Val(true, TYPE_BOOL);
 	%}
 
-## Remove a key-value pair from the store.
-##
-## h: the handle of the store to modify.
-##
-## k: the key to remove.
-##
-## Returns: false if the store handle was not valid.
-function BrokerStore::erase%(h: opaque of BrokerStore::Handle, k: BrokerComm::Data%): bool
+function Broker::__erase%(h: opaque of Broker::Handle, k: Broker::Data%): bool
 	%{
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 
@@ -210,12 +149,7 @@ function BrokerStore::erase%(h: opaque of BrokerStore::Handle, k: BrokerComm::Da
 	return new Val(true, TYPE_BOOL);
 	%}
 
-## Remove all key-value pairs from the store.
-##
-## h: the handle of the store to modify.
-##
-## Returns: false if the store handle was not valid.
-function BrokerStore::clear%(h: opaque of BrokerStore::Handle%): bool
+function Broker::__clear%(h: opaque of Broker::Handle%): bool
 	%{
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 
@@ -226,18 +160,8 @@ function BrokerStore::clear%(h: opaque of BrokerStore::Handle%): bool
 	return new Val(true, TYPE_BOOL);
 	%}
 
-## Increment an integer value in a data store.
-##
-## h: the handle of the store to modify.
-##
-## k: the key whose associated value is to be modified.
-##
-## by: the amount to increment the value by.  A non-existent key will first
-##     create it with an implicit value of zero before incrementing.
-##
-## Returns: false if the store handle was not valid.
-function BrokerStore::increment%(h: opaque of BrokerStore::Handle,
-                           k: BrokerComm::Data, by: int &default = +1%): bool
+function Broker::__increment%(h: opaque of Broker::Handle,
+                           k: Broker::Data, by: int &default = +1%): bool
 	%{
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 
@@ -249,18 +173,8 @@ function BrokerStore::increment%(h: opaque of BrokerStore::Handle,
 	return new Val(true, TYPE_BOOL);
 	%}
 
-## Decrement an integer value in a data store.
-##
-## h: the handle of the store to modify.
-##
-## k: the key whose associated value is to be modified.
-##
-## by: the amount to decrement the value by.  A non-existent key will first
-##     create it with an implicit value of zero before decrementing.
-##
-## Returns: false if the store handle was not valid.
-function BrokerStore::decrement%(h: opaque of BrokerStore::Handle,
-                           k: BrokerComm::Data, by: int &default = +1%): bool
+function Broker::__decrement%(h: opaque of Broker::Handle,
+                           k: Broker::Data, by: int &default = +1%): bool
 	%{
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 
@@ -272,18 +186,8 @@ function BrokerStore::decrement%(h: opaque of BrokerStore::Handle,
 	return new Val(true, TYPE_BOOL);
 	%}
 
-## Add an element to a set value in a data store.
-##
-## h: the handle of the store to modify.
-##
-## k: the key whose associated value is to be modified.
-##
-## element: the element to add to the set.  A non-existent key will first
-##          create it with an implicit empty set value before modifying.
-##
-## Returns: false if the store handle was not valid.
-function BrokerStore::add_to_set%(h: opaque of BrokerStore::Handle,
-                            k: BrokerComm::Data, element: BrokerComm::Data%): bool
+function Broker::__add_to_set%(h: opaque of Broker::Handle,
+                            k: Broker::Data, element: Broker::Data%): bool
 	%{
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 
@@ -296,18 +200,8 @@ function BrokerStore::add_to_set%(h: opaque of BrokerStore::Handle,
 	return new Val(true, TYPE_BOOL);
 	%}
 
-## Remove an element from a set value in a data store.
-##
-## h: the handle of the store to modify.
-##
-## k: the key whose associated value is to be modified.
-##
-## element: the element to remove from the set.  A non-existent key will
-##          implicitly create an empty set value associated with the key.
-##
-## Returns: false if the store handle was not valid.
-function BrokerStore::remove_from_set%(h: opaque of BrokerStore::Handle,
-                                 k: BrokerComm::Data, element: BrokerComm::Data%): bool
+function Broker::__remove_from_set%(h: opaque of Broker::Handle,
+                                 k: Broker::Data, element: Broker::Data%): bool
 	%{
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 
@@ -320,18 +214,8 @@ function BrokerStore::remove_from_set%(h: opaque of BrokerStore::Handle,
 	return new Val(true, TYPE_BOOL);
 	%}
 
-## Add a new item to the head of a vector value in a data store.
-##
-## h: the handle of store to modify.
-##
-## k: the key whose associated value is to be modified.
-##
-## items: the element to insert in to the vector.  A non-existent key will first
-##        create an empty vector value before modifying.
-##
-## Returns: false if the store handle was not valid.
-function BrokerStore::push_left%(h: opaque of BrokerStore::Handle, k: BrokerComm::Data,
-                           items: BrokerComm::DataVector%): bool
+function Broker::__push_left%(h: opaque of Broker::Handle, k: Broker::Data,
+                           items: Broker::DataVector%): bool
 	%{
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 
@@ -353,18 +237,8 @@ function BrokerStore::push_left%(h: opaque of BrokerStore::Handle, k: BrokerComm
 	return new Val(true, TYPE_BOOL);
 	%}
 
-## Add a new item to the tail of a vector value in a data store.
-##
-## h: the handle of store to modify.
-##
-## k: the key whose associated value is to be modified.
-##
-## items: the element to insert in to the vector.  A non-existent key will first
-##        create an empty vector value before modifying.
-##
-## Returns: false if the store handle was not valid.
-function BrokerStore::push_right%(h: opaque of BrokerStore::Handle, k: BrokerComm::Data,
-                            items: BrokerComm::DataVector%): bool
+function Broker::__push_right%(h: opaque of Broker::Handle, k: Broker::Data,
+                            items: Broker::DataVector%): bool
 	%{
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 
@@ -401,7 +275,7 @@ static bool prepare_for_query(Val* opaque, Frame* frame,
 	if ( ! (*handle)->store )
 		{
 		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
-		reporter->Error("BrokerStore query has an invalid data store");
+		reporter->Error("Broker query has an invalid data store");
 		reporter->PopLocation();
 		return false;
 		}
@@ -411,7 +285,7 @@ static bool prepare_for_query(Val* opaque, Frame* frame,
 	if ( ! trigger )
 		{
 		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
-		reporter->Error("BrokerStore queries can only be called inside when-condition");
+		reporter->Error("Broker queries can only be called inside when-condition");
 		reporter->PopLocation();
 		return false;
 		}
@@ -421,7 +295,7 @@ static bool prepare_for_query(Val* opaque, Frame* frame,
 	if ( *timeout < 0 )
 		{
 		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
-		reporter->Error("BrokerStore queries must specify a timeout block");
+		reporter->Error("Broker queries must specify a timeout block");
 		reporter->PopLocation();
 		return false;
 		}
@@ -437,15 +311,8 @@ static bool prepare_for_query(Val* opaque, Frame* frame,
 
 %%}
 
-## Pop the head of a data store vector value.
-##
-## h: the handle of the store to query.
-##
-## k: the key associated with the vector to modify.
-##
-## Returns: the result of the query.
-function BrokerStore::pop_left%(h: opaque of BrokerStore::Handle,
-                          k: BrokerComm::Data%): BrokerStore::QueryResult
+function Broker::__pop_left%(h: opaque of Broker::Handle,
+                          k: Broker::Data%): Broker::QueryResult
 	%{
 	if ( ! broker_mgr->Enabled() )
 		return bro_broker::query_result();
@@ -467,15 +334,8 @@ function BrokerStore::pop_left%(h: opaque of BrokerStore::Handle,
 	return 0;
 	%}
 
-## Pop the tail of a data store vector value.
-##
-## h: the handle of the store to query.
-##
-## k: the key associated with the vector to modify.
-##
-## Returns: the result of the query.
-function BrokerStore::pop_right%(h: opaque of BrokerStore::Handle,
-                           k: BrokerComm::Data%): BrokerStore::QueryResult
+function Broker::__pop_right%(h: opaque of Broker::Handle,
+                           k: Broker::Data%): Broker::QueryResult
 	%{
 	if ( ! broker_mgr->Enabled() )
 		return bro_broker::query_result();
@@ -497,15 +357,8 @@ function BrokerStore::pop_right%(h: opaque of BrokerStore::Handle,
 	return 0;
 	%}
 
-## Lookup the value associated with a key in a data store.
-##
-## h: the handle of the store to query.
-##
-## k: the key to lookup.
-##
-## Returns: the result of the query.
-function BrokerStore::lookup%(h: opaque of BrokerStore::Handle,
-                       k: BrokerComm::Data%): BrokerStore::QueryResult
+function Broker::__lookup%(h: opaque of Broker::Handle,
+                       k: Broker::Data%): Broker::QueryResult
 	%{
 	if ( ! broker_mgr->Enabled() )
 		return bro_broker::query_result();
@@ -527,15 +380,8 @@ function BrokerStore::lookup%(h: opaque of BrokerStore::Handle,
 	return 0;
 	%}
 
-## Check if a data store contains a given key.
-##
-## h: the handle of the store to query.
-##
-## k: the key to check for existence.
-##
-## Returns: the result of the query (uses :bro:see:`BrokerComm::BOOL`).
-function BrokerStore::exists%(h: opaque of BrokerStore::Handle,
-                        k: BrokerComm::Data%): BrokerStore::QueryResult
+function Broker::__exists%(h: opaque of Broker::Handle,
+                        k: Broker::Data%): Broker::QueryResult
 	%{
 	if ( ! broker_mgr->Enabled() )
 		return bro_broker::query_result();
@@ -557,12 +403,7 @@ function BrokerStore::exists%(h: opaque of BrokerStore::Handle,
 	return 0;
 	%}
 
-## Retrieve all keys in a data store.
-##
-## h: the handle of the store to query.
-##
-## Returns: the result of the query (uses :bro:see:`BrokerComm::VECTOR`).
-function BrokerStore::keys%(h: opaque of BrokerStore::Handle%): BrokerStore::QueryResult
+function Broker::__keys%(h: opaque of Broker::Handle%): Broker::QueryResult
 	%{
 	double timeout;
 	bro_broker::StoreQueryCallback* cb;
@@ -575,12 +416,7 @@ function BrokerStore::keys%(h: opaque of BrokerStore::Handle%): BrokerStore::Que
 	return 0;
 	%}
 
-## Get the number of key-value pairs in a data store.
-##
-## h: the handle of the store to query.
-##
-## Returns: the result of the query (uses :bro:see:`BrokerComm::COUNT`).
-function BrokerStore::size%(h: opaque of BrokerStore::Handle%): BrokerStore::QueryResult
+function Broker::__size%(h: opaque of Broker::Handle%): Broker::QueryResult
 	%{
 	if ( ! broker_mgr->Enabled() )
 		return bro_broker::query_result();

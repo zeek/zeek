@@ -428,15 +428,6 @@ void Packet::ProcessLayer2()
 
 RecordVal* Packet::BuildPktHdrVal() const
 	{
-	static RecordType* l2_hdr_type = 0;
-	static RecordType* raw_pkt_hdr_type = 0;
-
-	if ( ! raw_pkt_hdr_type )
-		{
-		raw_pkt_hdr_type = internal_type("raw_pkt_hdr")->AsRecordType();
-		l2_hdr_type = internal_type("l2_hdr")->AsRecordType();
-		}
-
 	RecordVal* pkt_hdr = new RecordVal(raw_pkt_hdr_type);
 	RecordVal* l2_hdr = new RecordVal(l2_hdr_type);
 

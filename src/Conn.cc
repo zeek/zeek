@@ -108,9 +108,9 @@ bool ConnectionTimer::DoUnserialize(UnserialInfo* info)
 	return true;
 	}
 
-unsigned int Connection::total_connections = 0;
-unsigned int Connection::current_connections = 0;
-unsigned int Connection::external_connections = 0;
+uint64 Connection::total_connections = 0;
+uint64 Connection::current_connections = 0;
+uint64 Connection::external_connections = 0;
 
 IMPLEMENT_SERIAL(Connection, SER_CONNECTION);
 

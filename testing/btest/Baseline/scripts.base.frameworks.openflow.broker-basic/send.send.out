@@ -1,4 +1,4 @@
-BrokerComm::outgoing_connection_established, 127.0.0.1, 9999/tcp
+Broker::outgoing_connection_established, 127.0.0.1, 9999/tcp
 Flow_mod_success
 Flow_mod_failure
 connection established

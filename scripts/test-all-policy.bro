@@ -15,6 +15,7 @@
 @load frameworks/dpd/detect-protocols.bro
 @load frameworks/dpd/packet-segment-logging.bro
 @load frameworks/intel/do_notice.bro
+@load frameworks/intel/whitelist.bro
 @load frameworks/intel/seen/__load__.bro
 @load frameworks/intel/seen/conn-established.bro
 @load frameworks/intel/seen/dns.bro

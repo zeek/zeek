@@ -165,6 +165,19 @@ export {
 	## data within the intelligence framework.
 	global match: event(s: Seen, items: set[Item]);
 
+	## This hook can be used to extend the intel log by adding data to the
+	## Info record. The default information is added with a priority of 5.
+	##
+	## info: The Info record that will be logged.
+	##
+	## s: Information about the data seen.
+	##
+	## items: The intel items that match the seen data.
+	##
+	## In case the hook execution is terminated using break, the match will
+	## not be logged.
+	global extend_match: hook(info: Info, s: Seen, items: set[Item]);
+
 	global log_intel: event(rec: Info);
 }
 
@@ -306,6 +319,12 @@ event Intel::match(s: Seen, items: set[Item]) &priority=5
 	{
 	local info = Info($ts=network_time(), $seen=s, $matched=TypeSet());
 
+	if ( hook extend_match(info, s, items) )
+		Log::write(Intel::LOG, info);
+	}
+
+hook extend_match(info: Info, s: Seen, items: set[Item]) &priority=5
+	{
 	if ( s?$f )
 		{
 		s$fuid = s$f$id;
@@ -340,8 +359,6 @@ event Intel::match(s: Seen, items: set[Item]) &priority=5
 		add info$sources[item$meta$source];
 		add info$matched[item$indicator_type];
 		}
-
-	Log::write(Intel::LOG, info);
 	}
 
 function insert(item: Item)

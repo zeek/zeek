@@ -270,6 +270,8 @@ export {
 
 module Broker;
 
+@ifdef ( Broker::__enable )
+
 function enable(flags: EndpointFlags &default = EndpointFlags()) : bool
     {
     return __enable(flags);
@@ -370,3 +372,4 @@ function unsubscribe_to_logs(topic_prefix: string): bool
     return __unsubscribe_to_logs(topic_prefix);
     }
 
+@endif

@@ -5,6 +5,8 @@
 
 module OpenFlow;
 
+@ifdef ( Broker::__enable )
+
 export {
 	redef enum Plugin += {
 		BROKER,
@@ -93,3 +95,4 @@ function broker_new(name: string, host: addr, host_port: port, topic: string, dp
 	return c;
 	}
 
+@endif

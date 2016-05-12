@@ -1,4 +1,12 @@
 
+2.4-552 | 2016-05-12 08:04:33 -0700
+
+  * Fix a bug in receiving remote logs via broker. (Daniel Thayer)
+
+  * Fix Bro and unit tests when broker is not enabled. (Daniel Thayer)
+
+  * Added interpreter error for local event variables. (Jan Grashoefer)
+
 2.4-544 | 2016-05-07 12:19:07 -0700
 
   * Switching all use of gmtime and localtime to use reentrant

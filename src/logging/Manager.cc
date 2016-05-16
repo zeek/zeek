@@ -31,6 +31,8 @@ struct Manager::Filter {
 	Val* path_val;
 	EnumVal* writer;
 	TableVal* config;
+	TableVal* field_name_map;
+	string unrolling_sep;
 	bool local;
 	bool remote;
 	double interval;
@@ -393,7 +395,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 		if ( ! path.size() )
 			new_path = rt->FieldName(i);
 		else
-			new_path = path + "." + rt->FieldName(i);
+			new_path = path + filter->unrolling_sep + rt->FieldName(i);
 
 		if ( t->InternalType() == TYPE_INTERNAL_OTHER )
 			{
@@ -523,6 +525,8 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 	Val* interv = fval->Lookup("interv", true);
 	Val* postprocessor = fval->Lookup("postprocessor", true);
 	Val* config = fval->Lookup("config", true);
+	Val* field_name_map = fval->Lookup("field_name_map", true);
+	Val* unrolling_sep = fval->Lookup("unrolling_sep", true);
 
 	Filter* filter = new Filter;
 	filter->name = name->AsString()->CheckString();
@@ -535,6 +539,8 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 	filter->interval = interv->AsInterval();
 	filter->postprocessor = postprocessor ? postprocessor->AsFunc() : 0;
 	filter->config = config->Ref()->AsTableVal();
+	filter->field_name_map = field_name_map->Ref()->AsTableVal();
+	filter->unrolling_sep = unrolling_sep->AsString()->CheckString();
 
 	Unref(name);
 	Unref(pred);
@@ -544,6 +550,8 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 	Unref(interv);
 	Unref(postprocessor);
 	Unref(config);
+	Unref(field_name_map);
+	Unref(unrolling_sep);
 
 	// Build the list of fields that the filter wants included, including
 	// potentially rolling out fields.
@@ -795,7 +803,19 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 			threading::Field** arg_fields = new threading::Field*[filter->num_fields];
 
 			for ( int j = 0; j < filter->num_fields; ++j )
+				{
+				// Rename fields if a field name map is set.
+				if ( filter->field_name_map )
+					{
+					const char* name = filter->fields[j]->name;
+					StringVal *fn = new StringVal(name);
+					Val *val = 0;
+					if ( (val = filter->field_name_map->Lookup(fn, false)) != 0 )
+						filter->fields[j]->name = val->AsStringVal()->CheckString();
+					delete fn;
+					}
 				arg_fields[j] = new threading::Field(*filter->fields[j]);
+				}
 
 			WriterBackend::WriterInfo* info = new WriterBackend::WriterInfo;
 			info->path = copy_string(path.c_str());
@@ -1146,6 +1166,7 @@ bool Manager::Write(EnumVal* id, EnumVal* writer, string path, int num_fields,
 		DeleteVals(num_fields, vals);
 		return false;
 		}
+
 
 	w->second->writer->Write(num_fields, vals);
 

@@ -101,6 +101,15 @@ export {
 	## option.
 	const default_mail_alarms_interval = 0secs &redef;
 
+	## Default field name mapping for renaming fields in a logging framework
+	## filter.  This is typically used to ease integration with external
+	## data storage and analysis systems.
+	const default_field_name_map: table[string] of string = table() &redef;
+
+	## Default separator for unrolled and flattened fields names for 
+	## nested records.
+	const default_unrolling_sep = "." &redef;
+
 	## Default naming format for timestamps embedded into filenames.
 	## Uses a ``strftime()`` style.
 	const default_rotation_date_format = "%Y-%m-%d-%H-%M-%S" &redef;
@@ -185,6 +194,14 @@ export {
 
 		## If true, entries are passed on to remote peers.
 		log_remote: bool &default=enable_remote_logging;
+
+		## Field name map to rename fields before the fields are written 
+		## to the output.
+		field_name_map: table[string] of string &default=default_field_name_map;
+
+		## A string that is used for unrolling and flattening field names
+		## for nested record types.
+		unrolling_sep: string &default=default_unrolling_sep;
 
 		## Rotation interval. Zero disables rotation.
 		interv: interval &default=default_rotation_interval;

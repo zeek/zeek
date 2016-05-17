@@ -1,4 +1,10 @@
 
+2.4-555 | 2016-05-16 20:10:15 -0700
+
+  * Fix failing plugin tests on OS X 10.11. (Daniel Thayer)
+
+  * Fix failing test on Debian/FreeBSD. (Johanna Amann)
+
 2.4-552 | 2016-05-12 08:04:33 -0700
 
   * Fix a bug in receiving remote logs via broker. (Daniel Thayer)

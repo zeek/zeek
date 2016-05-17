@@ -1,4 +1,18 @@
 
+2.4-563 | 2016-05-17 16:25:21 -0700
+
+  * Fix duplication of new_connection_contents event. Addresses
+    BIT-1602 (Johanna Amann)
+
+  * SMTP: Support SSL upgrade via X-ANONYMOUSTLS This seems to be a
+    non-standardized microsoft extension that, besides having a
+    different name, works pretty much the same as StartTLS. We just
+    treat it as such. (Johanna Amann)
+
+  * Fixing control framework's net_stats and peer_status commands. For
+    the latter, this removes most of the values returned, as we don't
+    have access to them anymore. (Robin Sommer)
+
 2.4-555 | 2016-05-16 20:10:15 -0700
 
   * Fix failing plugin tests on OS X 10.11. (Daniel Thayer)

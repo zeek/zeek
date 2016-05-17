@@ -39,7 +39,6 @@ void DTLS_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64
 	// In this case the packet cannot be a DTLS packet and there
 	// is a nearly 100% chance that it is a STUN packet. Skip it without complaining.
 	// For details on the first two packets and the given masks, see the STUN RFC.
-	printf("Packet %d %d %d\n", data[0], data[1], orig);
 	if ( len > 20 && ( data[0] & 0xFE ) == 0 && data[1] > 0 && ( data[1] & 0xEF ) <= 12 )
 	{
 		printf("Ignored! %d %d\n", data[0], data[1]);

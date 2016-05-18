@@ -16,6 +16,16 @@ enum Layer3Proto {
 };
 
 /**
+ * The Layer 2 type of a packet
+ */
+enum Layer2Proto {
+	L2_UNKNOWN = -1,
+	L2_ETHERNET = 1,
+	L2_GOOSE = 2
+};
+
+
+/**
  * A link-layer packet.
  *
  * Note that for serialization we don't use much of the support provided by
@@ -164,6 +174,13 @@ public:
 	uint32 hdr_size;
 
 	/**
+	 * Layer 2 protocol identified (if any). Valid iff Layer2Valid()
+	 * returns true.
+	 */
+	Layer2Proto l2_proto;		///
+
+
+	/**
 	 * Layer 3 protocol identified (if any). Valid iff Layer2Valid()
 	 * returns true.
 	 */
@@ -203,6 +220,9 @@ private:
 
 	// True if L2 processing succeeded.
 	bool l2_valid;
+
+	// True if this carries a Level 3 protocol or ARP.
+	bool have_L3;
 };
 
 #endif // packet_h

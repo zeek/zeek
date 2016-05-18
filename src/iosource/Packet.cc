@@ -40,7 +40,9 @@ void Packet::Init(int arg_link_type, struct timeval *arg_ts, uint32 arg_caplen,
 
 	time = ts.tv_sec + double(ts.tv_usec) / 1e6;
 	hdr_size = GetLinkHeaderSize(arg_link_type);
+	l2_proto = L2_UNKNOWN;
 	l3_proto = L3_UNKNOWN;
+	have_L3 = true; // default value is 'true' as it is in most cases.
 	eth_type = 0;
 	vlan = 0;
 	inner_vlan = 0;
@@ -134,6 +136,8 @@ void Packet::ProcessLayer2()
 
 	case DLT_EN10MB:
 		{
+		l2_proto = L2_ETHERNET;
+
 		// Get protocol being carried from the ethernet frame.
 		int protocol = (pdata[12] << 8) + pdata[13];
 		pdata += GetLinkHeaderSize(link_type);
@@ -207,10 +211,15 @@ void Packet::ProcessLayer2()
 					}
 
 				break;
+			case 0x88b8: //GOOSE protocol
+				l2_proto = L2_GOOSE;
+				have_L3 = false;
+
+				break;
 			}
 
 		// Normal path to determine Layer 3 protocol.
-		if ( ! have_mpls && l3_proto == L3_UNKNOWN )
+		if (have_L3 && ! have_mpls && l3_proto == L3_UNKNOWN )
 			{
 			if ( protocol == 0x800 )
 				l3_proto = L3_IPV4;
@@ -225,6 +234,18 @@ void Packet::ProcessLayer2()
 				return;
 				}
 			}
+
+		if(!have_L3) {
+			switch(l2_proto)
+			{
+				case L2_GOOSE:
+					break;
+				
+				default: // case L2_UNKNOWN:
+					Weird("No Layer 3 protocols and couldn't identify Layer 2 protocol.");
+					return;
+			}
+		}
 
 		break;
 		}

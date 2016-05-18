@@ -5,6 +5,7 @@
 %header{
 	Val* asn1_integer_to_val(const ASN1Encoding* i, TypeTag t);
 	Val* asn1_integer_to_val(const ASN1Integer* i, TypeTag t);
+	StringVal* asn1_oid_to_val(const bytestring& oid);
 	StringVal* asn1_oid_to_val(const ASN1Encoding* oid);
 	StringVal* asn1_oid_to_val(const ASN1ObjectIdentifier* oid);
 	StringVal* asn1_octet_string_to_val(const ASN1Encoding* s);
@@ -114,16 +115,20 @@ Val* asn1_integer_to_val(const ASN1Encoding* i, TypeTag t)
 
 StringVal* asn1_oid_to_val(const ASN1ObjectIdentifier* oid)
 	{
-	return asn1_oid_to_val(oid->encoding());
+	return asn1_oid_to_val(oid->encoding()->content());
 	}
 
 StringVal* asn1_oid_to_val(const ASN1Encoding* oid)
+	{
+	return asn1_oid_to_val(oid->content());
+	}
+
+StringVal* asn1_oid_to_val(const bytestring & bs)
 	{
 	vector<uint64> oid_components;
 	vector<vector<uint8> > subidentifiers;
 	vector<uint64> subidentifier_values;
 	vector<uint8> subidentifier;
-	bytestring const& bs = oid->content();
 
 	for ( int i = 0; i < bs.length(); ++i )
 		{

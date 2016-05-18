@@ -45,6 +45,7 @@
 @load base/protocols/dnp3
 @load base/protocols/dns
 @load base/protocols/ftp
+@load base/protocols/goose
 @load base/protocols/http
 @load base/protocols/imap
 @load base/protocols/irc

@@ -1,0 +1,5 @@
+
+event goose_message%(goosePdu: GOOSE::PDU%);
+
+type GOOSE::PDU: record;
+type GOOSE::UTCTime: record;

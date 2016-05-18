@@ -3417,6 +3417,29 @@ export {
 	};
 }
 
+module GOOSE;
+
+export {
+	## Measurement of time
+	type GOOSE::UTCTime : record {
+		## The number of seconds elapsed since 0h on January the 1rst,
+		## 1970
+		secondsSince1970 : count;
+		## The number of nanoseconds since the last whole second
+		nanoseconds	 : count;
+	};
+
+	## The main object of GOOSE
+	type GOOSE::PDU : record {
+		gocbRef          : string;
+		timeAllowedToLive: count;
+		goID		 : string &optional; 
+		t		 : GOOSE::UTCTime;
+		stNum		 : count;
+		sqNum		 : count;
+	};
+}
+
 module GLOBAL;
 
 @load base/bif/event.bif

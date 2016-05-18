@@ -25,6 +25,8 @@
 #include "analyzer/protocol/backdoor/events.bif.h"
 #include "analyzer/protocol/interconn/InterConn.h"
 #include "analyzer/protocol/interconn/events.bif.h"
+#include "analyzer/protocol/goose/GOOSE.h"
+#include "analyzer/protocol/goose/events.bif.h"
 #include "analyzer/protocol/arp/ARP.h"
 #include "analyzer/protocol/arp/events.bif.h"
 #include "Discard.h"
@@ -144,6 +146,10 @@ NetSessions::NetSessions()
 	else
 		pkt_profiler = 0;
 
+	// GOOSE analyzer.
+	if ( goose_message )
+		goose_analyzer = new analyzer::goose::GOOSE_Analyzer();	
+
 	if ( arp_request || arp_reply || bad_arp )
 		arp_analyzer = new analyzer::arp::ARP_Analyzer();
 	else
@@ -193,6 +199,12 @@ void NetSessions::NextPacket(double t, const Packet* pkt)
 		}
 
 	uint32 caplen = pkt->cap_len - pkt->hdr_size;
+
+
+	if( pkt->l2_proto == L2_GOOSE )
+	{
+		goose_analyzer->NextPacket(t, pkt);
+	}
 
 	if ( pkt->l3_proto == L3_IPV4 )
 		{

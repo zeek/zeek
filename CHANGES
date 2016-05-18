@@ -1,4 +1,16 @@
 
+2.4-569 | 2016-05-18 07:39:35 -0700
+
+  * DTLS: Use magix constant from RFC 5389 for STUN detection.
+    (Johanna Amann)
+
+  * DTLS: Fix binpac bug with DTLSv1.2 client hellos. (Johanna Amann)
+
+  * DTLS: Fix interaction with STUN. Now the DTLS analyzer cleanly
+    skips all STUN messages. (Johanna Amann)
+
+  * Fix the way that child analyzers are added. (Johanna Amann)
+
 2.4-563 | 2016-05-17 16:25:21 -0700
 
   * Fix duplication of new_connection_contents event. Addresses

@@ -17,7 +17,7 @@
 %}
 
 %include ../asn1/asn1.pac
-%include asn1Integer.pac
+%include gooseInteger.pac
 %include asn1BitString.pac
 
 %header{
@@ -26,7 +26,7 @@
 
 #     === Debugging tools ===
 
-function debugASNLength(id: uint8, sizeOfVal: uint8, val: int32): bool
+function debugASNLength(id: uint8, sizeOfVal: uint8, val: uint32): bool
 %{
 	std::cout << "Identifier : " << (int)id 
 		  << "; sizeOfValue: " << (int)sizeOfVal 

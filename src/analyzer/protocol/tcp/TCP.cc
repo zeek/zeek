@@ -408,11 +408,6 @@ void TCP_Analyzer::EnableReassembly()
 	                                   TCP_Reassembler::Forward, orig),
 	               new TCP_Reassembler(this, this,
 	                                   TCP_Reassembler::Forward, resp));
-
-	reassembling = 1;
-
-	if ( new_connection_contents )
-		Event(new_connection_contents);
 	}
 
 void TCP_Analyzer::SetReassembler(TCP_Reassembler* rorig,
@@ -423,10 +418,10 @@ void TCP_Analyzer::SetReassembler(TCP_Reassembler* rorig,
 	resp->AddReassembler(rresp);
 	rresp->SetDstAnalyzer(this);
 
-	reassembling = 1;
-
-	if ( new_connection_contents )
+	if ( new_connection_contents && reassembling == 0 )
 		Event(new_connection_contents);
+
+	reassembling = 1;
 	}
 
 const struct tcphdr* TCP_Analyzer::ExtractTCP_Header(const u_char*& data, 

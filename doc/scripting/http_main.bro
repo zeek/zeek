@@ -1,7 +1,3 @@
-# @TEST-EXEC: cat %INPUT >output && btest-diff output
-
-main.bro
-
 module HTTP;
 
 export {

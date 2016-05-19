@@ -8,7 +8,7 @@ namespace file_analysis {
 class File;
 
 FileReassembler::FileReassembler(File *f, uint64 starting_offset)
-	: Reassembler(starting_offset), the_file(f), flushing(false)
+	: Reassembler(starting_offset, REASSEM_FILE), the_file(f), flushing(false)
 	{
 	}
 

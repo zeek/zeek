@@ -1,6 +1,6 @@
 # @TEST-EXEC: cat %INPUT >output && btest-diff output
 
-main.bro
+http_main.bro
 
 module HTTP;
 

@@ -44,6 +44,7 @@ export {
 		ACTION_ALARM,
 	};
 
+	## Type that represents a set of actions.
 	type ActionSet: set[Notice::Action];
 
 	## The notice framework is able to do automatic notice suppression by
@@ -52,6 +53,7 @@ export {
 	## suppression.
 	const default_suppression_interval = 1hrs &redef;
 
+	## The record type that is used for representing and logging notices.
 	type Info: record {
 		## An absolute time indicating when the notice occurred,
 		## defaults to the current network time.

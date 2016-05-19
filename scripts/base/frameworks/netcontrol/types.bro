@@ -14,7 +14,7 @@ export {
 		MAC,		##< Activity involving a MAC address.
 	};
 
-	## Type of a :bro:id:`Flow` for defining a flow.
+	## Type for defining a flow.
 	type Flow: record {
 		src_h: subnet &optional;	##< The source IP address/subnet.
 		src_p: port &optional;	##< The source port number.
@@ -27,10 +27,10 @@ export {
 	## Type defining the enity an :bro:id:`Rule` is operating on.
 	type Entity: record {
 		ty: EntityType;			##< Type of entity.
-		conn: conn_id &optional;	##< Used with :bro:id:`CONNECTION` .
-		flow: Flow &optional;	##< Used with :bro:id:`FLOW` .
-		ip: subnet &optional;		##< Used with bro:id:`ADDRESS`; can specifiy a CIDR subnet.
-		mac: string &optional;		##< Used with :bro:id:`MAC`.
+		conn: conn_id &optional;	##< Used with :bro:enum:`NetControl::CONNECTION`.
+		flow: Flow &optional;	##< Used with :bro:enum:`NetControl::FLOW`.
+		ip: subnet &optional;		##< Used with :bro:enum:`NetControl::ADDRESS` to specifiy a CIDR subnet.
+		mac: string &optional;		##< Used with :bro:enum:`NetControl::MAC`.
 	};
 
 	## Target of :bro:id:`Rule` action.
@@ -68,7 +68,7 @@ export {
 		WHITELIST,
 	};
 
-	## Type of a :bro:id:`FlowMod` for defining a flow modification action.
+	## Type for defining a flow modification action.
 	type FlowMod: record {
 		src_h: addr &optional;	##< The source IP address.
 		src_p: count &optional;	##< The source port number.
@@ -90,8 +90,8 @@ export {
 		priority: int &default=default_priority;	##< Priority if multiple rules match an entity (larger value is higher priority).
 		location: string &optional;	##< Optional string describing where/what installed the rule.
 
-		out_port: count &optional;		##< Argument for bro:id:`REDIRECT` rules.
-		mod: FlowMod &optional; ##< Argument for :bro:id:`MODIFY` rules.
+		out_port: count &optional;		##< Argument for :bro:enum:`NetControl::REDIRECT` rules.
+		mod: FlowMod &optional; ##< Argument for :bro:enum:`NetControl::MODIFY` rules.
 
 		id: string &default="";		##< Internally determined unique ID for this rule. Will be set when added.
 		cid: count &default=0;		##< Internally determined unique numeric ID for this rule. Set when added.

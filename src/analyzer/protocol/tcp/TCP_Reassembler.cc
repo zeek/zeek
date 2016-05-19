@@ -5,9 +5,6 @@
 #include "analyzer/protocol/tcp/TCP.h"
 #include "TCP_Endpoint.h"
 
-// Only needed for gap_report events.
-#include "Event.h"
-
 #include "events.bif.h"
 
 using namespace analyzer::tcp;
@@ -18,17 +15,11 @@ const bool DEBUG_tcp_contents = false;
 const bool DEBUG_tcp_connection_close = false;
 const bool DEBUG_tcp_match_undelivered = false;
 
-static double last_gap_report = 0.0;
-static uint64 last_ack_events = 0;
-static uint64 last_ack_bytes = 0;
-static uint64 last_gap_events = 0;
-static uint64 last_gap_bytes = 0;
-
 TCP_Reassembler::TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer,
 				TCP_Analyzer* arg_tcp_analyzer,
 				TCP_Reassembler::Type arg_type,
 				TCP_Endpoint* arg_endp)
-	: Reassembler(1)
+	: Reassembler(1, REASSEM_TCP)
 	{
 	dst_analyzer = arg_dst_analyzer;
 	tcp_analyzer = arg_tcp_analyzer;
@@ -45,7 +36,7 @@ TCP_Reassembler::TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer,
 	if ( tcp_max_old_segments )
 		SetMaxOldBlocks(tcp_max_old_segments);
 
-	if ( tcp_contents )
+	if ( ::tcp_contents )
 		{
 		// Val dst_port_val(ntohs(Conn()->RespPort()), TYPE_PORT);
 		PortVal dst_port_val(ntohs(tcp_analyzer->Conn()->RespPort()),
@@ -387,7 +378,6 @@ void TCP_Reassembler::BlockInserted(DataBlock* start_block)
 			{ // New stuff.
 			uint64 len = b->Size();
 			uint64 seq = last_reassem_seq;
-
 			last_reassem_seq += len;
 
 			if ( record_contents_file )
@@ -547,35 +537,6 @@ void TCP_Reassembler::AckReceived(uint64 seq)
 			++tot_gap_events;
 			tot_gap_bytes += num_missing;
 			tcp_analyzer->Event(ack_above_hole);
-			}
-
-		double dt = network_time - last_gap_report;
-
-		if ( gap_report && gap_report_freq > 0.0 &&
-		     dt >= gap_report_freq )
-			{
-			uint64 devents = tot_ack_events - last_ack_events;
-			uint64 dbytes = tot_ack_bytes - last_ack_bytes;
-			uint64 dgaps = tot_gap_events - last_gap_events;
-			uint64 dgap_bytes = tot_gap_bytes - last_gap_bytes;
-
-			RecordVal* r = new RecordVal(gap_info);
-			r->Assign(0, new Val(devents, TYPE_COUNT));
-			r->Assign(1, new Val(dbytes, TYPE_COUNT));
-			r->Assign(2, new Val(dgaps, TYPE_COUNT));
-			r->Assign(3, new Val(dgap_bytes, TYPE_COUNT));
-
-			val_list* vl = new val_list;
-			vl->append(new IntervalVal(dt, Seconds));
-			vl->append(r);
-
-			mgr.QueueEvent(gap_report, vl);
-
-			last_gap_report = network_time;
-			last_ack_events = tot_ack_events;
-			last_ack_bytes = tot_ack_bytes;
-			last_gap_events = tot_gap_events;
-			last_gap_bytes = tot_gap_bytes;
 			}
 		}
 

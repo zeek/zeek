@@ -8,6 +8,7 @@ export {
 	## The SSH protocol logging stream identifier.
 	redef enum Log::ID += { LOG };
 
+	## The record type which contains the fields of the SSH log.
 	type Info: record {
 		## Time when the SSH connection began.
 		ts:              time         &log;

@@ -75,7 +75,7 @@ type ClientHello(rec: HandshakeRecord) = record {
 	session_len : uint8;
 	session_id : uint8[session_len];
 	dtls_cookie: case client_version of {
-		DTLSv10 -> cookie: ClientHelloCookie(rec);
+		DTLSv10, DTLSv12 -> cookie: ClientHelloCookie(rec);
 		default -> nothing: bytestring &length=0;
 	};
 	csuit_len : uint16 &check(csuit_len > 1 && csuit_len % 2 == 0);

@@ -302,6 +302,15 @@ public:
 	 */
 	std::string DetectMIME(const u_char* data, uint64 len) const;
 
+	uint64 CurrentFiles()
+		{ return id_map.Length(); }
+
+	uint64 MaxFiles()
+		{ return id_map.MaxLength(); }
+
+	uint64 CumulativeFiles()
+		{ return id_map.NumCumulativeInserts(); }
+
 protected:
 	friend class FileTimer;
 

@@ -395,7 +395,7 @@ bool Analyzer::AddChildAnalyzer(Analyzer* analyzer, bool init)
 	// the list.
 
 	analyzer->parent = this;
-	children.push_back(analyzer);
+	new_children.push_back(analyzer);
 
 	if ( init )
 		analyzer->Init();
@@ -474,6 +474,13 @@ Analyzer* Analyzer::FindChild(ID arg_id)
 			return child;
 		}
 
+	LOOP_OVER_GIVEN_CHILDREN(i, new_children)
+		{
+		Analyzer* child = (*i)->FindChild(arg_id);
+		if ( child )
+			return child;
+		}
+
 	return 0;
 	}
 
@@ -483,6 +490,13 @@ Analyzer* Analyzer::FindChild(Tag arg_tag)
 		return this;
 
 	LOOP_OVER_CHILDREN(i)
+		{
+		Analyzer* child = (*i)->FindChild(arg_tag);
+		if ( child )
+			return child;
+		}
+
+	LOOP_OVER_GIVEN_CHILDREN(i, new_children)
 		{
 		Analyzer* child = (*i)->FindChild(arg_tag);
 		if ( child )

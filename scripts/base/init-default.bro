@@ -37,10 +37,8 @@
 @load base/frameworks/reporter
 @load base/frameworks/sumstats
 @load base/frameworks/tunnels
-@ifdef ( Broker::enable )
 @load base/frameworks/openflow
 @load base/frameworks/netcontrol
-@endif
 
 @load base/protocols/conn
 @load base/protocols/dhcp
@@ -65,6 +63,7 @@
 @load base/protocols/ssl
 @load base/protocols/syslog
 @load base/protocols/tunnels
+@load base/protocols/xmpp
 
 @load base/files/pe
 @load base/files/hash

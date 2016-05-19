@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2016-04-26-18-11-49
+#open	2016-04-29-20-49-25
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -50,6 +50,7 @@ scripts/base/init-bare.bro
         scripts/base/utils/patterns.bro
     scripts/base/frameworks/files/magic/__load__.bro
   build/scripts/base/bif/__load__.bro
+    build/scripts/base/bif/stats.bif.bro
     build/scripts/base/bif/broxygen.bif.bro
     build/scripts/base/bif/functions.bif.bro
     build/scripts/base/bif/bloom-filter.bif.bro
@@ -111,6 +112,7 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_TCP.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_Teredo.events.bif.bro
     build/scripts/base/bif/plugins/Bro_UDP.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_XMPP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_ZIP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_FileEntropy.events.bif.bro
     build/scripts/base/bif/plugins/Bro_FileExtract.events.bif.bro
@@ -295,6 +297,8 @@ scripts/base/init-default.bro
     scripts/base/protocols/syslog/consts.bro
     scripts/base/protocols/syslog/main.bro
   scripts/base/protocols/tunnels/__load__.bro
+  scripts/base/protocols/xmpp/__load__.bro
+    scripts/base/protocols/xmpp/main.bro
   scripts/base/files/pe/__load__.bro
     scripts/base/files/pe/consts.bro
     scripts/base/files/pe/main.bro
@@ -305,4 +309,4 @@ scripts/base/init-default.bro
   scripts/base/misc/find-checksum-offloading.bro
   scripts/base/misc/find-filtered-trace.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2016-04-26-18-11-49
+#close	2016-05-02-20-39-35

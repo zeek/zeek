@@ -23,20 +23,20 @@ export {
 	# ###  Generic functions and events.
 	# ###
 
-	# Activates a plugin.
-	#
-	# p: The plugin to acticate.
-	#
-	# priority: The higher the priority, the earlier this plugin will be checked
-	# whether it supports an operation, relative to other plugins.
+	## Activates a plugin.
+	##
+	## p: The plugin to acticate.
+	##
+	## priority: The higher the priority, the earlier this plugin will be checked
+	##           whether it supports an operation, relative to other plugins.
 	global activate: function(p: PluginState, priority: int);
 
-	# Event that is used to initialize plugins. Place all plugin initialization
-	# related functionality in this event.
+	## Event that is used to initialize plugins. Place all plugin initialization
+	## related functionality in this event.
 	global NetControl::init: event();
 
-	# Event that is raised once all plugins activated in ``NetControl::init`` have finished
-	# their initialization.
+	## Event that is raised once all plugins activated in ``NetControl::init``
+	## have finished their initialization.
 	global NetControl::init_done: event();
 
 	# ###
@@ -109,21 +109,24 @@ export {
 	##
 	## r: The rule to install.
 	##
-	## Returns: If succesful, returns an ID string unique to the rule that can later
-	## be used to refer to it. If unsuccessful, returns an empty string. The ID is also
-	## assigned to ``r$id``. Note that "successful" means "a plugin knew how to handle
-	## the rule", it doesn't necessarily mean that it was indeed successfully put in
-	## place, because that might happen asynchronously and thus fail only later.
+	## Returns: If succesful, returns an ID string unique to the rule that can
+	##          later be used to refer to it. If unsuccessful, returns an empty
+	##          string. The ID is also assigned to ``r$id``. Note that
+	##          "successful" means "a plugin knew how to handle the rule", it
+	##          doesn't necessarily mean that it was indeed successfully put in
+	##          place, because that might happen asynchronously and thus fail
+	##          only later.
 	global add_rule: function(r: Rule) : string;
 
 	## Removes a rule.
 	##
-	## id: The rule to remove, specified as the ID returned by :bro:id:`add_rule` .
+	## id: The rule to remove, specified as the ID returned by :bro:id:`NetControl::add_rule`.
 	##
-	## Returns: True if succesful, the relevant plugin indicated that it knew how
-	## to handle the removal. Note that again "success" means the plugin accepted the
-	## removal. They might still fail to put it into effect, as that  might happen
-	## asynchronously and thus go wrong at that point.
+	## Returns: True if succesful, the relevant plugin indicated that it knew
+	##          how to handle the removal. Note that again "success" means the
+	##          plugin accepted the removal. They might still fail to put it
+	##          into effect, as that might happen asynchronously and thus go
+	##          wrong at that point.
 	global remove_rule: function(id: string) : bool;
 
 	## Deletes a rule without removing in from the backends to which it has been
@@ -180,7 +183,7 @@ export {
 	## r: The rule now removed.
 	##
 	## p: The state for the plugin that had the rule in place and now
-	## removed it.
+	##    removed it.
 	##
 	## msg: An optional informational message by the plugin.
 	global rule_removed: event(r: Rule, p: PluginState, msg: string &default="");
@@ -192,7 +195,7 @@ export {
 	## i: Additional flow information, if supported by the protocol.
 	##
 	## p: The state for the plugin that had the rule in place and now
-	## removed it.
+	##    removed it.
 	##
 	## msg: An optional informational message by the plugin.
 	global rule_timeout: event(r: Rule, i: FlowInfo, p: PluginState);

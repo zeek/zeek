@@ -1,6 +1,4 @@
-##! Log memory/packet/lag statistics.  Differs from
-##! :doc:`/scripts/policy/misc/profiling.bro` in that this
-##! is lighter-weight (much less info, and less load to generate).
+##! Log memory/packet/lag statistics.
 
 @load base/frameworks/notice
 
@@ -10,7 +8,7 @@ export {
 	redef enum Log::ID += { LOG };
 
 	## How often stats are reported.
-	const stats_report_interval = 1min &redef;
+	const report_interval = 5min &redef;
 
 	type Info: record {
 		## Timestamp for the measurement.
@@ -21,27 +19,63 @@ export {
 		mem:           count     &log;
 		## Number of packets processed since the last stats interval.
 		pkts_proc:     count     &log;
-		## Number of events processed since the last stats interval.
-		events_proc:   count     &log;
-		## Number of events that have been queued since the last stats
-		## interval.
-		events_queued: count     &log;
-
-		## Lag between the wall clock and packet timestamps if reading
-		## live traffic.
-		lag:           interval  &log &optional;
-		## Number of packets received since the last stats interval if
+		## Number of bytes received since the last stats interval if
 		## reading live traffic.
-		pkts_recv:     count     &log &optional;
+		bytes_recv:    count     &log;
+
 		## Number of packets dropped since the last stats interval if
 		## reading live traffic.
 		pkts_dropped:  count     &log &optional;
 		## Number of packets seen on the link since the last stats
 		## interval if reading live traffic.
 		pkts_link:     count     &log &optional;
-		## Number of bytes received since the last stats interval if
-		## reading live traffic.
-		bytes_recv:   count     &log &optional;
+		## Lag between the wall clock and packet timestamps if reading
+		## live traffic.
+		pkt_lag:       interval  &log &optional;
+
+		## Number of events processed since the last stats interval.
+		events_proc:   count     &log;
+		## Number of events that have been queued since the last stats
+		## interval.
+		events_queued: count     &log;
+
+		## TCP connections currently in memory.
+		active_tcp_conns: count  &log;
+		## UDP connections currently in memory.
+		active_udp_conns: count &log;
+		## ICMP connections currently in memory.
+		active_icmp_conns: count &log;
+
+		## TCP connections seen since last stats interval.
+		tcp_conns:        count  &log;
+		## UDP connections seen since last stats interval.
+		udp_conns:        count &log;
+		## ICMP connections seen since last stats interval.
+		icmp_conns:        count &log;
+
+		## Number of timers scheduled since last stats interval.
+		timers: count &log;
+		## Current number of scheduled timers.
+		active_timers: count &log;
+
+		## Number of files seen since last stats interval.
+		files: count &log;
+		## Current number of files actively being seen.
+		active_files: count &log;
+
+		## Number of DNS requests seen since last stats interval.
+		dns_requests: count &log;
+		## Current number of DNS requests awaiting a reply.
+		active_dns_requests: count &log;
+
+		## Current size of TCP data in reassembly.
+		reassem_tcp_size: count &log;
+		## Current size of File data in reassembly.
+		reassem_file_size: count &log;
+		## Current size of packet fragment data in reassembly.
+		reassem_frag_size: count &log;
+		## Current size of unkown data in reassembly (this is only PIA buffer right now).
+		reassem_unknown_size: count &log;
 	};
 
 	## Event to catch stats as they are written to the logging stream.
@@ -53,38 +87,69 @@ event bro_init() &priority=5
 	Log::create_stream(Stats::LOG, [$columns=Info, $ev=log_stats, $path="stats"]);
 	}
 
-event check_stats(last_ts: time, last_ns: NetStats, last_res: bro_resources)
+event check_stats(then: time, last_ns: NetStats, last_cs: ConnStats, last_ps: ProcStats, last_es: EventStats, last_rs: ReassemblerStats, last_ts: TimerStats, last_fs: FileAnalysisStats, last_ds: DNSStats)
 	{
-	local now = current_time();
-	local ns = net_stats();
-	local res = resource_usage();
+	local nettime = network_time();
+	local ns = get_net_stats();
+	local cs = get_conn_stats();
+	local ps = get_proc_stats();
+	local es = get_event_stats();
+	local rs = get_reassembler_stats();
+	local ts = get_timer_stats();
+	local fs = get_file_analysis_stats();
+	local ds = get_dns_stats();
 
 	if ( bro_is_terminating() )
 		# No more stats will be written or scheduled when Bro is
 		# shutting down.
 		return;
 
-	local info: Info = [$ts=now, $peer=peer_description, $mem=res$mem/1000000,
-	                    $pkts_proc=res$num_packets - last_res$num_packets,
-	                    $events_proc=res$num_events_dispatched - last_res$num_events_dispatched,
-	                    $events_queued=res$num_events_queued - last_res$num_events_queued];
+	local info: Info = [$ts=nettime,
+			    $peer=peer_description,
+			    $mem=ps$mem/1048576,
+			    $pkts_proc=ns$pkts_recvd - last_ns$pkts_recvd,
+			    $bytes_recv = ns$bytes_recvd  - last_ns$bytes_recvd,
+
+			    $active_tcp_conns=cs$num_tcp_conns,
+			    $tcp_conns=cs$cumulative_tcp_conns - last_cs$cumulative_tcp_conns,
+			    $active_udp_conns=cs$num_udp_conns,
+			    $udp_conns=cs$cumulative_udp_conns - last_cs$cumulative_udp_conns,
+			    $active_icmp_conns=cs$num_icmp_conns,
+			    $icmp_conns=cs$cumulative_icmp_conns - last_cs$cumulative_icmp_conns,
+
+			    $reassem_tcp_size=rs$tcp_size,
+			    $reassem_file_size=rs$file_size,
+			    $reassem_frag_size=rs$frag_size,
+			    $reassem_unknown_size=rs$unknown_size,
+
+			    $events_proc=es$dispatched - last_es$dispatched,
+			    $events_queued=es$queued - last_es$queued,
+
+			    $timers=ts$cumulative - last_ts$cumulative,
+			    $active_timers=ts$current,
+
+			    $files=fs$cumulative - last_fs$cumulative,
+			    $active_files=fs$current,
+
+			    $dns_requests=ds$requests - last_ds$requests,
+			    $active_dns_requests=ds$pending
+			    ];
+
+	# Someone's going to have to explain what this is and add a field to the Info record.
+	# info$util = 100.0*((ps$user_time + ps$system_time) - (last_ps$user_time + last_ps$system_time))/(now-then);
 
 	if ( reading_live_traffic() )
 		{
-		info$lag = now - network_time();
-		# Someone's going to have to explain what this is and add a field to the Info record.
-		# info$util = 100.0*((res$user_time + res$system_time) - (last_res$user_time + last_res$system_time))/(now-last_ts);
-		info$pkts_recv = ns$pkts_recvd - last_ns$pkts_recvd;
+		info$pkt_lag = current_time() - nettime;
 		info$pkts_dropped = ns$pkts_dropped  - last_ns$pkts_dropped;
 		info$pkts_link = ns$pkts_link  - last_ns$pkts_link;
-		info$bytes_recv = ns$bytes_recvd  - last_ns$bytes_recvd;
 		}
 
 	Log::write(Stats::LOG, info);
-	schedule stats_report_interval { check_stats(now, ns, res) };
+	schedule report_interval { check_stats(nettime, ns, cs, ps, es, rs, ts, fs, ds) };
 	}
 
 event bro_init()
 	{
-	schedule stats_report_interval { check_stats(current_time(), net_stats(), resource_usage()) };
+	schedule report_interval { check_stats(network_time(), get_net_stats(), get_conn_stats(), get_proc_stats(), get_event_stats(), get_reassembler_stats(), get_timer_stats(), get_file_analysis_stats(), get_dns_stats()) };
 	}

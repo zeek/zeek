@@ -8,6 +8,8 @@ module NetControl;
 @load ../plugin
 @load base/frameworks/broker
 
+@ifdef ( Broker::__enable )
+
 export {
 	type BrokerConfig: record {
 		## The broker topic used to send events to
@@ -215,3 +217,5 @@ function create_broker(config: BrokerConfig, can_expire: bool) : PluginState
 
 	return p;
 	}
+
+@endif

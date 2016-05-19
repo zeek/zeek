@@ -220,11 +220,11 @@ public:
 	unsigned int MemoryAllocation() const;
 	unsigned int MemoryAllocationConnVal() const;
 
-	static unsigned int TotalConnections()
+	static uint64 TotalConnections()
 		{ return total_connections; }
-	static unsigned int CurrentConnections()
+	static uint64 CurrentConnections()
 		{ return current_connections; }
-	static unsigned int CurrentExternalConnections()
+	static uint64 CurrentExternalConnections()
 		{ return external_connections; }
 
 	// Returns true if the history was already seen, false otherwise.
@@ -315,9 +315,9 @@ protected:
 	unsigned int saw_first_orig_packet:1, saw_first_resp_packet:1;
 
 	// Count number of connections.
-	static unsigned int total_connections;
-	static unsigned int current_connections;
-	static unsigned int external_connections;
+	static uint64 total_connections;
+	static uint64 current_connections;
+	static uint64 external_connections;
 
 	string history;
 	uint32 hist_seen;

@@ -18,7 +18,7 @@ export {
 
 event net_stats_update(last_stat: NetStats)
 	{
-	local ns = net_stats();
+	local ns = get_net_stats();
 	local new_dropped = ns$pkts_dropped - last_stat$pkts_dropped;
 	if ( new_dropped > 0 )
 		{
@@ -38,5 +38,5 @@ event bro_init()
 	# Since this currently only calculates packet drops, let's skip the stats
 	# collection if reading traces.
 	if ( ! reading_traces() )
-		schedule stats_collection_interval { net_stats_update(net_stats()) };
+		schedule stats_collection_interval { net_stats_update(get_net_stats()) };
 	}

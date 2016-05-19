@@ -361,7 +361,6 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 	icmp::ICMP_Analyzer* icmp = 0;
 	TransportLayerAnalyzer* root = 0;
 	pia::PIA* pia = 0;
-	bool analyzed = false;
 	bool check_port = false;
 
 	switch ( conn->ConnTransport() ) {
@@ -383,7 +382,6 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 	case TRANSPORT_ICMP: {
 		root = icmp = new icmp::ICMP_Analyzer(conn);
 		DBG_ANALYZER(conn, "activated ICMP analyzer");
-		analyzed = true;
 		break;
 		}
 
@@ -495,15 +493,9 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 	if ( pia )
 		root->AddChildAnalyzer(pia->AsAnalyzer());
 
-	if ( root->GetChildren().size() )
-		analyzed = true;
-
 	conn->SetRootAnalyzer(root, pia);
 	root->Init();
 	root->InitChildren();
-
-	if ( ! analyzed )
-		conn->SetLifetime(non_analyzed_lifetime);
 
 	PLUGIN_HOOK_VOID(HOOK_SETUP_ANALYZER_TREE, HookSetupAnalyzerTree(conn));
 

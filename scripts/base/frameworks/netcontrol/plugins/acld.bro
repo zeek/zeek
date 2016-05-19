@@ -6,6 +6,8 @@ module NetControl;
 @load ../plugin
 @load base/frameworks/broker
 
+@ifdef ( Broker::__enable )
+
 export {
 	type AclRule : record {
 		command: string;
@@ -306,3 +308,4 @@ function create_acld(config: AcldConfig) : PluginState
 	return p;
 	}
 
+@endif

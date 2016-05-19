@@ -63,26 +63,6 @@ function get_resp_seq%(cid: conn_id%): count
 		}
 	%}
 
-## Returns statistics about TCP gaps.
-##
-## Returns: A record with TCP gap statistics.
-##
-## .. bro:see:: do_profiling
-##              net_stats
-##              resource_usage
-##              dump_rule_stats
-##              get_matcher_stats
-function get_gap_summary%(%): gap_info
-	%{
-	RecordVal* r = new RecordVal(gap_info);
-	r->Assign(0, new Val(tot_ack_events, TYPE_COUNT));
-	r->Assign(1, new Val(tot_ack_bytes, TYPE_COUNT));
-	r->Assign(2, new Val(tot_gap_events, TYPE_COUNT));
-	r->Assign(3, new Val(tot_gap_bytes, TYPE_COUNT));
-
-	return r;
-	%}
-
 ## Associates a file handle with a connection for writing TCP byte stream
 ## contents.
 ##

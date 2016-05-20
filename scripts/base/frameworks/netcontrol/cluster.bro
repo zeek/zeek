@@ -19,7 +19,7 @@ export {
 ## Workers need ability to forward commands to manager.
 redef Cluster::worker2manager_events += /NetControl::cluster_netcontrol_(add|remove|delete)_rule/;
 ## Workers need to see the result events from the manager.
-redef Cluster::manager2worker_events += /NetControl::rule_(added|removed|timeout|error|exists)/;
+redef Cluster::manager2worker_events += /NetControl::rule_(added|removed|timeout|error|exists|new|destroyed)/;
 
 function activate(p: PluginState, priority: int)
 	{
@@ -83,9 +83,7 @@ event NetControl::cluster_netcontrol_remove_rule(id: string)
 	{
 	remove_rule_impl(id);
 	}
-@endif
 
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
 event rule_expire(r: Rule, p: PluginState) &priority=-5
 	{
 	rule_expire_impl(r, p);
@@ -123,3 +121,26 @@ event rule_error(r: Rule, p: PluginState, msg: string &default="") &priority=-5
 	}
 @endif
 
+# Workers use the events to keep track in their local state tables
+@if ( Cluster::local_node_type() != Cluster::MANAGER )
+
+event rule_new(r: Rule) &priority=5
+	{
+	if ( r$id in rules )
+		return;
+
+	rules[r$id] = r;
+
+	add_subnet_entry(r);
+	}
+
+event rule_destroyed(r: Rule) &priority=5
+	{
+	if ( r$id !in rules )
+		return;
+
+	remove_subnet_entry(r);
+	delete rules[r$id];
+	}
+
+@endif

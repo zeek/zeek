@@ -136,11 +136,15 @@ export {
 	##
 	## id: The rule to delete, specified as the ID returned by :bro:id:`add_rule` .
 	##
-	## Returns: True if removal is successful, or sent to manager. 
+	## Returns: True if removal is successful, or sent to manager.
 	## False if the rule could not be found.
 	global delete_rule: function(id: string) : bool;
 
 	## Searches all rules affecting a certain IP address.
+	##
+	## This function works on both the manager and workers of a cluster. Note that on
+	## the worker, the internal rule variables (starting with _) will not reflect the
+	## current state.
 	##
 	## ip: The ip address to search for
 	##
@@ -149,6 +153,10 @@ export {
 
 	## Searches all rules affecting a certain subnet.
 	##
+	## This function works on both the manager and workers of a cluster. Note that on
+	## the worker, the internal rule variables (starting with _) will not reflect the
+	## current state.
+	##
 	## sn: The subnet to search for
 	##
 	## Returns: vector of all rules affecting the subnet
@@ -156,7 +164,7 @@ export {
 
 	###### Asynchronous feedback on rules.
 
-	## Confirms that a rule was put in place.
+	## Confirms that a rule was put in place by a plugin.
 	##
 	## r: The rule now in place.
 	##
@@ -178,7 +186,8 @@ export {
 	## msg: An optional informational message by the plugin.
 	global rule_exists: event(r: Rule, p: PluginState, msg: string &default="");
 
-	## Reports that a rule was removed due to a remove: function() call.
+	## Reports that a plugin reports a rule was removed due to a
+	## remove: function() vall.
 	##
 	## r: The rule now removed.
 	##
@@ -188,7 +197,7 @@ export {
 	## msg: An optional informational message by the plugin.
 	global rule_removed: event(r: Rule, p: PluginState, msg: string &default="");
 
-	## Reports that a rule was removed internally due to a timeout.
+	## Reports that a rule was removed from a plugin due to a timeout.
 	##
 	## r: The rule now removed.
 	##
@@ -208,6 +217,26 @@ export {
 	##
 	## msg: An optional informational message by the plugin.
 	global rule_error: event(r: Rule, p: PluginState, msg: string &default="");
+
+	## This event is raised when a new rule is created by the NetControl framework
+	## due to a call to add_rule. From this moment, until the rule_destroyed event
+	## is raised, the rule is tracked internally by the NetControl framewory.
+	##
+	## Note that this event does not mean that a rule was succesfully added by
+	## any backend; it just means that the rule has been accepted and addition
+	## to the specified backend is queued. To get information when rules are actually
+	## installed by the hardware, use the rule_added, rule_exists, rule_removed, rule_timeout
+	## and rule_error events.
+	global rule_new: event(r: Rule);
+
+	## This event is raised when a rule is deleted from the NetControl framework,
+	## because it is no longer in use. This can be caused by the fact that a rule
+	## was removed by all plugins to which it was added, by the fact that it timed out
+	## or due to rule errors.
+	##
+	## To get the cause or a rule remove, hook the rule_removed, rule_timeout and
+	## rule_error calls.
+	global rule_destroyed: event(r: Rule);
 
 	## Hook that allows the modification of rules passed to add_rule before they
 	## are passed on to the plugins. If one of the hooks uses break, the rule is
@@ -759,6 +788,8 @@ function add_rule_impl(rule: Rule) : string
 
 		add_subnet_entry(rule);
 
+		event NetControl::rule_new(rule);
+
 		return rule$id;
 		}
 
@@ -775,6 +806,8 @@ function rule_cleanup(r: Rule)
 
 	delete rule_entities[r$entity, r$ty];
 	delete rules[r$id];
+
+	event NetControl::rule_destroyed(r);
 	}
 
 function delete_rule_impl(id: string): bool

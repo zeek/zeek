@@ -1,7 +1,3 @@
-
-include(TestBigEndian)
-test_big_endian(HOST_BIGENDIAN)
-
 include(BroPlugin)
 
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})

@@ -87,6 +87,8 @@ type ASN1Length = record {
 				    # implicit cast from uint8 to uint32
 			);
 
+	recordSize: uint8 = (isMoreThanOneOctet ? 1+sizeOfValue : 1);
+
 	debug: bool = debugASNLength(Identifier, (isMoreThanOneOctet?sizeOfValue:1), value);
 };
 
@@ -176,9 +178,7 @@ type IECGoosePdu = record {
 
 	sequenceTag: uint8;
 	sequenceTotalLength: ASN1Length;
-	allData: GOOSEData[ndsComAndNumDatSetEntries.uintVal];
-
-	rest : bytestring &restofdata;
+	allData: GOOSEData[] &until($input.length == 0);
 } &let {
 	has_goID: bool = nextTag == 0x83;
 };
@@ -273,7 +273,7 @@ type BoolDefaultFalseThenUInt(expectedBoolTag: uint8) = record
 } &let {
 	boolValIsPresent: bool = (firstTag == expectedBoolTag);
 
-	boolVal: bool = (boolValIsPresent && both.boolData);
+	boolVal: bool = (boolValIsPresent && both.boolData); 
 	uintVal: uint64 = (boolValIsPresent
 				? both.uintData.gooseUInt.val
 				: uintData.val);
@@ -293,13 +293,14 @@ type GOOSEData = record {
 
 	content: GOOSEDataContent(tag, len.value);
 } &let {
+	totalSize: uint32 = 1 + len.recordSize + len.value;
 	debug: bool = displayByte(tag);
 };
 
 type GOOSEDataContent(tag: uint8, size: uint32) = record {
 	data: case tag of {
-		ARRAY -> array: GOOSEDataArray &length = size;
-		STRUCTURE -> structure: GOOSEDataArray &length = size;
+		ARRAY -> array: GOOSEDataArrayHead(size);
+		STRUCTURE -> structure: GOOSEDataArrayHead(size);
 		BOOLEAN -> boolean: uint8;
 		BIT_STRING -> bitString: ASN1BitString(size);
 		SIGNED_INTEGER -> intVal: GOOSESignedIntegerInternal(size);
@@ -338,21 +339,13 @@ enum GOOSEDataTypes {
 };
 
 
-## The following record parses an array of GOOSEData of which the
-## number of elements is unknown, only its size in bytes is known.
-type GOOSEDataArray = record {
-	array: toBeConvertedToGOOSEData[] &until($input.length() <= 0);
-};
-
 ## The following record and associated functions are a workaround for the
 ## circular record dependency issue
-type toBeConvertedToGOOSEData = record {
-	tag: uint8;
-	len: ASN1Length;
-
-	content: bytestring &length = len.value;
+type GOOSEDataArrayHead(size: uint32) = record {
+	# Parses nothing, which means that all GOOSE::Data will be parsed
+	# as one big array. The C++ code will have to rebuild the tree.
 } &let {
-	debug: bool = displayByte(tag);
+	contentSize: uint32 = size;
 };
 
 ## ====================

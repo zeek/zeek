@@ -32,6 +32,18 @@ function goosePdu_as_val(pdu : IECGoosePdu): RecordVal
 
 	result->Assign(4, new Val(${pdu.stNum.gooseUInt.val}, TYPE_COUNT));
 	result->Assign(5, new Val(${pdu.sqNum.gooseUInt.val}, TYPE_COUNT));
+
+	if(${pdu.testAndConfRev.boolValIsPresent})
+		result->Assign(6, new Val(${pdu.testAndConfRev.boolVal}, TYPE_BOOL));
+		
+	result->Assign(7, new Val(${pdu.testAndConfRev.uintVal}, TYPE_COUNT));
+
+	if(${pdu.ndsComAndNumDatSetEntries.boolValIsPresent})
+		result->Assign(8, new Val(${pdu.ndsComAndNumDatSetEntries.boolVal}, TYPE_BOOL));
+		
+	result->Assign(9, new Val(${pdu.ndsComAndNumDatSetEntries.uintVal}, TYPE_COUNT));
+
+	result->Assign(10, new VectorVal(BifType::Vector::GOOSE::SequenceOfData));
 	
 	return result;
 %}

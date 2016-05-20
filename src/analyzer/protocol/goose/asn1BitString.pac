@@ -7,7 +7,7 @@
 type ASN1BitString(nbBytes: uint32) = record
 {
 	paddingBits: uint8;
-	data: bytestring &length = nbBytes;
+	data: bytestring &length = nbBytes-1;
 };
 
 # Utility C++ method used by the next BinPAC function

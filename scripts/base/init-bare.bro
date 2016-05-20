@@ -3429,14 +3429,29 @@ export {
 		nanoseconds	 : count;
 	};
 
+	type GOOSE::Data : record {
+		intval : int &optional;
+	} &redef;
+	
+	type GOOSE::SequenceOfData : vector of GOOSE::Data;
+
+	redef record GOOSE::Data += {
+		array: GOOSE::SequenceOfData &optional;
+	};
+
 	## The main object of GOOSE
 	type GOOSE::PDU : record {
 		gocbRef          : string;
 		timeAllowedToLive: count;
-		goID		 : string &optional; 
+		goID		 : string &optional;
 		t		 : GOOSE::UTCTime;
 		stNum		 : count;
 		sqNum		 : count;
+		test		 : bool;
+		confRev		 : count;
+		ndsCom		 : bool;
+		numDatSetEntries : count;
+		allData		 : GOOSE::SequenceOfData;
 	};
 }
 

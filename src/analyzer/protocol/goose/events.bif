@@ -3,3 +3,5 @@ event goose_message%(goosePdu: GOOSE::PDU%);
 
 type GOOSE::PDU: record;
 type GOOSE::UTCTime: record;
+type GOOSE::Data: record;
+type GOOSE::SequenceOfData: vector;

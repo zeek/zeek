@@ -11,7 +11,7 @@ export {
 	## plugin simply logs the operations it receives.
 	##
 	## do_something: If true, the plugin will claim it supports all operations; if
-	## false, it will indicate it doesn't support any.
+	##               false, it will indicate it doesn't support any.
 	global create_debug: function(do_something: bool) : PluginState;
 }
 

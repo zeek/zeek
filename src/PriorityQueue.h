@@ -4,6 +4,7 @@
 #define __PriorityQueue__
 
 #include <math.h>
+#include "util.h"
 
 class PriorityQueue;
 
@@ -53,6 +54,7 @@ public:
 
 	int Size() const	{ return heap_size; }
 	int PeakSize() const	{ return peak_heap_size; }
+	uint64 CumulativeNum() const { return cumulative_num; }
 
 protected:
 	int Resize(int new_size);
@@ -92,6 +94,7 @@ protected:
 	int heap_size;
 	int peak_heap_size;
 	int max_heap_size;
+	uint64 cumulative_num;
 };
 
 #endif

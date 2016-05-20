@@ -628,10 +628,12 @@ void builtin_error(const char* msg, BroObj* arg)
 	}
 
 #include "bro.bif.func_h"
+#include "stats.bif.func_h"
 #include "reporter.bif.func_h"
 #include "strings.bif.func_h"
 
 #include "bro.bif.func_def"
+#include "stats.bif.func_def"
 #include "reporter.bif.func_def"
 #include "strings.bif.func_def"
 
@@ -640,13 +642,22 @@ void builtin_error(const char* msg, BroObj* arg)
 
 void init_builtin_funcs()
 	{
-	bro_resources = internal_type("bro_resources")->AsRecordType();
-	net_stats = internal_type("NetStats")->AsRecordType();
-	matcher_stats = internal_type("matcher_stats")->AsRecordType();
+	ProcStats = internal_type("ProcStats")->AsRecordType();
+	NetStats = internal_type("NetStats")->AsRecordType();
+	MatcherStats = internal_type("MatcherStats")->AsRecordType();
+	ConnStats = internal_type("ConnStats")->AsRecordType();
+	ReassemblerStats = internal_type("ReassemblerStats")->AsRecordType();
+	DNSStats = internal_type("DNSStats")->AsRecordType();
+	GapStats = internal_type("GapStats")->AsRecordType();
+	EventStats = internal_type("EventStats")->AsRecordType();
+	TimerStats = internal_type("TimerStats")->AsRecordType();
+	FileAnalysisStats = internal_type("FileAnalysisStats")->AsRecordType();
+	ThreadStats = internal_type("ThreadStats")->AsRecordType();
+
 	var_sizes = internal_type("var_sizes")->AsTableType();
-	gap_info = internal_type("gap_info")->AsRecordType();
 
 #include "bro.bif.func_init"
+#include "stats.bif.func_init"
 #include "reporter.bif.func_init"
 #include "strings.bif.func_init"
 

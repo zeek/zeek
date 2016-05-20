@@ -33,8 +33,19 @@ New Functionality
 
 - Bro now supports the Radiotap header for 802.11 frames.
 
+- Bro now has rudimentary IMAP and XMPP analyzers examinig the initial
+  phases of the protocol. Right now these analyzer only identify
+  STARTTLS sessions, handing them over to TLS analysis. The analyzer
+  does not yet analyze any further IMAP/XMPP content.
+
 - Bro now tracks VLAN IDs. To record them inside the connection log,
   load protocols/conn/vlan-logging.bro.
+
+- The new misc/stats.bro records Bro executions statistics in a
+  standard Bro log file.
+
+- A new dns_CAA_reply event gives access to DNS Certification Authority
+  Authorization replies.
 
 - A new per-packet event raw_packet() provides access to layer 2
   information. Use with care, generating events per packet is
@@ -44,6 +55,9 @@ New Functionality
   It works like decode_base64() but receives an additional connection
   argument that will be used for decoding errors into weird.log
   (instead of reporter.log).
+
+- A new get_current_packet_header bif returns the headers of the current
+  packet.
 
 - Two new built-in functions for handling set[subnet] and table[subnet]:
 
@@ -72,6 +86,13 @@ New Functionality
 - The IRC analyzer now recognizes StartTLS sessions and enable the SSL
   analyzer for them.
 
+- A set of new built-in function for gathering execution statistics:
+
+      get_net_stats(), get_conn_stats(), get_proc_stats(),
+      get_event_stats(), get_reassembler_stats(), get_dns_stats(),
+      get_timer_stats(), get_file_analysis_stats(), get_thread_stats(),
+      get_gap_stats(), get_matcher_stats(),
+
 - New Bro plugins in aux/plugins:
 
     - af_packet: Native AF_PACKET support.
@@ -84,8 +105,15 @@ New Functionality
 Changed Functionality
 ---------------------
 
+- The BrokerComm and BrokerStore namespaces were renamed to Broker.
+  The Broker "print" function was renamed to Broker::send_print, and
+  "event" to "Broker::send_event".
+
 - ``SSH::skip_processing_after_detection`` was removed. The functionality was
   replaced by ``SSH::disable_analyzer_after_detection``.
+
+- ``net_stats()`` and ``resource_usage()`` have been superseded by the
+  new execution statistics functions (see above).
 
 - Some script-level identifier have changed their names:
 

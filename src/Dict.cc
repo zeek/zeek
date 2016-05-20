@@ -66,6 +66,7 @@ Dictionary::Dictionary(dict_order ordering, int initial_size)
 	delete_func = 0;
 	tbl_next_ind = 0;
 
+	cumulative_entries = 0;
 	num_buckets2 = num_entries2 = max_num_entries2 = thresh_entries2 = 0;
 	den_thresh2 = 0;
 	}
@@ -444,6 +445,7 @@ void* Dictionary::Insert(DictEntry* new_entry, int copy_key)
 	// on lists than prepending.
 	chain->append(new_entry);
 
+	++cumulative_entries;
 	if ( *max_num_entries_ptr < ++*num_entries_ptr )
 		*max_num_entries_ptr = *num_entries_ptr;
 

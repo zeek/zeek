@@ -96,13 +96,13 @@ logging is done remotely to the manager, and normally very little is written
 to disk.
 
 The rule of thumb we have followed recently is to allocate approximately 1
-core for every 80Mbps of traffic that is being analyzed. However, this
+core for every 250Mbps of traffic that is being analyzed. However, this
 estimate could be extremely traffic mix-specific.  It has generally worked
 for mixed traffic with many users and servers.  For example, if your traffic
 peaks around 2Gbps (combined) and you want to handle traffic at peak load,
-you may want to have 26 cores available (2048 / 80 == 25.6).  If the 80Mbps
-estimate works for your traffic, this could be handled by 3 physical hosts
-dedicated to being workers with each one containing dual 6-core processors.
+you may want to have 8 cores available (2048 / 250 == 8.2).  If the 250Mbps
+estimate works for your traffic, this could be handled by 2 physical hosts
+dedicated to being workers with each one containing a quad-core processor.
 
 Once a flow-based load balancer is put into place this model is extremely
 easy to scale. It is recommended that you estimate the amount of

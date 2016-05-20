@@ -77,20 +77,20 @@ bool bro_broker::Manager::Enable(Val* broker_endpoint_flags)
 	if ( endpoint != nullptr )
 		return true;
 
-	auto send_flags_type = internal_type("BrokerComm::SendFlags")->AsRecordType();
+	auto send_flags_type = internal_type("Broker::SendFlags")->AsRecordType();
 	send_flags_self_idx = require_field(send_flags_type, "self");
 	send_flags_peers_idx = require_field(send_flags_type, "peers");
 	send_flags_unsolicited_idx = require_field(send_flags_type, "unsolicited");
 
 	log_id_type = internal_type("Log::ID")->AsEnumType();
 
-	bro_broker::opaque_of_data_type = new OpaqueType("BrokerComm::Data");
-	bro_broker::opaque_of_set_iterator = new OpaqueType("BrokerComm::SetIterator");
-	bro_broker::opaque_of_table_iterator = new OpaqueType("BrokerComm::TableIterator");
-	bro_broker::opaque_of_vector_iterator = new OpaqueType("BrokerComm::VectorIterator");
-	bro_broker::opaque_of_record_iterator = new OpaqueType("BrokerComm::RecordIterator");
-	bro_broker::opaque_of_store_handle = new OpaqueType("BrokerStore::Handle");
-	vector_of_data_type = new VectorType(internal_type("BrokerComm::Data")->Ref());
+	bro_broker::opaque_of_data_type = new OpaqueType("Broker::Data");
+	bro_broker::opaque_of_set_iterator = new OpaqueType("Broker::SetIterator");
+	bro_broker::opaque_of_table_iterator = new OpaqueType("Broker::TableIterator");
+	bro_broker::opaque_of_vector_iterator = new OpaqueType("Broker::VectorIterator");
+	bro_broker::opaque_of_record_iterator = new OpaqueType("Broker::RecordIterator");
+	bro_broker::opaque_of_store_handle = new OpaqueType("Broker::Handle");
+	vector_of_data_type = new VectorType(internal_type("Broker::Data")->Ref());
 
 	auto res = broker::init();
 
@@ -110,7 +110,7 @@ bool bro_broker::Manager::Enable(Val* broker_endpoint_flags)
 		}
 
 	const char* name;
-	auto name_from_script = internal_val("BrokerComm::endpoint_name")->AsString();
+	auto name_from_script = internal_val("Broker::endpoint_name")->AsString();
 
 	if ( name_from_script->Len() )
 		name = name_from_script->CheckString();
@@ -290,7 +290,7 @@ bool bro_broker::Manager::AutoEvent(string topic, Val* event, Val* flags)
 
 	if ( event->Type()->Tag() != TYPE_FUNC )
 		{
-		reporter->Error("BrokerComm::auto_event must operate on an event");
+		reporter->Error("Broker::auto_event must operate on an event");
 		return false;
 		}
 
@@ -298,7 +298,7 @@ bool bro_broker::Manager::AutoEvent(string topic, Val* event, Val* flags)
 
 	if ( event_val->Flavor() != FUNC_FLAVOR_EVENT )
 		{
-		reporter->Error("BrokerComm::auto_event must operate on an event");
+		reporter->Error("Broker::auto_event must operate on an event");
 		return false;
 		}
 
@@ -306,7 +306,7 @@ bool bro_broker::Manager::AutoEvent(string topic, Val* event, Val* flags)
 
 	if ( ! handler )
 		{
-		reporter->Error("BrokerComm::auto_event failed to lookup event '%s'",
+		reporter->Error("Broker::auto_event failed to lookup event '%s'",
 		                event_val->Name());
 		return false;
 		}
@@ -322,7 +322,7 @@ bool bro_broker::Manager::AutoEventStop(const string& topic, Val* event)
 
 	if ( event->Type()->Tag() != TYPE_FUNC )
 		{
-		reporter->Error("BrokerComm::auto_event_stop must operate on an event");
+		reporter->Error("Broker::auto_event_stop must operate on an event");
 		return false;
 		}
 
@@ -330,7 +330,7 @@ bool bro_broker::Manager::AutoEventStop(const string& topic, Val* event)
 
 	if ( event_val->Flavor() != FUNC_FLAVOR_EVENT )
 		{
-		reporter->Error("BrokerComm::auto_event_stop must operate on an event");
+		reporter->Error("Broker::auto_event_stop must operate on an event");
 		return false;
 		}
 
@@ -338,7 +338,7 @@ bool bro_broker::Manager::AutoEventStop(const string& topic, Val* event)
 
 	if ( ! handler )
 		{
-		reporter->Error("BrokerComm::auto_event_stop failed to lookup event '%s'",
+		reporter->Error("Broker::auto_event_stop failed to lookup event '%s'",
 		                event_val->Name());
 		return false;
 		}
@@ -353,7 +353,7 @@ RecordVal* bro_broker::Manager::MakeEventArgs(val_list* args)
 	if ( ! Enabled() )
 		return nullptr;
 
-	auto rval = new RecordVal(BifType::Record::BrokerComm::EventArgs);
+	auto rval = new RecordVal(BifType::Record::Broker::EventArgs);
 	auto arg_vec = new VectorVal(vector_of_data_type);
 	rval->Assign(1, arg_vec);
 	Func* func = 0;
@@ -368,7 +368,7 @@ RecordVal* bro_broker::Manager::MakeEventArgs(val_list* args)
 
 			if ( arg_val->Type()->Tag() != TYPE_FUNC )
 				{
-				reporter->Error("1st param of BrokerComm::event_args must be event");
+				reporter->Error("1st param of Broker::event_args must be event");
 				return rval;
 				}
 
@@ -376,7 +376,7 @@ RecordVal* bro_broker::Manager::MakeEventArgs(val_list* args)
 
 			if ( func->Flavor() != FUNC_FLAVOR_EVENT )
 				{
-				reporter->Error("1st param of BrokerComm::event_args must be event");
+				reporter->Error("1st param of Broker::event_args must be event");
 				return rval;
 				}
 
@@ -384,7 +384,7 @@ RecordVal* bro_broker::Manager::MakeEventArgs(val_list* args)
 
 			if ( num_args != args->length() - 1 )
 				{
-				reporter->Error("bad # of BrokerComm::event_args: got %d, expect %d",
+				reporter->Error("bad # of Broker::event_args: got %d, expect %d",
 				                args->length(), num_args + 1);
 				return rval;
 				}
@@ -398,7 +398,7 @@ RecordVal* bro_broker::Manager::MakeEventArgs(val_list* args)
 		if ( ! same_type((*args)[i]->Type(), expected_type) )
 			{
 			rval->Assign(0, 0);
-			reporter->Error("BrokerComm::event_args param %d type mismatch", i);
+			reporter->Error("Broker::event_args param %d type mismatch", i);
 			return rval;
 			}
 
@@ -408,7 +408,7 @@ RecordVal* bro_broker::Manager::MakeEventArgs(val_list* args)
 			{
 			Unref(data_val);
 			rval->Assign(0, 0);
-			reporter->Error("BrokerComm::event_args unsupported event/params");
+			reporter->Error("Broker::event_args unsupported event/params");
 			return rval;
 			}
 
@@ -584,7 +584,7 @@ struct response_converter {
 		case broker::store::query::tag::lookup:
 			// A boolean result means the key doesn't exist (if it did, then
 			// the result would contain the broker::data value, not a bool).
-			return new RecordVal(BifType::Record::BrokerComm::Data);
+			return new RecordVal(BifType::Record::Broker::Data);
 		default:
 			return bro_broker::make_data_val(broker::data{d});
 		}
@@ -639,36 +639,36 @@ void bro_broker::Manager::Process()
 		{
 		switch ( u.status ) {
 		case broker::outgoing_connection_status::tag::established:
-			if ( BrokerComm::outgoing_connection_established )
+			if ( Broker::outgoing_connection_established )
 				{
 				val_list* vl = new val_list;
 				vl->append(new StringVal(u.relation.remote_tuple().first));
 				vl->append(new PortVal(u.relation.remote_tuple().second,
 				                       TRANSPORT_TCP));
 				vl->append(new StringVal(u.peer_name));
-				mgr.QueueEvent(BrokerComm::outgoing_connection_established, vl);
+				mgr.QueueEvent(Broker::outgoing_connection_established, vl);
 				}
 			break;
 
 		case broker::outgoing_connection_status::tag::disconnected:
-			if ( BrokerComm::outgoing_connection_broken )
+			if ( Broker::outgoing_connection_broken )
 				{
 				val_list* vl = new val_list;
 				vl->append(new StringVal(u.relation.remote_tuple().first));
 				vl->append(new PortVal(u.relation.remote_tuple().second,
 				                       TRANSPORT_TCP));
-				mgr.QueueEvent(BrokerComm::outgoing_connection_broken, vl);
+				mgr.QueueEvent(Broker::outgoing_connection_broken, vl);
 				}
 			break;
 
 		case broker::outgoing_connection_status::tag::incompatible:
-			if ( BrokerComm::outgoing_connection_incompatible )
+			if ( Broker::outgoing_connection_incompatible )
 				{
 				val_list* vl = new val_list;
 				vl->append(new StringVal(u.relation.remote_tuple().first));
 				vl->append(new PortVal(u.relation.remote_tuple().second,
 				                       TRANSPORT_TCP));
-				mgr.QueueEvent(BrokerComm::outgoing_connection_incompatible, vl);
+				mgr.QueueEvent(Broker::outgoing_connection_incompatible, vl);
 				}
 			break;
 
@@ -684,20 +684,20 @@ void bro_broker::Manager::Process()
 		{
 		switch ( u.status ) {
 		case broker::incoming_connection_status::tag::established:
-			if ( BrokerComm::incoming_connection_established )
+			if ( Broker::incoming_connection_established )
 				{
 				val_list* vl = new val_list;
 				vl->append(new StringVal(u.peer_name));
-				mgr.QueueEvent(BrokerComm::incoming_connection_established, vl);
+				mgr.QueueEvent(Broker::incoming_connection_established, vl);
 				}
 			break;
 
 		case broker::incoming_connection_status::tag::disconnected:
-			if ( BrokerComm::incoming_connection_broken )
+			if ( Broker::incoming_connection_broken )
 				{
 				val_list* vl = new val_list;
 				vl->append(new StringVal(u.peer_name));
-				mgr.QueueEvent(BrokerComm::incoming_connection_broken, vl);
+				mgr.QueueEvent(Broker::incoming_connection_broken, vl);
 				}
 			break;
 
@@ -718,7 +718,7 @@ void bro_broker::Manager::Process()
 
 		ps.second.received += print_messages.size();
 
-		if ( ! BrokerComm::print_handler )
+		if ( ! Broker::print_handler )
 			continue;
 
 		for ( auto& pm : print_messages )
@@ -741,7 +741,7 @@ void bro_broker::Manager::Process()
 
 			val_list* vl = new val_list;
 			vl->append(new StringVal(move(*msg)));
-			mgr.QueueEvent(BrokerComm::print_handler, vl);
+			mgr.QueueEvent(Broker::print_handler, vl);
 			}
 		}
 

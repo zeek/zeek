@@ -1,5 +1,5 @@
 # @TEST-SERIALIZE: brokercomm
-# @TEST-REQUIRES: grep -q ENABLE_BROKER $BUILD/CMakeCache.txt
+# @TEST-REQUIRES: grep -q ENABLE_BROKER:BOOL=true $BUILD/CMakeCache.txt
 # @TEST-EXEC: btest-bg-run recv "bro -b ../recv.bro broker_port=$BROKER_PORT >recv.out"
 # @TEST-EXEC: btest-bg-run send "bro -b -r $TRACES/tls/ecdhe.pcap --pseudo-realtime ../send.bro broker_port=$BROKER_PORT >send.out"
 
@@ -21,11 +21,11 @@ event NetControl::init()
 	NetControl::activate(netcontrol_acld, 0);
 	}
 
-event BrokerComm::outgoing_connection_established(peer_address: string,
+event Broker::outgoing_connection_established(peer_address: string,
                                             peer_port: port,
                                             peer_name: string)
 	{
-	print "BrokerComm::outgoing_connection_established", peer_address, peer_port;
+	print "Broker::outgoing_connection_established", peer_address, peer_port;
 	}
 
 event NetControl::init_done()
@@ -33,7 +33,7 @@ event NetControl::init_done()
 	continue_processing();
 	}
 
-event BrokerComm::outgoing_connection_broken(peer_address: string,
+event Broker::outgoing_connection_broken(peer_address: string,
                                        peer_port: port)
 	{
 	terminate();
@@ -84,28 +84,28 @@ redef exit_only_after_terminate = T;
 
 event bro_init()
 	{
-	BrokerComm::enable();
-	BrokerComm::subscribe_to_events("bro/event/netcontroltest");
-	BrokerComm::listen(broker_port, "127.0.0.1");
+	Broker::enable();
+	Broker::subscribe_to_events("bro/event/netcontroltest");
+	Broker::listen(broker_port, "127.0.0.1");
 	}
 
-event BrokerComm::incoming_connection_established(peer_name: string)
+event Broker::incoming_connection_established(peer_name: string)
 	{
-	print "BrokerComm::incoming_connection_established";
+	print "Broker::incoming_connection_established";
 	}
 
 event NetControl::acld_add_rule(id: count, r: NetControl::Rule, ar: NetControl::AclRule)
 	{
 	print "add_rule", id, r$entity, r$ty, ar;
 
-	BrokerComm::event("bro/event/netcontroltest", BrokerComm::event_args(NetControl::acld_rule_added, id, r, ar$command));
+	Broker::send_event("bro/event/netcontroltest", Broker::event_args(NetControl::acld_rule_added, id, r, ar$command));
 	}
 
 event NetControl::acld_remove_rule(id: count, r: NetControl::Rule, ar: NetControl::AclRule)
 	{
 	print "remove_rule", id, r$entity, r$ty, ar;
 
-	BrokerComm::event("bro/event/netcontroltest", BrokerComm::event_args(NetControl::acld_rule_removed, id, r, ar$command));
+	Broker::send_event("bro/event/netcontroltest", Broker::event_args(NetControl::acld_rule_removed, id, r, ar$command));
 
 	if ( r$cid == 4 )
 		terminate();

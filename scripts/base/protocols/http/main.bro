@@ -21,6 +21,7 @@ export {
 	## not.
 	const default_capture_password = F &redef;
 
+	## The record type which contains the fields of the HTTP log.
 	type Info: record {
 		## Timestamp for when the request happened.
 		ts:                      time      &log;

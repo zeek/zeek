@@ -1,4 +1,137 @@
 
+2.4-569 | 2016-05-18 07:39:35 -0700
+
+  * DTLS: Use magix constant from RFC 5389 for STUN detection.
+    (Johanna Amann)
+
+  * DTLS: Fix binpac bug with DTLSv1.2 client hellos. (Johanna Amann)
+
+  * DTLS: Fix interaction with STUN. Now the DTLS analyzer cleanly
+    skips all STUN messages. (Johanna Amann)
+
+  * Fix the way that child analyzers are added. (Johanna Amann)
+
+2.4-563 | 2016-05-17 16:25:21 -0700
+
+  * Fix duplication of new_connection_contents event. Addresses
+    BIT-1602 (Johanna Amann)
+
+  * SMTP: Support SSL upgrade via X-ANONYMOUSTLS This seems to be a
+    non-standardized microsoft extension that, besides having a
+    different name, works pretty much the same as StartTLS. We just
+    treat it as such. (Johanna Amann)
+
+  * Fixing control framework's net_stats and peer_status commands. For
+    the latter, this removes most of the values returned, as we don't
+    have access to them anymore. (Robin Sommer)
+
+2.4-555 | 2016-05-16 20:10:15 -0700
+
+  * Fix failing plugin tests on OS X 10.11. (Daniel Thayer)
+
+  * Fix failing test on Debian/FreeBSD. (Johanna Amann)
+
+2.4-552 | 2016-05-12 08:04:33 -0700
+
+  * Fix a bug in receiving remote logs via broker. (Daniel Thayer)
+
+  * Fix Bro and unit tests when broker is not enabled. (Daniel Thayer)
+
+  * Added interpreter error for local event variables. (Jan Grashoefer)
+
+2.4-544 | 2016-05-07 12:19:07 -0700
+
+  * Switching all use of gmtime and localtime to use reentrant
+    variants. (Seth Hall)
+
+2.4-541 | 2016-05-06 17:58:45 -0700
+
+  * A set of new built-in function for gathering execution statistics:
+
+      get_net_stats(), get_conn_stats(), get_proc_stats(),
+      get_event_stats(), get_reassembler_stats(), get_dns_stats(),
+      get_timer_stats(), get_file_analysis_stats(), get_thread_stats(),
+      get_gap_stats(), get_matcher_stats().
+
+    net_stats() resource_usage() have been superseded by these. (Seth
+    Hall)
+
+  * New policy script misc/stats.bro that records Bro execution
+    statistics in a standard Bro log file. (Seth Hall)
+
+  * A series of documentation improvements. (Daniel Thayer)
+
+  * Rudimentary XMPP StartTLS analyzer. It parses certificates out of
+    XMPP connections using StartTLS. It aborts processing if StartTLS
+    is not found. (Johanna Amann)
+
+2.4-507 | 2016-05-03 11:18:16 -0700
+
+  * Fix incorrect type tags in Bro broker source code. These are just
+    used for error reporting. (Daniel Thayer)
+
+  * Update docs and tests of the fmt() function. (Daniel Thayer)
+
+2.4-500 | 2016-05-03 11:16:50 -0700
+
+  * Updating submodule(s).
+
+2.4-498 | 2016-04-28 11:34:52 -0700
+
+  * Rename Broker::print to Broker::send_print and Broker::event to
+    Broker::send_event to avoid using reserved keywords as function
+    names. (Daniel Thayer)
+
+  * Add script wrapper functions for Broker BIFs. This faciliates
+    documenting them through Broxygen. (Daniel Thayer)
+
+  * Extend, update, and clean up Broker tests. (Daniel Thayer)
+
+  * Intel: Allow to provide uid/fuid instead of conn/file. (Johanna
+    Amann)
+
+  * Provide file IDs for hostname matches in certificates. (Johanna
+    Amann)
+
+  * Rudimentary IMAP StartTLS analyzer. It parses certificates out of
+    IMAP connections using StartTLS. It aborts processing if StartTLS
+    is not found. (Johanna Amann)
+
+2.4-478 | 2016-04-28 09:56:24
+
+  * Fix parsing of x509 pre-y2k dates. (Johanna Amann)
+
+  * Fix small error in bif documentation. (Johanna Amann)
+
+  * Fix unknown data link type error message. (Vitaly Repin)
+
+  * Correcting spelling errors. (Jeannette Dopheide)
+
+  * Minor cleanup in ARP analyzer. (Johanna Amann)
+
+  * Fix parsing of pre-y2k dates in X509 certificates. (Johanna Amann)
+
+  * Fix small error in get_current_packet documentation. (Johanna Amann)
+
+2.4-471 | 2016-04-25 15:37:15 -0700
+
+  * Add DNS tests for huge TLLs and CAA. (Johanna Amann)
+
+  * Add DNS "CAA" RR type and event. (Mark Taylor)
+
+  * Fix DNS response parsing: TTLs are unsigned. (Mark Taylor)
+
+2.4-466 | 2016-04-22 16:25:33 -0700
+
+  * Rename BrokerStore and BrokerComm to Broker. Also split broker main.bro
+    into two scripts. (Daniel Thayer)
+
+  * Add get_current_packet_header bif. (Jan Grashoefer)
+
+2.4-457 | 2016-04-22 08:36:27 -0700
+
+  * Fix Intel framework not checking the CERT_HASH indicator type. (Johanna Amann)
+
 2.4-454 | 2016-04-14 10:06:58 -0400
 
   * Additional mime types for file identification and a few fixes. (Seth Hall)

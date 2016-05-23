@@ -1,4 +1,9 @@
 
+2.4-572 | 2016-05-23 12:45:23 -0700
+
+  * Fix for a table refering to a expire function that's not defined.
+    Addresses BIT-1597. (Robin Sommer)
+
 2.4-571 | 2016-05-23 08:26:43 -0700
 
   * Fixing a few Coverity warnings. (Robin Sommer)

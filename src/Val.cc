@@ -2401,7 +2401,7 @@ bool TableVal::DoSerialize(SerialInfo* info) const
 			}
 
 		// Serialize index.
-		if ( ! state->did_index )
+		if ( k && ! state->did_index )
 			{
 			// Indices are rather small, so we disable suspension
 			// here again.

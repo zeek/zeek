@@ -14,6 +14,7 @@ Entropy::Entropy(RecordVal* args, File* file)
 	{
 	//entropy->Init();
 	entropy = new EntropyVal;
+	fed = false;
 	}
 
 Entropy::~Entropy()

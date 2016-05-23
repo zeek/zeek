@@ -1,4 +1,8 @@
 
+2.4-571 | 2016-05-23 08:26:43 -0700
+
+  * Fixing a few Coverity warnings. (Robin Sommer)
+
 2.4-569 | 2016-05-18 07:39:35 -0700
 
   * DTLS: Use magix constant from RFC 5389 for STUN detection.

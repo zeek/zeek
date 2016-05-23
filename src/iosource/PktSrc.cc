@@ -289,6 +289,12 @@ bool PktSrc::ExtractNextPacketInternal()
 
 	if ( ExtractNextPacket(&current_packet) )
 		{
+		if ( current_packet.time < 0 )
+			{
+			Weird("negative_packet_timestamp", &current_packet);
+			return 0;
+			}
+
 		if ( ! first_timestamp )
 			first_timestamp = current_packet.time;
 

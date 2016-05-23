@@ -1,4 +1,9 @@
 
+2.4-573 | 2016-05-23 13:21:03 -0700
+
+  * Ignoring packets with negative timestamps. Addresses BIT-1562 and
+    BIT-1443. (Robin Sommer)
+
 2.4-572 | 2016-05-23 12:45:23 -0700
 
   * Fix for a table refering to a expire function that's not defined.

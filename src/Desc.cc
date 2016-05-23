@@ -4,6 +4,7 @@
 
 #include <stdlib.h>
 #include <errno.h>
+#include <math.h>
 
 #include "Desc.h"
 #include "File.h"
@@ -138,17 +139,22 @@ void ODesc::Add(uint64 u)
 		}
 	}
 
-void ODesc::Add(double d)
+void ODesc::Add(double d, bool no_exp)
 	{
 	if ( IsBinary() )
 		AddBytes(&d, sizeof(d));
 	else
 		{
 		char tmp[256];
-		modp_dtoa2(d, tmp, IsReadable() ? 6 : 8);
+
+		if ( no_exp )
+			modp_dtoa3(d, tmp, sizeof(tmp), IsReadable() ? 6 : 8);
+		else
+			modp_dtoa2(d, tmp, IsReadable() ? 6 : 8);
+
 		Add(tmp);
 
-		if ( d == double(int(d)) )
+		if ( nearbyint(d) == d && isfinite(d) && ! strchr(tmp, 'e') )
 			// disambiguate from integer
 			Add(".0");
 		}

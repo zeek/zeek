@@ -51,13 +51,13 @@ void FlowBuffer::NewMessage()
 	BINPAC_ASSERT(frame_length_ >= 0);
 
 	int bytes_to_advance = 0;
-	if ( buffer_n_ == 0 ) 
+	if ( buffer_n_ == 0 )
 		{
-		switch ( mode_ ) 
+		switch ( mode_ )
 			{
 			case LINE_MODE:
-				bytes_to_advance = (frame_length_ + 
-					(linebreak_style_ == STRICT_CRLF ? 
+				bytes_to_advance = (frame_length_ +
+					(linebreak_style_ == STRICT_CRLF ?
 						2 : 1));
 				break;
 			case FRAME_MODE:
@@ -98,7 +98,7 @@ void FlowBuffer::ExpandBuffer(int length)
 	// So length > 0
 	if ( length < 512 )
 		length = 512;
-	
+
 	if ( length < buffer_length_ * 2 )
 		length = buffer_length_ * 2;
 
@@ -188,7 +188,7 @@ void FlowBuffer::NewData(const_byteptr begin, const_byteptr end)
 
 	ClearPreviousData();
 
-	BINPAC_ASSERT((buffer_n_ == 0 && message_complete_) || 
+	BINPAC_ASSERT((buffer_n_ == 0 && message_complete_) ||
 		orig_data_begin_ == orig_data_end_);
 
 	orig_data_begin_ = begin;
@@ -202,7 +202,7 @@ void FlowBuffer::MarkOrCopy()
 	{
 	if ( ! message_complete_ )
 		{
-		switch ( mode_ ) 
+		switch ( mode_ )
 			{
 			case LINE_MODE:
 				MarkOrCopyLine();
@@ -211,7 +211,7 @@ void FlowBuffer::MarkOrCopy()
 			case FRAME_MODE:
 				MarkOrCopyFrame();
 				break;
-		
+
 			default:
 				break;
 			}
@@ -228,7 +228,7 @@ void FlowBuffer::ClearPreviousData()
 			{
 			if ( frame_length_ > 0 )
 				{
-				frame_length_ -= 
+				frame_length_ -=
 					(orig_data_end_ - orig_data_begin_);
 				}
 			orig_data_begin_ = orig_data_end_;
@@ -284,7 +284,10 @@ CR_OR_LF_1:
 
 void FlowBuffer::MarkOrCopyLine_CR_OR_LF()
 	{
-	if ( state_ == CR_OR_LF_1 && 
+	if ( ! (orig_data_begin_ && orig_data_end_) )
+		return;
+
+	if ( state_ == CR_OR_LF_1 &&
 	     orig_data_begin_ < orig_data_end_ && *orig_data_begin_ == LF )
 		{
 		state_ = CR_OR_LF_0;
@@ -398,16 +401,16 @@ found_end_of_line:
 	}
 
 // Invariants:
-// 
+//
 // When buffer_n_ == 0:
 // Frame = [orig_data_begin_..(orig_data_begin_ + frame_length_)]
-// 
+//
 // When buffer_n_ > 0:
 // Frame = [0..buffer_n_][orig_data_begin_..]
 
 void FlowBuffer::MarkOrCopyFrame()
 	{
-	if ( mode_ == FRAME_MODE && state_ == CR_OR_LF_1 && 
+	if ( mode_ == FRAME_MODE && state_ == CR_OR_LF_1 &&
 	     orig_data_begin_ < orig_data_end_ )
 		{
 		// Skip the lingering LF
@@ -427,11 +430,11 @@ void FlowBuffer::MarkOrCopyFrame()
 			// Do nothing except setting the message complete flag
 			message_complete_ = true;
 			}
-		else 
+		else
 			{
 			if ( ! chunked_ )
 				{
-				AppendToBuffer(orig_data_begin_, 
+				AppendToBuffer(orig_data_begin_,
 					orig_data_end_ - orig_data_begin_);
 				}
 			message_complete_ = false;
@@ -442,7 +445,7 @@ void FlowBuffer::MarkOrCopyFrame()
 		BINPAC_ASSERT(!chunked_);
 		int bytes_to_copy = orig_data_end_ - orig_data_begin_;
 		message_complete_ = false;
-		if ( frame_length_ >= 0 && buffer_n_ + bytes_to_copy >= frame_length_ ) 
+		if ( frame_length_ >= 0 && buffer_n_ + bytes_to_copy >= frame_length_ )
 			{
 			bytes_to_copy = frame_length_ - buffer_n_;
 			message_complete_ = true;
@@ -455,7 +458,7 @@ void FlowBuffer::MarkOrCopyFrame()
 		{
 		fprintf(stderr, "%.6f frame complete: [%s]\n",
 			network_time(),
-			string((const char *) begin(), 
+			string((const char *) begin(),
 				(const char *) end()).c_str());
 		}
 #endif

@@ -6,10 +6,57 @@ module NetControl;
 @load ./drop
 
 export {
+
+	redef enum Log::ID += { CATCH_RELEASE };
+
+	# The record that is used for storing information about current blocks that are
+	# part of catch and release.
+	type BlockInfo: record {
+		# Absolute time indicating until when a block is inserted using NetControl
+		block_until: time &optional;
+		# Absolute time indicating until when an IP address is watched to reblock it
+		watch_until: time;
+		# Number of times an IP address was reblocked
+		num_reblocked: count &default=0;
+		# Number indicating at which catch and release interval we currently are
+		current_interval: count;
+		# ID of the inserted block, if any.
+		current_block_id: string;
+	};
+
+	type CatchReleaseActions: enum {
+		INFO,
+		ADDED,
+		DROP,
+		DROPPED,
+		UNBLOCK,
+		RESTORED,
+		FORGOTTEN,
+		SEEN_AGAIN
+	};
+
+	type CatchReleaseInfo: record {
+		ts: time &log;
+		rule_id: string &log &optional;
+		ip: addr &log;
+		action: CatchReleaseActions &log;
+		block_interval: interval &log &optional;
+		watch_interval: interval &log &optional;
+		blocked_until: time &log &optional;
+		watched_until: time &log &optional;
+		num_blocked: count &log &optional;
+		location: string &log &optional;
+		message: string &log &optional;
+	};
+
 	## Stops all packets involving an IP address from being forwarded. This function
 	## uses catch-and-release functionality, where the IP address is only dropped for
 	## a short amount of time that is incremented steadily when the IP is encountered
 	## again.
+	##
+	## In cluster mode, this function works on workers as well as the manager. On managers,
+	## the returned :bro:see:`NetControl::BlockInfo` record will not contain the block ID,
+	## which will be assigned on the manager.
 	##
 	## a: The address to be dropped.
 	##
@@ -17,88 +64,336 @@ export {
 	##
 	## location: An optional string describing where the drop was triggered.
 	##
-	## Returns: The id of the inserted rule on succes and zero on failure.
-	global drop_address_catch_release: function(a: addr, location: string &default="") : string;
+	## Returns: The :bro:see:`NetControl::BlockInfo` record containing information about
+	##          the inserted block.
+	global drop_address_catch_release: function(a: addr, location: string &default="") : BlockInfo;
 
-        ## Time intervals for which a subsequent drops of the same IP take
-        ## effect.
+	## Removes an address from being watched with catch and release. Returns true if the
+	## address was found and removed; returns false if it was unknown to catch and release.
+	##
+	## If the address is currently blocked, and the block was inserted by catch and release,
+	## the block is removed.
+	##
+	## a: The address to be unblocked.
+	##
+	## Returns: True if the address was unblocked.
+	global unblock_address_catch_release: function(a: addr) : bool;
+
+	## This function can be called to notify the cach and release script that activity by
+	## an IP address was seen. If the respective IP address is currently monitored by catch and
+	## release and not blocked, the block will be re-instated. See the documentation of watch_new_connection
+	## which events the catch and release functionality usually monitors for activity.
+	##
+	## a: The address that was seen and should be re-dropped if it is being watched
+	global catch_release_seen: function(a: addr);
+
+	## Get the :bro:see:`NetControl::BlockInfo` record for an address currently blocked by catch and release.
+	## If the address is unknown to catch and release, the watch_until time will be set to 0.
+	##
+	## In cluster mode, this function works on the manager and workers. On workers, the data will
+	## lag slightly behind the manager; if you add a block, it will not be instantly available via
+	## this function.
+	##
+	## a: The address to get information about.
+	##
+	## Returns: The :bro:see:`NetControl::BlockInfo` record containing information about
+	##          the inserted block.
+	global get_catch_release_info: function(a: addr) : BlockInfo;
+
+	## If true, catch_release_seen is called on the connection originator in new_connection,
+	## connection_established, partial_connection, connection_attempt, connection_rejected,
+	## connection_reset and connection_pending
+	const watch_connections = T &redef;
+
+	## Time intervals for which a subsequent drops of the same IP take
+	## effect.
 	const catch_release_intervals: vector of interval = vector(10min, 1hr, 24hrs, 7days) &redef;
+
+	## Event that can be handled to access the :bro:type:`NetControl::CatchReleaseInfo`
+	## record as it is sent on to the logging framework.
+	global log_netcontrol_catch_release: event(rec: CatchReleaseInfo);
+
+	# Cluster events for catch and release
+	global catch_release_block_new: event(a: addr, b: BlockInfo);
+	global catch_release_block_delete: event(a: addr);
+	global catch_release_add: event(a: addr, location: string);
+	global catch_release_delete: event(a: addr);
+	global catch_release_encountered: event(a: addr);
 }
 
-function per_block_interval(t: table[addr] of count, idx: addr): interval
+event bro_init() &priority=5
 	{
-	local ct = t[idx];
-
-	# watch for the time of the next block...
-	local blocktime = catch_release_intervals[ct];
-	if ( (ct+1) in catch_release_intervals )
-		blocktime = catch_release_intervals[ct+1];
-
-	return blocktime;
+	Log::create_stream(NetControl::CATCH_RELEASE, [$columns=CatchReleaseInfo, $ev=log_netcontrol_catch_release, $path="netcontrol_catch_release"]);
 	}
 
-# This is the internally maintained table containing all the currently going on catch-and-release
-# blocks.
-global blocks: table[addr] of count = {}
+function per_block_interval(t: table[addr] of BlockInfo, idx: addr): interval
+	{
+	local remaining_time = t[idx]$watch_until - network_time();
+	if ( remaining_time < 0secs )
+		remaining_time = 0secs;
+
+	return remaining_time;
+	}
+
+# This is the internally maintained table containing all the addresses that are currently being
+# watched to see if they will re-surface. After the time is reached, monitoring of that specific
+# IP will stop.
+global blocks: table[addr] of BlockInfo = {}
 	&create_expire=0secs
 	&expire_func=per_block_interval;
 
-function current_block_interval(s: set[addr], idx: addr): interval
-	{
-	if ( idx !in blocks )
-		{
-		Reporter::error(fmt("Address %s not in blocks while inserting into current_blocks!", idx));
-		return 0sec;
-		}
 
-	return catch_release_intervals[blocks[idx]];
+@if ( Cluster::is_enabled() )
+@load base/frameworks/cluster
+redef Cluster::manager2worker_events += /NetControl::catch_release_block_(new|delete)/;
+redef Cluster::worker2manager_events += /NetControl::catch_release_(add|delete|seen)/;
+@endif
+
+@if ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER )
+event catch_release_add(a: addr, location: string)
+	{
+	drop_address_catch_release(a, location);
 	}
 
-global current_blocks: set[addr] = set()
-	&create_expire=0secs
-	&expire_func=current_block_interval;
+event catch_release_delete(a: addr)
+	{
+	unblock_address_catch_release(a);
+	}
 
-function drop_address_catch_release(a: addr, location: string &default=""): string
+event catch_release_encountered(a: addr)
+	{
+	catch_release_seen(a);
+	}
+@endif
+
+@if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
+event catch_release_block_new(a: addr, b: BlockInfo)
+	{
+	blocks[a] = b;
+	}
+
+event catch_release_block_delete(a: addr)
 	{
 	if ( a in blocks )
+		delete blocks[a];
+	}
+@endif
+
+@if ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER )
+@endif
+
+function get_catch_release_info(a: addr): BlockInfo
+	{
+	if ( a in blocks )
+		return blocks[a];
+
+	return BlockInfo($watch_until=double_to_time(0), $current_interval=0, $current_block_id="");
+	}
+
+function get_watch_interval(current_interval: count): interval
+	{
+	if ( (current_interval + 1) in catch_release_intervals )
+		return catch_release_intervals[current_interval+1];
+	else
+		return catch_release_intervals[current_interval];
+	}
+
+function populate_log_record(ip: addr, bi: BlockInfo, action: CatchReleaseActions): CatchReleaseInfo
+	{
+	local log = CatchReleaseInfo($ts=network_time(), $ip=ip, $action=action,
+	        $block_interval=catch_release_intervals[bi$current_interval],
+	        $watch_interval=get_watch_interval(bi$current_interval),
+	        $watched_until=bi$watch_until,
+	        $num_blocked=bi$num_reblocked+1
+	        );
+
+	if ( bi?$block_until )
+		log$blocked_until = bi$block_until;
+
+	if ( bi?$current_block_id && bi$current_block_id != "" )
+		log$rule_id = bi$current_block_id;
+
+	return log;
+	}
+
+function drop_address_catch_release(a: addr, location: string &default=""): BlockInfo
+	{
+	local bi: BlockInfo;
+	local log: CatchReleaseInfo;
+
+	if ( a in blocks )
 		{
-		Reporter::warning(fmt("Address %s already blocked using catch-and-release - ignoring duplicate", a));
-		return "";
+		log = populate_log_record(a, blocks[a], INFO);
+		log$message = "Already blocked using catch-and-release - ignoring duplicate";
+		Log::write(CATCH_RELEASE, log);
+
+		return blocks[a];
+		}
+
+	local e = Entity($ty=ADDRESS, $ip=addr_to_subnet(a));
+	if ( [e,DROP] in rule_entities )
+		{
+		local r = rule_entities[e,DROP];
+
+		bi = BlockInfo($watch_until=network_time()+catch_release_intervals[1], $current_interval=0, $current_block_id=r$id);
+@if ( ! Cluster::is_enabled() || ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER ) )
+		log = populate_log_record(a, bi, ADDED);
+		log$message = "Address already blocked outside of catch-and-release. Catch and release will monitor and only actively block if it appears in network traffic.";
+		Log::write(CATCH_RELEASE, log);
+		blocks[a] = bi;
+		event NetControl::catch_release_block_new(a, bi);
+@endif
+@if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
+		event NetControl::catch_release_add(a, location);
+@endif
+		return bi;
 		}
 
 	local block_interval = catch_release_intervals[0];
+
+@if ( ! Cluster::is_enabled() || ( Cluster::is_enabled()  && Cluster::local_node_type() == Cluster::MANAGER ) )
 	local ret = drop_address(a, block_interval, location);
+
 	if ( ret != "" )
 		{
-		blocks[a] = 0;
-		add current_blocks[a];
+		bi = BlockInfo($watch_until=network_time()+catch_release_intervals[1], $block_until=network_time()+block_interval, $current_interval=0, $current_block_id=ret);
+		blocks[a] = bi;
+		event NetControl::catch_release_block_new(a, bi);
+		blocks[a] = bi;
+		log = populate_log_record(a, bi, DROP);
+		Log::write(CATCH_RELEASE, log);
+		return bi;
 		}
+	Reporter::error(fmt("Catch and release could not add block for %s; failing.", a));
+	return BlockInfo($watch_until=double_to_time(0), $current_interval=0, $current_block_id="");
+@endif
 
-	return ret;
+@if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
+	bi = BlockInfo($watch_until=network_time()+catch_release_intervals[1], $block_until=network_time()+block_interval, $current_interval=0, $current_block_id="");
+	event NetControl::catch_release_add(a, location);
+	return bi;
+@endif
+
 	}
 
-function check_conn(a: addr)
+function unblock_address_catch_release(a: addr): bool
 	{
+	if ( a !in blocks )
+		return F;
+
+@if ( ! Cluster::is_enabled() || ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER ) )
+	local bi = blocks[a];
+	local log = populate_log_record(a, bi, UNBLOCK);
+	Log::write(CATCH_RELEASE, log);
+	delete blocks[a];
+	if ( bi?$block_until && bi$block_until > network_time() && bi$current_block_id != "" )
+		remove_rule(bi$current_block_id);
+@endif
+@if ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER )
+	event NetControl::catch_release_block_delete(a);
+@endif
+@if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
+	event NetControl::catch_release_delete(a);
+@endif
+
+	return T;
+	}
+
+function catch_release_seen(a: addr)
+	{
+	local e = Entity($ty=ADDRESS, $ip=addr_to_subnet(a));
+
 	if ( a in blocks )
 		{
-		if ( a in current_blocks )
-			# block has not been applied yet?
+@if ( ! Cluster::is_enabled() || ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER ) )
+		local bi = blocks[a];
+		local log: CatchReleaseInfo;
+
+		if ( [e,DROP] in rule_entities )
+			{
+			# This should be blocked - block has not been applied yet by hardware? Ignore for the moment...
+			log = populate_log_record(a, bi, INFO);
+			log$action = INFO;
+			log$message = "Block seen while in rule_entities. No action taken.";
+			Log::write(CATCH_RELEASE, log);
 			return;
+			}
 
 		# ok, this one returned again while still in the backoff period.
-		local try = blocks[a];
+
+		local try = bi$current_interval;
 		if ( (try+1) in catch_release_intervals )
 			++try;
 
-		blocks[a] = try;
-		add current_blocks[a];
+		bi$current_interval = try;
+		if ( (try+1) in catch_release_intervals )
+			bi$watch_until = network_time() + catch_release_intervals[try+1];
+		else
+			bi$watch_until = network_time() + catch_release_intervals[try];
+
+		bi$block_until = network_time() + catch_release_intervals[try];
+		++bi$num_reblocked;
+
 		local block_interval = catch_release_intervals[try];
-		drop_address(a, block_interval, "Re-drop by catch-and-release");
+		local drop = drop_address(a, block_interval, "Re-drop by catch-and-release");
+		bi$current_block_id = drop;
+
+		blocks[a] = bi;
+
+		log = populate_log_record(a, bi, SEEN_AGAIN);
+		Log::write(CATCH_RELEASE, log);
+@endif
+@if ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER )
+	event NetControl::catch_release_block_new(a, bi);
+@endif
+@if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
+	event NetControl::catch_release_encountered(a);
+@endif
+
+		return;
 		}
+
+	return;
 	}
 
 event new_connection(c: connection)
 	{
-	# let's only check originating connections...
-	check_conn(c$id$orig_h);
+	if ( watch_connections )
+		catch_release_seen(c$id$orig_h);
+	}
+
+event connection_established(c: connection)
+	{
+	if ( watch_connections )
+		catch_release_seen(c$id$orig_h);
+	}
+
+event partial_connection(c: connection)
+	{
+	if ( watch_connections )
+		catch_release_seen(c$id$orig_h);
+	}
+
+event connection_attempt(c: connection)
+	{
+	if ( watch_connections )
+		catch_release_seen(c$id$orig_h);
+	}
+
+event connection_rejected(c: connection)
+	{
+	if ( watch_connections )
+		catch_release_seen(c$id$orig_h);
+	}
+
+event connection_reset(c: connection)
+	{
+	if ( watch_connections )
+		catch_release_seen(c$id$orig_h);
+	}
+
+event connection_pending(c: connection)
+	{
+	if ( watch_connections )
+		catch_release_seen(c$id$orig_h);
 	}

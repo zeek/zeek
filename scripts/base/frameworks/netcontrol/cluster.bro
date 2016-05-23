@@ -38,6 +38,16 @@ function add_rule(r: Rule) : string
 		return add_rule_impl(r);
 	else
 		{
+		# we sync rule entities accross the cluster, so we
+		# acually can test if the rule already exists. If yes,
+		# refuse insertion already at the node.
+
+		if ( [r$entity, r$ty] in rule_entities )
+			{
+			log_rule_no_plugin(r, FAILED, "discarded duplicate insertion");
+			return "";
+			}
+
 		if ( r$id == "" )
 			r$id = cat(Cluster::node, ":", ++local_rule_count);
 
@@ -130,6 +140,7 @@ event rule_new(r: Rule) &priority=5
 		return;
 
 	rules[r$id] = r;
+	rule_entities[r$entity, r$ty] = r;
 
 	add_subnet_entry(r);
 	}
@@ -140,6 +151,9 @@ event rule_destroyed(r: Rule) &priority=5
 		return;
 
 	remove_subnet_entry(r);
+	if ( [r$entity, r$ty] in rule_entities )
+		delete rule_entities[r$entity, r$ty];
+
 	delete rules[r$id];
 	}
 

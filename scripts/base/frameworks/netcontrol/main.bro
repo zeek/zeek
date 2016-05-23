@@ -259,7 +259,7 @@ export {
 		MESSAGE,
 		## A log entry reflecting a framework message.
 		ERROR,
-		## A log entry about about a rule.
+		## A log entry about a rule.
 		RULE
 	};
 
@@ -820,6 +820,7 @@ function delete_rule_impl(id: string): bool
 	rule$_active_plugin_ids = set();
 
 	rule_cleanup(rule);
+	return T;
 	}
 
 function remove_rule_plugin(r: Rule, p: PluginState): bool

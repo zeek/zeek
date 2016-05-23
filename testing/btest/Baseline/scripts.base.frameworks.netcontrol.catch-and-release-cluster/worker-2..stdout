@@ -1,0 +1,6 @@
+Suspend, worker-2
+New block, 192.168.18.50, [block_until=1464045742.528981, watch_until=1464048742.528981, num_reblocked=0, current_interval=0, current_block_id=2]
+Resume, worker-2
+Connection established
+Info, [block_until=1464045742.528981, watch_until=1464048742.528981, num_reblocked=0, current_interval=0, current_block_id=2]
+Delete block, 192.168.18.50

@@ -94,6 +94,17 @@ export {
 	## option.
 	const default_rotation_interval = 0secs &redef;
 
+	## Default naming format for timestamps embedded into filenames.
+	## Uses a ``strftime()`` style.
+	const default_rotation_date_format = "%Y-%m-%d-%H-%M-%S" &redef;
+
+	## Default shell command to run on rotated files. Empty for none.
+	const default_rotation_postprocessor_cmd = "" &redef;
+
+	## Specifies the default postprocessor function per writer type.
+	## Entries in this table are initialized by each writer type.
+	const default_rotation_postprocessors: table[Writer] of function(info: RotationInfo) : bool &redef;
+
 	## Default alarm summary mail interval. Zero disables alarm summary
 	## mails.
 	##
@@ -110,16 +121,15 @@ export {
 	## nested records.
 	const default_unrolling_sep = "." &redef;
 
-	## Default naming format for timestamps embedded into filenames.
-	## Uses a ``strftime()`` style.
-	const default_rotation_date_format = "%Y-%m-%d-%H-%M-%S" &redef;
+	## A prefix for metadata fields which can be optionally prefixed
+	## on all log lines by setting the `metadata_func` field in the
+	## log filter.
+	const Log::default_metadata_prefix: string = "_" &redef;
 
-	## Default shell command to run on rotated files. Empty for none.
-	const default_rotation_postprocessor_cmd = "" &redef;
-
-	## Specifies the default postprocessor function per writer type.
-	## Entries in this table are initialized by each writer type.
-	const default_rotation_postprocessors: table[Writer] of function(info: RotationInfo) : bool &redef;
+	## Default metadata function in the case that you would like to 
+	## apply the same metadata to all logs.  The function *must* return
+	## a record with all of the fields to be included in the metadata.
+	const Log::default_metadata_func: function(path: string): any &redef;
 
 	## A filter type describes how to customize logging streams.
 	type Filter: record {
@@ -205,6 +215,16 @@ export {
 
 		## Rotation interval. Zero disables rotation.
 		interv: interval &default=default_rotation_interval;
+
+		## Default prefix for all metadata fields. It's typically
+		## prudent to set this to something that Bro's logging
+		## framework can't normally write out in a field name.
+		metadata_prefix: string &default="_";
+
+		## Function to collect a metadata value.  If not specified, no
+		## metadata will be provided for the log.
+		## The return value from the function *must* be a record.
+		metadata_func: function(path: string): any &optional;
 
 		## Callback function to trigger for rotated files. If not set, the
 		## default comes out of :bro:id:`Log::default_rotation_postprocessors`.

@@ -7,6 +7,8 @@
 #include "goose_pac.h"
 #include "events.bif.h"
 
+#include "gooseData.h"
+
 #include <string>
 
 using namespace analyzer::goose;

@@ -3429,14 +3429,55 @@ export {
 		nanoseconds	 : count;
 	};
 
+	## The different types of data that a GOOSE::Data can hold, as
+	## described in the IEC 61850. It will be referred as the
+	## "official type".
+	type GOOSE::DataType enum
+	{
+		GOOSE_DATA_TYPE_ARRAY,
+		GOOSE_DATA_TYPE_STRUCTURE,
+		GOOSE_DATA_TYPE_BOOLEAN,
+		GOOSE_DATA_TYPE_BIT_STRING,
+		GOOSE_DATA_TYPE_INTEGER,
+		GOOSE_DATA_TYPE_UNSIGNED,
+		GOOSE_DATA_TYPE_FLOATING_POINT,
+		GOOSE_DATA_TYPE_REAL,
+		GOOSE_DATA_TYPE_OCTET_STRING,
+		GOOSE_DATA_TYPE_VISIBLE_STRING,
+		GOOSE_DATA_TYPE_BINARY_TIME,
+		GOOSE_DATA_TYPE_BCD,
+		GOOSE_DATA_TYPE_BOOLEAN_ARRAY,
+		GOOSE_DATA_TYPE_OBJ_ID,
+		GOOSE_DATA_TYPE_MMS_STRING,
+		GOOSE_DATA_TYPE_UTC_TIME
+	};
+
+	## Record representing the object Data described in IEC 61850.
+	##
+	## The official type held by this record is represented by the
+	## field "officialType". There is no 1-on-1 correspondance
+	## between the official type and the underlying type of the 
+	## data actually held by the record. For instance, both 
+	## GOOSE_DATA_TYPE_BOOLEAN_ARRAY and GOOSE_DATA_TYPE_BIT_STRING
+	## are held by a vector of bool.
 	type GOOSE::Data : record {
-		intval : int &optional;
+		## The type of data actually held by the instance of this record
+		officialType: GOOSE::DataType;
+
+		boolVal     : bool &optional;
+		intval      : int &optional;
+		uintVal     : count &optional;
+		realVal     : double &optional;
+		bitStringVal: vector of bool &optional;
+		stringVal   : string &optional;
+		timeVal     : GOOSE::UTCTime &optional;
+		## TODO : OID
 	} &redef;
 	
 	type GOOSE::SequenceOfData : vector of GOOSE::Data;
 
 	redef record GOOSE::Data += {
-		array: GOOSE::SequenceOfData &optional;
+		arrayVal: GOOSE::SequenceOfData &optional;
 	};
 
 	## The main object of GOOSE

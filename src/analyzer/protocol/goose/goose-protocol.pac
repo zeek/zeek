@@ -87,8 +87,6 @@ type ASN1Length = record {
 				    # implicit cast from uint8 to uint32
 			);
 
-	recordSize: uint8 = (isMoreThanOneOctet ? 1+sizeOfValue : 1);
-
 	debug: bool = debugASNLength(Identifier, (isMoreThanOneOctet?sizeOfValue:1), value);
 };
 
@@ -178,7 +176,7 @@ type IECGoosePdu = record {
 
 	sequenceTag: uint8;
 	sequenceTotalLength: ASN1Length;
-	allData: GOOSEData[] &until($input.length == 0);
+	allData: GOOSEData[ndsComAndNumDatSetEntries.uintVal];
 } &let {
 	has_goID: bool = nextTag == 0x83;
 };
@@ -293,30 +291,27 @@ type GOOSEData = record {
 
 	content: GOOSEDataContent(tag, len.value);
 } &let {
-	totalSize: uint32 = 1 + len.recordSize + len.value;
 	debug: bool = displayByte(tag);
 };
 
-type GOOSEDataContent(tag: uint8, size: uint32) = record {
-	data: case tag of {
-		ARRAY -> array: GOOSEDataArrayHead(size);
-		STRUCTURE -> structure: GOOSEDataArrayHead(size);
-		BOOLEAN -> boolean: uint8;
-		BIT_STRING -> bitString: ASN1BitString(size);
-		SIGNED_INTEGER -> intVal: GOOSESignedIntegerInternal(size);
-		UNSIGNED_INTEGER -> uintVal: GOOSEUnsignedIntegerInternal(size);  
-		FLOATING_POINT -> floatVal: bytestring &length = size; #ASN1FloatInternal(size); # TODO: read non-free IEC61850
-		REAL -> realVal: ASN1RealInternal;
-		OCTET_STRING -> bs: bytestring &length = size;
-		VISIBLE_STRING -> string: bytestring &length = size; 
-		BINARY_TIME -> timeOfDay: bytestring &length = size;
-		BCD -> bcd: GOOSESignedIntegerInternal(size);
-		BOOLEAN_ARRAY -> boolArray: ASN1BitString(size);
-		OBJ_ID -> objId: ASN1ObjectIdentifierInternal(size);
-		UTCTIME -> utcTime: IEC_UTC_Time;
-		MMS_STRING -> mmsString: bytestring &length = size;
-	};
-} &byteorder = bigendian;
+type GOOSEDataContent(tag: uint8, size: uint32) = case tag of
+{
+	BOOLEAN -> boolean: uint8;
+	BIT_STRING -> bitString: ASN1BitString(size);
+	SIGNED_INTEGER -> intVal: GOOSESignedIntegerInternal(size);
+	UNSIGNED_INTEGER -> uintVal: GOOSEUnsignedIntegerInternal(size);  
+	FLOATING_POINT -> floatVal: bytestring &length = size; #ASN1FloatInternal(size); # TODO: read non-free IEC61850
+	REAL -> realVal: ASN1RealInternal;
+	OCTET_STRING -> bs: bytestring &length = size;
+	VISIBLE_STRING -> string: bytestring &length = size; 
+	BINARY_TIME -> timeOfDay: bytestring &length = size;
+	BCD -> bcd: GOOSESignedIntegerInternal(size);
+	BOOLEAN_ARRAY -> boolArray: ASN1BitString(size);
+	OBJ_ID -> objId: ASN1ObjectIdentifierInternal(size);
+	UTCTIME -> utcTime: IEC_UTC_Time;
+	MMS_STRING -> mmsString: bytestring &length = size;
+};
+
 
 enum GOOSEDataTypes {
 	ARRAY = 0x81,
@@ -336,16 +331,6 @@ enum GOOSEDataTypes {
 	OBJ_ID = 0x8f,
 	MMS_STRING = 0x90,
 	UTCTIME = 0x91 
-};
-
-
-## The following record and associated functions are a workaround for the
-## circular record dependency issue
-type GOOSEDataArrayHead(size: uint32) = record {
-	# Parses nothing, which means that all GOOSE::Data will be parsed
-	# as one big array. The C++ code will have to rebuild the tree.
-} &let {
-	contentSize: uint32 = size;
 };
 
 ## ====================

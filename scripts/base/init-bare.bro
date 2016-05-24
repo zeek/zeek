@@ -3432,7 +3432,7 @@ export {
 	## The different types of data that a GOOSE::Data can hold, as
 	## described in the IEC 61850. It will be referred as the
 	## "official type".
-	type GOOSE::DataType enum
+	type GOOSE::DataType : enum
 	{
 		GOOSE_DATA_TYPE_ARRAY,
 		GOOSE_DATA_TYPE_STRUCTURE,

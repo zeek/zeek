@@ -1868,6 +1868,36 @@ BroString* analyzer::http::unescape_URI(const u_char* line, const u_char* line_e
 				++line; // place line at the last hex digit
 				}
 
+			else if ( line_end - line >= 5 &&
+			          line[0] == 'u' && 
+			          isxdigit(line[1]) && 
+			          isxdigit(line[2]) && 
+			          isxdigit(line[3]) && 
+			          isxdigit(line[4]) )
+				{
+				// Decode escaping like this: %u00AE
+				// The W3C rejected escaping this way, and
+				// there is no RFC that specifies it.
+				// Appparently there is some software doing 
+				// this sort of 4 byte unicode encoding anyway.
+				// Likely causing an increase in it's use is
+				// the third edition of the ECMAScript spec
+				// having functions for encoding and decoding 
+				// data in this format.
+
+				// If the first byte is null, let's eat it.
+				// It could just be ASCII encoded into this
+				// unicode escaping structure.
+				if ( ! (line[1] == '0' && line[2] == '0' ) )
+					*URI_p++ = (decode_hex(line[1]) << 4) +
+				               decode_hex(line[2]);
+				
+				*URI_p++ = (decode_hex(line[3]) << 4) +
+				           decode_hex(line[4]);
+
+				++line; ++line; ++line; ++line;
+				}
+
 			else
 				{
 				if ( analyzer )

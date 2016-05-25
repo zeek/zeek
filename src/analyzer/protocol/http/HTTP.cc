@@ -1813,12 +1813,12 @@ void HTTP_Analyzer::SkipEntityData(int is_orig)
 	}
 
 int analyzer::http::is_reserved_URI_char(unsigned char ch)
-	{ // see RFC 2396 (definition of URI)
-	return strchr(";/?:@&=+$,", ch) != 0;
+	{ // see RFC 3986 (definition of URI)
+	return strchr(":/?#[]@!$&'()*+,;=", ch) != 0;
 	}
 
 int analyzer::http::is_unreserved_URI_char(unsigned char ch)
-	{ // see RFC 2396 (definition of URI)
+	{ // see RFC 3986 (definition of URI)
 	return isalnum(ch) || strchr("-_.!~*\'()", ch) != 0;
 	}
 
@@ -1834,19 +1834,6 @@ BroString* analyzer::http::unescape_URI(const u_char* line, const u_char* line_e
 	{
 	byte_vec decoded_URI = new u_char[line_end - line + 1];
 	byte_vec URI_p = decoded_URI;
-
-	// An 'unescaped_special_char' here means a character that *should*
-	// be escaped, but isn't in the URI.  A control characters that
-	// appears directly in the URI would be an example.  The RFC implies
-	// that if we do not unescape the URI that we see in the trace, every
-	// character should be a printable one -- either reserved or unreserved
-	// (or '%').
-	//
-	// Counting the number of unescaped characters and generating a weird
-	// event on URI's with unescaped characters (which are rare) will
-	// let us locate strange-looking URI's in the trace -- those URI's
-	// are often interesting.
-	int unescaped_special_char = 0;
 
 	while ( line < line_end )
 		{
@@ -1892,12 +1879,6 @@ BroString* analyzer::http::unescape_URI(const u_char* line, const u_char* line_e
 
 		else
 			{
-			if ( ! is_reserved_URI_char(*line) &&
-			     ! is_unreserved_URI_char(*line) )
-				// Count these up as a way to compress
-				// the corresponding Weird event to a
-				// single instance.
-				++unescaped_special_char;
 			*URI_p++ = *line;
 			}
 
@@ -1905,9 +1886,6 @@ BroString* analyzer::http::unescape_URI(const u_char* line, const u_char* line_e
 		}
 
 	URI_p[0] = 0;
-
-	if ( unescaped_special_char && analyzer )
-		analyzer->Weird("unescaped_special_URI_char");
 
 	return new BroString(1, decoded_URI, URI_p - decoded_URI);
 	}

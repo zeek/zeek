@@ -22,6 +22,8 @@ export {
 		current_interval: count;
 		# ID of the inserted block, if any.
 		current_block_id: string;
+		# User specified string
+		location: string &optional;
 	};
 
 	type CatchReleaseActions: enum {
@@ -126,11 +128,46 @@ event bro_init() &priority=5
 	Log::create_stream(NetControl::CATCH_RELEASE, [$columns=CatchReleaseInfo, $ev=log_netcontrol_catch_release, $path="netcontrol_catch_release"]);
 	}
 
+function get_watch_interval(current_interval: count): interval
+	{
+	if ( (current_interval + 1) in catch_release_intervals )
+		return catch_release_intervals[current_interval+1];
+	else
+		return catch_release_intervals[current_interval];
+	}
+
+function populate_log_record(ip: addr, bi: BlockInfo, action: CatchReleaseActions): CatchReleaseInfo
+	{
+	local log = CatchReleaseInfo($ts=network_time(), $ip=ip, $action=action,
+	        $block_interval=catch_release_intervals[bi$current_interval],
+	        $watch_interval=get_watch_interval(bi$current_interval),
+	        $watched_until=bi$watch_until,
+	        $num_blocked=bi$num_reblocked+1
+	        );
+
+	if ( bi?$block_until )
+		log$blocked_until = bi$block_until;
+
+	if ( bi?$current_block_id && bi$current_block_id != "" )
+		log$rule_id = bi$current_block_id;
+
+	if ( bi?$location )
+		log$location = bi$location;
+
+	return log;
+	}
+
 function per_block_interval(t: table[addr] of BlockInfo, idx: addr): interval
 	{
 	local remaining_time = t[idx]$watch_until - network_time();
 	if ( remaining_time < 0secs )
 		remaining_time = 0secs;
+
+	if ( remaining_time == 0secs )
+		{
+		local log = populate_log_record(idx, t[idx], FORGOTTEN);
+		Log::write(CATCH_RELEASE, log);
+		}
 
 	return remaining_time;
 	}
@@ -146,7 +183,60 @@ global blocks: table[addr] of BlockInfo = {}
 @if ( Cluster::is_enabled() )
 @load base/frameworks/cluster
 redef Cluster::manager2worker_events += /NetControl::catch_release_block_(new|delete)/;
-redef Cluster::worker2manager_events += /NetControl::catch_release_(add|delete|seen)/;
+redef Cluster::worker2manager_events += /NetControl::catch_release_(add|delete|encountered)/;
+@endif
+
+function cr_check_rule(r: Rule): bool
+	{
+	if ( r$ty == DROP && r$entity$ty == ADDRESS )
+		{
+		local ip = r$entity$ip;
+		if ( ( is_v4_subnet(ip) && subnet_width(ip) == 32 ) || ( is_v6_subnet(ip) && subnet_width(ip) == 128 ) )
+			{
+			if ( subnet_to_addr(ip) in blocks )
+				return T;
+			}
+		}
+
+		return F;
+	}
+
+@if ( ! Cluster::is_enabled() || ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER ) )
+
+event rule_added(r: Rule, p: PluginState, msg: string &default="")
+	{
+	if ( !cr_check_rule(r) )
+		return;
+
+	local ip = subnet_to_addr(r$entity$ip);
+	local bi = blocks[ip];
+
+	local log = populate_log_record(ip, bi, DROPPED);
+	if ( msg != "" )
+		log$message = msg;
+	Log::write(CATCH_RELEASE, log);
+	}
+
+
+event rule_timeout(r: Rule, i: FlowInfo, p: PluginState)
+	{
+	if ( !cr_check_rule(r) )
+		return;
+
+	local ip = subnet_to_addr(r$entity$ip);
+	local bi = blocks[ip];
+
+	local log = populate_log_record(ip, bi, UNBLOCK);
+	if ( bi?$block_until )
+		{
+		local difference: interval = network_time() - bi$block_until;
+		if ( interval_to_double(difference) > 60 || interval_to_double(difference) < -60 )
+			log$message = fmt("Difference betweek network_time and block time excessive: %f", difference);
+		}
+
+	Log::write(CATCH_RELEASE, log);
+	}
+
 @endif
 
 @if ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER )
@@ -190,32 +280,6 @@ function get_catch_release_info(a: addr): BlockInfo
 	return BlockInfo($watch_until=double_to_time(0), $current_interval=0, $current_block_id="");
 	}
 
-function get_watch_interval(current_interval: count): interval
-	{
-	if ( (current_interval + 1) in catch_release_intervals )
-		return catch_release_intervals[current_interval+1];
-	else
-		return catch_release_intervals[current_interval];
-	}
-
-function populate_log_record(ip: addr, bi: BlockInfo, action: CatchReleaseActions): CatchReleaseInfo
-	{
-	local log = CatchReleaseInfo($ts=network_time(), $ip=ip, $action=action,
-	        $block_interval=catch_release_intervals[bi$current_interval],
-	        $watch_interval=get_watch_interval(bi$current_interval),
-	        $watched_until=bi$watch_until,
-	        $num_blocked=bi$num_reblocked+1
-	        );
-
-	if ( bi?$block_until )
-		log$blocked_until = bi$block_until;
-
-	if ( bi?$current_block_id && bi$current_block_id != "" )
-		log$rule_id = bi$current_block_id;
-
-	return log;
-	}
-
 function drop_address_catch_release(a: addr, location: string &default=""): BlockInfo
 	{
 	local bi: BlockInfo;
@@ -236,6 +300,8 @@ function drop_address_catch_release(a: addr, location: string &default=""): Bloc
 		local r = rule_entities[e,DROP];
 
 		bi = BlockInfo($watch_until=network_time()+catch_release_intervals[1], $current_interval=0, $current_block_id=r$id);
+		if ( location != "" )
+			bi$location = location;
 @if ( ! Cluster::is_enabled() || ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER ) )
 		log = populate_log_record(a, bi, ADDED);
 		log$message = "Address already blocked outside of catch-and-release. Catch and release will monitor and only actively block if it appears in network traffic.";
@@ -257,6 +323,8 @@ function drop_address_catch_release(a: addr, location: string &default=""): Bloc
 	if ( ret != "" )
 		{
 		bi = BlockInfo($watch_until=network_time()+catch_release_intervals[1], $block_until=network_time()+block_interval, $current_interval=0, $current_block_id=ret);
+		if ( location != "" )
+			bi$location = location;
 		blocks[a] = bi;
 		event NetControl::catch_release_block_new(a, bi);
 		blocks[a] = bi;

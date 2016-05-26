@@ -34,7 +34,7 @@ event remote_connection_handshake_done(p: event_peer) &priority=-5
 	if ( peer_count == 2 )
 		{
 		event ready_for_data_1();
-		schedule 1sec { ready_for_data_2() };
+		schedule 1.5sec { ready_for_data_2() };
 		}
 	}
 
@@ -85,6 +85,21 @@ event connection_established(c: connection)
 		NetControl::unblock_address_catch_release(id$orig_h);
 		}
 	}
+
+@if ( Cluster::node == "worker-1" )
+event connection_established(c: connection)
+	{
+	NetControl::drop_address(8.8.8.8, 0.1secs);
+	NetControl::drop_address_catch_release(8.8.8.8);
+	}
+@endif
+
+@if ( Cluster::node == "worker-2" )
+event connection_established(c: connection)
+	{
+	NetControl::catch_release_seen(8.8.8.8);
+	}
+@endif
 
 event NetControl::catch_release_block_new(a: addr, b: NetControl::BlockInfo)
 	{

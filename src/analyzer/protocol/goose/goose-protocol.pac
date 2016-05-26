@@ -87,8 +87,6 @@ type ASN1Length = record {
 				    # implicit cast from uint8 to uint32
 			);
 
-	recordSize: uint8 = (isMoreThanOneOctet ? 1+sizeOfValue : 1);
-
 	debug: bool = debugASNLength(Identifier, (isMoreThanOneOctet?sizeOfValue:1), value);
 };
 
@@ -178,7 +176,7 @@ type IECGoosePdu = record {
 
 	sequenceTag: uint8;
 	sequenceTotalLength: ASN1Length;
-	allData: GOOSEData[] &until($input.length == 0);
+	allData: GOOSEData[ndsComAndNumDatSetEntries.uintVal];
 } &let {
 	has_goID: bool = nextTag == 0x83;
 };
@@ -285,6 +283,8 @@ type BoolAndUInt() = record {
 	
 	uintData: RequiredValue(U_INTEGER);
 };
+
+%include gooseData.pac
 
 # ====================
 

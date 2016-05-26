@@ -38,8 +38,13 @@ void getBoolsFromByte(ByteIterator & byte_it, ByteIterator & byte_end, VectorVal
 }
 %}
 
-function asn1_bitstring_to_val(data: const_bytestring, pad: uint8): VectorVal
+function asn1_bitstring_to_val(bitStringRecord: ASN1BitString): VectorVal
 %{
+	// Get the main information from the record :
+	const auto & data = ${bitStringRecord.data};
+	uint8 pad = ${bitStringRecord.paddingBits};
+
+	// Initializing return value :
 	auto vv = new VectorVal(new VectorType(base_type(TYPE_BOOL)));
 	
 	auto byte_it = data.begin(), bytes_end = data.end();

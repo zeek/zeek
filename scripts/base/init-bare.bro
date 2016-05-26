@@ -3432,24 +3432,24 @@ export {
 	## The different types of data that a GOOSE::Data can hold, as
 	## described in the IEC 61850. It will be referred as the
 	## "official type".
-	type GOOSE::DataType enum
+	type GOOSE::DataType : enum
 	{
-		GOOSE_DATA_TYPE_ARRAY,
-		GOOSE_DATA_TYPE_STRUCTURE,
-		GOOSE_DATA_TYPE_BOOLEAN,
-		GOOSE_DATA_TYPE_BIT_STRING,
-		GOOSE_DATA_TYPE_INTEGER,
-		GOOSE_DATA_TYPE_UNSIGNED,
-		GOOSE_DATA_TYPE_FLOATING_POINT,
-		GOOSE_DATA_TYPE_REAL,
-		GOOSE_DATA_TYPE_OCTET_STRING,
-		GOOSE_DATA_TYPE_VISIBLE_STRING,
-		GOOSE_DATA_TYPE_BINARY_TIME,
-		GOOSE_DATA_TYPE_BCD,
-		GOOSE_DATA_TYPE_BOOLEAN_ARRAY,
-		GOOSE_DATA_TYPE_OBJ_ID,
-		GOOSE_DATA_TYPE_MMS_STRING,
-		GOOSE_DATA_TYPE_UTC_TIME
+		GOOSE_DATA_TYPE_ARRAY = 0x81,
+		GOOSE_DATA_TYPE_STRUCTURE = 0x82,
+		GOOSE_DATA_TYPE_BOOLEAN = 0x83,
+		GOOSE_DATA_TYPE_BIT_STRING = 0x84,
+		GOOSE_DATA_TYPE_INTEGER = 0x85,
+		GOOSE_DATA_TYPE_UNSIGNED = 0x86,
+		GOOSE_DATA_TYPE_FLOATING_POINT = 0x87,
+		GOOSE_DATA_TYPE_REAL = 0x88,
+		GOOSE_DATA_TYPE_OCTET_STRING = 0x89,
+		GOOSE_DATA_TYPE_VISIBLE_STRING = 0x8a,
+		GOOSE_DATA_TYPE_BINARY_TIME = 0x8c,
+		GOOSE_DATA_TYPE_BCD = 0x8d,
+		GOOSE_DATA_TYPE_BOOLEAN_ARRAY = 0x8e,
+		GOOSE_DATA_TYPE_OBJ_ID = 0x8f,
+		GOOSE_DATA_TYPE_MMS_STRING = 0x90,
+		GOOSE_DATA_TYPE_UTC_TIME = 0x91
 	};
 
 	## Record representing the object Data described in IEC 61850.
@@ -3471,11 +3471,12 @@ export {
 		bitStringVal: vector of bool &optional;
 		stringVal   : string &optional;
 		timeVal     : GOOSE::UTCTime &optional;
-		## TODO : OID
 	} &redef;
 	
 	type GOOSE::SequenceOfData : vector of GOOSE::Data;
 
+	# The Bro scripting language handles type recursion only through
+	# redef.
 	redef record GOOSE::Data += {
 		arrayVal: GOOSE::SequenceOfData &optional;
 	};

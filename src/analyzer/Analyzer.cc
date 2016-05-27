@@ -669,11 +669,7 @@ void Analyzer::ProtocolConfirmation(Tag arg_tag)
 	vl->append(BuildConnVal());
 	vl->append(tval);
 	vl->append(new Val(id, TYPE_COUNT));
-
-	// We immediately raise the event so that the analyzer can quickly
-	// react if necessary.
-	::Event* e = new ::Event(protocol_confirmation, vl, SOURCE_LOCAL);
-	mgr.Dispatch(e);
+	mgr.QueueEvent(protocol_confirmation, vl);
 
 	protocol_confirmed = true;
 	}
@@ -701,11 +697,7 @@ void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
 	vl->append(tval);
 	vl->append(new Val(id, TYPE_COUNT));
 	vl->append(r);
-
-	// We immediately raise the event so that the analyzer can quickly be
-	// disabled if necessary.
-	::Event* e = new ::Event(protocol_violation, vl, SOURCE_LOCAL);
-	mgr.Dispatch(e);
+	mgr.QueueEvent(protocol_violation, vl);
 	}
 
 void Analyzer::AddTimer(analyzer_timer_func timer, double t,

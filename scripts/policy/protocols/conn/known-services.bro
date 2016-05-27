@@ -62,14 +62,25 @@ event bro_init() &priority=5
 	                                         $path="known_services"]);
 	}
 	
-event log_it(ts: time, a: addr, p: port, services: set[string])
+event connection_state_remove(c: connection) &priority=-5
 	{
+	if (|c$service| == 0 && /h/ !in c$history)
+		return;
+	local id = c$id;
+	local a = id$resp_h;
+	local p = id$resp_p;
+	
+	if ( ! addr_matches_host(a, service_tracking) ||
+	     string_set_overlap(c$service, ignored_services) || # Don't include ignored services
+	     ("DNS" in c$service && c$resp$size == 0) ) # for dns, require that the server talks.
+		return;
+
 	local added = F;
 	if([a, p] !in known_services) {
 		known_services[a,p] = set();
 		added = T;
 	}
-	for(s in services) 
+	for(s in c$service)
 		{
 		if ( s !in known_services[a, p] )
 			{
@@ -78,45 +89,13 @@ event log_it(ts: time, a: addr, p: port, services: set[string])
 			}
 		}
 	if(added)
-	{
+		{
 		local i: ServicesInfo;
-		i$ts=ts;
+		i$ts=network_time();
 		i$host=a;
 		i$port_num=p;
 		i$port_proto=get_port_transport_proto(p);
-		i$service=services;
+		i$service=c$service;
 		Log::write(Known::SERVICES_LOG, i);
 		}
-	}
-	
-event known_services_done(c: connection)
-	{
-	local id = c$id;
-	
-	if ( ! addr_matches_host(id$resp_h, service_tracking) ||
-	     string_set_overlap(c$service, ignored_services) || # Don't include ignored services
-	     ("DNS" in c$service && c$resp$size == 0) ) # for dns, require that the server talks.
-		return;
-	
-	# If no protocol was detected, wait a short
-	# time before attempting to log in case a protocol is detected
-	# on another connection.
-	if ( |c$service| == 0 )
-		schedule 5min { log_it(network_time(), id$resp_h, id$resp_p, c$service) };
-	else 
-		event log_it(network_time(), id$resp_h, id$resp_p, c$service);
-	}
-	
-event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &priority=-5
-	{
-	# Wait up to 2 minutes to see if any other protocols are discovered across this connection.
-	# For example, gridftp that may be detected on top of an SSL connection.
-	schedule 2min { known_services_done(c) };
-	}
-
-# Handle the connection ending in case no protocol was ever detected.
-event connection_state_remove(c: connection) &priority=-5
-	{
-	if (c$resp$state == TCP_ESTABLISHED )
-		event known_services_done(c);
 	}

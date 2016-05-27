@@ -20,6 +20,7 @@ redef Cluster::nodes = {
 redef Log::default_rotation_interval = 0secs;
 
 @load base/frameworks/netcontrol
+redef NetControl::catch_release_warn_blocked_ip_encountered = T;
 
 global ready_for_data_1: event();
 global ready_for_data_2: event();

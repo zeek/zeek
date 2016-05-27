@@ -107,6 +107,10 @@ export {
 	## connection_reset and connection_pending
 	const watch_connections = T &redef;
 
+	## If true, catch and release warns if packets of an IP address are still seen after it
+	## should have been blocked.
+	const catch_release_warn_blocked_ip_encountered = F &redef;
+
 	## Time intervals for which a subsequent drops of the same IP take
 	## effect.
 	const catch_release_intervals: vector of interval = vector(10min, 1hr, 24hrs, 7days) &redef;
@@ -122,6 +126,9 @@ export {
 	global catch_release_delete: event(a: addr);
 	global catch_release_encountered: event(a: addr);
 }
+
+# set that is used to only send seen notifications to the master every ~30 seconds.
+global catch_release_recently_notified: set[addr] &create_expire=30secs;
 
 event bro_init() &priority=5
 	{
@@ -163,11 +170,13 @@ function per_block_interval(t: table[addr] of BlockInfo, idx: addr): interval
 	if ( remaining_time < 0secs )
 		remaining_time = 0secs;
 
+@if ( ! Cluster::is_enabled() || ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER ) )
 	if ( remaining_time == 0secs )
 		{
 		local log = populate_log_record(idx, t[idx], FORGOTTEN);
 		Log::write(CATCH_RELEASE, log);
 		}
+@endif
 
 	return remaining_time;
 	}
@@ -379,6 +388,9 @@ function catch_release_seen(a: addr)
 
 		if ( [e,DROP] in rule_entities )
 			{
+			if ( catch_release_warn_blocked_ip_encountered == F )
+				return;
+
 			# This should be blocked - block has not been applied yet by hardware? Ignore for the moment...
 			log = populate_log_record(a, bi, INFO);
 			log$action = INFO;
@@ -415,7 +427,11 @@ function catch_release_seen(a: addr)
 	event NetControl::catch_release_block_new(a, bi);
 @endif
 @if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
+	if ( a in catch_release_recently_notified )
+		return;
+
 	event NetControl::catch_release_encountered(a);
+	add catch_release_recently_notified[a];
 @endif
 
 		return;

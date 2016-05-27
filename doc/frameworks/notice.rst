@@ -83,9 +83,9 @@ The hook :bro:see:`Notice::policy` provides the mechanism for applying
 actions and generally modifying the notice before it's sent onward to
 the action plugins.  Hooks can be thought of as multi-bodied functions
 and using them looks very similar to handling events.  The difference
-is that they don't go through the event queue like events.  Users should
-directly make modifications to the :bro:see:`Notice::Info` record
-given as the argument to the hook.
+is that they don't go through the event queue like events.  Users can
+alter notice processing by directly modifying fields in the
+:bro:see:`Notice::Info` record given as the argument to the hook.
 
 Here's a simple example which tells Bro to send an email for all notices of
 type :bro:see:`SSH::Password_Guessing` if the guesser attempted to log in to

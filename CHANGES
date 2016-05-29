@@ -1,4 +1,21 @@
 
+2.4-579 | 2016-05-29 08:54:57 -0700
+
+  * Fixing Coverity warning. Addresses CID 1356116. (Robin Sommer)
+
+  * Fixing FTP cwd getting overlue long. (Robin Sommer)
+
+  * Clarifying notice documentation. Addresses BIT-1405. (Robin
+    Sommer)
+
+  * Changing protocol_{confirmation,violation} events to queue like
+    any other event. Addresses BIT-1530. (Robin Sommer)
+
+  * Normalizing test baseline. (Robin Sommer)
+
+  * Do not use scientific notations when printing doubles in logs.
+    Addresses BIT-1558. (Robin Sommer)
+
 2.4-573 | 2016-05-23 13:21:03 -0700
 
   * Ignoring packets with negative timestamps. Addresses BIT-1562 and

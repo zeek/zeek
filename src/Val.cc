@@ -2288,8 +2288,11 @@ double TableVal::CallExpireFunc(Val* idx)
 		Val* vf = expire_expr->Eval(0);
 
 		if ( ! vf )
+			{
 			// Will have been reported already.
+			delete_vals(vl);
 			return 0;
+			}
 
 		if ( vf->Type()->Tag() != TYPE_FUNC )
 			{

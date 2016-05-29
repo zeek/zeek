@@ -365,11 +365,19 @@ type connection: record {
 	## handled and reassigns this field to the new encapsulation.
 	tunnel: EncapsulatingConnVector &optional;
 
-	## The outer VLAN, if applicable, for this connection.
+	## The outer VLAN, if applicable for this connection.
 	vlan: int &optional;
 
-	## The inner VLAN, if applicable, for this connection.
+	## The inner VLAN, if applicable for this connection.
 	inner_vlan: int &optional;
+
+	## The Ethernet MAC source addrees, if applicable for this connection.
+        ## The address is derived from the connection's first packet.
+	eth_src: string &optional;
+
+	## The destination Ethernet MAC addrees, if applicable for this connection.
+        ## The address is derived from the connection's first packet.
+	eth_dst: string &optional;
 };
 
 ## Default amount of time a file can be inactive before the file analysis

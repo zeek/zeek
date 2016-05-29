@@ -3,6 +3,7 @@
 #ifndef conn_h
 #define conn_h
 
+#include <netinet/ether.h>
 #include <sys/types.h>
 
 #include "Dict.h"
@@ -56,7 +57,7 @@ namespace analyzer { class Analyzer; }
 class Connection : public BroObj {
 public:
 	Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
-	           uint32 flow, uint32 vlan, uint32 inner_vlan, const EncapsulationStack* arg_encap);
+	           uint32 flow, const Packet* pkt, const EncapsulationStack* arg_encap);
 	virtual ~Connection();
 
 	// Invoked when an encapsulation is discovered. It records the
@@ -296,6 +297,7 @@ protected:
 	TransportProto proto;
 	uint32 orig_flow_label, resp_flow_label;	// most recent IPv6 flow labels
 	uint32 vlan, inner_vlan;	// VLAN this connection traverses, if available
+	ether_addr eth_src, eth_dst;	// Ethernet MAC addresses, if available
 	double start_time, last_time;
 	double inactivity_timeout;
 	RecordVal* conn_val;

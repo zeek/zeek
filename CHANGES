@@ -1,4 +1,11 @@
 
+2.4-580 | 2016-05-29 13:41:10 -0700
+
+  * Add Ethernet MAC addresses to connection record. c$eth_src and
+    c$eth_dst now contain the Ethernet address if available. A new
+    script protocols/conn/mac-logging.bro adds these to conn.log when
+    loaded. (Robin Sommer)
+
 2.4-579 | 2016-05-29 08:54:57 -0700
 
   * Fixing Coverity warning. Addresses CID 1356116. (Robin Sommer)

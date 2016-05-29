@@ -1,6 +1,8 @@
 #ifndef packet_h
 #define packet_h
 
+#include <netinet/ether.h>
+
 #include "Desc.h"
 #include "IP.h"
 #include "NetVar.h"
@@ -50,7 +52,8 @@ public:
 	 */
 	Packet(int link_type, struct timeval *ts, uint32 caplen,
 	       uint32 len, const u_char *data, int copy = false,
-	       std::string tag = std::string("")) : data(0)
+	       std::string tag = std::string(""))
+	           : data(0), eth_src(), eth_dst()
 	       {
 	       Init(link_type, ts, caplen, len, data, copy, tag);
 	       }
@@ -58,7 +61,7 @@ public:
 	/**
 	 * Default constructor. For internal use only.
 	 */
-	Packet() : data(0)
+	Packet() : data(0), eth_src(), eth_dst()
 		{
 		struct timeval ts = {0, 0};
 		Init(0, &ts, 0, 0, 0);
@@ -167,19 +170,31 @@ public:
 	 * Layer 3 protocol identified (if any). Valid iff Layer2Valid()
 	 * returns true.
 	 */
-	Layer3Proto l3_proto;		///
+	Layer3Proto l3_proto;
 
 	/**
 	 * If layer 2 is Ethernet, innermost ethertype field. Valid iff
 	 * Layer2Valid() returns true.
 	 */
-	uint32 eth_type;		///
+	uint32 eth_type;
+
+	/**
+	 * If layer 2 is Ethernet, the source MAC address. Valid iff
+	 * Layer2Valid() returns true.
+	 */
+	ether_addr eth_src[6];
+
+	/**
+	 * If layer 2 is Ethernet, the destiantion MAC address. Valid iff
+	 * Layer2Valid() returns true.
+	 */
+	ether_addr eth_dst[6];
 
 	/**
 	 * (Outermost) VLAN tag if any, else 0. Valid iff Layer2Valid()
 	 * returns true.
 	 */
-	uint32 vlan;			///
+	uint32 vlan;
 
 	/**
 	 * (Innermost) VLAN tag if any, else 0. Valid iff Layer2Valid()

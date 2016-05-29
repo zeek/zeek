@@ -44,6 +44,8 @@ void Packet::Init(int arg_link_type, struct timeval *arg_ts, uint32 arg_caplen,
 	eth_type = 0;
 	vlan = 0;
 	inner_vlan = 0;
+	bzero(eth_src, sizeof(eth_src));
+	bzero(eth_dst, sizeof(eth_dst));
 
 	l2_valid = false;
 
@@ -136,8 +138,12 @@ void Packet::ProcessLayer2()
 		{
 		// Get protocol being carried from the ethernet frame.
 		int protocol = (pdata[12] << 8) + pdata[13];
-		pdata += GetLinkHeaderSize(link_type);
+
 		eth_type = protocol;
+		memcpy(eth_dst, pdata, 6);
+		memcpy(eth_src, pdata + 6, 6);
+
+		pdata += GetLinkHeaderSize(link_type);
 
 		switch ( protocol )
 			{

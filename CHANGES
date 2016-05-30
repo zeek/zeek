@@ -1,4 +1,8 @@
 
+2.4-581 | 2016-05-30 10:58:19 -0700
+
+  * Adding missing new script file mac-logging.bro. (Robin Sommer)
+
 2.4-580 | 2016-05-29 13:41:10 -0700
 
   * Add Ethernet MAC addresses to connection record. c$eth_src and

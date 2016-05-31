@@ -43,7 +43,7 @@ function goosePdu_as_val(pdu : IECGoosePdu): RecordVal
 		
 	result->Assign(9, new Val(${pdu.ndsComAndNumDatSetEntries.uintVal}, TYPE_COUNT));
 
-	result->Assign(10, new VectorVal(BifType::Vector::GOOSE::SequenceOfData));
+	result->Assign(10, goose_data_array_as_val(${pdu.allData}));
 	
 	return result;
 %}

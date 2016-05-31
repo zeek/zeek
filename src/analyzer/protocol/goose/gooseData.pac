@@ -1,19 +1,22 @@
 
 ## ======= GOOSEData ===
+
 type GOOSEData = record {
 	tag: uint8;
 	len: ASN1Length;
 
 	content: GOOSEDataContent(tag, len.value);
 } &let {
-	totalSize: uint32 = 1 + len.recordSize + len.value;
+	totalSize: uint32 = (len.isMoreThanOneOctet ? 2+len.sizeOfValue : 2) + len.value;
 	debug: bool = displayByte(tag);
 };
 
 type GOOSEDataContent(tag: uint8, size: uint32) = record {
 	data: case tag of {
-		ARRAY -> array: GOOSEDataArrayHead(size);
-		STRUCTURE -> structure: GOOSEDataArrayHead(size);
+		# To parse the arrays, only the length is necessary
+		ARRAY -> none : empty;
+		STRUCTURE -> none2 : empty;
+
 		BOOLEAN -> boolean: uint8;
 		BIT_STRING -> bitString: ASN1BitString(size);
 		SIGNED_INTEGER -> intVal: GOOSESignedIntegerInternal(size);
@@ -60,5 +63,11 @@ type GOOSEDataArrayHead(size: uint32) = record {
 } &let {
 	contentSize: uint32 = size;
 };
+
+
+#function goose_data_as_val(gdata: GOOSEData): RecordVal
+#{
+#	
+#}
 
 ## ====================

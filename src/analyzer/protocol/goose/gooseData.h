@@ -1,3 +1,12 @@
 #include "goose_pac.h"
 
-VectorVal* goose_data_array_as_val(const std::vector<GOOSE::GOOSEData> & dataArray);
+namespace binpac { namespace GOOSE {
+
+// ==== Forward declarations ====
+class GOOSEData;
+// ==============================
+
+VectorVal* goose_data_array_as_val(const std::vector<GOOSEData*> * dataArray);
+
+}} //End of namespaces
+

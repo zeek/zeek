@@ -240,7 +240,7 @@ event rule_timeout(r: Rule, i: FlowInfo, p: PluginState)
 		{
 		local difference: interval = network_time() - bi$block_until;
 		if ( interval_to_double(difference) > 60 || interval_to_double(difference) < -60 )
-			log$message = fmt("Difference betweek network_time and block time excessive: %f", difference);
+			log$message = fmt("Difference between network_time and block time excessive: %f", difference);
 		}
 
 	Log::write(CATCH_RELEASE, log);
@@ -415,7 +415,10 @@ function catch_release_seen(a: addr)
 		++bi$num_reblocked;
 
 		local block_interval = catch_release_intervals[try];
-		local drop = drop_address(a, block_interval, "Re-drop by catch-and-release");
+		local location = "";
+		if ( bi?$location )
+			location = bi$location;
+		local drop = drop_address(a, block_interval, fmt("Re-drop by catch-and-release: %s", location));
 		bi$current_block_id = drop;
 
 		blocks[a] = bi;

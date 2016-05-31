@@ -46,7 +46,7 @@ event connection_established(c: connection)
 	{
 	local id = c$id;
 	NetControl::drop_address(id$orig_h, 2min);
-	NetControl::drop_address_catch_release(id$orig_h);
+	NetControl::drop_address_catch_release(id$orig_h, "test drop");
 	}
 
 event NetControl::rule_added(r: NetControl::Rule, p: NetControl::PluginState, msg: string &default="")

@@ -1,23 +1,24 @@
-##! This script adds MAC address information to the connection logs.
+##! This script adds link-layer address (MAC) information to the connection logs
 
 @load base/protocols/conn
 
 module Conn;
 
 redef record Info += {
-	## The Ethernet MAC source address for this connection, if applicable.
-	eth_src: string &log &optional;
-
-	## The Ethernet MAC destination address for this connection, if applicable.
-	eth_dst: string &log &optional;
+	## Link-layer address of the originator, if available.
+	orig_l2_addr: string	&log &optional;
+	## Link-layer address of the responder, if available.
+	resp_l2_addr: string	&log &optional;
 };
 
+# Add the link-layer addresses to the Conn::Info structure after the connection
+# has been removed. This ensures it's only done once, and is done before the
+# connection information is written to the log.
 event connection_state_remove(c: connection)
 	{
-	if ( c?$eth_src )
-		c$conn$eth_src = c$eth_src;
-	
-	if ( c?$eth_dst )
-		c$conn$eth_dst = c$eth_dst;
-	}
+	if ( c$orig?$l2_addr )
+		c$conn$orig_l2_addr = c$orig$l2_addr;
 
+	if ( c$resp?$l2_addr )
+		c$conn$resp_l2_addr = c$resp$l2_addr;
+	}

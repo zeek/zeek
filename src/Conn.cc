@@ -132,10 +132,20 @@ Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
 	saw_first_orig_packet = 1;
 	saw_first_resp_packet = 0;
 
+	orig_l2_addr = 0;
+	resp_l2_addr = 0;
+	if ( pkt->l2_src )
+		{
+		memcpy(l2_src, pkt->l2_src, sizeof(l2_src));
+		orig_l2_addr = l2_src;
+		}
+	if ( pkt->l2_dst )
+		{
+		memcpy(l2_dst, pkt->l2_dst, sizeof(l2_dst));
+		resp_l2_addr = l2_dst;
+		}
 	vlan = pkt->vlan;
 	inner_vlan = pkt->inner_vlan;
-	memcpy(&eth_src, pkt->eth_src, sizeof(eth_src));
-	memcpy(&eth_dst, pkt->eth_dst, sizeof(eth_dst));
 
 	conn_val = 0;
 	login_conn = 0;
@@ -364,11 +374,15 @@ RecordVal* Connection::BuildConnVal()
 		orig_endp->Assign(0, new Val(0, TYPE_COUNT));
 		orig_endp->Assign(1, new Val(0, TYPE_COUNT));
 		orig_endp->Assign(4, new Val(orig_flow_label, TYPE_COUNT));
+		if ( orig_l2_addr )
+			orig_endp->Assign(5, new StringVal(fmt_mac(orig_l2_addr, l2_addr_len)));
 
 		RecordVal *resp_endp = new RecordVal(endpoint);
 		resp_endp->Assign(0, new Val(0, TYPE_COUNT));
 		resp_endp->Assign(1, new Val(0, TYPE_COUNT));
 		resp_endp->Assign(4, new Val(resp_flow_label, TYPE_COUNT));
+		if ( resp_l2_addr )
+			resp_endp->Assign(5, new StringVal(fmt_mac(resp_l2_addr, l2_addr_len)));
 
 		conn_val->Assign(0, id_val);
 		conn_val->Assign(1, orig_endp);
@@ -390,21 +404,6 @@ RecordVal* Connection::BuildConnVal()
 
 		if ( inner_vlan != 0 )
 			conn_val->Assign(10, new Val(inner_vlan, TYPE_INT));
-
-		char buffer[20];
-		char null[sizeof(eth_src)]{};
-
-		if ( memcmp(&eth_src, &null, sizeof(eth_src)) != 0 )
-			{
-			ether_ntoa_r(&eth_src, buffer);
-			conn_val->Assign(11, new StringVal(buffer));
-			}
-
-		if ( memcmp(&eth_dst, &null, sizeof(eth_dst)) != 0 )
-			{
-			ether_ntoa_r(&eth_dst, buffer);
-			conn_val->Assign(12, new StringVal(buffer));
-			}
 		}
 
 	if ( root_analyzer )
@@ -748,6 +747,10 @@ void Connection::FlipRoles()
 	uint32 tmp_port = resp_port;
 	resp_port = orig_port;
 	orig_port = tmp_port;
+
+	u_char* tmp_l2_addr = resp_l2_addr;
+	resp_l2_addr = orig_l2_addr;
+	orig_l2_addr = tmp_l2_addr;
 
 	bool tmp_bool = saw_first_resp_packet;
 	saw_first_resp_packet = saw_first_orig_packet;

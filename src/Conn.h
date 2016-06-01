@@ -3,7 +3,6 @@
 #ifndef conn_h
 #define conn_h
 
-#include <netinet/ether.h>
 #include <sys/types.h>
 
 #include "Dict.h"
@@ -291,13 +290,17 @@ protected:
 	TimerMgr::Tag* conn_timer_mgr;
 	timer_list timers;
 
+	static const int l2_addr_len = 6; // Size of link-layer addresses
+
 	IPAddr orig_addr;
 	IPAddr resp_addr;
 	uint32 orig_port, resp_port;	// in network order
 	TransportProto proto;
 	uint32 orig_flow_label, resp_flow_label;	// most recent IPv6 flow labels
 	uint32 vlan, inner_vlan;	// VLAN this connection traverses, if available
-	ether_addr eth_src, eth_dst;	// Ethernet MAC addresses, if available
+	u_char l2_src[l2_addr_len];	// Link-layer addresses, if available
+	u_char l2_dst[l2_addr_len];
+	u_char *orig_l2_addr, *resp_l2_addr;
 	double start_time, last_time;
 	double inactivity_timeout;
 	RecordVal* conn_val;

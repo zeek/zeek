@@ -44,8 +44,8 @@ void Packet::Init(int arg_link_type, struct timeval *arg_ts, uint32 arg_caplen,
 	eth_type = 0;
 	vlan = 0;
 	inner_vlan = 0;
-	bzero(eth_src, sizeof(eth_src));
-	bzero(eth_dst, sizeof(eth_dst));
+	l2_src = 0;
+	l2_dst = 0;
 
 	l2_valid = false;
 
@@ -140,8 +140,8 @@ void Packet::ProcessLayer2()
 		int protocol = (pdata[12] << 8) + pdata[13];
 
 		eth_type = protocol;
-		memcpy(eth_dst, pdata, 6);
-		memcpy(eth_src, pdata + 6, 6);
+		l2_dst = pdata;
+		l2_src = pdata + 6;
 
 		pdata += GetLinkHeaderSize(link_type);
 
@@ -277,12 +277,38 @@ void Packet::ProcessLayer2()
 		pdata += rtheader_len;
 
 		int type_80211 = pdata[0];
-		int len_80211 = 0;
+		u_char len_80211 = 0;
 		if ( (type_80211 >> 4) & 0x04 )
 			{
 			//identified a null frame (we ignore for now).  no weird.
 			return;
 			}
+
+		// Look for data frames
+		if ( type_80211 & 0x08 )
+			{
+			// Determine link-layer addresses based
+			// on 'To DS' and 'From DS' flags
+			switch ( pdata[1] & 0x03 ) {
+				case 0x00:
+					l2_dst = pdata + 4;
+					l2_src = pdata + 10;
+					break;
+				case 0x01:
+					l2_dst = pdata + 16;
+					l2_src = pdata + 10;
+					break;
+				case 0x02:
+					l2_dst = pdata + 4;
+					l2_src = pdata + 16;
+					break;
+				case 0x03:
+					l2_dst = pdata + 16;
+					l2_src = pdata + 24;
+					break;
+			}
+			}
+
 		// Look for the QoS indicator bit.
 		if ( (type_80211 >> 4) & 0x08 )
 			len_80211 = 26;

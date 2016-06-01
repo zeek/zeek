@@ -152,13 +152,13 @@ char* fmt_mac(const unsigned char* m, int len)
 	{
 	char* buf = new char[25];
 
-	if ( len < 8 )
+	if ( len < 8 && len != 6 )
 		{
 		*buf = '\0';
 		return buf;
 		}
 
-	if ( m[6] == 0 && m[7] == 0 ) // EUI-48
+	if ( (len == 6) || (m[6] == 0 && m[7] == 0) ) // EUI-48
 		snprintf(buf, 19, "%02x:%02x:%02x:%02x:%02x:%02x",
 			 m[0], m[1], m[2], m[3], m[4], m[5]);
 	else

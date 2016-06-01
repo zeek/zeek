@@ -3429,40 +3429,17 @@ export {
 		nanoseconds	 : count;
 	};
 
-	## The different types of data that a GOOSE::Data can hold, as
-	## described in the IEC 61850. It will be referred as the
-	## "official type".
-	type GOOSE::DataType : enum
-	{
-		GOOSE_DATA_TYPE_ARRAY = 0x81,
-		GOOSE_DATA_TYPE_STRUCTURE = 0x82,
-		GOOSE_DATA_TYPE_BOOLEAN = 0x83,
-		GOOSE_DATA_TYPE_BIT_STRING = 0x84,
-		GOOSE_DATA_TYPE_INTEGER = 0x85,
-		GOOSE_DATA_TYPE_UNSIGNED = 0x86,
-		GOOSE_DATA_TYPE_FLOATING_POINT = 0x87,
-		GOOSE_DATA_TYPE_REAL = 0x88,
-		GOOSE_DATA_TYPE_OCTET_STRING = 0x89,
-		GOOSE_DATA_TYPE_VISIBLE_STRING = 0x8a,
-		GOOSE_DATA_TYPE_BINARY_TIME = 0x8c,
-		GOOSE_DATA_TYPE_BCD = 0x8d,
-		GOOSE_DATA_TYPE_BOOLEAN_ARRAY = 0x8e,
-		GOOSE_DATA_TYPE_OBJ_ID = 0x8f,
-		GOOSE_DATA_TYPE_MMS_STRING = 0x90,
-		GOOSE_DATA_TYPE_UTC_TIME = 0x91
-	};
 
 	## Record representing the object Data described in IEC 61850.
 	##
 	## The official type held by this record is represented by the
-	## field "officialType". There is no 1-on-1 correspondance
+	## field "officialType". It is the ASN.1 tag parsed at the
+	## beginning of the Data. There is no 1-on-1 correspondance
 	## between the official type and the underlying type of the 
-	## data actually held by the record. For instance, both 
-	## GOOSE_DATA_TYPE_BOOLEAN_ARRAY and GOOSE_DATA_TYPE_BIT_STRING
-	## are held by a vector of bool.
+	## data actually held by the record. 
 	type GOOSE::Data : record {
 		## The type of data actually held by the instance of this record
-		officialType: GOOSE::DataType;
+		officialType: count;
 
 		boolVal     : bool &optional;
 		intVal      : int &optional;

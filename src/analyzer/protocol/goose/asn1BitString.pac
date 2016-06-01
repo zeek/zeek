@@ -65,7 +65,7 @@ function asn1_bitstring_to_val(bitStringRecord: ASN1BitString): VectorVal
 		//Last byte
 		current_byte = *byte_it;
 		uint8 mask = 0x80;
-		for(auto pi=0; pi<pad; ++pi) // "pi" stands for "padding index"
+		for(auto lbi=0, max=8-pad ; lbi<max; ++lbi) // "lbi" stands for "last byte index"
 		{
 			vv->Assign(vi, new Val(mask & current_byte, TYPE_BOOL));
 			++vi;

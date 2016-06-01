@@ -3465,7 +3465,7 @@ export {
 		officialType: GOOSE::DataType;
 
 		boolVal     : bool &optional;
-		intval      : int &optional;
+		intVal      : int &optional;
 		uintVal     : count &optional;
 		realVal     : double &optional;
 		bitStringVal: vector of bool &optional;

@@ -3,6 +3,7 @@
 
 %extern{
 #include "goose_pac.h"
+#include "gooseData.h"
 
 #include "events.bif.h"
 %}

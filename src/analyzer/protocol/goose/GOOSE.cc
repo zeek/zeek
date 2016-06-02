@@ -22,9 +22,19 @@ GOOSE_Analyzer::~GOOSE_Analyzer()
 	{
 	}
 
-// Argh! FreeBSD and Linux have almost completely different net/if_goose.h .
-// ... and on Solaris we are missing half of the GOOSEOP codes, so define
-// them here as necessary:
+static RecordVal * packet_info_from_packet(const Packet & pkt) {
+	auto data = pkt.data;
+	auto info = new RecordVal(BifType::Record::GOOSE::PacketInfo);
+
+	// MAC Adresses :
+	info->Assign(0, GOOSE_Analyzer::EthAddrToStr(data)); // Destination
+	info->Assign(1, GOOSE_Analyzer::EthAddrToStr(data+6)); // Source 
+
+	// Reception time :
+	info->Assign(2, new Val(pkt.time, TYPE_DOUBLE)); 
+	
+	return info;
+}
 
 void GOOSE_Analyzer::NextPacket(double t, const Packet* pkt)
 	{
@@ -46,9 +56,11 @@ void GOOSE_Analyzer::NextPacket(double t, const Packet* pkt)
 			return;
 		}
 		
+		auto packetInfo = packet_info_from_packet(*pkt);
+		
 		// generating the event
-		if(msg.goosePdu())
-			this->GeneratePDUEvent(goosePdu_as_val(msg.goosePdu()));
+		if(msg.PDU_case_index() == binpac::GOOSE::GOOSE_PDU)
+			this->GeneratePDUEvent(packetInfo, goosePdu_as_val(msg.goosePdu()));
 	}
 
 void GOOSE_Analyzer::Describe(ODesc* d) const
@@ -57,13 +69,9 @@ void GOOSE_Analyzer::Describe(ODesc* d) const
 	d->NL();
 	}
 
-void GOOSE_Analyzer::GeneratePDUEvent(RecordVal * gPdu
-				/*
-				double time,
-				const u_char* src, const u_char *dst,
-				const GOOSE_Message & message
-				// */	
-				)
+void GOOSE_Analyzer::GeneratePDUEvent(
+		RecordVal * pInfo,
+		RecordVal * gPdu)
 	{
 	if ( ! goose_message)
 		return;
@@ -72,22 +80,16 @@ void GOOSE_Analyzer::GeneratePDUEvent(RecordVal * gPdu
 	val_list* vl = new val_list;
 
 	// prepare the event arguments
+	vl->append(pInfo);
 	vl->append(gPdu);
-	/*
-	vl->append(EthAddrToStr(src));
-	vl->append(EthAddrToStr(dst));
-	vl->append(ConstructAddrVal(spa));
-	vl->append(EthAddrToStr((const u_char*) sha));
-	vl->append(ConstructAddrVal(tpa));
-	vl->append(EthAddrToStr((const u_char*) tha));
-	// */
 
+	// Send the event
 	mgr.QueueEvent(goose_message, vl);
 	}
 
 StringVal* GOOSE_Analyzer::EthAddrToStr(const u_char* addr)
 	{
-	char buf[1024];
+	char buf[18];
 	snprintf(buf, sizeof(buf), "%02x:%02x:%02x:%02x:%02x:%02x",
 			addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
 	return new StringVal(buf);

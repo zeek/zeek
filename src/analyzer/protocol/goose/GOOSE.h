@@ -36,16 +36,11 @@ public:
 	void NextPacket(double t, const Packet* pkt);
 
 	void Describe(ODesc* d) const;
-	void GeneratePDUEvent(RecordVal * gPdu
-			/*/,
-			const u_char* src, const u_char* dst,
-			const char* spa, const char* sha,
-			const char* tpa, const char* tha
-			// */
-			);
+	void GeneratePDUEvent(RecordVal * packetInfo, RecordVal * gPdu);
+
+	static StringVal* EthAddrToStr(const u_char* addr);
 
 protected:
-	StringVal* EthAddrToStr(const u_char* addr);
 	void Corrupted(const char* string);
 };
 

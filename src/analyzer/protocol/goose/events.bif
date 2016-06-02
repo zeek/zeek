@@ -1,6 +1,7 @@
 
-event goose_message%(goosePdu: GOOSE::PDU%);
+event goose_message%(packetInfo: GOOSE::PacketInfo, goosePdu: GOOSE::PDU%);
 
+type GOOSE::PacketInfo: record;
 type GOOSE::PDU: record;
 type GOOSE::UTCTime: record;
 type GOOSE::Data: record;

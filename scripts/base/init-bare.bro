@@ -3420,6 +3420,13 @@ export {
 module GOOSE;
 
 export {
+	## Record holding information relevant for any GOOSE message.
+	type GOOSE::PacketInfo : record {
+		destination : string; ##< Destination MAC address	
+		source : string; ##< Source MAC address	
+		captureTime : double; ##< Time in seconds at which the GOOSE packet was captured. 0.0s is Bro start time.
+	};
+
 	## Measurement of time
 	type GOOSE::UTCTime : record {
 		## The number of seconds elapsed since 0h on January the 1rst,

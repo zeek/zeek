@@ -1,7 +1,12 @@
 #ifndef packet_h
 #define packet_h
 
-#include <netinet/ether.h>
+#include "bro-config.h"
+
+#include <sys/types.h>
+#ifdef HAVE_NET_ETHERNET_H
+#include <net/ethernet.h>
+#endif
 
 #include "Desc.h"
 #include "IP.h"

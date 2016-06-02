@@ -3,7 +3,12 @@
 #ifndef conn_h
 #define conn_h
 
+#ifdef HAVE_NETINET_ETHER_H
 #include <netinet/ether.h>
+#endif
+#ifdef HAVE_NET_ETHERNET_H
+#include <net/ethernet.h>
+#endif
 #include <sys/types.h>
 
 #include "Dict.h"

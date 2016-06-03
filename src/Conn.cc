@@ -391,19 +391,18 @@ RecordVal* Connection::BuildConnVal()
 		if ( inner_vlan != 0 )
 			conn_val->Assign(10, new Val(inner_vlan, TYPE_INT));
 
-		char buffer[20];
 		char null[sizeof(eth_src)]{};
 
 		if ( memcmp(&eth_src, &null, sizeof(eth_src)) != 0 )
 			{
-			ether_ntoa_r(&eth_src, buffer);
-			conn_val->Assign(11, new StringVal(buffer));
+			char* eaddr = ether_ntoa(&eth_src);
+			conn_val->Assign(11, new StringVal(eaddr));
 			}
 
 		if ( memcmp(&eth_dst, &null, sizeof(eth_dst)) != 0 )
 			{
-			ether_ntoa_r(&eth_dst, buffer);
-			conn_val->Assign(12, new StringVal(buffer));
+			char* eaddr = ether_ntoa(&eth_dst);
+			conn_val->Assign(12, new StringVal(eaddr));
 			}
 		}
 

@@ -5,6 +5,7 @@
 
 #include "bro-config.h"
 
+#include <sys/types.h>
 #ifdef HAVE_NETINET_ETHER_H
 #include <netinet/ether.h>
 #endif

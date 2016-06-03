@@ -3,6 +3,8 @@
 #ifndef conn_h
 #define conn_h
 
+#include "bro-config.h"
+
 #ifdef HAVE_NETINET_ETHER_H
 #include <netinet/ether.h>
 #endif

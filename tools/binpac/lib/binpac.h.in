@@ -63,62 +63,47 @@ typedef const char	*const_charptr;
 
 namespace {
 
-inline int16 pac_swap(int16 x)
+inline uint16 pac_swap(const uint16 x)
 	{
 	return (x >> 8) | ((x & 0xff) << 8);
 	}
 
-inline uint16 pac_swap(uint16 x)
+inline int16 pac_swap(const int16 x)
 	{
-	return (x >> 8) | ((x & 0xff) << 8);
+	uint16 (*p)(const uint16) = &pac_swap;
+	return (*p)(x);
 	}
 
-inline int32 pac_swap(int32 x)
+inline uint32 pac_swap(const uint32 x)
 	{
-	return 	(x >> 24) | 
-		((x & 0xff0000) >> 8) | 
-		((x & 0xff00) << 8) | 
-		((x & 0xff) << 24);
+	return (x >> 24) |
+	  ((x & 0xff0000) >> 8) |
+	  ((x & 0xff00) << 8) |
+	  ((x & 0xff) << 24);
 	}
 
-inline uint32 pac_swap(uint32 x)
+inline int32 pac_swap(const int32 x)
 	{
-	return 	(x >> 24) | 
-		((x & 0xff0000) >> 8) | 
-		((x & 0xff00) << 8) | 
-		((x & 0xff) << 24);
+	uint32 (*p)(const uint32) = &pac_swap;
+	return (*p)(x);
 	}
 
-inline int64 pac_swap(int64 i)
+inline uint64 pac_swap(const uint64 x) 
 	{
-	unsigned char c;
-	union {
-		uint64 i;
-		unsigned char c[8];
-	} x;
-
-	x.i = i;
-	c = x.c[0]; x.c[0] = x.c[7]; x.c[7] = c;
-	c = x.c[1]; x.c[1] = x.c[6]; x.c[6] = c;
-	c = x.c[2]; x.c[2] = x.c[5]; x.c[5] = c;
-	c = x.c[3]; x.c[3] = x.c[4]; x.c[4] = c;
-	return x.i;
+	return x >> 56 |
+	  (x & 0xff000000000000) >> 40 |
+	  (x & 0xff0000000000) >> 24 |
+	  (x & 0xff00000000) >> 8 |
+	  (x & 0xff000000) << 8 |
+	  (x & 0xff0000) << 24 |
+	  (x & 0xff00) << 40 |
+	  (x & 0xff) << 56;
 	}
-
-inline uint64 pac_swap(uint64 i)
+	
+inline int64 pac_swap(const int64 x)
 	{
-	unsigned char c;
-	union {
-		uint64 i;
-		unsigned char c[8];
-	} x;
-
-	x.i = i;
-	c = x.c[0]; x.c[0] = x.c[7]; x.c[7] = c;
-	c = x.c[1]; x.c[1] = x.c[6]; x.c[6] = c;
-	c = x.c[2]; x.c[2] = x.c[5]; x.c[5] = c;
-	c = x.c[3]; x.c[3] = x.c[4]; x.c[4] = c;
-	return x.i;
+	uint64 (*p)(const uint64) = &pac_swap;
+	return (*p)(x);
 	}
 
 #define FixByteOrder(byteorder, x)	(byteorder == HOST_BYTEORDER ? (x) : pac_swap(x))

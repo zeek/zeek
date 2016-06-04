@@ -7,7 +7,7 @@
 #include "Net.h"
 #include "plugin/Plugin.h"
 
-DebugLogger debug_logger("debug");
+DebugLogger debug_logger;
 
 // Same order here as in DebugStream.
 DebugLogger::Stream DebugLogger::streams[NUM_DBGS] = {
@@ -22,7 +22,18 @@ DebugLogger::Stream DebugLogger::streams[NUM_DBGS] = {
 	{ "pktio", 0, false }, { "broker", 0, false }
 };
 
-DebugLogger::DebugLogger(const char* filename)
+DebugLogger::DebugLogger()
+	{
+	verbose = false;
+	}
+
+DebugLogger::~DebugLogger()
+	{
+	if ( file && file != stderr )
+		fclose(file);
+	}
+
+void DebugLogger::OpenDebugLog(const char* filename)
 	{
 	if ( filename )
 		{
@@ -45,14 +56,6 @@ DebugLogger::DebugLogger(const char* filename)
 		}
 	else
 		file = stderr;
-
-	verbose = false;
-	}
-
-DebugLogger::~DebugLogger()
-	{
-	if ( file != stderr )
-		fclose(file);
 	}
 
 void DebugLogger::ShowStreamsHelp()

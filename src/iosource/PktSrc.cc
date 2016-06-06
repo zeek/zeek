@@ -31,6 +31,7 @@ PktSrc::PktSrc()
 
 	next_sync_point = 0;
 	first_timestamp = 0.0;
+	current_pseudo = 0.0;
 	first_wallclock = current_wallclock = 0;
 	}
 

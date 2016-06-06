@@ -3,15 +3,6 @@
 #ifndef conn_h
 #define conn_h
 
-#include "bro-config.h"
-
-#include <sys/types.h>
-#ifdef HAVE_NETINET_ETHER_H
-#include <netinet/ether.h>
-#endif
-#ifdef HAVE_NET_ETHERNET_H
-#include <net/ethernet.h>
-#endif
 #include <sys/types.h>
 
 #include "Dict.h"
@@ -305,7 +296,8 @@ protected:
 	TransportProto proto;
 	uint32 orig_flow_label, resp_flow_label;	// most recent IPv6 flow labels
 	uint32 vlan, inner_vlan;	// VLAN this connection traverses, if available
-	ether_addr eth_src, eth_dst;	// Ethernet MAC addresses, if available
+	u_char orig_l2_addr[Packet::l2_addr_len];	// Link-layer originator address, if available
+	u_char resp_l2_addr[Packet::l2_addr_len];	// Link-layer responder address, if available
 	double start_time, last_time;
 	double inactivity_timeout;
 	RecordVal* conn_val;

@@ -329,6 +329,8 @@ type endpoint: record {
 	## The current IPv6 flow label that the connection endpoint is using.
 	## Always 0 if the connection is over IPv4.
 	flow_label: count;
+	## The link-layer address seen in the first packet (if available).
+	l2_addr: string &optional;
 };
 
 ## A connection. This is Bro's basic connection type describing IP- and
@@ -370,14 +372,6 @@ type connection: record {
 
 	## The inner VLAN, if applicable for this connection.
 	inner_vlan: int &optional;
-
-	## The Ethernet MAC source addrees, if applicable for this connection.
-        ## The address is derived from the connection's first packet.
-	eth_src: string &optional;
-
-	## The destination Ethernet MAC addrees, if applicable for this connection.
-        ## The address is derived from the connection's first packet.
-	eth_dst: string &optional;
 };
 
 ## Default amount of time a file can be inactive before the file analysis

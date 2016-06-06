@@ -1,13 +1,6 @@
 #ifndef packet_h
 #define packet_h
 
-#include "bro-config.h"
-
-#include <sys/types.h>
-#ifdef HAVE_NET_ETHERNET_H
-#include <net/ethernet.h>
-#endif
-
 #include "Desc.h"
 #include "IP.h"
 #include "NetVar.h"
@@ -58,7 +51,7 @@ public:
 	Packet(int link_type, struct timeval *ts, uint32 caplen,
 	       uint32 len, const u_char *data, int copy = false,
 	       std::string tag = std::string(""))
-	           : data(0), eth_src(), eth_dst()
+	           : data(0), l2_src(0), l2_dst(0)
 	       {
 	       Init(link_type, ts, caplen, len, data, copy, tag);
 	       }
@@ -66,7 +59,7 @@ public:
 	/**
 	 * Default constructor. For internal use only.
 	 */
-	Packet() : data(0), eth_src(), eth_dst()
+	Packet() : data(0), l2_src(0), l2_dst(0)
 		{
 		struct timeval ts = {0, 0};
 		Init(0, &ts, 0, 0, 0);
@@ -154,6 +147,11 @@ public:
 	 */
 	static Packet* Unserialize(UnserialInfo* info);
 
+	/**
+	 * Maximal length of a layer 2 address.
+	 */
+	static const int l2_addr_len = 6;
+
 	// These are passed in through the constructor.
 	std::string tag;		/// Used in serialization
 	double time;			/// Timestamp reconstituted as float
@@ -184,16 +182,15 @@ public:
 	uint32 eth_type;
 
 	/**
-	 * If layer 2 is Ethernet, the source MAC address. Valid iff
-	 * Layer2Valid() returns true.
+	 * Layer 2 source address. Valid iff Layer2Valid() returns true.
 	 */
-	ether_addr eth_src[6];
+	const u_char* l2_src;
 
 	/**
-	 * If layer 2 is Ethernet, the destiantion MAC address. Valid iff
-	 * Layer2Valid() returns true.
+	 * Layer 2 destination address. Valid iff Layer2Valid() returns
+	 * true.
 	 */
-	ether_addr eth_dst[6];
+	const u_char* l2_dst;
 
 	/**
 	 * (Outermost) VLAN tag if any, else 0. Valid iff Layer2Valid()

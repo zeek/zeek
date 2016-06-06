@@ -4,8 +4,8 @@
 
 event new_connection(c: connection)
 	{
-	if ( c?$eth_src && c?$eth_dst )
-		print c$eth_src, c$eth_dst;
+	if ( c$orig?$l2_addr && c$resp?$l2_addr )
+		print c$orig$l2_addr, c$resp$l2_addr;
         else
 		print "-", "-";
 	}

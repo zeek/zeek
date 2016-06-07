@@ -1,4 +1,10 @@
 
+2.4-599 | 2016-06-07 12:37:32 -0700
+
+  * Add new functions haversine_distance() and haversine_distance_ip()
+    for calculating geographic distances. They requires that Bro be
+    built with libgeoip. (Aashish Sharma/Daniel Thayer).
+
 2.4-597 | 2016-06-07 11:46:45 -0700
 
   * Fixing memory leak triggered by new MAC address logging. (Robin

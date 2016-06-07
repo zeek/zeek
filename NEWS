@@ -93,6 +93,10 @@ New Functionality
       get_timer_stats(), get_file_analysis_stats(), get_thread_stats(),
       get_gap_stats(), get_matcher_stats(),
 
+- Two new functions haversine_distance() and haversine_distance_ip()
+  for calculating geographic distances. They requires that Bro be
+  built with libgeoip.
+
 - New Bro plugins in aux/plugins:
 
     - af_packet: Native AF_PACKET support.

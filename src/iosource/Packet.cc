@@ -310,18 +310,24 @@ void Packet::ProcessLayer2()
 					break;
 
 				case 0x01:
-					l2_dst = pdata + 16;
 					l2_src = pdata + 10;
+					l2_dst = pdata + 16;
 					break;
 
 				case 0x02:
-					l2_dst = pdata + 4;
 					l2_src = pdata + 16;
+					l2_dst = pdata + 4;
 					break;
 
 				case 0x03:
-					l2_dst = pdata + 16;
-					l2_src = pdata + 24;
+					// TODO: We should integrate this
+					// test into the length check above.
+					if ( pdata + 24 + l2_addr_len >= end_of_data )
+						{
+						l2_dst = pdata + 16;
+						l2_src = pdata + 24;
+						}
+
 					break;
 			}
 			}

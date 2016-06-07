@@ -3787,6 +3787,35 @@ function lookup_asn%(a: addr%) : count
 	return new Val(0, TYPE_COUNT);
 	%}
 
+## Calculates distance between two geographic locations using the haversine
+## formula.  Latitudes and longitudes must be given in degrees, where southern
+## hemispere latitudes are negative and western hemisphere longitudes are
+## negative.
+##
+## lat1: Latitude (in degrees) of location 1.
+##
+## long1: Longitude (in degrees) of location 1.
+##
+## lat2: Latitude (in degrees) of location 2.
+##
+## long2: Longitude (in degrees) of location 2.
+##
+## Returns: Distance in miles.
+##
+## .. bro:see:: haversine_distance_ip
+function haversine_distance%(lat1: double, long1: double, lat2: double, long2: double%): double
+	%{
+	const double PI = 3.14159;
+	const double RADIUS = 3958.8;  // Earth's radius in miles.
+
+	double s1 = sin((lat2 - lat1) * PI/360);
+	double s2 = sin((long2 - long1) * PI/360);
+	double a = s1 * s1 + cos(lat1 * PI/180) * cos(lat2 * PI/180) * s2 * s2;
+	double distance = 2 * RADIUS * asin(sqrt(a));
+
+	return new Val(distance, TYPE_DOUBLE);
+	%}
+
 ## Converts UNIX file permissions given by a mode to an ASCII string.
 ##
 ## mode: The permissions (an octal number like 0644 converted to decimal).

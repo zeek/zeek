@@ -1,4 +1,15 @@
 
+2.4-594 | 2016-06-06 18:11:16 -0700
+
+  * ASCII Input: Accept DOS/Windows newlines. Addresses BIT-1198
+    (Johanna Amann)
+
+  * Fix BinPAC exception in RFB analyzer. (Martin van Hensbergen)
+
+  * Add URL decoding for the unofficial %u00AE style of encoding. (Seth Hall)
+
+  * Remove the unescaped_special_char HTTP weird. (Seth Hall)
+
 2.4-588 | 2016-06-06 17:59:34 -0700
 
   * Moved link-layer addresses into endpoints. The link-layer

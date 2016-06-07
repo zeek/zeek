@@ -1,4 +1,9 @@
 
+2.4-597 | 2016-06-07 11:46:45 -0700
+
+  * Fixing memory leak triggered by new MAC address logging. (Robin
+    Sommer)
+
 2.4-596 | 2016-06-07 11:07:29 -0700
 
   * Don't create debug.log immediately upon startup (BIT-1616).

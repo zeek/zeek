@@ -148,9 +148,9 @@ const char* fmt_conn_id(const uint32* src_addr, uint32 src_port,
 	return fmt_conn_id(src, src_port, dst, dst_port);
 	}
 
-char* fmt_mac(const unsigned char* m, int len)
+std::string fmt_mac(const unsigned char* m, int len)
 	{
-	char* buf = new char[25];
+	static char buf[25];
 
 	if ( len < 8 && len != 6 )
 		{
@@ -159,10 +159,10 @@ char* fmt_mac(const unsigned char* m, int len)
 		}
 
 	if ( (len == 6) || (m[6] == 0 && m[7] == 0) ) // EUI-48
-		snprintf(buf, 19, "%02x:%02x:%02x:%02x:%02x:%02x",
+		snprintf(buf, sizeof(buf), "%02x:%02x:%02x:%02x:%02x:%02x",
 			 m[0], m[1], m[2], m[3], m[4], m[5]);
 	else
-		snprintf(buf, 25, "%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
+		snprintf(buf, sizeof(buf), "%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
 			 m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7]);
 
 	return buf;

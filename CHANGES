@@ -1,4 +1,23 @@
 
+2.4-588 | 2016-06-06 17:59:34 -0700
+
+  * Moved link-layer addresses into endpoints. The link-layer
+    addresses are now part of the connection endpoints following the
+    originator/responder pattern. (Jan Grashoefer)
+
+  * Link-layer addresses are extracted for 802.11 plus RadioTap. (Jan
+    Grashoefer)
+
+  * Fix coverity error (uninitialized variable) (Johanna Amann)
+
+  * Use ether_ntoa instead of ether_ntoa_r
+
+    The latter is thread-safe, but a GNU addition which does not exist on
+    OS-X. Since the function only is called in the main thread, it should
+    not matter if it is or is not threadsafe. (Johanna Amann)
+
+  * Fix FreeBSD/OSX compile problem due to headers (Johanna Amann)
+
 2.4-581 | 2016-05-30 10:58:19 -0700
 
   * Adding missing new script file mac-logging.bro. (Robin Sommer)

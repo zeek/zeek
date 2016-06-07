@@ -1,4 +1,8 @@
 
+2.4-600 | 2016-06-07 15:53:19 -0700
+
+  * Fixing typo in BIF macros. Reported by Jeff Barber. (Robin Sommer)
+
 2.4-599 | 2016-06-07 12:37:32 -0700
 
   * Add new functions haversine_distance() and haversine_distance_ip()

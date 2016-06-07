@@ -1,4 +1,9 @@
 
+2.4-596 | 2016-06-07 11:07:29 -0700
+
+  * Don't create debug.log immediately upon startup (BIT-1616).
+    (Daniel Thayer)
+
 2.4-594 | 2016-06-06 18:11:16 -0700
 
   * ASCII Input: Accept DOS/Windows newlines. Addresses BIT-1198

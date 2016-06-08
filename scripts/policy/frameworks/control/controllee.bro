@@ -73,12 +73,12 @@ event Control::shutdown_request()
 event bro_init() &priority=5
 	{
 	# Subscribe: All nodes need to subscribe to control-related events
-	local prefix = fmt("%s%s/request/", Control::pub_sub_prefix, Cluster::cluster_id);
+	local prefix = fmt("%s%srequest/", Control::pub_sub_prefix, Cluster::cluster_id);
 	Broker::subscribe_to_events(prefix);
 	Broker::publish_topic(prefix);
 
 	# Publish: Register responses to control events with broker
-	prefix = fmt("%s%s/response/", Control::pub_sub_prefix, Cluster::cluster_id);
+	prefix = fmt("%s%sresponse/", Control::pub_sub_prefix, Cluster::cluster_id);
 	Broker::publish_topic(prefix);
 	for ( e in Control::controllee_events )
 		Broker::auto_event(prefix, lookup_ID(e));

@@ -267,6 +267,20 @@ export {
 
 	## Turns on the broker debug output
 	global init_debug: function(): bool;
+
+	## Register events with broker that the local node will publish automatically
+  ## via auto_event
+	##
+	## prefix: the broker pub-sub prefix
+	## event_list: a list of events to be published via this prefix
+	global register_broker_events: function(prefix: string, event_list: set[string]);
+
+	## Unregister events with broker that the local node should not publish
+  ## via auto_event anymore
+	##
+	## prefix: the broker pub-sub prefix
+	## event_list: a list of events to be published via this prefix
+	global unregister_broker_events: function(prefix: string, event_list: set[string]);
 }
 
 @load base/bif/comm.bif
@@ -283,6 +297,21 @@ function set_endpoint_flags(flags: EndpointFlags &default = EndpointFlags()): bo
     {
     return __set_endpoint_flags(flags);
     }
+
+function register_broker_events(prefix: string, event_list: set[string])
+	{
+	publish_topic(prefix);
+	for ( e in event_list )
+		{
+		auto_event(prefix, lookup_ID(e));
+		}
+	}
+
+function unregister_broker_events(prefix: string, event_list: set[string])
+	{
+		for ( e in event_list )
+			auto_event_stop(prefix, lookup_ID(e));
+	}
 
 function publish_topic(topic: string): bool
     {

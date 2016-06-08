@@ -15,7 +15,7 @@ OpaqueType* bro_broker::opaque_of_store_handle;
 bro_broker::StoreHandleVal::StoreHandleVal(broker::store::identifier id,
                                      bro_broker::StoreType arg_type,
                                      broker::util::optional<BifEnum::Broker::BackendType> arg_back,
-                                     RecordVal* backend_options, std::chrono::duration<double> resync)
+                                     RecordVal* backend_options, bool multi_hop, std::chrono::duration<double> resync)
 	: OpaqueVal(opaque_of_store_handle),
 	  store(), store_type(arg_type), backend_type(arg_back)
 	{
@@ -77,7 +77,7 @@ bro_broker::StoreHandleVal::StoreHandleVal(broker::store::identifier id,
 		break;
 	case StoreType::MASTER:
 		store = new broker::store::master(broker_mgr->Endpoint(), move(id),
-		                                  move(backend));
+		                                  move(backend), multi_hop);
 		break;
 	case StoreType::CLONE:
 		store = new broker::store::clone(broker_mgr->Endpoint(), move(id), resync,

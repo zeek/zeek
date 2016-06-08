@@ -291,7 +291,13 @@ module Broker;
 function create_master(id: string, b: BackendType &default = MEMORY,
                        options: BackendOptions &default = BackendOptions()): opaque of Broker::Handle
 	{
-	return __create_master(id, b, options);
+	return __create_master(id, b, F, options);
+	}
+
+function create_master_multi(id: string, b: BackendType &default = MEMORY,
+                       options: BackendOptions &default = BackendOptions()): opaque of Broker::Handle
+	{
+	return __create_master(id, b, T, options);
 	}
 
 function create_clone(id: string, b: BackendType &default = MEMORY,
@@ -392,4 +398,3 @@ function size(h: opaque of Broker::Handle): QueryResult
 	{
 	return __size(h);
 	}
-

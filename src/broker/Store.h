@@ -132,6 +132,7 @@ public:
 		       bro_broker::StoreType arg_type,
 		       broker::util::optional<BifEnum::Broker::BackendType> arg_back,
 		       RecordVal* backend_options,
+					 bool multi_hop,
 		       std::chrono::duration<double> resync = std::chrono::seconds(1));
 
 	void ValDescribe(ODesc* d) const override;

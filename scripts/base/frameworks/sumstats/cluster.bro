@@ -53,13 +53,27 @@ export {
 
 	## This event is generated when a threshold is crossed.
 	global cluster_threshold_crossed: event(ss_name: string, key: SumStats::Key, thold_index: count);
+
+
+	## The prefix used for subscribing and publishing events
+	const pub_sub_prefix : string = "bro/event/sumstats/" &redef;
+
+	# The ID of the particular sumstats-group this node is part of 
+	const group_id : string = "" &redef;
+
+	## Events raised by a sumstats-manager and handled by sumstats-peers.
+	const manager2peer_events : set[string] = {"SumStats::cluster_ss_request", "SumStats::cluster_get_result", "SumStats::cluster_threshold_crossed", "SumStats::get_a_key"} &redef;
+	
+	## Events raised by sumstats-peersand handled by a sumstats-manager.
+	const peer2manager_events : set[string] = {"SumStats::cluster_send_result", "SumStats::cluster_key_intermediate_response", "SumStats::send_a_key", "SumStats::send_no_key"} &redef;
 }
 
 # Add events to the cluster framework to make this work.
-redef Cluster::manager2worker_events += {"SumStats::cluster_ss_request", "SumStats::cluster_get_result", "SumStats::cluster_threshold_crossed", "SumStats::get_a_key"};
-redef Cluster::worker2manager_events += {"SumStats::cluster_send_result", "SumStats::cluster_key_intermediate_response", "SumStats::send_a_key", "SumStats::send_no_key"};
+#redef Cluster::manager2worker_events += {"SumStats::cluster_ss_request", "SumStats::cluster_get_result", "SumStats::cluster_threshold_crossed", "SumStats::get_a_key"};
+#redef Cluster::worker2manager_events += {"SumStats::cluster_send_result", "SumStats::cluster_key_intermediate_response", "SumStats::send_a_key", "SumStats::send_no_key"};
 
 @if ( ! Cluster::has_local_role(Cluster::MANAGER) )
+
 # This variable is maintained to know what keys have recently sent as
 # intermediate updates so they don't overwhelm their manager. The count that is
 # yielded is the number of times the percentage threshold has been crossed and
@@ -408,7 +422,6 @@ event SumStats::send_a_key(uid: string, ss_name: string, key: Key)
 
 event SumStats::cluster_send_result(uid: string, ss_name: string, key: Key, result: Result, cleanup: bool)
 	{
-	print "cluster_send_result";
 	print fmt("%0.6f MANAGER: receiving key data from %s - %s=%s", network_time(), get_event_peer()$descr, key2str(key), result);
 
 	# We only want to try and do a value merge if there are actually measured datapoints

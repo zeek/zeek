@@ -23,7 +23,7 @@ enum BackendType %{
 	ROCKSDB,
 %}
 
-function Broker::__create_master%(id: string, b: BackendType,
+function Broker::__create_master%(id: string, b: BackendType, multi_hop: bool,
                                options: BackendOptions &default = BackendOptions()%): opaque of Broker::Handle
 	%{
 	auto id_str = id->CheckString();
@@ -38,7 +38,7 @@ function Broker::__create_master%(id: string, b: BackendType,
 
 	rval = new bro_broker::StoreHandleVal(id_str, type,
 	                                static_cast<BifEnum::Broker::BackendType>(b->AsEnum()),
-	                                options->AsRecordVal());
+	                                options->AsRecordVal(), multi_hop);
 	auto added = broker_mgr->AddStore(rval);
 	assert(added);
 	return rval;
@@ -60,7 +60,7 @@ function Broker::__create_clone%(id: string, b: BackendType,
 
 	rval = new bro_broker::StoreHandleVal(id_str, type,
 	                                static_cast<BifEnum::Broker::BackendType>(b->AsEnum()),
-	                                options->AsRecordVal(),
+	                                options->AsRecordVal(), false, 
 	                                std::chrono::duration<double>(resync));
 	auto added = broker_mgr->AddStore(rval);
 	assert(added);
@@ -79,7 +79,7 @@ function Broker::__create_frontend%(id: string%): opaque of Broker::Handle
 		return rval;
 		}
 
-	rval = new bro_broker::StoreHandleVal(id_str, type, {}, nullptr);
+	rval = new bro_broker::StoreHandleVal(id_str, type, {}, nullptr, false);
 	auto added = broker_mgr->AddStore(rval);
 	assert(added);
 	return rval;

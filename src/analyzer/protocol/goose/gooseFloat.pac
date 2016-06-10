@@ -10,8 +10,8 @@ type ASN1FloatInternal(size: uint32) = record {
 	};
 	
 	content: case formatSupported of {
-		# parsed as an int32 to take care of the endianness.
-		true -> parsedValue: int32;
+		# parsed as an uint32 to take care of the endianness.
+		true -> parsedValue: uint32;
 		false -> bytes: bytestring &length = remainingBytes;
 	} &requires(remainingBytes);
 } &let {
@@ -22,10 +22,10 @@ type ASN1FloatInternal(size: uint32) = record {
 	value: double = interpret_bytes_of_int32_as_float(parsedValue); 
 } &byteorder = bigendian;
 
-function interpret_bytes_of_int32_as_float(intval: int32): double
+function interpret_bytes_of_int32_as_float(intval: uint32): double
 %{
 	union {
-		int32 * asIntPtr;
+		uint32 * asIntPtr;
 		float * asFloatPtr;
 	} ptr;
 	

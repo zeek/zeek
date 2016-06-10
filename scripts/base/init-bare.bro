@@ -3443,9 +3443,15 @@ export {
 	## field "officialType". It is the ASN.1 tag parsed at the
 	## beginning of the Data. There is no 1-on-1 correspondance
 	## between the official type and the underlying type of the 
-	## data actually held by the record. 
+	## data actually held by the record, since some different
+	## official types lead to having to store the same type of data
+	## (e.g. bit-string and boolean-array).
+	## Only one of the optional fields of a GOOSE::Data contains a
+	## value.
 	type GOOSE::Data : record {
-		## The type of data actually held by the instance of this record
+		## The tag parsed at the beginning of the Data as it is
+		## described in the GOOSE standard. Its value is between
+		## 0x81 and 0x91.
 		officialType: count;
 
 		boolVal     : bool &optional;

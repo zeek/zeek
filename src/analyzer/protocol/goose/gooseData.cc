@@ -68,14 +68,24 @@ static inline void assignDataRecordContent(
 		const GOOSEData & binpacGooseData)
 {
 	switch(tag) {
+		case BOOLEAN:
+			recordGooseData->Assign(1, new Val(binpacGooseData.content()->boolean(), TYPE_BOOL));
+			break;
+		case BCD:
+			recordGooseData->Assign(2, new Val(binpacGooseData.content()->bcd()->val(), TYPE_INT));
+			break;
 		case SIGNED_INTEGER:
 			recordGooseData->Assign(2, new Val(binpacGooseData.content()->intVal()->val(), TYPE_INT));
 			break;
 		case UNSIGNED_INTEGER:
 			recordGooseData->Assign(3, new Val(binpacGooseData.content()->uintVal()->val(), TYPE_COUNT));
 			break;
-		case BOOLEAN:
-			recordGooseData->Assign(1, new Val(binpacGooseData.content()->boolean(), TYPE_BOOL));
+		case REAL:
+			recordGooseData->Assign(4, new Val(binpacGooseData.content()->realVal()->value(), TYPE_DOUBLE));
+			break;
+		case FLOATING_POINT:
+			if(binpacGooseData.content()->floatVal()->formatSupported())
+				recordGooseData->Assign(4, new Val(binpacGooseData.content()->floatVal()->value(), TYPE_DOUBLE));
 			break;
 		case BIT_STRING:
 			recordGooseData->Assign(5, asn1_bitstring_to_val(binpacGooseData.content()->bitString()));
@@ -83,17 +93,13 @@ static inline void assignDataRecordContent(
 		case BOOLEAN_ARRAY:
 			recordGooseData->Assign(5, asn1_bitstring_to_val(binpacGooseData.content()->boolArray()));
 			break;
-		case REAL:
-			recordGooseData->Assign(4, new Val(binpacGooseData.content()->realVal()->value(), TYPE_DOUBLE));
-			break;
+		// All interpreted as a string
+		case BINARY_TIME:
+			// Documentation missing, interpreted as a string.
 		case OCTET_STRING:
-			recordGooseData->Assign(6, bytestring_to_val(binpacGooseData.content()->bs()));
-			break;
 		case VISIBLE_STRING:
-			recordGooseData->Assign(6, bytestring_to_val(binpacGooseData.content()->string()));
-			break;
 		case MMS_STRING:
-			recordGooseData->Assign(6, bytestring_to_val(binpacGooseData.content()->mmsString()));
+			recordGooseData->Assign(6, bytestring_to_val(binpacGooseData.content()->asString()));
 			break;
 		case OBJ_ID:
 			recordGooseData->Assign(6, asn1_oid_internal_to_val(binpacGooseData.content()->objId()));

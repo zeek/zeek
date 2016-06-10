@@ -1,6 +1,8 @@
 
 ## ======= GOOSEData ===
 
+%include gooseFloat.pac
+
 type GOOSEData = record {
 	tag: uint8;
 	len: ASN1Length;
@@ -21,16 +23,13 @@ type GOOSEDataContent(tag: uint8, size: uint32) = record {
 		BIT_STRING -> bitString: ASN1BitString(size);
 		SIGNED_INTEGER -> intVal: GOOSESignedIntegerInternal(size);
 		UNSIGNED_INTEGER -> uintVal: GOOSEUnsignedIntegerInternal(size);  
-		FLOATING_POINT -> floatVal: bytestring &length = size; #ASN1FloatInternal(size); # TODO: read non-free IEC61850
+		FLOATING_POINT -> floatVal: ASN1FloatInternal(size);
 		REAL -> realVal: ASN1RealInternal;
-		OCTET_STRING -> bs: bytestring &length = size;
-		VISIBLE_STRING -> string: bytestring &length = size; 
-		BINARY_TIME -> timeOfDay: bytestring &length = size;
 		BCD -> bcd: GOOSESignedIntegerInternal(size);
 		BOOLEAN_ARRAY -> boolArray: ASN1BitString(size);
 		OBJ_ID -> objId: ASN1ObjectIdentifierInternal(size);
 		UTCTIME -> utcTime: IEC_UTC_Time;
-		MMS_STRING -> mmsString: bytestring &length = size;
+		default -> asString: bytestring &length = size;
 	};
 };
 

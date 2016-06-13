@@ -25,6 +25,7 @@ DebugLogger::Stream DebugLogger::streams[NUM_DBGS] = {
 DebugLogger::DebugLogger()
 	{
 	verbose = false;
+	file = 0;
 	}
 
 DebugLogger::~DebugLogger()

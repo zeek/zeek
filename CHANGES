@@ -1,4 +1,11 @@
 
+2.4-602 | 2016-06-13 08:16:34 -0700
+
+  * Fixing Covertity warning (CID 1356391). (Robin Sommer)
+
+  * Guarding against reading beyond packet data when accessing L2
+    address in Radiotap header. (Robin Sommer)
+
 2.4-600 | 2016-06-07 15:53:19 -0700
 
   * Fixing typo in BIF macros. Reported by Jeff Barber. (Robin Sommer)

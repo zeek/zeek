@@ -68,6 +68,15 @@ type ASN1Length = record {
 			);
 };
 
+## This method returns the number of octets of a field in ASN.1 that
+## does not carry the content of the field. Therefore, the result is
+## 1 (the tag) + the number of octet used to indicate the length of
+## the content.
+function header_size_of_asn1_field(alen: ASN1Length): uint32
+%{
+	return ${alen.isMoreThanOneOctet} ? (2 + ${alen.sizeOfValue}) : 2;
+%}
+
 function asn1_real_to_double(m: int64, b: int64, e: int64): double
 %{
 	if(b == 2)

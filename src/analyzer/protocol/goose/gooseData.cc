@@ -199,10 +199,10 @@ static RecordVal * goose_data_array_as_record_val(
 
 				// Append the record to the vector
 				tmpVV->Assign(tmpVV->Size(), tmpDat);
-		}
 
-		// Add the length (in bytes) of the current GOOSEData to the count.
-		stackOfDataArrays.top().parsedBytes += dataPtr->totalSize();
+				// Add the length (in bytes) of the current GOOSEData to the count.
+				stackOfDataArrays.top().parsedBytes += dataPtr->totalSize();
+		}
 
 		// A while loop is used to handle the cases where the last
 		// Data of an array of Datas is an array of Data.
@@ -226,7 +226,7 @@ static RecordVal * goose_data_array_as_record_val(
 				tmpVV->Assign(tmpVV->Size(), tmpDat);
 			}
 			else
-				break; // Nothing else to do
+				return tmpDat; // Nothing else to do
 		}
 	} while(iteration_end_code(allDataIterator, allDataEnd, stackOfDataArrays, tmpDat));
 

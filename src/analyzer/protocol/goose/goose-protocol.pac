@@ -163,7 +163,7 @@ type IECGoosePdu = record {
 
 	sequenceTag: uint8;
 	sequenceTotalLength: ASN1Length;
-	allData: GOOSEData[ndsComAndNumDatSetEntries.uintVal];
+	allData: GOOSEData[] &until($input.length == 0) &length=sequenceTotalLength.value;
 } &let {
 	has_goID: bool = nextTag == 0x83;
 };

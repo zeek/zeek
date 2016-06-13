@@ -170,13 +170,10 @@ static RecordVal * goose_data_array_as_record_val(
 	tmpTag = dataPtr->tag();
 
 	// Pushing the stack
-	push_data_array(stackOfDataArrays, **allDataIterator, tmpTag);
+	push_data_array(stackOfDataArrays, *dataPtr, tmpTag);
 	tmpVV = stackOfDataArrays.top().currentVectorVal;
 
-	// Analyzing the content of the array.
-	++allDataIterator;
-
-	do
+	while(iteration_end_code(allDataIterator, allDataEnd, stackOfDataArrays, tmpDat))
 	{
 		dataPtr = *allDataIterator;
 		// Initialize the record that will hold the data taken from
@@ -190,12 +187,12 @@ static RecordVal * goose_data_array_as_record_val(
 				// Add the length (in bytes) of the following array
 				// to the size of the current one.
 				stackOfDataArrays.top().parsedBytes += dataPtr->totalSize();
-				push_data_array(stackOfDataArrays, **allDataIterator, tmpTag);
+				push_data_array(stackOfDataArrays, *dataPtr, tmpTag);
 				break;
 			default:
 				tmpDat = new RecordVal(BifType::Record::GOOSE::Data);
 				tmpDat->Assign(0, new Val(tmpTag, TYPE_COUNT)); 
-				assignDataRecordContent(tmpDat, tmpTag, **allDataIterator);
+				assignDataRecordContent(tmpDat, tmpTag, *dataPtr);
 
 				// Append the record to the vector
 				tmpVV->Assign(tmpVV->Size(), tmpDat);
@@ -214,7 +211,7 @@ static RecordVal * goose_data_array_as_record_val(
 			
 			// Committing the SequenceOfData into the Data :
 			tmpDat = stackOfDataArrays.top().scriptLandData;
-			tmpDat->Assign(GOOSE_DATA_ARRAY_INDEX, stackOfDataArrays.top().currentVectorVal);
+			tmpDat->Assign(GOOSE_DATA_ARRAY_INDEX, tmpVV);
 
 			stackOfDataArrays.pop();
 
@@ -228,7 +225,7 @@ static RecordVal * goose_data_array_as_record_val(
 			else
 				return tmpDat; // Nothing else to do
 		}
-	} while(iteration_end_code(allDataIterator, allDataEnd, stackOfDataArrays, tmpDat));
+	}
 
 	return tmpDat;
 }

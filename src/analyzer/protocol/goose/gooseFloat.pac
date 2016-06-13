@@ -32,8 +32,6 @@ function interpret_bytes_of_int32_as_float(intval: uint32): double
 	ptr.asIntPtr = &intval;
 	double rval = double(*(ptr.asFloatPtr));
 
-	std::cout << "Float val:\n    Bytes : 0x" << std::hex << intval << "\n    As float : " << std::dec << rval << std::endl;
-
 	return rval;
 %}
 

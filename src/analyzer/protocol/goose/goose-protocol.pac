@@ -11,7 +11,6 @@
 %extern{
 #include <string.h>
 #include <math.h>
-#include <iostream>
 
 #include "binpac_bytestring.h"
 %}
@@ -23,25 +22,6 @@
 %header{
 	StringVal* asn1_oid_internal_to_val(const ASN1ObjectIdentifierInternal* oidi);
 %}
-
-#     === Debugging tools ===
-
-function debugASNLength(id: uint8, sizeOfVal: uint8, val: uint32): bool
-%{
-	std::cout << "Identifier : " << (int)id 
-		  << "; sizeOfValue: " << (int)sizeOfVal 
-		  << "; Resulting length : " << val 
-		  << std::endl;
-	return true;
-%}
-
-function displayByte(byte: uint8): bool
-%{
-	std::cout << std::hex << +byte << std::dec << std::endl;
-	return true;
-%}
-
-#     =======================
 
 # The input bytystring has to be of size 1 or more.
 function bytestring_to_uint32(s: const_bytestring): uint32
@@ -86,8 +66,6 @@ type ASN1Length = record {
 				Identifier
 				    # implicit cast from uint8 to uint32
 			);
-
-	debug: bool = debugASNLength(Identifier, (isMoreThanOneOctet?sizeOfValue:1), value);
 };
 
 function asn1_real_to_double(m: int64, b: int64, e: int64): double
@@ -200,22 +178,11 @@ function utc_fraction_of_second_to_nanosecond(fraction: uint32): uint32
 	//fraction * (1000 * 1000 * 1000) / 2^32
 %}
 
-function debugUTCTime(seconds: uint32, nanoseconds: uint32): bool
-%{
-	uint32 speryear = 3600 * 6 * (365 * 4 +1);
-	uint32 years = seconds / speryear;
-	
-	std::cout << "year : " << 1970 + years << "; nanoseconds : " << nanoseconds << std::endl; 
-
-	return true;
-%}
-
 type IEC_UTC_Time = record {
 	secondsSince1970: uint32;
 	fractionOfSecond: uint32;
 } &byteorder = bigendian &let {
 	nanoseconds: uint32 = utc_fraction_of_second_to_nanosecond(fractionOfSecond); 
-	debug: bool = debugUTCTime(secondsSince1970, nanoseconds);
 };
 
 # Converting IEC_UTC_Time to BroVal
@@ -275,7 +242,6 @@ type BoolDefaultFalseThenUInt(expectedBoolTag: uint8) = record
 	uintVal: uint64 = (boolValIsPresent
 				? both.uintData.gooseUInt.val
 				: uintData.val);
-	debug: bool = debugBool(boolVal);
 };
 
 type BoolAndUInt() = record {

@@ -10,7 +10,6 @@ type GOOSEData = record {
 	content: GOOSEDataContent(tag, len.value);
 } &let {
 	totalSize: uint32 = (len.isMoreThanOneOctet ? 2+len.sizeOfValue : 2) + len.value;
-	debug: bool = displayByte(tag);
 };
 
 type GOOSEDataContent(tag: uint8, size: uint32) = record {

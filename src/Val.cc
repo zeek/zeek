@@ -1323,7 +1323,7 @@ void TableVal::Init(TableType* t)
 	{
 	::Ref(t);
 	table_type = t;
-	expire_expr = 0;
+	expire_func = 0;
 	expire_time = 0;
 	expire_cookie = 0;
 	timer = 0;
@@ -1350,7 +1350,8 @@ TableVal::~TableVal()
 	delete subnets;
 	Unref(attrs);
 	Unref(def_val);
-	Unref(expire_expr);
+	Unref(expire_func);
+	Unref(expire_time);
 	}
 
 void TableVal::RemoveAll()
@@ -1399,8 +1400,8 @@ void TableVal::SetAttrs(Attributes* a)
 	Attr* ef = attrs->FindAttr(ATTR_EXPIRE_FUNC);
 	if ( ef )
 		{
-		expire_expr = ef->AttrExpr();
-		expire_expr->Ref();
+		expire_func = ef->AttrExpr();
+		expire_func->Ref();
 		}
 	}
 
@@ -1410,14 +1411,8 @@ void TableVal::CheckExpireAttr(attr_tag at)
 
 	if ( a )
 		{
-		Val* timeout = a->AttrExpr()->Eval(0);
-		if ( ! timeout )
-			{
-			a->AttrExpr()->Error("value of timeout not fixed");
-			return;
-			}
-
-		expire_time = timeout->AsInterval();
+		expire_time = a->AttrExpr();
+		expire_time->Ref();
 
 		if ( timer )
 			timer_mgr->Cancel(timer);
@@ -1791,7 +1786,7 @@ Val* TableVal::Lookup(Val* index, bool use_default_val)
 			if ( attrs && attrs->FindAttr(ATTR_EXPIRE_READ) )
 					{
 					v->SetExpireAccess(network_time);
-					if ( LoggingAccess() && expire_time )
+					if ( LoggingAccess() && ExpirationEnabled() )
 						ReadOperation(index, v);
 					}
 
@@ -1822,7 +1817,7 @@ Val* TableVal::Lookup(Val* index, bool use_default_val)
 				if ( attrs && attrs->FindAttr(ATTR_EXPIRE_READ) )
 					{
 					v->SetExpireAccess(network_time);
-					if ( LoggingAccess() && expire_time )
+					if ( LoggingAccess() && ExpirationEnabled() )
 						ReadOperation(index, v);
 					}
 
@@ -1880,7 +1875,7 @@ TableVal* TableVal::LookupSubnetValues(const SubNetVal* search)
 			if ( attrs && attrs->FindAttr(ATTR_EXPIRE_READ) )
 				{
 				entry->SetExpireAccess(network_time);
-				if ( LoggingAccess() && expire_time )
+				if ( LoggingAccess() && ExpirationEnabled() )
 					ReadOperation(s, entry);
 				}
 			}
@@ -2174,6 +2169,10 @@ void TableVal::DoExpire(double t)
 	if ( ! type )
 		return; // FIX ME ###
 
+	double timeout = GetExpireTime();
+	if ( timeout < 0 )
+		return; // Skip in case of invalid expiration value
+
 	PDict(TableEntryVal)* tbl = AsNonConstTable();
 
 	if ( ! expire_cookie )
@@ -2197,11 +2196,11 @@ void TableVal::DoExpire(double t)
 			// correct, so we just need to wait.
 			}
 
-		else if ( v->ExpireAccessTime() + expire_time < t )
+		else if ( v->ExpireAccessTime() + timeout < t )
 			{
 			Val* val = v->Value();
 
-			if ( expire_expr )
+			if ( expire_func )
 				{
 				Val* idx = RecoverIndex(k);
 				double secs = CallExpireFunc(idx);
@@ -2221,7 +2220,7 @@ void TableVal::DoExpire(double t)
 					{
 					// User doesn't want us to expire
 					// this now.
-					v->SetExpireAccess(network_time - expire_time + secs);
+					v->SetExpireAccess(network_time - timeout + secs);
 					delete k;
 					continue;
 					}
@@ -2258,9 +2257,29 @@ void TableVal::DoExpire(double t)
 		InitTimer(table_expire_delay);
 	}
 
+double TableVal::GetExpireTime()
+	{
+	if ( expire_time )
+		{
+		Val* timeout = expire_time->Eval(0);
+		if ( timeout && (timeout->AsInterval() >= 0) )
+			{
+			return timeout->AsInterval();
+			}
+		else
+			{
+			// invalid expiration interval
+			expire_time = 0;
+			if ( timer )
+				timer_mgr->Cancel(timer);
+			}
+		}
+	return -1;
+	}
+
 double TableVal::CallExpireFunc(Val* idx)
 	{
-	if ( ! expire_expr )
+	if ( ! expire_func )
 		{
 		Unref(idx);
 		return 0;
@@ -2285,7 +2304,7 @@ double TableVal::CallExpireFunc(Val* idx)
 
 	try
 		{
-		Val* vf = expire_expr->Eval(0);
+		Val* vf = expire_func->Eval(0);
 
 		if ( ! vf )
 			{
@@ -2319,11 +2338,15 @@ double TableVal::CallExpireFunc(Val* idx)
 
 void TableVal::ReadOperation(Val* index, TableEntryVal* v)
 	{
+	// Skip in case of invalid expiration value
+	double timeout = GetExpireTime();
+	if ( timeout < 0 )
+		return;
 	// In theory we need to only propagate one update per &read_expire
 	// interval to prevent peers from expiring intervals. To account for
 	// practical issues such as latency, we send one update every half
 	// &read_expire.
-	if ( network_time - v->LastReadUpdate() > expire_time / 2 )
+	if ( network_time - v->LastReadUpdate() > timeout / 2 )
 		{
 		StateAccess::Log(new StateAccess(OP_READ_IDX, this, index));
 		v->SetLastReadUpdate(network_time);
@@ -2362,11 +2385,9 @@ bool TableVal::DoSerialize(SerialInfo* info) const
 		state->did_index = false;
 		info->s->WriteOpenTag(table_type->IsSet() ? "set" : "table");
 
-		if ( ! SERIALIZE(expire_time) )
-			return false;
-
 		SERIALIZE_OPTIONAL(attrs);
-		SERIALIZE_OPTIONAL(expire_expr);
+		SERIALIZE_OPTIONAL(expire_time);
+		SERIALIZE_OPTIONAL(expire_func);
 
 		// Make sure nobody kills us in between.
 		const_cast<TableVal*>(this)->Ref();
@@ -2491,13 +2512,11 @@ bool TableVal::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(MutableVal);
 
-	if ( ! UNSERIALIZE(&expire_time) )
-		return false;
-
 	Init((TableType*) type);
 
 	UNSERIALIZE_OPTIONAL(attrs, Attributes::Unserialize(info));
-	UNSERIALIZE_OPTIONAL(expire_expr, Expr::Unserialize(info));
+	UNSERIALIZE_OPTIONAL(expire_time, Expr::Unserialize(info));
+	UNSERIALIZE_OPTIONAL(expire_func, Expr::Unserialize(info));
 
 	while ( true )
 		{

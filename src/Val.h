@@ -862,6 +862,11 @@ protected:
 	// Calculates default value for index.  Returns 0 if none.
 	Val* Default(Val* index);
 
+	// Returns true if item expiration is defined.
+	bool ExpirationEnabled() { return expire_time != 0; }
+	// Returns the expiration time defined by create, read
+	// or write expire attribute or -1 for invalid values.
+	double GetExpireTime();
 	// Calls &expire_func and returns its return interval;
 	// takes ownership of the reference.
 	double CallExpireFunc(Val *idx);
@@ -874,8 +879,8 @@ protected:
 	TableType* table_type;
 	CompositeHash* table_hash;
 	Attributes* attrs;
-	double expire_time;
-	Expr* expire_expr;
+	Expr* expire_time;
+	Expr* expire_func;
 	TableValTimer* timer;
 	IterCookie* expire_cookie;
 	PrefixTable* subnets;

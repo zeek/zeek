@@ -113,18 +113,21 @@ static inline void assignDataRecordContent(
 // This method is used by goose_data_array_as_record_val. It encapsulates the
 // actions that happen at the end of its "while" loop.
 // It commits all exported VectorVals in the case the parsed GOOSE Data array
-// indicated a length that went beyond the packet frame.
+// indicated a length that went beyond the packet frame. It also clears the
+// stack of recusion info, saving the top Data record into a pointer.
 static inline bool iteration_end_code(
 	VectorOfGOOSEData::const_iterator & allDataIterator,
 	const VectorOfGOOSEData::const_iterator & allDataEnd,
-	GOOSEDataArrayRecursionStack & stackOfDataArrays)
+	GOOSEDataArrayRecursionStack & stackOfDataArrays,
+	RecordVal * & loopDataPtr)
 {
 	++allDataIterator;
 	if(allDataIterator == allDataEnd)
 	{
 		RecordVal * tmpDat;
 		VectorVal * tmpVV;
-		while(stackOfDataArrays.size() > 2)
+
+		while(stackOfDataArrays.size() > 1)
 		{
 			// Committing the SequenceOfData into the Data :
 			tmpDat = stackOfDataArrays.top().scriptLandData;
@@ -137,9 +140,18 @@ static inline bool iteration_end_code(
 			tmpVV->Assign(tmpVV->Size(), tmpDat);
 		}	
 
+		// Committing the last SequenceOfData into the Data :
+		tmpDat = stackOfDataArrays.top().scriptLandData;
+		tmpDat->Assign(GOOSE_DATA_ARRAY_INDEX, stackOfDataArrays.top().currentVectorVal);
+
+		stackOfDataArrays.pop();
+
+		// Saving the record
+		loopDataPtr = tmpDat;
+
 		return false;
 	}
-	return stackOfDataArrays.size() > 1;
+	return true;
 }
 
 // This method is meant to export GOOSEData pac objects in the cases they are
@@ -160,6 +172,9 @@ static RecordVal * goose_data_array_as_record_val(
 	// Pushing the stack
 	push_data_array(stackOfDataArrays, **allDataIterator, tmpTag);
 	tmpVV = stackOfDataArrays.top().currentVectorVal;
+
+	// Analyzing the content of the array.
+	++allDataIterator;
 
 	do
 	{
@@ -203,17 +218,17 @@ static RecordVal * goose_data_array_as_record_val(
 
 			stackOfDataArrays.pop();
 
-			// Append the Data to the VectorVal that was underneath
-			tmpVV = stackOfDataArrays.top().currentVectorVal;
-			tmpVV->Assign(tmpVV->Size(), tmpDat);
+			// If the current array of Data is a member of an an array of data :
+			if(!stackOfDataArrays.empty())
+			{
+				// Append the Data to the VectorVal that was underneath
+				tmpVV = stackOfDataArrays.top().currentVectorVal;
+				tmpVV->Assign(tmpVV->Size(), tmpDat);
+			}
+			else
+				break; // Nothing else to do
 		}
-	} while(iteration_end_code(allDataIterator, allDataEnd, stackOfDataArrays));
-
-	// Cleaning the stack and returning the value.
-	tmpDat = stackOfDataArrays.top().scriptLandData;
-	tmpDat->Assign(GOOSE_DATA_ARRAY_INDEX, stackOfDataArrays.top().currentVectorVal);
-
-	stackOfDataArrays.pop();
+	} while(iteration_end_code(allDataIterator, allDataEnd, stackOfDataArrays, tmpDat));
 
 	return tmpDat;
 }

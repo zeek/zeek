@@ -17,3 +17,7 @@ myhook return F
 myhook return T
 myhook, &priority=5, [a=37, b=goobye world]
 F
+myhook5, test
+second part ran
+myhook5 ran
+myhook6, test

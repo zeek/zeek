@@ -188,6 +188,7 @@ static RecordVal * goose_data_array_as_record_val(
 				// to the size of the current one.
 				stackOfDataArrays.top().parsedBytes += dataPtr->totalSize();
 				push_data_array(stackOfDataArrays, *dataPtr, tmpTag);
+				tmpVV = stackOfDataArrays.top().currentVectorVal;
 				break;
 			default:
 				tmpDat = new RecordVal(BifType::Record::GOOSE::Data);

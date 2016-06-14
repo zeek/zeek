@@ -31,12 +31,12 @@
 
 %token TOK_NO_TEST
 
-%nonassoc TOK_HOOK
 %left ',' '|'
 %right '=' TOK_ADD_TO TOK_REMOVE_FROM
 %right '?' ':'
 %left TOK_OR
 %left TOK_AND
+%nonassoc TOK_HOOK
 %nonassoc '<' '>' TOK_LE TOK_GE TOK_EQ TOK_NE
 %left TOK_IN TOK_NOT_IN
 %left '+' '-'

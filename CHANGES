@@ -1,4 +1,12 @@
 
+2.4-606 | 2016-06-14 16:11:07 -0700
+
+  * Fix parsing precedence of "hook" expression. Addresses BIT-1619
+    (Johanna Amann)
+
+  * Update the "configure" usage message for --with-caf (Daniel
+    Thayer)
+
 2.4-602 | 2016-06-13 08:16:34 -0700
 
   * Fixing Covertity warning (CID 1356391). (Robin Sommer)

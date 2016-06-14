@@ -28,6 +28,7 @@ type RFBProtocolVersion (client: bool) = record {
 
 type RFBSecurityTypes = record {
 	sectype: uint32;
+	possible_challenge: bytestring &restofdata;
 } &let {
 	proc: bool = $context.connection.handle_security_types(this);
 	proc2: bool = $context.flow.proc_security_types(this);

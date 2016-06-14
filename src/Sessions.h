@@ -185,8 +185,7 @@ protected:
 
 	Connection* NewConn(HashKey* k, double t, const ConnID* id,
 			const u_char* data, int proto, uint32 flow_lable,
-			uint32 vlan, uint32 inner_vlan,
-			const EncapsulationStack* encapsulation);
+			const Packet* pkt, const EncapsulationStack* encapsulation);
 
 	// Check whether the tag of the current packet is consistent with
 	// the given connection.  Returns:

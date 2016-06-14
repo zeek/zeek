@@ -241,10 +241,10 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &prior
 	if ( [c$ftp$cmdarg$cmd, code] in directory_cmds )
 		{
 		if ( c$ftp$cmdarg$cmd == "CWD" )
-			c$ftp$cwd = build_path(c$ftp$cwd, c$ftp$cmdarg$arg);
+			c$ftp$cwd = build_path_compressed(c$ftp$cwd, c$ftp$cmdarg$arg);
 
 		else if ( c$ftp$cmdarg$cmd == "CDUP" )
-			c$ftp$cwd = cat(c$ftp$cwd, "/..");
+			c$ftp$cwd = build_path_compressed(c$ftp$cwd, "/..");
 
 		else if ( c$ftp$cmdarg$cmd == "PWD" || c$ftp$cmdarg$cmd == "XPWD" )
 			c$ftp$cwd = extract_path(msg);

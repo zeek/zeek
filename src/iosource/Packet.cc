@@ -44,6 +44,8 @@ void Packet::Init(int arg_link_type, struct timeval *arg_ts, uint32 arg_caplen,
 	eth_type = 0;
 	vlan = 0;
 	inner_vlan = 0;
+	l2_src = 0;
+	l2_dst = 0;
 
 	l2_valid = false;
 
@@ -136,8 +138,12 @@ void Packet::ProcessLayer2()
 		{
 		// Get protocol being carried from the ethernet frame.
 		int protocol = (pdata[12] << 8) + pdata[13];
-		pdata += GetLinkHeaderSize(link_type);
+
 		eth_type = protocol;
+		l2_dst = pdata;
+		l2_src = pdata + 6;
+
+		pdata += GetLinkHeaderSize(link_type);
 
 		switch ( protocol )
 			{
@@ -270,14 +276,17 @@ void Packet::ProcessLayer2()
 			}
 		pdata += rtheader_len;
 
+		u_char len_80211 = 0;
 		int type_80211 = pdata[0];
-		int len_80211 = 0;
+
 		if ( (type_80211 >> 4) & 0x04 )
 			{
 			//identified a null frame (we ignore for now).  no weird.
 			return;
 			}
+
 		// Look for the QoS indicator bit.
+
 		if ( (type_80211 >> 4) & 0x08 )
 			len_80211 = 26;
 		else
@@ -288,6 +297,41 @@ void Packet::ProcessLayer2()
 			Weird("truncated_radiotap_header");
 			return;
 			}
+
+		// Look for data frames
+		if ( type_80211 & 0x08 )
+			{
+			// Determine link-layer addresses based
+			// on 'To DS' and 'From DS' flags
+			switch ( pdata[1] & 0x03 ) {
+				case 0x00:
+					l2_dst = pdata + 4;
+					l2_src = pdata + 10;
+					break;
+
+				case 0x01:
+					l2_src = pdata + 10;
+					l2_dst = pdata + 16;
+					break;
+
+				case 0x02:
+					l2_src = pdata + 16;
+					l2_dst = pdata + 4;
+					break;
+
+				case 0x03:
+					// TODO: We should integrate this
+					// test into the length check above.
+					if ( pdata + 24 + l2_addr_len >= end_of_data )
+						{
+						l2_dst = pdata + 16;
+						l2_src = pdata + 24;
+						}
+
+					break;
+			}
+			}
+
 		// skip 802.11 data header
 		pdata += len_80211;
 

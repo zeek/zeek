@@ -329,6 +329,8 @@ type endpoint: record {
 	## The current IPv6 flow label that the connection endpoint is using.
 	## Always 0 if the connection is over IPv4.
 	flow_label: count;
+	## The link-layer address seen in the first packet (if available).
+	l2_addr: string &optional;
 };
 
 ## A connection. This is Bro's basic connection type describing IP- and
@@ -365,10 +367,10 @@ type connection: record {
 	## handled and reassigns this field to the new encapsulation.
 	tunnel: EncapsulatingConnVector &optional;
 
-	## The outer VLAN, if applicable, for this connection.
+	## The outer VLAN, if applicable for this connection.
 	vlan: int &optional;
 
-	## The inner VLAN, if applicable, for this connection.
+	## The inner VLAN, if applicable for this connection.
 	inner_vlan: int &optional;
 };
 

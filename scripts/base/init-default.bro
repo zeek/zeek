@@ -12,6 +12,7 @@
 @load base/utils/directions-and-hosts
 @load base/utils/exec
 @load base/utils/files
+@load base/utils/geoip-distance
 @load base/utils/numbers
 @load base/utils/paths
 @load base/utils/patterns

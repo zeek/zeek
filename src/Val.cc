@@ -2285,8 +2285,26 @@ double TableVal::CallExpireFunc(Val* idx)
 
 	try
 		{
-		Val* vs = expire_expr->Eval(0)->AsFunc()->Call(vl);
+		Val* vf = expire_expr->Eval(0);
+
+		if ( ! vf )
+			{
+			// Will have been reported already.
+			delete_vals(vl);
+			return 0;
+			}
+
+		if ( vf->Type()->Tag() != TYPE_FUNC )
+			{
+			Unref(vf);
+			vf->Error("not a function");
+			return 0;
+			}
+
+		Val* vs = vf->AsFunc()->Call(vl);
 		secs = vs->AsInterval();
+
+		Unref(vf);
 		Unref(vs);
 		delete vl;
 		}
@@ -2401,7 +2419,7 @@ bool TableVal::DoSerialize(SerialInfo* info) const
 			}
 
 		// Serialize index.
-		if ( ! state->did_index )
+		if ( k && ! state->did_index )
 			{
 			// Indices are rather small, so we disable suspension
 			// here again.

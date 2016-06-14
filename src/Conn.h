@@ -56,7 +56,7 @@ namespace analyzer { class Analyzer; }
 class Connection : public BroObj {
 public:
 	Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
-	           uint32 flow, uint32 vlan, uint32 inner_vlan, const EncapsulationStack* arg_encap);
+	           uint32 flow, const Packet* pkt, const EncapsulationStack* arg_encap);
 	virtual ~Connection();
 
 	// Invoked when an encapsulation is discovered. It records the
@@ -296,6 +296,8 @@ protected:
 	TransportProto proto;
 	uint32 orig_flow_label, resp_flow_label;	// most recent IPv6 flow labels
 	uint32 vlan, inner_vlan;	// VLAN this connection traverses, if available
+	u_char orig_l2_addr[Packet::l2_addr_len];	// Link-layer originator address, if available
+	u_char resp_l2_addr[Packet::l2_addr_len];	// Link-layer responder address, if available
 	double start_time, last_time;
 	double inactivity_timeout;
 	RecordVal* conn_val;

@@ -58,7 +58,6 @@
 @load base/protocols/rdp
 @load base/protocols/rfb
 @load base/protocols/sip
-@load base/protocols/smb
 @load base/protocols/snmp
 @load base/protocols/smtp
 @load base/protocols/socks

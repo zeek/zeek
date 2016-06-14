@@ -204,7 +204,7 @@ static RecordVal * goose_data_array_as_record_val(
 		// A while loop is used to handle the cases where the last
 		// Data of an array of Datas is an array of Data.
 		while(stackOfDataArrays.top().parsedBytes
-	           >= stackOfDataArrays.top().totalSize)
+	           >= stackOfDataArrays.top().totalSize) // when it is >, it means the packet is malformed
 		{
 			//If the current GOOSEData is the last one of the current
 			//array of GOOSEData :
@@ -250,16 +250,26 @@ VectorVal* goose_data_array_as_val(const VectorOfGOOSEData * dataArray)
 
 		tmpTag = dataPtr->tag();
 
-		switch(tmpTag) {
-			case ARRAY:
-				// Same code as below	
-			case STRUCTURE:
-				tmpDat = goose_data_array_as_record_val(it, end_iter, stackOfDataArrays);
-				break;
-			default:
-				tmpDat = new RecordVal(BifType::Record::GOOSE::Data);
-				tmpDat->Assign(0, new Val(tmpTag, TYPE_COUNT)); 
-				assignDataRecordContent(tmpDat, tmpTag, *dataPtr);
+		if(tmpTag != ARRAY && tmpTag != STRUCTURE) 
+		{
+			tmpDat = new RecordVal(BifType::Record::GOOSE::Data);
+			tmpDat->Assign(0, new Val(tmpTag, TYPE_COUNT)); 
+			assignDataRecordContent(tmpDat, tmpTag, *dataPtr);
+		}
+		else {
+			tmpDat = goose_data_array_as_record_val(it, end_iter, stackOfDataArrays);
+
+			// If the packet is malformed in a way that an array is said to be longer
+			// than it actually is at the end of the packet, the iterator will here
+			// be equal to end_iter.
+			if(it == end_iter)
+			{
+				vv->Assign(vv->Size(), tmpDat);
+
+				// Maybe notice the "Malformed packet" information somewhere.
+
+				break; // To avoid the ++it, because here it==stackOfDataArrays.end()
+			}
 		}
 
 		vv->Assign(vv->Size(), tmpDat);

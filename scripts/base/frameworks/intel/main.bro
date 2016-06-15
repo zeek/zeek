@@ -26,12 +26,6 @@ export {
 		DOMAIN,
 		## A user name.
 		USER_NAME,
-		## File hash which is non-hash type specific.  It's up to the
-		## user to query for any relevant hash types.
-		FILE_HASH,
-		## File name.  Typically with protocols with definite
-		## indications of a file name.
-		FILE_NAME,
 		## Certificate SHA-1 hash.
 		CERT_HASH,
 		## Public key MD5 hash. (SSH server host keys are a good example.)
@@ -100,15 +94,6 @@ export {
 		## If the *conn* field is provided, this will be automatically
 		## filled out.
 		uid:             string        &optional;
-
-		## If the data was discovered within a file, the file record
-		## should go here to provide context to the data.
-		f:               fa_file       &optional;
-
-		## If the data was discovered within a file, the file uid should
-		## go here to provide context to the data. If the *f* field is
-		## provided, this will be automatically filled out.
-		fuid:            string        &optional;
 	};
 
 	## Record used for the logging framework representing a positive
@@ -123,19 +108,6 @@ export {
 		## If a connection was associated with this intelligence hit,
 		## this is the conn_id for the connection.
 		id:       conn_id        &log &optional;
-
-		## If a file was associated with this intelligence hit,
-		## this is the uid for the file.
-		fuid:           string   &log &optional;
-
-		## A mime type if the intelligence hit is related to a file.
-		## If the $f field is provided this will be automatically filled
-		## out.
-		file_mime_type: string   &log &optional;
-		## Frequently files can be "described" to give a bit more context.
-		## If the $f field is provided this field will be automatically
-		## filled out.
-		file_desc:      string   &log &optional;
 
 		## Where the data was seen.
 		seen:     Seen           &log;
@@ -389,44 +361,6 @@ event Intel::match(s: Seen, items: set[Item]) &priority=5
 
 	if ( hook extend_match(info, s, items) )
 		Log::write(Intel::LOG, info);
-	}
-
-hook extend_match(info: Info, s: Seen, items: set[Item]) &priority=5
-	{
-	if ( s?$f )
-		{
-		s$fuid = s$f$id;
-
-		if ( s$f?$conns && |s$f$conns| == 1 )
-			{
-			for ( cid in s$f$conns )
-				s$conn = s$f$conns[cid];
-			}
-
-		if ( ! info?$file_mime_type && s$f?$info && s$f$info?$mime_type )
-			info$file_mime_type = s$f$info$mime_type;
-
-		if ( ! info?$file_desc )
-			info$file_desc = Files::describe(s$f);
-		}
-
-	if ( s?$fuid )
-		info$fuid = s$fuid;
-
-	if ( s?$conn )
-		{
-		s$uid = s$conn$uid;
-		info$id  = s$conn$id;
-		}
-
-	if ( s?$uid )
-		info$uid = s$uid;
-
-	for ( item in items )
-		{
-		add info$sources[item$meta$source];
-		add info$matched[item$indicator_type];
-		}
 	}
 
 function insert(item: Item)

@@ -1,4 +1,10 @@
 
+2.4-613 | 2016-06-14 18:10:37 -0700
+
+  * Preventing the event processing from looping endlessly when an
+    event reraised itself during execution of its handlers. (Robin
+    Sommer)
+
 2.4-612 | 2016-06-14 17:42:52 -0700
 
   * Improved handling of 802.11 headers. (Jan Grashoefer)

@@ -1,4 +1,8 @@
 
+2.4-612 | 2016-06-14 17:42:52 -0700
+
+  * Improved handling of 802.11 headers. (Jan Grashoefer)
+
 2.4-609 | 2016-06-14 17:15:28 -0700
 
   * Fixed table expiration evaluation. The expiration attribute

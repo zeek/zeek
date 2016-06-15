@@ -174,3 +174,8 @@ signature file-lzma {
 	file-magic /^\x5d\x00\x00/
 }
 
+# ACE archive file.
+signature file-ace-archive {
+    file-mime "application/x-ace", 100
+    file-magic /^.{7}\*\*ACE\*\*/
+}

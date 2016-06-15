@@ -1,6 +1,7 @@
 @load base/frameworks/notice
 @load base/utils/addrs
 @load base/utils/directions-and-hosts
+@load base/utils/email
 
 module SMTP;
 
@@ -99,7 +100,7 @@ event bro_init() &priority=5
 	}
 
 function find_address_in_smtp_header(header: string): string
-{
+	{
 	local ips = extract_ip_addresses(header);
 	# If there are more than one IP address found, return the second.
 	if ( |ips| > 1 )
@@ -110,7 +111,7 @@ function find_address_in_smtp_header(header: string): string
 	# Otherwise, there wasn't an IP address found.
 	else
 		return "";
-}
+	}
 
 function new_smtp_log(c: connection): Info
 	{
@@ -165,7 +166,11 @@ event smtp_request(c: connection, is_orig: bool, command: string, arg: string) &
 		{
 		if ( ! c$smtp?$rcptto )
 			c$smtp$rcptto = set();
-		add c$smtp$rcptto[split_string1(arg, /:[[:blank:]]*/)[1]];
+		local rcptto = extract_email_addrs_set(split_string1(arg, /:[[:blank:]]*/)[1]);
+		if ( |rcptto| > 0 )
+			{
+			c$smtp$rcptto = rcptto;
+			}
 		c$smtp$has_client_activity = T;
 		}
 
@@ -175,7 +180,9 @@ event smtp_request(c: connection, is_orig: bool, command: string, arg: string) &
 		smtp_message(c);
 
 		local partially_done = split_string1(arg, /:[[:blank:]]*/)[1];
-		c$smtp$mailfrom = split_string1(partially_done, /[[:blank:]]?/)[0];
+		local mailfrom = extract_first_email_addr(split_string1(partially_done, /[[:blank:]]?/)[0]);
+		if ( mailfrom != "" )
+			c$smtp$mailfrom = mailfrom;
 		c$smtp$has_client_activity = T;
 		}
 	}
@@ -223,22 +230,25 @@ event mime_one_header(c: connection, h: mime_header_rec) &priority=5
 		c$smtp$subject = h$value;
 
 	else if ( h$name == "FROM" )
-		c$smtp$from = h$value;
+		{
+		local from = extract_first_email_addr(h$value);
+		if ( from != "" )
+			c$smtp$from = from;
+		}
 
 	else if ( h$name == "REPLY-TO" )
-		c$smtp$reply_to = h$value;
+		{
+		local replyto = extract_first_email_addr(h$value);
+		if ( replyto != "" )
+			c$smtp$reply_to = replyto;
+		}
 
 	else if ( h$name == "DATE" )
 		c$smtp$date = h$value;
 
 	else if ( h$name == "TO" )
 		{
-		if ( ! c$smtp?$to )
-			c$smtp$to = set();
-
-		local to_parts = split_string(h$value, /[[:blank:]]*,[[:blank:]]*/);
-		for ( i in to_parts )
-			add c$smtp$to[to_parts[i]];
+		c$smtp$to = extract_email_addrs_set(h$value);
 		}
 
 	else if ( h$name == "CC" )
@@ -308,9 +318,9 @@ function describe(rec: Info): string
 	if ( rec?$mailfrom && rec?$rcptto )
 		{
 		local one_to = "";
-		for ( to in rec$rcptto )
+		for ( email in rec$rcptto )
 			{
-			one_to = to;
+			one_to = email;
 			break;
 			}
 		local abbrev_subject = "";

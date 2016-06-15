@@ -2,19 +2,6 @@
 @load base/protocols/smtp
 @load ./where-locations
 
-# Extract mail addresses out of address specifications conforming RFC 5322
-function extract_mail_addrs(str: string) : set[string]
-	{
-	local raw_addrs = find_all(str, /(^|[<,:[:blank:]])[^<,:[:blank:]@]+"@"[^>,;[:blank:]]+([>,;[:blank:]]|$)/);
-	local addrs: set[string];
-
-	for ( raw_addr in raw_addrs )
-		add addrs[gsub(raw_addr, /[<>,:;[:blank:]]/, "")];
-
-	return addrs;
-	}
-
-
 event mime_end_entity(c: connection)
 	{
 	if ( c?$smtp )
@@ -43,8 +30,7 @@ event mime_end_entity(c: connection)
 
 		if ( c$smtp?$mailfrom )
 			{
-			local mailfrom_addrs = extract_mail_addrs(c$smtp$mailfrom);
-			for ( mailfrom_addr in mailfrom_addrs )
+			for ( mailfrom_addr in c$smtp$mailfrom )
 				{
 				Intel::seen([$indicator=mailfrom_addr,
 				             $indicator_type=Intel::EMAIL,
@@ -55,23 +41,18 @@ event mime_end_entity(c: connection)
 
 		if ( c$smtp?$rcptto )
 			{
-			for ( rcptto in c$smtp$rcptto )
+			for ( rcptto_addr in c$smtp$rcptto )
 				{
-				local rcptto_addrs = extract_mail_addrs(rcptto);
-				for ( rcptto_addr in rcptto_addrs )
-					{
-					Intel::seen([$indicator=rcptto_addr,
-					             $indicator_type=Intel::EMAIL,
-					             $conn=c,
-					             $where=SMTP::IN_RCPT_TO]);
-					}
+				Intel::seen([$indicator=rcptto_addr,
+				             $indicator_type=Intel::EMAIL,
+				             $conn=c,
+				             $where=SMTP::IN_RCPT_TO]);
 				}
 			}
 
 		if ( c$smtp?$from )
 			{
-			local from_addrs = extract_mail_addrs(c$smtp$from);
-			for ( from_addr in from_addrs )
+			for ( from_addr in c$smtp$from )
 				{
 				Intel::seen([$indicator=from_addr,
 				             $indicator_type=Intel::EMAIL,
@@ -82,23 +63,29 @@ event mime_end_entity(c: connection)
 
 		if ( c$smtp?$to )
 			{
-			for ( email_to in c$smtp$to )
+			for ( email_to_addr in c$smtp$to )
 				{
-				local email_to_addrs = extract_mail_addrs(email_to);
-				for ( email_to_addr in email_to_addrs )
-					{
-					Intel::seen([$indicator=email_to_addr,
-					             $indicator_type=Intel::EMAIL,
-					             $conn=c,
-					             $where=SMTP::IN_TO]);
-					}
+				Intel::seen([$indicator=email_to_addr,
+				             $indicator_type=Intel::EMAIL,
+				             $conn=c,
+				             $where=SMTP::IN_TO]);
+				}
+			}
+
+		if ( c$smtp?$cc )
+			{
+			for ( cc_addr in c$smtp$cc )
+				{
+				Intel::seen([$indicator=cc_addr,
+				             $indicator_type=Intel::EMAIL,
+				             $conn=c,
+				             $where=SMTP::IN_CC]);
 				}
 			}
 
 		if ( c$smtp?$reply_to )
 			{
-			local replyto_addrs = extract_mail_addrs(c$smtp$reply_to);
-			for ( replyto_addr in replyto_addrs )
+			for ( replyto_addr in c$smtp$reply_to )
 				{
 				Intel::seen([$indicator=replyto_addr,
 				             $indicator_type=Intel::EMAIL,

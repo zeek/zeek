@@ -17,8 +17,6 @@ export {
 		UNKNOWN
 	};
 
-	#global flist: set[string] &optional;
-
 	## If true, local logging is by default enabled for all filters.
 	#const enable_local_logging = T &redef;
 	global enable_local_logging = T &redef;
@@ -502,10 +500,7 @@ function create_stream(id: ID, stream: Stream) : bool
 	all_streams[id] = stream;
 	
 	if (enable_remote_logging)
-		{
 		Broker::enable_remote_logs(id);
-		Broker::publish_topic(fmt("bro/log/%s", id));
-		}
 
 	return add_default_filter(id);
 	}

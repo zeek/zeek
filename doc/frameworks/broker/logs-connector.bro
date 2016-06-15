@@ -34,7 +34,7 @@ event Broker::outgoing_connection_established(peer_address: string,
 	}
 
 event Broker::outgoing_connection_broken(peer_address: string,
-                                       peer_port: port)
+                                       peer_port: port, peer_name: string)
 	{
 	terminate();
 	}

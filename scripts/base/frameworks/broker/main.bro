@@ -390,7 +390,8 @@ function unsubscribe_to_events(topic_prefix: string): bool
 
 function enable_remote_logs(id: Log::ID, flags: SendFlags &default = SendFlags()): bool
     {
-    return __enable_remote_logs(id, flags);
+		
+    return (__publish_topic(fmt("bro/log/%s", id)) && __enable_remote_logs(id, flags));
     }
 
 function disable_remote_logs(id: Log::ID): bool

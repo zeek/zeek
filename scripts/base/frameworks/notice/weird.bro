@@ -349,32 +349,33 @@ function weird(w: Weird::Info)
 
 	if ( action in limiting_actions )
 		{
+		local notice_identifier = identifier;
 		if ( action in notice_actions )
 			{
 			# Handle notices
 			if ( w?$id && action == ACTION_NOTICE_PER_ORIG )
-				identifier = fmt("%s", w$id$orig_h);
+				notice_identifier = fmt("%s", w$id$orig_h);
 			else if ( action == ACTION_NOTICE_ONCE )
-				identifier = "";
+				notice_identifier = "";
 
 			# If this weird was already noticed then we're done.
-			if ( [w$name, identifier] in did_notice )
+			if ( [w$name, notice_identifier] in did_notice )
 				return;
-			add did_notice[w$name, identifier];
+			add did_notice[w$name, notice_identifier];
 			}
 		else
 			{
 			# Handle logging.
 			if ( w?$id && action == ACTION_LOG_PER_ORIG )
-				identifier = fmt("%s", w$id$orig_h);
+				notice_identifier = fmt("%s", w$id$orig_h);
 			else if ( action == ACTION_LOG_ONCE )
-				identifier = "";
+				notice_identifier = "";
 
 			# If this weird was already logged then we're done.
-			if ( [w$name, identifier] in did_log )
+			if ( [w$name, notice_identifier] in did_log )
 				return;
 
-			add did_log[w$name, identifier];
+			add did_log[w$name, notice_identifier];
 			}
 		}
 

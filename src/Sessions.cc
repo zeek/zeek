@@ -201,11 +201,6 @@ void NetSessions::NextPacket(double t, const Packet* pkt)
 	uint32 caplen = pkt->cap_len - pkt->hdr_size;
 
 
-	if( pkt->l2_proto == L2_GOOSE )
-	{
-		goose_analyzer->NextPacket(t, pkt);
-	}
-
 	if ( pkt->l3_proto == L3_IPV4 )
 		{
 		if ( caplen < sizeof(struct ip) )
@@ -236,6 +231,12 @@ void NetSessions::NextPacket(double t, const Packet* pkt)
 		if ( arp_analyzer )
 			arp_analyzer->NextPacket(t, pkt);
 		}
+
+	else if( pkt->eth_type | 0x0001 == 0x88b9)
+		// if eth_type == 0x88b8 OR 0x88b9
+	{
+		goose_analyzer->NextPacket(t, pkt);
+	} 
 
 	else
 		{

@@ -17,11 +17,17 @@ export {
 		## An ordered vector of file unique IDs.
 		orig_fuids:      vector of string &log &optional;
 
+		## An order vector of filenames from the client.
+		orig_filenames:  vector of string &log &optional;
+
 		## An ordered vector of mime types.
 		orig_mime_types: vector of string &log &optional;
 
 		## An ordered vector of file unique IDs.
 		resp_fuids:      vector of string &log &optional;
+
+		## An order vector of filenames from the server.
+		resp_filenames:  vector of string &log &optional;
 
 		## An ordered vector of mime types.
 		resp_mime_types: vector of string &log &optional;
@@ -82,13 +88,31 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 				c$http$orig_fuids = string_vec(f$id);
 			else
 				c$http$orig_fuids[|c$http$orig_fuids|] = f$id;
+
+			if ( f$info?$filename )
+				{
+				if ( ! c$http?$orig_filenames )
+					c$http$orig_filenames = string_vec(f$info$filename);
+				else
+					c$http$orig_filenames[|c$http$orig_filenames|] = f$info$filename;
+				}
 			}
+
 		else
 			{
 			if ( ! c$http?$resp_fuids )
 				c$http$resp_fuids = string_vec(f$id);
 			else
 				c$http$resp_fuids[|c$http$resp_fuids|] = f$id;
+
+			if ( f$info?$filename )
+				{
+				if ( ! c$http?$resp_filenames )
+					c$http$resp_filenames = string_vec(f$info$filename);
+				else
+					c$http$resp_filenames[|c$http$resp_filenames|] = f$info$filename;
+				}
+
 			}
 		}
 	}

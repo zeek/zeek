@@ -178,6 +178,24 @@ export {
 	## not be logged.
 	global extend_match: hook(info: Info, s: Seen, items: set[Item]);
 
+	## The expiration timeout for intelligence items. Once an item expires, the
+	## :bro:id:`item_expired` hook is called. Reinsertion of an item resets the
+	## timeout. A negative value disables expiration of intelligence items.
+	const item_expiration = -1 min &redef;
+
+	## This hook can be used to handle expiration of intelligence items.
+	##
+	## indicator: The indicator of the expired item.
+	##
+	## indicator_type: The indicator type of the expired item.
+	##
+	## metas: The set of meta data describing the expired item.
+	##
+	## If all hook handlers are executed, the expiration timeout will be reset.
+	## Otherwise, if one of the handlers terminates using break, the item will
+	## be removed.
+	global item_expired: hook(indicator: string, indicator_type: Type, metas: set[MetaData]);
+
 	global log_intel: event(rec: Info);
 }
 
@@ -196,11 +214,16 @@ const have_full_data = T &redef;
 # Table of meta data, indexed by source string.
 type MetaDataTable: table[string] of MetaData;
 
+# Expiration handlers.
+global expire_host_data: function(data: table[addr] of MetaDataTable, idx: addr): interval;
+global expire_subnet_data: function(data: table[subnet] of MetaDataTable, idx: subnet): interval;
+global expire_string_data: function(data: table[string, Type] of MetaDataTable, idx: any): interval;
+
 # The in memory data structure for holding intelligence.
 type DataStore: record {
-	host_data:    table[addr] of MetaDataTable;
-	subnet_data:  table[subnet] of MetaDataTable;
-	string_data:  table[string, Type] of MetaDataTable;
+	host_data:    table[addr] of MetaDataTable &write_expire=item_expiration &expire_func=expire_host_data;
+	subnet_data:  table[subnet] of MetaDataTable &write_expire=item_expiration &expire_func=expire_subnet_data;
+	string_data:  table[string, Type] of MetaDataTable &write_expire=item_expiration &expire_func=expire_string_data;
 };
 global data_store: DataStore &redef;
 
@@ -233,6 +256,51 @@ function find(s: Seen): bool
 		{
 		return ([to_lower(s$indicator), s$indicator_type] in ds$string_data);
 		}
+	}
+
+# Function that abstracts expiration of different types.
+function expire_item(indicator: string, indicator_type: Type, metas: set[MetaData]): interval
+	{
+	if ( hook item_expired(indicator, indicator_type, metas) )
+		return item_expiration;
+	else
+		remove([$indicator=indicator, $indicator_type=indicator_type, $meta=[$source=""]], T);
+	return 0 sec;
+	}
+
+# Expiration handler definitions.
+function expire_host_data(data: table[addr] of MetaDataTable, idx: addr): interval
+	{
+	local meta_tbl: MetaDataTable = data[idx];
+	local metas: set[MetaData];
+	for ( src in meta_tbl )
+		add metas[meta_tbl[src]];
+
+	return expire_item(cat(idx), ADDR, metas);
+	}
+
+function expire_subnet_data(data: table[subnet] of MetaDataTable, idx: subnet): interval
+	{
+	local meta_tbl: MetaDataTable = data[idx];
+	local metas: set[MetaData];
+	for ( src in meta_tbl )
+		add metas[meta_tbl[src]];
+
+	return expire_item(cat(idx), ADDR, metas);
+	}
+
+function expire_string_data(data: table[string, Type] of MetaDataTable, idx: any): interval
+	{
+	local indicator: string;
+	local indicator_type: Type;
+	[indicator, indicator_type] = idx;
+
+	local meta_tbl: MetaDataTable = data[indicator, indicator_type];
+	local metas: set[MetaData];
+	for ( src in meta_tbl )
+		add metas[meta_tbl[src]];
+
+	return expire_item(indicator, indicator_type, metas);
 	}
 
 # Function to abstract from different data stores for different indicator types.

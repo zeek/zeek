@@ -1,0 +1,22 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	intel
+#open	2016-06-09-19-48-59
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	fuid	file_mime_type	file_desc	seen.indicator	seen.indicator_type	seen.where	seen.node	matched	sources
+#types	time	string	addr	port	addr	port	string	string	string	string	enum	enum	string	set[enum]	set[string]
+1465501739.703996	-	-	-	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	bro	Intel::ADDR	source1
+1465501740.704649	-	-	-	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	bro	Intel::ADDR	source1
+1465501741.705204	-	-	-	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	bro	Intel::ADDR	source1
+#close	2016-06-09-19-49-05
+Trigger: 1.2.3.4
+Seen: 1.2.3.4
+Trigger: 1.2.3.4
+Seen: 1.2.3.4
+Trigger: 1.2.3.4
+Seen: 1.2.3.4
+Expired: 1.2.3.4
+Trigger: 1.2.3.4
+Trigger: 1.2.3.4
+Trigger: 1.2.3.4

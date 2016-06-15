@@ -133,9 +133,6 @@ void CardinalityCounter::AddElement(uint64_t hash)
 
 	if ( temp > buckets[index] )
 		buckets[index] = temp;
-
-	if ( buckets[index] == 0 )
-		V++;
 	}
 
 /**

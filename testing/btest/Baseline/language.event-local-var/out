@@ -1,0 +1,1 @@
+error in /home/jgras/devel/bro/testing/btest/.tmp/language.event-local-var/event-local-var.bro, line 15: local identifier "v" cannot be used to reference an event, at or near ")"

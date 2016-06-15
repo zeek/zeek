@@ -754,7 +754,10 @@ int main(int argc, char** argv)
 
 #ifdef DEBUG
 	if ( debug_streams )
+		{
 		debug_logger.EnableStreams(debug_streams);
+		debug_logger.OpenDebugLog("debug");
+		}
 #endif
 
 	init_random_seed(seed, (seed_load_file && *seed_load_file ? seed_load_file : 0) , seed_save_file);

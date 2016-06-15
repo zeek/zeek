@@ -93,6 +93,15 @@ New Functionality
       get_timer_stats(), get_file_analysis_stats(), get_thread_stats(),
       get_gap_stats(), get_matcher_stats(),
 
+- Two new functions haversine_distance() and haversine_distance_ip()
+  for calculating geographic distances. They requires that Bro be
+  built with libgeoip.
+
+- Table expiration timeout expressions are evaluated dynamically as
+  timestmaps are updated.
+
+- dns.log now has a RTT field.
+
 - New Bro plugins in aux/plugins:
 
     - af_packet: Native AF_PACKET support.
@@ -121,6 +130,10 @@ Changed Functionality
       precompile_pcap_filter() -> Pcap::precompile_pcap_filter()
       install_pcap_filter()    -> Pcap::install_pcap_filter()
       pcap_error()             -> Pcap::pcap_error()
+
+- In http.log, the "filename" field (which it turns out was never
+  filled out in the first place) has been split into to
+  "orig_filenames" and "resp_filenames".
 
 
 Deprecated Functionality

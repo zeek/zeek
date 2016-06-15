@@ -8,6 +8,8 @@ module NetControl;
 @load ../plugin
 @load base/frameworks/broker
 
+@ifdef ( Broker::__enable )
+
 export {
 	## Instantiates the broker plugin.
 	global create_broker: function(host: addr, host_port: port, topic: string, can_expire: bool &default=F) : PluginState;
@@ -161,3 +163,5 @@ function create_broker(host: addr, host_port: port, topic: string, can_expire: b
 
 	return p;
 	}
+
+@endif

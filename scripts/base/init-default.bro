@@ -12,6 +12,7 @@
 @load base/utils/directions-and-hosts
 @load base/utils/exec
 @load base/utils/files
+@load base/utils/geoip-distance
 @load base/utils/numbers
 @load base/utils/paths
 @load base/utils/patterns
@@ -37,10 +38,8 @@
 @load base/frameworks/reporter
 @load base/frameworks/sumstats
 @load base/frameworks/tunnels
-@ifdef ( Broker::enable )
 @load base/frameworks/openflow
 @load base/frameworks/netcontrol
-@endif
 
 @load base/protocols/conn
 @load base/protocols/dhcp

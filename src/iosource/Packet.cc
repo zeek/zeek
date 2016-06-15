@@ -44,6 +44,8 @@ void Packet::Init(int arg_link_type, struct timeval *arg_ts, uint32 arg_caplen,
 	eth_type = 0;
 	vlan = 0;
 	inner_vlan = 0;
+	l2_src = 0;
+	l2_dst = 0;
 
 	l2_valid = false;
 
@@ -136,8 +138,12 @@ void Packet::ProcessLayer2()
 		{
 		// Get protocol being carried from the ethernet frame.
 		int protocol = (pdata[12] << 8) + pdata[13];
-		pdata += GetLinkHeaderSize(link_type);
+
 		eth_type = protocol;
+		l2_dst = pdata;
+		l2_src = pdata + 6;
+
+		pdata += GetLinkHeaderSize(link_type);
 
 		switch ( protocol )
 			{
@@ -261,33 +267,82 @@ void Packet::ProcessLayer2()
 			Weird("truncated_radiotap_header");
 			return;
 			}
+
 		// Skip over the RadioTap header
 		int rtheader_len = (pdata[3] << 8) + pdata[2];
+
 		if ( pdata + rtheader_len >= end_of_data )
 			{
 			Weird("truncated_radiotap_header");
 			return;
 			}
+
 		pdata += rtheader_len;
 
-		int type_80211 = pdata[0];
-		int len_80211 = 0;
-		if ( (type_80211 >> 4) & 0x04 )
-			{
-			//identified a null frame (we ignore for now).  no weird.
-			return;
-			}
-		// Look for the QoS indicator bit.
-		if ( (type_80211 >> 4) & 0x08 )
-			len_80211 = 26;
-		else
-			len_80211 = 24;
+		u_char len_80211 = 24; // minimal length of data frames
 
 		if ( pdata + len_80211 >= end_of_data )
 			{
 			Weird("truncated_radiotap_header");
 			return;
 			}
+
+		u_char fc_80211 = pdata[0]; // Frame Control field
+
+		// Skip non-data frame types (management & control).
+		if ( ! ((fc_80211 >> 2) & 0x02) )
+			return;
+
+		// Skip subtypes without data.
+		if ( (fc_80211 >> 4) & 0x04 )
+			return;
+
+		// 'To DS' and 'From DS' flags set indicate use of the 4th
+		// address field.
+		if ( (pdata[1] & 0x03) == 0x03 )
+			len_80211 += l2_addr_len;
+
+		// Look for the QoS indicator bit.
+		if ( (fc_80211 >> 4) & 0x08 )
+			{
+			// Skip in case of A-MSDU subframes indicated by QoS
+			// control field.
+			if ( pdata[len_80211] & 0x80)
+				return;
+
+			len_80211 += 2;
+			}
+
+		if ( pdata + len_80211 >= end_of_data )
+			{
+			Weird("truncated_radiotap_header");
+			return;
+			}
+
+		// Determine link-layer addresses based
+		// on 'To DS' and 'From DS' flags
+		switch ( pdata[1] & 0x03 ) {
+			case 0x00:
+				l2_src = pdata + 10;
+				l2_dst = pdata + 4;
+				break;
+
+			case 0x01:
+				l2_src = pdata + 10;
+				l2_dst = pdata + 16;
+				break;
+
+			case 0x02:
+				l2_src = pdata + 16;
+				l2_dst = pdata + 4;
+				break;
+
+			case 0x03:
+				l2_src = pdata + 24;
+				l2_dst = pdata + 16;
+				break;
+		}
+
 		// skip 802.11 data header
 		pdata += len_80211;
 

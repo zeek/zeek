@@ -57,6 +57,8 @@ export {
 		rocksdb: RocksDBOptions &default = RocksDBOptions();
 	};
 
+@ifdef ( Broker::__enable )
+
 	## Create a master data store which contains key-value pairs.
 	##
 	## id: a unique name for the data store.
@@ -720,11 +722,15 @@ export {
 	##
 	## Returns: element in the collection that the iterator currently references.
 	global record_iterator_value: function(it: opaque of Broker::RecordIterator): Broker::Data;
+
+@endif
 }
 
 @load base/bif/store.bif
 
 module Broker;
+
+@ifdef ( Broker::__enable )
 
 function create_master(id: string, b: BackendType &default = MEMORY,
                        options: BackendOptions &default = BackendOptions()): opaque of Broker::Handle
@@ -1095,3 +1101,5 @@ function record_iterator_value(it: opaque of Broker::RecordIterator): Broker::Da
 	{
 	return __record_iterator_value(it);
 	}
+
+@endif

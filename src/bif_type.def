@@ -8,7 +8,7 @@ DEFINE_BIF_TYPE(TYPE_CONNECTION, "connection", "connection", "Connection*", "%s-
 DEFINE_BIF_TYPE(TYPE_COUNT, 	"count", "count", "bro_uint_t", 	"%s->AsCount()", 	"new Val(%s, TYPE_COUNT)")
 DEFINE_BIF_TYPE(TYPE_DOUBLE, 	"double", "double", "double", 		"%s->AsDouble()", 	"new Val(%s, TYPE_DOUBLE)")
 DEFINE_BIF_TYPE(TYPE_FILE, 	"file", "file", "BroFile*", 		"%s->AsFile()", 	"new Val(%s)")
-DEFINE_BIF_TYPE(TYPE_INT, 	"int", "int", "bro_int_t", 		"%s->AsInt()", 		"new Val(%s, TYPE_BOOL)")
+DEFINE_BIF_TYPE(TYPE_INT, 	"int", "int", "bro_int_t", 		"%s->AsInt()", 		"new Val(%s, TYPE_INT)")
 DEFINE_BIF_TYPE(TYPE_INTERVAL, 	"interval", "interval", "double", 	"%s->AsInterval()", 	"new IntervalVal(%s, Seconds)")
 DEFINE_BIF_TYPE(TYPE_PACKET, 	"packet", "packet", "TCP_TracePacket*", "%s->AsRecordVal()->GetOrigin()", "%s->PacketVal()")
 DEFINE_BIF_TYPE(TYPE_PATTERN, 	"pattern", "pattern", "RE_Matcher*", 	"%s->AsPattern()",	"new PatternVal(%s)")

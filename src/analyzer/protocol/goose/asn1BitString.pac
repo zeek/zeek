@@ -1,9 +1,5 @@
 # Record of the bit-string as specified in ASN.1
 
-%extern{
-#include <iostream>
-%}
-
 type ASN1BitString(nbBytes: uint32) = record
 {
 	paddingBits: uint8;
@@ -77,9 +73,5 @@ function asn1_bitstring_to_val(bitStringRecord: ASN1BitString): VectorVal
 		getBoolsFromByte(byte_it, bytes_end, *vv, current_byte, vi);
 	}
 
-	std::cout << "    Bit-string : ";
-	for(uint i=0; i<vv->Size(); ++i)
-		std::cout << vv->Lookup(i)->AsBool() ? '1' : '0';
-	std::cout << std::endl;
 	return vv;
 %}

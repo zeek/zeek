@@ -113,18 +113,21 @@ static inline void assignDataRecordContent(
 // This method is used by goose_data_array_as_record_val. It encapsulates the
 // actions that happen at the end of its "while" loop.
 // It commits all exported VectorVals in the case the parsed GOOSE Data array
-// indicated a length that went beyond the packet frame.
+// indicated a length that went beyond the packet frame. It also clears the
+// stack of recusion info, saving the top Data record into a pointer.
 static inline bool iteration_end_code(
 	VectorOfGOOSEData::const_iterator & allDataIterator,
 	const VectorOfGOOSEData::const_iterator & allDataEnd,
-	GOOSEDataArrayRecursionStack & stackOfDataArrays)
+	GOOSEDataArrayRecursionStack & stackOfDataArrays,
+	RecordVal * & loopDataPtr)
 {
 	++allDataIterator;
 	if(allDataIterator == allDataEnd)
 	{
 		RecordVal * tmpDat;
 		VectorVal * tmpVV;
-		while(stackOfDataArrays.size() > 2)
+
+		while(stackOfDataArrays.size() > 1)
 		{
 			// Committing the SequenceOfData into the Data :
 			tmpDat = stackOfDataArrays.top().scriptLandData;
@@ -137,9 +140,18 @@ static inline bool iteration_end_code(
 			tmpVV->Assign(tmpVV->Size(), tmpDat);
 		}	
 
+		// Committing the last SequenceOfData into the Data :
+		tmpDat = stackOfDataArrays.top().scriptLandData;
+		tmpDat->Assign(GOOSE_DATA_ARRAY_INDEX, stackOfDataArrays.top().currentVectorVal);
+
+		stackOfDataArrays.pop();
+
+		// Saving the record
+		loopDataPtr = tmpDat;
+
 		return false;
 	}
-	return stackOfDataArrays.size() > 1;
+	return true;
 }
 
 // This method is meant to export GOOSEData pac objects in the cases they are
@@ -158,10 +170,10 @@ static RecordVal * goose_data_array_as_record_val(
 	tmpTag = dataPtr->tag();
 
 	// Pushing the stack
-	push_data_array(stackOfDataArrays, **allDataIterator, tmpTag);
+	push_data_array(stackOfDataArrays, *dataPtr, tmpTag);
 	tmpVV = stackOfDataArrays.top().currentVectorVal;
 
-	do
+	while(iteration_end_code(allDataIterator, allDataEnd, stackOfDataArrays, tmpDat))
 	{
 		dataPtr = *allDataIterator;
 		// Initialize the record that will hold the data taken from
@@ -175,45 +187,46 @@ static RecordVal * goose_data_array_as_record_val(
 				// Add the length (in bytes) of the following array
 				// to the size of the current one.
 				stackOfDataArrays.top().parsedBytes += dataPtr->totalSize();
-				push_data_array(stackOfDataArrays, **allDataIterator, tmpTag);
+				push_data_array(stackOfDataArrays, *dataPtr, tmpTag);
+				tmpVV = stackOfDataArrays.top().currentVectorVal;
 				break;
 			default:
 				tmpDat = new RecordVal(BifType::Record::GOOSE::Data);
 				tmpDat->Assign(0, new Val(tmpTag, TYPE_COUNT)); 
-				assignDataRecordContent(tmpDat, tmpTag, **allDataIterator);
+				assignDataRecordContent(tmpDat, tmpTag, *dataPtr);
 
 				// Append the record to the vector
 				tmpVV->Assign(tmpVV->Size(), tmpDat);
-		}
 
-		// Add the length (in bytes) of the current GOOSEData to the count.
-		stackOfDataArrays.top().parsedBytes += dataPtr->totalSize();
+				// Add the length (in bytes) of the current GOOSEData to the count.
+				stackOfDataArrays.top().parsedBytes += dataPtr->totalSize();
+		}
 
 		// A while loop is used to handle the cases where the last
 		// Data of an array of Datas is an array of Data.
 		while(stackOfDataArrays.top().parsedBytes
-	           >= stackOfDataArrays.top().totalSize)
+	           >= stackOfDataArrays.top().totalSize) // when it is >, it means the packet is malformed
 		{
 			//If the current GOOSEData is the last one of the current
 			//array of GOOSEData :
 			
 			// Committing the SequenceOfData into the Data :
 			tmpDat = stackOfDataArrays.top().scriptLandData;
-			tmpDat->Assign(GOOSE_DATA_ARRAY_INDEX, stackOfDataArrays.top().currentVectorVal);
+			tmpDat->Assign(GOOSE_DATA_ARRAY_INDEX, tmpVV);
 
 			stackOfDataArrays.pop();
 
-			// Append the Data to the VectorVal that was underneath
-			tmpVV = stackOfDataArrays.top().currentVectorVal;
-			tmpVV->Assign(tmpVV->Size(), tmpDat);
+			// If the current array of Data is a member of an an array of data :
+			if(!stackOfDataArrays.empty())
+			{
+				// Append the Data to the VectorVal that was underneath
+				tmpVV = stackOfDataArrays.top().currentVectorVal;
+				tmpVV->Assign(tmpVV->Size(), tmpDat);
+			}
+			else
+				return tmpDat; // Nothing else to do
 		}
-	} while(iteration_end_code(allDataIterator, allDataEnd, stackOfDataArrays));
-
-	// Cleaning the stack and returning the value.
-	tmpDat = stackOfDataArrays.top().scriptLandData;
-	tmpDat->Assign(GOOSE_DATA_ARRAY_INDEX, stackOfDataArrays.top().currentVectorVal);
-
-	stackOfDataArrays.pop();
+	}
 
 	return tmpDat;
 }
@@ -238,16 +251,26 @@ VectorVal* goose_data_array_as_val(const VectorOfGOOSEData * dataArray)
 
 		tmpTag = dataPtr->tag();
 
-		switch(tmpTag) {
-			case ARRAY:
-				// Same code as below	
-			case STRUCTURE:
-				tmpDat = goose_data_array_as_record_val(it, end_iter, stackOfDataArrays);
-				break;
-			default:
-				tmpDat = new RecordVal(BifType::Record::GOOSE::Data);
-				tmpDat->Assign(0, new Val(tmpTag, TYPE_COUNT)); 
-				assignDataRecordContent(tmpDat, tmpTag, *dataPtr);
+		if(tmpTag != ARRAY && tmpTag != STRUCTURE) 
+		{
+			tmpDat = new RecordVal(BifType::Record::GOOSE::Data);
+			tmpDat->Assign(0, new Val(tmpTag, TYPE_COUNT)); 
+			assignDataRecordContent(tmpDat, tmpTag, *dataPtr);
+		}
+		else {
+			tmpDat = goose_data_array_as_record_val(it, end_iter, stackOfDataArrays);
+
+			// If the packet is malformed in a way that an array is said to be longer
+			// than it actually is at the end of the packet, the iterator will here
+			// be equal to end_iter.
+			if(it == end_iter)
+			{
+				vv->Assign(vv->Size(), tmpDat);
+
+				// Maybe notice the "Malformed packet" information somewhere.
+
+				break; // To avoid the ++it, because here it==stackOfDataArrays.end()
+			}
 		}
 
 		vv->Assign(vv->Size(), tmpDat);

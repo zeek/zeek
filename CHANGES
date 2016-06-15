@@ -1,4 +1,29 @@
 
+2.4-613 | 2016-06-14 18:10:37 -0700
+
+  * Preventing the event processing from looping endlessly when an
+    event reraised itself during execution of its handlers. (Robin
+    Sommer)
+
+2.4-612 | 2016-06-14 17:42:52 -0700
+
+  * Improved handling of 802.11 headers. (Jan Grashoefer)
+
+2.4-609 | 2016-06-14 17:15:28 -0700
+
+  * Fixed table expiration evaluation. The expiration attribute
+    expression is now evaluated for every use. Thus later adjustments
+    of the value (e.g. by redefining a const) will now take effect.
+    Values less than 0 will disable expiration. (Jan Grashoefer)
+
+2.4-606 | 2016-06-14 16:11:07 -0700
+
+  * Fix parsing precedence of "hook" expression. Addresses BIT-1619
+    (Johanna Amann)
+
+  * Update the "configure" usage message for --with-caf (Daniel
+    Thayer)
+
 2.4-602 | 2016-06-13 08:16:34 -0700
 
   * Fixing Covertity warning (CID 1356391). (Robin Sommer)

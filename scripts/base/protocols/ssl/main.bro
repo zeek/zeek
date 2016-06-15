@@ -8,6 +8,7 @@ module SSL;
 export {
 	redef enum Log::ID += { LOG };
 
+	## The record type which contains the fields of the SSL log.
 	type Info: record {
 		## Time when the SSL connection was first detected.
 		ts:               time             &log;

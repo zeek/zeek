@@ -50,10 +50,6 @@ protected:
 	StringVal* EthAddrToStr(const u_char* addr);
 	void BadARP(const struct arp_pkthdr* hdr, const char* string);
 	void Corrupted(const char* string);
-
-	EventHandlerPtr arp_corrupted_packet;
-	EventHandlerPtr arp_request;
-	EventHandlerPtr arp_reply;
 };
 
 } } // namespace analyzer::* 

@@ -29,6 +29,7 @@
 @load frameworks/intel/seen/where-locations.bro
 @load frameworks/intel/seen/x509.bro
 @load frameworks/files/detect-MHR.bro
+@load frameworks/files/entropy-test-all-files.bro
 #@load frameworks/files/extract-all-files.bro
 @load frameworks/files/hash-all-files.bro
 @load frameworks/packet-filter/shunt.bro
@@ -62,6 +63,7 @@
 @load misc/trim-trace-file.bro
 @load protocols/conn/known-hosts.bro
 @load protocols/conn/known-services.bro
+@load protocols/conn/mac-logging.bro
 @load protocols/conn/vlan-logging.bro
 @load protocols/conn/weirds.bro
 @load protocols/dhcp/known-devices-and-hostnames.bro

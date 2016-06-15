@@ -4,5 +4,5 @@
 
 event bro_done()
 	{
-	print net_stats();
+	print get_net_stats();
 	}

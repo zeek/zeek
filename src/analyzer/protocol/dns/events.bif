@@ -378,6 +378,25 @@ event dns_MX_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string, 
 ##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 event dns_TXT_reply%(c: connection, msg: dns_msg, ans: dns_answer, strs: string_vec%);
 
+## Generated for DNS replies of type *CAA* (Certification Authority Authorization).
+## For replies with multiple answers, an individual event of the corresponding type
+## is raised for each.
+## See `RFC 6844 <https://tools.ietf.org/html/rfc6844>`__ for more details.
+##
+## c: The connection, which may be UDP or TCP depending on the type of the
+##    transport-layer session being analyzed.
+##
+## msg: The parsed DNS message header.
+##
+## ans: The type-independent part of the parsed answer record.
+##
+## flags: The flags byte of the CAA reply.
+##
+## tag: The property identifier of the CAA reply.
+##
+## value: The property value of the CAA reply.
+event dns_CAA_reply%(c: connection, msg: dns_msg, ans: dns_answer, flags: count, tag: string, value: string%);
+
 ## Generated for DNS replies of type *SRV*. For replies with multiple answers,
 ## an individual event of the corresponding type is raised for each.
 ##

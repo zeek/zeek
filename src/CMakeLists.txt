@@ -118,6 +118,7 @@ include(BifCl)
 
 set(BIF_SRCS
     bro.bif
+    stats.bif
     event.bif
     const.bif
     types.bif

@@ -427,6 +427,10 @@ public:
 
 	/**
 	 * Returns a list of all direct child analyzers.
+	 *
+	 * Note that this does not include the list of analyzers that are
+	 * currently queued up to be added. If you just added an analyzer,
+	 * it will not immediately be in this list.
 	 */
 	const analyzer_list& GetChildren()	{ return children; }
 

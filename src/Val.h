@@ -644,7 +644,7 @@ protected:
 	DECLARE_SERIAL(PatternVal);
 };
 
-// ListVals are mainly used to index tables that have more than one 
+// ListVals are mainly used to index tables that have more than one
 // element in their index.
 class ListVal : public Val {
 public:
@@ -753,10 +753,11 @@ public:
 	TableVal(TableType* t, Attributes* attrs = 0);
 	~TableVal();
 
-	// Returns true if the assignment typechecked, false if not.
-	// Second version takes a HashKey and Unref()'s it when done.
-	// If we're a set, new_val has to be nil.
-	// If we aren't a set, index may be nil in the second version.
+	// Returns true if the assignment typechecked, false if not. The
+	// methods take ownership of new_val, but not of the index. Second
+	// version takes a HashKey and Unref()'s it when done. If we're a
+	// set, new_val has to be nil. If we aren't a set, index may be nil
+	// in the second version.
 	int Assign(Val* index, Val* new_val, Opcode op = OP_ASSIGN);
 	int Assign(Val* index, HashKey* k, Val* new_val, Opcode op = OP_ASSIGN);
 
@@ -789,6 +790,16 @@ public:
 	// need to Ref/Unref it when calling the default function.
 	Val* Lookup(Val* index, bool use_default_val = true);
 
+	// For a table[subnet]/set[subnet], return all subnets that cover
+	// the given subnet.
+	// Causes an internal error if called for any other kind of table.
+	VectorVal* LookupSubnets(const SubNetVal* s);
+
+	// For a set[subnet]/table[subnet], return a new table that only contains
+	// entries that cover the given subnet.
+	// Causes an internal error if called for any other kind of table.
+	TableVal* LookupSubnetValues(const SubNetVal* s);
+
 	// Sets the timestamp for the given index to network time.
 	// Returns false if index does not exist.
 	bool UpdateTimestamp(Val* index);
@@ -812,6 +823,11 @@ public:
 	// Returns the size of the table.
 	int Size() const	{ return AsTable()->Length(); }
 	int RecursiveSize() const;
+
+	// Returns the Prefix table used inside the table (if present).
+	// This allows us to do more direct queries to this specialized
+	// type that the general Table API does not allow.
+	const PrefixTable* Subnets() const { return subnets; }
 
 	void Describe(ODesc* d) const override;
 
@@ -846,6 +862,14 @@ protected:
 	// Calculates default value for index.  Returns 0 if none.
 	Val* Default(Val* index);
 
+	// Returns true if item expiration is enabled.
+	bool ExpirationEnabled()	{ return expire_time != 0; }
+
+	// Returns the expiration time defined by %{create,read,write}_expire
+	// attribute, or -1 for unset/invalid values. In the invalid case, an
+	// error will have been reported.
+	double GetExpireTime();
+
 	// Calls &expire_func and returns its return interval;
 	// takes ownership of the reference.
 	double CallExpireFunc(Val *idx);
@@ -858,8 +882,8 @@ protected:
 	TableType* table_type;
 	CompositeHash* table_hash;
 	Attributes* attrs;
-	double expire_time;
-	Expr* expire_expr;
+	Expr* expire_time;
+	Expr* expire_func;
 	TableValTimer* timer;
 	IterCookie* expire_cookie;
 	PrefixTable* subnets;

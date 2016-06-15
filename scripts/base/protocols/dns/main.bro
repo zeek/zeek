@@ -26,6 +26,10 @@ export {
 		## the DNS query.  Also used in responses to match up replies to
 		## outstanding queries.
 		trans_id:      count              &log &optional;
+		## Round trip time for the query and response. This indicates 
+		## the delay between when the request was seen until the 
+		## answer started.
+		rtt:           interval           &log &optional;
 		## The domain name that is the subject of the DNS query.
 		query:         string             &log &optional;
 		## The QCLASS value specifying the class of the query.
@@ -52,7 +56,7 @@ export {
 		## The Recursion Available bit in a response message indicates
 		## that the name server supports recursive queries.
 		RA:            bool               &log &default=F;
-		## A reserved field that is currently supposed to be zero in all
+		## A reserved field that is usually zero in
 		## queries and responses.
 		Z:             count              &log &default=0;
 		## The set of resource descriptions in the query answer.
@@ -310,6 +314,16 @@ hook DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string) 
 
 		c$dns$AA    = msg$AA;
 		c$dns$RA    = msg$RA;
+
+		if ( ! c$dns?$rtt )
+			{
+			c$dns$rtt = network_time() - c$dns$ts;
+			# This could mean that only a reply was seen since 
+			# we assume there must be some passage of time between
+			# request and response.
+			if ( c$dns$rtt == 0secs )
+				delete c$dns$rtt;
+			}
 
 		if ( reply != "" )
 			{

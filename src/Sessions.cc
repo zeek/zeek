@@ -674,7 +674,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 	conn = (Connection*) d->Lookup(h);
 	if ( ! conn )
 		{
-		conn = NewConn(h, t, &id, data, proto, ip_hdr->FlowLabel(), pkt->vlan, pkt->inner_vlan, encapsulation);
+		conn = NewConn(h, t, &id, data, proto, ip_hdr->FlowLabel(), pkt, encapsulation);
 		if ( conn )
 			d->Insert(h, conn);
 		}
@@ -694,7 +694,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 				conn->Event(connection_reused, 0);
 
 			Remove(conn);
-			conn = NewConn(h, t, &id, data, proto, ip_hdr->FlowLabel(), pkt->vlan, pkt->inner_vlan, encapsulation);
+			conn = NewConn(h, t, &id, data, proto, ip_hdr->FlowLabel(), pkt, encapsulation);
 			if ( conn )
 				d->Insert(h, conn);
 			}
@@ -1156,25 +1156,23 @@ void NetSessions::Drain()
 void NetSessions::GetStats(SessionStats& s) const
 	{
 	s.num_TCP_conns = tcp_conns.Length();
+	s.cumulative_TCP_conns = tcp_conns.NumCumulativeInserts();
 	s.num_UDP_conns = udp_conns.Length();
+	s.cumulative_UDP_conns = udp_conns.NumCumulativeInserts();
 	s.num_ICMP_conns = icmp_conns.Length();
+	s.cumulative_ICMP_conns = icmp_conns.NumCumulativeInserts();
 	s.num_fragments = fragments.Length();
 	s.num_packets = num_packets_processed;
-	s.num_timers = timer_mgr->Size();
-	s.num_events_queued = num_events_queued;
-	s.num_events_dispatched = num_events_dispatched;
 
 	s.max_TCP_conns = tcp_conns.MaxLength();
 	s.max_UDP_conns = udp_conns.MaxLength();
 	s.max_ICMP_conns = icmp_conns.MaxLength();
 	s.max_fragments = fragments.MaxLength();
-	s.max_timers = timer_mgr->PeakSize();
 	}
 
 Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 					const u_char* data, int proto, uint32 flow_label,
-					uint32 vlan, uint32 inner_vlan,
-					const EncapsulationStack* encapsulation)
+					const Packet* pkt, const EncapsulationStack* encapsulation)
 	{
 	// FIXME: This should be cleaned up a bit, it's too protocol-specific.
 	// But I'm not yet sure what the right abstraction for these things is.
@@ -1230,7 +1228,7 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 		id = &flip_id;
 		}
 
-	Connection* conn = new Connection(this, k, t, id, flow_label, vlan, inner_vlan, encapsulation);
+	Connection* conn = new Connection(this, k, t, id, flow_label, pkt, encapsulation);
 	conn->SetTransport(tproto);
 
 	if ( ! analyzer_mgr->BuildInitialAnalyzerTree(conn) )

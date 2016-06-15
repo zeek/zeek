@@ -1,11 +1,12 @@
          0.000000 bro_init
          0.000000 filter_change_tracking
-1254722767.492060 protocol_confirmation
+         0.000000 NetControl::init
 1254722767.492060 ChecksumOffloading::check
 1254722767.492060 filter_change_tracking
 1254722767.492060 new_connection
 1254722767.492060 dns_message
 1254722767.492060 dns_request
+1254722767.492060 protocol_confirmation
 1254722767.492060 dns_end
 1254722767.526085 dns_message
 1254722767.526085 dns_CNAME_reply
@@ -154,13 +155,13 @@
 1437831799.262632 new_connection
 1437831799.461152 new_connection
 1437831799.610433 connection_established
-1437831799.611764 protocol_confirmation
 1437831799.611764 ssl_extension_server_name
 1437831799.611764 ssl_extension
 1437831799.611764 ssl_extension
 1437831799.611764 ssl_extension
 1437831799.611764 ssl_extension
 1437831799.611764 ssl_extension
+1437831799.611764 protocol_confirmation
 1437831799.611764 ssl_client_hello
 1437831799.611764 ssl_handshake_message
 1437831799.764576 ssl_extension
@@ -182,7 +183,6 @@
 1437831799.764576 x509_extension
 1437831799.764576 x509_ext_subject_alternative_name
 1437831799.764576 file_hash
-1437831799.764576 file_hash
 1437831799.764576 file_state_remove
 1437831799.764576 file_new
 1437831799.764576 file_over_new_connection
@@ -196,7 +196,6 @@
 1437831799.764576 x509_extension
 1437831799.764576 x509_extension
 1437831799.764576 x509_extension
-1437831799.764576 file_hash
 1437831799.764576 file_hash
 1437831799.764576 file_state_remove
 1437831799.764576 ssl_handshake_message

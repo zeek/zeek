@@ -1,0 +1,422 @@
+
+%%{ // C segment
+#include "util.h"
+#include "threading/Manager.h"
+
+RecordType* ProcStats;
+RecordType* NetStats;
+RecordType* MatcherStats;
+RecordType* ReassemblerStats;
+RecordType* DNSStats;
+RecordType* ConnStats;
+RecordType* GapStats;
+RecordType* EventStats;
+RecordType* ThreadStats;
+RecordType* TimerStats;
+RecordType* FileAnalysisStats;
+%%}
+
+## Returns packet capture statistics. Statistics include the number of
+## packets *(i)* received by Bro, *(ii)* dropped, and *(iii)* seen on the
+## link (not always available).
+##
+## Returns: A record of packet statistics.
+##
+## .. bro:see:: get_conn_stats
+##              get_dns_stats
+##              get_event_stats
+##              get_file_analysis_stats
+##              get_gap_stats
+##              get_matcher_stats
+##              get_proc_stats
+##              get_reassembler_stats
+##              get_thread_stats
+##              get_timer_stats
+function get_net_stats%(%): NetStats
+	%{
+	uint64 recv = 0;
+	uint64 drop = 0;
+	uint64 link = 0;
+	uint64 bytes_recv = 0;
+
+	const iosource::Manager::PktSrcList& pkt_srcs(iosource_mgr->GetPktSrcs());
+
+	for ( iosource::Manager::PktSrcList::const_iterator i = pkt_srcs.begin();
+	      i != pkt_srcs.end(); i++ )
+		{
+		iosource::PktSrc* ps = *i;
+
+		struct iosource::PktSrc::Stats stat;
+		ps->Statistics(&stat);
+		recv += stat.received;
+		drop += stat.dropped;
+		link += stat.link;
+		bytes_recv += stat.bytes_received;
+		}
+
+	RecordVal* r = new RecordVal(NetStats);
+	int n = 0;
+
+	r->Assign(n++, new Val(recv, TYPE_COUNT));
+	r->Assign(n++, new Val(drop, TYPE_COUNT));
+	r->Assign(n++, new Val(link, TYPE_COUNT));
+	r->Assign(n++, new Val(bytes_recv, TYPE_COUNT));
+
+	return r;
+	%}
+
+## Returns Bro traffic statistics.
+##
+## Returns: A record with connection and packet statistics.
+##
+## .. bro:see:: get_dns_stats
+##              get_event_stats
+##              get_file_analysis_stats
+##              get_gap_stats
+##              get_matcher_stats
+##              get_net_stats
+##              get_proc_stats
+##              get_reassembler_stats
+##              get_thread_stats
+##              get_timer_stats
+function get_conn_stats%(%): ConnStats
+	%{
+	RecordVal* r = new RecordVal(ConnStats);
+	int n = 0;
+
+	r->Assign(n++, new Val(Connection::TotalConnections(), TYPE_COUNT));
+	r->Assign(n++, new Val(Connection::CurrentConnections(), TYPE_COUNT));
+	r->Assign(n++, new Val(Connection::CurrentExternalConnections(), TYPE_COUNT));
+	r->Assign(n++, new Val(sessions->CurrentConnections(), TYPE_COUNT));
+
+	SessionStats s;
+	if ( sessions )
+		sessions->GetStats(s);
+
+#define ADD_STAT(x) \
+	r->Assign(n++, new Val(unsigned(sessions ? x : 0), TYPE_COUNT));
+
+	ADD_STAT(s.num_packets);
+	ADD_STAT(s.num_fragments);
+	ADD_STAT(s.max_fragments);
+	ADD_STAT(s.num_TCP_conns);
+	ADD_STAT(s.max_TCP_conns);
+	ADD_STAT(s.cumulative_TCP_conns);
+	ADD_STAT(s.num_UDP_conns);
+	ADD_STAT(s.max_UDP_conns);
+	ADD_STAT(s.cumulative_UDP_conns);
+	ADD_STAT(s.num_ICMP_conns);
+	ADD_STAT(s.max_ICMP_conns);
+	ADD_STAT(s.cumulative_ICMP_conns);
+
+	r->Assign(n++, new Val(killed_by_inactivity, TYPE_COUNT));
+
+	return r;
+	%}
+
+## Returns Bro process statistics.
+##
+## Returns: A record with process statistics.
+##
+## .. bro:see:: get_conn_stats
+##              get_dns_stats
+##              get_event_stats
+##              get_file_analysis_stats
+##              get_gap_stats
+##              get_matcher_stats
+##              get_net_stats
+##              get_reassembler_stats
+##              get_thread_stats
+##              get_timer_stats
+function get_proc_stats%(%): ProcStats
+	%{
+	struct rusage ru;
+	if ( getrusage(RUSAGE_SELF, &ru) < 0 )
+		reporter->InternalError("getrusage() failed in get_proc_stats()");
+
+	RecordVal* r = new RecordVal(ProcStats);
+	int n = 0;
+
+	double elapsed_time = current_time() - bro_start_time;
+	double user_time =
+		double(ru.ru_utime.tv_sec) + double(ru.ru_utime.tv_usec) / 1e6;
+	double system_time =
+		double(ru.ru_stime.tv_sec) + double(ru.ru_stime.tv_usec) / 1e6;
+
+#ifdef DEBUG
+	r->Assign(n++, new Val(1, TYPE_COUNT));
+#else
+	r->Assign(n++, new Val(0, TYPE_COUNT));
+#endif
+
+	r->Assign(n++, new Val(bro_start_time, TYPE_TIME));
+
+	r->Assign(n++, new IntervalVal(elapsed_time, Seconds));
+	r->Assign(n++, new IntervalVal(user_time, Seconds));
+	r->Assign(n++, new IntervalVal(system_time, Seconds));
+
+	uint64 total_mem;
+	get_memory_usage(&total_mem, NULL);
+	r->Assign(n++, new Val(unsigned(total_mem), TYPE_COUNT));
+
+	r->Assign(n++, new Val(unsigned(ru.ru_minflt), TYPE_COUNT));
+	r->Assign(n++, new Val(unsigned(ru.ru_majflt), TYPE_COUNT));
+	r->Assign(n++, new Val(unsigned(ru.ru_nswap), TYPE_COUNT));
+	r->Assign(n++, new Val(unsigned(ru.ru_inblock), TYPE_COUNT));
+	r->Assign(n++, new Val(unsigned(ru.ru_oublock), TYPE_COUNT));
+	r->Assign(n++, new Val(unsigned(ru.ru_nivcsw), TYPE_COUNT));
+
+	return r;
+	%}
+
+## Returns statistics about the event engine.
+##
+## Returns: A record with event engine statistics.
+##
+## .. bro:see:: get_conn_stats
+##              get_dns_stats
+##              get_file_analysis_stats
+##              get_gap_stats
+##              get_matcher_stats
+##              get_net_stats
+##              get_proc_stats
+##              get_reassembler_stats
+##              get_thread_stats
+##              get_timer_stats
+function get_event_stats%(%): EventStats
+	%{
+	RecordVal* r = new RecordVal(EventStats);
+	int n = 0;
+
+	r->Assign(n++, new Val(num_events_queued, TYPE_COUNT));
+	r->Assign(n++, new Val(num_events_dispatched, TYPE_COUNT));
+
+	return r;
+	%}
+
+## Returns statistics about reassembler usage.
+##
+## Returns: A record with reassembler statistics.
+##
+## .. bro:see:: get_conn_stats
+##              get_dns_stats
+##              get_event_stats
+##              get_file_analysis_stats
+##              get_gap_stats
+##              get_matcher_stats
+##              get_net_stats
+##              get_proc_stats
+##              get_thread_stats
+##              get_timer_stats
+function get_reassembler_stats%(%): ReassemblerStats
+	%{
+	RecordVal* r = new RecordVal(ReassemblerStats);
+	int n = 0;
+
+	r->Assign(n++, new Val(Reassembler::MemoryAllocation(REASSEM_FILE), TYPE_COUNT));
+	r->Assign(n++, new Val(Reassembler::MemoryAllocation(REASSEM_FRAG), TYPE_COUNT));
+	r->Assign(n++, new Val(Reassembler::MemoryAllocation(REASSEM_TCP), TYPE_COUNT));
+	r->Assign(n++, new Val(Reassembler::MemoryAllocation(REASSEM_UNKNOWN), TYPE_COUNT));
+
+	return r;
+	%}
+
+## Returns statistics about DNS lookup activity.
+##
+## Returns: A record with DNS lookup statistics.
+##
+## .. bro:see:: get_conn_stats
+##              get_event_stats
+##              get_file_analysis_stats
+##              get_gap_stats
+##              get_matcher_stats
+##              get_net_stats
+##              get_proc_stats
+##              get_reassembler_stats
+##              get_thread_stats
+##              get_timer_stats
+function get_dns_stats%(%): DNSStats
+	%{
+	RecordVal* r = new RecordVal(DNSStats);
+	int n = 0;
+
+	DNS_Mgr::Stats dstats;
+	dns_mgr->GetStats(&dstats);
+
+	r->Assign(n++, new Val(unsigned(dstats.requests), TYPE_COUNT));
+	r->Assign(n++, new Val(unsigned(dstats.successful), TYPE_COUNT));
+	r->Assign(n++, new Val(unsigned(dstats.failed), TYPE_COUNT));
+	r->Assign(n++, new Val(unsigned(dstats.pending), TYPE_COUNT));
+	r->Assign(n++, new Val(unsigned(dstats.cached_hosts), TYPE_COUNT));
+	r->Assign(n++, new Val(unsigned(dstats.cached_addresses), TYPE_COUNT));
+
+	return r;
+	%}
+
+## Returns statistics about timer usage.
+##
+## Returns: A record with timer usage statistics.
+##
+## .. bro:see:: get_conn_stats
+##              get_dns_stats
+##              get_event_stats
+##              get_file_analysis_stats
+##              get_gap_stats
+##              get_matcher_stats
+##              get_net_stats
+##              get_proc_stats
+##              get_reassembler_stats
+##              get_thread_stats
+function get_timer_stats%(%): TimerStats
+	%{
+	RecordVal* r = new RecordVal(TimerStats);
+	int n = 0;
+
+	r->Assign(n++, new Val(unsigned(timer_mgr->Size()), TYPE_COUNT));
+	r->Assign(n++, new Val(unsigned(timer_mgr->PeakSize()), TYPE_COUNT));
+	r->Assign(n++, new Val(timer_mgr->CumulativeNum(), TYPE_COUNT));
+
+	return r;
+	%}
+
+## Returns statistics about file analysis.
+##
+## Returns: A record with file analysis statistics.
+##
+## .. bro:see:: get_conn_stats
+##              get_dns_stats
+##              get_event_stats
+##              get_gap_stats
+##              get_matcher_stats
+##              get_net_stats
+##              get_proc_stats
+##              get_reassembler_stats
+##              get_thread_stats
+##              get_timer_stats
+function get_file_analysis_stats%(%): FileAnalysisStats
+	%{
+	RecordVal* r = new RecordVal(FileAnalysisStats);
+	int n = 0;
+
+	r->Assign(n++, new Val(file_mgr->CurrentFiles(), TYPE_COUNT));
+	r->Assign(n++, new Val(file_mgr->MaxFiles(), TYPE_COUNT));
+	r->Assign(n++, new Val(file_mgr->CumulativeFiles(), TYPE_COUNT));
+
+	return r;
+	%}
+
+## Returns statistics about thread usage.
+##
+## Returns: A record with thread usage statistics.
+##
+## .. bro:see:: get_conn_stats
+##              get_dns_stats
+##              get_event_stats
+##              get_file_analysis_stats
+##              get_gap_stats
+##              get_matcher_stats
+##              get_net_stats
+##              get_proc_stats
+##              get_reassembler_stats
+##              get_timer_stats
+function get_thread_stats%(%): ThreadStats
+	%{
+	RecordVal* r = new RecordVal(ThreadStats);
+	int n = 0;
+
+	r->Assign(n++, new Val(thread_mgr->NumThreads(), TYPE_COUNT));
+
+	return r;
+	%}
+
+## Returns statistics about TCP gaps.
+##
+## Returns: A record with TCP gap statistics.
+##
+## .. bro:see:: get_conn_stats
+##              get_dns_stats
+##              get_event_stats
+##              get_file_analysis_stats
+##              get_matcher_stats
+##              get_net_stats
+##              get_proc_stats
+##              get_reassembler_stats
+##              get_thread_stats
+##              get_timer_stats
+function get_gap_stats%(%): GapStats
+	%{
+	RecordVal* r = new RecordVal(GapStats);
+	int n = 0;
+
+	r->Assign(n++, new Val(tot_ack_events, TYPE_COUNT));
+	r->Assign(n++, new Val(tot_ack_bytes, TYPE_COUNT));
+	r->Assign(n++, new Val(tot_gap_events, TYPE_COUNT));
+	r->Assign(n++, new Val(tot_gap_bytes, TYPE_COUNT));
+
+	return r;
+	%}
+
+## Returns statistics about the regular expression engine. Statistics include
+## the number of distinct matchers, DFA states, DFA state transitions, memory
+## usage of DFA states, cache hits/misses, and average number of NFA states
+## across all matchers.
+##
+## Returns: A record with matcher statistics.
+##
+## .. bro:see:: get_conn_stats
+##              get_dns_stats
+##              get_event_stats
+##              get_file_analysis_stats
+##              get_gap_stats
+##              get_net_stats
+##              get_proc_stats
+##              get_reassembler_stats
+##              get_thread_stats
+##              get_timer_stats
+function get_matcher_stats%(%): MatcherStats
+	%{
+	RecordVal* r = new RecordVal(MatcherStats);
+	int n = 0;
+
+	RuleMatcher::Stats s;
+	memset(&s, 0, sizeof(s));
+	if ( rule_matcher )
+		rule_matcher->GetStats(&s);
+
+	r->Assign(n++, new Val(s.matchers, TYPE_COUNT));
+	r->Assign(n++, new Val(s.nfa_states, TYPE_COUNT));
+	r->Assign(n++, new Val(s.dfa_states, TYPE_COUNT));
+	r->Assign(n++, new Val(s.computed, TYPE_COUNT));
+	r->Assign(n++, new Val(s.mem, TYPE_COUNT));
+	r->Assign(n++, new Val(s.hits, TYPE_COUNT));
+	r->Assign(n++, new Val(s.misses, TYPE_COUNT));
+
+	return r;
+	%}
+
+# function get_broker_stats%(%): BrokerStats
+# 	%{
+# 	RecordVal* r = new RecordVal(CommunicationStats);
+# 	int n = 0;
+#
+# #ifdef ENABLE_BROKER
+# 	auto cs = broker_mgr->ConsumeStatistics();
+#
+# 	r->Assign(n++, new Val(cs.outgoing_peer_count, TYPE_COUNT));
+# 	r->Assign(n++, new Val(cs.data_store_count, TYPE_COUNT));
+# 	r->Assign(n++, new Val(cs.pending_query_count, TYPE_COUNT));
+# 	r->Assign(n++, new Val(cs.response_count, TYPE_COUNT));
+# 	r->Assign(n++, new Val(cs.outgoing_conn_status_count, TYPE_COUNT));
+# 	r->Assign(n++, new Val(cs.incoming_conn_status_count, TYPE_COUNT));
+# 	r->Assign(n++, new Val(cs.report_count, TYPE_COUNT));
+#
+# 	//for ( const auto& s : cs.print_count )
+# 	//	file->Write(fmt("    %-25s prints dequeued=%zu\n", s.first.data(), s.second));
+# 	//for ( const auto& s : cs.event_count )
+# 	//	file->Write(fmt("    %-25s events dequeued=%zu\n", s.first.data(), s.second));
+# 	//for ( const auto& s : cs.log_count )
+# 	//	file->Write(fmt("    %-25s logs dequeued=%zu\n", s.first.data(), s.second));
+# #endif
+#
+# 	return r;
+# 	%}

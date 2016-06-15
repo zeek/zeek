@@ -1161,7 +1161,9 @@ function find_all%(str: string, re: pattern%) : string_set
 		int n = re->MatchPrefix(t, e - t);
 		if ( n >= 0 )
 			{
-			a->Assign(new StringVal(n, (const char*) t), 0);
+			Val* idx = new StringVal(n, (const char*) t);
+			a->Assign(idx, 0);
+			Unref(idx);
 			t += n - 1;
 			}
 		}

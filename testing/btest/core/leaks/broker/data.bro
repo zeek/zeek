@@ -1,4 +1,4 @@
-# @TEST-REQUIRES: grep -q ENABLE_BROKER $BUILD/CMakeCache.txt
+# @TEST-REQUIRES: grep -q ENABLE_BROKER:BOOL=true $BUILD/CMakeCache.txt
 # @TEST-REQUIRES: bro --help 2>&1 | grep -q mem-leaks
 # @TEST-GROUP: leaks
 
@@ -16,218 +16,251 @@ type bro_record : record {
 	c: count;
 };
 
-function comm_record_to_bro_record_recurse(it: opaque of BrokerComm::RecordIterator,
+function broker_to_bro_record_recurse(it: opaque of Broker::RecordIterator,
                                            rval: bro_record,
                                            idx: count): bro_record
 	{
-	if ( BrokerComm::record_iterator_last(it) )
+	if ( Broker::record_iterator_last(it) )
 		return rval;
 
-	local field_value = BrokerComm::record_iterator_value(it);
+	local field_value = Broker::record_iterator_value(it);
 
 	if ( field_value?$d )
 		switch ( idx ) {
 		case 0:
-			rval$a = BrokerComm::refine_to_string(field_value);
+			rval$a = Broker::refine_to_string(field_value);
 			break;
 		case 1:
-			rval$b = BrokerComm::refine_to_string(field_value);
+			rval$b = Broker::refine_to_string(field_value);
 			break;
 		case 2:
-			rval$c = BrokerComm::refine_to_count(field_value);
+			rval$c = Broker::refine_to_count(field_value);
 			break;
 		};
 
 	++idx;
-	BrokerComm::record_iterator_next(it);
-	return comm_record_to_bro_record_recurse(it, rval, idx);
+	Broker::record_iterator_next(it);
+	return broker_to_bro_record_recurse(it, rval, idx);
 	}
 
-function comm_record_to_bro_record(d: BrokerComm::Data): bro_record
+function broker_to_bro_record(d: Broker::Data): bro_record
 	{
-	return comm_record_to_bro_record_recurse(BrokerComm::record_iterator(d),
+	return broker_to_bro_record_recurse(Broker::record_iterator(d),
 	                                         bro_record($c = 0), 0);
 	}
 
 function
-comm_set_to_bro_set_recurse(it: opaque of BrokerComm::SetIterator,
+broker_to_bro_set_recurse(it: opaque of Broker::SetIterator,
                             rval: bro_set): bro_set
 	{
-	if ( BrokerComm::set_iterator_last(it) )
+	if ( Broker::set_iterator_last(it) )
 		return rval;
 
-	add rval[BrokerComm::refine_to_string(BrokerComm::set_iterator_value(it))];
-	BrokerComm::set_iterator_next(it);
-	return comm_set_to_bro_set_recurse(it, rval);
+	add rval[Broker::refine_to_string(Broker::set_iterator_value(it))];
+	Broker::set_iterator_next(it);
+	return broker_to_bro_set_recurse(it, rval);
 	}
 
 
-function comm_set_to_bro_set(d: BrokerComm::Data): bro_set
+function broker_to_bro_set(d: Broker::Data): bro_set
 	{
-	return comm_set_to_bro_set_recurse(BrokerComm::set_iterator(d), bro_set());
+	return broker_to_bro_set_recurse(Broker::set_iterator(d), bro_set());
 	}
 
 function
-comm_table_to_bro_table_recurse(it: opaque of BrokerComm::TableIterator,
+broker_to_bro_table_recurse(it: opaque of Broker::TableIterator,
                                 rval: bro_table): bro_table
 	{
-	if ( BrokerComm::table_iterator_last(it) )
+	if ( Broker::table_iterator_last(it) )
 		return rval;
 
-	local item = BrokerComm::table_iterator_value(it);
-	rval[BrokerComm::refine_to_string(item$key)] = BrokerComm::refine_to_count(item$val);
-	BrokerComm::table_iterator_next(it);
-	return comm_table_to_bro_table_recurse(it, rval);
+	local item = Broker::table_iterator_value(it);
+	rval[Broker::refine_to_string(item$key)] = Broker::refine_to_count(item$val);
+	Broker::table_iterator_next(it);
+	return broker_to_bro_table_recurse(it, rval);
 	}
 
-function comm_table_to_bro_table(d: BrokerComm::Data): bro_table
+function broker_to_bro_table(d: Broker::Data): bro_table
 	{
-	return comm_table_to_bro_table_recurse(BrokerComm::table_iterator(d),
+	return broker_to_bro_table_recurse(Broker::table_iterator(d),
 	                                       bro_table());
 	}
 
-function comm_vector_to_bro_vector_recurse(it: opaque of BrokerComm::VectorIterator,
+function broker_to_bro_vector_recurse(it: opaque of Broker::VectorIterator,
                                            rval: bro_vector): bro_vector
 	{
-	if ( BrokerComm::vector_iterator_last(it) )
+	if ( Broker::vector_iterator_last(it) )
 		return rval;
 
-	rval[|rval|] = BrokerComm::refine_to_string(BrokerComm::vector_iterator_value(it));
-	BrokerComm::vector_iterator_next(it);
-	return comm_vector_to_bro_vector_recurse(it, rval);
+	rval[|rval|] = Broker::refine_to_string(Broker::vector_iterator_value(it));
+	Broker::vector_iterator_next(it);
+	return broker_to_bro_vector_recurse(it, rval);
 	}
 
-function comm_vector_to_bro_vector(d: BrokerComm::Data): bro_vector
+function broker_to_bro_vector(d: Broker::Data): bro_vector
 	{
-	return comm_vector_to_bro_vector_recurse(BrokerComm::vector_iterator(d),
+	return broker_to_bro_vector_recurse(Broker::vector_iterator(d),
 	                                         bro_vector());
 	}
 
 event bro_init()
-	{
-BrokerComm::enable();
-	}
+{
+Broker::enable();
+}
 
 global did_it = F;
 
 event new_connection(c: connection)
-	{
+{
 if ( did_it ) return;
 did_it = T;
-print BrokerComm::data_type(BrokerComm::data(T));
-print BrokerComm::data_type(BrokerComm::data(+1));
-print BrokerComm::data_type(BrokerComm::data(1));
-print BrokerComm::data_type(BrokerComm::data(1.1));
-print BrokerComm::data_type(BrokerComm::data("1 (how creative)"));
-print BrokerComm::data_type(BrokerComm::data(1.1.1.1));
-print BrokerComm::data_type(BrokerComm::data(1.1.1.1/1));
-print BrokerComm::data_type(BrokerComm::data(1/udp));
-print BrokerComm::data_type(BrokerComm::data(double_to_time(1)));
-print BrokerComm::data_type(BrokerComm::data(1sec));
-print BrokerComm::data_type(BrokerComm::data(BrokerComm::BOOL));
+
+### Print every broker data type
+
+print Broker::data_type(Broker::data(T));
+print Broker::data_type(Broker::data(+1));
+print Broker::data_type(Broker::data(1));
+print Broker::data_type(Broker::data(1.1));
+print Broker::data_type(Broker::data("1 (how creative)"));
+print Broker::data_type(Broker::data(1.1.1.1));
+print Broker::data_type(Broker::data(1.1.1.1/1));
+print Broker::data_type(Broker::data(1/udp));
+print Broker::data_type(Broker::data(double_to_time(1)));
+print Broker::data_type(Broker::data(1sec));
+print Broker::data_type(Broker::data(Broker::BOOL));
 local s: bro_set = bro_set("one", "two", "three");
 local t: bro_table = bro_table(["one"] = 1, ["two"] = 2, ["three"] = 3);
 local v: bro_vector = bro_vector("zero", "one", "two");
 local r: bro_record = bro_record($c = 1);
-print BrokerComm::data_type(BrokerComm::data(s));
-print BrokerComm::data_type(BrokerComm::data(t));
-print BrokerComm::data_type(BrokerComm::data(v));
-print BrokerComm::data_type(BrokerComm::data(r));
+print Broker::data_type(Broker::data(s));
+print Broker::data_type(Broker::data(t));
+print Broker::data_type(Broker::data(v));
+print Broker::data_type(Broker::data(r));
 
 print "***************************";
 
-print BrokerComm::refine_to_bool(BrokerComm::data(T));
-print BrokerComm::refine_to_bool(BrokerComm::data(F));
-print BrokerComm::refine_to_int(BrokerComm::data(+1));
-print BrokerComm::refine_to_int(BrokerComm::data(+0));
-print BrokerComm::refine_to_int(BrokerComm::data(-1));
-print BrokerComm::refine_to_count(BrokerComm::data(1));
-print BrokerComm::refine_to_count(BrokerComm::data(0));
-print BrokerComm::refine_to_double(BrokerComm::data(1.1));
-print BrokerComm::refine_to_double(BrokerComm::data(-11.1));
-print BrokerComm::refine_to_string(BrokerComm::data("hello"));
-print BrokerComm::refine_to_addr(BrokerComm::data(1.2.3.4));
-print BrokerComm::refine_to_subnet(BrokerComm::data(192.168.1.1/16));
-print BrokerComm::refine_to_port(BrokerComm::data(22/tcp));
-print BrokerComm::refine_to_time(BrokerComm::data(double_to_time(42)));
-print BrokerComm::refine_to_interval(BrokerComm::data(3min));
-print BrokerComm::refine_to_enum_name(BrokerComm::data(BrokerComm::BOOL));
+### Convert a Bro value to a broker value, then print the result
 
-print "***************************";
+print Broker::refine_to_bool(Broker::data(T));
+print Broker::refine_to_bool(Broker::data(F));
+print Broker::refine_to_int(Broker::data(+1));
+print Broker::refine_to_int(Broker::data(+0));
+print Broker::refine_to_int(Broker::data(-1));
+print Broker::refine_to_count(Broker::data(1));
+print Broker::refine_to_count(Broker::data(0));
+print Broker::refine_to_double(Broker::data(1.1));
+print Broker::refine_to_double(Broker::data(-11.1));
+print Broker::refine_to_string(Broker::data("hello"));
+print Broker::refine_to_addr(Broker::data(1.2.3.4));
+print Broker::refine_to_subnet(Broker::data(192.168.1.1/16));
+print Broker::refine_to_port(Broker::data(22/tcp));
+print Broker::refine_to_time(Broker::data(double_to_time(42)));
+print Broker::refine_to_interval(Broker::data(3min));
+print Broker::refine_to_enum_name(Broker::data(Broker::BOOL));
 
-local cs = BrokerComm::data(s);
-print comm_set_to_bro_set(cs);
-cs = BrokerComm::set_create();
-print BrokerComm::set_size(cs);
-print BrokerComm::set_insert(cs, BrokerComm::data("hi"));
-print BrokerComm::set_size(cs);
-print BrokerComm::set_contains(cs, BrokerComm::data("hi"));
-print BrokerComm::set_contains(cs, BrokerComm::data("bye"));
-print BrokerComm::set_insert(cs, BrokerComm::data("bye"));
-print BrokerComm::set_size(cs);
-print BrokerComm::set_remove(cs, BrokerComm::data("hi"));
-print BrokerComm::set_size(cs);
-print BrokerComm::set_remove(cs, BrokerComm::data("hi"));
-print comm_set_to_bro_set(cs);
-BrokerComm::set_clear(cs);
-print BrokerComm::set_size(cs);
+local cs = Broker::data(s);
+print broker_to_bro_set(cs);
 
-print "***************************";
+local ct = Broker::data(t);
+print broker_to_bro_table(ct);
 
-local ct = BrokerComm::data(t);
-print comm_table_to_bro_table(ct);
-ct = BrokerComm::table_create();
-print BrokerComm::table_size(ct);
-print BrokerComm::table_insert(ct, BrokerComm::data("hi"), BrokerComm::data(42));
-print BrokerComm::table_size(ct);
-print BrokerComm::table_contains(ct, BrokerComm::data("hi"));
-print BrokerComm::refine_to_count(BrokerComm::table_lookup(ct, BrokerComm::data("hi")));
-print BrokerComm::table_contains(ct, BrokerComm::data("bye"));
-print BrokerComm::table_insert(ct, BrokerComm::data("bye"), BrokerComm::data(7));
-print BrokerComm::table_size(ct);
-print BrokerComm::table_insert(ct, BrokerComm::data("bye"), BrokerComm::data(37));
-print BrokerComm::table_size(ct);
-print BrokerComm::refine_to_count(BrokerComm::table_lookup(ct, BrokerComm::data("bye")));
-print BrokerComm::table_remove(ct, BrokerComm::data("hi"));
-print BrokerComm::table_size(ct);
+local cv = Broker::data(v);
+print broker_to_bro_vector(cv);
 
-print "***************************";
+local cr = Broker::data(r);
+print broker_to_bro_record(cr);
 
-local cv = BrokerComm::data(v);
-print comm_vector_to_bro_vector(cv);
-cv = BrokerComm::vector_create();
-print BrokerComm::vector_size(cv);
-print BrokerComm::vector_insert(cv, BrokerComm::data("hi"), 0);
-print BrokerComm::vector_insert(cv, BrokerComm::data("hello"), 1);
-print BrokerComm::vector_insert(cv, BrokerComm::data("greetings"), 2);
-print BrokerComm::vector_insert(cv, BrokerComm::data("salutations"), 1);
-print comm_vector_to_bro_vector(cv);
-print BrokerComm::vector_size(cv);
-print BrokerComm::vector_replace(cv, BrokerComm::data("bah"), 2);
-print BrokerComm::vector_lookup(cv, 2);
-print BrokerComm::vector_lookup(cv, 0);
-print comm_vector_to_bro_vector(cv);
-print BrokerComm::vector_remove(cv, 2);
-print comm_vector_to_bro_vector(cv);
-print BrokerComm::vector_size(cv);
-
-print "***************************";
-
-local cr = BrokerComm::data(r);
-print comm_record_to_bro_record(cr);
 r$a = "test";
-cr = BrokerComm::data(r);
-print comm_record_to_bro_record(cr);
+cr = Broker::data(r);
+print broker_to_bro_record(cr);
+
 r$b = "testagain";
-cr = BrokerComm::data(r);
-print comm_record_to_bro_record(cr);
-cr = BrokerComm::record_create(3);
-print BrokerComm::record_size(cr);
-print BrokerComm::record_assign(cr, BrokerComm::data("hi"), 0);
-print BrokerComm::record_assign(cr, BrokerComm::data("hello"), 1);
-print BrokerComm::record_assign(cr, BrokerComm::data(37), 2);
-print BrokerComm::record_lookup(cr, 0);
-print BrokerComm::record_lookup(cr, 1);
-print BrokerComm::record_lookup(cr, 2);
-print BrokerComm::record_size(cr);
+cr = Broker::data(r);
+print broker_to_bro_record(cr);
+
+print "***************************";
+
+### Test the broker set BIFs
+
+cs = Broker::set_create();
+print Broker::set_size(cs);
+print Broker::set_insert(cs, Broker::data("hi"));
+print Broker::set_size(cs);
+print Broker::set_contains(cs, Broker::data("hi"));
+print Broker::set_contains(cs, Broker::data("bye"));
+print Broker::set_insert(cs, Broker::data("bye"));
+print Broker::set_size(cs);
+print Broker::set_insert(cs, Broker::data("bye"));
+print Broker::set_size(cs);
+print Broker::set_remove(cs, Broker::data("hi"));
+print Broker::set_size(cs);
+print Broker::set_remove(cs, Broker::data("hi"));
+print broker_to_bro_set(cs);
+print Broker::set_clear(cs);
+print Broker::set_size(cs);
+print broker_to_bro_set(cs);
+
+print "***************************";
+
+### Test the broker table BIFs
+
+ct = Broker::table_create();
+print Broker::table_size(ct);
+print Broker::table_insert(ct, Broker::data("hi"), Broker::data(42));
+print Broker::table_size(ct);
+print Broker::table_contains(ct, Broker::data("hi"));
+print Broker::refine_to_count(Broker::table_lookup(ct, Broker::data("hi")));
+print Broker::table_contains(ct, Broker::data("bye"));
+print Broker::table_insert(ct, Broker::data("bye"), Broker::data(7));
+print Broker::table_size(ct);
+print Broker::table_insert(ct, Broker::data("bye"), Broker::data(37));
+print Broker::table_size(ct);
+print Broker::refine_to_count(Broker::table_lookup(ct, Broker::data("bye")));
+print Broker::table_remove(ct, Broker::data("hi"));
+print Broker::table_size(ct);
+print Broker::table_remove(ct, Broker::data("hi"));
+print Broker::table_size(ct);
+print Broker::table_clear(ct);
+print Broker::table_size(ct);
+print broker_to_bro_table(ct);
+
+print "***************************";
+
+### Test the broker vector BIFs
+
+cv = Broker::vector_create();
+print Broker::vector_size(cv);
+print Broker::vector_insert(cv, Broker::data("hi"), 0);
+print Broker::vector_insert(cv, Broker::data("hello"), 1);
+print Broker::vector_insert(cv, Broker::data("greetings"), 2);
+print Broker::vector_insert(cv, Broker::data("salutations"), 1);
+print broker_to_bro_vector(cv);
+print Broker::vector_size(cv);
+print Broker::vector_replace(cv, Broker::data("bah"), 2);
+print Broker::vector_lookup(cv, 2);
+print Broker::vector_lookup(cv, 0);
+print broker_to_bro_vector(cv);
+print Broker::vector_remove(cv, 2);
+print broker_to_bro_vector(cv);
+print Broker::vector_size(cv);
+print Broker::vector_clear(cv);
+print Broker::vector_size(cv);
+print broker_to_bro_vector(cv);
+
+print "***************************";
+
+### Test the broker record BIFs
+
+cr = Broker::record_create(3);
+print Broker::record_size(cr);
+print Broker::record_assign(cr, Broker::data("hi"), 0);
+print Broker::record_assign(cr, Broker::data("hello"), 1);
+print Broker::record_assign(cr, Broker::data(37), 2);
+print Broker::record_lookup(cr, 0);
+print Broker::record_lookup(cr, 1);
+print Broker::record_lookup(cr, 2);
+print Broker::record_size(cr);
+print Broker::record_assign(cr, Broker::data("goodbye"), 1);
+print Broker::record_size(cr);
+print Broker::record_lookup(cr, 1);
 }

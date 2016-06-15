@@ -120,7 +120,7 @@ event ssh1_server_host_key%(c: connection, p: string, e: string%);
 ## This event is generated when an :abbr:`SSH (Secure Shell)`
 ## encrypted packet is seen. This event is not handled by default, but
 ## is provided for heuristic analysis scripts. Note that you have to set
-## :bro:id:`SSH::skip_processing_after_detection` to false to use this
+## :bro:id:`SSH::disable_analyzer_after_detection` to false to use this
 ## event. This carries a performance penalty.
 ##
 ## c: The connection over which the :abbr:`SSH (Secure Shell)`

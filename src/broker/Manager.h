@@ -63,7 +63,7 @@ public:
 	/**
 	 * Enable use of communication.
 	 * @param flags used to tune the local Broker endpoint's behavior.
-	 * See the BrokerComm::EndpointFlags record type.
+	 * See the Broker::EndpointFlags record type.
 	 * @return true if communication is successfully initialized.
 	 */
 	bool Enable(Val* flags);
@@ -122,7 +122,7 @@ public:
 	 * of this topic name.
 	 * @param msg the string to send to peers.
 	 * @param flags tune the behavior of how the message is send.
-	 * See the BrokerComm::SendFlags record type.
+	 * See the Broker::SendFlags record type.
 	 * @return true if the message is sent successfully.
 	 */
 	bool Print(std::string topic, std::string msg, Val* flags);
@@ -135,7 +135,7 @@ public:
 	 * @param msg the event to send to peers, which is the name of the event
 	 * as a string followed by all of its arguments.
 	 * @param flags tune the behavior of how the message is send.
-	 * See the BrokerComm::SendFlags record type.
+	 * See the Broker::SendFlags record type.
 	 * @return true if the message is sent successfully.
 	 */
 	bool Event(std::string topic, broker::message msg, int flags);
@@ -146,9 +146,9 @@ public:
 	 * Peers advertise interest by registering a subscription to some prefix
 	 * of this topic name.
 	 * @param args the event and its arguments to send to peers.  See the
-	 * BrokerComm::EventArgs record type.
+	 * Broker::EventArgs record type.
 	 * @param flags tune the behavior of how the message is send.
-	 * See the BrokerComm::SendFlags record type.
+	 * See the Broker::SendFlags record type.
 	 * @return true if the message is sent successfully.
 	 */
 	bool Event(std::string topic, RecordVal* args, Val* flags);
@@ -160,7 +160,7 @@ public:
 	 * @param columns the data which comprises the log entry.
 	 * @param info the record type corresponding to the log's columns.
 	 * @param flags tune the behavior of how the message is send.
-	 * See the BrokerComm::SendFlags record type.
+	 * See the Broker::SendFlags record type.
 	 * @return true if the message is sent successfully.
 	 */
 	bool Log(EnumVal* stream_id, RecordVal* columns, RecordType* info,
@@ -174,7 +174,7 @@ public:
 	 * of this topic name.
 	 * @param event a Bro event value.
 	 * @param flags tune the behavior of how the message is send.
-	 * See the BrokerComm::SendFlags record type.
+	 * See the Broker::SendFlags record type.
 	 * @return true if automatic event sending is now enabled.
 	 */
 	bool AutoEvent(std::string topic, Val* event, Val* flags);
@@ -320,7 +320,7 @@ public:
 	Stats ConsumeStatistics();
 
 	/**
-	 * Convert BrokerComm::SendFlags to int flags for use with broker::send().
+	 * Convert Broker::SendFlags to int flags for use with broker::send().
 	 */
 	static int send_flags_to_int(Val* flags);
 
@@ -335,7 +335,7 @@ private:
 	void Process() override;
 
 	const char* Tag() override
-		{ return "BrokerComm::Manager"; }
+		{ return "Broker::Manager"; }
 
 	broker::endpoint& Endpoint()
 		{ return *endpoint; }

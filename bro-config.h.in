@@ -14,11 +14,17 @@
 /* We are on a Linux system */
 #cmakedefine HAVE_LINUX
 
+/* We are on a Mac OS X (Darwin) system */
+#cmakedefine HAVE_DARWIN
+
 /* Define if you have the `mallinfo' function. */
 #cmakedefine HAVE_MALLINFO
 
 /* Define if you have the <memory.h> header file. */
 #cmakedefine HAVE_MEMORY_H
+
+/* Define if you have the <netinet/ether.h> header file */
+#cmakedefine HAVE_NETINET_ETHER_H
 
 /* Define if you have the <netinet/if_ether.h> header file. */
 #cmakedefine HAVE_NETINET_IF_ETHER_H

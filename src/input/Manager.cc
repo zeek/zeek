@@ -1917,7 +1917,8 @@ RecordVal* Manager::ValueToRecordVal(const Stream* stream, const Value* const *v
 			(*position)++;
 			}
 
-		rec->Assign(i, fieldVal);
+		if ( fieldVal )
+			rec->Assign(i, fieldVal);
 		}
 
 	return rec;

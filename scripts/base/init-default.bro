@@ -10,6 +10,7 @@
 @load base/utils/conn-ids
 @load base/utils/dir
 @load base/utils/directions-and-hosts
+@load base/utils/email
 @load base/utils/exec
 @load base/utils/files
 @load base/utils/geoip-distance

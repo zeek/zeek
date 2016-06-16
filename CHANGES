@@ -1,4 +1,24 @@
 
+2.4-623 | 2016-06-15 17:31:12 -0700
+
+  * &default values are no longer overwritten with uninitialized
+	  by the input framework. (Jan Grashoefer)
+
+2.4-621 | 2016-06-15 09:18:02 -0700
+
+  * Fixing memory leak in changed table expiration code. (Robin
+    Sommer)
+
+  * Fixing test portability. (Robin Sommer)
+
+  * Move the HTTP "filename" field (which was never filled out
+    anyways) to "orig_filenames" and "resp_filenames".  (Seth Hall)
+
+  * Add a round trip time (rtt) field to dns.log. (Seth Hall)
+
+  * Add ACE archive files to the identified file types. Addresses
+    BIT-1609. (Stephen Hosom)
+
 2.4-613 | 2016-06-14 18:10:37 -0700
 
   * Preventing the event processing from looping endlessly when an

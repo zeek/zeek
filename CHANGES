@@ -9,8 +9,8 @@
   * SMTP "rcptto" and "mailfrom" fields now do some minimal 
     parsing to clean up email addresses. (Seth Hall)
 
-  * Added "cc" to the script that feeds information from SMTP into the
-    Intel framework. (Seth Hall)
+  * Added "cc" to the SMTP log and feed it into the Intel framework
+    with the policy/frameworks/intel/seen/smtp.bro script. (Seth Hall)
 
 2.4-623 | 2016-06-15 17:31:12 -0700
 

@@ -1,3 +1,4 @@
+@load base/utils/email
 @load base/frameworks/intel
 @load base/protocols/smtp
 @load ./where-locations
@@ -30,13 +31,10 @@ event mime_end_entity(c: connection)
 
 		if ( c$smtp?$mailfrom )
 			{
-			for ( mailfrom_addr in c$smtp$mailfrom )
-				{
-				Intel::seen([$indicator=mailfrom_addr,
-				             $indicator_type=Intel::EMAIL,
-				             $conn=c,
-				             $where=SMTP::IN_MAIL_FROM]);
-				}
+			Intel::seen([$indicator=c$smtp$mailfrom,
+			             $indicator_type=Intel::EMAIL,
+			             $conn=c,
+			             $where=SMTP::IN_MAIL_FROM]);
 			}
 
 		if ( c$smtp?$rcptto )
@@ -52,7 +50,7 @@ event mime_end_entity(c: connection)
 
 		if ( c$smtp?$from )
 			{
-			for ( from_addr in c$smtp$from )
+			for ( from_addr in extract_email_addrs_set(c$smtp$from) )
 				{
 				Intel::seen([$indicator=from_addr,
 				             $indicator_type=Intel::EMAIL,
@@ -65,7 +63,7 @@ event mime_end_entity(c: connection)
 			{
 			for ( email_to_addr in c$smtp$to )
 				{
-				Intel::seen([$indicator=email_to_addr,
+				Intel::seen([$indicator=extract_first_email_addr(email_to_addr),
 				             $indicator_type=Intel::EMAIL,
 				             $conn=c,
 				             $where=SMTP::IN_TO]);
@@ -85,13 +83,10 @@ event mime_end_entity(c: connection)
 
 		if ( c$smtp?$reply_to )
 			{
-			for ( replyto_addr in c$smtp$reply_to )
-				{
-				Intel::seen([$indicator=replyto_addr,
-				             $indicator_type=Intel::EMAIL,
-				             $conn=c,
-				             $where=SMTP::IN_REPLY_TO]);
-				}
+			Intel::seen([$indicator=c$smtp$reply_to,
+			             $indicator_type=Intel::EMAIL,
+			             $conn=c,
+			             $where=SMTP::IN_REPLY_TO]);
 			}
 		}
 	}

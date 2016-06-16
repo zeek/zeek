@@ -45,3 +45,24 @@ function extract_first_email_addr(str: string): string
 	else
 		return "";
 	}
+
+## Split email addresses from MIME headers.  The email addresses will
+## include the display name and email address as it was given by the mail
+## mail client.  Note that this currently does not account for MIME group
+## addresses and won't handle them correctly.  The group name will show up
+## as part of an email address.
+##
+## str: The argument from a MIME header.
+##
+## Returns: A set of addresses or empty string if none found.
+function split_mime_email_addresses(line: string): set[string]
+	{
+	local output = string_set();
+
+	local addrs = find_all(line, /(\"[^"]*\")?[^,]+/);
+	for ( part in addrs )
+		{
+		add output[strip(part)];
+		}
+	return output;
+	}

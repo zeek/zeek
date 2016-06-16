@@ -8,7 +8,6 @@ module SMTP;
 export {
 	redef enum Log::ID += { LOG };
 
-	## The record type which contains the fields of the SMTP log.
 	type Info: record {
 		## Time when the message was first seen.
 		ts:                time            &log;
@@ -21,9 +20,9 @@ export {
 		trans_depth:       count           &log;
 		## Contents of the Helo header.
 		helo:              string          &log &optional;
-		## Contents of the From header.
+		## Email addresses found in the From header.
 		mailfrom:          string          &log &optional;
-		## Contents of the Rcpt header.
+		## Email addresses found in the Rcpt header.
 		rcptto:            set[string]     &log &optional;
 		## Contents of the Date header.
 		date:              string          &log &optional;
@@ -167,11 +166,14 @@ event smtp_request(c: connection, is_orig: bool, command: string, arg: string) &
 		{
 		if ( ! c$smtp?$rcptto )
 			c$smtp$rcptto = set();
-		local rcptto = extract_email_addrs_set(split_string1(arg, /:[[:blank:]]*/)[1]);
-		if ( |rcptto| > 0 )
+
+		local rcptto_addrs = extract_email_addrs_set(arg);
+		for ( rcptto_addr in rcptto_addrs )
 			{
-			c$smtp$rcptto = rcptto;
+			rcptto_addr = gsub(rcptto_addr, /ORCPT=rfc822;?/, "");
+			add c$smtp$rcptto[rcptto_addr];
 			}
+
 		c$smtp$has_client_activity = T;
 		}
 
@@ -180,8 +182,7 @@ event smtp_request(c: connection, is_orig: bool, command: string, arg: string) &
 		# Flush last message in case we didn't see the server's acknowledgement.
 		smtp_message(c);
 
-		local partially_done = split_string1(arg, /:[[:blank:]]*/)[1];
-		local mailfrom = extract_first_email_addr(split_string1(partially_done, /[[:blank:]]?/)[0]);
+		local mailfrom = extract_first_email_addr(arg);
 		if ( mailfrom != "" )
 			c$smtp$mailfrom = mailfrom;
 		c$smtp$has_client_activity = T;
@@ -231,25 +232,24 @@ event mime_one_header(c: connection, h: mime_header_rec) &priority=5
 		c$smtp$subject = h$value;
 
 	else if ( h$name == "FROM" )
-		{
-		local from = extract_first_email_addr(h$value);
-		if ( from != "" )
-			c$smtp$from = from;
-		}
+		c$smtp$from = h$value;
 
 	else if ( h$name == "REPLY-TO" )
-		{
-		local replyto = extract_first_email_addr(h$value);
-		if ( replyto != "" )
-			c$smtp$reply_to = replyto;
-		}
+		c$smtp$reply_to = h$value;
 
 	else if ( h$name == "DATE" )
 		c$smtp$date = h$value;
 
 	else if ( h$name == "TO" )
 		{
-		c$smtp$to = extract_email_addrs_set(h$value);
+		if ( ! c$smtp?$to )
+			c$smtp$to = set();
+
+		local to_email_addrs = split_mime_email_addresses(h$value);
+		for ( to_email_addr in to_email_addrs )
+			{
+			add c$smtp$to[to_email_addr];
+			}
 		}
 
 	else if ( h$name == "CC" )
@@ -257,9 +257,9 @@ event mime_one_header(c: connection, h: mime_header_rec) &priority=5
 		if ( ! c$smtp?$cc )
 			c$smtp$cc = set();
 
-		local cc_parts = split_string(h$value, /[[:blank:]]*,[[:blank:]]*/);
-		for ( i in cc_parts )
-			add c$smtp$cc[cc_parts[i]];
+		local cc_parts = split_mime_email_addresses(h$value);
+		for ( cc_part in cc_parts )
+			add c$smtp$cc[cc_part];
 		}
 
 	else if ( h$name == "X-ORIGINATING-IP" )

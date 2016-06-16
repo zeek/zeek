@@ -1,4 +1,9 @@
 
+2.4-623 | 2016-06-15 17:31:12 -0700
+
+  * &default values are no longer overwritten with uninitialized
+	  by the input framework. (Jan Grashoefer)
+
 2.4-621 | 2016-06-15 09:18:02 -0700
 
   * Fixing memory leak in changed table expiration code. (Robin

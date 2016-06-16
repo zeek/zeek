@@ -145,7 +145,7 @@ type IECGoosePdu = record {
 	
 	gocbRef: RequiredValue(STRING);
 	timeAllowedToLive: RequiredValue(U_INTEGER);
-	dataSet: RequiredValue(STRING);
+	datSet: RequiredValue(STRING);
 
 	# The next field is optionnal.
 	nextTag: uint8;

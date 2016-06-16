@@ -3475,6 +3475,7 @@ export {
 	type GOOSE::PDU : record {
 		gocbRef          : string;
 		timeAllowedToLive: count;
+		datSet		 : string;
 		goID		 : string &optional;
 		t		 : GOOSE::UTCTime;
 		stNum		 : count;

@@ -20,6 +20,30 @@ New Dependencies
 
 - The pcap buffer size can set through the new option Pcap::bufsize.
 
+Log Changes
+-----------
+
+- DNS
+
+  - New 'rtt' field to indicate the round trip time between when a 
+    request was sent and when a reply started.
+
+- SMTP
+
+  - New 'cc' field which includes the 'Cc' header from MIME messages 
+    sent over SMTP.
+
+  - Changes in 'mailfrom' and 'rcptto' fields to remove some non-address
+    cruft that will tend to be found.  The main example is the change 
+    from "<user@domain>" to "user@domain.com".
+
+- HTTP
+  
+  - Removed 'filename' field.
+
+  - New 'orig_filenames' and 'resp_filenames' fields which each contain 
+    a vector of filenames seen in entities transferred.
+
 New Functionality
 -----------------
 
@@ -99,8 +123,6 @@ New Functionality
 
 - Table expiration timeout expressions are evaluated dynamically as
   timestmaps are updated.
-
-- dns.log now has a RTT field.
 
 - New Bro plugins in aux/plugins:
 

@@ -157,6 +157,13 @@ Changed Functionality
   filled out in the first place) has been split into to
   "orig_filenames" and "resp_filenames".
 
+Removed Functionality
+---------------------
+
+    - The app-stats scripts have been removed because they weren't
+      being maintained and they were becoming inaccurate. They
+      were also prone to needing more regular updates as the internet
+      changed and will likely be more relevant if maintained externally.
 
 Deprecated Functionality
 ------------------------
@@ -166,11 +173,6 @@ Deprecated Functionality
       in the future. Their functionality is now provided directly by
       decode_base64() and encode_base64(), which take an optional
       parameter to change the Base64 alphabet.
-
-    - The app-stats scripts have been removed because they weren't
-      being maintained and they were becoming inaccurate. They
-      were also prone to needing more regular updates as the internet
-      changed and will likely be more relevant if maintained externally.
 
 Bro 2.4
 =======

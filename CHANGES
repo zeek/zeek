@@ -1,4 +1,11 @@
 
+2.4-635 | 2016-06-18 01:40:17 -0400
+
+  * Add some documentation for modbus data types. Addresses 
+    BIT-1216. (Seth Hall)
+
+  * Removed app-stats scripts. Addresses BIT-1171. (Seth Hall)
+
 2.4-631 | 2016-06-16 16:45:10 -0400
 
   * Fixed matching mail address intel and added test (Jan Grashoefer)

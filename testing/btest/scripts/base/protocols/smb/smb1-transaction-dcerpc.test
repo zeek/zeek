@@ -2,4 +2,4 @@
 # @TEST-EXEC: btest-diff dce_rpc.log
 
 @load base/protocols/dce-rpc
-@load base/protocols/smb
+@load policy/protocols/smb

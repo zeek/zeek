@@ -5,5 +5,5 @@
 # @TEST-EXEC: test ! -f dpd.log
 # @TEST-EXEC: test ! -f weird.log
 
-@load base/protocols/smb
+@load policy/protocols/smb
 

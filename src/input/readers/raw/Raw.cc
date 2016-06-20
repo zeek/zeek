@@ -26,10 +26,8 @@ using threading::Field;
 
 const int Raw::block_size = 4096; // how big do we expect our chunks of data to be.
 
-Raw::Raw(ReaderFrontend *frontend) : ReaderBackend(frontend)
+Raw::Raw(ReaderFrontend *frontend) : ReaderBackend(frontend), file(nullptr, fclose), stderrfile(nullptr, fclose)
 	{
-	file = 0;
-	stderrfile = 0;
 	execute = false;
 	firstrun = true;
 	mtime = 0;
@@ -40,8 +38,6 @@ Raw::Raw(ReaderFrontend *frontend) : ReaderBackend(frontend)
 
 	sep_length = BifConst::InputRaw::record_separator->Len();
 
-	buf = 0;
-	outbuf = 0;
 	bufpos = 0;
 
 	stdin_fileno = fileno(stdin);
@@ -61,12 +57,8 @@ Raw::~Raw()
 
 void Raw::DoClose()
 	{
-	if ( file != 0 )
+	if ( file )
 		CloseInput();
-
-	// Just throw away output that has not been flushed.
-	delete [] buf;
-	buf = 0;
 
 	if ( execute && childpid > 0 && kill(childpid, 0) == 0 )
 		{
@@ -255,7 +247,7 @@ bool Raw::Execute()
 		else
 			ClosePipeEnd(stderr_in);
 
-		file = fdopen(pipes[stdout_in], "r");
+		file = std::unique_ptr<FILE, int(*)(FILE*)>(fdopen(pipes[stdout_in], "r"), fclose);
 
 		if ( ! file )
 			{
@@ -267,7 +259,7 @@ bool Raw::Execute()
 
 		if ( use_stderr )
 			{
-			stderrfile = fdopen(pipes[stderr_in], "r");
+			stderrfile = std::unique_ptr<FILE, int(*)(FILE*)>(fdopen(pipes[stderr_in], "r"), fclose);
 
 			if ( ! stderrfile )
 				{
@@ -289,14 +281,14 @@ bool Raw::OpenInput()
 
 	else
 		{
-		file = fopen(fname.c_str(), "r");
+		file = std::unique_ptr<FILE, int(*)(FILE*)>(fopen(fname.c_str(), "r"), fclose);
 		if ( ! file )
 			{
 			Error(Fmt("Init: cannot open %s", fname.c_str()));
 			return false;
 			}
 
-		if ( ! SetFDFlags(fileno(file), F_SETFD, FD_CLOEXEC) )
+		if ( ! SetFDFlags(fileno(file.get()), F_SETFD, FD_CLOEXEC) )
 			Warning(Fmt("Init: cannot set close-on-exec for %s", fname.c_str()));
 		}
 
@@ -305,7 +297,7 @@ bool Raw::OpenInput()
 			int whence = (offset >= 0) ? SEEK_SET : SEEK_END;
 			int64_t pos = (offset >= 0) ? offset : offset + 1; // we want -1 to be the end of the file
 
-			if ( fseek(file, pos, whence) < 0 )
+			if ( fseek(file.get(), pos, whence) < 0 )
 				{
 				char buf[256];
 				strerror_r(errno, buf, sizeof(buf));
@@ -318,7 +310,7 @@ bool Raw::OpenInput()
 
 bool Raw::CloseInput()
 	{
-	if ( file == 0 )
+	if ( ! file )
 		{
 		InternalWarning(Fmt("Trying to close closed file for stream %s",
 		                    fname.c_str()));
@@ -328,19 +320,16 @@ bool Raw::CloseInput()
 	Debug(DBG_INPUT, "Raw reader starting close");
 #endif
 
-	fclose(file);
+	file.reset(nullptr);
 
 	if ( use_stderr )
-		fclose(stderrfile);
+		stderrfile.reset(nullptr);
 
 	if ( execute )
 		{
 		for ( int i = 0; i < 6; i ++ )
 			ClosePipeEnd(i);
 		}
-
-	file = 0;
-	stderrfile = 0;
 
 #ifdef DEBUG
 	Debug(DBG_INPUT, "Raw reader finished close");
@@ -455,14 +444,14 @@ int64_t Raw::GetLine(FILE* arg_file)
 	int pos = 0; // strstr_n only works on ints - so no use to use something different here
 	int offset = 0;
 
-	if ( buf == 0 )
-		buf = new char[block_size];
+	if ( ! buf )
+		buf = std::unique_ptr<char[]>(new char[block_size]);
 
 	int repeats = 1;
 
 	for ( ;; )
 		{
-		size_t readbytes = fread(buf+bufpos+offset, 1, block_size-bufpos, arg_file);
+		size_t readbytes = fread(buf.get()+bufpos+offset, 1, block_size-bufpos, arg_file);
 		pos += bufpos + readbytes;
 		//printf("Pos: %d\n", pos);
 		bufpos = offset = 0; // read full block size in next read...
@@ -473,7 +462,7 @@ int64_t Raw::GetLine(FILE* arg_file)
 		// researching everything each time is a bit... cpu-intensive. But otherwhise we have
 		// to deal with situations where the separator is multi-character and split over multiple
 		// reads...
-		int found = strstr_n(pos, (unsigned char*) buf, separator.size(), (unsigned char*) separator.c_str());
+		int found = strstr_n(pos, (unsigned char*) buf.get(), separator.size(), (unsigned char*) separator.c_str());
 
 		if ( found == -1 )
 			{
@@ -485,30 +474,27 @@ int64_t Raw::GetLine(FILE* arg_file)
 					return -1; // signal EOF - and that we had no more data.
 				else
 					{
-					outbuf = buf;
-					buf = 0;
+					outbuf = std::move(buf); // buf is null after this
 					return pos;
 					}
 				}
 
 			repeats++;
 			// bah, we cannot use realloc because we would have to change the delete in the manager to a free.
-			char * newbuf = new char[block_size*repeats];
-			memcpy(newbuf, buf, block_size*(repeats-1));
-			delete [] buf;
-			buf = newbuf;
+			std::unique_ptr<char[]> newbuf = std::unique_ptr<char[]>(new char[block_size*repeats]);
+			memcpy(newbuf.get(), buf.get(), block_size*(repeats-1));
+			buf = std::move(newbuf);
 			offset = block_size*(repeats-1);
 			}
 		else
 			{
-			outbuf = buf;
-			buf = 0;
+			outbuf = std::move(buf);
 
 			if ( found < pos )
 				{
 				// we have leftovers. copy them into the buffer for the next line
-				buf = new char[block_size];
-				memcpy(buf, outbuf + found + sep_length, pos - found - sep_length);
+				buf = std::unique_ptr<char[]>(new char[block_size]);
+				memcpy(buf.get(), outbuf.get() + found + sep_length, pos - found - sep_length);
 				bufpos = pos - found - sep_length;
 				}
 
@@ -586,9 +572,9 @@ bool Raw::DoUpdate()
 
 		case MODE_MANUAL:
 		case MODE_STREAM:
-			if ( Info().mode == MODE_STREAM && file != 0 )
+			if ( Info().mode == MODE_STREAM && file )
 				{
-				clearerr(file);  // remove end of file evil bits
+				clearerr(file.get());  // remove end of file evil bits
 				break;
 				}
 
@@ -610,7 +596,7 @@ bool Raw::DoUpdate()
 		if ( stdin_towrite > 0 )
 			WriteToStdin();
 
-		int64_t length = GetLine(file);
+		int64_t length = GetLine(file.get());
 		//printf("Read %lld bytes\n", length);
 
 		if ( length == -3 )
@@ -624,7 +610,7 @@ bool Raw::DoUpdate()
 
 		// filter has exactly one text field. convert to it.
 		Value* val = new Value(TYPE_STRING, true);
-		val->val.string_val.data = outbuf;
+		val->val.string_val.data = outbuf.release();
 		val->val.string_val.length = length;
 		fields[0] = val;
 
@@ -636,15 +622,13 @@ bool Raw::DoUpdate()
 			}
 
 		Put(fields);
-
-		outbuf = 0;
 		}
 
 	if ( use_stderr )
 		{
 		for ( ;; )
 			{
-			int64_t length = GetLine(stderrfile);
+			int64_t length = GetLine(stderrfile.get());
 			//printf("Read stderr %lld bytes\n", length);
 			if ( length == -3 )
 				return false;
@@ -654,7 +638,7 @@ bool Raw::DoUpdate()
 
 			Value** fields = new Value*[2];
 			Value* val = new Value(TYPE_STRING, true);
-			val->val.string_val.data = outbuf;
+			val->val.string_val.data = outbuf.release();
 			val->val.string_val.length = length;
 			fields[0] = val;
 			Value* bval = new Value(TYPE_BOOL, true);
@@ -662,8 +646,6 @@ bool Raw::DoUpdate()
 			fields[1] = bval;
 
 			Put(fields);
-
-			outbuf = 0;
 			}
 		}
 

@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2016-04-29-20-49-25
+#open	2016-06-07-19-22-42
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -142,7 +142,9 @@ scripts/base/init-default.bro
       scripts/base/frameworks/reporter/main.bro
     scripts/base/utils/paths.bro
   scripts/base/utils/directions-and-hosts.bro
+  scripts/base/utils/email.bro
   scripts/base/utils/files.bro
+  scripts/base/utils/geoip-distance.bro
   scripts/base/utils/numbers.bro
   scripts/base/utils/queue.bro
   scripts/base/utils/strings.bro
@@ -309,4 +311,4 @@ scripts/base/init-default.bro
   scripts/base/misc/find-checksum-offloading.bro
   scripts/base/misc/find-filtered-trace.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2016-05-02-20-39-35
+#close	2016-06-07-19-22-42

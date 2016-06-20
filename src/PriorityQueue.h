@@ -21,7 +21,7 @@ public:
 	void MinimizeTime()	{ time = -HUGE_VAL; }
 
 protected:
-	PQ_Element()		{ }
+	PQ_Element()		{ time = 0; offset = -1; }
 	double time;
 	int offset;
 };

@@ -1204,7 +1204,7 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals)
 	ih->idxkey = new HashKey(k->Key(), k->Size(), k->Hash());
 	ih->valhash = valhash;
 
-	if ( stream->event && updated )
+	if ( oldval && stream->event && updated )
 		Ref(oldval); // otherwise it is no longer accessible after the assignment
 
 	stream->tab->Assign(idxval, k, valval);
@@ -1917,7 +1917,8 @@ RecordVal* Manager::ValueToRecordVal(const Stream* stream, const Value* const *v
 			(*position)++;
 			}
 
-		rec->Assign(i, fieldVal);
+		if ( fieldVal )
+			rec->Assign(i, fieldVal);
 		}
 
 	return rec;

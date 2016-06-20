@@ -1,3 +1,4 @@
+@load base/utils/email
 @load base/frameworks/intel
 @load base/protocols/smtp
 @load ./where-locations
@@ -30,37 +31,28 @@ event mime_end_entity(c: connection)
 
 		if ( c$smtp?$mailfrom )
 			{
-			local mailfromparts = split_string_n(c$smtp$mailfrom, /<.+>/, T, 1);
-			if ( |mailfromparts| > 2 )
-				{
-				Intel::seen([$indicator=mailfromparts[1][1:-2],
-				             $indicator_type=Intel::EMAIL,
-				             $conn=c,
-				             $where=SMTP::IN_MAIL_FROM]);
-				}
+			Intel::seen([$indicator=c$smtp$mailfrom,
+			             $indicator_type=Intel::EMAIL,
+			             $conn=c,
+			             $where=SMTP::IN_MAIL_FROM]);
 			}
 
 		if ( c$smtp?$rcptto )
 			{
-			for ( rcptto in c$smtp$rcptto )
+			for ( rcptto_addr in c$smtp$rcptto )
 				{
-				local rcpttoparts = split_string_n(rcptto, /<.+>/, T, 1);
-				if ( |rcpttoparts| > 2 )
-					{
-					Intel::seen([$indicator=rcpttoparts[1][1:-2],
-					             $indicator_type=Intel::EMAIL,
-					             $conn=c,
-					             $where=SMTP::IN_RCPT_TO]);
-					}
+				Intel::seen([$indicator=rcptto_addr,
+				             $indicator_type=Intel::EMAIL,
+				             $conn=c,
+				             $where=SMTP::IN_RCPT_TO]);
 				}
 			}
 
 		if ( c$smtp?$from )
 			{
-			local fromparts = split_string_n(c$smtp$from, /<.+>/, T, 1);
-			if ( |fromparts| > 2 )
+			for ( from_addr in extract_email_addrs_set(c$smtp$from) )
 				{
-				Intel::seen([$indicator=fromparts[1][1:-2],
+				Intel::seen([$indicator=from_addr,
 				             $indicator_type=Intel::EMAIL,
 				             $conn=c,
 				             $where=SMTP::IN_FROM]);
@@ -69,29 +61,32 @@ event mime_end_entity(c: connection)
 
 		if ( c$smtp?$to )
 			{
-			for ( email_to in c$smtp$to )
+			for ( email_to_addr in c$smtp$to )
 				{
-				local toparts = split_string_n(email_to, /<.+>/, T, 1);
-				if ( |toparts| > 2 )
-					{
-					Intel::seen([$indicator=toparts[1][1:-2],
-					             $indicator_type=Intel::EMAIL,
-					             $conn=c,
-					             $where=SMTP::IN_TO]);
-					}
+				Intel::seen([$indicator=extract_first_email_addr(email_to_addr),
+				             $indicator_type=Intel::EMAIL,
+				             $conn=c,
+				             $where=SMTP::IN_TO]);
+				}
+			}
+
+		if ( c$smtp?$cc )
+			{
+			for ( cc_addr in c$smtp$cc )
+				{
+				Intel::seen([$indicator=cc_addr,
+				             $indicator_type=Intel::EMAIL,
+				             $conn=c,
+				             $where=SMTP::IN_CC]);
 				}
 			}
 
 		if ( c$smtp?$reply_to )
 			{
-			local replytoparts = split_string_n(c$smtp$reply_to, /<.+>/, T, 1);
-			if ( |replytoparts| > 2 )
-				{
-				Intel::seen([$indicator=replytoparts[1][1:-2],
-				             $indicator_type=Intel::EMAIL,
-				             $conn=c,
-				             $where=SMTP::IN_REPLY_TO]);
-				}
+			Intel::seen([$indicator=c$smtp$reply_to,
+			             $indicator_type=Intel::EMAIL,
+			             $conn=c,
+			             $where=SMTP::IN_REPLY_TO]);
 			}
 		}
 	}

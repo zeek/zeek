@@ -646,6 +646,8 @@ patricia_search_all (patricia_tree_t *patricia, prefix_t *prefix, patricia_node_
 
 	// ok, now we have an upper bound of how much we can return. Let's just alloc that...
 	patricia_node_t **outlist = calloc(cnt, sizeof(patricia_node_t*));
+	if (outlist == NULL)
+		out_of_memory("patrica/patricia_search_all: unable to allocate memory");
 
 	while (--cnt >= 0) {
 		node = stack[cnt];

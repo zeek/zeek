@@ -59,7 +59,7 @@ function extract_string(s: SMB_string) : StringVal
 	const char* sp;
 	bool ascii = true;
 
-	if ( s->val_case_index() == 0 )
+	if ( s->unicode() == 0 )
 		{
 		length = s->a()->size();
 		char *buf = new char[length];

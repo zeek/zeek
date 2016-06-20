@@ -42,6 +42,8 @@ NFA_State::~NFA_State()
 	{
 	for ( int i = 0; i < xtions.length(); ++i )
 		Unref(xtions[i]);
+
+	delete epsclosure;
 	}
 
 void NFA_State::AddXtionsTo(NFA_state_list* ns)

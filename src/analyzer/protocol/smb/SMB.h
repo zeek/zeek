@@ -15,7 +15,7 @@ public:
 	Contents_SMB(Connection* conn, bool orig);
 	~Contents_SMB();
 
-	virtual void DeliverStream(int len, const u_char* data, bool orig);
+	void DeliverStream(int len, const u_char* data, bool orig) override;
 
 protected:
 	typedef enum {
@@ -26,19 +26,17 @@ protected:
 		NEED_RESYNC,
 		INSYNC,
 	} resync_state_t;
-	virtual void Init();
+	void Init() override;
 	virtual bool CheckResync(int& len, const u_char*& data, bool orig);
-	virtual void Undelivered(uint64 seq, int len, bool orig);
+	void Undelivered(uint64 seq, int len, bool orig) override;
 	virtual void NeedResync() {
 		resync_state = NEED_RESYNC;
 		state = WAIT_FOR_HDR;
 	}
 
-	bool HasSMBHeader(const u_char* data);
+	bool HasSMBHeader(int len, const u_char* data);
 
 	void DeliverSMB(int len, const u_char* data);
-
-	binpac::SMB::SMB_Conn* smb_session;
 
 	rpc::RPC_Reasm_Buffer hdr_buf; // Reassembles the NetBIOS length and glue.
 	rpc::RPC_Reasm_Buffer msg_buf; // Reassembles the SMB message.
@@ -54,25 +52,23 @@ class SMB_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
 	SMB_Analyzer(Connection* conn);
 	virtual ~SMB_Analyzer();
-	
-	virtual void Done();
-	virtual void DeliverStream(int len, const u_char* data, bool orig);
-	virtual void Undelivered(uint64 seq, int len, bool orig);
-	virtual void EndpointEOF(bool is_orig);
+
+	void Done() override;
+	void DeliverStream(int len, const u_char* data, bool orig) override;
+	void Undelivered(uint64 seq, int len, bool orig) override;
+	void EndpointEOF(bool is_orig) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new SMB_Analyzer(conn); }
 
 protected:
 	binpac::SMB::SMB_Conn* interp;
-	Contents_SMB* o_smb;
-	Contents_SMB* r_smb;
 
 	// Count the number of chunks received by the analyzer
 	// but only used to count the first few.
 	uint8 chunks;
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*
 
 #endif

@@ -33,7 +33,7 @@ void SMB_Analyzer::EndpointEOF(bool is_orig)
 	TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
 	interp->FlowEOF(is_orig);
 	}
-	
+
 void SMB_Analyzer::Undelivered(uint64 seq, int len, bool orig)
 	{
 	TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
@@ -46,10 +46,10 @@ void SMB_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 
 	assert(TCP());
 
-	try 
+	try
 		{
 		interp->NewData(orig, data, data + len);
-		// Let's assume that if there are no binpac exceptions after 
+		// Let's assume that if there are no binpac exceptions after
 		// 3 data chunks that this is probably actually SMB.
 		if ( chunks >= 3 )
 			ProtocolConfirmation();
@@ -93,8 +93,11 @@ void Contents_SMB::Undelivered(uint64 seq, int len, bool orig)
 	NeedResync();
 	}
 
-bool Contents_SMB::HasSMBHeader(const u_char* data)
+bool Contents_SMB::HasSMBHeader(int len, const u_char* data)
 	{
+	if ( len < 8 )
+		return false;
+
 	return (strncmp((const char*) data+4, "\xffSMB", 4) == 0 ||
 	        strncmp((const char*) data+4, "\xfeSMB", 4) == 0);
 	}
@@ -102,12 +105,16 @@ bool Contents_SMB::HasSMBHeader(const u_char* data)
 void Contents_SMB::DeliverSMB(int len, const u_char* data)
 	{
 	// Check the 4-byte header.
-	if ( ! HasSMBHeader(data) )
+	if ( ! HasSMBHeader(len, data) )
 		{
-		Conn()->Weird(fmt("SMB-over-TCP header error: %02x %05x, >>\\x%02x%c%c%c<<",
-			//dshdr[0], dshdr[1], dshdr[2], dshdr[3],
-			msg_type, msg_len,
-			data[0], data[1], data[2], data[3]));
+		if ( len >= 4 )
+			Conn()->Weird(fmt("SMB-over-TCP header error: %02x %05x, >>\\x%02x%c%c%c<<",
+				//dshdr[0], dshdr[1], dshdr[2], dshdr[3],
+				msg_type, msg_len,
+				data[0], data[1], data[2], data[3]));
+		else
+			Conn()->Weird(fmt("SMB-over-TCP header error: %02x %05x", msg_type, msg_len));
+
 		NeedResync();
 		}
 	else
@@ -121,21 +128,21 @@ bool Contents_SMB::CheckResync(int& len, const u_char*& data, bool orig)
 	if (resync_state == INSYNC)
 		return true;
 
-	// This is an attempt to re-synchronize the stream after a content gap.  
-	// Returns true if we are in sync. 
+	// This is an attempt to re-synchronize the stream after a content gap.
+	// Returns true if we are in sync.
 	// Returns false otherwise (we are in resync mode)
 	//
-	// We try to look for the beginning of a SMB message, assuming 
-	// SMB messages start at packet boundaries (though they may span 
+	// We try to look for the beginning of a SMB message, assuming
+	// SMB messages start at packet boundaries (though they may span
 	// over multiple packets) (note that the data* of DeliverStream()
-	// usually starts at a packet boundrary). 
+	// usually starts at a packet boundrary).
 	//
 	// Now lets see whether data points to the beginning of a
 	// SMB message. If the resync processs is successful, we should
 	// be at the beginning of a frame.
 
 	// check if the SMB header starts with an SMB1 or SMB2 marker
-	if ( ! HasSMBHeader(data) )
+	if ( ! HasSMBHeader(len, data) )
 		{
 		NeedResync();
 		return false;
@@ -151,7 +158,7 @@ bool Contents_SMB::CheckResync(int& len, const u_char*& data, bool orig)
 void Contents_SMB::DeliverStream(int len, const u_char* data, bool orig)
 	{
 	TCP_SupportAnalyzer::DeliverStream(len, data, orig);
-	
+
 	if (!CheckResync(len, data, orig))
 		return;   // Not in sync yet. Still resyncing
 
@@ -178,7 +185,7 @@ void Contents_SMB::DeliverStream(int len, const u_char* data, bool orig)
 				const u_char *dummy_p = msg_buf.GetBuf();
 				int dummy_len = (int) msg_buf.GetFill();
 				DeliverSMB(dummy_len, dummy_p);
-				
+
 				state = WAIT_FOR_HDR;
 				}
 			}

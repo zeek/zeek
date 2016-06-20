@@ -10,7 +10,10 @@ refine connection GSSAPI_Conn += {
 
 	%cleanup{
 		if ( ntlm )
+			{
+			ntlm->Done();
 			delete ntlm;
+			}
 	%}
 
 	function forward_ntlm(data: bytestring, is_orig: bool): bool

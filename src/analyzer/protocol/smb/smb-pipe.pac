@@ -5,7 +5,7 @@
 refine connection SMB_Conn += {
 	%member{
 		map<uint16,bool> tree_is_pipe_map;
-		map<uint64,analyzer::dce_rpc::DCE_RPC_Analyzer*> fid_to_analyzer_map;
+		map<uint64,analyzer::dce_rpc::DCE_RPC_Analyzer*> fid_to_analyzer_map;;
 	%}
 
 	%cleanup{
@@ -13,7 +13,10 @@ refine connection SMB_Conn += {
 		for ( auto kv : fid_to_analyzer_map )
 			{
 			if ( kv.second )
+				{
+				kv.second->Done();
 				delete kv.second;
+				}
 			}
 	%}
 

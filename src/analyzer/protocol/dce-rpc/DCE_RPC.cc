@@ -37,7 +37,7 @@ void DCE_RPC_Analyzer::EndpointEOF(bool is_orig)
 	TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
 	interp->FlowEOF(is_orig);
 	}
-	
+
 void DCE_RPC_Analyzer::Undelivered(uint64 seq, int len, bool orig)
 	{
 	TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
@@ -49,7 +49,7 @@ void DCE_RPC_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
 	assert(TCP());
-	try 
+	try
 		{
 		interp->NewData(orig, data, data + len);
 		}

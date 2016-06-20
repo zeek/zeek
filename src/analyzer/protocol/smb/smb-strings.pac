@@ -1,11 +1,10 @@
-function uint8s_to_stringval(s: uint8[]): StringVal
+function uint8s_to_stringval(data: uint8[]): StringVal
 	%{
 	int length = 0;
 
 	const char* sp;
 	bool ascii = true;
 
-	vector<uint8>* data = s;
 	length = data->size();
 	// Scan the string once to see if it's all ascii
 	// embedded in UCS-2 (16 bit unicode).
@@ -21,7 +20,7 @@ function uint8s_to_stringval(s: uint8[]): StringVal
 
 	char *buf = new char[length];
 
-	for ( int i = 0; i < length; i=i+2)
+	for ( int i = 0; i + 1 < length; i=i+2) // check if we may read the character after the current one (else-case)
 		{
 		if ( ascii )
 			{

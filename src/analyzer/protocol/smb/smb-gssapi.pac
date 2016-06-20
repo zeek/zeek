@@ -10,7 +10,10 @@ refine connection SMB_Conn += {
 
 	%cleanup{
 		if ( gssapi )
+			{
+			gssapi->Done();
 			delete gssapi;
+			}
 	%}
 
 	function forward_gssapi(data: bytestring, is_orig: bool): bool

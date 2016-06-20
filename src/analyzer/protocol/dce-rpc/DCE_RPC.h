@@ -16,7 +16,7 @@
 
 namespace analyzer { namespace dce_rpc {
 
-class UUID {
+/* class UUID {
 public:
 	UUID();
 	UUID(const u_char data[16]);
@@ -75,7 +75,7 @@ struct dce_rpc_endpoint_addr {
 
 		return string(buf);
 		}
-};
+}; */
 
 /*
 enum DCE_RPC_PTYPE {
@@ -180,10 +180,10 @@ public:
 	DCE_RPC_Analyzer(Connection* conn);
 	~DCE_RPC_Analyzer();
 
-	virtual void Done();
-	virtual void DeliverStream(int len, const u_char* data, bool orig);
-	virtual void Undelivered(uint64 seq, int len, bool orig);
-	virtual void EndpointEOF(bool is_orig);
+	void Done() override;
+	void DeliverStream(int len, const u_char* data, bool orig) override;
+	void Undelivered(uint64 seq, int len, bool orig) override;
+	void EndpointEOF(bool is_orig) override;
 
 	bool SetFileID(uint64 fid_in)
 		{ interp->set_file_id(fid_in); return true; }
@@ -195,6 +195,6 @@ protected:
 	binpac::DCE_RPC::DCE_RPC_Conn* interp;
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*
 
 #endif /* dce_rpc_h */

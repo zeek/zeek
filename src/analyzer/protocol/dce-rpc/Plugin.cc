@@ -13,7 +13,6 @@ public:
 	plugin::Configuration Configure()
 		{
 		AddComponent(new ::analyzer::Component("DCE_RPC", ::analyzer::dce_rpc::DCE_RPC_Analyzer::Instantiate));
-		//AddComponent(new ::analyzer::Component("Contents_DCE_RPC", 0));
 
 		plugin::Configuration config;
 		config.name = "Bro::DCE_RPC";

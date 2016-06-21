@@ -255,8 +255,8 @@ event mime_one_header(c: connection, h: mime_header_rec) &priority=5
 	else if ( h$name == "X-ORIGINATING-IP" )
 		{
 		local addresses = extract_ip_addresses(h$value);
-		if ( 1 in addresses )
-			c$smtp$x_originating_ip = to_addr(addresses[1]);
+		if ( 0 in addresses )
+			c$smtp$x_originating_ip = to_addr(addresses[0]);
 		}
 
 	else if ( h$name == "X-MAILER" ||

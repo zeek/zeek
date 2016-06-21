@@ -2,6 +2,7 @@
 ##! their responses.
 
 @load base/utils/queue
+@load base/frameworks/notice/weird
 @load ./consts
 
 module DNS;
@@ -26,8 +27,8 @@ export {
 		## the DNS query.  Also used in responses to match up replies to
 		## outstanding queries.
 		trans_id:      count              &log &optional;
-		## Round trip time for the query and response. This indicates 
-		## the delay between when the request was seen until the 
+		## Round trip time for the query and response. This indicates
+		## the delay between when the request was seen until the
 		## answer started.
 		rtt:           interval           &log &optional;
 		## The domain name that is the subject of the DNS query.
@@ -103,7 +104,7 @@ export {
 	## when creating a new session value.
 	##
 	## c: The connection involved in the new session.
-	## 
+	##
 	## msg: The DNS message header information.
 	##
 	## is_query: Indicator for if this is being called for a query or a response.
@@ -176,8 +177,9 @@ function log_unmatched_msgs_queue(q: Queue::Queue)
 
 	for ( i in infos )
 		{
-		event flow_weird("dns_unmatched_msg",
-		                 infos[i]$id$orig_h, infos[i]$id$resp_h);
+		local wi = Weird::Info($ts=network_time(), $name="dns_unmatched_msg", $uid=infos[i]$uid,
+		                       $id=infos[i]$id);
+		Weird::weird(wi);
 		Log::write(DNS::LOG, infos[i]);
 		}
 	}
@@ -192,12 +194,14 @@ function log_unmatched_msgs(msgs: PendingMessages)
 
 function enqueue_new_msg(msgs: PendingMessages, id: count, msg: Info)
 	{
+	local wi: Weird::Info;
 	if ( id !in msgs )
 		{
 		if ( |msgs| > max_pending_query_ids )
 			{
-			event flow_weird("dns_unmatched_query_id_quantity",
-			                 msg$id$orig_h, msg$id$resp_h);
+			wi = Weird::Info($ts=network_time(), $name="dns_unmatched_msg", $uid=msg$uid,
+			                       $id=msg$id);
+			Weird::weird(wi);
 			# Throw away all unmatched on assumption they'll never be matched.
 			log_unmatched_msgs(msgs);
 			}
@@ -208,8 +212,9 @@ function enqueue_new_msg(msgs: PendingMessages, id: count, msg: Info)
 		{
 		if ( Queue::len(msgs[id]) > max_pending_msgs )
 			{
-			event flow_weird("dns_unmatched_msg_quantity",
-			                 msg$id$orig_h, msg$id$resp_h);
+			wi = Weird::Info($ts=network_time(), $name="dns_unmatched_msg_quantity", $uid=msg$uid,
+			                       $id=msg$id);
+			Weird::weird(wi);
 			log_unmatched_msgs_queue(msgs[id]);
 			# Throw away all unmatched on assumption they'll never be matched.
 			msgs[id] = Queue::init();

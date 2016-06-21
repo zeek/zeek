@@ -116,7 +116,7 @@ event Input::end_of_data(orig_name: string, source:string)
 	if ( track_file !in result$files )
 		result$files[track_file] = vector();
 
-	Input::remove(name);
+	Input::remove(orig_name);
 
 	if ( name !in pending_files )
 		delete pending_commands[name];

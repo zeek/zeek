@@ -2274,8 +2274,10 @@ double TableVal::GetExpireTime()
 		return -1;
 
 	Val* timeout = expire_time->Eval(0);
+	double interval = (timeout ? timeout->AsInterval() : -1);
+	Unref(timeout);
 
-	if ( timeout && (timeout->AsInterval() >= 0) )
+	if ( interval >= 0 )
 		return timeout->AsInterval();
 
 	expire_time = 0;

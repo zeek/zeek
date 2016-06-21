@@ -91,7 +91,7 @@ bool Ascii::Describe(ODesc* desc, threading::Value* val, const string& name) con
 		// Rendering via Add() truncates trailing 0s after the
 		// decimal point. The difference with TIME/INTERVAL is mainly
 		// to keep the log format consistent.
-		desc->Add(val->val.double_val);
+		desc->Add(val->val.double_val, true);
 		break;
 
 	case TYPE_INTERVAL:

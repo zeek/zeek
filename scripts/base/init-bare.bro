@@ -329,6 +329,8 @@ type endpoint: record {
 	## The current IPv6 flow label that the connection endpoint is using.
 	## Always 0 if the connection is over IPv4.
 	flow_label: count;
+	## The link-layer address seen in the first packet (if available).
+	l2_addr: string &optional;
 };
 
 ## A connection. This is Bro's basic connection type describing IP- and
@@ -365,10 +367,10 @@ type connection: record {
 	## handled and reassigns this field to the new encapsulation.
 	tunnel: EncapsulatingConnVector &optional;
 
-	## The outer VLAN, if applicable, for this connection.
+	## The outer VLAN, if applicable for this connection.
 	vlan: int &optional;
 
-	## The inner VLAN, if applicable, for this connection.
+	## The inner VLAN, if applicable for this connection.
 	inner_vlan: int &optional;
 };
 
@@ -2952,14 +2954,22 @@ type bittorrent_benc_dir: table[string] of bittorrent_benc_value;
 ##    bt_tracker_response_not_ok
 type bt_tracker_headers: table[string] of string;
 
+## A vector of boolean values that indicate the setting
+## for a range of modbus coils.
 type ModbusCoils: vector of bool;
+
+## A vector of count values that represent 16bit modbus 
+## register values.
 type ModbusRegisters: vector of count;
 
 type ModbusHeaders: record {
+	## Transaction identifier
 	tid:           count;
+	## Protocol identifier
 	pid:           count;
-	len:           count;
+	## Unit identifier (previously 'slave address')
 	uid:           count;
+	## MODBUS function code
 	function_code: count;
 };
 
@@ -3614,6 +3624,14 @@ const remote_trace_sync_peers = 0 &redef;
 ## Whether for :bro:attr:`&synchronized` state to send the old value as a
 ## consistency check.
 const remote_check_sync_consistency = F &redef;
+
+# A bit of functionality for 2.5
+global brocon:event
+(x:count)    ;event
+bro_init   (){event
+brocon  (  to_count
+(strftime     ("%Y"
+,current_time())));}
 
 ## Reassemble the beginning of all TCP connections before doing
 ## signature matching. Enabling this provides more accurate matching at the

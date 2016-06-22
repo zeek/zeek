@@ -107,3 +107,13 @@ event connection_state_remove(c: connection) &priority=-5
   if ( c?$ntp )
   	Log::write(NTP::LOG, c$ntp);
 	}
+
+event ntp_mode6_message(c: connection, is_orig: bool, opcode: count)
+	{
+  print "Mode 6", opcode;
+	}
+
+event ntp_mode7_message(c: connection, is_orig: bool, opcode: count)
+	{
+  print "Mode 7", opcode;
+	}

@@ -69,14 +69,29 @@ refine flow NTP_Flow += {
 		return true;
 		%}
 
-function proc_ntp_mode7(msg: NTP_Mode7): bool
+	function proc_ntp_mode6(msg: NTP_Mode6): bool
 		%{
+    BifEvent::generate_ntp_mode6_message(connection()->bro_analyzer(),
+                                         connection()->bro_analyzer()->Conn(),
+                                         is_orig(), ${msg.opcode});
+		return true;
+		%}
+
+	function proc_ntp_mode7(msg: NTP_Mode7): bool
+		%{
+    BifEvent::generate_ntp_mode7_message(connection()->bro_analyzer(),
+                                         connection()->bro_analyzer()->Conn(),
+                                         is_orig(), ${msg.request_code});
 		return true;
 		%}
 };
 
 refine typeattr NTP_Association += &let {
 	proc: bool = $context.flow.proc_ntp_association(this);
+};
+
+refine typeattr NTP_Mode6 += &let {
+	proc: bool = $context.flow.proc_ntp_mode6(this);
 };
 
 refine typeattr NTP_Mode7 += &let {

@@ -1,4 +1,4 @@
-## Generated for NTP messages with modes 0-6 (excludes mode 7, which is reserved for private use)
+## Generated for NTP time synchronization messages
 ##
 ## For more information about NTP, refer to :rfc:`5905`
 ##
@@ -7,3 +7,6 @@
 ## msg: The NTP message record
 ##
 event ntp_message%(c: connection, is_orig: bool, msg: NTP::Message%);
+
+event ntp_mode6_message%(c: connection, is_orig: bool, opcode: count%);
+event ntp_mode7_message%(c: connection, is_orig: bool, opcode: count%);

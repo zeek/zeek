@@ -103,6 +103,7 @@ NetSessions::NetSessions()
 
 	tcp_conns.SetDeleteFunc(bro_obj_delete_func);
 	udp_conns.SetDeleteFunc(bro_obj_delete_func);
+	icmp_conns.SetDeleteFunc(bro_obj_delete_func);
 	fragments.SetDeleteFunc(bro_obj_delete_func);
 
 	if ( stp_correlate_pair )

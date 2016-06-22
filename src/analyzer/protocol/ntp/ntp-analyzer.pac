@@ -28,11 +28,8 @@ Val* proc_ntp_timestamp(const NTP_Time* t)
 %}
 
 refine flow NTP_Flow += {
-	function proc_ntp_message(msg: NTP_PDU): bool
+	function proc_ntp_association(msg: NTP_Association): bool
 		%{
-    if ( ${msg.mode} == 7 )
-      return true;
-
     RecordVal* rv = new RecordVal(BifType::Record::NTP::Message);
     rv->Assign(0, new Val(${msg.version}, TYPE_COUNT));
     rv->Assign(1, new Val(${msg.mode}, TYPE_COUNT));
@@ -71,8 +68,17 @@ refine flow NTP_Flow += {
                                    is_orig(), rv);
 		return true;
 		%}
+
+function proc_ntp_mode7(msg: NTP_Mode7): bool
+		%{
+		return true;
+		%}
 };
 
-refine typeattr NTP_PDU += &let {
-	proc: bool = $context.flow.proc_ntp_message(this);
+refine typeattr NTP_Association += &let {
+	proc: bool = $context.flow.proc_ntp_association(this);
+};
+
+refine typeattr NTP_Mode7 += &let {
+	proc: bool = $context.flow.proc_ntp_mode7(this);
 };

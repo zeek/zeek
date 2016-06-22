@@ -90,10 +90,20 @@ event ntp_message(c: connection, is_orig: bool, msg: NTP::Message) &priority=5
      if ( is_v4_addr(c$id$orig_h) )
           info$ref_clock = msg$ref_addr;
      }
+  c$ntp = info;
 	}
 
 event ntp_message(c: connection, is_orig: bool, msg: NTP::Message) &priority=-5
 	{
-  delete c$ntp;
-  Log::write(NTP::LOG, info);
+  if ( ! is_orig )
+  	{
+  	Log::write(NTP::LOG, c$ntp);
+  	delete c$ntp;
+    }
   }
+
+event connection_state_remove(c: connection) &priority=-5
+	{
+  if ( c?$ntp )
+  	Log::write(NTP::LOG, c$ntp);
+	}

@@ -10,6 +10,7 @@
 192.168.2.0/24	Intel::SUBNET	source1	this subnetwork is just plain baaad	http://some-data-distributor.com/2
 192.168.142.1	Intel::ADDR	source1	this host is just plain baaad	http://some-data-distributor.com/3
 192.168.142.0/24	Intel::SUBNET	source1	this subnetwork is baaad	http://some-data-distributor.com/4
+192.168.142.0/26	Intel::SUBNET	source1	this subnetwork is inside	http://some-data-distributor.com/4
 192.168.128.0/18	Intel::SUBNET	source1	this subnetwork might be baaad	http://some-data-distributor.com/5
 # @TEST-END-FILE
 

@@ -393,7 +393,7 @@ function insert(item: Item)
 		local net = to_subnet(item$indicator);
 		if ( have_full_data )
 			{
-			if ( net !in data_store$subnet_data )
+			if ( !check_subnet(net, data_store$subnet_data) )
 				data_store$subnet_data[net] = table();
 			else
 				is_new = F;

@@ -2,6 +2,7 @@
 
 module NetControl;
 
+@load base/frameworks/cluster
 @load ./main
 @load ./drop
 
@@ -9,45 +10,67 @@ export {
 
 	redef enum Log::ID += { CATCH_RELEASE };
 
-	# The record that is used for storing information about current blocks that are
-	# part of catch and release.
+	## Thhis record is used is used for storing information about current blocks that are
+	## part of catch and release.
 	type BlockInfo: record {
-		# Absolute time indicating until when a block is inserted using NetControl
+		## Absolute time indicating until when a block is inserted using NetControl
 		block_until: time &optional;
-		# Absolute time indicating until when an IP address is watched to reblock it
+		## Absolute time indicating until when an IP address is watched to reblock it
 		watch_until: time;
-		# Number of times an IP address was reblocked
+		## Number of times an IP address was reblocked
 		num_reblocked: count &default=0;
-		# Number indicating at which catch and release interval we currently are
+		## Number indicating at which catch and release interval we currently are
 		current_interval: count;
-		# ID of the inserted block, if any.
+		## ID of the inserted block, if any.
 		current_block_id: string;
-		# User specified string
+		## User specified string
 		location: string &optional;
 	};
 
+	## The enum that contains the different kinds of messages that are logged by
+	## catch and release
 	type CatchReleaseActions: enum {
+		## Log lines marked with info are purely informational; no action was taken
 		INFO,
+		## A rule for the specified IP address already existed in NetControl (outside
+		## of catch-and-release). Catch and release did not add a new rule, but is now
+		## watching the IP address and will add a new rule after the current rule expired.
 		ADDED,
+		## A drop was requested by catch and release
 		DROP,
+		## A address was succesfully blocked by catch and release
 		DROPPED,
+		## An address was unblocked after the timeout expired
 		UNBLOCK,
-		RESTORED,
+		## An address was forgotten because it did not reappear within the `watch_until` interval
 		FORGOTTEN,
+		## A watched IP address was seen again; catch and release will re-block it.
 		SEEN_AGAIN
 	};
 
+	## The record type that is used for representing and logging
 	type CatchReleaseInfo: record {
+		## The absolute time indicating when the action for this log-line occured.
 		ts: time &log;
+		## The rule id that this log lone refers to.
 		rule_id: string &log &optional;
+		## The IP address that this line refers to.
 		ip: addr &log;
+		## The action that was taken in this log-line.
 		action: CatchReleaseActions &log;
+		## The current block_interaval (for how long the address is blocked).
 		block_interval: interval &log &optional;
+		## The current watch_interval (for how long the address will be watched and re-block if it reappears).
 		watch_interval: interval &log &optional;
+		## The absolute time until which the address is blocked.
 		blocked_until: time &log &optional;
+		## The absolute time until which the address will be monitored.
 		watched_until: time &log &optional;
+		## Number of times that this address was blocked in the current cycle.
 		num_blocked: count &log &optional;
+		## The user specified location string.
 		location: string &log &optional;
+		## Additional informational string by the catch and release framework about this log-line.
 		message: string &log &optional;
 	};
 

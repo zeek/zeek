@@ -11,6 +11,7 @@ module NetControl;
 @ifdef ( Broker::__enable )
 
 export {
+	## This record specifies the configuration that is passed to :bro:see:`NetControl::create_broker`.
 	type BrokerConfig: record {
 		## The broker topic used to send events to
 		topic: string &optional;
@@ -38,6 +39,7 @@ export {
 	global create_broker: function(config: BrokerConfig, can_expire: bool) : PluginState;
 
 	redef record PluginState += {
+		## OpenFlow controller for NetControl Broker plugin
 		broker_config: BrokerConfig &optional;
 		## The ID of this broker instance - for the mapping to PluginStates
 		broker_id: count &optional;

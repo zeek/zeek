@@ -81,9 +81,11 @@ export {
 	## Returns: The id of the inserted rule on succes and zero on failure.
 	global redirect_flow: function(f: flow_id, out_port: count, t: interval, location: string &default="") : string;
 
-	## Quarantines a host by redirecting rewriting DNS queries to the network dns server dns
-	## to the host. Host has to answer to all queries with its own address. Only http communication
-	## from infected to quarantinehost is allowed.
+	## Quarantines a host. This requires a special quarantine server, which runs a HTTP server explaining
+	## the quarantine and a DNS server which resolves all requests to the quarantine server. DNS queries
+	## from the host to the network dns server will be rewritten and will be sent to the quarantine server
+	## instead. Only http communication infected to quarantinehost is allowed. All other network communication
+	## is blocked.
 	##
 	## infected: the host to quarantine
 	##
@@ -96,7 +98,7 @@ export {
 	## Returns: Vector of inserted rules on success, empty list on failure.
 	global quarantine_host: function(infected: addr, dns: addr, quarantine: addr, t: interval, location: string &default="") : vector of string;
 
-	## Flushes all state.
+	## Flushes all state by calling :bro:see:`NetControl::remove_rule` on all currently active rules.
 	global clear: function();
 
 	# ###
@@ -120,7 +122,7 @@ export {
 
 	## Removes a rule.
 	##
-	## id: The rule to remove, specified as the ID returned by :bro:id:`NetControl::add_rule`.
+	## id: The rule to remove, specified as the ID returned by :bro:see:`NetControl::add_rule`.
 	##
 	## Returns: True if succesful, the relevant plugin indicated that it knew
 	##          how to handle the removal. Note that again "success" means the
@@ -134,10 +136,10 @@ export {
 	## the rule has been added; if it is not removed from them by a separate mechanism,
 	## it will stay installed and not be removed later.
 	##
-	## id: The rule to delete, specified as the ID returned by :bro:id:`add_rule` .
+	## id: The rule to delete, specified as the ID returned by :bro:see:`add_rule` .
 	##
 	## Returns: True if removal is successful, or sent to manager.
-	## False if the rule could not be found.
+	##          False if the rule could not be found.
 	global delete_rule: function(id: string) : bool;
 
 	## Searches all rules affecting a certain IP address.
@@ -152,6 +154,14 @@ export {
 	global find_rules_addr: function(ip: addr) : vector of Rule;
 
 	## Searches all rules affecting a certain subnet.
+  ##
+	## A rule affects a subnet, if it covers the whole subnet. Note especially that
+	## this function will not reveal all rules that are covered by a subnet.
+  ##
+	## For example, a search for 192.168.17.0/8 will reveal a rule that exists for
+	## 192.168.0.0/16, since this rule affects the subnet. However, it will not reveal
+	## a more specific rule for 192.168.17.1/32, which does not directy affect the whole
+	## subnet.
 	##
 	## This function works on both the manager and workers of a cluster. Note that on
 	## the worker, the internal rule variables (starting with _) will not reflect the
@@ -263,14 +273,14 @@ export {
 		RULE
 	};
 
-	## State of an  entry in the NetControl log.
+	## State of an entry in the NetControl log.
 	type InfoState: enum {
-		REQUESTED,
-		SUCCEEDED,
-		EXISTS,
-		FAILED,
-		REMOVED,
-		TIMEOUT,
+		REQUESTED, ##< The request to add/remove a rule was sent to the respective backend
+		SUCCEEDED, ##< A rule was succesfully added by a backend
+		EXISTS, ##< A backend reported that a rule was already existing
+		FAILED, ##< A rule addition failed
+		REMOVED, ##< A rule was succesfully removed by a backend
+		TIMEOUT, ##< A rule timeout was triggered by the NetControl framework or a backend
 	};
 
 	## The record type defining the column fields of the NetControl log.
@@ -313,13 +323,13 @@ export {
 }
 
 redef record Rule += {
-	##< Internally set to the plugins handling the rule.
+	## Internally set to the plugins handling the rule.
 	_plugin_ids: set[count] &default=count_set();
-	##< Internally set to the plugins on which the rule is currently active.
+	## Internally set to the plugins on which the rule is currently active.
 	_active_plugin_ids: set[count] &default=count_set();
-	##< Internally set to plugins where the rule should not be removed upon timeout.
+	## Internally set to plugins where the rule should not be removed upon timeout.
 	_no_expire_plugins: set[count] &default=count_set();
-	##< Track if the rule was added succesfully by all responsible plugins.
+	## Track if the rule was added succesfully by all responsible plugins.
 	_added: bool &default=F;
 };
 

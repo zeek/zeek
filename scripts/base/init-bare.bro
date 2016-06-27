@@ -463,7 +463,7 @@ type SYN_packet: record {
 
 ## Packet capture statistics.  All counts are cumulative.
 ##
-## .. bro:see:: net_stats
+## .. bro:see:: get_net_stats
 type NetStats: record {
 	pkts_recvd:   count &default=0;	##< Packets received by Bro.
 	pkts_dropped: count &default=0;	##< Packets reported dropped by the system.
@@ -706,7 +706,7 @@ global capture_filters: table[string] of string &redef;
 global restrict_filters: table[string] of string &redef;
 
 ## Enum type identifying dynamic BPF filters. These are used by
-## :bro:see:`precompile_pcap_filter` and :bro:see:`precompile_pcap_filter`.
+## :bro:see:`Pcap::precompile_pcap_filter` and :bro:see:`Pcap::precompile_pcap_filter`.
 type PcapFilterID: enum { None };
 
 ## Deprecated.
@@ -1542,7 +1542,7 @@ type l2_hdr: record {
 };
 
 ## A raw packet header, consisting of L2 header and everything in
-## :bro:id:`pkt_hdr`. .
+## :bro:see:`pkt_hdr`. .
 ##
 ## .. bro:see:: raw_packet pkt_hdr
 type raw_pkt_hdr: record {
@@ -3514,11 +3514,11 @@ global load_sample_freq = 20 &redef;
 ## be reported via :bro:see:`content_gap`.
 const detect_filtered_trace = F &redef;
 
-## Whether we want :bro:see:`content_gap` and :bro:see:`get_gap_summary` for partial
+## Whether we want :bro:see:`content_gap` for partial
 ## connections. A connection is partial if it is missing a full handshake. Note
 ## that gap reports for partial connections might not be reliable.
 ##
-## .. bro:see:: content_gap get_gap_summary partial_connection
+## .. bro:see:: content_gap partial_connection
 const report_gaps_for_partial = F &redef;
 
 ## Flag to prevent Bro from exiting automatically when input is exhausted.

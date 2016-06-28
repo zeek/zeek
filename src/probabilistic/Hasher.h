@@ -191,9 +191,9 @@ public:
 	DefaultHasher(size_t k, size_t seed);
 
 	// Overridden from Hasher.
-	virtual digest_vector Hash(const void* x, size_t n) const /* final */;
-	virtual DefaultHasher* Clone() const /* final */;
-	virtual bool Equals(const Hasher* other) const /* final */;
+	virtual digest_vector Hash(const void* x, size_t n) const final;
+	virtual DefaultHasher* Clone() const final;
+	virtual bool Equals(const Hasher* other) const final;
 
 	DECLARE_SERIAL(DefaultHasher);
 
@@ -219,9 +219,9 @@ public:
 	DoubleHasher(size_t k, size_t seed);
 
 	// Overridden from Hasher.
-	virtual digest_vector Hash(const void* x, size_t n) const /* final */;
-	virtual DoubleHasher* Clone() const /* final */;
-	virtual bool Equals(const Hasher* other) const /* final */;
+	virtual digest_vector Hash(const void* x, size_t n) const final;
+	virtual DoubleHasher* Clone() const final;
+	virtual bool Equals(const Hasher* other) const final;
 
 	DECLARE_SERIAL(DoubleHasher);
 

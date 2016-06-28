@@ -362,8 +362,7 @@ decrypted from HTTP streams is stored in
 :bro:see:`HTTP::default_capture_password` as shown in the stripped down
 excerpt from :doc:`/scripts/base/protocols/http/main.bro` below.
 
-.. btest-include:: ${BRO_SRC_ROOT}/scripts/base/protocols/http/main.bro
-   :lines: 9-11,20-22,125
+.. btest-include:: ${DOC_ROOT}/scripting/http_main.bro
 
 Because the constant was declared with the ``&redef`` attribute, if we
 needed to turn this option on globally, we could do so by adding the
@@ -776,7 +775,7 @@ string against which it will be tested to be on the right.
 In the sample above, two local variables are declared to hold our
 sample sentence and regular expression.  Our regular expression in
 this case will return true if the string contains either the word
-``quick`` or the word ``fox``. The ``if`` statement in the script uses
+``quick`` or the word ``lazy``. The ``if`` statement in the script uses
 embedded matching and the ``in`` operator to check for the existence
 of the pattern within the string.  If the statement resolves to true,
 :bro:id:`split` is called to break the string into separate pieces.
@@ -825,8 +824,7 @@ example of the ``record`` data type in the earlier sections, the
 :bro:type:`Conn::Info`, which corresponds to the fields logged into
 ``conn.log``, is shown by the excerpt below.
 
-.. btest-include:: ${BRO_SRC_ROOT}/scripts/base/protocols/conn/main.bro
-   :lines: 10-12,16-17,19,21,23,25,28,31,35,38,57,63,69,75,98,101,105,108,112,116-117,122
+.. btest-include:: ${DOC_ROOT}/scripting/data_type_record.bro
 
 Looking at the structure of the definition, a new collection of data
 types is being defined as a type called ``Info``.  Since this type

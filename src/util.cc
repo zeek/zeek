@@ -14,6 +14,11 @@
 # endif
 #endif
 
+#ifdef HAVE_DARWIN
+#include <mach/task.h>
+#include <mach/mach_init.h>
+#endif
+
 #include <string>
 #include <vector>
 #include <algorithm>
@@ -323,24 +328,6 @@ string to_upper(const std::string& s)
 	return t;
 	}
 
-const char* strchr_n(const char* s, const char* end_of_s, char ch)
-	{
-	for ( ; s < end_of_s; ++s )
-		if ( *s == ch )
-			return s;
-
-	return 0;
-	}
-
-const char* strrchr_n(const char* s, const char* end_of_s, char ch)
-	{
-	for ( --end_of_s; end_of_s >= s; --end_of_s )
-		if ( *end_of_s == ch )
-			return end_of_s;
-
-	return 0;
-	}
-
 int decode_hex(char ch)
 	{
 	if ( ch >= '0' && ch <= '9' )
@@ -382,27 +369,6 @@ const char* strpbrk_n(size_t len, const char* s, const char* charset)
 	return 0;
 	}
 
-int strcasecmp_n(int b_len, const char* b, const char* t)
-	{
-	if ( ! b )
-		return -1;
-
-	int i;
-	for ( i = 0; i < b_len; ++i )
-		{
-		char c1 = islower(b[i]) ? toupper(b[i]) : b[i];
-		char c2 = islower(t[i]) ? toupper(t[i]) : t[i];
-
-		if ( c1 < c2 )
-			return -1;
-
-		if ( c1 > c2 )
-			return 1;
-		}
-
-	return t[i] != '\0';
-	}
-
 #ifndef HAVE_STRCASESTR
 // This code is derived from software contributed to BSD by Chris Torek.
 char* strcasestr(const char* s, const char* find)
@@ -421,7 +387,7 @@ char* strcasestr(const char* s, const char* find)
 				if ( sc == 0 )
 					return 0;
 			} while ( char(tolower((unsigned char) sc)) != c );
-		} while ( strcasecmp_n(len, s, find) != 0 );
+		} while ( strncasecmp(s, find, len) != 0 );
 
 		--s;
 		}
@@ -610,7 +576,14 @@ const char* fmt_access_time(double t)
 	{
 	static char buf[256];
 	time_t time = (time_t) t;
-	strftime(buf, sizeof(buf), "%d/%m-%H:%M", localtime(&time));
+	struct tm ts;
+
+	if ( ! localtime_r(&time, &ts) )
+		{
+		reporter->InternalError("unable to get time");
+		}
+
+	strftime(buf, sizeof(buf), "%d/%m-%H:%M", &ts);
 	return buf;
 	}
 
@@ -1650,23 +1623,35 @@ extern "C" void out_of_memory(const char* where)
 	abort();
 	}
 
-void get_memory_usage(unsigned int* total, unsigned int* malloced)
+void get_memory_usage(uint64* total, uint64* malloced)
 	{
-	unsigned int ret_total;
+	uint64 ret_total;
 
 #ifdef HAVE_MALLINFO
 	struct mallinfo mi = mallinfo();
 
 	if ( malloced )
 		*malloced = mi.uordblks;
-
 #endif
 
+#ifdef HAVE_DARWIN
+	struct mach_task_basic_info t_info;
+	mach_msg_type_number_t t_info_count = MACH_TASK_BASIC_INFO;
+
+	if ( KERN_SUCCESS != task_info(mach_task_self(),
+	                               MACH_TASK_BASIC_INFO,
+	                               (task_info_t)&t_info,
+	                               &t_info_count) )
+		ret_total = 0;
+	else
+		ret_total = t_info.resident_size;
+#else
 	struct rusage r;
 	getrusage(RUSAGE_SELF, &r);
 
 	// In KB.
 	ret_total = r.ru_maxrss * 1024;
+#endif
 
 	if ( total )
 		*total = ret_total;

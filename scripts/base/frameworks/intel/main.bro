@@ -77,23 +77,34 @@ export {
 		## The type of data that the indicator represents.
 		indicator_type:  Type          &log &optional;
 
-		## If the indicator type was :bro:enum:`Intel::ADDR`, then this 
+		## If the indicator type was :bro:enum:`Intel::ADDR`, then this
 		## field will be present.
 		host:            addr          &optional;
 
 		## Where the data was discovered.
 		where:           Where         &log;
-		
+
 		## The name of the node where the match was discovered.
 		node:            string        &optional &log;
 
-		## If the data was discovered within a connection, the 
+		## If the data was discovered within a connection, the
 		## connection record should go here to give context to the data.
 		conn:            connection    &optional;
+
+		## If the data was discovered within a connection, the
+		## connection uid should go here to give context to the data.
+		## If the *conn* field is provided, this will be automatically
+		## filled out.
+		uid:             string        &optional;
 
 		## If the data was discovered within a file, the file record
 		## should go here to provide context to the data.
 		f:               fa_file       &optional;
+
+		## If the data was discovered within a file, the file uid should
+		## go here to provide context to the data. If the *f* field is
+		## provided, this will be automatically filled out.
+		fuid:            string        &optional;
 	};
 
 	## Record used for the logging framework representing a positive
@@ -112,7 +123,8 @@ export {
 		## If a file was associated with this intelligence hit,
 		## this is the uid for the file.
 		fuid:           string   &log &optional;
-		## A mime type if the intelligence hit is related to a file.  
+
+		## A mime type if the intelligence hit is related to a file.
 		## If the $f field is provided this will be automatically filled
 		## out.
 		file_mime_type: string   &log &optional;
@@ -283,14 +295,13 @@ event Intel::match(s: Seen, items: set[Item]) &priority=5
 
 	if ( s?$f )
 		{
+		s$fuid = s$f$id;
+
 		if ( s$f?$conns && |s$f$conns| == 1 )
 			{
 			for ( cid in s$f$conns )
 				s$conn = s$f$conns[cid];
 			}
-
-		if ( ! info?$fuid )
-			info$fuid = s$f$id;
 
 		if ( ! info?$file_mime_type && s$f?$info && s$f$info?$mime_type )
 			info$file_mime_type = s$f$info$mime_type;
@@ -299,11 +310,17 @@ event Intel::match(s: Seen, items: set[Item]) &priority=5
 			info$file_desc = Files::describe(s$f);
 		}
 
+	if ( s?$fuid )
+		info$fuid = s$fuid;
+
 	if ( s?$conn )
 		{
-		info$uid = s$conn$uid;
+		s$uid = s$conn$uid;
 		info$id  = s$conn$id;
 		}
+
+	if ( s?$uid )
+		info$uid = s$uid;
 
 	for ( item in items )
 		add info$sources[item$meta$source];

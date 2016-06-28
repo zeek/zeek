@@ -1,4 +1,9 @@
 /*
+ * Johanna Amann <johanna@icir.org>
+ *
+ * Added patricia_search_all function.
+ */
+/*
  * Dave Plonka <plonka@doit.wisc.edu>
  *
  * This product includes software developed by the University of Michigan,
@@ -61,6 +66,7 @@ static char copyright[] =
 #include <string.h> /* memcpy, strchr, strlen */
 #include <arpa/inet.h> /* for inet_addr */
 #include <sys/types.h> /* for u_short, etc. */
+#include <stdbool.h>
 
 #include "patricia.h"
 
@@ -559,6 +565,107 @@ patricia_search_exact (patricia_tree_t *patricia, prefix_t *prefix)
 	return (node);
     }
     return (NULL);
+}
+
+bool
+patricia_search_all (patricia_tree_t *patricia, prefix_t *prefix, patricia_node_t ***list, int *n)
+{
+	patricia_node_t *node;
+	patricia_node_t *stack[PATRICIA_MAXBITS + 1];
+	u_char *addr;
+	u_int bitlen;
+	int cnt = 0;
+
+	assert (patricia);
+	assert (prefix);
+	assert (prefix->bitlen <= patricia->maxbits);
+	assert (n);
+	assert (list);
+	assert (*list == NULL);
+
+	*n = 0;
+
+	if (patricia->head == NULL)
+		return (NULL);
+
+	node = patricia->head;
+	addr = prefix_touchar (prefix);
+	bitlen = prefix->bitlen;
+
+	while (node->bit < bitlen) {
+
+	if (node->prefix) {
+#ifdef PATRICIA_DEBUG
+		fprintf (stderr, "patricia_search_all: push %s/%d\n",
+			prefix_toa (node->prefix), node->prefix->bitlen);
+#endif /* PATRICIA_DEBUG */
+		stack[cnt++] = node;
+	}
+
+	if (BIT_TEST (addr[node->bit >> 3], 0x80 >> (node->bit & 0x07))) {
+#ifdef PATRICIA_DEBUG
+		if (node->prefix)
+			fprintf (stderr, "patricia_search_all: take right %s/%d\n",
+				prefix_toa (node->prefix), node->prefix->bitlen);
+			else
+			fprintf (stderr, "patricia_search_all: take right at %d\n",
+				node->bit);
+#endif /* PATRICIA_DEBUG */
+		node = node->r;
+	} else {
+#ifdef PATRICIA_DEBUG
+		if (node->prefix)
+			fprintf (stderr, "patricia_search_all: take left %s/%d\n",
+				prefix_toa (node->prefix), node->prefix->bitlen);
+			else
+				fprintf (stderr, "patricia_search_all: take left at %d\n",
+					node->bit);
+#endif /* PATRICIA_DEBUG */
+			node = node->l;
+	}
+
+	if (node == NULL)
+			break;
+	}
+
+	if (node && node->prefix)
+		stack[cnt++] = node;
+
+#ifdef PATRICIA_DEBUG
+		if (node == NULL)
+			fprintf (stderr, "patricia_search_all: stop at null\n");
+		else if (node->prefix)
+			fprintf (stderr, "patricia_search_all: stop at %s/%d\n",
+				prefix_toa (node->prefix), node->prefix->bitlen);
+		else
+			fprintf (stderr, "patricia_search_all: stop at %d\n", node->bit);
+#endif /* PATRICIA_DEBUG */
+
+	if (cnt <= 0)
+		return false;
+
+	// ok, now we have an upper bound of how much we can return. Let's just alloc that...
+	patricia_node_t **outlist = calloc(cnt, sizeof(patricia_node_t*));
+	if (outlist == NULL)
+		out_of_memory("patrica/patricia_search_all: unable to allocate memory");
+
+	while (--cnt >= 0) {
+		node = stack[cnt];
+#ifdef PATRICIA_DEBUG
+		fprintf (stderr, "patricia_search_all: pop %s/%d\n",
+			prefix_toa (node->prefix), node->prefix->bitlen);
+#endif /* PATRICIA_DEBUG */
+		if (comp_with_mask (prefix_tochar (node->prefix), prefix_tochar (prefix), node->prefix->bitlen)) {
+#ifdef PATRICIA_DEBUG
+			fprintf (stderr, "patricia_search_all: found %s/%d\n",
+				prefix_toa (node->prefix), node->prefix->bitlen);
+#endif /* PATRICIA_DEBUG */
+			outlist[*n] = node;
+			(*n)++;
+		}
+	}
+	*list = outlist;
+	return (*n == 0);
 }
 
 

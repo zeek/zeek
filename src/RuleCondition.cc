@@ -111,7 +111,7 @@ bool RuleConditionPayloadSize::DoMatch(Rule* rule, RuleEndpointState* state,
 		return payload_size >= val;
 
 	default:
-		reporter->InternalError("unknown comparision type");
+		reporter->InternalError("unknown comparison type");
 	}
 
 	// Should not be reached

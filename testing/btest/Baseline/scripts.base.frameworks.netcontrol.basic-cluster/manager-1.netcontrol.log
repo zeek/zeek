@@ -1,0 +1,26 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	netcontrol
+#open	2016-03-09-23-10-49
+#fields	ts	rule_id	category	cmd	state	action	target	entity_type	entity	mod	msg	priority	expire	location	plugin
+#types	time	string	enum	string	enum	string	enum	string	string	string	string	int	interval	string	string
+1457565049.807080	-	NetControl::MESSAGE	-	-	-	-	-	-	-	activating plugin with priority 0	-	-	-	Debug-All
+1457565049.807080	-	NetControl::MESSAGE	-	-	-	-	-	-	-	activation finished	-	-	-	Debug-All
+1457565049.807080	-	NetControl::MESSAGE	-	-	-	-	-	-	-	plugin initialization done	-	-	-	-
+1457565051.874738	worker-1:2	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	192.168.18.50/32/56981->74.125.239.97/32/443	-	-	0	1.000000	-	Debug-All
+1457565051.874738	worker-1:3	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	192.168.18.50/32	-	-	0	1.000000	-	Debug-All
+1457565051.874738	worker-1:2	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	192.168.18.50/32/56981->74.125.239.97/32/443	-	-	0	1.000000	-	Debug-All
+1457565051.874738	worker-1:3	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	192.168.18.50/32	-	-	0	1.000000	-	Debug-All
+1457565052.874916	worker-1:2	NetControl::RULE	EXPIRE	NetControl::TIMEOUT	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	192.168.18.50/32/56981->74.125.239.97/32/443	-	-	0	1.000000	-	Debug-All
+1457565052.874916	worker-1:2	NetControl::RULE	REMOVE	NetControl::REQUESTED	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	192.168.18.50/32/56981->74.125.239.97/32/443	-	-	0	1.000000	-	Debug-All
+1457565052.874916	worker-1:3	NetControl::RULE	EXPIRE	NetControl::TIMEOUT	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	192.168.18.50/32	-	-	0	1.000000	-	Debug-All
+1457565052.874916	worker-1:3	NetControl::RULE	REMOVE	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	192.168.18.50/32	-	-	0	1.000000	-	Debug-All
+1457565052.874916	worker-1:2	NetControl::RULE	REMOVE	NetControl::SUCCEEDED	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	192.168.18.50/32/56981->74.125.239.97/32/443	-	-	0	1.000000	-	Debug-All
+1457565052.874916	worker-1:3	NetControl::RULE	REMOVE	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	192.168.18.50/32	-	-	0	1.000000	-	Debug-All
+1457565053.950376	worker-2:2	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	192.168.18.50/32/56981->74.125.239.97/32/443	-	-	0	1.000000	-	Debug-All
+1457565053.950376	worker-2:3	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	192.168.18.50/32	-	-	0	1.000000	-	Debug-All
+1457565053.950376	worker-2:2	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	192.168.18.50/32/56981->74.125.239.97/32/443	-	-	0	1.000000	-	Debug-All
+1457565053.950376	worker-2:3	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	192.168.18.50/32	-	-	0	1.000000	-	Debug-All
+#close	2016-03-09-23-10-54

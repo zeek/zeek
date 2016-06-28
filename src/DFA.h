@@ -89,10 +89,9 @@ public:
 	int NumEntries() const	{ return states.Length(); }
 
 	struct Stats {
-		unsigned int dfa_states;
-
-		// Sum over all NFA states per DFA state.
+		// Sum of all NFA states
 		unsigned int nfa_states;
+		unsigned int dfa_states;
 		unsigned int computed;
 		unsigned int uncomputed;
 		unsigned int mem;
@@ -132,7 +131,6 @@ public:
 
 	void Describe(ODesc* d) const;
 	void Dump(FILE* f);
-	void DumpStats(FILE* f);
 
 	unsigned int MemoryAllocation() const;
 

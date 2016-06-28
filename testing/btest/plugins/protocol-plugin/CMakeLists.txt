@@ -9,6 +9,9 @@ endif ()
 
 set(CMAKE_MODULE_PATH ${BRO_DIST}/cmake)
 
+find_package(OpenSSL)
+include_directories(${OPENSSL_INCLUDE_DIR})
+
 include(BroPlugin)
 
 bro_plugin_begin(Demo Foo)

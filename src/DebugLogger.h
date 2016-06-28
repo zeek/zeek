@@ -53,8 +53,10 @@ namespace plugin { class Plugin; }
 class DebugLogger {
 public:
 	// Output goes to stderr per default.
-	DebugLogger(const char* filename = 0);
+	DebugLogger();
 	~DebugLogger();
+
+	void OpenDebugLog(const char* filename = 0);
 
 	void Log(DebugStream stream, const char* fmt, ...);
 	void Log(const plugin::Plugin& plugin, const char* fmt, ...);

@@ -52,9 +52,9 @@ protected:
 
 	DECLARE_SERIAL(FileReassembler);
 
-	void Undelivered(uint64 up_to_seq);
-	void BlockInserted(DataBlock* b);
-	void Overlap(const u_char* b1, const u_char* b2, uint64 n);
+	void Undelivered(uint64 up_to_seq) override;
+	void BlockInserted(DataBlock* b) override;
+	void Overlap(const u_char* b1, const u_char* b2, uint64 n) override;
 
 	File* the_file;
 	bool flushing;

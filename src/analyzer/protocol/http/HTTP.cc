@@ -1209,7 +1209,15 @@ int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 	const char* end_of_method = get_HTTP_token(line, end_of_line);
 
 	if ( end_of_method == line )
+		{
+		// something went wrong with get_HTTP_token
+		// perform a weak test to see if the string "HTTP/"
+		// is found at the end of the RequestLine
+		if ( end_of_line - 9 >= line && strncasecmp(end_of_line - 9, " HTTP/", 6) == 0 )
+			goto bad_http_request_with_version;
+
 		goto error;
+	}
 
 	rest = skip_whitespace(end_of_method, end_of_line);
 
@@ -1230,6 +1238,10 @@ int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 
 	return 1;
 
+bad_http_request_with_version:
+	reporter->Weird(Conn(), "bad_HTTP_request_with_version");
+	return 0;
+
 error:
 	reporter->Weird(Conn(), "bad_HTTP_request");
 	return 0;
@@ -1247,6 +1259,12 @@ int HTTP_Analyzer::ParseRequest(const char* line, const char* end_of_line)
 		     ! is_unreserved_URI_char(*end_of_uri) &&
 		     *end_of_uri != '%' )
 			break;
+		}
+
+	if ( end_of_uri >= end_of_line && PrefixMatch(line, end_of_line, "HTTP/") )
+		{
+		Weird("missing_HTTP_uri");
+		end_of_uri = line; // Leave URI empty.
 		}
 
 	for ( version_start = end_of_uri; version_start < end_of_line; ++version_start )
@@ -1364,7 +1382,7 @@ void HTTP_Analyzer::HTTP_Request()
 	const char* method = (const char*) request_method->AsString()->Bytes();
 	int method_len = request_method->AsString()->Len();
 
-	if ( strcasecmp_n(method_len, method, "CONNECT") == 0 )
+	if ( strncasecmp(method, "CONNECT", method_len) == 0 )
 		connect_request = true;
 
 	if ( http_request )
@@ -1558,7 +1576,7 @@ int HTTP_Analyzer::ExpectReplyMessageBody()
 
 	const BroString* method = UnansweredRequestMethod();
 
-	if ( method && strcasecmp_n(method->Len(), (const char*) (method->Bytes()), "HEAD") == 0 )
+	if ( method && strncasecmp((const char*) (method->Bytes()), "HEAD", method->Len()) == 0 )
 		return HTTP_BODY_NOT_EXPECTED;
 
 	if ( (reply_code >= 100 && reply_code < 200) ||
@@ -1795,12 +1813,12 @@ void HTTP_Analyzer::SkipEntityData(int is_orig)
 	}
 
 int analyzer::http::is_reserved_URI_char(unsigned char ch)
-	{ // see RFC 2396 (definition of URI)
-	return strchr(";/?:@&=+$,", ch) != 0;
+	{ // see RFC 3986 (definition of URI)
+	return strchr(":/?#[]@!$&'()*+,;=", ch) != 0;
 	}
 
 int analyzer::http::is_unreserved_URI_char(unsigned char ch)
-	{ // see RFC 2396 (definition of URI)
+	{ // see RFC 3986 (definition of URI)
 	return isalnum(ch) || strchr("-_.!~*\'()", ch) != 0;
 	}
 
@@ -1816,19 +1834,6 @@ BroString* analyzer::http::unescape_URI(const u_char* line, const u_char* line_e
 	{
 	byte_vec decoded_URI = new u_char[line_end - line + 1];
 	byte_vec URI_p = decoded_URI;
-
-	// An 'unescaped_special_char' here means a character that *should*
-	// be escaped, but isn't in the URI.  A control characters that
-	// appears directly in the URI would be an example.  The RFC implies
-	// that if we do not unescape the URI that we see in the trace, every
-	// character should be a printable one -- either reserved or unreserved
-	// (or '%').
-	//
-	// Counting the number of unescaped characters and generating a weird
-	// event on URI's with unescaped characters (which are rare) will
-	// let us locate strange-looking URI's in the trace -- those URI's
-	// are often interesting.
-	int unescaped_special_char = 0;
 
 	while ( line < line_end )
 		{
@@ -1863,6 +1868,36 @@ BroString* analyzer::http::unescape_URI(const u_char* line, const u_char* line_e
 				++line; // place line at the last hex digit
 				}
 
+			else if ( line_end - line >= 5 &&
+			          line[0] == 'u' &&
+			          isxdigit(line[1]) &&
+			          isxdigit(line[2]) &&
+			          isxdigit(line[3]) &&
+			          isxdigit(line[4]) )
+				{
+				// Decode escaping like this: %u00AE
+				// The W3C rejected escaping this way, and
+				// there is no RFC that specifies it.
+				// Appparently there is some software doing
+				// this sort of 4 byte unicode encoding anyway.
+				// Likely causing an increase in it's use is
+				// the third edition of the ECMAScript spec
+				// having functions for encoding and decoding
+				// data in this format.
+
+				// If the first byte is null, let's eat it.
+				// It could just be ASCII encoded into this
+				// unicode escaping structure.
+				if ( ! (line[1] == '0' && line[2] == '0' ) )
+					*URI_p++ = (decode_hex(line[1]) << 4) +
+					            decode_hex(line[2]);
+
+				*URI_p++ = (decode_hex(line[3]) << 4) +
+					    decode_hex(line[4]);
+
+				line += 4;
+				}
+
 			else
 				{
 				if ( analyzer )
@@ -1873,23 +1908,12 @@ BroString* analyzer::http::unescape_URI(const u_char* line, const u_char* line_e
 			}
 
 		else
-			{
-			if ( ! is_reserved_URI_char(*line) &&
-			     ! is_unreserved_URI_char(*line) )
-				// Count these up as a way to compress
-				// the corresponding Weird event to a
-				// single instance.
-				++unescaped_special_char;
 			*URI_p++ = *line;
-			}
 
 		++line;
 		}
 
 	URI_p[0] = 0;
-
-	if ( unescaped_special_char && analyzer )
-		analyzer->Weird("unescaped_special_URI_char");
 
 	return new BroString(1, decoded_URI, URI_p - decoded_URI);
 	}

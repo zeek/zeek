@@ -1,4 +1,3 @@
-app_stats
 barnyard2
 capture_loss
 cluster
@@ -23,13 +22,18 @@ loaded_scripts
 modbus
 modbus_register_change
 mysql
+net_control
+netcontrol_drop
+netcontrol_shunt
 notice
 notice_alarm
+open_flow
 packet_filter
 pe
 radius
 rdp
 reporter
+rfb
 signatures
 sip
 smtp

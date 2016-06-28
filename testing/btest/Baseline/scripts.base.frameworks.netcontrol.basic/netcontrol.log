@@ -1,0 +1,32 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	netcontrol
+#open	2016-03-09-22-21-13
+#fields	ts	rule_id	category	cmd	state	action	target	entity_type	entity	mod	msg	priority	expire	location	plugin
+#types	time	string	enum	string	enum	string	enum	string	string	string	string	int	interval	string	string
+1457562073.119593	-	NetControl::MESSAGE	-	-	-	-	-	-	-	activating plugin with priority 0	-	-	-	Debug-All
+1457562073.119593	-	NetControl::MESSAGE	-	-	-	-	-	-	-	activation finished	-	-	-	Debug-All
+1457562073.119593	-	NetControl::MESSAGE	-	-	-	-	-	-	-	plugin initialization done	-	-	-	-
+1457562073.119593	2	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	192.168.17.1/32/32->192.168.17.2/32/32	-	-	0	30.000000	-	Debug-All
+1457562073.119593	3	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	1.1.2.2/32	-	-	0	15.000000	Hi there	Debug-All
+1457562073.119593	4	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::WHITELIST	NetControl::FORWARD	NetControl::ADDRESS	1.2.3.4/32	-	-	5	15.000000	-	Debug-All
+1457562073.119593	5	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::REDIRECT	NetControl::FORWARD	NetControl::FLOW	192.168.17.1/32/32->192.168.17.2/32/32	-> 5	-	0	30.000000	-	Debug-All
+1457562073.119593	6	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::FLOW	127.0.0.2/32/*->*/*	-	-	0	15.000000	-	Debug-All
+1457562073.119593	7	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::MODIFY	NetControl::FORWARD	NetControl::FLOW	127.0.0.2/32/*->8.8.8.8/32/53	Src: _/_ (_) Dst: 127.0.0.3/_ (_)	-	5	15.000000	-	Debug-All
+1457562073.119593	8	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::MODIFY	NetControl::FORWARD	NetControl::FLOW	8.8.8.8/32/53->127.0.0.2/32/*	Src: 8.8.8.8/_ (_) Dst: _/_ (_)	-	5	15.000000	-	Debug-All
+1457562073.119593	9	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::WHITELIST	NetControl::FORWARD	NetControl::FLOW	127.0.0.2/32/*->127.0.0.3/32/80	-	-	5	15.000000	-	Debug-All
+1457562073.119593	10	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::MAC	FF:FF:FF:FF:FF:FF	-	-	0	15.000000	-	Debug-All
+1457562073.119593	11	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::FLOW	*/*->*/* (FF:FF:FF:FF:FF:FF->*)	-	-	0	15.000000	-	Debug-All
+1457562073.119593	2	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	192.168.17.1/32/32->192.168.17.2/32/32	-	-	0	30.000000	-	Debug-All
+1457562073.119593	3	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	1.1.2.2/32	-	-	0	15.000000	Hi there	Debug-All
+1457562073.119593	4	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::WHITELIST	NetControl::FORWARD	NetControl::ADDRESS	1.2.3.4/32	-	-	5	15.000000	-	Debug-All
+1457562073.119593	5	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::REDIRECT	NetControl::FORWARD	NetControl::FLOW	192.168.17.1/32/32->192.168.17.2/32/32	-> 5	-	0	30.000000	-	Debug-All
+1457562073.119593	6	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::FLOW	127.0.0.2/32/*->*/*	-	-	0	15.000000	-	Debug-All
+1457562073.119593	7	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::MODIFY	NetControl::FORWARD	NetControl::FLOW	127.0.0.2/32/*->8.8.8.8/32/53	Src: _/_ (_) Dst: 127.0.0.3/_ (_)	-	5	15.000000	-	Debug-All
+1457562073.119593	8	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::MODIFY	NetControl::FORWARD	NetControl::FLOW	8.8.8.8/32/53->127.0.0.2/32/*	Src: 8.8.8.8/_ (_) Dst: _/_ (_)	-	5	15.000000	-	Debug-All
+1457562073.119593	9	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::WHITELIST	NetControl::FORWARD	NetControl::FLOW	127.0.0.2/32/*->127.0.0.3/32/80	-	-	5	15.000000	-	Debug-All
+1457562073.119593	10	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::MAC	FF:FF:FF:FF:FF:FF	-	-	0	15.000000	-	Debug-All
+1457562073.119593	11	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::FLOW	*/*->*/* (FF:FF:FF:FF:FF:FF->*)	-	-	0	15.000000	-	Debug-All
+#close	2016-03-09-22-21-13

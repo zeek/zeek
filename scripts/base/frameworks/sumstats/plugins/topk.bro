@@ -1,3 +1,5 @@
+##! Keep the top-k (i.e., most frequently occurring) observations.
+
 @load base/frameworks/sumstats
 
 module SumStats;
@@ -9,10 +11,13 @@ export {
 	};
 
 	redef enum Calculation += {
+		## Keep a top-k list of values.
 		TOPK
 	};
 
 	redef record ResultVal += {
+		## A handle which can be passed to some built-in functions to get
+		## the top-k results.
 		topk: opaque of topk &optional;
 	};
 

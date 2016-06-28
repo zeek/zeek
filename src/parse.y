@@ -31,12 +31,12 @@
 
 %token TOK_NO_TEST
 
-%nonassoc TOK_HOOK
 %left ',' '|'
 %right '=' TOK_ADD_TO TOK_REMOVE_FROM
 %right '?' ':'
 %left TOK_OR
 %left TOK_AND
+%nonassoc TOK_HOOK
 %nonassoc '<' '>' TOK_LE TOK_GE TOK_EQ TOK_NE
 %left TOK_IN TOK_NOT_IN
 %left '+' '-'
@@ -1474,11 +1474,20 @@ event:
 		TOK_ID '(' opt_expr_list ')'
 			{
 			set_location(@1, @4);
-			$$ = new EventExpr($1, $3);
-			ID* id = lookup_ID($1, current_module.c_str());
 
-			if ( id && id->IsDeprecated() )
-				reporter->Warning("deprecated (%s)", id->Name());
+			ID* id = lookup_ID($1, current_module.c_str());
+			if ( id )
+				{
+				if ( ! id->IsGlobal() )
+					{
+					yyerror(fmt("local identifier \"%s\" cannot be used to reference an event", $1));
+					YYERROR;
+					}
+				if ( id->IsDeprecated() )
+					reporter->Warning("deprecated (%s)", id->Name());
+				}
+
+			$$ = new EventExpr($1, $3);
 			}
 	;
 

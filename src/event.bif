@@ -306,10 +306,10 @@ event packet_contents%(c: connection, contents: string%);
 ## t2: The new payload.
 ##
 ## tcp_flags: A string with the TCP flags of the packet triggering the
-## inconsistency. In the string, each character corresponds to one set flag,
-## as follows: ``S`` -> SYN; ``F`` -> FIN; ``R`` -> RST; ``A`` -> ACK; ``P`` ->
-## PUSH. This string will not always be set, only if the information is available;
-## it's "best effort".
+##            inconsistency. In the string, each character corresponds to one
+##            set flag, as follows: ``S`` -> SYN; ``F`` -> FIN; ``R`` -> RST;
+##            ``A`` -> ACK; ``P`` -> PUSH. This string will not always be set,
+##            only if the information is available; it's "best effort".
 ##
 ## .. bro:see:: tcp_rexmit tcp_contents
 event rexmit_inconsistency%(c: connection, t1: string, t2: string, tcp_flags: string%);
@@ -365,26 +365,6 @@ event ack_above_hole%(c: connection%);
 ##    a connection if some of its data is missing. We should eventually merge
 ##    the two.
 event content_gap%(c: connection, is_orig: bool, seq: count, length: count%);
-
-## Summarizes the amount of missing TCP payload at regular intervals.
-## Internally, Bro tracks (1) the number of :bro:id:`ack_above_hole` events,
-## including the number of bytes missing; and (2) the total number of TCP
-## acks seen, with the total volume of bytes that have been acked. This event
-## reports these statistics in :bro:id:`gap_report_freq` intervals for the
-## purpose of determining packet loss.
-##
-## dt: The time that has passed since the last ``gap_report`` interval.
-##
-## info: The gap statistics.
-##
-## .. bro:see:: content_gap ack_above_hole
-##
-## .. note::
-##
-##    Bro comes with a script :doc:`/scripts/policy/misc/capture-loss.bro` that
-##    uses this event to estimate packet loss and report when a predefined
-##    threshold is exceeded.
-event gap_report%(dt: interval, info: gap_info%);
 
 ## Generated when a protocol analyzer confirms that a connection is indeed
 ## using that protocol. Bro's dynamic protocol detection heuristically activates

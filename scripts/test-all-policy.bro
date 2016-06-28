@@ -29,6 +29,7 @@
 @load frameworks/intel/seen/where-locations.bro
 @load frameworks/intel/seen/x509.bro
 @load frameworks/files/detect-MHR.bro
+@load frameworks/files/entropy-test-all-files.bro
 #@load frameworks/files/extract-all-files.bro
 @load frameworks/files/hash-all-files.bro
 @load frameworks/packet-filter/shunt.bro
@@ -40,15 +41,6 @@
 @load integration/barnyard2/types.bro
 @load integration/collective-intel/__load__.bro
 @load integration/collective-intel/main.bro
-@load misc/app-stats/__load__.bro
-@load misc/app-stats/main.bro
-@load misc/app-stats/plugins/__load__.bro
-@load misc/app-stats/plugins/facebook.bro
-@load misc/app-stats/plugins/gmail.bro
-@load misc/app-stats/plugins/google.bro
-@load misc/app-stats/plugins/netflix.bro
-@load misc/app-stats/plugins/pandora.bro
-@load misc/app-stats/plugins/youtube.bro
 @load misc/capture-loss.bro
 @load misc/detect-traceroute/__load__.bro
 @load misc/detect-traceroute/main.bro
@@ -62,6 +54,7 @@
 @load misc/trim-trace-file.bro
 @load protocols/conn/known-hosts.bro
 @load protocols/conn/known-services.bro
+@load protocols/conn/mac-logging.bro
 @load protocols/conn/vlan-logging.bro
 @load protocols/conn/weirds.bro
 @load protocols/dhcp/known-devices-and-hostnames.bro

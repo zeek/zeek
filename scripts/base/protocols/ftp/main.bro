@@ -213,7 +213,7 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &prior
 		#       on a different file could be checked, but the file size will
 		#       be overwritten by the server response to the RETR command
 		#       if that's given as well which would be more correct.
-		c$ftp$file_size = extract_count(msg);
+		c$ftp$file_size = extract_count(msg, F);
 		}
 
 	# PASV and EPSV processing
@@ -241,10 +241,10 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &prior
 	if ( [c$ftp$cmdarg$cmd, code] in directory_cmds )
 		{
 		if ( c$ftp$cmdarg$cmd == "CWD" )
-			c$ftp$cwd = build_path(c$ftp$cwd, c$ftp$cmdarg$arg);
+			c$ftp$cwd = build_path_compressed(c$ftp$cwd, c$ftp$cmdarg$arg);
 
 		else if ( c$ftp$cmdarg$cmd == "CDUP" )
-			c$ftp$cwd = cat(c$ftp$cwd, "/..");
+			c$ftp$cwd = build_path_compressed(c$ftp$cwd, "/..");
 
 		else if ( c$ftp$cmdarg$cmd == "PWD" || c$ftp$cmdarg$cmd == "XPWD" )
 			c$ftp$cwd = extract_path(msg);

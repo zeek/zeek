@@ -47,7 +47,7 @@ export {
 		## S2           Connection established and close attempt by originator seen (but no reply from responder).
 		## S3           Connection established and close attempt by responder seen (but no reply from originator).
 		## RSTO         Connection established, originator aborted (sent a RST).
-		## RSTR         Established, responder aborted.
+		## RSTR         Responder sent a RST.
 		## RSTOS0       Originator sent a SYN followed by a RST, we never saw a SYN-ACK from the responder.
 		## RSTRH        Responder sent a SYN ACK followed by a RST, we never saw a SYN from the (purported) originator.
 		## SH           Originator sent a SYN followed by a FIN, we never saw a SYN ACK from the responder (hence the connection was "half" open).

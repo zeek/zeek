@@ -11,10 +11,6 @@
 # Load the scan detection script.
 @load misc/scan
 
-# Log some information about web applications being used by users
-# on your network.
-@load misc/app-stats
-
 # Detect traceroute being run on the network.
 @load misc/detect-traceroute
 
@@ -88,3 +84,7 @@
 # Uncomment the following line to enable logging of connection VLANs. Enabling
 # this adds two VLAN fields to the conn.log file.
 # @load policy/protocols/conn/vlan-logging
+
+# Uncomment the following line to enable logging of link-layer addresses. Enabling
+# this adds the link-layer address for each connection endpoint to the conn.log file.
+# @load policy/protocols/conn/mac-logging

@@ -1,2 +1,0 @@
-@load ./main
-@load ./plugins

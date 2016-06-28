@@ -1,3 +1,4 @@
+@load base/protocols/smb
 
 module SMB;
 
@@ -200,9 +201,9 @@ redef likely_server_ports += { ports };
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(CMD_LOG, [$columns=SMB::CmdInfo]);
-	Log::create_stream(FILES_LOG, [$columns=SMB::FileInfo]);
-	Log::create_stream(MAPPING_LOG, [$columns=SMB::TreeInfo]);
+	Log::create_stream(SMB::CMD_LOG, [$columns=SMB::CmdInfo]);
+	Log::create_stream(SMB::FILES_LOG, [$columns=SMB::FileInfo]);
+	Log::create_stream(SMB::MAPPING_LOG, [$columns=SMB::TreeInfo]);
 
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SMB, ports);
 	}

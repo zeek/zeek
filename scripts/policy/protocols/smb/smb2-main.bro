@@ -1,3 +1,5 @@
+@load ./main
+
 module SMB2;
 
 redef record SMB::CmdInfo += {

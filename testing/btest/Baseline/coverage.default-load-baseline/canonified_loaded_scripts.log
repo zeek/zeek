@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2016-06-24-17-59-13
+#open	2016-06-28-15-01-50
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -123,17 +123,13 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_SMB.smb1_events.bif.bro
     build/scripts/base/bif/plugins/Bro_SMB.smb2_com_close.bif.bro
     build/scripts/base/bif/plugins/Bro_SMB.smb2_com_create.bif.bro
-    build/scripts/base/bif/plugins/Bro_SMB.smb2_com_ioctl.bif.bro
-    build/scripts/base/bif/plugins/Bro_SMB.smb2_com_lock.bif.bro
     build/scripts/base/bif/plugins/Bro_SMB.smb2_com_negotiate.bif.bro
     build/scripts/base/bif/plugins/Bro_SMB.smb2_com_read.bif.bro
     build/scripts/base/bif/plugins/Bro_SMB.smb2_com_session_setup.bif.bro
     build/scripts/base/bif/plugins/Bro_SMB.smb2_com_set_info.bif.bro
     build/scripts/base/bif/plugins/Bro_SMB.smb2_com_tree_connect.bif.bro
-    build/scripts/base/bif/plugins/Bro_SMB.smb2_com_tree_disconnect.bif.bro
     build/scripts/base/bif/plugins/Bro_SMB.smb2_com_write.bif.bro
     build/scripts/base/bif/plugins/Bro_SMB.smb2_events.bif.bro
-    build/scripts/base/bif/plugins/Bro_SMB.smb_pipe.bif.bro
     build/scripts/base/bif/plugins/Bro_SMB.types.bif.bro
     build/scripts/base/bif/plugins/Bro_SMTP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_SMTP.functions.bif.bro
@@ -263,7 +259,6 @@ scripts/base/init-default.bro
   scripts/base/protocols/dce-rpc/__load__.bro
     scripts/base/protocols/dce-rpc/consts.bro
     scripts/base/protocols/dce-rpc/main.bro
-    scripts/base/protocols/dce-rpc/endpoint-atsvc.bro
   scripts/base/protocols/dhcp/__load__.bro
     scripts/base/protocols/dhcp/consts.bro
     scripts/base/protocols/dhcp/main.bro
@@ -355,4 +350,4 @@ scripts/base/init-default.bro
   scripts/base/misc/find-checksum-offloading.bro
   scripts/base/misc/find-filtered-trace.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2016-06-24-17-59-13
+#close	2016-06-28-15-01-50

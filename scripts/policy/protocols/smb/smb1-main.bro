@@ -1,3 +1,5 @@
+@load ./main
+
 module SMB1;
 
 redef record SMB::CmdInfo += {
@@ -257,7 +259,7 @@ event smb1_close_request(c: connection, hdr: SMB1::Header, file_id: count) &prio
 		}
 	}
 
-event smb1_trans2_get_dfs_referral_request(c: connection, hdr: SMB1::Header, file_name: string, max_referral_level: count)
+event smb1_trans2_get_dfs_referral_request(c: connection, hdr: SMB1::Header, file_name: string)
 	{
 	c$smb_state$current_cmd$argument = file_name;
 	}

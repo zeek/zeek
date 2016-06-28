@@ -21,6 +21,20 @@ function filetime2brotime(ts: uint64): Val
 	return bro_ts;
 	%}
 
+function time_from_lanman(t: SMB_time, d: SMB_date, tz: uint16): Val
+	%{
+	tm lTime;
+	lTime.tm_sec = ${t.two_seconds} * 2;
+	lTime.tm_min = ${t.minutes};
+	lTime.tm_hour = ${t.hours};
+	lTime.tm_mday = ${d.day};
+	lTime.tm_mon = ${d.month};
+	lTime.tm_year = 1980 + ${d.year};
+	double lResult = mktime(&lTime);
+	return new Val(lResult + tz, TYPE_TIME);
+	%}
+
+
 type SMB_timestamp32 = uint32;
 type SMB_timestamp = uint64;
 
@@ -35,10 +49,3 @@ type SMB_date = record {
 	month : uint16;
 	year  : uint16;
 } &byteorder = littleendian;
-
-
-#type SMB2_timestamp = record {
-#	lowbits           : uint32;
-#	highbits          : uint32;
-#} &byteorder = littleendian;
-#

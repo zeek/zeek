@@ -1,3 +1,10 @@
+## Generated for all SMB2 messages.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the SMB2 message.
+##
+## is_orig: True if the message came from the originator side.
 event smb2_message%(c: connection, hdr: SMB2::Header, is_orig: bool%);
 
 

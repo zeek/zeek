@@ -9,34 +9,6 @@
 # server MUST be rejected with error responses. The server MUST NOT
 # take any other action.
 
-%header{
-	double time_from_lanman(const uint16 two_seconds, const uint16 minutes, const uint16 hours, 
-	       			const uint16 day, const uint16 month, const uint16 year, const uint16 tz);
-	double time_from_ntlm(const uint64 time, const uint16 tz);
-%}
-
-%code{
-
-	double time_from_lanman(const uint16 two_seconds, const uint16 minutes, const uint16 hours, 
-	       			const uint16 day, const uint16 month, const uint16 year, const uint16 tz)
-		{
-		tm lTime;
-		lTime.tm_sec = two_seconds * 2;
-		lTime.tm_min = minutes;
-		lTime.tm_hour = hours;
-		lTime.tm_mday = day;
-		lTime.tm_mon = month;
-		lTime.tm_year = 1980 + year;
-		time_t lResult = mktime(&lTime);
-		return lResult + tz;
-		}
-
-	double time_from_ntlm(const uint64 time, const uint16 tz)
-		{
-		return (time - 11644473600)/100000000.0;
-		}
-%}
-
 refine connection SMB_Conn += {
 
 	function proc_smb1_negotiate_request(header: SMB_Header, val: SMB1_negotiate_request): bool
@@ -98,10 +70,7 @@ refine connection SMB_Conn += {
 					lanman->Assign(5, new Val(${val.lanman.max_number_vcs}, TYPE_COUNT));
 					lanman->Assign(6, raw);
 					lanman->Assign(7, new Val(${val.lanman.session_key}, TYPE_COUNT));
-					lanman->Assign(8, new Val(time_from_lanman(${val.lanman.server_time.two_seconds}, ${val.lanman.server_time.minutes}, 
-							  	                   ${val.lanman.server_time.hours}, ${val.lanman.server_date.day}, 
-									           ${val.lanman.server_date.month}, ${val.lanman.server_date.year}, 
-									           ${val.lanman.server_tz}), TYPE_TIME));
+					lanman->Assign(8, time_from_lanman(${val.lanman.server_time}, ${val.lanman.server_date}, ${val.lanman.server_tz}));
 					lanman->Assign(9, bytestring_to_val(${val.lanman.encryption_key}));
 
 					lanman->Assign(10, smb_string2stringval(${val.lanman.primary_domain}));
@@ -150,7 +119,7 @@ refine connection SMB_Conn += {
 					ntlm->Assign(6, new Val(${val.ntlm.max_raw_size}, TYPE_COUNT));
 					ntlm->Assign(7, new Val(${val.ntlm.session_key}, TYPE_COUNT));
 					ntlm->Assign(8, capabilities);
-					ntlm->Assign(9, new Val(time_from_ntlm(${val.ntlm.server_time}, ${val.ntlm.server_tz}), TYPE_TIME));
+					ntlm->Assign(9, filetime2brotime(${val.ntlm.server_time}));
 
 					if ( ${val.ntlm.capabilities_extended_security} == false ) 
 						{
@@ -167,9 +136,9 @@ refine connection SMB_Conn += {
 				}
 			BifEvent::generate_smb1_negotiate_response(bro_analyzer(), bro_analyzer()->Conn(), BuildHeaderVal(header), response);
 			}
+		
 		return true;
 		%}
-
 };
 
 type SMB_dialect = record {

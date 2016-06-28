@@ -5,5 +5,9 @@
 ## both SMB-over-NetBIOS on ports 138/139 and SMB-over-TCP on port 445.
 ##
 ## c: The connection.
+##
+## hdr: A record representing the SMB1 header.
+##
+## is_orig: True if the message was from the originator.
 event smb1_tree_disconnect%(c: connection, hdr: SMB1::Header, is_orig: bool%);
 

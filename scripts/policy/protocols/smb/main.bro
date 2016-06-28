@@ -1,4 +1,3 @@
-@load ./consts
 
 module SMB;
 

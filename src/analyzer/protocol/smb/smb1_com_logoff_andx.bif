@@ -6,6 +6,6 @@
 ##
 ## c: The connection.
 ##
-## hdr: The parsed header of the SMB message.
+## is_orig: Indicates which host sent the logoff message..
 event smb1_logoff_andx%(c: connection, is_orig: bool%);
 

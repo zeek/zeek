@@ -25,6 +25,8 @@ export {
 		operation  : string   &log &optional;
 	};
 
+	## These are DCE-RPC operations that are ignored, typically due 
+	## the operations being noisy and low valueon most networks.
 	const ignored_operations: table[string] of set[string] = {
 		["winreg"] = set("BaseRegCloseKey", "BaseRegGetVersion", "BaseRegOpenKey", "BaseRegQueryValue", "BaseRegDeleteKeyEx", "OpenLocalMachine", "BaseRegEnumKey", "OpenClassesRoot"),
 		["spoolss"] = set("RpcSplOpenPrinter", "RpcClosePrinter"),

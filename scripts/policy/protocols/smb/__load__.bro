@@ -1,6 +1,5 @@
-@load ./consts
-@load ./const-dos-error
-@load ./const-nt-status
+@load base/protocols/smb
+
 @load ./main
 @load ./smb1-main
 @load ./smb2-main

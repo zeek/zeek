@@ -1,5 +1,21 @@
-## TODO
-event smb1_echo_request%(c: connection, data: string%);
+## Generated for SMB/CIFS requests of type *echo*.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the SMB message.
+##
+## echo_count: The number of times the server should echo the data back.
+## 
+## data: The data for the server to echo.
+event smb1_echo_request%(c: connection, echo_count: count, data: string%);
 
-## TODO
-event smb1_echo_response%(c: connection, data: string%);
+## Generated for SMB/CIFS responses of type *negotiate*.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the SMB message.
+##
+## seq_num: The sequence number of this echo reply.
+## 
+## data: The data echoed back from the client.
+event smb1_echo_response%(c: connection, seq_num: count, data: string%);

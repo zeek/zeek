@@ -30,8 +30,8 @@ refine connection SMB_Conn += {
 
 	function proc_smb1_transaction2_response(header: SMB_Header, val: SMB1_transaction2_response): bool
 		%{
-//		if ( smb1_transaction2_response )
-//			BifEvent::generate_smb1_transaction2_response(bro_analyzer(), bro_analyzer()->Conn(), BuildHeaderVal(header), new Val(${val.sub_cmd}, TYPE_COUNT));
+		//if ( smb1_transaction2_response )
+		//	BifEvent::generate_smb1_transaction2_response(bro_analyzer(), bro_analyzer()->Conn(), BuildHeaderVal(header), ${val.sub_cmd});
 		return true;
 		%}
 
@@ -197,8 +197,7 @@ refine connection SMB_Conn += {
 			{
 			BifEvent::generate_smb1_trans2_query_path_info_request(bro_analyzer(), bro_analyzer()->Conn(), \
 																   BuildHeaderVal(header), \
-																   smb_string2stringval(${val.file_name}),\
-																   ${val.level_of_interest});
+																   smb_string2stringval(${val.file_name}));
 			
 			}
 		return true;
@@ -214,7 +213,7 @@ refine connection SMB_Conn += {
 };
 
 type trans2_query_path_info_request(header: SMB_Header) = record {
-	level_of_interest : uint16;
+	information_level : uint16;
 	reserved          : uint32;
 	file_name         : SMB_string(header.unicode, offsetof(file_name));
 } &let {
@@ -249,7 +248,7 @@ refine connection SMB_Conn += {
 
 type trans2_query_file_info_request(header: SMB_Header) = record {
 	file_id           : uint16;
-	level_of_interest : uint16;
+	information_level : uint16;
 } &let {
 	proc : bool = $context.connection.proc_trans2_query_file_info_request(header, this);
 };
@@ -302,8 +301,7 @@ refine connection SMB_Conn += {
 			{
 			BifEvent::generate_smb1_trans2_get_dfs_referral_request(bro_analyzer(), bro_analyzer()->Conn(), \
 																	BuildHeaderVal(header), \
-																	smb_string2stringval(${val.file_name}),\
-																	${val.max_referral_level});
+																	smb_string2stringval(${val.file_name}));
 			}
 		return true;
 		%}

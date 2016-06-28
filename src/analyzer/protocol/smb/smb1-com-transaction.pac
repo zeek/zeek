@@ -46,18 +46,6 @@ refine connection SMB_Conn += {
 		//printf("transaction_response\n");
 		return true;
 		%}
-
-	function proc_smb1_transaction_setup(header: SMB_Header, val: SMB1_transaction_setup): bool
-		%{
-		if ( smb1_transaction_setup )
-			BifEvent::generate_smb1_transaction_setup(bro_analyzer(), 
-			                                          bro_analyzer()->Conn(),
-			                                          BuildHeaderVal(header),
-			                                          ${val.op_code},
-			                                          ${val.file_id});
-		return true;
-		%}
-
 };
 
 
@@ -74,10 +62,8 @@ type SMB1_transaction_data(header: SMB_Header, is_orig: bool, count: uint16, sub
 };
 
 type SMB1_transaction_setup(header: SMB_Header) = record {
-	op_code	: uint16;
+	op_code : uint16;
 	file_id : uint16;
-} &let {
-	proc: bool = $context.connection.proc_smb1_transaction_setup(header, this);
 }
 
 type SMB1_transaction_request(header: SMB_Header) = record {

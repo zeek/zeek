@@ -262,7 +262,7 @@ event smb1_trans2_get_dfs_referral_request(c: connection, hdr: SMB1::Header, fil
 	c$smb_state$current_cmd$argument = file_name;
 	}
 
-event smb1_trans2_query_path_info_request(c: connection, hdr: SMB1::Header, file_name: string, level_of_interets: count)
+event smb1_trans2_query_path_info_request(c: connection, hdr: SMB1::Header, file_name: string)
 	{
 	c$smb_state$current_cmd$argument = file_name;
 	}
@@ -358,12 +358,3 @@ event smb1_error(c: connection, hdr: SMB1::Header, is_orig: bool)
 			}
 		}
 	}
-
-#event smb1_transaction_setup(c: connection, hdr: SMB1::Header, op_code: count, file_id: count)
-#	{
-#	local uuid = SMB::rpc_uuids[c$smb_state$pipe_map[file_id]];
-#	if ( uuid in SMB::rpc_uuids )
-#		{
-#		print fmt("smb1_transaction_setup %s", SMB::rap_cmds[op_code]);
-#		}
-#	}

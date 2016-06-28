@@ -9,7 +9,7 @@
 ## hdr: The parsed header of the SMB message.
 ##
 ## is_orig: True if the message was sent by the originator of the underlying
-##       transport-level connection.
+##          transport-level connection.
 event smb1_message%(c: connection, hdr: SMB1::Header, is_orig: bool%);
 
 ## Generated when there is an SMB response with no message body.
@@ -27,6 +27,6 @@ event smb1_empty_response%(c: connection, hdr: SMB1::Header%);
 ## hdr: The parsed header of the SMB message.
 ##
 ## is_orig: True if the message was sent by the originator of the underlying
-##       transport-level connection.
+##          transport-level connection.
 event smb1_error%(c: connection, hdr: SMB1::Header, is_orig: bool%);
 

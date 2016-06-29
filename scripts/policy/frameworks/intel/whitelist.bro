@@ -1,12 +1,12 @@
+##! This script enables whitelisting for intelligence items.
 
 @load base/frameworks/intel
-@load base/frameworks/notice
 
 module Intel;
 
 export {
 	redef record Intel::MetaData += {
-		## Add a field to indicate if this is a whitelisted item.
+		## A boolean value to indicate whether the item is whitelisted.
 		whitelist: bool &default=F;
 	};
 }

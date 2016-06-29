@@ -22,8 +22,8 @@ export {
 		## should go here to provide context to the data.
 		f:              fa_file  &optional;
 		## If the data was discovered within a file, the file uid should
-		## go here to provide context to the data. If the *f* field is
-		## provided, this will be automatically filled out.
+		## go here to provide context to the data. If the file record *f*
+		## is provided, this will be automatically filled out.
 		fuid:           string   &optional;
 	};
 

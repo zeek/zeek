@@ -1,7 +1,6 @@
-##! The intelligence framework provides a way to store and query IP addresses,
-##! and strings (with a str_type).  Metadata can
-##! also be associated with the intelligence, like for making more informed
-##! decisions about matching and handling of intelligence.
+##! The intelligence framework provides a way to store and query intelligence data
+##! (e.g. IP addresses, URLs and hashes). The intelligence items can be associated
+##! with metadata to allow informed decisions about matching and handling.
 
 @load base/frameworks/notice
 
@@ -31,15 +30,15 @@ export {
 		## Public key MD5 hash. (SSH server host keys are a good example.)
 		PUBKEY_HASH,
 	};
+
 	## Set of intelligence data types.
 	type TypeSet: set[Type];
 
 	## Data about an :bro:type:`Intel::Item`.
 	type MetaData: record {
-		## An arbitrary string value representing the data source.
-		## Typically, the convention for this field will be the source
-		## name and feed name separated by a hyphen.
-		## For example: "source1-c&c".
+		## An arbitrary string value representing the data source. This
+		## value is used as unique key to identify a metadata record in
+		## the scope of a single intelligence item.
 		source:      string;
 		## A freeform description for the data.
 		desc:        string      &optional;
@@ -55,7 +54,7 @@ export {
 		## The type of data that the indicator field represents.
 		indicator_type: Type;
 		
-		## Metadata for the item.  Typically represents more deeply
+		## Metadata for the item. Typically represents more deeply
 		## descriptive data for a piece of intelligence.
 		meta:           MetaData;
 	};
@@ -117,11 +116,14 @@ export {
 		sources:  set[string]    &log &default=string_set();
 	};
 
-	## Intelligence data manipulation function.
+	## Function to insert intelligence data. If the indicator is already
+	## present, the associated metadata will be added to the indicator. If
+	## the indicator already contains a metadata record from the same source,
+	## the existing metadata record will be updated.
 	global insert: function(item: Item);
 
 	## Function to remove intelligence data. If purge_indicator is set, the
-	## given meta data is ignored and the indicator is removed completely.
+	## given metadata is ignored and the indicator is removed completely.
 	global remove: function(item: Item, purge_indicator: bool &default = F);
 
 	## Function to declare discovery of a piece of data in order to check
@@ -129,16 +131,17 @@ export {
 	global seen: function(s: Seen);
 
 	## Event to represent a match in the intelligence data from data that
-	## was seen.  On clusters there is no assurance as to where this event
+	## was seen. On clusters there is no assurance as to when this event
 	## will be generated so do not assume that arbitrary global state beyond
 	## the given data will be available.
 	##
-	## This is the primary mechanism where a user will take actions based on
-	## data within the intelligence framework.
+	## This is the primary mechanism where a user may take actions based on
+	## data provided by the intelligence framework.
 	global match: event(s: Seen, items: set[Item]);
 
-	## This hook can be used to extend the intel log by adding data to the
-	## Info record. The default information is added with a priority of 5.
+	## This hook can be used to influence the logging of intelligence hits
+	## (e.g. by adding data to the Info record). The default information is
+	## added with a priority of 5.
 	##
 	## info: The Info record that will be logged.
 	##
@@ -161,7 +164,7 @@ export {
 	##
 	## indicator_type: The indicator type of the expired item.
 	##
-	## metas: The set of meta data describing the expired item.
+	## metas: The set of metadata describing the expired item.
 	##
 	## If all hook handlers are executed, the expiration timeout will be reset.
 	## Otherwise, if one of the handlers terminates using break, the item will
@@ -183,7 +186,7 @@ global purge_item: event(item: Item);
 # if this is a cluster deployment or not.
 const have_full_data = T &redef;
 
-# Table of meta data, indexed by source string.
+# Table of metadata, indexed by source string.
 type MetaDataTable: table[string] of MetaData;
 
 # Expiration handlers.
@@ -213,21 +216,6 @@ global min_data_store: MinDataStore &redef;
 event bro_init() &priority=5
 	{
 	Log::create_stream(LOG, [$columns=Info, $ev=log_intel, $path="intel"]);
-	}
-
-function find(s: Seen): bool
-	{
-	local ds = have_full_data ? data_store : min_data_store;
-
-	if ( s?$host )
-		{
-		return ((s$host in ds$host_data) ||
-		        (|matching_subnets(addr_to_subnet(s$host), ds$subnet_data)| > 0));
-		}
-	else
-		{
-		return ([to_lower(s$indicator), s$indicator_type] in ds$string_data);
-		}
 	}
 
 # Function that abstracts expiration of different types.
@@ -275,7 +263,24 @@ function expire_string_data(data: table[string, Type] of MetaDataTable, idx: any
 	return expire_item(indicator, indicator_type, metas);
 	}
 
-# Function to abstract from different data stores for different indicator types.
+# Function to check for intelligence hits.
+function find(s: Seen): bool
+	{
+	local ds = have_full_data ? data_store : min_data_store;
+
+	if ( s?$host )
+		{
+		return ((s$host in ds$host_data) ||
+		        (|matching_subnets(addr_to_subnet(s$host), ds$subnet_data)| > 0));
+		}
+	else
+		{
+		return ([to_lower(s$indicator), s$indicator_type] in ds$string_data);
+		}
+	}
+
+# Function to retrieve intelligence items while abstracting from different
+# data stores for different indicator types.
 function get_items(s: Seen): set[Item]
 	{
 	local return_data: set[Item];
@@ -365,7 +370,7 @@ event Intel::match(s: Seen, items: set[Item]) &priority=5
 
 function insert(item: Item)
 	{
-	# Create and fill out the meta data item.
+	# Create and fill out the metadata item.
 	local meta = item$meta;
 	local meta_tbl: table [string] of MetaData;
 	local is_new: bool = T;
@@ -420,7 +425,7 @@ function insert(item: Item)
 
 	if ( have_full_data )
 		{
-		# Insert new meta data or update if already present
+		# Insert new metadata or update if already present
 		meta_tbl[meta$source] = meta;
 		}
 
@@ -430,8 +435,8 @@ function insert(item: Item)
 		event Intel::new_item(item);
 	}
 
-# Function to remove meta data of an item. The function returns T
-# if there is no meta data left for the given indicator.
+# Function to remove metadata of an item. The function returns T
+# if there is no metadata left for the given indicator.
 function remove_meta_data(item: Item): bool
 	{
 	if ( ! have_full_data )
@@ -466,7 +471,7 @@ function remove(item: Item, purge_indicator: bool)
 		return;
 		}
 
-	# Remove meta data from manager's data store
+	# Remove metadata from manager's data store
 	local no_meta_data = remove_meta_data(item);
 	# Remove whole indicator if necessary
 	if ( no_meta_data || purge_indicator )
@@ -485,14 +490,14 @@ function remove(item: Item, purge_indicator: bool)
 				delete data_store$string_data[item$indicator, item$indicator_type];
 				break;
 			}
-		# Trigger deletion in min data stores
+		# Trigger deletion in minimal data stores
 		event Intel::purge_item(item);
 		}
 	}
 
+# Handling of indicator removal in minimal data stores.
 event purge_item(item: Item)
 	{
-	# Remove data from min data store
 	switch ( item$indicator_type )
 		{
 		case ADDR:

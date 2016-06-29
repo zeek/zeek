@@ -1,3 +1,4 @@
+##! This script enables notice generation for intelligence matches.
 
 @load base/frameworks/intel
 @load base/frameworks/notice

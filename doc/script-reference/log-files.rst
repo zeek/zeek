@@ -95,8 +95,6 @@ Network Observations
 +----------------------------+---------------------------------------+---------------------------------+
 | Log File                   | Description                           | Field Descriptions              |
 +============================+=======================================+=================================+
-| app_stats.log              | Web app usage statistics              | :bro:type:`AppStats::Info`      |
-+----------------------------+---------------------------------------+---------------------------------+
 | known_certs.log            | SSL certificates                      | :bro:type:`Known::CertsInfo`    |
 +----------------------------+---------------------------------------+---------------------------------+
 | known_devices.log          | MAC addresses of devices on the       | :bro:type:`Known::DevicesInfo`  |

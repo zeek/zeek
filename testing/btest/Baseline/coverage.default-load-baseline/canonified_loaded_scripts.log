@@ -173,6 +173,7 @@ scripts/base/init-default.bro
       scripts/base/frameworks/reporter/main.bro
     scripts/base/utils/paths.bro
   scripts/base/utils/directions-and-hosts.bro
+  scripts/base/utils/email.bro
   scripts/base/utils/files.bro
   scripts/base/utils/geoip-distance.bro
   scripts/base/utils/numbers.bro

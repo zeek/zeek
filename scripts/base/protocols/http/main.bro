@@ -60,9 +60,6 @@ export {
 		info_code:               count     &log &optional;
 		## Last seen 1xx informational reply message returned by the server.
 		info_msg:                string    &log &optional;
-		## Filename given in the Content-Disposition header sent by the
-		## server.
-		filename:                string    &log &optional;
 		## A set of indicators of various attributes discovered and
 		## related to a particular request/response pair.
 		tags:                    set[Tags] &log;

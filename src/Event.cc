@@ -94,26 +94,6 @@ void EventMgr::QueueEvent(Event* event)
 	++num_events_queued;
 	}
 
-void EventMgr::Dispatch()
-	{
-	if ( ! head )
-		reporter->InternalError("EventMgr::Dispatch underflow");
-
-	Event* current = head;
-
-	head = head->NextEvent();
-	if ( ! head )
-		tail = head;
-
-	current_src = current->Source();
-	current_mgr = current->Mgr();
-	current_aid = current->Analyzer();
-	current->Dispatch();
-	Unref(current);
-
-	++num_events_dispatched;
-	}
-
 void EventMgr::Drain()
 	{
 	if ( event_queue_flush_point )
@@ -124,8 +104,34 @@ void EventMgr::Drain()
 	PLUGIN_HOOK_VOID(HOOK_DRAIN_EVENTS, HookDrainEvents());
 
 	draining = true;
-	while ( head )
-		Dispatch();
+
+	// Past Bro versions drained as long as there events, including when
+	// a handler queued new events during its execution. This could lead
+	// to endless loops in case a handler kept triggering its own event.
+	// We now limit this to just a couple of rounds. We do more than
+	// just one round to make it less likley to break existing scripts
+	// that expect the old behavior to trigger something quickly.
+
+	for ( int round = 0; head && round < 2; round++ )
+		{
+		Event* current = head;
+		head = 0;
+		tail = 0;
+
+		while ( current )
+			{
+			Event* next = current->NextEvent();
+
+			current_src = current->Source();
+			current_mgr = current->Mgr();
+			current_aid = current->Analyzer();
+			current->Dispatch();
+			Unref(current);
+
+			++num_events_dispatched;
+			current = next;
+			}
+		}
 
 	// Note: we might eventually need a general way to specify things to
 	// do after draining events.

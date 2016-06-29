@@ -90,8 +90,6 @@ public:
 			delete_vals(vl);
 		}
 
-	void Dispatch();
-
 	void Dispatch(Event* event, bool no_remote = false)
 		{
 		current_src = event->Source();

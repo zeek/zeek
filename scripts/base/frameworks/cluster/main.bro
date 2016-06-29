@@ -31,7 +31,9 @@ export {
 		## A node type which is allowed to view/manipulate the configuration
 		## of other nodes in the cluster.
 		CONTROL,
-		## A node type responsible for log and policy management.
+		## A node type responsible for log management.
+		LOGGER,
+		## A node type responsible for policy management.
 		MANAGER,
 		## A node type for relaying worker node communication and synchronizing
 		## worker node state.
@@ -86,6 +88,8 @@ export {
 		p:            port;
 		## Identifier for the interface a worker is sniffing.
 		interface:    string      &optional;
+		## Name of the logger node this node uses.  For manager, proxies and workers.
+		logger:       string      &optional;
 		## Name of the manager node this node uses.  For workers and proxies.
 		manager:      string      &optional;
 		## Name of the proxy node this node uses.  For workers and managers.

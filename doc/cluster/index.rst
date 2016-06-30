@@ -39,9 +39,11 @@ Manager
 *******
 The manager is a Bro process that has two primary jobs.  It receives log
 messages and notices from the rest of the nodes in the cluster using the Bro
-communications protocol.  The result is a single log instead of many
-discrete logs that you have to combine in some manner with post-processing.
-The manager also takes the opportunity to de-duplicate notices, and it has the
+communications protocol (note that if you are using a logger, then the
+logger receives all logs instead of the manager).  The result
+is a single log instead of many discrete logs that you have to
+combine in some manner with post-processing.  The manager also takes
+the opportunity to de-duplicate notices, and it has the
 ability to do so since it's acting as the choke point for notices and how
 notices might be processed into actions (e.g., emailing, paging, or blocking).
 
@@ -50,6 +52,20 @@ designated port and waits for connections, it doesn't initiate any
 connections to the rest of the cluster.  Once the workers are started and
 connect to the manager, logs and notices will start arriving to the manager
 process from the workers.
+
+Logger
+******
+The logger is an optional Bro process that receives log messages from the
+rest of the nodes in the cluster using the Bro communications protocol.
+The purpose of having a logger receive logs instead of the manager is
+to reduce the load on the manager.  If no logger is needed, then the
+manager will receive logs instead.
+
+The logger process is started first by BroControl and it only opens its
+designated port and waits for connections, it doesn't initiate any
+connections to the rest of the cluster.  Once the rest of the cluster is
+started and connect to the logger, logs will start arriving to the logger
+process.
 
 Proxy
 *****

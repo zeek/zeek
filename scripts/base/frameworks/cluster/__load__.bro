@@ -32,7 +32,7 @@ redef Communication::listen_port = Cluster::nodes[Cluster::node]$p;
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
 @load ./nodes/manager
-# If no logger is defined, then the manager writes logs.
+# If no logger is defined, then the manager receives logs.
 @if ( "logger" !in Cluster::nodes )
 @load ./nodes/logger
 @endif

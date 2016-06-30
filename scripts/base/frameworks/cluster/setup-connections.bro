@@ -33,7 +33,7 @@ event bro_init() &priority=9
 			}
 		else if ( me$node_type == MANAGER )
 			{
-			# If no logger is defined, then the manager writes logs.
+			# If no logger is defined, then the manager receives logs.
 			local managerlogs = "logger" !in Cluster::nodes;
 
 			if ( n$node_type == LOGGER && me$logger == i )

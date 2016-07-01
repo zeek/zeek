@@ -1,4 +1,35 @@
 
+2.4-676 | 2016-06-30 17:27:54 -0700
+
+  * A larger series of NetControl updates. (Johanna Amann)
+
+        * Add NetControl framework documentation to the Bro manual.
+
+        * Use NetControl for ACTION_DROP of notice framework. So far,
+          this action did nothing by default.
+
+        * Rewrite of catch-and-release.
+          
+        * Fix several small logging issues.
+
+        * find_rules_subnet() now works in cluster mode. This
+          introduces two new events, NetControl::rule_new and
+          NetControl::rule_destroyed, which are raised when rules are
+          first added and then deleted from the internal state
+          tracking.
+
+        * Fix acld whitelist command.
+          
+        * Add rule existance as a state besides added and failure.
+      
+        * Suppress duplicate "plugin activated" messages.
+      
+        * Make new Broker plugin options accessible.
+          
+        * Add predicates to Broker plugin.
+      
+  * Tweak SMTP scripts to not to pull in the notice framework.
+
 2.4-658 | 2016-06-30 16:55:32 -0700
 
   * Fix a number of documentation building errors. (Johanna Amann)

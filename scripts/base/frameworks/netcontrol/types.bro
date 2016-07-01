@@ -1,30 +1,45 @@
-##! Types used by the NetControl framework.
+##! This file defines the that are used by the NetControl framework.
+##!
+##! The most important type defined in this file is :bro:see:`NetControl::Rule`,
+##! which is used to describe all rules that can be expressed by the NetControl framework. 
 
 module NetControl;
 
 export {
+	## The default priority that is used when creating rules.
 	const default_priority: int = +0 &redef;
+
+	## The default priority that is used when using the high-level functions to
+	## push whitelist entries to the backends (:bro:see:`NetControl::whitelist_address` and
+	## :bro:see:`NetControl::whitelist_subnet`).
+	##
+	## Note that this priority is not automatically used when manually creating rules
+	## that have a :bro:see:`NetControl::RuleType` of :bro:enum:`NetControl::WHITELIST`.
 	const whitelist_priority: int = +5 &redef;
 
-	## Type of a :bro:id:`Entity` for defining an action.
+	## The EntityType is used in :bro:id:`Entity` for defining the entity that a rule
+	## applies to.
 	type EntityType: enum {
 		ADDRESS,	##< Activity involving a specific IP address.
-		CONNECTION,	##< All of a bi-directional connection's activity.
-		FLOW,		##< All of a uni-directional flow's activity. Can contain wildcards.
+		CONNECTION,	##< Activity involving all of a bi-directional connection's activity.
+		FLOW,		##< Actitivy involving a uni-directional flow's activity. Can contain wildcards.
 		MAC,		##< Activity involving a MAC address.
 	};
 
-	## Type for defining a flow.
+	## Flow is used in :bro:id:`Entity` together with :bro:enum:`NetControl::FLOW` to specify
+	## a uni-directional flow that a :bro:id:`Rule` applies to.
+	##
+	## If optional fields are not set, they are interpreted as wildcarded.
 	type Flow: record {
 		src_h: subnet &optional;	##< The source IP address/subnet.
 		src_p: port &optional;	##< The source port number.
 		dst_h: subnet &optional;	##< The destination IP address/subnet.
-		dst_p: port &optional;	##< The desintation port number.
+		dst_p: port &optional;	##< The destination port number.
 		src_m: string &optional;	##< The source MAC address.
 		dst_m: string &optional;	##< The destination MAC address.
 	};
 
-	## Type defining the enity an :bro:id:`Rule` is operating on.
+	## Type defining the entity an :bro:id:`Rule` is operating on.
 	type Entity: record {
 		ty: EntityType;			##< Type of entity.
 		conn: conn_id &optional;	##< Used with :bro:enum:`NetControl::CONNECTION`.
@@ -33,32 +48,36 @@ export {
 		mac: string &optional;		##< Used with :bro:enum:`NetControl::MAC`.
 	};
 
-	## Target of :bro:id:`Rule` action.
+	## The :bro:id`TargetType` defined the target of a :bro:id:`Rule`.
+	##
+	## Rules can either be applied to the forward path, affecting all network traffic, or
+	## on the monitor path, only affecting the traffic that is sent to Bro. The second
+	## is mostly used for shunting, which allows Bro to tell the networking hardware that
+	## it wants to no longer see traffic that it identified as benign.
 	type TargetType: enum {
 		FORWARD,	#< Apply rule actively to traffic on forwarding path.
 		MONITOR,	#< Apply rule passively to traffic sent to Bro for monitoring.
 	};
 
-	## Type of rules that the framework supports. Each type lists the
+	## Type of rules that the framework supports. Each type lists the extra
 	## :bro:id:`Rule` argument(s) it uses, if any.
 	##
 	## Plugins may extend this type to define their own.
 	type RuleType: enum {
-		## Stop forwarding all packets matching entity.
+		## Stop forwarding all packets matching the entity.
 		##
-		## No arguments.
+		## No additional arguments.
 		DROP,
 
-		## Begin modifying all packets matching entity.
+		## Modify all packets matching entity. The packets
+		## will be modified according to the `mod` entry of
+		## the rule.
 		##
-		## .. todo::
-		##	Define arguments.
 		MODIFY,
 
-		## Begin redirecting all packets matching entity.
+		## Redirect all packets matching entity to a different switch port,
+		## given in the `out_port` argument of the rule.
 		##
-		## .. todo::
-		##	c: output port to redirect traffic to.
 		REDIRECT,
 
 		## Whitelists all packets of an entity, meaning no restrictions will be applied.

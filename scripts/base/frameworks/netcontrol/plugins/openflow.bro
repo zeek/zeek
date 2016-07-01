@@ -7,22 +7,46 @@
 module NetControl;
 
 export {
+	## This record specifies the configuration that is passed to :bro:see:`NetControl::create_openflow`.
 	type OfConfig: record {
-		monitor: bool &default=T;
-		forward: bool &default=T;
-		idle_timeout: count &default=0;
-		table_id: count &optional;
+		monitor: bool &default=T; ##< accept rules that target the monitor path
+		forward: bool &default=T; ##< accept rules that target the forward path
+		idle_timeout: count &default=0; ##< default OpenFlow idle timeout
+		table_id: count &optional; ##< default OpenFlow table ID.
 		priority_offset: int &default=+0; ##< add this to all rule priorities. Can be useful if you want the openflow priorities be offset from the netcontrol priorities without having to write a filter function.
 
 		## Predicate that is called on rule insertion or removal.
 		##
-		## p: Current plugin state
+		## p: Current plugin state.
 		##
-		## r: The rule to be inserted or removed
+		## r: The rule to be inserted or removed.
 		##
-		## Returns: T if the rule can be handled by the current backend, F otherwhise
+		## Returns: T if the rule can be handled by the current backend, F otherwhise.
 		check_pred: function(p: PluginState, r: Rule): bool &optional;
+
+		## This predicate is called each time an OpenFlow match record is created.
+		## The predicate can modify the match structure before it is sent on to the
+		## device.
+		##
+		## p: Current plugin state.
+		##
+		## r: The rule to be inserted or removed.
+		##
+		## m: The openflow match structures that were generated for this rules.
+		##
+		## Returns: The modified OpenFlow match structures that will be used in place the structures passed in m.
 		match_pred: function(p: PluginState, e: Entity, m: vector of OpenFlow::ofp_match): vector of OpenFlow::ofp_match &optional;
+
+		## This predicate is called before an FlowMod message is sent to the OpenFlow
+		## device. It can modify the FlowMod message before it is passed on.
+		##
+		## p: Current plugin state.
+		##
+		## r: The rule to be inserted or removed.
+		##
+		## m: The OpenFlow FlowMod message.
+		##
+		## Returns: The modified FloMod message that is used in lieu of m.
 		flow_mod_pred: function(p: PluginState, r: Rule, m: OpenFlow::ofp_flow_mod): OpenFlow::ofp_flow_mod &optional;
 	};
 

@@ -1,0 +1,2 @@
+@TEST-EXEC: btest-rst-cmd bro -C -r ${TRACES}/tls/ecdhe.pcap ${DOC_ROOT}/frameworks/netcontrol-4-drop.bro
+@TEST-EXEC: btest-rst-cmd cat netcontrol.log

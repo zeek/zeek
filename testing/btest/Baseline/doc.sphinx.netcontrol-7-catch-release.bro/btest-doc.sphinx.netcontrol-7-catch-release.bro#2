@@ -1,0 +1,19 @@
+.. rst-class:: btest-cmd
+
+    .. code-block:: none
+      :linenos:
+      :emphasize-lines: 1,1
+
+      # cat netcontrol_catch_release.log
+      #separator \x09
+      #set_separator	,
+      #empty_field	(empty)
+      #unset_field	-
+      #path	netcontrol_catch_release
+      #open	2016-06-22-22-58-49
+      #fields	ts	rule_id	ip	action	block_interval	watch_interval	blocked_until	watched_until	num_blocked	location	message
+      #types	time	string	addr	enum	interval	interval	time	time	count	string	string
+      1398529018.678276	2	192.168.18.50	NetControl::DROP	600.000000	3600.000000	1398529618.678276	1398532618.678276	1	-	-
+      1398529018.678276	2	192.168.18.50	NetControl::DROPPED	600.000000	3600.000000	1398529618.678276	1398532618.678276	1	-	-
+      #close	2016-06-22-22-58-49
+

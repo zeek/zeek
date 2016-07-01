@@ -7,7 +7,7 @@ Input Framework
 
 .. rst-class:: opening
 
-   Bro now features a flexible input framework that allows users
+   Bro features a flexible input framework that allows users
    to import data into Bro. Data is either read into Bro tables or
    converted to events which can then be handled by scripts.
    This document gives an overview of how to use the input framework

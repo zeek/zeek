@@ -1,0 +1,10 @@
+.. rst-class:: btest-cmd
+
+    .. code-block:: none
+      :linenos:
+      :emphasize-lines: 1,1
+
+      # bro -C -r tls/ecdhe.pcap netcontrol-5-hook.bro
+      netcontrol debug (Debug-All): init
+      Ignored connection from, 192.168.18.50
+

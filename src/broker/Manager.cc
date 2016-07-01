@@ -444,8 +444,8 @@ bool bro_broker::Manager::SubscribeToPrints(string topic_prefix, int flag)
 	if ( q )
 		return false;
 
-	if (flag == broker::MULTI_HOP)
-		q = broker::message_queue(move(topic_prefix), *endpoint, broker::MULTI_HOP);
+	if (flag == broker::GLOBAL_SCOPE)
+		q = broker::message_queue(move(topic_prefix), *endpoint, broker::GLOBAL_SCOPE);
 	else
 		q = broker::message_queue(move(topic_prefix), *endpoint);
 
@@ -470,8 +470,8 @@ bool bro_broker::Manager::SubscribeToEvents(string topic_prefix, int flag)
 	if ( q )
 		return false;
 
-	if (flag == broker::MULTI_HOP)
-		q = broker::message_queue(move(topic_prefix), *endpoint, broker::MULTI_HOP);
+	if (flag == broker::GLOBAL_SCOPE)
+		q = broker::message_queue(move(topic_prefix), *endpoint, broker::GLOBAL_SCOPE);
 	else
 		q = broker::message_queue(move(topic_prefix), *endpoint);
 
@@ -496,8 +496,8 @@ bool bro_broker::Manager::SubscribeToLogs(string topic_prefix, int flag)
 	if ( q )
 		return false;
 
-	if (flag == broker::MULTI_HOP)
-		q = broker::message_queue(move(topic_prefix), *endpoint, broker::MULTI_HOP);
+	if (flag == broker::GLOBAL_SCOPE)
+		q = broker::message_queue(move(topic_prefix), *endpoint, broker::GLOBAL_SCOPE);
 	else
 		q = broker::message_queue(move(topic_prefix), *endpoint);
 

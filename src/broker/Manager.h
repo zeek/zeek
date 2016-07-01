@@ -203,7 +203,7 @@ public:
 	 * and "amy" but not "bob".
 	 * @return true if it's a new print subscriptions and it is now registered.
 	 */
-	bool SubscribeToPrints(std::string topic_prefix, int flag = broker::SINGLE_HOP);
+	bool SubscribeToPrints(std::string topic_prefix, int flag = broker::LOCAL_SCOPE);
 
 	/**
 	 * Unregister interest in peer print messages.
@@ -220,7 +220,7 @@ public:
 	 * and "amy" but not "bob".
 	 * @return true if it's a new event subscription and it is now registered.
 	 */
-	bool SubscribeToEvents(std::string topic_prefix, int flag = broker::SINGLE_HOP);
+	bool SubscribeToEvents(std::string topic_prefix, int flag = broker::LOCAL_SCOPE);
 
 	/**
 	 * Unregister interest in peer event messages.
@@ -237,7 +237,7 @@ public:
 	 * and "amy" but not "bob".
 	 * @return true if it's a new log subscription and it is now registered.
 	 */
-	bool SubscribeToLogs(std::string topic_prefix, int flag = broker::SINGLE_HOP);
+	bool SubscribeToLogs(std::string topic_prefix, int flag = broker::LOCAL_SCOPE);
 
 	/**
 	 * Unregister interest in peer log messages.

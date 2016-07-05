@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	EMPTY
+#unset_field	-
+#path	test
+#open	2016-07-05-23-20-42
+#fields	ss
+#types	set[string]
+\x45MPTY
+#close	2016-07-05-23-20-42

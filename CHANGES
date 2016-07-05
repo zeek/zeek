@@ -1,4 +1,12 @@
 
+2.4-679 | 2016-07-05 16:35:53 -0700
+
+  * Fix segfault when an existing enum identifier is added again with
+    a different value. Addresses BIT-931. (Robin Sommer)
+
+  * Escape the empty indicator in logs if it occurs literally as a
+    field's actual content. Addresses BIT-931. (Robin Sommer)
+
 2.4-676 | 2016-06-30 17:27:54 -0700
 
   * A larger series of NetControl updates. (Johanna Amann)
@@ -9,7 +17,7 @@
           this action did nothing by default.
 
         * Rewrite of catch-and-release.
-          
+
         * Fix several small logging issues.
 
         * find_rules_subnet() now works in cluster mode. This
@@ -19,15 +27,15 @@
           tracking.
 
         * Fix acld whitelist command.
-          
+
         * Add rule existance as a state besides added and failure.
-      
+
         * Suppress duplicate "plugin activated" messages.
-      
+
         * Make new Broker plugin options accessible.
-          
+
         * Add predicates to Broker plugin.
-      
+
   * Tweak SMTP scripts to not to pull in the notice framework.
 
 2.4-658 | 2016-06-30 16:55:32 -0700
@@ -44,7 +52,7 @@
 
 2.4-644 | 2016-06-21 13:59:05 -0400
 
-  * Fix an off-by-one error when grabbing x-originating-ip header in 
+  * Fix an off-by-one error when grabbing x-originating-ip header in
     email. (Seth Hall, Aashish Sharma)
 
 2.4-642 | 2016-06-18 13:18:23 -0700

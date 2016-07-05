@@ -33,9 +33,6 @@ event bro_init() &priority=9
 			}
 		else if ( me$node_type == MANAGER )
 			{
-			# If no logger is defined, then the manager receives logs.
-			local managerlogs = "logger" !in Cluster::nodes;
-
 			if ( n$node_type == LOGGER && me$logger == i )
 				Communication::nodes["logger"] =
 				    [$host=n$ip, $zone_id=n$zone_id, $p=n$p,
@@ -46,13 +43,13 @@ event bro_init() &priority=9
 				Communication::nodes[i] =
 				    [$host=n$ip, $zone_id=n$zone_id, $connect=F,
 				     $class=i, $events=worker2manager_events,
-				     $request_logs=managerlogs];
+				     $request_logs=Cluster::manager_is_logger];
 
 			if ( n$node_type == PROXY && n$manager == node )
 				Communication::nodes[i] =
 				    [$host=n$ip, $zone_id=n$zone_id, $connect=F,
 				     $class=i, $events=proxy2manager_events,
-				     $request_logs=managerlogs];
+				     $request_logs=Cluster::manager_is_logger];
 
 			if ( n$node_type == TIME_MACHINE && me?$time_machine && me$time_machine == i )
 				Communication::nodes["time-machine"] = [$host=nodes[i]$ip,

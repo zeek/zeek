@@ -26,16 +26,16 @@ redef peer_description = Cluster::node;
 ## Set the port that this node is supposed to listen on.
 redef Communication::listen_port = Cluster::nodes[Cluster::node]$p;
 
-@if ( Cluster::local_node_type() == Cluster::LOGGER )
-@load ./nodes/logger
-@endif
-
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
 @load ./nodes/manager
 # If no logger is defined, then the manager receives logs.
-@if ( "logger" !in Cluster::nodes )
+@if ( Cluster::manager_is_logger )
 @load ./nodes/logger
 @endif
+@endif
+
+@if ( Cluster::local_node_type() == Cluster::LOGGER )
+@load ./nodes/logger
 @endif
 
 @if ( Cluster::local_node_type() == Cluster::PROXY )

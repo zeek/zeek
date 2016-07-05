@@ -19,9 +19,6 @@ redef Log::enable_remote_logging = T;
 ## Log rotation interval.
 redef Log::default_rotation_interval = 24 hrs;
 
-## Alarm summary mail interval.
-redef Log::default_mail_alarms_interval = 24 hrs;
-
 ## Use the cluster's delete-log script.
 redef Log::default_rotation_postprocessor_cmd = "delete-log";
 

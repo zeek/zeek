@@ -127,6 +127,12 @@ export {
 	## Note that BroControl handles all of this automatically.
 	const nodes: table[string] of Node = {} &redef;
 
+	## Indicates whether or not the manager will act as the logger and receive
+	## logs.  This value should be set in the cluster-layout.bro script (the
+	## value should be true only if no logger is specified in Cluster::nodes).
+	## Note that BroControl handles this automatically.
+	const manager_is_logger = T &redef;
+
 	## This is usually supplied on the command line for each instance
 	## of the cluster that is started up.
 	const node = getenv("CLUSTER_NODE") &redef;

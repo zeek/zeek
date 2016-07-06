@@ -1,4 +1,9 @@
 
+2.4-680 | 2016-07-06 09:18:21 -0700
+
+  * Remove ack_above_hole() event, which was a subset of content_gap
+    and led to plenty noise. Addresses BIT-688. (Robin Sommer)
+
 2.4-679 | 2016-07-05 16:35:53 -0700
 
   * Fix segfault when an existing enum identifier is added again with

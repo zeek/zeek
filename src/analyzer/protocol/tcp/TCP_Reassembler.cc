@@ -536,7 +536,6 @@ void TCP_Reassembler::AckReceived(uint64 seq)
 			{
 			++tot_gap_events;
 			tot_gap_bytes += num_missing;
-			tcp_analyzer->Event(ack_above_hole);
 			}
 		}
 

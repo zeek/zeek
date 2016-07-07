@@ -14,8 +14,16 @@ refine connection DCE_RPC_Conn += {
 	%}
 
 	%cleanup{
-		delete gssapi;
-		delete ntlm;
+		if ( gssapi )
+			{
+			gssapi->Done();
+			delete gssapi;
+			}
+		if ( ntlm )
+			{
+			ntlm->Done();
+			delete ntlm;
+			}
 	%}
 
 	function forward_auth(auth: DCE_RPC_Auth, is_orig: bool): bool

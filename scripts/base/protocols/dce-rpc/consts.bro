@@ -1423,5 +1423,18 @@ export {
 		["e1af8308-5d1f-11c9-91a4-08002b14a0fa",0x06] = "ept_mgmt_delete",
 		["e1af8308-5d1f-11c9-91a4-08002b14a0fa",0x07] = "ept_map_auth",
 		["e1af8308-5d1f-11c9-91a4-08002b14a0fa",0x08] = "ept_map_auth_async",
+
+		# exchange_mapi
+		["a4f1db00-ca47-1067-b31f-00dd010662da",0x00] = "EcDoConnect",
+		["a4f1db00-ca47-1067-b31f-00dd010662da",0x01] = "EcDoDisconnect",
+		["a4f1db00-ca47-1067-b31f-00dd010662da",0x02] = "EcDoRpc",
+		["a4f1db00-ca47-1067-b31f-00dd010662da",0x03] = "EcGetMoreRpc",
+		["a4f1db00-ca47-1067-b31f-00dd010662da",0x04] = "EcRRegisterPushNotification",
+		["a4f1db00-ca47-1067-b31f-00dd010662da",0x05] = "EcRUnregisterPushNotification",
+		["a4f1db00-ca47-1067-b31f-00dd010662da",0x06] = "EcDummyRpc",
+		["a4f1db00-ca47-1067-b31f-00dd010662da",0x07] = "EcRGetDCName",
+		["a4f1db00-ca47-1067-b31f-00dd010662da",0x08] = "EcRNetGetDCName",
+		["a4f1db00-ca47-1067-b31f-00dd010662da",0x09] = "EcDoRpcExt",
+
 	} &redef &default=function(uuid: string, i: count): string { return fmt("unknown-%d", i); };
 }

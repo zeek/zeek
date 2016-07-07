@@ -1,6 +1,5 @@
 
 type NTLM_SSP_Token(is_orig: bool) = record {
-	meta        : ASN1EncodingMeta;
 	signature   : bytestring &length=8;
 	msg_type    : uint32;
 	msg         : case msg_type of {

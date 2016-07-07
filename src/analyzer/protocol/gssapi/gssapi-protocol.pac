@@ -30,7 +30,7 @@ type GSSAPI_NEG_TOKEN_INIT_Arg = record {
 type GSSAPI_NEG_TOKEN_INIT_Arg_Data(index: uint8) = case index of {
 	0 -> mech_type_list : ASN1Encoding;
 	1 -> req_flags      : ASN1Encoding;
-	2 -> mech_token     : bytestring &restofdata;
+	2 -> mech_token     : GSSAPI_NEG_TOKEN_MECH_TOKEN(true);
 	3 -> mech_list_mic  : ASN1OctetString;
 };
 
@@ -44,7 +44,12 @@ type GSSAPI_NEG_TOKEN_RESP_Arg = record {
 	args     : case seq_meta.index of {
 		0       -> neg_state      : ASN1Integer;
 		1       -> supported_mech : ASN1Encoding;
-		2       -> response_token : bytestring &restofdata;
+		2       -> response_token : GSSAPI_NEG_TOKEN_MECH_TOKEN(false);
 		3       -> mech_list_mic  : ASN1OctetString;
 	} &length=seq_meta.length;
+};
+
+type GSSAPI_NEG_TOKEN_MECH_TOKEN(is_orig: bool) = record {
+	meta       : ASN1EncodingMeta;
+	mech_token : bytestring &length=meta.length;
 };

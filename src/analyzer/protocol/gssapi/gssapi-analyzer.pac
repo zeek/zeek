@@ -36,12 +36,11 @@ refine connection GSSAPI_Conn += {
 		%}
 }
 
-refine typeattr GSSAPI_NEG_TOKEN_INIT_Arg_Data += &let {
-	fwd: bool = $context.connection.forward_ntlm(mech_token, true) &if(index==2); 
+refine typeattr GSSAPI_NEG_TOKEN_MECH_TOKEN += &let {
+	fwd: bool = $context.connection.forward_ntlm(mech_token, is_orig);
 };
 
 refine typeattr GSSAPI_NEG_TOKEN_RESP_Arg += &let {
 	proc: bool = $context.connection.proc_gssapi_neg_result(this) &if(seq_meta.index==0);
-	fwd: bool = $context.connection.forward_ntlm(response_token, false) &if(seq_meta.index==2);
 };
 

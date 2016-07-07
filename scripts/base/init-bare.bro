@@ -2380,83 +2380,508 @@ type ntp_msg: record {
 };
 
 
-## Maps SMB command numbers to descriptive names.
-global samba_cmds: table[count] of string &redef
-			&default = function(c: count): string
-				{ return fmt("samba-unknown-%d", c); };
+module NTLM;
 
-## An SMB command header.
-##
-## .. bro:see:: smb_com_close smb_com_generic_andx smb_com_logoff_andx
-##    smb_com_negotiate smb_com_negotiate_response smb_com_nt_create_andx
-##    smb_com_read_andx smb_com_setup_andx smb_com_trans_mailslot
-##    smb_com_trans_pipe smb_com_trans_rap smb_com_transaction
-##    smb_com_transaction2 smb_com_tree_connect_andx smb_com_tree_disconnect
-##    smb_com_write_andx smb_error smb_get_dfs_referral smb_message
-type smb_hdr : record {
-	command: count;	##< The command number (see :bro:see:`samba_cmds`).
-	status: count;	##< The status code.
-	flags: count;	##< Flag set 1.
-	flags2: count;	##< Flag set 2.
-	tid: count;	##< TODO.
-	pid: count;	##< Process ID.
-	uid: count;	##< User ID.
-	mid: count;	##< TODO.
-};
+export {
+	type NTLM::Version: record {
+		## The major version of the Windows operating system in use
+		major   : count;
+		## The minor version of the Windows operating system in use
+		minor   : count;
+		## The build number of the Windows operating system in use
+		build   : count;
+		## The current revision of NTLMSSP in use
+		ntlmssp : count;
+	};
 
-## An SMB transaction.
-##
-## .. bro:see:: smb_com_trans_mailslot smb_com_trans_pipe smb_com_trans_rap
-##    smb_com_transaction smb_com_transaction2
-type smb_trans : record {
-	word_count: count;	##< TODO.
-	total_param_count: count;	##< TODO.
-	total_data_count: count;	##< TODO.
-	max_param_count: count;	##< TODO.
-	max_data_count: count;	##< TODO.
-	max_setup_count: count;	##< TODO.
-#	flags: count;
-#	timeout: count;
-	param_count: count;	##< TODO.
-	param_offset: count;	##< TODO.
-	data_count: count;	##< TODO.
-	data_offset: count;	##< TODO.
-	setup_count: count;	##< TODO.
-	setup0: count;	##< TODO.
-	setup1: count;	##< TODO.
-	setup2: count;	##< TODO.
-	setup3: count;	##< TODO.
-	byte_count: count;	##< TODO.
-	parameters: string;	##< TODO.
-};
+	type NTLM::NegotiateFlags: record {
+		## If set, requires 56-bit encryption
+		negotiate_56               : bool;
+		## If set, requests an explicit key exchange
+		negotiate_key_exch         : bool;
+		## If set, requests 128-bit session key negotiation
+		negotiate_128              : bool;
+		## If set, requests the protocol version number
+		negotiate_version          : bool;
+		## If set, indicates that the TargetInfo fields in the
+		## CHALLENGE_MESSAGE are populated
+		negotiate_target_info      : bool;
+		## If set, requests the usage of the LMOWF function
+		request_non_nt_session_key : bool;
+		## If set, requests and identify level token
+		negotiate_identify         : bool;
+		## If set, requests usage of NTLM v2 session security
+		## Note: NTML v2 session security is actually NTLM v1
+		negotiate_extended_sessionsecurity : bool;
+		## If set, TargetName must be a server name
+		target_type_server         : bool;
+		## If set, TargetName must be a domain name
+		target_type_domain         : bool;
+
+		## If set, requests the presence of a signature block
+		## on all messages
+		negotiate_always_sign              : bool;
+		## If set, the workstation name is provided
+		negotiate_oem_workstation_supplied : bool;
+		## If set, the domain name is provided
+		negotiate_oem_domain_supplied      : bool;
+		## If set, the connection should be anonymous
+		negotiate_anonymous_connection     : bool;
+		## If set, requests usage of NTLM v1
+		negotiate_ntlm                     : bool;
+
+		## If set, requests LAN Manager session key computation
+		negotiate_lm_key       : bool;
+		## If set, requests connectionless authentication
+		negotiate_datagram     : bool;
+		## If set, requests session key negotiation for message 
+		## confidentiality
+		negotiate_seal         : bool;
+		## If set, requests session key negotiation for message
+		## signatures
+		negotiate_sign         : bool;
+		## If set, the TargetName field is present
+		request_target         : bool;
+
+		## If set, requests OEM character set encoding
+		negotiate_oem          : bool;
+		## If set, requests Unicode character set encoding
+		negotiate_unicode      : bool;
+	};
+
+	type NTLM::Negotiate: record {
+		## The negotiate flags
+		flags       : NTLM::NegotiateFlags;
+		## The domain name of the client, if known
+		domain_name : string &optional;
+		## The machine name of the client, if known
+		workstation : string &optional;
+		## The Windows version information, if supplied
+		version     : NTLM::Version &optional;
+	};
+
+	type NTLM::AVs: record {
+		## The server's NetBIOS computer name
+		nb_computer_name  : string;
+		## The server's NetBIOS domain name
+		nb_domain_name    : string;
+		## The FQDN of the computer
+		dns_computer_name : string &optional;
+		## The FQDN of the domain
+		dns_domain_name   : string &optional;
+		## The FQDN of the forest
+		dns_tree_name     : string &optional;
+
+		## Indicates to the client that the account
+		## authentication is constrained
+		constrained_auth  : bool &optional;
+		## The associated timestamp, if present
+		timestamp         : time &optional;
+		## Indicates that the client is providing
+		## a machine ID created at computer startup to
+		## identify the calling machine
+		single_host_id    : count &optional;
+
+		## The SPN of the target server
+		target_name       : string &optional;
+	};
+
+	type NTLM::Challenge: record {
+		## The negotiate flags
+		flags       : NTLM::NegotiateFlags;
+		## The server authentication realm. If the server is
+		## domain-joined, the name of the domain. Otherwise
+		## the server name. See flags.target_type_domain
+		## and flags.target_type_server
+		target_name : string &optional;
+		## The Windows version information, if supplied
+		version     : NTLM::Version &optional;
+		## Attribute-value pairs specified by the server
+		target_info : NTLM::AVs &optional;
+	};
+
+	type NTLM::Authenticate: record {
+		## The negotiate flags
+		flags       : NTLM::NegotiateFlags;
+		## The domain or computer name hosting the account
+		domain_name : string;
+		## The name of the user to be authenticated.
+		user_name   : string;
+		## The name of the computer to which the user was logged on.
+		workstation : string;
+		## The Windows version information, if supplied
+		version     : NTLM::Version &optional;
+	};
+}
+
+module SMB;
+
+export {
+	## MAC times for a file.
+	type SMB::MACTimes: record {
+		modified : time &log;
+		accessed : time &log;
+		created  : time &log;
+		changed  : time &log;
+	} &log;
+}
+
+module SMB1;
+
+export {
+	## An SMB1 header.
+	## 
+	## .. bro:see:: smb_com_close smb_com_generic_andx smb_com_logoff_andx
+	##    smb_com_negotiate smb_com_negotiate_response smb_com_nt_create_andx
+	##    smb_com_read_andx smb_com_setup_andx smb_com_trans_mailslot
+	##    smb_com_trans_pipe smb_com_trans_rap smb_com_transaction
+	##    smb_com_transaction2 smb_com_tree_connect_andx smb_com_tree_disconnect
+	##    smb_com_write_andx smb_error smb_get_dfs_referral smb_message
+	type SMB1::Header : record {
+		command: count; ##< The command number
+		status: count;  ##< The status code.
+		flags: count;   ##< Flag set 1.
+		flags2: count;  ##< Flag set 2.
+		tid: count;     ##< Tree ID.
+		pid: count;     ##< Process ID.
+		uid: count;     ##< User ID.
+		mid: count;     ##< Multiplex ID.
+	};
+
+	type SMB1::NegotiateRawMode: record {
+		## Read raw supported
+		read_raw	: bool;
+		## Write raw supported
+		write_raw	: bool;
+	};
+
+	type SMB1::NegotiateCapabilities: record {
+		## The server supports SMB_COM_READ_RAW and SMB_COM_WRITE_RAW
+		raw_mode	   : bool;
+		## The server supports SMB_COM_READ_MPX and SMB_COM_WRITE_MPX
+		mpx_mode	   : bool;
+		## The server supports unicode strings
+		unicode		   : bool;
+		## The server supports large files with 64 bit offsets
+		large_files	   : bool;
+		## The server supports the SMBs particilar to the NT LM 0.12 dialect. Implies nt_find.
+		nt_smbs		   : bool;
+
+		## The server supports remote admin API requests via DCE-RPC
+		rpc_remote_apis	   : bool;
+		## The server can respond with 32 bit status codes in Status.Status
+		status32	   : bool;
+		## The server supports level 2 oplocks
+		level_2_oplocks	   : bool;
+		## The server supports SMB_COM_LOCK_AND_READ
+		lock_and_read	   : bool;
+		## Reserved
+		nt_find		   : bool;
+
+		## The server is DFS aware
+		dfs		   : bool;
+		## The server supports NT information level requests passing through
+		infolevel_passthru : bool;
+		## The server supports large SMB_COM_READ_ANDX (up to 64k)
+		large_readx	   : bool;
+		## The server supports large SMB_COM_WRITE_ANDX (up to 64k)
+		large_writex	   : bool;
+		## The server supports CIFS Extensions for UNIX
+		unix		   : bool;
+
+		## The server supports SMB_BULK_READ, SMB_BULK_WRITE
+		## Note: No known implementations support this
+		bulk_transfer	   : bool;
+		## The server supports compressed data transfer. Requires bulk_transfer.
+		## Note: No known implementations support this
+		compressed_data	   : bool;
+		## The server supports extended security exchanges	
+		extended_security  : bool;
+	};
+
+	type SMB1::NegotiateResponseSecurity: record {
+		## This indicates whether the server, as a whole, is operating under
+		## Share Level or User Level security.
+		user_level	  : bool;
+		## This indicates whether or not the server supports Challenge/Response
+		## authentication. If the bit is false, then plaintext passwords must
+		## be used.
+		challenge_response: bool;
+		## This indicates if the server is capable of performing MAC message
+		## signing. Note: Requires NT LM 0.12 or later.
+		signatures_enabled: bool &optional;
+		## This indicates if the server is requiring the use of a MAC in each
+		## packet. If false, message signing is optional. Note: Requires NT LM 0.12
+		## or later.
+		signatures_required: bool &optional;
+	};
+
+	type SMB1::NegotiateResponseCore: record {
+		## Index of selected dialect
+		dialect_index	: count;
+	};
+
+	type SMB1::NegotiateResponseLANMAN: record {
+		## Count of parameter words (should be 13)
+		word_count	     : count;
+		## Index of selected dialect
+		dialect_index	     : count;
+		## Security mode
+		security_mode	     : SMB1::NegotiateResponseSecurity;
+		## Max transmit buffer size (>= 1024)
+		max_buffer_size	     : count;
+		## Max pending multiplexed requests
+		max_mpx_count	     : count;
+
+		## Max number of virtual circuits (VCs - transport-layer connections)
+		## between client and server
+		max_number_vcs	     : count;
+		## Raw mode
+		raw_mode	     : SMB1::NegotiateRawMode;
+		## Unique token identifying this session
+		session_key	     : count;
+		## Current date and time at server
+		server_time	     : time;
+		## The challenge encryption key
+		encryption_key	     : string;
+
+		## The server's primary domain
+		primary_domain	     : string;
+	};
+
+	type SMB1::NegotiateResponseNTLM: record {
+		## Count of parameter words (should be 17)
+		word_count	: count;
+		## Index of selected dialect
+		dialect_index	: count;
+		## Security mode
+		security_mode	: SMB1::NegotiateResponseSecurity;
+		## Max transmit buffer size
+		max_buffer_size	: count;
+		## Max pending multiplexed requests
+		max_mpx_count	: count;
+
+		## Max number of virtual circuits (VCs - transport-layer connections)
+		## between client and server
+		max_number_vcs	: count;
+		## Max raw buffer size
+		max_raw_size	: count;
+		## Unique token identifying this session
+		session_key	: count;
+		## Server capabilities
+		capabilities	: SMB1::NegotiateCapabilities;
+		## Current date and time at server
+		server_time	: time;
+
+		## The challenge encryption key.
+		## Present only for non-extended security (i.e. capabilities$extended_security = F)
+		encryption_key	: string &optional;
+		## The name of the domain.
+		## Present only for non-extended security (i.e. capabilities$extended_security = F)
+		domain_name	: string &optional;
+		## A globally unique identifier assigned to the server.
+		## Present only for extended security (i.e. capabilities$extended_security = T)
+		guid		: string &optional;
+		## Opaque security blob associated with the security package if capabilities$extended_security = T
+		## Otherwise, the challenge for challenge/response authentication.
+		security_blob	: string;
+	};
+
+	type SMB1::NegotiateResponse: record {
+		## If the server does not understand any of the dialect strings, or if 
+		## PC NETWORK PROGRAM 1.0 is the chosen dialect.
+		core	: SMB1::NegotiateResponseCore 	&optional;
+		## If the chosen dialect is greater than core up to and including
+		## LANMAN 2.1.
+		lanman  : SMB1::NegotiateResponseLANMAN  &optional;
+		## If the chosen dialect is NT LM 0.12.
+		ntlm	: SMB1::NegotiateResponseNTLM    &optional;
+	};
+
+	type SMB1::SessionSetupAndXCapabilities: record {
+		## The client can use unicode strings
+		unicode         : bool;
+		## The client can deal with files having 64 bit offsets
+		large_files     : bool;
+		## The client understands the SMBs introduced with NT LM 0.12
+		## Implies nt_find
+		nt_smbs         : bool;
+		## The client can receive 32 bit errors encoded in Status.Status
+		status32        : bool;
+		## The client understands Level II oplocks
+		level_2_oplocks : bool;
+		## Reserved. Implied by nt_smbs.
+		nt_find		: bool;
+	};
+
+	type SMB1::SessionSetupAndXRequest: record {
+		## Count of parameter words
+		##    - 10 for pre NT LM 0.12
+		##    - 12 for NT LM 0.12 with extended security
+		##    - 13 for NT LM 0.12 without extended security
+		word_count		  : count;
+		## Client maximum buffer size
+		max_buffer_size		  : count;
+		## Actual maximum multiplexed pending request
+		max_mpx_count		  : count;
+		## Virtual circuit number. First VC == 0
+		vc_number		  : count;
+		## Session key (valid iff vc_number > 0)
+		session_key		  : count;
+
+		## Client's native operating system
+		native_os		  : string;
+		## Client's native LAN Manager type
+		native_lanman		  : string;
+		## Account name
+		## Note: not set for NT LM 0.12 with extended security
+		account_name		  : string &optional;
+		## If challenge/response auth is not being used, this is the password.
+		## Otherwise, it's the response to the server's challenge.
+		## Note: Only set for pre NT LM 0.12
+		account_password	  : string &optional;		
+		## Client's primary domain, if known
+		## Note: not set for NT LM 0.12 with extended security
+		primary_domain		  : string &optional;
+
+		## Case insensitive password
+		## Note: only set for NT LM 0.12 without extended security
+		case_insensitive_password : string &optional;
+		## Case sensitive password
+		## Note: only set for NT LM 0.12 without extended security
+		case_sensitive_password	  : string &optional;
+		## Security blob
+		## Note: only set for NT LM 0.12 with extended security
+		security_blob		  : string &optional;
+		## Client capabilities
+		## Note: only set for NT LM 0.12
+		capabilities		  : SMB1::SessionSetupAndXCapabilities &optional;
+	};
+	
+	type SMB1::SessionSetupAndXResponse: record {
+		## Count of parameter words (should be 3 for pre NT LM 0.12 and 4 for NT LM 0.12)
+		word_count	: count;
+		## Were we logged in as a guest user?
+		is_guest	: bool &optional;
+		## Server's native operating system
+		native_os 	: string &optional;
+		## Server's native LAN Manager type
+		native_lanman	: string &optional;
+		## Server's primary domain
+		primary_domain	: string &optional;
+		## Security blob if NTLM
+		security_blob	: string &optional;
+	};
+
+	type SMB1::Find_First2_Request_Args: record {
+		## File attributes to apply as a constraint to the search
+		search_attrs		: count;
+		## Max search results
+		search_count		: count;
+		## Misc. flags for how the server should manage the transaction
+		## once results are returned
+		flags				: count;
+		## How detailed the information returned in the results should be
+		info_level			: count;
+		## Specify whether to search for directories or files
+		search_storage_type	: count;
+		## The string to serch for (note: may contain wildcards)
+		file_name			: string;
+	};
+
+	type SMB1::Find_First2_Response_Args: record {
+		## The server generated search identifier
+		sid				: count;
+		## Number of results returned by the search
+		search_count	: count;
+		## Whether or not the search can be continued using
+		## the TRANS2_FIND_NEXT2 transaction
+		end_of_search	: bool;
+		## An extended attribute name that couldn't be retrieved
+		ext_attr_error	: string &optional;
+	};
 
 
-## SMB transaction data.
-##
-## .. bro:see:: smb_com_trans_mailslot smb_com_trans_pipe smb_com_trans_rap
-##    smb_com_transaction smb_com_transaction2
-##
-## .. todo:: Should this really be a record type?
-type smb_trans_data : record {
-	data : string;	##< The transaction's data.
-};
+}
 
-## Deprecated.
-##
-## .. todo:: Remove. It's still declared internally but doesn't seem  used anywhere
-##    else.
-type smb_tree_connect : record {
-	flags: count;
-	password: string;
-	path: string;
-	service: string;
-};
+module SMB2;
 
-## Deprecated.
-##
-## .. todo:: Remove. It's still declared internally but doesn't seem  used anywhere
-##    else.
-type smb_negotiate : table[count] of string;
+export {
+	type SMB2::Header: record {
+		credit_charge: count;
+		status: count;
+		command: count;
+		credits: count;
+		flags: count;
+		message_id: count;
+		process_id: count;
+		tree_id: count;
+		session_id: count;
+		signature: string;
+	};
+
+	type SMB2::GUID: record {
+		persistent: count;
+		volatile: count;
+	};
+
+	type SMB2::FileAttrs: record {
+		read_only: bool;
+		hidden: bool;
+		system: bool;
+		directory: bool;
+		archive: bool;
+		normal: bool;
+		temporary: bool;
+		sparse_file: bool;
+		reparse_point: bool;
+		compressed: bool;
+		offline: bool;
+		not_content_indexed: bool;
+		encrypted: bool;
+		integrity_stream: bool;
+		no_scrub_data: bool;
+	};
+
+	type SMB2::CloseResponse: record {
+		alloc_size : count;
+		eof        : count;
+		times      : SMB::MACTimes;
+		attrs      : SMB2::FileAttrs;
+	};
+
+	type SMB2::NegotiateResponse: record {
+		dialect_revision  : count;
+		security_mode     : count;
+		server_guid       : string;
+		system_time       : time;
+		server_start_time : time;
+	};
+
+	type SMB2::SessionSetupRequest: record {
+		security_mode: count;
+	};
+
+	type SMB2::SessionSetupFlags: record {
+		guest: bool;
+		anonymous: bool;
+		encrypt: bool;
+	};
+
+	type SMB2::SessionSetupResponse: record {
+		flags: SMB2::SessionSetupFlags;
+	};
+
+	type SMB2::SetInfoRequest: record {
+		eof: count;
+	};
+
+	type SMB2::TreeConnectResponse: record {
+		share_type: count;
+	};
+}
+
+module GLOBAL;
 
 ## A list of router addresses offered by a DHCP server.
 ##

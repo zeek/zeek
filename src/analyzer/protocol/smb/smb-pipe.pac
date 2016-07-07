@@ -1,19 +1,56 @@
-# this won't work correctly yet, since sometimes the parameters
-# field in the transaction takes up all of the data field
+%extern{
+#include "../dce-rpc/DCE_RPC.h"
+%}
 
-type SMB_Pipe_message( unicode: bool, byte_count: uint16, sub_cmd: uint16 ) = record { 
+refine connection SMB_Conn += {
+	%member{
+		map<uint16,bool> tree_is_pipe_map;
+		map<uint64,analyzer::dce_rpc::DCE_RPC_Analyzer*> fid_to_analyzer_map;;
+	%}
 
-	# there's a problem with byte_count here, not sure why ... its
-	# not the real length of the rest of the packet
-	data : bytestring &restofdata; 
+	%cleanup{
+		// Iterate all of the analyzers and destroy them.
+		for ( auto kv : fid_to_analyzer_map )
+			{
+			if ( kv.second )
+				{
+				kv.second->Done();
+				delete kv.second;
+				}
+			}
+	%}
 
-} &byteorder = littleendian;
 
-type SMB_RAP_message( unicode: bool, byte_count: uint16 ) = record { 
+	function get_tree_is_pipe(tree_id: uint16): bool
+		%{
+		if ( tree_is_pipe_map.count(tree_id) > 0 )
+			return tree_is_pipe_map.at(tree_id);
+		else
+			return false;
+		%}
 
-	rap_code : uint16;
-	param_desc : SMB_string(unicode, offsetof(param_desc) );
-	data_desc : SMB_string(unicode, offsetof(data_desc) );
-	data : bytestring &restofdata; 
+	function set_tree_is_pipe(tree_id: uint16, is_pipe: bool): bool
+		%{
+		tree_is_pipe_map[tree_id] = is_pipe;
+		return true;
+		%}
 
-} &byteorder = littleendian;
+	function forward_dce_rpc(pipe_data: bytestring, fid: uint64, is_orig: bool): bool
+		%{
+		analyzer::dce_rpc::DCE_RPC_Analyzer *pipe_dcerpc;
+		if ( fid_to_analyzer_map.count(fid) == 0 )
+			{
+			pipe_dcerpc = (analyzer::dce_rpc::DCE_RPC_Analyzer *)analyzer_mgr->InstantiateAnalyzer("DCE_RPC", bro_analyzer()->Conn());
+			pipe_dcerpc->SetFileID(fid);
+			fid_to_analyzer_map[fid] = pipe_dcerpc;
+			}
+		else
+			{
+			pipe_dcerpc = fid_to_analyzer_map.at(fid);
+			}
+
+		pipe_dcerpc->DeliverStream(${pipe_data}.length(), ${pipe_data}.begin(), is_orig);
+
+		return true;
+		%}
+};

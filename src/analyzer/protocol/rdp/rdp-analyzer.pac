@@ -1,54 +1,9 @@
 %extern{
-#include "ConvertUTF.h"
 #include "file_analysis/Manager.h"
 #include "types.bif.h"
 %}
 
 refine flow RDP_Flow += {
-
-	function utf16_to_utf8_val(utf16: bytestring): StringVal
-		%{
-		std::string resultstring;
-
-		size_t utf8size = (3 * utf16.length() + 1);
-
-		if ( utf8size > resultstring.max_size() )
-			{
-			connection()->bro_analyzer()->Weird("excessive_utf16_length");
-			return new StringVal("");
-			}
-
-		resultstring.resize(utf8size, '\0');
-
-		// We can't assume that the string data is properly aligned
-		// here, so make a copy.
-		UTF16 utf16_copy[utf16.length()]; // Twice as much memory than necessary.
-		memcpy(utf16_copy, utf16.begin(), utf16.length());
-
-		const char* utf16_copy_end = reinterpret_cast<const char*>(utf16_copy) + utf16.length();
-		const UTF16* sourcestart = utf16_copy;
-		const UTF16* sourceend = reinterpret_cast<const UTF16*>(utf16_copy_end);
-
-		UTF8* targetstart = reinterpret_cast<UTF8*>(&resultstring[0]);
-		UTF8* targetend = targetstart + utf8size;
-
-		ConversionResult res = ConvertUTF16toUTF8(&sourcestart,
-		                                          sourceend,
-		                                          &targetstart,
-		                                          targetend,
-		                                          lenientConversion);
-		if ( res != conversionOK )
-			{
-			connection()->bro_analyzer()->Weird("Failed UTF-16 to UTF-8 conversion");
-			return new StringVal(utf16.length(), (const char *) utf16.begin());
-			}
-
-		*targetstart = 0;
-
-		// We're relying on no nulls being in the string.
-		return new StringVal(resultstring.c_str());
-		%}
-
 	function proc_rdp_connect_request(cr: Connect_Request): bool
 		%{
 		if ( rdp_connect_request )
@@ -125,18 +80,18 @@ refine flow RDP_Flow += {
 			ccd->Assign(5, new Val(${ccore.sas_sequence}, TYPE_COUNT));
 			ccd->Assign(6, new Val(${ccore.keyboard_layout}, TYPE_COUNT));
 			ccd->Assign(7, new Val(${ccore.client_build}, TYPE_COUNT));
-			ccd->Assign(8, utf16_to_utf8_val(${ccore.client_name}));
+			ccd->Assign(8, utf16_bytestring_to_utf8_val(${ccore.client_name}));
 			ccd->Assign(9, new Val(${ccore.keyboard_type}, TYPE_COUNT));
 			ccd->Assign(10, new Val(${ccore.keyboard_sub}, TYPE_COUNT));
 			ccd->Assign(11, new Val(${ccore.keyboard_function_key}, TYPE_COUNT));
-			ccd->Assign(12, utf16_to_utf8_val(${ccore.ime_file_name}));
+			ccd->Assign(12, utf16_bytestring_to_utf8_val(${ccore.ime_file_name}));
 			ccd->Assign(13, new Val(${ccore.post_beta2_color_depth}, TYPE_COUNT));
 			ccd->Assign(14, new Val(${ccore.client_product_id}, TYPE_COUNT));
 			ccd->Assign(15, new Val(${ccore.serial_number}, TYPE_COUNT));
 			ccd->Assign(16, new Val(${ccore.high_color_depth}, TYPE_COUNT));
 			ccd->Assign(17, new Val(${ccore.supported_color_depths}, TYPE_COUNT));
 			ccd->Assign(18, ec_flags);
-			ccd->Assign(19, utf16_to_utf8_val(${ccore.dig_product_id}));
+			ccd->Assign(19, utf16_bytestring_to_utf8_val(${ccore.dig_product_id}));
 
 			BifEvent::generate_rdp_client_core_data(connection()->bro_analyzer(),
 			                                        connection()->bro_analyzer()->Conn(),

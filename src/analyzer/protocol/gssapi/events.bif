@@ -1,0 +1,7 @@
+## Generated for GSSAPI negotiation results.
+##
+## c: The connection.
+##
+## state: The resulting state of the negotiation.
+##
+event gssapi_neg_result%(c: connection, state: count%);

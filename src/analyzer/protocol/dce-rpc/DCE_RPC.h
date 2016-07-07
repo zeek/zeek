@@ -11,12 +11,12 @@
 #include "analyzer/protocol/dce-rpc/events.bif.h"
 #include "IPAddr.h"
 
-#include "dce_rpc_simple_pac.h"
+#include "dce_rpc_pac.h"
 
 
 namespace analyzer { namespace dce_rpc {
 
-class UUID {
+/* class UUID {
 public:
 	UUID();
 	UUID(const u_char data[16]);
@@ -35,7 +35,7 @@ protected:
 	string s;
 };
 
-const char* uuid_to_string(const u_char* uuid_data);
+//const char* uuid_to_string(const u_char* uuid_data);
 
 struct dce_rpc_endpoint_addr {
 	// All fields are in host byteorder.
@@ -75,7 +75,7 @@ struct dce_rpc_endpoint_addr {
 
 		return string(buf);
 		}
-};
+}; */
 
 /*
 enum DCE_RPC_PTYPE {
@@ -88,6 +88,7 @@ enum DCE_RPC_PTYPE {
 };
 */
 
+/*
 #define DCE_RPC_HEADER_LENGTH 16
 
 class DCE_RPC_Header {
@@ -125,22 +126,22 @@ public:
 		{ return dce_rpc_message || dce_rpc_bind || dce_rpc_request; }
 
 protected:
-	void DeliverBind(const binpac::DCE_RPC_Simple::DCE_RPC_PDU* pdu);
-	void DeliverRequest(const binpac::DCE_RPC_Simple::DCE_RPC_PDU* pdu);
-	void DeliverResponse(const binpac::DCE_RPC_Simple::DCE_RPC_PDU* pdu);
+	void DeliverBind(const binpac::DCE_RPC::DCE_RPC_PDU* pdu);
+	void DeliverRequest(const binpac::DCE_RPC::DCE_RPC_PDU* pdu);
+	void DeliverResponse(const binpac::DCE_RPC::DCE_RPC_PDU* pdu);
 
 	void DeliverEpmapperRequest(
-			const binpac::DCE_RPC_Simple::DCE_RPC_PDU* pdu,
-			const binpac::DCE_RPC_Simple::DCE_RPC_Request* req);
+			const binpac::DCE_RPC::DCE_RPC_PDU* pdu,
+			const binpac::DCE_RPC::DCE_RPC_Request* req);
 	void DeliverEpmapperResponse(
-			const binpac::DCE_RPC_Simple::DCE_RPC_PDU* pdu,
-			const binpac::DCE_RPC_Simple::DCE_RPC_Response* resp);
+			const binpac::DCE_RPC::DCE_RPC_PDU* pdu,
+			const binpac::DCE_RPC::DCE_RPC_Response* resp);
 	void DeliverEpmapperMapResponse(
-			const binpac::DCE_RPC_Simple::DCE_RPC_PDU* pdu,
-			const binpac::DCE_RPC_Simple::DCE_RPC_Response* resp);
+			const binpac::DCE_RPC::DCE_RPC_PDU* pdu,
+			const binpac::DCE_RPC::DCE_RPC_Response* resp);
 
 	analyzer::Analyzer* analyzer;
-	UUID if_uuid;
+	UUID uuid;
 	BifEnum::dce_rpc_if_id if_id;
 	int opnum;
 	struct {
@@ -172,20 +173,28 @@ protected:
 
 	DCE_RPC_Session* session;
 };
+*/
 
 class DCE_RPC_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
-	DCE_RPC_Analyzer(Connection* conn, bool speculative = false);
+	DCE_RPC_Analyzer(Connection* conn);
 	~DCE_RPC_Analyzer();
+
+	void Done() override;
+	void DeliverStream(int len, const u_char* data, bool orig) override;
+	void Undelivered(uint64 seq, int len, bool orig) override;
+	void EndpointEOF(bool is_orig) override;
+
+	bool SetFileID(uint64 fid_in)
+		{ interp->set_file_id(fid_in); return true; }
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new DCE_RPC_Analyzer(conn); }
 
 protected:
-	DCE_RPC_Session* session;
-	bool speculative;
+	binpac::DCE_RPC::DCE_RPC_Conn* interp;
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*
 
 #endif /* dce_rpc_h */

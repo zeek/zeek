@@ -1,0 +1,9 @@
+## Generated for SMB/CIFS request messages of type *query information*.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the SMB message.
+##
+## filename: The filename that the client is querying.
+event smb1_query_information_request%(c: connection, hdr: SMB1::Header, filename: string%);
+

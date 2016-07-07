@@ -11,7 +11,7 @@ refine connection SMB_Conn += {
 		// This is commented out for the moment because it caused problems
 		// with extraction because the file kept having the same name due
 		// to repeatedly having the same file uid.  This results in files
-		// effectively falling of SMB solely by expiration instead of 
+		// effectively falling of SMB solely by expiration instead of
 		// manually being closed.
 
 		//file_mgr->EndOfFile(bro_analyzer()->GetAnalyzerTag(),
@@ -27,7 +27,7 @@ type SMB1_close_request(header: SMB_Header) = record {
 	word_count           : uint8;
 	file_id              : uint16;
 	last_modified_time   : SMB_timestamp32;
-	
+
 	byte_count           : uint16;
 } &let {
 	proc : bool = $context.connection.proc_smb1_close_request(header, this);

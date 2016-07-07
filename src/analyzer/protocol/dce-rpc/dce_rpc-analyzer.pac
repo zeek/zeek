@@ -6,7 +6,7 @@ refine connection DCE_RPC_Conn += {
 	%}
 
 	%init{
-		fid=0;
+		fid = 0;
 	%}
 
 	function set_file_id(fid_in: uint64): bool

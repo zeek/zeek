@@ -31,7 +31,7 @@ type SMB1_tree_connect_andx_request(header: SMB_Header) = record {
 	andx	        : SMB_andx;
 	flags	        : uint16;
 	password_length : uint16;
-	
+
 	byte_count      : uint16;
 	password        : uint8[password_length];
 	path            : SMB_string(header.unicode, offsetof(path));
@@ -45,7 +45,7 @@ type SMB1_tree_connect_andx_response(header: SMB_Header) = record {
 	andx               : SMB_andx;
 	optional_support   : uint16;
 	pad                : padding[(word_count-3)*2];
-	
+
 	byte_count         : uint16;
 	service            : SMB_string(0, offsetof(service));
 	native_file_system : SMB_string(header.unicode, offsetof(native_file_system));

@@ -23,11 +23,11 @@ refine connection SMB_Conn += {
 			resp->Assign(1, new Val(${val.eof}, TYPE_COUNT));
 			resp->Assign(2, SMB_BuildMACTimes(${val.last_write_time},
 			                                  ${val.last_access_time},
-			                                  ${val.creation_time}, 
+			                                  ${val.creation_time},
 			                                  ${val.change_time}));
 			resp->Assign(3, smb2_file_attrs_to_bro(${val.file_attrs}));
 
-			BifEvent::generate_smb2_close_response(bro_analyzer(), 
+			BifEvent::generate_smb2_close_response(bro_analyzer(),
 			                                       bro_analyzer()->Conn(),
 			                                       BuildSMB2HeaderVal(h),
 			                                       resp);
@@ -50,7 +50,7 @@ type SMB2_close_response(header: SMB2_Header) = record {
 	structure_size      : uint16;
 	flags               : uint16;
 	reserved            : uint32;
-	
+
 	creation_time       : SMB_timestamp;
 	last_access_time    : SMB_timestamp;
 	last_write_time     : SMB_timestamp;

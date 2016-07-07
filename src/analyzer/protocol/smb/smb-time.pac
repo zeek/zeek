@@ -14,10 +14,10 @@ function filetime2brotime(ts: uint64): Val
 	%{
 	double secs = (ts / 10000000.0);
 
-	// Bro can't support times back to the 1600's 
+	// Bro can't support times back to the 1600's
 	// so we subtract a lot of seconds.
 	Val* bro_ts = new Val(secs - 11644473600.0, TYPE_TIME);
-	
+
 	return bro_ts;
 	%}
 

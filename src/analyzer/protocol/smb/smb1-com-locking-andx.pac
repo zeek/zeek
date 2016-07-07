@@ -53,7 +53,7 @@ type SMB1_locking_andx_request(header: SMB_Header) = record {
 
 # http://msdn.microsoft.com/en-us/library/ee441519.aspx
 type SMB1_locking_andx_response(header: SMB_Header) = record {
-	
+
 } &let {
 	proc : bool = $context.connection.proc_smb1_locking_andx_response(header, this);
 };

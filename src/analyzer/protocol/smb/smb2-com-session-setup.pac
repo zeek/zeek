@@ -28,7 +28,7 @@ refine connection SMB_Conn += {
 			RecordVal* resp = new RecordVal(BifType::Record::SMB2::SessionSetupResponse);
 			resp->Assign(0, flags);
 
-			BifEvent::generate_smb2_session_setup_response(bro_analyzer(), 
+			BifEvent::generate_smb2_session_setup_response(bro_analyzer(),
 			                                               bro_analyzer()->Conn(),
 			                                               BuildSMB2HeaderVal(h),
 			                                               resp);

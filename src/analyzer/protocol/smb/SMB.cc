@@ -159,7 +159,7 @@ void Contents_SMB::DeliverStream(int len, const u_char* data, bool orig)
 	{
 	TCP_SupportAnalyzer::DeliverStream(len, data, orig);
 
-	if (!CheckResync(len, data, orig))
+	if ( ! CheckResync(len, data, orig))
 		return;   // Not in sync yet. Still resyncing
 
 	while ( len > 0 )
@@ -172,7 +172,7 @@ void Contents_SMB::DeliverStream(int len, const u_char* data, bool orig)
 			msg_type = data[0];
 			for ( int i = 1; i < 4; i++)
 				msg_len = (msg_len << 8) + data[i];
-			msg_len+=4;
+			msg_len += 4;
 			msg_buf.Init(SMB_MAX_LEN+4, msg_len);
 			state = WAIT_FOR_DATA;
 			}

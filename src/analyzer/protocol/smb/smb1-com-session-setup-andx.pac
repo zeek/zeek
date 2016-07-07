@@ -14,7 +14,7 @@ refine connection SMB_Conn += {
 			{
 			RecordVal* request = new RecordVal(BifType::Record::SMB1::SessionSetupAndXRequest);
 			RecordVal* capabilities;
-			
+
 			request->Assign(0, new Val(${val.word_count}, TYPE_COUNT));
 			switch ( ${val.word_count} ) {
 				case 10:	// pre NT LM 0.12
@@ -38,7 +38,7 @@ refine connection SMB_Conn += {
 				 	capabilities->Assign(3, new Val(${val.ntlm_extended_security.capabilities.status32}, TYPE_BOOL));
 				 	capabilities->Assign(4, new Val(${val.ntlm_extended_security.capabilities.level_2_oplocks}, TYPE_BOOL));
 				 	capabilities->Assign(5, new Val(${val.ntlm_extended_security.capabilities.nt_find}, TYPE_BOOL));
-				
+
 					request->Assign(1, new Val(${val.ntlm_extended_security.max_buffer_size}, TYPE_COUNT));
 					request->Assign(2, new Val(${val.ntlm_extended_security.max_mpx_count}, TYPE_COUNT));
 					request->Assign(3, new Val(${val.ntlm_extended_security.vc_number}, TYPE_COUNT));
@@ -49,7 +49,7 @@ refine connection SMB_Conn += {
 
 					request->Assign(13, capabilities);
 					break;
-					
+
 				case 13: // NT LM 0.12 without extended security
 					capabilities = new RecordVal(BifType::Record::SMB1::SessionSetupAndXCapabilities);
 				 	capabilities->Assign(0, new Val(${val.ntlm_nonextended_security.capabilities.unicode}, TYPE_BOOL));
@@ -58,7 +58,7 @@ refine connection SMB_Conn += {
 				 	capabilities->Assign(3, new Val(${val.ntlm_nonextended_security.capabilities.status32}, TYPE_BOOL));
 				 	capabilities->Assign(4, new Val(${val.ntlm_nonextended_security.capabilities.level_2_oplocks}, TYPE_BOOL));
 				 	capabilities->Assign(5, new Val(${val.ntlm_nonextended_security.capabilities.nt_find}, TYPE_BOOL));
-				
+
 					request->Assign(1, new Val(${val.ntlm_nonextended_security.max_buffer_size}, TYPE_COUNT));
 					request->Assign(2, new Val(${val.ntlm_nonextended_security.max_mpx_count}, TYPE_COUNT));
 					request->Assign(3, new Val(${val.ntlm_nonextended_security.vc_number}, TYPE_COUNT));
@@ -79,7 +79,7 @@ refine connection SMB_Conn += {
 			}
 		return true;
 		%}
-		
+
 	function proc_smb1_session_setup_andx_response(header: SMB_Header, val: SMB1_session_setup_andx_response): bool
 		%{
 		if ( smb1_session_setup_andx_response )
@@ -105,13 +105,13 @@ refine connection SMB_Conn += {
 				default: // Error!
 					break;
 				}
-			
+
 			BifEvent::generate_smb1_session_setup_andx_response(bro_analyzer(),
 			                                                    bro_analyzer()->Conn(),
 			                                                    BuildHeaderVal(header),
 			                                                    response);
 			}
-		
+
 		return true;
 		%}
 

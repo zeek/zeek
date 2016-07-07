@@ -1,5 +1,5 @@
 refine connection SMB_Conn += {
-	
+
 	function proc_smb2_negotiate_request(h: SMB2_Header, val: SMB2_negotiate_request) : bool
 		%{
 		if ( smb2_negotiate_request )
@@ -16,13 +16,13 @@ refine connection SMB_Conn += {
 
 		return true;
 		%}
-		
+
 	function proc_smb2_negotiate_response(h: SMB2_Header, val: SMB2_negotiate_response) : bool
 		%{
 		if ( smb2_negotiate_response )
 			{
 			RecordVal* nr = new RecordVal(BifType::Record::SMB2::NegotiateResponse);
-		
+
 			nr->Assign(0, new Val(${val.dialect_revision}, TYPE_COUNT));
 			nr->Assign(1, new Val(${val.security_mode}, TYPE_COUNT));
 			nr->Assign(2, BuildSMB2GUID(${val.server_guid})),
@@ -32,7 +32,7 @@ refine connection SMB_Conn += {
 			                                           BuildSMB2HeaderVal(h),
 			                                           nr);
 			}
-		
+
 		return true;
 		%}
 };

@@ -4,7 +4,7 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb1_check_directory_request )
 			BifEvent::generate_smb1_check_directory_request(bro_analyzer(), bro_analyzer()->Conn(),
-									BuildHeaderVal(header), 
+									BuildHeaderVal(header),
 									smb_string2stringval(${val.directory_name}));
 		return true;
 		%}
@@ -13,7 +13,7 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb1_check_directory_response )
 			BifEvent::generate_smb1_check_directory_response(bro_analyzer(), bro_analyzer()->Conn(),
-									 BuildHeaderVal(header)); 
+									 BuildHeaderVal(header));
 		return true;
 		%}
 

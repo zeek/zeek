@@ -61,7 +61,7 @@ enum SMB_Command {
 	SMB_COM_TRANSACTION2_SECONDARY = 0x33,
 	SMB_COM_FIND_CLOSE2 = 0x34,
 	SMB_COM_FIND_NOTIFY_CLOSE = 0x35,
-	
+
 	SMB_COM_TREE_CONNECT = 0x70,
 	SMB_COM_TREE_DISCONNECT = 0x71,
 	SMB_COM_NEGOTIATE = 0x72,
@@ -84,7 +84,7 @@ enum SMB_Command {
 	SMB_COM_GET_PRINT_QUEUE = 0xC3,
 	SMB_COM_READ_BULK = 0xD8,
 	SMB_COM_WRITE_BULK = 0xD9,
-	SMB_COM_WRITE_BULK_DATA = 0xDA,	
+	SMB_COM_WRITE_BULK_DATA = 0xDA,
 };
 
 enum SMB_Status {
@@ -269,12 +269,12 @@ function determine_transaction_type(setup_count: int, name: SMB_string): Transac
 		{
 		return SMB_PIPE;
 		}
-	
+
 	//if ( setup_count == 3 ||
 	//     bytestring_caseprefix( extract_string(name), "\\MAILSLOT\\" ) )
 	//	{
 	//	return SMB_MAILSLOT_BROWSE;
 	//	}
-	
+
 	return SMB_UNKNOWN;
 	%}

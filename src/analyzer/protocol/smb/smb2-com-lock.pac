@@ -1,5 +1,5 @@
 refine connection SMB_Conn += {
-	
+
 };
 
 type SMB2_lock = record {

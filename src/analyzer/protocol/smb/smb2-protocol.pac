@@ -1,4 +1,4 @@
-# Documentation for SMB2 protocol from here: 
+# Documentation for SMB2 protocol from here:
 #     http://msdn.microsoft.com/en-us/library/cc246497(v=PROT.13).aspx
 
 enum smb2_commands {
@@ -32,7 +32,7 @@ enum smb2_share_types {
 type SMB2_PDU(is_orig: bool) = record {
 	header     : SMB2_Header(is_orig);
 	message    : case header.status of {
-		# Status 0 indicates success.  In the case of a 
+		# Status 0 indicates success.  In the case of a
 		# request this should just happen to work out due to
 		# how the fields are set.
 		0          -> msg                      : SMB2_Message(header, is_orig);
@@ -66,7 +66,7 @@ type SMB2_Message_Request(header: SMB2_Header) = case header.command of {
 	SMB2_QUERY_INFO         -> query_info          : SMB2_query_info_request(header);
 	SMB2_SET_INFO           -> set_info            : SMB2_set_info_request(header);
 	SMB2_OPLOCK_BREAK       -> oplock_break        : SMB2_oplock_break(header);
-	
+
 	default                 -> unknown_msg         : empty; # TODO: do something different here!
 } &byteorder = littleendian;
 
@@ -108,7 +108,7 @@ refine connection SMB_Conn += {
 		r->Assign(7, new Val(${hdr.tree_id}, TYPE_COUNT));
 		r->Assign(8, new Val(${hdr.session_id}, TYPE_COUNT));
 		r->Assign(9, bytestring_to_val(${hdr.signature}));
-	
+
 		return r;
 		%}
 

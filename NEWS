@@ -23,6 +23,11 @@ New Dependencies
 Log Changes
 -----------
 
+- Connections
+
+  - The 'history' field gains a new flag: '^' indicates that Bro
+    heuristically flipped to direction of the connection.
+
 - DNS
 
   - New 'rtt' field to indicate the round trip time between when a

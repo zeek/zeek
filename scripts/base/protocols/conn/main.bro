@@ -89,6 +89,7 @@ export {
 		## c       packet with a bad checksum
 		## i       inconsistent packet (e.g. FIN+RST bits set)
 		## q       multi-flag packet (SYN+FIN or SYN+RST bits set)
+                ## ^       connection direction was flipped by Bro's heuristic
 		## ======  ====================================================
 		##
 		## If the event comes from the originator, the letter is in

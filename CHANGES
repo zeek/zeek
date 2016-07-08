@@ -1,4 +1,9 @@
 
+2.4-683 | 2016-07-08 14:55:04 -0700
+
+  * Extendign connection history field to flag with '^' when Bro flips
+    a connection's endpoints. Addresses BIT-1629. (Robin Sommer)
+
 2.4-680 | 2016-07-06 09:18:21 -0700
 
   * Remove ack_above_hole() event, which was a subset of content_gap

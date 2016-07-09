@@ -1,4 +1,9 @@
 
+2.4-686 | 2016-07-08 19:14:43 -0700
+
+  * Added flagging of retransmission to the connection history.
+    Addresses BIT-977. (Robin Sommer)
+
 2.4-683 | 2016-07-08 14:55:04 -0700
 
   * Extendign connection history field to flag with '^' when Bro flips

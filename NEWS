@@ -13,12 +13,10 @@ New Dependencies
 - Bro now requires a compiler with C++11 support for building the
   source code.
 
-- Bro now requires the C++ Actor Framework, CAF, which must be
-  installed first. See http://actor-framework.org.
-
 - Bro now requires Python instead of Perl to compile the source code.
 
-- The pcap buffer size can set through the new option Pcap::bufsize.
+- When enabling Broker (which is disabled by default), Bro now requires
+  version 0.14 of the C++ Actor Framework.
 
 Log Changes
 -----------
@@ -68,6 +66,10 @@ New Functionality
   phases of the protocol. Right now these analyzer only identify
   STARTTLS sessions, handing them over to TLS analysis. The analyzer
   does not yet analyze any further IMAP/XMPP content.
+
+- The new event ssl_extension_signature_algorithm allows access to the
+  TLS signature_algorithms extension that lists client supported signature
+  and hash algorithm pairs.
 
 - Bro now tracks VLAN IDs. To record them inside the connection log,
   load protocols/conn/vlan-logging.bro.
@@ -140,6 +142,8 @@ New Functionality
     - redis: An experimental log writer for Redis.
     - tcprs: An TCP-level analyzer detecting retransmissions, reordering, and more.
 
+- The pcap buffer size can be set through the new option Pcap::bufsize.
+
 Changed Functionality
 ---------------------
 
@@ -163,6 +167,12 @@ Changed Functionality
 - In http.log, the "filename" field (which it turns out was never
   filled out in the first place) has been split into to
   "orig_filenames" and "resp_filenames".
+
+- TCP analysis was changed to process connections without the initial
+  SYN packet. In the past, connections without a full handshake were
+  treated as partial, meaning that most application-layer analyzers
+  would refuse to inspect the payload. Now, Bro will consider these
+  connections as complete and all analyzers will process them notmally.
 
 Removed Functionality
 ---------------------

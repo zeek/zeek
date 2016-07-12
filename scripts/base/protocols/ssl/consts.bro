@@ -57,6 +57,27 @@ export {
 		[2] = "fatal",
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };
 
+	## Mapping between numeric codes and human readable strings for hash
+	## algorithms.
+	const hash_algorithms: table[count] of string = {
+		[0] = "none",
+		[1] = "md5",
+		[2] = "sha1",
+		[3] = "sha224",
+		[4] = "sha256",
+		[5] = "sha384",
+		[6] = "sha512",
+	} &default=function(i: count):string { return fmt("unknown-%d", i); };
+
+	## Mapping between numeric codes and human readable strings for signature
+	## algorithms.
+	const signature_algorithms: table[count] of string = {
+		[0] = "anonymous",
+		[1] = "rsa",
+		[2] = "dsa",
+		[3] = "ecdsa",
+	} &default=function(i: count):string { return fmt("unknown-%d", i); };
+
 	## Mapping between numeric codes and human readable strings for alert
 	## descriptions.
 	const alert_descriptions: table[count] of string = {

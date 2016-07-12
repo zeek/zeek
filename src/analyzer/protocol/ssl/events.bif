@@ -83,7 +83,7 @@ event ssl_server_hello%(c: connection, version: count, possible_ts: time, server
 ## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
 ##    ssl_session_ticket_handshake ssl_extension_ec_point_formats
 ##    ssl_extension_elliptic_curves ssl_extension_application_layer_protocol_negotiation
-##    ssl_extension_server_name
+##    ssl_extension_server_name ssl_extension_signature_algorithm
 event ssl_extension%(c: connection, is_orig: bool, code: count, val: string%);
 
 ## Generated for an SSL/TLS Elliptic Curves extension. This TLS extension is
@@ -99,7 +99,7 @@ event ssl_extension%(c: connection, is_orig: bool, code: count, val: string%);
 ## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
 ##    ssl_session_ticket_handshake ssl_extension
 ##    ssl_extension_ec_point_formats ssl_extension_application_layer_protocol_negotiation
-##    ssl_extension_server_name ssl_server_curve
+##    ssl_extension_server_name ssl_server_curve ssl_extension_signature_algorithm
 event ssl_extension_elliptic_curves%(c: connection, is_orig: bool, curves: index_vec%);
 
 ## Generated for an SSL/TLS Supported Point Formats extension. This TLS extension
@@ -116,8 +116,25 @@ event ssl_extension_elliptic_curves%(c: connection, is_orig: bool, curves: index
 ## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
 ##    ssl_session_ticket_handshake ssl_extension
 ##    ssl_extension_elliptic_curves ssl_extension_application_layer_protocol_negotiation
-##    ssl_extension_server_name ssl_server_curve
+##    ssl_extension_server_name ssl_server_curve ssl_extension_signature_algorithm
 event ssl_extension_ec_point_formats%(c: connection, is_orig: bool, point_formats: index_vec%);
+
+## Generated for an Signature Algorithms extension. This TLS extension
+## is defined in :rfc:`5246` and sent by the client in the initial
+## handshake. It gives the list of signature and hash algorithms supported by the
+## client.
+##
+## c: The connection.
+##
+## is_orig: True if event is raised for originator side of the connection.
+##
+## signature_algorithms: List of supported signature and hash algorithm pairs.
+##
+## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+##    ssl_session_ticket_handshake ssl_extension
+##    ssl_extension_elliptic_curves ssl_extension_application_layer_protocol_negotiation
+##    ssl_extension_server_name ssl_server_curve
+event ssl_extension_signature_algorithm%(c: connection, is_orig: bool, signature_algorithms: signature_and_hashalgorithm_vec%);
 
 ## Generated if a named curve is chosen by the server for an SSL/TLS connection.
 ## The curve is sent by the server in the ServerKeyExchange message as defined

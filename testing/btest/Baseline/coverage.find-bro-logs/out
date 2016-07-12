@@ -1,4 +1,3 @@
-app_stats
 barnyard2
 capture_loss
 cluster
@@ -24,6 +23,7 @@ modbus
 modbus_register_change
 mysql
 net_control
+netcontrol_catch_release
 netcontrol_drop
 netcontrol_shunt
 notice

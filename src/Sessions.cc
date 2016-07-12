@@ -103,6 +103,7 @@ NetSessions::NetSessions()
 
 	tcp_conns.SetDeleteFunc(bro_obj_delete_func);
 	udp_conns.SetDeleteFunc(bro_obj_delete_func);
+	icmp_conns.SetDeleteFunc(bro_obj_delete_func);
 	fragments.SetDeleteFunc(bro_obj_delete_func);
 
 	if ( stp_correlate_pair )
@@ -1230,6 +1231,9 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 
 	Connection* conn = new Connection(this, k, t, id, flow_label, pkt, encapsulation);
 	conn->SetTransport(tproto);
+
+	if ( flip )
+		conn->AddHistory('^');
 
 	if ( ! analyzer_mgr->BuildInitialAnalyzerTree(conn) )
 		{

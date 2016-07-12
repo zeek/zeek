@@ -3,7 +3,6 @@ flow weird, excessively_small_fragment, 164.1.123.163, 164.1.123.61
 flow weird, fragment_size_inconsistency, 164.1.123.163, 164.1.123.61
 flow weird, fragment_inconsistency, 164.1.123.163, 164.1.123.61
 flow weird, fragment_inconsistency, 164.1.123.163, 164.1.123.61
-flow weird, dns_unmatched_msg, 164.1.123.163, 164.1.123.61
 ----------------------
 flow weird, excessively_small_fragment, 164.1.123.163, 164.1.123.61
 flow weird, excessively_small_fragment, 164.1.123.163, 164.1.123.61

@@ -187,6 +187,7 @@ public:
 #define HIST_ACK_PKT 0x20
 #define HIST_MULTI_FLAG_PKT 0x40
 #define HIST_CORRUPT_PKT 0x80
+#define HIST_RXMIT 0x100
 	int CheckHistory(uint32 mask, char code);
 	void AddHistory(char code);
 

@@ -1,0 +1,23 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	netcontrol
+#open	2016-05-31-18-51-46
+#fields	ts	rule_id	category	cmd	state	action	target	entity_type	entity	mod	msg	priority	expire	location	plugin
+#types	time	string	enum	string	enum	string	enum	string	string	string	string	int	interval	string	string
+1464720706.881330	-	NetControl::MESSAGE	-	-	-	-	-	-	-	activating plugin with priority 0	-	-	-	Debug-All
+1464720706.881330	-	NetControl::MESSAGE	-	-	-	-	-	-	-	activation finished	-	-	-	Debug-All
+1464720706.881330	-	NetControl::MESSAGE	-	-	-	-	-	-	-	plugin initialization done	-	-	-	-
+1464720710.013657	2	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	192.168.18.50/32	-	-	0	600.000000	-	Debug-All
+1464720710.013657	worker-1:2	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	8.8.8.8/32	-	-	0	0.100000	-	Debug-All
+1464720710.013657	2	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	192.168.18.50/32	-	-	0	600.000000	-	Debug-All
+1464720710.013657	worker-1:2	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	8.8.8.8/32	-	-	0	0.100000	-	Debug-All
+1464720710.113687	worker-1:2	NetControl::RULE	EXPIRE	NetControl::TIMEOUT	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	8.8.8.8/32	-	-	0	0.100000	-	Debug-All
+1464720710.113687	worker-1:2	NetControl::RULE	REMOVE	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	8.8.8.8/32	-	-	0	0.100000	-	Debug-All
+1464720710.113687	worker-1:2	NetControl::RULE	REMOVE	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	8.8.8.8/32	-	-	0	0.100000	-	Debug-All
+1464720711.498477	2	NetControl::RULE	REMOVE	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	192.168.18.50/32	-	-	0	600.000000	-	Debug-All
+1464720711.498477	2	NetControl::RULE	REMOVE	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	192.168.18.50/32	-	-	0	600.000000	-	Debug-All
+1464720711.498477	4	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	8.8.8.8/32	-	-	0	3600.000000	Re-drop by catch-and-release: 	Debug-All
+1464720711.498477	4	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	8.8.8.8/32	-	-	0	3600.000000	Re-drop by catch-and-release: 	Debug-All
+#close	2016-05-31-18-51-51

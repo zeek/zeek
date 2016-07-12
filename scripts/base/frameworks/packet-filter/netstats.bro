@@ -11,7 +11,7 @@ export {
 		## Indicates packets were dropped by the packet filter.
 		Dropped_Packets,
 	};
-	
+
 	## This is the interval between individual statistics collection.
 	const stats_collection_interval = 5min;
 }
@@ -29,7 +29,7 @@ event net_stats_update(last_stat: NetStats)
 		                 new_dropped, new_recvd + new_dropped,
 		                 new_link != 0 ? fmt(", %d on link", new_link) : "")]);
 		}
-	
+
 	schedule stats_collection_interval { net_stats_update(ns) };
 	}
 

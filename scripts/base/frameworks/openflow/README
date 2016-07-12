@@ -1,0 +1,2 @@
+The OpenFlow framework exposes the datastructures and functions
+necessary to interface to OpenFlow capable hardware.

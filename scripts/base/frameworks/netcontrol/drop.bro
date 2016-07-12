@@ -44,6 +44,12 @@ export {
 		location: string	&log &optional;
 	};
 
+	## Hook that allows the modification of rules passed to drop_* before they
+	## are passed on. If one of the hooks uses break, the rule is ignored.
+	##
+	## r: The rule to be added
+	global NetControl::drop_rule_policy: hook(r: Rule);
+
 	## Event that can be handled to access the :bro:type:`NetControl::ShuntInfo`
 	## record as it is sent on to the logging framework.
 	global log_netcontrol_drop: event(rec: DropInfo);
@@ -58,6 +64,9 @@ function drop_connection(c: conn_id, t: interval, location: string &default="") 
 	{
 	local e: Entity = [$ty=CONNECTION, $conn=c];
 	local r: Rule = [$ty=DROP, $target=FORWARD, $entity=e, $expire=t, $location=location];
+
+	if ( ! hook NetControl::drop_rule_policy(r) )
+		return "";
 
 	local id = add_rule(r);
 
@@ -79,6 +88,9 @@ function drop_address(a: addr, t: interval, location: string &default="") : stri
 	{
 	local e: Entity = [$ty=ADDRESS, $ip=addr_to_subnet(a)];
 	local r: Rule = [$ty=DROP, $target=FORWARD, $entity=e, $expire=t, $location=location];
+
+	if ( ! hook NetControl::drop_rule_policy(r) )
+		return "";
 
 	local id = add_rule(r);
 

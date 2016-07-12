@@ -1,0 +1,32 @@
+.. rst-class:: btest-cmd
+
+    .. code-block:: none
+      :linenos:
+      :emphasize-lines: 1,1
+
+      # bro -C -r tls/ecdhe.pcap netcontrol-4-drop.bro
+      netcontrol debug (Debug-All): init
+      netcontrol debug (Debug-All): add_rule: [ty=NetControl::DROP, target=NetControl::FORWARD, entity=[ty=NetControl::CONNECTION, conn=[orig_h=192.168.18.50, orig_p=56981/tcp, resp_h=74.125.239.97, resp_p=443/tcp], flow=<uninitialized>, ip=<uninitialized>, mac=<uninitialized>], expire=20.0 secs, priority=0, location=<uninitialized>, out_port=<uninitialized>, mod=<uninitialized>, id=2, cid=2, _plugin_ids={\x0a\x0a}, _active_plugin_ids={\x0a\x0a}, _no_expire_plugins={\x0a\x0a}, _added=F]
+
+.. rst-class:: btest-cmd
+
+    .. code-block:: none
+      :linenos:
+      :emphasize-lines: 1,1
+
+      # cat netcontrol.log
+      #separator \x09
+      #set_separator	,
+      #empty_field	(empty)
+      #unset_field	-
+      #path	netcontrol
+      #open	2016-06-22-22-58-42
+      #fields	ts	rule_id	category	cmd	state	action	target	entity_type	entity	mod	msg	priority	expire	location	plugin
+      #types	time	string	enum	string	enum	string	enum	string	string	string	string	int	interval	string	string
+      0.000000	-	NetControl::MESSAGE	-	-	-	-	-	-	-	activating plugin with priority 0	-	-	-	Debug-All
+      0.000000	-	NetControl::MESSAGE	-	-	-	-	-	-	-	activation finished	-	-	-	Debug-All
+      0.000000	-	NetControl::MESSAGE	-	-	-	-	-	-	-	plugin initialization done	-	-	-	-
+      1398529018.678276	2	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::CONNECTION	192.168.18.50/56981<->74.125.239.97/443	-	-	0	20.000000	-	Debug-All
+      1398529018.678276	2	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::CONNECTION	192.168.18.50/56981<->74.125.239.97/443	-	-	0	20.000000	-	Debug-All
+      #close	2016-06-22-22-58-42
+

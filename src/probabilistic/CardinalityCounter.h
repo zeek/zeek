@@ -155,9 +155,10 @@ private:
 	int OptimalB(double error, double confidence) const;
 
 	/**
-	 * Determines at which index (counted from the back) the first one-bit
+	 * Determines at which index (counted from the front) the first one-bit
 	 * appears. The last b bits have to be 0 (the element has to be divisible
-	 * by m), hence they are ignored.
+	 * by m), hence they are ignored. Always adds 1 to the result. This is the
+	 * rho function from the original algorithm.
 	 *
 	 * @param hash_modified hash value
 	 *
@@ -165,6 +166,9 @@ private:
 	 */
 	uint8_t Rank(uint64_t hash_modified) const;
 
+	/**
+	 * flsll from FreeBSD; especially Linux does not have this.
+	 */
 	static int flsll(uint64_t mask);
 
 	/**

@@ -241,7 +241,8 @@ CardinalityCounter* CardinalityCounter::Unserialize(UnserialInfo* info)
 	return c;
 	}
 
-/* The following function is copied from libc/string/flsll.c from the FreeBSD source
+/**
+ * The following function is copied from libc/string/flsll.c from the FreeBSD source
  * tree. Original copyright message follows
  */
 /*-

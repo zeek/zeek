@@ -62,7 +62,9 @@ bool Hasher::DoSerialize(SerialInfo* info) const
 	if ( ! SERIALIZE(static_cast<uint16>(k)) )
 		return false;
 
-	return SERIALIZE(static_cast<uint64>(seed.h1));
+	if ( ! SERIALIZE(static_cast<uint64>(seed.h1)) )
+		return false;
+
 	return SERIALIZE(static_cast<uint64>(seed.h2));
 	}
 

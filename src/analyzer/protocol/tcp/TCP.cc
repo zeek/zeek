@@ -761,6 +761,17 @@ void TCP_Analyzer::UpdateInactiveState(double t,
 			// consider the ack as forming a partial
 			// connection.
 			;
+
+		else if ( flags.ACK() && peer->state == TCP_ENDPOINT_ESTABLISHED )
+			{
+			// No SYN packet from originator but SYN/ACK from
+			// responder, and now a pure ACK. Problably means we
+			// just missed that initial SYN. Let's not treat it
+			// as partial and instead establish the connection.
+			endpoint->SetState(TCP_ENDPOINT_ESTABLISHED);
+			is_partial = 0;
+			}
+
 		else
 			{
 			endpoint->SetState(TCP_ENDPOINT_PARTIAL);

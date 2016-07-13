@@ -1,4 +1,14 @@
 
+2.4-693 | 2016-07-12 11:29:17 -0700
+
+  * Change TCP analysis to process connections without the initial SYN as
+    non-partial connections. Addresses BIT-1492. (Robin Sommer).
+
+2.4-691 | 2016-07-12 09:58:38 -0700
+
+  * SSL: add support for signature_algorithms extension. (Johanna
+    Amann)
+
 2.4-688 | 2016-07-11 11:10:33 -0700
 
   * Disable broker by default. To enable it, use --enable-broker.

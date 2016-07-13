@@ -791,13 +791,14 @@ void bro_srandom(unsigned int seed)
 		srandom(seed);
 	}
 
-void init_random_seed(uint32 seed, const char* read_file, const char* write_file)
+void init_random_seed(const char* read_file, const char* write_file)
 	{
 	static const int bufsiz = 20;
 	uint32 buf[bufsiz];
 	memset(buf, 0, sizeof(buf));
 	int pos = 0;	// accumulates entropy
 	bool seeds_done = false;
+	uint32 seed = 0;
 
 	if ( read_file )
 		{
@@ -870,7 +871,7 @@ void init_random_seed(uint32 seed, const char* read_file, const char* write_file
 	if ( ! siphash_key_set )
 		{
 		assert(sizeof(buf)-64 == 16);
-		memcpy(shared_siphash_key, buf+64, 16);
+		memcpy(shared_siphash_key, reinterpret_cast<const char*>(buf)+64, 16);
 		siphash_key_set = true;
 		}
 

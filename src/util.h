@@ -195,8 +195,7 @@ extern void hmac_md5(size_t size, const unsigned char* bytes,
 // over the "seed" argument.  If write_file is given, the seeds are written
 // to that file.
 //
-extern void init_random_seed(uint32 seed, const char* load_file,
-				const char* write_file);
+extern void init_random_seed(const char* load_file, const char* write_file);
 
 // Retrieves the initial seed computed after the very first call to
 // init_random_seed(). Repeated calls to init_random_seed() will not affect

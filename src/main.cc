@@ -667,7 +667,7 @@ int main(int argc, char** argv)
 
 		case 'K':
 			MD5((const u_char*) optarg, strlen(optarg), shared_hmac_md5_key);
-			hmac_key_set = 1;
+			hmac_key_set = true;
 			break;
 
 		case 'N':

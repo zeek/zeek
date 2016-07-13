@@ -19,14 +19,15 @@
 
 #include "Hash.h"
 
-#include "H3.h"
-const H3<hash_t, UHASH_KEY_SIZE>* h3;
+extern "C" {
+extern int siphash( uint8_t *out, const uint8_t *in, uint64_t inlen, const uint8_t *k );
+}
 
 void init_hash_function()
 	{
 	// Make sure we have already called init_random_seed().
-	ASSERT(hmac_key_set);
-	h3 = new H3<hash_t, UHASH_KEY_SIZE>();
+	assert(hmac_key_set);
+	assert(siphash_key_set);
 	}
 
 HashKey::HashKey(bro_int_t i)
@@ -164,14 +165,16 @@ void* HashKey::CopyKey(const void* k, int s) const
 
 hash_t HashKey::HashBytes(const void* bytes, int size)
 	{
+	assert(sizeof(hash_t) == 8);
+	hash_t digest[2]; // 2x hash_t (uint64) = 128 bits = 32 hex chars = sizeof md5
+
 	if ( size <= UHASH_KEY_SIZE )
 		{
-		// H3 doesn't check if size is zero
-		return ( size == 0 ) ? 0 : (*h3)(bytes, size);
+		siphash((uint8_t*)digest, (const uint8_t*)bytes, size, shared_siphash_key);
+		return digest[0];
 		}
 
 	// Fall back to HMAC/MD5 for longer data (which is usually rare).
-	hash_t digest[16];
 	hmac_md5(size, (const unsigned char*) bytes, (unsigned char*) digest);
 	return digest[0];
 	}

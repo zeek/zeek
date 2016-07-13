@@ -181,10 +181,11 @@ extern std::string strreplace(const std::string& s, const std::string& o, const 
 // Remove all leading and trailing white space from string.
 extern std::string strstrip(std::string s);
 
+extern bool hmac_key_set;
 extern uint8 shared_hmac_md5_key[16];
+extern bool siphash_key_set;
+extern uint8 shared_siphash_key[16];
 
-extern int hmac_key_set;
-extern unsigned char shared_hmac_md5_key[16];
 extern void hmac_md5(size_t size, const unsigned char* bytes,
 			unsigned char digest[16]);
 

@@ -695,8 +695,10 @@ std::string strstrip(std::string s)
 	return s;
 	}
 
-int hmac_key_set = 0;
+bool hmac_key_set = 0;
 uint8 shared_hmac_md5_key[16];
+bool siphash_key_set = false;
+uint8 shared_siphash_key[16];
 
 void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16])
 	{
@@ -791,7 +793,7 @@ void bro_srandom(unsigned int seed)
 
 void init_random_seed(uint32 seed, const char* read_file, const char* write_file)
 	{
-	static const int bufsiz = 16;
+	static const int bufsiz = 20;
 	uint32 buf[bufsiz];
 	memset(buf, 0, sizeof(buf));
 	int pos = 0;	// accumulates entropy
@@ -812,12 +814,13 @@ void init_random_seed(uint32 seed, const char* read_file, const char* write_file
 		gettimeofday((struct timeval *)(buf + pos), 0);
 		pos += sizeof(struct timeval) / sizeof(uint32);
 
+		// use urandom. For reasons see e.g. http://www.2uo.de/myths-about-urandom/
 #if defined(O_NONBLOCK)
-		int fd = open("/dev/random", O_RDONLY | O_NONBLOCK);
+		int fd = open("/dev/urandom", O_RDONLY | O_NONBLOCK);
 #elif defined(O_NDELAY)
-		int fd = open("/dev/random", O_RDONLY | O_NDELAY);
+		int fd = open("/dev/urandom", O_RDONLY | O_NDELAY);
 #else
-		int fd = open("/dev/random", O_RDONLY);
+		int fd = open("/dev/urandom", O_RDONLY);
 #endif
 
 		if ( fd >= 0 )
@@ -835,12 +838,7 @@ void init_random_seed(uint32 seed, const char* read_file, const char* write_file
 			}
 
 		if ( pos < bufsiz )
-			{
-			buf[pos++] = getpid();
-
-			if ( pos < bufsiz )
-				buf[pos++] = getuid();
-			}
+			reporter->InternalError("Could not read enough random data from /dev/urandom. Wanted %d, got %d", bufsiz, pos);
 
 		if ( ! seed )
 			{
@@ -864,8 +862,16 @@ void init_random_seed(uint32 seed, const char* read_file, const char* write_file
 
 	if ( ! hmac_key_set )
 		{
-		MD5((const u_char*) buf, sizeof(buf), shared_hmac_md5_key);
-		hmac_key_set = 1;
+		assert(sizeof(buf)-16 == 64);
+		MD5((const u_char*) buf, sizeof(buf)-16, shared_hmac_md5_key); // The last 128 bits of buf are for siphash
+		hmac_key_set = true;
+		}
+
+	if ( ! siphash_key_set )
+		{
+		assert(sizeof(buf)-64 == 16);
+		memcpy(shared_siphash_key, buf+64, 16);
+		siphash_key_set = true;
 		}
 
 	if ( write_file && ! write_random_seeds(write_file, seed, buf, bufsiz) )

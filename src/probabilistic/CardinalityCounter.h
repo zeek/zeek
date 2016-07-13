@@ -165,6 +165,8 @@ private:
 	 */
 	uint8_t Rank(uint64_t hash_modified) const;
 
+	static int flsll(uint64_t mask);
+
 	/**
 	 * This is the number of buckets that will be stored. The standard
 	 * error is 1.04/sqrt(m), so the actual cardinality will be the

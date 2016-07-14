@@ -1,4 +1,19 @@
 
+2.4-705 | 2016-07-14 16:15:48 -0700
+
+  * Change Bro's hashing for short inputs and Bloomfilters from H3 to
+    Siphash, which produces much better results for HLL in particular.
+    (Johanna Amann)
+
+  * Fix a long-standing bug which truncated hash values to 32-bit on
+    most machines. (Johanna Amann)
+
+  * Fixes to HLL. Addresses BIT-1612. (Johanna Amann)
+
+  * Add test checking the quality of HLL. (Johanna Amann)
+
+  * Remove the -K/-J options for setting keys. (Johanna Amann)
+
 2.4-693 | 2016-07-12 11:29:17 -0700
 
   * Change TCP analysis to process connections without the initial SYN as

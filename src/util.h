@@ -23,7 +23,9 @@
 #include <string.h>
 #include <stdarg.h>
 #include <libgen.h>
+
 #include "bro-config.h"
+#include "siphash24.h"
 
 #if __STDC__
 #define myattribute __attribute__
@@ -181,10 +183,11 @@ extern std::string strreplace(const std::string& s, const std::string& o, const 
 // Remove all leading and trailing white space from string.
 extern std::string strstrip(std::string s);
 
+extern bool hmac_key_set;
 extern uint8 shared_hmac_md5_key[16];
+extern bool siphash_key_set;
+extern uint8 shared_siphash_key[SIPHASH_KEYLEN];
 
-extern int hmac_key_set;
-extern unsigned char shared_hmac_md5_key[16];
 extern void hmac_md5(size_t size, const unsigned char* bytes,
 			unsigned char digest[16]);
 
@@ -194,8 +197,7 @@ extern void hmac_md5(size_t size, const unsigned char* bytes,
 // over the "seed" argument.  If write_file is given, the seeds are written
 // to that file.
 //
-extern void init_random_seed(uint32 seed, const char* load_file,
-				const char* write_file);
+extern void init_random_seed(const char* load_file, const char* write_file);
 
 // Retrieves the initial seed computed after the very first call to
 // init_random_seed(). Repeated calls to init_random_seed() will not affect

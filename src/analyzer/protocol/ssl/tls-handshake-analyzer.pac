@@ -104,17 +104,13 @@ refine connection Handshake_Conn += {
 
 	function proc_signature_algorithm(rec: HandshakeRecord, supported_signature_algorithms: SignatureAndHashAlgorithm[]) : bool
 		%{
-		RecordType* rt = BifType::Record::SSL::SignatureAndHashAlgorithm;
-		VectorType* vt = new VectorType(rt);
-
-		VectorVal* slist = new VectorVal(vt);
-		Unref(vt); // not consumed, VectorVal refs.
+		VectorVal* slist = new VectorVal(internal_type("signature_and_hashalgorithm_vec")->AsVectorType());
 
 		if ( supported_signature_algorithms )
 			{
 			for ( unsigned int i = 0; i < supported_signature_algorithms->size(); ++i )
 				{
-				RecordVal* el = new RecordVal(rt);
+				RecordVal* el = new RecordVal(BifType::Record::SSL::SignatureAndHashAlgorithm);
 				el->Assign(0, new Val((*supported_signature_algorithms)[i]->HashAlgorithm(), TYPE_COUNT));
 				el->Assign(1, new Val((*supported_signature_algorithms)[i]->SignatureAlgorithm(), TYPE_COUNT));
 				slist->Assign(i, el);

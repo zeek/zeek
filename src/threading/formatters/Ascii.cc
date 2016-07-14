@@ -9,6 +9,22 @@
 
 using namespace threading::formatter;
 
+// If the value we'd write out would match exactly the a reserved string, we
+// escape the first character so that the output won't be ambigious. If this
+// function returns true, it has added an escaped version of data to desc.
+static inline bool escapeReservedContent(ODesc* desc, const string& reserved, const char* data, int size)
+	{
+	if ( size != (int)reserved.size() || memcmp(data, reserved.data(), size) != 0 )
+		return false;
+
+	char hex[4] = {'\\', 'x', '0', '0'};
+	bytetohex(*data, hex + 2);
+	desc->AddRaw(hex, 4);
+	desc->AddN(data + 1, size - 1);
+	return true;
+	}
+
+
 Ascii::SeparatorInfo::SeparatorInfo()
 	{
 	separator = "SHOULD_NOT_BE_USED";
@@ -116,23 +132,13 @@ bool Ascii::Describe(ODesc* desc, threading::Value* val, const string& name) con
 			break;
 			}
 
-		if ( size == (int)separators.unset_field.size() && memcmp(data, separators.unset_field.data(), size) == 0 )
-			{
-			// The value we'd write out would match exactly the
-			// place-holder we use for unset optional fields. We
-			// escape the first character so that the output
-			// won't be ambigious.
-			char hex[4] = {'\\', 'x', '0', '0'};
-			bytetohex(*data, hex + 2);
-			desc->AddRaw(hex, 4);
+		if ( escapeReservedContent(desc, separators.unset_field, data, size) )
+			break;
 
-			++data;
-			--size;
-			}
+		if ( escapeReservedContent(desc, separators.empty_field, data, size) )
+			break;
 
-		if ( size )
-			desc->AddN(data, size);
-
+		desc->AddN(data, size);
 		break;
 		}
 

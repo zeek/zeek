@@ -13,35 +13,40 @@ New Dependencies
 - Bro now requires a compiler with C++11 support for building the
   source code.
 
-- Bro now requires the C++ Actor Framework, CAF, which must be
-  installed first. See http://actor-framework.org.
-
 - Bro now requires Python instead of Perl to compile the source code.
 
-- The pcap buffer size can set through the new option Pcap::bufsize.
+- When enabling Broker (which is disabled by default), Bro now requires
+  version 0.14 of the C++ Actor Framework.
 
 Log Changes
 -----------
 
+- Connections
+
+  - The 'history' field gains two new flags: '^' indicates that Bro
+    heuristically flipped to direction of the connection. 't/T' indicates
+    the first TCP payload retransmission from originator or responder,
+    respectively.
+
 - DNS
 
-  - New 'rtt' field to indicate the round trip time between when a 
+  - New 'rtt' field to indicate the round trip time between when a
     request was sent and when a reply started.
 
 - SMTP
 
-  - New 'cc' field which includes the 'Cc' header from MIME messages 
+  - New 'cc' field which includes the 'Cc' header from MIME messages
     sent over SMTP.
 
   - Changes in 'mailfrom' and 'rcptto' fields to remove some non-address
-    cruft that will tend to be found.  The main example is the change 
+    cruft that will tend to be found.  The main example is the change
     from "<user@domain>" to "user@domain.com".
 
 - HTTP
-  
+
   - Removed 'filename' field.
 
-  - New 'orig_filenames' and 'resp_filenames' fields which each contain 
+  - New 'orig_filenames' and 'resp_filenames' fields which each contain
     a vector of filenames seen in entities transferred.
 
 New Functionality
@@ -61,6 +66,10 @@ New Functionality
   phases of the protocol. Right now these analyzer only identify
   STARTTLS sessions, handing them over to TLS analysis. The analyzer
   does not yet analyze any further IMAP/XMPP content.
+
+- The new event ssl_extension_signature_algorithm allows access to the
+  TLS signature_algorithms extension that lists client supported signature
+  and hash algorithm pairs.
 
 - Bro now tracks VLAN IDs. To record them inside the connection log,
   load protocols/conn/vlan-logging.bro.
@@ -133,6 +142,8 @@ New Functionality
     - redis: An experimental log writer for Redis.
     - tcprs: An TCP-level analyzer detecting retransmissions, reordering, and more.
 
+- The pcap buffer size can be set through the new option Pcap::bufsize.
+
 Changed Functionality
 ---------------------
 
@@ -157,6 +168,12 @@ Changed Functionality
   filled out in the first place) has been split into to
   "orig_filenames" and "resp_filenames".
 
+- TCP analysis was changed to process connections without the initial
+  SYN packet. In the past, connections without a full handshake were
+  treated as partial, meaning that most application-layer analyzers
+  would refuse to inspect the payload. Now, Bro will consider these
+  connections as complete and all analyzers will process them notmally.
+
 Removed Functionality
 ---------------------
 
@@ -164,6 +181,9 @@ Removed Functionality
       being maintained and they were becoming inaccurate. They
       were also prone to needing more regular updates as the internet
       changed and will likely be more relevant if maintained externally.
+
+    - The event ack_above_hole() has been removed, as it was a subset
+      of content_gap() and led to plenty noise.
 
 Deprecated Functionality
 ------------------------

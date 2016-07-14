@@ -1232,6 +1232,9 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 	Connection* conn = new Connection(this, k, t, id, flow_label, pkt, encapsulation);
 	conn->SetTransport(tproto);
 
+	if ( flip )
+		conn->AddHistory('^');
+
 	if ( ! analyzer_mgr->BuildInitialAnalyzerTree(conn) )
 		{
 		conn->Done();

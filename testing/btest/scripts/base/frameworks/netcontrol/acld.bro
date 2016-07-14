@@ -4,6 +4,7 @@
 # @TEST-EXEC: btest-bg-run send "bro -b -r $TRACES/tls/ecdhe.pcap --pseudo-realtime ../send.bro broker_port=$BROKER_PORT >send.out"
 
 # @TEST-EXEC: btest-bg-wait 20
+# @TEST-EXEC: btest-diff send/netcontrol.log
 # @TEST-EXEC: btest-diff recv/recv.out
 # @TEST-EXEC: btest-diff send/send.out
 
@@ -67,6 +68,12 @@ event NetControl::rule_added(r: NetControl::Rule, p: NetControl::PluginState, ms
 	NetControl::remove_rule(r$id);
 	}
 
+event NetControl::rule_exists(r: NetControl::Rule, p: NetControl::PluginState, msg: string)
+	{
+	print "rule exists", r$entity, r$ty;
+	NetControl::remove_rule(r$id);
+	}
+
 event NetControl::rule_removed(r: NetControl::Rule, p: NetControl::PluginState, msg: string)
 	{
 	print "rule removed", r$entity, r$ty;
@@ -98,7 +105,10 @@ event NetControl::acld_add_rule(id: count, r: NetControl::Rule, ar: NetControl::
 	{
 	print "add_rule", id, r$entity, r$ty, ar;
 
-	Broker::send_event("bro/event/netcontroltest", Broker::event_args(NetControl::acld_rule_added, id, r, ar$command));
+	if ( r$cid != 3 )
+		Broker::send_event("bro/event/netcontroltest", Broker::event_args(NetControl::acld_rule_added, id, r, ar$command));
+	else
+		Broker::send_event("bro/event/netcontroltest", Broker::event_args(NetControl::acld_rule_exists, id, r, ar$command));
 	}
 
 event NetControl::acld_remove_rule(id: count, r: NetControl::Rule, ar: NetControl::AclRule)

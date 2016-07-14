@@ -424,7 +424,7 @@ void TCP_Analyzer::SetReassembler(TCP_Reassembler* rorig,
 	reassembling = 1;
 	}
 
-const struct tcphdr* TCP_Analyzer::ExtractTCP_Header(const u_char*& data, 
+const struct tcphdr* TCP_Analyzer::ExtractTCP_Header(const u_char*& data,
 							int& len, int& caplen)
 	{
 	const struct tcphdr* tp = (const struct tcphdr*) data;
@@ -761,6 +761,17 @@ void TCP_Analyzer::UpdateInactiveState(double t,
 			// consider the ack as forming a partial
 			// connection.
 			;
+
+		else if ( flags.ACK() && peer->state == TCP_ENDPOINT_ESTABLISHED )
+			{
+			// No SYN packet from originator but SYN/ACK from
+			// responder, and now a pure ACK. Problably means we
+			// just missed that initial SYN. Let's not treat it
+			// as partial and instead establish the connection.
+			endpoint->SetState(TCP_ENDPOINT_ESTABLISHED);
+			is_partial = 0;
+			}
+
 		else
 			{
 			endpoint->SetState(TCP_ENDPOINT_PARTIAL);
@@ -1165,7 +1176,7 @@ static void update_ack_seq(TCP_Endpoint* endpoint, uint32 ack_seq)
 // Returns the difference between last_seq and the last sequence
 // seen by the endpoint (may be negative).
 static int32 update_last_seq(TCP_Endpoint* endpoint, uint32 last_seq,
-                             TCP_Flags flags)
+                             TCP_Flags flags, int len)
 	{
 	int32 delta_last = seq_delta(last_seq, endpoint->LastSeq());
 
@@ -1194,9 +1205,8 @@ static int32 update_last_seq(TCP_Endpoint* endpoint, uint32 last_seq,
 		// ## endpoint->last_seq = last_seq;
 		endpoint->UpdateLastSeq(last_seq);
 
-	else if ( delta_last <= 0 )
-		{ // ### ++retransmit, unless this is a pure ack
-		}
+	else if ( delta_last < 0 && len > 0 )
+		endpoint->CheckHistory(HIST_RXMIT, 'T');
 
 	return delta_last;
 	}
@@ -1334,7 +1344,7 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 		peer->AckReceived(rel_ack);
 		}
 
-	int32 delta_last = update_last_seq(endpoint, seq_one_past_segment, flags);
+	int32 delta_last = update_last_seq(endpoint, seq_one_past_segment, flags, len);
 	endpoint->last_time = current_timestamp;
 
 	int do_close;

@@ -458,6 +458,7 @@ type SSLExtension(rec: HandshakeRecord) = record {
 		EXT_EC_POINT_FORMATS -> ec_point_formats: EcPointFormats(rec)[] &until($element == 0 || $element != 0);
 #		EXT_STATUS_REQUEST -> status_request: StatusRequest(rec)[] &until($element == 0 || $element != 0);
 		EXT_SERVER_NAME -> server_name: ServerNameExt(rec)[] &until($element == 0 || $element != 0);
+		EXT_SIGNATURE_ALGORITHMS -> signature_algorithm: SignatureAlgorithm(rec)[] &until($element == 0 || $element != 0);
 		default -> data: bytestring &restofdata;
 	};
 } &length=data_len+4 &exportsourcedata;
@@ -500,6 +501,16 @@ type EcPointFormats(rec: HandshakeRecord) = record {
 	length: uint8;
 	point_format_list: uint8[length];
 };
+
+type SignatureAndHashAlgorithm() = record {
+	HashAlgorithm: uint8;
+	SignatureAlgorithm: uint8;
+}
+
+type SignatureAlgorithm(rec: HandshakeRecord) = record {
+	length: uint16;
+	supported_signature_algorithms: SignatureAndHashAlgorithm[] &until($input.length() == 0);
+}
 
 type EllipticCurves(rec: HandshakeRecord) = record {
 	length: uint16;

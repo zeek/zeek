@@ -6,7 +6,8 @@
 # @TEST-EXEC: sleep 1
 # @TEST-EXEC: btest-bg-run worker-2  "cp ../cluster-layout.bro . && CLUSTER_NODE=worker-2 bro --pseudo-realtime -C -r $TRACES/tls/ecdhe.pcap %INPUT"
 # @TEST-EXEC: btest-bg-wait 20
-# @TEST-EXEC: btest-diff manager-1/netcontrol.log
+# @TEST-EXEC: btest-diff worker-1/.stdout
+# @TEST-EXEC: btest-diff worker-2/.stdout
 
 @TEST-START-FILE cluster-layout.bro
 redef Cluster::nodes = {
@@ -26,6 +27,11 @@ event bro_init()
 	{
 	suspend_processing();
 	}
+
+event remote_connection_handshake_done(p: event_peer)
+	{
+	continue_processing();
+	}
 @endif
 
 event NetControl::init()
@@ -33,13 +39,6 @@ event NetControl::init()
 	local netcontrol_debug = NetControl::create_debug(T);
 	NetControl::activate(netcontrol_debug, 0);
 	}
-
-@if ( Cluster::local_node_type() == Cluster::WORKER )
-event remote_connection_handshake_done(p: event_peer)
-	{
-	continue_processing();
-	}
-@endif
 
 event connection_established(c: connection)
 	{
@@ -59,4 +58,12 @@ event remote_connection_closed(p: event_peer) {
 event NetControl::rule_added(r: NetControl::Rule, p: NetControl::PluginState, msg: string &default="")
 	{
 	print "Rule added", r$id, r$cid;
+	if ( r$entity?$ip )
+		print |NetControl::find_rules_subnet(r$entity$ip)|;
+	}
+
+event NetControl::rule_destroyed(r: NetControl::Rule)
+	{
+	if ( r$entity?$ip )
+		print "Rule destroyed", r$id, r$cid, |NetControl::find_rules_subnet(r$entity$ip)|;
 	}

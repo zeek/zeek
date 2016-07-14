@@ -18,7 +18,7 @@ redef exit_only_after_terminate = T;
 event NetControl::init()
 	{
 	suspend_processing();
-	local netcontrol_broker = NetControl::create_broker(127.0.0.1, broker_port, "bro/event/netcontroltest", T);
+	local netcontrol_broker = NetControl::create_broker(NetControl::BrokerConfig($host=127.0.0.1, $bport=broker_port, $topic="bro/event/netcontroltest"), T);
 	NetControl::activate(netcontrol_broker, 0);
 	}
 
@@ -51,6 +51,11 @@ event NetControl::rule_added(r: NetControl::Rule, p: NetControl::PluginState, ms
 	{
 	print "rule added", r$entity, r$ty;
 	NetControl::remove_rule(r$id);
+	}
+
+event NetControl::rule_exists(r: NetControl::Rule, p: NetControl::PluginState, msg: string)
+	{
+	print "rule exists", r$entity, r$ty;
 	}
 
 event NetControl::rule_removed(r: NetControl::Rule, p: NetControl::PluginState, msg: string)
@@ -89,14 +94,19 @@ event NetControl::broker_add_rule(id: count, r: NetControl::Rule)
 	{
 	print "add_rule", id, r$entity, r$ty;
 
-	Broker::send_event("bro/event/netcontroltest", Broker::event_args(NetControl::broker_rule_added, id, r, ""));
+	if ( r$cid == 3 )
+		Broker::send_event("bro/event/netcontroltest", Broker::event_args(NetControl::broker_rule_added, id, r, ""));
+	if ( r$cid == 2 )
+		Broker::send_event("bro/event/netcontroltest", Broker::event_args(NetControl::broker_rule_exists, id, r, ""));
+
+	if ( r$cid == 2 )
+		Broker::send_event("bro/event/netcontroltest", Broker::event_args(NetControl::broker_rule_timeout, id, r, NetControl::FlowInfo()));
 	}
 
 event NetControl::broker_remove_rule(id: count, r: NetControl::Rule)
 	{
 	print "remove_rule", id, r$entity, r$ty;
 
-	Broker::send_event("bro/event/netcontroltest", Broker::event_args(NetControl::broker_rule_timeout, id, r, NetControl::FlowInfo()));
 	Broker::send_event("bro/event/netcontroltest", Broker::event_args(NetControl::broker_rule_removed, id, r, ""));
 
 	if ( r$cid == 3 )

@@ -773,6 +773,8 @@ void Connection::FlipRoles()
 		root_analyzer->FlipRoles();
 
 	analyzer_mgr->ApplyScheduledAnalyzers(this);
+
+	AddHistory('^');
 	}
 
 unsigned int Connection::MemoryAllocation() const

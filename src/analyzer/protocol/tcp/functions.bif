@@ -91,7 +91,7 @@ function get_resp_seq%(cid: conn_id%): count
 ##     contents of individual packets. Reordering and duplicates are
 ##     removed. If any data is missing, the recording stops at the
 ##     missing data; this can happen, e.g., due to an
-##     :bro:id:`ack_above_hole` event.
+##     :bro:id:`content_gap` event.
 ##
 ## .. bro:see:: get_contents_file set_record_packets contents_file_write_failure
 function set_contents_file%(cid: conn_id, direction: count, f: file%): bool

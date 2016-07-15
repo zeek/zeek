@@ -52,11 +52,20 @@ export {
 	## Events raised by a manager and handled by proxies.
 	const manager2proxy_events = /EMPTY/ &redef;
 
+	## Events raised by a manager and handled by loggers.
+	const manager2logger_events = /EMPTY/ &redef;
+
+	## Events raised by proxies and handled by loggers.
+	const proxy2logger_events = /EMPTY/ &redef;
+
 	## Events raised by proxies and handled by a manager.
 	const proxy2manager_events = /EMPTY/ &redef;
 
 	## Events raised by proxies and handled by workers.
 	const proxy2worker_events = /EMPTY/ &redef;
+
+	## Events raised by workers and handled by loggers.
+	const worker2logger_events = /EMPTY/ &redef;
 
 	## Events raised by workers and handled by a manager.
 	const worker2manager_events = /(TimeMachine::command|Drop::.*)/ &redef;

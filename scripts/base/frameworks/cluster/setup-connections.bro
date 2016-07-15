@@ -25,11 +25,18 @@ event bro_init() &priority=9
 
 		if ( me$node_type == LOGGER )
 			{
-			if ( (n$node_type == MANAGER || n$node_type == PROXY ||
-				n$node_type == WORKER) && n$logger == node )
+			if ( n$node_type == MANAGER && n$logger == node )
 				Communication::nodes[i] =
 				    [$host=n$ip, $zone_id=n$zone_id, $connect=F,
-				     $class=i, $request_logs=T];
+				     $class=i, $events=manager2logger_events, $request_logs=T];
+			if ( n$node_type == PROXY && n$logger == node )
+				Communication::nodes[i] =
+				    [$host=n$ip, $zone_id=n$zone_id, $connect=F,
+				     $class=i, $events=proxy2logger_events, $request_logs=T];
+			if ( n$node_type == WORKER && n$logger == node )
+				Communication::nodes[i] =
+				    [$host=n$ip, $zone_id=n$zone_id, $connect=F,
+				     $class=i, $events=worker2logger_events, $request_logs=T];
 			}
 		else if ( me$node_type == MANAGER )
 			{

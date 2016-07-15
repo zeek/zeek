@@ -16,7 +16,8 @@ event bro_init()
 		hll_cardinality_add(cp, count_to_v4_addr(base+i));
 		}
 
-	if ( |double_to_count(hll_cardinality_estimate(cp)) - 170000| > 10000 )
+	local res: int = double_to_count(hll_cardinality_estimate(cp));
+	if ( |res - 170000| > 15000 )
 		print "Big error";
 	else
 		print "Ok error";

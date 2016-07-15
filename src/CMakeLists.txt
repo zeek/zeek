@@ -348,6 +348,7 @@ set(bro_SRCS
     PacketDumper.cc
     strsep.c
     modp_numtoa.c
+    siphash24.c
 
     threading/BasicThread.cc
     threading/Formatter.cc

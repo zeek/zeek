@@ -42,7 +42,7 @@ function bloomfilter_basic_init%(fp: double, capacity: count,
 
 	size_t cells = BasicBloomFilter::M(fp, capacity);
 	size_t optimal_k = BasicBloomFilter::K(cells, capacity);
-	size_t seed = Hasher::MakeSeed(name->Len() > 0 ? name->Bytes() : 0,
+	Hasher::seed_t seed = Hasher::MakeSeed(name->Len() > 0 ? name->Bytes() : 0,
                                  name->Len());
 	const Hasher* h = new DoubleHasher(optimal_k, seed);
 
@@ -66,7 +66,7 @@ function bloomfilter_basic_init%(fp: double, capacity: count,
 ##
 ## Returns: A Bloom filter handle.
 ##
-## .. bro:see:: bloomfilter_basic_init bloomfilter_counting_init  bloomfilter_add 
+## .. bro:see:: bloomfilter_basic_init bloomfilter_counting_init  bloomfilter_add
 ##    bloomfilter_lookup bloomfilter_clear bloomfilter_merge global_hash_seed
 function bloomfilter_basic_init2%(k: count, cells: count,
                                   name: string &default=""%): opaque of bloomfilter
@@ -82,7 +82,7 @@ function bloomfilter_basic_init2%(k: count, cells: count,
 		return 0;
 		}
 
-	size_t seed = Hasher::MakeSeed(name->Len() > 0 ? name->Bytes() : 0,
+	Hasher::seed_t seed = Hasher::MakeSeed(name->Len() > 0 ? name->Bytes() : 0,
 				       name->Len());
 	const Hasher* h = new DoubleHasher(k, seed);
 
@@ -121,7 +121,7 @@ function bloomfilter_counting_init%(k: count, cells: count, max: count,
 		return 0;
 		}
 
-	size_t seed = Hasher::MakeSeed(name->Len() > 0 ? name->Bytes() : 0,
+	Hasher::seed_t seed = Hasher::MakeSeed(name->Len() > 0 ? name->Bytes() : 0,
 				       name->Len());
 
 	const Hasher* h = new DefaultHasher(k, seed);

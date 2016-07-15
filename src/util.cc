@@ -695,8 +695,11 @@ std::string strstrip(std::string s)
 	return s;
 	}
 
-int hmac_key_set = 0;
+bool hmac_key_set = false;
 uint8 shared_hmac_md5_key[16];
+
+bool siphash_key_set = false;
+uint8 shared_siphash_key[SIPHASH_KEYLEN];
 
 void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16])
 	{
@@ -789,19 +792,20 @@ void bro_srandom(unsigned int seed)
 		srandom(seed);
 	}
 
-void init_random_seed(uint32 seed, const char* read_file, const char* write_file)
+void init_random_seed(const char* read_file, const char* write_file)
 	{
-	static const int bufsiz = 16;
+	static const int bufsiz = 20;
 	uint32 buf[bufsiz];
 	memset(buf, 0, sizeof(buf));
 	int pos = 0;	// accumulates entropy
 	bool seeds_done = false;
+	uint32 seed = 0;
 
 	if ( read_file )
 		{
 		if ( ! read_random_seeds(read_file, &seed, buf, bufsiz) )
-			reporter->Error("Could not load seeds from file '%s'.\n",
-					read_file);
+			reporter->FatalError("Could not load seeds from file '%s'.\n",
+					     read_file);
 		else
 			seeds_done = true;
 		}
@@ -812,12 +816,13 @@ void init_random_seed(uint32 seed, const char* read_file, const char* write_file
 		gettimeofday((struct timeval *)(buf + pos), 0);
 		pos += sizeof(struct timeval) / sizeof(uint32);
 
+		// use urandom. For reasons see e.g. http://www.2uo.de/myths-about-urandom/
 #if defined(O_NONBLOCK)
-		int fd = open("/dev/random", O_RDONLY | O_NONBLOCK);
+		int fd = open("/dev/urandom", O_RDONLY | O_NONBLOCK);
 #elif defined(O_NDELAY)
-		int fd = open("/dev/random", O_RDONLY | O_NDELAY);
+		int fd = open("/dev/urandom", O_RDONLY | O_NDELAY);
 #else
-		int fd = open("/dev/random", O_RDONLY);
+		int fd = open("/dev/urandom", O_RDONLY);
 #endif
 
 		if ( fd >= 0 )
@@ -835,12 +840,7 @@ void init_random_seed(uint32 seed, const char* read_file, const char* write_file
 			}
 
 		if ( pos < bufsiz )
-			{
-			buf[pos++] = getpid();
-
-			if ( pos < bufsiz )
-				buf[pos++] = getuid();
-			}
+			reporter->FatalError("Could not read enough random data from /dev/urandom. Wanted %d, got %d", bufsiz, pos);
 
 		if ( ! seed )
 			{
@@ -864,8 +864,16 @@ void init_random_seed(uint32 seed, const char* read_file, const char* write_file
 
 	if ( ! hmac_key_set )
 		{
-		MD5((const u_char*) buf, sizeof(buf), shared_hmac_md5_key);
-		hmac_key_set = 1;
+		assert(sizeof(buf) - 16 == 64);
+		MD5((const u_char*) buf, sizeof(buf) - 16, shared_hmac_md5_key); // The last 128 bits of buf are for siphash
+		hmac_key_set = true;
+		}
+
+	if ( ! siphash_key_set )
+		{
+		assert(sizeof(buf) - 64 == SIPHASH_KEYLEN);
+		memcpy(shared_siphash_key, reinterpret_cast<const char*>(buf) + 64, SIPHASH_KEYLEN);
+		siphash_key_set = true;
 		}
 
 	if ( write_file && ! write_random_seeds(write_file, seed, buf, bufsiz) )

@@ -5,17 +5,20 @@
 
 #include "Hasher.h"
 #include "NetVar.h"
-#include "digest.h"
 #include "Serializer.h"
+#include "digest.h"
+#include "siphash24.h"
 
 using namespace probabilistic;
 
-uint64 Hasher::MakeSeed(const void* data, size_t size)
+Hasher::seed_t Hasher::MakeSeed(const void* data, size_t size)
 	{
 	u_char buf[SHA256_DIGEST_LENGTH];
-	uint64 tmpseed;
+	seed_t tmpseed;
 	SHA256_CTX ctx;
 	sha256_init(&ctx);
+
+	assert(sizeof(tmpseed) == 16);
 
 	if ( data )
 		sha256_update(&ctx, data, size);
@@ -56,7 +59,10 @@ bool Hasher::DoSerialize(SerialInfo* info) const
 	if ( ! SERIALIZE(static_cast<uint16>(k)) )
 		return false;
 
-	return SERIALIZE(static_cast<uint64>(seed));
+	if ( ! SERIALIZE(static_cast<uint64>(seed.h1)) )
+		return false;
+
+	return SERIALIZE(static_cast<uint64>(seed.h2));
 	}
 
 bool Hasher::DoUnserialize(UnserialInfo* info)
@@ -70,8 +76,11 @@ bool Hasher::DoUnserialize(UnserialInfo* info)
 	k = serial_k;
 	assert(k > 0);
 
-	uint64 serial_seed;
-	if ( ! UNSERIALIZE(&serial_seed) )
+	seed_t serial_seed;
+	if ( ! UNSERIALIZE(&serial_seed.h1) )
+		return false;
+
+	if ( ! UNSERIALIZE(&serial_seed.h2) )
 		return false;
 
 	seed = serial_seed;
@@ -79,14 +88,18 @@ bool Hasher::DoUnserialize(UnserialInfo* info)
 	return true;
 	}
 
-Hasher::Hasher(size_t arg_k, size_t arg_seed)
+Hasher::Hasher(size_t arg_k, seed_t arg_seed)
 	{
 	k = arg_k;
 	seed = arg_seed;
 	}
 
-UHF::UHF(size_t arg_seed)
-	: h(arg_seed)
+UHF::UHF()
+	{
+	memset(&seed, 0, sizeof(seed));
+	}
+
+UHF::UHF(Hasher::seed_t arg_seed)
 	{
 	seed = arg_seed;
 	}
@@ -96,8 +109,14 @@ UHF::UHF(size_t arg_seed)
 // times.
 Hasher::digest UHF::hash(const void* x, size_t n) const
 	{
+	assert(sizeof(Hasher::seed_t) == SIPHASH_KEYLEN);
+
 	if ( n <= UHASH_KEY_SIZE )
-		return n == 0 ? 0 : h(x, n);
+		{
+		hash_t outdigest;
+		siphash(&outdigest, reinterpret_cast<const uint8_t*>(x), n, reinterpret_cast<const uint8_t*>(&seed));
+		return outdigest;
+		}
 
 	unsigned char d[16];
 	MD5(reinterpret_cast<const unsigned char*>(x), n, d);
@@ -111,11 +130,15 @@ Hasher::digest UHF::hash(const void* x, size_t n) const
 	return *reinterpret_cast<const Hasher::digest*>(d);
 	}
 
-DefaultHasher::DefaultHasher(size_t k, size_t seed)
+DefaultHasher::DefaultHasher(size_t k, Hasher::seed_t seed)
 	: Hasher(k, seed)
 	{
 	for ( size_t i = 1; i <= k; ++i )
-		hash_functions.push_back(UHF(Seed() + bro_prng(i)));
+		{
+		seed_t s = Seed();
+		s.h1 += bro_prng(i);
+		hash_functions.push_back(UHF(s));
+		}
 	}
 
 Hasher::digest_vector DefaultHasher::Hash(const void* x, size_t n) const
@@ -158,12 +181,16 @@ bool DefaultHasher::DoUnserialize(UnserialInfo* info)
 
 	hash_functions.clear();
 	for ( size_t i = 0; i < K(); ++i )
-		hash_functions.push_back(UHF(Seed() + bro_prng(i)));
+		{
+		Hasher::seed_t s = Seed();
+		s.h1 += bro_prng(i);
+		hash_functions.push_back(UHF(s));
+		}
 
 	return true;
 	}
 
-DoubleHasher::DoubleHasher(size_t k, size_t seed)
+DoubleHasher::DoubleHasher(size_t k, seed_t seed)
 	: Hasher(k, seed), h1(seed + bro_prng(1)), h2(seed + bro_prng(2))
 	{
 	}

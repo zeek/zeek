@@ -185,6 +185,9 @@ Removed Functionality
     - The event ack_above_hole() has been removed, as it was a subset
       of content_gap() and led to plenty noise.
 
+    - The command line options --set-seed and --md5-hashkey have been
+      removed.
+
 Deprecated Functionality
 ------------------------
 

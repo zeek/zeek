@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2016-06-07-19-22-42
+#open	2016-07-22-12-29-49
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -72,6 +72,7 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_FTP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_FTP.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_Gnutella.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_GOOSE.events.bif.bro
     build/scripts/base/bif/plugins/Bro_GTPv1.events.bif.bro
     build/scripts/base/bif/plugins/Bro_HTTP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_HTTP.functions.bif.bro
@@ -252,6 +253,8 @@ scripts/base/init-default.bro
             scripts/base/files/x509/main.bro
               scripts/base/files/hash/__load__.bro
                 scripts/base/files/hash/main.bro
+  scripts/base/protocols/goose/__load__.bro
+    scripts/base/protocols/goose/main.bro
   scripts/base/protocols/http/__load__.bro
     scripts/base/protocols/http/main.bro
     scripts/base/protocols/http/entities.bro
@@ -311,4 +314,4 @@ scripts/base/init-default.bro
   scripts/base/misc/find-checksum-offloading.bro
   scripts/base/misc/find-filtered-trace.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2016-06-07-19-22-42
+#close	2016-07-22-12-29-49

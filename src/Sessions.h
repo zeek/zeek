@@ -29,6 +29,7 @@ class PacketFilter;
 
 namespace analyzer { namespace stepping_stone { class SteppingStoneManager; } }
 namespace analyzer { namespace arp { class ARP_Analyzer; } }
+namespace analyzer { namespace goose { class GOOSE_Analyzer; } }
 
 struct SessionStats {
 	int num_TCP_conns;
@@ -235,6 +236,7 @@ protected:
 	IPTunnelMap ip_tunnels;
 
 	analyzer::arp::ARP_Analyzer* arp_analyzer;
+	analyzer::goose::GOOSE_Analyzer* goose_analyzer;
 
 	analyzer::stepping_stone::SteppingStoneManager* stp_manager;
 	Discarder* discarder;

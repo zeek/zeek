@@ -220,6 +220,9 @@ private:
 
 	// True if L2 processing succeeded.
 	bool l2_valid;
+
+	// True if this carries a Level 3 protocol or ARP.
+	bool have_L3;
 };
 
 #endif // packet_h

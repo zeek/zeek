@@ -83,7 +83,7 @@ function asn1_real_to_double(m: int64, b: int64, e: int64): double
 	{
 		//Result may be invalid if e is too high.
 		if(e < 0)
-			return ((double)m) / (1<<e);
+			return ((double)m) / (1<<(-e));
 		else
 			return (double)(m << e);
 	}

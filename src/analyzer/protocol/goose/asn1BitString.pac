@@ -37,8 +37,10 @@ void getBoolsFromByte(ByteIterator & byte_it, ByteIterator & byte_end, VectorVal
 function asn1_bitstring_to_val(bitStringRecord: ASN1BitString): VectorVal
 %{
 	// Get the main information from the record :
-	const auto & data = ${bitStringRecord.data};
 	uint8 pad = ${bitStringRecord.paddingBits};
+	    // protocol enforcement :
+	if(pad > 7) return nullptr;
+	const auto & data = ${bitStringRecord.data};
 
 	// Initializing return value :
 	auto vv = new VectorVal(new VectorType(base_type(TYPE_BOOL)));

@@ -88,10 +88,20 @@ static inline void assignDataRecordContent(
 				recordGooseData->Assign(4, new Val(binpacGooseData.content()->floatVal()->value(), TYPE_DOUBLE));
 			break;
 		case BIT_STRING:
-			recordGooseData->Assign(5, asn1_bitstring_to_val(binpacGooseData.content()->bitString()));
+			{
+				VectorVal * vv = asn1_bitstring_to_val(binpacGooseData.content()->bitString());
+				if(vv)
+					recordGooseData->Assign(5, vv);
+				// Else, it is malformed.
+			}
 			break;
 		case BOOLEAN_ARRAY:
-			recordGooseData->Assign(5, asn1_bitstring_to_val(binpacGooseData.content()->boolArray()));
+			{
+				VectorVal * vv = asn1_bitstring_to_val(binpacGooseData.content()->boolArray());
+				if(vv)
+					recordGooseData->Assign(5, vv);
+				// Else, it is malformed.
+			}
 			break;
 		// All interpreted as a string
 		case BINARY_TIME:

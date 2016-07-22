@@ -232,21 +232,6 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields,
 	return true;
 	}
 
-// Format String
-char* SQLite::FS(const char* format, ...)
-	{
-	char* buf;
-
-	va_list al;
-	va_start(al, format);
-	int n = vasprintf(&buf, format, al);
-	va_end(al);
-
-	assert(n >= 0);
-
-	return buf;
-	}
-
 int SQLite::AddParams(Value* val, int pos)
 	{
 	if ( ! val->present )

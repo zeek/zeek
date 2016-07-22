@@ -1,0 +1,20 @@
+[destination=02:02:02:02:02:02, source=04:04:04:04:04:04, captureTime=1466082604.800286]
+GOOSE message detected.
+timeAllowedToLive is 3000.
+It has a goID : goID1
+t : 1295331479s 498895898ns
+stNum : 157971 ; sqNum : 56
+test : false ; ndsCom : false
+confRev : 1
+numDatSetEntries : 8
+allData :
+    Integer value : 0
+    Integer value : 42
+    Integer value : 42
+    Integer value : 0
+    Integer value : -1
+    Integer value : 0
+    Integer value : 1
+    Integer value : -2147483648
+    Integer value : 2147483647
+

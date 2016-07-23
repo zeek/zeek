@@ -1,4 +1,10 @@
 
+2.4-715 | 2016-07-23 07:27:05 -0700
+
+  * SQLite writer: Remove unused string formatting function. (Johanna Amann)
+
+  * Deprecated the ElasticSearch log writer. (Johanna Amann)
+
 2.4-709 | 2016-07-15 09:05:20 -0700
 
   * Change Bro's hashing for short inputs and Bloomfilters from H3 to

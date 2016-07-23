@@ -28,11 +28,16 @@ type Val: record {
 
 global servers: table[string] of Val = table();
 
+event handle_our_errors(desc: Input::TableDescription, msg: string, level: Reporter::Level)
+	{
+	print outfile, "Event", msg, level;
+	}
+
 event bro_init()
 	{
 	outfile = open("../out");
 	# first read in the old stuff into the table...
-	Input::add_table([$source="../input.log", $name="ssh", $idx=Idx, $val=Val, $destination=servers]);
+	Input::add_table([$source="../input.log", $name="ssh", $error_ev=handle_our_errors, $idx=Idx, $val=Val, $destination=servers]);
 	}
 
 event Input::end_of_data(name: string, source:string)

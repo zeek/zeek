@@ -63,7 +63,7 @@ public:
 	 * an argument to callbacks. One must not otherwise access the
 	 * frontend, it's running in a different thread.
 	 */
-	ReaderBackend(ReaderFrontend* frontend);
+	explicit ReaderBackend(ReaderFrontend* frontend);
 
 	/**
 	 * Destructor.
@@ -186,8 +186,12 @@ public:
 	int NumFields() const	{ return num_fields; }
 
 	// Overridden from MsgThread.
-	virtual bool OnHeartbeat(double network_time, double current_time);
-	virtual bool OnFinish(double network_time);
+	bool OnHeartbeat(double network_time, double current_time) override;
+	bool OnFinish(double network_time) override;
+
+	void Info(const char* msg) override;
+	void Warning(const char* msg) override;
+	void Error(const char* msg) override;
 
 protected:
 	// Methods that have to be overwritten by the individual readers
@@ -324,7 +328,6 @@ protected:
 	 * present in the input source
 	 */
 	void EndCurrentSend();
-
 
 private:
 	// Frontend that instantiated us. This object must not be accessed

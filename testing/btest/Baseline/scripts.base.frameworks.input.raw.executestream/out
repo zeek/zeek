@@ -12,7 +12,7 @@ Input::remove(input);
 terminate();
 }
 
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Input::EVENT_NEW
@@ -31,7 +31,7 @@ Input::remove(input);
 terminate();
 }
 
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Input::EVENT_NEW
@@ -50,7 +50,7 @@ Input::remove(input);
 terminate();
 }
 
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Input::EVENT_NEW
@@ -69,7 +69,7 @@ Input::remove(input);
 terminate();
 }
 
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Input::EVENT_NEW
@@ -88,7 +88,7 @@ Input::remove(input);
 terminate();
 }
 
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Input::EVENT_NEW
@@ -107,7 +107,7 @@ Input::remove(input);
 terminate();
 }
 
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Input::EVENT_NEW
@@ -126,7 +126,7 @@ Input::remove(input);
 terminate();
 }
 
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Input::EVENT_NEW
@@ -145,7 +145,7 @@ Input::remove(input);
 terminate();
 }
 
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Input::EVENT_NEW

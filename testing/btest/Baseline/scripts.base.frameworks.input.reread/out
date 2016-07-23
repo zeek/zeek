@@ -46,7 +46,7 @@ print A::outfile, A::typ;
 print A::outfile, A::left;
 print A::outfile, A::right;
 return (T);
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Type
@@ -141,7 +141,7 @@ print A::outfile, A::typ;
 print A::outfile, A::left;
 print A::outfile, A::right;
 return (T);
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Type
@@ -248,7 +248,7 @@ print A::outfile, A::typ;
 print A::outfile, A::left;
 print A::outfile, A::right;
 return (T);
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Type
@@ -475,7 +475,7 @@ print A::outfile, A::typ;
 print A::outfile, A::left;
 print A::outfile, A::right;
 return (T);
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Type
@@ -600,7 +600,7 @@ print A::outfile, A::typ;
 print A::outfile, A::left;
 print A::outfile, A::right;
 return (T);
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Type
@@ -725,7 +725,7 @@ print A::outfile, A::typ;
 print A::outfile, A::left;
 print A::outfile, A::right;
 return (T);
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Type
@@ -850,7 +850,7 @@ print A::outfile, A::typ;
 print A::outfile, A::left;
 print A::outfile, A::right;
 return (T);
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Type
@@ -975,7 +975,7 @@ print A::outfile, A::typ;
 print A::outfile, A::left;
 print A::outfile, A::right;
 return (T);
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Type
@@ -1205,7 +1205,7 @@ print A::outfile, A::typ;
 print A::outfile, A::left;
 print A::outfile, A::right;
 return (T);
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Type
@@ -1258,7 +1258,7 @@ print A::outfile, A::typ;
 print A::outfile, A::left;
 print A::outfile, A::right;
 return (T);
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Type
@@ -1311,7 +1311,7 @@ print A::outfile, A::typ;
 print A::outfile, A::left;
 print A::outfile, A::right;
 return (T);
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Type
@@ -1364,7 +1364,7 @@ print A::outfile, A::typ;
 print A::outfile, A::left;
 print A::outfile, A::right;
 return (T);
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Type
@@ -1417,7 +1417,7 @@ print A::outfile, A::typ;
 print A::outfile, A::left;
 print A::outfile, A::right;
 return (T);
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Type
@@ -1470,7 +1470,7 @@ print A::outfile, A::typ;
 print A::outfile, A::left;
 print A::outfile, A::right;
 return (T);
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Type

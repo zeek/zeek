@@ -78,6 +78,26 @@ private:
 	Value* *val;
 };
 
+class ReaderErrorMessage : public threading::OutputMessage<ReaderFrontend>
+{
+public:
+	enum Type {
+		INFO, WARNING, ERROR
+	};
+
+	ReaderErrorMessage(ReaderFrontend* reader, Type arg_type, const char* arg_msg)
+		: threading::OutputMessage<ReaderFrontend>("ReaderErrorMessage", reader)
+		{ type = arg_type; msg = copy_string(arg_msg); }
+
+	virtual ~ReaderErrorMessage() 	 { delete [] msg; }
+
+	virtual bool Process();
+
+private:
+	const char* msg;
+	Type type;
+};
+
 class SendEntryMessage : public threading::OutputMessage<ReaderFrontend> {
 public:
 	SendEntryMessage(ReaderFrontend* reader, Value* *val)
@@ -136,7 +156,6 @@ public:
 private:
 };
 
-
 class DisableMessage : public threading::OutputMessage<ReaderFrontend>
 {
 public:
@@ -155,6 +174,27 @@ public:
 		return true;
 		}
 };
+
+bool ReaderErrorMessage::Process()
+	{
+	switch ( type ) {
+
+	case INFO:
+		input_mgr->Info(Object(), msg);
+		break;
+
+	case WARNING:
+		input_mgr->Warning(Object(), msg);
+		break;
+
+	case ERROR:
+		input_mgr->Error(Object(), msg);
+		break;
+	}
+
+	return true;
+	}
+
 
 using namespace input;
 
@@ -283,6 +323,24 @@ bool ReaderBackend::OnHeartbeat(double network_time, double current_time)
 		return true;
 
 	return DoHeartbeat(network_time, current_time);
+	}
+
+void ReaderBackend::Info(const char* msg)
+	{
+	SendOut(new ReaderErrorMessage(frontend, ReaderErrorMessage::INFO, msg));
+	MsgThread::Info(msg);
+	}
+
+void ReaderBackend::Warning(const char* msg)
+	{
+	SendOut(new ReaderErrorMessage(frontend, ReaderErrorMessage::WARNING, msg));
+	MsgThread::Warning(msg);
+	}
+
+void ReaderBackend::Error(const char* msg)
+	{
+	SendOut(new ReaderErrorMessage(frontend, ReaderErrorMessage::ERROR, msg));
+	MsgThread::Error(msg);
 	}
 
 }

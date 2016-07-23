@@ -341,7 +341,7 @@ bool Ascii::DoUpdate()
 
 			if ( val == 0 )
 				{
-				Error(Fmt("Could not convert line '%s' to Val. Ignoring line.", line.c_str()));
+				Warning(Fmt("Could not convert line '%s' to Val. Ignoring line.", line.c_str()));
 				error = true;
 				break;
 				}

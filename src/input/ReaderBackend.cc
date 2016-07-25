@@ -306,11 +306,16 @@ bool ReaderBackend::Update()
 	if ( ! success )
 		DisableFrontend();
 
-	return success;
+	return !disabled; // always return failure if we have been disabled in the meantime
 	}
 
 void ReaderBackend::DisableFrontend()
 	{
+	// We might already have been disabled - e.g., due to a call to error. In that
+	// case, ignore this...
+	if ( disabled )
+		return;
+
 	// We also set disabled here, because there still may be other
 	// messages queued and we will dutifully ignore these from now.
 	disabled = true;
@@ -341,6 +346,9 @@ void ReaderBackend::Error(const char* msg)
 	{
 	SendOut(new ReaderErrorMessage(frontend, ReaderErrorMessage::ERROR, msg));
 	MsgThread::Error(msg);
+
+	// Force errors to be fatal.
+	DisableFrontend();
 	}
 
 }

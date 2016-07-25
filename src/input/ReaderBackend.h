@@ -191,6 +191,16 @@ public:
 
 	void Info(const char* msg) override;
 	void Warning(const char* msg) override;
+
+	/**
+	 * Reports an error in the child thread. For input readers, it is assumed,
+	 * that Info and Warnings do not cause the read operation to fail (they might
+	 * signal that, e.g., a single line was ignored).
+	 *
+	 * It is assumed that Errors are not recoverable. Calling the Error function
+	 * will return the error back to scriptland and also *automatically* causes
+	 * the current reader to be disabled and torn down.
+	 */
 	void Error(const char* msg) override;
 
 protected:

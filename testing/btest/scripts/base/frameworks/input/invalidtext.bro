@@ -26,11 +26,23 @@ type Val: record {
 	c: count;
 };
 
+global endcount: count = 0;
+
 global servers: table[string] of Val = table();
 
 event handle_our_errors(desc: Input::TableDescription, msg: string, level: Reporter::Level)
 	{
-	print outfile, "Event", msg, level;
+	print outfile, "TableErrorEvent", msg, level;
+	}
+
+event handle_our_errors_event(desc: Input::EventDescription, msg: string, level: Reporter::Level)
+	{
+	print outfile, "EventErrorEvent", msg, level;
+	}
+
+event line(description: Input::EventDescription, tpe: Input::Event, v: Val)
+	{
+	print outfile, "Event", v;
 	}
 
 event bro_init()
@@ -38,11 +50,22 @@ event bro_init()
 	outfile = open("../out");
 	# first read in the old stuff into the table...
 	Input::add_table([$source="../input.log", $name="ssh", $error_ev=handle_our_errors, $idx=Idx, $val=Val, $destination=servers]);
+	Input::add_event([$source="../input.log", $name="sshevent", $error_ev=handle_our_errors_event, $fields=Val, $want_record=T, $ev=line]);
 	}
 
 event Input::end_of_data(name: string, source:string)
 	{
-	print outfile, servers;
-	Input::remove("ssh");
-	terminate();
+	++endcount;
+
+	if ( endcount == 1 )
+		{
+		print outfile, servers;
+		Input::remove("ssh");
+		}
+
+	if ( endcount == 2 )
+		{
+		Input::remove("sshevent");
+		terminate();
+		}
 	}

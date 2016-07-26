@@ -19,7 +19,7 @@ export {
 	};
 }
 
-hook notice(n: Notice::Info)
+hook notice(n: Notice::Info) &priority=-5
 	{
 	if ( ACTION_DROP in n$actions )
 		{

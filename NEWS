@@ -144,6 +144,9 @@ New Functionality
 
 - The pcap buffer size can be set through the new option Pcap::bufsize.
 
+- Input framework readers Table and Event can now define a custom
+  event to receive logging messages.
+
 Changed Functionality
 ---------------------
 

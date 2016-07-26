@@ -27,12 +27,6 @@
 #include "bro-config.h"
 #include "siphash24.h"
 
-#if __STDC__
-#define myattribute __attribute__
-#else
-#define myattribute(x)
-#endif
-
 #ifdef DEBUG
 
 #include <assert.h>
@@ -165,7 +159,7 @@ extern const char* fmt_bytes(const char* data, int len);
 
 // Note: returns a pointer into a shared buffer.
 extern const char* fmt(const char* format, ...)
-	myattribute((format (printf, 1, 2)));
+	__attribute__((format (printf, 1, 2)));
 extern const char* fmt_access_time(double time);
 
 extern bool ensure_intermediate_dirs(const char* dirname);

@@ -11,7 +11,7 @@ close(outfile);
 terminate();
 }
 
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Input::EVENT_NEW
@@ -29,7 +29,7 @@ close(outfile);
 terminate();
 }
 
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Input::EVENT_NEW
@@ -47,7 +47,7 @@ close(outfile);
 terminate();
 }
 
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Input::EVENT_NEW
@@ -65,7 +65,7 @@ close(outfile);
 terminate();
 }
 
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Input::EVENT_NEW
@@ -83,7 +83,7 @@ close(outfile);
 terminate();
 }
 
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Input::EVENT_NEW
@@ -101,7 +101,7 @@ close(outfile);
 terminate();
 }
 
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Input::EVENT_NEW
@@ -119,7 +119,7 @@ close(outfile);
 terminate();
 }
 
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Input::EVENT_NEW
@@ -137,7 +137,7 @@ close(outfile);
 terminate();
 }
 
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Input::EVENT_NEW
@@ -155,7 +155,7 @@ close(outfile);
 terminate();
 }
 
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Input::EVENT_NEW
@@ -173,7 +173,7 @@ close(outfile);
 terminate();
 }
 
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Input::EVENT_NEW
@@ -191,7 +191,7 @@ close(outfile);
 terminate();
 }
 
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Input::EVENT_NEW
@@ -209,7 +209,7 @@ close(outfile);
 terminate();
 }
 
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Input::EVENT_NEW
@@ -227,7 +227,7 @@ close(outfile);
 terminate();
 }
 
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Input::EVENT_NEW
@@ -245,7 +245,7 @@ close(outfile);
 terminate();
 }
 
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Input::EVENT_NEW
@@ -263,7 +263,7 @@ close(outfile);
 terminate();
 }
 
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Input::EVENT_NEW
@@ -281,7 +281,7 @@ close(outfile);
 terminate();
 }
 
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Input::EVENT_NEW

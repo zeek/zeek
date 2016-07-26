@@ -1,3 +1,8 @@
+TableErrorEvent, String 'l' contained no parseable number, Reporter::WARNING
+TableErrorEvent, Could not convert line '\x09l' to Val. Ignoring line., Reporter::WARNING
 {
 [] = [c=5]
 }
+EventErrorEvent, String 'l' contained no parseable number, Reporter::WARNING
+EventErrorEvent, Could not convert line '\x09l' to Val. Ignoring line., Reporter::WARNING
+Event, [c=5]

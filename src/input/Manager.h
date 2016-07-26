@@ -109,6 +109,7 @@ protected:
 	friend class ReaderClosedMessage;
 	friend class DisableMessage;
 	friend class EndOfDataMessage;
+	friend class ReaderErrorMessage;
 
 	// For readers to write to input stream in direct mode (reporting
 	// new/deleted values directly). Functions take ownership of
@@ -143,6 +144,13 @@ protected:
 	// stream is still received.
 	bool RemoveStreamContinuation(ReaderFrontend* reader);
 
+	// Signal Informational messages, warnings and errors. These will be
+	// passed to the error function in scriptland. Note that the messages
+	// are not passed to reporter - this is done in ReaderBackend.
+	void Info(ReaderFrontend* reader, const char* msg);
+	void Warning(ReaderFrontend* reader, const char* msg);
+	void Error(ReaderFrontend* reader, const char* msg);
+
 	/**
 	 * Deletes an existing input stream.
 	 *
@@ -164,6 +172,11 @@ private:
 	bool RemoveStream(Stream* i);
 
 	bool CreateStream(Stream*, RecordVal* description);
+
+	// Check if the types of the error_ev event are correct. If table is
+	// true, check for tablestream type, otherwhise check for eventstream
+	// type.
+	bool CheckErrorEventTypes(std::string stream_name, Func* error_event, bool table);
 
 	// SendEntry implementation for Table stream.
 	int SendEntryTable(Stream* i, const threading::Value* const *vals);
@@ -218,6 +231,16 @@ private:
 
 	// Converts a Bro ListVal to a RecordVal given the record type.
 	RecordVal* ListValToRecordVal(ListVal* list, RecordType *request_type, int* position);
+
+	// Internally signal errors, warnings, etc.
+	// These are sent on to input scriptland and reporter.log
+	void Info(const Stream* i, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
+	void Warning(const Stream* i, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
+	void Error(const Stream* i, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
+
+	enum class ErrorType { INFO, WARNING, ERROR };
+	void ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, const char* fmt, ...) __attribute__((format(printf, 5, 6)));
+	void ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, const char* fmt, va_list ap);
 
 	Stream* FindStream(const string &name);
 	Stream* FindStream(ReaderFrontend* reader);

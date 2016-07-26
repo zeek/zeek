@@ -232,7 +232,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 			val->val.int_val = 0;
 		else
 			{
-			GetThread()->Error(GetThread()->Fmt("Field: %s Invalid value for boolean: %s",
+			GetThread()->Warning(GetThread()->Fmt("Field: %s Invalid value for boolean: %s",
 				  name.c_str(), start));
 			goto parse_error;
 			}
@@ -273,7 +273,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 		size_t pos = unescaped.find("/");
 		if ( pos == unescaped.npos )
 			{
-			GetThread()->Error(GetThread()->Fmt("Invalid value for subnet: %s", start));
+			GetThread()->Warning(GetThread()->Fmt("Invalid value for subnet: %s", start));
 			goto parse_error;
 			}
 
@@ -348,7 +348,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 
 			if ( pos >= length )
 				{
-				GetThread()->Error(GetThread()->Fmt("Internal error while parsing set. pos %d >= length %d."
+				GetThread()->Warning(GetThread()->Fmt("Internal error while parsing set. pos %d >= length %d."
 				          " Element: %s", pos, length, element.c_str()));
 				error = true;
 				break;
@@ -357,7 +357,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 			threading::Value* newval = ParseValue(element, name, subtype);
 			if ( newval == 0 )
 				{
-				GetThread()->Error("Error while reading set or vector");
+				GetThread()->Warning("Error while reading set or vector");
 				error = true;
 				break;
 				}
@@ -375,7 +375,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 			lvals[pos] = ParseValue("", name, subtype);
 			if ( lvals[pos] == 0 )
 				{
-				GetThread()->Error("Error while trying to add empty set element");
+				GetThread()->Warning("Error while trying to add empty set element");
 				goto parse_error;
 				}
 
@@ -394,7 +394,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 
 		if ( pos != length )
 			{
-			GetThread()->Error(GetThread()->Fmt("Internal error while parsing set: did not find all elements: %s", start));
+			GetThread()->Warning(GetThread()->Fmt("Internal error while parsing set: did not find all elements: %s", start));
 			goto parse_error;
 			}
 
@@ -402,7 +402,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 		}
 
 	default:
-		GetThread()->Error(GetThread()->Fmt("unsupported field format %d for %s", type,
+		GetThread()->Warning(GetThread()->Fmt("unsupported field format %d for %s", type,
 						    name.c_str()));
 		goto parse_error;
 	}
@@ -419,13 +419,13 @@ bool Ascii::CheckNumberError(const char* start, const char* end) const
 	threading::MsgThread* thread = GetThread();
 
 	if ( end == start && *end != '\0'  ) {
-		thread->Error(thread->Fmt("String '%s' contained no parseable number", start));
+		thread->Warning(thread->Fmt("String '%s' contained no parseable number", start));
 		return true;
 	}
 
 	if ( end - start == 0 && *end == '\0' )
 		{
-		thread->Error("Got empty string for number field");
+		thread->Warning("Got empty string for number field");
 		return true;
 		}
 
@@ -434,13 +434,13 @@ bool Ascii::CheckNumberError(const char* start, const char* end) const
 
 	if ( errno == EINVAL )
 		{
-		thread->Error(thread->Fmt("String '%s' could not be converted to a number", start));
+		thread->Warning(thread->Fmt("String '%s' could not be converted to a number", start));
 		return true;
 		}
 
 	else if ( errno == ERANGE )
 		{
-		thread->Error(thread->Fmt("Number '%s' out of supported range.", start));
+		thread->Warning(thread->Fmt("Number '%s' out of supported range.", start));
 		return true;
 		}
 

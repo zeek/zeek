@@ -1,4 +1,51 @@
 
+2.4-722 | 2016-07-26 14:48:23 -0700
+
+  * Input: Further small changes to error handling
+
+    Calling Error() in an input reader now automatically will disable the
+    reader and return a failure in the Update/Heartbeat calls.
+
+    Also adds more tests.
+
+    Addresses BIT-1181 (Johanna Amann)
+
+  * Add error events to input framework. (Johanna Amann)
+
+    This change introduces error events for Table and Event readers.
+    Users can now specify an event that is called when an info,
+    warning, or error is emitted by their input reader. This can,
+    e.g., be used to raise notices in case errors occur when reading
+    an important input stream.
+
+    Example:
+
+        event error_event(desc: Input::TableDescription, msg: string, level: Reporter::Level)
+            {
+            ...
+            }
+
+        event bro_init()
+            {
+            Input::add_table([$source="a", $error_ev=error_event, ...]);
+            }
+
+     Addresses BIT-1181. 
+
+  * Convert all errors in the ASCII formatter into warnings (to show
+    that they are non-fatal. (Johanna Amann)
+
+  * Enable SQLite shared cache mode. This allows all threads accessing
+    the same database to share sqlite objects. See
+    https://www.sqlite.org/sharedcache.html. Addresses BIT-1325.
+    (Johanna Amann)
+
+  * NetControl: Adjust default priority of ACTION_DROP hook to standad
+    level. (Johanna Amann)
+
+  * Fix types when constructing SYN_packet record. Fixes BIT-1650.
+    (Grant Moyer).
+
 2.4-715 | 2016-07-23 07:27:05 -0700
 
   * SQLite writer: Remove unused string formatting function. (Johanna Amann)

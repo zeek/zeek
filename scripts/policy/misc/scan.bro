@@ -121,18 +121,11 @@ event bro_init() &priority=5
 	                  	}]);
 	}
 
-function add_sumstats(id: conn_id, reverse: bool)
+function add_sumstats(id: conn_id)
 	{
 	local scanner      = id$orig_h;
 	local victim       = id$resp_h;
 	local scanned_port = id$resp_p;
-
-	if ( reverse )
-		{
-		scanner      = id$resp_h;
-		victim       = id$orig_h;
-		scanned_port = id$orig_p;
-		}
 
 	if ( hook Scan::scan_policy(scanner, victim, scanned_port) )
 		SumStats::observe("scan.fail", [$host=scanner], [$str=cat(victim, "/", scanned_port)]);
@@ -150,49 +143,20 @@ function is_failed_conn(c: connection): bool
 	return F;
 	}
 
-function is_reverse_failed_conn(c: connection): bool
-	{
-	# reverse scan i.e. conn dest is the scanner
-	# sR || ( (Hr || sHr) && (data not sent in any direction) )
-	if ( (c$resp$state == TCP_SYN_SENT && c$orig$state == TCP_RESET) ||
-	     (((c$resp$state == TCP_RESET && c$orig$state == TCP_SYN_ACK_SENT) ||
-	       (c$resp$state == TCP_RESET && c$orig$state == TCP_ESTABLISHED && "s" in c$history )
-	      ) && /[Dd]/ !in c$history )
-	   )
-		return T;
-	return F;
-	}
-
 event connection_attempt(c: connection)
 	{
-	local is_reverse_scan = F;
-	if ( "H" in c$history )
-		is_reverse_scan = T;
-
-	add_sumstats(c$id, is_reverse_scan);
+	if ( "H" !in c$history )
+		add_sumstats(c$id);
 	}
 
 event connection_rejected(c: connection)
 	{
-	local is_reverse_scan = F;
 	if ( "s" in c$history )
-		is_reverse_scan = T;
-
-	add_sumstats(c$id, is_reverse_scan);
+		add_sumstats(c$id);
 	}
 
 event connection_reset(c: connection)
 	{
 	if ( is_failed_conn(c) )
-		add_sumstats(c$id, F);
-	else if ( is_reverse_failed_conn(c) )
-		add_sumstats(c$id, T);
-	}
-
-event connection_pending(c: connection)
-	{
-	if ( is_failed_conn(c) )
-		add_sumstats(c$id, F);
-	else if ( is_reverse_failed_conn(c) )
-		add_sumstats(c$id, T);
+		add_sumstats(c$id);
 	}

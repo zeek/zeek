@@ -75,6 +75,10 @@ bool SQLite::DoInit(const ReaderInfo& info, int arg_num_fields, const threading:
 		return false;
 		}
 
+	// Allow connections to same DB to use single data/schema cache. Also
+	// allows simultaneous writes to one file.
+	sqlite3_enable_shared_cache(1);
+
 	if ( Info().mode != MODE_MANUAL )
 		{
 		Error("SQLite only supports manual reading mode.");

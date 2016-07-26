@@ -151,7 +151,7 @@ event connection_attempt(c: connection)
 
 event connection_rejected(c: connection)
 	{
-	if ( "s" in c$history )
+	if ( "S" in c$history )
 		add_sumstats(c$id);
 	}
 

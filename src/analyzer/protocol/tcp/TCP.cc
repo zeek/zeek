@@ -355,7 +355,7 @@ void TCP_Analyzer::Done()
 	{
 	Analyzer::Done();
 
-	if ( connection_pending && is_active && ! BothClosed() )
+	if ( connection_pending && is_active && ! BothClosed() && terminating )
 		Event(connection_pending);
 
 	LOOP_OVER_GIVEN_CHILDREN(i, packet_children)

@@ -1,14 +1,5 @@
 
-2.4-722 | 2016-07-26 14:48:23 -0700
-
-  * Input: Further small changes to error handling
-
-    Calling Error() in an input reader now automatically will disable the
-    reader and return a failure in the Update/Heartbeat calls.
-
-    Also adds more tests.
-
-    Addresses BIT-1181 (Johanna Amann)
+2.4-723 | 2016-07-26 15:04:26 -0700
 
   * Add error events to input framework. (Johanna Amann)
 
@@ -31,6 +22,10 @@
             }
 
      Addresses BIT-1181. 
+
+  * Calling Error() in an input reader now automatically will disable
+    the reader and return a failure in the Update/Heartbeat calls.
+    (Johanna Amann)
 
   * Convert all errors in the ASCII formatter into warnings (to show
     that they are non-fatal. (Johanna Amann)

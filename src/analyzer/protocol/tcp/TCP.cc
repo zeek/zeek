@@ -105,11 +105,11 @@ static RecordVal* build_syn_packet_val(int is_orig, const IP_Hdr* ip,
 
 	v->Assign(0, new Val(is_orig, TYPE_BOOL));
 	v->Assign(1, new Val(int(ip->DF()), TYPE_BOOL));
-	v->Assign(2, new Val(int(ip->TTL()), TYPE_INT));
-	v->Assign(3, new Val((ip->TotalLen()), TYPE_INT));
-	v->Assign(4, new Val(ntohs(tcp->th_win), TYPE_INT));
+	v->Assign(2, new Val((ip->TTL()), TYPE_COUNT));
+	v->Assign(3, new Val((ip->TotalLen()), TYPE_COUNT));
+	v->Assign(4, new Val(ntohs(tcp->th_win), TYPE_COUNT));
 	v->Assign(5, new Val(winscale, TYPE_INT));
-	v->Assign(6, new Val(MSS, TYPE_INT));
+	v->Assign(6, new Val(MSS, TYPE_COUNT));
 	v->Assign(7, new Val(SACK, TYPE_BOOL));
 
 	return v;

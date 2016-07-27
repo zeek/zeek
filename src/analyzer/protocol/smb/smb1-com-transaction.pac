@@ -32,10 +32,10 @@ refine connection SMB_Conn += {
 	function proc_smb1_transaction_request(header: SMB_Header, val: SMB1_transaction_request): bool
 		%{
 		if ( smb1_transaction_request )
-			BifEvent::generate_smb1_transaction_request(bro_analyzer(), 
+			BifEvent::generate_smb1_transaction_request(bro_analyzer(),
 			                                            bro_analyzer()->Conn(),
 			                                            BuildHeaderVal(header),
-			                                            smb_string2stringval(${val.name}), 
+			                                            smb_string2stringval(${val.name}),
 			                                            ${val.sub_cmd});
 
 		return true;
@@ -84,7 +84,7 @@ type SMB1_transaction_request(header: SMB_Header) = record {
 	setup_count         : uint8;
 	reserved3           : uint8;
 	setup               : SMB1_transaction_setup(header);
-	
+
 	byte_count          : uint16;
 	name                : SMB_string(header.unicode, offsetof(name));
 	pad1                : padding to param_offset - SMB_Header_length;
@@ -114,7 +114,7 @@ type SMB1_transaction_response(header: SMB_Header) = record {
 	setup_count         : uint8;
 	reserved2           : uint8;
 	setup               : uint16[setup_count];
-	
+
 	byte_count          : uint16;
 	pad0                : padding to param_offset - SMB_Header_length;
 	parameters          : bytestring &length = param_count;

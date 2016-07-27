@@ -4,7 +4,7 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_write_request )
 			{
-			BifEvent::generate_smb2_write_request(bro_analyzer(), 
+			BifEvent::generate_smb2_write_request(bro_analyzer(),
 			                                      bro_analyzer()->Conn(),
 			                                      BuildSMB2HeaderVal(h),
 			                                      BuildSMB2GUID(${val.file_id}),
@@ -24,7 +24,6 @@ refine connection SMB_Conn += {
 
 	function proc_smb2_write_response(h: SMB2_Header, val: SMB2_write_response) : bool
 		%{
-
 		return true;
 		%}
 

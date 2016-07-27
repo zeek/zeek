@@ -8,7 +8,7 @@ type SMB1_transaction_secondary_request(header: SMB_Header) = record {
 	data_count          : uint16;
 	data_offset         : uint16;
 	data_displacement   : uint16;
-	
+
 	byte_count          : uint16;
 	pad1                : padding to param_offset - SMB_Header_length;
 	parameters          : bytestring &length = param_count;

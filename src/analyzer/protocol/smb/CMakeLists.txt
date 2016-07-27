@@ -5,7 +5,7 @@ include_directories(AFTER  ${CMAKE_CURRENT_BINARY_DIR}/../dce-rpc)
 
 bro_plugin_begin(Bro SMB)
 bro_plugin_cc(SMB.cc Plugin.cc)
-bro_plugin_bif(  
+bro_plugin_bif(
 	smb1_com_check_directory.bif
 	smb1_com_close.bif
 	smb1_com_create_directory.bif

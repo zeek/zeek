@@ -1,4 +1,4 @@
-# This is an original Core Protocol command.  
+# This is an original Core Protocol command.
 #
 # This command is used to initiate an SMB connection between the
 # client and the server. An SMB_COM_NEGOTIATE exchange MUST be
@@ -42,12 +42,12 @@ refine connection SMB_Conn += {
 			RecordVal* security;
 			RecordVal* raw;
 			RecordVal* capabilities;
-			switch ( ${val.word_count} ) 
+			switch ( ${val.word_count} )
 				{
 				case 0x01:
 					core = new RecordVal(BifType::Record::SMB1::NegotiateResponseCore);
 					core->Assign(0, new Val(${val.dialect_index}, TYPE_COUNT));
-					
+
 					response->Assign(0, core);
 					break;
 
@@ -66,7 +66,7 @@ refine connection SMB_Conn += {
 					lanman->Assign(2, security);
 					lanman->Assign(3, new Val(${val.lanman.max_buffer_size}, TYPE_COUNT));
 					lanman->Assign(4, new Val(${val.lanman.max_mpx_count}, TYPE_COUNT));
-					
+
 					lanman->Assign(5, new Val(${val.lanman.max_number_vcs}, TYPE_COUNT));
 					lanman->Assign(6, raw);
 					lanman->Assign(7, new Val(${val.lanman.session_key}, TYPE_COUNT));
@@ -74,7 +74,7 @@ refine connection SMB_Conn += {
 					lanman->Assign(9, bytestring_to_val(${val.lanman.encryption_key}));
 
 					lanman->Assign(10, smb_string2stringval(${val.lanman.primary_domain}));
-					
+
 					response->Assign(1, lanman);
 					break;
 
@@ -114,14 +114,14 @@ refine connection SMB_Conn += {
 					ntlm->Assign(2, security);
 					ntlm->Assign(3, new Val(${val.ntlm.max_buffer_size}, TYPE_COUNT));
 					ntlm->Assign(4, new Val(${val.ntlm.max_mpx_count}, TYPE_COUNT));
-					
+
 					ntlm->Assign(5, new Val(${val.ntlm.max_number_vcs}, TYPE_COUNT));
 					ntlm->Assign(6, new Val(${val.ntlm.max_raw_size}, TYPE_COUNT));
 					ntlm->Assign(7, new Val(${val.ntlm.session_key}, TYPE_COUNT));
 					ntlm->Assign(8, capabilities);
 					ntlm->Assign(9, filetime2brotime(${val.ntlm.server_time}));
 
-					if ( ${val.ntlm.capabilities_extended_security} == false ) 
+					if ( ${val.ntlm.capabilities_extended_security} == false )
 						{
 						ntlm->Assign(10, bytestring_to_val(${val.ntlm.encryption_key}));
 						ntlm->Assign(11, smb_string2stringval(${val.ntlm.domain_name}));
@@ -130,13 +130,13 @@ refine connection SMB_Conn += {
 						{
 						ntlm->Assign(12, bytestring_to_val(${val.ntlm.server_guid}));
 						}
-					
+
 					response->Assign(2, ntlm);
 					break;
 				}
 			BifEvent::generate_smb1_negotiate_response(bro_analyzer(), bro_analyzer()->Conn(), BuildHeaderVal(header), response);
 			}
-		
+
 		return true;
 		%}
 };
@@ -155,7 +155,7 @@ type SMB1_negotiate_request(header: SMB_Header) = record {
 };
 
 type SMB1_negotiate_response(header: SMB_Header) = record {
-	word_count:    uint8; 
+	word_count:    uint8;
 	dialect_index: uint16;
 	response:      case word_count of {
 		0x01	-> core   : SMB1_negotiate_core_response;

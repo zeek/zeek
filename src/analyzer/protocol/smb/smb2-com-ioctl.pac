@@ -20,7 +20,7 @@ refine connection SMB_Conn += {
 		smb2_ioctl_fids[${val.header.message_id}] = ${val.file_id.persistent} + ${val.file_id._volatile};
 		return true;
 		%}
-	
+
 };
 
 type SMB2_ioctl_request(header: SMB2_Header) = record {

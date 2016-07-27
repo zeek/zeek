@@ -1,7 +1,7 @@
 refine connection SMB_Conn += {
-	
+
 	%member{
-		// Track read offsets to provide correct 
+		// Track read offsets to provide correct
 		// offsets for file manager.
 		std::map<uint16,uint64> smb2_read_offsets;
 		std::map<uint64,uint64> smb2_read_fids;
@@ -30,7 +30,7 @@ refine connection SMB_Conn += {
 			                                     ${val.offset},
 			                                     ${val.read_len});
 			}
-		
+
 		smb2_read_offsets[${h.message_id}] = ${val.offset};
 		smb2_read_fids[${h.message_id}] = ${val.file_id.persistent} + ${val.file_id._volatile};
 

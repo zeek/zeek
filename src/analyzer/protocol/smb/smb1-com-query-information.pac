@@ -20,7 +20,7 @@ refine connection SMB_Conn += {
 
 type SMB1_query_information_request(header: SMB_Header) = record {
 	word_count    : uint8;
-	
+
 	byte_count    : uint16;
 	buffer_format : uint8;
 	filename      : SMB_string(header.unicode, offsetof(filename));

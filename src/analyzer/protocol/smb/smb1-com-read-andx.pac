@@ -1,7 +1,7 @@
 refine connection SMB_Conn += {
 
 	%member{
-		// Track read offsets to provide correct 
+		// Track read offsets to provide correct
 		// offsets for file manager.
 		std::map<uint16,uint64> read_offsets;
 	%}
@@ -77,7 +77,7 @@ type SMB1_read_andx_response(header: SMB_Header) = record {
 	data_offset       : uint16;
 	data_len_high     : uint16;
 	reserved2         : uint64;
-	
+
 	byte_count        : uint16;
 	pad               : padding to data_offset - SMB_Header_length;
 	data              : bytestring &length=data_len;

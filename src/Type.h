@@ -584,7 +584,7 @@ protected:
 	                     const char* name, bro_int_t val, bool is_export,
 	                     bool deprecated);
 
-	typedef std::map< const char*, bro_int_t, ltstr > NameMap;
+	typedef std::map<std::string, bro_int_t> NameMap;
 	NameMap names;
 
 	// The counter is initialized to 0 and incremented on every implicit

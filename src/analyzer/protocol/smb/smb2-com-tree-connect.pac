@@ -7,7 +7,7 @@ refine connection SMB_Conn += {
 			                                             bro_analyzer()->Conn(),
 			                                             BuildSMB2HeaderVal(header),
 			                                             smb2_string2stringval(${val.path}));
-		
+
 		return true;
 		%}
 

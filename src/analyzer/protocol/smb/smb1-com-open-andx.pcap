@@ -1,5 +1,3 @@
-# Copyright (c) Broala LLC. All Rights Reserved. No use or distribution without permission.
-
 refine connection SMB_Conn += {
 
 	function proc_smb1_open_andx_request(h: SMB_Header, val: SMB1_open_andx_request): bool

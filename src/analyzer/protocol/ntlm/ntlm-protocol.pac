@@ -168,13 +168,13 @@ type NTLM_Negotiate_Flags = record {
 	negotiate_56                        : bool = (flags & 0x80000000) > 0;
 	negotiate_key_exch                  : bool = (flags & 0x40000000) > 0;
 	negotiate_128                       : bool = (flags & 0x20000000) > 0;
-	
+
 	negotiate_version                   : bool = (flags & 0x02000000) > 0;
-	
+
 	negotiate_target_info               : bool = (flags & 0x00800000) > 0;
 	request_non_nt_session_key          : bool = (flags & 0x00400000) > 0;
 	negotiate_identify                  : bool = (flags & 0x00100000) > 0;
-	
+
 	negotiate_extended_sessionsecurity  : bool = (flags & 0x00040000) > 0;
 	target_type_server                  : bool = (flags & 0x00020000) > 0;
 	target_type_domain                  : bool = (flags & 0x00010000) > 0;

@@ -1,6 +1,7 @@
-##! Watch for various SPAM blocklist URLs in SMTP error messages.  
+##! Watch for various SPAM blocklist URLs in SMTP error messages.
 
 @load base/protocols/smtp
+@load base/frameworks/notice
 
 module SMTP;
 

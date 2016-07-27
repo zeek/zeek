@@ -12,7 +12,7 @@ refine connection SMB_Conn += {
 
 		if ( ! ${val.is_pipe} && ${val.data}.length() > 0 )
 			{
-			file_mgr->DataIn(${val.data}.begin(), ${val.data}.length(), 
+			file_mgr->DataIn(${val.data}.begin(), ${val.data}.length(),
 			                 ${val.offset},
 			                 bro_analyzer()->GetAnalyzerTag(),
 			                 bro_analyzer()->Conn(), h->is_orig());
@@ -49,7 +49,7 @@ type SMB1_write_andx_request(header: SMB_Header) = record {
 		0x0E      -> offset_high_tmp : uint32;
 		default   -> null            : empty;
 	};
-	
+
 	byte_count    : uint16;
 	pad           : padding to data_offset - SMB_Header_length;
 	data          : bytestring &length=data_len;
@@ -70,7 +70,7 @@ type SMB1_write_andx_response(header: SMB_Header) = record {
 	remaining    : uint16;
 	written_high : uint16;
 	reserved     : uint16;
-	
+
 	byte_count   : uint16;
 } &let {
 	written_bytes : uint32 = (written_high * 0x10000) + written_low;

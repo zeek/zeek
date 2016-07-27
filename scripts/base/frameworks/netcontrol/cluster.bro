@@ -11,13 +11,15 @@ export {
 
 	## This is the event used to transport remove_rule calls to the manager.
 	global cluster_netcontrol_remove_rule: event(id: string);
+
+	## This is the event used to transport delete_rule calls to the manager.
+	global cluster_netcontrol_delete_rule: event(id: string);
 }
 
 ## Workers need ability to forward commands to manager.
-redef Cluster::worker2manager_events += /NetControl::cluster_netcontrol_(add|remove)_rule/;
+redef Cluster::worker2manager_events += /NetControl::cluster_netcontrol_(add|remove|delete)_rule/;
 ## Workers need to see the result events from the manager.
-redef Cluster::manager2worker_events += /NetControl::rule_(added|removed|timeout|error)/;
-
+redef Cluster::manager2worker_events += /NetControl::rule_(added|removed|timeout|error|exists|new|destroyed)/;
 
 function activate(p: PluginState, priority: int)
 	{
@@ -36,11 +38,32 @@ function add_rule(r: Rule) : string
 		return add_rule_impl(r);
 	else
 		{
+		# we sync rule entities accross the cluster, so we
+		# acually can test if the rule already exists. If yes,
+		# refuse insertion already at the node.
+
+		if ( [r$entity, r$ty] in rule_entities )
+			{
+			log_rule_no_plugin(r, FAILED, "discarded duplicate insertion");
+			return "";
+			}
+
 		if ( r$id == "" )
 			r$id = cat(Cluster::node, ":", ++local_rule_count);
 
 		event NetControl::cluster_netcontrol_add_rule(r);
 		return r$id;
+		}
+	}
+
+function delete_rule(id: string) : bool
+	{
+	if ( Cluster::local_node_type() == Cluster::MANAGER )
+		return delete_rule_impl(id);
+	else
+		{
+		event NetControl::cluster_netcontrol_delete_rule(id);
+		return T; # well, we can't know here. So - just hope...
 		}
 	}
 
@@ -56,6 +79,11 @@ function remove_rule(id: string) : bool
 	}
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
+event NetControl::cluster_netcontrol_delete_rule(id: string)
+	{
+	delete_rule_impl(id);
+	}
+
 event NetControl::cluster_netcontrol_add_rule(r: Rule)
 	{
 	add_rule_impl(r);
@@ -65,17 +93,23 @@ event NetControl::cluster_netcontrol_remove_rule(id: string)
 	{
 	remove_rule_impl(id);
 	}
-@endif
 
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
 event rule_expire(r: Rule, p: PluginState) &priority=-5
 	{
 	rule_expire_impl(r, p);
 	}
 
+event rule_exists(r: Rule, p: PluginState, msg: string &default="") &priority=5
+	{
+	rule_added_impl(r, p, T, msg);
+
+	if ( r?$expire && r$expire > 0secs && ! p$plugin$can_expire )
+		schedule r$expire { rule_expire(r, p) };
+	}
+
 event rule_added(r: Rule, p: PluginState, msg: string &default="") &priority=5
 	{
-	rule_added_impl(r, p, msg);
+	rule_added_impl(r, p, F, msg);
 
 	if ( r?$expire && r$expire > 0secs && ! p$plugin$can_expire )
 		schedule r$expire { rule_expire(r, p) };
@@ -97,3 +131,30 @@ event rule_error(r: Rule, p: PluginState, msg: string &default="") &priority=-5
 	}
 @endif
 
+# Workers use the events to keep track in their local state tables
+@if ( Cluster::local_node_type() != Cluster::MANAGER )
+
+event rule_new(r: Rule) &priority=5
+	{
+	if ( r$id in rules )
+		return;
+
+	rules[r$id] = r;
+	rule_entities[r$entity, r$ty] = r;
+
+	add_subnet_entry(r);
+	}
+
+event rule_destroyed(r: Rule) &priority=5
+	{
+	if ( r$id !in rules )
+		return;
+
+	remove_subnet_entry(r);
+	if ( [r$entity, r$ty] in rule_entities )
+		delete rule_entities[r$entity, r$ty];
+
+	delete rules[r$id];
+	}
+
+@endif

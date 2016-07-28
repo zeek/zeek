@@ -163,15 +163,12 @@ event smb2_create_response(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID
 	c$smb_state$fid_map[file_id$persistent+file_id$volatile] = c$smb_state$current_file;
 	
 	c$smb_state$current_file = c$smb_state$fid_map[file_id$persistent+file_id$volatile];
-	SMB::write_file_log(c$smb_state);
 	}
 
-# This is commented out for now because the message type in the SMB analyzer
-# is no where near complete.
-#event smb2_set_info_request(c: connection, hdr: SMB2::Header, request: SMB2::SetInfoRequest) &priority=5
-#	{
-#	c$smb_state$current_file$size = request$eof;
-#	}
+event smb2_create_response(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, file_size: count, times: SMB::MACTimes, attrs: SMB2::FileAttrs) &priority=-5
+	{
+	SMB::write_file_log(c$smb_state);
+	}
 
 event smb2_read_request(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, offset: count, length: count) &priority=5
 	{
@@ -189,7 +186,6 @@ event smb2_read_request(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, o
 			c$smb_state$current_file$action = SMB::PRINT_READ;
 			break;
 		default:
-			#c$smb_state$current_file$action = SMB::UNKNOWN_OPEN;
 			c$smb_state$current_file$action = SMB::FILE_OPEN;
 			break;
 		}
@@ -223,6 +219,56 @@ event smb2_write_request(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, 
 
 event smb2_write_request(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, offset: count, length: count) &priority=-5
 	{
+	}
+
+event smb2_file_rename(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, dst_filename: string) &priority=5
+	{
+	SMB::set_current_file(c$smb_state, file_id$persistent+file_id$volatile);
+
+	if ( c$smb_state$current_file?$name )
+		c$smb_state$current_file$prev_name = c$smb_state$current_file$name;
+		
+	c$smb_state$current_file$name = dst_filename;
+
+	switch ( c$smb_state$current_tree$share_type )
+		{
+		case "DISK":
+			c$smb_state$current_file$action = SMB::FILE_RENAME;
+			break;
+		default:
+			c$smb_state$current_file$action = SMB::FILE_RENAME;
+			break;
+		}
+	}
+
+event smb2_file_rename(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, dst_filename: string) &priority=-5
+	{
+	SMB::write_file_log(c$smb_state);
+	}
+
+event smb2_file_delete(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, delete_pending: bool) &priority=5
+	{
+	SMB::set_current_file(c$smb_state, file_id$persistent+file_id$volatile);
+
+	if ( ! delete_pending )
+		{
+		print "huh...";
+		}
+
+	switch ( c$smb_state$current_tree$share_type )
+		{
+		case "DISK":
+			c$smb_state$current_file$action = SMB::FILE_DELETE;
+			break;
+		default:
+			c$smb_state$current_file$action = SMB::FILE_DELETE;
+			break;
+		}
+	}
+
+event smb2_file_delete(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, delete_pending: bool) &priority=-5
+	{
+	SMB::write_file_log(c$smb_state);
 	}
 
 event smb2_close_request(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID) &priority=5

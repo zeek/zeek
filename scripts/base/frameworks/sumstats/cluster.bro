@@ -237,7 +237,7 @@ global dynamic_requests: set[string] &read_expire=1min;
 # to too many intermediate updates.  Each sumstat is tracked separately so that
 # one won't overwhelm and degrade other quieter sumstats.
 # Indexed on a sumstat id.
-global outstanding_global_views: table[string] of count &read_expire=1min &default=0;
+global outstanding_global_views: table[string] of set[string] &read_expire=1min;
 
 const zero_time = double_to_time(0.0);
 # Managers handle logging.
@@ -303,12 +303,10 @@ function handle_end_of_result_collection(uid: string, ss_name: string, key: Key,
 			ss$epoch_result(now, key, ir);
 			}
 
-		# Check that there is an outstanding view before subtracting.
-		# Global views only apply to non-dynamic requests. Dynamic
-		# requests must be serviced.
-		if ( outstanding_global_views[ss_name] > 0 )
-			--outstanding_global_views[ss_name];
 		}
+	# Check if this was an intermediate update
+	if ( ss_name in outstanding_global_views )
+		delete outstanding_global_views[ss_name][uid];
 
 	delete key_requests[uid];
 	delete done_with[uid];
@@ -444,8 +442,9 @@ event SumStats::cluster_key_intermediate_response(ss_name: string, key: Key)
 		return;
 	add recent_global_view_keys[ss_name, key];
 
-	if ( ss_name in outstanding_global_views &&
-	     |outstanding_global_views[ss_name]| > max_outstanding_global_views )
+	if ( ss_name !in outstanding_global_views)
+		outstanding_global_views[ss_name] = set();
+	else if ( |outstanding_global_views[ss_name]| > max_outstanding_global_views )
 		{
 		# Don't do this intermediate update.  Perhaps at some point in the future
 		# we will queue and randomly select from these ignored intermediate
@@ -453,9 +452,8 @@ event SumStats::cluster_key_intermediate_response(ss_name: string, key: Key)
 		return;
 		}
 
-	++outstanding_global_views[ss_name];
-
 	local uid = unique_id("");
+	add outstanding_global_views[ss_name][uid];
 	done_with[uid] = 0;
 	#print fmt("requesting results for: %s", uid);
 	event SumStats::cluster_get_result(uid, ss_name, key, F);

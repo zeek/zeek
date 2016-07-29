@@ -84,7 +84,7 @@ function analyze_unique_hostports(unique_vals: set[SumStats::Observation]): Noti
 	if(|victims| <= 5)
 		{
 		local victims_string = join_string_set(victims, ", ");
-		return [$note=Port_Scan, $msg=fmt("on hosts %s", victims_string)];
+		return [$note=Port_Scan, $msg=fmt("%s unique ports on hosts %s", |ports|, victims_string)];
 		}
 	return [$note=Random_Scan, $msg=fmt("%d hosts on %d ports", |victims|, |ports|)];
 }

@@ -44,7 +44,7 @@ export {
 
 	## The threshold of the unique number of host+ports a scanning host has to
 	## have failed connections with on
-	const scan_threshold = 100.0 &redef;
+	const scan_threshold = 25.0 &redef;
 
 	global Scan::scan_policy: hook(scanner: addr, victim: addr, scanned_port: port);
 }

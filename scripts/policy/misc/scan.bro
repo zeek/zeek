@@ -110,8 +110,7 @@ event bro_init() &priority=5
 	                  $reducers=set(r1),
 	                  $threshold_val(key: SumStats::Key, result: SumStats::Result) =
 	                  	{
-	                  	local scale_factor = Site::is_local_addr(key$host) ? 0.1 : 1.0;
-	                  	return (result["scan.fail"]$unique+0.0) * scale_factor;
+	                  	return result["scan.fail"]$unique+0.0;
 	                  	},
 	                  $threshold=scan_threshold,
 	                  $threshold_crossed(key: SumStats::Key, result: SumStats::Result) =

@@ -29,6 +29,7 @@
 
 #include "smb2_com_close.bif.h"
 #include "smb2_com_create.bif.h"
+//#include "smb2_com_ioctl.bif.h"
 //#include "smb2_com_lock.bif.h"
 #include "smb2_com_negotiate.bif.h"
 #include "smb2_com_read.bif.h"

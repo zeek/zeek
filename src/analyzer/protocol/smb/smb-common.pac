@@ -238,43 +238,15 @@ enum SMB_Status {
 
 function determine_transaction_type(setup_count: int, name: SMB_string): TransactionType
 	%{
-	// This logic needs to be verified! the relationship between
-	// setup_count and type is very unclear.
 	if ( name == NULL )
 		{
 		return SMB_UNKNOWN;
 		}
-	//if ( bytestring_caseprefix( extract_string(name),
-	//		"\\PIPE\\LANMAN" ) )
-	//	{
-	//	return SMB_RAP;
-	//	}
-	//
-	//if ( bytestring_caseprefix( extract_string(name), "\\MAILSLOT\\LANMAN" ) )
-	//	{
-	//	return SMB_MAILSLOT_LANMAN;
-	//	//return SMB_MAILSLOT_BROWSE;
-	//	}
-	//
-	//if ( bytestring_caseprefix( extract_string(name), "\\MAILSLOT\\NET\\NETLOGON" ) )
-	//	{
-	//	/* Don't really know what to do here, its got a Mailslot
-	//	 * type but its a deprecated packet format that handles
-	//	 * old windows logon
-	//	 */
-	//	return SMB_UNKNOWN;
-	//	}
-	//
+
 	if ( ${name.u.s}->size() == 14 && ${name.u.s[0]} == '\\' && ${name.u.s[2]} == 'P' && ${name.u.s[4]} == 'I' && ${name.u.s[6]} == 'P' && ${name.u.s[8]} == 'E' && ${name.u.s[10]} == '\\')
 		{
 		return SMB_PIPE;
 		}
-
-	//if ( setup_count == 3 ||
-	//     bytestring_caseprefix( extract_string(name), "\\MAILSLOT\\" ) )
-	//	{
-	//	return SMB_MAILSLOT_BROWSE;
-	//	}
 
 	return SMB_UNKNOWN;
 	%}

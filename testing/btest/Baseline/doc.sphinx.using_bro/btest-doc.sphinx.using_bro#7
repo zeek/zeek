@@ -5,9 +5,9 @@
       :emphasize-lines: 1,1
 
       # cat conn.log | bro-cut uid resp_bytes | sort -nrk2 | head -5
-      CyAhVIzHqb7t7kv28	734
-      CkDsfG2YIeWJmXWNWj	734
-      CJ3xTn1c4Zw9TmAE05	734
-      C3SfNE4BWaU4aSuwkc	734
-      CzA03V1VcgagLjnO92	733
+      CwjjYJ2WqgTbAqiHl6	734
+      CtxTCR2Yer0FR1tIBg	734
+      Ck51lg1bScffFj34Ri	734
+      CLNN1k2QMum1aexUK7	734
+      CykQaM33ztNt0csB9a	733
 

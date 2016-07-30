@@ -32,12 +32,7 @@ protected:
 	InterpreterException()	{}
 };
 
-// Check printf-style variadic arguments if we can.
-#if __GNUC__
 #define FMT_ATTR __attribute__((format(printf, 2, 3))) // sic! 1st is "this" I guess.
-#else
-#define FMT_ATTR
-#endif
 
 class Reporter {
 public:

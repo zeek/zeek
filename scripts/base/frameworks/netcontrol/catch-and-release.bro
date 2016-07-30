@@ -125,6 +125,14 @@ export {
 	##          the inserted block.
 	global get_catch_release_info: function(a: addr) : BlockInfo;
 
+	## Event is raised when catch and release cases management of an IP address because no
+	## activity was seen within the watch_until period.
+	##
+	## a: The address that is no longer being managed.
+	##
+	## bi: The :bro:see:`NetControl::BlockInfo` record containing information about the block.
+	global catch_release_forgotten: event(a: addr, bi: BlockInfo);
+
 	## If true, catch_release_seen is called on the connection originator in new_connection,
 	## connection_established, partial_connection, connection_attempt, connection_rejected,
 	## connection_reset and connection_pending
@@ -198,6 +206,8 @@ function per_block_interval(t: table[addr] of BlockInfo, idx: addr): interval
 		{
 		local log = populate_log_record(idx, t[idx], FORGOTTEN);
 		Log::write(CATCH_RELEASE, log);
+
+		event NetControl::catch_release_forgotten(idx, t[idx]);
 		}
 @endif
 

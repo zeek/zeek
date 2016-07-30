@@ -1,4 +1,94 @@
 
+2.4-723 | 2016-07-26 15:04:26 -0700
+
+  * Add error events to input framework. (Johanna Amann)
+
+    This change introduces error events for Table and Event readers.
+    Users can now specify an event that is called when an info,
+    warning, or error is emitted by their input reader. This can,
+    e.g., be used to raise notices in case errors occur when reading
+    an important input stream.
+
+    Example:
+
+        event error_event(desc: Input::TableDescription, msg: string, level: Reporter::Level)
+            {
+            ...
+            }
+
+        event bro_init()
+            {
+            Input::add_table([$source="a", $error_ev=error_event, ...]);
+            }
+
+     Addresses BIT-1181. 
+
+  * Calling Error() in an input reader now automatically will disable
+    the reader and return a failure in the Update/Heartbeat calls.
+    (Johanna Amann)
+
+  * Convert all errors in the ASCII formatter into warnings (to show
+    that they are non-fatal. (Johanna Amann)
+
+  * Enable SQLite shared cache mode. This allows all threads accessing
+    the same database to share sqlite objects. See
+    https://www.sqlite.org/sharedcache.html. Addresses BIT-1325.
+    (Johanna Amann)
+
+  * NetControl: Adjust default priority of ACTION_DROP hook to standad
+    level. (Johanna Amann)
+
+  * Fix types when constructing SYN_packet record. Fixes BIT-1650.
+    (Grant Moyer).
+
+2.4-715 | 2016-07-23 07:27:05 -0700
+
+  * SQLite writer: Remove unused string formatting function. (Johanna Amann)
+
+  * Deprecated the ElasticSearch log writer. (Johanna Amann)
+
+2.4-709 | 2016-07-15 09:05:20 -0700
+
+  * Change Bro's hashing for short inputs and Bloomfilters from H3 to
+    Siphash, which produces much better results for HLL in particular.
+    (Johanna Amann)
+
+  * Fix a long-standing bug which truncated hash values to 32-bit on
+    most machines. (Johanna Amann)
+
+  * Fixes to HLL. Addresses BIT-1612. (Johanna Amann)
+
+  * Add test checking the quality of HLL. (Johanna Amann)
+
+  * Remove the -K/-J options for setting keys. (Johanna Amann)
+
+  * SSL: Fix memory management problem. (Johanna Amann)
+
+2.4-693 | 2016-07-12 11:29:17 -0700
+
+  * Change TCP analysis to process connections without the initial SYN as
+    non-partial connections. Addresses BIT-1492. (Robin Sommer).
+
+2.4-691 | 2016-07-12 09:58:38 -0700
+
+  * SSL: add support for signature_algorithms extension. (Johanna
+    Amann)
+
+2.4-688 | 2016-07-11 11:10:33 -0700
+
+  * Disable broker by default. To enable it, use --enable-broker.
+    Addresses BIT-1645. (Daniel Thayer)
+
+2.4-686 | 2016-07-08 19:14:43 -0700
+
+  * Added flagging of retransmission to the connection history.
+    Addresses BIT-977. (Robin Sommer)
+
+2.4-683 | 2016-07-08 14:55:04 -0700
+
+  * Extendign connection history field to flag with '^' when Bro flips
+    a connection's endpoints. Addresses BIT-1629. (Robin Sommer)
+
 2.4-680 | 2016-07-06 09:18:21 -0700
 
   * Remove ack_above_hole() event, which was a subset of content_gap

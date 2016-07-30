@@ -23,7 +23,7 @@ public:
 	 * internal formatting.
 	 *
 	 */
-	Formatter(threading::MsgThread* t);
+	explicit Formatter(threading::MsgThread* t);
 
 	/**
 	 * Destructor.

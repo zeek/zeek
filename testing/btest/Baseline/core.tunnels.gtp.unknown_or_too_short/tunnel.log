@@ -3,9 +3,9 @@
 #empty_field	(empty)
 #unset_field	-
 #path	tunnel
-#open	2015-04-15-23-53-30
+#open	2016-07-13-16-13-11
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	tunnel_type	action
 #types	time	string	addr	port	addr	port	enum	enum
-1333458853.034734	CXWv6p3arKYeMETxOg	173.86.159.28	2152	213.72.147.186	2152	Tunnel::GTPv1	Tunnel::DISCOVER
-1333458853.108391	CXWv6p3arKYeMETxOg	173.86.159.28	2152	213.72.147.186	2152	Tunnel::GTPv1	Tunnel::CLOSE
-#close	2015-04-15-23-53-30
+1333458853.034734	CHhAvVGS1DHFjwGM9	173.86.159.28	2152	213.72.147.186	2152	Tunnel::GTPv1	Tunnel::DISCOVER
+1333458853.108391	CHhAvVGS1DHFjwGM9	173.86.159.28	2152	213.72.147.186	2152	Tunnel::GTPv1	Tunnel::CLOSE
+#close	2016-07-13-16-13-11

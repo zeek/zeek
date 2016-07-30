@@ -5,6 +5,6 @@ test1, [exit_code=0, signal_exit=F, stdout=[done, exit, stop], stderr=<uninitial
 }]
 test4, [exit_code=0, signal_exit=F, stdout=[hibye], stderr=<uninitialized>, files=<uninitialized>]
 test5, [exit_code=0, signal_exit=F, stdout=<uninitialized>, stderr=<uninitialized>, files={
-[out4] = [test],
-[out3] = []
+[out3] = [],
+[out4] = [test]
 }]

@@ -13,15 +13,20 @@ New Dependencies
 - Bro now requires a compiler with C++11 support for building the
   source code.
 
-- Bro now requires the C++ Actor Framework, CAF, which must be
-  installed first. See http://actor-framework.org.
-
 - Bro now requires Python instead of Perl to compile the source code.
 
-- The pcap buffer size can set through the new option Pcap::bufsize.
+- When enabling Broker (which is disabled by default), Bro now requires
+  version 0.14 of the C++ Actor Framework.
 
 Log Changes
 -----------
+
+- Connections
+
+  - The 'history' field gains two new flags: '^' indicates that Bro
+    heuristically flipped to direction of the connection. 't/T' indicates
+    the first TCP payload retransmission from originator or responder,
+    respectively.
 
 - DNS
 
@@ -61,6 +66,10 @@ New Functionality
   phases of the protocol. Right now these analyzer only identify
   STARTTLS sessions, handing them over to TLS analysis. The analyzer
   does not yet analyze any further IMAP/XMPP content.
+
+- The new event ssl_extension_signature_algorithm allows access to the
+  TLS signature_algorithms extension that lists client supported signature
+  and hash algorithm pairs.
 
 - Bro now tracks VLAN IDs. To record them inside the connection log,
   load protocols/conn/vlan-logging.bro.
@@ -133,6 +142,11 @@ New Functionality
     - redis: An experimental log writer for Redis.
     - tcprs: An TCP-level analyzer detecting retransmissions, reordering, and more.
 
+- The pcap buffer size can be set through the new option Pcap::bufsize.
+
+- Input framework readers Table and Event can now define a custom
+  event to receive logging messages.
+
 Changed Functionality
 ---------------------
 
@@ -157,6 +171,12 @@ Changed Functionality
   filled out in the first place) has been split into to
   "orig_filenames" and "resp_filenames".
 
+- TCP analysis was changed to process connections without the initial
+  SYN packet. In the past, connections without a full handshake were
+  treated as partial, meaning that most application-layer analyzers
+  would refuse to inspect the payload. Now, Bro will consider these
+  connections as complete and all analyzers will process them notmally.
+
 Removed Functionality
 ---------------------
 
@@ -168,6 +188,9 @@ Removed Functionality
     - The event ack_above_hole() has been removed, as it was a subset
       of content_gap() and led to plenty noise.
 
+    - The command line options --set-seed and --md5-hashkey have been
+      removed.
+
 Deprecated Functionality
 ------------------------
 
@@ -176,6 +199,10 @@ Deprecated Functionality
       in the future. Their functionality is now provided directly by
       decode_base64() and encode_base64(), which take an optional
       parameter to change the Base64 alphabet.
+
+    - The ElasticSearch log writer hasn't been maintained for a while
+      and is now deprecated. It will be removed with the next release.
+
 
 Bro 2.4
 =======

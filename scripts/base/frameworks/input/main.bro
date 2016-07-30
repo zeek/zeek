@@ -103,6 +103,17 @@ export {
 		## it is skipped.
 		pred: function(typ: Input::Event, left: any, right: any): bool &optional;
 
+		## Error event that is raised when an information, warning or error
+		## is raised by the input stream. If the level is error, the stream will automatically
+		## be closed.
+		## The event receives the Input::TableDescription as the first argument, the
+		## message as the second argument and the Reporter::Level as the third argument.
+		##
+		## The event is raised like if it had been declared as follows:
+		## error_ev: function(desc: TableDescription, message: string, level: Reporter::Level) &optional;
+		## The actual declaration uses the ``any`` type because of deficiencies of the Bro type system.
+		error_ev: any &optional;
+
 		## A key/value table that will be passed to the reader.
 		## Interpretation of the values is left to the reader, but
 		## usually they will be used for configuration purposes.
@@ -145,6 +156,17 @@ export {
 		## arguments (this will either be a single record value containing
 		## all fields, or each field value as a separate argument).
 		ev: any;
+
+		## Error event that is raised when an information, warning or error
+		## is raised by the input stream. If the level is error, the stream will automatically
+		## be closed.
+		## The event receives the Input::EventDescription as the first argument, the
+		## message as the second argument and the Reporter::Level as the third argument.
+		##
+		## The event is raised like it had been declared as follows:
+		## error_ev: function(desc: EventDescription, message: string, level: Reporter::Level) &optional;
+		## The actual declaration uses the ``any`` type because of deficiencies of the Bro type system.
+		error_ev: any &optional;
 
 		## A key/value table that will be passed to the reader.
 		## Interpretation of the values is left to the reader, but

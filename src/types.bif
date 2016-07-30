@@ -170,3 +170,13 @@ type gtp_rai: record;
 type gtp_qos_profile: record;
 type gtp_private_extension: record;
 type gtp_gsn_addr: record;
+
+module Reporter;
+
+enum Level %{
+	INFO = 0,
+	WARNING = 1,
+	ERROR = 2,
+%}
+
+module GLOBAL;

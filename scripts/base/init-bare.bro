@@ -3434,6 +3434,23 @@ export {
 	};
 }
 
+module SSL;
+export {
+	type SignatureAndHashAlgorithm: record {
+		HashAlgorithm: count; ##< Hash algorithm number
+		SignatureAlgorithm: count; ##< Signature algorithm number
+	};
+}
+
+module GLOBAL;
+
+## A vector of Signature and Hash Algorithms.
+##
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
+type signature_and_hashalgorithm_vec: vector of SSL::SignatureAndHashAlgorithm;
+
 module X509;
 export {
 	type Certificate: record {

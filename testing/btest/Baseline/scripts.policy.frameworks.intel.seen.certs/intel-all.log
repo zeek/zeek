@@ -3,23 +3,23 @@
 #empty_field	(empty)
 #unset_field	-
 #path	intel
-#open	2016-04-25-23-53-37
+#open	2016-07-13-16-17-18
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	fuid	file_mime_type	file_desc	seen.indicator	seen.indicator_type	seen.where	seen.node	sources
 #types	time	string	addr	port	addr	port	string	string	string	string	enum	enum	string	set[string]
-1416942644.593119	CXWv6p3arKYeMETxOg	192.168.4.149	49422	23.92.19.75	443	F0txuw2pvrkZOn04a8	application/pkix-cert	23.92.19.75:443/tcp	www.pantz.org	Intel::DOMAIN	X509::IN_CERT	bro	source1
-#close	2016-04-25-23-53-37
+1416942644.593119	CHhAvVGS1DHFjwGM9	192.168.4.149	49422	23.92.19.75	443	F0txuw2pvrkZOn04a8	application/pkix-cert	23.92.19.75:443/tcp	www.pantz.org	Intel::DOMAIN	X509::IN_CERT	bro	source1
+#close	2016-07-13-16-17-18
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	intel
-#open	2016-04-25-23-53-38
+#open	2016-07-13-16-17-19
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	fuid	file_mime_type	file_desc	seen.indicator	seen.indicator_type	seen.where	seen.node	sources
 #types	time	string	addr	port	addr	port	string	string	string	string	enum	enum	string	set[string]
-1170717505.735416	CXWv6p3arKYeMETxOg	192.150.187.164	58868	194.127.84.106	443	FeCwNK3rzqPnZ7eBQ5	application/pkix-cert	194.127.84.106:443/tcp	2c322ae2b7fe91391345e070b63668978bb1c9da	Intel::CERT_HASH	X509::IN_CERT	bro	source1
-1170717505.934612	CXWv6p3arKYeMETxOg	192.150.187.164	58868	194.127.84.106	443	FeCwNK3rzqPnZ7eBQ5	-	-	www.dresdner-privat.de	Intel::DOMAIN	X509::IN_CERT	bro	source1
-1170717508.883051	CjhGID4nQcgTWjvg4c	192.150.187.164	58869	194.127.84.106	443	FjkLnG4s34DVZlaBNc	application/pkix-cert	194.127.84.106:443/tcp	2c322ae2b7fe91391345e070b63668978bb1c9da	Intel::CERT_HASH	X509::IN_CERT	bro	source1
-1170717509.082241	CjhGID4nQcgTWjvg4c	192.150.187.164	58869	194.127.84.106	443	FjkLnG4s34DVZlaBNc	-	-	www.dresdner-privat.de	Intel::DOMAIN	X509::IN_CERT	bro	source1
-1170717511.909717	CCvvfg3TEfuqmmG4bh	192.150.187.164	58870	194.127.84.106	443	FQXAWgI2FB5STbrff	application/pkix-cert	194.127.84.106:443/tcp	2c322ae2b7fe91391345e070b63668978bb1c9da	Intel::CERT_HASH	X509::IN_CERT	bro	source1
-1170717512.108799	CCvvfg3TEfuqmmG4bh	192.150.187.164	58870	194.127.84.106	443	FQXAWgI2FB5STbrff	-	-	www.dresdner-privat.de	Intel::DOMAIN	X509::IN_CERT	bro	source1
-#close	2016-04-25-23-53-38
+1170717505.735416	CHhAvVGS1DHFjwGM9	192.150.187.164	58868	194.127.84.106	443	FeCwNK3rzqPnZ7eBQ5	application/pkix-cert	194.127.84.106:443/tcp	2c322ae2b7fe91391345e070b63668978bb1c9da	Intel::CERT_HASH	X509::IN_CERT	bro	source1
+1170717505.934612	CHhAvVGS1DHFjwGM9	192.150.187.164	58868	194.127.84.106	443	FeCwNK3rzqPnZ7eBQ5	-	-	www.dresdner-privat.de	Intel::DOMAIN	X509::IN_CERT	bro	source1
+1170717508.883051	ClEkJM2Vm5giqnMf4h	192.150.187.164	58869	194.127.84.106	443	FjkLnG4s34DVZlaBNc	application/pkix-cert	194.127.84.106:443/tcp	2c322ae2b7fe91391345e070b63668978bb1c9da	Intel::CERT_HASH	X509::IN_CERT	bro	source1
+1170717509.082241	ClEkJM2Vm5giqnMf4h	192.150.187.164	58869	194.127.84.106	443	FjkLnG4s34DVZlaBNc	-	-	www.dresdner-privat.de	Intel::DOMAIN	X509::IN_CERT	bro	source1
+1170717511.909717	C4J4Th3PJpwUYZZ6gc	192.150.187.164	58870	194.127.84.106	443	FQXAWgI2FB5STbrff	application/pkix-cert	194.127.84.106:443/tcp	2c322ae2b7fe91391345e070b63668978bb1c9da	Intel::CERT_HASH	X509::IN_CERT	bro	source1
+1170717512.108799	C4J4Th3PJpwUYZZ6gc	192.150.187.164	58870	194.127.84.106	443	FQXAWgI2FB5STbrff	-	-	www.dresdner-privat.de	Intel::DOMAIN	X509::IN_CERT	bro	source1
+#close	2016-07-13-16-17-19

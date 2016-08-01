@@ -1,4 +1,9 @@
 
+2.4-732 | 2016-08-01 08:33:00 -0700
+
+  * Removing pkg/make-*-packages scripts. BIT-1509 #closed (Robin
+    Sommer)
+
 2.4-731 | 2016-08-01 08:14:06 -0700
 
   * Correct endianness of IP addresses in SNMP. Addresses BIT-1644.

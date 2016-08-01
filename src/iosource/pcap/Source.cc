@@ -7,7 +7,7 @@
 #include "Source.h"
 #include "iosource/Packet.h"
 
-#include "const.bif.h"
+#include "pcap.bif.h"
 
 #ifdef HAVE_PCAP_INT_H
 #include <pcap-int.h>

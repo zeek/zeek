@@ -1,4 +1,8 @@
 
+2.4-733 | 2016-08-01 09:09:29 -0700
+
+  * Fixing a CMake dependency issue for the pcap bifs. (Robin Sommer)
+
 2.4-732 | 2016-08-01 08:33:00 -0700
 
   * Removing pkg/make-*-packages scripts. BIT-1509 #closed (Robin

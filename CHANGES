@@ -1,4 +1,9 @@
 
+2.4-731 | 2016-08-01 08:14:06 -0700
+
+  * Correct endianness of IP addresses in SNMP. Addresses BIT-1644.
+    (Anony Mous)
+
 2.4-729 | 2016-08-01 08:00:54 -0700
 
   * Fix behavior of connection_pending event. It is now really only

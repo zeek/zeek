@@ -1089,5 +1089,6 @@ int yyerror(const char msg[])
 	fprintf(stderr, " (yychar=%d)", yychar);
 	fprintf(stderr, "\n");
 
+	delete[] msgbuf;
 	return 0;
         }

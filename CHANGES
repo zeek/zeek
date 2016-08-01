@@ -1,4 +1,19 @@
 
+2.4-729 | 2016-08-01 08:00:54 -0700
+
+  * Fix behavior of connection_pending event. It is now really only
+    raised when Bro is terminating. Also adds a test-case that raises
+    the event. (Johanna Amann)
+
+  * Retired remove -J/-K options (set md5/hash key) from the manpage.
+    They had already been removed from the code. (Johanna Amann)
+
+  * NetControl: Add catch-and-release event when IPs are forgotten.
+    This adds an event catch_release_forgotten() that is raised once
+    Catch & Release ceases block management for an IP address because
+    the IP has not been seen in traffic during the watch interval.
+    (Johanna Amann)
+
 2.4-723 | 2016-07-26 15:04:26 -0700
 
   * Add error events to input framework. (Johanna Amann)

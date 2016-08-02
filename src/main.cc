@@ -18,7 +18,8 @@ extern "C" {
 }
 #endif
 
-#include <openssl/md5.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
 
 extern "C" void OPENSSL_add_all_algorithms_conf(void);
 

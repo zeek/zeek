@@ -64,7 +64,9 @@ event Notice::begin_suppression(n: Notice::Info)
 
 function adjust_known_scanner_expiration(s: table[addr] of interval, idx: addr): interval
 {
-	return s[idx];
+	local duration = s[idx];
+	s[idx] = 0secs;
+	return duration;
 }
 
 function analyze_unique_hostports(unique_vals: set[SumStats::Observation]): Notice::Info

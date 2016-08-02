@@ -47,6 +47,24 @@ export {
 	const scan_threshold = 25.0 &redef;
 
 	global Scan::scan_policy: hook(scanner: addr, victim: addr, scanned_port: port);
+
+	global adjust_known_scanner_expiration: function(s: table[addr] of interval, idx: addr): interval;
+	global known_scanners: table[addr] of interval &create_expire=10secs &expire_func=adjust_known_scanner_expiration;
+}
+
+
+# There's no way to set a key to expire at a specific time, so we
+# First set the keys value to the duration we want, and then
+# use expire_func to return the desired time.
+event Notice::begin_suppression(n: Notice::Info)
+	{
+		if (n$note == Port_Scan || n$note == Address_Scan || n$note == Random_Scan)
+			known_scanners[n$src] = n$suppress_for;
+	}
+
+function adjust_known_scanner_expiration(s: table[addr] of interval, idx: addr): interval
+{
+	return s[idx];
 }
 
 function analyze_unique_hostports(unique_vals: set[SumStats::Observation]): Notice::Info
@@ -125,6 +143,9 @@ function add_sumstats(id: conn_id)
 	local scanner      = id$orig_h;
 	local victim       = id$resp_h;
 	local scanned_port = id$resp_p;
+
+	if ( scanner in known_scanners )
+		return;
 
 	if ( hook Scan::scan_policy(scanner, victim, scanned_port) )
 		SumStats::observe("scan.fail", [$host=scanner], [$str=cat(victim, "/", scanned_port)]);

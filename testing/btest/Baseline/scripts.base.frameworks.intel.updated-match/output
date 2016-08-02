@@ -1,0 +1,25 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	intel
+#open	2016-06-15-19-09-12
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	seen.indicator	seen.indicator_type	seen.where	seen.node	matched	sources	fuid	file_mime_type	file_desc
+#types	time	string	addr	port	addr	port	string	enum	enum	string	set[enum]	set[string]	string	string	string
+1466017751.936022	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	bro	Intel::ADDR	source1	-	-	-
+1466017754.938975	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	bro	Intel::ADDR	source2,source1	-	-	-
+1466017754.938975	-	-	-	-	-	4.3.2.1	Intel::ADDR	SOMEWHERE	bro	Intel::ADDR	source2	-	-	-
+1466017757.941783	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	bro	Intel::ADDR	source2,source1	-	-	-
+1466017757.941783	-	-	-	-	-	4.3.2.1	Intel::ADDR	SOMEWHERE	bro	Intel::ADDR	source2	-	-	-
+#close	2016-06-15-19-09-18
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	notice
+#open	2016-06-15-19-09-18
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	fuid	file_mime_type	file_desc	proto	note	msg	sub	src	dst	p	n	peer_descr	actions	suppress_for	dropped	remote_location.country_code	remote_location.region	remote_location.city	remote_location.latitude	remote_location.longitude
+#types	time	string	addr	port	addr	port	string	string	string	enum	enum	string	string	addr	addr	port	count	string	set[enum]	interval	bool	string	string	string	double	double
+1466017757.941783	-	-	-	-	-	-	-	-	-	Intel::Notice	Intel hit on 1.2.3.4 at SOMEWHERE	1.2.3.4	-	-	-	-	bro	Notice::ACTION_LOG	3600.000000	F	-	-	-	-	-
+1466017757.941783	-	-	-	-	-	-	-	-	-	Intel::Notice	Intel hit on 4.3.2.1 at SOMEWHERE	4.3.2.1	-	-	-	-	bro	Notice::ACTION_LOG	3600.000000	F	-	-	-	-	-
+#close	2016-06-15-19-09-18

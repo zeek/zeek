@@ -1,0 +1,29 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	intel
+#open	2016-06-15-19-06-02
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	seen.indicator	seen.indicator_type	seen.where	seen.node	matched	sources	fuid	file_mime_type	file_desc
+#types	time	string	addr	port	addr	port	string	enum	enum	string	set[enum]	set[string]	string	string	string
+1300475168.853899	CPbrpk1qSsw6ESzHV4	141.142.220.118	43927	141.142.2.2	53	upload.wikimedia.org	Intel::DOMAIN	DNS::IN_REQUEST	bro	Intel::DOMAIN	source1	-	-	-
+1300475168.854837	CIPOse170MGiRM1Qf4	141.142.220.118	40526	141.142.2.2	53	upload.wikimedia.org	Intel::DOMAIN	DNS::IN_REQUEST	bro	Intel::DOMAIN	source1	-	-	-
+1300475168.857956	CMXxB5GvmoxJFXdTa	141.142.220.118	32902	141.142.2.2	53	upload.wikimedia.org	Intel::DOMAIN	DNS::IN_REQUEST	bro	Intel::DOMAIN	source1	-	-	-
+1300475168.858713	Che1bq3i2rO3KD1Syg	141.142.220.118	59714	141.142.2.2	53	upload.wikimedia.org	Intel::DOMAIN	DNS::IN_REQUEST	bro	Intel::DOMAIN	source1	-	-	-
+1300475168.891644	CEle3f3zno26fFZkrh	141.142.220.118	58206	141.142.2.2	53	upload.wikimedia.org	Intel::DOMAIN	DNS::IN_REQUEST	bro	Intel::DOMAIN	source1	-	-	-
+1300475168.892414	CfTOmO0HKorjr8Zp7	141.142.220.118	59746	141.142.2.2	53	upload.wikimedia.org	Intel::DOMAIN	DNS::IN_REQUEST	bro	Intel::DOMAIN	source1	-	-	-
+1300475168.893988	Cab0vO1xNYSS2hJkle	141.142.220.118	45000	141.142.2.2	53	upload.wikimedia.org	Intel::DOMAIN	DNS::IN_REQUEST	bro	Intel::DOMAIN	source1	-	-	-
+1300475168.894787	Cx3C534wEyF3OvvcQe	141.142.220.118	48128	141.142.2.2	53	upload.wikimedia.org	Intel::DOMAIN	DNS::IN_REQUEST	bro	Intel::DOMAIN	source1	-	-	-
+1300475168.916018	CJ3xTn1c4Zw9TmAE05	141.142.220.118	49997	208.80.152.3	80	upload.wikimedia.org	Intel::DOMAIN	HTTP::IN_HOST_HEADER	bro	Intel::DOMAIN	source1	-	-	-
+1300475168.916183	C7XEbhP654jzLoe3a	141.142.220.118	49996	208.80.152.3	80	upload.wikimedia.org	Intel::DOMAIN	HTTP::IN_HOST_HEADER	bro	Intel::DOMAIN	source1	-	-	-
+1300475168.918358	C3SfNE4BWaU4aSuwkc	141.142.220.118	49998	208.80.152.3	80	upload.wikimedia.org	Intel::DOMAIN	HTTP::IN_HOST_HEADER	bro	Intel::DOMAIN	source1	-	-	-
+1300475168.952296	CzA03V1VcgagLjnO92	141.142.220.118	49999	208.80.152.3	80	upload.wikimedia.org	Intel::DOMAIN	HTTP::IN_HOST_HEADER	bro	Intel::DOMAIN	source1	-	-	-
+1300475168.952307	CyAhVIzHqb7t7kv28	141.142.220.118	50000	208.80.152.3	80	upload.wikimedia.org	Intel::DOMAIN	HTTP::IN_HOST_HEADER	bro	Intel::DOMAIN	source1	-	-	-
+1300475168.954820	CkDsfG2YIeWJmXWNWj	141.142.220.118	50001	208.80.152.3	80	upload.wikimedia.org	Intel::DOMAIN	HTTP::IN_HOST_HEADER	bro	Intel::DOMAIN	source1	-	-	-
+1300475168.975934	CJ3xTn1c4Zw9TmAE05	141.142.220.118	49997	208.80.152.3	80	upload.wikimedia.org	Intel::DOMAIN	HTTP::IN_HOST_HEADER	bro	Intel::DOMAIN	source1	-	-	-
+1300475168.976436	C7XEbhP654jzLoe3a	141.142.220.118	49996	208.80.152.3	80	upload.wikimedia.org	Intel::DOMAIN	HTTP::IN_HOST_HEADER	bro	Intel::DOMAIN	source1	-	-	-
+1300475168.979264	C3SfNE4BWaU4aSuwkc	141.142.220.118	49998	208.80.152.3	80	upload.wikimedia.org	Intel::DOMAIN	HTTP::IN_HOST_HEADER	bro	Intel::DOMAIN	source1	-	-	-
+1300475169.014593	CzA03V1VcgagLjnO92	141.142.220.118	49999	208.80.152.3	80	upload.wikimedia.org	Intel::DOMAIN	HTTP::IN_HOST_HEADER	bro	Intel::DOMAIN	source1	-	-	-
+1300475169.014619	CyAhVIzHqb7t7kv28	141.142.220.118	50000	208.80.152.3	80	upload.wikimedia.org	Intel::DOMAIN	HTTP::IN_HOST_HEADER	bro	Intel::DOMAIN	source1	-	-	-
+1300475169.014927	CkDsfG2YIeWJmXWNWj	141.142.220.118	50001	208.80.152.3	80	upload.wikimedia.org	Intel::DOMAIN	HTTP::IN_HOST_HEADER	bro	Intel::DOMAIN	source1	-	-	-
+#close	2016-06-15-19-06-02

@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2016-08-01-16-08-53
+#open	2016-06-15-19-16-09
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -203,6 +203,7 @@ scripts/base/init-default.bro
     scripts/base/frameworks/communication/main.bro
   scripts/base/frameworks/intel/__load__.bro
     scripts/base/frameworks/intel/main.bro
+    scripts/base/frameworks/intel/files.bro
     scripts/base/frameworks/intel/input.bro
   scripts/base/frameworks/sumstats/__load__.bro
     scripts/base/frameworks/sumstats/main.bro
@@ -312,4 +313,4 @@ scripts/base/init-default.bro
   scripts/base/misc/find-checksum-offloading.bro
   scripts/base/misc/find-filtered-trace.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2016-08-01-16-08-53
+#close	2016-06-15-19-16-09

@@ -154,17 +154,17 @@ function add_sumstats(id: conn_id)
 event connection_attempt(c: connection)
 	{
 	if ( c$history == "S" )
-		add_scan(c$id);
+		add_sumstats(c$id);
 	}
 
 event connection_rejected(c: connection)
 	{
 	if ( c$history == "Sr" )
-		add_scan(c$id);
+		add_sumstats(c$id);
 	}
 
 event connection_reset(c: connection)
 	{
 	if ( c$history == "ShR" )
-		add_scan(c$id);
+		add_sumstats(c$id);
 	}

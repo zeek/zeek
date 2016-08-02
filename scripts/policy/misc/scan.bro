@@ -151,32 +151,20 @@ function add_sumstats(id: conn_id)
 		SumStats::observe("scan.fail", [$host=scanner], [$str=cat(victim, "/", scanned_port)]);
 	}
 
-function is_failed_conn(c: connection): bool
-	{
-	# Sr || ( (hR || ShR) && (data not sent in any direction) )
-	if ( (c$orig$state == TCP_SYN_SENT && c$resp$state == TCP_RESET) ||
-	     (((c$orig$state == TCP_RESET && c$resp$state == TCP_SYN_ACK_SENT) ||
-	       (c$orig$state == TCP_RESET && c$resp$state == TCP_ESTABLISHED && "S" in c$history )
-	      ) && /[Dd]/ !in c$history )
-	   )
-		return T;
-	return F;
-	}
-
 event connection_attempt(c: connection)
 	{
-	if ( "H" !in c$history )
-		add_sumstats(c$id);
+	if ( c$history == "S" )
+		add_scan(c$id);
 	}
 
 event connection_rejected(c: connection)
 	{
-	if ( "S" in c$history )
-		add_sumstats(c$id);
+	if ( c$history == "Sr" )
+		add_scan(c$id);
 	}
 
 event connection_reset(c: connection)
 	{
-	if ( is_failed_conn(c) )
-		add_sumstats(c$id);
+	if ( c$history == "ShR" )
+		add_scan(c$id);
 	}

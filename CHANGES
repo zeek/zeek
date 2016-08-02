@@ -1,4 +1,8 @@
 
+2.4-735 | 2016-08-02 11:05:36 -0700
+
+  * Added string slicing examples to documentation. (Moshe Kaplan)
+
 2.4-733 | 2016-08-01 09:09:29 -0700
 
   * Fixing a CMake dependency issue for the pcap bifs. (Robin Sommer)

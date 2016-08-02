@@ -181,11 +181,14 @@ Here is a more detailed description of each type:
     second-to-last character, etc.  Here are a few examples::
 
         local orig = "0123456789";
-        local second_char = orig[1];
-        local last_char = orig[-1];
-        local first_two_chars = orig[:2];
-        local last_two_chars = orig[8:];
-        local no_first_and_last = orig[1:9];
+        local second_char = orig[1];         # "1"
+        local last_char = orig[-1];          # "9"
+        local first_two_chars = orig[:2];    # "01"
+        local last_two_chars = orig[8:];     # "89"
+        local no_first_and_last = orig[1:9]; # "12345678"
+        local no_first = orig[1:];           # "123456789"
+        local no_last = orig[:-1];           # "012345678"
+        local copy_orig = orig[:];           # "0123456789"
 
     Note that the subscript operator cannot be used to modify a string (i.e.,
     it cannot be on the left side of an assignment operator).

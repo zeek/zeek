@@ -2278,7 +2278,7 @@ double TableVal::GetExpireTime()
 	Unref(timeout);
 
 	if ( interval >= 0 )
-		return timeout->AsInterval();
+		return interval;
 
 	expire_time = 0;
 
@@ -2327,6 +2327,7 @@ double TableVal::CallExpireFunc(Val* idx)
 		if ( vf->Type()->Tag() != TYPE_FUNC )
 			{
 			Unref(vf);
+			delete_vals(vl);
 			vf->Error("not a function");
 			return 0;
 			}

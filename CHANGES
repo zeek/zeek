@@ -1,4 +1,8 @@
 
+2.4-737 | 2016-08-02 11:38:07 -0700
+
+  * Fix some Coverity warnings. (Robin Sommer)
+
 2.4-735 | 2016-08-02 11:05:36 -0700
 
   * Added string slicing examples to documentation. (Moshe Kaplan)

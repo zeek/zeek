@@ -1,4 +1,10 @@
 
+2.4-893 | 2016-08-05 15:43:04 -0700
+
+  * Remove -z/--analysis option. (Johanna Amann)
+
+  * Remove already defunct code for XML serialization. (Johanna Amann)
+
 2.4-885 | 2016-08-05 15:03:59 -0700
 
   * Reverting SMB analyzer merge. (Robin Sommer)

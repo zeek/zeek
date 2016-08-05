@@ -1,4 +1,12 @@
 
+2.4-883 | 2016-08-05 12:57:26 -0400
+
+  * Add a new node type for logging with the cluster framework scripts by 
+    adding a new Bro node type for doing logging (this is intended to 
+    reduce the load on the manager). If a user chooses not to specify a 
+    logger node in the cluster configuration, then the manager will
+    write logs locally as usual. (Daniel Thayer)
+
 2.4-874 | 2016-08-05 12:43:06 -0400
 
   * SMB analyzer (Seth Hall, Vlad Grigorescu and many others)

@@ -1,0 +1,12 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	smb_files
+#open	2016-08-05-15-39-05
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	fuid	action	path	name	size	prev_name	times.modified	times.accessed	times.created	times.changed
+#types	time	string	addr	port	addr	port	string	enum	string	string	count	string	time	time	time	time
+1323202695.377459	CHhAvVGS1DHFjwGM9	10.0.0.11	49208	10.0.0.12	445	-	SMB::FILE_OPEN	\\\\10.0.0.12\\smb2	<share_root>	8192	-	1323202604.512058	1323202604.512058	1322343963.945297	1323202604.512058
+1323202695.432192	CHhAvVGS1DHFjwGM9	10.0.0.11	49208	10.0.0.12	445	-	SMB::FILE_OPEN	\\\\10.0.0.12\\smb2	WP_SMBPlugin.pdf	0	-	1323202695.427034	1323202695.427034	1323202695.427034	1323202695.427034
+1323202695.599914	CHhAvVGS1DHFjwGM9	10.0.0.11	49208	10.0.0.12	445	-	SMB::FILE_OPEN	\\\\10.0.0.12\\smb2	<share_root>	8192	-	1323202695.427034	1323202695.427034	1322343963.945297	1323202695.427034
+#close	2016-08-05-15-39-06

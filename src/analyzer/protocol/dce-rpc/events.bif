@@ -1,55 +1,74 @@
-## TODO.
+## Generated for every DCE-RPC message.
 ##
-## .. bro:see:: rpc_call rpc_dialogue rpc_reply dce_rpc_bind dce_rpc_request
-##    dce_rpc_response rpc_timeout
+## c: The connection.
 ##
-## .. todo:: Bro's current default configuration does not activate the protocol
-##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to
-##    register a port for it or add a DPD payload signature.
-event dce_rpc_message%(c: connection, is_orig: bool, ptype: dce_rpc_ptype, msg: string%);
+## is_orig: True if the message was sent by the originator of the TCP connection.
+##
+## fid: File ID of the PIPE that carried the DCE-RPC message. Zero will be used if the
+##      DCE-RPC was not transported over a pipe.
+##
+## ptype_id: Numeric representation of the procedure type of the message.
+##
+## ptype: Enum representation of the prodecure type of the message.
+##
+## .. bro:see:: dce_rpc_bind dce_rpc_bind_ack dce_rpc_request dce_rpc_response
+event dce_rpc_message%(c: connection, is_orig: bool, fid: count, ptype_id: count, ptype: DCE_RPC::PType%);
 
-## TODO.
+## Generated for every DCE-RPC bind request message. Since RPC offers the ability 
+## for a client to request connections to multiple endpoints, this event can occur 
+## multiple times for a single RPC message.
 ##
-## .. bro:see:: rpc_call rpc_dialogue rpc_reply  dce_rpc_message dce_rpc_request
-##    dce_rpc_response rpc_timeout
+## c: The connection.
 ##
-## .. todo:: Bro's current default configuration does not activate the protocol
-##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to
-##    register a port for it or add a DPD payload signature.
-event dce_rpc_bind%(c: connection, uuid: string%);
+## fid: File ID of the PIPE that carried the DCE-RPC message. Zero will be used if the
+##      DCE-RPC was not transported over a pipe.
+##
+## uuid: The string interpretted uuid of the endpoint being requested.
+##
+## ver_major: The major version of the endpoint being requested.
+##
+## ver_minor: The minor version of the endpoint being requested.
+##
+## .. bro:see:: dce_rpc_message dce_rpc_bind_ack dce_rpc_request dce_rpc_response
+event dce_rpc_bind%(c: connection, fid: count, uuid: string, ver_major: count, ver_minor: count%);
 
-## TODO.
+## Generated for every DCE-RPC bind request ack message.
 ##
-## .. bro:see:: rpc_call rpc_dialogue rpc_reply dce_rpc_bind dce_rpc_message
-##    dce_rpc_response rpc_timeout
+## c: The connection.
 ##
-## .. todo:: Bro's current default configuration does not activate the protocol
-##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to
-##    register a port for it or add a DPD payload signature.
-event dce_rpc_request%(c: connection, opnum: count, stub: string%);
+## fid: File ID of the PIPE that carried the DCE-RPC message. Zero will be used if the
+##      DCE-RPC was not transported over a pipe.
+##
+## sec_addr: Secondary address for the ack.
+##
+## .. bro:see:: dce_rpc_message dce_rpc_bind dce_rpc_request dce_rpc_response
+event dce_rpc_bind_ack%(c: connection, fid: count, sec_addr: string%);
 
-## TODO.
+## Generated for every DCE-RPC request message.
 ##
-## .. bro:see:: rpc_call rpc_dialogue rpc_reply dce_rpc_bind dce_rpc_message
-##    dce_rpc_request  rpc_timeout
+## c: The connection.
 ##
-## .. todo:: Bro's current default configuration does not activate the protocol
-##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to
-##    register a port for it or add a DPD payload signature.
-event dce_rpc_response%(c: connection, opnum: count, stub: string%);
+## fid: File ID of the PIPE that carried the DCE-RPC message. Zero will be used if the
+##      DCE-RPC was not transported over a pipe.
+##
+## opnum: Number of the RPC operation.
+##
+## stub_len: Length of the data for the request.
+##
+## .. bro:see:: dce_rpc_message dce_rpc_bind dce_rpc_bind_ack dce_rpc_response
+event dce_rpc_request%(c: connection, fid: count, opnum: count, stub_len: count%);
 
-## TODO.
+## Generated for every DCE-RPC response message.
 ##
-## .. bro:see:: rpc_call rpc_dialogue rpc_reply dce_rpc_bind dce_rpc_message
-##    dce_rpc_request dce_rpc_response rpc_timeout
+## c: The connection.
 ##
-## .. todo:: Bro's current default configuration does not activate the protocol
-##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to
-##    register a port for it or add a DPD payload signature.
-event epm_map_response%(c: connection, uuid: string, p: port, h: addr%);
+## fid: File ID of the PIPE that carried the DCE-RPC message. Zero will be used if the
+##      DCE-RPC was not transported over a pipe.
+##
+## opnum: Number of the RPC operation.
+##
+## stub_len: Length of the data for the response.
+##
+## .. bro:see:: dce_rpc_message dce_rpc_bind dce_rpc_bind_ack dce_rpc_request
+event dce_rpc_response%(c: connection, fid: count, opnum: count, stub_len: count%);
 

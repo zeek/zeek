@@ -1,0 +1,13 @@
+## Generated for SMB/CIFS request messages of type *close*.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for
+## more information about the SMB/CIFS protocol. Bro's SMB/CIFS analyzer parses
+## both SMB-over-NetBIOS on ports 138/139 and SMB-over-TCP on port 445.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the SMB message.
+##
+## file_id: The file identifier being closed.
+event smb1_close_request%(c: connection, hdr: SMB1::Header, file_id: count%);
+

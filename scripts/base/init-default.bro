@@ -43,7 +43,6 @@
 @load base/frameworks/netcontrol
 
 @load base/protocols/conn
-@load base/protocols/dce-rpc
 @load base/protocols/dhcp
 @load base/protocols/dnp3
 @load base/protocols/dns
@@ -54,16 +53,12 @@
 @load base/protocols/krb
 @load base/protocols/modbus
 @load base/protocols/mysql
-@load base/protocols/ntlm
 @load base/protocols/pop3
 @load base/protocols/radius
 @load base/protocols/rdp
 @load base/protocols/rfb
 @load base/protocols/sip
 @load base/protocols/snmp
-# This DOES NOT enable the SMB analyzer.  It's just some base support 
-# for other protocols.
-@load base/protocols/smb
 @load base/protocols/smtp
 @load base/protocols/socks
 @load base/protocols/ssh

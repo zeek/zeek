@@ -1,9 +1,15 @@
 
+2.4-885 | 2016-08-05 15:03:59 -0700
+
+  * Reverting SMB analyzer merge.  (Robin Sommer)
+
+  * Updating broctl. (Seth Hall)
+
 2.4-883 | 2016-08-05 12:57:26 -0400
 
-  * Add a new node type for logging with the cluster framework scripts by 
-    adding a new Bro node type for doing logging (this is intended to 
-    reduce the load on the manager). If a user chooses not to specify a 
+  * Add a new node type for logging with the cluster framework scripts by
+    adding a new Bro node type for doing logging (this is intended to
+    reduce the load on the manager). If a user chooses not to specify a
     logger node in the cluster configuration, then the manager will
     write logs locally as usual. (Daniel Thayer)
 
@@ -85,7 +91,7 @@
             Input::add_table([$source="a", $error_ev=error_event, ...]);
             }
 
-     Addresses BIT-1181. 
+     Addresses BIT-1181.
 
   * Calling Error() in an input reader now automatically will disable
     the reader and return a failure in the Update/Heartbeat calls.

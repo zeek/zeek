@@ -52,21 +52,6 @@ Log Changes
 New Functionality
 -----------------
 
-- SMB analyzer. This is the rewrite that has been in development for 
-  several years. The scripts are currently not loaded by default and 
-  must be loaded manually by loading policy/protocols/smb. The next 
-  release will load the smb scripts by default.
-
-   - Implements SMB1+2.
-   - Fully integrated with the file analysis framework so that files 
-     transferred over SMB can be analyzed.
-   - Includes GSSAPI and NTLM analyzer and reimplements the DCE-RPC
-     analyzer.
-   - New logs: smb_files.log, smb_mapping.log, ntlm.log, and dce_rpc.log
-   - Not every possible SMB command or functionality is implemented, but
-     generally, file handling should work whenever files are transferred.
-     Please speak up on the mailing list if there is an obvious oversight.
-
 - Bro now includes the NetControl framework. The framework allows for easy
   interaction of Bro with hard- and software switches, firewalls, etc.
 

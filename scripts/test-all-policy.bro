@@ -76,11 +76,6 @@
 @load protocols/modbus/track-memmap.bro
 @load protocols/mysql/software.bro
 @load protocols/rdp/indicate_ssl.bro
-@load protocols/smb/__load__.bro
-@load protocols/smb/files.bro
-@load protocols/smb/main.bro
-@load protocols/smb/smb1-main.bro
-@load protocols/smb/smb2-main.bro
 @load protocols/smtp/blocklists.bro
 @load protocols/smtp/detect-suspicious-orig.bro
 @load protocols/smtp/entities-excerpt.bro

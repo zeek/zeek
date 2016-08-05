@@ -1,3 +1,4 @@
+
 enum SMB_MailSlot_opcode {
 	HOST_ANNOUNCEMENT		= 1,
 	ANNOUCEMENT_REQUEST	= 2,

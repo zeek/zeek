@@ -3,7 +3,6 @@ capture_loss
 cluster
 communication
 conn
-dce__r_pc
 dhcp
 dnp3
 dns
@@ -29,7 +28,6 @@ netcontrol_drop
 netcontrol_shunt
 notice
 notice_alarm
-ntlm
 open_flow
 packet_filter
 pe
@@ -39,9 +37,6 @@ reporter
 rfb
 signatures
 sip
-smb_cmd
-smb_files
-smb_mapping
 smtp
 snmp
 socks

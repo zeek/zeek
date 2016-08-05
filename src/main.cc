@@ -205,9 +205,6 @@ void usage()
 	fprintf(stderr, "    -m|--mem-leaks                 | show leaks  [perftools]\n");
 	fprintf(stderr, "    -M|--mem-profile               | record heap [perftools]\n");
 #endif
-#if 0 // Broken
-	fprintf(stderr, "    -X <file.bst>                  | print contents of state file as XML\n");
-#endif
 	fprintf(stderr, "    --pseudo-realtime[=<speedup>]  | enable pseudo-realtime for performance evaluation (default 1)\n");
 
 #ifdef USE_IDMEF
@@ -459,7 +456,6 @@ int main(int argc, char** argv)
 	int parse_only = false;
 	int bare_mode = false;
 	int dump_cfg = false;
-	int to_xml = 0;
 	int do_watchdog = 0;
 	int override_ignore_checksums = 0;
 	int rule_debug = 0;
@@ -702,13 +698,6 @@ int main(int argc, char** argv)
 
 		case 'M':
 			perftools_profile = 1;
-			break;
-#endif
-
-#if 0 // broken
-		case 'X':
-			bst_file = optarg;
-			to_xml = 1;
 			break;
 #endif
 
@@ -1013,23 +1002,12 @@ int main(int argc, char** argv)
 	// Just read state file from disk.
 	if ( bst_file )
 		{
-		if ( to_xml )
-			{
-			BinarySerializationFormat* b =
-				new BinarySerializationFormat();
-			XMLSerializationFormat* x = new XMLSerializationFormat();
-			ConversionSerializer s(b, x);
-			s.Convert(bst_file, "/dev/stdout");
-			}
-		else
-			{
-			FileSerializer s;
-			UnserialInfo info(&s);
-			info.print = stdout;
-			info.install_uniques = true;
-			if ( ! s.Read(&info, bst_file) )
-				reporter->Error("Failed to read events from %s\n", bst_file);
-			}
+		FileSerializer s;
+		UnserialInfo info(&s);
+		info.print = stdout;
+		info.install_uniques = true;
+		if ( ! s.Read(&info, bst_file) )
+			reporter->Error("Failed to read events from %s\n", bst_file);
 
 		exit(0);
 		}

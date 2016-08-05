@@ -313,27 +313,6 @@ protected:
 	int fd;
 };
 
-// Converts from one serialization format into another.
-class ConversionSerializer:public FileSerializer {
-public:
-	ConversionSerializer(SerializationFormat* in, SerializationFormat* out);
-	virtual ~ConversionSerializer();
-
-	bool Convert(const char* file_in, const char* file_out);
-
-protected:
-	virtual void GotID(ID* id, Val* val);
-	virtual void GotEvent(const char* name, double time,
-				EventHandlerPtr event, val_list* args);
-	virtual void GotFunctionCall(const char* name, double time,
-				Func* func, val_list* args);
-	virtual void GotStateAccess(StateAccess* s);
-	virtual void GotPacket(Packet* packet);
-
-	FileSerializer* serout;
-};
-
-
 // Abstract interface class for external sources providing a stream of events.
 class EventSource {
 public:

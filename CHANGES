@@ -1,9 +1,7 @@
 
 2.4-885 | 2016-08-05 15:03:59 -0700
 
-  * Reverting SMB analyzer merge.  (Robin Sommer)
-
-  * Updating broctl. (Seth Hall)
+  * Reverting SMB analyzer merge. (Robin Sommer)
 
 2.4-883 | 2016-08-05 12:57:26 -0400
 

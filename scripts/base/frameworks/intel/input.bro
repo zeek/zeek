@@ -1,11 +1,14 @@
+##! Input handling for the intelligence framework. This script implements the
+##! import of intelligence data from files using the input framework.
+
 @load ./main
 
 module Intel;
 
 export {
-	## Intelligence files that will be read off disk.  The files are
-	## reread every time they are updated so updates must be atomic with
-	## "mv" instead of writing the file in place.
+	## Intelligence files that will be read off disk. The files are
+	## reread every time they are updated so updates must be atomic
+	## with "mv" instead of writing the file in place.
 	const read_files: set[string] = {} &redef;
 }
 

@@ -1,4 +1,12 @@
 
+2.4-759 | 2016-08-05 09:32:42 -0400
+
+  * Intel framework improvements (Jan Grashoefer)
+    * Added expiration for intelligence items.
+    * Improved intel notices.
+    * Added hook to allow extending the intel log.
+    * Added support for subnets to intel-framework.
+
 2.4-742 | 2016-08-02 15:28:31 -0700
 
   * Fix duplicate SSH authentication failure events. Addresses BIT-1641.

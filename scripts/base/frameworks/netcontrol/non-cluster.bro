@@ -12,14 +12,14 @@ function add_rule(r: Rule) : string
 	return add_rule_impl(r);
 	}
 
-function delete_rule(id: string) : bool
+function delete_rule(id: string, reason: string &default="") : bool
 	{
-	return delete_rule_impl(id);
+	return delete_rule_impl(id, reason);
 	}
 
-function remove_rule(id: string) : bool
+function remove_rule(id: string, reason: string &default="") : bool
 	{
-	return remove_rule_impl(id);
+	return remove_rule_impl(id, reason);
 	}
 
 event rule_expire(r: Rule, p: PluginState) &priority=-5

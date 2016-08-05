@@ -101,8 +101,10 @@ export {
 	##
 	## a: The address to be unblocked.
 	##
+	## reason: A reason for the unblock
+	##
 	## Returns: True if the address was unblocked.
-	global unblock_address_catch_release: function(a: addr) : bool;
+	global unblock_address_catch_release: function(a: addr, reason: string &default="") : bool;
 
 	## This function can be called to notify the cach and release script that activity by
 	## an IP address was seen. If the respective IP address is currently monitored by catch and
@@ -154,7 +156,7 @@ export {
 	global catch_release_block_new: event(a: addr, b: BlockInfo);
 	global catch_release_block_delete: event(a: addr);
 	global catch_release_add: event(a: addr, location: string);
-	global catch_release_delete: event(a: addr);
+	global catch_release_delete: event(a: addr, reason: string);
 	global catch_release_encountered: event(a: addr);
 }
 
@@ -287,9 +289,9 @@ event catch_release_add(a: addr, location: string)
 	drop_address_catch_release(a, location);
 	}
 
-event catch_release_delete(a: addr)
+event catch_release_delete(a: addr, reason: string)
 	{
-	unblock_address_catch_release(a);
+	unblock_address_catch_release(a, reason);
 	}
 
 event catch_release_encountered(a: addr)
@@ -386,7 +388,7 @@ function drop_address_catch_release(a: addr, location: string &default=""): Bloc
 
 	}
 
-function unblock_address_catch_release(a: addr): bool
+function unblock_address_catch_release(a: addr, reason: string &default=""): bool
 	{
 	if ( a !in blocks )
 		return F;
@@ -394,16 +396,18 @@ function unblock_address_catch_release(a: addr): bool
 @if ( ! Cluster::is_enabled() || ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER ) )
 	local bi = blocks[a];
 	local log = populate_log_record(a, bi, UNBLOCK);
+	if ( reason != "" )
+		log$message = reason;
 	Log::write(CATCH_RELEASE, log);
 	delete blocks[a];
 	if ( bi?$block_until && bi$block_until > network_time() && bi$current_block_id != "" )
-		remove_rule(bi$current_block_id);
+		remove_rule(bi$current_block_id, reason);
 @endif
 @if ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER )
 	event NetControl::catch_release_block_delete(a);
 @endif
 @if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
-	event NetControl::catch_release_delete(a);
+	event NetControl::catch_release_delete(a, reason);
 @endif
 
 	return T;

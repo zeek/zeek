@@ -124,12 +124,14 @@ export {
 	##
 	## id: The rule to remove, specified as the ID returned by :bro:see:`NetControl::add_rule`.
 	##
+	## reason: Optional string argument giving information on why the rule was removed.
+	##
 	## Returns: True if succesful, the relevant plugin indicated that it knew
 	##          how to handle the removal. Note that again "success" means the
 	##          plugin accepted the removal. They might still fail to put it
 	##          into effect, as that might happen asynchronously and thus go
 	##          wrong at that point.
-	global remove_rule: function(id: string) : bool;
+	global remove_rule: function(id: string, reason: string &default="") : bool;
 
 	## Deletes a rule without removing in from the backends to which it has been
 	## added before. This mean that no messages will be sent to the switches to which
@@ -138,9 +140,11 @@ export {
 	##
 	## id: The rule to delete, specified as the ID returned by :bro:see:`add_rule` .
 	##
+	## reason: Optional string argument giving information on why the rule was deleted.
+	##
 	## Returns: True if removal is successful, or sent to manager.
 	##          False if the rule could not be found.
-	global delete_rule: function(id: string) : bool;
+	global delete_rule: function(id: string, reason: string &default="") : bool;
 
 	## Searches all rules affecting a certain IP address.
 	##
@@ -820,38 +824,49 @@ function rule_cleanup(r: Rule)
 	event NetControl::rule_destroyed(r);
 	}
 
-function delete_rule_impl(id: string): bool
+function delete_rule_impl(id: string, reason: string): bool
 	{
 	if ( id !in rules )
+		{
+		Reporter::error(fmt("Rule %s does not exist in NetControl::delete_rule", id));
 		return F;
+		}
 
 	local rule = rules[id];
 
 	rule$_active_plugin_ids = set();
 
 	rule_cleanup(rule);
+	if ( reason != "" )
+		log_rule_no_plugin(rule, REMOVED, fmt("delete_rule: %s", reason));
+	else
+		log_rule_no_plugin(rule, REMOVED, "delete_rule");
+
 	return T;
 	}
 
-function remove_rule_plugin(r: Rule, p: PluginState): bool
+function remove_rule_plugin(r: Rule, p: PluginState, reason: string &default=""): bool
 	{
 	local success = T;
 
-	if ( ! p$plugin$remove_rule(p, r) )
+	if ( ! p$plugin$remove_rule(p, r, reason) )
 		{
 		# still continue and send to other plugins
-		log_rule_error(r, "remove failed", p);
+		if ( reason != "" )
+			log_rule_error(r, fmt("remove failed (original reason: %s)", reason), p);
+		else
+			log_rule_error(r, "remove failed", p);
 		success = F;
 		}
 		else
 		{
-		log_rule(r, "REMOVE", REQUESTED, p);
+		log_rule(r, "REMOVE", REQUESTED, p, reason);
 		}
 
 	return success;
 	}
 
-function remove_rule_impl(id: string) : bool
+function remove_rule_impl(id: string, reason: string) : bool
 	{
 	if ( id !in rules )
 		{
@@ -865,7 +880,7 @@ function remove_rule_impl(id: string) : bool
 	for ( plugin_id in r$_active_plugin_ids )
 		{
 		local p = plugin_ids[plugin_id];
-		success = remove_rule_plugin(r, p);
+		success = remove_rule_plugin(r, p, reason);
 		}
 
 	return success;

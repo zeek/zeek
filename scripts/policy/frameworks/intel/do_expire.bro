@@ -4,7 +4,7 @@
 
 module Intel;
 
-redef item_expiration = 10min;
+redef Intel::item_expiration = 10min;
 
 hook item_expired(indicator: string, indicator_type: Type,
 	metas: set[MetaData]) &priority=-10

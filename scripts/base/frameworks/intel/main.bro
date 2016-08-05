@@ -154,8 +154,9 @@ export {
 	global extend_match: hook(info: Info, s: Seen, items: set[Item]);
 
 	## The expiration timeout for intelligence items. Once an item expires, the
-	## :bro:id:`item_expired` hook is called. Reinsertion of an item resets the
-	## timeout. A negative value disables expiration of intelligence items.
+	## :bro:id:`Intel::item_expired` hook is called. Reinsertion of an item 
+	## resets the timeout. A negative value disables expiration of intelligence 
+	## items.
 	const item_expiration = -1 min &redef;
 
 	## This hook can be used to handle expiration of intelligence items.

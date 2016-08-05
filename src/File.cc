@@ -18,6 +18,10 @@
 #include <errno.h>
 #include <unistd.h>
 
+#include <openssl/evp.h>
+#include <openssl/pem.h>
+#include <openssl/err.h>
+
 #include <algorithm>
 
 #include "File.h"

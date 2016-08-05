@@ -1,4 +1,56 @@
 
+2.4-759 | 2016-08-05 09:32:42 -0400
+
+  * Intel framework improvements (Jan Grashoefer)
+    * Added expiration for intelligence items.
+    * Improved intel notices.
+    * Added hook to allow extending the intel log.
+    * Added support for subnets to intel-framework.
+
+2.4-742 | 2016-08-02 15:28:31 -0700
+
+  * Fix duplicate SSH authentication failure events. Addresses BIT-1641.
+    (Robin Sommer)
+
+  * Remove OpenSSL dependency for plugins. (Robin Sommer)
+
+2.4-737 | 2016-08-02 11:38:07 -0700
+
+  * Fix some Coverity warnings. (Robin Sommer)
+
+2.4-735 | 2016-08-02 11:05:36 -0700
+
+  * Added string slicing examples to documentation. (Moshe Kaplan)
+
+2.4-733 | 2016-08-01 09:09:29 -0700
+
+  * Fixing a CMake dependency issue for the pcap bifs. (Robin Sommer)
+
+2.4-732 | 2016-08-01 08:33:00 -0700
+
+  * Removing pkg/make-*-packages scripts. BIT-1509 #closed (Robin
+    Sommer)
+
+2.4-731 | 2016-08-01 08:14:06 -0700
+
+  * Correct endianness of IP addresses in SNMP. Addresses BIT-1644.
+    (Anony Mous)
+
+2.4-729 | 2016-08-01 08:00:54 -0700
+
+  * Fix behavior of connection_pending event. It is now really only
+    raised when Bro is terminating. Also adds a test-case that raises
+    the event. (Johanna Amann)
+
+  * Retired remove -J/-K options (set md5/hash key) from the manpage.
+    They had already been removed from the code. (Johanna Amann)
+
+  * NetControl: Add catch-and-release event when IPs are forgotten.
+    This adds an event catch_release_forgotten() that is raised once
+    Catch & Release ceases block management for an IP address because
+    the IP has not been seen in traffic during the watch interval.
+    (Johanna Amann)
+
 2.4-723 | 2016-07-26 15:04:26 -0700
 
   * Add error events to input framework. (Johanna Amann)

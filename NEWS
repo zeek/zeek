@@ -191,6 +191,11 @@ Removed Functionality
     - The command line options --set-seed and --md5-hashkey have been
       removed.
 
+    - The packaging scripts pkg/make-*-packages are gone. They aren't
+      used anymore for the binary Bro packages that the projects
+      distributes; haven't been supported in a while; and have
+      problems.
+
 Deprecated Functionality
 ------------------------
 

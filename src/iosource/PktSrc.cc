@@ -11,7 +11,7 @@
 #include "Net.h"
 #include "Sessions.h"
 
-#include "pcap/const.bif.h"
+#include "pcap/pcap.bif.h"
 
 using namespace iosource;
 

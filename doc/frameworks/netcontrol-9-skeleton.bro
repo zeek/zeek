@@ -17,7 +17,7 @@ function skeleton_add_rule_fun(p: PluginState, r: Rule) : bool
 	return T;
 	}
 
-	function skeleton_remove_rule_fun(p: PluginState, r: Rule) : bool
+function skeleton_remove_rule_fun(p: PluginState, r: Rule, reason: string &default="") : bool
 	{
 	print "remove", r;
 	event NetControl::rule_removed(r, p);

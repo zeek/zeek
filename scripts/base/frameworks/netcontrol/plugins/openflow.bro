@@ -324,7 +324,7 @@ function openflow_add_rule(p: PluginState, r: Rule) : bool
 	return T;
 	}
 
-function openflow_remove_rule(p: PluginState, r: Rule) : bool
+function openflow_remove_rule(p: PluginState, r: Rule, reason: string) : bool
 	{
 	if ( ! openflow_check_rule(p, r) )
 		return F;
@@ -444,8 +444,6 @@ global openflow_plugin = Plugin(
 #	$done = openflow_done,
 	$add_rule = openflow_add_rule,
 	$remove_rule = openflow_remove_rule
-#	$transaction_begin = openflow_transaction_begin,
-#	$transaction_end = openflow_transaction_end
 	);
 
 function create_openflow(controller: OpenFlow::Controller, config: OfConfig &default=[]) : PluginState

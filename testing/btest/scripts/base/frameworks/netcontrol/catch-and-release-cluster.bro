@@ -83,7 +83,7 @@ event connection_established(c: connection)
 	NetControl::drop_address_catch_release(id$orig_h);
 	if ( info$current_block_id != "" )
 		{
-		NetControl::unblock_address_catch_release(id$orig_h);
+		NetControl::unblock_address_catch_release(id$orig_h, "reason here");
 		}
 	}
 

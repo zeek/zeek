@@ -10,10 +10,10 @@ export {
 	global cluster_netcontrol_add_rule: event(r: Rule);
 
 	## This is the event used to transport remove_rule calls to the manager.
-	global cluster_netcontrol_remove_rule: event(id: string);
+	global cluster_netcontrol_remove_rule: event(id: string, reason: string);
 
 	## This is the event used to transport delete_rule calls to the manager.
-	global cluster_netcontrol_delete_rule: event(id: string);
+	global cluster_netcontrol_delete_rule: event(id: string, reason: string);
 }
 
 ## Workers need ability to forward commands to manager.
@@ -56,32 +56,32 @@ function add_rule(r: Rule) : string
 		}
 	}
 
-function delete_rule(id: string) : bool
+function delete_rule(id: string, reason: string &default="") : bool
 	{
 	if ( Cluster::local_node_type() == Cluster::MANAGER )
-		return delete_rule_impl(id);
+		return delete_rule_impl(id, reason);
 	else
 		{
-		event NetControl::cluster_netcontrol_delete_rule(id);
+		event NetControl::cluster_netcontrol_delete_rule(id, reason);
 		return T; # well, we can't know here. So - just hope...
 		}
 	}
 
-function remove_rule(id: string) : bool
+function remove_rule(id: string, reason: string &default="") : bool
 	{
 	if ( Cluster::local_node_type() == Cluster::MANAGER )
-		return remove_rule_impl(id);
+		return remove_rule_impl(id, reason);
 	else
 		{
-		event NetControl::cluster_netcontrol_remove_rule(id);
+		event NetControl::cluster_netcontrol_remove_rule(id, reason);
 		return T; # well, we can't know here. So - just hope...
 		}
 	}
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
-event NetControl::cluster_netcontrol_delete_rule(id: string)
+event NetControl::cluster_netcontrol_delete_rule(id: string, reason: string)
 	{
-	delete_rule_impl(id);
+	delete_rule_impl(id, reason);
 	}
 
 event NetControl::cluster_netcontrol_add_rule(r: Rule)
@@ -89,9 +89,9 @@ event NetControl::cluster_netcontrol_add_rule(r: Rule)
 	add_rule_impl(r);
 	}
 
-event NetControl::cluster_netcontrol_remove_rule(id: string)
+event NetControl::cluster_netcontrol_remove_rule(id: string, reason: string)
 	{
-	remove_rule_impl(id);
+	remove_rule_impl(id, reason);
 	}
 
 event rule_expire(r: Rule, p: PluginState) &priority=-5

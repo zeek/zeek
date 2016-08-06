@@ -50,7 +50,7 @@ event connection_established(c: connection)
 event NetControl::rule_added(r: NetControl::Rule, p: NetControl::PluginState, msg: string)
 	{
 	print "rule added", r$entity, r$ty;
-	NetControl::remove_rule(r$id);
+	NetControl::remove_rule(r$id, "removing");
 	}
 
 event NetControl::rule_exists(r: NetControl::Rule, p: NetControl::PluginState, msg: string)
@@ -103,9 +103,9 @@ event NetControl::broker_add_rule(id: count, r: NetControl::Rule)
 		Broker::send_event("bro/event/netcontroltest", Broker::event_args(NetControl::broker_rule_timeout, id, r, NetControl::FlowInfo()));
 	}
 
-event NetControl::broker_remove_rule(id: count, r: NetControl::Rule)
+event NetControl::broker_remove_rule(id: count, r: NetControl::Rule, reason: string)
 	{
-	print "remove_rule", id, r$entity, r$ty;
+	print "remove_rule", id, r$entity, r$ty, reason;
 
 	Broker::send_event("bro/event/netcontroltest", Broker::event_args(NetControl::broker_rule_removed, id, r, ""));
 

@@ -68,13 +68,7 @@ export {
 		## ``id`` field will match that of the add_rule() call.  Generally,
 		## a plugin that accepts an add_rule() should also accept the
 		## remove_rule().
-		remove_rule: function(state: PluginState, r: Rule) : bool &optional;
-
-		## A transaction groups a number of operations. The plugin can add them internally
-		## and postpone putting them into effect until committed. This allows to build a
-		## configuration of multiple rules at once, including replaying a previous state.
-		transaction_begin: function(state: PluginState) &optional;
-		transaction_end: function(state: PluginState) &optional;
+		remove_rule: function(state: PluginState, r: Rule, reason: string) : bool &optional;
 	};
 
 	## Table for a plugin to store instance-specific configuration information.

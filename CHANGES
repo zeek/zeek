@@ -1,4 +1,14 @@
 
+2.4-893 | 2016-08-05 15:43:04 -0700
+
+  * Remove -z/--analysis option. (Johanna Amann)
+
+  * Remove already defunct code for XML serialization. (Johanna Amann)
+
+2.4-885 | 2016-08-05 15:03:59 -0700
+
+  * Reverting SMB analyzer merge. (Robin Sommer)
+
 2.4-883 | 2016-08-05 12:57:26 -0400
 
   * Add a new node type for logging with the cluster framework scripts by 

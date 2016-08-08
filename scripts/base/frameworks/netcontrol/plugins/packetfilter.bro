@@ -63,7 +63,7 @@ function packetfilter_add_rule(p: PluginState, r: Rule) : bool
 	return F;
 	}
 
-function packetfilter_remove_rule(p: PluginState, r: Rule) : bool
+function packetfilter_remove_rule(p: PluginState, r: Rule, reason: string) : bool
 	{
 	if ( ! packetfilter_check_rule(r) )
 		return F;

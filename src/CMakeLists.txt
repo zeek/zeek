@@ -321,7 +321,6 @@ set(bro_SRCS
     RuleAction.cc
     RuleCondition.cc
     RuleMatcher.cc
-    ScriptAnaly.cc
     SmithWaterman.cc
     Scope.cc
     SerializationFormat.cc

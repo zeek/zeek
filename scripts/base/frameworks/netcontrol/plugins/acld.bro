@@ -247,7 +247,7 @@ function acld_add_rule_fun(p: PluginState, r: Rule) : bool
 	return T;
 	}
 
-function acld_remove_rule_fun(p: PluginState, r: Rule) : bool
+function acld_remove_rule_fun(p: PluginState, r: Rule, reason: string) : bool
 	{
 	if ( ! acld_check_rule(p, r) )
 		return F;
@@ -257,6 +257,14 @@ function acld_remove_rule_fun(p: PluginState, r: Rule) : bool
 		ar$command = acld_add_to_remove[ar$command];
 	else
 		return F;
+
+	if ( reason != "" )
+		{
+		if ( ar?$comment )
+			ar$comment = fmt("%s (%s)", reason, ar$comment);
+		else
+			ar$comment = reason;
+		}
 
 	Broker::send_event(p$acld_config$acld_topic, Broker::event_args(acld_remove_rule, p$acld_id, r, ar));
 	return T;

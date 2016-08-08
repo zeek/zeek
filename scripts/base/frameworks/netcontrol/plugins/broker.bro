@@ -46,7 +46,7 @@ export {
 	};
 
 	global broker_add_rule: event(id: count, r: Rule);
-	global broker_remove_rule: event(id: count, r: Rule);
+	global broker_remove_rule: event(id: count, r: Rule, reason: string);
 
 	global broker_rule_added: event(id: count, r: Rule, msg: string);
 	global broker_rule_removed: event(id: count, r: Rule, msg: string);
@@ -155,12 +155,12 @@ function broker_add_rule_fun(p: PluginState, r: Rule) : bool
 	return T;
 	}
 
-function broker_remove_rule_fun(p: PluginState, r: Rule) : bool
+function broker_remove_rule_fun(p: PluginState, r: Rule, reason: string) : bool
 	{
 	if ( ! broker_check_rule(p, r) )
 		return F;
 
-	Broker::send_event(p$broker_config$topic, Broker::event_args(broker_remove_rule, p$broker_id, r));
+	Broker::send_event(p$broker_config$topic, Broker::event_args(broker_remove_rule, p$broker_id, r, reason));
 	return T;
 	}
 

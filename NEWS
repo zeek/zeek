@@ -154,6 +154,7 @@ New Functionality
     - kafka : Log writer interfacing to Kafka.
     - myricom: Native Myricom SNF v3 support.
     - pf_ring: Native PF_RING support.
+    - postgresql: A PostgreSQL reader/writer.
     - redis: An experimental log writer for Redis.
     - tcprs: An TCP-level analyzer detecting retransmissions, reordering, and more.
 

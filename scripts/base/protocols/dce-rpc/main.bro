@@ -1,4 +1,5 @@
 @load ./consts
+@load base/frameworks/dpd
 
 module DCE_RPC;
 

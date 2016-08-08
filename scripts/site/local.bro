@@ -88,3 +88,7 @@
 # Uncomment the following line to enable logging of link-layer addresses. Enabling
 # this adds the link-layer address for each connection endpoint to the conn.log file.
 # @load policy/protocols/conn/mac-logging
+
+# Uncomment the following line to enable the SMB analyzer.  The analyzer
+# is currently considered a preview and therefore not loaded by default.
+# @load policy/protocols/smb

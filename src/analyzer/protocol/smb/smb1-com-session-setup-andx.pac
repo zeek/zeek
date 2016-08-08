@@ -226,7 +226,7 @@ type SMB1_session_setup_andx_request_ntlm_extended_security(header: SMB_Header, 
 	native_os            : SMB_string(header.unicode, offsetof(native_os) + 1);
 	native_lanman        : SMB_string(header.unicode, offsetof(native_lanman) + 1);
 
-	extra_byte_parameters : bytestring &transient &length=(andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters)));
+	extra_byte_parameters : bytestring &transient &length=(andx.offset == 0 || andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters)));
 
 	andx_command         : SMB_andx_command(header, 1, offset+offsetof(andx_command), andx.command);
 } &let {

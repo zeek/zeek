@@ -12,7 +12,7 @@ function uint8s_to_stringval(data: uint8[]): StringVal
 
 function extract_string(s: SMB_string) : StringVal
 	%{
-	if ( s->unicode() == 0 )
+	if ( s->unicode() == false )
 		{
 		int length = s->a()->size();
 		char buf[length];

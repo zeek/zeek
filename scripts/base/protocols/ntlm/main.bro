@@ -46,6 +46,8 @@ export {
 	} &redef;
 }
 
+redef DPD::ignore_violations += { Analyzer::ANALYZER_NTLM };
+
 redef record connection += {
 	ntlm: Info &optional;
 };

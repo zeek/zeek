@@ -13,10 +13,10 @@ refine connection SMB_Conn += {
 			                                         bro_analyzer()->Conn(),
 			                                         BuildHeaderVal(h),
 			                                         ${val.file_id},
-			                                         ${val.offset},
+			                                         ${val.read_offset},
 			                                         ${val.max_count});
 
-		read_offsets[${h.mid}] = ${val.offset};
+		read_offsets[${h.mid}] = ${val.read_offset};
 		return true;
 		%}
 
@@ -45,7 +45,7 @@ refine connection SMB_Conn += {
 
 
 
-type SMB1_read_andx_request(header: SMB_Header) = record {
+type SMB1_read_andx_request(header: SMB_Header, offset: uint16) = record {
 	word_count     : uint8;
 	andx           : SMB_andx;
 	file_id        : uint16;
@@ -53,6 +53,7 @@ type SMB1_read_andx_request(header: SMB_Header) = record {
 	max_count_low  : uint16;
 	min_count      : uint16;
 	max_count_high : uint32;
+
 	remaining      : uint16;
 	offset_high_u  : case word_count of {
 		0x0C    -> offset_high_tmp : uint32;
@@ -60,14 +61,18 @@ type SMB1_read_andx_request(header: SMB_Header) = record {
 	};
 
 	byte_count     : uint16;
+
+	extra_byte_parameters : bytestring &transient &length=((andx.offset == 0 || andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters))));
+
+	andx_command   : SMB_andx_command(header, 1, offset+offsetof(andx_command), andx.command);
 } &let {
-	offset_high : uint32 = (word_count == 0x0C) ? offset_high_tmp : 0;
-	offset      : uint64 = (offset_high * 0x10000) + offset_low;
-	max_count   : uint64 = (max_count_high * 0x10000) + max_count_low;
+	offset_high : uint32 = (word_count == 0x0C && offset_high_tmp != 0xffffffff) ? offset_high_tmp : 0;
+	read_offset : uint64 = (offset_high * 0x10000) + offset_low;
+	max_count   : uint64 = ((max_count_high == 0xffffffff ? 0 : max_count_high) * 0x10000) + max_count_low;
 	proc        : bool   = $context.connection.proc_smb1_read_andx_request(header, this);
 } &byteorder=littleendian;
 
-type SMB1_read_andx_response(header: SMB_Header) = record {
+type SMB1_read_andx_response(header: SMB_Header, offset: uint16) = record {
 	word_count        : uint8;
 	andx              : SMB_andx;
 	available         : uint16;
@@ -81,6 +86,10 @@ type SMB1_read_andx_response(header: SMB_Header) = record {
 	byte_count        : uint16;
 	pad               : padding to data_offset - SMB_Header_length;
 	data              : bytestring &length=data_len;
+
+	extra_byte_parameters : bytestring &transient &length=(andx.offset == 0 || andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters)));
+
+	andx_command      : SMB_andx_command(header, 0, offset+offsetof(andx_command), andx.command);
 } &let {
 	is_pipe     : bool   = $context.connection.get_tree_is_pipe(header.tid);
 	pipe_proc   : bool   = $context.connection.forward_dce_rpc(data, 0, false) &if(is_pipe);

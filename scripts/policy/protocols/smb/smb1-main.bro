@@ -273,7 +273,12 @@ event smb1_trans2_find_first2_request(c: connection, hdr: SMB1::Header, args: SM
 	{
 	c$smb_state$current_cmd$argument = args$file_name;
 	}
-	
+
+event smb1_session_setup_andx_request(c: connection, hdr: SMB1::Header, request: SMB1::SessionSetupAndXRequest) &priority=5
+	{
+	# No behavior yet.
+	}
+
 event smb1_session_setup_andx_response(c: connection, hdr: SMB1::Header, response: SMB1::SessionSetupAndXResponse) &priority=-5
 	{
 	if ( SMB::write_cmd_log &&

@@ -91,9 +91,9 @@ refine connection SMB_Conn += {
 				{
 				case 3: // pre NT LM 0.12
 					response->Assign(1, new Val(${val.lanman.is_guest}, TYPE_BOOL));
-					response->Assign(2, smb_string2stringval(${val.lanman.native_os}));
-					response->Assign(3, smb_string2stringval(${val.lanman.native_lanman}));
-					response->Assign(4, smb_string2stringval(${val.lanman.primary_domain}));
+					response->Assign(2, ${val.lanman.byte_count} == 0 ? new StringVal("") : smb_string2stringval(${val.lanman.native_os[0]}));
+					response->Assign(3, ${val.lanman.byte_count} == 0 ? new StringVal("") : smb_string2stringval(${val.lanman.native_lanman[0]}));
+					response->Assign(4, ${val.lanman.byte_count} == 0 ? new StringVal("") : smb_string2stringval(${val.lanman.primary_domain[0]}));
 					break;
 				case 4: // NT LM 0.12
 					response->Assign(1, new Val(${val.ntlm.is_guest}, TYPE_BOOL));
@@ -117,29 +117,29 @@ refine connection SMB_Conn += {
 
 };
 
-type SMB1_session_setup_andx_request(header: SMB_Header) = record {
+type SMB1_session_setup_andx_request(header: SMB_Header, offset: uint16) = record {
 	word_count       : uint8;
 	lanman_or_ntlm	 : case word_count of {
-		0x0a -> lanman                    : SMB1_session_setup_andx_request_lanman(header);
-		0x0c -> ntlm_extended_security    : SMB1_session_setup_andx_request_ntlm_extended_security(header);
-		0x0d -> ntlm_nonextended_security : SMB1_session_setup_andx_request_ntlm_nonextended_security(header);
+		0x0a -> lanman                    : SMB1_session_setup_andx_request_lanman(header, offset+offsetof(lanman_or_ntlm));
+		0x0c -> ntlm_extended_security    : SMB1_session_setup_andx_request_ntlm_extended_security(header, offset+1);
+		0x0d -> ntlm_nonextended_security : SMB1_session_setup_andx_request_ntlm_nonextended_security(header, offset+1);
 	};
 } &let {
 	proc: bool = $context.connection.proc_smb1_session_setup_andx_request(header, this);
 };
 
-type SMB1_session_setup_andx_response(header: SMB_Header) = record {
+type SMB1_session_setup_andx_response(header: SMB_Header, offset: uint16) = record {
 	word_count     : uint8;
 	lanman_or_ntlm : case word_count of {
-		0x03    -> lanman: SMB1_session_setup_andx_response_lanman(header);
-		0x04    -> ntlm: SMB1_session_setup_andx_response_ntlm(header);
+		0x03    -> lanman: SMB1_session_setup_andx_response_lanman(header, offset+1);
+		0x04    -> ntlm: SMB1_session_setup_andx_response_ntlm(header, offset+1);
 		default -> error: uint16;
 	};
 } &let {
 	proc: bool = $context.connection.proc_smb1_session_setup_andx_response(header, this);
 };
 
-type SMB1_session_setup_andx_request_lanman(header: SMB_Header) = record {
+type SMB1_session_setup_andx_request_lanman(header: SMB_Header, offset: uint16) = record {
 	andx             : SMB_andx;
 	max_buffer_size  : uint16;
 	max_mpx_count    : uint16;
@@ -154,16 +154,24 @@ type SMB1_session_setup_andx_request_lanman(header: SMB_Header) = record {
 	primary_domain   : SMB_string(header.unicode, offsetof(primary_domain) + 1);
 	native_os        : SMB_string(header.unicode, offsetof(native_os) + 1);
 	native_lanman    : SMB_string(header.unicode, offsetof(native_lanman) + 1);
+
+	extra_byte_parameters : bytestring &transient &length=(andx.offset == 0 || andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters)));
+
+	andx_command     : SMB_andx_command(header, 1, offset+offsetof(andx_command), andx.command);
 };
 
-type SMB1_session_setup_andx_response_lanman(header: SMB_Header) = record {
+type SMB1_session_setup_andx_response_lanman(header: SMB_Header, offset: uint16) = record {
 	andx           : SMB_andx;
 	action         : uint16;
 	byte_count     : uint16;
 	# offset + 1 due to word_count in the parent type
-	native_os      : SMB_string(header.unicode, offsetof(native_os) + 1);
-	native_lanman  : SMB_string(header.unicode, offsetof(native_lanman) + 1);
-	primary_domain : SMB_string(header.unicode, offsetof(primary_domain) + 1);
+	native_os      : SMB_string(header.unicode, offsetof(native_os) + 1)[byte_count == 0 ? 0 : 1];
+	native_lanman  : SMB_string(header.unicode, offsetof(native_lanman) + 1)[byte_count == 0 ? 0 : 1];
+	primary_domain : SMB_string(header.unicode, offsetof(primary_domain) + 1)[byte_count == 0 ? 0 : 1];
+
+	extra_byte_parameters : bytestring &transient &length=(andx.offset == 0 || andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters)));
+
+	andx_command   : SMB_andx_command(header, 0, offset+offsetof(andx_command), andx.command);
 } &let {
 	is_guest: bool = ( action & 0x1 ) > 0;
 };
@@ -179,7 +187,7 @@ type SMB1_session_setup_andx_request_ntlm_capabilities = record {
 	nt_find         : bool = ( capabilities & 0x0200 ) > 0;
 };
 
-type SMB1_session_setup_andx_request_ntlm_nonextended_security(header: SMB_Header) = record {
+type SMB1_session_setup_andx_request_ntlm_nonextended_security(header: SMB_Header, offset: uint16) = record {
 	andx                        : SMB_andx;
 	max_buffer_size              : uint16;
 	max_mpx_count                : uint16;
@@ -197,9 +205,13 @@ type SMB1_session_setup_andx_request_ntlm_nonextended_security(header: SMB_Heade
 	primary_domain               : SMB_string(header.unicode, offsetof(primary_domain) + 1);
 	native_os                    : SMB_string(header.unicode, offsetof(native_os) + 1);
 	native_lanman                : SMB_string(header.unicode, offsetof(native_lanman) + 1);
+
+	extra_byte_parameters : bytestring &transient &length=(andx.offset == 0 || andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters)));
+
+	andx_command                 : SMB_andx_command(header, 1, offset+offsetof(andx_command), andx.command);
 };
 
-type SMB1_session_setup_andx_request_ntlm_extended_security(header: SMB_Header) = record {
+type SMB1_session_setup_andx_request_ntlm_extended_security(header: SMB_Header, offset: uint16) = record {
 	andx                 : SMB_andx;
 	max_buffer_size      : uint16;
 	max_mpx_count        : uint16;
@@ -213,11 +225,15 @@ type SMB1_session_setup_andx_request_ntlm_extended_security(header: SMB_Header) 
 	# offset + 1 due to word_count in the parent type
 	native_os            : SMB_string(header.unicode, offsetof(native_os) + 1);
 	native_lanman        : SMB_string(header.unicode, offsetof(native_lanman) + 1);
+
+	extra_byte_parameters : bytestring &transient &length=(andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters)));
+
+	andx_command         : SMB_andx_command(header, 1, offset+offsetof(andx_command), andx.command);
 } &let {
 	pipe_proc : bool = $context.connection.forward_gssapi(security_blob, true);
 };
 
-type SMB1_session_setup_andx_response_ntlm(header: SMB_Header) = record {
+type SMB1_session_setup_andx_response_ntlm(header: SMB_Header, offset: uint16) = record {
 	andx                 : SMB_andx;
 	action               : uint16;
 	security_blob_length : uint16;
@@ -227,6 +243,10 @@ type SMB1_session_setup_andx_response_ntlm(header: SMB_Header) = record {
 	native_os            : SMB_string(header.unicode, offsetof(native_os) + 1);
 	native_lanman        : SMB_string(header.unicode, offsetof(native_lanman) + 1);
 	primary_domain       : SMB_string(header.unicode, offsetof(primary_domain) + 1);
+
+	extra_byte_parameters : bytestring &transient &length=(andx.offset == 0 || andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters)));
+
+	andx_command         : SMB_andx_command(header, 0, offset+offsetof(andx_command), andx.command);
 } &let {
 	is_guest    : bool = ( action & 0x1 ) > 0;
 	gssapi_proc : bool = $context.connection.forward_gssapi(security_blob, false);

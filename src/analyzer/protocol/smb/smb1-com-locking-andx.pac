@@ -28,7 +28,7 @@ type LOCKING_ANDX_RANGE64 = record {
 };
 
 # http://msdn.microsoft.com/en-us/library/ee442004.aspx
-type SMB1_locking_andx_request(header: SMB_Header) = record {
+type SMB1_locking_andx_request(header: SMB_Header, offset: uint16) = record {
 	word_count            : uint8;
 	andx                  : SMB_andx;
 	file_id               : uint16;
@@ -47,13 +47,16 @@ type SMB1_locking_andx_request(header: SMB_Header) = record {
 		32 -> locks32 : LOCKING_ANDX_RANGE32[num_requested_locks];
 		64 -> locks64 : LOCKING_ANDX_RANGE64[num_requested_locks];
 	};
+
+	extra_byte_parameters : bytestring &transient &length=(andx.offset == 0 || andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters)));
+
+	andx_command          : SMB_andx_command(header, 1, offset+offsetof(andx_command), andx.command);
 } &let {
 	proc : bool = $context.connection.proc_smb1_locking_andx_request(header, this);
 };
 
 # http://msdn.microsoft.com/en-us/library/ee441519.aspx
 type SMB1_locking_andx_response(header: SMB_Header) = record {
-
 } &let {
 	proc : bool = $context.connection.proc_smb1_locking_andx_response(header, this);
 };

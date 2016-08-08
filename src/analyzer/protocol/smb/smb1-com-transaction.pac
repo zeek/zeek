@@ -43,14 +43,13 @@ refine connection SMB_Conn += {
 
 	function proc_smb1_transaction_response(header: SMB_Header, val: SMB1_transaction_response): bool
 		%{
-		//printf("transaction_response\n");
 		return true;
 		%}
 };
 
 
 type SMB1_transaction_data(header: SMB_Header, is_orig: bool, count: uint16, sub_cmd: uint16,
-                           trans_type: int) = case trans_type of {
+                           trans_type: int, is_pipe: bool) = case trans_type of {
 #	SMB_MAILSLOT_BROWSE -> mailslot  : SMB_MailSlot_message(header.unicode, count);
 #	SMB_MAILSLOT_LANMAN -> lanman    : SMB_MailSlot_message(header.unicode, count);
 #	SMB_RAP             -> rap       : SMB_Pipe_message(header.unicode, count);
@@ -61,7 +60,7 @@ type SMB1_transaction_data(header: SMB_Header, is_orig: bool, count: uint16, sub
 	pipe_proc : bool = $context.connection.forward_dce_rpc(pipe_data, 0, is_orig) &if(trans_type == SMB_PIPE);
 };
 
-type SMB1_transaction_setup(header: SMB_Header) = record {
+type SMB1_transaction_setup = record {
 	op_code : uint16;
 	file_id : uint16;
 }
@@ -83,18 +82,19 @@ type SMB1_transaction_request(header: SMB_Header) = record {
 	data_offset         : uint16;
 	setup_count         : uint8;
 	reserved3           : uint8;
-	setup               : SMB1_transaction_setup(header);
+	# word_count 16 is a different dialect that behaves a bit differently.
+	setup               : SMB1_transaction_setup[word_count == 16 ? 1 : setup_count];
 
 	byte_count          : uint16;
 	name                : SMB_string(header.unicode, offsetof(name));
 	pad1                : padding to param_offset - SMB_Header_length;
 	parameters          : bytestring &length = param_count;
 	pad2                : padding to data_offset - SMB_Header_length;
-	data                : SMB1_transaction_data(header, true, data_count, sub_cmd, transtype);
+	data                : SMB1_transaction_data(header, true, data_count, sub_cmd, transtype, is_pipe);
 } &let {
-	sub_cmd : uint16 = setup_count ? setup.op_code : 0;
-	transtype : int = determine_transaction_type(setup_count, name);
-	is_pipe : bool = (transtype == SMB_PIPE);
+	sub_cmd : uint16 = (sizeof(setup) && word_count != 16) > 0 ? setup[0].op_code : 0;
+	transtype : int = determine_transaction_type(header, name);
+	is_pipe : bool = (transtype == SMB_PIPE || (transtype == SMB_UNKNOWN && $context.connection.get_tree_is_pipe(header.tid)));
 
 	proc_set_pipe : bool = $context.connection.set_is_file_a_pipe(header.mid, is_pipe);
 	proc : bool = $context.connection.proc_smb1_transaction_request(header, this);
@@ -119,7 +119,7 @@ type SMB1_transaction_response(header: SMB_Header) = record {
 	pad0                : padding to param_offset - SMB_Header_length;
 	parameters          : bytestring &length = param_count;
 	pad1                : padding to data_offset - SMB_Header_length;
-	data                : SMB1_transaction_data(header, false, data_count, 0, is_pipe ? SMB_PIPE : SMB_UNKNOWN)[data_count>0 ? 1 : 0];
+	data                : SMB1_transaction_data(header, false, data_count, 0, is_pipe ? SMB_PIPE : SMB_UNKNOWN, is_pipe)[data_count>0 ? 1 : 0];
 } &let {
 	proc : bool = $context.connection.proc_smb1_transaction_response(header, this);
 	is_pipe: bool = $context.connection.get_is_file_a_pipe(header.mid);

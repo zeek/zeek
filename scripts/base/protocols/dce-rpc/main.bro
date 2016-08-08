@@ -34,6 +34,8 @@ export {
 	} &redef;
 }
 
+redef DPD::ignore_violations += { Analyzer::ANALYZER_DCE_RPC };
+
 type State: record {
 	uuid       : string &optional;
 	named_pipe : string &optional;

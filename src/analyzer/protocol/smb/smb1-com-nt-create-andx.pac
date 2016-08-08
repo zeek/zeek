@@ -40,7 +40,7 @@ refine connection SMB_Conn += {
 };
 
 
-type SMB1_nt_create_andx_request(header: SMB_Header) = record {
+type SMB1_nt_create_andx_request(header: SMB_Header, offset: uint16) = record {
 	word_count          : uint8;
 	andx                : SMB_andx;
 	reserved            : uint8;
@@ -60,12 +60,14 @@ type SMB1_nt_create_andx_request(header: SMB_Header) = record {
 	byte_count          : uint16;
 	filename            : SMB_string(header.unicode, offsetof(filename));
 
-	andx_command        : SMB_andx_command(header, 1, andx.command);
+	extra_byte_parameters : bytestring &transient &length=(andx.offset == 0 || andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters)));
+
+	andx_command        : SMB_andx_command(header, 1, offset+offsetof(andx_command), andx.command);
 } &let {
 	proc : bool = $context.connection.proc_smb1_nt_create_andx_request(header, this);
 };
 
-type SMB1_nt_create_andx_response(header: SMB_Header) = record {
+type SMB1_nt_create_andx_response(header: SMB_Header, offset: uint16) = record {
 	word_count         : uint8;
 	andx               : SMB_andx;
 	oplock_level       : uint8;
@@ -83,6 +85,10 @@ type SMB1_nt_create_andx_response(header: SMB_Header) = record {
 	directory          : uint8;
 
 	byte_count         : uint16;
+
+	extra_byte_parameters : bytestring &transient &length=(andx.offset == 0 || andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters)));
+
+	andx_command       : SMB_andx_command(header, 0, offset+offsetof(andx_command), andx.command);
 } &let {
 	proc : bool = $context.connection.proc_smb1_nt_create_andx_response(header, this);
 };

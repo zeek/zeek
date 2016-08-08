@@ -41,7 +41,7 @@ refine connection SMB_Conn += {
 
 
 
-type SMB1_open_andx_request(header: SMB_Header) = record {
+type SMB1_open_andx_request(header: SMB_Header, offset: uint16) = record {
 	word_count        : uint8;
 	andx           	  : SMB_andx;
 	flags		   	  : uint16;
@@ -55,11 +55,15 @@ type SMB1_open_andx_request(header: SMB_Header) = record {
 	reserved	   	  : padding[2];
 	byte_count	   	  : uint16;
 	filename	   	  : SMB_string(header.unicode, offsetof(filename);
+
+	extra_byte_parameters : bytestring &transient &length=(andx.offset == 0 || andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters)));
+
+	andx_command      : SMB_andx_command(header, 1, offset+offsetof(andx_command), andx.command);
 } &let {
 	proc        : bool   = $context.connection.proc_smb1_open_andx_request(header, this);
 } &byteorder=littleendian;
 
-type SMB1_open_andx_response(header: SMB_Header) = record {
+type SMB1_open_andx_response(header: SMB_Header, offset: uint16) = record {
 	word_count        : uint8;
 	andx              : SMB_andx;
 	fid				  : uint16;
@@ -72,6 +76,10 @@ type SMB1_open_andx_response(header: SMB_Header) = record {
 	open_results	  : uint16;
 	reserved		  : padding[3];
 	byte_count		  : uint16;
+
+	extra_byte_parameters : bytestring &transient &length=(andx.offset == 0 || andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters)));
+
+	andx_command      : SMB_andx_command(header, 0, offset+offsetof(andx_command), andx.command);
 } &let {
 	proc        : bool   = $context.connection.proc_smb1_open_andx_response(header, this);
 } &byteorder=littleendian;

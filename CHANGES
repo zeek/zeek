@@ -1,4 +1,22 @@
 
+2.4-905 | 2016-08-09 08:19:37 -0700
+
+  * GSSAPI analyzer now forwards authentication blobs more correctly.
+    (Seth Hall)
+
+  * The KRB analyzer now includes support for the PA_ENCTYPE_INFO2
+    pre-auth data type. (Seth Hall)
+
+  * Add an argument to "disable_analyzer" function to not do a
+    reporter message by default. (Seth Hall)
+
+2.4-902 | 2016-08-08 16:50:35 -0400
+
+  * Adding SMB analyzer. (Seth Hall, Vlad Grigorescu and many others)
+
+  * NetControl: allow reasons in remove_rule calls. Addresses BIT-1655
+    (Johanna Amann)
+
 2.4-893 | 2016-08-05 15:43:04 -0700
 
   * Remove -z/--analysis option. (Johanna Amann)

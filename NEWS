@@ -18,47 +18,16 @@ New Dependencies
 - When enabling Broker (which is disabled by default), Bro now requires
   version 0.14 of the C++ Actor Framework.
 
-Log Changes
------------
-
-- Connections
-
-  - The 'history' field gains two new flags: '^' indicates that Bro
-    heuristically flipped to direction of the connection. 't/T' indicates
-    the first TCP payload retransmission from originator or responder,
-    respectively.
-
-- DNS
-
-  - New 'rtt' field to indicate the round trip time between when a
-    request was sent and when a reply started.
-
-- SMTP
-
-  - New 'cc' field which includes the 'Cc' header from MIME messages
-    sent over SMTP.
-
-  - Changes in 'mailfrom' and 'rcptto' fields to remove some non-address
-    cruft that will tend to be found.  The main example is the change
-    from "<user@domain>" to "user@domain.com".
-
-- HTTP
-
-  - Removed 'filename' field.
-
-  - New 'orig_filenames' and 'resp_filenames' fields which each contain
-    a vector of filenames seen in entities transferred.
-
 New Functionality
 -----------------
 
-- SMB analyzer. This is the rewrite that has been in development for 
-  several years. The scripts are currently not loaded by default and 
-  must be loaded manually by loading policy/protocols/smb. The next 
+- SMB analyzer. This is the rewrite that has been in development for
+  several years. The scripts are currently not loaded by default and
+  must be loaded manually by loading policy/protocols/smb. The next
   release will load the smb scripts by default.
 
    - Implements SMB1+2.
-   - Fully integrated with the file analysis framework so that files 
+   - Fully integrated with the file analysis framework so that files
      transferred over SMB can be analyzed.
    - Includes GSSAPI and NTLM analyzer and reimplements the DCE-RPC
      analyzer.
@@ -69,6 +38,26 @@ New Functionality
 
 - Bro now includes the NetControl framework. The framework allows for easy
   interaction of Bro with hard- and software switches, firewalls, etc.
+
+- Bro's Intelligence Framework was refactored and new functionality
+  has been added:
+
+  - The framework now supports the new indicator type Intel::SUBNET.
+    As subnets are matched against seen addresses, the field 'matched'
+    was introduced to indicate which indicator type(s) caused the hit.
+
+  - The new function remove() allows to delete intelligence items.
+
+  - The intel framework now supports expiration of intelligence items.
+    Expiration can be configured by using Intel::item_expiration and
+    can be handled by using the item_expired() hook. The new script
+    do_expire.bro removes expired items.
+
+  - The new hook extend_match() allows extending the framework. The new
+    policy script whitelist.bro uses the hook to implement whitelisting.
+
+  - Intel notices are now suppressible and mails for intel notices now
+    list the identified services as well as the intel source.
 
 - There is a new file entropy analyzer for files.
 
@@ -165,6 +154,33 @@ New Functionality
 
 Changed Functionality
 ---------------------
+
+- Log changes:
+
+    - Connections
+      * The 'history' field gains two new flags: '^' indicates that
+        Bro heuristically flipped to direction of the connection.
+        't/T' indicates the first TCP payload retransmission from
+        originator or responder, respectively.
+
+    - DNS
+      * New 'rtt' field to indicate the round trip time between when a
+        request was sent and when a reply started.
+
+    - SMTP
+      * New 'cc' field which includes the 'Cc' header from MIME
+        messages sent over SMTP.
+
+      * Changes in 'mailfrom' and 'rcptto' fields to remove some
+        non-address cruft that will tend to be found.  The main
+        example is the change from "<user@domain>" to
+        "user@domain.com".
+
+    - HTTP
+      * Removed 'filename' field.
+
+      * New 'orig_filenames' and 'resp_filenames' fields which each
+        contain a vector of filenames seen in entities transferred.
 
 - The BrokerComm and BrokerStore namespaces were renamed to Broker.
   The Broker "print" function was renamed to Broker::send_print, and

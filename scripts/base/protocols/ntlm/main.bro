@@ -1,4 +1,5 @@
 @load base/protocols/smb
+@load base/frameworks/dpd
 
 module NTLM;
 

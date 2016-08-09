@@ -53,3 +53,4 @@ type GSSAPI_NEG_TOKEN_MECH_TOKEN(is_orig: bool) = record {
 	meta       : ASN1EncodingMeta;
 	mech_token : bytestring &length=meta.length;
 };
+

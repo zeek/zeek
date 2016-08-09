@@ -126,8 +126,6 @@ type KRB_KDC_REP(is_orig: bool, pkt_type: uint8) = record {
 ### AP_REQ
 
 type KRB_AP_REQ(is_orig: bool) = record {
-	string_meta : ASN1EncodingMeta;
-	app_meta    : ASN1EncodingMeta;
 	seq_meta    : ASN1EncodingMeta;
 	pvno 	    : SequenceElement(true);
 	msg_type    : SequenceElement(true);

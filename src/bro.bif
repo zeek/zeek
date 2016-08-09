@@ -3929,7 +3929,7 @@ function file_mode%(mode: count%): string
 ##          *aid*.
 ##
 ## .. bro:see:: Analyzer::schedule_analyzer Analyzer::name
-function disable_analyzer%(cid: conn_id, aid: count%) : bool
+function disable_analyzer%(cid: conn_id, aid: count, err_if_no_conn: bool &default=T%) : bool
 	%{
 	Connection* c = sessions->FindConnection(cid);
 	if ( ! c )
@@ -3941,7 +3941,8 @@ function disable_analyzer%(cid: conn_id, aid: count%) : bool
 	analyzer::Analyzer* a = c->FindAnalyzer(aid);
 	if ( ! a )
 		{
-		reporter->Error("connection does not have analyzer specified to disable");
+		if ( err_if_no_conn )
+			reporter->Error("connection does not have analyzer specified to disable");
 		return new Val(0, TYPE_BOOL);
 		}
 

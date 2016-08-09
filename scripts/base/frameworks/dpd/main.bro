@@ -89,7 +89,7 @@ event protocol_violation(c: connection, atype: Analyzer::Tag, aid: count, reason
 		return;
 
 	# Disable the analyzer that raised the last core-generated event.
-	disable_analyzer(c$id, aid);
+	disable_analyzer(c$id, aid, F);
 	add c$dpd$disabled_aids[aid];
 	}
 

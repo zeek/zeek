@@ -6,7 +6,7 @@
 
 @load base/protocols/conn
 
-redef Log::default_unrolling_sep = "*";
+redef Log::default_scope_sep = "*";
 redef Log::default_field_name_map = {
 	["id*orig_h"] = "src",
 	["id*orig_p"] = "src_port",

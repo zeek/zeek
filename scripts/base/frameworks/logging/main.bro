@@ -117,19 +117,11 @@ export {
 	## data storage and analysis systems.
 	const default_field_name_map: table[string] of string = table() &redef;
 
-	## Default separator for unrolled and flattened fields names for 
-	## nested records.
-	const default_unrolling_sep = "." &redef;
-
-	## A prefix for metadata fields which can be optionally prefixed
-	## on all log lines by setting the `metadata_func` field in the
-	## log filter.
-	const Log::default_metadata_prefix: string = "_" &redef;
-
-	## Default metadata function in the case that you would like to 
-	## apply the same metadata to all logs.  The function *must* return
-	## a record with all of the fields to be included in the metadata.
-	const Log::default_metadata_func: function(path: string): any &redef;
+	## Default separator for log field scopes when logs are unrolled and 
+	## flattened.  This will be the string between field name components.
+	## For example, setting this to "_" will cause the typical field 
+	## "id.orig_h" to turn into "id_orig_h".
+	const default_scope_sep = "." &redef;
 
 	## A filter type describes how to customize logging streams.
 	type Filter: record {
@@ -211,20 +203,10 @@ export {
 
 		## A string that is used for unrolling and flattening field names
 		## for nested record types.
-		unrolling_sep: string &default=default_unrolling_sep;
+		scope_sep: string &default=default_scope_sep;
 
 		## Rotation interval. Zero disables rotation.
 		interv: interval &default=default_rotation_interval;
-
-		## Default prefix for all metadata fields. It's typically
-		## prudent to set this to something that Bro's logging
-		## framework can't normally write out in a field name.
-		metadata_prefix: string &default="_";
-
-		## Function to collect a metadata value.  If not specified, no
-		## metadata will be provided for the log.
-		## The return value from the function *must* be a record.
-		metadata_func: function(path: string): any &optional;
 
 		## Callback function to trigger for rotated files. If not set, the
 		## default comes out of :bro:id:`Log::default_rotation_postprocessors`.
@@ -234,6 +216,33 @@ export {
 		## Interpretation of the values is left to the writer, but
 		## usually they will be used for configuration purposes.
 		config: table[string] of string &default=table();
+	};
+
+	## A prefix for extension fields which can be optionally prefixed
+	## on all log lines by setting the `ext_func` field in the
+	## log filter.
+	const Log::default_ext_prefix: string = "_" &redef;
+
+	## Default log extension function in the case that you would like to 
+	## apply the same extensions to all logs.  The function *must* return
+	## a record with all of the fields to be included in the log.  The 
+	## default function included here returns F as a marker to indicate
+	## that it has no implementation.
+	const Log::default_ext_func: function(filter: Log::Filter): any = 
+		function(filter: Log::Filter): bool { return F; } &redef;
+
+	# This is a hack for now since fields can't self-reference the
+	# record type they are contained within.
+	redef record Log::Filter += {
+		## Default prefix for all extension fields. It's typically
+		## prudent to set this to something that Bro's logging
+		## framework can't normally write out in a field name.
+		ext_prefix: string &default=Log::default_ext_prefix;
+
+		## Function to collect a log extension value.  If not specified, 
+		## no log extension will be provided for the log.
+		## The return value from the function *must* be a record.
+		ext_func: function(filter: Log::Filter): any &default=Log::default_ext_func;
 	};
 
 	## Sentinel value for indicating that a filter was not found when looked up.

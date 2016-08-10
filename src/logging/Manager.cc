@@ -23,6 +23,7 @@
 using namespace logging;
 
 struct Manager::Filter {
+	Val* fval;
 	string name;
 	EnumVal* id;
 	Func* pred;
@@ -32,10 +33,10 @@ struct Manager::Filter {
 	EnumVal* writer;
 	TableVal* config;
 	TableVal* field_name_map;
-	string unrolling_sep;
-	string metadata_prefix;
-	Func* metadata_func;
-	int num_metadata;
+	string scope_sep;
+	string ext_prefix;
+	Func* ext_func;
+	int num_ext_fields;
 	bool local;
 	bool remote;
 	double interval;
@@ -88,6 +89,8 @@ struct Manager::Stream {
 
 Manager::Filter::~Filter()
 	{
+	Unref(fval);
+
 	for ( int i = 0; i < num_fields; ++i )
 		delete fields[i];
 
@@ -381,22 +384,22 @@ bool Manager::DisableStream(EnumVal* id)
 bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 			    TableVal* include, TableVal* exclude, string path, list<int> indices)
 	{
-	// Only include metadata for the outer record.
-	int num_metadata = (indices.size() == 0) ? filter->num_metadata : 0;
+	// Only include extensions for the outer record.
+	int num_ext_fields = (indices.size() == 0) ? filter->num_ext_fields : 0;
 	
 	int i = 0;
-	for ( int j = 0; j < num_metadata + rt->NumFields(); ++j )
+	for ( int j = 0; j < num_ext_fields + rt->NumFields(); ++j )
 		{
 		RecordType* rtype;
-		// If this is a metadata field, set the rtype appropriately
-		if ( j < num_metadata )
+		// If this is an ext field, set the rtype appropriately
+		if ( j < num_ext_fields )
 			{
 			i = j;
-			rtype = filter->metadata_func->FType()->YieldType()->AsRecordType();
+			rtype = filter->ext_func->FType()->YieldType()->AsRecordType();
 			}
 		else
 			{
-			i = j - num_metadata;
+			i = j - num_ext_fields;
 			rtype = rt;
 			}
 
@@ -415,11 +418,11 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 		if ( ! path.size() )
 			new_path = rtype->FieldName(i);
 		else
-			new_path = path + filter->unrolling_sep + rtype->FieldName(i);
+			new_path = path + filter->scope_sep + rtype->FieldName(i);
 
-		// Add the metadata prefix if this is a metadata field.
-		if ( j < num_metadata )
-			new_path = filter->metadata_prefix + new_path;
+		// Add the ext prefix if this is an ext field.
+		if ( j < num_ext_fields )
+			new_path = filter->ext_prefix + new_path;
 
 		if ( t->InternalType() == TYPE_INTERNAL_OTHER )
 			{
@@ -549,11 +552,12 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 	Val* postprocessor = fval->Lookup("postprocessor", true);
 	Val* config = fval->Lookup("config", true);
 	Val* field_name_map = fval->Lookup("field_name_map", true);
-	Val* unrolling_sep = fval->Lookup("unrolling_sep", true);
-	Val* metadata_prefix = fval->Lookup("metadata_prefix", true);
-	Val* metadata_func = fval->Lookup("metadata_func", true);
+	Val* scope_sep = fval->Lookup("scope_sep", true);
+	Val* ext_prefix = fval->Lookup("ext_prefix", true);
+	Val* ext_func = fval->Lookup("ext_func", true);
 
 	Filter* filter = new Filter;
+	filter->fval = fval->Ref();
 	filter->name = name->AsString()->CheckString();
 	filter->id = id->Ref()->AsEnumVal();
 	filter->pred = pred ? pred->AsFunc() : 0;
@@ -565,9 +569,9 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 	filter->postprocessor = postprocessor ? postprocessor->AsFunc() : 0;
 	filter->config = config->Ref()->AsTableVal();
 	filter->field_name_map = field_name_map->Ref()->AsTableVal();
-	filter->unrolling_sep = unrolling_sep->AsString()->CheckString();
-	filter->metadata_prefix = metadata_prefix->AsString()->CheckString();
-	filter->metadata_func = metadata_func ? metadata_func->AsFunc() : 0;
+	filter->scope_sep = scope_sep->AsString()->CheckString();
+	filter->ext_prefix = ext_prefix->AsString()->CheckString();
+	filter->ext_func = ext_func ? ext_func->AsFunc() : 0;
 
 	Unref(name);
 	Unref(pred);
@@ -578,18 +582,33 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 	Unref(postprocessor);
 	Unref(config);
 	Unref(field_name_map);
-	Unref(unrolling_sep);
-	Unref(metadata_prefix);
-	Unref(metadata_func);
+	Unref(scope_sep);
+	Unref(ext_prefix);
+	Unref(ext_func);
 
 	// Build the list of fields that the filter wants included, including
 	// potentially rolling out fields.
 	Val* include = fval->Lookup("include");
 	Val* exclude = fval->Lookup("exclude");
 
-	filter->num_metadata = 0;
-	if ( filter->metadata_func )
-		filter->num_metadata = filter->metadata_func->FType()->YieldType()->AsRecordType()->NumFields();
+	filter->num_ext_fields = 0;
+	if ( filter->ext_func )
+		{
+		if ( filter->ext_func->FType()->YieldType()->Tag() == TYPE_RECORD ) 
+			{
+			filter->num_ext_fields = filter->ext_func->FType()->YieldType()->AsRecordType()->NumFields();
+			}
+		else if ( filter->ext_func->FType()->YieldType()->Tag() == TYPE_BOOL )
+			{
+			// This is a special marker for the default no-implementation
+			// of the ext_func and we'll allow it to slide.
+			}
+		else
+			{
+			reporter->Error("return value of log_ext is not a record");
+			return false;
+			}
+		}
 
 	filter->num_fields = 0;
 	filter->fields = 0;
@@ -1040,21 +1059,21 @@ threading::Value* Manager::ValToLogVal(Val* val, BroType* ty)
 threading::Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter,
 				    RecordVal* columns)
 	{
-	RecordVal* metadata_rec = 0;
-	if ( filter->metadata_func )
+	RecordVal* ext_rec = 0;
+	if ( filter->num_ext_fields > 0 )
 		{
 		val_list vl(1);
-		vl.append(new StringVal(filter->path));
-		metadata_rec = filter->metadata_func->Call(&vl)->AsRecordVal();
+		vl.append(filter->fval->AsRecordVal()->Ref());
+		ext_rec = filter->ext_func->Call(&vl)->AsRecordVal();
 		}
 
 	threading::Value** vals = new threading::Value*[filter->num_fields];
 
 	for ( int i=0; i < filter->num_fields; ++i )
 		{
-		if ( i < filter->num_metadata )
+		if ( i < filter->num_ext_fields )
 			{
-			vals[i] = ValToLogVal(metadata_rec->Lookup(i));
+			vals[i] = ValToLogVal(ext_rec->Lookup(i));
 			}
 		else
 			{
@@ -1066,15 +1085,15 @@ threading::Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter,
 			// potentially be nested inside other records.
 			list<int>& indices = filter->indices[i];
 
-			bool metadata_done = false;
+			bool ext_done = false;
 			for ( list<int>::iterator j = indices.begin(); j != indices.end(); ++j )
 				{
-				// Only check for metadata on the outermost record.
+				// Only check for extension fields on the outermost record.
 				int nmd = 0;
-				if ( !metadata_done )
+				if ( ! ext_done )
 					{
-					nmd = filter->num_metadata;
-					metadata_done = true;
+					nmd = filter->num_ext_fields;
+					ext_done = true;
 					}
 
 				val = val->AsRecordVal()->Lookup((*j) - nmd);

@@ -3,4 +3,4 @@
 
 @load base/protocols/conn
 
-redef Log::default_unrolling_sep = "_";
+redef Log::default_scope_sep = "_";

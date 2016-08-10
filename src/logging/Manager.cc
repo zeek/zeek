@@ -1063,7 +1063,7 @@ threading::Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter,
 	if ( filter->num_ext_fields > 0 )
 		{
 		val_list vl(1);
-		vl.append(filter->fval->AsRecordVal()->Ref());
+		vl.append(filter->path_val->Ref());
 		ext_rec = filter->ext_func->Call(&vl)->AsRecordVal();
 		}
 
@@ -1109,6 +1109,11 @@ threading::Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter,
 			if ( val )
 				vals[i] = ValToLogVal(val);
 			}
+		}
+
+	if ( ext_rec != 0 )
+		{
+		Unref(ext_rec);
 		}
 
 	return vals;

@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	conn
-#open	2016-08-10-16-51-09
-#fields	ts	uid	src	src_port	dst	dst_port	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	local_resp	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents
+#open	2016-08-10-16-53-04
+#fields	ts	uid	id_orig_h	id_orig_p	id_resp_h	id_resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	local_resp	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents
 #types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	bool	count	string	count	count	count	count	set[string]
 1300475169.780331	C3eiCBGOLw3VtHfOj	173.192.163.128	80	141.142.220.235	6705	tcp	-	-	-	-	OTH	-	-	0	H	1	48	0	0	(empty)
 1300475168.892913	CmES5u32sYpV7JYN	141.142.220.118	49999	208.80.152.3	80	tcp	-	0.220961	1137	733	S1	-	-	0	ShADad	6	1457	4	949	(empty)
@@ -40,4 +40,4 @@
 1300475168.893988	C8rquZ3DjgNW06JGLl	141.142.220.118	45000	141.142.2.2	53	udp	-	0.000384	38	89	SF	-	-	0	Dd	1	66	1	117	(empty)
 1300475168.857956	CzrZOtXqhwwndQva3	141.142.220.118	32902	141.142.2.2	53	udp	-	0.000317	38	89	SF	-	-	0	Dd	1	66	1	117	(empty)
 1300475168.891644	CaGCc13FffXe6RkQl9	141.142.220.118	58206	141.142.2.2	53	udp	-	0.000339	38	89	SF	-	-	0	Dd	1	66	1	117	(empty)
-#close	2016-08-10-16-51-09
+#close	2016-08-10-16-53-04

@@ -90,6 +90,9 @@ struct Manager::Stream {
 Manager::Filter::~Filter()
 	{
 	Unref(fval);
+	Unref(field_name_map);
+	Unref(writer);
+	Unref(id);
 
 	for ( int i = 0; i < num_fields; ++i )
 		delete fields[i];
@@ -410,7 +413,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 			continue;
 
 		list<int> new_indices = indices;
-		new_indices.push_back(j);
+		new_indices.push_back(i);
 
 		// Build path name.
 		string new_path;
@@ -598,14 +601,14 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 			{
 			filter->num_ext_fields = filter->ext_func->FType()->YieldType()->AsRecordType()->NumFields();
 			}
-		else if ( filter->ext_func->FType()->YieldType()->Tag() == TYPE_BOOL )
+		else if ( filter->ext_func->FType()->YieldType()->Tag() == TYPE_VOID )
 			{
 			// This is a special marker for the default no-implementation
 			// of the ext_func and we'll allow it to slide.
 			}
 		else
 			{
-			reporter->Error("return value of log_ext is not a record");
+			reporter->Error("Return value of log_ext is not a record (got %s)", type_name(filter->ext_func->FType()->YieldType()->Tag()));
 			return false;
 			}
 		}
@@ -861,7 +864,10 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 					StringVal *fn = new StringVal(name);
 					Val *val = 0;
 					if ( (val = filter->field_name_map->Lookup(fn, false)) != 0 )
+						{
+						delete [] filter->fields[j]->name;
 						filter->fields[j]->name = val->AsStringVal()->CheckString();
+						}
 					delete fn;
 					}
 				arg_fields[j] = new threading::Field(*filter->fields[j]);
@@ -1050,7 +1056,7 @@ threading::Value* Manager::ValToLogVal(Val* val, BroType* ty)
 		}
 
 	default:
-		reporter->InternalError("unsupported type for log_write");
+		reporter->InternalError("unsupported type %s for log_write", type_name(lval->type));
 	}
 
 	return lval;
@@ -1059,62 +1065,57 @@ threading::Value* Manager::ValToLogVal(Val* val, BroType* ty)
 threading::Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter,
 				    RecordVal* columns)
 	{
-	RecordVal* ext_rec = 0;
+	RecordVal* ext_rec = nullptr;
 	if ( filter->num_ext_fields > 0 )
 		{
 		val_list vl(1);
 		vl.append(filter->path_val->Ref());
-		ext_rec = filter->ext_func->Call(&vl)->AsRecordVal();
+		Val* res = filter->ext_func->Call(&vl);
+		if ( res )
+			ext_rec = res->AsRecordVal();
 		}
 
 	threading::Value** vals = new threading::Value*[filter->num_fields];
 
-	for ( int i=0; i < filter->num_fields; ++i )
+	for ( int i = 0; i < filter->num_fields; ++i )
 		{
+		Val* val;
 		if ( i < filter->num_ext_fields )
 			{
-			vals[i] = ValToLogVal(ext_rec->Lookup(i));
-			}
-		else
-			{
-
-			TypeTag type = TYPE_ERROR;
-			Val* val = columns;
-
-			// For each field, first find the right value, which can
-			// potentially be nested inside other records.
-			list<int>& indices = filter->indices[i];
-
-			bool ext_done = false;
-			for ( list<int>::iterator j = indices.begin(); j != indices.end(); ++j )
+			if ( ! ext_rec )
 				{
-				// Only check for extension fields on the outermost record.
-				int nmd = 0;
-				if ( ! ext_done )
-					{
-					nmd = filter->num_ext_fields;
-					ext_done = true;
-					}
-
-				val = val->AsRecordVal()->Lookup((*j) - nmd);
-
-				if ( ! val )
-					{
-					// Value, or any of its parents, is not set.
-					vals[i] = new threading::Value(filter->fields[i]->type, false);
-					break;
-					}
+				// executing function did not return record. Send empty for all vals.
+				vals[i] = new threading::Value(filter->fields[i]->type, false);
+				continue;
 				}
 
-			if ( val )
-				vals[i] = ValToLogVal(val);
+			val = ext_rec;
 			}
+		else
+			val = columns;
+
+		// For each field, first find the right value, which can
+		// potentially be nested inside other records.
+		list<int>& indices = filter->indices[i];
+
+		for ( list<int>::iterator j = indices.begin(); j != indices.end(); ++j )
+			{
+			val = val->AsRecordVal()->Lookup(*j);
+
+			if ( ! val )
+				{
+				// Value, or any of its parents, is not set.
+				vals[i] = new threading::Value(filter->fields[i]->type, false);
+				break;
+				}
+			}
+
+		if ( val )
+			vals[i] = ValToLogVal(val);
 		}
 
-	if ( ext_rec != 0 )
-		{
+	if ( ext_rec )
 		Unref(ext_rec);
-		}
 
 	return vals;
 	}
@@ -1244,7 +1245,6 @@ bool Manager::Write(EnumVal* id, EnumVal* writer, string path, int num_fields,
 		DeleteVals(num_fields, vals);
 		return false;
 		}
-
 
 	w->second->writer->Write(num_fields, vals);
 

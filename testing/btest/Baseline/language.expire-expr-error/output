@@ -1,0 +1,2 @@
+error in /home/robin/bro/master/testing/btest/.tmp/language.expire-expr-error/expire-expr-error.bro, line 7: no such index (x[kaputt])
+received termination signal

@@ -1,0 +1,1 @@
+@TEST-EXEC: btest-rst-cmd bro -C -r ${TRACES}/tls/ecdhe.pcap ${DOC_ROOT}/frameworks/netcontrol-7-catch-release.bro

@@ -67,6 +67,7 @@ public:
 	EnumVal* type;
 	ReaderFrontend* reader;
 	TableVal* config;
+	EventHandlerPtr error_event;
 
 	RecordVal* description;
 
@@ -78,7 +79,7 @@ protected:
 
 Manager::Stream::Stream(StreamType t)
     : name(), removed(), stream_type(t), type(), reader(), config(),
-      description()
+      error_event(), description()
 	{
 	}
 
@@ -103,7 +104,6 @@ public:
 	unsigned int num_idx_fields;
 	unsigned int num_val_fields;
 	bool want_record;
-	EventHandlerPtr table_event;
 
 	TableVal* tab;
 	RecordType* rtype;
@@ -129,7 +129,7 @@ public:
 
 	bool want_record;
 	EventStream();
-        ~EventStream();
+	~EventStream();
 };
 
 class Manager::AnalysisStream: public Manager::Stream {
@@ -432,6 +432,13 @@ bool Manager::CreateEventStream(RecordVal* fval)
 	else
 		assert(false);
 
+	Val* error_event_val = fval->Lookup("error_ev", true);
+	Func* error_event = error_event_val ? error_event_val->AsFunc() : nullptr;
+	Unref(error_event_val);
+
+	if ( ! CheckErrorEventTypes(stream_name, error_event, false) )
+		return false;
+
 	vector<Field*> fieldsV; // vector, because UnrollRecordType needs it
 
 	bool status = (! UnrollRecordType(&fieldsV, fields, "", allow_file_func));
@@ -459,6 +466,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 	stream->num_fields = fieldsV.size();
 	stream->fields = fields->Ref()->AsRecordType();
 	stream->event = event_registry->Lookup(event->Name());
+	stream->error_event = error_event ? event_registry->Lookup(error_event->Name()) : nullptr;
 	stream->want_record = ( want_record->InternalInt() == 1 );
 	Unref(want_record); // ref'd by lookupwithdefault
 
@@ -558,8 +566,6 @@ bool Manager::CreateTableStream(RecordVal* fval)
 			}
 		}
 
-
-
 	Val* event_val = fval->Lookup("ev", true);
 	Func* event = event_val ? event_val->AsFunc() : 0;
 	Unref(event_val);
@@ -628,8 +634,14 @@ bool Manager::CreateTableStream(RecordVal* fval)
 			}
 
 		assert(want_record->InternalInt() == 1 || want_record->InternalInt() == 0);
-
 		}
+
+	Val* error_event_val = fval->Lookup("error_ev", true);
+	Func* error_event = error_event_val ? error_event_val->AsFunc() : nullptr;
+	Unref(error_event_val);
+
+	if ( ! CheckErrorEventTypes(stream_name, error_event, true) )
+		return false;
 
 	vector<Field*> fieldsV; // vector, because we don't know the length beforehands
 
@@ -678,6 +690,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 	stream->rtype = val ? val->AsRecordType() : 0;
 	stream->itype = idx->AsRecordType();
 	stream->event = event ? event_registry->Lookup(event->Name()) : 0;
+	stream->error_event = error_event ? event_registry->Lookup(error_event->Name()) : nullptr;
 	stream->currDict = new PDict(InputHash);
 	stream->currDict->SetDeleteFunc(input_hash_delete_func);
 	stream->lastDict = new PDict(InputHash);
@@ -694,6 +707,54 @@ bool Manager::CreateTableStream(RecordVal* fval)
 
 	DBG_LOG(DBG_INPUT, "Successfully created table stream %s",
 		stream->name.c_str());
+
+	return true;
+	}
+
+bool Manager::CheckErrorEventTypes(std::string stream_name, Func* ev, bool table)
+	{
+	if ( ev == nullptr )
+		return true;
+
+	FuncType* etype = ev->FType()->AsFuncType();
+
+	if ( etype->Flavor() != FUNC_FLAVOR_EVENT )
+		{
+		reporter->Error("Input stream %s: Error event is a function, not an event", stream_name.c_str());
+		return false;
+		}
+
+	const type_list* args = etype->ArgTypes()->Types();
+
+	if ( args->length() != 3 )
+		{
+		reporter->Error("Input stream %s: Error event must take 3 arguments", stream_name.c_str());
+		return false;
+		}
+
+	if ( table && ! same_type((*args)[0], BifType::Record::Input::TableDescription, 0) )
+		{
+		reporter->Error("Input stream %s: Error event's first attribute must be of type Input::TableDescription", stream_name.c_str());
+		return false;
+		}
+
+	if ( ! table && ! same_type((*args)[0], BifType::Record::Input::EventDescription, 0) )
+		{
+		reporter->Error("Input stream %s: Error event's first attribute must be of type Input::EventDescription", stream_name.c_str());
+		return false;
+		}
+
+	if ( (*args)[1]->Tag() != TYPE_STRING )
+		{
+		reporter->Error("Input stream %s: Error event's second attribute must be of type string", stream_name.c_str());
+		return false;
+		}
+
+	if ( ! same_type((*args)[2], BifType::Enum::Reporter::Level, 0) )
+		{
+		reporter->Error("Input stream %s: Error event's third attribute must be of type Reporter::Level", stream_name.c_str());
+		return false;
+		}
 
 	return true;
 	}
@@ -1054,7 +1115,7 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals)
 
 	if ( idxhash == 0 )
 		{
-		reporter->Error("Could not hash line. Ignoring");
+		Warning(i, "Could not hash line. Ignoring");
 		return stream->num_val_fields + stream->num_idx_fields;
 		}
 
@@ -1204,7 +1265,7 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals)
 	ih->idxkey = new HashKey(k->Key(), k->Size(), k->Hash());
 	ih->valhash = valhash;
 
-	if ( stream->event && updated )
+	if ( oldval && stream->event && updated )
 		Ref(oldval); // otherwise it is no longer accessible after the assignment
 
 	stream->tab->Assign(idxval, k, valval);
@@ -1719,7 +1780,7 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 			Val* retptr = stream->tab->Delete(idxval);
 			success = ( retptr != 0 );
 			if ( ! success )
-				reporter->Error("Internal error while deleting values from input table");
+				Warning(i, "Internal error while deleting values from input table");
 			else
 				Unref(retptr);
 			}
@@ -1771,6 +1832,9 @@ bool Manager::CallPred(Func* pred_func, const int numvals, ...)
 	return result;
 	}
 
+// Raise everything in here as warnings so it is passed to scriptland without
+// looking "fatal". In addition to these warnings, ReaderBackend will queue
+// one reporter message.
 bool Manager::SendEvent(ReaderFrontend* reader, const string& name, const int num_vals, Value* *vals)
 	{
 	Stream *i = FindStream(reader);
@@ -1783,7 +1847,7 @@ bool Manager::SendEvent(ReaderFrontend* reader, const string& name, const int nu
 	EventHandler* handler = event_registry->Lookup(name.c_str());
 	if ( handler == 0 )
 		{
-		reporter->Error("Event %s not found", name.c_str());
+		Warning(i, "Event %s not found", name.c_str());
 		delete_value_ptr_array(vals, num_vals);
 		return false;
 		}
@@ -1797,7 +1861,7 @@ bool Manager::SendEvent(ReaderFrontend* reader, const string& name, const int nu
 	int num_event_vals = type->NumFields();
 	if ( num_vals != num_event_vals )
 		{
-		reporter->Error("Wrong number of values for event %s", name.c_str());
+		Warning(i, "Wrong number of values for event %s", name.c_str());
 		delete_value_ptr_array(vals, num_vals);
 		return false;
 		}
@@ -1917,7 +1981,8 @@ RecordVal* Manager::ValueToRecordVal(const Stream* stream, const Value* const *v
 			(*position)++;
 			}
 
-		rec->Assign(i, fieldVal);
+		if ( fieldVal )
+			rec->Assign(i, fieldVal);
 		}
 
 	return rec;
@@ -2314,7 +2379,7 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_typ
 		bro_int_t index = request_type->AsEnumType()->Lookup(module, var.c_str());
 		if ( index == -1 )
 			{
-			reporter->Error("Value not '%s' for stream '%s' is not a valid enum.",
+			Warning(i, "Value not '%s' for stream '%s' is not a valid enum.",
 			                        enum_string.c_str(), i->name.c_str());
 
 			have_error = true;
@@ -2365,4 +2430,133 @@ void Manager::Terminate()
 		i->second->reader->Stop();
 		}
 
+	}
+
+void Manager::Info(ReaderFrontend* reader, const char* msg)
+	{
+	Stream *i = FindStream(reader);
+	if ( !i )
+		{
+		reporter->Error("Stream not found in Info; lost message: %s", msg);
+		return;
+		}
+
+	ErrorHandler(i, ErrorType::INFO, false, "%s", msg);
+	}
+
+void Manager::Warning(ReaderFrontend* reader, const char* msg)
+	{
+	Stream *i = FindStream(reader);
+	if ( !i )
+		{
+		reporter->Error("Stream not found in Warning; lost message: %s", msg);
+		return;
+		}
+
+	ErrorHandler(i, ErrorType::WARNING, false, "%s", msg);
+	}
+
+void Manager::Error(ReaderFrontend* reader, const char* msg)
+	{
+	Stream *i = FindStream(reader);
+	if ( !i )
+		{
+		reporter->Error("Stream not found in Error; lost message: %s", msg);
+		return;
+		}
+
+	ErrorHandler(i, ErrorType::ERROR, false, "%s", msg);
+	}
+
+void Manager::Info(const Stream* i, const char* fmt, ...)
+	{
+	va_list ap;
+	va_start(ap, fmt);
+	ErrorHandler(i, ErrorType::INFO, true, fmt, ap);
+	va_end(ap);
+	}
+
+void Manager::Warning(const Stream* i, const char* fmt, ...)
+	{
+	va_list ap;
+	va_start(ap, fmt);
+	ErrorHandler(i, ErrorType::WARNING, true, fmt, ap);
+	va_end(ap);
+	}
+
+void Manager::Error(const Stream* i, const char* fmt, ...)
+	{
+	va_list ap;
+	va_start(ap, fmt);
+	ErrorHandler(i, ErrorType::ERROR, true, fmt, ap);
+	va_end(ap);
+	}
+
+void Manager::ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, const char* fmt, ...)
+	{
+	va_list ap;
+	va_start(ap, fmt);
+	ErrorHandler(i, et, reporter_send, fmt, ap);
+	va_end(ap);
+	}
+
+void Manager::ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, const char* fmt, va_list ap)
+	{
+	char* buf;
+
+	int n = vasprintf(&buf, fmt, ap);
+	if ( n < 0 || buf == nullptr )
+		{
+		reporter->InternalError("Could not format error message %s for stream %s", fmt, i->name.c_str());
+		return;
+		}
+
+	// send our script level error event
+	if ( i->error_event )
+		{
+		EnumVal* ev;
+		switch (et)
+			{
+			case ErrorType::INFO:
+				ev = new EnumVal(BifEnum::Reporter::INFO, BifType::Enum::Reporter::Level);
+				break;
+
+			case ErrorType::WARNING:
+				ev = new EnumVal(BifEnum::Reporter::WARNING, BifType::Enum::Reporter::Level);
+				break;
+
+			case ErrorType::ERROR:
+				ev = new EnumVal(BifEnum::Reporter::ERROR, BifType::Enum::Reporter::Level);
+				break;
+
+			default:
+				reporter->InternalError("Unknown error type while trying to report input error %s", fmt);
+			}
+
+		StringVal* message = new StringVal(buf);
+		SendEvent(i->error_event, 3, i->description->Ref(), message, ev);
+		}
+
+	if ( reporter_send )
+		{
+		switch (et)
+			{
+			case ErrorType::INFO:
+				reporter->Info("%s", buf);
+				break;
+
+			case ErrorType::WARNING:
+				reporter->Warning("%s", buf);
+				break;
+
+			case ErrorType::ERROR:
+				reporter->Error("%s", buf);
+				break;
+
+			default:
+				reporter->InternalError("Unknown error type while trying to report input error %s", fmt);
+			}
+		}
+
+	free(buf);
 	}

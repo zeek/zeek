@@ -3,10 +3,10 @@
 #empty_field	(empty)
 #unset_field	-
 #path	conn
-#open	2015-02-23-21-32-33
+#open	2016-07-13-16-12-55
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	local_resp	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents
 #types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	bool	count	string	count	count	count	count	set[string]
-1371685686.536606	CXWv6p3arKYeMETxOg	65.65.65.65	19244	65.65.65.65	80	tcp	-	-	-	-	OTH	-	-	0	D	1	257	0	0	(empty)
-1371686961.156859	CjhGID4nQcgTWjvg4c	65.65.65.65	32828	65.65.65.65	80	tcp	-	-	-	-	OTH	-	-	0	d	0	0	1	1500	(empty)
-1371686961.479321	CCvvfg3TEfuqmmG4bh	65.65.65.65	61193	65.65.65.65	80	tcp	-	-	-	-	OTH	-	-	0	D	1	710	0	0	(empty)
-#close	2015-02-23-21-32-33
+1371685686.536606	CHhAvVGS1DHFjwGM9	65.65.65.65	19244	65.65.65.65	80	tcp	-	-	-	-	OTH	-	-	0	D	1	257	0	0	(empty)
+1371686961.479321	C4J4Th3PJpwUYZZ6gc	65.65.65.65	61193	65.65.65.65	80	tcp	-	-	-	-	OTH	-	-	0	D	1	710	0	0	(empty)
+1371686961.156859	ClEkJM2Vm5giqnMf4h	65.65.65.65	32828	65.65.65.65	80	tcp	-	-	-	-	OTH	-	-	0	^d	0	0	1	1500	(empty)
+#close	2016-07-13-16-12-55

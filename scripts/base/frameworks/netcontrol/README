@@ -1,0 +1,3 @@
+The NetControl framework provides a way for Bro to interact with networking
+hard- and software, e.g. for dropping and shunting IP addresses/connections,
+etc.

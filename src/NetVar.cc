@@ -23,6 +23,7 @@ TableType* string_set;
 TableType* string_array;
 TableType* count_set;
 VectorType* string_vec;
+VectorType* index_vec;
 VectorType* mime_matches;
 RecordType* mime_match;
 
@@ -104,13 +105,6 @@ RecordType* pm_port_request;
 RecordType* pm_callit_request;
 
 RecordType* ntp_msg;
-
-TableVal* samba_cmds;
-RecordType* smb_hdr;
-RecordType* smb_trans;
-RecordType* smb_trans_data;
-RecordType* smb_tree_connect;
-TableType* smb_negotiate;
 
 RecordType* geo_location;
 
@@ -331,6 +325,7 @@ void init_net_var()
 	string_set = internal_type("string_set")->AsTableType();
 	string_array = internal_type("string_array")->AsTableType();
 	string_vec = internal_type("string_vec")->AsVectorType();
+	index_vec = internal_type("index_vec")->AsVectorType();
 	mime_match = internal_type("mime_match")->AsRecordType();
 	mime_matches = internal_type("mime_matches")->AsVectorType();
 
@@ -426,13 +421,6 @@ void init_net_var()
 	pm_callit_request = internal_type("pm_callit_request")->AsRecordType();
 
 	ntp_msg = internal_type("ntp_msg")->AsRecordType();
-
-	samba_cmds = internal_val("samba_cmds")->AsTableVal();
-	smb_hdr = internal_type("smb_hdr")->AsRecordType();
-	smb_trans = internal_type("smb_trans")->AsRecordType();
-	smb_trans_data = internal_type("smb_trans_data")->AsRecordType();
-	smb_tree_connect = internal_type("smb_tree_connect")->AsRecordType();
-	smb_negotiate = internal_type("smb_negotiate")->AsTableType();
 
 	geo_location = internal_type("geo_location")->AsRecordType();
 

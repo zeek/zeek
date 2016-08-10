@@ -1,0 +1,33 @@
+## Generated for SMB/CIFS requests of type *setup andx*.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for
+## more information about the SMB/CIFS protocol. Bro's SMB/CIFS analyzer parses
+## both SMB-over-NetBIOS on ports 138/139 and SMB-over-TCP on port 445.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the SMB message.
+##
+## request: The parsed request data of the SMB message. See init-bare for more details.
+##
+event smb1_session_setup_andx_request%(c: connection, hdr: SMB1::Header, request: SMB1::SessionSetupAndXRequest%);
+
+## Generated for SMB/CIFS responses of type *setup andx*.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for
+## more information about the SMB/CIFS protocol. Bro's SMB/CIFS analyzer parses
+## both SMB-over-NetBIOS on ports 138/139 and SMB-over-TCP on port 445.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the SMB message.
+##
+## response: The parsed response data of the SMB message. See init-bare for more details.
+##
+event smb1_session_setup_andx_response%(c: connection, hdr: SMB1::Header, response: SMB1::SessionSetupAndXResponse%);
+
+#### Types
+
+type SMB1::SessionSetupAndXRequest: record;
+type SMB1::SessionSetupAndXResponse: record;
+type SMB1::SessionSetupAndXCapabilities: record;

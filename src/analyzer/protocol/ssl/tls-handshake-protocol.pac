@@ -75,7 +75,7 @@ type ClientHello(rec: HandshakeRecord) = record {
 	session_len : uint8;
 	session_id : uint8[session_len];
 	dtls_cookie: case client_version of {
-		DTLSv10 -> cookie: ClientHelloCookie(rec);
+		DTLSv10, DTLSv12 -> cookie: ClientHelloCookie(rec);
 		default -> nothing: bytestring &length=0;
 	};
 	csuit_len : uint16 &check(csuit_len > 1 && csuit_len % 2 == 0);
@@ -458,6 +458,7 @@ type SSLExtension(rec: HandshakeRecord) = record {
 		EXT_EC_POINT_FORMATS -> ec_point_formats: EcPointFormats(rec)[] &until($element == 0 || $element != 0);
 #		EXT_STATUS_REQUEST -> status_request: StatusRequest(rec)[] &until($element == 0 || $element != 0);
 		EXT_SERVER_NAME -> server_name: ServerNameExt(rec)[] &until($element == 0 || $element != 0);
+		EXT_SIGNATURE_ALGORITHMS -> signature_algorithm: SignatureAlgorithm(rec)[] &until($element == 0 || $element != 0);
 		default -> data: bytestring &restofdata;
 	};
 } &length=data_len+4 &exportsourcedata;
@@ -500,6 +501,16 @@ type EcPointFormats(rec: HandshakeRecord) = record {
 	length: uint8;
 	point_format_list: uint8[length];
 };
+
+type SignatureAndHashAlgorithm() = record {
+	HashAlgorithm: uint8;
+	SignatureAlgorithm: uint8;
+}
+
+type SignatureAlgorithm(rec: HandshakeRecord) = record {
+	length: uint16;
+	supported_signature_algorithms: SignatureAndHashAlgorithm[] &until($input.length() == 0);
+}
 
 type EllipticCurves(rec: HandshakeRecord) = record {
 	length: uint16;

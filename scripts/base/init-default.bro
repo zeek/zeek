@@ -10,8 +10,10 @@
 @load base/utils/conn-ids
 @load base/utils/dir
 @load base/utils/directions-and-hosts
+@load base/utils/email
 @load base/utils/exec
 @load base/utils/files
+@load base/utils/geoip-distance
 @load base/utils/numbers
 @load base/utils/paths
 @load base/utils/patterns
@@ -41,6 +43,7 @@
 @load base/frameworks/netcontrol
 
 @load base/protocols/conn
+@load base/protocols/dce-rpc
 @load base/protocols/dhcp
 @load base/protocols/dnp3
 @load base/protocols/dns
@@ -51,12 +54,16 @@
 @load base/protocols/krb
 @load base/protocols/modbus
 @load base/protocols/mysql
+@load base/protocols/ntlm
 @load base/protocols/pop3
 @load base/protocols/radius
 @load base/protocols/rdp
 @load base/protocols/rfb
 @load base/protocols/sip
 @load base/protocols/snmp
+# This DOES NOT enable the SMB analyzer.  It's just some base support 
+# for other protocols.
+@load base/protocols/smb
 @load base/protocols/smtp
 @load base/protocols/socks
 @load base/protocols/ssh

@@ -14,6 +14,12 @@
 #include "Reporter.h"
 #include "Net.h"
 
+static void persistence_serializer_delete_func(void* val)
+	{
+	time_t* t = reinterpret_cast<time_t*>(val);
+	free(t);
+	}
+
 class IncrementalWriteTimer : public Timer {
 public:
 	IncrementalWriteTimer(double t, PersistenceSerializer::SerialStatus* s)
@@ -36,6 +42,7 @@ void IncrementalWriteTimer::Dispatch(double t, int is_expire)
 PersistenceSerializer::PersistenceSerializer()
 	{
 	dir = 0;
+	files.SetDeleteFunc(persistence_serializer_delete_func);
 	}
 
 PersistenceSerializer::~PersistenceSerializer()

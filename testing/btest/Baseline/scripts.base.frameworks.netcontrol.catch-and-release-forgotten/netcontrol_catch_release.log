@@ -1,0 +1,13 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	netcontrol_catch_release
+#open	2016-07-28-20-25-46
+#fields	ts	rule_id	ip	action	block_interval	watch_interval	blocked_until	watched_until	num_blocked	location	message
+#types	time	string	addr	enum	interval	interval	time	time	count	string	string
+1254722767.492060	2	10.0.0.1	NetControl::DROP	1.000000	2.000000	1254722768.492060	1254722769.492060	1	-	-
+1254722767.492060	2	10.0.0.1	NetControl::DROPPED	1.000000	2.000000	1254722768.492060	1254722769.492060	1	-	-
+1254722768.565386	2	10.0.0.1	NetControl::UNBLOCK	1.000000	2.000000	1254722768.492060	1254722769.492060	1	-	-
+1437831776.764391	2	10.0.0.1	NetControl::FORGOTTEN	1.000000	2.000000	1254722768.492060	1254722769.492060	1	-	-
+#close	2016-07-28-20-25-46

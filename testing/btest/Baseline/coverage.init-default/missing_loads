@@ -1,3 +1,4 @@
+-./frameworks/cluster/nodes/logger.bro
 -./frameworks/cluster/nodes/manager.bro
 -./frameworks/cluster/nodes/proxy.bro
 -./frameworks/cluster/nodes/worker.bro

@@ -115,7 +115,7 @@ uint64 Connection::external_connections = 0;
 IMPLEMENT_SERIAL(Connection, SER_CONNECTION);
 
 Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
-                       uint32 flow, uint32 arg_vlan, uint32 arg_inner_vlan,
+                       uint32 flow, const Packet* pkt,
 		       const EncapsulationStack* arg_encap)
 	{
 	sessions = s;
@@ -132,8 +132,18 @@ Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
 	saw_first_orig_packet = 1;
 	saw_first_resp_packet = 0;
 
-	vlan = arg_vlan;
-	inner_vlan = arg_inner_vlan;
+	if ( pkt->l2_src )
+		memcpy(orig_l2_addr, pkt->l2_src, sizeof(orig_l2_addr));
+	else
+		bzero(orig_l2_addr, sizeof(orig_l2_addr));
+
+	if ( pkt->l2_dst )
+		memcpy(resp_l2_addr, pkt->l2_dst, sizeof(resp_l2_addr));
+	else
+		bzero(resp_l2_addr, sizeof(resp_l2_addr));
+
+	vlan = pkt->vlan;
+	inner_vlan = pkt->inner_vlan;
 
 	conn_val = 0;
 	login_conn = 0;
@@ -363,10 +373,19 @@ RecordVal* Connection::BuildConnVal()
 		orig_endp->Assign(1, new Val(0, TYPE_COUNT));
 		orig_endp->Assign(4, new Val(orig_flow_label, TYPE_COUNT));
 
+		const int l2_len = sizeof(orig_l2_addr);
+		char null[l2_len]{};
+
+		if ( memcmp(&orig_l2_addr, &null, l2_len) != 0 )
+			orig_endp->Assign(5, new StringVal(fmt_mac(orig_l2_addr, l2_len)));
+
 		RecordVal *resp_endp = new RecordVal(endpoint);
 		resp_endp->Assign(0, new Val(0, TYPE_COUNT));
 		resp_endp->Assign(1, new Val(0, TYPE_COUNT));
 		resp_endp->Assign(4, new Val(resp_flow_label, TYPE_COUNT));
+
+		if ( memcmp(&resp_l2_addr, &null, l2_len) != 0 )
+			resp_endp->Assign(5, new StringVal(fmt_mac(resp_l2_addr, l2_len)));
 
 		conn_val->Assign(0, id_val);
 		conn_val->Assign(1, orig_endp);
@@ -388,6 +407,7 @@ RecordVal* Connection::BuildConnVal()
 
 		if ( inner_vlan != 0 )
 			conn_val->Assign(10, new Val(inner_vlan, TYPE_INT));
+
 		}
 
 	if ( root_analyzer )
@@ -732,6 +752,12 @@ void Connection::FlipRoles()
 	resp_port = orig_port;
 	orig_port = tmp_port;
 
+	const int l2_len = sizeof(orig_l2_addr);
+	u_char tmp_l2_addr[l2_len];
+	memcpy(tmp_l2_addr, resp_l2_addr, l2_len);
+	memcpy(resp_l2_addr, orig_l2_addr, l2_len);
+	memcpy(orig_l2_addr, tmp_l2_addr, l2_len);
+
 	bool tmp_bool = saw_first_resp_packet;
 	saw_first_resp_packet = saw_first_orig_packet;
 	saw_first_orig_packet = tmp_bool;
@@ -747,6 +773,8 @@ void Connection::FlipRoles()
 		root_analyzer->FlipRoles();
 
 	analyzer_mgr->ApplyScheduledAnalyzers(this);
+
+	AddHistory('^');
 	}
 
 unsigned int Connection::MemoryAllocation() const

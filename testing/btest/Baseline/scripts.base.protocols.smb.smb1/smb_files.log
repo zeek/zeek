@@ -1,0 +1,12 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	smb_files
+#open	2016-08-05-15-25-54
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	fuid	action	path	name	size	prev_name	times.modified	times.accessed	times.created	times.changed
+#types	time	string	addr	port	addr	port	string	enum	string	string	count	string	time	time	time	time
+1403194573.483536	CHhAvVGS1DHFjwGM9	192.168.1.78	55770	192.168.1.53	445	-	SMB::FILE_OPEN	-	<share_root>	0	-	1403193605.830790	1403193605.830790	1403193211.405449	1403193605.830790
+1403194573.484701	CHhAvVGS1DHFjwGM9	192.168.1.78	55770	192.168.1.53	445	-	SMB::FILE_OPEN	-	Test	0	-	1403193632.973276	1403193632.973276	1403193604.628965	1403193632.973276
+1403194574.150293	CHhAvVGS1DHFjwGM9	192.168.1.78	55770	192.168.1.53	445	-	SMB::FILE_OPEN	-	Test\\2009-12 Payroll.xlsx	25940	-	1403148950.000000	1403193623.046524	1403148950.000000	1403193632.973276
+#close	2016-08-05-15-25-54

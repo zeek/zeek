@@ -1,0 +1,41 @@
+
+module DCE_RPC;
+
+enum PType %{
+	REQUEST,
+	PING,
+	RESPONSE,
+	FAULT,
+	WORKING,
+	NOCALL,
+	REJECT,
+	ACK,
+	CL_CANCEL,
+	FACK,
+	CANCEL_ACK,
+	BIND,
+	BIND_ACK,
+	BIND_NAK,
+	ALTER_CONTEXT,
+	ALTER_CONTEXT_RESP,
+	SHUTDOWN,
+	CO_CANCEL,
+	ORPHANED,
+%}
+
+enum IfID %{
+	unknown_if,
+	epmapper,
+	lsarpc,
+	lsa_ds,
+	mgmt,
+	netlogon,
+	samr,
+	srvsvc,
+	spoolss,
+	drs,
+	winspipe,
+	wkssvc,
+	oxid,
+	ISCMActivator,
+%}

@@ -10,17 +10,17 @@
 
 @prefixes += cluster-manager
 
-## Turn off remote logging since this is the manager and should only log here.
-redef Log::enable_remote_logging = F;
+## Don't do any local logging since the logger handles writing logs.
+redef Log::enable_local_logging = F;
+
+## Turn on remote logging since the logger handles writing logs.
+redef Log::enable_remote_logging = T;
 
 ## Log rotation interval.
-redef Log::default_rotation_interval = 1 hrs;
+redef Log::default_rotation_interval = 24 hrs;
 
-## Alarm summary mail interval.
-redef Log::default_mail_alarms_interval = 24 hrs;
-
-## Use the cluster's archive logging script.
-redef Log::default_rotation_postprocessor_cmd = "archive-log";
+## Use the cluster's delete-log script.
+redef Log::default_rotation_postprocessor_cmd = "delete-log";
 
 ## We're processing essentially *only* remote events.
 redef max_remote_events_processed = 10000;

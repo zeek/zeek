@@ -103,6 +103,7 @@ NetSessions::NetSessions()
 
 	tcp_conns.SetDeleteFunc(bro_obj_delete_func);
 	udp_conns.SetDeleteFunc(bro_obj_delete_func);
+	icmp_conns.SetDeleteFunc(bro_obj_delete_func);
 	fragments.SetDeleteFunc(bro_obj_delete_func);
 
 	if ( stp_correlate_pair )
@@ -674,7 +675,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 	conn = (Connection*) d->Lookup(h);
 	if ( ! conn )
 		{
-		conn = NewConn(h, t, &id, data, proto, ip_hdr->FlowLabel(), pkt->vlan, pkt->inner_vlan, encapsulation);
+		conn = NewConn(h, t, &id, data, proto, ip_hdr->FlowLabel(), pkt, encapsulation);
 		if ( conn )
 			d->Insert(h, conn);
 		}
@@ -694,7 +695,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 				conn->Event(connection_reused, 0);
 
 			Remove(conn);
-			conn = NewConn(h, t, &id, data, proto, ip_hdr->FlowLabel(), pkt->vlan, pkt->inner_vlan, encapsulation);
+			conn = NewConn(h, t, &id, data, proto, ip_hdr->FlowLabel(), pkt, encapsulation);
 			if ( conn )
 				d->Insert(h, conn);
 			}
@@ -1172,8 +1173,7 @@ void NetSessions::GetStats(SessionStats& s) const
 
 Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 					const u_char* data, int proto, uint32 flow_label,
-					uint32 vlan, uint32 inner_vlan,
-					const EncapsulationStack* encapsulation)
+					const Packet* pkt, const EncapsulationStack* encapsulation)
 	{
 	// FIXME: This should be cleaned up a bit, it's too protocol-specific.
 	// But I'm not yet sure what the right abstraction for these things is.
@@ -1229,8 +1229,11 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 		id = &flip_id;
 		}
 
-	Connection* conn = new Connection(this, k, t, id, flow_label, vlan, inner_vlan, encapsulation);
+	Connection* conn = new Connection(this, k, t, id, flow_label, pkt, encapsulation);
 	conn->SetTransport(tproto);
+
+	if ( flip )
+		conn->AddHistory('^');
 
 	if ( ! analyzer_mgr->BuildInitialAnalyzerTree(conn) )
 		{

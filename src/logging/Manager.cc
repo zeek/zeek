@@ -681,8 +681,6 @@ bool Manager::RemoveFilter(EnumVal* id, string name)
 
 bool Manager::Write(EnumVal* id, RecordVal* columns)
 	{
-	bool error = false;
-
 	Stream* stream = FindStream(id);
 	if ( ! stream )
 		return false;
@@ -902,9 +900,6 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 #endif
 
 	Unref(columns);
-
-	if ( error )
-		RemoveDisabledWriters(stream);
 
 	return true;
 	}

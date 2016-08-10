@@ -8,3 +8,4 @@ extern type BroPortVal;
 extern type BroStringVal;
 
 function network_time(): double;
+function utf16_bytestring_to_utf8_val(utf16: bytestring): StringVal;

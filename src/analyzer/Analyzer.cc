@@ -395,7 +395,7 @@ bool Analyzer::AddChildAnalyzer(Analyzer* analyzer, bool init)
 	// the list.
 
 	analyzer->parent = this;
-	children.push_back(analyzer);
+	new_children.push_back(analyzer);
 
 	if ( init )
 		analyzer->Init();
@@ -474,6 +474,13 @@ Analyzer* Analyzer::FindChild(ID arg_id)
 			return child;
 		}
 
+	LOOP_OVER_GIVEN_CHILDREN(i, new_children)
+		{
+		Analyzer* child = (*i)->FindChild(arg_id);
+		if ( child )
+			return child;
+		}
+
 	return 0;
 	}
 
@@ -483,6 +490,13 @@ Analyzer* Analyzer::FindChild(Tag arg_tag)
 		return this;
 
 	LOOP_OVER_CHILDREN(i)
+		{
+		Analyzer* child = (*i)->FindChild(arg_tag);
+		if ( child )
+			return child;
+		}
+
+	LOOP_OVER_GIVEN_CHILDREN(i, new_children)
 		{
 		Analyzer* child = (*i)->FindChild(arg_tag);
 		if ( child )
@@ -655,11 +669,7 @@ void Analyzer::ProtocolConfirmation(Tag arg_tag)
 	vl->append(BuildConnVal());
 	vl->append(tval);
 	vl->append(new Val(id, TYPE_COUNT));
-
-	// We immediately raise the event so that the analyzer can quickly
-	// react if necessary.
-	::Event* e = new ::Event(protocol_confirmation, vl, SOURCE_LOCAL);
-	mgr.Dispatch(e);
+	mgr.QueueEvent(protocol_confirmation, vl);
 
 	protocol_confirmed = true;
 	}
@@ -687,11 +697,7 @@ void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
 	vl->append(tval);
 	vl->append(new Val(id, TYPE_COUNT));
 	vl->append(r);
-
-	// We immediately raise the event so that the analyzer can quickly be
-	// disabled if necessary.
-	::Event* e = new ::Event(protocol_violation, vl, SOURCE_LOCAL);
-	mgr.Dispatch(e);
+	mgr.QueueEvent(protocol_violation, vl);
 	}
 
 void Analyzer::AddTimer(analyzer_timer_func timer, double t,

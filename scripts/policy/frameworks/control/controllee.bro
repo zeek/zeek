@@ -22,10 +22,26 @@ event Control::id_value_request(id: string)
 
 event Control::peer_status_request()
 	{
+	local status = "";
+	for ( p in Communication::nodes )
+		{
+		local peer = Communication::nodes[p];
+		if ( ! peer$connected )
+			next;
+
+		status += fmt("%.6f peer=%s host=%s\n",
+			      network_time(), peer$peer$descr, peer$host);
+		}
+
+	event Control::peer_status_response(status);
 	}
 
 event Control::net_stats_request()
 	{
+	local ns = get_net_stats();
+	local reply = fmt("%.6f recvd=%d dropped=%d link=%d\n", network_time(),
+	                  ns$pkts_recvd, ns$pkts_dropped, ns$pkts_link);
+	event Control::net_stats_response(reply);
 	}
 
 event Control::configuration_update_request()

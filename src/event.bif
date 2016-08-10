@@ -314,29 +314,6 @@ event packet_contents%(c: connection, contents: string%);
 ## .. bro:see:: tcp_rexmit tcp_contents
 event rexmit_inconsistency%(c: connection, t1: string, t2: string, tcp_flags: string%);
 
-## Generated when a TCP endpoint acknowledges payload that Bro never saw.
-##
-## c: The connection.
-##
-## .. bro:see:: content_gap
-##
-## .. note::
-##
-##    Seeing an acknowledgment indicates that the responder of the connection
-##    says it has received the corresponding data. If Bro did not, it must have
-##    either missed one or more packets, or the responder's TCP stack is broken
-##    (which isn't unheard of). In practice, one will always see a few of these
-##    events in any larger volume of network traffic. If there are lots of them,
-##    however, that typically  means that there is a problem with the monitoring
-##    infrastructure such as a tap dropping packets, split routing on the path,
-##    or reordering at the tap.
-##
-##    This event reports similar situations as :bro:id:`content_gap`, though
-##    their specifics differ slightly. Often, however, both will be raised for
-##    the same connection if some of its data is missing. We should eventually
-##    merge the two.
-event ack_above_hole%(c: connection%);
-
 ## Generated when Bro detects a gap in a reassembled TCP payload stream. This
 ## event is raised when Bro, while reassembling a payload stream, determines
 ## that a chunk of payload is missing (e.g., because the responder has already
@@ -350,8 +327,6 @@ event ack_above_hole%(c: connection%);
 ##
 ## length: The number of bytes missing.
 ##
-## .. bro:see:: ack_above_hole
-##
 ## .. note::
 ##
 ##    Content gaps tend to occur occasionally for various reasons, including
@@ -359,11 +334,6 @@ event ack_above_hole%(c: connection%);
 ##    means that there is a problem with the monitoring infrastructure such as
 ##    a tap dropping packets, split routing on the path, or reordering at the
 ##    tap.
-##
-##    This event reports similar situations as :bro:id:`ack_above_hole`, though
-##    their specifics differ slightly. Often, however, both will be raised for
-##    a connection if some of its data is missing. We should eventually merge
-##    the two.
 event content_gap%(c: connection, is_orig: bool, seq: count, length: count%);
 
 ## Generated when a protocol analyzer confirms that a connection is indeed

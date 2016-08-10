@@ -1,0 +1,24 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	intel
+#open	2016-08-05-13-13-14
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	seen.indicator	seen.indicator_type	seen.where	seen.node	matched	sources	fuid	file_mime_type	file_desc
+#types	time	string	addr	port	addr	port	string	enum	enum	string	set[enum]	set[string]	string	string	string
+1470402794.307931	-	-	-	-	-	192.168.1.1	Intel::ADDR	SOMEWHERE	bro	Intel::ADDR	source1	-	-	-
+1470402794.307931	-	-	-	-	-	192.168.2.1	Intel::ADDR	SOMEWHERE	bro	Intel::SUBNET	source1	-	-	-
+1470402794.307931	-	-	-	-	-	192.168.142.1	Intel::ADDR	SOMEWHERE	bro	Intel::SUBNET,Intel::ADDR	source1	-	-	-
+#close	2016-08-05-13-13-14
+
+Seen: [indicator=192.168.1.1, indicator_type=Intel::ADDR, host=192.168.1.1, where=SOMEWHERE, node=bro, conn=<uninitialized>, uid=<uninitialized>, f=<uninitialized>, fuid=<uninitialized>]
+Item: [indicator=192.168.1.1, indicator_type=Intel::ADDR, meta=[source=source1, desc=this host is just plain baaad, url=http://some-data-distributor.com/1]]
+
+Seen: [indicator=192.168.2.1, indicator_type=Intel::ADDR, host=192.168.2.1, where=SOMEWHERE, node=bro, conn=<uninitialized>, uid=<uninitialized>, f=<uninitialized>, fuid=<uninitialized>]
+Item: [indicator=192.168.2.0/24, indicator_type=Intel::SUBNET, meta=[source=source1, desc=this subnetwork is just plain baaad, url=http://some-data-distributor.com/2]]
+
+Seen: [indicator=192.168.142.1, indicator_type=Intel::ADDR, host=192.168.142.1, where=SOMEWHERE, node=bro, conn=<uninitialized>, uid=<uninitialized>, f=<uninitialized>, fuid=<uninitialized>]
+Item: [indicator=192.168.142.1, indicator_type=Intel::ADDR, meta=[source=source1, desc=this host is just plain baaad, url=http://some-data-distributor.com/3]]
+Item: [indicator=192.168.128.0/18, indicator_type=Intel::SUBNET, meta=[source=source1, desc=this subnetwork might be baaad, url=http://some-data-distributor.com/5]]
+Item: [indicator=192.168.142.0/26, indicator_type=Intel::SUBNET, meta=[source=source1, desc=this subnetwork is inside, url=http://some-data-distributor.com/4]]
+Item: [indicator=192.168.142.0/24, indicator_type=Intel::SUBNET, meta=[source=source1, desc=this subnetwork is baaad, url=http://some-data-distributor.com/4]]

@@ -66,6 +66,7 @@ export {
 	## Events that are sent from Broker to us
 	global acld_rule_added: event(id: count, r: Rule, msg: string);
 	global acld_rule_removed: event(id: count, r: Rule, msg: string);
+	global acld_rule_exists: event(id: count, r: Rule, msg: string);
 	global acld_rule_error: event(id: count, r: Rule, msg: string);
 }
 
@@ -76,7 +77,7 @@ global netcontrol_acld_current_id: count = 0;
 
 const acld_add_to_remove: table[string] of string = {
 	["drop"] = "restore",
-	["whitelist"] = "remwhitelist",
+	["addwhitelist"] = "remwhitelist",
 	["blockhosthost"] = "restorehosthost",
 	["droptcpport"] = "restoretcpport",
 	["dropudpport"] = "restoreudpport",
@@ -98,6 +99,19 @@ event NetControl::acld_rule_added(id: count, r: Rule, msg: string)
 	local p = netcontrol_acld_id[id];
 
 	event NetControl::rule_added(r, p, msg);
+	}
+
+event NetControl::acld_rule_exists(id: count, r: Rule, msg: string)
+	{
+	if ( id !in netcontrol_acld_id )
+		{
+		Reporter::error(fmt("NetControl acld plugin with id %d not found, aborting", id));
+		return;
+		}
+
+	local p = netcontrol_acld_id[id];
+
+	event NetControl::rule_exists(r, p, msg);
 	}
 
 event NetControl::acld_rule_removed(id: count, r: Rule, msg: string)
@@ -155,7 +169,7 @@ function rule_to_acl_rule(p: PluginState, r: Rule) : AclRule
 		if ( r$ty == DROP )
 			command = "drop";
 		else if ( r$ty == WHITELIST )
-			command = "whitelist";
+			command = "addwhitelist";
 		arg = cat(e$ip);
 		}
 	else if ( e$ty == FLOW )
@@ -233,7 +247,7 @@ function acld_add_rule_fun(p: PluginState, r: Rule) : bool
 	return T;
 	}
 
-function acld_remove_rule_fun(p: PluginState, r: Rule) : bool
+function acld_remove_rule_fun(p: PluginState, r: Rule, reason: string) : bool
 	{
 	if ( ! acld_check_rule(p, r) )
 		return F;
@@ -243,6 +257,14 @@ function acld_remove_rule_fun(p: PluginState, r: Rule) : bool
 		ar$command = acld_add_to_remove[ar$command];
 	else
 		return F;
+
+	if ( reason != "" )
+		{
+		if ( ar?$comment )
+			ar$comment = fmt("%s (%s)", reason, ar$comment);
+		else
+			ar$comment = reason;
+		}
 
 	Broker::send_event(p$acld_config$acld_topic, Broker::event_args(acld_remove_rule, p$acld_id, r, ar));
 	return T;

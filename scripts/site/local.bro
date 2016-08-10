@@ -8,11 +8,19 @@
 # Apply the default tuning scripts for common tuning settings.
 @load tuning/defaults
 
+# Estimate and log capture loss.
+@load misc/capture-loss
+
+# Enable logging of memory, packet and lag statistics.
+@load misc/stats
+
 # Load the scan detection script.
 @load misc/scan
 
-# Detect traceroute being run on the network.
-@load misc/detect-traceroute
+# Detect traceroute being run on the network. This could possibly cause
+# performance trouble when there are a lot of traceroutes on your network.
+# Enable cautiously.
+#@load misc/detect-traceroute
 
 # Generate notices when vulnerable versions of software are discovered.
 # The default is to only monitor software found in the address space defined

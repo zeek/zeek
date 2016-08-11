@@ -1682,6 +1682,7 @@ bool EnumType::DoUnserialize(UnserialInfo* info)
 			return false;
 
 		names[name] = val;
+		delete [] name; // names[name] converts to std::string
 		}
 
 	return true;

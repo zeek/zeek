@@ -255,6 +255,8 @@ bool ReaderBackend::Init(const int arg_num_fields,
 	if ( Failed() )
 		return true;
 
+	disabled = false;
+
 	SetOSName(Fmt("bro: %s", Name()));
 
 	num_fields = arg_num_fields;
@@ -268,8 +270,6 @@ bool ReaderBackend::Init(const int arg_num_fields,
 		Error("Init failed");
 		DisableFrontend();
 		}
-
-	disabled = !success;
 
 	return success;
 	}

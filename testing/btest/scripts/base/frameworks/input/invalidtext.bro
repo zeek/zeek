@@ -1,6 +1,6 @@
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
 # @TEST-EXEC: btest-bg-wait 10
-# @TEST-EXEC: btest-diff out
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff out
 # @TEST-EXEC: sed 1d .stderr > .stderrwithoutfirstline
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderrwithoutfirstline
 
@@ -57,15 +57,9 @@ event Input::end_of_data(name: string, source:string)
 	{
 	++endcount;
 
-	if ( endcount == 1 )
-		{
-		print outfile, servers;
-		Input::remove("ssh");
-		}
-
 	if ( endcount == 2 )
 		{
-		Input::remove("sshevent");
+		print outfile, servers;
 		terminate();
 		}
 	}

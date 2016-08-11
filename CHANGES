@@ -1,4 +1,26 @@
 
+2.4-921 | 2016-08-10 20:29:48 -0700
+
+  * Add logging framework ext-data mechanism. It is now possible to
+    extend logs by adding new data columns by them - either to specific
+    ones, or globally to all logs. This can, e.g., be used to add node
+    names to all logs. (Seth Hall)
+
+  * Add unrolling separator & field name map to logging framework.
+    One can now use logging separators other than ".", as well as
+    change specific column names in logs. (Seth Hall)
+
+  * Fix memory leak in EnumType. (Johanna Amann)
+
+  * Fix configure warning when compiling with --enable-broker. (Johanna Amann)
+
+  * Add netcontrol-connectors to aux directory. (Johanna Amann)
+
+  * Update Mozilla CA list. (Johanna Amann)
+
+  * update scripts loaded by default in local.bro. Traceroute is now disabled
+    by default, stats and capture-loss enabled by default. (Johanna Amann)
+
 2.4-907 | 2016-08-09 15:42:17 -0400
 
   * Updating NEWS.
@@ -33,9 +55,9 @@
 
 2.4-883 | 2016-08-05 12:57:26 -0400
 
-  * Add a new node type for logging with the cluster framework scripts by 
-    adding a new Bro node type for doing logging (this is intended to 
-    reduce the load on the manager). If a user chooses not to specify a 
+  * Add a new node type for logging with the cluster framework scripts by
+    adding a new Bro node type for doing logging (this is intended to
+    reduce the load on the manager). If a user chooses not to specify a
     logger node in the cluster configuration, then the manager will
     write logs locally as usual. (Daniel Thayer)
 

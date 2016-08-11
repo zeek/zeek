@@ -375,8 +375,10 @@ void File::DeliverStream(const u_char* data, uint64 len)
 
 	while ( (a = analyzers.NextEntry(c)) )
 		{
+		DBG_LOG(DBG_FILE_ANALYSIS, "stream delivery to analyzer %s", file_mgr->GetComponentName(a->Tag()).c_str());
 		if ( ! a->GotStreamDelivery() )
 			{
+			DBG_LOG(DBG_FILE_ANALYSIS, "skipping stream delivery to analyzer %s", file_mgr->GetComponentName(a->Tag()).c_str());
 			int num_bof_chunks_behind = bof_buffer.chunks.size();
 
 			if ( ! bof_was_full )
@@ -465,6 +467,7 @@ void File::DeliverChunk(const u_char* data, uint64 len, uint64 offset)
 
 	while ( (a = analyzers.NextEntry(c)) )
 		{
+		DBG_LOG(DBG_FILE_ANALYSIS, "chunk delivery to analyzer %s", file_mgr->GetComponentName(a->Tag()).c_str());
 		if ( ! a->DeliverChunk(data, len, offset) )
 			{
 			analyzers.QueueRemove(a->Tag(), a->Args());

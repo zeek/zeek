@@ -40,6 +40,13 @@ public:
 	~Component();
 
 	/**
+	 * Initialization function. This function has to be called before any
+	 * plugin component functionality is used; it is used to add the
+	 * plugin component to the list of components and to initialize tags
+	 */
+	void Initialize() override;
+
+	/**
 	 * Returns the writer's factory function.
 	 */
 	factory_callback Factory() const	{ return factory; }
@@ -48,7 +55,7 @@ protected:
 	/**
 	  * Overriden from plugin::Component.
 	  */
-	virtual void DoDescribe(ODesc* d) const;
+	void DoDescribe(ODesc* d) const override;
 
 private:
 	factory_callback factory;

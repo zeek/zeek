@@ -1,4 +1,16 @@
 
+2.4-927 | 2016-08-11 21:49:06 -0700
+
+  * Make component tags generated during component initialization stable.
+    Before, it was dependent on the order a compiler called constructors.
+    This makes a few tests work with gcc. (Johanna Amann)
+
+  * Make x509 intel seen script more robust (Johanna Amann)
+
+  * Input: DisableFrontend was not called upon Init failure. (Johanna Amann)
+
+  * DCE_RPC code simplification. (Seth Hall)
+
 2.4-921 | 2016-08-10 20:29:48 -0700
 
   * Add logging framework ext-data mechanism. It is now possible to

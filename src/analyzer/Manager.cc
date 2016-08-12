@@ -107,7 +107,7 @@ void Manager::DumpDebug()
 		DBG_LOG(DBG_ANALYZER, "    %s (%s)", (*i)->Name().c_str(),
 			IsEnabled((*i)->Tag()) ? "enabled" : "disabled");
 
-	DBG_LOG(DBG_ANALYZER, "");
+	DBG_LOG(DBG_ANALYZER, " ");
 	DBG_LOG(DBG_ANALYZER, "Analyzers by port:");
 
 	for ( analyzer_map_by_port::const_iterator i = analyzers_by_port_tcp.begin(); i != analyzers_by_port_tcp.end(); i++ )

@@ -1909,7 +1909,7 @@ void Manager::SendEvent(EventHandlerPtr ev, list<Val*> events)
 	val_list* vl = new val_list;
 
 #ifdef DEBUG
-	DBG_LOG(DBG_INPUT, "SendEvent with %lu vals (list)",
+	DBG_LOG(DBG_INPUT, "SendEvent with %" PRIuPTR " vals (list)",
 		events.size());
 #endif
 

@@ -4,7 +4,7 @@
 # @TEST-EXEC: sleep 1
 # @TEST-EXEC: btest-bg-run worker-1  "cp ../cluster-layout.bro . && CLUSTER_NODE=worker-1 bro --pseudo-realtime -C -r $TRACES/tls/ecdhe.pcap %INPUT"
 # @TEST-EXEC: btest-bg-run worker-2  "cp ../cluster-layout.bro . && CLUSTER_NODE=worker-2 bro --pseudo-realtime -C -r $TRACES/tls/ecdhe.pcap %INPUT"
-# @TEST-EXEC: btest-bg-wait 15
+# @TEST-EXEC: btest-bg-wait 20
 # @TEST-EXEC: TEST_DIFF_CANONIFIER='grep -v ^# | $SCRIPTS/diff-remove-timestamps' btest-diff manager-1/netcontrol.log
 # @TEST-EXEC: btest-diff manager-1/netcontrol_catch_release.log
 # @TEST-EXEC: btest-diff worker-2/.stdout
@@ -16,6 +16,8 @@ redef Cluster::nodes = {
 	["worker-2"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=37761/tcp, $manager="manager-1", $interface="eth0"],
 };
 @TEST-END-FILE
+
+redef exit_only_after_terminate = T;
 
 redef Log::default_rotation_interval = 0secs;
 
@@ -32,6 +34,7 @@ global peer_count = 0;
 event remote_connection_handshake_done(p: event_peer) &priority=-5
 	{
 	++peer_count;
+	print "remote_connection_handshake_done", peer_count;
 	if ( peer_count == 2 )
 		{
 		event ready_for_data_1();
@@ -48,6 +51,10 @@ event bro_init()
 	suspend_processing();
 	}
 
+event remote_connection_closed(p: event_peer) {
+	print "remote connection closed";
+	terminate();
+}
 @endif
 
 @if ( Cluster::node == "worker-1" )
@@ -80,18 +87,18 @@ event connection_established(c: connection)
 	local id = c$id;
 	local info = NetControl::get_catch_release_info(id$orig_h);
 	print "Info", info;
-	NetControl::drop_address_catch_release(id$orig_h);
+	NetControl::drop_address_catch_release(id$orig_h, cat("connection drop ", Cluster::node));
 	if ( info$current_block_id != "" )
 		{
-		NetControl::unblock_address_catch_release(id$orig_h, "reason here");
+		NetControl::unblock_address_catch_release(id$orig_h, Cluster::node);
 		}
 	}
 
 @if ( Cluster::node == "worker-1" )
 event connection_established(c: connection)
 	{
-	NetControl::drop_address(8.8.8.8, 0.1secs);
-	NetControl::drop_address_catch_release(8.8.8.8);
+	NetControl::drop_address(8.8.8.8, 0.1secs, cat("direct drop ", Cluster::node));
+	NetControl::drop_address_catch_release(8.8.8.8, cat("direct cr ", Cluster::node));
 	}
 @endif
 
@@ -113,12 +120,7 @@ event NetControl::catch_release_block_delete(a: addr)
 	}
 
 event terminate_me() {
-	print "Terminate";
 	terminate();
-}
-
-event remote_connection_closed(p: event_peer) {
-	schedule 1sec { terminate_me() };
 }
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )

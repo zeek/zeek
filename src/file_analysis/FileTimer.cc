@@ -9,7 +9,7 @@ FileTimer::FileTimer(double t, const string& id, double interval)
     : Timer(t + interval, TIMER_FILE_ANALYSIS_INACTIVITY), file_id(id)
 	{
 	DBG_LOG(DBG_FILE_ANALYSIS, "New %f second timeout timer for %s",
-	        file_id.c_str(), interval);
+	        interval, file_id.c_str());
 	}
 
 void FileTimer::Dispatch(double t, int is_expire)

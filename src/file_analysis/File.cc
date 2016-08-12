@@ -533,7 +533,7 @@ void File::EndOfFile()
 
 void File::Gap(uint64 offset, uint64 len)
 	{
-	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Gap of size %" PRIu64 " at offset %," PRIu64,
+	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Gap of size %" PRIu64 " at offset %" PRIu64,
 		id.c_str(), len, offset);
 
 	if ( file_reassembler && ! file_reassembler->IsCurrentlyFlushing() )

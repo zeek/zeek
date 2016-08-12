@@ -441,7 +441,7 @@ void Analyzer::RemoveChildAnalyzer(ID id)
 	LOOP_OVER_CHILDREN(i)
 		if ( (*i)->id == id && ! ((*i)->finished || (*i)->removing) )
 			{
-			DBG_LOG(DBG_ANALYZER, "%s  disabling child %s", GetAnalyzerName(), id,
+			DBG_LOG(DBG_ANALYZER, "%s  disabling child %s",
 					fmt_analyzer(this).c_str(), fmt_analyzer(*i).c_str());
 			// See comment above.
 			(*i)->removing = true;
@@ -638,7 +638,7 @@ void Analyzer::EndOfData(bool is_orig)
 
 void Analyzer::FlipRoles()
 	{
-	DBG_LOG(DBG_ANALYZER, "%s FlipRoles()");
+	DBG_LOG(DBG_ANALYZER, "%s FlipRoles()", fmt_analyzer(this).c_str());
 
 	LOOP_OVER_CHILDREN(i)
 		(*i)->FlipRoles();

@@ -250,7 +250,7 @@ struct ping_args {
 };
 
 #ifdef DEBUG
-# define DEBUG_COMM(msg) DBG_LOG(DBG_COMM, msg)
+# define DEBUG_COMM(msg) DBG_LOG(DBG_COMM, "%s", msg)
 #else
 # define DEBUG_COMM(msg)
 #endif

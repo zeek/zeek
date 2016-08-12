@@ -1853,7 +1853,7 @@ bool Manager::SendEvent(ReaderFrontend* reader, const string& name, const int nu
 		}
 
 #ifdef DEBUG
-	DBG_LOG(DBG_INPUT, "SendEvent for event %s with num_vals vals",
+	DBG_LOG(DBG_INPUT, "SendEvent for event %s with %d vals",
 		name.c_str(), num_vals);
 #endif
 
@@ -1909,7 +1909,7 @@ void Manager::SendEvent(EventHandlerPtr ev, list<Val*> events)
 	val_list* vl = new val_list;
 
 #ifdef DEBUG
-	DBG_LOG(DBG_INPUT, "SendEvent with %d vals (list)",
+	DBG_LOG(DBG_INPUT, "SendEvent with %lu vals (list)",
 		events.size());
 #endif
 

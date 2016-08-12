@@ -1,5 +1,5 @@
 # @TEST-EXEC: btest-bg-run broproc bro %INPUT
-# @TEST-EXEC: btest-bg-wait -k 7
+# @TEST-EXEC: btest-bg-wait -k 21
 # @TEST-EXEC: cat broproc/intel.log > output
 # @TEST-EXEC: cat broproc/.stdout >> output
 # @TEST-EXEC: btest-diff output
@@ -14,8 +14,8 @@
 
 redef Intel::read_files += { "../intel.dat" };
 redef enum Intel::Where += { SOMEWHERE };
-redef Intel::item_expiration = 3sec;
-redef table_expire_interval = 1sec;
+redef Intel::item_expiration = 9sec;
+redef table_expire_interval = 3sec;
 
 global runs = 0;
 event do_it()
@@ -26,7 +26,7 @@ event do_it()
 
 	++runs;
 	if ( runs < 6 )
-		schedule 1sec { do_it() };
+		schedule 3sec { do_it() };
 	}
 
 event Intel::match(s: Intel::Seen, items: set[Intel::Item])
@@ -42,5 +42,5 @@ hook Intel::item_expired(indicator: string, indicator_type: Intel::Type,
 
 event bro_init() &priority=-10
 	{
-	schedule 1sec { do_it() };
+	schedule 1.5sec { do_it() };
 	}

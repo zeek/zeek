@@ -1,6 +1,8 @@
 #ifndef PLUGIN_TAGGED_COMPONENT_H
 #define PLUGIN_TAGGED_COMPONENT_H
 
+#include <assert.h>
+
 namespace plugin {
 
 /**

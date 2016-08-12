@@ -23,6 +23,8 @@ public:
 	 */
 	TaggedComponent(typename T::subtype_t subtype = 0);
 
+	void InitializeTag();
+
 	/**
 	 * @return The component's tag.
 	 */
@@ -30,6 +32,8 @@ public:
 
 private:
 	T tag; /**< The automatically assigned analyzer tag. */
+	typename T::subtype_t subtype;
+	bool initialized;
 	static typename T::type_t type_counter; /**< Used to generate globally
 	                                             unique tags. */
 };
@@ -37,12 +41,23 @@ private:
 template <class T>
 TaggedComponent<T>::TaggedComponent(typename T::subtype_t subtype)
 	{
+	tag = T(1,0);
+	this->subtype = subtype;
+	initialized = false;
+	}
+
+template <class T>
+void TaggedComponent<T>::InitializeTag()
+	{
+	assert( initialized == false );
+	initialized = true;
 	tag = T(++type_counter, subtype);
 	}
 
 template <class T>
 T TaggedComponent<T>::Tag() const
 	{
+	assert( initialized );
 	return tag;
 	}
 

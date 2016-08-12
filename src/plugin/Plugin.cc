@@ -327,6 +327,12 @@ void Plugin::MetaHookPost(HookType hook, const HookArgumentList& args, HookArgum
 	{
 	}
 
+void Plugin::InitializeComponents()
+	{
+	for ( component_list::const_iterator i = components.begin(); i != components.end(); i++ )
+		(*i)->Initialize();
+	}
+
 void Plugin::Describe(ODesc* d) const
 	{
 	d->Add(config.name);

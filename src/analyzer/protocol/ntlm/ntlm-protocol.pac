@@ -1,4 +1,9 @@
 
+function min(v1: uint32, v2: uint32): uint32
+	%{
+	return v1 < v2 ? v1 : v2;
+	%}
+
 type NTLM_SSP_Token(is_orig: bool) = record {
 	signature   : bytestring &length=8;
 	msg_type    : uint32;
@@ -14,13 +19,10 @@ type NTLM_Negotiate(offset: uint16) = record {
 	flags               : NTLM_Negotiate_Flags;
 	domain_name_fields  : NTLM_StringData;
 	workstation_fields  : NTLM_StringData;
-	version_present     : case flags.negotiate_version of {
-		true  -> version    : NTLM_Version;
-		false -> no_version : empty;
-	};
 	payload             : bytestring &restofdata;
 } &let {
 	absolute_offset : uint16 = offsetof(payload) + offset;
+	version         : NTLM_Version withinput payload &if(flags.negotiate_version && (absolute_offset < min(domain_name_fields.offset, workstation_fields.offset)));
 	domain_name     : NTLM_String(domain_name_fields, absolute_offset, flags.negotiate_unicode) withinput payload &if(flags.negotiate_oem_domain_supplied);
 	workstation     : NTLM_String(workstation_fields, absolute_offset, flags.negotiate_unicode) withinput payload &if(flags.negotiate_oem_workstation_supplied);
 };
@@ -31,13 +33,10 @@ type NTLM_Challenge(offset: uint16) = record {
 	challenge           : uint64;
 	reserved            : padding[8];
 	target_info_fields  : NTLM_StringData;
-	version_present     : case flags.negotiate_version of {
-		true  -> version    : NTLM_Version;
-		false -> no_version : empty;
-	};
 	payload             : bytestring &restofdata;
 } &let {
 	absolute_offset : uint16 = offsetof(payload) + offset;
+	version         : NTLM_Version withinput payload &if(flags.negotiate_version && (absolute_offset < min(target_name_fields.offset, target_info_fields.offset)));
 	target_name     : NTLM_String(target_name_fields, absolute_offset, flags.negotiate_unicode) withinput payload &if(flags.request_target);
 	target_info     : NTLM_AV_Pair_Sequence(target_info_fields.offset - absolute_offset) withinput payload &if(flags.negotiate_target_info);
 };
@@ -50,10 +49,6 @@ type NTLM_Authenticate(offset: uint16) = record {
 	workstation_fields           : NTLM_StringData;
 	encrypted_session_key_fields : NTLM_StringData;
 	flags                        : NTLM_Negotiate_Flags;
-	version_present              : case flags.negotiate_version of {
-		true  -> version    : NTLM_Version;
-		false -> no_version : empty;
-	};
 
 #   Windows NT, 2000, XP, and 2003 don't have the MIC field
 #	TODO - figure out how to parse this for those that do have it
@@ -62,6 +57,7 @@ type NTLM_Authenticate(offset: uint16) = record {
 	payload                     : bytestring &restofdata;
 } &let {
 	absolute_offset       : uint16 = offsetof(payload) + offset;
+	version               : NTLM_Version withinput payload &if(flags.negotiate_version && (absolute_offset < min(min(min(domain_name_fields.offset, user_name_fields.offset), workstation_fields.offset), encrypted_session_key_fields.offset)));
 	domain_name           : NTLM_String(domain_name_fields, absolute_offset, flags.negotiate_unicode) withinput payload &if(domain_name_fields.length > 0);
 	user_name             : NTLM_String(user_name_fields, absolute_offset, flags.negotiate_unicode) withinput payload &if(user_name_fields.length > 0);
 	workstation           : NTLM_String(workstation_fields, absolute_offset , flags.negotiate_unicode) withinput payload &if(workstation_fields.length > 0);

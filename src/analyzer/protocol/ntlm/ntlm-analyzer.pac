@@ -97,13 +97,13 @@ refine connection NTLM_Conn += {
 		RecordVal* result = new RecordVal(BifType::Record::NTLM::Negotiate);
 		result->Assign(0, build_negotiate_flag_record(${val.flags}));
 
-		if ( ${val.flags.negotiate_oem_domain_supplied} )
+		if ( ${val}->has_domain_name() )
 		        result->Assign(1, utf16_bytestring_to_utf8_val(${val.domain_name.string.data}));
 
-		if ( ${val.flags.negotiate_oem_workstation_supplied} )
+		if ( ${val}->has_workstation() )
 		        result->Assign(2, utf16_bytestring_to_utf8_val(${val.workstation.string.data}));
 
-		if ( ${val.flags.negotiate_version} )
+		if ( ${val}->has_version() )
 		        result->Assign(3, build_version_record(${val.version}));
 
 		BifEvent::generate_ntlm_negotiate(bro_analyzer(),
@@ -118,13 +118,13 @@ refine connection NTLM_Conn += {
 		RecordVal* result = new RecordVal(BifType::Record::NTLM::Challenge);
 		result->Assign(0, build_negotiate_flag_record(${val.flags}));
 
-		if ( ${val.flags.request_target} )
+		if ( ${val}->has_target_name() )
 			result->Assign(1, utf16_bytestring_to_utf8_val(${val.target_name.string.data}));
 
-		if ( ${val.flags.negotiate_version} )
+		if ( ${val}->has_version() )
 			result->Assign(2, build_version_record(${val.version}));
 
-		if ( ${val.flags.negotiate_target_info} )
+		if ( ${val}->has_target_info() )
 			result->Assign(3, build_av_record(${val.target_info}));
 
 		BifEvent::generate_ntlm_challenge(bro_analyzer(),
@@ -139,16 +139,16 @@ refine connection NTLM_Conn += {
 		RecordVal* result = new RecordVal(BifType::Record::NTLM::Authenticate);
 		result->Assign(0, build_negotiate_flag_record(${val.flags}));
 
-		if ( ${val.domain_name_fields.length} > 0 )
+		if ( ${val}->has_domain_name() > 0 )
 			result->Assign(1, utf16_bytestring_to_utf8_val(${val.domain_name.string.data}));
 
-		if ( ${val.user_name_fields.length} > 0 )
+		if ( ${val}->has_user_name() > 0 )
 			result->Assign(2, utf16_bytestring_to_utf8_val(${val.user_name.string.data}));
 
-		if ( ${val.workstation_fields.length} > 0 )
+		if ( ${val}->has_workstation() > 0 )
 			result->Assign(3, utf16_bytestring_to_utf8_val(${val.workstation.string.data}));
 
-		if ( ${val.flags.negotiate_version} )
+		if ( ${val}->has_version() )
 			result->Assign(4, build_version_record(${val.version}));
 
 		BifEvent::generate_ntlm_authenticate(bro_analyzer(),

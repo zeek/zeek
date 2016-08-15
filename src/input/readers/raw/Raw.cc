@@ -526,7 +526,7 @@ void Raw::WriteToStdin()
 
 	if ( errno != 0 && errno != EAGAIN && errno != EWOULDBLOCK )
 		{
-		Error(Fmt("Writing to child process stdin failed: %d. Stopping writing at position %d", errno, pos));
+		Error(Fmt("Writing to child process stdin failed: %d. Stopping writing at position %" PRIu64, errno, pos));
 		stdin_towrite = 0;
 		}
 

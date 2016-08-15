@@ -221,7 +221,7 @@ void Reporter::WeirdFlowHelper(const IPAddr& orig, const IPAddr& resp, const cha
 
 void Reporter::Weird(const char* name)
 	{
-	WeirdHelper(net_weird, 0, 0, name);
+	WeirdHelper(net_weird, 0, 0, "%s", name);
 	}
 
 void Reporter::Weird(Connection* conn, const char* name, const char* addl)

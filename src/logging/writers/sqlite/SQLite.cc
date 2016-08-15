@@ -174,7 +174,7 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields,
 		string type = GetTableType(field->type, field->subtype);
 		if ( type == "" )
 			{
-			InternalError(Fmt("Could not determine type for field %lu:%s", i, fieldname));
+			InternalError(Fmt("Could not determine type for field %u:%s", i, fieldname));
 			return false;
 			}
 

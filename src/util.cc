@@ -949,11 +949,9 @@ const std::string& bro_path()
 	if ( bro_path_value.empty() )
 		{
 		const char* path = getenv("BROPATH");
+
 		if ( ! path )
-			path = ".:"
-			BRO_SCRIPT_INSTALL_PATH ":"
-			BRO_SCRIPT_INSTALL_PATH "/policy" ":"
-			BRO_SCRIPT_INSTALL_PATH "/site";
+			path = DEFAULT_BROPATH;
 
 		bro_path_value = path;
 		}

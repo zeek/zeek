@@ -124,7 +124,7 @@ bool JSON::Describe(ODesc* desc, Value* val, const string& name) const
 				if ( ! gmtime_r(&the_time, &t) ||
 				     ! strftime(buffer, sizeof(buffer), "%Y-%m-%dT%H:%M:%S", &t) )
 					{
-					GetThread()->Error(GetThread()->Fmt("json formatter: failure getting time: (%" PRIu64 ")", val->val.double_val));
+					GetThread()->Error(GetThread()->Fmt("json formatter: failure getting time: (%lf)", val->val.double_val));
 					// This was a failure, doesn't really matter what gets put here
 					// but it should probably stand out...
 					desc->Add("2000-01-01T00:00:00.000000");

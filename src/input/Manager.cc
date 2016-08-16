@@ -1841,6 +1841,7 @@ bool Manager::SendEvent(ReaderFrontend* reader, const string& name, const int nu
 	if ( i == 0 )
 		{
 		reporter->InternalWarning("Unknown reader %s in SendEvent for event %s", reader->Name(), name.c_str());
+		delete_value_ptr_array(vals, num_vals);
 		return false;
 		}
 

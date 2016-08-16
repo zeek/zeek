@@ -597,7 +597,7 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 	filter->num_ext_fields = 0;
 	if ( filter->ext_func )
 		{
-		if ( filter->ext_func->FType()->YieldType()->Tag() == TYPE_RECORD ) 
+		if ( filter->ext_func->FType()->YieldType()->Tag() == TYPE_RECORD )
 			{
 			filter->num_ext_fields = filter->ext_func->FType()->YieldType()->AsRecordType()->NumFields();
 			}
@@ -609,6 +609,7 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 		else
 			{
 			reporter->Error("Return value of log_ext is not a record (got %s)", type_name(filter->ext_func->FType()->YieldType()->Tag()));
+			delete filter;
 			return false;
 			}
 		}

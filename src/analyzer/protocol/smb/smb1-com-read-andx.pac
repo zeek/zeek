@@ -66,9 +66,11 @@ type SMB1_read_andx_request(header: SMB_Header, offset: uint16) = record {
 
 	andx_command   : SMB_andx_command(header, 1, offset+offsetof(andx_command), andx.command);
 } &let {
+  offset_high_64 : uint64 = offset_high;
 	offset_high : uint32 = (word_count == 0x0C && offset_high_tmp != 0xffffffff) ? offset_high_tmp : 0;
-	read_offset : uint64 = (offset_high * 0x10000) + offset_low;
-	max_count   : uint64 = ((max_count_high == 0xffffffff ? 0 : max_count_high) * 0x10000) + max_count_low;
+	read_offset : uint64 = ( offset_high_64 * 0x10000) + offset_low &requires(offset_high_64);
+	max_count_high_64 : uint64 = max_count_high == 0xffffffff ? 0 : max_count_high;
+	max_count   : uint64 = ( max_count_high_64 * 0x10000) + max_count_low &requires(max_count_high_64);
 	proc        : bool   = $context.connection.proc_smb1_read_andx_request(header, this);
 } &byteorder=littleendian;
 

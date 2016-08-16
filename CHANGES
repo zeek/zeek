@@ -1,4 +1,10 @@
 
+2.4-947 | 2016-08-16 12:10:02 -0700
+
+  * Fix issues with handling of indermediate sumstats updates. (Justin Azoff)
+
+  * Address coverity errors. (Johanna Amann)
+
 2.4-943 | 2016-08-15 17:03:14 -0700
 
   * Add 'bro-config' script. (Jon Siwek)

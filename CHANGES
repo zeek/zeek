@@ -1,4 +1,18 @@
 
+2.4-943 | 2016-08-15 17:03:14 -0700
+
+  * Add 'bro-config' script. (Jon Siwek)
+
+  * add certificate to external list for debian 8 to fix test. (Johanna Amann)
+
+  * KRB: fix field value missing error for msg$client_name. (Johanna Amann)
+
+  * Tiny SMB cleanup in pipe handling as well as NTLM fixes. (Seth Hall).
+
+  * Fix a number of format specifier errors. (Johanna Amann)
+
+  * Make several tests more stable. (Johanna Amann)
+
 2.4-927 | 2016-08-11 21:49:06 -0700
 
   * Make component tags generated during component initialization stable.

@@ -146,6 +146,9 @@ New Functionality
   renaming of column names, as well as extension data columns that can
   be added to specific or all logfiles (e.g., to add noew names).
 
+- The new "bro-config" script can be used to determine the Bro installation
+  paths.
+
 - New BroControl functionality in aux/broctl:
 
   - There is a new node type "logger" that can be specified in
@@ -190,28 +193,32 @@ Changed Functionality
 - Log changes:
 
     - Connections
-      * The 'history' field gains two new flags: '^' indicates that
+
+        The 'history' field gains two new flags: '^' indicates that
         Bro heuristically flipped to direction of the connection.
         't/T' indicates the first TCP payload retransmission from
         originator or responder, respectively.
 
     - DNS
-      * New 'rtt' field to indicate the round trip time between when a
+
+        New 'rtt' field to indicate the round trip time between when a
         request was sent and when a reply started.
 
     - SMTP
-      * New 'cc' field which includes the 'Cc' header from MIME
+
+        New 'cc' field which includes the 'Cc' header from MIME
         messages sent over SMTP.
 
-      * Changes in 'mailfrom' and 'rcptto' fields to remove some
+        Changes in 'mailfrom' and 'rcptto' fields to remove some
         non-address cruft that will tend to be found.  The main
         example is the change from "<user@domain>" to
         "user@domain.com".
 
     - HTTP
-      * Removed 'filename' field.
 
-      * New 'orig_filenames' and 'resp_filenames' fields which each
+        Removed 'filename' field.
+
+        New 'orig_filenames' and 'resp_filenames' fields which each
         contain a vector of filenames seen in entities transferred.
 
 - The BrokerComm and BrokerStore namespaces were renamed to Broker.
@@ -288,7 +295,7 @@ Removed Functionality
     - The command line options --set-seed and --md5-hashkey have been
       removed.
 
-    - The packaging scripts pkg/make-*-packages are gone. They aren't
+    - The packaging scripts pkg/make-\*-packages are gone. They aren't
       used anymore for the binary Bro packages that the projects
       distributes; haven't been supported in a while; and have
       problems.

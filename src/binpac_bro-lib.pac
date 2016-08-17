@@ -11,7 +11,7 @@ function network_time(): double
 	return ::network_time;
 	%}
 
-function utf16_bytestring_to_utf8_val(utf16: bytestring): StringVal
+function utf16_bytestring_to_utf8_val(conn: Connection, utf16: bytestring): StringVal
 	%{
 	std::string resultstring;
 
@@ -46,7 +46,7 @@ function utf16_bytestring_to_utf8_val(utf16: bytestring): StringVal
 	                                          lenientConversion);
 	if ( res != conversionOK )
 		{
-		reporter->Info("utf16 conversion failed in utf16_bytestring_to_utf8_val");
+		reporter->Weird(conn, "utf16_conversion_failed", "utf16 conversion failed in utf16_bytestring_to_utf8_val");
 		// If the conversion didn't go well, return the original data.
 		return bytestring_to_val(utf16);
 		}

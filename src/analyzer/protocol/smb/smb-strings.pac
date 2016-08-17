@@ -1,48 +1,3 @@
-function uint8s_to_stringval(data: uint8[]): StringVal
-	%{
-	int length = data->size();
-	uint8 buf[length];
-
-	for ( int i = 0; i < length; ++i)
-		buf[i] = (*data)[i];
-
-	const bytestring bs = bytestring(buf, length);
-	return utf16_bytestring_to_utf8_val(bs);
-	%}
-
-function extract_string(s: SMB_string) : StringVal
-	%{
-	if ( s->unicode() == false )
-		{
-		int length = s->a()->size();
-		char buf[length];
-
-		for ( int i = 0; i < length; i++)
-			{
-			unsigned char t = (*(s->a()))[i];
-			buf[i] = t;
-			}
-
-		if ( length > 0 && buf[length-1] == 0x00 )
-			length--;
-
-		return new StringVal(length, buf);
-		}
-	else
-		{
-		return uint8s_to_stringval(s->u()->s());
-		}
-	%}
-
-function smb_string2stringval(s: SMB_string) : StringVal
-	%{
-	return extract_string(s);
-	%}
-
-function smb2_string2stringval(s: SMB2_string) : StringVal
-	%{
-	return uint8s_to_stringval(s->s());
-	%}
 
 refine connection SMB_Conn += {
 	%member{
@@ -67,6 +22,52 @@ refine connection SMB_Conn += {
 			}
 		else
 			return 0xFF;
+		%}
+
+	function uint8s_to_stringval(data: uint8[]): StringVal
+		%{
+		int length = data->size();
+		uint8 buf[length];
+
+		for ( int i = 0; i < length; ++i)
+			buf[i] = (*data)[i];
+
+		const bytestring bs = bytestring(buf, length);
+		return utf16_bytestring_to_utf8_val(bro_analyzer()->Conn(), bs);
+		%}
+
+	function extract_string(s: SMB_string) : StringVal
+		%{
+		if ( s->unicode() == false )
+			{
+			int length = s->a()->size();
+			char buf[length];
+
+			for ( int i = 0; i < length; i++)
+				{
+				unsigned char t = (*(s->a()))[i];
+				buf[i] = t;
+				}
+
+			if ( length > 0 && buf[length-1] == 0x00 )
+				length--;
+
+			return new StringVal(length, buf);
+			}
+		else
+			{
+			return uint8s_to_stringval(s->u()->s());
+			}
+		%}
+
+	function smb_string2stringval(s: SMB_string) : StringVal
+		%{
+		return extract_string(s);
+		%}
+
+	function smb2_string2stringval(s: SMB2_string) : StringVal
+		%{
+		return uint8s_to_stringval(s->s());
 		%}
 };
 

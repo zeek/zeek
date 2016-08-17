@@ -80,18 +80,18 @@ refine flow RDP_Flow += {
 			ccd->Assign(5, new Val(${ccore.sas_sequence}, TYPE_COUNT));
 			ccd->Assign(6, new Val(${ccore.keyboard_layout}, TYPE_COUNT));
 			ccd->Assign(7, new Val(${ccore.client_build}, TYPE_COUNT));
-			ccd->Assign(8, utf16_bytestring_to_utf8_val(${ccore.client_name}));
+			ccd->Assign(8, utf16_bytestring_to_utf8_val(connection()->bro_analyzer()->Conn(), ${ccore.client_name}));
 			ccd->Assign(9, new Val(${ccore.keyboard_type}, TYPE_COUNT));
 			ccd->Assign(10, new Val(${ccore.keyboard_sub}, TYPE_COUNT));
 			ccd->Assign(11, new Val(${ccore.keyboard_function_key}, TYPE_COUNT));
-			ccd->Assign(12, utf16_bytestring_to_utf8_val(${ccore.ime_file_name}));
+			ccd->Assign(12, utf16_bytestring_to_utf8_val(connection()->bro_analyzer()->Conn(), ${ccore.ime_file_name}));
 			ccd->Assign(13, new Val(${ccore.post_beta2_color_depth}, TYPE_COUNT));
 			ccd->Assign(14, new Val(${ccore.client_product_id}, TYPE_COUNT));
 			ccd->Assign(15, new Val(${ccore.serial_number}, TYPE_COUNT));
 			ccd->Assign(16, new Val(${ccore.high_color_depth}, TYPE_COUNT));
 			ccd->Assign(17, new Val(${ccore.supported_color_depths}, TYPE_COUNT));
 			ccd->Assign(18, ec_flags);
-			ccd->Assign(19, utf16_bytestring_to_utf8_val(${ccore.dig_product_id}));
+			ccd->Assign(19, utf16_bytestring_to_utf8_val(connection()->bro_analyzer()->Conn(), ${ccore.dig_product_id}));
 
 			BifEvent::generate_rdp_client_core_data(connection()->bro_analyzer(),
 			                                        connection()->bro_analyzer()->Conn(),

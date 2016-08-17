@@ -29,6 +29,7 @@ function utf16_bytestring_to_utf8_val(utf16: bytestring): StringVal
 	// We can't assume that the string data is properly aligned
 	// here, so make a copy.
 	UTF16 utf16_copy[utf16.length()]; // Twice as much memory than necessary.
+	memset(utf16_copy, 0, sizeof(utf16_copy)); // needs to be set to 0, otherwhise we have uninitialized memory issues when utf16.length is odd.
 	memcpy(utf16_copy, utf16.begin(), utf16.length());
 
 	const char* utf16_copy_end = reinterpret_cast<const char*>(utf16_copy) + utf16.length();

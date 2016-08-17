@@ -1,4 +1,16 @@
 
+2.5-beta | 2016-08-17 09:25:49 -0700
+
+  * Release 2.5-beta.
+
+  * Fix sphinx build errors (Johanna Amann)
+
+  * Change failure in utf16_bytestring_to_utf8_val to be a conn weird. (Seth Hall)
+
+  * Fix test failure caused by uninitialized memory. (Johanna Amann)
+
+  * SMB: fix rounding error due to value truncation when converting timestamps. (Johanna Amann)
+
 2.4-947 | 2016-08-16 12:10:02 -0700
 
   * Fix issues with handling of indermediate sumstats updates. (Justin Azoff)

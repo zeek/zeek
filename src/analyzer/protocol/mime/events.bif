@@ -107,7 +107,8 @@ event mime_all_headers%(c: connection, hlist: mime_header_list%);
 event mime_segment_data%(c: connection, length: count, data: string%);
 
 ## Generated for data decoded from an email MIME entity. This event delivers
-## the complete content of a single MIME entity. In contrast, there is also
+## the complete content of a single MIME entity with the quoted-printable and 
+## and base64 data decoded. In contrast, there is also
 ## :bro:id:`mime_segment_data`, which passes on a sequence of data chunks as
 ## they come in. While ``mime_entity_data`` is more convenient to handle,
 ## ``mime_segment_data`` is more efficient as Bro does not need to buffer the

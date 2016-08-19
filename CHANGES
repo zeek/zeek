@@ -1,4 +1,14 @@
 
+2.5-beta-6 | 2016-08-19 07:50:10 -0700
+
+  * Clarify explanation of mime_entity_data event. (Moshe Kaplan)
+
+  * Update NEWS, correcting typos formatting and adding more
+    information. (Daniel Thayer)
+
+  * Remove old ack_above_hole event from scripts.
+    Fixes BIT-1673. (Johanna Amann)
+
 2.5-beta | 2016-08-17 10:37:49 -0700
 
   * Release 2.5-beta.

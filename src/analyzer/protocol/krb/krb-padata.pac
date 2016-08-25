@@ -236,11 +236,20 @@ type KRB_PA_PK_AS_Rep = record {
 };
 
 type KRB_PA_ENCTYPE_INFO = record {
-	some_meta1 : ASN1EncodingMeta;
-	some_meta2 : ASN1EncodingMeta;
+	some_meta1  : ASN1EncodingMeta;
+	some_meta2  : ASN1EncodingMeta;
 	seq_meta1   : ASN1EncodingMeta;
 	etype       : ASN1Encoding;
-	seq_meta2   : ASN1EncodingMeta;
-	string_meta : ASN1EncodingMeta;
-	salt        : bytestring &length=string_meta.length;
+  optional_seq_meta2: case has_string of {
+  	true  -> seq_meta2: ASN1EncodingMeta;
+    false -> nil1: empty;
+  };
+  optional_string_meta: case has_string of {
+  	true  -> string_meta: ASN1EncodingMeta;
+    false -> nil2: empty;
+  };
+  salt: bytestring &length=salt_length;
+} &let {
+  has_string: bool = (some_meta2.length > 7);
+  salt_length: uint32 = has_string ? string_meta.length : 0;
 };

@@ -105,7 +105,6 @@ public:
 
 	void Describe(ODesc* d) const;
 	void Dump(FILE* f);
-	void DumpStats(FILE* f);
 
 	unsigned int MemoryAllocation() const
 		{ return padded_sizeof(*this) + first_state->TotalMemoryAllocation(); }

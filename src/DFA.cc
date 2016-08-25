@@ -346,6 +346,7 @@ DFA_State* DFA_State_Cache::Lookup(const NFA_state_list& nfas,
 		++misses;
 		return 0;
 		}
+	++hits;
 
 	delete *hash;
 	*hash = 0;
@@ -431,19 +432,6 @@ void DFA_Machine::Dump(FILE* f)
 	{
 	start_state->Dump(f, this);
 	start_state->ClearMarks();
-	}
-
-void DFA_Machine::DumpStats(FILE* f)
-	{
-	DFA_State_Cache::Stats stats;
-	dfa_state_cache->GetStats(&stats);
-
-	fprintf(f, "Computed dfa_states = %d; Classes = %d; Computed trans. = %d; Uncomputed trans. = %d\n",
-		stats.dfa_states, EC()->NumClasses(),
-		stats.computed, stats.uncomputed);
-
-	fprintf(f, "DFA cache hits = %d; misses = %d\n",
-		stats.hits, stats.misses);
 	}
 
 unsigned int DFA_Machine::MemoryAllocation() const

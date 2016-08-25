@@ -10,6 +10,8 @@ global myhook: hook(r: rec);
 global myhook2: hook(s: string);
 # a hook doesn't have to take any arguments
 global myhook4: hook();
+global myhook5: hook(s: string);
+global myhook6: hook(s: string);
 
 hook myhook(r: rec) &priority=5
 	{
@@ -72,6 +74,23 @@ hook myhook4() &priority=2
 	print "myhook4", 2;
 	}
 
+hook myhook5(s: string)
+	{
+	print "myhook5", s;
+	}
+
+hook myhook6(s: string)
+	{
+	print "myhook6", s;
+	break;
+	}
+
+function printMe(s: string): bool
+	{
+	print s;
+	return T;
+	}
+
 event bro_init()
 	{
 	print hook myhook([$a=1156, $b="hello world"]);
@@ -90,4 +109,10 @@ event bro_init()
 	# invoked directly by name.
 	local h = myhook;
 	print hook h([$a=2, $b="it works"]);
+
+	if ( hook myhook5("test") && printMe("second part ran") )
+		print "myhook5 ran";
+
+	if ( ( hook myhook6("test") ) && printMe("second part ran") )
+		print "myhook6 ran";
 	}

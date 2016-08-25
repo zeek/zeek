@@ -1,0 +1,15 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	netcontrol_catch_release
+#open	2016-05-31-18-51-29
+#fields	ts	rule_id	ip	action	block_interval	watch_interval	blocked_until	watched_until	num_blocked	location	message
+#types	time	string	addr	enum	interval	interval	time	time	count	string	string
+1398529018.678276	2	192.168.18.50	NetControl::ADDED	600.000000	3600.000000	-	1398532618.678276	1	test drop	Address already blocked outside of catch-and-release. Catch and release will monitor and only actively block if it appears in network traffic.
+1398529018.678276	2	192.168.18.50	NetControl::DROPPED	600.000000	3600.000000	-	1398532618.678276	1	test drop	-
+1398529018.678276	3	192.168.18.50	NetControl::SEEN_AGAIN	3600.000000	86400.000000	1398532618.678276	1398615418.678276	2	test drop	-
+1398529018.678276	3	192.168.18.50	NetControl::DROPPED	3600.000000	86400.000000	1398532618.678276	1398615418.678276	2	test drop	-
+1398529018.678276	4	192.168.18.50	NetControl::SEEN_AGAIN	86400.000000	604800.000000	1398615418.678276	1399133818.678276	3	test drop	-
+1398529018.678276	4	192.168.18.50	NetControl::DROPPED	86400.000000	604800.000000	1398615418.678276	1399133818.678276	3	test drop	-
+#close	2016-05-31-18-51-29

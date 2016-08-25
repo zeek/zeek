@@ -26,14 +26,7 @@
 
 using namespace std;
 
-RecordType* net_stats;
-RecordType* bro_resources;
-RecordType* matcher_stats;
 TableType* var_sizes;
-
-// This one is extern, since it's used beyond just built-ins,
-// and hence it's declared in NetVar.{h,cc}.
-extern RecordType* gap_info;
 
 static iosource::PktDumper* addl_pkt_dumper = 0;
 
@@ -145,12 +138,17 @@ static void do_fmt(const char*& fmt, Val* v, ODesc* d)
 			}
 
 		time_t time = time_t(v->InternalDouble());
+		struct tm t;
+
 		int is_time_fmt = *fmt == 'T';
+
+		if ( ! localtime_r(&time, &t) )
+			s.AddSP("<problem getting time>");
 
 		if ( ! strftime(out_buf, sizeof(out_buf),
 				is_time_fmt ?
 					"%Y-%m-%d-%H:%M" : "%Y-%m-%d-%H:%M:%S",
-				localtime(&time)) )
+				&t) )
 			s.AddSP("<bad time>");
 
 		else
@@ -1480,8 +1478,6 @@ function cat_sep%(sep: string, def: string, ...%): string
 ##
 ##    - ``.``: Precision of floating point specifiers ``[efg]`` (< 128)
 ##
-##    - ``A``: Escape only NUL bytes (each one replaced with ``\0``) in a string
-##
 ##    - ``[DTdxsefg]``: Format specifier
 ##
 ##        - ``[DT]``: ISO timestamp with microsecond precision
@@ -1727,156 +1723,6 @@ function reading_traces%(%): bool
 	return new Val(reading_traces, TYPE_BOOL);
 	%}
 
-## Returns packet capture statistics. Statistics include the number of
-## packets *(i)* received by Bro, *(ii)* dropped, and *(iii)* seen on the
-## link (not always available).
-##
-## Returns: A record of packet statistics.
-##
-## .. bro:see:: do_profiling
-##              resource_usage
-##              get_matcher_stats
-##              dump_rule_stats
-##              get_gap_summary
-function net_stats%(%): NetStats
-	%{
-	unsigned int recv = 0;
-	unsigned int drop = 0;
-	unsigned int link = 0;
-	unsigned int bytes_recv = 0;
-
-	const iosource::Manager::PktSrcList& pkt_srcs(iosource_mgr->GetPktSrcs());
-
-	for ( iosource::Manager::PktSrcList::const_iterator i = pkt_srcs.begin();
-	      i != pkt_srcs.end(); i++ )
-		{
-		iosource::PktSrc* ps = *i;
-
-		struct iosource::PktSrc::Stats stat;
-		ps->Statistics(&stat);
-		recv += stat.received;
-		drop += stat.dropped;
-		link += stat.link;
-		bytes_recv += stat.bytes_received;
-		}
-
-	RecordVal* ns = new RecordVal(net_stats);
-	ns->Assign(0, new Val(recv, TYPE_COUNT));
-	ns->Assign(1, new Val(drop, TYPE_COUNT));
-	ns->Assign(2, new Val(link, TYPE_COUNT));
-	ns->Assign(3, new Val(bytes_recv, TYPE_COUNT));
-
-	return ns;
-	%}
-
-## Returns Bro process statistics. Statistics include real/user/sys CPU time,
-## memory usage, page faults, number of TCP/UDP/ICMP connections, timers,
-## and events queued/dispatched.
-##
-## Returns: A record with resource usage statistics.
-##
-## .. bro:see:: do_profiling
-##              net_stats
-##              get_matcher_stats
-##              dump_rule_stats
-##              get_gap_summary
-function resource_usage%(%): bro_resources
-	%{
-	struct rusage r;
-
-	if ( getrusage(RUSAGE_SELF, &r) < 0 )
-		reporter->InternalError("getrusage() failed in bro_resource_usage()");
-
-	double elapsed_time = current_time() - bro_start_time;
-
-	double user_time =
-		double(r.ru_utime.tv_sec) + double(r.ru_utime.tv_usec) / 1e6;
-	double system_time =
-		double(r.ru_stime.tv_sec) + double(r.ru_stime.tv_usec) / 1e6;
-
-	RecordVal* res = new RecordVal(bro_resources);
-	int n = 0;
-
-	res->Assign(n++, new StringVal(bro_version()));
-
-#ifdef DEBUG
-	res->Assign(n++, new Val(1, TYPE_COUNT));
-#else
-	res->Assign(n++, new Val(0, TYPE_COUNT));
-#endif
-
-	res->Assign(n++, new Val(bro_start_time, TYPE_TIME));
-
-	res->Assign(n++, new IntervalVal(elapsed_time, Seconds));
-	res->Assign(n++, new IntervalVal(user_time, Seconds));
-	res->Assign(n++, new IntervalVal(system_time, Seconds));
-
-	unsigned int total_mem;
-	get_memory_usage(&total_mem, 0);
-	res->Assign(n++, new Val(unsigned(total_mem), TYPE_COUNT));
-
-	res->Assign(n++, new Val(unsigned(r.ru_minflt), TYPE_COUNT));
-	res->Assign(n++, new Val(unsigned(r.ru_majflt), TYPE_COUNT));
-	res->Assign(n++, new Val(unsigned(r.ru_nswap), TYPE_COUNT));
-	res->Assign(n++, new Val(unsigned(r.ru_inblock), TYPE_COUNT));
-	res->Assign(n++, new Val(unsigned(r.ru_oublock), TYPE_COUNT));
-	res->Assign(n++, new Val(unsigned(r.ru_nivcsw), TYPE_COUNT));
-
-	SessionStats s;
-	if ( sessions )
-		sessions->GetStats(s);
-
-#define ADD_STAT(x) \
-	res->Assign(n++, new Val(unsigned(sessions ? x : 0), TYPE_COUNT));
-
-	ADD_STAT(s.num_TCP_conns);
-	ADD_STAT(s.num_UDP_conns);
-	ADD_STAT(s.num_ICMP_conns);
-	ADD_STAT(s.num_fragments);
-	ADD_STAT(s.num_packets);
-	ADD_STAT(s.num_timers);
-	ADD_STAT(s.num_events_queued);
-	ADD_STAT(s.num_events_dispatched);
-	ADD_STAT(s.max_TCP_conns);
-	ADD_STAT(s.max_UDP_conns);
-	ADD_STAT(s.max_ICMP_conns);
-	ADD_STAT(s.max_fragments);
-	ADD_STAT(s.max_timers);
-
-	return res;
-	%}
-
-## Returns statistics about the regular expression engine. Statistics include
-## the number of distinct matchers, DFA states, DFA state transitions, memory
-## usage of DFA states, cache hits/misses, and average number of NFA states
-## across all matchers.
-##
-## Returns: A record with matcher statistics.
-##
-## .. bro:see:: do_profiling
-##              net_stats
-##              resource_usage
-##              dump_rule_stats
-##              get_gap_summary
-function get_matcher_stats%(%): matcher_stats
-	%{
-	RuleMatcher::Stats s;
-	memset(&s, 0, sizeof(s));
-
-	if ( rule_matcher )
-		rule_matcher->GetStats(&s);
-
-	RecordVal* r = new RecordVal(matcher_stats);
-	r->Assign(0, new Val(s.matchers, TYPE_COUNT));
-	r->Assign(1, new Val(s.dfa_states, TYPE_COUNT));
-	r->Assign(2, new Val(s.computed, TYPE_COUNT));
-	r->Assign(3, new Val(s.mem, TYPE_COUNT));
-	r->Assign(4, new Val(s.hits, TYPE_COUNT));
-	r->Assign(5, new Val(s.misses, TYPE_COUNT));
-	r->Assign(6, new Val(s.avg_nfa_states, TYPE_COUNT));
-
-	return r;
-	%}
 
 ## Generates a table of the size of all global variables. The table index is
 ## the variable name and the value is the variable size in bytes.
@@ -2014,11 +1860,17 @@ function record_fields%(rec: any%): record_field_table
 ## timers, and script-level state. The script variable :bro:id:`profiling_file`
 ## holds the name of the file.
 ##
-## .. bro:see:: net_stats
-##              resource_usage
+## .. bro:see:: get_conn_stats
+##              get_dns_stats
+##              get_event_stats
+##              get_file_analysis_stats
+##              get_gap_stats
 ##              get_matcher_stats
-##              dump_rule_stats
-##              get_gap_summary
+##              get_net_stats
+##              get_proc_stats
+##              get_reassembler_stats
+##              get_thread_stats
+##              get_timer_stats
 function do_profiling%(%) : any
 	%{
 	if ( profiling_logger )
@@ -2080,13 +1932,7 @@ function is_local_interface%(ip: addr%) : bool
 ##
 ## Returns: True (unconditionally).
 ##
-## .. bro:see:: do_profiling
-##              resource_usage
-##              get_matcher_stats
-##              net_stats
-##              get_gap_summary
-##
-## .. todo:: The return value should be changed to any or check appropriately.
+## .. bro:see:: get_matcher_stats
 function dump_rule_stats%(f: file%): bool
 	%{
 	if ( rule_matcher )
@@ -2467,7 +2313,7 @@ function to_subnet%(sn: string%): subnet
 ##
 ## Returns: The *a* address as a :bro:type:`subnet`.
 ##
-## .. bro:see:: to_subset
+## .. bro:see:: to_subnet
 function addr_to_subnet%(a: addr%): subnet
 	%{
 	int width = (a->AsAddr().GetFamily() == IPv4 ? 32 : 128);
@@ -2481,7 +2327,7 @@ function addr_to_subnet%(a: addr%): subnet
 ##
 ## Returns: The *s* subnet as a :bro:type:`addr`.
 ##
-## .. bro:see:: to_subset
+## .. bro:see:: to_subnet
 function subnet_to_addr%(sn: subnet%): addr
 	%{
 	return new AddrVal(sn->Prefix());
@@ -2493,7 +2339,7 @@ function subnet_to_addr%(sn: subnet%): addr
 ##
 ## Returns: The width of the subnet.
 ##
-## .. bro:see:: to_subset
+## .. bro:see:: to_subnet
 function subnet_width%(sn: subnet%): count
 	%{
 	return new Val(sn->Width(), TYPE_COUNT);
@@ -3142,9 +2988,11 @@ function strftime%(fmt: string, d: time%) : string
 	%{
 	static char buffer[128];
 
-	time_t t = time_t(d);
+	time_t timeval = time_t(d);
+	struct tm t;
 
-	if ( strftime(buffer, 128, fmt->CheckString(), localtime(&t)) == 0 )
+	if ( ! localtime_r(&timeval, &t) ||
+	     ! strftime(buffer, 128, fmt->CheckString(), &t) )
 		return new StringVal("<strftime error>");
 
 	return new StringVal(buffer);
@@ -3162,9 +3010,10 @@ function strftime%(fmt: string, d: time%) : string
 function strptime%(fmt: string, d: string%) : time
 	%{
 	const time_t timeval = time_t();
-	struct tm t = *localtime(&timeval);
+	struct tm t;
 
-	if ( strptime(d->CheckString(), fmt->CheckString(), &t) == NULL )
+	if ( ! localtime_r(&timeval, &t) || 
+	     ! strptime(d->CheckString(), fmt->CheckString(), &t) )
 		{
 		reporter->Warning("strptime conversion failed: fmt:%s d:%s", fmt->CheckString(), d->CheckString());
 		return new Val(0.0, TYPE_TIME);
@@ -3938,6 +3787,35 @@ function lookup_asn%(a: addr%) : count
 	return new Val(0, TYPE_COUNT);
 	%}
 
+## Calculates distance between two geographic locations using the haversine
+## formula.  Latitudes and longitudes must be given in degrees, where southern
+## hemispere latitudes are negative and western hemisphere longitudes are
+## negative.
+##
+## lat1: Latitude (in degrees) of location 1.
+##
+## long1: Longitude (in degrees) of location 1.
+##
+## lat2: Latitude (in degrees) of location 2.
+##
+## long2: Longitude (in degrees) of location 2.
+##
+## Returns: Distance in miles.
+##
+## .. bro:see:: haversine_distance_ip
+function haversine_distance%(lat1: double, long1: double, lat2: double, long2: double%): double
+	%{
+	const double PI = 3.14159;
+	const double RADIUS = 3958.8;  // Earth's radius in miles.
+
+	double s1 = sin((lat2 - lat1) * PI/360);
+	double s2 = sin((long2 - long1) * PI/360);
+	double a = s1 * s1 + cos(lat1 * PI/180) * cos(lat2 * PI/180) * s2 * s2;
+	double distance = 2 * RADIUS * asin(sqrt(a));
+
+	return new Val(distance, TYPE_DOUBLE);
+	%}
+
 ## Converts UNIX file permissions given by a mode to an ASCII string.
 ##
 ## mode: The permissions (an octal number like 0644 converted to decimal).
@@ -4051,7 +3929,7 @@ function file_mode%(mode: count%): string
 ##          *aid*.
 ##
 ## .. bro:see:: Analyzer::schedule_analyzer Analyzer::name
-function disable_analyzer%(cid: conn_id, aid: count%) : bool
+function disable_analyzer%(cid: conn_id, aid: count, err_if_no_conn: bool &default=T%) : bool
 	%{
 	Connection* c = sessions->FindConnection(cid);
 	if ( ! c )
@@ -4063,7 +3941,8 @@ function disable_analyzer%(cid: conn_id, aid: count%) : bool
 	analyzer::Analyzer* a = c->FindAnalyzer(aid);
 	if ( ! a )
 		{
-		reporter->Error("connection does not have analyzer specified to disable");
+		if ( err_if_no_conn )
+			reporter->Error("connection does not have analyzer specified to disable");
 		return new Val(0, TYPE_BOOL);
 		}
 
@@ -4450,8 +4329,8 @@ function enable_raw_output%(f: file%): any
 ##
 ## Returns: True (unconditionally).
 ##
-## .. bro:see:: precompile_pcap_filter
-##              install_pcap_filter
+## .. bro:see:: Pcap::precompile_pcap_filter
+##              Pcap::install_pcap_filter
 ##              install_src_net_filter
 ##              uninstall_src_addr_filter
 ##              uninstall_src_net_filter
@@ -4459,7 +4338,7 @@ function enable_raw_output%(f: file%): any
 ##              install_dst_net_filter
 ##              uninstall_dst_addr_filter
 ##              uninstall_dst_net_filter
-##              pcap_error
+##              Pcap::error
 ##
 ## .. todo:: The return value should be changed to any.
 function install_src_addr_filter%(ip: addr, tcp_flags: count, prob: double%) : bool
@@ -4480,8 +4359,8 @@ function install_src_addr_filter%(ip: addr, tcp_flags: count, prob: double%) : b
 ##
 ## Returns: True (unconditionally).
 ##
-## .. bro:see:: precompile_pcap_filter
-##              install_pcap_filter
+## .. bro:see:: Pcap::precompile_pcap_filter
+##              Pcap::install_pcap_filter
 ##              install_src_addr_filter
 ##              uninstall_src_addr_filter
 ##              uninstall_src_net_filter
@@ -4489,7 +4368,7 @@ function install_src_addr_filter%(ip: addr, tcp_flags: count, prob: double%) : b
 ##              install_dst_net_filter
 ##              uninstall_dst_addr_filter
 ##              uninstall_dst_net_filter
-##              pcap_error
+##              Pcap::error
 ##
 ## .. todo:: The return value should be changed to any.
 function install_src_net_filter%(snet: subnet, tcp_flags: count, prob: double%) : bool
@@ -4504,8 +4383,8 @@ function install_src_net_filter%(snet: subnet, tcp_flags: count, prob: double%) 
 ##
 ## Returns: True on success.
 ##
-## .. bro:see:: precompile_pcap_filter
-##              install_pcap_filter
+## .. bro:see:: Pcap::precompile_pcap_filter
+##              Pcap::install_pcap_filter
 ##              install_src_addr_filter
 ##              install_src_net_filter
 ##              uninstall_src_net_filter
@@ -4513,7 +4392,7 @@ function install_src_net_filter%(snet: subnet, tcp_flags: count, prob: double%) 
 ##              install_dst_net_filter
 ##              uninstall_dst_addr_filter
 ##              uninstall_dst_net_filter
-##              pcap_error
+##              Pcap::error
 function uninstall_src_addr_filter%(ip: addr%) : bool
 	%{
 	return new Val(sessions->GetPacketFilter()->RemoveSrc(ip->AsAddr()), TYPE_BOOL);
@@ -4525,8 +4404,8 @@ function uninstall_src_addr_filter%(ip: addr%) : bool
 ##
 ## Returns: True on success.
 ##
-## .. bro:see:: precompile_pcap_filter
-##              install_pcap_filter
+## .. bro:see:: Pcap::precompile_pcap_filter
+##              Pcap::install_pcap_filter
 ##              install_src_addr_filter
 ##              install_src_net_filter
 ##              uninstall_src_addr_filter
@@ -4534,7 +4413,7 @@ function uninstall_src_addr_filter%(ip: addr%) : bool
 ##              install_dst_net_filter
 ##              uninstall_dst_addr_filter
 ##              uninstall_dst_net_filter
-##              pcap_error
+##              Pcap::error
 function uninstall_src_net_filter%(snet: subnet%) : bool
 	%{
 	return new Val(sessions->GetPacketFilter()->RemoveSrc(snet), TYPE_BOOL);
@@ -4555,8 +4434,8 @@ function uninstall_src_net_filter%(snet: subnet%) : bool
 ##
 ## Returns: True (unconditionally).
 ##
-## .. bro:see:: precompile_pcap_filter
-##              install_pcap_filter
+## .. bro:see:: Pcap::precompile_pcap_filter
+##              Pcap::install_pcap_filter
 ##              install_src_addr_filter
 ##              install_src_net_filter
 ##              uninstall_src_addr_filter
@@ -4564,7 +4443,7 @@ function uninstall_src_net_filter%(snet: subnet%) : bool
 ##              install_dst_net_filter
 ##              uninstall_dst_addr_filter
 ##              uninstall_dst_net_filter
-##              pcap_error
+##              Pcap::error
 ##
 ## .. todo:: The return value should be changed to any.
 function install_dst_addr_filter%(ip: addr, tcp_flags: count, prob: double%) : bool
@@ -4585,8 +4464,8 @@ function install_dst_addr_filter%(ip: addr, tcp_flags: count, prob: double%) : b
 ##
 ## Returns: True (unconditionally).
 ##
-## .. bro:see:: precompile_pcap_filter
-##              install_pcap_filter
+## .. bro:see:: Pcap::precompile_pcap_filter
+##              Pcap::install_pcap_filter
 ##              install_src_addr_filter
 ##              install_src_net_filter
 ##              uninstall_src_addr_filter
@@ -4594,7 +4473,7 @@ function install_dst_addr_filter%(ip: addr, tcp_flags: count, prob: double%) : b
 ##              install_dst_addr_filter
 ##              uninstall_dst_addr_filter
 ##              uninstall_dst_net_filter
-##              pcap_error
+##              Pcap::error
 ##
 ## .. todo:: The return value should be changed to any.
 function install_dst_net_filter%(snet: subnet, tcp_flags: count, prob: double%) : bool
@@ -4609,8 +4488,8 @@ function install_dst_net_filter%(snet: subnet, tcp_flags: count, prob: double%) 
 ##
 ## Returns: True on success.
 ##
-## .. bro:see:: precompile_pcap_filter
-##              install_pcap_filter
+## .. bro:see:: Pcap::precompile_pcap_filter
+##              Pcap::install_pcap_filter
 ##              install_src_addr_filter
 ##              install_src_net_filter
 ##              uninstall_src_addr_filter
@@ -4618,7 +4497,7 @@ function install_dst_net_filter%(snet: subnet, tcp_flags: count, prob: double%) 
 ##              install_dst_addr_filter
 ##              install_dst_net_filter
 ##              uninstall_dst_net_filter
-##              pcap_error
+##              Pcap::error
 function uninstall_dst_addr_filter%(ip: addr%) : bool
 	%{
 	return new Val(sessions->GetPacketFilter()->RemoveDst(ip->AsAddr()), TYPE_BOOL);
@@ -4630,8 +4509,8 @@ function uninstall_dst_addr_filter%(ip: addr%) : bool
 ##
 ## Returns: True on success.
 ##
-## .. bro:see:: precompile_pcap_filter
-##              install_pcap_filter
+## .. bro:see:: Pcap::precompile_pcap_filter
+##              Pcap::install_pcap_filter
 ##              install_src_addr_filter
 ##              install_src_net_filter
 ##              uninstall_src_addr_filter
@@ -4639,7 +4518,7 @@ function uninstall_dst_addr_filter%(ip: addr%) : bool
 ##              install_dst_addr_filter
 ##              install_dst_net_filter
 ##              uninstall_dst_addr_filter
-##              pcap_error
+##              Pcap::error
 function uninstall_dst_net_filter%(snet: subnet%) : bool
 	%{
 	return new Val(sessions->GetPacketFilter()->RemoveDst(snet), TYPE_BOOL);

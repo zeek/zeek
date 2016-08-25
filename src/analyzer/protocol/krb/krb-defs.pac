@@ -19,6 +19,7 @@ enum KRBPADataTypes {
 	PA_PW_SALT 	 = 3,
 	PA_PW_AS_REQ 	 = 16,
 	PA_PW_AS_REP	 = 17,
+	PA_ENCTYPE_INFO2 = 19,
 };
 
 # Defined in RFC 4120

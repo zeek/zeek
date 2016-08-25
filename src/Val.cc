@@ -1323,7 +1323,7 @@ void TableVal::Init(TableType* t)
 	{
 	::Ref(t);
 	table_type = t;
-	expire_expr = 0;
+	expire_func = 0;
 	expire_time = 0;
 	expire_cookie = 0;
 	timer = 0;
@@ -1350,7 +1350,8 @@ TableVal::~TableVal()
 	delete subnets;
 	Unref(attrs);
 	Unref(def_val);
-	Unref(expire_expr);
+	Unref(expire_func);
+	Unref(expire_time);
 	}
 
 void TableVal::RemoveAll()
@@ -1399,8 +1400,8 @@ void TableVal::SetAttrs(Attributes* a)
 	Attr* ef = attrs->FindAttr(ATTR_EXPIRE_FUNC);
 	if ( ef )
 		{
-		expire_expr = ef->AttrExpr();
-		expire_expr->Ref();
+		expire_func = ef->AttrExpr();
+		expire_func->Ref();
 		}
 	}
 
@@ -1410,14 +1411,16 @@ void TableVal::CheckExpireAttr(attr_tag at)
 
 	if ( a )
 		{
-		Val* timeout = a->AttrExpr()->Eval(0);
-		if ( ! timeout )
+		expire_time = a->AttrExpr();
+		expire_time->Ref();
+
+		if ( expire_time->Type()->Tag() != TYPE_INTERVAL )
 			{
-			a->AttrExpr()->Error("value of timeout not fixed");
+			if ( ! expire_time->IsError() )
+				expire_time->SetError("expiration interval has wrong type");
+
 			return;
 			}
-
-		expire_time = timeout->AsInterval();
 
 		if ( timer )
 			timer_mgr->Cancel(timer);
@@ -1791,7 +1794,7 @@ Val* TableVal::Lookup(Val* index, bool use_default_val)
 			if ( attrs && attrs->FindAttr(ATTR_EXPIRE_READ) )
 					{
 					v->SetExpireAccess(network_time);
-					if ( LoggingAccess() && expire_time )
+					if ( LoggingAccess() && ExpirationEnabled() )
 						ReadOperation(index, v);
 					}
 
@@ -1822,7 +1825,7 @@ Val* TableVal::Lookup(Val* index, bool use_default_val)
 				if ( attrs && attrs->FindAttr(ATTR_EXPIRE_READ) )
 					{
 					v->SetExpireAccess(network_time);
-					if ( LoggingAccess() && expire_time )
+					if ( LoggingAccess() && ExpirationEnabled() )
 						ReadOperation(index, v);
 					}
 
@@ -1880,7 +1883,7 @@ TableVal* TableVal::LookupSubnetValues(const SubNetVal* search)
 			if ( attrs && attrs->FindAttr(ATTR_EXPIRE_READ) )
 				{
 				entry->SetExpireAccess(network_time);
-				if ( LoggingAccess() && expire_time )
+				if ( LoggingAccess() && ExpirationEnabled() )
 					ReadOperation(s, entry);
 				}
 			}
@@ -2176,6 +2179,13 @@ void TableVal::DoExpire(double t)
 
 	PDict(TableEntryVal)* tbl = AsNonConstTable();
 
+	double timeout = GetExpireTime();
+
+	if ( timeout < 0 )
+		// Skip in case of unset/invalid expiration value. If it's an
+		// error, it has been reported already.
+		return;
+
 	if ( ! expire_cookie )
 		{
 		expire_cookie = tbl->InitForIteration();
@@ -2197,11 +2207,11 @@ void TableVal::DoExpire(double t)
 			// correct, so we just need to wait.
 			}
 
-		else if ( v->ExpireAccessTime() + expire_time < t )
+		else if ( v->ExpireAccessTime() + timeout < t )
 			{
 			Val* val = v->Value();
 
-			if ( expire_expr )
+			if ( expire_func )
 				{
 				Val* idx = RecoverIndex(k);
 				double secs = CallExpireFunc(idx);
@@ -2221,7 +2231,7 @@ void TableVal::DoExpire(double t)
 					{
 					// User doesn't want us to expire
 					// this now.
-					v->SetExpireAccess(network_time - expire_time + secs);
+					v->SetExpireAccess(network_time - timeout + secs);
 					delete k;
 					continue;
 					}
@@ -2258,9 +2268,29 @@ void TableVal::DoExpire(double t)
 		InitTimer(table_expire_delay);
 	}
 
+double TableVal::GetExpireTime()
+	{
+	if ( ! expire_time )
+		return -1;
+
+	Val* timeout = expire_time->Eval(0);
+	double interval = (timeout ? timeout->AsInterval() : -1);
+	Unref(timeout);
+
+	if ( interval >= 0 )
+		return interval;
+
+	expire_time = 0;
+
+	if ( timer )
+		timer_mgr->Cancel(timer);
+
+	return -1;
+	}
+
 double TableVal::CallExpireFunc(Val* idx)
 	{
-	if ( ! expire_expr )
+	if ( ! expire_func )
 		{
 		Unref(idx);
 		return 0;
@@ -2285,8 +2315,27 @@ double TableVal::CallExpireFunc(Val* idx)
 
 	try
 		{
-		Val* vs = expire_expr->Eval(0)->AsFunc()->Call(vl);
+		Val* vf = expire_func->Eval(0);
+
+		if ( ! vf )
+			{
+			// Will have been reported already.
+			delete_vals(vl);
+			return 0;
+			}
+
+		if ( vf->Type()->Tag() != TYPE_FUNC )
+			{
+			Unref(vf);
+			delete_vals(vl);
+			vf->Error("not a function");
+			return 0;
+			}
+
+		Val* vs = vf->AsFunc()->Call(vl);
 		secs = vs->AsInterval();
+
+		Unref(vf);
 		Unref(vs);
 		delete vl;
 		}
@@ -2301,11 +2350,18 @@ double TableVal::CallExpireFunc(Val* idx)
 
 void TableVal::ReadOperation(Val* index, TableEntryVal* v)
 	{
+	double timeout = GetExpireTime();
+
+	if ( timeout < 0 )
+		// Skip in case of unset/invalid expiration value. If it's an
+		// error, it has been reported already.
+		return;
+
 	// In theory we need to only propagate one update per &read_expire
 	// interval to prevent peers from expiring intervals. To account for
 	// practical issues such as latency, we send one update every half
 	// &read_expire.
-	if ( network_time - v->LastReadUpdate() > expire_time / 2 )
+	if ( network_time - v->LastReadUpdate() > timeout / 2 )
 		{
 		StateAccess::Log(new StateAccess(OP_READ_IDX, this, index));
 		v->SetLastReadUpdate(network_time);
@@ -2344,11 +2400,9 @@ bool TableVal::DoSerialize(SerialInfo* info) const
 		state->did_index = false;
 		info->s->WriteOpenTag(table_type->IsSet() ? "set" : "table");
 
-		if ( ! SERIALIZE(expire_time) )
-			return false;
-
 		SERIALIZE_OPTIONAL(attrs);
-		SERIALIZE_OPTIONAL(expire_expr);
+		SERIALIZE_OPTIONAL(expire_time);
+		SERIALIZE_OPTIONAL(expire_func);
 
 		// Make sure nobody kills us in between.
 		const_cast<TableVal*>(this)->Ref();
@@ -2401,7 +2455,7 @@ bool TableVal::DoSerialize(SerialInfo* info) const
 			}
 
 		// Serialize index.
-		if ( ! state->did_index )
+		if ( k && ! state->did_index )
 			{
 			// Indices are rather small, so we disable suspension
 			// here again.
@@ -2473,13 +2527,11 @@ bool TableVal::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(MutableVal);
 
-	if ( ! UNSERIALIZE(&expire_time) )
-		return false;
-
 	Init((TableType*) type);
 
 	UNSERIALIZE_OPTIONAL(attrs, Attributes::Unserialize(info));
-	UNSERIALIZE_OPTIONAL(expire_expr, Expr::Unserialize(info));
+	UNSERIALIZE_OPTIONAL(expire_time, Expr::Unserialize(info));
+	UNSERIALIZE_OPTIONAL(expire_func, Expr::Unserialize(info));
 
 	while ( true )
 		{

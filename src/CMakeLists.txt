@@ -118,6 +118,7 @@ include(BifCl)
 
 set(BIF_SRCS
     bro.bif
+    stats.bif
     event.bif
     const.bif
     types.bif
@@ -320,7 +321,6 @@ set(bro_SRCS
     RuleAction.cc
     RuleCondition.cc
     RuleMatcher.cc
-    ScriptAnaly.cc
     SmithWaterman.cc
     Scope.cc
     SerializationFormat.cc
@@ -347,6 +347,7 @@ set(bro_SRCS
     PacketDumper.cc
     strsep.c
     modp_numtoa.c
+    siphash24.c
 
     threading/BasicThread.cc
     threading/Formatter.cc

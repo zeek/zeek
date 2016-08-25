@@ -1,0 +1,32 @@
+## Generated for all SMB/CIFS messages.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for
+## more information about the SMB/CIFS protocol. Bro's SMB/CIFS analyzer parses
+## both SMB-over-NetBIOS on ports 138/139 and SMB-over-TCP on port 445.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the SMB message.
+##
+## is_orig: True if the message was sent by the originator of the underlying
+##          transport-level connection.
+event smb1_message%(c: connection, hdr: SMB1::Header, is_orig: bool%);
+
+## Generated when there is an SMB response with no message body.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the SMB message.
+event smb1_empty_response%(c: connection, hdr: SMB1::Header%);
+
+## Generated for SMB/CIFS messages that indicate an error. This event is
+## triggered by an SMB header including a status that signals an error.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the SMB message.
+##
+## is_orig: True if the message was sent by the originator of the underlying
+##          transport-level connection.
+event smb1_error%(c: connection, hdr: SMB1::Header, is_orig: bool%);
+

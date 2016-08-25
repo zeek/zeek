@@ -56,7 +56,7 @@ namespace analyzer { class Analyzer; }
 class Connection : public BroObj {
 public:
 	Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
-	           uint32 flow, uint32 vlan, uint32 inner_vlan, const EncapsulationStack* arg_encap);
+	           uint32 flow, const Packet* pkt, const EncapsulationStack* arg_encap);
 	virtual ~Connection();
 
 	// Invoked when an encapsulation is discovered. It records the
@@ -220,11 +220,11 @@ public:
 	unsigned int MemoryAllocation() const;
 	unsigned int MemoryAllocationConnVal() const;
 
-	static unsigned int TotalConnections()
+	static uint64 TotalConnections()
 		{ return total_connections; }
-	static unsigned int CurrentConnections()
+	static uint64 CurrentConnections()
 		{ return current_connections; }
-	static unsigned int CurrentExternalConnections()
+	static uint64 CurrentExternalConnections()
 		{ return external_connections; }
 
 	// Returns true if the history was already seen, false otherwise.
@@ -296,6 +296,8 @@ protected:
 	TransportProto proto;
 	uint32 orig_flow_label, resp_flow_label;	// most recent IPv6 flow labels
 	uint32 vlan, inner_vlan;	// VLAN this connection traverses, if available
+	u_char orig_l2_addr[Packet::l2_addr_len];	// Link-layer originator address, if available
+	u_char resp_l2_addr[Packet::l2_addr_len];	// Link-layer responder address, if available
 	double start_time, last_time;
 	double inactivity_timeout;
 	RecordVal* conn_val;
@@ -315,9 +317,9 @@ protected:
 	unsigned int saw_first_orig_packet:1, saw_first_resp_packet:1;
 
 	// Count number of connections.
-	static unsigned int total_connections;
-	static unsigned int current_connections;
-	static unsigned int external_connections;
+	static uint64 total_connections;
+	static uint64 current_connections;
+	static uint64 external_connections;
 
 	string history;
 	uint32 hist_seen;

@@ -81,7 +81,8 @@ protected:
 
 	void* key;
 	int is_our_dynamic;
-	int size, hash;
+	int size;
+	hash_t hash;
 };
 
 extern void init_hash_function();

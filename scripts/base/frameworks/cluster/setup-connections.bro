@@ -23,17 +23,40 @@ event bro_init() &priority=9
 			                                   $connect=F, $class="control",
 			                                   $events=control_events];
 
-		if ( me$node_type == MANAGER )
+		if ( me$node_type == LOGGER )
 			{
+			if ( n$node_type == MANAGER && n$logger == node )
+				Communication::nodes[i] =
+				    [$host=n$ip, $zone_id=n$zone_id, $connect=F,
+				     $class=i, $events=manager2logger_events, $request_logs=T];
+			if ( n$node_type == PROXY && n$logger == node )
+				Communication::nodes[i] =
+				    [$host=n$ip, $zone_id=n$zone_id, $connect=F,
+				     $class=i, $events=proxy2logger_events, $request_logs=T];
+			if ( n$node_type == WORKER && n$logger == node )
+				Communication::nodes[i] =
+				    [$host=n$ip, $zone_id=n$zone_id, $connect=F,
+				     $class=i, $events=worker2logger_events, $request_logs=T];
+			}
+		else if ( me$node_type == MANAGER )
+			{
+			if ( n$node_type == LOGGER && me$logger == i )
+				Communication::nodes["logger"] =
+				    [$host=n$ip, $zone_id=n$zone_id, $p=n$p,
+				     $connect=T, $retry=retry_interval,
+				     $class=node];
+
 			if ( n$node_type == WORKER && n$manager == node )
 				Communication::nodes[i] =
 				    [$host=n$ip, $zone_id=n$zone_id, $connect=F,
-				     $class=i, $events=worker2manager_events, $request_logs=T];
+				     $class=i, $events=worker2manager_events,
+				     $request_logs=Cluster::manager_is_logger];
 
 			if ( n$node_type == PROXY && n$manager == node )
 				Communication::nodes[i] =
 				    [$host=n$ip, $zone_id=n$zone_id, $connect=F,
-				     $class=i, $events=proxy2manager_events, $request_logs=T];
+				     $class=i, $events=proxy2manager_events,
+				     $request_logs=Cluster::manager_is_logger];
 
 			if ( n$node_type == TIME_MACHINE && me?$time_machine && me$time_machine == i )
 				Communication::nodes["time-machine"] = [$host=nodes[i]$ip,
@@ -45,6 +68,12 @@ event bro_init() &priority=9
 
 		else if ( me$node_type == PROXY )
 			{
+			if ( n$node_type == LOGGER && me$logger == i )
+				Communication::nodes["logger"] =
+				    [$host=n$ip, $zone_id=n$zone_id, $p=n$p,
+				     $connect=T, $retry=retry_interval,
+				     $class=node];
+
 			if ( n$node_type == WORKER && n$proxy == node )
 				Communication::nodes[i] =
 					[$host=n$ip, $zone_id=n$zone_id, $connect=F, $class=i,
@@ -76,6 +105,12 @@ event bro_init() &priority=9
 			}
 		else if ( me$node_type == WORKER )
 			{
+			if ( n$node_type == LOGGER && me$logger == i )
+				Communication::nodes["logger"] =
+				    [$host=n$ip, $zone_id=n$zone_id, $p=n$p,
+				     $connect=T, $retry=retry_interval,
+				     $class=node];
+
 			if ( n$node_type == MANAGER && me$manager == i )
 				Communication::nodes["manager"] = [$host=nodes[i]$ip,
 				                                   $zone_id=nodes[i]$zone_id,

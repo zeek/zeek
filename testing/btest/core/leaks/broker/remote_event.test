@@ -1,5 +1,5 @@
 # @TEST-SERIALIZE: brokercomm
-# @TEST-REQUIRES: grep -q ENABLE_BROKER $BUILD/CMakeCache.txt
+# @TEST-REQUIRES: grep -q ENABLE_BROKER:BOOL=true $BUILD/CMakeCache.txt
 # @TEST-REQUIRES: bro --help 2>&1 | grep -q mem-leaks
 # @TEST-GROUP: leak
 
@@ -21,9 +21,9 @@ global auto_event_handler: event(msg: string, c: count);
 event bro_init()
 	{
 	Broker::enable();
-	Broker::listen(broker_port, "127.0.0.1");
 	Broker::subscribe_to_events("bro/event/");
 	Broker::auto_event("bro/event/my_topic", auto_event_handler);
+	Broker::listen(broker_port, "127.0.0.1");
 	}
 
 global event_count = 0;
@@ -42,7 +42,7 @@ event event_handler(msg: string, n: count)
 
 	event auto_event_handler(msg, n);
 	local args = Broker::event_args(event_handler, "pong", n);
-	Broker::event("bro/event/my_topic", args);
+	Broker::send_event("bro/event/my_topic", args);
 	}
 
 @TEST-END-FILE
@@ -70,7 +70,7 @@ event Broker::outgoing_connection_established(peer_address: string,
 	{
 	print "Broker::outgoing_connection_established", peer_address, peer_port;
 	local args = Broker::event_args(event_handler, "ping", event_count);
-	Broker::event("bro/event/hi", args);
+	Broker::send_event("bro/event/hi", args);
 	++event_count;
 	}
 
@@ -84,7 +84,7 @@ event event_handler(msg: string, n: count)
 	{
 	print "got event msg", msg, n;
 	local args = Broker::event_args(event_handler, "ping", event_count);
-    Broker::event("bro/event/hi", args);
+	Broker::send_event("bro/event/hi", args);
 	++event_count;
 	}
 

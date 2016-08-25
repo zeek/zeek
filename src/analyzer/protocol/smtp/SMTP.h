@@ -30,7 +30,7 @@ typedef enum {
 	SMTP_IN_DATA,		// 6: after DATA
 	SMTP_AFTER_DATA,	// 7: after . and before reply
 	SMTP_IN_AUTH,		// 8: after AUTH and 334
-	SMTP_IN_TLS,		// 9: after STARTTLS and 220
+	SMTP_IN_TLS,		// 9: after STARTTLS/X-ANONYMOUSTLS and 220
 	SMTP_QUIT,		// 10: after QUIT
 	SMTP_AFTER_GAP,		// 11: after a gap is detected
 	SMTP_GAP_RECOVERY,	// 12: after the first reply after a gap

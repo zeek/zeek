@@ -1,26 +1,19 @@
-# DCE/RPC protocol data unit.
 
-type DCE_RPC_PDU = record {
-	# Set header's byteorder to little-endian (or big-endian) to
-	# avoid cyclic dependency.
-	header	: DCE_RPC_Header;
-	frag	: bytestring &length = body_length;
-	auth	: DCE_RPC_Auth(header);
-} &let {
-	body_length: int =
-		 header.frag_length - sizeof(header) - header.auth_length;
-	frag_reassembled: bool =
-		$context.flow.reassemble_fragment(frag, header.lastfrag);
-	body:	DCE_RPC_Body(header)
-		withinput $context.flow.reassembled_body()
-		&if frag_reassembled;
-} &byteorder = header.byteorder,
-  &length = header.frag_length;	# length of the PDU
+refine connection DCE_RPC_Conn += {
+	%member{
+		map<uint16, uint16> cont_id_opnum_map;
+		uint64 fid;
+	%}
 
+	%init{
+		fid = 0;
+	%}
 
-connection DCE_RPC_Conn(bro_analyzer: BroAnalyzer) {
-	upflow = DCE_RPC_Flow(true);
-	downflow = DCE_RPC_Flow(false);
+	function set_file_id(fid_in: uint64): bool
+		%{
+		fid = fid_in;
+		return true;
+		%}
 
 	function get_cont_id_opnum_map(cont_id: uint16): uint16
 		%{
@@ -33,102 +26,149 @@ connection DCE_RPC_Conn(bro_analyzer: BroAnalyzer) {
 		return true;
 		%}
 
-	%member{
-	map<uint16, uint16> cont_id_opnum_map;
-	%}
-};
-
-
-flow DCE_RPC_Flow(is_orig: bool) {
-	flowunit = DCE_RPC_PDU withcontext (connection, this);
-
-	%member{
-	FlowBuffer frag_reassembler_;
-	%}
-
-	# Fragment reassembly.
-	function reassemble_fragment(frag: bytestring, lastfrag: bool): bool
+	function proc_dce_rpc_pdu(pdu: DCE_RPC_PDU): bool
 		%{
-		int orig_data_length = frag_reassembler_.data_length();
-
-		frag_reassembler_.NewData(frag.begin(), frag.end());
-
-		int new_frame_length = orig_data_length + frag.length();
-		if ( orig_data_length == 0 )
-			frag_reassembler_.NewFrame(new_frame_length, false);
-		else
-			frag_reassembler_.GrowFrame(new_frame_length);
-
-		return lastfrag;
+		// If a whole pdu message parsed ok, let's confirm the protocol
+		bro_analyzer()->ProtocolConfirmation();
+		return true;
 		%}
 
-	function reassembled_body(): const_bytestring
+	function proc_dce_rpc_message(header: DCE_RPC_Header): bool
 		%{
-		return const_bytestring(
-			frag_reassembler_.begin(),
-			frag_reassembler_.end());
-		%}
-
-	# Bind.
-	function process_dce_rpc_bind(bind: DCE_RPC_Bind): bool
-		%{
-		$const_def{bind_elems = bind.p_context_elem};
-
-		if ( ${bind_elems.n_context_elem} > 1 ) {
-			${connection.bro_analyzer}->Weird(
-				"DCE_RPC_bind_to_multiple_interfaces");
-		}
-
-		if ( dce_rpc_bind ) {
-			// Go over the elements, each having a UUID
-			for ( int i = 0; i < ${bind_elems.n_context_elem}; ++i ) {
-				$const_def{if_uuid =
-					bind_elems.p_cont_elem[i].abstract_syntax.if_uuid};
-
-				// Queue the event
-				BifEvent::generate_dce_rpc_bind(
-					${connection.bro_analyzer},
-					${connection.bro_analyzer}->Conn(),
-					bytestring_to_val(${if_uuid}));
-
-				// Set the connection's UUID
-				// ${connection}->set_uuid(${if_uuid});
+		if ( dce_rpc_message )
+			{
+			BifEvent::generate_dce_rpc_message(bro_analyzer(),
+			                                   bro_analyzer()->Conn(),
+			                                   ${header.is_orig},
+			                                   fid,
+			                                   ${header.PTYPE},
+			                                   new EnumVal(${header.PTYPE}, BifType::Enum::DCE_RPC::PType));
 			}
-		}
-
-		return ${bind_elems.n_context_elem} > 0;
+		return true;
 		%}
 
-	# Request.
+	function process_dce_rpc_bind(req: ContextRequest): bool
+		%{
+		if ( dce_rpc_bind )
+			{
+			BifEvent::generate_dce_rpc_bind(bro_analyzer(),
+			                                bro_analyzer()->Conn(),
+			                                fid,
+			                                bytestring_to_val(${req.abstract_syntax.uuid}),
+			                                ${req.abstract_syntax.ver_major},
+			                                ${req.abstract_syntax.ver_minor});
+			}
+
+		return true;
+		%}
+
+	function process_dce_rpc_bind_ack(bind: DCE_RPC_Bind_Ack): bool
+		%{
+		if ( dce_rpc_bind_ack )
+			{
+			StringVal *sec_addr;
+			// Remove the null from the end of the string if it's there.
+			if ( ${bind.sec_addr}.length() > 0 &&
+			     *(${bind.sec_addr}.begin() + ${bind.sec_addr}.length()) == 0 )
+				{
+				sec_addr = new StringVal(${bind.sec_addr}.length()-1, (const char*) ${bind.sec_addr}.begin());
+				}
+			else
+				{
+				sec_addr = new StringVal(${bind.sec_addr}.length(), (const char*) ${bind.sec_addr}.begin());
+				}
+
+			BifEvent::generate_dce_rpc_bind_ack(bro_analyzer(),
+			                                    bro_analyzer()->Conn(),
+			                                    fid,
+			                                    sec_addr);
+			}
+		return true;
+		%}
+
 	function process_dce_rpc_request(req: DCE_RPC_Request): bool
 		%{
 		if ( dce_rpc_request )
 			{
-			BifEvent::generate_dce_rpc_request(
-				${connection.bro_analyzer},
-				${connection.bro_analyzer}->Conn(),
-				${req.opnum},
-				bytestring_to_val(${req.stub}));
+			BifEvent::generate_dce_rpc_request(bro_analyzer(),
+			                                   bro_analyzer()->Conn(),
+			                                   fid,
+			                                   ${req.opnum},
+			                                   ${req.stub}.length());
 			}
 
-		${connection}->set_cont_id_opnum_map(${req.p_cont_id},
-							${req.opnum});
-
+		set_cont_id_opnum_map(${req.context_id},
+		                      ${req.opnum});
 		return true;
 		%}
 
-	# Response.
 	function process_dce_rpc_response(resp: DCE_RPC_Response): bool
 		%{
 		if ( dce_rpc_response )
 			{
-			BifEvent::generate_dce_rpc_response(
-				${connection.bro_analyzer},
-				${connection.bro_analyzer}->Conn(),
-				${connection}->get_cont_id_opnum_map(${resp.p_cont_id}),
-				bytestring_to_val(${resp.stub}));
+			BifEvent::generate_dce_rpc_response(bro_analyzer(),
+			                                    bro_analyzer()->Conn(),
+			                                    fid,
+			                                    get_cont_id_opnum_map(${resp.context_id}),
+			                                    ${resp.stub}.length());
 			}
 
 		return true;
 		%}
+
 };
+
+
+refine flow DCE_RPC_Flow += {
+	#%member{
+	#FlowBuffer frag_reassembler_;
+	#%}
+
+	# Fragment reassembly.
+	#function reassemble_fragment(frag: bytestring, lastfrag: bool): bool
+	#	%{
+	#	int orig_data_length = frag_reassembler_.data_length();
+	#
+	#	frag_reassembler_.NewData(frag.begin(), frag.end());
+	#
+	#	int new_frame_length = orig_data_length + frag.length();
+	#	if ( orig_data_length == 0 )
+	#		frag_reassembler_.NewFrame(new_frame_length, false);
+	#	else
+	#		frag_reassembler_.GrowFrame(new_frame_length);
+	#
+	#	return lastfrag;
+	#	%}
+
+	#function reassembled_body(): const_bytestring
+	#	%{
+	#	return const_bytestring(
+	#		frag_reassembler_.begin(),
+	#		frag_reassembler_.end());
+	#	%}
+};
+
+refine typeattr DCE_RPC_PDU += &let {
+	proc = $context.connection.proc_dce_rpc_pdu(this);
+}
+
+refine typeattr DCE_RPC_Header += &let {
+	proc = $context.connection.proc_dce_rpc_message(this);
+};
+
+refine typeattr ContextRequest += &let {
+	proc = $context.connection.process_dce_rpc_bind(this);
+};
+
+refine typeattr DCE_RPC_Bind_Ack += &let {
+	proc = $context.connection.process_dce_rpc_bind_ack(this);
+};
+
+refine typeattr DCE_RPC_Request += &let {
+	proc = $context.connection.process_dce_rpc_request(this);
+};
+
+refine typeattr DCE_RPC_Response += &let {
+	proc = $context.connection.process_dce_rpc_response(this);
+};
+

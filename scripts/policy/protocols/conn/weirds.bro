@@ -12,8 +12,6 @@ export {
 	redef enum Notice::Type += {
 		## Possible evasion; usually just chud.
 		Retransmission_Inconsistency,
-		## Could mean packet drop; could also be chud.
-		Ack_Above_Hole,
 		## Data has sequence hole; perhaps due to filtering.
 		Content_Gap,
 	};
@@ -26,12 +24,6 @@ event rexmit_inconsistency(c: connection, t1: string, t2: string, tcp_flags: str
 	        $msg=fmt("%s rexmit inconsistency (%s) (%s) [%s]",
 	                 id_string(c$id), t1, t2, tcp_flags),
 	        $identifier=fmt("%s", c$id)]);
-	}
-
-event ack_above_hole(c: connection)
-	{
-	NOTICE([$note=Ack_Above_Hole, $conn=c,
-	        $msg=fmt("%s ack above a hole", id_string(c$id))]);
 	}
 
 event content_gap(c: connection, is_orig: bool, seq: count, length: count)

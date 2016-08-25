@@ -11,7 +11,7 @@
 #include "Net.h"
 #include "Sessions.h"
 
-#include "pcap/const.bif.h"
+#include "pcap/pcap.bif.h"
 
 using namespace iosource;
 
@@ -31,6 +31,7 @@ PktSrc::PktSrc()
 
 	next_sync_point = 0;
 	first_timestamp = 0.0;
+	current_pseudo = 0.0;
 	first_wallclock = current_wallclock = 0;
 	}
 
@@ -91,7 +92,7 @@ void PktSrc::Opened(const Properties& arg_props)
 		{
 		char buf[512];
 		safe_snprintf(buf, sizeof(buf),
-			 "unknown data link type 0x%x", props.link_type);
+			 "unknown data link type 0x%x", arg_props.link_type);
 		Error(buf);
 		Close();
 		return;
@@ -289,6 +290,12 @@ bool PktSrc::ExtractNextPacketInternal()
 
 	if ( ExtractNextPacket(&current_packet) )
 		{
+		if ( current_packet.time < 0 )
+			{
+			Weird("negative_packet_timestamp", &current_packet);
+			return 0;
+			}
+
 		if ( ! first_timestamp )
 			first_timestamp = current_packet.time;
 

@@ -65,6 +65,20 @@ Tag& Tag::operator=(const Tag& other)
 	return *this;
 	}
 
+Tag& Tag::operator=(const Tag&& other)
+	{
+	if ( this != &other )
+		{
+		type = other.type;
+		subtype = other.subtype;
+		Unref(val);
+		val = other.val;
+		other.val = nullptr;
+		}
+
+	return *this;
+	}
+
 EnumVal* Tag::AsEnumVal(EnumType* etype) const
 	{
 	if ( ! val )

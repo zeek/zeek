@@ -11,7 +11,7 @@ export {
 	## plugin simply logs the operations it receives.
 	##
 	## do_something: If true, the plugin will claim it supports all operations; if
-	## false, it will indicate it doesn't support any.
+	##               false, it will indicate it doesn't support any.
 	global create_debug: function(do_something: bool) : PluginState;
 }
 
@@ -55,23 +55,13 @@ function debug_add_rule(p: PluginState, r: Rule) : bool
 	return F;
 	}
 
-function debug_remove_rule(p: PluginState, r: Rule) : bool
+function debug_remove_rule(p: PluginState, r: Rule, reason: string) : bool
 	{
-	local s = fmt("remove_rule: %s", r);
+	local s = fmt("remove_rule (%s): %s", reason, r);
 	debug_log(p, s);
 
 	event NetControl::rule_removed(r, p);
 	return T;
-	}
-
-function debug_transaction_begin(p: PluginState)
-	{
-	debug_log(p, "transaction_begin");
-	}
-
-function debug_transaction_end(p: PluginState)
-	{
-	debug_log(p, "transaction_end");
 	}
 
 global debug_plugin = Plugin(
@@ -80,9 +70,7 @@ global debug_plugin = Plugin(
 	$init = debug_init,
 	$done = debug_done,
 	$add_rule = debug_add_rule,
-	$remove_rule = debug_remove_rule,
-	$transaction_begin = debug_transaction_begin,
-	$transaction_end = debug_transaction_end
+	$remove_rule = debug_remove_rule
 	);
 
 function create_debug(do_something: bool) : PluginState

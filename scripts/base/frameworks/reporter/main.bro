@@ -17,22 +17,14 @@ export {
 	## The reporter logging stream identifier.
 	redef enum Log::ID += { LOG };
 
-	## An indicator of reporter message severity.
-	type Level: enum {
-		## Informational, not needing specific attention.
-		INFO,
-		## Warning of a potential problem.
-		WARNING,
-		## A non-fatal error that should be addressed, but doesn't
-		## terminate program execution.
-		ERROR
-	};
-
 	## The record type which contains the column fields of the reporter log.
 	type Info: record {
 		## The network time at which the reporter event was generated.
 		ts:       time   &log;
-		## The severity of the reporter message.
+		## The severity of the reporter message. Levels are INFO for informational
+		## messages, not needing specific attention; WARNING for warning of a potential
+		## problem, and ERROR for a non-fatal error that should be addressed, but doesn't
+		## terminate program execution.
 		level:    Level  &log;
 		## An info/warning/error message that could have either been
 		## generated from the internal Bro core or at the scripting-layer.

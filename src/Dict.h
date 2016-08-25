@@ -71,6 +71,12 @@ public:
 			max_num_entries + max_num_entries2 : max_num_entries;
 		}
 
+	// Total number of entries ever.
+	uint64 NumCumulativeInserts() const
+		{
+		return cumulative_entries;
+		}
+
 	// True if the dictionary is ordered, false otherwise.
 	int IsOrdered() const		{ return order != 0; }
 
@@ -166,6 +172,7 @@ private:
 	int num_buckets;
 	int num_entries;
 	int max_num_entries;
+	uint64 cumulative_entries;
 	double den_thresh;
 	int thresh_entries;
 

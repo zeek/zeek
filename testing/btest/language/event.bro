@@ -21,7 +21,7 @@ event e3(test: string)
 
 event e4(num: count)
 	{
-	print "assign event variable";
+	print fmt("assign event variable (%s)", num);
 	}
 
 # Note: the name of this event is intentionally the same as one above
@@ -29,6 +29,8 @@ event e3(test: string)
 	{
 	print "event part2";
 	}
+
+global e5: event(num: count);
 
 event bro_init()
 {
@@ -43,9 +45,8 @@ event bro_init()
 	event e3("foo");
 
 	# Test assigning an event variable to an event
-	local e5: event(num: count);
 	e5 = e4;
-	event e5(6);  # TODO: this does not do anything
+	event e5(6);
 }
 
 # scheduling in outside of an event handler shouldn't crash.

@@ -1,3 +1,5 @@
+##! Keep a random sample of values.
+
 @load base/frameworks/sumstats/main
 
 module SumStats;
@@ -10,7 +12,7 @@ export {
 	};
 
 	redef record Reducer += {
-		## A number of sample Observations to collect.
+		## The number of sample Observations to collect.
 		num_samples: count &default=0;
 	};
 

@@ -11,6 +11,7 @@ Frameworks
    input
    intel
    logging
+   netcontrol
    notice
    signatures
    sumstats

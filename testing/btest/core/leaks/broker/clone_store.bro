@@ -1,5 +1,5 @@
 # @TEST-SERIALIZE: brokercomm
-# @TEST-REQUIRES: grep -q ENABLE_BROKER $BUILD/CMakeCache.txt
+# @TEST-REQUIRES: grep -q ENABLE_BROKER:BOOL=true $BUILD/CMakeCache.txt
 # @TEST-REQUIRES: bro --help 2>&1 | grep -q mem-leaks
 # @TEST-GROUP: leak
 
@@ -51,8 +51,8 @@ event ready()
 event bro_init()
 	{
 	Broker::enable();
-	Broker::listen(broker_port, "127.0.0.1");
 	Broker::subscribe_to_events("bro/event/ready");
+	Broker::listen(broker_port, "127.0.0.1");
 	}
 
 @TEST-END-FILE
@@ -105,9 +105,9 @@ event Broker::outgoing_connection_established(peer_address: string,
 event bro_init()
 	{
 	Broker::enable();
+	Broker::auto_event("bro/event/ready", ready);
 	h = Broker::create_master("mystore");
 	Broker::connect("127.0.0.1", broker_port, 1secs);
-	Broker::auto_event("bro/event/ready", ready);
 	}
 
 @TEST-END-FILE

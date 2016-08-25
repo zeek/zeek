@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	dce_rpc
+#open	2016-08-05-15-39-00
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	rtt	named_pipe	endpoint	operation
+#types	time	string	addr	port	addr	port	interval	string	string	string
+1073392738.149799	CHhAvVGS1DHFjwGM9	205.227.227.226	49467	205.227.227.243	445	0.002138	\\PIPE\\lsass	dssetup	DsRolerGetPrimaryDomainInformation
+#close	2016-08-05-15-39-00

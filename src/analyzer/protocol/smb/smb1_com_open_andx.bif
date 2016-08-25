@@ -1,0 +1,38 @@
+## Generated for SMB/CIFS request messages of type *open andx*.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for
+## more information about the SMB/CIFS protocol. Bro's SMB/CIFS analyzer parses
+## both SMB-over-NetBIOS on ports 138/139 and SMB-over-TCP on port 445.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the SMB message.
+##
+## flags: Flags requesting attribute data and locking.
+##
+## access_mode: The requested access mode.
+##
+## search_attrs: The set of attributes that the file MUST have in order to be found.
+##
+## file_attrs: The set of attributes that the file is to have if the file needs to be created.
+##
+## creation_time: The time of creation if the file is created.
+##
+## open_mode: The way a file s 
+##
+## length: The number of bytes being requested.
+event smb1_open_andx_request%(c: connection, hdr: SMB1::Header, file_id: count, offset: count, length: count%);
+
+## Generated for SMB/CIFS response messages of type *open andx*.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for
+## more information about the SMB/CIFS protocol. Bro's SMB/CIFS analyzer parses
+## both SMB-over-NetBIOS on ports 138/139 and SMB-over-TCP on port 445.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the SMB message.
+##
+## data_len: The length of data from the requested file.
+event smb1_open_andx_response%(c: connection, hdr: SMB1::Header, data_len: count%);
+

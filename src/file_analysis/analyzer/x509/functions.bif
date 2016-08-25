@@ -6,6 +6,8 @@
 #include <openssl/asn1.h>
 #include <openssl/x509_vfy.h>
 #include <openssl/ocsp.h>
+#include <openssl/pem.h>
+#include <openssl/err.h>
 
 // This is the indexed map of X509 certificate stores.
 static map<Val*, X509_STORE*> x509_stores;

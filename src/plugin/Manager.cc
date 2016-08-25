@@ -238,6 +238,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 
 			current_plugin->SetDynamic(true);
 			current_plugin->DoConfigure();
+			current_plugin->InitializeComponents();
 
 			if ( current_plugin->APIVersion() != BRO_PLUGIN_API_VERSION )
 				reporter->FatalError("plugin's API version does not match Bro (expected %d, got %d in %s)",
@@ -328,9 +329,6 @@ void Manager::RegisterPlugin(Plugin *plugin)
 		// A dynamic plugin, record its location.
 		plugin->SetPluginLocation(current_dir, current_sopath);
 
-	// Sort plugins by name to make sure we have a deterministic order.
-	ActivePluginsInternal()->sort(plugin_cmp);
-
 	current_plugin = plugin;
 	}
 
@@ -354,9 +352,21 @@ void Manager::InitPreScript()
 	for ( plugin_list::iterator i = Manager::ActivePluginsInternal()->begin();
 	      i != Manager::ActivePluginsInternal()->end(); i++ )
 		{
-		Plugin* plugin = *i;
-		plugin->DoConfigure();
-		plugin->InitPreScript();
+		(*i)->DoConfigure();
+		}
+
+	// Sort plugins by name to make sure we have a deterministic order.
+	// We cannot do this before, because the plugin name (used for plugin_cmp) is only
+	// set in DoConfigure.
+	// We need things sorted to generate the tags (in InitializeComponents) in a deterministic
+	// order.
+	ActivePluginsInternal()->sort(plugin_cmp);
+
+	for ( plugin_list::iterator i = Manager::ActivePluginsInternal()->begin();
+	      i != Manager::ActivePluginsInternal()->end(); i++ )
+		{
+		(*i)->InitializeComponents();
+		(*i)->InitPreScript();
 		}
 
 	init = true;

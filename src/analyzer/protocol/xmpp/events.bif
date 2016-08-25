@@ -1,0 +1,5 @@
+## Generated when a XMPP connection goes encrypted after a successful
+## StartTLS exchange between the client and the server.
+##
+## c: The connection.
+event xmpp_starttls%(c: connection%);

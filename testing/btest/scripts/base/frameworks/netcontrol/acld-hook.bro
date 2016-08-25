@@ -1,5 +1,5 @@
 # @TEST-SERIALIZE: brokercomm
-# @TEST-REQUIRES: grep -q ENABLE_BROKER $BUILD/CMakeCache.txt
+# @TEST-REQUIRES: grep -q ENABLE_BROKER:BOOL=true $BUILD/CMakeCache.txt
 # @TEST-EXEC: btest-bg-run recv "bro -b ../recv.bro broker_port=$BROKER_PORT >recv.out"
 # @TEST-EXEC: btest-bg-run send "bro -b -r $TRACES/tls/ecdhe.pcap --pseudo-realtime ../send.bro broker_port=$BROKER_PORT >send.out"
 
@@ -105,14 +105,14 @@ event NetControl::acld_add_rule(id: count, r: NetControl::Rule, ar: NetControl::
 	{
 	print "add_rule", id, r$entity, r$ty, ar;
 
-	Broker::event("bro/event/netcontroltest", Broker::event_args(NetControl::acld_rule_added, id, r, ar$command));
+	Broker::send_event("bro/event/netcontroltest", Broker::event_args(NetControl::acld_rule_added, id, r, ar$command));
 	}
 
 event NetControl::acld_remove_rule(id: count, r: NetControl::Rule, ar: NetControl::AclRule)
 	{
 	print "remove_rule", id, r$entity, r$ty, ar;
 
-	Broker::event("bro/event/netcontroltest", Broker::event_args(NetControl::acld_rule_removed, id, r, ar$command));
+	Broker::send_event("bro/event/netcontroltest", Broker::event_args(NetControl::acld_rule_removed, id, r, ar$command));
 
 	if ( r$cid == 4 )
 		terminate();

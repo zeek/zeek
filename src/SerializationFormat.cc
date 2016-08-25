@@ -126,7 +126,7 @@ bool BinarySerializationFormat::Read(uint32* v, const char* tag)
 		return false;
 
 	*v = ntohl(*v);
-	DBG_LOG(DBG_SERIAL, "Read uint32 %ld [%s]", *v, tag);
+	DBG_LOG(DBG_SERIAL, "Read uint32 %" PRIu32 " [%s]", *v, tag);
 	return true;
 	}
 
@@ -138,7 +138,7 @@ bool BinarySerializationFormat::Read(int64* v, const char* tag)
 		return false;
 
 	*v = ((int64(ntohl(x[0]))) << 32) | ntohl(x[1]);
-	DBG_LOG(DBG_SERIAL, "Read int64 %lld [%s]", *v, tag);
+	DBG_LOG(DBG_SERIAL, "Read int64 %" PRId64 " [%s]", *v, tag);
 	return true;
 	}
 
@@ -149,7 +149,7 @@ bool BinarySerializationFormat::Read(uint64* v, const char* tag)
 		return false;
 
 	*v = ((uint64(ntohl(x[0]))) << 32) | ntohl(x[1]);
-	DBG_LOG(DBG_SERIAL, "Read uint64 %llu [%s]", *v, tag);
+	DBG_LOG(DBG_SERIAL, "Read uint64 %" PRIu64 " [%s]", *v, tag);
 	return true;
 	}
 
@@ -313,7 +313,7 @@ bool BinarySerializationFormat::Write(uint16 v, const char* tag)
 
 bool BinarySerializationFormat::Write(uint32 v, const char* tag)
 	{
-	DBG_LOG(DBG_SERIAL, "Write uint32 %ld [%s]", v, tag);
+	DBG_LOG(DBG_SERIAL, "Write uint32 %" PRIu32 " [%s]", v, tag);
 	v = htonl(v);
 	return WriteData(&v, sizeof(v));
 	}
@@ -327,7 +327,7 @@ bool BinarySerializationFormat::Write(int v, const char* tag)
 
 bool BinarySerializationFormat::Write(uint64 v, const char* tag)
 	{
-	DBG_LOG(DBG_SERIAL, "Write uint64 %lu [%s]", v, tag);
+	DBG_LOG(DBG_SERIAL, "Write uint64 %" PRIu64 " [%s]", v, tag);
 	uint32 x[2];
 	x[0] = htonl(v >> 32);
 	x[1] = htonl(v & 0xffffffff);
@@ -336,7 +336,7 @@ bool BinarySerializationFormat::Write(uint64 v, const char* tag)
 
 bool BinarySerializationFormat::Write(int64 v, const char* tag)
 	{
-	DBG_LOG(DBG_SERIAL, "Write int64 %ld [%s]", v, tag);
+	DBG_LOG(DBG_SERIAL, "Write int64 %" PRId64 " [%s]", v, tag);
 	uint32 x[2];
 	x[0] = htonl(v >> 32);
 	x[1] = htonl(v & 0xffffffff);
@@ -436,257 +436,3 @@ bool BinarySerializationFormat::Write(const char* buf, int len, const char* tag)
 	return WriteData(&l, sizeof(l)) && WriteData(buf, len);
 	}
 
-XMLSerializationFormat::XMLSerializationFormat()
-	{
-	}
-
-XMLSerializationFormat::~XMLSerializationFormat()
-	{
-	}
-
-bool XMLSerializationFormat::Read(int* v, const char* tag)
-	{
-	reporter->InternalError("no reading of xml");
-	return false;
-	}
-
-bool XMLSerializationFormat::Read(uint16* v, const char* tag)
-	{
-	reporter->InternalError("no reading of xml");
-	return false;
-	}
-
-bool XMLSerializationFormat::Read(uint32* v, const char* tag)
-	{
-	reporter->InternalError("no reading of xml");
-	return false;
-	}
-
-bool XMLSerializationFormat::Read(int64* v, const char* tag)
-	{
-	reporter->InternalError("no reading of xml");
-	return false;
-	}
-
-bool XMLSerializationFormat::Read(uint64* v, const char* tag)
-	{
-	reporter->InternalError("no reading of xml");
-	return false;
-	}
-
-bool XMLSerializationFormat::Read(bool* v, const char* tag)
-	{
-	reporter->InternalError("no reading of xml");
-	return false;
-	}
-
-bool XMLSerializationFormat::Read(double* d, const char* tag)
-	{
-	reporter->InternalError("no reading of xml");
-	return false;
-	}
-
-bool XMLSerializationFormat::Read(char* v, const char* tag)
-	{
-	reporter->InternalError("no reading of xml");
-	return false;
-	}
-
-bool XMLSerializationFormat::Read(char** str, int* len, const char* tag)
-	{
-	reporter->InternalError("no reading of xml");
-	return false;
-	}
-
-bool XMLSerializationFormat::Read(string* s, const char* tag)
-	{
-	reporter->InternalError("no reading of xml");
-	return false;
-	}
-
-bool XMLSerializationFormat::Read(IPAddr* addr, const char* tag)
-	{
-	reporter->InternalError("no reading of xml");
-	return false;
-	}
-
-bool XMLSerializationFormat::Read(IPPrefix* prefix, const char* tag)
-	{
-	reporter->InternalError("no reading of xml");
-	return false;
-	}
-
-bool XMLSerializationFormat::Read(struct in_addr* addr, const char* tag)
-	{
-	reporter->InternalError("no reading of xml");
-	return false;
-	}
-
-bool XMLSerializationFormat::Read(struct in6_addr* addr, const char* tag)
-	{
-	reporter->InternalError("no reading of xml");
-	return false;
-	}
-
-bool XMLSerializationFormat::Write(char v, const char* tag)
-	{
-	return WriteElem(tag, "char", &v, 1);
-	}
-
-bool XMLSerializationFormat::Write(uint16 v, const char* tag)
-	{
-	const char* tmp = fmt("%" PRIu16, v);
-	return WriteElem(tag, "uint16", tmp, strlen(tmp));
-	}
-
-bool XMLSerializationFormat::Write(uint32 v, const char* tag)
-	{
-	const char* tmp = fmt("%" PRIu32, v);
-	return WriteElem(tag, "uint32", tmp, strlen(tmp));
-	}
-
-bool XMLSerializationFormat::Write(uint64 v, const char* tag)
-	{
-	const char* tmp = fmt("%" PRIu64, v);
-	return WriteElem(tag, "uint64", tmp, strlen(tmp));
-	}
-
-bool XMLSerializationFormat::Write(int64 v, const char* tag)
-	{
-	const char* tmp = fmt("%" PRId64, v);
-	return WriteElem(tag, "int64", tmp, strlen(tmp));
-	}
-
-bool XMLSerializationFormat::Write(int v, const char* tag)
-	{
-	const char* tmp = fmt("%d", v);
-	return WriteElem(tag, "int", tmp, strlen(tmp));
-	}
-
-bool XMLSerializationFormat::Write(double d, const char* tag)
-	{
-	const char* tmp = fmt("%f", d);
-	return WriteElem(tag, "double", tmp, strlen(tmp));
-	}
-
-bool XMLSerializationFormat::Write(bool v, const char* tag)
-	{
-	if ( v )
-		return WriteElem(tag, "bool", "true", 4);
-	else
-		return WriteElem(tag, "bool", "false", 5);
-	}
-
-bool XMLSerializationFormat::Write(const char* s, const char* tag)
-	{
-	return WriteElem(tag, "string", s, strlen(s));
-	}
-
-bool XMLSerializationFormat::Write(const string& s, const char* tag)
-	{
-	return WriteElem(tag, "string", s.data(), s.size());
-	}
-
-bool XMLSerializationFormat::WriteOpenTag(const char* tag)
-	{
-	return WriteData("<", 1) && WriteData(tag, strlen(tag) && WriteData(">", 1));
-	}
-
-bool XMLSerializationFormat::WriteCloseTag(const char* tag)
-	{
-	return WriteData("</", 2) && WriteData(tag, strlen(tag))
-		&& WriteData(">", 1);
-	}
-
-bool XMLSerializationFormat::WriteSeparator()
-	{
-	return WriteData("\n", 1);
-	}
-
-bool XMLSerializationFormat::Write(const char* buf, int len, const char* tag)
-	{
-	return WriteElem(tag, "string", buf, len);
-	}
-
-bool XMLSerializationFormat::Write(const IPAddr& addr, const char* tag)
-	{
-	reporter->InternalError("XML output of addresses not implemented");
-	return false;
-	}
-
-bool XMLSerializationFormat::Write(const IPPrefix& prefix, const char* tag)
-	{
-	reporter->InternalError("XML output of prefixes not implemented");
-	return false;
-	}
-
-bool XMLSerializationFormat::Write(const struct in_addr& addr, const char* tag)
-	{
-	reporter->InternalError("XML output of in_addr not implemented");
-	return false;
-	}
-
-bool XMLSerializationFormat::Write(const struct in6_addr& addr, const char* tag)
-	{
-	reporter->InternalError("XML output of in6_addr not implemented");
-	return false;
-	}
-
-bool XMLSerializationFormat::WriteEncodedString(const char* s, int len)
-	{
-	while ( len-- )
-		{
-		int success = false;
-		if ( ! isprint(*s) )
-			{
-			const char* tmp = fmt("%.4x", (int)* s++);
-			success = WriteData("&#x", 3) && WriteData(tmp, 4) &&
-			WriteData(";", 1);
-			}
-		else
-			{
-			switch ( *s ) {
-			case '"':
-				success = WriteData("&quot;", 6);
-				break;
-			case '&':
-				success = WriteData("&amp;", 5);
-				break;
-			case '<':
-				success = WriteData("&lt;", 4);
-				break;
-			case '>':
-				success = WriteData("&gt;", 4);
-				break;
-			default:
-				success = WriteData(s, 1);
-			}
-
-			if ( ! success )
-				return false;
-
-			++s;
-			}
-		}
-	return true;
-	}
-
-bool XMLSerializationFormat::WriteElem(const char* tag, const char* type,
-					const char* content, int len)
-	{
-	if ( ! tag )
-		return true;
-
-	return WriteData("<", 1) &&
-		WriteData(tag, strlen(tag)) &&
-#if 0
-		WriteData(" type=\"", 7) &&
-		WriteData(type, strlen(type)) &&
-		WriteData("\"", 1) &&
-#endif
-		WriteData(">", 1) &&
-		WriteEncodedString(content, len) &&
-		WriteData("</", 2) &&
-		WriteData(tag, strlen(tag)) &&
-		WriteData(">", 1);
-	}

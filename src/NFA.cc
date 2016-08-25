@@ -42,6 +42,8 @@ NFA_State::~NFA_State()
 	{
 	for ( int i = 0; i < xtions.length(); ++i )
 		Unref(xtions[i]);
+
+	delete epsclosure;
 	}
 
 void NFA_State::AddXtionsTo(NFA_state_list* ns)
@@ -283,11 +285,6 @@ void NFA_Machine::Dump(FILE* f)
 	{
 	first_state->Dump(f);
 	first_state->ClearMarks();
-	}
-
-void NFA_Machine::DumpStats(FILE* f)
-	{
-	fprintf(f, "highest NFA state ID is %d\n", nfa_state_id);
 	}
 
 NFA_Machine* make_alternate(NFA_Machine* m1, NFA_Machine* m2)

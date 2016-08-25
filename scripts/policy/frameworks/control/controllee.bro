@@ -28,13 +28,9 @@ event Control::peer_status_request()
 		local peer = Communication::nodes[p];
 		if ( ! peer$connected )
 			next;
-			
-		local res = resource_usage();
-		status += fmt("%.6f peer=%s host=%s events_in=%s events_out=%s ops_in=%s ops_out=%s bytes_in=? bytes_out=?\n",
-					network_time(),
-					peer$peer$descr, peer$host,
-					res$num_events_queued, res$num_events_dispatched,
-					res$blocking_input, res$blocking_output);
+
+		status += fmt("%.6f peer=%s host=%s\n",
+			      network_time(), peer$peer$descr, peer$host);
 		}
 
 	event Control::peer_status_response(status);
@@ -42,24 +38,24 @@ event Control::peer_status_request()
 
 event Control::net_stats_request()
 	{
-	local ns = net_stats();
-	local reply = fmt("%.6f recvd=%d dropped=%d link=%d\n", network_time(), 
+	local ns = get_net_stats();
+	local reply = fmt("%.6f recvd=%d dropped=%d link=%d\n", network_time(),
 	                  ns$pkts_recvd, ns$pkts_dropped, ns$pkts_link);
 	event Control::net_stats_response(reply);
 	}
-	
+
 event Control::configuration_update_request()
 	{
-	# Generate the alias event. 
+	# Generate the alias event.
 	event Control::configuration_update();
-	
+
 	# Don't need to do anything in particular here, it's just indicating that
 	# the configuration is going to be updated.  This event could be handled
-	# by other scripts if they need to do some ancilliary processing if 
+	# by other scripts if they need to do some ancilliary processing if
 	# redef-able consts are modified at runtime.
 	event Control::configuration_update_response();
 	}
-	
+
 event Control::shutdown_request()
 	{
 	# Send the acknowledgement event.

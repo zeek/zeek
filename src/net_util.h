@@ -166,7 +166,7 @@ extern const char* fmt_conn_id(const uint32* src_addr, uint32 src_port,
 *            least 8 for a valid address.
 * @return A string of the formatted MAC. Passes ownership to caller.
 */
-extern char* fmt_mac(const unsigned char* m, int len);
+extern std::string fmt_mac(const unsigned char* m, int len);
 
 // Read 4 bytes from data and return in network order.
 extern uint32 extract_uint32(const u_char* data);

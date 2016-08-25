@@ -644,7 +644,7 @@ protected:
 	DECLARE_SERIAL(PatternVal);
 };
 
-// ListVals are mainly used to index tables that have more than one 
+// ListVals are mainly used to index tables that have more than one
 // element in their index.
 class ListVal : public Val {
 public:
@@ -862,6 +862,14 @@ protected:
 	// Calculates default value for index.  Returns 0 if none.
 	Val* Default(Val* index);
 
+	// Returns true if item expiration is enabled.
+	bool ExpirationEnabled()	{ return expire_time != 0; }
+
+	// Returns the expiration time defined by %{create,read,write}_expire
+	// attribute, or -1 for unset/invalid values. In the invalid case, an
+	// error will have been reported.
+	double GetExpireTime();
+
 	// Calls &expire_func and returns its return interval;
 	// takes ownership of the reference.
 	double CallExpireFunc(Val *idx);
@@ -874,8 +882,8 @@ protected:
 	TableType* table_type;
 	CompositeHash* table_hash;
 	Attributes* attrs;
-	double expire_time;
-	Expr* expire_expr;
+	Expr* expire_time;
+	Expr* expire_func;
 	TableValTimer* timer;
 	IterCookie* expire_cookie;
 	PrefixTable* subnets;

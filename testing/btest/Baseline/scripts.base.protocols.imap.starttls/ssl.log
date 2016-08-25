@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	ssl
+#open	2016-07-13-16-16-27
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer
+#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string
+1437584568.570497	CHhAvVGS1DHFjwGM9	192.168.17.53	49640	212.227.17.186	143	TLSv12	TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384	secp256r1	-	F	-	-	T	FOWmhO3rUj3SEB5RTb,FjH9n52SzEIJ9UoVK9,FisDHa396LIaZadgG9	(empty)	CN=imap.gmx.net,emailAddress=server-certs@1und1.de,L=Montabaur,ST=Rhineland-Palatinate,O=1&1 Mail & Media GmbH,C=DE	CN=TeleSec ServerPass DE-1,street=Untere Industriestr. 20,L=Netphen,postalCode=57250,ST=NRW,OU=T-Systems Trust Center,O=T-Systems International GmbH,C=DE	-	-
+#close	2016-07-13-16-16-27

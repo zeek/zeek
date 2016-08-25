@@ -1,4 +1,4 @@
-##! Bro's packet aquisition and control framework.
+##! Bro's NetControl framework.
 ##!
 ##! This plugin-based framework allows to control the traffic that Bro monitors
 ##! as well as, if having access to the forwarding path, the traffic the network
@@ -23,20 +23,20 @@ export {
 	# ###  Generic functions and events.
 	# ###
 
-	# Activates a plugin.
-	#
-	# p: The plugin to acticate.
-	#
-	# priority: The higher the priority, the earlier this plugin will be checked
-	# whether it supports an operation, relative to other plugins.
+	## Activates a plugin.
+	##
+	## p: The plugin to acticate.
+	##
+	## priority: The higher the priority, the earlier this plugin will be checked
+	##           whether it supports an operation, relative to other plugins.
 	global activate: function(p: PluginState, priority: int);
 
-	# Event that is used to initialize plugins. Place all plugin initialization
-	# related functionality in this event.
+	## Event that is used to initialize plugins. Place all plugin initialization
+	## related functionality in this event.
 	global NetControl::init: event();
 
-	# Event that is raised once all plugins activated in ``NetControl::init`` have finished
-	# their initialization.
+	## Event that is raised once all plugins activated in ``NetControl::init``
+	## have finished their initialization.
 	global NetControl::init_done: event();
 
 	# ###
@@ -81,9 +81,11 @@ export {
 	## Returns: The id of the inserted rule on succes and zero on failure.
 	global redirect_flow: function(f: flow_id, out_port: count, t: interval, location: string &default="") : string;
 
-	## Quarantines a host by redirecting rewriting DNS queries to the network dns server dns
-	## to the host. Host has to answer to all queries with its own address. Only http communication
-	## from infected to quarantinehost is allowed.
+	## Quarantines a host. This requires a special quarantine server, which runs a HTTP server explaining
+	## the quarantine and a DNS server which resolves all requests to the quarantine server. DNS queries
+	## from the host to the network DNS server will be rewritten and will be sent to the quarantine server
+	## instead. Only http communication infected to quarantinehost is allowed. All other network communication
+	## is blocked.
 	##
 	## infected: the host to quarantine
 	##
@@ -96,7 +98,7 @@ export {
 	## Returns: Vector of inserted rules on success, empty list on failure.
 	global quarantine_host: function(infected: addr, dns: addr, quarantine: addr, t: interval, location: string &default="") : vector of string;
 
-	## Flushes all state.
+	## Flushes all state by calling :bro:see:`NetControl::remove_rule` on all currently active rules.
 	global clear: function();
 
 	# ###
@@ -109,24 +111,46 @@ export {
 	##
 	## r: The rule to install.
 	##
-	## Returns: If succesful, returns an ID string unique to the rule that can later
-	## be used to refer to it. If unsuccessful, returns an empty string. The ID is also
-	## assigned to ``r$id``. Note that "successful" means "a plugin knew how to handle
-	## the rule", it doesn't necessarily mean that it was indeed successfully put in
-	## place, because that might happen asynchronously and thus fail only later.
+	## Returns: If succesful, returns an ID string unique to the rule that can
+	##          later be used to refer to it. If unsuccessful, returns an empty
+	##          string. The ID is also assigned to ``r$id``. Note that
+	##          "successful" means "a plugin knew how to handle the rule", it
+	##          doesn't necessarily mean that it was indeed successfully put in
+	##          place, because that might happen asynchronously and thus fail
+	##          only later.
 	global add_rule: function(r: Rule) : string;
 
 	## Removes a rule.
 	##
-	## id: The rule to remove, specified as the ID returned by :bro:id:`add_rule` .
+	## id: The rule to remove, specified as the ID returned by :bro:see:`NetControl::add_rule`.
 	##
-	## Returns: True if succesful, the relevant plugin indicated that it knew how
-	## to handle the removal. Note that again "success" means the plugin accepted the
-	## removal. They might still fail to put it into effect, as that  might happen
-	## asynchronously and thus go wrong at that point.
-	global remove_rule: function(id: string) : bool;
+	## reason: Optional string argument giving information on why the rule was removed.
+	##
+	## Returns: True if succesful, the relevant plugin indicated that it knew
+	##          how to handle the removal. Note that again "success" means the
+	##          plugin accepted the removal. They might still fail to put it
+	##          into effect, as that might happen asynchronously and thus go
+	##          wrong at that point.
+	global remove_rule: function(id: string, reason: string &default="") : bool;
+
+	## Deletes a rule without removing in from the backends to which it has been
+	## added before. This mean that no messages will be sent to the switches to which
+	## the rule has been added; if it is not removed from them by a separate mechanism,
+	## it will stay installed and not be removed later.
+	##
+	## id: The rule to delete, specified as the ID returned by :bro:see:`add_rule` .
+	##
+	## reason: Optional string argument giving information on why the rule was deleted.
+	##
+	## Returns: True if removal is successful, or sent to manager.
+	##          False if the rule could not be found.
+	global delete_rule: function(id: string, reason: string &default="") : bool;
 
 	## Searches all rules affecting a certain IP address.
+	##
+	## This function works on both the manager and workers of a cluster. Note that on
+	## the worker, the internal rule variables (starting with _) will not reflect the
+	## current state.
 	##
 	## ip: The ip address to search for
 	##
@@ -135,6 +159,18 @@ export {
 
 	## Searches all rules affecting a certain subnet.
 	##
+	## A rule affects a subnet, if it covers the whole subnet. Note especially that
+	## this function will not reveal all rules that are covered by a subnet.
+	##
+	## For example, a search for 192.168.17.0/8 will reveal a rule that exists for
+	## 192.168.0.0/16, since this rule affects the subnet. However, it will not reveal
+	## a more specific rule for 192.168.17.1/32, which does not directy affect the whole
+	## subnet.
+	##
+	## This function works on both the manager and workers of a cluster. Note that on
+	## the worker, the internal rule variables (starting with _) will not reflect the
+	## current state.
+	##
 	## sn: The subnet to search for
 	##
 	## Returns: vector of all rules affecting the subnet
@@ -142,7 +178,7 @@ export {
 
 	###### Asynchronous feedback on rules.
 
-	## Confirms that a rule was put in place.
+	## Confirms that a rule was put in place by a plugin.
 	##
 	## r: The rule now in place.
 	##
@@ -151,24 +187,38 @@ export {
 	## msg: An optional informational message by the plugin.
 	global rule_added: event(r: Rule, p: PluginState, msg: string &default="");
 
-	## Reports that a rule was removed due to a remove: function() call.
+	## Signals that a rule that was supposed to be put in place was already
+	## existing at the specified plugin. Rules that already have been existing
+	## continue to be tracked like normal, but no timeout calls will be sent
+	## to the specified plugins. Removal of the rule from the hardware can
+	## still be forced by manually issuing a remove_rule call.
+	##
+	## r: The rule that was already in place.
+	##
+	## p: The plugin that reported that the rule already was in place.
+	##
+	## msg: An optional informational message by the plugin.
+	global rule_exists: event(r: Rule, p: PluginState, msg: string &default="");
+
+	## Reports that a plugin reports a rule was removed due to a
+	## remove: function() vall.
 	##
 	## r: The rule now removed.
 	##
 	## p: The state for the plugin that had the rule in place and now
-	## removed it.
+	##    removed it.
 	##
 	## msg: An optional informational message by the plugin.
 	global rule_removed: event(r: Rule, p: PluginState, msg: string &default="");
 
-	## Reports that a rule was removed internally due to a timeout.
+	## Reports that a rule was removed from a plugin due to a timeout.
 	##
 	## r: The rule now removed.
 	##
 	## i: Additional flow information, if supported by the protocol.
 	##
 	## p: The state for the plugin that had the rule in place and now
-	## removed it.
+	##    removed it.
 	##
 	## msg: An optional informational message by the plugin.
 	global rule_timeout: event(r: Rule, i: FlowInfo, p: PluginState);
@@ -181,6 +231,26 @@ export {
 	##
 	## msg: An optional informational message by the plugin.
 	global rule_error: event(r: Rule, p: PluginState, msg: string &default="");
+
+	## This event is raised when a new rule is created by the NetControl framework
+	## due to a call to add_rule. From this moment, until the rule_destroyed event
+	## is raised, the rule is tracked internally by the NetControl framewory.
+	##
+	## Note that this event does not mean that a rule was succesfully added by
+	## any backend; it just means that the rule has been accepted and addition
+	## to the specified backend is queued. To get information when rules are actually
+	## installed by the hardware, use the rule_added, rule_exists, rule_removed, rule_timeout
+	## and rule_error events.
+	global rule_new: event(r: Rule);
+
+	## This event is raised when a rule is deleted from the NetControl framework,
+	## because it is no longer in use. This can be caused by the fact that a rule
+	## was removed by all plugins to which it was added, by the fact that it timed out
+	## or due to rule errors.
+	##
+	## To get the cause or a rule remove, hook the rule_removed, rule_timeout and
+	## rule_error calls.
+	global rule_destroyed: event(r: Rule);
 
 	## Hook that allows the modification of rules passed to add_rule before they
 	## are passed on to the plugins. If one of the hooks uses break, the rule is
@@ -203,17 +273,18 @@ export {
 		MESSAGE,
 		## A log entry reflecting a framework message.
 		ERROR,
-		## A log entry about about a rule.
+		## A log entry about a rule.
 		RULE
 	};
 
-	## State of an  entry in the NetControl log.
+	## State of an entry in the NetControl log.
 	type InfoState: enum {
-		REQUESTED,
-		SUCCEEDED,
-		FAILED,
-		REMOVED,
-		TIMEOUT,
+		REQUESTED, ##< The request to add/remove a rule was sent to the respective backend
+		SUCCEEDED, ##< A rule was succesfully added by a backend
+		EXISTS, ##< A backend reported that a rule was already existing
+		FAILED, ##< A rule addition failed
+		REMOVED, ##< A rule was succesfully removed by a backend
+		TIMEOUT, ##< A rule timeout was triggered by the NetControl framework or a backend
 	};
 
 	## The record type defining the column fields of the NetControl log.
@@ -256,11 +327,13 @@ export {
 }
 
 redef record Rule += {
-	##< Internally set to the plugins handling the rule.
+	## Internally set to the plugins handling the rule.
 	_plugin_ids: set[count] &default=count_set();
-	##< Internally set to the plugins on which the rule is currently active.
+	## Internally set to the plugins on which the rule is currently active.
 	_active_plugin_ids: set[count] &default=count_set();
-	##< Track if the rule was added succesfully by all responsible plugins.
+	## Internally set to plugins where the rule should not be removed upon timeout.
+	_no_expire_plugins: set[count] &default=count_set();
+	## Track if the rule was added succesfully by all responsible plugins.
 	_added: bool &default=F;
 };
 
@@ -532,6 +605,11 @@ function plugin_activated(p: PluginState)
 		log_error("unknown plugin activated", p);
 		return;
 		}
+
+	# Suppress duplicate activation
+	if ( plugin_ids[id]$_activated == T )
+		return;
+
 	plugin_ids[id]$_activated = T;
 	log_msg("activation finished", p);
 
@@ -724,6 +802,8 @@ function add_rule_impl(rule: Rule) : string
 
 		add_subnet_entry(rule);
 
+		event NetControl::rule_new(rule);
+
 		return rule$id;
 		}
 
@@ -731,25 +811,62 @@ function add_rule_impl(rule: Rule) : string
 	return "";
 	}
 
-function remove_rule_plugin(r: Rule, p: PluginState): bool
+function rule_cleanup(r: Rule)
+	{
+	if ( |r$_active_plugin_ids| > 0 )
+		return;
+
+	remove_subnet_entry(r);
+
+	delete rule_entities[r$entity, r$ty];
+	delete rules[r$id];
+
+	event NetControl::rule_destroyed(r);
+	}
+
+function delete_rule_impl(id: string, reason: string): bool
+	{
+	if ( id !in rules )
+		{
+		Reporter::error(fmt("Rule %s does not exist in NetControl::delete_rule", id));
+		return F;
+		}
+
+	local rule = rules[id];
+
+	rule$_active_plugin_ids = set();
+
+	rule_cleanup(rule);
+	if ( reason != "" )
+		log_rule_no_plugin(rule, REMOVED, fmt("delete_rule: %s", reason));
+	else
+		log_rule_no_plugin(rule, REMOVED, "delete_rule");
+
+	return T;
+	}
+
+function remove_rule_plugin(r: Rule, p: PluginState, reason: string &default=""): bool
 	{
 	local success = T;
 
-	if ( ! p$plugin$remove_rule(p, r) )
+	if ( ! p$plugin$remove_rule(p, r, reason) )
 		{
 		# still continue and send to other plugins
-		log_rule_error(r, "remove failed", p);
+		if ( reason != "" )
+			log_rule_error(r, fmt("remove failed (original reason: %s)", reason), p);
+		else
+			log_rule_error(r, "remove failed", p);
 		success = F;
 		}
 		else
 		{
-		log_rule(r, "REMOVE", REQUESTED, p);
+		log_rule(r, "REMOVE", REQUESTED, p, reason);
 		}
 
 	return success;
 	}
 
-function remove_rule_impl(id: string) : bool
+function remove_rule_impl(id: string, reason: string) : bool
 	{
 	if ( id !in rules )
 		{
@@ -763,7 +880,7 @@ function remove_rule_impl(id: string) : bool
 	for ( plugin_id in r$_active_plugin_ids )
 		{
 		local p = plugin_ids[plugin_id];
-		success = remove_rule_plugin(r, p);
+		success = remove_rule_plugin(r, p, reason);
 		}
 
 	return success;
@@ -779,10 +896,21 @@ function rule_expire_impl(r: Rule, p: PluginState) &priority=-5
 		# Removed already.
 		return;
 
-	event NetControl::rule_timeout(r, FlowInfo(), p); # timeout implementation will handle the removal
+	local rule = rules[r$id];
+
+	if ( p$_id in rule$_no_expire_plugins )
+		{
+		# in this case - don't log anything, just remove the plugin from the rule
+		# and cleaup
+		delete rule$_active_plugin_ids[p$_id];
+		delete rule$_no_expire_plugins[p$_id];
+		rule_cleanup(rule);
+		}
+	else
+		event NetControl::rule_timeout(r, FlowInfo(), p); # timeout implementation will handle the removal
 	}
 
-function rule_added_impl(r: Rule, p: PluginState, msg: string &default="")
+function rule_added_impl(r: Rule, p: PluginState, exists: bool, msg: string &default="")
 	{
 	if ( r$id !in rules )
 		{
@@ -798,7 +926,15 @@ function rule_added_impl(r: Rule, p: PluginState, msg: string &default="")
 		return;
 		}
 
-	log_rule(r, "ADD", SUCCEEDED, p, msg);
+	# The rule was already existing on the backend. Mark this so we don't timeout
+	# it on this backend.
+	if ( exists )
+		{
+		add rule$_no_expire_plugins[p$_id];
+		log_rule(r, "ADD", EXISTS, p, msg);
+		}
+	else
+		log_rule(r, "ADD", SUCCEEDED, p, msg);
 
 	add rule$_active_plugin_ids[p$_id];
 	if ( |rule$_plugin_ids| == |rule$_active_plugin_ids| )
@@ -806,17 +942,6 @@ function rule_added_impl(r: Rule, p: PluginState, msg: string &default="")
 		# rule was completely added.
 		rule$_added = T;
 		}
-	}
-
-function rule_cleanup(r: Rule)
-	{
-	if ( |r$_active_plugin_ids| > 0 )
-		return;
-
-	remove_subnet_entry(r);
-
-	delete rule_entities[r$entity, r$ty];
-	delete rules[r$id];
 	}
 
 function rule_removed_impl(r: Rule, p: PluginState, msg: string &default="")

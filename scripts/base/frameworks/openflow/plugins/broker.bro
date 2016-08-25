@@ -5,6 +5,8 @@
 
 module OpenFlow;
 
+@ifdef ( Broker::__enable )
+
 export {
 	redef enum Plugin += {
 		BROKER,
@@ -47,14 +49,14 @@ function broker_describe(state: ControllerState): string
 
 function broker_flow_mod_fun(state: ControllerState, match: ofp_match, flow_mod: OpenFlow::ofp_flow_mod): bool
 	{
-	Broker::event(state$broker_topic, Broker::event_args(broker_flow_mod, state$_name, state$broker_dpid, match, flow_mod));
+	Broker::send_event(state$broker_topic, Broker::event_args(broker_flow_mod, state$_name, state$broker_dpid, match, flow_mod));
 
 	return T;
 	}
 
 function broker_flow_clear_fun(state: OpenFlow::ControllerState): bool
 	{
-	Broker::event(state$broker_topic, Broker::event_args(broker_flow_clear, state$_name, state$broker_dpid));
+	Broker::send_event(state$broker_topic, Broker::event_args(broker_flow_clear, state$_name, state$broker_dpid));
 
 	return T;
 	}
@@ -93,3 +95,4 @@ function broker_new(name: string, host: addr, host_port: port, topic: string, dp
 	return c;
 	}
 
+@endif

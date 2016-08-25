@@ -1,0 +1,23 @@
+## Generated for NTLM messages of type *negotiate*.
+##
+## c: The connection.
+##
+## negotiate: The parsed data of the NTLM message. See init-bare for more details.
+##
+event ntlm_negotiate%(c: connection, negotiate: NTLM::Negotiate%);
+
+## Generated for NTLM messages of type *challenge*.
+##
+## c: The connection.
+##
+## negotiate: The parsed data of the NTLM message. See init-bare for more details.
+##
+event ntlm_challenge%(c: connection, challenge: NTLM::Challenge%);
+
+## Generated for NTLM messages of type *authenticate*.
+##
+## c: The connection.
+##
+## request: The parsed data of the NTLM message. See init-bare for more details.
+##
+event ntlm_authenticate%(c: connection, request: NTLM::Authenticate%);

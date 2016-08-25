@@ -1,5 +1,8 @@
 @load ./main
 
+# File analysis framework integration.
+@load ./files
+
 # The cluster framework must be loaded first.
 @load base/frameworks/cluster
 

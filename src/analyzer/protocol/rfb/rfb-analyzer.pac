@@ -150,8 +150,12 @@ refine connection RFB_Conn += {
 			}
 
 		if ( msg->sectype() == 2 )
-			{ //VNC
-			state = AWAITING_SERVER_CHALLENGE;
+			{ // VNC
+			if ( ${msg.possible_challenge}.length() == 16 )
+				// Challenge was already sent with this message
+				state = AWAITING_CLIENT_RESPONSE;
+			else
+				state = AWAITING_SERVER_CHALLENGE;
 			}
 		return true;
 		%}

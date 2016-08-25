@@ -12,9 +12,14 @@ function add_rule(r: Rule) : string
 	return add_rule_impl(r);
 	}
 
-function remove_rule(id: string) : bool
+function delete_rule(id: string, reason: string &default="") : bool
 	{
-	return remove_rule_impl(id);
+	return delete_rule_impl(id, reason);
+	}
+
+function remove_rule(id: string, reason: string &default="") : bool
+	{
+	return remove_rule_impl(id, reason);
 	}
 
 event rule_expire(r: Rule, p: PluginState) &priority=-5
@@ -22,9 +27,17 @@ event rule_expire(r: Rule, p: PluginState) &priority=-5
 	rule_expire_impl(r, p);
 	}
 
+event rule_exists(r: Rule, p: PluginState, msg: string &default="") &priority=5
+	{
+	rule_added_impl(r, p, T, msg);
+
+	if ( r?$expire && r$expire > 0secs && ! p$plugin$can_expire )
+		schedule r$expire { rule_expire(r, p) };
+	}
+
 event rule_added(r: Rule, p: PluginState, msg: string &default="") &priority=5
 	{
-	rule_added_impl(r, p, msg);
+	rule_added_impl(r, p, F, msg);
 
 	if ( r?$expire && r$expire > 0secs && ! p$plugin$can_expire )
 		schedule r$expire { rule_expire(r, p) };

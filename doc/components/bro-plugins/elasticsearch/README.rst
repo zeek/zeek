@@ -1,1 +1,0 @@
-../../../../aux/plugins/elasticsearch/README

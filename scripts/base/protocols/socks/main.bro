@@ -6,6 +6,7 @@ module SOCKS;
 export {
 	redef enum Log::ID += { LOG };
 
+	## The record type which contains the fields of the SOCKS log.
 	type Info: record {
 		## Time when the proxy connection was first detected.
 		ts:          time            &log;
@@ -86,14 +87,6 @@ event socks_reply(c: connection, version: count, reply: count, sa: SOCKS::Addres
 	c$socks$bound_p = p;
 	}
 
-event socks_reply(c: connection, version: count, reply: count, sa: SOCKS::Address, p: port) &priority=-5
-	{
-	# This will handle the case where the analyzer failed in some way and was removed.  We probably 
-	# don't want to log these connections.
-	if ( "SOCKS" in c$service )
-		Log::write(SOCKS::LOG, c$socks);
-	}
-
 event socks_login_userpass_request(c: connection, user: string, password: string) &priority=5
 	{
 	# Authentication only possible with the version 5.
@@ -111,3 +104,10 @@ event socks_login_userpass_reply(c: connection, code: count) &priority=5
 	c$socks$status = v5_status[code];
 	}
 
+event connection_state_remove(c: connection)
+	{
+	# This will handle the case where the analyzer failed in some way and was
+	# removed.  We probably  don't want to log these connections.
+	if ( "SOCKS" in c$service )
+		Log::write(SOCKS::LOG, c$socks);
+	}

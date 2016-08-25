@@ -16,31 +16,47 @@ module Weird;
 export {
 	## The weird logging stream identifier.
 	redef enum Log::ID += { LOG };
-	
+
 	redef enum Notice::Type += {
 		## Generic unusual but notice-worthy weird activity.
 		Activity,
 	};
-	
-	## The record type which contains the column fields of the weird log.
+
+	## The record which is used for representing and logging weirds.
 	type Info: record {
 		## The time when the weird occurred.
 		ts:     time    &log;
+
 		## If a connection is associated with this weird, this will be
 		## the connection's unique ID.
 		uid:    string  &log &optional;
+
 		## conn_id for the optional connection.
 		id:     conn_id &log &optional;
+
+		## A shorthand way of giving the uid and id to a weird.
+		conn:   connection &optional;
+
 		## The name of the weird that occurred.
 		name:   string  &log;
+
 		## Additional information accompanying the weird if any.
 		addl:   string  &log &optional;
+
 		## Indicate if this weird was also turned into a notice.
-		notice: bool    &log &default=F;
+		notice:  bool   &log &default=F;
+
 		## The peer that originated this weird.  This is helpful in
 		## cluster deployments if a particular cluster node is having
 		## trouble to help identify which node is having trouble.
-		peer:   string  &log &optional;
+		peer:   string  &log &optional &default=peer_description;
+
+		## This field is to be provided when a weird is generated for
+		## the purpose of deduplicating weirds. The identifier string
+		## should be unique for a single instance of the weird. This field
+		## is used to define when a weird is conceptually a duplicate of
+		## a previous weird.
+		identifier: string &optional;
 	};
 
 	## Types of actions that may be taken when handling weird activity events.
@@ -59,13 +75,13 @@ export {
 		## Log the weird event once per originator host.
 		ACTION_LOG_PER_ORIG,
 		## Always generate a notice associated with the weird event.
-		ACTION_NOTICE, 
+		ACTION_NOTICE,
 		## Generate a notice associated with the weird event only once.
 		ACTION_NOTICE_ONCE,
 		## Generate a notice for the weird event once per connection.
 		ACTION_NOTICE_PER_CONN,
 		## Generate a notice for the weird event once per originator host.
-		ACTION_NOTICE_PER_ORIG, 
+		ACTION_NOTICE_PER_ORIG,
 	};
 
 	## A table specifying default/recommended actions per weird type.
@@ -246,7 +262,7 @@ export {
 		"bad_IP_checksum", "bad_TCP_checksum", "bad_UDP_checksum",
 		"bad_ICMP_checksum",
 	} &redef;
-	
+
 	## This table is used to track identifier and name pairs that should be
 	## temporarily ignored because the problem has already been reported.
 	## This helps reduce the volume of high volume weirds by only allowing 
@@ -267,9 +283,11 @@ export {
 	##
 	## rec: The weird columns about to be logged to the weird stream.
 	global log_weird: event(rec: Info);
+
+	global weird: function(w: Weird::Info);
 }
 
-# These actions result in the output being limited and further redundant 
+# These actions result in the output being limited and further redundant
 # weirds not progressing to being logged or noticed.
 const limiting_actions = {
 	ACTION_LOG_ONCE,
@@ -277,20 +295,17 @@ const limiting_actions = {
 	ACTION_LOG_PER_ORIG,
 	ACTION_NOTICE_ONCE,
 	ACTION_NOTICE_PER_CONN,
-	ACTION_NOTICE_PER_ORIG, 
+	ACTION_NOTICE_PER_ORIG,
 };
 
 # This is an internal set to track which Weird::Action values lead to notice
 # creation.
 const notice_actions = {
-	ACTION_NOTICE, 
-	ACTION_NOTICE_PER_CONN, 
-	ACTION_NOTICE_PER_ORIG, 
+	ACTION_NOTICE,
+	ACTION_NOTICE_PER_CONN,
+	ACTION_NOTICE_PER_ORIG,
 	ACTION_NOTICE_ONCE,
 };
-
-# Used to pass the optional connection into report().
-global current_conn: connection;
 
 event bro_init() &priority=5
 	{
@@ -302,110 +317,119 @@ function flow_id_string(src: addr, dst: addr): string
 	return fmt("%s -> %s", src, dst);
 	}
 
-function report(t: time, name: string, identifier: string, have_conn: bool, addl: string)
+function weird(w: Weird::Info)
 	{
-	local action = actions[name];
-	
+	local action = actions[w$name];
+
+	local identifier = "";
+	if ( w?$identifier )
+		identifier = w$identifier;
+	else
+		{
+		if ( w?$id )
+			identifier = id_string(w$id);
+		}
+
 	# If this weird is to be ignored let's drop out of here very early.
-	if ( action == ACTION_IGNORE || [name, identifier] in weird_ignore )
+	if ( action == ACTION_IGNORE || [w$name, identifier] in weird_ignore )
 		return;
-	
+
+	if ( w?$conn )
+		{
+		w$uid = w$conn$uid;
+		w$id = w$conn$id;
+		}
+
+	if ( w?$id )
+		{
+		if ( [w$id$orig_h, w$name] in ignore_hosts ||
+				 [w$id$resp_h, w$name] in ignore_hosts )
+				 return;
+		}
+
 	if ( action in limiting_actions )
 		{
+		local notice_identifier = identifier;
 		if ( action in notice_actions )
 			{
 			# Handle notices
-			if ( have_conn && action == ACTION_NOTICE_PER_ORIG )
-				identifier = fmt("%s", current_conn$id$orig_h);
+			if ( w?$id && action == ACTION_NOTICE_PER_ORIG )
+				notice_identifier = fmt("%s", w$id$orig_h);
 			else if ( action == ACTION_NOTICE_ONCE )
-				identifier = "";
-		
+				notice_identifier = "";
+
 			# If this weird was already noticed then we're done.
-			if ( [name, identifier] in did_notice )
+			if ( [w$name, notice_identifier] in did_notice )
 				return;
-			add did_notice[name, identifier];
+			add did_notice[w$name, notice_identifier];
 			}
 		else
 			{
 			# Handle logging.
-			if ( have_conn && action == ACTION_LOG_PER_ORIG )
-				identifier = fmt("%s", current_conn$id$orig_h);
+			if ( w?$id && action == ACTION_LOG_PER_ORIG )
+				notice_identifier = fmt("%s", w$id$orig_h);
 			else if ( action == ACTION_LOG_ONCE )
-				identifier = "";
-		
+				notice_identifier = "";
+
 			# If this weird was already logged then we're done.
-			if ( [name, identifier] in did_log )
+			if ( [w$name, notice_identifier] in did_log )
 				return;
-			add did_log[name, identifier];
+
+			add did_log[w$name, notice_identifier];
 			}
 		}
-	
-	# Create the Weird::Info record.
-	local info: Info;
-	info$ts = t;
-	info$name = name;
-	info$peer = peer_description;
-	if ( addl != "" )
-		info$addl = addl;
-	if ( have_conn )
-		{
-		info$uid = current_conn$uid;
-		info$id = current_conn$id;
-		}
-	
+
 	if ( action in notice_actions )
 		{
-		info$notice = T;
-		
+		w$notice = T;
+
 		local n: Notice::Info;
 		n$note = Activity;
-		n$msg = info$name;
-		if ( have_conn )
-			n$conn = current_conn;
-		if ( info?$addl )
-			n$sub = info$addl;
+		n$msg = w$name;
+		if ( w?$conn )
+			n$conn = w$conn;
+		else
+			{
+			if ( w?$uid )
+				n$uid = w$uid;
+			if ( w?$id )
+				n$id = w$id;
+			}
+		if ( w?$addl )
+			n$sub = w$addl;
 		NOTICE(n);
 		}
-	
+
 	# This is for the temporary ignoring to reduce volume for identical weirds.
-	if ( name !in weird_do_not_ignore_repeats )
-		add weird_ignore[name, identifier];
-	
-	Log::write(Weird::LOG, info);
+	if ( w$name !in weird_do_not_ignore_repeats )
+		add weird_ignore[w$name, identifier];
+
+	Log::write(Weird::LOG, w);
 	}
-
-function report_conn(t: time, name: string, identifier: string, addl: string, c: connection)
-	{
-	local cid = c$id;
-	if ( [cid$orig_h, name] in ignore_hosts ||
-	     [cid$resp_h, name] in ignore_hosts )
-		return;
-
-	current_conn = c;
-	report(t, name, identifier, T, addl);
-	}
-
-function report_orig(t: time, name: string, identifier: string, orig: addr)
-	{
-	if ( [orig, name] in ignore_hosts )
-		return;
-	
-	report(t, name, identifier, F, "");
-	}
-
 
 # The following events come from core generated weirds typically.
 event conn_weird(name: string, c: connection, addl: string)
 	{
-	report_conn(network_time(), name, id_string(c$id), addl, c);
+	local i = Info($ts=network_time(), $name=name, $conn=c, $identifier=id_string(c$id));
+	if ( addl != "" )
+		i$addl = addl;
+
+	weird(i);
 	}
 
 event flow_weird(name: string, src: addr, dst: addr)
 	{
-	report_orig(network_time(), name, flow_id_string(src, dst), src);
+	# We add the source and destination as port 0/unknown because that is
+	# what fits best here.
+	local id = conn_id($orig_h=src, $orig_p=count_to_port(0, unknown_transport),
+	                   $resp_h=dst, $resp_p=count_to_port(0, unknown_transport));
+
+	local i = Info($ts=network_time(), $name=name, $id=id, $identifier=flow_id_string(src,dst));
+	weird(i);
 	}
 
 event net_weird(name: string)
 	{
-	report(network_time(), name, "", F, "");
+	local i = Info($ts=network_time(), $name=name);
+	weird(i);
 	}

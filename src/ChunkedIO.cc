@@ -5,7 +5,9 @@
 #include <sys/time.h>
 #include <netinet/in.h>
 #include <assert.h>
+
 #include <openssl/ssl.h>
+#include <openssl/err.h>
 
 #include <algorithm>
 

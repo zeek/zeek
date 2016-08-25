@@ -1,5 +1,5 @@
 # @TEST-SERIALIZE: brokercomm
-# @TEST-REQUIRES: grep -q ENABLE_BROKER $BUILD/CMakeCache.txt
+# @TEST-REQUIRES: grep -q ENABLE_BROKER:BOOL=true $BUILD/CMakeCache.txt
 # @TEST-EXEC: btest-bg-run recv "bro -b ../recv.bro broker_port=$BROKER_PORT >recv.out"
 # @TEST-EXEC: btest-bg-run send "bro -b -r $TRACES/smtp.trace --pseudo-realtime ../send.bro broker_port=$BROKER_PORT >send.out"
 
@@ -104,8 +104,8 @@ function got_message()
 event OpenFlow::broker_flow_mod(name: string, dpid: count, match: OpenFlow::ofp_match, flow_mod: OpenFlow::ofp_flow_mod)
 	{
 	print "got flow_mod", dpid, match, flow_mod;
-	Broker::event("bro/event/openflow", Broker::event_args(OpenFlow::flow_mod_success, name, match, flow_mod, ""));
-	Broker::event("bro/event/openflow", Broker::event_args(OpenFlow::flow_mod_failure, name, match, flow_mod, ""));
+	Broker::send_event("bro/event/openflow", Broker::event_args(OpenFlow::flow_mod_success, name, match, flow_mod, ""));
+	Broker::send_event("bro/event/openflow", Broker::event_args(OpenFlow::flow_mod_failure, name, match, flow_mod, ""));
 	got_message();
 	}
 

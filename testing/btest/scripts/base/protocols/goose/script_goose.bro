@@ -7,6 +7,12 @@
 # @TEST-EXEC: btest-diff integer.log 
 # @TEST-EXEC: bro -r $TRACES/goose/unsigned_integer.pcap %INPUT > unsigned_integer.log
 # @TEST-EXEC: btest-diff unsigned_integer.log 
+# @TEST-EXEC: bro -r $TRACES/goose/all_arrays.pcap %INPUT > arrays.log
+# @TEST-EXEC: bro -r $TRACES/goose/malformed_array_1.pcap %INPUT >> arrays.log
+# @TEST-EXEC: bro -r $TRACES/goose/malformed_array_2.pcap %INPUT >> arrays.log
+# @TEST-EXEC: bro -r $TRACES/goose/malformed_array_3.pcap %INPUT >> arrays.log
+# @TEST-EXEC: bro -r $TRACES/goose/malformed_array_4.pcap %INPUT >> arrays.log
+# @TEST-EXEC: btest-diff arrays.log 
 
 #module GOOSE;
 @load base/protocols/goose

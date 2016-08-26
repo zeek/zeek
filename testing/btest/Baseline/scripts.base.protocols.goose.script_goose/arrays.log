@@ -1,0 +1,122 @@
+[destination=02:02:02:02:02:02, source=04:04:04:04:04:04, captureTime=1469458520.726668]
+GOOSE message detected.
+timeAllowedToLive is 3000.
+It has a goID : g0ID1
+t : 1469465185s 875616344ns
+stNum : 2 ; sqNum : 0
+test : false ; ndsCom : false
+confRev : 1
+numDatSetEntries : 9
+allData :
+    Data array :
+        Data array :
+            Data array :
+    Data array :
+        Data array :
+            Boolean Value : true
+    Data array :
+        Data array :
+            Boolean Value : false
+            Boolean Value : true
+            Boolean Value : false
+    Data array :
+        Data array :
+        Boolean Value : true
+        Data array :
+    Data array :
+        Data array :
+        Boolean Value : false
+        Data array :
+            Boolean Value : true
+            Boolean Value : false
+            Boolean Value : false
+    Data array :
+        Data array :
+        Boolean Value : true
+        Boolean Value : true
+    Data array :
+        Data array :
+            Boolean Value : false
+            Boolean Value : true
+            Boolean Value : false
+        Boolean Value : true
+        Data array :
+    Data array :
+        Data array :
+            Boolean Value : true
+            Boolean Value : false
+            Boolean Value : true
+        Boolean Value : false
+        Data array :
+            Boolean Value : false
+            Boolean Value : true
+            Boolean Value : false
+    Data array :
+        Data array :
+            Boolean Value : true
+            Boolean Value : false
+            Boolean Value : true
+        Boolean Value : false
+        Boolean Value : false
+
+[destination=02:02:02:02:02:02, source=04:04:04:04:04:04, captureTime=1466082604.800286]
+GOOSE message detected.
+timeAllowedToLive is 3000.
+It has a goID : goID1
+t : 1295331479s 498895898ns
+stNum : 157971 ; sqNum : 56
+test : false ; ndsCom : false
+confRev : 1
+numDatSetEntries : 2
+allData :
+    Boolean Value : false
+    Data array :
+        Boolean Value : true
+
+[destination=02:02:02:02:02:02, source=04:04:04:04:04:04, captureTime=1466082604.800286]
+GOOSE message detected.
+timeAllowedToLive is 3000.
+It has a goID : goID1
+t : 1295331479s 498895898ns
+stNum : 157971 ; sqNum : 56
+test : false ; ndsCom : false
+confRev : 1
+numDatSetEntries : 1
+allData :
+    Data array :
+        Boolean Value : false
+        Data array :
+            Boolean Value : true
+
+[destination=02:02:02:02:02:02, source=04:04:04:04:04:04, captureTime=1466082604.800286]
+GOOSE message detected.
+timeAllowedToLive is 3000.
+It has a goID : goID1
+t : 1295331479s 498895898ns
+stNum : 157971 ; sqNum : 56
+test : false ; ndsCom : false
+confRev : 1
+numDatSetEntries : 3
+allData :
+    Boolean Value : false
+    Data array :
+        Data array :
+            Boolean Value : true
+
+[destination=02:02:02:02:02:02, source=04:04:04:04:04:04, captureTime=1466082604.800286]
+GOOSE message detected.
+timeAllowedToLive is 3000.
+It has a goID : goID1
+t : 1295331479s 498895898ns
+stNum : 157971 ; sqNum : 56
+test : false ; ndsCom : false
+confRev : 1
+numDatSetEntries : 2
+allData :
+    Data array :
+        Data array :
+            Data array :
+                Boolean Value : false
+                Boolean Value : true
+                Boolean Value : true
+

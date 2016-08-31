@@ -90,7 +90,10 @@ static ino_t get_inode_num(const string& path)
 	if ( ! f )
 		reporter->FatalError("failed to open %s\n", path.c_str());
 
-	return get_inode_num(f, path);
+	ino_t inum = get_inode_num(f, path);
+	fclose(f);
+
+	return inum;
 	}
 
 class FileInfo {

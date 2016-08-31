@@ -599,7 +599,12 @@ static int load_files(const char* orig_file)
 	ino_t i = get_inode_num(f, file_path);
 
 	if ( already_scanned(i) )
+		{
+		if ( f != stdin )
+			fclose(f);
+
 		return 0;
+		}
 
 	ScannedFile sf(i, file_stack.length(), file_path);
 	files_scanned.push_back(sf);

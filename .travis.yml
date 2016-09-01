@@ -1,0 +1,19 @@
+before_install:
+  - git submodule update --init --recursive
+language: cpp
+compiler: clang
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - bison
+      - caf
+      - cmake
+      - flex
+      - google-perftools
+      - libpcap-dev
+      - libssl-dev
+      - python-dev
+      - swig
+      - zlib1g-dev

@@ -492,11 +492,16 @@ protected:
 	virtual void Done();
 
 	/**
-	 * Registers and activates a component.
+	 * Registers a component.
 	 *
 	 * @param c The component. The method takes ownership.
 	 */
 	void AddComponent(Component* c);
+
+	/**
+	 * Calls the Initialize() function of all components.
+	 */
+	void InitializeComponents();
 
 	/**
 	 * Enables a hook. The corresponding virtual method will now be

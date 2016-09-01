@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -r $TRACES/tls/ecdsa-cert.pcap %INPUT
+# @TEST-EXEC: bro -Cr $TRACES/tls/ecdsa-cert.pcap %INPUT
 # @TEST-EXEC: cat intel.log > intel-all.log
 # @TEST-EXEC: bro -r $TRACES/tls/ssl.v3.trace %INPUT
 # @TEST-EXEC: cat intel.log >> intel-all.log
@@ -8,6 +8,7 @@
 #fields	indicator	indicator_type	meta.source	meta.desc	meta.url
 www.pantz.org	Intel::DOMAIN	source1	test entry	http://some-data-distributor.com/100000
 www.dresdner-privat.de	Intel::DOMAIN	source1	test entry	http://some-data-distributor.com/100000
+2c322ae2b7fe91391345e070b63668978bb1c9da	Intel::CERT_HASH	source1	test entry	http://some-data-distributor.com/100000
 @TEST-END-FILE
 
 @load base/frameworks/intel

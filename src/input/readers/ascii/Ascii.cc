@@ -1,6 +1,5 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <fstream>
 #include <sstream>
 
 #include <sys/types.h>
@@ -49,25 +48,15 @@ FieldMapping FieldMapping::subType()
 
 Ascii::Ascii(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	{
-	file = 0;
 	mtime = 0;
-	formatter = 0;
 	}
 
 Ascii::~Ascii()
 	{
-	DoClose();
-	delete formatter;
 	}
 
 void Ascii::DoClose()
 	{
-	if ( file != 0 )
-		{
-		file->close();
-		delete(file);
-		file = 0;
-		}
 	}
 
 bool Ascii::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fields)
@@ -107,23 +96,19 @@ bool Ascii::DoInit(const ReaderInfo& info, int num_fields, const Field* const* f
 		Error("set_separator length has to be 1. Separator will be truncated.");
 
 	formatter::Ascii::SeparatorInfo sep_info(separator, set_separator, unset_field, empty_field);
-	formatter = new formatter::Ascii(this, sep_info);
+	formatter = unique_ptr<threading::formatter::Formatter>(new formatter::Ascii(this, sep_info));
 
-	file = new ifstream(info.source);
-	if ( ! file->is_open() )
+	file.open(info.source);
+	if ( ! file.is_open() )
 		{
 		Error(Fmt("Init: cannot open %s", info.source));
-		delete(file);
-		file = 0;
 		return false;
 		}
 
 	if ( ReadHeader(false) == false )
 		{
 		Error(Fmt("Init: cannot open %s; headers are incorrect", info.source));
-		file->close();
-		delete(file);
-		file = 0;
+		file.close();
 		return false;
 		}
 
@@ -215,8 +200,14 @@ bool Ascii::ReadHeader(bool useCached)
 
 bool Ascii::GetLine(string& str)
 	{
-	while ( getline(*file, str) )
+	while ( getline(file, str) )
 		{
+		if ( ! str.size() )
+			continue;
+
+		if ( str.back() == '\r' ) // deal with \r\n by removing \r
+			str.pop_back();
+
 		if ( str[0] != '#' )
 			return true;
 
@@ -258,24 +249,22 @@ bool Ascii::DoUpdate()
 			{
 			// dirty, fix me. (well, apparently after trying seeking, etc
 			// - this is not that bad)
-			if ( file && file->is_open() )
+			if ( file.is_open() )
 				{
 				if ( Info().mode == MODE_STREAM )
 					{
-					file->clear(); // remove end of file evil bits
+					file.clear(); // remove end of file evil bits
 					if ( !ReadHeader(true) )
 						return false; // header reading failed
 
 					break;
 					}
 
-				file->close();
-				delete file;
-				file = 0;
+				file.close();
 				}
 
-			file = new ifstream(Info().source);
-			if ( ! file->is_open() )
+			file.open(Info().source);
+			if ( ! file.is_open() )
 				{
 				Error(Fmt("cannot open %s", Info().source));
 				return false;
@@ -296,7 +285,7 @@ bool Ascii::DoUpdate()
 
 	string line;
 
-	file->sync();
+	file.sync();
 
 	while ( GetLine(line) )
 		{
@@ -352,7 +341,7 @@ bool Ascii::DoUpdate()
 
 			if ( val == 0 )
 				{
-				Error(Fmt("Could not convert line '%s' to Val. Ignoring line.", line.c_str()));
+				Warning(Fmt("Could not convert line '%s' to Val. Ignoring line.", line.c_str()));
 				error = true;
 				break;
 				}

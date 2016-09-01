@@ -13,7 +13,11 @@ Component::Component(const std::string& name, factory_callback arg_factory, Tag:
 	  plugin::TaggedComponent<file_analysis::Tag>(subtype)
 	{
 	factory = arg_factory;
+	}
 
+void Component::Initialize()
+	{
+	InitializeTag();
 	file_mgr->RegisterComponent(this, "ANALYZER_");
 	}
 

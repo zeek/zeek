@@ -3,68 +3,68 @@
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2013-08-26-19-34-56
+#open	2016-07-13-16-12-46
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1334074939.467194	CXWv6p3arKYeMETxOg	2001:4f8:4:7:2e0:81ff:fe52:ffff	128	2001:4f8:4:7:2e0:81ff:fe52:9a6b	129	bad_ICMP_checksum	-	F	bro
-#close	2013-08-26-19-34-56
+1334074939.467194	CHhAvVGS1DHFjwGM9	2001:4f8:4:7:2e0:81ff:fe52:ffff	128	2001:4f8:4:7:2e0:81ff:fe52:9a6b	129	bad_ICMP_checksum	-	F	bro
+#close	2016-07-13-16-12-47
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2013-08-26-19-34-57
+#open	2016-07-13-16-12-49
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1332785125.596793	-	-	-	-	-	routing0_hdr	-	F	bro
-#close	2013-08-26-19-34-57
+1332785125.596793	-	2001:4f8:4:7:2e0:81ff:fe52:ffff	0	2001:78:1:32::2	0	routing0_hdr	-	F	bro
+#close	2016-07-13-16-12-49
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2013-08-26-19-34-57
+#open	2016-07-13-16-12-49
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1332782508.592037	-	-	-	-	-	routing0_hdr	-	F	bro
-#close	2013-08-26-19-34-57
+1332782508.592037	-	2001:4f8:4:7:2e0:81ff:fe52:ffff	0	2001:78:1:32::2	0	routing0_hdr	-	F	bro
+#close	2016-07-13-16-12-49
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2013-08-26-19-34-57
+#open	2016-07-13-16-12-50
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1334075027.053380	-	-	-	-	-	routing0_hdr	-	F	bro
-#close	2013-08-26-19-34-57
+1334075027.053380	-	2001:4f8:4:7:2e0:81ff:fe52:ffff	0	2001:78:1:32::1	0	routing0_hdr	-	F	bro
+#close	2016-07-13-16-12-50
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2013-08-26-19-34-57
+#open	2016-07-13-16-12-50
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1334075027.053380	-	-	-	-	-	routing0_hdr	-	F	bro
-#close	2013-08-26-19-34-57
+1334075027.053380	-	2001:4f8:4:7:2e0:81ff:fe52:ffff	0	2001:78:1:32::1	0	routing0_hdr	-	F	bro
+#close	2016-07-13-16-12-50
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2013-08-26-19-34-57
+#open	2016-07-13-16-12-50
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1334075027.053380	-	-	-	-	-	routing0_hdr	-	F	bro
-#close	2013-08-26-19-34-57
+1334075027.053380	-	2001:4f8:4:7:2e0:81ff:fe52:ffff	0	2001:78:1:32::1	0	routing0_hdr	-	F	bro
+#close	2016-07-13-16-12-50
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2013-08-26-19-34-57
+#open	2016-07-13-16-12-50
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1334075027.053380	-	-	-	-	-	routing0_hdr	-	F	bro
-#close	2013-08-26-19-34-57
+1334075027.053380	-	2001:4f8:4:7:2e0:81ff:fe52:ffff	0	2001:78:1:32::1	0	routing0_hdr	-	F	bro
+#close	2016-07-13-16-12-50

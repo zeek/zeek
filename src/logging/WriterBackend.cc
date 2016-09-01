@@ -222,8 +222,8 @@ bool WriterBackend::Write(int arg_num_fields, int num_writes, Value*** vals)
 			if ( vals[j][i]->type != fields[i]->type )
 				{
 #ifdef DEBUG
-				const char* msg = Fmt("Field type doesn't match in WriterBackend::Write() (%d vs. %d)",
-						      vals[j][i]->type, fields[i]->type);
+				const char* msg = Fmt("Field #%d type doesn't match in WriterBackend::Write() (%d vs. %d)",
+						      i, vals[j][i]->type, fields[i]->type);
 				Debug(DBG_LOGGING, msg);
 #endif
 				DisableFrontend();

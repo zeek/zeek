@@ -15,7 +15,7 @@ redef record Info += {
 # Add the VLAN information to the Conn::Info structure after the connection
 # has been removed. This ensures it's only done once, and is done before the
 # connection information is written to the log.
-event connection_state_remove(c: connection) &priority=5
+event connection_state_remove(c: connection)
 	{
 	if ( c?$vlan )
 		c$conn$vlan = c$vlan;

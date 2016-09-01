@@ -1,0 +1,18 @@
+.. rst-class:: btest-cmd
+
+    .. code-block:: none
+      :linenos:
+      :emphasize-lines: 1,1
+
+      # cat netcontrol_drop.log
+      #separator \x09
+      #set_separator	,
+      #empty_field	(empty)
+      #unset_field	-
+      #path	netcontrol_drop
+      #open	2016-06-22-22-58-31
+      #fields	ts	rule_id	orig_h	orig_p	resp_h	resp_p	expire	location
+      #types	time	string	addr	port	addr	port	interval	string
+      1398529018.678276	2	192.168.18.50	56981	74.125.239.97	443	20.000000	-
+      #close	2016-06-22-22-58-31
+

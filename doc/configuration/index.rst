@@ -44,7 +44,10 @@ workers can consume a lot of CPU resources.  The maximum recommended
 number of workers to run on a machine should be one or two less than
 the number of CPU cores available on that machine.  Using a load-balancing
 method (such as PF_RING) along with CPU pinning can decrease the load on
-the worker machines.
+the worker machines.  Also, in order to reduce the load on the manager
+process, it is recommended to have a logger in your configuration.  If a
+logger is defined in your cluster configuration, then it will receive logs
+instead of the manager process.
 
 
 Basic Cluster Configuration
@@ -61,13 +64,17 @@ a Bro cluster (do this as the Bro user on the manager host only):
   :doc:`BroControl <../components/broctl/README>` documentation.
 
 - Edit the BroControl node configuration file, ``<prefix>/etc/node.cfg``
-  to define where manager, proxies, and workers are to run.  For a cluster
-  configuration, you must comment-out (or remove) the standalone node
+  to define where logger, manager, proxies, and workers are to run.  For a
+  cluster configuration, you must comment-out (or remove) the standalone node
   in that file, and either uncomment or add node entries for each node
-  in your cluster (manager, proxy, and workers).  For example, if you wanted
-  to run four Bro nodes (two workers, one proxy, and a manager) on a cluster
-  consisting of three machines, your cluster configuration would look like
-  this::
+  in your cluster (logger, manager, proxy, and workers).  For example, if you
+  wanted to run five Bro nodes (two workers, one proxy, a logger, and a
+  manager) on a cluster consisting of three machines, your cluster
+  configuration would look like this::
+
+    [logger]
+    type=logger
+    host=10.0.0.10
 
     [manager]
     type=manager
@@ -94,7 +101,7 @@ a Bro cluster (do this as the Bro user on the manager host only):
   file lists all of the networks which the cluster should consider as local
   to the monitored environment.
 
-- Install workers and proxies using BroControl::
+- Install Bro on all machines in the cluster using BroControl::
 
     > broctl install
 
@@ -174,7 +181,7 @@ Installing PF_RING
 5. Configure BroControl to use PF_RING (explained below).
 
 6. Run "broctl install" on the manager.  This command will install Bro and
-   all required scripts to the other machines in your cluster.
+   required scripts to all machines in your cluster.
 
 Using PF_RING
 ^^^^^^^^^^^^^

@@ -1,0 +1,27 @@
+All:
+2 --> two
+4 --> four
+1 --> one
+0 --> zero
+3 --> three
+192.168.0.0/16 --> zero
+192.168.3.0/24 --> three
+192.168.2.0/24 --> two
+192.168.4.0/24 --> four
+192.168.1.0/24 --> one
+Time: 0 secs
+
+Accessed table nums: two; three
+Accessed table nets: two; zero, three
+Time: 7.0 secs 518.0 msecs 828.0 usecs
+
+Expired Subnet: 192.168.4.0/24 --> four at 8.0 secs 835.0 msecs 30.0 usecs
+Expired Subnet: 192.168.1.0/24 --> one at 8.0 secs 835.0 msecs 30.0 usecs
+Expired Num: 4 --> four at 8.0 secs 835.0 msecs 30.0 usecs
+Expired Num: 1 --> one at 8.0 secs 835.0 msecs 30.0 usecs
+Expired Num: 0 --> zero at 8.0 secs 835.0 msecs 30.0 usecs
+Expired Subnet: 192.168.0.0/16 --> zero at 15.0 secs 150.0 msecs 681.0 usecs
+Expired Subnet: 192.168.3.0/24 --> three at 15.0 secs 150.0 msecs 681.0 usecs
+Expired Subnet: 192.168.2.0/24 --> two at 15.0 secs 150.0 msecs 681.0 usecs
+Expired Num: 2 --> two at 15.0 secs 150.0 msecs 681.0 usecs
+Expired Num: 3 --> three at 15.0 secs 150.0 msecs 681.0 usecs

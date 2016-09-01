@@ -1,0 +1,1 @@
+@TEST-EXEC: btest-rst-cmd bro -C -r ${TRACES}/tls/google-duplicate.trace ${DOC_ROOT}/frameworks/netcontrol-6-find.bro

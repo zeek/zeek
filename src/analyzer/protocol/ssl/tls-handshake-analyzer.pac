@@ -102,6 +102,26 @@ refine connection Handshake_Conn += {
 		return true;
 		%}
 
+	function proc_signature_algorithm(rec: HandshakeRecord, supported_signature_algorithms: SignatureAndHashAlgorithm[]) : bool
+		%{
+		VectorVal* slist = new VectorVal(internal_type("signature_and_hashalgorithm_vec")->AsVectorType());
+
+		if ( supported_signature_algorithms )
+			{
+			for ( unsigned int i = 0; i < supported_signature_algorithms->size(); ++i )
+				{
+				RecordVal* el = new RecordVal(BifType::Record::SSL::SignatureAndHashAlgorithm);
+				el->Assign(0, new Val((*supported_signature_algorithms)[i]->HashAlgorithm(), TYPE_COUNT));
+				el->Assign(1, new Val((*supported_signature_algorithms)[i]->SignatureAlgorithm(), TYPE_COUNT));
+				slist->Assign(i, el);
+				}
+			}
+
+		BifEvent::generate_ssl_extension_signature_algorithm(bro_analyzer(), bro_analyzer()->Conn(), ${rec.is_orig}, slist);
+
+		return true;
+		%}
+
 	function proc_apnl(rec: HandshakeRecord, protocols: ProtocolName[]) : bool
 		%{
 		VectorVal* plist = new VectorVal(internal_type("string_vec")->AsVectorType());
@@ -246,6 +266,10 @@ refine typeattr EcPointFormats += &let {
 refine typeattr EllipticCurves += &let {
 	proc : bool = $context.connection.proc_elliptic_curves(rec, elliptic_curve_list);
 };
+
+refine typeattr SignatureAlgorithm += &let {
+	proc : bool = $context.connection.proc_signature_algorithm(rec, supported_signature_algorithms);
+}
 
 refine typeattr ApplicationLayerProtocolNegotiationExtension += &let {
 	proc : bool = $context.connection.proc_apnl(rec, protocol_name_list);

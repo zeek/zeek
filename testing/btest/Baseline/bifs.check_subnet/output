@@ -1,0 +1,8 @@
+in says: 10.2.0.2/32 is member
+check_subnet says: 10.2.0.2/32 is no member
+in says: 10.2.0.2/31 is member
+check_subnet says: 10.2.0.2/31 is member
+in says: 10.0.0.0/9 is member
+check_subnet says: 10.0.0.0/9 is no member
+in says: 10.0.0.0/8 is member
+check_subnet says: 10.0.0.0/8 is member

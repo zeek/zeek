@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	intel
-#open	2014-09-23-16-13-39
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	fuid	file_mime_type	file_desc	seen.indicator	seen.indicator_type	seen.where	seen.node	sources
-#types	time	string	addr	port	addr	port	string	string	string	string	enum	enum	string	set[string]
-1411488819.555114	-	-	-	-	-	-	-	-	123.123.123.123	Intel::ADDR	Intel::IN_ANYWHERE	worker-2	worker-1
-#close	2014-09-23-16-13-49
+#open	2016-06-15-19-11-27
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	seen.indicator	seen.indicator_type	seen.where	seen.node	matched	sources	fuid	file_mime_type	file_desc
+#types	time	string	addr	port	addr	port	string	enum	enum	string	set[enum]	set[string]	string	string	string
+1466017887.060652	-	-	-	-	-	123.123.123.123	Intel::ADDR	Intel::IN_ANYWHERE	worker-2	Intel::ADDR	worker-1	-	-	-
+#close	2016-06-15-19-11-36

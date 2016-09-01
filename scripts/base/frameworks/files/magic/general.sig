@@ -9,53 +9,53 @@ signature file-plaintext {
 
 signature file-json {
 	file-mime "text/json", 1
-	file-magic /^(\xef\xbb\xbf)?[\x0d\x0a[:blank:]]*\{[\x0d\x0a[:blank:]]*(["][^"]{1,}["]|[a-zA-Z][a-zA-Z0-9\\_]*)[\x0d\x0a[:blank:]]*:[\x0d\x0a[:blank:]]*(["]|\[|\{|[0-9]|true|false)/
+	file-magic /^(\xef\xbb\xbf|\xff\xfe|\xfe\xff)?[\x0d\x0a[:blank:]]*\{[\x0d\x0a[:blank:]]*(["][^"]{1,}["]|[a-zA-Z][a-zA-Z0-9\\_]*)[\x0d\x0a[:blank:]]*:[\x0d\x0a[:blank:]]*(["]|\[|\{|[0-9]|true|false)/
 }
 
 signature file-json2 {
 	file-mime "text/json", 1
-	file-magic /^(\xef\xbb\xbf)?[\x0d\x0a[:blank:]]*\[[\x0d\x0a[:blank:]]*(((["][^"]{1,}["]|[0-9]{1,}(\.[0-9]{1,})?|true|false)[\x0d\x0a[:blank:]]*,)|\{|\[)[\x0d\x0a[:blank:]]*/
+	file-magic /^(\xef\xbb\xbf|\xff\xfe|\xfe\xff)?[\x0d\x0a[:blank:]]*\[[\x0d\x0a[:blank:]]*(((["][^"]{1,}["]|[0-9]{1,}(\.[0-9]{1,})?|true|false)[\x0d\x0a[:blank:]]*,)|\{|\[)[\x0d\x0a[:blank:]]*/
 }
 
 # Match empty JSON documents.
 signature file-json3 {
 	file-mime "text/json", 0
-	file-magic /^(\xef\xbb\xbf)?[\x0d\x0a[:blank:]]*(\[\]|\{\})[\x0d\x0a[:blank:]]*$/
+	file-magic /^(\xef\xbb\xbf|\xff\xfe|\xfe\xff)?[\x0d\x0a[:blank:]]*(\[\]|\{\})[\x0d\x0a[:blank:]]*$/
 }
 
 signature file-xml {
 	file-mime "application/xml", 10
-	file-magic /^(\xef\xbb\xbf)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*<\?xml /
+	file-magic /^(\xef\xbb\xbf|\xff\xfe|\xfe\xff)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*\x00?<\x00?\?\x00?x\x00?m\x00?l\x00? \x00?/
 }
 
 signature file-xhtml {
 	file-mime "text/html", 100
-	file-magic /^(\xef\xbb\xbf)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*(<\?xml .*\?>)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*<(![dD][oO][cC][tT][yY][pP][eE] {1,}[hH][tT][mM][lL]|[hH][tT][mM][lL]|[mM][eE][tT][aA] {1,}[hH][tT][tT][pP]-[eE][qQ][uU][iI][vV])/
+	file-magic /^(\xef\xbb\xbf|\xff\xfe|\xfe\xff)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*(<\?xml .*\?>)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*<(![dD][oO][cC][tT][yY][pP][eE] {1,}[hH][tT][mM][lL]|[hH][tT][mM][lL]|[mM][eE][tT][aA] {1,}[hH][tT][tT][pP]-[eE][qQ][uU][iI][vV])/
 }
 
 signature file-html {
 	file-mime "text/html", 49
-	file-magic /^(\xef\xbb\xbf)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*(<\?xml .*\?>)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*<![dD][oO][cC][tT][yY][pP][eE] {1,}[hH][tT][mM][lL]/
+	file-magic /^(\xef\xbb\xbf|\xff\xfe|\xfe\xff)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*(<\?xml .*\?>)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*<![dD][oO][cC][tT][yY][pP][eE] {1,}[hH][tT][mM][lL]/
 }
 
 signature file-html2 {
 	file-mime "text/html", 20
-	file-magic /^(\xef\xbb\xbf)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*(<\?xml .*\?>)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*<([hH][eE][aA][dD]|[hH][tT][mM][lL]|[tT][iI][tT][lL][eE]|[bB][oO][dD][yY])/
+	file-magic /^(\xef\xbb\xbf|\xff\xfe|\xfe\xff)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*(<\?xml .*\?>)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*<([hH][eE][aA][dD]|[hH][tT][mM][lL]|[tT][iI][tT][lL][eE]|[bB][oO][dD][yY])/
 }
 
 signature file-rss {
 	file-mime "text/rss", 90
-	file-magic /^(\xef\xbb\xbf)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*(<\?xml .*\?>)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*<[rR][sS][sS]/
+	file-magic /^(\xef\xbb\xbf|\xff\xfe|\xfe\xff)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*(<\?xml .*\?>)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*<[rR][sS][sS]/
 }
 
 signature file-atom {
 	file-mime "text/atom", 100
-	file-magic /^(\xef\xbb\xbf)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*(<\?xml .*\?>)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*<([rR][sS][sS][^>]*xmlns:atom|[fF][eE][eE][dD][^>]*xmlns=["']?http:\/\/www.w3.org\/2005\/Atom["']?)/
+	file-magic /^(\xef\xbb\xbf|\xff\xfe|\xfe\xff)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*(<\?xml .*\?>)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*<([rR][sS][sS][^>]*xmlns:atom|[fF][eE][eE][dD][^>]*xmlns=["']?http:\/\/www.w3.org\/2005\/Atom["']?)/
 }
 
 signature file-soap {
 	file-mime "application/soap+xml", 49
-	file-magic /^(\xef\xbb\xbf)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*(<\?xml .*\?>)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*<[sS][oO][aA][pP](-[eE][nN][vV])?:[eE][nN][vV][eE][lL][oO][pP][eE]/
+	file-magic /^(\xef\xbb\xbf|\xff\xfe|\xfe\xff)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*(<\?xml .*\?>)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*<[sS][oO][aA][pP](-[eE][nN][vV])?:[eE][nN][vV][eE][lL][oO][pP][eE]/
 }
 
 signature file-cross-domain-policy {
@@ -70,7 +70,7 @@ signature file-cross-domain-policy2 {
 
 signature file-xmlrpc {
 	file-mime "application/xml-rpc", 49
-	file-magic /^(\xef\xbb\xbf)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*(<\?xml .*\?>)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*<[mM][eE][tT][hH][oO][dD][rR][eE][sS][pP][oO][nN][sS][eE]>/
+	file-magic /^(\xef\xbb\xbf|\xff\xfe|\xfe\xff)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*(<\?xml .*\?>)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*<[mM][eE][tT][hH][oO][dD][rR][eE][sS][pP][oO][nN][sS][eE]>/
 }
 
 signature file-coldfusion {
@@ -81,13 +81,54 @@ signature file-coldfusion {
 # Adobe Flash Media Manifest
 signature file-f4m {
 	file-mime "application/f4m", 49
-	file-magic /^(\xef\xbb\xbf)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*(<\?xml .*\?>)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*<[mM][aA][nN][iI][fF][eE][sS][tT][\x0d\x0a[:blank:]]{1,}xmlns=\"http:\/\/ns\.adobe\.com\/f4m\//
+	file-magic /^(\xef\xbb\xbf|\xff\xfe|\xfe\xff)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*(<\?xml .*\?>)?([\x0d\x0a[:blank:]]*(<!--.*-->)?[\x0d\x0a[:blank:]]*)*<[mM][aA][nN][iI][fF][eE][sS][tT][\x0d\x0a[:blank:]]{1,}xmlns=\"http:\/\/ns\.adobe\.com\/f4m\//
+}
+
+# .ini style files
+signature file-ini {
+	file-mime "text/ini", 20
+	file-magic /^(\xef\xbb\xbf|\xff\xfe|\xfe\xff)?[\x00\x0d\x0a[:blank:]]*\[[^\x0d\x0a]+\][[:blank:]\x00]*[\x0d\x0a]/
 }
 
 # Microsoft LNK files
 signature file-lnk {
 	file-mime "application/x-ms-shortcut", 49
-	file-magic /^\x4C\x00\x00\x00\x01\x14\x02\x00\x00\x00\x00\x00\xC0\x00\x00\x00\x00\x10\x00\x00\x00\x46/
+	file-magic /^\x4c\x00\x00\x00\x01\x14\x02\x00\x00\x00\x00\x00\xc0\x00\x00\x00\x00\x00\x00\x46/
+}
+
+# Microsoft Registry policies
+signature file-pol {
+	file-mime "application/vnd.ms-pol", 49
+	file-magic /^PReg/
+}
+
+# Old style Windows registry file
+signature file-reg {
+	file-mime "application/vnd.ms-reg", 49
+	file-magic /^REGEDIT4/
+}
+
+# Newer Windows registry file
+signature file-reg-utf16 {
+	file-mime "application/vnd.ms-reg", 49
+	file-magic /^\xFF\xFEW\x00i\x00n\x00d\x00o\x00w\x00s\x00 \x00R\x00e\x00g\x00i\x00s\x00t\x00r\x00y\x00 \x00E\x00d\x00i\x00t\x00o\x00r\x00 \x00V\x00e\x00r\x00s\x00i\x00o\x00n\x00 \x005\x00\.\x000\x000/
+}
+
+# Microsoft Registry format (typically DESKTOP.DAT)
+signature file-regf {
+	file-mime "application vnd.ms-regf", 49
+	file-magic /^\x72\x65\x67\x66/
+}
+
+# Microsoft Outlook PST files
+signature file-pst {
+	file-mime "application/vnd.ms-outlook", 49
+	file-magic /!BDN......[\x0e\x0f\x15\x17][\x00-\x02]/
+}
+
+signature file-afpinfo {
+	file-mime "application/vnd.apple-afpinfo"
+	file-magic /^AFP/
 }
 
 signature file-jar {

@@ -1,0 +1,11 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	x509
+#open	2016-07-13-16-17-08
+#fields	ts	id	certificate.version	certificate.serial	certificate.subject	certificate.issuer	certificate.not_valid_before	certificate.not_valid_after	certificate.key_alg	certificate.sig_alg	certificate.key_type	certificate.key_length	certificate.exponent	certificate.curve	san.dns	san.uri	san.email	san.ip	basic_constraints.ca	basic_constraints.path_len
+#types	time	string	count	string	string	string	time	time	string	string	string	count	string	string	vector[string]	vector[string]	vector[string]	vector[addr]	bool	count
+1437091702.407347	F5Nz2G1vSZQ0QXM2s8	3	0DF4F2	CN=jabber.ccc.de,O=Chaos Computer Club e.V.,L=Hamburg,ST=Hamburg,C=DE	emailAddress=support@cacert.org,CN=CA Cert Signing Authority,OU=http://www.cacert.org,O=Root CA	1382043019.000000	1445115019.000000	rsaEncryption	sha1WithRSAEncryption	rsa	2048	65537	-	jabber.ccc.de,conference.jabber.ccc.de,jabberd.jabber.ccc.de,pubsub.jabber.ccc.de,vjud.jabber.ccc.de	-	-	-	F	-
+1437091702.407347	FUw8omi2keRxShDUa	3	00	emailAddress=support@cacert.org,CN=CA Cert Signing Authority,OU=http://www.cacert.org,O=Root CA	emailAddress=support@cacert.org,CN=CA Cert Signing Authority,OU=http://www.cacert.org,O=Root CA	1049027389.000000	1995712189.000000	rsaEncryption	md5WithRSAEncryption	rsa	4096	65537	-	-	-	-	-	T	-
+#close	2016-07-13-16-17-08

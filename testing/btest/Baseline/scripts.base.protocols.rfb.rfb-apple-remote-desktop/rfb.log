@@ -1,0 +1,12 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	rfb
+#open	2016-07-13-16-16-50
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	client_major_version	client_minor_version	server_major_version	server_minor_version	authentication_method	auth	share_flag	desktop_name	width	height
+#types	time	string	addr	port	addr	port	string	string	string	string	string	bool	bool	string	count	count
+1459148054.031382	C4J4Th3PJpwUYZZ6gc	192.168.2.115	52353	192.168.2.16	5900	003	889	003	889	Apple Remote Desktop	T	T	\x00\x00\x00\x00\x00\x02\xbf\xfe\xe7\x03\xe0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00MacMini SSD	1920	1080
+1459148047.738043	CHhAvVGS1DHFjwGM9	192.168.2.115	52351	192.168.2.16	5900	003	889	003	889	-	-	-	-	-	-
+1459148050.685932	ClEkJM2Vm5giqnMf4h	192.168.2.115	52352	192.168.2.16	5900	003	889	003	889	Apple Remote Desktop	F	-	-	-	-
+#close	2016-07-13-16-16-50

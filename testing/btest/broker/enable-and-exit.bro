@@ -1,4 +1,4 @@
-# @TEST-REQUIRES: grep -q ENABLE_BROKER $BUILD/CMakeCache.txt
+# @TEST-REQUIRES: grep -q ENABLE_BROKER:BOOL=true $BUILD/CMakeCache.txt
 
 # @TEST-EXEC: bro -b %INPUT >output
 # @TEST-EXEC: btest-diff output
@@ -11,7 +11,7 @@ event terminate_me() {
 }
 
 event bro_init() {
-        BrokerComm::enable();
+        Broker::enable();
 
         print "1";
         schedule 1sec { terminate_me() };

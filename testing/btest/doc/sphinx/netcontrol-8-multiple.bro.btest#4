@@ -1,0 +1,1 @@
+@TEST-EXEC: btest-rst-cmd bro -C -r ${TRACES}/tls/ecdhe.pcap ${DOC_ROOT}/frameworks/netcontrol-9-skeleton.bro ${DOC_ROOT}/frameworks/netcontrol-10-use-skeleton.bro

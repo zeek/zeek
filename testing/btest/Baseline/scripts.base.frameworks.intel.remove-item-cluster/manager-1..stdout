@@ -1,0 +1,6 @@
+Purging 192.168.0.1.
+Purging 192.168.0.2.
+Removing 192.168.1.2 (source: source1).
+Removing 192.168.1.2 (source: source2).
+Purging 192.168.1.2.
+Logging intel hit!

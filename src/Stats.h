@@ -102,7 +102,7 @@ extern ProfileLogger* segment_logger;
 extern SampleLogger* sample_logger;
 
 // Connection statistics.
-extern int killed_by_inactivity;
+extern uint64 killed_by_inactivity;
 
 // Content gap statistics.
 extern uint64 tot_ack_events;
@@ -127,9 +127,9 @@ protected:
 	double update_freq;
 	double last_Utime, last_Stime, last_Rtime;
 	double last_timestamp, time;
-	unsigned int last_mem;
-	unsigned int pkt_cnt;
-	unsigned int byte_cnt;
+	uint64 last_mem;
+	uint64 pkt_cnt;
+	uint64 byte_cnt;
 };
 
 #endif

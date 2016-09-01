@@ -23,13 +23,9 @@
 #include <string.h>
 #include <stdarg.h>
 #include <libgen.h>
-#include "bro-config.h"
 
-#if __STDC__
-#define myattribute __attribute__
-#else
-#define myattribute(x)
-#endif
+#include "bro-config.h"
+#include "siphash24.h"
 
 #ifdef DEBUG
 
@@ -143,11 +139,8 @@ extern char* get_word(char*& s);
 extern void get_word(int length, const char* s, int& pwlen, const char*& pw);
 extern void to_upper(char* s);
 extern std::string to_upper(const std::string& s);
-extern const char* strchr_n(const char* s, const char* end_of_s, char ch);
-extern const char* strrchr_n(const char* s, const char* end_of_s, char ch);
 extern int decode_hex(char ch);
 extern unsigned char encode_hex(int h);
-extern int strcasecmp_n(int s_len, const char* s, const char* t);
 #ifndef HAVE_STRCASESTR
 extern char* strcasestr(const char* s, const char* find);
 #endif
@@ -166,7 +159,7 @@ extern const char* fmt_bytes(const char* data, int len);
 
 // Note: returns a pointer into a shared buffer.
 extern const char* fmt(const char* format, ...)
-	myattribute((format (printf, 1, 2)));
+	__attribute__((format (printf, 1, 2)));
 extern const char* fmt_access_time(double time);
 
 extern bool ensure_intermediate_dirs(const char* dirname);
@@ -184,10 +177,11 @@ extern std::string strreplace(const std::string& s, const std::string& o, const 
 // Remove all leading and trailing white space from string.
 extern std::string strstrip(std::string s);
 
+extern bool hmac_key_set;
 extern uint8 shared_hmac_md5_key[16];
+extern bool siphash_key_set;
+extern uint8 shared_siphash_key[SIPHASH_KEYLEN];
 
-extern int hmac_key_set;
-extern unsigned char shared_hmac_md5_key[16];
 extern void hmac_md5(size_t size, const unsigned char* bytes,
 			unsigned char digest[16]);
 
@@ -197,8 +191,7 @@ extern void hmac_md5(size_t size, const unsigned char* bytes,
 // over the "seed" argument.  If write_file is given, the seeds are written
 // to that file.
 //
-extern void init_random_seed(uint32 seed, const char* load_file,
-				const char* write_file);
+extern void init_random_seed(const char* load_file, const char* write_file);
 
 // Retrieves the initial seed computed after the very first call to
 // init_random_seed(). Repeated calls to init_random_seed() will not affect
@@ -502,8 +495,7 @@ inline int safe_vsnprintf(char* str, size_t size, const char* format, va_list al
 
 // Returns total memory allocations and (if available) amount actually
 // handed out by malloc.
-extern void get_memory_usage(unsigned int* total,
-			     unsigned int* malloced);
+extern void get_memory_usage(uint64* total, uint64* malloced);
 
 // Class to be used as a third argument for STL maps to be able to use
 // char*'s as keys. Otherwise the pointer values will be compared instead of

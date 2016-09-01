@@ -277,15 +277,24 @@ Here are the statements that the Bro scripting language supports.
 .. bro:keyword:: delete
 
     The "delete" statement is used to remove an element from a
-    :bro:type:`set` or :bro:type:`table`.  Nothing happens if the
-    specified element does not exist in the set or table.
+    :bro:type:`set` or :bro:type:`table`, or to remove a value from
+    a :bro:type:`record` field that has the :bro:attr:`&optional` attribute.
+    When attempting to remove an element from a set or table,
+    nothing happens if the specified index does not exist.
+    When attempting to remove a value from an "&optional" record field,
+    nothing happens if that field doesn't have a value.
 
     Example::
 
         local myset = set("this", "test");
         local mytable = table(["key1"] = 80/tcp, ["key2"] = 53/udp);
+        local myrec = MyRecordType($a = 1, $b = 2);
+
         delete myset["test"];
         delete mytable["key1"];
+
+        # In this example, "b" must have the "&optional" attribute
+        delete myrec$b;
 
 .. bro:keyword:: event
 
@@ -306,29 +315,32 @@ Here are the statements that the Bro scripting language supports.
 .. bro:keyword:: for
 
     A "for" loop iterates over each element in a string, set, vector, or
-    table and executes a statement for each iteration.  Currently,
-    modifying a container's membership while iterating over it may
-    result in undefined behavior, so avoid adding or removing elements
-    inside the loop.
+    table and executes a statement for each iteration (note that the order
+    in which the loop iterates over the elements in a set or a table is
+    nondeterministic).  However, no loop iterations occur if the string,
+    set, vector, or table is empty.
 
     For each iteration of the loop, a loop variable will be assigned to an
     element if the expression evaluates to a string or set, or an index if
     the expression evaluates to a vector or table.  Then the statement
-    is executed.  However, the statement will not be executed if the expression
-    evaluates to an object with no elements.
+    is executed.
 
     If the expression is a table or a set with more than one index, then the
     loop variable must be specified as a comma-separated list of different
     loop variables (one for each index), enclosed in brackets.
 
-    A :bro:keyword:`break` statement can be used at any time to immediately
-    terminate the "for" loop, and a :bro:keyword:`next` statement can be
-    used to skip to the next loop iteration.
-
     Note that the loop variable in a "for" statement is not allowed to be
     a global variable, and it does not need to be declared prior to the "for"
     statement.  The type will be inferred from the elements of the
     expression.
+
+    Currently, modifying a container's membership while iterating over it may
+    result in undefined behavior, so do not add or remove elements
+    inside the loop.
+
+    A :bro:keyword:`break` statement will immediately terminate the "for"
+    loop, and a :bro:keyword:`next` statement will skip to the next loop
+    iteration.
 
     Example::
 
@@ -532,8 +544,6 @@ Here are the statements that the Bro scripting language supports.
     end with either a :bro:keyword:`break`, :bro:keyword:`fallthrough`, or
     :bro:keyword:`return` statement (although "return" is allowed only
     if the "switch" statement is inside a function, hook, or event handler).
-    If a "case" (or "default") block contain more than one statement, then
-    there is no need to wrap them in braces.
 
     Note that the braces in a "switch" statement are always required (these
     do not indicate the presence of a `compound statement`_), and that no
@@ -604,12 +614,9 @@ Here are the statements that the Bro scripting language supports.
             if ( skip_ahead() )
                 next;
 
-            [...]
-
             if ( finish_up )
                 break;
 
-            [...]
             }
 
 .. _compound statement:

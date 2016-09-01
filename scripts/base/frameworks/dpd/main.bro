@@ -27,6 +27,9 @@ export {
 		disabled_aids:  set[count];
 	};
 
+	## Analyzers which you don't want to throw 
+	const ignore_violations: set[Analyzer::Tag] = set() &redef;
+
 	## Ignore violations which go this many bytes into the connection.
 	## Set to 0 to never ignore protocol violations.
 	const ignore_violations_after = 10 * 1024 &redef;
@@ -82,8 +85,11 @@ event protocol_violation(c: connection, atype: Analyzer::Tag, aid: count, reason
 	if ( ignore_violations_after > 0 && size > ignore_violations_after )
 		return;
 
+	if ( atype in ignore_violations )
+		return;
+
 	# Disable the analyzer that raised the last core-generated event.
-	disable_analyzer(c$id, aid);
+	disable_analyzer(c$id, aid, F);
 	add c$dpd$disabled_aids[aid];
 	}
 

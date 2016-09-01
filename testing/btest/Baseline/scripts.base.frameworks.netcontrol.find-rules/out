@@ -1,0 +1,6 @@
+1
+[ty=NetControl::ADDRESS, conn=<uninitialized>, flow=<uninitialized>, ip=1.2.3.4/32, mac=<uninitialized>]
+0
+4
+[ty=NetControl::FLOW, conn=<uninitialized>, flow=[src_h=127.0.0.2/32, src_p=<uninitialized>, dst_h=8.8.8.8/32, dst_p=53/udp, src_m=<uninitialized>, dst_m=<uninitialized>], ip=<uninitialized>, mac=<uninitialized>], NetControl::MODIFY
+[ty=NetControl::FLOW, conn=<uninitialized>, flow=[src_h=8.8.8.8/32, src_p=53/udp, dst_h=127.0.0.2/32, dst_p=<uninitialized>, src_m=<uninitialized>, dst_m=<uninitialized>], ip=<uninitialized>, mac=<uninitialized>], NetControl::MODIFY

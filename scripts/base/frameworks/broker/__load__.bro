@@ -1,1 +1,2 @@
 @load ./main
+@load ./store

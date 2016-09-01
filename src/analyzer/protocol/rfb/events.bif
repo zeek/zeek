@@ -1,0 +1,50 @@
+## Generated for RFB event
+##
+## c: The connection record for the underlying transport-layer session/flow.
+event rfb_event%(c: connection%);
+
+## Generated for RFB event authentication mechanism selection
+##
+## c: The connection record for the underlying transport-layer session/flow.
+##
+## authtype: the value of the chosen authentication mechanism
+event rfb_authentication_type%(c: connection, authtype: count%);
+
+## Generated for RFB event authentication result message
+##
+## c: The connection record for the underlying transport-layer session/flow.
+##
+## result: whether or not authentication was succesful
+event rfb_auth_result%(c: connection, result: bool%);
+
+## Generated for RFB event share flag messages
+##
+## c: The connection record for the underlying transport-layer session/flow.
+##
+## flag: whether or not the share flag was set
+event rfb_share_flag%(c: connection, flag: bool%);
+
+## Generated for RFB event client banner message
+##
+## c: The connection record for the underlying transport-layer session/flow.
+##
+## version: of the client's rfb library
+event rfb_client_version%(c: connection, major_version: string, minor_version: string%);
+
+## Generated for RFB event server banner message
+##
+## c: The connection record for the underlying transport-layer session/flow.
+##
+## version: of the server's rfb library
+event rfb_server_version%(c: connection, major_version: string, minor_version: string%);
+
+## Generated for RFB event server parameter message
+##
+## c: The connection record for the underlying transport-layer session/flow.
+##
+## name: name of the shared screen
+##
+## width: width of the shared screen
+##
+## height: height of the shared screen
+event rfb_server_parameters%(c: connection, name: string, width: count, height: count%);

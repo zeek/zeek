@@ -1,6 +1,6 @@
-/^?((blarg|blah|bleh))$?/
+/^?((blah|blarg|bleh))$?/
 T
-/^?(foo(blarg|blah|bleh)bar)$?/
+/^?(foo(blah|blarg|bleh)bar)$?/
 T
 [matched=T, str=blah, off=4]
 [matched=F, str=, off=0]

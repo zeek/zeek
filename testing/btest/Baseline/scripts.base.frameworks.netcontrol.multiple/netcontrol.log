@@ -1,0 +1,48 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	netcontrol
+#open	2016-03-18-21-54-39
+#fields	ts	rule_id	category	cmd	state	action	target	entity_type	entity	mod	msg	priority	expire	location	plugin
+#types	time	string	enum	string	enum	string	enum	string	string	string	string	int	interval	string	string
+0.000000	-	NetControl::MESSAGE	-	-	-	-	-	-	-	activating plugin with priority 10	-	-	-	Debug-All
+0.000000	-	NetControl::MESSAGE	-	-	-	-	-	-	-	activation finished	-	-	-	Debug-All
+0.000000	-	NetControl::MESSAGE	-	-	-	-	-	-	-	activating plugin with priority 10	-	-	-	Openflow-Log-42
+0.000000	-	NetControl::MESSAGE	-	-	-	-	-	-	-	activation finished	-	-	-	Openflow-Log-42
+0.000000	-	NetControl::MESSAGE	-	-	-	-	-	-	-	activating plugin with priority 0	-	-	-	Debug-All
+0.000000	-	NetControl::MESSAGE	-	-	-	-	-	-	-	activation finished	-	-	-	Debug-All
+0.000000	-	NetControl::MESSAGE	-	-	-	-	-	-	-	plugin initialization done	-	-	-	-
+1398529018.678276	2	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	192.168.18.50/32/56981->74.125.239.97/32/443	-	-	0	0.000000	-	Debug-All
+1398529018.678276	2	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	192.168.18.50/32/56981->74.125.239.97/32/443	-	-	0	0.000000	-	Openflow-Log-42
+1398529018.678276	3	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	192.168.18.50/32	-	-	0	0.000000	-	Debug-All
+1398529018.678276	3	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	192.168.18.50/32	-	-	0	0.000000	-	Openflow-Log-42
+1398529018.678276	4	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::WHITELIST	NetControl::FORWARD	NetControl::ADDRESS	192.168.18.50/32	-	-	5	0.000000	-	Debug-All
+1398529018.678276	4	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::WHITELIST	NetControl::FORWARD	NetControl::ADDRESS	192.168.18.50/32	-	-	5	0.000000	-	Openflow-Log-42
+1398529018.678276	5	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::REDIRECT	NetControl::FORWARD	NetControl::FLOW	192.168.18.50/32/56981->74.125.239.97/32/443	-> 5	-	0	0.000000	-	Debug-All
+1398529018.678276	5	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::REDIRECT	NetControl::FORWARD	NetControl::FLOW	192.168.18.50/32/56981->74.125.239.97/32/443	-> 5	-	0	0.000000	-	Openflow-Log-42
+1398529018.678276	2	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	192.168.18.50/32/56981->74.125.239.97/32/443	-	-	0	0.000000	-	Debug-All
+1398529018.678276	3	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	192.168.18.50/32	-	-	0	0.000000	-	Debug-All
+1398529018.678276	4	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::WHITELIST	NetControl::FORWARD	NetControl::ADDRESS	192.168.18.50/32	-	-	5	0.000000	-	Debug-All
+1398529018.678276	5	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::REDIRECT	NetControl::FORWARD	NetControl::FLOW	192.168.18.50/32/56981->74.125.239.97/32/443	-> 5	-	0	0.000000	-	Debug-All
+1398529018.678276	2	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	192.168.18.50/32/56981->74.125.239.97/32/443	-	-	0	0.000000	-	Openflow-Log-42
+1398529018.678276	3	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	192.168.18.50/32	-	-	0	0.000000	-	Openflow-Log-42
+1398529018.678276	4	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::WHITELIST	NetControl::FORWARD	NetControl::ADDRESS	192.168.18.50/32	-	-	5	0.000000	-	Openflow-Log-42
+1398529018.678276	5	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::REDIRECT	NetControl::FORWARD	NetControl::FLOW	192.168.18.50/32/56981->74.125.239.97/32/443	-> 5	-	0	0.000000	-	Openflow-Log-42
+1398529020.091883	2	NetControl::RULE	REMOVE	NetControl::REQUESTED	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	192.168.18.50/32/56981->74.125.239.97/32/443	-	-	0	0.000000	-	Openflow-Log-42
+1398529020.091883	2	NetControl::RULE	REMOVE	NetControl::REQUESTED	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	192.168.18.50/32/56981->74.125.239.97/32/443	-	-	0	0.000000	-	Debug-All
+1398529020.091883	3	NetControl::RULE	REMOVE	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	192.168.18.50/32	-	-	0	0.000000	-	Openflow-Log-42
+1398529020.091883	3	NetControl::RULE	REMOVE	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	192.168.18.50/32	-	-	0	0.000000	-	Debug-All
+1398529020.091883	4	NetControl::RULE	REMOVE	NetControl::REQUESTED	NetControl::WHITELIST	NetControl::FORWARD	NetControl::ADDRESS	192.168.18.50/32	-	-	5	0.000000	-	Openflow-Log-42
+1398529020.091883	4	NetControl::RULE	REMOVE	NetControl::REQUESTED	NetControl::WHITELIST	NetControl::FORWARD	NetControl::ADDRESS	192.168.18.50/32	-	-	5	0.000000	-	Debug-All
+1398529020.091883	5	NetControl::RULE	REMOVE	NetControl::REQUESTED	NetControl::REDIRECT	NetControl::FORWARD	NetControl::FLOW	192.168.18.50/32/56981->74.125.239.97/32/443	-> 5	-	0	0.000000	-	Openflow-Log-42
+1398529020.091883	5	NetControl::RULE	REMOVE	NetControl::REQUESTED	NetControl::REDIRECT	NetControl::FORWARD	NetControl::FLOW	192.168.18.50/32/56981->74.125.239.97/32/443	-> 5	-	0	0.000000	-	Debug-All
+1398529020.091883	2	NetControl::RULE	REMOVE	NetControl::SUCCEEDED	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	192.168.18.50/32/56981->74.125.239.97/32/443	-	-	0	0.000000	-	Debug-All
+1398529020.091883	3	NetControl::RULE	REMOVE	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	192.168.18.50/32	-	-	0	0.000000	-	Debug-All
+1398529020.091883	4	NetControl::RULE	REMOVE	NetControl::SUCCEEDED	NetControl::WHITELIST	NetControl::FORWARD	NetControl::ADDRESS	192.168.18.50/32	-	-	5	0.000000	-	Debug-All
+1398529020.091883	5	NetControl::RULE	REMOVE	NetControl::SUCCEEDED	NetControl::REDIRECT	NetControl::FORWARD	NetControl::FLOW	192.168.18.50/32/56981->74.125.239.97/32/443	-> 5	-	0	0.000000	-	Debug-All
+1398529020.091883	2	NetControl::RULE	REMOVE	NetControl::SUCCEEDED	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	192.168.18.50/32/56981->74.125.239.97/32/443	-	-	0	0.000000	-	Openflow-Log-42
+1398529020.091883	3	NetControl::RULE	REMOVE	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	192.168.18.50/32	-	-	0	0.000000	-	Openflow-Log-42
+1398529020.091883	4	NetControl::RULE	REMOVE	NetControl::SUCCEEDED	NetControl::WHITELIST	NetControl::FORWARD	NetControl::ADDRESS	192.168.18.50/32	-	-	5	0.000000	-	Openflow-Log-42
+1398529020.091883	5	NetControl::RULE	REMOVE	NetControl::SUCCEEDED	NetControl::REDIRECT	NetControl::FORWARD	NetControl::FLOW	192.168.18.50/32/56981->74.125.239.97/32/443	-> 5	-	0	0.000000	-	Openflow-Log-42
+#close	2016-03-18-21-54-40

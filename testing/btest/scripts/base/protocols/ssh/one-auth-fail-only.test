@@ -1,0 +1,7 @@
+# @TEST-EXEC: bro -C -r $TRACES/ssh/sshguess.pcap %INPUT | sort >output
+# @TEST-EXEC: btest-diff output
+
+event ssh_auth_failed(c: connection)
+    {
+    print c$uid;
+    }

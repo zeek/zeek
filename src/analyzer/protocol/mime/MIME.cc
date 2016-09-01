@@ -148,7 +148,7 @@ void MIME_Mail::Undelivered(int len)
 
 int strcasecmp_n(data_chunk_t s, const char* t)
 	{
-	return ::strcasecmp_n(s.length, s.data, t);
+	return strncasecmp(s.data, t, s.length);
 	}
 
 int MIME_count_leading_lws(int len, const char* data)

@@ -64,7 +64,7 @@ public:
 	 *
 	 * @param msg  The message. It will be prefixed with the thread's name.
 	 */
-	void Info(const char* msg);
+	virtual void Info(const char* msg);
 
 	/**
 	 * Reports a warning from the child thread that may indicate a
@@ -73,9 +73,14 @@ public:
 	 *
 	 * Only the child thread may call this method.
 	 *
+	 * Can be overriden in derived classed to hook into the error handling
+	 * but must should generally also call the parent implementation. Note
+	 * that this method is always called by the child thread and must not access
+	 * data or datastructures of the main thread directly.
+	 *
 	 * @param msg  The message. It will be prefixed with the thread's name.
 	 */
-	void Warning(const char* msg);
+	virtual void Warning(const char* msg);
 
 	/**
 	 * Reports a non-fatal error from the child thread. The main thread
@@ -84,9 +89,14 @@ public:
 	 *
 	 * Only the child thread may call this method.
 	 *
+	 * Can be overriden in derived classed to hook into the error handling
+	 * but must should generally also call the parent implementation. Note
+	 * that this method is always called by the child thread and must not access
+	 * data or datastructures of the main thread directly.
+	 *
 	 * @param msg  The message. It will be prefixed with the thread's name.
 	 */
-	void Error(const char* msg);
+	virtual void Error(const char* msg);
 
 	/**
 	 * Reports a fatal error from the child thread. The main thread will
@@ -223,10 +233,10 @@ protected:
 	 * Overriden from BasicThread.
 	 *
 	 */
-	virtual void Run();
-	virtual void OnWaitForStop();
-	virtual void OnSignalStop();
-	virtual void OnKill();
+	void Run() override;
+	void OnWaitForStop() override;
+	void OnSignalStop() override;
+	void OnKill() override;
 
 private:
 	/**

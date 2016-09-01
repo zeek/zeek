@@ -65,26 +65,16 @@ event bro_init()
 	print fmt("%.3g", 3.1e+2);
 	print fmt("%.7g", 3.1e+2);
 
-	# Tests comparing "%As" and "%s" (the string length is printed instead
-	# of the string itself because the print command does its own escaping)
-	local s0 = "\x00\x07";
-	local s1 = fmt("%As", s0); # expands \x00 to "\0"
-	local s2 = fmt("%s", s0);  # expands \x00 to "\0", and \x07 to "^G"
+	# Tests of "%s" with non-printable characters (the string length is printed
+	# instead of the string itself because the print command does its own
+	# escaping)
+	local s0 = "\x00\x1f";
+	local s1 = fmt("%s", s0);
 	print |s0|;
 	print |s1|;
-	print |s2|;
-
-	s0 = "\x07\x1f";
-	s1 = fmt("%As", s0);
-	s2 = fmt("%s", s0);  # expands \x07 to "^G", and \x1f to "\x1f"
-	print |s0|;
-	print |s1|;
-	print |s2|;
 
 	s0 = "\x7f\xff";
-	s1 = fmt("%As", s0);
-	s2 = fmt("%s", s0);  # expands \x7f to "^?", and \xff to "\xff"
+	s1 = fmt("%s", s0);
 	print |s0|;
 	print |s1|;
-	print |s2|;
 	}

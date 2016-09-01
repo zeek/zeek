@@ -1,0 +1,16 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	openflow
+#open	2016-02-11-20-32-05
+#fields	ts	dpid	match.in_port	match.dl_src	match.dl_dst	match.dl_vlan	match.dl_vlan_pcp	match.dl_type	match.nw_tos	match.nw_proto	match.nw_src	match.nw_dst	match.tp_src	match.tp_dst	flow_mod.cookie	flow_mod.table_id	flow_mod.command	flow_mod.idle_timeout	flow_mod.hard_timeout	flow_mod.priority	flow_mod.out_port	flow_mod.out_group	flow_mod.flags	flow_mod.actions.out_ports	flow_mod.actions.vlan_vid	flow_mod.actions.vlan_pcp	flow_mod.actions.vlan_strip	flow_mod.actions.dl_src	flow_mod.actions.dl_dst	flow_mod.actions.nw_tos	flow_mod.actions.nw_src	flow_mod.actions.nw_dst	flow_mod.actions.tp_src	flow_mod.actions.tp_dst
+#types	time	count	count	string	string	count	count	count	count	count	subnet	subnet	count	count	count	count	enum	count	count	count	count	count	count	vector[count]	count	count	bool	string	string	count	addr	addr	count	count
+0.000000	42	-	-	-	-	-	-	-	-	-	-	-	-	4398046511105	-	OpenFlow::OFPFC_ADD	0	0	0	-	-	0	3,7	-	-	F	-	-	-	-	-	-	-
+1254722767.875996	42	-	-	-	-	-	2048	-	6	10.10.1.4/32	74.53.140.153/32	1470	25	4398046511147	-	OpenFlow::OFPFC_ADD	30	0	5	-	-	0	(empty)	-	-	F	-	-	-	-	-	-	-
+1254722767.875996	42	-	-	-	-	-	2048	-	6	74.53.140.153/32	10.10.1.4/32	25	1470	4398046511147	-	OpenFlow::OFPFC_ADD	30	0	5	-	-	0	(empty)	-	-	F	-	-	-	-	-	-	-
+1437831787.861602	42	-	-	-	-	-	2048	-	6	192.168.133.100/32	192.168.133.102/32	49648	25	4398046511148	-	OpenFlow::OFPFC_ADD	30	0	5	-	-	0	(empty)	-	-	F	-	-	-	-	-	-	-
+1437831787.861602	42	-	-	-	-	-	2048	-	6	192.168.133.102/32	192.168.133.100/32	25	49648	4398046511148	-	OpenFlow::OFPFC_ADD	30	0	5	-	-	0	(empty)	-	-	F	-	-	-	-	-	-	-
+1437831799.610433	42	-	-	-	-	-	2048	-	6	192.168.133.100/32	17.167.150.73/32	49655	443	4398046511149	-	OpenFlow::OFPFC_ADD	30	0	5	-	-	0	(empty)	-	-	F	-	-	-	-	-	-	-
+1437831799.610433	42	-	-	-	-	-	2048	-	6	17.167.150.73/32	192.168.133.100/32	443	49655	4398046511149	-	OpenFlow::OFPFC_ADD	30	0	5	-	-	0	(empty)	-	-	F	-	-	-	-	-	-	-
+#close	2016-02-11-20-32-05

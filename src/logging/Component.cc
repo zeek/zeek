@@ -11,7 +11,11 @@ Component::Component(const std::string& name, factory_callback arg_factory)
 	: plugin::Component(plugin::component::WRITER, name)
 	{
 	factory = arg_factory;
+	}
 
+void Component::Initialize()
+	{
+	InitializeTag();
 	log_mgr->RegisterComponent(this, "WRITER_");
 	}
 

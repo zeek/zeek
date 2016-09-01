@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	x509
+#open	2016-07-13-16-16-28
+#fields	ts	id	certificate.version	certificate.serial	certificate.subject	certificate.issuer	certificate.not_valid_before	certificate.not_valid_after	certificate.key_alg	certificate.sig_alg	certificate.key_type	certificate.key_length	certificate.exponent	certificate.curve	san.dns	san.uri	san.email	san.ip	basic_constraints.ca	basic_constraints.path_len
+#types	time	string	count	string	string	string	time	time	string	string	string	count	string	string	vector[string]	vector[string]	vector[string]	vector[addr]	bool	count
+1438145938.995683	Fyz2bd3loV0LDM3r95	3	F9435743EF353D9E	CN=irc.joulunet.org,OU=IRCd,O=Multim,L=Pori,ST=Pori,C=FI	CN=irc.joulunet.org,OU=IRCd,O=Multim,L=Pori,ST=Pori,C=FI	1436555613.000000	1751915613.000000	rsaEncryption	sha256WithRSAEncryption	rsa	4096	65537	-	-	-	-	-	T	-
+#close	2016-07-13-16-16-28

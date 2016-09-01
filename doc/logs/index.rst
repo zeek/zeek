@@ -197,7 +197,7 @@ file:
 
 Often times log files from multiple sources are stored in UTC time to
 allow easy correlation.  Converting the timestamp from a log file to
-UTC can be accomplished with the ``-u`` option:  
+UTC can be accomplished with the ``-u`` option:
 
 .. btest:: using_bro
 
@@ -227,7 +227,7 @@ trip.  A common progression of review includes correlating a session
 across multiple log files.  As a connection is processed by Bro, a
 unique identifier is assigned to each session.  This unique identifier
 is generally included in any log file entry associated with that
-connection and can be used to cross-reference different log files.  
+connection and can be used to cross-reference different log files.
 
 A simple example would be to cross-reference a UID seen in a
 ``conn.log`` file.  Here, we're looking for the connection with the
@@ -244,7 +244,7 @@ crossreference that with the UIDs in the ``http.log`` file.
 
 .. btest:: using_bro
 
-   @TEST-EXEC: btest-rst-cmd "cat http.log | bro-cut uid id.resp_h method status_code host uri | grep VW0XPVINV8a"
+   @TEST-EXEC: btest-rst-cmd "cat http.log | bro-cut uid id.resp_h method status_code host uri | grep UM0KZ3MLUfNB0cl11"
 
 As you can see there are two HTTP ``GET`` requests within the
 session that Bro identified and logged.  Given that HTTP is a stream

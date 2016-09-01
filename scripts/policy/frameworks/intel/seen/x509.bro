@@ -25,4 +25,23 @@ event x509_certificate(f: fa_file, cert_ref: opaque of x509, cert: X509::Certifi
 			     $f=f,
 			     $where=X509::IN_CERT]);
 		}
+
+	if ( f$info?$sha1 ) # if the file_hash event was raised before the x509 event...
+		{
+		Intel::seen([$indicator=f$info$sha1,
+		             $indicator_type=Intel::CERT_HASH,
+		             $f=f,
+		             $where=X509::IN_CERT]);
+		}
+	}
+
+event file_hash(f: fa_file, kind: string, hash: string)
+	{
+	if ( ! f?$info || ! f$info?$x509 || kind != "sha1" )
+		return;
+
+	Intel::seen([$indicator=hash,
+	             $indicator_type=Intel::CERT_HASH,
+	             $f=f,
+	             $where=X509::IN_CERT]);
 	}

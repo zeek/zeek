@@ -11,7 +11,7 @@
 #include "Net.h"
 #include "Sessions.h"
 
-#include "pcap/const.bif.h"
+#include "pcap/pcap.bif.h"
 
 using namespace iosource;
 
@@ -31,14 +31,13 @@ PktSrc::PktSrc()
 
 	next_sync_point = 0;
 	first_timestamp = 0.0;
+	current_pseudo = 0.0;
 	first_wallclock = current_wallclock = 0;
 	}
 
 PktSrc::~PktSrc()
 	{
-	BPF_Program* code;
-	IterCookie* cookie = filters.InitForIteration();
-	while ( (code = filters.NextEntry(cookie)) )
+	for ( auto code : filters )
 		delete code;
 	}
 
@@ -93,7 +92,7 @@ void PktSrc::Opened(const Properties& arg_props)
 		{
 		char buf[512];
 		safe_snprintf(buf, sizeof(buf),
-			 "unknown data link type 0x%x", props.link_type);
+			 "unknown data link type 0x%x", arg_props.link_type);
 		Error(buf);
 		Close();
 		return;
@@ -291,6 +290,12 @@ bool PktSrc::ExtractNextPacketInternal()
 
 	if ( ExtractNextPacket(&current_packet) )
 		{
+		if ( current_packet.time < 0 )
+			{
+			Weird("negative_packet_timestamp", &current_packet);
+			return 0;
+			}
+
 		if ( ! first_timestamp )
 			first_timestamp = current_packet.time;
 
@@ -335,16 +340,16 @@ bool PktSrc::PrecompileBPFFilter(int index, const std::string& filter)
 		return 0;
 		}
 
-	// Store it in hash.
-	HashKey* hash = new HashKey(HashKey(bro_int_t(index)));
-	BPF_Program* oldcode = filters.Lookup(hash);
-	if ( oldcode )
-		delete oldcode;
+	// Store it in vector.
+	if ( index >= static_cast<int>(filters.size()) )
+		filters.resize(index + 1);
 
-	filters.Insert(hash, code);
-	delete hash;
+	if ( auto old = filters[index] )
+		delete old;
 
-	return 1;
+	filters[index] = code;
+
+	return true;
 	}
 
 BPF_Program* PktSrc::GetBPFFilter(int index)
@@ -352,10 +357,7 @@ BPF_Program* PktSrc::GetBPFFilter(int index)
 	if ( index < 0 )
 		return 0;
 
-	HashKey* hash = new HashKey(HashKey(bro_int_t(index)));
-	BPF_Program* code = filters.Lookup(hash);
-	delete hash;
-	return code;
+	return (static_cast<int>(filters.size()) > index ? filters[index] : 0);
 	}
 
 bool PktSrc::ApplyBPFFilter(int index, const struct pcap_pkthdr *hdr, const u_char *pkt)

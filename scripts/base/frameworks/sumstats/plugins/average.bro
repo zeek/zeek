@@ -1,3 +1,5 @@
+##! Calculate the average.
+
 @load ../main
 
 module SumStats;
@@ -9,7 +11,7 @@ export {
 	};
 
 	redef record ResultVal += {
-		## For numeric data, this calculates the average of all values.
+		## For numeric data, this is the average of all values.
 		average: double &optional;
 	};
 }

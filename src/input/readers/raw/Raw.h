@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <pthread.h>
+#include <memory>
 
 #include "input/ReaderBackend.h"
 
@@ -16,16 +17,22 @@ namespace input { namespace reader {
  */
 class Raw : public ReaderBackend {
 public:
-	Raw(ReaderFrontend* frontend);
+	explicit Raw(ReaderFrontend* frontend);
 	~Raw();
+
+	// prohibit copying and moving
+	Raw(const Raw&) = delete;
+	Raw(Raw&&) = delete;
+	Raw& operator=(const Raw&) = delete;
+	Raw& operator=(Raw&&) = delete;
 
 	static ReaderBackend* Instantiate(ReaderFrontend* frontend) { return new Raw(frontend); }
 
 protected:
-	virtual bool DoInit(const ReaderInfo& info, int arg_num_fields, const threading::Field* const* fields);
-	virtual void DoClose();
-	virtual bool DoUpdate();
-	virtual bool DoHeartbeat(double network_time, double current_time);
+	bool DoInit(const ReaderInfo& info, int arg_num_fields, const threading::Field* const* fields) override;
+	void DoClose() override;
+	bool DoUpdate() override;
+	bool DoHeartbeat(double network_time, double current_time) override;
 
 private:
 	void ClosePipeEnd(int i);
@@ -40,8 +47,8 @@ private:
 	void WriteToStdin();
 
 	string fname; // Source with a potential "|" removed.
-	FILE* file;
-	FILE* stderrfile;
+	std::unique_ptr<FILE, int(*)(FILE*)> file;
+	std::unique_ptr<FILE, int(*)(FILE*)> stderrfile;
 	bool execute;
 	bool firstrun;
 	time_t mtime;
@@ -51,8 +58,8 @@ private:
 	unsigned int sep_length; // length of the separator
 
 	int bufpos;
-	char* buf;
-	char* outbuf;
+	std::unique_ptr<char[]> buf;
+	std::unique_ptr<char[]> outbuf;
 
 	int stdin_fileno;
 	int stdout_fileno;

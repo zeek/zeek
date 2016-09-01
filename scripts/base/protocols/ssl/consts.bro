@@ -57,6 +57,27 @@ export {
 		[2] = "fatal",
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };
 
+	## Mapping between numeric codes and human readable strings for hash
+	## algorithms.
+	const hash_algorithms: table[count] of string = {
+		[0] = "none",
+		[1] = "md5",
+		[2] = "sha1",
+		[3] = "sha224",
+		[4] = "sha256",
+		[5] = "sha384",
+		[6] = "sha512",
+	} &default=function(i: count):string { return fmt("unknown-%d", i); };
+
+	## Mapping between numeric codes and human readable strings for signature
+	## algorithms.
+	const signature_algorithms: table[count] of string = {
+		[0] = "anonymous",
+		[1] = "rsa",
+		[2] = "dsa",
+		[3] = "ecdsa",
+	} &default=function(i: count):string { return fmt("unknown-%d", i); };
+
 	## Mapping between numeric codes and human readable strings for alert
 	## descriptions.
 	const alert_descriptions: table[count] of string = {
@@ -109,7 +130,7 @@ export {
 		[7] = "client_authz",
 		[8] = "server_authz",
 		[9] = "cert_type",
-		[10] = "elliptic_curves",
+		[10] = "elliptic_curves", # new name: supported_groups - draft-ietf-tls-negotiated-ff-dhe
 		[11] = "ec_point_formats",
 		[12] = "srp",
 		[13] = "signature_algorithms",
@@ -120,9 +141,10 @@ export {
 		[18] = "signed_certificate_timestamp",
 		[19] = "client_certificate_type",
 		[20] = "server_certificate_type",
-		[21] = "padding", # temporary till 2016-03-12
+		[21] = "padding",
 		[22] = "encrypt_then_mac",
 		[23] = "extended_master_secret",
+		[24] = "token_binding", # temporary till 2017-02-04 - draft-ietf-tokbind-negotiation
 		[35] = "SessionTicket TLS",
 		[40] = "extended_random",
 		[13172] = "next_protocol_negotiation",
@@ -165,7 +187,10 @@ export {
 		[26] = "brainpoolP256r1",
 		[27] = "brainpoolP384r1",
 		[28] = "brainpoolP512r1",
-		# draft-ietf-tls-negotiated-ff-dhe-05
+		# Temporary till 2017-03-01 - draft-ietf-tls-rfc4492bis
+		[29] = "ecdh_x25519",
+		[30] = "ecdh_x448",
+		# draft-ietf-tls-negotiated-ff-dhe-10
 		[256] = "ffdhe2048",
 		[257] = "ffdhe3072",
 		[258] = "ffdhe4096",
@@ -538,9 +563,17 @@ export {
 	const TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8 = 0xC0AE;
 	const TLS_ECDHE_ECDSA_WITH_AES_256_CCM_8 = 0xC0AF;
 	# draft-agl-tls-chacha20poly1305-02
-	const TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256 = 0xCC13;
-	const TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256 = 0xCC14;
-	const TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256 = 0xCC15;
+	const TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256_OLD = 0xCC13;
+	const TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256_OLD = 0xCC14;
+	const TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256_OLD = 0xCC15;
+	# RFC 7905
+	const TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256 = 0xCCA8;
+	const TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256 = 0xCCA9;
+	const TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256 = 0xCCAA;
+	const TLS_PSK_WITH_CHACHA20_POLY1305_SHA256 = 0xCCAB;
+	const TLS_ECDHE_PSK_WITH_CHACHA20_POLY1305_SHA256 = 0xCCAC;
+	const TLS_DHE_PSK_WITH_CHACHA20_POLY1305_SHA256 = 0xCCAD;
+	const TLS_RSA_PSK_WITH_CHACHA20_POLY1305_SHA256 = 0xCCAE;
 
 	const SSL_RSA_FIPS_WITH_DES_CBC_SHA = 0xFEFE;
 	const SSL_RSA_FIPS_WITH_3DES_EDE_CBC_SHA = 0xFEFF;
@@ -904,9 +937,16 @@ export {
 		[TLS_ECDHE_ECDSA_WITH_AES_256_CCM] = "TLS_ECDHE_ECDSA_WITH_AES_256_CCM",
 		[TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8] = "TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8",
 		[TLS_ECDHE_ECDSA_WITH_AES_256_CCM_8] = "TLS_ECDHE_ECDSA_WITH_AES_256_CCM_8",
+		[TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256_OLD] = "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256_OLD",
+		[TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256_OLD] = "TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256_OLD",
+		[TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256_OLD] = "TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256_OLD",
 		[TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256] = "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256",
 		[TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256] = "TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256",
 		[TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256] = "TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256",
+		[TLS_PSK_WITH_CHACHA20_POLY1305_SHA256] = "TLS_PSK_WITH_CHACHA20_POLY1305_SHA256",
+		[TLS_ECDHE_PSK_WITH_CHACHA20_POLY1305_SHA256] = "TLS_ECDHE_PSK_WITH_CHACHA20_POLY1305_SHA256",
+		[TLS_DHE_PSK_WITH_CHACHA20_POLY1305_SHA256] = "TLS_DHE_PSK_WITH_CHACHA20_POLY1305_SHA256",
+		[TLS_RSA_PSK_WITH_CHACHA20_POLY1305_SHA256] = "TLS_RSA_PSK_WITH_CHACHA20_POLY1305_SHA256",
 		[SSL_RSA_FIPS_WITH_DES_CBC_SHA] = "SSL_RSA_FIPS_WITH_DES_CBC_SHA",
 		[SSL_RSA_FIPS_WITH_3DES_EDE_CBC_SHA] = "SSL_RSA_FIPS_WITH_3DES_EDE_CBC_SHA",
 		[SSL_RSA_FIPS_WITH_DES_CBC_SHA_2] = "SSL_RSA_FIPS_WITH_DES_CBC_SHA_2",

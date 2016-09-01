@@ -14,6 +14,7 @@
 #include <openssl/x509v3.h>
 #include <openssl/asn1.h>
 #include <openssl/opensslconf.h>
+#include <openssl/err.h>
 
 using namespace file_analysis;
 
@@ -543,7 +544,7 @@ double file_analysis::X509::GetTimeFromAsn1(const ASN1_TIME* atime, const char* 
 			}
 
 		// year is first two digits in YY format. Buffer expects YYYY format.
-		if ( pString[0] - '0' < 50 ) // RFC 2459 4.1.2.5.1
+		if ( pString[0] < '5' ) // RFC 2459 4.1.2.5.1
 			{
 			*(pBuffer++) = '2';
 			*(pBuffer++) = '0';

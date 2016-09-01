@@ -1,0 +1,5 @@
+Broker::outgoing_connection_established, 127.0.0.1, 9999/tcp
+rule exists, [ty=NetControl::FLOW, conn=<uninitialized>, flow=[src_h=10.10.1.4/32, src_p=1470/tcp, dst_h=74.53.140.153/32, dst_p=25/tcp, src_m=<uninitialized>, dst_m=<uninitialized>], ip=<uninitialized>, mac=<uninitialized>], NetControl::DROP
+rule timeout, [ty=NetControl::FLOW, conn=<uninitialized>, flow=[src_h=10.10.1.4/32, src_p=1470/tcp, dst_h=74.53.140.153/32, dst_p=25/tcp, src_m=<uninitialized>, dst_m=<uninitialized>], ip=<uninitialized>, mac=<uninitialized>], NetControl::DROP, [duration=<uninitialized>, packet_count=<uninitialized>, byte_count=<uninitialized>]
+rule added, [ty=NetControl::ADDRESS, conn=<uninitialized>, flow=<uninitialized>, ip=10.10.1.4/32, mac=<uninitialized>], NetControl::DROP
+rule removed, [ty=NetControl::ADDRESS, conn=<uninitialized>, flow=<uninitialized>, ip=10.10.1.4/32, mac=<uninitialized>], NetControl::DROP

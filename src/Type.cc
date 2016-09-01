@@ -1045,6 +1045,8 @@ TypeDecl* RecordType::FieldDecl(int field)
 
 void RecordType::Describe(ODesc* d) const
 	{
+	d->PushType(this);
+
 	if ( d->IsReadable() )
 		{
 		if ( d->IsShort() && GetName().size() )
@@ -1064,10 +1066,13 @@ void RecordType::Describe(ODesc* d) const
 		d->Add(int(Tag()));
 		DescribeFields(d);
 		}
+
+	d->PopType(this);
 	}
 
 void RecordType::DescribeReST(ODesc* d, bool roles_only) const
 	{
+	d->PushType(this);
 	d->Add(":bro:type:`record`");
 
 	if ( num_fields == 0 )
@@ -1075,6 +1080,7 @@ void RecordType::DescribeReST(ODesc* d, bool roles_only) const
 
 	d->NL();
 	DescribeFieldsReST(d, false);
+	d->PopType(this);
 	}
 
 const char* RecordType::AddFields(type_decl_list* others, attr_list* attr)
@@ -1129,7 +1135,12 @@ void RecordType::DescribeFields(ODesc* d) const
 			const TypeDecl* td = FieldDecl(i);
 			d->Add(td->id);
 			d->Add(":");
-			td->type->Describe(d);
+
+			if ( d->FindType(td->type) )
+				d->Add("<recursion>");
+			else
+				td->type->Describe(d);
+
 			d->Add(";");
 			}
 		}
@@ -1170,7 +1181,11 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 			}
 
 		const TypeDecl* td = FieldDecl(i);
-		td->DescribeReST(d);
+
+		if ( d->FindType(td->type) )
+			d->Add("<recursion>");
+		else
+			td->DescribeReST(d);
 
 		if ( func_args )
 			continue;
@@ -1422,13 +1437,11 @@ EnumType::EnumType(EnumType* e)
 	SetName(e->GetName());
 
 	for ( NameMap::iterator it = e->names.begin(); it != e->names.end(); ++it )
-		names[copy_string(it->first)] = it->second;
+		names[it->first] = it->second;
 	}
 
 EnumType::~EnumType()
 	{
-	for ( NameMap::iterator iter = names.begin(); iter != names.end(); ++iter )
-		delete [] iter->first;
 	}
 
 // Note, we use reporter->Error() here (not Error()) to include the current script
@@ -1488,8 +1501,10 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 		// We allow double-definitions if matching exactly. This is so that
 		// we can define an enum both in a *.bif and *.bro for avoiding
 		// cyclic dependencies.
-		if ( id->Name() != make_full_var_name(module_name.c_str(), name)
-		     || (id->HasVal() && val != id->ID_Val()->AsEnum()) )
+		string fullname = make_full_var_name(module_name.c_str(), name);
+		if ( id->Name() != fullname
+		     || (id->HasVal() && val != id->ID_Val()->AsEnum())
+		     || (names.find(fullname) != names.end() && names[fullname] != val) )
 			{
 			Unref(id);
 			reporter->Error("identifier or enumerator value in enumerated type definition already exists");
@@ -1515,7 +1530,7 @@ void EnumType::AddNameInternal(const string& module_name, const char* name,
                                bro_int_t val, bool is_export)
 	{
 	string fullname = make_full_var_name(module_name.c_str(), name);
-	names[copy_string(fullname.c_str())] = val;
+	names[fullname] = val;
 	}
 
 bro_int_t EnumType::Lookup(const string& module_name, const char* name) const
@@ -1534,7 +1549,7 @@ const char* EnumType::Lookup(bro_int_t value) const
 	for ( NameMap::const_iterator iter = names.begin();
 	      iter != names.end(); ++iter )
 		if ( iter->second == value )
-			return iter->first;
+			return iter->first.c_str();
 
 	return 0;
 	}
@@ -1555,7 +1570,7 @@ void EnumType::DescribeReST(ODesc* d, bool roles_only) const
 
 	// Create temporary, reverse name map so that enums can be documented
 	// in ascending order of their actual integral value instead of by name.
-	typedef map< bro_int_t, const char* > RevNameMap;
+	typedef map<bro_int_t, std::string> RevNameMap;
 
 	RevNameMap rev;
 
@@ -1568,9 +1583,9 @@ void EnumType::DescribeReST(ODesc* d, bool roles_only) const
 		d->PushIndent();
 
 		if ( roles_only )
-			d->Add(fmt(":bro:enum:`%s`", it->second));
+			d->Add(fmt(":bro:enum:`%s`", it->second.c_str()));
 		else
-			d->Add(fmt(".. bro:enum:: %s %s", it->second, GetName().c_str()));
+			d->Add(fmt(".. bro:enum:: %s %s", it->second.c_str(), GetName().c_str()));
 
 		using broxygen::IdentifierInfo;
 		IdentifierInfo* doc = broxygen_mgr->GetIdentifierInfo(it->second);
@@ -1578,7 +1593,7 @@ void EnumType::DescribeReST(ODesc* d, bool roles_only) const
 		if ( ! doc )
 			{
 			reporter->InternalWarning("Enum %s documentation lookup failure",
-			                          it->second);
+			                          it->second.c_str());
 			continue;
 			}
 
@@ -1667,6 +1682,7 @@ bool EnumType::DoUnserialize(UnserialInfo* info)
 			return false;
 
 		names[name] = val;
+		delete [] name; // names[name] converts to std::string
 		}
 
 	return true;

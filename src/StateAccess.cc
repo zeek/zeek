@@ -150,7 +150,7 @@ bool StateAccess::CheckOld(const char* op, ID* id, Val* index,
 
 	if ( should && is )
 		{
-		// There's no general comparision for non-atomic vals currently.
+		// There's no general comparison for non-atomic vals currently.
 		if ( ! (is_atomic_val(is) && is_atomic_val(should)) )
 			return true;
 

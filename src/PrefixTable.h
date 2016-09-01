@@ -36,6 +36,10 @@ public:
 	void* Lookup(const IPAddr& addr, int width, bool exact = false) const;
 	void* Lookup(const Val* value, bool exact = false) const;
 
+	// Returns list of all found matches or empty list otherwise.
+	list<tuple<IPPrefix,void*>> FindAll(const IPAddr& addr, int width) const;
+	list<tuple<IPPrefix,void*>> FindAll(const SubNetVal* value) const;
+
 	// Returns pointer to data or nil if not found.
 	void* Remove(const IPAddr& addr, int width);
 	void* Remove(const Val* value);
@@ -44,6 +48,10 @@ public:
 
 	iterator InitIterator();
 	void* GetNext(iterator* i);
+
+private:
+	static prefix_t* MakePrefix(const IPAddr& addr, int width);
+	static IPPrefix PrefixToIPPrefix(prefix_t* p);
 
 	patricia_tree_t* tree;
 };

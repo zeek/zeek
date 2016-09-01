@@ -182,6 +182,7 @@ public:
 		CHECK_TYPE_TAG(TYPE_FUNC, "BroType::AsFuncType");
 		return (const FuncType*) this;
 		}
+
 	FuncType* AsFuncType()
 		{
 		CHECK_TYPE_TAG(TYPE_FUNC, "BroType::AsFuncType");
@@ -201,7 +202,7 @@ public:
 		}
 
 	const VectorType* AsVectorType() const
-	        {
+		{
 		CHECK_TYPE_TAG(TYPE_VECTOR, "BroType::AsVectorType");
 		return (VectorType*) this;
 		}
@@ -219,19 +220,19 @@ public:
 		}
 
 	VectorType* AsVectorType()
-	        {
+		{
 		CHECK_TYPE_TAG(TYPE_VECTOR, "BroType::AsVectorType");
 		return (VectorType*) this;
 		}
 
 	const TypeType* AsTypeType() const
-	        {
+		{
 		CHECK_TYPE_TAG(TYPE_TYPE, "BroType::AsTypeType");
 		return (TypeType*) this;
 		}
 
 	TypeType* AsTypeType()
-	        {
+		{
 		CHECK_TYPE_TAG(TYPE_TYPE, "BroType::AsTypeType");
 		return (TypeType*) this;
 		}
@@ -248,7 +249,7 @@ public:
 
 	BroType* Ref()		{ ::Ref(this); return this; }
 
-	virtual void Describe(ODesc* d) const;
+	virtual void Describe(ODesc* d) const override;
 	virtual void DescribeReST(ODesc* d, bool roles_only = false) const;
 
 	virtual unsigned MemoryAllocation() const;
@@ -312,9 +313,9 @@ public:
 	void Append(BroType* t);
 	void AppendEvenIfNotPure(BroType* t);
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 
-	unsigned int MemoryAllocation() const
+	unsigned int MemoryAllocation() const override
 		{
 		return BroType::MemoryAllocation()
 			+ padded_sizeof(*this) - padded_sizeof(BroType)
@@ -330,15 +331,15 @@ protected:
 
 class IndexType : public BroType {
 public:
-	int MatchesIndex(ListExpr*& index) const;
+	int MatchesIndex(ListExpr*& index) const override;
 
 	TypeList* Indices() const		{ return indices; }
 	const type_list* IndexTypes() const	{ return indices->Types(); }
-	BroType* YieldType();
+	BroType* YieldType() override;
 	const BroType* YieldType() const;
 
-	void Describe(ODesc* d) const;
-	void DescribeReST(ODesc* d, bool roles_only = false) const;
+	void Describe(ODesc* d) const override;
+	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
 	// Returns true if this table is solely indexed by subnet.
 	bool IsSubNetIndex() const;
@@ -397,7 +398,7 @@ public:
 	~FuncType();
 
 	RecordType* Args() const	{ return args; }
-	BroType* YieldType();
+	BroType* YieldType() override;
 	const BroType* YieldType() const;
 	void SetYieldType(BroType* arg_yield)	{ yield = arg_yield; }
 	function_flavor Flavor() const { return flavor; }
@@ -407,13 +408,13 @@ public:
 	void ClearYieldType(function_flavor arg_flav)
 		{ Unref(yield); yield = 0; flavor = arg_flav; }
 
-	int MatchesIndex(ListExpr*& index) const;
+	int MatchesIndex(ListExpr*& index) const override;
 	int CheckArgs(const type_list* args, bool is_init = false) const;
 
 	TypeList* ArgTypes() const	{ return arg_types; }
 
-	void Describe(ODesc* d) const;
-	void DescribeReST(ODesc* d, bool roles_only = false) const;
+	void Describe(ODesc* d) const override;
+	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
 protected:
 	FuncType()	{ args = 0; arg_types = 0; yield = 0; flavor = FUNC_FLAVOR_FUNCTION; }
@@ -463,8 +464,8 @@ public:
 
 	~RecordType();
 
-	int HasField(const char* field) const;
-	BroType* FieldType(const char* field) const;
+	int HasField(const char* field) const override;
+	BroType* FieldType(const char* field) const override;
 	BroType* FieldType(int field) const;
 	Val* FieldDefault(int field) const; // Ref's the returned value; 0 if none.
 
@@ -487,8 +488,8 @@ public:
 	// Takes ownership of list.
 	const char* AddFields(type_decl_list* types, attr_list* attr);
 
-	void Describe(ODesc* d) const;
-	void DescribeReST(ODesc* d, bool roles_only = false) const;
+	void Describe(ODesc* d) const override;
+	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 	void DescribeFields(ODesc* d) const;
 	void DescribeFieldsReST(ODesc* d, bool func_args) const;
 
@@ -504,7 +505,7 @@ protected:
 class SubNetType : public BroType {
 public:
 	SubNetType();
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 protected:
 	DECLARE_SERIAL(SubNetType)
 };
@@ -514,9 +515,9 @@ public:
 	FileType(BroType* yield_type);
 	~FileType();
 
-	BroType* YieldType();
+	BroType* YieldType() override;
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 
 protected:
 	FileType()	{ yield = 0; }
@@ -533,8 +534,8 @@ public:
 
 	const string& Name() const { return name; }
 
-	void Describe(ODesc* d) const;
-	void DescribeReST(ODesc* d, bool roles_only = false) const;
+	void Describe(ODesc* d) const override;
+	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
 protected:
 	OpaqueType() { }
@@ -569,7 +570,7 @@ public:
 	// will be fully qualified with their module name.
 	enum_name_list Names() const;
 
-	void DescribeReST(ODesc* d, bool roles_only = false) const;
+	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
 protected:
 	EnumType() { counter = 0; }
@@ -583,7 +584,7 @@ protected:
 	                     const char* name, bro_int_t val, bool is_export,
 	                     bool deprecated);
 
-	typedef std::map< const char*, bro_int_t, ltstr > NameMap;
+	typedef std::map<std::string, bro_int_t> NameMap;
 	NameMap names;
 
 	// The counter is initialized to 0 and incremented on every implicit
@@ -599,17 +600,17 @@ class VectorType : public BroType {
 public:
 	VectorType(BroType* t);
 	virtual ~VectorType();
-	BroType* YieldType();
+	BroType* YieldType() override;
 	const BroType* YieldType() const;
 
-	int MatchesIndex(ListExpr*& index) const;
+	int MatchesIndex(ListExpr*& index) const override;
 
 	// Returns true if this table type is "unspecified", which is what one
 	// gets using an empty "vector()" constructor.
 	bool IsUnspecifiedVector() const;
 
-	void Describe(ODesc* d) const;
-	void DescribeReST(ODesc* d, bool roles_only = false) const;
+	void Describe(ODesc* d) const override;
+	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
 protected:
 	VectorType()	{ yield_type = 0; }

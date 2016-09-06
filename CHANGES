@@ -1,4 +1,14 @@
 
+2.5-beta-12 | 2016-09-06 07:35:38 -0700
+
+  * Added a missing fclose in scan.l. Addresses BIT-1690.
+    (Daniel Thayer).
+
+  * Fix issue with file_extraction_limit event. (Seth Hall)
+
+  * Fix a crash when a user disables DCE_RPC while enabling SMB.
+    (Seth Hall)
+
 2.5-beta-6 | 2016-08-19 07:50:10 -0700
 
   * Clarify explanation of mime_entity_data event. (Moshe Kaplan)

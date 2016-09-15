@@ -398,6 +398,7 @@ type fa_file: record {
 	## An identification of the source of the file data.  E.g. it may be
 	## a network protocol over which it was transferred, or a local file
 	## path which was read, or some other input source.
+	## Some specific examples include: "HTTP", "SMTP", "IRC_DATA", and the file path. 
 	source: string;
 
 	## If the source of this file is a network connection, this field

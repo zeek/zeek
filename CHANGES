@@ -1,4 +1,8 @@
 
+2.5-beta-17 | 2016-09-19 15:26:14 -0700
+
+  * Clarified string and fa_file documentation (Moshe Kaplan)
+
 2.5-beta-12 | 2016-09-06 07:35:38 -0700
 
   * Added a missing fclose in scan.l. Addresses BIT-1690.

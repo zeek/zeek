@@ -395,9 +395,10 @@ type fa_file: record {
 	## extracted as part of the file analysis.
 	parent_id: string &optional;
 
-	## An identification of the source of the file data.  E.g. it may be
+	## An identification of the source of the file data. E.g. it may be
 	## a network protocol over which it was transferred, or a local file
 	## path which was read, or some other input source.
+	## Examples are: "HTTP", "SMTP", "IRC_DATA", or the file path.
 	source: string;
 
 	## If the source of this file is a network connection, this field

@@ -1,4 +1,13 @@
 
+2.5-beta-13 | 2016-09-19 17:01:42 -0700
+
+  * Kerberos updates (Vlad Grigorescu):
+
+    * Make PA_EncType_Info salt field optional.
+
+    * Add support for parsing ENCTYPE_INFO pre-auth data (same as
+      ENCTYPE_INFO2).
+
 2.5-beta-12 | 2016-09-06 07:35:38 -0700
 
   * Added a missing fclose in scan.l. Addresses BIT-1690.
@@ -203,7 +212,7 @@
             Input::add_table([$source="a", $error_ev=error_event, ...]);
             }
 
-     Addresses BIT-1181. 
+     Addresses BIT-1181.
 
   * Calling Error() in an input reader now automatically will disable
     the reader and return a failure in the Update/Heartbeat calls.

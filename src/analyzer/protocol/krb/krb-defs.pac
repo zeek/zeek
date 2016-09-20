@@ -14,11 +14,12 @@ enum KRBMessageTypes {
 
 # Defined by IANA in Kerberos Parameters - Pre-authentication and Typed Data
 enum KRBPADataTypes {
-	PA_TGS_REQ 	 = 1,
+	PA_TGS_REQ 	     = 1,
 	PA_ENC_TIMESTAMP = 2,
-	PA_PW_SALT 	 = 3,
-	PA_PW_AS_REQ 	 = 16,
-	PA_PW_AS_REP	 = 17,
+	PA_PW_SALT 	     = 3,
+	PA_ENCTYPE_INFO  = 11,
+	PA_PW_AS_REQ 	   = 16,
+	PA_PW_AS_REP	   = 17,
 	PA_ENCTYPE_INFO2 = 19,
 };
 

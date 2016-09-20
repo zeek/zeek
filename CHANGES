@@ -1,5 +1,5 @@
 
-2.5-beta-13 | 2016-09-19 17:01:42 -0700
+2.5-beta-18 | 2016-09-19 17:14:47 -0700
 
   * Kerberos updates (Vlad Grigorescu):
 
@@ -7,6 +7,10 @@
 
     * Add support for parsing ENCTYPE_INFO pre-auth data (same as
       ENCTYPE_INFO2).
+
+2.5-beta-17 | 2016-09-19 15:26:14 -0700
+
+  * Clarified string and fa_file documentation (Moshe Kaplan)
 
 2.5-beta-12 | 2016-09-06 07:35:38 -0700
 

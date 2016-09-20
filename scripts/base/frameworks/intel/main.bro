@@ -369,6 +369,25 @@ event Intel::match(s: Seen, items: set[Item]) &priority=5
 		Log::write(Intel::LOG, info);
 	}
 
+hook extend_match(info: Info, s: Seen, items: set[Item]) &priority=5
+	{
+	# Add default information to matches.
+	if ( s?$conn )
+		{
+		s$uid = s$conn$uid;
+		info$id  = s$conn$id;
+		}
+
+	if ( s?$uid )
+		info$uid = s$uid;
+
+	for ( item in items )
+		{
+		add info$sources[item$meta$source];
+		add info$matched[item$indicator_type];
+		}
+	}
+
 function insert(item: Item)
 	{
 	# Create and fill out the metadata item.

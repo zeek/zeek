@@ -27,7 +27,7 @@ export {
 			/^ftp[0-9]*\./  &redef;
 }
 
-function check_ssh_hostname(id: conn_id, host: addr)
+function check_ssh_hostname(id: conn_id, uid: string, host: addr)
 	{
 	when ( local hostname = lookup_addr(host) )
 		{
@@ -37,7 +37,7 @@ function check_ssh_hostname(id: conn_id, host: addr)
 					$msg=fmt("Possible SSH login involving a %s %s with an interesting hostname.",
 							 Site::is_local_addr(host) ? "local" : "remote",
 							 host == id$orig_h ? "client" : "server"),
-					$sub=hostname, $id=id]);
+					$sub=hostname, $id=id, $uid=uid]);
 			}
 		}
 	}
@@ -46,7 +46,7 @@ event ssh_auth_successful(c: connection, auth_method_none: bool)
 	{
 	for ( host in set(c$id$orig_h, c$id$resp_h) )
 		{
-		check_ssh_hostname(c$id, host);
+		check_ssh_hostname(c$id, c$uid, host);
 		}
 	}
 

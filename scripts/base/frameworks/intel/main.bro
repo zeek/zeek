@@ -455,6 +455,22 @@ function insert(item: Item)
 		event Intel::new_item(item);
 	}
 
+# Function to check whether an item is present.
+function item_exists(item: Item): bool
+	{
+	local ds = have_full_data ? data_store : min_data_store;
+
+	switch ( item$indicator_type )
+		{
+		case ADDR:
+			return to_addr(item$indicator) in ds$host_data;
+		case SUBNET:
+			return to_subnet(item$indicator) in ds$subnet_data;
+		default:
+			return [item$indicator, item$indicator_type] in ds$string_data;
+		}
+	}
+
 # Function to remove metadata of an item. The function returns T
 # if there is no metadata left for the given indicator.
 function remove_meta_data(item: Item): bool
@@ -484,6 +500,14 @@ function remove_meta_data(item: Item): bool
 
 function remove(item: Item, purge_indicator: bool)
 	{
+	# Check whether the indicator is present
+	if ( ! item_exists(item) )
+		{
+		Reporter::info(fmt("Tried to remove non-existing item '%s' (%s).",
+			item$indicator, item$indicator_type));
+		return;
+		}
+
 	# Delegate removal if we are on a worker
 	if ( !have_full_data )
 		{

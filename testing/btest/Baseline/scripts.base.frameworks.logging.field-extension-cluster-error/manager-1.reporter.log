@@ -1,0 +1,13 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	reporter
+#open	2016-09-22-23-31-34
+#fields	_write_ts	_stream	_system_name	ts	level	message	location
+#types	time	string	string	time	enum	string	string
+1474587094.261799	reporter	manager-1	0.000000	Reporter::WARNING	WriterFrontend communication/Log::WRITER_ASCII expected 11 fields in write, got 8. Skipping line.	(empty)
+1474587094.261799	reporter	manager-1	0.000000	Reporter::WARNING	WriterFrontend communication/Log::WRITER_ASCII expected 11 fields in write, got 8. Skipping line.	(empty)
+1474587094.261799	reporter	manager-1	0.000000	Reporter::WARNING	WriterFrontend communication/Log::WRITER_ASCII expected 11 fields in write, got 8. Skipping line.	(empty)
+1474587099.984660	reporter	manager-1	0.000000	Reporter::INFO	received termination signal	(empty)
+#close	2016-09-22-23-31-40

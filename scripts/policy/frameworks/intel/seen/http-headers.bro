@@ -6,16 +6,18 @@ event http_header(c: connection, is_orig: bool, name: string, value: string)
 	{
 	if ( is_orig )
 		{
-		switch ( name ) 
+		switch ( name )
 			{
 			case "HOST":
-			if ( is_valid_ip(value) )
-				Intel::seen([$host=to_addr(value),
+			# The split is done to remove the occasional port value that shows up here (see also base script)
+			local host = split_string1(value, /:/)[0];
+			if ( is_valid_ip(host) )
+				Intel::seen([$host=to_addr(host),
 					     $indicator_type=Intel::ADDR,
 					     $conn=c,
 					     $where=HTTP::IN_HOST_HEADER]);
 			else
-				Intel::seen([$indicator=value,
+				Intel::seen([$indicator=host,
 					     $indicator_type=Intel::DOMAIN,
 					     $conn=c,
 					     $where=HTTP::IN_HOST_HEADER]);

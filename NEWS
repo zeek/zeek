@@ -333,10 +333,6 @@ Deprecated Functionality
   decode_base64() and encode_base64(), which take an optional
   parameter to change the Base64 alphabet.
 
-- The ElasticSearch log writer hasn't been maintained for a while
-  and is now deprecated. It will be removed with the next release.
-
-
 Bro 2.4
 =======
 

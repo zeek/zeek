@@ -1,4 +1,9 @@
 
+2.5-beta-21 | 2016-09-26 10:15:23 -0700
+
+  * Fix a debugger bug where it would not support statements like print(3).
+    Addresses BIT-1703. (Vlad Grigorescu)
+
 2.5-beta-19 | 2016-09-19 17:16:40 -0700
 
   * Kerberos updates (Vlad Grigorescu):

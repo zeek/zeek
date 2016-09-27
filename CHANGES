@@ -1,4 +1,18 @@
 
+2.5-beta-28 | 2016-09-27 11:44:33 -0700
+
+  * Check if the number of fields in a log write are equal to the
+    number of fields required. Addresses BIT-1683. (Johanna Amann)
+
+  * Fix a small memory leak for disabled log writers. (Johanna Amann)
+
+  * Fix loaded-scripts.bro to work with arbitrary indentation levels.
+    Addresses BIT-1691 (Johanna Amann)
+
+  * In interesting-hostnames.bro, move lookup_addr() outside of when
+    statement to avoid expensive cloning of full connection record.
+    Addresses BIT-1670. (Justin Azoff)
+
 2.5-beta-21 | 2016-09-26 10:15:23 -0700
 
   * Fix a debugger bug where it would not support statements like print(3).

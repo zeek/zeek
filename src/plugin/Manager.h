@@ -150,6 +150,13 @@ public:
 	template<class T> std::list<T *> Components() const;
 
 	/**
+	 * Returns the (dynamic) plugin associated with a given filesytem
+	 * path. The path can be the plugin directory itself, or any path
+	 * inside it.
+	 */
+	Plugin* LookupPluginByPath(std::string path);
+
+	/**
 	 * Returns true if there's at least one plugin interested in a given
 	 * hook.
 	 *
@@ -328,6 +335,9 @@ private:
 	// An array indexed by HookType. An entry is null if there's no hook
 	// of that type enabled.
 	hook_list** hooks;
+
+	// A map of all the top-level plugin directories.
+	std::map<std::string, Plugin*> plugins_by_path;
 
 	// Helpers providing access to current state during dlopen().
 	static Plugin* current_plugin;

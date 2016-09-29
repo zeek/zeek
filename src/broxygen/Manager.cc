@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "Manager.h"
+#include "plugin/Manager.h"
 #include "util.h"
 
 #include <utility>
@@ -36,6 +37,19 @@ static string RemoveLeadingSpace(const string& s)
 	string rval = s;
 	rval.erase(0, 1);
 	return rval;
+	}
+
+// Turns a script's full path into a shortened, normalized version that we
+// use for indexing.
+static string NormalizeScriptPath(const string& path)
+	{
+	if ( auto p = plugin_mgr->LookupPluginByPath(path) ) 
+		{
+		auto rval = normalize_path(path);
+		return p->Name() + ":" + rval.substr(p->PluginDirectory().size() + 1);
+		}
+
+	return without_bropath_component(path);
 	}
 
 Manager::Manager(const string& arg_config, const string& bro_command)
@@ -108,7 +122,7 @@ void Manager::Script(const string& path)
 	if ( disabled )
 		return;
 
-	string name = without_bropath_component(path);
+	string name = NormalizeScriptPath(path);
 
 	if ( scripts.GetInfo(name) )
 		{
@@ -149,8 +163,8 @@ void Manager::ScriptDependency(const string& path, const string& dep)
 		return;
 		}
 
-	string name = without_bropath_component(path);
-	string depname = without_bropath_component(dep);
+	string name = NormalizeScriptPath(path);
+	string depname = NormalizeScriptPath(dep);
 	ScriptInfo* script_info = scripts.GetInfo(name);
 
 	if ( ! script_info )
@@ -174,7 +188,7 @@ void Manager::ModuleUsage(const string& path, const string& module)
 	if ( disabled )
 		return;
 
-	string name = without_bropath_component(path);
+	string name = NormalizeScriptPath(path);
 	ScriptInfo* script_info = scripts.GetInfo(name);
 
 	if ( ! script_info )
@@ -225,7 +239,7 @@ void Manager::StartType(ID* id)
 		return;
 		}
 
-	string script = without_bropath_component(id->GetLocationInfo()->filename);
+	string script = NormalizeScriptPath(id->GetLocationInfo()->filename);
 	ScriptInfo* script_info = scripts.GetInfo(script);
 
 	if ( ! script_info )
@@ -289,7 +303,7 @@ void Manager::Identifier(ID* id)
 		return;
 		}
 
-	string script = without_bropath_component(id->GetLocationInfo()->filename);
+	string script = NormalizeScriptPath(id->GetLocationInfo()->filename);
 	ScriptInfo* script_info = scripts.GetInfo(script);
 
 	if ( ! script_info )
@@ -318,7 +332,7 @@ void Manager::RecordField(const ID* id, const TypeDecl* field,
 		return;
 		}
 
-	string script = without_bropath_component(path);
+	string script = NormalizeScriptPath(path);
 	idd->AddRecordField(field, script, comment_buffer);
 	comment_buffer.clear();
 	DBG_LOG(DBG_BROXYGEN, "Document record field %s, identifier %s, script %s",
@@ -343,7 +357,7 @@ void Manager::Redef(const ID* id, const string& path)
 		return;
 		}
 
-	string from_script = without_bropath_component(path);
+	string from_script = NormalizeScriptPath(path);
 	ScriptInfo* script_info = scripts.GetInfo(from_script);
 
 	if ( ! script_info )
@@ -365,7 +379,7 @@ void Manager::SummaryComment(const string& script, const string& comment)
 	if ( disabled )
 		return;
 
-	string name = without_bropath_component(script);
+	string name = NormalizeScriptPath(script);
 	ScriptInfo* info = scripts.GetInfo(name);
 
 	if ( info )

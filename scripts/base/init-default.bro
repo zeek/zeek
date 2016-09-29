@@ -23,7 +23,7 @@
 @load base/utils/time
 @load base/utils/urls
 
-# This has some deep interplay between types and BiFs so it's 
+# This has some deep interplay between types and BiFs so it's
 # loaded in base/init-bare.bro
 #@load base/frameworks/logging
 @load base/frameworks/notice
@@ -61,7 +61,7 @@
 @load base/protocols/rfb
 @load base/protocols/sip
 @load base/protocols/snmp
-# This DOES NOT enable the SMB analyzer.  It's just some base support 
+# This DOES NOT enable the SMB analyzer.  It's just some base support
 # for other protocols.
 @load base/protocols/smb
 @load base/protocols/smtp
@@ -80,3 +80,4 @@
 
 @load base/misc/find-checksum-offloading
 @load base/misc/find-filtered-trace
+@load base/misc/version

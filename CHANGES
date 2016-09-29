@@ -1,4 +1,9 @@
 
+2.5-beta-29 | 2016-09-28 18:18:35 -0700
+
+  * Prettifying reporter output in case no epxression is associated
+    with runtime error. (Robin Sommer)
+
 2.5-beta-28 | 2016-09-27 11:44:33 -0700
 
   * Check if the number of fields in a log write are equal to the

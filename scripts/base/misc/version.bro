@@ -44,7 +44,7 @@ export {
 	## version_string: Version to check against the current running version.
 	##
 	## Returns: True if running version greater or equal to the given version.
-	global greater_equal: function(version_string: string): bool;
+	global at_least: function(version_string: string): bool;
 }
 
 function parse(version_string: string): VersionDescription
@@ -78,13 +78,13 @@ export {
 	## The format of the number is ABBCC with A being the major version,
 	## bb being the minor version (2 digits) and CC being the patchlevel (2 digits).
 	## As an example, Bro 2.4.1 results in the number 20401
-	const num = Version::parse(bro_version())$version_num;
+	const number = Version::parse(bro_version())$version_num;
 
 	## `VersionDescription` record pertaining to the currently running version of Bro.
 	const info = Version::parse(bro_version());
 }
 
-function greater_equal(version_string: string): bool
+function at_least(version_string: string): bool
 	{
-	return Version::parse(version_string)$version_num >= Version::num;
+	return Version::parse(version_string)$version_num >= Version::number;
 	}

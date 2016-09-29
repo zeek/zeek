@@ -23,7 +23,7 @@ Version::parse(bro_version());
 
 @TEST-START-NEXT
 
-@if ( Version::num >= 20500 )
+@if ( Version::number >= 20500 )
 print "yup";
 @endif
 
@@ -31,10 +31,10 @@ print "yup";
 print "yup";
 @endif
 
-@if ( Version::greater_equal("2.5") )
+@if ( Version::at_least("2.5") )
 print "yup";
 @endif
 
-@if ( Version::greater_equal("2.4") )
+@if ( Version::at_least("2.4") )
 print "no";
 @endif

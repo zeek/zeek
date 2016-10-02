@@ -1,4 +1,8 @@
 
+2.5-beta-33 | 2016-10-02 14:42:22 -0400
+
+  * Handle removing non-existent intel items. (Jan Grashoefer)
+
 2.5-beta-29 | 2016-09-28 18:18:35 -0700
 
   * Prettifying reporter output in case no epxression is associated

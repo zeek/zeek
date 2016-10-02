@@ -1,0 +1,11 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	reporter
+#open	2016-09-20-22-35-58
+#fields	ts	level	message	location
+#types	time	enum	string	string
+0.000000	Reporter::INFO	Tried to remove non-existing item '192.168.1.1' (Intel::ADDR).	/home/jgras/devel/bro/scripts/base/frameworks/intel/./main.bro, lines 506-507
+0.000000	Reporter::INFO	received termination signal	(empty)
+#close	2016-09-20-22-35-59

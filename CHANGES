@@ -1,4 +1,8 @@
 
+2.5-beta-35 | 2016-10-02 17:38:31 -0400
+
+  * Normalize http host in seen script.  (Johanna Amann)
+
 2.5-beta-33 | 2016-10-02 14:42:22 -0400
 
   * Handle removing non-existent intel items. (Jan Grashoefer)

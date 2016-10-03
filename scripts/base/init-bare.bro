@@ -2519,10 +2519,18 @@ module SMB;
 
 export {
 	## MAC times for a file.
+	##
+	## For more information, see MS-SMB2:2.2.16
+	##
+	## .. bro:see:: smb1_nt_create_andx_response smb2_create_response
 	type SMB::MACTimes: record {
+		## The time when data was last written to the file.
 		modified : time &log;
+		## The time when the file was last accessed.
 		accessed : time &log;
+		## The time the file was created.
 		created  : time &log;
+		## The time when the file was last modified.
 		changed  : time &log;
 	} &log;
 }

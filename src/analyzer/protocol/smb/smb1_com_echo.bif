@@ -1,5 +1,8 @@
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-## version 1 requests of type *echo*.
+## version 1 requests of type *echo*. This is sent by the client to test the transport layer
+## connection with the server.
+##
+## For more information, see MS-CIFS:2.2.4.39
 ##
 ## c: The connection.
 ##
@@ -13,7 +16,9 @@
 event smb1_echo_request%(c: connection, echo_count: count, data: string%);
 
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-## version 1 responses of type *echo*.
+## version 1 responses of type *echo*. This is the server response to the *echo* request.
+##
+## For more information, see MS-CIFS:2.2.4.39
 ##
 ## c: The connection.
 ##

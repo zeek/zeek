@@ -1,5 +1,8 @@
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-## version 1 requests of type *nt cancel*.
+## version 1 requests of type *nt cancel*. This is sent by the client to request that a currently
+## pending request be cancelled.
+##
+## For more information, see MS-CIFS:2.2.4.65
 ##
 ## c: The connection.
 ##

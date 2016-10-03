@@ -1,5 +1,8 @@
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-## version 1 requests of type *open andx*.
+## version 1 requests of type *open andx*. This is sent by the client to create and open a new
+## file or open an existing regular file and chain additional messages along with the request.
+##
+## For more information, see MS-CIFS:2.2.4.41
 ##
 ## c: The connection.
 ##
@@ -23,7 +26,9 @@
 event smb1_open_andx_request%(c: connection, hdr: SMB1::Header, file_id: count, offset: count, length: count%);
 
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-## version 1 responses of type *open andx*.
+## version 1 responses of type *open andx*. This is the server response to the *open andx* request.
+##
+## For more information, see MS-CIFS:2.2.4.41
 ##
 ## c: The connection.
 ##

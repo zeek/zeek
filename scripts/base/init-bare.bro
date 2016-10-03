@@ -2531,22 +2531,33 @@ module SMB1;
 
 export {
 	## An SMB1 header.
-	## 
-	## .. bro:see:: smb_com_close smb_com_generic_andx smb_com_logoff_andx
-	##    smb_com_negotiate smb_com_negotiate_response smb_com_nt_create_andx
-	##    smb_com_read_andx smb_com_setup_andx smb_com_trans_mailslot
-	##    smb_com_trans_pipe smb_com_trans_rap smb_com_transaction
-	##    smb_com_transaction2 smb_com_tree_connect_andx smb_com_tree_disconnect
-	##    smb_com_write_andx smb_error smb_get_dfs_referral smb_message
+	##
+	## .. bro:see:: smb1_message smb1_empty_response smb1_error
+	##    smb1_check_directory_request smb1_check_directory_response
+	##    smb1_close_request smb1_create_directory_request
+	##    smb1_create_directory_response smb1_echo_request
+	##    smb1_echo_response smb1_negotiate_request
+	##    smb1_negotiate_response smb1_nt_cancel_request
+	##    smb1_nt_create_andx_request smb1_nt_create_andx_response
+	##    smb1_open_andx_request smb1_open_andx_response
+	##    smb1_query_information_request smb1_read_andx_request
+	##    smb1_read_andx_response smb1_session_setup_andx_request
+	##    smb1_session_setup_andx_response smb1_transaction_request
+	##    smb1_transaction2_request smb1_trans2_find_first2_request
+	##    smb1_trans2_query_path_info_request
+	##    smb1_trans2_get_dfs_referral_request
+	##    smb1_tree_connect_andx_request smb1_tree_connect_andx_response
+	##    smb1_tree_disconnect smb1_write_andx_request
+	##    smb1_write_andx_response
 	type SMB1::Header : record {
-		command: count; ##< The command number
-		status: count;  ##< The status code.
-		flags: count;   ##< Flag set 1.
-		flags2: count;  ##< Flag set 2.
-		tid: count;     ##< Tree ID.
-		pid: count;     ##< Process ID.
-		uid: count;     ##< User ID.
-		mid: count;     ##< Multiplex ID.
+		command : count; ##< The command number
+		status  : count; ##< The status code
+		flags   : count; ##< Flag set 1
+		flags2  : count; ##< Flag set 2
+		tid     : count; ##< Tree ID
+		pid     : count; ##< Process ID
+		uid     : count; ##< User ID
+		mid     : count; ##< Multiplex ID
 	};
 
 	type SMB1::NegotiateRawMode: record {

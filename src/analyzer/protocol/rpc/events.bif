@@ -351,10 +351,10 @@ event nfs_reply_status%(n: connection, info: NFS3::info_t%);
 ##
 ## r: The RPC connection.
 ##
-## .. bro:see:: epm_map_response pm_attempt_callit pm_attempt_dump pm_attempt_getport
-##    pm_attempt_null pm_attempt_set pm_attempt_unset pm_bad_port pm_request_callit
-##    pm_request_dump pm_request_getport  pm_request_set pm_request_unset rpc_call
-##    rpc_dialogue rpc_reply
+## .. bro:see:: pm_request_set pm_request_unset pm_request_getport
+##    pm_request_dump pm_request_callit pm_attempt_null pm_attempt_set
+##    pm_attempt_unset pm_attempt_getport pm_attempt_dump
+##    pm_attempt_callit pm_bad_port rpc_call rpc_dialogue rpc_reply
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
@@ -376,10 +376,10 @@ event pm_request_null%(r: connection%);
 ##          reply. If no reply was seen, this will be false once the request
 ##          times out.
 ##
-## .. bro:see:: epm_map_response pm_attempt_callit pm_attempt_dump pm_attempt_getport
-##    pm_attempt_null pm_attempt_set pm_attempt_unset pm_bad_port pm_request_callit
-##    pm_request_dump pm_request_getport pm_request_null pm_request_unset rpc_call
-##    rpc_dialogue rpc_reply
+## .. bro:see:: pm_request_null pm_request_unset pm_request_getport
+##    pm_request_dump pm_request_callit pm_attempt_null pm_attempt_set
+##    pm_attempt_unset pm_attempt_getport pm_attempt_dump
+##    pm_attempt_callit pm_bad_port rpc_call rpc_dialogue rpc_reply
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
@@ -401,10 +401,10 @@ event pm_request_set%(r: connection, m: pm_mapping, success: bool%);
 ##          reply. If no reply was seen, this will be false once the request
 ##          times out.
 ##
-## .. bro:see:: epm_map_response pm_attempt_callit pm_attempt_dump pm_attempt_getport
-##    pm_attempt_null pm_attempt_set pm_attempt_unset pm_bad_port pm_request_callit
-##    pm_request_dump pm_request_getport pm_request_null pm_request_set rpc_call
-##    rpc_dialogue rpc_reply
+## .. bro:see:: pm_request_null pm_request_set pm_request_getport
+##    pm_request_dump pm_request_callit pm_attempt_null pm_attempt_set
+##    pm_attempt_unset pm_attempt_getport pm_attempt_dump
+##    pm_attempt_callit pm_bad_port rpc_call rpc_dialogue rpc_reply
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
@@ -424,10 +424,10 @@ event pm_request_unset%(r: connection, m: pm_mapping, success: bool%);
 ##
 ## p: The port returned by the server.
 ##
-## .. bro:see:: epm_map_response pm_attempt_callit pm_attempt_dump pm_attempt_getport
-##    pm_attempt_null pm_attempt_set pm_attempt_unset pm_bad_port pm_request_callit
-##    pm_request_dump  pm_request_null pm_request_set pm_request_unset rpc_call
-##    rpc_dialogue rpc_reply
+## .. bro:see:: pm_request_null pm_request_set pm_request_unset
+##    pm_request_dump pm_request_callit pm_attempt_null pm_attempt_set
+##    pm_attempt_unset pm_attempt_getport pm_attempt_dump
+##    pm_attempt_callit pm_bad_port rpc_call rpc_dialogue rpc_reply
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
@@ -445,9 +445,10 @@ event pm_request_getport%(r: connection, pr: pm_port_request, p: port%);
 ##
 ## m: The mappings returned by the server.
 ##
-## .. bro:see:: epm_map_response pm_attempt_callit pm_attempt_dump pm_attempt_getport
-##    pm_attempt_null pm_attempt_set pm_attempt_unset pm_bad_port pm_request_callit
-##    pm_request_getport pm_request_null pm_request_set pm_request_unset rpc_call
+## .. bro:see:: pm_request_null pm_request_set pm_request_unset
+##    pm_request_getport pm_request_callit pm_attempt_null
+##    pm_attempt_set pm_attempt_unset pm_attempt_getport
+##    pm_attempt_dump pm_attempt_callit pm_bad_port rpc_call
 ##    rpc_dialogue rpc_reply
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
@@ -468,9 +469,10 @@ event pm_request_dump%(r: connection, m: pm_mappings%);
 ##
 ## p: The port value returned by the call.
 ##
-## .. bro:see:: epm_map_response pm_attempt_callit pm_attempt_dump pm_attempt_getport
-##    pm_attempt_null pm_attempt_set pm_attempt_unset pm_bad_port pm_request_dump
-##    pm_request_getport pm_request_null pm_request_set pm_request_unset rpc_call
+## .. bro:see:: pm_request_null pm_request_set pm_request_unset
+##    pm_request_getport pm_request_dump pm_attempt_null
+##    pm_attempt_set pm_attempt_unset pm_attempt_getport
+##    pm_attempt_dump pm_attempt_callit pm_bad_port rpc_call
 ##    rpc_dialogue rpc_reply
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
@@ -490,9 +492,10 @@ event pm_request_callit%(r: connection, call: pm_callit_request, p: port%);
 ## status: The status of the reply, which should be one of the index values of
 ##         :bro:id:`RPC_status`.
 ##
-## .. bro:see:: epm_map_response pm_attempt_callit pm_attempt_dump pm_attempt_getport
-##    pm_attempt_set pm_attempt_unset pm_bad_port pm_request_callit pm_request_dump
-##    pm_request_getport pm_request_null pm_request_set pm_request_unset rpc_call
+## .. bro:see:: pm_request_null pm_request_set pm_request_unset
+##    pm_request_getport pm_request_dump pm_request_callit
+##    pm_attempt_set pm_attempt_unset pm_attempt_getport
+##    pm_attempt_dump pm_attempt_callit pm_bad_port rpc_call
 ##    rpc_dialogue rpc_reply
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
@@ -514,9 +517,10 @@ event pm_attempt_null%(r: connection, status: rpc_status%);
 ##
 ## m: The argument to the original request.
 ##
-## .. bro:see:: epm_map_response pm_attempt_callit pm_attempt_dump pm_attempt_getport
-##    pm_attempt_null  pm_attempt_unset pm_bad_port pm_request_callit pm_request_dump
-##    pm_request_getport pm_request_null pm_request_set pm_request_unset rpc_call
+## .. bro:see:: pm_request_null pm_request_set pm_request_unset
+##    pm_request_getport pm_request_dump pm_request_callit
+##    pm_attempt_null pm_attempt_unset pm_attempt_getport
+##    pm_attempt_dump pm_attempt_callit pm_bad_port rpc_call
 ##    rpc_dialogue rpc_reply
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
@@ -538,9 +542,10 @@ event pm_attempt_set%(r: connection, status: rpc_status, m: pm_mapping%);
 ##
 ## m: The argument to the original request.
 ##
-## .. bro:see:: epm_map_response pm_attempt_callit pm_attempt_dump pm_attempt_getport
-##    pm_attempt_null pm_attempt_set  pm_bad_port pm_request_callit pm_request_dump
-##    pm_request_getport pm_request_null pm_request_set pm_request_unset rpc_call
+## .. bro:see:: pm_request_null pm_request_set pm_request_unset
+##    pm_request_getport pm_request_dump pm_request_callit
+##    pm_attempt_null pm_attempt_set pm_attempt_getport
+##    pm_attempt_dump pm_attempt_callit pm_bad_port rpc_call
 ##    rpc_dialogue rpc_reply
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
@@ -562,10 +567,10 @@ event pm_attempt_unset%(r: connection, status: rpc_status, m: pm_mapping%);
 ##
 ## pr: The argument to the original request.
 ##
-## .. bro:see:: epm_map_response pm_attempt_callit pm_attempt_dump pm_attempt_null
-##    pm_attempt_set pm_attempt_unset pm_bad_port pm_request_callit pm_request_dump
-##    pm_request_getport pm_request_null pm_request_set pm_request_unset rpc_call
-##    rpc_dialogue rpc_reply
+## .. bro:see:: pm_request_null pm_request_set pm_request_unset
+##    pm_request_getport pm_request_dump pm_request_callit
+##    pm_attempt_null pm_attempt_set pm_attempt_unset pm_attempt_dump
+##    pm_attempt_callit pm_bad_port rpc_call rpc_dialogue rpc_reply
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
@@ -584,9 +589,10 @@ event pm_attempt_getport%(r: connection, status: rpc_status, pr: pm_port_request
 ## status: The status of the reply, which should be one of the index values of
 ##         :bro:id:`RPC_status`.
 ##
-## .. bro:see:: epm_map_response pm_attempt_callit  pm_attempt_getport pm_attempt_null
-##    pm_attempt_set pm_attempt_unset pm_bad_port pm_request_callit pm_request_dump
-##    pm_request_getport pm_request_null pm_request_set pm_request_unset rpc_call
+## .. bro:see:: pm_request_null pm_request_set pm_request_unset
+##    pm_request_getport pm_request_dump pm_request_callit
+##    pm_attempt_null pm_attempt_set pm_attempt_unset
+##    pm_attempt_getport pm_attempt_callit pm_bad_port rpc_call
 ##    rpc_dialogue rpc_reply
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
@@ -608,9 +614,10 @@ event pm_attempt_dump%(r: connection, status: rpc_status%);
 ##
 ## call: The argument to the original request.
 ##
-## .. bro:see:: epm_map_response  pm_attempt_dump pm_attempt_getport pm_attempt_null
-##    pm_attempt_set pm_attempt_unset pm_bad_port pm_request_callit pm_request_dump
-##    pm_request_getport pm_request_null pm_request_set pm_request_unset rpc_call
+## .. bro:see:: pm_request_null pm_request_set pm_request_unset
+##    pm_request_getport pm_request_dump pm_request_callit
+##    pm_attempt_null pm_attempt_set pm_attempt_unset
+##    pm_attempt_getport pm_attempt_dump pm_bad_port rpc_call
 ##    rpc_dialogue rpc_reply
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
@@ -632,10 +639,11 @@ event pm_attempt_callit%(r: connection, status: rpc_status, call: pm_callit_requ
 ##
 ## bad_p: The invalid port value.
 ##
-## .. bro:see:: epm_map_response pm_attempt_callit pm_attempt_dump pm_attempt_getport
-##    pm_attempt_null pm_attempt_set pm_attempt_unset  pm_request_callit
-##    pm_request_dump pm_request_getport pm_request_null pm_request_set
-##    pm_request_unset rpc_call rpc_dialogue rpc_reply
+## .. bro:see:: pm_request_null pm_request_set pm_request_unset
+##    pm_request_getport pm_request_dump pm_request_callit
+##    pm_attempt_null pm_attempt_set pm_attempt_unset
+##    pm_attempt_getport pm_attempt_dump pm_attempt_callit rpc_call
+##    rpc_dialogue rpc_reply
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
@@ -669,7 +677,7 @@ event pm_bad_port%(r: connection, bad_p: count%);
 ##
 ## reply_len: The size of the *reply_body* PDU.
 ##
-## .. bro:see:: rpc_call  rpc_reply dce_rpc_bind dce_rpc_message dce_rpc_request
+## .. bro:see:: rpc_call rpc_reply dce_rpc_bind dce_rpc_message dce_rpc_request
 ##    dce_rpc_response rpc_timeout
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol

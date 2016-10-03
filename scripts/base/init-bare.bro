@@ -2819,76 +2819,190 @@ export {
 module SMB2;
 
 export {
+	## An SMB2 header.
+	##
+	## For more information, see MS-SMB2:2.2.1.1 and MS-SMB2:2.2.1.2
+	##
+	## .. bro:see:: smb2_message smb2_close_request smb2_close_response
+	##    smb2_create_request smb2_create_response smb2_negotiate_request
+	##    smb2_negotiate_response smb2_read_request
+	##    smb2_session_setup_request smb2_session_setup_response
+	##    smb2_set_info_request smb2_file_rename smb2_file_delete
+	##    smb2_tree_connect_request smb2_tree_connect_response
+	##    smb2_write_request
 	type SMB2::Header: record {
-		credit_charge: count;
-		status: count;
-		command: count;
-		credits: count;
-		flags: count;
-		message_id: count;
-		process_id: count;
-		tree_id: count;
-		session_id: count;
-		signature: string;
+		## The number of credits that this request consumes
+		credit_charge : count;
+		## In a request, this is an indication to the server about the client's channel
+		## change. In a response, this is the status field
+		status        : count;
+		## The command code of the packet
+		command       : count;
+		## The number of credits the client is requesting, or the number of credits
+		## granted to the client in a response.
+		credits       : count;
+		## A flags field, which indicates how to process the operation (e.g. asynchronously)
+		flags         : count;
+		## A value that uniquely identifies the message request/response pair across all
+		## messages that are sent on the same transport protocol connection
+		message_id    : count;
+		## A value that uniquely identifies the process that generated the event.
+		process_id    : count;
+		## A value that uniquely identifies the tree connect for the command.
+		tree_id       : count;
+		## A value that uniquely identifies the established session for the command.
+		session_id    : count;
+		## The 16-byte signature of the message, if SMB2_FLAGS_SIGNED is set in the ``flags``
+		## field.
+		signature     : string;
 	};
 
+	## An SMB2 globally unique identifier which identifies a file.
+	##
+	## For more information, see MS-SMB2:2.2.14.1
+	##
+	## .. bro:see:: smb2_close_request smb2_create_response smb2_read_request
+	##    smb2_file_rename smb2_file_delete smb2_write_request
 	type SMB2::GUID: record {
+		## A file handle that remains persistent when reconnected after a disconnect
 		persistent: count;
+		## A file handle that can be changed when reconnected after a disconnect
 		volatile: count;
 	};
 
+	## A series of boolean flags describing basic and extended file attributes for SMB2.
+	##
+	## For more information, see MS-CIFS:2.2.1.2.3 and MS-FSCC:2.6
+	##
+	## .. bro:see:: smb2_create_response
 	type SMB2::FileAttrs: record {
+		## The file is read only. Applications can read the file but cannot
+		## write to it or delete it.
 		read_only: bool;
+		## The file is hidden. It is not to be included in an ordinary directory listing.
 		hidden: bool;
+		## The file is part of or is used exclusively by the operating system.
 		system: bool;
+		## The file is a directory.
 		directory: bool;
+		## The file has not been archived since it was last modified. Applications use
+		## this attribute to mark files for backup or removal.
 		archive: bool;
+		## The file has no other attributes set. This attribute is valid only if used alone.
 		normal: bool;
+		## The file is temporary. This is a hint to the cache manager that it does not need
+		## to flush the file to backing storage.
 		temporary: bool;
+		## A file that is a sparse file.
 		sparse_file: bool;
+		## A file or directory that has an associated reparse point.
 		reparse_point: bool;
+		## The file or directory is compressed. For a file, this means that all of the data
+		## in the file is compressed. For a directory, this means that compression is the
+		## default for newly created files and subdirectories.
 		compressed: bool;
+		## The data in this file is not available immediately. This attribute indicates that
+		## the file data is physically moved to offline storage. This attribute is used by
+		## Remote Storage, which is hierarchical storage management software.
 		offline: bool;
+		## A file or directory that is not indexed by the content indexing service.
 		not_content_indexed: bool;
+		## A file or directory that is encrypted. For a file, all data streams in the file
+		## are encrypted. For a directory, encryption is the default for newly created files
+		## and subdirectories.
 		encrypted: bool;
+		## A file or directory that is configured with integrity support. For a file, all
+		## data streams in the file have integrity support. For a directory, integrity support
+		## is the default for newly created files and subdirectories, unless the caller
+		## specifies otherwise.
 		integrity_stream: bool;
+		## A file or directory that is configured to be excluded from the data integrity scan.
 		no_scrub_data: bool;
 	};
 
+	## The response to an SMB2 CLOSE Request, which is used by the client to close an instance
+	## of a file that was opened previously.
+	##
+	## For more information, see MS-SMB2:2.2.16
+	##
+	## .. bro:see:: smb2_close_response
 	type SMB2::CloseResponse: record {
+		## The size, in bytes of the data that is allocated to the file.
 		alloc_size : count;
+		## The size, in bytes, of the file.
 		eof        : count;
+		## The creation, last access, last write, and change times.
 		times      : SMB::MACTimes;
+		## The attributes of the file.
 		attrs      : SMB2::FileAttrs;
 	};
 
+	## The response to an SMB2 NEGOTIATE Request, which is used by tghe client to notify the server
+	## what dialects of the SMB2 protocol the client understands.
+	##
+	## For more information, see MS-SMB2:2.2.4
+	##
+	## .. bro:see:: smb2_negotiate_response
 	type SMB2::NegotiateResponse: record {
+		## The preferred common SMB2 Protocol dialect number from the array that was sent in the SMB2
+		## NEGOTIATE Request.
 		dialect_revision  : count;
+		## The security mode field specifies whether SMB signing is enabled, required at the server, or both.
 		security_mode     : count;
+		## A globally unique identifier that is generate by the server to uniquely identify the server.
 		server_guid       : string;
+		## The system time of the SMB2 server when the SMB2 NEGOTIATE Request was processed.
 		system_time       : time;
+		## The SMB2 server start time.
 		server_start_time : time;
 	};
 
+	## The request sent by the client to request a new authenticated session
+	## within a new or existing SMB 2 Protocol transport connection to the server.
+	##
+	## For more information, see MS-SMB2:2.2.5
+	##
+	## .. bro:see:: smb2_session_setup_request
 	type SMB2::SessionSetupRequest: record {
+		## The security mode field specifies whether SMB signing is enabled or required at the client.
 		security_mode: count;
 	};
 
+	## A flags field that indicates additional information about the session that's sent in the
+	## SESSION SETUP response.
+	##
+	## For more information, see MS-SMB2:2.2.6
+	##
+	## .. bro:see:: smb2_session_setup_response
 	type SMB2::SessionSetupFlags: record {
+		## If set, the client has been authenticated as a guest user.
 		guest: bool;
+		## If set, the client has been authenticated as an anonymous user.
 		anonymous: bool;
+		## If set, the server requires encryption of messages on this session.
 		encrypt: bool;
 	};
 
+	## The response to an SMB2 SESSION SETUP Request, which is sent by the client to request a
+	## new authenticated session within a new or existing SMB 2 Protocol transport connection
+	## to the server.
+	##
+	## For more information, see MS-SMB2:2.2.6
+	##
+	## .. bro:see:: smb2_session_setup_response
 	type SMB2::SessionSetupResponse: record {
+		## Additional information about the session
 		flags: SMB2::SessionSetupFlags;
 	};
 
-	type SMB2::SetInfoRequest: record {
-		eof: count;
-	};
-
+	## The response to an SMB2 TREE_CONNECT Request, which is sent by the client to request
+	## access to a particular share on the server.
+	##
+	## For more information, see MS-SMB2:2.2.9
+	##
+	## .. bro:see:: smb2_tree_connect_response
 	type SMB2::TreeConnectResponse: record {
+		## The type of share being accessed. Physical disk, named pipe, or printer.
 		share_type: count;
 	};
 }

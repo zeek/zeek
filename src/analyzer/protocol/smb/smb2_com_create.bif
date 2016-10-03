@@ -1,17 +1,21 @@
-## Generated for SMB2 request messages of type *create*.
+## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+## version 2 requests of type *create*.
 ##
 ## c: The connection.
 ##
-## hdr: The parsed header of the SMB2 message.
+## hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
 ##
 ## file_name: The name of the file being requested.
+##
+## .. bro:see:: smb2_message smb2_create_response
 event smb2_create_request%(c: connection, hdr: SMB2::Header, file_name: string%);
 
-## Generated for SMB2 response messages of type *create*.
+## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+## version 2 responses of type *create*.
 ##
 ## c: The connection.
 ##
-## hdr: The parsed header of the SMB2 message.
+## hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
 ##
 ## file_id: The SMB2 GUID for the file.
 ##
@@ -20,4 +24,6 @@ event smb2_create_request%(c: connection, hdr: SMB2::Header, file_name: string%)
 ## times: Timestamps associated with the file in question.
 ##
 ## attrs: File attributes.
+##
+## .. bro:see:: smb2_message smb2_create_request
 event smb2_create_response%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, size: count, times: SMB::MACTimes, attrs: SMB2::FileAttrs%);

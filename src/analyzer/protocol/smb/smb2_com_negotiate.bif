@@ -1,19 +1,25 @@
-## Generated for SMB2 messages of type *negotiate*.
+## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+## version 2 requests of type *negotiate*.
 ##
 ## c: The connection.
 ##
-## hdr: The parsed header of the SMB2 message.
+## hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
 ##
 ## dialects: A vector of the client's supported dialects.
+##
+## .. bro:see:: smb2_message smb2_negotiate_response
 event smb2_negotiate_request%(c: connection, hdr: SMB2::Header, dialects: index_vec%);
 
-## Generated for SMB2 messages of type *negotiate response*.
+## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+## version 2 responses of type *negotiate*.
 ##
 ## c: The connection.
 ##
-## hdr: The parsed header of the SMB2 message.
+## hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
 ##
 ## response: The negotiate response data structure.
+##
+## .. bro:see:: smb2_message smb2_negotiate_request
 event smb2_negotiate_response%(c: connection, hdr: SMB2::Header, response: SMB2::NegotiateResponse%);
 
 #### Types

@@ -1,5 +1,8 @@
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-## version 2 requests of type *read*.
+## version 2 requests of type *read*. This is sent by the client to request a read operation on
+## the specified file.
+##
+## For more information, see MS-SMB2:2.2.19
 ##
 ## c: The connection.
 ##

@@ -1,6 +1,8 @@
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
 ## version 2 requests of type *set_info* of the *rename* subtype.
 ##
+## For more information, see MS-SMB2:2.2.39
+##
 ## c: The connection.
 ##
 ## hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
@@ -14,6 +16,8 @@ event smb2_file_rename%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, d
 
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
 ## version 2 requests of type *set_info* of the *delete* subtype.
+##
+## For more information, see MS-SMB2:2.2.39
 ##
 ## c: The connection.
 ##

@@ -1,5 +1,8 @@
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-## version 2 requests of type *write*.
+## version 2 requests of type *write*. This is sent by the client to write data to the file or
+## named pipe on the server.
+##
+## For more information, see MS-SMB2:2.2.21
 ##
 ## c: The connection.
 ##

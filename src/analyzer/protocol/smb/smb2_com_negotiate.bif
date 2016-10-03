@@ -1,5 +1,8 @@
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-## version 2 requests of type *negotiate*.
+## version 2 requests of type *negotiate*. This is used by the client to notify the server what
+## dialects of the SMB2 Protocol the client understands.
+##
+## For more information, see MS-SMB2:2.2.3
 ##
 ## c: The connection.
 ##
@@ -11,7 +14,10 @@
 event smb2_negotiate_request%(c: connection, hdr: SMB2::Header, dialects: index_vec%);
 
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-## version 2 responses of type *negotiate*.
+## version 2 responses of type *negotiate*. This is sent by the server to notify the client of
+## the preferred common dialect.
+##
+## For more information, see MS-SMB2:2.2.4
 ##
 ## c: The connection.
 ##

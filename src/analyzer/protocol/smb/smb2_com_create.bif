@@ -1,5 +1,8 @@
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-## version 2 requests of type *create*.
+## version 2 requests of type *create*. This is sent by the client to request either creation
+## of or access to a file.
+##
+## For more information, see MS-SMB2:2.2.13
 ##
 ## c: The connection.
 ##
@@ -11,7 +14,10 @@
 event smb2_create_request%(c: connection, hdr: SMB2::Header, file_name: string%);
 
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-## version 2 responses of type *create*.
+## version 2 responses of type *create*. This is sent by the server to notify the client of
+## the status of its SMB2 CREATE request.
+##
+## For more information, see MS-SMB2:2.2.14
 ##
 ## c: The connection.
 ##

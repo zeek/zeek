@@ -1,5 +1,8 @@
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-## version 2 requests of type *close*.
+## version 2 requests of type *close*. This is used by the client to close an instance of a
+## file that was opened previously with a successful SMB2 CREATE Request.
+##
+## For more information, see MS-SMB2:2.2.15
 ##
 ## c: The connection.
 ##
@@ -11,7 +14,10 @@
 event smb2_close_request%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID%);
 
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-## version 2 responses of type *close*.
+## version 2 responses of type *close*. This is sent by the server to indicate that an SMB2 CLOSE
+## request was processed successfully.
+##
+## For more information, see MS-SMB2:2.2.16
 ##
 ## c: The connection.
 ##

@@ -1,5 +1,9 @@
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-## version 2 requests of type *session_setup*.
+## version 2 requests of type *session_setup*. This is sent by the client to request a new
+## authenticated session within a new or existing SMB 2 Protocol transport connection to the
+## server.
+##
+## For more information, see MS-SMB2:2.2.5
 ##
 ## c: The connection.
 ##
@@ -11,7 +15,10 @@
 event smb2_session_setup_request%(c: connection, hdr: SMB2::Header, request: SMB2::SessionSetupRequest%);
 
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-## version 2 responses of type *session_setup*.
+## version 2 responses of type *session_setup*. This is sent by the server in response to a
+## *session_setup* request.
+##
+## For more information, see MS-SMB2:2.2.6
 ##
 ## c: The connection.
 ##

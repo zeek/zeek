@@ -2920,7 +2920,7 @@ export {
 		no_scrub_data: bool;
 	};
 
-	## The response to an SMB2 CLOSE Request, which is used by the client to close an instance
+	## The response to an SMB2 *close* request, which is used by the client to close an instance
 	## of a file that was opened previously.
 	##
 	## For more information, see MS-SMB2:2.2.16
@@ -2937,7 +2937,7 @@ export {
 		attrs      : SMB2::FileAttrs;
 	};
 
-	## The response to an SMB2 NEGOTIATE Request, which is used by tghe client to notify the server
+	## The response to an SMB2 *negotiate* request, which is used by tghe client to notify the server
 	## what dialects of the SMB2 protocol the client understands.
 	##
 	## For more information, see MS-SMB2:2.2.4
@@ -2969,7 +2969,7 @@ export {
 	};
 
 	## A flags field that indicates additional information about the session that's sent in the
-	## SESSION SETUP response.
+	## *session_setup* response.
 	##
 	## For more information, see MS-SMB2:2.2.6
 	##
@@ -2983,7 +2983,7 @@ export {
 		encrypt: bool;
 	};
 
-	## The response to an SMB2 SESSION SETUP Request, which is sent by the client to request a
+	## The response to an SMB2 *session_setup* request, which is sent by the client to request a
 	## new authenticated session within a new or existing SMB 2 Protocol transport connection
 	## to the server.
 	##
@@ -2995,7 +2995,7 @@ export {
 		flags: SMB2::SessionSetupFlags;
 	};
 
-	## The response to an SMB2 TREE_CONNECT Request, which is sent by the client to request
+	## The response to an SMB2 *tree_connect* request, which is sent by the client to request
 	## access to a particular share on the server.
 	##
 	## For more information, see MS-SMB2:2.2.9

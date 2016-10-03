@@ -1,73 +1,73 @@
 ### Requests
-
-
-## Generated for SMB/CIFS requests of type *transaction2*.
+## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+## version 1 requests of type *transaction2*.
 ##
 ## c: The connection.
 ##
-## hdr: The parsed header of the SMB message.
+## hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
 ##
 ## sub_cmd: The sub command, some are parsed and have their own events.
+##
+## .. bro:see:: smb1_message smb1_trans2_find_first2_request smb1_trans2_query_path_info_request smb1_trans2_get_dfs_referral_request
 event smb1_transaction2_request%(c: connection, hdr: SMB1::Header, sub_cmd: count%);
 
-## Generated for SMB/CIFS transaction2 requests of type *find first2*.
+## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+## version 1 requests of type *find first2*.
 ##
 ## c: The connection.
 ##
-## hdr: The parsed header of the SMB message.
+## hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
 ##
 ## args: A record data structure with arguments given to the command.
+##
+## .. bro:see:: smb1_message smb1_transaction2_request smb1_trans2_query_path_info_request smb1_trans2_get_dfs_referral_request
 event smb1_trans2_find_first2_request%(c: connection, hdr: SMB1::Header, args: SMB1::Find_First2_Request_Args%);
 
-# TODO - Implementation
-# event smb1_trans2_fs_info_request%(c: connection, hdr: SMB1::Header, ??? %);
-
-## Generated for SMB/CIFS transaction2 requests of type *query path info*.
+## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+## version 1 requests of type *query path info*.
 ##
 ## c: The connection.
 ##
-## hdr: The parsed header of the SMB message.
+## hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
 ##
 ## file_name: File name the request is in reference to. 
+##
+## .. bro:see:: smb1_message smb1_transaction2_request smb1_trans2_find_first2_request smb1_trans2_get_dfs_referral_request
 event smb1_trans2_query_path_info_request%(c: connection, hdr: SMB1::Header, file_name: string%);
 
-# TODO - Implementation
-# event smb1_trans2_query_file_info_request%(c: connection, hdr: SMB1::Header, file_id: count, information_level: count%);
-
-# TODO - Implementation
-# event smb1_trans2_set_file_info_request(c: connection, hdr: SMB1::Header, ??? %);
-
-## Generated for SMB/CIFS transaction2 requests of type *get DFS referral*.
+## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+## version 1 requests of type *get DFS referral*.
 ##
 ## c: The connection.
 ##
-## hdr: The parsed header of the SMB message.
+## hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
 ##
 ## file_name: File name the request is in reference to.
+##
+## .. bro:see:: smb1_message smb1_transaction2_request smb1_trans2_find_first2_request smb1_trans2_query_path_info_request
 event smb1_trans2_get_dfs_referral_request%(c: connection, hdr: SMB1::Header, file_name: string%);
 
-
-### Responses
-
-# TODO - Implementation
-event smb1_transaction2_response%(c: connection, hdr: SMB1::Header, sub_cmd: count%);
+# TODO - This is implemented, but not being generated right now
+# event smb1_transaction2_response%(c: connection, hdr: SMB1::Header, sub_cmd: count%);
 
 # TODO - Implementation
+
+# event smb1_trans2_fs_info_request%(c: connection, hdr: SMB1::Header, ??? %);
+
+# event smb1_trans2_query_file_info_request%(c: connection, hdr: SMB1::Header, file_id: count, information_level: count%);
+
+# event smb1_trans2_set_file_info_request(c: connection, hdr: SMB1::Header, ??? %);
+
 # event smb1_trans2_find_first2_response%(c: connection, hdr: SMB1::Header, args: SMB1::Find_First2_Response_Args%);
 
-# TODO - Implementation
 # event smb1_trans2_fs_info_response%(c: connection, hdr: SMB1::Header, ??? %);
 
-# TODO - Implementation
 # event smb1_trans2_query_path_info_response%(c: connection, hdr: SMB1::Header, ??? %);
 
-# TODO - Implementation
 # event smb1_trans2_query_file_info_response%(c: connection, hdr: SMB1::Header, ??? %);
 
-# TODO - Implementation
 # event smb1_trans2_set_file_info_response%(c: connection, hdr: SMB1::Header, ??? %);
 
-# TODO - Implementation
 # event smb1_trans2_get_dfs_referral_response%(c: connection, hdr: SMB1::Header, ??? %);
 
 

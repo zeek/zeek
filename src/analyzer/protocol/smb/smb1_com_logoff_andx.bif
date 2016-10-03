@@ -1,11 +1,10 @@
-## Generated for SMB/CIFS messages of type *logoff andx*.
-##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for
-## more information about the SMB/CIFS protocol. Bro's SMB/CIFS analyzer parses
-## both SMB-over-NetBIOS on ports 138/139 and SMB-over-TCP on port 445.
+## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+## version 1 requests of type *logoff andx*.
 ##
 ## c: The connection.
 ##
-## is_orig: Indicates which host sent the logoff message..
+## is_orig: Indicates which host sent the logoff message.
+##
+## .. bro:see:: smb1_message
 event smb1_logoff_andx%(c: connection, is_orig: bool%);
 

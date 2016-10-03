@@ -1,30 +1,28 @@
-## Generated for SMB/CIFS requests of type *tree connect andx*.
-##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for
-## more information about the SMB/CIFS protocol. Bro's SMB/CIFS analyzer parses
-## both SMB-over-NetBIOS on ports 138/139 and SMB-over-TCP on port 445.
+## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+## version 1 requests of type *tree connect andx*.
 ##
 ## c: The connection.
 ##
-## hdr: The parsed header of the SMB message.
+## hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
 ##
 ## path: The ``path`` attribute specified in the message.
 ##
 ## service: The ``service`` attribute specified in the message.
+##
+## .. bro:see:: smb1_message smb1_tree_connect_andx_response
 event smb1_tree_connect_andx_request%(c: connection, hdr: SMB1::Header, path: string, service: string%);
 
-## Generated for SMB/CIFS responses of type *tree connect andx*.
-##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for
-## more information about the SMB/CIFS protocol. Bro's SMB/CIFS analyzer parses
-## both SMB-over-NetBIOS on ports 138/139 and SMB-over-TCP on port 445.
+## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+## version 1 responses of type *tree connect andx*.
 ##
 ## c: The connection.
 ##
-## hdr: The parsed header of the SMB message.
+## hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
 ##
 ## service: The ``service`` attribute specified in the message.
 ##
 ## native_file_system: The file system of the remote server as indicate by the server.
+##
+## .. bro:see:: smb1_message smb1_tree_connect_andx_request
 event smb1_tree_connect_andx_response%(c: connection, hdr: SMB1::Header, service: string, native_file_system: string%);
 

@@ -46,7 +46,8 @@ static string NormalizeScriptPath(const string& path)
 	if ( auto p = plugin_mgr->LookupPluginByPath(path) ) 
 		{
 		auto rval = normalize_path(path);
-		return p->Name() + ":" + rval.substr(p->PluginDirectory().size() + 1);
+		auto prefix = SafeBasename(p->PluginDirectory()).result;
+		return prefix + "/" + rval.substr(p->PluginDirectory().size() + 1);
 		}
 
 	return without_bropath_component(path);
@@ -123,6 +124,7 @@ void Manager::Script(const string& path)
 		return;
 
 	string name = NormalizeScriptPath(path);
+	fprintf(stderr, "%s\n", name.c_str());
 
 	if ( scripts.GetInfo(name) )
 		{

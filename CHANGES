@@ -1,4 +1,27 @@
 
+2.5-beta-46 | 2016-10-06 14:11:03 -0700
+
+  * Fixing Broxygen indexing confusion for plugins. Scripts in plugins now
+    get an artificial index prefix: "plugin_name/", followed by the script's
+    relative path inside the plugin's top-level directory. For example,
+    "/opt/bro/lib/bro/plugins/Bro_Netmap/scripts/init.bro" now turns into
+    "Bro_Netmap/scripts/init.bro" for Broxygen purposes (whereas it used to
+    be just "init.bro"). (Robin Sommer)
+
+  * Fix a couple of tests, addressing issues of the newly introduced version.bro
+    as well as small FreeBSD 11.0 issues. (Johanna Amann)
+
+  * Update documentation license. (Johanna Amann)
+
+  * Add a convenient way to access version information to Bro.
+
+      @if ( Version::number >= 20500 )
+      or
+      @if ( Version::at_least("2.5") )
+
+      Version::info contains detailed information about the running version of
+      Bro, including beta flags, etc. (Johanna Amann)
+
 2.5-beta-35 | 2016-10-02 17:38:31 -0400
 
   * Normalize http host in seen script.  (Johanna Amann)

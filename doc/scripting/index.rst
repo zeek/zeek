@@ -1116,7 +1116,7 @@ Policy, but the script attempts to supply as much information as
 possible while staying concise.  
 
 .. btest-include:: ${BRO_SRC_ROOT}/scripts/policy/protocols/ssh/interesting-hostnames.bro
-   :lines: 1-46
+   :lines: 1-52
 
 While much of the script relates to the actual detection, the parts
 specific to the Notice Framework are actually quite interesting in
@@ -1124,8 +1124,11 @@ themselves.  The script's ``export`` block adds the value
 ``SSH::Interesting_Hostname_Login`` to the enumerable constant
 ``Notice::Type`` to indicate to the Bro core that a new type of notice
 is being defined.  The script then calls ``NOTICE`` and defines the
-``$note``, ``$msg``, ``$sub`` and ``$conn`` fields of the
-:bro:type:`Notice::Info` record.  There are two ternary if
+``$note``, ``$msg``, ``$sub``, ``id``, and ``$uid`` fields of the
+:bro:type:`Notice::Info` record. (More commonly, one would set
+``$conn`` instead, however this script avoids using the connection
+record inside the when-statement for performance reasons.)
+There are two ternary if
 statements that modify the ``$msg`` text depending on whether the
 host is a local address and whether it is the client or the server.
 This use of :bro:id:`fmt` and ternary operators is a concise way to

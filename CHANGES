@@ -1,4 +1,24 @@
 
+2.5-beta-54 | 2016-10-06 14:24:01 -0700
+
+  * Fixing documentation piece on the interesting-hostname script.
+    (Robin Sommer)
+
+  * Use the deterministic bro_random() in a test, instead of os
+    random(). (Johanna Amann)
+
+  * Adapt a test to an output change on FreeBSD 11.0. (Johanna Amann)
+
+  * Prevent loading version.bro during plugins.hooks test. (Johanna Amann)
+
+  * Add missing path canonifier to version test. (Johanna Amann)
+
+  * Update documentation license. (Johanna Amann)
+
+  * Improve the SMB documentation. (Vlad Grigorescu)
+
+  * Add script API to access Bro version information. (Johanna Amann)
+
 2.5-beta-35 | 2016-10-02 17:38:31 -0400
 
   * Normalize http host in seen script.  (Johanna Amann)

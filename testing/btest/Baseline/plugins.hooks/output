@@ -247,7 +247,7 @@
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1475455659.264633, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1475780341.890976, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Communication::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Conn::LOG)) -> <no result>
@@ -377,7 +377,7 @@
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1475455659.264633, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1475780341.890976, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
 0.000000   MetaHookPost  CallFunction(NetControl::check_plugins, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(NetControl::init, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Notice::want_pp, <frame>, ()) -> <no result>
@@ -402,26 +402,26 @@
 0.000000   MetaHookPost  CallFunction(SumStats::register_observe_plugins, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Unified2::mappings_initialized, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Unified2::start_watching, <frame>, ()) -> <no result>
-0.000000   MetaHookPost  CallFunction(Version::parse, <null>, (2.5-beta-21-debug)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Version::parse, <null>, (2.5-beta-35-debug)) -> <no result>
 0.000000   MetaHookPost  CallFunction(bro_init, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(bro_version, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(current_time, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(filter_change_tracking, <null>, ()) -> <no result>
-0.000000   MetaHookPost  CallFunction(find_last, <frame>, (beta-21-debug, <...>/)) -> <no result>
+0.000000   MetaHookPost  CallFunction(find_last, <frame>, (beta-35-debug, <...>/)) -> <no result>
 0.000000   MetaHookPost  CallFunction(getenv, <null>, (CLUSTER_NODE)) -> <no result>
 0.000000   MetaHookPost  CallFunction(network_time, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(reading_live_traffic, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(reading_traces, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(set_to_regex, <frame>, ({}, (^\.?|\.)(~~)$)) -> <no result>
 0.000000   MetaHookPost  CallFunction(split_string, <frame>, (2.5, <...>/)) -> <no result>
-0.000000   MetaHookPost  CallFunction(split_string1, <frame>, (2.5-beta-21-debug, <...>/)) -> <no result>
-0.000000   MetaHookPost  CallFunction(strftime, <frame>, (%Y, 1475455659.26412)) -> <no result>
+0.000000   MetaHookPost  CallFunction(split_string1, <frame>, (2.5-beta-35-debug, <...>/)) -> <no result>
+0.000000   MetaHookPost  CallFunction(strftime, <frame>, (%Y, 1475780341.890642)) -> <no result>
 0.000000   MetaHookPost  CallFunction(string_to_pattern, <frame>, ((^\.?|\.)()$, F)) -> <no result>
 0.000000   MetaHookPost  CallFunction(sub, <frame>, ((^\.?|\.)(~~)$, <...>/, )) -> <no result>
-0.000000   MetaHookPost  CallFunction(sub_bytes, <frame>, (-21, 2, 999)) -> <no result>
+0.000000   MetaHookPost  CallFunction(sub_bytes, <frame>, (-35, 2, 999)) -> <no result>
 0.000000   MetaHookPost  CallFunction(to_count, <frame>, (2)) -> <no result>
 0.000000   MetaHookPost  CallFunction(to_count, <frame>, (2016)) -> <no result>
-0.000000   MetaHookPost  CallFunction(to_count, <frame>, (21)) -> <no result>
+0.000000   MetaHookPost  CallFunction(to_count, <frame>, (35)) -> <no result>
 0.000000   MetaHookPost  CallFunction(to_count, <frame>, (5)) -> <no result>
 0.000000   MetaHookPost  DrainEvents() -> <void>
 0.000000   MetaHookPost  LoadFile(../main) -> -1
@@ -630,6 +630,7 @@
 0.000000   MetaHookPost  LoadFile(<...>/__preload__.bro) -> -1
 0.000000   MetaHookPost  LoadFile(<...>/hooks.bro) -> -1
 0.000000   MetaHookPost  LoadFile(base/bif) -> -1
+0.000000   MetaHookPost  LoadFile(base/init-default) -> -1
 0.000000   MetaHookPost  LoadFile(base/init-default.bro) -> -1
 0.000000   MetaHookPost  LoadFile(base<...>/Bro_KRB.types.bif) -> -1
 0.000000   MetaHookPost  LoadFile(base<...>/Bro_SNMP.types.bif) -> -1
@@ -974,7 +975,7 @@
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql]))
-0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1475455659.264633, node=bro, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1475780341.890976, node=bro, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Communication::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Conn::LOG))
@@ -1104,7 +1105,7 @@
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql]))
-0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1475455659.264633, node=bro, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1475780341.890976, node=bro, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(NetControl::check_plugins, <frame>, ())
 0.000000   MetaHookPre   CallFunction(NetControl::init, <null>, ())
 0.000000   MetaHookPre   CallFunction(Notice::want_pp, <frame>, ())
@@ -1129,26 +1130,26 @@
 0.000000   MetaHookPre   CallFunction(SumStats::register_observe_plugins, <frame>, ())
 0.000000   MetaHookPre   CallFunction(Unified2::mappings_initialized, <frame>, ())
 0.000000   MetaHookPre   CallFunction(Unified2::start_watching, <frame>, ())
-0.000000   MetaHookPre   CallFunction(Version::parse, <null>, (2.5-beta-21-debug))
+0.000000   MetaHookPre   CallFunction(Version::parse, <null>, (2.5-beta-35-debug))
 0.000000   MetaHookPre   CallFunction(bro_init, <null>, ())
 0.000000   MetaHookPre   CallFunction(bro_version, <null>, ())
 0.000000   MetaHookPre   CallFunction(current_time, <frame>, ())
 0.000000   MetaHookPre   CallFunction(filter_change_tracking, <null>, ())
-0.000000   MetaHookPre   CallFunction(find_last, <frame>, (beta-21-debug, <...>/))
+0.000000   MetaHookPre   CallFunction(find_last, <frame>, (beta-35-debug, <...>/))
 0.000000   MetaHookPre   CallFunction(getenv, <null>, (CLUSTER_NODE))
 0.000000   MetaHookPre   CallFunction(network_time, <frame>, ())
 0.000000   MetaHookPre   CallFunction(reading_live_traffic, <frame>, ())
 0.000000   MetaHookPre   CallFunction(reading_traces, <frame>, ())
 0.000000   MetaHookPre   CallFunction(set_to_regex, <frame>, ({}, (^\.?|\.)(~~)$))
 0.000000   MetaHookPre   CallFunction(split_string, <frame>, (2.5, <...>/))
-0.000000   MetaHookPre   CallFunction(split_string1, <frame>, (2.5-beta-21-debug, <...>/))
-0.000000   MetaHookPre   CallFunction(strftime, <frame>, (%Y, 1475455659.26412))
+0.000000   MetaHookPre   CallFunction(split_string1, <frame>, (2.5-beta-35-debug, <...>/))
+0.000000   MetaHookPre   CallFunction(strftime, <frame>, (%Y, 1475780341.890642))
 0.000000   MetaHookPre   CallFunction(string_to_pattern, <frame>, ((^\.?|\.)()$, F))
 0.000000   MetaHookPre   CallFunction(sub, <frame>, ((^\.?|\.)(~~)$, <...>/, ))
-0.000000   MetaHookPre   CallFunction(sub_bytes, <frame>, (-21, 2, 999))
+0.000000   MetaHookPre   CallFunction(sub_bytes, <frame>, (-35, 2, 999))
 0.000000   MetaHookPre   CallFunction(to_count, <frame>, (2))
 0.000000   MetaHookPre   CallFunction(to_count, <frame>, (2016))
-0.000000   MetaHookPre   CallFunction(to_count, <frame>, (21))
+0.000000   MetaHookPre   CallFunction(to_count, <frame>, (35))
 0.000000   MetaHookPre   CallFunction(to_count, <frame>, (5))
 0.000000   MetaHookPre   DrainEvents()
 0.000000   MetaHookPre   LoadFile(../main)
@@ -1357,6 +1358,7 @@
 0.000000   MetaHookPre   LoadFile(<...>/__preload__.bro)
 0.000000   MetaHookPre   LoadFile(<...>/hooks.bro)
 0.000000   MetaHookPre   LoadFile(base/bif)
+0.000000   MetaHookPre   LoadFile(base/init-default)
 0.000000   MetaHookPre   LoadFile(base/init-default.bro)
 0.000000   MetaHookPre   LoadFile(base<...>/Bro_KRB.types.bif)
 0.000000   MetaHookPre   LoadFile(base<...>/Bro_SNMP.types.bif)
@@ -1700,7 +1702,7 @@
 0.000000 | HookCallFunction Log::__create_stream(Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])
 0.000000 | HookCallFunction Log::__create_stream(X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])
 0.000000 | HookCallFunction Log::__create_stream(mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])
-0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1475455659.264633, node=bro, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1475780341.890976, node=bro, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction Log::add_default_filter(Cluster::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Communication::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Conn::LOG)
@@ -1830,7 +1832,7 @@
 0.000000 | HookCallFunction Log::create_stream(Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])
 0.000000 | HookCallFunction Log::create_stream(X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])
 0.000000 | HookCallFunction Log::create_stream(mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])
-0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1475455659.264633, node=bro, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1475780341.890976, node=bro, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction NetControl::check_plugins()
 0.000000 | HookCallFunction NetControl::init()
 0.000000 | HookCallFunction Notice::want_pp()
@@ -1855,26 +1857,26 @@
 0.000000 | HookCallFunction SumStats::register_observe_plugins()
 0.000000 | HookCallFunction Unified2::mappings_initialized()
 0.000000 | HookCallFunction Unified2::start_watching()
-0.000000 | HookCallFunction Version::parse(2.5-beta-21-debug)
+0.000000 | HookCallFunction Version::parse(2.5-beta-35-debug)
 0.000000 | HookCallFunction bro_init()
 0.000000 | HookCallFunction bro_version()
 0.000000 | HookCallFunction current_time()
 0.000000 | HookCallFunction filter_change_tracking()
-0.000000 | HookCallFunction find_last(beta-21-debug, <...>/)
+0.000000 | HookCallFunction find_last(beta-35-debug, <...>/)
 0.000000 | HookCallFunction getenv(CLUSTER_NODE)
 0.000000 | HookCallFunction network_time()
 0.000000 | HookCallFunction reading_live_traffic()
 0.000000 | HookCallFunction reading_traces()
 0.000000 | HookCallFunction set_to_regex({}, (^\.?|\.)(~~)$)
 0.000000 | HookCallFunction split_string(2.5, <...>/)
-0.000000 | HookCallFunction split_string1(2.5-beta-21-debug, <...>/)
-0.000000 | HookCallFunction strftime(%Y, 1475455659.26412)
+0.000000 | HookCallFunction split_string1(2.5-beta-35-debug, <...>/)
+0.000000 | HookCallFunction strftime(%Y, 1475780341.890642)
 0.000000 | HookCallFunction string_to_pattern((^\.?|\.)()$, F)
 0.000000 | HookCallFunction sub((^\.?|\.)(~~)$, <...>/, )
-0.000000 | HookCallFunction sub_bytes(-21, 2, 999)
+0.000000 | HookCallFunction sub_bytes(-35, 2, 999)
 0.000000 | HookCallFunction to_count(2)
 0.000000 | HookCallFunction to_count(2016)
-0.000000 | HookCallFunction to_count(21)
+0.000000 | HookCallFunction to_count(35)
 0.000000 | HookCallFunction to_count(5)
 0.000000 | HookDrainEvents
 0.000000 | HookLoadFile  ..<...>/bro

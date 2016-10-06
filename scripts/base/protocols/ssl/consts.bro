@@ -130,7 +130,7 @@ export {
 		[7] = "client_authz",
 		[8] = "server_authz",
 		[9] = "cert_type",
-		[10] = "elliptic_curves", # new name: supported_groups - draft-ietf-tls-negotiated-ff-dhe
+		[10] = "supported_groups", # old name: elliptic_curves - draft-ietf-tls-negotiated-ff-dhe
 		[11] = "ec_point_formats",
 		[12] = "srp",
 		[13] = "signature_algorithms",
@@ -144,9 +144,13 @@ export {
 		[21] = "padding",
 		[22] = "encrypt_then_mac",
 		[23] = "extended_master_secret",
-		[24] = "token_binding", # temporary till 2017-02-04 - draft-ietf-tokbind-negotiation
+		[24] = "token_binding", # temporary till 2017-03-06 - draft-ietf-tokbind-negotiation
 		[35] = "SessionTicket TLS",
-		[40] = "extended_random",
+		[40] = "key_share", # new for TLS 1.3; was used for extended_random before. State as of TLS 1.3 draft 16
+		[41] = "pre_shared_key", # new for 1.3, state of draft-16
+		[42] = "early_data", # new for 1.3, state of draft-16
+		[43] = "supported_versions", # new for 1.3, state of draft-16
+		[44] = "cookie", # new for 1.3, state of draft-16
 		[13172] = "next_protocol_negotiation",
 		[13175] = "origin_bound_certificates",
 		[13180] = "encrypted_client_certificates",
@@ -159,7 +163,7 @@ export {
 	## Mapping between numeric codes and human readable string for SSL/TLS elliptic curves.
 	# See http://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-8
 	const ec_curves: table[count] of string = {
-		[1] = "sect163k1",
+		[1] = "sect163k1", # 1-23 are TLS 1.3 obsoleted
 		[2] = "sect163r1",
 		[3] = "sect163r2",
 		[4] = "sect193r1",
@@ -181,17 +185,17 @@ export {
 		[20] = "secp224k1",
 		[21] = "secp224r1",
 		[22] = "secp256k1",
-		[23] = "secp256r1",
-		[24] = "secp384r1",
-		[25] = "secp521r1",
-		[26] = "brainpoolP256r1",
+		[23] = "secp256r1", # TLS 1.3 valid
+		[24] = "secp384r1", # TLS 1.3 valid
+		[25] = "secp521r1", # TLS 1.3 valid
+		[26] = "brainpoolP256r1", # 26-28 are TLS 1.3 obsoleted
 		[27] = "brainpoolP384r1",
 		[28] = "brainpoolP512r1",
-		# Temporary till 2017-03-01 - draft-ietf-tls-rfc4492bis
-		[29] = "ecdh_x25519",
-		[30] = "ecdh_x448",
+		# Temporary till 2017-01-09 - draft-ietf-tls-rfc4492bis
+		[29] = "x25519", # TLS 1.3 valid
+		[30] = "x448", # TLS 1.3 valid
 		# draft-ietf-tls-negotiated-ff-dhe-10
-		[256] = "ffdhe2048",
+		[256] = "ffdhe2048", # 256-260 are TLS 1.3 valid
 		[257] = "ffdhe3072",
 		[258] = "ffdhe4096",
 		[259] = "ffdhe6144",
@@ -381,6 +385,12 @@ export {
 	const TLS_DHE_DSS_WITH_CAMELLIA_256_CBC_SHA256 = 0x00C3;
 	const TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256 = 0x00C4;
 	const TLS_DH_ANON_WITH_CAMELLIA_256_CBC_SHA256 = 0x00C5;
+	# draft-ietf-tls-tls13-16
+	const TLS_AES_128_GCM_SHA256 = 0x1301;
+	const TLS_AES_256_GCM_SHA384 = 0x1302;
+	const TLS_CHACHA20_POLY1305_SHA256 = 0x1303;
+	const TLS_AES_128_CCM_SHA256 = 0x1304;
+	const TLS_AES_128_CCM_8_SHA256 = 0x1305;
 	# draft-bmoeller-tls-downgrade-scsv-01
 	const TLS_FALLBACK_SCSV = 0x5600;
 	# RFC 4492
@@ -761,6 +771,11 @@ export {
 		[TLS_DHE_DSS_WITH_CAMELLIA_256_CBC_SHA256] = "TLS_DHE_DSS_WITH_CAMELLIA_256_CBC_SHA256",
 		[TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256] = "TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256",
 		[TLS_DH_ANON_WITH_CAMELLIA_256_CBC_SHA256] = "TLS_DH_ANON_WITH_CAMELLIA_256_CBC_SHA256",
+		[TLS_AES_128_GCM_SHA256] = "TLS_AES_128_GCM_SHA256",
+		[TLS_AES_256_GCM_SHA384] = "TLS_AES_256_GCM_SHA384",
+		[TLS_CHACHA20_POLY1305_SHA256] = "TLS_CHACHA20_POLY1305_SHA256",
+		[TLS_AES_128_CCM_SHA256] = "TLS_AES_128_CCM_SHA256",
+		[TLS_AES_128_CCM_8_SHA256] = "TLS_AES_128_CCM_8_SHA256",
 		[TLS_FALLBACK_SCSV] = "TLS_FALLBACK_SCSV",
 		[TLS_ECDH_ECDSA_WITH_NULL_SHA] = "TLS_ECDH_ECDSA_WITH_NULL_SHA",
 		[TLS_ECDH_ECDSA_WITH_RC4_128_SHA] = "TLS_ECDH_ECDSA_WITH_RC4_128_SHA",

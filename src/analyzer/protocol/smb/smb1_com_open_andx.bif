@@ -1,12 +1,12 @@
-## Generated for SMB/CIFS request messages of type *open andx*.
+## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+## version 1 requests of type *open andx*. This is sent by the client to create and open a new
+## file or open an existing regular file and chain additional messages along with the request.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for
-## more information about the SMB/CIFS protocol. Bro's SMB/CIFS analyzer parses
-## both SMB-over-NetBIOS on ports 138/139 and SMB-over-TCP on port 445.
+## For more information, see MS-CIFS:2.2.4.41
 ##
 ## c: The connection.
 ##
-## hdr: The parsed header of the SMB message.
+## hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
 ##
 ## flags: Flags requesting attribute data and locking.
 ##
@@ -21,18 +21,21 @@
 ## open_mode: The way a file s 
 ##
 ## length: The number of bytes being requested.
+##
+## .. bro:see:: smb1_message smb1_open_andx_response
 event smb1_open_andx_request%(c: connection, hdr: SMB1::Header, file_id: count, offset: count, length: count%);
 
-## Generated for SMB/CIFS response messages of type *open andx*.
+## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+## version 1 responses of type *open andx*. This is the server response to the *open andx* request.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for
-## more information about the SMB/CIFS protocol. Bro's SMB/CIFS analyzer parses
-## both SMB-over-NetBIOS on ports 138/139 and SMB-over-TCP on port 445.
+## For more information, see MS-CIFS:2.2.4.41
 ##
 ## c: The connection.
 ##
-## hdr: The parsed header of the SMB message.
+## hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
 ##
 ## data_len: The length of data from the requested file.
+##
+## .. bro:see:: smb1_message smb1_open_andx_request
 event smb1_open_andx_response%(c: connection, hdr: SMB1::Header, data_len: count%);
 

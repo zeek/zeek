@@ -238,6 +238,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 
 			current_plugin->SetDynamic(true);
 			current_plugin->DoConfigure();
+			DBG_LOG(DBG_PLUGINS, "  InitialzingComponents");
 			current_plugin->InitializeComponents();
 
 			if ( current_plugin->APIVersion() != BRO_PLUGIN_API_VERSION )

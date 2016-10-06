@@ -1,6 +1,6 @@
 # @TEST-EXEC: bro %INPUT
 # @TEST-EXEC: btest-diff .stdout
-# @TEST-EXEC: btest-diff .stderr
+# @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-abspath" btest-diff .stderr
 
 # good versions
 print Version::parse("1.5");

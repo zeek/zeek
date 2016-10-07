@@ -6,6 +6,7 @@ export {
 	const TLSv10 = 0x0301;
 	const TLSv11 = 0x0302;
 	const TLSv12 = 0x0303;
+	const TLSv13 = 0x0304;
 
 	const DTLSv10 = 0xFEFF;
 	# DTLSv11 does not exist
@@ -18,9 +19,16 @@ export {
 		[TLSv10] = "TLSv10",
 		[TLSv11] = "TLSv11",
 		[TLSv12] = "TLSv12",
+		[TLSv13] = "TLSv13",
 		[DTLSv10] = "DTLSv10",
 		[DTLSv12] = "DTLSv12"
-	} &default=function(i: count):string { return fmt("unknown-%d", i); };
+	} &default=function(i: count):string
+		{
+		if (  i/0xFF == 0x7F ) # TLS 1.3 draft
+		  return fmt("TLSv13-draft%d", i % 0x7F );
+
+		return fmt("unknown-%d", i);
+		};
 
 	## TLS content types:
 	const CHANGE_CIPHER_SPEC = 20;
@@ -39,6 +47,8 @@ export {
 	const SERVER_HELLO        = 2;
 	const HELLO_VERIFY_REQUEST = 3; # RFC 6347
 	const SESSION_TICKET      = 4; # RFC 5077
+	const HELLO_RETRY_REQUEST = 6; # draft-ietf-tls-tls13-16
+	const ENCRYPTED_EXTENSIONS = 8; # draft-ietf-tls-tls13-16
 	const CERTIFICATE         = 11;
 	const SERVER_KEY_EXCHANGE = 12;
 	const CERTIFICATE_REQUEST = 13;
@@ -49,6 +59,7 @@ export {
 	const CERTIFICATE_URL     = 21; # RFC 3546
 	const CERTIFICATE_STATUS  = 22; # RFC 3546
 	const SUPPLEMENTAL_DATA   = 23; # RFC 4680
+	const KEY_UPDATE          = 24; # draft-ietf-tls-tls13-16
 
 	## Mapping between numeric codes and human readable strings for alert
 	## levels.

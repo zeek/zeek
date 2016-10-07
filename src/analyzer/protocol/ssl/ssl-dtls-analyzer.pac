@@ -23,6 +23,12 @@ refine connection SSL_Conn += {
 	%cleanup{
 	%}
 
+	function setEstablished() : bool
+		%{
+		established_ = true;
+		return true;
+		%}
+
 	function proc_alert(rec: SSLRecord, level : int, desc : int) : bool
 		%{
 		BifEvent::generate_ssl_alert(bro_analyzer(), bro_analyzer()->Conn(),
@@ -50,6 +56,14 @@ refine connection SSL_Conn += {
 
 		BifEvent::generate_ssl_encrypted_data(bro_analyzer(),
 			bro_analyzer()->Conn(), ${rec.is_orig}, ${rec.content_type}, ${rec.length});
+
+		return true;
+		%}
+
+	function proc_application_record(rec : SSLRecord) : bool
+		%{
+		BifEvent::generate_ssl_application_data(bro_analyzer(),
+			bro_analyzer()->Conn(), ${rec.is_orig}, ${rec.length});
 
 		return true;
 		%}
@@ -99,6 +113,10 @@ refine typeattr UnknownRecord += &let {
 
 refine typeattr CiphertextRecord += &let {
 	proc : bool = $context.connection.proc_ciphertext_record(rec);
+}
+
+refine typeattr ApplicationData += &let {
+	proc : bool = $context.connection.proc_application_record(rec);
 }
 
 refine typeattr ChangeCipherSpec += &let {

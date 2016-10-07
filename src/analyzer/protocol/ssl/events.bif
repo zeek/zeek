@@ -44,9 +44,11 @@ event ssl_client_hello%(c: connection, version: count, possible_ts: time, client
 ##          :bro:id:`SSL::version_strings` table maps them to descriptive names.
 ##
 ## possible_ts: The current time as sent by the server. Note that SSL/TLS does
-##              not require clocks to be set correctly, so treat with care.
+##              not require clocks to be set correctly, so treat with care. This value
+##              is not sent in TLSv1.3.
 ##
-## session_id: The session ID as sent back by the server (if any).
+## session_id: The session ID as sent back by the server (if any). This value is not
+##             sent in TLSv1.3.
 ##
 ## server_random: The random value sent by the server. For version 2 connections,
 ##		  the connection-id is returned.
@@ -56,7 +58,8 @@ event ssl_client_hello%(c: connection, version: count, possible_ts: time, client
 ##         them to descriptive names.
 ##
 ## comp_method: The compression method chosen by the client. The values are
-##              standardized as part of the SSL/TLS protocol.
+##              standardized as part of the SSL/TLS protocol. This value is not
+##              sent in TLSv1.3.
 ##
 ## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_extension
 ##    ssl_session_ticket_handshake x509_certificate ssl_server_curve
@@ -83,7 +86,7 @@ event ssl_server_hello%(c: connection, version: count, possible_ts: time, server
 ## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
 ##    ssl_session_ticket_handshake ssl_extension_ec_point_formats
 ##    ssl_extension_elliptic_curves ssl_extension_application_layer_protocol_negotiation
-##    ssl_extension_server_name ssl_extension_signature_algorithm
+##    ssl_extension_server_name ssl_extension_signature_algorithm ssl_extension_key_share
 event ssl_extension%(c: connection, is_orig: bool, code: count, val: string%);
 
 ## Generated for an SSL/TLS Elliptic Curves extension. This TLS extension is
@@ -100,6 +103,7 @@ event ssl_extension%(c: connection, is_orig: bool, code: count, val: string%);
 ##    ssl_session_ticket_handshake ssl_extension
 ##    ssl_extension_ec_point_formats ssl_extension_application_layer_protocol_negotiation
 ##    ssl_extension_server_name ssl_server_curve ssl_extension_signature_algorithm
+##    ssl_extension_key_share
 event ssl_extension_elliptic_curves%(c: connection, is_orig: bool, curves: index_vec%);
 
 ## Generated for an SSL/TLS Supported Point Formats extension. This TLS extension
@@ -117,6 +121,7 @@ event ssl_extension_elliptic_curves%(c: connection, is_orig: bool, curves: index
 ##    ssl_session_ticket_handshake ssl_extension
 ##    ssl_extension_elliptic_curves ssl_extension_application_layer_protocol_negotiation
 ##    ssl_extension_server_name ssl_server_curve ssl_extension_signature_algorithm
+##    ssl_extension_key_share
 event ssl_extension_ec_point_formats%(c: connection, is_orig: bool, point_formats: index_vec%);
 
 ## Generated for an Signature Algorithms extension. This TLS extension
@@ -133,8 +138,24 @@ event ssl_extension_ec_point_formats%(c: connection, is_orig: bool, point_format
 ## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
 ##    ssl_session_ticket_handshake ssl_extension
 ##    ssl_extension_elliptic_curves ssl_extension_application_layer_protocol_negotiation
-##    ssl_extension_server_name ssl_server_curve
+##    ssl_extension_server_name ssl_server_curve ssl_extension_key_share
 event ssl_extension_signature_algorithm%(c: connection, is_orig: bool, signature_algorithms: signature_and_hashalgorithm_vec%);
+
+## Generated for a Key Share extension. This TLS extension is defined in TLS1.3-draft16
+## and seht by the client and the server in the initial handshake. It gives the list of
+## named groups supported by the client and chosen by the server.
+##
+## c: The connection.
+##
+## is_orig: True if event is raised for originator side of the connection.
+##
+## curves: List of supported/chosen named groups.
+##
+## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+##    ssl_session_ticket_handshake ssl_extension
+##    ssl_extension_elliptic_curves ssl_extension_application_layer_protocol_negotiation
+##    ssl_extension_server_name ssl_server_curve
+event ssl_extension_key_share%(c: connection, is_orig: bool, curves: index_vec%);
 
 ## Generated if a named curve is chosen by the server for an SSL/TLS connection.
 ## The curve is sent by the server in the ServerKeyExchange message as defined
@@ -147,7 +168,7 @@ event ssl_extension_signature_algorithm%(c: connection, is_orig: bool, signature
 ## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
 ##    ssl_session_ticket_handshake ssl_extension
 ##    ssl_extension_elliptic_curves ssl_extension_application_layer_protocol_negotiation
-##    ssl_extension_server_name
+##    ssl_extension_server_name ssl_extension_key_share
 event ssl_server_curve%(c: connection, curve: count%);
 
 ## Generated if a server uses a DH-anon or DHE cipher suite. This event contains
@@ -182,7 +203,7 @@ event ssl_dh_server_params%(c: connection, p: string, q: string, Ys: string%);
 ## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
 ##    ssl_session_ticket_handshake ssl_extension
 ##    ssl_extension_elliptic_curves ssl_extension_ec_point_formats
-##    ssl_extension_server_name
+##    ssl_extension_server_name ssl_extension_key_share
 event ssl_extension_application_layer_protocol_negotiation%(c: connection, is_orig: bool, protocols: string_vec%);
 
 ## Generated for an SSL/TLS Server Name extension. This SSL/TLS extension is
@@ -201,6 +222,7 @@ event ssl_extension_application_layer_protocol_negotiation%(c: connection, is_or
 ##    ssl_session_ticket_handshake ssl_extension
 ##    ssl_extension_elliptic_curves ssl_extension_ec_point_formats
 ##    ssl_extension_application_layer_protocol_negotiation
+##    ssl_extension_key_share
 event ssl_extension_server_name%(c: connection, is_orig: bool, names: string_vec%);
 
 ## Generated at the end of an SSL/TLS handshake. SSL/TLS sessions start with
@@ -283,6 +305,23 @@ event ssl_session_ticket_handshake%(c: connection, ticket_lifetime_hint: count, 
 ## .. bro:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
 ##    ssl_alert ssl_encrypted_data
 event ssl_heartbeat%(c: connection, is_orig: bool, length: count, heartbeat_type: count, payload_length: count, payload: string%);
+
+## Generated for non-handshake SSL/TLS application_data messages that are sent before
+## full encryption starts. For TLS 1.2 and lower, this event should not be raised. For TLS 1.3,
+## it is used by Bro internally to determine if the connection has been completely setup.
+## This is necessary as TLS 1.3 does not have CCS anymore.
+##
+## c: The connection.
+##
+## is_orig: True if event is raised for originator side of the connection.
+##
+## content_type: message type as reported by TLS session layer.
+##
+## length: length of the entire heartbeat message.
+##
+## .. bro:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
+##    ssl_alert ssl_heartbeat
+event ssl_application_data%(c: connection, is_orig: bool, length: count%);
 
 ## Generated for SSL/TLS messages that are sent after session encryption
 ## started.

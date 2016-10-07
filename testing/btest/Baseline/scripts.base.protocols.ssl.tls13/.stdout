@@ -1,0 +1,34 @@
+key_share, [orig_h=192.168.6.203, orig_p=53226/tcp, resp_h=52.32.149.186, resp_p=443/tcp], T
+unknown-27242
+x25519
+key_share, [orig_h=192.168.6.203, orig_p=53227/tcp, resp_h=52.32.149.186, resp_p=443/tcp], T
+unknown-19018
+x25519
+key_share, [orig_h=192.168.6.203, orig_p=53994/tcp, resp_h=138.68.41.77, resp_p=443/tcp], T
+unknown-43690
+x25519
+key_share, [orig_h=192.168.6.203, orig_p=53994/tcp, resp_h=138.68.41.77, resp_p=443/tcp], F
+x25519
+key_share, [orig_h=192.168.6.203, orig_p=53996/tcp, resp_h=138.68.41.77, resp_p=443/tcp], T
+unknown-60138
+x25519
+key_share, [orig_h=192.168.6.203, orig_p=53996/tcp, resp_h=138.68.41.77, resp_p=443/tcp], F
+x25519
+established, [orig_h=192.168.6.203, orig_p=53996/tcp, resp_h=138.68.41.77, resp_p=443/tcp]
+key_share, [orig_h=192.150.187.20, orig_p=54980/tcp, resp_h=52.32.149.186, resp_p=443/tcp], T
+x25519
+secp256r1
+secp384r1
+key_share, [orig_h=192.150.187.20, orig_p=36778/tcp, resp_h=138.68.41.77, resp_p=443/tcp], T
+x25519
+secp256r1
+secp384r1
+key_share, [orig_h=192.150.187.20, orig_p=36778/tcp, resp_h=138.68.41.77, resp_p=443/tcp], F
+secp384r1
+key_share, [orig_h=192.150.187.20, orig_p=36782/tcp, resp_h=138.68.41.77, resp_p=443/tcp], T
+x25519
+secp256r1
+secp384r1
+key_share, [orig_h=192.150.187.20, orig_p=36782/tcp, resp_h=138.68.41.77, resp_p=443/tcp], F
+secp384r1
+established, [orig_h=192.150.187.20, orig_p=36782/tcp, resp_h=138.68.41.77, resp_p=443/tcp]

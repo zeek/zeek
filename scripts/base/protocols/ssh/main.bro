@@ -170,9 +170,8 @@ event ssh_client_version(c: connection, version: string)
 		c$ssh$version = 2;
 	}
 
-event ssh_auth_successful(c: connection, auth_method_none: bool) &priority=5
+event ssh_auth_attempted(c: connection, authenticated: bool) &priority=5
 	{
-	# TODO - what to do here?
 	if ( !c?$ssh || ( c$ssh?$auth_success && c$ssh$auth_success ) )
 		return;
 
@@ -180,39 +179,29 @@ event ssh_auth_successful(c: connection, auth_method_none: bool) &priority=5
 	if ( c$ssh?$compression_alg && ( c$ssh$compression_alg in compression_algorithms ) )
 		return;
 
-	c$ssh$auth_success = T;
+	c$ssh$auth_success = authenticated;
+
 	if ( c$ssh?$auth_attempts )
 		c$ssh$auth_attempts += 1;
 	else
+		{
 		c$ssh$auth_attempts = 1;
+		if ( !authenticated )
+			event ssh_auth_failed(c);
+		}
 
-	if ( disable_analyzer_after_detection )
+	if ( authenticated && disable_analyzer_after_detection )
 		disable_analyzer(c$id, c$ssh$analyzer_id);
 	}
 
-event ssh_auth_successful(c: connection, auth_method_none: bool) &priority=-5
+event ssh_auth_attempted(c: connection, authenticated: bool) &priority=-5
 	{
-	if ( c?$ssh && !c$ssh$logged )
+	if ( authenticated && c?$ssh && !c$ssh$logged )
 		{
+		event ssh_auth_result(c, authenticated, c$ssh$auth_attempts);
 		c$ssh$logged = T;
 		Log::write(SSH::LOG, c$ssh);
 		}
-	}
-
-event ssh_auth_failed(c: connection) &priority=5
-	{
-	if ( !c?$ssh || ( c$ssh?$auth_success && !c$ssh$auth_success ) )
-		return;
-
-	# We can't accurately tell for compressed streams
-	if ( c$ssh?$compression_alg && ( c$ssh$compression_alg in compression_algorithms ) )
-		return;
-
-	c$ssh$auth_success = F;
-	if ( c$ssh?$auth_attempts )
-		c$ssh$auth_attempts += 1;
-	else
-		c$ssh$auth_attempts = 1;
 	}
 
 # Determine the negotiated algorithm
@@ -265,6 +254,9 @@ event connection_state_remove(c: connection) &priority=-5
 	{
 	if ( c?$ssh && !c$ssh$logged && c$ssh?$client && c$ssh?$server )
 		{
+		if ( c$ssh?$auth_success )
+			 event ssh_auth_result(c, c$ssh$auth_success, c$ssh$auth_attempts);
+
 		c$ssh$logged = T;
 		Log::write(SSH::LOG, c$ssh);
 		}

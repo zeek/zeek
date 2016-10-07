@@ -20,6 +20,11 @@ export {
 		version:         count        &log;
 		## Authentication result (T=success, F=failure, unset=unknown)
 		auth_success:    bool         &log &optional;
+		## The number of authentication attemps we observed. There's always
+		## at least one, since some servers might support no authentication at all.
+		## It's important to note that not all of these are failures, since
+		## some servers require two-factor auth (e.g. password AND pubkey)
+		auth_attempts:   count        &log &optional;
 		## Direction of the connection. If the client was a local host
 		## logging into an external host, this would be OUTBOUND. INBOUND
 		## would be set for the opposite situation.
@@ -56,17 +61,62 @@ export {
 	## to the logging framework.
 	global log_ssh: event(rec: Info);
 
+	## This event is generated when an :abbr:`SSH (Secure Shell)`
+	## connection was determined to have had a failed authentication. This
+	## determination is based on packet size analysis, and errs on the
+	## side of caution - that is, if there's any doubt about the
+	## authentication failure, this event is *not* raised.
+	##
+	## This event is only raised once per connection.
+	##
+	## c: The connection over which the :abbr:`SSH (Secure Shell)`
+	##    connection took place.
+	##
+	## .. bro:see:: ssh_server_version ssh_client_version
+	##    ssh_auth_successful ssh_auth_result ssh_auth_attempted
+	##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
+	##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
+	##    ssh2_gss_error ssh2_ecc_key
+	global ssh_auth_failed: event (c: connection);
+
+	## This event is generated when a determination has been made about
+	## the final authentication result of an :abbr:`SSH (Secure Shell)`
+	## connection. This determination is based on packet size analysis,
+	## and errs on the side of caution - that is, if there's any doubt
+	## about the result of the authentication, this event is *not* raised.
+	##
+	## This event is only raised once per connection.
+	##
+	## c: The connection over which the :abbr:`SSH (Secure Shell)`
+	##    connection took place.
+	##
+	## result: True if the authentication was successful, false if not.
+	##
+	## auth_attempts: The number of authentication attempts that were
+	##    observed.
+	##
+	## .. bro:see:: ssh_server_version ssh_client_version
+	##    ssh_auth_successful ssh_auth_failed ssh_auth_attempted
+	##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
+	##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
+	##    ssh2_gss_error ssh2_ecc_key
+	global ssh_auth_result: event (c: connection, result: bool, auth_attempts: count);
+
 	## Event that can be handled when the analyzer sees an SSH server host
 	## key. This abstracts :bro:id:`ssh1_server_host_key` and
 	## :bro:id:`ssh2_server_host_key`.
+	##
+	## .. bro:see:: ssh_server_version ssh_client_version
+	##    ssh_auth_successful ssh_auth_failed ssh_auth_result
+	##    ssh_auth_attempted ssh_capabilities ssh2_server_host_key
+	##    ssh1_server_host_key ssh_encrypted_packet ssh2_dh_server_params
+	##    ssh2_gss_error ssh2_ecc_key
 	global ssh_server_host_key: event(c: connection, hash: string);
 }
 
 redef record Info += {
 	# This connection has been logged (internal use)
 	logged:       bool         &default=F;
-	# Number of failures seen (internal use)
-	num_failures: count        &default=0;
 	# Store capabilities from the first host for
 	# comparison with the second (internal use)
 	capabilities: Capabilities &optional;
@@ -131,6 +181,10 @@ event ssh_auth_successful(c: connection, auth_method_none: bool) &priority=5
 		return;
 
 	c$ssh$auth_success = T;
+	if ( c$ssh?$auth_attempts )
+		c$ssh$auth_attempts += 1;
+	else
+		c$ssh$auth_attempts = 1;
 
 	if ( disable_analyzer_after_detection )
 		disable_analyzer(c$id, c$ssh$analyzer_id);
@@ -155,7 +209,10 @@ event ssh_auth_failed(c: connection) &priority=5
 		return;
 
 	c$ssh$auth_success = F;
-	c$ssh$num_failures += 1;
+	if ( c$ssh?$auth_attempts )
+		c$ssh$auth_attempts += 1;
+	else
+		c$ssh$auth_attempts = 1;
 	}
 
 # Determine the negotiated algorithm

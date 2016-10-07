@@ -131,8 +131,8 @@ void SSH_Analyzer::ProcessEncrypted(int len, bool orig)
 		// another packet of the same size.
 		if ( len == userauth_failure_size )
 			{
-			if ( ssh_auth_failed )
-				BifEvent::generate_ssh_auth_failed(interp->bro_analyzer(), interp->bro_analyzer()->Conn());
+			if ( ssh_auth_attempted )
+				BifEvent::generate_ssh_auth_attempted(interp->bro_analyzer(), interp->bro_analyzer()->Conn(), false);
 			return;
 			}
 
@@ -140,6 +140,8 @@ void SSH_Analyzer::ProcessEncrypted(int len, bool orig)
 		if ( len - service_accept_size == -16 )
 			{
 			auth_decision_made = true;
+			if ( ssh_auth_attempted )
+				BifEvent::generate_ssh_auth_attempted(interp->bro_analyzer(), interp->bro_analyzer()->Conn(), true);
 			if ( ssh_auth_successful )
 				BifEvent::generate_ssh_auth_successful(interp->bro_analyzer(), interp->bro_analyzer()->Conn(), false);
 			return;

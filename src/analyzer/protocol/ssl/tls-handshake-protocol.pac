@@ -100,16 +100,16 @@ type ClientHelloCookie(rec: HandshakeRecord) = record {
 # TLS 1.3 server hello is different from earlier versions. Trick around a
 # bit, route 1.3 requests to a different record than earlier.
 type ServerHelloChoice(rec: HandshakeRecord) = record {
-  server_version0 : uint8;
+	server_version0 : uint8;
 	server_version1 : uint8;
 	hello: case parsed_version of {
 		TLSv13, TLSv13_draft -> hello13: ServerHello13(rec, server_version);
 		default -> helloclassic: ServerHello(rec, server_version);
 	} &requires(server_version) &requires(parsed_version);
 } &let {
-  server_version : uint16 = (server_version0 << 8) | server_version1;
-  parsed_version : uint16 = case server_version0 of {
-	  0x7F -> 0x7F00; # map any draft version to 00
+	server_version : uint16 = (server_version0 << 8) | server_version1;
+	parsed_version : uint16 = case server_version0 of {
+		0x7F -> 0x7F00; # map any draft version to 00
 		default -> server_version;
 	};
 };
@@ -540,12 +540,12 @@ type ServerHelloKeyShare(rec: HandshakeRecord) = record {
 };
 
 type ClientHelloKeyShare(rec: HandshakeRecord) = record {
-  length: uint16;
+	length: uint16;
 	keyshares : KeyShareEntry[] &until($input.length() == 0);
 };
 
 type KeyShare(rec: HandshakeRecord) = case rec.msg_type of {
-  CLIENT_HELLO -> client_hello_keyshare : ClientHelloKeyShare(rec);
+	CLIENT_HELLO -> client_hello_keyshare : ClientHelloKeyShare(rec);
 	SERVER_HELLO -> server_hello_keyshare : ServerHelloKeyShare(rec);
 	# ... well, we don't parse hello retry requests yet, because I don't have an example of them on the wire.
 	default -> other : bytestring &restofdata &transient;

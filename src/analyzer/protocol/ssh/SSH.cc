@@ -16,7 +16,7 @@ SSH_Analyzer::SSH_Analyzer(Connection* c)
 	{
 	interp = new binpac::SSH::SSH_Conn(this);
 	had_gap = false;
-	auth_decision = AUTH_UNKNOWN;
+	auth_decision_made = false;
 	skipped_banner = false;
 	service_accept_size = 0;
 	userauth_failure_size = 0;
@@ -60,7 +60,7 @@ void SSH_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 			BifEvent::generate_ssh_encrypted_packet(interp->bro_analyzer(), interp->bro_analyzer()->Conn(),
 				orig, len);
 
-		if ( auth_decision != AUTH_SUCCESS )
+		if ( ! auth_decision_made )
 			ProcessEncrypted(len, orig);
 
 		return;
@@ -105,10 +105,9 @@ void SSH_Analyzer::ProcessEncrypted(int len, bool orig)
 		// -16.
 		if ( ! userauth_failure_size && (len + 16 == service_accept_size) )
 			{
+			auth_decision_made = true;
 			if ( ssh_auth_successful )
 				BifEvent::generate_ssh_auth_successful(interp->bro_analyzer(), interp->bro_analyzer()->Conn(), true);
-
-			auth_decision = AUTH_SUCCESS;
 			return;
 			}
 
@@ -132,20 +131,17 @@ void SSH_Analyzer::ProcessEncrypted(int len, bool orig)
 		// another packet of the same size.
 		if ( len == userauth_failure_size )
 			{
-			if ( ssh_auth_failed && auth_decision != AUTH_FAILURE )
+			if ( ssh_auth_failed )
 				BifEvent::generate_ssh_auth_failed(interp->bro_analyzer(), interp->bro_analyzer()->Conn());
-
-			auth_decision = AUTH_FAILURE;
 			return;
 			}
 
 		// ...or a success packet.
 		if ( len - service_accept_size == -16 )
 			{
+			auth_decision_made = true;
 			if ( ssh_auth_successful )
 				BifEvent::generate_ssh_auth_successful(interp->bro_analyzer(), interp->bro_analyzer()->Conn(), false);
-
-			auth_decision = AUTH_SUCCESS;
 			return;
 			}
 		}

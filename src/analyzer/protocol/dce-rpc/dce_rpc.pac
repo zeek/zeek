@@ -15,12 +15,8 @@ connection DCE_RPC_Conn(bro_analyzer: BroAnalyzer) {
 	upflow   = DCE_RPC_Flow(true);
 	downflow = DCE_RPC_Flow(false);
 };
-%include dce_rpc-protocol.pac
 
-# Now we define the flow:
-flow DCE_RPC_Flow(is_orig: bool) {
-	flowunit = DCE_RPC_PDU(is_orig) withcontext(connection, this);
-};
+%include dce_rpc-protocol.pac
 
 %include endpoint-atsvc.pac
 %include endpoint-epmapper.pac

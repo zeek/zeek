@@ -30,19 +30,14 @@ type context_handle = record {
 };
 
 type DCE_RPC_PDU(is_orig: bool) = record {
-	# Set header's byteorder to little-endian (or big-endian) to
-	# avoid cyclic dependency.
 	header  : DCE_RPC_Header(is_orig);
-	# TODO: bring back reassembly.  It was having trouble.
-	#frag    : bytestring &length = body_length;
-	body    : DCE_RPC_Body(header);
+	frag    : bytestring &length=body_length;
 	auth    : DCE_RPC_Auth_wrapper(header);
 } &let {
-	#body_length      : int  = header.frag_length - sizeof(header) - header.auth_length;
-	#frag_reassembled : bool = $context.flow.reassemble_fragment(frag, header.lastfrag);
-	#body             : DCE_RPC_Body(header)
-	#	withinput $context.flow.reassembled_body()
-	#	&if frag_reassembled;
+	# Subtract an extra 8 when there is an auth section because we have some "auth header" fields in that structure.
+	body_length      : int  = header.frag_length - sizeof(header) - header.auth_length - (header.auth_length > 0 ? 8 : 0);
+	frag_reassembled : bool = $context.flow.reassemble_fragment(header, frag);
+	body             : DCE_RPC_Body(header) withinput $context.flow.reassembled_body(header, frag) &if(header.lastfrag);
 } &byteorder = header.byteorder, &length = header.frag_length;
 
 type NDR_Format = record {
@@ -52,9 +47,6 @@ type NDR_Format = record {
 } &let {
 	byteorder = (intchar >> 4) ? littleendian : bigendian;
 };
-
-# There might be a endianness problem here: the frag_length
-# causes problems despite the NDR_Format having a byteorder set.
 
 type DCE_RPC_Header(is_orig: bool) = record {
 	rpc_vers       : uint8 &check(rpc_vers == 5);
@@ -66,8 +58,9 @@ type DCE_RPC_Header(is_orig: bool) = record {
 	auth_length    : uint16;
 	call_id        : uint32;
 } &let {
-	frag = pfc_flags & 4;
-	lastfrag = (! frag) || (pfc_flags & 2);
+	firstfrag = pfc_flags & 1;
+	lastfrag  = (pfc_flags >> 1) & 1;
+	object    = (pfc_flags >> 7) & 1;
 } &byteorder = packed_drep.byteorder;
 
 type Syntax = record {
@@ -116,12 +109,15 @@ type DCE_RPC_Bind_Ack = record {
 	contexts        : ContextList(0);
 };
 
-type DCE_RPC_Request = record {
+type DCE_RPC_Request(h: DCE_RPC_Header) = record {
 	alloc_hint   : uint32;
 	context_id   : uint16;
 	opnum        : uint16;
-	# object     : uuid;
-	# stub_pad_0 : padding align 8;
+	has_object   : case h.object of {
+		true  -> uuid    : uuid;
+		false -> no_uuid : empty;
+	};
+	stub_pad     : padding align 8;
 	stub         : bytestring &restofdata;
 };
 
@@ -130,7 +126,7 @@ type DCE_RPC_Response = record {
 	context_id   : uint16;
 	cancel_count : uint8;
 	reserved     : uint8;
-	# stub_pad_0 : padding align 8;
+	stub_pad     : padding align 8;
 	stub         : bytestring &restofdata;
 };
 
@@ -152,13 +148,13 @@ type DCE_RPC_AlterContext_Resp = record {
 type DCE_RPC_Body(header: DCE_RPC_Header) = case header.PTYPE of {
 	DCE_RPC_BIND               -> bind          : DCE_RPC_Bind;
 	DCE_RPC_BIND_ACK           -> bind_ack      : DCE_RPC_Bind_Ack;
-	DCE_RPC_REQUEST            -> request       : DCE_RPC_Request;
+	DCE_RPC_REQUEST            -> request       : DCE_RPC_Request(header);
 	DCE_RPC_RESPONSE           -> response      : DCE_RPC_Response;
 	# TODO: Something about the two following structures isn't being handled correctly.
 	#DCE_RPC_ALTER_CONTEXT      -> alter_context : DCE_RPC_AlterContext;
 	#DCE_RPC_ALTER_CONTEXT_RESP -> alter_resp    : DCE_RPC_AlterContext_Resp;
 	default                    -> other         : bytestring &restofdata;
-} &length=header.frag_length - 16 - header.auth_length - (header.auth_length==0 ? 0 : 8);
+};
 
 type DCE_RPC_Auth_wrapper(header: DCE_RPC_Header) = case header.auth_length of {
 	0       -> none : empty;
@@ -172,4 +168,42 @@ type DCE_RPC_Auth(header: DCE_RPC_Header) = record {
 	reserved   : uint8;
 	context_id : uint32;
 	blob       : bytestring &length=header.auth_length;
+};
+
+flow DCE_RPC_Flow(is_orig: bool) {
+	flowunit = DCE_RPC_PDU(is_orig) withcontext(connection, this);
+
+	%member{
+		std::map<uint32, FlowBuffer*> fb;
+	%}
+
+	# Fragment reassembly.
+	function reassemble_fragment(header: DCE_RPC_Header, frag: bytestring): bool
+		%{
+		if ( ${header.firstfrag} && !${header.lastfrag} &&
+		     fb.count(${header.call_id}) == 0 )
+			fb[${header.call_id}] = new FlowBuffer();
+
+		if ( fb.count(${header.call_id}) == 0 )
+			return false;
+
+		auto frag_reassembler_ = fb[${header.call_id}];
+		frag_reassembler_->BufferData(frag.begin(), frag.end());
+
+		return (!${header.firstfrag} && ${header.lastfrag});
+		%}
+
+	function reassembled_body(h: DCE_RPC_Header, body: bytestring): const_bytestring
+		%{
+		const_bytestring bd = body;
+
+		if ( fb.count(${h.call_id}) > 0 )
+			{
+			bd = const_bytestring(fb[${h.call_id}]->begin(), fb[${h.call_id}]->end());
+			delete fb[${h.call_id}];
+			fb.erase(${h.call_id});
+			}
+
+		return bd;
+		%}
 };

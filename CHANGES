@@ -1,4 +1,20 @@
 
+2.5-beta-64 | 2016-10-10 08:20:42 -0700
+
+  * Fix httpd.py test script for Py3 compatibility. (Daniel Thayer)
+
+  * Tiny fix for a DCE_RPC script issue. Fixes BIT-1688. (Seth Hall)
+
+  * Fix for plugins/hooks test. (Johanna Amann)
+
+  * Update a TLS constants in preparation for TLS 1.3, and rename a
+    few names that had never been formally assigned yet. (Johanna
+    Amann)
+
+  * Fixing Broxygen indexing confusion for plugins. Broxygen now
+    indexes plugin scripts as, e.g., "Bro_Netmap/scripts/init.bro".
+    Addresses BIT-1693. (Robin Sommer)
+
 2.5-beta-54 | 2016-10-06 14:24:01 -0700
 
   * Fixing documentation piece on the interesting-hostname script.

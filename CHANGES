@@ -1,4 +1,10 @@
 
+2.5-beta-73 | 2016-10-13 14:03:04 -0700
+
+  * Added missing README files for documentation. (Daniel Thayer)
+
+  * List new log files in the log-files.rst document. (Daniel Thayer)
+
 2.5-beta-67 | 2016-10-10 08:28:38 -0700
 
   * Fixes for DCE_RPC analyzer. (Seth Hall)

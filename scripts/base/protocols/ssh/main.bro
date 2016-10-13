@@ -248,22 +248,36 @@ event ssh_capabilities(c: connection, cookie: string, capabilities: Capabilities
 	                                 server_caps$server_host_key_algorithms);
 	}
 
-event connection_state_remove(c: connection) &priority=-5
+event connection_state_remove(c: connection)
 	{
-	if ( c?$ssh && !c$ssh$logged && c$ssh?$client && c$ssh?$server && c$ssh?$auth_success )
+	if ( c?$ssh && !c$ssh$logged )
 		{
-			# Success get logged immediately. To protect against a race condition, we'll double check:
-			if ( c$ssh$auth_success )
-				return;
+		# Do we have enough information to make a determination about auth success?
+		if ( c$ssh?$client && c$ssh?$server && c$ssh?$auth_success )
+			{
+				# Success get logged immediately. To protect against a race condition, we'll double check:
+				if ( c$ssh$auth_success )
+					return;
 
-			# Now that we know it's a failure, we'll set the field, raise the event, and log it.
-			c$ssh$auth_success = F;
-			event SSH::ssh_auth_failed(c);
-
+				# Now that we know it's a failure, we'll set the field, and raise the event.
+				c$ssh$auth_success = F;
+				event SSH::ssh_auth_failed(c);
+			}
+		# If not, we'll just log what we have
+		else
+			{
 			c$ssh$logged = T;
 			Log::write(SSH::LOG, c$ssh);
+			}
 		}
 	}
+
+event ssh_auth_failed(c: connection) &priority=-5
+	{
+	c$ssh$logged = T;
+	Log::write(SSH::LOG, c$ssh);
+	}
+
 
 function generate_fingerprint(c: connection, key: string)
 	{

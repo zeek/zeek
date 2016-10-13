@@ -1,6 +1,7 @@
 ##! Base SSL analysis script.  This script logs information about the SSL/TLS
 ##! handshaking and encryption establishment process.
 
+@load base/frameworks/notice/weird
 @load ./consts
 
 module SSL;
@@ -16,7 +17,9 @@ export {
 		uid:              string           &log;
 		## The connection's 4-tuple of endpoint addresses/ports.
 		id:               conn_id          &log;
-		## SSL/TLS version that the server offered.
+		## Numeric SSL/TLS version that the server chose.
+		version_num:      count            &optional;
+		## SSL/TLS version that the server chose.
 		version:          string           &log &optional;
 		## SSL/TLS cipher suite that the server chose.
 		cipher:           string           &log &optional;
@@ -40,6 +43,13 @@ export {
 		## by the client. This value is used to determine if a session
 		## is being resumed. It's not logged.
 		client_key_exchange_seen: bool     &default=F;
+		## Count to track if the server already sent an application data
+		## packet fot TLS 1.3. Used to track when a session was established.
+		server_appdata:   count            &default=0;
+		## Flag to track if the client already sent an application data
+		## packet fot TLS 1.3. Used to track when a session was established.
+		client_appdata:   bool             &default=F;
+
 		## Last alert that was seen during the connection.
 		last_alert:       string           &log &optional;
 		## Next protocol the server chose using the application layer
@@ -183,6 +193,7 @@ event ssl_server_hello(c: connection, version: count, possible_ts: time, server_
 	{
 	set_session(c);
 
+	c$ssl$version_num = version;
 	c$ssl$version = version_strings[version];
 	c$ssl$cipher = cipher_desc[cipher];
 
@@ -195,6 +206,15 @@ event ssl_server_curve(c: connection, curve: count) &priority=5
 	set_session(c);
 
 	c$ssl$curve = ec_curves[curve];
+	}
+
+event ssl_extension_key_share(c: connection, is_orig: bool, curves: index_vec)
+	{
+	if ( is_orig || |curves| != 1 )
+		return;
+
+	set_session(c);
+	c$ssl$curve = ec_curves[curves[0]];
 	}
 
 event ssl_extension_server_name(c: connection, is_orig: bool, names: string_vec) &priority=5
@@ -279,6 +299,50 @@ event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &pr
 		{
 		set_session(c);
 		c$ssl$analyzer_id = aid;
+		}
+	}
+
+event ssl_application_data(c: connection, is_orig: bool, length: count)
+	{
+	set_session(c);
+
+	if ( ! c$ssl?$version || c$ssl$established )
+		return;
+
+	if ( c$ssl$version_num/0xFF != 0x7F && c$ssl$version_num != TLSv13 )
+		{
+		local wi = Weird::Info($ts=network_time(), $name="ssl_early_application_data", $uid=c$uid, $id=c$id);
+		Weird::weird(wi);
+		return;
+		}
+
+	if ( is_orig )
+		{
+		c$ssl$client_appdata = T;
+		return;
+		}
+
+	if ( c$ssl$client_appdata && c$ssl$server_appdata == 0 )
+		{
+		# something went wrong in the handshake here - we can't say if it was established. Just abort.
+		return;
+		}
+  else if ( ! c$ssl$client_appdata && c$ssl$server_appdata == 0 )
+		{
+		c$ssl$server_appdata = 1;
+		return;
+		}
+	else if ( c$ssl$client_appdata && c$ssl$server_appdata == 1 )
+		{
+		# wait for one more packet before we believe it was established. This one could be an encrypted alert.
+		c$ssl$server_appdata = 2;
+		return;
+		}
+	else if ( c$ssl$client_appdata && c$ssl$server_appdata == 2 )
+		{
+		set_ssl_established(c);
+		event ssl_established(c);
+		return;
 		}
 	}
 

@@ -23,6 +23,9 @@ public:
 
 	void SendHandshake(const u_char* begin, const u_char* end, bool orig);
 
+	// Tell the analyzer that encryption has started.
+	void StartEncryption();
+
 	// Overriden from tcp::TCP_ApplicationAnalyzer.
 	virtual void EndpointEOF(bool is_orig);
 

@@ -41,6 +41,13 @@ void SSL_Analyzer::EndpointEOF(bool is_orig)
 	handshake_interp->FlowEOF(is_orig);
 	}
 
+void SSL_Analyzer::StartEncryption()
+	{
+	interp->startEncryption(true);
+	interp->startEncryption(false);
+	interp->setEstablished();
+	}
+
 void SSL_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);

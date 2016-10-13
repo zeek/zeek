@@ -120,7 +120,7 @@ refine connection Handshake_Conn += {
 		%{
 		VectorVal* nglist = new VectorVal(internal_type("index_vec")->AsVectorType());
 
-		nglist->Assign(1-1, new Val(keyshare->namedgroup(), TYPE_COUNT));
+		nglist->Assign(0u, new Val(keyshare->namedgroup(), TYPE_COUNT));
 		BifEvent::generate_ssl_extension_key_share(bro_analyzer(), bro_analyzer()->Conn(), ${rec.is_orig}, nglist);
 		return true;
 		%}

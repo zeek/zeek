@@ -12,7 +12,7 @@
 
 #include "Reporter.h"
 
-static inline const char* digest_print(const u_char* digest, size_t n)
+inline const char* digest_print(const u_char* digest, size_t n)
 	{
 	static char buf[256]; // big enough for any of md5/sha1/sha256
 	for ( size_t i = 0; i < n; ++i )

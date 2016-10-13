@@ -77,7 +77,7 @@ export {
 	##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
 	##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
 	##    ssh2_gss_error ssh2_ecc_key
-	global ssh_auth_failed: event (c: connection);
+	global ssh_auth_failed: event(c: connection);
 
 	## This event is generated when a determination has been made about
 	## the final authentication result of an :abbr:`SSH (Secure Shell)`
@@ -100,7 +100,7 @@ export {
 	##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
 	##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
 	##    ssh2_gss_error ssh2_ecc_key
-	global ssh_auth_result: event (c: connection, result: bool, auth_attempts: count);
+	global ssh_auth_result: event(c: connection, result: bool, auth_attempts: count);
 
 	## Event that can be handled when the analyzer sees an SSH server host
 	## key. This abstracts :bro:id:`ssh1_server_host_key` and
@@ -186,8 +186,6 @@ event ssh_auth_attempted(c: connection, authenticated: bool) &priority=5
 	else
 		{
 		c$ssh$auth_attempts = 1;
-		if ( !authenticated )
-			event ssh_auth_failed(c);
 		}
 
 	if ( authenticated && disable_analyzer_after_detection )
@@ -252,13 +250,18 @@ event ssh_capabilities(c: connection, cookie: string, capabilities: Capabilities
 
 event connection_state_remove(c: connection) &priority=-5
 	{
-	if ( c?$ssh && !c$ssh$logged && c$ssh?$client && c$ssh?$server )
+	if ( c?$ssh && !c$ssh$logged && c$ssh?$client && c$ssh?$server && c$ssh?$auth_success )
 		{
-		if ( c$ssh?$auth_success )
-			 event ssh_auth_result(c, c$ssh$auth_success, c$ssh$auth_attempts);
+			# Success get logged immediately. To protect against a race condition, we'll double check:
+			if ( c$ssh$auth_success )
+				return;
 
-		c$ssh$logged = T;
-		Log::write(SSH::LOG, c$ssh);
+			# Now that we know it's a failure, we'll set the field, raise the event, and log it.
+			c$ssh$auth_success = F;
+			event SSH::ssh_auth_failed(c);
+
+			c$ssh$logged = T;
+			Log::write(SSH::LOG, c$ssh);
 		}
 	}
 
@@ -284,7 +287,7 @@ event ssh2_server_host_key(c: connection, key: string) &priority=5
 
 event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &priority=20
 	{
-		if ( atype == Analyzer::ANALYZER_SSH )
+	if ( atype == Analyzer::ANALYZER_SSH )
 		{
 		set_session(c);
 		c$ssh$analyzer_id = aid;

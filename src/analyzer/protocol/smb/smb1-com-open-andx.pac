@@ -52,7 +52,7 @@ type SMB1_open_andx_request(header: SMB_Header, offset: uint16) = record {
 	open_mode	   	  : uint16;
 	allocation_size   : uint32;
 	timeout		      : uint32;
-	reserved	   	  : padding[2];
+	reserved	   	  : padding[4];
 	byte_count	   	  : uint16;
 	filename	   	  : SMB_string(header.unicode, offsetof(filename);
 
@@ -74,7 +74,7 @@ type SMB1_open_andx_response(header: SMB_Header, offset: uint16) = record {
 	resource_type	  : uint16;
 	nm_pipe_status	  : uint16;
 	open_results	  : uint16;
-	reserved		  : padding[3];
+	reserved		  : padding[6];
 	byte_count		  : uint16;
 
 	extra_byte_parameters : bytestring &transient &length=(andx.offset == 0 || andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters)));

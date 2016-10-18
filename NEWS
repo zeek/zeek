@@ -74,9 +74,20 @@ New Functionality
   STARTTLS sessions, handing them over to TLS analysis. These analyzers
   do not yet analyze any further IMAP/XMPP content.
 
-- The new event ssl_extension_signature_algorithm() allows access to the
-  TLS signature_algorithms extension that lists client supported signature
-  and hash algorithm pairs.
+- New funtionality has been added to the SSL/TLS analyzer:
+
+  - Bro now supports (draft) TLS 1.3.
+
+  - The new event ssl_extension_signature_algorithm() allows access to the
+    TLS signature_algorithms extension that lists client supported signature
+    and hash algorithm pairs.
+
+  - The new event ssl_extension_key_share gives access to the supported named
+    groups in TLS 1.3.
+
+  - The new event ssl_application_data gives information about application data
+    that is exchanged before encryption fully starts. This is used to detect when
+    encryption starts in TLS 1.3.
 
 - Bro now tracks VLAN IDs. To record them inside the connection log,
   load protocols/conn/vlan-logging.bro.
@@ -375,11 +386,11 @@ New Functionality
   sessions, supports v1, and introduces the intelligence type
   ``Intel::PUBKEY_HASH`` and location ``SSH::IN_SERVER_HOST_KEY``. The
   analayzer also generates a set of additional events
-  (``ssh_auth_successful``, ``ssh_auth_failed``, ``ssh_capabilities``,
-  ``ssh2_server_host_key``, ``ssh1_server_host_key``,
-  ``ssh_encrypted_packet``, ``ssh2_dh_server_params``,
-  ``ssh2_gss_error``, ``ssh2_ecc_key``). See next section for
-  incompatible SSH changes.
+  (``ssh_auth_successful``, ``ssh_auth_failed``, ``ssh_auth_attempted``,
+  ``ssh_auth_result``, ``ssh_capabilities``, ``ssh2_server_host_key``,
+  ``ssh1_server_host_key``, ``ssh_encrypted_packet``,
+  ``ssh2_dh_server_params``, ``ssh2_gss_error``, ``ssh2_ecc_key``). See
+  next section for incompatible SSH changes.
 
 - Bro's file analysis now supports reassembly of files that are not
   transferred/seen sequentially.  The default file reassembly buffer

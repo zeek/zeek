@@ -144,7 +144,7 @@ bool RuleHdrTest::operator==(const RuleHdrTest& h)
 void RuleHdrTest::PrintDebug()
 	{
 	static const char* str_comp[] = { "<=", ">=", "<", ">", "==", "!=" };
-	static const char* str_prot[] = { "", "ip", "icmp", "tcp", "udp" };
+	static const char* str_prot[] = { "", "ip", "ipv6", "icmp", "icmpv6", "tcp", "udp", "next", "ipsrc", "ipdst" };
 
 	fprintf(stderr, "	RuleHdrTest %s[%d:%d] %s",
 			str_prot[prot], offset, size, str_comp[comp]);
@@ -1095,9 +1095,9 @@ void RuleMatcher::ExecRule(Rule* rule, RuleEndpointState* state, bool eos)
 
 void RuleMatcher::ClearEndpointState(RuleEndpointState* state)
 	{
-	state->payload_size = -1;
-
 	ExecPureRules(state, 1);
+
+	state->payload_size = -1;
 
 	loop_over_list(state->matchers, j)
 		state->matchers[j]->state->Clear();

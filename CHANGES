@@ -1,4 +1,8 @@
 
+2.5-beta-91 | 2016-10-20 11:40:37 -0400
+
+  * Fix istate.pybroccoli test on systems using Python 3. (Daniel Thayer)
+
 2.5-beta-89 | 2016-10-18 21:50:51 -0400
 
   * SSH analyzer changes: the events are now restructured a bit. There is a new

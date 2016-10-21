@@ -238,7 +238,10 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 
 			current_plugin->SetDynamic(true);
 			current_plugin->DoConfigure();
+			DBG_LOG(DBG_PLUGINS, "  InitialzingComponents");
 			current_plugin->InitializeComponents();
+
+			plugins_by_path.insert(std::make_pair(normalize_path(dir), current_plugin));
 
 			if ( current_plugin->APIVersion() != BRO_PLUGIN_API_VERSION )
 				reporter->FatalError("plugin's API version does not match Bro (expected %d, got %d in %s)",
@@ -327,7 +330,7 @@ void Manager::RegisterPlugin(Plugin *plugin)
 
 	if ( current_dir && current_sopath )
 		// A dynamic plugin, record its location.
-		plugin->SetPluginLocation(current_dir, current_sopath);
+		plugin->SetPluginLocation(normalize_path(current_dir), current_sopath);
 
 	current_plugin = plugin;
 	}
@@ -460,6 +463,31 @@ Manager::bif_init_func_map* Manager::BifFilesInternal()
 		bifs = new bif_init_func_map;
 
 	return bifs;
+	}
+
+Plugin* Manager::LookupPluginByPath(std::string path)
+	{
+	path = normalize_path(path);
+
+	if ( is_file(path) )
+		path = SafeDirname(path).result;
+
+	while ( path.size() )
+		{
+		auto i = plugins_by_path.find(path);
+
+		if ( i != plugins_by_path.end() )
+			return i->second;
+
+		auto j = path.rfind("/");
+
+		if ( j == std::string::npos )
+			break;
+
+		path.erase(j);
+		}
+
+	return nullptr;
 	}
 
 static bool hook_cmp(std::pair<int, Plugin*> a, std::pair<int, Plugin*> b)

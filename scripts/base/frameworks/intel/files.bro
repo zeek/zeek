@@ -45,7 +45,7 @@ export {
 }
 
 # Add file information to matches if available.
-hook extend_match(info: Info, s: Seen, items: set[Item]) &priority=5
+hook extend_match(info: Info, s: Seen, items: set[Item]) &priority=6
 	{
 	if ( s?$f )
 		{
@@ -66,19 +66,4 @@ hook extend_match(info: Info, s: Seen, items: set[Item]) &priority=5
 
 	if ( s?$fuid )
 		info$fuid = s$fuid;
-
-	if ( s?$conn )
-		{
-		s$uid = s$conn$uid;
-		info$id  = s$conn$id;
-		}
-
-	if ( s?$uid )
-		info$uid = s$uid;
-
-	for ( item in items )
-		{
-		add info$sources[item$meta$source];
-		add info$matched[item$indicator_type];
-		}
 	}

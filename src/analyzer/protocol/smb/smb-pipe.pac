@@ -41,15 +41,19 @@ refine connection SMB_Conn += {
 		if ( fid_to_analyzer_map.count(fid) == 0 )
 			{
 			pipe_dcerpc = (analyzer::dce_rpc::DCE_RPC_Analyzer *)analyzer_mgr->InstantiateAnalyzer("DCE_RPC", bro_analyzer()->Conn());
-			pipe_dcerpc->SetFileID(fid);
-			fid_to_analyzer_map[fid] = pipe_dcerpc;
+			if ( pipe_dcerpc )
+				{
+				pipe_dcerpc->SetFileID(fid);
+				fid_to_analyzer_map[fid] = pipe_dcerpc;
+				}
 			}
 		else
 			{
 			pipe_dcerpc = fid_to_analyzer_map.at(fid);
 			}
 
-		pipe_dcerpc->DeliverStream(${pipe_data}.length(), ${pipe_data}.begin(), is_orig);
+		if ( pipe_dcerpc )
+			pipe_dcerpc->DeliverStream(${pipe_data}.length(), ${pipe_data}.begin(), is_orig);
 
 		return true;
 		%}

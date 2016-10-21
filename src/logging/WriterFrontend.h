@@ -203,7 +203,7 @@ public:
 protected:
 	friend class Manager;
 
-	void DeleteVals(threading::Value** vals);
+	void DeleteVals(int num_fields, threading::Value** vals);
 
 	EnumVal* stream;
 	EnumVal* writer;

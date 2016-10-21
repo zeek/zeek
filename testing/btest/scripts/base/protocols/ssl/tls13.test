@@ -1,0 +1,29 @@
+# @TEST-EXEC: bro -C -r $TRACES/tls/tls13draft16-chrome55.0.2879.0-canary-aborted.pcap %INPUT
+# @TEST-EXEC: cat ssl.log > ssl-out.log
+# @TEST-EXEC: bro -C -r $TRACES/tls/tls13draft16-chrome55.0.2879.0-canary.pcap %INPUT
+# @TEST-EXEC: cat ssl.log >> ssl-out.log
+# @TEST-EXEC: bro -C -r $TRACES/tls/tls13draft16-ff52.a01-aborted.pcap %INPUT
+# @TEST-EXEC: cat ssl.log >> ssl-out.log
+# @TEST-EXEC: bro -C -r $TRACES/tls/tls13draft16-ff52.a01.pcap %INPUT
+# @TEST-EXEC: cat ssl.log >> ssl-out.log
+# @TEST-EXEC: btest-diff ssl-out.log
+# @TEST-EXEC: btest-diff .stdout
+
+event ssl_extension_key_share(c: connection, is_orig: bool, curves: index_vec)
+	{
+	print "key_share", c$id, is_orig;
+	for ( i in curves )
+		{
+		print SSL::ec_curves[curves[i]];
+		}
+	}
+
+event ssl_established(c: connection)
+	{
+	print "established", c$id;
+	}
+
+event ssl_encrypted_data(c: connection, is_orig: bool, content_type: count, length: count)
+	{
+	print "encrypted", c$id, is_orig, content_type;
+	}

@@ -90,7 +90,10 @@ static ino_t get_inode_num(const string& path)
 	if ( ! f )
 		reporter->FatalError("failed to open %s\n", path.c_str());
 
-	return get_inode_num(f, path);
+	ino_t inum = get_inode_num(f, path);
+	fclose(f);
+
+	return inum;
 	}
 
 class FileInfo {
@@ -599,7 +602,12 @@ static int load_files(const char* orig_file)
 	ino_t i = get_inode_num(f, file_path);
 
 	if ( already_scanned(i) )
+		{
+		if ( f != stdin )
+			fclose(f);
+
 		return 0;
+		}
 
 	ScannedFile sf(i, file_stack.length(), file_path);
 	files_scanned.push_back(sf);

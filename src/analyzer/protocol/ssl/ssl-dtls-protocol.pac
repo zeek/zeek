@@ -64,7 +64,7 @@ type Alert(rec: SSLRecord) = record {
 ######################################################################
 
 # Application data should always be encrypted, so we should not
-# reach this point.
+# reach this point, unless we are in TLS 1.3 ...
 type ApplicationData(rec: SSLRecord) = record {
 	data : bytestring &restofdata &transient;
 };
@@ -79,12 +79,11 @@ type Heartbeat(rec: SSLRecord) = record {
 	data : bytestring &restofdata;
 };
 
-
-
 ######################################################################
-# Fragmentation (6.2.1.)
+# Unknown Records (6.2.1.)
 ######################################################################
 
+# We should never reach this.
 type UnknownRecord(rec: SSLRecord) = record {
 	cont : bytestring &restofdata &transient;
 };

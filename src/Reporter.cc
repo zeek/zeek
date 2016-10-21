@@ -318,7 +318,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 			FatalError("out of memory in Reporter");
 		}
 
-	if ( postfix )
+	if ( postfix && *postfix )
 		// Note, if you change this fmt string, adjust the additional
 		// buffer size above.
 		safe_snprintf(buffer + strlen(buffer), size - strlen(buffer), " [%s]", postfix);

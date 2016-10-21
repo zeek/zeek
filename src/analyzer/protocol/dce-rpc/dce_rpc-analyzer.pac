@@ -118,36 +118,6 @@ refine connection DCE_RPC_Conn += {
 
 };
 
-
-refine flow DCE_RPC_Flow += {
-	#%member{
-	#FlowBuffer frag_reassembler_;
-	#%}
-
-	# Fragment reassembly.
-	#function reassemble_fragment(frag: bytestring, lastfrag: bool): bool
-	#	%{
-	#	int orig_data_length = frag_reassembler_.data_length();
-	#
-	#	frag_reassembler_.NewData(frag.begin(), frag.end());
-	#
-	#	int new_frame_length = orig_data_length + frag.length();
-	#	if ( orig_data_length == 0 )
-	#		frag_reassembler_.NewFrame(new_frame_length, false);
-	#	else
-	#		frag_reassembler_.GrowFrame(new_frame_length);
-	#
-	#	return lastfrag;
-	#	%}
-
-	#function reassembled_body(): const_bytestring
-	#	%{
-	#	return const_bytestring(
-	#		frag_reassembler_.begin(),
-	#		frag_reassembler_.end());
-	#	%}
-};
-
 refine typeattr DCE_RPC_PDU += &let {
 	proc = $context.connection.proc_dce_rpc_pdu(this);
 }

@@ -5,7 +5,7 @@ module LoadedScripts;
 
 export {
 	redef enum Log::ID += { LOG };
-	
+
 	type Info: record {
 		## Name of the script loaded potentially with spaces included
 		## before the file name to indicate load depth.  The convention
@@ -14,19 +14,18 @@ export {
 	};
 }
 
-const depth: table[count] of string = {
-	[0]  = "",
-	[1]  = "  ",
-	[2]  = "    ",
-	[3]  = "      ",
-	[4]  = "        ",
-	[5]  = "          ",
-	[6]  = "            ",
-	[7]  = "              ",
-	[8]  = "                ",
-	[9]  = "                  ",
-	[10] = "                    ",
-};
+# This is inefficient; however, since this script only executes once on
+# startup, this shold be ok.
+function get_indent(level: count): string
+	{
+	local out = "";
+	while ( level > 0 )
+		{
+		--level;
+		out = out + "  ";
+		}
+	return out;
+	}
 
 event bro_init() &priority=5
 	{
@@ -35,5 +34,5 @@ event bro_init() &priority=5
 
 event bro_script_loaded(path: string, level: count)
 	{
-	Log::write(LoadedScripts::LOG, [$name=cat(depth[level], compress_path(path))]);
+	Log::write(LoadedScripts::LOG, [$name=cat(get_indent(level), compress_path(path))]);
 	}

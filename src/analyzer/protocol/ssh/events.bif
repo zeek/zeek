@@ -8,9 +8,10 @@
 ## version: The identification string
 ##
 ## .. bro:see:: ssh_client_version ssh_auth_successful ssh_auth_failed
-##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
-##    ssh_encrypted_packet ssh2_dh_server_params
-##    ssh2_gss_error ssh2_ecc_key
+##    ssh_auth_result ssh_auth_attempted ssh_capabilities
+##    ssh2_server_host_key ssh1_server_host_key ssh_server_host_key
+##    ssh_encrypted_packet ssh2_dh_server_params ssh2_gss_error
+##    ssh2_ecc_key
 event ssh_server_version%(c: connection, version: string%);
 
 ## An :abbr:`SSH (Secure Shell)` Protocol Version Exchange message
@@ -23,9 +24,10 @@ event ssh_server_version%(c: connection, version: string%);
 ## version: The identification string
 ##
 ## .. bro:see:: ssh_server_version ssh_auth_successful ssh_auth_failed
-##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
-##    ssh_encrypted_packet ssh2_dh_server_params
-##    ssh2_gss_error ssh2_ecc_key
+##    ssh_auth_result ssh_auth_attempted ssh_capabilities
+##    ssh2_server_host_key ssh1_server_host_key ssh_server_host_key
+##    ssh_encrypted_packet ssh2_dh_server_params ssh2_gss_error
+##    ssh2_ecc_key
 event ssh_client_version%(c: connection, version: string%);
 
 ## This event is generated when an :abbr:`SSH (Secure Shell)`
@@ -43,25 +45,41 @@ event ssh_client_version%(c: connection, version: string%);
 ##    unauthenticated access, which some servers support.
 ##
 ## .. bro:see:: ssh_server_version ssh_client_version ssh_auth_failed
-##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
-##    ssh_encrypted_packet ssh2_dh_server_params
-##    ssh2_gss_error ssh2_ecc_key
+##    ssh_auth_result ssh_auth_attempted ssh_capabilities
+##    ssh2_server_host_key ssh1_server_host_key ssh_server_host_key
+##    ssh_encrypted_packet ssh2_dh_server_params ssh2_gss_error
+##    ssh2_ecc_key
 event ssh_auth_successful%(c: connection, auth_method_none: bool%);
 
 ## This event is generated when an :abbr:`SSH (Secure Shell)`
-## connection was determined to have had a failed authentication. This
-## determination is based on packet size analysis, and errs on the
-## side of caution - that is, if there's any doubt about the
-## authentication failure, this event is *not* raised.
+## connection was determined to have had an authentication attempt.
+## This determination is based on packet size analysis, and errs
+## on the side of caution - that is, if there's any doubt about
+## whether or not an authenication attempt occured, this event is
+## *not* raised.
+##
+## At this point in the protocol, all we can determine is whether
+## or not the user is authenticated. We don't know if the particular
+## attempt succeeded or failed, since some servers require multiple
+## authentications (e.g. require both a password AND a pubkey), and
+## could return an authentication failed message which is marked
+## as a partial success.
+##
+## This event will often be raised multiple times per connection.
+## In almost all connections, it will be raised once unless
 ##
 ## c: The connection over which the :abbr:`SSH (Secure Shell)`
 ##    connection took place.
 ##
+## authenticated: This is true if the analyzer detected a
+##    successful connection from the authentication attempt.
+##
 ## .. bro:see:: ssh_server_version ssh_client_version
-##    ssh_auth_successful ssh_capabilities ssh2_server_host_key
-##    ssh1_server_host_key ssh_encrypted_packet ssh2_dh_server_params
+##    ssh_auth_successful ssh_auth_failed ssh_auth_result
+##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
+##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
 ##    ssh2_gss_error ssh2_ecc_key
-event ssh_auth_failed%(c: connection%);
+event ssh_auth_attempted%(c: connection, authenticated: bool%);
 
 ## During the initial :abbr:`SSH (Secure Shell)` key exchange, each
 ## endpoint lists the algorithms that it supports, in order of
@@ -79,8 +97,9 @@ event ssh_auth_failed%(c: connection%);
 ##    advertises support for, in order of preference.
 ##
 ## .. bro:see:: ssh_server_version ssh_client_version
-##    ssh_auth_successful ssh_auth_failed ssh2_server_host_key
-##    ssh1_server_host_key ssh_encrypted_packet ssh2_dh_server_params
+##    ssh_auth_successful ssh_auth_failed ssh_auth_result
+##    ssh_auth_attempted ssh2_server_host_key ssh1_server_host_key
+##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
 ##    ssh2_gss_error ssh2_ecc_key
 event ssh_capabilities%(c: connection, cookie: string, capabilities: SSH::Capabilities%);
 
@@ -95,8 +114,9 @@ event ssh_capabilities%(c: connection, cookie: string, capabilities: SSH::Capabi
 ##    itself, and not just the fingerprint or hash.
 ##
 ## .. bro:see:: ssh_server_version ssh_client_version
-##    ssh_auth_successful ssh_auth_failed ssh_capabilities
-##    ssh1_server_host_key ssh_encrypted_packet ssh2_dh_server_params
+##    ssh_auth_successful ssh_auth_failed ssh_auth_result
+##    ssh_auth_attempted ssh_capabilities ssh1_server_host_key
+##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
 ##    ssh2_gss_error ssh2_ecc_key
 event ssh2_server_host_key%(c: connection, key: string%);
 
@@ -112,8 +132,9 @@ event ssh2_server_host_key%(c: connection, key: string%);
 ## e: The exponent for the serer's public host key.
 ##
 ## .. bro:see:: ssh_server_version ssh_client_version
-##    ssh_auth_successful ssh_auth_failed ssh_capabilities
-##    ssh2_server_host_key ssh_encrypted_packet ssh2_dh_server_params
+##    ssh_auth_successful ssh_auth_failed ssh_auth_result
+##    ssh_auth_attempted ssh_capabilities ssh2_server_host_key
+##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
 ##    ssh2_gss_error ssh2_ecc_key
 event ssh1_server_host_key%(c: connection, p: string, e: string%);
 
@@ -133,8 +154,9 @@ event ssh1_server_host_key%(c: connection, p: string, e: string%);
 ##    bytes. Note that this ignores reassembly, as this is unknown.
 ##
 ## .. bro:see:: ssh_server_version ssh_client_version
-##    ssh_auth_successful ssh_auth_failed ssh_capabilities
-##    ssh2_server_host_key ssh1_server_host_key ssh2_dh_server_params
+##    ssh_auth_successful ssh_auth_failed ssh_auth_result
+##    ssh_auth_attempted ssh_capabilities ssh2_server_host_key
+##    ssh1_server_host_key ssh_server_host_key ssh2_dh_server_params
 ##    ssh2_gss_error ssh2_ecc_key
 event ssh_encrypted_packet%(c: connection, orig: bool, len: count%);
 
@@ -149,10 +171,11 @@ event ssh_encrypted_packet%(c: connection, orig: bool, len: count%);
 ##
 ## q: The DH generator.
 ##
-## .. bro:see:: ssl_dh_server_params ssh_server_version
-##    ssh_client_version ssh_auth_successful ssh_auth_failed
-##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
-##    ssh_encrypted_packet ssh2_gss_error ssh2_ecc_key
+## .. bro:see:: ssh_server_version ssh_client_version
+##    ssh_auth_successful ssh_auth_failed ssh_auth_result
+##    ssh_auth_attempted ssh_capabilities ssh2_server_host_key
+##    ssh1_server_host_key ssh_server_host_key ssh_encrypted_packet
+##    ssh2_gss_error ssh2_ecc_key
 event ssh2_dh_server_params%(c: connection, p: string, q: string%);
 
 ## In the event of a GSS-API error on the server, the server MAY send
@@ -169,8 +192,9 @@ event ssh2_dh_server_params%(c: connection, p: string, q: string%);
 ## err_msg: Detailed human-readable error message
 ##
 ## .. bro:see:: ssh_server_version ssh_client_version
-##    ssh_auth_successful ssh_auth_failed ssh_capabilities
-##    ssh2_server_host_key ssh1_server_host_key ssh_encrypted_packet
+##    ssh_auth_successful ssh_auth_failed ssh_auth_result
+##    ssh_auth_attempted ssh_capabilities ssh2_server_host_key
+##    ssh1_server_host_key ssh_server_host_key ssh_encrypted_packet
 ##    ssh2_dh_server_params ssh2_ecc_key
 event ssh2_gss_error%(c: connection, major_status: count, minor_status: count, err_msg: string%);
 
@@ -188,7 +212,8 @@ event ssh2_gss_error%(c: connection, major_status: count, minor_status: count, e
 ## q: The ephemeral public key
 ##
 ## .. bro:see:: ssh_server_version ssh_client_version
-##    ssh_auth_successful ssh_auth_failed ssh_capabilities
-##    ssh2_server_host_key ssh1_server_host_key ssh_encrypted_packet
+##    ssh_auth_successful ssh_auth_failed ssh_auth_result
+##    ssh_auth_attempted ssh_capabilities ssh2_server_host_key
+##    ssh1_server_host_key ssh_server_host_key ssh_encrypted_packet
 ##    ssh2_dh_server_params ssh2_gss_error
 event ssh2_ecc_key%(c: connection, is_orig: bool, q: string%);

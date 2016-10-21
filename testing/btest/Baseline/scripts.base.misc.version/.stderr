@@ -1,0 +1,4 @@
+error in /home/robin/bro/master/scripts/base/misc/version.bro, line 54: Version string 1 cannot be parsed
+error in /home/robin/bro/master/scripts/base/misc/version.bro, line 54: Version string 12.5 cannot be parsed
+error in /home/robin/bro/master/scripts/base/misc/version.bro, line 54: Version string 1.12-beta-drunk cannot be parsed
+error in /home/robin/bro/master/scripts/base/misc/version.bro, line 54: Version string JustARandomString cannot be parsed

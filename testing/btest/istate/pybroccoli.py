@@ -8,8 +8,8 @@
 # @TEST-EXEC: btest-bg-wait -k 20
 # @TEST-EXEC: btest-diff bro/.stdout
 #
-# @TEST-EXEC: sed 's/instance at [^>]*>/instance at >/' <python/.stdout >python/.stdout.filtered
-# @TEST-EXEC: btest-diff python/.stdout.filtered
+# @TEST-EXEC: sed -e 's/instance at [^>]*>/instance at >/' -e 's/object at [^>]*>/instance at >/' <python/.stdout >python/.stdout.filtered
+# @TEST-EXEC: TEST_DIFF_CANONIFIER="sed -e 's/^\([-]*[0-9][0-9]*\)L/\1/' | $SCRIPTS/diff-remove-timestamps" btest-diff python/.stdout.filtered
 
 event remote_connection_closed(p: event_peer)
 	{

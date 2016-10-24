@@ -37,7 +37,7 @@ type DCE_RPC_PDU(is_orig: bool) = record {
 	# Subtract an extra 8 when there is an auth section because we have some "auth header" fields in that structure.
 	body_length      : int  = header.frag_length - sizeof(header) - header.auth_length - (header.auth_length > 0 ? 8 : 0);
 	frag_reassembled : bool = $context.flow.reassemble_fragment(header, frag);
-	body             : DCE_RPC_Body(header) withinput $context.flow.reassembled_body(header, frag) &if(header.lastfrag);
+	body             : DCE_RPC_Body(header) withinput $context.flow.reassembled_body(header, frag) &if(frag_reassembled);
 } &byteorder = header.byteorder, &length = header.frag_length;
 
 type NDR_Format = record {
@@ -174,23 +174,65 @@ flow DCE_RPC_Flow(is_orig: bool) {
 	flowunit = DCE_RPC_PDU(is_orig) withcontext(connection, this);
 
 	%member{
-		std::map<uint32, FlowBuffer*> fb;
+		std::map<uint32, std::unique_ptr<FlowBuffer>> fb;
 	%}
 
 	# Fragment reassembly.
 	function reassemble_fragment(header: DCE_RPC_Header, frag: bytestring): bool
 		%{
-		if ( ${header.firstfrag} && !${header.lastfrag} &&
-		     fb.count(${header.call_id}) == 0 )
-			fb[${header.call_id}] = new FlowBuffer();
+		if ( ${header.firstfrag} )
+			{
+			if ( ${header.lastfrag} )
+				{
+				// all-in-one packet
+				return true;
+				}
+			else 
+				{
+				// first frag, but not last so we start a flowbuffer
+				fb[${header.call_id}] = std::unique_ptr<FlowBuffer>(new FlowBuffer());
+				fb[${header.call_id}]->NewFrame(0, true);
+				fb[${header.call_id}]->BufferData(frag.begin(), frag.end());
 
-		if ( fb.count(${header.call_id}) == 0 )
+				if ( fb.size() > BifConst::DCE_RPC::max_cmd_reassembly )
+					{
+					reporter->Weird(connection()->bro_analyzer()->Conn(), 
+					                "too_many_dce_rpc_msgs_in_reassembly");
+					connection()->bro_analyzer()->Remove();
+					}
+
+				if ( fb[${header.call_id}]->data_length() > BifConst::DCE_RPC::max_frag_data )
+					{
+					reporter->Weird(connection()->bro_analyzer()->Conn(), 
+					                "too_much_dce_rpc_fragment_data");
+					connection()->bro_analyzer()->Remove();
+					}
+
+				return false;
+				}
+			}
+		else if ( fb.count(${header.call_id}) > 0 )
+			{
+			// not the first frag, but we have a flow buffer so add to it
+			fb[${header.call_id}]->BufferData(frag.begin(), frag.end());
+
+			if ( fb[${header.call_id}]->data_length() > BifConst::DCE_RPC::max_frag_data )
+				{
+				reporter->Weird(connection()->bro_analyzer()->Conn(), 
+				                "too_much_dce_rpc_fragment_data");
+				connection()->bro_analyzer()->Remove();
+				}
+
+			return ${header.lastfrag};
+			}
+		else
+			{
+			// no flow buffer and not a first frag, ignore it.
 			return false;
+			}
 
-		auto frag_reassembler_ = fb[${header.call_id}];
-		frag_reassembler_->BufferData(frag.begin(), frag.end());
-
-		return (!${header.firstfrag} && ${header.lastfrag});
+		// can't reach here.
+		return false;
 		%}
 
 	function reassembled_body(h: DCE_RPC_Header, body: bytestring): const_bytestring
@@ -200,10 +242,9 @@ flow DCE_RPC_Flow(is_orig: bool) {
 		if ( fb.count(${h.call_id}) > 0 )
 			{
 			bd = const_bytestring(fb[${h.call_id}]->begin(), fb[${h.call_id}]->end());
-			delete fb[${h.call_id}];
 			fb.erase(${h.call_id});
 			}
-
+		
 		return bd;
 		%}
 };

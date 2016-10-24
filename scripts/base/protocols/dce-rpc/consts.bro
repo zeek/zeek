@@ -4,12 +4,12 @@ module DCE_RPC;
 export {
 	## The maximum number of simultaneous fragmented commands that
 	## the analyzer will tolerate before the analyzer will generate
-	## a weird and remove itself from the connection.
+	## a weird and skip further input.
 	const max_cmd_reassembly = 20 &redef;
 
 	## The maximum number of fragmented bytes that will be tolerated 
 	## on a command before the analyzer will generate a weird and 
-	## remove itself from the connection.
+	## skip further input.
 	const max_frag_data = 30000 &redef;
 
 	const uuid_endpoint_map: table[string] of string = {

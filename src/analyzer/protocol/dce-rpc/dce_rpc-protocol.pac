@@ -198,12 +198,14 @@ flow DCE_RPC_Flow(is_orig: bool) {
 					{
 					reporter->Weird(connection()->bro_analyzer()->Conn(), 
 					                "too_many_dce_rpc_msgs_in_reassembly");
+					connection()->bro_analyzer()->SetSkip(true);
 					}
 
 				if ( fb[${header.call_id}]->data_length() > BifConst::DCE_RPC::max_frag_data )
 					{
 					reporter->Weird(connection()->bro_analyzer()->Conn(), 
 					                "too_much_dce_rpc_fragment_data");
+					connection()->bro_analyzer()->SetSkip(true);
 					}
 
 				return false;
@@ -218,6 +220,7 @@ flow DCE_RPC_Flow(is_orig: bool) {
 				{
 				reporter->Weird(connection()->bro_analyzer()->Conn(), 
 				                "too_much_dce_rpc_fragment_data");
+				connection()->bro_analyzer()->SetSkip(true);
 				}
 
 			return ${header.lastfrag};

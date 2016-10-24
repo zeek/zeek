@@ -1,4 +1,10 @@
 
+2.5-beta-93 | 2016-10-24 11:11:07 -0700
+
+  * Fix alignment issue of ones_complement_checksum. This error
+    occured reproducibly newer compilers when called from
+    icmp6_checksum. (Johanna Amann)
+
 2.5-beta-91 | 2016-10-20 11:40:37 -0400
 
   * Fix istate.pybroccoli test on systems using Python 3. (Daniel Thayer)

@@ -89,6 +89,10 @@ bool RuleConditionPayloadSize::DoMatch(Rule* rule, RuleEndpointState* state,
 		// on the pure rules now.
 		return false;
 
+	if ( state->PayloadSize() == 0 )
+		// We are interested in the first non-empty chunk.
+		return false;
+
 	uint32 payload_size = uint32(state->PayloadSize());
 
 	switch ( comp ) {

@@ -72,6 +72,7 @@ extern uint32 id_to_uint(const char* id);
 
 class RuleHdrTest {
 public:
+	// Note: Adapt RuleHdrTest::PrintDebug() when changing these enums.
 	enum Comp { LE, GE, LT, GT, EQ, NE };
 	enum Prot { NOPROT, IP, IPv6, ICMP, ICMPv6, TCP, UDP, NEXT, IPSrc, IPDst };
 

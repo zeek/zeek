@@ -14,7 +14,7 @@ extern void end_PS();
 Rule* current_rule = 0;
 const char* current_rule_file = 0;
 
-static uint8_t mask_to_len(uint32_t mask)
+static uint8_t ip4_mask_to_len(uint32_t mask)
 	{
 	if ( mask == 0xffffffff )
 	    return 32;
@@ -23,7 +23,7 @@ static uint8_t mask_to_len(uint32_t mask)
 	uint8_t len;
 	for ( len = 0; len < 32 && (! (x & (1 << len))); ++len );
 
-	return len;
+	return 32 - len;
 	}
 %}
 
@@ -315,7 +315,7 @@ prefix_value:
 		TOK_IP
 			{
 			$$ = new IPPrefix(IPAddr(IPv4, &($1.val), IPAddr::Host),
-			                  mask_to_len($1.mask));
+			                  ip4_mask_to_len($1.mask));
 			}
 	|	TOK_IP6
 	;

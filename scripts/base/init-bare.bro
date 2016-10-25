@@ -2505,11 +2505,13 @@ export {
 		## The negotiate flags
 		flags       : NTLM::NegotiateFlags;
 		## The domain or computer name hosting the account
-		domain_name : string;
+		domain_name : string &optional;
 		## The name of the user to be authenticated.
-		user_name   : string;
+		user_name   : string &optional;
 		## The name of the computer to which the user was logged on.
-		workstation : string;
+		workstation : string &optional;
+		## The session key
+		session_key : string &optional;
 		## The Windows version information, if supplied
 		version     : NTLM::Version &optional;
 	};

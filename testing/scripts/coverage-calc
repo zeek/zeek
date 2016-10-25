@@ -56,4 +56,4 @@ for k in stats:
         num_covered += 1
 
 if len(stats) > 0:
-    print "%s/%s (%.1f%%) Bro script statements covered." % (num_covered, len(stats), float(num_covered)/len(stats)*100)
+    print("%s/%s (%.1f%%) Bro script statements covered." % (num_covered, len(stats), float(num_covered)/len(stats)*100))

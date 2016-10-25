@@ -1,4 +1,33 @@
 
+2.5-beta-102 | 2016-10-25 09:43:45 -0700
+
+  * Update number of bytes in request/response of smb1-com-open-andx.pac. (balintm)
+
+  * Fix a IPv4 CIRD specifications and payload-size condition of signature matching.
+    (Robin Sommer)
+
+  * Python 3 compatibility fix for coverage-calc script. (Daniel Thayer)
+
+2.5-beta-93 | 2016-10-24 11:11:07 -0700
+
+  * Fix alignment issue of ones_complement_checksum. This error
+    occured reproducibly newer compilers when called from
+    icmp6_checksum. (Johanna Amann)
+
+2.5-beta-91 | 2016-10-20 11:40:37 -0400
+
+  * Fix istate.pybroccoli test on systems using Python 3. (Daniel Thayer)
+
+2.5-beta-89 | 2016-10-18 21:50:51 -0400
+
+  * SSH analyzer changes: the events are now restructured a bit. There is a new
+    event ssh_auth_attempted, that is raised each time authentication is tried.
+    ssh_auth_failed is still only being raised once per connection. There also
+    is an additional event ssh_auth_result giving more information about the
+    number of times that authentication was tried and if it succeded/failed in
+    the end. The number of authentication attemps are now part of ssh.log.
+    Addresses BIT-1641. (Vlad Grigorescu)
+
 2.5-beta-79 | 2016-10-13 15:58:48 -0700
 
   * Fix MD5 problem with FreeBSD 11.0 and clang 3.8. The apparent
@@ -495,7 +524,7 @@
 2.4-623 | 2016-06-15 17:31:12 -0700
 
   * &default values are no longer overwritten with uninitialized
-	  by the input framework. (Jan Grashoefer)
+    by the input framework. (Jan Grashoefer)
 
 2.4-621 | 2016-06-15 09:18:02 -0700
 

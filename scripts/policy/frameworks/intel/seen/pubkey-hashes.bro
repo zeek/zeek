@@ -1,4 +1,5 @@
 @load base/frameworks/intel
+@load base/protocols/ssh
 @load ./where-locations
 
 event ssh_server_host_key(c: connection, hash: string)

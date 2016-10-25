@@ -35,13 +35,11 @@ namespace analyzer {
 			bool had_gap;
 
 			// Packet analysis stuff
+			bool auth_decision_made;
 			bool skipped_banner;
+
 			int service_accept_size;
 			int userauth_failure_size;
-
-			enum AuthDecision {
-				AUTH_UNKNOWN, AUTH_FAILURE, AUTH_SUCCESS
-			} auth_decision;
 
 			};
 

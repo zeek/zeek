@@ -41,6 +41,9 @@ New Functionality
   New log files: net_control.log, netcontrol_catch_release.log,
   netcontrol_drop.log, and netcontrol_shunt.log.
 
+- Bro now includes the OpenFlow framework which exposes the datastructures
+  necessary to interface to OpenFlow capable hardware.
+
 - Bro's Intelligence Framework was refactored and new functionality
   has been added:
 
@@ -154,8 +157,10 @@ New Functionality
 
 - The pcap buffer size can be set through the new option Pcap::bufsize.
 
-- Input framework readers Table and Event can now define a custom
-  event to receive logging messages.
+- Input framework readers stream types Table and Event can now define a custom
+  event (specified by the new "error_ev" field) to receive error messages
+  emitted by the input stream. This can, e.g., be used to raise notices in
+  case errors occur when reading an important input source.
 
 - The logging framework now supports user-defined record separators,
   renaming of column names, as well as extension data columns that can

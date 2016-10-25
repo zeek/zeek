@@ -182,12 +182,21 @@ flow DCE_RPC_Flow(is_orig: bool) {
 		%{
 		if ( ${header.firstfrag} )
 			{
+			if ( fb.count(${header.call_id}) > 0 )
+				{
+				// We already had a first frag earlier.
+				reporter->Weird(connection()->bro_analyzer()->Conn(),
+						"multiple_first_fragments_in_dce_rpc_reassembly");
+				connection()->bro_analyzer()->SetSkip(true);
+				return false;
+				}
+
 			if ( ${header.lastfrag} )
 				{
 				// all-in-one packet
 				return true;
 				}
-			else 
+			else
 				{
 				// first frag, but not last so we start a flowbuffer
 				fb[${header.call_id}] = std::unique_ptr<FlowBuffer>(new FlowBuffer());
@@ -196,14 +205,14 @@ flow DCE_RPC_Flow(is_orig: bool) {
 
 				if ( fb.size() > BifConst::DCE_RPC::max_cmd_reassembly )
 					{
-					reporter->Weird(connection()->bro_analyzer()->Conn(), 
+					reporter->Weird(connection()->bro_analyzer()->Conn(),
 					                "too_many_dce_rpc_msgs_in_reassembly");
 					connection()->bro_analyzer()->SetSkip(true);
 					}
 
-				if ( fb[${header.call_id}]->data_length() > BifConst::DCE_RPC::max_frag_data )
+				if ( fb[${header.call_id}]->data_length() > (int)BifConst::DCE_RPC::max_frag_data )
 					{
-					reporter->Weird(connection()->bro_analyzer()->Conn(), 
+					reporter->Weird(connection()->bro_analyzer()->Conn(),
 					                "too_much_dce_rpc_fragment_data");
 					connection()->bro_analyzer()->SetSkip(true);
 					}
@@ -216,9 +225,9 @@ flow DCE_RPC_Flow(is_orig: bool) {
 			// not the first frag, but we have a flow buffer so add to it
 			fb[${header.call_id}]->BufferData(frag.begin(), frag.end());
 
-			if ( fb[${header.call_id}]->data_length() > BifConst::DCE_RPC::max_frag_data )
+			if ( fb[${header.call_id}]->data_length() > (int)BifConst::DCE_RPC::max_frag_data )
 				{
-				reporter->Weird(connection()->bro_analyzer()->Conn(), 
+				reporter->Weird(connection()->bro_analyzer()->Conn(),
 				                "too_much_dce_rpc_fragment_data");
 				connection()->bro_analyzer()->SetSkip(true);
 				}
@@ -244,7 +253,7 @@ flow DCE_RPC_Flow(is_orig: bool) {
 			bd = const_bytestring(fb[${h.call_id}]->begin(), fb[${h.call_id}]->end());
 			fb.erase(${h.call_id});
 			}
-		
+
 		return bd;
 		%}
 };

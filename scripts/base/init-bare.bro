@@ -4381,6 +4381,19 @@ export {
 	const bufsize = 128 &redef;
 } # end export
 
+module DCE_RPC;
+export {
+	## The maximum number of simultaneous fragmented commands that
+	## the DCE_RPC analyzer will tolerate before the it will generate
+	## a weird and skip further input.
+	const max_cmd_reassembly = 20 &redef;
+
+	## The maximum number of fragmented bytes that the DCE_RPC analyzer
+	## will tolerate on a command before the analyzer will generate a weird
+	## and skip further input.
+	const max_frag_data = 30000 &redef;
+}
+
 module GLOBAL;
 
 ## Seed for hashes computed internally for probabilistic data structures. Using

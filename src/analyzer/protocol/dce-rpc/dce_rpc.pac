@@ -2,6 +2,7 @@
 %include bro.pac
 
 %extern{
+#include "consts.bif.h"
 #include "types.bif.h"
 #include "events.bif.h"
 %}

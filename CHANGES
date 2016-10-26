@@ -1,9 +1,14 @@
 
+2.5-beta-110 | 2016-10-26 09:42:11 -0400
+
+  * Improvements DCE_RPC analyzer to make it perform fragment handling correctly
+    and generally be more resistent to unexpected traffic. (Seth Hall)
+
 2.5-beta-102 | 2016-10-25 09:43:45 -0700
 
   * Update number of bytes in request/response of smb1-com-open-andx.pac. (balintm)
 
-  * Fix a IPv4 CIRD specifications and payload-size condition of signature matching.
+  * Fix a IPv4 CIDR specifications and payload-size condition of signature matching.
     (Robin Sommer)
 
   * Python 3 compatibility fix for coverage-calc script. (Daniel Thayer)

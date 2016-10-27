@@ -1,4 +1,9 @@
 
+2.5-beta-113 | 2016-10-27 07:44:25 -0700
+
+  * XMPP: Fix detection of StartTLS when using namespaces. (Johanna
+    Amann)
+
 2.5-beta-110 | 2016-10-26 09:42:11 -0400
 
   * Improvements DCE_RPC analyzer to make it perform fragment handling correctly

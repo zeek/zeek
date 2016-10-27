@@ -1,4 +1,8 @@
 
+2.5-beta-114 | 2016-10-27 09:00:24 -0700
+
+  * Fix for Sphinx >= 1.4 compability. (Robin Sommer)
+
 2.5-beta-113 | 2016-10-27 07:44:25 -0700
 
   * XMPP: Fix detection of StartTLS when using namespaces. (Johanna

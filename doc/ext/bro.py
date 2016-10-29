@@ -15,7 +15,6 @@ from sphinx.directives import ObjectDescription
 from sphinx.roles import XRefRole
 from sphinx.util.nodes import make_refnode
 from sphinx import version_info
-import string
 
 from docutils import nodes
 from docutils.parsers.rst import Directive
@@ -30,7 +29,7 @@ class SeeDirective(Directive):
 
     def run(self):
         n = see('')
-        n.refs = string.split(string.join(self.content))
+        n.refs = " ".join(self.content).split()
         return [n]
 
 # Wrapper for creating a tuple for index nodes, staying backwards
@@ -214,7 +213,7 @@ class BroNotices(Index):
             entries = content.setdefault(modname, [])
             entries.append([n[0], 0, n[1], n[2], '', '', ''])
 
-        content = sorted(content.iteritems())
+        content = sorted(content.items())
 
         return content, False
 
@@ -290,5 +289,5 @@ class BroDomain(Domain):
                         'unknown target for ":bro:%s:`%s`"' % (typ, target))
 
     def get_objects(self):
-        for (typ, name), docname in self.data['objects'].iteritems():
+        for (typ, name), docname in self.data['objects'].items():
             yield name, name, typ, docname, typ + '-' + name, 1

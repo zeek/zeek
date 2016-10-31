@@ -1,4 +1,8 @@
 
+2.5-beta-121 | 2016-10-31 14:24:33 -0700
+
+  * Python 3 compatibility fixes for documentation building. (Daniel Thayer)
+
 2.5-beta-114 | 2016-10-27 09:00:24 -0700
 
   * Fix for Sphinx >= 1.4 compability. (Robin Sommer)

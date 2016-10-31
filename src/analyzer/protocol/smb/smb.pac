@@ -9,6 +9,8 @@
 #include "smb2_events.bif.h"
 
 #include "types.bif.h"
+#include "events.bif.h"
+#include "consts.bif.h"
 
 #include "smb1_com_check_directory.bif.h"
 #include "smb1_com_close.bif.h"

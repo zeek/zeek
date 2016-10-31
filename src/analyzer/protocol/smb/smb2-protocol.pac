@@ -35,10 +35,10 @@ type SMB2_PDU(is_orig: bool) = record {
 		# Status 0 indicates success.  In the case of a
 		# request this should just happen to work out due to
 		# how the fields are set.
-		0          -> msg                      : SMB2_Message(header, is_orig);
-		STATUS_BUFFER_OVERFLOW          -> buffer_overflow : SMB2_Message(header, is_orig);
+		0                               -> msg                      : SMB2_Message(header, is_orig);
+		STATUS_BUFFER_OVERFLOW          -> buffer_overflow          : SMB2_Message(header, is_orig);
 		STATUS_MORE_PROCESSING_REQUIRED -> more_processing_required : SMB2_Message(header, is_orig);
-		default    -> err                      : SMB2_error_response(header);
+		default                         -> err                      : SMB2_error_response(header);
 	};
 };
 
@@ -199,6 +199,7 @@ type SMB2_Header(is_orig: bool) = record {
 	related  = (flags >> 26) & 1;
 	msigned  = (flags >> 27) & 1;
 	dfs      = (flags) & 1;
+	is_pipe: bool = $context.connection.get_tree_is_pipe(tree_id);
 	proc : bool = $context.connection.proc_smb2_message(this, is_orig);
 } &byteorder=littleendian;
 

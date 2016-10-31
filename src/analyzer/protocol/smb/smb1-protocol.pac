@@ -298,7 +298,8 @@ type SMB_Header(is_orig: bool) = record {
 	err_status_type = (flags2 >> 14) & 1;
 	unicode         = (flags2 >> 15) & 1;
 	pid             = (pid_high * 0x10000) + pid_low;
-	proc : bool = $context.connection.proc_smb_message(this, is_orig);
+	is_pipe: bool   = $context.connection.get_tree_is_pipe(tid);
+	proc : bool     = $context.connection.proc_smb_message(this, is_orig);
 } &byteorder=littleendian;
 
 # TODO: compute this as

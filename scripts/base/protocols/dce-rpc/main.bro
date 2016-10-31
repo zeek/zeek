@@ -160,7 +160,8 @@ event dce_rpc_response(c: connection, fid: count, opnum: count, stub_len: count)
 		{
 		# If there is not an endpoint, there isn't much reason to log.
 		# This can happen if the request isn't seen.
-		if ( (c$dce_rpc?$endpoint && c$dce_rpc$endpoint !in ignored_operations)
+		if ( (c$dce_rpc?$endpoint && c$dce_rpc?$operation &&
+		      c$dce_rpc$endpoint !in ignored_operations)
 		     || 
 		     (c$dce_rpc?$endpoint && c$dce_rpc?$operation &&
 		      c$dce_rpc$operation !in ignored_operations[c$dce_rpc$endpoint] &&
@@ -195,7 +196,8 @@ event connection_state_remove(c: connection)
 				}
 			}
 
-		if ( (c$dce_rpc?$endpoint && c$dce_rpc$endpoint !in ignored_operations)
+		if ( (c$dce_rpc?$endpoint && c$dce_rpc?$operation &&
+		      c$dce_rpc$endpoint !in ignored_operations)
 		     || 
 		     (c$dce_rpc?$endpoint && c$dce_rpc?$operation &&
 		      c$dce_rpc$operation !in ignored_operations[c$dce_rpc$endpoint] &&

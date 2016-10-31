@@ -10,7 +10,7 @@ refine connection SMB_Conn += {
 			                                           ${val.write_offset},
 			                                           ${val.data_len});
 
-		if ( ! ${val.is_pipe} && ${val.data}.length() > 0 )
+		if ( ! ${h.is_pipe} && ${val.data}.length() > 0 )
 			{
 			file_mgr->DataIn(${val.data}.begin(), ${val.data}.length(),
 			                 ${val.write_offset},
@@ -58,8 +58,7 @@ type SMB1_write_andx_request(header: SMB_Header, offset: uint16) = record {
 
 	andx_command    : SMB_andx_command(header, 1, offset+offsetof(andx_command), andx.command);
 } &let {
-	is_pipe     : bool   = $context.connection.get_tree_is_pipe(header.tid);
-	pipe_proc   : bool   = $context.connection.forward_dce_rpc(data, 0, true) &if(is_pipe);
+	pipe_proc   : bool   = $context.connection.forward_dce_rpc(data, 0, true) &if(header.is_pipe);
 
 	data_len    : uint32 = (data_len_high << 16) + data_len_low;
 	offset_high : uint32 = (word_count == 0x0E) ? offset_high_tmp : 0;

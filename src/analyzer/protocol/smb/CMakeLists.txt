@@ -37,6 +37,9 @@ bro_plugin_bif(
 	smb2_com_write.bif
 	smb2_events.bif
 
+	events.bif
+	consts.bif
+
 	types.bif)
 bro_plugin_pac(
 	smb.pac

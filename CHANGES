@@ -1,4 +1,27 @@
 
+2.5-beta-114 | 2016-10-27 09:00:24 -0700
+
+  * Fix for Sphinx >= 1.4 compability. (Robin Sommer)
+
+2.5-beta-113 | 2016-10-27 07:44:25 -0700
+
+  * XMPP: Fix detection of StartTLS when using namespaces. (Johanna
+    Amann)
+
+2.5-beta-110 | 2016-10-26 09:42:11 -0400
+
+  * Improvements DCE_RPC analyzer to make it perform fragment handling correctly
+    and generally be more resistent to unexpected traffic. (Seth Hall)
+
+2.5-beta-102 | 2016-10-25 09:43:45 -0700
+
+  * Update number of bytes in request/response of smb1-com-open-andx.pac. (balintm)
+
+  * Fix a IPv4 CIDR specifications and payload-size condition of signature matching.
+    (Robin Sommer)
+
+  * Python 3 compatibility fix for coverage-calc script. (Daniel Thayer)
+
 2.5-beta-93 | 2016-10-24 11:11:07 -0700
 
   * Fix alignment issue of ones_complement_checksum. This error
@@ -515,7 +538,7 @@
 2.4-623 | 2016-06-15 17:31:12 -0700
 
   * &default values are no longer overwritten with uninitialized
-	  by the input framework. (Jan Grashoefer)
+    by the input framework. (Jan Grashoefer)
 
 2.4-621 | 2016-06-15 09:18:02 -0700
 

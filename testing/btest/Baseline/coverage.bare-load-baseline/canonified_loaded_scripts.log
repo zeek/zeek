@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2016-10-07-19-25-03
+#open	2016-10-26-00-05-53
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -63,6 +63,7 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_BitTorrent.events.bif.bro
     build/scripts/base/bif/plugins/Bro_ConnSize.events.bif.bro
     build/scripts/base/bif/plugins/Bro_ConnSize.functions.bif.bro
+    build/scripts/base/bif/plugins/Bro_DCE_RPC.consts.bif.bro
     build/scripts/base/bif/plugins/Bro_DCE_RPC.types.bif.bro
     build/scripts/base/bif/plugins/Bro_DCE_RPC.events.bif.bro
     build/scripts/base/bif/plugins/Bro_DHCP.events.bif.bro
@@ -167,4 +168,4 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_SQLiteWriter.sqlite.bif.bro
 scripts/policy/misc/loaded-scripts.bro
   scripts/base/utils/paths.bro
-#close	2016-10-07-19-25-03
+#close	2016-10-26-00-05-53

@@ -1,4 +1,8 @@
 
+2.5-beta-123 | 2016-11-01 09:40:49 -0700
+
+  * Add a new site policy script local-logger.bro. (Daniel Thayer)
+
 2.5-beta-121 | 2016-10-31 14:24:33 -0700
 
   * Python 3 compatibility fixes for documentation building. (Daniel Thayer)

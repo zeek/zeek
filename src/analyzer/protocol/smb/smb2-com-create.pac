@@ -6,7 +6,7 @@ refine connection SMB_Conn += {
 		if ( ! ${h.is_pipe} && 
 		     BifConst::SMB::pipe_filenames->AsTable()->Lookup(filename->CheckString()) )
 			{
-			set_tree_is_pipe(${h.tree_id}, true);
+			set_tree_is_pipe(${h.tree_id});
 			BifEvent::generate_smb_pipe_connect_heuristic(bro_analyzer(),
 			                                              bro_analyzer()->Conn());
 			}

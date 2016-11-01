@@ -25,9 +25,9 @@ refine connection SMB_Conn += {
 		return ( tree_is_pipe_map.count(tree_id) > 0 );
 		%}
 
-	function set_tree_is_pipe(tree_id: uint16, is_pipe: bool): bool
+	function set_tree_is_pipe(tree_id: uint16): bool
 		%{
-		tree_is_pipe_map[tree_id] = is_pipe;
+		tree_is_pipe_map[tree_id] = true;
 		return true;
 		%}
 

@@ -243,7 +243,9 @@ type SMB2_error_response(header: SMB2_Header) = record {
 	structure_size    : uint16;
 	reserved          : padding[2];
 	byte_count        : uint32;
-	error_data        : SMB2_error_data(header, byte_count);
+	# This is implemented incorrectly and is disabled for now.
+	#error_data        : SMB2_error_data(header, byte_count);
+	stuff : bytestring &restofdata &transient;
 } &byteorder = littleendian;
 
 type SMB2_logoff_request(header: SMB2_Header) = record {

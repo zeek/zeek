@@ -31,14 +31,12 @@
 
 #include "smb2_com_close.bif.h"
 #include "smb2_com_create.bif.h"
-//#include "smb2_com_ioctl.bif.h"
-//#include "smb2_com_lock.bif.h"
 #include "smb2_com_negotiate.bif.h"
 #include "smb2_com_read.bif.h"
 #include "smb2_com_session_setup.bif.h"
 #include "smb2_com_set_info.bif.h"
 #include "smb2_com_tree_connect.bif.h"
-//#include "smb2_com_tree_disconnect.bif.h"
+#include "smb2_com_tree_disconnect.bif.h"
 #include "smb2_com_write.bif.h"
 %}
 

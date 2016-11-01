@@ -127,7 +127,7 @@ type SMB_andx_command(header: SMB_Header, is_orig: bool, offset: uint16, command
 
 type SMB_Message_Request(header: SMB_Header, offset: uint16, command: uint8, is_orig: bool) = case command of {
 	# SMB1 Command Extensions
-	#SMB_COM_OPEN_ANDX                -> open_andx              : SMB_open_andx_request(header);
+	#SMB_COM_OPEN_ANDX                -> open_andx              : SMB1_open_andx_request(header);
 	SMB_COM_READ_ANDX                -> read_andx              : SMB1_read_andx_request(header, offset);
 	SMB_COM_WRITE_ANDX               -> write_andx             : SMB1_write_andx_request(header, offset);
 	SMB_COM_TRANSACTION2             -> transaction2           : SMB1_transaction2_request(header);
@@ -205,7 +205,7 @@ type SMB_Message_Request(header: SMB_Header, offset: uint16, command: uint8, is_
 
 type SMB_Message_Response(header: SMB_Header, offset: uint16, command: uint8, is_orig: bool) = case command of {
 	# SMB1 Command Extensions
-	#SMB_COM_OPEN_ANDX                -> open_andx              : SMB_open_andx_response(header, offset);
+	#SMB_COM_OPEN_ANDX                -> open_andx              : SMB1_open_andx_response(header, offset);
 	SMB_COM_READ_ANDX                -> read_andx              : SMB1_read_andx_response(header, offset);
 	SMB_COM_WRITE_ANDX               -> write_andx             : SMB1_write_andx_response(header, offset);
 	SMB_COM_TRANSACTION2             -> transaction2           : SMB1_transaction2_response(header);

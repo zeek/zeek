@@ -119,6 +119,16 @@ event smb2_tree_connect_response(c: connection, hdr: SMB2::Header, response: SMB
 	Log::write(SMB::MAPPING_LOG, c$smb_state$current_tree);
 	}
 
+event smb2_tree_disconnect_request(c: connection, hdr: SMB2::Header) &priority=5
+	{
+	if ( hdr$tree_id in c$smb_state$tid_map )
+		{
+		delete c$smb_state$tid_map[hdr$tree_id];
+		delete c$smb_state$current_tree;
+		delete c$smb_state$current_cmd$referenced_tree;
+		}
+	}
+
 event smb2_create_request(c: connection, hdr: SMB2::Header, name: string) &priority=5
 	{
 	if ( name == "")

@@ -28,11 +28,6 @@ export {
 		PRINT_WRITE,
 		PRINT_OPEN,
 		PRINT_CLOSE,
-
-		UNKNOWN_READ,
-		UNKNOWN_WRITE,
-		UNKNOWN_OPEN,
-		UNKNOWN_CLOSE,
 	};
 
 	## The file actions which are logged.
@@ -43,8 +38,6 @@ export {
 
 		PRINT_OPEN,
 		PRINT_CLOSE,
-
-		UNKNOWN_OPEN,
 	} &redef;
 
 	## The server response statuses which are *not* logged.
@@ -225,7 +218,6 @@ function write_file_log(state: State)
 	{
 	local f = state$current_file;
 	if ( f?$name && 
-	     f$name !in pipe_names &&
 	     f$action in logged_file_actions )
 		{
 		# Everything in this if statement is to avoid overlogging
@@ -250,6 +242,12 @@ function write_file_log(state: State)
 		
 		Log::write(FILES_LOG, f);
 		}
+	}
+
+event smb_pipe_connect_heuristic(c: connection) &priority=5
+	{
+	c$smb_state$current_tree$path = "<unknown>";
+	c$smb_state$current_tree$share_type = "PIPE";
 	}
 
 event file_state_remove(f: fa_file) &priority=-5

@@ -1,13 +1,27 @@
 refine connection SMB_Conn += {
 	function proc_smb1_nt_create_andx_request(header: SMB_Header, val: SMB1_nt_create_andx_request): bool
 		%{
+		StringVal *filename = smb_string2stringval(${val.filename});
+		if ( ! ${header.is_pipe} &&
+		     BifConst::SMB::pipe_filenames->AsTable()->Lookup(filename->CheckString()) )
+			{
+			set_tree_is_pipe(${header.tid});
+			BifEvent::generate_smb_pipe_connect_heuristic(bro_analyzer(),
+			                                              bro_analyzer()->Conn());
+			}
+
 		if ( smb1_nt_create_andx_request )
 			{
 			BifEvent::generate_smb1_nt_create_andx_request(bro_analyzer(),
 			                                              bro_analyzer()->Conn(),
 			                                              BuildHeaderVal(header),
-			                                              smb_string2stringval(${val.filename}));
+			                                              filename);
 			}
+		else
+			{
+			delete filename;
+			}
+
 		return true;
 		%}
 
@@ -24,14 +38,6 @@ refine connection SMB_Conn += {
 			                                                                 ${val.last_access_time},
 			                                                                 ${val.create_time},
 			                                                                 ${val.last_change_time}));
-			}
-
-		if ( ${val.end_of_file} > 0 )
-			{
-			//file_mgr->SetSize(${val.end_of_file},
-			//                  bro_analyzer()->GetAnalyzerTag(),
-			//                  bro_analyzer()->Conn(),
-			//                  header->is_orig());
 			}
 
 		return true;

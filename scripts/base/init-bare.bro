@@ -2505,11 +2505,13 @@ export {
 		## The negotiate flags
 		flags       : NTLM::NegotiateFlags;
 		## The domain or computer name hosting the account
-		domain_name : string;
+		domain_name : string &optional;
 		## The name of the user to be authenticated.
-		user_name   : string;
+		user_name   : string &optional;
 		## The name of the computer to which the user was logged on.
-		workstation : string;
+		workstation : string &optional;
+		## The session key
+		session_key : string &optional;
 		## The Windows version information, if supplied
 		version     : NTLM::Version &optional;
 	};
@@ -2533,6 +2535,13 @@ export {
 		## The time when the file was last modified.
 		changed  : time &log;
 	} &log;
+
+	## A set of file names used as named pipes over SMB. This
+	## only comes into play as a heuristic to identify named
+	## pipes when the drive mapping wasn't seen by Bro.
+	##
+	## .. bro:see::smb_pipe_connect_heuristic
+	const SMB::pipe_filenames: set[string] &redef;
 }
 
 module SMB1;

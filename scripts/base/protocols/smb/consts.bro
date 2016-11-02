@@ -10,20 +10,18 @@ export {
 		[0x00000000] = [$id="SUCCESS", $desc="The operation completed successfully."],
 	} &redef &default=function(i: count):StatusCode { local unknown=fmt("unknown-%d", i); return [$id=unknown, $desc=unknown]; };
 
-	## These are files names that are used for special 
-	## cases by the file system and would not be 
-	## considered "normal" files.
-	const pipe_names: set[string] = {
-		"\\netdfs",
-		"\\spoolss",
-		"\\NETLOGON",
-		"\\winreg",
-		"\\lsarpc",
-		"\\samr",
-		"\\srvsvc",
+	## Heuristic detection of named pipes when the pipe
+	## mapping isn't seen. This variable is defined in
+	## init-bare.bro.
+	redef SMB::pipe_filenames = {
+		"spoolss",
+		"winreg",
+		"samr",
 		"srvsvc",
+		"netdfs",
+		"lsarpc",
+		"wkssvc",
 		"MsFteWds",
-		"\\wkssvc",
 	};
 
 	## The UUIDs used by the various RPC endpoints

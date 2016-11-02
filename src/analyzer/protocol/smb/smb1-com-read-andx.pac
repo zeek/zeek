@@ -28,7 +28,7 @@ refine connection SMB_Conn += {
 			                                          BuildHeaderVal(h),
 			                                          ${val.data_len});
 
-		if ( ! ${val.is_pipe} && ${val.data_len} > 0 )
+		if ( ! ${h.is_pipe} && ${val.data_len} > 0 )
 			{
 			uint64 offset = read_offsets[${h.mid}];
 			read_offsets.erase(${h.mid});
@@ -93,8 +93,7 @@ type SMB1_read_andx_response(header: SMB_Header, offset: uint16) = record {
 
 	andx_command      : SMB_andx_command(header, 0, offset+offsetof(andx_command), andx.command);
 } &let {
-	is_pipe     : bool   = $context.connection.get_tree_is_pipe(header.tid);
-	pipe_proc   : bool   = $context.connection.forward_dce_rpc(data, 0, false) &if(is_pipe);
+	pipe_proc   : bool   = $context.connection.forward_dce_rpc(data, 0, false) &if(header.is_pipe);
 
 	padding_len : uint8  = (header.unicode == 1) ? 1 : 0;
 	data_len    : uint32 = (data_len_high << 16) + data_len_low;

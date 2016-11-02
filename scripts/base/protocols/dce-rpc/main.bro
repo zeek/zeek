@@ -158,13 +158,14 @@ event dce_rpc_response(c: connection, fid: count, opnum: count, stub_len: count)
 	{
 	if ( c?$dce_rpc )
 		{
-		# If there is not an endpoint, there isn't much reason to log.
+		# If there is noendpoint, there isn't much reason to log.
 		# This can happen if the request isn't seen.
-		if ( (c$dce_rpc?$endpoint && c$dce_rpc$endpoint !in ignored_operations)
-		     || 
-		     (c$dce_rpc?$endpoint && c$dce_rpc?$operation &&
-		      c$dce_rpc$operation !in ignored_operations[c$dce_rpc$endpoint] &&
-		      "*" !in ignored_operations[c$dce_rpc$endpoint]) )
+		if ( ( c$dce_rpc?$endpoint && c$dce_rpc?$operation ) &&
+		     ( c$dce_rpc$endpoint !in ignored_operations
+		       ||
+		       ( c$dce_rpc?$endpoint && c$dce_rpc?$operation &&
+		        c$dce_rpc$operation !in ignored_operations[c$dce_rpc$endpoint] &&
+		        "*" !in ignored_operations[c$dce_rpc$endpoint] ) ) )
 			{
 			Log::write(LOG, c$dce_rpc);
 			}
@@ -195,11 +196,12 @@ event connection_state_remove(c: connection)
 				}
 			}
 
-		if ( (c$dce_rpc?$endpoint && c$dce_rpc$endpoint !in ignored_operations)
-		     || 
-		     (c$dce_rpc?$endpoint && c$dce_rpc?$operation &&
-		      c$dce_rpc$operation !in ignored_operations[c$dce_rpc$endpoint] &&
-		      "*" !in ignored_operations[c$dce_rpc$endpoint]) )
+		if ( ( c$dce_rpc?$endpoint && c$dce_rpc?$operation ) &&
+		     ( c$dce_rpc$endpoint !in ignored_operations
+		       ||
+		       ( c$dce_rpc?$endpoint && c$dce_rpc?$operation &&
+		        c$dce_rpc$operation !in ignored_operations[c$dce_rpc$endpoint] &&
+		        "*" !in ignored_operations[c$dce_rpc$endpoint] ) ) )
 			{
 			Log::write(LOG, c$dce_rpc);
 			}

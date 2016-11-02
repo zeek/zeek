@@ -2,12 +2,25 @@ refine connection SMB_Conn += {
 
 	function proc_smb2_create_request(h: SMB2_Header, val: SMB2_create_request): bool
 		%{
+		StringVal *filename = smb2_string2stringval(${val.filename});
+		if ( ! ${h.is_pipe} &&
+		     BifConst::SMB::pipe_filenames->AsTable()->Lookup(filename->CheckString()) )
+			{
+			set_tree_is_pipe(${h.tree_id});
+			BifEvent::generate_smb_pipe_connect_heuristic(bro_analyzer(),
+			                                              bro_analyzer()->Conn());
+			}
+
 		if ( smb2_create_request )
 			{
 			BifEvent::generate_smb2_create_request(bro_analyzer(),
 			                                       bro_analyzer()->Conn(),
 			                                       BuildSMB2HeaderVal(h),
-			                                       smb2_string2stringval(${val.filename}));
+			                                       filename);
+			}
+		else
+			{
+			delete filename;
 			}
 
 		return true;
@@ -27,14 +40,6 @@ refine connection SMB_Conn += {
 			                                                          ${val.creation_time},
 			                                                          ${val.change_time}),
 			                                        smb2_file_attrs_to_bro(${val.file_attrs}));
-			}
-
-		if ( ${val.eof} > 0 )
-			{
-			//file_mgr->SetSize(${val.eof},
-			//                  bro_analyzer()->GetAnalyzerTag(),
-			//                  bro_analyzer()->Conn(),
-			//                  h->is_orig());
 			}
 
 		return true;

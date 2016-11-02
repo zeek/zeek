@@ -1,4 +1,24 @@
 
+2.5-beta-135 | 2016-11-02 09:47:20 -0700
+
+  * SMB fixes and cleanup. Includes better SMB error handling, improved DCE_RPC
+    handling in edge cases where drive_mapping is not seen. The concept of unknown
+    shares has been removed with this change. Also fixes SMB tree connect handling and
+    removes files that are not parsed. SMB2 error parsing is disabled because it never
+    was implemented correctly. (Seth Hall)
+
+  * Including a test for raw NTLM in SMB (Seth Hall)
+
+  * Updates for SMB auth handling from Martin van Hensbergen.
+
+     - Raw NTLM (not in GSSAPI) over SMB is now handled correctly.
+     - The encrypted NTLM session key is now passed into scriptland
+       through the ntlm_authenticate event. (Seth Hall)
+
+  * Add a files framework signature for VIM tmp files. (Seth Hall)
+
+  * Version parsing scripts now supports several beta versions. (Johanna Amann)
+
 2.5-beta-123 | 2016-11-01 09:40:49 -0700
 
   * Add a new site policy script local-logger.bro. (Daniel Thayer)

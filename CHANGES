@@ -1,4 +1,8 @@
 
+2.5-beta2 | 2016-11-02 12:13:11 -0700
+
+  * Release 2.5-beta2.
+
 2.5-beta-135 | 2016-11-02 09:47:20 -0700
 
   * SMB fixes and cleanup. Includes better SMB error handling, improved DCE_RPC

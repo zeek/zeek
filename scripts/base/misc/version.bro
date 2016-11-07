@@ -49,7 +49,7 @@ export {
 
 function parse(version_string: string): VersionDescription
 	{
-	if ( /[[:digit:]]\.[[:digit:]][[:digit:]]?(\.[[:digit:]][[:digit:]]?)?(\-beta)?(-[[:digit:]]+)?(\-debug)?/ != version_string )
+	if ( /[[:digit:]]\.[[:digit:]][[:digit:]]?(\.[[:digit:]][[:digit:]]?)?(\-beta[[:digit:]]?)?(-[[:digit:]]+)?(\-debug)?/ != version_string )
 		{
 		Reporter::error(fmt("Version string %s cannot be parsed", version_string));
 		return VersionDescription($version_number=0, $major=0, $minor=0, $patch=0, $commit=0, $beta=F, $debug=F, $version_string=version_string);

@@ -42,7 +42,7 @@ refine connection SMB_Conn += {
 		uint64 offset = smb2_read_offsets[${h.message_id}];
 		smb2_read_offsets.erase(${h.message_id});
 
-		if ( ! ${val.is_pipe} && ${val.data_len} > 0 )
+		if ( ! ${h.is_pipe} && ${val.data_len} > 0 )
 			{
 			file_mgr->DataIn(${val.data}.begin(), ${val.data_len}, offset,
 			                 bro_analyzer()->GetAnalyzerTag(),
@@ -83,9 +83,8 @@ type SMB2_read_response(header: SMB2_Header) = record {
 	pad               : padding to data_offset - header.head_length;
 	data              : bytestring &length=data_len;
 } &let {
-	is_pipe   : bool   = $context.connection.get_tree_is_pipe(header.tree_id);
 	fid       : uint64 = $context.connection.get_file_id(header.message_id);
-	pipe_proc : bool   = $context.connection.forward_dce_rpc(data, fid, false) &if(is_pipe);
+	pipe_proc : bool   = $context.connection.forward_dce_rpc(data, fid, false) &if(header.is_pipe);
 
 	proc: bool = $context.connection.proc_smb2_read_response(header, this);
 };

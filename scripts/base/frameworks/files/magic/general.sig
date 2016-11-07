@@ -311,3 +311,8 @@ signature file-elf-coredump {
 	file-mime "application/x-coredump", 50
 	file-magic /\x7fELF[\x01\x02](\x01.{10}\x04\x00|\x02.{10}\x00\x04)/
 }
+
+signature file-vim-tmp {
+	file-mime "application/x-vim-tmp", 100
+	file-magic /^b0VIM/
+}

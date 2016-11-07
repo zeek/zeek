@@ -13,7 +13,8 @@ refine connection SMB_Conn += {
 
 	function proc_smb2_tree_connect_response(header: SMB2_Header, val: SMB2_tree_connect_response): bool
 		%{
-		set_tree_is_pipe(${header.tree_id}, ${val.share_type} == SMB2_SHARE_TYPE_PIPE);
+		if ( ${val.share_type} == SMB2_SHARE_TYPE_PIPE )
+			set_tree_is_pipe(${header.tree_id});
 
 		if ( smb2_tree_connect_response )
 			{

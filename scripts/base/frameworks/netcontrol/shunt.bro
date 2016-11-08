@@ -11,21 +11,21 @@ export {
 	##
 	## f: The flow to shunt.
 	##
-	## t: How long to leave the shunt in place, with 0 being indefinitly.
+	## t: How long to leave the shunt in place, with 0 being indefinitely.
 	##
 	## location: An optional string describing where the shunt was triggered.
 	##
-	## Returns: The id of the inserted rule on succes and zero on failure.
+	## Returns: The id of the inserted rule on success and zero on failure.
 	global shunt_flow: function(f: flow_id, t: interval, location: string &default="") : string;
 
 	type ShuntInfo: record {
 		## Time at which the recorded activity occurred.
 		ts: time &log;
-		## ID of the rule; unique during each Bro run
+		## ID of the rule; unique during each Bro run.
 		rule_id: string  &log;
-		## Flow ID of the shunted flow
+		## Flow ID of the shunted flow.
 		f: flow_id &log;
-		## Expiry time of the shunt
+		## Expiry time of the shunt.
 		expire: interval &log;
 		## Location where the underlying action was triggered.
 		location: string &log &optional;

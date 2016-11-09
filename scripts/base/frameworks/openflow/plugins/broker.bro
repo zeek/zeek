@@ -18,11 +18,11 @@ export {
 	##
 	## host_port: Controller listen port.
 	##
-	## topic: broker topic to send messages to.
+	## topic: Broker topic to send messages to.
 	##
 	## dpid: OpenFlow switch datapath id.
 	##
-	## Returns: OpenFlow::Controller record
+	## Returns: OpenFlow::Controller record.
 	global broker_new: function(name: string, host: addr, host_port: port, topic: string, dpid: count): OpenFlow::Controller;
 
 	redef record ControllerState += {
@@ -32,7 +32,7 @@ export {
 		broker_port: port &optional;
 		## OpenFlow switch datapath id.
 		broker_dpid: count &optional;
-		## Topic to sent events for this controller to
+		## Topic to send events for this controller to.
 		broker_topic: string &optional;
 	};
 

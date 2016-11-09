@@ -79,7 +79,7 @@ export {
 
 	## Information passed into rotation callback functions.
 	type RotationInfo: record {
-		writer: Writer;		##< The :bro:type:`Log::Writer` being used.
+		writer: Writer;		##< The log writer being used.
 		fname: string;		##< Full name of the rotated file.
 		path: string;		##< Original path value.
 		open: time;		##< Time when opened.

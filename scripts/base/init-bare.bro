@@ -2556,7 +2556,6 @@ export {
 	##    smb1_echo_response smb1_negotiate_request
 	##    smb1_negotiate_response smb1_nt_cancel_request
 	##    smb1_nt_create_andx_request smb1_nt_create_andx_response
-	##    smb1_open_andx_request smb1_open_andx_response
 	##    smb1_query_information_request smb1_read_andx_request
 	##    smb1_read_andx_response smb1_session_setup_andx_request
 	##    smb1_session_setup_andx_response smb1_transaction_request
@@ -2844,7 +2843,7 @@ export {
 	##    smb2_create_request smb2_create_response smb2_negotiate_request
 	##    smb2_negotiate_response smb2_read_request
 	##    smb2_session_setup_request smb2_session_setup_response
-	##    smb2_set_info_request smb2_file_rename smb2_file_delete
+	##    smb2_file_rename smb2_file_delete
 	##    smb2_tree_connect_request smb2_tree_connect_response
 	##    smb2_write_request
 	type SMB2::Header: record {

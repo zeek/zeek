@@ -31,17 +31,18 @@ New Functionality
      transferred over SMB can be analyzed.
    - Includes GSSAPI and NTLM analyzer and reimplements the DCE-RPC
      analyzer.
-   - New logs: smb_cmd.log, smb_files.log, smb_mapping.log, ntlm.log, and dce_rpc.log
+   - New logs: smb_cmd.log, smb_files.log, smb_mapping.log, ntlm.log,
+     and dce_rpc.log
    - Not every possible SMB command or functionality is implemented, but
      generally, file handling should work whenever files are transferred.
      Please speak up on the mailing list if there is an obvious oversight.
 
 - Bro now includes the NetControl framework. The framework allows for easy
   interaction of Bro with hard- and software switches, firewalls, etc.
-  New log files: net_control.log, netcontrol_catch_release.log,
+  New log files: netcontrol.log, netcontrol_catch_release.log,
   netcontrol_drop.log, and netcontrol_shunt.log.
 
-- Bro now includes the OpenFlow framework which exposes the datastructures
+- Bro now includes the OpenFlow framework which exposes the data structures
   necessary to interface to OpenFlow capable hardware.
 
 - Bro's Intelligence Framework was refactored and new functionality
@@ -89,8 +90,8 @@ New Functionality
     groups in TLS 1.3.
 
   - The new event ssl_application_data gives information about application data
-    that is exchanged before encryption fully starts. This is used to detect when
-    encryption starts in TLS 1.3.
+    that is exchanged before encryption fully starts. This is used to detect
+    when encryption starts in TLS 1.3.
 
 - Bro now tracks VLAN IDs. To record them inside the connection log,
   load protocols/conn/vlan-logging.bro.
@@ -319,6 +320,10 @@ Changed Functionality
     is included in the crash report.  If there is no backtrace, then
     the crash report includes instructions on how to get backtraces
     included in future crash reports.
+
+  - There is a new option SitePolicyScripts that replaces SitePolicyStandalone
+    (the old option is still available, but will be removed in the next
+    release).
 
 Removed Functionality
 ---------------------

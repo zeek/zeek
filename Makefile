@@ -42,10 +42,6 @@ dist:
 	@$(HAVE_MODULES) && find $(VERSION_MIN) -name .git\* | xargs rm -rf || exit 0
 	@$(HAVE_MODULES) && tar -czf $(VERSION_MIN).tgz $(VERSION_MIN) && echo Package: $(VERSION_MIN).tgz && rm -rf $(VERSION_MIN) || exit 0
 
-bindist:
-	@( cd pkg && ( ./make-deb-packages || ./make-mac-packages || \
-	               ./make-rpm-packages ) )
-
 distclean:
 	rm -rf $(BUILD)
 	$(MAKE) -C testing $@
@@ -65,4 +61,4 @@ configured:
 	@test -d $(BUILD) || ( echo "Error: No build/ directory found. Did you run configure?" && exit 1 )
 	@test -e $(BUILD)/Makefile || ( echo "Error: No build/Makefile found. Did you run configure?" && exit 1 )
 
-.PHONY : all install clean doc docclean dist bindist distclean configured
+.PHONY : all install clean doc docclean dist distclean configured

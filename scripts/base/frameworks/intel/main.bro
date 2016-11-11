@@ -1,6 +1,7 @@
-##! The intelligence framework provides a way to store and query intelligence data
-##! (e.g. IP addresses, URLs and hashes). The intelligence items can be associated
-##! with metadata to allow informed decisions about matching and handling.
+##! The intelligence framework provides a way to store and query intelligence
+##! data (e.g. IP addresses, URLs and hashes). The intelligence items can be
+##! associated with metadata to allow informed decisions about matching and
+##! handling.
 
 @load base/frameworks/notice
 

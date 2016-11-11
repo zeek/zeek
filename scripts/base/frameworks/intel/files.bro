@@ -1,5 +1,5 @@
 ##! File analysis framework integration for the intelligence framework. This
-##! script manages file information in intelligence framework datastructures.
+##! script manages file information in intelligence framework data structures.
 
 @load ./main
 

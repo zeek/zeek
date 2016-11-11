@@ -18,7 +18,7 @@ export {
 		## Set internally.
 		_priority: int &default=+0;
 
-		## Set internally. Signifies if the plugin has returned that it has activated succesfully.
+		## Set internally. Signifies if the plugin has returned that it has activated successfully.
 		_activated: bool &default=F;
 	};
 

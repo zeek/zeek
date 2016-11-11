@@ -26,8 +26,8 @@ export {
 		operation  : string   &log &optional;
 	};
 
-	## These are DCE-RPC operations that are ignored, typically due 
-	## the operations being noisy and low valueon most networks.
+	## These are DCE-RPC operations that are ignored, typically due to
+	## the operations being noisy and low value on most networks.
 	const ignored_operations: table[string] of set[string] = {
 		["winreg"] = set("BaseRegCloseKey", "BaseRegGetVersion", "BaseRegOpenKey", "BaseRegQueryValue", "BaseRegDeleteKeyEx", "OpenLocalMachine", "BaseRegEnumKey", "OpenClassesRoot"),
 		["spoolss"] = set("RpcSplOpenPrinter", "RpcClosePrinter"),
@@ -158,7 +158,7 @@ event dce_rpc_response(c: connection, fid: count, opnum: count, stub_len: count)
 	{
 	if ( c?$dce_rpc )
 		{
-		# If there is noendpoint, there isn't much reason to log.
+		# If there is no endpoint, there isn't much reason to log.
 		# This can happen if the request isn't seen.
 		if ( ( c$dce_rpc?$endpoint && c$dce_rpc?$operation ) &&
 		     ( c$dce_rpc$endpoint !in ignored_operations

@@ -131,7 +131,7 @@ export {
 	## Default log extension function in the case that you would like to
 	## apply the same extensions to all logs.  The function *must* return
 	## a record with all of the fields to be included in the log. The
-	## default function included here does not return a value to indicate
+	## default function included here does not return a value, which indicates
 	## that no extensions are added.
 	const Log::default_ext_func: function(path: string): any =
 		function(path: string) { } &redef;

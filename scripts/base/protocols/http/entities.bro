@@ -17,7 +17,7 @@ export {
 		## An ordered vector of file unique IDs.
 		orig_fuids:      vector of string &log &optional;
 
-		## An order vector of filenames from the client.
+		## An ordered vector of filenames from the client.
 		orig_filenames:  vector of string &log &optional;
 
 		## An ordered vector of mime types.
@@ -26,7 +26,7 @@ export {
 		## An ordered vector of file unique IDs.
 		resp_fuids:      vector of string &log &optional;
 
-		## An order vector of filenames from the server.
+		## An ordered vector of filenames from the server.
 		resp_filenames:  vector of string &log &optional;
 
 		## An ordered vector of mime types.

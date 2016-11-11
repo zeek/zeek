@@ -3,7 +3,7 @@
 module SMB1;
 
 redef record SMB::CmdInfo += {
-	## Dialects offered by the client	
+	## Dialects offered by the client.
 	smb1_offered_dialects: string_vec &optional;
 };
 

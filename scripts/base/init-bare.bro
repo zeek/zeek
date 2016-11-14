@@ -1129,7 +1129,7 @@ const CONTENTS_BOTH = 3;	##< Record both originator and responder contents.
 # Values for code of ICMP *unreachable* messages. The list is not exhaustive.
 # todo:: these should go into an enum to make them autodoc'able
 #
-# .. bro:see:: :bro:see:`icmp_unreachable `
+# .. bro:see:: icmp_unreachable
 const ICMP_UNREACH_NET = 0;	##< Network unreachable.
 const ICMP_UNREACH_HOST = 1;	##< Host unreachable.
 const ICMP_UNREACH_PROTOCOL = 2;	##< Protocol unreachable.
@@ -2540,7 +2540,7 @@ export {
 	## only comes into play as a heuristic to identify named
 	## pipes when the drive mapping wasn't seen by Bro.
 	##
-	## .. bro:see::smb_pipe_connect_heuristic
+	## .. bro:see:: smb_pipe_connect_heuristic
 	const SMB::pipe_filenames: set[string] &redef;
 }
 
@@ -3098,7 +3098,7 @@ type dns_edns_additional: record {
 
 ## An additional DNS TSIG record.
 ##
-## bro:see:: dns_TSIG_addl
+## .. bro:see:: dns_TSIG_addl
 type dns_tsig_additional: record {
 	query: string;	##< Query.
 	qtype: count;	##< Query type.

@@ -348,7 +348,7 @@ export {
 	##          to handle, or one of the stream's filters has an invalid
 	##          ``path_func``.
 	##
-	## .. bro:see: Log::enable_stream Log::disable_stream
+	## .. bro:see:: Log::enable_stream Log::disable_stream
 	global write: function(id: ID, columns: any) : bool;
 
 	## Sets the buffering status for all the writers of a given logging stream.

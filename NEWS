@@ -120,7 +120,7 @@ New Functionality
   - matching_subnets(subnet, table) returns all subnets of the set or table
     that contain the given subnet.
 
-  - filter_subnet_table(subnet, table) works like check_subnet, but returns
+  - filter_subnet_table(subnet, table) works like matching_subnets, but returns
     a table containing all matching entries.
 
 - Several built-in functions for handling IP addresses and subnets were added:

@@ -33,21 +33,21 @@ export {
 		["spoolss"] = set("RpcSplOpenPrinter", "RpcClosePrinter"),
 		["wkssvc"] = set("NetrWkstaGetInfo"),
 	} &redef;
+
+	type State: record {
+		uuid       : string &optional;
+		named_pipe : string &optional;
+	};
+
+	# This is to store the log and state information
+	# for multiple DCE/RPC bindings over a single TCP connection (named pipes).
+	type BackingState: record {
+		info: Info;
+		state: State;
+	};
 }
 
 redef DPD::ignore_violations += { Analyzer::ANALYZER_DCE_RPC };
-
-type State: record {
-	uuid       : string &optional;
-	named_pipe : string &optional;
-};
-
-# This is to store the log and state information 
-# for multiple DCE/RPC bindings over a single TCP connection (named pipes).
-type BackingState: record {
-	info: Info;
-	state: State;
-};
 
 redef record connection += {
 	dce_rpc: Info &optional;

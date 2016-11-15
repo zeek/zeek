@@ -19,25 +19,25 @@ export {
 	##
 	## success_event: If true, flow_mod_success is raised for each logged line.
 	##
-	## Returns: OpenFlow::Controller record
+	## Returns: OpenFlow::Controller record.
 	global log_new: function(dpid: count, success_event: bool &default=T): OpenFlow::Controller;
 
 	redef record ControllerState += {
 		## OpenFlow switch datapath id.
 		log_dpid: count &optional;
-		## Raise or do not raise success event
+		## Raise or do not raise success event.
 		log_success_event: bool &optional;
 	};
 
 	## The record type which contains column fields of the OpenFlow log.
 	type Info: record {
-		## Network time
+		## Network time.
 		ts: time &log;
-		## OpenFlow switch datapath id
+		## OpenFlow switch datapath id.
 		dpid: count &log;
-		## OpenFlow match fields
+		## OpenFlow match fields.
 		match: ofp_match &log;
-		## OpenFlow modify flow entry message
+		## OpenFlow modify flow entry message.
 		flow_mod: ofp_flow_mod &log;
 	};
 

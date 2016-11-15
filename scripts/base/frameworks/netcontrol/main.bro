@@ -7,7 +7,7 @@
 ##! restrictions on entities, such as specific connections or IP addresses.
 ##!
 ##! This framework has two APIs: a high-level and low-level. The high-level API
-##! provides convinience functions for a set of common operations. The
+##! provides convenience functions for a set of common operations. The
 ##! low-level API provides full flexibility.
 
 module NetControl;
@@ -25,7 +25,7 @@ export {
 
 	## Activates a plugin.
 	##
-	## p: The plugin to acticate.
+	## p: The plugin to activate.
 	##
 	## priority: The higher the priority, the earlier this plugin will be checked
 	##           whether it supports an operation, relative to other plugins.
@@ -48,37 +48,37 @@ export {
 
 	## Allows all traffic involving a specific IP address to be forwarded.
 	##
-	## a: The address to be whitelistet.
+	## a: The address to be whitelisted.
 	##
-	## t: How long to whitelist it, with 0 being indefinitly.
+	## t: How long to whitelist it, with 0 being indefinitely.
 	##
 	## location: An optional string describing whitelist was triddered.
 	##
-	## Returns: The id of the inserted rule on succes and zero on failure.
+	## Returns: The id of the inserted rule on success and zero on failure.
 	global whitelist_address: function(a: addr, t: interval, location: string &default="") : string;
 
 	## Allows all traffic involving a specific IP subnet to be forwarded.
 	##
-	## s: The subnet to be whitelistet.
+	## s: The subnet to be whitelisted.
 	##
-	## t: How long to whitelist it, with 0 being indefinitly.
+	## t: How long to whitelist it, with 0 being indefinitely.
 	##
 	## location: An optional string describing whitelist was triddered.
 	##
-	## Returns: The id of the inserted rule on succes and zero on failure.
+	## Returns: The id of the inserted rule on success and zero on failure.
 	global whitelist_subnet: function(s: subnet, t: interval, location: string &default="") : string;
 
-	## Redirects an uni-directional flow to another port.
+	## Redirects a uni-directional flow to another port.
 	##
 	## f: The flow to redirect.
 	##
-	## out_port: Port to redirect the flow to
+	## out_port: Port to redirect the flow to.
 	##
-	## t: How long to leave the redirect in place, with 0 being indefinitly.
+	## t: How long to leave the redirect in place, with 0 being indefinitely.
 	##
 	## location: An optional string describing where the redirect was triggered.
 	##
-	## Returns: The id of the inserted rule on succes and zero on failure.
+	## Returns: The id of the inserted rule on success and zero on failure.
 	global redirect_flow: function(f: flow_id, out_port: count, t: interval, location: string &default="") : string;
 
 	## Quarantines a host. This requires a special quarantine server, which runs a HTTP server explaining
@@ -87,13 +87,13 @@ export {
 	## instead. Only http communication infected to quarantinehost is allowed. All other network communication
 	## is blocked.
 	##
-	## infected: the host to quarantine
+	## infected: the host to quarantine.
 	##
-	## dns: the network dns server
+	## dns: the network dns server.
 	##
-	## quarantine: the quarantine server running a dns and a web server
+	## quarantine: the quarantine server running a dns and a web server.
 	##
-	## t: how long to leave the quarantine in place
+	## t: how long to leave the quarantine in place.
 	##
 	## Returns: Vector of inserted rules on success, empty list on failure.
 	global quarantine_host: function(infected: addr, dns: addr, quarantine: addr, t: interval, location: string &default="") : vector of string;
@@ -111,7 +111,7 @@ export {
 	##
 	## r: The rule to install.
 	##
-	## Returns: If succesful, returns an ID string unique to the rule that can
+	## Returns: If successful, returns an ID string unique to the rule that can
 	##          later be used to refer to it. If unsuccessful, returns an empty
 	##          string. The ID is also assigned to ``r$id``. Note that
 	##          "successful" means "a plugin knew how to handle the rule", it
@@ -126,19 +126,19 @@ export {
 	##
 	## reason: Optional string argument giving information on why the rule was removed.
 	##
-	## Returns: True if succesful, the relevant plugin indicated that it knew
+	## Returns: True if successful, the relevant plugin indicated that it knew
 	##          how to handle the removal. Note that again "success" means the
-	##          plugin accepted the removal. They might still fail to put it
+	##          plugin accepted the removal. It might still fail to put it
 	##          into effect, as that might happen asynchronously and thus go
 	##          wrong at that point.
 	global remove_rule: function(id: string, reason: string &default="") : bool;
 
-	## Deletes a rule without removing in from the backends to which it has been
-	## added before. This mean that no messages will be sent to the switches to which
+	## Deletes a rule without removing it from the backends to which it has been
+	## added before. This means that no messages will be sent to the switches to which
 	## the rule has been added; if it is not removed from them by a separate mechanism,
 	## it will stay installed and not be removed later.
 	##
-	## id: The rule to delete, specified as the ID returned by :bro:see:`add_rule` .
+	## id: The rule to delete, specified as the ID returned by :bro:see:`NetControl::add_rule`.
 	##
 	## reason: Optional string argument giving information on why the rule was deleted.
 	##
@@ -152,9 +152,9 @@ export {
 	## the worker, the internal rule variables (starting with _) will not reflect the
 	## current state.
 	##
-	## ip: The ip address to search for
+	## ip: The ip address to search for.
 	##
-	## Returns: vector of all rules affecting the IP address
+	## Returns: vector of all rules affecting the IP address.
 	global find_rules_addr: function(ip: addr) : vector of Rule;
 
 	## Searches all rules affecting a certain subnet.
@@ -171,9 +171,9 @@ export {
 	## the worker, the internal rule variables (starting with _) will not reflect the
 	## current state.
 	##
-	## sn: The subnet to search for
+	## sn: The subnet to search for.
 	##
-	## Returns: vector of all rules affecting the subnet
+	## Returns: vector of all rules affecting the subnet.
 	global find_rules_subnet: function(sn: subnet) : vector of Rule;
 
 	###### Asynchronous feedback on rules.
@@ -201,7 +201,7 @@ export {
 	global rule_exists: event(r: Rule, p: PluginState, msg: string &default="");
 
 	## Reports that a plugin reports a rule was removed due to a
-	## remove: function() vall.
+	## remove_rule function call.
 	##
 	## r: The rule now removed.
 	##
@@ -234,9 +234,9 @@ export {
 
 	## This event is raised when a new rule is created by the NetControl framework
 	## due to a call to add_rule. From this moment, until the rule_destroyed event
-	## is raised, the rule is tracked internally by the NetControl framewory.
+	## is raised, the rule is tracked internally by the NetControl framework.
 	##
-	## Note that this event does not mean that a rule was succesfully added by
+	## Note that this event does not mean that a rule was successfully added by
 	## any backend; it just means that the rule has been accepted and addition
 	## to the specified backend is queued. To get information when rules are actually
 	## installed by the hardware, use the rule_added, rule_exists, rule_removed, rule_timeout
@@ -248,15 +248,15 @@ export {
 	## was removed by all plugins to which it was added, by the fact that it timed out
 	## or due to rule errors.
 	##
-	## To get the cause or a rule remove, hook the rule_removed, rule_timeout and
-	## rule_error calls.
+	## To get the cause of a rule remove, catch the rule_removed, rule_timeout and
+	## rule_error events.
 	global rule_destroyed: event(r: Rule);
 
 	## Hook that allows the modification of rules passed to add_rule before they
 	## are passed on to the plugins. If one of the hooks uses break, the rule is
 	## ignored and not passed on to any plugin.
 	##
-	## r: The rule to be added
+	## r: The rule to be added.
 	global NetControl::rule_policy: hook(r: Rule);
 
 	##### Plugin functions
@@ -279,19 +279,19 @@ export {
 
 	## State of an entry in the NetControl log.
 	type InfoState: enum {
-		REQUESTED, ##< The request to add/remove a rule was sent to the respective backend
-		SUCCEEDED, ##< A rule was succesfully added by a backend
-		EXISTS, ##< A backend reported that a rule was already existing
-		FAILED, ##< A rule addition failed
-		REMOVED, ##< A rule was succesfully removed by a backend
-		TIMEOUT, ##< A rule timeout was triggered by the NetControl framework or a backend
+		REQUESTED, ##< The request to add/remove a rule was sent to the respective backend.
+		SUCCEEDED, ##< A rule was successfully added by a backend.
+		EXISTS, ##< A backend reported that a rule was already existing.
+		FAILED, ##< A rule addition failed.
+		REMOVED, ##< A rule was successfully removed by a backend.
+		TIMEOUT, ##< A rule timeout was triggered by the NetControl framework or a backend.
 	};
 
 	## The record type defining the column fields of the NetControl log.
 	type Info: record {
 		## Time at which the recorded activity occurred.
 		ts: time		&log;
-		## ID of the rule; unique during each Bro run
+		## ID of the rule; unique during each Bro run.
 		rule_id: string  &log &optional;
 		## Type of the log entry.
 		category: InfoCategory	&log &optional;
@@ -311,9 +311,9 @@ export {
 		mod: string		&log &optional;
 		## String with an additional message.
 		msg: string		&log &optional;
-		## Number describing the priority of the log entry
+		## Number describing the priority of the log entry.
 		priority: int &log &optional;
-		## Expiry time of the log entry
+		## Expiry time of the log entry.
 		expire: interval &log &optional;
 		## Location where the underlying action was triggered.
 		location: string	&log &optional;
@@ -333,7 +333,7 @@ redef record Rule += {
 	_active_plugin_ids: set[count] &default=count_set();
 	## Internally set to plugins where the rule should not be removed upon timeout.
 	_no_expire_plugins: set[count] &default=count_set();
-	## Track if the rule was added succesfully by all responsible plugins.
+	## Track if the rule was added successfully by all responsible plugins.
 	_added: bool &default=F;
 };
 

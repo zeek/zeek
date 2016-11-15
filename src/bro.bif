@@ -1029,7 +1029,7 @@ function clear_table%(v: any%): any
 	return 0;
 	%}
 
-## Gets all subnets that contain a given subnet from a set/table[subnet]
+## Gets all subnets that contain a given subnet from a set/table[subnet].
 ##
 ## search: the subnet to search for.
 ##
@@ -1047,8 +1047,8 @@ function matching_subnets%(search: subnet, t: any%): subnet_vec
 	return t->AsTableVal()->LookupSubnets(search);
 	%}
 
-## For a set[subnet]/table[subnet], create a new table that contains all entries that
-## contain a given subnet.
+## For a set[subnet]/table[subnet], create a new table that contains all entries
+## that contain a given subnet.
 ##
 ## search: the subnet to search for.
 ##
@@ -1067,7 +1067,7 @@ function filter_subnet_table%(search: subnet, t: any%): any
 	%}
 
 ## Checks if a specific subnet is a member of a set/table[subnet].
-## In difference to the ``in`` operator, this performs an exact match, not
+## In contrast to the ``in`` operator, this performs an exact match, not
 ## a longest prefix match.
 ##
 ## search: the subnet to search for.
@@ -1994,7 +1994,7 @@ function is_v6_addr%(a: addr%): bool
 ##
 ## s: the subnet to check.
 ##
-## Returns: true if *a* is an IPv4 subnet, else false.
+## Returns: true if *s* is an IPv4 subnet, else false.
 function is_v4_subnet%(s: subnet%): bool
 	%{
 	if ( s->AsSubNet().Prefix().GetFamily() == IPv4 )
@@ -2007,7 +2007,7 @@ function is_v4_subnet%(s: subnet%): bool
 ##
 ## s: the subnet to check.
 ##
-## Returns: true if *a* is an IPv6 subnet, else false.
+## Returns: true if *s* is an IPv6 subnet, else false.
 function is_v6_subnet%(s: subnet%): bool
 	%{
 	if ( s->AsSubNet().Prefix().GetFamily() == IPv6 )
@@ -2311,7 +2311,7 @@ function to_subnet%(sn: string%): subnet
 ##
 ## a: The address to convert.
 ##
-## Returns: The *a* address as a :bro:type:`subnet`.
+## Returns: The address as a :bro:type:`subnet`.
 ##
 ## .. bro:see:: to_subnet
 function addr_to_subnet%(a: addr%): subnet
@@ -2320,12 +2320,12 @@ function addr_to_subnet%(a: addr%): subnet
 	return new SubNetVal(a->AsAddr(), width);
 	%}
 
-## Converts a :bro:type:`subnet` to a :bro:type:`addr` by
+## Converts a :bro:type:`subnet` to an :bro:type:`addr` by
 ## extracting the prefix.
 ##
-## s: The subnet to convert.
+## sn: The subnet to convert.
 ##
-## Returns: The *s* subnet as a :bro:type:`addr`.
+## Returns: The subnet as an :bro:type:`addr`.
 ##
 ## .. bro:see:: to_subnet
 function subnet_to_addr%(sn: subnet%): addr
@@ -2335,7 +2335,7 @@ function subnet_to_addr%(sn: subnet%): addr
 
 ## Returns the width of a :bro:type:`subnet`.
 ##
-## s: The subnet to convert.
+## sn: The subnet.
 ##
 ## Returns: The width of the subnet.
 ##

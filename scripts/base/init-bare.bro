@@ -1129,7 +1129,7 @@ const CONTENTS_BOTH = 3;	##< Record both originator and responder contents.
 # Values for code of ICMP *unreachable* messages. The list is not exhaustive.
 # todo:: these should go into an enum to make them autodoc'able
 #
-# .. bro:see:: :bro:see:`icmp_unreachable `
+# .. bro:see:: icmp_unreachable
 const ICMP_UNREACH_NET = 0;	##< Network unreachable.
 const ICMP_UNREACH_HOST = 1;	##< Host unreachable.
 const ICMP_UNREACH_PROTOCOL = 2;	##< Protocol unreachable.
@@ -2540,7 +2540,7 @@ export {
 	## only comes into play as a heuristic to identify named
 	## pipes when the drive mapping wasn't seen by Bro.
 	##
-	## .. bro:see::smb_pipe_connect_heuristic
+	## .. bro:see:: smb_pipe_connect_heuristic
 	const SMB::pipe_filenames: set[string] &redef;
 }
 
@@ -2556,7 +2556,6 @@ export {
 	##    smb1_echo_response smb1_negotiate_request
 	##    smb1_negotiate_response smb1_nt_cancel_request
 	##    smb1_nt_create_andx_request smb1_nt_create_andx_response
-	##    smb1_open_andx_request smb1_open_andx_response
 	##    smb1_query_information_request smb1_read_andx_request
 	##    smb1_read_andx_response smb1_session_setup_andx_request
 	##    smb1_session_setup_andx_response smb1_transaction_request
@@ -2844,7 +2843,7 @@ export {
 	##    smb2_create_request smb2_create_response smb2_negotiate_request
 	##    smb2_negotiate_response smb2_read_request
 	##    smb2_session_setup_request smb2_session_setup_response
-	##    smb2_set_info_request smb2_file_rename smb2_file_delete
+	##    smb2_file_rename smb2_file_delete
 	##    smb2_tree_connect_request smb2_tree_connect_response
 	##    smb2_write_request
 	type SMB2::Header: record {
@@ -3099,7 +3098,7 @@ type dns_edns_additional: record {
 
 ## An additional DNS TSIG record.
 ##
-## bro:see:: dns_TSIG_addl
+## .. bro:see:: dns_TSIG_addl
 type dns_tsig_additional: record {
 	query: string;	##< Query.
 	qtype: count;	##< Query type.

@@ -30,7 +30,7 @@ export {
 		return fmt("unknown-%d", i);
 		};
 
-	## TLS content types:
+	# TLS content types:
 	const CHANGE_CIPHER_SPEC = 20;
 	const ALERT = 21;
 	const HANDSHAKE = 22;
@@ -41,7 +41,7 @@ export {
 	const V2_CLIENT_MASTER_KEY = 302;
 	const V2_SERVER_HELLO = 304;
 
-	## TLS Handshake types:
+	# TLS Handshake types:
 	const HELLO_REQUEST       = 0;
 	const CLIENT_HELLO        = 1;
 	const SERVER_HELLO        = 2;
@@ -215,7 +215,7 @@ export {
 		[0xFF02] = "arbitrary_explicit_char2_curves"
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };
 
-	## Mapping between numeric codes and human readable string for SSL/TLC EC point formats.
+	## Mapping between numeric codes and human readable string for SSL/TLS EC point formats.
 	# See http://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-9
 	const ec_point_formats: table[count] of string = {
 		[0] = "uncompressed",

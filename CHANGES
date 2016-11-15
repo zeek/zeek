@@ -1,4 +1,16 @@
 
+2.5-beta2-15 | 2016-11-14 17:52:55 -0800
+
+  * Remove unused "bindist" make target. (Daniel Thayer)
+
+  * Improve the "How to Upgrade" page in the Bro docs. (Daniel Thayer)
+
+  * Update the quickstart guide for the deploy command. (Daniel Thayer)
+
+  * Improved installation instructions for Mac OS X. (Daniel Thayer)
+
+  * Lots of more small updates to documentation. (Daniel Thayer)
+
 2.5-beta2 | 2016-11-02 12:13:11 -0700
 
   * Release 2.5-beta2.

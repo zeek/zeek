@@ -1,4 +1,9 @@
 
+2.5-beta2-17 | 2016-11-14 17:59:19 -0800
+
+  * Add missing '@load ./pubkey-hashes' to
+    policy/frameworks/intel/seen. (Robin Sommer)
+
 2.5-beta2-15 | 2016-11-14 17:52:55 -0800
 
   * Remove unused "bindist" make target. (Daniel Thayer)

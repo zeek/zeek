@@ -1,4 +1,8 @@
 
+2.5-beta2-19 | 2016-11-15 13:24:08 -0800
+
+  * Updating submodule(s).
+
 2.5-beta2-17 | 2016-11-14 17:59:19 -0800
 
   * Add missing '@load ./pubkey-hashes' to

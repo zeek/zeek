@@ -3343,7 +3343,7 @@ function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 
 	if ( addl_pkt_dumper )
 		{
-		struct timeval ts;
+		pkt_timeval ts;
 		uint32 caplen, len, link_type;
 		u_char *data;
 

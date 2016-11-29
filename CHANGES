@@ -1,4 +1,14 @@
 
+2.5-6 | 2016-11-29 12:51:04 -0800
+
+  * Fix a build failure on OpenBSD relating to pcap_pkthdr. Also fixes
+    an include issue on OpenBSD. (Daniel Thayer)
+
+  * Fix compile error in krb-types.pac. (Johanna Amann)
+
+  * Update krb-types.pac: KerberosString formatting for the principal
+    principal name is now compliant with RFC 4120 section 5.2.2. (jamesecorrenti)
+
 2.5 | 2016-11-16 14:51:59 -0800
 
   * Release 2.5.

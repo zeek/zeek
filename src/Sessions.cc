@@ -761,7 +761,7 @@ void NetSessions::DoNextInnerPacket(double t, const Packet* pkt,
 	uint32 caplen, len;
 	caplen = len = inner->TotalLen();
 
-	struct timeval ts;
+	pkt_timeval ts;
 	int link_type;
 	Layer3Proto l3_proto;
 

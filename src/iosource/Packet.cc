@@ -9,13 +9,14 @@ extern "C" {
 #elif defined(HAVE_SYS_ETHERNET_H)
 #include <sys/ethernet.h>
 #elif defined(HAVE_NETINET_IF_ETHER_H)
+#include <net/if_arp.h>
 #include <netinet/if_ether.h>
 #elif defined(HAVE_NET_ETHERTYPES_H)
 #include <net/ethertypes.h>
 #endif
 }
 
-void Packet::Init(int arg_link_type, struct timeval *arg_ts, uint32 arg_caplen,
+void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32 arg_caplen,
 		  uint32 arg_len, const u_char *arg_data, int arg_copy,
 		  std::string arg_tag)
 	{
@@ -588,7 +589,7 @@ static iosource::PktDumper* dump = 0;
 
 Packet* Packet::Unserialize(UnserialInfo* info)
 	{
-	struct timeval ts;
+	pkt_timeval ts;
 	uint32 len, link_type;
 
 	if ( ! (UNSERIALIZE((uint32 *)&ts.tv_sec) &&

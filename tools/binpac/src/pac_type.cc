@@ -60,7 +60,7 @@ Type::Type(TypeType tot)
 	attr_multiline_end_ = 0;
 	attr_oneline_ = false;
 	attr_refcount_ = false;
-	attr_requires_ = 0;
+	attr_requires_ = new ExprList();
 	attr_restofdata_ = false;
 	attr_restofflow_ = false;
 	attr_transient_ = false;
@@ -80,7 +80,7 @@ Type::~Type()
 	delete attr_if_expr_;
 	delete attr_length_expr_;
 	delete_list(ExprList, attr_checks_);
-	delete attr_requires_;
+	delete_list(ExprList, attr_requires_);
 	}
 
 Type *Type::Clone() const
@@ -203,7 +203,7 @@ void Type::ProcessAttr(Attr* a)
 			break;
 
 		case ATTR_REQUIRES:
-			attr_requires_ = a->expr();
+			attr_requires_->push_back(a->expr());
 			break;
 
 		case ATTR_TRANSIENT:
@@ -723,8 +723,11 @@ void Type::GenParseCode2(Output* out_cc, Env* env,
 
 void Type::GenParseCode3(Output* out_cc, Env* env, const DataPtr& data, int flags)
 	{
-	if ( attr_requires_ )
-		attr_requires_->EvalExpr(out_cc, env);
+	foreach(i, ExprList, attr_requires_)
+		{
+		Expr *req = *i;
+		req->EvalExpr(out_cc, env);
+		}
 
 	foreach(i, FieldList, fields_)
 		{

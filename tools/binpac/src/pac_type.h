@@ -290,7 +290,7 @@ protected:
 	Expr *attr_multiline_end_;
 	bool attr_oneline_;
 	bool attr_refcount_;
-	Expr *attr_requires_;
+	ExprList *attr_requires_;
 	bool attr_restofdata_;
 	bool attr_restofflow_;
 	bool attr_transient_;

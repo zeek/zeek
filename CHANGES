@@ -1,4 +1,17 @@
 
+2.5-9 | 2016-12-05 11:39:54 -0800
+
+  * Fix validation of OCSP replies inside of Bro. (Johanna Amann)
+
+    At one place in the code, we did not check the correct return
+    code. This makes it possible for a reply to get a response of
+    "good", when the OCSP reply is not actually signed by the
+    responder in question.
+
+    This also instructs OCSP verication to skip certificate chain
+    validation, which we do ourselves earlier because the OCSP verify
+    function cannot do it correctly (no way to pass timestamp).
+
 2.5-6 | 2016-11-29 12:51:04 -0800
 
   * Fix a build failure on OpenBSD relating to pcap_pkthdr. Also fixes

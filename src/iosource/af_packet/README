@@ -1,0 +1,95 @@
+
+Bro::AF_Packet
+==============
+
+This plugin provides native AF_Packet support
+(http://man7.org/linux/man-pages/man7/packet.7.html) for Bro.
+
+Installation
+------------
+
+Make sure the kernel headers are installed and your kernel supports
+PACKET_FANOUT [1]_ and TPACKET_V3. The following will then compile and
+install the AF_Packet plugin alongside Bro, assuming it can find the
+kernel headers in a standard location::
+
+    # ./configure && make && make install
+
+If the headers are installed somewhere non-standard, add
+``--with-kernel=<kernel-header-directory>`` to the ``configure``
+command. If everything built and installed correctly, you should see
+this::
+
+    # bro -NN Bro::AF_Packet
+    Bro::AF_Packet - Packet acquisition via AF_Packet (dynamic, version 1.1)
+    [Packet Source] AF_PacketReader (interface prefix "af_packet"; supports live input)
+    [Type] AF_Packet::FanoutMode
+    [Constant] AF_Packet::buffer_size
+    [Constant] AF_Packet::enable_hw_timestamping
+    [Constant] AF_Packet::enable_fanout
+    [Constant] AF_Packet::fanout_mode
+    [Constant] AF_Packet::fanout_id
+
+.. [1] Note that some kernel versions between 3.10 and 4.7 might exhibit a bug that
+   prevents the required symmetric hashing. The script available at
+   https://github.com/JustinAzoff/can-i-use-afpacket-fanout can be used to verify
+   whether PACKET_FANOUT works as expected.
+
+Usage
+-----
+
+Once installed, you can use AF_Packet interfaces/ports by prefixing them
+with ``af_packet::`` on the command line. For example, to use AF_Packet
+to monitor interface ``eth0``::
+
+    # bro -i af_packet::eth0
+
+To use AF_Packet, running Bro without root privileges, the Bro processes needs
+the CAP_NET_RAW capability. You can set it with the following command (on each
+sensor, after ``broctl install``)::
+
+    # setcap cap_net_raw+eip <path_to_bro>/bin/bro
+
+The AF_Packet plugin automatically enables promiscuous mode on the interfaces.
+As the plugin is using PACKET_ADD_MEMBERSHIP to enter the promiscuous mode
+without interfering others, the PROMISC flag is not touched. To verify that the
+interface entered promiscuous mode you can use ``dmesg``.
+
+To adapt the plugin to your needs, you can set a couple of parameters like
+buffer size. See scripts/init.bro for the default values.
+
+Usage with ``broctl``
+---------------------
+
+To use the AF_Packet plugin with ``broctl``, the ``custom`` load balance method can
+be utilized. The following shows an exemplary configuration::
+
+    [manager]
+    type=manager
+    host=localhost
+
+    [proxy-1]
+    type=proxy
+    host=localhost
+
+    [worker-1]
+    type=worker
+    host=localhost
+    interface=af_packet::eth0
+    lb_method=custom
+    lb_procs=8
+    pin_cpus=0,1,2,3,4,5,6,7
+    # Optional parameters for per node configuration:
+    af_packet_fanout_id=23
+    af_packet_fanout_mode=FANOUT_HASH
+
+If all interfaces using ``lb_method=custom`` should be configured for AF_Packet, the
+prefix can be globally definied by adding the following line to ``broctl.conf``::
+
+  lb_custom.InterfacePrefix=af_packet::
+
+Limitations
+-----------
+
+* Even using AF_Packet's ``ETH_P_ALL``, the kernel removes VLAN tags. While the tags
+  are provided spereately, there is no efficient way to pass them to Bro.

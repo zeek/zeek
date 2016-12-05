@@ -1,0 +1,16 @@
+
+# Options for the AF_Packet packet source.
+
+module AF_Packet;
+
+enum FanoutMode %{
+	FANOUT_HASH, # PACKET_FANOUT_HASH
+	FANOUT_CPU,  # PACKET_FANOUT_CPU
+	FANOUT_QM,   # PACKET_FANOUT_QM
+%}
+
+const buffer_size: count;
+const enable_hw_timestamping: bool;
+const enable_fanout: bool;
+const fanout_mode: FanoutMode;
+const fanout_id: count;

@@ -8,8 +8,9 @@ extern "C" {
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 
-#include <errno.h>   // errorno
-#include <unistd.h>  // close()
+#include <errno.h>          // errorno
+#include <unistd.h>         // close()
+#include <linux/version.h>  // kernel version
 
 #include <net/ethernet.h>      // ETH_P_ALL
 #include <linux/if.h>          // ifreq

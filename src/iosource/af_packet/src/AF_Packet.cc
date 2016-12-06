@@ -180,7 +180,9 @@ inline uint32_t AF_PacketSource::GetFanoutMode()
 	{
 	switch ( BifConst::AF_Packet::fanout_mode->AsEnum() ) {
 		case BifEnum::AF_Packet::FANOUT_CPU: return PACKET_FANOUT_CPU;
+	#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,14,0)
 		case BifEnum::AF_Packet::FANOUT_QM: return PACKET_FANOUT_QM;
+	#endif
 		default: return PACKET_FANOUT_HASH;
 	}
 	}

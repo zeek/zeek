@@ -64,6 +64,7 @@ static char copyright[] =
 #include <stdio.h> /* sprintf, fprintf, stderr */
 #include <stdlib.h> /* free, atol, calloc */
 #include <string.h> /* memcpy, strchr, strlen */
+#include <netinet/in.h> /* for struct in_addr */
 #include <arpa/inet.h> /* for inet_addr */
 #include <sys/types.h> /* for u_short, etc. */
 #include <stdbool.h>

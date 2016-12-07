@@ -1,4 +1,15 @@
 
+2.5-17 | 2016-12-07 14:51:37 -0800
+
+  * Broxygen no longer attempts to do tilde expansion of PATH, giving
+    an error message instead if bro is located in a PATH component
+    that starts with a tilde. Broxygen also no longer attempts to get
+    the mtime of the bro executable when bro is not invoced with the
+    "-X" option. (Daniel Thayer)
+
+  * Fix failing tests, compiler warnings and build issues on OpenBSD.
+    (Daniel Thayer)
+
 2.5-9 | 2016-12-05 11:39:54 -0800
 
   * Fix validation of OCSP replies inside of Bro. (Johanna Amann)

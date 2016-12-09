@@ -30,12 +30,10 @@ bool JSON::Describe(ODesc* desc, int num_fields, const Field* const * fields,
 	{
 	std::vector<std::string> truncated;
 	std::vector<std::string>* ptruncated = 0;
+	ptruncated = &truncated;
 
 	if ( surrounding_braces )
-		{
 		desc->AddRaw("{");
-		ptruncated = &truncated;
-		}
 
 	for ( int i = 0; i < num_fields; i++ )
 		{
@@ -57,7 +55,7 @@ bool JSON::Describe(ODesc* desc, int num_fields, const Field* const * fields,
 	if ( truncated.size() )
 		{
 		// Add a list of fields we had to truncate.
-		desc->AddRaw(", _truncated: [");
+		desc->AddRaw(",\"_truncated\":[");
 
 		for ( unsigned int i = 0; i < truncated.size(); i++ )
 			{

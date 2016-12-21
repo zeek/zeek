@@ -1,0 +1,32 @@
+.. rst-class:: btest-cmd
+
+    .. code-block:: none
+      :linenos:
+      :emphasize-lines: 1,1
+
+      # bro -C -r ssh/sshguess.pcap netcontrol-3-ssh-guesser.bro
+      netcontrol debug (Debug-All): init
+      netcontrol debug (Debug-All): add_rule: [ty=NetControl::DROP, target=NetControl::FORWARD, entity=[ty=NetControl::ADDRESS, conn=<uninitialized>, flow=<uninitialized>, ip=192.168.56.1/32, mac=<uninitialized>], expire=10.0 mins, priority=0, location=ACTION_DROP: T, out_port=<uninitialized>, mod=<uninitialized>, id=2, cid=2, _plugin_ids={\x0a\x0a}, _active_plugin_ids={\x0a\x0a}, _no_expire_plugins={\x0a\x0a}, _added=F]
+
+.. rst-class:: btest-cmd
+
+    .. code-block:: none
+      :linenos:
+      :emphasize-lines: 1,1
+
+      # cat netcontrol.log
+      #separator \x09
+      #set_separator	,
+      #empty_field	(empty)
+      #unset_field	-
+      #path	netcontrol
+      #open	2016-07-26-22-04-14
+      #fields	ts	rule_id	category	cmd	state	action	target	entity_type	entity	mod	msg	priority	expire	location	plugin
+      #types	time	string	enum	string	enum	string	enum	string	string	string	string	int	interval	string	string
+      0.000000	-	NetControl::MESSAGE	-	-	-	-	-	-	-	activating plugin with priority 0	-	-	-	Debug-All
+      0.000000	-	NetControl::MESSAGE	-	-	-	-	-	-	-	activation finished	-	-	-	Debug-All
+      0.000000	-	NetControl::MESSAGE	-	-	-	-	-	-	-	plugin initialization done	-	-	-	-
+      1427726711.398575	2	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	192.168.56.1/32	-	-	0	600.000000	ACTION_DROP: T	Debug-All
+      1427726711.398575	2	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	192.168.56.1/32	-	-	0	600.000000	ACTION_DROP: T	Debug-All
+      #close	2016-07-26-22-04-14
+

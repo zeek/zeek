@@ -44,8 +44,8 @@ function process_node(name: string)
 		{
 		if ( role == MANAGER )
 			process_node_manager(name);
-		else if ( role == LOGNODE )
-			process_node_lognode(name);
+		else if ( role == LOGGER )
+			process_node_logger(name);
 		else if ( role == DATANODE )
 			process_node_datanode(name);
 		else if ( role == WORKER )
@@ -58,10 +58,13 @@ function process_node_manager(name: string)
 	local n = nodes[name];
 	local me = nodes[node];
 
-	if ( WORKER in n$node_roles && n$manager == node )
+	if ( LOGGER in n$node_roles && me?$logger && me$logger == name )
+		update_node(name, name, T, 1min);
+
+	if ( WORKER in n$node_roles && n?$manager && n$manager == node )
 		update_node(name, name, F, 1sec);
 
-	if ( DATANODE in n$node_roles && n$manager == node )
+	if ( DATANODE in n$node_roles && n?$manager && n$manager == node )
 		update_node(name, name, F, 1sec);
 
 	if ( TIME_MACHINE in n$node_roles && me?$time_machine && me$time_machine == name )
@@ -73,12 +76,13 @@ function process_node_datanode(name: string)
 	local n = nodes[name];
 	local me = nodes[node];
 
-	if ( WORKER in n$node_roles && n$datanode == node )
+	if ( LOGGER in n$node_roles && me?$logger && me$logger == name )
+		update_node(name, name, T, 1min);
+
+	if ( WORKER in n$node_roles && n?$datanode && n$datanode == node )
 		update_node(name, name, F, 1sec);
 
 	# accepts connections from the previous one.
-	# FIXME: Once we're using multiple proxies, we should also figure out
-	# some $class scheme ...
 	if ( DATANODE in n$node_roles )
 		{
 		if ( n?$datanode )
@@ -94,40 +98,24 @@ function process_node_datanode(name: string)
 	# Finally the manager, to send status updates to.
 	if ( MANAGER in n$node_roles )
 		{
-		if ( me$manager == name ) # name = manager 
+		if ( me?$manager && me$manager == name ) # name = manager
 			update_node(name, name, T, 1mins);
 		}
 	}
 
-function process_node_lognode(name: string)
+function process_node_logger(name: string)
 	{
 	local n = nodes[name];
 	local me = nodes[node];
 
-	if ( WORKER in n$node_roles )
-		{
-		if ( n?$datanode && n$datanode == node )
-			update_node(name, name, F, 1sec);
-		}
+	if ( MANAGER in n$node_roles && n?$logger && n$logger == node )
+		update_node(name, name, F, 0sec);
 
-	# accepts connections from the previous one.
-	# FIXME: Once we're using multiple proxies, we should also figure out
-	# some $class scheme ...
-	if ( DATANODE in n$node_roles )
-		{
-		if ( n?$datanode )
-			update_node(name, name, T, 1mins);
+	if ( DATANODE in n$node_roles && n?$logger && n$logger == node )
+		update_node(name, name, F, 0sec);
 
-		else if ( me?$datanode && me$datanode == name )
-			update_node(me$datanode, name, F, 1sec);
-		}
-
-	# Finally the manager, to send status updates to.
-	if ( MANAGER in n$node_roles )
-		{
-		if ( me?$manager && me$manager == name ) # name = manager
-			update_node(name, name, T, 1mins);
-		}
+	if ( WORKER in n$node_roles && n?$logger && n$logger == node )
+		update_node(name, name, F, 0sec);
 	}
 
 function process_node_worker(name: string)
@@ -137,13 +125,19 @@ function process_node_worker(name: string)
 
 	if ( MANAGER in n$node_roles )
 		{
-		if ( me$manager == name ) # name = manager
+		if ( me?$manager && me$manager == name ) # name = manager
+			update_node(name, name, T, 1mins);
+		}
+
+	if ( LOGGER in n$node_roles )
+		{
+		if ( me?$logger && me$logger == name ) # name = logger
 			update_node(name, name, T, 1mins);
 		}
 
 	if ( DATANODE in n$node_roles )
 		{
-		if ( me$datanode == name ) # name = datanode
+		if ( me?$datanode && me$datanode == name ) # name = datanode
 			update_node(name, name, T, 1mins);
 		}
 

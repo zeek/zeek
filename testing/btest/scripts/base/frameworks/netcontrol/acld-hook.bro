@@ -1,5 +1,5 @@
 # @TEST-SERIALIZE: brokercomm
-# @TEST-REQUIRES: grep -q ENABLE_BROKER $BUILD/CMakeCache.txt
+# @TEST-REQUIRES: grep -q ENABLE_BROKER:BOOL=true $BUILD/CMakeCache.txt
 # @TEST-EXEC: btest-bg-run recv "bro -b ../recv.bro broker_port=$BROKER_PORT >recv.out"
 # @TEST-EXEC: btest-bg-run send "bro -b -r $TRACES/tls/ecdhe.pcap --pseudo-realtime ../send.bro broker_port=$BROKER_PORT >send.out"
 
@@ -34,7 +34,8 @@ event Broker::outgoing_connection_established(peer_address: string,
 	}
 
 event Broker::outgoing_connection_broken(peer_address: string,
-                                       peer_port: port)
+                                         peer_port: port,
+                                         peer_name: string)
 	{
 	terminate();
 	}

@@ -1,0 +1,16 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	intel
+#open	2016-08-05-13-22-00
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	seen.indicator	seen.indicator_type	seen.where	seen.node	matched	sources	fuid	file_mime_type	file_desc
+#types	time	string	addr	port	addr	port	string	enum	enum	string	set[enum]	set[string]	string	string	string
+1449610263.071201	CHhAvVGS1DHFjwGM9	188.184.129.157	35119	188.184.36.24	25	jan.grashofer@cern.ch	Intel::EMAIL	SMTP::IN_RCPT_TO	bro	Intel::EMAIL	source1	-	-	-
+1449610263.071201	CHhAvVGS1DHFjwGM9	188.184.129.157	35119	188.184.36.24	25	jan.grashoefer@cern.ch	Intel::EMAIL	SMTP::IN_FROM	bro	Intel::EMAIL	source1	-	-	-
+1449610263.071201	CHhAvVGS1DHFjwGM9	188.184.129.157	35119	188.184.36.24	25	jan.grashoefer@gmail.com	Intel::EMAIL	SMTP::IN_TO	bro	Intel::EMAIL	source1	-	-	-
+1449610263.071201	CHhAvVGS1DHFjwGM9	188.184.129.157	35119	188.184.36.24	25	jan.grashofer@cern.ch	Intel::EMAIL	SMTP::IN_TO	bro	Intel::EMAIL	source1	-	-	-
+1449610263.071201	CHhAvVGS1DHFjwGM9	188.184.129.157	35119	188.184.36.24	25	addr-spec@example.com	Intel::EMAIL	SMTP::IN_TO	bro	Intel::EMAIL	source1	-	-	-
+1449610263.071201	CHhAvVGS1DHFjwGM9	188.184.129.157	35119	188.184.36.24	25	name-addr@example.com	Intel::EMAIL	SMTP::IN_TO	bro	Intel::EMAIL	source1	-	-	-
+1449610263.071201	CHhAvVGS1DHFjwGM9	188.184.129.157	35119	188.184.36.24	25	angle-addr@example.com	Intel::EMAIL	SMTP::IN_TO	bro	Intel::EMAIL	source1	-	-	-
+#close	2016-08-05-13-22-00

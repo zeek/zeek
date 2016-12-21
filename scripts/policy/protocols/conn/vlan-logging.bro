@@ -1,4 +1,4 @@
-##! This script add VLAN information to the connection logs
+##! This script adds VLAN information to the connection log.
 
 @load base/protocols/conn
 

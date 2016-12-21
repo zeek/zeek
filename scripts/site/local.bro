@@ -8,15 +8,19 @@
 # Apply the default tuning scripts for common tuning settings.
 @load tuning/defaults
 
+# Estimate and log capture loss.
+@load misc/capture-loss
+
+# Enable logging of memory, packet and lag statistics.
+@load misc/stats
+
 # Load the scan detection script.
 @load misc/scan
 
-# Log some information about web applications being used by users
-# on your network.
-@load misc/app-stats
-
-# Detect traceroute being run on the network.
-@load misc/detect-traceroute
+# Detect traceroute being run on the network. This could possibly cause
+# performance trouble when there are a lot of traceroutes on your network.
+# Enable cautiously.
+#@load misc/detect-traceroute
 
 # Generate notices when vulnerable versions of software are discovered.
 # The default is to only monitor software found in the address space defined
@@ -88,3 +92,11 @@
 # Uncomment the following line to enable logging of connection VLANs. Enabling
 # this adds two VLAN fields to the conn.log file.
 # @load policy/protocols/conn/vlan-logging
+
+# Uncomment the following line to enable logging of link-layer addresses. Enabling
+# this adds the link-layer address for each connection endpoint to the conn.log file.
+# @load policy/protocols/conn/mac-logging
+
+# Uncomment the following line to enable the SMB analyzer.  The analyzer
+# is currently considered a preview and therefore not loaded by default.
+# @load policy/protocols/smb

@@ -14,4 +14,4 @@
 ## len: The length of the file chunk about to be written.
 ##
 ## .. bro:see:: Files::add_analyzer Files::ANALYZER_EXTRACT
-event file_extraction_limit%(f: fa_file, args: any, limit: count, len: count%);
+event file_extraction_limit%(f: fa_file, args: Files::AnalyzerArgs, limit: count, len: count%);

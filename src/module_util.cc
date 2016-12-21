@@ -52,7 +52,12 @@ string make_full_var_name(const char* module_name, const char* var_name)
 	{
 	if ( ! module_name || streq(module_name, GLOBAL_MODULE_NAME) ||
 	     strstr(var_name, "::") )
+		{
+		if ( streq(GLOBAL_MODULE_NAME, extract_module_name(var_name).c_str()) )
+			return extract_var_name(var_name);
+
 		return string(var_name);
+		}
 
 	string full_name = normalized_module_name(module_name);
 	full_name += "::";

@@ -12,7 +12,8 @@ using namespace analyzer::conn_size;
 
 ConnSize_Analyzer::ConnSize_Analyzer(Connection* c)
     : Analyzer("CONNSIZE", c),
-      orig_bytes(), resp_bytes(), orig_pkts(), resp_pkts()
+      orig_bytes(), resp_bytes(), orig_pkts(), resp_pkts(),
+      orig_bytes_thresh(), resp_bytes_thresh(), orig_pkts_thresh(), resp_pkts_thresh()
 	{
 	}
 

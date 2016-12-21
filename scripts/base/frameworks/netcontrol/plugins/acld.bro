@@ -6,6 +6,8 @@ module NetControl;
 @load ../plugin
 @load base/frameworks/broker
 
+@ifdef ( Broker::__enable )
+
 export {
 	type AclRule : record {
 		command: string;
@@ -15,24 +17,24 @@ export {
 	};
 
 	type AcldConfig: record {
-		## The acld topic used to send events to
+		## The acld topic to send events to.
 		acld_topic: string;
-		## Broker host to connect to
+		## Broker host to connect to.
 		acld_host: addr;
-		## Broker port to connect to
+		## Broker port to connect to.
 		acld_port: port;
-		## Do we accept rules for the monitor path? Default false
+		## Do we accept rules for the monitor path? Default false.
 		monitor: bool &default=F;
-		## Do we accept rules for the forward path? Default true
+		## Do we accept rules for the forward path? Default true.
 		forward: bool &default=T;
 
 		## Predicate that is called on rule insertion or removal.
 		##
-		## p: Current plugin state
+		## p: Current plugin state.
 		##
-		## r: The rule to be inserted or removed
+		## r: The rule to be inserted or removed.
 		##
-		## Returns: T if the rule can be handled by the current backend, F otherwhise
+		## Returns: T if the rule can be handled by the current backend, F otherwise.
 		check_pred: function(p: PluginState, r: Rule): bool &optional;
 	};
 
@@ -41,29 +43,30 @@ export {
 
 	redef record PluginState += {
 		acld_config: AcldConfig &optional;
-		## The ID of this acld instance - for the mapping to PluginStates
+		## The ID of this acld instance - for the mapping to PluginStates.
 		acld_id: count &optional;
 	};
 
 	## Hook that is called after a rule is converted to an acld rule.
 	## The hook may modify the rule before it is sent to acld.
 	## Setting the acld command to F will cause the rule to be rejected
-	## by the plugin
+	## by the plugin.
 	##
-	## p: Current plugin state
+	## p: Current plugin state.
 	##
-	## r: The rule to be inserted or removed
+	## r: The rule to be inserted or removed.
 	##
-	## ar: The acld rule to be inserted or removed
+	## ar: The acld rule to be inserted or removed.
 	global NetControl::acld_rule_policy: hook(p: PluginState, r: Rule, ar: AclRule);
 
-	## Events that are sent from us to Broker
+	## Events that are sent from us to Broker.
 	global acld_add_rule: event(id: count, r: Rule, ar: AclRule);
 	global acld_remove_rule: event(id: count, r: Rule, ar: AclRule);
 
-	## Events that are sent from Broker to us
+	## Events that are sent from Broker to us.
 	global acld_rule_added: event(id: count, r: Rule, msg: string);
 	global acld_rule_removed: event(id: count, r: Rule, msg: string);
+	global acld_rule_exists: event(id: count, r: Rule, msg: string);
 	global acld_rule_error: event(id: count, r: Rule, msg: string);
 }
 
@@ -74,7 +77,7 @@ global netcontrol_acld_current_id: count = 0;
 
 const acld_add_to_remove: table[string] of string = {
 	["drop"] = "restore",
-	["whitelist"] = "remwhitelist",
+	["addwhitelist"] = "remwhitelist",
 	["blockhosthost"] = "restorehosthost",
 	["droptcpport"] = "restoretcpport",
 	["dropudpport"] = "restoreudpport",
@@ -96,6 +99,19 @@ event NetControl::acld_rule_added(id: count, r: Rule, msg: string)
 	local p = netcontrol_acld_id[id];
 
 	event NetControl::rule_added(r, p, msg);
+	}
+
+event NetControl::acld_rule_exists(id: count, r: Rule, msg: string)
+	{
+	if ( id !in netcontrol_acld_id )
+		{
+		Reporter::error(fmt("NetControl acld plugin with id %d not found, aborting", id));
+		return;
+		}
+
+	local p = netcontrol_acld_id[id];
+
+	event NetControl::rule_exists(r, p, msg);
 	}
 
 event NetControl::acld_rule_removed(id: count, r: Rule, msg: string)
@@ -153,7 +169,7 @@ function rule_to_acl_rule(p: PluginState, r: Rule) : AclRule
 		if ( r$ty == DROP )
 			command = "drop";
 		else if ( r$ty == WHITELIST )
-			command = "whitelist";
+			command = "addwhitelist";
 		arg = cat(e$ip);
 		}
 	else if ( e$ty == FLOW )
@@ -231,7 +247,7 @@ function acld_add_rule_fun(p: PluginState, r: Rule) : bool
 	return T;
 	}
 
-function acld_remove_rule_fun(p: PluginState, r: Rule) : bool
+function acld_remove_rule_fun(p: PluginState, r: Rule, reason: string) : bool
 	{
 	if ( ! acld_check_rule(p, r) )
 		return F;
@@ -241,6 +257,14 @@ function acld_remove_rule_fun(p: PluginState, r: Rule) : bool
 		ar$command = acld_add_to_remove[ar$command];
 	else
 		return F;
+
+	if ( reason != "" )
+		{
+		if ( ar?$comment )
+			ar$comment = fmt("%s (%s)", reason, ar$comment);
+		else
+			ar$comment = reason;
+		}
 
 	Broker::send_event(p$acld_config$acld_topic, Broker::event_args(acld_remove_rule, p$acld_id, r, ar));
 	return T;
@@ -292,3 +316,4 @@ function create_acld(config: AcldConfig) : PluginState
 	return p;
 	}
 
+@endif

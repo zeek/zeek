@@ -1,4 +1,5 @@
 # @TEST-SERIALIZE: brokercomm
+# @TEST-REQUIRES: grep -q ENABLE_BROKER:BOOL=true $BUILD/CMakeCache.txt
 # @TEST-REQUIRES: bro --help 2>&1 | grep -q mem-leaks
 # @TEST-GROUP: leak
 

@@ -173,6 +173,8 @@ function connect_peer(peer: string)
 	if ( node?$p )
 		p = node$p;
 
+	node$p = p;
+
 	# ...and connect via broker
 	local succ = Broker::connect(fmt("%s", node$ip), p, node$retry);
 

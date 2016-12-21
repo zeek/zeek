@@ -756,6 +756,7 @@ void SMTP_Analyzer::UpdateState(const int cmd_code, const int reply_code, bool o
 		break;
 
 	case SMTP_CMD_STARTTLS:
+	case SMTP_CMD_X_ANONYMOUSTLS:
 		if ( st != SMTP_READY )
 			UnexpectedCommand(cmd_code, reply_code);
 
@@ -817,6 +818,10 @@ int SMTP_Analyzer::ParseCmd(int cmd_len, const char* cmd)
 	{
 	if ( ! cmd )
 		return -1;
+
+	// special case because we cannot define our usual macros with "-"
+	if ( strncmp(cmd, "X-ANONYMOUSTLS", cmd_len) == 0 )
+		return SMTP_CMD_X_ANONYMOUSTLS;
 
 	for ( int code = SMTP_CMD_EHLO; code < SMTP_CMD_LAST; ++code )
 		if ( ! strncasecmp(cmd, smtp_cmd_word[code - SMTP_CMD_EHLO], cmd_len) )

@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2016-04-26-18-11-49
+#open	2016-12-09-01-16-06
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -50,8 +50,9 @@ scripts/base/init-bare.bro
         scripts/base/utils/patterns.bro
     scripts/base/frameworks/files/magic/__load__.bro
   build/scripts/base/bif/__load__.bro
+    build/scripts/base/bif/stats.bif.bro
     build/scripts/base/bif/broxygen.bif.bro
-    build/scripts/base/bif/functions.bif.bro
+    build/scripts/base/bif/pcap.bif.bro
     build/scripts/base/bif/bloom-filter.bif.bro
     build/scripts/base/bif/cardinality-counter.bif.bro
     build/scripts/base/bif/top-k.bif.bro
@@ -62,6 +63,8 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_BitTorrent.events.bif.bro
     build/scripts/base/bif/plugins/Bro_ConnSize.events.bif.bro
     build/scripts/base/bif/plugins/Bro_ConnSize.functions.bif.bro
+    build/scripts/base/bif/plugins/Bro_DCE_RPC.consts.bif.bro
+    build/scripts/base/bif/plugins/Bro_DCE_RPC.types.bif.bro
     build/scripts/base/bif/plugins/Bro_DCE_RPC.events.bif.bro
     build/scripts/base/bif/plugins/Bro_DHCP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_DNP3.events.bif.bro
@@ -71,6 +74,8 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_FTP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_FTP.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_Gnutella.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_GSSAPI.types.bif.bro
+    build/scripts/base/bif/plugins/Bro_GSSAPI.events.bif.bro
     build/scripts/base/bif/plugins/Bro_GTPv1.events.bif.bro
     build/scripts/base/bif/plugins/Bro_HTTP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_HTTP.functions.bif.bro
@@ -88,6 +93,8 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_NCP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_NetBIOS.events.bif.bro
     build/scripts/base/bif/plugins/Bro_NetBIOS.functions.bif.bro
+    build/scripts/base/bif/plugins/Bro_NTLM.types.bif.bro
+    build/scripts/base/bif/plugins/Bro_NTLM.events.bif.bro
     build/scripts/base/bif/plugins/Bro_NTP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_PIA.events.bif.bro
     build/scripts/base/bif/plugins/Bro_POP3.events.bif.bro
@@ -98,19 +105,51 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_RPC.events.bif.bro
     build/scripts/base/bif/plugins/Bro_SIP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_SNMP.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_SMB.smb1_com_check_directory.bif.bro
+    build/scripts/base/bif/plugins/Bro_SMB.smb1_com_close.bif.bro
+    build/scripts/base/bif/plugins/Bro_SMB.smb1_com_create_directory.bif.bro
+    build/scripts/base/bif/plugins/Bro_SMB.smb1_com_echo.bif.bro
+    build/scripts/base/bif/plugins/Bro_SMB.smb1_com_logoff_andx.bif.bro
+    build/scripts/base/bif/plugins/Bro_SMB.smb1_com_negotiate.bif.bro
+    build/scripts/base/bif/plugins/Bro_SMB.smb1_com_nt_create_andx.bif.bro
+    build/scripts/base/bif/plugins/Bro_SMB.smb1_com_nt_cancel.bif.bro
+    build/scripts/base/bif/plugins/Bro_SMB.smb1_com_query_information.bif.bro
+    build/scripts/base/bif/plugins/Bro_SMB.smb1_com_read_andx.bif.bro
+    build/scripts/base/bif/plugins/Bro_SMB.smb1_com_session_setup_andx.bif.bro
+    build/scripts/base/bif/plugins/Bro_SMB.smb1_com_transaction.bif.bro
+    build/scripts/base/bif/plugins/Bro_SMB.smb1_com_transaction2.bif.bro
+    build/scripts/base/bif/plugins/Bro_SMB.smb1_com_tree_connect_andx.bif.bro
+    build/scripts/base/bif/plugins/Bro_SMB.smb1_com_tree_disconnect.bif.bro
+    build/scripts/base/bif/plugins/Bro_SMB.smb1_com_write_andx.bif.bro
+    build/scripts/base/bif/plugins/Bro_SMB.smb1_events.bif.bro
+    build/scripts/base/bif/plugins/Bro_SMB.smb2_com_close.bif.bro
+    build/scripts/base/bif/plugins/Bro_SMB.smb2_com_create.bif.bro
+    build/scripts/base/bif/plugins/Bro_SMB.smb2_com_negotiate.bif.bro
+    build/scripts/base/bif/plugins/Bro_SMB.smb2_com_read.bif.bro
+    build/scripts/base/bif/plugins/Bro_SMB.smb2_com_session_setup.bif.bro
+    build/scripts/base/bif/plugins/Bro_SMB.smb2_com_set_info.bif.bro
+    build/scripts/base/bif/plugins/Bro_SMB.smb2_com_tree_connect.bif.bro
+    build/scripts/base/bif/plugins/Bro_SMB.smb2_com_tree_disconnect.bif.bro
+    build/scripts/base/bif/plugins/Bro_SMB.smb2_com_write.bif.bro
+    build/scripts/base/bif/plugins/Bro_SMB.smb2_events.bif.bro
     build/scripts/base/bif/plugins/Bro_SMB.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_SMB.consts.bif.bro
+    build/scripts/base/bif/plugins/Bro_SMB.types.bif.bro
     build/scripts/base/bif/plugins/Bro_SMTP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_SMTP.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_SOCKS.events.bif.bro
     build/scripts/base/bif/plugins/Bro_SSH.types.bif.bro
     build/scripts/base/bif/plugins/Bro_SSH.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_SSL.types.bif.bro
     build/scripts/base/bif/plugins/Bro_SSL.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_SSL.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_SteppingStone.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Syslog.events.bif.bro
     build/scripts/base/bif/plugins/Bro_TCP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_TCP.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_Teredo.events.bif.bro
     build/scripts/base/bif/plugins/Bro_UDP.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_XMPP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_ZIP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_FileEntropy.events.bif.bro
     build/scripts/base/bif/plugins/Bro_FileExtract.events.bif.bro
@@ -140,7 +179,9 @@ scripts/base/init-default.bro
       scripts/base/frameworks/reporter/main.bro
     scripts/base/utils/paths.bro
   scripts/base/utils/directions-and-hosts.bro
+  scripts/base/utils/email.bro
   scripts/base/utils/files.bro
+  scripts/base/utils/geoip-distance.bro
   scripts/base/utils/numbers.bro
   scripts/base/utils/queue.bro
   scripts/base/utils/strings.bro
@@ -151,15 +192,39 @@ scripts/base/init-default.bro
     scripts/base/frameworks/notice/main.bro
     scripts/base/frameworks/notice/weird.bro
     scripts/base/frameworks/notice/actions/drop.bro
+      scripts/base/frameworks/netcontrol/__load__.bro
+        scripts/base/frameworks/netcontrol/types.bro
+        scripts/base/frameworks/netcontrol/main.bro
+          scripts/base/frameworks/netcontrol/plugin.bro
+        scripts/base/frameworks/netcontrol/plugins/__load__.bro
+          scripts/base/frameworks/netcontrol/plugins/debug.bro
+          scripts/base/frameworks/netcontrol/plugins/openflow.bro
+            scripts/base/frameworks/openflow/__load__.bro
+              scripts/base/frameworks/openflow/consts.bro
+              scripts/base/frameworks/openflow/types.bro
+              scripts/base/frameworks/openflow/main.bro
+              scripts/base/frameworks/openflow/plugins/__load__.bro
+                scripts/base/frameworks/openflow/plugins/ryu.bro
+                  scripts/base/utils/json.bro
+                scripts/base/frameworks/openflow/plugins/log.bro
+                scripts/base/frameworks/openflow/plugins/broker.bro
+              scripts/base/frameworks/cluster/__load__.bro
+                scripts/base/frameworks/cluster/main.bro
+                  scripts/base/frameworks/control/__load__.bro
+                    scripts/base/frameworks/control/main.bro
+                  scripts/base/misc/trim-trace-file.bro
+              scripts/base/frameworks/openflow/non-cluster.bro
+          scripts/base/frameworks/netcontrol/plugins/packetfilter.bro
+          scripts/base/frameworks/netcontrol/plugins/broker.bro
+          scripts/base/frameworks/netcontrol/plugins/acld.bro
+        scripts/base/frameworks/netcontrol/drop.bro
+        scripts/base/frameworks/netcontrol/shunt.bro
+        scripts/base/frameworks/netcontrol/catch-and-release.bro
+        scripts/base/frameworks/netcontrol/non-cluster.bro
     scripts/base/frameworks/notice/actions/email_admin.bro
     scripts/base/frameworks/notice/actions/page.bro
     scripts/base/frameworks/notice/actions/add-geodata.bro
     scripts/base/frameworks/notice/extend-email/hostnames.bro
-    scripts/base/frameworks/cluster/__load__.bro
-      scripts/base/frameworks/cluster/main.bro
-        scripts/base/frameworks/control/__load__.bro
-          scripts/base/frameworks/control/main.bro
-        scripts/base/misc/trim-trace-file.bro
     scripts/base/frameworks/notice/non-cluster.bro
     scripts/base/frameworks/notice/actions/pp-alarms.bro
   scripts/base/frameworks/dpd/__load__.bro
@@ -174,6 +239,7 @@ scripts/base/init-default.bro
   scripts/base/frameworks/broker/communication.bro
   scripts/base/frameworks/intel/__load__.bro
     scripts/base/frameworks/intel/main.bro
+    scripts/base/frameworks/intel/files.bro
     scripts/base/frameworks/intel/input.bro
   scripts/base/frameworks/sumstats/__load__.bro
     scripts/base/frameworks/sumstats/main.bro
@@ -192,36 +258,15 @@ scripts/base/init-default.bro
     scripts/base/frameworks/sumstats/non-cluster.bro
   scripts/base/frameworks/tunnels/__load__.bro
     scripts/base/frameworks/tunnels/main.bro
-  scripts/base/frameworks/openflow/__load__.bro
-    scripts/base/frameworks/openflow/consts.bro
-    scripts/base/frameworks/openflow/types.bro
-    scripts/base/frameworks/openflow/main.bro
-    scripts/base/frameworks/openflow/plugins/__load__.bro
-      scripts/base/frameworks/openflow/plugins/ryu.bro
-        scripts/base/utils/json.bro
-      scripts/base/frameworks/openflow/plugins/log.bro
-      scripts/base/frameworks/openflow/plugins/broker.bro
-    scripts/base/frameworks/openflow/non-cluster.bro
-  scripts/base/frameworks/netcontrol/__load__.bro
-    scripts/base/frameworks/netcontrol/types.bro
-    scripts/base/frameworks/netcontrol/main.bro
-      scripts/base/frameworks/netcontrol/plugin.bro
-    scripts/base/frameworks/netcontrol/plugins/__load__.bro
-      scripts/base/frameworks/netcontrol/plugins/debug.bro
-      scripts/base/frameworks/netcontrol/plugins/openflow.bro
-      scripts/base/frameworks/netcontrol/plugins/packetfilter.bro
-      scripts/base/frameworks/netcontrol/plugins/broker.bro
-      scripts/base/frameworks/netcontrol/plugins/acld.bro
-    scripts/base/frameworks/netcontrol/drop.bro
-    scripts/base/frameworks/netcontrol/shunt.bro
-    scripts/base/frameworks/netcontrol/catch-and-release.bro
-    scripts/base/frameworks/netcontrol/non-cluster.bro
   scripts/base/protocols/conn/__load__.bro
     scripts/base/protocols/conn/main.bro
     scripts/base/protocols/conn/contents.bro
     scripts/base/protocols/conn/inactivity.bro
     scripts/base/protocols/conn/polling.bro
     scripts/base/protocols/conn/thresholds.bro
+  scripts/base/protocols/dce-rpc/__load__.bro
+    scripts/base/protocols/dce-rpc/consts.bro
+    scripts/base/protocols/dce-rpc/main.bro
   scripts/base/protocols/dhcp/__load__.bro
     scripts/base/protocols/dhcp/consts.bro
     scripts/base/protocols/dhcp/main.bro
@@ -269,6 +314,12 @@ scripts/base/init-default.bro
   scripts/base/protocols/mysql/__load__.bro
     scripts/base/protocols/mysql/main.bro
       scripts/base/protocols/mysql/consts.bro
+  scripts/base/protocols/ntlm/__load__.bro
+    scripts/base/protocols/ntlm/main.bro
+      scripts/base/protocols/smb/__load__.bro
+        scripts/base/protocols/smb/consts.bro
+        scripts/base/protocols/smb/const-dos-error.bro
+        scripts/base/protocols/smb/const-nt-status.bro
   scripts/base/protocols/pop3/__load__.bro
   scripts/base/protocols/radius/__load__.bro
     scripts/base/protocols/radius/main.bro
@@ -295,6 +346,8 @@ scripts/base/init-default.bro
     scripts/base/protocols/syslog/consts.bro
     scripts/base/protocols/syslog/main.bro
   scripts/base/protocols/tunnels/__load__.bro
+  scripts/base/protocols/xmpp/__load__.bro
+    scripts/base/protocols/xmpp/main.bro
   scripts/base/files/pe/__load__.bro
     scripts/base/files/pe/consts.bro
     scripts/base/files/pe/main.bro
@@ -304,5 +357,6 @@ scripts/base/init-default.bro
     scripts/base/files/unified2/main.bro
   scripts/base/misc/find-checksum-offloading.bro
   scripts/base/misc/find-filtered-trace.bro
+  scripts/base/misc/version.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2016-04-26-18-11-49
+#close	2016-12-09-01-16-06

@@ -492,6 +492,9 @@ void tokenize(const char* cstr, string& operation, vector<string>& arguments)
 					++i;
 				}
 
+			else if ( ! delim && str[i] == '(' )
+				delim = ')';
+
 			else if ( ! delim && (str[i] == '\'' || str[i] == '"') )
 				delim = str[i];
 

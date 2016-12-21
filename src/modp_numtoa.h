@@ -97,6 +97,15 @@ void modp_dtoa(double value, char* buf, int precision);
  */
 void modp_dtoa2(double value, char* buf, int precision);
 
+/** \brief convert a floating point number to char buffer with a
+ *         variable-precision format, no trailing zeros, and no
+ *   	scientific notation.
+ *
+ *  Other than avoiding scientific notation, this is the same as mop_dtoa2. It does however
+ *  require the max buffer length. The buffer will always be null-terminated.
+ */
+void modp_dtoa3(double value, char* buf, int n, int precision);
+
 END_C
 
 #endif

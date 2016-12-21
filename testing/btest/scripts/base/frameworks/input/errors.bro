@@ -118,6 +118,31 @@ event event10(description: Input::TableDescription, tpe: Input::Event, i: Idx, c
 	{
 	}
 
+# these are legit to test the error events
+event event11(description: Input::EventDescription, tpe: Input::Event, v: Val)
+	{
+	}
+
+event errorhandler1(desc: Input::TableDescription, msg: string, level: Reporter::Level)
+	{
+	}
+
+event errorhandler2(desc: Input::EventDescription, msg: string, level: Reporter::Level)
+	{
+	}
+
+event errorhandler3(desc: string, msg: string, level: Reporter::Level)
+	{
+	}
+
+event errorhandler4(desc: Input::EventDescription, msg: count, level: Reporter::Level)
+	{
+	}
+
+event errorhandler5(desc: Input::EventDescription, msg: string, level: count)
+	{
+	}
+
 event kill_me()
 	{
 	terminate();
@@ -129,23 +154,23 @@ event bro_init()
 	Input::add_event([$source="input.log", $name="file", $fields=FileVal, $ev=line_file, $want_record=T]);
 	Input::add_event([$source="input.log", $name="optionalrecord", $fields=OptionalRecordVal, $ev=line_record, $want_record=T]);
 	Input::add_event([$source="input.log", $name="optionalfile", $fields=OptionalFileVal, $ev=optional_line_file, $want_record=T]);
-	Input::add_table([$source="input.log", $name="filetable", $idx=Idx, $val=FileVal, $destination=file_table]);	
-	Input::add_table([$source="input.log", $name="optionalrecordtable", $idx=Idx, $val=OptionalRecordVal, $destination=record_table]);	
-	Input::add_table([$source="input.log", $name="optionalfiletable", $idx=Idx, $val=OptionalFileVal, $destination=optional_file_table]);	
-	Input::add_table([$source="input.log", $name="optionalfiletable", $idx=Idx, $val=OptionalFileVal, $destination=record_table]);	
-	Input::add_table([$source="input.log", $name="optionalfiletable2", $idx=Idx, $val=OptionalFileVal, $destination=string_table]);	
-	Input::add_table([$source="input.log", $name="optionalfiletable3", $idx=Idx, $val=OptionalFileVal, $destination=optional_file_table, $ev=terminate]);	
-	Input::add_table([$source="input.log", $name="optionalfiletable3", $idx=Idx, $val=OptionalFileVal, $destination=optional_file_table, $ev=kill_me]);	
-	Input::add_table([$source="input.log", $name="optionalfiletable4", $idx=Idx, $val=OptionalFileVal, $destination=optional_file_table, $ev=event1]);	
-	Input::add_table([$source="input.log", $name="optionalfiletable5", $idx=Idx, $val=OptionalFileVal, $destination=optional_file_table, $ev=event2]);	
-	Input::add_table([$source="input.log", $name="optionalfiletable6", $idx=Idx, $val=OptionalFileVal, $destination=optional_file_table, $ev=event3]);	
-	Input::add_table([$source="input.log", $name="optionalfiletable7", $idx=Idx, $val=OptionalFileVal, $destination=optional_file_table, $ev=event4]);	
+	Input::add_table([$source="input.log", $name="filetable", $idx=Idx, $val=FileVal, $destination=file_table]);
+	Input::add_table([$source="input.log", $name="optionalrecordtable", $idx=Idx, $val=OptionalRecordVal, $destination=record_table]);
+	Input::add_table([$source="input.log", $name="optionalfiletable", $idx=Idx, $val=OptionalFileVal, $destination=optional_file_table]);
+	Input::add_table([$source="input.log", $name="optionalfiletable", $idx=Idx, $val=OptionalFileVal, $destination=record_table]);
+	Input::add_table([$source="input.log", $name="optionalfiletable2", $idx=Idx, $val=OptionalFileVal, $destination=string_table]);
+	Input::add_table([$source="input.log", $name="optionalfiletable3", $idx=Idx, $val=OptionalFileVal, $destination=optional_file_table, $ev=terminate]);
+	Input::add_table([$source="input.log", $name="optionalfiletable3", $idx=Idx, $val=OptionalFileVal, $destination=optional_file_table, $ev=kill_me]);
+	Input::add_table([$source="input.log", $name="optionalfiletable4", $idx=Idx, $val=OptionalFileVal, $destination=optional_file_table, $ev=event1]);
+	Input::add_table([$source="input.log", $name="optionalfiletable5", $idx=Idx, $val=OptionalFileVal, $destination=optional_file_table, $ev=event2]);
+	Input::add_table([$source="input.log", $name="optionalfiletable6", $idx=Idx, $val=OptionalFileVal, $destination=optional_file_table, $ev=event3]);
+	Input::add_table([$source="input.log", $name="optionalfiletable7", $idx=Idx, $val=OptionalFileVal, $destination=optional_file_table, $ev=event4]);
 	Input::add_table([$source="input.log", $name="optionalfiletable8", $idx=Idx, $val=Val, $destination=val_table4, $want_record=F]);
 	Input::add_table([$source="input.log", $name="optionalfiletable9", $idx=Idx2, $val=Val, $destination=val_table, $want_record=F]);
 	Input::add_table([$source="input.log", $name="optionalfiletable10", $idx=Idx, $val=Val, $destination=val_table2, $want_record=F]);
 	Input::add_table([$source="input.log", $name="optionalfiletable11", $idx=Idx2, $val=Idx, $destination=val_table3, $want_record=F]);
 	Input::add_table([$source="input.log", $name="optionalfiletable12", $idx=Idx2, $val=Idx, $destination=val_table2, $want_record=F]);
-	Input::add_table([$source="input.log", $name="optionalfiletable14", $idx=Idx, $val=OptionalFileVal, $destination=optional_file_table, $ev=event10, $want_record=F]);	
+	Input::add_table([$source="input.log", $name="optionalfiletable14", $idx=Idx, $val=OptionalFileVal, $destination=optional_file_table, $ev=event10, $want_record=F]);
 	Input::add_table([$source="input.log", $name="optionalfiletable15", $idx=Idx2, $val=Idx, $destination=val_table2, $want_record=T]);
 	Input::add_event([$source="input.log", $name="event1", $fields=OptionalFileVal, $ev=terminate, $want_record=T]);
 	Input::add_event([$source="input.log", $name="event2", $fields=OptionalFileVal, $ev=kill_me, $want_record=T]);
@@ -156,6 +181,12 @@ event bro_init()
 	Input::add_event([$source="input.log", $name="event7", $fields=OptionalFileVal, $ev=event7, $want_record=F]);
 	Input::add_event([$source="input.log", $name="event8", $fields=Val, $ev=event8, $want_record=F]);
 	Input::add_event([$source="input.log", $name="event9", $fields=Val, $ev=event9, $want_record=F]);
+
+	Input::add_event([$source="input.log", $name="error1", $fields=Val, $ev=event11, $want_record=T, $error_ev=errorhandler1]);
+	Input::add_table([$source="input.log", $name="error2", $idx=Idx, $val=Val, $destination=val_table, $error_ev=errorhandler2]);
+	Input::add_event([$source="input.log", $name="error3", $fields=Val, $ev=event11, $want_record=T, $error_ev=errorhandler3]);
+	Input::add_event([$source="input.log", $name="error4", $fields=Val, $ev=event11, $want_record=T, $error_ev=errorhandler4]);
+	Input::add_event([$source="input.log", $name="error5", $fields=Val, $ev=event11, $want_record=T, $error_ev=errorhandler5]);
 
 	schedule 3secs { kill_me() };
 	}

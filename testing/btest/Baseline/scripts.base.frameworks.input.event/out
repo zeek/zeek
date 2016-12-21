@@ -4,7 +4,7 @@ print outfile, A::description;
 print outfile, A::tpe;
 print outfile, A::i;
 print outfile, A::b;
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Input::EVENT_NEW
@@ -16,7 +16,7 @@ print outfile, A::description;
 print outfile, A::tpe;
 print outfile, A::i;
 print outfile, A::b;
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Input::EVENT_NEW
@@ -28,7 +28,7 @@ print outfile, A::description;
 print outfile, A::tpe;
 print outfile, A::i;
 print outfile, A::b;
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Input::EVENT_NEW
@@ -40,7 +40,7 @@ print outfile, A::description;
 print outfile, A::tpe;
 print outfile, A::i;
 print outfile, A::b;
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Input::EVENT_NEW
@@ -52,7 +52,7 @@ print outfile, A::description;
 print outfile, A::tpe;
 print outfile, A::i;
 print outfile, A::b;
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Input::EVENT_NEW
@@ -64,7 +64,7 @@ print outfile, A::description;
 print outfile, A::tpe;
 print outfile, A::i;
 print outfile, A::b;
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Input::EVENT_NEW
@@ -76,7 +76,7 @@ print outfile, A::description;
 print outfile, A::tpe;
 print outfile, A::i;
 print outfile, A::b;
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Input::EVENT_NEW

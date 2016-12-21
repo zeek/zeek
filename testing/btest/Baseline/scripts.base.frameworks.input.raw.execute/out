@@ -6,7 +6,7 @@ print outfile, s;
 Input::remove(input);
 close(outfile);
 terminate();
-}, config={
+}, error_ev=<uninitialized>, config={
 
 }]
 Input::EVENT_NEW

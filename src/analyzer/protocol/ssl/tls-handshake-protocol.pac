@@ -33,7 +33,7 @@ type HandshakeRecord(is_orig: bool) = record {
 type Handshake(rec: HandshakeRecord) = case rec.msg_type of {
 	HELLO_REQUEST        -> hello_request        : HelloRequest(rec);
 	CLIENT_HELLO         -> client_hello         : ClientHello(rec);
-	SERVER_HELLO         -> server_hello         : ServerHello(rec);
+	SERVER_HELLO         -> server_hello         : ServerHelloChoice(rec);
 	HELLO_VERIFY_REQUEST -> hello_verify_request : HelloVerifyRequest(rec);
 	SESSION_TICKET       -> session_ticket       : SessionTicketHandshake(rec);
 	CERTIFICATE          -> certificate          : Certificate(rec);
@@ -75,7 +75,7 @@ type ClientHello(rec: HandshakeRecord) = record {
 	session_len : uint8;
 	session_id : uint8[session_len];
 	dtls_cookie: case client_version of {
-		DTLSv10 -> cookie: ClientHelloCookie(rec);
+		DTLSv10, DTLSv12 -> cookie: ClientHelloCookie(rec);
 		default -> nothing: bytestring &length=0;
 	};
 	csuit_len : uint16 &check(csuit_len > 1 && csuit_len % 2 == 0);
@@ -97,8 +97,24 @@ type ClientHelloCookie(rec: HandshakeRecord) = record {
 # V3 Server Hello (7.4.1.3.)
 ######################################################################
 
-type ServerHello(rec: HandshakeRecord) = record {
-	server_version : uint16;
+# TLS 1.3 server hello is different from earlier versions. Trick around a
+# bit, route 1.3 requests to a different record than earlier.
+type ServerHelloChoice(rec: HandshakeRecord) = record {
+	server_version0 : uint8;
+	server_version1 : uint8;
+	hello: case parsed_version of {
+		TLSv13, TLSv13_draft -> hello13: ServerHello13(rec, server_version);
+		default -> helloclassic: ServerHello(rec, server_version);
+	} &requires(server_version) &requires(parsed_version);
+} &let {
+	server_version : uint16 = (server_version0 << 8) | server_version1;
+	parsed_version : uint16 = case server_version0 of {
+		0x7F -> 0x7F00; # map any draft version to 00
+		default -> server_version;
+	};
+};
+
+type ServerHello(rec: HandshakeRecord, server_version: uint16) = record {
 	gmt_unix_time : uint32;
 	random_bytes : bytestring &length = 28;
 	session_len : uint8;
@@ -107,6 +123,16 @@ type ServerHello(rec: HandshakeRecord) = record {
 	compression_method : uint8;
 	# This weirdness is to deal with the possible existence or absence
 	# of the following fields.
+	ext_len: uint16[] &until($element == 0 || $element != 0);
+	extensions : SSLExtension(rec)[] &until($input.length() == 0);
+} &let {
+	cipher_set : bool =
+		$context.connection.set_cipher(cipher_suite[0]);
+};
+
+type ServerHello13(rec: HandshakeRecord, server_version: uint16) = record {
+	random : bytestring &length = 32;
+	cipher_suite : uint16[1];
 	ext_len: uint16[] &until($element == 0 || $element != 0);
 	extensions : SSLExtension(rec)[] &until($input.length() == 0);
 } &let {
@@ -458,6 +484,8 @@ type SSLExtension(rec: HandshakeRecord) = record {
 		EXT_EC_POINT_FORMATS -> ec_point_formats: EcPointFormats(rec)[] &until($element == 0 || $element != 0);
 #		EXT_STATUS_REQUEST -> status_request: StatusRequest(rec)[] &until($element == 0 || $element != 0);
 		EXT_SERVER_NAME -> server_name: ServerNameExt(rec)[] &until($element == 0 || $element != 0);
+		EXT_SIGNATURE_ALGORITHMS -> signature_algorithm: SignatureAlgorithm(rec)[] &until($element == 0 || $element != 0);
+		EXT_KEY_SHARE -> key_share: KeyShare(rec)[] &until($element == 0 || $element != 0);
 		default -> data: bytestring &restofdata;
 	};
 } &length=data_len+4 &exportsourcedata;
@@ -500,6 +528,38 @@ type EcPointFormats(rec: HandshakeRecord) = record {
 	length: uint8;
 	point_format_list: uint8[length];
 };
+
+type KeyShareEntry() = record {
+	namedgroup : uint16;
+	key_exchange_length : uint16;
+	key_exchange: bytestring &length=key_exchange_length &transient;
+};
+
+type ServerHelloKeyShare(rec: HandshakeRecord) = record {
+	keyshare : KeyShareEntry;
+};
+
+type ClientHelloKeyShare(rec: HandshakeRecord) = record {
+	length: uint16;
+	keyshares : KeyShareEntry[] &until($input.length() == 0);
+};
+
+type KeyShare(rec: HandshakeRecord) = case rec.msg_type of {
+	CLIENT_HELLO -> client_hello_keyshare : ClientHelloKeyShare(rec);
+	SERVER_HELLO -> server_hello_keyshare : ServerHelloKeyShare(rec);
+	# ... well, we don't parse hello retry requests yet, because I don't have an example of them on the wire.
+	default -> other : bytestring &restofdata &transient;
+};
+
+type SignatureAndHashAlgorithm() = record {
+	HashAlgorithm: uint8;
+	SignatureAlgorithm: uint8;
+}
+
+type SignatureAlgorithm(rec: HandshakeRecord) = record {
+	length: uint16;
+	supported_signature_algorithms: SignatureAndHashAlgorithm[] &until($input.length() == 0);
+}
 
 type EllipticCurves(rec: HandshakeRecord) = record {
 	length: uint16;

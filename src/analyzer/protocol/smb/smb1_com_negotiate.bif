@@ -1,0 +1,40 @@
+## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+## version 1 requests of type *negotiate*. This is sent by the client to initiate an SMB
+## connection between the client and the server. A *negotiate* exchange MUST be completed
+## before any other SMB messages are sent to the server.
+##
+## For more information, see MS-CIFS:2.2.4.52
+##
+## c: The connection.
+##
+## hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
+##
+## dialects: The SMB dialects supported by the client.
+##
+## .. bro:see:: smb1_message smb1_negotiate_response
+event smb1_negotiate_request%(c: connection, hdr: SMB1::Header, dialects: string_vec%);
+
+## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+## version 1 responses of type *negotiate*. This is the server response to the *negotiate*
+## request.
+##
+## For more information, see MS-CIFS:2.2.4.52
+##
+## c: The connection.
+##
+## hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
+##
+## response: A record structure containing more information from the response.
+##
+## .. bro:see:: smb1_message smb1_negotiate_request
+event smb1_negotiate_response%(c: connection, hdr: SMB1::Header, response: SMB1::NegotiateResponse%);
+
+#### Types
+
+type SMB1::NegotiateResponse: record;
+type SMB1::NegotiateResponseCore: record;
+type SMB1::NegotiateResponseLANMAN: record;
+type SMB1::NegotiateResponseNTLM: record;
+type SMB1::NegotiateResponseSecurity: record;
+type SMB1::NegotiateRawMode: record;
+type SMB1::NegotiateCapabilities: record;

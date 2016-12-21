@@ -221,7 +221,7 @@ void Reporter::WeirdFlowHelper(const IPAddr& orig, const IPAddr& resp, const cha
 
 void Reporter::Weird(const char* name)
 	{
-	WeirdHelper(net_weird, 0, 0, name);
+	WeirdHelper(net_weird, 0, 0, "%s", name);
 	}
 
 void Reporter::Weird(Connection* conn, const char* name, const char* addl)
@@ -300,7 +300,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 		{
 		va_list aq;
 		va_copy(aq, ap);
-		int n = vsnprintf(buffer, size, fmt, aq);
+		int n = safe_vsnprintf(buffer, size, fmt, aq);
 		va_end(aq);
 
 		if ( postfix )
@@ -318,10 +318,10 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 			FatalError("out of memory in Reporter");
 		}
 
-	if ( postfix )
+	if ( postfix && *postfix )
 		// Note, if you change this fmt string, adjust the additional
 		// buffer size above.
-		sprintf(buffer + strlen(buffer), " [%s]", postfix);
+		safe_snprintf(buffer + strlen(buffer), size - strlen(buffer), " [%s]", postfix);
 
 	if ( event && via_events && ! in_error_handler )
 		{

@@ -14,9 +14,6 @@
 # include <krb5.h>
 #endif
 
-#include <openssl/ssl.h>
-#include <openssl/err.h>
-
 class CompressedChunkedIO;
 
 // #define DEBUG_COMMUNICATION 10
@@ -243,6 +240,11 @@ private:
 	bro::Flare write_flare;
 	bro::Flare read_flare;
 };
+
+// From OpenSSL. We forward-declare these here to avoid introducing a
+// dependency on OpenSSL headers just for this header file.
+typedef struct ssl_ctx_st SSL_CTX;
+typedef struct ssl_st SSL;
 
 // Chunked I/O using an SSL connection.
 class ChunkedIOSSL : public ChunkedIO {

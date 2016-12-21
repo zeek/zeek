@@ -54,7 +54,7 @@ public:
 	void TraceOn();
 	void TraceOff();
 
-	int LogTrace(const char* fmt, ...);
+	int LogTrace(const char* fmt, ...) __attribute__((format(printf, 2, 3)));;
 
 protected:
 	bool dbgtrace;		// print an execution trace

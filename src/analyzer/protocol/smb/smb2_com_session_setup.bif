@@ -1,0 +1,36 @@
+## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+## version 2 requests of type *session_setup*. This is sent by the client to request a new
+## authenticated session within a new or existing SMB 2 Protocol transport connection to the
+## server.
+##
+## For more information, see MS-SMB2:2.2.5
+##
+## c: The connection.
+##
+## hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
+##
+## request: A record containing more information related to the request.
+##
+## .. bro:see:: smb2_message smb2_session_setup_response
+event smb2_session_setup_request%(c: connection, hdr: SMB2::Header, request: SMB2::SessionSetupRequest%);
+
+## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+## version 2 responses of type *session_setup*. This is sent by the server in response to a
+## *session_setup* request.
+##
+## For more information, see MS-SMB2:2.2.6
+##
+## c: The connection.
+##
+## hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
+##
+## response: A record containing more information related to the response.
+##
+## .. bro:see:: smb2_message smb2_session_setup_request
+event smb2_session_setup_response%(c: connection, hdr: SMB2::Header, response: SMB2::SessionSetupResponse%);
+
+#### Types
+
+type SMB2::SessionSetupRequest: record;
+type SMB2::SessionSetupResponse: record;
+type SMB2::SessionSetupFlags: record;

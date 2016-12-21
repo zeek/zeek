@@ -78,15 +78,6 @@ You can leave it running for now, but to stop this Bro instance you would do:
 
    [BroControl] > stop
 
-We also recommend to insert the following entry into the crontab of the user
-running BroControl::
-
-      0-59/5 * * * * $PREFIX/bin/broctl cron
-
-This will perform a number of regular housekeeping tasks, including
-verifying that the process is still running (and restarting if not in
-case of any abnormal termination).
-
 Browsing Log Files
 ------------------
 
@@ -232,23 +223,25 @@ That's exactly what we want to do for the first notice.  Add to ``local.bro``:
    inside the module.
 
 Then go into the BroControl shell to check whether the configuration change
-is valid before installing it and then restarting the Bro instance:
+is valid before installing it and then restarting the Bro instance.  The
+"deploy" command does all of this automatically:
 
 .. console::
 
-   [BroControl] > check
-   bro scripts are ok.
-   [BroControl] > install
-   removing old policies in /usr/local/bro/spool/policy/site ... done.
-   removing old policies in /usr/local/bro/spool/policy/auto ... done.
-   creating policy directories ... done.
-   installing site policies ... done.
-   generating standalone-layout.bro ... done.
-   generating local-networks.bro ... done.
-   generating broctl-config.bro ... done.
-   updating nodes ... done.
-   [BroControl] > restart
+   [BroControl] > deploy
+   checking configurations ...
+   installing ...
+   removing old policies in /usr/local/bro/spool/installed-scripts-do-not-touch/site ...
+   removing old policies in /usr/local/bro/spool/installed-scripts-do-not-touch/auto ...
+   creating policy directories ...
+   installing site policies ...
+   generating standalone-layout.bro ...
+   generating local-networks.bro ...
+   generating broctl-config.bro ...
+   generating broctl-config.sh ...
+   stopping ...
    stopping bro ...
+   starting ...
    starting bro ...
 
 Now that the SSL notice is ignored, let's look at how to send an email
@@ -281,8 +274,8 @@ connection field is in the set of watched servers.
    order to avoid ambiguity with the built-in address type's use of '.'
    in IPv4 dotted decimal representations.
 
-Remember, to finalize that configuration change perform the ``check``,
-``install``, ``restart`` commands in that order inside the BroControl shell.
+Remember, to finalize that configuration change perform the ``deploy``
+command inside the BroControl shell.
 
 Next Steps
 ----------

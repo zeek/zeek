@@ -3,6 +3,7 @@ module RFB;
 export {
 	redef enum Log::ID += { LOG };
 
+	## The record type which contains the fields of the RFB log.
 	type Info: record {
 		## Timestamp for when the event happened.
 		ts:     time    &log;
@@ -17,12 +18,12 @@ export {
 		client_minor_version: string &log &optional;
 		## Major version of the server.
 		server_major_version: string &log &optional;
-		## Major version of the client.
+		## Minor version of the server.
 		server_minor_version: string &log &optional;
 
 		## Identifier of authentication method used.
 		authentication_method: string &log &optional;
-		## Whether or not authentication was succesful.
+		## Whether or not authentication was successful.
 		auth: bool &log &optional;
 
 		## Whether the client has an exclusive or a shared session.

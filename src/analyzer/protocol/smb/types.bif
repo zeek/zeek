@@ -1,0 +1,7 @@
+type SMB::MACTimes: record;
+
+type SMB1::Header: record;
+
+type SMB2::Header: record;
+type SMB2::GUID: record;
+type SMB2::FileAttrs: record;

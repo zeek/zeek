@@ -5,7 +5,7 @@
 
 #include "analyzer/protocol/udp/UDP.h"
 #include "analyzer/protocol/tcp/TCP.h"
-#include "analyzer/protocol/smb/SMB.h"
+//#include "analyzer/protocol/smb/SMB.h"
 
 namespace analyzer { namespace netbios_ssn {
 
@@ -64,7 +64,7 @@ struct NetbiosDGM_RawMsgHdr {
 
 class NetbiosSSN_Interpreter {
 public:
-	NetbiosSSN_Interpreter(analyzer::Analyzer* analyzer, smb::SMB_Session* smb_session);
+	NetbiosSSN_Interpreter(Analyzer* analyzer);
 
 	int ParseMessage(unsigned int type, unsigned int flags,
 			const u_char* data, int len, int is_query);
@@ -99,8 +99,8 @@ protected:
 			u_char*& xname, int& xlen);
 
 protected:
-	analyzer::Analyzer* analyzer;
-	smb::SMB_Session* smb_session;
+	Analyzer* analyzer;
+	//SMB_Session* smb_session;
 };
 
 
@@ -124,7 +124,7 @@ public:
 	NetbiosSSN_State State() const		{ return state; }
 
 protected:
-	virtual void DeliverStream(int len, const u_char* data, bool orig);
+	void DeliverStream(int len, const u_char* data, bool orig) override;
 
 	NetbiosSSN_Interpreter* interp;
 
@@ -144,22 +144,22 @@ public:
 	NetbiosSSN_Analyzer(Connection* conn);
 	~NetbiosSSN_Analyzer();
 
-	virtual void Done();
-	virtual void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64 seq, const IP_Hdr* ip, int caplen);
+	void Done() override;
+	void DeliverPacket(int len, const u_char* data, bool orig,
+					uint64 seq, const IP_Hdr* ip, int caplen) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new NetbiosSSN_Analyzer(conn); }
 
 protected:
-	virtual void ConnectionClosed(tcp::TCP_Endpoint* endpoint,
-					tcp::TCP_Endpoint* peer, int gen_event);
-	virtual void EndpointEOF(bool is_orig);
+	void ConnectionClosed(tcp::TCP_Endpoint* endpoint,
+					tcp::TCP_Endpoint* peer, int gen_event) override;
+	void EndpointEOF(bool is_orig) override;
 
 	void ExpireTimer(double t);
 
 	NetbiosSSN_Interpreter* interp;
-	smb::SMB_Session* smb_session;
+	//SMB_Session* smb_session;
 	Contents_NetbiosSSN* orig_netbios;
 	Contents_NetbiosSSN* resp_netbios;
 	int did_session_done;
@@ -168,6 +168,6 @@ protected:
 // FIXME: Doesn't really fit into new analyzer structure. What to do?
 int IsReuse(double t, const u_char* pkt);
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*
 
 #endif

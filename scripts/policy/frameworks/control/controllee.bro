@@ -29,12 +29,8 @@ event Control::peer_status_request()
 		if ( ! peer$connected )
 			next;
 
-		local res = resource_usage();
-		status += fmt("%.6f peer=%s ip=%s events_in=%s events_out=%s ops_in=%s ops_out=%s bytes_in=? bytes_out=?\n",
-					network_time(),
-					peer$peer, peer$ip,
-					res$num_events_queued, res$num_events_dispatched,
-					res$blocking_input, res$blocking_output);
+		status += fmt("%.6f peer=%s host=%s\n",
+			      network_time(), peer$peer, peer$ip);
 		}
 
 	event Control::peer_status_response(status);
@@ -42,8 +38,8 @@ event Control::peer_status_request()
 
 event Control::net_stats_request()
 	{
-	local ns = net_stats();
-	local reply = fmt("%.6f recvd=%d dropped=%d link=%d\n", network_time(), 
+	local ns = get_net_stats();
+	local reply = fmt("%.6f recvd=%d dropped=%d link=%d\n", network_time(),
 	                  ns$pkts_recvd, ns$pkts_dropped, ns$pkts_link);
 	event Control::net_stats_response(reply);
 	}

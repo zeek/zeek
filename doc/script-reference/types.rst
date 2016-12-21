@@ -150,18 +150,17 @@ Here is a more detailed description of each type:
 
 .. bro:type:: string
 
-    A type used to hold character-string values which represent text, although
-    strings in a Bro script can actually contain any arbitrary binary data.
+    A type used to hold bytes which represent text and also can hold
+    arbitrary binary data.
 
     String constants are created by enclosing text within a pair of double
     quotes (").  A string constant cannot span multiple lines in a Bro script.
-    The backslash character (\\) introduces escape sequences.  The
-    following escape sequences are recognized: ``\n``, ``\t``, ``\v``, ``\b``,
+    The backslash character (\\) introduces escape sequences. Bro recognizes
+    the following escape sequences: ``\\``, ``\n``, ``\t``, ``\v``, ``\b``,
     ``\r``, ``\f``, ``\a``, ``\ooo`` (where each 'o' is an octal digit),
-    ``\xhh`` (where each 'h' is a hexadecimal digit).  For escape sequences
-    that don't match any of these, Bro will just remove the backslash (so
-    to represent a literal backslash in a string constant, you just use
-    two consecutive backslashes).
+    ``\xhh`` (where each 'h' is a hexadecimal digit).  If Bro does not
+    recognize an escape sequence, Bro will ignore the backslash
+    ("\\g" becomes "g").
 
     Strings support concatenation (``+``), and assignment (``=``, ``+=``).
     Strings also support the comparison operators (``==``, ``!=``, ``<``,
@@ -181,11 +180,14 @@ Here is a more detailed description of each type:
     second-to-last character, etc.  Here are a few examples::
 
         local orig = "0123456789";
-        local second_char = orig[1];
-        local last_char = orig[-1];
-        local first_two_chars = orig[:2];
-        local last_two_chars = orig[8:];
-        local no_first_and_last = orig[1:9];
+        local second_char = orig[1];         # "1"
+        local last_char = orig[-1];          # "9"
+        local first_two_chars = orig[:2];    # "01"
+        local last_two_chars = orig[8:];     # "89"
+        local no_first_and_last = orig[1:9]; # "12345678"
+        local no_first = orig[1:];           # "123456789"
+        local no_last = orig[:-1];           # "012345678"
+        local copy_orig = orig[:];           # "0123456789"
 
     Note that the subscript operator cannot be used to modify a string (i.e.,
     it cannot be on the left side of an assignment operator).

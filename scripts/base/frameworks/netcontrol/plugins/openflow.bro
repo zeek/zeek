@@ -7,29 +7,53 @@
 module NetControl;
 
 export {
+	## This record specifies the configuration that is passed to :bro:see:`NetControl::create_openflow`.
 	type OfConfig: record {
-		monitor: bool &default=T;
-		forward: bool &default=T;
-		idle_timeout: count &default=0;
-		table_id: count &optional;
-		priority_offset: int &default=+0; ##< add this to all rule priorities. Can be useful if you want the openflow priorities be offset from the netcontrol priorities without having to write a filter function.
+		monitor: bool &default=T; ##< Accept rules that target the monitor path.
+		forward: bool &default=T; ##< Accept rules that target the forward path.
+		idle_timeout: count &default=0; ##< Default OpenFlow idle timeout.
+		table_id: count &optional; ##< Default OpenFlow table ID.
+		priority_offset: int &default=+0; ##< Add this to all rule priorities. Can be useful if you want the openflow priorities be offset from the netcontrol priorities without having to write a filter function.
 
 		## Predicate that is called on rule insertion or removal.
 		##
-		## p: Current plugin state
+		## p: Current plugin state.
 		##
-		## r: The rule to be inserted or removed
+		## r: The rule to be inserted or removed.
 		##
-		## Returns: T if the rule can be handled by the current backend, F otherwhise
+		## Returns: T if the rule can be handled by the current backend, F otherwise.
 		check_pred: function(p: PluginState, r: Rule): bool &optional;
+
+		## This predicate is called each time an OpenFlow match record is created.
+		## The predicate can modify the match structure before it is sent on to the
+		## device.
+		##
+		## p: Current plugin state.
+		##
+		## r: The rule to be inserted or removed.
+		##
+		## m: The openflow match structures that were generated for this rules.
+		##
+		## Returns: The modified OpenFlow match structures that will be used in place of the structures passed in m.
 		match_pred: function(p: PluginState, e: Entity, m: vector of OpenFlow::ofp_match): vector of OpenFlow::ofp_match &optional;
+
+		## This predicate is called before a FlowMod message is sent to the OpenFlow
+		## device. It can modify the FlowMod message before it is passed on.
+		##
+		## p: Current plugin state.
+		##
+		## r: The rule to be inserted or removed.
+		##
+		## m: The OpenFlow FlowMod message.
+		##
+		## Returns: The modified FlowMod message that is used in lieu of m.
 		flow_mod_pred: function(p: PluginState, r: Rule, m: OpenFlow::ofp_flow_mod): OpenFlow::ofp_flow_mod &optional;
 	};
 
 	redef record PluginState += {
-		## OpenFlow controller for NetControl OpenFlow plugin
+		## OpenFlow controller for NetControl OpenFlow plugin.
 		of_controller: OpenFlow::Controller &optional;
-		## OpenFlow configuration record that is passed on initialization
+		## OpenFlow configuration record that is passed on initialization.
 		of_config: OfConfig &optional;
 	};
 
@@ -42,11 +66,11 @@ export {
 		duration_sec: double &default=0.0;
 	};
 
-	## the time interval after which an openflow message is considered to be timed out
+	## The time interval after which an openflow message is considered to be timed out
 	## and we delete it from our internal tracking.
 	const openflow_message_timeout = 20secs &redef;
 
-	## the time interval after we consider a flow timed out. This should be fairly high (or
+	## The time interval after we consider a flow timed out. This should be fairly high (or
 	## even disabled) if you expect a lot of long flows. However, one also will have state
 	## buildup for quite a while if keeping this around...
 	const openflow_flow_timeout = 24hrs &redef;
@@ -300,7 +324,7 @@ function openflow_add_rule(p: PluginState, r: Rule) : bool
 	return T;
 	}
 
-function openflow_remove_rule(p: PluginState, r: Rule) : bool
+function openflow_remove_rule(p: PluginState, r: Rule, reason: string) : bool
 	{
 	if ( ! openflow_check_rule(p, r) )
 		return F;
@@ -420,8 +444,6 @@ global openflow_plugin = Plugin(
 #	$done = openflow_done,
 	$add_rule = openflow_add_rule,
 	$remove_rule = openflow_remove_rule
-#	$transaction_begin = openflow_transaction_begin,
-#	$transaction_end = openflow_transaction_end
 	);
 
 function create_openflow(controller: OpenFlow::Controller, config: OfConfig &default=[]) : PluginState

@@ -65,12 +65,16 @@ function to_string_val(data : uint8[]) : StringVal
 
 function version_ok(vers : uint16) : bool
 	%{
+	if ( vers >> 8 == 0x7F ) // 1.3 draft
+		return true;
+
 	switch ( vers ) {
 	case SSLv20:
 	case SSLv30:
 	case TLSv10:
 	case TLSv11:
 	case TLSv12:
+	case TLSv13:
 	case DTLSv10:
 	case DTLSv12:
 		return true;
@@ -88,7 +92,7 @@ using std::string;
 #include "events.bif.h"
 %}
 
-# a maximum of 100k for one record seems safe 
+# a maximum of 100k for one record seems safe
 let MAX_DTLS_HANDSHAKE_RECORD: uint32 = 100000;
 
 enum ContentType {
@@ -112,6 +116,8 @@ enum SSLVersions {
 	TLSv10		= 0x0301,
 	TLSv11		= 0x0302,
 	TLSv12		= 0x0303,
+	TLSv13		= 0x0304,
+	TLSv13_draft	= 0x7F00, # the second byte actually defines the draft.
 
 	DTLSv10   = 0xFEFF,
 	# DTLSv11 does not exist.
@@ -139,7 +145,11 @@ enum SSLExtensions {
 	EXT_STATUS_REQUEST_V2 = 17,
 	EXT_SIGNED_CERTIFICATE_TIMESTAMP = 18,
 	EXT_SESSIONTICKET_TLS = 35,
-	EXT_EXTENDED_RANDOM = 40,
+	EXT_KEY_SHARE = 40,
+	EXT_PRE_SHARED_KEY = 41,
+	EXT_EARLY_DATA = 42,
+	EXT_SUPPORTED_VERSIONS = 43,
+	EXT_COOKIE = 44,
 	EXT_NEXT_PROTOCOL_NEGOTIATION = 13172,
 	EXT_ORIGIN_BOUND_CERTIFICATES = 13175,
 	EXT_ENCRYPTED_CLIENT_CERTIFICATES = 13180,

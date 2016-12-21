@@ -5,7 +5,8 @@
 module SumStats;
 
 export {
-	## The various calculations are all defined as plugins.
+	## Type to represent the calculations that are available.  The calculations
+	## are all defined as plugins.
 	type Calculation: enum {
 		PLACEHOLDER
 	};
@@ -39,6 +40,7 @@ export {
 		str:  string &optional;
 	};
 
+	## Represents a reducer.
 	type Reducer: record {
 		## Observation stream identifier for the reducer
 		## to attach to.
@@ -56,7 +58,7 @@ export {
 		normalize_key:  function(key: SumStats::Key): Key &optional;
 	};
 
-	## Value calculated for an observation stream fed into a reducer.
+	## Result calculated for an observation stream fed into a reducer.
 	## Most of the fields are added by plugins.
 	type ResultVal: record {
 		## The time when the first observation was added to
@@ -71,14 +73,15 @@ export {
 		num:    count &default=0;
 	};
 
-	## Type to store results for multiple reducers.
+	## Type to store a table of results for multiple reducers indexed by
+	## observation stream identifier.
 	type Result: table[string] of ResultVal;
 
 	## Type to store a table of sumstats results indexed by keys.
 	type ResultTable: table[Key] of Result;
 
-	## SumStats represent an aggregation of reducers along with
-	## mechanisms to handle various situations like the epoch ending
+	## Represents a SumStat, which consists of an aggregation of reducers along
+	## with mechanisms to handle various situations like the epoch ending
 	## or thresholds being crossed.
 	##
 	## It's best to not access any global state outside
@@ -101,21 +104,28 @@ export {
 		## The reducers for the SumStat.
 		reducers:           set[Reducer];
 
-		## Provide a function to calculate a value from the
-		## :bro:see:`SumStats::Result` structure which will be used
-		## for thresholding.
-		## This is required if a *threshold* value is given.
+		## A function that will be called once for each observation in order
+		## to calculate a value from the :bro:see:`SumStats::Result` structure
+		## which will be used for thresholding.
+		## This function is required if a *threshold* value or
+		## a *threshold_series* is given.
 		threshold_val:      function(key: SumStats::Key, result: SumStats::Result): double &optional;
 
-		## The threshold value for calling the
-		## *threshold_crossed* callback.
+		## The threshold value for calling the *threshold_crossed* callback.
+		## If you need more than one threshold value, then use
+		## *threshold_series* instead.
 		threshold:          double            &optional;
 
-		## A series of thresholds for calling the
-		## *threshold_crossed* callback.
+		## A series of thresholds for calling the *threshold_crossed*
+		## callback.  These thresholds must be listed in ascending order,
+		## because a threshold is not checked until the preceding one has
+		## been crossed.
 		threshold_series:   vector of double  &optional;
 
 		## A callback that is called when a threshold is crossed.
+		## A threshold is crossed when the value returned from *threshold_val*
+		## is greater than or equal to the threshold value, but only the first
+		## time this happens within an epoch.
 		threshold_crossed:  function(key: SumStats::Key, result: SumStats::Result) &optional;
 
 		## A callback that receives each of the results at the
@@ -130,6 +140,8 @@ export {
 	};
 
 	## Create a summary statistic.
+	##
+	## ss: The SumStat to create.
 	global create: function(ss: SumStats::SumStat);
 
 	## Add data into an observation stream. This should be

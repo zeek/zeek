@@ -39,7 +39,7 @@ AddrVal* network_address_to_val(const ASN1Encoding* na)
 
 	const u_char* data = reinterpret_cast<const u_char*>(bs.data());
 	uint32 network_order = extract_uint32(data);
-	return new AddrVal(network_order);
+	return new AddrVal(ntohl(network_order));
 	}
 
 Val* asn1_obj_to_val(const ASN1Encoding* obj)

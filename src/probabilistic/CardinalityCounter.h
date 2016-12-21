@@ -28,12 +28,17 @@ public:
 	 *
 	 * @param confidence confidence of the error. Default: 0.95
 	 */
-	CardinalityCounter(double error_margin, double confidence = 0.95);
+	explicit CardinalityCounter(double error_margin, double confidence = 0.95);
 
 	/**
 	 * Copy-Constructor
 	 */
 	CardinalityCounter(CardinalityCounter& other);
+
+	/**
+	 * Move-Constructor
+	 */
+	CardinalityCounter(CardinalityCounter&& o);
 
 	/**
 	 * Constructor for a known number of buckets.
@@ -43,7 +48,7 @@ public:
 	 *
 	 * @param size number of buckets to create
 	 */
-	CardinalityCounter(uint64 size);
+	explicit CardinalityCounter(uint64_t size);
 
 	/**
 	 * Destructor.
@@ -58,7 +63,7 @@ public:
 	 *
 	 * @param hash 64-bit hash value of the element to be added
 	 */
-	void AddElement(uint64 hash);
+	void AddElement(uint64_t hash);
 
 	/**
 	 * Get the current estimated number of elements in the data
@@ -104,7 +109,7 @@ protected:
 	 *
 	 * @return Number of buckets
 	 */
-	uint64 GetM() const;
+	uint64_t GetM() const;
 
 	/**
 	 * Returns the buckets array that holds all of the rough cardinality
@@ -114,21 +119,21 @@ protected:
 	 *
 	 * @return Array containing cardinality estimates
 	 */
-	uint8_t* GetBuckets();
+	const std::vector<uint8_t>& GetBuckets() const;
 
 private:
 	/**
 	 * Constructor used when unserializing, i.e., all parameters are
 	 * known.
 	 */
-	CardinalityCounter(uint64 size, uint64 V, double alpha_m);
+	explicit CardinalityCounter(uint64_t size, uint64_t V, double alpha_m);
 
 	/**
 	 * Helper function with code used jointly by multiple constructors.
 	 *
 	 * @param arg_size: number of buckets that need to be kept
 	 */
-	void Init(uint64 arg_size);
+	void Init(uint64_t arg_size);
 
 	/**
 	 * This function calculates the smallest value of b that will
@@ -150,22 +155,28 @@ private:
 	int OptimalB(double error, double confidence) const;
 
 	/**
-	 * Determines at which index (counted from the back) the first one-bit
+	 * Determines at which index (counted from the front) the first one-bit
 	 * appears. The last b bits have to be 0 (the element has to be divisible
-	 * by m), hence they are ignored.
+	 * by m), hence they are ignored. Always adds 1 to the result. This is the
+	 * rho function from the original algorithm.
 	 *
 	 * @param hash_modified hash value
 	 *
 	 * @returns index of first one-bit
 	 */
-	uint8_t Rank(uint64 hash_modified) const;
+	uint8_t Rank(uint64_t hash_modified) const;
+
+	/**
+	 * flsll from FreeBSD; especially Linux does not have this.
+	 */
+	static int flsll(uint64_t mask);
 
 	/**
 	 * This is the number of buckets that will be stored. The standard
 	 * error is 1.04/sqrt(m), so the actual cardinality will be the
 	 * estimate +/- 1.04/sqrt(m) with approximately 68% probability.
 	 */
-	uint64 m;
+	uint64_t m;
 
 	/**
 	 * These are the actual buckets that are storing an estimate of the
@@ -173,7 +184,7 @@ private:
 	 * appears in the bitstring and that location is at most 65, so not
 	 * that many bits are needed to store it.
 	 */
-	uint8_t* buckets;
+	std::vector<uint8_t> buckets;
 
 	/**
 	 * There are some state constants that need to be kept track of to
@@ -181,8 +192,9 @@ private:
 	 * buckets that are 0 and this is used in the small error correction.
 	 * alpha_m is a multiplicative constant used in the algorithm.
 	 */
-	uint64 V;
+	uint64_t V;
 	double alpha_m;
+	int p; // the log2 of m
 };
 
 }

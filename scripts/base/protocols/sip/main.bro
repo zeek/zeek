@@ -10,6 +10,7 @@ module SIP;
 export {
 	redef enum Log::ID += { LOG };
 
+	## The record type which contains the fields of the SIP log.
 	type Info: record {
 		## Timestamp for when the request happened.
 		ts:                      time              &log;

@@ -59,12 +59,11 @@ export {
 redef Cluster::manager2worker_events += {"SumStats::cluster_ss_request", "SumStats::cluster_get_result", "SumStats::cluster_threshold_crossed", "SumStats::get_a_key"};
 redef Cluster::worker2manager_events += {"SumStats::cluster_send_result", "SumStats::cluster_key_intermediate_response", "SumStats::send_a_key", "SumStats::send_no_key"};
 
+# This variable is maintained to know what keys have recently sent or received
+# intermediate updates so they don't overwhelm the manager.
+global recent_global_view_keys: set[string, Key] &create_expire=1min;
+
 @if ( ! Cluster::has_local_role(Cluster::MANAGER) )
-# This variable is maintained to know what keys have recently sent as
-# intermediate updates so they don't overwhelm their manager. The count that is
-# yielded is the number of times the percentage threshold has been crossed and
-# an intermediate result has been received.
-global recent_global_view_keys: table[string, Key] of count &create_expire=1min &default=0;
 
 # Result tables indexed on a uid that are currently being sent to the
 # manager.
@@ -74,8 +73,7 @@ global sending_results: table[string] of ResultTable = table() &read_expire=1min
 # being collected somewhere other than a worker.
 function data_added(ss: SumStat, key: Key, result: Result)
 	{
-	# If an intermediate update for this value was sent recently, don't send
-	# it again.
+	# If an intermediate update for this key was sent recently, don't send it again
 	if ( [ss$name, key] in recent_global_view_keys )
 		return;
 
@@ -86,7 +84,7 @@ function data_added(ss: SumStat, key: Key, result: Result)
 		{
 		# kick off intermediate update
 		event SumStats::cluster_key_intermediate_response(ss$name, key);
-		++recent_global_view_keys[ss$name, key];
+		add recent_global_view_keys[ss$name, key];
 		}
 	}
 
@@ -237,7 +235,7 @@ global dynamic_requests: set[string] &read_expire=1min;
 # to too many intermediate updates.  Each sumstat is tracked separately so that
 # one won't overwhelm and degrade other quieter sumstats.
 # Indexed on a sumstat id.
-global outstanding_global_views: table[string] of count &read_expire=1min &default=0;
+global outstanding_global_views: table[string] of set[string] &read_expire=1min;
 
 const zero_time = double_to_time(0.0);
 # Managers handle logging.
@@ -303,12 +301,10 @@ function handle_end_of_result_collection(uid: string, ss_name: string, key: Key,
 			ss$epoch_result(now, key, ir);
 			}
 
-		# Check that there is an outstanding view before subtracting.
-		# Global views only apply to non-dynamic requests. Dynamic
-		# requests must be serviced.
-		if ( outstanding_global_views[ss_name] > 0 )
-			--outstanding_global_views[ss_name];
 		}
+	# Check if this was an intermediate update
+	if ( ss_name in outstanding_global_views )
+		delete outstanding_global_views[ss_name][uid];
 
 	delete key_requests[uid];
 	delete done_with[uid];
@@ -439,9 +435,14 @@ event SumStats::cluster_key_intermediate_response(ss_name: string, key: Key)
 	{
 	#print "MANAGER: receiving intermediate key data";
 	#print fmt("MANAGER: requesting key data for %s", key);
+	# If an intermediate update for this key was handled recently, don't do it again
+	if ( [ss_name, key] in recent_global_view_keys )
+		return;
+	add recent_global_view_keys[ss_name, key];
 
-	if ( ss_name in outstanding_global_views &&
-	     |outstanding_global_views[ss_name]| > max_outstanding_global_views )
+	if ( ss_name !in outstanding_global_views)
+		outstanding_global_views[ss_name] = set();
+	else if ( |outstanding_global_views[ss_name]| > max_outstanding_global_views )
 		{
 		# Don't do this intermediate update.  Perhaps at some point in the future
 		# we will queue and randomly select from these ignored intermediate
@@ -449,9 +450,8 @@ event SumStats::cluster_key_intermediate_response(ss_name: string, key: Key)
 		return;
 		}
 
-	++outstanding_global_views[ss_name];
-
 	local uid = unique_id("");
+	add outstanding_global_views[ss_name][uid];
 	done_with[uid] = 0;
 	#print fmt("requesting results for: %s", uid);
 	event SumStats::cluster_get_result(uid, ss_name, key, F);

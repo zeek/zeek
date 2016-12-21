@@ -349,7 +349,8 @@ static int match_prefix(int s_len, const char* s, int t_len, const char* t)
 VectorVal* do_split_string(StringVal* str_val, RE_Matcher* re, int incl_sep,
                            int max_num_sep)
 	{
-	VectorVal* rval = new VectorVal(string_vec);
+	// string_vec is used early in the version script - do not use the NetVar.
+	VectorVal* rval = new VectorVal(internal_type("string_vec")->AsVectorType());
 	const u_char* s = str_val->Bytes();
 	int n = str_val->Len();
 	const u_char* end_of_s = s + n;

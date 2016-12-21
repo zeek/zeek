@@ -14,6 +14,7 @@ module Broker;
 export {
 
 	## A name used to identify this endpoint to peers.
+	##
 	## .. bro:see:: Broker::connect Broker::listen
 	const endpoint_name = "" &redef;
 
@@ -266,6 +267,8 @@ export {
 
 module Broker;
 
+@ifdef ( Broker::__enable )
+
 function enable(flags: EndpointFlags &default = EndpointFlags()) : bool
     {
     return __enable(flags);
@@ -366,3 +369,4 @@ function unsubscribe_to_logs(topic_prefix: string): bool
     return __unsubscribe_to_logs(topic_prefix);
     }
 
+@endif

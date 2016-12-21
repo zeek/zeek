@@ -26,6 +26,7 @@ extern TableType* string_set;
 extern TableType* string_array;
 extern TableType* count_set;
 extern VectorType* string_vec;
+extern VectorType* index_vec;
 extern VectorType* mime_matches;
 extern RecordType* mime_match;
 
@@ -107,13 +108,6 @@ extern RecordType* pm_port_request;
 extern RecordType* pm_callit_request;
 
 extern RecordType* ntp_msg;
-
-extern TableVal* samba_cmds;
-extern RecordType* smb_hdr;
-extern RecordType* smb_trans;
-extern RecordType* smb_trans_data;
-extern RecordType* smb_tree_connect;
-extern TableType* smb_negotiate;
 
 extern RecordType* geo_location;
 
@@ -201,9 +195,6 @@ extern double pkt_profile_freq;
 extern Val* pkt_profile_file;
 
 extern int load_sample_freq;
-
-extern double gap_report_freq;
-extern RecordType* gap_info;
 
 extern int packet_filter_default;
 

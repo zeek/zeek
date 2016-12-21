@@ -27,6 +27,7 @@ event bro_init()
 {
 	test_case( "function", T );
 	test_case( "global variable", num == 123 );
+	test_case( "fully qualified global variable", GLOBAL::num == 123 ); # test for BIT-1758 : GLOBAL scope ID discovery bug
 	test_case( "const", daysperyear == 365 );
 	event testevent( "foo" );
 }

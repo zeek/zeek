@@ -35,6 +35,11 @@ void DTLS_Analyzer::Done()
 void DTLS_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64 seq, const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
+
+	// In this case the packet is a STUN packet. Skip it without complaining.
+	if ( len > 20 && data[4] == 0x21 && data[5] == 0x12 && data[6] == 0xa4 && data[7] == 0x42 )
+		return;
+
 	interp->NewData(orig, data, data + len);
 	}
 

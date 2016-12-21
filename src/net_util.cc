@@ -18,13 +18,16 @@
 // Returns the ones-complement checksum of a chunk of b short-aligned bytes.
 int ones_complement_checksum(const void* p, int b, uint32 sum)
 	{
-	const u_short* sp = (u_short*) p;	// better be aligned!
+	const unsigned char* sp = (unsigned char*) p;
 
 	b /= 2;	// convert to count of short's
 
 	/* No need for endian conversions. */
 	while ( --b >= 0 )
-		sum += *sp++;
+		{
+		sum += *sp + (*(sp+1) << 8);
+		sp += 2;
+		}
 
 	while ( sum > 0xffff )
 		sum = (sum & 0xffff) + (sum >> 16);
@@ -148,21 +151,21 @@ const char* fmt_conn_id(const uint32* src_addr, uint32 src_port,
 	return fmt_conn_id(src, src_port, dst, dst_port);
 	}
 
-char* fmt_mac(const unsigned char* m, int len)
+std::string fmt_mac(const unsigned char* m, int len)
 	{
-	char* buf = new char[25];
+	static char buf[25];
 
-	if ( len < 8 )
+	if ( len < 8 && len != 6 )
 		{
 		*buf = '\0';
 		return buf;
 		}
 
-	if ( m[6] == 0 && m[7] == 0 ) // EUI-48
-		snprintf(buf, 19, "%02x:%02x:%02x:%02x:%02x:%02x",
+	if ( (len == 6) || (m[6] == 0 && m[7] == 0) ) // EUI-48
+		snprintf(buf, sizeof(buf), "%02x:%02x:%02x:%02x:%02x:%02x",
 			 m[0], m[1], m[2], m[3], m[4], m[5]);
 	else
-		snprintf(buf, 25, "%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
+		snprintf(buf, sizeof(buf), "%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
 			 m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7]);
 
 	return buf;

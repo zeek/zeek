@@ -28,10 +28,14 @@ redef Broker::listen_port = Cluster::nodes[Cluster::node]$p;
 
 @if ( Cluster::has_local_role(Cluster::MANAGER) )
 @load ./nodes/manager
+# If no logger is defined, then the manager receives logs.
+@if ( Cluster::manager_is_logger )
+@load ./nodes/logger
+@endif
 @endif
 
-@if ( Cluster::has_local_role(Cluster::LOGNODE) )
-@load ./nodes/lognode
+@if ( Cluster::has_local_role(Cluster::LOGGER) )
+@load ./nodes/logger
 @endif
 
 @if ( Cluster::has_local_role(Cluster::DATANODE) )

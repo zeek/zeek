@@ -1,4 +1,848 @@
 
+2.5-17 | 2016-12-07 14:51:37 -0800
+
+  * Broxygen no longer attempts to do tilde expansion of PATH, giving
+    an error message instead if bro is located in a PATH component
+    that starts with a tilde. Broxygen also no longer attempts to get
+    the mtime of the bro executable when bro is not invoced with the
+    "-X" option. (Daniel Thayer)
+
+  * Fix failing tests, compiler warnings and build issues on OpenBSD.
+    (Daniel Thayer)
+
+2.5-9 | 2016-12-05 11:39:54 -0800
+
+  * Fix validation of OCSP replies inside of Bro. (Johanna Amann)
+
+    At one place in the code, we did not check the correct return
+    code. This makes it possible for a reply to get a response of
+    "good", when the OCSP reply is not actually signed by the
+    responder in question.
+
+    This also instructs OCSP verication to skip certificate chain
+    validation, which we do ourselves earlier because the OCSP verify
+    function cannot do it correctly (no way to pass timestamp).
+
+2.5-6 | 2016-11-29 12:51:04 -0800
+
+  * Fix a build failure on OpenBSD relating to pcap_pkthdr. Also fixes
+    an include issue on OpenBSD. (Daniel Thayer)
+
+  * Fix compile error in krb-types.pac. (Johanna Amann)
+
+  * Update krb-types.pac: KerberosString formatting for the principal
+    principal name is now compliant with RFC 4120 section 5.2.2. (jamesecorrenti)
+
+2.5 | 2016-11-16 14:51:59 -0800
+
+  * Release 2.5.
+
+2.5-beta2-17 | 2016-11-14 17:59:19 -0800
+
+  * Add missing '@load ./pubkey-hashes' to
+    policy/frameworks/intel/seen. (Robin Sommer)
+
+2.5-beta2-15 | 2016-11-14 17:52:55 -0800
+
+  * Remove unused "bindist" make target. (Daniel Thayer)
+
+  * Improve the "How to Upgrade" page in the Bro docs. (Daniel Thayer)
+
+  * Update the quickstart guide for the deploy command. (Daniel Thayer)
+
+  * Improved installation instructions for Mac OS X. (Daniel Thayer)
+
+  * Lots of more small updates to documentation. (Daniel Thayer)
+
+2.5-beta2 | 2016-11-02 12:13:11 -0700
+
+  * Release 2.5-beta2.
+
+2.5-beta-135 | 2016-11-02 09:47:20 -0700
+
+  * SMB fixes and cleanup. Includes better SMB error handling, improved DCE_RPC
+    handling in edge cases where drive_mapping is not seen. The concept of unknown
+    shares has been removed with this change. Also fixes SMB tree connect handling and
+    removes files that are not parsed. SMB2 error parsing is disabled because it never
+    was implemented correctly. (Seth Hall)
+
+  * Including a test for raw NTLM in SMB (Seth Hall)
+
+  * Updates for SMB auth handling from Martin van Hensbergen.
+
+     - Raw NTLM (not in GSSAPI) over SMB is now handled correctly.
+     - The encrypted NTLM session key is now passed into scriptland
+       through the ntlm_authenticate event. (Seth Hall)
+
+  * Add a files framework signature for VIM tmp files. (Seth Hall)
+
+  * Version parsing scripts now supports several beta versions. (Johanna Amann)
+
+2.5-beta-123 | 2016-11-01 09:40:49 -0700
+
+  * Add a new site policy script local-logger.bro. (Daniel Thayer)
+
+2.5-beta-121 | 2016-10-31 14:24:33 -0700
+
+  * Python 3 compatibility fixes for documentation building. (Daniel Thayer)
+
+2.5-beta-114 | 2016-10-27 09:00:24 -0700
+
+  * Fix for Sphinx >= 1.4 compability. (Robin Sommer)
+
+2.5-beta-113 | 2016-10-27 07:44:25 -0700
+
+  * XMPP: Fix detection of StartTLS when using namespaces. (Johanna
+    Amann)
+
+2.5-beta-110 | 2016-10-26 09:42:11 -0400
+
+  * Improvements DCE_RPC analyzer to make it perform fragment handling correctly
+    and generally be more resistent to unexpected traffic. (Seth Hall)
+
+2.5-beta-102 | 2016-10-25 09:43:45 -0700
+
+  * Update number of bytes in request/response of smb1-com-open-andx.pac. (balintm)
+
+  * Fix a IPv4 CIDR specifications and payload-size condition of signature matching.
+    (Robin Sommer)
+
+  * Python 3 compatibility fix for coverage-calc script. (Daniel Thayer)
+
+2.5-beta-93 | 2016-10-24 11:11:07 -0700
+
+  * Fix alignment issue of ones_complement_checksum. This error
+    occured reproducibly newer compilers when called from
+    icmp6_checksum. (Johanna Amann)
+
+2.5-beta-91 | 2016-10-20 11:40:37 -0400
+
+  * Fix istate.pybroccoli test on systems using Python 3. (Daniel Thayer)
+
+2.5-beta-89 | 2016-10-18 21:50:51 -0400
+
+  * SSH analyzer changes: the events are now restructured a bit. There is a new
+    event ssh_auth_attempted, that is raised each time authentication is tried.
+    ssh_auth_failed is still only being raised once per connection. There also
+    is an additional event ssh_auth_result giving more information about the
+    number of times that authentication was tried and if it succeded/failed in
+    the end. The number of authentication attemps are now part of ssh.log.
+    Addresses BIT-1641. (Vlad Grigorescu)
+
+2.5-beta-79 | 2016-10-13 15:58:48 -0700
+
+  * Fix MD5 problem with FreeBSD 11.0 and clang 3.8. The apparent
+    cause is some confusion in clang when using a static char inside a
+    static inline function that is refered to several compilation
+    units. (Johanna Amann)
+
+  * Initial TLS 1.3 support, as of draft-16. (Johanna Amann)
+
+2.5-beta-73 | 2016-10-13 14:03:04 -0700
+
+  * Added missing README files for documentation. (Daniel Thayer)
+
+  * List new log files in the log-files.rst document. (Daniel Thayer)
+
+2.5-beta-67 | 2016-10-10 08:28:38 -0700
+
+  * Fixes for DCE_RPC analyzer. (Seth Hall)
+
+      - DCE_RPC fragmentation handling returns.
+
+      - Fixed some general parsing issues.
+
+      - Fixed an issue with the DCE_RPC signature not working for IPv6
+        connections.
+
+2.5-beta-64 | 2016-10-10 08:20:42 -0700
+
+  * Fix httpd.py test script for Py3 compatibility. (Daniel Thayer)
+
+  * Tiny fix for a DCE_RPC script issue. Fixes BIT-1688. (Seth Hall)
+
+  * Fix for plugins/hooks test. (Johanna Amann)
+
+  * Update a TLS constants in preparation for TLS 1.3, and rename a
+    few names that had never been formally assigned yet. (Johanna
+    Amann)
+
+  * Fixing Broxygen indexing confusion for plugins. Broxygen now
+    indexes plugin scripts as, e.g., "Bro_Netmap/scripts/init.bro".
+    Addresses BIT-1693. (Robin Sommer)
+
+2.5-beta-54 | 2016-10-06 14:24:01 -0700
+
+  * Fixing documentation piece on the interesting-hostname script.
+    (Robin Sommer)
+
+  * Improve the SMB documentation. (Vlad Grigorescu)
+
+2.5-beta-46 | 2016-10-06 14:11:03 -0700
+
+  * Fixing Broxygen indexing confusion for plugins. Scripts in plugins now
+    get an artificial index prefix: "plugin_name/", followed by the script's
+    relative path inside the plugin's top-level directory. For example,
+    "/opt/bro/lib/bro/plugins/Bro_Netmap/scripts/init.bro" now turns into
+    "Bro_Netmap/scripts/init.bro" for Broxygen purposes (whereas it used to
+    be just "init.bro"). (Robin Sommer)
+
+  * Fix a couple of tests, addressing issues of the newly introduced version.bro
+    as well as small FreeBSD 11.0 issues. (Johanna Amann)
+
+  * Update documentation license. (Johanna Amann)
+
+  * Add a convenient way to access version information to Bro.
+
+      @if ( Version::number >= 20500 )
+      or
+      @if ( Version::at_least("2.5") )
+
+      Version::info contains detailed information about the running version of
+      Bro, including beta flags, etc. (Johanna Amann)
+
+2.5-beta-35 | 2016-10-02 17:38:31 -0400
+
+  * Normalize http host in seen script.  (Johanna Amann)
+
+2.5-beta-33 | 2016-10-02 14:42:22 -0400
+
+  * Handle removing non-existent intel items. (Jan Grashoefer)
+
+2.5-beta-29 | 2016-09-28 18:18:35 -0700
+
+  * Prettifying reporter output in case no epxression is associated
+    with runtime error. (Robin Sommer)
+
+2.5-beta-28 | 2016-09-27 11:44:33 -0700
+
+  * Check if the number of fields in a log write are equal to the
+    number of fields required. Addresses BIT-1683. (Johanna Amann)
+
+  * Fix a small memory leak for disabled log writers. (Johanna Amann)
+
+  * Fix loaded-scripts.bro to work with arbitrary indentation levels.
+    Addresses BIT-1691 (Johanna Amann)
+
+  * In interesting-hostnames.bro, move lookup_addr() outside of when
+    statement to avoid expensive cloning of full connection record.
+    Addresses BIT-1670. (Justin Azoff)
+
+2.5-beta-21 | 2016-09-26 10:15:23 -0700
+
+  * Fix a debugger bug where it would not support statements like print(3).
+    Addresses BIT-1703. (Vlad Grigorescu)
+
+2.5-beta-19 | 2016-09-19 17:16:40 -0700
+
+  * Kerberos updates (Vlad Grigorescu):
+
+    * Make PA_EncType_Info salt field optional.
+
+    * Add support for parsing ENCTYPE_INFO pre-auth data (same as
+      ENCTYPE_INFO2).
+
+2.5-beta-17 | 2016-09-19 15:26:14 -0700
+
+  * Clarified string and fa_file documentation (Moshe Kaplan)
+
+2.5-beta-12 | 2016-09-06 07:35:38 -0700
+
+  * Added a missing fclose in scan.l. Addresses BIT-1690.
+    (Daniel Thayer).
+
+  * Fix issue with file_extraction_limit event. (Seth Hall)
+
+  * Fix a crash when a user disables DCE_RPC while enabling SMB.
+    (Seth Hall)
+
+2.5-beta-6 | 2016-08-19 07:50:10 -0700
+
+  * Clarify explanation of mime_entity_data event. (Moshe Kaplan)
+
+  * Update NEWS, correcting typos formatting and adding more
+    information. (Daniel Thayer)
+
+  * Remove old ack_above_hole event from scripts.
+    Fixes BIT-1673. (Johanna Amann)
+
+2.5-beta | 2016-08-17 10:37:49 -0700
+
+  * Release 2.5-beta.
+
+  * Fix sphinx build errors (Johanna Amann)
+
+  * Change failure in utf16_bytestring_to_utf8_val to be a conn weird. (Seth Hall)
+
+  * Fix test failure caused by uninitialized memory. (Johanna Amann)
+
+  * SMB: fix rounding error due to value truncation when converting timestamps. (Johanna Amann)
+
+2.4-947 | 2016-08-16 12:10:02 -0700
+
+  * Fix issues with handling of indermediate sumstats updates. (Justin Azoff)
+
+  * Address coverity errors. (Johanna Amann)
+
+2.4-943 | 2016-08-15 17:03:14 -0700
+
+  * Add 'bro-config' script. (Jon Siwek)
+
+  * add certificate to external list for debian 8 to fix test. (Johanna Amann)
+
+  * KRB: fix field value missing error for msg$client_name. (Johanna Amann)
+
+  * Tiny SMB cleanup in pipe handling as well as NTLM fixes. (Seth Hall).
+
+  * Fix a number of format specifier errors. (Johanna Amann)
+
+  * Make several tests more stable. (Johanna Amann)
+
+2.4-927 | 2016-08-11 21:49:06 -0700
+
+  * Make component tags generated during component initialization stable.
+    Before, it was dependent on the order a compiler called constructors.
+    This makes a few tests work with gcc. (Johanna Amann)
+
+  * Make x509 intel seen script more robust (Johanna Amann)
+
+  * Input: DisableFrontend was not called upon Init failure. (Johanna Amann)
+
+  * DCE_RPC code simplification. (Seth Hall)
+
+2.4-921 | 2016-08-10 20:29:48 -0700
+
+  * Add logging framework ext-data mechanism. It is now possible to
+    extend logs by adding new data columns by them - either to specific
+    ones, or globally to all logs. This can, e.g., be used to add node
+    names to all logs. (Seth Hall)
+
+  * Add unrolling separator & field name map to logging framework.
+    One can now use logging separators other than ".", as well as
+    change specific column names in logs. (Seth Hall)
+
+  * Fix memory leak in EnumType. (Johanna Amann)
+
+  * Fix configure warning when compiling with --enable-broker. (Johanna Amann)
+
+  * Add netcontrol-connectors to aux directory. (Johanna Amann)
+
+  * Update Mozilla CA list. (Johanna Amann)
+
+  * update scripts loaded by default in local.bro. Traceroute is now disabled
+    by default, stats and capture-loss enabled by default. (Johanna Amann)
+
+2.4-907 | 2016-08-09 15:42:17 -0400
+
+  * Updating NEWS.
+
+2.4-905 | 2016-08-09 08:19:37 -0700
+
+  * GSSAPI analyzer now forwards authentication blobs more correctly.
+    (Seth Hall)
+
+  * The KRB analyzer now includes support for the PA_ENCTYPE_INFO2
+    pre-auth data type. (Seth Hall)
+
+  * Add an argument to "disable_analyzer" function to not do a
+    reporter message by default. (Seth Hall)
+
+2.4-902 | 2016-08-08 16:50:35 -0400
+
+  * Adding SMB analyzer. (Seth Hall, Vlad Grigorescu and many others)
+
+  * NetControl: allow reasons in remove_rule calls. Addresses BIT-1655
+    (Johanna Amann)
+
+2.4-893 | 2016-08-05 15:43:04 -0700
+
+  * Remove -z/--analysis option. (Johanna Amann)
+
+  * Remove already defunct code for XML serialization. (Johanna Amann)
+
+2.4-885 | 2016-08-05 15:03:59 -0700
+
+  * Reverting SMB analyzer merge. (Robin Sommer)
+
+2.4-883 | 2016-08-05 12:57:26 -0400
+
+  * Add a new node type for logging with the cluster framework scripts by
+    adding a new Bro node type for doing logging (this is intended to
+    reduce the load on the manager). If a user chooses not to specify a
+    logger node in the cluster configuration, then the manager will
+    write logs locally as usual. (Daniel Thayer)
+
+2.4-874 | 2016-08-05 12:43:06 -0400
+
+  * SMB analyzer (Seth Hall, Vlad Grigorescu and many others)
+
+2.4-759 | 2016-08-05 09:32:42 -0400
+
+  * Intel framework improvements (Jan Grashoefer)
+    * Added expiration for intelligence items.
+    * Improved intel notices.
+    * Added hook to allow extending the intel log.
+    * Added support for subnets to intel-framework.
+
+2.4-742 | 2016-08-02 15:28:31 -0700
+
+  * Fix duplicate SSH authentication failure events. Addresses BIT-1641.
+    (Robin Sommer)
+
+  * Remove OpenSSL dependency for plugins. (Robin Sommer)
+
+2.4-737 | 2016-08-02 11:38:07 -0700
+
+  * Fix some Coverity warnings. (Robin Sommer)
+
+2.4-735 | 2016-08-02 11:05:36 -0700
+
+  * Added string slicing examples to documentation. (Moshe Kaplan)
+
+2.4-733 | 2016-08-01 09:09:29 -0700
+
+  * Fixing a CMake dependency issue for the pcap bifs. (Robin Sommer)
+
+2.4-732 | 2016-08-01 08:33:00 -0700
+
+  * Removing pkg/make-*-packages scripts. BIT-1509 #closed (Robin
+    Sommer)
+
+2.4-731 | 2016-08-01 08:14:06 -0700
+
+  * Correct endianness of IP addresses in SNMP. Addresses BIT-1644.
+    (Anony Mous)
+
+2.4-729 | 2016-08-01 08:00:54 -0700
+
+  * Fix behavior of connection_pending event. It is now really only
+    raised when Bro is terminating. Also adds a test-case that raises
+    the event. (Johanna Amann)
+
+  * Retired remove -J/-K options (set md5/hash key) from the manpage.
+    They had already been removed from the code. (Johanna Amann)
+
+  * NetControl: Add catch-and-release event when IPs are forgotten.
+    This adds an event catch_release_forgotten() that is raised once
+    Catch & Release ceases block management for an IP address because
+    the IP has not been seen in traffic during the watch interval.
+    (Johanna Amann)
+
+2.4-723 | 2016-07-26 15:04:26 -0700
+
+  * Add error events to input framework. (Johanna Amann)
+
+    This change introduces error events for Table and Event readers.
+    Users can now specify an event that is called when an info,
+    warning, or error is emitted by their input reader. This can,
+    e.g., be used to raise notices in case errors occur when reading
+    an important input stream.
+
+    Example:
+
+        event error_event(desc: Input::TableDescription, msg: string, level: Reporter::Level)
+            {
+            ...
+            }
+
+        event bro_init()
+            {
+            Input::add_table([$source="a", $error_ev=error_event, ...]);
+            }
+
+     Addresses BIT-1181.
+
+  * Calling Error() in an input reader now automatically will disable
+    the reader and return a failure in the Update/Heartbeat calls.
+    (Johanna Amann)
+
+  * Convert all errors in the ASCII formatter into warnings (to show
+    that they are non-fatal. (Johanna Amann)
+
+  * Enable SQLite shared cache mode. This allows all threads accessing
+    the same database to share sqlite objects. See
+    https://www.sqlite.org/sharedcache.html. Addresses BIT-1325.
+    (Johanna Amann)
+
+  * NetControl: Adjust default priority of ACTION_DROP hook to standad
+    level. (Johanna Amann)
+
+  * Fix types when constructing SYN_packet record. Fixes BIT-1650.
+    (Grant Moyer).
+
+2.4-715 | 2016-07-23 07:27:05 -0700
+
+  * SQLite writer: Remove unused string formatting function. (Johanna Amann)
+
+  * Deprecated the ElasticSearch log writer. (Johanna Amann)
+
+2.4-709 | 2016-07-15 09:05:20 -0700
+
+  * Change Bro's hashing for short inputs and Bloomfilters from H3 to
+    Siphash, which produces much better results for HLL in particular.
+    (Johanna Amann)
+
+  * Fix a long-standing bug which truncated hash values to 32-bit on
+    most machines. (Johanna Amann)
+
+  * Fixes to HLL. Addresses BIT-1612. (Johanna Amann)
+
+  * Add test checking the quality of HLL. (Johanna Amann)
+
+  * Remove the -K/-J options for setting keys. (Johanna Amann)
+
+  * SSL: Fix memory management problem. (Johanna Amann)
+
+2.4-693 | 2016-07-12 11:29:17 -0700
+
+  * Change TCP analysis to process connections without the initial SYN as
+    non-partial connections. Addresses BIT-1492. (Robin Sommer).
+
+2.4-691 | 2016-07-12 09:58:38 -0700
+
+  * SSL: add support for signature_algorithms extension. (Johanna
+    Amann)
+
+2.4-688 | 2016-07-11 11:10:33 -0700
+
+  * Disable broker by default. To enable it, use --enable-broker.
+    Addresses BIT-1645. (Daniel Thayer)
+
+2.4-686 | 2016-07-08 19:14:43 -0700
+
+  * Added flagging of retransmission to the connection history.
+    Addresses BIT-977. (Robin Sommer)
+
+2.4-683 | 2016-07-08 14:55:04 -0700
+
+  * Extendign connection history field to flag with '^' when Bro flips
+    a connection's endpoints. Addresses BIT-1629. (Robin Sommer)
+
+2.4-680 | 2016-07-06 09:18:21 -0700
+
+  * Remove ack_above_hole() event, which was a subset of content_gap
+    and led to plenty noise. Addresses BIT-688. (Robin Sommer)
+
+2.4-679 | 2016-07-05 16:35:53 -0700
+
+  * Fix segfault when an existing enum identifier is added again with
+    a different value. Addresses BIT-931. (Robin Sommer)
+
+  * Escape the empty indicator in logs if it occurs literally as a
+    field's actual content. Addresses BIT-931. (Robin Sommer)
+
+2.4-676 | 2016-06-30 17:27:54 -0700
+
+  * A larger series of NetControl updates. (Johanna Amann)
+
+        * Add NetControl framework documentation to the Bro manual.
+
+        * Use NetControl for ACTION_DROP of notice framework. So far,
+          this action did nothing by default.
+
+        * Rewrite of catch-and-release.
+
+        * Fix several small logging issues.
+
+        * find_rules_subnet() now works in cluster mode. This
+          introduces two new events, NetControl::rule_new and
+          NetControl::rule_destroyed, which are raised when rules are
+          first added and then deleted from the internal state
+          tracking.
+
+        * Fix acld whitelist command.
+
+        * Add rule existance as a state besides added and failure.
+
+        * Suppress duplicate "plugin activated" messages.
+
+        * Make new Broker plugin options accessible.
+
+        * Add predicates to Broker plugin.
+
+  * Tweak SMTP scripts to not to pull in the notice framework.
+
+2.4-658 | 2016-06-30 16:55:32 -0700
+
+  * Fix a number of documentation building errors. (Johanna Amann)
+
+  * Input/Logging: Make bool conversion operator explicit. (Johanna Amann)
+
+  * Add new TLS ciphers from RFC 7905. (Johanna Amann)
+
+2.4-648 | 2016-06-21 18:33:22 -0700
+
+  * Fix memory leaks. Reported by Dk Jack. (Johanna Amann)
+
+2.4-644 | 2016-06-21 13:59:05 -0400
+
+  * Fix an off-by-one error when grabbing x-originating-ip header in
+    email. (Seth Hall, Aashish Sharma)
+
+2.4-642 | 2016-06-18 13:18:23 -0700
+
+  * Fix potential mismatches when ignoring duplicate weirds. (Johanna Amann)
+
+  * Weird: Rewrite internals of weird logging. (Johanna Amann)
+
+        - "flow weirds" now actually log information about the flow
+        that they occur in.
+
+        - weirds can now be generated by calling Weird::weird() with
+        the info record directly, allowing more fine-granular passing
+        of information. This is e.g. used for DNS weirds.
+
+    Addresses BIT-1578 (Johanna Amann)
+
+  * Exec: fix reader cleanup when using read_files, preventing file
+    descriptors from leaking every time it was used. (Johanna Amann)
+
+  * Raw Writer: Make code more c++11-y, remove raw pointers. (Johanna
+    Amann)
+
+  * Add separate section with logging changes to NEWS. (Seth Hall)
+
+2.4-635 | 2016-06-18 01:40:17 -0400
+
+  * Add some documentation for modbus data types. Addresses
+    BIT-1216. (Seth Hall)
+
+  * Removed app-stats scripts. Addresses BIT-1171. (Seth Hall)
+
+2.4-631 | 2016-06-16 16:45:10 -0400
+
+  * Fixed matching mail address intel and added test (Jan Grashoefer)
+
+  * A new utilities script named email.bro with some utilities
+    for parsing out email addresses from strings. (Seth Hall)
+
+  * SMTP "rcptto" and "mailfrom" fields now do some minimal
+    parsing to clean up email addresses. (Seth Hall)
+
+  * Added "cc" to the SMTP log and feed it into the Intel framework
+    with the policy/frameworks/intel/seen/smtp.bro script. (Seth Hall)
+
+2.4-623 | 2016-06-15 17:31:12 -0700
+
+  * &default values are no longer overwritten with uninitialized
+    by the input framework. (Jan Grashoefer)
+
+2.4-621 | 2016-06-15 09:18:02 -0700
+
+  * Fixing memory leak in changed table expiration code. (Robin
+    Sommer)
+
+  * Fixing test portability. (Robin Sommer)
+
+  * Move the HTTP "filename" field (which was never filled out
+    anyways) to "orig_filenames" and "resp_filenames".  (Seth Hall)
+
+  * Add a round trip time (rtt) field to dns.log. (Seth Hall)
+
+  * Add ACE archive files to the identified file types. Addresses
+    BIT-1609. (Stephen Hosom)
+
+2.4-613 | 2016-06-14 18:10:37 -0700
+
+  * Preventing the event processing from looping endlessly when an
+    event reraised itself during execution of its handlers. (Robin
+    Sommer)
+
+2.4-612 | 2016-06-14 17:42:52 -0700
+
+  * Improved handling of 802.11 headers. (Jan Grashoefer)
+
+2.4-609 | 2016-06-14 17:15:28 -0700
+
+  * Fixed table expiration evaluation. The expiration attribute
+    expression is now evaluated for every use. Thus later adjustments
+    of the value (e.g. by redefining a const) will now take effect.
+    Values less than 0 will disable expiration. (Jan Grashoefer)
+
+2.4-606 | 2016-06-14 16:11:07 -0700
+
+  * Fix parsing precedence of "hook" expression. Addresses BIT-1619
+    (Johanna Amann)
+
+  * Update the "configure" usage message for --with-caf (Daniel
+    Thayer)
+
+2.4-602 | 2016-06-13 08:16:34 -0700
+
+  * Fixing Covertity warning (CID 1356391). (Robin Sommer)
+
+  * Guarding against reading beyond packet data when accessing L2
+    address in Radiotap header. (Robin Sommer)
+
+2.4-600 | 2016-06-07 15:53:19 -0700
+
+  * Fixing typo in BIF macros. Reported by Jeff Barber. (Robin Sommer)
+
+2.4-599 | 2016-06-07 12:37:32 -0700
+
+  * Add new functions haversine_distance() and haversine_distance_ip()
+    for calculating geographic distances. They requires that Bro be
+    built with libgeoip. (Aashish Sharma/Daniel Thayer).
+
+2.4-597 | 2016-06-07 11:46:45 -0700
+
+  * Fixing memory leak triggered by new MAC address logging. (Robin
+    Sommer)
+
+2.4-596 | 2016-06-07 11:07:29 -0700
+
+  * Don't create debug.log immediately upon startup (BIT-1616).
+    (Daniel Thayer)
+
+2.4-594 | 2016-06-06 18:11:16 -0700
+
+  * ASCII Input: Accept DOS/Windows newlines. Addresses BIT-1198
+    (Johanna Amann)
+
+  * Fix BinPAC exception in RFB analyzer. (Martin van Hensbergen)
+
+  * Add URL decoding for the unofficial %u00AE style of encoding. (Seth Hall)
+
+  * Remove the unescaped_special_char HTTP weird. (Seth Hall)
+
+2.4-588 | 2016-06-06 17:59:34 -0700
+
+  * Moved link-layer addresses into endpoints. The link-layer
+    addresses are now part of the connection endpoints following the
+    originator/responder pattern. (Jan Grashoefer)
+
+  * Link-layer addresses are extracted for 802.11 plus RadioTap. (Jan
+    Grashoefer)
+
+  * Fix coverity error (uninitialized variable) (Johanna Amann)
+
+  * Use ether_ntoa instead of ether_ntoa_r
+
+    The latter is thread-safe, but a GNU addition which does not exist on
+    OS-X. Since the function only is called in the main thread, it should
+    not matter if it is or is not threadsafe. (Johanna Amann)
+
+  * Fix FreeBSD/OSX compile problem due to headers (Johanna Amann)
+
+2.4-581 | 2016-05-30 10:58:19 -0700
+
+  * Adding missing new script file mac-logging.bro. (Robin Sommer)
+
+2.4-580 | 2016-05-29 13:41:10 -0700
+
+  * Add Ethernet MAC addresses to connection record. c$eth_src and
+    c$eth_dst now contain the Ethernet address if available. A new
+    script protocols/conn/mac-logging.bro adds these to conn.log when
+    loaded. (Robin Sommer)
+
+2.4-579 | 2016-05-29 08:54:57 -0700
+
+  * Fixing Coverity warning. Addresses CID 1356116. (Robin Sommer)
+
+  * Fixing FTP cwd getting overlue long. (Robin Sommer)
+
+  * Clarifying notice documentation. Addresses BIT-1405. (Robin
+    Sommer)
+
+  * Changing protocol_{confirmation,violation} events to queue like
+    any other event. Addresses BIT-1530. (Robin Sommer)
+
+  * Normalizing test baseline. (Robin Sommer)
+
+  * Do not use scientific notations when printing doubles in logs.
+    Addresses BIT-1558. (Robin Sommer)
+
+2.4-573 | 2016-05-23 13:21:03 -0700
+
+  * Ignoring packets with negative timestamps. Addresses BIT-1562 and
+    BIT-1443. (Robin Sommer)
+
+2.4-572 | 2016-05-23 12:45:23 -0700
+
+  * Fix for a table refering to a expire function that's not defined.
+    Addresses BIT-1597. (Robin Sommer)
+
+2.4-571 | 2016-05-23 08:26:43 -0700
+
+  * Fixing a few Coverity warnings. (Robin Sommer)
+
+2.4-569 | 2016-05-18 07:39:35 -0700
+
+  * DTLS: Use magix constant from RFC 5389 for STUN detection.
+    (Johanna Amann)
+
+  * DTLS: Fix binpac bug with DTLSv1.2 client hellos. (Johanna Amann)
+
+  * DTLS: Fix interaction with STUN. Now the DTLS analyzer cleanly
+    skips all STUN messages. (Johanna Amann)
+
+  * Fix the way that child analyzers are added. (Johanna Amann)
+
+2.4-563 | 2016-05-17 16:25:21 -0700
+
+  * Fix duplication of new_connection_contents event. Addresses
+    BIT-1602 (Johanna Amann)
+
+  * SMTP: Support SSL upgrade via X-ANONYMOUSTLS This seems to be a
+    non-standardized microsoft extension that, besides having a
+    different name, works pretty much the same as StartTLS. We just
+    treat it as such. (Johanna Amann)
+
+  * Fixing control framework's net_stats and peer_status commands. For
+    the latter, this removes most of the values returned, as we don't
+    have access to them anymore. (Robin Sommer)
+
+2.4-555 | 2016-05-16 20:10:15 -0700
+
+  * Fix failing plugin tests on OS X 10.11. (Daniel Thayer)
+
+  * Fix failing test on Debian/FreeBSD. (Johanna Amann)
+
+2.4-552 | 2016-05-12 08:04:33 -0700
+
+  * Fix a bug in receiving remote logs via broker. (Daniel Thayer)
+
+  * Fix Bro and unit tests when broker is not enabled. (Daniel Thayer)
+
+  * Added interpreter error for local event variables. (Jan Grashoefer)
+
+2.4-544 | 2016-05-07 12:19:07 -0700
+
+  * Switching all use of gmtime and localtime to use reentrant
+    variants. (Seth Hall)
+
+2.4-541 | 2016-05-06 17:58:45 -0700
+
+  * A set of new built-in function for gathering execution statistics:
+
+      get_net_stats(), get_conn_stats(), get_proc_stats(),
+      get_event_stats(), get_reassembler_stats(), get_dns_stats(),
+      get_timer_stats(), get_file_analysis_stats(), get_thread_stats(),
+      get_gap_stats(), get_matcher_stats().
+
+    net_stats() resource_usage() have been superseded by these. (Seth
+    Hall)
+
+  * New policy script misc/stats.bro that records Bro execution
+    statistics in a standard Bro log file. (Seth Hall)
+
+  * A series of documentation improvements. (Daniel Thayer)
+
+  * Rudimentary XMPP StartTLS analyzer. It parses certificates out of
+    XMPP connections using StartTLS. It aborts processing if StartTLS
+    is not found. (Johanna Amann)
+
+2.4-507 | 2016-05-03 11:18:16 -0700
+
+  * Fix incorrect type tags in Bro broker source code. These are just
+    used for error reporting. (Daniel Thayer)
+
+  * Update docs and tests of the fmt() function. (Daniel Thayer)
+
+2.4-500 | 2016-05-03 11:16:50 -0700
+
+  * Updating submodule(s).
+
 2.4-498 | 2016-04-28 11:34:52 -0700
 
   * Rename Broker::print to Broker::send_print and Broker::event to

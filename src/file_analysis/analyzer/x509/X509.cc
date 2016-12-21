@@ -14,6 +14,7 @@
 #include <openssl/x509v3.h>
 #include <openssl/asn1.h>
 #include <openssl/opensslconf.h>
+#include <openssl/err.h>
 
 using namespace file_analysis;
 

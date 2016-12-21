@@ -1,0 +1,34 @@
+## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+## version 2 requests of type *close*. This is used by the client to close an instance of a
+## file that was opened previously with a successful SMB2 CREATE Request.
+##
+## For more information, see MS-SMB2:2.2.15
+##
+## c: The connection.
+##
+## hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
+##
+## file_name: The SMB2 GUID of the file being closed.
+##
+## .. bro:see:: smb2_message smb2_close_response
+event smb2_close_request%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID%);
+
+## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+## version 2 responses of type *close*. This is sent by the server to indicate that an SMB2 CLOSE
+## request was processed successfully.
+##
+## For more information, see MS-SMB2:2.2.16
+##
+## c: The connection.
+##
+## hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
+##
+## response: A record of attributes returned from the server from the close.
+##
+## .. bro:see:: smb2_message smb2_close_request
+event smb2_close_response%(c: connection, hdr: SMB2::Header, response: SMB2::CloseResponse%);
+
+
+#### Types
+
+type SMB2::CloseResponse: record;

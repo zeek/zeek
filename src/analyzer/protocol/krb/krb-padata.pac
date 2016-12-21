@@ -41,6 +41,22 @@ VectorVal* proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyzer bro_a
 				vv->Assign(vv->Size(), type_val);
 				break;
 				}
+			case PA_ENCTYPE_INFO:
+				{
+				RecordVal * type_val = new RecordVal(BifType::Record::KRB::Type_Value);
+				type_val->Assign(0, new Val(element->data_type(), TYPE_COUNT));
+				type_val->Assign(1, bytestring_to_val(element->pa_data_element()->pf_enctype_info()->salt()));
+				vv->Assign(vv->Size(), type_val);
+				break;
+				}
+			case PA_ENCTYPE_INFO2:
+				{
+				RecordVal * type_val = new RecordVal(BifType::Record::KRB::Type_Value);
+				type_val->Assign(0, new Val(element->data_type(), TYPE_COUNT));
+				type_val->Assign(1, bytestring_to_val(element->pa_data_element()->pf_enctype_info2()->salt()));
+				vv->Assign(vv->Size(), type_val);
+				break;
+				}
 			case PA_PW_AS_REQ:
 				{
 				const bytestring& cert = element->pa_data_element()->pa_pk_as_req()->cert();
@@ -91,11 +107,11 @@ VectorVal* proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyzer bro_a
 				}
 			default:
 				{
-				if ( ! is_error && element->pa_data_element()->unknown().length() )
+				if ( ! is_error && element->pa_data_element()->unknown()->meta()->length() > 0 )
 					{
 					RecordVal * type_val = new RecordVal(BifType::Record::KRB::Type_Value);
 					type_val->Assign(0, new Val(element->data_type(), TYPE_COUNT));
-					type_val->Assign(1, bytestring_to_val(element->pa_data_element()->unknown()));
+					type_val->Assign(1, bytestring_to_val(element->pa_data_element()->unknown()->content()));
 					vv->Assign(vv->Size(), type_val);
 					}
 				break;
@@ -165,13 +181,22 @@ type KRB_PA_Data(is_orig: bool, pkt_type: uint8) = record {
 
 # Each pre-auth element
 type KRB_PA_Data_Element(is_orig: bool, type: int64, length: uint64) = case type of {
-	PA_TGS_REQ      -> pa_tgs_req	: KRB_AP_REQ(is_orig);
-	PA_PW_SALT      -> pa_pw_salt	: ASN1OctetString;
-	PA_PW_AS_REQ	-> pa_pk_as_req	: KRB_PA_PK_AS_Req &length=length;
-	PA_PW_AS_REP	-> pa_pk_as_rep	: KRB_PA_PK_AS_Rep &length=length;
-	default 	-> unknown	: bytestring &length=length;
+	PA_TGS_REQ       -> pa_tgs_req	: KRB_PA_AP_REQ_wrapper(is_orig);
+	PA_PW_SALT       -> pa_pw_salt	: ASN1OctetString;
+	PA_PW_AS_REQ	   -> pa_pk_as_req	: KRB_PA_PK_AS_Req &length=length;
+	PA_PW_AS_REP	   -> pa_pk_as_rep	: KRB_PA_PK_AS_Rep &length=length;
+	PA_ENCTYPE_INFO  -> pf_enctype_info	: KRB_PA_ENCTYPE_INFO &length=length;
+	PA_ENCTYPE_INFO2 -> pf_enctype_info2: KRB_PA_ENCTYPE_INFO &length=length;
+	default 	-> unknown	: ASN1Encoding &length=length;
 };
 
+type KRB_PA_AP_REQ_wrapper(is_orig: bool) = record {
+	# Not sure what these two field are, but they need to be 
+	# here for pre-auth ap-req messages.
+	some_meta1 : ASN1EncodingMeta;
+	some_meta2 : ASN1EncodingMeta;
+	req        : KRB_AP_REQ(is_orig);
+};
 
 # The PKINIT certificate structure for a request
 type KRB_PA_PK_AS_Req = record {
@@ -210,3 +235,21 @@ type KRB_PA_PK_AS_Rep = record {
 			: bytestring &restofdata &transient;
 };
 
+type KRB_PA_ENCTYPE_INFO = record {
+	some_meta1  : ASN1EncodingMeta;
+	some_meta2  : ASN1EncodingMeta;
+	seq_meta1   : ASN1EncodingMeta;
+	etype       : ASN1Encoding;
+	optional_seq_meta2: case has_string of {
+		true  -> seq_meta2: ASN1EncodingMeta;
+		false -> nil1: empty;
+	};
+	optional_string_meta: case has_string of {
+		true  -> string_meta: ASN1EncodingMeta;
+		false -> nil2: empty;
+		};
+	salt: bytestring &length=salt_length;
+} &let {
+	has_string: bool = (some_meta2.length > 7);
+	salt_length: uint32 = has_string ? string_meta.length : 0;
+};

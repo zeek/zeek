@@ -93,7 +93,7 @@ signature file-ini {
 # Microsoft LNK files
 signature file-lnk {
 	file-mime "application/x-ms-shortcut", 49
-	file-magic /^\x4C\x00\x00\x00\x01\x14\x02\x00\x00\x00\x00\x00\xC0\x00\x00\x00\x00\x10\x00\x00\x00\x46/
+	file-magic /^\x4c\x00\x00\x00\x01\x14\x02\x00\x00\x00\x00\x00\xc0\x00\x00\x00\x00\x00\x00\x46/
 }
 
 # Microsoft Registry policies
@@ -310,4 +310,9 @@ signature file-elf-sharedlib {
 signature file-elf-coredump {
 	file-mime "application/x-coredump", 50
 	file-magic /\x7fELF[\x01\x02](\x01.{10}\x04\x00|\x02.{10}\x00\x04)/
+}
+
+signature file-vim-tmp {
+	file-mime "application/x-vim-tmp", 100
+	file-magic /^b0VIM/
 }

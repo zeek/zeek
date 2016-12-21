@@ -33,13 +33,13 @@ export {
 		## A node role which is allowed to view/manipulate the configuration
 		## of other nodes in the cluster.
 		CONTROL,
-		## A node role responsible for log and policy management.
+		## A node type responsible for log management.
+		LOGGER,
+		## A node type responsible for policy management.
 		MANAGER,
 		## A node role for relaying worker node communication and synchronizing
 		## worker node state.
 		DATANODE,
-		## A node role for storing logs
-		LOGNODE,
 		## The node role doing all the actual traffic analysis.
 		WORKER,
 		## A node role that is part of a deep cluster configuration
@@ -53,19 +53,28 @@ export {
 	## Events raised by a manager and handled by the workers.
 	const manager2worker_events : set[string] = {} &redef;
 
-	## Events raised by a manager and handled by proxies.
+	## Events raised by a manager and handled by datanode.
 	const manager2datanode_events : set[string] = {} &redef;
 
-	## Events raised by proxies and handled by a manager.
+	## Events raised by a manager and handled by loggers.
+	const manager2logger_events : set[string] = {} &redef;
+
+	## Events raised by datanode and handled by loggers.
+	const datanode2logger_events : set[string] = {} &redef;
+
+	## Events raised by datanode and handled by a manager.
 	const datanode2manager_events : set[string] = {} &redef;
 
-	## Events raised by proxies and handled by workers.
+	## Events raised by datanode and handled by workers.
 	const datanode2worker_events : set[string] = {} &redef;
+
+	## Events raised by workers and handled by loggers.
+	const worker2logger_events : set[string] = {} &redef;
 
 	## Events raised by workers and handled by a manager.
 	const worker2manager_events : set[string] = {} &redef;
 
-	## Events raised by workers and handled by proxies.
+	## Events raised by workers and handled by datanode.
 	const worker2datanode_events : set[string] = {} &redef;
 
 	## Events raised by TimeMachine instances and handled by a manager.
@@ -95,12 +104,14 @@ export {
 		p:            port;
 		## Identifier for the interface a worker is sniffing.
 		interface:    string      &optional;
-		## Name of the manager node this node uses.  For workers and proxies.
+		## Name of the logger node this node uses.  For manager, datanode and workers.
+		logger:       string      &optional;
+		## Name of the manager node this node uses.  For workers and datanode.
 		manager:      string      &optional;
-		## Name of the datanode this node uses.  For workers and managers.
+		## Name of the datanode this node uses.  For workers.
 		datanode:     string      &optional;
 		## Names of worker nodes that this node connects with.
-		## For managers and proxies.
+		## For managers and datanode.
 		workers:      set[string] &optional;
 		## Name of a time machine node with which this node connects.
 		time_machine: string      &optional;
@@ -112,7 +123,7 @@ export {
 	global process_node: function(name: string);
 	global process_node_manager: function(name: string);
 	global process_node_datanode: function(name: string);
-	global process_node_lognode: function(name: string);
+	global process_node_logger: function(name: string);
 	global process_node_worker: function(name: string);
 
 	## This function can be called at any time to determine if the cluster
@@ -145,7 +156,7 @@ export {
 	## Functions to set the node role dynamically.
 	global set_role_manager:function();
 	global set_role_datanode:function();
-	global set_role_lognode:function();
+	global set_role_logger:function();
 	global set_role_worker:function();
 
 	## Helper function
@@ -164,14 +175,14 @@ export {
 	##
 	## set1: set of NodeRole
 	## set2: set of NodeRole
-	## return bool
+	## Returns: True if the two sets are equal.
 	global enum_set_eq: function(set1: set[NodeRole], set2: set[NodeRole]): bool;
 
 	## Compares two sets of strings with each other.
 	##
 	## set1: set of string
 	## set2: set of string
-	## return bool
+	## Returns: True if the two sets are equal.
 	global string_set_eq: function(set1: set[string], set2: set[string]): bool;
 
 	global update_node: function(cname: string, name: string, connect: bool, retry: interval);
@@ -198,6 +209,14 @@ export {
 	## node_name: the name of the updated node
 	global node_updated: event(node_name: string);
 
+	## This function can be called at any time to determine what type of
+	## cluster node the current Bro instance is going to be acting as.
+	## If :bro:id:`Cluster::is_enabled` returns false, then
+	## :bro:enum:`Cluster::NONE` is returned.
+	##
+	## Returns: The :bro:type:`Cluster::NodeRole` the calling node acts as.
+	global local_node_type: function(): NodeRole;
+
 	## This gives the value for the number of workers currently connected to,
 	## and it's maintained internally by the cluster framework.  It's
 	## primarily intended for use by managers to find out how many workers
@@ -209,6 +228,12 @@ export {
 	## automatically loaded if the CLUSTER_NODE environment variable is set.
 	## Note that BroControl handles all of this automatically.
 	const nodes: table[string] of Node = {} &redef;
+
+	## Indicates whether or not the manager will act as the logger and receive
+	## logs.  This value should be set in the cluster-layout.bro script (the
+	## value should be true only if no logger is specified in Cluster::nodes).
+	## Note that BroControl handles this automatically.
+	const manager_is_logger = T &redef;
 
 	## This is usually supplied on the command line for each instance
 	## of the cluster that is started up.
@@ -246,8 +271,8 @@ function get_roles_enum(roles: set[string]): set[NodeRole]
 			add node_r[Cluster::MANAGER];
 		else if ( r == "Cluster::DATANODE" )
 			add node_r[Cluster::DATANODE];
-		else if ( r == "Cluster::LOGNODE" )
-			add node_r[Cluster::LOGNODE];
+		else if ( r == "Cluster::LOGGER" )
+			add node_r[Cluster::LOGGER];
 		else if ( r == "Cluster::WORKER" )
 			add node_r[Cluster::WORKER];
 		}
@@ -302,6 +327,21 @@ function unregister_broker_events(prefix: string, event_list: set[string])
 		Broker::auto_event_stop(prefix, lookup_ID(e));
 	}
 
+function local_node_type(): NodeRole
+	{
+	if ( is_enabled() )
+		{
+		local roles = nodes[node]$node_roles;
+		if ( MANAGER in roles )
+			return MANAGER;
+
+		for ( r in roles )
+			return r;
+		}
+
+	return NONE;
+	}
+
 function has_local_role(role: NodeRole): bool
 	{
 	if ( !is_enabled() )
@@ -321,8 +361,8 @@ function set_local_roles()
 			set_role_manager();
 		else if ( r == Cluster::DATANODE )
 			set_role_datanode();
-		else if ( r == Cluster::LOGNODE )
-			set_role_lognode();
+		else if ( r == Cluster::LOGGER )
+			set_role_logger();
 		else if ( r == Cluster::WORKER )
 			set_role_worker();
 		}
@@ -361,7 +401,7 @@ function set_role_datanode()
 	Cluster::cluster_store = Broker::create_master("cluster-store");
 	}
 
-function set_role_lognode()
+function set_role_logger()
 	{
 	if ( DATANODE !in nodes[node]$node_roles )
 		{

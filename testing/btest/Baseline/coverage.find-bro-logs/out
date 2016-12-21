@@ -1,8 +1,8 @@
-app_stats
 barnyard2
 capture_loss
 cluster
 conn
+dce__r_pc
 dhcp
 dnp3
 dns
@@ -23,10 +23,12 @@ modbus
 modbus_register_change
 mysql
 net_control
+netcontrol_catch_release
 netcontrol_drop
 netcontrol_shunt
 notice
 notice_alarm
+ntlm
 open_flow
 packet_filter
 pe
@@ -36,6 +38,9 @@ reporter
 rfb
 signatures
 sip
+smb_cmd
+smb_files
+smb_mapping
 smtp
 snmp
 socks

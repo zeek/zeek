@@ -144,7 +144,7 @@ bool RuleHdrTest::operator==(const RuleHdrTest& h)
 void RuleHdrTest::PrintDebug()
 	{
 	static const char* str_comp[] = { "<=", ">=", "<", ">", "==", "!=" };
-	static const char* str_prot[] = { "", "ip", "icmp", "tcp", "udp" };
+	static const char* str_prot[] = { "", "ip", "ipv6", "icmp", "icmpv6", "tcp", "udp", "next", "ipsrc", "ipdst" };
 
 	fprintf(stderr, "	RuleHdrTest %s[%d:%d] %s",
 			str_prot[prot], offset, size, str_comp[comp]);
@@ -1095,9 +1095,9 @@ void RuleMatcher::ExecRule(Rule* rule, RuleEndpointState* state, bool eos)
 
 void RuleMatcher::ClearEndpointState(RuleEndpointState* state)
 	{
-	state->payload_size = -1;
-
 	ExecPureRules(state, 1);
+
+	state->payload_size = -1;
 
 	loop_over_list(state->matchers, j)
 		state->matchers[j]->state->Clear();
@@ -1174,7 +1174,7 @@ void RuleMatcher::GetStats(Stats* stats, RuleHdrTest* hdr_test)
 		stats->mem = 0;
 		stats->hits = 0;
 		stats->misses = 0;
-		stats->avg_nfa_states = 0;
+		stats->nfa_states = 0;
 		hdr_test = root;
 		}
 
@@ -1195,14 +1195,9 @@ void RuleMatcher::GetStats(Stats* stats, RuleHdrTest* hdr_test)
 			stats->mem += cstats.mem;
 			stats->hits += cstats.hits;
 			stats->misses += cstats.misses;
-			stats->avg_nfa_states += cstats.nfa_states;
+			stats->nfa_states += cstats.nfa_states;
 			}
 		}
-
-	if (  stats->dfa_states )
-		stats->avg_nfa_states /= stats->dfa_states;
-	else
-		stats->avg_nfa_states = 0;
 
 	for ( RuleHdrTest* h = hdr_test->child; h; h = h->sibling )
 		GetStats(stats, h);

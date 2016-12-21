@@ -10,10 +10,10 @@
 
 @prefixes += cluster-manager
 
-## Don't do local logging (the lognode does local logging).
+## Don't do any local logging since the logger handles writing logs.
 redef Log::enable_local_logging = F;
 
-## Turn on remote logging.
+## Turn on remote logging since the logger handles writing logs.
 redef Log::enable_remote_logging = T;
 
 ## Log rotation interval.

@@ -5,6 +5,8 @@
 
 #include <iostream>
 #include <vector>
+#include <fstream>
+#include <memory>
 
 #include "input/ReaderBackend.h"
 #include "threading/formatters/Ascii.h"
@@ -33,23 +35,28 @@ struct FieldMapping {
  */
 class Ascii : public ReaderBackend {
 public:
-	Ascii(ReaderFrontend* frontend);
+	explicit Ascii(ReaderFrontend* frontend);
 	~Ascii();
+
+	// prohibit copying and moving
+	Ascii(const Ascii&) = delete;
+	Ascii(Ascii&&) = delete;
+	Ascii& operator=(const Ascii&) = delete;
+	Ascii& operator=(Ascii&&) = delete;
 
 	static ReaderBackend* Instantiate(ReaderFrontend* frontend) { return new Ascii(frontend); }
 
 protected:
-	virtual bool DoInit(const ReaderInfo& info, int arg_num_fields, const threading::Field* const* fields);
-	virtual void DoClose();
-	virtual bool DoUpdate();
-	virtual bool DoHeartbeat(double network_time, double current_time);
+	bool DoInit(const ReaderInfo& info, int arg_num_fields, const threading::Field* const* fields) override;
+	void DoClose() override;
+	bool DoUpdate() override;
+	bool DoHeartbeat(double network_time, double current_time) override;
 
 private:
-
 	bool ReadHeader(bool useCached);
 	bool GetLine(string& str);
 
-	ifstream* file;
+	ifstream file;
 	time_t mtime;
 
 	// map columns in the file to columns to send back to the manager
@@ -64,7 +71,7 @@ private:
 	string empty_field;
 	string unset_field;
 
-	threading::formatter::Formatter* formatter;
+	std::unique_ptr<threading::formatter::Formatter> formatter;
 };
 
 

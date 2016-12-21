@@ -5,9 +5,9 @@ module OpenFlow;
 @load ./consts
 
 export {
-	## Available openflow plugins
+	## Available openflow plugins.
 	type Plugin: enum {
-		## Internal placeholder plugin
+		## Internal placeholder plugin.
 		INVALID,
 	};
 
@@ -19,7 +19,7 @@ export {
 		_plugin: Plugin &optional;
 		## Internally set to the unique name of the controller.
 		_name: string &optional;
-		## Internally set to true once the controller is activated
+		## Internally set to true once the controller is activated.
 		_activated: bool &default=F;
 	} &redef;
 
@@ -58,29 +58,29 @@ export {
 	} &log;
 
 	## The actions that can be taken in a flow.
-	## (Sepearate record to make ofp_flow_mod less crowded)
+	## (Separate record to make ofp_flow_mod less crowded)
 	type ofp_flow_action: record {
 		## Output ports to send data to.
 		out_ports: vector of count &default=vector();
-		## set vlan vid to this value
+		## Set vlan vid to this value.
 		vlan_vid: count &optional;
-		## set vlan priority to this value
+		## Set vlan priority to this value.
 		vlan_pcp: count &optional;
-		## strip vlan tag
+		## Strip vlan tag.
 		vlan_strip: bool &default=F;
-		## set ethernet source address
+		## Set ethernet source address.
 		dl_src: string &optional;
-		## set ethernet destination address
+		## Set ethernet destination address.
 		dl_dst: string &optional;
-		## set ip tos to this value
+		## Set ip tos to this value.
 		nw_tos: count &optional;
-		## set source to this ip
+		## Set source to this ip.
 		nw_src: addr &optional;
-		## set destination to this ip
+		## Set destination to this ip.
 		nw_dst: addr &optional;
-		## set tcp/udp source port
+		## Set tcp/udp source port.
 		tp_src: count &optional;
-		## set tcp/udp destination port
+		## Set tcp/udp destination port.
 		tp_dst: count &optional;
 	} &log;
 
@@ -112,21 +112,21 @@ export {
 		actions: ofp_flow_action &default=ofp_flow_action();
 	} &log;
 
-	## Controller record representing an openflow controller
+	## Controller record representing an openflow controller.
 	type Controller: record {
 		## Controller related state.
 		state: ControllerState;
 		## Does the controller support the flow_removed event?
 		supports_flow_removed: bool;
-		## function that describes the controller. Has to be implemented.
+		## Function that describes the controller. Has to be implemented.
 		describe: function(state: ControllerState): string;
-		## one-time initialization function. If defined, controller_init_done has to be called once initialization finishes.
+		## One-time initialization function. If defined, controller_init_done has to be called once initialization finishes.
 		init: function (state: ControllerState) &optional;
-		## one-time destruction function
+		## One-time destruction function.
 		destroy: function (state: ControllerState) &optional;
-		## flow_mod function
+		## flow_mod function.
 		flow_mod: function(state: ControllerState, match: ofp_match, flow_mod: ofp_flow_mod): bool &optional;
-		## flow_clear function
+		## flow_clear function.
 		flow_clear: function(state: ControllerState): bool &optional;
 	};
 }

@@ -44,7 +44,7 @@ bool Foo::ExtractNextPacket(Packet* pkt)
 		return false;
 		}
 
-	struct timeval ts = { 1409193037, 0 };
+	pkt_timeval ts = { 1409193037, 0 };
 	pkt->Init(props.link_type, &ts, packet.size(), packet.size(), 
 		(const u_char *)packet.c_str());
 	return true;

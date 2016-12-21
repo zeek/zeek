@@ -1,11 +1,11 @@
-##! Bro's OpenFlow control framework
+##! Bro's OpenFlow control framework.
 ##!
 ##! This plugin-based framework allows to control OpenFlow capable
 ##! switches by implementing communication to an OpenFlow controller
 ##! via plugins. The framework has to be instantiated via the new function
 ##! in one of the plugins. This framework only offers very low-level
 ##! functionality; if you want to use OpenFlow capable switches, e.g.,
-##! for shunting, please look at the PACF framework, which provides higher
+##! for shunting, please look at the NetControl framework, which provides higher
 ##! level functions and can use the OpenFlow framework as a backend.
 
 module OpenFlow;
@@ -16,7 +16,7 @@ module OpenFlow;
 export {
 	## Global flow_mod function.
 	##
-	## controller: The controller which should execute the flow modification
+	## controller: The controller which should execute the flow modification.
 	##
 	## match: The ofp_match record which describes the flow to match.
 	##
@@ -27,7 +27,7 @@ export {
 
 	## Clear the current flow table of the controller.
 	##
-	## controller: The controller which should execute the flow modification
+	## controller: The controller which should execute the flow modification.
 	##
 	## Returns: F on error or if the plugin does not support the operation, T when the operation was queued.
 	global flow_clear: function(controller: Controller): bool;
@@ -66,21 +66,21 @@ export {
 	##
 	## priority: The priority that was specified when creating the flow.
 	##
-	## reason: The reason for flow removal (OFPRR_*)
+	## reason: The reason for flow removal (OFPRR_*).
 	##
-	## duration_sec: duration of the flow in seconds
+	## duration_sec: Duration of the flow in seconds.
 	##
-	## packet_count: packet count of the flow
+	## packet_count: Packet count of the flow.
 	##
-	## byte_count: byte count of the flow
+	## byte_count: Byte count of the flow.
 	global flow_removed: event(name: string, match: ofp_match, cookie: count, priority: count, reason: count, duration_sec: count, idle_timeout: count, packet_count: count, byte_count: count);
 
 	## Convert a conn_id record into an ofp_match record that can be used to
 	## create match objects for OpenFlow.
 	##
-	## id: the conn_id record that describes the record.
+	## id: The conn_id record that describes the record.
 	##
-	## reverse: reverse the sources and destinations when creating the match record (default F)
+	## reverse: Reverse the sources and destinations when creating the match record (default F).
 	##
 	## Returns: ofp_match object for the conn_id record.
 	global match_conn: function(id: conn_id, reverse: bool &default=F): ofp_match;
@@ -113,18 +113,18 @@ export {
 	## Function to register a controller instance. This function
 	## is called automatically by the plugin _new functions.
 	##
-	## tpe: type of this plugin
+	## tpe: Type of this plugin.
 	##
-	## name: unique name of this controller instance.
+	## name: Unique name of this controller instance.
 	##
-	## controller: The controller to register
+	## controller: The controller to register.
 	global register_controller: function(tpe: OpenFlow::Plugin, name: string, controller: Controller);
 
 	## Function to unregister a controller instance. This function
 	## should be called when a specific controller should no longer
 	## be used.
 	##
-	## controller: The controller to unregister
+	## controller: The controller to unregister.
 	global unregister_controller: function(controller: Controller);
 
 	## Function to signal that a controller finished activation and is
@@ -134,16 +134,16 @@ export {
 
 	## Event that is raised once a controller finishes initialization
 	## and is completely activated.
-	## name: unique name of this controller instance.
+	## name: Unique name of this controller instance.
 	##
 	## controller: The controller that finished activation.
 	global OpenFlow::controller_activated: event(name: string, controller: Controller);
 
-	## Function to lookup a controller instance by name
+	## Function to lookup a controller instance by name.
 	##
-	## name: unique name of the controller to look up
+	## name: Unique name of the controller to look up.
 	##
-	## Returns: one element vector with controller, if found. Empty vector otherwhise.
+	## Returns: One element vector with controller, if found. Empty vector otherwise.
 	global lookup_controller: function(name: string): vector of Controller;
 }
 

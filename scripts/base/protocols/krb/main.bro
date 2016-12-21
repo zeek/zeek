@@ -144,7 +144,7 @@ event krb_as_request(c: connection, msg: KDC_Request) &priority=5
 		info = c$krb;
 
 	info$request_type = "AS";
-	info$client = fmt("%s/%s", msg$client_name, msg$service_realm);
+	info$client = fmt("%s/%s", msg?$client_name ? msg$client_name : "", msg$service_realm);
 	info$service = msg$service_name;
 
 	if ( msg?$from )
@@ -195,8 +195,8 @@ event krb_as_response(c: connection, msg: KDC_Response) &priority=5
 		info$id  = c$id;
 		}
 
-	if ( ! info?$client )
-		info$client = fmt("%s/%s", msg$client_name, msg$client_realm);
+	if ( ! info?$client && ( msg?$client_name || msg?$client_realm ) )
+		info$client = fmt("%s/%s", msg?$client_name ? msg$client_name : "", msg?$client_realm ? msg$client_realm : "");
 
 	info$service = msg$ticket$service_name;
 	info$cipher  = cipher_name[msg$ticket$cipher];
@@ -228,8 +228,8 @@ event krb_tgs_response(c: connection, msg: KDC_Response) &priority=5
 		info$id  = c$id;
 		}
 
-	if ( ! info?$client )
-		info$client = fmt("%s/%s", msg$client_name, msg$client_realm);
+	if ( ! info?$client && ( msg?$client_name || msg?$client_realm ) )
+		info$client = fmt("%s/%s", msg?$client_name ? msg$client_name : "", msg?$client_realm ? msg$client_realm : "");
 
 	info$service = msg$ticket$service_name;
 	info$cipher  = cipher_name[msg$ticket$cipher];

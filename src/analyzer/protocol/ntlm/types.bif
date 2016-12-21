@@ -1,0 +1,9 @@
+
+module NTLM;
+
+type NTLM::Negotiate: record;
+type NTLM::Challenge: record;
+type NTLM::Authenticate: record;
+type NTLM::NegotiateFlags: record;
+type NTLM::Version: record;
+type NTLM::AVs: record;

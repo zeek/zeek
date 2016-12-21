@@ -2,7 +2,7 @@
 #
 # @TEST-EXEC: btest-bg-run manager-1 BROPATH=$BROPATH:.. CLUSTER_NODE=manager-1 bro %INPUT
 # @TEST-EXEC: sleep 1
-# @TEST-EXEC: btest-bg-run proxy-1   BROPATH=$BROPATH:.. CLUSTER_NODE=proxy-1 bro %INPUT
+# @TEST-EXEC: btest-bg-run data-1   BROPATH=$BROPATH:.. CLUSTER_NODE=data-1 bro %INPUT
 # @TEST-EXEC: sleep 2
 # @TEST-EXEC: btest-bg-run worker-1  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-1 bro %INPUT
 # @TEST-EXEC: btest-bg-wait 20
@@ -10,9 +10,9 @@
 
 @TEST-START-FILE cluster-layout.bro
 redef Cluster::nodes = {
-	["manager-1"] = [$node_roles=set(Cluster::MANAGER, Cluster::LOGNODE), $ip=127.0.0.1, $p=27757/tcp, $workers=set("worker-1")],
-	["proxy-1"] = [$node_roles=set(Cluster::DATANODE),  $ip=127.0.0.1, $p=27758/tcp, $manager="manager-1", $workers=set("worker-1")],
-	["worker-1"] = [$node_roles=set(Cluster::WORKER),   $ip=127.0.0.1, $p=27760/tcp, $manager="manager-1", $datanode="proxy-1", $interface="eth0"],
+	["manager-1"] = [$node_roles=set(Cluster::MANAGER, Cluster::LOGGER), $ip=127.0.0.1, $p=27757/tcp, $workers=set("worker-1")],
+	["data-1"] = [$node_roles=set(Cluster::DATANODE),  $ip=127.0.0.1, $p=27758/tcp, $manager="manager-1", $workers=set("worker-1")],
+	["worker-1"] = [$node_roles=set(Cluster::WORKER),   $ip=127.0.0.1, $p=27760/tcp, $manager="manager-1", $datanode="data-1", $interface="eth0"],
 };
 @TEST-END-FILE
 

@@ -15,7 +15,11 @@ Component::Component(const std::string& name, factory_callback arg_factory, Tag:
 	factory = arg_factory;
 	enabled = arg_enabled;
 	partial = arg_partial;
+	}
 
+void Component::Initialize()
+	{
+	InitializeTag();
 	analyzer_mgr->RegisterComponent(this, "ANALYZER_");
 	}
 

@@ -20,7 +20,7 @@ export {
 	##
 	## dpid: OpenFlow switch datapath id.
 	##
-	## Returns: OpenFlow::Controller record
+	## Returns: OpenFlow::Controller record.
 	global ryu_new: function(host: addr, host_port: count, dpid: count): OpenFlow::Controller;
 
 	redef record ControllerState += {
@@ -30,7 +30,7 @@ export {
 		ryu_port: count &optional;
 		## OpenFlow switch datapath id.
 		ryu_dpid: count &optional;
-		## Enable debug mode - output JSON to stdout; do not perform actions
+		## Enable debug mode - output JSON to stdout; do not perform actions.
 		ryu_debug: bool &default=F;
 	};
 }

@@ -102,6 +102,49 @@ refine connection Handshake_Conn += {
 		return true;
 		%}
 
+	function proc_client_key_share(rec: HandshakeRecord, keyshare: KeyShareEntry[]) : bool
+		%{
+		VectorVal* nglist = new VectorVal(internal_type("index_vec")->AsVectorType());
+
+		if ( keyshare )
+			{
+			for ( unsigned int i = 0; i < keyshare->size(); ++i )
+				nglist->Assign(i, new Val((*keyshare)[i]->namedgroup(), TYPE_COUNT));
+			}
+
+		BifEvent::generate_ssl_extension_key_share(bro_analyzer(), bro_analyzer()->Conn(), ${rec.is_orig}, nglist);
+		return true;
+		%}
+
+	function proc_server_key_share(rec: HandshakeRecord, keyshare: KeyShareEntry) : bool
+		%{
+		VectorVal* nglist = new VectorVal(internal_type("index_vec")->AsVectorType());
+
+		nglist->Assign(0u, new Val(keyshare->namedgroup(), TYPE_COUNT));
+		BifEvent::generate_ssl_extension_key_share(bro_analyzer(), bro_analyzer()->Conn(), ${rec.is_orig}, nglist);
+		return true;
+		%}
+
+	function proc_signature_algorithm(rec: HandshakeRecord, supported_signature_algorithms: SignatureAndHashAlgorithm[]) : bool
+		%{
+		VectorVal* slist = new VectorVal(internal_type("signature_and_hashalgorithm_vec")->AsVectorType());
+
+		if ( supported_signature_algorithms )
+			{
+			for ( unsigned int i = 0; i < supported_signature_algorithms->size(); ++i )
+				{
+				RecordVal* el = new RecordVal(BifType::Record::SSL::SignatureAndHashAlgorithm);
+				el->Assign(0, new Val((*supported_signature_algorithms)[i]->HashAlgorithm(), TYPE_COUNT));
+				el->Assign(1, new Val((*supported_signature_algorithms)[i]->SignatureAlgorithm(), TYPE_COUNT));
+				slist->Assign(i, el);
+				}
+			}
+
+		BifEvent::generate_ssl_extension_signature_algorithm(bro_analyzer(), bro_analyzer()->Conn(), ${rec.is_orig}, slist);
+
+		return true;
+		%}
+
 	function proc_apnl(rec: HandshakeRecord, protocols: ProtocolName[]) : bool
 		%{
 		VectorVal* plist = new VectorVal(internal_type("string_vec")->AsVectorType());
@@ -223,6 +266,13 @@ refine typeattr ServerHello += &let {
 			compression_method);
 };
 
+refine typeattr ServerHello13 += &let {
+	proc : bool = $context.connection.proc_server_hello(server_version,
+			0, random, 0, cipher_suite, 0,
+			0);
+};
+
+
 refine typeattr Certificate += &let {
 	proc : bool = $context.connection.proc_v3_certificate(rec.is_orig, certificates);
 };
@@ -246,6 +296,18 @@ refine typeattr EcPointFormats += &let {
 refine typeattr EllipticCurves += &let {
 	proc : bool = $context.connection.proc_elliptic_curves(rec, elliptic_curve_list);
 };
+
+refine typeattr ServerHelloKeyShare += &let {
+	proc : bool = $context.connection.proc_server_key_share(rec, keyshare);
+};
+
+refine typeattr ClientHelloKeyShare += &let {
+	proc : bool = $context.connection.proc_client_key_share(rec, keyshares);
+};
+
+refine typeattr SignatureAlgorithm += &let {
+	proc : bool = $context.connection.proc_signature_algorithm(rec, supported_signature_algorithms);
+}
 
 refine typeattr ApplicationLayerProtocolNegotiationExtension += &let {
 	proc : bool = $context.connection.proc_apnl(rec, protocol_name_list);

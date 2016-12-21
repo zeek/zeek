@@ -49,6 +49,13 @@ public:
 	virtual ~Component();
 
 	/**
+	 * Initialization function. This function has to be called before any
+	 * plugin component functionality is used; it commonly is used to add the
+	 * plugin component to the list of components and to initialize tags
+	 */
+	virtual void Initialize() {}
+
+	/**
 	 * Returns the compoment's type.
 	 */
 	component::Type Type() const;

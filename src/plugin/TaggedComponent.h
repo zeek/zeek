@@ -1,6 +1,8 @@
 #ifndef PLUGIN_TAGGED_COMPONENT_H
 #define PLUGIN_TAGGED_COMPONENT_H
 
+#include <assert.h>
+
 namespace plugin {
 
 /**
@@ -13,7 +15,9 @@ class TaggedComponent {
 public:
 
 	/**
-	 * Constructor creates a unique tag value for this component.
+	 * Constructor for TaggedComponend. Note that a unique value
+	 * for this component is only created when InitializeTag is
+	 * called.
 	 *
 	 * @param subtype A subtype associated with this component that
 	 * further distinguishes it. The subtype will be integrated into
@@ -24,12 +28,20 @@ public:
 	TaggedComponent(typename T::subtype_t subtype = 0);
 
 	/**
+	 * Initializes tag by creating the unique tag value for thos componend.
+	 * Has to be called exactly once.
+	 */
+	void InitializeTag();
+
+	/**
 	 * @return The component's tag.
 	 */
 	T Tag() const;
 
 private:
 	T tag; /**< The automatically assigned analyzer tag. */
+	typename T::subtype_t subtype;
+	bool initialized;
 	static typename T::type_t type_counter; /**< Used to generate globally
 	                                             unique tags. */
 };
@@ -37,12 +49,23 @@ private:
 template <class T>
 TaggedComponent<T>::TaggedComponent(typename T::subtype_t subtype)
 	{
+	tag = T(1,0);
+	this->subtype = subtype;
+	initialized = false;
+	}
+
+template <class T>
+void TaggedComponent<T>::InitializeTag()
+	{
+	assert( initialized == false );
+	initialized = true;
 	tag = T(++type_counter, subtype);
 	}
 
 template <class T>
 T TaggedComponent<T>::Tag() const
 	{
+	assert( initialized );
 	return tag;
 	}
 

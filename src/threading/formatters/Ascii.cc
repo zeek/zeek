@@ -9,6 +9,22 @@
 
 using namespace threading::formatter;
 
+// If the value we'd write out would match exactly the a reserved string, we
+// escape the first character so that the output won't be ambigious. If this
+// function returns true, it has added an escaped version of data to desc.
+static inline bool escapeReservedContent(ODesc* desc, const string& reserved, const char* data, int size)
+	{
+	if ( size != (int)reserved.size() || memcmp(data, reserved.data(), size) != 0 )
+		return false;
+
+	char hex[4] = {'\\', 'x', '0', '0'};
+	bytetohex(*data, hex + 2);
+	desc->AddRaw(hex, 4);
+	desc->AddN(data + 1, size - 1);
+	return true;
+	}
+
+
 Ascii::SeparatorInfo::SeparatorInfo()
 	{
 	separator = "SHOULD_NOT_BE_USED";
@@ -91,7 +107,7 @@ bool Ascii::Describe(ODesc* desc, threading::Value* val, const string& name) con
 		// Rendering via Add() truncates trailing 0s after the
 		// decimal point. The difference with TIME/INTERVAL is mainly
 		// to keep the log format consistent.
-		desc->Add(val->val.double_val);
+		desc->Add(val->val.double_val, true);
 		break;
 
 	case TYPE_INTERVAL:
@@ -116,23 +132,13 @@ bool Ascii::Describe(ODesc* desc, threading::Value* val, const string& name) con
 			break;
 			}
 
-		if ( size == (int)separators.unset_field.size() && memcmp(data, separators.unset_field.data(), size) == 0 )
-			{
-			// The value we'd write out would match exactly the
-			// place-holder we use for unset optional fields. We
-			// escape the first character so that the output
-			// won't be ambigious.
-			char hex[4] = {'\\', 'x', '0', '0'};
-			bytetohex(*data, hex + 2);
-			desc->AddRaw(hex, 4);
+		if ( escapeReservedContent(desc, separators.unset_field, data, size) )
+			break;
 
-			++data;
-			--size;
-			}
+		if ( escapeReservedContent(desc, separators.empty_field, data, size) )
+			break;
 
-		if ( size )
-			desc->AddN(data, size);
-
+		desc->AddN(data, size);
 		break;
 		}
 
@@ -226,7 +232,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 			val->val.int_val = 0;
 		else
 			{
-			GetThread()->Error(GetThread()->Fmt("Field: %s Invalid value for boolean: %s",
+			GetThread()->Warning(GetThread()->Fmt("Field: %s Invalid value for boolean: %s",
 				  name.c_str(), start));
 			goto parse_error;
 			}
@@ -267,7 +273,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 		size_t pos = unescaped.find("/");
 		if ( pos == unescaped.npos )
 			{
-			GetThread()->Error(GetThread()->Fmt("Invalid value for subnet: %s", start));
+			GetThread()->Warning(GetThread()->Fmt("Invalid value for subnet: %s", start));
 			goto parse_error;
 			}
 
@@ -342,7 +348,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 
 			if ( pos >= length )
 				{
-				GetThread()->Error(GetThread()->Fmt("Internal error while parsing set. pos %d >= length %d."
+				GetThread()->Warning(GetThread()->Fmt("Internal error while parsing set. pos %d >= length %d."
 				          " Element: %s", pos, length, element.c_str()));
 				error = true;
 				break;
@@ -351,7 +357,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 			threading::Value* newval = ParseValue(element, name, subtype);
 			if ( newval == 0 )
 				{
-				GetThread()->Error("Error while reading set or vector");
+				GetThread()->Warning("Error while reading set or vector");
 				error = true;
 				break;
 				}
@@ -369,7 +375,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 			lvals[pos] = ParseValue("", name, subtype);
 			if ( lvals[pos] == 0 )
 				{
-				GetThread()->Error("Error while trying to add empty set element");
+				GetThread()->Warning("Error while trying to add empty set element");
 				goto parse_error;
 				}
 
@@ -388,7 +394,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 
 		if ( pos != length )
 			{
-			GetThread()->Error(GetThread()->Fmt("Internal error while parsing set: did not find all elements: %s", start));
+			GetThread()->Warning(GetThread()->Fmt("Internal error while parsing set: did not find all elements: %s", start));
 			goto parse_error;
 			}
 
@@ -396,7 +402,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 		}
 
 	default:
-		GetThread()->Error(GetThread()->Fmt("unsupported field format %d for %s", type,
+		GetThread()->Warning(GetThread()->Fmt("unsupported field format %d for %s", type,
 						    name.c_str()));
 		goto parse_error;
 	}
@@ -413,13 +419,13 @@ bool Ascii::CheckNumberError(const char* start, const char* end) const
 	threading::MsgThread* thread = GetThread();
 
 	if ( end == start && *end != '\0'  ) {
-		thread->Error(thread->Fmt("String '%s' contained no parseable number", start));
+		thread->Warning(thread->Fmt("String '%s' contained no parseable number", start));
 		return true;
 	}
 
 	if ( end - start == 0 && *end == '\0' )
 		{
-		thread->Error("Got empty string for number field");
+		thread->Warning("Got empty string for number field");
 		return true;
 		}
 
@@ -428,13 +434,13 @@ bool Ascii::CheckNumberError(const char* start, const char* end) const
 
 	if ( errno == EINVAL )
 		{
-		thread->Error(thread->Fmt("String '%s' could not be converted to a number", start));
+		thread->Warning(thread->Fmt("String '%s' could not be converted to a number", start));
 		return true;
 		}
 
 	else if ( errno == ERANGE )
 		{
-		thread->Error(thread->Fmt("Number '%s' out of supported range.", start));
+		thread->Warning(thread->Fmt("Number '%s' out of supported range.", start));
 		return true;
 		}
 

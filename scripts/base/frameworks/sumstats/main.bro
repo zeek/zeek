@@ -155,6 +155,8 @@ export {
 	##
 	## Returns: The result for the requested sumstat key.
 	global request_key: function(ss_name: string, key: Key): Result;
+	global request_key_manager: function(ss_name: string, key: Key): Result;
+	global request_key_peer: function(ss_name: string, key: Key): Result;
 
 	## Helper function to represent a :bro:type:`SumStats::Key` value as
 	## a simple string.
@@ -231,6 +233,8 @@ global register_observe_plugins: hook();
 # `val` argument. It's only prototyped here because cluster and non-cluster have
 # separate  implementations.
 global data_added: function(ss: SumStat, key: Key, result: Result);
+global data_added_manager: function(ss: SumStat, key: Key, result: Result);
+global data_added_peer: function(ss: SumStat, key: Key, result: Result);
 
 # Event that is used to "finish" measurements and adapt the measurement
 # framework for clustered or non-clustered usage.
@@ -520,4 +524,3 @@ function threshold_crossed(ss: SumStat, key: Key, result: Result)
 
 	ss$threshold_crossed(key, result);
 	}
-

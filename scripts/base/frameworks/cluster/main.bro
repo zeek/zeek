@@ -52,35 +52,35 @@ export {
 
 	## Events raised by a manager and handled by the workers.
 	const manager2worker_events : set[string] = {} &redef;
-	
+
 	## Events raised by a manager and handled by proxies.
 	const manager2datanode_events : set[string] = {} &redef;
-	
+
 	## Events raised by proxies and handled by a manager.
 	const datanode2manager_events : set[string] = {} &redef;
-	
+
 	## Events raised by proxies and handled by workers.
 	const datanode2worker_events : set[string] = {} &redef;
-	
+
 	## Events raised by workers and handled by a manager.
 	const worker2manager_events : set[string] = {} &redef;
-	
+
 	## Events raised by workers and handled by proxies.
 	const worker2datanode_events : set[string] = {} &redef;
-	
+
 	## Events raised by TimeMachine instances and handled by a manager.
 	const tm2manager_events : set[string] = {} &redef;
-	
+
 	## Events raised by TimeMachine instances and handled by workers.
 	const tm2worker_events : set[string] = {} &redef;
-	
+
 	## Add events for adding new nodes and removing old nodes
 	redef Control::controllee_events: set[string] += {"Cluster::update_cluster_node", "Cluster::remove_cluster_node"};
 
 	## The prefix used for subscribing and publishing events
 	const pub_sub_prefix : string = "bro/event/cluster/" &redef;
 
-	# The Cluster-IDs of the particular cluster this node is part of 
+	# The Cluster-IDs of the particular cluster this node is part of
 	const cluster_id : string = "" &redef;
 
 	## Record type to indicate a node in a cluster.
@@ -108,7 +108,7 @@ export {
 		## Name of a time machine node with which this node connects.
 		time_machine: string      &optional;
 	};
-	
+
 	## Process the cluster-layout entry and add entries to Communication::nodes
 	##
 	## name: the name of the node
@@ -124,24 +124,12 @@ export {
 	## Returns: True if :bro:id:`Cluster::node` has been set.
 	global is_enabled: function(): bool;
 
-	## Register events with broker that the local node will publish
-	##
-	## prefix: the broker pub-sub prefix
-	## event_list: a list of events to be published via this prefix
-	global register_broker_events: function(prefix: string, event_list: set[string]);
-
-	## Unregister events with broker that the local node will publish
-	##
-	## prefix: the broker pub-sub prefix
-	## event_list: a list of events to be published via this prefix
-	global unregister_broker_events: function(prefix: string, event_list: set[string]);
-
 	## This function can be called at any time to determine the types of
 	## cluster roles the current Bro instance has.
 	##
 	## Returns: true if local node has that role, false otherwise
 	global has_local_role: function(role: NodeRole): bool;
-	
+
   ## Assign the local node all its assigned roles
 	##
 	## reset: bool that determins if roles are assigned on the existing state (OR)
@@ -156,7 +144,7 @@ export {
 
 	## Helper function
 	##
-	## string of NodeRoles as input, 
+	## string of NodeRoles as input,
 	## returns the node roles as a set of enums
 	global get_roles_enum: function(roles: set[string]): set[NodeRole];
 
@@ -175,7 +163,7 @@ export {
 
 	## Compares to sets of strings with each other
 	##
-	## set1: see of strings 
+	## set1: see of strings
 	## set2: see of  stringsb
 	## return bool
 	global string_set_eq: function(set1: set[string], set2: set[string]): bool;
@@ -183,7 +171,7 @@ export {
 	global update_node: function(cname: string, name: string, connect: bool, retry: interval);
 
 	## Add an additional node dynamically to an cluster
-	## 
+	##
 	## name: 			name of the node
 	## roles: 		supported roles by the node
 	## ip: 				ip of the node
@@ -244,7 +232,7 @@ function get_set(st: string): set[string]
 
 function get_roles_enum(roles: set[string]): set[NodeRole]
 	{
-	# Get roles of this node as enums! 
+	# Get roles of this node as enums!
 	local node_r: set[NodeRole];
 	for ( r in roles )
 		{
@@ -292,22 +280,6 @@ function is_enabled(): bool
 	return (node != "");
 	}
 
-
-function register_broker_events(prefix: string, event_list: set[string])
-	{
-	Broker::publish_topic(prefix);
-	for ( e in event_list )
-		{
-		Broker::auto_event(prefix, lookup_ID(e));
-		}
-	}
-
-function unregister_broker_events(prefix: string, event_list: set[string])
-	{
-		for ( e in event_list )
-			Broker::auto_event_stop(prefix, lookup_ID(e));
-	}
-
 function has_local_role(role: NodeRole): bool
 	{
 	if (!is_enabled())
@@ -315,7 +287,7 @@ function has_local_role(role: NodeRole): bool
 
 	if ( node in nodes && nodes[node]?$node_roles && role in nodes[node]$node_roles )
 		return T;
-		
+
 	return F;
 	}
 
@@ -335,7 +307,7 @@ function set_local_roles(reset: bool)
 		else if (r == Cluster::WORKER)
 			set_role_worker(reset_node);
 		else
-			next;	
+			next;
 
 		reset_node = F;
 		}
@@ -343,7 +315,7 @@ function set_local_roles(reset: bool)
 
 function set_role_manager(reset: bool)
 	{
-	# 1. Don't do any local logging 
+	# 1. Don't do any local logging
 	# 2. Turn on remote logging
 	# 3. Log rotation interval.
 	# 4. Alarm summary mail interval.
@@ -352,12 +324,12 @@ function set_role_manager(reset: bool)
 
 	# Subscribe to events and register events with broker for publication by local node
 	# Subsribe to prefix
-	local prefix = fmt("%s%s/manager/response/", pub_sub_prefix, cluster_id);
+	local prefix = fmt("%s%smanager/response/", pub_sub_prefix, cluster_id);
 	Broker::subscribe_to_events(prefix);
 
 	# Publish: manager2worker_events, manager2datanode_events
-	register_broker_events(fmt("%s%s/worker/request/", pub_sub_prefix, cluster_id), manager2worker_events);
-	register_broker_events(fmt("%s%s/data/request/", pub_sub_prefix, cluster_id), manager2datanode_events);
+	Broker::register_broker_events(fmt("%s%sworker/request/", pub_sub_prefix, cluster_id), manager2worker_events);
+	Broker::register_broker_events(fmt("%s%sdata/request/", pub_sub_prefix, cluster_id), manager2datanode_events);
 
 	if(DATANODE !in nodes[node]$node_roles)
 		{
@@ -380,14 +352,14 @@ function set_role_datanode(reset: bool)
 
 	# Subscribe to events and register events with broker for publication by local node
 	# Subsribe to prefix
-	local prefix = fmt("%s%s/data/request/", pub_sub_prefix, cluster_id);
+	local prefix = fmt("%s%sdata/request/", pub_sub_prefix, cluster_id);
 	Broker::subscribe_to_events(prefix);
 
 	# Publish: datanode2manager_events, datanode2worker_events
-	prefix = fmt("%s%s/manager/response/", pub_sub_prefix, cluster_id);
-	register_broker_events(prefix, datanode2manager_events);
-	prefix = fmt("%s%s/worker/response/", pub_sub_prefix, cluster_id);
-	register_broker_events(prefix, datanode2worker_events);
+	prefix = fmt("%s%smanager/response/", pub_sub_prefix, cluster_id);
+	Broker::register_broker_events(prefix, datanode2manager_events);
+	prefix = fmt("%s%sworker/response/", pub_sub_prefix, cluster_id);
+	Broker::register_broker_events(prefix, datanode2worker_events);
 
 	# Create the master store
 	Cluster::cluster_store = Broker::create_master("cluster-store");
@@ -410,15 +382,15 @@ function set_role_lognode(reset: bool)
 
 	# Subscribe to events and register events with broker for publication by local node
 	# Subsribe to prefix
-	local prefix = fmt("%s%s/data/request/", pub_sub_prefix, cluster_id);
+	local prefix = fmt("%s%sdata/request/", pub_sub_prefix, cluster_id);
 	Broker::subscribe_to_events(prefix);
 
 	# Publish: datanode2manager_events, datanode2worker_events
-	prefix = fmt("%s%s/manager/response/", pub_sub_prefix, cluster_id);
-	register_broker_events(prefix, datanode2manager_events);
-	prefix = fmt("%s%s/worker/response/", pub_sub_prefix, cluster_id);
-	register_broker_events(prefix, datanode2worker_events);
-		
+	prefix = fmt("%s%smanager/response/", pub_sub_prefix, cluster_id);
+	Broker::register_broker_events(prefix, datanode2manager_events);
+	prefix = fmt("%s%sworker/response/", pub_sub_prefix, cluster_id);
+	Broker::register_broker_events(prefix, datanode2worker_events);
+
 	if(DATANODE !in nodes[node]$node_roles)
 		{
 		# Create a clone of the master store
@@ -437,14 +409,14 @@ function set_role_worker(reset: bool)
 
 	# Subscribe to events and register events with broker for publication by local node
 	# Subsribe to prefix
-	local prefix = fmt("%s%s/worker/request/", pub_sub_prefix, cluster_id);
+	local prefix = fmt("%s%sworker/request/", pub_sub_prefix, cluster_id);
 	Broker::subscribe_to_events(prefix);
 
 	# Publish: worker2manager_events, worker2datanode_events
-	prefix = fmt("%s%s/manager/response/", pub_sub_prefix, cluster_id);
-	register_broker_events(prefix, worker2manager_events);
-	prefix = fmt("%s%s/data/response/", pub_sub_prefix, cluster_id);
-	register_broker_events(prefix, worker2datanode_events);
+	prefix = fmt("%s%smanager/response/", pub_sub_prefix, cluster_id);
+	Broker::register_broker_events(prefix, worker2manager_events);
+	prefix = fmt("%s%sdata/response/", pub_sub_prefix, cluster_id);
+	Broker::register_broker_events(prefix, worker2datanode_events);
 
 	# Record all packets into trace file.
 	#
@@ -453,7 +425,7 @@ function set_role_worker(reset: bool)
 	# Setting this does not turn recording on. Use '-w <trace>' for that.
   TrimTraceFile::startTrimTraceFile();
 	record_all_packets = T;
-	
+
 	if(DATANODE !in nodes[node]$node_roles)
 		{
 		# Create a clone of the master store

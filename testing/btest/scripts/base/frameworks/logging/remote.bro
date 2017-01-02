@@ -33,6 +33,7 @@ export {
 
 event bro_init() &priority=5
 {
+	Broker::enable();
 	Log::create_stream(Test::LOG, [$columns=Log]);
 	Log::add_filter(Test::LOG, [$name="f1", $path="test.success", $pred=function(rec: Log): bool { return rec$status == "success"; }]);
 }
@@ -54,6 +55,7 @@ function fail(rec: Log): bool
 
 event Broker::incoming_connection_established(peer_name: string)
 	{
+	print "connection established";
 	Log::add_filter(Test::LOG, [$name="f2", $path="test.failure", $pred=fail]);
 
 	local cid = [$orig_h=1.2.3.4, $orig_p=1234/tcp, $resp_h=2.3.4.5, $resp_p=80/tcp];
@@ -66,6 +68,7 @@ event Broker::incoming_connection_established(peer_name: string)
 	Log::write(Test::LOG, [$t=network_time(), $id=cid, $status="failure", $country="UK"]);
 	Log::write(Test::LOG, [$t=network_time(), $id=cid, $status="success", $country="BR"]);
 	Log::write(Test::LOG, [$t=network_time(), $id=cid, $status="failure", $country="MX"]);
+	print "done here";
 	terminate();
 	}
 
@@ -78,7 +81,7 @@ event Broker::incoming_connection_established(peer_name: string)
 @load base/frameworks/broker/communication
 
 redef Broker::nodes += {
-    ["foo"] = [$host = 127.0.0.1, $connect=T, $request_logs=T]
+    ["foo"] = [$ip = 127.0.0.1, $p =9999/tcp, $connect=T, $request_logs=T]
 };
 
 event Broker::outgoing_connection_broken(peer_address: string,

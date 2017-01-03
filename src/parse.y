@@ -2,7 +2,10 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 %}
 
-%expect 78
+// Switching parser table type fixes ambiguity problems.
+%define lr.type ielr
+
+%expect 142
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
@@ -16,7 +19,7 @@
 %token TOK_REMOVE_FROM TOK_RETURN TOK_SCHEDULE TOK_SET
 %token TOK_STRING TOK_SUBNET TOK_SWITCH TOK_TABLE
 %token TOK_TIME TOK_TIMEOUT TOK_TIMER TOK_TYPE TOK_UNION TOK_VECTOR TOK_WHEN
-%token TOK_WHILE
+%token TOK_WHILE TOK_AS TOK_IS
 
 %token TOK_ATTR_ADD_FUNC TOK_ATTR_ENCRYPT TOK_ATTR_DEFAULT
 %token TOK_ATTR_OPTIONAL TOK_ATTR_REDEF TOK_ATTR_ROTATE_INTERVAL
@@ -44,6 +47,7 @@
 %left TOK_INCR TOK_DECR
 %right '!'
 %left '$' '[' ']' '(' ')' TOK_HAS_FIELD TOK_HAS_ATTR
+%nonassoc TOK_AS TOK_IS
 
 %type <b> opt_no_test opt_no_test_block opt_deprecated
 %type <str> TOK_ID TOK_PATTERN_TEXT single_pattern
@@ -704,6 +708,18 @@ expr:
 			{
 			set_location(@1, @3);
 			$$ = new SizeExpr($2);
+			}
+
+	|       expr TOK_AS type
+			{
+			set_location(@1, @3);
+			$$ = new CastExpr($1, $3);
+			}
+
+	|       expr TOK_IS type
+			{
+			set_location(@1, @3);
+			$$ = new IsExpr($1, $3);
 			}
 	;
 

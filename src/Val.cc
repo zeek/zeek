@@ -3432,3 +3432,49 @@ void delete_vals(val_list* vals)
 		delete vals;
 		}
 	}
+
+Val* cast_value_to_type(Val* v, const BroType* t)
+	{
+	// Note: when changing this function, adapt all three of
+	// cast_value_to_type()/can_cast_value_to_type()/can_cast_value_to_type().
+
+	if ( ! v )
+		return 0;
+
+	// Always allow casting to same type. This also covers casting 'any'
+	// to the actual type.
+	if ( same_type(v->Type(), t) )
+		return v->Ref();
+
+	return 0;
+	}
+
+bool can_cast_value_to_type(const Val* v, const BroType* t)
+	{
+	// Note: when changing this function, adapt all three of
+	// cast_value_to_type()/can_cast_value_to_type()/can_cast_value_to_type().
+
+	if ( ! v )
+		return false;
+
+	// Always allow casting to same type. This also covers casting 'any'
+	// to the actual type.
+	if ( same_type(v->Type(), t) )
+		return true;
+
+	return false;
+	}
+
+bool can_cast_value_to_type(const BroType* s, const BroType* t)
+	{
+	// Note: when changing this function, adapt all three of
+	// cast_value_to_type()/can_cast_value_to_type()/can_cast_value_to_type().
+
+	// Always allow casting to same type. This also covers casting 'any'
+	// to the actual type.
+	if ( same_type(s, t) )
+		return true;
+
+	return false;
+	}
+

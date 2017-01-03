@@ -18,8 +18,6 @@
 
 const char* expr_name(BroExprTag t)
 	{
-	static char errbuf[512];
-
 	static const char* expr_names[int(NUM_EXPRS)] = {
 		"name", "const",
 		"(*)",
@@ -31,7 +29,7 @@ const char* expr_name(BroExprTag t)
 		"$=", "in", "<<>>",
 		"()", "event", "schedule",
 		"coerce", "record_coerce", "table_coerce",
-		"sizeof", "flatten"
+		"sizeof", "flatten", "cast", "is"
 	};
 
 	if ( int(t) >= NUM_EXPRS )
@@ -4870,7 +4868,7 @@ Val* ListExpr::InitVal(const BroType* t, Val* aggr) const
 				Unref(v);
 				return 0;
 				}
-				
+
 			v->Append(vi);
 			}
 		return v;
@@ -5201,6 +5199,101 @@ bool RecordAssignExpr::DoUnserialize(UnserialInfo* info)
 	return true;
 	}
 
+CastExpr::CastExpr(Expr* arg_op, BroType* t) : UnaryExpr(EXPR_CAST, arg_op)
+	{
+	auto stype = Op()->Type();
+
+	::Ref(t);
+	SetType(t);
+
+	if ( ! can_cast_value_to_type(stype, t) )
+		ExprError("cast not supported");
+	}
+
+Val* CastExpr::Fold(Val* v) const
+	{
+	if ( IsError() )
+		return 0;
+
+	if ( Val* nv = cast_value_to_type(v, Type()) )
+		return nv;
+
+	ODesc d;
+	d.Add("cannot cast value of type '");
+	v->Type()->Describe(&d);
+	d.Add("' to type '");
+	Type()->Describe(&d);
+	d.Add("'");
+	reporter->ExprRuntimeError(this, d.Description());
+	return 0;  // not reached.
+	}
+
+void CastExpr::ExprDescribe(ODesc* d) const
+	{
+	Op()->Describe(d);
+	d->Add(" as ");
+	Type()->Describe(d);
+	}
+
+IMPLEMENT_SERIAL(CastExpr, SER_CAST_EXPR);
+
+bool CastExpr::DoSerialize(SerialInfo* info) const
+	{
+	DO_SERIALIZE(SER_CAST_EXPR, UnaryExpr);
+	return true;
+	}
+
+bool CastExpr::DoUnserialize(UnserialInfo* info)
+	{
+	DO_UNSERIALIZE(UnaryExpr);
+	return true;
+	}
+
+IsExpr::IsExpr(Expr* arg_op, BroType* arg_t) : UnaryExpr(EXPR_IS, arg_op)
+	{
+	t = arg_t;
+	::Ref(t);
+
+	SetType(base_type(TYPE_BOOL));
+	}
+
+IsExpr::~IsExpr()
+	{
+	Unref(t);
+	}
+
+Val* IsExpr::Fold(Val* v) const
+	{
+	if ( IsError() )
+		return 0;
+
+	if ( can_cast_value_to_type(v, t) )
+		return new Val(1, TYPE_BOOL);
+	else
+		return new Val(0, TYPE_BOOL);
+	}
+
+void IsExpr::ExprDescribe(ODesc* d) const
+	{
+	Op()->Describe(d);
+	d->Add(" is ");
+	t->Describe(d);
+	}
+
+IMPLEMENT_SERIAL(IsExpr, SER_IS_EXPR_ /* sic */);
+
+bool IsExpr::DoSerialize(SerialInfo* info) const
+	{
+	DO_SERIALIZE(SER_IS_EXPR_, UnaryExpr);
+	return true;
+	}
+
+bool IsExpr::DoUnserialize(UnserialInfo* info)
+	{
+	DO_UNSERIALIZE(UnaryExpr);
+	return true;
+	}
+
 Expr* get_assign_expr(Expr* op1, Expr* op2, int is_init)
 	{
 	if ( op1->Type()->Tag() == TYPE_RECORD &&
@@ -5209,7 +5302,6 @@ Expr* get_assign_expr(Expr* op1, Expr* op2, int is_init)
 	else
 		return new AssignExpr(op1, op2, is_init);
 	}
-
 
 int check_and_promote_expr(Expr*& e, BroType* t)
 	{

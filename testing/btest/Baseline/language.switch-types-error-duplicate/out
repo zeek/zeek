@@ -1,0 +1,1 @@
+error in /home/robin/bro/lang-ext/testing/btest/.tmp/language.switch-types-error-duplicate/switch-types-error-duplicate.bro, lines 11-12: duplicate case label (case type bool, type count:{ return (Bool or address!)})

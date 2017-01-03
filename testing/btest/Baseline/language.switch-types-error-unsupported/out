@@ -1,0 +1,3 @@
+error in /home/robin/bro/lang-ext/testing/btest/.tmp/language.switch-types-error-unsupported/switch-types-error-unsupported.bro, lines 9-10: cannot cast switch expression to case type (case type count:{ return (Count!)})
+error in /home/robin/bro/lang-ext/testing/btest/.tmp/language.switch-types-error-unsupported/switch-types-error-unsupported.bro, lines 11-12: cannot cast switch expression to case type (case type bool, type addr:{ return (Bool or address!)})
+error in /home/robin/bro/lang-ext/testing/btest/.tmp/language.switch-types-error-unsupported/switch-types-error-unsupported.bro, lines 11-12: cannot cast switch expression to case type (case type bool, type addr:{ return (Bool or address!)})

@@ -183,11 +183,14 @@ protected:
 
 class Case : public BroObj {
 public:
-	Case(ListExpr* c, Stmt* arg_s);
+	Case(ListExpr* c, id_list* types, Stmt* arg_s);
 	~Case();
 
-	const ListExpr* Cases() const	{ return cases; }
-	ListExpr* Cases()		{ return cases; }
+	const ListExpr* ExprCases() const	{ return expr_cases; }
+	ListExpr* ExprCases()		{ return expr_cases; }
+
+	const id_list* TypeCases() const	{ return type_cases; }
+	id_list* TypeCases()		{ return type_cases; }
 
 	const Stmt* Body() const	{ return s; }
 	Stmt* Body()			{ return s; }
@@ -201,11 +204,12 @@ public:
 
 protected:
 	friend class Stmt;
-	Case()	{ cases = 0; s = 0; }
+	Case()	{ expr_cases = 0; type_cases = 0; s = 0; }
 
 	DECLARE_SERIAL(Case);
 
-	ListExpr* cases;
+	ListExpr* expr_cases;
+	id_list* type_cases;
 	Stmt* s;
 };
 
@@ -232,20 +236,27 @@ protected:
 	// Initialize composite hash and case label map.
 	void Init();
 
-	// Adds an entry in case_label_map for the given value to associate it
+	// Adds an entry in case_label_value_map for the given value to associate it
 	// with the given index in the cases list.  If the entry already exists,
 	// returns false, else returns true.
-	bool AddCaseLabelMapping(const Val* v, int idx);
+	bool AddCaseLabelValueMapping(const Val* v, int idx);
 
-	// Returns index of a case label that's equal to the value, or
-	// default_case_idx if no case label matches (which may be -1 if there's
-	// no default label).
-	int FindCaseLabelMatch(const Val* v) const;
+	// Adds an entry in case_label_type_map for the given type (w/ ID) to
+	// associate it with the given index in the cases list.  If an entry
+	// for the type already exists, returns false; else returns true.
+	bool AddCaseLabelTypeMapping(ID* t, int idx);
+
+	// Returns index of a case label that matches the value, or
+	// default_case_idx if no case label matches (which may be -1 if
+	// there's no default label). The second tuple element is the ID of
+	// the matching type-based case if it defines one.
+	std::pair<int, ID*> FindCaseLabelMatch(const Val* v) const;
 
 	case_list* cases;
 	int default_case_idx;
 	CompositeHash* comp_hash;
-	PDict(int) case_label_map;
+	PDict(int) case_label_value_map;
+	std::vector<std::pair<ID*, int>> case_label_type_list;
 };
 
 class AddStmt : public ExprStmt {

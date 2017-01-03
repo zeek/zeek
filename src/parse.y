@@ -51,8 +51,8 @@
 
 %type <b> opt_no_test opt_no_test_block opt_deprecated
 %type <str> TOK_ID TOK_PATTERN_TEXT single_pattern
-%type <id> local_id global_id def_global_id event_id global_or_event_id resolve_id begin_func
-%type <id_l> local_id_list
+%type <id> local_id global_id def_global_id event_id global_or_event_id resolve_id begin_func case_type
+%type <id_l> local_id_list case_type_list
 %type <ic> init_class
 %type <expr> opt_init
 %type <val> TOK_CONSTANT
@@ -1516,11 +1516,47 @@ case_list:
 
 case:
 		TOK_CASE expr_list ':' stmt_list
-			{ $$ = new Case($2, $4); }
+			{ $$ = new Case($2, 0, $4); }
+	|
+		TOK_CASE case_type_list ':' stmt_list
+			{ $$ = new Case(0, $2, $4); }
 	|
 		TOK_DEFAULT ':' stmt_list
-			{ $$ = new Case(0, $3); }
+			{ $$ = new Case(0, 0, $3); }
 	;
+
+case_type_list:
+		case_type_list ',' case_type
+			{ $1->append($3); }
+	|
+		case_type
+			{
+			$$ = new id_list;
+			$$->append($1);
+			}
+	;
+
+case_type:
+		TOK_TYPE type
+			{
+			$$ = new ID(0, SCOPE_FUNCTION, 0);
+			$$->SetType($2);
+			}
+
+	|	TOK_TYPE type TOK_AS TOK_ID
+			{
+			const char* name = $4;
+			BroType* type = $2;
+			ID* case_var = lookup_ID(name, current_module.c_str());
+
+			if ( case_var && case_var->IsGlobal() )
+				case_var->Error("already a global identifier");
+			else
+				case_var = install_ID(name, current_module.c_str(), false, false);
+
+			add_local(case_var, type, INIT_NONE, 0, 0, VAR_REGULAR);
+			$$ = case_var;
+			}
 
 for_head:
 		TOK_FOR '(' TOK_ID TOK_IN expr ')'

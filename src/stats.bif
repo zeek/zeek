@@ -14,6 +14,7 @@ RecordType* EventStats;
 RecordType* ThreadStats;
 RecordType* TimerStats;
 RecordType* FileAnalysisStats;
+RecordType* AsyncStats;
 %%}
 
 ## Returns packet capture statistics. Statistics include the number of
@@ -32,6 +33,7 @@ RecordType* FileAnalysisStats;
 ##              get_reassembler_stats
 ##              get_thread_stats
 ##              get_timer_stats
+##              get_async_stats
 function get_net_stats%(%): NetStats
 	%{
 	uint64 recv = 0;
@@ -79,6 +81,7 @@ function get_net_stats%(%): NetStats
 ##              get_reassembler_stats
 ##              get_thread_stats
 ##              get_timer_stats
+##              get_async_stats
 function get_conn_stats%(%): ConnStats
 	%{
 	RecordVal* r = new RecordVal(ConnStats);
@@ -128,6 +131,7 @@ function get_conn_stats%(%): ConnStats
 ##              get_reassembler_stats
 ##              get_thread_stats
 ##              get_timer_stats
+##              get_async_stats
 function get_proc_stats%(%): ProcStats
 	%{
 	struct rusage ru;
@@ -183,6 +187,7 @@ function get_proc_stats%(%): ProcStats
 ##              get_reassembler_stats
 ##              get_thread_stats
 ##              get_timer_stats
+##              get_async_stats
 function get_event_stats%(%): EventStats
 	%{
 	RecordVal* r = new RecordVal(EventStats);
@@ -208,6 +213,7 @@ function get_event_stats%(%): EventStats
 ##              get_proc_stats
 ##              get_thread_stats
 ##              get_timer_stats
+##              get_async_stats
 function get_reassembler_stats%(%): ReassemblerStats
 	%{
 	RecordVal* r = new RecordVal(ReassemblerStats);
@@ -235,6 +241,7 @@ function get_reassembler_stats%(%): ReassemblerStats
 ##              get_reassembler_stats
 ##              get_thread_stats
 ##              get_timer_stats
+##              get_async_stats
 function get_dns_stats%(%): DNSStats
 	%{
 	RecordVal* r = new RecordVal(DNSStats);
@@ -267,6 +274,7 @@ function get_dns_stats%(%): DNSStats
 ##              get_proc_stats
 ##              get_reassembler_stats
 ##              get_thread_stats
+##              get_async_stats
 function get_timer_stats%(%): TimerStats
 	%{
 	RecordVal* r = new RecordVal(TimerStats);
@@ -293,6 +301,7 @@ function get_timer_stats%(%): TimerStats
 ##              get_reassembler_stats
 ##              get_thread_stats
 ##              get_timer_stats
+##              get_async_stats
 function get_file_analysis_stats%(%): FileAnalysisStats
 	%{
 	RecordVal* r = new RecordVal(FileAnalysisStats);
@@ -319,6 +328,7 @@ function get_file_analysis_stats%(%): FileAnalysisStats
 ##              get_proc_stats
 ##              get_reassembler_stats
 ##              get_timer_stats
+##              get_async_stats
 function get_thread_stats%(%): ThreadStats
 	%{
 	RecordVal* r = new RecordVal(ThreadStats);
@@ -343,6 +353,7 @@ function get_thread_stats%(%): ThreadStats
 ##              get_reassembler_stats
 ##              get_thread_stats
 ##              get_timer_stats
+##              get_async_stats
 function get_gap_stats%(%): GapStats
 	%{
 	RecordVal* r = new RecordVal(GapStats);
@@ -373,6 +384,7 @@ function get_gap_stats%(%): GapStats
 ##              get_reassembler_stats
 ##              get_thread_stats
 ##              get_timer_stats
+##              get_async_stats
 function get_matcher_stats%(%): MatcherStats
 	%{
 	RecordVal* r = new RecordVal(MatcherStats);
@@ -390,6 +402,41 @@ function get_matcher_stats%(%): MatcherStats
 	r->Assign(n++, new Val(s.mem, TYPE_COUNT));
 	r->Assign(n++, new Val(s.hits, TYPE_COUNT));
 	r->Assign(n++, new Val(s.misses, TYPE_COUNT));
+
+	return r;
+	%}
+
+## Returns statistics about Bro's usage of asynchronous execution of script
+## code through ``when`` and ``async``.
+##
+## Returns: A record with asynchronous execution statistics.
+##
+## .. bro:see:: get_conn_stats
+##              get_dns_stats
+##              get_event_stats
+##              get_gap_stats
+##              get_matcher_stats
+##              get_net_stats
+##              get_proc_stats
+##              get_reassembler_stats
+##              get_thread_stats
+##              get_timer_stats
+##              get_file_analysis_stats
+function get_async_stats%(%): AsyncStats
+	%{
+	Trigger::Stats tstats = Trigger::GetStats();
+	Fiber::Stats fstats = Fiber::GetStats();
+	
+	RecordVal* r = new RecordVal(AsyncStats);
+	int n = 0;
+
+	r->Assign(n++, new Val(tstats.total, TYPE_COUNT));
+	r->Assign(n++, new Val(tstats.pending_all, TYPE_COUNT));
+	r->Assign(n++, new Val(tstats.pending_completion, TYPE_COUNT));
+	r->Assign(n++, new Val(fstats.current, TYPE_COUNT));
+	r->Assign(n++, new Val(fstats.cached, TYPE_COUNT));
+	r->Assign(n++, new Val(fstats.total, TYPE_COUNT));
+	r->Assign(n++, new Val(fstats.max, TYPE_COUNT));
 
 	return r;
 	%}

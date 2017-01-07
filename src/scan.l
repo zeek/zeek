@@ -212,6 +212,7 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 add	return TOK_ADD;
 addr	return TOK_ADDR;
 any	return TOK_ANY;
+async	return TOK_ASYNC;
 bool	return TOK_BOOL;
 break	return TOK_BREAK;
 case	return TOK_CASE;

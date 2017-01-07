@@ -46,6 +46,7 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "EventRegistry.h"
 #include "Stats.h"
 #include "Brofiler.h"
+#include "Trigger.h"
 
 #include "threading/Manager.h"
 #include "input/Manager.h"
@@ -383,6 +384,8 @@ void terminate_bro()
 	delete plugin_mgr;
 	delete reporter;
 	delete iosource_mgr;
+
+	Fiber::Done();
 
 	reporter = 0;
 	}
@@ -875,6 +878,8 @@ int main(int argc, char** argv)
 	file_mgr->InitPostScript();
 	dns_mgr->InitPostScript();
 
+	Stmt::Init();
+
 	if ( parse_only )
 		{
 		int rc = (reporter->Errors() > 0 ? 1 : 0);
@@ -1104,6 +1109,7 @@ int main(int argc, char** argv)
 
 	if ( iosource_mgr->Size() > 0 ||
 	     have_pending_timers ||
+	     Trigger::WaitingForTriggers() ||
 	     BifConst::exit_only_after_terminate )
 		{
 		if ( profiling_logger )

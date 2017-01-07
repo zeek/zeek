@@ -7,6 +7,7 @@
 using namespace std;
 
 #include "Val.h"
+#include "Fiber.h"
 
 class BroFunc;
 class Trigger;
@@ -50,6 +51,10 @@ public:
 	// Deep-copies values.
 	Frame* Clone();
 
+	// Create a clone of the frame but does not deep-copy the values; it
+	// refs the current ones.
+	Frame* ShallowCopy();
+
 	// If the frame is run in the context of a trigger condition evaluation,
 	// the trigger needs to be registered.
 	void SetTrigger(Trigger* arg_trigger);
@@ -60,7 +65,11 @@ public:
 	void ClearCall()			{ call = 0; }
 	const CallExpr* GetCall() const		{ return call; }
 
-	void SetDelayed()	{ delayed = true; }
+	void SetFiber(std::shared_ptr<Fiber> arg_fiber)	{ fiber = arg_fiber; }
+	void ClearFiber()	{ fiber = 0; }
+	std::shared_ptr<Fiber> GetFiber() const		{ return fiber; }
+
+	void SetDelayed(bool d = true)	{ delayed = d; }
 	bool HasDelayed() const	{ return delayed; }
 
 protected:
@@ -71,6 +80,7 @@ protected:
 
 	const BroFunc* function;
 	const val_list* func_args;
+	bool delete_func_args;
 	Stmt* next_stmt;
 
 	bool break_before_next_stmt;
@@ -79,6 +89,8 @@ protected:
 	Trigger* trigger;
 	const CallExpr* call;
 	bool delayed;
+
+	std::shared_ptr<Fiber> fiber;
 };
 
 extern vector<Frame*> g_frame_stack;

@@ -3445,7 +3445,7 @@ function lookup_addr%(host: addr%) : string
 
 	if ( ! trigger)
 		{
-		builtin_error("lookup_addr() can only be called inside a when-condition");
+		builtin_error("lookup_addr() can only be called inside an asynchronous context");
 		return new StringVal("<error>");
 		}
 
@@ -3474,7 +3474,7 @@ function lookup_hostname_txt%(host: string%) : string
 
 	if ( ! trigger)
 		{
-		builtin_error("lookup_hostname_txt() can only be called inside a when-condition");
+		builtin_error("lookup_hostname_txt() can only be called inside an asynchronous context");
 		return new StringVal("<error>");
 		}
 
@@ -3503,7 +3503,7 @@ function lookup_hostname%(host: string%) : addr_set
 
 	if ( ! trigger)
 		{
-		builtin_error("lookup_hostname() can only be called inside a when-condition");
+		builtin_error("lookup_hostname() can only be called inside an asynchronous context");
 		return new StringVal("<error>");
 		}
 

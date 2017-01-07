@@ -1,0 +1,24 @@
+foo2 begin
+foo3, 10, begin
+foo_no_async
+foo2 end, fake_addr_lookup_result_192.150.187.43
+foo3, 10, end, fake_addr_lookup_result_192.150.187.43
+foo3, 9, begin
+foo3, 9, end, fake_addr_lookup_result_192.150.187.43
+foo3, 8, begin
+foo3, 8, end, fake_addr_lookup_result_192.150.187.43
+foo3, 7, begin
+foo3, 7, end, fake_addr_lookup_result_192.150.187.43
+foo3, 6, begin
+foo3, 6, end, fake_addr_lookup_result_192.150.187.43
+foo3, 5, begin
+foo3, 5, end, fake_addr_lookup_result_192.150.187.43
+foo3, 4, begin
+foo3, 4, end, fake_addr_lookup_result_192.150.187.43
+foo3, 3, begin
+foo3, 3, end, fake_addr_lookup_result_192.150.187.43
+foo3, 2, begin
+foo3, 2, end, fake_addr_lookup_result_192.150.187.43
+foo3, 1, begin
+foo3, 1, end, fake_addr_lookup_result_192.150.187.43
+foo3, 0, begin

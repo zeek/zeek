@@ -35,6 +35,7 @@
 #include "Net.h"
 #include "NetVar.h"
 #include "File.h"
+#include "Fiber.h"
 #include "Func.h"
 #include "Frame.h"
 #include "Var.h"
@@ -332,6 +333,84 @@ int BroFunc::IsPure() const
 	return 1;
 	}
 
+Val* BroFunc::CallFunctionBody(Stmt* body, val_list* args, stmt_flow_type& flow, Frame* f, Frame* parent) const
+	{
+	Val* result = 0;
+
+	try
+		{
+		result = body->Exec(f, flow);
+		}
+	catch ( InterpreterException& e )
+		{
+		// Error is already reported.
+		return 0;
+		}
+
+	if ( f->HasDelayed() && parent )
+		{
+		assert(! result);
+		assert(parent);
+		parent->SetDelayed();
+		return 0;
+		}
+
+	if ( Flavor() == FUNC_FLAVOR_HOOK )
+		{
+		// Ignore any return values of hook bodies, final return value
+		// depends on whether a body returns as a result of break statement.
+		Unref(result);
+		result = 0;
+		}
+
+	return result;
+	}
+
+void BroFunc::CallEventBodyInsideFiber(Stmt* body, val_list* args, Frame* f, Frame* parent) const
+	{
+	assert(Flavor() == FUNC_FLAVOR_EVENT);
+
+	auto fiber = Fiber::Create();
+
+	// Function that will run inside the fiber.
+	auto execute_body = [=]() -> bool
+		{
+		try
+			{
+			// Create a shallow copy of the frame that can stay
+			// around during asynchronous execution.
+			auto nframe = f->ShallowCopy();
+			nframe->SetFiber(fiber);
+
+			stmt_flow_type flow;
+			auto nresult = body->Exec(nframe, flow);
+
+			// Ignore flow and result (which should be null anyways).
+			Unref(nresult);
+			Unref(nframe);
+			return true;
+			}
+
+		catch ( InterpreterException& e )
+			{
+			// Error message has already been already reported.
+			return false;
+			}
+
+		reporter->InternalError("unknown error when executing function body");
+		};
+
+	if ( fiber->Execute(execute_body) )
+		// No yield, all done already.
+		Fiber::Destroy(fiber);
+
+	else
+		{
+		// An asynchronous operation yielded. Fiber needs to stay
+		// around, we'll come back to this body later in Trigger::EvaluatePending.
+		}
+	}
+
 Val* BroFunc::Call(val_list* args, Frame* parent) const
 	{
 #ifdef PROFILE_BRO_FUNCTIONS
@@ -365,11 +444,11 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 
 	Frame* f = new Frame(frame_size, this, args);
 
-	// Hand down any trigger.
+	// Hand down trigger-related state.
 	if ( parent )
 		{
-		f->SetTrigger(parent->GetTrigger());
 		f->SetCall(parent->GetCall());
+		f->SetFiber(parent->GetFiber());
 		}
 
 	g_frame_stack.push_back(f);	// used for backtracing
@@ -392,35 +471,29 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 
 	for ( size_t i = 0; i < bodies.size(); ++i )
 		{
-		if ( sample_logger )
-			sample_logger->LocationSeen(
-				bodies[i].stmts->GetLocationInfo());
+		auto body = bodies[i].stmts;
 
 		Unref(result);
+		result = 0;
 
-		try
-			{
-			result = bodies[i].stmts->Exec(f, flow);
-			}
+		if ( sample_logger )
+			sample_logger->LocationSeen(body->GetLocationInfo());
 
-		catch ( InterpreterException& e )
+		if ( Flavor() == FUNC_FLAVOR_EVENT && body->MayUseAsync() )
 			{
-			// Already reported, but we continue exec'ing remaining bodies.
+			// Called code may potentially yield, so run inside a
+			// fiber to support that.
+			CallEventBodyInsideFiber(body, args, f, parent);
 			continue;
 			}
 
-		if ( f->HasDelayed() )
-			{
-			assert(! result);
-			assert(parent);
-			parent->SetDelayed();
-			break;
-			}
+		result = CallFunctionBody(body, args, flow, f, parent);
 
 		if ( Flavor() == FUNC_FLAVOR_HOOK )
 			{
-			// Ignore any return values of hook bodies, final return value
-			// depends on whether a body returns as a result of break statement.
+			// Ignore any return values of hook bodies, final
+			// return value depends on whether a body returns as
+			// a result of break statement.
 			Unref(result);
 			result = 0;
 

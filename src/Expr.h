@@ -56,7 +56,7 @@ class NameExpr;
 class AssignExpr;
 class CallExpr;
 class EventExpr;
-
+class Trigger;
 
 class Expr : public BroObj {
 public:
@@ -180,6 +180,18 @@ public:
 		{
 		CHECK_TAG(tag, EXPR_ASSIGN, "ExprVal::AsAssignExpr", expr_name)
 		return (AssignExpr*) this;
+		}
+
+	const CallExpr* AsCallExpr() const
+		{
+		CHECK_TAG(tag, EXPR_CALL, "ExprVal::AsCallExpr", expr_name)
+		return (const CallExpr*) this;
+		}
+
+	CallExpr* AsCallExpr()
+		{
+		CHECK_TAG(tag, EXPR_CALL, "ExprVal::AsCallExpr", expr_name)
+		return (CallExpr*) this;
 		}
 
 	void Describe(ODesc* d) const;
@@ -944,7 +956,9 @@ protected:
 
 class CallExpr : public Expr {
 public:
-	CallExpr(Expr* func, ListExpr* args, bool in_hook = false);
+	enum CallFlavor { STANDARD, HOOK, ASYNC };
+
+	CallExpr(Expr* func, ListExpr* args, CallFlavor flavor = STANDARD);
 	~CallExpr();
 
 	Expr* Func() const	{ return func; }
@@ -954,11 +968,18 @@ public:
 
 	Val* Eval(Frame* f) const override;
 
+	CallFlavor GetCallFlavor() const	{ return call_flavor; }
+
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
 	friend class Expr;
+
 	CallExpr()	{ func = 0; args = 0; }
+
+	Val* EvalAsync(Frame* f, class Func* func, val_list* v) const;
+	Val* EvalSync(Frame* f, class Func* func, val_list* v) const;
+	Val* CheckCache(Trigger* trigger) const;
 
 	void ExprDescribe(ODesc* d) const override;
 
@@ -966,6 +987,7 @@ protected:
 
 	Expr* func;
 	ListExpr* args;
+	CallFlavor call_flavor;
 };
 
 class EventExpr : public Expr {

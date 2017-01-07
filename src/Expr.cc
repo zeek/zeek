@@ -18,8 +18,6 @@
 
 const char* expr_name(BroExprTag t)
 	{
-	static char errbuf[512];
-
 	static const char* expr_names[int(NUM_EXPRS)] = {
 		"name", "const",
 		"(*)",
@@ -4387,11 +4385,12 @@ bool InExpr::DoUnserialize(UnserialInfo* info)
 	return true;
 	}
 
-CallExpr::CallExpr(Expr* arg_func, ListExpr* arg_args, bool in_hook)
+CallExpr::CallExpr(Expr* arg_func, ListExpr* arg_args, CallFlavor arg_call_flavor)
 : Expr(EXPR_CALL)
 	{
 	func = arg_func;
 	args = arg_args;
+	call_flavor = arg_call_flavor;
 
 	if ( func->IsError() || args->IsError() )
 		{
@@ -4407,7 +4406,7 @@ CallExpr::CallExpr(Expr* arg_func, ListExpr* arg_args, bool in_hook)
 		return;
 		}
 
-	if ( func_type->AsFuncType()->Flavor() == FUNC_FLAVOR_HOOK && ! in_hook )
+	if ( func_type->AsFuncType()->Flavor() == FUNC_FLAVOR_HOOK && call_flavor != HOOK )
 		{
 		func->Error("hook cannot be called directly, use hook operator");
 		SetError();
@@ -4503,58 +4502,131 @@ int CallExpr::IsPure() const
 	return pure;
 	}
 
+Val* CallExpr::CheckCache(Trigger* trigger) const
+	{
+	if ( ! trigger )
+		return nullptr;
+
+	auto ret = trigger->Lookup(this);
+
+	if ( ! ret )
+		return nullptr;
+
+	DBG_LOG(DBG_NOTIFIERS, "%s: provides cached function result", trigger->Name());
+	return ret->Ref();
+	}
+
+Val* CallExpr::EvalSync(Frame* f, class Func* func, val_list* v) const
+	{
+	Val* ret = 0;
+
+	Trigger* trigger = f && f->GetTrigger() ? f->GetTrigger() : nullptr;
+
+	if ( (ret = CheckCache(trigger)) )
+		return ret;
+
+	try
+		{
+		ret = func->Call(v, f);
+		}
+
+	catch ( InterpreterException& e )
+		{
+		throw; // Pass exceptions upstream.
+		}
+
+	// Don't Unref() the arguments, as Func::Call already did that.
+	delete v;
+	return ret;
+	}
+
+Val* CallExpr::EvalAsync(Frame* f, class Func* func, val_list* v) const
+	{
+	Val* ret = 0;
+	bool trigger_started = false;
+
+	if ( ! f->GetFiber() )
+		reporter->ExprRuntimeError(this, "script context does not support asynchronous calls");
+
+	DBG_LOG(DBG_NOTIFIERS, "beginning new asynchronous call");
+
+	auto trigger = new Trigger(nullptr, nullptr, nullptr, nullptr, f, false, false, true, GetLocationInfo());
+	f->SetTrigger(trigger);
+
+	while ( true )
+		{
+		// If we are inside a trigger, we may have already
+		// been called, delayed, and then produced a result
+		// which is now cached.
+		if ( (ret = CheckCache(trigger)) )
+			break;
+
+		try
+			{
+			// Call() will unref args but we need to keep them
+			// around.
+			val_list nv;
+			loop_over_list(*v, i)
+				nv.append(((*v)[i])->Ref());
+
+			ret = func->Call(&nv, f);
+			}
+
+		catch ( InterpreterException& e )
+			{
+			throw; // Pass exceptions upstream.
+			}
+
+		if ( ret )
+			break;
+
+		if ( ! trigger_started )
+			{
+			trigger_started = true;
+			trigger->Start();
+			}
+
+		// Don't have a result yet for asynchronous call, suspend
+		// execution.
+		DBG_LOG(DBG_NOTIFIERS, "%s: yielding in asynchronous call", trigger->Name());
+		f->GetFiber()->Yield();
+		}
+
+	f->ClearTrigger();
+
+	delete_vals(v);
+	return ret;
+	}
+
 Val* CallExpr::Eval(Frame* f) const
 	{
 	if ( IsError() )
 		return 0;
 
-	// If we are inside a trigger condition, we may have already been
-	// called, delayed, and then produced a result which is now cached.
-	// Check for that.
-	if ( f )
-		{
-		Trigger* trigger = f->GetTrigger();
-
-		if ( trigger )
-			{
-			Val* v = trigger->Lookup(this);
-			if ( v )
-				{
-				DBG_LOG(DBG_NOTIFIERS,
-					"%s: provides cached function result",
-					trigger->Name());
-				return v->Ref();
-				}
-			}
-		}
-
-	Val* ret = 0;
 	Val* func_val = func->Eval(f);
 	val_list* v = eval_list(f, args);
 
-	if ( func_val && v )
+	if ( ! (func_val && v) )
 		{
-		const ::Func* func = func_val->AsFunc();
-		calling_expr = this;
-		const CallExpr* current_call = f ? f->GetCall() : 0;
-
-		if ( f )
-			f->SetCall(this);
-
-		ret = func->Call(v, f); // No try/catch here; we pass exceptions upstream.
-
-		if ( f )
-			f->SetCall(current_call);
-
-		// Don't Unref() the arguments, as Func::Call already did that.
-		delete v;
-
-		calling_expr = 0;
-		}
-	else
+		Unref(func_val);
 		delete_vals(v);
+		return 0;
+		}
 
-	Unref(func_val);
+	const CallExpr* current_call = f ? f->GetCall() : 0;
+
+	if ( f )
+		f->SetCall(this);
+
+	Val* ret = 0;
+
+	if ( call_flavor == ASYNC )
+		ret = EvalAsync(f, func_val->AsFunc(), v);
+	else
+		ret = EvalSync(f, func_val->AsFunc(), v);
+
+	if ( f )
+		f->SetCall(current_call);
 
 	return ret;
 	}
@@ -4870,7 +4942,7 @@ Val* ListExpr::InitVal(const BroType* t, Val* aggr) const
 				Unref(v);
 				return 0;
 				}
-				
+
 			v->Append(vi);
 			}
 		return v;

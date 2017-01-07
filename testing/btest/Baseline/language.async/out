@@ -1,0 +1,18 @@
+PRIO +500
+A
+PRIO -500
+B, {
+3711:e187:22a:9185:cad6:18a2:3793:a4ca
+}
+C, {
+1cb7:3f5b:fbbe:bda0:91aa:d627:a60c:cb31
+}
+=== foo()
+  X
+  Y, fake_addr_lookup_result_131.159.14.1
+  Z, fake_addr_lookup_result_8.8.8.8
+=== bar()
+in x
+Q1: i=1 h=fake_addr_lookup_result_131.159.14.23 x=x-return
+Q2: i=1
+D

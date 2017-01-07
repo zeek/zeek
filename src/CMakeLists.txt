@@ -240,6 +240,8 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
 set_source_files_properties(nb_dns.c PROPERTIES COMPILE_FLAGS
                             -fno-strict-aliasing)
 
+ENABLE_LANGUAGE(ASM)
+
 set(bro_SRCS
     ${CMAKE_CURRENT_BINARY_DIR}/version.c
     ${BIF_SRCS}
@@ -289,6 +291,7 @@ set(bro_SRCS
     EventRegistry.cc
     Expr.cc
     File.cc
+    Fiber.cc
     Flare.cc
     Frag.cc
     Frame.cc
@@ -358,6 +361,8 @@ set(bro_SRCS
     threading/formatters/JSON.cc
 
     3rdparty/sqlite3.c
+    3rdparty/libtask/context.c
+    3rdparty/libtask/asm.S
 
     plugin/Component.cc
     plugin/ComponentManager.h

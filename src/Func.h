@@ -70,6 +70,8 @@ public:
 		{ return id >= unique_ids.size() ? 0 : unique_ids[id]; }
 
 protected:
+	friend class AsyncAnalyzer;
+
 	Func();
 
 	// Helper function for handling result of plugin hook.
@@ -105,6 +107,8 @@ public:
 protected:
 	BroFunc() : Func(BRO_FUNC)	{}
 	Stmt* AddInits(Stmt* body, id_list* inits);
+	Val* CallFunctionBody(Stmt* body, val_list* args, stmt_flow_type& flow, Frame* f, Frame* parent) const;
+	void CallEventBodyInsideFiber(Stmt* body, val_list* args, Frame* f, Frame* parent) const;
 
 	DECLARE_SERIAL(BroFunc);
 

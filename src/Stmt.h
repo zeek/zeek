@@ -16,6 +16,7 @@
 
 class StmtList;
 class ForStmt;
+class AsyncCallAnalyzer;
 
 declare(PDict, int);
 
@@ -58,6 +59,11 @@ public:
 	void AccessStats(ODesc* d) const;
 	uint32 GetAccessCount() const { return access_count; }
 
+	// Returns true if the statement may trigger asynchrounous function
+	// calls, eithe directly or through further child statements it
+	// executes. This is determined statically at startup.
+	bool MayUseAsync();
+
 	virtual void Describe(ODesc* d) const;
 
 	virtual void IncrBPCount()	{ ++breakpoint_count; }
@@ -76,7 +82,12 @@ public:
 
 	virtual TraversalCode Traverse(TraversalCallback* cb) const = 0;
 
+	// Derives properties of statements through static analysis.
+	static void Init();
+
 protected:
+	friend class AsyncCallAnalyzer;
+
 	Stmt()	{}
 	Stmt(BroStmtTag arg_tag);
 
@@ -84,6 +95,8 @@ protected:
 	void DescribeDone(ODesc* d) const;
 
 	DECLARE_ABSTRACT_SERIAL(Stmt);
+
+	enum { ASYNC_NO, ASYNC_YES, ASYNC_UNKNOWN, ASYNC_PENDING } may_use_async = ASYNC_UNKNOWN;
 
 	BroStmtTag tag;
 	int breakpoint_count;	// how many breakpoints on this statement

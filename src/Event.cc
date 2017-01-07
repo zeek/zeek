@@ -137,10 +137,10 @@ void EventMgr::Drain()
 	// do after draining events.
 	draining = false;
 
-	// We evaluate Triggers here. While this is somewhat unrelated to event
-	// processing, we ensure that it's done at a regular basis by checking
-	// them here.
-	Trigger::EvaluatePending();
+	// We evaluate Triggers here. While this is somewhat unrelated to
+	// event processing, doing it here ensures that it's performed at a
+	// regular basis.
+ 	Trigger::EvaluateTriggers();
 	}
 
 void EventMgr::Describe(ODesc* d) const

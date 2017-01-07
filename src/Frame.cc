@@ -15,6 +15,7 @@ Frame::Frame(int arg_size, const BroFunc* func, const val_list* fn_args)
 	frame = new Val*[size];
 	function = func;
 	func_args = fn_args;
+	delete_func_args = false;
 
 	next_stmt = 0;
 	break_before_next_stmt = false;
@@ -24,6 +25,8 @@ Frame::Frame(int arg_size, const BroFunc* func, const val_list* fn_args)
 	call = 0;
 	delayed = false;
 
+	fiber = 0;
+
 	Clear();
 	}
 
@@ -31,6 +34,9 @@ Frame::~Frame()
 	{
 	Unref(trigger);
 	Release();
+
+	if ( delete_func_args )
+		delete_vals(const_cast<val_list *>(func_args));
 	}
 
 void Frame::Release()
@@ -72,22 +78,56 @@ void Frame::Clear()
 
 Frame* Frame::Clone()
 	{
-	Frame* f = new Frame(size, function, func_args);
+	Frame* f = new Frame(size, function, 0);
 
 	for ( int i = 0; i < size; ++i )
 		f->frame[i] = frame[i] ? frame[i]->Clone() : 0;
 
-	if ( trigger )
-		Ref(trigger);
-	f->trigger = trigger;
-	f->call = call;
+	auto new_func_args = new val_list;
+	f->func_args = new_func_args;
+	f->delete_func_args = true;
+
+	loop_over_list((*func_args), j)
+		{
+		auto arg = (*func_args)[j];
+		if ( arg )
+			arg = arg->Clone();
+  		new_func_args->append(arg);
+		}
+
+	// Don't copy other fields.
+
+	return f;
+	}
+
+
+Frame* Frame::ShallowCopy()
+	{
+	Frame* f = new Frame(size, function, nullptr);
+
+	for ( int i = 0; i < size; ++i )
+		f->frame[i] = frame[i] ? frame[i]->Ref() : 0;
+
+	auto new_func_args = new val_list;
+	f->func_args = new_func_args;
+	f->delete_func_args = true;
+
+	loop_over_list((*func_args), j)
+		{
+		auto arg = (*func_args)[j];
+		if ( arg )
+			Ref(arg);
+  		new_func_args->append(arg);
+		}
+
+	// Don't copy other fields.
 
 	return f;
 	}
 
 void Frame::SetTrigger(Trigger* arg_trigger)
 	{
-	ClearTrigger();
+	Unref(trigger);
 
 	if ( arg_trigger )
 		Ref(arg_trigger);

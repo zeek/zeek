@@ -193,10 +193,13 @@ void ProfileLogger::Log()
 					dstats.requests, dstats.successful, dstats.failed, dstats.pending,
 					dstats.cached_hosts, dstats.cached_addresses));
 
-	Trigger::Stats tstats;
-	Trigger::GetStats(&tstats);
+	auto tstats = Trigger::Stats();
+	file->Write(fmt("%.06f Triggers: total=%" PRIu64 " pending_total=%" PRIu64 " pending_completion=%" PRIu64 "\n",
+			network_time, tstats.total, tstats.pending_all, tstats.pending_completion));
 
-	file->Write(fmt("%.06f Triggers: total=%lu pending=%lu\n", network_time, tstats.total, tstats.pending));
+	auto fstats = Fiber::Stats();
+	file->Write(fmt("%.06f Fibers: total=%" PRIu64 " current=%" PRIu64 " cached=%" PRIu64 " max=%" PRIu64 "\n",
+			network_time, fstats.total, fstats.current, fstats.cached, fstats.max));
 
 	unsigned int* current_timers = TimerMgr::CurrentTimers();
 	for ( int i = 0; i < NUM_TIMER_TYPES; ++i )

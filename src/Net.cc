@@ -33,6 +33,7 @@
 #include "iosource/PktSrc.h"
 #include "iosource/PktDumper.h"
 #include "plugin/Manager.h"
+#include "Trigger.h"
 
 #ifdef ENABLE_BROKER
 #include "broker/Manager.h"
@@ -291,6 +292,7 @@ void net_run()
 	set_processing_status("RUNNING", "net_run");
 
 	while ( iosource_mgr->Size() ||
+	        Trigger::WaitingForTriggers() ||
 		(BifConst::exit_only_after_terminate && ! terminating) )
 		{
 		double ts;

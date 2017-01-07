@@ -600,6 +600,30 @@ type ThreadStats: record {
 	num_threads: count;
 };
 
+## Statistics of Bro's usage of asynchronous script code
+## through ``when`` and ``async``. These values are primarily
+## for profiling internal mechanims.
+##
+## .. bro:see:: get_async_stats
+type AsyncStats: record {
+	## Number of all "trigger" objects currently instantiated.
+	triggers_current_all: count;
+	## Number of "trigger" objects currently instantiated that must finish
+        ## before Bro terminates.
+	triggers_current_completion: count;
+	## Total number of "trigger" objects instantiated since startup.
+	triggers_total: count;
+	## Number of "fiber" objects currently instantiated.
+	fibers_current: count;
+	## Number of "fiber" objects currently cached for reuse.
+	fibers_cached: count;
+	## Total number of "fiber" objects instantiated since startup.
+	fibers_total: count;
+	## Maximum number of "fiber" objects concurrently instantiated since
+        ## startup.
+	fibers_max: count;
+};
+
 ## Deprecated.
 ##
 ## .. todo:: Remove. It's still declared internally but doesn't seem  used anywhere
@@ -2435,7 +2459,7 @@ export {
 		negotiate_lm_key       : bool;
 		## If set, requests connectionless authentication
 		negotiate_datagram     : bool;
-		## If set, requests session key negotiation for message 
+		## If set, requests session key negotiation for message
 		## confidentiality
 		negotiate_seal         : bool;
 		## If set, requests session key negotiation for message
@@ -2623,7 +2647,7 @@ export {
 		## The server supports compressed data transfer. Requires bulk_transfer.
 		## Note: No known implementations support this
 		compressed_data	   : bool;
-		## The server supports extended security exchanges	
+		## The server supports extended security exchanges
 		extended_security  : bool;
 	};
 
@@ -2716,7 +2740,7 @@ export {
 	};
 
 	type SMB1::NegotiateResponse: record {
-		## If the server does not understand any of the dialect strings, or if 
+		## If the server does not understand any of the dialect strings, or if
 		## PC NETWORK PROGRAM 1.0 is the chosen dialect.
 		core	: SMB1::NegotiateResponseCore 	&optional;
 		## If the chosen dialect is greater than core up to and including
@@ -2767,7 +2791,7 @@ export {
 		## If challenge/response auth is not being used, this is the password.
 		## Otherwise, it's the response to the server's challenge.
 		## Note: Only set for pre NT LM 0.12
-		account_password	  : string &optional;		
+		account_password	  : string &optional;
 		## Client's primary domain, if known
 		## Note: not set for NT LM 0.12 with extended security
 		primary_domain		  : string &optional;
@@ -2785,7 +2809,7 @@ export {
 		## Note: only set for NT LM 0.12
 		capabilities		  : SMB1::SessionSetupAndXCapabilities &optional;
 	};
-	
+
 	type SMB1::SessionSetupAndXResponse: record {
 		## Count of parameter words (should be 3 for pre NT LM 0.12 and 4 for NT LM 0.12)
 		word_count	: count;
@@ -3525,7 +3549,7 @@ type bt_tracker_headers: table[string] of string;
 ## for a range of modbus coils.
 type ModbusCoils: vector of bool;
 
-## A vector of count values that represent 16bit modbus 
+## A vector of count values that represent 16bit modbus
 ## register values.
 type ModbusRegisters: vector of count;
 

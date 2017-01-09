@@ -275,10 +275,6 @@ while [ $# -ne 0 ]; do
         --with-caf=*)
             append_cache_entry CAF_ROOT_DIR      PATH   $optarg
             ;;
-        --with-libcaf=*)
-            echo "warning: --with-libcaf deprecated, use --with-caf instead"
-            append_cache_entry CAF_ROOT_DIR      PATH   $optarg
-            ;;
         --with-rocksdb=*)
             append_cache_entry ROCKSDB_ROOT_DIR     PATH   $optarg
             ;;

@@ -16,8 +16,8 @@
 redef Cluster::nodes = {
 	["manager-1"] = [$node_roles=set(Cluster::MANAGER, Cluster::LOGGER), $ip=127.0.0.1, $p=37757/tcp, $workers=set("worker-1", "worker-2")],
 	["data-1"] = [$node_roles=set(Cluster::DATANODE),   $ip=127.0.0.1, $p=37758/tcp, $manager="manager-1", $workers=set("worker-1", "worker-2")],
-	["worker-1"] = [$node_roles=set(Cluster::WORKER),   $ip=127.0.0.1, $p=37760/tcp, $manager="manager-1", $datanode="data-1", $interface="eth0"],
-	["worker-2"] = [$node_roles=set(Cluster::WORKER),   $ip=127.0.0.1, $p=37761/tcp, $manager="manager-1", $datanode="data-1", $interface="eth1"],
+	["worker-1"] = [$node_roles=set(Cluster::WORKER),   $ip=127.0.0.1, $p=37760/tcp, $manager="manager-1", $datanodes=set("data-1"), $interface="eth0"],
+	["worker-2"] = [$node_roles=set(Cluster::WORKER),   $ip=127.0.0.1, $p=37761/tcp, $manager="manager-1", $datanodes=set("data-1"), $interface="eth1"],
 };
 @TEST-END-FILE
 

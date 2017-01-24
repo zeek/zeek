@@ -79,19 +79,19 @@ function process_node_datanode(name: string)
 	if ( LOGGER in n$node_roles && me?$logger && me$logger == name )
 		update_node(name, name, T, 1min);
 
-	if ( WORKER in n$node_roles && n?$datanode && n$datanode == node )
+	if ( WORKER in n$node_roles && n?$datanodes && node in n$datanodes )
 		update_node(name, name, F, 1sec);
 
 	# accepts connections from the previous one.
 	if ( DATANODE in n$node_roles )
 		{
-		if ( n?$datanode )
+		if ( n?$datanodes )
 			update_node(name, name, T, 1min);
 
-		else if ( me?$datanode && me$datanode == name )
+		else if ( me?$datanodes && name in me$datanodes )
 			{
-			print "update node ", me$datanode, ", ", name;
-			update_node(me$datanode, name, F, 1sec);
+			print "update node ", name, ", ", name;
+			update_node(name, name, F, 1sec);
 			}
 		}
 
@@ -137,7 +137,7 @@ function process_node_worker(name: string)
 
 	if ( DATANODE in n$node_roles )
 		{
-		if ( me?$datanode && me$datanode == name ) # name = datanode
+		if ( me?$datanodes && name in me$datanodes ) # name = datanode
 			update_node(name, name, T, 1mins);
 		}
 
@@ -149,7 +149,7 @@ function process_node_worker(name: string)
 	}
 
 # Event to add a new node or to update an existing node
-event Cluster::update_cluster_node(name: string, roles: set[string], ip: string, p: string, interface: string, manager: string, workers: set[string], datanode: string)
+event Cluster::update_cluster_node(name: string, roles: set[string], ip: string, p: string, interface: string, manager: string, workers: set[string], datanodes: set[string])
 	{
 	# Build the Node entry for the new/updated node
 	local new_node = Node($node_roles=get_roles_enum(roles),
@@ -158,7 +158,7 @@ event Cluster::update_cluster_node(name: string, roles: set[string], ip: string,
 							$p = to_port(p),
 							$manager = manager,
 							$workers = workers,
-							$datanode = datanode);
+							$datanodes = datanodes);
 
 	local lnode = nodes[node];
 	local set_roles = F;
@@ -169,8 +169,8 @@ event Cluster::update_cluster_node(name: string, roles: set[string], ip: string,
 		if ( enum_set_eq(new_node$node_roles, lnode$node_roles) )
 			set_roles = T;
 
-		if ( new_node?$datanode != lnode?$datanode
-				|| new_node$datanode != lnode$datanode )
+		if ( new_node?$datanodes != lnode?$datanodes
+				|| !string_set_eq(new_node$datanodes, lnode$datanodes) )
 			update_connections = T;
 
 		if ( new_node?$workers != lnode?$workers
@@ -203,7 +203,7 @@ event Cluster::update_cluster_node(name: string, roles: set[string], ip: string,
 
 	# ... and store the entry in the node list
 	Cluster::nodes[name] = new_node;
-	#print "new_node data? ", new_node$datanode;
+	#print "new_node data? ", new_node$datanodes;
 
 	for ( name in nodes )
 		process_node(name);

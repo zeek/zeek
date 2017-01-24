@@ -108,8 +108,8 @@ export {
 		logger:       string      &optional;
 		## Name of the manager node this node uses.  For workers and datanode.
 		manager:      string      &optional;
-		## Name of the datanode this node uses.  For workers.
-		datanode:     string      &optional;
+		## Names of the datanodes this node uses.  For workers.
+		datanodes:    set[string] &optional;
 		## Names of worker nodes that this node connects with.
 		## For managers and datanode.
 		workers:      set[string] &optional;
@@ -196,8 +196,8 @@ export {
 	## p: port this node listens on
 	## interface: interface this node monitors
 	## manager: responsible manager node
-	## datanode: responsible datanode
-	global update_cluster_node: event(name: string, roles: set[string], ip: string, p: string, interface: string, manager: string, workers: set[string], datanode: string);
+	## datanodes: responsible datanodes
+	global update_cluster_node: event(name: string, roles: set[string], ip: string, p: string, interface: string, manager: string, workers: set[string], datanodes: set[string]);
 
 	## Remove a node dynamically from a cluster.
 	##

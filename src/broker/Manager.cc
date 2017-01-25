@@ -82,8 +82,13 @@ static int endpoint_flags_to_int(Val* broker_endpoint_flags)
 
 bool bro_broker::Manager::Enable(Val* broker_endpoint_flags)
 	{
+	int flags = endpoint_flags_to_int(broker_endpoint_flags);
 	if ( endpoint != nullptr )
+    {
+    if( endpoint->flags() != flags )
+      endpoint->set_flags(flags);
 		return true;
+    }
 
 	auto send_flags_type = internal_type("Broker::SendFlags")->AsRecordType();
 	send_flags_self_idx = require_field(send_flags_type, "self");
@@ -132,7 +137,6 @@ bool bro_broker::Manager::Enable(Val* broker_endpoint_flags)
 			name = fmt("bro@<unknown>.%ld", static_cast<long>(getpid()));
 		}
 
-	int flags = endpoint_flags_to_int(broker_endpoint_flags);
 	endpoint = unique_ptr<broker::endpoint>(new broker::endpoint(name, flags));
 
 	// Register as a "dont-count" source first, we may change that later.

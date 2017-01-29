@@ -81,7 +81,7 @@ be utilized. The following shows an exemplary configuration::
     pin_cpus=0,1,2,3,4,5,6,7
     # Optional parameters for per node configuration:
     af_packet_fanout_id=23
-    af_packet_fanout_mode=FANOUT_HASH
+    af_packet_fanout_mode=AF_Packet::FANOUT_HASH
 
 If all interfaces using ``lb_method=custom`` should be configured for AF_Packet, the
 prefix can be globally definied by adding the following line to ``broctl.conf``::

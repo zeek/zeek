@@ -95,6 +95,7 @@ RecordVal* proc_ticket(const KRB_Ticket* ticket)
 	rv->Assign(1, bytestring_to_val(ticket->realm()->data()->content()));
 	rv->Assign(2, GetStringFromPrincipalName(ticket->sname()));
 	rv->Assign(3, asn1_integer_to_val(ticket->enc_part()->data()->etype()->data(), TYPE_COUNT));
+	rv->Assign(4, bytestring_to_val(ticket->enc_part()->data()->ciphertext()));
 
 	return rv;
 }

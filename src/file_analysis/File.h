@@ -292,7 +292,7 @@ protected:
 	bool postpone_timeout;     /**< Whether postponing timeout is requested. */
 	bool done;                 /**< If this object is about to be deleted. */
 	AnalyzerSet analyzers;     /**< A set of attached file analyzers. */
-	std::list<Analyzer *> done_analyzers; /**< Analyzers we're done with, remembered here until they be safely deleted. */
+	std::list<Analyzer *> done_analyzers; /**< Analyzers we're done with, remembered here until they can be safely deleted. */
 
 	struct BOF_Buffer {
 		BOF_Buffer() : full(false), size(0) {}

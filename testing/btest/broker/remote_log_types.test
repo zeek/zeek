@@ -22,11 +22,26 @@ module Test;
 export {
         redef enum Log::ID += { LOG };
 
-        type Info: record {
-                msg: string &log;
-                nolog: string &default="no";
-                num: count &log;
-        };
+	type Info: record {
+		b: bool;
+		i: int;
+		e: Log::ID;
+		c: count;
+		p: port;
+		sn: subnet;
+		a: addr;
+		d: double;
+		t: time;
+		iv: interval;
+		s: string;
+		sc: set[count];
+		ss: set[string];
+		se: set[string];
+		vc: vector of count;
+		ve: vector of string;
+		f: function(i: count) : string;
+	} &log;
+
 }
 
 event bro_init() &priority=5
@@ -68,27 +83,17 @@ event bro_init()
         Broker::connect("127.0.0.1", broker_port, 1secs);
         }
 
-global n = 0;
-
-event do_write()
-        {
-        if ( n == 6 )
-		{
-		local args = Broker::event_args(quit_receiver);
-		Broker::send_event("bro/event/", args);
-		schedule 1sec { quit_sender() };
-		}
-        else
-                {
-                Log::write(Test::LOG, [$msg = "ping", $num = n]);
-                ++n;
-                event do_write();
-                }
-        }
-
 event quit_sender()
 	{
 	terminate();
+	}
+
+function foo(i : count) : string
+	{
+	if ( i > 0 )
+		return "Foo";
+	else
+		return "Bar";
 	}
 
 event Broker::outgoing_connection_established(peer_address: string,
@@ -96,13 +101,33 @@ event Broker::outgoing_connection_established(peer_address: string,
                                             peer_name: string)
         {
         print "Broker::outgoing_connection_established", peer_address, peer_port;
-        event do_write();
-        }
 
-event Broker::outgoing_connection_broken(peer_address: string,
-                                       peer_port: port)
-        {
-        terminate();
+	local empty_set: set[string];
+	local empty_vector: vector of string;
+	
+	Log::write(Test::LOG, [
+		$b=T,
+		$i=-42,
+		$e=Test::LOG,
+		$c=21,
+		$p=123/tcp,
+		$sn=10.0.0.1/24,
+		$a=1.2.3.4,
+		$d=3.14,
+		$t=network_time(),
+		$iv=100secs,
+		$s="hurz",
+		$sc=set(1), # set(1,2,3,4),  # Output not stable for multi-element sets.
+		$ss=set("AA"), # set("AA", "BB", "CC") # Output not stable for multi-element sets.
+		$se=empty_set,
+		$vc=vector(10, 20, 30),
+		$ve=empty_vector,
+		$f=foo
+		]);
+
+	local args = Broker::event_args(quit_receiver);
+	Broker::send_event("bro/event/", args);
+	schedule 1sec { quit_sender() };
         }
 
 @TEST-END-FILE

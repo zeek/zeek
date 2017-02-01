@@ -6,6 +6,7 @@
 #define LOGGING_WRITERBACKEND_H
 
 #include "threading/MsgThread.h"
+#include "broker/Data.h"
 
 #include "Component.h"
 
@@ -110,15 +111,15 @@ public:
 				}
 			}
 
-		private:
-		const WriterInfo& operator=(const WriterInfo& other); // Disable.
-
-		friend class ::RemoteSerializer;
-
 		// Note, these need to be adapted when changing the struct's
 		// fields. They serialize/deserialize the struct.
 		bool Read(SerializationFormat* fmt);
 		bool Write(SerializationFormat* fmt) const;
+		broker::data ToBroker() const;
+		bool FromBroker(broker::data d);
+
+		private:
+		const WriterInfo& operator=(const WriterInfo& other); // Disable.
 		};
 
 	/**

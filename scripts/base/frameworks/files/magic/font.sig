@@ -1,8 +1,14 @@
 
+# Web Open Font Format 2
+signature file-woff2 {
+	file-mime "application/font-woff2", 70
+	file-magic /^wOF2/
+}
+
 # Web Open Font Format
 signature file-woff {
-	file-magic /^wOFF/
 	file-mime "application/font-woff", 70
+	file-magic /^wOFF/
 }
 
 # TrueType font

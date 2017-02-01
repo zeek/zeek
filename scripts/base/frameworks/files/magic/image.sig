@@ -164,3 +164,9 @@ signature file-award-bios-logo {
 	file-mime "image/x-award-bioslogo", 50
 	file-magic /^\x11[\x06\x09]/
 }
+
+# WebP, lossy image format from Google
+signature file-webp {
+	file-mime "image/webp", 70
+	file-magic /^RIFF.{4}WEBP/
+}

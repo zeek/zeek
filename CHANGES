@@ -1,4 +1,14 @@
 
+2.5-33 | 2017-02-01 10:07:47 -0500
+
+  * New file types sigs. (Keith Lehigh)
+
+  * Change snaplen of test trace from 1,000,000 to 10,000
+
+    Recent versions of libpcap are unhappy with values bigger than 262,144
+    and will refuse reading the file. (Johanna Amann)
+
+
 2.5-30 | 2017-01-26 13:24:36 -0800
 
   * Extend file extraction log, adding extracted_cutoff and extracted_size

@@ -1,4 +1,11 @@
 
+2.5-39 | 2017-02-01 14:03:08 -0800
+
+  * Fix file analyzer memory management, and a delay in disabling file analyzers.
+    File analyzers are no longer deleted immediately; this is delayed until
+    a file opject is destroyed. Furthermore, no data is sent to file analyzers
+    anymore after they have been disabled.
+
 2.5-33 | 2017-02-01 10:07:47 -0500
 
   * New file types sigs. (Keith Lehigh)

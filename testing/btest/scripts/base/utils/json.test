@@ -30,14 +30,14 @@ event bro_init()
 	local i: int = -999;
 	print to_json(i);
 
-	local d1: double = 1.123456789;
-	local d2: double = -1.123456e308;
-	local d3: double = 9.876543e-308;
+	local d1: double = 3.14;
+	local d2: double = -1.23456789e308;
+	local d3: double = 9e-308;
 	print to_json(d1);
 	print to_json(d2);
 	print to_json(d3);
 
-	local t: time = double_to_time(1.0);
+	local t: time = double_to_time(1480788576.868945);
 	print to_json(t);
 
 	local ti: interval = -12hr;

@@ -39,9 +39,10 @@ function to_json(v: any, only_loggable: bool &default=F, field_escape_pattern: p
 		case "count":
 		fallthrough;
 		case "time":
-		fallthrough;
-		case "double":
 		return cat(v);
+
+		case "double":
+		return fmt("%.16g", v);
 
 		case "bool":
 		local bval: bool = v;

@@ -192,7 +192,7 @@ event ssl_dh_server_params%(c: connection, p: string, q: string, Ys: string%);
 ## the initial handshake. It contains the list of client supported application
 ## protocols by the client or the server, respectively.
 ##
-## At the moment it is mostly used to negotiate the use of SPDY / HTTP2-drafts.
+## At the moment it is mostly used to negotiate the use of SPDY / HTTP2.
 ##
 ## c: The connection.
 ##
@@ -224,6 +224,27 @@ event ssl_extension_application_layer_protocol_negotiation%(c: connection, is_or
 ##    ssl_extension_application_layer_protocol_negotiation
 ##    ssl_extension_key_share
 event ssl_extension_server_name%(c: connection, is_orig: bool, names: string_vec%);
+
+## Generated for the signed_certificate_timestamp TLS extension as defined in
+## :rfc:`6962`. The extension is used to transmit signed proofs that are
+## used for Certificate Transparency.
+##
+## c: The connection.
+##
+## is_orig: True if event is raised for originator side of the connection.
+##
+## version: the version of the protocol to which the SCT conforms. Always
+##          should be 0 (representing version 1)
+##
+## logid: 32 bit key id
+##
+## timestamp: the current NTP Time
+##
+## signature_and_hashalgorithm: signature and hash algorithm used for the
+##                              digitally_signed struct
+##
+## signature: signature part of the digitally_signed struct
+event ssl_extension_signed_certificate_timestamp%(c: connection, is_orig: bool, version: count, logid: string, timestamp: time, signature_and_hashalgorithm: SSL::SignatureAndHashAlgorithm, signature: string%);
 
 ## Generated at the end of an SSL/TLS handshake. SSL/TLS sessions start with
 ## an unencrypted handshake, and Bro extracts as much information out of that

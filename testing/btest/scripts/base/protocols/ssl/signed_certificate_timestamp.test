@@ -1,0 +1,7 @@
+# @TEST-EXEC: bro -r $TRACES/tls/signed_certificate_timestamp.pcap %INPUT
+# @TEST-EXEC: btest-diff .stdout
+
+event ssl_extension_signed_certificate_timestamp(c: connection, is_orig: bool, version: count, logid: string, timestamp: time, signature_and_hashalgorithm: SSL::SignatureAndHashAlgorithm, signature: string)
+	{
+	print version, timestamp, signature_and_hashalgorithm;
+	}

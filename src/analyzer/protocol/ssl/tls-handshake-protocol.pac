@@ -485,10 +485,30 @@ type SSLExtension(rec: HandshakeRecord) = record {
 #		EXT_STATUS_REQUEST -> status_request: StatusRequest(rec)[] &until($element == 0 || $element != 0);
 		EXT_SERVER_NAME -> server_name: ServerNameExt(rec)[] &until($element == 0 || $element != 0);
 		EXT_SIGNATURE_ALGORITHMS -> signature_algorithm: SignatureAlgorithm(rec)[] &until($element == 0 || $element != 0);
+		EXT_SIGNED_CERTIFICATE_TIMESTAMP -> certificate_timestamp: SignedCertificateTimestampList(rec)[] &until($element == 0 || $element != 0);
 		EXT_KEY_SHARE -> key_share: KeyShare(rec)[] &until($element == 0 || $element != 0);
 		default -> data: bytestring &restofdata;
 	};
 } &length=data_len+4 &exportsourcedata;
+
+type SignedCertificateTimestampList(rec: HandshakeRecord) = record {
+	length: uint16;
+	SCTs: SignedCertificateTimestamp(rec)[] &until($input.length() == 0);
+} &length=length+2;
+
+type SignedCertificateTimestamp(rec: HandshakeRecord) = record {
+	# before - framing
+	length: uint16;
+	# from here: SignedCertificateTimestamp
+	version: uint8;
+	logid: bytestring &length=32;
+	timestamp: uint64;
+	extensions_length: uint16; # extensions are not actually defined yet, so we cannot parse them
+	extensions: bytestring &length=extensions_length;
+	digitally_signed_algorithms: SignatureAndHashAlgorithm;
+	digitally_signed_signature_length: uint16;
+	digitally_signed_signature: bytestring &length=digitally_signed_signature_length;
+} &length=length+2;
 
 type ServerNameHostName() = record {
 	length: uint16;

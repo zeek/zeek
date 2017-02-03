@@ -508,8 +508,11 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 		uint16 flags_ver = ntohs(*((uint16*)(data + 0)));
 		uint16 proto_typ = ntohs(*((uint16*)(data + 2)));
 		int gre_version = flags_ver & 0x0007;
+		
 		// If a carried packet has ethernet, this will help skip it.
 		unsigned int eth_len = 0;
+		unsigned int gre_len = gre_header_len(flags_ver);
+		unsigned int ppp_len = gre_version == 1 ? 1 : 0;
 
 		if ( gre_version != 0 && gre_version != 1 )
 			{
@@ -520,11 +523,11 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 
 		if ( gre_version == 0 )
 			{
-			if ( proto_typ == 0x6558 )
+			if ( proto_typ == 0x6558 && len > gre_len + 14 )
 				{
 				// transparent ethernet bridging
 				eth_len = 14;
-				proto_typ = ntohs(*((uint16*)(data + gre_header_len(flags_ver) + 12)));
+				proto_typ = ntohs(*((uint16*)(data + gre_len + 12)));
 				}
 			
 			if ( proto_typ == 0x0800 )
@@ -566,9 +569,6 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 			Weird("unknown_gre_flags", ip_hdr, encapsulation);
 			return;
 			}
-
-		unsigned int gre_len = gre_header_len(flags_ver);
-		unsigned int ppp_len = gre_version == 1 ? 1 : 0;
 
 		if ( len < gre_len + ppp_len + eth_len || caplen < gre_len + ppp_len + eth_len )
 			{

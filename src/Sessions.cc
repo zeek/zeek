@@ -431,7 +431,6 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 		return;
 		}
 #endif
-
 	int proto = ip_hdr->NextProto();
 
 	if ( CheckHeaderTrunc(proto, len, caplen, pkt, encapsulation) )
@@ -509,6 +508,8 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 		uint16 flags_ver = ntohs(*((uint16*)(data + 0)));
 		uint16 proto_typ = ntohs(*((uint16*)(data + 2)));
 		int gre_version = flags_ver & 0x0007;
+		// If a carried packet has ethernet, this will help skip it.
+		unsigned int eth_len = 0;
 
 		if ( gre_version != 0 && gre_version != 1 )
 			{
@@ -519,7 +520,18 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 
 		if ( gre_version == 0 )
 			{
-			if ( proto_typ != 0x0800 && proto_typ != 0x86dd )
+			if ( proto_typ == 0x6558 )
+				{
+				// transparent ethernet bridging
+				eth_len = 14;
+				proto_typ = ntohs(*((uint16*)(data + gre_header_len(flags_ver) + 12)));
+				}
+			
+			if ( proto_typ == 0x0800 )
+				proto = IPPROTO_IPV4;
+			else if ( proto_typ == 0x86dd )
+				proto = IPPROTO_IPV6;
+			else
 				{
 				// Not IPv4/IPv6 payload.
 				Weird(fmt("unknown_gre_protocol_%" PRIu16, proto_typ), ip_hdr,
@@ -527,7 +539,6 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 				return;
 				}
 
-			proto = (proto_typ == 0x0800) ? IPPROTO_IPV4 : IPPROTO_IPV6;
 			}
 
 		else // gre_version == 1
@@ -559,7 +570,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 		unsigned int gre_len = gre_header_len(flags_ver);
 		unsigned int ppp_len = gre_version == 1 ? 1 : 0;
 
-		if ( len < gre_len + ppp_len || caplen < gre_len + ppp_len )
+		if ( len < gre_len + ppp_len + eth_len || caplen < gre_len + ppp_len + eth_len )
 			{
 			Weird("truncated_GRE", ip_hdr, encapsulation);
 			return;
@@ -578,9 +589,9 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 			proto = (ppp_proto == 0x0021) ? IPPROTO_IPV4 : IPPROTO_IPV6;
 			}
 
-		data += gre_len + ppp_len;
-		len -= gre_len + ppp_len;
-		caplen -= gre_len + ppp_len;
+		data += gre_len + ppp_len + eth_len;
+		len -= gre_len + ppp_len + eth_len;
+		caplen -= gre_len + ppp_len + eth_len;
 
 		// Treat GRE tunnel like IP tunnels, fallthrough to logic below now
 		// that GRE header is stripped and only payload packet remains.
@@ -607,7 +618,6 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 		// Check for a valid inner packet first.
 		IP_Hdr* inner = 0;
 		int result = ParseIPPacket(caplen, data, proto, inner);
-
 		if ( result < 0 )
 			Weird("truncated_inner_IP", ip_hdr, encapsulation);
 
@@ -794,6 +804,7 @@ void NetSessions::DoNextInnerPacket(double t, const Packet* pkt,
 	// Construct fake packet for DoNextPacket
 	Packet p;
 	p.Init(DLT_RAW, &ts, caplen, len, data, false, "");
+
 	DoNextPacket(t, &p, inner, outer);
 
 	delete inner;

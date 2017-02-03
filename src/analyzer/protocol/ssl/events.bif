@@ -336,13 +336,17 @@ event ssl_application_data%(c: connection, is_orig: bool, length: count%);
 ##
 ## is_orig: True if event is raised for originator side of the connection.
 ##
-## content_type: message type as reported by TLS session layer.
+## content_type: message type as reported by TLS session layer. Not populated for
+##               SSLv2
+##
+## record_version: TLS version given in the record layer of the message.
+##                 this will not be set for SSLv2.
 ##
 ## length: length of the entire heartbeat message.
 ##
 ## .. bro:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
 ##    ssl_alert ssl_heartbeat
-event ssl_encrypted_data%(c: connection, is_orig: bool, content_type: count, length: count%);
+event ssl_encrypted_data%(c: connection, is_orig: bool, content_type: count, record_version: count, length: count%);
 
 ## This event contains the OCSP response contained in a Certificate Status Request
 ## message, when the client requested OCSP stapling and the server supports it.

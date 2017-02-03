@@ -54,8 +54,9 @@ refine connection SSL_Conn += {
 							bro_analyzer()->Conn());
 			}
 
-		BifEvent::generate_ssl_encrypted_data(bro_analyzer(),
-			bro_analyzer()->Conn(), ${rec.is_orig}, ${rec.content_type}, ${rec.length});
+		if ( ssl_encrypted_data )
+			BifEvent::generate_ssl_encrypted_data(bro_analyzer(),
+				bro_analyzer()->Conn(), ${rec.is_orig}, ${rec.content_type}, ${rec.raw_tls_version}, ${rec.length});
 
 		return true;
 		%}

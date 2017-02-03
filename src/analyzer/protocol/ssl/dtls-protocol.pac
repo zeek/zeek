@@ -18,10 +18,11 @@ type SSLRecord(is_orig: bool) = record {
 	cont: case valid of {
 		true -> rec: RecordText(this)[] &length=length;
     false -> swallow: bytestring &restofdata;
-	};
+	} &requires(valid,raw_tls_version);
 } &byteorder = bigendian, &let {
 # Do not parse body if packet version invalid
 	valid: bool = $context.connection.dtls_version_ok(version);
+	raw_tls_version: uint16 = version;
 };
 
 type RecordText(rec: SSLRecord) = case rec.epoch of {

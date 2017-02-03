@@ -24,10 +24,13 @@
 ##          standardized as part of the SSL/TLS protocol. The
 ##          :bro:id:`SSL::cipher_desc` table maps them to descriptive names.
 ##
+## comp_methods: The list of compression methods that the client offered to use.
+##               This value is not sent in TLSv1.3 or SSLv2.
+##
 ## .. bro:see:: ssl_alert ssl_established ssl_extension ssl_server_hello
 ##    ssl_session_ticket_handshake x509_certificate ssl_handshake_message
 ##    ssl_change_cipher_spec
-event ssl_client_hello%(c: connection, version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec%);
+event ssl_client_hello%(c: connection, version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec, comp_methods: index_vec%);
 
 ## Generated for an SSL/TLS server's initial *hello* message. SSL/TLS sessions
 ## start with an unencrypted handshake, and Bro extracts as much information out
@@ -59,7 +62,7 @@ event ssl_client_hello%(c: connection, version: count, possible_ts: time, client
 ##
 ## comp_method: The compression method chosen by the client. The values are
 ##              standardized as part of the SSL/TLS protocol. This value is not
-##              sent in TLSv1.3.
+##              sent in TLSv1.3 or SSLv2.
 ##
 ## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_extension
 ##    ssl_session_ticket_handshake x509_certificate ssl_server_curve

@@ -38,7 +38,7 @@ refine typeattr V2Error += &let {
 
 refine typeattr V2ClientHello += &let {
 	proc : bool = $context.connection.proc_client_hello(client_version, 0,
-				challenge, session_id, 0, ciphers);
+				challenge, session_id, 0, ciphers, 0);
 };
 
 refine typeattr V2ServerHello += &let {

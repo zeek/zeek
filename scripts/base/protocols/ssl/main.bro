@@ -177,7 +177,7 @@ function finish(c: connection, remove_analyzer: bool)
 		}
 	}
 
-event ssl_client_hello(c: connection, version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec) &priority=5
+event ssl_client_hello(c: connection, version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec, comp_methods: index_vec) &priority=5
 	{
 	set_session(c);
 

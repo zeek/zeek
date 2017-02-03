@@ -61,10 +61,11 @@ refine connection SSL_Conn += {
 		return true;
 		%}
 
-	function proc_application_record(rec : SSLRecord) : bool
+	function proc_plaintext_record(rec : SSLRecord) : bool
 		%{
-		BifEvent::generate_ssl_application_data(bro_analyzer(),
-			bro_analyzer()->Conn(), ${rec.is_orig}, ${rec.length});
+		if ( ssl_plaintext_data )
+			BifEvent::generate_ssl_plaintext_data(bro_analyzer(),
+				bro_analyzer()->Conn(), ${rec.is_orig}, ${rec.content_type}, ${rec.raw_tls_version}, ${rec.length});
 
 		return true;
 		%}
@@ -116,8 +117,8 @@ refine typeattr CiphertextRecord += &let {
 	proc : bool = $context.connection.proc_ciphertext_record(rec);
 }
 
-refine typeattr ApplicationData += &let {
-	proc : bool = $context.connection.proc_application_record(rec);
+refine typeattr PlaintextRecord += &let {
+	proc : bool = $context.connection.proc_plaintext_record(rec);
 }
 
 refine typeattr ChangeCipherSpec += &let {

@@ -302,11 +302,11 @@ event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &pr
 		}
 	}
 
-event ssl_application_data(c: connection, is_orig: bool, length: count)
+event ssl_plaintext_data(c: connection, is_orig: bool, content_type: count, record_version: count, length: count) &priority=5
 	{
 	set_session(c);
 
-	if ( ! c$ssl?$version || c$ssl$established )
+	if ( ! c$ssl?$version || c$ssl$established || content_type != APPLICATION_DATA )
 		return;
 
 	if ( c$ssl$version_num/0xFF != 0x7F && c$ssl$version_num != TLSv13 )

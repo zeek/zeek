@@ -309,22 +309,28 @@ event ssl_session_ticket_handshake%(c: connection, ticket_lifetime_hint: count, 
 ##    ssl_alert ssl_encrypted_data
 event ssl_heartbeat%(c: connection, is_orig: bool, length: count, heartbeat_type: count, payload_length: count, payload: string%);
 
-## Generated for non-handshake SSL/TLS application_data messages that are sent before
-## full encryption starts. For TLS 1.2 and lower, this event should not be raised. For TLS 1.3,
-## it is used by Bro internally to determine if the connection has been completely setup.
-## This is necessary as TLS 1.3 does not have CCS anymore.
+## Generated for SSL/TLS messages that are sent before full session encryption
+## starts. Note that "full encryption" is a bit fuzzy, especially for TLSv1.3;
+## here this event will be raised for early packets that are already using
+## pre-encryption.  # This event is also used by Bro internally to determine if
+## the connection has been completely setup.  # This is necessary as TLS 1.3 does
+## not have CCS anymore.
 ##
 ## c: The connection.
 ##
 ## is_orig: True if event is raised for originator side of the connection.
 ##
-## content_type: message type as reported by TLS session layer.
+## content_type: message type as reported by TLS session layer. Not populated for
+##               SSLv2.
 ##
-## length: length of the entire heartbeat message.
+## record_version: TLS version given in the record layer of the message.
+##                 This will not be set for SSLv2.
+##
+## length: length of the entire message.
 ##
 ## .. bro:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
 ##    ssl_alert ssl_heartbeat
-event ssl_application_data%(c: connection, is_orig: bool, length: count%);
+event ssl_plaintext_data%(c: connection, is_orig: bool, content_type: count, record_version: count, length: count%);
 
 ## Generated for SSL/TLS messages that are sent after session encryption
 ## started.
@@ -337,12 +343,12 @@ event ssl_application_data%(c: connection, is_orig: bool, length: count%);
 ## is_orig: True if event is raised for originator side of the connection.
 ##
 ## content_type: message type as reported by TLS session layer. Not populated for
-##               SSLv2
+##               SSLv2.
 ##
 ## record_version: TLS version given in the record layer of the message.
-##                 this will not be set for SSLv2.
+##                 This will not be set for SSLv2.
 ##
-## length: length of the entire heartbeat message.
+## length: length of the entire message.
 ##
 ## .. bro:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
 ##    ssl_alert ssl_heartbeat

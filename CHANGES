@@ -1,4 +1,19 @@
 
+2.5-51 | 2017-02-06 10:15:56 -0500
+
+  * Fix memory leak in file analyzer. (Johanna Amann)
+
+  * Fix a series of problems with the to_json function.
+    Addresses BIT-1788. (Daniel Thayer)
+
+2.5-44 | 2017-02-03 16:38:10 -0800
+
+  * Change snap lengths of some tests. (Johanna Amann)
+
+  * Fix layer 2 connection flipping. If connection flipping occured in
+    Sessions.cc code (invoked e.g. when the original SYN is missing),
+    layer 2 flipping was not performed. (Johanna Amann)
+
 2.5-39 | 2017-02-01 14:03:08 -0800
 
   * Fix file analyzer memory management, and a delay in disabling file analyzers.

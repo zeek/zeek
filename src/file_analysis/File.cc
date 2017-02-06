@@ -107,6 +107,9 @@ File::~File()
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Destroying File object", id.c_str());
 	Unref(val);
 	delete file_reassembler;
+
+	for ( auto a : done_analyzers )
+		delete a;
 	}
 
 void File::UpdateLastActivityTime()
@@ -492,6 +495,11 @@ void File::DeliverChunk(const u_char* data, uint64 len, uint64 offset)
 
 	if ( IsComplete() )
 		EndOfFile();
+	}
+
+void File::DoneWithAnalyzer(Analyzer* analyzer)
+	{
+	done_analyzers.push_back(analyzer);
 	}
 
 void File::DataIn(const u_char* data, uint64 len, uint64 offset)

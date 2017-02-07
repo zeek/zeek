@@ -491,24 +491,7 @@ type SSLExtension(rec: HandshakeRecord) = record {
 	};
 } &length=data_len+4 &exportsourcedata;
 
-type SignedCertificateTimestampList(rec: HandshakeRecord) = record {
-	length: uint16;
-	SCTs: SignedCertificateTimestamp(rec)[] &until($input.length() == 0);
-} &length=length+2;
-
-type SignedCertificateTimestamp(rec: HandshakeRecord) = record {
-	# before - framing
-	length: uint16;
-	# from here: SignedCertificateTimestamp
-	version: uint8;
-	logid: bytestring &length=32;
-	timestamp: uint64;
-	extensions_length: uint16; # extensions are not actually defined yet, so we cannot parse them
-	extensions: bytestring &length=extensions_length;
-	digitally_signed_algorithms: SignatureAndHashAlgorithm;
-	digitally_signed_signature_length: uint16;
-	digitally_signed_signature: bytestring &length=digitally_signed_signature_length;
-} &length=length+2;
+%include tls-handshake-signed_certificate_timestamp.pac
 
 type ServerNameHostName() = record {
 	length: uint16;

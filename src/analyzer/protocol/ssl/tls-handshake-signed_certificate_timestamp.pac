@@ -2,6 +2,11 @@
 # If included there, it uses the exact same syntax and we just symlink it from the X.509
 # file analyzer tree.
 
+type SignatureAndHashAlgorithm() = record {
+	HashAlgorithm: uint8;
+	SignatureAlgorithm: uint8;
+}
+
 type SignedCertificateTimestampList(rec: HandshakeRecord) = record {
 	length: uint16;
 	SCTs: SignedCertificateTimestamp(rec)[] &until($input.length() == 0);

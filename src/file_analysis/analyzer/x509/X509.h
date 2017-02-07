@@ -58,6 +58,7 @@ private:
 	void ParseExtension(X509_EXTENSION* ex);
 	void ParseBasicConstraints(X509_EXTENSION* ex);
 	void ParseSAN(X509_EXTENSION* ex);
+	void ParseSignedCertificateTimestamps(X509_EXTENSION* ext);
 
 	std::string cert_data;
 

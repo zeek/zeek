@@ -55,3 +55,22 @@ event x509_ext_basic_constraints%(f: fa_file, ext: X509::BasicConstraints%);
 ##              x509_parse x509_verify
 ##              x509_get_certificate_string
 event x509_ext_subject_alternative_name%(f: fa_file, ext: X509::SubjectAlternativeName%);
+
+## Generated for the signed_certificate_timestamp X509 extension as defined in
+## :rfc:`6962`. The extension is used to transmit signed proofs that are
+## used for Certificate Transparency.
+##
+## f: The file.
+##
+## version: the version of the protocol to which the SCT conforms. Always
+##          should be 0 (representing version 1)
+##
+## logid: 32 bit key id
+##
+## timestamp: the timestamp of the sct
+##
+## signature_and_hashalgorithm: signature and hash algorithm used for the
+##                              digitally_signed struct
+##
+## signature: signature part of the digitally_signed struct
+event x509_ext_signed_certificate_timestamp%(f: fa_file, version: count, logid: string, timestamp: time, hash_algorithm: count, signature_algorithm: count, signature: string%);

@@ -554,11 +554,6 @@ type KeyShare(rec: HandshakeRecord) = case rec.msg_type of {
 	default -> other : bytestring &restofdata &transient;
 };
 
-type SignatureAndHashAlgorithm() = record {
-	HashAlgorithm: uint8;
-	SignatureAlgorithm: uint8;
-}
-
 type SignatureAlgorithm(rec: HandshakeRecord) = record {
 	length: uint16;
 	supported_signature_algorithms: SignatureAndHashAlgorithm[] &until($input.length() == 0);

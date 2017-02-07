@@ -397,6 +397,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 				bodies[i].stmts->GetLocationInfo());
 
 		Unref(result);
+		f->Reset(args->length());
 
 		try
 			{

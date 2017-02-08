@@ -77,7 +77,6 @@
 @load base/files/extract
 @load base/files/unified2
 @load base/files/x509
-@load base/files/ocsp
 
 @load base/misc/find-checksum-offloading
 @load base/misc/find-filtered-trace

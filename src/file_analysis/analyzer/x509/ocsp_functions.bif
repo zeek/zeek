@@ -1,6 +1,6 @@
 %%{
-#include "file_analysis/analyzer/ocsp/OCSP.h"
-#include "types.bif.h"
+#include "file_analysis/analyzer/x509/OCSP.h"
+#include "ocsp_types.bif.h"
 %%}
 
 ## Parses a OCSP response into an OCSP::Response structure.

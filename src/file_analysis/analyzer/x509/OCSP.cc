@@ -5,8 +5,8 @@
 #include "OCSP.h"
 #include "Event.h"
 
-#include "events.bif.h"
-#include "types.bif.h"
+#include "ocsp_events.bif.h"
+#include "ocsp_types.bif.h"
 
 #include "file_analysis/Manager.h"
 

@@ -2,6 +2,8 @@
 @load base/utils/paths
 @load base/utils/queue
 
+# Note - this needs some cleaning up and is currently not loaded by default.
+
 module OCSP;
 
 export {

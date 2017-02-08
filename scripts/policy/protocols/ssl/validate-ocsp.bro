@@ -1,4 +1,4 @@
-##! Perform OCSP response validation.
+##! Perform validation of stapled OCSP responses.
 
 @load base/frameworks/notice
 @load base/protocols/ssl

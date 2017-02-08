@@ -250,8 +250,8 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 
 		analyzer->ConnectionEvent(event, vl);
 		}
-
-	Unref(reply);
+	else
+		Unref(reply);
 	return 1;
 	}
 
@@ -646,7 +646,7 @@ Val* NFS_Interp::ExtractBool(const u_char*& buf, int& n)
 
 
 NFS_Analyzer::NFS_Analyzer(Connection* conn)
-	: RPC_Analyzer("RPC", conn, new NFS_Interp(this))
+	: RPC_Analyzer("NFS", conn, new NFS_Interp(this))
 	{
 	orig_rpc = resp_rpc = 0;
 	}

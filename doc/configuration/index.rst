@@ -44,7 +44,10 @@ workers can consume a lot of CPU resources.  The maximum recommended
 number of workers to run on a machine should be one or two less than
 the number of CPU cores available on that machine.  Using a load-balancing
 method (such as PF_RING) along with CPU pinning can decrease the load on
-the worker machines.
+the worker machines.  Also, in order to reduce the load on the manager
+process, it is recommended to have a logger in your configuration.  If a
+logger is defined in your cluster configuration, then it will receive logs
+instead of the manager process.
 
 
 Basic Cluster Configuration
@@ -61,13 +64,17 @@ a Bro cluster (do this as the Bro user on the manager host only):
   :doc:`BroControl <../components/broctl/README>` documentation.
 
 - Edit the BroControl node configuration file, ``<prefix>/etc/node.cfg``
-  to define where manager, proxies, and workers are to run.  For a cluster
-  configuration, you must comment-out (or remove) the standalone node
+  to define where logger, manager, proxies, and workers are to run.  For a
+  cluster configuration, you must comment-out (or remove) the standalone node
   in that file, and either uncomment or add node entries for each node
-  in your cluster (manager, proxy, and workers).  For example, if you wanted
-  to run four Bro nodes (two workers, one proxy, and a manager) on a cluster
-  consisting of three machines, your cluster configuration would look like
-  this::
+  in your cluster (logger, manager, proxy, and workers).  For example, if you
+  wanted to run five Bro nodes (two workers, one proxy, a logger, and a
+  manager) on a cluster consisting of three machines, your cluster
+  configuration would look like this::
+
+    [logger]
+    type=logger
+    host=10.0.0.10
 
     [manager]
     type=manager
@@ -94,28 +101,13 @@ a Bro cluster (do this as the Bro user on the manager host only):
   file lists all of the networks which the cluster should consider as local
   to the monitored environment.
 
-- Install workers and proxies using BroControl::
+- Install Bro on all machines in the cluster using BroControl::
 
     > broctl install
 
-- Some tasks need to be run on a regular basis. On the manager node,
-  insert a line like this into the crontab of the user running the
-  cluster::
-
-      0-59/5 * * * * <prefix>/bin/broctl cron
-
-  (Note: if you are editing the system crontab instead of a user's own
-  crontab, then you need to also specify the user which the command
-  will be run as. The username must be placed after the time fields
-  and before the broctl command.)
-
-  Note that on some systems (FreeBSD in particular), the default PATH
-  for cron jobs does not include the directories where bash and python
-  are installed (the symptoms of this problem would be that "broctl cron"
-  works when run directly by the user, but does not work from a cron job).
-  To solve this problem, you would either need to create symlinks
-  to bash and python in a directory that is in the default PATH for
-  cron jobs, or specify a new PATH in the crontab.
+- See the :doc:`BroControl <../components/broctl/README>` documentation
+  for information on setting up a cron job on the manager host that can
+  monitor the cluster.
 
 
 PF_RING Cluster Configuration
@@ -174,7 +166,7 @@ Installing PF_RING
 5. Configure BroControl to use PF_RING (explained below).
 
 6. Run "broctl install" on the manager.  This command will install Bro and
-   all required scripts to the other machines in your cluster.
+   required scripts to all machines in your cluster.
 
 Using PF_RING
 ^^^^^^^^^^^^^

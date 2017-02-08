@@ -1,0 +1,19 @@
+netcontrol debug (Debug-All): init
+netcontrol debug (Debug-All): add_rule: [ty=NetControl::DROP, target=NetControl::MONITOR, entity=[ty=NetControl::FLOW, conn=<uninitialized>, flow=[src_h=192.168.18.50/32, src_p=56981/tcp, dst_h=74.125.239.97/32, dst_p=443/tcp, src_m=<uninitialized>, dst_m=<uninitialized>], ip=<uninitialized>, mac=<uninitialized>], expire=0 secs, priority=0, location=, out_port=<uninitialized>, mod=<uninitialized>, id=2, cid=2, _plugin_ids={\x0a\x0a}, _active_plugin_ids={\x0a\x0a}, _no_expire_plugins={\x0a\x0a}, _added=F]
+netcontrol debug (Debug-All): add_rule: [ty=NetControl::DROP, target=NetControl::FORWARD, entity=[ty=NetControl::ADDRESS, conn=<uninitialized>, flow=<uninitialized>, ip=192.168.18.50/32, mac=<uninitialized>], expire=0 secs, priority=0, location=, out_port=<uninitialized>, mod=<uninitialized>, id=3, cid=3, _plugin_ids={\x0a\x0a}, _active_plugin_ids={\x0a\x0a}, _no_expire_plugins={\x0a\x0a}, _added=F]
+netcontrol debug (Debug-All): add_rule: [ty=NetControl::WHITELIST, target=NetControl::FORWARD, entity=[ty=NetControl::ADDRESS, conn=<uninitialized>, flow=<uninitialized>, ip=192.168.18.50/32, mac=<uninitialized>], expire=0 secs, priority=5, location=, out_port=<uninitialized>, mod=<uninitialized>, id=4, cid=4, _plugin_ids={\x0a\x0a}, _active_plugin_ids={\x0a\x0a}, _no_expire_plugins={\x0a\x0a}, _added=F]
+netcontrol debug (Debug-All): add_rule: [ty=NetControl::REDIRECT, target=NetControl::FORWARD, entity=[ty=NetControl::FLOW, conn=<uninitialized>, flow=[src_h=192.168.18.50/32, src_p=56981/tcp, dst_h=74.125.239.97/32, dst_p=443/tcp, src_m=<uninitialized>, dst_m=<uninitialized>], ip=<uninitialized>, mac=<uninitialized>], expire=0 secs, priority=0, location=, out_port=5, mod=<uninitialized>, id=5, cid=5, _plugin_ids={\x0a\x0a}, _active_plugin_ids={\x0a\x0a}, _no_expire_plugins={\x0a\x0a}, _added=F]
+netcontrol debug (Debug-All): remove_rule (): [ty=NetControl::DROP, target=NetControl::MONITOR, entity=[ty=NetControl::FLOW, conn=<uninitialized>, flow=[src_h=192.168.18.50/32, src_p=56981/tcp, dst_h=74.125.239.97/32, dst_p=443/tcp, src_m=<uninitialized>, dst_m=<uninitialized>], ip=<uninitialized>, mac=<uninitialized>], expire=0 secs, priority=0, location=, out_port=<uninitialized>, mod=<uninitialized>, id=2, cid=2, _plugin_ids={\x0a\x091\x0a}, _active_plugin_ids={\x0a\x091\x0a}, _no_expire_plugins={\x0a\x0a}, _added=T]
+netcontrol debug (Debug-All): remove_rule (): [ty=NetControl::DROP, target=NetControl::FORWARD, entity=[ty=NetControl::ADDRESS, conn=<uninitialized>, flow=<uninitialized>, ip=192.168.18.50/32, mac=<uninitialized>], expire=0 secs, priority=0, location=, out_port=<uninitialized>, mod=<uninitialized>, id=3, cid=3, _plugin_ids={\x0a\x091\x0a}, _active_plugin_ids={\x0a\x091\x0a}, _no_expire_plugins={\x0a\x0a}, _added=T]
+netcontrol debug (Debug-All): remove_rule (): [ty=NetControl::WHITELIST, target=NetControl::FORWARD, entity=[ty=NetControl::ADDRESS, conn=<uninitialized>, flow=<uninitialized>, ip=192.168.18.50/32, mac=<uninitialized>], expire=0 secs, priority=5, location=, out_port=<uninitialized>, mod=<uninitialized>, id=4, cid=4, _plugin_ids={\x0a\x091\x0a}, _active_plugin_ids={\x0a\x091\x0a}, _no_expire_plugins={\x0a\x0a}, _added=T]
+netcontrol debug (Debug-All): remove_rule (): [ty=NetControl::REDIRECT, target=NetControl::FORWARD, entity=[ty=NetControl::FLOW, conn=<uninitialized>, flow=[src_h=192.168.18.50/32, src_p=56981/tcp, dst_h=74.125.239.97/32, dst_p=443/tcp, src_m=<uninitialized>, dst_m=<uninitialized>], ip=<uninitialized>, mac=<uninitialized>], expire=0 secs, priority=0, location=, out_port=5, mod=<uninitialized>, id=5, cid=5, _plugin_ids={\x0a\x091\x0a}, _active_plugin_ids={\x0a\x091\x0a}, _no_expire_plugins={\x0a\x0a}, _added=T]
+Dumping state
+{
+
+}
+{
+
+}
+{
+
+}

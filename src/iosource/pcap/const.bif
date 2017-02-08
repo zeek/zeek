@@ -1,4 +1,0 @@
-
-
-const Pcap::snaplen: count;
-const Pcap::bufsize: count;

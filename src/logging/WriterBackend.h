@@ -38,7 +38,7 @@ public:
 	 * @param name A descriptive name for writer's type (e.g., \c Ascii).
 	 *
 	 */
-	WriterBackend(WriterFrontend* frontend);
+	explicit WriterBackend(WriterFrontend* frontend);
 
 	/**
 	 * Destructor.
@@ -248,8 +248,12 @@ public:
 	bool FinishedRotation();
 
 	// Overridden from MsgThread.
-	virtual bool OnHeartbeat(double network_time, double current_time);
-	virtual bool OnFinish(double network_time);
+	bool OnHeartbeat(double network_time, double current_time) override;
+	bool OnFinish(double network_time) override;
+
+	// Let the compiler know that we are aware that there is a virtual
+	// info function in the base.
+	using MsgThread::Info;
 
 protected:
 	friend class FinishMessage;

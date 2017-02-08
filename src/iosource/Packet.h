@@ -5,6 +5,13 @@
 #include "IP.h"
 #include "NetVar.h"
 
+#if defined(__OpenBSD__)
+#include <net/bpf.h>
+typedef struct bpf_timeval pkt_timeval;
+#else
+typedef struct timeval pkt_timeval;
+#endif
+
 /**
  * The Layer 3 type of a packet, as determined by the parsing code in Packet.
  */
@@ -48,9 +55,10 @@ public:
 	 * @param tag A textual tag to associate with the packet for
 	 * differentiating the input streams.
 	 */
-	Packet(int link_type, struct timeval *ts, uint32 caplen,
+	Packet(int link_type, pkt_timeval *ts, uint32 caplen,
 	       uint32 len, const u_char *data, int copy = false,
-	       std::string tag = std::string("")) : data(0)
+	       std::string tag = std::string(""))
+	           : data(0), l2_src(0), l2_dst(0)
 	       {
 	       Init(link_type, ts, caplen, len, data, copy, tag);
 	       }
@@ -58,9 +66,9 @@ public:
 	/**
 	 * Default constructor. For internal use only.
 	 */
-	Packet() : data(0)
+	Packet() : data(0), l2_src(0), l2_dst(0)
 		{
-		struct timeval ts = {0, 0};
+		pkt_timeval ts = {0, 0};
 		Init(0, &ts, 0, 0, 0);
 		}
 
@@ -95,7 +103,7 @@ public:
 	 * @param tag A textual tag to associate with the packet for
 	 * differentiating the input streams.
 	 */
-	void Init(int link_type, struct timeval *ts, uint32 caplen,
+	void Init(int link_type, pkt_timeval *ts, uint32 caplen,
 		uint32 len, const u_char *data, int copy = false,
 		std::string tag = std::string(""));
 
@@ -146,10 +154,15 @@ public:
 	 */
 	static Packet* Unserialize(UnserialInfo* info);
 
+	/**
+	 * Maximal length of a layer 2 address.
+	 */
+	static const int l2_addr_len = 6;
+
 	// These are passed in through the constructor.
 	std::string tag;		/// Used in serialization
 	double time;			/// Timestamp reconstituted as float
-	struct timeval ts;		/// Capture timestamp
+	pkt_timeval ts;			/// Capture timestamp
 	const u_char* data;		/// Packet data.
 	uint32 len;			/// Actual length on wire
 	uint32 cap_len;			/// Captured packet length
@@ -167,19 +180,30 @@ public:
 	 * Layer 3 protocol identified (if any). Valid iff Layer2Valid()
 	 * returns true.
 	 */
-	Layer3Proto l3_proto;		///
+	Layer3Proto l3_proto;
 
 	/**
 	 * If layer 2 is Ethernet, innermost ethertype field. Valid iff
 	 * Layer2Valid() returns true.
 	 */
-	uint32 eth_type;		///
+	uint32 eth_type;
+
+	/**
+	 * Layer 2 source address. Valid iff Layer2Valid() returns true.
+	 */
+	const u_char* l2_src;
+
+	/**
+	 * Layer 2 destination address. Valid iff Layer2Valid() returns
+	 * true.
+	 */
+	const u_char* l2_dst;
 
 	/**
 	 * (Outermost) VLAN tag if any, else 0. Valid iff Layer2Valid()
 	 * returns true.
 	 */
-	uint32 vlan;			///
+	uint32 vlan;
 
 	/**
 	 * (Innermost) VLAN tag if any, else 0. Valid iff Layer2Valid()

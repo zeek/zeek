@@ -10,8 +10,10 @@
 @load base/utils/conn-ids
 @load base/utils/dir
 @load base/utils/directions-and-hosts
+@load base/utils/email
 @load base/utils/exec
 @load base/utils/files
+@load base/utils/geoip-distance
 @load base/utils/numbers
 @load base/utils/paths
 @load base/utils/patterns
@@ -21,7 +23,7 @@
 @load base/utils/time
 @load base/utils/urls
 
-# This has some deep interplay between types and BiFs so it's 
+# This has some deep interplay between types and BiFs so it's
 # loaded in base/init-bare.bro
 #@load base/frameworks/logging
 @load base/frameworks/notice
@@ -37,28 +39,38 @@
 @load base/frameworks/reporter
 @load base/frameworks/sumstats
 @load base/frameworks/tunnels
+@load base/frameworks/openflow
+@load base/frameworks/netcontrol
 
 @load base/protocols/conn
+@load base/protocols/dce-rpc
 @load base/protocols/dhcp
 @load base/protocols/dnp3
 @load base/protocols/dns
 @load base/protocols/ftp
 @load base/protocols/http
+@load base/protocols/imap
 @load base/protocols/irc
 @load base/protocols/krb
 @load base/protocols/modbus
 @load base/protocols/mysql
+@load base/protocols/ntlm
 @load base/protocols/pop3
 @load base/protocols/radius
 @load base/protocols/rdp
+@load base/protocols/rfb
 @load base/protocols/sip
 @load base/protocols/snmp
+# This DOES NOT enable the SMB analyzer.  It's just some base support
+# for other protocols.
+@load base/protocols/smb
 @load base/protocols/smtp
 @load base/protocols/socks
 @load base/protocols/ssh
 @load base/protocols/ssl
 @load base/protocols/syslog
 @load base/protocols/tunnels
+@load base/protocols/xmpp
 
 @load base/files/pe
 @load base/files/hash
@@ -69,3 +81,4 @@
 
 @load base/misc/find-checksum-offloading
 @load base/misc/find-filtered-trace
+@load base/misc/version

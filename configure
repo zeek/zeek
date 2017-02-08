@@ -41,7 +41,8 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --enable-perftools-debug use Google's perftools for debugging
     --enable-jemalloc      link against jemalloc
     --enable-ruby          build ruby bindings for broccoli (deprecated)
-    --disable-broker       disable use of the Broker communication library
+    --enable-broker        enable use of the Broker communication library
+                           (requires C++ Actor Framework)
     --disable-broccoli     don't build or install the Broccoli library
     --disable-broctl       don't install Broctl
     --disable-auxtools     don't build or install auxiliary tools
@@ -57,10 +58,10 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-flex=PATH       path to flex executable
     --with-bison=PATH      path to bison executable
     --with-python=PATH     path to Python executable
-    --with-libcaf=PATH     path to C++ Actor Framework installation
-                           (a required Broker dependency)
 
   Optional Packages in Non-Standard Locations:
+    --with-caf=PATH        path to C++ Actor Framework installation
+                           (a required Broker dependency)
     --with-geoip=PATH      path to the libGeoIP install root
     --with-perftools=PATH  path to Google Perftools install root
     --with-jemalloc=PATH   path to jemalloc install root
@@ -121,13 +122,12 @@ append_cache_entry BRO_ROOT_DIR         PATH   $prefix
 append_cache_entry PY_MOD_INSTALL_DIR   PATH   $prefix/lib/broctl
 append_cache_entry BRO_SCRIPT_INSTALL_PATH STRING $prefix/share/bro
 append_cache_entry BRO_ETC_INSTALL_DIR  PATH   $prefix/etc
-append_cache_entry BROKER_PYTHON_HOME   PATH   $prefix
 append_cache_entry BROKER_PYTHON_BINDINGS BOOL false
 append_cache_entry ENABLE_DEBUG         BOOL   false
 append_cache_entry ENABLE_PERFTOOLS     BOOL   false
 append_cache_entry ENABLE_PERFTOOLS_DEBUG BOOL false
 append_cache_entry ENABLE_JEMALLOC      BOOL   false
-append_cache_entry ENABLE_BROKER        BOOL   true
+append_cache_entry ENABLE_BROKER        BOOL   false
 append_cache_entry BinPAC_SKIP_INSTALL  BOOL   true
 append_cache_entry BUILD_SHARED_LIBS    BOOL   true
 append_cache_entry INSTALL_AUX_TOOLS    BOOL   true
@@ -161,10 +161,6 @@ while [ $# -ne 0 ]; do
             append_cache_entry CMAKE_INSTALL_PREFIX PATH   $optarg
             append_cache_entry BRO_ROOT_DIR         PATH   $optarg
             append_cache_entry PY_MOD_INSTALL_DIR   PATH   $optarg/lib/broctl
-
-            if [ -z "$user_disabled_broker" ]; then
-                append_cache_entry BROKER_PYTHON_HOME   PATH   $optarg
-            fi
             ;;
         --scriptdir=*)
             append_cache_entry BRO_SCRIPT_INSTALL_PATH STRING $optarg
@@ -199,10 +195,10 @@ while [ $# -ne 0 ]; do
         --enable-jemalloc)
             append_cache_entry ENABLE_JEMALLOC     BOOL   true
             ;;
+        --enable-broker)
+            append_cache_entry ENABLE_BROKER        BOOL   true
+            ;;
         --disable-broker)
-            append_cache_entry ENABLE_BROKER        BOOL   false
-            remove_cache_entry BROKER_PYTHON_HOME
-            user_disabled_broker="true"
             ;;
         --disable-broccoli)
             append_cache_entry INSTALL_BROCCOLI     BOOL   false
@@ -226,7 +222,7 @@ while [ $# -ne 0 ]; do
             append_cache_entry DISABLE_RUBY_BINDINGS     BOOL   false
             ;;
         --with-openssl=*)
-            append_cache_entry OpenSSL_ROOT_DIR PATH $optarg
+            append_cache_entry OPENSSL_ROOT_DIR PATH $optarg
             ;;
         --with-bind=*)
             append_cache_entry BIND_ROOT_DIR PATH $optarg
@@ -276,8 +272,12 @@ while [ $# -ne 0 ]; do
         --with-swig=*)
             append_cache_entry SWIG_EXECUTABLE      PATH    $optarg
             ;;
+        --with-caf=*)
+            append_cache_entry CAF_ROOT_DIR      PATH   $optarg
+            ;;
         --with-libcaf=*)
-            append_cache_entry LIBCAF_ROOT_DIR      PATH   $optarg
+            echo "warning: --with-libcaf deprecated, use --with-caf instead"
+            append_cache_entry CAF_ROOT_DIR      PATH   $optarg
             ;;
         --with-rocksdb=*)
             append_cache_entry ROCKSDB_ROOT_DIR     PATH   $optarg

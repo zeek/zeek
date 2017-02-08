@@ -1,0 +1,22 @@
+http://127.0.0.1:8080/stats/flowentry/clear/42
+http://127.0.0.1:8080/stats/flowentry/add
+{"priority": 0, "idle_timeout": 0, "hard_timeout": 0, "match": {}, "actions": [{"port": 3, "type": "OUTPUT"}, {"port": 7, "type": "OUTPUT"}], "cookie": 4398046511105, "flags": 0, "dpid": 42}
+Flow_mod_success
+http://127.0.0.1:8080/stats/flowentry/add
+{"priority": 5, "idle_timeout": 30, "hard_timeout": 0, "match": {"nw_dst": "74.53.140.153/32", "tp_dst": 25, "tp_src": 1470, "nw_proto": 6, "dl_type": 2048, "nw_src": "10.10.1.4/32"}, "actions": [], "cookie": 4398046511146, "flags": 0, "dpid": 42}
+http://127.0.0.1:8080/stats/flowentry/add
+{"priority": 5, "idle_timeout": 30, "hard_timeout": 0, "match": {"nw_dst": "10.10.1.4/32", "tp_dst": 1470, "tp_src": 25, "nw_proto": 6, "dl_type": 2048, "nw_src": "74.53.140.153/32"}, "actions": [], "cookie": 4398046511146, "flags": 0, "dpid": 42}
+Flow_mod_success
+Flow_mod_success
+http://127.0.0.1:8080/stats/flowentry/add
+{"priority": 5, "idle_timeout": 30, "hard_timeout": 0, "match": {"nw_dst": "192.168.133.102/32", "tp_dst": 25, "tp_src": 49648, "nw_proto": 6, "dl_type": 2048, "nw_src": "192.168.133.100/32"}, "actions": [], "cookie": 4398046511146, "flags": 0, "dpid": 42}
+http://127.0.0.1:8080/stats/flowentry/add
+{"priority": 5, "idle_timeout": 30, "hard_timeout": 0, "match": {"nw_dst": "192.168.133.100/32", "tp_dst": 49648, "tp_src": 25, "nw_proto": 6, "dl_type": 2048, "nw_src": "192.168.133.102/32"}, "actions": [], "cookie": 4398046511146, "flags": 0, "dpid": 42}
+Flow_mod_success
+Flow_mod_success
+http://127.0.0.1:8080/stats/flowentry/add
+{"priority": 5, "idle_timeout": 30, "hard_timeout": 0, "match": {"nw_dst": "17.167.150.73/32", "tp_dst": 443, "tp_src": 49655, "nw_proto": 6, "dl_type": 2048, "nw_src": "192.168.133.100/32"}, "actions": [], "cookie": 4398046511146, "flags": 0, "dpid": 42}
+http://127.0.0.1:8080/stats/flowentry/add
+{"priority": 5, "idle_timeout": 30, "hard_timeout": 0, "match": {"nw_dst": "192.168.133.100/32", "tp_dst": 49655, "tp_src": 443, "nw_proto": 6, "dl_type": 2048, "nw_src": "17.167.150.73/32"}, "actions": [], "cookie": 4398046511146, "flags": 0, "dpid": 42}
+Flow_mod_success
+Flow_mod_success

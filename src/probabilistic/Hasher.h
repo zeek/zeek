@@ -4,7 +4,6 @@
 #define PROBABILISTIC_HASHER_H
 
 #include "Hash.h"
-#include "H3.h"
 #include "SerialObj.h"
 
 namespace probabilistic {
@@ -17,6 +16,15 @@ class Hasher : public SerialObj {
 public:
 	typedef hash_t digest;
 	typedef std::vector<digest> digest_vector;
+	struct seed_t {
+		uint64_t h1;
+		uint64_t h2;
+
+		friend seed_t operator+(seed_t lhs, const uint64_t rhs) {
+			lhs.h1 += rhs;
+			return lhs;
+		}
+	};
 
 	/**
 	 * Creates a valid hasher seed from an arbitrary string.
@@ -30,7 +38,7 @@ public:
 	 *
 	 * @return A seed suitable for hashers.
 	 */
-	static uint64 MakeSeed(const void* data, size_t size);
+	static seed_t MakeSeed(const void* data, size_t size);
 
 	/**
 	 * Destructor.
@@ -89,7 +97,7 @@ public:
 	/**
 	 * Returns the seed used to construct the hasher.
 	 */
-	size_t Seed() const	{ return seed; }
+	seed_t Seed() const	{ return seed; }
 
 	bool Serialize(SerialInfo* info) const;
 	static Hasher* Unserialize(UnserialInfo* info);
@@ -106,11 +114,11 @@ protected:
 	 *
 	 * @param arg_seed The seed for the hasher.
 	 */
-	Hasher(size_t arg_k, size_t arg_seed);
+	Hasher(size_t arg_k, seed_t arg_seed);
 
 private:
 	size_t k;
-	size_t seed;
+	seed_t seed;
 };
 
 /**
@@ -120,12 +128,17 @@ private:
 class UHF {
 public:
 	/**
-	 * Constructs an H3 hash function seeded with a given seed and an
+	 * Default constructor with zero seed.
+	 */
+	UHF();
+
+	/**
+	 * Constructs an hash function seeded with a given seed and an
 	 * optional extra seed to replace the initial Bro seed.
 	 *
 	 * @param arg_seed The seed to use for this instance.
 	 */
-	UHF(size_t arg_seed = 0);
+	UHF(Hasher::seed_t arg_seed);
 
 	template <typename T>
 	Hasher::digest operator()(const T& x) const
@@ -159,7 +172,8 @@ public:
 
 	friend bool operator==(const UHF& x, const UHF& y)
 		{
-		return x.h == y.h;
+		return (x.seed.h1 == y.seed.h1) &&
+		       (x.seed.h2 == y.seed.h2);
 		}
 
 	friend bool operator!=(const UHF& x, const UHF& y)
@@ -168,10 +182,9 @@ public:
 		}
 
 private:
-	static size_t compute_seed(size_t seed);
+	static size_t compute_seed(Hasher::seed_t seed);
 
-	H3<Hasher::digest, UHASH_KEY_SIZE> h;
-	size_t seed;
+	Hasher::seed_t seed;
 };
 
 
@@ -188,12 +201,12 @@ public:
 	 *
 	 * @param seed The seed for the hasher.
 	 */
-	DefaultHasher(size_t k, size_t seed);
+	DefaultHasher(size_t k, Hasher::seed_t seed);
 
 	// Overridden from Hasher.
-	virtual digest_vector Hash(const void* x, size_t n) const /* final */;
-	virtual DefaultHasher* Clone() const /* final */;
-	virtual bool Equals(const Hasher* other) const /* final */;
+	virtual digest_vector Hash(const void* x, size_t n) const final;
+	virtual DefaultHasher* Clone() const final;
+	virtual bool Equals(const Hasher* other) const final;
 
 	DECLARE_SERIAL(DefaultHasher);
 
@@ -216,12 +229,12 @@ public:
 	 *
 	 * @param seed The seed for the hasher.
 	 */
-	DoubleHasher(size_t k, size_t seed);
+	DoubleHasher(size_t k, Hasher::seed_t seed);
 
 	// Overridden from Hasher.
-	virtual digest_vector Hash(const void* x, size_t n) const /* final */;
-	virtual DoubleHasher* Clone() const /* final */;
-	virtual bool Equals(const Hasher* other) const /* final */;
+	virtual digest_vector Hash(const void* x, size_t n) const final;
+	virtual DoubleHasher* Clone() const final;
+	virtual bool Equals(const Hasher* other) const final;
 
 	DECLARE_SERIAL(DoubleHasher);
 

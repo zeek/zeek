@@ -24,3 +24,12 @@ event ssl_extension_server_name(c: connection, is_orig: bool, names: string_vec)
 	{
 	print "server_name", c$id$orig_h, c$id$resp_h, names;
 	}
+
+event ssl_extension_signature_algorithm(c: connection, is_orig: bool, signature_algorithms: vector of SSL::SignatureAndHashAlgorithm)
+	{
+	print "signature_algorithm", c$id$orig_h, c$id$resp_h;
+	for ( i in signature_algorithms)
+		{
+		print SSL::hash_algorithms[signature_algorithms[i]$HashAlgorithm], SSL::signature_algorithms[signature_algorithms[i]$SignatureAlgorithm];
+		}
+	}

@@ -325,7 +325,7 @@ public:
 		return (MutableVal*) this;
 		}
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 	virtual void DescribeReST(ODesc* d) const;
 
 	bool Serialize(SerialInfo* info) const;
@@ -443,7 +443,7 @@ public:
 #endif
 		}
 
-	virtual uint64 LastModified() const 	{ return last_modified; }
+	virtual uint64 LastModified() const override	{ return last_modified; }
 
 	// Mark value as changed.
 	void Modified()
@@ -487,7 +487,7 @@ public:
 protected:
 	IntervalVal()	{}
 
-	void ValDescribe(ODesc* d) const;
+	void ValDescribe(ODesc* d) const override;
 
 	DECLARE_SERIAL(IntervalVal);
 };
@@ -509,7 +509,7 @@ public:
 	PortVal(uint32 p, TransportProto port_type);
 	PortVal(uint32 p);	// used for already-massaged port value.
 
-	Val* SizeVal() const	{ return new Val(val.uint_val, TYPE_INT); }
+	Val* SizeVal() const override	{ return new Val(val.uint_val, TYPE_INT); }
 
 	// Returns the port number in host order (not including the mask).
 	uint32 Port() const;
@@ -535,7 +535,7 @@ protected:
 	friend class Val;
 	PortVal()	{}
 
-	void ValDescribe(ODesc* d) const;
+	void ValDescribe(ODesc* d) const override;
 
 	DECLARE_SERIAL(PortVal);
 };
@@ -545,14 +545,14 @@ public:
 	AddrVal(const char* text);
 	~AddrVal();
 
-	Val* SizeVal() const;
+	Val* SizeVal() const override;
 
 	// Constructor for address already in network order.
 	AddrVal(uint32 addr);          // IPv4.
 	AddrVal(const uint32 addr[4]); // IPv6.
 	AddrVal(const IPAddr& addr);
 
-	unsigned int MemoryAllocation() const;
+	unsigned int MemoryAllocation() const override;
 
 protected:
 	friend class Val;
@@ -573,7 +573,7 @@ public:
 	SubNetVal(const IPPrefix& prefix);
 	~SubNetVal();
 
-	Val* SizeVal() const;
+	Val* SizeVal() const override;
 
 	const IPAddr& Prefix() const;
 	int Width() const;
@@ -581,13 +581,13 @@ public:
 
 	bool Contains(const IPAddr& addr) const;
 
-	unsigned int MemoryAllocation() const;
+	unsigned int MemoryAllocation() const override;
 
 protected:
 	friend class Val;
 	SubNetVal()	{}
 
-	void ValDescribe(ODesc* d) const;
+	void ValDescribe(ODesc* d) const override;
 
 	DECLARE_SERIAL(SubNetVal);
 };
@@ -599,7 +599,7 @@ public:
 	StringVal(const string& s);
 	StringVal(int length, const char* s);
 
-	Val* SizeVal() const
+	Val* SizeVal() const override
 		{ return new Val(val.string_val->Len(), TYPE_COUNT); }
 
 	int Len()		{ return AsString()->Len(); }
@@ -613,13 +613,13 @@ public:
 
 	StringVal* ToUpper();
 
-	unsigned int MemoryAllocation() const;
+	unsigned int MemoryAllocation() const override;
 
 protected:
 	friend class Val;
 	StringVal()	{}
 
-	void ValDescribe(ODesc* d) const;
+	void ValDescribe(ODesc* d) const override;
 
 	DECLARE_SERIAL(StringVal);
 };
@@ -629,22 +629,22 @@ public:
 	PatternVal(RE_Matcher* re);
 	~PatternVal();
 
-	int AddTo(Val* v, int is_first_init) const;
+	int AddTo(Val* v, int is_first_init) const override;
 
 	void SetMatcher(RE_Matcher* re);
 
-	unsigned int MemoryAllocation() const;
+	unsigned int MemoryAllocation() const override;
 
 protected:
 	friend class Val;
 	PatternVal()	{}
 
-	void ValDescribe(ODesc* d) const;
+	void ValDescribe(ODesc* d) const override;
 
 	DECLARE_SERIAL(PatternVal);
 };
 
-// ListVals are mainly used to index tables that have more than one 
+// ListVals are mainly used to index tables that have more than one
 // element in their index.
 class ListVal : public Val {
 public:
@@ -653,7 +653,7 @@ public:
 
 	TypeTag BaseTag() const		{ return tag; }
 
-	Val* SizeVal() const	{ return new Val(vals.length(), TYPE_COUNT); }
+	Val* SizeVal() const override	{ return new Val(vals.length(), TYPE_COUNT); }
 
 	int Length() const		{ return vals.length(); }
 	Val* Index(const int n)		{ return vals[n]; }
@@ -677,9 +677,9 @@ public:
 	const val_list* Vals() const	{ return &vals; }
 	val_list* Vals()		{ return &vals; }
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 
-	unsigned int MemoryAllocation() const;
+	unsigned int MemoryAllocation() const override;
 
 protected:
 	friend class Val;
@@ -753,21 +753,22 @@ public:
 	TableVal(TableType* t, Attributes* attrs = 0);
 	~TableVal();
 
-	// Returns true if the assignment typechecked, false if not.
-	// Second version takes a HashKey and Unref()'s it when done.
-	// If we're a set, new_val has to be nil.
-	// If we aren't a set, index may be nil in the second version.
+	// Returns true if the assignment typechecked, false if not. The
+	// methods take ownership of new_val, but not of the index. Second
+	// version takes a HashKey and Unref()'s it when done. If we're a
+	// set, new_val has to be nil. If we aren't a set, index may be nil
+	// in the second version.
 	int Assign(Val* index, Val* new_val, Opcode op = OP_ASSIGN);
 	int Assign(Val* index, HashKey* k, Val* new_val, Opcode op = OP_ASSIGN);
 
-	Val* SizeVal() const	{ return new Val(Size(), TYPE_COUNT); }
+	Val* SizeVal() const override	{ return new Val(Size(), TYPE_COUNT); }
 
 	// Add the entire contents of the table to the given value,
 	// which must also be a TableVal.
 	// Returns true if the addition typechecked, false if not.
 	// If is_first_init is true, then this is the *first* initialization
 	// (and so should be strictly adding new elements).
-	int AddTo(Val* v, int is_first_init) const;
+	int AddTo(Val* v, int is_first_init) const override;
 
 	// Same but allows suppression of state operations.
 	int AddTo(Val* v, int is_first_init, bool propagate_ops) const;
@@ -778,7 +779,7 @@ public:
 	// Remove the entire contents of the table from the given value.
 	// which must also be a TableVal.
 	// Returns true if the addition typechecked, false if not.
-	int RemoveFrom(Val* v) const;
+	int RemoveFrom(Val* v) const override;
 
 	// Expands any lists in the index into multiple initializations.
 	// Returns true if the initializations typecheck, false if not.
@@ -788,6 +789,16 @@ public:
 	// nil otherwise.  Note, "index" is not const because we
 	// need to Ref/Unref it when calling the default function.
 	Val* Lookup(Val* index, bool use_default_val = true);
+
+	// For a table[subnet]/set[subnet], return all subnets that cover
+	// the given subnet.
+	// Causes an internal error if called for any other kind of table.
+	VectorVal* LookupSubnets(const SubNetVal* s);
+
+	// For a set[subnet]/table[subnet], return a new table that only contains
+	// entries that cover the given subnet.
+	// Causes an internal error if called for any other kind of table.
+	TableVal* LookupSubnetValues(const SubNetVal* s);
 
 	// Sets the timestamp for the given index to network time.
 	// Returns false if index does not exist.
@@ -813,12 +824,17 @@ public:
 	int Size() const	{ return AsTable()->Length(); }
 	int RecursiveSize() const;
 
-	void Describe(ODesc* d) const;
+	// Returns the Prefix table used inside the table (if present).
+	// This allows us to do more direct queries to this specialized
+	// type that the general Table API does not allow.
+	const PrefixTable* Subnets() const { return subnets; }
+
+	void Describe(ODesc* d) const override;
 
 	void InitTimer(double delay);
 	void DoExpire(double t);
 
-	unsigned int MemoryAllocation() const;
+	unsigned int MemoryAllocation() const override;
 
 	void ClearTimer(Timer* t)
 		{
@@ -840,11 +856,19 @@ protected:
 	int ExpandCompoundAndInit(val_list* vl, int k, Val* new_val);
 	int CheckAndAssign(Val* index, Val* new_val, Opcode op = OP_ASSIGN);
 
-	bool AddProperties(Properties arg_state);
-	bool RemoveProperties(Properties arg_state);
+	bool AddProperties(Properties arg_state) override;
+	bool RemoveProperties(Properties arg_state) override;
 
 	// Calculates default value for index.  Returns 0 if none.
 	Val* Default(Val* index);
+
+	// Returns true if item expiration is enabled.
+	bool ExpirationEnabled()	{ return expire_time != 0; }
+
+	// Returns the expiration time defined by %{create,read,write}_expire
+	// attribute, or -1 for unset/invalid values. In the invalid case, an
+	// error will have been reported.
+	double GetExpireTime();
 
 	// Calls &expire_func and returns its return interval;
 	// takes ownership of the reference.
@@ -858,8 +882,8 @@ protected:
 	TableType* table_type;
 	CompositeHash* table_hash;
 	Attributes* attrs;
-	double expire_time;
-	Expr* expire_expr;
+	Expr* expire_time;
+	Expr* expire_func;
 	TableValTimer* timer;
 	IterCookie* expire_cookie;
 	PrefixTable* subnets;
@@ -871,7 +895,7 @@ public:
 	RecordVal(RecordType* t);
 	~RecordVal();
 
-	Val* SizeVal() const
+	Val* SizeVal() const override
 		{ return new Val(record_type->NumFields(), TYPE_COUNT); }
 
 	void Assign(int field, Val* new_val, Opcode op = OP_ASSIGN);
@@ -889,7 +913,7 @@ public:
 	 */
 	Val* Lookup(const char* field, bool with_default = false) const;
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 
 	// This is an experiment to associate a BroObj within the
 	// event engine to a record value in bro script.
@@ -910,15 +934,15 @@ public:
 	RecordVal* CoerceTo(const RecordType* other, Val* aggr, bool allow_orphaning = false) const;
 	RecordVal* CoerceTo(RecordType* other, bool allow_orphaning = false);
 
-	unsigned int MemoryAllocation() const;
-	void DescribeReST(ODesc* d) const;
+	unsigned int MemoryAllocation() const override;
+	void DescribeReST(ODesc* d) const override;
 
 protected:
 	friend class Val;
 	RecordVal()	{}
 
-	bool AddProperties(Properties arg_state);
-	bool RemoveProperties(Properties arg_state);
+	bool AddProperties(Properties arg_state) override;
+	bool RemoveProperties(Properties arg_state) override;
 
 	DECLARE_SERIAL(RecordVal);
 
@@ -934,13 +958,13 @@ public:
 		type = t;
 		}
 
-	Val* SizeVal() const	{ return new Val(val.int_val, TYPE_INT); }
+	Val* SizeVal() const override	{ return new Val(val.int_val, TYPE_INT); }
 
 protected:
 	friend class Val;
 	EnumVal()	{}
 
-	void ValDescribe(ODesc* d) const;
+	void ValDescribe(ODesc* d) const override;
 
 	DECLARE_SERIAL(EnumVal);
 };
@@ -951,7 +975,7 @@ public:
 	VectorVal(VectorType* t);
 	~VectorVal();
 
-	Val* SizeVal() const
+	Val* SizeVal() const override
 		{ return new Val(uint32(val.vector_val->size()), TYPE_COUNT); }
 
 	// Returns false if the type of the argument was wrong.
@@ -996,9 +1020,9 @@ protected:
 	friend class Val;
 	VectorVal()	{ }
 
-	bool AddProperties(Properties arg_state);
-	bool RemoveProperties(Properties arg_state);
-	void ValDescribe(ODesc* d) const;
+	bool AddProperties(Properties arg_state) override;
+	bool RemoveProperties(Properties arg_state) override;
+	void ValDescribe(ODesc* d) const override;
 
 	DECLARE_SERIAL(VectorVal);
 

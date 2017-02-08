@@ -18,15 +18,15 @@
 #include "bro-config.h"
 
 #include "Hash.h"
+#include "Reporter.h"
 
-#include "H3.h"
-const H3<hash_t, UHASH_KEY_SIZE>* h3;
+#include "siphash24.h"
 
 void init_hash_function()
 	{
 	// Make sure we have already called init_random_seed().
-	ASSERT(hmac_key_set);
-	h3 = new H3<hash_t, UHASH_KEY_SIZE>();
+	if ( ! (hmac_key_set && siphash_key_set) )
+		reporter->InternalError("Bro's hash functions aren't fully initialized");
 	}
 
 HashKey::HashKey(bro_int_t i)
@@ -166,12 +166,14 @@ hash_t HashKey::HashBytes(const void* bytes, int size)
 	{
 	if ( size <= UHASH_KEY_SIZE )
 		{
-		// H3 doesn't check if size is zero
-		return ( size == 0 ) ? 0 : (*h3)(bytes, size);
+		hash_t digest;
+		siphash(&digest, (const uint8_t *)bytes, size, shared_siphash_key);
+		return digest;
 		}
 
 	// Fall back to HMAC/MD5 for longer data (which is usually rare).
-	hash_t digest[16];
+	assert(sizeof(hash_t) == 8);
+	hash_t digest[2]; // 2x hash_t (uint64) = 128 bits = 32 hex chars = sizeof md5
 	hmac_md5(size, (const unsigned char*) bytes, (unsigned char*) digest);
 	return digest[0];
 	}

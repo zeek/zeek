@@ -2,13 +2,13 @@
 ##! dropping functionality.
 
 @load ../main
+@load base/frameworks/netcontrol
 
 module Notice;
 
 export {
 	redef enum Action += {
-		## Drops the address via Drop::drop_address, and generates an
-		## alarm.
+		## Drops the address via :bro:see:`NetControl::drop_address_catch_release`.
 		ACTION_DROP
 	};
 
@@ -19,13 +19,17 @@ export {
 	};
 }
 
-hook notice(n: Notice::Info)
+hook notice(n: Notice::Info) &priority=-5
 	{
 	if ( ACTION_DROP in n$actions )
 		{
-		#local drop = React::drop_address(n$src, "");
-		#local addl = drop?$sub ? fmt(" %s", drop$sub) : "";
-		#n$dropped = drop$note != Drop::AddressDropIgnored;
-		#n$msg += fmt(" [%s%s]", drop$note, addl);
+		local ci = NetControl::get_catch_release_info(n$src);
+		if ( ci$watch_until == double_to_time(0) )
+			{
+			# we have not seen this one yet. Drop it.
+			local addl = n?$msg ? fmt("ACTION_DROP: %s", n?$msg) : "ACTION_DROP";
+			local res = NetControl::drop_address_catch_release(n$src, addl);
+			n$dropped = res$watch_until != double_to_time(0);
+			}
 		}
 	}

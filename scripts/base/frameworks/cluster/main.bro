@@ -31,7 +31,9 @@ export {
 		## A node type which is allowed to view/manipulate the configuration
 		## of other nodes in the cluster.
 		CONTROL,
-		## A node type responsible for log and policy management.
+		## A node type responsible for log management.
+		LOGGER,
+		## A node type responsible for policy management.
 		MANAGER,
 		## A node type for relaying worker node communication and synchronizing
 		## worker node state.
@@ -50,11 +52,20 @@ export {
 	## Events raised by a manager and handled by proxies.
 	const manager2proxy_events = /EMPTY/ &redef;
 
+	## Events raised by a manager and handled by loggers.
+	const manager2logger_events = /EMPTY/ &redef;
+
+	## Events raised by proxies and handled by loggers.
+	const proxy2logger_events = /EMPTY/ &redef;
+
 	## Events raised by proxies and handled by a manager.
 	const proxy2manager_events = /EMPTY/ &redef;
 
 	## Events raised by proxies and handled by workers.
 	const proxy2worker_events = /EMPTY/ &redef;
+
+	## Events raised by workers and handled by loggers.
+	const worker2logger_events = /EMPTY/ &redef;
 
 	## Events raised by workers and handled by a manager.
 	const worker2manager_events = /(TimeMachine::command|Drop::.*)/ &redef;
@@ -68,7 +79,7 @@ export {
 	## Events raised by TimeMachine instances and handled by workers.
 	const tm2worker_events = /EMPTY/ &redef;
 
-	## Events sent by the control host (i.e. BroControl) when dynamically
+	## Events sent by the control host (i.e., BroControl) when dynamically
 	## connecting to a running instance to update settings or request data.
 	const control_events = Control::controller_events &redef;
 
@@ -86,6 +97,8 @@ export {
 		p:            port;
 		## Identifier for the interface a worker is sniffing.
 		interface:    string      &optional;
+		## Name of the logger node this node uses.  For manager, proxies and workers.
+		logger:       string      &optional;
 		## Name of the manager node this node uses.  For workers and proxies.
 		manager:      string      &optional;
 		## Name of the proxy node this node uses.  For workers and managers.
@@ -122,6 +135,12 @@ export {
 	## automatically loaded if the CLUSTER_NODE environment variable is set.
 	## Note that BroControl handles all of this automatically.
 	const nodes: table[string] of Node = {} &redef;
+
+	## Indicates whether or not the manager will act as the logger and receive
+	## logs.  This value should be set in the cluster-layout.bro script (the
+	## value should be true only if no logger is specified in Cluster::nodes).
+	## Note that BroControl handles this automatically.
+	const manager_is_logger = T &redef;
 
 	## This is usually supplied on the command line for each instance
 	## of the cluster that is started up.

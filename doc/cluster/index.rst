@@ -39,9 +39,11 @@ Manager
 *******
 The manager is a Bro process that has two primary jobs.  It receives log
 messages and notices from the rest of the nodes in the cluster using the Bro
-communications protocol.  The result is a single log instead of many
-discrete logs that you have to combine in some manner with post-processing.
-The manager also takes the opportunity to de-duplicate notices, and it has the
+communications protocol (note that if you are using a logger, then the
+logger receives all logs instead of the manager).  The result
+is a single log instead of many discrete logs that you have to
+combine in some manner with post-processing.  The manager also takes
+the opportunity to de-duplicate notices, and it has the
 ability to do so since it's acting as the choke point for notices and how
 notices might be processed into actions (e.g., emailing, paging, or blocking).
 
@@ -50,6 +52,20 @@ designated port and waits for connections, it doesn't initiate any
 connections to the rest of the cluster.  Once the workers are started and
 connect to the manager, logs and notices will start arriving to the manager
 process from the workers.
+
+Logger
+******
+The logger is an optional Bro process that receives log messages from the
+rest of the nodes in the cluster using the Bro communications protocol.
+The purpose of having a logger receive logs instead of the manager is
+to reduce the load on the manager.  If no logger is needed, then the
+manager will receive logs instead.
+
+The logger process is started first by BroControl and it only opens its
+designated port and waits for connections, it doesn't initiate any
+connections to the rest of the cluster.  Once the rest of the cluster is
+started and connect to the logger, logs will start arriving to the logger
+process.
 
 Proxy
 *****
@@ -96,13 +112,13 @@ logging is done remotely to the manager, and normally very little is written
 to disk.
 
 The rule of thumb we have followed recently is to allocate approximately 1
-core for every 80Mbps of traffic that is being analyzed. However, this
+core for every 250Mbps of traffic that is being analyzed. However, this
 estimate could be extremely traffic mix-specific.  It has generally worked
 for mixed traffic with many users and servers.  For example, if your traffic
 peaks around 2Gbps (combined) and you want to handle traffic at peak load,
-you may want to have 26 cores available (2048 / 80 == 25.6).  If the 80Mbps
-estimate works for your traffic, this could be handled by 3 physical hosts
-dedicated to being workers with each one containing dual 6-core processors.
+you may want to have 8 cores available (2048 / 250 == 8.2).  If the 250Mbps
+estimate works for your traffic, this could be handled by 2 physical hosts
+dedicated to being workers with each one containing a quad-core processor.
 
 Once a flow-based load balancer is put into place this model is extremely
 easy to scale. It is recommended that you estimate the amount of

@@ -1,0 +1,12 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	rfb
+#open	2016-07-13-16-16-51
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	client_major_version	client_minor_version	server_major_version	server_minor_version	authentication_method	auth	share_flag	desktop_name	width	height
+#types	time	string	addr	port	addr	port	string	string	string	string	string	bool	bool	string	count	count
+1459093553.334734	CtPZjS20MLrsMUOJi2	192.168.2.115	49259	192.168.2.125	5901	003	003	003	008	VNC	T	T	root's X desktop (martin-VirtualBox:1)	1024	768
+1459093548.745805	ClEkJM2Vm5giqnMf4h	192.168.2.115	49256	192.168.2.125	5901	003	003	003	008	VNC	-	-	-	-	-
+1459093551.559391	C4J4Th3PJpwUYZZ6gc	192.168.2.115	49257	192.168.2.125	5901	003	003	003	008	VNC	F	-	-	-	-
+#close	2016-07-13-16-16-51

@@ -1,0 +1,22 @@
+## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+## version 2 requests of type *tree disconnect*. This is sent by the client to logically disconnect
+## client access to a server resource.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
+##
+## .. bro:see:: smb2_message
+event smb2_tree_disconnect_request%(c: connection, hdr: SMB2::Header%);
+
+
+## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+## version 2 requests of type *tree disconnect*. This is sent by the server to logically disconnect
+## client access to a server resource.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
+##
+## .. bro:see:: smb2_message
+event smb2_tree_disconnect_response%(c: connection, hdr: SMB2::Header%);

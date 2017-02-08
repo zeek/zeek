@@ -3,6 +3,7 @@
 #ifndef ANALYZER_PROTOCOL_IRC_IRC_H
 #define ANALYZER_PROTOCOL_IRC_IRC_H
 #include "analyzer/protocol/tcp/TCP.h"
+#include "analyzer/protocol/tcp/ContentLine.h"
 
 namespace analyzer { namespace irc {
 
@@ -21,7 +22,7 @@ public:
 	/**
 	* \brief Called when connection is closed.
 	*/
-	virtual void Done();
+	void Done() override;
 
 	/**
 	* \brief New input line in network stream.
@@ -30,7 +31,7 @@ public:
 	* \param data pointer to line start
 	* \param orig was this data sent from connection originator?
 	*/
-	virtual void DeliverStream(int len, const u_char* data, bool orig);
+	void DeliverStream(int len, const u_char* data, bool orig) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{
@@ -44,6 +45,10 @@ protected:
 	int resp_zip_status;
 
 private:
+	void StartTLS();
+
+	inline void SkipLeadingWhitespace(string& str);
+
 	/** \brief counts number of invalid IRC messages */
 	int invalid_msg_count;
 
@@ -60,6 +65,9 @@ private:
 	*/
 	vector<string> SplitWords(const string input, const char split);
 
+	tcp::ContentLine_Analyzer* cl_orig;
+	tcp::ContentLine_Analyzer* cl_resp;
+	bool starttls; // if true, connection has been upgraded to tls
 };
 
 } } // namespace analyzer::* 

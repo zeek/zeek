@@ -13,7 +13,7 @@ export {
 		SSL_Heartbeat_Attack_Success,
 		## Indicates we saw heartbeat requests with odd length. Probably an attack or scan.
 		SSL_Heartbeat_Odd_Length,
-		## Indicates we saw many heartbeat requests without an reply. Might be an attack.
+		## Indicates we saw many heartbeat requests without a reply. Might be an attack.
 		SSL_Heartbeat_Many_Requests
 	};
 }

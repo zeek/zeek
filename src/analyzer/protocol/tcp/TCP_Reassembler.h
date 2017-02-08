@@ -91,15 +91,15 @@ private:
 
 	DECLARE_SERIAL(TCP_Reassembler);
 
-	void Undelivered(uint64 up_to_seq);
+	void Undelivered(uint64 up_to_seq) override;
 	void Gap(uint64 seq, uint64 len);
 
 	void RecordToSeq(uint64 start_seq, uint64 stop_seq, BroFile* f);
 	void RecordBlock(DataBlock* b, BroFile* f);
 	void RecordGap(uint64 start_seq, uint64 upper_seq, BroFile* f);
 
-	void BlockInserted(DataBlock* b);
-	void Overlap(const u_char* b1, const u_char* b2, uint64 n);
+	void BlockInserted(DataBlock* b) override;
+	void Overlap(const u_char* b1, const u_char* b2, uint64 n) override;
 
 	TCP_Endpoint* endp;
 

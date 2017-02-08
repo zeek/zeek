@@ -1,0 +1,20 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	netcontrol
+#open	2016-08-05-17-34-55
+#fields	ts	rule_id	category	cmd	state	action	target	entity_type	entity	mod	msg	priority	expire	location	plugin
+#types	time	string	enum	string	enum	string	enum	string	string	string	string	int	interval	string	string
+0.000000	-	NetControl::MESSAGE	-	-	-	-	-	-	-	activating plugin with priority 0	-	-	-	Broker-bro/event/netcontroltest
+0.000000	-	NetControl::MESSAGE	-	-	-	-	-	-	-	waiting for plugins to initialize	-	-	-	-
+1470418495.661396	-	NetControl::MESSAGE	-	-	-	-	-	-	-	activation finished	-	-	-	Broker-bro/event/netcontroltest
+1470418495.661396	-	NetControl::MESSAGE	-	-	-	-	-	-	-	plugin initialization done	-	-	-	-
+1470418496.045332	2	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	10.10.1.4/32/1470->74.53.140.153/32/25	-	-	0	36000.000000	-	Broker-bro/event/netcontroltest
+1470418496.045332	3	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	10.10.1.4/32	-	-	0	36000.000000	-	Broker-bro/event/netcontroltest
+1470418496.045364	2	NetControl::RULE	ADD	NetControl::EXISTS	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	10.10.1.4/32/1470->74.53.140.153/32/25	-	-	0	36000.000000	-	Broker-bro/event/netcontroltest
+1470418496.045364	2	NetControl::RULE	EXPIRE	NetControl::TIMEOUT	NetControl::DROP	NetControl::MONITOR	NetControl::FLOW	10.10.1.4/32/1470->74.53.140.153/32/25	-	-	0	36000.000000	-	Broker-bro/event/netcontroltest
+1470418496.045364	3	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	10.10.1.4/32	-	-	0	36000.000000	-	Broker-bro/event/netcontroltest
+1470418496.045364	3	NetControl::RULE	REMOVE	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	10.10.1.4/32	-	removing	0	36000.000000	-	Broker-bro/event/netcontroltest
+1470418496.045364	3	NetControl::RULE	REMOVE	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	10.10.1.4/32	-	-	0	36000.000000	-	Broker-bro/event/netcontroltest
+#close	2016-08-05-17-34-56

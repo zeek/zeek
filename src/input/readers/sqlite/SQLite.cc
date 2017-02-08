@@ -75,6 +75,10 @@ bool SQLite::DoInit(const ReaderInfo& info, int arg_num_fields, const threading:
 		return false;
 		}
 
+	// Allow connections to same DB to use single data/schema cache. Also
+	// allows simultaneous writes to one file.
+	sqlite3_enable_shared_cache(1);
+
 	if ( Info().mode != MODE_MANUAL )
 		{
 		Error("SQLite only supports manual reading mode.");
@@ -90,7 +94,7 @@ bool SQLite::DoInit(const ReaderInfo& info, int arg_num_fields, const threading:
 	ReaderInfo::config_map::const_iterator it = info.config.find("query");
 	if ( it == info.config.end() )
 		{
-		Error(Fmt("No query specified when setting up SQLite data source. Aborting.", info.source));
+		Error(Fmt("No query specified when setting up SQLite data source %s. Aborting.", info.source));
 		return false;
 		}
 	else

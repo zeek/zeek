@@ -1,0 +1,15 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	ftp
+#open	2016-07-13-16-16-16
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	user	password	command	arg	mime_type	file_size	reply_code	reply_msg	data_channel.passive	data_channel.orig_h	data_channel.resp_h	data_channel.resp_p	fuid
+#types	time	string	addr	port	addr	port	string	string	string	string	string	count	count	string	bool	addr	addr	port	string
+1457455890.667768	CHhAvVGS1DHFjwGM9	192.168.21.95	54089	164.107.123.6	21	<unknown>	-	PASV	-	-	-	227	Entering Passive Mode (164,107,123,6,183,187)	T	192.168.21.95	164.107.123.6	47035	-
+1457455890.667768	CHhAvVGS1DHFjwGM9	192.168.21.95	54089	164.107.123.6	21	<unknown>	-	PASV	-	-	-	227	Entering Passive Mode (164,107,123,6,183,187)	-	-	-	-	-
+1457455891.781896	CHhAvVGS1DHFjwGM9	192.168.21.95	54089	164.107.123.6	21	<unknown>	-	PASV	-	-	-	227	Entering Passive Mode (164,107,123,6,183,231)	T	192.168.21.95	164.107.123.6	47079	FaFkMs3Gc0F1kvwXD
+1457455894.380514	CHhAvVGS1DHFjwGM9	192.168.21.95	54089	164.107.123.6	21	<unknown>	-	PASV	-	-	-	227	Entering Passive Mode (164,107,123,6,183,211)	T	192.168.21.95	164.107.123.6	47059	Fm58Rm14ZG2Ai7nW9g
+1457455900.398202	CHhAvVGS1DHFjwGM9	192.168.21.95	54089	164.107.123.6	21	<unknown>	-	PASV	-	-	-	227	Entering Passive Mode (164,107,123,6,183,197)	T	192.168.21.95	164.107.123.6	47045	FnxQXApi8WTTWNyH1
+1457455900.530943	CHhAvVGS1DHFjwGM9	192.168.21.95	54089	164.107.123.6	21	<unknown>	-	RETR	ftp://164.107.123.6/mirror/internic/rfc/rfc1001.txt	text/plain	154427	226	File send OK.	-	-	-	-	FJblKh2PaOnGa8zcmg
+#close	2016-07-13-16-16-16

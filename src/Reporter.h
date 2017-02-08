@@ -32,12 +32,7 @@ protected:
 	InterpreterException()	{}
 };
 
-// Check printf-style variadic arguments if we can.
-#if __GNUC__
 #define FMT_ATTR __attribute__((format(printf, 2, 3))) // sic! 1st is "this" I guess.
-#else
-#define FMT_ATTR
-#endif
 
 class Reporter {
 public:
@@ -98,7 +93,7 @@ public:
 
 	// Report an analyzer error. That analyzer will be set to not process
 	// any further input, but Bro otherwise continues normally.
-	void AnalyzerError(analyzer::Analyzer* a, const char* fmt, ...);
+	void AnalyzerError(analyzer::Analyzer* a, const char* fmt, ...) __attribute__((format(printf, 3, 4)));;
 
 	// Toggle whether non-fatal messages should be reported through the
 	// scripting layer rather on standard output. Fatal errors are always
@@ -132,8 +127,8 @@ private:
 
 	// The order if addl, name needs to be like that since fmt_name can
 	// contain format specifiers
-	void WeirdHelper(EventHandlerPtr event, Val* conn_val, const char* addl, const char* fmt_name, ...);
-	void WeirdFlowHelper(const IPAddr& orig, const IPAddr& resp, const char* fmt_name, ...);
+	void WeirdHelper(EventHandlerPtr event, Val* conn_val, const char* addl, const char* fmt_name, ...) __attribute__((format(printf, 5, 6)));;
+	void WeirdFlowHelper(const IPAddr& orig, const IPAddr& resp, const char* fmt_name, ...) __attribute__((format(printf, 4, 5)));;
 
 	int errors;
 	bool via_events;

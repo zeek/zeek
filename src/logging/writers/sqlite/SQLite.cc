@@ -120,6 +120,10 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields,
 		return false;
 		}
 
+	// Allow connections to same DB to use single data/schema cache. Also
+	// allows simultaneous writes to one file.
+	sqlite3_enable_shared_cache(1);
+
 	num_fields = arg_num_fields;
 	fields = arg_fields;
 
@@ -170,7 +174,7 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields,
 		string type = GetTableType(field->type, field->subtype);
 		if ( type == "" )
 			{
-			InternalError(Fmt("Could not determine type for field %lu:%s", i, fieldname));
+			InternalError(Fmt("Could not determine type for field %u:%s", i, fieldname));
 			return false;
 			}
 
@@ -230,21 +234,6 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields,
 		return false;
 
 	return true;
-	}
-
-// Format String
-char* SQLite::FS(const char* format, ...)
-	{
-	char* buf;
-
-	va_list al;
-	va_start(al, format);
-	int n = vasprintf(&buf, format, al);
-	va_end(al);
-
-	assert(n >= 0);
-
-	return buf;
 	}
 
 int SQLite::AddParams(Value* val, int pos)

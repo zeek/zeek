@@ -120,6 +120,11 @@ public:
 	bool RemoveAnalyzer(file_analysis::Tag tag, RecordVal* args);
 
 	/**
+	 * Signal that this analyzer can be deleted once it's safe to do so.
+	 */
+	void DoneWithAnalyzer(Analyzer* analyzer);
+
+	/**
 	 * Pass in non-sequential data and deliver to attached analyzers.
 	 * @param data pointer to start of a chunk of file data.
 	 * @param len number of bytes in the data chunk.
@@ -287,6 +292,7 @@ protected:
 	bool postpone_timeout;     /**< Whether postponing timeout is requested. */
 	bool done;                 /**< If this object is about to be deleted. */
 	AnalyzerSet analyzers;     /**< A set of attached file analyzers. */
+	std::list<Analyzer *> done_analyzers; /**< Analyzers we're done with, remembered here until they can be safely deleted. */
 
 	struct BOF_Buffer {
 		BOF_Buffer() : full(false), size(0) {}

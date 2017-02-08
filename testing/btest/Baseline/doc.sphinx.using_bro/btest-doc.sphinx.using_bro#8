@@ -4,6 +4,6 @@
       :linenos:
       :emphasize-lines: 1,1
 
-      # cat http.log | bro-cut uid id.resp_h method status_code host uri | grep VW0XPVINV8a
-      CRJuHdVW0XPVINV8a	208.80.152.118	GET	304	bits.wikimedia.org	/skins-1.5/monobook/main.css
+      # cat http.log | bro-cut uid id.resp_h method status_code host uri | grep UM0KZ3MLUfNB0cl11
+      CUM0KZ3MLUfNB0cl11	208.80.152.118	GET	304	bits.wikimedia.org	/skins-1.5/monobook/main.css
 

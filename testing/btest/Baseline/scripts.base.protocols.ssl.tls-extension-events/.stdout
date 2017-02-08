@@ -6,6 +6,15 @@ secp521r1
 Point formats, 192.168.4.149, 74.125.239.152, T
 uncompressed
 ALPN, 192.168.4.149, 74.125.239.152, [spdy/3, spdy/3.1, http/1.1]
+signature_algorithm, 192.168.4.149, 74.125.239.152
+sha256, rsa
+sha384, rsa
+sha1, rsa
+sha256, ecdsa
+sha384, ecdsa
+sha1, ecdsa
+sha256, dsa
+sha1, dsa
 Point formats, 192.168.4.149, 74.125.239.152, F
 uncompressed
 ansiX962_compressed_prime

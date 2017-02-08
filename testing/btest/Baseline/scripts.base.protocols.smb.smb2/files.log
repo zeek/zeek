@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	files
+#open	2017-01-25-07-05-17
+#fields	ts	fuid	tx_hosts	rx_hosts	conn_uids	source	depth	analyzers	mime_type	filename	duration	local_orig	is_orig	seen_bytes	total_bytes	missing_bytes	overflow_bytes	timedout	parent_fuid	md5	sha1	sha256	extracted	extracted_cutoff	extracted_size
+#types	time	string	set[addr]	set[addr]	set[string]	string	count	set[string]	string	string	interval	bool	bool	count	count	count	count	bool	string	string	string	string	string	bool	count
+1323202695.515890	Fg6wjp3BAYahIGAEf7	10.0.0.11	10.0.0.12	CHhAvVGS1DHFjwGM9	SMB	0	(empty)	application/pdf	WP_SMBPlugin.pdf	0.073970	-	T	1508939	-	0	0	F	-	-	-	-	-	-	-
+#close	2017-01-25-07-05-17

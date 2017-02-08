@@ -1,11 +1,11 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "Manager.h"
+#include "plugin/Manager.h"
 #include "util.h"
 
 #include <utility>
 #include <cstdlib>
-#include <wordexp.h>
 
 using namespace broxygen;
 using namespace std;
@@ -38,6 +38,20 @@ static string RemoveLeadingSpace(const string& s)
 	return rval;
 	}
 
+// Turns a script's full path into a shortened, normalized version that we
+// use for indexing.
+static string NormalizeScriptPath(const string& path)
+	{
+	if ( auto p = plugin_mgr->LookupPluginByPath(path) ) 
+		{
+		auto rval = normalize_path(path);
+		auto prefix = SafeBasename(p->PluginDirectory()).result;
+		return prefix + "/" + rval.substr(p->PluginDirectory().size() + 1);
+		}
+
+	return without_bropath_component(path);
+	}
+
 Manager::Manager(const string& arg_config, const string& bro_command)
 	: disabled(), comment_buffer(), comment_buffer_map(), packages(), scripts(),
 	  identifiers(), all_info(), last_identifier_seen(), incomplete_type(),
@@ -46,27 +60,23 @@ Manager::Manager(const string& arg_config, const string& bro_command)
 	if ( getenv("BRO_DISABLE_BROXYGEN") )
 		disabled = true;
 
-	if ( disabled )
+	// If running bro without the "-X" option, then we don't need bro_mtime.
+	if ( disabled || arg_config.empty() )
 		return;
 
+	// Find the absolute or relative path to bro by checking each PATH
+	// component and also the current directory (so that this works if
+	// bro_command is a relative path).
 	const char* env_path = getenv("PATH");
 	string path = env_path ? string(env_path) + ":." : ".";
-	wordexp_t expanded_path;
-	wordexp(path.c_str(), &expanded_path, WRDE_NOCMD);
-	string path_to_bro;
-
-	if ( expanded_path.we_wordc == 1 )
-		path_to_bro = find_file(bro_command, expanded_path.we_wordv[0]);
-	else
-		{
-		reporter->InternalWarning("odd expansion of path: %s\n", path.c_str());
-		path_to_bro = find_file(bro_command, path);
-		}
-
+	string path_to_bro = find_file(bro_command, path);
 	struct stat s;
 
+	// One way that find_file() could fail is when bro is located in
+	// a PATH component that starts with a tilde (such as "~/bin").  A simple
+	// workaround is to just run bro with a relative or absolute path.
 	if ( path_to_bro.empty() || stat(path_to_bro.c_str(), &s) < 0 )
-		reporter->InternalError("Broxygen can't get mtime of bro binary %s: %s",
+		reporter->InternalError("Broxygen can't get mtime of bro binary %s (try again by specifying the absolute or relative path to Bro): %s",
 		                        path_to_bro.c_str(), strerror(errno));
 
 	bro_mtime = s.st_mtime;
@@ -108,7 +118,7 @@ void Manager::Script(const string& path)
 	if ( disabled )
 		return;
 
-	string name = without_bropath_component(path);
+	string name = NormalizeScriptPath(path);
 
 	if ( scripts.GetInfo(name) )
 		{
@@ -149,8 +159,8 @@ void Manager::ScriptDependency(const string& path, const string& dep)
 		return;
 		}
 
-	string name = without_bropath_component(path);
-	string depname = without_bropath_component(dep);
+	string name = NormalizeScriptPath(path);
+	string depname = NormalizeScriptPath(dep);
 	ScriptInfo* script_info = scripts.GetInfo(name);
 
 	if ( ! script_info )
@@ -174,7 +184,7 @@ void Manager::ModuleUsage(const string& path, const string& module)
 	if ( disabled )
 		return;
 
-	string name = without_bropath_component(path);
+	string name = NormalizeScriptPath(path);
 	ScriptInfo* script_info = scripts.GetInfo(name);
 
 	if ( ! script_info )
@@ -225,7 +235,7 @@ void Manager::StartType(ID* id)
 		return;
 		}
 
-	string script = without_bropath_component(id->GetLocationInfo()->filename);
+	string script = NormalizeScriptPath(id->GetLocationInfo()->filename);
 	ScriptInfo* script_info = scripts.GetInfo(script);
 
 	if ( ! script_info )
@@ -289,7 +299,7 @@ void Manager::Identifier(ID* id)
 		return;
 		}
 
-	string script = without_bropath_component(id->GetLocationInfo()->filename);
+	string script = NormalizeScriptPath(id->GetLocationInfo()->filename);
 	ScriptInfo* script_info = scripts.GetInfo(script);
 
 	if ( ! script_info )
@@ -318,7 +328,7 @@ void Manager::RecordField(const ID* id, const TypeDecl* field,
 		return;
 		}
 
-	string script = without_bropath_component(path);
+	string script = NormalizeScriptPath(path);
 	idd->AddRecordField(field, script, comment_buffer);
 	comment_buffer.clear();
 	DBG_LOG(DBG_BROXYGEN, "Document record field %s, identifier %s, script %s",
@@ -343,7 +353,7 @@ void Manager::Redef(const ID* id, const string& path)
 		return;
 		}
 
-	string from_script = without_bropath_component(path);
+	string from_script = NormalizeScriptPath(path);
 	ScriptInfo* script_info = scripts.GetInfo(from_script);
 
 	if ( ! script_info )
@@ -365,7 +375,7 @@ void Manager::SummaryComment(const string& script, const string& comment)
 	if ( disabled )
 		return;
 
-	string name = without_bropath_component(script);
+	string name = NormalizeScriptPath(script);
 	ScriptInfo* info = scripts.GetInfo(name);
 
 	if ( info )

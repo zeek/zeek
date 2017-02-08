@@ -38,7 +38,6 @@ private:
 
 	int AddParams(threading::Value* val, int pos);
 	string GetTableType(int, int);
-	char* FS(const char* format, ...);
 
 	const threading::Field* const * fields; // raw mapping
 	unsigned int num_fields;

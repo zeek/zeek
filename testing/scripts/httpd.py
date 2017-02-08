@@ -1,7 +1,11 @@
 #! /usr/bin/env python
 
-import BaseHTTPServer
-
+try:
+    # Python 2
+    import BaseHTTPServer
+except ImportError:
+    # Python 3
+    import http.server as BaseHTTPServer
 
 class MyRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
@@ -11,9 +15,9 @@ class MyRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.end_headers()
 
         if "/empty" in self.path:
-            self.wfile.write("")
+            self.wfile.write(b"")
         else:
-            self.wfile.write("It works!")
+            self.wfile.write(b"It works!")
 
     def do_POST(self):
         self.send_response(200)
@@ -21,9 +25,9 @@ class MyRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.end_headers()
 
         if "/empty" in self.path:
-            self.wfile.write("")
+            self.wfile.write(b"")
         else:
-            self.wfile.write("It works!")
+            self.wfile.write(b"It works!")
 
     def version_string(self):
         return "1.0"

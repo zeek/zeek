@@ -1,8 +1,8 @@
 # @TEST-SERIALIZE: brokercomm
-# @TEST-REQUIRES: grep -q ENABLE_BROKER $BUILD/CMakeCache.txt
+# @TEST-REQUIRES: grep -q ENABLE_BROKER:BOOL=true $BUILD/CMakeCache.txt
 
-# @TEST-EXEC: btest-bg-run clone "bro -b -r $TRACES/wikipedia.trace ../clone.bro broker_port=$BROKER_PORT >clone.out"
-# @TEST-EXEC: btest-bg-run master "bro -b -r $TRACES/wikipedia.trace ../master.bro broker_port=$BROKER_PORT >master.out"
+# @TEST-EXEC: btest-bg-run clone "bro -b ../clone.bro broker_port=$BROKER_PORT >clone.out"
+# @TEST-EXEC: btest-bg-run master "bro -b ../master.bro broker_port=$BROKER_PORT >master.out"
 
 # @TEST-EXEC: btest-bg-wait 60
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff clone/clone.out
@@ -13,7 +13,7 @@
 const broker_port: port &redef;
 redef exit_only_after_terminate = T;
 
-global h: opaque of BrokerStore::Handle;
+global h: opaque of Broker::Handle;
 global expected_key_count = 4;
 global key_count = 0;
 
@@ -21,7 +21,7 @@ global query_timeout = 30sec;
 
 function do_lookup(key: string)
 	{
-	when ( local res = BrokerStore::lookup(h, BrokerComm::data(key)) )
+	when ( local res = Broker::lookup(h, Broker::data(key)) )
 		{
 		++key_count;
 		print "lookup", key, res;
@@ -38,15 +38,15 @@ function do_lookup(key: string)
 
 event ready()
 	{
-	h = BrokerStore::create_clone("mystore");
+	h = Broker::create_clone("mystore");
 
-	when ( local res = BrokerStore::keys(h) )
+	when ( local res = Broker::keys(h) )
 		{
 		print "clone keys", res;
-		do_lookup(BrokerComm::refine_to_string(BrokerComm::vector_lookup(res$result, 0)));
-		do_lookup(BrokerComm::refine_to_string(BrokerComm::vector_lookup(res$result, 1)));
-		do_lookup(BrokerComm::refine_to_string(BrokerComm::vector_lookup(res$result, 2)));
-		do_lookup(BrokerComm::refine_to_string(BrokerComm::vector_lookup(res$result, 3)));
+		do_lookup(Broker::refine_to_string(Broker::vector_lookup(res$result, 0)));
+		do_lookup(Broker::refine_to_string(Broker::vector_lookup(res$result, 1)));
+		do_lookup(Broker::refine_to_string(Broker::vector_lookup(res$result, 2)));
+		do_lookup(Broker::refine_to_string(Broker::vector_lookup(res$result, 3)));
 		}
 	timeout query_timeout
 		{
@@ -57,9 +57,9 @@ event ready()
 
 event bro_init()
 	{
-	BrokerComm::enable();
-	BrokerComm::subscribe_to_events("bro/event/ready");
-	BrokerComm::listen(broker_port, "127.0.0.1");
+	Broker::enable();
+	Broker::subscribe_to_events("bro/event/ready");
+	Broker::listen(broker_port, "127.0.0.1");
 	}
 
 @TEST-END-FILE
@@ -71,42 +71,42 @@ global query_timeout = 15sec;
 const broker_port: port &redef;
 redef exit_only_after_terminate = T;
 
-global h: opaque of BrokerStore::Handle;
+global h: opaque of Broker::Handle;
 
-function dv(d: BrokerComm::Data): BrokerComm::DataVector
+function dv(d: Broker::Data): Broker::DataVector
 	{
-	local rval: BrokerComm::DataVector;
+	local rval: Broker::DataVector;
 	rval[0] = d;
 	return rval;
 	}
 
 global ready: event();
 
-event BrokerComm::outgoing_connection_broken(peer_address: string,
+event Broker::outgoing_connection_broken(peer_address: string,
                                        peer_port: port)
 	{
 	terminate();
 	}
 
-event BrokerComm::outgoing_connection_established(peer_address: string,
+event Broker::outgoing_connection_established(peer_address: string,
                                             peer_port: port,
                                             peer_name: string)
 	{
 	local myset: set[string] = {"a", "b", "c"};
 	local myvec: vector of string = {"alpha", "beta", "gamma"};
-	h = BrokerStore::create_master("mystore");
-	BrokerStore::insert(h, BrokerComm::data("one"), BrokerComm::data(110));
-	BrokerStore::insert(h, BrokerComm::data("two"), BrokerComm::data(223));
-	BrokerStore::insert(h, BrokerComm::data("myset"), BrokerComm::data(myset));
-	BrokerStore::insert(h, BrokerComm::data("myvec"), BrokerComm::data(myvec));
-	BrokerStore::increment(h, BrokerComm::data("one"));
-	BrokerStore::decrement(h, BrokerComm::data("two"));
-	BrokerStore::add_to_set(h, BrokerComm::data("myset"), BrokerComm::data("d"));
-	BrokerStore::remove_from_set(h, BrokerComm::data("myset"), BrokerComm::data("b"));
-	BrokerStore::push_left(h, BrokerComm::data("myvec"), dv(BrokerComm::data("delta")));
-	BrokerStore::push_right(h, BrokerComm::data("myvec"), dv(BrokerComm::data("omega")));
+	h = Broker::create_master("mystore");
+	Broker::insert(h, Broker::data("one"), Broker::data(110));
+	Broker::insert(h, Broker::data("two"), Broker::data(223));
+	Broker::insert(h, Broker::data("myset"), Broker::data(myset));
+	Broker::insert(h, Broker::data("myvec"), Broker::data(myvec));
+	Broker::increment(h, Broker::data("one"));
+	Broker::decrement(h, Broker::data("two"));
+	Broker::add_to_set(h, Broker::data("myset"), Broker::data("d"));
+	Broker::remove_from_set(h, Broker::data("myset"), Broker::data("b"));
+	Broker::push_left(h, Broker::data("myvec"), dv(Broker::data("delta")));
+	Broker::push_right(h, Broker::data("myvec"), dv(Broker::data("omega")));
 
-	when ( local res = BrokerStore::size(h) )
+	when ( local res = Broker::size(h) )
 		{ event ready(); }
 	timeout query_timeout
 		{
@@ -117,9 +117,9 @@ event BrokerComm::outgoing_connection_established(peer_address: string,
 
 event bro_init()
 	{
-	BrokerComm::enable();
-	BrokerComm::auto_event("bro/event/ready", ready);
-	BrokerComm::connect("127.0.0.1", broker_port, 1secs);
+	Broker::enable();
+	Broker::auto_event("bro/event/ready", ready);
+	Broker::connect("127.0.0.1", broker_port, 1secs);
 	}
 
 @TEST-END-FILE

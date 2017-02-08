@@ -1,0 +1,96 @@
+# @TEST-EXEC: bro -C -r $TRACES/var-services-std-ports.trace %INPUT >output
+# @TEST-EXEC: btest-diff output
+
+redef table_expire_interval = 1sec;
+
+global start_time: time;
+
+function time_past(): interval
+	{
+	return network_time() - start_time;
+	}
+
+function expire_nums(tbl: table[count] of string, idx: count): interval
+	{
+	print fmt("Expired Num: %s --> %s at %s", idx, tbl[idx], time_past());
+	return 0sec;
+	}
+
+function expire_nets(tbl: table[subnet] of string, idx: subnet): interval
+	{
+	print fmt("Expired Subnet: %s --> %s at %s", idx, tbl[idx], time_past());
+	return 0sec;
+	}
+
+global nums: table[count] of string &read_expire=8sec &expire_func=expire_nums;
+global nets: table[subnet] of string &read_expire=8sec &expire_func=expire_nets;
+global step: count;
+
+### Test ###
+
+function execute_test()
+	{
+	local num_a = nums[2];
+	local num_b = nums[3];
+
+	local net_a = nets[192.168.2.0/24];
+	#local net_b = nets[192.168.3.0/24];
+	local nets_b = "";
+	local nets_b_tbl: table[subnet] of string;
+
+	nets_b_tbl = filter_subnet_table(192.168.3.0/24, nets);
+	for ( idx in nets_b_tbl )
+		nets_b += cat(", ", nets_b_tbl[idx]);
+	nets_b = nets_b[2:];
+	
+	# writing resets expire as expected
+	#nets[192.168.2.0/24] = "accessed";
+	#nets[192.168.3.0/24] = "accessed";
+
+	print fmt("Accessed table nums: %s; %s", num_a, num_b);
+	print fmt("Accessed table nets: %s; %s", net_a, nets_b);
+	print fmt("Time: %s", time_past());
+	print "";
+	}
+
+### Events ###
+
+event bro_init()
+	{
+	step = 0;
+
+	nums[0] = "zero";
+	nums[1] = "one";
+	nums[2] = "two";
+	nums[3] = "three";
+	nums[4] = "four";
+
+	nets[192.168.0.0/16] = "zero";
+	nets[192.168.1.0/24] = "one";
+	nets[192.168.2.0/24] = "two";
+	nets[192.168.3.0/24] = "three";
+	nets[192.168.4.0/24] = "four";
+	}
+
+event new_packet(c: connection, p: pkt_hdr)
+	{
+	if ( step == 0 )
+		{
+		++step;
+		start_time = network_time();
+
+		print "All:";
+		for ( num in nums )
+			print fmt("%s --> %s", num, nums[num]);
+		for ( net in nets )
+			print fmt("%s --> %s", net, nets[net]);
+		print fmt("Time: %s", time_past());
+		print "";
+		}
+
+	if ( (time_past() > 7sec) && (step == 1) )
+		{
+		++step;
+		execute_test();
+		}
+	}

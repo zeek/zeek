@@ -32,19 +32,20 @@ namespace analyzer { namespace arp { class ARP_Analyzer; } }
 
 struct SessionStats {
 	int num_TCP_conns;
-	int num_UDP_conns;
-	int num_ICMP_conns;
-	int num_fragments;
-	int num_packets;
-	int num_timers;
-	int num_events_queued;
-	int num_events_dispatched;
-
 	int max_TCP_conns;
+	uint64 cumulative_TCP_conns;
+
+	int num_UDP_conns;
 	int max_UDP_conns;
+	uint64 cumulative_UDP_conns;
+
+	int num_ICMP_conns;
 	int max_ICMP_conns;
+	uint64 cumulative_ICMP_conns;
+
+	int num_fragments;
 	int max_fragments;
-	int max_timers;
+	uint64 num_packets;
 };
 
 // Drains and deletes a timer manager if it hasn't seen any advances
@@ -184,8 +185,7 @@ protected:
 
 	Connection* NewConn(HashKey* k, double t, const ConnID* id,
 			const u_char* data, int proto, uint32 flow_lable,
-			uint32 vlan, uint32 inner_vlan,
-			const EncapsulationStack* encapsulation);
+			const Packet* pkt, const EncapsulationStack* encapsulation);
 
 	// Check whether the tag of the current packet is consistent with
 	// the given connection.  Returns:
@@ -242,7 +242,7 @@ protected:
 	OSFingerprint* SYN_OS_Fingerprinter;
 	int build_backdoor_analyzer;
 	int dump_this_packet;	// if true, current packet should be recorded
-	int num_packets_processed;
+	uint64 num_packets_processed;
 	PacketProfiler* pkt_profiler;
 
 	// We may use independent timer managers for different sets of related

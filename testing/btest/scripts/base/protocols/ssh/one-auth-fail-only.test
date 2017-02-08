@@ -1,0 +1,17 @@
+# @TEST-EXEC: bro -C -r $TRACES/ssh/sshguess.pcap %INPUT | sort >output
+# @TEST-EXEC: btest-diff output
+
+event ssh_auth_attempted(c: connection, authenticated: bool)
+	{
+	print "auth_attempted", c$uid, authenticated;
+	}
+
+event ssh_auth_failed(c: connection)
+	{
+	print "auth_failed", c$uid;
+	}
+
+event ssh_auth_result(c: connection, result: bool, auth_attempts: count)
+	{
+	print "auth_result", c$uid, result, auth_attempts;
+	}

@@ -23,6 +23,7 @@ typedef enum {
 class BroFile;
 class IPAddr;
 class IPPrefix;
+class BroType;
 
 class ODesc {
 public:
@@ -80,7 +81,7 @@ public:
 	void Add(uint32 u);
 	void Add(int64 i);
 	void Add(uint64 u);
-	void Add(double d);
+	void Add(double d, bool no_exp=false);
 	void Add(const IPAddr& addr);
 	void Add(const IPPrefix& prefix);
 
@@ -140,6 +141,12 @@ public:
 
 	void Clear();
 
+	// Used to determine recursive types. Records push their types on here;
+	// if the same type (by address) is re-encountered, processing aborts.
+	bool PushType(const BroType* type);
+	bool PopType(const BroType* type);
+	bool FindType(const BroType* type);
+
 protected:
 	void Indent();
 
@@ -190,6 +197,8 @@ protected:
 	int do_flush;
 	int include_stats;
 	int indent_with_spaces;
+
+	std::set<const BroType*> encountered_types;
 };
 
 #endif

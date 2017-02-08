@@ -18,7 +18,7 @@ signature file-docx {
 }
 
 signature file-xlsx {
-	file-magic /^PK\x03\x04.{26}(\[Content_Types\]\.xml|_rels\x2f\.rels|xl\2f).*PK\x03\x04.{26}xl\x2f/
+	file-magic /^PK\x03\x04.{26}(\[Content_Types\]\.xml|_rels\x2f\.rels|xl\x2f).*PK\x03\x04.{26}xl\x2f/
 	file-mime "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 80
 }
 

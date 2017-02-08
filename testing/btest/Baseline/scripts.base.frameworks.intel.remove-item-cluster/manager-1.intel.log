@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	intel
+#open	2016-06-15-19-10-09
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	seen.indicator	seen.indicator_type	seen.where	seen.node	matched	sources	fuid	file_mime_type	file_desc
+#types	time	string	addr	port	addr	port	string	enum	enum	string	set[enum]	set[string]	string	string	string
+1466017809.810005	-	-	-	-	-	10.10.10.10	Intel::ADDR	Intel::IN_ANYWHERE	worker-1	Intel::ADDR	end	-	-	-
+#close	2016-06-15-19-10-19

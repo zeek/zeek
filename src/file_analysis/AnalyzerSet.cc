@@ -130,7 +130,11 @@ bool AnalyzerSet::Remove(file_analysis::Tag tag, HashKey* key)
 	        file_mgr->GetComponentName(tag).c_str());
 
 	a->Done();
-	delete a;
+
+	// We don't delete the analyzer object right here because the remove
+	// operation may execute at a time when it can still be accessed.
+	// Instead we let the file know to delete the analyzer later.
+	file->DoneWithAnalyzer(a);
 
 	return true;
 	}

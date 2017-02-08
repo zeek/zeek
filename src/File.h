@@ -11,11 +11,11 @@
 # ifdef NEED_KRB5_H
 #  include <krb5.h>
 # endif // NEED_KRB5_H
-extern "C" {
-# include "openssl/evp.h"
-# include "openssl/pem.h"
-# include "openssl/err.h"
-}
+
+// From OpenSSL. We forward-declare these here to avoid introducing a
+// dependency on OpenSSL headers just for this header file.
+typedef struct evp_pkey_st EVP_PKEY;
+typedef struct evp_cipher_ctx_st EVP_CIPHER_CTX;
 
 class BroType;
 class RotateTimer;
@@ -49,7 +49,7 @@ public:
 	// closed, not active, or whatever.
 	int Close();
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 
 	void SetRotateInterval(double secs);
 

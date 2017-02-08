@@ -99,8 +99,8 @@ event smtp_data%(c: connection, is_orig: bool, data: string%);
 ## .. bro:see:: smtp_data  smtp_request smtp_reply
 event smtp_unexpected%(c: connection, is_orig: bool, msg: string, detail: string%);
 
-## Generated if a connection switched to using TLS using STARTTLS. After this
-## event no more SMTP events will be raised for the connection. See the SSL
+## Generated if a connection switched to using TLS using STARTTLS or X-ANONYMOUSTLS.
+## After this event no more SMTP events will be raised for the connection. See the SSL
 ## analyzer for related SSL events, which will now be generated.
 ##
 ## c: The connection.

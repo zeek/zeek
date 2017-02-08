@@ -72,6 +72,7 @@ extern uint32 id_to_uint(const char* id);
 
 class RuleHdrTest {
 public:
+	// Note: Adapt RuleHdrTest::PrintDebug() when changing these enums.
 	enum Comp { LE, GE, LT, GT, EQ, NE };
 	enum Prot { NOPROT, IP, IPv6, ICMP, ICMPv6, TCP, UDP, NEXT, IPSrc, IPDst };
 
@@ -297,6 +298,9 @@ public:
 	struct Stats {
 		unsigned int matchers;	// # distinct RE matchers
 
+		// NFA states across all matchers.
+		unsigned int nfa_states;
+
 		// # DFA states across all matchers
 		unsigned int dfa_states;
 		unsigned int computed;	// # computed DFA state transitions
@@ -305,9 +309,6 @@ public:
 		// # cache hits (sampled, multiply by MOVE_TO_FRONT_SAMPLE_SIZE)
 		unsigned int hits;
 		unsigned int misses;	// # cache misses
-
-		// Average # NFA states per DFA state.
-		unsigned int avg_nfa_states;
 	};
 
 	Val* BuildRuleStateValue(const Rule* rule,

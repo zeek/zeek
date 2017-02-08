@@ -1,6 +1,6 @@
-@load base/frameworks/notice
 @load base/utils/addrs
 @load base/utils/directions-and-hosts
+@load base/utils/email
 
 module SMTP;
 
@@ -19,9 +19,9 @@ export {
 		trans_depth:       count           &log;
 		## Contents of the Helo header.
 		helo:              string          &log &optional;
-		## Contents of the From header.
+		## Email addresses found in the From header.
 		mailfrom:          string          &log &optional;
-		## Contents of the Rcpt header.
+		## Email addresses found in the Rcpt header.
 		rcptto:            set[string]     &log &optional;
 		## Contents of the Date header.
 		date:              string          &log &optional;
@@ -99,7 +99,7 @@ event bro_init() &priority=5
 	}
 
 function find_address_in_smtp_header(header: string): string
-{
+	{
 	local ips = extract_ip_addresses(header);
 	# If there are more than one IP address found, return the second.
 	if ( |ips| > 1 )
@@ -110,7 +110,7 @@ function find_address_in_smtp_header(header: string): string
 	# Otherwise, there wasn't an IP address found.
 	else
 		return "";
-}
+	}
 
 function new_smtp_log(c: connection): Info
 	{
@@ -165,7 +165,14 @@ event smtp_request(c: connection, is_orig: bool, command: string, arg: string) &
 		{
 		if ( ! c$smtp?$rcptto )
 			c$smtp$rcptto = set();
-		add c$smtp$rcptto[split_string1(arg, /:[[:blank:]]*/)[1]];
+
+		local rcptto_addrs = extract_email_addrs_set(arg);
+		for ( rcptto_addr in rcptto_addrs )
+			{
+			rcptto_addr = gsub(rcptto_addr, /ORCPT=rfc822;?/, "");
+			add c$smtp$rcptto[rcptto_addr];
+			}
+
 		c$smtp$has_client_activity = T;
 		}
 
@@ -174,8 +181,9 @@ event smtp_request(c: connection, is_orig: bool, command: string, arg: string) &
 		# Flush last message in case we didn't see the server's acknowledgement.
 		smtp_message(c);
 
-		local partially_done = split_string1(arg, /:[[:blank:]]*/)[1];
-		c$smtp$mailfrom = split_string1(partially_done, /[[:blank:]]?/)[0];
+		local mailfrom = extract_first_email_addr(arg);
+		if ( mailfrom != "" )
+			c$smtp$mailfrom = mailfrom;
 		c$smtp$has_client_activity = T;
 		}
 	}
@@ -236,9 +244,11 @@ event mime_one_header(c: connection, h: mime_header_rec) &priority=5
 		if ( ! c$smtp?$to )
 			c$smtp$to = set();
 
-		local to_parts = split_string(h$value, /[[:blank:]]*,[[:blank:]]*/);
-		for ( i in to_parts )
-			add c$smtp$to[to_parts[i]];
+		local to_email_addrs = split_mime_email_addresses(h$value);
+		for ( to_email_addr in to_email_addrs )
+			{
+			add c$smtp$to[to_email_addr];
+			}
 		}
 
 	else if ( h$name == "CC" )
@@ -246,16 +256,16 @@ event mime_one_header(c: connection, h: mime_header_rec) &priority=5
 		if ( ! c$smtp?$cc )
 			c$smtp$cc = set();
 
-		local cc_parts = split_string(h$value, /[[:blank:]]*,[[:blank:]]*/);
-		for ( i in cc_parts )
-			add c$smtp$cc[cc_parts[i]];
+		local cc_parts = split_mime_email_addresses(h$value);
+		for ( cc_part in cc_parts )
+			add c$smtp$cc[cc_part];
 		}
 
 	else if ( h$name == "X-ORIGINATING-IP" )
 		{
 		local addresses = extract_ip_addresses(h$value);
-		if ( 1 in addresses )
-			c$smtp$x_originating_ip = to_addr(addresses[1]);
+		if ( 0 in addresses )
+			c$smtp$x_originating_ip = to_addr(addresses[0]);
 		}
 
 	else if ( h$name == "X-MAILER" ||
@@ -308,9 +318,9 @@ function describe(rec: Info): string
 	if ( rec?$mailfrom && rec?$rcptto )
 		{
 		local one_to = "";
-		for ( to in rec$rcptto )
+		for ( email in rec$rcptto )
 			{
-			one_to = to;
+			one_to = email;
 			break;
 			}
 		local abbrev_subject = "";

@@ -4,8 +4,8 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as BroControl and Broccoli, come with
 their own ``CHANGES``.)
 
-Bro 2.5 (in progress)
-=====================
+Bro 2.5
+=======
 
 New Dependencies
 ----------------
@@ -13,18 +13,91 @@ New Dependencies
 - Bro now requires a compiler with C++11 support for building the
   source code.
 
-- Bro now requires the C++ Actor Framework, CAF, which must be
-  installed first. See http://actor-framework.org.
-
 - Bro now requires Python instead of Perl to compile the source code.
 
-- The pcap buffer size can set through the new option Pcap::bufsize.
+- When enabling Broker (which is disabled by default), Bro now requires
+  version 0.14 of the C++ Actor Framework.
 
 New Functionality
 -----------------
 
+- SMB analyzer. This is the rewrite that has been in development for
+  several years. The scripts are currently not loaded by default and
+  must be loaded manually by loading policy/protocols/smb. The next
+  release will load the smb scripts by default.
+
+   - Implements SMB1+2.
+   - Fully integrated with the file analysis framework so that files
+     transferred over SMB can be analyzed.
+   - Includes GSSAPI and NTLM analyzer and reimplements the DCE-RPC
+     analyzer.
+   - New logs: smb_cmd.log, smb_files.log, smb_mapping.log, ntlm.log,
+     and dce_rpc.log
+   - Not every possible SMB command or functionality is implemented, but
+     generally, file handling should work whenever files are transferred.
+     Please speak up on the mailing list if there is an obvious oversight.
+
+- Bro now includes the NetControl framework. The framework allows for easy
+  interaction of Bro with hard- and software switches, firewalls, etc.
+  New log files: netcontrol.log, netcontrol_catch_release.log,
+  netcontrol_drop.log, and netcontrol_shunt.log.
+
+- Bro now includes the OpenFlow framework which exposes the data structures
+  necessary to interface to OpenFlow capable hardware.
+
+- Bro's Intelligence Framework was refactored and new functionality
+  has been added:
+
+  - The framework now supports the new indicator type Intel::SUBNET.
+    As subnets are matched against seen addresses, the new field 'matched'
+    in intel.log was introduced to indicate which indicator type(s) caused
+    the hit.
+
+  - The new function remove() allows to delete intelligence items.
+
+  - The intel framework now supports expiration of intelligence items.
+    Expiration can be configured using the new Intel::item_expiration constant
+    and can be handled by using the item_expired() hook. The new script
+    do_expire.bro removes expired items.
+
+  - The new hook extend_match() allows extending the framework. The new
+    policy script whitelist.bro uses the hook to implement whitelisting.
+
+  - Intel notices are now suppressible and mails for intel notices now
+    list the identified services as well as the intel source.
+
+- There is a new file entropy analyzer for files.
+
+- Bro now supports the remote framebuffer protocol (RFB) that is used by
+  VNC servers for remote graphical displays.  New log file: rfb.log.
+
+- Bro now supports the Radiotap header for 802.11 frames.
+
+- Bro now has rudimentary IMAP and XMPP analyzers examining the initial
+  phases of the protocol. Right now these analyzers only identify
+  STARTTLS sessions, handing them over to TLS analysis. These analyzers
+  do not yet analyze any further IMAP/XMPP content.
+
+- New funtionality has been added to the SSL/TLS analyzer:
+
+  - Bro now supports (draft) TLS 1.3.
+
+  - The new event ssl_extension_signature_algorithm() allows access to the
+    TLS signature_algorithms extension that lists client supported signature
+    and hash algorithm pairs.
+
+  - The new event ssl_extension_key_share gives access to the supported named
+    groups in TLS 1.3.
+
+  - The new event ssl_application_data gives information about application data
+    that is exchanged before encryption fully starts. This is used to detect
+    when encryption starts in TLS 1.3.
+
 - Bro now tracks VLAN IDs. To record them inside the connection log,
   load protocols/conn/vlan-logging.bro.
+
+- A new dns_CAA_reply() event gives access to DNS Certification Authority
+  Authorization replies.
 
 - A new per-packet event raw_packet() provides access to layer 2
   information. Use with care, generating events per packet is
@@ -35,33 +108,251 @@ New Functionality
   argument that will be used for decoding errors into weird.log
   (instead of reporter.log).
 
+- A new get_current_packet_header() bif returns the headers of the current
+  packet.
+
+- Three new built-in functions for handling set[subnet] and table[subnet]:
+
+  - check_subnet(subnet, table) checks if a specific subnet is a member
+    of a set/table. This is different from the "in" operator, which always
+    performs a longest prefix match.
+
+  - matching_subnets(subnet, table) returns all subnets of the set or table
+    that contain the given subnet.
+
+  - filter_subnet_table(subnet, table) works like matching_subnets, but returns
+    a table containing all matching entries.
+
+- Several built-in functions for handling IP addresses and subnets were added:
+
+  - is_v4_subnet(subnet) checks whether a subnet specification is IPv4.
+
+  - is_v6_subnet(subnet) checks whether a subnet specification is IPv6.
+
+  - addr_to_subnet(addr) converts an IP address to a /32 subnet.
+
+  - subnet_to_addr(subnet) returns the IP address part of a subnet.
+
+  - subnet_width(subnet) returns the width of a subnet.
+
+- The IRC analyzer now recognizes StartTLS sessions and enables the SSL
+  analyzer for them.
+
+- The misc/stats.bro script is now loaded by default and logs more Bro
+  execution statistics to the stats.log file than it did previously. It
+  now also uses the standard Bro log format.
+
+- A set of new built-in functions for gathering execution statistics:
+
+      get_net_stats(), get_conn_stats(), get_proc_stats(),
+      get_event_stats(), get_reassembler_stats(), get_dns_stats(),
+      get_timer_stats(), get_file_analysis_stats(), get_thread_stats(),
+      get_gap_stats(), get_matcher_stats()
+
+- Two new functions haversine_distance() and haversine_distance_ip()
+  for calculating geographic distances. The latter function requires that Bro
+  be built with libgeoip.
+
+- Table expiration timeout expressions are evaluated dynamically as
+  timestamps are updated.
+
+- The pcap buffer size can be set through the new option Pcap::bufsize.
+
+- Input framework readers stream types Table and Event can now define a custom
+  event (specified by the new "error_ev" field) to receive error messages
+  emitted by the input stream. This can, e.g., be used to raise notices in
+  case errors occur when reading an important input source.
+
+- The logging framework now supports user-defined record separators,
+  renaming of column names, as well as extension data columns that can
+  be added to specific or all logfiles (e.g., to add new names).
+
+- The new "bro-config" script can be used to determine the Bro installation
+  paths.
+
+- New BroControl functionality in aux/broctl:
+
+  - There is a new node type "logger" that can be specified in
+    node.cfg (that file has a commented-out example).  The purpose of
+    this new node type is to receive logs from all nodes in a cluster
+    in order to reduce the load on the manager node.  However, if
+    there is no "logger" node, then the manager node will handle
+    logging as usual.
+
+  - The post-terminate script will send email if it fails to archive
+    any log files.  These mails can be turned off by changing the
+    value of the new BroControl option MailArchiveLogFail.
+
+  - Added the ability for "broctl deploy" to reload the BroControl
+    configuration (both broctl.cfg and node.cfg).  This happens
+    automatically if broctl detects any changes to those config files
+    since the last time the config was loaded.  Note that this feature
+    is relevant only when using the BroControl shell interactively.
+
+  - The BroControl plugin API has a new function "broctl_config".
+    This gives plugin authors the ability to add their own script code
+    to the autogenerated broctl-config.bro script.
+
+  - There is a new BroControl plugin for custom load balancing.  This
+    plugin can be used by setting "lb_method=custom" for your worker
+    nodes in node.cfg.  To support packet source plugins, it allows
+    configuration of a prefix and suffix for the interface name.
+
 - New Bro plugins in aux/plugins:
 
     - af_packet: Native AF_PACKET support.
+    - kafka : Log writer interfacing to Kafka.
     - myricom: Native Myricom SNF v3 support.
     - pf_ring: Native PF_RING support.
+    - postgresql: A PostgreSQL reader/writer.
     - redis: An experimental log writer for Redis.
-    - tcprs: An TCP-level analyzer detecting retransmissions, reordering, and more.
+    - tcprs: A TCP-level analyzer detecting retransmissions, reordering, and more.
 
 Changed Functionality
 ---------------------
 
-- Some script-level identifier have changed their names:
+- Log changes:
 
-      snaplen                  -> Pcap::snaplen
-      precompile_pcap_filter() -> Pcap::precompile_pcap_filter()
-      install_pcap_filter()    -> Pcap::install_pcap_filter()
-      pcap_error()             -> Pcap::pcap_error()
+    - Connections
 
+        The 'history' field gains two new flags: '^' indicates that
+        Bro heuristically flipped the direction of the connection.
+        't/T' indicates the first TCP payload retransmission from
+        originator or responder, respectively.
+
+    - Intelligence
+
+        New field 'matched' to indicate which indicator type(s) caused the hit.
+
+    - DNS
+
+        New 'rtt' field to indicate the round trip time between when a
+        request was sent and when a reply started.
+
+    - SMTP
+
+        New 'cc' field which includes the 'Cc' header from MIME
+        messages sent over SMTP.
+
+        Changes in 'mailfrom' and 'rcptto' fields to remove some
+        non-address cruft that will tend to be found.  The main
+        example is the change from ``"<user@domain>"`` to
+        ``"user@domain.com"``.
+
+    - HTTP
+
+        Removed 'filename' field (which was seldomly used).
+
+        New 'orig_filenames' and 'resp_filenames' fields which each
+        contain a vector of filenames seen in entities transferred.
+
+    - stats.log
+
+        The following fields have been added: active_tcp_conns,
+        active_udp_conns, active_icmp_conns, tcp_conns, udp_conns,
+        icmp_conns, timers, active_timers, files, active_files, dns_requests,
+        active_dns_requests, reassem_tcp_size, reassem_file_size,
+        reassem_frag_size, reassem_unknown_size.
+
+        The following fields have been renamed: lag -> pkt_lag.
+
+        The following fields have been removed: pkts_recv.
+
+- The BrokerComm and BrokerStore namespaces were renamed to Broker.
+  The Broker "print()" function was renamed to Broker::send_print(), and
+  the "event()" function was renamed to Broker::send_event().
+
+- The constant ``SSH::skip_processing_after_detection`` was removed. The
+  functionality was replaced by the new constant
+  ``SSH::disable_analyzer_after_detection``.
+
+- The ``net_stats()`` and ``resource_usage()`` functions have been
+  removed, and their functionality is now provided by the new execution
+  statistics functions (see above).
+
+- Some script-level identifiers have changed their names:
+
+      - snaplen                  -> Pcap::snaplen
+      - precompile_pcap_filter() -> Pcap::precompile_pcap_filter()
+      - install_pcap_filter()    -> Pcap::install_pcap_filter()
+      - pcap_error()             -> Pcap::error()
+
+- TCP analysis was changed to process connections without the initial
+  SYN packet. In the past, connections without a full handshake were
+  treated as partial, meaning that most application-layer analyzers
+  would refuse to inspect the payload. Now, Bro will consider these
+  connections as complete and all analyzers will process them normally.
+
+- The ``policy/misc/capture-loss.bro`` script is now loaded by default.
+
+- The traceroute detection script package ``policy/misc/detect-traceroute``
+  is no longer loaded by default.
+
+- Changed BroControl functionality in aux/broctl:
+
+  - The networks.cfg file now contains private IP space 172.16.0.0/12
+    by default.
+
+  - Upon startup, if broctl can't get IP addresses from the "ifconfig"
+    command for any reason, then broctl will now also try to use the
+    "ip" command.
+
+  - BroControl will now automatically search the Bro plugin directory
+    for BroControl plugins (in addition to all the other places where
+    BroControl searches).  This enables automatic loading of
+    BroControl plugins that are provided by a Bro plugin.
+
+  - Changed the default value of the StatusCmdShowAll option so that
+    the "broctl status" command runs faster.  This also means that
+    there is no longer a "Peers" column in the status output by
+    default.
+
+  - Users can now specify a more granular log expiration interval. The
+    BroControl option LogExpireInterval can be set to an arbitrary
+    time interval instead of just an integer number of days.  The time
+    interval is specified as an integer followed by a time unit:
+    "day", "hr", or "min".  For backward compatibility, an integer
+    value without a time unit is still interpreted as a number of
+    days.
+
+  - Changed the text of crash report emails.  Now crash reports tell
+    the user to forward the mail to the Bro team only when a backtrace
+    is included in the crash report.  If there is no backtrace, then
+    the crash report includes instructions on how to get backtraces
+    included in future crash reports.
+
+  - There is a new option SitePolicyScripts that replaces SitePolicyStandalone
+    (the old option is still available, but will be removed in the next
+    release).
+
+Removed Functionality
+---------------------
+
+- The app-stats scripts have been removed because they weren't
+  being maintained and they were becoming inaccurate (as a result, the
+  app_stats.log is also gone). They were also prone to needing more regular
+  updates as the internet changed and will likely be more relevant if
+  maintained externally.
+
+- The event ack_above_hole() has been removed, as it was a subset
+  of content_gap() and led to plenty of noise.
+
+- The command line options ``--analyze``, ``--set-seed``, and
+  ``--md5-hashkey`` have been removed.
+
+- The packaging scripts pkg/make-\*-packages are gone. They aren't
+  used anymore for the binary Bro packages that the project
+  distributes; haven't been supported in a while; and have
+  problems.
 
 Deprecated Functionality
 ------------------------
 
-    - The built-in functions decode_base64_custom() and
-      encode_base64_custom() are no longer needed and will be removed
-      in the future. Their functionality is now provided directly by
-      decode_base64() and encode_base64(), which take an optional
-      parameter to change the Base64 alphabet.
+- The built-in functions decode_base64_custom() and
+  encode_base64_custom() are no longer needed and will be removed
+  in the future. Their functionality is now provided directly by
+  decode_base64() and encode_base64(), which take an optional
+  parameter to change the Base64 alphabet.
 
 Bro 2.4
 =======
@@ -105,11 +396,11 @@ New Functionality
   sessions, supports v1, and introduces the intelligence type
   ``Intel::PUBKEY_HASH`` and location ``SSH::IN_SERVER_HOST_KEY``. The
   analayzer also generates a set of additional events
-  (``ssh_auth_successful``, ``ssh_auth_failed``, ``ssh_capabilities``,
-  ``ssh2_server_host_key``, ``ssh1_server_host_key``,
-  ``ssh_encrypted_packet``, ``ssh2_dh_server_params``,
-  ``ssh2_gss_error``, ``ssh2_ecc_key``). See next section for
-  incompatible SSH changes.
+  (``ssh_auth_successful``, ``ssh_auth_failed``, ``ssh_auth_attempted``,
+  ``ssh_auth_result``, ``ssh_capabilities``, ``ssh2_server_host_key``,
+  ``ssh1_server_host_key``, ``ssh_encrypted_packet``,
+  ``ssh2_dh_server_params``, ``ssh2_gss_error``, ``ssh2_ecc_key``). See
+  next section for incompatible SSH changes.
 
 - Bro's file analysis now supports reassembly of files that are not
   transferred/seen sequentially.  The default file reassembly buffer

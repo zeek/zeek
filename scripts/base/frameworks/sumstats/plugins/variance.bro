@@ -1,3 +1,5 @@
+##! Calculate the variance.
+
 @load ./average
 @load ../main
 
@@ -5,12 +7,12 @@ module SumStats;
 
 export {
 	redef enum Calculation += {
-		## Find the variance of the values.
+		## Calculate the variance of the values.
 		VARIANCE
 	};
 
 	redef record ResultVal += {
-		## For numeric data, this calculates the variance.
+		## For numeric data, this is the variance.
 		variance: double &optional;
 	};
 }

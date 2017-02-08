@@ -1,0 +1,2 @@
+error in /testing/btest/.tmp/scripts.base.frameworks.logging.field-extension-table/field-extension-table.bro, line 9: &log applied to a type that cannot be logged (&log)
+error in /testing/btest/.tmp/scripts.base.frameworks.logging.field-extension-table/field-extension-table.bro, line 18: syntax error, at or near "{"

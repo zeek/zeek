@@ -1,10 +1,12 @@
+##! Calculate the number of unique values.
+
 @load ../main
 
 module SumStats;
 
 export {
 	redef record Reducer += {
-		## Maximum number of unique elements to store.
+		## Maximum number of unique values to store.
 		unique_max: count &optional;
 	};
 
@@ -15,7 +17,7 @@ export {
 
 	redef record ResultVal += {
 		## If cardinality is being tracked, the number of unique
-		## items is tracked here.
+		## values is tracked here.
 		unique: count &default=0;
 	};
 }

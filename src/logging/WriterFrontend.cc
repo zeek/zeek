@@ -175,10 +175,20 @@ void WriterFrontend::Init(int arg_num_fields, const Field* const * arg_fields)
 
 	}
 
-void WriterFrontend::Write(int num_fields, Value** vals)
+void WriterFrontend::Write(int arg_num_fields, Value** vals)
 	{
 	if ( disabled )
+		{
+		DeleteVals(arg_num_fields, vals);
 		return;
+		}
+
+	if ( arg_num_fields != num_fields )
+		{
+		reporter->Warning("WriterFrontend %s expected %d fields in write, got %d. Skipping line.", name, num_fields, arg_num_fields);
+		DeleteVals(arg_num_fields, vals);
+		return;
+		}
 
 	if ( remote )
 		remote_serializer->SendLogWrite(stream,
@@ -189,7 +199,7 @@ void WriterFrontend::Write(int num_fields, Value** vals)
 
 	if ( ! backend )
 		{
-		DeleteVals(vals);
+		DeleteVals(arg_num_fields, vals);
 		return;
 		}
 
@@ -262,7 +272,7 @@ void WriterFrontend::Rotate(const char* rotated_path, double open, double close,
 		log_mgr->FinishedRotation(this, 0, 0, 0, 0, false, terminating);
 	}
 
-void WriterFrontend::DeleteVals(Value** vals)
+void WriterFrontend::DeleteVals(int num_fields, Value** vals)
 	{
 	// Note this code is duplicated in Manager::DeleteVals().
 	for ( int i = 0; i < num_fields; i++ )

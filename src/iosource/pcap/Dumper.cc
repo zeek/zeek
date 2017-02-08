@@ -7,7 +7,7 @@
 #include "../PktSrc.h"
 #include "../../Net.h"
 
-#include "const.bif.h"
+#include "pcap.bif.h"
 
 using namespace iosource::pcap;
 

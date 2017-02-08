@@ -18,13 +18,13 @@ extern "C" {
 }
 #endif
 
-#include <openssl/md5.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
 
 extern "C" void OPENSSL_add_all_algorithms_conf(void);
 
 #include "bsd-getopt-long.h"
 #include "input.h"
-#include "ScriptAnaly.h"
 #include "DNS_Mgr.h"
 #include "Frame.h"
 #include "Scope.h"
@@ -115,7 +115,6 @@ ProfileLogger* profiling_logger = 0;
 ProfileLogger* segment_logger = 0;
 SampleLogger* sample_logger = 0;
 int signal_val = 0;
-int do_notice_analysis = 0;
 extern char version[];
 char* command_line_policy = 0;
 vector<string> params;
@@ -183,7 +182,6 @@ void usage()
 	fprintf(stderr, "    -v|--version                   | print version and exit\n");
 	fprintf(stderr, "    -w|--writefile <writefile>     | write to given tcpdump file\n");
 	fprintf(stderr, "    -x|--print-state <file.bst>    | print contents of state file\n");
-	fprintf(stderr, "    -z|--analyze <analysis>        | run the specified policy file analysis\n");
 #ifdef DEBUG
 	fprintf(stderr, "    -B|--debug <dbgstreams>        | Enable debugging output for selected streams ('-B help' for help)\n");
 #endif
@@ -192,8 +190,6 @@ void usage()
 	fprintf(stderr, "    -G|--load-seeds <file>         | load seeds from given file\n");
 	fprintf(stderr, "    -H|--save-seeds <file>         | save seeds to given file\n");
 	fprintf(stderr, "    -I|--print-id <ID name>        | print out given ID\n");
-	fprintf(stderr, "    -J|--set-seed <seed>           | set the random number seed\n");
-	fprintf(stderr, "    -K|--md5-hashkey <hashkey>     | set key for MD5-keyed hashing\n");
 	fprintf(stderr, "    -N|--print-plugins             | print available plugins and exit (-NN for verbose)\n");
 	fprintf(stderr, "    -P|--prime-dns                 | prime DNS\n");
 	fprintf(stderr, "    -Q|--time                      | print execution time summary to stderr\n");
@@ -207,9 +203,6 @@ void usage()
 #ifdef USE_PERFTOOLS_DEBUG
 	fprintf(stderr, "    -m|--mem-leaks                 | show leaks  [perftools]\n");
 	fprintf(stderr, "    -M|--mem-profile               | record heap [perftools]\n");
-#endif
-#if 0 // Broken
-	fprintf(stderr, "    -X <file.bst>                  | print contents of state file as XML\n");
 #endif
 	fprintf(stderr, "    --pseudo-realtime[=<speedup>]  | enable pseudo-realtime for performance evaluation (default 1)\n");
 
@@ -461,9 +454,7 @@ int main(int argc, char** argv)
 	char* debug_streams = 0;
 	int parse_only = false;
 	int bare_mode = false;
-	int seed = 0;
 	int dump_cfg = false;
-	int to_xml = 0;
 	int do_watchdog = 0;
 	int override_ignore_checksums = 0;
 	int rule_debug = 0;
@@ -488,13 +479,10 @@ int main(int argc, char** argv)
 		{"writefile",		required_argument,	0,	'w'},
 		{"version",		no_argument,		0,	'v'},
 		{"print-state",		required_argument,	0,	'x'},
-		{"analyze",		required_argument,	0,	'z'},
 		{"no-checksums",	no_argument,		0,	'C'},
 		{"force-dns",		no_argument,		0,	'F'},
 		{"load-seeds",		required_argument,	0,	'G'},
 		{"save-seeds",		required_argument,	0,	'H'},
-		{"set-seed",		required_argument,	0,	'J'},
-		{"md5-hashkey",		required_argument,	0,	'K'},
 		{"print-plugins",	no_argument,		0,	'N'},
 		{"prime-dns",		no_argument,		0,	'P'},
 		{"time",		no_argument,		0,	'Q'},
@@ -548,7 +536,7 @@ int main(int argc, char** argv)
 	opterr = 0;
 
 	char opts[256];
-	safe_strncpy(opts, "B:e:f:G:H:I:i:J:K:n:p:R:r:s:T:t:U:w:x:X:z:CFNPQSWabdghv",
+	safe_strncpy(opts, "B:e:f:G:H:I:i:n:p:R:r:s:T:t:U:w:x:X:CFNPQSWabdghv",
 		     sizeof(opts));
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -621,16 +609,6 @@ int main(int argc, char** argv)
 			bst_file = optarg;
 			break;
 
-		case 'z':
-			if ( streq(optarg, "notice") )
-				do_notice_analysis = 1;
-			else
-				{
-				fprintf(stderr, "Unknown analysis type: %s\n", optarg);
-				exit(1);
-				}
-			break;
-
 		case 'B':
 			debug_streams = optarg;
 			break;
@@ -661,15 +639,6 @@ int main(int argc, char** argv)
 
 		case 'I':
 			id_name = optarg;
-			break;
-
-		case 'J':
-			seed = atoi(optarg);
-			break;
-
-		case 'K':
-			MD5((const u_char*) optarg, strlen(optarg), shared_hmac_md5_key);
-			hmac_key_set = 1;
 			break;
 
 		case 'N':
@@ -720,13 +689,6 @@ int main(int argc, char** argv)
 			break;
 #endif
 
-#if 0 // broken
-		case 'X':
-			bst_file = optarg;
-			to_xml = 1;
-			break;
-#endif
-
 #ifdef USE_IDMEF
 		case 'n':
 			fprintf(stderr, "Using IDMEF XML DTD from %s\n", optarg);
@@ -756,10 +718,13 @@ int main(int argc, char** argv)
 
 #ifdef DEBUG
 	if ( debug_streams )
+		{
 		debug_logger.EnableStreams(debug_streams);
+		debug_logger.OpenDebugLog("debug");
+		}
 #endif
 
-	init_random_seed(seed, (seed_load_file && *seed_load_file ? seed_load_file : 0) , seed_save_file);
+	init_random_seed((seed_load_file && *seed_load_file ? seed_load_file : 0) , seed_save_file);
 	// DEBUG_MSG("HMAC key: %s\n", md5_digest_print(shared_hmac_md5_key));
 	init_hash_function();
 
@@ -1027,23 +992,12 @@ int main(int argc, char** argv)
 	// Just read state file from disk.
 	if ( bst_file )
 		{
-		if ( to_xml )
-			{
-			BinarySerializationFormat* b =
-				new BinarySerializationFormat();
-			XMLSerializationFormat* x = new XMLSerializationFormat();
-			ConversionSerializer s(b, x);
-			s.Convert(bst_file, "/dev/stdout");
-			}
-		else
-			{
-			FileSerializer s;
-			UnserialInfo info(&s);
-			info.print = stdout;
-			info.install_uniques = true;
-			if ( ! s.Read(&info, bst_file) )
-				reporter->Error("Failed to read events from %s\n", bst_file);
-			}
+		FileSerializer s;
+		UnserialInfo info(&s);
+		info.print = stdout;
+		info.install_uniques = true;
+		if ( ! s.Read(&info, bst_file) )
+			reporter->Error("Failed to read events from %s\n", bst_file);
 
 		exit(0);
 		}
@@ -1117,9 +1071,6 @@ int main(int argc, char** argv)
 
 	delete alive_handlers;
 
-	if ( do_notice_analysis )
-		notice_analysis();
-
 	if ( stmts )
 		{
 		stmt_flow_type flow;
@@ -1176,8 +1127,8 @@ int main(int argc, char** argv)
 
 		double time_net_start = current_time(true);;
 
-		unsigned int mem_net_start_total;
-		unsigned int mem_net_start_malloced;
+		uint64 mem_net_start_total;
+		uint64 mem_net_start_malloced;
 
 		if ( time_bro )
 			{
@@ -1185,7 +1136,7 @@ int main(int argc, char** argv)
 
 			fprintf(stderr, "# initialization %.6f\n", time_net_start - time_start);
 
-			fprintf(stderr, "# initialization %uM/%uM\n",
+			fprintf(stderr, "# initialization %" PRIu64 "M/%" PRIu64 "M\n",
 				mem_net_start_total / 1024 / 1024,
 				mem_net_start_malloced / 1024 / 1024);
 			}
@@ -1194,8 +1145,8 @@ int main(int argc, char** argv)
 
 		double time_net_done = current_time(true);;
 
-		unsigned int mem_net_done_total;
-		unsigned int mem_net_done_malloced;
+		uint64 mem_net_done_total;
+		uint64 mem_net_done_malloced;
 
 		if ( time_bro )
 			{
@@ -1204,7 +1155,7 @@ int main(int argc, char** argv)
 			fprintf(stderr, "# total time %.6f, processing %.6f\n",
 				time_net_done - time_start, time_net_done - time_net_start);
 
-			fprintf(stderr, "# total mem %uM/%uM, processing %uM/%uM\n",
+			fprintf(stderr, "# total mem %" PRId64 "M/%" PRId64 "M, processing %" PRId64 "M/%" PRId64 "M\n",
 				mem_net_done_total / 1024 / 1024,
 				mem_net_done_malloced / 1024 / 1024,
 				(mem_net_done_total - mem_net_start_total) / 1024 / 1024,

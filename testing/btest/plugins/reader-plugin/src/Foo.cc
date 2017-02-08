@@ -45,7 +45,10 @@ string Foo::RandomString(const int len)
 	"abcdefghijklmnopqrstuvwxyz";
 
 	for (int i = 0; i < len; ++i)
-		s[i] = values[random() / (RAND_MAX / sizeof(values))];
+		// bro_random is not thread-safe; as we are only using one simultaneous thread
+		// here, this should not matter in this case. If this test ever starts showing
+		// random errors, this might be the culprit.
+		s[i] = values[bro_random() / (RAND_MAX / sizeof(values))];
 
 	return s;
 	}

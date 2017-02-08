@@ -1,0 +1,11 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	ntlm
+#open	2016-10-08-03-48-34
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	username	hostname	domainname	success	status
+#types	time	string	addr	port	addr	port	string	string	string	bool	string
+1056991898.902392	C37jN32gN3y3AZzyf6	192.168.0.173	1068	192.168.0.2	4997	ALeonard	ALEONARD-XP	CNAMIS	-	-
+1056991899.594334	CFLRIC3zaTU1loLGxh	192.168.0.173	1073	192.168.0.2	1032	ALeonard	ALEONARD-XP	CNAMIS	-	-
+#close	2016-10-08-03-48-34

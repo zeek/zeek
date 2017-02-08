@@ -437,7 +437,7 @@ bool Serializer::UnserializeCall(UnserialInfo* info)
 
 bool Serializer::UnserializeStateAccess(UnserialInfo* info)
 	{
-	SetErrorDescr("unserializing state acess");
+	SetErrorDescr("unserializing state access");
 
 	StateAccess* s = StateAccess::Unserialize(info);
 
@@ -973,69 +973,6 @@ void FileSerializer::GotConnection(Connection* c)
 void FileSerializer::GotPacket(Packet* p)
 	{
 	// Do nothing.
-	delete p;
-	}
-
-ConversionSerializer::ConversionSerializer(SerializationFormat* in,
-						SerializationFormat* out)
-: FileSerializer(in)
-	{
-	serout = new FileSerializer(out);
-	}
-
-ConversionSerializer::~ConversionSerializer()
-	{
-	delete serout;
-	}
-
-bool ConversionSerializer::Convert(const char* file_in, const char* file_out)
-	{
-	reporter->InternalError("Error: Printing as XML is broken.");
-
-	if ( ! serout->Open(file_out, true) )
-		return false;
-
-	UnserialInfo info_in(this);
-	if ( ! Read(&info_in, file_in) )
-		return false;
-
-	if ( ! serout->Close() )
-		return false;
-
-	return true;
-	}
-
-void ConversionSerializer::GotEvent(const char* name, double time,
-					EventHandlerPtr event, val_list* args)
-	{
-	SerialInfo info(serout);
-	serout->Serialize(&info, name, args);
-	delete_vals(args);
-	}
-
-void ConversionSerializer::GotFunctionCall(const char* name, double time,
-					Func* func, val_list* args)
-	{
-	SerialInfo info(serout);
-	serout->Serialize(&info, name, args);
-	delete_vals(args);
-	}
-
-void ConversionSerializer::GotID(ID* id, Val* val)
-	{
-	reporter->Warning("ConversionSerializer::GotID not implemented");
-	Unref(id);
-	}
-
-void ConversionSerializer::GotStateAccess(StateAccess* s)
-	{
-	reporter->Warning("ConversionSerializer::GotID not implemented");
-	delete s;
-	}
-
-void ConversionSerializer::GotPacket(Packet* p)
-	{
-	reporter->Warning("ConversionSerializer::GotPacket not implemented");
 	delete p;
 	}
 

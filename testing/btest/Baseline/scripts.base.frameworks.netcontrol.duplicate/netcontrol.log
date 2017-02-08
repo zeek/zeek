@@ -1,0 +1,15 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	netcontrol
+#open	2016-03-09-23-06-58
+#fields	ts	rule_id	category	cmd	state	action	target	entity_type	entity	mod	msg	priority	expire	location	plugin
+#types	time	string	enum	string	enum	string	enum	string	string	string	string	int	interval	string	string
+0.000000	-	NetControl::MESSAGE	-	-	-	-	-	-	-	activating plugin with priority 0	-	-	-	Debug-All
+0.000000	-	NetControl::MESSAGE	-	-	-	-	-	-	-	activation finished	-	-	-	Debug-All
+0.000000	-	NetControl::MESSAGE	-	-	-	-	-	-	-	plugin initialization done	-	-	-	-
+1394747126.854788	2	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	192.168.4.149/32	-	-	0	0.000000	-	Debug-All
+1394747126.854788	2	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	192.168.4.149/32	-	-	0	0.000000	-	Debug-All
+1394747129.505358	3	NetControl::RULE	-	NetControl::FAILED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	192.168.4.149/32	-	discarded duplicate insertion	0	0.000000	-	-
+#close	2016-03-09-23-06-58

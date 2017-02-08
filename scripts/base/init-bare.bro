@@ -39,6 +39,13 @@ type count_set: set[count];
 ##    directly and then remove this alias.
 type index_vec: vector of count;
 
+## A vector of subnets.
+##
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
+type subnet_vec: vector of subnet;
+
 ## A vector of any, used by some builtin functions to store a list of varying
 ## types.
 ##
@@ -118,6 +125,18 @@ type conn_id: record {
 	orig_p: port;	##< The originator's port number.
 	resp_h: addr;	##< The responder's IP address.
 	resp_p: port;	##< The responder's port number.
+} &log;
+
+## The identifying 4-tuple of a uni-directional flow.
+##
+## .. note:: It's actually a 5-tuple: the transport-layer protocol is stored as
+##    part of the port values, `src_p` and `dst_p`, and can be extracted from
+##    them with :bro:id:`get_port_transport_proto`.
+type flow_id : record {
+	src_h: addr;	##< The source IP address.
+	src_p: port;	##< The source port number.
+	dst_h: addr;	##< The destination IP address.
+	dst_p: port;	##< The desintation port number.
 } &log;
 
 ## Specifics about an ICMP conversation. ICMP events typically pass this in
@@ -310,6 +329,8 @@ type endpoint: record {
 	## The current IPv6 flow label that the connection endpoint is using.
 	## Always 0 if the connection is over IPv4.
 	flow_label: count;
+	## The link-layer address seen in the first packet (if available).
+	l2_addr: string &optional;
 };
 
 ## A connection. This is Bro's basic connection type describing IP- and
@@ -346,10 +367,10 @@ type connection: record {
 	## handled and reassigns this field to the new encapsulation.
 	tunnel: EncapsulatingConnVector &optional;
 
-	## The outer VLAN, if applicable, for this connection.
+	## The outer VLAN, if applicable for this connection.
 	vlan: int &optional;
 
-	## The inner VLAN, if applicable, for this connection.
+	## The inner VLAN, if applicable for this connection.
 	inner_vlan: int &optional;
 };
 
@@ -374,9 +395,10 @@ type fa_file: record {
 	## extracted as part of the file analysis.
 	parent_id: string &optional;
 
-	## An identification of the source of the file data.  E.g. it may be
+	## An identification of the source of the file data. E.g. it may be
 	## a network protocol over which it was transferred, or a local file
 	## path which was read, or some other input source.
+	## Examples are: "HTTP", "SMTP", "IRC_DATA", or the file path.
 	source: string;
 
 	## If the source of this file is a network connection, this field
@@ -442,7 +464,7 @@ type SYN_packet: record {
 
 ## Packet capture statistics.  All counts are cumulative.
 ##
-## .. bro:see:: net_stats
+## .. bro:see:: get_net_stats
 type NetStats: record {
 	pkts_recvd:   count &default=0;	##< Packets received by Bro.
 	pkts_dropped: count &default=0;	##< Packets reported dropped by the system.
@@ -455,64 +477,127 @@ type NetStats: record {
 	bytes_recvd:  count &default=0;	##< Bytes received by Bro.
 };
 
-## Statistics about Bro's resource consumption.
+type ConnStats: record {
+	total_conns: count;           ##<
+	current_conns: count;         ##<
+	current_conns_extern: count;  ##<
+	sess_current_conns: count;    ##<
+
+	num_packets: count;
+	num_fragments: count;
+	max_fragments: count;
+
+	num_tcp_conns: count;         ##< Current number of TCP connections in memory.
+	max_tcp_conns: count;         ##< Maximum number of concurrent TCP connections so far.
+	cumulative_tcp_conns: count;  ##< Total number of TCP connections so far.
+
+	num_udp_conns: count;         ##< Current number of UDP flows in memory.
+	max_udp_conns: count;         ##< Maximum number of concurrent UDP flows so far.
+	cumulative_udp_conns: count;  ##< Total number of UDP flows so far.
+
+	num_icmp_conns: count;        ##< Current number of ICMP flows in memory.
+	max_icmp_conns: count;        ##< Maximum number of concurrent ICMP flows so far.
+	cumulative_icmp_conns: count; ##< Total number of ICMP flows so far.
+
+	killed_by_inactivity: count;
+};
+
+## Statistics about Bro's process.
 ##
-## .. bro:see:: resource_usage
+## .. bro:see:: get_proc_stats
 ##
 ## .. note:: All process-level values refer to Bro's main process only, not to
 ##    the child process it spawns for doing communication.
-type bro_resources: record {
-	version: string;	##< Bro version string.
-	debug: bool;	##< True if compiled with --enable-debug.
-	start_time: time;	##< Start time of process.
-	real_time: interval;	##< Elapsed real time since Bro started running.
-	user_time: interval;	##< User CPU seconds.
-	system_time: interval;	##< System CPU seconds.
-	mem: count;		##< Maximum memory consumed, in KB.
-	minor_faults: count;	##< Page faults not requiring actual I/O.
-	major_faults: count;	##< Page faults requiring actual I/O.
-	num_swap: count;	##< Times swapped out.
-	blocking_input: count;	##< Blocking input operations.
-	blocking_output: count;	##< Blocking output operations.
-	num_context: count;	##< Number of involuntary context switches.
+type ProcStats: record {
+	debug: bool;                  ##< True if compiled with --enable-debug.
+	start_time: time;             ##< Start time of process.
+	real_time: interval;          ##< Elapsed real time since Bro started running.
+	user_time: interval;          ##< User CPU seconds.
+	system_time: interval;        ##< System CPU seconds.
+	mem: count;                   ##< Maximum memory consumed, in KB.
+	minor_faults: count;          ##< Page faults not requiring actual I/O.
+	major_faults: count;          ##< Page faults requiring actual I/O.
+	num_swap: count;              ##< Times swapped out.
+	blocking_input: count;        ##< Blocking input operations.
+	blocking_output: count;       ##< Blocking output operations.
+	num_context: count;           ##< Number of involuntary context switches.
+};
 
-	num_TCP_conns: count;	##< Current number of TCP connections in memory.
-	num_UDP_conns: count;	##< Current number of UDP flows in memory.
-	num_ICMP_conns: count;	##< Current number of ICMP flows in memory.
-	num_fragments: count;	##< Current number of fragments pending reassembly.
-	num_packets: count;	##< Total number of packets processed to date.
-	num_timers: count;	##< Current number of pending timers.
-	num_events_queued: count;	##< Total number of events queued so far.
-	num_events_dispatched: count;	##< Total number of events dispatched so far.
-
-	max_TCP_conns: count;	##< Maximum number of concurrent TCP connections so far.
-	max_UDP_conns: count;	##< Maximum number of concurrent UDP connections so far.
-	max_ICMP_conns: count;	##< Maximum number of concurrent ICMP connections so far.
-	max_fragments: count;	##< Maximum number of concurrently buffered fragments so far.
-	max_timers: count;	##< Maximum number of concurrent timers pending so far.
+type EventStats: record {
+	queued:     count; ##< Total number of events queued so far.
+	dispatched: count; ##< Total number of events dispatched so far.
 };
 
 ## Summary statistics of all regular expression matchers.
 ##
+## .. bro:see:: get_reassembler_stats
+type ReassemblerStats: record {
+	file_size:    count;  ##< Byte size of File reassembly tracking.
+	frag_size:    count;  ##< Byte size of Fragment reassembly tracking.
+	tcp_size:     count;  ##< Byte size of TCP reassembly tracking.
+	unknown_size: count;  ##< Byte size of reassembly tracking for unknown purposes.
+};
+
+## Statistics of all regular expression matchers.
+##
 ## .. bro:see:: get_matcher_stats
-type matcher_stats: record {
-	matchers: count;	##< Number of distinct RE matchers.
-	dfa_states: count;	##< Number of DFA states across all matchers.
-	computed: count;	##< Number of computed DFA state transitions.
-	mem: count;		##< Number of bytes used by DFA states.
-	hits: count;		##< Number of cache hits.
-	misses: count;		##< Number of cache misses.
-	avg_nfa_states: count;	##< Average number of NFA states across all matchers.
+type MatcherStats: record {
+	matchers: count;    ##< Number of distinct RE matchers.
+	nfa_states: count;  ##< Number of NFA states across all matchers.
+	dfa_states: count;  ##< Number of DFA states across all matchers.
+	computed: count;    ##< Number of computed DFA state transitions.
+	mem: count;         ##< Number of bytes used by DFA states.
+	hits: count;        ##< Number of cache hits.
+	misses: count;      ##< Number of cache misses.
+};
+
+## Statistics of timers.
+##
+## .. bro:see:: get_timer_stats
+type TimerStats: record {
+	current:    count; ##< Current number of pending timers.
+	max:        count; ##< Maximum number of concurrent timers pending so far.
+	cumulative: count; ##< Cumulative number of timers scheduled.
+};
+
+## Statistics of file analysis.
+##
+## .. bro:see:: get_file_analysis_stats
+type FileAnalysisStats: record {
+	current:    count; ##< Current number of files being analyzed.
+	max:        count; ##< Maximum number of concurrent files so far.
+	cumulative: count; ##< Cumulative number of files analyzed.
+};
+
+## Statistics related to Bro's active use of DNS.  These numbers are
+## about Bro performing DNS queries on it's own, not traffic
+## being seen.
+##
+## .. bro:see:: get_dns_stats
+type DNSStats: record {
+	requests:         count; ##< Number of DNS requests made
+	successful:       count; ##< Number of successful DNS replies.
+	failed:           count; ##< Number of DNS reply failures.
+	pending:          count; ##< Current pending queries.
+	cached_hosts:     count; ##< Number of cached hosts.
+	cached_addresses: count; ##< Number of cached addresses.
 };
 
 ## Statistics about number of gaps in TCP connections.
 ##
-## .. bro:see:: gap_report get_gap_summary
-type gap_info: record {
-	ack_events: count;	##< How many ack events *could* have had gaps.
-	ack_bytes: count;	##< How many bytes those covered.
-	gap_events: count;	##< How many *did* have gaps.
-	gap_bytes: count;	##< How many bytes were missing in the gaps.
+## .. bro:see:: get_gap_stats
+type GapStats: record {
+	ack_events: count;  ##< How many ack events *could* have had gaps.
+	ack_bytes: count;   ##< How many bytes those covered.
+	gap_events: count;  ##< How many *did* have gaps.
+	gap_bytes: count;   ##< How many bytes were missing in the gaps.
+};
+
+## Statistics about threads.
+##
+## .. bro:see:: get_thread_stats
+type ThreadStats: record {
+	num_threads: count;
 };
 
 ## Deprecated.
@@ -622,7 +707,7 @@ global capture_filters: table[string] of string &redef;
 global restrict_filters: table[string] of string &redef;
 
 ## Enum type identifying dynamic BPF filters. These are used by
-## :bro:see:`precompile_pcap_filter` and :bro:see:`precompile_pcap_filter`.
+## :bro:see:`Pcap::precompile_pcap_filter` and :bro:see:`Pcap::precompile_pcap_filter`.
 type PcapFilterID: enum { None };
 
 ## Deprecated.
@@ -773,71 +858,6 @@ type entropy_test_result: record {
 	monte_carlo_pi: double;	##< Monte-carlo value for pi.
 	serial_correlation: double;	##< Serial correlation coefficient.
 };
-
-# Prototypes of Bro built-in functions.
-@load base/bif/strings.bif
-@load base/bif/bro.bif
-@load base/bif/reporter.bif
-
-## Deprecated. This is superseded by the new logging framework.
-global log_file_name: function(tag: string): string &redef;
-
-## Deprecated. This is superseded by the new logging framework.
-global open_log_file: function(tag: string): file &redef;
-
-## Specifies a directory for Bro to store its persistent state. All globals can
-## be declared persistent via the :bro:attr:`&persistent` attribute.
-const state_dir = ".state" &redef;
-
-## Length of the delays inserted when storing state incrementally. To avoid
-## dropping packets when serializing larger volumes of persistent state to
-## disk, Bro interleaves the operation with continued packet processing.
-const state_write_delay = 0.01 secs &redef;
-
-global done_with_network = F;
-event net_done(t: time) { done_with_network = T; }
-
-function log_file_name(tag: string): string
-	{
-	local suffix = getenv("BRO_LOG_SUFFIX") == "" ? "log" : getenv("BRO_LOG_SUFFIX");
-	return fmt("%s.%s", tag, suffix);
-	}
-
-function open_log_file(tag: string): file
-	{
-	return open(log_file_name(tag));
-	}
-
-## Internal function.
-function add_interface(iold: string, inew: string): string
-	{
-	if ( iold == "" )
-		return inew;
-	else
-		return fmt("%s %s", iold, inew);
-	}
-
-## Network interfaces to listen on. Use ``redef interfaces += "eth0"`` to
-## extend.
-global interfaces = "" &add_func = add_interface;
-
-## Internal function.
-function add_signature_file(sold: string, snew: string): string
-	{
-	if ( sold == "" )
-		return snew;
-	else
-		return cat(sold, " ", snew);
-	}
-
-## Signature files to read. Use ``redef signature_files  += "foo.sig"`` to
-## extend. Signature files added this way will be searched relative to
-## ``BROPATH``.  Using the ``@load-sigs`` directive instead is preferred
-## since that can search paths relative to the current script.
-global signature_files = "" &add_func = add_signature_file;
-
-## ``p0f`` fingerprint file to use. Will be searched relative to ``BROPATH``.
-const passive_fingerprint_file = "base/misc/p0f.fp" &redef;
 
 # TCP values for :bro:see:`endpoint` *state* field.
 # todo:: these should go into an enum to make them autodoc'able.
@@ -1109,7 +1129,7 @@ const CONTENTS_BOTH = 3;	##< Record both originator and responder contents.
 # Values for code of ICMP *unreachable* messages. The list is not exhaustive.
 # todo:: these should go into an enum to make them autodoc'able
 #
-# .. bro:see:: :bro:see:`icmp_unreachable `
+# .. bro:see:: icmp_unreachable
 const ICMP_UNREACH_NET = 0;	##< Network unreachable.
 const ICMP_UNREACH_HOST = 1;	##< Host unreachable.
 const ICMP_UNREACH_PROTOCOL = 2;	##< Protocol unreachable.
@@ -1523,7 +1543,7 @@ type l2_hdr: record {
 };
 
 ## A raw packet header, consisting of L2 header and everything in
-## :bro:id:`pkt_hdr`. .
+## :bro:see:`pkt_hdr`. .
 ##
 ## .. bro:see:: raw_packet pkt_hdr
 type raw_pkt_hdr: record {
@@ -1748,6 +1768,71 @@ type gtp_delete_pdp_ctx_response_elements: record {
 	cause: gtp_cause;
 	ext:   gtp_private_extension &optional;
 };
+
+# Prototypes of Bro built-in functions.
+@load base/bif/strings.bif
+@load base/bif/bro.bif
+@load base/bif/reporter.bif
+
+## Deprecated. This is superseded by the new logging framework.
+global log_file_name: function(tag: string): string &redef;
+
+## Deprecated. This is superseded by the new logging framework.
+global open_log_file: function(tag: string): file &redef;
+
+## Specifies a directory for Bro to store its persistent state. All globals can
+## be declared persistent via the :bro:attr:`&persistent` attribute.
+const state_dir = ".state" &redef;
+
+## Length of the delays inserted when storing state incrementally. To avoid
+## dropping packets when serializing larger volumes of persistent state to
+## disk, Bro interleaves the operation with continued packet processing.
+const state_write_delay = 0.01 secs &redef;
+
+global done_with_network = F;
+event net_done(t: time) { done_with_network = T; }
+
+function log_file_name(tag: string): string
+	{
+	local suffix = getenv("BRO_LOG_SUFFIX") == "" ? "log" : getenv("BRO_LOG_SUFFIX");
+	return fmt("%s.%s", tag, suffix);
+	}
+
+function open_log_file(tag: string): file
+	{
+	return open(log_file_name(tag));
+	}
+
+## Internal function.
+function add_interface(iold: string, inew: string): string
+	{
+	if ( iold == "" )
+		return inew;
+	else
+		return fmt("%s %s", iold, inew);
+	}
+
+## Network interfaces to listen on. Use ``redef interfaces += "eth0"`` to
+## extend.
+global interfaces = "" &add_func = add_interface;
+
+## Internal function.
+function add_signature_file(sold: string, snew: string): string
+	{
+	if ( sold == "" )
+		return snew;
+	else
+		return cat(sold, " ", snew);
+	}
+
+## Signature files to read. Use ``redef signature_files  += "foo.sig"`` to
+## extend. Signature files added this way will be searched relative to
+## ``BROPATH``.  Using the ``@load-sigs`` directive instead is preferred
+## since that can search paths relative to the current script.
+global signature_files = "" &add_func = add_signature_file;
+
+## ``p0f`` fingerprint file to use. Will be searched relative to ``BROPATH``.
+const passive_fingerprint_file = "base/misc/p0f.fp" &redef;
 
 ## Definition of "secondary filters". A secondary filter is a BPF filter given
 ## as index in this table. For each such filter, the corresponding event is
@@ -2296,83 +2381,649 @@ type ntp_msg: record {
 };
 
 
-## Maps SMB command numbers to descriptive names.
-global samba_cmds: table[count] of string &redef
-			&default = function(c: count): string
-				{ return fmt("samba-unknown-%d", c); };
+module NTLM;
 
-## An SMB command header.
-##
-## .. bro:see:: smb_com_close smb_com_generic_andx smb_com_logoff_andx
-##    smb_com_negotiate smb_com_negotiate_response smb_com_nt_create_andx
-##    smb_com_read_andx smb_com_setup_andx smb_com_trans_mailslot
-##    smb_com_trans_pipe smb_com_trans_rap smb_com_transaction
-##    smb_com_transaction2 smb_com_tree_connect_andx smb_com_tree_disconnect
-##    smb_com_write_andx smb_error smb_get_dfs_referral smb_message
-type smb_hdr : record {
-	command: count;	##< The command number (see :bro:see:`samba_cmds`).
-	status: count;	##< The status code.
-	flags: count;	##< Flag set 1.
-	flags2: count;	##< Flag set 2.
-	tid: count;	##< TODO.
-	pid: count;	##< Process ID.
-	uid: count;	##< User ID.
-	mid: count;	##< TODO.
-};
+export {
+	type NTLM::Version: record {
+		## The major version of the Windows operating system in use
+		major   : count;
+		## The minor version of the Windows operating system in use
+		minor   : count;
+		## The build number of the Windows operating system in use
+		build   : count;
+		## The current revision of NTLMSSP in use
+		ntlmssp : count;
+	};
 
-## An SMB transaction.
-##
-## .. bro:see:: smb_com_trans_mailslot smb_com_trans_pipe smb_com_trans_rap
-##    smb_com_transaction smb_com_transaction2
-type smb_trans : record {
-	word_count: count;	##< TODO.
-	total_param_count: count;	##< TODO.
-	total_data_count: count;	##< TODO.
-	max_param_count: count;	##< TODO.
-	max_data_count: count;	##< TODO.
-	max_setup_count: count;	##< TODO.
-#	flags: count;
-#	timeout: count;
-	param_count: count;	##< TODO.
-	param_offset: count;	##< TODO.
-	data_count: count;	##< TODO.
-	data_offset: count;	##< TODO.
-	setup_count: count;	##< TODO.
-	setup0: count;	##< TODO.
-	setup1: count;	##< TODO.
-	setup2: count;	##< TODO.
-	setup3: count;	##< TODO.
-	byte_count: count;	##< TODO.
-	parameters: string;	##< TODO.
-};
+	type NTLM::NegotiateFlags: record {
+		## If set, requires 56-bit encryption
+		negotiate_56               : bool;
+		## If set, requests an explicit key exchange
+		negotiate_key_exch         : bool;
+		## If set, requests 128-bit session key negotiation
+		negotiate_128              : bool;
+		## If set, requests the protocol version number
+		negotiate_version          : bool;
+		## If set, indicates that the TargetInfo fields in the
+		## CHALLENGE_MESSAGE are populated
+		negotiate_target_info      : bool;
+		## If set, requests the usage of the LMOWF function
+		request_non_nt_session_key : bool;
+		## If set, requests and identify level token
+		negotiate_identify         : bool;
+		## If set, requests usage of NTLM v2 session security
+		## Note: NTML v2 session security is actually NTLM v1
+		negotiate_extended_sessionsecurity : bool;
+		## If set, TargetName must be a server name
+		target_type_server         : bool;
+		## If set, TargetName must be a domain name
+		target_type_domain         : bool;
+
+		## If set, requests the presence of a signature block
+		## on all messages
+		negotiate_always_sign              : bool;
+		## If set, the workstation name is provided
+		negotiate_oem_workstation_supplied : bool;
+		## If set, the domain name is provided
+		negotiate_oem_domain_supplied      : bool;
+		## If set, the connection should be anonymous
+		negotiate_anonymous_connection     : bool;
+		## If set, requests usage of NTLM v1
+		negotiate_ntlm                     : bool;
+
+		## If set, requests LAN Manager session key computation
+		negotiate_lm_key       : bool;
+		## If set, requests connectionless authentication
+		negotiate_datagram     : bool;
+		## If set, requests session key negotiation for message 
+		## confidentiality
+		negotiate_seal         : bool;
+		## If set, requests session key negotiation for message
+		## signatures
+		negotiate_sign         : bool;
+		## If set, the TargetName field is present
+		request_target         : bool;
+
+		## If set, requests OEM character set encoding
+		negotiate_oem          : bool;
+		## If set, requests Unicode character set encoding
+		negotiate_unicode      : bool;
+	};
+
+	type NTLM::Negotiate: record {
+		## The negotiate flags
+		flags       : NTLM::NegotiateFlags;
+		## The domain name of the client, if known
+		domain_name : string &optional;
+		## The machine name of the client, if known
+		workstation : string &optional;
+		## The Windows version information, if supplied
+		version     : NTLM::Version &optional;
+	};
+
+	type NTLM::AVs: record {
+		## The server's NetBIOS computer name
+		nb_computer_name  : string;
+		## The server's NetBIOS domain name
+		nb_domain_name    : string;
+		## The FQDN of the computer
+		dns_computer_name : string &optional;
+		## The FQDN of the domain
+		dns_domain_name   : string &optional;
+		## The FQDN of the forest
+		dns_tree_name     : string &optional;
+
+		## Indicates to the client that the account
+		## authentication is constrained
+		constrained_auth  : bool &optional;
+		## The associated timestamp, if present
+		timestamp         : time &optional;
+		## Indicates that the client is providing
+		## a machine ID created at computer startup to
+		## identify the calling machine
+		single_host_id    : count &optional;
+
+		## The SPN of the target server
+		target_name       : string &optional;
+	};
+
+	type NTLM::Challenge: record {
+		## The negotiate flags
+		flags       : NTLM::NegotiateFlags;
+		## The server authentication realm. If the server is
+		## domain-joined, the name of the domain. Otherwise
+		## the server name. See flags.target_type_domain
+		## and flags.target_type_server
+		target_name : string &optional;
+		## The Windows version information, if supplied
+		version     : NTLM::Version &optional;
+		## Attribute-value pairs specified by the server
+		target_info : NTLM::AVs &optional;
+	};
+
+	type NTLM::Authenticate: record {
+		## The negotiate flags
+		flags       : NTLM::NegotiateFlags;
+		## The domain or computer name hosting the account
+		domain_name : string &optional;
+		## The name of the user to be authenticated.
+		user_name   : string &optional;
+		## The name of the computer to which the user was logged on.
+		workstation : string &optional;
+		## The session key
+		session_key : string &optional;
+		## The Windows version information, if supplied
+		version     : NTLM::Version &optional;
+	};
+}
+
+module SMB;
+
+export {
+	## MAC times for a file.
+	##
+	## For more information, see MS-SMB2:2.2.16
+	##
+	## .. bro:see:: smb1_nt_create_andx_response smb2_create_response
+	type SMB::MACTimes: record {
+		## The time when data was last written to the file.
+		modified : time &log;
+		## The time when the file was last accessed.
+		accessed : time &log;
+		## The time the file was created.
+		created  : time &log;
+		## The time when the file was last modified.
+		changed  : time &log;
+	} &log;
+
+	## A set of file names used as named pipes over SMB. This
+	## only comes into play as a heuristic to identify named
+	## pipes when the drive mapping wasn't seen by Bro.
+	##
+	## .. bro:see:: smb_pipe_connect_heuristic
+	const SMB::pipe_filenames: set[string] &redef;
+}
+
+module SMB1;
+
+export {
+	## An SMB1 header.
+	##
+	## .. bro:see:: smb1_message smb1_empty_response smb1_error
+	##    smb1_check_directory_request smb1_check_directory_response
+	##    smb1_close_request smb1_create_directory_request
+	##    smb1_create_directory_response smb1_echo_request
+	##    smb1_echo_response smb1_negotiate_request
+	##    smb1_negotiate_response smb1_nt_cancel_request
+	##    smb1_nt_create_andx_request smb1_nt_create_andx_response
+	##    smb1_query_information_request smb1_read_andx_request
+	##    smb1_read_andx_response smb1_session_setup_andx_request
+	##    smb1_session_setup_andx_response smb1_transaction_request
+	##    smb1_transaction2_request smb1_trans2_find_first2_request
+	##    smb1_trans2_query_path_info_request
+	##    smb1_trans2_get_dfs_referral_request
+	##    smb1_tree_connect_andx_request smb1_tree_connect_andx_response
+	##    smb1_tree_disconnect smb1_write_andx_request
+	##    smb1_write_andx_response
+	type SMB1::Header : record {
+		command : count; ##< The command number
+		status  : count; ##< The status code
+		flags   : count; ##< Flag set 1
+		flags2  : count; ##< Flag set 2
+		tid     : count; ##< Tree ID
+		pid     : count; ##< Process ID
+		uid     : count; ##< User ID
+		mid     : count; ##< Multiplex ID
+	};
+
+	type SMB1::NegotiateRawMode: record {
+		## Read raw supported
+		read_raw	: bool;
+		## Write raw supported
+		write_raw	: bool;
+	};
+
+	type SMB1::NegotiateCapabilities: record {
+		## The server supports SMB_COM_READ_RAW and SMB_COM_WRITE_RAW
+		raw_mode	   : bool;
+		## The server supports SMB_COM_READ_MPX and SMB_COM_WRITE_MPX
+		mpx_mode	   : bool;
+		## The server supports unicode strings
+		unicode		   : bool;
+		## The server supports large files with 64 bit offsets
+		large_files	   : bool;
+		## The server supports the SMBs particilar to the NT LM 0.12 dialect. Implies nt_find.
+		nt_smbs		   : bool;
+
+		## The server supports remote admin API requests via DCE-RPC
+		rpc_remote_apis	   : bool;
+		## The server can respond with 32 bit status codes in Status.Status
+		status32	   : bool;
+		## The server supports level 2 oplocks
+		level_2_oplocks	   : bool;
+		## The server supports SMB_COM_LOCK_AND_READ
+		lock_and_read	   : bool;
+		## Reserved
+		nt_find		   : bool;
+
+		## The server is DFS aware
+		dfs		   : bool;
+		## The server supports NT information level requests passing through
+		infolevel_passthru : bool;
+		## The server supports large SMB_COM_READ_ANDX (up to 64k)
+		large_readx	   : bool;
+		## The server supports large SMB_COM_WRITE_ANDX (up to 64k)
+		large_writex	   : bool;
+		## The server supports CIFS Extensions for UNIX
+		unix		   : bool;
+
+		## The server supports SMB_BULK_READ, SMB_BULK_WRITE
+		## Note: No known implementations support this
+		bulk_transfer	   : bool;
+		## The server supports compressed data transfer. Requires bulk_transfer.
+		## Note: No known implementations support this
+		compressed_data	   : bool;
+		## The server supports extended security exchanges	
+		extended_security  : bool;
+	};
+
+	type SMB1::NegotiateResponseSecurity: record {
+		## This indicates whether the server, as a whole, is operating under
+		## Share Level or User Level security.
+		user_level	  : bool;
+		## This indicates whether or not the server supports Challenge/Response
+		## authentication. If the bit is false, then plaintext passwords must
+		## be used.
+		challenge_response: bool;
+		## This indicates if the server is capable of performing MAC message
+		## signing. Note: Requires NT LM 0.12 or later.
+		signatures_enabled: bool &optional;
+		## This indicates if the server is requiring the use of a MAC in each
+		## packet. If false, message signing is optional. Note: Requires NT LM 0.12
+		## or later.
+		signatures_required: bool &optional;
+	};
+
+	type SMB1::NegotiateResponseCore: record {
+		## Index of selected dialect
+		dialect_index	: count;
+	};
+
+	type SMB1::NegotiateResponseLANMAN: record {
+		## Count of parameter words (should be 13)
+		word_count	     : count;
+		## Index of selected dialect
+		dialect_index	     : count;
+		## Security mode
+		security_mode	     : SMB1::NegotiateResponseSecurity;
+		## Max transmit buffer size (>= 1024)
+		max_buffer_size	     : count;
+		## Max pending multiplexed requests
+		max_mpx_count	     : count;
+
+		## Max number of virtual circuits (VCs - transport-layer connections)
+		## between client and server
+		max_number_vcs	     : count;
+		## Raw mode
+		raw_mode	     : SMB1::NegotiateRawMode;
+		## Unique token identifying this session
+		session_key	     : count;
+		## Current date and time at server
+		server_time	     : time;
+		## The challenge encryption key
+		encryption_key	     : string;
+
+		## The server's primary domain
+		primary_domain	     : string;
+	};
+
+	type SMB1::NegotiateResponseNTLM: record {
+		## Count of parameter words (should be 17)
+		word_count	: count;
+		## Index of selected dialect
+		dialect_index	: count;
+		## Security mode
+		security_mode	: SMB1::NegotiateResponseSecurity;
+		## Max transmit buffer size
+		max_buffer_size	: count;
+		## Max pending multiplexed requests
+		max_mpx_count	: count;
+
+		## Max number of virtual circuits (VCs - transport-layer connections)
+		## between client and server
+		max_number_vcs	: count;
+		## Max raw buffer size
+		max_raw_size	: count;
+		## Unique token identifying this session
+		session_key	: count;
+		## Server capabilities
+		capabilities	: SMB1::NegotiateCapabilities;
+		## Current date and time at server
+		server_time	: time;
+
+		## The challenge encryption key.
+		## Present only for non-extended security (i.e. capabilities$extended_security = F)
+		encryption_key	: string &optional;
+		## The name of the domain.
+		## Present only for non-extended security (i.e. capabilities$extended_security = F)
+		domain_name	: string &optional;
+		## A globally unique identifier assigned to the server.
+		## Present only for extended security (i.e. capabilities$extended_security = T)
+		guid		: string &optional;
+		## Opaque security blob associated with the security package if capabilities$extended_security = T
+		## Otherwise, the challenge for challenge/response authentication.
+		security_blob	: string;
+	};
+
+	type SMB1::NegotiateResponse: record {
+		## If the server does not understand any of the dialect strings, or if 
+		## PC NETWORK PROGRAM 1.0 is the chosen dialect.
+		core	: SMB1::NegotiateResponseCore 	&optional;
+		## If the chosen dialect is greater than core up to and including
+		## LANMAN 2.1.
+		lanman  : SMB1::NegotiateResponseLANMAN  &optional;
+		## If the chosen dialect is NT LM 0.12.
+		ntlm	: SMB1::NegotiateResponseNTLM    &optional;
+	};
+
+	type SMB1::SessionSetupAndXCapabilities: record {
+		## The client can use unicode strings
+		unicode         : bool;
+		## The client can deal with files having 64 bit offsets
+		large_files     : bool;
+		## The client understands the SMBs introduced with NT LM 0.12
+		## Implies nt_find
+		nt_smbs         : bool;
+		## The client can receive 32 bit errors encoded in Status.Status
+		status32        : bool;
+		## The client understands Level II oplocks
+		level_2_oplocks : bool;
+		## Reserved. Implied by nt_smbs.
+		nt_find		: bool;
+	};
+
+	type SMB1::SessionSetupAndXRequest: record {
+		## Count of parameter words
+		##    - 10 for pre NT LM 0.12
+		##    - 12 for NT LM 0.12 with extended security
+		##    - 13 for NT LM 0.12 without extended security
+		word_count		  : count;
+		## Client maximum buffer size
+		max_buffer_size		  : count;
+		## Actual maximum multiplexed pending request
+		max_mpx_count		  : count;
+		## Virtual circuit number. First VC == 0
+		vc_number		  : count;
+		## Session key (valid iff vc_number > 0)
+		session_key		  : count;
+
+		## Client's native operating system
+		native_os		  : string;
+		## Client's native LAN Manager type
+		native_lanman		  : string;
+		## Account name
+		## Note: not set for NT LM 0.12 with extended security
+		account_name		  : string &optional;
+		## If challenge/response auth is not being used, this is the password.
+		## Otherwise, it's the response to the server's challenge.
+		## Note: Only set for pre NT LM 0.12
+		account_password	  : string &optional;		
+		## Client's primary domain, if known
+		## Note: not set for NT LM 0.12 with extended security
+		primary_domain		  : string &optional;
+
+		## Case insensitive password
+		## Note: only set for NT LM 0.12 without extended security
+		case_insensitive_password : string &optional;
+		## Case sensitive password
+		## Note: only set for NT LM 0.12 without extended security
+		case_sensitive_password	  : string &optional;
+		## Security blob
+		## Note: only set for NT LM 0.12 with extended security
+		security_blob		  : string &optional;
+		## Client capabilities
+		## Note: only set for NT LM 0.12
+		capabilities		  : SMB1::SessionSetupAndXCapabilities &optional;
+	};
+	
+	type SMB1::SessionSetupAndXResponse: record {
+		## Count of parameter words (should be 3 for pre NT LM 0.12 and 4 for NT LM 0.12)
+		word_count	: count;
+		## Were we logged in as a guest user?
+		is_guest	: bool &optional;
+		## Server's native operating system
+		native_os 	: string &optional;
+		## Server's native LAN Manager type
+		native_lanman	: string &optional;
+		## Server's primary domain
+		primary_domain	: string &optional;
+		## Security blob if NTLM
+		security_blob	: string &optional;
+	};
+
+	type SMB1::Find_First2_Request_Args: record {
+		## File attributes to apply as a constraint to the search
+		search_attrs		: count;
+		## Max search results
+		search_count		: count;
+		## Misc. flags for how the server should manage the transaction
+		## once results are returned
+		flags				: count;
+		## How detailed the information returned in the results should be
+		info_level			: count;
+		## Specify whether to search for directories or files
+		search_storage_type	: count;
+		## The string to serch for (note: may contain wildcards)
+		file_name			: string;
+	};
+
+	type SMB1::Find_First2_Response_Args: record {
+		## The server generated search identifier
+		sid				: count;
+		## Number of results returned by the search
+		search_count	: count;
+		## Whether or not the search can be continued using
+		## the TRANS2_FIND_NEXT2 transaction
+		end_of_search	: bool;
+		## An extended attribute name that couldn't be retrieved
+		ext_attr_error	: string &optional;
+	};
 
 
-## SMB transaction data.
-##
-## .. bro:see:: smb_com_trans_mailslot smb_com_trans_pipe smb_com_trans_rap
-##    smb_com_transaction smb_com_transaction2
-##
-## .. todo:: Should this really be a record type?
-type smb_trans_data : record {
-	data : string;	##< The transaction's data.
-};
+}
 
-## Deprecated.
-##
-## .. todo:: Remove. It's still declared internally but doesn't seem  used anywhere
-##    else.
-type smb_tree_connect : record {
-	flags: count;
-	password: string;
-	path: string;
-	service: string;
-};
+module SMB2;
 
-## Deprecated.
-##
-## .. todo:: Remove. It's still declared internally but doesn't seem  used anywhere
-##    else.
-type smb_negotiate : table[count] of string;
+export {
+	## An SMB2 header.
+	##
+	## For more information, see MS-SMB2:2.2.1.1 and MS-SMB2:2.2.1.2
+	##
+	## .. bro:see:: smb2_message smb2_close_request smb2_close_response
+	##    smb2_create_request smb2_create_response smb2_negotiate_request
+	##    smb2_negotiate_response smb2_read_request
+	##    smb2_session_setup_request smb2_session_setup_response
+	##    smb2_file_rename smb2_file_delete
+	##    smb2_tree_connect_request smb2_tree_connect_response
+	##    smb2_write_request
+	type SMB2::Header: record {
+		## The number of credits that this request consumes
+		credit_charge : count;
+		## In a request, this is an indication to the server about the client's channel
+		## change. In a response, this is the status field
+		status        : count;
+		## The command code of the packet
+		command       : count;
+		## The number of credits the client is requesting, or the number of credits
+		## granted to the client in a response.
+		credits       : count;
+		## A flags field, which indicates how to process the operation (e.g. asynchronously)
+		flags         : count;
+		## A value that uniquely identifies the message request/response pair across all
+		## messages that are sent on the same transport protocol connection
+		message_id    : count;
+		## A value that uniquely identifies the process that generated the event.
+		process_id    : count;
+		## A value that uniquely identifies the tree connect for the command.
+		tree_id       : count;
+		## A value that uniquely identifies the established session for the command.
+		session_id    : count;
+		## The 16-byte signature of the message, if SMB2_FLAGS_SIGNED is set in the ``flags``
+		## field.
+		signature     : string;
+	};
+
+	## An SMB2 globally unique identifier which identifies a file.
+	##
+	## For more information, see MS-SMB2:2.2.14.1
+	##
+	## .. bro:see:: smb2_close_request smb2_create_response smb2_read_request
+	##    smb2_file_rename smb2_file_delete smb2_write_request
+	type SMB2::GUID: record {
+		## A file handle that remains persistent when reconnected after a disconnect
+		persistent: count;
+		## A file handle that can be changed when reconnected after a disconnect
+		volatile: count;
+	};
+
+	## A series of boolean flags describing basic and extended file attributes for SMB2.
+	##
+	## For more information, see MS-CIFS:2.2.1.2.3 and MS-FSCC:2.6
+	##
+	## .. bro:see:: smb2_create_response
+	type SMB2::FileAttrs: record {
+		## The file is read only. Applications can read the file but cannot
+		## write to it or delete it.
+		read_only: bool;
+		## The file is hidden. It is not to be included in an ordinary directory listing.
+		hidden: bool;
+		## The file is part of or is used exclusively by the operating system.
+		system: bool;
+		## The file is a directory.
+		directory: bool;
+		## The file has not been archived since it was last modified. Applications use
+		## this attribute to mark files for backup or removal.
+		archive: bool;
+		## The file has no other attributes set. This attribute is valid only if used alone.
+		normal: bool;
+		## The file is temporary. This is a hint to the cache manager that it does not need
+		## to flush the file to backing storage.
+		temporary: bool;
+		## A file that is a sparse file.
+		sparse_file: bool;
+		## A file or directory that has an associated reparse point.
+		reparse_point: bool;
+		## The file or directory is compressed. For a file, this means that all of the data
+		## in the file is compressed. For a directory, this means that compression is the
+		## default for newly created files and subdirectories.
+		compressed: bool;
+		## The data in this file is not available immediately. This attribute indicates that
+		## the file data is physically moved to offline storage. This attribute is used by
+		## Remote Storage, which is hierarchical storage management software.
+		offline: bool;
+		## A file or directory that is not indexed by the content indexing service.
+		not_content_indexed: bool;
+		## A file or directory that is encrypted. For a file, all data streams in the file
+		## are encrypted. For a directory, encryption is the default for newly created files
+		## and subdirectories.
+		encrypted: bool;
+		## A file or directory that is configured with integrity support. For a file, all
+		## data streams in the file have integrity support. For a directory, integrity support
+		## is the default for newly created files and subdirectories, unless the caller
+		## specifies otherwise.
+		integrity_stream: bool;
+		## A file or directory that is configured to be excluded from the data integrity scan.
+		no_scrub_data: bool;
+	};
+
+	## The response to an SMB2 *close* request, which is used by the client to close an instance
+	## of a file that was opened previously.
+	##
+	## For more information, see MS-SMB2:2.2.16
+	##
+	## .. bro:see:: smb2_close_response
+	type SMB2::CloseResponse: record {
+		## The size, in bytes of the data that is allocated to the file.
+		alloc_size : count;
+		## The size, in bytes, of the file.
+		eof        : count;
+		## The creation, last access, last write, and change times.
+		times      : SMB::MACTimes;
+		## The attributes of the file.
+		attrs      : SMB2::FileAttrs;
+	};
+
+	## The response to an SMB2 *negotiate* request, which is used by tghe client to notify the server
+	## what dialects of the SMB2 protocol the client understands.
+	##
+	## For more information, see MS-SMB2:2.2.4
+	##
+	## .. bro:see:: smb2_negotiate_response
+	type SMB2::NegotiateResponse: record {
+		## The preferred common SMB2 Protocol dialect number from the array that was sent in the SMB2
+		## NEGOTIATE Request.
+		dialect_revision  : count;
+		## The security mode field specifies whether SMB signing is enabled, required at the server, or both.
+		security_mode     : count;
+		## A globally unique identifier that is generate by the server to uniquely identify the server.
+		server_guid       : string;
+		## The system time of the SMB2 server when the SMB2 NEGOTIATE Request was processed.
+		system_time       : time;
+		## The SMB2 server start time.
+		server_start_time : time;
+	};
+
+	## The request sent by the client to request a new authenticated session
+	## within a new or existing SMB 2 Protocol transport connection to the server.
+	##
+	## For more information, see MS-SMB2:2.2.5
+	##
+	## .. bro:see:: smb2_session_setup_request
+	type SMB2::SessionSetupRequest: record {
+		## The security mode field specifies whether SMB signing is enabled or required at the client.
+		security_mode: count;
+	};
+
+	## A flags field that indicates additional information about the session that's sent in the
+	## *session_setup* response.
+	##
+	## For more information, see MS-SMB2:2.2.6
+	##
+	## .. bro:see:: smb2_session_setup_response
+	type SMB2::SessionSetupFlags: record {
+		## If set, the client has been authenticated as a guest user.
+		guest: bool;
+		## If set, the client has been authenticated as an anonymous user.
+		anonymous: bool;
+		## If set, the server requires encryption of messages on this session.
+		encrypt: bool;
+	};
+
+	## The response to an SMB2 *session_setup* request, which is sent by the client to request a
+	## new authenticated session within a new or existing SMB 2 Protocol transport connection
+	## to the server.
+	##
+	## For more information, see MS-SMB2:2.2.6
+	##
+	## .. bro:see:: smb2_session_setup_response
+	type SMB2::SessionSetupResponse: record {
+		## Additional information about the session
+		flags: SMB2::SessionSetupFlags;
+	};
+
+	## The response to an SMB2 *tree_connect* request, which is sent by the client to request
+	## access to a particular share on the server.
+	##
+	## For more information, see MS-SMB2:2.2.9
+	##
+	## .. bro:see:: smb2_tree_connect_response
+	type SMB2::TreeConnectResponse: record {
+		## The type of share being accessed. Physical disk, named pipe, or printer.
+		share_type: count;
+	};
+}
+
+module GLOBAL;
 
 ## A list of router addresses offered by a DHCP server.
 ##
@@ -2447,7 +3098,7 @@ type dns_edns_additional: record {
 
 ## An additional DNS TSIG record.
 ##
-## bro:see:: dns_TSIG_addl
+## .. bro:see:: dns_TSIG_addl
 type dns_tsig_additional: record {
 	query: string;	##< Query.
 	qtype: count;	##< Query type.
@@ -2870,14 +3521,22 @@ type bittorrent_benc_dir: table[string] of bittorrent_benc_value;
 ##    bt_tracker_response_not_ok
 type bt_tracker_headers: table[string] of string;
 
+## A vector of boolean values that indicate the setting
+## for a range of modbus coils.
 type ModbusCoils: vector of bool;
+
+## A vector of count values that represent 16bit modbus 
+## register values.
 type ModbusRegisters: vector of count;
 
 type ModbusHeaders: record {
+	## Transaction identifier
 	tid:           count;
+	## Protocol identifier
 	pid:           count;
-	len:           count;
+	## Unit identifier (previously 'slave address')
 	uid:           count;
+	## MODBUS function code
 	function_code: count;
 };
 
@@ -2916,6 +3575,23 @@ export {
 		data:         string;
 	};
 }
+
+module SSL;
+export {
+	type SignatureAndHashAlgorithm: record {
+		HashAlgorithm: count; ##< Hash algorithm number
+		SignatureAlgorithm: count; ##< Signature algorithm number
+	};
+}
+
+module GLOBAL;
+
+## A vector of Signature and Hash Algorithms.
+##
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
+type signature_and_hashalgorithm_vec: vector of SSL::SignatureAndHashAlgorithm;
 
 module X509;
 export {
@@ -3467,23 +4143,17 @@ global pkt_profile_file: file &redef;
 ## .. bro:see:: load_sample
 global load_sample_freq = 20 &redef;
 
-## Rate at which to generate :bro:see:`gap_report` events assessing to what
-## degree the measurement process appears to exhibit loss.
-##
-## .. bro:see:: gap_report
-const gap_report_freq = 1.0 sec &redef;
-
 ## Whether to attempt to automatically detect SYN/FIN/RST-filtered trace
 ## and not report missing segments for such connections.
 ## If this is enabled, then missing data at the end of connections may not
 ## be reported via :bro:see:`content_gap`.
 const detect_filtered_trace = F &redef;
 
-## Whether we want :bro:see:`content_gap` and :bro:see:`gap_report` for partial
+## Whether we want :bro:see:`content_gap` for partial
 ## connections. A connection is partial if it is missing a full handshake. Note
 ## that gap reports for partial connections might not be reliable.
 ##
-## .. bro:see:: content_gap gap_report partial_connection
+## .. bro:see:: content_gap partial_connection
 const report_gaps_for_partial = F &redef;
 
 ## Flag to prevent Bro from exiting automatically when input is exhausted.
@@ -3761,6 +4431,19 @@ export {
 	## interfaces.
 	const bufsize = 128 &redef;
 } # end export
+
+module DCE_RPC;
+export {
+	## The maximum number of simultaneous fragmented commands that
+	## the DCE_RPC analyzer will tolerate before the it will generate
+	## a weird and skip further input.
+	const max_cmd_reassembly = 20 &redef;
+
+	## The maximum number of fragmented bytes that the DCE_RPC analyzer
+	## will tolerate on a command before the analyzer will generate a weird
+	## and skip further input.
+	const max_frag_data = 30000 &redef;
+}
 
 module GLOBAL;
 

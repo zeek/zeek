@@ -3643,60 +3643,6 @@ export {
 	};
 }
 
-
-module OCSP;
-export {
-	type OneReq: record {
-		hashAlgorithm:      string  &log;
-		issuerNameHash:     string  &log;
-		issuerKeyHash:      string  &log;
-		serialNumber:       string  &log;
-		};
-
-	type Request: record {
-		version:            count   &log &optional;
-		requestorName:      string  &log &optional;
-		requestList:        vector of OneReq;
-	 };
-
-	type SingleResp: record {
-		hashAlgorithm:      string  &log;
-		issuerNameHash:     string  &log;
-		issuerKeyHash:      string  &log;
-		serialNumber:       string  &log;
-		certStatus:         string  &log;
-		revoketime:         time    &log &optional;
-		revokereason:       string  &log &optional;
-		thisUpdate:         time    &log;
-		nextUpdate:         time    &log &optional;
-		};
-
-	type Response: record {
-		responseStatus:     string  &log;
-		responseType:       string  &log &optional;
-		version:            count   &log &optional;
-		responderID:        string  &log &optional;
-		producedAt:         time    &log &optional;
-		responses:          vector of SingleResp;
-		signatureAlgorithm: string  &log &optional;
-		#signature:          string  &optional;  #&log;
-		certs:              vector of opaque of x509 &optional;
-		};
-
-	type CertId: record {
-		hashAlgorithm:      string  &log &optional;
-		issuerNameHash:     string  &log &optional;
-		issuerKeyHash:      string  &log &optional;
-		serialNumber:       string  &log &optional;
-		};
-
-	}
-
-module GLOBAL;
-type ocsp_req_vec: vector of OCSP::OneReq;
-type ocsp_resp_vec: vector of OCSP::SingleResp;
-
-
 module SOCKS;
 export {
 	## This record is for a SOCKS client or server to provide either a

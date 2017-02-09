@@ -15,7 +15,6 @@
 
 namespace file_analysis {
 
-class OCSP_REQVal;
 class OCSP_RESPVal;
 
 class OCSP : public file_analysis::Analyzer {
@@ -24,8 +23,6 @@ public:
 	virtual bool Undelivered(uint64 offset, uint64 len);
 	virtual bool EndOfFile();
 
-	static RecordVal *ParseResponse(OCSP_RESPVal *, const char* fid = 0);
-	static RecordVal *ParseRequest(OCSP_REQVal *, const char* fid = 0);
 
 	static file_analysis::Analyzer* Instantiate(RecordVal* args, File* file);
 
@@ -33,20 +30,11 @@ protected:
 	OCSP(RecordVal* args, File* file, const string& ocsp_type);
 
 private:
+	void ParseResponse(OCSP_RESPVal *, const char* fid = 0);
+	void ParseRequest(OCSP_REQUEST *, const char* fid = 0);
+
 	std::string ocsp_data;
 	std::string ocsp_type;
-};
-
-class OCSP_REQVal: public OpaqueVal {
-public:
-	explicit OCSP_REQVal(OCSP_REQUEST *);
-	~OCSP_REQVal();
-        OCSP_REQUEST *GetReq() const;
-protected:
-	OCSP_REQVal();
-private:
-	OCSP_REQUEST *ocsp_req;
-	DECLARE_SERIAL(OCSP_REQVal);
 };
 
 class OCSP_RESPVal: public OpaqueVal {

@@ -628,7 +628,6 @@ extern OpaqueType* cardinality_type;
 extern OpaqueType* topk_type;
 extern OpaqueType* bloomfilter_type;
 extern OpaqueType* x509_opaque_type;
-extern OpaqueType* ocsp_req_opaque_type;
 extern OpaqueType* ocsp_resp_opaque_type;
 
 // Returns the Bro basic (non-parameterized) type with the given type.

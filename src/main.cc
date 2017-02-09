@@ -841,9 +841,9 @@ int main(int argc, char** argv)
 	topk_type = new OpaqueType("topk");
 	bloomfilter_type = new OpaqueType("bloomfilter");
 	x509_opaque_type = new OpaqueType("x509");
-        ocsp_req_opaque_type = new OpaqueType("ocsp_req");
+	ocsp_req_opaque_type = new OpaqueType("ocsp_req");
 	ocsp_resp_opaque_type = new OpaqueType("ocsp_resp");
-	
+
 	// The leak-checker tends to produce some false
 	// positives (memory which had already been
 	// allocated before we start the checking is

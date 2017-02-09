@@ -548,14 +548,14 @@ x509_verify_chainerror:
 ## cert: The X509 certificate opaque handle.
 ##
 ## hash_alg: the hash algorithm to use
-## 
+##
 ## Returns: A string of hash of issuer name.
-## 
+##
 ## .. bro:see:: x509_certificate x509_extension x509_ext_basic_constraints
 ##              x509_ext_subject_alternative_name x509_parse
 ##              x509_get_certificate_string x509_verify
 function x509_issuer_name_hash%(cert: opaque of x509, hash_alg: string%): string
-        %{
+	%{
 	assert(cert);
 	assert(hash_alg);
 
@@ -583,7 +583,7 @@ function x509_issuer_name_hash%(cert: opaque of x509, hash_alg: string%): string
 		return NULL;
 		}
 
-	const EVP_MD *dgst; 
+	const EVP_MD *dgst;
 	if (strcmp(h, "sha1") == 0)
 		dgst = EVP_sha1();
 	else if (strcmp(h, "sha224") == 0)

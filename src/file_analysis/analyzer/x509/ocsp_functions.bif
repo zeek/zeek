@@ -11,7 +11,7 @@
 ##
 ## .. bro:see:: ssl_stapled_ocsp  ocsp_parse_request
 function ocsp_parse_response%(ocsp_reply: string%): OCSP::Response
-        %{
+	%{
 	const unsigned char* start = ocsp_reply->Bytes();
 	OCSP_RESPONSE *resp = NULL;
 	file_analysis::OCSP_RESPVal* resp_val = NULL;
@@ -43,7 +43,7 @@ function ocsp_parse_response%(ocsp_reply: string%): OCSP::Response
 ##
 ## .. bro:see:: ssl_stapled_ocsp ocsp_parse_response
 function ocsp_parse_request%(ocsp_req: string%): OCSP::Request
-        %{
+	%{
 	const unsigned char* start = ocsp_req->Bytes();
 	OCSP_REQUEST *req = NULL;
 	file_analysis::OCSP_REQVal* req_val = NULL;

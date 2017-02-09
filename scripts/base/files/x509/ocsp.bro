@@ -248,7 +248,7 @@ function enq_request(http: HTTP::Info, req: OCSP::Request, req_id: string, req_t
 		update_http_info(http, req_rec_empty);
 		Log::write(LOG, [$ts=req_rec_empty$ts, $req=req_rec_empty, $cid=http$id, $cuid=http$uid, $method=http$method, $http=http]);
 		}
-	}	
+	}
 
 event ocsp_request(f: fa_file, req_ref: opaque of ocsp_req, req: OCSP::Request) &priority = 5
 	{
@@ -294,7 +294,7 @@ function check_ocsp_request_uri(http: HTTP::Info): OCSP::Request
 	if ( ! http?$original_uri )
 		return parsed_req;;
 	local uri_prefix: string = get_uri_prefix(http$original_uri);
-	http$uri_prefix = uri_prefix;	
+	http$uri_prefix = uri_prefix;
 	local ocsp_req_str: string = http$uri[|uri_prefix|:];
 	parsed_req = ocsp_parse_request(decode_base64(ocsp_req_str));
 	if ( ! parsed_req?$requestList || |parsed_req$requestList| == 0 )
@@ -397,11 +397,11 @@ event ocsp_response(f: fa_file, resp_ref: opaque of ocsp_resp, resp: OCSP::Respo
 
 			if ( ! f$http?$ocsp_responses )
 				f$http$ocsp_responses = table();
-					
+
 			if ( cert_id !in f$http$ocsp_responses )
 				f$http$ocsp_responses[cert_id] = Queue::init();
 
-			Queue::put(f$http$ocsp_responses[cert_id], resp_rec);				
+			Queue::put(f$http$ocsp_responses[cert_id], resp_rec);
 			}
 		}
 	else
@@ -468,7 +468,7 @@ function start_log_ocsp(http: HTTP::Info)
 		log_unmatched_reqs(http);
 		return;
 		}
-	
+
 	for ( cert_id in http$ocsp_responses )
 		{
 		while ( Queue::len(http$ocsp_responses[cert_id]) != 0 )
@@ -502,7 +502,7 @@ function start_log_ocsp(http: HTTP::Info)
 	if ( http?$ocsp_requests && |http$ocsp_requests| != 0 )
 		log_unmatched_reqs(http);
 	}
-	
+
 # log OCSP information
 event HTTP::log_http(rec: HTTP::Info)
 	{

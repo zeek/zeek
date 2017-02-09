@@ -19,7 +19,7 @@ export {
 
 		## size of this response
 		size:               count   &log;
-		
+
 		## responseStatus
 		responseStatus:     string  &log;
 
@@ -34,14 +34,14 @@ export {
 
 		## producedAt
 		producedAt:         string  &log;
-		
+
                 ## NOTE: the following are specific to one cert id
 		##       the above are for one message which may contain
 		##       several responses
 
 		## index
 		idx:                count   &log  &optional;
-		
+
 		## cert id
 		cert_id:            OCSP::CertId  &log &optional;
 

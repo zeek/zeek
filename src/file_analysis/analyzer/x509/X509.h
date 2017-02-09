@@ -62,7 +62,6 @@ private:
 	std::string cert_data;
 
 	// Helpers for ParseCertificate.
-	static double GetTimeFromAsn1(const ASN1_TIME * atime, const char* fid);
 	static StringVal* KeyCurve(EVP_PKEY *key);
 	static unsigned int KeyLength(EVP_PKEY *key);
 };

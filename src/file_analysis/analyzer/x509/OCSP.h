@@ -24,8 +24,8 @@ public:
 	virtual bool Undelivered(uint64 offset, uint64 len);
 	virtual bool EndOfFile();
 
-	static RecordVal *ParseResponse(OCSP_RESPVal *);
-	static RecordVal *ParseRequest(OCSP_REQVal *);
+	static RecordVal *ParseResponse(OCSP_RESPVal *, const char* fid = 0);
+	static RecordVal *ParseRequest(OCSP_REQVal *, const char* fid = 0);
 
 	static file_analysis::Analyzer* Instantiate(RecordVal* args, File* file);
 

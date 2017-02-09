@@ -1,3 +1,4 @@
+@load base/protocols/http
 @load base/frameworks/files
 @load base/utils/paths
 @load base/utils/queue
@@ -68,7 +69,7 @@ export {
 		## responderID
 		responderID:        string  &log   &optional;
 		## producedAt
-		producedAt:         string  &log   &optional;
+		producedAt:         time    &log   &optional;
 		## certificates
 		certs:              vector of opaque of x509 &optional;
 
@@ -85,9 +86,9 @@ export {
 		## certStatus (this is the response to look at)
 		certStatus:         string  &log  &optional;
 		## thisUpdate
-		thisUpdate:         string  &log  &optional;
+		thisUpdate:         time    &log  &optional;
 		## nextUpdate
-		nextUpdate:         string  &log  &optional;
+		nextUpdate:         time    &log  &optional;
 	};
 
 	type Info: record {

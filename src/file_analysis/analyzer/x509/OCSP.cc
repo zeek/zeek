@@ -15,6 +15,9 @@
 #include <openssl/asn1.h>
 #include <openssl/opensslconf.h>
 
+#include "file_analysis/analyzer/x509/X509.h"
+#include "Asn1Time.h"
+
 // helper function of sk_X509_value to avoid namespace problem
 // sk_X509_value(X,Y) = > SKM_sk_value(X509,X,Y)
 // X509 => file_analysis::X509
@@ -23,8 +26,6 @@ X509 *helper_sk_X509_value(STACK_OF(X509) *certs, int i)
 	return sk_X509_value(certs, i);
 	}
 
-#include "file_analysis/analyzer/x509/X509.h"
-
 using namespace file_analysis;
 
 IMPLEMENT_SERIAL(OCSP_REQVal, SER_OCSP_REQ_VAL);
@@ -32,213 +33,59 @@ IMPLEMENT_SERIAL(OCSP_RESPVal, SER_OCSP_RESP_VAL);
 
 #define OCSP_STRING_BUF_SIZE 2048
 
-//this function is copied from src/file_analysis/analyzer/extract/Extract.cc
-static Val* get_extract_field_val(RecordVal* args, const char* name)
+static Val* get_ocsp_type(RecordVal* args, const char* name)
 	{
 	Val* rval = args->Lookup(name);
+
 	if ( ! rval )
 		reporter->Error("File extraction analyzer missing arg field: %s", name);
+
 	return rval;
 	}
 
-//convert different ANS1 type to c string
-static int ANS1_to_cstr(char *buf, int buf_len, void *data, int type)
+static void OCSP_RESPID_bio(OCSP_RESPID *resp_id, BIO* bio)
 	{
-	if (data == NULL || buf == NULL || buf_len <=0)
-		return -1;
-	int new_len = -1;
-	BIO *bio = BIO_new(BIO_s_mem());
-	memset(buf, 0, buf_len);
-	
-	if (type == V_ASN1_OCTET_STRING)
-		{
-		if (i2a_ASN1_STRING(bio, (ASN1_STRING *)data, V_ASN1_OCTET_STRING) <= 0)
-			goto err;
-		}
-	else if (type == V_ASN1_BIT_STRING)
-		{
-		if (i2a_ASN1_STRING(bio, (ASN1_STRING *)data, V_ASN1_BIT_STRING) <= 0)
-			goto err;
-		}
-	else if (type == V_ASN1_INTEGER)
-		{
-		// NOTE: this will print the hex number
-		//       wireshark may display decimal number
-		if (i2a_ASN1_INTEGER(bio, (ASN1_INTEGER *)data) <= 0)
-			goto err;
-		}
-	else if (type == V_ASN1_OBJECT)
-		{
-		if (i2a_ASN1_OBJECT(bio, (ASN1_OBJECT *)data) <= 0)
-			goto err;
-		}
-	else if (type == V_ASN1_GENERALIZEDTIME)
-		{
-		// TODO: convert ASN1_GENERALIZEDTIME to epoch time?
-		//       new API: ASN1_TIME_diff() requires openssl 1.0.2
-		//       epoch time might be better for post processing
-		
-		// NOTE: this is for human readable time format
-		//if (!ASN1_GENERALIZEDTIME_print(bio, (ASN1_GENERALIZEDTIME *)data))
-		//	goto err;
-		
-		// NOTE: this is printing the raw string which is also understandable
-		//       since this is smaller, let's keep ASN1_GENERALIZEDTIME as this for now?
-		ASN1_GENERALIZEDTIME *tmp = (ASN1_GENERALIZEDTIME *)data;
-		BIO_write(bio, tmp->data, tmp->length);	
-		}
-
-	else
-		goto err;
-	
-	new_len = BIO_read(bio, buf, buf_len);
-err:	
-	BIO_free_all(bio);
-	return new_len;
-	}
-
-//ANS1 OCTET string to c string
-static int ASN1_OCTET_STRING_to_cstr(char *buf, int len, void *data)
-	{
-	return ANS1_to_cstr(buf, len, data, V_ASN1_OCTET_STRING);
-	}
-
-//ANS1 BIT string to c string
-static int ASN1_BIT_STRING_to_cstr(char *buf, int len, void *data)
-	{
-	return ANS1_to_cstr(buf, len, data, V_ASN1_BIT_STRING);
-	}
-
-//ANS1 integer to c string
-static int ASN1_INTEGER_to_cstr(char *buf, int len, void *data)
-	{
-	return ANS1_to_cstr(buf, len, data, V_ASN1_INTEGER);
-	}
-
-//ANS1 object to c string
-static int ASN1_OBJECT_to_cstr(char *buf, int len, void *data)
-	{
-	return ANS1_to_cstr(buf, len, data, V_ASN1_OBJECT);
-	}
-
-//ASN1_GENERALIZEDTIME to c string
-static int ASN1_GENERALIZEDTIME_to_cstr(char *buf, int len, void *data)
-	{
-	return ANS1_to_cstr(buf, len, data, V_ASN1_GENERALIZEDTIME);
-	}
-
-//CENERAL XXX to c string
-static int GENERAL_NAME_to_cstr(char *buf, int buf_len, void *data)
-	{
-	if (data == NULL || buf == NULL || buf_len <= 0)
-		return -1;
-	int new_len = -1;
-	BIO *bio = BIO_new(BIO_s_mem());
-	memset(buf, 0, buf_len);
-	if (GENERAL_NAME_print(bio, (GENERAL_NAME *)data) <= 0)
-		goto err;
-	new_len = BIO_read(bio, buf, buf_len);
-err:
-	BIO_free_all(bio);
-	return new_len;
-	}
-
-//OCSP respond id to c string
-static int OCSP_RESPID_to_cstr(char *buf, int buf_len, OCSP_RESPID *resp_id)
-	{
-	if (resp_id == NULL || buf == NULL || buf_len <= 0)
-		return -1;
-	int new_len = -1;
-	BIO *bio = BIO_new(BIO_s_mem());
-	memset(buf, 0, buf_len);
 	if (resp_id->type == V_OCSP_RESPID_NAME)
-		{
-		if (X509_NAME_print_ex(bio, resp_id->value.byName, 0, XN_FLAG_ONELINE) <=0)
-			goto err;
-		}
+		X509_NAME_print_ex(bio, resp_id->value.byName, 0, XN_FLAG_ONELINE);
 	else if (resp_id->type == V_OCSP_RESPID_KEY)
-		{
-		if (i2a_ASN1_STRING(bio, resp_id->value.byKey, V_ASN1_OCTET_STRING) <= 0)
-			goto err;
-		}
-	else
-		goto err;
-	new_len = BIO_read(bio, buf, buf_len);
-err:
-	BIO_free_all(bio);
-	return new_len;
+		i2a_ASN1_STRING(bio, resp_id->value.byKey, V_ASN1_OCTET_STRING);
 	}
 
-//print out a cert id for debug
-static void ocsp_print_cert_id(OCSP_CERTID *cid)
+static RecordVal* ocsp_fill_cert_id(OCSP_CERTID *cert_id, RecordType* type, BIO* bio)
 	{
-	if (cid == NULL)
-		return;
+	RecordVal *d = new RecordVal(type);
 	char buf[OCSP_STRING_BUF_SIZE];
-	int len = sizeof(buf);
-	memset(buf, 0, len);
-	int new_len = -1;
-	
-	//print hashAlgorithm
-	new_len = ASN1_OBJECT_to_cstr(buf, len, (void *)(cid->hashAlgorithm->algorithm));
-	StringVal hashAlgorithm = StringVal(new_len, buf);
-	printf("[%d]hashAlgorithm: %s\n", new_len, hashAlgorithm.CheckString());
+	memset(buf, 0, sizeof(buf));
 
-	//print issuerNameHash
-	new_len = ASN1_OCTET_STRING_to_cstr(buf, len, (void *)(cid->issuerNameHash));
-	StringVal issuerNameHash = StringVal(new_len, buf);
-	printf("[%d]issuerNameHash: %s\n", new_len, issuerNameHash.CheckString());
+	i2a_ASN1_OBJECT(bio, cert_id->hashAlgorithm->algorithm);
+	int len = BIO_read(bio, buf, sizeof(buf));
+	d->Assign(0, new StringVal(len, buf));
+	BIO_reset(bio);
 
-	//print issuerKeyHash
-	new_len = ASN1_OCTET_STRING_to_cstr(buf, len, (void *)(cid->issuerKeyHash));
-	StringVal issuerKeyHash = StringVal(new_len, buf);
-	printf("[%d]issuerKeyHash: %s\n", new_len, issuerKeyHash.CheckString());
+	i2a_ASN1_STRING(bio, cert_id->issuerNameHash, V_ASN1_OCTET_STRING);
+	len = BIO_read(bio, buf, sizeof(buf));
+	d->Assign(1, new StringVal(len, buf));
+	BIO_reset(bio);
 
-	//print serialNumber
-	new_len = ASN1_INTEGER_to_cstr(buf, len, (void *)(cid->serialNumber));
-	StringVal serialNumber = StringVal(new_len, buf);
-	printf("[%d]serialNumber: %s\n", new_len, serialNumber.CheckString());
-	}
+	i2a_ASN1_STRING(bio, cert_id->issuerKeyHash, V_ASN1_OCTET_STRING);
+	len = BIO_read(bio, buf, sizeof(buf));
+	d->Assign(2, new StringVal(len, buf));
+	BIO_reset(bio);
 
-//fill in cert id
-static void ocsp_fill_cert_id(OCSP_CERTID *cert_id, RecordVal *d)
-	{
-	if (d == NULL || cert_id == NULL)
-		return;
-	char buf[OCSP_STRING_BUF_SIZE];
-	int buf_len = sizeof(buf);
-	memset(buf, 0, buf_len);
+	i2a_ASN1_INTEGER(bio, cert_id->serialNumber);
+	d->Assign(3, new StringVal(len, buf));
+	BIO_reset(bio);
 
-	//hashAlgorithm
-	int len = -1;
-	len = ASN1_OBJECT_to_cstr(buf, buf_len, (void *)(cert_id->hashAlgorithm->algorithm));
-	if (len > 0)
-		d->Assign(0, new StringVal(len, buf));
-	
-	//issuerNameHash
-	len = -1;
-	len = ASN1_OCTET_STRING_to_cstr(buf, buf_len, (void *)(cert_id->issuerNameHash));
-	if (len > 0)
-		d->Assign(1, new StringVal(len, buf));
-	
-	//issuerKeyHash
-	len = -1;
-	len = ASN1_OCTET_STRING_to_cstr(buf, buf_len, (void *)(cert_id->issuerKeyHash));
-	if (len > 0)
-		d->Assign(2, new StringVal(len, buf));
-	
-	//serialNumber
-	len = -1;
-	len = ASN1_INTEGER_to_cstr(buf, buf_len, (void *)(cert_id->serialNumber));
-	if (len > 0)
-		d->Assign(3, new StringVal(len, buf));
+	return d;
 	}
 
 file_analysis::Analyzer* OCSP::Instantiate(RecordVal* args, File* file)
 	{
-	Val* ocsp_type = get_extract_field_val(args, "ocsp_type");
-        if (! ocsp_type )
+	Val* ocsp_type = get_ocsp_type(args, "ocsp_type");
+
+	if (! ocsp_type )
 		return 0;
+
 	return new OCSP(args, file, ocsp_type->AsString()->CheckString());
 	}
 
@@ -260,328 +107,223 @@ bool file_analysis::OCSP::Undelivered(uint64 offset, uint64 len)
 	return false;
 	}
 
-// parse OCSP request or response and send data to bro scriptland
+// we parse the entire OCSP response in EOF, because we just pass it on
+// to OpenSSL.
 bool file_analysis::OCSP::EndOfFile()
 	{
-	OCSP_REQUEST  *req     = NULL;
-	OCSP_RESPONSE *resp    = NULL;
-	
 	const unsigned char* ocsp_char = reinterpret_cast<const unsigned char*>(ocsp_data.data());
-	
+
 	if (ocsp_type == "request")
 		{
-		req = d2i_OCSP_REQUEST(NULL, &ocsp_char, ocsp_data.size());
+		OCSP_REQUEST *req = d2i_OCSP_REQUEST(NULL, &ocsp_char, ocsp_data.size());
+
 		if (!req)
 			{
 			reporter->Weird(fmt("OPENSSL Could not parse OCSP request (fuid %s)", GetFile()->GetID().c_str()));
-			goto ocsp_cleanup;
+			return false;
 			}
-		
-		//parse request into record
-		OCSP_REQVal* req_val = new OCSP_REQVal(req);
-		RecordVal* req_record = ParseRequest(req_val);
-		if (!req_record)
-			{
-			reporter->Weird(fmt("Internal fail to parse OCSP request (fuid %s)", GetFile()->GetID().c_str()));
-			Unref(req_val);
-			goto ocsp_cleanup;
-			}
+
+		OCSP_REQVal* req_val = new OCSP_REQVal(req); // req_val takes ownership
+
+		RecordVal* req_record = ParseRequest(req_val, GetFile()->GetID().c_str());
 
 		// and send the record on to scriptland
 		val_list* vl = new val_list();
 		vl->append(GetFile()->GetVal()->Ref());
-		vl->append(req_val->Ref());
-		vl->append(req_record->Ref());
-		mgr.QueueEvent(ocsp_request, vl);		
-
-		Unref(req_val);
-		Unref(req_record);
+		vl->append(req_val);
+		vl->append(req_record);
+		mgr.QueueEvent(ocsp_request, vl);
 		}
 	else if (ocsp_type == "response")
 		{
-		resp = d2i_OCSP_RESPONSE(NULL, &ocsp_char, ocsp_data.size());
+		OCSP_RESPONSE *resp = d2i_OCSP_RESPONSE(NULL, &ocsp_char, ocsp_data.size());
 		if (!resp)
 			{
 			reporter->Weird(fmt("OPENSSL Could not parse OCSP response (fuid %s)", GetFile()->GetID().c_str()));
-			goto ocsp_cleanup;
+			return false;
 			}
-		
-		//parse request into record
-		OCSP_RESPVal* resp_val = new OCSP_RESPVal(resp);
-		RecordVal* resp_record = ParseResponse(resp_val);
-		if (!resp_record)
-			{
-			reporter->Weird(fmt("Internal fail to parse OCSP response (fuid %s)", GetFile()->GetID().c_str()));
-			Unref(resp_val);
-			goto ocsp_cleanup;
-			}
+
+		OCSP_RESPVal* resp_val = new OCSP_RESPVal(resp); // resp_val takes ownership
+		RecordVal* resp_record = ParseResponse(resp_val, GetFile()->GetID().c_str());
 
 		// and send the record on to scriptland
 		val_list* vl = new val_list();
 		vl->append(GetFile()->GetVal()->Ref());
-		vl->append(resp_val->Ref());
-		vl->append(resp_record->Ref());
+		vl->append(resp_val);
+		vl->append(resp_record);
 		mgr.QueueEvent(ocsp_response, vl);
-
-		Unref(resp_val);
-		Unref(resp_record);
 		}
 	else
+		{
 	  reporter->Weird(fmt("the given argument of ocsp_type (%s) is not recognized", ocsp_type.c_str()));
-ocsp_cleanup:
-	//if (resp)
-	//	OCSP_RESPONSE_free(resp);
-	//if (req)
-	//	OCSP_REQUEST_free(req);
-	return false;
+		return false;
+		}
+
+	return true;
 }
 
-// parse OCSP request and trigger event
-RecordVal *file_analysis::OCSP::ParseRequest(OCSP_REQVal *req_val)
+RecordVal *file_analysis::OCSP::ParseRequest(OCSP_REQVal *req_val, const char* fid)
 	{
-	if (req_val == NULL)
-		return NULL;
-	OCSP_REQUEST *req     = NULL;
-	OCSP_ONEREQ  *one_req = NULL;
-	OCSP_CERTID  *cert_id = NULL;
-	OCSP_REQINFO *inf     = NULL;
-	//OCSP_SIGNATURE *sig  = NULL;
+	OCSP_REQUEST *req     = req_val->GetReq();
+	OCSP_REQINFO *inf     = req->tbsRequest;
 
-	RecordVal* ocsp_req_record = NULL;
-	VectorVal* all_req_bro = NULL;
-	
-	int req_count = -1, i = -1, len = -1;
-	long version = -1;
+	char buf[OCSP_STRING_BUF_SIZE]; // we need a buffer for some of the openssl functions
+	memset(buf, 0, sizeof(buf));
 
-	req = req_val->GetReq();
-	if (req == NULL)
-		return NULL;
-	
-	char buf[OCSP_STRING_BUF_SIZE];
-	int buf_len = sizeof(buf);
-	memset(buf, 0, buf_len);
-	
-	inf = req->tbsRequest;
-	//sig = req->optionalSignature;
-	if (inf == NULL)
-		return NULL;
+	RecordVal* ocsp_req_record = new RecordVal(BifType::Record::OCSP::Request);
 
-	ocsp_req_record = new RecordVal(BifType::Record::OCSP::Request);
-	if (!ocsp_req_record)
-		{
-		reporter->Error("Cannot create OCSP request structure: Internal memory error");
-		return NULL;
-		}
+	ocsp_req_record->Assign(0, new Val((uint64)ASN1_INTEGER_get(inf->version), TYPE_COUNT));
+	BIO *bio = BIO_new(BIO_s_mem());
 
-	//version
-	version = ASN1_INTEGER_get(inf->version);
-	if (version != -1)
-		ocsp_req_record->Assign(0, new Val((uint64)version, TYPE_COUNT));
-	
-	//requestorName
 	if (inf->requestorName != NULL)
 		{
-		len = -1;
-		len = GENERAL_NAME_to_cstr(buf, buf_len, (void *)(inf->requestorName));
-		if (len > 0)
-			ocsp_req_record->Assign(1, new StringVal(len, buf));
+		GENERAL_NAME_print(bio, inf->requestorName);
+		int len = BIO_read(bio, buf, sizeof(buf));
+		ocsp_req_record->Assign(1, new StringVal(len, buf));
+		BIO_reset(bio);
 		}
-	
-	//deal with details of the request
-	req_count = OCSP_request_onereq_count(req);
-	if (req_count <= 0)
-		goto clean_up;
-	for (i=0; i<req_count; i++)
-		{
-		one_req = OCSP_request_onereq_get0(req, i);
-		cert_id = OCSP_onereq_get0_id(one_req);
-		if (all_req_bro == NULL)
-			all_req_bro = new VectorVal(internal_type("ocsp_req_vec")->AsVectorType());
-		RecordVal *one_req_bro = new RecordVal(BifType::Record::OCSP::OneReq);
 
-		ocsp_fill_cert_id(cert_id, one_req_bro);
-		all_req_bro->Assign(all_req_bro->Size(), one_req_bro);
+	VectorVal* all_req_bro = new VectorVal(internal_type("ocsp_req_vec")->AsVectorType());
+	ocsp_req_record->Assign(2, all_req_bro);
+
+	int req_count = OCSP_request_onereq_count(req);
+	for ( int i=0; i<req_count; i++ )
+		{
+		OCSP_ONEREQ *one_req = OCSP_request_onereq_get0(req, i);
+		OCSP_CERTID *cert_id = OCSP_onereq_get0_id(one_req);
+
+		RecordVal* one_req_bro = ocsp_fill_cert_id(cert_id, BifType::Record::OCSP::OneReq, bio);
+		all_req_bro->Assign(i, one_req_bro);
 		}
-	
-	if (all_req_bro != NULL)
-		ocsp_req_record->Assign(2, all_req_bro);
-clean_up:
+
+	BIO_free(bio);
+
 	return ocsp_req_record;
 }
 
-// parse OCSP response and trigger event
-RecordVal *file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val)
+RecordVal *file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val, const char* fid)
 	{
-	if (resp_val == NULL)
-		return NULL;
-	OCSP_RESPONSE   *resp        = NULL;
-	OCSP_RESPBYTES  *resp_bytes  = NULL;
-	OCSP_CERTID     *cert_id     = NULL;
-	OCSP_BASICRESP  *basic_resp  = NULL;
-	OCSP_RESPDATA   *resp_data   = NULL;
-	OCSP_RESPID     *resp_id     = NULL;
-	OCSP_SINGLERESP *single_resp = NULL;
-	OCSP_REVOKEDINFO *revoked_info = NULL;
-	OCSP_CERTSTATUS *cert_status = NULL;
+	OCSP_RESPONSE   *resp       = resp_val->GetResp();
+	OCSP_RESPBYTES  *resp_bytes = resp->responseBytes;
+	OCSP_BASICRESP  *basic_resp = nullptr;
+	OCSP_RESPDATA   *resp_data  = nullptr;
+	OCSP_RESPID     *resp_id    = nullptr;
 
-        RecordVal *ocsp_resp_record = NULL;
-	VectorVal *all_resp_bro  = NULL;
-	
-	int resp_count = -1, status = -1, i = -1, len = -1;
-	long version = -1;
-	
-	resp = resp_val->GetResp();
-	if (resp == NULL)
-		return NULL;	
+	int resp_count = 0;
+	VectorVal *all_resp_bro = nullptr;
 
-  	char buf[OCSP_STRING_BUF_SIZE];
-	int buf_len = sizeof(buf);
-	memset(buf, 0, buf_len);
+ 	char buf[OCSP_STRING_BUF_SIZE];
+	memset(buf, 0, sizeof(buf));
 
-	ocsp_resp_record = new RecordVal(BifType::Record::OCSP::Response);
-	if (!ocsp_resp_record)
-		{
-		reporter->Error("Cannot create OCSP response structure: Internal memory error");
-		return NULL;
-		}
+	RecordVal *ocsp_resp_record = new RecordVal(BifType::Record::OCSP::Response);
 
-	//responseStatus
-	status = OCSP_response_status(resp);
-	const char *status_str = OCSP_response_status_str(status);
-	ocsp_resp_record->Assign(0, new StringVal(strlen(status_str), status_str));	
+	const char *status_str = OCSP_response_status_str(OCSP_response_status(resp));
+	ocsp_resp_record->Assign(0, new StringVal(strlen(status_str), status_str));
 
-	//responseType
-	resp_bytes = resp->responseBytes;
 	if (!resp_bytes)
-		goto clean_up;
-	len = -1;
-	len = ASN1_OBJECT_to_cstr(buf, buf_len, (void *)(resp_bytes->responseType));
-	if (len > 0)
-		ocsp_resp_record->Assign(1, new StringVal(len, buf));
-	
-	//get the basic response
+		return ocsp_resp_record;
+
+	BIO *bio = BIO_new(BIO_s_mem());
+	i2a_ASN1_OBJECT(bio, resp_bytes->responseType);
+	int len = BIO_read(bio, buf, sizeof(buf));
+	ocsp_resp_record->Assign(1, new StringVal(len, buf));
+	BIO_reset(bio);
+
+	// get the basic response
 	basic_resp = OCSP_response_get1_basic(resp);
-	if (!basic_resp)
+	if ( !basic_resp )
 		goto clean_up;
+
 	resp_data = basic_resp->tbsResponseData;
-	if (!resp_data)
+	if ( !resp_data )
 		goto clean_up;
 
-	//version
-	version = ASN1_INTEGER_get(resp_data->version);
-	if (version != -1)
-		ocsp_resp_record->Assign(2, new Val((uint64)version, TYPE_COUNT));
-
-	//responderID
+	ocsp_resp_record->Assign(2, new Val((uint64)ASN1_INTEGER_get(resp_data->version), TYPE_COUNT));
+	// responderID
 	resp_id = resp_data->responderId;
-	len = -1;
-	len = OCSP_RESPID_to_cstr(buf, buf_len, resp_id);
-	if (len > 0)
-		ocsp_resp_record->Assign(3, new StringVal(len, buf));
+	OCSP_RESPID_bio(resp_id, bio);
+	len = BIO_read(bio, buf, sizeof(buf));
+	ocsp_resp_record->Assign(3, new StringVal(len, buf));
+	BIO_reset(bio);
 
-	//producedAt
-	len = -1;
-	len = ASN1_GENERALIZEDTIME_to_cstr(buf, buf_len, (void *)(resp_data->producedAt));
-	if (len > 0)
-		ocsp_resp_record->Assign(4, new StringVal(len, buf));
+	// producedAt
+	ocsp_resp_record->Assign(4, new Val(GetTimeFromAsn1(resp_data->producedAt, fid, reporter), TYPE_TIME));
 
-	//responses
+	all_resp_bro = new VectorVal(internal_type("ocsp_resp_vec")->AsVectorType());
+	ocsp_resp_record->Assign(5, all_resp_bro);
+
+	// responses
 	resp_count = sk_OCSP_SINGLERESP_num(resp_data->responses);
-	if (resp_count <= 0)
-		goto clean_up;
-	for (i=0; i<resp_count; i++)
+	for ( int i=0; i<resp_count; i++ )
 		{
-		single_resp = sk_OCSP_SINGLERESP_value(resp_data->responses, i);
-		if (!single_resp)
+		OCSP_SINGLERESP *single_resp = sk_OCSP_SINGLERESP_value(resp_data->responses, i);
+		if ( !single_resp )
 			continue;
-		if (all_resp_bro == NULL)
-			all_resp_bro = new VectorVal(internal_type("ocsp_resp_vec")->AsVectorType());
-		RecordVal *single_resp_bro = new RecordVal(BifType::Record::OCSP::SingleResp);
 
-		//cert id
-		cert_id = single_resp->certId;
-		ocsp_fill_cert_id(cert_id, single_resp_bro);
+		// cert id
+		OCSP_CERTID *cert_id = single_resp->certId;
+		RecordVal *single_resp_bro = ocsp_fill_cert_id(cert_id, BifType::Record::OCSP::SingleResp, bio);
+		BIO_reset(bio);
 
-		//certStatus
-		cert_status = single_resp->certStatus;
-		std::string cert_status_str = OCSP_cert_status_str(cert_status->type);
-		std::string revoke_reason = "";
-		std::string revoke_time = "";
+		// certStatus
+		OCSP_CERTSTATUS *cert_status = single_resp->certStatus;
+		const char* cert_status_str = OCSP_cert_status_str(cert_status->type);
+		single_resp_bro->Assign(4, new StringVal(strlen(cert_status_str), cert_status_str));
 
-		//add revocation time and reason if it is revoked
-		if (cert_status->type == V_OCSP_CERTSTATUS_REVOKED)
+		// revocation time and reason if revoked
+		if ( cert_status->type == V_OCSP_CERTSTATUS_REVOKED )
 			{
-			revoked_info = cert_status->value.revoked;
-			len = -1;
-			len = ASN1_GENERALIZEDTIME_to_cstr(buf, buf_len, (void *)(revoked_info->revocationTime));
-			if (len > 0)
-				revoke_time.assign((const char *)buf, len);
+			OCSP_REVOKEDINFO *revoked_info = cert_status->value.revoked;
+			single_resp_bro->Assign(5, new Val(GetTimeFromAsn1(revoked_info->revocationTime, fid, reporter), TYPE_TIME));
 
-			if (revoked_info->revocationReason)
-				revoke_reason = OCSP_crl_reason_str(ASN1_ENUMERATED_get(revoked_info->revocationReason));
+			if ( revoked_info->revocationReason )
+				{
+				const char* revoke_reason = OCSP_crl_reason_str(ASN1_ENUMERATED_get(revoked_info->revocationReason));
+				single_resp_bro->Assign(6, new StringVal(strlen(revoke_reason), revoke_reason));
+				}
 			}
-		if (revoke_time.length() > 0)
-			cert_status_str += " " + revoke_time;
-		if (revoke_reason.length() > 0)
-			cert_status_str += " " + revoke_reason;
 
-		single_resp_bro->Assign(4, new StringVal(cert_status_str.length(), cert_status_str.c_str()));
+		single_resp_bro->Assign(7, new Val(GetTimeFromAsn1(single_resp->thisUpdate, fid, reporter), TYPE_TIME));
+		if ( single_resp->nextUpdate )
+			single_resp_bro->Assign(8, new Val(GetTimeFromAsn1(single_resp->nextUpdate, fid, reporter), TYPE_TIME));
 
-		//thisUpdate
-		len = -1;
-		len = ASN1_GENERALIZEDTIME_to_cstr(buf, buf_len, (void *)(single_resp->thisUpdate));
-		if (len > 0)
-			single_resp_bro->Assign(5, new StringVal(len, buf));
-
-		//nextUpdate
-		len = -1;
-		len = ASN1_GENERALIZEDTIME_to_cstr(buf, buf_len, (void *)(single_resp->nextUpdate));
-		if (len > 0)
-			single_resp_bro->Assign(6, new StringVal(len, buf));
-
-		all_resp_bro->Assign(all_resp_bro->Size(), single_resp_bro);
+		all_resp_bro->Assign(i, single_resp_bro);
 		}
-	if (all_resp_bro != NULL)
-		ocsp_resp_record->Assign(5, all_resp_bro);
 
-	//signatureAlgorithm
-	if (basic_resp->signatureAlgorithm)
-		{
-		len = -1;
-		len = ASN1_OBJECT_to_cstr(buf, buf_len, (void *)(basic_resp->signatureAlgorithm->algorithm));
-		if (len > 0)
-			ocsp_resp_record->Assign(6, new StringVal(len, buf));
-		}
-	//signature
-	if (basic_resp->signature)
-		{
-		len = -1;
-		len = ASN1_BIT_STRING_to_cstr(buf, buf_len, (void *)(basic_resp->signature));
-		if (len > 0)
-			ocsp_resp_record->Assign(7, new StringVal(len, buf));
-		}
+	i2a_ASN1_OBJECT(bio, basic_resp->signatureAlgorithm->algorithm);
+	len = BIO_read(bio, buf, sizeof(buf));
+	ocsp_resp_record->Assign(6, new StringVal(len, buf));
+	BIO_reset(bio);
+
+	//i2a_ASN1_OBJECT(bio, basic_resp->signature);
+	//len = BIO_read(bio, buf, sizeof(buf));
+	//ocsp_resp_record->Assign(7, new StringVal(len, buf));
+	//BIO_reset(bio);
+
 	//certs
-	if (basic_resp->certs)
+	if ( basic_resp->certs )
 		{
 		VectorVal *certs_vector = new VectorVal(internal_type("x509_opaque_vector")->AsVectorType());
 		int num_certs = sk_X509_num(basic_resp->certs);
-		for (i=0; i<num_certs; i++) {
+		for ( int i=0; i<num_certs; i++ )
+			{
 			::X509 *this_cert = X509_dup(helper_sk_X509_value(basic_resp->certs, i));
 			//::X509 *this_cert = X509_dup(sk_X509_value(basic_resp->certs, i));
 			if (this_cert)
 				certs_vector->Assign(i, new file_analysis::X509Val(this_cert));
 			else
 				reporter->Weird("OpenSSL returned null certificate");
-		}
-		ocsp_resp_record->Assign(8, certs_vector);
+			}
+		ocsp_resp_record->Assign(7, certs_vector);
 	  }
+
 clean_up:
 	if (basic_resp)
 		OCSP_BASICRESP_free(basic_resp);
+	BIO_free(bio);
 	return ocsp_resp_record;
 }
 
-//OCSP_REQVal
 OCSP_REQVal::OCSP_REQVal(OCSP_REQUEST* arg_ocsp_req) : OpaqueVal(ocsp_req_opaque_type)
 	{
 	ocsp_req = arg_ocsp_req;
@@ -589,7 +331,7 @@ OCSP_REQVal::OCSP_REQVal(OCSP_REQUEST* arg_ocsp_req) : OpaqueVal(ocsp_req_opaque
 
 OCSP_REQVal::OCSP_REQVal() : OpaqueVal(ocsp_req_opaque_type)
 	{
-	ocsp_req = NULL;
+	ocsp_req = nullptr;
 	}
 
 OCSP_REQVal::~OCSP_REQVal()
@@ -606,7 +348,7 @@ OCSP_REQUEST* OCSP_REQVal::GetReq() const
 bool OCSP_REQVal::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_OCSP_REQ_VAL, OpaqueVal);
-	unsigned char *buf = NULL;
+	unsigned char *buf = nullptr;
 	int length = i2d_OCSP_REQUEST(ocsp_req, &buf);
 	if ( length < 0 )
 		return false;
@@ -621,11 +363,11 @@ bool OCSP_REQVal::DoUnserialize(UnserialInfo* info)
 
 	int length;
 	unsigned char *ocsp_req_buf, *opensslbuf;
-	
+
 	if ( ! UNSERIALIZE_STR(reinterpret_cast<char **>(&ocsp_req_buf), &length) )
 		return false;
 	opensslbuf = ocsp_req_buf; // OpenSSL likes to shift pointers around. really.
-	ocsp_req = d2i_OCSP_REQUEST(NULL, const_cast<const unsigned char**>(&opensslbuf), length);
+	ocsp_req = d2i_OCSP_REQUEST(nullptr, const_cast<const unsigned char**>(&opensslbuf), length);
 	delete[] ocsp_req_buf;
 	if ( !ocsp_req )
 		return false;
@@ -641,7 +383,7 @@ OCSP_RESPVal::OCSP_RESPVal(OCSP_RESPONSE* arg_ocsp_resp) : OpaqueVal(ocsp_resp_o
 
 OCSP_RESPVal::OCSP_RESPVal() : OpaqueVal(ocsp_resp_opaque_type)
 	{
-	ocsp_resp = NULL;
+	ocsp_resp = nullptr;
 	}
 
 OCSP_RESPVal::~OCSP_RESPVal()
@@ -658,7 +400,7 @@ OCSP_RESPONSE* OCSP_RESPVal::GetResp() const
 bool OCSP_RESPVal::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_OCSP_RESP_VAL, OpaqueVal);
-	unsigned char *buf = NULL;
+	unsigned char *buf = nullptr;
 	int length = i2d_OCSP_RESPONSE(ocsp_resp, &buf);
 	if ( length < 0 )
 		return false;
@@ -673,11 +415,11 @@ bool OCSP_RESPVal::DoUnserialize(UnserialInfo* info)
 
 	int length;
 	unsigned char *ocsp_resp_buf, *opensslbuf;
-	
+
 	if ( ! UNSERIALIZE_STR(reinterpret_cast<char **>(&ocsp_resp_buf), &length) )
 		return false;
 	opensslbuf = ocsp_resp_buf; // OpenSSL likes to shift pointers around. really.
-	ocsp_resp = d2i_OCSP_RESPONSE(NULL, const_cast<const unsigned char**>(&opensslbuf), length);
+	ocsp_resp = d2i_OCSP_RESPONSE(nullptr, const_cast<const unsigned char**>(&opensslbuf), length);
 	delete[] ocsp_resp_buf;
 	if ( !ocsp_resp )
 		return false;

@@ -38,6 +38,15 @@ export {
 event bro_init() &priority=5
 	{
 	Log::create_stream(X509::LOG, [$columns=Info, $ev=log_x509, $path="x509"]);
+
+	Files::register_for_mime_type(Files::ANALYZER_X509, "application/x-x509-user-cert");
+	Files::register_for_mime_type(Files::ANALYZER_X509, "application/x-x509-ca-cert");
+	# Always calculate hashes. They are not necessary for base scripts
+	# but very useful for identification, and required for policy scripts
+	Files::register_for_mime_type(Files::ANALYZER_MD5, "application/x-x509-user-cert");
+	Files::register_for_mime_type(Files::ANALYZER_MD5, "application/x-x509-ca-cert");
+	Files::register_for_mime_type(Files::ANALYZER_SHA1, "application/x-x509-user-cert");
+	Files::register_for_mime_type(Files::ANALYZER_SHA1, "application/x-x509-ca-cert");
 	}
 
 redef record Files::Info += {

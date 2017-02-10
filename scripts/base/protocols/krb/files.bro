@@ -101,12 +101,6 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 		}
 
 	c$krb = info;
-
-	Files::add_analyzer(f, Files::ANALYZER_X509);
-	# Always calculate hashes. They are not necessary for base scripts
-	# but very useful for identification, and required for policy scripts
-	Files::add_analyzer(f, Files::ANALYZER_MD5);
-	Files::add_analyzer(f, Files::ANALYZER_SHA1);
 	}
 
 function fill_in_subjects(c: connection)

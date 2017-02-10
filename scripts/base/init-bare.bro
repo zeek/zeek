@@ -446,6 +446,9 @@ type fa_metadata: record {
 	mime_type: string &optional;
 	## All matching mime types if any were discovered.
 	mime_types: mime_matches &optional;
+	## Specifies if the mime type was inferred using signatures,
+	## or provided by the protocol the file appeared in.
+	inferred: bool &default=T;
 };
 
 ## Fields of a SYN packet.

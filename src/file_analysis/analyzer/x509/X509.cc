@@ -4,7 +4,6 @@
 
 #include "X509.h"
 #include "Event.h"
-#include "x509-extension_pac.h"
 
 #include "events.bif.h"
 #include "types.bif.h"
@@ -17,14 +16,12 @@
 #include <openssl/opensslconf.h>
 #include <openssl/err.h>
 
-#include "Asn1Time.h"
-
 using namespace file_analysis;
 
 IMPLEMENT_SERIAL(X509Val, SER_X509_VAL);
 
 file_analysis::X509::X509(RecordVal* args, file_analysis::File* file)
-	: file_analysis::Analyzer(file_mgr->GetComponentTag("X509"), args, file)
+	: file_analysis::X509Common::X509Common(file_mgr->GetComponentTag("X509"), args, file)
 	{
 	cert_data.clear();
 	}
@@ -75,7 +72,7 @@ bool file_analysis::X509::EndOfFile()
 		if ( ! ex )
 			continue;
 
-		ParseExtension(ex);
+		ParseExtension(ex, x509_extension, false);
 		}
 
 	// X509_free(ssl_cert); We do _not_ free the certificate here. It is refcounted
@@ -208,152 +205,6 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val, const char* 
 	return pX509Cert;
 	}
 
-StringVal* file_analysis::X509::GetExtensionFromBIO(BIO* bio)
-	{
-	BIO_flush(bio);
-	ERR_clear_error();
-	int length = BIO_pending(bio);
-
-	if ( ERR_peek_error() != 0 )
-		{
-		char tmp[120];
-		ERR_error_string_n(ERR_get_error(), tmp, sizeof(tmp));
-		reporter->Weird(fmt("X509::GetExtensionFromBIO: %s", tmp));
-		BIO_free_all(bio);
-		return 0;
-		}
-
-	if ( length == 0 )
-		{
-		BIO_free_all(bio);
-		return new StringVal("");
-		}
-
-	char* buffer = (char*) malloc(length);
-
-	if ( ! buffer )
-		{
-		// Just emit an error here and try to continue instead of aborting
-		// because it's unclear the length value is very reliable.
-		reporter->Error("X509::GetExtensionFromBIO malloc(%d) failed", length);
-		BIO_free_all(bio);
-		return 0;
-		}
-
-	BIO_read(bio, (void*) buffer, length);
-	StringVal* ext_val = new StringVal(length, buffer);
-
-	free(buffer);
-	BIO_free_all(bio);
-
-	return ext_val;
-	}
-
-// this is nearly replicated in the OCSP analyzer
-void file_analysis::X509::ParseExtension(X509_EXTENSION* ex)
-	{
-	char name[256];
-	char oid[256];
-
-	ASN1_OBJECT* ext_asn = X509_EXTENSION_get_object(ex);
-	const char* short_name = OBJ_nid2sn(OBJ_obj2nid(ext_asn));
-
-	OBJ_obj2txt(name, 255, ext_asn, 0);
-	OBJ_obj2txt(oid, 255, ext_asn, 1);
-
-	int critical = 0;
-	if ( X509_EXTENSION_get_critical(ex) != 0 )
-		critical = 1;
-
-	BIO *bio = BIO_new(BIO_s_mem());
-	if( ! X509V3_EXT_print(bio, ex, 0, 0))
-		M_ASN1_OCTET_STRING_print(bio,ex->value);
-
-	StringVal* ext_val = GetExtensionFromBIO(bio);
-
-	if ( ! ext_val )
-		ext_val = new StringVal(0, "");
-
-	RecordVal* pX509Ext = new RecordVal(BifType::Record::X509::Extension);
-	pX509Ext->Assign(0, new StringVal(name));
-
-	if ( short_name and strlen(short_name) > 0 )
-		pX509Ext->Assign(1, new StringVal(short_name));
-
-	pX509Ext->Assign(2, new StringVal(oid));
-	pX509Ext->Assign(3, new Val(critical, TYPE_BOOL));
-	pX509Ext->Assign(4, ext_val);
-
-	// send off generic extension event
-	//
-	// and then look if we have a specialized event for the extension we just
-	// parsed. And if we have it, we send the specialized event on top of the
-	// generic event that we just had. I know, that is... kind of not nice,
-	// but I am not sure if there is a better way to do it...
-	val_list* vl = new val_list();
-	vl->append(GetFile()->GetVal()->Ref());
-	vl->append(pX509Ext);
-
-	mgr.QueueEvent(x509_extension, vl);
-
-	// look if we have a specialized handler for this event...
-	if ( OBJ_obj2nid(ext_asn) == NID_basic_constraints )
-		ParseBasicConstraints(ex);
-
-	else if ( OBJ_obj2nid(ext_asn) == NID_subject_alt_name )
-		ParseSAN(ex);
-
-#ifdef NID_ct_cert_scts
-	else if ( OBJ_obj2nid(ext_asn) == NID_ct_cert_scts || OBJ_obj2nid(ext_asn) == NID_ct_precert_scts )
-#else
-	else if ( strcmp(oid, "1.3.6.1.4.1.11129.2.4.2") == 0 || strcmp(oid, "1.3.6.1.4.1.11129.2.4.4") == 0 )
-#endif
-		ParseSignedCertificateTimestamps(ex);
-	}
-
-void file_analysis::X509::ParseSignedCertificateTimestamps(X509_EXTENSION* ext)
-	{
-	// Ok, signed certificate timestamps are a bit of an odd case out; we don't
-	// want to use the (basically nonexistant) OpenSSL functionality to parse them.
-	// Instead we have our own, self-written binpac parser to parse just them,
-	// which we will initialize here and tear down immediately again.
-
-	ASN1_OCTET_STRING* ext_val = X509_EXTENSION_get_data(ext);
-	// the octet string of the extension contains the octet string which in turn
-	// contains the SCT. Obviously.
-
-	unsigned char* ext_val_copy = (unsigned char*) OPENSSL_malloc(ext_val->length);
-	unsigned char* ext_val_second_pointer = ext_val_copy;
-	memcpy(ext_val_copy, ext_val->data, ext_val->length);
-
-	ASN1_OCTET_STRING* inner = d2i_ASN1_OCTET_STRING(NULL, (const unsigned char**) &ext_val_copy, ext_val->length);
-	if ( !inner )
-		{
-		reporter->Error("X509::ParseSignedCertificateTimestamps could not parse inner octet string");
-		return;
-		}
-
-	binpac::X509Extension::MockConnection* conn = new binpac::X509Extension::MockConnection(this);
-	binpac::X509Extension::SignedCertTimestampExt* interp = new binpac::X509Extension::SignedCertTimestampExt(conn);
-
-	try
-		{
-		interp->NewData(inner->data, inner->data + inner->length);
-		}
-	catch( const binpac::Exception& e )
-		{
-		// throw a warning or sth
-		reporter->Error("X509::ParseSignedCertificateTimestamps could not parse SCT");
-		}
-
-	OPENSSL_free(ext_val_second_pointer);
-
-	interp->FlowEOF();
-
-	delete interp;
-	delete conn;
-	}
-
 void file_analysis::X509::ParseBasicConstraints(X509_EXTENSION* ex)
 	{
 	assert(OBJ_obj2nid(X509_EXTENSION_get_object(ex)) == NID_basic_constraints);
@@ -378,6 +229,23 @@ void file_analysis::X509::ParseBasicConstraints(X509_EXTENSION* ex)
 
 	else
 		reporter->Weird(fmt("Certificate with invalid BasicConstraint. fuid %s", GetFile()->GetID().c_str()));
+	}
+
+void file_analysis::X509::ParseExtensionsSpecific(X509_EXTENSION* ex, bool global, ASN1_OBJECT* ext_asn, const char* oid)
+	{
+	// look if we have a specialized handler for this event...
+	if ( OBJ_obj2nid(ext_asn) == NID_basic_constraints )
+		ParseBasicConstraints(ex);
+
+	else if ( OBJ_obj2nid(ext_asn) == NID_subject_alt_name )
+		ParseSAN(ex);
+
+#ifdef NID_ct_cert_scts
+	else if ( OBJ_obj2nid(ext_asn) == NID_ct_cert_scts || OBJ_obj2nid(ext_asn) == NID_ct_precert_scts )
+#else
+	else if ( strcmp(oid, "1.3.6.1.4.1.11129.2.4.2") == 0 || strcmp(oid, "1.3.6.1.4.1.11129.2.4.4") == 0 )
+#endif
+		ParseSignedCertificateTimestamps(ex);
 	}
 
 void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)

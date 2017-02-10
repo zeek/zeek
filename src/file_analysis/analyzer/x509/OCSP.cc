@@ -17,7 +17,6 @@
 #include <openssl/opensslconf.h>
 
 #include "file_analysis/analyzer/x509/X509.h"
-#include "Asn1Time.h"
 
 // helper function of sk_X509_value to avoid namespace problem
 // sk_X509_value(X,Y) = > SKM_sk_value(X509,X,Y)
@@ -87,7 +86,7 @@ file_analysis::Analyzer* OCSP::InstantiateReply(RecordVal* args, File* file)
 	}
 
 file_analysis::OCSP::OCSP(RecordVal* args, file_analysis::File* file, bool arg_request)
-	: file_analysis::Analyzer(file_mgr->GetComponentTag("OCSP"), args, file), request(arg_request)
+	: file_analysis::X509Common::X509Common(file_mgr->GetComponentTag("OCSP"), args, file), request(arg_request)
 	{
 	}
 
@@ -295,7 +294,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val, const char* fid)
 			if ( ! ex )
 				continue;
 
-			ParseExtension(ex, false);
+			ParseExtension(ex, ocsp_extension, false);
 			}
 		}
 
@@ -334,9 +333,8 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val, const char* fid)
 		if ( ! ex )
 			continue;
 
-		ParseExtension(ex, true);
+		ParseExtension(ex, ocsp_extension, true);
 		}
-
 
 clean_up:
 	if (basic_resp)
@@ -344,53 +342,14 @@ clean_up:
 	BIO_free(bio);
 }
 
-// This is a near copy from X509
-void file_analysis::OCSP::ParseExtension(X509_EXTENSION* ex, bool global)
+void file_analysis::OCSP::ParseExtensionsSpecific(X509_EXTENSION* ex, bool global, ASN1_OBJECT* ext_asn, const char* oid)
 	{
-	char name[256];
-	char oid[256];
-
-	ASN1_OBJECT* ext_asn = X509_EXTENSION_get_object(ex);
-	const char* short_name = OBJ_nid2sn(OBJ_obj2nid(ext_asn));
-
-	OBJ_obj2txt(name, 255, ext_asn, 0);
-	OBJ_obj2txt(oid, 255, ext_asn, 1);
-
-	int critical = 0;
-	if ( X509_EXTENSION_get_critical(ex) != 0 )
-		critical = 1;
-
-	BIO *bio = BIO_new(BIO_s_mem());
-	if( ! X509V3_EXT_print(bio, ex, 0, 0))
-		M_ASN1_OCTET_STRING_print(bio,ex->value);
-
-	StringVal* ext_val = X509::GetExtensionFromBIO(bio);
-
-	if ( ! ext_val )
-		ext_val = new StringVal(0, "");
-
-	RecordVal* pX509Ext = new RecordVal(BifType::Record::X509::Extension);
-	pX509Ext->Assign(0, new StringVal(name));
-
-	if ( short_name and strlen(short_name) > 0 )
-		pX509Ext->Assign(1, new StringVal(short_name));
-
-	pX509Ext->Assign(2, new StringVal(oid));
-	pX509Ext->Assign(3, new Val(critical, TYPE_BOOL));
-	pX509Ext->Assign(4, ext_val);
-
-	// send off generic extension event
-	//
-	// and then look if we have a specialized event for the extension we just
-	// parsed. And if we have it, we send the specialized event on top of the
-	// generic event that we just had. I know, that is... kind of not nice,
-	// but I am not sure if there is a better way to do it...
-	val_list* vl = new val_list();
-	vl->append(GetFile()->GetVal()->Ref());
-	vl->append(pX509Ext);
-	vl->append(new Val(global ? 1 : 0, TYPE_BOOL));
-
-	mgr.QueueEvent(ocsp_extension, vl);
+#ifdef NID_ct_cert_scts
+	if ( OBJ_obj2nid(ext_asn) == NID_ct_cert_scts || OBJ_obj2nid(ext_asn) == NID_ct_precert_scts )
+#else
+	if ( strcmp(oid, "1.3.6.1.4.1.11129.2.4.2") == 0 || strcmp(oid, "1.3.6.1.4.1.11129.2.4.4") == 0 )
+#endif
+		ParseSignedCertificateTimestamps(ex);
 	}
 
 OCSP_RESPVal::OCSP_RESPVal(OCSP_RESPONSE* arg_ocsp_resp) : OpaqueVal(ocsp_resp_opaque_type)

@@ -73,4 +73,4 @@ event x509_ext_subject_alternative_name%(f: fa_file, ext: X509::SubjectAlternati
 ##                              digitally_signed struct
 ##
 ## signature: signature part of the digitally_signed struct
-event x509_ext_signed_certificate_timestamp%(f: fa_file, version: count, logid: string, timestamp: time, hash_algorithm: count, signature_algorithm: count, signature: string%);
+event x509_ocsp_ext_signed_certificate_timestamp%(f: fa_file, version: count, logid: string, timestamp: time, hash_algorithm: count, signature_algorithm: count, signature: string%);

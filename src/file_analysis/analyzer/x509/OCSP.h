@@ -8,20 +8,19 @@
 #include "Val.h"
 #include "../File.h"
 #include "Analyzer.h"
+#include "X509Common.h"
 
 #include <openssl/ocsp.h>
-#include <openssl/x509.h>
-#include <openssl/asn1.h>
 
 namespace file_analysis {
 
 class OCSP_RESPVal;
 
-class OCSP : public file_analysis::Analyzer {
+class OCSP : public file_analysis::X509Common {
 public:
-	virtual bool DeliverStream(const u_char* data, uint64 len);
-	virtual bool Undelivered(uint64 offset, uint64 len);
-	virtual bool EndOfFile();
+	bool DeliverStream(const u_char* data, uint64 len) override;
+	bool Undelivered(uint64 offset, uint64 len) override;
+	bool EndOfFile() override;
 
 	static file_analysis::Analyzer* InstantiateRequest(RecordVal* args, File* file);
 	static file_analysis::Analyzer* InstantiateReply(RecordVal* args, File* file);
@@ -32,7 +31,7 @@ protected:
 private:
 	void ParseResponse(OCSP_RESPVal *, const char* fid = 0);
 	void ParseRequest(OCSP_REQUEST *, const char* fid = 0);
-	void ParseExtension(X509_EXTENSION*, bool global);
+	void ParseExtensionsSpecific(X509_EXTENSION* ex, bool, ASN1_OBJECT*, const char*) override;
 
 	std::string ocsp_data;
 	bool request = false; // true if ocsp request, false if reply

@@ -26,3 +26,5 @@ event ocsp_response_status%(f: fa_file, status: string%);
 event ocsp_response_bytes%(f: fa_file, resp_ref: opaque of ocsp_resp, status: string, version: count, responderId: string, producedAt: time, signatureAlgorithm: string, certs: x509_opaque_vector%);
 
 event ocsp_response_certificate%(f: fa_file, hashAlgorithm: string, issuerNameHash: string, issuerKeyHash: string, serialNumber: string, certStatus: string, revoketime: time, revokereason: string, thisUpdate: time, nextUpdate: time%);
+
+event ocsp_extension%(f: fa_file, ext: X509::Extension, global_resp: bool%);

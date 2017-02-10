@@ -3,8 +3,10 @@
 #include <string>
 
 #include "OCSP.h"
+#include "X509.h"
 #include "Event.h"
 
+#include "types.bif.h"
 #include "ocsp_events.bif.h"
 
 #include "file_analysis/Manager.h"
@@ -185,7 +187,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val, const char* fid)
 	OCSP_RESPDATA   *resp_data  = nullptr;
 	OCSP_RESPID     *resp_id    = nullptr;
 
-	int resp_count = 0;
+	int resp_count, num_ext = 0;
 	VectorVal *certs_vector = nullptr;
 	int len = 0;
 
@@ -285,6 +287,16 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val, const char* fid)
 			rvl->append(new Val(0, TYPE_TIME));
 
 		mgr.QueueEvent(ocsp_response_certificate, rvl);
+
+		num_ext = OCSP_SINGLERESP_get_ext_count(single_resp);
+		for ( int k = 0; k < num_ext; ++k )
+			{
+			X509_EXTENSION* ex = OCSP_SINGLERESP_get_ext(single_resp, k);
+			if ( ! ex )
+				continue;
+
+			ParseExtension(ex, false);
+			}
 		}
 
 	i2a_ASN1_OBJECT(bio, basic_resp->signatureAlgorithm->algorithm);
@@ -314,11 +326,72 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val, const char* fid)
 	  }
 	mgr.QueueEvent(ocsp_response_bytes, vl);
 
+	// ok, now that we are done with the actual certificate - let's parse extensions :)
+	num_ext = OCSP_BASICRESP_get_ext_count(basic_resp);
+	for ( int k = 0; k < num_ext; ++k )
+		{
+		X509_EXTENSION* ex = OCSP_BASICRESP_get_ext(basic_resp, k);
+		if ( ! ex )
+			continue;
+
+		ParseExtension(ex, true);
+		}
+
+
 clean_up:
 	if (basic_resp)
 		OCSP_BASICRESP_free(basic_resp);
 	BIO_free(bio);
 }
+
+// This is a near copy from X509
+void file_analysis::OCSP::ParseExtension(X509_EXTENSION* ex, bool global)
+	{
+	char name[256];
+	char oid[256];
+
+	ASN1_OBJECT* ext_asn = X509_EXTENSION_get_object(ex);
+	const char* short_name = OBJ_nid2sn(OBJ_obj2nid(ext_asn));
+
+	OBJ_obj2txt(name, 255, ext_asn, 0);
+	OBJ_obj2txt(oid, 255, ext_asn, 1);
+
+	int critical = 0;
+	if ( X509_EXTENSION_get_critical(ex) != 0 )
+		critical = 1;
+
+	BIO *bio = BIO_new(BIO_s_mem());
+	if( ! X509V3_EXT_print(bio, ex, 0, 0))
+		M_ASN1_OCTET_STRING_print(bio,ex->value);
+
+	StringVal* ext_val = X509::GetExtensionFromBIO(bio);
+
+	if ( ! ext_val )
+		ext_val = new StringVal(0, "");
+
+	RecordVal* pX509Ext = new RecordVal(BifType::Record::X509::Extension);
+	pX509Ext->Assign(0, new StringVal(name));
+
+	if ( short_name and strlen(short_name) > 0 )
+		pX509Ext->Assign(1, new StringVal(short_name));
+
+	pX509Ext->Assign(2, new StringVal(oid));
+	pX509Ext->Assign(3, new Val(critical, TYPE_BOOL));
+	pX509Ext->Assign(4, ext_val);
+
+	// send off generic extension event
+	//
+	// and then look if we have a specialized event for the extension we just
+	// parsed. And if we have it, we send the specialized event on top of the
+	// generic event that we just had. I know, that is... kind of not nice,
+	// but I am not sure if there is a better way to do it...
+	val_list* vl = new val_list();
+	vl->append(GetFile()->GetVal()->Ref());
+	vl->append(pX509Ext);
+	vl->append(new Val(global ? 1 : 0, TYPE_BOOL));
+
+	mgr.QueueEvent(ocsp_extension, vl);
+	}
 
 OCSP_RESPVal::OCSP_RESPVal(OCSP_RESPONSE* arg_ocsp_resp) : OpaqueVal(ocsp_resp_opaque_type)
 	{

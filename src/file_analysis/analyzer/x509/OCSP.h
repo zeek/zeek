@@ -32,6 +32,7 @@ protected:
 private:
 	void ParseResponse(OCSP_RESPVal *, const char* fid = 0);
 	void ParseRequest(OCSP_REQUEST *, const char* fid = 0);
+	void ParseExtension(X509_EXTENSION*, bool global);
 
 	std::string ocsp_data;
 	bool request = false; // true if ocsp request, false if reply

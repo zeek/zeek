@@ -248,6 +248,7 @@ StringVal* file_analysis::X509::GetExtensionFromBIO(BIO* bio)
 	return ext_val;
 	}
 
+// this is nearly replicated in the OCSP analyzer
 void file_analysis::X509::ParseExtension(X509_EXTENSION* ex)
 	{
 	char name[256];

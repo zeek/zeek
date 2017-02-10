@@ -20,11 +20,28 @@ redef table_expire_interval = 3sec;
 global runs = 0;
 event do_it()
 	{
+	++runs;
+	print fmt("-- Run %s --", runs);
+
 	print "Trigger: 1.2.3.4";
 	Intel::seen([$host=1.2.3.4,
 	             $where=SOMEWHERE]);
 
-	++runs;
+	if ( runs == 2 )
+		{
+		# Reinserting the indicator should reset the expiration
+		print "Reinsert: 1.2.3.4";
+		local item = [
+			$indicator="1.2.3.4",
+			$indicator_type=Intel::ADDR,
+			$meta=[
+				$source="source2",
+				$desc="this host is still bad",
+				$url="http://some-data-distributor.com/2"]
+			];
+		Intel::insert(item);
+		}
+
 	if ( runs < 6 )
 		schedule 3sec { do_it() };
 	}

@@ -1,4 +1,10 @@
 
+2.5-55 | 2017-02-10 09:50:43 -0500
+
+  * Fixed intel expiration reset. Reinserting the same indicator did not reset
+    the expiration timer for the indicator in the underlying data store. 
+    Addresses BIT-1790. (Jan Grashoefer)
+
 2.5-51 | 2017-02-06 10:15:56 -0500
 
   * Fix memory leak in file analyzer. (Johanna Amann)

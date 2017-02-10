@@ -211,13 +211,31 @@ refine connection Handshake_Conn += {
 
 	function proc_ocsp_response(rec : HandshakeRecord, status_type: uint8, response: bytestring) : bool
 		%{
-		 if ( status_type == 1 || status_type == 2 ) // ocsp
+		ODesc common;
+		common.AddRaw("Analyzer::ANALYZER_SSL");
+		common.Add(bro_analyzer()->Conn()->StartTime());
+		common.AddRaw("F");
+		bro_analyzer()->Conn()->IDString(&common);
+
+		if ( status_type == 1 || status_type == 2 ) // ocsp
 			{
+			ODesc file_handle;
+			file_handle.Add(common.Description());
+			file_handle.Add("ocsp");
+
+			string file_id = file_mgr->HashHandle(file_handle.Description());
+
+			file_mgr->DataIn(reinterpret_cast<const u_char*>(response.data()),
+			                 response.length(), bro_analyzer()->GetAnalyzerTag(),
+			                 bro_analyzer()->Conn(), false, file_id, "application/ocsp-response");
+
 			BifEvent::generate_ssl_stapled_ocsp(bro_analyzer(),
 							    bro_analyzer()->Conn(), ${rec.is_orig},
 							    new StringVal(response.length(),
 							    (const char*) response.data()),
 							    status_type);
+
+
 			}
 		return true;
 		%}

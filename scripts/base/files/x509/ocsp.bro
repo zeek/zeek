@@ -13,7 +13,7 @@ export {
 		ocsp_type: string &optional;
 	};
 
-        ## ocsp logging
+	## ocsp logging
 	redef enum Log::ID += { LOG };
 
 	## type for pending ocsp request
@@ -23,7 +23,7 @@ export {
 	## one ocsp request record
 	type Info_req: record {
 		## time for the request
-	        ts:                 time;
+		ts:                 time;
 		## file id for this request or
 		## hash of the GET url if it's GET request
 		id:                 string  &log &optional;

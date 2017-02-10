@@ -23,18 +23,18 @@ public:
 	virtual bool Undelivered(uint64 offset, uint64 len);
 	virtual bool EndOfFile();
 
-
-	static file_analysis::Analyzer* Instantiate(RecordVal* args, File* file);
+	static file_analysis::Analyzer* InstantiateRequest(RecordVal* args, File* file);
+	static file_analysis::Analyzer* InstantiateReply(RecordVal* args, File* file);
 
 protected:
-	OCSP(RecordVal* args, File* file, const string& ocsp_type);
+	OCSP(RecordVal* args, File* file, bool request);
 
 private:
 	void ParseResponse(OCSP_RESPVal *, const char* fid = 0);
 	void ParseRequest(OCSP_REQUEST *, const char* fid = 0);
 
 	std::string ocsp_data;
-	std::string ocsp_type;
+	bool request = false; // true if ocsp request, false if reply
 };
 
 class OCSP_RESPVal: public OpaqueVal {

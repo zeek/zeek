@@ -74,21 +74,19 @@ void ocsp_add_cert_id(OCSP_CERTID *cert_id, val_list* vl, BIO* bio)
 	BIO_reset(bio);
 	}
 
-file_analysis::Analyzer* OCSP::Instantiate(RecordVal* args, File* file)
+file_analysis::Analyzer* OCSP::InstantiateRequest(RecordVal* args, File* file)
 	{
-	Val* ocsp_type = get_ocsp_type(args, "ocsp_type");
-
-	if (! ocsp_type )
-		return 0;
-
-	return new OCSP(args, file, ocsp_type->AsString()->CheckString());
+	return new OCSP(args, file, true);
 	}
 
-file_analysis::OCSP::OCSP(RecordVal* args, file_analysis::File* file, const string& arg_ocsp_type)
-	: file_analysis::Analyzer(file_mgr->GetComponentTag("OCSP"), args, file)
+file_analysis::Analyzer* OCSP::InstantiateReply(RecordVal* args, File* file)
 	{
-	ocsp_type = arg_ocsp_type;
-	ocsp_data.clear();
+	return new OCSP(args, file, false);
+	}
+
+file_analysis::OCSP::OCSP(RecordVal* args, file_analysis::File* file, bool arg_request)
+	: file_analysis::Analyzer(file_mgr->GetComponentTag("OCSP"), args, file), request(arg_request)
+	{
 	}
 
 bool file_analysis::OCSP::DeliverStream(const u_char* data, uint64 len)
@@ -108,7 +106,7 @@ bool file_analysis::OCSP::EndOfFile()
 	{
 	const unsigned char* ocsp_char = reinterpret_cast<const unsigned char*>(ocsp_data.data());
 
-	if (ocsp_type == "request")
+	if ( request )
 		{
 		OCSP_REQUEST *req = d2i_OCSP_REQUEST(NULL, &ocsp_char, ocsp_data.size());
 
@@ -121,7 +119,7 @@ bool file_analysis::OCSP::EndOfFile()
 		ParseRequest(req, GetFile()->GetID().c_str());
 		OCSP_REQUEST_free(req);
 		}
-	else if (ocsp_type == "response")
+	else
 		{
 		OCSP_RESPONSE *resp = d2i_OCSP_RESPONSE(NULL, &ocsp_char, ocsp_data.size());
 		if (!resp)
@@ -133,11 +131,6 @@ bool file_analysis::OCSP::EndOfFile()
 		OCSP_RESPVal* resp_val = new OCSP_RESPVal(resp); // resp_val takes ownership
 		ParseResponse(resp_val, GetFile()->GetID().c_str());
 		Unref(resp_val);
-		}
-	else
-		{
-	  reporter->Weird(fmt("the given argument of ocsp_type (%s) is not recognized", ocsp_type.c_str()));
-		return false;
 		}
 
 	return true;

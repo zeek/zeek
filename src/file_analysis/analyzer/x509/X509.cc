@@ -4,6 +4,7 @@
 
 #include "X509.h"
 #include "Event.h"
+#include "x509-extension_pac.h"
 
 #include "events.bif.h"
 #include "types.bif.h"
@@ -301,6 +302,56 @@ void file_analysis::X509::ParseExtension(X509_EXTENSION* ex)
 
 	else if ( OBJ_obj2nid(ext_asn) == NID_subject_alt_name )
 		ParseSAN(ex);
+
+#ifdef NID_ct_cert_scts
+	else if ( OBJ_obj2nid(ext_asn) == NID_ct_cert_scts || OBJ_obj2nid(ext_asn) == NID_ct_precert_scts )
+#else
+	else if ( strcmp(oid, "1.3.6.1.4.1.11129.2.4.2") == 0 || strcmp(oid, "1.3.6.1.4.1.11129.2.4.4") == 0 )
+#endif
+		ParseSignedCertificateTimestamps(ex);
+	}
+
+void file_analysis::X509::ParseSignedCertificateTimestamps(X509_EXTENSION* ext)
+	{
+	// Ok, signed certificate timestamps are a bit of an odd case out; we don't
+	// want to use the (basically nonexistant) OpenSSL functionality to parse them.
+	// Instead we have our own, self-written binpac parser to parse just them,
+	// which we will initialize here and tear down immediately again.
+
+	ASN1_OCTET_STRING* ext_val = X509_EXTENSION_get_data(ext);
+	// the octet string of the extension contains the octet string which in turn
+	// contains the SCT. Obviously.
+
+	unsigned char* ext_val_copy = (unsigned char*) OPENSSL_malloc(ext_val->length);
+	unsigned char* ext_val_second_pointer = ext_val_copy;
+	memcpy(ext_val_copy, ext_val->data, ext_val->length);
+
+	ASN1_OCTET_STRING* inner = d2i_ASN1_OCTET_STRING(NULL, (const unsigned char**) &ext_val_copy, ext_val->length);
+	if ( !inner )
+		{
+		reporter->Error("X509::ParseSignedCertificateTimestamps could not parse inner octet string");
+		return;
+		}
+
+	binpac::X509Extension::MockConnection* conn = new binpac::X509Extension::MockConnection(this);
+	binpac::X509Extension::SignedCertTimestampExt* interp = new binpac::X509Extension::SignedCertTimestampExt(conn);
+
+	try
+		{
+		interp->NewData(inner->data, inner->data + inner->length);
+		}
+	catch( const binpac::Exception& e )
+		{
+		// throw a warning or sth
+		reporter->Error("X509::ParseSignedCertificateTimestamps could not parse SCT");
+		}
+
+	OPENSSL_free(ext_val_second_pointer);
+
+	interp->FlowEOF();
+
+	delete interp;
+	delete conn;
 	}
 
 void file_analysis::X509::ParseBasicConstraints(X509_EXTENSION* ex)

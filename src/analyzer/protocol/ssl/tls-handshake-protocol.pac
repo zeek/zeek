@@ -497,10 +497,13 @@ type SSLExtension(rec: HandshakeRecord) = record {
 #		EXT_STATUS_REQUEST -> status_request: StatusRequest(rec)[] &until($element == 0 || $element != 0);
 		EXT_SERVER_NAME -> server_name: ServerNameExt(rec)[] &until($element == 0 || $element != 0);
 		EXT_SIGNATURE_ALGORITHMS -> signature_algorithm: SignatureAlgorithm(rec)[] &until($element == 0 || $element != 0);
+		EXT_SIGNED_CERTIFICATE_TIMESTAMP -> certificate_timestamp: SignedCertificateTimestampList(rec)[] &until($element == 0 || $element != 0);
 		EXT_KEY_SHARE -> key_share: KeyShare(rec)[] &until($element == 0 || $element != 0);
 		default -> data: bytestring &restofdata;
 	};
 } &length=data_len+4 &exportsourcedata;
+
+%include tls-handshake-signed_certificate_timestamp.pac
 
 type ServerNameHostName() = record {
 	length: uint16;
@@ -562,11 +565,6 @@ type KeyShare(rec: HandshakeRecord) = case rec.msg_type of {
 	# ... well, we don't parse hello retry requests yet, because I don't have an example of them on the wire.
 	default -> other : bytestring &restofdata &transient;
 };
-
-type SignatureAndHashAlgorithm() = record {
-	HashAlgorithm: uint8;
-	SignatureAlgorithm: uint8;
-}
 
 type SignatureAlgorithm(rec: HandshakeRecord) = record {
 	length: uint16;

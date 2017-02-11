@@ -249,6 +249,24 @@ refine connection Handshake_Conn += {
 		return true;
 		%}
 
+	function proc_signedcertificatetimestamp(rec: HandshakeRecord, version: uint8, logid: const_bytestring, timestamp: uint64, digitally_signed_algorithms: SignatureAndHashAlgorithm, digitally_signed_signature: const_bytestring) : bool
+		%{
+		RecordVal* ha = new RecordVal(BifType::Record::SSL::SignatureAndHashAlgorithm);
+		ha->Assign(0, new Val(digitally_signed_algorithms->HashAlgorithm(), TYPE_COUNT));
+		ha->Assign(1, new Val(digitally_signed_algorithms->SignatureAlgorithm(), TYPE_COUNT));
+
+		BifEvent::generate_ssl_extension_signed_certificate_timestamp(bro_analyzer(),
+			bro_analyzer()->Conn(), ${rec.is_orig},
+			version,
+			new StringVal(logid.length(), reinterpret_cast<const char*>(logid.begin())),
+			((double)timestamp)/1000,
+			ha,
+			new StringVal(digitally_signed_signature.length(), reinterpret_cast<const char*>(digitally_signed_signature.begin()))
+		);
+
+		return true;
+		%}
+
 	function proc_dh_server_key_exchange(rec: HandshakeRecord, p: bytestring, g: bytestring, Ys: bytestring) : bool
 		%{
 		BifEvent::generate_ssl_dh_server_params(bro_analyzer(),
@@ -268,7 +286,6 @@ refine connection Handshake_Conn += {
 
 		return true;
 		%}
-
 
 };
 
@@ -351,3 +368,6 @@ refine typeattr Handshake += &let {
 	proc : bool = $context.connection.proc_handshake(rec.is_orig, rec.msg_type, rec.msg_length);
 };
 
+refine typeattr SignedCertificateTimestamp += &let {
+	proc : bool = $context.connection.proc_signedcertificatetimestamp(rec, version, logid, timestamp, digitally_signed_algorithms, digitally_signed_signature);
+};

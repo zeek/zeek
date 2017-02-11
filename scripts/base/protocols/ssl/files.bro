@@ -91,10 +91,22 @@ event bro_init() &priority=5
 	                          $describe        = SSL::describe_file]);
 	}
 
-event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priority=5
+event file_sniff(f: fa_file, meta: fa_metadata) &priority=5
 	{
-	if ( ! c?$ssl )
+	if ( |f$conns| != 1 )
 		return;
+
+	if ( ! ( f$info$mime_type == "application/x-x509-ca-cert" || f$info$mime_type == "application/x-x509-user-cert"
+	         || f$info$mime_type == "application/pkix-cert" ) )
+		return;
+
+	for ( cid in f$conns )
+		{
+		if ( ! f$conns[cid]?$ssl )
+			return;
+
+		local c = f$conns[cid];
+		}
 
 	if ( ! c$ssl?$cert_chain )
 		{
@@ -104,7 +116,7 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 		c$ssl$client_cert_chain_fuids = string_vec();
 		}
 
-	if ( is_orig )
+	if ( f$is_orig )
 		{
 		c$ssl$client_cert_chain[|c$ssl$client_cert_chain|] = f$info;
 		c$ssl$client_cert_chain_fuids[|c$ssl$client_cert_chain_fuids|] = f$id;

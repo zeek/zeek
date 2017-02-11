@@ -41,12 +41,15 @@ event bro_init() &priority=5
 
 	Files::register_for_mime_type(Files::ANALYZER_X509, "application/x-x509-user-cert");
 	Files::register_for_mime_type(Files::ANALYZER_X509, "application/x-x509-ca-cert");
+	Files::register_for_mime_type(Files::ANALYZER_X509, "application/pkix-cert");
 	# Always calculate hashes. They are not necessary for base scripts
 	# but very useful for identification, and required for policy scripts
 	Files::register_for_mime_type(Files::ANALYZER_MD5, "application/x-x509-user-cert");
 	Files::register_for_mime_type(Files::ANALYZER_MD5, "application/x-x509-ca-cert");
+	Files::register_for_mime_type(Files::ANALYZER_MD5, "application/pkix-cert");
 	Files::register_for_mime_type(Files::ANALYZER_SHA1, "application/x-x509-user-cert");
 	Files::register_for_mime_type(Files::ANALYZER_SHA1, "application/x-x509-ca-cert");
+	Files::register_for_mime_type(Files::ANALYZER_SHA1, "application/pkix-cert");
 	}
 
 redef record Files::Info += {
@@ -57,9 +60,6 @@ redef record Files::Info += {
 
 event x509_certificate(f: fa_file, cert_ref: opaque of x509, cert: X509::Certificate) &priority=5
 	{
-	if ( ! f$info?$mime_type )
-		f$info$mime_type = "application/pkix-cert";
-
 	f$info$x509 = [$ts=f$info$ts, $id=f$id, $certificate=cert, $handle=cert_ref];
 	}
 

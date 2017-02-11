@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	ocsp
-#open	2017-02-09-00-23-43
-#fields	ts	cid.orig_h	cid.orig_p	cid.resp_h	cid.resp_p	cuid	certId.hashAlgorithm	certId.issuerNameHash	certId.issuerKeyHash	certId.serialNumber	req.id	req.version	req.requestorName	req.index	resp_ts	resp.id	resp.responseStatus	resp.responseType	resp.version	resp.responderID	resp.producedAt	resp.index	resp.certStatus	resp.thisUpdate	resp.nextUpdate	method
-#types	time	addr	port	addr	port	string	string	string	string	string	string	count	string	count	time	string	string	string	count	string	time	count	string	time	time	string
-1436909712.307162	192.168.6.109	54690	216.58.192.46	80	CHhAvVGS1DHFjwGM9	sha1	F2E06AF9858A1D8D709B4919237AA9B51A287E64	4ADD06161BBCF668B576F581B6BB621ABA5A812F	4ADD06161BBCF668B576F581B6BB621ABA5A812F	H4c4c3b287beafd8d7f4806a0b14d2ee1de88e4be	0	-	1	1436909712.329517	Ft368Gc1ce0Juvj0d	successful	Basic OCSP Response	0	4ADD06161BBCF668B576F581B6BB621ABA5A812F	1436577056.000000	1	good	1436577056.000000	1437181856.000000	GET
-#close	2017-02-09-00-23-43
+#open	2017-02-10-23-35-49
+#fields	ts	id	hashAlgorithm	issuerNameHash	issuerKeyHash	serialNumber	certStatus	revoketime	revokereason	thisUpdate	nextUpdate
+#types	time	string	string	string	string	string	string	time	string	time	time
+1436909712.329517	Ft368Gc1ce0Juvj0d	sha1	F2E06AF9858A1D8D709B4919237AA9B51A287E64	4ADD06161BBCF668B576F581B6BB621ABA5A812F	4ADD06161BBCF668B576F581B6BB621ABA5A812F	good	-	-	1436577056.000000	1437181856.000000
+#close	2017-02-10-23-35-50

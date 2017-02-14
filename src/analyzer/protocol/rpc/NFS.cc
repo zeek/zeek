@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include <algorithm>
+#include <vector>
 
 #include "bro-config.h"
 
@@ -288,6 +289,10 @@ val_list* NFS_Interp::event_common_vl(RPC_CallInfo *c, BifEnum::rpc_status rpc_s
 	// These are the first parameters for each nfs_* event ...
 	val_list *vl = new val_list;
 	vl->append(analyzer->BuildConnVal());
+	VectorVal* auxgids = new VectorVal(internal_type("index_vec")->AsVectorType());
+	for (size_t i = 0; i < c->AuxGIDs().size(); ++i) {
+		auxgids->Assign(i, new Val(c->AuxGIDs()[i], TYPE_COUNT));
+	}
 
 	RecordVal *info = new RecordVal(BifType::Record::NFS3::info_t);
 	info->Assign(0, new EnumVal(rpc_status, BifType::Enum::rpc_status));
@@ -298,6 +303,11 @@ val_list* NFS_Interp::event_common_vl(RPC_CallInfo *c, BifEnum::rpc_status rpc_s
 	info->Assign(5, new Val(rep_start_time, TYPE_TIME));
 	info->Assign(6, new Val(rep_last_time-rep_start_time, TYPE_INTERVAL));
 	info->Assign(7, new Val(reply_len, TYPE_COUNT));
+	info->Assign(8, new Val(c->Uid(), TYPE_COUNT));
+	info->Assign(9, new Val(c->Gid(), TYPE_COUNT));
+	info->Assign(10, new Val(c->Stamp(), TYPE_COUNT));
+	info->Assign(11, new StringVal(c->MachineName()));
+	info->Assign(12, auxgids);
 
 	vl->append(info);
 	return vl;

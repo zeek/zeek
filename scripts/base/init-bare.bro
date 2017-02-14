@@ -2142,6 +2142,16 @@ export {
 		rep_dur: interval;
 		## The length in bytes of the reply.
 		rep_len: count;
+		## The user id of the reply.
+		rpc_uid: count;
+		## The group id of the reply.
+		rpc_gid: count;
+		## The stamp of the reply.
+		rpc_stamp: count;
+		## The machine name of the reply.
+		rpc_machine_name: string;
+		## The auxiliary ids of the reply.
+		rpc_auxgids: index_vec;
 	};
 
 	## NFS file attributes. Field names are based on RFC 1813.

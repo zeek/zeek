@@ -235,7 +235,7 @@ refine connection Handshake_Conn += {
 							    (const char*) response.data()),
 							    status_type);
 
-
+			file_mgr->EndOfFile(file_id);
 			}
 		return true;
 		%}

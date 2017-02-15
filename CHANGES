@@ -1,8 +1,22 @@
 
+2.5-60 | 2017-02-15 15:19:20 -0800
+
+  * Implement ERSPAN support.
+
+    There is a small caveat to this implementation.  The ethernet
+    header that is carried over the tunnel is ignored.  If a user
+    tries to do MAC address logging, it will only show the MAC
+    addresses for the outer tunnel and the inner MAC addresses
+    will be stripped and not available anywhere. (Seth Hall)
+
+  * Tiny mime-type fix from Dan Caselden. (Seth Hall)
+
+  * Update failing intel framework test. (Johanna Amann)
+
 2.5-55 | 2017-02-10 09:50:43 -0500
 
   * Fixed intel expiration reset. Reinserting the same indicator did not reset
-    the expiration timer for the indicator in the underlying data store. 
+    the expiration timer for the indicator in the underlying data store.
     Addresses BIT-1790. (Jan Grashoefer)
 
 2.5-51 | 2017-02-06 10:15:56 -0500

@@ -1,4 +1,9 @@
 
+2.5-62 | 2017-02-15 15:56:38 -0800
+
+  * Fix case in which scripts were able to access unitialized variables
+    in certain cases. Addresses BIT-1785. (Jon Siwek)
+
 2.5-60 | 2017-02-15 15:19:20 -0800
 
   * Implement ERSPAN support.

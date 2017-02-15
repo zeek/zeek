@@ -33,6 +33,15 @@ Frame::~Frame()
 	Release();
 	}
 
+void Frame::Reset(int startIdx)
+	{
+	for ( int i = startIdx; i < size; ++i )
+		{
+		Unref(frame[i]);
+		frame[i] = 0;
+		}
+	}
+
 void Frame::Release()
 	{
 	for ( int i = 0; i < size; ++i )

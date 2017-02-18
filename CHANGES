@@ -1,4 +1,12 @@
 
+2.5-68 | 2017-02-18 13:59:05 -0500
+
+  * Refactored base krb scripts. (Seth Hall)
+
+  * New script to log ticket hashes in krb log 
+    (policy/protocols/krb/ticket-logging.bro).  Also, add 
+    ciphertext to ticket data structure. (John E. Rollinson)
+
 2.5-62 | 2017-02-15 15:56:38 -0800
 
   * Fix case in which scripts were able to access unitialized variables

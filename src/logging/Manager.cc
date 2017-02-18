@@ -1207,7 +1207,11 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
 	winfo->info->rotation_interval = winfo->interval;
 	winfo->info->rotation_base = parse_rotate_base_time(base_time);
 
+#ifdef ENABLE_BROKER
 	winfo->writer = new WriterFrontend(*winfo->info, id, writer, local, remote, stream->remote_flags);
+#else
+	winfo->writer = new WriterFrontend(*winfo->info, id, writer, local, remote, 0);
+#endif
 	winfo->writer->Init(num_fields, fields);
 
 	InstallRotationTimer(winfo);

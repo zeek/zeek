@@ -6,7 +6,10 @@
 #define LOGGING_WRITERBACKEND_H
 
 #include "threading/MsgThread.h"
+
+#ifdef ENABLE_BROKER
 #include "broker/Data.h"
+#endif
 
 #include "Component.h"
 
@@ -115,8 +118,11 @@ public:
 		// fields. They serialize/deserialize the struct.
 		bool Read(SerializationFormat* fmt);
 		bool Write(SerializationFormat* fmt) const;
+
+#ifdef ENABLE_BROKER
 		broker::data ToBroker() const;
 		bool FromBroker(broker::data d);
+#endif
 
 		private:
 		const WriterInfo& operator=(const WriterInfo& other); // Disable.

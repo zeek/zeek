@@ -119,6 +119,7 @@ bool WriterBackend::WriterInfo::Write(SerializationFormat* fmt) const
 	return true;
 	}
 
+#ifdef ENABLE_BROKER
 broker::data WriterBackend::WriterInfo::ToBroker() const
 	{
 	auto bpath = broker::record::field(path);
@@ -175,6 +176,7 @@ bool WriterBackend::WriterInfo::FromBroker(broker::data d)
 
 	return true;
 	}
+#endif
 
 WriterBackend::WriterBackend(WriterFrontend* arg_frontend) : MsgThread()
 	{

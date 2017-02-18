@@ -131,7 +131,7 @@ public:
 
 	/**
 	 * Create a new log writer frontend. This is exposed so that the
-	 * communication system can recreated remote log streams locally.
+	 * communication system can recreate remote log streams locally.
 	 *
 	 * @param stream The enum value corresponding the log stream.
 	 *
@@ -153,7 +153,7 @@ public:
 
 	/**
 	 * Writes out log entries that have already passed through all
-	 * filters, and have raised any events. This is meant called for logs
+	 * filters (and have raised any events). This is meant called for logs
 	 * received alrready processed from remote.
 	 *
 	 * @param stream The enum value corresponding the log stream.

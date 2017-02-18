@@ -214,12 +214,14 @@ void WriterFrontend::Write(int arg_num_fields, Value** vals)
 						num_fields,
 						vals);
 
+#ifdef ENABLE_BROKER
 		broker_mgr->Log(stream,
 				writer,
 				info->path,
 				num_fields,
 				vals,
 				remote_flags);
+#endif
 		}
 
 	if ( ! backend )

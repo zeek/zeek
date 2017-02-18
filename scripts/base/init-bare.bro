@@ -3955,6 +3955,8 @@ export {
 		service_name	: string;
 		## Cipher the ticket was encrypted with
 		cipher		: count;
+		## Cipher text of the ticket
+		ciphertext  : string &optional;
 	};
 
 	type KRB::Ticket_Vector: vector of KRB::Ticket;

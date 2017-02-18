@@ -164,9 +164,16 @@ event krb_tgs_request(c: connection, msg: KDC_Request) &priority=5
 		return;
 
 	local info: Info;
-	info$ts  = network_time();
-	info$uid = c$uid;
-	info$id  = c$id;
+
+	if ( !c?$krb )
+		{
+		info$ts  = network_time();
+		info$uid = c$uid;
+		info$id  = c$id;
+		}
+	else
+		info = c$krb;
+
 	info$request_type = "TGS";
 	info$service = msg$service_name;
 	if ( msg?$from ) info$from = msg$from;

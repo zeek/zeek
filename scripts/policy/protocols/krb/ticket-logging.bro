@@ -1,3 +1,7 @@
+##! Add Kerberos ticket hashes to the krb.log
+
+@load base/protocols/krb
+
 module KRB;
 
 redef record Info += {
@@ -9,25 +13,11 @@ redef record Info += {
 
 event krb_ap_request(c: connection, ticket: KRB::Ticket, opts: KRB::AP_Options)
 	{
-	if ( c?$krb && c$krb$logged )
-		return;
-	
-	local info: Info;
+	# Will be overwritten when request is a TGS
+	c$krb$request_type = "AP";
 
-	if ( !c?$krb )
-		{
-		info$ts  = network_time();
-		info$uid = c$uid;
-		info$id  = c$id;
-		}
-	else
-		info = c$krb;
-
-	info$request_type = "AP"; # Will be overwritten when request is a TGS
 	if ( ticket?$ciphertext )
-		info$auth_ticket = md5_hash(ticket$ciphertext);
-
-	c$krb = info;
+		c$krb$auth_ticket = md5_hash(ticket$ciphertext);
 	}
 
 event krb_as_response(c: connection, msg: KDC_Response)

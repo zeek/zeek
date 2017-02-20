@@ -1,4 +1,13 @@
 
+2.5-70 | 2017-02-20 00:20:02 -0500
+
+  * Rework the RADIUS base script.
+
+    Fixes BIT-1769 which improves logging behavior when replies aren't 
+    seen.  Also added a `framed_addr` field to indicate if the radius 
+    server is hinting at an address for the client and a `ttl` field to
+    show how quickly the server is responding. (Seth Hall)
+
 2.5-68 | 2017-02-18 13:59:05 -0500
 
   * Refactored base krb scripts. (Seth Hall)

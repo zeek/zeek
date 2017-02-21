@@ -61,6 +61,11 @@ void Ascii::DoClose()
 
 bool Ascii::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fields)
 	{
+	continue_on_failure = true;
+	is_failed = false;
+
+	filename = info.source;
+
 	separator.assign( (const char*) BifConst::InputAscii::separator->Bytes(),
 	                 BifConst::InputAscii::separator->Len());
 
@@ -98,18 +103,10 @@ bool Ascii::DoInit(const ReaderInfo& info, int num_fields, const Field* const* f
 	formatter::Ascii::SeparatorInfo sep_info(separator, set_separator, unset_field, empty_field);
 	formatter = unique_ptr<threading::formatter::Formatter>(new formatter::Ascii(this, sep_info));
 
-	file.open(info.source);
-	if ( ! file.is_open() )
+	if ( ! OpenFile() )
 		{
-		Error(Fmt("Init: cannot open %s", info.source));
-		return false;
-		}
-
-	if ( ReadHeader(false) == false )
-		{
-		Error(Fmt("Init: cannot open %s; headers are incorrect", info.source));
-		file.close();
-		return false;
+		is_failed = true;
+		return continue_on_failure;
 		}
 
 	DoUpdate();
@@ -117,6 +114,26 @@ bool Ascii::DoInit(const ReaderInfo& info, int num_fields, const Field* const* f
 	return true;
 	}
 
+bool Ascii::OpenFile()
+	{
+	file.open(filename);
+	if ( ! file.is_open() )
+		{
+		Error(Fmt("Init: cannot open %s", filename.c_str()));
+		is_failed = true;
+		return continue_on_failure;
+		}
+
+	if ( ReadHeader(false) == false )
+		{
+		Error(Fmt("Init: cannot open %s; headers are incorrect", filename.c_str()));
+		file.close();
+		is_failed = true;
+		return continue_on_failure;
+		}
+
+	return true;
+	}
 
 bool Ascii::ReadHeader(bool useCached)
 	{
@@ -129,7 +146,8 @@ bool Ascii::ReadHeader(bool useCached)
 		if ( ! GetLine(line) )
 			{
 			Error("could not read first line");
-			return false;
+			is_failed = true;
+			return continue_on_failure;
 			}
 
 		headerline = line;
@@ -172,7 +190,9 @@ bool Ascii::ReadHeader(bool useCached)
 
 			Error(Fmt("Did not find requested field %s in input data file %s.",
 				  field->name, Info().source));
-			return false;
+
+			is_failed = true;
+			return continue_on_failure;
 			}
 
 		FieldMapping f(field->name, field->type, field->subtype, ifields[field->name]);
@@ -184,7 +204,9 @@ bool Ascii::ReadHeader(bool useCached)
 				{
 				Error(Fmt("Could not find requested port type field %s in input data file.",
 					  field->secondary_name));
-				return false;
+
+				is_failed = true;
+				return continue_on_failure;
 				}
 
 			f.secondary_position = ifields[field->secondary_name];
@@ -224,6 +246,12 @@ bool Ascii::GetLine(string& str)
 // read the entire file and send appropriate thingies back to InputMgr
 bool Ascii::DoUpdate()
 	{
+	if ( is_failed )
+		if ( ! OpenFile() )
+			{
+			printf("do updates after failure?!\n");
+			}
+
 	switch ( Info().mode ) {
 		case MODE_REREAD:
 			{
@@ -232,7 +260,8 @@ bool Ascii::DoUpdate()
 			if ( stat(Info().source, &sb) == -1 )
 				{
 				Error(Fmt("Could not get stat for %s", Info().source));
-				return false;
+				is_failed = true;
+				return continue_on_failure;
 				}
 
 			if ( sb.st_mtime <= mtime ) // no change
@@ -255,7 +284,10 @@ bool Ascii::DoUpdate()
 					{
 					file.clear(); // remove end of file evil bits
 					if ( !ReadHeader(true) )
-						return false; // header reading failed
+						{
+						is_failed = true;
+						return continue_on_failure; // header reading failed
+						}
 
 					break;
 					}
@@ -267,12 +299,14 @@ bool Ascii::DoUpdate()
 			if ( ! file.is_open() )
 				{
 				Error(Fmt("cannot open %s", Info().source));
-				return false;
+				is_failed = true;
+				return continue_on_failure;
 				}
 
 			if ( ReadHeader(false) == false )
 				{
-				return false;
+				is_failed = true;
+				return continue_on_failure;
 				}
 
 			break;
@@ -334,7 +368,9 @@ bool Ascii::DoUpdate()
 					delete fields[i];
 
 				delete [] fields;
-				return false;
+
+				is_failed = true;
+				return continue_on_failure;
 				}
 
 			Value* val = formatter->ParseValue(stringfields[(*fit).position], (*fit).name, (*fit).type, (*fit).subtype);
@@ -390,6 +426,15 @@ bool Ascii::DoUpdate()
 
 bool Ascii::DoHeartbeat(double network_time, double current_time)
 	{
+	printf("heartbeat\n");
+	is_failed = false;
+
+	if ( ! file.is_open() )
+		OpenFile();
+
+	//if ( is_failed )
+	//	return continue_on_failure;
+
 	switch ( Info().mode )
 		{
 		case MODE_MANUAL:

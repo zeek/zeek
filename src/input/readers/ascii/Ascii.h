@@ -55,7 +55,9 @@ protected:
 private:
 	bool ReadHeader(bool useCached);
 	bool GetLine(string& str);
+	bool OpenFile();
 
+	string filename;
 	ifstream file;
 	time_t mtime;
 
@@ -70,6 +72,9 @@ private:
 	string set_separator;
 	string empty_field;
 	string unset_field;
+
+	bool continue_on_failure;
+	bool is_failed;
 
 	std::unique_ptr<threading::formatter::Formatter> formatter;
 };

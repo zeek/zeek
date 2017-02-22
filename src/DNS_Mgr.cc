@@ -391,6 +391,7 @@ DNS_Mgr::DNS_Mgr(DNS_MgrMode arg_mode)
 	cache_name = dir = 0;
 
 	asyncs_pending = 0;
+	next_timestamp = 0;
 	num_requests = 0;
 	successful = 0;
 	failed = 0;
@@ -1227,8 +1228,14 @@ void DNS_Mgr::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
 
 double DNS_Mgr::NextTimestamp(double* network_time)
 	{
-	// This is kind of cheating ...
-	return asyncs_timeouts.size() ? timer_mgr->Time() : -1.0;
+	if ( ! asyncs_timeouts.size() )
+		return -1.0;
+
+	if ( next_timestamp == 0 || next_timestamp < timer_mgr->Time() )
+		// Space out processing for this source a bit.
+		next_timestamp = timer_mgr->Time() + .1;
+
+	return next_timestamp;
 	}
 
 void DNS_Mgr::CheckAsyncAddrRequest(const IPAddr& addr, bool timeout)
@@ -1385,19 +1392,20 @@ void DNS_Mgr::DoProcess(bool flush)
 	if ( asyncs_addrs.size() == 0 && asyncs_names.size() == 0 && asyncs_texts.size() == 0 )
 		return;
 
-	if ( AnswerAvailable(0) <= 0 )
-		return;
-
 	char err[NB_DNS_ERRSIZE];
 	struct nb_dns_result r;
 
-	int status = nb_dns_activity(nb_dns, &r, err);
-
-	if ( status < 0 )
-		reporter->Warning("NB-DNS error in DNS_Mgr::Process (%s)", err);
-
-	else if ( status > 0 )
+	while ( true )
 		{
+		int status = nb_dns_activity(nb_dns, &r, err);
+
+		if ( status == 0 )
+			// Nothing to do.
+			break;
+
+		if ( status < 0 )
+			reporter->Warning("NB-DNS error in DNS_Mgr::Process (%s)", err);
+
 		DNS_Mgr_Request* dr = (DNS_Mgr_Request*) r.cookie;
 
 		bool do_host_timeout = true;

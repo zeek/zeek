@@ -34,6 +34,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #ifdef notdef
 #include "gnuc.h"
@@ -134,6 +135,22 @@ nb_dns_init(char *errstr)
 	nd->s = socket(PF_INET, SOCK_DGRAM, 0);
 	if (nd->s < 0) {
 		snprintf(errstr, NB_DNS_ERRSIZE, "socket(): %s",
+		    my_strerror(errno));
+		free(nd);
+		return (NULL);
+	}
+
+        int flags;
+
+        if ( (flags = fcntl(nd->s, F_GETFL, 0)) < 0 ) {
+		snprintf(errstr, NB_DNS_ERRSIZE, "F_GETFL: %s",
+		    my_strerror(errno));
+		free(nd);
+		return (NULL);
+	}
+
+        if ( fcntl(nd->s, F_SETFL, flags|O_NONBLOCK) < 0 ) {
+		snprintf(errstr, NB_DNS_ERRSIZE, "F_SETFL: %s",
 		    my_strerror(errno));
 		free(nd);
 		return (NULL);
@@ -445,6 +462,10 @@ nb_dns_activity(struct nb_dns_info *nd, struct nb_dns_result *nr, char *errstr)
 	/* This comes from the second half of do_query() */
 	fromlen = sizeof(from);
 	msglen = recvfrom(nd->s, (char *)msg, sizeof(msg), 0, &from, &fromlen);
+
+        if (msglen < 0 && errno == EAGAIN )
+		return (0);
+
 	if (msglen <= 0) {
 		snprintf(errstr, NB_DNS_ERRSIZE, "recvfrom(): %s",
 		    my_strerror(errno));

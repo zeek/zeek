@@ -228,6 +228,7 @@ protected:
 	TimeoutQueue asyncs_timeouts;
 
 	int asyncs_pending;
+	double next_timestamp;
 
 	unsigned long num_requests;
 	unsigned long successful;

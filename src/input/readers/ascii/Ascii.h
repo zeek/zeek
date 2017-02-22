@@ -57,7 +57,6 @@ private:
 	bool GetLine(string& str);
 	bool OpenFile();
 
-	string filename;
 	ifstream file;
 	time_t mtime;
 

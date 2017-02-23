@@ -129,7 +129,7 @@ event smb2_tree_disconnect_request(c: connection, hdr: SMB2::Header) &priority=5
 		}
 	}
 
-event smb2_create_request(c: connection, hdr: SMB2::Header, name: string) &priority=5
+event smb2_create_request(c: connection, hdr: SMB2::Header, name: string, request: SMB2::CreateRequest) &priority=5
 	{
 	if ( name == "")
 		name = "<share_root>";

@@ -2973,6 +2973,11 @@ export {
 		server_start_time : time;
 	};
 
+	type SMB2::CreateRequest: record {
+		disposition           : count;
+		create_attributes     : count;
+	};
+
 	## The request sent by the client to request a new authenticated session
 	## within a new or existing SMB 2 Protocol transport connection to the server.
 	##

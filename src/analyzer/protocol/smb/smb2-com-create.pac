@@ -3,6 +3,7 @@ refine connection SMB_Conn += {
 	function proc_smb2_create_request(h: SMB2_Header, val: SMB2_create_request): bool
 		%{
 		StringVal *filename = smb2_string2stringval(${val.filename});
+		RecordVal* requestinfo = new RecordVal(BifType::Record::SMB2::CreateRequest);
 		if ( ! ${h.is_pipe} &&
 		     BifConst::SMB::pipe_filenames->AsTable()->Lookup(filename->CheckString()) )
 			{
@@ -13,10 +14,12 @@ refine connection SMB_Conn += {
 
 		if ( smb2_create_request )
 			{
+			requestinfo->Assign(0, new Val(${val.disposition}, TYPE_COUNT));
+			requestinfo->Assign(1, new Val(${val.create_options}, TYPE_COUNT));
 			BifEvent::generate_smb2_create_request(bro_analyzer(),
 			                                       bro_analyzer()->Conn(),
 			                                       BuildSMB2HeaderVal(h),
-			                                       filename);
+			                                       filename, requestinfo);
 			}
 		else
 			{

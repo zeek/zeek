@@ -39,7 +39,7 @@ enum HookType {
 	HOOK_DRAIN_EVENTS,		//< Activates Plugin::HookDrainEvents()
 	HOOK_UPDATE_NETWORK_TIME,	//< Activates Plugin::HookUpdateNetworkTime.
 	HOOK_BRO_OBJ_DTOR,		//< Activates Plugin::HookBroObjDtor.
-	HOOK_SETUP_ANALYZER_TREE,	//< Activates Plugin::HookAddToAnalyzerTree
+	HOOK_SETUP_ANALYZER_TREE,	//< Activates Plugin::HookSetupAnalyzerTree
 
 	// Meta hooks.
 	META_HOOK_PRE,			//< Activates Plugin::MetaHookPre().
@@ -642,6 +642,13 @@ protected:
 	 */
 	virtual void HookUpdateNetworkTime(double network_time);
 
+	/**
+	 * Hook that executes when a connection's initial analyzer tree
+	 * has been fully set up. The hook can manipulate the tree at this time,
+	 * for example by adding further analyzers.
+	 *
+	 * @param conn The connection.
+	 */
 	virtual void HookSetupAnalyzerTree(Connection *conn);
 
 	/**

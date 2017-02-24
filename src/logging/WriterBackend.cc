@@ -130,11 +130,11 @@ broker::data WriterBackend::WriterInfo::ToBroker() const
 	auto t = broker::table();
 
 	for ( config_map::const_iterator i = config.begin(); i != config.end(); ++i )
-                {
+		{
 		auto key = std::string(i->first);
 		auto value = std::string(i->second);
 		t.insert(std::make_pair(key, value));
-                }
+		}
 
 	auto bconfig = broker::record::field(move(t));
 

@@ -133,9 +133,9 @@ public:
 	 * Create a new log writer frontend. This is exposed so that the
 	 * communication system can recreate remote log streams locally.
 	 *
-	 * @param stream The enum value corresponding the log stream.
+	 * @param id The enum value corresponding to the log stream.
 	 *
-	 * @param writer The enum value corresponding the desired log writer.
+	 * @param writer The enum value corresponding to the desired log writer.
 	 *
 	 * @param info A fully initialized object defining the
 	 * characteristics of the backend writer instance. The method takes
@@ -143,8 +143,8 @@ public:
 	 *
 	 * @param num_fields The number of log fields to write.
 	 *
-	 * @param vals An arry of log fields to write, of size num_fields.
-	 * The method takes ownership of the arry.
+	 * @param vals An array of log fields to write, of size num_fields.
+	 * The method takes ownership of the array.
 	 *
 	 * @return Returns true if the writer was successfully created.
 	 */
@@ -154,18 +154,18 @@ public:
 	/**
 	 * Writes out log entries that have already passed through all
 	 * filters (and have raised any events). This is meant called for logs
-	 * received alrready processed from remote.
+	 * received already processed from remote.
 	 *
-	 * @param stream The enum value corresponding the log stream.
+	 * @param stream The enum value corresponding to the log stream.
 	 *
-	 * @param writer The enum value corresponding the desired log writer.
+	 * @param writer The enum value corresponding to the desired log writer.
 	 *
 	 * @param path The path of the target log stream to write to.
 	 *
 	 * @param num_fields The number of log values to write.
 	 *
-	 * @param vals An arry of log values to write, of size num_fields.
-	 * The method takes ownership of the arry.
+	 * @param vals An array of log values to write, of size num_fields.
+	 * The method takes ownership of the array.
 	 */
 	bool WriteFromRemote(EnumVal* stream, EnumVal* writer, string path,
 			     int num_fields, threading::Value** vals);

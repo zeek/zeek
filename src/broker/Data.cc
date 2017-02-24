@@ -776,7 +776,6 @@ static broker::util::optional<broker::data> threading_val_to_data_internal(TypeT
 		auto s = broker::address(reinterpret_cast<const uint32_t*>(&tmp),
 		                         broker::address::family::ipv6,
 		                         broker::address::byte_order::network);
-		fprintf(stderr, "%d\n", val.subnet_val.length);
 		return {broker::subnet(s, length)};
 		}
 
@@ -863,7 +862,7 @@ struct threading_val_converter {
 	using result_type = bool;
 
 	TypeTag type;
-        threading::Value::_val& val;
+	threading::Value::_val& val;
 
 	result_type operator()(bool a)
 		{
@@ -1053,9 +1052,9 @@ struct threading_val_converter {
 		if ( type == TYPE_VECTOR )
 			{
 			val.vector_val.size = a.size();
-			val.vector_val.vals = new threading::Value* [val.set_val.size];
+			val.vector_val.vals = new threading::Value* [val.vector_val.size];
 
-			auto p = val.set_val.vals;
+			auto p = val.vector_val.vals;
 
 			for ( auto& i : a )
 				*p++ = bro_broker::data_to_threading_val(move(i));
@@ -1079,8 +1078,8 @@ threading::Value* bro_broker::data_to_threading_val(broker::data d)
 	if ( ! r )
 		return nullptr;
 
-	auto type = broker::get<uint64_t>(*r->get(0));;
-	auto present = broker::get<bool>(*r->get(1));;
+	auto type = broker::get<uint64_t>(*r->get(0));
+	auto present = broker::get<bool>(*r->get(1));
 	auto data = *r->get(2);
 
 	if ( ! (type && present) )

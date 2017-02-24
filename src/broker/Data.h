@@ -70,7 +70,7 @@ broker::util::optional<broker::data> threading_val_to_data(const threading::Valu
 
 /**
  * Convert a Bro threading::Field to a Broker data value.
- * @param v a Bro threading::Field.
+ * @param f a Bro threading::Field.
  * @return a Broker data value if the Bro threading::Field could be converted to one.
  */
 broker::data threading_field_to_data(const threading::Field* f);

@@ -214,9 +214,10 @@ bool bro_broker::Manager::Event(std::string topic, broker::message msg, int flag
 	return true;
 	}
 
-bool bro_broker::Manager::CreateLog(EnumVal* stream, EnumVal* writer, const logging::WriterBackend::WriterInfo& info,
-				    int num_fields, const threading::Field* const * fields, int flags,
-				    const string& peer)
+bool bro_broker::Manager::CreateLog(EnumVal* stream, EnumVal* writer,
+				    const logging::WriterBackend::WriterInfo& info,
+				    int num_fields, const threading::Field* const * fields,
+				    int flags, const string& peer)
 	{
 	if ( ! Enabled() )
 		return false;
@@ -1003,7 +1004,7 @@ bool bro_broker::Manager::ProcessCreateLog(broker::message msg)
 
 	if ( ! broker::get<broker::enum_value>(msg[idx]) )
 		{
-		reporter->Warning("got remote log create  w/o stream id: %d",
+		reporter->Warning("got remote log create w/o stream id: %d",
 				  static_cast<int>(broker::which(msg[idx])));
 		return false;
 		}
@@ -1023,7 +1024,7 @@ bool bro_broker::Manager::ProcessCreateLog(broker::message msg)
 
 	if ( ! broker::get<broker::enum_value>(msg[idx]) )
 		{
-		reporter->Warning("got remote log w/o writer id: %d",
+		reporter->Warning("got remote log create w/o writer id: %d",
 				  static_cast<int>(broker::which(msg[idx])));
 		return false;
 		}

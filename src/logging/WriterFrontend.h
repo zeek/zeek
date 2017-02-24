@@ -34,8 +34,6 @@ public:
 	 *
 	 * info: The meta information struct for the writer.
 	 *
-	 * writer_name: A descriptive name for the writer's type.
-	 *
 	 * local: If true, the writer will instantiate a local backend.
 	 *
 	 * remote: If true, the writer will forward logs to remote
@@ -46,7 +44,7 @@ public:
 	 *
 	 * Frontends must only be instantiated by the main thread.
 	 */
-	WriterFrontend(const WriterBackend::WriterInfo& info, EnumVal* stream, EnumVal* writer, bool local, bool remote, int arg_remote_flags);
+	WriterFrontend(const WriterBackend::WriterInfo& info, EnumVal* stream, EnumVal* writer, bool local, bool remote, int remote_flags);
 
 	/**
 	 * Destructor.

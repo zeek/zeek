@@ -169,20 +169,20 @@ public:
 		 const threading::Value* const * vals, int flags);
 
 	/**
-         * Send a message to create a log stream to any interested peers.
-         * The log stream may or may not already exist on the receiving side.
-         * The topic name used is implicitly "bro/log/<stream-name>".
+	 * Send a message to create a log stream to any interested peers.
+	 * The log stream may or may not already exist on the receiving side.
+	 * The topic name used is implicitly "bro/log/<stream-name>".
 	 * @param stream the stream to which the log entry belongs.
 	 * @param writer the writer to use for outputting this log entry.
 	 * @param info backend initialization information for the writer.
 	 * @param num_fields the number of fields the log has.
-	 * @param fields the log's fields of size num_fields.
+	 * @param fields the log's fields, of size num_fields.
 	 * @param flags tune the behavior of how the message is send.
 	 * See the Broker::SendFlags record type.
 	 * @param peer If given, send the message only to this peer.
 	 * @return true if the message is sent successfully.
 	 */
-	bool CreateLog(EnumVal* id, EnumVal* writer, const logging::WriterBackend::WriterInfo& info,
+	bool CreateLog(EnumVal* stream, EnumVal* writer, const logging::WriterBackend::WriterInfo& info,
 		       int num_fields, const threading::Field* const * fields, int flags, const string& peer = "");
 
 	/**

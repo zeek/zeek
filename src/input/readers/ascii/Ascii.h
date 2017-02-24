@@ -56,6 +56,8 @@ private:
 	bool ReadHeader(bool useCached);
 	bool GetLine(string& str);
 	bool OpenFile();
+	void FailWarn(bool is_error, const char *msg);
+
 
 	ifstream file;
 	time_t mtime;
@@ -71,8 +73,11 @@ private:
 	string set_separator;
 	string empty_field;
 	string unset_field;
+	bool fail_on_invalid_lines;
+	bool fail_on_file_problem;
 
-	bool continue_on_failure;
+	// this is an internal indicator in case the read is currently in a failed state
+	// it's used by the options for continuing instead of failing and killing the reader.
 	bool is_failed;
 
 	std::unique_ptr<threading::formatter::Formatter> formatter;

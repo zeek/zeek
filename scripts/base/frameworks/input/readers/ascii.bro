@@ -18,4 +18,17 @@ export {
 
 	## String to use for an unset &optional field.
 	const unset_field = Input::unset_field &redef;
+
+	## Choose if the ascii input reader should globally
+	## fail on invalid lines and continue parsing afterward.
+	## Individual readers can use a different value.
+	const fail_on_invalid_lines = F &redef;
+
+	## Set to true if you would like the old behavior of the 
+	## ascii reader where the reader thread would die if any file 
+	## errors occur (like permissions problems or file missing). 
+	## The default behavior is to continue attempting to open and read
+	## the file even in light of problems.
+	## Individual readers can use a different value.
+	const fail_on_file_problem = F &redef;
 }

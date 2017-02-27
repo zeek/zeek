@@ -153,7 +153,7 @@ event smb2_create_request(c: connection, hdr: SMB2::Header, name: string, reques
 		}
 	}
 
-event smb2_create_response(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, file_size: count, times: SMB::MACTimes, attrs: SMB2::FileAttrs) &priority=5
+event smb2_create_response(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, file_size: count, times: SMB::MACTimes, attrs: SMB2::FileAttrs, response: SMB2::CreateResponse) &priority=5
 	{
 	SMB::set_current_file(c$smb_state, file_id$persistent+file_id$volatile);
 

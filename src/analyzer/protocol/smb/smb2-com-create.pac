@@ -31,8 +31,10 @@ refine connection SMB_Conn += {
 
 	function proc_smb2_create_response(h: SMB2_Header, val: SMB2_create_response): bool
 		%{
+		RecordVal* responseinfo = new RecordVal(BifType::Record::SMB2::CreateResponse);
 		if ( smb2_create_response )
 			{
+			responseinfo->Assign(0, new Val(${val.create_action}, TYPE_COUNT));
 			BifEvent::generate_smb2_create_response(bro_analyzer(),
 			                                        bro_analyzer()->Conn(),
 			                                        BuildSMB2HeaderVal(h),
@@ -42,7 +44,7 @@ refine connection SMB_Conn += {
 			                                                          ${val.last_access_time},
 			                                                          ${val.creation_time},
 			                                                          ${val.change_time}),
-			                                        smb2_file_attrs_to_bro(${val.file_attrs}));
+			                                        smb2_file_attrs_to_bro(${val.file_attrs}), responseinfo);
 			}
 
 		return true;

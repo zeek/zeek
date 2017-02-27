@@ -2978,6 +2978,10 @@ export {
 		create_attributes     : count;
 	};
 
+	type SMB2::CreateResponse: record {
+                create_action     : count;
+        };
+
 	## The request sent by the client to request a new authenticated session
 	## within a new or existing SMB 2 Protocol transport connection to the server.
 	##

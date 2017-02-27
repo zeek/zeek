@@ -60,7 +60,7 @@ redef exit_only_after_terminate = T;
 event bro_init()
         {
         Broker::subscribe_to_logs("bro/log/");
-	Broker::subscribe_to_events("bro/event/");
+        Broker::subscribe_to_events("bro/event/");
         Broker::listen(broker_port, "127.0.0.1");
         }
 
@@ -80,6 +80,7 @@ redef exit_only_after_terminate = T;
 event bro_init()
         {
         Broker::enable_remote_logs(Test::LOG);
+        Broker::publish_topic("bro/event/");
         Broker::connect("127.0.0.1", broker_port, 1secs);
         }
 

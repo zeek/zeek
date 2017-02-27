@@ -1080,16 +1080,19 @@ threading::Value* bro_broker::data_to_threading_val(broker::data d)
 
 	auto type = broker::get<uint64_t>(*r->get(0));
 	auto present = broker::get<bool>(*r->get(1));
-	auto data = *r->get(2);
+	auto data = r->get(2);
 
 	if ( ! (type && present) )
+		return nullptr;
+
+	if ( *present && ! data )
 		return nullptr;
 
 	auto tv = new threading::Value;
 	tv->type = static_cast<TypeTag>(*type);
 	tv->present = *present;
 
-	if ( present && ! broker::visit(threading_val_converter{tv->type, tv->val}, data) )
+	if ( *present && ! broker::visit(threading_val_converter{tv->type, tv->val}, *data) )
 		{
 		delete tv;
 		return nullptr;

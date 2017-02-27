@@ -7,6 +7,10 @@
 
 #include "threading/MsgThread.h"
 
+#ifdef ENABLE_BROKER
+#include "broker/Data.h"
+#endif
+
 #include "Component.h"
 
 class RemoteSerializer;
@@ -110,15 +114,18 @@ public:
 				}
 			}
 
-		private:
-		const WriterInfo& operator=(const WriterInfo& other); // Disable.
-
-		friend class ::RemoteSerializer;
-
 		// Note, these need to be adapted when changing the struct's
 		// fields. They serialize/deserialize the struct.
 		bool Read(SerializationFormat* fmt);
 		bool Write(SerializationFormat* fmt) const;
+
+#ifdef ENABLE_BROKER
+		broker::data ToBroker() const;
+		bool FromBroker(broker::data d);
+#endif
+
+		private:
+		const WriterInfo& operator=(const WriterInfo& other); // Disable.
 		};
 
 	/**

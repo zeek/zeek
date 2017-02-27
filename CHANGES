@@ -1,4 +1,12 @@
 
+2.5-84 | 2017-02-27 15:08:55 -0500
+
+  * Change semantics of Broker's remote logging to match old communication 
+    framework. (Robin Sommer)
+
+  * Add and fix documentation for HookSetupAnalyzerTree (Johanna Amann)
+
+
 2.5-76 | 2017-02-23 10:19:57 -0800
 
   * Kerberos ciphertext had some additional ASN.1 content being lumped

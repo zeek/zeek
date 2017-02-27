@@ -15,6 +15,8 @@
 #include "WriterFrontend.h"
 #include "WriterBackend.h"
 #include "logging.bif.h"
+#include "../plugin/Plugin.h"
+#include "../plugin/Manager.h"
 
 #ifdef ENABLE_BROKER
 #include "broker/Manager.h"
@@ -62,6 +64,7 @@ struct Manager::WriterInfo {
 	WriterFrontend* writer;
 	WriterBackend::WriterInfo* info;
 	bool from_remote;
+	bool hook_initialized;
 	string instantiating_filter;
 	};
 
@@ -840,12 +843,21 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 			path = filter->path = filter->path_val->AsString()->CheckString();
 			}
 
+		WriterBackend::WriterInfo* info = 0;
 		WriterFrontend* writer = 0;
 
 		if ( w != stream->writers.end() )
 			{
 			// We know this writer already.
 			writer = w->second->writer;
+			info = w->second->info;
+			if ( ! w->second->hook_initialized )
+				{
+				auto wi = w->second;
+				wi->hook_initialized = true;
+				PLUGIN_HOOK_VOID(HOOK_LOG_INIT, HookLogInit(filter->writer->Type()->AsEnumType()->Lookup(filter->writer->InternalInt()), wi->instantiating_filter, filter->local, filter->remote, *wi->info, filter->num_fields, filter->fields));
+				}
+
 			}
 
 		else
@@ -874,7 +886,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 				arg_fields[j] = new threading::Field(*filter->fields[j]);
 				}
 
-			WriterBackend::WriterInfo* info = new WriterBackend::WriterInfo;
+			info = new WriterBackend::WriterInfo;
 			info->path = copy_string(path.c_str());
 			info->network_time = network_time;
 
@@ -908,6 +920,16 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 		// Alright, can do the write now.
 
 		threading::Value** vals = RecordToFilterVals(stream, filter, columns);
+
+		if ( ! PLUGIN_HOOK_WITH_RESULT(HOOK_LOG_WRITE, HookLogWrite(filter->writer->Type()->AsEnumType()->Lookup(filter->writer->InternalInt()), filter->name, *info, filter->num_fields, filter->fields, vals), true) )
+			{
+			DeleteVals(filter->num_fields, vals);
+#ifdef DEBUG
+			DBG_LOG(DBG_LOGGING, "Hook prevented writing to filter '%s' on stream '%s'",
+				filter->name.c_str(), stream->name.c_str());
+#endif
+			return true;
+			}
 
 		// Write takes ownership of vals.
 		assert(writer);
@@ -1165,6 +1187,7 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
 	winfo->postprocessor = 0;
 	winfo->info = info;
 	winfo->from_remote = from_remote;
+	winfo->hook_initialized = false;
 	winfo->instantiating_filter = instantiating_filter;
 
 	// Search for a corresponding filter for the writer/path pair and use its
@@ -1214,6 +1237,11 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
 #endif
 	winfo->writer->Init(num_fields, fields);
 
+	if ( ! from_remote )
+		{
+		winfo->hook_initialized = true;
+		PLUGIN_HOOK_VOID(HOOK_LOG_INIT, HookLogInit(writer->Type()->AsEnumType()->Lookup(writer->InternalInt()), instantiating_filter, local, remote, *winfo->info, num_fields, fields));
+		}
 	InstallRotationTimer(winfo);
 
 	return winfo->writer;

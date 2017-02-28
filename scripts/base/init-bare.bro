@@ -2182,6 +2182,16 @@ export {
 		fname: string;	##< The name of the file we are interested in.
 	};
 
+	## NFS *rename* arguments.
+	##
+	## .. bro:see:: nfs_proc_rename
+	type renameopargs_t : record {
+		src_dirfh : string;
+		src_fname : string;
+		dst_dirfh : string;
+		dst_fname : string;
+	};
+
 	## NFS lookup reply. If the lookup failed, *dir_attr* may be set. If the
 	## lookup succeeded, *fh* is always set and *obj_attr* and *dir_attr*
 	## may be set.
@@ -2272,6 +2282,16 @@ export {
 	type delobj_reply_t: record {
 		dir_pre_attr: wcc_attr_t &optional;	##< Optional attributes associated w/ dir.
 		dir_post_attr: fattr_t &optional;	##< Optional attributes associated w/ dir.
+	};
+
+	## NFS reply for *rename*. Corresponds to *wcc_data* in the spec.
+	##
+	## .. bro:see:: nfs_rename
+	type renameobj_reply_t: record {
+		src_dir_pre_attr: wcc_attr_t;
+		src_dir_post_attr: fattr_t;
+		dst_dir_pre_attr: wcc_attr_t;
+		dst_dir_post_attr: fattr_t;
 	};
 
 	## NFS *readdir* arguments. Used for both *readdir* and *readdirplus*.

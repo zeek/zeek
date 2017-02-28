@@ -69,6 +69,10 @@ int NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 		callarg = nfs3_diropargs(buf, n);
 		break;
 
+	case BifEnum::NFS3::PROC_RENAME:
+		callarg = nfs3_renameopargs(buf, n);
+		break;
+
 	case BifEnum::NFS3::PROC_READDIR:
 		callarg = nfs3_readdirargs(false, buf, n);
 		break;
@@ -195,6 +199,11 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 	case BifEnum::NFS3::PROC_RMDIR:
 		reply = nfs3_delobj_reply(buf, n);
 		event = nfs_proc_rmdir;
+		break;
+
+	case BifEnum::NFS3::PROC_RENAME:
+		reply = nfs3_renameobj_reply(buf, n);
+		event = nfs_proc_rename;
 		break;
 
 	case BifEnum::NFS3::PROC_READDIR:
@@ -384,6 +393,17 @@ RecordVal *NFS_Interp::nfs3_diropargs(const u_char*& buf, int& n)
 	return diropargs;
 	}
 
+RecordVal *NFS_Interp::nfs3_renameopargs(const u_char*& buf, int& n)
+	{
+	RecordVal *renameopargs = new RecordVal(BifType::Record::NFS3::renameopargs_t);
+
+	renameopargs->Assign(0, nfs3_fh(buf, n));
+	renameopargs->Assign(1, nfs3_filename(buf, n));
+	renameopargs->Assign(2, nfs3_fh(buf, n));
+	renameopargs->Assign(3, nfs3_filename(buf, n));
+
+	return renameopargs;
+	}
 
 RecordVal* NFS_Interp::nfs3_post_op_attr(const u_char*& buf, int& n)
 	{
@@ -564,6 +584,19 @@ RecordVal* NFS_Interp::nfs3_delobj_reply(const u_char*& buf, int& n)
 	// wcc_data
 	rep->Assign(0, nfs3_pre_op_attr(buf, n));
 	rep->Assign(1, nfs3_post_op_attr(buf, n));
+
+	return rep;
+	}
+
+RecordVal* NFS_Interp::nfs3_renameobj_reply(const u_char*& buf, int& n)
+	{
+	RecordVal *rep = new RecordVal(BifType::Record::NFS3::renameobj_reply_t);
+
+        // wcc_data
+	rep->Assign(0, nfs3_pre_op_attr(buf, n));
+	rep->Assign(1, nfs3_post_op_attr(buf, n));
+	rep->Assign(2, nfs3_pre_op_attr(buf, n));
+	rep->Assign(3, nfs3_post_op_attr(buf, n));
 
 	return rep;
 	}

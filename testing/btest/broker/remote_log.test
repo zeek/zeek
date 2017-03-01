@@ -74,15 +74,6 @@ event bro_init()
 
 global n = 0;
 
-# Test both IPv4 and IPv6 addrs, and test all port types.
-global ports: vector of port = vector(22/tcp, 53/udp, 8/icmp, 0/unknown);
-global addrs: vector of addr = vector(10.20.30.40, [fe80:abcd::1]);
-global subnets: vector of subnet = vector(10.2.0.0/16, [fe80::]/64);
-
-# Test some empty objects.
-global emptyset: set[string];
-global emptyvector: vector of string;
-
 event do_write()
         {
         if ( n == 6 )
@@ -113,7 +104,7 @@ event Broker::outgoing_connection_established(peer_address: string,
         }
 
 event Broker::outgoing_connection_broken(peer_address: string,
-                                       peer_port: port)
+                                       peer_port: port, peer_name: string)
         {
         terminate();
         }

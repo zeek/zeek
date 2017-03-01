@@ -1,4 +1,110 @@
 
+2.5-84 | 2017-02-27 15:08:55 -0500
+
+  * Change semantics of Broker's remote logging to match old communication 
+    framework. (Robin Sommer)
+
+  * Add and fix documentation for HookSetupAnalyzerTree (Johanna Amann)
+
+
+2.5-76 | 2017-02-23 10:19:57 -0800
+
+  * Kerberos ciphertext had some additional ASN.1 content being lumped
+    in. (Vlad Grigorescu)
+
+  * Updated Windows version detection to include Windows 10. (Fatema
+    Bannatwala, Keith Lehigh, Mike, Seth Hall).
+
+2.5-70 | 2017-02-20 00:20:02 -0500
+
+  * Rework the RADIUS base script.
+
+    Fixes BIT-1769 which improves logging behavior when replies aren't 
+    seen.  Also added a `framed_addr` field to indicate if the radius 
+    server is hinting at an address for the client and a `ttl` field to
+    show how quickly the server is responding. (Seth Hall)
+
+2.5-68 | 2017-02-18 13:59:05 -0500
+
+  * Refactored base krb scripts. (Seth Hall)
+
+  * New script to log ticket hashes in krb log 
+    (policy/protocols/krb/ticket-logging.bro).  Also, add 
+    ciphertext to ticket data structure. (John E. Rollinson)
+
+2.5-62 | 2017-02-15 15:56:38 -0800
+
+  * Fix case in which scripts were able to access unitialized variables
+    in certain cases. Addresses BIT-1785. (Jon Siwek)
+
+2.5-60 | 2017-02-15 15:19:20 -0800
+
+  * Implement ERSPAN support.
+
+    There is a small caveat to this implementation.  The ethernet
+    header that is carried over the tunnel is ignored.  If a user
+    tries to do MAC address logging, it will only show the MAC
+    addresses for the outer tunnel and the inner MAC addresses
+    will be stripped and not available anywhere. (Seth Hall)
+
+  * Tiny mime-type fix from Dan Caselden. (Seth Hall)
+
+  * Update failing intel framework test. (Johanna Amann)
+
+2.5-55 | 2017-02-10 09:50:43 -0500
+
+  * Fixed intel expiration reset. Reinserting the same indicator did not reset
+    the expiration timer for the indicator in the underlying data store.
+    Addresses BIT-1790. (Jan Grashoefer)
+
+2.5-51 | 2017-02-06 10:15:56 -0500
+
+  * Fix memory leak in file analyzer. (Johanna Amann)
+
+  * Fix a series of problems with the to_json function.
+    Addresses BIT-1788. (Daniel Thayer)
+
+2.5-44 | 2017-02-03 16:38:10 -0800
+
+  * Change snap lengths of some tests. (Johanna Amann)
+
+  * Fix layer 2 connection flipping. If connection flipping occured in
+    Sessions.cc code (invoked e.g. when the original SYN is missing),
+    layer 2 flipping was not performed. (Johanna Amann)
+
+2.5-39 | 2017-02-01 14:03:08 -0800
+
+  * Fix file analyzer memory management, and a delay in disabling file analyzers.
+    File analyzers are no longer deleted immediately; this is delayed until
+    a file opject is destroyed. Furthermore, no data is sent to file analyzers
+    anymore after they have been disabled.
+
+2.5-33 | 2017-02-01 10:07:47 -0500
+
+  * New file types sigs. (Keith Lehigh)
+
+  * Change snaplen of test trace from 1,000,000 to 10,000
+
+    Recent versions of libpcap are unhappy with values bigger than 262,144
+    and will refuse reading the file. (Johanna Amann)
+
+
+2.5-30 | 2017-01-26 13:24:36 -0800
+
+  * Extend file extraction log, adding extracted_cutoff and extracted_size
+    fields. (Seth Hall)
+
+  * Add new TLS extension type (cached_info) (Johanna Amann)
+
+  * Remove brocon event; it caused test failures. (Johanna Amann)
+
+  * Add missing paths to SMB Log::create_streams calls. (Johanna Amann)
+
+  * Tiny xlsx file signature fix. (Dan Caselden)
+
+  * Allow access to global variables using GLOBAL:: namespace.
+    Addresses BIT-1758. (Francois Pennaneac)
+
 2.5-17 | 2016-12-07 14:51:37 -0800
 
   * Broxygen no longer attempts to do tilde expansion of PATH, giving

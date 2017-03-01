@@ -3,13 +3,13 @@
 #empty_field	(empty)
 #unset_field	-
 #path	test
-#open	2016-03-28-18-56-42
-#fields	msg	num	inum	dnum	b	ip	sn	p	t	ti	en	se	re.a	re.b	ve
-#types	string	count	int	double	bool	addr	subnet	port	time	interval	enum	set[string]	string	count	vector[string]
-ping	0	-2	3.14	T	10.20.30.40	10.2.0.0/16	22	1.500000	60.000000	Test::testenum	hello,hi	msg	3	1st,2nd,3rd
-(empty)	1	-2	3.14	T	fe80:abcd::1	fe80::/64	53	1.500000	60.000000	Test::testenum	(empty)	msg	-	(empty)
-ping	2	-2	3.14	T	10.20.30.40	10.2.0.0/16	8	1.500000	60.000000	Test::testenum	hello,hi	msg	3	1st,2nd,3rd
-ping	3	-2	3.14	T	fe80:abcd::1	fe80::/64	0	1.500000	60.000000	Test::testenum	hello,hi	msg	3	1st,2nd,3rd
-ping	4	-2	3.14	T	10.20.30.40	10.2.0.0/16	22	1.500000	60.000000	Test::testenum	hello,hi	msg	3	1st,2nd,3rd
-ping	5	-2	3.14	T	fe80:abcd::1	fe80::/64	53	1.500000	60.000000	Test::testenum	hello,hi	msg	3	1st,2nd,3rd
-#close	2016-03-28-18-56-42
+#open	2017-02-27-16-21-19
+#fields	msg	num
+#types	string	count
+ping	0
+ping	1
+ping	2
+ping	3
+ping	4
+ping	5
+#close	2017-02-27-16-21-20

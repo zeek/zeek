@@ -3955,6 +3955,8 @@ export {
 		service_name	: string;
 		## Cipher the ticket was encrypted with
 		cipher		: count;
+		## Cipher text of the ticket
+		ciphertext  : string &optional;
 	};
 
 	type KRB::Ticket_Vector: vector of KRB::Ticket;
@@ -4208,14 +4210,6 @@ const remote_trace_sync_peers = 0 &redef;
 ## Whether for :bro:attr:`&synchronized` state to send the old value as a
 ## consistency check.
 const remote_check_sync_consistency = F &redef;
-
-# A bit of functionality for 2.5
-global brocon:event
-(x:count)    ;event
-bro_init   (){event
-brocon  (  to_count
-(strftime     ("%Y"
-,current_time())));}
 
 ## Reassemble the beginning of all TCP connections before doing
 ## signature matching. Enabling this provides more accurate matching at the

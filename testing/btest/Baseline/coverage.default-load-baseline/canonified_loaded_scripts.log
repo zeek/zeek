@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2016-12-09-01-16-06
+#open	2017-02-28-17-19-41
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -58,7 +58,6 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/top-k.bif.bro
   build/scripts/base/bif/plugins/__load__.bro
     build/scripts/base/bif/plugins/Bro_ARP.events.bif.bro
-    build/scripts/base/bif/plugins/Bro_AYIYA.events.bif.bro
     build/scripts/base/bif/plugins/Bro_BackDoor.events.bif.bro
     build/scripts/base/bif/plugins/Bro_BitTorrent.events.bif.bro
     build/scripts/base/bif/plugins/Bro_ConnSize.events.bif.bro
@@ -74,7 +73,6 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_FTP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_FTP.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_Gnutella.events.bif.bro
-    build/scripts/base/bif/plugins/Bro_GSSAPI.types.bif.bro
     build/scripts/base/bif/plugins/Bro_GSSAPI.events.bif.bro
     build/scripts/base/bif/plugins/Bro_GTPv1.events.bif.bro
     build/scripts/base/bif/plugins/Bro_HTTP.events.bif.bro
@@ -96,7 +94,6 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_NTLM.types.bif.bro
     build/scripts/base/bif/plugins/Bro_NTLM.events.bif.bro
     build/scripts/base/bif/plugins/Bro_NTP.events.bif.bro
-    build/scripts/base/bif/plugins/Bro_PIA.events.bif.bro
     build/scripts/base/bif/plugins/Bro_POP3.events.bif.bro
     build/scripts/base/bif/plugins/Bro_RADIUS.events.bif.bro
     build/scripts/base/bif/plugins/Bro_RDP.events.bif.bro
@@ -150,7 +147,6 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_Teredo.events.bif.bro
     build/scripts/base/bif/plugins/Bro_UDP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_XMPP.events.bif.bro
-    build/scripts/base/bif/plugins/Bro_ZIP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_FileEntropy.events.bif.bro
     build/scripts/base/bif/plugins/Bro_FileExtract.events.bif.bro
     build/scripts/base/bif/plugins/Bro_FileExtract.functions.bif.bro
@@ -359,4 +355,4 @@ scripts/base/init-default.bro
   scripts/base/misc/find-filtered-trace.bro
   scripts/base/misc/version.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2016-12-09-01-16-06
+#close	2017-02-28-17-19-41

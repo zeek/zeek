@@ -15,44 +15,28 @@
 
 @TEST-START-FILE common.bro
 
+
+global quit_receiver: event();
+global quit_sender: event();
+
+
 module Test;
 
 export {
-	redef enum Log::ID += { LOG };
+        redef enum Log::ID += { LOG };
 
-	type my_enum: enum { testenum };
-
-	type my_rec: record {
-		a: string;
-		b: count &optional;
-	} &log;
-
-	type Info: record {
-		msg: string &log;
-		nolog: string &default="no";
-		num: count &log;
-		inum: int &log;
-		dnum: double &log;
-		b: bool &log;
-		ip: addr &log;
-		sn: subnet &log;
-		p: port &log;
-		t: time &log;
-		ti: interval &log;
-		en: my_enum &log;
-		se: set[string] &log;
-		re: my_rec &log;
-		ve: vector of string &log;
-	};
-
-	global log_test: event(rec: Test::Info);
+        type Info: record {
+                msg: string &log;
+                nolog: string &default="no";
+                num: count &log;
+        };
 }
 
 event bro_init() &priority=5
-	{
-	Broker::enable();
-	Log::create_stream(Test::LOG, [$columns=Test::Info, $ev=log_test]);
-	}
+        {
+        Broker::enable();
+        Log::create_stream(Test::LOG, [$columns=Test::Info]);
+        }
 
 @TEST-END-FILE
 
@@ -62,20 +46,19 @@ const broker_port: port &redef;
 redef exit_only_after_terminate = T;
 
 event bro_init()
-	{
-	Broker::subscribe_to_logs("bro/log/");
-	Broker::listen(broker_port, "127.0.0.1");
-	}
+        {
+        Broker::subscribe_to_logs("bro/log/");
+        Broker::subscribe_to_events("bro/event/");
+        Broker::listen(broker_port, "127.0.0.1");
+        }
 
-event Test::log_test(rec: Test::Info)
-	{
-	print "wrote log", rec;
-
-	if ( rec$num == 5 )
-		terminate();
-	}
+event quit_receiver()
+    {
+    terminate();
+    }
 
 @TEST-END-FILE
+
 
 @TEST-START-FILE send.bro
 
@@ -83,10 +66,11 @@ const broker_port: port &redef;
 redef exit_only_after_terminate = T;
 
 event bro_init()
-	{
-	Broker::enable_remote_logs(Test::LOG);
-	Broker::connect("127.0.0.1", broker_port, 1secs);
-	}
+    {
+    Broker::enable_remote_logs(Test::LOG);
+    Broker::publish_topic("bro/event/");
+    Broker::connect("127.0.0.1", broker_port, 1secs);
+    }
 
 global n = 0;
 
@@ -100,41 +84,38 @@ global emptyset: set[string];
 global emptyvector: vector of string;
 
 event do_write()
-	{
-	local logrec: Test::Info = [$msg = "ping", $num = n, $inum = -2,
-		$dnum = 3.14, $b = T, $ip = addrs[n%2], $sn = subnets[n%2],
-		$p = ports[n%4], $t = double_to_time(1.5), $ti = 1min,
-		$en = Test::testenum, $se = set("hi", "hello"),
-		$re = [$a="msg", $b=3], $ve = vector("1st", "2nd", "3rd")];
+        {
+        if ( n == 6 )
+        {
+        local args = Broker::event_args(quit_receiver);
+        Broker::send_event("bro/event/", args);
+        schedule 1sec { quit_sender() };
+        }
+        else
+                {
+                Log::write(Test::LOG, [$msg = "ping", $num = n]);
+                ++n;
+                event do_write();
+                }
+        }
 
-	if ( n == 1 )
-		{
-		# Test that some empty or uninitialized values can be sent.
-		logrec$msg = "";
-		logrec$re = [$a="msg"];
-		logrec$se = emptyset;
-		logrec$ve = emptyvector;
-		}
-
-	Log::write(Test::LOG, logrec);
-	++n;
-	if ( n < 6 )
-		event do_write();
-	}
+event quit_sender()
+    {
+    terminate();
+    }
 
 event Broker::outgoing_connection_established(peer_address: string,
                                             peer_port: port,
                                             peer_name: string)
-	{
-	print "Broker::outgoing_connection_established", peer_address, peer_port;
-	event do_write();
-	}
+        {
+        print "Broker::outgoing_connection_established", peer_address, peer_port;
+        event do_write();
+        }
 
 event Broker::outgoing_connection_broken(peer_address: string,
-                                       peer_port: port,
-                                       peer_name: string)
-	{
-	terminate();
-	}
+                                       peer_port: port)
+        {
+        terminate();
+        }
 
 @TEST-END-FILE

@@ -156,6 +156,7 @@ export {
 		[22] = "encrypt_then_mac",
 		[23] = "extended_master_secret",
 		[24] = "token_binding", # temporary till 2017-03-06 - draft-ietf-tokbind-negotiation
+		[25] = "cached_info",
 		[35] = "SessionTicket TLS",
 		[40] = "key_share", # new for TLS 1.3; was used for extended_random before. State as of TLS 1.3 draft 16
 		[41] = "pre_shared_key", # new for 1.3, state of draft-16

@@ -8,7 +8,6 @@ using namespace plugin::Bro_RawReader;
 
 Plugin::Plugin()
 	{
-	init = false;
 	}
 
 plugin::Configuration Plugin::Configure()
@@ -23,21 +22,14 @@ plugin::Configuration Plugin::Configure()
 
 void Plugin::InitPreScript()
 	{
-	if ( pthread_mutex_init(&fork_mutex, 0) != 0 )
-		reporter->FatalError("cannot initialize raw reader's mutex");
-
-	init = true;
 	}
 
 void Plugin::Done()
 	{
-	pthread_mutex_destroy(&fork_mutex);
-	init = false;
 	}
 
-pthread_mutex_t* Plugin::ForkMutex()
+std::unique_lock<std::mutex> Plugin::ForkMutex()
 	{
-	assert(init);
-	return &fork_mutex;
+	return std::move(std::unique_lock<std::mutex>(fork_mutex, std::defer_lock));
 	}
 

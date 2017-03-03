@@ -19,16 +19,32 @@ export {
 	## String to use for an unset &optional field.
 	const unset_field = Input::unset_field &redef;
 
-	## Choose if the ascii input reader should globally
-	## fail on invalid lines and continue parsing afterward.
-	## Individual readers can use a different value.
+	## Fail on invalid lines. If set to false, the ascii
+	## input reader will jump over invalid lines, reporting
+	## warnings in reporter.log. If set to true, errors in
+	## input lines will be handled as fatal errors for the
+	## reader thread; reading will abort immediately and
+	## an error will be logged to reporter.log.
+	## Invidivual readers can use a different value using
+	## the $config table.
+	## fail_on_invalid_lines = T was the default behavior
+	## untill Bro 2.5.
 	const fail_on_invalid_lines = F &redef;
 
-	## Set to true if you would like the old behavior of the 
-	## ascii reader where the reader thread would die if any file 
-	## errors occur (like permissions problems or file missing). 
-	## The default behavior is to continue attempting to open and read
-	## the file even in light of problems.
-	## Individual readers can use a different value.
+	## Fail on file read problems. If set to true, the ascii
+	## input reader will fail when encountering any problems
+	## while reading a file different from invalid lines.
+	## Examples fur such problems are permission problems, or
+	## missing files.
+	## When set to false, these problems will be ignored. This
+	## has an especially big effect for the REREAD mode, which will
+	## seamlessly recover from read errors when a file is
+	## only temporarily inaccessible. For MANUAL or STREAM files,
+	## errors will most likely still be fatal since no automatic
+	## re-reading of the file is attempted.
+	## Invidivual readers can use a different value using
+	## the $config table.
+	## fail_on_file_problem = T was the default behavior
+	## untill Bro 2.5.
 	const fail_on_file_problem = F &redef;
 }

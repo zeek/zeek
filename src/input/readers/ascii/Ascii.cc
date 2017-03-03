@@ -61,7 +61,7 @@ void Ascii::DoClose()
 
 bool Ascii::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fields)
 	{
-	is_failed = false;
+	suppress_warnings = false;
 
 	separator.assign( (const char*) BifConst::InputAscii::separator->Bytes(),
 	                 BifConst::InputAscii::separator->Len());
@@ -109,43 +109,48 @@ bool Ascii::DoInit(const ReaderInfo& info, int num_fields, const Field* const* f
 	formatter::Ascii::SeparatorInfo sep_info(separator, set_separator, unset_field, empty_field);
 	formatter = unique_ptr<threading::formatter::Formatter>(new formatter::Ascii(this, sep_info));
 
-	DoUpdate();
-
-	return true;
+	return DoUpdate();
 	}
 
-void Ascii::FailWarn(bool is_error, const char *msg)
+void Ascii::FailWarn(bool is_error, const char *msg, bool suppress_future)
 	{
 	if ( is_error )
 		Error(msg);
 	else
-		Warning(msg);
+		{
+		// suppress error message when we are already in error mode.
+		// There is no reason to repeat it every second.
+		if ( ! suppress_warnings )
+			Warning(msg);
+
+		if ( suppress_future )
+			suppress_warnings = true;
+		}
 	}
 
 bool Ascii::OpenFile()
 	{
-	if ( file.is_open() && ! is_failed )
+	if ( file.is_open() )
 		return true;
 
 	file.open(Info().source);
+
 	if ( ! file.is_open() )
 		{
-		if ( ! is_failed )
-			FailWarn(fail_on_file_problem, Fmt("Init: cannot open %s", Info().source));
-		is_failed = true;
-		return !fail_on_file_problem;
+		FailWarn(fail_on_file_problem, Fmt("Init: cannot open %s", Info().source), true);
+
+		return ! fail_on_file_problem;
 		}
 
 	if ( ReadHeader(false) == false )
 		{
-		if ( ! is_failed )
-			FailWarn(fail_on_file_problem, Fmt("Init: cannot open %s; headers are incorrect", Info().source));
+		FailWarn(fail_on_file_problem, Fmt("Init: cannot open %s; problem reading file header", Info().source), true);
+
 		file.close();
-		is_failed = true;
-		return !fail_on_file_problem;
+		return ! fail_on_file_problem;
 		}
 
-	is_failed = false;
+	suppress_warnings = false;
 	return true;
 	}
 
@@ -158,7 +163,11 @@ bool Ascii::ReadHeader(bool useCached)
 	if ( ! useCached )
 		{
 		if ( ! GetLine(line) )
+			{
+			FailWarn(fail_on_file_problem, Fmt("Could not read input data file %s; first line could not be read",
+							 Info().source), true);
 			return false;
+			}
 
 		headerline = line;
 		}
@@ -198,12 +207,10 @@ bool Ascii::ReadHeader(bool useCached)
 				continue;
 				}
 
-			if ( ! is_failed )
-				FailWarn(fail_on_file_problem, Fmt("Did not find requested field %s in input data file %s.",
-				         field->name, Info().source));
+			FailWarn(fail_on_file_problem, Fmt("Did not find requested field %s in input data file %s.",
+							 field->name, Info().source), true);
 
-			is_failed = true;
-			return !fail_on_file_problem;
+			return false;
 			}
 
 		FieldMapping f(field->name, field->type, field->subtype, ifields[field->name]);
@@ -213,12 +220,10 @@ bool Ascii::ReadHeader(bool useCached)
 			map<string, uint32_t>::iterator fit2 = ifields.find(field->secondary_name);
 			if ( fit2 == ifields.end() )
 				{
-				if ( ! is_failed )
-					FailWarn(fail_on_file_problem, Fmt("Could not find requested port type field %s in input data file.",
-					         field->secondary_name));
+				FailWarn(fail_on_file_problem, Fmt("Could not find requested port type field %s in input data file.",
+								 field->secondary_name), true);
 
-				is_failed = true;
-				return !fail_on_file_problem;
+				return false;
 				}
 
 			f.secondary_position = ifields[field->secondary_name];
@@ -258,7 +263,7 @@ bool Ascii::GetLine(string& str)
 bool Ascii::DoUpdate()
 	{
 	if ( ! OpenFile() )
-		return !fail_on_file_problem;
+		return ! fail_on_file_problem;
 
 	switch ( Info().mode ) {
 		case MODE_REREAD:
@@ -267,11 +272,10 @@ bool Ascii::DoUpdate()
 			struct stat sb;
 			if ( stat(Info().source, &sb) == -1 )
 				{
-				if ( ! is_failed )
-					FailWarn(fail_on_file_problem, Fmt("Could not get stat for %s", Info().source));
+				FailWarn(fail_on_file_problem, Fmt("Could not get stat for %s", Info().source), true);
+
 				file.close();
-				is_failed = true;
-				return !fail_on_file_problem;
+				return ! fail_on_file_problem;
 				}
 
 			if ( sb.st_mtime <= mtime ) // no change
@@ -293,10 +297,9 @@ bool Ascii::DoUpdate()
 				if ( Info().mode == MODE_STREAM )
 					{
 					file.clear(); // remove end of file evil bits
-					if ( !ReadHeader(true) )
+					if ( ! ReadHeader(true) )
 						{
-						is_failed = true;
-						return !fail_on_file_problem; // header reading failed
+						return ! fail_on_file_problem; // header reading failed
 						}
 
 					break;
@@ -360,15 +363,15 @@ bool Ascii::DoUpdate()
 			if ( (*fit).position > pos || (*fit).secondary_position > pos )
 				{
 				FailWarn(fail_on_invalid_lines, Fmt("Not enough fields in line %s. Found %d fields, want positions %d and %d",
-					  line.c_str(), pos,  (*fit).position, (*fit).secondary_position));
-
-				for ( int i = 0; i < fpos; i++ )
-					delete fields[i];
-
-				delete [] fields;
+					  line.c_str(), pos, (*fit).position, (*fit).secondary_position));
 
 				if ( fail_on_invalid_lines )
 					{
+					for ( int i = 0; i < fpos; i++ )
+						delete fields[i];
+
+					delete [] fields;
+
 					return false;
 					}
 				else
@@ -432,7 +435,7 @@ bool Ascii::DoUpdate()
 bool Ascii::DoHeartbeat(double network_time, double current_time)
 	{
 	if ( ! OpenFile() )
-		return !fail_on_file_problem;
+		return ! fail_on_file_problem;
 
 	switch ( Info().mode )
 		{

@@ -5,10 +5,8 @@
 #include "RemoteSerializer.h"
 #include "NetVar.h"
 
-#ifdef ENABLE_BROKER
 #include "broker/Manager.h"
 #include "broker/Data.h"
-#endif
 
 EventHandler::EventHandler(const char* arg_name)
 	{
@@ -32,10 +30,7 @@ EventHandler::operator bool() const
 	return enabled && ((local && local->HasBodies())
 			   || receivers.length()
 			   || generate_always
-#ifdef ENABLE_BROKER
 			   || ! auto_remote_send.empty()
-			   // TODO: and require a subscriber interested in a topic or unsolicited flags?
-#endif
 	                   );
 	}
 
@@ -84,14 +79,12 @@ void EventHandler::Call(val_list* vl, bool no_remote)
 			remote_serializer->SendCall(&info, receivers[i], name, vl);
 			}
 
-#ifdef ENABLE_BROKER
-
 		if ( ! auto_remote_send.empty() )
 			{
-			// TODO: also short-circuit based on interested subscribers/flags?
-			broker::message msg;
-			msg.reserve(vl->length() + 1);
-			msg.emplace_back(Name());
+			// Send event in form [name, xs...] where xs represent the arguments.
+			broker::vector xs;
+			xs.reserve(vl->length() + 1);
+			xs.emplace_back(Name());
 			bool valid_args = true;
 
 			for ( auto i = 0; i < vl->length(); ++i )
@@ -99,7 +92,7 @@ void EventHandler::Call(val_list* vl, bool no_remote)
 				auto opt_data = bro_broker::val_to_data((*vl)[i]);
 
 				if ( opt_data )
-					msg.emplace_back(move(*opt_data));
+					xs.emplace_back(move(*opt_data));
 				else
 					{
 					valid_args = false;
@@ -111,18 +104,12 @@ void EventHandler::Call(val_list* vl, bool no_remote)
 				}
 
 			if ( valid_args )
-				{
-				for ( auto it = auto_remote_send.begin();
-				      it != auto_remote_send.end(); ++it )
-					{
-					if ( std::next(it) == auto_remote_send.end() )
-						broker_mgr->Event(it->first, move(msg), it->second);
-					else
-						broker_mgr->Event(it->first, msg, it->second);
-					}
-				}
+        {
+        auto msg = broker::message{std::move(xs)};
+				for ( auto& topic : auto_remote_send )
+					broker_mgr->Event(broker::message(topic, msg));
+        }
 			}
-#endif
 		}
 
 	if ( local )

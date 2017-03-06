@@ -157,14 +157,12 @@ public:
 	 */
 	void Terminate();
 
-#ifdef ENABLE_BROKER
 	/**
 	 * Enable remote logs for a given stream.
 	 * @param stream_id the stream to enable remote logs for.
-	 * @param flags tune behavior of how log entries are sent to peer endpoints.
 	 * @return true if remote logs are enabled.
 	 */
-	bool EnableRemoteLogs(EnumVal* stream_id, int flags);
+	bool EnableRemoteLogs(EnumVal* stream_id);
 
 	/**
 	 * Disable remote logs for a given stream.
@@ -183,7 +181,6 @@ public:
 	 * a given log stream.
 	 */
 	RecordType* StreamColumns(EnumVal* stream_id);
-#endif
 
 protected:
 	friend class WriterFrontend;

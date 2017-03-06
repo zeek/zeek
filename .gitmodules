@@ -4,9 +4,6 @@
 [submodule "aux/binpac"]
 	path = aux/binpac
 	url = git://git.bro.org/binpac
-[submodule "aux/broccoli"]
-	path = aux/broccoli
-	url = git://git.bro.org/broccoli
 [submodule "aux/broctl"]
 	path = aux/broctl
 	url = git://git.bro.org/broctl

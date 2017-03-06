@@ -40,15 +40,10 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
                            (automatically on when perftools is present on Linux)
     --enable-perftools-debug use Google's perftools for debugging
     --enable-jemalloc      link against jemalloc
-    --enable-ruby          build ruby bindings for broccoli (deprecated)
-    --enable-broker        enable use of the Broker communication library
-                           (requires C++ Actor Framework)
-    --disable-broccoli     don't build or install the Broccoli library
     --disable-broctl       don't install Broctl
     --disable-auxtools     don't build or install auxiliary tools
     --disable-perftools    don't try to build with Google Perftools
     --disable-python       don't try to build python bindings for broccoli
-    --disable-pybroker     don't try to build python bindings for broker
 
   Required Packages in Non-Standard Locations:
     --with-openssl=PATH    path to OpenSSL install root
@@ -127,11 +122,9 @@ append_cache_entry ENABLE_DEBUG         BOOL   false
 append_cache_entry ENABLE_PERFTOOLS     BOOL   false
 append_cache_entry ENABLE_PERFTOOLS_DEBUG BOOL false
 append_cache_entry ENABLE_JEMALLOC      BOOL   false
-append_cache_entry ENABLE_BROKER        BOOL   false
 append_cache_entry BinPAC_SKIP_INSTALL  BOOL   true
 append_cache_entry BUILD_SHARED_LIBS    BOOL   true
 append_cache_entry INSTALL_AUX_TOOLS    BOOL   true
-append_cache_entry INSTALL_BROCCOLI     BOOL   true
 append_cache_entry INSTALL_BROCTL       BOOL   true
 append_cache_entry CPACK_SOURCE_IGNORE_FILES STRING
 append_cache_entry ENABLE_MOBILE_IPV6   BOOL   false
@@ -195,14 +188,6 @@ while [ $# -ne 0 ]; do
         --enable-jemalloc)
             append_cache_entry ENABLE_JEMALLOC     BOOL   true
             ;;
-        --enable-broker)
-            append_cache_entry ENABLE_BROKER        BOOL   true
-            ;;
-        --disable-broker)
-            ;;
-        --disable-broccoli)
-            append_cache_entry INSTALL_BROCCOLI     BOOL   false
-            ;;
         --disable-broctl)
             append_cache_entry INSTALL_BROCTL       BOOL   false
             ;;
@@ -214,9 +199,6 @@ while [ $# -ne 0 ]; do
             ;;
         --disable-python)
             append_cache_entry DISABLE_PYTHON_BINDINGS     BOOL   true
-            ;;
-        --disable-pybroker)
-            append_cache_entry DISABLE_PYBROKER     BOOL   true
             ;;
         --enable-ruby)
             append_cache_entry DISABLE_RUBY_BINDINGS     BOOL   false

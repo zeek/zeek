@@ -6,6 +6,9 @@ include_directories(BEFORE
                     ${CMAKE_CURRENT_BINARY_DIR}
 )
 
+include_directories(BEFORE ${CAF_INCLUDE_DIR_CORE})
+include_directories(BEFORE ${CAF_INCLUDE_DIR_IO})
+
 add_subdirectory(writers)
 
 set(logging_SRCS

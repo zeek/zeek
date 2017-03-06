@@ -7,113 +7,30 @@
 
 module Broker;
 
-type Broker::EndpointFlags: record;
-
-function Broker::__enable%(flags: EndpointFlags%): bool
+function Broker::__enable%(%): bool
 	%{
-	return new Val(broker_mgr->Enable(flags), TYPE_BOOL);
+	return new Val(broker_mgr->Enable(), TYPE_BOOL);
 	%}
 
-function Broker::__set_endpoint_flags%(flags: EndpointFlags%): bool
-	%{
-	return new Val(broker_mgr->SetEndpointFlags(flags), TYPE_BOOL);
-	%}
+## Generated when something changes in the Broker system.
+event Broker::status%(todo: string%);
 
-function Broker::__publish_topic%(topic: string%): bool
-	%{
-	return new Val(broker_mgr->PublishTopic(topic->CheckString()), TYPE_BOOL);
-	%}
+## Generated when something changes in the Broker system.
+event Broker::error%(todo: string%);
 
-function Broker::__unpublish_topic%(topic: string%): bool
-	%{
-	return new Val(broker_mgr->UnpublishTopic(topic->CheckString()), TYPE_BOOL);
-	%}
-
-## Allow advertising interest in the given topic to peers.
-## This has no effect if auto advertise behavior is enabled via the flags
-## supplied to :bro:see:`Broker::enable` or :bro:see:`Broker::set_endpoint_flags`.
-##
-## topic: a topic to allow advertising interest/subscription to peers.
-##
-## Returns: true if successful.
-function Broker::advertise_topic%(topic: string%): bool
-	%{
-	return new Val(broker_mgr->AdvertiseTopic(topic->CheckString()), TYPE_BOOL);
-	%}
-
-## Disallow advertising interest in the given topic to peers.
-## This has no effect if auto advertise behavior is enabled via the flags
-## supplied to :bro:see:`Broker::enable` or :bro:see:`Broker::set_endpoint_flags`.
-##
-## topic: a topic to disallow advertising interest/subscription to peers.
-##
-## Returns: true if successful.
-function Broker::unadvertise_topic%(topic: string%): bool
-	%{
-	return new Val(broker_mgr->UnadvertiseTopic(topic->CheckString()), TYPE_BOOL);
-	%}
-
-## Generated when a connection has been established due to a previous call
-## to :bro:see:`Broker::connect`.
-##
-## peer_address: the address used to connect to the peer.
-##
-## peer_port: the port used to connect to the peer.
-##
-## peer_name: the name by which the peer identified itself.
-event Broker::outgoing_connection_established%(peer_address: string,
-                                             peer_port: port,
-                                             peer_name: string%);
-
-## Generated when a previously established connection becomes broken.
-## Reconnection will automatically be attempted at a frequency given
-## by the original call to :bro:see:`Broker::connect`.
-##
-## peer_address: the address used to connect to the peer.
-##
-## peer_port: the port used to connect to the peer.
-##
-## .. bro:see:: Broker::outgoing_connection_established
-event Broker::outgoing_connection_broken%(peer_address: string,
-                                        peer_port: port%);
-
-## Generated when a connection via :bro:see:`Broker::connect` has failed
-## because the remote side is incompatible.
-##
-## peer_address: the address used to connect to the peer.
-##
-## peer_port: the port used to connect to the peer.
-event Broker::outgoing_connection_incompatible%(peer_address: string,
-                                              peer_port: port%);
-
-## Generated when a peer has established a connection with this process
-## as a result of previously performing a :bro:see:`Broker::listen`.
-##
-## peer_name: the name by which the peer identified itself.
-event Broker::incoming_connection_established%(peer_name: string%);
-
-## Generated when a peer that previously established a connection with this
-## process becomes disconnected.
-##
-## peer_name: the name by which the peer identified itself.
-##
-## .. bro:see:: Broker::incoming_connection_established
-event Broker::incoming_connection_broken%(peer_name: string%);
-
-function Broker::__listen%(p: port, a: string, reuse: bool%): bool
+function Broker::__listen%(p: port, a: string%): port
 	%{
 	if ( ! p->IsTCP() )
 		{
 		reporter->Error("listen port must use tcp");
-		return new Val(false, TYPE_BOOL);
+    return new PortVal(0, TRANSPORT_UNKNOWN);
 		}
 
-	auto rval = broker_mgr->Listen(p->Port(), a->Len() ? a->CheckString() : 0,
-								 reuse);
-	return new Val(rval, TYPE_BOOL);
+	auto rval = broker_mgr->Listen(a->Len() ? a->CheckString() : "", p->Port());
+  return new PortVal(rval, TRANSPORT_TCP);
 	%}
 
-function Broker::__connect%(a: string, p: port, retry: interval%): bool
+function Broker::__peer%(a: string, p: port%): bool
 	%{
 	if ( ! p->IsTCP() )
 		{
@@ -121,12 +38,11 @@ function Broker::__connect%(a: string, p: port, retry: interval%): bool
 		return new Val(false, TYPE_BOOL);
 		}
 
-	auto rval = broker_mgr->Connect(a->CheckString(), p->Port(),
-	                              std::chrono::duration<double>(retry));
-	return new Val(rval, TYPE_BOOL);
+	broker_mgr->Peer(a->CheckString(), p->Port());
+	return new Val(true, TYPE_BOOL);
 	%}
 
-function Broker::__disconnect%(a: string, p: port%): bool
+function Broker::__unpeer%(a: string, p: port%): bool
 	%{
 	if ( ! p->IsTCP() )
 		{
@@ -134,6 +50,6 @@ function Broker::__disconnect%(a: string, p: port%): bool
 		return new Val(false, TYPE_BOOL);
 		}
 
-	auto rval = broker_mgr->Disconnect(a->CheckString(), p->Port());
-	return new Val(rval, TYPE_BOOL);
+	broker_mgr->Unpeer(a->CheckString(), p->Port());
+	return new Val(true, TYPE_BOOL);
 	%}

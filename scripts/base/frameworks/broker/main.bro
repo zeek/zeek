@@ -136,37 +136,6 @@ export {
 	##          :bro:see:`Broker::connect`.
 	global disconnect: function(a: string, p: port): bool;
 
-	## Print a simple message to any interested peers.  The receiver can use
-	## :bro:see:`Broker::print_handler` to handle messages.
-	##
-	## topic: a topic associated with the printed message.
-	##
-	## msg: the print message to send to peers.
-	##
-	## flags: tune the behavior of how the message is sent.
-	##
-	## Returns: true if the message is sent.
-	global send_print: function(topic: string, msg: string, flags: SendFlags &default = SendFlags()): bool;
-
-	## Register interest in all peer print messages that use a certain topic
-	## prefix. Use :bro:see:`Broker::print_handler` to handle received
-	## messages.
-	##
-	## topic_prefix: a prefix to match against remote message topics.
-	##               e.g. an empty prefix matches everything and "a" matches
-	##               "alice" and "amy" but not "bob".
-	##
-	## Returns: true if it's a new print subscription and it is now registered.
-	global subscribe_to_prints: function(topic_prefix: string): bool;
-
-	## Unregister interest in all peer print messages that use a topic prefix.
-	##
-	## topic_prefix: a prefix previously supplied to a successful call to
-	##               :bro:see:`Broker::subscribe_to_prints`.
-	##
-	## Returns: true if interest in the topic prefix is no longer advertised.
-	global unsubscribe_to_prints: function(topic_prefix: string): bool;
-
 	## Send an event to any interested peers.
 	##
 	## topic: a topic associated with the event message.
@@ -306,21 +275,6 @@ function connect(a: string, p: port, retry: interval): bool
 function disconnect(a: string, p: port): bool
     {
     return __disconnect(a, p);
-    }
-
-function send_print(topic: string, msg: string, flags: SendFlags &default = SendFlags()): bool
-    {
-    return __send_print(topic, msg, flags);
-    }
-
-function subscribe_to_prints(topic_prefix: string): bool
-    {
-    return __subscribe_to_prints(topic_prefix);
-    }
-
-function unsubscribe_to_prints(topic_prefix: string): bool
-    {
-    return __unsubscribe_to_prints(topic_prefix);
     }
 
 function send_event(topic: string, args: EventArgs, flags: SendFlags &default = SendFlags()): bool

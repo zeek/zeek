@@ -33,10 +33,7 @@
 #include "iosource/PktSrc.h"
 #include "iosource/PktDumper.h"
 #include "plugin/Manager.h"
-
-#ifdef ENABLE_BROKER
 #include "broker/Manager.h"
-#endif
 
 extern "C" {
 #include "setsignal.h"
@@ -311,11 +308,7 @@ void net_run()
 			}
 #endif
 		current_iosrc = src;
-		bool communication_enabled = using_communication;
-
-#ifdef ENABLE_BROKER
-		communication_enabled |= broker_mgr->Enabled();
-#endif
+		auto communication_enabled = using_communication || broker_mgr->Enabled();
 
 		if ( src )
 			src->Process();	// which will call net_packet_dispatch()

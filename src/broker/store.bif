@@ -26,74 +26,43 @@ enum BackendType %{
 function Broker::__create_master%(id: string, b: BackendType,
                                options: BackendOptions &default = BackendOptions()%): opaque of Broker::Handle
 	%{
-	auto id_str = id->CheckString();
-	auto type = bro_broker::StoreType::MASTER;
-	auto rval = broker_mgr->LookupStore(id_str, type);
+	auto name = id->CheckString();
+	auto rval = broker_mgr->LookupStore(name);
+	if ( ! rval )
+		return nullptr;
 
-	if ( rval )
-		{
-		Ref(rval);
-		return rval;
-		}
+  auto e = static_cast<BifEnum::Broker::BackendType>(b->AsEnum());
+	auto type = bro_broker::to_backend_type(e);
+	auto opts = bro_broker::to_backend_options(type, options->AsRecordVal());
 
-	rval = new bro_broker::StoreHandleVal(id_str, type,
-	                                static_cast<BifEnum::Broker::BackendType>(b->AsEnum()),
-	                                options->AsRecordVal());
-	auto added = broker_mgr->AddStore(rval);
-	assert(added);
-	return rval;
+	auto store = broker_mgr->MakeMaster(name, type, std::move(opts));
+	if ( ! store )
+	  return nullptr;
+
+	return store;
 	%}
 
-function Broker::__create_clone%(id: string, b: BackendType,
-                              options: BackendOptions &default = BackendOptions(),
-                              resync: interval &default = 1sec%): opaque of Broker::Handle
+function Broker::__create_clone%(id: string%): opaque of Broker::Handle
 	%{
-	auto id_str = id->CheckString();
-	auto type = bro_broker::StoreType::CLONE;
-	auto rval = broker_mgr->LookupStore(id_str, type);
+	auto name = id->CheckString();
+	auto rval = broker_mgr->LookupStore(name);
+	if ( ! rval )
+		return nullptr;
 
-	if ( rval )
-		{
-		Ref(rval);
-		return rval;
-		}
+	auto store = broker_mgr->MakeClone(name);
+	if ( ! store )
+	  return nullptr;
 
-	rval = new bro_broker::StoreHandleVal(id_str, type,
-	                                static_cast<BifEnum::Broker::BackendType>(b->AsEnum()),
-	                                options->AsRecordVal(),
-	                                std::chrono::duration<double>(resync));
-	auto added = broker_mgr->AddStore(rval);
-	assert(added);
-	return rval;
-	%}
-
-function Broker::__create_frontend%(id: string%): opaque of Broker::Handle
-	%{
-	auto id_str = id->CheckString();
-	auto type = bro_broker::StoreType::FRONTEND;
-	auto rval = broker_mgr->LookupStore(id_str, type);
-
-	if ( rval )
-		{
-		Ref(rval);
-		return rval;
-		}
-
-	rval = new bro_broker::StoreHandleVal(id_str, type, {}, nullptr);
-	auto added = broker_mgr->AddStore(rval);
-	assert(added);
-	return rval;
+	return store;
 	%}
 
 function Broker::__close_by_handle%(h: opaque of Broker::Handle%): bool
 	%{
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
+	if ( ! *handle )
+    return new Val(false, TYPE_BOOL);
 
-	if ( ! handle->store )
-		return new Val(false, TYPE_BOOL);
-
-	return new Val(broker_mgr->CloseStore(handle->store->id(),
-										handle->store_type), TYPE_BOOL);
+	return new Val(broker_mgr->CloseStore(handle->store.name()), TYPE_BOOL);
 	%}
 
 ###########################
@@ -105,158 +74,41 @@ function Broker::__insert%(h: opaque of Broker::Handle,
                         e: Broker::ExpiryTime &default = Broker::ExpiryTime()%): bool
 	%{
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
-
-	if ( ! handle->store )
-		return new Val(false, TYPE_BOOL);
+	if ( ! *handle )
+    return new Val(false, TYPE_BOOL);
 
 	auto& key = bro_broker::opaque_field_to_data(k->AsRecordVal(), frame);
 	auto& val = bro_broker::opaque_field_to_data(v->AsRecordVal(), frame);
 
-	using broker::store::expiration_time;
-
-	auto abs_expiry_val = e->AsRecordVal()->Lookup(0);
-
-	if ( abs_expiry_val )
+	if ( auto abs_expiry_val = e->AsRecordVal()->Lookup(0) )
 		{
-		auto expiry = expiration_time(abs_expiry_val->AsTime());
-		handle->store->insert(key, val, expiry);
+		auto expiry = broker::fractional_seconds{abs_expiry_val->AsTime()};
+		auto since_epoch = std::chrono::duration_cast<broker::timespan>(expiry);
+		handle->store.put(key, val, broker::timestamp{since_epoch});
 		return new Val(true, TYPE_BOOL);
 		}
 
-	auto rel_expiry_val = e->AsRecordVal()->Lookup(1);
-
-	if ( rel_expiry_val )
+	if ( auto rel_expiry_val = e->AsRecordVal()->Lookup(1) )
 		{
-		auto ct = broker::time_point::now().value;
-		auto expiry = expiration_time(rel_expiry_val->AsInterval(), ct);
-		handle->store->insert(key, val, expiry);
+		auto now = broker::clock::now();
+		auto delta = broker::fractional_seconds{rel_expiry_val->AsInterval()};
+		auto expiry = now + std::chrono::duration_cast<broker::timespan>(delta);
+		handle->store.put(key, val, expiry);
 		return new Val(true, TYPE_BOOL);
 		}
 
-	handle->store->insert(key, val);
+	handle->store.put(key, val);
 	return new Val(true, TYPE_BOOL);
 	%}
 
 function Broker::__erase%(h: opaque of Broker::Handle, k: Broker::Data%): bool
 	%{
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
-
-	if ( ! handle->store )
-		return new Val(false, TYPE_BOOL);
-
-	auto& key = bro_broker::opaque_field_to_data(k->AsRecordVal(), frame);
-	handle->store->erase(key);
-	return new Val(true, TYPE_BOOL);
-	%}
-
-function Broker::__clear%(h: opaque of Broker::Handle%): bool
-	%{
-	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
-
-	if ( ! handle->store )
-		return new Val(false, TYPE_BOOL);
-
-	handle->store->clear();
-	return new Val(true, TYPE_BOOL);
-	%}
-
-function Broker::__increment%(h: opaque of Broker::Handle,
-                           k: Broker::Data, by: int &default = +1%): bool
-	%{
-	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
-
-	if ( ! handle->store )
-		return new Val(false, TYPE_BOOL);
+	if ( ! *handle )
+    return new Val(false, TYPE_BOOL);
 
 	auto& key = bro_broker::opaque_field_to_data(k->AsRecordVal(), frame);
-	handle->store->increment(key, by);
-	return new Val(true, TYPE_BOOL);
-	%}
-
-function Broker::__decrement%(h: opaque of Broker::Handle,
-                           k: Broker::Data, by: int &default = +1%): bool
-	%{
-	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
-
-	if ( ! handle->store )
-		return new Val(false, TYPE_BOOL);
-
-	auto& key = bro_broker::opaque_field_to_data(k->AsRecordVal(), frame);
-	handle->store->decrement(key, by);
-	return new Val(true, TYPE_BOOL);
-	%}
-
-function Broker::__add_to_set%(h: opaque of Broker::Handle,
-                            k: Broker::Data, element: Broker::Data%): bool
-	%{
-	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
-
-	if ( ! handle->store )
-		return new Val(false, TYPE_BOOL);
-
-	auto& key = bro_broker::opaque_field_to_data(k->AsRecordVal(), frame);
-	auto& ele = bro_broker::opaque_field_to_data(element->AsRecordVal(), frame);
-	handle->store->add_to_set(key, ele);
-	return new Val(true, TYPE_BOOL);
-	%}
-
-function Broker::__remove_from_set%(h: opaque of Broker::Handle,
-                                 k: Broker::Data, element: Broker::Data%): bool
-	%{
-	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
-
-	if ( ! handle->store )
-		return new Val(false, TYPE_BOOL);
-
-	auto& key = bro_broker::opaque_field_to_data(k->AsRecordVal(), frame);
-	auto& ele = bro_broker::opaque_field_to_data(element->AsRecordVal(), frame);
-	handle->store->remove_from_set(key, ele);
-	return new Val(true, TYPE_BOOL);
-	%}
-
-function Broker::__push_left%(h: opaque of Broker::Handle, k: Broker::Data,
-                           items: Broker::DataVector%): bool
-	%{
-	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
-
-	if ( ! handle->store )
-		return new Val(false, TYPE_BOOL);
-
-	auto& key = bro_broker::opaque_field_to_data(k->AsRecordVal(), frame);
-	broker::vector items_vector;
-	auto items_vv = items->AsVector();
-
-	for ( auto i = 0u; i < items_vv->size(); ++i )
-		{
-		auto& item = bro_broker::opaque_field_to_data((*items_vv)[i]->AsRecordVal(),
-		                                        frame);
-		items_vector.emplace_back(item);
-		}
-
-	handle->store->push_left(key, move(items_vector));
-	return new Val(true, TYPE_BOOL);
-	%}
-
-function Broker::__push_right%(h: opaque of Broker::Handle, k: Broker::Data,
-                            items: Broker::DataVector%): bool
-	%{
-	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
-
-	if ( ! handle->store )
-		return new Val(false, TYPE_BOOL);
-
-	auto& key = bro_broker::opaque_field_to_data(k->AsRecordVal(), frame);
-	broker::vector items_vector;
-	auto items_vv = items->AsVector();
-
-	for ( auto i = 0u; i < items_vv->size(); ++i )
-		{
-		auto& item = bro_broker::opaque_field_to_data((*items_vv)[i]->AsRecordVal(),
-		                                        frame);
-		items_vector.emplace_back(item);
-		}
-
-	handle->store->push_right(key, move(items_vector));
+	handle->store.erase(key);
 	return new Val(true, TYPE_BOOL);
 	%}
 
@@ -264,170 +116,51 @@ function Broker::__push_right%(h: opaque of Broker::Handle, k: Broker::Data,
 # non-blocking query API #
 ##########################
 
-%%{
-static bool prepare_for_query(Val* opaque, Frame* frame,
-			      bro_broker::StoreHandleVal** handle,
-			      double* timeout,
-			      bro_broker::StoreQueryCallback** cb)
-	{
-	*handle = static_cast<bro_broker::StoreHandleVal*>(opaque);
-
-	if ( ! (*handle)->store )
-		{
-		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
-		reporter->Error("Broker query has an invalid data store");
-		reporter->PopLocation();
-		return false;
-		}
-
-	Trigger* trigger = frame->GetTrigger();
-
-	if ( ! trigger )
-		{
-		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
-		reporter->Error("Broker queries can only be called inside when-condition");
-		reporter->PopLocation();
-		return false;
-		}
-
-	*timeout = trigger->TimeoutValue();
-
-	if ( *timeout < 0 )
-		{
-		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
-		reporter->Error("Broker queries must specify a timeout block");
-		reporter->PopLocation();
-		return false;
-		}
-
-	frame->SetDelayed();
-	trigger->Hold();
-	*cb = new bro_broker::StoreQueryCallback(trigger, frame->GetCall(),
-					   (*handle)->store->id(),
-					   (*handle)->store_type);
-	broker_mgr->TrackStoreQuery(*cb);
-	return true;
-	}
-
-%%}
-
-function Broker::__pop_left%(h: opaque of Broker::Handle,
-                          k: Broker::Data%): Broker::QueryResult
-	%{
-	if ( ! broker_mgr->Enabled() )
-		return bro_broker::query_result();
-
-	Val* key = k->AsRecordVal()->Lookup(0);
-
-	if ( ! key )
-		return bro_broker::query_result();
-
-	double timeout;
-	bro_broker::StoreQueryCallback* cb;
-	bro_broker::StoreHandleVal* handle;
-
-	if ( ! prepare_for_query(h, frame, &handle, &timeout, &cb) )
-		return bro_broker::query_result();
-
-	handle->store->pop_left(static_cast<bro_broker::DataVal*>(key)->data,
-	                         std::chrono::duration<double>(timeout), cb);
-	return 0;
-	%}
-
-function Broker::__pop_right%(h: opaque of Broker::Handle,
-                           k: Broker::Data%): Broker::QueryResult
-	%{
-	if ( ! broker_mgr->Enabled() )
-		return bro_broker::query_result();
-
-	Val* key = k->AsRecordVal()->Lookup(0);
-
-	if ( ! key )
-		return bro_broker::query_result();
-
-	double timeout;
-	bro_broker::StoreQueryCallback* cb;
-	bro_broker::StoreHandleVal* handle;
-
-	if ( ! prepare_for_query(h, frame, &handle, &timeout, &cb) )
-		return bro_broker::query_result();
-
-	handle->store->pop_right(static_cast<bro_broker::DataVal*>(key)->data,
-	                         std::chrono::duration<double>(timeout), cb);
-	return 0;
-	%}
-
 function Broker::__lookup%(h: opaque of Broker::Handle,
                        k: Broker::Data%): Broker::QueryResult
 	%{
 	if ( ! broker_mgr->Enabled() )
 		return bro_broker::query_result();
 
-	Val* key = k->AsRecordVal()->Lookup(0);
-
+	auto key = k->AsRecordVal()->Lookup(0);
 	if ( ! key )
 		return bro_broker::query_result();
 
-	double timeout;
-	bro_broker::StoreQueryCallback* cb;
-	bro_broker::StoreHandleVal* handle;
+	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
+	if ( ! *handle )
+		{
+		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
+		reporter->Error("Broker query has an invalid data store");
+		reporter->PopLocation();
+    return bro_broker::query_result();
+		}
 
-	if ( ! prepare_for_query(h, frame, &handle, &timeout, &cb) )
-		return bro_broker::query_result();
+	auto trigger = frame->GetTrigger();
+	if ( ! trigger )
+		{
+		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
+		reporter->Error("Broker queries can only be called inside when-condition");
+		reporter->PopLocation();
+    return bro_broker::query_result();
+		}
 
-	handle->store->lookup(static_cast<bro_broker::DataVal*>(key)->data,
-	                      std::chrono::duration<double>(timeout), cb);
-	return 0;
-	%}
+	auto timeout = trigger->TimeoutValue();
+	if ( timeout < 0 )
+		{
+		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
+		reporter->Error("Broker queries must specify a timeout block");
+		reporter->PopLocation();
+    return bro_broker::query_result();
+		}
 
-function Broker::__exists%(h: opaque of Broker::Handle,
-                        k: Broker::Data%): Broker::QueryResult
-	%{
-	if ( ! broker_mgr->Enabled() )
-		return bro_broker::query_result();
+	frame->SetDelayed();
+	trigger->Hold();
 
-	Val* key = k->AsRecordVal()->Lookup(0);
+	auto cb = new bro_broker::StoreQueryCallback(trigger, frame->GetCall(),
+                                               handle->store);
+  // TODO: pass timeout to proxy.
+	auto req_id = handle->proxy.get(static_cast<bro_broker::DataVal*>(key)->data);
+	broker_mgr->TrackStoreQuery(req_id, cb);
 
-	if ( ! key )
-		return bro_broker::query_result();
-
-	double timeout;
-	bro_broker::StoreQueryCallback* cb;
-	bro_broker::StoreHandleVal* handle;
-
-	if ( ! prepare_for_query(h, frame, &handle, &timeout, &cb) )
-		return bro_broker::query_result();
-
-	handle->store->exists(static_cast<bro_broker::DataVal*>(key)->data,
-	                      std::chrono::duration<double>(timeout), cb);
-	return 0;
-	%}
-
-function Broker::__keys%(h: opaque of Broker::Handle%): Broker::QueryResult
-	%{
-	double timeout;
-	bro_broker::StoreQueryCallback* cb;
-	bro_broker::StoreHandleVal* handle;
-
-	if ( ! prepare_for_query(h, frame, &handle, &timeout, &cb) )
-		return bro_broker::query_result();
-
-	handle->store->keys(std::chrono::duration<double>(timeout), cb);
-	return 0;
-	%}
-
-function Broker::__size%(h: opaque of Broker::Handle%): Broker::QueryResult
-	%{
-	if ( ! broker_mgr->Enabled() )
-		return bro_broker::query_result();
-
-	double timeout;
-	bro_broker::StoreQueryCallback* cb;
-	bro_broker::StoreHandleVal* handle;
-
-	if ( ! prepare_for_query(h, frame, &handle, &timeout, &cb) )
-		return bro_broker::query_result();
-
-	handle->store->size(std::chrono::duration<double>(timeout), cb);
 	return 0;
 	%}

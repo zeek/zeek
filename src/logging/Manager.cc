@@ -8,6 +8,7 @@
 #include "../Net.h"
 #include "../Type.h"
 
+#include "broker/Manager.h"
 #include "threading/Manager.h"
 #include "threading/SerialTypes.h"
 
@@ -15,10 +16,6 @@
 #include "WriterFrontend.h"
 #include "WriterBackend.h"
 #include "logging.bif.h"
-
-#ifdef ENABLE_BROKER
-#include "broker/Manager.h"
-#endif
 
 using namespace logging;
 
@@ -79,10 +76,7 @@ struct Manager::Stream {
 
 	WriterMap writers;	// Writers indexed by id/path pair.
 
-#ifdef ENABLE_BROKER
 	bool enable_remote;
-	int remote_flags;
-#endif
 
 	~Stream();
 	};
@@ -307,10 +301,7 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 	streams[idx]->event = event ? event_registry->Lookup(event->Name()) : 0;
 	streams[idx]->columns = columns->Ref()->AsRecordType();
 
-#ifdef ENABLE_BROKER
 	streams[idx]->enable_remote = internal_val("Log::enable_remote_logging")->AsBool();
-	streams[idx]->remote_flags = broker::PEERS;
-#endif
 
 	DBG_LOG(DBG_LOGGING, "Created new logging stream '%s', raising event %s",
 		streams[idx]->name.c_str(), event ? streams[idx]->event->Name() : "<none>");
@@ -919,11 +910,11 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 #endif
 		}
 
-#ifdef ENABLE_BROKER
-	if ( stream->enable_remote &&
-	     ! broker_mgr->Log(id, columns, stream->columns, stream->remote_flags) )
+	if ( stream->enable_remote )
+		{
+		if ( ! broker_mgr->Log(id, columns, stream->columns) )
 			stream->enable_remote = false;
-#endif
+		}
 
 	Unref(columns);
 
@@ -1326,9 +1317,7 @@ void Manager::Terminate()
 		}
 	}
 
-#ifdef ENABLE_BROKER
-
-bool Manager::EnableRemoteLogs(EnumVal* stream_id, int flags)
+bool Manager::EnableRemoteLogs(EnumVal* stream_id)
 	{
 	auto stream = FindStream(stream_id);
 
@@ -1336,7 +1325,6 @@ bool Manager::EnableRemoteLogs(EnumVal* stream_id, int flags)
 		return false;
 
 	stream->enable_remote = true;
-	stream->remote_flags = flags;
 	return true;
 	}
 
@@ -1370,8 +1358,6 @@ RecordType* Manager::StreamColumns(EnumVal* stream_id)
 
 	return stream->columns;
 	}
-
-#endif
 
 // Timer which on dispatching rotates the filter.
 class RotationTimer : public Timer {

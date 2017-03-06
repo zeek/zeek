@@ -4,7 +4,7 @@
 #define EVENTHANDLER
 
 #include <assert.h>
-#include <map>
+#include <unordered_set>
 #include <string>
 #include "List.h"
 #include "BroList.h"
@@ -29,17 +29,15 @@ public:
 	void AddRemoteHandler(SourceID peer);
 	void RemoveRemoteHandler(SourceID peer);
 
-#ifdef ENABLE_BROKER
-	void AutoRemote(std::string topic, int flags)
+	void AutoRemote(std::string topic)
 		{
-		auto_remote_send[std::move(topic)] = flags;
+		auto_remote_send.insert(std::move(topic));
 		}
 
 	void AutoRemoteStop(const std::string& topic)
 		{
 		auto_remote_send.erase(topic);
 		}
-#endif
 
 	void Call(val_list* vl, bool no_remote = false);
 
@@ -81,9 +79,7 @@ private:
 	typedef List(SourceID) receiver_list;
 	receiver_list receivers;
 
-#ifdef ENABLE_BROKER
-	std::map<std::string, int> auto_remote_send;	// topic -> flags
-#endif
+	std::unordered_set<std::string> auto_remote_send;
 };
 
 // Encapsulates a ptr to an event handler to overload the boolean operator.

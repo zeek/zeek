@@ -1,7 +1,7 @@
 #ifndef BRO_COMM_DATA_H
 #define BRO_COMM_DATA_H
 
-#include <broker/data.hh>
+#include <broker/broker.hh>
 #include "Val.h"
 #include "Reporter.h"
 #include "Frame.h"
@@ -48,7 +48,7 @@ EnumVal* get_data_type(RecordVal* v, Frame* frame);
  * @param v a Bro value.
  * @return a Broker data value if the Bro value could be converted to one.
  */
-broker::util::optional<broker::data> val_to_data(Val* v);
+broker::optional<broker::data> val_to_data(Val* v);
 
 /**
  * Convert a Broker data value to a Bro value.
@@ -94,50 +94,55 @@ protected:
 struct type_name_getter {
 	using result_type = const char*;
 
-	result_type operator()(bool a)
+	result_type operator()(broker::none)
+		{ return "NONE"; } // FIXME: what's the right thing to return here?
+
+	result_type operator()(bool)
 		{ return "bool"; }
 
-	result_type operator()(uint64_t a)
+	result_type operator()(uint64_t)
 		{ return "uint64_t"; }
 
-	result_type operator()(int64_t a)
+	result_type operator()(int64_t)
 		{ return "int64_t"; }
 
-	result_type operator()(double a)
+	result_type operator()(double)
 		{ return "double"; }
 
-	result_type operator()(const std::string& a)
+	result_type operator()(const std::string&)
 		{ return "string"; }
 
-	result_type operator()(const broker::address& a)
+	result_type operator()(const broker::address&)
 		{ return "address"; }
 
-	result_type operator()(const broker::subnet& a)
+	result_type operator()(const broker::subnet&)
 		{ return "subnet"; }
 
-	result_type operator()(const broker::port& a)
+	result_type operator()(const broker::port&)
 		{ return "port"; }
 
-	result_type operator()(const broker::time_point& a)
+	result_type operator()(const broker::timestamp&)
 		{ return "time"; }
 
-	result_type operator()(const broker::time_duration& a)
+	result_type operator()(const broker::timespan&)
 		{ return "interval"; }
 
-	result_type operator()(const broker::enum_value& a)
+	result_type operator()(const broker::enum_value&)
 		{ return "enum"; }
 
-	result_type operator()(const broker::set& a)
+	result_type operator()(const broker::set&)
 		{ return "set"; }
 
-	result_type operator()(const broker::table& a)
+	result_type operator()(const broker::table&)
 		{ return "table"; }
 
-	result_type operator()(const broker::vector& a)
-		{ return "vector"; }
+	result_type operator()(const broker::vector&)
+		{ 
+		assert(tag == TYPE_VECTOR || tag == TYPE_RECORD);
+	 	return tag == TYPE_VECTOR ? "vector" : "record";
+		}
 
-	result_type operator()(const broker::record& a)
-		{ return "record"; }
+	TypeTag tag;
 };
 
 /**
@@ -162,12 +167,11 @@ broker::data& opaque_field_to_data(RecordVal* v, Frame* f);
 template <typename T>
 T& require_data_type(broker::data& d, TypeTag tag, Frame* f)
 	{
-	auto ptr = broker::get<T>(d);
-
+	auto ptr = broker::get_if<T>(d);
 	if ( ! ptr )
 		reporter->RuntimeError(f->GetCall()->GetLocationInfo(),
 		                       "data is of type '%s' not of type '%s'",
-		                       broker::visit(type_name_getter{}, d),
+		                       broker::visit(type_name_getter{tag}, d),
 		                       type_name(tag));
 
 	return *ptr;
@@ -243,12 +247,12 @@ public:
 
 	RecordIterator(RecordVal* v, TypeTag tag, Frame* f)
 	    : OpaqueVal(bro_broker::opaque_of_record_iterator),
-	      dat(require_data_type<broker::record>(v, TYPE_RECORD, f)),
-	      it(dat.fields.begin())
+	      dat(require_data_type<broker::vector>(v, TYPE_RECORD, f)),
+	      it(dat.begin())
 		{}
 
-	broker::record dat;
-	decltype(broker::record::fields)::iterator it;
+	broker::vector dat;
+	broker::vector::iterator it;
 };
 
 } // namespace bro_broker

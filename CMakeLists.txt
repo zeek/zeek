@@ -188,12 +188,12 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 ########################################################################
 ## Recurse on sub-directories
 
-if ( ENABLE_BROKER )
-    add_subdirectory(aux/broker)
-    set(brodeps ${brodeps} broker)
-    add_definitions(-DENABLE_BROKER)
-    include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/aux/broker)
-endif ()
+# Broker
+set (BROKER_DISABLE_DOCS true)
+add_subdirectory(aux/broker)
+set(brodeps ${brodeps} broker)
+include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/aux/broker
+                           ${CMAKE_CURRENT_BINARY_DIR}/aux/broker)
 
 add_subdirectory(src)
 add_subdirectory(scripts)
@@ -204,7 +204,6 @@ include(CheckOptionalBuildSources)
 
 CheckOptionalBuildSources(aux/broctl   Broctl   INSTALL_BROCTL)
 CheckOptionalBuildSources(aux/bro-aux  Bro-Aux  INSTALL_AUX_TOOLS)
-CheckOptionalBuildSources(aux/broccoli Broccoli INSTALL_BROCCOLI)
 
 ########################################################################
 ## Packaging Setup
@@ -242,9 +241,7 @@ message(
     "\nCXXFLAGS:          ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BuildType}}"
     "\nCPP:               ${CMAKE_CXX_COMPILER}"
     "\n"
-    "\nBroker:            ${ENABLE_BROKER}"
     "\nBroker Python:     ${BROKER_PYTHON_BINDINGS}"
-    "\nBroccoli:          ${INSTALL_BROCCOLI}"
     "\nBroctl:            ${INSTALL_BROCTL}"
     "\nAux. Tools:        ${INSTALL_AUX_TOOLS}"
     "\n"

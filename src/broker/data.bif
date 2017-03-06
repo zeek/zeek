@@ -10,6 +10,7 @@ module Broker;
 ## Enumerates the possible types that :bro:see:`Broker::Data` may be in
 ## terms of Bro data types.
 enum DataType %{
+	NONE,
 	BOOL,
 	INT,
 	COUNT,
@@ -93,16 +94,19 @@ function Broker::__refine_to_port%(d: Broker::Data%): port
 
 function Broker::__refine_to_time%(d: Broker::Data%): time
 	%{
-	auto v = bro_broker::require_data_type<broker::time_point>(d->AsRecordVal(),
-														TYPE_TIME, frame).value;
-	return new Val(v, TYPE_TIME);
+	auto v = bro_broker::require_data_type<broker::timestamp>(d->AsRecordVal(),
+														TYPE_TIME, frame);
+	auto dur = v.time_since_epoch();
+	auto frac = std::chrono::duration_cast<broker::fractional_seconds>(dur);
+	return new Val(frac.count(), TYPE_TIME);
 	%}
 
 function Broker::__refine_to_interval%(d: Broker::Data%): interval
 	%{
-	auto v = bro_broker::require_data_type<broker::time_duration>(d->AsRecordVal(),
-														TYPE_INTERVAL, frame).value;
-	return new Val(v, TYPE_INTERVAL);
+	auto v = bro_broker::require_data_type<broker::timespan>(d->AsRecordVal(),
+														TYPE_INTERVAL, frame);
+	auto frac = std::chrono::duration_cast<broker::fractional_seconds>(v);
+	return new Val(frac.count(), TYPE_INTERVAL);
 	%}
 
 function Broker::__refine_to_enum_name%(d: Broker::Data%): string
@@ -427,41 +431,36 @@ function Broker::__vector_iterator_value%(it: opaque of Broker::VectorIterator%)
 
 function Broker::__record_create%(sz: count%): Broker::Data
 	%{
-	return bro_broker::make_data_val(broker::record(std::vector<broker::record::field>(sz)));
+	return bro_broker::make_data_val(broker::vector(sz));
 	%}
 
 function Broker::__record_size%(r: Broker::Data%): count
 	%{
-	auto& v = bro_broker::require_data_type<broker::record>(r->AsRecordVal(),
+	auto& v = bro_broker::require_data_type<broker::vector>(r->AsRecordVal(),
 													  TYPE_RECORD, frame);
-	return new Val(static_cast<uint64_t>(v.fields.size()), TYPE_COUNT);
+	return new Val(static_cast<uint64_t>(v.size()), TYPE_COUNT);
 	%}
 
 function Broker::__record_assign%(r: Broker::Data, d: Broker::Data, idx: count%): bool
 	%{
-	auto& v = bro_broker::require_data_type<broker::record>(r->AsRecordVal(),
+	auto& v = bro_broker::require_data_type<broker::vector>(r->AsRecordVal(),
 													  TYPE_RECORD, frame);
-	auto& item = bro_broker::opaque_field_to_data(d->AsRecordVal(), frame);
-
-	if ( idx >= v.fields.size() )
+	if ( idx >= v.size() )
 		return new Val(false, TYPE_BOOL);
 
-	v.fields[idx] = item;
+	v[idx] = bro_broker::opaque_field_to_data(d->AsRecordVal(), frame);
 	return new Val(true, TYPE_BOOL);
 	%}
 
 function Broker::__record_lookup%(r: Broker::Data, idx: count%): Broker::Data
 	%{
-	auto& v = bro_broker::require_data_type<broker::record>(r->AsRecordVal(),
+	auto& v = bro_broker::require_data_type<broker::vector>(r->AsRecordVal(),
 													  TYPE_RECORD, frame);
 
-	if ( idx >= v.size() )
+	if ( idx >= v.size() || broker::get_if<broker::none>(v[idx]) )
 		return new RecordVal(BifType::Record::Broker::Data);
 
-	if ( ! v.fields[idx] )
-		return new RecordVal(BifType::Record::Broker::Data);
-
-	return bro_broker::make_data_val(*v.fields[idx]);
+	return bro_broker::make_data_val(v[idx]);
 	%}
 
 function Broker::__record_iterator%(r: Broker::Data%): opaque of Broker::RecordIterator
@@ -472,18 +471,18 @@ function Broker::__record_iterator%(r: Broker::Data%): opaque of Broker::RecordI
 function Broker::__record_iterator_last%(it: opaque of Broker::RecordIterator%): bool
 	%{
 	auto ri = static_cast<bro_broker::RecordIterator*>(it);
-	return new Val(ri->it == ri->dat.fields.end(), TYPE_BOOL);
+	return new Val(ri->it == ri->dat.end(), TYPE_BOOL);
 	%}
 
 function Broker::__record_iterator_next%(it: opaque of Broker::RecordIterator%): bool
 	%{
 	auto ri = static_cast<bro_broker::RecordIterator*>(it);
 
-	if ( ri->it == ri->dat.fields.end() )
+	if ( ri->it == ri->dat.end() )
 		return new Val(false, TYPE_BOOL);
 
 	++ri->it;
-	return new Val(ri->it != ri->dat.fields.end(), TYPE_BOOL);
+	return new Val(ri->it != ri->dat.end(), TYPE_BOOL);
 	%}
 
 function Broker::__record_iterator_value%(it: opaque of Broker::RecordIterator%): Broker::Data
@@ -491,7 +490,7 @@ function Broker::__record_iterator_value%(it: opaque of Broker::RecordIterator%)
 	auto ri = static_cast<bro_broker::RecordIterator*>(it);
 	auto rval = new RecordVal(BifType::Record::Broker::Data);
 
-	if ( ri->it == ri->dat.fields.end() )
+	if ( ri->it == ri->dat.end() )
 		{
 		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
 		reporter->Warning("attempt to retrieve value of invalid record iterator");
@@ -499,9 +498,9 @@ function Broker::__record_iterator_value%(it: opaque of Broker::RecordIterator%)
 		return rval;
 		}
 
-	if ( ! *ri->it )
+	if ( broker::get_if<broker::none>(*ri->it) )
 		return rval; // field isn't set
 
-	rval->Assign(0, new bro_broker::DataVal(**ri->it));
+	rval->Assign(0, new bro_broker::DataVal(*ri->it));
 	return rval;
 	%}

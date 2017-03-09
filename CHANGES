@@ -1,4 +1,14 @@
 
+2.5-101 | 2017-03-09 12:20:11 -0500
+
+  * Input's framework's ascii reader is now more resilient.
+
+    By default, the ASCII reader does not fail on errors anymore.
+    If there is a problem parsing a line, a reporter warning is
+    written and parsing continues.  If the file is missing or can't
+    be read, the input thread just tries again on the next heartbeat.
+    (Seth Hall, Johanna Amann)
+
 2.5-92 | 2017-03-03 10:44:14 -0800
 
   * Move most threading to C++11 primitives (mostly). (Johanna Amann)

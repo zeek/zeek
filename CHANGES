@@ -1,4 +1,28 @@
 
+2.5-92 | 2017-03-03 10:44:14 -0800
+
+  * Move most threading to C++11 primitives (mostly). (Johanna Amann)
+
+  * Fix a test that sometimes fails on FreeBSD. (Daniel Thayer)
+
+  * Remove build time warnings. (Seth Hall)
+
+2.5-84 | 2017-02-27 15:08:55 -0500
+
+  * Change semantics of Broker's remote logging to match old communication 
+    framework. (Robin Sommer)
+
+  * Add and fix documentation for HookSetupAnalyzerTree (Johanna Amann)
+
+
+2.5-76 | 2017-02-23 10:19:57 -0800
+
+  * Kerberos ciphertext had some additional ASN.1 content being lumped
+    in. (Vlad Grigorescu)
+
+  * Updated Windows version detection to include Windows 10. (Fatema
+    Bannatwala, Keith Lehigh, Mike, Seth Hall).
+
 2.5-70 | 2017-02-20 00:20:02 -0500
 
   * Rework the RADIUS base script.

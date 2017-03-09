@@ -5,6 +5,7 @@
 #include "bro-config.h"
 #include "BasicThread.h"
 #include "Manager.h"
+#include "pthread.h"
 
 #ifdef HAVE_LINUX
 #include <sys/prctl.h>
@@ -21,7 +22,6 @@ BasicThread::BasicThread()
 	started = false;
 	terminating = false;
 	killed = false;
-	pthread = 0;
 
 	buf_len = STD_FMT_BUF_LEN;
 	buf = (char*) safe_malloc(buf_len);
@@ -50,6 +50,7 @@ void BasicThread::SetName(const char* arg_name)
 
 void BasicThread::SetOSName(const char* arg_name)
 	{
+	static_assert(std::is_same<std::thread::native_handle_type, pthread_t>::value, "libstdc++ doesn't use pthread_t");
 
 #ifdef HAVE_LINUX
 	prctl(PR_SET_NAME, arg_name, 0, 0, 0);
@@ -60,7 +61,7 @@ void BasicThread::SetOSName(const char* arg_name)
 #endif
 
 #ifdef FREEBSD
-	pthread_set_name_np(pthread_self(), arg_name, arg_name);
+	pthread_set_name_np(thread.native_handle(), arg_name, arg_name);
 #endif
 	}
 
@@ -108,9 +109,7 @@ void BasicThread::Start()
 
 	started = true;
 
-	int err = pthread_create(&pthread, 0, BasicThread::launcher, this);
-	if ( err != 0 )
-		reporter->FatalError("Cannot create thread %s: %s", name, Strerror(err));
+	thread = std::thread(&BasicThread::launcher, this);
 
 	DBG_LOG(DBG_THREADING, "Started thread %s", name);
 
@@ -147,17 +146,21 @@ void BasicThread::Join()
 	if ( ! started )
 		return;
 
-	if ( ! pthread )
+	if ( ! thread.joinable() )
 		return;
 
 	assert(terminating);
 
-	if ( pthread_join(pthread, 0) != 0  )
-		reporter->FatalError("Failure joining thread %s", name);
+	try
+		{
+		thread.join();
+		}
+	catch ( const std::system_error& e )
+		{
+		reporter->FatalError("Failure joining thread %s with error %s", name, e.what());
+		}
 
 	DBG_LOG(DBG_THREADING, "Joined with thread %s", name);
-
-	pthread = 0;
 	}
 
 void BasicThread::Kill()
@@ -180,6 +183,7 @@ void BasicThread::Done()
 
 void* BasicThread::launcher(void *arg)
 	{
+	static_assert(std::is_same<std::thread::native_handle_type, pthread_t>::value, "libstdc++ doesn't use pthread_t");
 	BasicThread* thread = (BasicThread *)arg;
 
 	// Block signals in thread. We handle signals only in the main

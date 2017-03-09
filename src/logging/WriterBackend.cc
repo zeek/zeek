@@ -119,6 +119,65 @@ bool WriterBackend::WriterInfo::Write(SerializationFormat* fmt) const
 	return true;
 	}
 
+#ifdef ENABLE_BROKER
+broker::data WriterBackend::WriterInfo::ToBroker() const
+	{
+	auto bpath = broker::record::field(path);
+	auto brotation_base = broker::record::field(rotation_base);
+	auto brotation_interval = broker::record::field(rotation_interval);
+	auto bnetwork_time = broker::record::field(network_time);
+
+	auto t = broker::table();
+
+	for ( config_map::const_iterator i = config.begin(); i != config.end(); ++i )
+		{
+		auto key = std::string(i->first);
+		auto value = std::string(i->second);
+		t.insert(std::make_pair(key, value));
+		}
+
+	auto bconfig = broker::record::field(move(t));
+
+	return move(broker::record({bpath, brotation_base, brotation_interval, bnetwork_time, bconfig}));
+	}
+
+bool WriterBackend::WriterInfo::FromBroker(broker::data d)
+	{
+	auto r = broker::get<broker::record>(d);
+
+	if ( ! r )
+		return false;
+
+	auto bpath = broker::get<std::string>(*r->get(0));
+	auto brotation_base = broker::get<double>(*r->get(1));
+	auto brotation_interval = broker::get<double>(*r->get(2));
+	auto bnetwork_time = broker::get<double>(*r->get(3));
+	auto bconfig = broker::get<broker::table>(*r->get(4));
+
+	if ( ! (bpath && brotation_base && brotation_interval && bnetwork_time && bconfig) )
+		return false;
+
+	path = copy_string(bpath->c_str());
+	rotation_base = *brotation_base;
+	rotation_interval = *brotation_interval;
+	network_time = *bnetwork_time;
+
+	for ( auto i : *bconfig )
+		{
+		auto k = broker::get<std::string>(i.first);
+		auto v = broker::get<std::string>(i.second);
+
+		if ( ! (k && v) )
+			return false;
+
+		auto p = std::make_pair(copy_string(k->c_str()), copy_string(v->c_str()));
+		config.insert(p);
+		}
+
+	return true;
+	}
+#endif
+
 WriterBackend::WriterBackend(WriterFrontend* arg_frontend) : MsgThread()
 	{
 	num_fields = 0;

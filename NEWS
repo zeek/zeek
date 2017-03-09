@@ -4,6 +4,19 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as BroControl and Broccoli, come with
 their own ``CHANGES``.)
 
+Bro 2.6
+=======
+
+Changed Functionality
+---------------------
+
+- The input framework's Ascii reader is now more resilient. If an input
+  is marked to reread a file when it changes and the file didn't exist
+  during a check Bro would stop watching the file in previous versions.
+  The same could happen with bad data in a line of a file.  These 
+  situations do not cause Bro to stop watching input files anymore. The 
+  old behavior is available through settings in the Ascii reader.
+
 Bro 2.5
 =======
 

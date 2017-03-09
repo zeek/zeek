@@ -25,16 +25,16 @@ export {
 	## input lines will be handled as fatal errors for the
 	## reader thread; reading will abort immediately and
 	## an error will be logged to reporter.log.
-	## Invidivual readers can use a different value using
+	## Individual readers can use a different value using
 	## the $config table.
 	## fail_on_invalid_lines = T was the default behavior
-	## untill Bro 2.5.
+	## until Bro 2.6.
 	const fail_on_invalid_lines = F &redef;
 
 	## Fail on file read problems. If set to true, the ascii
 	## input reader will fail when encountering any problems
 	## while reading a file different from invalid lines.
-	## Examples fur such problems are permission problems, or
+	## Examples of such problems are permission problems, or
 	## missing files.
 	## When set to false, these problems will be ignored. This
 	## has an especially big effect for the REREAD mode, which will
@@ -42,9 +42,9 @@ export {
 	## only temporarily inaccessible. For MANUAL or STREAM files,
 	## errors will most likely still be fatal since no automatic
 	## re-reading of the file is attempted.
-	## Invidivual readers can use a different value using
+	## Individual readers can use a different value using
 	## the $config table.
 	## fail_on_file_problem = T was the default behavior
-	## untill Bro 2.5.
+	## until Bro 2.6.
 	const fail_on_file_problem = F &redef;
 }

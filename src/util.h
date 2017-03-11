@@ -516,4 +516,7 @@ struct CompareString
  */
 std::string canonify_name(const std::string& name);
 
+// Returns a string with the given data rendered as a hex|ascii block similar to a hex editor
+std::string get_hexdump(const unsigned char* data, int len);
+
 #endif

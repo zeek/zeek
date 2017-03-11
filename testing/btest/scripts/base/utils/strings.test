@@ -28,3 +28,8 @@ print cut_tail("hello world", 1);
 print cut_tail("hello world", 6);
 print cut_tail("hello world", 11);
 print cut_tail("hello world", 12);
+
+print str_grammer("hello world", 1);
+print str_grammer("hello world", 2);
+print str_grammer("hello world", 3);
+print str_grammer("hello world", 25);

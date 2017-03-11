@@ -2,6 +2,21 @@
 ##! be implemented as Bro functions and don't need to be implemented as built-in
 ##! functions.
 
+## Calculates a set of n-grams (unique contiguous sequences of n letters) for a string.
+## s: A string to sequence in to n-grams.
+## n: The desired n-gram size.
+## i: The starting index of *s* at which to begin sequencing.
+## ss: A pre-existing set to aggregate n-grams in to.
+## Returns: A set of n-grams of size *n* corresponding to *s*.
+function str_grammer(s: string, n: count, i: count &default=0, ss: string_set &default=string_set()): string_set
+	{
+	if ( n + i > |s| )
+		return ss;
+
+	add ss[s[i:i+n-1]];
+	return str_grammer(s, n, ++i, ss);
+	}
+
 ## Returns true if the given string is at least 25% composed of 8-bit
 ## characters.
 function is_string_binary(s: string): bool

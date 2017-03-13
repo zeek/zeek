@@ -30,6 +30,6 @@ void Plugin::Done()
 
 std::unique_lock<std::mutex> Plugin::ForkMutex()
 	{
-	return std::move(std::unique_lock<std::mutex>(fork_mutex, std::defer_lock));
+	return std::unique_lock<std::mutex>(fork_mutex, std::defer_lock);
 	}
 

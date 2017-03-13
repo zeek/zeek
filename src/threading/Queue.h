@@ -124,7 +124,7 @@ inline static std::unique_lock<std::mutex> acquire_lock(std::mutex& m)
 	{
 	try
 		{
-		return std::move(std::unique_lock<std::mutex>(m));
+		return std::unique_lock<std::mutex>(m);
 		}
 	catch ( const std::system_error& e )
 		{
@@ -224,7 +224,7 @@ inline std::vector<std::unique_lock<std::mutex>> Queue<T>::LocksForAllQueues()
 		throw std::exception();
 		}
 
-	return std::move(locks);
+	return locks;
 	}
 
 template<typename T>

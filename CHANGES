@@ -1,4 +1,13 @@
 
+2.5-106 | 2017-03-13 11:19:03 -0700
+
+  * print version string to stdout on --version, instead
+    of printing it to stderr. Output is not an error output.  (Pete)
+
+  * Fix compiler warning raised by llvm8. (Johanna Amann)
+
+  * Fix coverity warning in Ascii reader. (Johanna Amann)
+
 2.5-101 | 2017-03-09 12:20:11 -0500
 
   * Input's framework's ascii reader is now more resilient.
@@ -37,8 +46,8 @@
 
   * Rework the RADIUS base script.
 
-    Fixes BIT-1769 which improves logging behavior when replies aren't 
-    seen.  Also added a `framed_addr` field to indicate if the radius 
+    Fixes BIT-1769 which improves logging behavior when replies aren't
+    seen.  Also added a `framed_addr` field to indicate if the radius
     server is hinting at an address for the client and a `ttl` field to
     show how quickly the server is responding. (Seth Hall)
 
@@ -46,8 +55,8 @@
 
   * Refactored base krb scripts. (Seth Hall)
 
-  * New script to log ticket hashes in krb log 
-    (policy/protocols/krb/ticket-logging.bro).  Also, add 
+  * New script to log ticket hashes in krb log
+    (policy/protocols/krb/ticket-logging.bro).  Also, add
     ciphertext to ticket data structure. (John E. Rollinson)
 
 2.5-62 | 2017-02-15 15:56:38 -0800

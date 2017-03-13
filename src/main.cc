@@ -595,7 +595,7 @@ int main(int argc, char** argv)
 			break;
 
 		case 'v':
-			fprintf(stderr, "%s version %s\n", prog, bro_version());
+			fprintf(stdout, "%s version %s\n", prog, bro_version());
 			exit(0);
 			break;
 

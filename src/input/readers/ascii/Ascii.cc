@@ -49,6 +49,7 @@ FieldMapping FieldMapping::subType()
 Ascii::Ascii(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	{
 	mtime = 0;
+	suppress_warnings = false;
 	}
 
 Ascii::~Ascii()

@@ -4222,6 +4222,7 @@ export {
 
 module KRB;
 export {
+	const keytab = "/etc/krb5.keytab" &redef;
 	## KDC Options. See :rfc:`4120`
 	type KRB::KDC_Options: record {
 		## The ticket to be issued should have its forwardable flag set.
@@ -4344,6 +4345,8 @@ export {
 		cipher		: count;
 		## Cipher text of the ticket
 		ciphertext  : string &optional;
+		## Authentication info
+		authenticationinfo: string &optional;
 	};
 
 	type KRB::Ticket_Vector: vector of KRB::Ticket;

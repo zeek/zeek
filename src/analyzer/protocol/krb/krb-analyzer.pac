@@ -245,8 +245,11 @@ refine connection KRB_Conn += {
 			rv->Assign(0, new Val(${msg.ap_options.use_session_key}, TYPE_BOOL));
 			rv->Assign(1, new Val(${msg.ap_options.mutual_required}, TYPE_BOOL));
 
+			RecordVal* rvticket = proc_ticket(${msg.ticket});
+			StringVal* authenticationinfo = bro_analyzer()->GetAuthenticationInfo(rvticket->Lookup(2)->AsString(), rvticket->Lookup(4)->AsString(), rvticket->Lookup(3)->AsCount());
+			rvticket->Assign(5, authenticationinfo);
 			BifEvent::generate_krb_ap_request(bro_analyzer(), bro_analyzer()->Conn(),
-						      proc_ticket(${msg.ticket}), rv);
+						      rvticket, rv);
 			}
 		return true;
 		%}

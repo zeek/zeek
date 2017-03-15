@@ -9,6 +9,7 @@ bro_plugin_cc(KRB.cc)
 bro_plugin_cc(KRB_TCP.cc)
 bro_plugin_bif(types.bif)
 bro_plugin_bif(events.bif)
+bro_plugin_link_library(-lkrb5)
 bro_plugin_pac(krb.pac krb-protocol.pac krb-analyzer.pac
 	krb-asn1.pac
 	krb-defs.pac

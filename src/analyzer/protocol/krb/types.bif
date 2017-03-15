@@ -1,5 +1,7 @@
 module KRB;
 
+const keytab: string;
+
 type Error_Msg: record;
 type SAFE_Msg: record;
 

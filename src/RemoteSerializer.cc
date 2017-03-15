@@ -2732,7 +2732,8 @@ bool RemoteSerializer::ProcessLogCreateWriter()
 
 	if ( ! log_mgr->CreateWriterForRemoteLog(id_val, writer_val, info, num_fields, fields) )
 		{
-		delete_fields_up_to = num_fields;
+		info = 0;
+		fields = 0;
 		goto error;
 		}
 

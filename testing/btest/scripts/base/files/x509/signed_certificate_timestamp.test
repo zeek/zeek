@@ -3,5 +3,5 @@
 
 event x509_ocsp_ext_signed_certificate_timestamp(f: fa_file, version: count, logid: string, timestamp: time, hash_algorithm: count, signature_algorithm: count, signature: string)
 	{
-	print version, timestamp, hash_algorithm, signature_algorithm;
+	print version, SSL::ct_logs[logid]$description, timestamp, hash_algorithm, signature_algorithm;
 	}

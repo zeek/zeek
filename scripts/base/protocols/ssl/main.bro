@@ -74,6 +74,19 @@ export {
 	## script sets this to Mozilla's root CA list.
 	const root_certs: table[string] of string = {} &redef;
 
+	type CTInfo: record {
+	  description:           string;
+	  operator:              string;
+		key:                   string;
+		maximum_merge_delay:   count;
+		url:                   string;
+	};
+
+	## The Certificate Transparency log bundle. By default, the ct-list.bro
+	## script sets this to the current list of known logs. Entries
+	## are indexex by (binary) log-id.
+	const ct_logs: table[string] of CTInfo = {} &redef;
+
 	## If true, detach the SSL analyzer from the connection to prevent
 	## continuing to process encrypted traffic. Helps with performance
 	## (especially with large file transfers).

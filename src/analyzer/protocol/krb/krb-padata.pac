@@ -100,7 +100,7 @@ VectorVal* proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyzer bro_a
 
 				file_mgr->DataIn(reinterpret_cast<const u_char*>(cert.data()),
 				                 cert.length(), bro_analyzer->GetAnalyzerTag(),
-				                 bro_analyzer->Conn(), true, file_id, "application/x-x509-user-cert");
+				                 bro_analyzer->Conn(), false, file_id, "application/x-x509-user-cert");
 				file_mgr->EndOfFile(file_id);
 
 				break;

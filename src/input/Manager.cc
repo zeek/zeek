@@ -2380,7 +2380,7 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_typ
 		bro_int_t index = request_type->AsEnumType()->Lookup(module, var.c_str());
 		if ( index == -1 )
 			{
-			Warning(i, "Value not '%s' for stream '%s' is not a valid enum.",
+			Warning(i, "Value '%s' for stream '%s' is not a valid enum.",
 			                        enum_string.c_str(), i->name.c_str());
 
 			have_error = true;

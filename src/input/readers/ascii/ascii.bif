@@ -5,3 +5,5 @@ const separator: string;
 const set_separator: string;
 const empty_field: string;
 const unset_field: string;
+const fail_on_invalid_lines: bool;
+const fail_on_file_problem: bool;

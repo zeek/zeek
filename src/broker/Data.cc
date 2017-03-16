@@ -709,3 +709,435 @@ bool bro_broker::DataVal::DoUnserialize(UnserialInfo* info)
 	delete [] serial;
 	return true;
 	}
+
+static broker::util::optional<broker::data> threading_val_to_data_internal(TypeTag type, const threading::Value::_val& val)
+	{
+	switch ( type ) {
+	case TYPE_BOOL:
+	        return {val.int_val != 0};
+
+	case TYPE_INT:
+	        return {val.int_val};
+
+	case TYPE_COUNT:
+	case TYPE_COUNTER:
+	        return {val.uint_val};
+
+	case TYPE_PORT:
+		return {broker::port(val.port_val.port, to_broker_port_proto(val.port_val.proto))};
+
+	case TYPE_ADDR:
+		{
+		IPAddr a;
+
+		switch ( val.addr_val.family ) {
+		case IPv4:
+			a = IPAddr(val.addr_val.in.in4);
+			break;
+
+		case IPv6:
+			a = IPAddr(val.addr_val.in.in6);
+			break;
+
+		default:
+			reporter->InternalError("unsupported protocol family in threading_val_to_data");
+		}
+
+		in6_addr tmp;
+		a.CopyIPv6(&tmp);
+		return {broker::address(reinterpret_cast<const uint32_t*>(&tmp),
+					broker::address::family::ipv6,
+					broker::address::byte_order::network)};
+		}
+
+	case TYPE_SUBNET:
+		{
+		IPAddr a;
+		int length;
+
+		switch ( val.subnet_val.prefix.family ) {
+		case IPv4:
+			a = IPAddr(val.subnet_val.prefix.in.in4);
+			length = (val.subnet_val.length - 96);
+			break;
+
+		case IPv6:
+			a = IPAddr(val.subnet_val.prefix.in.in6);
+			length = val.subnet_val.length;
+			break;
+
+		default:
+			reporter->InternalError("unsupported protocol family in threading_val_to_data");
+		}
+
+		in6_addr tmp;
+		a.CopyIPv6(&tmp);
+
+		auto s = broker::address(reinterpret_cast<const uint32_t*>(&tmp),
+		                         broker::address::family::ipv6,
+		                         broker::address::byte_order::network);
+		return {broker::subnet(s, length)};
+		}
+
+	case TYPE_DOUBLE:
+	        return {val.double_val};
+
+	case TYPE_TIME:
+		return {broker::time_point(val.double_val)};
+
+	case TYPE_INTERVAL:
+		return {broker::time_duration(val.double_val)};
+
+	case TYPE_ENUM:
+		return {broker::enum_value(std::string(val.string_val.data, val.string_val.length))};
+
+	case TYPE_STRING:
+	case TYPE_FILE:
+	case TYPE_FUNC:
+		return {std::string(val.string_val.data, val.string_val.length)};
+
+	case TYPE_TABLE:
+		{
+		auto s = broker::set();
+
+		for ( int i = 0; i < val.set_val.size; ++i )
+			{
+			auto c = bro_broker::threading_val_to_data(val.set_val.vals[i]);
+
+			if ( ! c )
+				return {};
+
+			s.emplace(*c);
+			}
+
+		return {move(s)};
+		}
+
+	case TYPE_VECTOR:
+		{
+		auto s = broker::vector();
+
+		for ( int i = 0; i < val.vector_val.size; ++i )
+			{
+			auto c = bro_broker::threading_val_to_data(val.vector_val.vals[i]);
+
+			if ( ! c )
+				return {};
+
+			s.emplace_back(*c);
+			}
+
+		return {move(s)};
+		}
+
+	default:
+		reporter->InternalError("unsupported type %s in threading_val_to_data",
+		                        type_name(type));
+	}
+
+	return {};
+	}
+
+
+broker::util::optional<broker::data> bro_broker::threading_val_to_data(const threading::Value* v)
+	{
+	broker::util::optional<broker::data> d;
+
+	if ( v->present )
+		{
+		d = threading_val_to_data_internal(v->type, v->val);
+
+		if ( ! d )
+			return {};
+		}
+
+	auto type = broker::record::field(static_cast<uint64_t>(v->type));
+	auto present = broker::record::field(v->present);
+	auto data = (v->present) ? broker::record::field(*d) : broker::util::optional<broker::data>();
+
+	return {broker::record({move(type), move(present), move(data)})};
+	};
+
+struct threading_val_converter {
+	using result_type = bool;
+
+	TypeTag type;
+	threading::Value::_val& val;
+
+	result_type operator()(bool a)
+		{
+		if ( type == TYPE_BOOL )
+			{
+			val.int_val = (a ? 1 : 0);
+			return true;
+			}
+
+		return false;
+		}
+
+	result_type operator()(uint64_t a)
+		{
+		if ( type == TYPE_COUNT || type == TYPE_COUNTER )
+			{
+			val.uint_val = a;
+			return true;
+			}
+
+		return false;
+		}
+
+	result_type operator()(int64_t a)
+		{
+		if ( type == TYPE_INT )
+			{
+			val.int_val = a;
+			return true;
+			}
+
+		return false;
+		}
+
+	result_type operator()(double a)
+		{
+		if ( type == TYPE_DOUBLE )
+			{
+			val.double_val = a;
+			return true;
+			}
+
+		return false;
+		}
+
+
+	result_type operator()(const std::string& a)
+		{
+		if ( type == TYPE_STRING || type == TYPE_FILE || type == TYPE_FUNC )
+			{
+			auto n = a.size();
+			val.string_val.length = n;
+			val.string_val.data = new char[n];
+			memcpy(val.string_val.data, a.data(), n);
+			return true;
+			}
+
+		return false;
+		}
+
+	result_type operator()(const broker::address& a)
+		{
+		if ( type == TYPE_ADDR )
+			{
+			auto bits = reinterpret_cast<const in6_addr*>(&a.bytes());
+			auto b = IPAddr(*bits);
+
+			if ( a.is_v4() )
+				{
+				val.addr_val.family = IPv4;
+				b.CopyIPv4(&val.addr_val.in.in4);
+				return true;
+				}
+
+			if ( a.is_v6() )
+				{
+				val.addr_val.family = IPv6;
+				b.CopyIPv6(&val.addr_val.in.in6);
+				return true;
+				}
+			}
+
+		return false;
+		}
+
+	result_type operator()(const broker::subnet& s)
+		{
+		if ( type == TYPE_SUBNET )
+			{
+			auto bits = reinterpret_cast<const in6_addr*>(&s.network().bytes());
+			auto a = IPAddr(*bits);
+
+			val.subnet_val.length = s.length();
+
+			if ( s.network().is_v4() )
+				{
+				val.subnet_val.prefix.family = IPv4;
+				a.CopyIPv4(&val.subnet_val.prefix.in.in4);
+				val.subnet_val.length += 96;
+				return true;
+				}
+
+			if ( s.network().is_v6() )
+				{
+				val.subnet_val.prefix.family = IPv6;
+				a.CopyIPv6(&val.subnet_val.prefix.in.in6);
+				return true;
+				}
+			}
+
+		return false;
+		}
+
+	result_type operator()(const broker::port& a)
+		{
+		if ( type == TYPE_PORT )
+			{
+			val.port_val.port = a.number();
+			val.port_val.proto = bro_broker::to_bro_port_proto(a.type());
+			return true;
+			}
+
+		return false;
+		}
+
+	result_type operator()(const broker::time_point& a)
+		{
+		if ( type == TYPE_TIME )
+			{
+			val.double_val = a.value;
+			return true;
+			}
+
+		return false;
+		}
+
+	result_type operator()(const broker::time_duration& a)
+		{
+		if ( type == TYPE_INTERVAL )
+			{
+			val.double_val = a.value;
+			return true;
+			}
+
+		return false;
+		}
+
+	result_type operator()(const broker::enum_value& a)
+		{
+		if ( type == TYPE_ENUM )
+			{
+			auto n = a.name.size();
+			val.string_val.length = n;
+			val.string_val.data = new char[n];
+			memcpy(val.string_val.data, a.name.data(), n);
+			return true;
+			}
+
+		return false;
+		}
+
+	result_type operator()(const broker::set& a)
+		{
+		if ( type == TYPE_TABLE )
+			{
+			val.set_val.size = a.size();
+			val.set_val.vals = new threading::Value* [val.set_val.size];
+
+			auto p = val.set_val.vals;
+
+			for ( auto& i : a )
+				*p++ = bro_broker::data_to_threading_val(move(i));
+
+			return true;
+			}
+
+		return false;
+		}
+
+	result_type operator()(const broker::table& a)
+		{
+		return false;
+		}
+
+	result_type operator()(const broker::vector& a)
+		{
+		if ( type == TYPE_VECTOR )
+			{
+			val.vector_val.size = a.size();
+			val.vector_val.vals = new threading::Value* [val.vector_val.size];
+
+			auto p = val.vector_val.vals;
+
+			for ( auto& i : a )
+				*p++ = bro_broker::data_to_threading_val(move(i));
+
+			return true;
+			}
+
+		return false;
+		}
+
+	result_type operator()(const broker::record& a)
+		{
+		return false;
+		}
+};
+
+threading::Value* bro_broker::data_to_threading_val(broker::data d)
+	{
+	auto r = broker::get<broker::record>(d);
+
+	if ( ! r )
+		return nullptr;
+
+	auto type = broker::get<uint64_t>(*r->get(0));
+	auto present = broker::get<bool>(*r->get(1));
+	auto data = r->get(2);
+
+	if ( ! (type && present) )
+		return nullptr;
+
+	if ( *present && ! data )
+		return nullptr;
+
+	auto tv = new threading::Value;
+	tv->type = static_cast<TypeTag>(*type);
+	tv->present = *present;
+
+	if ( *present && ! broker::visit(threading_val_converter{tv->type, tv->val}, *data) )
+		{
+		delete tv;
+		return nullptr;
+		}
+
+	return tv;
+	}
+
+broker::data bro_broker::threading_field_to_data(const threading::Field* f)
+	{
+	auto name = broker::record::field(f->name);
+	auto type = broker::record::field(static_cast<uint64_t>(f->type));
+	auto subtype = broker::record::field(static_cast<uint64_t>(f->subtype));
+	auto optional = broker::record::field(f->optional);
+
+	broker::util::optional<broker::data> secondary;
+
+	if ( f->secondary_name )
+		secondary = {f->secondary_name};
+
+	return move(broker::record({name, secondary, type, subtype, optional}));
+	}
+
+threading::Field* bro_broker::data_to_threading_field(broker::data d)
+	{
+	auto r = broker::get<broker::record>(d);
+
+	if ( ! r )
+		return nullptr;
+
+	auto name = broker::get<std::string>(*r->get(0));
+	auto secondary = r->get(1);
+	auto type = broker::get<uint64_t>(*r->get(2));
+	auto subtype = broker::get<uint64_t>(*r->get(3));
+	auto optional = broker::get<bool>(*r->get(4));
+
+	if ( ! (name && type && subtype && optional) )
+		return nullptr;
+
+	if ( secondary && ! broker::is<std::string>(*secondary) )
+		return nullptr;
+
+	return new threading::Field(name->c_str(),
+				    secondary ? broker::get<std::string>(*secondary)->c_str() : nullptr,
+				    static_cast<TypeTag>(*type),
+				    static_cast<TypeTag>(*subtype),
+				    *optional);
+	}

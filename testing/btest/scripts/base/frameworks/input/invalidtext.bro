@@ -13,6 +13,7 @@
 @TEST-END-FILE
 
 redef exit_only_after_terminate = T;
+redef InputAscii::fail_on_invalid_lines = T;
 
 global outfile: file;
 

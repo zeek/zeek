@@ -19,12 +19,17 @@ export {
 	redef record Info += {
 		## Result of certificate validation for this connection.
 		validation_status: string &log &optional;
+		## Result of certificate validation for this connection, given
+		## as OpenSSL validation code.
+		validation_code: count &optional;
+		## Ordered chain of validated certificate, if validation succeeded.
+		valid_chain: vector of opaque of x509 &optional;
 	};
 
-	## MD5 hash values for recently validated chains along with the
+	## Result values for recently validated chains along with the
 	## validation status are kept in this table to avoid constant
 	## validation every time the same certificate chain is seen.
-	global recently_validated_certs: table[string] of string = table()
+	global recently_validated_certs: table[string] of X509::Result = table()
 		&read_expire=5mins &redef;
 
 	## Use intermediate CA certificate caching when trying to validate
@@ -38,6 +43,11 @@ export {
 	## Disabling this will usually greatly increase the number of validation warnings
 	## that you encounter. Only disable if you want to find misconfigured servers.
 	global ssl_cache_intermediate_ca: bool = T &redef;
+
+	## Store the valid chain in c$ssl$valid_chain if validation succeeds.
+	## This has a potentially high memory impact, depending on the local environment
+	## and is thus disabled by default.
+	global ssl_store_valid_chain: bool = F &redef;
 
 	## Event from a worker to the manager that it has encountered a new
 	## valid intermediate.
@@ -83,7 +93,7 @@ event SSL::new_intermediate(key: string, value: vector of opaque of x509)
 	}
 @endif
 
-function cache_validate(chain: vector of opaque of x509): string
+function cache_validate(chain: vector of opaque of x509): X509::Result
 	{
 	local chain_hash: vector of string = vector();
 
@@ -97,7 +107,10 @@ function cache_validate(chain: vector of opaque of x509): string
 		return recently_validated_certs[chain_id];
 
 	local result = x509_verify(chain, root_certs);
-	recently_validated_certs[chain_id] = result$result_string;
+	if ( ! ssl_store_valid_chain && result?$chain_certs )
+		recently_validated_certs[chain_id] = X509::Result($result=result$result, $result_string=result$result_string);
+	else
+		recently_validated_certs[chain_id] = result;
 
 	# if we have a working chain where we did not store the intermediate certs
 	# in our cache yet - do so
@@ -120,7 +133,7 @@ function cache_validate(chain: vector of opaque of x509): string
 			}
 		}
 
-	return result$result_string;
+	return result;
 	}
 
 event ssl_established(c: connection) &priority=3
@@ -133,7 +146,7 @@ event ssl_established(c: connection) &priority=3
 	local intermediate_chain: vector of opaque of x509 = vector();
 	local issuer = c$ssl$cert_chain[0]$x509$certificate$issuer;
 	local hash = c$ssl$cert_chain[0]$sha1;
-	local result: string;
+	local result: X509::Result;
 
 	# Look if we already have a working chain for the issuer of this cert.
 	# If yes, try this chain first instead of using the chain supplied from
@@ -145,9 +158,12 @@ event ssl_established(c: connection) &priority=3
 			intermediate_chain[i+1] = intermediate_cache[issuer][i];
 
 		result = cache_validate(intermediate_chain);
-		if ( result == "ok" )
+		if ( result$result_string == "ok" )
 			{
-			c$ssl$validation_status = result;
+			c$ssl$validation_status = result$result_string;
+			c$ssl$validation_code = result$result;
+			if ( result?$chain_certs )
+				c$ssl$valid_chain = result$chain_certs;
 			return;
 			}
 		}
@@ -163,9 +179,12 @@ event ssl_established(c: connection) &priority=3
 		}
 
 	result = cache_validate(chain);
-	c$ssl$validation_status = result;
+	c$ssl$validation_status = result$result_string;
+	c$ssl$validation_code = result$result;
+	if ( result?$chain_certs )
+		c$ssl$valid_chain = result$chain_certs;
 
-	if ( result != "ok" )
+	if ( result$result_string != "ok" )
 		{
 		local message = fmt("SSL certificate validation failed with (%s)", c$ssl$validation_status);
 		NOTICE([$note=Invalid_Server_Cert, $msg=message,

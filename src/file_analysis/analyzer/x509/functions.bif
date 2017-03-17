@@ -140,6 +140,33 @@ X509* x509_get_ocsp_signer(STACK_OF(X509) *certs, OCSP_RESPID *rid)
 	return 0;
 	}
 
+const EVP_MD* hash_to_evp(int hash)
+	{
+	switch ( hash )
+		{
+		case 1:
+			return EVP_md5();
+			break;
+		case 2:
+			return EVP_sha1();
+			break;
+		case 3:
+			return EVP_sha224();
+			break;
+		case 4:
+			return EVP_sha256();
+			break;
+		case 5:
+			return EVP_sha384();
+			break;
+		case 6:
+			return EVP_sha512();
+			break;
+		default:
+			return nullptr;
+		}
+	}
+
 %%}
 
 ## Parses a certificate into an X509::Certificate structure.
@@ -544,7 +571,7 @@ x509_verify_chainerror:
 	return rrecord;
 	%}
 
-function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signature: string, timestamp: count, hash_algorithm: count%): bool
+function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signature: string, timestamp: count, hash_algorithm: count, issuer_key_hash: string &default=""%): bool
 	%{
 	assert(cert);
 	file_analysis::X509Val* h = (file_analysis::X509Val*) cert;
@@ -553,21 +580,73 @@ function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signa
 	assert(sizeof(timestamp) >= 8);
 	uint64_t timestamp_network = htonll(timestamp);
 
+	bool precert = issuer_key_hash->Len() > 0;
+	if ( precert && issuer_key_hash->Len() != 32)
+		{
+		reporter->Error("Invalid issuer_key_hash length");
+		return new Val(0, TYPE_BOOL);
+		}
+
 	std::string data;
 	data.push_back(0); // version
 	data.push_back(0); // signature_type -> certificate_timestamp
-	data.append(reinterpret_cast<char*>(&timestamp_network), sizeof(timestamp_network)); // timestamp -> 64 bits
-	data.append("\0\0", 2); // entry-type: x509_entry
+	data.append(reinterpret_cast<const char*>(&timestamp_network), sizeof(timestamp_network)); // timestamp -> 64 bits
+	if ( precert )
+		data.append("\0\1", 2); // entry-type: precert_entry
+	else
+		data.append("\0\0", 2); // entry-type: x509_entry
+
+	if ( precert )
+		{
+		x = X509_dup(x);
+		assert(x);
+	#ifdef NID_ct_precert_scts
+		int pos = X509_get_ext_by_NID(x, NID_ct_precert_scts, -1);
+		if ( pos < 0 )
+			{
+			reporter->Error("NID_ct_precert_scts not found");
+			return new Val(0, TYPE_BOOL);
+			}
+	#else
+		int num_ext = X509_get_ext_count(x);
+		int pos = -1;
+		for ( int k = 0; k < num_ext; ++k )
+			{
+			char oid[256];
+			X509_EXTENSION* ex = X509_get_ext(x, k);
+			ASN1_OBJECT* ext_asn = X509_EXTENSION_get_object(ex);
+			OBJ_obj2txt(oid, 255, ext_asn, 1);
+			if ( strcmp(oid, "1.3.6.1.4.1.11129.2.4.2") == 0 )
+				{
+				pos = k;
+				break;
+				}
+			}
+	#endif
+		X509_EXTENSION_free(X509_delete_ext(x, pos));
+		assert( X509_get_ext_by_NID(x, NID_ct_precert_scts, -1) == -1 );
+		}
 
 	unsigned char *cert_out = nullptr;
-	uint32 cert_length = i2d_X509(x, &cert_out);
+	uint32 cert_length;
+	if ( precert )
+		{
+		// we also could use i2d_re_X509_tbs, for OpenSSL >= 1.0.2
+		x->cert_info->enc.modified = 1;
+		cert_length = i2d_X509_CINF(x->cert_info, &cert_out);
+		data.append(reinterpret_cast<const char*>(issuer_key_hash->Bytes()), issuer_key_hash->Len());
+		}
+	else
+		cert_length = i2d_X509(x, &cert_out);
 	assert( cert_out );
 	uint32 cert_length_network = htonl(cert_length);
 	assert( sizeof(cert_length_network) == 4);
 
-	data.append(reinterpret_cast<char*>(&cert_length_network)+1, 3); // 3 bytes certificate length
-	data.append(reinterpret_cast<char*>(cert_out), cert_length); // der-encoded certificate
+	data.append(reinterpret_cast<const char*>(&cert_length_network)+1, 3); // 3 bytes certificate length
+	data.append(reinterpret_cast<const char*>(cert_out), cert_length); // der-encoded certificate
 	OPENSSL_free(cert_out);
+	if ( precert )
+		X509_free(x);
 	data.append("\0\0", 2); // no extensions
 
 	// key is given as a DER-encoded SubjectPublicKeyInfo.
@@ -580,31 +659,11 @@ function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signa
 	string errstr;
 	int success = 0;
 
-	const EVP_MD* hash;
-	// numbers from http://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-18
-	switch ( hash_algorithm )
+	const EVP_MD* hash = hash_to_evp(hash_algorithm);
+	if ( ! hash )
 		{
-		case 1:
-			hash = EVP_md5();
-			break;
-		case 2:
-			hash = EVP_sha1();
-			break;
-		case 3:
-			hash = EVP_sha224();
-			break;
-		case 4:
-			hash = EVP_sha256();
-			break;
-		case 5:
-			hash = EVP_sha384();
-			break;
-		case 6:
-			hash = EVP_sha512();
-			break;
-		default:
-			errstr = "Unknown hash algorithm";
-			goto sct_verify_err;
+		errstr = "Unknown hash algorithm";
+		goto sct_verify_err;
 		}
 
 	if ( ! key )
@@ -638,6 +697,93 @@ sct_verify_err:
 	return new Val(0, TYPE_BOOL);
 	%}
 
+
+%%{
+/**
+ * 0 -> subject name
+ * 1 -> issuer name
+ * 2 -> pubkey
+ */
+StringVal* x509_entity_hash(file_analysis::X509Val *cert_handle, unsigned int hash_alg, unsigned int type)
+	{
+	assert(cert_handle);
+
+	if ( type > 2 )
+		{
+		reporter->InternalError("Unknown type in x509_entity_hash");
+		return nullptr;
+		}
+
+	X509 *cert_x509 = cert_handle->GetCertificate();
+	if ( cert_x509 == nullptr )
+		{
+		builtin_error("cannot get cert from opaque");
+		return nullptr;
+		}
+
+	X509_NAME *subject_name = X509_get_subject_name(cert_x509);
+	X509_NAME *issuer_name = X509_get_issuer_name(cert_x509);
+	if ( subject_name == nullptr || issuer_name == nullptr )
+		{
+		builtin_error("fail to get subject/issuer name from certificate");
+		return nullptr;
+		}
+
+	const EVP_MD *dgst = hash_to_evp(hash_alg);
+	if ( dgst == nullptr )
+		{
+		builtin_error("Unknown hash algorithm.");
+		return nullptr;
+		}
+
+	unsigned char md[EVP_MAX_MD_SIZE];
+	memset(md, 0, sizeof(md));
+	unsigned int len = 0;
+
+	int res = 0;
+
+	ASN1_BIT_STRING *key = X509_get0_pubkey_bitstr(cert_x509);
+	if ( key == 0 )
+		{
+		printf("No key in X509_get0_pubkey_bitstr\n");
+		}
+
+	if ( type == 0 )
+		res = X509_NAME_digest(subject_name, dgst, md, &len);
+	else if ( type == 1 )
+		res = X509_NAME_digest(issuer_name, dgst, md, &len);
+	else if ( type == 2 )
+		{
+		unsigned char *spki = nullptr;
+		int pklen = i2d_X509_PUBKEY(X509_get_X509_PUBKEY(cert_x509), &spki);
+		if ( ! pklen )
+			{
+			builtin_error("Could not get SPKI");
+			return nullptr;
+			}
+		res = EVP_Digest(spki, pklen, md, &len, dgst, nullptr);
+		OPENSSL_free(spki);
+		}
+
+	if ( ! res )
+		{
+		builtin_error("Could not perform hash");
+		return nullptr;
+		}
+
+	assert( len <= sizeof(md) );
+
+	return new StringVal(len, reinterpret_cast<const char*>(md));
+	}
+%%}
+
+function x509_subject_name_hash%(cert: opaque of x509, hash_alg: count%): string
+	%{
+	file_analysis::X509Val *cert_handle = (file_analysis::X509Val *) cert;
+
+	return x509_entity_hash(cert_handle, hash_alg, 0);
+	%}
+
 ## Get the hash of issuer name of a certificate
 ##
 ## cert: The X509 certificate opaque handle.
@@ -649,78 +795,16 @@ sct_verify_err:
 ## .. bro:see:: x509_certificate x509_extension x509_ext_basic_constraints
 ##              x509_ext_subject_alternative_name x509_parse
 ##              x509_get_certificate_string x509_verify
-function x509_issuer_name_hash%(cert: opaque of x509, hash_alg: string%): string
+function x509_issuer_name_hash%(cert: opaque of x509, hash_alg: count%): string
 	%{
-	assert(cert);
-	assert(hash_alg);
-
 	file_analysis::X509Val *cert_handle = (file_analysis::X509Val *) cert;
-	X509 *cert_x509 = cert_handle->GetCertificate();
-	if (cert_x509 == NULL)
-		{
-		builtin_error("cannot get cert from opaque");
-		return NULL;
-		}
 
-	X509_NAME *issuer_name = NULL;
-	StringVal *issuer_name_str = NULL;
-	issuer_name = X509_get_issuer_name(cert_x509);
-	if (issuer_name == NULL)
-		{
-		builtin_error("fail to get issuer name from certificate");
-		return NULL;
-		}
+	return x509_entity_hash(cert_handle, hash_alg, 1);
+	%}
 
-	const char* h = hash_alg->CheckString();
-	if (h == NULL)
-		{
-		builtin_error("fail to get hash algorithm from input");
-		return NULL;
-		}
+function x509_spki_hash%(cert: opaque of x509, hash_alg: count%): string
+	%{
+	file_analysis::X509Val *cert_handle = (file_analysis::X509Val *) cert;
 
-	const EVP_MD *dgst;
-	if (strcmp(h, "sha1") == 0)
-		dgst = EVP_sha1();
-	else if (strcmp(h, "sha224") == 0)
-		dgst = EVP_sha224();
-	else if (strcmp(h, "sha256") == 0)
-		dgst = EVP_sha256();
-	else if (strcmp(h, "sha384") == 0)
-		dgst = EVP_sha384();
-	else if (strcmp(h, "sha512") == 0)
-		dgst = EVP_sha512();
-	else
-		{
-		reporter->Error("Unknown digest!");
-		return NULL;
-		}
-	if (dgst == NULL)
-		{
-		builtin_error("fail to allocate digest");
-		return NULL;
-		}
-
-	unsigned char md[EVP_MAX_MD_SIZE];
-	unsigned int len = 0;
-	ASN1_OCTET_STRING *oct_str = ASN1_STRING_type_new(V_ASN1_OCTET_STRING);
-	int new_len = -1;
-	BIO *bio = BIO_new(BIO_s_mem());
-	char buf[1024];
-	memset(buf, 0, sizeof(buf));
-
-	if (!X509_NAME_digest(issuer_name, dgst, md, &len))
-		goto err;
-	if (!ASN1_OCTET_STRING_set(oct_str, md, len))
-		goto err;
-	if (i2a_ASN1_STRING(bio, oct_str, V_ASN1_OCTET_STRING) <= 0)
-		goto err;
-	new_len = BIO_read(bio, buf, sizeof(buf));
-	if (new_len > 0)
-		issuer_name_str = new StringVal(new_len, buf);
-
-	//NOTE: the result string may contain "\\x0a" for sha384 and sha512
-	//      probably need to remove it from here?
-err:
-	BIO_free_all(bio);
-        return issuer_name_str;
+	return x509_entity_hash(cert_handle, hash_alg, 2);
 	%}

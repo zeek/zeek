@@ -1,7 +1,62 @@
 # @TEST-EXEC: bro -r $TRACES/tls/certificate-with-sct.pcap %INPUT
 # @TEST-EXEC: btest-diff .stdout
 
+@load protocols/ssl/validate-certs
+
+redef SSL::ssl_store_valid_chain = T;
+
+export {
+	type LogInfo: record {
+		version: count;
+		logid: string;
+		timestamp: count;
+		sig_alg: count;
+		hash_alg: count;
+		signature: string;
+	};
+}
+
+redef record SSL::Info += {
+	ct_proofs: vector of LogInfo &default=vector();
+};
+
 event x509_ocsp_ext_signed_certificate_timestamp(f: fa_file, version: count, logid: string, timestamp: count, hash_algorithm: count, signature_algorithm: count, signature: string)
 	{
 	print version, SSL::ct_logs[logid]$description, double_to_time(timestamp/1000.0), hash_algorithm, signature_algorithm;
+
+	if ( |f$conns| != 1 )
+		return;
+
+	for ( cid in f$conns )
+		{
+		if ( ! f$conns[cid]?$ssl )
+			return;
+
+		local c = f$conns[cid];
+		}
+
+	if ( ! c$ssl?$cert_chain || |c$ssl$cert_chain| == 0 || ! c$ssl$cert_chain[0]?$x509 )
+		return;
+
+	c$ssl$ct_proofs[|c$ssl$ct_proofs|] = LogInfo($version=version, $logid=logid, $timestamp=timestamp, $sig_alg=signature_algorithm, $hash_alg=hash_algorithm, $signature=signature);
+	}
+
+event ssl_established(c: connection)
+	{
+	if ( ! c$ssl?$cert_chain || |c$ssl$cert_chain| == 0 || ! c$ssl$cert_chain[0]?$x509 )
+		return;
+
+	if ( |c$ssl$valid_chain| < 2 )
+		return;
+
+	local cert = c$ssl$cert_chain[0]$x509$handle;
+	local issuer_key_hash = x509_spki_hash(c$ssl$valid_chain[1], 4);
+
+	for ( i in c$ssl$ct_proofs )
+		{
+		local log = c$ssl$ct_proofs[i];
+
+		print "Verify of", SSL::ct_logs[log$logid]$description, sct_verify(cert, log$logid, SSL::ct_logs[log$logid]$key, log$signature, log$timestamp, log$hash_alg, issuer_key_hash);
+		print "Bad verify of", SSL::ct_logs[log$logid]$description, sct_verify(cert, log$logid, SSL::ct_logs[log$logid]$key, log$signature, log$timestamp+1, log$hash_alg, issuer_key_hash);
+		}
 	}

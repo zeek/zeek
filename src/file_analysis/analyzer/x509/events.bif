@@ -67,10 +67,11 @@ event x509_ext_subject_alternative_name%(f: fa_file, ext: X509::SubjectAlternati
 ##
 ## logid: 32 bit key id
 ##
-## timestamp: the timestamp of the sct
+## timestamp: the NTP Time when the entry was logged measured since
+##            the epoch, ignoring leap seconds, in milliseconds.
 ##
 ## signature_and_hashalgorithm: signature and hash algorithm used for the
 ##                              digitally_signed struct
 ##
 ## signature: signature part of the digitally_signed struct
-event x509_ocsp_ext_signed_certificate_timestamp%(f: fa_file, version: count, logid: string, timestamp: time, hash_algorithm: count, signature_algorithm: count, signature: string%);
+event x509_ocsp_ext_signed_certificate_timestamp%(f: fa_file, version: count, logid: string, timestamp: count, hash_algorithm: count, signature_algorithm: count, signature: string%);

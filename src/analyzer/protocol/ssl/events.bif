@@ -238,13 +238,14 @@ event ssl_extension_server_name%(c: connection, is_orig: bool, names: string_vec
 ##
 ## logid: 32 bit key id
 ##
-## timestamp: the current NTP Time
+## timestamp: the NTP Time when the entry was logged measured since
+##            the epoch, ignoring leap seconds, in milliseconds.
 ##
 ## signature_and_hashalgorithm: signature and hash algorithm used for the
 ##                              digitally_signed struct
 ##
 ## signature: signature part of the digitally_signed struct
-event ssl_extension_signed_certificate_timestamp%(c: connection, is_orig: bool, version: count, logid: string, timestamp: time, signature_and_hashalgorithm: SSL::SignatureAndHashAlgorithm, signature: string%);
+event ssl_extension_signed_certificate_timestamp%(c: connection, is_orig: bool, version: count, logid: string, timestamp: count, signature_and_hashalgorithm: SSL::SignatureAndHashAlgorithm, signature: string%);
 
 ## Generated at the end of an SSL/TLS handshake. SSL/TLS sessions start with
 ## an unencrypted handshake, and Bro extracts as much information out of that

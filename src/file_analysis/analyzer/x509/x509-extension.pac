@@ -39,7 +39,7 @@ refine connection MockConnection += {
 			bro_analyzer()->GetFile()->GetVal()->Ref(),
 			version,
 			new StringVal(logid.length(), reinterpret_cast<const char*>(logid.begin())),
-			((double)timestamp)/1000,
+			timestamp,
 			digitally_signed_algorithms->HashAlgorithm(),
 			digitally_signed_algorithms->SignatureAlgorithm(),
 			new StringVal(digitally_signed_signature.length(), reinterpret_cast<const char*>(digitally_signed_signature.begin()))

@@ -259,7 +259,7 @@ refine connection Handshake_Conn += {
 			bro_analyzer()->Conn(), ${rec.is_orig},
 			version,
 			new StringVal(logid.length(), reinterpret_cast<const char*>(logid.begin())),
-			((double)timestamp)/1000,
+			timestamp,
 			ha,
 			new StringVal(digitally_signed_signature.length(), reinterpret_cast<const char*>(digitally_signed_signature.begin()))
 		);

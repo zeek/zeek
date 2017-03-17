@@ -345,7 +345,7 @@ clean_up:
 void file_analysis::OCSP::ParseExtensionsSpecific(X509_EXTENSION* ex, bool global, ASN1_OBJECT* ext_asn, const char* oid)
 	{
 #ifdef NID_ct_cert_scts
-	if ( OBJ_obj2nid(ext_asn) == NID_ct_cert_scts || OBJ_obj2nid(ext_asn) == NID_ct_precert_scts )
+	if ( OBJ_obj2nid(ext_asn) == NID_ct_cert_scts )
 #else
 	if ( strcmp(oid, "1.3.6.1.4.1.11129.2.4.5") == 0 )
 #endif

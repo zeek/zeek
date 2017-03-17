@@ -241,9 +241,9 @@ void file_analysis::X509::ParseExtensionsSpecific(X509_EXTENSION* ex, bool globa
 		ParseSAN(ex);
 
 #ifdef NID_ct_cert_scts
-	else if ( OBJ_obj2nid(ext_asn) == NID_ct_cert_scts || OBJ_obj2nid(ext_asn) == NID_ct_precert_scts )
+	else if ( OBJ_obj2nid(ext_asn) == NID_ct_precert_scts )
 #else
-	else if ( strcmp(oid, "1.3.6.1.4.1.11129.2.4.2") == 0 || strcmp(oid, "1.3.6.1.4.1.11129.2.4.4") == 0 )
+	else if ( strcmp(oid, "1.3.6.1.4.1.11129.2.4.2") == 0 )
 #endif
 		ParseSignedCertificateTimestamps(ex);
 	}

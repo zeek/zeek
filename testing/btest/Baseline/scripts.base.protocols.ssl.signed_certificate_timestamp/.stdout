@@ -1,3 +1,9 @@
 0, Google 'Pilot' log, 1406997753.366, [HashAlgorithm=4, SignatureAlgorithm=3]
 0, Google 'Aviator' log, 1407002457.456, [HashAlgorithm=4, SignatureAlgorithm=3]
 0, Google 'Rocketeer' log, 1410299366.023, [HashAlgorithm=4, SignatureAlgorithm=3]
+Verify of, Google 'Pilot' log, T
+Bad verify of, Google 'Pilot' log, F
+Verify of, Google 'Aviator' log, T
+Bad verify of, Google 'Aviator' log, F
+Verify of, Google 'Rocketeer' log, T
+Bad verify of, Google 'Rocketeer' log, F

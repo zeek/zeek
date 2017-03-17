@@ -1,6 +1,7 @@
 %%{
 #include "file_analysis/analyzer/x509/X509.h"
 #include "types.bif.h"
+#include "net_util.h"
 
 #include <openssl/x509.h>
 #include <openssl/asn1.h>
@@ -541,6 +542,100 @@ x509_verify_chainerror:
 	RecordVal* rrecord = x509_result_record(csc.error, X509_verify_cert_error_string(csc.error), chainVector);
 
 	return rrecord;
+	%}
+
+function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signature: string, timestamp: count, hash_algorithm: count%): bool
+	%{
+	assert(cert);
+	file_analysis::X509Val* h = (file_analysis::X509Val*) cert;
+	X509* x = ((file_analysis::X509Val*) h)->GetCertificate();
+
+	assert(sizeof(timestamp) >= 8);
+	uint64_t timestamp_network = htonll(timestamp);
+
+	std::string data;
+	data.push_back(0); // version
+	data.push_back(0); // signature_type -> certificate_timestamp
+	data.append(reinterpret_cast<char*>(&timestamp_network), sizeof(timestamp_network)); // timestamp -> 64 bits
+	data.append("\0\0", 2); // entry-type: x509_entry
+
+	unsigned char *cert_out = nullptr;
+	uint32 cert_length = i2d_X509(x, &cert_out);
+	assert( cert_out );
+	uint32 cert_length_network = htonl(cert_length);
+	assert( sizeof(cert_length_network) == 4);
+
+	data.append(reinterpret_cast<char*>(&cert_length_network)+1, 3); // 3 bytes certificate length
+	data.append(reinterpret_cast<char*>(cert_out), cert_length); // der-encoded certificate
+	OPENSSL_free(cert_out);
+	data.append("\0\0", 2); // no extensions
+
+	// key is given as a DER-encoded SubjectPublicKeyInfo.
+	const unsigned char *key_char = log_key->Bytes();
+	EVP_PKEY* key = d2i_PUBKEY(nullptr, &key_char, log_key->Len());
+
+	EVP_MD_CTX *mdctx = EVP_MD_CTX_create();
+	assert(mdctx);
+
+	string errstr;
+	int success = 0;
+
+	const EVP_MD* hash;
+	// numbers from http://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-18
+	switch ( hash_algorithm )
+		{
+		case 1:
+			hash = EVP_md5();
+			break;
+		case 2:
+			hash = EVP_sha1();
+			break;
+		case 3:
+			hash = EVP_sha224();
+			break;
+		case 4:
+			hash = EVP_sha256();
+			break;
+		case 5:
+			hash = EVP_sha384();
+			break;
+		case 6:
+			hash = EVP_sha512();
+			break;
+		default:
+			errstr = "Unknown hash algorithm";
+			goto sct_verify_err;
+		}
+
+	if ( ! key )
+		{
+		errstr = "Could not load log key";
+		goto sct_verify_err;
+		}
+
+	if ( ! EVP_DigestVerifyInit(mdctx, NULL, hash, NULL, key) )
+		{
+		errstr = "Could not init signature verification";
+		goto sct_verify_err;
+		}
+
+	if ( ! EVP_DigestVerifyUpdate(mdctx, data.data(), data.size()) )
+		{
+		errstr = "Could not update digest for verification";
+		goto sct_verify_err;
+		}
+
+	success = EVP_DigestVerifyFinal(mdctx, signature->Bytes(), signature->Len());
+	EVP_MD_CTX_destroy(mdctx);
+
+	return new Val(success, TYPE_BOOL);
+
+sct_verify_err:
+	if (mdctx)
+		EVP_MD_CTX_destroy(mdctx);
+	cerr << errstr << endl;
+	reporter->Error("%s", errstr.c_str());
+	return new Val(0, TYPE_BOOL);
 	%}
 
 ## Get the hash of issuer name of a certificate

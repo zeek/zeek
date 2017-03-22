@@ -1,0 +1,20 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	ssl
+#open	2017-03-22-01-52-35
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer	validation_status	valid_ct_logs	valid_ct_operators
+#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string	string	count	count
+1484228945.191472	CHhAvVGS1DHFjwGM9	192.168.178.73	60640	97.107.139.108	443	TLSv12	TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256	secp256r1	ritter.vg	F	-	http/1.1	T	FDWgotac24NQJKrRi,FUHPFD4bNbAmVvzf99,FL5BECVkzTuWWefyh	(empty)	CN=ritter.vg,OU=PositiveSSL,OU=Domain Control Validated	CN=COMODO RSA Domain Validation Secure Server CA,O=COMODO CA Limited,L=Salford,ST=Greater Manchester,C=GB	-	-	ok	3	1
+#close	2017-03-22-01-52-35
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	ssl
+#open	2017-03-22-01-52-36
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer	validation_status	valid_ct_logs	valid_ct_operators
+#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string	string	count	count
+1490146178.647622	CHhAvVGS1DHFjwGM9	192.168.17.58	51995	97.107.139.108	443	TLSv12	TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256	secp256r1	ritter.vg	F	-	h2	T	Fui6LM65IdSB9LD25,FIwxeCtbWPXg98zO1	(empty)	CN=ritter.vg,O=Tom Ritter\\, LLC,L=Urbana,ST=Illinois,C=US,serialNumber=0600438893,jurisdictionST=New Jersey,jurisdictionC=US,businessCategory=Private Organization	CN=DigiCert SHA2 Extended Validation Server CA,OU=www.digicert.com,O=DigiCert Inc,C=US	-	-	ok	6	3
+#close	2017-03-22-01-52-36

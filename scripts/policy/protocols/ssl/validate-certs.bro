@@ -120,8 +120,8 @@ function cache_validate(chain: vector of opaque of x509): X509::Result
 		   |result$chain_certs| > 2 )
 		{
 		local result_chain = result$chain_certs;
-		local icert = x509_parse(result_chain[1]);
-		if ( icert$subject !in intermediate_cache )
+		local isnh = x509_subject_name_hash(result_chain[1], 4); # SHA256
+		if ( isnh !in intermediate_cache )
 			{
 			local cachechain: vector of opaque of x509;
 			for ( i in result_chain )
@@ -129,33 +129,42 @@ function cache_validate(chain: vector of opaque of x509): X509::Result
 				if ( i >=1 && i<=|result_chain|-2 )
 					cachechain[i-1] = result_chain[i];
 				}
-			add_to_cache(icert$subject, cachechain);
+			add_to_cache(isnh, cachechain);
 			}
 		}
 
 	return result;
 	}
 
-event ssl_established(c: connection) &priority=3
+# The server issues CCS only after sending the certificates. This should
+# be more robust than using SSL_established, on the off chance that we don't
+# get that event.
+#
+# This is not TLSv1.3 compatible - but we will not have certificates in
+# that case in any way, so it even saves us a few cycles.
+event ssl_change_cipher_spec(c: connection, is_orig: bool) &priority=3
 	{
+	if ( is_orig )
+		return;
+
 	# If there aren't any certs we can't very well do certificate validation.
 	if ( ! c$ssl?$cert_chain || |c$ssl$cert_chain| == 0 ||
 	     ! c$ssl$cert_chain[0]?$x509 )
 		return;
 
 	local intermediate_chain: vector of opaque of x509 = vector();
-	local issuer = c$ssl$cert_chain[0]$x509$certificate$issuer;
+	local issuer_name_hash = x509_issuer_name_hash(c$ssl$cert_chain[0]$x509$handle, 4); # SHA256
 	local hash = c$ssl$cert_chain[0]$sha1;
 	local result: X509::Result;
 
 	# Look if we already have a working chain for the issuer of this cert.
 	# If yes, try this chain first instead of using the chain supplied from
 	# the server.
-	if ( ssl_cache_intermediate_ca && issuer in intermediate_cache )
+	if ( ssl_cache_intermediate_ca && issuer_name_hash in intermediate_cache )
 		{
 		intermediate_chain[0] = c$ssl$cert_chain[0]$x509$handle;
-		for ( i in intermediate_cache[issuer] )
-			intermediate_chain[i+1] = intermediate_cache[issuer][i];
+		for ( i in intermediate_cache[issuer_name_hash] )
+			intermediate_chain[i+1] = intermediate_cache[issuer_name_hash][i];
 
 		result = cache_validate(intermediate_chain);
 		if ( result$result_string == "ok" )
@@ -188,7 +197,7 @@ event ssl_established(c: connection) &priority=3
 		{
 		local message = fmt("SSL certificate validation failed with (%s)", c$ssl$validation_status);
 		NOTICE([$note=Invalid_Server_Cert, $msg=message,
-		        $sub=c$ssl$subject, $conn=c,
+		        $sub=c$ssl$cert_chain[0]$x509$certificate$subject, $conn=c,
 		        $identifier=cat(c$id$resp_h,c$id$resp_p,hash,c$ssl$validation_status)]);
 		}
 	}

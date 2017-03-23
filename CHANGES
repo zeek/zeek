@@ -1,4 +1,14 @@
 
+2.5-115 | 2017-03-23 07:25:41 -0700
+
+  * Fix a test that was failing on some platforms. (Daniel Thayer)
+
+  * Remove test for cluster catch and release. This test keeps failing
+    intermittently because of timing issues that are surprisingly hard
+    to fix. (Johanna Amann)
+
+  * Fix some Coverity warnings. (Daniel Thayer)
+
 2.5-106 | 2017-03-13 11:19:03 -0700
 
   * print version string to stdout on --version, instead

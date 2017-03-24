@@ -180,3 +180,12 @@ enum Level %{
 %}
 
 module GLOBAL;
+#new
+module LDAP;
+
+type ModifyReqPDU: record;
+type ModifyDNReqPDU: record;
+type AddReqPDU: record;
+type DeleteReqPDU: record;
+type LDAPResultPDU: record;
+

@@ -1,0 +1,10 @@
+module LDAP;
+
+
+type ModifyReqPDU: record;
+type ModifyDNReqPDU: record;
+type LDAPResultPDU: record;
+type AddReqPDU: record;
+type DeleteReqPDU: record;
+
+module GLOBAL;

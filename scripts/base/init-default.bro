@@ -81,3 +81,4 @@
 @load base/misc/find-checksum-offloading
 @load base/misc/find-filtered-trace
 @load base/misc/version
+@load base/protocols/ldap

@@ -4015,6 +4015,46 @@ export {
 
 module GLOBAL;
 
+@load base/bif/plugins/Bro_LDAP.types.bif
+
+module LDAP;
+export  {
+
+
+    type LDAP::ModifyReqPDU: record  {
+        messageID   :	count;
+		entry		:	string;
+		value		:	string;
+    };
+
+    type LDAP::ModifyDNReqPDU: record  {
+        messageID   :   count;
+		entry		: 	string;
+		value		: 	string;
+    };
+
+	type LDAP::AddReqPDU: record {
+		messageID	:	count;
+		entry		:	string;
+		value		:	string;
+	};
+
+	type LDAP::DeleteReqPDU: record {
+		messageID	:	count;
+		value		:	string;
+	};
+
+    type LDAP::LDAPResultPDU: record  {
+        messageID : count;
+        result    : count;
+        error     : string;
+    };
+
+	
+}
+
+module GLOBAL;
+
 @load base/bif/event.bif
 
 ## BPF filter the user has set via the -f command line options. Empty if none.

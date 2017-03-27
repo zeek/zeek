@@ -600,14 +600,14 @@ function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signa
 		{
 		x = X509_dup(x);
 		assert(x);
-	#ifdef NID_ct_precert_scts
+#ifdef NID_ct_precert_scts
 		int pos = X509_get_ext_by_NID(x, NID_ct_precert_scts, -1);
 		if ( pos < 0 )
 			{
 			reporter->Error("NID_ct_precert_scts not found");
 			return new Val(0, TYPE_BOOL);
 			}
-	#else
+#else
 		int num_ext = X509_get_ext_count(x);
 		int pos = -1;
 		for ( int k = 0; k < num_ext; ++k )
@@ -622,9 +622,11 @@ function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signa
 				break;
 				}
 			}
-	#endif
+#endif
 		X509_EXTENSION_free(X509_delete_ext(x, pos));
+#ifdef NID_ct_precert_scts
 		assert( X509_get_ext_by_NID(x, NID_ct_precert_scts, -1) == -1 );
+#endif
 		}
 
 	unsigned char *cert_out = nullptr;
@@ -684,7 +686,14 @@ function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signa
 		goto sct_verify_err;
 		}
 
+#ifdef NID_ct_precert_scts
 	success = EVP_DigestVerifyFinal(mdctx, signature->Bytes(), signature->Len());
+#else
+	// older versions of OpenSSL use a non-const-char *sigh*
+	// I don't think they actually manipulate the value though.
+	// todo - this needs a cmake test
+	success = EVP_DigestVerifyFinal(mdctx, (unsigned char*) signature->Bytes(), signature->Len());
+#endif
 	EVP_MD_CTX_destroy(mdctx);
 
 	return new Val(success, TYPE_BOOL);

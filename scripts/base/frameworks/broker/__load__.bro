@@ -1,2 +1,3 @@
 @load ./main
-@load ./store
+#TODO: adapt store API
+#@load ./store

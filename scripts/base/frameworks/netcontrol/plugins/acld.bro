@@ -243,7 +243,7 @@ function acld_add_rule_fun(p: PluginState, r: Rule) : bool
 	if ( ar$command == "" )
 		return F;
 
-	Broker::send_event(p$acld_config$acld_topic, Broker::event_args(acld_add_rule, p$acld_id, r, ar));
+	Broker::publish(p$acld_config$acld_topic, Broker::make_event(acld_add_rule, p$acld_id, r, ar));
 	return T;
 	}
 
@@ -266,25 +266,27 @@ function acld_remove_rule_fun(p: PluginState, r: Rule, reason: string) : bool
 			ar$comment = reason;
 		}
 
-	Broker::send_event(p$acld_config$acld_topic, Broker::event_args(acld_remove_rule, p$acld_id, r, ar));
+	Broker::publish(p$acld_config$acld_topic, Broker::make_event(acld_remove_rule, p$acld_id, r, ar));
 	return T;
 	}
 
 function acld_init(p: PluginState)
 	{
 	Broker::enable();
-	Broker::connect(cat(p$acld_config$acld_host), p$acld_config$acld_port, 1sec);
-	Broker::subscribe_to_events(p$acld_config$acld_topic);
+	Broker::peer(cat(p$acld_config$acld_host), p$acld_config$acld_port, 1sec);
+	Broker::subscribe(p$acld_config$acld_topic);
 	}
 
-event Broker::outgoing_connection_established(peer_address: string, peer_port: port, peer_name: string)
+event Broker::status(info: Broker::Status)
 	{
-	if ( [peer_port, peer_address] !in netcontrol_acld_peers )
-		# ok, this one was none of ours...
-		return;
+	# TODO: re-implemnt in terms of new framework
+	#{
+	#if ( [peer_port, peer_address] !in netcontrol_acld_peers )
+	#	# ok, this one was none of ours...
+	#	return;
 
-	local p = netcontrol_acld_peers[peer_port, peer_address];
-	plugin_activated(p);
+	#local p = netcontrol_acld_peers[peer_port, peer_address];
+	#plugin_activated(p);
 	}
 
 global acld_plugin = Plugin(

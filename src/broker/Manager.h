@@ -61,9 +61,12 @@ public:
 
 	/**
 	 * Enable use of communication.
+	 * @param name The name of the endpoint.
+	 * @param routable Whether the context of this endpoint routes messages not
+	 * destined to itself.
 	 * @return true if communication is successfully initialized.
 	 */
-	bool Enable();
+	bool Enable(std::string name = "", bool routable = false);
 
 	/**
 	 * @return true if bro_broker::Manager::Enable() has previously been called and
@@ -102,7 +105,7 @@ public:
 	 * @param msg The message (topic-data) pair to publish to the peers.
 	 * @return true if the message is sent successfully.
 	 */
-	bool Event(broker::message msg);
+	bool Publish(broker::message msg);
 
 	/**
 	 * Send an event to any interested peers.
@@ -113,7 +116,7 @@ public:
 	 * as a string followed by all of its arguments.
 	 * @return true if the message is sent successfully.
 	 */
-	bool Event(std::string topic, broker::data x);
+	bool Publish(std::string topic, broker::data x);
 
 	/**
 	 * Send an event to any interested peers.
@@ -121,10 +124,10 @@ public:
 	 * Peers advertise interest by registering a subscription to some prefix
 	 * of this topic name.
 	 * @param args the event and its arguments to send to peers.  See the
-	 * Broker::EventArgs record type.
+	 * Broker::Event record type.
 	 * @return true if the message is sent successfully.
 	 */
-	bool Event(std::string topic, RecordVal* args);
+	bool Publish(std::string topic, RecordVal* args);
 
 	/**
 	 * Send a log entry to any interested peers.  The topic name used is
@@ -134,7 +137,7 @@ public:
 	 * @param info the record type corresponding to the log's columns.
 	 * @return true if the message is sent successfully.
 	 */
-	bool Log(EnumVal* stream_id, RecordVal* columns, RecordType* info);
+	bool Publish(EnumVal* stream_id, RecordVal* columns, RecordType* info);
 
 	/**
 	 * Automatically send an event to any interested peers whenever it is
@@ -145,41 +148,24 @@ public:
 	 * @param event a Bro event value.
 	 * @return true if automatic event sending is now enabled.
 	 */
-	bool AutoEvent(std::string topic, Val* event);
+	bool AutoPublish(std::string topic, Val* event);
 
 	/**
 	 * Stop automatically sending an event to peers upon local dispatch.
-	 * @param topic a topic originally given to bro_broker::Manager::AutoEvent().
-	 * @param event an event originally given to bro_broker::Manager::AutoEvent().
+	 * @param topic a topic originally given to bro_broker::Manager::AutoPublish().
+	 * @param event an event originally given to bro_broker::Manager::AutoPublish().
 	 * @return true if automatic events will no occur for the topic/event pair.
 	 */
-	bool AutoEventStop(const std::string& topic, Val* event);
+	bool AutoUnpublish(const std::string& topic, Val* event);
 
 	/**
-	 * Create an EventArgs record value from an event and its arguments.
+	 * Create an `Event` record value from an event and its arguments.
 	 * @param args the event and its arguments.  The event is always the first
 	 * elements in the list.
-	 * @return an EventArgs record value.  If an invalid event or arguments
+	 * @return an `Event` record value.  If an invalid event or arguments
 	 * were supplied the optional "name" field will not be set.
 	 */
-	RecordVal* MakeEventArgs(val_list* args);
-
-	/**
-	 * Register interest in peer print messages that use a certain topic prefix.
-	 * @param topic_prefix a prefix to match against remote message topics.
-	 * e.g. an empty prefix will match everything and "a" will match "alice"
-	 * and "amy" but not "bob".
-	 * @return true if it's a new print subscriptions and it is now registered.
-	 */
-	bool SubscribeToPrints(std::string topic_prefix);
-
-	/**
-	 * Unregister interest in peer print messages.
-	 * @param topic_prefix a prefix previously supplied to a successful call
-	 * to bro_broker::Manager::SubscribeToPrints().
-	 * @return true if interest in topic prefix is no longer advertised.
-	 */
-	bool UnsubscribeToPrints(const std::string& topic_prefix);
+	RecordVal* MakeEvent(val_list* args);
 
 	/**
 	 * Register interest in peer event messages that use a certain topic prefix.
@@ -188,15 +174,15 @@ public:
 	 * and "amy" but not "bob".
 	 * @return true if it's a new event subscription and it is now registered.
 	 */
-	bool SubscribeToEvents(const std::string& topic_prefix);
+	bool Subscribe(const std::string& topic_prefix);
 
 	/**
 	 * Unregister interest in peer event messages.
 	 * @param topic_prefix a prefix previously supplied to a successful call
-	 * to bro_broker::Manager::SubscribeToEvents().
+	 * to bro_broker::Manager::Subscribe().
 	 * @return true if interest in topic prefix is no longer advertised.
 	 */
-	bool UnsubscribeToEvents(const std::string& topic_prefix);
+	bool Unsubscribe(const std::string& topic_prefix);
 
 	/**
 	 * Create a new *master* data store.
@@ -258,6 +244,7 @@ private:
 	broker::endpoint& Endpoint()
 		{ return endpoint; }
 
+  std::string name;
   broker::context context;
   broker::blocking_endpoint endpoint;
 

@@ -52,7 +52,7 @@ static int require_field(RecordType* rt, const char* name)
 	return rval;
 	}
 
-bool Manager::Enable()
+bool Manager::Enable(std::string endpoint_name, bool routable)
 	{
 	if ( Enabled() )
 		return true;
@@ -67,8 +67,12 @@ bool Manager::Enable()
 	opaque_of_store_handle = new OpaqueType("Broker::Handle");
 	vector_of_data_type = new VectorType(internal_type("Broker::Data")->Ref());
 
+  name = std::move(endpoint_name);
+  // TODO: process routable flag
 	endpoint = context.spawn<broker::blocking>();
+
 	iosource_mgr->Register(this, true);
+
 	return true;
 	}
 
@@ -98,7 +102,7 @@ void Manager::Unpeer(const string& addr, uint16_t port)
     endpoint.unpeer(addr, port);
 	}
 
-bool Manager::Event(broker::message msg)
+bool Manager::Publish(broker::message msg)
 	{
 	if ( ! Enabled() )
 		return false;
@@ -107,7 +111,7 @@ bool Manager::Event(broker::message msg)
 	return true;
 	}
 
-bool Manager::Event(string topic, broker::data x)
+bool Manager::Publish(string topic, broker::data x)
 	{
 	if ( ! Enabled() )
 		return false;
@@ -116,7 +120,7 @@ bool Manager::Event(string topic, broker::data x)
 	return true;
 	}
 
-bool Manager::Log(EnumVal* stream, RecordVal* columns,
+bool Manager::Publish(EnumVal* stream, RecordVal* columns,
                               RecordType* info)
 	{
 	if ( ! Enabled() )
@@ -169,7 +173,7 @@ bool Manager::Log(EnumVal* stream, RecordVal* columns,
 	return true;
 	}
 
-bool Manager::Event(string topic, RecordVal* args)
+bool Manager::Publish(string topic, RecordVal* args)
 	{
 	if ( ! Enabled() )
 		return false;
@@ -194,7 +198,7 @@ bool Manager::Event(string topic, RecordVal* args)
 	return true;
 	}
 
-bool Manager::AutoEvent(string topic, Val* event)
+bool Manager::AutoPublish(string topic, Val* event)
 	{
 	if ( ! Enabled() )
 		return false;
@@ -226,7 +230,7 @@ bool Manager::AutoEvent(string topic, Val* event)
 	return true;
 	}
 
-bool Manager::AutoEventStop(const string& topic, Val* event)
+bool Manager::AutoUnpublish(const string& topic, Val* event)
 	{
 	if ( ! Enabled() )
 		return false;
@@ -259,12 +263,12 @@ bool Manager::AutoEventStop(const string& topic, Val* event)
 	return true;
 	}
 
-RecordVal* Manager::MakeEventArgs(val_list* args)
+RecordVal* Manager::MakeEvent(val_list* args)
 	{
 	if ( ! Enabled() )
 		return nullptr;
 
-	auto rval = new RecordVal(BifType::Record::Broker::EventArgs);
+	auto rval = new RecordVal(BifType::Record::Broker::Event);
 	auto arg_vec = new VectorVal(vector_of_data_type);
 	rval->Assign(1, arg_vec);
 	Func* func = 0;
@@ -329,7 +333,7 @@ RecordVal* Manager::MakeEventArgs(val_list* args)
 	return rval;
 	}
 
-bool Manager::SubscribeToEvents(const string& topic_prefix)
+bool Manager::Subscribe(const string& topic_prefix)
 	{
 	if ( ! Enabled() )
 		return false;
@@ -338,7 +342,7 @@ bool Manager::SubscribeToEvents(const string& topic_prefix)
 	return true;
 	}
 
-bool Manager::UnsubscribeToEvents(const string& topic_prefix)
+bool Manager::Unsubscribe(const string& topic_prefix)
 	{
 	if ( ! Enabled() )
 		return false;

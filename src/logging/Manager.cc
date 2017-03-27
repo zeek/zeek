@@ -912,7 +912,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 
 	if ( stream->enable_remote )
 		{
-		if ( ! broker_mgr->Log(id, columns, stream->columns) )
+		if ( ! broker_mgr->Publish(id, columns, stream->columns) )
 			stream->enable_remote = false;
 		}
 

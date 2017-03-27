@@ -7,16 +7,31 @@
 
 module Broker;
 
-function Broker::__enable%(%): bool
+type Broker::Options: record;
+
+type Broker::Status: record;
+
+type Broker::Error: record;
+
+## Generated when something changes in the Broker system.
+event Broker::status%(info: Status%);
+
+## Generated when something changes in the Broker system.
+event Broker::error%(info: Error%);
+
+function Broker::__enable%(options: Broker::Options%): bool
 	%{
-	return new Val(broker_mgr->Enable(), TYPE_BOOL);
+	auto name = "";
+	auto routable = false;
+
+	if ( auto name_val = options->AsRecordVal()->Lookup(0) )
+		name = name_val->AsString()->CheckString();
+
+	if ( auto routable_val = options->AsRecordVal()->Lookup(1) )
+		routable = routable_val->AsBool();
+
+	return new Val(broker_mgr->Enable(name, routable), TYPE_BOOL);
 	%}
-
-## Generated when something changes in the Broker system.
-event Broker::status%(todo: string%);
-
-## Generated when something changes in the Broker system.
-event Broker::error%(todo: string%);
 
 function Broker::__listen%(p: port, a: string%): port
 	%{

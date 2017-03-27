@@ -5,15 +5,17 @@
 
 redef exit_only_after_terminate = T;
 
-event terminate_me() {
-        print "terminating";
-        terminate();
-}
+event terminate_me()
+	{
+  print "terminating";
+  terminate();
+	}
 
-event bro_init() {
-        Broker::enable();
+event bro_init()
+	{
+  Broker::enable();
 
-        print "1";
-        schedule 1sec { terminate_me() };
-        print "2";
-}
+  print "1";
+  schedule 1sec { terminate_me() };
+  print "2";
+	}

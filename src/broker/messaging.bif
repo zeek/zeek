@@ -8,48 +8,48 @@
 
 module Broker;
 
-type Broker::EventArgs: record;
+type Broker::Event: record;
 
 ## Create a data structure that may be used to send a remote event via
-## :bro:see:`Broker::send_event`.
+## :bro:see:`Broker::publish`.
 ##
 ## args: an event, followed by a list of argument values that may be used
 ##       to call it.
 ##
 ## Returns: opaque communication data that may be used to send a remote
 ##          event.
-function Broker::event_args%(...%): Broker::EventArgs
+function Broker::make_event%(...%): Broker::Event
 	%{
-	auto rval = broker_mgr->MakeEventArgs(@ARGS@);
+	auto rval = broker_mgr->MakeEvent(@ARGS@);
 	return rval;
 	%}
 
-function Broker::__event%(topic: string, args: Broker::EventArgs%): bool
+function Broker::__publish%(topic: string, ev: Broker::Event%): bool
 	%{
-	auto rval = broker_mgr->Event(topic->CheckString(), args->AsRecordVal());
+	auto rval = broker_mgr->Publish(topic->CheckString(), ev->AsRecordVal());
 	return new Val(rval, TYPE_BOOL);
 	%}
 
-function Broker::__auto_event%(topic: string, ev: any%): bool
+function Broker::__auto_publish%(topic: string, ev: any%): bool
 	%{
-	auto rval = broker_mgr->AutoEvent(topic->CheckString(), ev);
+	auto rval = broker_mgr->AutoPublish(topic->CheckString(), ev);
 	return new Val(rval, TYPE_BOOL);
 	%}
 
-function Broker::__auto_event_stop%(topic: string, ev: any%): bool
+function Broker::__auto_unpublish%(topic: string, ev: any%): bool
 	%{
-	auto rval = broker_mgr->AutoEventStop(topic->CheckString(), ev);
+	auto rval = broker_mgr->AutoUnpublish(topic->CheckString(), ev);
 	return new Val(rval, TYPE_BOOL);
 	%}
 
-function Broker::__subscribe_to_events%(topic_prefix: string%): bool
+function Broker::__subscribe%(topic_prefix: string%): bool
 	%{
-	auto rval = broker_mgr->SubscribeToEvents(topic_prefix->CheckString());
+	auto rval = broker_mgr->Subscribe(topic_prefix->CheckString());
 	return new Val(rval, TYPE_BOOL);
 	%}
 
-function Broker::__unsubscribe_to_events%(topic_prefix: string%): bool
+function Broker::__unsubscribe%(topic_prefix: string%): bool
 	%{
-	auto rval = broker_mgr->UnsubscribeToEvents(topic_prefix->CheckString());
+	auto rval = broker_mgr->Unsubscribe(topic_prefix->CheckString());
 	return new Val(rval, TYPE_BOOL);
 	%}

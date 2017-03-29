@@ -21,7 +21,7 @@ export {
 		validation_status: string &log &optional;
 		## Result of certificate validation for this connection, given
 		## as OpenSSL validation code.
-		validation_code: count &optional;
+		validation_code: int &optional;
 		## Ordered chain of validated certificate, if validation succeeded.
 		valid_chain: vector of opaque of x509 &optional;
 	};

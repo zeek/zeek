@@ -13,11 +13,11 @@ type Broker::Status: record;
 
 type Broker::Error: record;
 
-## Generated when something changes in the Broker system.
-event Broker::status%(info: Status%);
+## Generated when something changes in the Broker sub-system.
+event Broker::status%(code: StatusCode, endpoint: EndpointInfo, msg: string%);
 
-## Generated when something changes in the Broker system.
-event Broker::error%(info: Error%);
+## Generated when an error occurs in the Broker sub-system.
+event Broker::error%(code: ErrorCode, msg: string%);
 
 function Broker::__enable%(options: Broker::Options%): bool
 	%{

@@ -21,14 +21,30 @@ export {
 		routable: bool &default = T;
 	};
 
-	## Information passed into the :bro:see:`Broker::status` event.
-	type Status: record {
-		# TODO
+	type ErrorCode: enum {
+		UNSPECIFIED,
 	};
 
-	## Information passed into the :bro:see:`Broker::error` event.
-	type Error: record {
-		# TODO
+	type StatusCode: enum {
+		UNSPECIFIED,
+		PEER_ADDED,
+		PEER_REMOVED,
+		PEER_LOST,
+		PEER_RECOVERED
+	};
+
+	type NetworkInfo : record {
+		## The IP address where the endpoint listens.
+		address: addr;
+		## The port where the endpoint is bound to.
+		bound_port: port;
+  };
+
+	type EndpointInfo: record {
+		## A unique identifier of the node.
+		id: string;
+		## Network-level information.
+		network: NetworkInfo &optional;
 	};
 
 	## Opaque communication data.

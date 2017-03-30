@@ -493,11 +493,54 @@ void Manager::Process()
       }
     if ( auto stat = broker::get_if<broker::status>(elem) )
       {
-        // TODO: handle status message properly.
+		  auto make_status_code = [](const broker::status& s)
+		    {
+        auto sc = internal_type("Broker::StatusCode")->AsEnumType();
+        switch (s.code())
+          {
+          case broker::sc::unspecified:
+            return new EnumVal(sc->Lookup("Broker", "UNSPECIFIED"), sc);
+          case broker::sc::peer_added:
+            return new EnumVal(sc->Lookup("Broker", "PEER_ADDED"), sc);
+          case broker::sc::peer_removed:
+            return new EnumVal(sc->Lookup("Broker", "PEER_REMOVED"), sc);
+          case broker::sc::peer_lost:
+            return new EnumVal(sc->Lookup("Broker", "PEER_LOST"), sc);
+          case broker::sc::peer_recovered:
+            return new EnumVal(sc->Lookup("Broker", "PEER_RECOVERED"), sc);
+          }
+      };
+
+      auto ei = internal_type("Broker::EndpointInfo")->AsRecordType();
+      auto endpoint_info = new RecordVal(ei);
+      if (auto ctx = stat->context<broker::endpoint_info>())
+        {
+        auto id = to_string(ctx->node) + to_string(ctx->id);
+        endpoint_info->Assign(0, new StringVal(id));
+
+        if (ctx->network)
+          {
+          auto ni = internal_type("Broker::NetworkInfo")->AsRecordType();
+          auto network_info = new RecordVal(ni);
+          network_info->Assign(0, new AddrVal(IPAddr(ctx->network->address)));
+          network_info->Assign(1, new PortVal(ctx->network->port, TRANSPORT_TCP));
+          endpoint_info->Assign(1, network_info);
+          }
+        }
+
+      auto str = stat->message();
+      auto msg = new StringVal(str ? *str : "");
+
+      auto vl = new val_list;
+      vl->append(make_status_code(*stat));
+      vl->append(endpoint_info);
+      vl->append(msg);
+
+      mgr.QueueEvent(Broker::status, vl);
       }
     else
       {
-      // Not a data message, dispatch status accordingly.
+      // TODO: deliver error to the user via the Broker::error event.
       reporter->Warning("got status message: %s",
                         to_string(broker::get<broker::error>(elem)).c_str());
       }

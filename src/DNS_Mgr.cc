@@ -372,6 +372,7 @@ void DNS_Mapping::Save(FILE* f) const
 
 DNS_Mgr::DNS_Mgr(DNS_MgrMode arg_mode)
 	{
+	fd_event_handler = nullptr;
 	did_init = 0;
 
 	mode = arg_mode;
@@ -1223,6 +1224,23 @@ void DNS_Mgr::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
 		return;
 
 	read->Insert(nb_dns_fd(nb_dns));
+	}
+
+void DNS_Mgr::Start(runloop_actor* runloop)
+	{
+	if ( ! nb_dns )
+		return;
+
+	auto fd = nb_dns_fd(nb_dns);
+	fd_event_handler = new FdEventHandler(this, runloop, fd);
+	fd_event_handler->EnableReadEvents();
+	DBG_LOG(DBG_MAINLOOP,  "IO for %s started", Tag());
+	}
+
+void DNS_Mgr::Stop()
+	{
+	DBG_LOG(DBG_MAINLOOP,  "IO for %s stopped", Tag());
+	StopEventHandler(fd_event_handler);
 	}
 
 double DNS_Mgr::NextTimestamp(double* network_time)

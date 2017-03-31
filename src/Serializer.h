@@ -17,6 +17,7 @@
 #include "Timer.h"
 #include "iosource/IOSource.h"
 #include "Reporter.h"
+#include "Flare.h"
 
 class SerializationCache;
 class SerialInfo;
@@ -336,6 +337,8 @@ public:
 
 	virtual void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
 	                    iosource::FD_Set* except);
+	virtual void Start(runloop_actor* runloop) override;
+	virtual void Stop() override;
 	virtual double NextTimestamp(double* local_network_time);
 	virtual void Process();
 	virtual const char* Tag()	{ return "EventPlayer"; }
@@ -347,6 +350,8 @@ protected:
 	virtual void GotFunctionCall(const char* name, double time,
 				Func* func, val_list* args);
 
+	FdEventHandler* fd_event_handler;
+
 	double stream_time;	// time of first captured event
 	double replay_time;	// network time of replay start
 
@@ -354,7 +359,7 @@ protected:
 	double ne_time;
 	EventHandlerPtr ne_handler;
 	val_list* ne_args;
-
+	bro::Flare* flare;
 };
 
 extern FileSerializer* event_serializer;

@@ -70,6 +70,14 @@ void Manager::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
 	{
 	}
 
+void Manager::Start(runloop_actor* runloop)
+	{
+	}
+
+void Manager::Stop()
+	{
+	}
+
 double Manager::NextTimestamp(double* network_time)
 	{
 //	fprintf(stderr, "N %.6f %.6f did_process=%d next_next=%.6f\n", ::network_time, timer_mgr->Time(), (int)did_process, next_beat);

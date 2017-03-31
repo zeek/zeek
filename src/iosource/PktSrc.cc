@@ -25,6 +25,8 @@ PktSrc::Properties::Properties()
 
 PktSrc::PktSrc()
 	{
+	flare = nullptr;
+	fd_event_handler = nullptr;
 	have_packet = false;
 	errbuf = "";
 	SetClosed(true);
@@ -37,6 +39,8 @@ PktSrc::PktSrc()
 
 PktSrc::~PktSrc()
 	{
+	delete flare;
+
 	for ( auto code : filters )
 		delete code;
 	}
@@ -186,6 +190,8 @@ void PktSrc::Init()
 
 void PktSrc::Done()
 	{
+	IOSource::Done();
+
 	if ( IsOpen() )
 		Close();
 	}
@@ -215,6 +221,46 @@ void PktSrc::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
 
 	if ( except->Empty() )
 		except->Insert(0);
+	}
+
+void PktSrc::Start(runloop_actor* runloop)
+	{
+	if ( ! IsOpen() )
+		return;
+
+	if ( props.selectable_fd < 0 )
+		return;
+
+	if ( props.is_live )
+		{
+		fd_event_handler = new FdEventHandler(this, runloop,
+		                                      props.selectable_fd);
+		fd_event_handler->EnableReadEvents();
+		DBG_LOG(DBG_MAINLOOP,  "IO for %s:%s (live) started", Tag(),
+		        props.path.c_str());
+		return;
+		}
+
+
+	if ( ! flare )
+		flare = new bro::Flare();
+
+	// Runloop should cycle as fast as possible when reading from files.
+	fd_event_handler = new FdEventHandler(nullptr, runloop, flare->FD());
+	fd_event_handler->EnableReadEvents();
+	flare->Fire();
+	DBG_LOG(DBG_MAINLOOP,  "IO for %s:%s (offline) started", Tag(),
+	        props.path.c_str());
+	}
+
+void PktSrc::Stop()
+	{
+	StopEventHandler(fd_event_handler);
+
+	if ( flare )
+		flare->Extinguish();
+
+	DBG_LOG(DBG_MAINLOOP,  "IO for %s:%s stopped", Tag(), props.path.c_str());
 	}
 
 double PktSrc::NextTimestamp(double* local_network_time)

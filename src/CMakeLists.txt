@@ -258,6 +258,7 @@ set(bro_SRCS
     ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
     ${PLUGIN_INIT}
     main.cc
+    run.cc
     net_util.cc
     util.cc
     module_util.cc
@@ -288,6 +289,7 @@ set(bro_SRCS
     EventLauncher.cc
     EventRegistry.cc
     Expr.cc
+    FdEventHandler.cc
     File.cc
     Flare.cc
     Frag.cc

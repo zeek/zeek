@@ -616,6 +616,16 @@ void bro_broker::Manager::GetFds(iosource::FD_Set* read, iosource::FD_Set* write
 	read->Insert(broker::report::default_queue->fd());
 	}
 
+void bro_broker::Manager::Start(runloop_actor* runloop)
+    {
+    // @todo
+    }
+
+void bro_broker::Manager::Stop()
+    {
+    // @todo
+    }
+
 double bro_broker::Manager::NextTimestamp(double* local_network_time)
 	{
 	if ( next_timestamp < 0 )

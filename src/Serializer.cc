@@ -977,7 +977,8 @@ void FileSerializer::GotPacket(Packet* p)
 	}
 
 EventPlayer::EventPlayer(const char* file)
-    : stream_time(), replay_time(), ne_time(), ne_handler(), ne_args()
+    : fd_event_handler(), stream_time(), replay_time(), ne_time(), ne_handler(),
+      ne_args(), flare()
 	{
 	if ( ! OpenFile(file, true) || fd < 0 )
 		Error(fmt("event replayer: cannot open %s", file));
@@ -988,6 +989,7 @@ EventPlayer::EventPlayer(const char* file)
 
 EventPlayer::~EventPlayer()
 	{
+	delete flare;
 	CloseFile();
 	}
 
@@ -1009,6 +1011,24 @@ void EventPlayer::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
                          iosource::FD_Set* except)
 	{
 	read->Insert(fd);
+	}
+
+void EventPlayer::Start(runloop_actor* runloop)
+	{
+	if ( ! flare )
+		flare = new bro::Flare();
+
+	fd_event_handler = new FdEventHandler(nullptr, runloop, flare->FD());
+	fd_event_handler->EnableReadEvents();
+	flare->Fire();
+	}
+
+void EventPlayer::Stop()
+	{
+	StopEventHandler(fd_event_handler);
+
+	if ( flare )
+		flare->Extinguish();
 	}
 
 double EventPlayer::NextTimestamp(double* local_network_time)

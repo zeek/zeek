@@ -387,12 +387,6 @@ void net_run()
 			// the future on which we need to wait.
 			have_pending_timers = timer_mgr->Size() > 0;
 		}
-
-	// Get the final statistics now, and not when net_finish() is
-	// called, since that might happen quite a bit in the future
-	// due to expiring pending timers, and we don't want to ding
-	// for any packets dropped beyond this point.
-	net_get_final_stats();
 	}
 
 void net_get_final_stats()

@@ -6,6 +6,7 @@
 #include <assert.h>
 
 #include <algorithm>
+#include <limits>
 
 #include "Manager.h"
 #include "IOSource.h"
@@ -43,6 +44,23 @@ void Manager::RemoveAll()
 	{
 	// We're cheating a bit here ...
 	dont_counts = sources.size();
+	}
+
+void Manager::RemoveDrySources()
+	{
+	auto it = sources.begin();
+
+	while ( it != sources.end() )
+		{
+		if ( (*it)->src->IsOpen() )
+			++it;
+		else
+			{
+			(*it)->src->Done();
+			delete *it;
+			it = sources.erase(it);
+			}
+		}
 	}
 
 IOSource* Manager::FindSoonest(double* ts)
@@ -177,6 +195,38 @@ IOSource* Manager::FindSoonest(double* ts)
 finished:
 	*ts = soonest_local_network_time;
 	return soonest_src;
+	}
+
+IOSource* Manager::SoonestSource() const
+	{
+	IOSource* soonest_src = nullptr;
+	double soonest_ts = std::numeric_limits<double>::max();
+	double local_network_time = 0;
+
+	for ( auto& source : sources )
+		{
+		// @todo: nothing except RemoteSerializer uses the timestamp argument,
+		// and its value was only used in debug logs, so can we ditch it?
+		double ts = source->src->NextTimestamp(&local_network_time);
+
+		if ( ts > 0 && ts < soonest_ts )
+			{
+			soonest_ts = ts;
+			soonest_src = source->src;
+			}
+		}
+
+	return soonest_src;
+	}
+
+std::list<IOSource*> Manager::GetSources() const
+	{
+	std::list<IOSource*> rval;
+
+	for ( auto s : sources )
+		rval.push_back(s->src);
+
+	return rval;
 	}
 
 void Manager::Register(IOSource* src, bool dont_count)

@@ -9,6 +9,7 @@
 #include "BPF_Program.h"
 #include "Dict.h"
 #include "Packet.h"
+#include "Flare.h"
 
 declare(PDict,BPF_Program);
 
@@ -354,9 +355,13 @@ private:
 	virtual void Done();
 	virtual void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
 	                    iosource::FD_Set* except);
+	virtual void Start(runloop_actor* runloop) override;
+	virtual void Stop() override;
 	virtual double NextTimestamp(double* local_network_time);
 	virtual void Process();
 	virtual const char* Tag();
+
+	FdEventHandler* fd_event_handler;
 
 	Properties props;
 
@@ -374,6 +379,7 @@ private:
 	double next_sync_point; // For trace synchronziation in pseudo-realtime
 
 	std::string errbuf;
+	bro::Flare* flare;
 };
 
 }

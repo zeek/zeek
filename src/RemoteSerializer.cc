@@ -1381,6 +1381,18 @@ void RemoteSerializer::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
 		write->Insert(io->Fd());
 	}
 
+void RemoteSerializer::Start(runloop_actor* runloop)
+	{
+	// @todo: io->FD
+	// @todo: extra FDs
+	// @todo: dynamically toggle write events
+	}
+
+void RemoteSerializer::Stop()
+	{
+	// @todo
+	}
+
 double RemoteSerializer::NextTimestamp(double* local_network_time)
 	{
 	Poll(false);

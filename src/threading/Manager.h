@@ -106,6 +106,10 @@ protected:
 	virtual void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
 	                    iosource::FD_Set* except);
 
+	virtual void Start(runloop_actor* runloop) override;
+
+	virtual void Stop() override;
+
 	/**
 	 * Part of the IOSource interface.
 	 */

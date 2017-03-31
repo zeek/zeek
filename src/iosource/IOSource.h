@@ -8,8 +8,11 @@ extern "C" {
 }
 
 #include <string>
+#include "run.h"
 #include "FD_Set.h"
 #include "Timer.h"
+#include "FdEventHandler.h"
+#include "run.h"
 
 namespace iosource {
 
@@ -49,7 +52,8 @@ public:
 	 * Finalizes the source when it's being closed. Can be overwritten by
 	 * derived classes.
 	 */
-	virtual void Done()	{ }
+	virtual void Done()
+		{ Stop(); }
 
 	/**
 	 * Returns select'able file descriptors for this source. Leaves the
@@ -62,6 +66,10 @@ public:
 	 * @param except Pointer to container where to insert a except descriptor.
 	 */
 	virtual void GetFds(FD_Set* read, FD_Set* write, FD_Set* except) = 0;
+
+	virtual void Start(runloop_actor* runloop) = 0;
+
+	virtual void Stop() = 0;
 
 	/**
 	 * Returns the timestamp (in \a global network time) associated with
@@ -129,6 +137,15 @@ protected:
 	 * @param is_closed True if the source is now closed.
 	 */
 	void SetClosed(bool is_closed)	{ closed = is_closed; }
+
+	void StopEventHandler(FdEventHandler*& fd_event_handler)
+		{
+		if ( ! fd_event_handler )
+			return;
+
+		fd_event_handler->Shutdown();
+		fd_event_handler = nullptr; // Shutdown will free it.
+		}
 
 private:
 	bool idle;

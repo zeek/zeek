@@ -55,7 +55,7 @@ class ODesc;
 class Timer : public SerialObj, public PQ_Element {
 public:
 	Timer(double t, TimerType arg_type) : PQ_Element(t)
-		{ type = (char) arg_type; }
+		{ type = (char) arg_type; timercheck_sent = false; }
 	virtual ~Timer()	{ }
 
 	TimerType Type() const	{ return (TimerType) type; }
@@ -69,6 +69,8 @@ public:
 
 	bool Serialize(SerialInfo* info) const;
 	static Timer* Unserialize(UnserialInfo* info);
+
+	bool timercheck_sent;
 
 protected:
 	Timer()	{}
@@ -94,6 +96,7 @@ public:
 
 	// Expire all timers.
 	virtual void Expire() = 0;
+	virtual Timer* Next() = 0;
 
 	// Cancel() is a method separate from Remove because
 	// (1) Remove is protected, but, more importantly, (2) in some
@@ -152,12 +155,14 @@ public:
 	uint64 CumulativeNum() const	{ return q->CumulativeNum(); }
 	unsigned int MemoryUsage() const;
 
+
 protected:
 	int DoAdvance(double t, int max_expire);
 	void Remove(Timer* timer);
 
 	Timer* Remove()			{ return (Timer*) q->Remove(); }
 	Timer* Top()			{ return (Timer*) q->Top(); }
+	Timer* Next() override	{ return (Timer*) q->Top(); }
 
 	PriorityQueue* q;
 };
@@ -178,6 +183,7 @@ public:
 protected:
 	int DoAdvance(double t, int max_expire);
 	void Remove(Timer* timer);
+	Timer* Next() override	{ return nullptr; } // not implemented
 
 	struct cq_handle *cq;
 };

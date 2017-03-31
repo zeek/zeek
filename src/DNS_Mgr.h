@@ -134,9 +134,13 @@ protected:
 	// IOSource interface.
 	virtual void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
 	                    iosource::FD_Set* except);
+	virtual void Start(runloop_actor* runloop) override;
+	virtual void Stop() override;
 	virtual double NextTimestamp(double* network_time);
 	virtual void Process();
 	virtual const char* Tag()	{ return "DNS_Mgr"; }
+
+	FdEventHandler* fd_event_handler;
 
 	DNS_MgrMode mode;
 

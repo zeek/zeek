@@ -53,6 +53,8 @@ public:
 	 */
 	IOSource* FindSoonest(double* ts);
 
+	IOSource* SoonestSource() const;
+
 	/**
 	 * Returns the number of registered and still active sources,
 	 * excluding those that are registered as \a dont_cont.
@@ -61,11 +63,15 @@ public:
 
 	typedef std::list<PktSrc *> PktSrcList;
 
+	void RemoveDrySources();
+
 	/**
 	 * Returns a list of all registered PktSrc instances. This is a
 	 * subset of all registered IOSource instances.
 	 */
 	const PktSrcList& GetPktSrcs() const	{ return pkt_srcs; }
+
+	std::list<IOSource*> GetSources() const;
 
 	/**
 	 * Terminate all processing immediately by removing all sources (and

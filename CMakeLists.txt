@@ -75,6 +75,8 @@ if (NOT BinPAC_ROOT_DIR AND
 endif ()
 FindRequiredPackage(BinPAC)
 
+find_package(CAF COMPONENTS core io REQUIRED)
+
 if (ENABLE_JEMALLOC)
     find_package(JeMalloc)
 endif ()
@@ -93,6 +95,7 @@ include_directories(BEFORE
                     ${BinPAC_INCLUDE_DIR}
                     ${ZLIB_INCLUDE_DIR}
                     ${JEMALLOC_INCLUDE_DIR}
+                    ${CAF_INCLUDE_DIRS}
 )
 
 # Optional Dependencies
@@ -145,6 +148,7 @@ set(brodeps
     ${BIND_LIBRARY}
     ${ZLIB_LIBRARY}
     ${JEMALLOC_LIBRARIES}
+    ${CAF_LIBRARIES}
     ${OPTLIBS}
 )
 

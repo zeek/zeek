@@ -348,6 +348,10 @@ private:
 	void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
 	            iosource::FD_Set* except) override;
 
+    void Start(runloop_actor* runloop) override;
+
+    void Stop() override;
+
 	double NextTimestamp(double* local_network_time) override;
 
 	void Process() override;

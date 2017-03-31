@@ -23,6 +23,8 @@ extern "C" {
 
 extern "C" void OPENSSL_add_all_algorithms_conf(void);
 
+#include "run.h"
+#include "Flare.h"
 #include "bsd-getopt-long.h"
 #include "input.h"
 #include "DNS_Mgr.h"
@@ -115,6 +117,7 @@ ProfileLogger* profiling_logger = 0;
 ProfileLogger* segment_logger = 0;
 SampleLogger* sample_logger = 0;
 int signal_val = 0;
+bro::Flare* signal_flare;
 extern char version[];
 char* command_line_policy = 0;
 vector<string> params;
@@ -167,6 +170,7 @@ void usage()
 	fprintf(stderr, "    <file>                         | policy file, or read stdin\n");
 	fprintf(stderr, "    -a|--parse-only                | exit immediately after parsing scripts\n");
 	fprintf(stderr, "    -b|--bare-mode                 | don't load scripts from the base/ directory\n");
+	fprintf(stderr, "    -c|--caf-loop                  | use CAF-based runloop\n");
 	fprintf(stderr, "    -d|--debug-policy              | activate policy file debugging\n");
 	fprintf(stderr, "    -e|--exec <bro code>           | augment loaded policies by given code\n");
 	fprintf(stderr, "    -f|--filter <filter>           | tcpdump filter\n");
@@ -412,7 +416,7 @@ RETSIGTYPE sig_handler(int signo)
 	{
 	set_processing_status("TERMINATING", "sig_handler");
 	signal_val = signo;
-
+	signal_flare->Fire();
 	return RETSIGVAL;
 	}
 
@@ -451,6 +455,7 @@ int main(int argc, char** argv)
 	char* user_pcap_filter = 0;
 	char* debug_streams = 0;
 	int parse_only = false;
+	int caf_loop = false;
 	int bare_mode = false;
 	int dump_cfg = false;
 	int do_watchdog = 0;
@@ -463,7 +468,8 @@ int main(int argc, char** argv)
 	static struct option long_opts[] = {
 		{"parse-only",	no_argument,		0,	'a'},
 		{"bare-mode",	no_argument,		0,	'b'},
-		{"debug-policy",	no_argument,		0,	'd'},
+	    {"caf-loop",	no_argument,		0,	'c'},
+	    {"debug-policy",	no_argument,		0,	'd'},
 		{"dump-config",		no_argument,		0,	'g'},
 		{"exec",		required_argument,	0,	'e'},
 		{"filter",		required_argument,	0,	'f'},
@@ -534,7 +540,7 @@ int main(int argc, char** argv)
 	opterr = 0;
 
 	char opts[256];
-	safe_strncpy(opts, "B:e:f:G:H:I:i:n:p:R:r:s:T:t:U:w:x:X:CFNPQSWabdghv",
+	safe_strncpy(opts, "B:e:f:G:H:I:i:n:p:R:r:s:T:t:U:w:x:X:CFNPQSWabcdghv",
 		     sizeof(opts));
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -550,6 +556,10 @@ int main(int argc, char** argv)
 
 		case 'b':
 			bare_mode = true;
+			break;
+
+		case 'c':
+			caf_loop = true;
 			break;
 
 		case 'd':
@@ -961,6 +971,8 @@ int main(int argc, char** argv)
 
 	net_done = internal_handler("net_done");
 
+	signal_flare = new bro::Flare();
+
 	if ( ! g_policy_debug )
 		{
 		(void) setsignal(SIGTERM, sig_handler);
@@ -1137,7 +1149,18 @@ int main(int argc, char** argv)
 				mem_net_start_malloced / 1024 / 1024);
 			}
 
-		net_run();
+		if ( caf_loop )
+			run();
+		else
+			net_run();
+
+		DBG_LOG(DBG_MAINLOOP, "done with main loop");
+
+		// Get the final statistics now, and not when net_finish() is
+		// called, since that might happen quite a bit in the future
+		// due to expiring pending timers, and we don't want to ding
+		// for any packets dropped beyond this point.
+		net_get_final_stats();
 
 		double time_net_done = current_time(true);;
 

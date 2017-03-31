@@ -106,15 +106,7 @@ void PcapSource::OpenLive()
 		return;
 		}
 
-	// We use the smallest time-out possible to return almost immediately
-	// if no packets are available. (We can't use set_nonblocking() as
-	// it's broken on FreeBSD: even when select() indicates that we can
-	// read something, we may get nothing if the store buffer hasn't
-	// filled up yet.)
-	//
-	// TODO: The comment about FreeBSD is pretty old and may not apply
-	// anymore these days.
-	if ( pcap_set_timeout(pd, 1) )
+	if ( pcap_set_timeout(pd, 1000) )
 		{
 		PcapError("pcap_set_timeout");
 		return;
@@ -132,13 +124,11 @@ void PcapSource::OpenLive()
 		return;
 		}
 
-#ifdef HAVE_LINUX
 	if ( pcap_setnonblock(pd, 1, tmp_errbuf) < 0 )
 		{
 		PcapError("pcap_setnonblock");
 		return;
 		}
-#endif
 
 #ifdef HAVE_PCAP_INT_H
 	Info(fmt("pcap bufsize = %d\n", ((struct pcap *) pd)->bufsize));

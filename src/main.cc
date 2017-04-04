@@ -455,7 +455,6 @@ int main(int argc, char** argv)
 	char* user_pcap_filter = 0;
 	char* debug_streams = 0;
 	int parse_only = false;
-	int caf_loop = false;
 	int bare_mode = false;
 	int dump_cfg = false;
 	int do_watchdog = 0;

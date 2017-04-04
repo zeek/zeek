@@ -13,8 +13,8 @@
 #include "iosource/Manager.h"
 #include "iosource/PktSrc.h"
 #include "threading/Manager.h"
-#include "logging/Manager.h"
 #include "input/Manager.h"
+#include "DNS_Mgr.h"
 
 using timercheck_atom = caf::atom_constant<caf::atom("timercheck")>;
 using heartbeat_atom = caf::atom_constant<caf::atom("heartbeat")>;
@@ -154,12 +154,34 @@ static caf::behavior run_behavior(runloop_actor* self)
 		[=](IOEvent ev)
 		    {
 			self->state.events.emplace_back(ev);
+
+			if ( ev.source == dns_mgr )
+				// @todo: this is really just a stopgap to re-use existing
+				// async DNS code.  Would be better to have DNS queries
+				// running independently and notifying the run loop when
+				// when results or timeout events are ready to process.
+				dynamic_cast<DNS_Mgr*>(ev.source)->has_io = true;
 			},
 		[=](caf::io_cycle_atom)
 		    {
 			auto& events = self->state.events;
 			// @todo: use proper logging for debug messages
-			DBG_LOG(DBG_MAINLOOP, "cycle IO events: %d", (int)events.size());
+			DBG_LOG(DBG_MAINLOOP, "IO cycle events: %d", (int)events.size());
+
+			for ( auto& ev : events )
+				{
+				if ( ev.source )
+					{
+					DBG_LOG(DBG_MAINLOOP, "\tfd: %d, source: %s",
+					        ev.fd, ev.source->Tag());
+					}
+				else
+					{
+					DBG_LOG(DBG_MAINLOOP, "\tfd: %d, source: <no source>",
+					        ev.fd);
+					}
+				}
+
 			process(self);
 			},
 		[=](timercheck_atom)

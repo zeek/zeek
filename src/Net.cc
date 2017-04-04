@@ -48,6 +48,7 @@ extern int select(int, fd_set *, fd_set *, fd_set *, struct timeval *);
 
 iosource::PktDumper* pkt_dumper = 0;
 
+bool caf_loop = false;
 int reading_live = 0;
 int reading_traces = 0;
 int have_pending_timers = 0;

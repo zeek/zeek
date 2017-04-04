@@ -372,6 +372,7 @@ void DNS_Mapping::Save(FILE* f) const
 
 DNS_Mgr::DNS_Mgr(DNS_MgrMode arg_mode)
 	{
+	has_io = false;
 	fd_event_handler = nullptr;
 	did_init = 0;
 
@@ -636,6 +637,7 @@ void DNS_Mgr::Resolve()
 		else if ( status > 0 )
 			{
 			DNS_Mgr_Request* dr = (DNS_Mgr_Request*) r.cookie;
+
 			if ( dr->RequestPending() )
 				{
 				AddResult(dr, &r);
@@ -1245,8 +1247,21 @@ void DNS_Mgr::Stop()
 
 double DNS_Mgr::NextTimestamp(double* network_time)
 	{
-	// This is kind of cheating ...
-	return asyncs_timeouts.size() ? timer_mgr->Time() : -1.0;
+	if ( ! caf_loop )
+		// This is kind of cheating ...
+		return asyncs_timeouts.size() ? timer_mgr->Time() : -1.0;
+
+	if ( has_io )
+		// @todo: this is arbitrary and essentially means "processing of this
+		// source has highest priority".  Would be more flexible if the run
+		// loop itself gets to decide how to prioritize its processing.k
+		return timer_mgr->Time();
+
+	if ( ! asyncs_timeouts.size() )
+		return -1;
+
+	AsyncRequest* req = asyncs_timeouts.top();
+	return req->time + DNS_TIMEOUT;
 	}
 
 void DNS_Mgr::CheckAsyncAddrRequest(const IPAddr& addr, bool timeout)
@@ -1442,6 +1457,8 @@ void DNS_Mgr::DoProcess(bool flush)
 
 		delete dr;
 		}
+
+	has_io = false;
 	}
 
 int DNS_Mgr::AnswerAvailable(int timeout)

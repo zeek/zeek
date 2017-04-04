@@ -33,6 +33,8 @@ extern int _processing_suspended;	// don't access directly.
 inline bool net_is_processing_suspended()
 	{ return _processing_suspended > 0; }
 
+extern bool caf_loop;
+
 // Whether we're reading live traffic.
 extern int reading_live;
 

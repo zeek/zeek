@@ -92,6 +92,8 @@ public:
 
 	void GetStats(Stats* stats);
 
+	bool has_io;
+
 protected:
 	friend class LookupCallback;
 	friend class DNS_Mgr_Request;

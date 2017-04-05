@@ -2,6 +2,7 @@
 # @TEST-EXEC: bro -b -r $TRACES/tls/ssl.v3.trace %INPUT
 # @TEST-EXEC: bro -b -r $TRACES/tls/tls1.2.trace %INPUT
 # @TEST-EXEC: bro -b -r $TRACES/tls/tls-early-alert.trace %INPUT
+# @TEST-EXEC: bro -b -r $TRACES/tls/tls-13draft19-early-data.pcap %INPUT
 # @TEST-EXEC: btest-diff .stdout
 
 @load base/frameworks/dpd

@@ -163,6 +163,10 @@ export {
 		[42] = "early_data", # new for 1.3, state of draft-16
 		[43] = "supported_versions", # new for 1.3, state of draft-16
 		[44] = "cookie", # new for 1.3, state of draft-16
+		[45] = "psk_key_exchange_modes", # new for 1.3, state of draft-18
+		[46] = "TicketEarlyDataInfo", # new for 1.3, state of draft-16
+		[47] = "certificate_authorities", # new for 1.3, state of draft-18
+		[48] = "oid_filters", # new for 1.3, state of draft-18
 		[13172] = "next_protocol_negotiation",
 		[13175] = "origin_bound_certificates",
 		[13180] = "encrypted_client_certificates",

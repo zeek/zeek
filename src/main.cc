@@ -1148,6 +1148,9 @@ int main(int argc, char** argv)
 				mem_net_start_malloced / 1024 / 1024);
 			}
 
+		if ( getenv("BRO_CAF_LOOP") )
+			caf_loop = true;
+
 		if ( caf_loop )
 			run();
 		else

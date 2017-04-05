@@ -148,6 +148,22 @@ static caf::behavior run_behavior(runloop_actor* self)
 	self->state.signal_handler->EnableReadEvents();
 
 	schedule_timer_expiry(self);
+
+	// @todo: the heartbeat here is being used for both threading and for
+	// processing standalone scripts that just call events over and over,
+	// absent any pcap source (e.g. see core/recursive-event.bro unit test).
+	// In the later case, the heartbeat is the tick rate at which events
+	// get dispatched.  The following should probably be done:
+	// 1) have a tick rate independent of the threading heartbeat rate
+	//    (e.g. the old runloop uses .1 seconds for ticks and 1 second for
+	//    heartbeats)
+	// 2) could allow user to define the tick rate
+	// 3) only actually use the tick rate when there's no pcap sources?
+	// 4) like the old runloop, could consider threading::Manager ineligible
+	//    for processing (i.e. don't even send the heartbeats), until it
+	//    has added a thread (i.e. the idle state has been toggled off).
+	//    Doubt this point really matters much, just noting differences between
+	//    runloops.
 	schedule_heartbeat(self);
 
 	return {
@@ -193,6 +209,12 @@ static caf::behavior run_behavior(runloop_actor* self)
 		    {
 			DBG_LOG(DBG_MAINLOOP, "heartbeat");
 			schedule_heartbeat(self);
+
+			if ( self->state.events.empty() )
+				// Update time now, so that threading::Manager correctly reports
+				// it is in need of processing.
+				net_update_time(current_time());
+
 			// An io cycle will automatically be triggered.
 			},
 		[=](caf::close_atom)

@@ -189,6 +189,38 @@ refine connection Handshake_Conn += {
 		return true;
 		%}
 
+	function proc_supported_versions(rec: HandshakeRecord, versions_list: uint16[]) : bool
+		%{
+		VectorVal* versions = new VectorVal(internal_type("index_vec")->AsVectorType());
+
+		if ( versions_list )
+			{
+			for ( int i = 0; i < versions_list->size(); ++i )
+				versions->Assign(i, new Val((*versions_list)[i], TYPE_COUNT));
+			}
+
+		BifEvent::generate_ssl_extension_supported_versions(bro_analyzer(), bro_analyzer()->Conn(),
+			${rec.is_orig}, versions);
+
+		return true;
+		%}
+
+	function proc_psk_key_exchange_modes(rec: HandshakeRecord, mode_list: uint8[]) : bool
+		%{
+		VectorVal* modes = new VectorVal(internal_type("index_vec")->AsVectorType());
+
+		if ( mode_list )
+			{
+			for ( int i = 0; i < mode_list->size(); ++i )
+				modes->Assign(i, new Val((*mode_list)[i], TYPE_COUNT));
+			}
+
+		BifEvent::generate_ssl_extension_psk_key_exchange_modes(bro_analyzer(), bro_analyzer()->Conn(),
+			${rec.is_orig}, modes);
+
+		return true;
+		%}
+
 	function proc_v3_certificate(is_orig: bool, cl : X509Certificate[]) : bool
 		%{
 		vector<X509Certificate*>* certs = cl;
@@ -327,6 +359,14 @@ refine typeattr EcServerKeyExchange += &let {
 
 refine typeattr DhServerKeyExchange += &let {
 	proc : bool = $context.connection.proc_dh_server_key_exchange(rec, dh_p, dh_g, dh_Ys);
+};
+
+refine typeattr SupportedVersions += &let {
+	proc : bool = $context.connection.proc_supported_versions(rec, versions);
+};
+
+refine typeattr PSKKeyExchangeModes += &let {
+	proc : bool = $context.connection.proc_psk_key_exchange_modes(rec, modes);
 };
 
 refine typeattr Handshake += &let {

@@ -491,7 +491,7 @@ void Manager::Process()
           delete_vals(vl);
         }
       }
-    if ( auto stat = broker::get_if<broker::status>(elem) )
+    else if ( auto stat = broker::get_if<broker::status>(elem) )
       {
 		  auto make_status_code = [](const broker::status& s)
 		    {
@@ -513,12 +513,12 @@ void Manager::Process()
 
       auto ei = internal_type("Broker::EndpointInfo")->AsRecordType();
       auto endpoint_info = new RecordVal(ei);
-      if (auto ctx = stat->context<broker::endpoint_info>())
+      if ( auto ctx = stat->context<broker::endpoint_info>() )
         {
         auto id = to_string(ctx->node) + to_string(ctx->id);
         endpoint_info->Assign(0, new StringVal(id));
 
-        if (ctx->network)
+        if ( ctx->network )
           {
           auto ni = internal_type("Broker::NetworkInfo")->AsRecordType();
           auto network_info = new RecordVal(ni);

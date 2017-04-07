@@ -1,4 +1,10 @@
 
+2.5-119 | 2017-04-07 10:30:09 -0700
+
+  * NetControl: small rule_error changes (test, call fix). (Johanna Amann)
+
+  * SSL: update dpd signature for TLS1.3. (Johanna Amann)
+
 2.5-115 | 2017-03-23 07:25:41 -0700
 
   * Fix a test that was failing on some platforms. (Daniel Thayer)
@@ -38,7 +44,7 @@
 
 2.5-84 | 2017-02-27 15:08:55 -0500
 
-  * Change semantics of Broker's remote logging to match old communication 
+  * Change semantics of Broker's remote logging to match old communication
     framework. (Robin Sommer)
 
   * Add and fix documentation for HookSetupAnalyzerTree (Johanna Amann)

@@ -1,7 +1,7 @@
 # @TEST-SERIALIZE: brokercomm
 # @TEST-REQUIRES: grep -q ENABLE_BROKER:BOOL=true $BUILD/CMakeCache.txt
 # @TEST-REQUIRES: bro --help 2>&1 | grep -q mem-leaks
-# @TEST-GROUP: leak
+# @TEST-GROUP: leaks
 
 # @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run recv "bro -m -b ../recv.bro broker_port=$BROKER_PORT >recv.out"
 # @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run send "bro -m -b ../send.bro broker_port=$BROKER_PORT >send.out"

@@ -1,5 +1,15 @@
 
+2.5-123 | 2017-04-10 13:30:14 -0700
+
+  * Fix some failing tests by increasing delay times. (Daniel Thayer)
+
+  * Threading Types: add a bit of documentation to subnet type. (Johanna Amann)
+
+  * Fixing couple issues reported by Coverity. (Robin Sommer)
+
 2.5-119 | 2017-04-07 10:30:09 -0700
+
+  * Fix the test group name in some broker test files. (Daniel Thayer)
 
   * NetControl: small rule_error changes (test, call fix). (Johanna Amann)
 

@@ -98,7 +98,7 @@ struct Value {
 	typedef set_t vec_t;
 	struct port_t { bro_uint_t port; TransportProto proto; };
 
-        struct addr_t {
+	struct addr_t {
 		IPFamily family;
 		union {
 			struct in_addr in4;
@@ -106,6 +106,13 @@ struct Value {
 		} in;
 	};
 
+	// A small note for handling subnet values: Subnet values emitted from
+	// the logging framework will always have a length that is based on the
+	// internal IPv6 representation (so you have to substract 96 from it to
+	// get the correct value for IPv4).
+	// However, the Input framework expects the "normal" length for an IPv4
+	// address (so do not add 96 to it), because the underlying constructors
+	// for the SubNet type want it like this.
 	struct subnet_t { addr_t prefix; uint8_t length; };
 
 	/**

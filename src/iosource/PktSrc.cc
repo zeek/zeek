@@ -35,6 +35,12 @@ PktSrc::PktSrc()
 	first_timestamp = 0.0;
 	current_pseudo = 0.0;
 	first_wallclock = current_wallclock = 0;
+
+	// @note: quick hack for perfomance testing of runloop polling
+	// (epoll doesn't work on FDs of regular files, so just generally use
+	// one that works across all polling mechanisms).
+	flare = new bro::Flare();
+	flare->Fire();	// pcap file is always ready
 	}
 
 PktSrc::~PktSrc()
@@ -49,6 +55,14 @@ const std::string& PktSrc::Path() const
 	{
 	static std::string not_open("not open");
 	return IsOpen() ? props.path : not_open;
+	}
+
+int PktSrc::PollableFD() const
+	{
+	if ( flare )
+		return flare->FD();
+
+	return props.selectable_fd;
 	}
 
 const char* PktSrc::ErrorMsg() const
@@ -240,7 +254,6 @@ void PktSrc::Start(runloop_actor* runloop)
 		        props.path.c_str());
 		return;
 		}
-
 
 	if ( ! flare )
 		flare = new bro::Flare();

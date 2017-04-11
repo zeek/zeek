@@ -137,6 +137,8 @@ static void process(runloop_actor* runloop)
 
 static caf::behavior run_behavior(runloop_actor* self)
 	{
+	bool throttle_polling = ! getenv("BRO_UNTHROTTLE_POLLING");
+	auto POLL_FREQUENCY = throttle_polling ? 25 : 1;
 	// Hook the source into CAF's I/O loop.
 	runloop_backend(self).add_cycle_listener(self);
 
@@ -198,7 +200,8 @@ static caf::behavior run_behavior(runloop_actor* self)
 					}
 				}
 
-			process(self);
+			for ( auto i = 0; i < POLL_FREQUENCY; ++i )
+				process(self);
 			},
 		[=](timercheck_atom)
 		    {

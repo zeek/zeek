@@ -18,6 +18,7 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <chrono>
 
 #include "NetVar.h"
 #include "Sessions.h"
@@ -71,6 +72,12 @@ iosource::IOSource* current_iosrc = 0;
 
 std::list<ScannedFile> files_scanned;
 std::vector<string> sig_files;
+
+static std::chrono::time_point<std::chrono::steady_clock>
+end_of_last_packet_dispatch;
+static size_t packets_dispatched = 0;
+static double mean_ticks_between_packet_dispatches = 0;
+static double mean_ticks_per_packet_process = 0;
 
 RETSIGTYPE watchdog(int /* signo */)
 	{
@@ -237,6 +244,19 @@ void expire_timers(iosource::PktSrc* src_ps)
 
 void net_packet_dispatch(double t, const Packet* pkt, iosource::PktSrc* src_ps)
 	{
+	if ( packets_dispatched > 0 )
+		{
+		auto duration = std::chrono::steady_clock::now() -
+		                end_of_last_packet_dispatch;
+		auto ticks = duration.count();
+		mean_ticks_between_packet_dispatches =
+		        mean_ticks_between_packet_dispatches +
+		        (ticks - mean_ticks_between_packet_dispatches) /
+		        packets_dispatched;
+		}
+
+	auto start_of_packet_process = std::chrono::steady_clock::now();
+
 	if ( ! bro_start_network_time )
 		bro_start_network_time = t;
 
@@ -285,6 +305,13 @@ void net_packet_dispatch(double t, const Packet* pkt, iosource::PktSrc* src_ps)
 	current_dispatched = 0;
 	current_iosrc = 0;
 	current_pktsrc = 0;
+
+	++packets_dispatched;
+	auto duration = std::chrono::steady_clock::now() - start_of_packet_process;
+	auto ticks = duration.count();
+	mean_ticks_per_packet_process = mean_ticks_per_packet_process +
+	        (ticks - mean_ticks_per_packet_process) / packets_dispatched;
+	end_of_last_packet_dispatch = std::chrono::steady_clock::now();
 	}
 
 void net_run()
@@ -407,6 +434,11 @@ void net_get_final_stats()
 					s.received, ps->Path().c_str(), s.dropped);
 			}
 		}
+
+	reporter->Info("mean ticks between packet dispatches: %f\n",
+	               mean_ticks_between_packet_dispatches);
+	reporter->Info("mean ticks per packet processing: %f\n",
+	               mean_ticks_per_packet_process);
 	}
 
 void net_finish(int drain_events)

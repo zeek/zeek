@@ -5,6 +5,7 @@
 
 #include <string>
 #include <list>
+#include <functional>
 #include "iosource/FD_Set.h"
 
 namespace iosource {
@@ -21,7 +22,20 @@ public:
 	/**
 	 * Constructor.
 	 */
-	Manager()	{ call_count = 0; dont_counts = 0; }
+	Manager()
+		{
+		call_count = 0;
+		dont_counts = 0;
+		throttle_polling = ! getenv("BRO_UNTHROTTLE_POLLING");
+		POLL_FREQUENCY = throttle_polling ? 25 : 1;
+
+		if ( getenv("BRO_LOOP_POLL") )
+			poll_function = &Manager::PollSources;
+		else if ( getenv("BRO_LOOP_EPOLL") )
+			poll_function = &Manager::EpollSources;
+		else
+			poll_function = &Manager::SelectSources;
+		}
 
 	/**
 	 * Destructor.
@@ -54,6 +68,15 @@ public:
 	IOSource* FindSoonest(double* ts);
 
 	IOSource* SoonestSource() const;
+
+	void SelectSources(double& soonest_ts, double soonest_local_network_time,
+	                   IOSource*& soonest_src);
+
+	void PollSources(double& soonest_ts, double soonest_local_network_time,
+	                 IOSource*& soonest_src);
+
+	void EpollSources(double& soonest_ts, double soonest_local_network_time,
+	                 IOSource*& soonest_src);
 
 	/**
 	 * Returns the number of registered and still active sources,
@@ -107,7 +130,7 @@ private:
 	 * When looking for a source with something to process, every
 	 * SELECT_FREQUENCY calls we will go ahead and block on a select().
 	 */
-	static const int SELECT_FREQUENCY = 25;
+	int POLL_FREQUENCY;
 
 	/**
 	 * Microseconds to wait in an empty select if no source is ready.
@@ -117,6 +140,8 @@ private:
 	void Register(PktSrc* src);
 	void RemoveAll();
 
+	bool throttle_polling;
+	std::function<void(Manager*, double&, double&, IOSource*&)> poll_function;
 	unsigned int call_count;
 	int dont_counts;
 

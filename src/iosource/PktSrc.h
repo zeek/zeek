@@ -66,6 +66,8 @@ public:
 	 */
 	const std::string& Path() const;
 
+	int PollableFD() const;
+
 	/**
 	 * Returns true if this is a live source.
 	 */

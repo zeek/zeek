@@ -4,6 +4,8 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <assert.h>
+#include <poll.h>
+#include <sys/epoll.h>
 
 #include <algorithm>
 #include <limits>
@@ -13,6 +15,7 @@
 #include "PktSrc.h"
 #include "PktDumper.h"
 #include "plugin/Manager.h"
+#include "DNS_Mgr.h"
 
 #include "util.h"
 
@@ -80,7 +83,7 @@ IOSource* Manager::FindSoonest(double* ts)
 	// Ideally, we would always call select on the fds to see which
 	// are ready, and return the soonest. Unfortunately, that'd mean
 	// one select-call per packet, which we can't afford in high-volume
-	// environments.  Thus, we call select only every SELECT_FREQUENCY
+	// environments.  Thus, we call select only every POLL_FREQUENCY
 	// call (or if all sources report that they are dry).
 
 	++call_count;
@@ -112,26 +115,152 @@ IOSource* Manager::FindSoonest(double* ts)
 
 	// If we found one and aren't going to select this time,
 	// return it.
-	int maxx = 0;
-
-	if ( soonest_src && (call_count % SELECT_FREQUENCY) != 0 )
+	if ( soonest_src && (call_count % POLL_FREQUENCY) != 0 )
 		goto finished;
 
+	if ( all_idle )
+		{
+		// We can't block indefinitely even when all sources are dry:
+		// we're doing some IOSource-independent stuff in the main loop,
+		// so we need to return from time to time. (Instead of no time-out
+		// at all, we use a very small one. This lets FreeBSD trigger a
+		// BPF buffer switch on the next read when the hold buffer is empty
+		// while the store buffer isn't filled yet.
+
+		// Interesting: when all sources are dry, simply sleeping a
+		// bit *without* watching for any fd becoming ready may
+		// decrease CPU load. I guess that's because it allows
+		// the kernel's packet buffers to fill. - Robin
+		struct timeval timeout;
+		timeout.tv_sec = 0;
+		timeout.tv_usec = 20; // SELECT_TIMEOUT;
+		select(0, 0, 0, 0, &timeout);
+		}
+
+	poll_function(this, soonest_ts, soonest_local_network_time, soonest_src);
+
+finished:
+	*ts = soonest_local_network_time;
+	return soonest_src;
+	}
+
+void Manager::PollSources(double& soonest_ts,
+                          double soonest_local_network_time,
+                          IOSource*& soonest_src)
+	{
+	for ( auto src : sources )
+		{
+		// @note: just checking PktSources for now as it's the quickets way
+		// get performance analysis of the runloops done.  Otherwise, would
+		// have to mess around with changing the IOSource API to be more
+		// generic with how it obtains FDs.
+		auto pkt_src = dynamic_cast<PktSrc*>(src->src);
+
+		if ( ! pkt_src )
+			continue;
+
+		pollfd pfd{pkt_src->PollableFD(), POLLIN, 0};
+		auto res = poll(&pfd, 1, 0);
+
+		if ( res > 0 )
+			{
+			if ( pfd.revents & POLLIN )
+				{
+				double local_network_time = 0;
+				double ts = src->src->NextTimestamp(&local_network_time);
+				if ( ts > 0.0 && ts < soonest_ts )
+					{
+					soonest_ts = ts;
+					soonest_src = src->src;
+					soonest_local_network_time =
+					    local_network_time ?
+					        local_network_time : ts;
+					}
+				}
+			}
+		}
+	}
+
+void Manager::EpollSources(double& soonest_ts,
+                           double soonest_local_network_time,
+                           IOSource*& soonest_src)
+	{
+	static int epoll_fd = -1;
+
+	if ( epoll_fd == -1 )
+		{
+		epoll_fd = epoll_create1(0);
+
+		for ( auto src : sources )
+			{
+			// @note: just checking PktSources for now as it's the quickets way
+			// get performance analysis of the runloops done.  Otherwise, would
+			// have to mess around with changing the IOSource API to be more
+			// generic with how it obtains FDs.
+			auto pkt_src = dynamic_cast<PktSrc*>(src->src);
+
+			if ( ! pkt_src )
+				continue;
+
+			epoll_event ev;
+			ev.data.ptr = pkt_src;
+			ev.events = EPOLLIN;
+
+			epoll_ctl(epoll_fd, EPOLL_CTL_ADD, pkt_src->PollableFD(), &ev);
+			break;
+			}
+		}
+
+	epoll_event rev;
+	auto res = epoll_wait(epoll_fd, &rev, 1, 0);
+
+	if ( res > 0 )
+		{
+		if ( rev.events & EPOLLIN )
+			{
+			auto src = (IOSource*)rev.data.ptr;
+			double local_network_time = 0;
+			double ts = src->NextTimestamp(&local_network_time);
+			if ( ts > 0.0 && ts < soonest_ts )
+				{
+				soonest_ts = ts;
+				soonest_src = src;
+				soonest_local_network_time =
+				        local_network_time ?
+				            local_network_time : ts;
+				}
+			}
+		}
+	}
+
+void Manager::SelectSources(double& soonest_ts,
+                            double soonest_local_network_time,
+                            IOSource*& soonest_src)
+	{
+	int maxx = 0;
 	// Select on the join of all file descriptors.
 	fd_set fd_read, fd_write, fd_except;
+	struct timeval timeout;
 
 	FD_ZERO(&fd_read);
 	FD_ZERO(&fd_write);
 	FD_ZERO(&fd_except);
 
-	for ( SourceList::iterator i = sources.begin();
-	      i != sources.end(); ++i )
+	for ( auto src : sources )
 		{
-		Source* src = (*i);
+		// @note: always poll FDs for sake of how performance tests are designed
+//		if ( ! src->src->IsIdle() )
+//			// No need to select on sources which we know to
+//			// be ready.
+//			continue;
 
-		if ( ! src->src->IsIdle() )
-			// No need to select on sources which we know to
-			// be ready.
+		// @note: just checking PktSources for now as it's the quickets way
+		// get performance analysis of the runloops done.  Otherwise, would
+		// have to mess around with changing the IOSource API to be more
+		// generic with how it obtains FDs.
+		auto pkt_src = dynamic_cast<PktSrc*>(src->src);
+
+		if ( ! pkt_src )
 			continue;
 
 		src->Clear();
@@ -139,42 +268,22 @@ IOSource* Manager::FindSoonest(double* ts)
 		src->SetFds(&fd_read, &fd_write, &fd_except, &maxx);
 		}
 
-	// We can't block indefinitely even when all sources are dry:
-	// we're doing some IOSource-independent stuff in the main loop,
-	// so we need to return from time to time. (Instead of no time-out
-	// at all, we use a very small one. This lets FreeBSD trigger a
-	// BPF buffer switch on the next read when the hold buffer is empty
-	// while the store buffer isn't filled yet.
-
-	struct timeval timeout;
-
-	if ( all_idle )
-		{
-		// Interesting: when all sources are dry, simply sleeping a
-		// bit *without* watching for any fd becoming ready may
-		// decrease CPU load. I guess that's because it allows
-		// the kernel's packet buffers to fill. - Robin
-		timeout.tv_sec = 0;
-		timeout.tv_usec = 20; // SELECT_TIMEOUT;
-		select(0, 0, 0, 0, &timeout);
-		}
-
-	if ( ! maxx )
-		// No selectable fd at all.
-		goto finished;
+	// @note: force the select() for sake of how performance tests are designed
+	// (we're only looking at offline packet sources and the overheads of the
+	// various polling mechanisms in the typical use-cases).
+//	if ( ! maxx )
+//		// No selectable fd at all.
+//		return;
 
 	timeout.tv_sec = 0;
 	timeout.tv_usec = 0;
 
 	if ( select(maxx + 1, &fd_read, &fd_write, &fd_except, &timeout) > 0 )
 		{ // Find soonest.
-		for ( SourceList::iterator i = sources.begin();
-		      i != sources.end(); ++i )
+		for ( auto src : sources )
 			{
-			Source* src = (*i);
-
-			if ( ! src->src->IsIdle() )
-				continue;
+//			if ( ! src->src->IsIdle() )
+//				continue;
 
 			if ( src->Ready(&fd_read, &fd_write, &fd_except) )
 				{
@@ -185,16 +294,13 @@ IOSource* Manager::FindSoonest(double* ts)
 					soonest_ts = ts;
 					soonest_src = src->src;
 					soonest_local_network_time =
-						local_network_time ?
-							local_network_time : ts;
+					    local_network_time ?
+					        local_network_time : ts;
 					}
 				}
 			}
 		}
 
-finished:
-	*ts = soonest_local_network_time;
-	return soonest_src;
 	}
 
 IOSource* Manager::SoonestSource() const

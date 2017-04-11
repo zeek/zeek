@@ -148,36 +148,44 @@ void Manager::PollSources(double& soonest_ts,
                           double soonest_local_network_time,
                           IOSource*& soonest_src)
 	{
-	for ( auto src : sources )
+	static PktSrc* packet_source = nullptr;
+
+	if ( ! packet_source )
 		{
-		// @note: just checking PktSources for now as it's the quickets way
-		// get performance analysis of the runloops done.  Otherwise, would
-		// have to mess around with changing the IOSource API to be more
-		// generic with how it obtains FDs.
-		auto pkt_src = dynamic_cast<PktSrc*>(src->src);
-
-		if ( ! pkt_src )
-			continue;
-
-		pollfd pfd{pkt_src->PollableFD(), POLLIN, 0};
-		auto res = poll(&pfd, 1, 0);
-
-		if ( res > 0 )
+		for ( auto src : sources )
 			{
-			if ( pfd.revents & POLLIN )
-				{
-				double local_network_time = 0;
-				double ts = src->src->NextTimestamp(&local_network_time);
-				if ( ts > 0.0 && ts < soonest_ts )
-					{
-					soonest_ts = ts;
-					soonest_src = src->src;
-					soonest_local_network_time =
-					    local_network_time ?
-					        local_network_time : ts;
-					}
-				}
+			// @note: just checking PktSources for now as it's the quickets way
+			// get performance analysis of the runloops done.  Otherwise, would
+			// have to mess around with changing the IOSource API to be more
+			// generic with how it obtains FDs.
+			auto pkt_src = dynamic_cast<PktSrc*>(src->src);
+
+			if ( ! pkt_src )
+				continue;
+
+			packet_source = pkt_src;
+			break;
 			}
+		}
+
+	pollfd pfd{packet_source->PollableFD(), POLLIN, 0};
+	auto res = poll(&pfd, 1, 0);
+
+	if ( res <= 0 )
+		return;
+
+	if ( ! pfd.revents & POLLIN )
+		return;
+
+	double local_network_time = 0;
+	double ts = packet_source->NextTimestamp(&local_network_time);
+	if ( ts > 0.0 && ts < soonest_ts )
+		{
+		soonest_ts = ts;
+		soonest_src = packet_source;
+		soonest_local_network_time =
+		    local_network_time ?
+		        local_network_time : ts;
 		}
 	}
 
@@ -237,6 +245,27 @@ void Manager::SelectSources(double& soonest_ts,
                             double soonest_local_network_time,
                             IOSource*& soonest_src)
 	{
+	static Source* packet_source = nullptr;
+
+	if ( ! packet_source )
+		{
+		for ( auto src : sources )
+			{
+			// @note: just checking PktSources for now as it's the quickets way
+			// get performance analysis of the runloops done.  Otherwise, would
+			// have to mess around with changing the IOSource API to be more
+			// generic with how it obtains FDs.
+			auto pkt_src = dynamic_cast<PktSrc*>(src->src);
+
+			if ( ! pkt_src )
+				continue;
+
+			packet_source = new Source();
+			packet_source->src = src->src;
+			break;
+			}
+		}
+
 	int maxx = 0;
 	// Select on the join of all file descriptors.
 	fd_set fd_read, fd_write, fd_except;
@@ -246,61 +275,32 @@ void Manager::SelectSources(double& soonest_ts,
 	FD_ZERO(&fd_write);
 	FD_ZERO(&fd_except);
 
-	for ( auto src : sources )
-		{
-		// @note: always poll FDs for sake of how performance tests are designed
-//		if ( ! src->src->IsIdle() )
-//			// No need to select on sources which we know to
-//			// be ready.
-//			continue;
-
-		// @note: just checking PktSources for now as it's the quickets way
-		// get performance analysis of the runloops done.  Otherwise, would
-		// have to mess around with changing the IOSource API to be more
-		// generic with how it obtains FDs.
-		auto pkt_src = dynamic_cast<PktSrc*>(src->src);
-
-		if ( ! pkt_src )
-			continue;
-
-		src->Clear();
-		src->src->GetFds(&src->fd_read, &src->fd_write, &src->fd_except);
-		src->SetFds(&fd_read, &fd_write, &fd_except, &maxx);
-		}
-
-	// @note: force the select() for sake of how performance tests are designed
-	// (we're only looking at offline packet sources and the overheads of the
-	// various polling mechanisms in the typical use-cases).
-//	if ( ! maxx )
-//		// No selectable fd at all.
-//		return;
+	packet_source->Clear();
+	packet_source->src->GetFds(&packet_source->fd_read,
+	                           &packet_source->fd_write,
+	                           &packet_source->fd_except);
+	packet_source->SetFds(&fd_read, &fd_write, &fd_except, &maxx);
 
 	timeout.tv_sec = 0;
 	timeout.tv_usec = 0;
+	auto res = select(maxx + 1, &fd_read, &fd_write, &fd_except, &timeout);
 
-	if ( select(maxx + 1, &fd_read, &fd_write, &fd_except, &timeout) > 0 )
-		{ // Find soonest.
-		for ( auto src : sources )
-			{
-//			if ( ! src->src->IsIdle() )
-//				continue;
+	if ( res <= 0 )
+		return;
 
-			if ( src->Ready(&fd_read, &fd_write, &fd_except) )
-				{
-				double local_network_time = 0;
-				double ts = src->src->NextTimestamp(&local_network_time);
-				if ( ts > 0.0 && ts < soonest_ts )
-					{
-					soonest_ts = ts;
-					soonest_src = src->src;
-					soonest_local_network_time =
-					    local_network_time ?
-					        local_network_time : ts;
-					}
-				}
-			}
+	if ( ! packet_source->Ready(&fd_read, &fd_write, &fd_except) )
+		return;
+
+	double local_network_time = 0;
+	double ts = packet_source->src->NextTimestamp(&local_network_time);
+	if ( ts > 0.0 && ts < soonest_ts )
+		{
+		soonest_ts = ts;
+		soonest_src = packet_source->src;
+		soonest_local_network_time =
+		        local_network_time ?
+		            local_network_time : ts;
 		}
-
 	}
 
 IOSource* Manager::SoonestSource() const

@@ -69,6 +69,13 @@ FindRequiredPackage(OpenSSL)
 FindRequiredPackage(BIND)
 FindRequiredPackage(ZLIB)
 
+find_package(CAF COMPONENTS core io)
+if (CAF_FOUND)
+	include_directories(BEFORE ${CAF_INCLUDE_DIRS})
+else ()
+	list(APPEND MISSING_PREREQ_DESCS CAF)
+endif ()
+
 if (NOT BinPAC_ROOT_DIR AND
     EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/aux/binpac/CMakeLists.txt)
     add_subdirectory(aux/binpac)

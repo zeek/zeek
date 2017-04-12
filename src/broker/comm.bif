@@ -9,12 +9,20 @@ module Broker;
 
 type Broker::Options: record;
 
-type Broker::Status: record;
-
-type Broker::Error: record;
-
 ## Generated when something changes in the Broker sub-system.
-event Broker::status%(code: StatusCode, endpoint: EndpointInfo, msg: string%);
+event Broker::status%(endpoint: EndpointInfo, msg: string%);
+
+## Generated when a new peering has been established.
+event Broker::peer_added%(endpoint: EndpointInfo, msg: string%);
+
+## Generated when an existing peer has been removed.
+event Broker::peer_removed%(endpoint: EndpointInfo, msg: string%);
+
+## Generated when an existing peering has been lost.
+event Broker::peer_lost%(endpoint: EndpointInfo, msg: string%);
+
+## Generated when a lost peering has been recovered.
+event Broker::peer_recovered%(endpoint: EndpointInfo, msg: string%);
 
 ## Generated when an error occurs in the Broker sub-system.
 event Broker::error%(code: ErrorCode, msg: string%);

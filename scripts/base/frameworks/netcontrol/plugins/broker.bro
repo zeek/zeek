@@ -165,18 +165,19 @@ function broker_remove_rule_fun(p: PluginState, r: Rule, reason: string) : bool
 function broker_init(p: PluginState)
 	{
 	Broker::enable();
-	Broker::peer(cat(p$broker_config$host), p$broker_config$bport, 1sec);
+	Broker::peer(cat(p$broker_config$host), p$broker_config$bport);
 	Broker::subscribe(p$broker_config$topic);
 	}
 
-event Broker::status(info: Broker::Status)
+event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
-	# TODO: re-implemnt in terms of new framework
-	#if ( [peer_port, peer_address] !in netcontrol_broker_peers )
-	#	return;
+	local peer_address = cat(endpoint$network$address);
+	local peer_port = endpoint$network$bound_port;
+	if ( [peer_port, peer_address] !in netcontrol_broker_peers )
+		return;
 
-	#local p = netcontrol_broker_peers[peer_port, peer_address];
-	#plugin_activated(p);
+	local p = netcontrol_broker_peers[peer_port, peer_address];
+	plugin_activated(p);
 	}
 
 global broker_plugin = Plugin(

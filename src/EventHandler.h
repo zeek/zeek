@@ -29,14 +29,14 @@ public:
 	void AddRemoteHandler(SourceID peer);
 	void RemoveRemoteHandler(SourceID peer);
 
-	void AutoRemote(std::string topic)
+	void AutoPublish(std::string topic)
 		{
-		auto_remote_send.insert(std::move(topic));
+		auto_publish.insert(std::move(topic));
 		}
 
-	void AutoRemoteStop(const std::string& topic)
+	void AutoUnpublish(const std::string& topic)
 		{
-		auto_remote_send.erase(topic);
+		auto_publish.erase(topic);
 		}
 
 	void Call(val_list* vl, bool no_remote = false);
@@ -79,7 +79,7 @@ private:
 	typedef List(SourceID) receiver_list;
 	receiver_list receivers;
 
-	std::unordered_set<std::string> auto_remote_send;
+	std::unordered_set<std::string> auto_publish;
 };
 
 // Encapsulates a ptr to an event handler to overload the boolean operator.

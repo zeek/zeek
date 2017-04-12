@@ -62,25 +62,21 @@ function broker_flow_clear_fun(state: OpenFlow::ControllerState): bool
 function broker_init(state: OpenFlow::ControllerState)
 	{
 	Broker::enable();
-	Broker::peer(cat(state$broker_host), state$broker_port, 1sec);
+	Broker::peer(cat(state$broker_host), state$broker_port);
 	Broker::subscribe(state$broker_topic); # openflow success and failure events are directly sent back via the other plugin via broker.
 	}
 
-event Broker::status(info: Broker::Status)
+event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
-	# TODO: re-implement in terms of new framework
-	#if ( [peer_port, peer_address] !in broker_peers )
-	#	# ok, this one was none of ours...
-	#	return;
+	local peer_address = cat(endpoint$network$address);
+	local peer_port = endpoint$network$bound_port;
+	if ( [peer_port, peer_address] !in broker_peers )
+		# ok, this one was none of ours...
+		return;
 
-	#local p = broker_peers[peer_port, peer_address];
-	#controller_init_done(p);
-	#delete broker_peers[peer_port, peer_address];
-	}
-
-event Broker::error(info: Broker::Error)
-	{
-# TODO: do the right thing in here
+	local p = broker_peers[peer_port, peer_address];
+	controller_init_done(p);
+	delete broker_peers[peer_port, peer_address];
 	}
 
 # broker controller constructor

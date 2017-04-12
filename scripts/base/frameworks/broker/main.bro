@@ -21,16 +21,9 @@ export {
 		routable: bool &default = T;
 	};
 
+	## TODO: fill in the remaining error codes.
 	type ErrorCode: enum {
 		UNSPECIFIED,
-	};
-
-	type StatusCode: enum {
-		UNSPECIFIED,
-		PEER_ADDED,
-		PEER_REMOVED,
-		PEER_LOST,
-		PEER_RECOVERED
 	};
 
 	type NetworkInfo : record {
@@ -105,7 +98,8 @@ export {
 	##          until a later point in time.
 	##
 	## .. bro:see:: Broker::status
-	global peer: function(a: string, p: port, retry: interval): bool;
+	# TODO: re-implement retry
+	global peer: function(a: string, p: port): bool;
 
 	## Remove a remote connection.
 	##
@@ -196,9 +190,9 @@ function listen(p: port, a: string &default = ""): port
     return __listen(p, a);
     }
 
-function peer(a: string, p: port, retry: interval): bool
+function peer(a: string, p: port): bool
     {
-    return __peer(a, p); # TODO: implement retry
+    return __peer(a, p);
     }
 
 function unpeer(a: string, p: port): bool

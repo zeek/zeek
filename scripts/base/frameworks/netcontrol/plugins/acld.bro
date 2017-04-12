@@ -273,20 +273,20 @@ function acld_remove_rule_fun(p: PluginState, r: Rule, reason: string) : bool
 function acld_init(p: PluginState)
 	{
 	Broker::enable();
-	Broker::peer(cat(p$acld_config$acld_host), p$acld_config$acld_port, 1sec);
+	Broker::peer(cat(p$acld_config$acld_host), p$acld_config$acld_port);
 	Broker::subscribe(p$acld_config$acld_topic);
 	}
 
-event Broker::status(info: Broker::Status)
+event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
-	# TODO: re-implemnt in terms of new framework
-	#{
-	#if ( [peer_port, peer_address] !in netcontrol_acld_peers )
-	#	# ok, this one was none of ours...
-	#	return;
+	local peer_address = cat(endpoint$network$address);
+	local peer_port = endpoint$network$bound_port;
+	if ( [peer_port, peer_address] !in netcontrol_acld_peers )
+		# ok, this one was none of ours...
+		return;
 
-	#local p = netcontrol_acld_peers[peer_port, peer_address];
-	#plugin_activated(p);
+	local p = netcontrol_acld_peers[peer_port, peer_address];
+	plugin_activated(p);
 	}
 
 global acld_plugin = Plugin(

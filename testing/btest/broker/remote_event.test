@@ -13,24 +13,24 @@
 const broker_port: port &redef;
 redef exit_only_after_terminate = T;
 
-global event_handler: event(msg: string, c: count);
-global auto_event_handler: event(msg: string, c: count);
+global handler: event(msg: string, c: count);
+global auto_handler: event(msg: string, c: count);
 
 event bro_init()
 	{
 	Broker::enable();
-	Broker::subscribe_to_events("bro/event/");
-	Broker::auto_event("bro/event/my_topic", auto_event_handler);
+	Broker::subscribe("bro/event/");
+	Broker::auto_publish("bro/event/my_topic", auto_handler);
 	Broker::listen(broker_port, "127.0.0.1");
 	}
 
 global event_count = 0;
 global events_to_recv = 6;
 
-event event_handler(msg: string, n: count)
+event handler(msg: string, n: count)
 	{
 	++event_count;
-	print "got event msg", msg, n;
+	print "handler:", msg, n;
 
 	if ( event_count == events_to_recv )
 		{
@@ -38,9 +38,9 @@ event event_handler(msg: string, n: count)
 		return;
 		}
 
-	event auto_event_handler(msg, n);
-	local args = Broker::event_args(event_handler, "pong", n);
-	Broker::send_event("bro/event/my_topic", args);
+	event auto_handler(msg, n);
+	local e = Broker::make_event(handler, "pong", n);
+	Broker::publish("bro/event/my_topic", e);
 	}
 
 @TEST-END-FILE
@@ -50,45 +50,48 @@ event event_handler(msg: string, n: count)
 const broker_port: port &redef;
 redef exit_only_after_terminate = T;
 
-global event_handler: event(msg: string, c: count);
-global auto_event_handler: event(msg: string, c: count);
+global handler: event(msg: string, c: count);
+global auto_handler: event(msg: string, c: count);
 
 event bro_init()
 	{
 	Broker::enable();
-	Broker::subscribe_to_events("bro/event/my_topic");
-	Broker::connect("127.0.0.1", broker_port, 1secs);
+	Broker::subscribe("bro/event/my_topic");
+	Broker::peer("127.0.0.1", broker_port);
 	}
 
 global event_count = 0;
 
-event Broker::outgoing_connection_established(peer_address: string,
-                                            peer_port: port,
-                                            peer_name: string)
+event Broker::status(code: Broker::StatusCode, endpoint: Broker::EndpointInfo, msg: string)
 	{
-	print "Broker::outgoing_connection_established", peer_address, peer_port;
-	local args = Broker::event_args(event_handler, "ping", event_count);
-	Broker::send_event("bro/event/hi", args);
+	print code, endpoint, msg;
+	if ( code == Broker::PEER_ADDED )
+		{
+		local e = Broker::make_event(handler, "ping", event_count);
+		Broker::publish("bro/event/hi", e);
+		++event_count;
+		}
+	else if ( code == Broker::PEER_LOST )
+		{
+		terminate();
+		}
+	else
+		{
+		print "should not happen"
+		}
+  }
+
+event handler(msg: string, n: count)
+	{
+	print "handler:", msg, n;
+	local e = Broker::make_event(handler, "ping", event_count);
+	Broker::publish("bro/event/hi", e);
 	++event_count;
 	}
 
-event Broker::outgoing_connection_broken(peer_address: string,
-                                       peer_port: port)
+event auto_handler(msg: string, n: count)
 	{
-	terminate();
+	print "auto_handler:", msg, n;
 	}
 
-event event_handler(msg: string, n: count)
-	{
-	print "got event msg", msg, n;
-	local args = Broker::event_args(event_handler, "ping", event_count);
-    Broker::send_event("bro/event/hi", args);
-	++event_count;
-	}
-
-event auto_event_handler(msg: string, n: count)
-	{
-	print "got auto event msg", msg, n;
-	}
-	
 @TEST-END-FILE

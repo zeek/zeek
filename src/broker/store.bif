@@ -10,8 +10,6 @@
 
 module Broker;
 
-type Broker::ExpiryTime: record;
-
 type Broker::QueryResult: record;
 
 type Broker::BackendOptions: record;
@@ -56,7 +54,7 @@ function Broker::__create_clone%(id: string%): opaque of Broker::Handle
 	return store;
 	%}
 
-function Broker::__close_by_handle%(h: opaque of Broker::Handle%): bool
+function Broker::__close%(h: opaque of Broker::Handle%): bool
 	%{
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 	if ( ! *handle )
@@ -65,58 +63,7 @@ function Broker::__close_by_handle%(h: opaque of Broker::Handle%): bool
 	return new Val(broker_mgr->CloseStore(handle->store.name()), TYPE_BOOL);
 	%}
 
-###########################
-# non-blocking update API #
-###########################
-
-function Broker::__insert%(h: opaque of Broker::Handle,
-                        k: Broker::Data, v: Broker::Data,
-                        e: Broker::ExpiryTime &default = Broker::ExpiryTime()%): bool
-	%{
-	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
-	if ( ! *handle )
-    return new Val(false, TYPE_BOOL);
-
-	auto& key = bro_broker::opaque_field_to_data(k->AsRecordVal(), frame);
-	auto& val = bro_broker::opaque_field_to_data(v->AsRecordVal(), frame);
-
-	if ( auto abs_expiry_val = e->AsRecordVal()->Lookup(0) )
-		{
-		auto expiry = broker::fractional_seconds{abs_expiry_val->AsTime()};
-		auto since_epoch = std::chrono::duration_cast<broker::timespan>(expiry);
-		handle->store.put(key, val, broker::timestamp{since_epoch});
-		return new Val(true, TYPE_BOOL);
-		}
-
-	if ( auto rel_expiry_val = e->AsRecordVal()->Lookup(1) )
-		{
-		auto now = broker::clock::now();
-		auto delta = broker::fractional_seconds{rel_expiry_val->AsInterval()};
-		auto expiry = now + std::chrono::duration_cast<broker::timespan>(delta);
-		handle->store.put(key, val, expiry);
-		return new Val(true, TYPE_BOOL);
-		}
-
-	handle->store.put(key, val);
-	return new Val(true, TYPE_BOOL);
-	%}
-
-function Broker::__erase%(h: opaque of Broker::Handle, k: Broker::Data%): bool
-	%{
-	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
-	if ( ! *handle )
-    return new Val(false, TYPE_BOOL);
-
-	auto& key = bro_broker::opaque_field_to_data(k->AsRecordVal(), frame);
-	handle->store.erase(key);
-	return new Val(true, TYPE_BOOL);
-	%}
-
-##########################
-# non-blocking query API #
-##########################
-
-function Broker::__lookup%(h: opaque of Broker::Handle,
+function Broker::__get%(h: opaque of Broker::Handle,
                        k: Broker::Data%): Broker::QueryResult
 	%{
 	if ( ! broker_mgr->Enabled() )
@@ -158,9 +105,33 @@ function Broker::__lookup%(h: opaque of Broker::Handle,
 
 	auto cb = new bro_broker::StoreQueryCallback(trigger, frame->GetCall(),
                                                handle->store);
-  // TODO: pass timeout to proxy.
 	auto req_id = handle->proxy.get(static_cast<bro_broker::DataVal*>(key)->data);
 	broker_mgr->TrackStoreQuery(req_id, cb);
 
 	return 0;
+	%}
+
+function Broker::__put%(h: opaque of Broker::Handle,
+                        k: Broker::Data, v: Broker::Data%): bool
+	%{
+	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
+	if ( ! *handle )
+    return new Val(false, TYPE_BOOL);
+
+	auto& key = bro_broker::opaque_field_to_data(k->AsRecordVal(), frame);
+	auto& val = bro_broker::opaque_field_to_data(v->AsRecordVal(), frame);
+
+	handle->store.put(key, val);
+	return new Val(true, TYPE_BOOL);
+	%}
+
+function Broker::__erase%(h: opaque of Broker::Handle, k: Broker::Data%): bool
+	%{
+	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
+	if ( ! *handle )
+    return new Val(false, TYPE_BOOL);
+
+	auto& key = bro_broker::opaque_field_to_data(k->AsRecordVal(), frame);
+	handle->store.erase(key);
+	return new Val(true, TYPE_BOOL);
 	%}

@@ -30,8 +30,7 @@ EventHandler::operator bool() const
 	return enabled && ((local && local->HasBodies())
 			   || receivers.length()
 			   || generate_always
-			   || ! auto_remote_send.empty()
-	                   );
+			   || ! auto_publish.empty());
 	}
 
 FuncType* EventHandler::FType()
@@ -79,7 +78,7 @@ void EventHandler::Call(val_list* vl, bool no_remote)
 			remote_serializer->SendCall(&info, receivers[i], name, vl);
 			}
 
-		if ( ! auto_remote_send.empty() )
+		if ( ! auto_publish.empty() )
 			{
 			// Send event in form [name, xs...] where xs represent the arguments.
 			broker::vector xs;
@@ -96,9 +95,8 @@ void EventHandler::Call(val_list* vl, bool no_remote)
 				else
 					{
 					valid_args = false;
-					auto_remote_send.clear();
-					reporter->Error("failed auto-remote event '%s', disabled",
-					                Name());
+					auto_publish.clear();
+					reporter->Error("failed auto-remote event '%s', disabled", Name());
 					break;
 					}
 				}
@@ -106,7 +104,7 @@ void EventHandler::Call(val_list* vl, bool no_remote)
 			if ( valid_args )
         {
         auto msg = broker::message{std::move(xs)};
-				for ( auto& topic : auto_remote_send )
+				for ( auto& topic : auto_publish )
 					broker_mgr->Publish(broker::message(topic, msg));
         }
 			}

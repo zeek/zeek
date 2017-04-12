@@ -205,28 +205,26 @@ bool Manager::AutoPublish(string topic, Val* event)
 
 	if ( event->Type()->Tag() != TYPE_FUNC )
 		{
-		reporter->Error("Broker::auto_event must operate on an event");
+		reporter->Error("Broker::auto_publish must operate on an event");
 		return false;
 		}
 
 	auto event_val = event->AsFunc();
-
 	if ( event_val->Flavor() != FUNC_FLAVOR_EVENT )
 		{
-		reporter->Error("Broker::auto_event must operate on an event");
+		reporter->Error("Broker::auto_publish must operate on an event");
 		return false;
 		}
 
 	auto handler = event_registry->Lookup(event_val->Name());
-
 	if ( ! handler )
 		{
-		reporter->Error("Broker::auto_event failed to lookup event '%s'",
+		reporter->Error("Broker::auto_publish failed to lookup event '%s'",
 		                event_val->Name());
 		return false;
 		}
 
-	handler->AutoRemote(move(topic));
+	handler->AutoPublish(move(topic));
 	return true;
 	}
 
@@ -259,7 +257,7 @@ bool Manager::AutoUnpublish(const string& topic, Val* event)
 		}
 
 
-	handler->AutoRemoteStop(topic);
+	handler->AutoUnpublish(topic);
 	return true;
 	}
 
@@ -370,8 +368,6 @@ double Manager::NextTimestamp(double* local_network_time)
 
 void Manager::Process()
 	{
-	assert(endpoint);
-
   while ( ! endpoint.mailbox().empty() )
     {
     auto elem = endpoint.receive();
@@ -493,23 +489,25 @@ void Manager::Process()
       }
     else if ( auto stat = broker::get_if<broker::status>(elem) )
       {
-		  auto make_status_code = [](const broker::status& s)
-		    {
-        auto sc = internal_type("Broker::StatusCode")->AsEnumType();
-        switch (s.code())
+        EventHandlerPtr event;
+        switch (stat->code())
           {
           case broker::sc::unspecified:
-            return new EnumVal(sc->Lookup("Broker", "UNSPECIFIED"), sc);
+            event = Broker::status;
+            break;
           case broker::sc::peer_added:
-            return new EnumVal(sc->Lookup("Broker", "PEER_ADDED"), sc);
+            event = Broker::peer_added;
+            break;
           case broker::sc::peer_removed:
-            return new EnumVal(sc->Lookup("Broker", "PEER_REMOVED"), sc);
+            event = Broker::peer_removed;
+            break;
           case broker::sc::peer_lost:
-            return new EnumVal(sc->Lookup("Broker", "PEER_LOST"), sc);
+            event = Broker::peer_lost;
+            break;
           case broker::sc::peer_recovered:
-            return new EnumVal(sc->Lookup("Broker", "PEER_RECOVERED"), sc);
+            event = Broker::peer_recovered;
+            break;
           }
-      };
 
       auto ei = internal_type("Broker::EndpointInfo")->AsRecordType();
       auto endpoint_info = new RecordVal(ei);
@@ -532,11 +530,10 @@ void Manager::Process()
       auto msg = new StringVal(str ? *str : "");
 
       auto vl = new val_list;
-      vl->append(make_status_code(*stat));
       vl->append(endpoint_info);
       vl->append(msg);
 
-      mgr.QueueEvent(Broker::status, vl);
+      mgr.QueueEvent(event, vl);
       }
     else
       {

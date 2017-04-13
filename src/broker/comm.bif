@@ -27,7 +27,24 @@ event Broker::peer_recovered%(endpoint: EndpointInfo, msg: string%);
 ## Generated when an error occurs in the Broker sub-system.
 event Broker::error%(code: ErrorCode, msg: string%);
 
-function Broker::__enable%(options: Broker::Options%): bool
+## Enumerates the possible error types. 
+enum ErrorCode %{
+	UNSPECIFIED = 1,
+	PEER_INCOMPATIBLE = 2,
+	PEER_INVALID = 3,
+	PEER_UNAVAILABLE = 4,
+ 	PEER_TIMEOUT = 5,
+ 	MASTER_EXISTS = 6,
+ 	NO_SUCH_MASTER = 7,
+ 	NO_SUCH_KEY = 8,
+ 	REQUEST_TIMEOUT = 9,
+ 	TYPE_CLASH = 10,
+	INVALID_DATA = 11,
+	BACKEND_FAILURE = 12,
+        CAF_ERROR = 100,
+%}
+
+function Broker::__configure%(options: Broker::Options%): bool
 	%{
 	auto name = "";
 	auto routable = false;
@@ -38,10 +55,10 @@ function Broker::__enable%(options: Broker::Options%): bool
 	if ( auto routable_val = options->AsRecordVal()->Lookup(1) )
 		routable = routable_val->AsBool();
 
-	return new Val(broker_mgr->Enable(name, routable), TYPE_BOOL);
+	return new Val(broker_mgr->Configure(name, routable), TYPE_BOOL);
 	%}
 
-function Broker::__listen%(p: port, a: string%): port
+function Broker::__listen%(a: string, p: port%): port
 	%{
 	if ( ! p->IsTCP() )
 		{

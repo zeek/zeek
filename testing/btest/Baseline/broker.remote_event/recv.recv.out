@@ -1,6 +1,6 @@
-got event msg, ping, 0
-got event msg, ping, 1
-got event msg, ping, 2
-got event msg, ping, 3
-got event msg, ping, 4
-got event msg, ping, 5
+receiver added peer: endpoint=127.0.0.1 msg=inbound peering established
+receiver got ping: my-message, 1
+receiver got ping: my-message, 2
+receiver got ping: my-message, 3
+receiver got ping: my-message, 4
+receiver got ping: my-message, 5

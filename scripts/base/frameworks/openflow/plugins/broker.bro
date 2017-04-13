@@ -61,7 +61,6 @@ function broker_flow_clear_fun(state: OpenFlow::ControllerState): bool
 
 function broker_init(state: OpenFlow::ControllerState)
 	{
-	Broker::enable();
 	Broker::peer(cat(state$broker_host), state$broker_port);
 	Broker::subscribe(state$broker_topic); # openflow success and failure events are directly sent back via the other plugin via broker.
 	}

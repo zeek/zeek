@@ -60,20 +60,29 @@ public:
 	~Manager();
 
 	/**
-	 * Enable use of communication.
-	 * @param name The name of the endpoint.
-	 * @param routable Whether the context of this endpoint routes messages not
-	 * destined to itself.
-	 * @return true if communication is successfully initialized.
+	 * Initialization of the manager. This is called late during Bro's
+	 * initialization after any scripts are processed.
 	 */
-	bool Enable(std::string name = "", bool routable = false);
+	void InitPostScript();
 
 	/**
-	 * @return true if bro_broker::Manager::Enable() has previously been called and
-	 * it succeeded.
+	 * Shuts Broker down at termination.
 	 */
-	bool Enabled()
-		{ return log_id_type != nullptr; }
+	void Terminate();
+
+	/**
+	 * Returns true if any Broker communincation is currently active.
+	 */
+	bool Active();
+
+	/**
+	 * Configure the local Broker endpoint.
+	 * @param name The name of the endpoint. By default, the name remains unset.
+	 * @param routable Whether the context of this endpoint routes messages not
+	 * destined to itself. By defaultm endpoints do not route.
+	 * @return true if configuration was successful.
+	 */
+	bool Configure(std::string name="", bool routable = false);
 
 	/**
 	 * Listen for remote connections.
@@ -191,15 +200,15 @@ public:
 	 * @param opts The backend options.
 	 * @return a pointer to the newly created store a nullptr on failure.
 	 */
-  StoreHandleVal* MakeMaster(const std::string& name, broker::backend type,
-                             broker::backend_options opts);
+	StoreHandleVal* MakeMaster(const std::string& name, broker::backend type,
+				   broker::backend_options opts);
 
 	/**
 	 * Create a new *clone* data store.
 	 * @param name The name of the store.
 	 * @return a pointer to the newly created store a nullptr on failure.
 	 */
-  StoreHandleVal* MakeClone(const std::string& name);
+	StoreHandleVal* MakeClone(const std::string& name);
 
 	/**
 	 * Lookup a data store by it's identifier name and type.
@@ -229,6 +238,11 @@ public:
 	Stats ConsumeStatistics();
 
 private:
+	void ProcessEvent(const broker::vector* xs);
+	void ProcessLog(const broker::vector* xs);
+	void ProcessStatus(const broker::status* stat);
+	void ProcessError(broker::error err);
+	void ProcessStoreResponse(StoreHandleVal*, broker::store::response response);
 
 	// IOSource interface overrides:
 	void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
@@ -244,9 +258,12 @@ private:
 	broker::endpoint& Endpoint()
 		{ return endpoint; }
 
-  std::string name;
-  broker::context context;
-  broker::blocking_endpoint endpoint;
+	std::string name;
+	bool routable;
+	uint16_t bound_port;
+
+	broker::context context;
+	broker::blocking_endpoint endpoint;
 
 	// Data stores
 	std::unordered_map<std::string, StoreHandleVal*> data_stores;

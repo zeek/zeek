@@ -12,26 +12,55 @@ export {
 module Broker;
 
 export {
+        ## Default port for Broker communication. Where not specified
+        ## otherwise, this is the port to connect to and listen on.
+        const default_port = 9999/tcp &redef;
 
 	## The available configuration options when enabling Broker.
 	type Options: record {
-		## A name used to identify this endpoint to peers.
+		## A name used to identify this endpoint to peers. By default,
+                ## no name is et.
 		endpoint_name: string &default = "";
 		## Whether this Broker instance relays messages not destined to itself.
-		routable: bool &default = T;
+                ## By default, routing is disabled.
+		routable: bool &default = F;
 	};
 
-	## TODO: fill in the remaining error codes.
 	type ErrorCode: enum {
-		UNSPECIFIED,
+		## The unspecified default error code.
+		UNSPECIFIED = 1,
+		## Version incompatibility.
+		PEER_INCOMPATIBLE = 2,
+		## Referenced peer does not exist.
+		PEER_INVALID = 3,
+		## Remote peer not listening.
+		PEER_UNAVAILABLE = 4,
+		## An peering request timed out.
+	 	PEER_TIMEOUT = 5,
+		## Master with given name already exist.
+	 	MASTER_EXISTS = 6,
+		## Master with given name does not exist.
+	 	NO_SUCH_MASTER = 7,
+		## The given data store key does not exist.
+	 	NO_SUCH_KEY = 8,
+		## The store operation timed out.
+	 	REQUEST_TIMEOUT = 9,
+		## The operation expected a different type than provided
+	 	TYPE_CLASH = 10,
+		## The data value cannot be used to carry out the desired operation.
+		INVALID_DATA = 11,
+		## The storage backend failed to execute the operation.
+		BACKEND_FAILURE = 12,
+		## Catch-all for a CAF-level problem.
+	        CAF_ERROR = 100
 	};
 
-	type NetworkInfo : record {
+	type NetworkInfo: record {
 		## The IP address where the endpoint listens.
-		address: addr;
+		address: addr &log;
 		## The port where the endpoint is bound to.
-		bound_port: port;
-  };
+		bound_port: port &log;
+	};
 
 	type EndpointInfo: record {
 		## A unique identifier of the node.
@@ -63,25 +92,25 @@ export {
 		val: Broker::Data;
 	};
 
-	## Enables use of communication.
+	## Configures the local endpoint.
 	##
-	## options: used to tune the local Broker endpoint behavior.
+	## options: Configures the local Broker endpoint behavior.
 	##
-	## Returns: true if communication is successfully initialized.
-	global enable: function(options: Options &default = Options()): bool;
+	## Returns: true if configuration was successfully performed..
+	global configure: function(options: Options &default = Options()): bool;
 
 	## Listen for remote connections.
 	##
-	## p: the TCP port to listen on. The value 0 means that the OS should choose
-	##    the next available free port.
-	##
 	## a: an address string on which to accept connections, e.g.
 	##    "127.0.0.1".  An empty string refers to @p INADDR_ANY.
+        ##
+	## p: the TCP port to listen on. The value 0 means that the OS should choose
+	##    the next available free port.
 	##
 	## Returns: the bound port or 0/? on failure.
 	##
 	## .. bro:see:: Broker::status
-	global listen: function(p: port &default = 0/tcp, a: string &default = ""): port;
+	global listen: function(a: string &default = "", p: port &default = default_port): port;
 
 	## Initiate a remote connection.
 	##
@@ -99,7 +128,7 @@ export {
 	##
 	## .. bro:see:: Broker::status
 	# TODO: re-implement retry
-	global peer: function(a: string, p: port): bool;
+	global peer: function(a: string, p: port &default=default_port): bool;
 
 	## Remove a remote connection.
 	##
@@ -180,14 +209,14 @@ export {
 
 module Broker;
 
-function enable(options: Options &default = Options()): bool
+function configure(options: Options &default = Options()): bool
     {
-    return __enable(options);
+    return __configure(options);
     }
 
-function listen(p: port, a: string &default = ""): port
+function listen(a: string, p: port): port
     {
-    return __listen(p, a);
+    return __listen(a, p);
     }
 
 function peer(a: string, p: port): bool

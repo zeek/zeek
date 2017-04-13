@@ -361,6 +361,7 @@ void terminate_bro()
 	log_mgr->Terminate();
 	input_mgr->Terminate();
 	thread_mgr->Terminate();
+	broker_mgr->Terminate();
 
 	mgr.Drain();
 
@@ -375,6 +376,7 @@ void terminate_bro()
 	delete analyzer_mgr;
 	delete file_mgr;
 	delete log_mgr;
+//	delete broker_mgr;
 	delete plugin_mgr;
 	delete reporter;
 	delete iosource_mgr;
@@ -856,6 +858,7 @@ int main(int argc, char** argv)
 
 	plugin_mgr->InitPostScript();
 	broxygen_mgr->InitPostScript();
+	broker_mgr->InitPostScript();
 
 	if ( print_plugins )
 		{

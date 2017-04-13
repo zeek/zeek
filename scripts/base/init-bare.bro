@@ -4416,8 +4416,8 @@ const bits_per_uid: count = 96 &redef;
 
 # Load these frameworks here because they use fairly deep integration with
 # BiFs and script-land defined types.
-@load base/frameworks/broker
 @load base/frameworks/logging
+@load base/frameworks/broker
 @load base/frameworks/input
 @load base/frameworks/analyzer
 @load base/frameworks/files

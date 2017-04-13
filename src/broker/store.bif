@@ -66,9 +66,6 @@ function Broker::__close%(h: opaque of Broker::Handle%): bool
 function Broker::__get%(h: opaque of Broker::Handle,
                        k: Broker::Data%): Broker::QueryResult
 	%{
-	if ( ! broker_mgr->Enabled() )
-		return bro_broker::query_result();
-
 	auto key = k->AsRecordVal()->Lookup(0);
 	if ( ! key )
 		return bro_broker::query_result();

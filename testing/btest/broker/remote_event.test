@@ -1,97 +1,98 @@
 # @TEST-SERIALIZE: brokercomm
-# @TEST-REQUIRES: grep -q ENABLE_BROKER:BOOL=true $BUILD/CMakeCache.txt
-
-# @TEST-EXEC: btest-bg-run recv "bro -b ../recv.bro broker_port=$BROKER_PORT >recv.out"
-# @TEST-EXEC: btest-bg-run send "bro -b ../send.bro broker_port=$BROKER_PORT >send.out"
-
+#
+# @TEST-EXEC: btest-bg-run recv "bro -b ../recv.bro >recv.out"
+# @TEST-EXEC: sleep 5
+# @TEST-EXEC: btest-bg-run send "bro -b ../send.bro >send.out"
+#
 # @TEST-EXEC: btest-bg-wait 20
 # @TEST-EXEC: btest-diff recv/recv.out
 # @TEST-EXEC: btest-diff send/send.out
 
-@TEST-START-FILE recv.bro
+@TEST-START-FILE send.bro
 
-const broker_port: port &redef;
 redef exit_only_after_terminate = T;
 
-global handler: event(msg: string, c: count);
-global auto_handler: event(msg: string, c: count);
+global event_count = 0;
+
+global ping: event(msg: string, c: count);
 
 event bro_init()
-	{
-	Broker::enable();
-	Broker::subscribe("bro/event/");
-	Broker::auto_publish("bro/event/my_topic", auto_handler);
-	Broker::listen(broker_port, "127.0.0.1");
-	}
+    {
+    Broker::subscribe("bro/event/my_topic");
+    Broker::peer("127.0.0.1");
+    }
 
-global event_count = 0;
-global events_to_recv = 6;
+function send_event()
+    {
+    ++event_count;
+    local e = Broker::make_event(ping, "my-message", event_count);
+    Broker::publish("bro/event/my_topic", e);
+    }
 
-event handler(msg: string, n: count)
-	{
-	++event_count;
-	print "handler:", msg, n;
+event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
+    {
+    print fmt("sender added peer: endpoint=%s msg=%s",
+    endpoint$network$address, msg);
+    send_event();
+    }
 
-	if ( event_count == events_to_recv )
-		{
-		terminate();
-		return;
-		}
+event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
+    {
+    print fmt("sender lost peer: endpoint=%s msg=%s",
+    endpoint$network$address, msg);
+    terminate();
+    }
 
-	event auto_handler(msg, n);
-	local e = Broker::make_event(handler, "pong", n);
-	Broker::publish("bro/event/my_topic", e);
-	}
+event pong(msg: string, n: count)
+    {
+    print fmt("sender got pong: %s, %s", msg, n);
+    send_event();
+    }
 
 @TEST-END-FILE
 
-@TEST-START-FILE send.bro
 
-const broker_port: port &redef;
+@TEST-START-FILE recv.bro
+
 redef exit_only_after_terminate = T;
+
+const events_to_recv = 5;
 
 global handler: event(msg: string, c: count);
 global auto_handler: event(msg: string, c: count);
 
+global pong: event(msg: string, c: count);
+
 event bro_init()
-	{
-	Broker::enable();
-	Broker::subscribe("bro/event/my_topic");
-	Broker::peer("127.0.0.1", broker_port);
-	}
+        {
+        Broker::subscribe("bro/event/my_topic");
+        Broker::listen("127.0.0.1");
+        }
 
-global event_count = 0;
+event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
+        {
+        print fmt("receiver added peer: endpoint=%s msg=%s",
+        endpoint$network$address, msg);
+        }
 
-event Broker::status(code: Broker::StatusCode, endpoint: Broker::EndpointInfo, msg: string)
-	{
-	print code, endpoint, msg;
-	if ( code == Broker::PEER_ADDED )
-		{
-		local e = Broker::make_event(handler, "ping", event_count);
-		Broker::publish("bro/event/hi", e);
-		++event_count;
-		}
-	else if ( code == Broker::PEER_LOST )
-		{
-		terminate();
-		}
-	else
-		{
-		print "should not happen"
-		}
-  }
+event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
+        {
+        print fmt("receiver lost peer: endpoint=%s msg=%s",
+        endpoint$network$address, msg);
+        }
 
-event handler(msg: string, n: count)
-	{
-	print "handler:", msg, n;
-	local e = Broker::make_event(handler, "ping", event_count);
-	Broker::publish("bro/event/hi", e);
-	++event_count;
-	}
+event ping(msg: string, n: count)
+        {
+        print fmt("receiver got ping: %s, %s", msg, n);
 
-event auto_handler(msg: string, n: count)
-	{
-	print "auto_handler:", msg, n;
-	}
+        if ( n == events_to_recv )
+                {
+                terminate();
+                return;
+                }
+
+        local e = Broker::make_event(pong, msg, n);
+        Broker::publish("bro/event/my_topic", e);
+        }
 
 @TEST-END-FILE

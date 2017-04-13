@@ -164,7 +164,6 @@ function broker_remove_rule_fun(p: PluginState, r: Rule, reason: string) : bool
 
 function broker_init(p: PluginState)
 	{
-	Broker::enable();
 	Broker::peer(cat(p$broker_config$host), p$broker_config$bport);
 	Broker::subscribe(p$broker_config$topic);
 	}

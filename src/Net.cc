@@ -308,7 +308,7 @@ void net_run()
 			}
 #endif
 		current_iosrc = src;
-		auto communication_enabled = using_communication || broker_mgr->Enabled();
+		auto communication_enabled = using_communication || broker_mgr->Active();
 
 		if ( src )
 			src->Process();	// which will call net_packet_dispatch()

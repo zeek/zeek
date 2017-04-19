@@ -64,11 +64,6 @@ event Broker::peer_lost(endpoint: EndpointInfo, msg: string)
 	log_status("connection-terminated", endpoint, msg);
 	}
 
-event Broker::peer_recovered(endpoint: EndpointInfo, msg: string)
-	{
-	log_status("peer-recovered", endpoint, msg);
-	}
-
 event Broker::error(code: ErrorCode, msg: string)
 	{
 	local ev = cat(code);

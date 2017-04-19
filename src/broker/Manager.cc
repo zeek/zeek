@@ -586,10 +586,6 @@ void Manager::ProcessStatus(const broker::status* stat)
 	case broker::sc::peer_lost:
 		event = Broker::peer_lost;
 		break;
-
-	case broker::sc::peer_recovered:
-		event = Broker::peer_recovered;
-		break;
 	}
 
 	auto ei = internal_type("Broker::EndpointInfo")->AsRecordType();

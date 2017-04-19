@@ -46,6 +46,7 @@ struct Stats {
  */
 class Manager : public iosource::IOSource {
 public:
+        static const broker::endpoint_info NoPeer;
 
 	/**
 	 * Constructor.
@@ -139,14 +140,36 @@ public:
 	bool Publish(std::string topic, RecordVal* args);
 
 	/**
-	 * Send a log entry to any interested peers.  The topic name used is
-	 * implicitly "bro/log/<stream-name>".
-	 * @param stream_id the stream to which the log entry belongs.
-	 * @param columns the data which comprises the log entry.
-	 * @param info the record type corresponding to the log's columns.
+	 * Send a message to create a log stream to any interested peers.
+	 * The log stream may or may not already exist on the receiving side.
+	 * The topic name used is implicitly "bro/log/<stream-name>".
+	 * @param stream the stream to which the log entry belongs.
+	 * @param writer the writer to use for outputting this log entry.
+	 * @param info backend initialization information for the writer.
+	 * @param num_fields the number of fields the log has.
+	 * @param fields the log's fields, of size num_fields.
+	 * @param flags tune the behavior of how the message is send.
+	 * See the Broker::SendFlags record type.
+	 * @param peer If given, send the message only to this peer.
 	 * @return true if the message is sent successfully.
 	 */
-	bool Publish(EnumVal* stream_id, RecordVal* columns, RecordType* info);
+	bool PublishLogCreate(EnumVal* stream, EnumVal* writer, const logging::WriterBackend::WriterInfo& info,
+			      int num_fields, const threading::Field* const * fields, int flags, const broker::endpoint_info& peer = NoPeer);
+
+	/**
+	 * Send a log entry to any interested peers.  The topic name used is
+	 * implicitly "bro/log/<stream-name>".
+	 * @param stream the stream to which the log entry belongs.
+	 * @param writer the writer to use for outputting this log entry.
+	 * @param path the log path to output the log entry to.
+	 * @param num_vals the number of fields to log.
+	 * @param vals the log values to log, of size num_vals.
+	 * @param flags tune the behavior of how the message is send.
+	 * See the Broker::SendFlags record type.
+	 * @return true if the message is sent successfully.
+	 */
+	bool PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int num_vals,
+			     const threading::Value* const * vals, int flags);
 
 	/**
 	 * Automatically send an event to any interested peers whenever it is
@@ -239,10 +262,11 @@ public:
 
 private:
 	void ProcessEvent(const broker::vector* xs);
-	void ProcessLog(const broker::vector* xs);
 	void ProcessStatus(const broker::status* stat);
 	void ProcessError(broker::error err);
 	void ProcessStoreResponse(StoreHandleVal*, broker::store::response response);
+	bool ProcessLogCreate(broker::message msg);
+	bool ProcessLogWrite(broker::message msg);
 
 	// IOSource interface overrides:
 	void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
@@ -262,6 +286,11 @@ private:
 	bool routable;
 	uint16_t bound_port;
 
+	struct QueueWithStats {
+		broker::message_queue q;
+		size_t received = 0;
+	};
+
 	broker::context context;
 	broker::blocking_endpoint endpoint;
 
@@ -274,6 +303,10 @@ private:
 
 	static VectorType* vector_of_data_type;
 	static EnumType* log_id_type;
+	static EnumType* writer_id_type;
+	static int send_flags_self_idx;
+	static int send_flags_peers_idx;
+	static int send_flags_unsolicited_idx;
 };
 
 } // namespace bro_broker

@@ -107,6 +107,9 @@ File::~File()
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Destroying File object", id.c_str());
 	Unref(val);
 	delete file_reassembler;
+
+	for ( auto a : done_analyzers )
+		delete a;
 	}
 
 void File::UpdateLastActivityTime()
@@ -391,9 +394,15 @@ void File::DeliverStream(const u_char* data, uint64 len)
 			// Catch this analyzer up with the BOF buffer.
 			for ( int i = 0; i < num_bof_chunks_behind; ++i )
 				{
-				if ( ! a->DeliverStream(bof_buffer.chunks[i]->Bytes(),
-				                        bof_buffer.chunks[i]->Len()) )
-					analyzers.QueueRemove(a->Tag(), a->Args());
+				if ( ! a->Skipping() )
+					{
+					if ( ! a->DeliverStream(bof_buffer.chunks[i]->Bytes(),
+								bof_buffer.chunks[i]->Len()) )
+						{
+						a->SetSkip(true);
+						analyzers.QueueRemove(a->Tag(), a->Args());
+						}
+					}
 
 				bytes_delivered += bof_buffer.chunks[i]->Len();
 				}
@@ -403,8 +412,14 @@ void File::DeliverStream(const u_char* data, uint64 len)
 			// Analyzer should be fully caught up to stream_offset now.
 			}
 
-		if ( ! a->DeliverStream(data, len) )
-			analyzers.QueueRemove(a->Tag(), a->Args());
+		if ( ! a->Skipping() )
+			{
+			if ( ! a->DeliverStream(data, len) )
+				{
+				a->SetSkip(true);
+				analyzers.QueueRemove(a->Tag(), a->Args());
+				}
+			}
 		}
 
 	stream_offset += len;
@@ -468,14 +483,23 @@ void File::DeliverChunk(const u_char* data, uint64 len, uint64 offset)
 	while ( (a = analyzers.NextEntry(c)) )
 		{
 		DBG_LOG(DBG_FILE_ANALYSIS, "chunk delivery to analyzer %s", file_mgr->GetComponentName(a->Tag()).c_str());
-		if ( ! a->DeliverChunk(data, len, offset) )
+		if ( ! a->Skipping() )
 			{
-			analyzers.QueueRemove(a->Tag(), a->Args());
+			if ( ! a->DeliverChunk(data, len, offset) )
+				{
+				a->SetSkip(true);
+				analyzers.QueueRemove(a->Tag(), a->Args());
+				}
 			}
 		}
 
 	if ( IsComplete() )
 		EndOfFile();
+	}
+
+void File::DoneWithAnalyzer(Analyzer* analyzer)
+	{
+	done_analyzers.push_back(analyzer);
 	}
 
 void File::DataIn(const u_char* data, uint64 len, uint64 offset)

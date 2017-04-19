@@ -1,4 +1,163 @@
 
+2.5-123 | 2017-04-10 13:30:14 -0700
+
+  * Fix some failing tests by increasing delay times. (Daniel Thayer)
+
+  * Threading Types: add a bit of documentation to subnet type. (Johanna Amann)
+
+  * Fixing couple issues reported by Coverity. (Robin Sommer)
+
+2.5-119 | 2017-04-07 10:30:09 -0700
+
+  * Fix the test group name in some broker test files. (Daniel Thayer)
+
+  * NetControl: small rule_error changes (test, call fix). (Johanna Amann)
+
+  * SSL: update dpd signature for TLS1.3. (Johanna Amann)
+
+2.5-115 | 2017-03-23 07:25:41 -0700
+
+  * Fix a test that was failing on some platforms. (Daniel Thayer)
+
+  * Remove test for cluster catch and release. This test keeps failing
+    intermittently because of timing issues that are surprisingly hard
+    to fix. (Johanna Amann)
+
+  * Fix some Coverity warnings. (Daniel Thayer)
+
+2.5-106 | 2017-03-13 11:19:03 -0700
+
+  * print version string to stdout on --version, instead
+    of printing it to stderr. Output is not an error output.  (Pete)
+
+  * Fix compiler warning raised by llvm8. (Johanna Amann)
+
+  * Fix coverity warning in Ascii reader. (Johanna Amann)
+
+2.5-101 | 2017-03-09 12:20:11 -0500
+
+  * Input's framework's ascii reader is now more resilient.
+
+    By default, the ASCII reader does not fail on errors anymore.
+    If there is a problem parsing a line, a reporter warning is
+    written and parsing continues.  If the file is missing or can't
+    be read, the input thread just tries again on the next heartbeat.
+    (Seth Hall, Johanna Amann)
+
+2.5-92 | 2017-03-03 10:44:14 -0800
+
+  * Move most threading to C++11 primitives (mostly). (Johanna Amann)
+
+  * Fix a test that sometimes fails on FreeBSD. (Daniel Thayer)
+
+  * Remove build time warnings. (Seth Hall)
+
+2.5-84 | 2017-02-27 15:08:55 -0500
+
+  * Change semantics of Broker's remote logging to match old communication
+    framework. (Robin Sommer)
+
+  * Add and fix documentation for HookSetupAnalyzerTree (Johanna Amann)
+
+
+2.5-76 | 2017-02-23 10:19:57 -0800
+
+  * Kerberos ciphertext had some additional ASN.1 content being lumped
+    in. (Vlad Grigorescu)
+
+  * Updated Windows version detection to include Windows 10. (Fatema
+    Bannatwala, Keith Lehigh, Mike, Seth Hall).
+
+2.5-70 | 2017-02-20 00:20:02 -0500
+
+  * Rework the RADIUS base script.
+
+    Fixes BIT-1769 which improves logging behavior when replies aren't
+    seen.  Also added a `framed_addr` field to indicate if the radius
+    server is hinting at an address for the client and a `ttl` field to
+    show how quickly the server is responding. (Seth Hall)
+
+2.5-68 | 2017-02-18 13:59:05 -0500
+
+  * Refactored base krb scripts. (Seth Hall)
+
+  * New script to log ticket hashes in krb log
+    (policy/protocols/krb/ticket-logging.bro).  Also, add
+    ciphertext to ticket data structure. (John E. Rollinson)
+
+2.5-62 | 2017-02-15 15:56:38 -0800
+
+  * Fix case in which scripts were able to access unitialized variables
+    in certain cases. Addresses BIT-1785. (Jon Siwek)
+
+2.5-60 | 2017-02-15 15:19:20 -0800
+
+  * Implement ERSPAN support.
+
+    There is a small caveat to this implementation.  The ethernet
+    header that is carried over the tunnel is ignored.  If a user
+    tries to do MAC address logging, it will only show the MAC
+    addresses for the outer tunnel and the inner MAC addresses
+    will be stripped and not available anywhere. (Seth Hall)
+
+  * Tiny mime-type fix from Dan Caselden. (Seth Hall)
+
+  * Update failing intel framework test. (Johanna Amann)
+
+2.5-55 | 2017-02-10 09:50:43 -0500
+
+  * Fixed intel expiration reset. Reinserting the same indicator did not reset
+    the expiration timer for the indicator in the underlying data store.
+    Addresses BIT-1790. (Jan Grashoefer)
+
+2.5-51 | 2017-02-06 10:15:56 -0500
+
+  * Fix memory leak in file analyzer. (Johanna Amann)
+
+  * Fix a series of problems with the to_json function.
+    Addresses BIT-1788. (Daniel Thayer)
+
+2.5-44 | 2017-02-03 16:38:10 -0800
+
+  * Change snap lengths of some tests. (Johanna Amann)
+
+  * Fix layer 2 connection flipping. If connection flipping occured in
+    Sessions.cc code (invoked e.g. when the original SYN is missing),
+    layer 2 flipping was not performed. (Johanna Amann)
+
+2.5-39 | 2017-02-01 14:03:08 -0800
+
+  * Fix file analyzer memory management, and a delay in disabling file analyzers.
+    File analyzers are no longer deleted immediately; this is delayed until
+    a file opject is destroyed. Furthermore, no data is sent to file analyzers
+    anymore after they have been disabled.
+
+2.5-33 | 2017-02-01 10:07:47 -0500
+
+  * New file types sigs. (Keith Lehigh)
+
+  * Change snaplen of test trace from 1,000,000 to 10,000
+
+    Recent versions of libpcap are unhappy with values bigger than 262,144
+    and will refuse reading the file. (Johanna Amann)
+
+
+2.5-30 | 2017-01-26 13:24:36 -0800
+
+  * Extend file extraction log, adding extracted_cutoff and extracted_size
+    fields. (Seth Hall)
+
+  * Add new TLS extension type (cached_info) (Johanna Amann)
+
+  * Remove brocon event; it caused test failures. (Johanna Amann)
+
+  * Add missing paths to SMB Log::create_streams calls. (Johanna Amann)
+
+  * Tiny xlsx file signature fix. (Dan Caselden)
+
+  * Allow access to global variables using GLOBAL:: namespace.
+    Addresses BIT-1758. (Francois Pennaneac)
+
 2.5-17 | 2016-12-07 14:51:37 -0800
 
   * Broxygen no longer attempts to do tilde expansion of PATH, giving

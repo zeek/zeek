@@ -195,9 +195,9 @@ redef likely_server_ports += { ports };
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(SMB::CMD_LOG, [$columns=SMB::CmdInfo]);
-	Log::create_stream(SMB::FILES_LOG, [$columns=SMB::FileInfo]);
-	Log::create_stream(SMB::MAPPING_LOG, [$columns=SMB::TreeInfo]);
+	Log::create_stream(SMB::CMD_LOG, [$columns=SMB::CmdInfo, $path="smb_cmd"]);
+	Log::create_stream(SMB::FILES_LOG, [$columns=SMB::FileInfo, $path="smb_files"]);
+	Log::create_stream(SMB::MAPPING_LOG, [$columns=SMB::TreeInfo, $path="smb_mapping"]);
 
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SMB, ports);
 	}

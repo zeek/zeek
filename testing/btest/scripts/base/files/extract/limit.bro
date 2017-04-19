@@ -4,6 +4,7 @@
 # @TEST-EXEC: bro -b -r $TRACES/ftp/retr.trace %INPUT max_extract=3000 efname=2 double_it=T
 # @TEST-EXEC: btest-diff extract_files/2
 # @TEST-EXEC: btest-diff 2.out
+# @TEST-EXEC: btest-diff files.log
 # @TEST-EXEC: bro -b -r $TRACES/ftp/retr.trace %INPUT max_extract=7000 efname=3 unlimit_it=T
 # @TEST-EXEC: btest-diff extract_files/3
 # @TEST-EXEC: btest-diff 3.out

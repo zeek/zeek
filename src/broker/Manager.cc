@@ -21,8 +21,20 @@ using namespace std;
 
 namespace bro_broker {
 
+const broker::endpoint_info Manager::NoPeer{{}, caf::invalid_actor_id, {}};
+
 VectorType* Manager::vector_of_data_type;
 EnumType* Manager::log_id_type;
+EnumType* Manager::writer_id_type;
+int Manager::send_flags_self_idx;
+int Manager::send_flags_peers_idx;
+int Manager::send_flags_unsolicited_idx;
+
+struct unref_guard {
+	unref_guard(Val* v) : val(v) {}
+	~unref_guard() { Unref(val); }
+	Val* val;
+};
 
 #ifdef DEBUG
 static std::string RenderMessage(std::string topic, broker::data x)
@@ -78,6 +90,7 @@ void Manager::InitPostScript()
 	DBG_LOG(DBG_BROKER, "Initializing");
 
 	log_id_type = internal_type("Log::ID")->AsEnumType();
+	writer_id_type = internal_type("Log::Writer")->AsEnumType();
 
 	opaque_of_data_type = new OpaqueType("Broker::Data");
 	opaque_of_set_iterator = new OpaqueType("Broker::SetIterator");
@@ -177,60 +190,6 @@ bool Manager::Publish(string topic, broker::data x)
 	return true;
 	}
 
-bool Manager::Publish(EnumVal* stream, RecordVal* columns,
-                              RecordType* info)
-	{
-	auto stream_name = stream->Type()->AsEnumType()->Lookup(stream->AsEnum());
-
-	if ( ! stream_name )
-		{
-		reporter->Error("Failed to remotely log: stream %d doesn't have name",
-		                stream->AsEnum());
-		return false;
-		}
-
-	broker::vector xs;
-	xs.reserve(info->NumFields() + 1);
-	xs.emplace_back(broker::enum_value{stream_name});
-
-	for ( auto i = 0u; i < static_cast<size_t>(info->NumFields()); ++i )
-		{
-		if ( ! info->FieldDecl(i)->FindAttr(ATTR_LOG) )
-			continue;
-
-		auto field_val = columns->LookupWithDefault(i);
-
-		if ( ! field_val )
-			{
-			xs.emplace_back(broker::nil);
-			continue;
-			}
-
-		auto field_data = val_to_data(field_val);
-		Unref(field_val);
-
-		if ( ! field_data )
-			{
-			reporter->Error("Failed to remotely log stream %s: "
-			                "unsupported type '%s'",
-			                stream_name,
-			                type_name(info->FieldDecl(i)->type->Tag()));
-			return false;
-			}
-
-		xs.push_back(move(*field_data));
-		}
-
-	auto stream_enum = broker::enum_value{stream_name};
-	auto topic = "bro/log"_t / stream_name;
-	auto data = broker::vector{stream_enum, move(xs)};
-
-	DBG_LOG(DBG_BROKER, "Publishing log record: %s", RenderMessage(topic.string(), data).c_str());
-	endpoint.publish(move(topic), move(data));
-
-	return true;
-	}
-
 bool Manager::Publish(string topic, RecordVal* args)
 	{
 	if ( ! args->Lookup(0) )
@@ -251,6 +210,101 @@ bool Manager::Publish(string topic, RecordVal* args)
 
 	DBG_LOG(DBG_BROKER, "Publishing message: %s", RenderMessage(topic, xs).c_str());
 	endpoint.publish(move(topic), move(xs));
+
+	return true;
+	}
+
+bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer,
+			const logging::WriterBackend::WriterInfo& info,
+			int num_fields, const threading::Field* const * fields,
+			int flags, const broker::endpoint_info& peer)
+	{
+	auto stream_name = stream->Type()->AsEnumType()->Lookup(stream->AsEnum());
+
+	if ( ! stream_name )
+		{
+		reporter->Error("Failed to remotely log: stream %d doesn't have name",
+		                stream->AsEnum());
+		return false;
+		}
+
+	auto writer_name = writer->Type()->AsEnumType()->Lookup(writer->AsEnum());
+
+	if ( ! writer_name )
+		{
+		reporter->Error("Failed to remotely log: writer %d doesn't have name",
+		                writer->AsEnum());
+		return false;
+		}
+
+	auto writer_info = info.ToBroker();
+
+	broker::vector fields_data;
+
+	for ( auto i = 0; i < num_fields; ++i )
+		{
+		auto field_data = threading_field_to_data(fields[i]);
+		fields_data.push_back(move(field_data));
+		}
+
+	// TODO: If peer is given, send message to just that one destination.
+
+	std::string topic = std::string("bro/log/") + stream_name;
+	auto bstream_name = broker::enum_value(move(stream_name));
+	auto bwriter_name = broker::enum_value(move(writer_name));
+	broker::vector xs{broker::atom("create"), move(bstream_name), move(bwriter_name), move(writer_info), move(fields_data)};
+
+	DBG_LOG(DBG_BROKER, "Publishing log creation: %s", RenderMessage(topic, xs).c_str());
+	endpoint->publish(move(topic), move(xs));
+
+	return true;
+	}
+
+bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int num_vals, const threading::Value* const * vals, int flags)
+	{
+	auto stream_name = stream->Type()->AsEnumType()->Lookup(stream->AsEnum());
+
+	if ( ! stream_name )
+		{
+		reporter->Error("Failed to remotely log: stream %d doesn't have name",
+		                stream->AsEnum());
+		return false;
+		}
+
+	auto writer_name = writer->Type()->AsEnumType()->Lookup(writer->AsEnum());
+
+	if ( ! writer_name )
+		{
+		reporter->Error("Failed to remotely log: writer %d doesn't have name",
+		                writer->AsEnum());
+		return false;
+		}
+
+	broker::vector vals_data;
+
+	for ( auto i = 0; i < num_vals; ++i )
+		{
+		auto field_data = threading_val_to_data(vals[i]);
+
+		if ( ! field_data )
+			{
+			reporter->Error("Failed to remotely log stream %s: "
+			                "unsupported type for field #%d",
+			                stream_name, i);
+			return false;
+			}
+
+		vals_data.push_back(move(*field_data));
+		}
+
+	std::string topic = std::string("bro/log/") + stream_name;
+	auto bstream_name = broker::enum_value(move(stream_name));
+	auto bwriter_name = broker::enum_value(move(writer_name));
+
+	broker::message xs{broker::atom("write"), move(bstream_name), move(bwriter_name), move(path), move(vals_data)};
+
+	DBG_LOG(DBG_BROKER, "Publishing log record: %s", RenderMessage(topic, xs).c_str());
+	endpoint->publish(move(topic), move(xs));
 
 	return true;
 	}
@@ -437,7 +491,19 @@ void Manager::Process()
 				}
 
 			if ( msg->topic() == "bro/log" )
-				ProcessLog(xs);
+				{
+				auto ty = broker::get<broker::atom>(msg[1]);
+
+				if ( ty == broker::atom("create") )
+					ProcessLogCreate(xs);
+				else if ( ty == broker::atom("write") )
+					ProcessLogWrite(xs);
+				else
+					{
+					reporter->Warning("ignoring bro/log message with unknown type");
+					continue;
+					}
+				}
 			else
 				ProcessEvent(xs);
 
@@ -508,66 +574,207 @@ void Manager::ProcessEvent(const broker::vector* xs)
 		delete_vals(vl);
 	}
 
-void Manager::ProcessLog(const broker::vector* xs)
+bool bro_broker::Manager::ProcessLogCreate(broker::vector xs)
 	{
-	DBG_LOG(DBG_BROKER, "Received log record: %s", RenderMessage(xs).c_str());
-
-	if ( xs->size() != 2 )
+	if ( xs.size() != 5 )
 		{
-		reporter->Warning("got bad remote log size: %zd (expected 2)",
-				  xs->size());
-		return;
+		reporter->Warning("got bad remote log create size: %zd (expected 5)",
+				  xs.size());
+		return false;
 		}
 
-	if ( ! broker::get_if<broker::enum_value>(xs->front()) )
+	unsigned int idx = 1; // Skip type at index 0.
+
+	// Get stream ID.
+
+	if ( ! broker::get<broker::enum_value>(xs[idx]) )
 		{
-		reporter->Warning("got remote log w/o stream id");
-		return;
+		reporter->Warning("got remote log create w/o stream id: %d",
+				  static_cast<int>(broker::which(xs[idx])));
+		return false;
 		}
 
-	if ( ! broker::get_if<broker::vector>(xs->back()) )
-		{
-		reporter->Warning("got remote log w/o columns");
-		return;
-		}
-
-	auto stream_id = data_to_val(move(xs->front()), log_id_type);
+	auto stream_id = data_to_val(move(xs[idx]), log_id_type);
 
 	if ( ! stream_id )
 		{
 		reporter->Warning("failed to unpack remote log stream id");
-		return;
+		return false;
 		}
 
-	auto columns_type = log_mgr->StreamColumns(stream_id->AsEnumVal());
-	if ( ! columns_type )
+	unref_guard stream_id_unreffer{stream_id};
+	++idx;
+
+	// Get writer ID.
+
+	if ( ! broker::get<broker::enum_value>(xs[idx]) )
 		{
-		reporter->Warning("got remote log for unknown stream: %s",
-				  stream_id->Type()->AsEnumType()->Lookup(
-									  stream_id->AsEnum()));
-		Unref(stream_id);
-		return;
+		reporter->Warning("got remote log create w/o writer id: %d",
+				  static_cast<int>(broker::which(xs[idx])));
+		return false;
 		}
 
-	auto columns = data_to_val(move(xs->back()), columns_type, true);
-	if ( ! columns )
+	auto writer_id = data_to_val(move(xs[idx]), writer_id_type);
+
+	if ( ! writer_id )
 		{
-		reporter->Warning("failed to unpack remote log stream columns"
-				  " for stream: %s",
-				  stream_id->Type()->AsEnumType()->Lookup(
-									  stream_id->AsEnum()));
-		Unref(stream_id);
-		return;
+		reporter->Warning("failed to unpack remote log writer id");
+		return false;
 		}
 
-	log_mgr->Write(stream_id->AsEnumVal(), columns->AsRecordVal());
-	Unref(stream_id);
-	Unref(columns);
+	unref_guard writer_id_unreffer{writer_id};
+	++idx;
+
+	// Get writer info.
+
+	if ( ! broker::get<broker::record>(xs[idx]) )
+		{
+		reporter->Warning("got remote log create w/o writer info id: %d",
+				  static_cast<int>(broker::which(xs[idx])));
+		return false;
+		}
+
+	auto writer_info = std::unique_ptr<logging::WriterBackend::WriterInfo>(new logging::WriterBackend::WriterInfo);
+
+	if ( ! writer_info->FromBroker(std::move(xs[idx])) )
+		{
+		reporter->Warning("failed to unpack remote log writer info");
+		return false;
+		}
+
+	++idx;
+
+	// Get log fields.
+
+	auto fields_data = broker::get<broker::vector>(xs[idx]);
+
+	if ( ! fields_data )
+		{
+		reporter->Warning("failed to unpack remote log fields");
+		return false;
+		}
+
+	auto num_fields = fields_data->size();
+	auto fields = new threading::Field* [num_fields];
+
+	for ( auto i = 0u; i < num_fields; ++i )
+		{
+		if ( auto field = data_to_threading_field((*fields_data)[i]) )
+			fields[i] = field;
+		else
+			{
+			reporter->Warning("failed to convert remote log field # %d", i);
+			return false;
+			}
+		}
+
+	if ( ! log_mgr->CreateWriterForRemoteLog(stream_id->AsEnumVal(), writer_id->AsEnumVal(), writer_info.get(), num_fields, fields) )
+		{
+		ODesc d;
+		stream_id->Describe(&d);
+		reporter->Warning("failed to create remote log stream for %s locally", d.Description());
+		}
+
+	writer_info.release(); // log_mgr took ownership.
+	return true;
+	}
+
+bool bro_broker::Manager::ProcessLogWrite(broker::vector xs)
+	{
+	if ( xs.size() != 5 )
+		{
+		reporter->Warning("got bad remote log size: %zd (expected 5)",
+				  xs.size());
+		return false;
+		}
+
+	unsigned int idx = 1; // Skip type at index 0.
+
+	// Get stream ID.
+
+	if ( ! broker::get<broker::enum_value>(xs[idx]) )
+		{
+		reporter->Warning("got remote log w/o stream id: %d",
+				  static_cast<int>(broker::which(xs[idx])));
+		return false;
+		}
+
+	auto stream_id = data_to_val(move(xs[idx]), log_id_type);
+
+	if ( ! stream_id )
+		{
+		reporter->Warning("failed to unpack remote log stream id");
+		return false;
+		}
+
+	unref_guard stream_id_unreffer{stream_id};
+	++idx;
+
+	// Get writer ID.
+
+	if ( ! broker::get<broker::enum_value>(xs[idx]) )
+		{
+		reporter->Warning("got remote log w/o writer id: %d",
+				  static_cast<int>(broker::which(xs[idx])));
+		return false;
+		}
+
+	auto writer_id = data_to_val(move(xs[idx]), writer_id_type);
+
+	if ( ! writer_id )
+		{
+		reporter->Warning("failed to unpack remote log writer id");
+		return false;
+		}
+
+	unref_guard writer_id_unreffer{writer_id};
+	++idx;
+
+	// Get path.
+
+	auto path = broker::get<std::string>(xs[idx]);
+
+	if ( ! path )
+		{
+		reporter->Warning("failed to unpack remote log path");
+		return false;
+		}
+
+	++idx;
+
+	// Get log values.
+
+	auto vals_data = broker::get<broker::vector>(xs[idx]);
+
+	if ( ! vals_data )
+		{
+		reporter->Warning("failed to unpack remote log values");
+		return false;
+		}
+
+	auto num_vals = vals_data->size();
+	auto vals = new threading::Value* [num_vals];
+
+	for ( auto i = 0u; i < num_vals; ++i )
+		{
+		if ( auto val = data_to_threading_val((*vals_data)[i]) )
+			vals[i] = val;
+		else
+			{
+			reporter->Warning("failed to convert remote log arg # %d", i);
+			return false;
+			}
+		}
+
+	log_mgr->WriteFromRemote(stream_id->AsEnumVal(), writer_id->AsEnumVal(), *path, num_vals, vals);
+	return true;
 	}
 
 void Manager::ProcessStatus(const broker::status* stat)
 	{
 	DBG_LOG(DBG_BROKER, "Received status message: %s", RenderMessage(stat).c_str());
+
+	auto ctx = stat->context<broker::endpoint_info>();
 
 	EventHandlerPtr event;
 	switch (stat->code()) {
@@ -576,6 +783,8 @@ void Manager::ProcessStatus(const broker::status* stat)
 		break;
 
 	case broker::sc::peer_added:
+	        assert(ctx);
+	        log_mgr->SendAllWritersTo(ctx);
 		event = Broker::peer_added;
 		break;
 
@@ -591,7 +800,7 @@ void Manager::ProcessStatus(const broker::status* stat)
 	auto ei = internal_type("Broker::EndpointInfo")->AsRecordType();
 	auto endpoint_info = new RecordVal(ei);
 
-	if ( auto ctx = stat->context<broker::endpoint_info>() )
+	if ( ctx )
 		{
 		auto id = to_string(ctx->node) + to_string(ctx->id);
 		endpoint_info->Assign(0, new StringVal(id));
@@ -676,8 +885,6 @@ void Manager::ProcessError(broker::error err)
 		default:
 			ec = BifEnum::Broker::ErrorCode::UNSPECIFIED;
 		}
-		}
-
 	else
 		{
 		ec = BifEnum::Broker::ErrorCode::CAF_ERROR;

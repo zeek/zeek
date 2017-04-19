@@ -25,6 +25,10 @@ function to_json(v: any, only_loggable: bool &default=F, field_escape_pattern: p
 		case "port":
 		return cat(port_to_count(to_port(cat(v))));
 
+		case "enum":
+		fallthrough;
+		case "interval":
+		fallthrough;
 		case "addr":
 		fallthrough;
 		case "subnet":
@@ -35,13 +39,14 @@ function to_json(v: any, only_loggable: bool &default=F, field_escape_pattern: p
 		case "count":
 		fallthrough;
 		case "time":
-		fallthrough;
-		case "double":
-		fallthrough;
-		case "bool":
-		fallthrough;
-		case "enum":
 		return cat(v);
+
+		case "double":
+		return fmt("%.16g", v);
+
+		case "bool":
+		local bval: bool = v;
+		return bval ? "true" : "false";
 
 		default:
 		break;

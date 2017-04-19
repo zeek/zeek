@@ -10,41 +10,41 @@ export {
 
 	type Info: record {
 		## Timestamp for when the event happened.
-		ts:			time    &log;
+		ts:            time     &log;
 		## Unique ID for the connection.
-		uid:			string  &log;
+		uid:           string   &log;
 		## The connection's 4-tuple of endpoint addresses/ports.
-		id:			conn_id &log;
+		id:            conn_id  &log;
 
 		## Request type - Authentication Service ("AS") or
 		## Ticket Granting Service ("TGS")
-		request_type:		string &log &optional;
+		request_type:  string   &log &optional;
 		## Client
-		client:			string &log &optional;
+		client:        string   &log &optional;
 		## Service
-		service:		string &log;
+		service:       string   &log &optional;
 
 		## Request result
-		success:		bool &log &optional;
+		success:       bool     &log &optional;
 		## Error code
-		error_code: 		count &optional;
+		error_code:    count    &optional;
 		## Error message
-		error_msg: 		string &log &optional;
+		error_msg:     string   &log &optional;
 
 		## Ticket valid from
-		from:			time &log &optional;
+		from:          time     &log &optional;
 		## Ticket valid till
-		till:			time &log &optional;
+		till:          time     &log &optional;
 		## Ticket encryption type
-		cipher:			string &log &optional;
+		cipher:        string   &log &optional;
 
 		## Forwardable ticket requested
-		forwardable: 		bool &log &optional;
+		forwardable:   bool     &log &optional;
 		## Renewable ticket requested
-		renewable:		bool &log &optional;
+		renewable:     bool     &log &optional;
 
 		## We've already logged this
-		logged: 		bool &default=F;
+		logged:        bool     &default=F;
 	};
 
 	## The server response error texts which are *not* logged.
@@ -80,172 +80,140 @@ event bro_init() &priority=5
 	Log::create_stream(KRB::LOG, [$columns=Info, $ev=log_krb, $path="kerberos"]);
 	}
 
-event krb_error(c: connection, msg: Error_Msg) &priority=5
+function set_session(c: connection): bool
 	{
-	local info: Info;
-
-	if ( msg?$error_text && msg$error_text in ignored_errors )
+	if ( ! c?$krb )
 		{
-		if ( c?$krb ) delete c$krb;
-		return;
+		c$krb = Info($ts  = network_time(),
+		             $uid = c$uid,
+		             $id  = c$id);
 		}
-
-	if ( c?$krb && c$krb$logged )
-		return;
-
-	if ( c?$krb )
-		info = c$krb;
-
-	if ( ! info?$ts )
-		{
-		info$ts  = network_time();
-		info$uid = c$uid;
-		info$id  = c$id;
-		}
-
-	if ( ! info?$client && ( msg?$client_name || msg?$client_realm ) )
-		info$client = fmt("%s%s", msg?$client_name ? msg$client_name + "/" : "",
-				 	  msg?$client_realm ? msg$client_realm : "");
-
-	info$service = msg$service_name;
-	info$success = F;
-
-	info$error_code = msg$error_code;
-
-	if ( msg?$error_text )			info$error_msg = msg$error_text;
-	else if ( msg$error_code in error_msg ) info$error_msg = error_msg[msg$error_code];
-
-	c$krb = info;
+	
+	return c$krb$logged;
 	}
 
-event krb_error(c: connection, msg: Error_Msg) &priority=-5
+function do_log(c: connection)
 	{
-	if ( c?$krb )
+	if ( c?$krb && ! c$krb$logged )
 		{
 		Log::write(KRB::LOG, c$krb);
 		c$krb$logged = T;
 		}
 	}
 
-event krb_as_request(c: connection, msg: KDC_Request) &priority=5
+event krb_error(c: connection, msg: Error_Msg) &priority=5
 	{
-	if ( c?$krb && c$krb$logged )
+	if ( set_session(c) )
 		return;
 
-	local info: Info;
-
-	if ( !c?$krb )
+	if ( msg?$error_text && msg$error_text in ignored_errors )
 		{
-		info$ts  = network_time();
-		info$uid = c$uid;
-		info$id  = c$id;
+		if ( c?$krb ) 
+			delete c$krb;
+
+		return;
 		}
-	else
-		info = c$krb;
 
-	info$request_type = "AS";
-	info$client = fmt("%s/%s", msg?$client_name ? msg$client_name : "", msg$service_realm);
-	info$service = msg$service_name;
+	if ( ! c$krb?$client && ( msg?$client_name || msg?$client_realm ) )
+		c$krb$client = fmt("%s%s", msg?$client_name ? msg$client_name + "/" : "",
+		                           msg?$client_realm ? msg$client_realm : "");
 
-	if ( msg?$from )
-		info$from = msg$from;
+	c$krb$service    = msg$service_name;
+	c$krb$success    = F;
+	c$krb$error_code = msg$error_code;
 
-	info$till = msg$till;
-
-	info$forwardable = msg$kdc_options$forwardable;
-	info$renewable = msg$kdc_options$renewable;
-
-	c$krb = info;
+	if ( msg?$error_text )
+		c$krb$error_msg = msg$error_text;
+	else if ( msg$error_code in error_msg )
+		c$krb$error_msg = error_msg[msg$error_code];
 	}
 
-event krb_tgs_request(c: connection, msg: KDC_Request) &priority=5
+event krb_error(c: connection, msg: Error_Msg) &priority=-5
 	{
-	if ( c?$krb && c$krb$logged )
+	do_log(c);
+	}
+
+event krb_as_request(c: connection, msg: KDC_Request) &priority=5
+	{
+	if ( set_session(c) )
 		return;
 
-	local info: Info;
-	info$ts  = network_time();
-	info$uid = c$uid;
-	info$id  = c$id;
-	info$request_type = "TGS";
-	info$service = msg$service_name;
-	if ( msg?$from ) info$from = msg$from;
-	info$till = msg$till;
+	c$krb$request_type = "AS";
+	c$krb$client       = fmt("%s/%s", msg?$client_name ? msg$client_name : "", msg$service_realm);
+	c$krb$service      = msg$service_name;
 
-	info$forwardable = msg$kdc_options$forwardable;
-	info$renewable = msg$kdc_options$renewable;
+	if ( msg?$from )
+		c$krb$from = msg$from;
+	c$krb$till        = msg$till;
 
-	c$krb = info;
+	c$krb$forwardable = msg$kdc_options$forwardable;
+	c$krb$renewable   = msg$kdc_options$renewable;
 	}
 
 event krb_as_response(c: connection, msg: KDC_Response) &priority=5
 	{
-	local info: Info;
-
-	if ( c?$krb && c$krb$logged )
+	if ( set_session(c) )
 		return;
 
-	if ( c?$krb )
-		info = c$krb;
-
-	if ( ! info?$ts )
+	if ( ! c$krb?$client && ( msg?$client_name || msg?$client_realm ) )
 		{
-		info$ts  = network_time();
-		info$uid = c$uid;
-		info$id  = c$id;
+		c$krb$client = fmt("%s/%s", msg?$client_name ? msg$client_name : "", 
+	                                msg?$client_realm ? msg$client_realm : "");
 		}
 
-	if ( ! info?$client && ( msg?$client_name || msg?$client_realm ) )
-		info$client = fmt("%s/%s", msg?$client_name ? msg$client_name : "", msg?$client_realm ? msg$client_realm : "");
-
-	info$service = msg$ticket$service_name;
-	info$cipher  = cipher_name[msg$ticket$cipher];
-	info$success = T;
-
-	c$krb = info;
+	c$krb$service = msg$ticket$service_name;
+	c$krb$cipher  = cipher_name[msg$ticket$cipher];
+	c$krb$success = T;
 	}
 
 event krb_as_response(c: connection, msg: KDC_Response) &priority=-5
 	{
-	Log::write(KRB::LOG, c$krb);
-	c$krb$logged = T;
+	do_log(c);
+	}
+
+event krb_ap_request(c: connection, ticket: KRB::Ticket, opts: KRB::AP_Options) &priority=5
+	{
+	if ( set_session(c) )
+		return;
+	}
+
+event krb_tgs_request(c: connection, msg: KDC_Request) &priority=5
+	{
+	if ( set_session(c) )
+		return;
+
+	c$krb$request_type = "TGS";
+	c$krb$service = msg$service_name;
+	if ( msg?$from ) 
+		c$krb$from = msg$from;
+	c$krb$till = msg$till;
+
+	c$krb$forwardable = msg$kdc_options$forwardable;
+	c$krb$renewable   = msg$kdc_options$renewable;
 	}
 
 event krb_tgs_response(c: connection, msg: KDC_Response) &priority=5
 	{
-	local info: Info;
-
-	if ( c?$krb && c$krb$logged )
+	if ( set_session(c) )
 		return;
 
-	if ( c?$krb )
-		info = c$krb;
-
-	if ( ! info?$ts )
+	if ( ! c$krb?$client && ( msg?$client_name || msg?$client_realm ) )
 		{
-		info$ts  = network_time();
-		info$uid = c$uid;
-		info$id  = c$id;
+		c$krb$client = fmt("%s/%s", msg?$client_name ? msg$client_name : "", 
+	                                msg?$client_realm ? msg$client_realm : "");
 		}
 
-	if ( ! info?$client && ( msg?$client_name || msg?$client_realm ) )
-		info$client = fmt("%s/%s", msg?$client_name ? msg$client_name : "", msg?$client_realm ? msg$client_realm : "");
-
-	info$service = msg$ticket$service_name;
-	info$cipher  = cipher_name[msg$ticket$cipher];
-	info$success = T;
-
-	c$krb = info;
+	c$krb$service = msg$ticket$service_name;
+	c$krb$cipher  = cipher_name[msg$ticket$cipher];
+	c$krb$success = T;
 	}
 
 event krb_tgs_response(c: connection, msg: KDC_Response) &priority=-5
 	{
-	Log::write(KRB::LOG, c$krb);
-	c$krb$logged = T;
+	do_log(c);
 	}
 
 event connection_state_remove(c: connection) &priority=-5
 	{
-	if ( c?$krb && ! c$krb$logged )
-		Log::write(KRB::LOG, c$krb);
+	do_log(c);
 	}

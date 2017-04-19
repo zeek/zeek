@@ -1,4 +1,4 @@
-##! Various data structure definitions for use with Bro's communication system.
+#! Various data structure definitions for use with Bro's communication system.
 
 module Log;
 
@@ -15,6 +15,14 @@ export {
         ## Default port for Broker communication. Where not specified
         ## otherwise, this is the port to connect to and listen on.
         const default_port = 9999/tcp &redef;
+
+        ## Default interval to retry listening on a port if it's currently in
+        ## use already.
+        const default_listen_retry = 30sec &redef;
+
+        ## Default interval to retry connecting to a peer if it cannot be made to work
+        ## initially, or if it ever becomes disconnected.
+        const default_connect_retry = 30sec &redef;
 
 	## The available configuration options when enabling Broker.
 	type Options: record {
@@ -107,11 +115,14 @@ export {
 	## p: the TCP port to listen on. The value 0 means that the OS should choose
 	##    the next available free port.
 	##
+ 	## retry: If non-zero, retries listening in regular intervals if the port cannot be
+ 	##        acquired immediately. 0 disables retries.
+	##
 	## Returns: the bound port or 0/? on failure.
 	##
 	## .. bro:see:: Broker::status
-	global listen: function(a: string &default = "", p: port &default = default_port): port;
-
+        global listen: function(a: string &default = "", p: port &default=default_port,
+                                retry: interval &default = default_listen_retry): port;
 	## Initiate a remote connection.
 	##
 	## a: an address to connect to, e.g. "localhost" or "127.0.0.1".
@@ -127,8 +138,8 @@ export {
 	##          until a later point in time.
 	##
 	## .. bro:see:: Broker::status
-	# TODO: re-implement retry
-	global peer: function(a: string, p: port &default=default_port): bool;
+        global peer: function(a: string, p: port &default=default_port,
+			      retry: interval &default=default_connect_retry): bool;
 
 	## Remove a remote connection.
 	##
@@ -214,14 +225,24 @@ function configure(options: Options &default = Options()): bool
     return __configure(options);
     }
 
-function listen(a: string, p: port): port
+event retry_listen(a: string, p: port, retry: interval)
     {
-    return __listen(a, p);
+    listen(a, p, retry);
     }
 
-function peer(a: string, p: port): bool
+function listen(a: string, p: port, retry: interval): port
     {
-    return __peer(a, p);
+    local bound = __listen(a, p);
+
+    if ( bound == 0/tcp && retry != 0secs )
+	    schedule retry { retry_listen(a, p, retry) };
+
+    return bound;
+    }
+
+function peer(a: string, p: port, retry: interval): bool
+    {
+    return __peer(a, p, retry);
     }
 
 function unpeer(a: string, p: port): bool

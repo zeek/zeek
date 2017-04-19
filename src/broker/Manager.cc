@@ -141,12 +141,17 @@ uint16_t Manager::Listen(const string& addr, uint16_t port)
 	return bound_port;
 	}
 
-void Manager::Peer(const string& addr, uint16_t port)
+void Manager::Peer(const string& addr, uint16_t port, double retry)
 	{
 	DBG_LOG(DBG_BROKER, "Starting to peer with %s:%" PRIu16,
 		addr.c_str(), port);
 
-	endpoint.peer(addr, port);
+	if ( retry > 0.0 && retry < 1.0 )
+		// Ensure that it doesn't get turned into zero.
+		retry = 1.0;
+
+	auto ms = broker::timeout::seconds(static_cast<uint64>(retry));
+	endpoint.peer(addr, port, ms);
 	}
 
 void Manager::Unpeer(const string& addr, uint16_t port)

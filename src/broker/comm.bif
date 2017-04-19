@@ -70,7 +70,7 @@ function Broker::__listen%(a: string, p: port%): port
   return new PortVal(rval, TRANSPORT_TCP);
 	%}
 
-function Broker::__peer%(a: string, p: port%): bool
+function Broker::__peer%(a: string, p: port, retry: interval%): bool
 	%{
 	if ( ! p->IsTCP() )
 		{
@@ -78,7 +78,7 @@ function Broker::__peer%(a: string, p: port%): bool
 		return new Val(false, TYPE_BOOL);
 		}
 
-	broker_mgr->Peer(a->CheckString(), p->Port());
+	broker_mgr->Peer(a->CheckString(), p->Port(), retry);
 	return new Val(true, TYPE_BOOL);
 	%}
 

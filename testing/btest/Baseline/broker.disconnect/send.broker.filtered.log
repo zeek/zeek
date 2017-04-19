@@ -1,0 +1,4 @@
+1492641253.937931 Broker::STATUS peer-added 127.0.0.1 XXX outbound peering established
+1492641257.518165 Broker::STATUS peer-removed 127.0.0.1 XXX removed peering
+1492641257.520416 Broker::STATUS connection-terminated 127.0.0.1 XXX lost remote peer
+1492641259.469797 Broker::STATUS peer-added 127.0.0.1 XXX outbound peering established

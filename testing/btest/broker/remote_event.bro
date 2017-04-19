@@ -74,14 +74,12 @@ event bro_init()
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
         {
-        print fmt("receiver added peer: endpoint=%s msg=%s",
-        endpoint$network$address, msg);
+        print fmt("receiver added peer: endpoint=%s msg=%s", endpoint$network$address, msg);
         }
 
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
         {
-        print fmt("receiver lost peer: endpoint=%s msg=%s",
-        endpoint$network$address, msg);
+        print fmt("receiver lost peer: endpoint=%s msg=%s", endpoint$network$address, msg);
         }
 
 event ping(msg: string, n: count)

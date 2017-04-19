@@ -34,40 +34,39 @@ event bro_init() &priority=5
 	Log::create_stream(Broker::LOG, [$columns=Info, $path="broker"]);
 	}
 
+function log_status(ev: string, endpoint: EndpointInfo, msg: string)
+	{
+	local r: Info;
+
+	r = [$ts = network_time(),
+	     $ev = ev,
+	     $ty = STATUS,
+	     $message = msg];
+
+	if ( endpoint?$network )
+		r$peer = endpoint$network;
+
+	Log::write(Broker::LOG, r);
+	}
+
 event Broker::peer_added(endpoint: EndpointInfo, msg: string)
 	{
-	Log::write(Broker::LOG, [$ts = network_time(),
-				 $ev = "peer-added",
-				 $ty = STATUS,
-				 $peer = endpoint$network,
-				 $message = msg]);
+	log_status("peer-added", endpoint, msg);
 	}
 
 event Broker::peer_removed(endpoint: EndpointInfo, msg: string)
 	{
-	Log::write(Broker::LOG, [$ts = network_time(),
-				 $ev = "peer-remove",
-				 $ty = STATUS,
-				 $peer = endpoint$network,
-				 $message = msg]);
+	log_status("peer-removed", endpoint, msg);
 	}
 
 event Broker::peer_lost(endpoint: EndpointInfo, msg: string)
 	{
-	Log::write(Broker::LOG, [$ts = network_time(),
-				 $ev = "peer-lost",
-				 $ty = STATUS,
-				 $peer = endpoint$network,
-				 $message = msg]);
+	log_status("connection-terminated", endpoint, msg);
 	}
 
 event Broker::peer_recovered(endpoint: EndpointInfo, msg: string)
 	{
-	Log::write(Broker::LOG, [$ts = network_time(),
-				 $ev = "peer-recovered",
-				 $ty = STATUS,
-				 $peer = endpoint$network,
-				 $message = msg]);
+	log_status("peer-recovered", endpoint, msg);
 	}
 
 event Broker::error(code: ErrorCode, msg: string)

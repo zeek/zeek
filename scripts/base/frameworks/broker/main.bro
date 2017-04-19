@@ -142,6 +142,10 @@ export {
 			      retry: interval &default=default_connect_retry): bool;
 
 	## Remove a remote connection.
+        ##
+        ## Note that this does not terminate the connection to the peer, it
+        ## just means that we won't exchange any further information with it
+        ## unless peering resumes later.
 	##
 	## a: the address used in previous successful call to :bro:see:`Broker::peer`.
 	##
@@ -149,6 +153,8 @@ export {
 	##
 	## Returns: true if the arguments match a previously successful call to
 	##          :bro:see:`Broker::peer`.
+        ##
+        ## TODO: We do not have a function yet to terminate a connection.
 	global unpeer: function(a: string, p: port): bool;
 
 	## Publishes an event at a given topic.

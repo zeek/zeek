@@ -34,8 +34,6 @@ struct Stats {
 	// Number of broker report messages (e.g. debug, warning, errors) received
 	// (since last sample).
 	size_t report_count = 0;
-	// Number of print messages received per topic-prefix (since last sample).
-	std::map<std::string, size_t> print_count;
 	// Number of event messages received per topic-prefix (since last sample).
 	std::map<std::string, size_t> event_count;
 	// Number of log messages received per topic-prefix (since last sample).
@@ -120,7 +118,7 @@ public:
 
 	/**
 	 * Send an event to any interested peers.
-	 * @param topic a topic string associated with the print message.
+	 * @param topic a topic string associated with the message.
 	 * Peers advertise interest by registering a subscription to some prefix
 	 * of this topic name.
 	 * @param x the event to send to peers, which is the name of the event
@@ -131,7 +129,7 @@ public:
 
 	/**
 	 * Send an event to any interested peers.
-	 * @param topic a topic string associated with the print message.
+	 * @param topic a topic string associated with the message.
 	 * Peers advertise interest by registering a subscription to some prefix
 	 * of this topic name.
 	 * @param args the event and its arguments to send to peers.  See the

@@ -17,10 +17,10 @@ export {
 	type Info: record {
 		## The network time at which a Broker event occurred.
 		ts:                  time   &log;
-	        ## The Broker event being logged.
-                ev:                  string &log;
 	        ## The type of the Broker event.
                 ty:                  Type &log;
+	        ## The event being logged.
+                ev:                  string &log;
 		## The peer (if any) with which a Broker event is
 		## concerned.
 		peer:                NetworkInfo &log &optional;
@@ -71,8 +71,13 @@ event Broker::peer_recovered(endpoint: EndpointInfo, msg: string)
 
 event Broker::error(code: ErrorCode, msg: string)
 	{
+	local ev = cat(code);
+	ev = subst_string(ev, "Broker::", "");
+	ev = subst_string(ev, "_", "-");
+	ev = to_lower(ev);
+	
 	Log::write(Broker::LOG, [$ts = network_time(),
-				 $ev = "error",
+				 $ev = ev,
 				 $ty = ERROR,
 				 $message = msg]);
 	}

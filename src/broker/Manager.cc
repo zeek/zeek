@@ -622,15 +622,12 @@ void Manager::ProcessStatus(const broker::status* stat)
 
 void Manager::ProcessError(broker::error err)
 	{
-	if ( err )
-		return; // All good, no error.
-
 	DBG_LOG(DBG_BROKER, "Received error message: %s", RenderMessage(err).c_str());
 
 	BifEnum::Broker::ErrorCode ec;
 	std::string msg;
 
-	if ( err.category() != caf::atom("broker") )
+	if ( err.category() == caf::atom("broker") )
 		{
 		msg = caf::to_string(err.context());
 

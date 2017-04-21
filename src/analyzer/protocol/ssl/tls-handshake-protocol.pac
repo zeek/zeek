@@ -486,9 +486,21 @@ type SSLExtension(rec: HandshakeRecord) = record {
 		EXT_SERVER_NAME -> server_name: ServerNameExt(rec)[] &until($element == 0 || $element != 0);
 		EXT_SIGNATURE_ALGORITHMS -> signature_algorithm: SignatureAlgorithm(rec)[] &until($element == 0 || $element != 0);
 		EXT_KEY_SHARE -> key_share: KeyShare(rec)[] &until($element == 0 || $element != 0);
+		EXT_SUPPORTED_VERSIONS -> supported_versions: SupportedVersions(rec)[] &until($element == 0 || $element != 0);
+		EXT_PSK_KEY_EXCHANGE_MODES -> psk_key_exchange_modes: PSKKeyExchangeModes(rec)[] &until($element == 0 || $element != 0);
 		default -> data: bytestring &restofdata;
 	};
 } &length=data_len+4 &exportsourcedata;
+
+type SupportedVersions(rec: HandshakeRecord) = record {
+	length: uint8;
+	versions: uint16[] &until($input.length() == 0);
+} &length=length+1;
+
+type PSKKeyExchangeModes(rec: HandshakeRecord) = record {
+	length: uint8;
+	modes: uint8[] &until($input.length() == 0);
+} &length=length+1;
 
 type ServerNameHostName() = record {
 	length: uint16;

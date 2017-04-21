@@ -1,4 +1,14 @@
 
+2.5-131 | 2017-04-21 14:27:16 -0700
+
+  * Guard more format strings with __attribute__((format)). (Johanna Amann)
+
+  * Add support for two TLS 1.3 extensions.
+
+    New events:
+        - event ssl_extension_supported_versions(c: connection, is_orig: bool, versions: index_vec)
+        - event ssl_extension_psk_key_exchange_modes(c: connection, is_orig: bool, modes: index_vec) (Johanna Amann)
+
 2.5-125 | 2017-04-17 22:02:39 +0200
 
   * Documentation updates for loading Bro scripts. (Seth Hall)

@@ -1,4 +1,8 @@
 
+2.5-125 | 2017-04-17 22:02:39 +0200
+
+  * Documentation updates for loading Bro scripts. (Seth Hall)
+
 2.5-123 | 2017-04-10 13:30:14 -0700
 
   * Fix some failing tests by increasing delay times. (Daniel Thayer)

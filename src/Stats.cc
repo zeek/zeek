@@ -9,10 +9,7 @@
 #include "DNS_Mgr.h"
 #include "Trigger.h"
 #include "threading/Manager.h"
-
-#ifdef ENABLE_BROKER
 #include "broker/Manager.h"
-#endif
 
 uint64 killed_by_inactivity = 0;
 
@@ -226,7 +223,6 @@ void ProfileLogger::Log()
 			    ));
 		}
 
-#ifdef ENABLE_BROKER
 	auto cs = broker_mgr->ConsumeStatistics();
 
 	file->Write(fmt("%0.6f Comm: peers=%zu stores=%zu "
@@ -238,13 +234,10 @@ void ProfileLogger::Log()
 	                cs.outgoing_conn_status_count, cs.incoming_conn_status_count,
 	                cs.report_count));
 
-	for ( const auto& s : cs.print_count )
-		file->Write(fmt("    %-25s prints dequeued=%zu\n", s.first.data(), s.second));
 	for ( const auto& s : cs.event_count )
 		file->Write(fmt("    %-25s events dequeued=%zu\n", s.first.data(), s.second));
 	for ( const auto& s : cs.log_count )
 		file->Write(fmt("    %-25s logs dequeued=%zu\n", s.first.data(), s.second));
-#endif
 
 	// Script-level state.
 	unsigned int size, mem = 0;

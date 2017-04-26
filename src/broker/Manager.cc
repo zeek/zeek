@@ -21,6 +21,10 @@ using namespace std;
 
 namespace bro_broker {
 
+static broker::enum_value MessageEvent("event");
+static broker::enum_value MessageLogCreate("log-create");
+static broker::enum_value MessageLogWrite("log-write");
+
 const broker::endpoint_info Manager::NoPeer{{}, caf::invalid_actor_id, {}};
 
 VectorType* Manager::vector_of_data_type;
@@ -47,12 +51,17 @@ static std::string RenderMessage(const broker::vector* xs)
 	return broker::to_string(*xs);
 	}
 
-static std::string RenderMessage(const broker::status* s)
+static std::string RenderMessage(const broker::vector& xs)
 	{
-	return broker::to_string(s->code());
+	return broker::to_string(xs);
 	}
 
-static std::string RenderMessage(broker::error e)
+static std::string RenderMessage(const broker::status& s)
+	{
+	return broker::to_string(s.code());
+	}
+
+static std::string RenderMessage(const broker::error& e)
 	{
 	return fmt("%s (%s)", broker::to_string(e.code()).c_str(),
 		   caf::to_string(e.context()).c_str());
@@ -129,13 +138,15 @@ bool Manager::Active()
 	return bound_port > 0 || endpoint.peers().size();
 	}
 
-bool Manager::Configure(std::string arg_name, bool arg_routable)
+bool Manager::Configure(std::string arg_name, bool arg_routable, std::string arg_log_topic)
 	{
 	DBG_LOG(DBG_BROKER, "Configuring endpoint: name=%s, routable=%s",
 		name.c_str(), (routable ? "yes" : "no"));;
 
 	name = std::move(arg_name);
 	routable = arg_routable;
+	log_topic = arg_log_topic;
+
 	// TODO: process routable flag
 	return true;
 	}
@@ -174,23 +185,15 @@ void Manager::Unpeer(const string& addr, uint16_t port)
 	endpoint.unpeer(addr, port);
 	}
 
-bool Manager::Publish(broker::message msg)
-	{
-	DBG_LOG(DBG_BROKER, "Publishing event: %s",
-		RenderMessage(msg.topic().string(), msg.data()).c_str());
-	endpoint.publish(std::move(msg));
-	return true;
-	}
-
-bool Manager::Publish(string topic, broker::data x)
+bool Manager::PublishEvent(string topic, broker::data x)
 	{
 	DBG_LOG(DBG_BROKER, "Publishing event: %s",
 		RenderMessage(topic, x).c_str());
-	endpoint.publish(move(topic), move(x));
+	endpoint.publish(move(topic), MessageEvent, move(x));
 	return true;
 	}
 
-bool Manager::Publish(string topic, RecordVal* args)
+bool Manager::PublishEvent(string topic, RecordVal* args)
 	{
 	if ( ! args->Lookup(0) )
 		return false;
@@ -208,16 +211,16 @@ bool Manager::Publish(string topic, RecordVal* args)
 		xs.emplace_back(data_val->data);
 		}
 
-	DBG_LOG(DBG_BROKER, "Publishing message: %s", RenderMessage(topic, xs).c_str());
-	endpoint.publish(move(topic), move(xs));
+	DBG_LOG(DBG_BROKER, "Publishing event: %s", RenderMessage(topic, xs).c_str());
+	endpoint.publish(move(topic), MessageEvent, move(xs));
 
 	return true;
 	}
 
 bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer,
-			const logging::WriterBackend::WriterInfo& info,
-			int num_fields, const threading::Field* const * fields,
-			int flags, const broker::endpoint_info& peer)
+			       const logging::WriterBackend::WriterInfo& info,
+			       int num_fields, const threading::Field* const * fields,
+			       const broker::endpoint_info& peer)
 	{
 	auto stream_name = stream->Type()->AsEnumType()->Lookup(stream->AsEnum());
 
@@ -249,18 +252,18 @@ bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer,
 
 	// TODO: If peer is given, send message to just that one destination.
 
-	std::string topic = std::string("bro/log/") + stream_name;
+	std::string topic = log_topic + stream_name;
 	auto bstream_name = broker::enum_value(move(stream_name));
 	auto bwriter_name = broker::enum_value(move(writer_name));
-	broker::vector xs{broker::atom("create"), move(bstream_name), move(bwriter_name), move(writer_info), move(fields_data)};
+	broker::vector xs{move(bstream_name), move(bwriter_name), move(writer_info), move(fields_data)};
 
 	DBG_LOG(DBG_BROKER, "Publishing log creation: %s", RenderMessage(topic, xs).c_str());
-	endpoint->publish(move(topic), move(xs));
+	endpoint.publish(move(topic), MessageLogCreate, move(xs));
 
 	return true;
 	}
 
-bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int num_vals, const threading::Value* const * vals, int flags)
+bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int num_vals, const threading::Value* const * vals)
 	{
 	auto stream_name = stream->Type()->AsEnumType()->Lookup(stream->AsEnum());
 
@@ -297,19 +300,19 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 		vals_data.push_back(move(*field_data));
 		}
 
-	std::string topic = std::string("bro/log/") + stream_name;
+	std::string topic = log_topic + stream_name;
 	auto bstream_name = broker::enum_value(move(stream_name));
 	auto bwriter_name = broker::enum_value(move(writer_name));
 
-	broker::message xs{broker::atom("write"), move(bstream_name), move(bwriter_name), move(path), move(vals_data)};
+	broker::vector xs{move(bstream_name), move(bwriter_name), move(path), move(vals_data)};
 
 	DBG_LOG(DBG_BROKER, "Publishing log record: %s", RenderMessage(topic, xs).c_str());
-	endpoint->publish(move(topic), move(xs));
+	endpoint.publish(move(topic), MessageLogWrite, move(xs));
 
 	return true;
 	}
 
-bool Manager::AutoPublish(string topic, Val* event)
+bool Manager::AutoPublishEvent(string topic, Val* event)
 	{
 	if ( event->Type()->Tag() != TYPE_FUNC )
 		{
@@ -338,7 +341,7 @@ bool Manager::AutoPublish(string topic, Val* event)
 	return true;
 	}
 
-bool Manager::AutoUnpublish(const string& topic, Val* event)
+bool Manager::AutoUnpublishEvent(const string& topic, Val* event)
 	{
 	if ( event->Type()->Tag() != TYPE_FUNC )
 		{
@@ -473,8 +476,9 @@ void Manager::Process()
 	while ( ! endpoint.mailbox().empty() )
 		{
 		auto elem = endpoint.receive();
+		auto msg = broker::get_if<broker::message>(elem);
 
-		if ( auto msg = broker::get_if<broker::message>(elem) )
+		if ( msg )
 			{
 			// All valid messages have non-empty vector data.
 			auto xs = broker::get_if<broker::vector>(msg->data());
@@ -484,37 +488,46 @@ void Manager::Process()
 				continue;
 				}
 
-			if ( xs->empty() )
+			if ( xs->size() != 2 )
 				{
-				reporter->Warning("ignoring message with empty vector data");
+				reporter->Warning("ignoring message with vector data of wrong size");
 				continue;
 				}
 
-			if ( msg->topic() == "bro/log" )
+			auto ty = broker::get_if<broker::enum_value>((*xs)[0]);
+
+			if ( ! ty )
 				{
-				auto ty = broker::get<broker::atom>(msg[1]);
-
-				if ( ty == broker::atom("create") )
-					ProcessLogCreate(xs);
-				else if ( ty == broker::atom("write") )
-					ProcessLogWrite(xs);
-				else
-					{
-					reporter->Warning("ignoring bro/log message with unknown type");
-					continue;
-					}
+				reporter->Warning("ignoring message without Bro type");
+				continue;
 				}
-			else
-				ProcessEvent(xs);
 
+			auto xt = broker::get_if<broker::vector>((*xs)[1]);
+
+			if ( ! xt )
+				{
+				reporter->Warning("ignoring message with unexpected content");
+				}
+
+			if ( *ty == MessageEvent )
+				ProcessEvent(std::move(*xt));
+
+			else if ( *ty == MessageLogCreate )
+				ProcessLogCreate(std::move(*xt));
+
+			else if ( *ty == MessageLogWrite )
+				ProcessLogWrite(std::move(*xt));
+			else
+				reporter->Warning("ignoring message with unexpected type");
 			}
 
 		else if ( auto stat = broker::get_if<broker::status>(elem) )
-			ProcessStatus(stat);
-		else if (auto err = broker::get_if<broker::error>(elem))
-			ProcessError(*err);
+			ProcessStatus(std::move(*stat));
+
+		else if ( auto err = broker::get_if<broker::error>(elem) )
+			ProcessError(std::move(*err));
 		else
-			reporter->Warning("unknown Broker message type received");
+			reporter->InternalWarning("unknown Broker message type received");
 		}
 
 	for ( auto &s : data_stores )
@@ -529,11 +542,11 @@ void Manager::Process()
 	next_timestamp = -1;
 	}
 
-void Manager::ProcessEvent(const broker::vector* xs)
+void Manager::ProcessEvent(const broker::vector xs)
 	{
 	DBG_LOG(DBG_BROKER, "Received event: %s", RenderMessage(xs).c_str());
 
-	auto event_name = broker::get_if<string>((*xs)[0]);
+	auto event_name = broker::get_if<string>(xs[0]);
 	if ( ! event_name )
 		{
 		reporter->Warning("ignoring message without event name");
@@ -545,19 +558,19 @@ void Manager::ProcessEvent(const broker::vector* xs)
 		return;
 
 	auto arg_types = handler->FType()->ArgTypes()->Types();
-	if ( static_cast<size_t>(arg_types->length()) != xs->size() - 1 )
+	if ( static_cast<size_t>(arg_types->length()) != xs.size() - 1 )
 		{
 		reporter->Warning("got event message with invalid # of args,"
-				  " got %zd, expected %d", xs->size() - 1,
+				  " got %zd, expected %d", xs.size() - 1,
 				  arg_types->length());
 		return;
 		}
 
 	auto vl = new val_list;
 
-	for ( auto i = 1u; i < xs->size(); ++i )
+	for ( auto i = 1u; i < xs.size(); ++i )
 		{
-		auto val = data_to_val(move((*xs)[i]), (*arg_types)[i - 1]);
+		auto val = data_to_val(move(xs[i]), (*arg_types)[i - 1]);
 
 		if ( val )
 			vl->append(val);
@@ -568,29 +581,30 @@ void Manager::ProcessEvent(const broker::vector* xs)
 			}
 		}
 
-	if ( static_cast<size_t>(vl->length()) == xs->size() - 1 )
+	if ( static_cast<size_t>(vl->length()) == xs.size() - 1 )
 		mgr.QueueEvent(handler, vl);
 	else
 		delete_vals(vl);
 	}
 
-bool bro_broker::Manager::ProcessLogCreate(broker::vector xs)
+bool bro_broker::Manager::ProcessLogCreate(const broker::vector xs)
 	{
-	if ( xs.size() != 5 )
+	DBG_LOG(DBG_BROKER, "Received log-create: %s", RenderMessage(xs).c_str());
+
+	if ( xs.size() != 4 )
 		{
 		reporter->Warning("got bad remote log create size: %zd (expected 5)",
 				  xs.size());
 		return false;
 		}
 
-	unsigned int idx = 1; // Skip type at index 0.
+	unsigned int idx = 0;
 
 	// Get stream ID.
 
-	if ( ! broker::get<broker::enum_value>(xs[idx]) )
+	if ( ! broker::is<broker::enum_value>(xs[idx]) )
 		{
-		reporter->Warning("got remote log create w/o stream id: %d",
-				  static_cast<int>(broker::which(xs[idx])));
+		reporter->Warning("got remote log create w/o stream id");
 		return false;
 		}
 
@@ -607,10 +621,9 @@ bool bro_broker::Manager::ProcessLogCreate(broker::vector xs)
 
 	// Get writer ID.
 
-	if ( ! broker::get<broker::enum_value>(xs[idx]) )
+	if ( ! broker::is<broker::enum_value>(xs[idx]) )
 		{
-		reporter->Warning("got remote log create w/o writer id: %d",
-				  static_cast<int>(broker::which(xs[idx])));
+		reporter->Warning("got remote log create w/o writer id");
 		return false;
 		}
 
@@ -627,10 +640,9 @@ bool bro_broker::Manager::ProcessLogCreate(broker::vector xs)
 
 	// Get writer info.
 
-	if ( ! broker::get<broker::record>(xs[idx]) )
+	if ( ! broker::is<broker::vector>(xs[idx]) )
 		{
-		reporter->Warning("got remote log create w/o writer info id: %d",
-				  static_cast<int>(broker::which(xs[idx])));
+		reporter->Warning("got remote log create w/o writer info id");
 		return false;
 		}
 
@@ -646,7 +658,7 @@ bool bro_broker::Manager::ProcessLogCreate(broker::vector xs)
 
 	// Get log fields.
 
-	auto fields_data = broker::get<broker::vector>(xs[idx]);
+	auto fields_data = broker::get_if<broker::vector>(xs[idx]);
 
 	if ( ! fields_data )
 		{
@@ -679,23 +691,24 @@ bool bro_broker::Manager::ProcessLogCreate(broker::vector xs)
 	return true;
 	}
 
-bool bro_broker::Manager::ProcessLogWrite(broker::vector xs)
+bool bro_broker::Manager::ProcessLogWrite(const broker::vector xs)
 	{
-	if ( xs.size() != 5 )
+	DBG_LOG(DBG_BROKER, "Received log-write: %s", RenderMessage(xs).c_str());
+
+	if ( xs.size() != 4 )
 		{
 		reporter->Warning("got bad remote log size: %zd (expected 5)",
 				  xs.size());
 		return false;
 		}
 
-	unsigned int idx = 1; // Skip type at index 0.
+	unsigned int idx = 0;
 
 	// Get stream ID.
 
-	if ( ! broker::get<broker::enum_value>(xs[idx]) )
+	if ( ! broker::is<broker::enum_value>(xs[idx]) )
 		{
-		reporter->Warning("got remote log w/o stream id: %d",
-				  static_cast<int>(broker::which(xs[idx])));
+		reporter->Warning("got remote log w/o stream id");
 		return false;
 		}
 
@@ -712,10 +725,9 @@ bool bro_broker::Manager::ProcessLogWrite(broker::vector xs)
 
 	// Get writer ID.
 
-	if ( ! broker::get<broker::enum_value>(xs[idx]) )
+	if ( ! broker::is<broker::enum_value>(xs[idx]) )
 		{
-		reporter->Warning("got remote log w/o writer id: %d",
-				  static_cast<int>(broker::which(xs[idx])));
+		reporter->Warning("got remote log w/o writer id");
 		return false;
 		}
 
@@ -732,7 +744,7 @@ bool bro_broker::Manager::ProcessLogWrite(broker::vector xs)
 
 	// Get path.
 
-	auto path = broker::get<std::string>(xs[idx]);
+	auto path = broker::get_if<std::string>(xs[idx]);
 
 	if ( ! path )
 		{
@@ -744,7 +756,7 @@ bool bro_broker::Manager::ProcessLogWrite(broker::vector xs)
 
 	// Get log values.
 
-	auto vals_data = broker::get<broker::vector>(xs[idx]);
+	auto vals_data = broker::get_if<broker::vector>(xs[idx]);
 
 	if ( ! vals_data )
 		{
@@ -761,6 +773,7 @@ bool bro_broker::Manager::ProcessLogWrite(broker::vector xs)
 			vals[i] = val;
 		else
 			{
+			std::cerr << vals << " | " << (*vals_data)[i] << std::endl;
 			reporter->Warning("failed to convert remote log arg # %d", i);
 			return false;
 			}
@@ -770,21 +783,21 @@ bool bro_broker::Manager::ProcessLogWrite(broker::vector xs)
 	return true;
 	}
 
-void Manager::ProcessStatus(const broker::status* stat)
+void Manager::ProcessStatus(const broker::status stat)
 	{
 	DBG_LOG(DBG_BROKER, "Received status message: %s", RenderMessage(stat).c_str());
 
-	auto ctx = stat->context<broker::endpoint_info>();
+	auto ctx = stat.context<broker::endpoint_info>();
 
 	EventHandlerPtr event;
-	switch (stat->code()) {
+	switch (stat.code()) {
 	case broker::sc::unspecified:
 		event = Broker::status;
 		break;
 
 	case broker::sc::peer_added:
 	        assert(ctx);
-	        log_mgr->SendAllWritersTo(ctx);
+	        log_mgr->SendAllWritersTo(*ctx);
 		event = Broker::peer_added;
 		break;
 
@@ -815,7 +828,7 @@ void Manager::ProcessStatus(const broker::status* stat)
 			}
 		}
 
-	auto str = stat->message();
+	auto str = stat.message();
 	auto msg = new StringVal(str ? *str : "");
 
 	auto vl = new val_list;
@@ -884,6 +897,7 @@ void Manager::ProcessError(broker::error err)
 		case broker::ec::unspecified: // fall-through
 		default:
 			ec = BifEnum::Broker::ErrorCode::UNSPECIFIED;
+		}
 		}
 	else
 		{

@@ -5,6 +5,8 @@
 #ifndef LOGGING_MANAGER_H
 #define LOGGING_MANAGER_H
 
+#include <broker/endpoint_info.hh>
+
 #include "../Val.h"
 #include "../Tag.h"
 #include "../EventHandler.h"
@@ -173,7 +175,7 @@ public:
 	/**
 	 * Announces all instantiated writers to a given Broker peer.
 	 */
-	void SendAllWritersTo(const string& peer);
+	void SendAllWritersTo(const broker::endpoint_info& ei);
 
 	/**
 	 * Sets log streams buffering state. This adjusts all associated

@@ -102,11 +102,10 @@ void EventHandler::Call(val_list* vl, bool no_remote)
 				}
 
 			if ( valid_args )
-        {
-        auto msg = broker::message{std::move(xs)};
+				{
 				for ( auto& topic : auto_publish )
-					broker_mgr->Publish(broker::message(topic, msg));
-        }
+					broker_mgr->PublishEvent(topic, std::move(xs));
+				}
 			}
 		}
 

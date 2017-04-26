@@ -1198,11 +1198,7 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
 	winfo->info->rotation_interval = winfo->interval;
 	winfo->info->rotation_base = parse_rotate_base_time(base_time);
 
-#ifdef ENABLE_BROKER
-	winfo->writer = new WriterFrontend(*winfo->info, id, writer, local, remote, stream->remote_flags);
-#else
-	winfo->writer = new WriterFrontend(*winfo->info, id, writer, local, remote, 0);
-#endif
+	winfo->writer = new WriterFrontend(*winfo->info, id, writer, local, remote);
 	winfo->writer->Init(num_fields, fields);
 
 	InstallRotationTimer(winfo);
@@ -1274,7 +1270,7 @@ void Manager::SendAllWritersTo(RemoteSerializer::PeerID peer)
 		{
 		Stream* stream = (*s);
 
-		if ( ! stream )
+		if ( ! (stream && stream->enable_remote) )
 			continue;
 
 		for ( Stream::WriterMap::iterator i = stream->writers.begin();
@@ -1292,14 +1288,13 @@ void Manager::SendAllWritersTo(RemoteSerializer::PeerID peer)
 		}
 	}
 
-void Manager::SendAllWritersTo(const string& peer)
+void Manager::SendAllWritersTo(const broker::endpoint_info& ei)
 	{
-#ifdef ENABLE_BROKER
 	for ( vector<Stream *>::iterator s = streams.begin(); s != streams.end(); ++s )
 		{
 		Stream* stream = (*s);
 
-		if ( ! stream )
+		if ( ! (stream && stream->enable_remote) )
 			continue;
 
 		for ( Stream::WriterMap::iterator i = stream->writers.begin();
@@ -1308,16 +1303,14 @@ void Manager::SendAllWritersTo(const string& peer)
 			WriterFrontend* writer = i->second->writer;
 
 			EnumVal writer_val(i->first.first, internal_type("Log::Writer")->AsEnumType());
-			broker_mgr->CreateLog((*s)->id,
-					      &writer_val,
-					      *i->second->info,
-					      writer->NumFields(),
-					      writer->Fields(),
-					      stream->remote_flags,
-					      peer);
+			broker_mgr->PublishLogCreate((*s)->id,
+						     &writer_val,
+						     *i->second->info,
+						     writer->NumFields(),
+						     writer->Fields(),
+						     ei);
 			}
 		}
-#endif
 	}
 
 bool Manager::SetBuf(EnumVal* id, bool enabled)

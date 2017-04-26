@@ -45,6 +45,7 @@ function Broker::__configure%(options: Broker::Options%): bool
 	%{
 	auto name = "";
 	auto routable = false;
+	auto log_topic = "";
 
 	if ( auto name_val = options->AsRecordVal()->Lookup(0) )
 		name = name_val->AsString()->CheckString();
@@ -52,7 +53,10 @@ function Broker::__configure%(options: Broker::Options%): bool
 	if ( auto routable_val = options->AsRecordVal()->Lookup(1) )
 		routable = routable_val->AsBool();
 
-	return new Val(broker_mgr->Configure(name, routable), TYPE_BOOL);
+	if ( auto log_topic_val = options->AsRecordVal()->Lookup(2) )
+		log_topic = log_topic_val->AsString()->CheckString();
+
+	return new Val(broker_mgr->Configure(name, routable, log_topic), TYPE_BOOL);
 	%}
 
 function Broker::__listen%(a: string, p: port%): port

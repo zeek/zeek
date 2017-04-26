@@ -48,7 +48,7 @@ EnumVal* get_data_type(RecordVal* v, Frame* frame);
  * @param v a Bro value.
  * @return a Broker data value if the Bro value could be converted to one.
  */
-broker::optional<broker::data> val_to_data(Val* v);
+broker::expected<broker::data> val_to_data(Val* v);
 
 /**
  * Convert a Broker data value to a Bro value.
@@ -66,7 +66,7 @@ Val* data_to_val(broker::data d, BroType* type, bool require_log_attr = false);
  * @param v a Bro threading::Value.
  * @return a Broker data value if the Bro threading::Value could be converted to one.
  */
-broker::util::optional<broker::data> threading_val_to_data(const threading::Value* v);
+broker::expected<broker::data> threading_val_to_data(const threading::Value* v);
 
 /**
  * Convert a Bro threading::Field to a Broker data value.

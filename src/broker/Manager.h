@@ -78,19 +78,20 @@ public:
 	 * Configure the local Broker endpoint.
 	 * @param name The name of the endpoint. By default, the name remains unset.
 	 * @param routable Whether the context of this endpoint routes messages not
-	 * destined to itself. By defaultm endpoints do not route.
+	 * @param log_topic The topic prefix for logs we this endpoint published.
+	 * destined to itself. By default endpoints do not route.
 	 * @return true if configuration was successful.
 	 */
-	bool Configure(std::string name="", bool routable = false);
+	bool Configure(std::string name="", bool routable = false, std::string log_topic="");
 
 	/**
 	 * Listen for remote connections.
 	 * @param port the TCP port to listen on.
 	 * @param addr an address string on which to accept connections, e.g.
 	 * "127.0.0.1".  The empty string refers to @p INADDR_ANY.
-   * @return 0 on failure or the bound port otherwise. If *port* != 0, then the
-   * return value equals *port* on success. If *port* equals 0, then the
-   * return values represents the bound port as chosen by the OS.
+	 * @return 0 on failure or the bound port otherwise. If *port* != 0, then the
+	 * return value equals *port* on success. If *port* equals 0, then the
+	 * return values represents the bound port as chosen by the OS.
 	 */
 	uint16_t Listen(const std::string& addr, uint16_t port);
 
@@ -112,13 +113,6 @@ public:
 
 	/**
 	 * Send an event to any interested peers.
-	 * @param msg The message (topic-data) pair to publish to the peers.
-	 * @return true if the message is sent successfully.
-	 */
-	bool Publish(broker::message msg);
-
-	/**
-	 * Send an event to any interested peers.
 	 * @param topic a topic string associated with the message.
 	 * Peers advertise interest by registering a subscription to some prefix
 	 * of this topic name.
@@ -126,7 +120,7 @@ public:
 	 * as a string followed by all of its arguments.
 	 * @return true if the message is sent successfully.
 	 */
-	bool Publish(std::string topic, broker::data x);
+	bool PublishEvent(std::string topic, broker::data x);
 
 	/**
 	 * Send an event to any interested peers.
@@ -137,7 +131,7 @@ public:
 	 * Broker::Event record type.
 	 * @return true if the message is sent successfully.
 	 */
-	bool Publish(std::string topic, RecordVal* args);
+	bool PublishEvent(std::string topic, RecordVal* args);
 
 	/**
 	 * Send a message to create a log stream to any interested peers.
@@ -148,13 +142,12 @@ public:
 	 * @param info backend initialization information for the writer.
 	 * @param num_fields the number of fields the log has.
 	 * @param fields the log's fields, of size num_fields.
-	 * @param flags tune the behavior of how the message is send.
 	 * See the Broker::SendFlags record type.
 	 * @param peer If given, send the message only to this peer.
 	 * @return true if the message is sent successfully.
 	 */
 	bool PublishLogCreate(EnumVal* stream, EnumVal* writer, const logging::WriterBackend::WriterInfo& info,
-			      int num_fields, const threading::Field* const * fields, int flags, const broker::endpoint_info& peer = NoPeer);
+			      int num_fields, const threading::Field* const * fields, const broker::endpoint_info& peer = NoPeer);
 
 	/**
 	 * Send a log entry to any interested peers.  The topic name used is
@@ -164,12 +157,11 @@ public:
 	 * @param path the log path to output the log entry to.
 	 * @param num_vals the number of fields to log.
 	 * @param vals the log values to log, of size num_vals.
-	 * @param flags tune the behavior of how the message is send.
 	 * See the Broker::SendFlags record type.
 	 * @return true if the message is sent successfully.
 	 */
 	bool PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int num_vals,
-			     const threading::Value* const * vals, int flags);
+			     const threading::Value* const * vals);
 
 	/**
 	 * Automatically send an event to any interested peers whenever it is
@@ -180,7 +172,7 @@ public:
 	 * @param event a Bro event value.
 	 * @return true if automatic event sending is now enabled.
 	 */
-	bool AutoPublish(std::string topic, Val* event);
+	bool AutoPublishEvent(std::string topic, Val* event);
 
 	/**
 	 * Stop automatically sending an event to peers upon local dispatch.
@@ -188,7 +180,7 @@ public:
 	 * @param event an event originally given to bro_broker::Manager::AutoPublish().
 	 * @return true if automatic events will no occur for the topic/event pair.
 	 */
-	bool AutoUnpublish(const std::string& topic, Val* event);
+	bool AutoUnpublishEvent(const std::string& topic, Val* event);
 
 	/**
 	 * Create an `Event` record value from an event and its arguments.
@@ -261,12 +253,12 @@ public:
 	Stats ConsumeStatistics();
 
 private:
-	void ProcessEvent(const broker::vector* xs);
-	void ProcessStatus(const broker::status* stat);
+	void ProcessEvent(const broker::vector xs);
+	void ProcessStatus(const broker::status stat);
 	void ProcessError(broker::error err);
 	void ProcessStoreResponse(StoreHandleVal*, broker::store::response response);
-	bool ProcessLogCreate(broker::message msg);
-	bool ProcessLogWrite(broker::message msg);
+	bool ProcessLogCreate(const broker::vector msg);
+	bool ProcessLogWrite(const broker::vector msg);
 
 	// IOSource interface overrides:
 	void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
@@ -284,12 +276,8 @@ private:
 
 	std::string name;
 	bool routable;
+	std::string log_topic;
 	uint16_t bound_port;
-
-	struct QueueWithStats {
-		broker::message_queue q;
-		size_t received = 0;
-	};
 
 	broker::context context;
 	broker::blocking_endpoint endpoint;

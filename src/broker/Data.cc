@@ -370,7 +370,7 @@ Val* bro_broker::data_to_val(broker::data d, BroType* type, bool require_log_att
 	return broker::visit(val_converter{type, require_log_attr}, d);
 	}
 
-broker::optional<broker::data> bro_broker::val_to_data(Val* v)
+broker::expected<broker::data> bro_broker::val_to_data(Val* v)
 	{
 	switch ( v->Type()->Tag() ) {
 	case TYPE_BOOL:
@@ -479,7 +479,7 @@ broker::optional<broker::data> bro_broker::val_to_data(Val* v)
 				auto key_part = val_to_data((*vl->Vals())[k]);
 
 				if ( ! key_part )
-					return {};
+					return broker::ec::invalid_data;
 
 				composite_key.emplace_back(move(*key_part));
 				}
@@ -498,7 +498,7 @@ broker::optional<broker::data> bro_broker::val_to_data(Val* v)
 				auto val = val_to_data(entry->Value());
 
 				if ( ! val )
-					return {};
+					return broker::ec::invalid_data;
 
 				broker::get<broker::table>(rval).emplace(move(key), move(*val));
 				}
@@ -522,7 +522,7 @@ broker::optional<broker::data> bro_broker::val_to_data(Val* v)
 			auto item = val_to_data(item_val);
 
 			if ( ! item )
-				return {};
+				return broker::ec::invalid_data;
 
 			rval.emplace_back(move(*item));
 			}
@@ -550,7 +550,7 @@ broker::optional<broker::data> bro_broker::val_to_data(Val* v)
 			Unref(item_val);
 
 			if ( ! item )
-				return {};
+				return broker::ec::invalid_data;
 
 			rval.emplace_back(move(*item));
 			}
@@ -563,7 +563,7 @@ broker::optional<broker::data> bro_broker::val_to_data(Val* v)
 		break;
 	}
 
-	return {};
+	return broker::ec::invalid_data;
 	}
 
 RecordVal* bro_broker::make_data_val(Val* v)
@@ -740,7 +740,7 @@ bool bro_broker::DataVal::DoUnserialize(UnserialInfo* info)
 	return true;
 	}
 
-static broker::util::optional<broker::data> threading_val_to_data_internal(TypeTag type, const threading::Value::_val& val)
+static broker::expected<broker::data> threading_val_to_data_internal(TypeTag type, const threading::Value::_val& val)
 	{
 	switch ( type ) {
 	case TYPE_BOOL:
@@ -813,10 +813,18 @@ static broker::util::optional<broker::data> threading_val_to_data_internal(TypeT
 	        return {val.double_val};
 
 	case TYPE_TIME:
-		return {broker::time_point(val.double_val)};
+	        {
+		broker::timestamp ts;
+                broker::convert(val.double_val, ts);
+		return ts;
+		}
 
 	case TYPE_INTERVAL:
-		return {broker::time_duration(val.double_val)};
+	        {
+		broker::timespan ts;
+                broker::convert(val.double_val, ts);
+		return ts;
+		}
 
 	case TYPE_ENUM:
 		return {broker::enum_value(std::string(val.string_val.data, val.string_val.length))};
@@ -835,7 +843,7 @@ static broker::util::optional<broker::data> threading_val_to_data_internal(TypeT
 			auto c = bro_broker::threading_val_to_data(val.set_val.vals[i]);
 
 			if ( ! c )
-				return {};
+				return broker::ec::invalid_data;
 
 			s.emplace(*c);
 			}
@@ -852,7 +860,7 @@ static broker::util::optional<broker::data> threading_val_to_data_internal(TypeT
 			auto c = bro_broker::threading_val_to_data(val.vector_val.vals[i]);
 
 			if ( ! c )
-				return {};
+				return broker::ec::invalid_data;
 
 			s.emplace_back(*c);
 			}
@@ -865,27 +873,25 @@ static broker::util::optional<broker::data> threading_val_to_data_internal(TypeT
 		                        type_name(type));
 	}
 
-	return {};
+	return broker::ec::invalid_data;
 	}
 
 
-broker::util::optional<broker::data> bro_broker::threading_val_to_data(const threading::Value* v)
+broker::expected<broker::data> bro_broker::threading_val_to_data(const threading::Value* v)
 	{
-	broker::util::optional<broker::data> d;
+	broker::data d(broker::nil);
 
 	if ( v->present )
 		{
-		d = threading_val_to_data_internal(v->type, v->val);
+		auto x = threading_val_to_data_internal(v->type, v->val);
 
-		if ( ! d )
-			return {};
+		if ( ! x )
+			return broker::ec::invalid_data;
+
+		d = *x;
 		}
 
-	auto type = broker::record::field(static_cast<uint64_t>(v->type));
-	auto present = broker::record::field(v->present);
-	auto data = (v->present) ? broker::record::field(*d) : broker::util::optional<broker::data>();
-
-	return {broker::record({move(type), move(present), move(data)})};
+	return broker::vector{static_cast<uint64_t>(v->type), v->present, std::move(d)};
 	};
 
 struct threading_val_converter {
@@ -893,6 +899,11 @@ struct threading_val_converter {
 
 	TypeTag type;
 	threading::Value::_val& val;
+
+	result_type operator()(broker::none)
+		{
+		return false;
+		}
 
 	result_type operator()(bool a)
 		{
@@ -1018,22 +1029,22 @@ struct threading_val_converter {
 		return false;
 		}
 
-	result_type operator()(const broker::time_point& a)
+	result_type operator()(const broker::timestamp& a)
 		{
 		if ( type == TYPE_TIME )
 			{
-			val.double_val = a.value;
+			broker::convert(a, val.double_val);
 			return true;
 			}
 
 		return false;
 		}
 
-	result_type operator()(const broker::time_duration& a)
+	result_type operator()(const broker::timespan& a)
 		{
 		if ( type == TYPE_INTERVAL )
 			{
-			val.double_val = a.value;
+			broker::convert(a, val.double_val);
 			return true;
 			}
 
@@ -1094,35 +1105,29 @@ struct threading_val_converter {
 
 		return false;
 		}
-
-	result_type operator()(const broker::record& a)
-		{
-		return false;
-		}
 };
 
 threading::Value* bro_broker::data_to_threading_val(broker::data d)
 	{
-	auto r = broker::get<broker::record>(d);
-
-	if ( ! r )
+	if ( ! broker::is<broker::vector>(d) )
 		return nullptr;
 
-	auto type = broker::get<uint64_t>(*r->get(0));
-	auto present = broker::get<bool>(*r->get(1));
-	auto data = r->get(2);
+	auto v = broker::get<broker::vector>(d);
+	auto type = broker::get_if<uint64_t>(v[0]);
+	auto present = broker::get_if<bool>(v[1]);
+	auto data = v[2];
 
 	if ( ! (type && present) )
 		return nullptr;
 
-	if ( *present && ! data )
+	if ( *present && data == broker::nil )
 		return nullptr;
 
 	auto tv = new threading::Value;
 	tv->type = static_cast<TypeTag>(*type);
 	tv->present = *present;
 
-	if ( *present && ! broker::visit(threading_val_converter{tv->type, tv->val}, *data) )
+	if ( *present && ! broker::visit(threading_val_converter{tv->type, tv->val}, data) )
 		{
 		delete tv;
 		return nullptr;
@@ -1133,40 +1138,39 @@ threading::Value* bro_broker::data_to_threading_val(broker::data d)
 
 broker::data bro_broker::threading_field_to_data(const threading::Field* f)
 	{
-	auto name = broker::record::field(f->name);
-	auto type = broker::record::field(static_cast<uint64_t>(f->type));
-	auto subtype = broker::record::field(static_cast<uint64_t>(f->subtype));
-	auto optional = broker::record::field(f->optional);
+	auto name = f->name;
+	auto type = static_cast<uint64_t>(f->type);
+	auto subtype = static_cast<uint64_t>(f->subtype);
+	auto optional = f->optional;
 
-	broker::util::optional<broker::data> secondary;
+	broker::data secondary = broker::nil;
 
 	if ( f->secondary_name )
 		secondary = {f->secondary_name};
 
-	return move(broker::record({name, secondary, type, subtype, optional}));
+	return broker::vector({name, secondary, type, subtype, optional});
 	}
 
 threading::Field* bro_broker::data_to_threading_field(broker::data d)
 	{
-	auto r = broker::get<broker::record>(d);
-
-	if ( ! r )
+	if ( ! broker::is<broker::vector>(d) )
 		return nullptr;
 
-	auto name = broker::get<std::string>(*r->get(0));
-	auto secondary = r->get(1);
-	auto type = broker::get<uint64_t>(*r->get(2));
-	auto subtype = broker::get<uint64_t>(*r->get(3));
-	auto optional = broker::get<bool>(*r->get(4));
+	auto v = broker::get<broker::vector>(d);
+	auto name = broker::get_if<std::string>(v[0]);
+	auto secondary = v[1];
+	auto type = broker::get_if<broker::count>(v[2]);
+	auto subtype = broker::get_if<broker::count>(v[3]);
+	auto optional = broker::get_if<broker::boolean>(v[4]);
 
 	if ( ! (name && type && subtype && optional) )
 		return nullptr;
 
-	if ( secondary && ! broker::is<std::string>(*secondary) )
+	if ( secondary != broker::nil && ! broker::is<std::string>(secondary) )
 		return nullptr;
 
 	return new threading::Field(name->c_str(),
-				    secondary ? broker::get<std::string>(*secondary)->c_str() : nullptr,
+				    secondary != broker::nil ? broker::get<std::string>(secondary).c_str() : nullptr,
 				    static_cast<TypeTag>(*type),
 				    static_cast<TypeTag>(*subtype),
 				    *optional);

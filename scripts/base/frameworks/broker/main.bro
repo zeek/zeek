@@ -32,6 +32,8 @@ export {
 		## Whether this Broker instance relays messages not destined to itself.
                 ## By default, routing is disabled.
 		routable: bool &default = F;
+	        ## The topic prefix where to publish logs.
+                log_topic: string &default = "bro/logs/";
 	};
 
 	type ErrorCode: enum {
@@ -205,26 +207,17 @@ export {
 	## Returns: true if automatic events will not occur for the topic/event
 	##          pair.
 	global auto_unpublish: function(topic: string, ev: any): bool;
-
-	## Enable publishing logs for a given log stream.
-	##
-	## id: the log stream to enable publishing logs for.
-	##
-	## Returns: true if publishing logs are enabled for the stream.
-	global auto_log: function(id: Log::ID): bool;
-
-	## Disable publishing logs for a given log stream.
-	##
-	## id: the log stream to disable publishing logs for.
-	##
-	## Returns: true if publishing logs are disabled for the stream.
-	global auto_unlog: function(id: Log::ID): bool;
 }
 
 @load base/bif/comm.bif
 @load base/bif/messaging.bif
 
 module Broker;
+
+event bro_init() &priority=-10
+	{
+	configure(); # Configure with defaults.
+	}
 
 function configure(options: Options &default = Options()): bool
     {
@@ -279,14 +272,4 @@ function auto_publish(topic: string, ev: any): bool
 function auto_unpublish(topic: string, ev: any): bool
     {
     return __auto_unpublish(topic, ev);
-    }
-
-function auto_log(id: Log::ID): bool
-    {
-    return F; # TODO: implement this function.
-    }
-
-function auto_unlog(id: Log::ID): bool
-    {
-    return F; # TODO: implement this function.
     }

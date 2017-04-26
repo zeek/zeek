@@ -26,19 +26,19 @@ function Broker::make_event%(...%): Broker::Event
 
 function Broker::__publish%(topic: string, ev: Broker::Event%): bool
 	%{
-	auto rval = broker_mgr->Publish(topic->CheckString(), ev->AsRecordVal());
+	auto rval = broker_mgr->PublishEvent(topic->CheckString(), ev->AsRecordVal());
 	return new Val(rval, TYPE_BOOL);
 	%}
 
 function Broker::__auto_publish%(topic: string, ev: any%): bool
 	%{
-	auto rval = broker_mgr->AutoPublish(topic->CheckString(), ev);
+	auto rval = broker_mgr->AutoPublishEvent(topic->CheckString(), ev);
 	return new Val(rval, TYPE_BOOL);
 	%}
 
 function Broker::__auto_unpublish%(topic: string, ev: any%): bool
 	%{
-	auto rval = broker_mgr->AutoUnpublish(topic->CheckString(), ev);
+	auto rval = broker_mgr->AutoUnpublishEvent(topic->CheckString(), ev);
 	return new Val(rval, TYPE_BOOL);
 	%}
 

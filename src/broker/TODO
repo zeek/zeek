@@ -1,0 +1,25 @@
+
+- Deleting the broker_mgr leads to crashes, so I've disabled that
+  for now in main (that delete didn't use to be there at all). I've
+  also seen rare crashes even with that disabled, which may or may not
+  have the same cause.
+
+- Manager::PublishLogCreate() doesn't pay attention to the 'peer'
+  argument yet.
+
+- Routing isn't supported yet
+
+- Add a function to "unlisten".
+
+- Error logging doesn't record the relevant peer.
+
+- Manager::ConsumeStatistics() isn't implemented.
+
+- Is there remote logging overhead in the case that nobody is
+  actually subscribed to logs?
+
+- Data store work is pending.
+
+- Potentially: move the new Bro-level message type (event/logs) into
+  Broker. One idea would be turning that into meta data of the message
+  object.

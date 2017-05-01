@@ -1,4 +1,8 @@
 
+2.5-134 | 2017-05-01 10:34:34 -0500
+
+  * Add rename, unlink, and rmdir bifs. (Corelight)
+
 2.5-131 | 2017-04-21 14:27:16 -0700
 
   * Guard more format strings with __attribute__((format)). (Johanna Amann)

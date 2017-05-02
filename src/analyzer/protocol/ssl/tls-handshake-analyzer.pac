@@ -195,7 +195,7 @@ refine connection Handshake_Conn += {
 
 		if ( versions_list )
 			{
-			for ( int i = 0; i < versions_list->size(); ++i )
+			for ( unsigned int i = 0; i < versions_list->size(); ++i )
 				versions->Assign(i, new Val((*versions_list)[i], TYPE_COUNT));
 			}
 
@@ -211,7 +211,7 @@ refine connection Handshake_Conn += {
 
 		if ( mode_list )
 			{
-			for ( int i = 0; i < mode_list->size(); ++i )
+			for ( unsigned int i = 0; i < mode_list->size(); ++i )
 				modes->Assign(i, new Val((*mode_list)[i], TYPE_COUNT));
 			}
 

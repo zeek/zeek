@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2017-02-28-17-15-30
+#open	2017-05-02-20-38-47
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -157,6 +157,7 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_X509.events.bif.bro
     build/scripts/base/bif/plugins/Bro_X509.types.bif.bro
     build/scripts/base/bif/plugins/Bro_X509.functions.bif.bro
+    build/scripts/base/bif/plugins/Bro_X509.ocsp_events.bif.bro
     build/scripts/base/bif/plugins/Bro_AsciiReader.ascii.bif.bro
     build/scripts/base/bif/plugins/Bro_BenchmarkReader.benchmark.bif.bro
     build/scripts/base/bif/plugins/Bro_BinaryReader.binary.bif.bro
@@ -167,4 +168,4 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_SQLiteWriter.sqlite.bif.bro
 scripts/policy/misc/loaded-scripts.bro
   scripts/base/utils/paths.bro
-#close	2017-02-28-17-15-30
+#close	2017-05-02-20-38-47

@@ -26,16 +26,19 @@ function Broker::__create_master%(id: string, b: BackendType,
 	%{
 	auto name = id->CheckString();
 	auto rval = broker_mgr->LookupStore(name);
-	if ( ! rval )
-		return nullptr;
+	if ( rval )
+		return rval;
 
-  auto e = static_cast<BifEnum::Broker::BackendType>(b->AsEnum());
+	auto e = static_cast<BifEnum::Broker::BackendType>(b->AsEnum());
 	auto type = bro_broker::to_backend_type(e);
 	auto opts = bro_broker::to_backend_options(type, options->AsRecordVal());
 
 	auto store = broker_mgr->MakeMaster(name, type, std::move(opts));
 	if ( ! store )
-	  return nullptr;
+		{
+		reporter->Error("Could not create Broker master store '%s'", name);
+		return nullptr;
+		}
 
 	return store;
 	%}
@@ -44,40 +47,45 @@ function Broker::__create_clone%(id: string%): opaque of Broker::Handle
 	%{
 	auto name = id->CheckString();
 	auto rval = broker_mgr->LookupStore(name);
-	if ( ! rval )
-		return nullptr;
+	if ( rval )
+		return rval;
 
 	auto store = broker_mgr->MakeClone(name);
 	if ( ! store )
-	  return nullptr;
+		{
+		reporter->Error("Could not create clone of Broker store '%s'", name);
+		return nullptr;
+		}
 
 	return store;
 	%}
 
 function Broker::__close%(h: opaque of Broker::Handle%): bool
 	%{
-	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
-	if ( ! *handle )
-    return new Val(false, TYPE_BOOL);
+	if ( ! h )
+		{
+		reporter->Error("invalid Broker store handle");
+		return new Val(false, TYPE_BOOL);
+		}
 
+	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 	return new Val(broker_mgr->CloseStore(handle->store.name()), TYPE_BOOL);
 	%}
 
 function Broker::__get%(h: opaque of Broker::Handle,
-                       k: Broker::Data%): Broker::QueryResult
+			k: any%): Broker::QueryResult
 	%{
-	auto key = k->AsRecordVal()->Lookup(0);
-	if ( ! key )
-		return bro_broker::query_result();
+	if ( ! h )
+		{
+		reporter->Error("invalid Broker store handle");
+		return new Val(false, TYPE_BOOL);
+		}
 
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
-	if ( ! *handle )
-		{
-		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
-		reporter->Error("Broker query has an invalid data store");
-		reporter->PopLocation();
-    return bro_broker::query_result();
-		}
+
+	auto key = bro_broker::make_data_val(k)->Lookup(0);
+	if ( ! key )
+		return bro_broker::query_result();
 
 	auto trigger = frame->GetTrigger();
 	if ( ! trigger )
@@ -85,7 +93,7 @@ function Broker::__get%(h: opaque of Broker::Handle,
 		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
 		reporter->Error("Broker queries can only be called inside when-condition");
 		reporter->PopLocation();
-    return bro_broker::query_result();
+		return bro_broker::query_result();
 		}
 
 	auto timeout = trigger->TimeoutValue();
@@ -94,7 +102,7 @@ function Broker::__get%(h: opaque of Broker::Handle,
 		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
 		reporter->Error("Broker queries must specify a timeout block");
 		reporter->PopLocation();
-    return bro_broker::query_result();
+		return bro_broker::query_result();
 		}
 
 	frame->SetDelayed();
@@ -109,26 +117,34 @@ function Broker::__get%(h: opaque of Broker::Handle,
 	%}
 
 function Broker::__put%(h: opaque of Broker::Handle,
-                        k: Broker::Data, v: Broker::Data%): bool
+                        k: any, v: any%): bool
 	%{
+	if ( ! h )
+		{
+		reporter->Error("invalid Broker store handle");
+		return new Val(false, TYPE_BOOL);
+		}
+	
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
-	if ( ! *handle )
-    return new Val(false, TYPE_BOOL);
 
-	auto& key = bro_broker::opaque_field_to_data(k->AsRecordVal(), frame);
-	auto& val = bro_broker::opaque_field_to_data(v->AsRecordVal(), frame);
+	auto& key = bro_broker::opaque_field_to_data(bro_broker::make_data_val(k), frame);
+	auto& val = bro_broker::opaque_field_to_data(bro_broker::make_data_val(v), frame);
 
 	handle->store.put(key, val);
 	return new Val(true, TYPE_BOOL);
 	%}
 
-function Broker::__erase%(h: opaque of Broker::Handle, k: Broker::Data%): bool
+function Broker::__erase%(h: opaque of Broker::Handle, k: any%): bool
 	%{
+	if ( ! h )
+		{
+		reporter->Error("invalid Broker store handle");
+		return new Val(false, TYPE_BOOL);
+		}
+	
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
-	if ( ! *handle )
-    return new Val(false, TYPE_BOOL);
 
-	auto& key = bro_broker::opaque_field_to_data(k->AsRecordVal(), frame);
+	auto& key = bro_broker::opaque_field_to_data(bro_broker::make_data_val(k), frame);
 	handle->store.erase(key);
 	return new Val(true, TYPE_BOOL);
 	%}

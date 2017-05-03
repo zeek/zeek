@@ -65,9 +65,8 @@ inline RecordVal* query_result(RecordVal* data)
  */
 class StoreQueryCallback {
 public:
-
 	StoreQueryCallback(Trigger* arg_trigger, const CallExpr* arg_call,
-                     broker::store store)
+			   broker::store store)
 		: trigger(arg_trigger), call(arg_call), store(move(store))
 		{
 		Ref(trigger);
@@ -103,7 +102,7 @@ private:
 
 	Trigger* trigger;
 	const CallExpr* call;
-  broker::store store;
+	broker::store store;
 };
 
 /**
@@ -111,11 +110,7 @@ private:
  */
 class StoreHandleVal : public OpaqueVal {
 public:
-
 	StoreHandleVal(broker::store s) : store{s}, proxy{store} { }
-
-  // Checks whether a store has been initialized.
-	explicit operator bool() const;
 
 	void ValDescribe(ODesc* d) const override;
 
@@ -125,7 +120,6 @@ public:
 	broker::store::proxy proxy;
 
 protected:
-
 	StoreHandleVal() = default;
 };
 

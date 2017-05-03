@@ -23,3 +23,5 @@
 - Potentially: move the new Bro-level message type (event/logs) into
   Broker. One idea would be turning that into meta data of the message
   object.
+
+- Exchange Bro-level protocol version.

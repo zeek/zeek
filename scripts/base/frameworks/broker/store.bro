@@ -60,7 +60,7 @@ export {
 	global create_master: function(name: string, b: BackendType &default = MEMORY,
 	                               options: BackendOptions &default = BackendOptions()): opaque of Broker::Handle;
 
-	## Create a clone of a master data store which may live with a remote peer.
+	## Create a clone of a master data store which may live with a remote peer. XXX
 	## A clone automatically synchronizes to the master by automatically
 	## receiving modifications and applying them locally.  Direct modifications
 	## are not possible, they must be sent through the master store, which then
@@ -85,7 +85,7 @@ export {
 	## Returns: a handle to the data store.
 	global create_clone: function(name: string): opaque of Broker::Handle;
 
-	## Close a data store.
+	## Close a data store.   XXXX
 	##
 	## h: a data store handle.
 	##
@@ -101,7 +101,7 @@ export {
 	##
 	## Returns: the result of the query.
 	global get: function(h: opaque of Broker::Handle,
-	                     k: Broker::Data): QueryResult;
+	                     k: any): QueryResult;
 
 	## Insert a key-value pair in to the store.
 	##
@@ -115,7 +115,7 @@ export {
 	##
 	## Returns: false if the store handle was not valid.
 	global put: function(h: opaque of Broker::Handle,
-	                     k: Broker::Data, v: Broker::Data): bool;
+	                     k: any, v: any): bool;
 
 	## Remove a key-value pair from the store.
 	##
@@ -124,21 +124,11 @@ export {
 	## k: the key to remove.
 	##
 	## Returns: false if the store handle was not valid.
-	global erase: function(h: opaque of Broker::Handle, k: Broker::Data): bool;
+	global erase: function(h: opaque of Broker::Handle, k: any): bool;
 
 	##########################
 	# data API               #
 	##########################
-
-	## Convert any Bro value to communication data.
-	##
-	## d: any Bro value to attempt to convert (not all types are supported).
-	##
-	## Returns: the converted communication data.  The returned record's optional
-	##          field will not be set if the conversion was not possible (this can
-	##          happen if the Bro data type does not support being converted to
-	##          communication data).
-	global data: function(d: any): Broker::Data;
 
 	## Retrieve the type of data associated with communication data.
 	##
@@ -260,7 +250,7 @@ export {
 	## key: the element to check for existence.
 	##
 	## Returns: true if the key exists in the set.
-	global set_contains: function(s: Broker::Data, key: Broker::Data): bool;
+	global set_contains: function(s: Broker::Data, key: any): bool;
 
 	## Insert an element into a set.
 	##
@@ -269,7 +259,7 @@ export {
 	## key: the element to insert.
 	##
 	## Returns: true if the key was inserted, or false if it already existed.
-	global set_insert: function(s: Broker::Data, key: Broker::Data): bool;
+	global set_insert: function(s: Broker::Data, key: any): bool;
 
 	## Remove an element from a set.
 	##
@@ -278,7 +268,7 @@ export {
 	## key: the element to remove.
 	##
 	## Returns: true if the element existed in the set and is now removed.
-	global set_remove: function(s: Broker::Data, key: Broker::Data): bool;
+	global set_remove: function(s: Broker::Data, key: any): bool;
 
 	## Create an iterator for a set.  Note that this makes a copy of the set
 	## internally to ensure the iterator is always valid.
@@ -336,7 +326,7 @@ export {
 	## key: the key to check for existence.
 	##
 	## Returns: true if the key exists in the table.
-	global table_contains: function(t: Broker::Data, key: Broker::Data): bool;
+	global table_contains: function(t: Broker::Data, key: any): bool;
 
 	## Insert a key-value pair into a table.
 	##
@@ -348,7 +338,7 @@ export {
 	##
 	## Returns: true if the key-value pair was inserted, or false if the key
 	##          already existed in the table.
-	global table_insert: function(t: Broker::Data, key: Broker::Data, val: Broker::Data): Broker::Data;
+	global table_insert: function(t: Broker::Data, key: any, val: any): Broker::Data;
 
 	## Remove a key-value pair from a table.
 	##
@@ -358,7 +348,7 @@ export {
 	##
 	## Returns: the value associated with the key.  If the key did not exist, then
 	##          the optional field of the returned record is not set.
-	global table_remove: function(t: Broker::Data, key: Broker::Data): Broker::Data;
+	global table_remove: function(t: Broker::Data, key: any): Broker::Data;
 
 	## Retrieve a value from a table.
 	##
@@ -368,7 +358,7 @@ export {
 	##
 	## Returns: the value associated with the key.  If the key did not exist, then
 	##          the optional field of the returned record is not set.
-	global table_lookup: function(t: Broker::Data, key: Broker::Data): Broker::Data;
+	global table_lookup: function(t: Broker::Data, key: any): Broker::Data;
 
 	## Create an iterator for a table.  Note that this makes a copy of the table
 	## internally to ensure the iterator is always valid.
@@ -430,7 +420,7 @@ export {
 	##      current size of the vector, the element is inserted at the end.
 	##
 	## Returns: always true.
-	global vector_insert: function(v: Broker::Data, d: Broker::Data, idx: count): bool;
+	global vector_insert: function(v: Broker::Data, idx: count, d: any): bool;
 
 	## Replace an element in a vector at a particular position.
 	##
@@ -442,7 +432,7 @@ export {
 	##
 	## Returns: the value that was just evicted.  If the index was larger than any
 	##          valid index, the optional field of the returned record is not set.
-	global vector_replace: function(v: Broker::Data, d: Broker::Data, idx: count): Broker::Data;
+	global vector_replace: function(v: Broker::Data, idx: count, d: any): Broker::Data;
 
 	## Remove an element from a vector at a particular position.
 	##
@@ -519,7 +509,7 @@ export {
 	## idx: the index to replace.
 	##
 	## Returns: false if the index was larger than any valid index, else true.
-	global record_assign: function(r: Broker::Data, d: Broker::Data, idx: count): bool;
+	global record_assign: function(r: Broker::Data, idx: count, d: any): bool;
 
 	## Lookup a field in a record at a particular position.
 	##
@@ -585,24 +575,19 @@ function close(h: opaque of Broker::Handle): bool
 	return __close(h);
 	}
 
-function get(h: opaque of Broker::Handle, k: Broker::Data): QueryResult
+function get(h: opaque of Broker::Handle, k: any): QueryResult
 	{
 	return __get(h, k);
 	}
 
-function put(h: opaque of Broker::Handle, k: Broker::Data, v: Broker::Data): bool
+function put(h: opaque of Broker::Handle, k: any, v: any): bool
 	{
 	return __put(h, k, v);
 	}
 
-function erase(h: opaque of Broker::Handle, k: Broker::Data): bool
+function erase(h: opaque of Broker::Handle, k: any): bool
 	{
 	return __erase(h, k);
-	}
-
-function data(d: any): Broker::Data
-	{
-	return __data(d);
 	}
 
 function data_type(d: Broker::Data): Broker::DataType
@@ -680,17 +665,17 @@ function set_size(s: Broker::Data): count
 	return __set_size(s);
 	}
 
-function set_contains(s: Broker::Data, key: Broker::Data): bool
+function set_contains(s: Broker::Data, key: any): bool
 	{
 	return __set_contains(s, key);
 	}
 
-function set_insert(s: Broker::Data, key: Broker::Data): bool
+function set_insert(s: Broker::Data, key: any): bool
 	{
 	return __set_insert(s, key);
 	}
 
-function set_remove(s: Broker::Data, key: Broker::Data): bool
+function set_remove(s: Broker::Data, key: any): bool
 	{
 	return __set_remove(s, key);
 	}
@@ -730,22 +715,22 @@ function table_size(t: Broker::Data): count
 	return __table_size(t);
 	}
 
-function table_contains(t: Broker::Data, key: Broker::Data): bool
+function table_contains(t: Broker::Data, key: any): bool
 	{
 	return __table_contains(t, key);
 	}
 
-function table_insert(t: Broker::Data, key: Broker::Data, val: Broker::Data): Broker::Data
+function table_insert(t: Broker::Data, key: any, val: any): Broker::Data
 	{
 	return __table_insert(t, key, val);
 	}
 
-function table_remove(t: Broker::Data, key: Broker::Data): Broker::Data
+function table_remove(t: Broker::Data, key: any): Broker::Data
 	{
 	return __table_remove(t, key);
 	}
 
-function table_lookup(t: Broker::Data, key: Broker::Data): Broker::Data
+function table_lookup(t: Broker::Data, key: any): Broker::Data
 	{
 	return __table_lookup(t, key);
 	}
@@ -785,14 +770,14 @@ function vector_size(v: Broker::Data): count
 	return __vector_size(v);
 	}
 
-function vector_insert(v: Broker::Data, d: Broker::Data, idx: count): bool
+function vector_insert(v: Broker::Data, idx: count, d: any): bool
 	{
-	return __vector_insert(v, d, idx);
+	return __vector_insert(v, idx, d);
 	}
 
-function vector_replace(v: Broker::Data, d: Broker::Data, idx: count): Broker::Data
+function vector_replace(v: Broker::Data, idx: count, d: any): Broker::Data
 	{
-	return __vector_replace(v, d, idx);
+	return __vector_replace(v, idx, d);
 	}
 
 function vector_remove(v: Broker::Data, idx: count): Broker::Data
@@ -835,9 +820,9 @@ function record_size(r: Broker::Data): count
 	return __record_size(r);
 	}
 
-function record_assign(r: Broker::Data, d: Broker::Data, idx: count): bool
+function record_assign(r: Broker::Data, idx: count, d: any): bool
 	{
-	return __record_assign(r, d, idx);
+	return __record_assign(r, idx, d);
 	}
 
 function record_lookup(r: Broker::Data, idx: count): Broker::Data

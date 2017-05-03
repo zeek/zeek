@@ -1054,7 +1054,7 @@ protected:
 	friend class Expr;
 	CastExpr()	{ }
 
-	Val* Fold(Val* v) const override;
+	Val* Eval(Frame* f) const override;
 	void ExprDescribe(ODesc* d) const override;
 
 	DECLARE_SERIAL(CastExpr);

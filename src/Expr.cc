@@ -5210,9 +5210,14 @@ CastExpr::CastExpr(Expr* arg_op, BroType* t) : UnaryExpr(EXPR_CAST, arg_op)
 		ExprError("cast not supported");
 	}
 
-Val* CastExpr::Fold(Val* v) const
+Val* CastExpr::Eval(Frame* f) const
 	{
 	if ( IsError() )
+		return 0;
+
+	Val* v = op->Eval(f);
+
+	if ( ! v )
 		return 0;
 
 	if ( Val* nv = cast_value_to_type(v, Type()) )

@@ -126,9 +126,47 @@ export {
 	## Returns: false if the store handle was not valid.
 	global erase: function(h: opaque of Broker::Handle, k: any): bool;
 
+        ## Adds a value to an existing one in a data store. This is supported
+        ## only by integer types.
+        ##
+        ## h: the handle of the store to modify.
+        ##
+        ## k: the key whose associated value is to be modified.
+        ##
+        ## by: the amount to increment the value by.  A non-existent key will first
+        ##     create it with an implicit value of zero before incrementing.
+        ##
+        ## Returns: false if the store handle was not valid.
+        global add_: function(h: opaque of Broker::Handle,
+			      k: Broker::Data, by: Broker::Data &default = __data(1)): bool;
+
+        ## Subtracts a value from an existing one in a data store. This is supported only
+        ## by integer types.
+        ##
+        ## h: the handle of the store to modify.
+        ##
+        ## k: the key whose associated value is to be modified.
+        ##
+        ## by: the amount to decrement the value by.  A non-existent key will first
+        ##     create it with an implicit value of zero before decrementing.
+        ##
+        ## Returns: false if the store handle was not valid.
+        global subtract: function(h: opaque of Broker::Handle,
+				  k: Broker::Data, by: Broker::Data &default = __data(1)): bool;
+
 	##########################
 	# data API               #
 	##########################
+
+        ## Convert any Bro value to communication data.
+        ##
+        ## d: any Bro value to attempt to convert (not all types are supported).
+        ##
+        ## Returns: the converted communication data.  The returned record's optional
+        ##          field will not be set if the conversion was not possible (this can
+        ##          happen if the Bro data type does not support being converted to
+        ##          communication data).
+        global data: function(d: any): Broker::Data;
 
 	## Retrieve the type of data associated with communication data.
 	##
@@ -501,9 +539,26 @@ function erase(h: opaque of Broker::Handle, k: any): bool
 	return __erase(h, k);
 	}
 
+function add_(h: opaque of Broker::Handle,
+	      k: Broker::Data, by: Broker::Data): bool
+	{
+	return __add(h, k, by);
+	}
+
+function subtract(h: opaque of Broker::Handle,
+		  k: Broker::Data, by: Broker::Data): bool
+	{
+	return __subtract(h, k, by);
+	}
+
 function data_type(d: Broker::Data): Broker::DataType
 	{
 	return __data_type(d);
+	}
+
+function data(d: any): Broker::Data
+	{
+	return __data(d);
 	}
 
 function set_create(): Broker::Data

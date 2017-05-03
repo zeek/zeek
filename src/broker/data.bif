@@ -32,6 +32,11 @@ type Broker::Data: record;
 
 type Broker::TableItem: record;
 
+function Broker::__data%(d: any%): Broker::Data
+	%{
+	return bro_broker::make_data_val(d);
+	%}
+
 function Broker::__data_type%(d: Broker::Data%): Broker::DataType
 	%{
 	return bro_broker::get_data_type(d->AsRecordVal(), frame);

@@ -124,7 +124,7 @@ function Broker::__put%(h: opaque of Broker::Handle,
 		reporter->Error("invalid Broker store handle");
 		return new Val(false, TYPE_BOOL);
 		}
-	
+
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 
 	auto& key = bro_broker::opaque_field_to_data(bro_broker::make_data_val(k), frame);
@@ -141,10 +141,44 @@ function Broker::__erase%(h: opaque of Broker::Handle, k: any%): bool
 		reporter->Error("invalid Broker store handle");
 		return new Val(false, TYPE_BOOL);
 		}
-	
+
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 
 	auto& key = bro_broker::opaque_field_to_data(bro_broker::make_data_val(k), frame);
 	handle->store.erase(key);
 	return new Val(true, TYPE_BOOL);
 	%}
+
+function Broker::__add%(h: opaque of Broker::Handle, k: any, b: any%): bool
+	%{
+	if ( ! h )
+		{
+		reporter->Error("invalid Broker store handle");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
+
+	auto& key = bro_broker::opaque_field_to_data(bro_broker::make_data_val(k), frame);
+	auto& by = bro_broker::opaque_field_to_data(bro_broker::make_data_val(b), frame);
+	handle->store.add(key, by);
+	return new Val(true, TYPE_BOOL);
+	%}
+
+function Broker::__subtract%(h: opaque of Broker::Handle, k: any, b: any%): bool
+	%{
+	if ( ! h )
+		{
+		reporter->Error("invalid Broker store handle");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
+
+	auto& key = bro_broker::opaque_field_to_data(bro_broker::make_data_val(k), frame);
+	auto& by = bro_broker::opaque_field_to_data(bro_broker::make_data_val(b), frame);
+	handle->store.subtract(key, by);
+	return new Val(true, TYPE_BOOL);
+	%}
+
+

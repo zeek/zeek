@@ -21,10 +21,10 @@ redef Cluster::manager2worker_events += /Notice::begin_suppression/;
 redef Cluster::worker2manager_events += /Notice::cluster_notice/;
 
 @if ( Cluster::local_node_type() != Cluster::MANAGER )
-event Notice::begin_suppression(n: Notice::Info)
+event Notice::begin_suppression(ts: time, suppress_for: interval, note: Type, identifier: string)
 	{
-	local suppress_until = n$ts + n$suppress_for;
-	suppressing[n$note, n$identifier] = suppress_until;
+	local suppress_until = ts + suppress_for;
+	suppressing[note, identifier] = suppress_until;
 	}
 @endif
 

@@ -303,8 +303,6 @@ struct val_converter {
 		{
 		if ( type->Tag() == TYPE_VECTOR )
 			{
-			return nullptr;
-
 			auto vt = type->AsVectorType();
 			auto rval = new VectorVal(vt);
 

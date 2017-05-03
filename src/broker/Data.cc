@@ -12,6 +12,8 @@ OpaqueType* bro_broker::opaque_of_table_iterator;
 OpaqueType* bro_broker::opaque_of_vector_iterator;
 OpaqueType* bro_broker::opaque_of_record_iterator;
 
+BroType* bro_broker::DataVal::script_data_type = nullptr;
+
 static broker::port::protocol to_broker_port_proto(TransportProto tp)
 	{
 	switch ( tp ) {
@@ -673,13 +675,13 @@ struct data_type_getter {
 
 	result_type operator()(const broker::vector&)
 		{
-	  auto result = result_type{nullptr};
-	  if (type->Tag() == TYPE_VECTOR)
+		auto result = result_type{nullptr};
+		if (type->Tag() == TYPE_VECTOR)
 			result = new EnumVal(BifEnum::Broker::VECTOR,
-													 BifType::Enum::Broker::DataType);
+					     BifType::Enum::Broker::DataType);
 		else if (type->Tag() == TYPE_RECORD)
 			result = new EnumVal(BifEnum::Broker::RECORD,
-													 BifType::Enum::Broker::DataType);
+					     BifType::Enum::Broker::DataType);
 		assert(result);
 		return result;
 		}
@@ -690,7 +692,7 @@ struct data_type_getter {
 EnumVal* bro_broker::get_data_type(RecordVal* v, Frame* frame)
 	{
 	return broker::visit(data_type_getter{v->Type()},
-											 opaque_field_to_data(v, frame));
+			     opaque_field_to_data(v, frame));
 	}
 
 broker::data& bro_broker::opaque_field_to_data(RecordVal* v, Frame* f)
@@ -702,6 +704,22 @@ broker::data& bro_broker::opaque_field_to_data(RecordVal* v, Frame* f)
 		                       "Broker::Data's opaque field is not set");
 
 	return static_cast<DataVal*>(d)->data;
+	}
+
+bool bro_broker::DataVal::canCastTo(BroType* t) const
+	{
+	// TODO: This is much more work than we need. We should add a
+	// type_check visitor that checks if data_to_val() would return a
+	// given type.
+	auto v = data_to_val(data, t, false);
+	auto can_cast = (v != nullptr);
+	Unref(v);
+	return can_cast;
+	}
+
+Val* bro_broker::DataVal::castTo(BroType* t)
+	{
+	return data_to_val(data, t, false);
 	}
 
 IMPLEMENT_SERIAL(bro_broker::DataVal, SER_COMM_DATA_VAL);

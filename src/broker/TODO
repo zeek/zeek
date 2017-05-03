@@ -25,3 +25,5 @@
   object.
 
 - Exchange Bro-level protocol version.
+
+- Implement a better version of DataVal::canCastTo

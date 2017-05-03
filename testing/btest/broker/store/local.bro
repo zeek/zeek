@@ -8,18 +8,6 @@ global query_timeout = 1sec;
 
 global h: opaque of Broker::Handle;
 
-function do_lookup(key: string)
-	{
-	when ( local res = Broker::get(h, key) )
-		{
-		print fmt("lookup(%s): %s", key, res);
-		}
-	timeout query_timeout
-		{
-		print "'lookup' query timeout";
-		}
-	}
-
 function dv(d: Broker::Data): Broker::DataVector
 	{
 	local rval: Broker::DataVector;
@@ -38,17 +26,28 @@ event bro_init()
 	local myvec: vector of string = {"alpha", "beta", "gamma"};
 
 	h = Broker::create_master("master");
-	Broker::put(h, "one", 110);
+	Broker::put(h, "one", "110");
 	Broker::put(h, "two", 223);
 
-	do_lookup("one");
-	do_lookup("two");
-        
-#	do_lookup("one");
-#	do_lookup("two");
-#	do_lookup("myset");
-#	do_lookup("four");
-#	do_lookup("myvec");
-#       
-        schedule 5secs { done() };
+	when ( local res1 = Broker::get(h, "one") )
+		{
+		local s = (res1$result as string);
+		print "string", s;
+		}
+	timeout query_timeout 
+		{
+		print "timeout";
+		}
+
+	when ( local res2 = Broker::get(h, "two") )
+		{
+		local c = (res2$result as count);
+		print "count", c;
+		}
+	timeout query_timeout 
+		{
+		print "timeout";
+		}
+	
+        schedule 2secs { done() };
 	}

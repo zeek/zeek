@@ -3433,7 +3433,7 @@ void delete_vals(val_list* vals)
 		}
 	}
 
-Val* cast_value_to_type(Val* v, const BroType* t)
+Val* cast_value_to_type(Val* v, BroType* t)
 	{
 	// Note: when changing this function, adapt all three of
 	// cast_value_to_type()/can_cast_value_to_type()/can_cast_value_to_type().
@@ -3446,10 +3446,16 @@ Val* cast_value_to_type(Val* v, const BroType* t)
 	if ( same_type(v->Type(), t) )
 		return v->Ref();
 
+	if ( same_type(v->Type(), bro_broker::DataVal::ScriptDataType()) )
+		{
+		auto dv = v->AsRecordVal()->Lookup(0);
+		return static_cast<bro_broker::DataVal *>(dv)->castTo(t);
+		}
+
 	return 0;
 	}
 
-bool can_cast_value_to_type(const Val* v, const BroType* t)
+bool can_cast_value_to_type(const Val* v, BroType* t)
 	{
 	// Note: when changing this function, adapt all three of
 	// cast_value_to_type()/can_cast_value_to_type()/can_cast_value_to_type().
@@ -3462,10 +3468,16 @@ bool can_cast_value_to_type(const Val* v, const BroType* t)
 	if ( same_type(v->Type(), t) )
 		return true;
 
+	if ( same_type(v->Type(), bro_broker::DataVal::ScriptDataType()) )
+		{
+		auto dv = v->AsRecordVal()->Lookup(0);
+		return static_cast<const bro_broker::DataVal *>(dv)->canCastTo(t);
+		}
+
 	return false;
 	}
 
-bool can_cast_value_to_type(const BroType* s, const BroType* t)
+bool can_cast_value_to_type(const BroType* s, BroType* t)
 	{
 	// Note: when changing this function, adapt all three of
 	// cast_value_to_type()/can_cast_value_to_type()/can_cast_value_to_type().
@@ -3473,6 +3485,12 @@ bool can_cast_value_to_type(const BroType* s, const BroType* t)
 	// Always allow casting to same type. This also covers casting 'any'
 	// to the actual type.
 	if ( same_type(s, t) )
+		return true;
+
+	if ( same_type(s, bro_broker::DataVal::ScriptDataType()) )
+		// As Broker is dynamically typed, we don't know if we will be able
+		// to convert the type as intended. We optimistically assume that we
+		// will.
 		return true;
 
 	return false;

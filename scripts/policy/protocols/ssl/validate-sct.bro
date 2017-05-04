@@ -116,7 +116,10 @@ event ssl_change_cipher_spec(c: connection, is_orig: bool) &priority=2
 		local valid = F;
 		local found_cache = F;
 
-		local validate_hash = sha1_hash(cat(certhash,proof$logid,proof$timestamp,proof$hash_alg,proof$signature));
+		local validatestring = cat(certhash,proof$logid,proof$timestamp,proof$hash_alg,proof$signature,proof$source);
+		if ( proof$source == SCT_X509_EXT && c$ssl?$validation_code )
+			validatestring = cat(validatestring, c$ssl$validation_code);
+		local validate_hash = sha1_hash(validatestring);
 		if ( validate_hash in recently_validated_scts )
 			{
 			valid = recently_validated_scts[validate_hash];

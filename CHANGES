@@ -1,4 +1,14 @@
 
+2.5-137 | 2017-05-04 11:37:48 -0500
+
+  * Add plugin hooks for log init and writing: HookLogInit and HookLogWrite.
+    (Corelight)
+
+  * TLS: Fix compile warning (comparison between signed/unsigned).
+
+    This was introduced with the addition of new TLS1.3 extensions. (Johanna Amann)
+
+
 2.5-134 | 2017-05-01 10:34:34 -0500
 
   * Add rename, unlink, and rmdir bifs. (Corelight)

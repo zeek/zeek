@@ -8,13 +8,6 @@ global query_timeout = 1sec;
 
 global h: opaque of Broker::Handle;
 
-function dv(d: Broker::Data): Broker::DataVector
-	{
-	local rval: Broker::DataVector;
-	rval[0] = d;
-	return rval;
-	}
-
 event done()
 	{
 	terminate();
@@ -22,9 +15,6 @@ event done()
 
 event bro_init()
 	{
-	local myset: set[string] = {"a", "b", "c"};
-	local myvec: vector of string = {"alpha", "beta", "gamma"};
-
 	h = Broker::create_master("master");
 	Broker::put(h, "one", "110");
 	Broker::put(h, "two", 223);

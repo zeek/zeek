@@ -60,7 +60,7 @@ export {
 	global create_master: function(name: string, b: BackendType &default = MEMORY,
 	                               options: BackendOptions &default = BackendOptions()): opaque of Broker::Handle;
 
-	## Create a clone of a master data store which may live with a remote peer. XXX
+	## Create a clone of a master data store which may live with a remote peer.
 	## A clone automatically synchronizes to the master by automatically
 	## receiving modifications and applying them locally.  Direct modifications
 	## are not possible, they must be sent through the master store, which then
@@ -85,7 +85,7 @@ export {
 	## Returns: a handle to the data store.
 	global create_clone: function(name: string): opaque of Broker::Handle;
 
-	## Close a data store.   XXXX
+	## Close a data store.
 	##
 	## h: a data store handle.
 	##
@@ -138,7 +138,7 @@ export {
         ##
         ## Returns: false if the store handle was not valid.
         global add_: function(h: opaque of Broker::Handle,
-			      k: Broker::Data, by: Broker::Data &default = __data(1)): bool;
+			      k: any, by: any &default = 1): bool;
 
         ## Subtracts a value from an existing one in a data store. This is supported only
         ## by integer types.
@@ -152,7 +152,7 @@ export {
         ##
         ## Returns: false if the store handle was not valid.
         global subtract: function(h: opaque of Broker::Handle,
-				  k: Broker::Data, by: Broker::Data &default = __data(1)): bool;
+				  k: any, by: any &default = 1): bool;
 
 	##########################
 	# Data API               #
@@ -544,13 +544,13 @@ function erase(h: opaque of Broker::Handle, k: any): bool
 	}
 
 function add_(h: opaque of Broker::Handle,
-	      k: Broker::Data, by: Broker::Data): bool
+	      k: any, by: any): bool
 	{
 	return __add(h, k, by);
 	}
 
 function subtract(h: opaque of Broker::Handle,
-		  k: Broker::Data, by: Broker::Data): bool
+		  k: any, by: any): bool
 	{
 	return __subtract(h, k, by);
 	}

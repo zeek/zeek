@@ -1,0 +1,29 @@
+0
+T
+1
+T
+F
+T
+[data=broker::data{{bye, hi}}], {
+bye,
+hi
+}
+| [data=broker::data{bye}]
+| [data=broker::data{hi}]
+
+2
+F
+2
+T
+1
+F
+[data=broker::data{{bye}}], {
+bye
+}
+
+T
+0
+[data=broker::data{{}}], {
+
+}
+

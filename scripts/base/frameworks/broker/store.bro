@@ -155,10 +155,14 @@ export {
 				  k: Broker::Data, by: Broker::Data &default = __data(1)): bool;
 
 	##########################
-	# data API               #
+	# Data API               #
 	##########################
 
         ## Convert any Bro value to communication data.
+        ## 
+        ## Note: Normally you won't need to use this function as data
+        ## conversion happens implicitly when passing Bro values into Broker
+        ## functions.
         ##
         ## d: any Bro value to attempt to convert (not all types are supported).
         ##

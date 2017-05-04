@@ -1,0 +1,33 @@
+0
+[data=<uninitialized>]
+1
+T
+42
+F
+[data=<uninitialized>]
+2
+[data=broker::data{{bye -> 7, hi -> 42}}], {
+[bye] = 7,
+[hi] = 42
+}
+| [key=[data=broker::data{bye}], val=[data=broker::data{7}]]
+| [key=[data=broker::data{hi}], val=[data=broker::data{42}]]
+
+[data=broker::data{7}]
+[data=broker::data{{bye -> 37, hi -> 42}}], {
+[bye] = 37,
+[hi] = 42
+}
+
+2
+37
+[data=broker::data{42}]
+1
+[data=<uninitialized>]
+1
+T
+0
+[data=broker::data{{}}], {
+
+}
+

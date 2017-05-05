@@ -21,9 +21,11 @@ using namespace std;
 
 namespace bro_broker {
 
-static broker::enum_value MessageEvent("event");
-static broker::enum_value MessageLogCreate("log-create");
-static broker::enum_value MessageLogWrite("log-write");
+namespace atom {
+using event = broker::message_type_constant<broker::make_message_type("event")>;
+using log_create = broker::message_type_constant<broker::make_message_type("log-create")>;
+using log_write = broker::message_type_constant<broker::make_message_type("log-write")>;
+}
 
 const broker::endpoint_info Manager::NoPeer{{}, caf::invalid_actor_id, {}};
 
@@ -189,7 +191,7 @@ bool Manager::PublishEvent(string topic, broker::data x)
 	{
 	DBG_LOG(DBG_BROKER, "Publishing event: %s",
 		RenderMessage(topic, x).c_str());
-	endpoint.publish(move(topic), MessageEvent, move(x));
+	endpoint.publish(move(topic), atom::event::value, move(x));
 	return true;
 	}
 
@@ -212,7 +214,7 @@ bool Manager::PublishEvent(string topic, RecordVal* args)
 		}
 
 	DBG_LOG(DBG_BROKER, "Publishing event: %s", RenderMessage(topic, xs).c_str());
-	endpoint.publish(move(topic), MessageEvent, move(xs));
+	endpoint.publish(move(topic), atom::event::value, move(xs));
 
 	return true;
 	}
@@ -258,7 +260,7 @@ bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer,
 	broker::vector xs{move(bstream_name), move(bwriter_name), move(writer_info), move(fields_data)};
 
 	DBG_LOG(DBG_BROKER, "Publishing log creation: %s", RenderMessage(topic, xs).c_str());
-	endpoint.publish(move(topic), MessageLogCreate, move(xs));
+	endpoint.publish(move(topic), atom::log_create::value, move(xs));
 
 	return true;
 	}
@@ -307,7 +309,7 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 	broker::vector xs{move(bstream_name), move(bwriter_name), move(path), move(vals_data)};
 
 	DBG_LOG(DBG_BROKER, "Publishing log record: %s", RenderMessage(topic, xs).c_str());
-	endpoint.publish(move(topic), MessageLogWrite, move(xs));
+	endpoint.publish(move(topic), atom::log_write::value, move(xs));
 
 	return true;
 	}
@@ -488,37 +490,20 @@ void Manager::Process()
 				continue;
 				}
 
-			if ( xs->size() != 2 )
-				{
-				reporter->Warning("ignoring message with vector data of wrong size");
-				continue;
-				}
+			auto ty = msg->type();
 
-			auto ty = broker::get_if<broker::enum_value>((*xs)[0]);
+			if ( ty == atom::event::value )
+				ProcessEvent(std::move(*xs));
 
-			if ( ! ty )
-				{
-				reporter->Warning("ignoring message without Bro type");
-				continue;
-				}
+			else if ( ty == atom::log_create::value )
+				ProcessLogCreate(std::move(*xs));
 
-			auto xt = broker::get_if<broker::vector>((*xs)[1]);
+			else if ( ty == atom::log_write::value )
+				ProcessLogWrite(std::move(*xs));
 
-			if ( ! xt )
-				{
-				reporter->Warning("ignoring message with unexpected content");
-				}
-
-			if ( *ty == MessageEvent )
-				ProcessEvent(std::move(*xt));
-
-			else if ( *ty == MessageLogCreate )
-				ProcessLogCreate(std::move(*xt));
-
-			else if ( *ty == MessageLogWrite )
-				ProcessLogWrite(std::move(*xt));
-			else
-				reporter->Warning("ignoring message with unexpected type");
+			// We ignore unknown types so that we could add more
+			// message in the future if we had too. This included
+			// the default type.
 			}
 
 		else if ( auto stat = broker::get_if<broker::status>(elem) )

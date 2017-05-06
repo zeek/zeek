@@ -58,7 +58,7 @@ export {
 	##
 	## Returns: a handle to the data store.
 	global create_master: function(name: string, b: BackendType &default = MEMORY,
-	                               options: BackendOptions &default = BackendOptions()): opaque of Broker::Handle;
+	                               options: BackendOptions &default = BackendOptions()): opaque of Broker::Store;
 
 	## Create a clone of a master data store which may live with a remote peer.
 	## A clone automatically synchronizes to the master by automatically
@@ -83,7 +83,7 @@ export {
 	##         available.
 	##
 	## Returns: a handle to the data store.
-	global create_clone: function(name: string): opaque of Broker::Handle;
+	global create_clone: function(name: string): opaque of Broker::Store;
 
 	## Close a data store.
 	##
@@ -91,7 +91,7 @@ export {
 	##
 	## Returns: true if store was valid and is now closed.  The handle can no
 	##          longer be used for data store operations.
-	global close: function(h: opaque of Broker::Handle): bool;
+	global close: function(h: opaque of Broker::Store): bool;
 
 	## Lookup the value associated with a key in a data store.
 	##
@@ -100,7 +100,7 @@ export {
 	## k: the key to lookup.
 	##
 	## Returns: the result of the query.
-	global get: function(h: opaque of Broker::Handle,
+	global get: function(h: opaque of Broker::Store,
 	                     k: any): QueryResult;
 
 	## Insert a key-value pair in to the store.
@@ -114,7 +114,7 @@ export {
 	## e: the expiration time of the key-value pair.
 	##
 	## Returns: false if the store handle was not valid.
-	global put: function(h: opaque of Broker::Handle,
+	global put: function(h: opaque of Broker::Store,
 	                     k: any, v: any): bool;
 
 	## Remove a key-value pair from the store.
@@ -124,7 +124,7 @@ export {
 	## k: the key to remove.
 	##
 	## Returns: false if the store handle was not valid.
-	global erase: function(h: opaque of Broker::Handle, k: any): bool;
+	global erase: function(h: opaque of Broker::Store, k: any): bool;
 
         ## Adds a value to an existing one in a data store. This is supported
         ## only by integer types.
@@ -137,7 +137,7 @@ export {
         ##     create it with an implicit value of zero before incrementing.
         ##
         ## Returns: false if the store handle was not valid.
-        global add_: function(h: opaque of Broker::Handle,
+        global add_: function(h: opaque of Broker::Store,
 			      k: any, by: any &default = 1): bool;
 
         ## Subtracts a value from an existing one in a data store. This is supported only
@@ -151,7 +151,7 @@ export {
         ##     create it with an implicit value of zero before decrementing.
         ##
         ## Returns: false if the store handle was not valid.
-        global subtract: function(h: opaque of Broker::Handle,
+        global subtract: function(h: opaque of Broker::Store,
 				  k: any, by: any &default = 1): bool;
 
 	##########################
@@ -513,43 +513,43 @@ export {
 module Broker;
 
 function create_master(name: string, b: BackendType &default = MEMORY,
-                       options: BackendOptions &default = BackendOptions()): opaque of Broker::Handle
+                       options: BackendOptions &default = BackendOptions()): opaque of Broker::Store
 	{
 	return __create_master(name, b, options);
 	}
 
-function create_clone(name: string): opaque of Broker::Handle
+function create_clone(name: string): opaque of Broker::Store
 	{
 	return __create_clone(name);
 	}
 
-function close(h: opaque of Broker::Handle): bool
+function close(h: opaque of Broker::Store): bool
 	{
 	return __close(h);
 	}
 
-function get(h: opaque of Broker::Handle, k: any): QueryResult
+function get(h: opaque of Broker::Store, k: any): QueryResult
 	{
 	return __get(h, k);
 	}
 
-function put(h: opaque of Broker::Handle, k: any, v: any): bool
+function put(h: opaque of Broker::Store, k: any, v: any): bool
 	{
 	return __put(h, k, v);
 	}
 
-function erase(h: opaque of Broker::Handle, k: any): bool
+function erase(h: opaque of Broker::Store, k: any): bool
 	{
 	return __erase(h, k);
 	}
 
-function add_(h: opaque of Broker::Handle,
+function add_(h: opaque of Broker::Store,
 	      k: any, by: any): bool
 	{
 	return __add(h, k, by);
 	}
 
-function subtract(h: opaque of Broker::Handle,
+function subtract(h: opaque of Broker::Store,
 		  k: any, by: any): bool
 	{
 	return __subtract(h, k, by);

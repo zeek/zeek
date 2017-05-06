@@ -22,7 +22,7 @@ enum BackendType %{
 %}
 
 function Broker::__create_master%(id: string, b: BackendType,
-                               options: BackendOptions &default = BackendOptions()%): opaque of Broker::Handle
+                               options: BackendOptions &default = BackendOptions()%): opaque of Broker::Store
 	%{
 	auto name = id->CheckString();
 	auto rval = broker_mgr->LookupStore(name);
@@ -43,7 +43,7 @@ function Broker::__create_master%(id: string, b: BackendType,
 	return store;
 	%}
 
-function Broker::__create_clone%(id: string%): opaque of Broker::Handle
+function Broker::__create_clone%(id: string%): opaque of Broker::Store
 	%{
 	auto name = id->CheckString();
 	auto rval = broker_mgr->LookupStore(name);
@@ -60,7 +60,7 @@ function Broker::__create_clone%(id: string%): opaque of Broker::Handle
 	return store;
 	%}
 
-function Broker::__close%(h: opaque of Broker::Handle%): bool
+function Broker::__close%(h: opaque of Broker::Store%): bool
 	%{
 	if ( ! h )
 		{
@@ -72,7 +72,7 @@ function Broker::__close%(h: opaque of Broker::Handle%): bool
 	return new Val(broker_mgr->CloseStore(handle->store.name()), TYPE_BOOL);
 	%}
 
-function Broker::__get%(h: opaque of Broker::Handle,
+function Broker::__get%(h: opaque of Broker::Store,
 			k: any%): Broker::QueryResult
 	%{
 	if ( ! h )
@@ -116,7 +116,7 @@ function Broker::__get%(h: opaque of Broker::Handle,
 	return 0;
 	%}
 
-function Broker::__put%(h: opaque of Broker::Handle,
+function Broker::__put%(h: opaque of Broker::Store,
                         k: any, v: any%): bool
 	%{
 	if ( ! h )
@@ -134,7 +134,7 @@ function Broker::__put%(h: opaque of Broker::Handle,
 	return new Val(true, TYPE_BOOL);
 	%}
 
-function Broker::__erase%(h: opaque of Broker::Handle, k: any%): bool
+function Broker::__erase%(h: opaque of Broker::Store, k: any%): bool
 	%{
 	if ( ! h )
 		{
@@ -149,7 +149,7 @@ function Broker::__erase%(h: opaque of Broker::Handle, k: any%): bool
 	return new Val(true, TYPE_BOOL);
 	%}
 
-function Broker::__add%(h: opaque of Broker::Handle, k: any, b: any%): bool
+function Broker::__add%(h: opaque of Broker::Store, k: any, b: any%): bool
 	%{
 	if ( ! h )
 		{
@@ -165,7 +165,7 @@ function Broker::__add%(h: opaque of Broker::Handle, k: any, b: any%): bool
 	return new Val(true, TYPE_BOOL);
 	%}
 
-function Broker::__subtract%(h: opaque of Broker::Handle, k: any, b: any%): bool
+function Broker::__subtract%(h: opaque of Broker::Store, k: any, b: any%): bool
 	%{
 	if ( ! h )
 		{

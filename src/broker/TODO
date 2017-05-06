@@ -18,16 +18,9 @@
 - Is there remote logging overhead in the case that nobody is
   actually subscribed to logs?
 
-- Potentially: move the new Bro-level message type (event/logs) into
-  Broker. One idea would be turning that into meta data of the message
-  object.
-
-- Exchange Bro-level protocol version.
-
 - Implement a better version of DataVal::canCastTo
 
 - Stores:
-    - Rename Broker::Handle to Broker::Store
     - Expose element expiration and switch to relative expiration times
     - Add keys() function
     - Add clear() function

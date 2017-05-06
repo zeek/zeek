@@ -43,20 +43,16 @@ enum ErrorCode %{
 
 function Broker::__configure%(options: Broker::Options%): bool
 	%{
-	auto name = "";
 	auto routable = false;
 	auto log_topic = "";
 
-	if ( auto name_val = options->AsRecordVal()->Lookup(0) )
-		name = name_val->AsString()->CheckString();
-
-	if ( auto routable_val = options->AsRecordVal()->Lookup(1) )
+	if ( auto routable_val = options->AsRecordVal()->Lookup(0) )
 		routable = routable_val->AsBool();
 
-	if ( auto log_topic_val = options->AsRecordVal()->Lookup(2) )
+	if ( auto log_topic_val = options->AsRecordVal()->Lookup(1) )
 		log_topic = log_topic_val->AsString()->CheckString();
 
-	return new Val(broker_mgr->Configure(name, routable, log_topic), TYPE_BOOL);
+	return new Val(broker_mgr->Configure(routable, log_topic), TYPE_BOOL);
 	%}
 
 function Broker::__listen%(a: string, p: port%): port

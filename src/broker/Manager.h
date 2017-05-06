@@ -81,13 +81,12 @@ public:
 
 	/**
 	 * Configure the local Broker endpoint.
-	 * @param name The name of the endpoint. By default, the name remains unset.
 	 * @param routable Whether the context of this endpoint routes messages not
 	 * @param log_topic The topic prefix for logs we this endpoint published.
 	 * destined to itself. By default endpoints do not route.
 	 * @return true if configuration was successful.
 	 */
-	bool Configure(std::string name="", bool routable = false, std::string log_topic="");
+	bool Configure(bool routable = false, std::string log_topic="");
 
 	/**
 	 * Listen for remote connections.
@@ -279,7 +278,6 @@ private:
 	broker::endpoint& Endpoint()
 		{ return endpoint; }
 
-	std::string name;
 	bool routable;
 	std::string log_topic;
 	uint16_t bound_port;

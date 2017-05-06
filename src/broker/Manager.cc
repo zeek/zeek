@@ -74,7 +74,6 @@ static std::string RenderMessage(const broker::error& e)
 Manager::Manager()
 	{
 	routable = false;
-	name = "";
 	bound_port = 0;
 
 	next_timestamp = 1;
@@ -83,17 +82,6 @@ Manager::Manager()
 
 Manager::~Manager()
 	{
-	}
-
-static int require_field(RecordType* rt, const char* name)
-	{
-	auto rval = rt->FieldOffset(name);
-
-	if ( rval < 0 )
-		reporter->InternalError("no field named '%s' in record type '%s'", name,
-		                        rt->GetName().data());
-
-	return rval;
 	}
 
 void Manager::InitPostScript()
@@ -140,12 +128,11 @@ bool Manager::Active()
 	return bound_port > 0 || endpoint.peers().size();
 	}
 
-bool Manager::Configure(std::string arg_name, bool arg_routable, std::string arg_log_topic)
+bool Manager::Configure(bool arg_routable, std::string arg_log_topic)
 	{
-	DBG_LOG(DBG_BROKER, "Configuring endpoint: name=%s, routable=%s",
-		name.c_str(), (routable ? "yes" : "no"));;
+	DBG_LOG(DBG_BROKER, "Configuring endpoint: routable=%s log_topic=%s",
+		(routable ? "yes" : "no"), arg_log_topic.c_str());
 
-	name = std::move(arg_name);
 	routable = arg_routable;
 	log_topic = arg_log_topic;
 

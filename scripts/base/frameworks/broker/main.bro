@@ -26,9 +26,6 @@ export {
 
 	## The available configuration options when enabling Broker.
 	type Options: record {
-		## A name used to identify this endpoint to peers. By default,
-                ## no name is et.
-		endpoint_name: string &default = "";
 		## Whether this Broker instance relays messages not destined to itself.
                 ## By default, routing is disabled.
 		routable: bool &default = F;

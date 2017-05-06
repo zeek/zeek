@@ -88,6 +88,7 @@ event ping(msg: string, n: count)
 
         if ( n == events_to_recv )
                 {
+		print get_broker_stats();
                 terminate();
                 return;
                 }

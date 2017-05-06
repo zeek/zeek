@@ -600,6 +600,25 @@ type ThreadStats: record {
 	num_threads: count;
 };
 
+## Statistics about Broker communication.
+##
+## .. bro:see:: get_broker_stats
+type BrokerStats: record {
+	num_peers: count;
+	## Number of active data stores.
+	num_stores: count;
+	## Number of pending data store queries.
+	num_pending_queries: count;
+	## Number of total log messages received.
+	num_events_incoming: count;
+	## Number of total log messages sent.
+	num_events_outgoing: count;
+	## Number of total log records received.
+	num_logs_incoming: count;
+	## Number of total log records sent.
+	num_logs_outgoing: count;
+};
+
 ## Deprecated.
 ##
 ## .. todo:: Remove. It's still declared internally but doesn't seem  used anywhere

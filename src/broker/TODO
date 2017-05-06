@@ -7,12 +7,6 @@
 - Manager::PublishLogCreate() doesn't pay attention to the 'peer'
   argument yet.
 
-- Routing isn't supported yet
-
-- Add a function to "unlisten".
-
-- Error logging doesn't record the relevant peer.
-
 - Manager::ConsumeStatistics() isn't implemented.
 
 - Is there remote logging overhead in the case that nobody is
@@ -24,3 +18,12 @@
     - Expose element expiration and switch to relative expiration times
     - Add keys() function
     - Add clear() function
+
+
+For later:
+
+- Routing isn't supported yet
+
+- Error logging doesn't record the relevant peer. That's because
+  Broker doesn't pass the endpoint_info on for errors, as status
+  messages do.

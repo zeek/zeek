@@ -180,6 +180,7 @@ bool Manager::PublishEvent(string topic, broker::data x)
 		RenderMessage(topic, x).c_str());
 	broker::vector data = {ProtocolVersion, move(x)};
 	endpoint.publish(move(topic), atom::event::value, std::move(data));
+	++statistics.num_events_outgoing;
 	return true;
 	}
 
@@ -204,6 +205,7 @@ bool Manager::PublishEvent(string topic, RecordVal* args)
 	DBG_LOG(DBG_BROKER, "Publishing event: %s", RenderMessage(topic, xs).c_str());
 	broker::vector data = {ProtocolVersion, move(xs)};
 	endpoint.publish(move(topic), atom::event::value, std::move(data));
+	++statistics.num_events_outgoing;
 
 	return true;
 	}
@@ -301,6 +303,7 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 	DBG_LOG(DBG_BROKER, "Publishing log record: %s", RenderMessage(topic, xs).c_str());
 	broker::vector data = {ProtocolVersion, move(xs)};
 	endpoint.publish(move(topic), atom::log_write::value, move(data));
+	++statistics.num_logs_outgoing;
 
 	return true;
 	}
@@ -551,6 +554,8 @@ void Manager::ProcessEvent(const broker::vector xs)
 	{
 	DBG_LOG(DBG_BROKER, "Received event: %s", RenderMessage(xs).c_str());
 
+	++statistics.num_events_incoming;
+
 	auto event_name = broker::get_if<string>(xs[0]);
 	if ( ! event_name )
 		{
@@ -699,6 +704,8 @@ bool bro_broker::Manager::ProcessLogCreate(const broker::vector xs)
 bool bro_broker::Manager::ProcessLogWrite(const broker::vector xs)
 	{
 	DBG_LOG(DBG_BROKER, "Received log-write: %s", RenderMessage(xs).c_str());
+
+	++statistics.num_logs_incoming;
 
 	if ( xs.size() != 4 )
 		{
@@ -1033,9 +1040,15 @@ bool Manager::TrackStoreQuery(broker::request_id id, StoreQueryCallback* cb)
 	return pending_queries.emplace(id, cb).second;
 	}
 
-Stats Manager::ConsumeStatistics()
+const Stats& Manager::GetStatistics()
 	{
-	return {}; // TODO
+	statistics.num_peers = endpoint.peers().size();
+	statistics.num_stores = data_stores.size();
+	statistics.num_pending_queries = pending_queries.size();
+
+	// The other attributes are set as activity happens.
+
+	return statistics;
 	}
 
 } // namespace bro_broker

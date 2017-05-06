@@ -20,29 +20,23 @@ namespace bro_broker {
 const uint32_t ProtocolVersion = 1;
 
 /**
- * Communication statistics.  Some are tracked in relation to last
- * sample (bro_broker::Manager::ConsumeStatistics()).
+ * Communication statistics.
  */
 struct Stats {
-	// Number of outgoing peer connections (at time of sample).
-	size_t outgoing_peer_count = 0;
-	// Number of data stores (at time of sample).
-	size_t data_store_count = 0;
-	// Number of pending data store queries (at time of sample).
-	size_t pending_query_count = 0;
-	// Number of data store responses received (since last sample).
-	size_t response_count = 0;
-	// Number of outgoing connection updates received (since last sample).
-	size_t outgoing_conn_status_count = 0;
-	// Number of incoming connection updates received (since last sample).
-	size_t incoming_conn_status_count = 0;
-	// Number of broker report messages (e.g. debug, warning, errors) received
-	// (since last sample).
-	size_t report_count = 0;
-	// Number of event messages received per topic-prefix (since last sample).
-	std::map<std::string, size_t> event_count;
-	// Number of log messages received per topic-prefix (since last sample).
-	std::map<std::string, size_t> log_count;
+	// Number of active peer connections.
+	size_t num_peers = 0;
+	// Number of active data stores.
+	size_t num_stores = 0;
+	// Number of pending data store queries.
+	size_t num_pending_queries = 0;
+	// Number of total log messages received.
+	size_t num_events_incoming = 0;
+	// Number of total log messages sent.
+	size_t num_events_outgoing = 0;
+	// Number of total log records received.
+	size_t num_logs_incoming = 0;
+	// Number of total log records sent.
+	size_t num_logs_outgoing = 0;
 };
 
 /**
@@ -254,7 +248,7 @@ public:
 	/**
 	 * @return communication statistics.
 	 */
-	Stats ConsumeStatistics();
+	const Stats& GetStatistics();
 
 private:
 	void ProcessEvent(const broker::vector xs);

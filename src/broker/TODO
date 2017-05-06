@@ -2,12 +2,11 @@
 - Deleting the broker_mgr leads to crashes, so I've disabled that
   for now in main (that delete didn't use to be there at all). I've
   also seen rare crashes even with that disabled, which may or may not
-  have the same cause.
+  have the same cause. (Actually I'm seeing some random crashes
+  anyways, at termination I believe).
 
 - Manager::PublishLogCreate() doesn't pay attention to the 'peer'
   argument yet.
-
-- Manager::ConsumeStatistics() isn't implemented.
 
 - Is there remote logging overhead in the case that nobody is
   actually subscribed to logs?
@@ -18,7 +17,6 @@
     - Expose element expiration and switch to relative expiration times
     - Add keys() function
     - Add clear() function
-
 
 For later:
 

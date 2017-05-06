@@ -191,7 +191,8 @@ bool Manager::PublishEvent(string topic, broker::data x)
 	{
 	DBG_LOG(DBG_BROKER, "Publishing event: %s",
 		RenderMessage(topic, x).c_str());
-	endpoint.publish(move(topic), atom::event::value, move(x));
+	broker::vector data = {ProtocolVersion, move(x)};
+	endpoint.publish(move(topic), atom::event::value, std::move(data));
 	return true;
 	}
 
@@ -214,7 +215,8 @@ bool Manager::PublishEvent(string topic, RecordVal* args)
 		}
 
 	DBG_LOG(DBG_BROKER, "Publishing event: %s", RenderMessage(topic, xs).c_str());
-	endpoint.publish(move(topic), atom::event::value, move(xs));
+	broker::vector data = {ProtocolVersion, move(xs)};
+	endpoint.publish(move(topic), atom::event::value, std::move(data));
 
 	return true;
 	}
@@ -260,7 +262,8 @@ bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer,
 	broker::vector xs{move(bstream_name), move(bwriter_name), move(writer_info), move(fields_data)};
 
 	DBG_LOG(DBG_BROKER, "Publishing log creation: %s", RenderMessage(topic, xs).c_str());
-	endpoint.publish(move(topic), atom::log_create::value, move(xs));
+	broker::vector data = {ProtocolVersion, move(xs)};
+	endpoint.publish(move(topic), atom::log_create::value, move(data));
 
 	return true;
 	}
@@ -309,7 +312,8 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 	broker::vector xs{move(bstream_name), move(bwriter_name), move(path), move(vals_data)};
 
 	DBG_LOG(DBG_BROKER, "Publishing log record: %s", RenderMessage(topic, xs).c_str());
-	endpoint.publish(move(topic), atom::log_write::value, move(xs));
+	broker::vector data = {ProtocolVersion, move(xs)};
+	endpoint.publish(move(topic), atom::log_write::value, move(data));
 
 	return true;
 	}
@@ -486,20 +490,49 @@ void Manager::Process()
 			auto xs = broker::get_if<broker::vector>(msg->data());
 			if ( ! xs )
 				{
-				reporter->Warning("ignoring message with non-vector data");
+				reporter->Warning("ignoring message with non-vector content");
+				continue;
+				}
+
+			if ( xs->size() != 2 )
+				{
+				reporter->Warning("ignoring message without too few fields");
+				continue;
+				}
+
+			auto version = broker::get_if<broker::count>((*xs)[0]);
+
+			if ( ! version )
+				{
+				reporter->Warning("ignoring message without version");
+				continue;
+				}
+
+			if ( *version != ProtocolVersion )
+				{
+				// Eventually we could do something more
+				// clever here to accomodate old versions.
+				reporter->Warning("ignoring message with unexpected version (%" PRIu64 ")", *version);
 				continue;
 				}
 
 			auto ty = msg->type();
+			auto xt = broker::get_if<broker::vector>((*xs)[1]);
+
+			if ( ! xt )
+				{
+				reporter->Warning("ignoring message with non-vector data");
+				continue;
+				}
 
 			if ( ty == atom::event::value )
-				ProcessEvent(std::move(*xs));
+				ProcessEvent(std::move(*xt));
 
 			else if ( ty == atom::log_create::value )
-				ProcessLogCreate(std::move(*xs));
+				ProcessLogCreate(std::move(*xt));
 
 			else if ( ty == atom::log_write::value )
-				ProcessLogWrite(std::move(*xs));
+				ProcessLogWrite(std::move(*xt));
 
 			// We ignore unknown types so that we could add more
 			// message in the future if we had too. This included

@@ -15,6 +15,11 @@
 namespace bro_broker {
 
 /**
+ * Bro-level protocol version that our outgoing messages use.
+ */
+const uint32_t ProtocolVersion = 1;
+
+/**
  * Communication statistics.  Some are tracked in relation to last
  * sample (bro_broker::Manager::ConsumeStatistics()).
  */

@@ -243,8 +243,6 @@ bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer,
 		fields_data.push_back(move(field_data));
 		}
 
-	// TODO: If peer is given, send message to just that one destination.
-
 	std::string topic = log_topic + stream_name;
 	auto bstream_name = broker::enum_value(move(stream_name));
 	auto bwriter_name = broker::enum_value(move(writer_name));
@@ -252,7 +250,13 @@ bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer,
 
 	DBG_LOG(DBG_BROKER, "Publishing log creation: %s", RenderMessage(topic, xs).c_str());
 	broker::vector data = {ProtocolVersion, move(xs)};
-	endpoint.publish(move(topic), atom::log_create::value, move(data));
+
+	if ( peer.id != NoPeer.id )
+		// Direct message.
+		endpoint.publish(peer, move(topic), atom::log_create::value, move(data));
+	else
+		// Broadcast.
+		endpoint.publish(move(topic), atom::log_create::value, move(data));
 
 	return true;
 	}

@@ -5,18 +5,10 @@
   have the same cause. (Actually I'm seeing some random crashes
   anyways, at termination I believe).
 
-- Manager::PublishLogCreate() doesn't pay attention to the 'peer'
-  argument yet.
-
-- Is there remote logging overhead in the case that nobody is
-  actually subscribed to logs?
-
 - Implement a better version of DataVal::canCastTo
 
-- Stores:
-    - Expose element expiration and switch to relative expiration times
-    - Add keys() function
-    - Add clear() function
+- RocksDB: The clear() function doens't work yet (that's a issue in
+  Broker).
 
 For later:
 

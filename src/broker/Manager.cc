@@ -48,6 +48,11 @@ static std::string RenderMessage(std::string topic, broker::data x)
 	return fmt("%s -> %s", broker::to_string(x).c_str(), topic.c_str());
 	}
 
+static std::string RenderMessage(broker::store::response x)
+	{
+	return fmt("%s [id %" PRIu64 "]", (x.answer ? broker::to_string(*x.answer).c_str() : "<no answer>"), x.id);
+	}
+
 static std::string RenderMessage(const broker::vector* xs)
 	{
 	return broker::to_string(*xs);
@@ -176,6 +181,9 @@ void Manager::Unpeer(const string& addr, uint16_t port)
 
 bool Manager::PublishEvent(string topic, broker::data x)
 	{
+	if ( ! endpoint.peers().size() )
+		return true;
+
 	DBG_LOG(DBG_BROKER, "Publishing event: %s",
 		RenderMessage(topic, x).c_str());
 	broker::vector data = {ProtocolVersion, move(x)};
@@ -186,6 +194,9 @@ bool Manager::PublishEvent(string topic, broker::data x)
 
 bool Manager::PublishEvent(string topic, RecordVal* args)
 	{
+	if ( ! endpoint.peers().size() )
+		return true;
+
 	if ( ! args->Lookup(0) )
 		return false;
 
@@ -215,6 +226,9 @@ bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer,
 			       int num_fields, const threading::Field* const * fields,
 			       const broker::endpoint_info& peer)
 	{
+	if ( ! endpoint.peers().size() )
+		return true;
+
 	auto stream_name = stream->Type()->AsEnumType()->Lookup(stream->AsEnum());
 
 	if ( ! stream_name )
@@ -263,6 +277,9 @@ bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer,
 
 bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int num_vals, const threading::Value* const * vals)
 	{
+	if ( ! endpoint.peers().size() )
+		return true;
+
 	auto stream_name = stream->Type()->AsEnumType()->Lookup(stream->AsEnum());
 
 	if ( ! stream_name )
@@ -929,7 +946,7 @@ void Manager::ProcessError(broker::error err)
 
 void Manager::ProcessStoreResponse(StoreHandleVal* s, broker::store::response response)
 	{
-	// DBG_LOG(DBG_BROKER, "Received store response: %s", RenderMessage(response).c_str());
+	DBG_LOG(DBG_BROKER, "Received store response: %s", RenderMessage(response).c_str());
 
 	auto request = pending_queries.find(response.id);
 	if ( request == pending_queries.end() )

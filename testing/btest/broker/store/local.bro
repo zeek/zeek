@@ -6,7 +6,7 @@ redef exit_only_after_terminate = T;
 
 global query_timeout = 1sec;
 
-global h: opaque of Broker::Handle;
+global h: opaque of Broker::Store;
 
 event done()
 	{

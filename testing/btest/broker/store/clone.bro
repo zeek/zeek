@@ -14,7 +14,7 @@ global query_timeout = 1sec;
 
 global ready: event();
 
-global h: opaque of Broker::Handle;
+global h: opaque of Broker::Store;
 
 function print_index(k: any)
         {
@@ -79,7 +79,7 @@ redef exit_only_after_terminate = T;
 
 global query_timeout = 1sec;
 
-global h: opaque of Broker::Handle;
+global h: opaque of Broker::Store;
 
 
 global inserted: event();

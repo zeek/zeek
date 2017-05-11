@@ -9,4 +9,7 @@ x
 }, Broker::SUCCESS, [data=broker::data{[1/tcp, 2/tcp, 3/tcp]}]
 [7], two, Broker::SUCCESS, [data=broker::data{230}]
 [8], three, Broker::SUCCESS, [data=broker::data{320}]
-[9], four, Broker::FAILURE, [data=<uninitialized>]
+[9], four, Broker::SUCCESS, [data=broker::data{{1, 2, 3}}]
+keys, [[data=broker::data{four}], [data=broker::data{one}], [data=broker::data{three}], [data=broker::data{two}], [data=broker::data{{x, y}}]]
+keys, [[data=broker::data{one}], [data=broker::data{three}], [data=broker::data{two}], [data=broker::data{{x, y}}]]
+keys, []

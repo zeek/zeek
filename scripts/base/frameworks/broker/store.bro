@@ -111,11 +111,11 @@ export {
 	##
 	## v: the value to insert.
 	##
-	## e: the expiration time of the key-value pair.
+	## e: the expiration interval of the key-value pair.
 	##
 	## Returns: false if the store handle was not valid.
 	global put: function(h: opaque of Broker::Store,
-	                     k: any, v: any): bool;
+	                     k: any, v: any, e: interval &default=0sec): bool;
 
 	## Remove a key-value pair from the store.
 	##
@@ -136,9 +136,13 @@ export {
         ## by: the amount to increment the value by.  A non-existent key will first
         ##     create it with an implicit value of zero before incrementing.
         ##
+	## e: the expiration interval of the key-value pair. If null, the
+        ## current expiration time isn't changed.
+	##
         ## Returns: false if the store handle was not valid.
         global add_: function(h: opaque of Broker::Store,
-			      k: any, by: any &default = 1): bool;
+			      k: any, by: any &default = 1,
+			      e: interval &default=0sec): bool;
 
         ## Subtracts a value from an existing one in a data store. This is supported only
         ## by integer types.
@@ -150,16 +154,33 @@ export {
         ## by: the amount to decrement the value by.  A non-existent key will first
         ##     create it with an implicit value of zero before decrementing.
         ##
+	## e: the expiration interval of the key-value pair. If null, the
+        ## current expiration time isn't changed.
+	##
         ## Returns: false if the store handle was not valid.
         global subtract: function(h: opaque of Broker::Store,
-				  k: any, by: any &default = 1): bool;
+				  k: any, by: any &default = 1,
+				  e: interval &default=0sec): bool;
+
+	## Returns a set with all of a store's keys. The results reflects a snapshot in
+	## time that diverge from reality soon; when acessing any of the element, it may no
+	## longer be there. The function is also expensive for large stores, as it copies
+	## the complete set.
+	##
+	## Returns: a vector with the keys. 
+ 	global keys: function(h: opaque of Broker::Store): vector of Broker::Data;
+
+	## Deletes all of a store's content, it will be empty afterwards.
+        ##
+        ## Returns: false if the store handle was not valid.
+ 	global clear: function(h: opaque of Broker::Store): bool;
 
 	##########################
 	# Data API               #
 	##########################
 
         ## Convert any Bro value to communication data.
-        ## 
+        ##
         ## Note: Normally you won't need to use this function as data
         ## conversion happens implicitly when passing Bro values into Broker
         ## functions.
@@ -533,9 +554,27 @@ function get(h: opaque of Broker::Store, k: any): QueryResult
 	return __get(h, k);
 	}
 
-function put(h: opaque of Broker::Store, k: any, v: any): bool
+function keys(h: opaque of Broker::Store): vector of Broker::Data
 	{
-	return __put(h, k, v);
+	local r = __keys(h);
+	if ( ! r?$result )
+		return vector();
+
+	local v: vector of Broker::Data;
+
+	local i = Broker::set_iterator(r$result);
+ 	while ( ! Broker::set_iterator_last(i) )
+		{
+		v[|v|] = Broker::set_iterator_value(i);
+		Broker::set_iterator_next(i);
+		}
+
+	return v;
+	}
+
+function put(h: opaque of Broker::Store, k: any, v: any, e: interval): bool
+	{
+	return __put(h, k, v, e);
 	}
 
 function erase(h: opaque of Broker::Store, k: any): bool
@@ -544,15 +583,20 @@ function erase(h: opaque of Broker::Store, k: any): bool
 	}
 
 function add_(h: opaque of Broker::Store,
-	      k: any, by: any): bool
+	      k: any, by: any, e: interval): bool
 	{
-	return __add(h, k, by);
+	return __add(h, k, by, e);
 	}
 
 function subtract(h: opaque of Broker::Store,
-		  k: any, by: any): bool
+		  k: any, by: any, e: interval): bool
 	{
-	return __subtract(h, k, by);
+	return __subtract(h, k, by, e);
+	}
+
+function clear(h: opaque of Broker::Store): bool
+	{
+	return __clear(h);
 	}
 
 function data_type(d: Broker::Data): Broker::DataType

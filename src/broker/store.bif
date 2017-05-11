@@ -116,8 +116,47 @@ function Broker::__get%(h: opaque of Broker::Store,
 	return 0;
 	%}
 
+function Broker::__keys%(h: opaque of Broker::Store%): Broker::QueryResult
+	%{
+	if ( ! h )
+		{
+		reporter->Error("invalid Broker store handle");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
+
+	auto trigger = frame->GetTrigger();
+	if ( ! trigger )
+		{
+		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
+		reporter->Error("Broker queries can only be called inside when-condition");
+		reporter->PopLocation();
+		return bro_broker::query_result();
+		}
+
+	auto timeout = trigger->TimeoutValue();
+	if ( timeout < 0 )
+		{
+		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
+		reporter->Error("Broker queries must specify a timeout block");
+		reporter->PopLocation();
+		return bro_broker::query_result();
+		}
+
+	frame->SetDelayed();
+	trigger->Hold();
+
+	auto cb = new bro_broker::StoreQueryCallback(trigger, frame->GetCall(),
+						     handle->store);
+	auto req_id = handle->proxy.keys();
+	broker_mgr->TrackStoreQuery(req_id, cb);
+
+	return 0;
+	%}
+
 function Broker::__put%(h: opaque of Broker::Store,
-                        k: any, v: any%): bool
+                        k: any, v: any, e: interval%): bool
 	%{
 	if ( ! h )
 		{
@@ -130,7 +169,15 @@ function Broker::__put%(h: opaque of Broker::Store,
 	auto& key = bro_broker::opaque_field_to_data(bro_broker::make_data_val(k), frame);
 	auto& val = bro_broker::opaque_field_to_data(bro_broker::make_data_val(v), frame);
 
-	handle->store.put(key, val);
+	broker::optional<broker::timespan> ts;
+	if ( ts )
+		{
+		broker::timespan x;
+		broker::convert(e, x);
+		ts = x;
+		}
+
+	handle->store.put(key, val, ts);
 	return new Val(true, TYPE_BOOL);
 	%}
 
@@ -149,7 +196,7 @@ function Broker::__erase%(h: opaque of Broker::Store, k: any%): bool
 	return new Val(true, TYPE_BOOL);
 	%}
 
-function Broker::__add%(h: opaque of Broker::Store, k: any, b: any%): bool
+function Broker::__add%(h: opaque of Broker::Store, k: any, b: any, e: interval%): bool
 	%{
 	if ( ! h )
 		{
@@ -161,11 +208,20 @@ function Broker::__add%(h: opaque of Broker::Store, k: any, b: any%): bool
 
 	auto& key = bro_broker::opaque_field_to_data(bro_broker::make_data_val(k), frame);
 	auto& by = bro_broker::opaque_field_to_data(bro_broker::make_data_val(b), frame);
-	handle->store.add(key, by);
+
+	broker::optional<broker::timespan> ts;
+	if ( ts )
+		{
+		broker::timespan x;
+		broker::convert(e, x);
+		ts = x;
+		}
+
+	handle->store.add(key, by, ts);
 	return new Val(true, TYPE_BOOL);
 	%}
 
-function Broker::__subtract%(h: opaque of Broker::Store, k: any, b: any%): bool
+function Broker::__subtract%(h: opaque of Broker::Store, k: any, b: any, e: interval%): bool
 	%{
 	if ( ! h )
 		{
@@ -177,8 +233,29 @@ function Broker::__subtract%(h: opaque of Broker::Store, k: any, b: any%): bool
 
 	auto& key = bro_broker::opaque_field_to_data(bro_broker::make_data_val(k), frame);
 	auto& by = bro_broker::opaque_field_to_data(bro_broker::make_data_val(b), frame);
-	handle->store.subtract(key, by);
+
+	broker::optional<broker::timespan> ts;
+	if ( ts )
+		{
+		broker::timespan x;
+		broker::convert(e, x);
+		ts = x;
+		}
+
+	handle->store.subtract(key, by, ts);
 	return new Val(true, TYPE_BOOL);
 	%}
 
+function Broker::__clear%(h: opaque of Broker::Store%): bool
+	%{
+	if ( ! h )
+		{
+		reporter->Error("invalid Broker store handle");
+		return new Val(false, TYPE_BOOL);
+		}
 
+	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
+
+	handle->store.clear();
+	return new Val(true, TYPE_BOOL);
+	%}

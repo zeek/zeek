@@ -6,7 +6,7 @@ redef exit_only_after_terminate = T;
 
 global query_timeout = 1sec;
 
-global h: opaque of Broker::Handle;
+global h: opaque of Broker::Store;
 
 global step: count = 0;
 
@@ -24,9 +24,35 @@ function print_index(k: any)
 		}
 	}
 
+function print_keys()
+	{
+	when ( local s = Broker::keys(h) )
+		{
+		step += 1;
+		print "keys", s;
+		}
+	timeout query_timeout
+		{
+		step += 1;
+		print fmt("[%d] <timeout for print keys>", step);
+		}
+	}
+
 event done()
 	{
 	terminate();
+	}
+
+event pk2()
+	{
+	print_keys();
+	}
+
+event pk1()
+	{
+	print_keys();
+	Broker::clear(h);
+	schedule 1sec { pk2() };
 	}
 
 event bro_init()
@@ -47,7 +73,6 @@ event bro_init()
 
 	when ( step == 6 )
 		{
-		Broker::erase(h, "four");
 		Broker::add_(h, "two");
 		Broker::add_(h, "two", 9);
 		Broker::subtract(h, "three");
@@ -55,7 +80,10 @@ event bro_init()
 		print_index("two");
 		print_index("three");
 		print_index("four");
+		print_keys();
+		Broker::erase(h, "four");
+		schedule 1sec { pk1() };
 		}
-
-        schedule 2secs { done() };
+	
+        schedule 4secs { done() };
 	}

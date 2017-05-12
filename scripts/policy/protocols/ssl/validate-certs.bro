@@ -136,17 +136,8 @@ function cache_validate(chain: vector of opaque of x509): X509::Result
 	return result;
 	}
 
-# The server issues CCS only after sending the certificates. This should
-# be more robust than using SSL_established, on the off chance that we don't
-# get that event.
-#
-# This is not TLSv1.3 compatible - but we will not have certificates in
-# that case in any way, so it even saves us a few cycles.
-event ssl_change_cipher_spec(c: connection, is_orig: bool) &priority=3
+hook ssl_finishing(c: connection) &priority=20
 	{
-	if ( is_orig )
-		return;
-
 	# If there aren't any certs we can't very well do certificate validation.
 	if ( ! c$ssl?$cert_chain || |c$ssl$cert_chain| == 0 ||
 	     ! c$ssl$cert_chain[0]?$x509 )

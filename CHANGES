@@ -1,4 +1,9 @@
 
+2.5-140 | 2017-05-12 15:31:32 -0400
+
+  * Lessen cluster load due to notice suppression. 
+    (Johanna Amann, Justin Azoff)
+
 2.5-137 | 2017-05-04 11:37:48 -0500
 
   * Add plugin hooks for log init and writing: HookLogInit and HookLogWrite.

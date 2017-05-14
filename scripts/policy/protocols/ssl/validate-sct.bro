@@ -84,12 +84,9 @@ event x509_ocsp_ext_signed_certificate_timestamp(f: fa_file, version: count, log
 	c$ssl$ct_proofs[|c$ssl$ct_proofs|] = SctInfo($version=version, $logid=logid, $timestamp=timestamp, $sig_alg=signature_algorithm, $hash_alg=hash_algorithm, $signature=signature, $source=src);
 	}
 
-# Priority = 2 will be handled after validation is done
-event ssl_change_cipher_spec(c: connection, is_orig: bool) &priority=2
+# Priority = 19 will be handled after validation is done
+hook ssl_finishing(c: connection) &priority=19
 	{
-	if ( is_orig )
-		return;
-
 	if ( ! c$ssl?$cert_chain || |c$ssl$cert_chain| == 0 || ! c$ssl$cert_chain[0]?$x509 )
 		return;
 

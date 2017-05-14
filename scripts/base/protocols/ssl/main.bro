@@ -103,6 +103,9 @@ export {
 	## Event that can be handled to access the SSL
 	## record as it is sent on to the logging framework.
 	global log_ssl: event(rec: Info);
+
+	# do everything you want to do right before logging here
+	global ssl_finishing: hook(c: connection);
 }
 
 redef record connection += {
@@ -294,9 +297,20 @@ event ssl_established(c: connection) &priority=7
 	c$ssl$established = T;
 	}
 
+event ssl_established(c: connection) &priority=20
+	{
+	hook ssl_finishing(c);
+	}
+
 event ssl_established(c: connection) &priority=-5
 	{
 	finish(c, T);
+	}
+
+event connection_state_remove(c: connection) &priority=20
+	{
+	if ( c?$ssl && ! c$ssl$logged )
+		hook ssl_finishing(c);
 	}
 
 event connection_state_remove(c: connection) &priority=-5

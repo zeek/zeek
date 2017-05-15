@@ -96,6 +96,9 @@ event file_sniff(f: fa_file, meta: fa_metadata) &priority=5
 	if ( |f$conns| != 1 )
 		return;
 
+	if ( ! f?$info || ! f$info?$mime_type )
+		return;
+
 	if ( ! ( f$info$mime_type == "application/x-x509-ca-cert" || f$info$mime_type == "application/x-x509-user-cert"
 	         || f$info$mime_type == "application/pkix-cert" ) )
 		return;

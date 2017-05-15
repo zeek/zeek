@@ -213,6 +213,7 @@ void file_analysis::X509Common::ParseSignedCertificateTimestamps(X509_EXTENSION*
 		reporter->Error("X509::ParseSignedCertificateTimestamps could not parse SCT");
 		}
 
+	M_ASN1_OCTET_STRING_free(inner);
 	OPENSSL_free(ext_val_second_pointer);
 
 	interp->FlowEOF();

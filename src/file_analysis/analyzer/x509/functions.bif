@@ -703,8 +703,8 @@ sct_verify_err:
 	if (mdctx)
 		EVP_MD_CTX_destroy(mdctx);
 	if (key)
-	EVP_PKEY_free(key);
-	cerr << errstr << endl;
+		EVP_PKEY_free(key);
+
 	reporter->Error("%s", errstr.c_str());
 	return new Val(0, TYPE_BOOL);
 	%}

@@ -7,9 +7,6 @@
 
 - Implement a better version of DataVal::canCastTo
 
-- RocksDB: The clear() function doens't work yet (that's a issue in
-  Broker).
-
 For later:
 
 - Routing isn't supported yet

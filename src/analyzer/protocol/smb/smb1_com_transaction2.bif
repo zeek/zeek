@@ -17,7 +17,7 @@
 ##
 ## .. bro:see:: smb1_message smb1_trans2_find_first2_request smb1_trans2_query_path_info_request
 ##    smb1_trans2_get_dfs_referral_request smb1_transaction_request
-event smb1_transaction2_request%(c: connection, hdr: SMB1::Header, sub_cmd: count%);
+event smb1_transaction2_request%(c: connection, hdr: SMB1::Header, args: SMB1::Trans2_Args, sub_cmd: count%);
 
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
 ## version 1 *transaction2* requests of subtype *find first2*. This transaction is used to begin
@@ -91,7 +91,7 @@ event smb1_trans2_get_dfs_referral_request%(c: connection, hdr: SMB1::Header, fi
 # event smb1_trans2_get_dfs_referral_response%(c: connection, hdr: SMB1::Header, ??? %);
 
 
-### Types
-
+## Types
 type SMB1::Find_First2_Request_Args: record;
 type SMB1::Find_First2_Response_Args: record;
+type SMB1::Trans2_Args: record;

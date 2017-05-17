@@ -82,7 +82,7 @@ event smb1_message(c: connection, hdr: SMB1::Header, is_orig: bool) &priority=-5
 	}
 
 
-event smb1_transaction2_request(c: connection, hdr: SMB1::Header, sub_cmd: count)
+event smb1_transaction2_request(c: connection, hdr: SMB1::Header, args: SMB1::Trans2_Args, sub_cmd: count)
 	{
 	c$smb_state$current_cmd$sub_command = SMB1::trans2_sub_commands[sub_cmd];
 	}

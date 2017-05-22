@@ -1,4 +1,14 @@
 
+2.5-142 | 2017-05-22 00:08:52 -0500
+
+  * Add gzip log writing to the ascii writer.
+
+    This feature can be enabled globally for all logs by setting
+    LogAscii::gzip_level to a value greater than 0.
+
+    This feature can be enabled on a per-log basis by setting gzip-level in
+    $config to a value greater than 0. (Corelight)
+
 2.5-140 | 2017-05-12 15:31:32 -0400
 
   * Lessen cluster load due to notice suppression. 

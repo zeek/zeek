@@ -26,6 +26,13 @@ export {
 	## This option is also available as a per-filter ``$config`` option.
 	const use_json = F &redef;
 
+	## Define the gzip level to compress the logs.  If 0, then no gzip
+	## compression is performed. Enabling compression also changes
+	## the log file name extension to include ".gz".
+	##
+	## This option is also available as a per-filter ``$config`` option.
+	const gzip_level = 0 &redef;
+
 	## Format of timestamps when writing out JSON. By default, the JSON
 	## formatter will use double values for timestamps which represent the
 	## number of seconds from the UNIX epoch.

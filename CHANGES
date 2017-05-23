@@ -1,4 +1,16 @@
 
+2.5-147 | 2017-05-22 20:32:32 -0500
+
+  * Add nfs unittest. (Julien Wallior)
+
+  * Added nfs_proc_rename event to rpc/nfs protocol analyzer.
+    (Roberto Del Valle Rodriguez)
+
+  * Expand parsing of RPC Call packets to add Uid, Gid, Stamp, MachineName
+    and AuxGIDs (Julien Wallior)
+
+  * Fix NFS protocol parser. (Julien Wallior)
+
 2.5-142 | 2017-05-22 00:08:52 -0500
 
   * Add gzip log writing to the ascii writer.

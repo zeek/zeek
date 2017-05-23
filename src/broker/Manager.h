@@ -276,8 +276,10 @@ private:
 	std::string log_topic;
 	uint16_t bound_port;
 
-	broker::context context;
-	broker::blocking_endpoint endpoint;
+	broker::endpoint endpoint;
+	broker::subscriber subscriber;
+
+	std::vector<broker::topic> subscriptions;
 
 	// Data stores
 	std::unordered_map<std::string, StoreHandleVal*> data_stores;

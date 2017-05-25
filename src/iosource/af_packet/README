@@ -8,8 +8,24 @@ This plugin provides native AF_Packet support
 Installation
 ------------
 
-Make sure the kernel headers are installed and your kernel supports
-PACKET_FANOUT [1]_ and TPACKET_V3. The following will then compile and
+Before installing the plugin, make sure the kernel headers are installed and your
+kernel supports PACKET_FANOUT [1]_ and TPACKET_V3.
+
+Bro Package Manager
+```````````````````
+The plugin is available as package for the `Bro Package Manager
+<https://github.com/bro/package-manager>`_ and can be installed using the
+following command::
+
+    bro-pkg install bro-af_packet-plugin
+
+To install uncompiled plugins, Bro's source code must be available to the package manager
+(see package manager's `documentation <http://bro-package-manager.readthedocs.io/en/
+stable/quickstart.html#basic-configuration>`_ for more information).
+
+Manual Install
+``````````````
+The following will compile and
 install the AF_Packet plugin alongside Bro, assuming it can find the
 kernel headers in a standard location::
 

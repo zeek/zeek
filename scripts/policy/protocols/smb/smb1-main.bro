@@ -263,7 +263,7 @@ event smb1_session_setup_andx_response(c: connection, hdr: SMB1::Header, respons
 	# No behavior yet.
 	}
 	
-event smb1_transaction_request(c: connection, hdr: SMB1::Header, name: string, sub_cmd: count)
+event smb1_transaction_request(c: connection, hdr: SMB1::Header, name: string, sub_cmd: count, parameters: string, data: string)
 	{
 	c$smb_state$current_cmd$sub_command = SMB1::trans_sub_commands[sub_cmd];
 	}

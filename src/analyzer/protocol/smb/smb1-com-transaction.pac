@@ -31,18 +31,96 @@ refine connection SMB_Conn += {
 
 	function proc_smb1_transaction_request(header: SMB_Header, val: SMB1_transaction_request): bool
 		%{
+		StringVal *parameters = new StringVal(${val.param_count}, (const char*)${val.parameters}.data());
+		StringVal *payload_str = nullptr;
+		SMB1_transaction_data *payload = nullptr;
+
+		if ( !parameters )
+		{
+			parameters = new StringVal("");
+		}
+
+		if ( ${val.data_count > 0} )
+		{
+			payload = ${val.data};
+		}
+
+		if ( payload )
+		{
+			switch ( payload->trans_type() )
+			{
+			case SMB_PIPE:
+				payload_str = new StringVal(${val.data_count}, (const char*)${val.data.pipe_data}.data());
+				break;
+			case SMB_UNKNOWN:
+				payload_str = new StringVal(${val.data_count}, (const char*)${val.data.unknown}.data());
+				break;
+			default:
+				payload_str = new StringVal(${val.data_count}, (const char*)${val.data.data}.data());
+				break;
+			}
+		}
+
+		if ( !payload_str )
+		{
+			payload_str = new StringVal("");
+		}
+
 		if ( smb1_transaction_request )
 			BifEvent::generate_smb1_transaction_request(bro_analyzer(),
 			                                            bro_analyzer()->Conn(),
 			                                            BuildHeaderVal(header),
 			                                            smb_string2stringval(${val.name}),
-			                                            ${val.sub_cmd});
+			                                            ${val.sub_cmd},
+								    parameters,
+								    payload_str);
 
 		return true;
 		%}
 
 	function proc_smb1_transaction_response(header: SMB_Header, val: SMB1_transaction_response): bool
 		%{
+		StringVal *parameters = new StringVal(${val.param_count}, (const char*)${val.parameters}.data());
+		StringVal *payload_str = nullptr;
+		SMB1_transaction_data *payload = nullptr;
+
+		if ( !parameters )
+		{
+			parameters = new StringVal("");
+		}
+
+		if ( ${val.data_count > 0} )
+		{
+			payload = ${val.data[0]};
+		}
+
+		if ( payload )
+		{
+			switch ( payload->trans_type() )
+			{
+			case SMB_PIPE:
+				payload_str = new StringVal(${val.data_count}, (const char*)${val.data[0].pipe_data}.data());
+				break;
+			case SMB_UNKNOWN:
+				payload_str = new StringVal(${val.data_count}, (const char*)${val.data[0].unknown}.data());
+				break;
+			default:
+				payload_str = new StringVal(${val.data_count}, (const char*)${val.data[0].data}.data());
+				break;
+			}
+		}
+
+		if ( !payload_str )
+		{
+			payload_str = new StringVal("");
+		}
+
+		if ( smb1_transaction_response )
+			BifEvent::generate_smb1_transaction_response(bro_analyzer(),
+			                                             bro_analyzer()->Conn(),
+			                                             BuildHeaderVal(header),
+								     parameters,
+			                                             payload_str);
 		return true;
 		%}
 };
@@ -54,8 +132,8 @@ type SMB1_transaction_data(header: SMB_Header, is_orig: bool, count: uint16, sub
 #	SMB_MAILSLOT_LANMAN -> lanman    : SMB_MailSlot_message(header.unicode, count);
 #	SMB_RAP             -> rap       : SMB_Pipe_message(header.unicode, count);
 	SMB_PIPE            -> pipe_data : bytestring &restofdata;
-	SMB_UNKNOWN         -> unknown   : bytestring &restofdata &transient;
-	default             -> data      : bytestring &restofdata &transient;
+	SMB_UNKNOWN         -> unknown   : bytestring &restofdata;
+	default             -> data      : bytestring &restofdata;
 } &let {
 	pipe_proc : bool = $context.connection.forward_dce_rpc(pipe_data, 0, is_orig) &if(trans_type == SMB_PIPE);
 };

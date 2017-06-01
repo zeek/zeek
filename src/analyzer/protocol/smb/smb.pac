@@ -24,6 +24,7 @@
 #include "smb1_com_read_andx.bif.h"
 #include "smb1_com_session_setup_andx.bif.h"
 #include "smb1_com_transaction.bif.h"
+#include "smb1_com_transaction_secondary.bif.h"
 #include "smb1_com_transaction2.bif.h"
 #include "smb1_com_tree_connect_andx.bif.h"
 #include "smb1_com_tree_disconnect.bif.h"

@@ -170,7 +170,7 @@ type SMB_Message_Request(header: SMB_Header, offset: uint16, command: uint8, is_
 #	#SMB_COM_QUERY_INFORMATION2       -> query_information2     : SMB_query_information2_request(header);
 	SMB_COM_LOCKING_ANDX             -> locking_andx           : SMB1_locking_andx_request(header, offset);
 	SMB_COM_TRANSACTION              -> transaction            : SMB1_transaction_request(header);
-#	SMB_COM_TRANSACTION_SECONDARY    -> transaction_secondary  : SMB1_transaction_secondary_request(header);
+	SMB_COM_TRANSACTION_SECONDARY     -> transaction_secondary  : SMB1_transaction_secondary_request(header);
 #	#SMB_COM_IOCTL                    -> ioctl                  : SMB_ioctl_request(header);
 #	#SMB_COM_IOCTL_SECONDARY          -> ioctl_secondary        : SMB_ioctl_secondary_request(header);
 #	#SMB_COM_COPY                     -> copy                   : SMB_copy_request(header);

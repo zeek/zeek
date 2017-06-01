@@ -18,6 +18,7 @@ bro_plugin_bif(
 	smb1_com_read_andx.bif
 	smb1_com_session_setup_andx.bif
 	smb1_com_transaction.bif
+	smb1_com_transaction_secondary.bif
 	smb1_com_transaction2.bif
 	smb1_com_tree_connect_andx.bif
 	smb1_com_tree_disconnect.bif

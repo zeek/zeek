@@ -179,7 +179,7 @@ type SMB_Message_Request(header: SMB_Header, offset: uint16, command: uint8, is_
 #	#SMB_COM_WRITE_AND_CLOSE          -> write_and_close        : SMB_write_and_close_request(header);
 #	#SMB_COM_NEW_FILE_SIZE            -> new_file_size          : SMB_new_file_size_request(header);
 #	#SMB_COM_CLOSE_AND_TREE_DISC      -> close_and_tree_disc    : SMB_close_and_tree_disc_request(header);
-#	#SMB_COM_TRANSACTION2_SECONDARY   -> transaction2_secondary : SMB1_transaction2_secondary_request(header);
+	SMB_COM_TRANSACTION2_SECONDARY   -> transaction2_secondary : SMB1_transaction2_secondary_request(header);
 #	#SMB_COM_FIND_CLOSE2              -> find_close2            : SMB_find_close2_request(header);
 #	#SMB_COM_FIND_NOTIFY_CLOSE        -> find_notify_close      : SMB_find_notify_close_request(header);
 #	#SMB_COM_TREE_CONNECT             -> tree_connect           : SMB_tree_connect_request(header);

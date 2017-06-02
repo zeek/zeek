@@ -20,6 +20,7 @@ bro_plugin_bif(
 	smb1_com_transaction.bif
 	smb1_com_transaction_secondary.bif
 	smb1_com_transaction2.bif
+	smb1_com_transaction2_secondary.bif
 	smb1_com_tree_connect_andx.bif
 	smb1_com_tree_disconnect.bif
 	smb1_com_write_andx.bif
@@ -66,6 +67,7 @@ bro_plugin_pac(
 	smb1-com-transaction-secondary.pac
 	smb1-com-transaction.pac
 	smb1-com-transaction2.pac
+	smb1-com-transaction2-secondary.pac
 	smb1-com-tree-connect-andx.pac
 	smb1-com-tree-disconnect.pac
 	smb1-com-write-andx.pac

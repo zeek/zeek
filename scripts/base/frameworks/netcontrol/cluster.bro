@@ -23,7 +23,7 @@ redef Cluster::manager2worker_events += /NetControl::rule_(added|removed|timeout
 
 function activate(p: PluginState, priority: int)
 	{
-	# we only run the activate function on the manager.
+	# We only run the activate function on the manager.
 	if ( Cluster::local_node_type() != Cluster::MANAGER )
 		return;
 
@@ -38,8 +38,8 @@ function add_rule(r: Rule) : string
 		return add_rule_impl(r);
 	else
 		{
-		# we sync rule entities accross the cluster, so we
-		# acually can test if the rule already exists. If yes,
+		# We sync rule entities accross the cluster, so we
+		# actually can test if the rule already exists. If yes,
 		# refuse insertion already at the node.
 
 		if ( [r$entity, r$ty] in rule_entities )

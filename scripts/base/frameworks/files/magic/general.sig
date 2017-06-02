@@ -116,7 +116,7 @@ signature file-reg-utf16 {
 
 # Microsoft Registry format (typically DESKTOP.DAT)
 signature file-regf {
-	file-mime "application vnd.ms-regf", 49
+	file-mime "application/vnd.ms-regf", 49
 	file-magic /^\x72\x65\x67\x66/
 }
 
@@ -292,6 +292,104 @@ signature file-skp {
 	file-mime "application/skp", 100
 }
 
+# Microsoft DirectDraw Surface
+signature file-msdds {
+	file-mime "application/x-ms-dds", 100
+	file-magic /^DDS/
+}
+
+# bsdiff output
+signature file-bsdiff {
+	file-mime "application/bsdiff", 100
+	file-magic /^BSDIFF/
+}
+
+# AV Update binary diffs (mostly kaspersky)
+#     inferred from traffic analysis
+signature file-binarydiff {
+	file-mime "application/bindiff", 100
+	file-magic /^DIFF/
+}
+
+# Kaspersky Database
+#    inferred from traffic analysis
+signature file-kaspdb {
+	file-mime "application/x-kaspavdb", 100
+	file-magic /^KLZF/
+}
+
+# Kaspersky AV Database diff
+#     inferred from traffic analysis
+signature file-kaspdbdif {
+	file-mime "application/x-kaspavupdate", 100
+	file-magic /^KLD2/
+}
+
+# MSSQL Backups
+signature file-mssqlbak {
+	file-mime "application/mssql-bak", 100
+	file-magic /^MSSQLBAK/
+}
+
+# Microsoft Tape Format
+# MSSQL transaction log
+signature file-ms-tf {
+	file-mime "application/mtf", 100
+	file-magic /^TAPE/
+}
+
+# Binary property list (Apple)
+signature file-bplist {
+	file-mime "application/bplist", 100
+	file-magic /^bplist0?/
+}
+
+# Microsoft Compiled HTML Help File
+signature file-mshelp {
+	file-mime "application/mshelp", 100
+	file-magic /^ITSF/
+}
+
+# Blizzard game file MPQ Format
+signature file-mpqgame {
+	file-mime "application/x-game-mpq", 100
+	file-magic /^MPQ\x1a/
+}
+
+# Blizzard CASC Format game file 
+signature file-blizgame {
+	file-mime "application/x-blizgame", 100
+	file-magic /^BLTE/
+}
+
+# iOS Mapkit tiles
+# inferred from traffic analysis
+signature file-mapkit-tile {
+	file-mime "application/map-tile", 100
+	file-magic /^VMP4/
+}
+
+# Google Chrome Extension file
+signature file-chrome-extension {
+	file-mime "application/chrome-ext", 100
+	file-magic /^Cr24/
+}
+
+# Google Chrome Extension Update Delta
+# not 100% sure about this identification
+# this may be google chrome updates, not extensions
+signature file-chrome-extension-update {
+	file-mime "application/chrome-ext-upd", 70
+	file-magic /^CrOD/
+}
+
+# Microsoft Message Queueing
+# .net related
+signature file-msqm {
+	file-mime "application/msqm", 100
+	file-magic /^MSQM/
+}
+
 signature file-elf-object {
 	file-mime "application/x-object", 50
 	file-magic /\x7fELF[\x01\x02](\x01.{10}\x01\x00|\x02.{10}\x00\x01)/
@@ -310,4 +408,9 @@ signature file-elf-sharedlib {
 signature file-elf-coredump {
 	file-mime "application/x-coredump", 50
 	file-magic /\x7fELF[\x01\x02](\x01.{10}\x04\x00|\x02.{10}\x00\x04)/
+}
+
+signature file-vim-tmp {
+	file-mime "application/x-vim-tmp", 100
+	file-magic /^b0VIM/
 }

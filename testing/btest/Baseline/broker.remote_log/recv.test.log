@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	test
-#open	2015-01-26-22-47-11
+#open	2017-02-27-16-21-20
 #fields	msg	num
 #types	string	count
 ping	0
@@ -12,4 +12,4 @@ ping	2
 ping	3
 ping	4
 ping	5
-#close	2015-01-26-22-47-11
+#close	2017-02-27-16-21-20

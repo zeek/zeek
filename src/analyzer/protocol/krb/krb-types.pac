@@ -19,6 +19,8 @@ Val* GetStringFromPrincipalName(const KRB_Principal_Name* pname)
 		return bytestring_to_val(pname->data()[0][0]->encoding()->content());
 	if ( pname->data()->size() == 2 )
 		return new StringVal(fmt("%s/%s", (char *) pname->data()[0][0]->encoding()->content().begin(), (char *)pname->data()[0][1]->encoding()->content().begin()));
+	if ( pname->data()->size() == 3 ) // if the name-string has a third value, this will just append it, else this will return unknown as the principal name
+		return new StringVal(fmt("%s/%s/%s", (char *) pname->data()[0][0]->encoding()->content().begin(), (char *)pname->data()[0][1]->encoding()->content().begin(), (char *)pname->data()[0][2]->encoding()->content().begin()));
 
 	return new StringVal("unknown");
 }
@@ -93,6 +95,7 @@ RecordVal* proc_ticket(const KRB_Ticket* ticket)
 	rv->Assign(1, bytestring_to_val(ticket->realm()->data()->content()));
 	rv->Assign(2, GetStringFromPrincipalName(ticket->sname()));
 	rv->Assign(3, asn1_integer_to_val(ticket->enc_part()->data()->etype()->data(), TYPE_COUNT));
+	rv->Assign(4, bytestring_to_val(ticket->enc_part()->data()->ciphertext()->encoding()->content()));
 
 	return rv;
 }
@@ -159,7 +162,7 @@ type KRB_Encrypted_Data = record {
 		true   -> next_meta: ASN1EncodingMeta;
 		false  -> none_meta: empty;
 	};
-	ciphertext	: bytestring &length=have_kvno ? next_meta.length : kvno_meta.length;
+	ciphertext	: ASN1OctetString &length=have_kvno ? next_meta.length : kvno_meta.length;
 } &let {
 	have_kvno	: bool = kvno_meta.index == 1;
 };

@@ -72,6 +72,7 @@
 @load protocols/http/software.bro
 @load protocols/http/var-extraction-cookies.bro
 @load protocols/http/var-extraction-uri.bro
+@load protocols/krb/ticket-logging.bro
 @load protocols/modbus/known-masters-slaves.bro
 @load protocols/modbus/track-memmap.bro
 @load protocols/mysql/software.bro

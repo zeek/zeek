@@ -3,8 +3,6 @@
 #include "analyzer/protocol/tcp/TCP_Flags.h"
 #include "analyzer/protocol/tcp/TCP_Reassembler.h"
 
-#include "events.bif.h"
-
 using namespace analyzer::pia;
 
 PIA::PIA(analyzer::Analyzer* arg_as_analyzer)

@@ -10,39 +10,39 @@ export {
 
 	redef enum Log::ID += { CATCH_RELEASE };
 
-	## Thhis record is used is used for storing information about current blocks that are
+	## This record is used for storing information about current blocks that are
 	## part of catch and release.
 	type BlockInfo: record {
-		## Absolute time indicating until when a block is inserted using NetControl
+		## Absolute time indicating until when a block is inserted using NetControl.
 		block_until: time &optional;
-		## Absolute time indicating until when an IP address is watched to reblock it
+		## Absolute time indicating until when an IP address is watched to reblock it.
 		watch_until: time;
-		## Number of times an IP address was reblocked
+		## Number of times an IP address was reblocked.
 		num_reblocked: count &default=0;
-		## Number indicating at which catch and release interval we currently are
+		## Number indicating at which catch and release interval we currently are.
 		current_interval: count;
 		## ID of the inserted block, if any.
 		current_block_id: string;
-		## User specified string
+		## User specified string.
 		location: string &optional;
 	};
 
 	## The enum that contains the different kinds of messages that are logged by
-	## catch and release
+	## catch and release.
 	type CatchReleaseActions: enum {
-		## Log lines marked with info are purely informational; no action was taken
+		## Log lines marked with info are purely informational; no action was taken.
 		INFO,
 		## A rule for the specified IP address already existed in NetControl (outside
 		## of catch-and-release). Catch and release did not add a new rule, but is now
-		## watching the IP address and will add a new rule after the current rule expired.
+		## watching the IP address and will add a new rule after the current rule expires.
 		ADDED,
-		## A drop was requested by catch and release
+		## A drop was requested by catch and release.
 		DROP,
-		## A address was succesfully blocked by catch and release
+		## An address was successfully blocked by catch and release.
 		DROPPED,
-		## An address was unblocked after the timeout expired
+		## An address was unblocked after the timeout expired.
 		UNBLOCK,
-		## An address was forgotten because it did not reappear within the `watch_until` interval
+		## An address was forgotten because it did not reappear within the `watch_until` interval.
 		FORGOTTEN,
 		## A watched IP address was seen again; catch and release will re-block it.
 		SEEN_AGAIN
@@ -52,7 +52,7 @@ export {
 	type CatchReleaseInfo: record {
 		## The absolute time indicating when the action for this log-line occured.
 		ts: time &log;
-		## The rule id that this log lone refers to.
+		## The rule id that this log line refers to.
 		rule_id: string &log &optional;
 		## The IP address that this line refers to.
 		ip: addr &log;
@@ -85,7 +85,7 @@ export {
 	##
 	## a: The address to be dropped.
 	##
-	## t: How long to drop it, with 0 being indefinitly.
+	## t: How long to drop it, with 0 being indefinitely.
 	##
 	## location: An optional string describing where the drop was triggered.
 	##
@@ -101,17 +101,17 @@ export {
 	##
 	## a: The address to be unblocked.
 	##
-	## reason: A reason for the unblock
+	## reason: A reason for the unblock.
 	##
 	## Returns: True if the address was unblocked.
 	global unblock_address_catch_release: function(a: addr, reason: string &default="") : bool;
 
-	## This function can be called to notify the cach and release script that activity by
+	## This function can be called to notify the catch and release script that activity by
 	## an IP address was seen. If the respective IP address is currently monitored by catch and
-	## release and not blocked, the block will be re-instated. See the documentation of watch_new_connection
+	## release and not blocked, the block will be reinstated. See the documentation of watch_new_connection
 	## which events the catch and release functionality usually monitors for activity.
 	##
-	## a: The address that was seen and should be re-dropped if it is being watched
+	## a: The address that was seen and should be re-dropped if it is being watched.
 	global catch_release_seen: function(a: addr);
 
 	## Get the :bro:see:`NetControl::BlockInfo` record for an address currently blocked by catch and release.
@@ -144,7 +144,7 @@ export {
 	## should have been blocked.
 	const catch_release_warn_blocked_ip_encountered = F &redef;
 
-	## Time intervals for which a subsequent drops of the same IP take
+	## Time intervals for which subsequent drops of the same IP take
 	## effect.
 	const catch_release_intervals: vector of interval = vector(10min, 1hr, 24hrs, 7days) &redef;
 
@@ -160,7 +160,7 @@ export {
 	global catch_release_encountered: event(a: addr);
 }
 
-# set that is used to only send seen notifications to the master every ~30 seconds.
+# Set that is used to only send seen notifications to the master every ~30 seconds.
 global catch_release_recently_notified: set[addr] &create_expire=30secs;
 
 event bro_init() &priority=5

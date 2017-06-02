@@ -48,6 +48,7 @@ export {
                 ["Microsoft-CryptoAPI/6.2"]             = [$name="Windows", $version=[$major=6, $minor=2, $addl="8 or Server 2012"]],
                 ["Microsoft-CryptoAPI/6.3"]             = [$name="Windows", $version=[$major=6, $minor=3, $addl="8.1 or Server 2012 R2"]],
                 ["Microsoft-CryptoAPI/6.4"]             = [$name="Windows", $version=[$major=6, $minor=4, $addl="10 Technical Preview"]],
+                ["Microsoft-CryptoAPI/10.0"]            = [$name="Windows", $version=[$major=10, $minor=0]],
         } &redef;
 }
 

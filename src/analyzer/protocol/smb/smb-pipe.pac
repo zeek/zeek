@@ -5,7 +5,7 @@
 refine connection SMB_Conn += {
 	%member{
 		map<uint16,bool> tree_is_pipe_map;
-		map<uint64,analyzer::dce_rpc::DCE_RPC_Analyzer*> fid_to_analyzer_map;;
+		map<uint64,analyzer::dce_rpc::DCE_RPC_Analyzer*> fid_to_analyzer_map;
 	%}
 
 	%cleanup{
@@ -20,18 +20,20 @@ refine connection SMB_Conn += {
 			}
 	%}
 
-
 	function get_tree_is_pipe(tree_id: uint16): bool
 		%{
-		if ( tree_is_pipe_map.count(tree_id) > 0 )
-			return tree_is_pipe_map.at(tree_id);
-		else
-			return false;
+		return ( tree_is_pipe_map.count(tree_id) > 0 );
 		%}
 
-	function set_tree_is_pipe(tree_id: uint16, is_pipe: bool): bool
+	function unset_tree_is_pipe(tree_id: uint16): bool
 		%{
-		tree_is_pipe_map[tree_id] = is_pipe;
+		tree_is_pipe_map.erase(tree_id);
+		return true;
+		%}
+
+	function set_tree_is_pipe(tree_id: uint16): bool
+		%{
+		tree_is_pipe_map[tree_id] = true;
 		return true;
 		%}
 

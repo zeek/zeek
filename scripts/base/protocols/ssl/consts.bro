@@ -30,7 +30,7 @@ export {
 		return fmt("unknown-%d", i);
 		};
 
-	## TLS content types:
+	# TLS content types:
 	const CHANGE_CIPHER_SPEC = 20;
 	const ALERT = 21;
 	const HANDSHAKE = 22;
@@ -41,7 +41,7 @@ export {
 	const V2_CLIENT_MASTER_KEY = 302;
 	const V2_SERVER_HELLO = 304;
 
-	## TLS Handshake types:
+	# TLS Handshake types:
 	const HELLO_REQUEST       = 0;
 	const CLIENT_HELLO        = 1;
 	const SERVER_HELLO        = 2;
@@ -156,12 +156,17 @@ export {
 		[22] = "encrypt_then_mac",
 		[23] = "extended_master_secret",
 		[24] = "token_binding", # temporary till 2017-03-06 - draft-ietf-tokbind-negotiation
+		[25] = "cached_info",
 		[35] = "SessionTicket TLS",
 		[40] = "key_share", # new for TLS 1.3; was used for extended_random before. State as of TLS 1.3 draft 16
 		[41] = "pre_shared_key", # new for 1.3, state of draft-16
 		[42] = "early_data", # new for 1.3, state of draft-16
 		[43] = "supported_versions", # new for 1.3, state of draft-16
 		[44] = "cookie", # new for 1.3, state of draft-16
+		[45] = "psk_key_exchange_modes", # new for 1.3, state of draft-18
+		[46] = "TicketEarlyDataInfo", # new for 1.3, state of draft-16
+		[47] = "certificate_authorities", # new for 1.3, state of draft-18
+		[48] = "oid_filters", # new for 1.3, state of draft-18
 		[13172] = "next_protocol_negotiation",
 		[13175] = "origin_bound_certificates",
 		[13180] = "encrypted_client_certificates",
@@ -215,7 +220,7 @@ export {
 		[0xFF02] = "arbitrary_explicit_char2_curves"
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };
 
-	## Mapping between numeric codes and human readable string for SSL/TLC EC point formats.
+	## Mapping between numeric codes and human readable string for SSL/TLS EC point formats.
 	# See http://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-9
 	const ec_point_formats: table[count] of string = {
 		[0] = "uncompressed",

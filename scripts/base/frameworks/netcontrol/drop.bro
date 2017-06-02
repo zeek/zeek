@@ -11,34 +11,34 @@ export {
 	##
 	## a: The address to be dropped.
 	##
-	## t: How long to drop it, with 0 being indefinitly.
+	## t: How long to drop it, with 0 being indefinitely.
 	##
 	## location: An optional string describing where the drop was triggered.
 	##
-	## Returns: The id of the inserted rule on succes and zero on failure.
+	## Returns: The id of the inserted rule on success and zero on failure.
 	global drop_address: function(a: addr, t: interval, location: string &default="") : string;
 
-	## Stops all packets involving an connection address from being forwarded.
+	## Stops all packets involving a connection address from being forwarded.
 	##
 	## c: The connection to be dropped.
 	##
-	## t: How long to drop it, with 0 being indefinitly.
+	## t: How long to drop it, with 0 being indefinitely.
 	##
 	## location: An optional string describing where the drop was triggered.
 	##
-	## Returns: The id of the inserted rule on succes and zero on failure.
+	## Returns: The id of the inserted rule on success and zero on failure.
 	global drop_connection: function(c: conn_id, t: interval, location: string &default="") : string;
 
 	type DropInfo: record {
 		## Time at which the recorded activity occurred.
 		ts: time		&log;
-		## ID of the rule; unique during each Bro run
+		## ID of the rule; unique during each Bro run.
 		rule_id: string  &log;
 		orig_h: addr 	&log;	##< The originator's IP address.
 		orig_p: port 	&log &optional;	##< The originator's port number.
 		resp_h: addr	&log &optional;	##< The responder's IP address.
 		resp_p: port	&log &optional;	##< The responder's port number.
-		## Expiry time of the shunt
+		## Expiry time of the shunt.
 		expire: interval &log;
 		## Location where the underlying action was triggered.
 		location: string	&log &optional;
@@ -47,7 +47,7 @@ export {
 	## Hook that allows the modification of rules passed to drop_* before they
 	## are passed on. If one of the hooks uses break, the rule is ignored.
 	##
-	## r: The rule to be added
+	## r: The rule to be added.
 	global NetControl::drop_rule_policy: hook(r: Rule);
 
 	## Event that can be handled to access the :bro:type:`NetControl::ShuntInfo`

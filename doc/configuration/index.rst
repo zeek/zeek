@@ -105,24 +105,9 @@ a Bro cluster (do this as the Bro user on the manager host only):
 
     > broctl install
 
-- Some tasks need to be run on a regular basis. On the manager node,
-  insert a line like this into the crontab of the user running the
-  cluster::
-
-      0-59/5 * * * * <prefix>/bin/broctl cron
-
-  (Note: if you are editing the system crontab instead of a user's own
-  crontab, then you need to also specify the user which the command
-  will be run as. The username must be placed after the time fields
-  and before the broctl command.)
-
-  Note that on some systems (FreeBSD in particular), the default PATH
-  for cron jobs does not include the directories where bash and python
-  are installed (the symptoms of this problem would be that "broctl cron"
-  works when run directly by the user, but does not work from a cron job).
-  To solve this problem, you would either need to create symlinks
-  to bash and python in a directory that is in the default PATH for
-  cron jobs, or specify a new PATH in the crontab.
+- See the :doc:`BroControl <../components/broctl/README>` documentation
+  for information on setting up a cron job on the manager host that can
+  monitor the cluster.
 
 
 PF_RING Cluster Configuration

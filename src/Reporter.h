@@ -66,11 +66,11 @@ public:
 
 	// Report a runtime error in evaluating a Bro script expression. This
 	// function will not return but raise an InterpreterException.
-	void ExprRuntimeError(const Expr* expr, const char* fmt, ...);
+	void ExprRuntimeError(const Expr* expr, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
 
 	// Report a runtime error in evaluating a Bro script expression. This
 	// function will not return but raise an InterpreterException.
-	void RuntimeError(const Location* location, const char* fmt, ...);
+	void RuntimeError(const Location* location, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
 
 	// Report a traffic weirdness, i.e., an unexpected protocol situation
 	// that may lead to incorrectly processing a connnection.
@@ -123,7 +123,7 @@ public:
 private:
 	void DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 		   Connection* conn, val_list* addl, bool location, bool time,
-		   const char* postfix, const char* fmt, va_list ap);
+		   const char* postfix, const char* fmt, va_list ap) __attribute__((format(printf, 10, 0)));
 
 	// The order if addl, name needs to be like that since fmt_name can
 	// contain format specifiers

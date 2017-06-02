@@ -2,8 +2,7 @@
 #ifndef THREADING_BASICTHREAD_H
 #define THREADING_BASICTHREAD_H
 
-#include <pthread.h>
-#include <semaphore.h>
+#include <thread>
 
 #include "util.h"
 
@@ -34,6 +33,9 @@ public:
 	 * show up in messages to the user.
 	 */
 	BasicThread();
+
+	BasicThread(BasicThread const&) = delete;
+	BasicThread& operator =(BasicThread const&) = delete;
 
 	/**
 	 * Returns a descriptive name for the thread. If not set via
@@ -192,11 +194,11 @@ protected:
 	void Done();
 
 private:
-	// pthread entry function.
+	// thread entry function.
 	static void* launcher(void *arg);
 
 	const char* name;
-	pthread_t pthread;
+	std::thread thread;
 	bool started; 		// Set to to true once running.
 	bool terminating;	// Set to to true to signal termination.
 	bool killed;	// Set to true once forcefully killed.

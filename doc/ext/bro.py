@@ -14,7 +14,7 @@ from sphinx.locale import l_, _
 from sphinx.directives import ObjectDescription
 from sphinx.roles import XRefRole
 from sphinx.util.nodes import make_refnode
-import string
+from sphinx import version_info
 
 from docutils import nodes
 from docutils.parsers.rst import Directive
@@ -29,8 +29,16 @@ class SeeDirective(Directive):
 
     def run(self):
         n = see('')
-        n.refs = string.split(string.join(self.content))
+        n.refs = " ".join(self.content).split()
         return [n]
+
+# Wrapper for creating a tuple for index nodes, staying backwards
+# compatible to Sphinx < 1.4:
+def make_index_tuple(indextype, indexentry, targetname, targetname2):
+    if version_info >= (1, 4, 0, '', 0):
+        return (indextype, indexentry, targetname, targetname2, None)
+    else:
+        return (indextype, indexentry, targetname, targetname2)
 
 def process_see_nodes(app, doctree, fromdocname):
     for node in doctree.traverse(see):
@@ -95,8 +103,9 @@ class BroGeneric(ObjectDescription):
 
         indextext = self.get_index_text(self.objtype, name)
         if indextext:
-            self.indexnode['entries'].append(('single', indextext,
-                                              targetname, targetname))
+            self.indexnode['entries'].append(make_index_tuple('single',
+                                             indextext, targetname,
+                                             targetname))
 
     def get_index_text(self, objectname, name):
         return _('%s (%s)') % (name, self.objtype)
@@ -120,9 +129,9 @@ class BroNamespace(BroGeneric):
             self.update_type_map(name)
 
         indextext = self.get_index_text(self.objtype, name)
-        self.indexnode['entries'].append(('single', indextext,
+        self.indexnode['entries'].append(make_index_tuple('single', indextext,
                                           targetname, targetname))
-        self.indexnode['entries'].append(('single',
+        self.indexnode['entries'].append(make_index_tuple('single',
                                           "namespaces; %s" % (sig),
                                           targetname, targetname))
 
@@ -148,7 +157,7 @@ class BroEnum(BroGeneric):
             self.update_type_map(name)
 
         indextext = self.get_index_text(self.objtype, name)
-        #self.indexnode['entries'].append(('single', indextext,
+        #self.indexnode['entries'].append(make_index_tuple('single', indextext,
         #                                  targetname, targetname))
         m = sig.split()
 
@@ -162,7 +171,7 @@ class BroEnum(BroGeneric):
                 self.env.domaindata['bro']['notices'] = []
             self.env.domaindata['bro']['notices'].append(
                                 (m[0], self.env.docname, targetname))
-        self.indexnode['entries'].append(('single',
+        self.indexnode['entries'].append(make_index_tuple('single',
                                           "%s (enum values); %s" % (m[1], m[0]),
                                           targetname, targetname))
 
@@ -204,7 +213,7 @@ class BroNotices(Index):
             entries = content.setdefault(modname, [])
             entries.append([n[0], 0, n[1], n[2], '', '', ''])
 
-        content = sorted(content.iteritems())
+        content = sorted(content.items())
 
         return content, False
 
@@ -280,5 +289,5 @@ class BroDomain(Domain):
                         'unknown target for ":bro:%s:`%s`"' % (typ, target))
 
     def get_objects(self):
-        for (typ, name), docname in self.data['objects'].iteritems():
+        for (typ, name), docname in self.data['objects'].items():
             yield name, name, typ, docname, typ + '-' + name, 1

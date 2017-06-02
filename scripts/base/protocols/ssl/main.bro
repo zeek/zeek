@@ -44,10 +44,10 @@ export {
 		## is being resumed. It's not logged.
 		client_key_exchange_seen: bool     &default=F;
 		## Count to track if the server already sent an application data
-		## packet fot TLS 1.3. Used to track when a session was established.
+		## packet for TLS 1.3. Used to track when a session was established.
 		server_appdata:   count            &default=0;
 		## Flag to track if the client already sent an application data
-		## packet fot TLS 1.3. Used to track when a session was established.
+		## packet for TLS 1.3. Used to track when a session was established.
 		client_appdata:   bool             &default=F;
 
 		## Last alert that was seen during the connection.
@@ -62,7 +62,7 @@ export {
 		analyzer_id:      count            &optional;
 
 		## Flag to indicate if this ssl session has been established
-		## succesfully, or if it was aborted during the handshake.
+		## successfully, or if it was aborted during the handshake.
 		established:      bool             &log &default=F;
 
 		## Flag to indicate if this record already has been logged, to

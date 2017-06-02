@@ -2,8 +2,6 @@
 #ifndef THREADING_MSGTHREAD_H
 #define THREADING_MSGTHREAD_H
 
-#include <pthread.h>
-
 #include "DebugLogger.h"
 
 #include "BasicThread.h"

@@ -11,7 +11,7 @@ export {
 		## complete signing chain.
 		cert_chain: vector of Files::Info &optional;
 
-		## An ordered vector of all certicate file unique IDs for the
+		## An ordered vector of all certificate file unique IDs for the
 		## certificates offered by the server.
 		cert_chain_fuids: vector of string &optional &log;
 
@@ -19,7 +19,7 @@ export {
 		## complete signing chain.
 		client_cert_chain: vector of Files::Info &optional;
 
-		## An ordered vector of all certicate file unique IDs for the
+		## An ordered vector of all certificate file unique IDs for the
 		## certificates offered by the client.
 		client_cert_chain_fuids: vector of string &optional &log;
 
@@ -116,8 +116,8 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 		}
 
 	Files::add_analyzer(f, Files::ANALYZER_X509);
-	# always calculate hashes. They are not necessary for base scripts
-	# but very useful for identification, and required for policy scripts
+	# Always calculate hashes. They are not necessary for base scripts
+	# but very useful for identification, and required for policy scripts.
 	Files::add_analyzer(f, Files::ANALYZER_MD5);
 	Files::add_analyzer(f, Files::ANALYZER_SHA1);
 	}

@@ -338,8 +338,11 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 		goto x509_ocsp_cleanup;
 		}
 
-	out = OCSP_basic_verify(basic, NULL, ctx, 0);
-	if ( result < 1 )
+	// We pass OCSP_NOVERIFY to let OCSP_basic_verify skip the chain verification.
+	// With that, it only verifies the signature of the basic response and we are responsible
+	// for the chain ourselves. We have to do that since we cannot get OCSP_basic_verify to use our timestamp.
+	out = OCSP_basic_verify(basic, NULL, ctx, OCSP_NOVERIFY);
+	if ( out < 1 )
 		{
 		rval = x509_result_record(out, ERR_error_string(ERR_get_error(),NULL));
 		goto x509_ocsp_cleanup;

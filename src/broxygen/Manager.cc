@@ -6,7 +6,6 @@
 
 #include <utility>
 #include <cstdlib>
-#include <wordexp.h>
 
 using namespace broxygen;
 using namespace std;
@@ -61,27 +60,23 @@ Manager::Manager(const string& arg_config, const string& bro_command)
 	if ( getenv("BRO_DISABLE_BROXYGEN") )
 		disabled = true;
 
-	if ( disabled )
+	// If running bro without the "-X" option, then we don't need bro_mtime.
+	if ( disabled || arg_config.empty() )
 		return;
 
+	// Find the absolute or relative path to bro by checking each PATH
+	// component and also the current directory (so that this works if
+	// bro_command is a relative path).
 	const char* env_path = getenv("PATH");
 	string path = env_path ? string(env_path) + ":." : ".";
-	wordexp_t expanded_path;
-	wordexp(path.c_str(), &expanded_path, WRDE_NOCMD);
-	string path_to_bro;
-
-	if ( expanded_path.we_wordc == 1 )
-		path_to_bro = find_file(bro_command, expanded_path.we_wordv[0]);
-	else
-		{
-		reporter->InternalWarning("odd expansion of path: %s\n", path.c_str());
-		path_to_bro = find_file(bro_command, path);
-		}
-
+	string path_to_bro = find_file(bro_command, path);
 	struct stat s;
 
+	// One way that find_file() could fail is when bro is located in
+	// a PATH component that starts with a tilde (such as "~/bin").  A simple
+	// workaround is to just run bro with a relative or absolute path.
 	if ( path_to_bro.empty() || stat(path_to_bro.c_str(), &s) < 0 )
-		reporter->InternalError("Broxygen can't get mtime of bro binary %s: %s",
+		reporter->InternalError("Broxygen can't get mtime of bro binary %s (try again by specifying the absolute or relative path to Bro): %s",
 		                        path_to_bro.c_str(), strerror(errno));
 
 	bro_mtime = s.st_mtime;

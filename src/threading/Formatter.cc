@@ -22,7 +22,7 @@ Formatter::~Formatter()
 	{
 	}
 
-string Formatter::Render(const threading::Value::addr_t& addr) const
+string Formatter::Render(const threading::Value::addr_t& addr)
 	{
 	if ( addr.family == IPv4 )
 		{
@@ -90,7 +90,7 @@ threading::Value::addr_t Formatter::ParseAddr(const string &s) const
 	return val;
 	}
 
-string Formatter::Render(const threading::Value::subnet_t& subnet) const
+string Formatter::Render(const threading::Value::subnet_t& subnet)
 	{
 	char l[16];
 
@@ -104,7 +104,7 @@ string Formatter::Render(const threading::Value::subnet_t& subnet) const
 	return s;
 	}
 
-string Formatter::Render(double d) const
+string Formatter::Render(double d)
 	{
 	char buf[256];
 	modp_dtoa(d, buf, 6);

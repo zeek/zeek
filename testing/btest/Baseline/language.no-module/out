@@ -1,4 +1,5 @@
 function (PASS)
 global variable (PASS)
+fully qualified global variable (PASS)
 const (PASS)
 event (PASS)

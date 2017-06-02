@@ -1,4 +1,338 @@
 
+2.5-147 | 2017-05-22 20:32:32 -0500
+
+  * Add nfs unittest. (Julien Wallior)
+
+  * Added nfs_proc_rename event to rpc/nfs protocol analyzer.
+    (Roberto Del Valle Rodriguez)
+
+  * Expand parsing of RPC Call packets to add Uid, Gid, Stamp, MachineName
+    and AuxGIDs (Julien Wallior)
+
+  * Fix NFS protocol parser. (Julien Wallior)
+
+2.5-142 | 2017-05-22 00:08:52 -0500
+
+  * Add gzip log writing to the ascii writer.
+
+    This feature can be enabled globally for all logs by setting
+    LogAscii::gzip_level to a value greater than 0.
+
+    This feature can be enabled on a per-log basis by setting gzip-level in
+    $config to a value greater than 0. (Corelight)
+
+2.5-140 | 2017-05-12 15:31:32 -0400
+
+  * Lessen cluster load due to notice suppression. 
+    (Johanna Amann, Justin Azoff)
+
+2.5-137 | 2017-05-04 11:37:48 -0500
+
+  * Add plugin hooks for log init and writing: HookLogInit and HookLogWrite.
+    (Corelight)
+
+  * TLS: Fix compile warning (comparison between signed/unsigned).
+
+    This was introduced with the addition of new TLS1.3 extensions. (Johanna Amann)
+
+
+2.5-134 | 2017-05-01 10:34:34 -0500
+
+  * Add rename, unlink, and rmdir bifs. (Corelight)
+
+2.5-131 | 2017-04-21 14:27:16 -0700
+
+  * Guard more format strings with __attribute__((format)). (Johanna Amann)
+
+  * Add support for two TLS 1.3 extensions.
+
+    New events:
+        - event ssl_extension_supported_versions(c: connection, is_orig: bool, versions: index_vec)
+        - event ssl_extension_psk_key_exchange_modes(c: connection, is_orig: bool, modes: index_vec) (Johanna Amann)
+
+2.5-125 | 2017-04-17 22:02:39 +0200
+
+  * Documentation updates for loading Bro scripts. (Seth Hall)
+
+2.5-123 | 2017-04-10 13:30:14 -0700
+
+  * Fix some failing tests by increasing delay times. (Daniel Thayer)
+
+  * Threading Types: add a bit of documentation to subnet type. (Johanna Amann)
+
+  * Fixing couple issues reported by Coverity. (Robin Sommer)
+
+2.5-119 | 2017-04-07 10:30:09 -0700
+
+  * Fix the test group name in some broker test files. (Daniel Thayer)
+
+  * NetControl: small rule_error changes (test, call fix). (Johanna Amann)
+
+  * SSL: update dpd signature for TLS1.3. (Johanna Amann)
+
+2.5-115 | 2017-03-23 07:25:41 -0700
+
+  * Fix a test that was failing on some platforms. (Daniel Thayer)
+
+  * Remove test for cluster catch and release. This test keeps failing
+    intermittently because of timing issues that are surprisingly hard
+    to fix. (Johanna Amann)
+
+  * Fix some Coverity warnings. (Daniel Thayer)
+
+2.5-106 | 2017-03-13 11:19:03 -0700
+
+  * print version string to stdout on --version, instead
+    of printing it to stderr. Output is not an error output.  (Pete)
+
+  * Fix compiler warning raised by llvm8. (Johanna Amann)
+
+  * Fix coverity warning in Ascii reader. (Johanna Amann)
+
+2.5-101 | 2017-03-09 12:20:11 -0500
+
+  * Input's framework's ascii reader is now more resilient.
+
+    By default, the ASCII reader does not fail on errors anymore.
+    If there is a problem parsing a line, a reporter warning is
+    written and parsing continues.  If the file is missing or can't
+    be read, the input thread just tries again on the next heartbeat.
+    (Seth Hall, Johanna Amann)
+
+2.5-92 | 2017-03-03 10:44:14 -0800
+
+  * Move most threading to C++11 primitives (mostly). (Johanna Amann)
+
+  * Fix a test that sometimes fails on FreeBSD. (Daniel Thayer)
+
+  * Remove build time warnings. (Seth Hall)
+
+2.5-84 | 2017-02-27 15:08:55 -0500
+
+  * Change semantics of Broker's remote logging to match old communication
+    framework. (Robin Sommer)
+
+  * Add and fix documentation for HookSetupAnalyzerTree (Johanna Amann)
+
+
+2.5-76 | 2017-02-23 10:19:57 -0800
+
+  * Kerberos ciphertext had some additional ASN.1 content being lumped
+    in. (Vlad Grigorescu)
+
+  * Updated Windows version detection to include Windows 10. (Fatema
+    Bannatwala, Keith Lehigh, Mike, Seth Hall).
+
+2.5-70 | 2017-02-20 00:20:02 -0500
+
+  * Rework the RADIUS base script.
+
+    Fixes BIT-1769 which improves logging behavior when replies aren't
+    seen.  Also added a `framed_addr` field to indicate if the radius
+    server is hinting at an address for the client and a `ttl` field to
+    show how quickly the server is responding. (Seth Hall)
+
+2.5-68 | 2017-02-18 13:59:05 -0500
+
+  * Refactored base krb scripts. (Seth Hall)
+
+  * New script to log ticket hashes in krb log
+    (policy/protocols/krb/ticket-logging.bro).  Also, add
+    ciphertext to ticket data structure. (John E. Rollinson)
+
+2.5-62 | 2017-02-15 15:56:38 -0800
+
+  * Fix case in which scripts were able to access unitialized variables
+    in certain cases. Addresses BIT-1785. (Jon Siwek)
+
+2.5-60 | 2017-02-15 15:19:20 -0800
+
+  * Implement ERSPAN support.
+
+    There is a small caveat to this implementation.  The ethernet
+    header that is carried over the tunnel is ignored.  If a user
+    tries to do MAC address logging, it will only show the MAC
+    addresses for the outer tunnel and the inner MAC addresses
+    will be stripped and not available anywhere. (Seth Hall)
+
+  * Tiny mime-type fix from Dan Caselden. (Seth Hall)
+
+  * Update failing intel framework test. (Johanna Amann)
+
+2.5-55 | 2017-02-10 09:50:43 -0500
+
+  * Fixed intel expiration reset. Reinserting the same indicator did not reset
+    the expiration timer for the indicator in the underlying data store.
+    Addresses BIT-1790. (Jan Grashoefer)
+
+2.5-51 | 2017-02-06 10:15:56 -0500
+
+  * Fix memory leak in file analyzer. (Johanna Amann)
+
+  * Fix a series of problems with the to_json function.
+    Addresses BIT-1788. (Daniel Thayer)
+
+2.5-44 | 2017-02-03 16:38:10 -0800
+
+  * Change snap lengths of some tests. (Johanna Amann)
+
+  * Fix layer 2 connection flipping. If connection flipping occured in
+    Sessions.cc code (invoked e.g. when the original SYN is missing),
+    layer 2 flipping was not performed. (Johanna Amann)
+
+2.5-39 | 2017-02-01 14:03:08 -0800
+
+  * Fix file analyzer memory management, and a delay in disabling file analyzers.
+    File analyzers are no longer deleted immediately; this is delayed until
+    a file opject is destroyed. Furthermore, no data is sent to file analyzers
+    anymore after they have been disabled.
+
+2.5-33 | 2017-02-01 10:07:47 -0500
+
+  * New file types sigs. (Keith Lehigh)
+
+  * Change snaplen of test trace from 1,000,000 to 10,000
+
+    Recent versions of libpcap are unhappy with values bigger than 262,144
+    and will refuse reading the file. (Johanna Amann)
+
+
+2.5-30 | 2017-01-26 13:24:36 -0800
+
+  * Extend file extraction log, adding extracted_cutoff and extracted_size
+    fields. (Seth Hall)
+
+  * Add new TLS extension type (cached_info) (Johanna Amann)
+
+  * Remove brocon event; it caused test failures. (Johanna Amann)
+
+  * Add missing paths to SMB Log::create_streams calls. (Johanna Amann)
+
+  * Tiny xlsx file signature fix. (Dan Caselden)
+
+  * Allow access to global variables using GLOBAL:: namespace.
+    Addresses BIT-1758. (Francois Pennaneac)
+
+2.5-17 | 2016-12-07 14:51:37 -0800
+
+  * Broxygen no longer attempts to do tilde expansion of PATH, giving
+    an error message instead if bro is located in a PATH component
+    that starts with a tilde. Broxygen also no longer attempts to get
+    the mtime of the bro executable when bro is not invoced with the
+    "-X" option. (Daniel Thayer)
+
+  * Fix failing tests, compiler warnings and build issues on OpenBSD.
+    (Daniel Thayer)
+
+2.5-9 | 2016-12-05 11:39:54 -0800
+
+  * Fix validation of OCSP replies inside of Bro. (Johanna Amann)
+
+    At one place in the code, we did not check the correct return
+    code. This makes it possible for a reply to get a response of
+    "good", when the OCSP reply is not actually signed by the
+    responder in question.
+
+    This also instructs OCSP verication to skip certificate chain
+    validation, which we do ourselves earlier because the OCSP verify
+    function cannot do it correctly (no way to pass timestamp).
+
+2.5-6 | 2016-11-29 12:51:04 -0800
+
+  * Fix a build failure on OpenBSD relating to pcap_pkthdr. Also fixes
+    an include issue on OpenBSD. (Daniel Thayer)
+
+  * Fix compile error in krb-types.pac. (Johanna Amann)
+
+  * Update krb-types.pac: KerberosString formatting for the principal
+    principal name is now compliant with RFC 4120 section 5.2.2. (jamesecorrenti)
+
+2.5 | 2016-11-16 14:51:59 -0800
+
+  * Release 2.5.
+
+2.5-beta2-17 | 2016-11-14 17:59:19 -0800
+
+  * Add missing '@load ./pubkey-hashes' to
+    policy/frameworks/intel/seen. (Robin Sommer)
+
+2.5-beta2-15 | 2016-11-14 17:52:55 -0800
+
+  * Remove unused "bindist" make target. (Daniel Thayer)
+
+  * Improve the "How to Upgrade" page in the Bro docs. (Daniel Thayer)
+
+  * Update the quickstart guide for the deploy command. (Daniel Thayer)
+
+  * Improved installation instructions for Mac OS X. (Daniel Thayer)
+
+  * Lots of more small updates to documentation. (Daniel Thayer)
+
+2.5-beta2 | 2016-11-02 12:13:11 -0700
+
+  * Release 2.5-beta2.
+
+2.5-beta-135 | 2016-11-02 09:47:20 -0700
+
+  * SMB fixes and cleanup. Includes better SMB error handling, improved DCE_RPC
+    handling in edge cases where drive_mapping is not seen. The concept of unknown
+    shares has been removed with this change. Also fixes SMB tree connect handling and
+    removes files that are not parsed. SMB2 error parsing is disabled because it never
+    was implemented correctly. (Seth Hall)
+
+  * Including a test for raw NTLM in SMB (Seth Hall)
+
+  * Updates for SMB auth handling from Martin van Hensbergen.
+
+     - Raw NTLM (not in GSSAPI) over SMB is now handled correctly.
+     - The encrypted NTLM session key is now passed into scriptland
+       through the ntlm_authenticate event. (Seth Hall)
+
+  * Add a files framework signature for VIM tmp files. (Seth Hall)
+
+  * Version parsing scripts now supports several beta versions. (Johanna Amann)
+
+2.5-beta-123 | 2016-11-01 09:40:49 -0700
+
+  * Add a new site policy script local-logger.bro. (Daniel Thayer)
+
+2.5-beta-121 | 2016-10-31 14:24:33 -0700
+
+  * Python 3 compatibility fixes for documentation building. (Daniel Thayer)
+
+2.5-beta-114 | 2016-10-27 09:00:24 -0700
+
+  * Fix for Sphinx >= 1.4 compability. (Robin Sommer)
+
+2.5-beta-113 | 2016-10-27 07:44:25 -0700
+
+  * XMPP: Fix detection of StartTLS when using namespaces. (Johanna
+    Amann)
+
+2.5-beta-110 | 2016-10-26 09:42:11 -0400
+
+  * Improvements DCE_RPC analyzer to make it perform fragment handling correctly
+    and generally be more resistent to unexpected traffic. (Seth Hall)
+
+2.5-beta-102 | 2016-10-25 09:43:45 -0700
+
+  * Update number of bytes in request/response of smb1-com-open-andx.pac. (balintm)
+
+  * Fix a IPv4 CIDR specifications and payload-size condition of signature matching.
+    (Robin Sommer)
+
+  * Python 3 compatibility fix for coverage-calc script. (Daniel Thayer)
+
+2.5-beta-93 | 2016-10-24 11:11:07 -0700
+
+  * Fix alignment issue of ones_complement_checksum. This error
+    occured reproducibly newer compilers when called from
+    icmp6_checksum. (Johanna Amann)
+
+2.5-beta-91 | 2016-10-20 11:40:37 -0400
+
+  * Fix istate.pybroccoli test on systems using Python 3. (Daniel Thayer)
+
 2.5-beta-89 | 2016-10-18 21:50:51 -0400
 
   * SSH analyzer changes: the events are now restructured a bit. There is a new
@@ -505,7 +839,7 @@
 2.4-623 | 2016-06-15 17:31:12 -0700
 
   * &default values are no longer overwritten with uninitialized
-	  by the input framework. (Jan Grashoefer)
+    by the input framework. (Jan Grashoefer)
 
 2.4-621 | 2016-06-15 09:18:02 -0700
 

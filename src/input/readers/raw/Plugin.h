@@ -1,4 +1,6 @@
-// See the file  in the main distribution directory for copyright.
+// See the file in the main distribution directory for copyright.
+
+#include <mutex>
 
 #include "plugin/Plugin.h"
 
@@ -16,11 +18,10 @@ public:
 	virtual void InitPreScript();
 	virtual void Done();
 
-	pthread_mutex_t * ForkMutex();
+	std::unique_lock<std::mutex> ForkMutex();
 
 private:
-	bool init;
-	pthread_mutex_t fork_mutex;
+	std::mutex fork_mutex;
 
 };
 

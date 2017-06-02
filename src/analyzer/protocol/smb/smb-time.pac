@@ -30,6 +30,7 @@ function time_from_lanman(t: SMB_time, d: SMB_date, tz: uint16): Val
 	lTime.tm_mday = ${d.day};
 	lTime.tm_mon = ${d.month};
 	lTime.tm_year = 1980 + ${d.year};
+    lTime.tm_isdst = -1;
 	double lResult = mktime(&lTime);
 	return new Val(lResult + tz, TYPE_TIME);
 	%}

@@ -18,13 +18,16 @@
 // Returns the ones-complement checksum of a chunk of b short-aligned bytes.
 int ones_complement_checksum(const void* p, int b, uint32 sum)
 	{
-	const u_short* sp = (u_short*) p;	// better be aligned!
+	const unsigned char* sp = (unsigned char*) p;
 
 	b /= 2;	// convert to count of short's
 
 	/* No need for endian conversions. */
 	while ( --b >= 0 )
-		sum += *sp++;
+		{
+		sum += *sp + (*(sp+1) << 8);
+		sp += 2;
+		}
 
 	while ( sum > 0xffff )
 		sum = (sum & 0xffff) + (sum >> 16);

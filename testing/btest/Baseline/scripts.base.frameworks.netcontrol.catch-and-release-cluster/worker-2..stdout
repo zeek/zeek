@@ -1,9 +1,0 @@
-Suspend, worker-2
-New block, 192.168.18.50, [block_until=1471027194.791177, watch_until=1471030194.791177, num_reblocked=0, current_interval=0, current_block_id=2, location=connection drop worker-1]
-New block, 8.8.8.8, [block_until=<uninitialized>, watch_until=1471030194.791177, num_reblocked=0, current_interval=0, current_block_id=worker-1:2, location=direct cr worker-1]
-Resume, worker-2
-Connection established
-Info, [block_until=1471027194.791177, watch_until=1471030194.791177, num_reblocked=0, current_interval=0, current_block_id=2, location=connection drop worker-1]
-Delete block, 192.168.18.50
-New block, 8.8.8.8, [block_until=1471030196.295249, watch_until=1471112996.295249, num_reblocked=1, current_interval=1, current_block_id=4, location=direct cr worker-1]
-remote connection closed

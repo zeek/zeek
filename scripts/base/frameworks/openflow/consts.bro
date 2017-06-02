@@ -1,7 +1,7 @@
 ##! Constants used by the OpenFlow framework.
 
 # All types/constants not specific to OpenFlow will be defined here
-# unitl they somehow get into Bro.
+# until they somehow get into Bro.
 
 module OpenFlow;
 
@@ -122,9 +122,9 @@ export {
 
 	## Return value for a cookie from a flow
 	## which is not added, modified or deleted
-	## from the bro openflow framework
+	## from the bro openflow framework.
 	const INVALID_COOKIE = 0xffffffffffffffff;
-	# Openflow pysical port definitions
+	# Openflow physical port definitions
 	## Send the packet out the input port. This
 	## virual port must be explicitly used in
 	## order to send back out of the input port.
@@ -135,10 +135,10 @@ export {
 	const OFPP_TABLE = 0xfffffff9;
 	## Process with normal L2/L3 switching.
 	const OFPP_NORMAL = 0xfffffffa;
-	## All pysical ports except input port and
+	## All physical ports except input port and
 	## those disabled by STP.
 	const OFPP_FLOOD = 0xfffffffb;
-	## All pysical ports except input port.
+	## All physical ports except input port.
 	const OFPP_ALL = 0xfffffffc;
 	## Send to controller.
 	const OFPP_CONTROLLER = 0xfffffffd;
@@ -162,7 +162,7 @@ export {
 	# flow stats and flow deletes.
 	const OFPTT_ALL = 0xff;
 
-	## Openflow action_type definitions
+	## Openflow action_type definitions.
 	##
 	## The openflow action type defines
 	## what actions openflow can take
@@ -180,7 +180,7 @@ export {
 		OFPAT_SET_DL_SRC = 0x0004,
 		## Ethernet destination address.
 		OFPAT_SET_DL_DST = 0x0005,
-		## IP source address
+		## IP source address.
 		OFPAT_SET_NW_SRC = 0x0006,
 		## IP destination address.
 		OFPAT_SET_NW_DST = 0x0007,
@@ -192,11 +192,11 @@ export {
 		OFPAT_SET_TP_DST = 0x000a,
 		## Output to queue.
 		OFPAT_ENQUEUE = 0x000b,
-		## Vendor specific
+		## Vendor specific.
 		OFPAT_VENDOR = 0xffff,
 	};
 
-	## Openflow flow_mod_command definitions
+	## Openflow flow_mod_command definitions.
 	##
 	## The openflow flow_mod_command describes
 	## of what kind an action is.
@@ -213,7 +213,7 @@ export {
 		OFPFC_DELETE_STRICT = 0x4,
 	};
 
-	## Openflow config flag definitions
+	## Openflow config flag definitions.
 	##
 	## TODO: describe
 	type ofp_config_flags: enum {

@@ -74,7 +74,7 @@ export {
 		reassem_file_size: count &log;
 		## Current size of packet fragment data in reassembly.
 		reassem_frag_size: count &log;
-		## Current size of unkown data in reassembly (this is only PIA buffer right now).
+		## Current size of unknown data in reassembly (this is only PIA buffer right now).
 		reassem_unknown_size: count &log;
 	};
 

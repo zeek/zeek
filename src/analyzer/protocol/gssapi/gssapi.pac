@@ -5,7 +5,6 @@
 #include "analyzer/Manager.h"
 #include "analyzer/Analyzer.h"
 
-#include "types.bif.h"
 #include "events.bif.h"
 %}
 

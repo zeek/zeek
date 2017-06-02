@@ -261,9 +261,14 @@ export {
 
 	## This event is generated when a notice begins to be suppressed.
 	##
-	## n: The record containing notice data regarding the notice type
-	##    about to be suppressed.
-	global begin_suppression: event(n: Notice::Info);
+	## ts: time indicating then when the notice to be suppressed occured.
+	##
+	## suppress_for: length of time that this notice should be suppressed.
+	##
+	## note: The :bro:type:`Notice::Type` of the notice.
+	##
+	## identifier: The identifier string of the notice that should be suppressed.
+	global begin_suppression: event(ts: time, suppress_for: interval, note: Type, identifier: string);
 
 	## A function to determine if an event is supposed to be suppressed.
 	##
@@ -504,7 +509,7 @@ hook Notice::notice(n: Notice::Info) &priority=-5
 		{
 		local suppress_until = n$ts + n$suppress_for;
 		suppressing[n$note, n$identifier] = suppress_until;
-		event Notice::begin_suppression(n);
+		event Notice::begin_suppression(n$ts, n$suppress_for, n$note, n$identifier);
 		}
 	}
 

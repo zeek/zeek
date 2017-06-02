@@ -10,29 +10,27 @@ export {
 		[0x00000000] = [$id="SUCCESS", $desc="The operation completed successfully."],
 	} &redef &default=function(i: count):StatusCode { local unknown=fmt("unknown-%d", i); return [$id=unknown, $desc=unknown]; };
 
-	## These are files names that are used for special 
-	## cases by the file system and would not be 
-	## considered "normal" files.
-	const pipe_names: set[string] = {
-		"\\netdfs",
-		"\\spoolss",
-		"\\NETLOGON",
-		"\\winreg",
-		"\\lsarpc",
-		"\\samr",
-		"\\srvsvc",
+	## Heuristic detection of named pipes when the pipe
+	## mapping isn't seen. This variable is defined in
+	## init-bare.bro.
+	redef SMB::pipe_filenames = {
+		"spoolss",
+		"winreg",
+		"samr",
 		"srvsvc",
+		"netdfs",
+		"lsarpc",
+		"wkssvc",
 		"MsFteWds",
-		"\\wkssvc",
 	};
 
-	## The UUIDs used by the various RPC endpoints
+	## The UUIDs used by the various RPC endpoints.
 	const rpc_uuids: table[string] of string = {
 		["4b324fc8-1670-01d3-1278-5a47bf6ee188"] = "Server Service",
 		["6bffd098-a112-3610-9833-46c3f87e345a"] = "Workstation Service",
 	} &redef &default=function(i: string):string { return fmt("unknown-uuid-%s", i); };
 
-	## Server service sub commands
+	## Server service sub commands.
 	const srv_cmds: table[count] of string = {
 		[8]  = "NetrConnectionEnum",
 		[9]  = "NetrFileEnum",
@@ -83,7 +81,7 @@ export {
 		[57] = "NetrShareDelEx",
 	} &redef &default=function(i: count):string { return fmt("unknown-srv-command-%d", i); };
 
-	## Workstation service sub commands
+	## Workstation service sub commands.
 	const wksta_cmds: table[count] of string = {
 		[0]  = "NetrWkstaGetInfo",
 		[1]  = "NetrWkstaSetInfo",
@@ -110,7 +108,7 @@ export {
 
 	type rpc_cmd_table: table[count] of string;
 	
-	## The subcommands for RPC endpoints
+	## The subcommands for RPC endpoints.
 	const rpc_sub_cmds: table[string] of rpc_cmd_table = {
 		["4b324fc8-1670-01d3-1278-5a47bf6ee188"] = srv_cmds,
 		["6bffd098-a112-3610-9833-46c3f87e345a"] = wksta_cmds,	

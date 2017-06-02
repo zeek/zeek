@@ -9,7 +9,15 @@
 
 %extern{
 	#include "events.bif.h"
+
+  namespace analyzer { namespace MySQL { class MySQL_Analyzer; } }
+  namespace binpac { namespace MySQL { class MySQL_Conn; } }
+  typedef analyzer::MySQL::MySQL_Analyzer* MySQLAnalyzer;
+
+  #include "MySQL.h"
 %}
+
+extern type MySQLAnalyzer;
 
 analyzer MySQL withcontext {
 	connection: MySQL_Conn;
@@ -17,7 +25,7 @@ analyzer MySQL withcontext {
 };
 
 # Our connection consists of two flows, one in each direction.
-connection MySQL_Conn(bro_analyzer: BroAnalyzer) {
+connection MySQL_Conn(bro_analyzer: MySQLAnalyzer) {
 	upflow   = MySQL_Flow(true);
 	downflow = MySQL_Flow(false);
 };

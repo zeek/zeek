@@ -181,6 +181,26 @@ type Handshake_v10 = record {
 	capability_flags_2      : uint16;
 	auth_plugin_data_len    : uint8;
 	auth_plugin_name        : NUL_String;
+} &let {
+  # Reference: https://dev.mysql.com/doc/dev/mysql-server/8.0.0/group__group__cs__capabilities__flags.html
+  client_long_password   : bool = (capability_flag_1 & 0x1) > 0;
+  client_found_rows      : bool = (capability_flag_1 & 0x2) > 0;
+  client_long_flag       : bool = (capability_flag_1 & 0x4) > 0;
+  client_connect_with_db : bool = (capability_flag_1 & 0x8) > 0;
+  client_no_schema       : bool = (capability_flag_1 & 0x10) > 0;
+  client_compress        : bool = (capability_flag_1 & 0x20) > 0;
+  client_odbc            : bool = (capability_flag_1 & 0x40) > 0;
+  client_local_files     : bool = (capability_flag_1 & 0x80) > 0;
+  client_ignore_space    : bool = (capability_flag_1 & 0x100) > 0;
+  client_protocol_41     : bool = (capability_flag_1 & 0x200) > 0;
+  client_interactive     : bool = (capability_flag_1 & 0x400) > 0;
+  client_ssl             : bool = (capability_flag_1 & 0x800) > 0;
+  client_ignore_sigpipe  : bool = (capability_flag_1 & 0x1000) > 0;
+  client_transactions    : bool = (capability_flag_1 & 0x2000) > 0;
+  client_reserved        : bool = (capability_flag_1 & 0x4000) > 0;
+  client_reserved2       : bool = (capability_flag_1 & 0x8000) > 0;
+
+	set_ssl_server_support : bool = $context.connection.set_ssl_server_support(client_ssl);
 };
 
 type Handshake_v9 = record {
@@ -192,17 +212,42 @@ type Handshake_v9 = record {
 # Handshake Response
 
 type Handshake_Response_Packet = case $context.connection.get_version() of {
-	10	-> v10_response	: Handshake_Response_Packet_v10;
-	9	-> v9_response	: Handshake_Response_Packet_v9;
+	10 -> v10_response : Response_Packet_v10;
+	9	 -> v9_response	 : Handshake_Response_Packet_v9;
 } &let {
-	version 			: uint8 = $context.connection.get_version();
+	version : uint8 = $context.connection.get_version();
 } &byteorder=bigendian;
 
-type Handshake_Response_Packet_v10 = record {
+type Response_Packet_v10 = record {
 	cap_flags    : uint32;
 	max_pkt_size : uint32;
 	char_set     : uint8;
 	pad          : padding[23];
+  is_handshake_pkt : case client_ssl of {
+  	true    -> handshake_response : Handshake_Response_Packet_v10;
+    default -> none               : empty;
+  };
+} &let {
+  # Same as Handshake_v10
+  client_long_password   : bool = (cap_flags & 0x1) > 0;
+  client_found_rows      : bool = (cap_flags & 0x2) > 0;
+  client_long_flag       : bool = (cap_flags & 0x4) > 0;
+  client_connect_with_db : bool = (cap_flags & 0x8) > 0;
+  client_no_schema       : bool = (cap_flags & 0x10) > 0;
+  client_compress        : bool = (cap_flags & 0x20) > 0;
+  client_odbc            : bool = (cap_flags & 0x40) > 0;
+  client_local_files     : bool = (cap_flags & 0x80) > 0;
+  client_ignore_space    : bool = (cap_flags & 0x100) > 0;
+  client_protocol_41     : bool = (cap_flags & 0x200) > 0;
+  client_interactive     : bool = (cap_flags & 0x400) > 0;
+  client_ssl             : bool = (cap_flags & 0x800) > 0;
+  client_ignore_sigpipe  : bool = (cap_flags & 0x1000) > 0;
+  client_transactions    : bool = (cap_flags & 0x2000) > 0;
+  client_reserved        : bool = (cap_flags & 0x4000) > 0;
+  client_reserved2       : bool = (cap_flags & 0x8000) > 0;
+};
+
+type Handshake_Response_Packet_v10 = record {
 	username     : NUL_String;
 	password     : bytestring &restofdata;
 };
@@ -352,6 +397,7 @@ refine connection MySQL_Conn += {
 		int state_;
 		Expected expected_;
 		uint32 col_count_;
+    bool ssl_server_support_;
 	%}
 
 	%init{
@@ -359,6 +405,7 @@ refine connection MySQL_Conn += {
 		state_ = CONNECTION_PHASE;
 		expected_ = EXPECT_STATUS;
 		col_count_ = 0;
+    ssl_server_support_ = false;
 	%}
 
 	function get_version(): uint8
@@ -372,7 +419,18 @@ refine connection MySQL_Conn += {
 		return true;
 		%}
 
-	function get_state(): int
+  function get_ssl_server_support(): bool
+		%{
+		return ssl_server_support_;
+		%}
+
+	function set_ssl_server_support(v: bool): bool
+		%{
+		ssl_server_support_ = v;
+		return true;
+		%}
+
+  function get_state(): int
 		%{
 		return state_;
 		%}

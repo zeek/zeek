@@ -25,9 +25,20 @@ refine flow MySQL_Flow += {
 		if ( mysql_handshake )
 			{
 			if ( ${msg.version} == 10 )
-				BifEvent::generate_mysql_handshake(connection()->bro_analyzer(),
-									    		   connection()->bro_analyzer()->Conn(),
-													bytestring_to_val(${msg.v10_response.username}));
+      	{
+        if ( ${msg.v10_response.client_ssl} )
+        	{
+          connection()->bro_analyzer()->StartTLS();
+				  BifEvent::generate_mysql_ssl_request(connection()->bro_analyzer(),
+                                               connection()->bro_analyzer()->Conn());
+          }
+        else
+        	{
+				  BifEvent::generate_mysql_handshake(connection()->bro_analyzer(),
+            				    		                 connection()->bro_analyzer()->Conn(),
+				                                     bytestring_to_val(${msg.v10_response.handshake_response.username}));
+          }
+				}
 			if ( ${msg.version} == 9 )
 				BifEvent::generate_mysql_handshake(connection()->bro_analyzer(),
 									    		   connection()->bro_analyzer()->Conn(),

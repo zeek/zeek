@@ -53,6 +53,18 @@ event mysql_handshake(c: connection, username: string)
 		info$id = c$id;
 		info$cmd = "login";
 		info$arg = username;
+		}
+	}
+
+event mysql_ssl_request(c: connection)
+	{
+	if ( ! c?$mysql )
+		{
+		local info: Info;
+		info$ts = network_time();
+		info$uid = c$uid;
+		info$id = c$id;
+		info$cmd = "ssl_login";
 		c$mysql = info;
 		}
 	}
@@ -126,6 +138,9 @@ event connection_state_remove(c: connection) &priority=-5
 	{
 	if ( c?$mysql )
 		{
+    if ( c?$ssl )
+    	c$mysql$success = T;
+    
 		Log::write(mysql::LOG, c$mysql);
 		delete c$mysql;
 		}

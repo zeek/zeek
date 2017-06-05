@@ -1,7 +1,15 @@
 
+2.5.1-beta | 2017-06-07 12:40:10 -0700
+
+  * Release 2.5.1-beta.
+
+  * Remove non-existing links; this broke documentation build. (Johanna Amann)
+
+  * Fix at_least in version.bro. (Johanna Amann)
+
 2.5-140 | 2017-05-12 15:31:32 -0400
 
-  * Lessen cluster load due to notice suppression. 
+  * Lessen cluster load due to notice suppression.
     (Johanna Amann, Justin Azoff)
 
 2.5-137 | 2017-05-04 11:37:48 -0500

@@ -36,6 +36,6 @@ print "yup";
 print "yup";
 @endif
 
-@if ( Version::at_least("2.4") )
+@if ( Version::at_least("2.9") )
 print "no";
 @endif

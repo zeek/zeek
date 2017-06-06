@@ -16,9 +16,11 @@ redef record Info += {
 # connection information is written to the log.
 event connection_state_remove(c: connection)
 	{
+	local flip = c$conn?$history && (strstr(c$conn$history, "^") > 0);
+	
 	if ( c$orig?$l2_addr )
-		c$conn$orig_l2_addr = c$orig$l2_addr;
+		c$conn$orig_l2_addr = flip ? c$resp$l2_addr : c$orig$l2_addr;
 
 	if ( c$resp?$l2_addr )
-		c$conn$resp_l2_addr = c$resp$l2_addr;
+		c$conn$resp_l2_addr = flip ? c$orig$l2_addr : c$resp$l2_addr;
 	}

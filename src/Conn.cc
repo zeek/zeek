@@ -439,6 +439,11 @@ analyzer::Analyzer* Connection::FindAnalyzer(const char* name)
 	return root_analyzer->FindChild(name);
 	}
 
+const analyzer::analyzer_list& Connection::GetAnalyzers()
+    {
+    return root_analyzer->GetChildren();
+    }
+
 void Connection::AppendAddl(const char* str)
 	{
 	Unref(BuildConnVal());

@@ -1,0 +1,31 @@
+## LDAP Modify Request and Response
+## Defined in RFC 4511
+## c: existing connection
+## pdu: corresponsing PDU
+
+event ldap_mod_req%(c: connection, pdu : LDAP::ModifyReqPDU%);
+event ldap_mod_res%(c: connection, pdu : LDAP::LDAPResultPDU%);
+
+## LDAP Delete Request and Response
+## Defined in RFC 4511
+## c: existing connection
+## pdu: corresponsing PDU
+
+event ldap_del_req%(c: connection, pdu : LDAP::DeleteReqPDU%);
+event ldap_del_res%(c: connection, pdu : LDAP::LDAPResultPDU%);
+
+## LDAP Add Request and Response
+## Defined in RFC 4511
+## c: existing connection
+## pdu: corresponsing PDU
+
+event ldap_add_req%(c: connection, pdu : LDAP::AddReqPDU%);
+event ldap_add_res%(c: connection, pdu : LDAP::LDAPResultPDU%);
+
+## LDAP Modify Distinguished Name Request and Response
+## Defined in RFC 4511
+## c: existing connection
+## pdu: corresponsing PDU
+
+event ldap_modDN_req%(c: connection, pdu : LDAP::ModifyDNReqPDU%);
+event ldap_modDN_res%(c: connection, pdu : LDAP::LDAPResultPDU%);

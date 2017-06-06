@@ -21,6 +21,8 @@ export {
 		uid:          string          &log;
 		## The connection's 4-tuple of endpoint addresses/ports.
 		id:           conn_id         &log;
+		## If the connection uses IPv6 this value will be T.
+		ipv6:         bool            &log;
 		## The transport layer protocol of the connection.
 		proto:        transport_proto &log;
 		## An identification of an application protocol being sent over
@@ -206,6 +208,7 @@ function set_conn(c: connection, eoc: bool)
 	c$conn$ts=c$start_time;
 	c$conn$uid=c$uid;
 	c$conn$id=c$id;
+	c$conn$ipv6=is_v6_addr(c$id$orig_h);
 	if ( c?$tunnel && |c$tunnel| > 0 )
 		add c$conn$tunnel_parents[c$tunnel[|c$tunnel|-1]$uid];
 	c$conn$proto=get_port_transport_proto(c$id$resp_p);

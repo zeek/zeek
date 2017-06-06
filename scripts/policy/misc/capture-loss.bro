@@ -45,6 +45,9 @@ export {
 	## generated. The value is expressed as a double between 0 and 1 with 1
 	## being 100%.
 	const too_much_loss: double = 0.1 &redef;
+
+	# Add in variable to disable log writing - this saves a lot of notice.log spam
+	const write_capture_loss_notice_logs: bool = T &redef;
 }
 
 event CaptureLoss::take_measurement(last_ts: time, last_acks: count, last_gaps: count)
@@ -66,9 +69,11 @@ event CaptureLoss::take_measurement(last_ts: time, last_acks: count, last_gaps: 
 	                    $acks=acks, $gaps=gaps, 
 	                    $percent_lost=pct_lost];
 	
-	if ( pct_lost >= too_much_loss*100 )
-		NOTICE([$note=Too_Much_Loss, 
-		        $msg=fmt("The capture loss script detected an estimated loss rate above %.3f%%", pct_lost)]);
+	if ( write_capture_loss_notice_logs == T ) {
+		if ( pct_lost >= too_much_loss*100 )
+			NOTICE([$note=Too_Much_Loss, 
+			        $msg=fmt("The capture loss script detected an estimated loss rate above %.3f%%", pct_lost)]);
+	}
 	
 	Log::write(LOG, info);
 	schedule watch_interval { CaptureLoss::take_measurement(now, g$ack_events, g$gap_events) };

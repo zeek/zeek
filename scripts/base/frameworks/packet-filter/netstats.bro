@@ -14,21 +14,26 @@ export {
 
 	## This is the interval between individual statistics collection.
 	const stats_collection_interval = 5min;
+
+	# Add in variable to disable log writing - this saves a lot of notice.log spam
+	const write_dropped_packets_notice_logs: bool = T &redef;
 }
 
 event net_stats_update(last_stat: NetStats)
 	{
 	local ns = get_net_stats();
 	local new_dropped = ns$pkts_dropped - last_stat$pkts_dropped;
-	if ( new_dropped > 0 )
-		{
-		local new_recvd = ns$pkts_recvd - last_stat$pkts_recvd;
-		local new_link = ns$pkts_link - last_stat$pkts_link;
-		NOTICE([$note=Dropped_Packets,
-		        $msg=fmt("%d packets dropped after filtering, %d received%s",
-		                 new_dropped, new_recvd + new_dropped,
-		                 new_link != 0 ? fmt(", %d on link", new_link) : "")]);
+	if (write_dropped_packets_notice_logs == T ) {
+		if ( new_dropped > 0 )
+			{
+			local new_recvd = ns$pkts_recvd - last_stat$pkts_recvd;
+			local new_link = ns$pkts_link - last_stat$pkts_link;
+			NOTICE([$note=Dropped_Packets,
+		        	$msg=fmt("%d packets dropped after filtering, %d received%s",
+		                 	new_dropped, new_recvd + new_dropped,
+		                 	new_link != 0 ? fmt(", %d on link", new_link) : "")]);
 		}
+	}
 
 	schedule stats_collection_interval { net_stats_update(ns) };
 	}

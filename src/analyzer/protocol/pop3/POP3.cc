@@ -880,6 +880,7 @@ int POP3_Analyzer::ParseCmd(string cmd)
 		for ( unsigned int i = 0; i < cmd.size(); ++i )
 			cmd[i] = toupper(cmd[i]);
 
+		// (error) Array 'pop3_cmd_word[1]' accessed at index 19, which is out of bounds.
 		if ( ! cmd.compare(pop3_cmd_word[code]) )
 			return code;
 		}

@@ -303,7 +303,7 @@ void Connection::InactivityTimer(double t)
 	// timeout once, but it's disabled now. We do nothing then.
 	if ( inactivity_timeout )
 		{
-		if ( last_time + inactivity_timeout <= t )
+		if ( last_time + inactivity_timeout >= t )
 			{
 			Event(connection_timeout, 0);
 			sessions->Remove(this);

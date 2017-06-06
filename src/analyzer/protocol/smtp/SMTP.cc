@@ -824,6 +824,7 @@ int SMTP_Analyzer::ParseCmd(int cmd_len, const char* cmd)
 		return SMTP_CMD_X_ANONYMOUSTLS;
 
 	for ( int code = SMTP_CMD_EHLO; code < SMTP_CMD_LAST; ++code )
+		// (error) Array 'smtp_cmd_word[1]' accessed at index 22, which is out of bounds.
 		if ( ! strncasecmp(cmd, smtp_cmd_word[code - SMTP_CMD_EHLO], cmd_len) )
 			return code;
 

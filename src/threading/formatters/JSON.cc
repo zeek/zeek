@@ -171,8 +171,12 @@ bool JSON::Describe(ODesc* desc, Value* val, const string& name) const
 				{
 				char c = val->val.string_val.data[i];
 
-				// 2byte Unicode escape special characters.
-				if ( c < 32 || c > 126 || c == '\n' || c == '"' || c == '\'' || c == '\\' || c == '&' )
+				if ( c == '"' )
+					{
+					desc->AddRaw("\\", 1);
+					desc->AddRaw("\"", 1);
+					}
+				else if ( c < 32 || c > 126 || c == '\n' || c == '\'' || c == '\\' || c == '&' )
 					{
 					desc->AddRaw("\\u00", 4);
 					char hex[2] = {'0', '0'};

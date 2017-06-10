@@ -76,7 +76,9 @@ static std::string RenderMessage(const broker::error& e)
 
 #endif
 
-Manager::Manager() : subscriber(endpoint, {})
+Manager::Manager()
+	: subscriber(endpoint.make_subscriber({})),
+	  event_subscriber(endpoint.make_event_subscriber(true))
 	{
 	routable = false;
 	bound_port = 0;
@@ -462,26 +464,29 @@ RecordVal* Manager::MakeEvent(val_list* args)
 bool Manager::Subscribe(const string& topic_prefix)
 	{
 	DBG_LOG(DBG_BROKER, "Subscribing to topic prefix %s", topic_prefix.c_str());
-	subscriptions.push_back(topic_prefix);
-	subscriber = broker::subscriber(endpoint, subscriptions);
+	subscriber.add_topic(topic_prefix);
 	return true;
 	}
 
 bool Manager::Unsubscribe(const string& topic_prefix)
 	{
 	DBG_LOG(DBG_BROKER, "Unsubscribing from topic prefix %s", topic_prefix.c_str());
-	subscriptions.erase(std::remove(subscriptions.begin(), subscriptions.end(), topic_prefix), subscriptions.end());
-	subscriber = broker::subscriber(endpoint, subscriptions);
+	subscriber.remove_topic(topic_prefix);
 	return true;
 	}
 
 void Manager::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
                            iosource::FD_Set* except)
 	{
-	// read->Insert(endpoint.mailbox().descriptor()); XXX
+	read->Insert(subscriber.fd());
+	read->Insert(event_subscriber.fd());
+	write->Insert(subscriber.fd());
+	write->Insert(event_subscriber.fd());
+	except->Insert(subscriber.fd());
+	except->Insert(event_subscriber.fd());
 
-	// for ( auto& x : data_stores )
-	//	read->Insert(x.second->proxy.mailbox().descriptor()); XX
+	for ( auto& x : data_stores )
+		read->Insert(x.second->proxy.mailbox().descriptor());
 	}
 
 double Manager::NextTimestamp(double* local_network_time)
@@ -494,14 +499,10 @@ double Manager::NextTimestamp(double* local_network_time)
 
 void Manager::Process()
 	{
-	while ( subscriber.available() )
+	while ( event_subscriber.available() )
 		{
-		auto elem = subscriber.get();
-		auto topic = elem.first;
-		auto data = elem.second;
+		auto elem = event_subscriber.get();
 
-#if 0
-		// XXX
 		if ( auto stat = broker::get_if<broker::status>(elem) )
 			{
 			ProcessStatus(std::move(*stat));
@@ -513,10 +514,19 @@ void Manager::Process()
 			ProcessError(std::move(*err));
 			continue;
 			}
-#endif
 
-		// An actual messasge.
+		reporter->InternalWarning("ignoring event_subscriber message with unexpected type");
+		continue;
+		}
 
+
+	while ( subscriber.available() )
+		{
+		auto elem = subscriber.get();
+		auto topic = elem.first;
+		auto data = elem.second;
+
+		// All messages come with a vector as data.
 		auto msg = broker::get_if<broker::vector>(data);
 
 		if ( ! msg )
@@ -886,6 +896,17 @@ void Manager::ProcessStatus(const broker::status stat)
 			auto network_info = new RecordVal(ni);
 			network_info->Assign(0, new AddrVal(IPAddr(ctx->network->address)));
 			network_info->Assign(1, new PortVal(ctx->network->port, TRANSPORT_TCP));
+			endpoint_info->Assign(1, network_info);
+			}
+		else
+			{
+			// TODO: This happens for all(?) status messages
+			// currently because Broker no longer passes the
+			// network info along with the status. Once fixed, remove this.
+			auto ni = internal_type("Broker::NetworkInfo")->AsRecordType();
+			auto network_info = new RecordVal(ni);
+			network_info->Assign(0, new AddrVal("0.0.0.0"));
+			network_info->Assign(1, new PortVal(0, TRANSPORT_TCP));
 			endpoint_info->Assign(1, network_info);
 			}
 		}

@@ -84,7 +84,7 @@ Manager::Manager()
 	bound_port = 0;
 
 	next_timestamp = 1;
-	SetIdle(true);
+	SetIdle(false);
 	}
 
 Manager::~Manager()
@@ -491,16 +491,29 @@ void Manager::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
 
 double Manager::NextTimestamp(double* local_network_time)
 	{
-	if ( next_timestamp < 0 )
-		next_timestamp = timer_mgr->Time();
+	if ( ! IsIdle() )
+		return timer_mgr->Time();
 
-	return next_timestamp;
+	if ( event_subscriber.available() || subscriber.available() )
+		return timer_mgr->Time();
+
+	for ( auto &s : data_stores )
+		{
+		if ( ! s.second->proxy.mailbox().empty() )
+			return timer_mgr->Time();
+		}
+
+	return -1;
 	}
 
 void Manager::Process()
 	{
+	bool had_input = false;
+
 	while ( event_subscriber.available() )
 		{
+		had_input = true;
+
 		auto elem = event_subscriber.get();
 
 		if ( auto stat = broker::get_if<broker::status>(elem) )
@@ -516,12 +529,13 @@ void Manager::Process()
 			}
 
 		reporter->InternalWarning("ignoring event_subscriber message with unexpected type");
-		continue;
 		}
 
 
 	while ( subscriber.available() )
 		{
+		had_input = true;
+
 		auto elem = subscriber.get();
 		auto topic = elem.first;
 		auto data = elem.second;
@@ -603,12 +617,13 @@ void Manager::Process()
 		{
 		while ( ! s.second->proxy.mailbox().empty())
 			{
+			had_input = true;
 			auto response = s.second->proxy.receive();
 			ProcessStoreResponse(s.second, move(response));
 			}
 		}
 
-	next_timestamp = -1;
+	SetIdle(! had_input);
 	}
 
 void Manager::ProcessEvent(const broker::vector xs)

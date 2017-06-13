@@ -1,10 +1,16 @@
 
+2.5-156 | 2017-06-13 11:01:56 -0700
+
+  * Add 2.5.1 news file to master. (Johanna Amann)
+
+  * Remove link to no longer existing myricom plugin. (Johanna Amann)
+
 2.5-152 | 2017-06-05 15:16:49 -0700
 
   * Remove non-existing links; this broke documentation build. (Johanna Amann)
 
   * Fix at_least in Version.bro - it did exactly the oposite of the documented
-	  behavior. (Johanna Amann)
+    behavior. (Johanna Amann)
 
 2.5-147 | 2017-05-22 20:32:32 -0500
 

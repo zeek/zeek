@@ -11,9 +11,16 @@ event http_header(c: connection, is_orig: bool, name: string, value: string)
 			case "HOST":
 			# The split is done to remove the occasional port value that shows up here (see also base script)
 			local host = split_string1(value, /:/)[0];
+			# www_strip converts www.domain.com to domain.com for intel matching purposes
+			local www_strip = split_string1(c$http$host, /\./);
 			if ( is_valid_ip(host) )
 				Intel::seen([$host=to_addr(host),
 					     $indicator_type=Intel::ADDR,
+					     $conn=c,
+					     $where=HTTP::IN_HOST_HEADER]);
+			else if ( www_strip[0] == /www/ )
+				Intel::seen([$indicator=www_strip[1],
+					     $indicator_type=Intel::DOMAIN,
 					     $conn=c,
 					     $where=HTTP::IN_HOST_HEADER]);
 			else

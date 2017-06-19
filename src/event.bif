@@ -1023,6 +1023,29 @@ event dns_mapping_lost_name%(dm: dns_mapping%);
 ##    dns_mapping_valid
 event dns_mapping_altered%(dm: dns_mapping, old_addrs: addr_set, new_addrs: addr_set%);
 
+## Generated when an the hardware NIC is sending statistics to the Bro instance
+## inside a packet about a given rule.
+##
+## src: Source prefix of the rule for which statistics are received.
+##
+## dst: Destination prefix of the rule for which statistics are received.
+##
+## src_port: Source port of the rule for which statistics are received
+## (0 means that any port is matched by the rule).
+##
+## dst_port: Destination port of the rule for which statistics are received
+## (0 means that any port is matched by the rule).
+##
+## tcp: Set to 1 if TCP packets are matched by the rule
+##
+## udp: Set to 1 if UDP packets are matched by the rule
+##
+## fl_pktcnt: Current packet counter's value for the rule specified by the
+## previous arguments
+##
+## .. bro:see:: TODO
+event hardware_stat_received%(src: subnet, dst: subnet, src_port: port, dst_port: port, tcp: int, udp: int, fl_pktcnt: int%);
+
 ## A meta event generated for events that Bro raises. This will report all
 ## events for which at least one handler is defined.
 ##

@@ -3,6 +3,10 @@
 #include "Sessions.h"
 #include "iosource/Manager.h"
 
+#include "Val.h"
+#include "Event.h"
+#include "Trigger.h"
+
 extern "C" {
 #ifdef HAVE_NET_ETHERNET_H
 #include <net/ethernet.h>
@@ -105,6 +109,8 @@ void Packet::ProcessLayer2()
 	// labels are in place.
 	bool have_mpls = false;
 
+	bool have_stats = false;
+
 	const u_char* pdata = data;
 	const u_char* end_of_data = data + cap_len;
 
@@ -145,6 +151,17 @@ void Packet::ProcessLayer2()
 		l2_src = pdata + 6;
 
 		pdata += GetLinkHeaderSize(link_type);
+
+		// Parse statistics carried over the ethernet frame
+		if ( protocol == 0x8900 )
+			{
+			have_stats = true;
+			if (this->ProcessStatHeader(&pdata, end_of_data, &protocol))
+				{
+					Weird("Unparsable statistics header");
+					return;
+				}
+			}
 
 		switch ( protocol )
 			{
@@ -217,7 +234,7 @@ void Packet::ProcessLayer2()
 			}
 
 		// Normal path to determine Layer 3 protocol.
-		if ( ! have_mpls && l3_proto == L3_UNKNOWN )
+		if ( ! have_mpls && ! have_stats && l3_proto == L3_UNKNOWN )
 			{
 			if ( protocol == 0x800 )
 				l3_proto = L3_IPV4;
@@ -635,4 +652,107 @@ Packet* Packet::Unserialize(UnserialInfo* info)
 #endif
 
 	return p;
+	}
+
+static void send_stat_event(PortVal *srcPort, PortVal *dstPort, SubNetVal *src,
+			    SubNetVal *dst, Val *tcp, Val *udp, Val *fl_pktcnt)
+	{
+		val_list *val = new val_list(2);
+		val->append(src);
+		val->append(dst);
+		val->append(srcPort);
+		val->append(dstPort);
+		val->append(tcp);
+		val->append(udp);
+		val->append(fl_pktcnt ? fl_pktcnt : new Val(0, TYPE_INT));
+		mgr.QueueEvent(hardware_stat_received, val);
+	}
+
+int Packet::ProcessStatHeader(const u_char **pdata, const u_char *end_of_data,
+			      int *protocol)
+	{
+	bool stat_headers = true;
+	unsigned int header_len = 0;
+	int next_protocol = ((*pdata)[0] << 8) + (*pdata)[1];
+	int next_header_len = 0;
+	uint32 *pdata_word = (uint32 *) *pdata;
+
+	PortVal *srcPort = NULL, *dstPort = NULL;
+	SubNetVal *src = NULL, *dst = NULL;
+	Val *tcp = NULL, *udp = NULL, *fl_pktcnt = NULL;
+
+	*protocol = 0x0001; /* Always first TLV */
+	for (header_len = 4 + ntohs(((*pdata)[2] << 8) + (*pdata)[3]);
+	     stat_headers && (*pdata) + header_len <= end_of_data;
+	     (*pdata) += header_len, header_len = next_header_len)
+	{
+		stat_headers = next_protocol <= 4 && next_protocol > 0; /* FIXME Ugly */
+
+		/* TODO Check length for each option ! */
+		/* TODO Check maximum prefix lenght since it leads to internal error */
+		switch (*protocol) {
+		case 0x0001 : /* Shortcut */
+			break;
+		case 0x0002 : /* Flowspec IPv6 */
+			if (src)
+				{
+				send_stat_event(srcPort, dstPort, src, dst, tcp,
+						udp, fl_pktcnt);
+				fl_pktcnt = NULL;
+				}
+			pdata_word = (uint32 *) *pdata;
+			src = new SubNetVal(&pdata_word[1], (*pdata)[36]);
+			dst = new SubNetVal(&pdata_word[5], (*pdata)[37]);
+			tcp = new Val((*pdata)[38] >> 7, TYPE_INT);
+			udp = new Val((*pdata)[38] >> 6, TYPE_INT);
+			srcPort = new PortVal(ntohs(((*pdata)[40] << 8) + (*pdata)[41]));
+			dstPort = new PortVal(ntohs(((*pdata)[42] << 8) + (*pdata)[43]));
+			break;
+		case 0x0003 : /* Flowspec IPv4 */
+			if (src)
+				{
+				send_stat_event(srcPort, dstPort, src, dst, tcp,
+						udp, fl_pktcnt);
+				fl_pktcnt = NULL;
+				}
+			pdata_word = (uint32 *) *pdata;
+			src = new SubNetVal(ntohl(pdata_word[1]), (*pdata)[12]);
+			dst = new SubNetVal(ntohl(pdata_word[2]), (*pdata)[13]);
+			tcp = new Val((*pdata)[14] >> 7 & 0x1, TYPE_INT);
+			udp = new Val((*pdata)[14] >> 6 & 0x1, TYPE_INT);
+			srcPort = new PortVal(ntohs(((*pdata)[16] << 8) + (*pdata)[17]));
+			dstPort = new PortVal(ntohs(((*pdata)[18] << 8) + (*pdata)[19]));
+			break;
+		case 0x0004 : /* Flow packet count */
+			if (!src)
+				{
+				Weird("Flow packet count not attached to a flowspec");
+				return -1;
+				}
+			else if (fl_pktcnt)
+				{
+				Weird("Two Flow packet count for a single flowspec");
+				return -1;
+				}
+			fl_pktcnt = new Val(htonl(((uint64 *) (*pdata))[1]), TYPE_INT);
+			break;
+		}
+
+		*protocol = next_protocol;
+		if (stat_headers)
+			{
+			next_header_len = 4 + ntohs(((*pdata)[header_len + 2] << 8) + (*pdata)[header_len + 3]);
+			next_protocol = ((*pdata)[header_len] << 8) + (*pdata)[header_len + 1];
+			}
+	}
+
+	if (stat_headers)
+		Weird("Truncated statistic header");
+	else if (src)
+		send_stat_event(srcPort, dstPort, src, dst, tcp, udp,
+				fl_pktcnt);
+
+	// Stat headers should have been parsed here
+	// (otherwise it is a length issue)
+	return stat_headers;
 	}

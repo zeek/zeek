@@ -221,6 +221,11 @@ private:
 	// Renders an MAC address into its ASCII representation.
 	Val *FmtEUI48(const u_char *mac) const;
 
+	// Parses statistics headers and triggers some events
+	// Moves pdata pointer and sets protocol to the etype of the header
+	// below statistic header.
+	int ProcessStatHeader(const u_char **pdata, const u_char *end_of_data, int *protocol);
+
 	// True if we need to delete associated packet memory upon
 	// destruction.
 	bool copy;

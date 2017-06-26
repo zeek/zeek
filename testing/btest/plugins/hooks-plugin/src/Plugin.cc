@@ -3,6 +3,8 @@
 
 #include <Func.h>
 #include <Event.h>
+#include <Conn.h>
+#include <threading/Formatter.h>
 
 namespace plugin { namespace Demo_Hooks { Plugin plugin; } }
 
@@ -18,6 +20,9 @@ plugin::Configuration Plugin::Configure()
 	EnableHook(META_HOOK_PRE);
 	EnableHook(META_HOOK_POST);
 	EnableHook(HOOK_BRO_OBJ_DTOR);
+	EnableHook(HOOK_SETUP_ANALYZER_TREE);
+	EnableHook(HOOK_LOG_INIT);
+	EnableHook(HOOK_LOG_WRITE);
 
 	plugin::Configuration config;
 	config.name = "Demo::Hooks";
@@ -120,4 +125,135 @@ void Plugin::MetaHookPost(HookType hook, const HookArgumentList& args, HookArgum
 	fprintf(stderr, "%.6f %-15s %s(%s) -> %s\n", network_time, "  MetaHookPost",
 		hook_name(hook), d1.Description(),
 		d2.Description());
+	}
+
+void Plugin::HookSetupAnalyzerTree(Connection *conn)
+	{
+	ODesc d;
+	d.SetShort();
+	conn->Describe(&d);
+
+	fprintf(stderr, "%.6f %-15s %s\n", network_time, "| HookSetupAnalyzerTree", d.Description());
+	}
+
+void Plugin::HookLogInit(const std::string& writer, const std::string& instantiating_filter, bool local, bool remote, const logging::WriterBackend::WriterInfo& info, int num_fields, const threading::Field* const* fields)
+	{
+	ODesc d;
+
+	d.Add("{");
+	for ( int i=0; i < num_fields; i++ )
+		{
+		const threading::Field* f = fields[i];
+
+		if ( i > 0 )
+			d.Add(", ");
+
+		d.Add(f->name);
+		d.Add(" (");
+		d.Add(f->TypeName());
+		d.Add(")");
+		}
+	d.Add("}");
+
+	fprintf(stderr, "%.6f %-15s %s %d/%d %s\n", network_time, "| HookLogInit", info.path, local, remote, d.Description());
+	}
+
+void Plugin::RenderVal(const threading::Value* val, ODesc &d) const
+	{
+		if ( ! val->present )
+			{
+			d.Add("<uninitialized>");
+			return;
+			}
+
+		switch ( val->type ) {
+
+			case TYPE_BOOL:
+				d.Add(val->val.int_val ? "T" : "F");
+				break;
+
+			case TYPE_INT:
+				d.Add(val->val.int_val);
+				break;
+
+			case TYPE_COUNT:
+			case TYPE_COUNTER:
+				d.Add(val->val.uint_val);
+				break;
+
+			case TYPE_PORT:
+				d.Add(val->val.port_val.port);
+				break;
+
+			case TYPE_SUBNET:
+				d.Add(threading::formatter::Formatter::Render(val->val.subnet_val));
+				break;
+
+			case TYPE_ADDR:
+				d.Add(threading::formatter::Formatter::Render(val->val.addr_val));
+				break;
+
+			case TYPE_DOUBLE:
+				d.Add(val->val.double_val, true);
+				break;
+
+			case TYPE_INTERVAL:
+			case TYPE_TIME:
+				d.Add(threading::formatter::Formatter::Render(val->val.double_val));
+				break;
+
+			case TYPE_ENUM:
+			case TYPE_STRING:
+			case TYPE_FILE:
+			case TYPE_FUNC:
+				d.AddN(val->val.string_val.data, val->val.string_val.length);
+				break;
+
+			case TYPE_TABLE:
+				for ( int j = 0; j < val->val.set_val.size; j++ )
+					{
+					if ( j > 0 )
+						d.Add(",");
+
+					RenderVal(val->val.set_val.vals[j], d);
+					}
+				break;
+
+			case TYPE_VECTOR:
+				for ( int j = 0; j < val->val.vector_val.size; j++ )
+					{
+					if ( j > 0 )
+						d.Add(",");
+
+					RenderVal(val->val.vector_val.vals[j], d);
+					}
+				break;
+
+			default:
+				assert(false);
+		}
+	}
+
+bool Plugin::HookLogWrite(const std::string& writer, const std::string& filter, const logging::WriterBackend::WriterInfo& info, int num_fields, const threading::Field* const* fields, threading::Value** vals)
+	{
+	ODesc d;
+
+	d.Add("[");
+	for ( int i=0; i < num_fields; i++ )
+		{
+		const threading::Field* f = fields[i];
+		const threading::Value* val = vals[i];
+
+		if ( i > 0 )
+			d.Add(", ");
+
+		d.Add(f->name);
+		d.Add("=");
+
+		RenderVal(val, d);
+		}
+	d.Add("]");
+
+	fprintf(stderr, "%.6f %-15s %s %s\n", network_time, "| HookLogWrite", info.path, d.Description());
+	return true;
 	}

@@ -4039,6 +4039,7 @@ function set_inactivity_timeout%(cid: conn_id, t: interval%): interval
 ##
 ## .. bro:see:: active_file open_for_append close write_file
 ##              get_file_name set_buf flush_all mkdir enable_raw_output
+##              rmdir unlink rename
 function open%(f: string%): file
 	%{
 	const char* file = f->CheckString();
@@ -4058,6 +4059,7 @@ function open%(f: string%): file
 ##
 ## .. bro:see:: active_file open close write_file
 ##              get_file_name set_buf flush_all mkdir enable_raw_output
+##              rmdir unlink rename
 function open_for_append%(f: string%): file
 	%{
 	return new Val(new BroFile(f->CheckString(), "a"));
@@ -4071,6 +4073,7 @@ function open_for_append%(f: string%): file
 ##
 ## .. bro:see:: active_file open open_for_append write_file
 ##              get_file_name set_buf flush_all mkdir enable_raw_output
+##              rmdir unlink rename
 function close%(f: file%): bool
 	%{
 	return new Val(f->Close(), TYPE_BOOL);
@@ -4086,6 +4089,7 @@ function close%(f: file%): bool
 ##
 ## .. bro:see:: active_file open open_for_append close
 ##              get_file_name set_buf flush_all mkdir enable_raw_output
+##              rmdir unlink rename
 function write_file%(f: file, data: string%): bool
 	%{
 	if ( ! f )
@@ -4106,6 +4110,7 @@ function write_file%(f: file, data: string%): bool
 ##
 ## .. bro:see:: active_file open open_for_append close
 ##              get_file_name write_file flush_all mkdir enable_raw_output
+##              rmdir unlink rename
 function set_buf%(f: file, buffered: bool%): any
 	%{
 	f->SetBuf(buffered);
@@ -4118,6 +4123,7 @@ function set_buf%(f: file, buffered: bool%): any
 ##
 ## .. bro:see:: active_file open open_for_append close
 ##              get_file_name write_file set_buf mkdir enable_raw_output
+##              rmdir unlink rename
 function flush_all%(%): bool
 	%{
 	return new Val(fflush(0) == 0, TYPE_BOOL);
@@ -4127,17 +4133,102 @@ function flush_all%(%): bool
 ##
 ## f: The directory name.
 ##
-## Returns: Returns true if the operation succeeds or if *f* already exists,
+## Returns: True if the operation succeeds or if *f* already exists,
 ##          and false if the file creation fails.
 ##
 ## .. bro:see:: active_file open_for_append close write_file
 ##              get_file_name set_buf flush_all enable_raw_output
+##              rmdir unlink rename
 function mkdir%(f: string%): bool
 	%{
 	const char* filename = f->CheckString();
-	if ( mkdir(filename, 0777) < 0 && errno != EEXIST )
+
+	if ( mkdir(filename, 0777) < 0 )
 		{
-		builtin_error("cannot create directory", @ARG@[0]);
+		int error = errno;
+		struct stat filestat;
+		// check if already exists and is directory.
+		if ( errno == EEXIST && stat(filename, &filestat) == 0
+		     && S_ISDIR(filestat.st_mode) )
+			return new Val(1, TYPE_BOOL);
+
+		builtin_error(fmt("cannot create directory '%s': %s", filename,
+		                  strerror(error)));
+		return new Val(0, TYPE_BOOL);
+		}
+	else
+		return new Val(1, TYPE_BOOL);
+	%}
+
+
+## Removes a directory.
+##
+## d: The directory name.
+##
+## Returns: True if the operation succeeds, and false if the
+##          directory delete operation fails.
+##
+## .. bro:see:: active_file open_for_append close write_file
+##              get_file_name set_buf flush_all enable_raw_output
+##              mkdir unlink rename
+function rmdir%(d: string%): bool
+	%{
+	const char* dirname = d->CheckString();
+
+	if ( rmdir(dirname) < 0 )
+		{
+		builtin_error(fmt("cannot remove directory '%s': %s", dirname,
+		                  strerror(errno)));
+		return new Val(0, TYPE_BOOL);
+		}
+	else
+		return new Val(1, TYPE_BOOL);
+	%}
+
+## Removes a file from a directory.
+##
+## f: the file to delete.
+##
+## Returns: True if the operation succeeds and the file was deleted,
+##          and false if the deletion fails.
+##
+## .. bro:see:: active_file open_for_append close write_file
+##              get_file_name set_buf flush_all enable_raw_output
+##              mkdir rmdir rename
+function unlink%(f: string%): bool
+	%{
+	const char* filename = f->CheckString();
+
+	if ( unlink(filename) < 0 )
+		{
+		builtin_error(fmt("cannot unlink file '%s': %s", filename,
+		                  strerror(errno)));
+		return new Val(0, TYPE_BOOL);
+		}
+	else
+		return new Val(1, TYPE_BOOL);
+	%}
+
+## Renames a file from src_f to dst_f.
+##
+## src_f: the name of the file to rename.
+##
+## dest_f: the name of the file after the rename operation.
+##
+## Returns: True if the rename succeeds and false otherwise.
+##
+## .. bro:see:: active_file open_for_append close write_file
+##              get_file_name set_buf flush_all enable_raw_output
+##              mkdir rmdir unlink
+function rename%(src_f: string, dst_f: string%): bool
+	%{
+	const char* src_filename = src_f->CheckString();
+	const char* dst_filename = dst_f->CheckString();
+
+	if ( rename(src_filename, dst_filename) < 0 )
+		{
+		builtin_error(fmt("cannot rename file '%s' to '%s': %s", src_filename,
+		                  dst_filename, strerror(errno)));
 		return new Val(0, TYPE_BOOL);
 		}
 	else

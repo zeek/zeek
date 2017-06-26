@@ -316,31 +316,14 @@ Analyzing live traffic from an interface is simple:
 
    bro -i en0 <list of scripts to load>
 
-``en0`` can be replaced by the interface of your choice and for the list of
-scripts, you can just use "all" for now to perform all the default analysis
-that's available.
+``en0`` can be replaced by the interface of your choice. A selection
+of common base scripts will be loaded by default.
 
 Bro will output log files into the working directory.
 
 .. note:: The FAQ_ entries about
    capturing as an unprivileged user and checksum offloading are
    particularly relevant at this point.
-
-To use the site-specific ``local.bro`` script, just add it to the
-command-line:
-
-.. console::
-
-   bro -i en0 local
-
-This will cause Bro to print a warning about lacking the
-``Site::local_nets`` variable being configured. You can supply this
-information at the command line like this (supply your "local" subnets
-in place of the example subnets):
-
-.. console::
-
-   bro -r mypackets.trace local "Site::local_nets += { 1.2.3.0/24, 5.6.7.0/24 }"
 
 
 Reading Packet Capture (pcap) Files
@@ -373,7 +356,6 @@ script that we include as a suggested configuration:
 
   bro -r mypackets.trace local
 
-
 Telling Bro Which Scripts to Load
 ---------------------------------
 
@@ -381,33 +363,65 @@ A command-line invocation of Bro typically looks like:
 
 .. console::
 
-   bro <options> <policies...>
+   bro <options> <scripts...>
 
 Where the last arguments are the specific policy scripts that this Bro
 instance will load.  These arguments don't have to include the ``.bro``
-file extension, and if the corresponding script resides under the default
-installation path, ``$PREFIX/share/bro``, then it requires no path
-qualification.  Further, a directory of scripts can be specified as
-an argument to be loaded as a "package" if it contains a ``__load__.bro``
-script that defines the scripts that are part of the package.
+file extension, and if the corresponding script resides in the default
+search path, then it requires no path qualification.  The following 
+directories are included in the default search path for Bro scripts::
+   
+   ./
+   <prefix>/share/bro/
+   <prefix>/share/bro/policy/
+   <prefix>/share/bro/site/
 
-This example does all of the base analysis (primarily protocol
-logging) and adds SSL certificate validation.
+These prefix paths can be used to load scripts like this:
 
 .. console::
 
-   bro -r mypackets.trace protocols/ssl/validate-certs
+   bro -r mypackets.trace frameworks/files/extract-all
+
+This will load the 
+``<prefix>/share/bro/policy/frameworks/files/extract-all.bro`` script which will
+cause Bro to extract all of the files it discovers in the PCAP.
+
+.. note:: If one wants Bro to be able to load scripts that live outside the
+   default directories in Bro's installation root, the full path to the file(s)
+   must be provided.  See the default search path by running ``bro --help``.
 
 You might notice that a script you load from the command line uses the
 ``@load`` directive in the Bro language to declare dependence on other scripts.
 This directive is similar to the ``#include`` of C/C++, except the semantics
 are, "load this script if it hasn't already been loaded."
 
-.. note:: If one wants Bro to be able to load scripts that live outside the
-   default directories in Bro's installation root, the ``BROPATH`` environment
-   variable will need to be extended to include all the directories that need
-   to be searched for scripts.  See the default search path by doing
-   ``bro --help``.
+Further, a directory of scripts can be specified as
+an argument to be loaded as a "package" if it contains a ``__load__.bro``
+script that defines the scripts that are part of the package.
+
+Local site customization
+------------------------
+
+There is one script that is installed which is considered "local site 
+customization" and is not overwritten when upgrades take place. To use 
+the site-specific ``local.bro`` script, just add it to the command-line (can
+also be loaded through scripts with @load):
+
+.. console::
+
+   bro -i en0 local
+
+This causes Bro to load a script that prints a warning about lacking the
+``Site::local_nets`` variable being configured. You can supply this
+information at the command line like this (supply your "local" subnets
+in place of the example subnets):
+
+.. console::
+
+   bro -r mypackets.trace local "Site::local_nets += { 1.2.3.0/24, 5.6.7.0/24 }"
+
+When running with Broctl, this value is set by configuring the ``networks.cfg``
+file.
 
 Running Bro Without Installing
 ------------------------------

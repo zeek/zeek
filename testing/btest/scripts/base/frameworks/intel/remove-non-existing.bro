@@ -9,7 +9,7 @@
 192.168.1.1	Intel::ADDR	source1	this host is just plain baaad	http://some-data-distributor.com/1
 # @TEST-END-FILE
 
-@load frameworks/communication/listen
+redef exit_only_after_terminate = T;
 
 redef Intel::read_files += { "../intel.dat" };
 redef enum Intel::Where += { SOMEWHERE };

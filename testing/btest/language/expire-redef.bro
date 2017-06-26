@@ -3,8 +3,6 @@
 
 redef exit_only_after_terminate = T;
 
-@load frameworks/communication/listen
-
 const exp_val = -1sec &redef;
 
 global expired: function(tbl: table[int] of string, idx: int): interval;

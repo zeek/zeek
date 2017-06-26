@@ -1,4 +1,88 @@
 
+2.5-156 | 2017-06-13 11:01:56 -0700
+
+  * Add 2.5.1 news file to master. (Johanna Amann)
+
+  * Remove link to no longer existing myricom plugin. (Johanna Amann)
+
+2.5-152 | 2017-06-05 15:16:49 -0700
+
+  * Remove non-existing links; this broke documentation build. (Johanna Amann)
+
+  * Fix at_least in Version.bro - it did exactly the oposite of the documented
+    behavior. (Johanna Amann)
+
+2.5-147 | 2017-05-22 20:32:32 -0500
+
+  * Add nfs unittest. (Julien Wallior)
+
+  * Added nfs_proc_rename event to rpc/nfs protocol analyzer.
+    (Roberto Del Valle Rodriguez)
+
+  * Expand parsing of RPC Call packets to add Uid, Gid, Stamp, MachineName
+    and AuxGIDs (Julien Wallior)
+
+  * Fix NFS protocol parser. (Julien Wallior)
+
+2.5-142 | 2017-05-22 00:08:52 -0500
+
+  * Add gzip log writing to the ascii writer.
+
+    This feature can be enabled globally for all logs by setting
+    LogAscii::gzip_level to a value greater than 0.
+
+    This feature can be enabled on a per-log basis by setting gzip-level in
+    $config to a value greater than 0. (Corelight)
+
+2.5-140 | 2017-05-12 15:31:32 -0400
+
+  * Lessen cluster load due to notice suppression. 
+    (Johanna Amann, Justin Azoff)
+
+2.5-137 | 2017-05-04 11:37:48 -0500
+
+  * Add plugin hooks for log init and writing: HookLogInit and HookLogWrite.
+    (Corelight)
+
+  * TLS: Fix compile warning (comparison between signed/unsigned).
+
+    This was introduced with the addition of new TLS1.3 extensions. (Johanna Amann)
+
+
+2.5-134 | 2017-05-01 10:34:34 -0500
+
+  * Add rename, unlink, and rmdir bifs. (Corelight)
+
+2.5-131 | 2017-04-21 14:27:16 -0700
+
+  * Guard more format strings with __attribute__((format)). (Johanna Amann)
+
+  * Add support for two TLS 1.3 extensions.
+
+    New events:
+        - event ssl_extension_supported_versions(c: connection, is_orig: bool, versions: index_vec)
+        - event ssl_extension_psk_key_exchange_modes(c: connection, is_orig: bool, modes: index_vec) (Johanna Amann)
+
+2.5-125 | 2017-04-17 22:02:39 +0200
+
+  * Documentation updates for loading Bro scripts. (Seth Hall)
+
+2.5-123 | 2017-04-10 13:30:14 -0700
+
+  * Fix some failing tests by increasing delay times. (Daniel Thayer)
+
+  * Threading Types: add a bit of documentation to subnet type. (Johanna Amann)
+
+  * Fixing couple issues reported by Coverity. (Robin Sommer)
+
+2.5-119 | 2017-04-07 10:30:09 -0700
+
+  * Fix the test group name in some broker test files. (Daniel Thayer)
+
+  * NetControl: small rule_error changes (test, call fix). (Johanna Amann)
+
+  * SSL: update dpd signature for TLS1.3. (Johanna Amann)
+
 2.5-115 | 2017-03-23 07:25:41 -0700
 
   * Fix a test that was failing on some platforms. (Daniel Thayer)
@@ -38,7 +122,7 @@
 
 2.5-84 | 2017-02-27 15:08:55 -0500
 
-  * Change semantics of Broker's remote logging to match old communication 
+  * Change semantics of Broker's remote logging to match old communication
     framework. (Robin Sommer)
 
   * Add and fix documentation for HookSetupAnalyzerTree (Johanna Amann)

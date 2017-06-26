@@ -9,8 +9,9 @@
 1.2.3.4	Intel::ADDR	source1	this host is bad	http://some-data-distributor.com/1
 # @TEST-END-FILE
 
-@load frameworks/communication/listen
 @load frameworks/intel/do_expire
+
+redef exit_only_after_terminate = T;
 
 redef Intel::read_files += { "../intel.dat" };
 redef enum Intel::Where += { SOMEWHERE };
@@ -44,6 +45,8 @@ event do_it()
 
 	if ( runs < 6 )
 		schedule 3sec { do_it() };
+	else
+		terminate();
 	}
 
 event Intel::match(s: Intel::Seen, items: set[Intel::Item])

@@ -50,6 +50,8 @@ Ascii::Ascii(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	{
 	mtime = 0;
 	suppress_warnings = false;
+	fail_on_file_problem = false;
+	fail_on_invalid_lines = false;
 	}
 
 Ascii::~Ascii()

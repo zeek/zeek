@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include <algorithm>
+#include <vector>
 
 #include "bro-config.h"
 
@@ -66,6 +67,10 @@ int NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 
 	case BifEnum::NFS3::PROC_RMDIR:
 		callarg = nfs3_diropargs(buf, n);
+		break;
+
+	case BifEnum::NFS3::PROC_RENAME:
+		callarg = nfs3_renameopargs(buf, n);
 		break;
 
 	case BifEnum::NFS3::PROC_READDIR:
@@ -196,6 +201,11 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 		event = nfs_proc_rmdir;
 		break;
 
+	case BifEnum::NFS3::PROC_RENAME:
+		reply = nfs3_renameobj_reply(buf, n);
+		event = nfs_proc_rename;
+		break;
+
 	case BifEnum::NFS3::PROC_READDIR:
 		reply = nfs3_readdir_reply(false, buf, n, nfs_status);
 		event = nfs_proc_readdir;
@@ -250,8 +260,9 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 
 		analyzer->ConnectionEvent(event, vl);
 		}
+	else
+		Unref(reply);
 
-	Unref(reply);
 	return 1;
 	}
 
@@ -288,6 +299,10 @@ val_list* NFS_Interp::event_common_vl(RPC_CallInfo *c, BifEnum::rpc_status rpc_s
 	// These are the first parameters for each nfs_* event ...
 	val_list *vl = new val_list;
 	vl->append(analyzer->BuildConnVal());
+	VectorVal* auxgids = new VectorVal(internal_type("index_vec")->AsVectorType());
+
+	for ( size_t i = 0; i < c->AuxGIDs().size(); ++i )
+		auxgids->Assign(i, new Val(c->AuxGIDs()[i], TYPE_COUNT));
 
 	RecordVal *info = new RecordVal(BifType::Record::NFS3::info_t);
 	info->Assign(0, new EnumVal(rpc_status, BifType::Enum::rpc_status));
@@ -298,6 +313,11 @@ val_list* NFS_Interp::event_common_vl(RPC_CallInfo *c, BifEnum::rpc_status rpc_s
 	info->Assign(5, new Val(rep_start_time, TYPE_TIME));
 	info->Assign(6, new Val(rep_last_time-rep_start_time, TYPE_INTERVAL));
 	info->Assign(7, new Val(reply_len, TYPE_COUNT));
+	info->Assign(8, new Val(c->Uid(), TYPE_COUNT));
+	info->Assign(9, new Val(c->Gid(), TYPE_COUNT));
+	info->Assign(10, new Val(c->Stamp(), TYPE_COUNT));
+	info->Assign(11, new StringVal(c->MachineName()));
+	info->Assign(12, auxgids);
 
 	vl->append(info);
 	return vl;
@@ -374,6 +394,17 @@ RecordVal *NFS_Interp::nfs3_diropargs(const u_char*& buf, int& n)
 	return diropargs;
 	}
 
+RecordVal *NFS_Interp::nfs3_renameopargs(const u_char*& buf, int& n)
+	{
+	RecordVal *renameopargs = new RecordVal(BifType::Record::NFS3::renameopargs_t);
+
+	renameopargs->Assign(0, nfs3_fh(buf, n));
+	renameopargs->Assign(1, nfs3_filename(buf, n));
+	renameopargs->Assign(2, nfs3_fh(buf, n));
+	renameopargs->Assign(3, nfs3_filename(buf, n));
+
+	return renameopargs;
+	}
 
 RecordVal* NFS_Interp::nfs3_post_op_attr(const u_char*& buf, int& n)
 	{
@@ -558,6 +589,19 @@ RecordVal* NFS_Interp::nfs3_delobj_reply(const u_char*& buf, int& n)
 	return rep;
 	}
 
+RecordVal* NFS_Interp::nfs3_renameobj_reply(const u_char*& buf, int& n)
+	{
+	RecordVal *rep = new RecordVal(BifType::Record::NFS3::renameobj_reply_t);
+
+	// wcc_data
+	rep->Assign(0, nfs3_pre_op_attr(buf, n));
+	rep->Assign(1, nfs3_post_op_attr(buf, n));
+	rep->Assign(2, nfs3_pre_op_attr(buf, n));
+	rep->Assign(3, nfs3_post_op_attr(buf, n));
+
+	return rep;
+	}
+
 RecordVal* NFS_Interp::nfs3_readdirargs(bool isplus, const u_char*& buf, int&n)
 	{
 	RecordVal *args = new RecordVal(BifType::Record::NFS3::readdirargs_t);
@@ -646,7 +690,7 @@ Val* NFS_Interp::ExtractBool(const u_char*& buf, int& n)
 
 
 NFS_Analyzer::NFS_Analyzer(Connection* conn)
-	: RPC_Analyzer("RPC", conn, new NFS_Interp(this))
+	: RPC_Analyzer("NFS", conn, new NFS_Interp(this))
 	{
 	orig_rpc = resp_rpc = 0;
 	}

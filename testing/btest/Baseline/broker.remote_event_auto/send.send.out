@@ -1,4 +1,4 @@
-sender added peer: endpoint=127.0.0.1 msg=outbound peering established
+sender added peer: endpoint=127.0.0.1 msg=received handshake from remote core
 sender got pong: my-message, 1
 sender got pong: my-message, 2
 sender got pong: my-message, 3

@@ -25,7 +25,7 @@ event do_terminate()
 
 event print_something(i: int)
     {
-    print "Something receiver", i;
+    print "Something sender", i;
     }
 
 event unpeer(endpoint: Broker::EndpointInfo)
@@ -66,7 +66,7 @@ event do_terminate()
 
 event print_something(i: int)
     {
-    print "Something sender", i;
+    print "Something receiver", i;
     }
 
 event bro_init()

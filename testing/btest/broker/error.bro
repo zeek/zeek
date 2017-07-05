@@ -1,6 +1,6 @@
 # @TEST-SERIALIZE: brokercomm
 #
-# @TEST-EXEC: bro -b send.bro >send.out
+# @TEST-EXEC: bro -B main-loop,broker -b send.bro >send.out
 # @TEST-EXEC: btest-diff send.out
 # 
 

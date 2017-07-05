@@ -1,7 +1,7 @@
 # @TEST-SERIALIZE: brokercomm
 #
-# @TEST-EXEC: btest-bg-run clone "bro -b  ../clone-main.bro >clone.out"
-# @TEST-EXEC: btest-bg-run master "bro -b  ../master-main.bro >master.out"
+# @TEST-EXEC: btest-bg-run clone "bro -B broker -b  ../clone-main.bro >clone.out"
+# @TEST-EXEC: btest-bg-run master "bro -B broker -b  ../master-main.bro >master.out"
 #
 # @TEST-EXEC: btest-bg-wait 20
 # @TEST-EXEC: btest-diff clone/clone.out
@@ -35,6 +35,8 @@ event done()
 
 event inserted()
 	{
+	Broker::erase(h, "four");
+	
 	print("----");
 	print_index("one");
 	print_index("two");
@@ -49,7 +51,7 @@ event inserted()
 event bro_init()
 	{
 	Broker::auto_publish("bro/events", done);
-	Broker::subscribe("bro/");
+	Broker::subscribe("bro/events"); # TODO: Should be just "bro/" to test prefix matching.
 
 	h = Broker::create_master("test");
 	Broker::put(h, "one", "110");
@@ -67,7 +69,7 @@ event insert_more()
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
-        schedule 2secs { insert_more() };
+        schedule 4secs { insert_more() };
 	}
 
 @TEST-END-FILE
@@ -108,7 +110,7 @@ event lookup(stage: count)
 	print_index("six");
 	
 	if ( stage == 1 )
-		schedule 2secs { lookup(2) };
+		schedule 4secs { lookup(2) };
 
 	if ( stage == 2 )
 		{
@@ -127,7 +129,7 @@ event done()
 event bro_init()
 	{
 	Broker::auto_publish("bro/events", inserted);
-	Broker::subscribe("bro/");
+	Broker::subscribe("bro/events"); # TODO: Should be just "bro/" to test prefix matching.
 	Broker::listen("127.0.0.1");
 	}
 

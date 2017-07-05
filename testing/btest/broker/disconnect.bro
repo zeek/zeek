@@ -1,10 +1,10 @@
 # @TEST-SERIALIZE: brokercomm
 #
-# @TEST-EXEC: btest-bg-run recv "bro -b ../recv.bro >recv.out"
-# @TEST-EXEC: btest-bg-run send "bro -b ../send.bro >send.out"
+# @TEST-EXEC: btest-bg-run recv "bro -B main-loop,broker -b ../recv.bro >recv.out"
+# @TEST-EXEC: btest-bg-run send "bro -B main-loop,broker -b ../send.bro >send.out"
 # @TEST-EXEC: 
 # @TEST-EXEC: sleep 3 && kill $(cat recv/.pid) && sleep 1 && rm -rf recv
-# @TEST-EXEC: btest-bg-run recv "bro -b ../recv.bro >recv.out"
+# @TEST-EXEC: btest-bg-run recv "bro -B broker -b ../recv.bro >recv.out"
 #
 # @TEST-EXEC: btest-bg-wait 20
 # @TEST-EXEC: btest-diff recv/recv.out

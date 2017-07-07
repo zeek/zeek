@@ -18,6 +18,8 @@
 #define BRO_PLUGIN_API_VERSION 5
 #endif
 
+#define BRO_PLUGIN_BRO_VERSION BRO_VERSION_FUNCTION
+
 class ODesc;
 class Func;
 class Event;
@@ -93,6 +95,12 @@ public:
 	// strong hint.). The attribute seems generally available.
 	inline Configuration() __attribute__((always_inline));
 
+        /**
+         * One can assign BRO_PLUGIN_BRO_VERSION to this to catch
+         * version mismatches at link(!) time.
+         */
+	const char* (*bro_version)();
+
 private:
 	friend class Plugin;
 	int api_version;	// Current BRO_PLUGIN_API_VERSION. Automatically set.
@@ -103,6 +111,7 @@ inline Configuration::Configuration()
 		name = "";
 		description = "";
 		api_version = BRO_PLUGIN_API_VERSION;
+		bro_version = 0;
 		}
 
 /**

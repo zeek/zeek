@@ -1,4 +1,11 @@
 
+2.5-174 | 2017-07-07 12:56:23 -0700
+
+  * Removing aux/plugins. Most of the plugins are now Bro packages.
+    (Robin Sommer)
+
+  * Update install instructions for Debian 9. (Daniel Thayer)
+
 2.5-170 | 2017-07-07 12:20:19 -0700
 
   * Update krb-protocol.pac (balintm)

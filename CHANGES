@@ -1,4 +1,17 @@
 
+2.5-170 | 2017-07-07 12:20:19 -0700
+
+  * Update krb-protocol.pac (balintm)
+    This fixes parsing of KRB_AP_Options where the padding and flags were reversed.
+
+  * Add new cipher suites from draft-ietf-tls-ecdhe-psk-aead-05 (Johanna Amann)
+
+  * Test changes: remove loading of listen.bro in tests that do not use it,
+    serialize tests that load listen.bro, fix race conditions in some tests.
+    (Daniel Thayer)
+
+  * The broccoli-v6addrs "-r" option was renamed to "-R" (Daniel Thayer)
+
 2.5-156 | 2017-06-13 11:01:56 -0700
 
   * Add 2.5.1 news file to master. (Johanna Amann)

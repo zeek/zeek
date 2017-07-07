@@ -51,7 +51,7 @@ event inserted()
 event bro_init()
 	{
 	Broker::auto_publish("bro/events", done);
-	Broker::subscribe("bro/events"); # TODO: Should be just "bro/" to test prefix matching.
+	Broker::subscribe("bro/");
 
 	h = Broker::create_master("test");
 	Broker::put(h, "one", "110");
@@ -129,7 +129,7 @@ event done()
 event bro_init()
 	{
 	Broker::auto_publish("bro/events", inserted);
-	Broker::subscribe("bro/events"); # TODO: Should be just "bro/" to test prefix matching.
+	Broker::subscribe("bro/");
 	Broker::listen("127.0.0.1");
 	}
 

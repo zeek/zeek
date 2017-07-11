@@ -21,7 +21,6 @@ current, independent component releases.
    Broker - User Manual <broker/broker-manual.rst>
    BroControl - Interactive Bro management shell <broctl/README>
    Bro-Aux - Small auxiliary tools for Bro <bro-aux/README>
-   Bro-Plugins - A collection of plugins for Bro <bro-plugins/README>
    BTest - A unit testing framework <btest/README>
    Capstats - Command-line packet statistic tool <capstats/README>
    PySubnetTree - Python module for CIDR lookups<pysubnettree/README>

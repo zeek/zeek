@@ -478,6 +478,9 @@ bool Manager::Unsubscribe(const string& topic_prefix)
 void Manager::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
                            iosource::FD_Set* except)
 	{
+	if ( event_subscriber.available() || subscriber.available() )
+                SetIdle(false);
+
 	read->Insert(subscriber.fd());
 	read->Insert(event_subscriber.fd());
 	write->Insert(subscriber.fd());

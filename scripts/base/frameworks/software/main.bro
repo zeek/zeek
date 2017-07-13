@@ -84,6 +84,16 @@ export {
 	##           is compared lexicographically.
 	global cmp_versions: function(v1: Version, v2: Version): int;
 	
+	## Sometimes software will expose itself on the network with 
+	## slight naming variations.  This table provides a mechanism 
+	## for a piece of software to be renamed to a single name 
+	## even if it exposes itself with an alternate name.  The 
+	## yielded string is the name that will be logged and generally
+	## used for everything.
+	global alternate_names: table[string] of string {
+		["Flash Player"] = "Flash",
+	} &default=function(a: string): string { return a; };
+
 	## Type to represent a collection of :bro:type:`Software::Info` records.
 	## It's indexed with the name of a piece of software such as "Firefox" 
 	## and it yields a :bro:type:`Software::Info` record with more
@@ -125,7 +135,7 @@ function parse(unparsed_version: string): Description
 	local v: Version;
 	
 	# Parse browser-alike versions separately
-	if ( /^(Mozilla|Opera)\/[0-9]\./ in unparsed_version )
+	if ( /^(Mozilla|Opera)\/[0-9]+\./ in unparsed_version )
 		{
 		return parse_mozilla(unparsed_version);
 		}
@@ -133,11 +143,17 @@ function parse(unparsed_version: string): Description
 		{
 		# The regular expression should match the complete version number
 		# and software name.
-		local version_parts = split_string_n(unparsed_version, /\/?( [\(])?v?[0-9\-\._, ]{2,}/, T, 1);
+		local clean_unparsed_version = gsub(unparsed_version, /\\x/, "%");
+		clean_unparsed_version = unescape_URI(clean_unparsed_version);
+		local version_parts = split_string_n(clean_unparsed_version, /([\/\-_]|( [\(v]+))?[0-9\-\._, ]{2,}/, T, 1);
 		if ( 0 in version_parts )
 			{
+			# Remove any bits of junk at end of first part.
+			if ( /([\/\-_]|( [\(v]+))$/ in version_parts[0] )
+				version_parts[0] = strip(sub(version_parts[0], /([\/\-_]|( [\(v]+))/, ""));
+
 			if ( /^\(/ in version_parts[0] )
-				software_name = strip(sub(version_parts[0], /[\(]/, ""));
+				software_name = strip(sub(version_parts[0], /\(/, ""));
 			else
 				software_name = strip(version_parts[0]);
 			}
@@ -192,7 +208,7 @@ function parse(unparsed_version: string): Description
 			}
 		}
 	
-	return [$version=v, $unparsed_version=unparsed_version, $name=software_name];
+	return [$version=v, $unparsed_version=unparsed_version, $name=alternate_names[software_name]];
 	}
 
 
@@ -226,6 +242,13 @@ function parse_mozilla(unparsed_version: string): Description
 			if ( 1 in parts )
 				v = parse(parts[1])$version;
 			}
+		}
+	else if ( /Edge\// in unparsed_version )
+		{
+		software_name="Edge";
+		parts = split_string_all(unparsed_version, /Edge\/[0-9\.]*/);
+		if ( 1 in parts )
+			v = parse(parts[1])$version;
 		}
 	else if ( /Version\/.*Safari\// in unparsed_version )
 		{
@@ -280,6 +303,14 @@ function parse_mozilla(unparsed_version: string): Description
 				v = parse(parts[1])$version;
 			}
 		}
+	else if ( /Flash%20Player/ in unparsed_version )
+		{
+		software_name = "Flash";
+		parts = split_string_all(unparsed_version, /[\/ ]/);
+		if ( 2 in parts )
+			v = parse(parts[2])$version;
+		}
+	
 	else if ( /AdobeAIR\/[0-9\.]*/ in unparsed_version )
 		{
 		software_name = "AdobeAIR";

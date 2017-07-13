@@ -169,14 +169,14 @@ void Manager::Peer(const string& addr, uint16_t port, double retry)
 		retry = 1.0;
 
 	auto ms = broker::timeout::seconds(static_cast<uint64>(retry));
-	endpoint.peer(addr, port, ms);
+	endpoint.peer_nosync(addr, port, ms);
 	}
 
 void Manager::Unpeer(const string& addr, uint16_t port)
 	{
 	DBG_LOG(DBG_BROKER, "Stopping to peer with %s:%" PRIu16,
 		addr.c_str(), port);
-	endpoint.unpeer(addr, port);
+	endpoint.unpeer_nosync(addr, port);
 	}
 
 bool Manager::PublishEvent(string topic, broker::data x)

@@ -76,8 +76,16 @@ static std::string RenderMessage(const broker::error& e)
 
 #endif
 
+class configuration : public broker::configuration {
+public:
+	configuration()
+		{
+		}
+};
+
 Manager::Manager()
-	: subscriber(endpoint.make_subscriber({})),
+	: endpoint(configuration()),
+	  subscriber(endpoint.make_subscriber({})),
 	  event_subscriber(endpoint.make_event_subscriber(true))
 	{
 	routable = false;

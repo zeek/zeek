@@ -240,7 +240,7 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
 set_source_files_properties(nb_dns.c PROPERTIES COMPILE_FLAGS
                             -fno-strict-aliasing)
 
-set(bro_SRCS
+set(common_SRCS
     ${CMAKE_CURRENT_BINARY_DIR}/version.c
     ${BIF_SRCS}
     ${BINPAC_AUXSRC}
@@ -257,7 +257,6 @@ set(bro_SRCS
     ${BISON_Parser_INPUT}
     ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
     ${PLUGIN_INIT}
-    main.cc
     net_util.cc
     util.cc
     module_util.cc
@@ -369,6 +368,9 @@ set(bro_SRCS
     digest.h
 )
 
+set(bro_SRCS ${common_SRCS} main.cc)
+set(fuzz_SRCS ${common_SRCS} fuzz.cc)
+
 collect_headers(bro_HEADERS ${bro_SRCS})
 
 if ( bro_HAVE_OBJECT_LIBRARIES )
@@ -377,6 +379,11 @@ if ( bro_HAVE_OBJECT_LIBRARIES )
 else ()
     add_executable(bro ${bro_SRCS} ${bro_HEADERS})
     target_link_libraries(bro ${bro_SUBDIRS} ${brodeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
+
+    add_executable(fuzz ${fuzz_SRCS} ${bro_HEADERS})
+    target_link_libraries(fuzz ${bro_SUBDIRS} ${brodeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS} Fuzzer)
+
+    set_target_properties(fuzz PROPERTIES LINK_FLAGS "-L ../../")
 endif ()
 
 if ( NOT "${bro_LINKER_FLAGS}" STREQUAL "" )

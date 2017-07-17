@@ -380,10 +380,12 @@ else ()
     add_executable(bro ${bro_SRCS} ${bro_HEADERS})
     target_link_libraries(bro ${bro_SUBDIRS} ${brodeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 
-    add_executable(fuzz ${fuzz_SRCS} ${bro_HEADERS})
-    target_link_libraries(fuzz ${bro_SUBDIRS} ${brodeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS} Fuzzer)
+    if ( $ENV{FUZZ} ) 
+        add_executable(fuzz ${fuzz_SRCS} ${bro_HEADERS})
+        target_link_libraries(fuzz ${bro_SUBDIRS} ${brodeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS} Fuzzer)
 
-    set_target_properties(fuzz PROPERTIES LINK_FLAGS "-L ../../")
+        set_target_properties(fuzz PROPERTIES LINK_FLAGS "-L ../../")
+    endif ()
 endif ()
 
 if ( NOT "${bro_LINKER_FLAGS}" STREQUAL "" )

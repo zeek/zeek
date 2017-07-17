@@ -58,7 +58,7 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "file_analysis/Manager.h"
 #include "broxygen/Manager.h"
 #include "iosource/Manager.h"
-
+#include "iosource/pcap/Source.h"
 #include "binpac_bro.h"
 
 #include "3rdparty/sqlite3.h"
@@ -66,6 +66,7 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #ifdef ENABLE_BROKER
 #include "broker/Manager.h"
 #endif
+
 
 Brofiler brofiler;
 
@@ -426,7 +427,7 @@ static void bro_new_handler()
 	out_of_memory("new");
 	}
 
-int main(int argc, char** argv)
+int bro_setup(int argc, char** argv)
 	{
 	std::set_new_handler(bro_new_handler);
 
@@ -875,12 +876,6 @@ int main(int argc, char** argv)
 	file_mgr->InitPostScript();
 	dns_mgr->InitPostScript();
 
-	if ( parse_only )
-		{
-		int rc = (reporter->Errors() > 0 ? 1 : 0);
-		exit(rc);
-		}
-
 #ifdef USE_PERFTOOLS_DEBUG
 	}
 #endif
@@ -893,16 +888,6 @@ int main(int argc, char** argv)
 
 	reporter->InitOptions();
 	broxygen_mgr->GenerateDocs();
-
-	if ( user_pcap_filter )
-		{
-		ID* id = global_scope()->Lookup("cmd_line_bpf_filter");
-
-		if ( ! id )
-			reporter->InternalError("global cmd_line_bpf_filter not defined");
-
-		id->SetVal(new StringVal(user_pcap_filter));
-		}
 
 	// Parse rule files defined on the script level.
 	char* script_rule_files =
@@ -954,9 +939,6 @@ int main(int argc, char** argv)
 			}
 		}
 
-	if ( dns_type != DNS_PRIME )
-		net_init(interfaces, read_files, writefile, do_watchdog);
-
 	BroFile::SetDefaultRotation(log_rotate_interval, log_max_size);
 
 	net_done = internal_handler("net_done");
@@ -972,68 +954,9 @@ int main(int argc, char** argv)
 	if ( (oldhandler = setsignal(SIGHUP, sig_handler)) != SIG_DFL )
 		(void) setsignal(SIGHUP, oldhandler);
 
-	if ( dns_type == DNS_PRIME )
-		{
-		dns_mgr->Verify();
-		dns_mgr->Resolve();
-
-		if ( ! dns_mgr->Save() )
-			reporter->FatalError("can't update DNS cache");
-
-		mgr.Drain();
-		delete dns_mgr;
-		exit(0);
-		}
-
-	// Just read state file from disk.
-	if ( bst_file )
-		{
-		FileSerializer s;
-		UnserialInfo info(&s);
-		info.print = stdout;
-		info.install_uniques = true;
-		if ( ! s.Read(&info, bst_file) )
-			reporter->Error("Failed to read events from %s\n", bst_file);
-
-		exit(0);
-		}
-
 	persistence_serializer->SetDir((const char *)state_dir->AsString()->CheckString());
 
-	// Print the ID.
-	if ( id_name )
-		{
-		persistence_serializer->ReadAll(true, false);
-
-		ID* id = global_scope()->Lookup(id_name);
-		if ( ! id )
-			reporter->FatalError("No such ID: %s\n", id_name);
-
-		ODesc desc;
-		desc.SetQuotes(true);
-		desc.SetIncludeStats(true);
-		id->DescribeExtended(&desc);
-
-		fprintf(stdout, "%s\n", desc.Description());
-		exit(0);
-		}
-
 	persistence_serializer->ReadAll(true, true);
-
-	if ( dump_cfg )
-		{
-		persistence_serializer->WriteConfig(false);
-		exit(0);
-		}
-
-	if ( profiling_interval > 0 )
-		{
-		profiling_logger = new ProfileLogger(profiling_file->AsFile(),
-			profiling_interval);
-
-		if ( segment_profiling )
-			segment_logger = profiling_logger;
-		}
 
 	if ( ! reading_live && ! reading_traces )
 		// Set up network_time to track real-time, since
@@ -1092,6 +1015,7 @@ int main(int argc, char** argv)
 		}
 
 	reporter->ReportViaEvents(true);
+	sessions = new NetSessions(); // normally done in net_init
 
 	// Drain the event queue here to support the protocols framework configuring DPM
 	mgr.Drain();
@@ -1102,61 +1026,23 @@ int main(int argc, char** argv)
 
 	iosource_mgr->Register(thread_mgr, true);
 
-	if ( iosource_mgr->Size() > 0 ||
-	     have_pending_timers ||
-	     BifConst::exit_only_after_terminate )
-		{
-		if ( profiling_logger )
-			profiling_logger->Log();
-
-#ifdef USE_PERFTOOLS_DEBUG
-		if ( perftools_leaks )
-			heap_checker = new HeapLeakChecker("net_run");
-
-		if ( perftools_profile )
-			{
-			HeapProfilerStart("heap");
-			HeapProfilerDump("pre net_run");
-			}
-
-#endif
-
 		double time_net_start = current_time(true);;
 
 		uint64 mem_net_start_total;
 		uint64 mem_net_start_malloced;
 
-		if ( time_bro )
-			{
-			get_memory_usage(&mem_net_start_total, &mem_net_start_malloced);
+    current_iosrc = new iosource::pcap::PcapSource("irrelevant", false);
 
-			fprintf(stderr, "# initialization %.6f\n", time_net_start - time_start);
-
-			fprintf(stderr, "# initialization %" PRIu64 "M/%" PRIu64 "M\n",
-				mem_net_start_total / 1024 / 1024,
-				mem_net_start_malloced / 1024 / 1024);
-			}
-
-		net_run();
+    fprintf(stderr, "bro_setup: DONE\n");
+	return 0;
+}
+int bro_teardown()
+{
 
 		double time_net_done = current_time(true);;
 
 		uint64 mem_net_done_total;
 		uint64 mem_net_done_malloced;
-
-		if ( time_bro )
-			{
-			get_memory_usage(&mem_net_done_total, &mem_net_done_malloced);
-
-			fprintf(stderr, "# total time %.6f, processing %.6f\n",
-				time_net_done - time_start, time_net_done - time_net_start);
-
-			fprintf(stderr, "# total mem %" PRId64 "M/%" PRId64 "M, processing %" PRId64 "M/%" PRId64 "M\n",
-				mem_net_done_total / 1024 / 1024,
-				mem_net_done_malloced / 1024 / 1024,
-				(mem_net_done_total - mem_net_start_total) / 1024 / 1024,
-				(mem_net_done_malloced - mem_net_start_malloced) / 1024 / 1024);
-			}
 
 		done_with_network();
 		net_delete();
@@ -1172,14 +1058,52 @@ int main(int argc, char** argv)
 		// Close files after net_delete(), because net_delete()
 		// might write to connection content files.
 		BroFile::CloseCachedFiles();
-		}
-	else
-		{
-		persistence_serializer->WriteState(false);
-		terminate_bro();
-		}
 
 	delete rule_matcher;
 
 	return 0;
 	}
+
+#include "analyzer/Analyzer.h"
+#include "analyzer/protocol/tcp/TCP.h"
+#include "analyzer/protocol/http/HTTP.h"
+bool FuzzMe(const uint8_t *Data,
+            size_t DataSize) {
+    ConnID conn_id;
+    conn_id.src_addr = IPAddr("1.2.3.4");
+    conn_id.dst_addr = IPAddr("5.6.7.8");
+    conn_id.src_port = htons(80);
+    conn_id.dst_port = htons(80);
+
+    pkt_timeval *ts = new pkt_timeval();
+    ts->tv_sec = 1439471031;
+    Packet *pkt = new Packet(1, ts, 1500, 0, NULL, false);
+
+    HashKey *key = BuildConnIDHashKey(conn_id);
+    Connection* conn = new Connection(sessions, key, 1439471031, &conn_id, 1, pkt, NULL);
+    conn->SetTransport(TRANSPORT_TCP);
+    sessions->Insert(conn);
+    analyzer::tcp::TCP_Analyzer *tcpa = new analyzer::tcp::TCP_Analyzer(conn);
+    analyzer::http::HTTP_Analyzer *httpa = new analyzer::http::HTTP_Analyzer(conn);
+    httpa->SetTCP(tcpa);
+
+
+    try {
+        httpa->DeliverStream(DataSize, Data, true);
+        //httpa->DeliverStream(DataSize, Data, false);
+        //httpa->DeliverStream(DataSize, Data, true);
+        //httpa->DeliverStream(DataSize, Data, false);
+    } catch ( binpac::Exception const &e ) {
+    }
+    //timer_mgr->Expire();
+    //mgr.Drain();
+    return true;
+}
+
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
+  char *argv[2] = {"bro", "local"};
+  int argc = 2;
+  static int initialized = bro_setup(argc, argv);
+  FuzzMe(Data, Size);
+  return 0;  // Non-zero return values are reserved for future use.
+}

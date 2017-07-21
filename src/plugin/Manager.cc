@@ -243,10 +243,6 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 
 			plugins_by_path.insert(std::make_pair(normalize_path(dir), current_plugin));
 
-			if ( current_plugin->APIVersion() != BRO_PLUGIN_API_VERSION )
-				reporter->FatalError("plugin's API version does not match Bro (expected %d, got %d in %s)",
-						     BRO_PLUGIN_API_VERSION, current_plugin->APIVersion(), path);
-
 			// We execute the pre-script initialization here; this in
 			// fact could be *during* script initialization if we got
 			// triggered via @load-plugin.

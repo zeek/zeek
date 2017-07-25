@@ -40,11 +40,25 @@ file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev.csh
      "setenv PATH \"${CMAKE_CURRENT_BINARY_DIR}/src\":$PATH\n")
 
 file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" VERSION LIMIT_COUNT 1)
+execute_process(COMMAND grep "^#define  *BRO_PLUGIN_API_VERSION"
+                INPUT_FILE ${CMAKE_CURRENT_SOURCE_DIR}/src/plugin/Plugin.h
+                OUTPUT_VARIABLE API_VERSION
+                OUTPUT_STRIP_TRAILING_WHITESPACE)
+string(REGEX REPLACE "^#define.*VERSION *" "" API_VERSION "${API_VERSION}")
+
 string(REPLACE "." " " version_numbers ${VERSION})
 separate_arguments(version_numbers)
 list(GET version_numbers 0 VERSION_MAJOR)
 list(GET version_numbers 1 VERSION_MINOR)
 set(VERSION_MAJ_MIN "${VERSION_MAJOR}.${VERSION_MINOR}")
+
+set(VERSION_C_IDENT "${VERSION}_plugin_${API_VERSION}")
+string(REGEX REPLACE "-[0-9]*$" "_git" VERSION_C_IDENT "${VERSION_C_IDENT}")
+string(REGEX REPLACE "[^a-zA-Z0-9_\$]" "_" VERSION_C_IDENT "${VERSION_C_IDENT}")
+
+if(${ENABLE_DEBUG})
+    set(VERSION_C_IDENT "${VERSION_C_IDENT}_debug")
+endif()
 
 ########################################################################
 ## Dependency Configuration

@@ -13,10 +13,11 @@
 #include "iosource/Component.h"
 #include "logging/WriterBackend.h"
 
-// We allow to override this externally for testing purposes.
-#ifndef BRO_PLUGIN_API_VERSION
-#define BRO_PLUGIN_API_VERSION 5
-#endif
+// Increase this when making incompatible changes to the plugin API. Note
+// that the constant is never used in C code. It's picked up on by CMake.
+#define BRO_PLUGIN_API_VERSION 6
+
+#define BRO_PLUGIN_BRO_VERSION BRO_VERSION_FUNCTION
 
 class ODesc;
 class Func;
@@ -93,16 +94,21 @@ public:
 	// strong hint.). The attribute seems generally available.
 	inline Configuration() __attribute__((always_inline));
 
+        /**
+         * One can assign BRO_PLUGIN_BRO_VERSION to this to catch
+         * version mismatches at link(!) time.
+         */
+	const char* (*bro_version)();
+
 private:
 	friend class Plugin;
-	int api_version;	// Current BRO_PLUGIN_API_VERSION. Automatically set.
 };
 
 inline Configuration::Configuration()
 		{
 		name = "";
 		description = "";
-		api_version = BRO_PLUGIN_API_VERSION;
+		bro_version = BRO_PLUGIN_BRO_VERSION;
 		}
 
 /**
@@ -441,15 +447,6 @@ public:
 	 * string.
 	 **/
 	const std::string& PluginPath() const;
-
-	/**
-	 * Returns the internal version of the Bro API that this plugin
-	 * relies on. Only plugins that match Bro's current API version can
-	 * be used. For statically compiled plugins this is automatically the
-	 * case, but dynamically loaded plugins may cause a mismatch if they
-	 * were compiled for a different Bro version.
-	 */
-	int APIVersion() const;
 
 	/**
 	 * Returns a list of all components the plugin provides.

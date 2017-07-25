@@ -1,4 +1,34 @@
 
+2.5-181 | 2017-07-25 16:02:41 -0700
+
+  * Extend plugin infrastructure to catch Bro version mismatches at link
+    time.
+
+    The version number used for the function name is slightly normalized
+    to skip any git revision postfixes (i.e., "2.5-xxx" is always treated
+    as "2.5-git") so that one doesn't need to recompile all plugins after
+    every master commit. That seems good enough, usually people run into
+    this when upgrading to a new release. The Plugin API version is also
+    part of the version number.
+
+    If one loads an old plugin into a new Bro, the error message looks
+    like this:
+
+        $ bro -NN Demo::Foo
+        fatal error in /home/robin/bro/master/scripts/base/init-bare.bro, line 1:
+        cannot load plugin library /home/robin/tmp/p/build//lib/Demo-Foo.linux-x86_64.so:
+        /home/robin/tmp/p/build//lib/Demo-Foo.linux-x86_64.so: undefined symbol: bro_version_2_5_git_debug
+
+    (Robin Sommer)
+
+  * Several fixes and improvements for software version parsing.
+
+     - Addresses Philip Romero's question from the Bro mailing list.
+     - Adds Microsoft Edge as a detected browser.
+     - We are now unescaping encoded characters in software names. (Seth Hall)
+
+  * Remove another reference to now removed bro-plugins. (Johanna Amann)
+
 2.5-175 | 2017-07-07 14:35:11 -0700
 
   * Removing aux/plugins. Most of the plugins are now Bro packages.

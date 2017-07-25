@@ -229,3 +229,14 @@
 #ifndef BRO_PLUGIN_INTERNAL_BUILD
 #define BRO_PLUGIN_INTERNAL_BUILD @BRO_PLUGIN_INTERNAL_BUILD@
 #endif
+
+/* A C function that has the Bro version encoded into its name. */
+#define BRO_VERSION_FUNCTION bro_version_@VERSION_C_IDENT@
+#ifdef __cplusplus
+extern "C" {
+#endif
+extern const char* BRO_VERSION_FUNCTION();
+#ifdef __cplusplus
+}
+#endif
+

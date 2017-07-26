@@ -91,7 +91,7 @@ export {
 	##
 	## Returns: true if store was valid and is now closed.  The handle can no
 	##          longer be used for data store operations.
-	global close: function(h: opaque of Broker::Store): bool;
+	global close: function(h: opaque of Broker::Store) : bool;
 
 	## Lookup the value associated with a key in a data store.
 	##
@@ -115,7 +115,7 @@ export {
 	##
 	## Returns: false if the store handle was not valid.
 	global put: function(h: opaque of Broker::Store,
-	                     k: any, v: any, e: interval &default=0sec): bool;
+	                     k: any, v: any, e: interval &default=0sec) : bool;
 
 	## Remove a key-value pair from the store.
 	##
@@ -124,43 +124,153 @@ export {
 	## k: the key to remove.
 	##
 	## Returns: false if the store handle was not valid.
-	global erase: function(h: opaque of Broker::Store, k: any): bool;
+	global erase: function(h: opaque of Broker::Store, k: any) : bool;
 
-        ## Adds a value to an existing one in a data store. This is supported
-        ## only by integer types.
+        ## Increments an existing value by a given amount. This is supported for all
+        ## numerical types, as well as for timestamps.
         ##
         ## h: the handle of the store to modify.
         ##
-        ## k: the key whose associated value is to be modified.
+        ## k: the key whose associated value is to be modified. The key must
+        ## already exist.
         ##
-        ## by: the amount to increment the value by.  A non-existent key will first
-        ##     create it with an implicit value of zero before incrementing.
+        ## a: the amount to increment the value by. 
         ##
-	## e: the expiration interval of the key-value pair. If null, the
+	## e: the new expiration interval of the modified key. If null, the
         ## current expiration time isn't changed.
 	##
         ## Returns: false if the store handle was not valid.
-        global add_: function(h: opaque of Broker::Store,
-			      k: any, by: any &default = 1,
-			      e: interval &default=0sec): bool;
+        global increment: function(h: opaque of Broker::Store,
+			           k: any,
+				   a: any &default = 1,
+			           e: interval &default=0sec) : bool;
 
-        ## Subtracts a value from an existing one in a data store. This is supported only
-        ## by integer types.
+        ## Decrements an existing value by a given amount. This is supported for all
+        ## numerical types, as well as for timestamps.
         ##
         ## h: the handle of the store to modify.
         ##
-        ## k: the key whose associated value is to be modified.
+        ## k: the key whose associated value is to be modified. The key must
+        ##    already exist.
         ##
-        ## by: the amount to decrement the value by.  A non-existent key will first
-        ##     create it with an implicit value of zero before decrementing.
+        ## amount: the amount to decrement the value by. 
         ##
-	## e: the expiration interval of the key-value pair. If null, the
+	## e: the new expiration interval of the modified key. If null, the current
+	##    expiration time isn't changed.
+	##
+        ## Returns: false if the store handle was not valid.
+        global decrement: function(h: opaque of Broker::Store,
+		                   k: any,
+				   a: any &default = 1,
+			           e: interval &default=0sec) : bool;
+
+        ## Extends an existing string with another.
+        ##
+        ## h: the handle of the store to modify.
+        ##
+        ## k: the key whose associated value is to be modified. The key must
+        ## already exist.
+        ##
+        ## s: the string to append.
+        ##
+	## e: the new expiration interval of the modified key. If null, the
         ## current expiration time isn't changed.
 	##
         ## Returns: false if the store handle was not valid.
-        global subtract: function(h: opaque of Broker::Store,
-				  k: any, by: any &default = 1,
-				  e: interval &default=0sec): bool;
+        global append: function(h: opaque of Broker::Store,
+				k: any,
+				s: string, 
+				e: interval &default=0sec) : bool;
+
+        ## Inserts an element into an existing set.
+        ##
+        ## h: the handle of the store to modify.
+        ##
+        ## k: the key whose associated value is to be modified. The key must
+        ## already exist.
+        ##
+        ## i: the index to insert into the set.
+        ##
+	## e: the new expiration interval of the modified key. If null, the
+        ## current expiration time isn't changed.
+	##
+        ## Returns: false if the store handle was not valid.
+        global insert_into_set: function(h: opaque of Broker::Store,
+					 k: any,
+					 i: any, 
+					 e: interval &default=0sec) : bool;
+
+        ## Inserts an element into an existing table.
+        ##
+        ## h: the handle of the store to modify.
+        ##
+        ## k: the key whose associated value is to be modified. The key must
+        ## already exist.
+        ##
+        ## i: the index to insert into the table
+        ## 
+        ## v: the value to associate with the index.
+        ##
+	## e: the new expiration interval of the modified key. If null, the
+        ## current expiration time isn't changed.
+	##
+        ## Returns: false if the store handle was not valid.
+        global insert_into_table: function(h: opaque of Broker::Store,
+					   k: any,
+					   i: any,
+					   v: any,
+					   e: interval &default=0sec) : bool;
+
+        ## Removes an element from an existing set or table.
+        ##
+        ## h: the handle of the store to modify.
+        ##
+        ## k: the key whose associated value is to be modified. The key must
+        ## already exist.
+        ##
+        ## i: the index to remove from the set or table.
+        ##
+	## e: the new expiration interval of the modified key. If null, the
+        ## current expiration time isn't changed.
+	##
+        ## Returns: false if the store handle was not valid.
+        global remove_from: function(h: opaque of Broker::Store,
+				     k: any,
+				     i: any, 
+				     e: interval &default=0sec) : bool;
+
+        ## Appends an element to an existing vector.
+        ##
+        ## h: the handle of the store to modify.
+        ##
+        ## k: the key whose associated value is to be modified. The key must
+        ## already exist.
+        ##
+        ## b: the value to append to the vector.
+        ##
+	## e: the new expiration interval of the modified key. If null, the
+        ## current expiration time isn't changed.
+	##
+        ## Returns: false if the store handle was not valid.
+        global push: function(h: opaque of Broker::Store,
+			      k: any,
+			      v: any, 
+			      e: interval &default=0sec) : bool;
+
+        ## Removes the last element of an existing vector.
+        ##
+        ## h: the handle of the store to modify.
+        ##
+        ## k: the key whose associated value is to be modified. The key must
+        ## already exist.
+        ##
+	## e: the new expiration interval of the modified key. If null, the
+        ## current expiration time isn't changed.
+	##
+        ## Returns: false if the store handle was not valid.
+        global pop: function(h: opaque of Broker::Store,
+			     k: any,
+			     e: interval &default=0sec) : bool;
 
 	## Returns a set with all of a store's keys. The results reflects a snapshot in
 	## time that diverge from reality soon; when acessing any of the element, it may no
@@ -173,7 +283,7 @@ export {
 	## Deletes all of a store's content, it will be empty afterwards.
         ##
         ## Returns: false if the store handle was not valid.
- 	global clear: function(h: opaque of Broker::Store): bool;
+ 	global clear: function(h: opaque of Broker::Store) : bool;
 
 	##########################
 	# Data API               #
@@ -208,7 +318,7 @@ export {
 	## s: the set to clear.
 	##
 	## Returns: always true.
-	global set_clear: function(s: Broker::Data): bool;
+	global set_clear: function(s: Broker::Data) : bool;
 
 	## Get the number of elements within a set.
 	##
@@ -224,7 +334,7 @@ export {
 	## key: the element to check for existence.
 	##
 	## Returns: true if the key exists in the set.
-	global set_contains: function(s: Broker::Data, key: any): bool;
+	global set_contains: function(s: Broker::Data, key: any) : bool;
 
 	## Insert an element into a set.
 	##
@@ -233,7 +343,7 @@ export {
 	## key: the element to insert.
 	##
 	## Returns: true if the key was inserted, or false if it already existed.
-	global set_insert: function(s: Broker::Data, key: any): bool;
+	global set_insert: function(s: Broker::Data, key: any) : bool;
 
 	## Remove an element from a set.
 	##
@@ -242,7 +352,7 @@ export {
 	## key: the element to remove.
 	##
 	## Returns: true if the element existed in the set and is now removed.
-	global set_remove: function(s: Broker::Data, key: any): bool;
+	global set_remove: function(s: Broker::Data, key: any) : bool;
 
 	## Create an iterator for a set.  Note that this makes a copy of the set
 	## internally to ensure the iterator is always valid.
@@ -258,7 +368,7 @@ export {
 	##
 	## Returns: true if there are no more elements to iterator over, i.e.
 	##          the iterator is one-past-the-final-element.
-	global set_iterator_last: function(it: opaque of Broker::SetIterator): bool;
+	global set_iterator_last: function(it: opaque of Broker::SetIterator) : bool;
 
 	## Advance an iterator.
 	##
@@ -267,7 +377,7 @@ export {
 	## Returns: true if the iterator, after advancing, still references an element
 	##          in the collection.  False if the iterator, after advancing, is
 	##          one-past-the-final-element.
-	global set_iterator_next: function(it: opaque of Broker::SetIterator): bool;
+	global set_iterator_next: function(it: opaque of Broker::SetIterator) : bool;
 
 	## Retrieve the data at an iterator's current position.
 	##
@@ -284,7 +394,7 @@ export {
 	## t: the table to clear.
 	##
 	## Returns: always true.
-	global table_clear: function(t: Broker::Data): bool;
+	global table_clear: function(t: Broker::Data) : bool;
 
 	## Get the number of elements within a table.
 	##
@@ -300,7 +410,7 @@ export {
 	## key: the key to check for existence.
 	##
 	## Returns: true if the key exists in the table.
-	global table_contains: function(t: Broker::Data, key: any): bool;
+	global table_contains: function(t: Broker::Data, key: any) : bool;
 
 	## Insert a key-value pair into a table.
 	##
@@ -348,7 +458,7 @@ export {
 	##
 	## Returns: true if there are no more elements to iterator over, i.e.
 	##          the iterator is one-past-the-final-element.
-	global table_iterator_last: function(it: opaque of Broker::TableIterator): bool;
+	global table_iterator_last: function(it: opaque of Broker::TableIterator) : bool;
 
 	## Advance an iterator.
 	##
@@ -357,7 +467,7 @@ export {
 	## Returns: true if the iterator, after advancing, still references an element
 	##          in the collection.  False if the iterator, after advancing, is
 	##          one-past-the-final-element.
-	global table_iterator_next: function(it: opaque of Broker::TableIterator): bool;
+	global table_iterator_next: function(it: opaque of Broker::TableIterator) : bool;
 
 	## Retrieve the data at an iterator's current position.
 	##
@@ -374,7 +484,7 @@ export {
 	## v: the vector to clear.
 	##
 	## Returns: always true.
-	global vector_clear: function(v: Broker::Data): bool;
+	global vector_clear: function(v: Broker::Data) : bool;
 
 	## Get the number of elements within a vector.
 	##
@@ -394,7 +504,7 @@ export {
 	##      current size of the vector, the element is inserted at the end.
 	##
 	## Returns: always true.
-	global vector_insert: function(v: Broker::Data, idx: count, d: any): bool;
+	global vector_insert: function(v: Broker::Data, idx: count, d: any) : bool;
 
 	## Replace an element in a vector at a particular position.
 	##
@@ -442,7 +552,7 @@ export {
 	##
 	## Returns: true if there are no more elements to iterator over, i.e.
 	##          the iterator is one-past-the-final-element.
-	global vector_iterator_last: function(it: opaque of Broker::VectorIterator): bool;
+	global vector_iterator_last: function(it: opaque of Broker::VectorIterator) : bool;
 
 	## Advance an iterator.
 	##
@@ -451,7 +561,7 @@ export {
 	## Returns: true if the iterator, after advancing, still references an element
 	##          in the collection.  False if the iterator, after advancing, is
 	##          one-past-the-final-element.
-	global vector_iterator_next: function(it: opaque of Broker::VectorIterator): bool;
+	global vector_iterator_next: function(it: opaque of Broker::VectorIterator) : bool;
 
 	## Retrieve the data at an iterator's current position.
 	##
@@ -483,7 +593,7 @@ export {
 	## idx: the index to replace.
 	##
 	## Returns: false if the index was larger than any valid index, else true.
-	global record_assign: function(r: Broker::Data, idx: count, d: any): bool;
+	global record_assign: function(r: Broker::Data, idx: count, d: any) : bool;
 
 	## Lookup a field in a record at a particular position.
 	##
@@ -510,7 +620,7 @@ export {
 	##
 	## Returns: true if there are no more elements to iterator over, i.e.
 	##          the iterator is one-past-the-final-element.
-	global record_iterator_last: function(it: opaque of Broker::RecordIterator): bool;
+	global record_iterator_last: function(it: opaque of Broker::RecordIterator) : bool;
 
 	## Advance an iterator.
 	##
@@ -519,7 +629,7 @@ export {
 	## Returns: true if the iterator, after advancing, still references an element
 	##          in the collection.  False if the iterator, after advancing, is
 	##          one-past-the-final-element.
-	global record_iterator_next: function(it: opaque of Broker::RecordIterator): bool;
+	global record_iterator_next: function(it: opaque of Broker::RecordIterator) : bool;
 
 	## Retrieve the data at an iterator's current position.
 	##
@@ -544,7 +654,7 @@ function create_clone(name: string): opaque of Broker::Store
 	return __create_clone(name);
 	}
 
-function close(h: opaque of Broker::Store): bool
+function close(h: opaque of Broker::Store) : bool
 	{
 	return __close(h);
 	}
@@ -572,29 +682,57 @@ function keys(h: opaque of Broker::Store): vector of Broker::Data
 	return v;
 	}
 
-function put(h: opaque of Broker::Store, k: any, v: any, e: interval): bool
+function put(h: opaque of Broker::Store, k: any, v: any, e: interval) : bool
 	{
 	return __put(h, k, v, e);
 	}
 
-function erase(h: opaque of Broker::Store, k: any): bool
+function erase(h: opaque of Broker::Store, k: any) : bool
 	{
 	return __erase(h, k);
 	}
 
-function add_(h: opaque of Broker::Store,
-	      k: any, by: any, e: interval): bool
+ function increment(h: opaque of Broker::Store, k: any, a: any, e: interval) : bool
 	{
-	return __add(h, k, by, e);
+	return __increment(h, k, a, e);
 	}
 
-function subtract(h: opaque of Broker::Store,
-		  k: any, by: any, e: interval): bool
+function decrement(h: opaque of Broker::Store, k: any, a: any, e: interval) : bool
 	{
-	return __subtract(h, k, by, e);
+	return __decrement(h, k, a, e);
 	}
 
-function clear(h: opaque of Broker::Store): bool
+function append(h: opaque of Broker::Store, k: any, s: string, e: interval) : bool
+	{
+	return __append(h, k, s, e);
+	}
+
+function insert_into_set(h: opaque of Broker::Store, k: any, i: any, e: interval) : bool
+	{
+	return __insert_into_set(h, k, i, e);
+	}
+
+function insert_into_table(h: opaque of Broker::Store, k: any, i: any, v: any, e: interval) : bool
+	{
+	return __insert_into_table(h, k, i, v, e);
+	}
+
+function remove_from(h: opaque of Broker::Store, k: any, i: any, e: interval) : bool
+	{
+	return __remove_from(h, k, i, e);
+	}
+
+function push(h: opaque of Broker::Store, k: any, v: any, e: interval) : bool
+	{
+	return __push(h, k, v, e);
+	}
+
+function pop(h: opaque of Broker::Store, k: any, e: interval) : bool
+	{
+	return __pop(h, k, e);
+	}
+
+function clear(h: opaque of Broker::Store) : bool
 	{
 	return __clear(h);
 	}
@@ -614,7 +752,7 @@ function set_create(): Broker::Data
 	return __set_create();
 	}
 
-function set_clear(s: Broker::Data): bool
+function set_clear(s: Broker::Data) : bool
 	{
 	return __set_clear(s);
 	}
@@ -624,17 +762,17 @@ function set_size(s: Broker::Data): count
 	return __set_size(s);
 	}
 
-function set_contains(s: Broker::Data, key: any): bool
+function set_contains(s: Broker::Data, key: any) : bool
 	{
 	return __set_contains(s, key);
 	}
 
-function set_insert(s: Broker::Data, key: any): bool
+function set_insert(s: Broker::Data, key: any) : bool
 	{
 	return __set_insert(s, key);
 	}
 
-function set_remove(s: Broker::Data, key: any): bool
+function set_remove(s: Broker::Data, key: any) : bool
 	{
 	return __set_remove(s, key);
 	}
@@ -644,12 +782,12 @@ function set_iterator(s: Broker::Data): opaque of Broker::SetIterator
 	return __set_iterator(s);
 	}
 
-function set_iterator_last(it: opaque of Broker::SetIterator): bool
+function set_iterator_last(it: opaque of Broker::SetIterator) : bool
 	{
 	return __set_iterator_last(it);
 	}
 
-function set_iterator_next(it: opaque of Broker::SetIterator): bool
+function set_iterator_next(it: opaque of Broker::SetIterator) : bool
 	{
 	return __set_iterator_next(it);
 	}
@@ -664,7 +802,7 @@ function table_create(): Broker::Data
 	return __table_create();
 	}
 
-function table_clear(t: Broker::Data): bool
+function table_clear(t: Broker::Data) : bool
 	{
 	return __table_clear(t);
 	}
@@ -674,7 +812,7 @@ function table_size(t: Broker::Data): count
 	return __table_size(t);
 	}
 
-function table_contains(t: Broker::Data, key: any): bool
+function table_contains(t: Broker::Data, key: any) : bool
 	{
 	return __table_contains(t, key);
 	}
@@ -699,12 +837,12 @@ function table_iterator(t: Broker::Data): opaque of Broker::TableIterator
 	return __table_iterator(t);
 	}
 
-function table_iterator_last(it: opaque of Broker::TableIterator): bool
+function table_iterator_last(it: opaque of Broker::TableIterator) : bool
 	{
 	return __table_iterator_last(it);
 	}
 
-function table_iterator_next(it: opaque of Broker::TableIterator): bool
+function table_iterator_next(it: opaque of Broker::TableIterator) : bool
 	{
 	return __table_iterator_next(it);
 	}
@@ -719,7 +857,7 @@ function vector_create(): Broker::Data
 	return __vector_create();
 	}
 
-function vector_clear(v: Broker::Data): bool
+function vector_clear(v: Broker::Data) : bool
 	{
 	return __vector_clear(v);
 	}
@@ -729,7 +867,7 @@ function vector_size(v: Broker::Data): count
 	return __vector_size(v);
 	}
 
-function vector_insert(v: Broker::Data, idx: count, d: any): bool
+function vector_insert(v: Broker::Data, idx: count, d: any) : bool
 	{
 	return __vector_insert(v, idx, d);
 	}
@@ -754,12 +892,12 @@ function vector_iterator(v: Broker::Data): opaque of Broker::VectorIterator
 	return __vector_iterator(v);
 	}
 
-function vector_iterator_last(it: opaque of Broker::VectorIterator): bool
+function vector_iterator_last(it: opaque of Broker::VectorIterator) : bool
 	{
 	return __vector_iterator_last(it);
 	}
 
-function vector_iterator_next(it: opaque of Broker::VectorIterator): bool
+function vector_iterator_next(it: opaque of Broker::VectorIterator) : bool
 	{
 	return __vector_iterator_next(it);
 	}
@@ -779,7 +917,7 @@ function record_size(r: Broker::Data): count
 	return __record_size(r);
 	}
 
-function record_assign(r: Broker::Data, idx: count, d: any): bool
+function record_assign(r: Broker::Data, idx: count, d: any) : bool
 	{
 	return __record_assign(r, idx, d);
 	}
@@ -794,12 +932,12 @@ function record_iterator(r: Broker::Data): opaque of Broker::RecordIterator
 	return __record_iterator(r);
 	}
 
-function record_iterator_last(it: opaque of Broker::RecordIterator): bool
+function record_iterator_last(it: opaque of Broker::RecordIterator) : bool
 	{
 	return __record_iterator_last(it);
 	}
 
-function record_iterator_next(it: opaque of Broker::RecordIterator): bool
+function record_iterator_next(it: opaque of Broker::RecordIterator) : bool
 	{
 	return __record_iterator_next(it);
 	}

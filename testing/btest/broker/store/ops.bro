@@ -73,10 +73,10 @@ event bro_init()
 
 	when ( step == 6 )
 		{
-		Broker::add_(h, "two");
-		Broker::add_(h, "two", 9);
-		Broker::subtract(h, "three");
-		Broker::subtract(h, "three", 9);
+		Broker::increment(h, "two");
+		Broker::increment(h, "two", 9);
+		Broker::decrement(h, "three");
+		Broker::decrement(h, "three", 9);
 		print_index("two");
 		print_index("three");
 		print_index("four");

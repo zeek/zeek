@@ -196,53 +196,142 @@ function Broker::__erase%(h: opaque of Broker::Store, k: any%): bool
 	return new Val(true, TYPE_BOOL);
 	%}
 
-function Broker::__add%(h: opaque of Broker::Store, k: any, b: any, e: interval%): bool
-	%{
+%%{
+static bro_broker::StoreHandleVal* prepare_store_handle(Val* h)
+	{
 	if ( ! h )
 		{
 		reporter->Error("invalid Broker store handle");
-		return new Val(false, TYPE_BOOL);
+		return nullptr;
 		}
 
-	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
+	return static_cast<bro_broker::StoreHandleVal*>(h);
+	}
 
-	auto& key = bro_broker::opaque_field_to_data(bro_broker::make_data_val(k), frame);
-	auto& by = bro_broker::opaque_field_to_data(bro_broker::make_data_val(b), frame);
-
+static broker::optional<broker::timespan> prepare_expiry(double e)
+	{
 	broker::optional<broker::timespan> ts;
-	if ( ts )
+
+	if ( e ) 
 		{
 		broker::timespan x;
 		broker::convert(e, x);
 		ts = x;
 		}
 
-	handle->store.add(key, by, ts);
+	return ts;
+	}
+%%}
+
+function Broker::__increment%(h: opaque of Broker::Store, k: any, a: any, e: interval%): bool
+	%{
+	auto handle = prepare_store_handle(h);
+
+	if ( ! handle )
+		return new Val(false, TYPE_BOOL);
+
+	auto& key = bro_broker::opaque_field_to_data(bro_broker::make_data_val(k), frame);
+	auto& amount = bro_broker::opaque_field_to_data(bro_broker::make_data_val(a), frame);
+	auto expiry = prepare_expiry(e);
+	handle->store.increment(key, amount, expiry);
 	return new Val(true, TYPE_BOOL);
 	%}
 
-function Broker::__subtract%(h: opaque of Broker::Store, k: any, b: any, e: interval%): bool
+function Broker::__decrement%(h: opaque of Broker::Store, k: any, a: any, e: interval%): bool
 	%{
-	if ( ! h )
-		{
-		reporter->Error("invalid Broker store handle");
-		return new Val(false, TYPE_BOOL);
-		}
+	auto handle = prepare_store_handle(h);
 
-	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
+	if ( ! handle )
+		return new Val(false, TYPE_BOOL);
 
 	auto& key = bro_broker::opaque_field_to_data(bro_broker::make_data_val(k), frame);
-	auto& by = bro_broker::opaque_field_to_data(bro_broker::make_data_val(b), frame);
+	auto& amount = bro_broker::opaque_field_to_data(bro_broker::make_data_val(a), frame);
+	auto expiry = prepare_expiry(e);
+	handle->store.decrement(key, amount, expiry);
+	return new Val(true, TYPE_BOOL);
+	%}
 
-	broker::optional<broker::timespan> ts;
-	if ( ts )
-		{
-		broker::timespan x;
-		broker::convert(e, x);
-		ts = x;
-		}
+function Broker::__append%(h: opaque of Broker::Store, k: any, s: any, e: interval%): bool
+	%{
+	auto handle = prepare_store_handle(h);
 
-	handle->store.subtract(key, by, ts);
+	if ( ! handle )
+		return new Val(false, TYPE_BOOL);
+
+	auto& key = bro_broker::opaque_field_to_data(bro_broker::make_data_val(k), frame);
+	auto& str = bro_broker::opaque_field_to_data(bro_broker::make_data_val(s), frame);
+	auto expiry = prepare_expiry(e);
+	handle->store.append(key, str, expiry);
+	return new Val(true, TYPE_BOOL);
+	%}
+
+function Broker::__insert_into_set%(h: opaque of Broker::Store, k: any, i: any, e: interval%): bool
+	%{
+	auto handle = prepare_store_handle(h);
+
+	if ( ! handle )
+		return new Val(false, TYPE_BOOL);
+
+	auto& key = bro_broker::opaque_field_to_data(bro_broker::make_data_val(k), frame);
+	auto& idx = bro_broker::opaque_field_to_data(bro_broker::make_data_val(i), frame);
+	auto expiry = prepare_expiry(e);
+	handle->store.insert_into(key, idx, expiry);
+	return new Val(true, TYPE_BOOL);
+	%}
+
+function Broker::__insert_into_table%(h: opaque of Broker::Store, k: any, i: any, v: any, e: interval%): bool
+	%{
+	auto handle = prepare_store_handle(h);
+
+	if ( ! handle )
+		return new Val(false, TYPE_BOOL);
+
+	auto& key = bro_broker::opaque_field_to_data(bro_broker::make_data_val(k), frame);
+	auto& idx = bro_broker::opaque_field_to_data(bro_broker::make_data_val(i), frame);
+	auto& val = bro_broker::opaque_field_to_data(bro_broker::make_data_val(v), frame);
+	auto expiry = prepare_expiry(e);
+	handle->store.insert_into(key, idx, val, expiry);
+	return new Val(true, TYPE_BOOL);
+	%}
+
+function Broker::__remove_from%(h: opaque of Broker::Store, k: any, i: any, e: interval%): bool
+	%{
+	auto handle = prepare_store_handle(h);
+
+	if ( ! handle )
+		return new Val(false, TYPE_BOOL);
+
+	auto& key = bro_broker::opaque_field_to_data(bro_broker::make_data_val(k), frame);
+	auto& idx = bro_broker::opaque_field_to_data(bro_broker::make_data_val(i), frame);
+	auto expiry = prepare_expiry(e);
+	handle->store.remove_from(key, idx, expiry);
+	return new Val(true, TYPE_BOOL);
+	%}
+
+function Broker::__push%(h: opaque of Broker::Store, k: any, v: any, e: interval%): bool
+	%{
+	auto handle = prepare_store_handle(h);
+
+	if ( ! handle )
+		return new Val(false, TYPE_BOOL);
+
+	auto& key = bro_broker::opaque_field_to_data(bro_broker::make_data_val(k), frame);
+	auto& val = bro_broker::opaque_field_to_data(bro_broker::make_data_val(v), frame);
+	auto expiry = prepare_expiry(e);
+	handle->store.push(key, val, expiry);
+	return new Val(true, TYPE_BOOL);
+	%}
+
+function Broker::__pop%(h: opaque of Broker::Store, k: any, e: interval%): bool
+	%{
+	auto handle = prepare_store_handle(h);
+
+	if ( ! handle )
+		return new Val(false, TYPE_BOOL);
+
+	auto& key = bro_broker::opaque_field_to_data(bro_broker::make_data_val(k), frame);
+	auto expiry = prepare_expiry(e);
+	handle->store.pop(key, expiry);
 	return new Val(true, TYPE_BOOL);
 	%}
 

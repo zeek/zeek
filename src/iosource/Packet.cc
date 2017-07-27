@@ -158,9 +158,12 @@ void Packet::ProcessLayer2()
 			have_stats = true;
 			if (this->ProcessStatHeader(&pdata, end_of_data, &protocol))
 				{
-					Weird("Unparsable statistics header");
-					return;
+				Weird("Unparsable statistics header");
+				return;
 				}
+			/* Nothing afterwards */
+			if ( protocol == 0x0000 )
+				return;
 			}
 
 		switch ( protocol )

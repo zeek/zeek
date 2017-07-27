@@ -211,6 +211,7 @@ event ssl_dh_server_params%(c: connection, p: string, q: string, Ys: string%);
 ##    ssl_extension_elliptic_curves ssl_extension_ec_point_formats
 ##    ssl_extension_server_name ssl_extension_key_share
 ##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
+##    ssl_extension_signed_certificate_timestamp
 event ssl_extension_application_layer_protocol_negotiation%(c: connection, is_orig: bool, protocols: string_vec%);
 
 ## Generated for an SSL/TLS Server Name extension. This SSL/TLS extension is
@@ -231,6 +232,7 @@ event ssl_extension_application_layer_protocol_negotiation%(c: connection, is_or
 ##    ssl_extension_application_layer_protocol_negotiation
 ##    ssl_extension_key_share
 ##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
+##    ssl_extension_signed_certificate_timestamp
 event ssl_extension_server_name%(c: connection, is_orig: bool, names: string_vec%);
 
 ## Generated for the signed_certificate_timestamp TLS extension as defined in
@@ -253,6 +255,14 @@ event ssl_extension_server_name%(c: connection, is_orig: bool, names: string_vec
 ##                              digitally_signed struct
 ##
 ## signature: signature part of the digitally_signed struct
+##
+## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+##    ssl_session_ticket_handshake ssl_extension
+##    ssl_extension_elliptic_curves ssl_extension_ec_point_formats
+##    ssl_extension_server_name ssl_extension_key_share
+##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
+##    ssl_extension_application_layer_protocol_negotiation
+##    x509_ocsp_ext_signed_certificate_timestamp sct_verify
 event ssl_extension_signed_certificate_timestamp%(c: connection, is_orig: bool, version: count, logid: string, timestamp: count, signature_and_hashalgorithm: SSL::SignatureAndHashAlgorithm, signature: string%);
 
 ## Generated for an TLS Supported Versions extension. This TLS extension
@@ -271,7 +281,7 @@ event ssl_extension_signed_certificate_timestamp%(c: connection, is_orig: bool, 
 ##    ssl_extension_elliptic_curves ssl_extension_ec_point_formats
 ##    ssl_extension_application_layer_protocol_negotiation
 ##    ssl_extension_key_share ssl_extension_server_name
-##    ssl_extension_psk_key_exchange_modes
+##    ssl_extension_psk_key_exchange_modes ssl_extension_signed_certificate_timestamp
 event ssl_extension_supported_versions%(c: connection, is_orig: bool, versions: index_vec%);
 
 ## Generated for an TLS Pre-Shared Key Exchange Modes extension. This TLS extension is defined
@@ -288,7 +298,7 @@ event ssl_extension_supported_versions%(c: connection, is_orig: bool, versions: 
 ##    ssl_extension_elliptic_curves ssl_extension_ec_point_formats
 ##    ssl_extension_application_layer_protocol_negotiation
 ##    ssl_extension_key_share ssl_extension_server_name
-##    ssl_extension_supported_versions
+##    ssl_extension_supported_versions ssl_extension_signed_certificate_timestamp
 event ssl_extension_psk_key_exchange_modes%(c: connection, is_orig: bool, modes: index_vec%);
 
 ## Generated at the end of an SSL/TLS handshake. SSL/TLS sessions start with

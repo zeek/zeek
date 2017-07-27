@@ -140,6 +140,8 @@ X509* x509_get_ocsp_signer(STACK_OF(X509) *certs, OCSP_RESPID *rid)
 	return 0;
 	}
 
+// Convert hash algorithm registry numbers to the OpenSSL EVP_MD.
+// Mapping at https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-18
 const EVP_MD* hash_to_evp(int hash)
 	{
 	switch ( hash )
@@ -483,7 +485,7 @@ x509_ocsp_cleanup:
 ##
 ## .. bro:see:: x509_certificate x509_extension x509_ext_basic_constraints
 ##              x509_ext_subject_alternative_name x509_parse
-##              x509_get_certificate_string x509_ocsp_verify
+##              x509_get_certificate_string x509_ocsp_verify sct_verify
 function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_string, verify_time: time &default=network_time()%): X509::Result
 	%{
 	X509_STORE* ctx = x509_get_root_store(root_certs->AsTableVal());
@@ -571,6 +573,28 @@ x509_verify_chainerror:
 	return rrecord;
 	%}
 
+## Verifies a Signed Certificate Timestamp as used for Certificate Transparency.
+## See RFC6962 for more details.
+##
+## cert: Certificate against which the SCT should be validated.
+##
+## logid: Log id of the SCT.
+##
+## log_key: Public key of the Log that issued the SCT proof.
+##
+## timestamp: Timestamp at which the proof was generated.
+##
+## hash_algorithm: Hash algorithm that was used for the SCT proof.
+##
+## issuer_key_hash: The SHA-256 hash of the certificate issuer's public key.
+##                  This only has to be provided if the SCT was encountered in an X.509
+##                  certificate extension; in that case, it is necessary for validation.
+##
+## Returns: T if the validation could be performed succesfully, F otherwhise.
+##
+## .. bro:see:: ssl_extension_signed_certificate_timestamp
+##              x509_ocsp_ext_signed_certificate_timestamp
+##              x509_verify
 function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signature: string, timestamp: count, hash_algorithm: count, issuer_key_hash: string &default=""%): bool
 	%{
 	assert(cert);
@@ -789,6 +813,17 @@ StringVal* x509_entity_hash(file_analysis::X509Val *cert_handle, unsigned int ha
 	}
 %%}
 
+## Get the hash of the subject's distinguished name.
+##
+## cert: The X509 certificate opaque handle.
+##
+## hash_alg: the hash algorithm to use, according to the IANA mapping at
+##           https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-18
+##
+## Returns: The hash as a string.
+##
+## .. bro:see:: x509_issuer_name_hash x509_spki_hash
+##              x509_verify sct_verify
 function x509_subject_name_hash%(cert: opaque of x509, hash_alg: count%): string
 	%{
 	file_analysis::X509Val *cert_handle = (file_analysis::X509Val *) cert;
@@ -796,17 +831,17 @@ function x509_subject_name_hash%(cert: opaque of x509, hash_alg: count%): string
 	return x509_entity_hash(cert_handle, hash_alg, 0);
 	%}
 
-## Get the hash of issuer name of a certificate
+## Get the hash of the issuer's distinguished name.
 ##
 ## cert: The X509 certificate opaque handle.
 ##
-## hash_alg: the hash algorithm to use
+## hash_alg: the hash algorithm to use, according to the IANA mapping at
+##           https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-18
 ##
-## Returns: A string of hash of issuer name.
+## Returns: The hash as a string.
 ##
-## .. bro:see:: x509_certificate x509_extension x509_ext_basic_constraints
-##              x509_ext_subject_alternative_name x509_parse
-##              x509_get_certificate_string x509_verify
+## .. bro:see:: x509_subject_name_hash x509_spki_hash
+##              x509_verify sct_verify
 function x509_issuer_name_hash%(cert: opaque of x509, hash_alg: count%): string
 	%{
 	file_analysis::X509Val *cert_handle = (file_analysis::X509Val *) cert;
@@ -814,6 +849,17 @@ function x509_issuer_name_hash%(cert: opaque of x509, hash_alg: count%): string
 	return x509_entity_hash(cert_handle, hash_alg, 1);
 	%}
 
+## Get the hash of the Subject Public Key Information of the certificate.
+##
+## cert: The X509 certificate opaque handle.
+##
+## hash_alg: the hash algorithm to use, according to the IANA mapping at
+##           https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-18
+##
+## Returns: The hash as a string.
+##
+## .. bro:see:: x509_subject_name_hash x509_issuer_name_hash
+##              x509_verify sct_verify
 function x509_spki_hash%(cert: opaque of x509, hash_alg: count%): string
 	%{
 	file_analysis::X509Val *cert_handle = (file_analysis::X509Val *) cert;

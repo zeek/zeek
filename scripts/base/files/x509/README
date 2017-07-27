@@ -1,2 +1,2 @@
 Support for X509 certificates with the file analysis framework.
-Also supposrts OCSP requests and responses.
+Also supports parsing OCSP requests and responses.

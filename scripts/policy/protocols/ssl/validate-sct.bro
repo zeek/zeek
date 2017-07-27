@@ -1,6 +1,5 @@
 ##! Perform validation of Signed Certificate Timestamps, as used
-##! for Certificate Transparency. See https://tools.ietf.org/html/rfc6962
-##! for more details.
+##! for Certificate Transparency. See RFC6962 for more details.
 
 @load base/protocols/ssl
 @load protocols/ssl/validate-certs
@@ -13,39 +12,62 @@ module SSL;
 
 export {
 
+	## List of the different sources for Signed Certificate Timestamp
 	type SctSource: enum {
+		## Signed Certificate Timestamp was encountered in the extension of
+		## an X.509 certificate.
 		SCT_X509_EXT,
+		## Signed Certificate Timestamp was encountered in an TLS session
+		## extension.
 		SCT_TLS_EXT,
+		## Signed Certificate Timestamp was encountered in the extension of
+		## an stapled OCSP reply.
 		SCT_OCSP_EXT
 	};
 
+	## This record is used to store information about the SCTs that are
+	## encountered in a SSL connection.
 	type SctInfo: record {
+		## The version of the encountered SCT (should always be 0 for v1).
 		version: count;
+		## The ID of the log issuing this SCT.
 		logid: string;
+		## The timestamp at which this SCT was issued measured since the 
+		## epoch (January 1, 1970, 00:00), ignoring leap seconds, in
+		## milliseconds. Not converted to a Bro timestamp because we need
+		## the exact value for validation.
 		timestamp: count;
+		## The signature algorithm used for this sct.
 		sig_alg: count;
+		## The hash algorithm used for this sct.
 		hash_alg: count;
+		## The signature of this SCT.
 		signature: string;
+		## Source of this SCT.
 		source: SctSource;
+		## Validation result of this SCT.
 		valid: bool &optional;
 	};
 
 	redef record Info += {
+		## Number of valid SCTs that were encountered in the connection.
 		valid_scts: count &optional;
+		## Number of SCTs that could not be validated that were encountered in the connection.
 		invalid_scts: count &optional;
+		## Number of different Logs for which valid SCTs were encountered in the connection.
 		valid_ct_logs: count &log &optional;
+		## Number of different Log operators of which valid SCTs were encountered in the connection.
 		valid_ct_operators: count &log &optional;
+		## List of operators for which valid SCTs were encountered in the connection.
 		valid_ct_operators_list: set[string] &optional;
+		## Information about all SCTs that were encountered in the connection.
+		ct_proofs: vector of SctInfo &default=vector();
 	};
-
 }
 
+# Used to cache validations for 5 minutes to lessen computational load.
 global recently_validated_scts: table[string] of bool = table()
 	&read_expire=5mins &redef;
-
-redef record SSL::Info += {
-	ct_proofs: vector of SctInfo &default=vector();
-};
 
 event bro_init()
 	{
@@ -134,7 +156,6 @@ hook ssl_finishing(c: connection) &priority=19
 			# the right issuer cert.
 			#
 			# First - Let's try if a previous round already established the correct issuer key hash.
-
 			if ( issuer_key_hash != "" )
 				{
 				valid = sct_verify(cert, proof$logid, log$key, proof$signature, proof$timestamp, proof$hash_alg, issuer_key_hash);
@@ -151,9 +172,9 @@ hook ssl_finishing(c: connection) &priority=19
 				issuer_key_hash = x509_spki_hash(c$ssl$valid_chain[1], 4);
 				valid = sct_verify(cert, proof$logid, log$key, proof$signature, proof$timestamp, proof$hash_alg, issuer_key_hash);
 				}
+
 			# ok, if it still did not work - let's just try with all the certs that were sent
 			# in the connection. Perhaps it will work with one of them.
-
 			if ( !valid )
 				for ( i in c$ssl$cert_chain )
 					{

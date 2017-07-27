@@ -64,7 +64,6 @@ export {
 		## Flag to indicate if this ssl session has been established
 		## successfully, or if it was aborted during the handshake.
 		established:      bool             &log &default=F;
-
 		## Flag to indicate if this record already has been logged, to
 		## prevent duplicates.
 		logged:           bool             &default=F;
@@ -74,11 +73,18 @@ export {
 	## script sets this to Mozilla's root CA list.
 	const root_certs: table[string] of string = {} &redef;
 
+	## The record type which contains the field for the Certificate
+	## Transparency log bundle.
 	type CTInfo: record {
+		## Description of the Log
 	  description:           string;
+		## Operator of the Log
 	  operator:              string;
+		## Public key of the Log.
 		key:                   string;
+		## Maximum merge delay of the Log
 		maximum_merge_delay:   count;
+		## URL of the Log
 		url:                   string;
 	};
 
@@ -104,7 +110,8 @@ export {
 	## record as it is sent on to the logging framework.
 	global log_ssl: event(rec: Info);
 
-	# do everything you want to do right before logging here
+	# Hook that can be used to perform actions right before the log record
+	# is written.
 	global ssl_finishing: hook(c: connection);
 }
 

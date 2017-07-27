@@ -1223,7 +1223,7 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 		flip = syn_offloading;
 		}
 
-	if ( ! WantConnection(src_h, dst_h, tproto, flags, flip) )
+	if ( ! WantConnection(src_h, dst_h, tproto, flags, flip, syn_offloading) )
 		return 0;
 
 	Connection* conn = new Connection(this, k, t, id, flow_label, pkt, encapsulation);

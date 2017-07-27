@@ -241,7 +241,7 @@ refine connection Handshake_Conn += {
 		return true;
 		%}
 
-	function proc_ocsp_response(rec : HandshakeRecord, status_type: uint8, response: bytestring) : bool
+	function proc_certificate_status(rec : HandshakeRecord, status_type: uint8, response: bytestring) : bool
 		%{
 		ODesc common;
 		common.AddRaw("Analyzer::ANALYZER_SSL");
@@ -249,7 +249,7 @@ refine connection Handshake_Conn += {
 		common.AddRaw("F");
 		bro_analyzer()->Conn()->IDString(&common);
 
-		if ( status_type == 1 || status_type == 2 ) // ocsp
+		if ( status_type == 1 ) // ocsp
 			{
 			ODesc file_handle;
 			file_handle.Add(common.Description());
@@ -269,6 +269,7 @@ refine connection Handshake_Conn += {
 
 			file_mgr->EndOfFile(file_id);
 			}
+
 		return true;
 		%}
 
@@ -384,8 +385,8 @@ refine typeattr ServerNameExt += &let {
 	proc : bool = $context.connection.proc_server_name(rec, server_names);
 };
 
-refine typeattr OCSPResponse += &let {
-	proc : bool = $context.connection.proc_ocsp_response(rec, status_type, response);
+refine typeattr CertificateStatus += &let {
+	proc : bool = $context.connection.proc_certificate_status(rec, status_type, response);
 };
 
 refine typeattr EcServerKeyExchange += &let {

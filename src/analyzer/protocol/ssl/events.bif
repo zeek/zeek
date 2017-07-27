@@ -416,9 +416,7 @@ event ssl_encrypted_data%(c: connection, is_orig: bool, content_type: count, len
 ## is_orig: True if event is raised for originator side of the connection.
 ##
 ## response: OCSP data.
-##
-## status_type: status_type in received OCSP stapled response
-event ssl_stapled_ocsp%(c: connection, is_orig: bool, response: string, status_type: count%);
+event ssl_stapled_ocsp%(c: connection, is_orig: bool, response: string%);
 
 ## This event is raised for each unencrypted SSL/TLS handshake message.
 ##

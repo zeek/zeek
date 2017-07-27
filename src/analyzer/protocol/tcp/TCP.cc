@@ -646,7 +646,7 @@ void TCP_Analyzer::UpdateInactiveState(double t,
 			TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 			uint32 base_seq, uint32 ack_seq,
 			int len, int is_orig, TCP_Flags flags,
-			int& do_close, int& gen_event)
+			int& do_close, int& gen_event, bool syn_offloading)
 	{
 	if ( flags.SYN() )
 		{
@@ -669,6 +669,10 @@ void TCP_Analyzer::UpdateInactiveState(double t,
 			{
 			if ( flags.ACK() )
 				{
+				/* The SYN was blocked on the NIC */
+				if (syn_offloading)
+					peer->SetState(TCP_ENDPOINT_SYN_SENT);
+
 				if ( peer->state != TCP_ENDPOINT_INACTIVE &&
 				     peer->state != TCP_ENDPOINT_PARTIAL &&
 				     ! seq_between(ack_seq, peer->StartSeq(), peer->LastSeq()) )
@@ -913,7 +917,7 @@ void TCP_Analyzer::UpdateStateMachine(double t,
 			TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 			uint32 base_seq, uint32 ack_seq,
 			int len, int32 delta_last, int is_orig, TCP_Flags flags,
-			int& do_close, int& gen_event)
+			int& do_close, int& gen_event, bool syn_offloading)
 	{
 	do_close = 0;	// whether to report the connection as closed
 	gen_event = 0;	// if so, whether to generate an event
@@ -923,7 +927,7 @@ void TCP_Analyzer::UpdateStateMachine(double t,
 	case TCP_ENDPOINT_INACTIVE:
 		UpdateInactiveState(t, endpoint, peer, base_seq, ack_seq,
 					len, is_orig, flags,
-					do_close, gen_event);
+					do_close, gen_event, syn_offloading);
 		break;
 
 	case TCP_ENDPOINT_SYN_SENT:
@@ -1349,8 +1353,10 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 	int do_close;
 	int gen_event;
+	bool syn_offloading = flags.SYN() && flags.ACK() && tp->th_x2 == 2;
 	UpdateStateMachine(current_timestamp, endpoint, peer, base_seq, ack_seq,
-	                   len, delta_last, is_orig, flags, do_close, gen_event);
+	                   len, delta_last, is_orig, flags, do_close, gen_event,
+			   syn_offloading);
 
 	if ( tcp_packet )
 		GeneratePacketEvent(rel_seq, rel_ack, data, len, caplen, is_orig,

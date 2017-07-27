@@ -210,7 +210,8 @@ protected:
 	// Use tcp_flags=0 for non-TCP.
 	bool WantConnection(uint16 src_port, uint16 dest_port,
 				TransportProto transport_proto,
-				uint8 tcp_flags, bool& flip_roles);
+				uint8 tcp_flags, bool& flip_roles,
+				bool syn_offloading);
 
 	// Record the given packet (if a dumper is active).  If len=0
 	// then the whole packet is recorded, otherwise just the first

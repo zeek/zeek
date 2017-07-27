@@ -119,13 +119,13 @@ protected:
 			TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 			uint32 base_seq, uint32 ack_seq,
 			int len, int32 delta_last, int is_orig, TCP_Flags flags,
-			int& do_close, int& gen_event);
+			int& do_close, int& gen_event, bool syn_offloading);
 
 	void UpdateInactiveState(double t,
 				TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 				uint32 base_seq, uint32 ack_seq,
 				int len, int is_orig, TCP_Flags flags,
-				int& do_close, int& gen_event);
+				int& do_close, int& gen_event, bool syn_offloading);
 
 	void UpdateSYN_SentState(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 				 int len, int is_orig, TCP_Flags flags,

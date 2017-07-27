@@ -1191,6 +1191,7 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 	int src_h = ntohs(id->src_port);
 	int dst_h = ntohs(id->dst_port);
 	int flags = 0;
+	bool syn_offloading = false;
 
 	// Hmm... This is not great.
 	TransportProto tproto = TRANSPORT_UNKNOWN;
@@ -1212,13 +1213,15 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 			return 0;
 	};
 
+	bool flip = false;
+
 	if ( tproto == TRANSPORT_TCP )
 		{
 		const struct tcphdr* tp = (const struct tcphdr*) data;
 		flags = tp->th_flags;
+		syn_offloading = tp->th_x2 == 2 && (flags & TH_SYN) && (flags & TH_ACK);
+		flip = syn_offloading;
 		}
-
-	bool flip = false;
 
 	if ( ! WantConnection(src_h, dst_h, tproto, flags, flip) )
 		return 0;
@@ -1287,13 +1290,14 @@ bool NetSessions::IsLikelyServerPort(uint32 port, TransportProto proto) const
 
 bool NetSessions::WantConnection(uint16 src_port, uint16 dst_port,
 					TransportProto transport_proto,
-					uint8 tcp_flags, bool& flip_roles)
+					uint8 tcp_flags, bool& flip_roles,
+					bool syn_offloading)
 	{
 	flip_roles = false;
 
 	if ( transport_proto == TRANSPORT_TCP )
 		{
-		if ( ! (tcp_flags & TH_SYN) || (tcp_flags & TH_ACK) )
+		if ( ! (tcp_flags & TH_SYN) || ((tcp_flags & TH_ACK) && ! syn_offloading))
 			{
 			// The new connection is starting either without a SYN,
 			// or with a SYN ack. This means it's a partial connection.

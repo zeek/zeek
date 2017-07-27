@@ -4,6 +4,19 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as BroControl and Broccoli, come with
 their own ``CHANGES``.)
 
+
+Bro 2.6 (in progress)
+=====================
+
+Removed Functionality
+---------------------
+
+- We no longer maintain any Bro plugins as part of the Bro
+  distribution. Most of the plugins that used be in aux/plugins have
+  been moved over to use the Bro Package Manager instead. See
+  https://github.com/bro/packages for a list of Bro packages currently
+  available.
+
 Bro 2.5.1
 =========
 

@@ -242,11 +242,6 @@ VersionNumber Plugin::Version() const
 	return config.version;
 	}
 
-int Plugin::APIVersion() const
-	{
-	return config.api_version;
-	}
-
 bool Plugin::DynamicPlugin() const
 	{
 	return dynamic;

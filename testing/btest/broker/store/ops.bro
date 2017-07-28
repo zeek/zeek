@@ -64,6 +64,11 @@ event bro_init()
 	Broker::put(h, "four", set(1, 2,3));
 	Broker::put(h, set("x", "y"), vector(1/tcp, 2/tcp, 3/tcp));
 
+	Broker::put(h, "str", "foo");
+	Broker::put(h, "vec", vector(1, 2,3));
+	Broker::put(h, "set", set("A", "B"));
+	Broker::put(h, "table", table(["a"] = 1, ["b"] = 2));
+	
 	print_index("one");
 	print_index("two");
 	print_index("three");
@@ -82,6 +87,21 @@ event bro_init()
 		print_index("four");
 		print_keys();
 		Broker::erase(h, "four");
+
+		Broker::append(h, "str", "bar");
+		Broker::insert_into_set(h, "set", "C");
+		Broker::insert_into_table(h, "table", "c", 3);
+		Broker::remove_from(h, "set", 2);
+		Broker::remove_from(h, "table", "b");
+		Broker::push(h, "vec", 4);
+		Broker::push(h, "vec", 5);
+		Broker::pop(h, "vec");
+
+		print_index("str");
+		print_index("set");
+		print_index("table");
+		print_index("vec");
+
 		schedule 1sec { pk1() };
 		}
 	

@@ -119,12 +119,8 @@ void Manager::InitPostScript()
 
 void Manager::Terminate()
 	{
-	// TODO: Is there a better way to shutdown communication regularly?
-	for ( auto p : endpoint.peers() )
-		endpoint.unpeer(p.peer.network->address, p.peer.network->port);
-
-	// TODO: How to "unlisten"?
-
+#if 0
+	// Do we still need this?
 	vector<string> stores_to_close;
 
 	for ( auto& x : data_stores )
@@ -134,6 +130,14 @@ void Manager::Terminate()
 		// This doesn't loop directly over data_stores, because CloseStore
 		// modifies the map and invalidates iterators.
 		CloseStore(x);
+#endif
+
+#if 0
+	endpoint.shutdown();
+#else
+	for ( auto p : endpoint.peers() )
+		endpoint.unpeer(p.peer.network->address, p.peer.network->port);
+#endif
 	}
 
 bool Manager::Active()

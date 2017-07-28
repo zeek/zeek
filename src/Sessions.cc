@@ -1213,18 +1213,17 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 			return 0;
 	};
 
-	bool flip = false;
-
 	if ( tproto == TRANSPORT_TCP )
 		{
 		const struct tcphdr* tp = (const struct tcphdr*) data;
 		flags = tp->th_flags;
 		syn_offloading = tp->th_x2 == 2 && (flags & TH_SYN) && (flags & TH_ACK);
-		flip = syn_offloading;
 		}
 
+	bool flip = false;
 	if ( ! WantConnection(src_h, dst_h, tproto, flags, flip, syn_offloading) )
 		return 0;
+	flip = flip || syn_offloading;
 
 	Connection* conn = new Connection(this, k, t, id, flow_label, pkt, encapsulation);
 	conn->SetTransport(tproto);

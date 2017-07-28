@@ -481,7 +481,7 @@ void TCP_Analyzer::SetPartialStatus(TCP_Flags flags, bool is_orig)
 	}
 
 static void update_history(TCP_Flags flags, TCP_Endpoint* endpoint,
-			   uint64 rel_seq, int len)
+			   uint64 rel_seq, int len, bool syn_offloading)
 	{
 	int bits_set = (flags.SYN() ? 1 : 0) + (flags.FIN() ? 1 : 0) +
 			(flags.RST() ? 1 : 0);
@@ -498,6 +498,9 @@ static void update_history(TCP_Flags flags, TCP_Endpoint* endpoint,
 		if ( flags.SYN() )
 			{
 			char code = flags.ACK() ? 'H' : 'S';
+			/* The SYN was offloaded by the NIC */
+			if ( syn_offloading && flags.ACK() )
+				endpoint->peer->AddHistory('O');
 
 			if ( endpoint->CheckHistory(HIST_SYN_PKT, code) &&
 			     rel_seq != endpoint->hist_last_SYN )
@@ -672,8 +675,7 @@ void TCP_Analyzer::UpdateInactiveState(double t,
 				/* The SYN was blocked on the NIC */
 				if (syn_offloading)
 					peer->SetState(TCP_ENDPOINT_SYN_SENT);
-
-				if ( peer->state != TCP_ENDPOINT_INACTIVE &&
+				else if ( peer->state != TCP_ENDPOINT_INACTIVE &&
 				     peer->state != TCP_ENDPOINT_PARTIAL &&
 				     ! seq_between(ack_seq, peer->StartSeq(), peer->LastSeq()) )
 					Weird("bad_SYN_ack");
@@ -1258,8 +1260,8 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 		// just broken and sending garbage sequences.  In either case, some
 		// standard analysis doesn't apply (e.g. reassembly).
 		Weird("TCP_seq_underflow_or_misorder");
-
-	update_history(flags, endpoint, rel_seq, len);
+	bool syn_offloading = flags.SYN() && flags.ACK() && tp->th_x2 == 2;
+	update_history(flags, endpoint, rel_seq, len, syn_offloading);
 	update_window(endpoint, ntohs(tp->th_win), base_seq, ack_seq, flags);
 
 	if ( ! orig->did_close || ! resp->did_close )
@@ -1353,7 +1355,6 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 	int do_close;
 	int gen_event;
-	bool syn_offloading = flags.SYN() && flags.ACK() && tp->th_x2 == 2;
 	UpdateStateMachine(current_timestamp, endpoint, peer, base_seq, ack_seq,
 	                   len, delta_last, is_orig, flags, do_close, gen_event,
 			   syn_offloading);

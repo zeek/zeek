@@ -1,0 +1,11 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	weird
+#open	2017-07-28-05-03-01
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
+#types	time	string	addr	port	addr	port	string	string	bool	string
+1501217955.063524	CHhAvVGS1DHFjwGM9	192.168.0.9	57322	192.150.187.12	80	illegal_%_at_end_of_URI	-	F	bro
+1501217957.423701	ClEkJM2Vm5giqnMf4h	192.168.0.9	57323	192.150.187.12	80	partial_escape_at_end_of_URI	-	F	bro
+#close	2017-07-28-05-03-01

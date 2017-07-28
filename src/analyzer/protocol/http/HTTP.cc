@@ -1843,10 +1843,20 @@ BroString* analyzer::http::unescape_URI(const u_char* line, const u_char* line_e
 
 			if ( line == line_end )
 				{
-				// How to deal with % at end of line?
-				// *URI_p++ = '%';
+				*URI_p++ = '%';
 				if ( analyzer )
 					analyzer->Weird("illegal_%_at_end_of_URI");
+				break;
+				}
+
+			else if ( line + 1 == line_end )
+				{
+				// % + one character at end of line. Log weird
+				// and just add to unescpaped URI.
+				*URI_p++ = '%';
+				*URI_p++ = *line;
+				if ( analyzer )
+					analyzer->Weird("partial_escape_at_end_of_URI");
 				break;
 				}
 
@@ -1855,7 +1865,7 @@ BroString* analyzer::http::unescape_URI(const u_char* line, const u_char* line_e
 				// Double '%' might be either due to
 				// software bug, or more likely, an
 				// evasion (e.g. used by Nimda).
-				// *URI_p++ = '%';
+				*URI_p++ = '%';
 				if ( analyzer )
 					analyzer->Weird("double_%_in_URI");
 				--line;	// ignore the first '%'

@@ -1,4 +1,12 @@
 
+2.5-185 | 2017-07-28 10:07:44 -0700
+
+  * Improved handling of '%' at end of line in HTTP analyzer. (Johanna
+    Amann)
+
+  * Add canonifier to catch and release test that should fix test
+    failures. (Johanna Amann)
+
 2.5-181 | 2017-07-25 16:02:41 -0700
 
   * Extend plugin infrastructure to catch Bro version mismatches at link

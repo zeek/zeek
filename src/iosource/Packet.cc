@@ -685,7 +685,7 @@ int Packet::ProcessStatHeader(const u_char **pdata, const u_char *end_of_data,
 	Val *tcp = NULL, *udp = NULL, *fl_pktcnt = NULL;
 
 	*protocol = 0x0001; /* Always first TLV */
-	for (header_len = 4 + ntohs(((*pdata)[2] << 8) + (*pdata)[3]);
+	for (header_len = 4 + ((*pdata)[2] << 8) + (*pdata)[3];
 	     stat_headers && (*pdata) + header_len <= end_of_data;
 	     (*pdata) += header_len, header_len = next_header_len)
 	{
@@ -708,8 +708,8 @@ int Packet::ProcessStatHeader(const u_char **pdata, const u_char *end_of_data,
 			dst = new SubNetVal(&pdata_word[5], (*pdata)[37]);
 			tcp = new Val((*pdata)[38] >> 7, TYPE_INT);
 			udp = new Val((*pdata)[38] >> 6, TYPE_INT);
-			srcPort = new PortVal(ntohs(((*pdata)[40] << 8) + (*pdata)[41]));
-			dstPort = new PortVal(ntohs(((*pdata)[42] << 8) + (*pdata)[43]));
+			srcPort = new PortVal(((*pdata)[40] << 8) + (*pdata)[41]);
+			dstPort = new PortVal(((*pdata)[42] << 8) + (*pdata)[43]);
 			break;
 		case 0x0003 : /* Flowspec IPv4 */
 			if (src)
@@ -723,8 +723,8 @@ int Packet::ProcessStatHeader(const u_char **pdata, const u_char *end_of_data,
 			dst = new SubNetVal(ntohl(pdata_word[2]), (*pdata)[13]);
 			tcp = new Val((*pdata)[14] >> 7 & 0x1, TYPE_INT);
 			udp = new Val((*pdata)[14] >> 6 & 0x1, TYPE_INT);
-			srcPort = new PortVal(ntohs(((*pdata)[16] << 8) + (*pdata)[17]));
-			dstPort = new PortVal(ntohs(((*pdata)[18] << 8) + (*pdata)[19]));
+			srcPort = new PortVal(((*pdata)[16] << 8) + (*pdata)[17]);
+			dstPort = new PortVal(((*pdata)[18] << 8) + (*pdata)[19]);
 			break;
 		case 0x0004 : /* Flow packet count */
 			if (!src)
@@ -744,7 +744,7 @@ int Packet::ProcessStatHeader(const u_char **pdata, const u_char *end_of_data,
 		*protocol = next_protocol;
 		if (stat_headers)
 			{
-			next_header_len = 4 + ntohs(((*pdata)[header_len + 2] << 8) + (*pdata)[header_len + 3]);
+			next_header_len = 4 + ((*pdata)[header_len + 2] << 8) + (*pdata)[header_len + 3];
 			next_protocol = ((*pdata)[header_len] << 8) + (*pdata)[header_len + 1];
 			}
 	}

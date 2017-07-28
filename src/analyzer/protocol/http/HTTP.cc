@@ -1865,7 +1865,7 @@ BroString* analyzer::http::unescape_URI(const u_char* line, const u_char* line_e
 				// Double '%' might be either due to
 				// software bug, or more likely, an
 				// evasion (e.g. used by Nimda).
-				*URI_p++ = '%';
+				// *URI_p++ = '%';
 				if ( analyzer )
 					analyzer->Weird("double_%_in_URI");
 				--line;	// ignore the first '%'

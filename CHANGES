@@ -1,5 +1,5 @@
 
-2.5-185 | 2017-07-28 10:07:44 -0700
+2.5-186 | 2017-07-28 12:22:20 -0700
 
   * Improved handling of '%' at end of line in HTTP analyzer. (Johanna
     Amann)

@@ -1053,7 +1053,7 @@ void Manager::ProcessStoreResponse(StoreHandleVal* s, broker::store::response re
 	auto request = pending_queries.find(response.id);
 	if ( request == pending_queries.end() )
 		{
-		reporter->Warning("unmatched response to query %llu on store %s",
+		reporter->Warning("unmatched response to query %" PRIu64 "on store %s",
 				  response.id, s->store.name().c_str());
 		return;
 		}

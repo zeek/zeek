@@ -24,6 +24,37 @@ export {
         ## initially, or if it ever becomes disconnected.
         const default_connect_retry = 30sec &redef;
 
+        ## If false, do not use SSL for network connections. By default, SSL will even
+        ## be used if no certificates / CAs have been configured. In that case
+        ## (which is the default) the communication will be encrypted, but not
+        ## authenticated.
+        const disable_ssl = F &redef;
+
+        ## Path to a file containing concatenated trusted certificates 
+        ## in PEM format. If set, Bro will require valid certificates forx
+        ## all peers.
+	const ssl_cafile = "" &redef;
+
+        ## Path to an OpenSSL-style directory of trusted certificates.
+        ## If set, Bro will require valid certificates forx
+        ## all peers.
+        const ssl_capath = "" &redef;
+
+        ## Path to a file containing a X.509 certificate for this
+        ## node in PEM format. If set, Bro will require valid certificates for
+        ## all peers.
+        const ssl_certificate = "" &redef;
+
+        ## Passphrase to decrypt the private key specified by
+        ## :bro:see:`ssl_key`. If set, Bro will require valid certificates for
+        ## all peers.
+        const ssl_passphrase = "" &redef;
+
+        ## Path to the file containing the private key for this node's
+        ## certificate. If set, Bro will require valid certificates for
+        ## all peers.
+        const ssl_keyfile = "" &redef;
+
 	## The available configuration options when enabling Broker.
 	type Options: record {
 		## Whether this Broker instance relays messages not destined to itself.

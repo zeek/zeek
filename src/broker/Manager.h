@@ -251,6 +251,14 @@ public:
 	const Stats& GetStatistics();
 
 private:
+        class BrokerState {
+	public:
+		BrokerState();
+		broker::endpoint endpoint;
+		broker::subscriber subscriber;
+		broker::event_subscriber event_subscriber;
+	};
+
 	void ProcessEvent(const broker::vector xs);
 	void ProcessStatus(const broker::status stat);
 	void ProcessError(broker::error err);
@@ -270,15 +278,13 @@ private:
 		{ return "Broker::Manager"; }
 
 	broker::endpoint& Endpoint()
-		{ return endpoint; }
+		{ assert(bstate); return bstate->endpoint; }
 
 	bool routable;
 	std::string log_topic;
 	uint16_t bound_port;
 
-	broker::endpoint endpoint;
-	broker::subscriber subscriber;
-	broker::event_subscriber event_subscriber;
+	std::shared_ptr<BrokerState> bstate;
 
 	// Data stores
 	std::unordered_map<std::string, StoreHandleVal*> data_stores;

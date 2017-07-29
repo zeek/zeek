@@ -76,17 +76,37 @@ static std::string RenderMessage(const broker::error& e)
 
 #endif
 
+static inline Val* get_option(const char* option)
+	{
+	auto id = global_scope()->Lookup(option);
+
+	if ( ! (id && id->ID_Val()) )
+		reporter->FatalError("Unknown Broker option %s", option);
+
+	return id->ID_Val();
+	}
+
 class configuration : public broker::configuration {
 public:
 	configuration()
+		: broker::configuration(get_option("Broker::disable_ssl")->AsBool())
 		{
+		openssl_cafile = get_option("Broker::ssl_cafile")->AsString()->CheckString();
+		openssl_capath = get_option("Broker::ssl_capath")->AsString()->CheckString();
+		openssl_certificate = get_option("Broker::ssl_certificate")->AsString()->CheckString();
+		openssl_key = get_option("Broker::ssl_keyfile")->AsString()->CheckString();
+		openssl_passphrase = get_option("Broker::ssl_passphrase")->AsString()->CheckString();
 		}
 };
 
-Manager::Manager()
+Manager::BrokerState::BrokerState()
 	: endpoint(configuration()),
 	  subscriber(endpoint.make_subscriber({})),
 	  event_subscriber(endpoint.make_event_subscriber(true))
+		{
+		}
+
+Manager::Manager()
 	{
 	routable = false;
 	bound_port = 0;
@@ -115,6 +135,8 @@ void Manager::InitPostScript()
 	vector_of_data_type = new VectorType(internal_type("Broker::Data")->Ref());
 
 	iosource_mgr->Register(this, true);
+
+	bstate = std::shared_ptr<BrokerState>(new BrokerState());
 	}
 
 void Manager::Terminate()
@@ -133,16 +155,16 @@ void Manager::Terminate()
 #endif
 
 #if 0
-	endpoint.shutdown();
+	bstate->endpoint.shutdown();
 #else
-	for ( auto p : endpoint.peers() )
-		endpoint.unpeer(p.peer.network->address, p.peer.network->port);
+	for ( auto p : bstate->endpoint.peers() )
+		bstate->endpoint.unpeer(p.peer.network->address, p.peer.network->port);
 #endif
 	}
 
 bool Manager::Active()
 	{
-	return bound_port > 0 || endpoint.peers().size();
+	return bound_port > 0 || bstate->endpoint.peers().size();
 	}
 
 bool Manager::Configure(bool arg_routable, std::string arg_log_topic)
@@ -159,7 +181,7 @@ bool Manager::Configure(bool arg_routable, std::string arg_log_topic)
 
 uint16_t Manager::Listen(const string& addr, uint16_t port)
 	{
-	bound_port = endpoint.listen(addr, port);
+	bound_port = bstate->endpoint.listen(addr, port);
 
 	if ( bound_port == 0 )
 		reporter->Error("Failed to listen on %s:%" PRIu16,
@@ -181,33 +203,33 @@ void Manager::Peer(const string& addr, uint16_t port, double retry)
 		retry = 1.0;
 
 	auto ms = broker::timeout::seconds(static_cast<uint64>(retry));
-	endpoint.peer_nosync(addr, port, ms);
+	bstate->endpoint.peer_nosync(addr, port, ms);
 	}
 
 void Manager::Unpeer(const string& addr, uint16_t port)
 	{
 	DBG_LOG(DBG_BROKER, "Stopping to peer with %s:%" PRIu16,
 		addr.c_str(), port);
-	endpoint.unpeer_nosync(addr, port);
+	bstate->endpoint.unpeer_nosync(addr, port);
 	}
 
 bool Manager::PublishEvent(string topic, broker::data x)
 	{
-	if ( ! endpoint.peers().size() )
+	if ( ! bstate->endpoint.peers().size() )
 		return true;
 
 	DBG_LOG(DBG_BROKER, "Publishing event: %s",
 		RenderMessage(topic, x).c_str());
 	broker::vector hdr = {ProtocolVersion, atom::event::value.uint_value()};
 	broker::vector data = {std::move(hdr), move(x)};
-	endpoint.publish(move(topic), std::move(data));
+	bstate->endpoint.publish(move(topic), std::move(data));
 	++statistics.num_events_outgoing;
 	return true;
 	}
 
 bool Manager::PublishEvent(string topic, RecordVal* args)
 	{
-	if ( ! endpoint.peers().size() )
+	if ( ! bstate->endpoint.peers().size() )
 		return true;
 
 	if ( ! args->Lookup(0) )
@@ -229,7 +251,7 @@ bool Manager::PublishEvent(string topic, RecordVal* args)
 	DBG_LOG(DBG_BROKER, "Publishing event: %s", RenderMessage(topic, xs).c_str());
 	broker::vector hdr = {ProtocolVersion, atom::event::value.uint_value()};
 	broker::vector data = {std::move(hdr), move(xs)};
-	endpoint.publish(move(topic), std::move(data));
+	bstate->endpoint.publish(move(topic), std::move(data));
 	++statistics.num_events_outgoing;
 
 	return true;
@@ -240,7 +262,7 @@ bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer,
 			       int num_fields, const threading::Field* const * fields,
 			       const broker::endpoint_info& peer)
 	{
-	if ( ! endpoint.peers().size() )
+	if ( ! bstate->endpoint.peers().size() )
 		return true;
 
 	auto stream_name = stream->Type()->AsEnumType()->Lookup(stream->AsEnum());
@@ -282,17 +304,17 @@ bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer,
 
 	if ( peer.node != NoPeer.node )
 		// Direct message.
-		endpoint.publish(peer, move(topic), move(data));
+		bstate->endpoint.publish(peer, move(topic), move(data));
 	else
 		// Broadcast.
-		endpoint.publish(move(topic), move(data));
+		bstate->endpoint.publish(move(topic), move(data));
 
 	return true;
 	}
 
 bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int num_vals, const threading::Value* const * vals)
 	{
-	if ( ! endpoint.peers().size() )
+	if ( ! bstate->endpoint.peers().size() )
 		return true;
 
 	auto stream_name = stream->Type()->AsEnumType()->Lookup(stream->AsEnum());
@@ -339,7 +361,7 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 	DBG_LOG(DBG_BROKER, "Publishing log record: %s", RenderMessage(topic, xs).c_str());
 	broker::vector hdr = {ProtocolVersion, atom::log_write::value.uint_value()};
 	broker::vector data = {move(hdr), move(xs)};
-	endpoint.publish(move(topic), move(data));
+	bstate->endpoint.publish(move(topic), move(data));
 	++statistics.num_logs_outgoing;
 
 	return true;
@@ -476,29 +498,29 @@ RecordVal* Manager::MakeEvent(val_list* args)
 bool Manager::Subscribe(const string& topic_prefix)
 	{
 	DBG_LOG(DBG_BROKER, "Subscribing to topic prefix %s", topic_prefix.c_str());
-	subscriber.add_topic(topic_prefix);
+	bstate->subscriber.add_topic(topic_prefix);
 	return true;
 	}
 
 bool Manager::Unsubscribe(const string& topic_prefix)
 	{
 	DBG_LOG(DBG_BROKER, "Unsubscribing from topic prefix %s", topic_prefix.c_str());
-	subscriber.remove_topic(topic_prefix);
+	bstate->subscriber.remove_topic(topic_prefix);
 	return true;
 	}
 
 void Manager::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
                            iosource::FD_Set* except)
 	{
-	if ( event_subscriber.available() || subscriber.available() )
+	if ( bstate->event_subscriber.available() || bstate->subscriber.available() )
                 SetIdle(false);
 
-	read->Insert(subscriber.fd());
-	read->Insert(event_subscriber.fd());
-	write->Insert(subscriber.fd());
-	write->Insert(event_subscriber.fd());
-	except->Insert(subscriber.fd());
-	except->Insert(event_subscriber.fd());
+	read->Insert(bstate->subscriber.fd());
+	read->Insert(bstate->event_subscriber.fd());
+	write->Insert(bstate->subscriber.fd());
+	write->Insert(bstate->event_subscriber.fd());
+	except->Insert(bstate->subscriber.fd());
+	except->Insert(bstate->event_subscriber.fd());
 
 	for ( auto& x : data_stores )
 		read->Insert(x.second->proxy.mailbox().descriptor());
@@ -509,7 +531,7 @@ double Manager::NextTimestamp(double* local_network_time)
 	if ( ! IsIdle() )
 		return timer_mgr->Time();
 
-	if ( event_subscriber.available() || subscriber.available() )
+	if ( bstate->event_subscriber.available() || bstate->subscriber.available() )
 		return timer_mgr->Time();
 
 	for ( auto &s : data_stores )
@@ -525,11 +547,11 @@ void Manager::Process()
 	{
 	bool had_input = false;
 
-	while ( event_subscriber.available() )
+	while ( bstate->event_subscriber.available() )
 		{
 		had_input = true;
 
-		auto elem = event_subscriber.get();
+		auto elem = bstate->event_subscriber.get();
 
 		if ( auto stat = broker::get_if<broker::status>(elem) )
 			{
@@ -547,11 +569,11 @@ void Manager::Process()
 		}
 
 
-	while ( subscriber.available() )
+	while ( bstate->subscriber.available() )
 		{
 		had_input = true;
 
-		auto elem = subscriber.get();
+		auto elem = bstate->subscriber.get();
 		auto topic = elem.first;
 		auto data = elem.second;
 
@@ -1066,7 +1088,7 @@ StoreHandleVal* Manager::MakeMaster(const string& name, broker::backend type,
 
 	DBG_LOG(DBG_BROKER, "Creating master for data store %s", name.c_str());
 
-	auto result = endpoint.attach<broker::master>(name, type, move(opts));
+	auto result = bstate->endpoint.attach<broker::master>(name, type, move(opts));
 	if ( ! result )
 		{
 		reporter->Error("Failed to attach master store %s:",
@@ -1089,7 +1111,7 @@ StoreHandleVal* Manager::MakeClone(const string& name)
 
 	DBG_LOG(DBG_BROKER, "Creating clone for data store %s", name.c_str());
 
-	auto result = endpoint.attach<broker::clone>(name);
+	auto result = bstate->endpoint.attach<broker::clone>(name);
 	if ( ! result )
 		{
 		reporter->Error("Failed to attach clone store %s:",
@@ -1143,7 +1165,7 @@ bool Manager::TrackStoreQuery(broker::request_id id, StoreQueryCallback* cb)
 
 const Stats& Manager::GetStatistics()
 	{
-	statistics.num_peers = endpoint.peers().size();
+	statistics.num_peers = bstate->endpoint.peers().size();
 	statistics.num_stores = data_stores.size();
 	statistics.num_pending_queries = pending_queries.size();
 

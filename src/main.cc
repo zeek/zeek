@@ -376,7 +376,6 @@ void terminate_bro()
 	delete analyzer_mgr;
 	delete file_mgr;
 	delete log_mgr;
-//	delete broker_mgr;
 	delete plugin_mgr;
 	delete reporter;
 	delete iosource_mgr;

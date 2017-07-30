@@ -442,10 +442,13 @@ type fa_file: record {
 
 ## Metadata that's been inferred about a particular file.
 type fa_metadata: record {
-	## The strongest matching mime type if one was discovered.
+	## The strongest matching MIME type if one was discovered.
 	mime_type: string &optional;
-	## All matching mime types if any were discovered.
+	## All matching MIME types if any were discovered.
 	mime_types: mime_matches &optional;
+	## Specifies whether the MIME type was inferred using signatures,
+	## or provided directly by the protocol the file appeared in.
+	inferred: bool &default=T;
 };
 
 ## Fields of a SYN packet.

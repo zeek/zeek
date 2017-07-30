@@ -198,7 +198,7 @@ event ssl_dh_server_params%(c: connection, p: string, q: string, Ys: string%);
 ## the initial handshake. It contains the list of client supported application
 ## protocols by the client or the server, respectively.
 ##
-## At the moment it is mostly used to negotiate the use of SPDY / HTTP2-drafts.
+## At the moment it is mostly used to negotiate the use of SPDY / HTTP2.
 ##
 ## c: The connection.
 ##
@@ -211,6 +211,7 @@ event ssl_dh_server_params%(c: connection, p: string, q: string, Ys: string%);
 ##    ssl_extension_elliptic_curves ssl_extension_ec_point_formats
 ##    ssl_extension_server_name ssl_extension_key_share
 ##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
+##    ssl_extension_signed_certificate_timestamp
 event ssl_extension_application_layer_protocol_negotiation%(c: connection, is_orig: bool, protocols: string_vec%);
 
 ## Generated for an SSL/TLS Server Name extension. This SSL/TLS extension is
@@ -231,7 +232,38 @@ event ssl_extension_application_layer_protocol_negotiation%(c: connection, is_or
 ##    ssl_extension_application_layer_protocol_negotiation
 ##    ssl_extension_key_share
 ##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
+##    ssl_extension_signed_certificate_timestamp
 event ssl_extension_server_name%(c: connection, is_orig: bool, names: string_vec%);
+
+## Generated for the signed_certificate_timestamp TLS extension as defined in
+## :rfc:`6962`. The extension is used to transmit signed proofs that are
+## used for Certificate Transparency.
+##
+## c: The connection.
+##
+## is_orig: True if event is raised for originator side of the connection.
+##
+## version: the version of the protocol to which the SCT conforms. Always
+##          should be 0 (representing version 1)
+##
+## logid: 32 bit key id
+##
+## timestamp: the NTP Time when the entry was logged measured since
+##            the epoch, ignoring leap seconds, in milliseconds.
+##
+## signature_and_hashalgorithm: signature and hash algorithm used for the
+##                              digitally_signed struct
+##
+## signature: signature part of the digitally_signed struct
+##
+## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+##    ssl_session_ticket_handshake ssl_extension
+##    ssl_extension_elliptic_curves ssl_extension_ec_point_formats
+##    ssl_extension_server_name ssl_extension_key_share
+##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
+##    ssl_extension_application_layer_protocol_negotiation
+##    x509_ocsp_ext_signed_certificate_timestamp sct_verify
+event ssl_extension_signed_certificate_timestamp%(c: connection, is_orig: bool, version: count, logid: string, timestamp: count, signature_and_hashalgorithm: SSL::SignatureAndHashAlgorithm, signature: string%);
 
 ## Generated for an TLS Supported Versions extension. This TLS extension
 ## is defined in the TLS 1.3 rfc and sent by the client in the initial handshake.
@@ -249,7 +281,7 @@ event ssl_extension_server_name%(c: connection, is_orig: bool, names: string_vec
 ##    ssl_extension_elliptic_curves ssl_extension_ec_point_formats
 ##    ssl_extension_application_layer_protocol_negotiation
 ##    ssl_extension_key_share ssl_extension_server_name
-##    ssl_extension_psk_key_exchange_modes
+##    ssl_extension_psk_key_exchange_modes ssl_extension_signed_certificate_timestamp
 event ssl_extension_supported_versions%(c: connection, is_orig: bool, versions: index_vec%);
 
 ## Generated for an TLS Pre-Shared Key Exchange Modes extension. This TLS extension is defined
@@ -266,7 +298,7 @@ event ssl_extension_supported_versions%(c: connection, is_orig: bool, versions: 
 ##    ssl_extension_elliptic_curves ssl_extension_ec_point_formats
 ##    ssl_extension_application_layer_protocol_negotiation
 ##    ssl_extension_key_share ssl_extension_server_name
-##    ssl_extension_supported_versions
+##    ssl_extension_supported_versions ssl_extension_signed_certificate_timestamp
 event ssl_extension_psk_key_exchange_modes%(c: connection, is_orig: bool, modes: index_vec%);
 
 ## Generated at the end of an SSL/TLS handshake. SSL/TLS sessions start with

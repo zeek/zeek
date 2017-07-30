@@ -236,10 +236,6 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 		{
 		# Count up X509 certs.
 		++c$rdp$cert_count;
-
-		Files::add_analyzer(f, Files::ANALYZER_X509);
-		Files::add_analyzer(f, Files::ANALYZER_MD5);
-		Files::add_analyzer(f, Files::ANALYZER_SHA1);
 		}
 	}
 

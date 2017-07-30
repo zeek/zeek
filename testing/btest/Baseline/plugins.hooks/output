@@ -151,7 +151,16 @@
 0.000000   MetaHookPost  CallFunction(Cluster::is_enabled, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Cluster::is_enabled, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Files::register_analyzer_add_callback, <frame>, (Files::ANALYZER_EXTRACT, FileExtract::on_add{ if (!FileExtract::args?$extract_filename) FileExtract::args$extract_filename = cat(extract-, FileExtract::f$last_active, -, FileExtract::f$source, -, FileExtract::f$id)FileExtract::f$info$extracted = FileExtract::args$extract_filenameFileExtract::args$extract_filename = build_path_compressed(FileExtract::prefix, FileExtract::args$extract_filename)FileExtract::f$info$extracted_cutoff = Fmkdir(FileExtract::prefix)})) -> <no result>
+0.000000   MetaHookPost  CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_MD5, application/pkix-cert)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_MD5, application/x-x509-ca-cert)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_MD5, application/x-x509-user-cert)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_PE, application/x-dosexec)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_SHA1, application/pkix-cert)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_SHA1, application/x-x509-ca-cert)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_SHA1, application/x-x509-user-cert)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_X509, application/pkix-cert)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_X509, application/x-x509-ca-cert)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_X509, application/x-x509-user-cert)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Files::register_for_mime_types, <frame>, (Files::ANALYZER_PE, {application/x-dosexec})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Files::register_protocol, <frame>, (Analyzer::ANALYZER_DTLS, [get_file_handle=SSL::get_file_handle{ return ()}, describe=SSL::describe_file{ <init> SSL::cid{ if (SSL::f$source != SSL || !SSL::f?$info || !SSL::f$info?$x509 || !SSL::f$info$x509?$certificate) return ()for ([SSL::cid] in SSL::f$conns) { if (SSL::f$conns[SSL::cid]?$ssl) { SSL::c = SSL::f$conns[SSL::cid]return (cat(SSL::c$id$resp_h, :, SSL::c$id$resp_p))}}return (cat(Serial: , SSL::f$info$x509$certificate$serial,  Subject: , SSL::f$info$x509$certificate$subject,  Issuer: , SSL::f$info$x509$certificate$issuer))}}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Files::register_protocol, <frame>, (Analyzer::ANALYZER_FTP_DATA, [get_file_handle=FTP::get_file_handle{ if (!FTP::c$id$resp_h, FTP::c$id$resp_p in FTP::ftp_data_expected) return ()return (cat(Analyzer::ANALYZER_FTP_DATA, FTP::c$start_time, FTP::c$id, FTP::is_orig))}, describe=FTP::describe_file{ <init> FTP::cid{ if (FTP::f$source != FTP) return ()for ([FTP::cid] in FTP::f$conns) { if (FTP::f$conns[FTP::cid]?$ftp) return (FTP::describe(FTP::f$conns[FTP::cid]$ftp))}return ()}}])) -> <no result>
@@ -247,7 +256,7 @@
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1493067689.952434, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1498500921.18004, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Communication::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Conn::LOG)) -> <no result>
@@ -377,7 +386,7 @@
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1493067689.952434, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1498500921.18004, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
 0.000000   MetaHookPost  CallFunction(NetControl::check_plugins, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(NetControl::init, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Notice::want_pp, <frame>, ()) -> <no result>
@@ -523,6 +532,7 @@
 0.000000   MetaHookPost  LoadFile(./Bro_Unified2.types.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./Bro_X509.events.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./Bro_X509.functions.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(./Bro_X509.ocsp_events.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./Bro_X509.types.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./Bro_XMPP.events.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./acld) -> -1
@@ -542,6 +552,7 @@
 0.000000   MetaHookPost  LoadFile(./consts) -> -1
 0.000000   MetaHookPost  LoadFile(./consts.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./contents) -> -1
+0.000000   MetaHookPost  LoadFile(./ct-list) -> -1
 0.000000   MetaHookPost  LoadFile(./data.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./dcc-send) -> -1
 0.000000   MetaHookPost  LoadFile(./debug) -> -1
@@ -870,7 +881,16 @@
 0.000000   MetaHookPre   CallFunction(Cluster::is_enabled, <frame>, ())
 0.000000   MetaHookPre   CallFunction(Cluster::is_enabled, <null>, ())
 0.000000   MetaHookPre   CallFunction(Files::register_analyzer_add_callback, <frame>, (Files::ANALYZER_EXTRACT, FileExtract::on_add{ if (!FileExtract::args?$extract_filename) FileExtract::args$extract_filename = cat(extract-, FileExtract::f$last_active, -, FileExtract::f$source, -, FileExtract::f$id)FileExtract::f$info$extracted = FileExtract::args$extract_filenameFileExtract::args$extract_filename = build_path_compressed(FileExtract::prefix, FileExtract::args$extract_filename)FileExtract::f$info$extracted_cutoff = Fmkdir(FileExtract::prefix)}))
+0.000000   MetaHookPre   CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_MD5, application/pkix-cert))
+0.000000   MetaHookPre   CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_MD5, application/x-x509-ca-cert))
+0.000000   MetaHookPre   CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_MD5, application/x-x509-user-cert))
 0.000000   MetaHookPre   CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_PE, application/x-dosexec))
+0.000000   MetaHookPre   CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_SHA1, application/pkix-cert))
+0.000000   MetaHookPre   CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_SHA1, application/x-x509-ca-cert))
+0.000000   MetaHookPre   CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_SHA1, application/x-x509-user-cert))
+0.000000   MetaHookPre   CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_X509, application/pkix-cert))
+0.000000   MetaHookPre   CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_X509, application/x-x509-ca-cert))
+0.000000   MetaHookPre   CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_X509, application/x-x509-user-cert))
 0.000000   MetaHookPre   CallFunction(Files::register_for_mime_types, <frame>, (Files::ANALYZER_PE, {application/x-dosexec}))
 0.000000   MetaHookPre   CallFunction(Files::register_protocol, <frame>, (Analyzer::ANALYZER_DTLS, [get_file_handle=SSL::get_file_handle{ return ()}, describe=SSL::describe_file{ <init> SSL::cid{ if (SSL::f$source != SSL || !SSL::f?$info || !SSL::f$info?$x509 || !SSL::f$info$x509?$certificate) return ()for ([SSL::cid] in SSL::f$conns) { if (SSL::f$conns[SSL::cid]?$ssl) { SSL::c = SSL::f$conns[SSL::cid]return (cat(SSL::c$id$resp_h, :, SSL::c$id$resp_p))}}return (cat(Serial: , SSL::f$info$x509$certificate$serial,  Subject: , SSL::f$info$x509$certificate$subject,  Issuer: , SSL::f$info$x509$certificate$issuer))}}]))
 0.000000   MetaHookPre   CallFunction(Files::register_protocol, <frame>, (Analyzer::ANALYZER_FTP_DATA, [get_file_handle=FTP::get_file_handle{ if (!FTP::c$id$resp_h, FTP::c$id$resp_p in FTP::ftp_data_expected) return ()return (cat(Analyzer::ANALYZER_FTP_DATA, FTP::c$start_time, FTP::c$id, FTP::is_orig))}, describe=FTP::describe_file{ <init> FTP::cid{ if (FTP::f$source != FTP) return ()for ([FTP::cid] in FTP::f$conns) { if (FTP::f$conns[FTP::cid]?$ftp) return (FTP::describe(FTP::f$conns[FTP::cid]$ftp))}return ()}}]))
@@ -966,7 +986,7 @@
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql]))
-0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1493067689.952434, node=bro, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1498500921.18004, node=bro, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Communication::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Conn::LOG))
@@ -1096,7 +1116,7 @@
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql]))
-0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1493067689.952434, node=bro, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1498500921.18004, node=bro, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(NetControl::check_plugins, <frame>, ())
 0.000000   MetaHookPre   CallFunction(NetControl::init, <null>, ())
 0.000000   MetaHookPre   CallFunction(Notice::want_pp, <frame>, ())
@@ -1242,6 +1262,7 @@
 0.000000   MetaHookPre   LoadFile(./Bro_Unified2.types.bif.bro)
 0.000000   MetaHookPre   LoadFile(./Bro_X509.events.bif.bro)
 0.000000   MetaHookPre   LoadFile(./Bro_X509.functions.bif.bro)
+0.000000   MetaHookPre   LoadFile(./Bro_X509.ocsp_events.bif.bro)
 0.000000   MetaHookPre   LoadFile(./Bro_X509.types.bif.bro)
 0.000000   MetaHookPre   LoadFile(./Bro_XMPP.events.bif.bro)
 0.000000   MetaHookPre   LoadFile(./acld)
@@ -1261,6 +1282,7 @@
 0.000000   MetaHookPre   LoadFile(./consts)
 0.000000   MetaHookPre   LoadFile(./consts.bro)
 0.000000   MetaHookPre   LoadFile(./contents)
+0.000000   MetaHookPre   LoadFile(./ct-list)
 0.000000   MetaHookPre   LoadFile(./data.bif.bro)
 0.000000   MetaHookPre   LoadFile(./dcc-send)
 0.000000   MetaHookPre   LoadFile(./debug)
@@ -1588,7 +1610,16 @@
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_XMPP, {5222<...>/tcp})
 0.000000 | HookCallFunction Cluster::is_enabled()
 0.000000 | HookCallFunction Files::register_analyzer_add_callback(Files::ANALYZER_EXTRACT, FileExtract::on_add{ if (!FileExtract::args?$extract_filename) FileExtract::args$extract_filename = cat(extract-, FileExtract::f$last_active, -, FileExtract::f$source, -, FileExtract::f$id)FileExtract::f$info$extracted = FileExtract::args$extract_filenameFileExtract::args$extract_filename = build_path_compressed(FileExtract::prefix, FileExtract::args$extract_filename)FileExtract::f$info$extracted_cutoff = Fmkdir(FileExtract::prefix)})
+0.000000 | HookCallFunction Files::register_for_mime_type(Files::ANALYZER_MD5, application/pkix-cert)
+0.000000 | HookCallFunction Files::register_for_mime_type(Files::ANALYZER_MD5, application/x-x509-ca-cert)
+0.000000 | HookCallFunction Files::register_for_mime_type(Files::ANALYZER_MD5, application/x-x509-user-cert)
 0.000000 | HookCallFunction Files::register_for_mime_type(Files::ANALYZER_PE, application/x-dosexec)
+0.000000 | HookCallFunction Files::register_for_mime_type(Files::ANALYZER_SHA1, application/pkix-cert)
+0.000000 | HookCallFunction Files::register_for_mime_type(Files::ANALYZER_SHA1, application/x-x509-ca-cert)
+0.000000 | HookCallFunction Files::register_for_mime_type(Files::ANALYZER_SHA1, application/x-x509-user-cert)
+0.000000 | HookCallFunction Files::register_for_mime_type(Files::ANALYZER_X509, application/pkix-cert)
+0.000000 | HookCallFunction Files::register_for_mime_type(Files::ANALYZER_X509, application/x-x509-ca-cert)
+0.000000 | HookCallFunction Files::register_for_mime_type(Files::ANALYZER_X509, application/x-x509-user-cert)
 0.000000 | HookCallFunction Files::register_for_mime_types(Files::ANALYZER_PE, {application/x-dosexec})
 0.000000 | HookCallFunction Files::register_protocol(Analyzer::ANALYZER_DTLS, [get_file_handle=SSL::get_file_handle{ return ()}, describe=SSL::describe_file{ <init> SSL::cid{ if (SSL::f$source != SSL || !SSL::f?$info || !SSL::f$info?$x509 || !SSL::f$info$x509?$certificate) return ()for ([SSL::cid] in SSL::f$conns) { if (SSL::f$conns[SSL::cid]?$ssl) { SSL::c = SSL::f$conns[SSL::cid]return (cat(SSL::c$id$resp_h, :, SSL::c$id$resp_p))}}return (cat(Serial: , SSL::f$info$x509$certificate$serial,  Subject: , SSL::f$info$x509$certificate$subject,  Issuer: , SSL::f$info$x509$certificate$issuer))}}])
 0.000000 | HookCallFunction Files::register_protocol(Analyzer::ANALYZER_FTP_DATA, [get_file_handle=FTP::get_file_handle{ if (!FTP::c$id$resp_h, FTP::c$id$resp_p in FTP::ftp_data_expected) return ()return (cat(Analyzer::ANALYZER_FTP_DATA, FTP::c$start_time, FTP::c$id, FTP::is_orig))}, describe=FTP::describe_file{ <init> FTP::cid{ if (FTP::f$source != FTP) return ()for ([FTP::cid] in FTP::f$conns) { if (FTP::f$conns[FTP::cid]?$ftp) return (FTP::describe(FTP::f$conns[FTP::cid]$ftp))}return ()}}])
@@ -1684,7 +1715,7 @@
 0.000000 | HookCallFunction Log::__create_stream(Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])
 0.000000 | HookCallFunction Log::__create_stream(X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])
 0.000000 | HookCallFunction Log::__create_stream(mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])
-0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1493067689.952434, node=bro, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1498500921.18004, node=bro, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction Log::add_default_filter(Cluster::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Communication::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Conn::LOG)
@@ -1814,7 +1845,7 @@
 0.000000 | HookCallFunction Log::create_stream(Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])
 0.000000 | HookCallFunction Log::create_stream(X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])
 0.000000 | HookCallFunction Log::create_stream(mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])
-0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1493067689.952434, node=bro, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1498500921.18004, node=bro, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction NetControl::check_plugins()
 0.000000 | HookCallFunction NetControl::init()
 0.000000 | HookCallFunction Notice::want_pp()
@@ -1856,7 +1887,7 @@
 0.000000 | HookLoadFile  base<...>/bif
 0.000000 | HookLoadFile  base<...>/bro
 0.000000 | HookLogInit   packet_filter 1/1 {ts (time), node (string), filter (string), init (bool), success (bool)}
-0.000000 | HookLogWrite  packet_filter [ts=1493067689.952434, node=bro, filter=ip or not ip, init=T, success=T]
+0.000000 | HookLogWrite  packet_filter [ts=1498500921.180040, node=bro, filter=ip or not ip, init=T, success=T]
 0.000000 | HookQueueEvent NetControl::init()
 0.000000 | HookQueueEvent bro_init()
 0.000000 | HookQueueEvent filter_change_tracking()
@@ -2204,7 +2235,7 @@
 1362692527.009775   MetaHookPost  CallFunction(Log::write, <frame>, (Files::LOG, [ts=1362692527.009512, fuid=FakNcS1Jfe01uljb3, tx_hosts={192.150.187.43}, rx_hosts={141.142.228.5}, conn_uids={CHhAvVGS1DHFjwGM9}, source=HTTP, depth=0, analyzers={}, mime_type=text/plain, filename=<uninitialized>, duration=262.0 usecs, local_orig=<uninitialized>, is_orig=F, seen_bytes=4705, total_bytes=4705, missing_bytes=0, overflow_bytes=0, timedout=F, parent_fuid=<uninitialized>, md5=<uninitialized>, sha1=<uninitialized>, sha256=<uninitialized>, x509=<uninitialized>, extracted=<uninitialized>, extracted_cutoff=<uninitialized>, extracted_size=<uninitialized>])) -> <no result>
 1362692527.009775   MetaHookPost  CallFunction(Log::write, <frame>, (HTTP::LOG, [ts=1362692526.939527, uid=CHhAvVGS1DHFjwGM9, id=[orig_h=141.142.228.5, orig_p=59856<...>/plain], current_entity=<uninitialized>, orig_mime_depth=1, resp_mime_depth=1])) -> <no result>
 1362692527.009775   MetaHookPost  CallFunction(cat, <frame>, (Analyzer::ANALYZER_HTTP, 1362692526.869344, F, 1, 1, 141.142.228.5:59856 > 192.150.187.43:80)) -> <no result>
-1362692527.009775   MetaHookPost  CallFunction(file_sniff, <null>, ([id=FakNcS1Jfe01uljb3, parent_id=<uninitialized>, source=HTTP, is_orig=F, conns={[[orig_h=141.142.228.5, orig_p=59856<...>/plain]]])) -> <no result>
+1362692527.009775   MetaHookPost  CallFunction(file_sniff, <null>, ([id=FakNcS1Jfe01uljb3, parent_id=<uninitialized>, source=HTTP, is_orig=F, conns={[[orig_h=141.142.228.5, orig_p=59856<...>/plain]], inferred=T])) -> <no result>
 1362692527.009775   MetaHookPost  CallFunction(file_state_remove, <null>, ([id=FakNcS1Jfe01uljb3, parent_id=<uninitialized>, source=HTTP, is_orig=F, conns={[[orig_h=141.142.228.5, orig_p=59856<...>/plain], current_entity=[filename=<uninitialized>], orig_mime_depth=1, resp_mime_depth=1], irc=<uninitialized>, pe=<uninitialized>, u2_events=<uninitialized>])) -> <no result>
 1362692527.009775   MetaHookPost  CallFunction(fmt, <frame>, (%s:%d > %s:%d, 141.142.228.5, 59856<...>/tcp)) -> <no result>
 1362692527.009775   MetaHookPost  CallFunction(get_file_handle, <null>, (Analyzer::ANALYZER_HTTP, [id=[orig_h=141.142.228.5, orig_p=59856<...>/plain], current_entity=<uninitialized>, orig_mime_depth=1, resp_mime_depth=1]}, current_request=1, current_response=1, trans_depth=1], irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, ntlm=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, rfb=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>], F)) -> <no result>
@@ -2217,7 +2248,7 @@
 1362692527.009775   MetaHookPost  LogInit(Log::WRITER_ASCII, default, true, true, http(1362692527.009775,0.0,0.0), 29, {ts (time), uid (string), id.orig_h (addr), id.orig_p (port), id.resp_h (addr), id.resp_p (port), trans_depth (count), method (string), host (string), uri (string), referrer (string), version (string), user_agent (string), request_body_len (count), response_body_len (count), status_code (count), status_msg (string), info_code (count), info_msg (string), tags (set[enum]), username (string), password (string), proxied (set[string]), orig_fuids (vector[string]), orig_filenames (vector[string]), orig_mime_types (vector[string]), resp_fuids (vector[string]), resp_filenames (vector[string]), resp_mime_types (vector[string])}) -> <void>
 1362692527.009775   MetaHookPost  LogWrite(Log::WRITER_ASCII, default, files(1362692527.009775,0.0,0.0), 25, {ts (time), fuid (string), tx_hosts (set[addr]), rx_hosts (set[addr]), conn_uids (set[string]), source (string), depth (count), analyzers (set[string]), mime_type (string), filename (string), duration (interval), local_orig (bool), is_orig (bool), seen_bytes (count), total_bytes (count), missing_bytes (count), overflow_bytes (count), timedout (bool), parent_fuid (string), md5 (string), sha1 (string), sha256 (string), extracted (string), extracted_cutoff (bool), extracted_size (count)}, <void ptr>) -> true
 1362692527.009775   MetaHookPost  LogWrite(Log::WRITER_ASCII, default, http(1362692527.009775,0.0,0.0), 29, {ts (time), uid (string), id.orig_h (addr), id.orig_p (port), id.resp_h (addr), id.resp_p (port), trans_depth (count), method (string), host (string), uri (string), referrer (string), version (string), user_agent (string), request_body_len (count), response_body_len (count), status_code (count), status_msg (string), info_code (count), info_msg (string), tags (set[enum]), username (string), password (string), proxied (set[string]), orig_fuids (vector[string]), orig_filenames (vector[string]), orig_mime_types (vector[string]), resp_fuids (vector[string]), resp_filenames (vector[string]), resp_mime_types (vector[string])}, <void ptr>) -> true
-1362692527.009775   MetaHookPost  QueueEvent(file_sniff([id=FakNcS1Jfe01uljb3, parent_id=<uninitialized>, source=HTTP, is_orig=F, conns={[[orig_h=141.142.228.5, orig_p=59856<...>/plain]]])) -> false
+1362692527.009775   MetaHookPost  QueueEvent(file_sniff([id=FakNcS1Jfe01uljb3, parent_id=<uninitialized>, source=HTTP, is_orig=F, conns={[[orig_h=141.142.228.5, orig_p=59856<...>/plain]], inferred=T])) -> false
 1362692527.009775   MetaHookPost  QueueEvent(file_state_remove([id=FakNcS1Jfe01uljb3, parent_id=<uninitialized>, source=HTTP, is_orig=F, conns={[[orig_h=141.142.228.5, orig_p=59856<...>/plain], current_entity=[filename=<uninitialized>], orig_mime_depth=1, resp_mime_depth=1], irc=<uninitialized>, pe=<uninitialized>, u2_events=<uninitialized>])) -> false
 1362692527.009775   MetaHookPost  QueueEvent(get_file_handle(Analyzer::ANALYZER_HTTP, [id=[orig_h=141.142.228.5, orig_p=59856<...>/plain], current_entity=[filename=<uninitialized>], orig_mime_depth=1, resp_mime_depth=1]}, current_request=1, current_response=1, trans_depth=1], irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, ntlm=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, rfb=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>], F)) -> false
 1362692527.009775   MetaHookPost  QueueEvent(http_end_entity([id=[orig_h=141.142.228.5, orig_p=59856<...>/plain], current_entity=[filename=<uninitialized>], orig_mime_depth=1, resp_mime_depth=1]}, current_request=1, current_response=1, trans_depth=1], irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, ntlm=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, rfb=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>], F)) -> false
@@ -2233,7 +2264,7 @@
 1362692527.009775   MetaHookPre   CallFunction(Log::write, <frame>, (Files::LOG, [ts=1362692527.009512, fuid=FakNcS1Jfe01uljb3, tx_hosts={192.150.187.43}, rx_hosts={141.142.228.5}, conn_uids={CHhAvVGS1DHFjwGM9}, source=HTTP, depth=0, analyzers={}, mime_type=text/plain, filename=<uninitialized>, duration=262.0 usecs, local_orig=<uninitialized>, is_orig=F, seen_bytes=4705, total_bytes=4705, missing_bytes=0, overflow_bytes=0, timedout=F, parent_fuid=<uninitialized>, md5=<uninitialized>, sha1=<uninitialized>, sha256=<uninitialized>, x509=<uninitialized>, extracted=<uninitialized>, extracted_cutoff=<uninitialized>, extracted_size=<uninitialized>]))
 1362692527.009775   MetaHookPre   CallFunction(Log::write, <frame>, (HTTP::LOG, [ts=1362692526.939527, uid=CHhAvVGS1DHFjwGM9, id=[orig_h=141.142.228.5, orig_p=59856<...>/plain], current_entity=<uninitialized>, orig_mime_depth=1, resp_mime_depth=1]))
 1362692527.009775   MetaHookPre   CallFunction(cat, <frame>, (Analyzer::ANALYZER_HTTP, 1362692526.869344, F, 1, 1, 141.142.228.5:59856 > 192.150.187.43:80))
-1362692527.009775   MetaHookPre   CallFunction(file_sniff, <null>, ([id=FakNcS1Jfe01uljb3, parent_id=<uninitialized>, source=HTTP, is_orig=F, conns={[[orig_h=141.142.228.5, orig_p=59856<...>/plain]]]))
+1362692527.009775   MetaHookPre   CallFunction(file_sniff, <null>, ([id=FakNcS1Jfe01uljb3, parent_id=<uninitialized>, source=HTTP, is_orig=F, conns={[[orig_h=141.142.228.5, orig_p=59856<...>/plain]], inferred=T]))
 1362692527.009775   MetaHookPre   CallFunction(file_state_remove, <null>, ([id=FakNcS1Jfe01uljb3, parent_id=<uninitialized>, source=HTTP, is_orig=F, conns={[[orig_h=141.142.228.5, orig_p=59856<...>/plain], current_entity=[filename=<uninitialized>], orig_mime_depth=1, resp_mime_depth=1], irc=<uninitialized>, pe=<uninitialized>, u2_events=<uninitialized>]))
 1362692527.009775   MetaHookPre   CallFunction(fmt, <frame>, (%s:%d > %s:%d, 141.142.228.5, 59856<...>/tcp))
 1362692527.009775   MetaHookPre   CallFunction(get_file_handle, <null>, (Analyzer::ANALYZER_HTTP, [id=[orig_h=141.142.228.5, orig_p=59856<...>/plain], current_entity=<uninitialized>, orig_mime_depth=1, resp_mime_depth=1]}, current_request=1, current_response=1, trans_depth=1], irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, ntlm=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, rfb=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>], F))
@@ -2246,7 +2277,7 @@
 1362692527.009775   MetaHookPre   LogInit(Log::WRITER_ASCII, default, true, true, http(1362692527.009775,0.0,0.0), 29, {ts (time), uid (string), id.orig_h (addr), id.orig_p (port), id.resp_h (addr), id.resp_p (port), trans_depth (count), method (string), host (string), uri (string), referrer (string), version (string), user_agent (string), request_body_len (count), response_body_len (count), status_code (count), status_msg (string), info_code (count), info_msg (string), tags (set[enum]), username (string), password (string), proxied (set[string]), orig_fuids (vector[string]), orig_filenames (vector[string]), orig_mime_types (vector[string]), resp_fuids (vector[string]), resp_filenames (vector[string]), resp_mime_types (vector[string])})
 1362692527.009775   MetaHookPre   LogWrite(Log::WRITER_ASCII, default, files(1362692527.009775,0.0,0.0), 25, {ts (time), fuid (string), tx_hosts (set[addr]), rx_hosts (set[addr]), conn_uids (set[string]), source (string), depth (count), analyzers (set[string]), mime_type (string), filename (string), duration (interval), local_orig (bool), is_orig (bool), seen_bytes (count), total_bytes (count), missing_bytes (count), overflow_bytes (count), timedout (bool), parent_fuid (string), md5 (string), sha1 (string), sha256 (string), extracted (string), extracted_cutoff (bool), extracted_size (count)}, <void ptr>)
 1362692527.009775   MetaHookPre   LogWrite(Log::WRITER_ASCII, default, http(1362692527.009775,0.0,0.0), 29, {ts (time), uid (string), id.orig_h (addr), id.orig_p (port), id.resp_h (addr), id.resp_p (port), trans_depth (count), method (string), host (string), uri (string), referrer (string), version (string), user_agent (string), request_body_len (count), response_body_len (count), status_code (count), status_msg (string), info_code (count), info_msg (string), tags (set[enum]), username (string), password (string), proxied (set[string]), orig_fuids (vector[string]), orig_filenames (vector[string]), orig_mime_types (vector[string]), resp_fuids (vector[string]), resp_filenames (vector[string]), resp_mime_types (vector[string])}, <void ptr>)
-1362692527.009775   MetaHookPre   QueueEvent(file_sniff([id=FakNcS1Jfe01uljb3, parent_id=<uninitialized>, source=HTTP, is_orig=F, conns={[[orig_h=141.142.228.5, orig_p=59856<...>/plain]]]))
+1362692527.009775   MetaHookPre   QueueEvent(file_sniff([id=FakNcS1Jfe01uljb3, parent_id=<uninitialized>, source=HTTP, is_orig=F, conns={[[orig_h=141.142.228.5, orig_p=59856<...>/plain]], inferred=T]))
 1362692527.009775   MetaHookPre   QueueEvent(file_state_remove([id=FakNcS1Jfe01uljb3, parent_id=<uninitialized>, source=HTTP, is_orig=F, conns={[[orig_h=141.142.228.5, orig_p=59856<...>/plain], current_entity=[filename=<uninitialized>], orig_mime_depth=1, resp_mime_depth=1], irc=<uninitialized>, pe=<uninitialized>, u2_events=<uninitialized>]))
 1362692527.009775   MetaHookPre   QueueEvent(get_file_handle(Analyzer::ANALYZER_HTTP, [id=[orig_h=141.142.228.5, orig_p=59856<...>/plain], current_entity=[filename=<uninitialized>], orig_mime_depth=1, resp_mime_depth=1]}, current_request=1, current_response=1, trans_depth=1], irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, ntlm=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, rfb=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>], F))
 1362692527.009775   MetaHookPre   QueueEvent(http_end_entity([id=[orig_h=141.142.228.5, orig_p=59856<...>/plain], current_entity=[filename=<uninitialized>], orig_mime_depth=1, resp_mime_depth=1]}, current_request=1, current_response=1, trans_depth=1], irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, ntlm=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, rfb=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>], F))
@@ -2263,7 +2294,7 @@
 1362692527.009775 | HookCallFunction Log::write(Files::LOG, [ts=1362692527.009512, fuid=FakNcS1Jfe01uljb3, tx_hosts={192.150.187.43}, rx_hosts={141.142.228.5}, conn_uids={CHhAvVGS1DHFjwGM9}, source=HTTP, depth=0, analyzers={}, mime_type=text/plain, filename=<uninitialized>, duration=262.0 usecs, local_orig=<uninitialized>, is_orig=F, seen_bytes=4705, total_bytes=4705, missing_bytes=0, overflow_bytes=0, timedout=F, parent_fuid=<uninitialized>, md5=<uninitialized>, sha1=<uninitialized>, sha256=<uninitialized>, x509=<uninitialized>, extracted=<uninitialized>, extracted_cutoff=<uninitialized>, extracted_size=<uninitialized>])
 1362692527.009775 | HookCallFunction Log::write(HTTP::LOG, [ts=1362692526.939527, uid=CHhAvVGS1DHFjwGM9, id=[orig_h=141.142.228.5, orig_p=59856<...>/plain], current_entity=<uninitialized>, orig_mime_depth=1, resp_mime_depth=1])
 1362692527.009775 | HookCallFunction cat(Analyzer::ANALYZER_HTTP, 1362692526.869344, F, 1, 1, 141.142.228.5:59856 > 192.150.187.43:80)
-1362692527.009775 | HookCallFunction file_sniff([id=FakNcS1Jfe01uljb3, parent_id=<uninitialized>, source=HTTP, is_orig=F, conns={[[orig_h=141.142.228.5, orig_p=59856<...>/plain]]])
+1362692527.009775 | HookCallFunction file_sniff([id=FakNcS1Jfe01uljb3, parent_id=<uninitialized>, source=HTTP, is_orig=F, conns={[[orig_h=141.142.228.5, orig_p=59856<...>/plain]], inferred=T])
 1362692527.009775 | HookCallFunction file_state_remove([id=FakNcS1Jfe01uljb3, parent_id=<uninitialized>, source=HTTP, is_orig=F, conns={[[orig_h=141.142.228.5, orig_p=59856<...>/plain], current_entity=[filename=<uninitialized>], orig_mime_depth=1, resp_mime_depth=1], irc=<uninitialized>, pe=<uninitialized>, u2_events=<uninitialized>])
 1362692527.009775 | HookCallFunction fmt(%s:%d > %s:%d, 141.142.228.5, 59856<...>/tcp)
 1362692527.009775 | HookCallFunction get_file_handle(Analyzer::ANALYZER_HTTP, [id=[orig_h=141.142.228.5, orig_p=59856<...>/plain], current_entity=<uninitialized>, orig_mime_depth=1, resp_mime_depth=1]}, current_request=1, current_response=1, trans_depth=1], irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, ntlm=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, rfb=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>], F)
@@ -2276,7 +2307,7 @@
 1362692527.009775 | HookLogInit   http 1/1 {ts (time), uid (string), id.orig_h (addr), id.orig_p (port), id.resp_h (addr), id.resp_p (port), trans_depth (count), method (string), host (string), uri (string), referrer (string), version (string), user_agent (string), request_body_len (count), response_body_len (count), status_code (count), status_msg (string), info_code (count), info_msg (string), tags (set[enum]), username (string), password (string), proxied (set[string]), orig_fuids (vector[string]), orig_filenames (vector[string]), orig_mime_types (vector[string]), resp_fuids (vector[string]), resp_filenames (vector[string]), resp_mime_types (vector[string])}
 1362692527.009775 | HookLogWrite  files [ts=1362692527.009512, fuid=FakNcS1Jfe01uljb3, tx_hosts=192.150.187.43, rx_hosts=141.142.228.5, conn_uids=CHhAvVGS1DHFjwGM9, source=HTTP, depth=0, analyzers=, mime_type=text/plain, filename=<uninitialized>, duration=0.000263, local_orig=<uninitialized>, is_orig=F, seen_bytes=4705, total_bytes=4705, missing_bytes=0, overflow_bytes=0, timedout=F, parent_fuid=<uninitialized>, md5=<uninitialized>, sha1=<uninitialized>, sha256=<uninitialized>, extracted=<uninitialized>, extracted_cutoff=<uninitialized>, extracted_size=<uninitialized>]
 1362692527.009775 | HookLogWrite  http [ts=1362692526.939527, uid=CHhAvVGS1DHFjwGM9, id.orig_h=141.142.228.5, id.orig_p=59856, id.resp_h=192.150.187.43, id.resp_p=80, trans_depth=1, method=GET, host=bro.org, uri=<...>/plain]
-1362692527.009775 | HookQueueEvent file_sniff([id=FakNcS1Jfe01uljb3, parent_id=<uninitialized>, source=HTTP, is_orig=F, conns={[[orig_h=141.142.228.5, orig_p=59856<...>/plain]]])
+1362692527.009775 | HookQueueEvent file_sniff([id=FakNcS1Jfe01uljb3, parent_id=<uninitialized>, source=HTTP, is_orig=F, conns={[[orig_h=141.142.228.5, orig_p=59856<...>/plain]], inferred=T])
 1362692527.009775 | HookQueueEvent file_state_remove([id=FakNcS1Jfe01uljb3, parent_id=<uninitialized>, source=HTTP, is_orig=F, conns={[[orig_h=141.142.228.5, orig_p=59856<...>/plain], current_entity=[filename=<uninitialized>], orig_mime_depth=1, resp_mime_depth=1], irc=<uninitialized>, pe=<uninitialized>, u2_events=<uninitialized>])
 1362692527.009775 | HookQueueEvent get_file_handle(Analyzer::ANALYZER_HTTP, [id=[orig_h=141.142.228.5, orig_p=59856<...>/plain], current_entity=[filename=<uninitialized>], orig_mime_depth=1, resp_mime_depth=1]}, current_request=1, current_response=1, trans_depth=1], irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, ntlm=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, rfb=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>], F)
 1362692527.009775 | HookQueueEvent http_end_entity([id=[orig_h=141.142.228.5, orig_p=59856<...>/plain], current_entity=[filename=<uninitialized>], orig_mime_depth=1, resp_mime_depth=1]}, current_request=1, current_response=1, trans_depth=1], irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, ntlm=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, rfb=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>], F)

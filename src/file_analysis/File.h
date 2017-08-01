@@ -176,8 +176,10 @@ public:
 	 * Sets the MIME type for a file to a specific value.
 	 *
 	 * Setting the MIME type has to be done before the MIME type is
-	 * inferred from the content. After a MIME type has been set once,
-	 * it cannot be changed anymore.
+	 * inferred from the content, and before any data is passed to the
+	 * analyzer (the beginning of file buffer has to be empty). After
+	 * data has been sent or a MIME type has been set once, it cannot be
+	 * changed.
 	 *
 	 * This function should only be called when it does not make sense
 	 * to perform automated MIME type detections. This is e.g. the case

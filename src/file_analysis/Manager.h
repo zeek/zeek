@@ -98,7 +98,8 @@ public:
 	 *        certificates are passed as files; here the type of the file is set by
 	 *        the protocol. If this parameter is give, mime type detection will be
 	 *        disabled.
-	 *        This parameter is only used for the first bit of data for each file.
+	 *        This parameter only has any effect for the first DataIn call of each
+	 *        file. It is ignored for all subsequent calls.
 	 * @return a unique file ID string which, in certain contexts, may be
 	 *         cached and passed back in to a subsequent function call in order
 	 *         to avoid costly file handle lookups (which have to go through

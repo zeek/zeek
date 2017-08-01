@@ -624,6 +624,9 @@ function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signa
 		{
 		x = X509_dup(x);
 		assert(x);
+// In OpenSSL 1.0.2+, we can get the extension by using NID_ct_precert_scts.
+// In OpenSSL <= 1.0.1, this is not yet defined yet, so we have to manually
+// look it up by performing a string comparison on the oid.
 #ifdef NID_ct_precert_scts
 		int pos = X509_get_ext_by_NID(x, NID_ct_precert_scts, -1);
 		if ( pos < 0 )
@@ -777,12 +780,6 @@ StringVal* x509_entity_hash(file_analysis::X509Val *cert_handle, unsigned int ha
 	unsigned int len = 0;
 
 	int res = 0;
-
-	ASN1_BIT_STRING *key = X509_get0_pubkey_bitstr(cert_x509);
-	if ( key == 0 )
-		{
-		printf("No key in X509_get0_pubkey_bitstr\n");
-		}
 
 	if ( type == 0 )
 		res = X509_NAME_digest(subject_name, dgst, md, &len);

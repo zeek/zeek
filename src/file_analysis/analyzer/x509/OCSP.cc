@@ -344,6 +344,9 @@ clean_up:
 
 void file_analysis::OCSP::ParseExtensionsSpecific(X509_EXTENSION* ex, bool global, ASN1_OBJECT* ext_asn, const char* oid)
 	{
+// In OpenSSL 1.0.2+, we can get the extension by using NID_ct_cert_scts.
+// In OpenSSL <= 1.0.1, this is not yet defined yet, so we have to manually
+// look it up by performing a string comparison on the oid.
 #ifdef NID_ct_cert_scts
 	if ( OBJ_obj2nid(ext_asn) == NID_ct_cert_scts )
 #else

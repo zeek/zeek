@@ -118,6 +118,12 @@ string Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
 	if ( ! file )
 		return "";
 
+	// This only has any effect when
+	// * called for the first time for a file
+	// * being called before file->DataIn is called for the first time (before data is
+	//   added to the bof buffer).
+	// Afterwards SetMime just ignores what is passed to it. Thus this only has effect during
+	// the first Manager::DataIn call for each file.
 	if ( ! mime_type.empty() )
 		file->SetMime(mime_type);
 

@@ -368,24 +368,47 @@ set(common_SRCS
     digest.h
 )
 
-set(bro_SRCS ${common_SRCS} main.cc)
-set(fuzz_SRCS ${common_SRCS} fuzz.cc)
+if ( bro_HAVE_OBJECT_LIBRARIES )
+    add_library(bro_common OBJECT ${common_SRCS})
+else ()
+    add_library(bro_common STATIC ${common_SRCS})
+endif ()
+
+set(bro_SRCS main.cc)
+set(fuzz_SRCS fuzz.cc)
 
 collect_headers(bro_HEADERS ${bro_SRCS})
 
 if ( bro_HAVE_OBJECT_LIBRARIES )
-    add_executable(bro ${bro_SRCS} ${bro_HEADERS} ${bro_SUBDIRS})
+
+    add_executable(bro $<TARGET_OBJECTS:bro_common> ${bro_SRCS} ${bro_HEADERS} ${bro_SUBDIRS})
     target_link_libraries(bro ${brodeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
-else ()
-    add_executable(bro ${bro_SRCS} ${bro_HEADERS})
-    target_link_libraries(bro ${bro_SUBDIRS} ${brodeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 
-    if ( $ENV{FUZZ} ) 
-        add_executable(fuzz ${fuzz_SRCS} ${bro_HEADERS})
-        target_link_libraries(fuzz ${bro_SUBDIRS} ${brodeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS} Fuzzer)
-
-        set_target_properties(fuzz PROPERTIES LINK_FLAGS "-L ../../")
+    if ( ENABLE_FUZZER )
+        add_executable(fuzz $<TARGET_OBJECTS:bro_common> ${fuzz_SRCS} ${bro_HEADERS} ${bro_SUBDIRS})
+        target_link_libraries(fuzz ${brodeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS} Fuzzer)
     endif ()
+
+else ()
+
+    add_executable(bro ${bro_SRCS} ${bro_HEADERS})
+    target_link_libraries(bro
+        -Wl,--start-group
+            bro_common ${bro_SUBDIRS}
+        -Wl,--end-group
+        ${brodeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS}
+    )
+
+    if ( ENABLE_FUZZER )
+        add_executable(fuzz ${fuzz_SRCS} ${bro_HEADERS})
+        target_link_libraries(fuzz
+            -Wl,--start-group
+                bro_common ${bro_SUBDIRS}
+            -Wl,--end-group
+            ${brodeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS} Fuzzer
+        )
+    endif ()
+
 endif ()
 
 if ( NOT "${bro_LINKER_FLAGS}" STREQUAL "" )

@@ -148,6 +148,39 @@ set(brodeps
     ${OPTLIBS}
 )
 
+if ( ENABLE_FUZZER )
+    if ( NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" )
+        message(FATAL_ERROR "Clang 4.0+ must be used for fuzzing support")
+    endif ()
+
+    if ( CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.0 )
+        message(FATAL_ERROR "Clang 4.0+ must be used for fuzzing support")
+    endif ()
+
+    if ( NOT "$ENV{ASAN_OPTIONS}" STREQUAL "detect_leaks=0" )
+        message(FATAL_ERROR "You must set 'ASAN_OPTIONS=detect_leaks=0' in the environment (it also must be set in any future environment used for compiling.")
+    endif ()
+
+    include(ExternalProject)
+    set(FUZZER_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/Fuzzer)
+    ExternalProject_Add(libfuzzer_git
+        GIT_REPOSITORY https://chromium.googlesource.com/chromium/llvm-project/llvm/lib/Fuzzer
+        PREFIX ${FUZZER_PREFIX}
+        CONFIGURE_COMMAND ""
+        BINARY_DIR ${FUZZER_PREFIX}/src/libfuzzer_git
+        BUILD_COMMAND ./build.sh
+        INSTALL_COMMAND mv ${FUZZER_PREFIX}/src/libfuzzer_git/libFuzzer.a ${FUZZER_PREFIX}
+    )
+    add_library(Fuzzer STATIC IMPORTED)
+    set_property(TARGET Fuzzer PROPERTY IMPORTED_LOCATION
+                 ${FUZZER_PREFIX}/libFuzzer.a)
+    add_dependencies(Fuzzer libfuzzer_git)
+
+    set(FUZZER_FLAGS "-fsanitize-coverage=trace-pc-guard -fsanitize=address")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${FUZZER_FLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FUZZER_FLAGS}")
+endif ()
+
 ########################################################################
 ## System Introspection
 

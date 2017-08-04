@@ -294,7 +294,7 @@ void File::SetReassemblyBuffer(uint64 max)
 
 bool File::SetMime(const string& mime_type)
 	{
-	if ( mime_type.empty() || bof_buffer.size != 0 )
+	if ( mime_type.empty() || bof_buffer.size != 0 || did_metadata_inference )
 		return false;
 
 	did_metadata_inference = true;

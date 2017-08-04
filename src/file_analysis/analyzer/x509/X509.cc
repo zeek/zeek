@@ -240,7 +240,10 @@ void file_analysis::X509::ParseExtensionsSpecific(X509_EXTENSION* ex, bool globa
 	else if ( OBJ_obj2nid(ext_asn) == NID_subject_alt_name )
 		ParseSAN(ex);
 
-#ifdef NID_ct_cert_scts
+	// In OpenSSL 1.0.2+, we can get the extension by using NID_ct_precert_scts.
+	// In OpenSSL <= 1.0.1, this is not yet defined yet, so we have to manually
+	// look it up by performing a string comparison on the oid.
+#ifdef NID_ct_precert_scts
 	else if ( OBJ_obj2nid(ext_asn) == NID_ct_precert_scts )
 #else
 	else if ( strcmp(oid, "1.3.6.1.4.1.11129.2.4.2") == 0 )

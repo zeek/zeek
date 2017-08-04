@@ -1,4 +1,46 @@
 
+2.5-288 | 2017-08-04 14:17:10 -0700
+
+  * Fix field not being populated, which resulted in a reporter
+    messsage. Addresses BIT-1831. Reported by Chris Herdt. (Seth Hall)
+
+  * Support for OCSP and Signed Certificate Timestamp. (Liang
+    Zhu/Johanna Amann)
+
+      - OCSP parsing is added to the X.509 module.
+
+      - Signed Certificate Timestamp extraction, parsing, & validation
+        is added to the SSL, X.509, and OCSP analyzers. Validation is
+        added to the X.509 BIFs.
+
+    This adds the following events and BIFs:
+
+      - event ocsp_request(f: fa_file, version: count, requestorName: string);
+      - event ocsp_request_certificate(f: fa_file, hashAlgorithm: string, issuerNameHash: string, issuerKeyHash: string, serialNumber: string);
+      - event ocsp_response_status(f: fa_file, status: string);
+      - event ocsp_response_bytes(f: fa_file, resp_ref: opaque of ocsp_resp, status: string, version: count, responderId: string, producedAt: time, signatureAlgorithm: string, certs: x509_opaque_vector);
+      - event ocsp_response_certificate(f: fa_file, hashAlgorithm: string, issuerNameHash: string, issuerKeyHash: string, serialNumber: string, certStatus: string, revokeTime: time, revokeReason: string, thisUpdate: time, nextUpdate: time);
+      - event ocsp_extension(f: fa_file, ext: X509::Extension, global_resp: bool);
+      - event x509_ocsp_ext_signed_certificate_timestamp(f: fa_file, version: count, logid: string, timestamp: count, hash_algorithm: count, signature_algorithm: count, signature: string);
+      - event ssl_extension_signed_certificate_timestamp(c: connection, is_orig: bool, version: count, logid: string, timestamp: count, signature_and_hashalgorithm: SSL::SignatureAndHashAlgorithm, signature: string);
+      - function sct_verify(cert: opaque of x509, logid: string, log_key: string, signature: string, timestamp: count, hash_algorithm: count, issuer_key_hash: string &default=""): bool
+      - function x509_subject_name_hash(cert: opaque of x509, hash_alg: count): string
+      - function x509_issuer_name_hash(cert: opaque of x509, hash_alg: count): string
+      - function x509_spki_hash(cert: opaque of x509, hash_alg: count): string
+
+    This also changes the MIME types that we use to identify X.509
+    certificates in SSL connections from "application/pkix-cert" to
+    "application/x-x509-user-cert" for host certificates and
+    "application/x-x509-ca-cert" for CA certificates.
+
+  * The SSL scripts provide a new hook "ssl_finishing(c: connection)"
+    to trigger actions after the handshake has concluded. (Johanna
+    Amann)
+
+  * Add an internal API for protocol analyzers to provide the MIME
+    type of file data directly, disabling automatic inferrence.
+    (Johanna Amann).
+
 2.5-186 | 2017-07-28 12:22:20 -0700
 
   * Improved handling of '%' at end of line in HTTP analyzer. (Johanna

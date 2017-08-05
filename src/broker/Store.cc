@@ -103,6 +103,8 @@ broker::backend to_backend_type(BifEnum::Broker::BackendType type)
 	case BifEnum::Broker::ROCKSDB:
 		return broker::rocksdb;
 	}
+
+	throw std::runtime_error("unknown broker backend");
 	}
 
 broker::backend_options to_backend_options(broker::backend backend,

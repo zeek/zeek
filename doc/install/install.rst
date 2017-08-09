@@ -39,12 +39,12 @@ To build Bro from source, the following additional dependencies are required:
     * Make
     * C/C++ compiler with C++11 support (GCC 4.8+ or Clang 3.3+)
     * SWIG                              (http://www.swig.org)
-    * Bison (GNU Parser Generator)
-    * Flex  (Fast Lexical Analyzer)
+    * Bison 2.5 or greater              (https://www.gnu.org/software/bison/)
+    * Flex (lexical analyzer generator) (https://github.com/westes/flex)
     * Libpcap headers                   (http://www.tcpdump.org)
     * OpenSSL headers                   (http://www.openssl.org)
-    * zlib headers
-    * Python
+    * zlib headers                      (https://zlib.net/)
+    * Python                            (https://www.python.org/)
 
 To install the required dependencies, you can use:
 
@@ -95,14 +95,16 @@ To install the required dependencies, you can use:
   clicking "Install").
 
   OS X comes with all required dependencies except for CMake_, SWIG_,
-  and OpenSSL (OpenSSL headers were removed in OS X 10.11, therefore OpenSSL
-  must be installed manually for OS X versions 10.11 or newer).
-  Distributions of these dependencies can
-  likely be obtained from your preferred Mac OS X package management
-  system (e.g. Homebrew_, MacPorts_, or Fink_). Specifically for
-  Homebrew, the ``cmake``, ``swig``, and ``openssl`` packages
-  provide the required dependencies.  For MacPorts, the ``cmake``, ``swig``,
-  ``swig-python``, and ``openssl`` packages provide the required dependencies.
+  Bison, and OpenSSL (OpenSSL headers were removed in OS X 10.11,
+  therefore OpenSSL must be installed manually for OS X versions 10.11
+  or newer).
+
+  Distributions of these dependencies can likely be obtained from your
+  preferred Mac OS X package management system (e.g. Homebrew_,
+  MacPorts_, or Fink_). Specifically for Homebrew, the ``cmake``,
+  ``swig``, ``openssl``, and ``bison`` packages provide the required
+  dependencies.  For MacPorts, the ``cmake``, ``swig``, ``swig-python``,
+  ``openssl``, and ``bison`` packages provide the required dependencies.
 
 
 Optional Dependencies

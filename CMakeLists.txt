@@ -86,6 +86,12 @@ if (ENABLE_JEMALLOC)
     find_package(JeMalloc)
 endif ()
 
+if ( BISON_VERSION AND BISON_VERSION VERSION_LESS 2.5 )
+    set(MISSING_PREREQS true)
+    list(APPEND MISSING_PREREQ_DESCS
+         " Could not find prerequisite package Bison >= 2.5, found: ${BISON_VERSION}")
+endif ()
+
 if (MISSING_PREREQS)
     foreach (prereq ${MISSING_PREREQ_DESCS})
         message(SEND_ERROR ${prereq})

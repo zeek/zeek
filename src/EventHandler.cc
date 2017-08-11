@@ -82,8 +82,7 @@ void EventHandler::Call(val_list* vl, bool no_remote)
 			{
 			// Send event in form [name, xs...] where xs represent the arguments.
 			broker::vector xs;
-			xs.reserve(vl->length() + 1);
-			xs.emplace_back(Name());
+			xs.reserve(vl->length());
 			bool valid_args = true;
 
 			for ( auto i = 0; i < vl->length(); ++i )
@@ -104,7 +103,7 @@ void EventHandler::Call(val_list* vl, bool no_remote)
 			if ( valid_args )
 				{
 				for ( auto& topic : auto_publish )
-					broker_mgr->PublishEvent(topic, std::move(xs));
+					broker_mgr->PublishEvent(topic, Name(), std::move(xs));
 				}
 			}
 		}

@@ -1,5 +1,6 @@
 
 #include <broker/broker.hh>
+#include <broker/bro.hh>
 #include <cstdio>
 #include <unistd.h>
 
@@ -20,12 +21,6 @@
 using namespace std;
 
 namespace bro_broker {
-
-namespace atom {
-using event = broker::atom_constant<broker::atom::make("event")>;
-using log_create = broker::atom_constant<broker::atom::make("log_create")>;
-using log_write = broker::atom_constant<broker::atom::make("log_write")>;
-}
 
 const broker::endpoint_info Manager::NoPeer{{}, {}};
 
@@ -48,6 +43,11 @@ static std::string RenderMessage(std::string topic, broker::data x)
 	return fmt("%s -> %s", broker::to_string(x).c_str(), topic.c_str());
 	}
 
+static std::string RenderEvent(std::string topic, std::string name, broker::data args)
+	{
+	return fmt("%s(%s) -> %s", name.c_str(), broker::to_string(args).c_str(), topic.c_str());
+	}
+
 static std::string RenderMessage(broker::store::response x)
 	{
 	return fmt("%s [id %" PRIu64 "]", (x.answer ? broker::to_string(*x.answer).c_str() : "<no answer>"), x.id);
@@ -56,6 +56,11 @@ static std::string RenderMessage(broker::store::response x)
 static std::string RenderMessage(const broker::vector* xs)
 	{
 	return broker::to_string(*xs);
+	}
+
+static std::string RenderMessage(const broker::data& d)
+	{
+	return broker::to_string(d);
 	}
 
 static std::string RenderMessage(const broker::vector& xs)
@@ -220,16 +225,15 @@ void Manager::Unpeer(const string& addr, uint16_t port)
 	bstate->endpoint.unpeer_nosync(addr, port);
 	}
 
-bool Manager::PublishEvent(string topic, broker::data x)
+bool Manager::PublishEvent(string topic, std::string name, broker::vector args)
 	{
 	if ( ! bstate->endpoint.peers().size() )
 		return true;
 
 	DBG_LOG(DBG_BROKER, "Publishing event: %s",
-		RenderMessage(topic, x).c_str());
-	broker::vector hdr = {ProtocolVersion, atom::event::value.uint_value()};
-	broker::vector data = {std::move(hdr), move(x)};
-	bstate->endpoint.publish(move(topic), std::move(data));
+		RenderEvent(topic, name, args).c_str());
+	broker::bro::Event ev(std::move(name), std::move(args));
+	bstate->endpoint.publish(move(topic), std::move(ev));
 	++statistics.num_events_outgoing;
 	return true;
 	}
@@ -245,8 +249,7 @@ bool Manager::PublishEvent(string topic, RecordVal* args)
 	auto event_name = args->Lookup(0)->AsString()->CheckString();
 	auto vv = args->Lookup(1)->AsVectorVal();
 	broker::vector xs;
-	xs.reserve(vv->Size() + 1);
-	xs.emplace_back(event_name);
+	xs.reserve(vv->Size());
 
 	for ( auto i = 0u; i < vv->Size(); ++i )
 		{
@@ -255,13 +258,8 @@ bool Manager::PublishEvent(string topic, RecordVal* args)
 		xs.emplace_back(data_val->data);
 		}
 
-	DBG_LOG(DBG_BROKER, "Publishing event: %s", RenderMessage(topic, xs).c_str());
-	broker::vector hdr = {ProtocolVersion, atom::event::value.uint_value()};
-	broker::vector data = {std::move(hdr), move(xs)};
-	bstate->endpoint.publish(move(topic), std::move(data));
-	++statistics.num_events_outgoing;
 
-	return true;
+	return PublishEvent(topic, event_name, xs);
 	}
 
 bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer,
@@ -272,18 +270,18 @@ bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer,
 	if ( ! bstate->endpoint.peers().size() )
 		return true;
 
-	auto stream_name = stream->Type()->AsEnumType()->Lookup(stream->AsEnum());
+	auto stream_id = stream->Type()->AsEnumType()->Lookup(stream->AsEnum());
 
-	if ( ! stream_name )
+	if ( ! stream_id )
 		{
 		reporter->Error("Failed to remotely log: stream %d doesn't have name",
 		                stream->AsEnum());
 		return false;
 		}
 
-	auto writer_name = writer->Type()->AsEnumType()->Lookup(writer->AsEnum());
+	auto writer_id = writer->Type()->AsEnumType()->Lookup(writer->AsEnum());
 
-	if ( ! writer_name )
+	if ( ! writer_id )
 		{
 		reporter->Error("Failed to remotely log: writer %d doesn't have name",
 		                writer->AsEnum());
@@ -300,21 +298,20 @@ bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer,
 		fields_data.push_back(move(field_data));
 		}
 
-	std::string topic = log_topic + stream_name;
-	auto bstream_name = broker::enum_value(move(stream_name));
-	auto bwriter_name = broker::enum_value(move(writer_name));
-	broker::vector xs{move(bstream_name), move(bwriter_name), move(writer_info), move(fields_data)};
+	std::string topic = log_topic + stream_id;
+	auto bstream_id = broker::enum_value(move(stream_id));
+	auto bwriter_id = broker::enum_value(move(writer_id));
+	broker::bro::LogCreate::Args xs{move(bstream_id), move(bwriter_id), move(writer_info), move(fields_data)};
+	broker::bro::LogCreate msg(std::move(xs));
 
-	DBG_LOG(DBG_BROKER, "Publishing log creation: %s", RenderMessage(topic, xs).c_str());
-	broker::vector hdr = {ProtocolVersion, atom::log_create::value.uint_value()};
-	broker::vector data = {move(hdr), move(xs)};
+	DBG_LOG(DBG_BROKER, "Publishing log creation: %s", RenderMessage(topic, msg).c_str());
 
 	if ( peer.node != NoPeer.node )
 		// Direct message.
-		bstate->endpoint.publish(peer, move(topic), move(data));
+		bstate->endpoint.publish(peer, move(topic), move(msg));
 	else
 		// Broadcast.
-		bstate->endpoint.publish(move(topic), move(data));
+		bstate->endpoint.publish(move(topic), move(msg));
 
 	return true;
 	}
@@ -324,18 +321,18 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 	if ( ! bstate->endpoint.peers().size() )
 		return true;
 
-	auto stream_name = stream->Type()->AsEnumType()->Lookup(stream->AsEnum());
+	auto stream_id = stream->Type()->AsEnumType()->Lookup(stream->AsEnum());
 
-	if ( ! stream_name )
+	if ( ! stream_id )
 		{
 		reporter->Error("Failed to remotely log: stream %d doesn't have name",
 		                stream->AsEnum());
 		return false;
 		}
 
-	auto writer_name = writer->Type()->AsEnumType()->Lookup(writer->AsEnum());
+	auto writer_id = writer->Type()->AsEnumType()->Lookup(writer->AsEnum());
 
-	if ( ! writer_name )
+	if ( ! writer_id )
 		{
 		reporter->Error("Failed to remotely log: writer %d doesn't have name",
 		                writer->AsEnum());
@@ -352,23 +349,22 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 			{
 			reporter->Error("Failed to remotely log stream %s: "
 			                "unsupported type for field #%d",
-			                stream_name, i);
+			                stream_id, i);
 			return false;
 			}
 
 		vals_data.push_back(move(*field_data));
 		}
 
-	std::string topic = log_topic + stream_name;
-	auto bstream_name = broker::enum_value(move(stream_name));
-	auto bwriter_name = broker::enum_value(move(writer_name));
+	std::string topic = log_topic + stream_id;
+	auto bstream_id = broker::enum_value(move(stream_id));
+	auto bwriter_id = broker::enum_value(move(writer_id));
+	broker::bro::LogWrite::Args xs{move(bstream_id), move(bwriter_id), move(path), move(vals_data)};
+	broker::bro::LogWrite msg(std::move(xs));
 
-	broker::vector xs{move(bstream_name), move(bwriter_name), move(path), move(vals_data)};
+	DBG_LOG(DBG_BROKER, "Publishing log record: %s", RenderMessage(topic, msg).c_str());
+	bstate->endpoint.publish(move(topic), move(msg));
 
-	DBG_LOG(DBG_BROKER, "Publishing log record: %s", RenderMessage(topic, xs).c_str());
-	broker::vector hdr = {ProtocolVersion, atom::log_write::value.uint_value()};
-	broker::vector data = {move(hdr), move(xs)};
-	bstate->endpoint.publish(move(topic), move(data));
 	++statistics.num_logs_outgoing;
 
 	return true;
@@ -582,79 +578,28 @@ void Manager::Process()
 
 		auto elem = bstate->subscriber.get();
 		auto topic = elem.first;
-		auto data = elem.second;
 
-		// All messages come with a vector as data.
-		auto msg = broker::get_if<broker::vector>(data);
-
-		if ( ! msg )
+		try
 			{
-			reporter->Warning("ignoring message with non-vector data");
+			auto msg = broker::bro::Message(elem.second);
+
+			if ( msg.type() == broker::bro::Message::Type::Event )
+				ProcessEvent(broker::bro::Event(std::move(msg)));
+
+			else if ( msg.type() == broker::bro::Message::Type::LogCreate )
+				ProcessLogCreate(broker::bro::LogCreate(std::move(msg)));
+
+			else if ( msg.type() == broker::bro::Message::Type::LogWrite )
+				ProcessLogWrite(broker::bro::LogWrite(std::move(msg)));
+
+			// We ignore unknown types so that we could add more in the
+			// future if we had too.
+			}
+		catch ( std::runtime_error& e )
+			{
+			reporter->Warning("ignoring invalid Broker message: %s", + e.what());
 			continue;
 			}
-
-		if ( msg->size() != 2 )
-			{
-			reporter->Warning("ignoring message with wrong-sized vector data");
-			continue;
-			}
-
-		auto hdr = broker::get_if<broker::vector>((*msg)[0]);
-
-		if ( ! hdr )
-			{
-			reporter->Warning("ignoring message with non-vector header");
-			continue;
-			}
-
-		if ( hdr->size() != 2 )
-			{
-			reporter->Warning("ignoring message with wrong-sized header");
-			continue;
-			}
-
-		auto version = broker::get_if<broker::count>((*hdr)[0]);
-
-		if ( ! version )
-			{
-			reporter->Warning("ignoring message without version");
-			continue;
-			}
-
-		if ( *version != ProtocolVersion )
-			{
-			// Eventually we could do something more
-			// clever here to accomodate old versions.
-			reporter->Warning("ignoring message with unexpected version (%" PRIu64 ")", *version);
-			continue;
-			}
-
-		auto msg_type = broker::get_if<broker::count>((*hdr)[1]);
-
-		if ( ! msg_type )
-			{
-			reporter->Warning("ignoring message without type");
-			continue;
-			}
-
-		auto xs = broker::get_if<broker::vector>((*msg)[1]);
-		if ( ! xs )
-			{
-			reporter->Warning("ignoring message withon non-vector payload");
-			continue;
-			}
-
-		if ( *msg_type == atom::event::value.uint_value() )
-			ProcessEvent(std::move(*xs));
-
-		else if ( *msg_type == atom::log_create::value.uint_value() )
-			ProcessLogCreate(std::move(*xs));
-
-		else if ( *msg_type == atom::log_write::value.uint_value() )
-			ProcessLogWrite(std::move(*xs));
-
-		// We ignore unknown types so that we could add more in the
-		// future if we had too.
 		}
 
 	for ( auto &s : data_stores )
@@ -670,75 +615,54 @@ void Manager::Process()
 	SetIdle(! had_input);
 	}
 
-void Manager::ProcessEvent(const broker::vector xs)
+void Manager::ProcessEvent(const broker::bro::Event ev)
 	{
-	DBG_LOG(DBG_BROKER, "Received event: %s", RenderMessage(xs).c_str());
+	DBG_LOG(DBG_BROKER, "Received event: %s", RenderMessage(ev).c_str());
 
 	++statistics.num_events_incoming;
 
-	auto event_name = broker::get_if<string>(xs[0]);
-	if ( ! event_name )
-		{
-		reporter->Warning("ignoring message without event name");
-		return;
-		}
-
-	auto handler = event_registry->Lookup(event_name->c_str());
+	auto handler = event_registry->Lookup(ev.name().c_str());
 	if ( ! handler )
 		return;
 
+	auto args = ev.args();
 	auto arg_types = handler->FType()->ArgTypes()->Types();
-	if ( static_cast<size_t>(arg_types->length()) != xs.size() - 1 )
+	if ( static_cast<size_t>(arg_types->length()) != args.size() )
 		{
 		reporter->Warning("got event message with invalid # of args,"
-				  " got %zd, expected %d", xs.size() - 1,
+				  " got %zd, expected %d", args.size(),
 				  arg_types->length());
 		return;
 		}
 
 	auto vl = new val_list;
 
-	for ( auto i = 1u; i < xs.size(); ++i )
+	for ( auto i = 0u; i < args.size(); ++i )
 		{
-		auto val = data_to_val(move(xs[i]), (*arg_types)[i - 1]);
+		auto val = data_to_val(args[i], (*arg_types)[i]);
 
 		if ( val )
 			vl->append(val);
 		else
 			{
-			reporter->Warning("failed to convert remote event arg # %d", i - 1);
+			reporter->Warning("failed to convert remote event arg # %d", i);
 			break;
 			}
 		}
 
-	if ( static_cast<size_t>(vl->length()) == xs.size() - 1 )
+	if ( static_cast<size_t>(vl->length()) == args.size() )
 		mgr.QueueEvent(handler, vl, SOURCE_BROKER);
 	else
 		delete_vals(vl);
 	}
 
-bool bro_broker::Manager::ProcessLogCreate(const broker::vector xs)
+bool bro_broker::Manager::ProcessLogCreate(const broker::bro::LogCreate lc)
 	{
-	DBG_LOG(DBG_BROKER, "Received log-create: %s", RenderMessage(xs).c_str());
+	DBG_LOG(DBG_BROKER, "Received log-create: %s", RenderMessage(lc).c_str());
 
-	if ( xs.size() != 4 )
-		{
-		reporter->Warning("got bad remote log create size: %zd (expected 5)",
-				  xs.size());
-		return false;
-		}
+	auto args = lc.args();
 
-	unsigned int idx = 0;
-
-	// Get stream ID.
-
-	if ( ! broker::is<broker::enum_value>(xs[idx]) )
-		{
-		reporter->Warning("got remote log create w/o stream id");
-		return false;
-		}
-
-	auto stream_id = data_to_val(move(xs[idx]), log_id_type);
+	auto stream_id = data_to_val(args.stream_id, log_id_type);
 
 	if ( ! stream_id )
 		{
@@ -747,17 +671,8 @@ bool bro_broker::Manager::ProcessLogCreate(const broker::vector xs)
 		}
 
 	unref_guard stream_id_unreffer{stream_id};
-	++idx;
 
-	// Get writer ID.
-
-	if ( ! broker::is<broker::enum_value>(xs[idx]) )
-		{
-		reporter->Warning("got remote log create w/o writer id");
-		return false;
-		}
-
-	auto writer_id = data_to_val(move(xs[idx]), writer_id_type);
+	auto writer_id = data_to_val(args.writer_id, writer_id_type);
 
 	if ( ! writer_id )
 		{
@@ -766,85 +681,64 @@ bool bro_broker::Manager::ProcessLogCreate(const broker::vector xs)
 		}
 
 	unref_guard writer_id_unreffer{writer_id};
-	++idx;
-
-	// Get writer info.
-
-	if ( ! broker::is<broker::vector>(xs[idx]) )
-		{
-		reporter->Warning("got remote log create w/o writer info id");
-		return false;
-		}
 
 	auto writer_info = std::unique_ptr<logging::WriterBackend::WriterInfo>(new logging::WriterBackend::WriterInfo);
 
-	if ( ! writer_info->FromBroker(std::move(xs[idx])) )
+	if ( ! writer_info->FromBroker(args.writer_info) )
 		{
 		reporter->Warning("failed to unpack remote log writer info");
 		return false;
 		}
 
-	++idx;
-
 	// Get log fields.
 
-	auto fields_data = broker::get_if<broker::vector>(xs[idx]);
+	try
+		{
+		auto fields_data = broker::get<broker::vector>(args.fields_data);
 
-	if ( ! fields_data )
+		auto num_fields = fields_data.size();
+		auto fields = new threading::Field* [num_fields];
+
+		for ( auto i = 0u; i < num_fields; ++i )
+			{
+			if ( auto field = data_to_threading_field(fields_data[i]) )
+				fields[i] = field;
+			else
+				{
+				reporter->Warning("failed to convert remote log field # %d", i);
+				return false;
+				}
+			}
+
+		if ( ! log_mgr->CreateWriterForRemoteLog(stream_id->AsEnumVal(), writer_id->AsEnumVal(), writer_info.get(), num_fields, fields) )
+			{
+			ODesc d;
+			stream_id->Describe(&d);
+			reporter->Warning("failed to create remote log stream for %s locally", d.Description());
+			}
+
+		writer_info.release(); // log_mgr took ownership.
+		return true;
+		}
+
+	catch (const broker::bad_variant_access& e)
 		{
 		reporter->Warning("failed to unpack remote log fields");
 		return false;
 		}
-
-	auto num_fields = fields_data->size();
-	auto fields = new threading::Field* [num_fields];
-
-	for ( auto i = 0u; i < num_fields; ++i )
-		{
-		if ( auto field = data_to_threading_field((*fields_data)[i]) )
-			fields[i] = field;
-		else
-			{
-			reporter->Warning("failed to convert remote log field # %d", i);
-			return false;
-			}
-		}
-
-	if ( ! log_mgr->CreateWriterForRemoteLog(stream_id->AsEnumVal(), writer_id->AsEnumVal(), writer_info.get(), num_fields, fields) )
-		{
-		ODesc d;
-		stream_id->Describe(&d);
-		reporter->Warning("failed to create remote log stream for %s locally", d.Description());
-		}
-
-	writer_info.release(); // log_mgr took ownership.
-	return true;
 	}
 
-bool bro_broker::Manager::ProcessLogWrite(const broker::vector xs)
+bool bro_broker::Manager::ProcessLogWrite(const broker::bro::LogWrite lw)
 	{
-	DBG_LOG(DBG_BROKER, "Received log-write: %s", RenderMessage(xs).c_str());
+	DBG_LOG(DBG_BROKER, "Received log-write: %s", RenderMessage(lw).c_str());
 
 	++statistics.num_logs_incoming;
 
-	if ( xs.size() != 4 )
-		{
-		reporter->Warning("got bad remote log size: %zd (expected 5)",
-				  xs.size());
-		return false;
-		}
-
-	unsigned int idx = 0;
+	auto args = lw.args();
 
 	// Get stream ID.
 
-	if ( ! broker::is<broker::enum_value>(xs[idx]) )
-		{
-		reporter->Warning("got remote log w/o stream id");
-		return false;
-		}
-
-	auto stream_id = data_to_val(move(xs[idx]), log_id_type);
+	auto stream_id = data_to_val(args.stream_id, log_id_type);
 
 	if ( ! stream_id )
 		{
@@ -853,17 +747,10 @@ bool bro_broker::Manager::ProcessLogWrite(const broker::vector xs)
 		}
 
 	unref_guard stream_id_unreffer{stream_id};
-	++idx;
 
 	// Get writer ID.
 
-	if ( ! broker::is<broker::enum_value>(xs[idx]) )
-		{
-		reporter->Warning("got remote log w/o writer id");
-		return false;
-		}
-
-	auto writer_id = data_to_val(move(xs[idx]), writer_id_type);
+	auto writer_id = data_to_val(args.writer_id, writer_id_type);
 
 	if ( ! writer_id )
 		{
@@ -872,47 +759,36 @@ bool bro_broker::Manager::ProcessLogWrite(const broker::vector xs)
 		}
 
 	unref_guard writer_id_unreffer{writer_id};
-	++idx;
 
-	// Get path.
-
-	auto path = broker::get_if<std::string>(xs[idx]);
-
-	if ( ! path )
+	 try
 		{
-		reporter->Warning("failed to unpack remote log path");
-		return false;
+		auto path = broker::get<std::string>(args.path);
+		auto vals_data = broker::get<broker::vector>(args.vals_data);
+
+		auto num_vals = vals_data.size();
+		auto vals = new threading::Value* [num_vals];
+
+		for ( auto i = 0u; i < num_vals; ++i )
+			{
+			if ( auto val = data_to_threading_val(vals_data[i]) )
+				vals[i] = val;
+			else
+				{
+				std::cerr << vals << " | " << vals_data[i] << std::endl;
+				reporter->Warning("failed to convert remote log arg # %d", i);
+				return false;
+				}
+			}
+
+		log_mgr->WriteFromRemote(stream_id->AsEnumVal(), writer_id->AsEnumVal(), path, num_vals, vals);
+		return true;
 		}
 
-	++idx;
-
-	// Get log values.
-
-	auto vals_data = broker::get_if<broker::vector>(xs[idx]);
-
-	if ( ! vals_data )
+	catch ( const broker::bad_variant_access& e)
 		{
 		reporter->Warning("failed to unpack remote log values");
 		return false;
 		}
-
-	auto num_vals = vals_data->size();
-	auto vals = new threading::Value* [num_vals];
-
-	for ( auto i = 0u; i < num_vals; ++i )
-		{
-		if ( auto val = data_to_threading_val((*vals_data)[i]) )
-			vals[i] = val;
-		else
-			{
-			std::cerr << vals << " | " << (*vals_data)[i] << std::endl;
-			reporter->Warning("failed to convert remote log arg # %d", i);
-			return false;
-			}
-		}
-
-	log_mgr->WriteFromRemote(stream_id->AsEnumVal(), writer_id->AsEnumVal(), *path, num_vals, vals);
-	return true;
 	}
 
 void Manager::ProcessStatus(const broker::status stat)

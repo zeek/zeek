@@ -2,6 +2,7 @@
 #define BRO_COMM_MANAGER_H
 
 #include <broker/broker.hh>
+#include <broker/bro.hh>
 #include <memory>
 #include <string>
 #include <map>
@@ -13,11 +14,6 @@
 #include "Val.h"
 
 namespace bro_broker {
-
-/**
- * Bro-level protocol version that our outgoing messages use.
- */
-const uint32_t ProtocolVersion = 1;
 
 /**
  * Communication statistics.
@@ -114,22 +110,22 @@ public:
 	 * @param topic a topic string associated with the message.
 	 * Peers advertise interest by registering a subscription to some prefix
 	 * of this topic name.
-	 * @param x the event to send to peers, which is the name of the event
-	 * as a string followed by all of its arguments.
+	 * @param name the name of the event
+	 * @param  the event's arguments
 	 * @return true if the message is sent successfully.
 	 */
-	bool PublishEvent(std::string topic, broker::data x);
+	bool PublishEvent(std::string topic, std::string name, broker::vector args);
 
 	/**
 	 * Send an event to any interested peers.
 	 * @param topic a topic string associated with the message.
 	 * Peers advertise interest by registering a subscription to some prefix
 	 * of this topic name.
-	 * @param args the event and its arguments to send to peers.  See the
-	 * Broker::Event record type.
+	 * @param ev the event and its arguments to send to peers, in the form of
+	 * a Broker::Event record type.
 	 * @return true if the message is sent successfully.
 	 */
-	bool PublishEvent(std::string topic, RecordVal* args);
+	bool PublishEvent(std::string topic, RecordVal* ev);
 
 	/**
 	 * Send a message to create a log stream to any interested peers.
@@ -259,12 +255,12 @@ private:
 		broker::event_subscriber event_subscriber;
 	};
 
-	void ProcessEvent(const broker::vector xs);
+	void ProcessEvent(const broker::bro::Event le);
+	bool ProcessLogCreate(const broker::bro::LogCreate lc);
+	bool ProcessLogWrite(const broker::bro::LogWrite lw);
 	void ProcessStatus(const broker::status stat);
 	void ProcessError(broker::error err);
 	void ProcessStoreResponse(StoreHandleVal*, broker::store::response response);
-	bool ProcessLogCreate(const broker::vector msg);
-	bool ProcessLogWrite(const broker::vector msg);
 
 	// IOSource interface overrides:
 	void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,

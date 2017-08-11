@@ -1,4 +1,12 @@
 
+2.5-294 | 2017-08-11 13:51:49 -0500
+
+  * Fix core.truncation unit test on macOS. (Jon Siwek)
+
+  * Fix a netcontrol test that often fails (Daniel Thayer)
+
+  * Update install instructions for Fedora 26 (Daniel Thayer)
+
 2.5-288 | 2017-08-04 14:17:10 -0700
 
   * Fix field not being populated, which resulted in a reporter

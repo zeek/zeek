@@ -252,7 +252,7 @@ private:
 		BrokerState();
 		broker::endpoint endpoint;
 		broker::subscriber subscriber;
-		broker::event_subscriber event_subscriber;
+		broker::status_subscriber status_subscriber;
 	};
 
 	void ProcessEvent(const broker::bro::Event le);

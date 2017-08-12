@@ -557,6 +557,24 @@ broker::expected<broker::data> bro_broker::val_to_data(Val* v)
 
 		return {rval};
 		}
+	case TYPE_OPAQUE:
+		{
+		SerializationFormat* form = new BinarySerializationFormat();
+		form->StartWrite();
+		CloneSerializer ss(form);
+		SerialInfo sinfo(&ss);
+		sinfo.cache = false;
+		sinfo.include_locations = false;
+
+		if ( ! v->Serialize(&sinfo) )
+			return broker::ec::invalid_data;
+
+		char* data;
+		uint32 len = form->EndWrite(&data);
+		string rval(data, len);
+		free(data);
+		return {rval};
+		}
 	default:
 		reporter->Error("unsupported Broker::Data type: %s",
 		                type_name(v->Type()->Tag()));

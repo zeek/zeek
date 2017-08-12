@@ -24,6 +24,34 @@ function print_index(k: any)
 		}
 	}
 
+function print_exists(k: any)
+	{
+	when ( local r = Broker::exists(h, k) )
+		{
+		step += 1;
+		print fmt("[%d]", step), k, r;
+		}
+	timeout query_timeout
+		{
+		step += 1;
+		print fmt("[%d] <timeout for %s>", step, k);
+		}
+	}
+
+function print_index_from_value(k: any, i: any)
+	{
+	when ( local r = Broker::get_index_from_value(h, k, i) )
+		{
+		step += 1;
+		print fmt("[%d]", step), k, r$status, r$result;
+		}
+	timeout query_timeout
+		{
+		step += 1;
+		print fmt("[%d] <timeout for %s>", step, k);
+		}
+	}
+
 function print_keys()
 	{
 	when ( local s = Broker::keys(h) )
@@ -102,8 +130,16 @@ event bro_init()
 		print_index("table");
 		print_index("vec");
 
+		print_exists("one");
+		print_exists("NOPE");
+	
+        	print_index_from_value("vec", 1);
+        	print_index_from_value("set", "A");
+    	        print_index_from_value("table", "a");
+    	        print_index_from_value("table", "X");
+		
 		schedule 1sec { pk1() };
 		}
-	
+
         schedule 4secs { done() };
 	}

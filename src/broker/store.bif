@@ -72,6 +72,50 @@ function Broker::__close%(h: opaque of Broker::Store%): bool
 	return new Val(broker_mgr->CloseStore(handle->store.name()), TYPE_BOOL);
 	%}
 
+function Broker::__exists%(h: opaque of Broker::Store,
+			   k: any%): Broker::QueryResult
+	%{
+	if ( ! h )
+		{
+		reporter->Error("invalid Broker store handle");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
+
+	auto key = bro_broker::make_data_val(k)->Lookup(0);
+	if ( ! key )
+		return bro_broker::query_result();
+
+	auto trigger = frame->GetTrigger();
+	if ( ! trigger )
+		{
+		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
+		reporter->Error("Broker queries can only be called inside when-condition");
+		reporter->PopLocation();
+		return bro_broker::query_result();
+		}
+
+	auto timeout = trigger->TimeoutValue();
+	if ( timeout < 0 )
+		{
+		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
+		reporter->Error("Broker queries must specify a timeout block");
+		reporter->PopLocation();
+		return bro_broker::query_result();
+		}
+
+	frame->SetDelayed();
+	trigger->Hold();
+
+	auto cb = new bro_broker::StoreQueryCallback(trigger, frame->GetCall(),
+						     handle->store);
+	auto req_id = handle->proxy.exists(static_cast<bro_broker::DataVal*>(key)->data);
+	broker_mgr->TrackStoreQuery(req_id, cb);
+
+	return 0;
+	%}
+
 function Broker::__get%(h: opaque of Broker::Store,
 			k: any%): Broker::QueryResult
 	%{
@@ -111,6 +155,55 @@ function Broker::__get%(h: opaque of Broker::Store,
 	auto cb = new bro_broker::StoreQueryCallback(trigger, frame->GetCall(),
                                                handle->store);
 	auto req_id = handle->proxy.get(static_cast<bro_broker::DataVal*>(key)->data);
+	broker_mgr->TrackStoreQuery(req_id, cb);
+
+	return 0;
+	%}
+
+function Broker::__get_index_from_value%(h: opaque of Broker::Store,
+					 k: any, i: any%): Broker::QueryResult
+	%{
+	if ( ! h )
+		{
+		reporter->Error("invalid Broker store handle");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
+
+	auto key = bro_broker::make_data_val(k)->Lookup(0);
+	if ( ! key )
+		return bro_broker::query_result();
+
+	auto index = bro_broker::make_data_val(i)->Lookup(0);
+	if ( ! index )
+		return bro_broker::query_result();
+	
+	auto trigger = frame->GetTrigger();
+	if ( ! trigger )
+		{
+		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
+		reporter->Error("Broker queries can only be called inside when-condition");
+		reporter->PopLocation();
+		return bro_broker::query_result();
+		}
+
+	auto timeout = trigger->TimeoutValue();
+	if ( timeout < 0 )
+		{
+		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
+		reporter->Error("Broker queries must specify a timeout block");
+		reporter->PopLocation();
+		return bro_broker::query_result();
+		}
+
+	frame->SetDelayed();
+	trigger->Hold();
+
+	auto cb = new bro_broker::StoreQueryCallback(trigger, frame->GetCall(),
+						     handle->store);
+	auto req_id = handle->proxy.get_index_from_value(static_cast<bro_broker::DataVal*>(key)->data,
+							 static_cast<bro_broker::DataVal*>(index)->data);
 	broker_mgr->TrackStoreQuery(req_id, cb);
 
 	return 0;

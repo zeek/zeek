@@ -93,6 +93,16 @@ export {
 	##          longer be used for data store operations.
 	global close: function(h: opaque of Broker::Store) : bool;
 
+        ## Check if a key exists in a data store.
+        ## 
+	## h: the handle of the store to query.
+	##
+	## k: the key to lookup.
+	##
+	## Returns: True if the key exists in the data store.
+	global exists: function(h: opaque of Broker::Store,
+				k: any): bool;
+
 	## Lookup the value associated with a key in a data store.
 	##
 	## h: the handle of the store to query.
@@ -102,6 +112,22 @@ export {
 	## Returns: the result of the query.
 	global get: function(h: opaque of Broker::Store,
 	                     k: any): QueryResult;
+
+	## Retrieve a specific index from an existing container value. This
+        ## is supported for values of types set, table, and vector.
+	##
+	## h: the handle of the store to query.
+	##
+	## k: the key of the container value to lookup.
+	##
+	## i: the index to retrieve from the container value.
+        ## 
+        ## Returns: For tables and vectors, the value at the given index, or
+        ## failure if the index doesn't exist. For sets, a boolean indicating
+        ## whether the index exists. Returns failure if the key does not exist
+        ## at all.
+	global get_index_from_value: function(h: opaque of Broker::Store,
+					      k: any, i: any): QueryResult;
 
 	## Insert a key-value pair in to the store.
 	##
@@ -659,9 +685,20 @@ function close(h: opaque of Broker::Store) : bool
 	return __close(h);
 	}
 
+function exists(h: opaque of Broker::Store, k: any): bool
+	{
+	local r = __exists(h, k);
+	return r?$result ? (r$result as bool) : F;
+	}
+
 function get(h: opaque of Broker::Store, k: any): QueryResult
 	{
 	return __get(h, k);
+	}
+
+function get_index_from_value(h: opaque of Broker::Store, k: any, i: any): QueryResult
+	{
+	return __get_index_from_value(h, k, i);
 	}
 
 function keys(h: opaque of Broker::Store): vector of Broker::Data

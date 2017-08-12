@@ -107,7 +107,7 @@ public:
 Manager::BrokerState::BrokerState()
 	: endpoint(configuration()),
 	  subscriber(endpoint.make_subscriber({})),
-	  event_subscriber(endpoint.make_event_subscriber(true))
+	  status_subscriber(endpoint.make_status_subscriber(true))
 		{
 		}
 
@@ -515,15 +515,15 @@ bool Manager::Unsubscribe(const string& topic_prefix)
 void Manager::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
                            iosource::FD_Set* except)
 	{
-	if ( bstate->event_subscriber.available() || bstate->subscriber.available() )
+	if ( bstate->status_subscriber.available() || bstate->subscriber.available() )
                 SetIdle(false);
 
 	read->Insert(bstate->subscriber.fd());
-	read->Insert(bstate->event_subscriber.fd());
+	read->Insert(bstate->status_subscriber.fd());
 	write->Insert(bstate->subscriber.fd());
-	write->Insert(bstate->event_subscriber.fd());
+	write->Insert(bstate->status_subscriber.fd());
 	except->Insert(bstate->subscriber.fd());
-	except->Insert(bstate->event_subscriber.fd());
+	except->Insert(bstate->status_subscriber.fd());
 
 	for ( auto& x : data_stores )
 		read->Insert(x.second->proxy.mailbox().descriptor());
@@ -534,7 +534,7 @@ double Manager::NextTimestamp(double* local_network_time)
 	if ( ! IsIdle() )
 		return timer_mgr->Time();
 
-	if ( bstate->event_subscriber.available() || bstate->subscriber.available() )
+	if ( bstate->status_subscriber.available() || bstate->subscriber.available() )
 		return timer_mgr->Time();
 
 	for ( auto &s : data_stores )
@@ -550,11 +550,11 @@ void Manager::Process()
 	{
 	bool had_input = false;
 
-	while ( bstate->event_subscriber.available() )
+	while ( bstate->status_subscriber.available() )
 		{
 		had_input = true;
 
-		auto elem = bstate->event_subscriber.get();
+		auto elem = bstate->status_subscriber.get();
 
 		if ( auto stat = broker::get_if<broker::status>(elem) )
 			{
@@ -568,7 +568,7 @@ void Manager::Process()
 			continue;
 			}
 
-		reporter->InternalWarning("ignoring event_subscriber message with unexpected type");
+		reporter->InternalWarning("ignoring status_subscriber message with unexpected type");
 		}
 
 
@@ -971,7 +971,7 @@ StoreHandleVal* Manager::MakeMaster(const string& name, broker::backend type,
 
 	DBG_LOG(DBG_BROKER, "Creating master for data store %s", name.c_str());
 
-	auto result = bstate->endpoint.attach<broker::master>(name, type, move(opts));
+	auto result = bstate->endpoint.attach_master(name, type, move(opts));
 	if ( ! result )
 		{
 		reporter->Error("Failed to attach master store %s:",
@@ -994,7 +994,7 @@ StoreHandleVal* Manager::MakeClone(const string& name)
 
 	DBG_LOG(DBG_BROKER, "Creating clone for data store %s", name.c_str());
 
-	auto result = bstate->endpoint.attach<broker::clone>(name);
+	auto result = bstate->endpoint.attach_clone(name);
 	if ( ! result )
 		{
 		reporter->Error("Failed to attach clone store %s:",

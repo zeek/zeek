@@ -211,8 +211,8 @@ void Manager::Peer(const string& addr, uint16_t port, double retry)
 		// Ensure that it doesn't get turned into zero.
 		retry = 1.0;
 
-	auto ms = broker::timeout::seconds(static_cast<uint64>(retry));
-	bstate->endpoint.peer_nosync(addr, port, ms);
+	auto secs = broker::timeout::seconds(static_cast<uint64>(retry));
+	bstate->endpoint.peer_nosync(addr, port, secs);
 
 	// // Register as a "does-count" source now.
 	iosource_mgr->Register(this, false);

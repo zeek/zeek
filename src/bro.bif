@@ -4890,7 +4890,7 @@ function send_current_packet%(p: event_peer%) : bool
 ## Returns: The ID of the peer who generated the last event.
 ##
 ## .. bro:see:: get_local_event_peer
-function get_event_peer%(%) : event_peer &deprecated
+function get_event_peer%(%) : event_peer
 	%{
 	SourceID src = mgr.CurrentSource();
 
@@ -4929,7 +4929,7 @@ function get_event_peer%(%) : event_peer &deprecated
 ## Returns: The peer ID of the local Bro instance.
 ##
 ## .. bro:see:: get_event_peer
-function get_local_event_peer%(%) : event_peer &deprecated
+function get_local_event_peer%(%) : event_peer
 	%{
 	RecordVal* p = mgr.GetLocalPeerVal();
 	Ref(p);

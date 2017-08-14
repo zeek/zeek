@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2017-02-28-17-15-30
+#open	2017-08-14-21-17-54
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -15,13 +15,6 @@ scripts/base/init-bare.bro
   build/scripts/base/bif/plugins/Bro_SNMP.types.bif.bro
   build/scripts/base/bif/plugins/Bro_KRB.types.bif.bro
   build/scripts/base/bif/event.bif.bro
-  scripts/base/frameworks/broker/__load__.bro
-    scripts/base/frameworks/broker/main.bro
-      build/scripts/base/bif/comm.bif.bro
-      build/scripts/base/bif/messaging.bif.bro
-    scripts/base/frameworks/broker/store.bro
-      build/scripts/base/bif/data.bif.bro
-      build/scripts/base/bif/store.bif.bro
   scripts/base/frameworks/logging/__load__.bro
     scripts/base/frameworks/logging/main.bro
       build/scripts/base/bif/logging.bif.bro
@@ -31,6 +24,14 @@ scripts/base/init-bare.bro
     scripts/base/frameworks/logging/writers/ascii.bro
     scripts/base/frameworks/logging/writers/sqlite.bro
     scripts/base/frameworks/logging/writers/none.bro
+  scripts/base/frameworks/broker/__load__.bro
+    scripts/base/frameworks/broker/main.bro
+      build/scripts/base/bif/comm.bif.bro
+      build/scripts/base/bif/messaging.bif.bro
+    scripts/base/frameworks/broker/store.bro
+      build/scripts/base/bif/data.bif.bro
+      build/scripts/base/bif/store.bif.bro
+    scripts/base/frameworks/broker/log.bro
   scripts/base/frameworks/input/__load__.bro
     scripts/base/frameworks/input/main.bro
       build/scripts/base/bif/input.bif.bro
@@ -167,4 +168,4 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_SQLiteWriter.sqlite.bif.bro
 scripts/policy/misc/loaded-scripts.bro
   scripts/base/utils/paths.bro
-#close	2017-02-28-17-15-30
+#close	2017-08-14-21-17-54

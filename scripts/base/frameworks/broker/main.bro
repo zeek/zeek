@@ -3,65 +3,65 @@
 module Log;
 
 export {
-    type Log::ID: enum {
-        ## Dummy place-holder.
-        UNKNOWN
-    };
+	type Log::ID: enum {
+		## Dummy place-holder.
+		UNKNOWN
+	};
 }
 
 module Broker;
 
 export {
-        ## Default port for Broker communication. Where not specified
-        ## otherwise, this is the port to connect to and listen on.
-        const default_port = 9999/tcp &redef;
+	## Default port for Broker communication. Where not specified
+	## otherwise, this is the port to connect to and listen on.
+	const default_port = 9999/tcp &redef;
 
-        ## Default interval to retry listening on a port if it's currently in
-        ## use already.
-        const default_listen_retry = 30sec &redef;
+	## Default interval to retry listening on a port if it's currently in
+	## use already.
+	const default_listen_retry = 30sec &redef;
 
-        ## Default interval to retry connecting to a peer if it cannot be made to work
-        ## initially, or if it ever becomes disconnected.
-        const default_connect_retry = 30sec &redef;
+	## Default interval to retry connecting to a peer if it cannot be made to work
+	## initially, or if it ever becomes disconnected.
+	const default_connect_retry = 30sec &redef;
 
-        ## If false, do not use SSL for network connections. By default, SSL will even
-        ## be used if no certificates / CAs have been configured. In that case
-        ## (which is the default) the communication will be encrypted, but not
-        ## authenticated.
-        const disable_ssl = F &redef;
+	## If false, do not use SSL for network connections. By default, SSL will even
+	## be used if no certificates / CAs have been configured. In that case
+	## (which is the default) the communication will be encrypted, but not
+	## authenticated.
+	const disable_ssl = F &redef;
 
-        ## Path to a file containing concatenated trusted certificates 
-        ## in PEM format. If set, Bro will require valid certificates forx
-        ## all peers.
+	## Path to a file containing concatenated trusted certificates 
+	## in PEM format. If set, Bro will require valid certificates forx
+	## all peers.
 	const ssl_cafile = "" &redef;
 
-        ## Path to an OpenSSL-style directory of trusted certificates.
-        ## If set, Bro will require valid certificates forx
-        ## all peers.
-        const ssl_capath = "" &redef;
+	## Path to an OpenSSL-style directory of trusted certificates.
+	## If set, Bro will require valid certificates forx
+	## all peers.
+	const ssl_capath = "" &redef;
 
-        ## Path to a file containing a X.509 certificate for this
-        ## node in PEM format. If set, Bro will require valid certificates for
-        ## all peers.
-        const ssl_certificate = "" &redef;
+	## Path to a file containing a X.509 certificate for this
+	## node in PEM format. If set, Bro will require valid certificates for
+	## all peers.
+	const ssl_certificate = "" &redef;
 
-        ## Passphrase to decrypt the private key specified by
-        ## :bro:see:`ssl_key`. If set, Bro will require valid certificates for
-        ## all peers.
-        const ssl_passphrase = "" &redef;
+	## Passphrase to decrypt the private key specified by
+	## :bro:see:`ssl_key`. If set, Bro will require valid certificates for
+	## all peers.
+	const ssl_passphrase = "" &redef;
 
-        ## Path to the file containing the private key for this node's
-        ## certificate. If set, Bro will require valid certificates for
-        ## all peers.
-        const ssl_keyfile = "" &redef;
+	## Path to the file containing the private key for this node's
+	## certificate. If set, Bro will require valid certificates for
+	## all peers.
+	const ssl_keyfile = "" &redef;
 
 	## The available configuration options when enabling Broker.
 	type Options: record {
 		## Whether this Broker instance relays messages not destined to itself.
-                ## By default, routing is disabled.
+		## By default, routing is disabled.
 		routable: bool &default = F;
-	        ## The topic prefix where to publish logs.
-                log_topic: string &default = "bro/logs/";
+		## The topic prefix where to publish logs.
+		log_topic: string &default = "bro/logs/";
 	};
 
 	type ErrorCode: enum {
@@ -74,23 +74,23 @@ export {
 		## Remote peer not listening.
 		PEER_UNAVAILABLE = 4,
 		## An peering request timed out.
-	 	PEER_TIMEOUT = 5,
+		PEER_TIMEOUT = 5,
 		## Master with given name already exist.
-	 	MASTER_EXISTS = 6,
+		MASTER_EXISTS = 6,
 		## Master with given name does not exist.
-	 	NO_SUCH_MASTER = 7,
+		NO_SUCH_MASTER = 7,
 		## The given data store key does not exist.
-	 	NO_SUCH_KEY = 8,
+		NO_SUCH_KEY = 8,
 		## The store operation timed out.
-	 	REQUEST_TIMEOUT = 9,
+		REQUEST_TIMEOUT = 9,
 		## The operation expected a different type than provided
-	 	TYPE_CLASH = 10,
+		TYPE_CLASH = 10,
 		## The data value cannot be used to carry out the desired operation.
 		INVALID_DATA = 11,
 		## The storage backend failed to execute the operation.
 		BACKEND_FAILURE = 12,
 		## Catch-all for a CAF-level problem.
-	        CAF_ERROR = 100
+		CAF_ERROR = 100
 	};
 
 	type NetworkInfo: record {
@@ -141,18 +141,18 @@ export {
 	##
 	## a: an address string on which to accept connections, e.g.
 	##    "127.0.0.1".  An empty string refers to @p INADDR_ANY.
-        ##
+	##
 	## p: the TCP port to listen on. The value 0 means that the OS should choose
 	##    the next available free port.
 	##
- 	## retry: If non-zero, retries listening in regular intervals if the port cannot be
- 	##        acquired immediately. 0 disables retries.
+	## retry: If non-zero, retries listening in regular intervals if the port cannot be
+	##        acquired immediately. 0 disables retries.
 	##
 	## Returns: the bound port or 0/? on failure.
 	##
 	## .. bro:see:: Broker::status
-        global listen: function(a: string &default = "", p: port &default=default_port,
-                                retry: interval &default = default_listen_retry): port;
+	global listen: function(a: string &default = "", p: port &default=default_port,
+	                        retry: interval &default = default_listen_retry): port;
 	## Initiate a remote connection.
 	##
 	## a: an address to connect to, e.g. "localhost" or "127.0.0.1".
@@ -168,14 +168,14 @@ export {
 	##          until a later point in time.
 	##
 	## .. bro:see:: Broker::status
-        global peer: function(a: string, p: port &default=default_port,
-			      retry: interval &default=default_connect_retry): bool;
+	global peer: function(a: string, p: port &default=default_port,
+	                      retry: interval &default=default_connect_retry): bool;
 
 	## Remove a remote connection.
-        ##
-        ## Note that this does not terminate the connection to the peer, it
-        ## just means that we won't exchange any further information with it
-        ## unless peering resumes later.
+	##
+	## Note that this does not terminate the connection to the peer, it
+	## just means that we won't exchange any further information with it
+	## unless peering resumes later.
 	##
 	## a: the address used in previous successful call to :bro:see:`Broker::peer`.
 	##
@@ -183,8 +183,8 @@ export {
 	##
 	## Returns: true if the arguments match a previously successful call to
 	##          :bro:see:`Broker::peer`.
-        ##
-        ## TODO: We do not have a function yet to terminate a connection.
+	##
+	## TODO: We do not have a function yet to terminate a connection.
 	global unpeer: function(a: string, p: port): bool;
 
 	## Publishes an event at a given topic.
@@ -248,56 +248,56 @@ event bro_init() &priority=-10
 	}
 
 function configure(options: Options &default = Options()): bool
-    {
-    return __configure(options);
-    }
+	{
+	return __configure(options);
+	}
 
 event retry_listen(a: string, p: port, retry: interval)
-    {
-    listen(a, p, retry);
-    }
+	{
+	listen(a, p, retry);
+	}
 
 function listen(a: string, p: port, retry: interval): port
-    {
-    local bound = __listen(a, p);
+	{
+	local bound = __listen(a, p);
 
-    if ( bound == 0/tcp && retry != 0secs )
-	    schedule retry { retry_listen(a, p, retry) };
+	if ( bound == 0/tcp && retry != 0secs )
+		schedule retry { retry_listen(a, p, retry) };
 
-    return bound;
-    }
+	return bound;
+	}
 
 function peer(a: string, p: port, retry: interval): bool
-    {
-    return __peer(a, p, retry);
-    }
+	{
+	return __peer(a, p, retry);
+	}
 
 function unpeer(a: string, p: port): bool
-    {
-    return __unpeer(a, p);
-    }
+	{
+	return __unpeer(a, p);
+	}
 
 function publish(topic: string, ev: Event): bool
-    {
-    return __publish(topic, ev);
-    }
+	{
+	return __publish(topic, ev);
+	}
 
 function subscribe(topic_prefix: string): bool
-    {
-    return __subscribe(topic_prefix);
-    }
+	{
+	return __subscribe(topic_prefix);
+	}
 
 function unsubscribe(topic_prefix: string): bool
-    {
-    return __unsubscribe(topic_prefix);
-    }
+	{
+	return __unsubscribe(topic_prefix);
+	}
 
 function auto_publish(topic: string, ev: any): bool
-    {
-    return __auto_publish(topic, ev);
-    }
+	{
+	return __auto_publish(topic, ev);
+	}
 
 function auto_unpublish(topic: string, ev: any): bool
-    {
-    return __auto_unpublish(topic, ev);
-    }
+	{
+	return __auto_unpublish(topic, ev);
+	}

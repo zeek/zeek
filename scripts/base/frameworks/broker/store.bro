@@ -93,15 +93,14 @@ export {
 	##          longer be used for data store operations.
 	global close: function(h: opaque of Broker::Store) : bool;
 
-        ## Check if a key exists in a data store.
-        ## 
+	## Check if a key exists in a data store.
+	## 
 	## h: the handle of the store to query.
 	##
 	## k: the key to lookup.
 	##
 	## Returns: True if the key exists in the data store.
-	global exists: function(h: opaque of Broker::Store,
-				k: any): bool;
+	global exists: function(h: opaque of Broker::Store, k: any): bool;
 
 	## Lookup the value associated with a key in a data store.
 	##
@@ -110,24 +109,23 @@ export {
 	## k: the key to lookup.
 	##
 	## Returns: the result of the query.
-	global get: function(h: opaque of Broker::Store,
-	                     k: any): QueryResult;
+	global get: function(h: opaque of Broker::Store, k: any): QueryResult;
 
 	## Retrieve a specific index from an existing container value. This
-        ## is supported for values of types set, table, and vector.
+	## is supported for values of types set, table, and vector.
 	##
 	## h: the handle of the store to query.
 	##
 	## k: the key of the container value to lookup.
 	##
 	## i: the index to retrieve from the container value.
-        ## 
-        ## Returns: For tables and vectors, the value at the given index, or
-        ## failure if the index doesn't exist. For sets, a boolean indicating
-        ## whether the index exists. Returns failure if the key does not exist
-        ## at all.
+	## 
+	## Returns: For tables and vectors, the value at the given index, or
+	##          failure if the index doesn't exist. For sets, a boolean
+	##          indicating whether the index exists. Returns failure if the key
+	##          does not exist at all.
 	global get_index_from_value: function(h: opaque of Broker::Store,
-					      k: any, i: any): QueryResult;
+	                                      k: any, i: any): QueryResult;
 
 	## Insert a key-value pair in to the store.
 	##
@@ -152,182 +150,172 @@ export {
 	## Returns: false if the store handle was not valid.
 	global erase: function(h: opaque of Broker::Store, k: any) : bool;
 
-        ## Increments an existing value by a given amount. This is supported for all
-        ## numerical types, as well as for timestamps.
-        ##
-        ## h: the handle of the store to modify.
-        ##
-        ## k: the key whose associated value is to be modified. The key must
-        ## already exist.
-        ##
-        ## a: the amount to increment the value by. 
-        ##
-	## e: the new expiration interval of the modified key. If null, the
-        ## current expiration time isn't changed.
+	## Increments an existing value by a given amount. This is supported for all
+	## numerical types, as well as for timestamps.
 	##
-        ## Returns: false if the store handle was not valid.
-        global increment: function(h: opaque of Broker::Store,
-			           k: any,
-				   a: any &default = 1,
-			           e: interval &default=0sec) : bool;
+	## h: the handle of the store to modify.
+	##
+	## k: the key whose associated value is to be modified. The key must
+	##    already exist.
+	##
+	## a: the amount to increment the value by. 
+	##
+	## e: the new expiration interval of the modified key. If null, the
+	##    current expiration time isn't changed.
+	##
+	## Returns: false if the store handle was not valid.
+	global increment: function(h: opaque of Broker::Store, k: any,
+	                           a: any &default = 1,
+	                           e: interval &default=0sec) : bool;
 
-        ## Decrements an existing value by a given amount. This is supported for all
-        ## numerical types, as well as for timestamps.
-        ##
-        ## h: the handle of the store to modify.
-        ##
-        ## k: the key whose associated value is to be modified. The key must
-        ##    already exist.
-        ##
-        ## amount: the amount to decrement the value by. 
-        ##
+	## Decrements an existing value by a given amount. This is supported for all
+	## numerical types, as well as for timestamps.
+	##
+	## h: the handle of the store to modify.
+	##
+	## k: the key whose associated value is to be modified. The key must
+	##    already exist.
+	##
+	## amount: the amount to decrement the value by. 
+	##
 	## e: the new expiration interval of the modified key. If null, the current
 	##    expiration time isn't changed.
 	##
-        ## Returns: false if the store handle was not valid.
-        global decrement: function(h: opaque of Broker::Store,
-		                   k: any,
-				   a: any &default = 1,
-			           e: interval &default=0sec) : bool;
+	## Returns: false if the store handle was not valid.
+	global decrement: function(h: opaque of Broker::Store, k: any,
+	                           a: any &default = 1,
+	                           e: interval &default=0sec) : bool;
 
-        ## Extends an existing string with another.
-        ##
-        ## h: the handle of the store to modify.
-        ##
-        ## k: the key whose associated value is to be modified. The key must
-        ## already exist.
-        ##
-        ## s: the string to append.
-        ##
-	## e: the new expiration interval of the modified key. If null, the
-        ## current expiration time isn't changed.
+	## Extends an existing string with another.
 	##
-        ## Returns: false if the store handle was not valid.
-        global append: function(h: opaque of Broker::Store,
-				k: any,
-				s: string, 
-				e: interval &default=0sec) : bool;
-
-        ## Inserts an element into an existing set.
-        ##
-        ## h: the handle of the store to modify.
-        ##
-        ## k: the key whose associated value is to be modified. The key must
-        ## already exist.
-        ##
-        ## i: the index to insert into the set.
-        ##
-	## e: the new expiration interval of the modified key. If null, the
-        ## current expiration time isn't changed.
+	## h: the handle of the store to modify.
 	##
-        ## Returns: false if the store handle was not valid.
-        global insert_into_set: function(h: opaque of Broker::Store,
-					 k: any,
-					 i: any, 
-					 e: interval &default=0sec) : bool;
-
-        ## Inserts an element into an existing table.
-        ##
-        ## h: the handle of the store to modify.
-        ##
-        ## k: the key whose associated value is to be modified. The key must
-        ## already exist.
-        ##
-        ## i: the index to insert into the table
-        ## 
-        ## v: the value to associate with the index.
-        ##
-	## e: the new expiration interval of the modified key. If null, the
-        ## current expiration time isn't changed.
+	## k: the key whose associated value is to be modified. The key must
+	##    already exist.
 	##
-        ## Returns: false if the store handle was not valid.
-        global insert_into_table: function(h: opaque of Broker::Store,
-					   k: any,
-					   i: any,
-					   v: any,
-					   e: interval &default=0sec) : bool;
-
-        ## Removes an element from an existing set or table.
-        ##
-        ## h: the handle of the store to modify.
-        ##
-        ## k: the key whose associated value is to be modified. The key must
-        ## already exist.
-        ##
-        ## i: the index to remove from the set or table.
-        ##
-	## e: the new expiration interval of the modified key. If null, the
-        ## current expiration time isn't changed.
+	## s: the string to append.
 	##
-        ## Returns: false if the store handle was not valid.
-        global remove_from: function(h: opaque of Broker::Store,
-				     k: any,
-				     i: any, 
-				     e: interval &default=0sec) : bool;
-
-        ## Appends an element to an existing vector.
-        ##
-        ## h: the handle of the store to modify.
-        ##
-        ## k: the key whose associated value is to be modified. The key must
-        ## already exist.
-        ##
-        ## b: the value to append to the vector.
-        ##
 	## e: the new expiration interval of the modified key. If null, the
-        ## current expiration time isn't changed.
+	##    current expiration time isn't changed.
 	##
-        ## Returns: false if the store handle was not valid.
-        global push: function(h: opaque of Broker::Store,
-			      k: any,
-			      v: any, 
-			      e: interval &default=0sec) : bool;
+	## Returns: false if the store handle was not valid.
+	global append: function(h: opaque of Broker::Store, k: any, s: string, 
+	                        e: interval &default=0sec) : bool;
 
-        ## Removes the last element of an existing vector.
-        ##
-        ## h: the handle of the store to modify.
-        ##
-        ## k: the key whose associated value is to be modified. The key must
-        ## already exist.
-        ##
+	## Inserts an element into an existing set.
+	##
+	## h: the handle of the store to modify.
+	##
+	## k: the key whose associated value is to be modified. The key must
+	##    already exist.
+	##
+	## i: the index to insert into the set.
+	##
 	## e: the new expiration interval of the modified key. If null, the
-        ## current expiration time isn't changed.
+	##    current expiration time isn't changed.
 	##
-        ## Returns: false if the store handle was not valid.
-        global pop: function(h: opaque of Broker::Store,
-			     k: any,
-			     e: interval &default=0sec) : bool;
+	## Returns: false if the store handle was not valid.
+	global insert_into_set: function(h: opaque of Broker::Store,
+	                                 k: any, i: any, 
+	                                 e: interval &default=0sec) : bool;
 
-	## Returns a set with all of a store's keys. The results reflects a snapshot in
-	## time that diverge from reality soon; when acessing any of the element, it may no
-	## longer be there. The function is also expensive for large stores, as it copies
-	## the complete set.
+	## Inserts an element into an existing table.
+	##
+	## h: the handle of the store to modify.
+	##
+	## k: the key whose associated value is to be modified. The key must
+	##    already exist.
+	##
+	## i: the index to insert into the table
+	## 
+	## v: the value to associate with the index.
+	##
+	## e: the new expiration interval of the modified key. If null, the
+	##    current expiration time isn't changed.
+	##
+	## Returns: false if the store handle was not valid.
+	global insert_into_table: function(h: opaque of Broker::Store,
+	                                   k: any, i: any, v: any,
+	                                   e: interval &default=0sec) : bool;
+
+	## Removes an element from an existing set or table.
+	##
+	## h: the handle of the store to modify.
+	##
+	## k: the key whose associated value is to be modified. The key must
+	##    already exist.
+	##
+	## i: the index to remove from the set or table.
+	##
+	## e: the new expiration interval of the modified key. If null, the
+	##    current expiration time isn't changed.
+	##
+	## Returns: false if the store handle was not valid.
+	global remove_from: function(h: opaque of Broker::Store,
+	                             k: any, i: any, 
+	                             e: interval &default=0sec) : bool;
+
+	## Appends an element to an existing vector.
+	##
+	## h: the handle of the store to modify.
+	##
+	## k: the key whose associated value is to be modified. The key must
+	##    already exist.
+	##
+	## b: the value to append to the vector.
+	##
+	## e: the new expiration interval of the modified key. If null, the
+	##    current expiration time isn't changed.
+	##
+	## Returns: false if the store handle was not valid.
+	global push: function(h: opaque of Broker::Store,
+	                      k: any, v: any, 
+	                      e: interval &default=0sec) : bool;
+
+	## Removes the last element of an existing vector.
+	##
+	## h: the handle of the store to modify.
+	##
+	## k: the key whose associated value is to be modified. The key must
+	##    already exist.
+	##
+	## e: the new expiration interval of the modified key. If null, the
+	##    current expiration time isn't changed.
+	##
+	## Returns: false if the store handle was not valid.
+	global pop: function(h: opaque of Broker::Store,
+	                     k: any,
+	                     e: interval &default=0sec) : bool;
+
+	## Returns a set with all of a store's keys. The results reflect a snapshot
+	## in time that may diverge from reality soon afterwards.   When acessing
+	## any of the element, it may no longer actually be there. The function is
+	## also expensive for large stores, as it copies the complete set.
 	##
 	## Returns: a vector with the keys. 
- 	global keys: function(h: opaque of Broker::Store): vector of Broker::Data;
+	global keys: function(h: opaque of Broker::Store): vector of Broker::Data;
 
 	## Deletes all of a store's content, it will be empty afterwards.
-        ##
-        ## Returns: false if the store handle was not valid.
- 	global clear: function(h: opaque of Broker::Store) : bool;
+	##
+	## Returns: false if the store handle was not valid.
+	global clear: function(h: opaque of Broker::Store) : bool;
 
 	##########################
 	# Data API               #
 	##########################
 
-        ## Convert any Bro value to communication data.
-        ##
-        ## Note: Normally you won't need to use this function as data
-        ## conversion happens implicitly when passing Bro values into Broker
-        ## functions.
-        ##
-        ## d: any Bro value to attempt to convert (not all types are supported).
-        ##
-        ## Returns: the converted communication data.  The returned record's optional
-        ##          field will not be set if the conversion was not possible (this can
-        ##          happen if the Bro data type does not support being converted to
-        ##          communication data).
-        global data: function(d: any): Broker::Data;
+	## Convert any Bro value to communication data.
+	##
+	## Note: Normally you won't need to use this function as data
+	## conversion happens implicitly when passing Bro values into Broker
+	## functions.
+	##
+	## d: any Bro value to attempt to convert (not all types are supported).
+	##
+	## Returns: the converted communication data.  If the supplied Bro data
+	##          type does not support conversion to communication data, the
+	##          returned record's optional field will not be set.
+	global data: function(d: any): Broker::Data;
 
 	## Retrieve the type of data associated with communication data.
 	##
@@ -704,13 +692,14 @@ function get_index_from_value(h: opaque of Broker::Store, k: any, i: any): Query
 function keys(h: opaque of Broker::Store): vector of Broker::Data
 	{
 	local r = __keys(h);
+
 	if ( ! r?$result )
 		return vector();
 
 	local v: vector of Broker::Data;
-
 	local i = Broker::set_iterator(r$result);
- 	while ( ! Broker::set_iterator_last(i) )
+
+	while ( ! Broker::set_iterator_last(i) )
 		{
 		v[|v|] = Broker::set_iterator_value(i);
 		Broker::set_iterator_next(i);
@@ -729,7 +718,7 @@ function erase(h: opaque of Broker::Store, k: any) : bool
 	return __erase(h, k);
 	}
 
- function increment(h: opaque of Broker::Store, k: any, a: any, e: interval) : bool
+function increment(h: opaque of Broker::Store, k: any, a: any, e: interval) : bool
 	{
 	return __increment(h, k, a, e);
 	}

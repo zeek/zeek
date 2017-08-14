@@ -2,25 +2,25 @@
 module Broker;
 
 export {
-        ## The Broker logging stream identifier.
-        redef enum Log::ID += { LOG };
+	## The Broker logging stream identifier.
+	redef enum Log::ID += { LOG };
 
-        ## The type of a Broker activity being logged.
-        type Type: enum {
-	    ## An informational status update.
-            STATUS,
-	    ## An error situation.
-            ERROR
+	## The type of a Broker activity being logged.
+	type Type: enum {
+		## An informational status update.
+		STATUS,
+		## An error situation.
+		ERROR
 	};
 
 	## A record type containing the column fields of the Broker log.
 	type Info: record {
 		## The network time at which a Broker event occurred.
 		ts:                  time   &log;
-	        ## The type of the Broker event.
-                ty:                  Type &log;
-	        ## The event being logged.
-                ev:                  string &log;
+		## The type of the Broker event.
+		ty:                  Type &log;
+		## The event being logged.
+		ev:                  string &log;
 		## The peer (if any) with which a Broker event is
 		## concerned.
 		peer:                NetworkInfo &log &optional;
@@ -72,8 +72,8 @@ event Broker::error(code: ErrorCode, msg: string)
 	ev = to_lower(ev);
 	
 	Log::write(Broker::LOG, [$ts = network_time(),
-				 $ev = ev,
-				 $ty = ERROR,
-				 $message = msg]);
+	           $ev = ev,
+	           $ty = ERROR,
+	           $message = msg]);
 	}
 

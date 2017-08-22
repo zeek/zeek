@@ -93,6 +93,22 @@ export {
 		CAF_ERROR = 100
 	};
 
+	## The possible states of a peer endpoint.
+	type PeerStatus: enum {
+		## The peering process is initiated.
+		INITIALIZING,
+		## Connection establishment in process.
+		CONNECTING,
+		## Connection established, peering pending.
+		CONNECTED,
+		## Successfully peered.
+		PEERED,
+		## Connection to remote peer lost.
+		DISCONNECTED,
+		## Reconnecting to peer after a lost connection.
+		RECONNECTING,
+	};
+
 	type NetworkInfo: record {
 		## The IP address where the endpoint listens.
 		address: addr &log;
@@ -106,6 +122,13 @@ export {
 		## Network-level information.
 		network: NetworkInfo &optional;
 	};
+
+	type PeerInfo: record {
+		peer: EndpointInfo;
+		status: PeerStatus;
+	};
+
+	type PeerInfos: vector of PeerInfo;
 
 	## Opaque communication data.
 	type Data: record {
@@ -186,6 +209,9 @@ export {
 	##
 	## TODO: We do not have a function yet to terminate a connection.
 	global unpeer: function(a: string, p: port): bool;
+
+	## Returns: a list of all peer connections.
+	global peers: function(): vector of PeerInfo;
 
 	## Publishes an event at a given topic.
 	##
@@ -275,6 +301,11 @@ function peer(a: string, p: port, retry: interval): bool
 function unpeer(a: string, p: port): bool
 	{
 	return __unpeer(a, p);
+	}
+
+function peers(): vector of PeerInfo
+	{
+	return __peers();
 	}
 
 function publish(topic: string, ev: Event): bool

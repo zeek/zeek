@@ -8,6 +8,7 @@
 
 @load base/frameworks/control
 @load base/frameworks/communication
+@load base/frameworks/broker
 
 module Control;
 
@@ -23,12 +24,31 @@ event bro_init() &priority=5
 		print fmt("The '%s' control command is unknown.", cmd);
 		terminate();
 		}
-	
-	# Establish the communication configuration and only request response
-	# messages.
-	Communication::nodes["control"] = [$host=host, $zone_id=zone_id,
-	                                   $p=host_port, $sync=F, $connect=T,
-	                                   $class="control", $events=Control::controllee_events];
+
+	if ( use_broker )
+		{
+		Broker::auto_publish("bro/event/control/id_value_request",
+		                     Control::id_value_request);
+		Broker::auto_publish("bro/event/control/peer_status_request",
+		                     Control::peer_status_request);
+		Broker::auto_publish("bro/event/control/net_stats_request",
+		                     Control::net_stats_request);
+		Broker::auto_publish("bro/event/control/configuration_update_request",
+		                     Control::configuration_update_request);
+		Broker::auto_publish("bro/event/control/shutdown_request",
+                             Control::shutdown_request);
+		Broker::subscribe("bro/event/control");
+		Broker::peer(cat(host), host_port);
+		}
+	else
+		{
+		# Establish the communication configuration and only request response
+		# messages.
+		Communication::nodes["control"] = [$host=host, $zone_id=zone_id,
+		                                   $p=host_port, $sync=F, $connect=T,
+		                                   $class="control",
+		                                   $events=Control::controllee_events];
+		}
 	}
 
 
@@ -56,12 +76,13 @@ event Control::shutdown_response() &priority=-10
 	{
 	event terminate_event();
 	}
-	
-function configuration_update_func(p: event_peer)
+
+function configurable_ids(): vector of string
 	{
-	# Send all &redef'able consts to the peer.
+	local rval: vector of string = {};
 	local globals = global_ids();
     local cnt = 0;
+
 	for ( id in globals )
 		{
         if ( id in ignore_ids )
@@ -78,16 +99,15 @@ function configuration_update_func(p: event_peer)
 		# aren't sent.
 		if ( t$constant && t$redefinable && t$type_name != "func" )
 			{
-			send_id(p, id);
+			rval[cnt] = id;
 			++cnt;
 			}
 		}
 
-	print fmt("sent %d IDs", cnt);
-	event terminate_event();
+	return rval;
 	}
 
-event remote_connection_handshake_done(p: event_peer) &priority=-10
+function send_control_request()
 	{
 	if ( cmd == "id_value" )
 		{
@@ -108,8 +128,45 @@ event remote_connection_handshake_done(p: event_peer) &priority=-10
 		event Control::shutdown_request();
 	else if ( cmd == "configuration_update" )
 		{
-		configuration_update_func(p);
 		# Signal configuration update to peer.
 		event Control::configuration_update_request();
 		}
+	}
+
+event remote_connection_handshake_done(p: event_peer) &priority=-10
+	{
+	if ( cmd == "configuration_update" )
+		{
+		# Send all &redef'able consts to the peer.
+		local ids = configurable_ids();
+
+		for ( i in ids )
+			{
+			local id = ids[i];
+			send_id(p, id);
+			}
+
+		print fmt("sent %d IDs", |ids|);
+		}
+
+	send_control_request();
+	}
+
+event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string) &priority=-10
+	{
+	if ( cmd == "configuration_update" )
+		{
+		# Send all &redef'able consts to the peer.
+		local ids = configurable_ids();
+
+		for ( i in ids )
+			{
+			local id = ids[i];
+			# @todo: need a way to send IDs via broker
+			}
+
+		print fmt("sent %d IDs", |ids|);
+		}
+
+	send_control_request();
 	}

@@ -225,6 +225,11 @@ void Manager::Unpeer(const string& addr, uint16_t port)
 	bstate->endpoint.unpeer_nosync(addr, port);
 	}
 
+std::vector<broker::peer_info> Manager::Peers() const
+	{
+	return bstate->endpoint.peers();
+	}
+
 bool Manager::PublishEvent(string topic, std::string name, broker::vector args)
 	{
 	if ( ! bstate->endpoint.peers().size() )

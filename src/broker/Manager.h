@@ -106,6 +106,11 @@ public:
 	void Unpeer(const std::string& addr, uint16_t port);
 
 	/**
+	 * @return a list of peer endpoints.
+	 */
+	std::vector<broker::peer_info> Peers() const;
+
+	/**
 	 * Send an event to any interested peers.
 	 * @param topic a topic string associated with the message.
 	 * Peers advertise interest by registering a subscription to some prefix
@@ -247,7 +252,8 @@ public:
 	const Stats& GetStatistics();
 
 private:
-        class BrokerState {
+
+	class BrokerState {
 	public:
 		BrokerState();
 		broker::endpoint endpoint;

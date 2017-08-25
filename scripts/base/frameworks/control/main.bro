@@ -69,6 +69,10 @@ export {
 	## Message in response to a configuration update request.
 	global configuration_update_response: event();
 
+	## Request to update IDs from a serialized :bro:type::`id_table` value.
+	## Part of the configuration update process.
+	global global_id_update_request: event(serialized_globals: string);
+
 	## Requests that the Bro instance begins shutting down.
 	global shutdown_request: event();
 	## Message in response to a shutdown request.
@@ -79,11 +83,7 @@ export {
 event terminate_event()
 	{
 	if ( use_broker )
-		{
 		terminate();
-		}
 	else
-		{
 		terminate_communication();
-		}
 	}

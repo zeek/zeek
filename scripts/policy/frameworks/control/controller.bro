@@ -19,25 +19,23 @@ event bro_init() &priority=5
 	# loaded if there wasn't so we can feel free to throw an error here and
 	# shutdown.
 	if ( cmd !in commands )
-		{
-		# TODO: do an actual error here.  Maybe through the reporter events?
-		print fmt("The '%s' control command is unknown.", cmd);
-		terminate();
-		}
+		Reporter::fatal(fmt("The '%s' control command is unknown.", cmd));
 
 	if ( use_broker )
 		{
-		Broker::auto_publish("bro/event/control/id_value_request",
+		Broker::auto_publish("bro/event/framework/control/id_value_request",
 		                     Control::id_value_request);
-		Broker::auto_publish("bro/event/control/peer_status_request",
+		Broker::auto_publish("bro/event/framework/control/peer_status_request",
 		                     Control::peer_status_request);
-		Broker::auto_publish("bro/event/control/net_stats_request",
+		Broker::auto_publish("bro/event/framework/control/net_stats_request",
 		                     Control::net_stats_request);
-		Broker::auto_publish("bro/event/control/configuration_update_request",
+		Broker::auto_publish("bro/event/framework/control/configuration_update_request",
 		                     Control::configuration_update_request);
-		Broker::auto_publish("bro/event/control/shutdown_request",
+		Broker::auto_publish("bro/event/framework/control/shutdown_request",
                              Control::shutdown_request);
-		Broker::subscribe("bro/event/control");
+		Broker::auto_publish("bro/event/framework/control/global_id_update_request",
+                             Control::global_id_update_request);
+		Broker::subscribe("bro/event/framework/control");
 		Broker::peer(cat(host), host_port);
 		}
 	else
@@ -50,7 +48,6 @@ event bro_init() &priority=5
 		                                   $events=Control::controllee_events];
 		}
 	}
-
 
 event Control::id_value_response(id: string, val: string) &priority=-10
 	{
@@ -77,11 +74,10 @@ event Control::shutdown_response() &priority=-10
 	event terminate_event();
 	}
 
-function configurable_ids(): vector of string
+function configurable_ids(): id_table
 	{
-	local rval: vector of string = {};
+	local rval: id_table = table();
 	local globals = global_ids();
-    local cnt = 0;
 
 	for ( id in globals )
 		{
@@ -98,10 +94,7 @@ function configurable_ids(): vector of string
 		# NOTE: functions are currently not fully supported for serialization and hence
 		# aren't sent.
 		if ( t$constant && t$redefinable && t$type_name != "func" )
-			{
-			rval[cnt] = id;
-			++cnt;
-			}
+			rval[id] = t;
 		}
 
 	return rval;
@@ -109,28 +102,34 @@ function configurable_ids(): vector of string
 
 function send_control_request()
 	{
-	if ( cmd == "id_value" )
-		{
-		if ( arg != "" )
-			event Control::id_value_request(arg);
-		else
-			{
-			# TODO: do an actual error here.  Maybe through the reporter events?
-			print "The id_value command requires that Control::arg have some value.";
-			terminate();
-			}
-		}
-	else if ( cmd == "peer_status" )
+	switch ( cmd ) {
+	case "id_value":
+		if ( arg == "" )
+			Reporter::fatal("The Control::id_value command requires that Control::arg also has some value.");
+
+		event Control::id_value_request(arg);
+		break;
+
+	case "peer_status":
 		event Control::peer_status_request();
-	else if ( cmd == "net_stats" )
+		break;
+
+	case "net_stats":
 		event Control::net_stats_request();
-	else if ( cmd == "shutdown" )
+		break;
+
+	case "shutdown":
 		event Control::shutdown_request();
-	else if ( cmd == "configuration_update" )
-		{
-		# Signal configuration update to peer.
+		break;
+
+	case "configuration_update":
 		event Control::configuration_update_request();
-		}
+		break;
+
+	default:
+		Reporter::fatal(fmt("unhandled Control::cmd, %s", cmd));
+		break;
+	}
 	}
 
 event remote_connection_handshake_done(p: event_peer) &priority=-10
@@ -140,13 +139,10 @@ event remote_connection_handshake_done(p: event_peer) &priority=-10
 		# Send all &redef'able consts to the peer.
 		local ids = configurable_ids();
 
-		for ( i in ids )
-			{
-			local id = ids[i];
+		for ( id in ids )
 			send_id(p, id);
-			}
 
-		print fmt("sent %d IDs", |ids|);
+		Reporter::info(fmt("Control framework sent %d IDs", |ids|));
 		}
 
 	send_control_request();
@@ -158,14 +154,8 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string) &priority=
 		{
 		# Send all &redef'able consts to the peer.
 		local ids = configurable_ids();
-
-		for ( i in ids )
-			{
-			local id = ids[i];
-			# @todo: need a way to send IDs via broker
-			}
-
-		print fmt("sent %d IDs", |ids|);
+		event Control::global_id_update_request(serialize(ids));
+		Reporter::info(fmt("Control framework sent %d IDs", |ids|));
 		}
 
 	send_control_request();

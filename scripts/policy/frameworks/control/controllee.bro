@@ -17,16 +17,16 @@ event bro_init() &priority=-10
 	{
 	if ( use_broker )
 		{
-		Broker::subscribe("bro/event/control");
-		Broker::auto_publish("bro/event/control/id_value_response",
+		Broker::subscribe("bro/event/framework/control");
+		Broker::auto_publish("bro/event/framework/control/id_value_response",
 		                     Control::id_value_response);
-		Broker::auto_publish("bro/event/control/peer_status_response",
+		Broker::auto_publish("bro/event/framework/control/peer_status_response",
 		                     Control::peer_status_response);
-		Broker::auto_publish("bro/event/control/net_stats_response",
+		Broker::auto_publish("bro/event/framework/control/net_stats_response",
 		                     Control::net_stats_response);
-		Broker::auto_publish("bro/event/control/configuration_update_response",
+		Broker::auto_publish("bro/event/framework/control/configuration_update_response",
 		                     Control::configuration_update_response);
-		Broker::auto_publish("bro/event/control/shutdown_response",
+		Broker::auto_publish("bro/event/framework/control/shutdown_response",
 		                     Control::shutdown_response);
 		Broker::listen();
 		}
@@ -107,4 +107,24 @@ event Control::shutdown_request()
 	event Control::shutdown_response();
 	# Schedule the shutdown to let the current event queue flush itself first.
 	event terminate_event();
+	}
+
+event Control::global_id_update_request(serialized_globals: string)
+	{
+	local ids = unserialize(serialized_globals) as id_table;
+
+	for ( id in ids )
+		{
+		local sid = ids[id];
+
+		if ( sid?$value )
+			{
+			# If the ID was not initialized on the other side.  We could
+			# probably try to unset its value (if it has one) here, but I don't
+			# see any reason why someone would want that behavior.
+
+			if ( ! update_ID(id, sid$value) )
+				Reporter::warning(fmt("control framework failed to update ID %s", id));
+			}
+		}
 	}

@@ -104,15 +104,17 @@ struct val_converter {
 			}
 		case TYPE_FUNC:
 			{
-			auto id = lookup_ID(a.data(), GLOBAL_MODULE_NAME);
+			auto id = global_scope()->Lookup(a.data());
 			auto rval = id ? id->ID_Val() : nullptr;
-			Unref(id);
 
 			if ( rval && rval->Type()->Tag() == TYPE_FUNC )
 				return rval;
 
 			return nullptr;
 			}
+		case TYPE_PATTERN:
+			// fallthrough
+			// @todo: serialize as the pattern's textual representation?
 		case TYPE_OPAQUE:
 			{
 			SerializationFormat* form = new BinarySerializationFormat();
@@ -120,7 +122,7 @@ struct val_converter {
 			CloneSerializer ss(form);
 			UnserialInfo uinfo(&ss);
 			uinfo.cache = false;
-			return Val::Unserialize(&uinfo, TYPE_OPAQUE);
+			return Val::Unserialize(&uinfo, type->Tag());
 			}
 		default:
 			return nullptr;
@@ -566,6 +568,8 @@ broker::expected<broker::data> bro_broker::val_to_data(Val* v)
 
 		return {rval};
 		}
+	case TYPE_PATTERN:
+		// fallthrough
 	case TYPE_OPAQUE:
 		{
 		SerializationFormat* form = new BinarySerializationFormat();

@@ -19,7 +19,10 @@ event bro_init() &priority=5
 	# loaded if there wasn't so we can feel free to throw an error here and
 	# shutdown.
 	if ( cmd !in commands )
-		Reporter::fatal(fmt("The '%s' control command is unknown.", cmd));
+		{
+		Reporter::error(fmt("The '%s' control command is unknown.", cmd));
+		terminate();
+		}
 
 	if ( use_broker )
 		{
@@ -33,8 +36,6 @@ event bro_init() &priority=5
 		                     Control::configuration_update_request);
 		Broker::auto_publish("bro/event/framework/control/shutdown_request",
                              Control::shutdown_request);
-		Broker::auto_publish("bro/event/framework/control/global_id_update_request",
-                             Control::global_id_update_request);
 		Broker::subscribe("bro/event/framework/control");
 		Broker::peer(cat(host), host_port);
 		}
@@ -154,7 +155,10 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string) &priority=
 		{
 		# Send all &redef'able consts to the peer.
 		local ids = configurable_ids();
-		event Control::global_id_update_request(serialize(ids));
+
+		for ( id in ids )
+			Broker::publish_id(cat("bro/id/framework/control/", id), id);
+
 		Reporter::info(fmt("Control framework sent %d IDs", |ids|));
 		}
 

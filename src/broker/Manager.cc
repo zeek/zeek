@@ -267,6 +267,38 @@ bool Manager::PublishEvent(string topic, RecordVal* args)
 	return PublishEvent(topic, event_name, xs);
 	}
 
+bool Manager::PublishIdentifier(std::string topic, std::string id)
+	{
+	ID* i = global_scope()->Lookup(id.c_str());
+
+	if ( ! i )
+		return false;
+
+	auto val = i->ID_Val();
+
+	if ( ! val )
+		// Probably could have a special case to also unset the value on the
+		// receiving side, but not sure what use that would be.
+		return false;
+
+	auto data = val_to_data(val);
+
+	if ( ! data )
+		{
+		reporter->Error("Failed to publish ID with unsupported type: %s (%s)",
+		                id.c_str(), type_name(val->Type()->Tag()));
+		return false;
+		}
+
+	broker::bro::IdentifierUpdate::Args args{move(id), move(*data)};
+	broker::bro::IdentifierUpdate msg(move(args));
+	DBG_LOG(DBG_BROKER, "Publishing id-update: %s",
+	        RenderMessage(topic, msg).c_str());
+	bstate->endpoint.publish(move(topic), move(msg));
+	++statistics.num_ids_outgoing;
+	return true;
+	}
+
 bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer,
 			       const logging::WriterBackend::WriterInfo& info,
 			       int num_fields, const threading::Field* const * fields,
@@ -597,6 +629,9 @@ void Manager::Process()
 			else if ( msg.type() == broker::bro::Message::Type::LogWrite )
 				ProcessLogWrite(broker::bro::LogWrite(std::move(msg)));
 
+			else if ( msg.type() == broker::bro::Message::Type::IdentifierUpdate )
+				ProcessIdentifierUpdate(broker::bro::IdentifierUpdate(std::move(msg)));
+
 			// We ignore unknown types so that we could add more in the
 			// future if we had too.
 			}
@@ -794,6 +829,35 @@ bool bro_broker::Manager::ProcessLogWrite(const broker::bro::LogWrite lw)
 		reporter->Warning("failed to unpack remote log values");
 		return false;
 		}
+	}
+
+bool Manager::ProcessIdentifierUpdate(const broker::bro::IdentifierUpdate iu)
+	{
+	DBG_LOG(DBG_BROKER, "Received id-update: %s", RenderMessage(iu).c_str());
+	++statistics.num_ids_incoming;
+	auto args = iu.args();
+	auto id_name = args.id_name;
+	auto id_value = args.id_value;
+	auto id = global_scope()->Lookup(id_name.c_str());
+
+	if ( ! id )
+		{
+		reporter->Warning("Received id-update request for unkown id: %s",
+		                 id_name.c_str());
+		return false;
+		}
+
+	auto val = data_to_val(id_value, id->Type());
+
+	if ( ! val )
+		{
+		reporter->Error("Failed to receive ID with unsupported type: %s (%s)",
+		                id_name.c_str(), type_name(id->Type()->Tag()));
+		return false;
+		}
+
+	id->SetVal(val);
+	return true;
 	}
 
 void Manager::ProcessStatus(const broker::status stat)

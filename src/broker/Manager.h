@@ -33,6 +33,10 @@ struct Stats {
 	size_t num_logs_incoming = 0;
 	// Number of total log records sent.
 	size_t num_logs_outgoing = 0;
+	// Number of total identifiers received.
+	size_t num_ids_incoming = 0;
+	// Number of total identifiers sent.
+	size_t num_ids_outgoing = 0;
 };
 
 /**
@@ -120,6 +124,14 @@ public:
 	 * @return true if the message is sent successfully.
 	 */
 	bool PublishEvent(std::string topic, std::string name, broker::vector args);
+
+	/**
+	 * Send an identifier's value to interested peers.
+	 * @param topic a topic string associated with the message.
+	 * @param id the name of the identifier to send.
+	 * @return true if the message is sent successfully.
+	 */
+	bool PublishIdentifier(std::string topic, std::string id);
 
 	/**
 	 * Send an event to any interested peers.
@@ -264,6 +276,7 @@ private:
 	void ProcessEvent(const broker::bro::Event le);
 	bool ProcessLogCreate(const broker::bro::LogCreate lc);
 	bool ProcessLogWrite(const broker::bro::LogWrite lw);
+	bool ProcessIdentifierUpdate(const broker::bro::IdentifierUpdate iu);
 	void ProcessStatus(const broker::status stat);
 	void ProcessError(broker::error err);
 	void ProcessStoreResponse(StoreHandleVal*, broker::store::response response);

@@ -1810,66 +1810,6 @@ function lookup_ID%(id: string%) : any
 	return i->ID_Val()->Ref();
 	%}
 
-## Serialized a Bro value to a string of bytes.
-##
-## val: The value to serialize.
-##
-## Returns: The value represented as a serialized string.
-function serialize%(val: any%): string
-	%{
-	SerializationFormat* form = new BinarySerializationFormat();
-	form->StartWrite();
-	CloneSerializer ss(form);
-	SerialInfo sinfo(&ss);
-	sinfo.cache = false;
-	sinfo.include_locations = false;
-
-	if ( ! val->Serialize(&sinfo) )
-		return new StringVal("");
-
-	char* data;
-	uint32 len = form->EndWrite(&data);
-
-	auto bs = new BroString(false, reinterpret_cast<byte_vec>(data), len);
-	bs->SetUseFreeToDelete(true);
-
-	return new StringVal(bs);
-	%}
-
-## Turns a serialized string of bytes into a Bro value.
-##
-## blob: The serialized string to convert.
-##
-## Returns: The Bro value.
-function unserialize%(blob: string%): any
-	%{
-	SerializationFormat* form = new BinarySerializationFormat();
-	auto bytes = reinterpret_cast<const char*>(blob->Bytes());
-	form->StartRead(bytes, blob->Len());
-	CloneSerializer ss(form);
-	UnserialInfo uinfo(&ss);
-	uinfo.cache = false;
-	return Val::Unserialize(&uinfo);
-	%}
-
-## Updates the value of a global identifier.  E.g. for if you obtained the name
-## of an identifier as a string via some other introspection method and want
-## to update its value via that name.
-##
-## id: The name of a global Bro identifier.
-##
-## Returns: True if the identifier was located at global scope and updated.
-function update_ID%(id: string, val: any%): bool
-	%{
-	ID* i = global_scope()->Lookup(id->CheckString());
-
-	if ( ! i )
-		return new Val(false, TYPE_BOOL);
-
-	i->SetVal(val->Ref());
-	return new Val(true, TYPE_BOOL);
-	%}
-
 ## Generates metadata about a record's fields. The returned information
 ## includes the field name, whether it is logged, its value (if it has one),
 ## and its default value (if specified).

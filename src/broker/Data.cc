@@ -112,9 +112,6 @@ struct val_converter {
 
 			return nullptr;
 			}
-		case TYPE_PATTERN:
-			// fallthrough
-			// @todo: serialize as the pattern's textual representation?
 		case TYPE_OPAQUE:
 			{
 			SerializationFormat* form = new BinarySerializationFormat();
@@ -371,6 +368,31 @@ struct val_converter {
 
 			return rval;
 			}
+		else if ( type->Tag() == TYPE_PATTERN )
+			{
+			if ( a.size() != 2 )
+				return nullptr;
+
+			auto exact_text = broker::get_if<std::string>(a[0]);
+			auto anywhere_text = broker::get_if<std::string>(a[1]);
+
+			if ( ! exact_text || ! anywhere_text )
+				return nullptr;
+
+			RE_Matcher* re = new RE_Matcher(exact_text->c_str(),
+			                                anywhere_text->c_str());
+
+			if ( ! re->Compile() )
+				{
+				reporter->Error("failed compiling unserialized pattern: %s, %s",
+				                exact_text->c_str(), anywhere_text->c_str());
+				delete re;
+				return nullptr;
+				}
+
+			auto rval = new PatternVal(re);
+			return rval;
+			}
 
 		return nullptr;
 		}
@@ -569,7 +591,11 @@ broker::expected<broker::data> bro_broker::val_to_data(Val* v)
 		return {rval};
 		}
 	case TYPE_PATTERN:
-		// fallthrough
+		{
+		RE_Matcher* p = v->AsPattern();
+		broker::vector rval = {p->PatternText(), p->AnywherePatternText()};
+		return {rval};
+		}
 	case TYPE_OPAQUE:
 		{
 		SerializationFormat* form = new BinarySerializationFormat();

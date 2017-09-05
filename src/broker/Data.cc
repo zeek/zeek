@@ -105,12 +105,24 @@ struct val_converter {
 		case TYPE_FUNC:
 			{
 			auto id = global_scope()->Lookup(a.data());
-			auto rval = id ? id->ID_Val() : nullptr;
 
-			if ( rval && rval->Type()->Tag() == TYPE_FUNC )
-				return rval;
+			if ( ! id )
+				return nullptr;
 
-			return nullptr;
+			auto rval = id->ID_Val();
+
+			if ( ! rval )
+				return nullptr;
+
+			auto t = rval->Type();
+
+			if ( ! t )
+				return nullptr;
+
+			if ( t->Tag() != TYPE_FUNC )
+				return nullptr;
+
+			return rval->Ref();
 			}
 		case TYPE_OPAQUE:
 			{

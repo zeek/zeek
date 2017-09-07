@@ -267,7 +267,7 @@ private:
 
 	class BrokerState {
 	public:
-		BrokerState();
+		BrokerState(broker::broker_options options);
 		broker::endpoint endpoint;
 		broker::subscriber subscriber;
 		broker::status_subscriber status_subscriber;

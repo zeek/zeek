@@ -93,8 +93,8 @@ static inline Val* get_option(const char* option)
 
 class configuration : public broker::configuration {
 public:
-	configuration()
-		: broker::configuration(get_option("Broker::disable_ssl")->AsBool())
+	configuration(broker::broker_options options)
+		: broker::configuration(options)
 		{
 		openssl_cafile = get_option("Broker::ssl_cafile")->AsString()->CheckString();
 		openssl_capath = get_option("Broker::ssl_capath")->AsString()->CheckString();
@@ -104,12 +104,12 @@ public:
 		}
 };
 
-Manager::BrokerState::BrokerState()
-	: endpoint(configuration()),
+Manager::BrokerState::BrokerState(broker::broker_options options)
+	: endpoint(configuration(options)),
 	  subscriber(endpoint.make_subscriber({})),
 	  status_subscriber(endpoint.make_status_subscriber(true))
-		{
-		}
+	{
+	}
 
 Manager::Manager()
 	{
@@ -142,7 +142,10 @@ void Manager::InitPostScript()
 	// Register as a "dont-count" source first, we may change that later.
 	iosource_mgr->Register(this, true);
 
-	bstate = std::shared_ptr<BrokerState>(new BrokerState());
+	broker::broker_options options;
+	options.disable_ssl = get_option("Broker::disable_ssl")->AsBool();
+
+	bstate = std::make_shared<BrokerState>(options);
 	}
 
 void Manager::Terminate()

@@ -30,15 +30,25 @@ enum ErrorCode %{
 	PEER_INCOMPATIBLE = 2,
 	PEER_INVALID = 3,
 	PEER_UNAVAILABLE = 4,
- 	PEER_TIMEOUT = 5,
- 	MASTER_EXISTS = 6,
- 	NO_SUCH_MASTER = 7,
- 	NO_SUCH_KEY = 8,
- 	REQUEST_TIMEOUT = 9,
- 	TYPE_CLASH = 10,
+	PEER_TIMEOUT = 5,
+	MASTER_EXISTS = 6,
+	NO_SUCH_MASTER = 7,
+	NO_SUCH_KEY = 8,
+	REQUEST_TIMEOUT = 9,
+	TYPE_CLASH = 10,
 	INVALID_DATA = 11,
 	BACKEND_FAILURE = 12,
-        CAF_ERROR = 100,
+	CAF_ERROR = 100,
+%}
+
+## The possible states of a peer endpoint.
+enum PeerStatus %{
+	INITIALIZING,
+	CONNECTING,
+	CONNECTED,
+	PEERED,
+	DISCONNECTED,
+	RECONNECTING,
 %}
 
 function Broker::__configure%(options: Broker::Options%): bool
@@ -60,11 +70,11 @@ function Broker::__listen%(a: string, p: port%): port
 	if ( ! p->IsTCP() )
 		{
 		reporter->Error("listen port must use tcp");
-    return new PortVal(0, TRANSPORT_UNKNOWN);
+		return new PortVal(0, TRANSPORT_UNKNOWN);
 		}
 
 	auto rval = broker_mgr->Listen(a->Len() ? a->CheckString() : "", p->Port());
-  return new PortVal(rval, TRANSPORT_TCP);
+	return new PortVal(rval, TRANSPORT_TCP);
 	%}
 
 function Broker::__peer%(a: string, p: port, retry: interval%): bool
@@ -89,4 +99,44 @@ function Broker::__unpeer%(a: string, p: port%): bool
 
 	broker_mgr->Unpeer(a->CheckString(), p->Port());
 	return new Val(true, TYPE_BOOL);
+	%}
+
+function Broker::__peers%(%): PeerInfos
+	%{
+	VectorVal* rval = new VectorVal(internal_type("Broker::PeerInfos")->AsVectorType());
+	auto i = 0;
+
+	for ( auto p : broker_mgr->Peers() )
+		{
+		auto pi = internal_type("Broker::PeerInfo")->AsRecordType();
+		auto ei = internal_type("Broker::EndpointInfo")->AsRecordType();
+		auto ni = internal_type("Broker::NetworkInfo")->AsRecordType();
+		auto peer_info = new RecordVal(pi);
+		auto endpoint_info = new RecordVal(ei);
+		auto network_info = new RecordVal(ni);
+		auto n = p.peer.network;
+
+		if ( n )
+			{
+			network_info->Assign(0, new AddrVal(IPAddr(n->address)));
+			network_info->Assign(1, new PortVal(n->port, TRANSPORT_TCP));
+			}
+		else
+			{
+			network_info->Assign(0, new AddrVal("0.0.0.0"));
+			network_info->Assign(1, new PortVal(0, TRANSPORT_TCP));
+			}
+
+		endpoint_info->Assign(0, new StringVal(to_string(p.peer.node)));
+		endpoint_info->Assign(1, network_info);
+
+		auto ps = (BifEnum::Broker::PeerStatus)p.status;
+		peer_info->Assign(0, endpoint_info);
+		peer_info->Assign(1, new EnumVal(ps, BifType::Enum::Broker::PeerStatus));
+
+		rval->Assign(i, peer_info);
+		++i;
+		}
+
+	return rval;
 	%}

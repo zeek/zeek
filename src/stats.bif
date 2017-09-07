@@ -436,6 +436,8 @@ function get_broker_stats%(%): BrokerStats
 	r->Assign(n++, new Val(static_cast<uint64_t>(cs.num_events_outgoing), TYPE_COUNT));
 	r->Assign(n++, new Val(static_cast<uint64_t>(cs.num_logs_incoming), TYPE_COUNT));
 	r->Assign(n++, new Val(static_cast<uint64_t>(cs.num_logs_outgoing), TYPE_COUNT));
+	r->Assign(n++, new Val(static_cast<uint64_t>(cs.num_ids_incoming), TYPE_COUNT));
+	r->Assign(n++, new Val(static_cast<uint64_t>(cs.num_ids_outgoing), TYPE_COUNT));
 
 	return r;
 	%}

@@ -173,6 +173,7 @@ class RE_Matcher : SerialObj {
 public:
 	RE_Matcher();
 	RE_Matcher(const char* pat);
+	RE_Matcher(const char* exact_pat, const char* anywhere_pat);
 	virtual ~RE_Matcher();
 
 	void AddDef(const char* defn_name, const char* defn_val);

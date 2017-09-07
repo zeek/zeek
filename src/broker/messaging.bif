@@ -30,6 +30,13 @@ function Broker::__publish%(topic: string, ev: Broker::Event%): bool
 	return new Val(rval, TYPE_BOOL);
 	%}
 
+function Broker::__publish_id%(topic: string, id: string%): bool
+	%{
+	auto rval = broker_mgr->PublishIdentifier(topic->CheckString(),
+	                                          id->CheckString());
+	return new Val(rval, TYPE_BOOL);
+	%}
+
 function Broker::__auto_publish%(topic: string, ev: any%): bool
 	%{
 	auto rval = broker_mgr->AutoPublishEvent(topic->CheckString(), ev);

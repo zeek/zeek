@@ -104,14 +104,25 @@ struct val_converter {
 			}
 		case TYPE_FUNC:
 			{
-			auto id = lookup_ID(a.data(), GLOBAL_MODULE_NAME);
-			auto rval = id ? id->ID_Val() : nullptr;
-			Unref(id);
+			auto id = global_scope()->Lookup(a.data());
 
-			if ( rval && rval->Type()->Tag() == TYPE_FUNC )
-				return rval;
+			if ( ! id )
+				return nullptr;
 
-			return nullptr;
+			auto rval = id->ID_Val();
+
+			if ( ! rval )
+				return nullptr;
+
+			auto t = rval->Type();
+
+			if ( ! t )
+				return nullptr;
+
+			if ( t->Tag() != TYPE_FUNC )
+				return nullptr;
+
+			return rval->Ref();
 			}
 		case TYPE_OPAQUE:
 			{
@@ -120,7 +131,7 @@ struct val_converter {
 			CloneSerializer ss(form);
 			UnserialInfo uinfo(&ss);
 			uinfo.cache = false;
-			return Val::Unserialize(&uinfo, TYPE_OPAQUE);
+			return Val::Unserialize(&uinfo, type->Tag());
 			}
 		default:
 			return nullptr;
@@ -369,6 +380,31 @@ struct val_converter {
 
 			return rval;
 			}
+		else if ( type->Tag() == TYPE_PATTERN )
+			{
+			if ( a.size() != 2 )
+				return nullptr;
+
+			auto exact_text = broker::get_if<std::string>(a[0]);
+			auto anywhere_text = broker::get_if<std::string>(a[1]);
+
+			if ( ! exact_text || ! anywhere_text )
+				return nullptr;
+
+			RE_Matcher* re = new RE_Matcher(exact_text->c_str(),
+			                                anywhere_text->c_str());
+
+			if ( ! re->Compile() )
+				{
+				reporter->Error("failed compiling unserialized pattern: %s, %s",
+				                exact_text->c_str(), anywhere_text->c_str());
+				delete re;
+				return nullptr;
+				}
+
+			auto rval = new PatternVal(re);
+			return rval;
+			}
 
 		return nullptr;
 		}
@@ -564,6 +600,12 @@ broker::expected<broker::data> bro_broker::val_to_data(Val* v)
 			rval.emplace_back(move(*item));
 			}
 
+		return {rval};
+		}
+	case TYPE_PATTERN:
+		{
+		RE_Matcher* p = v->AsPattern();
+		broker::vector rval = {p->PatternText(), p->AnywherePatternText()};
 		return {rval};
 		}
 	case TYPE_OPAQUE:

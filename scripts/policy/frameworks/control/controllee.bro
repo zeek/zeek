@@ -8,11 +8,38 @@
 ##!     bro <scripts> frameworks/control/controllee
 
 @load base/frameworks/control
-# If an instance is a controllee, it implicitly needs to listen for remote
-# connections.
-@load frameworks/communication/listen
+@load base/frameworks/communication
+@load base/frameworks/broker
 
 module Control;
+
+event bro_init() &priority=-10
+	{
+	if ( use_broker )
+		{
+		Broker::subscribe("bro/event/framework/control");
+		Broker::subscribe("bro/id/framework/control");
+		Broker::auto_publish("bro/event/framework/control/id_value_response",
+		                     Control::id_value_response);
+		Broker::auto_publish("bro/event/framework/control/peer_status_response",
+		                     Control::peer_status_response);
+		Broker::auto_publish("bro/event/framework/control/net_stats_response",
+		                     Control::net_stats_response);
+		Broker::auto_publish("bro/event/framework/control/configuration_update_response",
+		                     Control::configuration_update_response);
+		Broker::auto_publish("bro/event/framework/control/shutdown_response",
+		                     Control::shutdown_response);
+		Broker::listen();
+		}
+	else
+		{
+		enable_communication();
+		listen(Communication::listen_interface,
+			   Communication::listen_port, Communication::listen_ssl,
+			   Communication::listen_ipv6, Communication::listen_ipv6_zone_id,
+			   Communication::listen_retry);
+		}
+	}
 
 event Control::id_value_request(id: string)
 	{
@@ -23,14 +50,33 @@ event Control::id_value_request(id: string)
 event Control::peer_status_request()
 	{
 	local status = "";
-	for ( p in Communication::nodes )
-		{
-		local peer = Communication::nodes[p];
-		if ( ! peer$connected )
-			next;
 
-		status += fmt("%.6f peer=%s host=%s\n",
-			      network_time(), peer$peer$descr, peer$host);
+	if ( use_broker )
+		{
+		# @todo: need to expose broker::endpoint::peers and broker::peer_status
+		local peers = Broker::peers();
+
+		for ( i in peers )
+			{
+			local bpeer = peers[i];
+			status += fmt("%.6f peer=%s host=%s status=%s\n",
+			              network_time(),
+			              bpeer$peer$id,
+			              bpeer$peer$network$address,
+			              bpeer$status);
+			}
+		}
+	else
+		{
+		for ( p in Communication::nodes )
+			{
+			local peer = Communication::nodes[p];
+			if ( ! peer$connected )
+				next;
+
+			status += fmt("%.6f peer=%s host=%s\n",
+					  network_time(), peer$peer$descr, peer$host);
+			}
 		}
 
 	event Control::peer_status_response(status);

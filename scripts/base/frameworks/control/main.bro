@@ -5,6 +5,8 @@
 module Control;
 
 export {
+	const use_broker = T &redef;
+
 	## The address of the host that will be controlled.
 	const host = 0.0.0.0 &redef;
 
@@ -76,5 +78,8 @@ export {
 
 event terminate_event()
 	{
-	terminate_communication();
+	if ( use_broker )
+		terminate();
+	else
+		terminate_communication();
 	}

@@ -617,6 +617,10 @@ type BrokerStats: record {
 	num_logs_incoming: count;
 	## Number of total log records sent.
 	num_logs_outgoing: count;
+	## Number of total identifiers received.
+	num_ids_incoming: count;
+	## Number of total identifiers sent.
+	num_ids_outgoing: count;
 };
 
 ## Deprecated.

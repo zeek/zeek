@@ -93,6 +93,22 @@ export {
 		CAF_ERROR = 100
 	};
 
+	## The possible states of a peer endpoint.
+	type PeerStatus: enum {
+		## The peering process is initiated.
+		INITIALIZING,
+		## Connection establishment in process.
+		CONNECTING,
+		## Connection established, peering pending.
+		CONNECTED,
+		## Successfully peered.
+		PEERED,
+		## Connection to remote peer lost.
+		DISCONNECTED,
+		## Reconnecting to peer after a lost connection.
+		RECONNECTING,
+	};
+
 	type NetworkInfo: record {
 		## The IP address where the endpoint listens.
 		address: addr &log;
@@ -106,6 +122,13 @@ export {
 		## Network-level information.
 		network: NetworkInfo &optional;
 	};
+
+	type PeerInfo: record {
+		peer: EndpointInfo;
+		status: PeerStatus;
+	};
+
+	type PeerInfos: vector of PeerInfo;
 
 	## Opaque communication data.
 	type Data: record {
@@ -187,6 +210,9 @@ export {
 	## TODO: We do not have a function yet to terminate a connection.
 	global unpeer: function(a: string, p: port): bool;
 
+	## Returns: a list of all peer connections.
+	global peers: function(): vector of PeerInfo;
+
 	## Publishes an event at a given topic.
 	##
 	## topic: a topic associated with the event message.
@@ -195,6 +221,16 @@ export {
 	##
 	## Returns: true if the message is sent.
 	global publish: function(topic: string, args: Event): bool;
+
+	## Publishes the value of an identifier to a given topic.  The subscribers
+	## will update their local value for that identifier on receipt.
+	##
+	## topic: a topic associated with the message.
+	##
+	## id: the identifier to publish.
+	##
+	## Returns: true if the message is sent.
+	global publish_id: function(topic: string, id: string): bool;
 
 	## Register interest in all peer event messages that use a certain topic
 	## prefix.
@@ -277,9 +313,19 @@ function unpeer(a: string, p: port): bool
 	return __unpeer(a, p);
 	}
 
+function peers(): vector of PeerInfo
+	{
+	return __peers();
+	}
+
 function publish(topic: string, ev: Event): bool
 	{
 	return __publish(topic, ev);
+	}
+
+function publish_id(topic: string, id: string): bool
+	{
+	return __publish_id(topic, id);
 	}
 
 function subscribe(topic_prefix: string): bool

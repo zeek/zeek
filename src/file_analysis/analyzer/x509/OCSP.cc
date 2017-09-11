@@ -71,6 +71,7 @@ void ocsp_add_cert_id(OCSP_CERTID *cert_id, val_list* vl, BIO* bio)
 	BIO_reset(bio);
 
 	i2a_ASN1_INTEGER(bio, cert_id->serialNumber);
+	len = BIO_read(bio, buf, sizeof(buf));
 	vl->append(new StringVal(len, buf));
 	BIO_reset(bio);
 	}

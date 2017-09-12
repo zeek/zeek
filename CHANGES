@@ -1,4 +1,11 @@
 
+2.5-297 | 2017-09-11 09:26:33 -0700
+
+  * Fix small OCSP parser bug; serial numbers were not passed to events
+    (Johanna Amann)
+
+  * Fix expire-redef.bro test. (Daniel Thayer)
+
 2.5-294 | 2017-08-11 13:51:49 -0500
 
   * Fix core.truncation unit test on macOS. (Jon Siwek)

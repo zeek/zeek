@@ -1,6 +1,7 @@
-##! The intelligence framework provides a way to store and query intelligence data
-##! (e.g. IP addresses, URLs and hashes). The intelligence items can be associated
-##! with metadata to allow informed decisions about matching and handling.
+##! The intelligence framework provides a way to store and query intelligence
+##! data (e.g. IP addresses, URLs and hashes). The intelligence items can be
+##! associated with metadata to allow informed decisions about matching and
+##! handling.
 
 @load base/frameworks/notice
 
@@ -406,7 +407,11 @@ function insert(item: Item)
 			if ( host !in data_store$host_data )
 				data_store$host_data[host] = table();
 			else
+				{
 				is_new = F;
+				# Reset expiration timer.
+				data_store$host_data[host] = data_store$host_data[host];
+				}
 
 			meta_tbl = data_store$host_data[host];
 			}
@@ -421,7 +426,11 @@ function insert(item: Item)
 			if ( !check_subnet(net, data_store$subnet_data) )
 				data_store$subnet_data[net] = table();
 			else
+				{
 				is_new = F;
+				# Reset expiration timer.
+				data_store$subnet_data[net] = data_store$subnet_data[net];
+				}
 
 			meta_tbl = data_store$subnet_data[net];
 			}
@@ -435,7 +444,12 @@ function insert(item: Item)
 			if ( [lower_indicator, item$indicator_type] !in data_store$string_data )
 				data_store$string_data[lower_indicator, item$indicator_type] = table();
 			else
+				{
 				is_new = F;
+				# Reset expiration timer.
+				data_store$string_data[lower_indicator, item$indicator_type] =
+					data_store$string_data[lower_indicator, item$indicator_type];
+				}
 
 			meta_tbl = data_store$string_data[lower_indicator, item$indicator_type];
 			}

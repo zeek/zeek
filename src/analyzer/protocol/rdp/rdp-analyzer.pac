@@ -142,7 +142,7 @@ refine flow RDP_Flow += {
 		                 connection()->bro_analyzer()->GetAnalyzerTag(),
 		                 connection()->bro_analyzer()->Conn(),
 		                 false, // It seems there are only server certs?
-		                 file_id);
+		                 file_id, "application/x-x509-user-cert");
 		file_mgr->EndOfFile(file_id);
 
 		return true;

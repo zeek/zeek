@@ -8,7 +8,7 @@ module X509;
 
 export {
 	redef record Info += {
-	# Logging is suppressed if field is set to F
+		## Logging of certificate is suppressed if set to F
 		logcert: bool &default=T;
 	};
 }
@@ -39,14 +39,29 @@ event bro_init() &priority=2
 	Log::add_filter(X509::LOG, f);
 	}
 
-event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priority=2
+event file_sniff(f: fa_file, meta: fa_metadata) &priority=4
 	{
-	if ( ! c?$ssl )
+	if ( |f$conns| != 1 )
 		return;
+
+	if ( ! f?$info || ! f$info?$mime_type )
+		return;
+
+	if ( ! ( f$info$mime_type == "application/x-x509-ca-cert" || f$info$mime_type == "application/x-x509-user-cert"
+		 || f$info$mime_type == "application/pkix-cert" ) )
+		return;
+
+	for ( cid in f$conns )
+		{
+		if ( ! f$conns[cid]?$ssl )
+			return;
+
+		local c = f$conns[cid];
+		}
 
 	local chain: vector of string;
 
-	if ( is_orig )
+	if ( f$is_orig )
 		chain = c$ssl$client_cert_chain_fuids;
 	else
 		chain = c$ssl$cert_chain_fuids;

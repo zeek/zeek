@@ -10,40 +10,53 @@ there's two suggested approaches: either install Bro using the same
 installation prefix directory as before, or pick a new prefix and copy
 local customizations over.
 
-Regardless of which approach you choose, if you are using BroControl, then
-before doing the upgrade you should stop all running Bro processes with the
-"broctl stop" command.  After the upgrade is complete then you will need
-to run "broctl deploy".
-
 In the following we summarize general guidelines for upgrading, see
 the :ref:`release-notes` for version-specific information.
 
 
 Reusing Previous Install Prefix
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you choose to configure and install Bro with the same prefix
-directory as before, local customization and configuration to files in
-``$prefix/share/bro/site`` and ``$prefix/etc`` won't be overwritten
-(``$prefix`` indicating the root of where Bro was installed). Also, logs
-generated at run-time won't be touched by the upgrade. Backing up local
-changes before upgrading is still recommended.
+directory as before, first stop all running Bro instances in your
+cluster (if using BroControl, issue the "broctl stop" command on the
+manager host).  Next, make a backup of the Bro install prefix directory.
 
-After upgrading, remember to check ``$prefix/share/bro/site`` and
-``$prefix/etc`` for ``.example`` files, which indicate that the
-distribution's version of the file differs from the local one, and therefore,
-may include local changes.  Review the differences and make adjustments
-as necessary. Use the new version for differences that aren't a result of
-a local change.
+During the upgrade, any file in the install prefix may be
+overwritten or removed, except for local customization of
+files in the ``$prefix/share/bro/site`` and ``$prefix/etc``
+directories (``$prefix`` indicating the root
+of where Bro was installed).  Also, logs generated at run-time
+won't be touched by the upgrade.
+
+After upgrading, remember to check the ``$prefix/share/bro/site`` and
+``$prefix/etc`` directories for files with a file extension of ``.example``,
+which indicate that the distribution's version of the file differs from the
+local one, and therefore, may include local changes.  Review the
+differences and make adjustments as necessary. Use the new version
+for differences that aren't a result of a local change.
+
+Finally, if using BroControl, then issue the "broctl deploy" command.  This
+command will check for any policy script errors, install the new version
+of Bro to all machines in your cluster, and then it will start Bro.
 
 Using a New Install Prefix
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To install the newer version in a different prefix directory than before,
-copy local customization and configuration files from ``$prefix/share/bro/site``
-and ``$prefix/etc`` to the new location (``$prefix`` indicating the root of
-where Bro was originally installed).  Review the files for differences
+first stop all running Bro instances in your cluster (if using BroControl,
+then issue a "broctl stop" command on the manager host).  Next,
+install the new version of Bro in a new directory.
+
+Next, copy local customization and configuration files
+from the ``$prefix/share/bro/site`` and ``$prefix/etc`` directories to the
+new location (``$prefix`` indicating the root of where Bro was originally
+installed).  Review the files for differences
 before copying and make adjustments as necessary (use the new version for
 differences that aren't a result of a local change).  Of particular note,
 the copied version of ``$prefix/etc/broctl.cfg`` is likely to need changes
 to any settings that specify a pathname.
+
+Finally, if using BroControl, then issue the "broctl deploy" command.  This
+command will check for any policy script errors, install the new version
+of Bro to all machines in your cluster, and then it will start Bro.

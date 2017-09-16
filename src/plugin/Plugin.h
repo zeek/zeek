@@ -11,15 +11,21 @@
 #include "analyzer/Component.h"
 #include "file_analysis/Component.h"
 #include "iosource/Component.h"
+#include "logging/WriterBackend.h"
 
-// We allow to override this externally for testing purposes.
-#ifndef BRO_PLUGIN_API_VERSION
-#define BRO_PLUGIN_API_VERSION 4
-#endif
+// Increase this when making incompatible changes to the plugin API. Note
+// that the constant is never used in C code. It's picked up on by CMake.
+#define BRO_PLUGIN_API_VERSION 6
+
+#define BRO_PLUGIN_BRO_VERSION BRO_VERSION_FUNCTION
 
 class ODesc;
 class Func;
 class Event;
+
+namespace threading {
+struct Field;
+}
 
 namespace plugin  {
 
@@ -40,6 +46,8 @@ enum HookType {
 	HOOK_UPDATE_NETWORK_TIME,	//< Activates Plugin::HookUpdateNetworkTime.
 	HOOK_BRO_OBJ_DTOR,		//< Activates Plugin::HookBroObjDtor.
 	HOOK_SETUP_ANALYZER_TREE,	//< Activates Plugin::HookAddToAnalyzerTree
+	HOOK_LOG_INIT,			//< Activates Plugin::HookLogInit
+	HOOK_LOG_WRITE,			//< Activates Plugin::HookLogWrite
 
 	// Meta hooks.
 	META_HOOK_PRE,			//< Activates Plugin::MetaHookPre().
@@ -86,16 +94,21 @@ public:
 	// strong hint.). The attribute seems generally available.
 	inline Configuration() __attribute__((always_inline));
 
+        /**
+         * One can assign BRO_PLUGIN_BRO_VERSION to this to catch
+         * version mismatches at link(!) time.
+         */
+	const char* (*bro_version)();
+
 private:
 	friend class Plugin;
-	int api_version;	// Current BRO_PLUGIN_API_VERSION. Automatically set.
 };
 
 inline Configuration::Configuration()
 		{
 		name = "";
 		description = "";
-		api_version = BRO_PLUGIN_API_VERSION;
+		bro_version = BRO_PLUGIN_BRO_VERSION;
 		}
 
 /**
@@ -158,7 +171,8 @@ public:
 	 * Type of the argument.
 	 */
 	enum Type {
-		BOOL, DOUBLE, EVENT, FRAME, FUNC, FUNC_RESULT, INT, STRING, VAL, VAL_LIST, VOID, VOIDP
+		BOOL, DOUBLE, EVENT, FRAME, FUNC, FUNC_RESULT, INT, STRING, VAL,
+		VAL_LIST, VOID, VOIDP, WRITER_INFO, CONN, THREAD_FIELDS
 	};
 
 	/**
@@ -169,57 +183,72 @@ public:
 	/**
 	 * Constructor with a boolean argument.
 	 */
-	HookArgument(bool a)	{ type = BOOL; arg.bool_ = a; }
+	explicit HookArgument(bool a)	{ type = BOOL; arg.bool_ = a; }
 
 	/**
 	 * Constructor with a double argument.
 	 */
-	HookArgument(double a)	{ type = DOUBLE; arg.double_ = a; }
+	explicit HookArgument(double a)	{ type = DOUBLE; arg.double_ = a; }
 
 	/**
 	 * Constructor with an event argument.
 	 */
-	HookArgument(const Event* a)	{ type = EVENT; arg.event = a; }
+	explicit HookArgument(const Event* a)	{ type = EVENT; arg.event = a; }
+
+	/**
+	 * Constructor with an connection argument.
+	 */
+	explicit HookArgument(const Connection* c)	{ type = CONN; arg.conn = c; }
 
 	/**
 	 * Constructor with a function argument.
 	 */
-	HookArgument(const Func* a)	{ type = FUNC; arg.func = a; }
+	explicit HookArgument(const Func* a)	{ type = FUNC; arg.func = a; }
 
 	/**
 	 * Constructor with an integer  argument.
 	 */
-	HookArgument(int a)	{ type = INT; arg.int_ = a; }
+	explicit HookArgument(int a)	{ type = INT; arg.int_ = a; }
 
 	/**
 	 * Constructor with a string argument.
 	 */
-	HookArgument(const std::string& a)	{ type = STRING; arg_string = a; }
+	explicit HookArgument(const std::string& a)	{ type = STRING; arg_string = a; }
 
 	/**
 	 * Constructor with a Bro value argument.
 	 */
-	HookArgument(const Val* a)	{ type = VAL; arg.val = a; }
+	explicit HookArgument(const Val* a)	{ type = VAL; arg.val = a; }
 
 	/**
 	 * Constructor with a list of Bro values argument.
 	 */
-	HookArgument(const val_list* a)	{ type = VAL_LIST; arg.vals = a; }
+	explicit HookArgument(const val_list* a)	{ type = VAL_LIST; arg.vals = a; }
 
 	/**
 	 * Constructor with a void pointer argument.
 	 */
-	HookArgument(void* p)	{ type = VOIDP; arg.voidp = p; }
+	explicit HookArgument(void* p)	{ type = VOIDP; arg.voidp = p; }
 
 	/**
 	 * Constructor with a function result argument.
 	 */
-	HookArgument(std::pair<bool, Val*> fresult)	{ type = FUNC_RESULT; func_result = fresult; }
+	explicit HookArgument(std::pair<bool, Val*> fresult)	{ type = FUNC_RESULT; func_result = fresult; }
 
 	/**
 	 * Constructor with a Frame argument.
 	 */
-	HookArgument(Frame* f)	{ type = FRAME; arg.frame = f; }
+	explicit HookArgument(Frame* f)	{ type = FRAME; arg.frame = f; }
+
+	/**
+	 * Constructor with a WriterInfo argument.
+	 */
+	explicit HookArgument(const logging::WriterBackend::WriterInfo* i)	{ type = WRITER_INFO; arg.winfo = i; }
+
+	/**
+	 * Constructor with a threading field argument.
+	 */
+	explicit HookArgument(const std::pair<int, const threading::Field* const*> fpair)	{ type = THREAD_FIELDS; tfields = fpair; }
 
 	/**
 	 * Returns the value for a boolen argument. The argument's type must
@@ -238,6 +267,12 @@ public:
 	 * match accordingly.
 	 */
 	const Event* AsEvent() const	{ assert(type == EVENT); return arg.event; }
+
+	/**
+	 * Returns the value for an connection argument. The argument's type must
+	 * match accordingly.
+	 */
+	const Connection* AsConnection() const	{ assert(type == CONN); return arg.conn; }
 
 	/**
 	 * Returns the value for a function argument. The argument's type must
@@ -276,6 +311,18 @@ public:
 	const Frame* AsFrame() const { assert(type == FRAME); return arg.frame; }
 
 	/**
+	 * Returns the value for a logging WriterInfo argument.  The argument's type must
+	 * match accordingly.
+	 */
+	const logging::WriterBackend::WriterInfo* AsWriterInfo() const { assert(type == WRITER_INFO); return arg.winfo; }
+
+	/**
+	 * Returns the value for a threading fields argument.  The argument's type must
+	 * match accordingly.
+	 */
+	const std::pair<int, const threading::Field* const*> AsThreadFields() const { assert(type == THREAD_FIELDS); return tfields; }
+
+	/**
 	 * Returns the value for a list of Bro values argument. The argument's type must
 	 * match accordingly.
 	 */
@@ -305,16 +352,19 @@ private:
 		bool bool_;
 		double double_;
 		const Event* event;
+		const Connection* conn;
 		const Func* func;
 		const Frame* frame;
 		int int_;
 		const Val* val;
 		const val_list* vals;
 		const void* voidp;
+		const logging::WriterBackend::WriterInfo* winfo;
 	} arg;
 
 	// Outside union because these have dtors.
 	std::pair<bool, Val*> func_result;
+	std::pair<int, const threading::Field* const*> tfields;
 	std::string arg_string;
 };
 
@@ -397,15 +447,6 @@ public:
 	 * string.
 	 **/
 	const std::string& PluginPath() const;
-
-	/**
-	 * Returns the internal version of the Bro API that this plugin
-	 * relies on. Only plugins that match Bro's current API version can
-	 * be used. For statically compiled plugins this is automatically the
-	 * case, but dynamically loaded plugins may cause a mismatch if they
-	 * were compiled for a different Bro version.
-	 */
-	int APIVersion() const;
 
 	/**
 	 * Returns a list of all components the plugin provides.
@@ -642,6 +683,13 @@ protected:
 	 */
 	virtual void HookUpdateNetworkTime(double network_time);
 
+	/**
+	 * Hook that executes when a connection's initial analyzer tree
+	 * has been fully set up. The hook can manipulate the tree at this time,
+	 * for example by adding further analyzers.
+	 *
+	 * @param conn The connection.
+	 */
 	virtual void HookSetupAnalyzerTree(Connection *conn);
 
 	/**
@@ -655,6 +703,71 @@ protected:
 	 * dereferenced.
 	 */
 	virtual void HookBroObjDtor(void* obj);
+
+	/**
+	 * Hook into log initialization. This method will be called when a
+	 * logging writer is created. A writer represents a single logging
+	 * filter. The method is called in the main thread, on the node that
+	 * causes a log line to be written. It will _not_ be called on the logger
+	 * node. The function will be called each for every instantiated writer.
+	 *
+	 * @param writer The name of the writer being insantiated.
+	 *
+	 * @param instantiating_filter Name of the filter causing the
+	 *        writer instantiation.
+	 *
+	 * @param local True if the filter is logging locally (writer
+	 *              thread will be located in same process).
+	 *
+	 * @param remote True if filter is logging remotely (writer thread
+	 *               will be located in different thread, typically
+	 *               in manager or logger node).
+	 *
+	 * @param info WriterBackend::WriterInfo with information about the writer.
+	 *
+	 * @param num_fields number of fields in the record being written.
+	 *
+	 * @param fields threading::Field description of the fields being logged.
+	 */
+	virtual void HookLogInit(const std::string& writer,
+	                         const std::string& instantiating_filter,
+	                         bool local, bool remote,
+	                         const logging::WriterBackend::WriterInfo& info,
+	                         int num_fields,
+	                         const threading::Field* const* fields);
+
+	/**
+	 * Hook into log writing. This method will be called for each log line
+	 * being written by each writer. Each writer represents a single logging
+	 * filter. The method is called in the main thread, on the node that
+	 * causes a log line to be written. It will _not_ be called on the logger
+	 * node.
+	 * This function allows plugins to modify or skip logging of information.
+	 * Note - once a log line is skipped (by returning false), it will not
+	 * passed on to hooks that have not yet been called.
+	 *
+	 * @param writer The name of the writer.
+	 *
+	 * @param filter Name of the filter being written to.
+	 *
+	 * @param info WriterBackend::WriterInfo with information about the writer.
+	 *
+	 * @param num_fields number of fields in the record being written.
+	 *
+	 * @param fields threading::Field description of the fields being logged.
+	 *
+	 * @param vals threading::Values containing the values being written. Values
+	 *             can be modified in the Hook.
+	 *
+	 * @return true if log line should be written, false if log line should be
+	 *         skipped and not passed on to the writer.
+	 */
+	virtual bool HookLogWrite(const std::string& writer,
+	                          const std::string& filter,
+	                          const logging::WriterBackend::WriterInfo& info,
+	                          int num_fields,
+	                          const threading::Field* const* fields,
+	                          threading::Value** vals);
 
 	// Meta hooks.
 

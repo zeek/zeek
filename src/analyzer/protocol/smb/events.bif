@@ -1,0 +1,10 @@
+## Generated for :abbr:`SMB (Server Message Block)` connections when a
+## named pipe has been detected heuristically.  The case when this comes
+## up is when the drive mapping isn't seen so the analyzer is not able
+## to determine whether to send the data to the files framework or to
+## the DCE_RPC analyzer. This heuristic can be tuned by adding or
+## removing "named pipe" names from the :bro:see:`SMB::pipe_filenames`
+## const.
+##
+## c: The connection.
+event smb_pipe_connect_heuristic%(c: connection%);

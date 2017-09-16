@@ -4,6 +4,95 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as BroControl and Broccoli, come with
 their own ``CHANGES``.)
 
+
+Bro 2.6 (in progress)
+=====================
+
+New Functionality
+-----------------
+
+- Support for OCSP and Signed Certificate Timestamp. This adds the
+  following events and BIFs:
+
+  - Events: ocsp_request, ocsp_request_certificate,
+    ocsp_response_status, ocsp_response_bytes
+    ocsp_response_certificate ocsp_extension
+    x509_ocsp_ext_signed_certificate_timestamp
+    ssl_extension_signed_certificate_timestamp
+
+  - Functions: sct_verify, x509_subject_name_hash,
+    x509_issuer_name_hash x509_spki_hash
+
+- The SSL scripts provide a new hook "ssl_finishing(c: connection)"
+  to trigger actions after the handshake has concluded.
+
+Changed Functionality
+---------------------
+
+- The MIME types used to identify X.509 certificates in SSL
+  connections changed from "application/pkix-cert" to
+  "application/x-x509-user-cert" for host certificates and
+  "application/x-x509-ca-cert" for CA certificates.
+
+Removed Functionality
+---------------------
+
+- We no longer maintain any Bro plugins as part of the Bro
+  distribution. Most of the plugins that used be in aux/plugins have
+  been moved over to use the Bro Package Manager instead. See
+  https://github.com/bro/packages for a list of Bro packages currently
+  available.
+
+Bro 2.5.1
+=========
+
+New Functionality
+-----------------
+
+- Bro now includes bifs for rename, unlink, and rmdir.
+
+- Bro now includes events for two extensions used by TLS 1.3:
+  ssl_extension_supported_versions and ssl_extension_psk_key_exchange_modes
+
+- Bro now includes hooks that can be used to interact with log processing
+  on the C++ level.
+
+- Bro now supports ERSPAN. Currently this ignores the ethernet header that is
+  carried over the tunnel; if a MAC is logged currently only the outer MAC
+  is returned.
+
+- Added a new BroControl option CrashExpireInterval to enable
+  "broctl cron" to remove crash directories that are older than the
+  specified number of days (the default value is 0, which means crash
+  directories never expire).
+
+- Added a new BroControl option MailReceivingPackets to control
+  whether or not "broctl cron" will mail a warning when it notices
+  that no packets were seen on an interface.
+
+- There is a new broctl command-line option "--version" which outputs
+  the BroControl version.
+
+Changed Functionality
+---------------------
+
+- The input framework's Ascii reader is now more resilient. If an input
+  is marked to reread a file when it changes and the file didn't exist
+  during a check Bro would stop watching the file in previous versions.
+  The same could happen with bad data in a line of a file.  These
+  situations do not cause Bro to stop watching input files anymore. The
+  old behavior is available through settings in the Ascii reader.
+
+- The RADIUS scripts have been reworked. Requests are now logged even if
+  there is no response. The new framed_addr field in the log indicates
+  if the radius server is hinting at an address for the client. The ttl
+  field indicates how quickly the server is replying to the network access
+  server.
+
+- With the introduction of the Bro package manager, the Bro plugin repository
+  is considered deprecated. The af_packet, postgresql, and tcprs plugins have
+  already been removed and are available via bro-pkg.
+
 Bro 2.5
 =======
 
@@ -31,15 +120,19 @@ New Functionality
      transferred over SMB can be analyzed.
    - Includes GSSAPI and NTLM analyzer and reimplements the DCE-RPC
      analyzer.
-   - New logs: smb_cmd.log, smb_files.log, smb_mapping.log, ntlm.log, and dce_rpc.log
+   - New logs: smb_cmd.log, smb_files.log, smb_mapping.log, ntlm.log,
+     and dce_rpc.log
    - Not every possible SMB command or functionality is implemented, but
      generally, file handling should work whenever files are transferred.
      Please speak up on the mailing list if there is an obvious oversight.
 
 - Bro now includes the NetControl framework. The framework allows for easy
   interaction of Bro with hard- and software switches, firewalls, etc.
-  New log files: net_control.log, netcontrol_catch_release.log,
+  New log files: netcontrol.log, netcontrol_catch_release.log,
   netcontrol_drop.log, and netcontrol_shunt.log.
+
+- Bro now includes the OpenFlow framework which exposes the data structures
+  necessary to interface to OpenFlow capable hardware.
 
 - Bro's Intelligence Framework was refactored and new functionality
   has been added:
@@ -86,8 +179,8 @@ New Functionality
     groups in TLS 1.3.
 
   - The new event ssl_application_data gives information about application data
-    that is exchanged before encryption fully starts. This is used to detect when
-    encryption starts in TLS 1.3.
+    that is exchanged before encryption fully starts. This is used to detect
+    when encryption starts in TLS 1.3.
 
 - Bro now tracks VLAN IDs. To record them inside the connection log,
   load protocols/conn/vlan-logging.bro.
@@ -116,7 +209,7 @@ New Functionality
   - matching_subnets(subnet, table) returns all subnets of the set or table
     that contain the given subnet.
 
-  - filter_subnet_table(subnet, table) works like check_subnet, but returns
+  - filter_subnet_table(subnet, table) works like matching_subnets, but returns
     a table containing all matching entries.
 
 - Several built-in functions for handling IP addresses and subnets were added:
@@ -154,8 +247,10 @@ New Functionality
 
 - The pcap buffer size can be set through the new option Pcap::bufsize.
 
-- Input framework readers Table and Event can now define a custom
-  event to receive logging messages.
+- Input framework readers stream types Table and Event can now define a custom
+  event (specified by the new "error_ev" field) to receive error messages
+  emitted by the input stream. This can, e.g., be used to raise notices in
+  case errors occur when reading an important input source.
 
 - The logging framework now supports user-defined record separators,
   renaming of column names, as well as extension data columns that can
@@ -314,6 +409,10 @@ Changed Functionality
     is included in the crash report.  If there is no backtrace, then
     the crash report includes instructions on how to get backtraces
     included in future crash reports.
+
+  - There is a new option SitePolicyScripts that replaces SitePolicyStandalone
+    (the old option is still available, but will be removed in the next
+    release).
 
 Removed Functionality
 ---------------------

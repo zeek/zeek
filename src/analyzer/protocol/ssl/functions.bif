@@ -1,6 +1,7 @@
 
 %%{
 #include "analyzer/protocol/ssl/SSL.h"
+#include <openssl/x509.h>
 %%}
 
 ## Sets if the SSL analyzer should consider the connection established (handshake

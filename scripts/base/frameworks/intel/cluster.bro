@@ -12,7 +12,7 @@ redef record Item += {
 	first_dispatch: bool &default=T;
 };
 
-# If this process is not a manager process, we don't want the full metadata
+# If this process is not a manager process, we don't want the full metadata.
 @if ( Cluster::local_node_type() != Cluster::MANAGER )
 redef have_full_data = F;
 @endif
@@ -20,7 +20,7 @@ redef have_full_data = F;
 # Internal event for cluster data distribution.
 global cluster_new_item: event(item: Item);
 
-# Primary intelligence management is done by the manager:
+# Primary intelligence management is done by the manager.
 # The manager informs the workers about new items and item removal.
 redef Cluster::manager2worker_events += /^Intel::(cluster_new_item|purge_item)$/;
 # A worker queries the manager to insert, remove or indicate the match of an item.

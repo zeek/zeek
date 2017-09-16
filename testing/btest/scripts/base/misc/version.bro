@@ -10,6 +10,7 @@ print Version::parse("2.5.1-debug");
 print Version::parse("2.5-beta-12");
 print Version::parse("2.5-12-debug");
 print Version::parse("2.5.2-beta-12-debug");
+print Version::parse("2.5.2-beta5-12-debug");
 print Version::parse("1.12.20-beta-2562-debug");
 
 # bad versions
@@ -35,6 +36,6 @@ print "yup";
 print "yup";
 @endif
 
-@if ( Version::at_least("2.4") )
+@if ( Version::at_least("2.9") )
 print "no";
 @endif

@@ -123,6 +123,21 @@ public:
 	void SetGotStreamDelivery()
 		{ got_stream_delivery = true; }
 
+	/**
+	 * Signals that the analyzer is to skip all further input
+	 * processsing. This won't have an immediate effect internally, but
+	 * the flag can be queried through Skipping().
+	 *
+	 * @param do_skip If true, further processing will be skipped.
+	 */
+	void SetSkip(bool do_skip)		{ skip = do_skip; }
+
+	/**
+	 * Returns true if the analyzer has been told to skip processing all
+	 * further input.
+	 */
+	bool Skipping() const			{ return skip; }
+
 protected:
 
 	/**
@@ -136,7 +151,8 @@ protected:
 	    : tag(arg_tag),
 	      args(arg_args->Ref()->AsRecordVal()),
 	      file(arg_file),
-	      got_stream_delivery(false)
+	      got_stream_delivery(false),
+	      skip(false)
 		{
 		id = ++id_counter;
 		}
@@ -154,7 +170,8 @@ protected:
 	    : tag(),
 	      args(arg_args->Ref()->AsRecordVal()),
 	      file(arg_file),
-	      got_stream_delivery(false)
+	      got_stream_delivery(false),
+	      skip(false)
 		{
 		id = ++id_counter;
 		}
@@ -166,6 +183,7 @@ private:
 	RecordVal* args;	/**< \c AnalyzerArgs val gives tunable analyzer params. */
 	File* file;	/**< The file to which the analyzer is attached. */
 	bool got_stream_delivery;
+	bool skip;
 
 	static ID id_counter;
 };

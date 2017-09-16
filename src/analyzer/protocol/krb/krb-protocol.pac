@@ -136,8 +136,8 @@ type KRB_AP_REQ(is_orig: bool) = record {
 
 type KRB_AP_Options = record {
 	meta 	: SequenceElement(false);
-	flags	: uint32;
 		: padding[1];
+	flags	: uint32;
 } &let {
 	reserved	: bool = (flags & 0x80000000) > 0;
 	use_session_key	: bool = (flags & 0x40000000) > 0;

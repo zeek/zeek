@@ -7,7 +7,7 @@ module Intel;
 
 export {
 	redef enum Notice::Type += {
-		## Intel::Notice is a notice that happens when an intelligence
+		## This notice is generated when an intelligence
 		## indicator is denoted to be notice-worthy.
 		Intel::Notice
 	};

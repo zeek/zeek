@@ -1,0 +1,2 @@
+error in /home/jon/projects/bro/bro/testing/btest/.tmp/language.uninitialized-local2/uninitialized-local2.bro, line 19: value used but not set (var_b)
+var_a is, baz

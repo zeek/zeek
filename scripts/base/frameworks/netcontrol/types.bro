@@ -1,4 +1,4 @@
-##! This file defines the that are used by the NetControl framework.
+##! This file defines the types that are used by the NetControl framework.
 ##!
 ##! The most important type defined in this file is :bro:see:`NetControl::Rule`,
 ##! which is used to describe all rules that can be expressed by the NetControl framework. 
@@ -17,17 +17,16 @@ export {
 	## that have a :bro:see:`NetControl::RuleType` of :bro:enum:`NetControl::WHITELIST`.
 	const whitelist_priority: int = +5 &redef;
 
-	## The EntityType is used in :bro:id:`Entity` for defining the entity that a rule
-	## applies to.
+	## Type defining the entity that a rule applies to.
 	type EntityType: enum {
 		ADDRESS,	##< Activity involving a specific IP address.
 		CONNECTION,	##< Activity involving all of a bi-directional connection's activity.
-		FLOW,		##< Actitivy involving a uni-directional flow's activity. Can contain wildcards.
+		FLOW,		##< Activity involving a uni-directional flow's activity. Can contain wildcards.
 		MAC,		##< Activity involving a MAC address.
 	};
 
-	## Flow is used in :bro:id:`Entity` together with :bro:enum:`NetControl::FLOW` to specify
-	## a uni-directional flow that a :bro:id:`Rule` applies to.
+	## Flow is used in :bro:type:`NetControl::Entity` together with :bro:enum:`NetControl::FLOW` to specify
+	## a uni-directional flow that a rule applies to.
 	##
 	## If optional fields are not set, they are interpreted as wildcarded.
 	type Flow: record {
@@ -39,7 +38,7 @@ export {
 		dst_m: string &optional;	##< The destination MAC address.
 	};
 
-	## Type defining the entity an :bro:id:`Rule` is operating on.
+	## Type defining the entity a rule is operating on.
 	type Entity: record {
 		ty: EntityType;			##< Type of entity.
 		conn: conn_id &optional;	##< Used with :bro:enum:`NetControl::CONNECTION`.
@@ -48,7 +47,7 @@ export {
 		mac: string &optional;		##< Used with :bro:enum:`NetControl::MAC`.
 	};
 
-	## The :bro:id`TargetType` defined the target of a :bro:id:`Rule`.
+	## Type defining the target of a rule.
 	##
 	## Rules can either be applied to the forward path, affecting all network traffic, or
 	## on the monitor path, only affecting the traffic that is sent to Bro. The second
@@ -60,7 +59,7 @@ export {
 	};
 
 	## Type of rules that the framework supports. Each type lists the extra
-	## :bro:id:`Rule` argument(s) it uses, if any.
+	## :bro:type:`NetControl::Rule` fields it uses, if any.
 	##
 	## Plugins may extend this type to define their own.
 	type RuleType: enum {
@@ -81,7 +80,7 @@ export {
 		REDIRECT,
 
 		## Whitelists all packets of an entity, meaning no restrictions will be applied.
-		## While whitelisting is the default if no rule matches an this can type can be
+		## While whitelisting is the default if no rule matches, this type can be
 		## used to override lower-priority rules that would otherwise take effect for the
 		## entity.
 		WHITELIST,
@@ -92,7 +91,7 @@ export {
 		src_h: addr &optional;	##< The source IP address.
 		src_p: count &optional;	##< The source port number.
 		dst_h: addr &optional;	##< The destination IP address.
-		dst_p: count &optional;	##< The desintation port number.
+		dst_p: count &optional;	##< The destination port number.
 		src_m: string &optional;	##< The source MAC address.
 		dst_m: string &optional;	##< The destination MAC address.
 		redirect_port: count &optional;
@@ -121,8 +120,8 @@ export {
 	## That being said - their design makes sense and this is probably the data one
 	## can expect to be available.
 	type FlowInfo: record {
-		duration: interval &optional; ##< total duration of the rule
-		packet_count: count &optional; ##< number of packets exchanged over connections matched by the rule
-		byte_count: count &optional; ##< total bytes exchanged over connections matched by the rule
+		duration: interval &optional; ##< Total duration of the rule.
+		packet_count: count &optional; ##< Number of packets exchanged over connections matched by the rule.
+		byte_count: count &optional; ##< Total bytes exchanged over connections matched by the rule.
 	};
 }

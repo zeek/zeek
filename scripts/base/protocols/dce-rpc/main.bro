@@ -26,28 +26,28 @@ export {
 		operation  : string   &log &optional;
 	};
 
-	## These are DCE-RPC operations that are ignored, typically due 
-	## the operations being noisy and low valueon most networks.
+	## These are DCE-RPC operations that are ignored, typically due to
+	## the operations being noisy and low value on most networks.
 	const ignored_operations: table[string] of set[string] = {
 		["winreg"] = set("BaseRegCloseKey", "BaseRegGetVersion", "BaseRegOpenKey", "BaseRegQueryValue", "BaseRegDeleteKeyEx", "OpenLocalMachine", "BaseRegEnumKey", "OpenClassesRoot"),
 		["spoolss"] = set("RpcSplOpenPrinter", "RpcClosePrinter"),
 		["wkssvc"] = set("NetrWkstaGetInfo"),
 	} &redef;
+
+	type State: record {
+		uuid       : string &optional;
+		named_pipe : string &optional;
+	};
+
+	# This is to store the log and state information
+	# for multiple DCE/RPC bindings over a single TCP connection (named pipes).
+	type BackingState: record {
+		info: Info;
+		state: State;
+	};
 }
 
 redef DPD::ignore_violations += { Analyzer::ANALYZER_DCE_RPC };
-
-type State: record {
-	uuid       : string &optional;
-	named_pipe : string &optional;
-};
-
-# This is to store the log and state information 
-# for multiple DCE/RPC bindings over a single TCP connection (named pipes).
-type BackingState: record {
-	info: Info;
-	state: State;
-};
 
 redef record connection += {
 	dce_rpc: Info &optional;
@@ -158,13 +158,14 @@ event dce_rpc_response(c: connection, fid: count, opnum: count, stub_len: count)
 	{
 	if ( c?$dce_rpc )
 		{
-		# If there is not an endpoint, there isn't much reason to log.
+		# If there is no endpoint, there isn't much reason to log.
 		# This can happen if the request isn't seen.
-		if ( (c$dce_rpc?$endpoint && c$dce_rpc$endpoint !in ignored_operations)
-		     || 
-		     (c$dce_rpc?$endpoint && c$dce_rpc?$operation &&
-		      c$dce_rpc$operation !in ignored_operations[c$dce_rpc$endpoint] &&
-		      "*" !in ignored_operations[c$dce_rpc$endpoint]) )
+		if ( ( c$dce_rpc?$endpoint && c$dce_rpc?$operation ) &&
+		     ( c$dce_rpc$endpoint !in ignored_operations
+		       ||
+		       ( c$dce_rpc?$endpoint && c$dce_rpc?$operation &&
+		        c$dce_rpc$operation !in ignored_operations[c$dce_rpc$endpoint] &&
+		        "*" !in ignored_operations[c$dce_rpc$endpoint] ) ) )
 			{
 			Log::write(LOG, c$dce_rpc);
 			}
@@ -195,11 +196,12 @@ event connection_state_remove(c: connection)
 				}
 			}
 
-		if ( (c$dce_rpc?$endpoint && c$dce_rpc$endpoint !in ignored_operations)
-		     || 
-		     (c$dce_rpc?$endpoint && c$dce_rpc?$operation &&
-		      c$dce_rpc$operation !in ignored_operations[c$dce_rpc$endpoint] &&
-		      "*" !in ignored_operations[c$dce_rpc$endpoint]) )
+		if ( ( c$dce_rpc?$endpoint && c$dce_rpc?$operation ) &&
+		     ( c$dce_rpc$endpoint !in ignored_operations
+		       ||
+		       ( c$dce_rpc?$endpoint && c$dce_rpc?$operation &&
+		        c$dce_rpc$operation !in ignored_operations[c$dce_rpc$endpoint] &&
+		        "*" !in ignored_operations[c$dce_rpc$endpoint] ) ) )
 			{
 			Log::write(LOG, c$dce_rpc);
 			}

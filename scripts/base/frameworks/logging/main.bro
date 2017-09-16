@@ -79,7 +79,7 @@ export {
 
 	## Information passed into rotation callback functions.
 	type RotationInfo: record {
-		writer: Writer;		##< The :bro:type:`Log::Writer` being used.
+		writer: Writer;		##< The log writer being used.
 		fname: string;		##< Full name of the rotated file.
 		path: string;		##< Original path value.
 		open: time;		##< Time when opened.
@@ -131,7 +131,7 @@ export {
 	## Default log extension function in the case that you would like to
 	## apply the same extensions to all logs.  The function *must* return
 	## a record with all of the fields to be included in the log. The
-	## default function included here does not return a value to indicate
+	## default function included here does not return a value, which indicates
 	## that no extensions are added.
 	const Log::default_ext_func: function(path: string): any =
 		function(path: string) { } &redef;
@@ -348,7 +348,7 @@ export {
 	##          to handle, or one of the stream's filters has an invalid
 	##          ``path_func``.
 	##
-	## .. bro:see: Log::enable_stream Log::disable_stream
+	## .. bro:see:: Log::enable_stream Log::disable_stream
 	global write: function(id: ID, columns: any) : bool;
 
 	## Sets the buffering status for all the writers of a given logging stream.

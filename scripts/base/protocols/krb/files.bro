@@ -78,40 +78,23 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 	if ( f$source != "KRB_TCP" && f$source != "KRB" )
 		return;
 
-	local info: Info;
-
-	if ( ! c?$krb )
-		{
-		info$ts  = network_time();
-		info$uid = c$uid;
-		info$id  = c$id;
-		}
-	else
-		info = c$krb;
+	set_session(c);
 
 	if ( is_orig )
 		{
-		info$client_cert = f$info;
-		info$client_cert_fuid = f$id;
+		c$krb$client_cert = f$info;
+		c$krb$client_cert_fuid = f$id;
 		}
 	else
 		{
-		info$server_cert = f$info;
-		info$server_cert_fuid = f$id;
+		c$krb$server_cert = f$info;
+		c$krb$server_cert_fuid = f$id;
 		}
-
-	c$krb = info;
-
-	Files::add_analyzer(f, Files::ANALYZER_X509);
-	# Always calculate hashes. They are not necessary for base scripts
-	# but very useful for identification, and required for policy scripts
-	Files::add_analyzer(f, Files::ANALYZER_MD5);
-	Files::add_analyzer(f, Files::ANALYZER_SHA1);
 	}
 
 function fill_in_subjects(c: connection)
 	{
-	if ( !c?$krb )
+	if ( ! c?$krb )
 		return;
 
 	if ( c$krb?$client_cert && c$krb$client_cert?$x509 && c$krb$client_cert$x509?$certificate )

@@ -129,6 +129,7 @@ OpaqueType* cardinality_type = 0;
 OpaqueType* topk_type = 0;
 OpaqueType* bloomfilter_type = 0;
 OpaqueType* x509_opaque_type = 0;
+OpaqueType* ocsp_resp_opaque_type = 0;
 
 // Keep copy of command line
 int bro_argc;
@@ -595,7 +596,7 @@ int main(int argc, char** argv)
 			break;
 
 		case 'v':
-			fprintf(stderr, "%s version %s\n", prog, bro_version());
+			fprintf(stdout, "%s version %s\n", prog, bro_version());
 			exit(0);
 			break;
 
@@ -839,6 +840,7 @@ int main(int argc, char** argv)
 	topk_type = new OpaqueType("topk");
 	bloomfilter_type = new OpaqueType("bloomfilter");
 	x509_opaque_type = new OpaqueType("x509");
+	ocsp_resp_opaque_type = new OpaqueType("ocsp_resp");
 
 	// The leak-checker tends to produce some false
 	// positives (memory which had already been

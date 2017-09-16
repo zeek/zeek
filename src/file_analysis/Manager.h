@@ -93,6 +93,13 @@ public:
 	 *        or false if is being sent in the opposite direction.
 	 * @param precomputed_file_id may be set to a previous return value in order to
 	 *        bypass costly file handle lookups.
+	 * @param mime_type may be set to the mime type of the file, if already known due
+	 *        to the protocol. This is, e.g., the case in TLS connections where X.509
+	 *        certificates are passed as files; here the type of the file is set by
+	 *        the protocol. If this parameter is given, MIME type detection will be
+	 *        disabled.
+	 *        This parameter only has any effect for the first DataIn call of each
+	 *        file. It is ignored for all subsequent calls.
 	 * @return a unique file ID string which, in certain contexts, may be
 	 *         cached and passed back in to a subsequent function call in order
 	 *         to avoid costly file handle lookups (which have to go through
@@ -101,7 +108,8 @@ public:
 	 */
 	std::string DataIn(const u_char* data, uint64 len, uint64 offset,
 	                   analyzer::Tag tag, Connection* conn, bool is_orig,
-	                   const std::string& precomputed_file_id = "");
+	                   const std::string& precomputed_file_id = "",
+	                   const std::string& mime_type = "");
 
 	/**
 	 * Pass in sequential file data.
@@ -113,6 +121,12 @@ public:
 	 *        or false if is being sent in the opposite direction.
 	 * @param precomputed_file_id may be set to a previous return value in order to
 	 *        bypass costly file handle lookups.
+	 * @param mime_type may be set to the mime type of the file, if already known due
+	 *        to the protocol. This is, e.g., the case in TLS connections where X.509
+	 *        certificates are passed as files; here the type of the file is set by
+	 *        the protocol. If this parameter is give, mime type detection will be
+	 *        disabled.
+	 *        This parameter is only used for the first bit of data for each file.
 	 * @return a unique file ID string which, in certain contexts, may be
 	 *         cached and passed back in to a subsequent function call in order
 	 *         to avoid costly file handle lookups (which have to go through
@@ -121,7 +135,8 @@ public:
 	 */
 	std::string DataIn(const u_char* data, uint64 len, analyzer::Tag tag,
 	                   Connection* conn, bool is_orig,
-	                   const std::string& precomputed_file_id = "");
+	                   const std::string& precomputed_file_id = "",
+	                   const std::string& mime_type = "");
 
 	/**
 	 * Pass in sequential file data from external source (e.g. input framework).

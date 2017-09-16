@@ -1,4 +1,5 @@
 # @TEST-EXEC: bro -C -r $TRACES/tls/chrome-34-google.trace %INPUT
+# @TEST-EXEC: bro -C -r $TRACES/tls/tls-13draft19-early-data.pcap %INPUT
 # @TEST-EXEC: btest-diff .stdout
 
 event ssl_extension_elliptic_curves(c: connection, is_orig: bool, curves: index_vec)
@@ -32,4 +33,18 @@ event ssl_extension_signature_algorithm(c: connection, is_orig: bool, signature_
 		{
 		print SSL::hash_algorithms[signature_algorithms[i]$HashAlgorithm], SSL::signature_algorithms[signature_algorithms[i]$SignatureAlgorithm];
 		}
+	}
+
+event ssl_extension_supported_versions(c: connection, is_orig: bool, versions: index_vec)
+	{
+	print "supported_versions(", c$id$orig_h, c$id$resp_h;
+	for ( i in versions )
+		print SSL::version_strings[versions[i]];
+	}
+
+event ssl_extension_psk_key_exchange_modes(c: connection, is_orig: bool, modes: index_vec)
+	{
+	print "psk_key_exchange_modes", c$id$orig_h, c$id$resp_h;
+	for ( i in modes )
+		print modes[i];
 	}

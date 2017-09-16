@@ -13,7 +13,11 @@ refine connection SMB_Conn += {
 
 	function proc_smb1_tree_connect_andx_response(header: SMB_Header, val: SMB1_tree_connect_andx_response): bool
 		%{
-		set_tree_is_pipe(${header.tid}, strncmp((const char*) smb_string2stringval(${val.service})->Bytes(), "IPC", 3) == 0);
+		if ( strncmp((const char*) smb_string2stringval(${val.service})->Bytes(),
+		     "IPC", 3) == 0 )
+			{
+			set_tree_is_pipe(${header.tid});
+			}
 		
 		if ( smb1_tree_connect_andx_response )
 			{

@@ -28,11 +28,6 @@ export {
 		PRINT_WRITE,
 		PRINT_OPEN,
 		PRINT_CLOSE,
-
-		UNKNOWN_READ,
-		UNKNOWN_WRITE,
-		UNKNOWN_OPEN,
-		UNKNOWN_CLOSE,
 	};
 
 	## The file actions which are logged.
@@ -43,8 +38,6 @@ export {
 
 		PRINT_OPEN,
 		PRINT_CLOSE,
-
-		UNKNOWN_OPEN,
 	} &redef;
 
 	## The server response statuses which are *not* logged.
@@ -71,7 +64,7 @@ export {
 		name			: string  &log &optional;
 		## Total size of the file.
 		size			: count   &log &default=0;
-		## If the rename action was seen, this will 
+		## If the rename action was seen, this will be
 		## the file's previous name.
 		prev_name		: string  &log &optional;
 		## Last time this file was modified.
@@ -89,7 +82,7 @@ export {
 
 		## Name of the tree path.
 		path                : string &log &optional;
-		## The type of resource of the tree (disk share, printer share, named pipe, etc.)
+		## The type of resource of the tree (disk share, printer share, named pipe, etc.).
 		service             : string &log &optional;
 		## File system of the tree.
 		native_file_system  : string &log &optional;
@@ -100,34 +93,34 @@ export {
 
 	## This record is for the smb_cmd.log
 	type CmdInfo: record {
-		## Timestamp of the command request
+		## Timestamp of the command request.
 		ts				: time &log;
-		## Unique ID of the connection the request was sent over
+		## Unique ID of the connection the request was sent over.
 		uid				: string &log;
-		## ID of the connection the request was sent over
+		## ID of the connection the request was sent over.
 		id				: conn_id &log;
 		
-		## The command sent by the client
+		## The command sent by the client.
 		command			: string &log;
-		## The subcommand sent by the client, if present
+		## The subcommand sent by the client, if present.
 		sub_command		: string &log &optional;
-		## Command argument sent by the client, if any
+		## Command argument sent by the client, if any.
 		argument		: string &log &optional;
 		
-		## Server reply to the client's command
+		## Server reply to the client's command.
 		status			: string &log &optional;
 		## Round trip time from the request to the response.
 		rtt				: interval &log &optional;
-		## Version of SMB for the command
+		## Version of SMB for the command.
 		version			: string &log;
 
-		## Authenticated username, if available
+		## Authenticated username, if available.
 		username		: string &log &optional;
 		
 		## If this is related to a tree, this is the tree
 		## that was used for the current command.
 		tree			: string &log &optional;
-		## The type of tree (disk share, printer share, named pipe, etc.)
+		## The type of tree (disk share, printer share, named pipe, etc.).
 		tree_service	: string &log &optional;
 		
 		## If the command referenced a file, store it here.
@@ -173,8 +166,8 @@ export {
 		smb_state : State &optional;
 	};
 	
-	## Internal use only
-	## Some commands shouldn't be logged by the smb1_message event
+	## Internal use only.
+	## Some commands shouldn't be logged by the smb1_message event.
 	const deferred_logging_cmds: set[string] = {
 		"NEGOTIATE",
 		"READ_ANDX",
@@ -193,7 +186,7 @@ redef record FileInfo += {
 	## ID referencing this file.
 	fid  : count   &optional;
 
-	## UUID referencing this file if DCE/RPC
+	## UUID referencing this file if DCE/RPC.
 	uuid : string &optional;
 };
 
@@ -202,9 +195,9 @@ redef likely_server_ports += { ports };
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(SMB::CMD_LOG, [$columns=SMB::CmdInfo]);
-	Log::create_stream(SMB::FILES_LOG, [$columns=SMB::FileInfo]);
-	Log::create_stream(SMB::MAPPING_LOG, [$columns=SMB::TreeInfo]);
+	Log::create_stream(SMB::CMD_LOG, [$columns=SMB::CmdInfo, $path="smb_cmd"]);
+	Log::create_stream(SMB::FILES_LOG, [$columns=SMB::FileInfo, $path="smb_files"]);
+	Log::create_stream(SMB::MAPPING_LOG, [$columns=SMB::TreeInfo, $path="smb_mapping"]);
 
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SMB, ports);
 	}
@@ -225,7 +218,6 @@ function write_file_log(state: State)
 	{
 	local f = state$current_file;
 	if ( f?$name && 
-	     f$name !in pipe_names &&
 	     f$action in logged_file_actions )
 		{
 		# Everything in this if statement is to avoid overlogging
@@ -250,6 +242,12 @@ function write_file_log(state: State)
 		
 		Log::write(FILES_LOG, f);
 		}
+	}
+
+event smb_pipe_connect_heuristic(c: connection) &priority=5
+	{
+	c$smb_state$current_tree$path = "<unknown>";
+	c$smb_state$current_tree$share_type = "PIPE";
 	}
 
 event file_state_remove(f: fa_file) &priority=-5

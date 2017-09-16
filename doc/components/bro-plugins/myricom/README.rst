@@ -1,1 +1,0 @@
-../../../../aux/plugins/myricom/README

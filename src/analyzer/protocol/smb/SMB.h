@@ -17,10 +17,7 @@ public:
 	void EndpointEOF(bool is_orig) override;
 
 	bool HasSMBHeader(int len, const u_char* data);
-	void NeedResync() {
-		delete interp;
-		interp = 0;
-	}
+	void NeedResync();
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new SMB_Analyzer(conn); }
@@ -31,6 +28,8 @@ protected:
 	// Count the number of chunks received by the analyzer
 	// but only used to count the first few.
 	uint8 chunks;
+
+	bool need_sync;
 };
 
 } } // namespace analyzer::*

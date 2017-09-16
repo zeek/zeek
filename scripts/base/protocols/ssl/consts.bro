@@ -30,7 +30,7 @@ export {
 		return fmt("unknown-%d", i);
 		};
 
-	## TLS content types:
+	# TLS content types:
 	const CHANGE_CIPHER_SPEC = 20;
 	const ALERT = 21;
 	const HANDSHAKE = 22;
@@ -41,7 +41,7 @@ export {
 	const V2_CLIENT_MASTER_KEY = 302;
 	const V2_SERVER_HELLO = 304;
 
-	## TLS Handshake types:
+	# TLS Handshake types:
 	const HELLO_REQUEST       = 0;
 	const CLIENT_HELLO        = 1;
 	const SERVER_HELLO        = 2;
@@ -156,12 +156,17 @@ export {
 		[22] = "encrypt_then_mac",
 		[23] = "extended_master_secret",
 		[24] = "token_binding", # temporary till 2017-03-06 - draft-ietf-tokbind-negotiation
+		[25] = "cached_info",
 		[35] = "SessionTicket TLS",
 		[40] = "key_share", # new for TLS 1.3; was used for extended_random before. State as of TLS 1.3 draft 16
 		[41] = "pre_shared_key", # new for 1.3, state of draft-16
 		[42] = "early_data", # new for 1.3, state of draft-16
 		[43] = "supported_versions", # new for 1.3, state of draft-16
 		[44] = "cookie", # new for 1.3, state of draft-16
+		[45] = "psk_key_exchange_modes", # new for 1.3, state of draft-18
+		[46] = "TicketEarlyDataInfo", # new for 1.3, state of draft-16
+		[47] = "certificate_authorities", # new for 1.3, state of draft-18
+		[48] = "oid_filters", # new for 1.3, state of draft-18
 		[13172] = "next_protocol_negotiation",
 		[13175] = "origin_bound_certificates",
 		[13180] = "encrypted_client_certificates",
@@ -215,7 +220,7 @@ export {
 		[0xFF02] = "arbitrary_explicit_char2_curves"
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };
 
-	## Mapping between numeric codes and human readable string for SSL/TLC EC point formats.
+	## Mapping between numeric codes and human readable string for SSL/TLS EC point formats.
 	# See http://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-9
 	const ec_point_formats: table[count] of string = {
 		[0] = "uncompressed",
@@ -595,6 +600,11 @@ export {
 	const TLS_ECDHE_PSK_WITH_CHACHA20_POLY1305_SHA256 = 0xCCAC;
 	const TLS_DHE_PSK_WITH_CHACHA20_POLY1305_SHA256 = 0xCCAD;
 	const TLS_RSA_PSK_WITH_CHACHA20_POLY1305_SHA256 = 0xCCAE;
+	# draft-ietf-tls-ecdhe-psk-aead-05
+	const TLS_ECDHE_PSK_WITH_AES_128_GCM_SHA256 = 0xD001;
+	const TLS_ECDHE_PSK_WITH_AES_256_GCM_SHA384 = 0xD002;
+	const TLS_ECDHE_PSK_WITH_AES_128_CCM_8_SHA256 = 0xD003;
+	const TLS_ECDHE_PSK_WITH_AES_128_CCM_SHA256 = 0xD004;
 
 	const SSL_RSA_FIPS_WITH_DES_CBC_SHA = 0xFEFE;
 	const SSL_RSA_FIPS_WITH_3DES_EDE_CBC_SHA = 0xFEFF;
@@ -973,6 +983,10 @@ export {
 		[TLS_ECDHE_PSK_WITH_CHACHA20_POLY1305_SHA256] = "TLS_ECDHE_PSK_WITH_CHACHA20_POLY1305_SHA256",
 		[TLS_DHE_PSK_WITH_CHACHA20_POLY1305_SHA256] = "TLS_DHE_PSK_WITH_CHACHA20_POLY1305_SHA256",
 		[TLS_RSA_PSK_WITH_CHACHA20_POLY1305_SHA256] = "TLS_RSA_PSK_WITH_CHACHA20_POLY1305_SHA256",
+		[TLS_ECDHE_PSK_WITH_AES_128_GCM_SHA256] = "TLS_ECDHE_PSK_WITH_AES_128_GCM_SHA256",
+		[TLS_ECDHE_PSK_WITH_AES_256_GCM_SHA384] = "TLS_ECDHE_PSK_WITH_AES_256_GCM_SHA384",
+		[TLS_ECDHE_PSK_WITH_AES_128_CCM_8_SHA256] = "TLS_ECDHE_PSK_WITH_AES_128_CCM_8_SHA256",
+		[TLS_ECDHE_PSK_WITH_AES_128_CCM_SHA256] = "TLS_ECDHE_PSK_WITH_AES_128_CCM_SHA256",
 		[SSL_RSA_FIPS_WITH_DES_CBC_SHA] = "SSL_RSA_FIPS_WITH_DES_CBC_SHA",
 		[SSL_RSA_FIPS_WITH_3DES_EDE_CBC_SHA] = "SSL_RSA_FIPS_WITH_3DES_EDE_CBC_SHA",
 		[SSL_RSA_FIPS_WITH_DES_CBC_SHA_2] = "SSL_RSA_FIPS_WITH_DES_CBC_SHA_2",

@@ -5,6 +5,13 @@
 #include "IP.h"
 #include "NetVar.h"
 
+#if defined(__OpenBSD__)
+#include <net/bpf.h>
+typedef struct bpf_timeval pkt_timeval;
+#else
+typedef struct timeval pkt_timeval;
+#endif
+
 /**
  * The Layer 3 type of a packet, as determined by the parsing code in Packet.
  */
@@ -48,7 +55,7 @@ public:
 	 * @param tag A textual tag to associate with the packet for
 	 * differentiating the input streams.
 	 */
-	Packet(int link_type, struct timeval *ts, uint32 caplen,
+	Packet(int link_type, pkt_timeval *ts, uint32 caplen,
 	       uint32 len, const u_char *data, int copy = false,
 	       std::string tag = std::string(""))
 	           : data(0), l2_src(0), l2_dst(0)
@@ -61,7 +68,7 @@ public:
 	 */
 	Packet() : data(0), l2_src(0), l2_dst(0)
 		{
-		struct timeval ts = {0, 0};
+		pkt_timeval ts = {0, 0};
 		Init(0, &ts, 0, 0, 0);
 		}
 
@@ -96,7 +103,7 @@ public:
 	 * @param tag A textual tag to associate with the packet for
 	 * differentiating the input streams.
 	 */
-	void Init(int link_type, struct timeval *ts, uint32 caplen,
+	void Init(int link_type, pkt_timeval *ts, uint32 caplen,
 		uint32 len, const u_char *data, int copy = false,
 		std::string tag = std::string(""));
 
@@ -155,7 +162,7 @@ public:
 	// These are passed in through the constructor.
 	std::string tag;		/// Used in serialization
 	double time;			/// Timestamp reconstituted as float
-	struct timeval ts;		/// Capture timestamp
+	pkt_timeval ts;			/// Capture timestamp
 	const u_char* data;		/// Packet data.
 	uint32 len;			/// Actual length on wire
 	uint32 cap_len;			/// Captured packet length

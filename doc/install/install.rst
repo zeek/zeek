@@ -31,7 +31,7 @@ before you begin:
     * BIND8 library
     * Libz
     * Bash (for BroControl)
-    * Python (for BroControl)
+    * Python 2.6 or greater (for BroControl)
 
 To build Bro from source, the following additional dependencies are required:
 
@@ -54,11 +54,17 @@ To install the required dependencies, you can use:
 
      sudo yum install cmake make gcc gcc-c++ flex bison libpcap-devel openssl-devel python-devel swig zlib-devel
 
+  In order to build Bro on Fedora 26, install ``compat-openssl10-devel`` instead
+  of ``openssl-devel``.
+
 * DEB/Debian-based Linux:
 
   .. console::
 
      sudo apt-get install cmake make gcc g++ flex bison libpcap-dev libssl-dev python-dev swig zlib1g-dev
+
+  In order to build Bro on Debian 9, install ``libssl1.0-dev`` instead
+  of ``libssl-dev``.
 
 * FreeBSD:
 
@@ -68,9 +74,6 @@ To install the required dependencies, you can use:
   .. console::
 
       sudo pkg install bash cmake swig bison python py27-sqlite3
-
-  Note that in older versions of FreeBSD, you might have to use the
-  "pkg_add -r" command instead of "pkg install".
 
   For older versions of FreeBSD (especially FreeBSD 9.x), the system compiler
   is not new enough to compile Bro. For these systems, you will have to install
@@ -89,19 +92,23 @@ To install the required dependencies, you can use:
 
 * Mac OS X:
 
-  Compiling source code on Macs requires first installing Xcode_ (in older
-  versions of Xcode, you would then need to go through its
-  "Preferences..." -> "Downloads" menus to install the "Command Line Tools"
-  component).
+  Compiling source code on Macs requires first installing either Xcode_
+  or the "Command Line Tools" (which is a much smaller download).  To check
+  if either is installed, run the ``xcode-select -p`` command.  If you see
+  an error message, then neither is installed and you can then run
+  ``xcode-select --install`` which will prompt you to either get Xcode (by
+  clicking "Get Xcode") or to install the command line tools (by
+  clicking "Install").
 
   OS X comes with all required dependencies except for CMake_, SWIG_,
-  and OpenSSL. (OpenSSL used to be part of OS X versions 10.10
-  and older, for which it does not need to be installed manually. It
-  was removed in OS X 10.11). Distributions of these dependencies can
+  and OpenSSL (OpenSSL headers were removed in OS X 10.11, therefore OpenSSL
+  must be installed manually for OS X versions 10.11 or newer).
+  Distributions of these dependencies can
   likely be obtained from your preferred Mac OS X package management
   system (e.g. Homebrew_, MacPorts_, or Fink_). Specifically for
   Homebrew, the ``cmake``, ``swig``, and ``openssl`` packages
-  provide the required dependencies.
+  provide the required dependencies.  For MacPorts, the ``cmake``, ``swig``,
+  ``swig-python``, and ``openssl`` packages provide the required dependencies.
 
 
 Optional Dependencies

@@ -10,6 +10,8 @@
 
 #include "../Desc.h"
 #include "../Event.h"
+#include "../Conn.h"
+#include "threading/SerialTypes.h"
 
 using namespace plugin;
 
@@ -24,6 +26,8 @@ const char* plugin::hook_name(HookType h)
 		"UpdateNetworkTime",
 		"BroObjDtor",
 		"SetupAnalyzerTree",
+		"LogInit",
+		"LogWrite",
 		// MetaHooks
 		"MetaHookPre",
 		"MetaHookPost",
@@ -82,6 +86,11 @@ void HookArgument::Describe(ODesc* d) const
 			}
 		else
 			d->Add("<null>");
+		break;
+
+	case CONN:
+		if ( arg.conn )
+			arg.conn->Describe(d);
 		break;
 
 	case FUNC_RESULT:
@@ -145,6 +154,60 @@ void HookArgument::Describe(ODesc* d) const
 	case VOIDP:
 		d->Add("<void ptr>");
 		break;
+
+	case WRITER_INFO:
+		{
+		d->Add(arg.winfo->path);
+		d->Add("(");
+		d->Add(arg.winfo->network_time);
+		d->Add(",");
+		d->Add(arg.winfo->rotation_interval);
+		d->Add(",");
+		d->Add(arg.winfo->rotation_base);
+
+		if ( arg.winfo->config.size() > 0 )
+			{
+			bool first = true;
+			d->Add("config: {");
+
+			for ( auto& v: arg.winfo->config )
+				{
+				if ( ! first )
+					d->Add(", ");
+
+				d->Add(v.first);
+				d->Add(": ");
+				d->Add(v.second);
+				first = false;
+				}
+
+			d->Add("}");
+			}
+
+		d->Add(")");
+		}
+		break;
+
+	case THREAD_FIELDS:
+		{
+		d->Add("{");
+
+		for ( int i=0; i < tfields.first; i++ )
+			{
+			const threading::Field* f = tfields.second[i];
+
+			if ( i > 0 )
+				d->Add(", ");
+
+			d->Add(f->name);
+			d->Add(" (");
+			d->Add(f->TypeName());
+			d->Add(")");
+			}
+
+		d->Add("}");
+		}
+		break;
 	}
 	}
 
@@ -177,11 +240,6 @@ const std::string& Plugin::Description() const
 VersionNumber Plugin::Version() const
 	{
 	return config.version;
-	}
-
-int Plugin::APIVersion() const
-	{
-	return config.api_version;
 	}
 
 bool Plugin::DynamicPlugin() const
@@ -317,6 +375,22 @@ void Plugin::HookSetupAnalyzerTree(Connection *conn)
 
 void Plugin::HookBroObjDtor(void* obj)
 	{
+	}
+
+void Plugin::HookLogInit(const std::string& writer,
+                         const std::string& instantiating_filter,
+                         bool local, bool remote,
+                         const logging::WriterBackend::WriterInfo& info,
+                         int num_fields, const threading::Field* const* fields)
+	{
+	}
+
+bool Plugin::HookLogWrite(const std::string& writer, const std::string& filter,
+                          const logging::WriterBackend::WriterInfo& info,
+                          int num_fields, const threading::Field* const* fields,
+                          threading::Value** vals)
+	{
+	return true;
 	}
 
 void Plugin::MetaHookPre(HookType hook, const HookArgumentList& args)

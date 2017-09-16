@@ -26,16 +26,17 @@ bro_plugin_bif(
 
 	smb2_com_close.bif
 	smb2_com_create.bif
-	#smb2_com_ioctl.bif
-	#smb2_com_lock.bif
 	smb2_com_negotiate.bif
 	smb2_com_read.bif
 	smb2_com_session_setup.bif
 	smb2_com_set_info.bif
 	smb2_com_tree_connect.bif
-	#smb2_com_tree_disconnect.bif
+	smb2_com_tree_disconnect.bif
 	smb2_com_write.bif
 	smb2_events.bif
+
+	events.bif
+	consts.bif
 
 	types.bif)
 bro_plugin_pac(

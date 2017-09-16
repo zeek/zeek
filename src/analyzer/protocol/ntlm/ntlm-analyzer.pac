@@ -148,8 +148,11 @@ refine connection NTLM_Conn += {
 		if ( ${val}->has_workstation() > 0 )
 			result->Assign(3, utf16_bytestring_to_utf8_val(bro_analyzer()->Conn(), ${val.workstation.string.data}));
 
+		if ( ${val}->has_encrypted_session_key() > 0 )
+			result->Assign(4, bytestring_to_val(${val.encrypted_session_key.string.data}));
+
 		if ( ${val}->has_version() )
-			result->Assign(4, build_version_record(${val.version}));
+			result->Assign(5, build_version_record(${val.version}));
 
 		BifEvent::generate_ntlm_authenticate(bro_analyzer(),
 		                                     bro_analyzer()->Conn(),

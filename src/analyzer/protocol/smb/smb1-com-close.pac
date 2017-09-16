@@ -8,14 +8,8 @@ refine connection SMB_Conn += {
 			                                     BuildHeaderVal(h),
 			                                     ${val.file_id});
 
-		// This is commented out for the moment because it caused problems
-		// with extraction because the file kept having the same name due
-		// to repeatedly having the same file uid.  This results in files
-		// effectively falling of SMB solely by expiration instead of
-		// manually being closed.
-
-		//file_mgr->EndOfFile(bro_analyzer()->GetAnalyzerTag(),
-		//		    bro_analyzer()->Conn(), h->is_orig());
+		file_mgr->EndOfFile(bro_analyzer()->GetAnalyzerTag(),
+		                    bro_analyzer()->Conn(), h->is_orig());
 
 		return true;
 		%}

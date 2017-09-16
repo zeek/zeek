@@ -17,24 +17,24 @@ export {
 	};
 
 	type AcldConfig: record {
-		## The acld topic used to send events to
+		## The acld topic to send events to.
 		acld_topic: string;
-		## Broker host to connect to
+		## Broker host to connect to.
 		acld_host: addr;
-		## Broker port to connect to
+		## Broker port to connect to.
 		acld_port: port;
-		## Do we accept rules for the monitor path? Default false
+		## Do we accept rules for the monitor path? Default false.
 		monitor: bool &default=F;
-		## Do we accept rules for the forward path? Default true
+		## Do we accept rules for the forward path? Default true.
 		forward: bool &default=T;
 
 		## Predicate that is called on rule insertion or removal.
 		##
-		## p: Current plugin state
+		## p: Current plugin state.
 		##
-		## r: The rule to be inserted or removed
+		## r: The rule to be inserted or removed.
 		##
-		## Returns: T if the rule can be handled by the current backend, F otherwhise
+		## Returns: T if the rule can be handled by the current backend, F otherwise.
 		check_pred: function(p: PluginState, r: Rule): bool &optional;
 	};
 
@@ -43,27 +43,27 @@ export {
 
 	redef record PluginState += {
 		acld_config: AcldConfig &optional;
-		## The ID of this acld instance - for the mapping to PluginStates
+		## The ID of this acld instance - for the mapping to PluginStates.
 		acld_id: count &optional;
 	};
 
 	## Hook that is called after a rule is converted to an acld rule.
 	## The hook may modify the rule before it is sent to acld.
 	## Setting the acld command to F will cause the rule to be rejected
-	## by the plugin
+	## by the plugin.
 	##
-	## p: Current plugin state
+	## p: Current plugin state.
 	##
-	## r: The rule to be inserted or removed
+	## r: The rule to be inserted or removed.
 	##
-	## ar: The acld rule to be inserted or removed
+	## ar: The acld rule to be inserted or removed.
 	global NetControl::acld_rule_policy: hook(p: PluginState, r: Rule, ar: AclRule);
 
-	## Events that are sent from us to Broker
+	## Events that are sent from us to Broker.
 	global acld_add_rule: event(id: count, r: Rule, ar: AclRule);
 	global acld_remove_rule: event(id: count, r: Rule, ar: AclRule);
 
-	## Events that are sent from Broker to us
+	## Events that are sent from Broker to us.
 	global acld_rule_added: event(id: count, r: Rule, msg: string);
 	global acld_rule_removed: event(id: count, r: Rule, msg: string);
 	global acld_rule_exists: event(id: count, r: Rule, msg: string);

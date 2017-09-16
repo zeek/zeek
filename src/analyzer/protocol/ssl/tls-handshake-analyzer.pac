@@ -189,6 +189,38 @@ refine connection Handshake_Conn += {
 		return true;
 		%}
 
+	function proc_supported_versions(rec: HandshakeRecord, versions_list: uint16[]) : bool
+		%{
+		VectorVal* versions = new VectorVal(internal_type("index_vec")->AsVectorType());
+
+		if ( versions_list )
+			{
+			for ( unsigned int i = 0; i < versions_list->size(); ++i )
+				versions->Assign(i, new Val((*versions_list)[i], TYPE_COUNT));
+			}
+
+		BifEvent::generate_ssl_extension_supported_versions(bro_analyzer(), bro_analyzer()->Conn(),
+			${rec.is_orig}, versions);
+
+		return true;
+		%}
+
+	function proc_psk_key_exchange_modes(rec: HandshakeRecord, mode_list: uint8[]) : bool
+		%{
+		VectorVal* modes = new VectorVal(internal_type("index_vec")->AsVectorType());
+
+		if ( mode_list )
+			{
+			for ( unsigned int i = 0; i < mode_list->size(); ++i )
+				modes->Assign(i, new Val((*mode_list)[i], TYPE_COUNT));
+			}
+
+		BifEvent::generate_ssl_extension_psk_key_exchange_modes(bro_analyzer(), bro_analyzer()->Conn(),
+			${rec.is_orig}, modes);
+
+		return true;
+		%}
+
 	function proc_v3_certificate(is_orig: bool, cl : X509Certificate[]) : bool
 		%{
 		vector<X509Certificate*>* certs = cl;
@@ -211,12 +243,30 @@ refine connection Handshake_Conn += {
 
 	function proc_certificate_status(rec : HandshakeRecord, status_type: uint8, response: bytestring) : bool
 		%{
-		 if ( status_type == 1 ) // ocsp
+		ODesc common;
+		common.AddRaw("Analyzer::ANALYZER_SSL");
+		common.Add(bro_analyzer()->Conn()->StartTime());
+		common.AddRaw("F");
+		bro_analyzer()->Conn()->IDString(&common);
+
+		if ( status_type == 1 ) // ocsp
 			{
+			ODesc file_handle;
+			file_handle.Add(common.Description());
+			file_handle.Add("ocsp");
+
+			string file_id = file_mgr->HashHandle(file_handle.Description());
+
+			file_mgr->DataIn(reinterpret_cast<const u_char*>(response.data()),
+			                 response.length(), bro_analyzer()->GetAnalyzerTag(),
+			                 bro_analyzer()->Conn(), false, file_id, "application/ocsp-response");
+
 			BifEvent::generate_ssl_stapled_ocsp(bro_analyzer(),
 							    bro_analyzer()->Conn(), ${rec.is_orig},
 							    new StringVal(response.length(),
 							    (const char*) response.data()));
+
+			file_mgr->EndOfFile(file_id);
 			}
 
 		return true;
@@ -227,6 +277,24 @@ refine connection Handshake_Conn += {
 		if ( curve_type == NAMED_CURVE )
 			BifEvent::generate_ssl_server_curve(bro_analyzer(),
 			  bro_analyzer()->Conn(), curve);
+
+		return true;
+		%}
+
+	function proc_signedcertificatetimestamp(rec: HandshakeRecord, version: uint8, logid: const_bytestring, timestamp: uint64, digitally_signed_algorithms: SignatureAndHashAlgorithm, digitally_signed_signature: const_bytestring) : bool
+		%{
+		RecordVal* ha = new RecordVal(BifType::Record::SSL::SignatureAndHashAlgorithm);
+		ha->Assign(0, new Val(digitally_signed_algorithms->HashAlgorithm(), TYPE_COUNT));
+		ha->Assign(1, new Val(digitally_signed_algorithms->SignatureAlgorithm(), TYPE_COUNT));
+
+		BifEvent::generate_ssl_extension_signed_certificate_timestamp(bro_analyzer(),
+			bro_analyzer()->Conn(), ${rec.is_orig},
+			version,
+			new StringVal(logid.length(), reinterpret_cast<const char*>(logid.begin())),
+			timestamp,
+			ha,
+			new StringVal(digitally_signed_signature.length(), reinterpret_cast<const char*>(digitally_signed_signature.begin()))
+		);
 
 		return true;
 		%}
@@ -250,7 +318,6 @@ refine connection Handshake_Conn += {
 
 		return true;
 		%}
-
 
 };
 
@@ -329,7 +396,18 @@ refine typeattr DhServerKeyExchange += &let {
 	proc : bool = $context.connection.proc_dh_server_key_exchange(rec, dh_p, dh_g, dh_Ys);
 };
 
+refine typeattr SupportedVersions += &let {
+	proc : bool = $context.connection.proc_supported_versions(rec, versions);
+};
+
+refine typeattr PSKKeyExchangeModes += &let {
+	proc : bool = $context.connection.proc_psk_key_exchange_modes(rec, modes);
+};
+
 refine typeattr Handshake += &let {
 	proc : bool = $context.connection.proc_handshake(rec.is_orig, rec.msg_type, rec.msg_length);
 };
 
+refine typeattr SignedCertificateTimestamp += &let {
+	proc : bool = $context.connection.proc_signedcertificatetimestamp(rec, version, logid, timestamp, digitally_signed_algorithms, digitally_signed_signature);
+};

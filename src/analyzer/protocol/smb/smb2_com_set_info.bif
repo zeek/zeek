@@ -11,7 +11,7 @@
 ##
 ## dst_filename: The filename to rename the file into.
 ##
-## .. bro:see:: smb2_message smb2_set_info_request smb2_file_delete
+## .. bro:see:: smb2_message smb2_file_delete
 event smb2_file_rename%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, dst_filename: string%);
 
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
@@ -26,7 +26,7 @@ event smb2_file_rename%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, d
 ## delete_pending: A boolean value to indicate that a file should be deleted 
 ##                 when it's closed if set to T.
 ##
-## .. bro:see:: smb2_message smb2_set_info_request smb2_file_rename
+## .. bro:see:: smb2_message smb2_file_rename
 event smb2_file_delete%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, delete_pending: bool%);
 
 # TODO - Not implemented

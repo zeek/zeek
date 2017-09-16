@@ -62,6 +62,11 @@ public:
 	uint32 Program() const		{ return prog; }
 	uint32 Version() const		{ return vers; }
 	uint32 Proc() const		{ return proc; }
+	uint32 Uid() const { return uid; }
+	uint32 Gid() const { return gid; }
+	uint32 Stamp() const { return stamp; }
+	const std::string& MachineName() const { return machinename; }
+	const std::vector<int>& AuxGIDs() const { return auxgids; }
 
 	double StartTime() const	{ return start_time; }
 	void SetStartTime(double t)	{ start_time = t; }
@@ -78,8 +83,12 @@ public:
 
 protected:
 	uint32 xid, rpc_version, prog, vers, proc;
-	uint32 cred_flavor, verf_flavor;
+	uint32 cred_flavor, stamp;
+	uint32 uid, gid;
+	std::vector<int> auxgids;
+	uint32 verf_flavor;
 	u_char* call_buf;	// copy of original call buffer
+	std::string machinename;
 	double start_time;
 	double last_time;
 	int rpc_len;		// size of the full RPC call, incl. xid and msg_type

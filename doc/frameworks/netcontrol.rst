@@ -31,12 +31,12 @@ NetControl Architecture
     NetControl architecture (click to enlarge).
 
 The basic architecture of the NetControl framework is shown in the figure above.
-Conceptually, the NetControl framework sits inbetween the user provided scripts
+Conceptually, the NetControl framework sits between the user provided scripts
 (which use the Bro event engine) and the network device (which can either be a
 hardware or software device), that is used to implement the commands.
 
 The NetControl framework supports a number of high-level calls, like the
-:bro:see:`NetControl::drop_address` function, or lower a lower level rule
+:bro:see:`NetControl::drop_address` function, or a lower level rule
 syntax. After a rule has been added to the NetControl framework, NetControl
 sends the rule to one or several of its *backends*. Each backend is responsible
 to communicate with a single hard- or software device. The NetControl framework
@@ -90,15 +90,11 @@ high-level functions.
 
     * - :bro:see:`NetControl::drop_address`
       - Calling this function causes NetControl to block all packets involving
-        an IP address from being forwarded
+        an IP address from being forwarded.
 
     * - :bro:see:`NetControl::drop_connection`
       - Calling this function stops all packets of a specific connection
         (identified by its 5-tuple) from being forwarded.
-
-    * - :bro:see:`NetControl::drop_address`
-      - Calling this function causes NetControl to block all packets involving
-        an IP address from being forwarded
 
     * - :bro:see:`NetControl::drop_address_catch_release`
       - Calling this function causes all packets of a specific source IP to be
@@ -114,7 +110,7 @@ high-level functions.
         resources by shunting flows that have been identified as being benign.
 
     * - :bro:see:`NetControl::redirect_flow`
-      - Calling this function causes NetControl to redirect an uni-directional
+      - Calling this function causes NetControl to redirect a uni-directional
         flow to another port of the networking hardware.
 
     * - :bro:see:`NetControl::quarantine_host`
@@ -122,7 +118,7 @@ high-level functions.
         traffic to a host with a special DNS server, which resolves all queries
         as pointing to itself. The quarantined host is only allowed between the
         special server, which will serve a warning message detailing the next
-        steps for the user
+        steps for the user.
 
     * - :bro:see:`NetControl::whitelist_address`
       - Calling this function causes NetControl to push a whitelist entry for an
@@ -154,7 +150,7 @@ entries, which show that the debug plugin has been initialized and added.
 Afterwards, there are two :bro:see:`NetControl::RULE` entries; the first shows
 that the addition of a rule has been requested (state is
 :bro:see:`NetControl::REQUESTED`). The following line shows that the rule was
-successfully added (the state is  :bro:see:`NetControl::SUCCEEDED`). The
+successfully added (the state is :bro:see:`NetControl::SUCCEEDED`). The
 remainder of the log line gives more information about the added rule, which in
 our case applies to a specific 5-tuple.
 
@@ -227,14 +223,14 @@ The *target* of a rule specifies if the rule is applied in the *forward path*,
 and affects packets as they are forwarded through the network, or if it affects
 the *monitor path* and only affects the packets that are sent to Bro, but not
 the packets that traverse the network. The *entity* specifies the address,
-connection, etc. that the rule applies to. In addition, each notice has a
+connection, etc. that the rule applies to. In addition, each rule has a
 *timeout* (which can be left empty), a *priority* (with higher priority rules
 overriding lower priority rules). Furthermore, a *location* string with more
 text information about each rule can be provided.
 
-There are a couple more fields that only needed for some rule types. For
+There are a couple more fields that are only needed for some rule types. For
 example, when you insert a redirect rule, you have to specify the port that
-packets should be redirected too. All these fields are shown in the
+packets should be redirected to. All these fields are shown in the
 :bro:see:`NetControl::Rule` documentation.
 
 To give an example on how to construct your own rule, we are going to write
@@ -243,7 +239,7 @@ difference between our function and the one provided by NetControl is the fact
 that the NetControl function has additional functionality, e.g. for logging.
 
 Once again, we are going to test our function with a simple example that simply
-drops all connections on the Network:
+drops all connections on the network:
 
 .. btest-include:: ${DOC_ROOT}/frameworks/netcontrol-4-drop.bro
 
@@ -254,7 +250,7 @@ drops all connections on the Network:
 
 The last example shows that :bro:see:`NetControl::add_rule` returns a string
 identifier that is unique for each rule (uniqueness is not preserved across
-restarts or Bro). This rule id can be used to later remove rules manually using
+restarts of Bro). This rule id can be used to later remove rules manually using
 :bro:see:`NetControl::remove_rule`.
 
 Similar to :bro:see:`NetControl::add_rule`, all the high-level functions also
@@ -264,7 +260,7 @@ Interacting with Rules
 ----------------------
 
 The NetControl framework offers a number of different ways to interact with
-Rules. Before a rule is applied by the framework, a number of different hooks
+rules. Before a rule is applied by the framework, a number of different hooks
 allow you to either modify or discard rules before they are added. Furthermore,
 a number of events can be used to track the lifecycle of a rule while it is
 being managed by the NetControl framework. It is also possible to query and
@@ -276,7 +272,7 @@ Rule Policy
 The hook :bro:see:`NetControl::rule_policy` provides the mechanism for modifying
 or discarding a rule before it is sent onwards to the backends. Hooks can be
 thought of as multi-bodied functions and using them looks very similar to
-handling events. In difference to events, they are processed immediately. Like
+handling events. In contrast to events, they are processed immediately. Like
 events, hooks can have priorities to sort the order in which they are applied.
 Hooks can use the ``break`` keyword to show that processing should be aborted;
 if any :bro:see:`NetControl::rule_policy` hook uses ``break``, the rule will be
@@ -315,7 +311,7 @@ this order:
 
     * - :bro:see:`NetControl::rule_new`
       - Signals that a new rule is created by the NetControl framework due to
-        :bro:see:`NetControl::add_rule`. At this point of time, the rule has not
+        :bro:see:`NetControl::add_rule`. At this point, the rule has not
         yet been added to any backend.
 
     * - :bro:see:`NetControl::rule_added`
@@ -328,15 +324,15 @@ this order:
     * - :bro:see:`NetControl::rule_timeout`
       - Signals that a rule timeout was reached. If the hardware does not support
         automatic timeouts, the NetControl framework will automatically call
-        bro:see:`NetControl::remove_rule`.
+        :bro:see:`NetControl::remove_rule`.
 
     * - :bro:see:`NetControl::rule_removed`
       - Signals that a new rule has successfully been removed a backend.
 
     * - :bro:see:`NetControl::rule_destroyed`
       - This event is the pendant to :bro:see:`NetControl::rule_added`, and
-        reports that a rule is no longer be tracked by the NetControl framework.
-        This happens, for example, when a rule was removed from all backend.
+        reports that a rule is no longer being tracked by the NetControl framework.
+        This happens, for example, when a rule was removed from all backends.
 
     * - :bro:see:`NetControl::rule_error`
       - This event is raised whenever an error occurs during any rule operation.
@@ -385,7 +381,7 @@ NetControl also comes with a blocking function that uses an approach called
 
 Catch and release is a blocking scheme that conserves valuable rule space in
 your hardware. Instead of using long-lasting blocks, catch and release first
-only installs blocks for short amount of times (typically a few minutes). After
+only installs blocks for a short amount of time (typically a few minutes). After
 these minutes pass, the block is lifted, but the IP address is added to a
 watchlist and the IP address will immediately be re-blocked again (for a longer
 amount of time), if it is seen reappearing in any traffic, no matter if the new
@@ -397,7 +393,7 @@ addresses that only are seen once for a short time are only blocked for a few
 minutes, monitored for a while and then forgotten. IP addresses that keep
 appearing will get re-blocked for longer amounts of time.
 
-In difference to the other high-level functions that we documented so far, the
+In contrast to the other high-level functions that we documented so far, the
 catch and release functionality is much more complex and adds a number of
 different specialized functions to NetControl. The documentation for catch and
 release is contained in the file
@@ -481,7 +477,7 @@ The plugins that currently ship with NetControl are:
         plugin is contained in :doc:`/scripts/base/frameworks/netcontrol/plugins/acld.bro`.
 
     * - PacketFilter plugin
-      - This plugin adds uses the Bro process-level packet filter (see
+      - This plugin uses the Bro process-level packet filter (see
         :bro:see:`install_src_net_filter` and
         :bro:see:`install_dst_net_filter`). Since the functionality of the
         PacketFilter is limited, this plugin is mostly for demonstration purposes. The source of this
@@ -496,7 +492,7 @@ Activating plugins
 
 In the API reference part of this document, we already used the debug plugin. To
 use the plugin, we first had to instantiate it by calling
-:bro:see:`NetControl::NetControl::create_debug` and then add it to NetControl by
+:bro:see:`NetControl::create_debug` and then add it to NetControl by
 calling :bro:see:`NetControl::activate`.
 
 As we already hinted before, NetControl supports having several plugins that are
@@ -607,7 +603,7 @@ Writing plugins
 
 In addition to using the plugins that are part of NetControl, you can write your
 own plugins to interface with hard- or software that we currently do not support
-out of the Box.
+out of the box.
 
 Creating your own plugin is easy; besides a bit of boilerplate, you only need to
 create two functions: one that is called when a rule is added, and one that is

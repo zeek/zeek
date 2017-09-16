@@ -29,6 +29,7 @@ public:
 		{ return new DCE_RPC_Analyzer(conn); }
 
 protected:
+	bool had_gap;
 	binpac::DCE_RPC::DCE_RPC_Conn* interp;
 };
 

@@ -1,0 +1,66 @@
+# @TEST-EXEC: bro -b -r $TRACES/nfs/nfs_base.pcap %INPUT
+# @TEST-EXEC: btest-diff .stdout
+
+global nfs_ports: set[port] = { 2049/tcp, 2049/udp } &redef;
+redef ignore_checksums = T;
+
+event bro_init()
+	{
+	Analyzer::register_for_ports(Analyzer::ANALYZER_NFS, nfs_ports);
+	}
+
+event nfs_proc_lookup(c: connection , info: NFS3::info_t , req: NFS3::diropargs_t , rep: NFS3::lookup_reply_t )
+	{
+	print "nfs_proc_lookup", c, info, req, rep;
+	}
+
+event nfs_proc_read(c: connection , info: NFS3::info_t , req: NFS3::readargs_t , rep: NFS3::read_reply_t )
+	{
+	print "nfs_proc_read", c, info, req, rep;
+	}
+
+event nfs_proc_readlink(c: connection , info: NFS3::info_t , fh: string , rep: NFS3::readlink_reply_t )
+	{
+	print "nfs_proc_readlink", c, info, fh, rep;
+	}
+
+event nfs_proc_write(c: connection , info: NFS3::info_t , req: NFS3::writeargs_t , rep: NFS3::write_reply_t )
+	{
+	print "nfs_proc_write", c, info, req, rep;
+	}
+
+event nfs_proc_create(c: connection , info: NFS3::info_t , req: NFS3::diropargs_t , rep: NFS3::newobj_reply_t )
+	{
+	print "nfs_proc_create", c, info, req, rep;
+	}
+
+event nfs_proc_mkdir(c: connection , info: NFS3::info_t , req: NFS3::diropargs_t , rep: NFS3::newobj_reply_t )
+	{
+	print "nfs_proc_mkdir", c, info, req, rep;
+	}
+
+event nfs_proc_remove(c: connection , info: NFS3::info_t , req: NFS3::diropargs_t , rep: NFS3::delobj_reply_t )
+	{
+	print "nfs_proc_remove", c, info, req, rep;
+	}
+
+event nfs_proc_rmdir(c: connection , info: NFS3::info_t , req: NFS3::diropargs_t , rep: NFS3::delobj_reply_t )
+	{
+	print "nfs_proc_rmdir", c, info, req, rep;
+	}
+
+event nfs_proc_readdir(c: connection , info: NFS3::info_t , req: NFS3::readdirargs_t , rep: NFS3::readdir_reply_t )
+	{
+	print "nfs_proc_readdir", c, info, req, rep;
+	}
+
+event nfs_proc_rename(c: connection , info: NFS3::info_t , req: NFS3::renameopargs_t , rep: NFS3::renameobj_reply_t )
+	{
+	print "nfs_proc_rename", c, info, req, rep;
+	}
+
+event nfs_proc_not_implemented(c: connection , info: NFS3::info_t , proc: NFS3::proc_t )
+	{
+	print "nfs_proc_not_implemented", c, info, proc;
+	}
+

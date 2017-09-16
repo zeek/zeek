@@ -90,15 +90,15 @@ export {
 		["2f5f3220-c126-1076-b549-074d078619da"] = "nddeapi",
 	} &redef &default=function(uuid: string): string { return fmt("unknown-%s", uuid); };
 
-	## This table is to map pipe names to the most common 
-	## service used over that pipe.  It helps in cases 
+	## This table is to map pipe names to the most common
+	## service used over that pipe.  It helps in cases
 	## where the pipe binding wasn't seen.
 	const pipe_name_to_common_uuid: table[string] of string = {
 		["winreg"] = "338cd001-2244-31f1-aaaa-900038001003",
 		["spoolss"] = "12345678-1234-abcd-ef00-0123456789ab",
 		["srvsvc"] = "4b324fc8-1670-01d3-1278-5a47bf6ee188",
 	} &redef;
-	
+
 	const operations: table[string,count] of string = {
 		# atsvc
 		["1ff70682-0a51-30e8-076d-740be8cee98b",0] = "NetrJobAdd",
@@ -1460,7 +1460,7 @@ export {
 		["e3514235-4b06-11d1-ab04-00c04fc2dcd2",0x14] = "DRSAddSidHistory",
 		["e3514235-4b06-11d1-ab04-00c04fc2dcd2",0x15] = "DRSGetMemberships2",
 		["e3514235-4b06-11d1-ab04-00c04fc2dcd2",0x16] = "DRSReplicaVerifyObjects",
-		["e3514235-4b06-11d1-ab04-00c04fc2dcd2",0x17] = "DRSGetObjectExistence", 
+		["e3514235-4b06-11d1-ab04-00c04fc2dcd2",0x17] = "DRSGetObjectExistence",
 		["e3514235-4b06-11d1-ab04-00c04fc2dcd2",0x18] = "DRSQuerySitesByCost",
 
 		# winspipe

@@ -1,0 +1,1 @@
+const SMB::pipe_filenames: string_set;

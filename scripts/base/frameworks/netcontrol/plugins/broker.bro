@@ -1,4 +1,4 @@
-##! Broker plugin for the netcontrol framework. Sends the raw data structures
+##! Broker plugin for the NetControl framework. Sends the raw data structures
 ##! used in NetControl on to Broker to allow for easy handling, e.g., of
 ##! command-line scripts.
 
@@ -13,25 +13,25 @@ module NetControl;
 export {
 	## This record specifies the configuration that is passed to :bro:see:`NetControl::create_broker`.
 	type BrokerConfig: record {
-		## The broker topic used to send events to
+		## The broker topic to send events to.
 		topic: string &optional;
-		## Broker host to connect to
+		## Broker host to connect to.
 		host: addr &optional;
-		## Broker port to connect to
+		## Broker port to connect to.
 		bport: port &optional;
 
-		## Do we accept rules for the monitor path? Default true
+		## Do we accept rules for the monitor path? Default true.
 		monitor: bool &default=T;
-		## Do we accept rules for the forward path? Default true
+		## Do we accept rules for the forward path? Default true.
 		forward: bool &default=T;
 
 		## Predicate that is called on rule insertion or removal.
 		##
-		## p: Current plugin state
+		## p: Current plugin state.
 		##
-		## r: The rule to be inserted or removed
+		## r: The rule to be inserted or removed.
 		##
-		## Returns: T if the rule can be handled by the current backend, F otherwhise
+		## Returns: T if the rule can be handled by the current backend, F otherwise.
 		check_pred: function(p: PluginState, r: Rule): bool &optional;
 	};
 
@@ -39,9 +39,9 @@ export {
 	global create_broker: function(config: BrokerConfig, can_expire: bool) : PluginState;
 
 	redef record PluginState += {
-		## OpenFlow controller for NetControl Broker plugin
+		## OpenFlow controller for NetControl Broker plugin.
 		broker_config: BrokerConfig &optional;
-		## The ID of this broker instance - for the mapping to PluginStates
+		## The ID of this broker instance - for the mapping to PluginStates.
 		broker_id: count &optional;
 	};
 

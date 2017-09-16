@@ -4,8 +4,7 @@
 #
 # @TEST-EXEC: chmod 600 broccoli.conf
 # @TEST-EXEC: btest-bg-run bro bro $DIST/aux/broccoli/test/broccoli-v6addrs.bro "Communication::listen_ssl=T" "ssl_ca_certificate=../ca_cert.pem" "ssl_private_key=../bro.pem"
-# @TEST-EXEC: sleep 1
-# @TEST-EXEC: btest-bg-run broccoli BROCCOLI_CONFIG_FILE=../broccoli.conf $BUILD/aux/broccoli/test/broccoli-v6addrs
+# @TEST-EXEC: btest-bg-run broccoli BROCCOLI_CONFIG_FILE=../broccoli.conf $BUILD/aux/broccoli/test/broccoli-v6addrs -R
 # @TEST-EXEC: btest-bg-wait 20
 # @TEST-EXEC: btest-diff bro/.stdout
 # @TEST-EXEC: btest-diff broccoli/.stdout

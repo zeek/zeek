@@ -240,7 +240,7 @@ private:
 
 	enum class ErrorType { INFO, WARNING, ERROR };
 	void ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, const char* fmt, ...) __attribute__((format(printf, 5, 6)));
-	void ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, const char* fmt, va_list ap);
+	void ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, const char* fmt, va_list ap) __attribute__((format(printf, 5, 0)));
 
 	Stream* FindStream(const string &name);
 	Stream* FindStream(ReaderFrontend* reader);

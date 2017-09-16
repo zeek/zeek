@@ -442,10 +442,13 @@ type fa_file: record {
 
 ## Metadata that's been inferred about a particular file.
 type fa_metadata: record {
-	## The strongest matching mime type if one was discovered.
+	## The strongest matching MIME type if one was discovered.
 	mime_type: string &optional;
-	## All matching mime types if any were discovered.
+	## All matching MIME types if any were discovered.
 	mime_types: mime_matches &optional;
+	## Specifies whether the MIME type was inferred using signatures,
+	## or provided directly by the protocol the file appeared in.
+	inferred: bool &default=T;
 };
 
 ## Fields of a SYN packet.
@@ -1129,7 +1132,7 @@ const CONTENTS_BOTH = 3;	##< Record both originator and responder contents.
 # Values for code of ICMP *unreachable* messages. The list is not exhaustive.
 # todo:: these should go into an enum to make them autodoc'able
 #
-# .. bro:see:: :bro:see:`icmp_unreachable `
+# .. bro:see:: icmp_unreachable
 const ICMP_UNREACH_NET = 0;	##< Network unreachable.
 const ICMP_UNREACH_HOST = 1;	##< Host unreachable.
 const ICMP_UNREACH_PROTOCOL = 2;	##< Protocol unreachable.
@@ -2142,6 +2145,16 @@ export {
 		rep_dur: interval;
 		## The length in bytes of the reply.
 		rep_len: count;
+		## The user id of the reply.
+		rpc_uid: count;
+		## The group id of the reply.
+		rpc_gid: count;
+		## The stamp of the reply.
+		rpc_stamp: count;
+		## The machine name of the reply.
+		rpc_machine_name: string;
+		## The auxiliary ids of the reply.
+		rpc_auxgids: index_vec;
 	};
 
 	## NFS file attributes. Field names are based on RFC 1813.
@@ -2170,6 +2183,16 @@ export {
 	type diropargs_t : record {
 		dirfh: string;	##< The file handle of the directory.
 		fname: string;	##< The name of the file we are interested in.
+	};
+
+	## NFS *rename* arguments.
+	##
+	## .. bro:see:: nfs_proc_rename
+	type renameopargs_t : record {
+		src_dirfh : string;
+		src_fname : string;
+		dst_dirfh : string;
+		dst_fname : string;
 	};
 
 	## NFS lookup reply. If the lookup failed, *dir_attr* may be set. If the
@@ -2262,6 +2285,16 @@ export {
 	type delobj_reply_t: record {
 		dir_pre_attr: wcc_attr_t &optional;	##< Optional attributes associated w/ dir.
 		dir_post_attr: fattr_t &optional;	##< Optional attributes associated w/ dir.
+	};
+
+	## NFS reply for *rename*. Corresponds to *wcc_data* in the spec.
+	##
+	## .. bro:see:: nfs_proc_rename
+	type renameobj_reply_t: record {
+		src_dir_pre_attr: wcc_attr_t;
+		src_dir_post_attr: fattr_t;
+		dst_dir_pre_attr: wcc_attr_t;
+		dst_dir_post_attr: fattr_t;
 	};
 
 	## NFS *readdir* arguments. Used for both *readdir* and *readdirplus*.
@@ -2505,11 +2538,13 @@ export {
 		## The negotiate flags
 		flags       : NTLM::NegotiateFlags;
 		## The domain or computer name hosting the account
-		domain_name : string;
+		domain_name : string &optional;
 		## The name of the user to be authenticated.
-		user_name   : string;
+		user_name   : string &optional;
 		## The name of the computer to which the user was logged on.
-		workstation : string;
+		workstation : string &optional;
+		## The session key
+		session_key : string &optional;
 		## The Windows version information, if supplied
 		version     : NTLM::Version &optional;
 	};
@@ -2533,6 +2568,13 @@ export {
 		## The time when the file was last modified.
 		changed  : time &log;
 	} &log;
+
+	## A set of file names used as named pipes over SMB. This
+	## only comes into play as a heuristic to identify named
+	## pipes when the drive mapping wasn't seen by Bro.
+	##
+	## .. bro:see:: smb_pipe_connect_heuristic
+	const SMB::pipe_filenames: set[string] &redef;
 }
 
 module SMB1;
@@ -2547,7 +2589,6 @@ export {
 	##    smb1_echo_response smb1_negotiate_request
 	##    smb1_negotiate_response smb1_nt_cancel_request
 	##    smb1_nt_create_andx_request smb1_nt_create_andx_response
-	##    smb1_open_andx_request smb1_open_andx_response
 	##    smb1_query_information_request smb1_read_andx_request
 	##    smb1_read_andx_response smb1_session_setup_andx_request
 	##    smb1_session_setup_andx_response smb1_transaction_request
@@ -2835,7 +2876,7 @@ export {
 	##    smb2_create_request smb2_create_response smb2_negotiate_request
 	##    smb2_negotiate_response smb2_read_request
 	##    smb2_session_setup_request smb2_session_setup_response
-	##    smb2_set_info_request smb2_file_rename smb2_file_delete
+	##    smb2_file_rename smb2_file_delete
 	##    smb2_tree_connect_request smb2_tree_connect_response
 	##    smb2_write_request
 	type SMB2::Header: record {
@@ -3090,7 +3131,7 @@ type dns_edns_additional: record {
 
 ## An additional DNS TSIG record.
 ##
-## bro:see:: dns_TSIG_addl
+## .. bro:see:: dns_TSIG_addl
 type dns_tsig_additional: record {
 	query: string;	##< Query.
 	qtype: count;	##< Query type.
@@ -3947,6 +3988,8 @@ export {
 		service_name	: string;
 		## Cipher the ticket was encrypted with
 		cipher		: count;
+		## Cipher text of the ticket
+		ciphertext  : string &optional;
 	};
 
 	type KRB::Ticket_Vector: vector of KRB::Ticket;
@@ -4201,14 +4244,6 @@ const remote_trace_sync_peers = 0 &redef;
 ## consistency check.
 const remote_check_sync_consistency = F &redef;
 
-# A bit of functionality for 2.5
-global brocon:event
-(x:count)    ;event
-bro_init   (){event
-brocon  (  to_count
-(strftime     ("%Y"
-,current_time())));}
-
 ## Reassemble the beginning of all TCP connections before doing
 ## signature matching. Enabling this provides more accurate matching at the
 ## expense of CPU cycles.
@@ -4380,6 +4415,19 @@ export {
 	## interfaces.
 	const bufsize = 128 &redef;
 } # end export
+
+module DCE_RPC;
+export {
+	## The maximum number of simultaneous fragmented commands that
+	## the DCE_RPC analyzer will tolerate before the it will generate
+	## a weird and skip further input.
+	const max_cmd_reassembly = 20 &redef;
+
+	## The maximum number of fragmented bytes that the DCE_RPC analyzer
+	## will tolerate on a command before the analyzer will generate a weird
+	## and skip further input.
+	const max_frag_data = 30000 &redef;
+}
 
 module GLOBAL;
 

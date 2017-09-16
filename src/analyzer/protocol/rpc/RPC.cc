@@ -40,7 +40,19 @@ RPC_CallInfo::RPC_CallInfo(uint32 arg_xid, const u_char*& buf, int& n, double ar
 	prog = extract_XDR_uint32(buf, n);
 	vers = extract_XDR_uint32(buf, n);
 	proc = extract_XDR_uint32(buf, n);
-	cred_flavor = skip_XDR_opaque_auth(buf, n);
+	cred_flavor = extract_XDR_uint32(buf, n);
+	int cred_opaque_n, machinename_n;
+	const u_char* cred_opaque = extract_XDR_opaque(buf, n, cred_opaque_n);
+	stamp = extract_XDR_uint32(cred_opaque, cred_opaque_n);
+	const u_char* tmp = extract_XDR_opaque(cred_opaque, cred_opaque_n, machinename_n);
+	machinename = std::string(reinterpret_cast<const char*>(tmp), machinename_n);
+	uid = extract_XDR_uint32(cred_opaque, cred_opaque_n);
+	gid = extract_XDR_uint32(cred_opaque, cred_opaque_n);
+	size_t number_of_gids = extract_XDR_uint32(cred_opaque, cred_opaque_n);
+
+	for ( auto i = 0u; i < number_of_gids; ++i )
+		auxgids.push_back(extract_XDR_uint32(cred_opaque, cred_opaque_n));
+
 	verf_flavor = skip_XDR_opaque_auth(buf, n);
 
 	header_len = call_n - n;

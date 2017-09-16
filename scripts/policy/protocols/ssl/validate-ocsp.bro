@@ -1,4 +1,9 @@
-##! Perform OCSP response validation.
+##! Perform validation of stapled OCSP responses.
+#!
+#! Note: this _only_ performs validation of stapled OCSP responsed. It does
+#! not validate OCSP responses that are retrieved via HTTP, because we do not
+#! have a mapping to certificates.
+
 
 @load base/frameworks/notice
 @load base/protocols/ssl
@@ -15,7 +20,6 @@ export {
 	redef record Info += {
 		## Result of ocsp validation for this connection.
 		ocsp_status: string &log &optional;
-
 		## ocsp response as string.
 		ocsp_response: string &optional;
 	};

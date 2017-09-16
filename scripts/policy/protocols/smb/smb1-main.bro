@@ -3,7 +3,7 @@
 module SMB1;
 
 redef record SMB::CmdInfo += {
-	## Dialects offered by the client	
+	## Dialects offered by the client.
 	smb1_offered_dialects: string_vec &optional;
 };
 
@@ -108,11 +108,6 @@ event smb1_negotiate_response(c: connection, hdr: SMB1::Header, response: SMB1::
 	
 event smb1_negotiate_response(c: connection, hdr: SMB1::Header, response: SMB1::NegotiateResponse) &priority=-5
 	{
-	if ( SMB::write_cmd_log &&
-	     c$smb_state$current_cmd$status !in SMB::ignored_command_statuses )
-		{
-		Log::write(SMB::CMD_LOG, c$smb_state$current_cmd);
-		}
 	}
 	
 event smb1_tree_connect_andx_request(c: connection, hdr: SMB1::Header, path: string, service: string) &priority=5
@@ -141,12 +136,6 @@ event smb1_tree_connect_andx_response(c: connection, hdr: SMB1::Header, service:
 event smb1_tree_connect_andx_response(c: connection, hdr: SMB1::Header, service: string, native_file_system: string) &priority=-5
 	{
 	Log::write(SMB::MAPPING_LOG, c$smb_state$current_tree);
-
-	if ( SMB::write_cmd_log &&
-	     c$smb_state$current_cmd$status !in SMB::ignored_command_statuses )
-		{
-		Log::write(SMB::CMD_LOG, c$smb_state$current_cmd);
-		}
 	}
 
 event smb1_nt_create_andx_request(c: connection, hdr: SMB1::Header, name: string) &priority=5
@@ -192,17 +181,7 @@ event smb1_read_andx_request(c: connection, hdr: SMB1::Header, file_id: count, o
 	if ( c$smb_state$current_tree?$path && !c$smb_state$current_file?$path )
 		c$smb_state$current_file$path = c$smb_state$current_tree$path;
 
-	# We don't even try to log reads and writes to the files log.
-	#write_file_log(c$smb_state);
-	}
-	
-event smb1_read_andx_response(c: connection, hdr: SMB1::Header, data_len: count) &priority=5
-	{
-	if ( SMB::write_cmd_log && 
-	     c$smb_state$current_cmd$status !in SMB::ignored_command_statuses )
-		{
-		Log::write(SMB::CMD_LOG, c$smb_state$current_cmd);
-		}
+	SMB::write_file_log(c$smb_state);
 	}
 
 event smb1_write_andx_request(c: connection, hdr: SMB1::Header, file_id: count, offset: count, data_len: count) &priority=5
@@ -281,11 +260,7 @@ event smb1_session_setup_andx_request(c: connection, hdr: SMB1::Header, request:
 
 event smb1_session_setup_andx_response(c: connection, hdr: SMB1::Header, response: SMB1::SessionSetupAndXResponse) &priority=-5
 	{
-	if ( SMB::write_cmd_log &&
-	     c$smb_state$current_cmd$status !in SMB::ignored_command_statuses )
-		{
-		Log::write(SMB::CMD_LOG, c$smb_state$current_cmd);
-		}
+	# No behavior yet.
 	}
 	
 event smb1_transaction_request(c: connection, hdr: SMB1::Header, name: string, sub_cmd: count)

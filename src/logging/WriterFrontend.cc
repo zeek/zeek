@@ -2,6 +2,10 @@
 #include "Net.h"
 #include "threading/SerialTypes.h"
 
+#ifdef ENABLE_BROKER
+#include "broker/Manager.h"
+#endif
+
 #include "Manager.h"
 #include "WriterFrontend.h"
 #include "WriterBackend.h"
@@ -97,7 +101,7 @@ private:
 
 using namespace logging;
 
-WriterFrontend::WriterFrontend(const WriterBackend::WriterInfo& arg_info, EnumVal* arg_stream, EnumVal* arg_writer, bool arg_local, bool arg_remote)
+WriterFrontend::WriterFrontend(const WriterBackend::WriterInfo& arg_info, EnumVal* arg_stream, EnumVal* arg_writer, bool arg_local, bool arg_remote, int arg_remote_flags)
 	{
 	stream = arg_stream;
 	writer = arg_writer;
@@ -108,6 +112,7 @@ WriterFrontend::WriterFrontend(const WriterBackend::WriterInfo& arg_info, EnumVa
 	buf = true;
 	local = arg_local;
 	remote = arg_remote;
+	remote_flags = arg_remote_flags;
 	write_buffer = 0;
 	write_buffer_pos = 0;
 	info = new WriterBackend::WriterInfo(arg_info);
@@ -167,11 +172,22 @@ void WriterFrontend::Init(int arg_num_fields, const Field* const * arg_fields)
 		backend->SendIn(new InitMessage(backend, arg_num_fields, arg_fields));
 
 	if ( remote )
+		{
 		remote_serializer->SendLogCreateWriter(stream,
 						       writer,
 						       *info,
 						       arg_num_fields,
 						       arg_fields);
+
+#ifdef ENABLE_BROKER
+		broker_mgr->CreateLog(stream,
+				      writer,
+				      *info,
+				      arg_num_fields,
+				      arg_fields,
+				      remote_flags);
+#endif
+		}
 
 	}
 
@@ -191,11 +207,22 @@ void WriterFrontend::Write(int arg_num_fields, Value** vals)
 		}
 
 	if ( remote )
+		{
 		remote_serializer->SendLogWrite(stream,
 						writer,
 						info->path,
 						num_fields,
 						vals);
+
+#ifdef ENABLE_BROKER
+		broker_mgr->Log(stream,
+				writer,
+				info->path,
+				num_fields,
+				vals,
+				remote_flags);
+#endif
+		}
 
 	if ( ! backend )
 		{

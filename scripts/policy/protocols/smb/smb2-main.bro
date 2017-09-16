@@ -3,7 +3,7 @@
 module SMB2;
 
 redef record SMB::CmdInfo += {
-	## Dialects offered by the client	
+	## Dialects offered by the client.
 	smb2_offered_dialects: index_vec &optional;
 };
 
@@ -101,13 +101,9 @@ event smb2_negotiate_response(c: connection, hdr: SMB2::Header, response: SMB2::
 
 event smb2_negotiate_response(c: connection, hdr: SMB2::Header, response: SMB2::NegotiateResponse) &priority=5
 	{
-	if ( SMB::write_cmd_log &&
-	     c$smb_state$current_cmd$status !in SMB::ignored_command_statuses )
-		{
-		Log::write(SMB::CMD_LOG, c$smb_state$current_cmd);
-		}
+	# No behavior yet.
 	}
-	
+
 event smb2_tree_connect_request(c: connection, hdr: SMB2::Header, path: string) &priority=5
 	{
 	c$smb_state$current_tree$path = path;
@@ -121,6 +117,16 @@ event smb2_tree_connect_response(c: connection, hdr: SMB2::Header, response: SMB
 event smb2_tree_connect_response(c: connection, hdr: SMB2::Header, response: SMB2::TreeConnectResponse) &priority=-5
 	{
 	Log::write(SMB::MAPPING_LOG, c$smb_state$current_tree);
+	}
+
+event smb2_tree_disconnect_request(c: connection, hdr: SMB2::Header) &priority=5
+	{
+	if ( hdr$tree_id in c$smb_state$tid_map )
+		{
+		delete c$smb_state$tid_map[hdr$tree_id];
+		delete c$smb_state$current_tree;
+		delete c$smb_state$current_cmd$referenced_tree;
+		}
 	}
 
 event smb2_create_request(c: connection, hdr: SMB2::Header, name: string) &priority=5
@@ -142,7 +148,6 @@ event smb2_create_request(c: connection, hdr: SMB2::Header, name: string) &prior
 			c$smb_state$current_file$action = SMB::PRINT_OPEN;
 			break;
 		default:
-			#c$smb_state$current_file$action = SMB::UNKNOWN_OPEN;
 			c$smb_state$current_file$action = SMB::FILE_OPEN;
 			break;
 		}
@@ -150,6 +155,8 @@ event smb2_create_request(c: connection, hdr: SMB2::Header, name: string) &prior
 
 event smb2_create_response(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, file_size: count, times: SMB::MACTimes, attrs: SMB2::FileAttrs) &priority=5
 	{
+	SMB::set_current_file(c$smb_state, file_id$persistent+file_id$volatile);
+
 	c$smb_state$current_file$fid = file_id$persistent+file_id$volatile;
 	c$smb_state$current_file$size = file_size;
 
@@ -188,13 +195,14 @@ event smb2_read_request(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, o
 			c$smb_state$current_file$action = SMB::PRINT_READ;
 			break;
 		default:
-			c$smb_state$current_file$action = SMB::FILE_OPEN;
+			c$smb_state$current_file$action = SMB::FILE_READ;
 			break;
 		}
 	}
 
 event smb2_read_request(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, offset: count, length: count) &priority=-5
 	{ 
+	SMB::write_file_log(c$smb_state);
 	}
 
 event smb2_write_request(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, offset: count, length: count) &priority=5
@@ -213,7 +221,6 @@ event smb2_write_request(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, 
 			c$smb_state$current_file$action = SMB::PRINT_WRITE;
 			break;
 		default:
-			#c$smb_state$current_file$action = SMB::UNKNOWN_WRITE;
 			c$smb_state$current_file$action = SMB::FILE_WRITE;
 			break;
 		}
@@ -221,6 +228,7 @@ event smb2_write_request(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, 
 
 event smb2_write_request(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, offset: count, length: count) &priority=-5
 	{
+	SMB::write_file_log(c$smb_state);
 	}
 
 event smb2_file_rename(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, dst_filename: string) &priority=5
@@ -254,7 +262,9 @@ event smb2_file_delete(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, de
 
 	if ( ! delete_pending )
 		{
-		print "huh...";
+		# This is weird beause it would mean that someone didn't
+		# set the delete bit in a delete request.
+		return;
 		}
 
 	switch ( c$smb_state$current_tree$share_type )
@@ -289,7 +299,6 @@ event smb2_close_request(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID) 
 			c$smb_state$current_file$action = SMB::PRINT_CLOSE;
 			break;
 		default:
-			#c$smb_state$current_file$action = SMB::UNKNOWN_CLOSE;
 			c$smb_state$current_file$action = SMB::FILE_CLOSE;
 			break;
 		}

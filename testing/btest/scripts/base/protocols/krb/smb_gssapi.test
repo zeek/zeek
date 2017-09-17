@@ -1,0 +1,10 @@
+# This test verifies that GSSAPI is correctly passing events to
+#   the Kerberos analyzer.  The specific trace example is a
+#   SMB authentication event and therfore relies on the SMB
+#   analyzer as well.
+
+# @TEST-EXEC: bro -b -r $TRACES/krb/smb_gssapi.trace %INPUT
+# @TEST-EXEC: btest-diff kerberos.log
+
+@load base/protocols/krb
+@load base/protocols/smb

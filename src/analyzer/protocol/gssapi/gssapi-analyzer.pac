@@ -28,8 +28,8 @@ refine connection GSSAPI_Conn += {
 
 	function forward_blob(val: GSSAPI_NEG_TOKEN_MECH_TOKEN, is_orig: bool): bool
 		%{
-		if ( ${val.mech_token}.length() >= 7 &&
-		     memcmp("NTLMSSP", ${val.mech_token}.begin(), 7) == 0 )
+		if ( val->oid()->meta()->length() >= 7 &&
+		     memcmp("NTLMSSP", val->oid()->content().begin(), 7) == 0 )
 			{
 			// ntlmssp
 			if ( ! ntlm )
@@ -38,9 +38,9 @@ refine connection GSSAPI_Conn += {
 			if ( ntlm )
 				ntlm->DeliverStream(${val.mech_token}.length(), ${val.mech_token}.begin(), is_orig);
 			}
-		else if ( ${val.mech_token}.length() == 9 &&
-		          (memcmp("\x2a\x86\x48\x86\xf7\x12\x01\x02\x02", ${val.mech_token}.begin(), ${val.mech_token}.length()) == 0 ||
-		           memcmp("\x2a\x86\x48\x82\xf7\x12\x01\x02\x02", ${val.mech_token}.begin(), ${val.mech_token}.length()) == 0 ) )
+		else if ( val->oid()->meta()->length() == 9 &&
+		          (memcmp("\x2a\x86\x48\x86\xf7\x12\x01\x02\x02", val->oid()->content().begin(), val->oid()->meta()->length()) == 0 ||
+		           memcmp("\x2a\x86\x48\x82\xf7\x12\x01\x02\x02", val->oid()->content().begin(), val->oid()->meta()->length()) == 0 ) )
 			{
 			// krb5 && ms-krb5
 			if ( ! krb5 )

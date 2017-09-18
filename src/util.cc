@@ -1397,8 +1397,12 @@ void _set_processing_status(const char* status)
 		{
 		char buf[256];
 		strerror_r(errno, buf, sizeof(buf));
-		reporter->Error("Failed to open process status file '%s': %s",
-		                proc_status_file, buf);
+		if ( reporter )
+			reporter->Error("Failed to open process status file '%s': %s",
+			                proc_status_file, buf);
+		else
+			fprintf(stderr, "Failed to open process status file '%s': %s\n",
+			                proc_status_file, buf);
 		errno = old_errno;
 		return;
 		}

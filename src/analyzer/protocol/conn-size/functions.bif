@@ -5,10 +5,7 @@ static analyzer::Analyzer* GetConnsizeAnalyzer(Val* cid)
 	{
 	Connection* c = sessions->FindConnection(cid);
 	if ( ! c )
-		{
-		reporter->Error("cannot find connection");
 		return 0;
-		}
 
 	analyzer::Analyzer* a = c->FindAnalyzer("CONNSIZE");
 	if ( ! a )

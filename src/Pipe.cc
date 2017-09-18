@@ -12,7 +12,7 @@ using namespace bro;
 static void pipe_fail(int eno)
 	{
 	char tmp[256];
-	strerror_r(eno, tmp, sizeof(tmp));
+	bro_strerror_r(eno, tmp, sizeof(tmp));
 	reporter->FatalError("Pipe failure: %s", tmp);
 	}
 

@@ -98,7 +98,7 @@ const char* BasicThread::Strerror(int err)
 	if ( ! strerr_buffer )
 		strerr_buffer = new char[256];
 
-	strerror_r(err, strerr_buffer, 256);
+	bro_strerror_r(err, strerr_buffer, 256);
 	return strerr_buffer;
 	}
 

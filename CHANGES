@@ -1,4 +1,22 @@
 
+2.5-306 | 2017-09-18 14:43:42 -0700
+
+  * Make strerror_r portable, supporting XSI/gnu versions. (Thomas Petersen)
+
+  * Prevent crash when calling bro -U. (Thomas Petersen)
+
+  * Remove annoying error message from connsize bifs. (Johanna Amann)
+
+  * Add test to verify that log rotation works with gzipped logs (Daniel Thayer)
+
+  * Fix ascii writer to not discard a ".gz" file extension. (Daniel Thayer)
+
+    When Bro writes a compressed log, it uses a file extension of ".gz".
+    However, upon log rotation the ascii writer script function
+    "default_rotation_postprocessor_func" was discarding the ".gz"
+    file extension.  Fixed so that the correct file extension is
+    preserved after rotation. (Daniel Thayer)
+
 2.5-297 | 2017-09-11 09:26:33 -0700
 
   * Fix small OCSP parser bug; serial numbers were not passed to events

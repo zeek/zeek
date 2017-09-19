@@ -243,10 +243,6 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 
 			plugins_by_path.insert(std::make_pair(normalize_path(dir), current_plugin));
 
-			if ( current_plugin->APIVersion() != BRO_PLUGIN_API_VERSION )
-				reporter->FatalError("plugin's API version does not match Bro (expected %d, got %d in %s)",
-						     BRO_PLUGIN_API_VERSION, current_plugin->APIVersion(), path);
-
 			// We execute the pre-script initialization here; this in
 			// fact could be *during* script initialization if we got
 			// triggered via @load-plugin.
@@ -712,7 +708,7 @@ void Manager::HookSetupAnalyzerTree(Connection *conn) const
 
 	if ( HavePluginForHook(META_HOOK_PRE) )
 		{
-		args.push_back(conn);
+		args.push_back(HookArgument(conn));
 		MetaHookPre(HOOK_SETUP_ANALYZER_TREE, args);
 		}
 
@@ -739,7 +735,7 @@ void Manager::HookUpdateNetworkTime(double network_time) const
 
 	if ( HavePluginForHook(META_HOOK_PRE) )
 		{
-		args.push_back(network_time);
+		args.push_back(HookArgument(network_time));
 		MetaHookPre(HOOK_UPDATE_NETWORK_TIME, args);
 		}
 
@@ -762,7 +758,7 @@ void Manager::HookBroObjDtor(void* obj) const
 
 	if ( HavePluginForHook(META_HOOK_PRE) )
 		{
-		args.push_back(obj);
+		args.push_back(HookArgument(obj));
 		MetaHookPre(HOOK_BRO_OBJ_DTOR, args);
 		}
 
@@ -777,6 +773,84 @@ void Manager::HookBroObjDtor(void* obj) const
 
 	if ( HavePluginForHook(META_HOOK_POST) )
 		MetaHookPost(HOOK_BRO_OBJ_DTOR, args, HookArgument());
+	}
+
+void Manager::HookLogInit(const std::string& writer,
+                          const std::string& instantiating_filter,
+                          bool local, bool remote,
+                          const logging::WriterBackend::WriterInfo& info,
+                          int num_fields,
+                          const threading::Field* const* fields) const
+	{
+	HookArgumentList args;
+
+	if ( HavePluginForHook(META_HOOK_PRE) )
+		{
+		args.push_back(HookArgument(writer));
+		args.push_back(HookArgument(instantiating_filter));
+		args.push_back(HookArgument(local));
+		args.push_back(HookArgument(remote));
+		args.push_back(HookArgument(&info));
+		args.push_back(HookArgument(num_fields));
+		args.push_back(HookArgument(std::make_pair(num_fields, fields)));
+		MetaHookPre(HOOK_LOG_INIT, args);
+		}
+
+	hook_list* l = hooks[HOOK_LOG_INIT];
+
+	if ( l )
+		for ( hook_list::iterator i = l->begin(); i != l->end(); ++i )
+			{
+			Plugin* p = (*i).second;
+			p->HookLogInit(writer, instantiating_filter, local, remote, info,
+			               num_fields, fields);
+			}
+
+	if ( HavePluginForHook(META_HOOK_POST) )
+		MetaHookPost(HOOK_LOG_INIT, args, HookArgument());
+	}
+
+bool Manager::HookLogWrite(const std::string& writer,
+                           const std::string& filter,
+                           const logging::WriterBackend::WriterInfo& info,
+                           int num_fields,
+                           const threading::Field* const* fields,
+                           threading::Value** vals) const
+	{
+	HookArgumentList args;
+
+	if ( HavePluginForHook(META_HOOK_PRE) )
+		{
+		args.push_back(HookArgument(writer));
+		args.push_back(HookArgument(filter));
+		args.push_back(HookArgument(&info));
+		args.push_back(HookArgument(num_fields));
+		args.push_back(HookArgument(std::make_pair(num_fields, fields)));
+		args.push_back(HookArgument(vals));
+		MetaHookPre(HOOK_LOG_WRITE, args);
+		}
+
+	hook_list* l = hooks[HOOK_LOG_WRITE];
+
+	bool result = true;
+
+	if ( l )
+		for ( hook_list::iterator i = l->begin(); i != l->end(); ++i )
+			{
+			Plugin* p = (*i).second;
+
+			if ( ! p->HookLogWrite(writer, filter, info, num_fields, fields,
+			                       vals) )
+				{
+				result = false;
+				break;
+				}
+			}
+
+	if ( HavePluginForHook(META_HOOK_POST) )
+		MetaHookPost(HOOK_LOG_WRITE, args, HookArgument(result));
+
+	return result;
 	}
 
 void Manager::MetaHookPre(HookType hook, const HookArgumentList& args) const

@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	ssh
-#open	2016-10-13-19-54-38
+#open	2017-08-01-16-46-22
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	auth_success	auth_attempts	direction	client	server	cipher_alg	mac_alg	compression_alg	kex_alg	host_key_alg	host_key
 #types	time	string	addr	port	addr	port	count	bool	count	enum	string	string	string	string	string	string	string	string
-1055289978.855137	CtPZjS20MLrsMUOJi2	66.59.111.190	40264	172.28.2.3	22	2	-	-	-	SSH-2.0-OpenSSH_3.6.1p1	SSH-1.99-OpenSSH_3.1p1	aes128-cbc	hmac-md5	none	diffie-hellman-group-exchange-sha1	ssh-rsa	20:7c:e5:96:b0:4e:ce:a4:db:e4:aa:29:e8:90:98:07
-#close	2016-10-13-19-54-38
+1055289978.855137	CtPZjS20MLrsMUOJi2	66.59.111.190	40264	172.28.2.3	22	2	-	0	-	SSH-2.0-OpenSSH_3.6.1p1	SSH-1.99-OpenSSH_3.1p1	aes128-cbc	hmac-md5	none	diffie-hellman-group-exchange-sha1	ssh-rsa	20:7c:e5:96:b0:4e:ce:a4:db:e4:aa:29:e8:90:98:07
+#close	2017-08-01-16-46-22

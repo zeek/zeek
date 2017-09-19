@@ -25,6 +25,7 @@ public:
 		frame[n] = v;
 		}
 
+	void Reset(int startIdx);
 	void Release();
 
 	void Describe(ODesc* d) const;

@@ -1,0 +1,11 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	http
+#open	2017-07-28-05-03-01
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	trans_depth	method	host	uri	referrer	version	user_agent	request_body_len	response_body_len	status_code	status_msg	info_code	info_msg	tags	username	password	proxied	orig_fuids	orig_filenames	orig_mime_types	resp_fuids	resp_filenames	resp_mime_types
+#types	time	string	addr	port	addr	port	count	string	string	string	string	string	string	count	count	count	string	count	string	set[enum]	string	string	set[string]	vector[string]	vector[string]	vector[string]	vector[string]	vector[string]	vector[string]
+1501217955.063524	CHhAvVGS1DHFjwGM9	192.168.0.9	57322	192.150.187.12	80	1	GET	icir.org	/%	-	1.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:54.0) Gecko/20100101 Firefox/54.0	0	300	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	Fp16kg2g0K5oCDByh2	-	text/html
+1501217957.423701	ClEkJM2Vm5giqnMf4h	192.168.0.9	57323	192.150.187.12	80	1	GET	icir.org	/%5	-	1.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:54.0) Gecko/20100101 Firefox/54.0	0	300	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FAjakt4YvddFQlySjk	-	text/html
+#close	2017-07-28-05-03-01

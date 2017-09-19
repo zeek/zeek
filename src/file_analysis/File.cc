@@ -55,6 +55,7 @@ int File::bof_buffer_size_idx = -1;
 int File::bof_buffer_idx = -1;
 int File::meta_mime_type_idx = -1;
 int File::meta_mime_types_idx = -1;
+int File::meta_inferred_idx = -1;
 
 void File::StaticInit()
 	{
@@ -76,6 +77,7 @@ void File::StaticInit()
 	bof_buffer_idx = Idx("bof_buffer", fa_file_type);
 	meta_mime_type_idx = Idx("mime_type", fa_metadata_type);
 	meta_mime_types_idx = Idx("mime_types", fa_metadata_type);
+	meta_inferred_idx = Idx("inferred", fa_metadata_type);
 	}
 
 File::File(const string& file_id, const string& source_name, Connection* conn,
@@ -107,6 +109,9 @@ File::~File()
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Destroying File object", id.c_str());
 	Unref(val);
 	delete file_reassembler;
+
+	for ( auto a : done_analyzers )
+		delete a;
 	}
 
 void File::UpdateLastActivityTime()
@@ -287,6 +292,27 @@ void File::SetReassemblyBuffer(uint64 max)
 	reassembly_max_buffer = max;
 	}
 
+bool File::SetMime(const string& mime_type)
+	{
+	if ( mime_type.empty() || bof_buffer.size != 0 || did_metadata_inference )
+		return false;
+
+	did_metadata_inference = true;
+	bof_buffer.full = true;
+
+	if ( ! FileEventAvailable(file_sniff) )
+		return false;
+
+	val_list* vl = new val_list();
+	vl->append(val->Ref());
+	RecordVal* meta = new RecordVal(fa_metadata_type);
+	vl->append(meta);
+	meta->Assign(meta_mime_type_idx, new StringVal(mime_type));
+	meta->Assign(meta_inferred_idx, new Val(0, TYPE_BOOL));
+	FileEvent(file_sniff, vl);
+	return true;
+	}
+
 void File::InferMetadata()
 	{
 	did_metadata_inference = true;
@@ -391,9 +417,15 @@ void File::DeliverStream(const u_char* data, uint64 len)
 			// Catch this analyzer up with the BOF buffer.
 			for ( int i = 0; i < num_bof_chunks_behind; ++i )
 				{
-				if ( ! a->DeliverStream(bof_buffer.chunks[i]->Bytes(),
-				                        bof_buffer.chunks[i]->Len()) )
-					analyzers.QueueRemove(a->Tag(), a->Args());
+				if ( ! a->Skipping() )
+					{
+					if ( ! a->DeliverStream(bof_buffer.chunks[i]->Bytes(),
+								bof_buffer.chunks[i]->Len()) )
+						{
+						a->SetSkip(true);
+						analyzers.QueueRemove(a->Tag(), a->Args());
+						}
+					}
 
 				bytes_delivered += bof_buffer.chunks[i]->Len();
 				}
@@ -403,8 +435,14 @@ void File::DeliverStream(const u_char* data, uint64 len)
 			// Analyzer should be fully caught up to stream_offset now.
 			}
 
-		if ( ! a->DeliverStream(data, len) )
-			analyzers.QueueRemove(a->Tag(), a->Args());
+		if ( ! a->Skipping() )
+			{
+			if ( ! a->DeliverStream(data, len) )
+				{
+				a->SetSkip(true);
+				analyzers.QueueRemove(a->Tag(), a->Args());
+				}
+			}
 		}
 
 	stream_offset += len;
@@ -468,14 +506,23 @@ void File::DeliverChunk(const u_char* data, uint64 len, uint64 offset)
 	while ( (a = analyzers.NextEntry(c)) )
 		{
 		DBG_LOG(DBG_FILE_ANALYSIS, "chunk delivery to analyzer %s", file_mgr->GetComponentName(a->Tag()).c_str());
-		if ( ! a->DeliverChunk(data, len, offset) )
+		if ( ! a->Skipping() )
 			{
-			analyzers.QueueRemove(a->Tag(), a->Args());
+			if ( ! a->DeliverChunk(data, len, offset) )
+				{
+				a->SetSkip(true);
+				analyzers.QueueRemove(a->Tag(), a->Args());
+				}
 			}
 		}
 
 	if ( IsComplete() )
 		EndOfFile();
+	}
+
+void File::DoneWithAnalyzer(Analyzer* analyzer)
+	{
+	done_analyzers.push_back(analyzer);
 	}
 
 void File::DataIn(const u_char* data, uint64 len, uint64 offset)

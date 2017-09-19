@@ -8,6 +8,7 @@
 #include "logging/WriterBackend.h"
 #include "threading/formatters/Ascii.h"
 #include "threading/formatters/JSON.h"
+#include "zlib.h"
 
 namespace logging { namespace writer {
 
@@ -42,8 +43,11 @@ private:
 	void InitConfigOptions();
 	bool InitFilterOptions();
 	bool InitFormatter();
+	bool InternalWrite(int fd, const char* data, int len);
+	bool InternalClose(int fd);
 
 	int fd;
+	gzFile gzfile;
 	string fname;
 	ODesc desc;
 	bool ascii_done;
@@ -59,6 +63,7 @@ private:
 	string unset_field;
 	string meta_prefix;
 
+	int gzip_level; // level > 0 enables gzip compression
 	bool use_json;
 	string json_timestamps;
 

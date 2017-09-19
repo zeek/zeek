@@ -475,6 +475,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 
 		Unref(result);
 		result = 0;
+		f->Reset(args->length());
 
 		if ( sample_logger )
 			sample_logger->LocationSeen(body->GetLocationInfo());

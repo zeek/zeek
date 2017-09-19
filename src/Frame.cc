@@ -39,6 +39,15 @@ Frame::~Frame()
 		delete_vals(const_cast<val_list *>(func_args));
 	}
 
+void Frame::Reset(int startIdx)
+	{
+	for ( int i = startIdx; i < size; ++i )
+		{
+		Unref(frame[i]);
+		frame[i] = 0;
+		}
+	}
+
 void Frame::Release()
 	{
 	for ( int i = 0; i < size; ++i )

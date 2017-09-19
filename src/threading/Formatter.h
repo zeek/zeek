@@ -87,7 +87,7 @@ public:
 	 *
 	 * @return An ASCII representation of the address.
 	 */
-	string Render(const threading::Value::addr_t& addr) const;
+	static string Render(const threading::Value::addr_t& addr);
 
 	/**
 	 * Convert an subnet value into a string.
@@ -98,7 +98,7 @@ public:
 	 *
 	 * @return An ASCII representation of the subnet.
 	 */
-	string Render(const threading::Value::subnet_t& subnet) const;
+	static string Render(const threading::Value::subnet_t& subnet);
 
 	/**
 	 * Convert a double into a string. This renders the double with Bro's
@@ -110,7 +110,7 @@ public:
 	 *
 	 * @return An ASCII representation of the double.
 	 */
-	string Render(double d) const;
+	static string Render(double d);
 
 	/**
 	 * Convert a string into a TransportProto. The string must be one of

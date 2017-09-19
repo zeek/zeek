@@ -318,7 +318,7 @@ function openflow_add_rule(p: PluginState, r: Rule) : bool
 			++flow_mod$cookie;
 			}
 		else
-			event rule_error(r, p, "Error while executing OpenFlow::flow_mod");
+			event NetControl::rule_error(r, p, "Error while executing OpenFlow::flow_mod");
 		}
 
 	return T;
@@ -338,7 +338,7 @@ function openflow_remove_rule(p: PluginState, r: Rule, reason: string) : bool
 			of_messages[r$cid, flow_mod$command] = OfTable($p=p, $r=r);
 	else
 			{
-			event rule_error(r, p, "Error while executing OpenFlow::flow_mod");
+			event NetControl::rule_error(r, p, "Error while executing OpenFlow::flow_mod");
 			return F;
 			}
 

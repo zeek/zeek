@@ -2730,10 +2730,10 @@ bool RemoteSerializer::ProcessLogCreateWriter()
 	id_val = new EnumVal(id, internal_type("Log::ID")->AsEnumType());
 	writer_val = new EnumVal(writer, internal_type("Log::Writer")->AsEnumType());
 
-	if ( ! log_mgr->CreateWriter(id_val, writer_val, info, num_fields, fields,
-	                             true, false, true) )
+	if ( ! log_mgr->CreateWriterForRemoteLog(id_val, writer_val, info, num_fields, fields) )
 		{
-		delete_fields_up_to = num_fields;
+		info = 0;
+		fields = 0;
 		goto error;
 		}
 
@@ -2803,7 +2803,7 @@ bool RemoteSerializer::ProcessLogWrite()
 		id_val = new EnumVal(id, internal_type("Log::ID")->AsEnumType());
 		writer_val = new EnumVal(writer, internal_type("Log::Writer")->AsEnumType());
 
-		success = log_mgr->Write(id_val, writer_val, path, num_fields, vals);
+		success = log_mgr->WriteFromRemote(id_val, writer_val, path, num_fields, vals);
 
 		Unref(id_val);
 		Unref(writer_val);

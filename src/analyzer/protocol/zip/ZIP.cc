@@ -2,8 +2,6 @@
 
 #include "ZIP.h"
 
-#include "events.bif.h"
-
 using namespace analyzer::zip;
 
 ZIP_Analyzer::ZIP_Analyzer(Connection* conn, bool orig, Method arg_method)

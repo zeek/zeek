@@ -12,6 +12,7 @@ bro_plugin_pac(tls-handshake.pac tls-handshake-protocol.pac tls-handshake-analyz
 	proc-client-hello.pac
 	proc-server-hello.pac
 	proc-certificate.pac
+	tls-handshake-signed_certificate_timestamp.pac
 )
 bro_plugin_pac(ssl.pac ssl-dtls-analyzer.pac ssl-analyzer.pac ssl-dtls-protocol.pac ssl-protocol.pac ssl-defs.pac
 	proc-client-hello.pac

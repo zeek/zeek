@@ -1,0 +1,31 @@
+# @TEST-EXEC: bro -r $TRACES/tls/signed_certificate_timestamp.pcap %INPUT
+# @TEST-EXEC: btest-diff .stdout
+
+event bro_init()
+	{
+	Files::register_for_mime_type(Files::ANALYZER_OCSP_REPLY, "application/ocsp-response");
+	}
+
+event x509_ocsp_ext_signed_certificate_timestamp(f: fa_file, version: count, logid: string, timestamp: count, hash_algorithm: count, signature_algorithm: count, signature: string)
+	{
+	print version, SSL::ct_logs[logid]$description, double_to_time(timestamp/1000.0), hash_algorithm, signature_algorithm;
+
+	if ( |f$conns| != 1 )
+		return;
+
+	for ( cid in f$conns )
+		{
+		if ( ! f$conns[cid]?$ssl )
+			return;
+
+		local c = f$conns[cid];
+		}
+
+	if ( ! c$ssl?$cert_chain || |c$ssl$cert_chain| == 0 || ! c$ssl$cert_chain[0]?$x509 )
+		return;
+
+	local cert = c$ssl$cert_chain[0]$x509$handle;
+
+	print "Verify of", SSL::ct_logs[logid]$description, sct_verify(cert, logid, SSL::ct_logs[logid]$key, signature, timestamp, hash_algorithm);
+	print "Bad verify of", SSL::ct_logs[logid]$description, sct_verify(cert, logid, SSL::ct_logs[logid]$key, signature, timestamp+1, hash_algorithm);
+	}

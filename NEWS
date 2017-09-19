@@ -4,6 +4,95 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as BroControl and Broccoli, come with
 their own ``CHANGES``.)
 
+
+Bro 2.6 (in progress)
+=====================
+
+New Functionality
+-----------------
+
+- Support for OCSP and Signed Certificate Timestamp. This adds the
+  following events and BIFs:
+
+  - Events: ocsp_request, ocsp_request_certificate,
+    ocsp_response_status, ocsp_response_bytes
+    ocsp_response_certificate ocsp_extension
+    x509_ocsp_ext_signed_certificate_timestamp
+    ssl_extension_signed_certificate_timestamp
+
+  - Functions: sct_verify, x509_subject_name_hash,
+    x509_issuer_name_hash x509_spki_hash
+
+- The SSL scripts provide a new hook "ssl_finishing(c: connection)"
+  to trigger actions after the handshake has concluded.
+
+Changed Functionality
+---------------------
+
+- The MIME types used to identify X.509 certificates in SSL
+  connections changed from "application/pkix-cert" to
+  "application/x-x509-user-cert" for host certificates and
+  "application/x-x509-ca-cert" for CA certificates.
+
+Removed Functionality
+---------------------
+
+- We no longer maintain any Bro plugins as part of the Bro
+  distribution. Most of the plugins that used be in aux/plugins have
+  been moved over to use the Bro Package Manager instead. See
+  https://github.com/bro/packages for a list of Bro packages currently
+  available.
+
+Bro 2.5.1
+=========
+
+New Functionality
+-----------------
+
+- Bro now includes bifs for rename, unlink, and rmdir.
+
+- Bro now includes events for two extensions used by TLS 1.3:
+  ssl_extension_supported_versions and ssl_extension_psk_key_exchange_modes
+
+- Bro now includes hooks that can be used to interact with log processing
+  on the C++ level.
+
+- Bro now supports ERSPAN. Currently this ignores the ethernet header that is
+  carried over the tunnel; if a MAC is logged currently only the outer MAC
+  is returned.
+
+- Added a new BroControl option CrashExpireInterval to enable
+  "broctl cron" to remove crash directories that are older than the
+  specified number of days (the default value is 0, which means crash
+  directories never expire).
+
+- Added a new BroControl option MailReceivingPackets to control
+  whether or not "broctl cron" will mail a warning when it notices
+  that no packets were seen on an interface.
+
+- There is a new broctl command-line option "--version" which outputs
+  the BroControl version.
+
+Changed Functionality
+---------------------
+
+- The input framework's Ascii reader is now more resilient. If an input
+  is marked to reread a file when it changes and the file didn't exist
+  during a check Bro would stop watching the file in previous versions.
+  The same could happen with bad data in a line of a file.  These
+  situations do not cause Bro to stop watching input files anymore. The
+  old behavior is available through settings in the Ascii reader.
+
+- The RADIUS scripts have been reworked. Requests are now logged even if
+  there is no response. The new framed_addr field in the log indicates
+  if the radius server is hinting at an address for the client. The ttl
+  field indicates how quickly the server is replying to the network access
+  server.
+
+- With the introduction of the Bro package manager, the Bro plugin repository
+  is considered deprecated. The af_packet, postgresql, and tcprs plugins have
+  already been removed and are available via bro-pkg.
+
 Bro 2.5
 =======
 

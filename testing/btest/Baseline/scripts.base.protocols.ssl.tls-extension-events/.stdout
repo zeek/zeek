@@ -20,3 +20,69 @@ uncompressed
 ansiX962_compressed_prime
 ansiX962_compressed_char2
 ALPN, 192.168.4.149, 74.125.239.152, [spdy/3.1]
+Point formats, 192.168.6.240, 139.162.123.134, T
+uncompressed
+ansiX962_compressed_prime
+ansiX962_compressed_char2
+Curves, 192.168.6.240, 139.162.123.134
+x25519
+secp256r1
+secp521r1
+secp384r1
+signature_algorithm, 192.168.6.240, 139.162.123.134
+sha256, ecdsa
+sha384, ecdsa
+sha512, ecdsa
+unknown-8, unknown-4
+unknown-8, unknown-5
+unknown-8, unknown-6
+sha256, rsa
+sha384, rsa
+sha512, rsa
+sha1, ecdsa
+sha1, rsa
+sha1, dsa
+sha256, dsa
+sha384, dsa
+sha512, dsa
+supported_versions(, 192.168.6.240, 139.162.123.134
+TLSv13-draft19
+TLSv12
+TLSv11
+TLSv10
+psk_key_exchange_modes, 192.168.6.240, 139.162.123.134
+1
+0
+Point formats, 192.168.6.240, 139.162.123.134, T
+uncompressed
+ansiX962_compressed_prime
+ansiX962_compressed_char2
+Curves, 192.168.6.240, 139.162.123.134
+x25519
+secp256r1
+secp521r1
+secp384r1
+signature_algorithm, 192.168.6.240, 139.162.123.134
+sha256, ecdsa
+sha384, ecdsa
+sha512, ecdsa
+unknown-8, unknown-4
+unknown-8, unknown-5
+unknown-8, unknown-6
+sha256, rsa
+sha384, rsa
+sha512, rsa
+sha1, ecdsa
+sha1, rsa
+sha1, dsa
+sha256, dsa
+sha384, dsa
+sha512, dsa
+supported_versions(, 192.168.6.240, 139.162.123.134
+TLSv13-draft19
+TLSv12
+TLSv11
+TLSv10
+psk_key_exchange_modes, 192.168.6.240, 139.162.123.134
+1
+0

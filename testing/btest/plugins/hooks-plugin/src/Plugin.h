@@ -10,17 +10,22 @@ namespace Demo_Hooks {
 class Plugin : public ::plugin::Plugin
 {
 protected:
-	virtual int HookLoadFile(const std::string& file, const std::string& ext);
-	virtual std::pair<bool, Val*> HookCallFunction(const Func* func, Frame* frame, val_list* args);
-	virtual bool HookQueueEvent(Event* event);
-	virtual void HookDrainEvents();
-	virtual void HookUpdateNetworkTime(double network_time);
-	virtual void HookBroObjDtor(void* obj);
-	virtual void MetaHookPre(HookType hook, const HookArgumentList& args);
-	virtual void MetaHookPost(HookType hook, const HookArgumentList& args, HookArgument result);
+	int HookLoadFile(const std::string& file, const std::string& ext) override;
+	std::pair<bool, Val*> HookCallFunction(const Func* func, Frame* frame, val_list* args) override;
+	bool HookQueueEvent(Event* event) override;
+	void HookDrainEvents() override;
+	void HookUpdateNetworkTime(double network_time) override;
+	void HookBroObjDtor(void* obj) override;
+	void HookLogInit(const std::string& writer, const std::string& instantiating_filter, bool local, bool remote, const logging::WriterBackend::WriterInfo& info, int num_fields, const threading::Field* const* fields) override;
+	bool HookLogWrite(const std::string& writer, const std::string& filter, const logging::WriterBackend::WriterInfo& info, int num_fields, const threading::Field* const* fields, threading::Value** vals) override;
+	void HookSetupAnalyzerTree(Connection *conn) override;
+	void MetaHookPre(HookType hook, const HookArgumentList& args) override;
+	void MetaHookPost(HookType hook, const HookArgumentList& args, HookArgument result) override;
+
+	void RenderVal(const threading::Value* val, ODesc &d) const;
 
 	// Overridden from plugin::Plugin.
-	virtual plugin::Configuration Configure();
+	plugin::Configuration Configure() override;
 };
 
 extern Plugin plugin;

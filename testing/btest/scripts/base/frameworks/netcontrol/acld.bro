@@ -79,6 +79,11 @@ event NetControl::rule_removed(r: NetControl::Rule, p: NetControl::PluginState, 
 	print "rule removed", r$entity, r$ty;
 	}
 
+event NetControl::rule_error(r: NetControl::Rule, p: NetControl::PluginState, msg: string)
+	{
+	print "rule error", r$entity, r$ty;
+	}
+
 @TEST-END-FILE
 
 @TEST-START-FILE recv.bro
@@ -115,7 +120,10 @@ event NetControl::acld_remove_rule(id: count, r: NetControl::Rule, ar: NetContro
 	{
 	print "remove_rule", id, r$entity, r$ty, ar;
 
-	Broker::send_event("bro/event/netcontroltest", Broker::event_args(NetControl::acld_rule_removed, id, r, ar$command));
+	if ( r$cid != 2 )
+		Broker::send_event("bro/event/netcontroltest", Broker::event_args(NetControl::acld_rule_removed, id, r, ar$command));
+	else
+		Broker::send_event("bro/event/netcontroltest", Broker::event_args(NetControl::acld_rule_error, id, r, ar$command));
 
 	if ( r$cid == 4 )
 		terminate();

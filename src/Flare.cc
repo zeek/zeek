@@ -16,7 +16,7 @@ Flare::Flare()
 static void bad_pipe_op(const char* which)
 	{
 	char buf[256];
-	strerror_r(errno, buf, sizeof(buf));
+	bro_strerror_r(errno, buf, sizeof(buf));
 	reporter->FatalErrorWithCore("unexpected pipe %s failure: %s", which, buf);
 	}
 

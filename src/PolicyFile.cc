@@ -84,7 +84,7 @@ bool LoadPolicyFileText(const char* policy_filename)
 	if ( fstat(fileno(f), &st) != 0 )
 		{
 		char buf[256];
-		strerror_r(errno, buf, sizeof(buf));
+		bro_strerror_r(errno, buf, sizeof(buf));
 		reporter->Error("fstat failed on %s: %s", policy_filename, buf);
 		fclose(f);
 		return false;

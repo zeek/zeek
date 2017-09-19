@@ -14,6 +14,13 @@ export {
 	redef record Files::Info += {
 		## Local filename of extracted file.
 		extracted: string &optional &log;
+
+		## Set to true if the file being extracted was cut off
+		## so the whole file was not logged.
+		extracted_cutoff: bool &optional &log;
+
+		## The number of bytes extracted to disk.
+		extracted_size: count &optional &log;
 	};
 
 	redef record Files::AnalyzerArgs += {
@@ -58,7 +65,14 @@ function on_add(f: fa_file, args: Files::AnalyzerArgs)
 
 	f$info$extracted = args$extract_filename;
 	args$extract_filename = build_path_compressed(prefix, args$extract_filename);
+	f$info$extracted_cutoff = F;
 	mkdir(prefix);
+	}
+
+event file_extraction_limit(f: fa_file, args: Files::AnalyzerArgs, limit: count, len: count) &priority=10
+	{
+	f$info$extracted_cutoff = T;
+	f$info$extracted_size = limit;
 	}
 
 event bro_init() &priority=10

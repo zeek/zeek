@@ -62,6 +62,36 @@ broker::util::optional<broker::data> val_to_data(Val* v);
 Val* data_to_val(broker::data d, BroType* type, bool require_log_attr = false);
 
 /**
+ * Convert a Bro threading::Value to a Broker data value.
+ * @param v a Bro threading::Value.
+ * @return a Broker data value if the Bro threading::Value could be converted to one.
+ */
+broker::util::optional<broker::data> threading_val_to_data(const threading::Value* v);
+
+/**
+ * Convert a Bro threading::Field to a Broker data value.
+ * @param f a Bro threading::Field.
+ * @return a Broker data value if the Bro threading::Field could be converted to one.
+ */
+broker::data threading_field_to_data(const threading::Field* f);
+
+/**
+ * Convert a Broker data value to a Bro threading::Value.
+ * @param d a Broker data value.
+ * @return a pointer to a new Bro threading::Value or a nullptr if the conversion was not
+ * possible.
+ */
+threading::Value* data_to_threading_val(broker::data d);
+
+/**
+ * Convert a Broker data value to a Bro threading::Value.
+ * @param d a Broker data value.
+ * @return a pointer to a new Bro threading::Value or a nullptr if the conversion was not
+ * possible.
+ */
+threading::Field* data_to_threading_field(broker::data d);
+
+/**
  * A Bro value which wraps a Broker data value.
  */
 class DataVal : public OpaqueVal {

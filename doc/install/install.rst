@@ -54,11 +54,17 @@ To install the required dependencies, you can use:
 
      sudo yum install cmake make gcc gcc-c++ flex bison libpcap-devel openssl-devel python-devel swig zlib-devel
 
+  In order to build Bro on Fedora 26, install ``compat-openssl10-devel`` instead
+  of ``openssl-devel``.
+
 * DEB/Debian-based Linux:
 
   .. console::
 
      sudo apt-get install cmake make gcc g++ flex bison libpcap-dev libssl-dev python-dev swig zlib1g-dev
+
+  In order to build Bro on Debian 9, install ``libssl1.0-dev`` instead
+  of ``libssl-dev``.
 
 * FreeBSD:
 

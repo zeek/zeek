@@ -1,5 +1,5 @@
 # @TEST-EXEC: bro -r $TRACES/tls/ecdhe.pcap %INPUT
-# @TEST-EXEC: TEST_DIFF_CANONIFIER='grep -v ^# | $SCRIPTS/diff-sort' btest-diff netcontrol.log
+# @TEST-EXEC: TEST_DIFF_CANONIFIER='grep -v ^# | $SCRIPTS/diff-remove-timestamps' btest-diff netcontrol.log
 # @TEST-EXEC: btest-diff netcontrol_catch_release.log
 
 @load base/frameworks/netcontrol

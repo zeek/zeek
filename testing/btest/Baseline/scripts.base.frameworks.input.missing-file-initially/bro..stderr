@@ -1,0 +1,8 @@
+warning: ../does-not-exist.dat/Input::READER_ASCII: Init: cannot open ../does-not-exist.dat
+warning: ../does-not-exist.dat/Input::READER_ASCII: Init: cannot open ../does-not-exist.dat
+warning: ../does-not-exist.dat/Input::READER_ASCII: Init: cannot open ../does-not-exist.dat
+error: ../does-not-exist.dat/Input::READER_ASCII: Init: cannot open ../does-not-exist.dat
+error: ../does-not-exist.dat/Input::READER_ASCII: Init failed
+error: ../does-not-exist.dat/Input::READER_ASCII: terminating thread
+warning: ../does-not-exist.dat/Input::READER_ASCII: Could not get stat for ../does-not-exist.dat
+received termination signal

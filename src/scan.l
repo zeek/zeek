@@ -636,6 +636,8 @@ static int load_files(const char* orig_file)
 
 	broxygen_mgr->Script(file_path);
 
+	DBG_LOG(DBG_SCRIPTS, "Loading %s", file_path.c_str());
+
 	// "orig_file", could be an alias for yytext, which is ephemeral
 	//  and will be zapped after the yy_switch_to_buffer() below.
 	yy_switch_to_buffer(yy_create_buffer(f, YY_BUF_SIZE));

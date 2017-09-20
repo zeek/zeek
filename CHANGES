@@ -1,4 +1,9 @@
 
+2.5-307 | 2017-09-20 10:51:09 -0500
+
+  * BIT-1846: Updating broctl submodule to include fix for symlinking
+    issue (Jon Siwek)
+
 2.5-306 | 2017-09-18 14:43:42 -0700
 
   * Make strerror_r portable, supporting XSI/gnu versions. (Thomas Petersen)

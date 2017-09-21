@@ -1,4 +1,8 @@
 
+2.5-310 | 2017-09-21 09:10:21 -0700
+
+  * fix interaction of gridftp scripts with other thresholds. (Justin Azoff)
+
 2.5-307 | 2017-09-20 10:51:09 -0500
 
   * BIT-1846: Updating broctl submodule to include fix for symlinking

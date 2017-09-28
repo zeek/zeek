@@ -32,7 +32,7 @@ event remote_connection_handshake_done(p: event_peer)
 	{
 	# When a worker connects, send it the complete minimal data store.
 	# It will be kept up to date after this by the cluster_new_item event.
-	if ( Cluster::nodes[p$descr]$node_type == Cluster::WORKER )
+	if ( p$descr in Cluster::nodes && Cluster::nodes[p$descr]$node_type == Cluster::WORKER )
 		{
 		send_id(p, "Intel::min_data_store");
 		}

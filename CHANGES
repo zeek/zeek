@@ -1,4 +1,29 @@
 
+2.5-317 | 2017-09-29 09:54:50 -0400
+
+  * BIT-1853 - Fix an issue with broctl triggering reporter error in the
+    intel framework. (Justin Azoff)
+
+  * BIT-1845 - Make "in" keyword work with binary data. (Johanna Amann)
+
+  * Add TLS 1.3 fix and testcase due to Google Chrome's use of TLS 1.3. 
+
+    It turns out that Chrome supports an experimental mode to support TLS
+    1.3, which uses a non-standard way to negotiate TLS 1.3 with a server.
+    This non-standard way to negotiate TLS 1.3 breaks the current draft RFC
+    and re-uses an extension on the server-side with a different binary
+    formatting, causing us to throw a binpac exception.
+
+    This patch ignores the extension when sent by the server, continuing to
+    correctly parse the server_hello reply (as far as possible).
+
+    From what I can tell this seems to be google working around the fac
+    that MITM equipment cannot deal with TLS 1.3 server hellos; this change
+    makes the fact that TLS 1.3 is used completely opaque unless one looks
+    into a few extensions.
+
+    We currently log this as TLS 1.2. (Johanna Amann)
+
 2.5-310 | 2017-09-21 09:10:21 -0700
 
   * fix interaction of gridftp scripts with other thresholds. (Justin Azoff)

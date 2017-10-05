@@ -1,9 +1,14 @@
 
+2.5-326 | 2017-10-05 14:34:20 -0700
+
+  * Update the SSH analyzer to support the "curve25519-sha256" KEX.
+    (Vlad Grigorescu)
+
 2.5-321 | 2017-10-03 12:00:29 -0500
 
   * Add "-B scripts" flag to allow debug output of script load order.
     (Corelight)
-     
+
   * Fix segmentation fault on eval condition with no return value. (Corelight)
 
 2.5-317 | 2017-09-29 09:54:50 -0400

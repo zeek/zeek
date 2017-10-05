@@ -20,7 +20,7 @@ Extract::Extract(RecordVal* args, File* file, const string& arg_filename,
 		{
 		fd = 0;
 		char buf[128];
-		strerror_r(errno, buf, sizeof(buf));
+		bro_strerror_r(errno, buf, sizeof(buf));
 		reporter->Error("cannot open %s: %s", filename.c_str(), buf);
 		}
 	}

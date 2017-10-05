@@ -516,4 +516,10 @@ struct CompareString
  */
 std::string canonify_name(const std::string& name);
 
+/**
+ * Reentrant version of strerror(). Takes care of the difference between the
+ * XSI-compliant and the GNU-specific version of strerror_r().
+ */
+void bro_strerror_r(int bro_errno, char* buf, size_t buflen);
+
 #endif

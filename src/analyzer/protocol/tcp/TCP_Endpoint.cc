@@ -229,7 +229,7 @@ int TCP_Endpoint::DataSent(double t, uint64 seq, int len, int caplen,
 		if ( fwrite(data, 1, len, f) < unsigned(len) )
 			{
 			char buf[256];
-			strerror_r(errno, buf, sizeof(buf));
+			bro_strerror_r(errno, buf, sizeof(buf));
 			reporter->Error("TCP contents write failed: %s", buf);
 
 			if ( contents_file_write_failure )

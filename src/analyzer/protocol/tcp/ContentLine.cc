@@ -223,8 +223,8 @@ int ContentLine_Analyzer::DoDeliverOnce(int len, const u_char* data)
 	buf[offset] = '\0'; \
 	int seq_len = data + 1 - data_start; \
 	seq_delivered_in_lines = seq + seq_len; \
-	last_char = c; \
 	ForwardStream(offset, buf, IsOrig()); \
+	last_char = 0; \
 	offset = 0; \
 	return seq_len; \
 	}

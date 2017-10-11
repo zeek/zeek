@@ -74,10 +74,8 @@ refine connection GSSAPI_Conn += {
                     if ( ! krb5 )
                         krb5 = analyzer_mgr->InstantiateAnalyzer("KRB", bro_analyzer()->Conn());
 
-                    if ( krb5 && (
-                         memcmp("\x01\x00", p, 2) == 0 ||  // KRB5 AP REQ
-                         memcmp("\x02\x00", p, 2) == 0 )   // KRB5 AP REP
-                          )
+                    if ( krb5 ) // accepting all KRB types (REQ, REP, etc)
+                          
                         {
                         krb5->DeliverPacket(len_to_send-2,
                                             p+2, 

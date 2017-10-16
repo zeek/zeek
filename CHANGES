@@ -1,4 +1,8 @@
 
+2.5-327 | 2017-10-16 12:21:01 -0700
+
+  * Updating submodule(s).
+
 2.5-326 | 2017-10-05 14:34:20 -0700
 
   * Update the SSH analyzer to support the "curve25519-sha256" KEX.

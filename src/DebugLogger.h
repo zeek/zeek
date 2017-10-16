@@ -33,6 +33,7 @@ enum DebugStream {
 	DBG_BROXYGEN,	// Broxygen
 	DBG_PKTIO,	// Packet sources and dumpers.
 	DBG_BROKER,	// Broker communication
+	DBG_SCRIPTS,	// Script initialization
 
 	NUM_DBGS // Has to be last
 };

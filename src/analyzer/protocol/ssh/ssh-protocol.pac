@@ -410,7 +410,7 @@ refine connection SSH_Conn += {
 						return true;
 					if ( update_kex_state_if_equal("ecmqv-sha2", KEX_ECC) )
 						return true;
-					if ( update_kex_state_if_equal("curve25519-sha256@libssh.org", KEX_ECC) )
+					if ( update_kex_state_if_startswith("curve25519-sha256", KEX_ECC) )
 						return true;
 
 

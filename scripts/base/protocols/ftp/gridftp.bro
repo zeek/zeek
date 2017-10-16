@@ -75,6 +75,9 @@ event ConnThreshold::bytes_threshold_crossed(c: connection, threshold: count, is
 	if ( threshold < size_threshold || "gridftp-data" in c$service || c$duration > max_time )
 		return;
 
+	if ( ! data_channel_initial_criteria(c) )
+		return;
+
 	add c$service["gridftp-data"];
 	event GridFTP::data_channel_detected(c);
 

@@ -250,6 +250,16 @@ int ContentLine_Analyzer::DoDeliverOnce(int len, const u_char* data)
 		case '\n':
 			if ( last_char == '\r' )
 				{
+				// Weird corner-case:
+				// this can happen if we see a \r at the end of a packet where crlf is
+				// set to CR_as_EOL | LF_as_EOL, with the packet causing crlf to be set to
+				// 0 and the next packet beginning with a \n. In this case we just swallow
+				// the character and re-set last_char.
+				if ( offset == 0 )
+					{
+					last_char = c;
+					break;
+					}
 				--offset; // remove '\r'
 				EMIT_LINE
 				}

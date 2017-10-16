@@ -1,4 +1,14 @@
 
+2.5.2 | 2017-10-16 13:37:47 -0700
+
+  * Release 2.5.2
+
+  * Patch OOB write in content-line analyzer.
+
+    A combination of packets can trigger an out of bound write of '0' byte
+    in the content-line analyzer. Addresses BIT-1856.
+    (Frank Meier/Johanna Amann)
+
 2.5.1 | 2017-06-26 15:55:45 -0700
 
   * Release 2.5.1.

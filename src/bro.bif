@@ -3442,7 +3442,9 @@ function lookup_addr%(host: addr%) : string
 	// FIXME: It should be easy to adapt the function to synchronous
 	// lookups if we're reading a trace.
 	Trigger* trigger = frame->GetTrigger();
-
+	trigger->SetTimeoutValue(DNS_TIMEOUT + 1);
+	trigger->SetTimeoutResult(new StringVal("<timeout>"));
+	
 	if ( ! trigger)
 		{
 		builtin_error("lookup_addr() can only be called inside an asynchronous context");
@@ -3468,10 +3470,10 @@ function lookup_addr%(host: addr%) : string
 ## .. bro:see:: lookup_hostname
 function lookup_hostname_txt%(host: string%) : string
 	%{
-	// FIXME: Is should be easy to adapt the function to synchronous
-	// lookups if we're reading a trace.
 	Trigger* trigger = frame->GetTrigger();
-
+	trigger->SetTimeoutValue(DNS_TIMEOUT + 1);
+	trigger->SetTimeoutResult(new StringVal("<timeout>"));
+	
 	if ( ! trigger)
 		{
 		builtin_error("lookup_hostname_txt() can only be called inside an asynchronous context");
@@ -3497,14 +3499,17 @@ function lookup_hostname_txt%(host: string%) : string
 ## .. bro:see:: lookup_addr
 function lookup_hostname%(host: string%) : addr_set
 	%{
-	// FIXME: Is should be easy to adapt the function to synchronous
-	// lookups if we're reading a trace.
 	Trigger* trigger = frame->GetTrigger();
+	trigger->SetTimeoutValue(DNS_TIMEOUT + 1);
+
+	ListVal* lv = new ListVal(TYPE_ADDR);
+	Val* timeout_result = lv->ConvertToSet();
+	trigger->SetTimeoutResult(timeout_result);
 
 	if ( ! trigger)
 		{
 		builtin_error("lookup_hostname() can only be called inside an asynchronous context");
-		return new StringVal("<error>");
+		return timeout_result->Ref();
 		}
 
 	frame->SetDelayed();

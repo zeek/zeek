@@ -1,4 +1,14 @@
 
+2.4.2 | 2017-10-16 13:42:29 -0700
+
+  * Release 2.4.2
+
+  * Patch OOB write in content-line analyzer.
+
+    A combination of packets can trigger an out of bound write of '0' byte
+    in the content-line analyzer. Addresses BIT-1856.
+    (Frank Meier/Johanna Amann)
+
 2.4.1 | 2015-09-06 09:54:17 -0700
 
   * Make dns_max_queries redef-able (Vlad Grigorescu)

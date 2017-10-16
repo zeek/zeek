@@ -4,6 +4,15 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as BroControl and Broccoli, come with
 their own ``CHANGES``.)
 
+Bro 2.4.2
+=========
+
+Bro 2.4.2 fixes a security issue in the ContentLine analyzer. In rare cases
+a bug in the ContentLine analyzer can lead to an out of bound write of a single
+byte. This allows a remote attacker to crash Bro; there also is a possibility
+this can be exploited in other ways.
+
+
 Bro 2.4
 =======
 

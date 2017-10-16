@@ -122,7 +122,8 @@ Trigger::Trigger(Expr* arg_cond, Stmt* arg_body, Stmt* arg_timeout_stmts,
 		{
 		DBG_LOG(DBG_NOTIFIERS, "%s: cloning frame", Name());
 		frame = arg_frame->Clone();
-		frame->SetTrigger(this);
+		frame->SetTrigger(arg_frame->GetTrigger());
+		frame->SetCall(arg_frame->GetCall());
 		}
 	else
 		{
@@ -309,9 +310,6 @@ bool Trigger::Eval()
 
 	if ( is_return )
 		{
-		assert(false);
-
-		// FIXME: Not supported rihgt now.
 		Trigger* trigger = frame->GetTrigger();
 		assert(trigger);
 		assert(frame->GetCall());

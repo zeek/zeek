@@ -447,6 +447,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 	// Hand down trigger-related state.
 	if ( parent )
 		{
+		f->SetTrigger(parent->GetTrigger());
 		f->SetCall(parent->GetCall());
 		f->SetFiber(parent->GetFiber());
 		}

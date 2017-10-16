@@ -3516,6 +3516,48 @@ function lookup_hostname%(host: string%) : addr_set
 	%}
 
 %%{
+class __TestAsyncTimer : public Timer
+{
+public:
+	__TestAsyncTimer(double dt, const CallExpr* c, Val* r, Trigger* t)
+		: Timer(network_time + dt, TIMER_SCHEDULE), // Abusing TIMER_SCHEDULE here ...
+		  call(c), result(r), trigger(t) {}
+
+	void Dispatch(double t, int is_expire)
+		{
+		trigger->Cache(call, result);
+		trigger->Release();
+		}
+
+private:
+	const CallExpr* call;
+	Val* result;
+	Trigger* trigger;
+};
+%%}
+
+function __test_async%(result: string, delay: interval, timeout_: interval%) : string
+	%{
+	Trigger* trigger = frame->GetTrigger();
+
+	trigger->SetTimeoutValue(timeout_);
+	trigger->SetTimeoutResult(new StringVal("<timeout>"));
+
+	if ( ! trigger)
+		{
+		builtin_error("__test_async() can only be called inside an asynchronous context");
+		return new StringVal("<error>");
+		}
+
+	frame->SetDelayed();
+	trigger->Hold();
+
+	timer_mgr->Add(new __TestAsyncTimer(delay, frame->GetCall(), result, trigger));
+	return 0;
+	%}
+
+
+%%{
 #ifdef USE_GEOIP
 extern "C" {
 #include <GeoIPCity.h>

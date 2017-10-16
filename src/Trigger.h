@@ -40,6 +40,18 @@ public:
 	double TimeoutValue() const
 		{ return timeout_value; }
 
+	// Sets the timeout value. This will have an effect only if called
+	// before the trigger has been started.
+	void SetTimeoutValue(double d)	{ timeout_value = d; }
+
+	// Return the value to return on timeout (null if none was specified).
+	Val* TimeoutResult() const
+		{ return timeout_result; }
+
+	// Sets a value that will be returned on timeout if no timeout
+	// statements have been defined. Function takes ownership of value.
+	void SetTimeoutResult(Val* v) 	{ timeout_result = v; }
+
 	// Called if another entity needs to complete its operations first in
 	// any case before this trigger can proceed. Eval() will never return
 	// true while the trigger is on hold.
@@ -105,6 +117,7 @@ private:
 	Stmt* timeout_stmts;
 	Expr* timeout;
 	double timeout_value;
+	Val* timeout_result;
 	Frame* frame;
 	bool is_return;
 	bool clone_frame;

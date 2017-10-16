@@ -107,6 +107,7 @@ Trigger::Trigger(Expr* arg_cond, Stmt* arg_body, Stmt* arg_timeout_stmts,
 	body = arg_body;
 	timeout_stmts = arg_timeout_stmts;
 	timeout = arg_timeout;
+	timeout_result = 0;
 	timer = 0;
 	delayed = false;
 	disabled = false;
@@ -155,8 +156,8 @@ Trigger::Trigger(Expr* arg_cond, Stmt* arg_body, Stmt* arg_timeout_stmts,
 
 	if ( timeout_val )
 		{
-		Unref(timeout_val);
 		timeout_value = timeout_val->AsInterval();
+		Unref(timeout_val);
 		}
 	}
 
@@ -190,6 +191,8 @@ Trigger::~Trigger()
 
 	if ( clone_frame )
 		Unref(frame);
+
+	Unref(timeout_result);
 
 	UnregisterAll();
 
@@ -458,6 +461,15 @@ void Trigger::Timeout()
 
 		Unref(v);
 		Unref(f);
+		}
+
+	else if ( timeout_result )
+		{
+		Trigger* trigger = frame->GetTrigger();
+		assert(trigger);
+		trigger->Cache(frame->GetCall(), timeout_result);
+		trigger->Release();
+		frame->ClearTrigger();
 		}
 
 	Disable();

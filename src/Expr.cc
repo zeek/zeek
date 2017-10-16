@@ -4550,6 +4550,7 @@ Val* CallExpr::EvalAsync(Frame* f, class Func* func, val_list* v) const
 	DBG_LOG(DBG_NOTIFIERS, "beginning new asynchronous call");
 
 	auto trigger = new Trigger(nullptr, nullptr, nullptr, nullptr, f, false, false, true, GetLocationInfo());
+
 	f->SetTrigger(trigger);
 
 	while ( true )
@@ -4581,6 +4582,13 @@ Val* CallExpr::EvalAsync(Frame* f, class Func* func, val_list* v) const
 
 		if ( ! trigger_started )
 			{
+			// BIFs are in charge of setting these
+			if ( ! trigger->TimeoutValue() ) 
+				Internal("asynchronous expression does not have a timeout");
+
+			if ( ! trigger->TimeoutResult() )
+				Internal("asynchronous expression does not have a timeout result value");
+
 			trigger_started = true;
 			trigger->Start();
 			}

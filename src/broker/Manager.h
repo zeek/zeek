@@ -273,6 +273,7 @@ private:
 		broker::status_subscriber status_subscriber;
 	};
 
+	void DispatchMessage(broker::data&& msg);
 	void ProcessEvent(const broker::bro::Event le);
 	bool ProcessLogCreate(const broker::bro::LogCreate lc);
 	bool ProcessLogWrite(const broker::bro::LogWrite lw);

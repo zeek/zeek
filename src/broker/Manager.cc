@@ -293,8 +293,7 @@ bool Manager::PublishIdentifier(std::string topic, std::string id)
 		return false;
 		}
 
-	broker::bro::IdentifierUpdate::Args args{move(id), move(*data)};
-	broker::bro::IdentifierUpdate msg(move(args));
+	broker::bro::IdentifierUpdate msg(move(id), move(*data));
 	DBG_LOG(DBG_BROKER, "Publishing id-update: %s",
 	        RenderMessage(topic, msg).c_str());
 	bstate->endpoint.publish(move(topic), move(msg));
@@ -341,8 +340,7 @@ bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer,
 	std::string topic = log_topic + stream_id;
 	auto bstream_id = broker::enum_value(move(stream_id));
 	auto bwriter_id = broker::enum_value(move(writer_id));
-	broker::bro::LogCreate::Args xs{move(bstream_id), move(bwriter_id), move(writer_info), move(fields_data)};
-	broker::bro::LogCreate msg(std::move(xs));
+	broker::bro::LogCreate msg(move(bstream_id), move(bwriter_id), move(writer_info), move(fields_data));
 
 	DBG_LOG(DBG_BROKER, "Publishing log creation: %s", RenderMessage(topic, msg).c_str());
 
@@ -399,8 +397,7 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 	std::string topic = log_topic + stream_id;
 	auto bstream_id = broker::enum_value(move(stream_id));
 	auto bwriter_id = broker::enum_value(move(writer_id));
-	broker::bro::LogWrite::Args xs{move(bstream_id), move(bwriter_id), move(path), move(vals_data)};
-	broker::bro::LogWrite msg(std::move(xs));
+	broker::bro::LogWrite msg(move(bstream_id), move(bwriter_id), move(path), move(vals_data));
 
 	DBG_LOG(DBG_BROKER, "Publishing log record: %s", RenderMessage(topic, msg).c_str());
 	bstate->endpoint.publish(move(topic), move(msg));
@@ -586,6 +583,40 @@ double Manager::NextTimestamp(double* local_network_time)
 	return -1;
 	}
 
+void Manager::DispatchMessage(broker::data&& msg)
+	{
+	switch ( broker::bro::Message::type(msg) ) {
+	case broker::bro::Message::Type::Event:
+		ProcessEvent(broker::bro::Event(std::move(msg)));
+		break;
+
+	case broker::bro::Message::Type::LogCreate:
+		ProcessLogCreate(broker::bro::LogCreate(std::move(msg)));
+		break;
+
+	case broker::bro::Message::Type::LogWrite:
+		ProcessLogWrite(broker::bro::LogWrite(std::move(msg)));
+		break;
+
+	case broker::bro::Message::Type::IdentifierUpdate:
+		ProcessIdentifierUpdate(broker::bro::IdentifierUpdate(std::move(msg)));
+		break;
+
+	case broker::bro::Message::Type::Batch:
+		{
+		broker::bro::Batch batch(std::move(msg));
+		for ( auto i : batch.batch() ) 
+			DispatchMessage(std::move(i));
+		break;
+		}
+
+	default:
+		// We ignore unknown types so that we could add more in the
+		// future if we had too.
+		break;
+	}
+	}
+
 void Manager::Process()
 	{
 	bool had_input = false;
@@ -611,32 +642,17 @@ void Manager::Process()
 		reporter->InternalWarning("ignoring status_subscriber message with unexpected type");
 		}
 
-
 	while ( bstate->subscriber.available() )
 		{
 		had_input = true;
 
 		auto elem = bstate->subscriber.get();
 		auto topic = elem.first;
+		auto msg = elem.second;
 
 		try
 			{
-			auto msg = broker::bro::Message(elem.second);
-
-			if ( msg.type() == broker::bro::Message::Type::Event )
-				ProcessEvent(broker::bro::Event(std::move(msg)));
-
-			else if ( msg.type() == broker::bro::Message::Type::LogCreate )
-				ProcessLogCreate(broker::bro::LogCreate(std::move(msg)));
-
-			else if ( msg.type() == broker::bro::Message::Type::LogWrite )
-				ProcessLogWrite(broker::bro::LogWrite(std::move(msg)));
-
-			else if ( msg.type() == broker::bro::Message::Type::IdentifierUpdate )
-				ProcessIdentifierUpdate(broker::bro::IdentifierUpdate(std::move(msg)));
-
-			// We ignore unknown types so that we could add more in the
-			// future if we had too.
+			DispatchMessage(std::move(msg));
 			}
 		catch ( std::runtime_error& e )
 			{
@@ -703,10 +719,7 @@ bool bro_broker::Manager::ProcessLogCreate(const broker::bro::LogCreate lc)
 	{
 	DBG_LOG(DBG_BROKER, "Received log-create: %s", RenderMessage(lc).c_str());
 
-	auto args = lc.args();
-
-	auto stream_id = data_to_val(args.stream_id, log_id_type);
-
+	auto stream_id = data_to_val(lc.stream_id(), log_id_type);
 	if ( ! stream_id )
 		{
 		reporter->Warning("failed to unpack remote log stream id");
@@ -715,8 +728,7 @@ bool bro_broker::Manager::ProcessLogCreate(const broker::bro::LogCreate lc)
 
 	unref_guard stream_id_unreffer{stream_id};
 
-	auto writer_id = data_to_val(args.writer_id, writer_id_type);
-
+	auto writer_id = data_to_val(lc.writer_id(), writer_id_type);
 	if ( ! writer_id )
 		{
 		reporter->Warning("failed to unpack remote log writer id");
@@ -726,8 +738,7 @@ bool bro_broker::Manager::ProcessLogCreate(const broker::bro::LogCreate lc)
 	unref_guard writer_id_unreffer{writer_id};
 
 	auto writer_info = std::unique_ptr<logging::WriterBackend::WriterInfo>(new logging::WriterBackend::WriterInfo);
-
-	if ( ! writer_info->FromBroker(args.writer_info) )
+	if ( ! writer_info->FromBroker(lc.writer_info()) )
 		{
 		reporter->Warning("failed to unpack remote log writer info");
 		return false;
@@ -737,8 +748,7 @@ bool bro_broker::Manager::ProcessLogCreate(const broker::bro::LogCreate lc)
 
 	try
 		{
-		auto fields_data = broker::get<broker::vector>(args.fields_data);
-
+		auto fields_data = broker::get<broker::vector>(lc.fields_data());
 		auto num_fields = fields_data.size();
 		auto fields = new threading::Field* [num_fields];
 
@@ -777,12 +787,8 @@ bool bro_broker::Manager::ProcessLogWrite(const broker::bro::LogWrite lw)
 
 	++statistics.num_logs_incoming;
 
-	auto args = lw.args();
-
 	// Get stream ID.
-
-	auto stream_id = data_to_val(args.stream_id, log_id_type);
-
+	auto stream_id = data_to_val(lw.stream_id(), log_id_type);
 	if ( ! stream_id )
 		{
 		reporter->Warning("failed to unpack remote log stream id");
@@ -792,9 +798,7 @@ bool bro_broker::Manager::ProcessLogWrite(const broker::bro::LogWrite lw)
 	unref_guard stream_id_unreffer{stream_id};
 
 	// Get writer ID.
-
-	auto writer_id = data_to_val(args.writer_id, writer_id_type);
-
+	auto writer_id = data_to_val(lw.writer_id(), writer_id_type);
 	if ( ! writer_id )
 		{
 		reporter->Warning("failed to unpack remote log writer id");
@@ -805,9 +809,8 @@ bool bro_broker::Manager::ProcessLogWrite(const broker::bro::LogWrite lw)
 
 	 try
 		{
-		auto path = broker::get<std::string>(args.path);
-		auto vals_data = broker::get<broker::vector>(args.vals_data);
-
+		auto path = broker::get<std::string>(lw.path());
+		auto vals_data = broker::get<broker::vector>(lw.vals_data());
 		auto num_vals = vals_data.size();
 		auto vals = new threading::Value* [num_vals];
 
@@ -838,9 +841,8 @@ bool Manager::ProcessIdentifierUpdate(const broker::bro::IdentifierUpdate iu)
 	{
 	DBG_LOG(DBG_BROKER, "Received id-update: %s", RenderMessage(iu).c_str());
 	++statistics.num_ids_incoming;
-	auto args = iu.args();
-	auto id_name = args.id_name;
-	auto id_value = args.id_value;
+	auto id_name = iu.id_name();
+	auto id_value = iu.id_value();
 	auto id = global_scope()->Lookup(id_name.c_str());
 
 	if ( ! id )

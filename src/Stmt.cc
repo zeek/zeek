@@ -1292,6 +1292,8 @@ Val* ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 		{
 		TableVal* tv = v->AsTableVal();
 		const PDict(TableEntryVal)* loop_vals = tv->AsTable();
+		if (!loop_vals->Length())
+			return ret;
 
 		HashKey* k;
 		IterCookie* c = loop_vals->InitForIteration();

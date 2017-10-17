@@ -3012,7 +3012,7 @@ function strptime%(fmt: string, d: string%) : time
 	const time_t timeval = time_t();
 	struct tm t;
 
-	if ( ! localtime_r(&timeval, &t) || 
+	if ( ! localtime_r(&timeval, &t) ||
 	     ! strptime(d->CheckString(), fmt->CheckString(), &t) )
 		{
 		reporter->Warning("strptime conversion failed: fmt:%s d:%s", fmt->CheckString(), d->CheckString());
@@ -3444,7 +3444,7 @@ function lookup_addr%(host: addr%) : string
 	Trigger* trigger = frame->GetTrigger();
 	trigger->SetTimeoutValue(DNS_TIMEOUT + 1);
 	trigger->SetTimeoutResult(new StringVal("<timeout>"));
-	
+
 	if ( ! trigger)
 		{
 		builtin_error("lookup_addr() can only be called inside an asynchronous context");
@@ -3473,7 +3473,7 @@ function lookup_hostname_txt%(host: string%) : string
 	Trigger* trigger = frame->GetTrigger();
 	trigger->SetTimeoutValue(DNS_TIMEOUT + 1);
 	trigger->SetTimeoutResult(new StringVal("<timeout>"));
-	
+
 	if ( ! trigger)
 		{
 		builtin_error("lookup_hostname_txt() can only be called inside an asynchronous context");
@@ -3521,10 +3521,10 @@ function lookup_hostname%(host: string%) : addr_set
 	%}
 
 %%{
-class __TestAsyncTimer : public Timer
+class __TestTriggerTimer : public Timer
 {
 public:
-	__TestAsyncTimer(double dt, const CallExpr* c, Val* r, Trigger* t)
+	__TestTriggerTimer(double dt, const CallExpr* c, Val* r, Trigger* t)
 		: Timer(network_time + dt, TIMER_SCHEDULE), // Abusing TIMER_SCHEDULE here ...
 		  call(c), result(r), trigger(t) {}
 
@@ -3541,7 +3541,18 @@ private:
 };
 %%}
 
-function __test_async%(result: string, delay: interval, timeout_: interval%) : string
+## An asynchronous function for testing purposes that lets the caller
+## control it's timing behaviour.
+##
+## result: The function returns this value after *delay* seconds, running in
+## asynchronously while it's waiting.
+##
+## delay: The interval to wait before return *result*.
+##
+## timeout: If non-zero, an interval after which to timeout the asynchronous
+## operation. By setting this to less than delay, one can reliably trigger
+## a timeout. In that case the result will be ``<timeout>``.
+function __test_trigger%(result: string, delay: interval, timeout_: interval%) : string
 	%{
 	Trigger* trigger = frame->GetTrigger();
 
@@ -3557,7 +3568,7 @@ function __test_async%(result: string, delay: interval, timeout_: interval%) : s
 	frame->SetDelayed();
 	trigger->Hold();
 
-	timer_mgr->Add(new __TestAsyncTimer(delay, frame->GetCall(), result, trigger));
+	timer_mgr->Add(new __TestTriggerTimer(delay, frame->GetCall(), result, trigger));
 	return 0;
 	%}
 

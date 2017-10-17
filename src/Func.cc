@@ -485,6 +485,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 			{
 			// Called code may potentially yield, so run inside a
 			// fiber to support that.
+			DBG_LOG(DBG_NOTIFIERS, "%s: calling event body", Name());
 			CallEventBodyInsideFiber(body, args, f, parent);
 			continue;
 			}

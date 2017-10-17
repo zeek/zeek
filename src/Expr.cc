@@ -4547,7 +4547,7 @@ Val* CallExpr::EvalAsync(Frame* f, class Func* func, val_list* v) const
 	if ( ! f->GetFiber() )
 		reporter->ExprRuntimeError(this, "script context does not support asynchronous calls");
 
-	DBG_LOG(DBG_NOTIFIERS, "beginning new asynchronous call");
+	DBG_LOG(DBG_NOTIFIERS, "beginning new asynchronous call to %s()", func->Name());
 
 	auto trigger = new Trigger(nullptr, nullptr, nullptr, nullptr, f, false, false, true, GetLocationInfo());
 

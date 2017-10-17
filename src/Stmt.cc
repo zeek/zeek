@@ -1226,7 +1226,7 @@ bool EventStmt::DoUnserialize(UnserialInfo* info)
 	}
 
 WhileStmt::WhileStmt(Expr* arg_loop_condition, Stmt* arg_body)
-	: loop_condition(arg_loop_condition), body(arg_body)
+	: Stmt(STMT_WHILE), loop_condition(arg_loop_condition), body(arg_body)
 	{
 	if ( ! loop_condition->IsError() &&
 	     ! IsBool(loop_condition->Type()->Tag()) )

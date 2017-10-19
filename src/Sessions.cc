@@ -337,11 +337,24 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 		return;
 		}
 
+	// for both of these it is safe to pass ip_hdr because the presence
+	// is guaranteed for the functions that pass data to us.
+	int ip_hdr_len = ip_hdr->HdrLen();
+	if ( ip_hdr_len > len )
+		{
+		Weird("invalid_IP_header_size", ip_hdr, encapsulation);
+		return;
+		}
+	if ( ip_hdr_len > caplen )
+		{
+		Weird("internally_truncated_header", ip_hdr, encapsulation);
+		return;
+		}
+
 	// Ignore if packet matches packet filter.
 	if ( packet_filter && packet_filter->Match(ip_hdr, len, caplen) )
 		 return;
 
-	int ip_hdr_len = ip_hdr->HdrLen();
 	if ( ! ignore_checksums && ip4 &&
 	     ones_complement_checksum((void*) ip4, ip_hdr_len, 0) != 0xffff )
 		{
@@ -381,6 +394,12 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 
 			caplen = len = ip_hdr->TotalLen();
 			ip_hdr_len = ip_hdr->HdrLen();
+
+			if ( ip_hdr_len > len )
+				{
+				Weird("invalid_IP_header_size", ip_hdr, encapsulation);
+				return;
+				}
 			}
 		}
 
@@ -618,9 +637,10 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 		// Check for a valid inner packet first.
 		IP_Hdr* inner = 0;
 		int result = ParseIPPacket(caplen, data, proto, inner);
-		if ( result < 0 )
+		if ( result == -2 )
+			Weird("invalid_inner_IP_version", ip_hdr, encapsulation);
+		else if ( result < 0 )
 			Weird("truncated_inner_IP", ip_hdr, encapsulation);
-
 		else if ( result > 0 )
 			Weird("inner_IP_payload_length_mismatch", ip_hdr, encapsulation);
 
@@ -819,7 +839,10 @@ int NetSessions::ParseIPPacket(int caplen, const u_char* const pkt, int proto,
 		if ( caplen < (int)sizeof(struct ip6_hdr) )
 			return -1;
 
-		inner = new IP_Hdr((const struct ip6_hdr*) pkt, false, caplen);
+		const struct ip6_hdr* ip6 = (const struct ip6_hdr*) pkt;
+		inner = new IP_Hdr(ip6, false, caplen);
+		if ( ( ip6->ip6_ctlun.ip6_un2_vfc & 0xF0 ) != 0x60 )
+			return -2;
 		}
 
 	else if ( proto == IPPROTO_IPV4 )
@@ -827,7 +850,10 @@ int NetSessions::ParseIPPacket(int caplen, const u_char* const pkt, int proto,
 		if ( caplen < (int)sizeof(struct ip) )
 			return -1;
 
-		inner = new IP_Hdr((const struct ip*) pkt, false);
+		const struct ip* ip4 = (const struct ip*) pkt;
+		inner = new IP_Hdr(ip4, false);
+		if ( ip4->ip_v != 4 )
+			return -2;
 		}
 
 	else

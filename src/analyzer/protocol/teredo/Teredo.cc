@@ -195,7 +195,7 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 	else
 		{
 		delete inner;
-		ProtocolViolation("Truncated Teredo", (const char*) data, len);
+		ProtocolViolation("Truncated Teredo or invalid inner IP version", (const char*) data, len);
 		return;
 		}
 

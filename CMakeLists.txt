@@ -162,9 +162,9 @@ if ( ENABLE_FUZZER )
     endif ()
 
     include(ExternalProject)
-    set(FUZZER_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/Fuzzer)
+    set(FUZZER_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/fuzzer)
     ExternalProject_Add(libfuzzer_git
-        GIT_REPOSITORY https://chromium.googlesource.com/chromium/llvm-project/llvm/lib/Fuzzer
+        GIT_REPOSITORY https://chromium.googlesource.com/chromium/llvm-project/compiler-rt/lib/fuzzer
         PREFIX ${FUZZER_PREFIX}
         CONFIGURE_COMMAND ""
         BINARY_DIR ${FUZZER_PREFIX}/src/libfuzzer_git

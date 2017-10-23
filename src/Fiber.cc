@@ -142,6 +142,7 @@ void Fiber::Yield()
 
 bool Fiber::Resume()
 	{
+	assert(state == Fiber::YIELDED);
 	resumed = true;
 	return Run();
 	}

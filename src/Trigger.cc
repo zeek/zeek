@@ -166,17 +166,11 @@ void Trigger::Start()
 	{
 	DBG_LOG(DBG_NOTIFIERS, "%s: starting", Name());
 
-	// Make sure we don't get deleted if somebody calls a method like
-	// Timeout() while evaluating the trigger.
-	Ref(this);
-
-	if ( ! Eval() && timeout_value >= 0 )
+	if ( timeout_value >= 0 )
 		{
 		timer = new TriggerTimer(timeout_value, this);
 		timer_mgr->Add(timer);
 		}
-
-	Unref(this);
 	}
 
 Trigger::~Trigger()
@@ -222,14 +216,14 @@ bool Trigger::Eval()
 	if ( disabled )
 		return true;
 
-	DBG_LOG(DBG_NOTIFIERS, "%s: evaluating", Name());
-
 	if ( delayed )
 		{
 		DBG_LOG(DBG_NOTIFIERS, "%s: skipping trigger evaluation due to delayed call",
 				Name());
 		return false;
 		}
+
+	DBG_LOG(DBG_NOTIFIERS, "%s: evaluating", Name());
 
 	Frame* f = 0;
 
@@ -383,6 +377,9 @@ void Trigger::EvaluateTriggers()
 			{
 			// The trigger being disabled means it has been fully
 			// processed.
+			if ( ! t->frame )
+				continue;
+
 			if ( t->frame->GetFiber() )
 				{
 				// That's a async function call, resume it
@@ -392,7 +389,6 @@ void Trigger::EvaluateTriggers()
 				auto fiber = frame->GetFiber();
 
 				frame->SetDelayed(0);
-
 				if ( fiber->Resume() )
 					Fiber::Destroy(fiber);
 				}
@@ -566,8 +562,11 @@ void Trigger::ClearCache()
 
 void Trigger::Disable()
 	{
-	UnregisterAll();
+	if ( disabled )
+		return;
+
 	disabled = true;
+	UnregisterAll();
 	}
 
 const char* Trigger::Name() const

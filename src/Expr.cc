@@ -4526,11 +4526,14 @@ Val* CallExpr::EvalSync(Frame* f, class Func* func, val_list* v) const
 
 	try
 		{
+		calling_expr = this;
 		ret = func->Call(v, f);
+		calling_expr = 0;
 		}
 
 	catch ( InterpreterException& e )
 		{
+		calling_expr = 0;
 		throw; // Pass exceptions upstream.
 		}
 
@@ -4541,61 +4544,40 @@ Val* CallExpr::EvalSync(Frame* f, class Func* func, val_list* v) const
 
 Val* CallExpr::EvalAsync(Frame* f, class Func* func, val_list* v) const
 	{
-	Val* ret = 0;
-	bool trigger_started = false;
-
 	if ( ! f->GetFiber() )
 		reporter->ExprRuntimeError(this, "script context does not support asynchronous calls");
 
+	auto trigger = new Trigger(nullptr, nullptr, nullptr, nullptr, f, false, false, true, GetLocationInfo());
+	f->SetTrigger(trigger);
+
+	try
+		{
+		calling_expr = this;
+		Val* ret = func->Call(v, f);
+		// TODO: If result returned, use it directly.
+		calling_expr = 0;
+		}
+	catch ( InterpreterException& e )
+		{
+		throw; // Pass exceptions upstream.
+		}
+
 	DBG_LOG(DBG_NOTIFIERS, "beginning new asynchronous call to %s()", func->Name());
 
-	auto trigger = new Trigger(nullptr, nullptr, nullptr, nullptr, f, false, false, true, GetLocationInfo());
-
-	f->SetTrigger(trigger);
+	trigger->Start();
 
 	while ( true )
 		{
-		// If we are inside a trigger, we may have already
-		// been called, delayed, and then produced a result
-		// which is now cached.
-		if ( (ret = CheckCache(trigger)) )
-			break;
-
-		try
-			{
-			// Call() will unref args but we need to keep them
-			// around.
-			val_list nv;
-			loop_over_list(*v, i)
-				nv.append(((*v)[i])->Ref());
-
-			ret = func->Call(&nv, f);
-			}
-
-		catch ( InterpreterException& e )
-			{
-			throw; // Pass exceptions upstream.
-			}
-
-		if ( ret )
-			break;
-
-		if ( ! trigger_started )
-			{
-			trigger_started = true;
-			trigger->Start();
-			}
-
-		// Don't have a result yet for asynchronous call, suspend
-		// execution.
 		DBG_LOG(DBG_NOTIFIERS, "%s: yielding in asynchronous call", trigger->Name());
 		f->GetFiber()->Yield();
+
+		if ( auto ret = CheckCache(trigger) )
+			{
+			DBG_LOG(DBG_NOTIFIERS, "got result for %s()", func->Name());
+			f->ClearTrigger();
+			return ret;
+			}
 		}
-
-	f->ClearTrigger();
-
-	delete_vals(v);
-	return ret;
 	}
 
 Val* CallExpr::Eval(Frame* f) const

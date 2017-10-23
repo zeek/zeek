@@ -375,13 +375,13 @@ void BroFunc::CallEventBodyInsideFiber(Stmt* body, val_list* args, Frame* f, Fra
 	// Function that will run inside the fiber.
 	auto execute_body = [=]() -> bool
 		{
+		// Create a shallow copy of the frame that can stay
+		// around during asynchronous execution.
+		auto nframe = f->ShallowCopy();
+		nframe->SetFiber(fiber);
+
 		try
 			{
-			// Create a shallow copy of the frame that can stay
-			// around during asynchronous execution.
-			auto nframe = f->ShallowCopy();
-			nframe->SetFiber(fiber);
-
 			stmt_flow_type flow;
 			auto nresult = body->Exec(nframe, flow);
 
@@ -394,6 +394,7 @@ void BroFunc::CallEventBodyInsideFiber(Stmt* body, val_list* args, Frame* f, Fra
 		catch ( InterpreterException& e )
 			{
 			// Error message has already been already reported.
+			Unref(nframe);
 			return false;
 			}
 
@@ -485,7 +486,11 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 			{
 			// Called code may potentially yield, so run inside a
 			// fiber to support that.
-			DBG_LOG(DBG_NOTIFIERS, "%s: calling event body", Name());
+#ifdef DEBUG
+			ODesc d;
+			body->GetLocationInfo()->Describe(&d);
+			DBG_LOG(DBG_NOTIFIERS, "%s: calling event body (%s)", Name(), d.Description());
+#endif
 			CallEventBodyInsideFiber(body, args, f, parent);
 			continue;
 			}

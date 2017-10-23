@@ -2216,8 +2216,12 @@ Val* WhenStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	// The new trigger object will take care of its own deletion.
 	auto trigger = new Trigger(cond, s1, s2, timeout, f, is_return, true, true, location);
 	trigger->Start();
+
 	DBG_LOG(DBG_NOTIFIERS, "%s: beginning when statement", trigger->Name());
 
+	// Evaluate it once directly. Note that trigger may become invalid
+	// after evaluation.
+	trigger->Eval();
 	return 0;
 	}
 

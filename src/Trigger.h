@@ -22,9 +22,7 @@ public:
 		const Location* loc);
 	~Trigger();
 
-	// Start evaluating the trigger continously. If the condition is
-	// already true, the statements are executed immediately and the
-	// object is deleted right away.
+	// Start evaluating the trigger continously.
 	void Start();
 
 	// Evaluates the condition. If true, executes the body and deletes

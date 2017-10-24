@@ -383,11 +383,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 			FType()->FlavorString().c_str(), d.Description());
 		}
 
-	loop_over_list(*args, i)
-		f->SetElement(i, (*args)[i]);
-
 	stmt_flow_type flow = FLOW_NEXT;
-
 	Val* result = 0;
 
 	for ( size_t i = 0; i < bodies.size(); ++i )
@@ -397,6 +393,19 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 				bodies[i].stmts->GetLocationInfo());
 
 		Unref(result);
+
+		loop_over_list(*args, j)
+			{
+			Val* arg = (*args)[j];
+			if ( f->NthElement(j) != arg )
+				{
+				// Either not yet set, or somebody reassigned
+				// the frame slot.
+				Ref(arg);
+				f->SetElement(j, arg);
+				}
+			}
+
 		f->Reset(args->length());
 
 		try
@@ -433,6 +442,11 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 				}
 			}
 		}
+
+	// We have an extra Ref for each argument (so that they don't get
+	// deleted between bodies), release that.
+	loop_over_list(*args, k)
+		Unref((*args)[k]);
 
 	if ( Flavor() == FUNC_FLAVOR_HOOK )
 		{

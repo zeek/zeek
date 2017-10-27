@@ -1,4 +1,10 @@
 
+2.5-332 | 2017-10-27 13:27:16 -0700
+
+  * Bro docs tweaks for correctness and readability. (Christian Kreibich)
+
+  * Fix use-after-free in Trigger.cc. (Johanna Amann)
+
 2.5-328 | 2017-10-16 13:13:41 -0700
 
   * Patch OOB write in content-line analyzer.

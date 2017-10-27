@@ -113,7 +113,6 @@ Manager::BrokerState::BrokerState(broker::broker_options options)
 
 Manager::Manager()
 	{
-	routable = false;
 	bound_port = 0;
 
 	next_timestamp = 1;
@@ -128,6 +127,7 @@ void Manager::InitPostScript()
 	{
 	DBG_LOG(DBG_BROKER, "Initializing");
 
+	log_topic = get_option("Broker::log_topic")->AsString()->CheckString();
 	log_id_type = internal_type("Log::ID")->AsEnumType();
 	writer_id_type = internal_type("Log::Writer")->AsEnumType();
 
@@ -144,6 +144,7 @@ void Manager::InitPostScript()
 
 	broker::broker_options options;
 	options.disable_ssl = get_option("Broker::disable_ssl")->AsBool();
+	options.forward = get_option("Broker::forward_messages")->AsBool();
 
 	bstate = std::make_shared<BrokerState>(options);
 	}
@@ -174,18 +175,6 @@ void Manager::Terminate()
 bool Manager::Active()
 	{
 	return bound_port > 0 || bstate->endpoint.peers().size();
-	}
-
-bool Manager::Configure(bool arg_routable, std::string arg_log_topic)
-	{
-	DBG_LOG(DBG_BROKER, "Configuring endpoint: routable=%s log_topic=%s",
-		(routable ? "yes" : "no"), arg_log_topic.c_str());
-
-	routable = arg_routable;
-	log_topic = arg_log_topic;
-
-	// TODO: process routable flag
-	return true;
 	}
 
 uint16_t Manager::Listen(const string& addr, uint16_t port)
@@ -231,6 +220,11 @@ void Manager::Unpeer(const string& addr, uint16_t port)
 std::vector<broker::peer_info> Manager::Peers() const
 	{
 	return bstate->endpoint.peers();
+	}
+
+std::string Manager::NodeID() const
+	{
+	return to_string(bstate->endpoint.node_id());
 	}
 
 bool Manager::PublishEvent(string topic, std::string name, broker::vector args)

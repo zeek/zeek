@@ -5,6 +5,7 @@
 module Control;
 
 export {
+	## Whether the control framework uses broker to perform remote communication.
 	const use_broker = T &redef;
 
 	## The address of the host that will be controlled.

@@ -1,4 +1,4 @@
-# @TEST-SERIALIZE: comm
+# @TEST-SERIALIZE: brokercomm
 #
 # @TEST-EXEC: btest-bg-run manager-1 "cp ../cluster-layout.bro . && CLUSTER_NODE=manager-1 bro %INPUT"
 # @TEST-EXEC: sleep 1
@@ -38,6 +38,11 @@ redef Log::default_ext_func = add_extension;
 event terminate_me() {
 	terminate();
 }
+
+event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
+	{
+	schedule 1sec { terminate_me() };
+	}
 
 event remote_connection_closed(p: event_peer) {
   schedule 1sec { terminate_me() };

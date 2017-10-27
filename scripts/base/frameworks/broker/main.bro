@@ -20,6 +20,11 @@ export {
 	## use already.
 	const default_listen_retry = 30sec &redef;
 
+	## Default address on which to listen.
+	##
+	## .. bro:see:: Broker::listen
+	const default_listen_address = "" &redef;
+
 	## Default interval to retry connecting to a peer if it cannot be made to work
 	## initially, or if it ever becomes disconnected.
 	const default_connect_retry = 30sec &redef;
@@ -55,14 +60,12 @@ export {
 	## all peers.
 	const ssl_keyfile = "" &redef;
 
-	## The available configuration options when enabling Broker.
-	type Options: record {
-		## Whether this Broker instance relays messages not destined to itself.
-		## By default, routing is disabled.
-		routable: bool &default = F;
-		## The topic prefix where to publish logs.
-		log_topic: string &default = "bro/logs/";
-	};
+	## Forward all received messages to subscribing peers.
+	const forward_messages = F &redef;
+
+	## The topic prefix where logs will be published.  The log's stream id
+	## is appended when writing to a particular stream.
+	const log_topic = "bro/logs/" &redef;
 
 	type ErrorCode: enum {
 		## The unspecified default error code.
@@ -153,13 +156,6 @@ export {
 		val: Broker::Data;
 	};
 
-	## Configures the local endpoint.
-	##
-	## options: Configures the local Broker endpoint behavior.
-	##
-	## Returns: true if configuration was successfully performed..
-	global configure: function(options: Options &default = Options()): bool;
-
 	## Listen for remote connections.
 	##
 	## a: an address string on which to accept connections, e.g.
@@ -174,7 +170,8 @@ export {
 	## Returns: the bound port or 0/? on failure.
 	##
 	## .. bro:see:: Broker::status
-	global listen: function(a: string &default = "", p: port &default=default_port,
+	global listen: function(a: string &default = default_listen_address,
+	                        p: port &default = default_port,
 	                        retry: interval &default = default_listen_retry): port;
 	## Initiate a remote connection.
 	##
@@ -212,6 +209,9 @@ export {
 
 	## Returns: a list of all peer connections.
 	global peers: function(): vector of PeerInfo;
+
+	## Returns: a unique identifier for the local broker endpoint.
+	global node_id: function(): string;
 
 	## Publishes an event at a given topic.
 	##
@@ -278,16 +278,6 @@ export {
 
 module Broker;
 
-event bro_init() &priority=-10
-	{
-	configure(); # Configure with defaults.
-	}
-
-function configure(options: Options &default = Options()): bool
-	{
-	return __configure(options);
-	}
-
 event retry_listen(a: string, p: port, retry: interval)
 	{
 	listen(a, p, retry);
@@ -316,6 +306,11 @@ function unpeer(a: string, p: port): bool
 function peers(): vector of PeerInfo
 	{
 	return __peers();
+	}
+
+function node_id(): string
+	{
+	return __node_id();
 	}
 
 function publish(topic: string, ev: Event): bool

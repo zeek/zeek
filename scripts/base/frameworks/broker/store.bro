@@ -61,7 +61,7 @@ export {
 	                               options: BackendOptions &default = BackendOptions()): opaque of Broker::Store;
 
 	## Create a clone of a master data store which may live with a remote peer.
-	## A clone automatically synchronizes to the master by automatically
+	## A clone automatically synchronizes to the master by
 	## receiving modifications and applying them locally.  Direct modifications
 	## are not possible, they must be sent through the master store, which then
 	## automatically broadcasts the changes out to clones.  But queries may be
@@ -69,18 +69,6 @@ export {
 	## quicker than reaching out to a remote master store.
 	##
 	## name: the unique name which identifies the master data store.
-	##
-	## b: the storage backend to use.
-	##
-	## options: tunes how some storage backends operate.
-	##
-	## resync: the interval at which to re-attempt synchronizing with the master
-	##         store should the connection be lost.  If the clone has not yet
-	##         synchronized for the first time, updates and queries queue up
-	##         until the synchronization completes.  After, if the connection
-	##         to the master store is lost, queries continue to use the clone's
-	##         version, but updates will be lost until the master is once again
-	##         available.
 	##
 	## Returns: a handle to the data store.
 	global create_clone: function(name: string): opaque of Broker::Store;

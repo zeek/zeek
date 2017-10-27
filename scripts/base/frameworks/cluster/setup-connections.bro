@@ -3,13 +3,163 @@
 
 @load ./main
 @load base/frameworks/communication
+@load base/frameworks/broker
 
 @if ( Cluster::node in Cluster::nodes )
 
 module Cluster;
 
+type NamedNode: record {
+	name: string;
+	node: Node;
+};
+
+function nodes_with_type(node_type: NodeType): vector of NamedNode
+	{
+	local rval: vector of NamedNode = vector();
+
+	for ( name in Cluster::nodes )
+		{
+		local n = Cluster::nodes[name];
+
+		if ( n$node_type != node_type )
+			next;
+
+		rval[|rval|] = NamedNode($name=name, $node=n);
+		}
+
+	return rval;
+	}
+
+function connect_peer(node_type: NodeType, node_name: string): bool
+	{
+	local nn = nodes_with_type(node_type);
+
+	for ( i in nn )
+		{
+		local n = nn[i];
+
+		if ( n$name != node_name )
+			next;
+
+		Cluster::log(fmt("initiate peering with %s:%s, retry=%s",
+		                 n$node$ip, n$node$p, Cluster::retry_interval));
+		return Broker::peer(cat(n$node$ip), n$node$p, Cluster::retry_interval);
+		}
+
+	return F;
+	}
+
 event bro_init() &priority=9
 	{
+	if ( ! use_broker )
+		return;
+
+	local self = nodes[node];
+
+	switch ( self$node_type ) {
+	case NONE:
+		return;
+	case CONTROL:
+		break;
+	case LOGGER:
+		Broker::subscribe(Cluster::logger_topic);
+		Broker::subscribe(Broker::log_topic);
+		break;
+	case MANAGER:
+		Broker::subscribe(Cluster::manager_topic);
+
+		if ( Cluster::manager_is_logger )
+			Broker::subscribe(Broker::log_topic);
+
+		break;
+	case PROXY:
+		Broker::subscribe(Cluster::proxy_topic);
+		break;
+	case WORKER:
+		Broker::subscribe(Cluster::worker_topic);
+		break;
+	case TIME_MACHINE:
+		Broker::subscribe(Cluster::time_machine_topic);
+		break;
+	default:
+		Reporter::error(fmt("Unhandled cluster node type: %s", self$node_type));
+		return;
+	}
+
+	Broker::subscribe(Cluster::broadcast_topic);
+	Broker::subscribe(Cluster::node_topic_prefix + node);
+
+	Broker::listen(Broker::default_listen_address,
+	               self$p,
+	               Broker::default_listen_retry);
+
+	Cluster::log(fmt("listening on %s:%s", Broker::default_listen_address, self$p));
+
+	switch ( self$node_type ) {
+	case MANAGER:
+		if ( self?$logger )
+			connect_peer(LOGGER, self$logger);
+
+		if ( self?$time_machine )
+			connect_peer(TIME_MACHINE, self$time_machine);
+
+		break;
+	case PROXY:
+		if ( self?$logger )
+			connect_peer(LOGGER, self$logger);
+
+		if ( self?$manager )
+			connect_peer(MANAGER, self$manager);
+
+		local proxies = nodes_with_type(PROXY);
+
+		for ( i in proxies )
+			{
+			local proxy = proxies[i];
+
+			if ( proxy$node?$proxy )
+				Broker::peer(cat(proxy$node$ip), proxy$node$p, Cluster::retry_interval);
+			}
+
+		break;
+	case WORKER:
+		if ( self?$logger )
+			connect_peer(LOGGER, self$logger);
+
+		if ( self?$manager )
+			connect_peer(MANAGER, self$manager);
+
+		if ( self?$proxy )
+			connect_peer(PROXY, self$proxy);
+
+		if ( self?$time_machine )
+			connect_peer(TIME_MACHINE, self$time_machine);
+
+		break;
+	}
+	}
+
+event bro_init() &priority=-10
+	{
+	if ( use_broker )
+		return;
+
+	local lp = Cluster::nodes[Cluster::node]$p;
+	enable_communication();
+	listen(Communication::listen_interface,
+	       lp,
+	       Communication::listen_ssl,
+	       Communication::listen_ipv6,
+	       Communication::listen_ipv6_zone_id,
+	       Communication::listen_retry);
+	}
+
+event bro_init() &priority=9
+	{
+	if ( use_broker )
+		return;
+
 	local me = nodes[node];
 
 	for ( i in Cluster::nodes )

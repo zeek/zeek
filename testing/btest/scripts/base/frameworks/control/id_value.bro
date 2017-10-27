@@ -1,4 +1,4 @@
-# @TEST-SERIALIZE: comm
+# @TEST-SERIALIZE: brokercomm
 #
 # @TEST-EXEC: btest-bg-run controllee  BROPATH=$BROPATH:.. bro %INPUT only-for-controllee frameworks/control/controllee Communication::listen_port=65532/tcp Broker::default_port=65532/tcp
 # @TEST-EXEC: btest-bg-run controller  BROPATH=$BROPATH:.. bro %INPUT frameworks/control/controller Control::host=127.0.0.1 Control::host_port=65532/tcp Control::cmd=id_value Control::arg=test_var

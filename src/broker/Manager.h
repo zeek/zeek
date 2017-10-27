@@ -74,15 +74,6 @@ public:
 	bool Active();
 
 	/**
-	 * Configure the local Broker endpoint.
-	 * @param routable Whether the context of this endpoint routes messages not
-	 * @param log_topic The topic prefix for logs we this endpoint published.
-	 * destined to itself. By default endpoints do not route.
-	 * @return true if configuration was successful.
-	 */
-	bool Configure(bool routable = false, std::string log_topic="");
-
-	/**
 	 * Listen for remote connections.
 	 * @param port the TCP port to listen on.
 	 * @param addr an address string on which to accept connections, e.g.
@@ -113,6 +104,11 @@ public:
 	 * @return a list of peer endpoints.
 	 */
 	std::vector<broker::peer_info> Peers() const;
+
+	/**
+	 * @return a unique identifier for this broker endpoint.
+	 */
+	std::string NodeID() const;
 
 	/**
 	 * Send an event to any interested peers.
@@ -296,7 +292,6 @@ private:
 	broker::endpoint& Endpoint()
 		{ assert(bstate); return bstate->endpoint; }
 
-	bool routable;
 	std::string log_topic;
 	uint16_t bound_port;
 

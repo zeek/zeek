@@ -1,4 +1,4 @@
-# @TEST-SERIALIZE: comm
+# @TEST-SERIALIZE: brokercomm
 #
 # @TEST-EXEC: btest-bg-run manager-1 BROPATH=$BROPATH:.. CLUSTER_NODE=manager-1 bro %INPUT
 # @TEST-EXEC: sleep 1
@@ -8,7 +8,7 @@
 # @TEST-EXEC: btest-bg-run worker-1  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-1 bro %INPUT
 # @TEST-EXEC: btest-bg-run worker-2  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-2 bro %INPUT
 # @TEST-EXEC: btest-bg-wait 30
-# @TEST-EXEC: btest-diff manager-1/.stdout
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff manager-1/.stdout
 # @TEST-EXEC: btest-diff proxy-1/.stdout
 # @TEST-EXEC: btest-diff proxy-2/.stdout
 # @TEST-EXEC: btest-diff worker-1/.stdout
@@ -32,16 +32,58 @@ global fully_connected_nodes = 0;
 
 event fully_connected()
 	{
+	if ( ! is_remote_event() )
+		return;
+
+	print "Got fully_connected event";
 	fully_connected_nodes = fully_connected_nodes + 1;
+
 	if ( Cluster::node == "manager-1" )
 		{
 		if ( peer_count == 4 && fully_connected_nodes == 4 )
-			terminate_communication();
+			{
+			if ( Cluster::use_broker )
+				terminate();
+			else
+				terminate_communication();
+			}
 		}
 	}
 
 redef Cluster::worker2manager_events += /fully_connected/;
 redef Cluster::proxy2manager_events += /fully_connected/;
+
+event bro_init()
+	{
+	Broker::auto_publish(Cluster::manager_topic, fully_connected);
+	}
+
+event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
+	{
+	print "Connected to a peer";
+	peer_count = peer_count + 1;
+
+	if ( Cluster::node == "manager-1" )
+		{
+		if ( peer_count == 4 && fully_connected_nodes == 4 )
+			{
+			if ( Cluster::use_broker )
+				terminate();
+			else
+				terminate_communication();
+			}
+		}
+	else
+		{
+		if ( peer_count == 2 )
+			event fully_connected();
+		}
+	}
+
+event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
+	{
+	terminate();
+	}
 
 event remote_connection_handshake_done(p: event_peer)
 	{

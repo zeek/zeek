@@ -7,8 +7,6 @@
 
 module Broker;
 
-type Broker::Options: record;
-
 ## Generated when something changes in the Broker sub-system.
 event Broker::status%(endpoint: EndpointInfo, msg: string%);
 
@@ -50,20 +48,6 @@ enum PeerStatus %{
 	DISCONNECTED,
 	RECONNECTING,
 %}
-
-function Broker::__configure%(options: Broker::Options%): bool
-	%{
-	auto routable = false;
-	auto log_topic = "";
-
-	if ( auto routable_val = options->AsRecordVal()->Lookup(0) )
-		routable = routable_val->AsBool();
-
-	if ( auto log_topic_val = options->AsRecordVal()->Lookup(1) )
-		log_topic = log_topic_val->AsString()->CheckString();
-
-	return new Val(broker_mgr->Configure(routable, log_topic), TYPE_BOOL);
-	%}
 
 function Broker::__listen%(a: string, p: port%): port
 	%{
@@ -139,4 +123,9 @@ function Broker::__peers%(%): PeerInfos
 		}
 
 	return rval;
+	%}
+
+function Broker::__node_id%(%): string
+	%{
+	return new StringVal(broker_mgr->NodeID());
 	%}

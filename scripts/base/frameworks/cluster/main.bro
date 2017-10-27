@@ -7,10 +7,96 @@
 ##! ``@load base/frameworks/cluster``.
 
 @load base/frameworks/control
+@load base/frameworks/broker
 
 module Cluster;
 
 export {
+	## Whether the cluster framework uses broker to perform remote communication.
+	const use_broker = T &redef;
+
+	## The topic name used for exchanging general messages that are relevant to
+	## any node in a cluster.  Used with broker-enabled cluster communication.
+	const broadcast_topic = "bro/cluster/broadcast" &redef;
+
+	## The topic name used for exchanging messages that are relevant to
+	## logger nodes in a cluster.  Used with broker-enabled cluster communication.
+	const logger_topic = "bro/cluster/logger" &redef;
+
+	## The topic name used for exchanging messages that are relevant to
+	## manager nodes in a cluster.  Used with broker-enabled cluster communication.
+	const manager_topic = "bro/cluster/manager" &redef;
+
+	## The topic name used for exchanging messages that are relevant to
+	## proxy nodes in a cluster.  Used with broker-enabled cluster communication.
+	const proxy_topic = "bro/cluster/proxy" &redef;
+
+	## The topic name used for exchanging messages that are relevant to
+	## worker nodes in a cluster.  Used with broker-enabled cluster communication.
+	const worker_topic = "bro/cluster/worker" &redef;
+
+	## The topic name used for exchanging messages that are relevant to
+	## time machine nodes in a cluster.  Used with broker-enabled cluster communication.
+	const time_machine_topic = "bro/cluster/time_machine" &redef;
+
+	## The topic prefix used for exchanging messages that are relevant to
+	## a named node in a cluster.  Used with broker-enabled cluster communication.
+	const node_topic_prefix = "bro/cluster/node/" &redef;
+
+	## Name of the node on which master data stores will be created if no other
+	## has already been specified by the user in :bro:see:`Cluster::stores`.
+	const default_master_node = "manager" &redef;
+
+	## The type of data store backend that will be used for all data stores if
+	## no other has already been specified by the user in :bro:see:`Cluster::stores`.
+	const default_backend = Broker::MEMORY &redef;
+
+	## The type of persistent data store backend that will be used for all data
+	## stores if no other has already been specified by the user in
+	## :bro:see:`Cluster::stores`.  This will be used when script authors call
+	## :bro:see:`Cluster::create_store` with the *persistent* argument set true.
+	const default_persistent_backend = Broker::SQLITE &redef;
+
+	## Setting a default dir will, for persistent backends that have not
+	## been given an explicit file path via :bro:see:`Cluster::stores`,
+	## automatically create a path within this dir that is based on the name of
+	## the data store.
+	const default_store_dir = "" &redef;
+
+	## Information regarding a cluster-enabled data store.
+	type StoreInfo: record {
+		## The name of the data store.
+		name: string &optional;
+		## The store handle.
+		store: opaque of Broker::Store &optional;
+		## The name of the cluster node on which the master version of the data
+		## store resides.
+		master_node: string &default=default_master_node;
+		## Whether the data store is the master version or a clone.
+		master: bool &default=F;
+		## The type of backend used for storing data.
+		backend: Broker::BackendType &default=default_backend;
+		## Parameters used for configuring the backend.
+		options: Broker::BackendOptions &default=Broker::BackendOptions();
+	};
+
+	## A table of cluster-enabled data stores that have been created, indexed
+	## by their name.  To customize a particular data store, you may redef this,
+	## defining the :bro:see:`StoreInfo` to associate with the store's name.
+	global stores: table[string] of StoreInfo &default=StoreInfo() &redef;
+
+	## Sets up a cluster-enabled data store.  They will also still properly
+	## function for uses that are not operating a cluster.
+	##
+	## name: the name of the data store to create.
+	##
+	## persistent: whether the data store must be persistent.
+	##
+	## Returns: the store's information.  For master stores, the store will be
+	##          ready to use immediately.  For clones, the store field will not
+	##          be set until the node containing the master store has connected.
+	global create_store: function(name: string, persistent: bool &default=F): StoreInfo;
+
 	## The cluster logging stream identifier.
 	redef enum Log::ID += { LOG };
 
@@ -18,6 +104,8 @@ export {
 	type Info: record {
 		## The time at which a cluster message was generated.
 		ts:       time;
+		## The name of the node that is creating the log record.
+		node: string;
 		## A message indicating information about the cluster's operation.
 		message:  string;
 	} &log;
@@ -92,8 +180,7 @@ export {
 		## If the *ip* field is a non-global IPv6 address, this field
 		## can specify a particular :rfc:`4007` ``zone_id``.
 		zone_id:      string      &default="";
-		## The port to which this local node can connect when
-		## establishing communication.
+		## The port that this node will listen on for peer connections.
 		p:            port;
 		## Identifier for the interface a worker is sniffing.
 		interface:    string      &optional;
@@ -108,6 +195,8 @@ export {
 		workers:      set[string] &optional;
 		## Name of a time machine node with which this node connects.
 		time_machine: string      &optional;
+		## A unique identifier assigned to the node by the broker framework.
+		id: string                &optional;
 	};
 
 	## This function can be called at any time to determine if the cluster
@@ -134,6 +223,8 @@ export {
 	## named cluster-layout.bro somewhere in the BROPATH.  It will be
 	## automatically loaded if the CLUSTER_NODE environment variable is set.
 	## Note that BroControl handles all of this automatically.
+	## The table is typically indexed by node names/labels (e.g. "manager"
+	## or "worker-1").
 	const nodes: table[string] of Node = {} &redef;
 
 	## Indicates whether or not the manager will act as the logger and receive
@@ -148,6 +239,15 @@ export {
 
 	## Interval for retrying failed connections between cluster nodes.
 	const retry_interval = 1min &redef;
+
+	## When using broker-enabled cluster framework, nodes use this event to
+	## exchange their user-defined name along with a string that uniquely
+	## identifies it for the duration of its lifetime (this string may change if
+	## the node dies and has to reconnect later).
+	global hello: event(name: string, id: string);
+
+	## Write a message to the cluster logging stream.
+	global log: function(msg: string);
 }
 
 function is_enabled(): bool
@@ -163,13 +263,112 @@ function local_node_type(): NodeType
 event remote_connection_handshake_done(p: event_peer) &priority=5
 	{
 	if ( p$descr in nodes && nodes[p$descr]$node_type == WORKER )
-		++worker_count;
+		{
+		if ( use_broker )
+			Reporter::error(fmt("broker-enabled cluster using old comms: '%s' ", node));
+		else
+			++worker_count;
+		}
 	}
 
 event remote_connection_closed(p: event_peer) &priority=5
 	{
 	if ( p$descr in nodes && nodes[p$descr]$node_type == WORKER )
-		--worker_count;
+		{
+		if ( use_broker )
+			Reporter::error(fmt("broker-enabled cluster using old comms: '%s' ", node));
+		else
+			--worker_count;
+		}
+	}
+
+event Cluster::hello(name: string, id: string) &priority=10
+	{
+	if ( name !in nodes )
+		{
+		Reporter::error(fmt("Got Cluster::hello msg from unexpected node: %s", name));
+		return;
+		}
+
+	local n = nodes[name];
+
+	if ( n?$id && n$id != id )
+		Reporter::error(fmt("Got Cluster::hello msg from duplicate node: %s", name));
+
+	n$id = id;
+	Cluster::log(fmt("got hello from %s (%s)", name, id));
+
+	if ( n$node_type == WORKER )
+		++worker_count;
+
+	for ( store_name in stores )
+		{
+		local info = stores[store_name];
+
+		if ( info?$store )
+			next;
+
+		if ( info$master )
+			next;
+
+		if ( info$master_node == name )
+			{
+			info$store = Broker::create_clone(info$name);
+			Cluster::log(fmt("created clone store: %s", info$name));
+			}
+		}
+	}
+
+event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string) &priority=10
+	{
+	if ( ! use_broker )
+		return;
+
+	if ( ! Cluster::is_enabled() )
+		return;
+
+	local e = Broker::make_event(Cluster::hello, node, Broker::node_id());
+	Broker::publish(Cluster::broadcast_topic, e);
+	}
+
+event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string) &priority=10
+	{
+	if ( ! use_broker )
+		return;
+
+	for ( node_name in nodes )
+		{
+		local n = nodes[node_name];
+
+		if ( n?$id && n$id == endpoint$id )
+			{
+			Cluster::log(fmt("node down: %s", node_name));
+			delete n$id;
+
+			if ( n$node_type == WORKER )
+				--worker_count;
+
+			for ( store_name in stores )
+				{
+				local info = stores[store_name];
+
+				if ( ! info?$store )
+					next;
+
+				if ( info$master )
+					next;
+
+				if ( info$master_node == node_name )
+					{
+					Broker::close(info$store);
+					delete info$store;
+					Cluster::log(fmt("clone store closed: %s", info$name));
+					}
+				}
+
+			break;
+			}
+		}
 	}
 
 event bro_init() &priority=5
@@ -182,4 +381,76 @@ event bro_init() &priority=5
 		}
 
 	Log::create_stream(Cluster::LOG, [$columns=Info, $path="cluster"]);
+	}
+
+function create_store(name: string, persistent: bool &default=F): Cluster::StoreInfo
+	{
+	local info = stores[name];
+	info$name = name;
+
+	if ( Cluster::default_store_dir != "" )
+		{
+		local default_options = Broker::BackendOptions();
+		local path = Cluster::default_store_dir + "/" + name;
+
+		if ( info$options$sqlite$path == default_options$sqlite$path )
+			info$options$sqlite$path = path + ".sqlite";
+
+		if ( info$options$rocksdb$path == default_options$rocksdb$path )
+			info$options$rocksdb$path = path + ".rocksdb";
+		}
+
+	if ( persistent )
+		{
+		switch ( info$backend ) {
+		case Broker::MEMORY:
+			info$backend = Cluster::default_persistent_backend;
+			break;
+		case Broker::SQLITE:
+			fallthrough;
+		case Broker::ROCKSDB:
+			# no-op: user already asked for a specific persistent backend.
+			break;
+		default:
+			Reporter::error(fmt("unhandled data store type: %s", info$backend));
+			break;
+		}
+		}
+
+	if ( ! Cluster::is_enabled() )
+		{
+		if ( info?$store )
+			{
+			Reporter::warning(fmt("duplicate cluster store creation for %s", name));
+			return info;
+			}
+
+		info$store = Broker::create_master(name, info$backend, info$options);
+		info$master = T;
+		stores[name] = info;
+		Cluster::log(fmt("created master store: %s", name));
+		return info;
+		}
+
+	if ( info$master_node !in Cluster::nodes )
+		Reporter::fatal(fmt("master node '%s' for cluster store '%s' does not exist",
+		                    info$master_node, name));
+
+	if ( Cluster::node == info$master_node )
+		{
+		info$store = Broker::create_master(name, info$backend, info$options);
+		info$master = T;
+		stores[name] = info;
+		return info;
+		}
+
+	info$master = F;
+	stores[name] = info;
+	Cluster::log(fmt("pending clone store creation: %s", name));
+	return info;
+	}
+
+function log(msg: string)
+	{
+	Log::write(Cluster::LOG, [$ts = network_time(), $node = node, $message = msg]);
 	}

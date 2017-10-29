@@ -782,6 +782,63 @@ function sha256_hash_finish%(handle: opaque of sha256%): string
 	return static_cast<HashVal*>(handle)->Get();
 	%}
 
+## Returns 32-bit digest of arbitrary input values using FNV-1a hash algorithm.
+## See `<https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function>`_.
+##
+## input: The desired input value to hash.
+##
+## Returns: The hashed value.
+##
+## .. bro:see:: hrw_weight
+function fnv1a32%(input: any%): count
+	%{
+	ODesc desc(DESC_BINARY);
+	input->Describe(&desc);
+	auto bytes = desc.Bytes();
+
+	uint32 offset32 = 2166136261;
+	uint32 prime32 = 16777619;
+	uint32 rval = offset32;
+
+	for ( auto i = 0u; i < desc.Len(); ++i )
+		{
+		rval ^= (uint32) bytes[i];
+		rval *= prime32;
+		}
+
+	return new Val(rval, TYPE_COUNT);
+	%}
+
+## Calculates a weight value for use in a Rendezvous Hashing algorithm.
+## See `<https://en.wikipedia.org/wiki/Rendezvous_hashing>`_.
+## The weight function used is the one recommended in the original
+## paper: `<http://www.eecs.umich.edu/techreports/cse/96/CSE-TR-316-96.pdf>`_.
+##
+## key_digest: A 32-bit digest of a key.  E.g. use :bro:see:`fnv1a32` to
+##             produce this.
+##
+## site_id: A 32-bit site/node identifier.
+##
+## Returns: The weight value for the key/site pair.
+##
+## .. bro:see:: fnv1a32
+function hrw_weight%(key_digest: count, site_id: count%): count
+	%{
+	uint32 d = key_digest;
+	d &= 0x7fffffff; // 31-bit digest
+	int32 si = site_id;
+	auto a = 1103515245;
+	auto b = 12345;
+	auto m = 2147483648; // 2**31
+
+	int32 rval = (a * ((a * si + b) ^ d) + b) % m;
+
+	if ( rval < 0 )
+		rval += m; // [0, 2**31 - 1]
+
+	return new Val((uint64) rval, TYPE_COUNT);
+	%}
+
 ## Generates a random number.
 ##
 ## max: The maximum value of the random number.

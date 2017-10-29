@@ -14,6 +14,7 @@
 @load base/utils/exec
 @load base/utils/files
 @load base/utils/geoip-distance
+@load base/utils/hash_hrw
 @load base/utils/numbers
 @load base/utils/paths
 @load base/utils/patterns

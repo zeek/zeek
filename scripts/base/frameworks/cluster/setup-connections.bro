@@ -88,7 +88,7 @@ event bro_init() &priority=9
 	}
 
 	Broker::subscribe(Cluster::broadcast_topic);
-	Broker::subscribe(Cluster::node_topic_prefix + node);
+	Broker::subscribe(node_topic(node));
 
 	Broker::listen(Broker::default_listen_address,
 	               self$p,

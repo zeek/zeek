@@ -179,6 +179,7 @@ scripts/base/init-default.bro
   scripts/base/utils/email.bro
   scripts/base/utils/files.bro
   scripts/base/utils/geoip-distance.bro
+  scripts/base/utils/hash_hrw.bro
   scripts/base/utils/numbers.bro
   scripts/base/utils/queue.bro
   scripts/base/utils/strings.bro

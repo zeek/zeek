@@ -152,12 +152,10 @@ sup, sub {
 
 pre, code  {
 	white-space: pre;
-    overflow: auto;
-    margin-left: 2em;
-    margin-right: 2em;
-    margin-top: .5em;
-    margin-bottom: 1.5em;
-    word-wrap: normal;
+	overflow: auto;
+	margin-left: 0.25em;
+	margin-right: 0.25em;
+	word-wrap: normal;
 }
 
 pre, code, tt {

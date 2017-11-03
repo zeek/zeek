@@ -290,7 +290,11 @@ ListVal* DNS_Mapping::Addrs()
 TableVal* DNS_Mapping::AddrsSet() {
 	ListVal* l = Addrs();
 	if ( l )
-		return l->ConvertToSet();
+		{
+		auto r = l->ConvertToSet();
+		Unref(l);
+		return r;
+		}
 	else
 		return empty_addr_set();
 	}

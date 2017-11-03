@@ -247,9 +247,6 @@ bool Trigger::Eval()
 
 		Val* v = cond->Eval(f);
 
-		if ( clone_frame )
-			f->ClearTrigger();
-
 		if ( f->HasDelayed() )
 			{
 			DBG_LOG(DBG_NOTIFIERS, "%s: eval has delayed", Name());
@@ -301,6 +298,9 @@ bool Trigger::Eval()
 		catch ( InterpreterException& e )
 			{ /* Already reported. */ }
 		}
+
+	if ( clone_frame )
+		Unref(f);
 
 	if ( is_return )
 		{

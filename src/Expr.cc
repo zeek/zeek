@@ -4522,7 +4522,10 @@ Val* CallExpr::EvalSync(Frame* f, class Func* func, val_list* v) const
 	Trigger* trigger = f && f->GetTrigger() ? f->GetTrigger() : nullptr;
 
 	if ( (ret = CheckCache(trigger)) )
+		{
+		delete_vals(v);
 		return ret;
+		}
 
 	try
 		{
@@ -4556,6 +4559,7 @@ Val* CallExpr::EvalAsync(Frame* f, class Func* func, val_list* v) const
 		Val* ret = func->Call(v, f);
 		// TODO: If result returned, use it directly.
 		calling_expr = 0;
+		delete v;
 		}
 	catch ( InterpreterException& e )
 		{

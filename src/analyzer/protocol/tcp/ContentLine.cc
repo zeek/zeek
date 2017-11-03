@@ -7,14 +7,14 @@
 
 using namespace analyzer::tcp;
 
-ContentLine_Analyzer::ContentLine_Analyzer(Connection* conn, bool orig)
-: TCP_SupportAnalyzer("CONTENTLINE", conn, orig)
+ContentLine_Analyzer::ContentLine_Analyzer(Connection* conn, bool orig, int max_line_length)
+: TCP_SupportAnalyzer("CONTENTLINE", conn, orig), max_line_length(max_line_length)
 	{
 	InitState();
 	}
 
-ContentLine_Analyzer::ContentLine_Analyzer(const char* name, Connection* conn, bool orig)
-: TCP_SupportAnalyzer(name, conn, orig)
+ContentLine_Analyzer::ContentLine_Analyzer(const char* name, Connection* conn, bool orig, int max_line_length)
+: TCP_SupportAnalyzer(name, conn, orig), max_line_length(max_line_length)
 	{
 	InitState();
 	}
@@ -229,6 +229,11 @@ int ContentLine_Analyzer::DoDeliverOnce(int len, const u_char* data)
 	return seq_len; \
 	}
 
+		if ( offset > max_line_length )
+			{
+			Weird("contentline_size_exceeded");
+			EMIT_LINE
+			}
 		switch ( c ) {
 		case '\r':
 			// Look ahead for '\n'.

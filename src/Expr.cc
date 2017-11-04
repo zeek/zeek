@@ -4611,6 +4611,8 @@ Val* CallExpr::Eval(Frame* f) const
 	else
 		ret = EvalSync(f, func_val->AsFunc(), v);
 
+	Unref(func_val);
+
 	if ( f )
 		f->SetCall(current_call);
 

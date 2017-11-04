@@ -1,5 +1,9 @@
-# @TEST-EXEC: bro -b %INPUT >out
-# @TEST-EXEC: btest-diff out
+# @TEST-GROUP: leaks
+#
+# @TEST-REQUIRES: bro  --help 2>&1 | grep -q mem-leaks
+#
+# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run bro -b bro -m %INPUT
+# @TEST-EXEC: btest-bg-wait 60
 
 # Input framework needs this.
 @load base/frameworks/communication

@@ -145,7 +145,9 @@ void ODesc::Add(double d, bool no_exp)
 		AddBytes(&d, sizeof(d));
 	else
 		{
-		char tmp[256];
+		// Buffer needs enough chars to store max. possible "double" value
+		// of 1.79e308 without using scientific notation.
+		char tmp[350];
 
 		if ( no_exp )
 			modp_dtoa3(d, tmp, sizeof(tmp), IsReadable() ? 6 : 8);

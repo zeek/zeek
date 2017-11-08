@@ -272,26 +272,26 @@ refine connection Handshake_Conn += {
 		return true;
 		%}
 
-    function proc_ecdhe_server_key_exchange(rec: HandshakeRecord, curve_type: uint8, curve: uint16, point: bytestring, signed_params: bytestring) : bool
+	function proc_ecdhe_server_key_exchange(rec: HandshakeRecord, curve_type: uint8, curve: uint16, point: bytestring, signed_params: bytestring) : bool
 		%{
 		if ( curve_type == NAMED_CURVE )
 			BifEvent::generate_ssl_server_curve(bro_analyzer(),
 			  bro_analyzer()->Conn(), curve);
-            BifEvent::generate_ssl_ecdh_server_params(bro_analyzer(),
-              bro_analyzer()->Conn(), curve, new StringVal(point.length(), (const char*)point.data()));
-            BifEvent::generate_ssl_server_signature(bro_analyzer(),
-              bro_analyzer()->Conn(), new StringVal(signed_params.length(), (const char*)signed_params.data()));
+			BifEvent::generate_ssl_ecdh_server_params(bro_analyzer(),
+			  bro_analyzer()->Conn(), curve, new StringVal(point.length(), (const char*)point.data()));
+			BifEvent::generate_ssl_server_signature(bro_analyzer(),
+			  bro_analyzer()->Conn(), new StringVal(signed_params.length(), (const char*)signed_params.data()));
 
 		return true;
 		%}
 
-    function proc_ecdh_anon_server_key_exchange(rec: HandshakeRecord, curve_type: uint8, curve: uint16, point: bytestring) : bool
+	function proc_ecdh_anon_server_key_exchange(rec: HandshakeRecord, curve_type: uint8, curve: uint16, point: bytestring) : bool
 		%{
 		if ( curve_type == NAMED_CURVE )
 			BifEvent::generate_ssl_server_curve(bro_analyzer(),
 			  bro_analyzer()->Conn(), curve);
-            BifEvent::generate_ssl_ecdh_server_params(bro_analyzer(),
-              bro_analyzer()->Conn(), curve, new StringVal(point.length(), (const char*)point.data()));
+			BifEvent::generate_ssl_ecdh_server_params(bro_analyzer(),
+			  bro_analyzer()->Conn(), curve, new StringVal(point.length(), (const char*)point.data()));
 
 		return true;
 		%}
@@ -313,7 +313,7 @@ refine connection Handshake_Conn += {
 			BifEvent::generate_ssl_ecdh_client_params(bro_analyzer(), bro_analyzer()->Conn(), new StringVal(point.length(), (const char*)point.data()));
 			return true;
 		%}
-	
+
 	function proc_signedcertificatetimestamp(rec: HandshakeRecord, version: uint8, logid: const_bytestring, timestamp: uint64, digitally_signed_algorithms: SignatureAndHashAlgorithm, digitally_signed_signature: const_bytestring) : bool
 		%{
 		RecordVal* ha = new RecordVal(BifType::Record::SSL::SignatureAndHashAlgorithm);
@@ -340,10 +340,10 @@ refine connection Handshake_Conn += {
 		  new StringVal(g.length(), (const char*) g.data()),
 		  new StringVal(Ys.length(), (const char*) Ys.data())
 		  );
-        BifEvent::generate_ssl_server_signature(bro_analyzer(),
-            bro_analyzer()->Conn(),
-          new StringVal(signed_params.length(), (const char*) signed_params.data())
-          );
+		BifEvent::generate_ssl_server_signature(bro_analyzer(),
+			bro_analyzer()->Conn(),
+		  new StringVal(signed_params.length(), (const char*) signed_params.data())
+		  );
 
 		return true;
 		%}

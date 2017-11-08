@@ -272,15 +272,48 @@ refine connection Handshake_Conn += {
 		return true;
 		%}
 
-	function proc_ec_server_key_exchange(rec: HandshakeRecord, curve_type: uint8, curve: uint16) : bool
+    function proc_ecdhe_server_key_exchange(rec: HandshakeRecord, curve_type: uint8, curve: uint16, point: bytestring, signed_params: bytestring) : bool
 		%{
 		if ( curve_type == NAMED_CURVE )
 			BifEvent::generate_ssl_server_curve(bro_analyzer(),
 			  bro_analyzer()->Conn(), curve);
+            BifEvent::generate_ssl_ecdh_server_params(bro_analyzer(),
+              bro_analyzer()->Conn(), curve, new StringVal(point.length(), (const char*)point.data()));
+            BifEvent::generate_ssl_server_signature(bro_analyzer(),
+              bro_analyzer()->Conn(), new StringVal(signed_params.length(), (const char*)signed_params.data()));
 
 		return true;
 		%}
 
+    function proc_ecdh_anon_server_key_exchange(rec: HandshakeRecord, curve_type: uint8, curve: uint16, point: bytestring) : bool
+		%{
+		if ( curve_type == NAMED_CURVE )
+			BifEvent::generate_ssl_server_curve(bro_analyzer(),
+			  bro_analyzer()->Conn(), curve);
+            BifEvent::generate_ssl_ecdh_server_params(bro_analyzer(),
+              bro_analyzer()->Conn(), curve, new StringVal(point.length(), (const char*)point.data()));
+
+		return true;
+		%}
+
+	function proc_rsa_client_key_exchange(rec: HandshakeRecord, rsa_pms: bytestring) : bool
+		%{
+			BifEvent::generate_ssl_rsa_client_pms(bro_analyzer(), bro_analyzer()->Conn(), new StringVal(rsa_pms.length(), (const char*)rsa_pms.data()));
+			return true;
+		%}
+
+	function proc_dh_client_key_exchange(rec: HandshakeRecord, Yc: bytestring) : bool
+		%{
+			BifEvent::generate_ssl_dh_client_params(bro_analyzer(), bro_analyzer()->Conn(), new StringVal(Yc.length(), (const char*)Yc.data()));
+			return true;
+		%}
+
+	function proc_ecdh_client_key_exchange(rec: HandshakeRecord, point: bytestring) : bool
+		%{
+			BifEvent::generate_ssl_ecdh_client_params(bro_analyzer(), bro_analyzer()->Conn(), new StringVal(point.length(), (const char*)point.data()));
+			return true;
+		%}
+	
 	function proc_signedcertificatetimestamp(rec: HandshakeRecord, version: uint8, logid: const_bytestring, timestamp: uint64, digitally_signed_algorithms: SignatureAndHashAlgorithm, digitally_signed_signature: const_bytestring) : bool
 		%{
 		RecordVal* ha = new RecordVal(BifType::Record::SSL::SignatureAndHashAlgorithm);
@@ -299,7 +332,23 @@ refine connection Handshake_Conn += {
 		return true;
 		%}
 
-	function proc_dh_server_key_exchange(rec: HandshakeRecord, p: bytestring, g: bytestring, Ys: bytestring) : bool
+	function proc_dhe_server_key_exchange(rec: HandshakeRecord, p: bytestring, g: bytestring, Ys: bytestring, signed_params: bytestring) : bool
+		%{
+		BifEvent::generate_ssl_dh_server_params(bro_analyzer(),
+			bro_analyzer()->Conn(),
+		  new StringVal(p.length(), (const char*) p.data()),
+		  new StringVal(g.length(), (const char*) g.data()),
+		  new StringVal(Ys.length(), (const char*) Ys.data())
+		  );
+        BifEvent::generate_ssl_server_signature(bro_analyzer(),
+            bro_analyzer()->Conn(),
+          new StringVal(signed_params.length(), (const char*) signed_params.data())
+          );
+
+		return true;
+		%}
+
+	function proc_dh_anon_server_key_exchange(rec: HandshakeRecord, p: bytestring, g: bytestring, Ys: bytestring) : bool
 		%{
 		BifEvent::generate_ssl_dh_server_params(bro_analyzer(),
 			bro_analyzer()->Conn(),
@@ -388,12 +437,32 @@ refine typeattr CertificateStatus += &let {
 	proc : bool = $context.connection.proc_certificate_status(rec, status_type, response);
 };
 
-refine typeattr EcServerKeyExchange += &let {
-	proc : bool = $context.connection.proc_ec_server_key_exchange(rec, curve_type, curve);
+refine typeattr EcdheServerKeyExchange += &let {
+	proc : bool = $context.connection.proc_ecdhe_server_key_exchange(rec, curve_type, curve, point, signed_params);
 };
 
-refine typeattr DhServerKeyExchange += &let {
-	proc : bool = $context.connection.proc_dh_server_key_exchange(rec, dh_p, dh_g, dh_Ys);
+refine typeattr EcdhAnonServerKeyExchange += &let {
+	proc : bool = $context.connection.proc_ecdh_anon_server_key_exchange(rec, curve_type, curve, point);
+};
+
+refine typeattr DheServerKeyExchange += &let {
+	proc : bool = $context.connection.proc_dhe_server_key_exchange(rec, dh_p, dh_g, dh_Ys, signed_params);
+};
+
+refine typeattr DhAnonServerKeyExchange += &let {
+	proc : bool = $context.connection.proc_dh_anon_server_key_exchange(rec, dh_p, dh_g, dh_Ys);
+};
+
+refine typeattr RsaClientKeyExchange += &let {
+	proc : bool = $context.connection.proc_rsa_client_key_exchange(rec, rsa_pms);
+};
+
+refine typeattr DhClientKeyExchange += &let {
+	proc : bool = $context.connection.proc_dh_client_key_exchange(rec, dh_Yc);
+};
+
+refine typeattr EcdhClientKeyExchange += &let {
+	proc : bool = $context.connection.proc_ecdh_client_key_exchange(rec, point);
 };
 
 refine typeattr SupportedVersions += &let {

@@ -22,6 +22,14 @@ using namespace std;
 
 namespace bro_broker {
 
+// Max number of log messages buffered per stream before we send them out as
+// a batch.
+static const int LOG_BATCH_SIZE = 100;
+
+// Max secs to buffer log messages before sending the current set out as a
+// batch.
+static const double LOG_BUFFER_INTERVAL = 1.0;
+
 const broker::endpoint_info Manager::NoPeer{{}, {}};
 
 VectorType* Manager::vector_of_data_type;
@@ -121,6 +129,7 @@ Manager::Manager()
 
 Manager::~Manager()
 	{
+	FlushLogBuffer();
 	}
 
 void Manager::InitPostScript()
@@ -151,6 +160,8 @@ void Manager::InitPostScript()
 
 void Manager::Terminate()
 	{
+	FlushLogBuffer();
+
 #if 0
 	// Do we still need this?
 	vector<string> stores_to_close;
@@ -214,6 +225,8 @@ void Manager::Unpeer(const string& addr, uint16_t port)
 	{
 	DBG_LOG(DBG_BROKER, "Stopping to peer with %s:%" PRIu16,
 		addr.c_str(), port);
+
+	FlushLogBuffer();
 	bstate->endpoint.unpeer_nosync(addr, port);
 	}
 
@@ -353,7 +366,8 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 	if ( ! bstate->endpoint.peers().size() )
 		return true;
 
-	auto stream_id = stream->Type()->AsEnumType()->Lookup(stream->AsEnum());
+	auto stream_id_num = stream->AsEnum();
+	auto stream_id = stream->Type()->AsEnumType()->Lookup(stream_id_num);
 
 	if ( ! stream_id )
 		{
@@ -393,12 +407,54 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 	auto bwriter_id = broker::enum_value(move(writer_id));
 	broker::bro::LogWrite msg(move(bstream_id), move(bwriter_id), move(path), move(vals_data));
 
-	DBG_LOG(DBG_BROKER, "Publishing log record: %s", RenderMessage(topic, msg).c_str());
-	bstate->endpoint.publish(move(topic), move(msg));
+	DBG_LOG(DBG_BROKER, "Buffering log record: %s", RenderMessage(topic, msg).c_str());
+
+	if ( log_buffers.size() <= (unsigned int)stream_id_num )
+		log_buffers.resize(stream_id_num + 1);
+
+	auto& lb = log_buffers[stream_id_num];
+
+	lb.msgs.emplace_back(std::move(msg));
+
+	if ( (lb.msgs.size() >= LOG_BATCH_SIZE) || (network_time - lb.last_flush >= LOG_BUFFER_INTERVAL) )
+		FlushLogBuffer(stream_id_num);
 
 	++statistics.num_logs_outgoing;
 
 	return true;
+	}
+
+
+void Manager::FlushLogBuffer(int stream_id_num)
+	{
+	if ( stream_id_num == -1 )
+		{
+		// Flush all recursively.
+		DBG_LOG(DBG_BROKER, "Flushing all log buffers");
+		for ( unsigned int i = 0; i < log_buffers.size(); i++ )
+			FlushLogBuffer(i);
+		return;
+		}
+
+
+	auto& lb = log_buffers[stream_id_num];
+
+	if ( ! lb.msgs.size() )
+		// No logs buffered for this stream.
+		return;
+
+	auto stream_id = log_id_type->AsEnumType()->Lookup(stream_id_num);
+	std::string topic = log_topic + stream_id;
+
+	DBG_LOG(DBG_BROKER, "Publishing %zu log records to %s", lb.msgs.size(), topic.c_str());
+
+	broker::vector batch;
+	batch.reserve(LOG_BATCH_SIZE + 1);
+	lb.msgs.swap(batch);
+
+	broker::bro::Batch msg(std::move(batch));
+	bstate->endpoint.publish(move(topic), move(msg));
+	lb.last_flush = network_time;
 	}
 
 bool Manager::AutoPublishEvent(string topic, Val* event)
@@ -599,7 +655,7 @@ void Manager::DispatchMessage(broker::data&& msg)
 	case broker::bro::Message::Type::Batch:
 		{
 		broker::bro::Batch batch(std::move(msg));
-		for ( auto i : batch.batch() ) 
+		for ( auto i : batch.batch() )
 			DispatchMessage(std::move(i));
 		break;
 		}

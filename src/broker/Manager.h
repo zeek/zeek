@@ -277,6 +277,7 @@ private:
 	void ProcessStatus(const broker::status stat);
 	void ProcessError(broker::error err);
 	void ProcessStoreResponse(StoreHandleVal*, broker::store::response response);
+	void FlushLogBuffer(int stream_id_num = -1);
 
 	// IOSource interface overrides:
 	void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
@@ -296,6 +297,14 @@ private:
 	uint16_t bound_port;
 
 	std::shared_ptr<BrokerState> bstate;
+
+	struct LogBuffer {
+	        broker::vector msgs;
+		double last_flush;
+	};
+
+	// Indexed by stream ID enum.
+	std::vector<LogBuffer> log_buffers;
 
 	// Data stores
 	std::unordered_map<std::string, StoreHandleVal*> data_stores;

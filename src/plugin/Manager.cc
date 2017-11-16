@@ -569,31 +569,19 @@ void Manager::RequestBroObjDtor(BroObj* obj, Plugin* plugin)
 	obj->NotifyPluginsOnDtor();
 	}
 
-int Manager::HookLoadFile(const string& file)
+int Manager::HookLoadFile(const Plugin::LoadType type, const string& file, const string& resolved)
 	{
 	HookArgumentList args;
 
 	if ( HavePluginForHook(META_HOOK_PRE) )
 		{
+		args.push_back(HookArgument(type));
 		args.push_back(HookArgument(file));
+		args.push_back(HookArgument(resolved));
 		MetaHookPre(HOOK_LOAD_FILE, args);
 		}
 
 	hook_list* l = hooks[HOOK_LOAD_FILE];
-
-	size_t i = file.find_last_of("./");
-
-	string ext;
-	string normalized_file = file;
-
-	if ( i != string::npos && file[i] == '.' )
-		ext = file.substr(i + 1);
-	else
-		{
-		// Add .bro as default extension.
-		normalized_file = file + ".bro";
-		ext = "bro";
-		}
 
 	int rc = -1;
 
@@ -602,7 +590,7 @@ int Manager::HookLoadFile(const string& file)
 			{
 			Plugin* p = (*i).second;
 
-			rc = p->HookLoadFile(normalized_file, ext);
+			rc = p->HookLoadFile(type, file, resolved);
 
 			if ( rc >= 0 )
 				break;

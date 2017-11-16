@@ -256,7 +256,7 @@
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1498500921.18004, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1510863910.246703, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Communication::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Conn::LOG)) -> <no result>
@@ -386,7 +386,7 @@
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1498500921.18004, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1510863910.246703, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
 0.000000   MetaHookPost  CallFunction(NetControl::check_plugins, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(NetControl::init, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Notice::want_pp, <frame>, ()) -> <no result>
@@ -422,307 +422,312 @@
 0.000000   MetaHookPost  CallFunction(string_to_pattern, <frame>, ((^\.?|\.)()$, F)) -> <no result>
 0.000000   MetaHookPost  CallFunction(sub, <frame>, ((^\.?|\.)(~~)$, <...>/, )) -> <no result>
 0.000000   MetaHookPost  DrainEvents() -> <void>
-0.000000   MetaHookPost  LoadFile(../main) -> -1
-0.000000   MetaHookPost  LoadFile(../plugin) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_ARP.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_AsciiReader.ascii.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_AsciiWriter.ascii.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_BackDoor.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_BenchmarkReader.benchmark.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_BinaryReader.binary.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_BitTorrent.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_ConnSize.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_ConnSize.functions.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_DCE_RPC.consts.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_DCE_RPC.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_DCE_RPC.types.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_DHCP.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_DNP3.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_DNS.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_FTP.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_FTP.functions.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_File.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_FileEntropy.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_FileExtract.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_FileExtract.functions.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_FileHash.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_Finger.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_GSSAPI.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_GTPv1.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_Gnutella.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_HTTP.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_HTTP.functions.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_ICMP.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_IMAP.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_IRC.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_Ident.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_InterConn.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_KRB.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_KRB.types.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_Login.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_Login.functions.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_MIME.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_Modbus.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_MySQL.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_NCP.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_NTLM.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_NTLM.types.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_NTP.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_NetBIOS.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_NetBIOS.functions.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_NoneWriter.none.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_PE.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_POP3.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_RADIUS.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_RDP.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_RDP.types.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_RFB.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_RPC.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_RawReader.raw.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SIP.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SMB.consts.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SMB.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SMB.smb1_com_check_directory.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SMB.smb1_com_close.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SMB.smb1_com_create_directory.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SMB.smb1_com_echo.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SMB.smb1_com_logoff_andx.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SMB.smb1_com_negotiate.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SMB.smb1_com_nt_cancel.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SMB.smb1_com_nt_create_andx.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SMB.smb1_com_query_information.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SMB.smb1_com_read_andx.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SMB.smb1_com_session_setup_andx.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SMB.smb1_com_transaction.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SMB.smb1_com_transaction2.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SMB.smb1_com_tree_connect_andx.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SMB.smb1_com_tree_disconnect.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SMB.smb1_com_write_andx.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SMB.smb1_events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SMB.smb2_com_close.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SMB.smb2_com_create.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SMB.smb2_com_negotiate.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SMB.smb2_com_read.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SMB.smb2_com_session_setup.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SMB.smb2_com_set_info.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SMB.smb2_com_tree_connect.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SMB.smb2_com_tree_disconnect.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SMB.smb2_com_write.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SMB.smb2_events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SMB.types.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SMTP.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SMTP.functions.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SNMP.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SNMP.types.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SOCKS.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SQLiteReader.sqlite.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SQLiteWriter.sqlite.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SSH.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SSH.types.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SSL.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SSL.functions.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SSL.types.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_SteppingStone.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_Syslog.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_TCP.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_TCP.functions.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_Teredo.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_UDP.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_Unified2.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_Unified2.types.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_X509.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_X509.functions.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_X509.ocsp_events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_X509.types.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./Bro_XMPP.events.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./acld) -> -1
-0.000000   MetaHookPost  LoadFile(./addrs) -> -1
-0.000000   MetaHookPost  LoadFile(./analyzer.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./average) -> -1
-0.000000   MetaHookPost  LoadFile(./bloom-filter.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./bro.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./broker) -> -1
-0.000000   MetaHookPost  LoadFile(./broxygen.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./cardinality-counter.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./catch-and-release) -> -1
-0.000000   MetaHookPost  LoadFile(./comm.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./const-dos-error) -> -1
-0.000000   MetaHookPost  LoadFile(./const-nt-status) -> -1
-0.000000   MetaHookPost  LoadFile(./const.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./consts) -> -1
-0.000000   MetaHookPost  LoadFile(./consts.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./contents) -> -1
-0.000000   MetaHookPost  LoadFile(./ct-list) -> -1
-0.000000   MetaHookPost  LoadFile(./data.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./dcc-send) -> -1
-0.000000   MetaHookPost  LoadFile(./debug) -> -1
-0.000000   MetaHookPost  LoadFile(./drop) -> -1
-0.000000   MetaHookPost  LoadFile(./entities) -> -1
-0.000000   MetaHookPost  LoadFile(./event.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./exec) -> -1
-0.000000   MetaHookPost  LoadFile(./file_analysis.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./files) -> -1
-0.000000   MetaHookPost  LoadFile(./gridftp) -> -1
-0.000000   MetaHookPost  LoadFile(./hll_unique) -> -1
-0.000000   MetaHookPost  LoadFile(./hooks.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./inactivity) -> -1
-0.000000   MetaHookPost  LoadFile(./info) -> -1
-0.000000   MetaHookPost  LoadFile(./init.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./input) -> -1
-0.000000   MetaHookPost  LoadFile(./input.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./last) -> -1
-0.000000   MetaHookPost  LoadFile(./log) -> -1
-0.000000   MetaHookPost  LoadFile(./logging.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./magic) -> -1
-0.000000   MetaHookPost  LoadFile(./main) -> -1
-0.000000   MetaHookPost  LoadFile(./main.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./max) -> -1
-0.000000   MetaHookPost  LoadFile(./messaging.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./min) -> -1
-0.000000   MetaHookPost  LoadFile(./mozilla-ca-list) -> -1
-0.000000   MetaHookPost  LoadFile(./netstats) -> -1
-0.000000   MetaHookPost  LoadFile(./non-cluster) -> -1
-0.000000   MetaHookPost  LoadFile(./openflow) -> -1
-0.000000   MetaHookPost  LoadFile(./packetfilter) -> -1
-0.000000   MetaHookPost  LoadFile(./patterns) -> -1
-0.000000   MetaHookPost  LoadFile(./pcap.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./plugin) -> -1
-0.000000   MetaHookPost  LoadFile(./plugins) -> -1
-0.000000   MetaHookPost  LoadFile(./polling) -> -1
-0.000000   MetaHookPost  LoadFile(./postprocessors) -> -1
-0.000000   MetaHookPost  LoadFile(./reporter.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./ryu) -> -1
-0.000000   MetaHookPost  LoadFile(./sample) -> -1
-0.000000   MetaHookPost  LoadFile(./scp) -> -1
-0.000000   MetaHookPost  LoadFile(./sftp) -> -1
-0.000000   MetaHookPost  LoadFile(./shunt) -> -1
-0.000000   MetaHookPost  LoadFile(./site) -> -1
-0.000000   MetaHookPost  LoadFile(./stats.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./std-dev) -> -1
-0.000000   MetaHookPost  LoadFile(./store) -> -1
-0.000000   MetaHookPost  LoadFile(./store.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./strings.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./sum) -> -1
-0.000000   MetaHookPost  LoadFile(./thresholds) -> -1
-0.000000   MetaHookPost  LoadFile(./top-k.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./topk) -> -1
-0.000000   MetaHookPost  LoadFile(./types) -> -1
-0.000000   MetaHookPost  LoadFile(./types.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./types.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./unique) -> -1
-0.000000   MetaHookPost  LoadFile(./utils) -> -1
-0.000000   MetaHookPost  LoadFile(./utils-commands) -> -1
-0.000000   MetaHookPost  LoadFile(./utils.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./variance) -> -1
-0.000000   MetaHookPost  LoadFile(./weird) -> -1
-0.000000   MetaHookPost  LoadFile(.<...>/add-geodata) -> -1
-0.000000   MetaHookPost  LoadFile(.<...>/ascii) -> -1
-0.000000   MetaHookPost  LoadFile(.<...>/benchmark) -> -1
-0.000000   MetaHookPost  LoadFile(.<...>/binary) -> -1
-0.000000   MetaHookPost  LoadFile(.<...>/drop) -> -1
-0.000000   MetaHookPost  LoadFile(.<...>/email_admin) -> -1
-0.000000   MetaHookPost  LoadFile(.<...>/hostnames) -> -1
-0.000000   MetaHookPost  LoadFile(.<...>/none) -> -1
-0.000000   MetaHookPost  LoadFile(.<...>/page) -> -1
-0.000000   MetaHookPost  LoadFile(.<...>/pp-alarms) -> -1
-0.000000   MetaHookPost  LoadFile(.<...>/raw) -> -1
-0.000000   MetaHookPost  LoadFile(.<...>/sqlite) -> -1
-0.000000   MetaHookPost  LoadFile(<...>/__load__.bro) -> -1
-0.000000   MetaHookPost  LoadFile(<...>/__preload__.bro) -> -1
-0.000000   MetaHookPost  LoadFile(<...>/hooks.bro) -> -1
-0.000000   MetaHookPost  LoadFile(base/bif) -> -1
-0.000000   MetaHookPost  LoadFile(base/init-default.bro) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/Bro_KRB.types.bif) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/Bro_SNMP.types.bif) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/active-http) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/addrs) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/analyzer) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/analyzer.bif) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/bro.bif) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/broker) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/cluster) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/comm.bif) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/communication) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/conn) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/conn-ids) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/const.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/control) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/data.bif) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/dce-rpc) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/dhcp) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/dir) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/directions-and-hosts) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/dnp3) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/dns) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/dpd) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/email) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/event.bif) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/exec) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/extract) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/file_analysis.bif) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/files) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/find-checksum-offloading) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/find-filtered-trace) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/ftp) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/geoip-distance) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/hash) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/http) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/imap) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/input) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/input.bif) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/intel) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/irc) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/json) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/krb) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/logging) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/logging.bif) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/main) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/messaging.bif) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/modbus) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/mysql) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/netcontrol) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/notice) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/ntlm) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/numbers) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/openflow) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/packet-filter) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/paths) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/patterns) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/pe) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/plugins) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/pop3) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/queue) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/radius) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/rdp) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/reporter) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/reporter.bif) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/rfb) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/signatures) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/sip) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/site) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/smb) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/smtp) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/snmp) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/socks) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/software) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/ssh) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/ssl) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/store.bif) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/strings) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/strings.bif) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/sumstats) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/syslog) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/thresholds) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/time) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/tunnels) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/types.bif) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/unified2) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/urls) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/utils) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/version) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/weird) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/x509) -> -1
-0.000000   MetaHookPost  LoadFile(base<...>/xmpp) -> -1
+0.000000   MetaHookPost  LoadFile(0, ..<...>/main.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, ..<...>/plugin.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_ARP.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_AsciiReader.ascii.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_AsciiWriter.ascii.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_BackDoor.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_BenchmarkReader.benchmark.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_BinaryReader.binary.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_BitTorrent.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_ConnSize.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_ConnSize.functions.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_DCE_RPC.consts.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_DCE_RPC.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_DCE_RPC.types.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_DHCP.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_DNP3.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_DNS.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_FTP.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_FTP.functions.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_File.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_FileEntropy.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_FileExtract.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_FileExtract.functions.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_FileHash.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_Finger.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_GSSAPI.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_GTPv1.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_Gnutella.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_HTTP.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_HTTP.functions.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_ICMP.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_IMAP.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_IRC.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_Ident.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_InterConn.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_KRB.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_KRB.types.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_Login.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_Login.functions.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_MIME.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_Modbus.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_MySQL.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_NCP.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_NTLM.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_NTLM.types.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_NTP.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_NetBIOS.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_NetBIOS.functions.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_NoneWriter.none.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_PE.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_POP3.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_RADIUS.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_RDP.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_RDP.types.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_RFB.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_RPC.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_RawReader.raw.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SIP.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMB.consts.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMB.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMB.smb1_com_check_directory.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMB.smb1_com_close.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMB.smb1_com_create_directory.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMB.smb1_com_echo.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMB.smb1_com_logoff_andx.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMB.smb1_com_negotiate.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMB.smb1_com_nt_cancel.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMB.smb1_com_nt_create_andx.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMB.smb1_com_query_information.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMB.smb1_com_read_andx.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMB.smb1_com_session_setup_andx.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMB.smb1_com_transaction.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMB.smb1_com_transaction2.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMB.smb1_com_tree_connect_andx.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMB.smb1_com_tree_disconnect.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMB.smb1_com_write_andx.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMB.smb1_events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMB.smb2_com_close.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMB.smb2_com_create.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMB.smb2_com_negotiate.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMB.smb2_com_read.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMB.smb2_com_session_setup.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMB.smb2_com_set_info.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMB.smb2_com_tree_connect.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMB.smb2_com_tree_disconnect.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMB.smb2_com_write.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMB.smb2_events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMB.types.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMTP.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMTP.functions.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SNMP.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SNMP.types.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SOCKS.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SQLiteReader.sqlite.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SQLiteWriter.sqlite.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SSH.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SSH.types.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SSL.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SSL.functions.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SSL.types.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SteppingStone.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_Syslog.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_TCP.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_TCP.functions.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_Teredo.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_UDP.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_Unified2.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_Unified2.types.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_X509.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_X509.functions.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_X509.ocsp_events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_X509.types.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_XMPP.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/acld.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/add-geodata.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/addrs.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/analyzer.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/ascii.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/average.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/benchmark.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/binary.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/bloom-filter.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/bro.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/broker.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/broxygen.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/cardinality-counter.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/catch-and-release.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/comm.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/const-dos-error.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/const-nt-status.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/const.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/consts.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/contents.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/ct-list.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/data.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/dcc-send.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/debug.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/drop.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/email_admin.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/entities.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/event.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/exec.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/file_analysis.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/files.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/gridftp.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/hll_unique.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/hooks.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/hostnames.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/inactivity.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/info.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/init.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/input.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/input.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/last.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/log.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/logging.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/magic) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/main.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/max.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/messaging.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/min.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/mozilla-ca-list.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/netstats.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/non-cluster.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/none.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/openflow.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/packetfilter.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/page.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/patterns.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/pcap.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/plugin.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/plugins) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/polling.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/postprocessors) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/pp-alarms.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/raw.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/reporter.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/ryu.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/sample.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/scp.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/sftp.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/shunt.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/site.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/sqlite.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/stats.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/std-dev.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/store.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/store.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/strings.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/sum.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/thresholds.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/top-k.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/topk.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/types.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/types.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/unique.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/utils-commands.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/utils.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/variance.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/weird.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, <...>/__load__.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, <...>/__preload__.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, <...>/hooks.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/Bro_KRB.types.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/Bro_SNMP.types.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/active-http.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/addrs.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/analyzer) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/analyzer.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/bif) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/bro.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/broker) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/cluster) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/comm.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/communication) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/conn) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/conn-ids.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/const.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/control) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/data.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/dce-rpc) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/dhcp) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/dir.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/directions-and-hosts.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/dnp3) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/dns) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/dpd) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/email.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/event.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/exec.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/extract) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/file_analysis.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/files) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/files.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/find-checksum-offloading.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/find-filtered-trace.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/ftp) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/geoip-distance.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/hash) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/http) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/imap) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/init-default.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/input) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/input.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/intel) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/irc) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/json.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/krb) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/logging) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/logging.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/main.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/messaging.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/modbus) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/mysql) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/netcontrol) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/notice) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/ntlm) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/numbers.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/openflow) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/packet-filter) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/paths.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/patterns.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/pe) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/plugins) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/pop3) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/queue.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/radius) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/rdp) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/reporter) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/reporter.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/rfb) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/signatures) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/sip) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/site.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/smb) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/smtp) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/snmp) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/socks) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/software) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/ssh) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/ssl) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/store.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/strings.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/strings.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/sumstats) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/syslog) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/thresholds.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/time.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/tunnels) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/types.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/unified2) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/urls.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/utils.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/version.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/weird.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/x509) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/xmpp) -> -1
+0.000000   MetaHookPost  LoadFile(1, .<...>/archive.sig) -> -1
+0.000000   MetaHookPost  LoadFile(1, .<...>/audio.sig) -> -1
+0.000000   MetaHookPost  LoadFile(1, .<...>/dpd.sig) -> -1
+0.000000   MetaHookPost  LoadFile(1, .<...>/font.sig) -> -1
+0.000000   MetaHookPost  LoadFile(1, .<...>/general.sig) -> -1
+0.000000   MetaHookPost  LoadFile(1, .<...>/image.sig) -> -1
+0.000000   MetaHookPost  LoadFile(1, .<...>/libmagic.sig) -> -1
+0.000000   MetaHookPost  LoadFile(1, .<...>/msoffice.sig) -> -1
+0.000000   MetaHookPost  LoadFile(1, .<...>/video.sig) -> -1
 0.000000   MetaHookPost  LogInit(Log::WRITER_ASCII, default, true, true, packet_filter(0.0,0.0,0.0), 5, {ts (time), node (string), filter (string), init (bool), success (bool)}) -> <void>
 0.000000   MetaHookPost  LogWrite(Log::WRITER_ASCII, default, packet_filter(0.0,0.0,0.0), 5, {ts (time), node (string), filter (string), init (bool), success (bool)}, <void ptr>) -> true
 0.000000   MetaHookPost  QueueEvent(NetControl::init()) -> false
@@ -986,7 +991,7 @@
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql]))
-0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1498500921.18004, node=bro, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1510863910.246703, node=bro, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Communication::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Conn::LOG))
@@ -1116,7 +1121,7 @@
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql]))
-0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1498500921.18004, node=bro, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1510863910.246703, node=bro, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(NetControl::check_plugins, <frame>, ())
 0.000000   MetaHookPre   CallFunction(NetControl::init, <null>, ())
 0.000000   MetaHookPre   CallFunction(Notice::want_pp, <frame>, ())
@@ -1152,307 +1157,312 @@
 0.000000   MetaHookPre   CallFunction(string_to_pattern, <frame>, ((^\.?|\.)()$, F))
 0.000000   MetaHookPre   CallFunction(sub, <frame>, ((^\.?|\.)(~~)$, <...>/, ))
 0.000000   MetaHookPre   DrainEvents()
-0.000000   MetaHookPre   LoadFile(../main)
-0.000000   MetaHookPre   LoadFile(../plugin)
-0.000000   MetaHookPre   LoadFile(./Bro_ARP.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_AsciiReader.ascii.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_AsciiWriter.ascii.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_BackDoor.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_BenchmarkReader.benchmark.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_BinaryReader.binary.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_BitTorrent.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_ConnSize.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_ConnSize.functions.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_DCE_RPC.consts.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_DCE_RPC.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_DCE_RPC.types.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_DHCP.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_DNP3.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_DNS.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_FTP.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_FTP.functions.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_File.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_FileEntropy.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_FileExtract.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_FileExtract.functions.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_FileHash.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_Finger.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_GSSAPI.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_GTPv1.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_Gnutella.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_HTTP.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_HTTP.functions.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_ICMP.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_IMAP.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_IRC.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_Ident.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_InterConn.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_KRB.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_KRB.types.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_Login.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_Login.functions.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_MIME.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_Modbus.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_MySQL.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_NCP.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_NTLM.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_NTLM.types.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_NTP.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_NetBIOS.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_NetBIOS.functions.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_NoneWriter.none.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_PE.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_POP3.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_RADIUS.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_RDP.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_RDP.types.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_RFB.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_RPC.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_RawReader.raw.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SIP.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SMB.consts.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SMB.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SMB.smb1_com_check_directory.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SMB.smb1_com_close.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SMB.smb1_com_create_directory.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SMB.smb1_com_echo.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SMB.smb1_com_logoff_andx.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SMB.smb1_com_negotiate.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SMB.smb1_com_nt_cancel.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SMB.smb1_com_nt_create_andx.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SMB.smb1_com_query_information.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SMB.smb1_com_read_andx.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SMB.smb1_com_session_setup_andx.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SMB.smb1_com_transaction.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SMB.smb1_com_transaction2.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SMB.smb1_com_tree_connect_andx.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SMB.smb1_com_tree_disconnect.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SMB.smb1_com_write_andx.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SMB.smb1_events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SMB.smb2_com_close.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SMB.smb2_com_create.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SMB.smb2_com_negotiate.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SMB.smb2_com_read.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SMB.smb2_com_session_setup.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SMB.smb2_com_set_info.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SMB.smb2_com_tree_connect.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SMB.smb2_com_tree_disconnect.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SMB.smb2_com_write.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SMB.smb2_events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SMB.types.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SMTP.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SMTP.functions.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SNMP.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SNMP.types.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SOCKS.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SQLiteReader.sqlite.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SQLiteWriter.sqlite.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SSH.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SSH.types.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SSL.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SSL.functions.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SSL.types.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_SteppingStone.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_Syslog.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_TCP.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_TCP.functions.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_Teredo.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_UDP.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_Unified2.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_Unified2.types.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_X509.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_X509.functions.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_X509.ocsp_events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_X509.types.bif.bro)
-0.000000   MetaHookPre   LoadFile(./Bro_XMPP.events.bif.bro)
-0.000000   MetaHookPre   LoadFile(./acld)
-0.000000   MetaHookPre   LoadFile(./addrs)
-0.000000   MetaHookPre   LoadFile(./analyzer.bif.bro)
-0.000000   MetaHookPre   LoadFile(./average)
-0.000000   MetaHookPre   LoadFile(./bloom-filter.bif.bro)
-0.000000   MetaHookPre   LoadFile(./bro.bif.bro)
-0.000000   MetaHookPre   LoadFile(./broker)
-0.000000   MetaHookPre   LoadFile(./broxygen.bif.bro)
-0.000000   MetaHookPre   LoadFile(./cardinality-counter.bif.bro)
-0.000000   MetaHookPre   LoadFile(./catch-and-release)
-0.000000   MetaHookPre   LoadFile(./comm.bif.bro)
-0.000000   MetaHookPre   LoadFile(./const-dos-error)
-0.000000   MetaHookPre   LoadFile(./const-nt-status)
-0.000000   MetaHookPre   LoadFile(./const.bif.bro)
-0.000000   MetaHookPre   LoadFile(./consts)
-0.000000   MetaHookPre   LoadFile(./consts.bro)
-0.000000   MetaHookPre   LoadFile(./contents)
-0.000000   MetaHookPre   LoadFile(./ct-list)
-0.000000   MetaHookPre   LoadFile(./data.bif.bro)
-0.000000   MetaHookPre   LoadFile(./dcc-send)
-0.000000   MetaHookPre   LoadFile(./debug)
-0.000000   MetaHookPre   LoadFile(./drop)
-0.000000   MetaHookPre   LoadFile(./entities)
-0.000000   MetaHookPre   LoadFile(./event.bif.bro)
-0.000000   MetaHookPre   LoadFile(./exec)
-0.000000   MetaHookPre   LoadFile(./file_analysis.bif.bro)
-0.000000   MetaHookPre   LoadFile(./files)
-0.000000   MetaHookPre   LoadFile(./gridftp)
-0.000000   MetaHookPre   LoadFile(./hll_unique)
-0.000000   MetaHookPre   LoadFile(./hooks.bif.bro)
-0.000000   MetaHookPre   LoadFile(./inactivity)
-0.000000   MetaHookPre   LoadFile(./info)
-0.000000   MetaHookPre   LoadFile(./init.bro)
-0.000000   MetaHookPre   LoadFile(./input)
-0.000000   MetaHookPre   LoadFile(./input.bif.bro)
-0.000000   MetaHookPre   LoadFile(./last)
-0.000000   MetaHookPre   LoadFile(./log)
-0.000000   MetaHookPre   LoadFile(./logging.bif.bro)
-0.000000   MetaHookPre   LoadFile(./magic)
-0.000000   MetaHookPre   LoadFile(./main)
-0.000000   MetaHookPre   LoadFile(./main.bro)
-0.000000   MetaHookPre   LoadFile(./max)
-0.000000   MetaHookPre   LoadFile(./messaging.bif.bro)
-0.000000   MetaHookPre   LoadFile(./min)
-0.000000   MetaHookPre   LoadFile(./mozilla-ca-list)
-0.000000   MetaHookPre   LoadFile(./netstats)
-0.000000   MetaHookPre   LoadFile(./non-cluster)
-0.000000   MetaHookPre   LoadFile(./openflow)
-0.000000   MetaHookPre   LoadFile(./packetfilter)
-0.000000   MetaHookPre   LoadFile(./patterns)
-0.000000   MetaHookPre   LoadFile(./pcap.bif.bro)
-0.000000   MetaHookPre   LoadFile(./plugin)
-0.000000   MetaHookPre   LoadFile(./plugins)
-0.000000   MetaHookPre   LoadFile(./polling)
-0.000000   MetaHookPre   LoadFile(./postprocessors)
-0.000000   MetaHookPre   LoadFile(./reporter.bif.bro)
-0.000000   MetaHookPre   LoadFile(./ryu)
-0.000000   MetaHookPre   LoadFile(./sample)
-0.000000   MetaHookPre   LoadFile(./scp)
-0.000000   MetaHookPre   LoadFile(./sftp)
-0.000000   MetaHookPre   LoadFile(./shunt)
-0.000000   MetaHookPre   LoadFile(./site)
-0.000000   MetaHookPre   LoadFile(./stats.bif.bro)
-0.000000   MetaHookPre   LoadFile(./std-dev)
-0.000000   MetaHookPre   LoadFile(./store)
-0.000000   MetaHookPre   LoadFile(./store.bif.bro)
-0.000000   MetaHookPre   LoadFile(./strings.bif.bro)
-0.000000   MetaHookPre   LoadFile(./sum)
-0.000000   MetaHookPre   LoadFile(./thresholds)
-0.000000   MetaHookPre   LoadFile(./top-k.bif.bro)
-0.000000   MetaHookPre   LoadFile(./topk)
-0.000000   MetaHookPre   LoadFile(./types)
-0.000000   MetaHookPre   LoadFile(./types.bif.bro)
-0.000000   MetaHookPre   LoadFile(./types.bro)
-0.000000   MetaHookPre   LoadFile(./unique)
-0.000000   MetaHookPre   LoadFile(./utils)
-0.000000   MetaHookPre   LoadFile(./utils-commands)
-0.000000   MetaHookPre   LoadFile(./utils.bro)
-0.000000   MetaHookPre   LoadFile(./variance)
-0.000000   MetaHookPre   LoadFile(./weird)
-0.000000   MetaHookPre   LoadFile(.<...>/add-geodata)
-0.000000   MetaHookPre   LoadFile(.<...>/ascii)
-0.000000   MetaHookPre   LoadFile(.<...>/benchmark)
-0.000000   MetaHookPre   LoadFile(.<...>/binary)
-0.000000   MetaHookPre   LoadFile(.<...>/drop)
-0.000000   MetaHookPre   LoadFile(.<...>/email_admin)
-0.000000   MetaHookPre   LoadFile(.<...>/hostnames)
-0.000000   MetaHookPre   LoadFile(.<...>/none)
-0.000000   MetaHookPre   LoadFile(.<...>/page)
-0.000000   MetaHookPre   LoadFile(.<...>/pp-alarms)
-0.000000   MetaHookPre   LoadFile(.<...>/raw)
-0.000000   MetaHookPre   LoadFile(.<...>/sqlite)
-0.000000   MetaHookPre   LoadFile(<...>/__load__.bro)
-0.000000   MetaHookPre   LoadFile(<...>/__preload__.bro)
-0.000000   MetaHookPre   LoadFile(<...>/hooks.bro)
-0.000000   MetaHookPre   LoadFile(base/bif)
-0.000000   MetaHookPre   LoadFile(base/init-default.bro)
-0.000000   MetaHookPre   LoadFile(base<...>/Bro_KRB.types.bif)
-0.000000   MetaHookPre   LoadFile(base<...>/Bro_SNMP.types.bif)
-0.000000   MetaHookPre   LoadFile(base<...>/active-http)
-0.000000   MetaHookPre   LoadFile(base<...>/addrs)
-0.000000   MetaHookPre   LoadFile(base<...>/analyzer)
-0.000000   MetaHookPre   LoadFile(base<...>/analyzer.bif)
-0.000000   MetaHookPre   LoadFile(base<...>/bro.bif)
-0.000000   MetaHookPre   LoadFile(base<...>/broker)
-0.000000   MetaHookPre   LoadFile(base<...>/cluster)
-0.000000   MetaHookPre   LoadFile(base<...>/comm.bif)
-0.000000   MetaHookPre   LoadFile(base<...>/communication)
-0.000000   MetaHookPre   LoadFile(base<...>/conn)
-0.000000   MetaHookPre   LoadFile(base<...>/conn-ids)
-0.000000   MetaHookPre   LoadFile(base<...>/const.bif.bro)
-0.000000   MetaHookPre   LoadFile(base<...>/control)
-0.000000   MetaHookPre   LoadFile(base<...>/data.bif)
-0.000000   MetaHookPre   LoadFile(base<...>/dce-rpc)
-0.000000   MetaHookPre   LoadFile(base<...>/dhcp)
-0.000000   MetaHookPre   LoadFile(base<...>/dir)
-0.000000   MetaHookPre   LoadFile(base<...>/directions-and-hosts)
-0.000000   MetaHookPre   LoadFile(base<...>/dnp3)
-0.000000   MetaHookPre   LoadFile(base<...>/dns)
-0.000000   MetaHookPre   LoadFile(base<...>/dpd)
-0.000000   MetaHookPre   LoadFile(base<...>/email)
-0.000000   MetaHookPre   LoadFile(base<...>/event.bif)
-0.000000   MetaHookPre   LoadFile(base<...>/exec)
-0.000000   MetaHookPre   LoadFile(base<...>/extract)
-0.000000   MetaHookPre   LoadFile(base<...>/file_analysis.bif)
-0.000000   MetaHookPre   LoadFile(base<...>/files)
-0.000000   MetaHookPre   LoadFile(base<...>/find-checksum-offloading)
-0.000000   MetaHookPre   LoadFile(base<...>/find-filtered-trace)
-0.000000   MetaHookPre   LoadFile(base<...>/ftp)
-0.000000   MetaHookPre   LoadFile(base<...>/geoip-distance)
-0.000000   MetaHookPre   LoadFile(base<...>/hash)
-0.000000   MetaHookPre   LoadFile(base<...>/http)
-0.000000   MetaHookPre   LoadFile(base<...>/imap)
-0.000000   MetaHookPre   LoadFile(base<...>/input)
-0.000000   MetaHookPre   LoadFile(base<...>/input.bif)
-0.000000   MetaHookPre   LoadFile(base<...>/intel)
-0.000000   MetaHookPre   LoadFile(base<...>/irc)
-0.000000   MetaHookPre   LoadFile(base<...>/json)
-0.000000   MetaHookPre   LoadFile(base<...>/krb)
-0.000000   MetaHookPre   LoadFile(base<...>/logging)
-0.000000   MetaHookPre   LoadFile(base<...>/logging.bif)
-0.000000   MetaHookPre   LoadFile(base<...>/main)
-0.000000   MetaHookPre   LoadFile(base<...>/messaging.bif)
-0.000000   MetaHookPre   LoadFile(base<...>/modbus)
-0.000000   MetaHookPre   LoadFile(base<...>/mysql)
-0.000000   MetaHookPre   LoadFile(base<...>/netcontrol)
-0.000000   MetaHookPre   LoadFile(base<...>/notice)
-0.000000   MetaHookPre   LoadFile(base<...>/ntlm)
-0.000000   MetaHookPre   LoadFile(base<...>/numbers)
-0.000000   MetaHookPre   LoadFile(base<...>/openflow)
-0.000000   MetaHookPre   LoadFile(base<...>/packet-filter)
-0.000000   MetaHookPre   LoadFile(base<...>/paths)
-0.000000   MetaHookPre   LoadFile(base<...>/patterns)
-0.000000   MetaHookPre   LoadFile(base<...>/pe)
-0.000000   MetaHookPre   LoadFile(base<...>/plugins)
-0.000000   MetaHookPre   LoadFile(base<...>/pop3)
-0.000000   MetaHookPre   LoadFile(base<...>/queue)
-0.000000   MetaHookPre   LoadFile(base<...>/radius)
-0.000000   MetaHookPre   LoadFile(base<...>/rdp)
-0.000000   MetaHookPre   LoadFile(base<...>/reporter)
-0.000000   MetaHookPre   LoadFile(base<...>/reporter.bif)
-0.000000   MetaHookPre   LoadFile(base<...>/rfb)
-0.000000   MetaHookPre   LoadFile(base<...>/signatures)
-0.000000   MetaHookPre   LoadFile(base<...>/sip)
-0.000000   MetaHookPre   LoadFile(base<...>/site)
-0.000000   MetaHookPre   LoadFile(base<...>/smb)
-0.000000   MetaHookPre   LoadFile(base<...>/smtp)
-0.000000   MetaHookPre   LoadFile(base<...>/snmp)
-0.000000   MetaHookPre   LoadFile(base<...>/socks)
-0.000000   MetaHookPre   LoadFile(base<...>/software)
-0.000000   MetaHookPre   LoadFile(base<...>/ssh)
-0.000000   MetaHookPre   LoadFile(base<...>/ssl)
-0.000000   MetaHookPre   LoadFile(base<...>/store.bif)
-0.000000   MetaHookPre   LoadFile(base<...>/strings)
-0.000000   MetaHookPre   LoadFile(base<...>/strings.bif)
-0.000000   MetaHookPre   LoadFile(base<...>/sumstats)
-0.000000   MetaHookPre   LoadFile(base<...>/syslog)
-0.000000   MetaHookPre   LoadFile(base<...>/thresholds)
-0.000000   MetaHookPre   LoadFile(base<...>/time)
-0.000000   MetaHookPre   LoadFile(base<...>/tunnels)
-0.000000   MetaHookPre   LoadFile(base<...>/types.bif)
-0.000000   MetaHookPre   LoadFile(base<...>/unified2)
-0.000000   MetaHookPre   LoadFile(base<...>/urls)
-0.000000   MetaHookPre   LoadFile(base<...>/utils)
-0.000000   MetaHookPre   LoadFile(base<...>/version)
-0.000000   MetaHookPre   LoadFile(base<...>/weird)
-0.000000   MetaHookPre   LoadFile(base<...>/x509)
-0.000000   MetaHookPre   LoadFile(base<...>/xmpp)
+0.000000   MetaHookPre   LoadFile(0, ..<...>/main.bro)
+0.000000   MetaHookPre   LoadFile(0, ..<...>/plugin.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_ARP.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_AsciiReader.ascii.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_AsciiWriter.ascii.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_BackDoor.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_BenchmarkReader.benchmark.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_BinaryReader.binary.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_BitTorrent.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_ConnSize.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_ConnSize.functions.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_DCE_RPC.consts.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_DCE_RPC.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_DCE_RPC.types.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_DHCP.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_DNP3.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_DNS.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_FTP.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_FTP.functions.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_File.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_FileEntropy.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_FileExtract.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_FileExtract.functions.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_FileHash.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_Finger.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_GSSAPI.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_GTPv1.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_Gnutella.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_HTTP.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_HTTP.functions.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_ICMP.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_IMAP.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_IRC.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_Ident.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_InterConn.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_KRB.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_KRB.types.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_Login.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_Login.functions.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_MIME.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_Modbus.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_MySQL.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_NCP.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_NTLM.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_NTLM.types.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_NTP.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_NetBIOS.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_NetBIOS.functions.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_NoneWriter.none.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_PE.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_POP3.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_RADIUS.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_RDP.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_RDP.types.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_RFB.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_RPC.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_RawReader.raw.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SIP.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMB.consts.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMB.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMB.smb1_com_check_directory.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMB.smb1_com_close.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMB.smb1_com_create_directory.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMB.smb1_com_echo.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMB.smb1_com_logoff_andx.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMB.smb1_com_negotiate.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMB.smb1_com_nt_cancel.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMB.smb1_com_nt_create_andx.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMB.smb1_com_query_information.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMB.smb1_com_read_andx.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMB.smb1_com_session_setup_andx.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMB.smb1_com_transaction.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMB.smb1_com_transaction2.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMB.smb1_com_tree_connect_andx.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMB.smb1_com_tree_disconnect.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMB.smb1_com_write_andx.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMB.smb1_events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMB.smb2_com_close.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMB.smb2_com_create.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMB.smb2_com_negotiate.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMB.smb2_com_read.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMB.smb2_com_session_setup.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMB.smb2_com_set_info.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMB.smb2_com_tree_connect.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMB.smb2_com_tree_disconnect.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMB.smb2_com_write.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMB.smb2_events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMB.types.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMTP.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMTP.functions.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SNMP.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SNMP.types.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SOCKS.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SQLiteReader.sqlite.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SQLiteWriter.sqlite.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SSH.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SSH.types.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SSL.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SSL.functions.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SSL.types.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SteppingStone.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_Syslog.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_TCP.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_TCP.functions.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_Teredo.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_UDP.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_Unified2.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_Unified2.types.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_X509.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_X509.functions.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_X509.ocsp_events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_X509.types.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_XMPP.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/acld.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/add-geodata.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/addrs.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/analyzer.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/ascii.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/average.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/benchmark.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/binary.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/bloom-filter.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/bro.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/broker.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/broxygen.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/cardinality-counter.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/catch-and-release.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/comm.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/const-dos-error.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/const-nt-status.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/const.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/consts.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/contents.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/ct-list.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/data.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/dcc-send.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/debug.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/drop.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/email_admin.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/entities.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/event.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/exec.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/file_analysis.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/files.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/gridftp.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/hll_unique.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/hooks.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/hostnames.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/inactivity.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/info.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/init.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/input.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/input.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/last.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/log.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/logging.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/magic)
+0.000000   MetaHookPre   LoadFile(0, .<...>/main.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/max.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/messaging.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/min.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/mozilla-ca-list.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/netstats.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/non-cluster.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/none.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/openflow.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/packetfilter.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/page.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/patterns.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/pcap.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/plugin.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/plugins)
+0.000000   MetaHookPre   LoadFile(0, .<...>/polling.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/postprocessors)
+0.000000   MetaHookPre   LoadFile(0, .<...>/pp-alarms.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/raw.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/reporter.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/ryu.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/sample.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/scp.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/sftp.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/shunt.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/site.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/sqlite.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/stats.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/std-dev.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/store.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/store.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/strings.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/sum.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/thresholds.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/top-k.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/topk.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/types.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/types.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/unique.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/utils-commands.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/utils.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/variance.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/weird.bro)
+0.000000   MetaHookPre   LoadFile(0, <...>/__load__.bro)
+0.000000   MetaHookPre   LoadFile(0, <...>/__preload__.bro)
+0.000000   MetaHookPre   LoadFile(0, <...>/hooks.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/Bro_KRB.types.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/Bro_SNMP.types.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/active-http.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/addrs.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/analyzer)
+0.000000   MetaHookPre   LoadFile(0, base<...>/analyzer.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/bif)
+0.000000   MetaHookPre   LoadFile(0, base<...>/bro.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/broker)
+0.000000   MetaHookPre   LoadFile(0, base<...>/cluster)
+0.000000   MetaHookPre   LoadFile(0, base<...>/comm.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/communication)
+0.000000   MetaHookPre   LoadFile(0, base<...>/conn)
+0.000000   MetaHookPre   LoadFile(0, base<...>/conn-ids.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/const.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/control)
+0.000000   MetaHookPre   LoadFile(0, base<...>/data.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/dce-rpc)
+0.000000   MetaHookPre   LoadFile(0, base<...>/dhcp)
+0.000000   MetaHookPre   LoadFile(0, base<...>/dir.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/directions-and-hosts.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/dnp3)
+0.000000   MetaHookPre   LoadFile(0, base<...>/dns)
+0.000000   MetaHookPre   LoadFile(0, base<...>/dpd)
+0.000000   MetaHookPre   LoadFile(0, base<...>/email.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/event.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/exec.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/extract)
+0.000000   MetaHookPre   LoadFile(0, base<...>/file_analysis.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/files)
+0.000000   MetaHookPre   LoadFile(0, base<...>/files.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/find-checksum-offloading.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/find-filtered-trace.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/ftp)
+0.000000   MetaHookPre   LoadFile(0, base<...>/geoip-distance.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/hash)
+0.000000   MetaHookPre   LoadFile(0, base<...>/http)
+0.000000   MetaHookPre   LoadFile(0, base<...>/imap)
+0.000000   MetaHookPre   LoadFile(0, base<...>/init-default.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/input)
+0.000000   MetaHookPre   LoadFile(0, base<...>/input.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/intel)
+0.000000   MetaHookPre   LoadFile(0, base<...>/irc)
+0.000000   MetaHookPre   LoadFile(0, base<...>/json.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/krb)
+0.000000   MetaHookPre   LoadFile(0, base<...>/logging)
+0.000000   MetaHookPre   LoadFile(0, base<...>/logging.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/main.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/messaging.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/modbus)
+0.000000   MetaHookPre   LoadFile(0, base<...>/mysql)
+0.000000   MetaHookPre   LoadFile(0, base<...>/netcontrol)
+0.000000   MetaHookPre   LoadFile(0, base<...>/notice)
+0.000000   MetaHookPre   LoadFile(0, base<...>/ntlm)
+0.000000   MetaHookPre   LoadFile(0, base<...>/numbers.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/openflow)
+0.000000   MetaHookPre   LoadFile(0, base<...>/packet-filter)
+0.000000   MetaHookPre   LoadFile(0, base<...>/paths.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/patterns.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/pe)
+0.000000   MetaHookPre   LoadFile(0, base<...>/plugins)
+0.000000   MetaHookPre   LoadFile(0, base<...>/pop3)
+0.000000   MetaHookPre   LoadFile(0, base<...>/queue.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/radius)
+0.000000   MetaHookPre   LoadFile(0, base<...>/rdp)
+0.000000   MetaHookPre   LoadFile(0, base<...>/reporter)
+0.000000   MetaHookPre   LoadFile(0, base<...>/reporter.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/rfb)
+0.000000   MetaHookPre   LoadFile(0, base<...>/signatures)
+0.000000   MetaHookPre   LoadFile(0, base<...>/sip)
+0.000000   MetaHookPre   LoadFile(0, base<...>/site.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/smb)
+0.000000   MetaHookPre   LoadFile(0, base<...>/smtp)
+0.000000   MetaHookPre   LoadFile(0, base<...>/snmp)
+0.000000   MetaHookPre   LoadFile(0, base<...>/socks)
+0.000000   MetaHookPre   LoadFile(0, base<...>/software)
+0.000000   MetaHookPre   LoadFile(0, base<...>/ssh)
+0.000000   MetaHookPre   LoadFile(0, base<...>/ssl)
+0.000000   MetaHookPre   LoadFile(0, base<...>/store.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/strings.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/strings.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/sumstats)
+0.000000   MetaHookPre   LoadFile(0, base<...>/syslog)
+0.000000   MetaHookPre   LoadFile(0, base<...>/thresholds.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/time.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/tunnels)
+0.000000   MetaHookPre   LoadFile(0, base<...>/types.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/unified2)
+0.000000   MetaHookPre   LoadFile(0, base<...>/urls.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/utils.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/version.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/weird.bro)
+0.000000   MetaHookPre   LoadFile(0, base<...>/x509)
+0.000000   MetaHookPre   LoadFile(0, base<...>/xmpp)
+0.000000   MetaHookPre   LoadFile(1, .<...>/archive.sig)
+0.000000   MetaHookPre   LoadFile(1, .<...>/audio.sig)
+0.000000   MetaHookPre   LoadFile(1, .<...>/dpd.sig)
+0.000000   MetaHookPre   LoadFile(1, .<...>/font.sig)
+0.000000   MetaHookPre   LoadFile(1, .<...>/general.sig)
+0.000000   MetaHookPre   LoadFile(1, .<...>/image.sig)
+0.000000   MetaHookPre   LoadFile(1, .<...>/libmagic.sig)
+0.000000   MetaHookPre   LoadFile(1, .<...>/msoffice.sig)
+0.000000   MetaHookPre   LoadFile(1, .<...>/video.sig)
 0.000000   MetaHookPre   LogInit(Log::WRITER_ASCII, default, true, true, packet_filter(0.0,0.0,0.0), 5, {ts (time), node (string), filter (string), init (bool), success (bool)})
 0.000000   MetaHookPre   LogWrite(Log::WRITER_ASCII, default, packet_filter(0.0,0.0,0.0), 5, {ts (time), node (string), filter (string), init (bool), success (bool)}, <void ptr>)
 0.000000   MetaHookPre   QueueEvent(NetControl::init())
@@ -1715,7 +1725,7 @@
 0.000000 | HookCallFunction Log::__create_stream(Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])
 0.000000 | HookCallFunction Log::__create_stream(X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])
 0.000000 | HookCallFunction Log::__create_stream(mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])
-0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1498500921.18004, node=bro, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1510863910.246703, node=bro, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction Log::add_default_filter(Cluster::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Communication::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Conn::LOG)
@@ -1845,7 +1855,7 @@
 0.000000 | HookCallFunction Log::create_stream(Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])
 0.000000 | HookCallFunction Log::create_stream(X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])
 0.000000 | HookCallFunction Log::create_stream(mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])
-0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1498500921.18004, node=bro, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1510863910.246703, node=bro, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction NetControl::check_plugins()
 0.000000 | HookCallFunction NetControl::init()
 0.000000 | HookCallFunction Notice::want_pp()
@@ -1881,13 +1891,314 @@
 0.000000 | HookCallFunction string_to_pattern((^\.?|\.)()$, F)
 0.000000 | HookCallFunction sub((^\.?|\.)(~~)$, <...>/, )
 0.000000 | HookDrainEvents
-0.000000 | HookLoadFile  ..<...>/bro
-0.000000 | HookLoadFile  .<...>/bro
-0.000000 | HookLoadFile  <...>/bro
+0.000000 | HookLoadFile  ..<...>/main.bro
+0.000000 | HookLoadFile  ..<...>/plugin.bro
+0.000000 | HookLoadFile  .<...>/Bro_ARP.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_AsciiReader.ascii.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_AsciiWriter.ascii.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_BackDoor.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_BenchmarkReader.benchmark.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_BinaryReader.binary.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_BitTorrent.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_ConnSize.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_ConnSize.functions.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_DCE_RPC.consts.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_DCE_RPC.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_DCE_RPC.types.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_DHCP.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_DNP3.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_DNS.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_FTP.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_FTP.functions.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_File.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_FileEntropy.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_FileExtract.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_FileExtract.functions.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_FileHash.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_Finger.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_GSSAPI.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_GTPv1.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_Gnutella.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_HTTP.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_HTTP.functions.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_ICMP.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_IMAP.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_IRC.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_Ident.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_InterConn.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_KRB.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_KRB.types.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_Login.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_Login.functions.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_MIME.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_Modbus.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_MySQL.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_NCP.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_NTLM.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_NTLM.types.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_NTP.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_NetBIOS.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_NetBIOS.functions.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_NoneWriter.none.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_PE.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_POP3.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_RADIUS.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_RDP.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_RDP.types.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_RFB.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_RPC.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_RawReader.raw.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SIP.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SMB.consts.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SMB.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SMB.smb1_com_check_directory.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SMB.smb1_com_close.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SMB.smb1_com_create_directory.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SMB.smb1_com_echo.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SMB.smb1_com_logoff_andx.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SMB.smb1_com_negotiate.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SMB.smb1_com_nt_cancel.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SMB.smb1_com_nt_create_andx.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SMB.smb1_com_query_information.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SMB.smb1_com_read_andx.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SMB.smb1_com_session_setup_andx.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SMB.smb1_com_transaction.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SMB.smb1_com_transaction2.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SMB.smb1_com_tree_connect_andx.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SMB.smb1_com_tree_disconnect.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SMB.smb1_com_write_andx.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SMB.smb1_events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SMB.smb2_com_close.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SMB.smb2_com_create.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SMB.smb2_com_negotiate.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SMB.smb2_com_read.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SMB.smb2_com_session_setup.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SMB.smb2_com_set_info.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SMB.smb2_com_tree_connect.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SMB.smb2_com_tree_disconnect.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SMB.smb2_com_write.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SMB.smb2_events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SMB.types.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SMTP.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SMTP.functions.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SNMP.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SNMP.types.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SOCKS.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SQLiteReader.sqlite.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SQLiteWriter.sqlite.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SSH.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SSH.types.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SSL.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SSL.functions.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SSL.types.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SteppingStone.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_Syslog.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_TCP.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_TCP.functions.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_Teredo.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_UDP.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_Unified2.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_Unified2.types.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_X509.events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_X509.functions.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_X509.ocsp_events.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_X509.types.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_XMPP.events.bif.bro
+0.000000 | HookLoadFile  .<...>/acld.bro
+0.000000 | HookLoadFile  .<...>/add-geodata.bro
+0.000000 | HookLoadFile  .<...>/addrs.bro
+0.000000 | HookLoadFile  .<...>/analyzer.bif.bro
+0.000000 | HookLoadFile  .<...>/archive.sig
+0.000000 | HookLoadFile  .<...>/ascii.bro
+0.000000 | HookLoadFile  .<...>/audio.sig
+0.000000 | HookLoadFile  .<...>/average.bro
+0.000000 | HookLoadFile  .<...>/benchmark.bro
+0.000000 | HookLoadFile  .<...>/binary.bro
+0.000000 | HookLoadFile  .<...>/bloom-filter.bif.bro
+0.000000 | HookLoadFile  .<...>/bro.bif.bro
+0.000000 | HookLoadFile  .<...>/broker.bro
+0.000000 | HookLoadFile  .<...>/broxygen.bif.bro
+0.000000 | HookLoadFile  .<...>/cardinality-counter.bif.bro
+0.000000 | HookLoadFile  .<...>/catch-and-release.bro
+0.000000 | HookLoadFile  .<...>/comm.bif.bro
+0.000000 | HookLoadFile  .<...>/const-dos-error.bro
+0.000000 | HookLoadFile  .<...>/const-nt-status.bro
+0.000000 | HookLoadFile  .<...>/const.bif.bro
+0.000000 | HookLoadFile  .<...>/consts.bro
+0.000000 | HookLoadFile  .<...>/contents.bro
+0.000000 | HookLoadFile  .<...>/ct-list.bro
+0.000000 | HookLoadFile  .<...>/data.bif.bro
+0.000000 | HookLoadFile  .<...>/dcc-send.bro
+0.000000 | HookLoadFile  .<...>/debug.bro
+0.000000 | HookLoadFile  .<...>/dpd.sig
+0.000000 | HookLoadFile  .<...>/drop.bro
+0.000000 | HookLoadFile  .<...>/email_admin.bro
+0.000000 | HookLoadFile  .<...>/entities.bro
+0.000000 | HookLoadFile  .<...>/event.bif.bro
+0.000000 | HookLoadFile  .<...>/exec.bro
+0.000000 | HookLoadFile  .<...>/file_analysis.bif.bro
+0.000000 | HookLoadFile  .<...>/files.bro
+0.000000 | HookLoadFile  .<...>/font.sig
+0.000000 | HookLoadFile  .<...>/general.sig
+0.000000 | HookLoadFile  .<...>/gridftp.bro
+0.000000 | HookLoadFile  .<...>/hll_unique.bro
+0.000000 | HookLoadFile  .<...>/hooks.bif.bro
+0.000000 | HookLoadFile  .<...>/hostnames.bro
+0.000000 | HookLoadFile  .<...>/image.sig
+0.000000 | HookLoadFile  .<...>/inactivity.bro
+0.000000 | HookLoadFile  .<...>/info.bro
+0.000000 | HookLoadFile  .<...>/init.bro
+0.000000 | HookLoadFile  .<...>/input.bif.bro
+0.000000 | HookLoadFile  .<...>/input.bro
+0.000000 | HookLoadFile  .<...>/last.bro
+0.000000 | HookLoadFile  .<...>/libmagic.sig
+0.000000 | HookLoadFile  .<...>/log.bro
+0.000000 | HookLoadFile  .<...>/logging.bif.bro
+0.000000 | HookLoadFile  .<...>/magic
+0.000000 | HookLoadFile  .<...>/main.bro
+0.000000 | HookLoadFile  .<...>/max.bro
+0.000000 | HookLoadFile  .<...>/messaging.bif.bro
+0.000000 | HookLoadFile  .<...>/min.bro
+0.000000 | HookLoadFile  .<...>/mozilla-ca-list.bro
+0.000000 | HookLoadFile  .<...>/msoffice.sig
+0.000000 | HookLoadFile  .<...>/netstats.bro
+0.000000 | HookLoadFile  .<...>/non-cluster.bro
+0.000000 | HookLoadFile  .<...>/none.bro
+0.000000 | HookLoadFile  .<...>/openflow.bro
+0.000000 | HookLoadFile  .<...>/packetfilter.bro
+0.000000 | HookLoadFile  .<...>/page.bro
+0.000000 | HookLoadFile  .<...>/patterns.bro
+0.000000 | HookLoadFile  .<...>/pcap.bif.bro
+0.000000 | HookLoadFile  .<...>/plugin.bro
+0.000000 | HookLoadFile  .<...>/plugins
+0.000000 | HookLoadFile  .<...>/polling.bro
+0.000000 | HookLoadFile  .<...>/postprocessors
+0.000000 | HookLoadFile  .<...>/pp-alarms.bro
+0.000000 | HookLoadFile  .<...>/raw.bro
+0.000000 | HookLoadFile  .<...>/reporter.bif.bro
+0.000000 | HookLoadFile  .<...>/ryu.bro
+0.000000 | HookLoadFile  .<...>/sample.bro
+0.000000 | HookLoadFile  .<...>/scp.bro
+0.000000 | HookLoadFile  .<...>/sftp.bro
+0.000000 | HookLoadFile  .<...>/shunt.bro
+0.000000 | HookLoadFile  .<...>/site.bro
+0.000000 | HookLoadFile  .<...>/sqlite.bro
+0.000000 | HookLoadFile  .<...>/stats.bif.bro
+0.000000 | HookLoadFile  .<...>/std-dev.bro
+0.000000 | HookLoadFile  .<...>/store.bif.bro
+0.000000 | HookLoadFile  .<...>/store.bro
+0.000000 | HookLoadFile  .<...>/strings.bif.bro
+0.000000 | HookLoadFile  .<...>/sum.bro
+0.000000 | HookLoadFile  .<...>/thresholds.bro
+0.000000 | HookLoadFile  .<...>/top-k.bif.bro
+0.000000 | HookLoadFile  .<...>/topk.bro
+0.000000 | HookLoadFile  .<...>/types.bif.bro
+0.000000 | HookLoadFile  .<...>/types.bro
+0.000000 | HookLoadFile  .<...>/unique.bro
+0.000000 | HookLoadFile  .<...>/utils-commands.bro
+0.000000 | HookLoadFile  .<...>/utils.bro
+0.000000 | HookLoadFile  .<...>/variance.bro
+0.000000 | HookLoadFile  .<...>/video.sig
+0.000000 | HookLoadFile  .<...>/weird.bro
+0.000000 | HookLoadFile  <...>/__load__.bro
+0.000000 | HookLoadFile  <...>/__preload__.bro
+0.000000 | HookLoadFile  <...>/hooks.bro
+0.000000 | HookLoadFile  base<...>/Bro_KRB.types.bif.bro
+0.000000 | HookLoadFile  base<...>/Bro_SNMP.types.bif.bro
+0.000000 | HookLoadFile  base<...>/active-http.bro
+0.000000 | HookLoadFile  base<...>/addrs.bro
+0.000000 | HookLoadFile  base<...>/analyzer
+0.000000 | HookLoadFile  base<...>/analyzer.bif.bro
 0.000000 | HookLoadFile  base<...>/bif
-0.000000 | HookLoadFile  base<...>/bro
+0.000000 | HookLoadFile  base<...>/bro.bif.bro
+0.000000 | HookLoadFile  base<...>/broker
+0.000000 | HookLoadFile  base<...>/cluster
+0.000000 | HookLoadFile  base<...>/comm.bif.bro
+0.000000 | HookLoadFile  base<...>/communication
+0.000000 | HookLoadFile  base<...>/conn
+0.000000 | HookLoadFile  base<...>/conn-ids.bro
+0.000000 | HookLoadFile  base<...>/const.bif.bro
+0.000000 | HookLoadFile  base<...>/control
+0.000000 | HookLoadFile  base<...>/data.bif.bro
+0.000000 | HookLoadFile  base<...>/dce-rpc
+0.000000 | HookLoadFile  base<...>/dhcp
+0.000000 | HookLoadFile  base<...>/dir.bro
+0.000000 | HookLoadFile  base<...>/directions-and-hosts.bro
+0.000000 | HookLoadFile  base<...>/dnp3
+0.000000 | HookLoadFile  base<...>/dns
+0.000000 | HookLoadFile  base<...>/dpd
+0.000000 | HookLoadFile  base<...>/email.bro
+0.000000 | HookLoadFile  base<...>/event.bif.bro
+0.000000 | HookLoadFile  base<...>/exec.bro
+0.000000 | HookLoadFile  base<...>/extract
+0.000000 | HookLoadFile  base<...>/file_analysis.bif.bro
+0.000000 | HookLoadFile  base<...>/files
+0.000000 | HookLoadFile  base<...>/files.bro
+0.000000 | HookLoadFile  base<...>/find-checksum-offloading.bro
+0.000000 | HookLoadFile  base<...>/find-filtered-trace.bro
+0.000000 | HookLoadFile  base<...>/ftp
+0.000000 | HookLoadFile  base<...>/geoip-distance.bro
+0.000000 | HookLoadFile  base<...>/hash
+0.000000 | HookLoadFile  base<...>/http
+0.000000 | HookLoadFile  base<...>/imap
+0.000000 | HookLoadFile  base<...>/init-default.bro
+0.000000 | HookLoadFile  base<...>/input
+0.000000 | HookLoadFile  base<...>/input.bif.bro
+0.000000 | HookLoadFile  base<...>/intel
+0.000000 | HookLoadFile  base<...>/irc
+0.000000 | HookLoadFile  base<...>/json.bro
+0.000000 | HookLoadFile  base<...>/krb
+0.000000 | HookLoadFile  base<...>/logging
+0.000000 | HookLoadFile  base<...>/logging.bif.bro
+0.000000 | HookLoadFile  base<...>/main.bro
+0.000000 | HookLoadFile  base<...>/messaging.bif.bro
+0.000000 | HookLoadFile  base<...>/modbus
+0.000000 | HookLoadFile  base<...>/mysql
+0.000000 | HookLoadFile  base<...>/netcontrol
+0.000000 | HookLoadFile  base<...>/notice
+0.000000 | HookLoadFile  base<...>/ntlm
+0.000000 | HookLoadFile  base<...>/numbers.bro
+0.000000 | HookLoadFile  base<...>/openflow
+0.000000 | HookLoadFile  base<...>/packet-filter
+0.000000 | HookLoadFile  base<...>/paths.bro
+0.000000 | HookLoadFile  base<...>/patterns.bro
+0.000000 | HookLoadFile  base<...>/pe
+0.000000 | HookLoadFile  base<...>/plugins
+0.000000 | HookLoadFile  base<...>/pop3
+0.000000 | HookLoadFile  base<...>/queue.bro
+0.000000 | HookLoadFile  base<...>/radius
+0.000000 | HookLoadFile  base<...>/rdp
+0.000000 | HookLoadFile  base<...>/reporter
+0.000000 | HookLoadFile  base<...>/reporter.bif.bro
+0.000000 | HookLoadFile  base<...>/rfb
+0.000000 | HookLoadFile  base<...>/signatures
+0.000000 | HookLoadFile  base<...>/sip
+0.000000 | HookLoadFile  base<...>/site.bro
+0.000000 | HookLoadFile  base<...>/smb
+0.000000 | HookLoadFile  base<...>/smtp
+0.000000 | HookLoadFile  base<...>/snmp
+0.000000 | HookLoadFile  base<...>/socks
+0.000000 | HookLoadFile  base<...>/software
+0.000000 | HookLoadFile  base<...>/ssh
+0.000000 | HookLoadFile  base<...>/ssl
+0.000000 | HookLoadFile  base<...>/store.bif.bro
+0.000000 | HookLoadFile  base<...>/strings.bif.bro
+0.000000 | HookLoadFile  base<...>/strings.bro
+0.000000 | HookLoadFile  base<...>/sumstats
+0.000000 | HookLoadFile  base<...>/syslog
+0.000000 | HookLoadFile  base<...>/thresholds.bro
+0.000000 | HookLoadFile  base<...>/time.bro
+0.000000 | HookLoadFile  base<...>/tunnels
+0.000000 | HookLoadFile  base<...>/types.bif.bro
+0.000000 | HookLoadFile  base<...>/unified2
+0.000000 | HookLoadFile  base<...>/urls.bro
+0.000000 | HookLoadFile  base<...>/utils.bro
+0.000000 | HookLoadFile  base<...>/version.bro
+0.000000 | HookLoadFile  base<...>/weird.bro
+0.000000 | HookLoadFile  base<...>/x509
+0.000000 | HookLoadFile  base<...>/xmpp
 0.000000 | HookLogInit   packet_filter 1/1 {ts (time), node (string), filter (string), init (bool), success (bool)}
-0.000000 | HookLogWrite  packet_filter [ts=1498500921.180040, node=bro, filter=ip or not ip, init=T, success=T]
+0.000000 | HookLogWrite  packet_filter [ts=1510863910.246703, node=bro, filter=ip or not ip, init=T, success=T]
 0.000000 | HookQueueEvent NetControl::init()
 0.000000 | HookQueueEvent bro_init()
 0.000000 | HookQueueEvent filter_change_tracking()

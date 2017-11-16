@@ -46,10 +46,10 @@ static void describe_hook_args(const plugin::HookArgumentList& args, ODesc* d)
 		}
 	}
 
-int Plugin::HookLoadFile(const std::string& file, const std::string& ext)
+int Plugin::HookLoadFile(const LoadType type, const std::string& file, const std::string& resolved)
 	{
-	fprintf(stderr, "%.6f %-15s %s/%s\n", network_time, "| HookLoadFile",
-		file.c_str(), ext.c_str());
+	fprintf(stderr, "%.6f %-15s %s %s\n", network_time, "| HookLoadFile",
+		file.c_str(), resolved.c_str());
 	return -1;
 	}
 

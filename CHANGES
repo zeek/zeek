@@ -1,5 +1,5 @@
 
-2.5-342 | 2017-11-17 15:13:17 -0800
+2.5-343 | 2017-11-17 15:27:04 -0800
 
   * Fix ASCII logging of very large values of type "double".
     Previously, the nonsensical "NAN.0" would be written to ASCII logs

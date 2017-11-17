@@ -21,9 +21,9 @@ IRC_Analyzer::IRC_Analyzer(Connection* conn)
 	orig_zip_status = NO_ZIP;
 	resp_zip_status = NO_ZIP;
 	starttls = false;
-	cl_orig = new tcp::ContentLine_Analyzer(conn, true);
+	cl_orig = new tcp::ContentLine_Analyzer(conn, true, 1000);
 	AddSupportAnalyzer(cl_orig);
-	cl_resp = new tcp::ContentLine_Analyzer(conn, false);
+	cl_resp = new tcp::ContentLine_Analyzer(conn, false, 1000);
 	AddSupportAnalyzer(cl_resp);
 	}
 

@@ -17,9 +17,9 @@ Finger_Analyzer::Finger_Analyzer(Connection* conn)
 : tcp::TCP_ApplicationAnalyzer("FINGER", conn)
 	{
 	did_deliver = 0;
-	content_line_orig = new tcp::ContentLine_Analyzer(conn, true);
+	content_line_orig = new tcp::ContentLine_Analyzer(conn, true, 1000);
 	content_line_orig->SetIsNULSensitive(true);
-	content_line_resp = new tcp::ContentLine_Analyzer(conn, false);
+	content_line_resp = new tcp::ContentLine_Analyzer(conn, false, 1000);
 	AddSupportAnalyzer(content_line_orig);
 	AddSupportAnalyzer(content_line_resp);
 	}

@@ -1,4 +1,19 @@
 
+2.5-343 | 2017-11-17 15:27:04 -0800
+
+  * Fix ASCII logging of very large values of type "double".
+    Previously, the nonsensical "NAN.0" would be written to ASCII logs
+    for any value >= 1e248). (Daniel Thayer)
+
+  * Add more test cases to ascii-double.bro (Daniel Thayer)
+
+  * Enforce a maximum line length in ContentLine analyzer. (Justin Azoff)
+
+  * Fix OOB read with IP packets that have a header length greater than the total
+    length of their packet. (Johanna Amann)
+
+  * Verify version field of IP packets read from tunnels. (Johanna Amann)
+
 2.5-332 | 2017-10-27 13:27:16 -0700
 
   * Bro docs tweaks for correctness and readability. (Christian Kreibich)

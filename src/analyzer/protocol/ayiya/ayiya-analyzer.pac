@@ -59,6 +59,11 @@ flow AYIYA_Flow
 		if ( result == 0 )
 			connection()->bro_analyzer()->ProtocolConfirmation();
 
+		else if ( result == -2 )
+			connection()->bro_analyzer()->ProtocolViolation(
+			    "AYIYA next header internal mismatch", (const char*)${pdu.packet}.data(),
+			     ${pdu.packet}.length());
+
 		else if ( result < 0 )
 			connection()->bro_analyzer()->ProtocolViolation(
 			    "Truncated AYIYA", (const char*) ${pdu.packet}.data(),

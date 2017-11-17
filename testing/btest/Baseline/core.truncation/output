@@ -3,48 +3,78 @@
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2015-08-31-21-35-27
+#open	2017-10-19-17-18-27
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
 1334160095.895421	-	-	-	-	-	truncated_IP	-	F	bro
-#close	2015-08-31-21-35-27
+#close	2017-10-19-17-18-28
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2015-08-31-21-35-27
+#open	2017-10-19-17-18-29
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
 1334156241.519125	-	-	-	-	-	truncated_IP	-	F	bro
-#close	2015-08-31-21-35-27
+#close	2017-10-19-17-18-30
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2015-08-31-21-35-28
+#open	2017-10-19-17-18-32
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
 1334094648.590126	-	-	-	-	-	truncated_IP	-	F	bro
-#close	2015-08-31-21-35-28
+#close	2017-10-19-17-18-32
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2015-08-31-21-35-30
+#open	2017-10-19-17-18-36
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
 1338328954.078361	-	-	-	-	-	internally_truncated_header	-	F	bro
-#close	2015-08-31-21-35-30
+#close	2017-10-19-17-18-36
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2015-08-31-21-35-30
+#open	2017-10-19-17-18-37
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
 0.000000	-	-	-	-	-	truncated_link_header	-	F	bro
-#close	2015-08-31-21-35-30
+#close	2017-10-19-17-18-38
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	weird
+#open	2017-10-19-17-18-39
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
+#types	time	string	addr	port	addr	port	string	string	bool	string
+1508360735.834163	-	163.253.48.183	0	192.150.187.43	0	invalid_IP_header_size	-	F	bro
+#close	2017-10-19-17-18-40
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	weird
+#open	2017-10-19-17-18-41
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
+#types	time	string	addr	port	addr	port	string	string	bool	string
+1508360735.834163	-	163.253.48.183	0	192.150.187.43	0	internally_truncated_header	-	F	bro
+#close	2017-10-19-17-18-42
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	weird
+#open	2017-10-19-17-18-43
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
+#types	time	string	addr	port	addr	port	string	string	bool	string
+1500557630.000000	-	0.255.0.255	0	15.254.2.1	0	invalid_IP_header_size_in_tunnel	-	F	bro
+#close	2017-10-19-17-18-44

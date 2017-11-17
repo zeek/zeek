@@ -740,6 +740,9 @@ flow GTPv1_Flow(is_orig: bool)
 				a->ProtocolConfirmation();
 			}
 
+		else if ( result == -2 )
+			violate("Invalid IP version in wrapped packet", pdu);
+
 		else if ( result < 0 )
 			violate("Truncated GTPv1", pdu);
 

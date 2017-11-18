@@ -1835,10 +1835,6 @@ Val* StmtList::Exec(Frame* f, stmt_flow_type& flow) const
 
 		Val* result = stmts[i]->Exec(f, flow);
 
-		ODesc d;
-		d.SetShort(1);
-		stmts[i]->Describe(&d);
-
 		if ( ! post_execute_stmt(stmts[i], f, result, &flow) )
 			{ // ### Abort or something
 			}

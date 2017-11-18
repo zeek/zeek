@@ -3473,20 +3473,16 @@ function lookup_hostname_txt%(host: string%) : string
 	%{
 	Trigger* trigger = frame->GetTrigger();
 
-	ListVal* lv = new ListVal(TYPE_ADDR);
-	Val* timeout_result = lv->ConvertToSet();
-	Unref(lv);
-
 	if ( ! trigger)
 		{
 		builtin_error("lookup_hostname() can only be called inside an asynchronous context");
-		return timeout_result;
+		return new StringVal("<error>");
 		}
 
 	frame->SetDelayed();
 
 	trigger->SetTimeoutValue(DNS_TIMEOUT + 1);
-	trigger->SetTimeoutResult(timeout_result); // takes ownership
+	trigger->SetTimeoutResult(new StringVal("<\?\?\?>"));
 	trigger->Hold();
 
 	dns_mgr->AsyncLookupNameText(host->CheckString(),

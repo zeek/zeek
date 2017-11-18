@@ -90,38 +90,36 @@ function request(req: Request): ActiveHTTP::Response
 	resp$msg = "";
 	resp$body = "";
 	resp$headers = table();
-	return when ( local result = Exec::run([$cmd=cmd, $stdin=stdin_data, $read_files=set(bodyfile, headersfile)]) )
+	local result = async Exec::run([$cmd=cmd, $stdin=stdin_data, $read_files=set(bodyfile, headersfile)]);
+	# If there is no response line then nothing else will work either.
+	if ( ! (result?$files && headersfile in result$files) )
 		{
-		# If there is no response line then nothing else will work either.
-		if ( ! (result?$files && headersfile in result$files) )
-			{
-			Reporter::error(fmt("There was a failure when requesting \"%s\" with ActiveHTTP.", req$url));
-			return resp;
-			}
-
-		local headers = result$files[headersfile];
-		for ( i in headers )
-			{
-			# The reply is the first line.
-			if ( i == 0 )
-				{
-				local response_line = split_string_n(headers[0], /[[:blank:]]+/, F, 2);
-				if ( |response_line| != 3 )
-					return resp;
-
-				resp$code = to_count(response_line[1]);
-				resp$msg = response_line[2];
-				resp$body = join_string_vec(result$files[bodyfile], "");
-				}
-			else
-				{
-				local line = headers[i];
-				local h = split_string1(line, /:/);
-				if ( |h| != 2 )
-					next;
-				resp$headers[h[0]] = sub_bytes(h[1], 0, |h[1]|-1);
-				}
-			}
+		Reporter::error(fmt("There was a failure when requesting \"%s\" with ActiveHTTP.", req$url));
 		return resp;
 		}
+
+	local headers = result$files[headersfile];
+	for ( i in headers )
+		{
+		# The reply is the first line.
+		if ( i == 0 )
+			{
+			local response_line = split_string_n(headers[0], /[[:blank:]]+/, F, 2);
+			if ( |response_line| != 3 )
+				return resp;
+
+			resp$code = to_count(response_line[1]);
+			resp$msg = response_line[2];
+			resp$body = join_string_vec(result$files[bodyfile], "");
+			}
+		else
+			{
+			local line = headers[i];
+			local h = split_string1(line, /:/);
+			if ( |h| != 2 )
+				next;
+			resp$headers[h[0]] = sub_bytes(h[1], 0, |h[1]|-1);
+			}
+		}
+	return resp;
 	}

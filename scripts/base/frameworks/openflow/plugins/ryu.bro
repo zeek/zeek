@@ -136,16 +136,14 @@ function ryu_flow_mod(state: OpenFlow::ControllerState, match: ofp_match, flow_m
 	);
 
 	# Execute call to Ryu's ReST API
-	when ( local result = ActiveHTTP::request(request) )
+	local result = async ActiveHTTP::request(request);
+	if(result$code == 200)
+		event OpenFlow::flow_mod_success(state$_name, match, flow_mod, result$body);
+	else
 		{
-		if(result$code == 200)
-			event OpenFlow::flow_mod_success(state$_name, match, flow_mod, result$body);
-		else
-			{
-			Reporter::warning(fmt("Flow modification failed with error: %s", result$body));
-			event OpenFlow::flow_mod_failure(state$_name, match, flow_mod, result$body);
-			return F;
-			}
+		Reporter::warning(fmt("Flow modification failed with error: %s", result$body));
+		event OpenFlow::flow_mod_failure(state$_name, match, flow_mod, result$body);
+		return F;
 		}
 
 	return T;
@@ -166,10 +164,7 @@ function ryu_flow_clear(state: OpenFlow::ControllerState): bool
 		$method="DELETE"
 	);
 
-	when ( local result = ActiveHTTP::request(request) )
-		{
-		}
-
+	async ActiveHTTP::request(request);
 	return T;
 	}
 

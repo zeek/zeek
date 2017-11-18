@@ -39,27 +39,25 @@ function do_mhr_lookup(hash: string, fi: Notice::FileInfo)
 	{
 	local hash_domain = fmt("%s.malware.hash.cymru.com", hash);
 
-	when ( local MHR_result = lookup_hostname_txt(hash_domain) )
+	local MHR_result = async lookup_hostname_txt(hash_domain);
+	# Data is returned as "<dateFirstDetected> <detectionRate>"
+	local MHR_answer = split_string1(MHR_result, / /);
+
+	if ( |MHR_answer| == 2 )
 		{
-		# Data is returned as "<dateFirstDetected> <detectionRate>"
-		local MHR_answer = split_string1(MHR_result, / /);
+		local mhr_detect_rate = to_count(MHR_answer[1]);
 
-		if ( |MHR_answer| == 2 )
+		if ( mhr_detect_rate >= notice_threshold )
 			{
-			local mhr_detect_rate = to_count(MHR_answer[1]);
-
-			if ( mhr_detect_rate >= notice_threshold )
-				{
-				local mhr_first_detected = double_to_time(to_double(MHR_answer[0]));
-				local readable_first_detected = strftime("%Y-%m-%d %H:%M:%S", mhr_first_detected);
-				local message = fmt("Malware Hash Registry Detection rate: %d%%  Last seen: %s", mhr_detect_rate, readable_first_detected);
-				local virustotal_url = fmt(match_sub_url, hash);
-				# We don't have the full fa_file record here in order to
-				# avoid the "when" statement cloning it (expensive!).
-				local n: Notice::Info = Notice::Info($note=Match, $msg=message, $sub=virustotal_url);
-				Notice::populate_file_info2(fi, n);
-				NOTICE(n);
-				}
+			local mhr_first_detected = double_to_time(to_double(MHR_answer[0]));
+			local readable_first_detected = strftime("%Y-%m-%d %H:%M:%S", mhr_first_detected);
+			local message = fmt("Malware Hash Registry Detection rate: %d%%  Last seen: %s", mhr_detect_rate, readable_first_detected);
+			local virustotal_url = fmt(match_sub_url, hash);
+			# We don't have the full fa_file record here in order to
+			# avoid the "when" statement cloning it (expensive!).
+			local n: Notice::Info = Notice::Info($note=Match, $msg=message, $sub=virustotal_url);
+			Notice::populate_file_info2(fi, n);
+			NOTICE(n);
 			}
 		}
 	}

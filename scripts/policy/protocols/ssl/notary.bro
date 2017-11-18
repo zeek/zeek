@@ -60,44 +60,43 @@ event ssl_established(c: connection) &priority=3
 	if ( waits_already )
 		return;
 
-	when ( local str = lookup_hostname_txt(fmt("%s.%s", digest, domain)) )
+	local str = async lookup_hostname_txt(fmt("%s.%s", digest, domain));
+	notary_cache[digest] = [];
+
+	# Parse notary answer.
+	if ( str == "<???>" ) # NXDOMAIN
 		{
-		notary_cache[digest] = [];
+		clear_waitlist(digest);
+		return;
+		}
+	local fields = split_string(str, / /);
+	if ( |fields| != 5 ) # version 1 has 5 fields.
+		{
+		clear_waitlist(digest);
+		return;
+		}
+	local version = split_string(fields[0], /=/)[1];
+	if ( version != "1" )
+		{
+		clear_waitlist(digest);
+		return;
+		}
+	local r = notary_cache[digest];
+	r$first_seen = to_count(split_string(fields[1], /=/)[1]);
+	r$last_seen = to_count(split_string(fields[2], /=/)[1]);
+	r$times_seen = to_count(split_string(fields[3], /=/)[1]);
+	r$valid = split_string(fields[4], /=/)[1] == "1";
 
-		# Parse notary answer.
-		if ( str == "<???>" ) # NXDOMAIN
+	# Assign notary answer to all records waiting for this digest.
+	if ( digest in waitlist )
+		{
+		for ( i in waitlist[digest] )
 			{
-			clear_waitlist(digest);
-			return;
+			local info = waitlist[digest][i];
+			SSL::undelay_log(info, "notary");
+			info$notary = r;
 			}
-		local fields = split_string(str, / /);
-		if ( |fields| != 5 ) # version 1 has 5 fields.
-			{
-			clear_waitlist(digest);
-			return;
-			}
-		local version = split_string(fields[0], /=/)[1];
-		if ( version != "1" )
-			{
-			clear_waitlist(digest);
-			return;
-			}
-		local r = notary_cache[digest];
-		r$first_seen = to_count(split_string(fields[1], /=/)[1]);
-		r$last_seen = to_count(split_string(fields[2], /=/)[1]);
-		r$times_seen = to_count(split_string(fields[3], /=/)[1]);
-		r$valid = split_string(fields[4], /=/)[1] == "1";
-
-		# Assign notary answer to all records waiting for this digest.
-		if ( digest in waitlist )
-			{
-			for ( i in waitlist[digest] )
-				{
-				local info = waitlist[digest][i];
-				SSL::undelay_log(info, "notary");
-				info$notary = r;
-				}
-			delete waitlist[digest];
-			}
+		delete waitlist[digest];
 		}
 	}
+

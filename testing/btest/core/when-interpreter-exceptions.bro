@@ -63,7 +63,7 @@ function g(do_exception: bool): bool
 		{
 		print "shouldn't get here, g()", do_exception, result;
 		}
-	timeout 0 sec
+	timeout 0.1 sec
 		{
 		print "timeout g()", do_exception;
 
@@ -97,7 +97,7 @@ event bro_init()
 		print "shouldn't get here", result2;
 		check_term_condition();
 		}
-	timeout 0 sec
+	timeout 0.1 sec
 		{
 		print "timeout";
 		event termination_check();

@@ -10,7 +10,6 @@ using namespace std;
 #include "Fiber.h"
 
 class BroFunc;
-class Trigger;
 class CallExpr;
 
 class Frame : public BroObj {
@@ -56,12 +55,6 @@ public:
 	// refs the current ones.
 	Frame* ShallowCopy();
 
-	// If the frame is run in the context of a trigger condition evaluation,
-	// the trigger needs to be registered.
-	void SetTrigger(Trigger* arg_trigger);
-	void ClearTrigger();
-	Trigger* GetTrigger() const		{ return trigger; }
-
 	void SetCall(const CallExpr* arg_call)	{ call = arg_call; }
 	void ClearCall()			{ call = 0; }
 	const CallExpr* GetCall() const		{ return call; }
@@ -87,7 +80,6 @@ protected:
 	bool break_before_next_stmt;
 	bool break_on_return;
 
-	Trigger* trigger;
 	const CallExpr* call;
 	bool delayed;
 

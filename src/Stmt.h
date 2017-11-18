@@ -64,6 +64,9 @@ public:
 	// executes. This is determined statically at startup.
 	bool MayUseAsync();
 
+	// Takes ownership of frame.
+	void ExecuteInsideFiber(Frame* f);
+
 	virtual void Describe(ODesc* d) const;
 
 	virtual void IncrBPCount()	{ ++breakpoint_count; }

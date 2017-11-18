@@ -56,7 +56,6 @@ class NameExpr;
 class AssignExpr;
 class CallExpr;
 class EventExpr;
-class Trigger;
 
 class Expr : public BroObj {
 public:
@@ -976,10 +975,6 @@ protected:
 	friend class Expr;
 
 	CallExpr()	{ func = 0; args = 0; }
-
-	Val* EvalAsync(Frame* f, class Func* func, val_list* v) const;
-	Val* EvalSync(Frame* f, class Func* func, val_list* v) const;
-	Val* CheckCache(Trigger* trigger) const;
 
 	void ExprDescribe(ODesc* d) const override;
 

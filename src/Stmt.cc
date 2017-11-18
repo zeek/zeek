@@ -33,7 +33,8 @@ const char* stmt_name(BroStmtTag t)
 class AsyncCallAnalyzer : public TraversalCallback {
 public:
 	void Analyze(Func* func);
-	virtual TraversalCode PreExpr(const Expr*);
+	virtual TraversalCode PreExpr(const Expr*) override;
+	virtual TraversalCode PreStmt(const Stmt*) override;
 private:
  	Stmt* body;
 };
@@ -66,6 +67,14 @@ void AsyncCallAnalyzer::Analyze(Func* func)
 			}
 #endif
 		}
+	}
+
+TraversalCode AsyncCallAnalyzer::PreStmt(const Stmt* stmt)
+ 	{
+	if ( stmt->Tag() != STMT_WHEN )
+		body->may_use_async = Stmt::ASYNC_YES;
+
+	return TC_CONTINUE;
 	}
 
 TraversalCode AsyncCallAnalyzer::PreExpr(const Expr* expr)
@@ -250,6 +259,49 @@ bool Stmt::MayUseAsync()
 	{
 	assert(may_use_async == ASYNC_NO || may_use_async == ASYNC_YES);
 	return may_use_async == ASYNC_YES;
+	}
+
+void Stmt::ExecuteInsideFiber(Frame* frame)
+	{
+	assert(! frame->GetFiber());
+	auto fiber = Fiber::Create();
+
+	// Function that will run inside the fiber.
+	auto execute_body = [=]() -> bool
+		{
+		// Create a shallow copy of the frame that can stay
+		// around during asynchronous execution.
+		frame->SetFiber(fiber);
+
+		try
+			{
+			stmt_flow_type flow;
+			auto nresult = Exec(frame, flow);
+			// Ignore flow and result (which should be null anyways).
+			Unref(nresult);
+			Unref(frame);
+			return true;
+			}
+
+		catch ( InterpreterException& e )
+			{
+			// Error message has already been already reported.
+			Unref(frame);
+			return false;
+			}
+
+		reporter->InternalError("unknown error when executing function body");
+		};
+
+	if ( fiber->Execute(execute_body) )
+		// No yield, all done already.
+		Fiber::Destroy(fiber);
+	else
+		{
+		// An asynchronous operation yielded. Fiber will stay around,
+		// we'll come back to this body later in
+		// Trigger::ResumePendingTriggers.
+		}
 	}
 
 bool Stmt::Serialize(SerialInfo* info) const
@@ -2165,7 +2217,7 @@ bool NullStmt::DoUnserialize(UnserialInfo* info)
 
 WhenStmt::WhenStmt(Expr* arg_cond, Stmt* arg_s1, Stmt* arg_s2,
 			Expr* arg_timeout, bool arg_is_return)
-: Stmt(STMT_WHEN)
+	: Stmt(STMT_WHEN)
 	{
 	assert(arg_cond);
 	assert(arg_s1);
@@ -2197,28 +2249,115 @@ WhenStmt::~WhenStmt()
 	Unref(s2);
 	}
 
+class WhenTrigger : public Trigger {
+public:
+	WhenTrigger(Frame* frame, const WhenStmt* stmt, double timeout, bool is_return, const Location* location)
+		    : Trigger(frame, timeout, true, stmt->Cond(), location), when_stmt(stmt), triggered(false), is_return(is_return)
+			{
+			}
+
+	Val* ExecuteNow()
+		{
+		auto result = Run();
+		Unref(result);
+
+		// We'll be back here once either the condition is
+		// true, or the timeout has kicked in.
+
+		stmt_flow_type flow = FLOW_NEXT;
+		auto stmts = (triggered ? when_stmt->Body() : when_stmt->TimeoutBody());
+		return stmts ? stmts->Exec(GetFrame(), flow) : nullptr;
+		}
+
+	void Schedule()
+		{
+		assert(! is_return);
+
+		DBG_LOG(DBG_NOTIFIERS, "%s: scheduling when statement", Name());
+
+		auto fiber = Fiber::Create();
+		GetFrame()->SetFiber(fiber);
+
+		// Function that will run inside the fiber.
+		auto execute_when = [&]() -> bool
+			{
+			auto frame = GetFrame();
+
+			try
+				{
+				auto result = ExecuteNow();
+				Unref(result);
+				}
+			catch ( InterpreterException& e )
+				{
+				Abort();
+				}
+
+			Unref(frame);
+			return true;
+			};
+
+		if ( fiber->Execute(execute_when) )
+			// No yield, all done already.
+			Fiber::Destroy(fiber);
+			else
+			{
+			// An asynchronous operation yielded. Fiber will stay around,
+			// we'll come back to this body later in
+			// Trigger::ResumePendingTriggers.
+			}
+		}
+
+	Val* CheckForResult() override
+		{
+		auto v = GetTriggerExpr()->Eval(GetFrame());
+
+		if ( ! v )
+			{
+			Abort();
+			return nullptr;
+			}
+
+		if ( v->IsZero() )
+			return nullptr;
+
+		triggered = true;
+		return v;
+		}
+
+	Val* TimeoutResult() override
+		{
+		return nullptr;
+		}
+
+private:
+	const WhenStmt* when_stmt;
+	bool triggered;
+	bool is_return;
+	};
+
 Val* WhenStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
 
-	::Ref(cond);
-	::Ref(s1);
-	if ( s2 )
-		::Ref(s2);
-	if ( timeout )
-		::Ref(timeout);
+	auto frame = is_return ? f : f->Clone();
+	auto timeout_value = timeout ? timeout->Eval(f)->AsInterval() : 0.0;
 
-	// The new trigger object will take care of its own deletion.
-	auto trigger = new Trigger(cond, s1, s2, timeout, f, is_return, true, true, location);
-	trigger->Start();
+	auto trigger = new WhenTrigger(frame, this, timeout_value, is_return, location);
 
-	DBG_LOG(DBG_NOTIFIERS, "%s: beginning when statement", trigger->Name());
+	if ( ! is_return )
+		{
+		trigger->Schedule();
+		return nullptr;
+		}
 
-	// Evaluate it once directly. Note that trigger may become invalid
-	// after evaluation.
-	trigger->Eval();
-	return 0;
+	else
+		{
+		auto v = trigger->ExecuteNow();
+		flow = FLOW_RETURN;
+		return v;
+		}
 	}
 
 int WhenStmt::IsPure() const

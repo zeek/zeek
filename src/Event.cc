@@ -140,7 +140,7 @@ void EventMgr::Drain()
 	// We evaluate Triggers here. While this is somewhat unrelated to
 	// event processing, doing it here ensures that it's performed at a
 	// regular basis.
- 	Trigger::EvaluateTriggers();
+ 	Trigger::ResumePendingTriggers();
 	}
 
 void EventMgr::Describe(ODesc* d) const

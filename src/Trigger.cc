@@ -64,22 +64,29 @@ public:
 	TriggerTimer(double arg_timeout, Trigger* arg_trigger)
 	: Timer(network_time + arg_timeout, TIMER_TRIGGER)
 		{
-		Ref(arg_trigger);
 		trigger = arg_trigger;
 		timeout = arg_timeout;
 		time = network_time;
 		}
 
 	~TriggerTimer()
-		{ Unref(trigger); }
+		{ }
 
 	void Dispatch(double t, int is_expire)
 		{
+		if ( ! trigger )
+		     return;
+
 		// The network_time may still have been zero when the
 		// timer was instantiated.  In this case, it fires
 		// immediately and we simply restart it.
 		if ( time )
-			trigger->Timeout();
+			{
+			if ( trigger->GetFrame()->GetFiber()->GetTrigger() )
+				trigger->GetFrame()->GetFiber()->GetTrigger()->Abort();
+			else
+				trigger->Abort();
+			}
 		else
 			{
 			TriggerTimer* timer = new TriggerTimer(timeout, trigger);
@@ -88,253 +95,170 @@ public:
 			}
 		}
 
-protected:
+  protected:
+	friend class Trigger;
+
 	Trigger* trigger;
 	double timeout;
 	double time;
 };
 
-Trigger::Trigger(Expr* arg_cond, Stmt* arg_body, Stmt* arg_timeout_stmts,
-		 Expr* arg_timeout, Frame* arg_frame,
-		 bool arg_is_return, bool arg_clone_frame,
-		 bool arg_require_completion,
-		 const Location* arg_location)
+Trigger::TriggerList* Trigger::queued = 0;
+uint64 Trigger::current_triggers = 0;
+uint64 Trigger::total_triggers = 0;
+uint64 Trigger::pending_triggers_all = 0;
+uint64 Trigger::pending_triggers_completion = 0;
+
+Trigger::Trigger(Frame *arg_frame, double arg_timeout, bool arg_require_completion, const Expr* arg_trigger_expr, const Location* arg_location)
 	{
 	if ( ! queued )
 		queued = new list<Trigger*>;
 
-	cond = arg_cond;
-	body = arg_body;
-	timeout_stmts = arg_timeout_stmts;
+	frame = arg_frame;
 	timeout = arg_timeout;
-	timeout_result = 0;
-	timer = 0;
-	delayed = false;
-	disabled = false;
-	attached = 0;
-	is_return = arg_is_return;
-	clone_frame = arg_clone_frame;
+	trigger_expr = arg_trigger_expr;
 	require_completion = arg_require_completion;
 	location = arg_location;
-	timeout_value = -1;
-
-	if ( clone_frame )
-		{
-		DBG_LOG(DBG_NOTIFIERS, "%s: cloning frame", Name());
-		frame = arg_frame->Clone();
-		frame->SetTrigger(arg_frame->GetTrigger());
-		frame->SetCall(arg_frame->GetCall());
-		}
-	else
-		{
-		DBG_LOG(DBG_NOTIFIERS, "%s: not cloning frame", Name());
-		frame = arg_frame; // Don't ref to avoid cycles, it'll (need to) stay around.
-		}
-
-	++total_triggers;
-	++pending_triggers_all;
-
-	if ( require_completion )
-		++pending_triggers_completion;
+	running = false;
+	timer = nullptr;
+	trigger_result = nullptr;
+	trigger_finished = false;
 
 	DBG_LOG(DBG_NOTIFIERS, "%s: instantiating", Name());
 
-	if ( is_return )
-		{
-		Trigger* parent = frame->GetTrigger();
-		if ( ! parent )
-			{
-			reporter->Error("return trigger in context which does not allow delaying result");
-			Unref(this);
-			return;
-			}
-
-		parent->Attach(this);
-		arg_frame->SetDelayed();
-		}
-
-	Val* timeout_val = arg_timeout ? arg_timeout->Eval(arg_frame) : 0;
-
-	if ( timeout_val )
-		{
-		timeout_value = timeout_val->AsInterval();
-		Unref(timeout_val);
-		}
-	}
-
-void Trigger::Start()
-	{
-	DBG_LOG(DBG_NOTIFIERS, "%s: starting", Name());
-
-	if ( timeout_value >= 0 )
-		{
-		timer = new TriggerTimer(timeout_value, this);
-		timer_mgr->Add(timer);
-		}
+	++current_triggers;
+	++total_triggers;
 	}
 
 Trigger::~Trigger()
 	{
 	DBG_LOG(DBG_NOTIFIERS, "%s: deleting", Name());
 
+	if ( timer )
+		timer->trigger = nullptr;
+
+	UnregisterAll();
+
+	--current_triggers;
+	}
+
+Val* Trigger::Run()
+	{
+	if ( ! frame->GetFiber() )
+		// Throws exception.
+		reporter->RuntimeError(location, "asynchronous function called in a context that does not support it");
+
+	UnregisterAll();
+
+	if ( trigger_expr )
+		{
+		TriggerTraversalCallback cb(this);
+		trigger_expr->Traverse(&cb);
+		}
+
+	if ( timeout )
+		{
+		timer = new TriggerTimer(timeout, this);
+		timer_mgr->Add(timer);
+		}
+
+	if ( require_completion )
+		++pending_triggers_completion;
+
+	++pending_triggers_all;
+
+	running = true;
+
+	DBG_LOG(DBG_NOTIFIERS, "%s: starting", Name());
+
+	// TODO: We do output check immediately in case the result is already
+	// available. Note that we could also return the result here
+	// directly, but that would go around the normal path. Better to
+	// always exercise the more complex path, at least while we're
+	// testing this. Reconsider this later if the optmization is worht
+	// it. (And note that this shortcut would immediately be triggered by
+	// all the DNS tests with BRO_DNS_FAKE set.)
+
+	auto old_trigger = frame->GetFiber()->GetTrigger();
+	frame->GetFiber()->SetTrigger(this);
+
+	Evaluate();
+
+	do
+		{
+		frame->GetFiber()->Yield();
+		} while ( ! trigger_finished );
+
+	DBG_LOG(DBG_NOTIFIERS, "%s: finished", Name());
+
+	frame->GetFiber()->SetTrigger(old_trigger);
+
+	running = false;
+
 	--pending_triggers_all;
 
 	if ( require_completion )
 		--pending_triggers_completion;
 
-	ClearCache();
+	Unref(this);
 
-	if ( clone_frame )
-		Unref(frame);
-
-	Unref(timeout_result);
-
-	UnregisterAll();
-
-	Unref(attached);
-	// Due to ref'counting, "this" cannot be part of pending at this
-	// point.
+	return trigger_result;
 	}
 
-void Trigger::Init()
+void Trigger::Evaluate()
 	{
-	assert(! disabled);
-	UnregisterAll();
-	TriggerTraversalCallback cb(this);
-
-	if ( cond )
-		cond->Traverse(&cb);
-	}
-
-Trigger::TriggerList* Trigger::queued = 0;
-uint64 Trigger::total_triggers = 0;
-uint64 Trigger::pending_triggers_all = 0;
-uint64 Trigger::pending_triggers_completion = 0;
-
-bool Trigger::Eval()
-	{
-	if ( disabled )
-		return true;
-
-	if ( delayed )
-		{
-		DBG_LOG(DBG_NOTIFIERS, "%s: skipping trigger evaluation due to delayed call",
-				Name());
-		return false;
-		}
+	if ( ! running )
+		return;
 
 	DBG_LOG(DBG_NOTIFIERS, "%s: evaluating", Name());
 
-	Frame* f = 0;
-
-	if ( cond )
+	try
 		{
-		if ( clone_frame )
-			{
-			// It's unfortunate that we have to copy the frame again here but
-			// otherwise changes to any of the locals would propagate to later
-			// evaluations.
-			//
-			// An alternative approach to copying the frame would be to deep-copy
-			// the expression itself, replacing all references to locals with
-			// constants.
-			DBG_LOG(DBG_NOTIFIERS, "%s: cloning frame for evaluating condition", Name());
-			f = frame->Clone();
-			f->SetTrigger(this);
-			}
-		else
-			f = frame;
-
-		Val* v = cond->Eval(f);
-
-		if ( f->HasDelayed() )
-			{
-			DBG_LOG(DBG_NOTIFIERS, "%s: eval has delayed", Name());
-			assert(!v);
-
-			if ( clone_frame )
-				Unref(f);
-
-			return false;
-			}
-
-		if ( ! v || v->IsZero() )
-			{
-			// Not true. Perhaps next time...
-			DBG_LOG(DBG_NOTIFIERS, "%s: trigger condition is false", Name());
-			Unref(v);
-
-			if ( clone_frame )
-				Unref(f);
-
-			Init(); // TODO: Needed?
-			return false;
-			}
-
-		Unref(v);
-
-		DBG_LOG(DBG_NOTIFIERS, "%s: condition is true, executing trigger",
-			Name());
+		trigger_result = CheckForResult();
+		}
+	catch ( InterpreterException& e )
+		{
+		/* Already reported. */
+		//Abort();
+		return;
 		}
 
-	else
+	if ( trigger_result )
 		{
-		DBG_LOG(DBG_NOTIFIERS, "%s: no condition, executing trigger",
-			Name());
+		DBG_LOG(DBG_NOTIFIERS, "%s: got result", Name());
+		trigger_finished = true;
+		ResumeTrigger(this);
 		}
-
-	Val* v = 0;
-
-	if ( body )
-		{
-		DBG_LOG(DBG_NOTIFIERS, "%s: executing body statements ", Name());
-
-		stmt_flow_type flow;
-
-		try
-			{
-			v = body->Exec(f, flow);
-			}
-		catch ( InterpreterException& e )
-			{ /* Already reported. */ }
-		}
-
-	if ( clone_frame )
-		Unref(f);
-
-	if ( is_return )
-		{
-		Trigger* trigger = frame->GetTrigger();
-		assert(trigger);
-		assert(frame->GetCall());
-		assert(trigger->attached == this);
-
-#ifdef DEBUG
-		const char* pname = copy_string(trigger->Name());
-		DBG_LOG(DBG_NOTIFIERS, "%s: trigger has parent %s, caching result", Name(), pname);
-		delete [] pname;
-#endif
-
-		trigger->Cache(frame->GetCall(), v);
-		trigger->Release();
-		frame->ClearTrigger();
-		}
-
-	Unref(v);
-
-	if ( timer )
-		timer_mgr->Cancel(timer);
-
-	Disable();
-	Unref(this);
-
-	return true;
 	}
 
-void Trigger::QueueTrigger(Trigger* trigger)
+void Trigger::Abort()
 	{
-	assert(! trigger->disabled);
+	if ( ! running )
+		return;
+
+	DBG_LOG(DBG_NOTIFIERS, "%s: aborting", Name());
+
+	trigger_result = TimeoutResult();
+	trigger_finished = true;
+	ResumeTrigger(this);
+	}
+
+const char* Trigger::Name() const
+	{
+	if ( location )
+		return fmt("%s:%d-%d", location->filename,
+			   location->first_line, location->last_line);
+	else
+		return fmt("<no location>");
+	}
+
+void Trigger::ResumeTrigger(Trigger* trigger)
+	{
+	DBG_LOG(DBG_NOTIFIERS, "%s: scheduling trigger for resuming", trigger->Name());
+
+	assert(trigger->running);
 	assert(queued);
+
 	if ( std::find(queued->begin(), queued->end(), trigger) == queued->end() )
 		{
 		Ref(trigger);
@@ -342,13 +266,13 @@ void Trigger::QueueTrigger(Trigger* trigger)
 		}
 	}
 
-void Trigger::EvaluateTriggers()
+void Trigger::ResumePendingTriggers()
 	{
 #ifdef DEBUG
-	DBG_LOG(DBG_NOTIFIERS, "evaluating queued triggers");
+	DBG_LOG(DBG_NOTIFIERS, "resuming pending triggers");
 
-	DBG_LOG(DBG_NOTIFIERS, "- trigger stats: queued=%zu pending_total=%" PRIu64 " pending_completion=%" PRIu64 "",
-		queued ? queued->size() : 0, pending_triggers_all, pending_triggers_completion);
+	DBG_LOG(DBG_NOTIFIERS, "- trigger stats: current=%" PRIu64 " queued=%zu pending_total=%" PRIu64 " pending_completion=%" PRIu64 "",
+		current_triggers, queued ? queued->size() : 0, pending_triggers_all, pending_triggers_completion);
 
 	auto fstats = Fiber::GetStats();
  	DBG_LOG(DBG_NOTIFIERS, "- fiber stats  : current=%" PRIu64 " cached=%" PRIu64 " max=%" PRIu64 " total=%" PRIu64,
@@ -370,41 +294,13 @@ void Trigger::EvaluateTriggers()
 		{
 		Trigger* t = orig->front();
 		orig->pop_front();
+		assert(t->running);
 
-		t->Eval();
-
-		if ( t->disabled )
-			{
-			// The trigger being disabled means it has been fully
-			// processed.
-			if ( ! t->frame )
-				continue;
-
-			if ( t->frame->GetFiber() )
-				{
-				// That's a async function call, resume it
-				// and then clean up.
-				DBG_LOG(DBG_NOTIFIERS, "%s: resuming suspended script execution", t->Name());
-				auto frame = t->frame;
-				auto fiber = frame->GetFiber();
-
-				frame->SetDelayed(0);
-				if ( fiber->Resume() )
-					Fiber::Destroy(fiber);
-				}
-			else
-				{
-				// A when statement, clean up.
-				if ( t->clone_frame )
-					{
-					t->frame->ClearTrigger(); // break ref cycle
-					Unref(t->frame);
-					t->frame = 0;
-					}
-				}
-
-			Unref(t);
-			}
+		DBG_LOG(DBG_NOTIFIERS, "%s: resuming trigger", t->Name());
+		auto fiber = t->frame->GetFiber();
+		Unref(t);
+		fiber->Resume();
+		// TODO: Destroy fiber here if not yielded, right?
 		}
 
 	queued = orig;
@@ -414,65 +310,9 @@ void Trigger::EvaluateTriggers()
 		insert_iterator<TriggerList>(*queued, queued->begin()));
 	}
 
-void Trigger::Timeout()
-	{
-	if ( disabled )
-		return;
-
-	DBG_LOG(DBG_NOTIFIERS, "%s: timeout", Name());
-	if ( timeout_stmts )
-		{
-		stmt_flow_type flow;
-
-		// TODO: Do we need the clone here?
-		DBG_LOG(DBG_NOTIFIERS, "%s: cloning frame for executing timeout code", Name());
-		Frame* f = frame->Clone();
-		Val* v = 0;
-
-		try
-			{
-			v = timeout_stmts->Exec(f, flow);
-			}
-		catch ( InterpreterException& e )
-			{ /* Already reported. */ }
-
-		if ( is_return )
-			{
-			Trigger* trigger = frame->GetTrigger();
-			assert(trigger);
-			assert(frame->GetCall());
-			assert(trigger->attached == this);
-
-#ifdef DEBUG
-			const char* pname = copy_string(trigger->Name());
-			DBG_LOG(DBG_NOTIFIERS, "%s: trigger has parent %s, caching timeout result", Name(), pname);
-			delete [] pname;
-#endif
-			trigger->Cache(frame->GetCall(), v);
-			trigger->Release();
-			frame->ClearTrigger();
-			}
-
-		Unref(v);
-		Unref(f);
-		}
-
-	else if ( timeout_result )
-		{
-		Trigger* trigger = frame->GetTrigger();
-		assert(trigger);
-		trigger->Cache(frame->GetCall(), timeout_result);
-		trigger->Release();
-		frame->ClearTrigger();
-		}
-
-	Disable();
-	Unref(this);
-	}
 
 void Trigger::Register(ID* id)
 	{
-	assert(! disabled);
 	notifiers.Register(id, this);
 
 	Ref(id);
@@ -481,7 +321,6 @@ void Trigger::Register(ID* id)
 
 void Trigger::Register(Val* val)
 	{
-	assert(! disabled);
 	notifiers.Register(val, this);
 
 	Ref(val);
@@ -507,80 +346,10 @@ void Trigger::UnregisterAll()
 	vals.clear();
 	}
 
-void Trigger::Attach(Trigger *trigger)
-	{
-	assert(! disabled);
-	assert(! trigger->disabled);
-	assert(! trigger->delayed);
-
-#ifdef DEBUG
-	const char* pname = copy_string(trigger->Name());
-	DBG_LOG(DBG_NOTIFIERS, "%s: attaching to %s", Name(), pname);
-	delete [] pname;
-#endif
-
-	Ref(trigger);
-	attached = trigger;
-	Hold();
-	}
-
-void Trigger::Cache(const CallExpr* expr, Val* v)
-	{
-	if ( disabled || ! v )
-		return;
-
-	ValCache::iterator i = cache.find(expr);
-
-	if ( i != cache.end() )
-		{
-		Unref(i->second);
-		i->second = v;
-		}
-
-	else
-		cache.insert(ValCache::value_type(expr, v));
-
-	Ref(v);
-
-	QueueTrigger(this);
-	}
-
-
-Val* Trigger::Lookup(const CallExpr* expr)
-	{
-	ValCache::iterator i = cache.find(expr);
-	return (i != cache.end()) ? i->second : 0;
-	}
-
-void Trigger::ClearCache()
-	{
-	for ( ValCache::iterator i = cache.begin(); i != cache.end(); ++i )
-		Unref(i->second);
-
-	cache.clear();
-	}
-
-void Trigger::Disable()
-	{
-	if ( disabled )
-		return;
-
-	disabled = true;
-	UnregisterAll();
-	}
-
-const char* Trigger::Name() const
-	{
-	if ( location )
-		return fmt("%s:%d-%d", location->filename,
-			   location->first_line, location->last_line);
-	else
-		return fmt("%s:<no location>", location->filename);
-	}
-
 const Trigger::Stats& Trigger::GetStats()
 	{
 	static Stats stats;
+	stats.current = current_triggers;
 	stats.total = total_triggers;
 	stats.pending_all = pending_triggers_all;
 	stats.pending_completion = pending_triggers_completion;

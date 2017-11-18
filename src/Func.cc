@@ -366,50 +366,13 @@ Val* BroFunc::CallFunctionBody(Stmt* body, val_list* args, stmt_flow_type& flow,
 	return result;
 	}
 
-void BroFunc::CallEventBodyInsideFiber(Stmt* body, val_list* args, Frame* f, Frame* parent) const
+void BroFunc::CallEventBodyInsideFiber(Stmt* body, Frame* f) const
 	{
 	assert(Flavor() == FUNC_FLAVOR_EVENT);
 
-	auto fiber = Fiber::Create();
-
-	// Function that will run inside the fiber.
-	auto execute_body = [=]() -> bool
-		{
-		// Create a shallow copy of the frame that can stay
-		// around during asynchronous execution.
-		auto nframe = f->ShallowCopy();
-		nframe->SetFiber(fiber);
-
-		try
-			{
-			stmt_flow_type flow;
-			auto nresult = body->Exec(nframe, flow);
-
-			// Ignore flow and result (which should be null anyways).
-			Unref(nresult);
-			Unref(nframe);
-			return true;
-			}
-
-		catch ( InterpreterException& e )
-			{
-			// Error message has already been already reported.
-			Unref(nframe);
-			return false;
-			}
-
-		reporter->InternalError("unknown error when executing function body");
-		};
-
-	if ( fiber->Execute(execute_body) )
-		// No yield, all done already.
-		Fiber::Destroy(fiber);
-
-	else
-		{
-		// An asynchronous operation yielded. Fiber needs to stay
-		// around, we'll come back to this body later in Trigger::EvaluatePending.
-		}
+	// Create a shallow copy of the frame that can stay
+	// around during asynchronous execution.
+	body->ExecuteInsideFiber(f->ShallowCopy());
 	}
 
 Val* BroFunc::Call(val_list* args, Frame* parent) const
@@ -448,7 +411,6 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 	// Hand down trigger-related state.
 	if ( parent )
 		{
-		f->SetTrigger(parent->GetTrigger());
 		f->SetCall(parent->GetCall());
 		f->SetFiber(parent->GetFiber());
 		}
@@ -482,7 +444,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 		if ( sample_logger )
 			sample_logger->LocationSeen(body->GetLocationInfo());
 
-		if ( Flavor() == FUNC_FLAVOR_EVENT && body->MayUseAsync() )
+		if ( Flavor() == FUNC_FLAVOR_EVENT ) // && body->MayUseAsync()
 			{
 			// Called code may potentially yield, so run inside a
 			// fiber to support that.
@@ -491,7 +453,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 			body->GetLocationInfo()->Describe(&d);
 			DBG_LOG(DBG_NOTIFIERS, "%s: calling event body (%s)", Name(), d.Description());
 #endif
-			CallEventBodyInsideFiber(body, args, f, parent);
+			CallEventBodyInsideFiber(body, f);
 			continue;
 			}
 

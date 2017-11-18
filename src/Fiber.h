@@ -10,6 +10,8 @@
 
 #include "Obj.h"
 
+class Trigger;
+
 extern "C" {
     #include "3rdparty/libtask/taskimpl.h"
     void _Trampoline(unsigned int y, unsigned int x);
@@ -68,6 +70,9 @@ public:
 	bool Success();
 
 	void UnrefObj(BroObj *obj);
+
+	void SetTrigger(Trigger *t)	{ trigger = t; }
+	Trigger* GetTrigger()	{ return trigger; }
 
 	/**
 	 * Returns a new Fiber to use. Use this instead of the ``new``
@@ -129,6 +134,7 @@ private:
 	bool success;
 	bool resumed;
 	BroObj* obj;
+	Trigger* trigger;
 
 	// Cache of previously allocated, but currently unused Fiber
 	// instances.

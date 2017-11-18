@@ -1,13 +1,18 @@
-expression error in /Users/jon/Projects/bro/bro/testing/btest/.tmp/core.when-interpreter-exceptions/when-interpreter-exceptions.bro, line 48: field value missing [myrecord$notset]
-expression error in /Users/jon/Projects/bro/bro/testing/btest/.tmp/core.when-interpreter-exceptions/when-interpreter-exceptions.bro, line 92: field value missing [myrecord$notset]
-expression error in /Users/jon/Projects/bro/bro/testing/btest/.tmp/core.when-interpreter-exceptions/when-interpreter-exceptions.bro, line 73: field value missing [myrecord$notset]
-expression error in /Users/jon/Projects/bro/bro/testing/btest/.tmp/core.when-interpreter-exceptions/when-interpreter-exceptions.bro, line 104: field value missing [myrecord$notset]
+expression error in /Users/robin/bro/async/testing/btest/.tmp/core.when-interpreter-exceptions/when-interpreter-exceptions.bro, line 92: field value missing [myrecord$notset]
+warning: non-void function returns without a value: Exec::run
+warning: non-void function returns without a value: Exec::run
+warning: non-void function returns without a value: Exec::run
+expression error in /Users/robin/bro/async/testing/btest/.tmp/core.when-interpreter-exceptions/when-interpreter-exceptions.bro, line 73: field value missing [myrecord$notset]
+warning: non-void function returns without a value: g
+expression error in /Users/robin/bro/async/testing/btest/.tmp/core.when-interpreter-exceptions/when-interpreter-exceptions.bro, line 104: field value missing [myrecord$notset]
+expression error in /Users/robin/bro/async/testing/btest/.tmp/core.when-interpreter-exceptions/when-interpreter-exceptions.bro, line 48: field value missing [myrecord$notset]
+warning: non-void function returns without a value: f
 received termination signal
-[f(F)]
-f() done, no exception, T
-[f(T)]
 [bro_init()]
+timeout g(), F
 timeout g(), T
 timeout
-timeout g(), F
 g() done, no exception, T
+[f(T)]
+[f(F)]
+f() done, no exception, T

@@ -3367,65 +3367,100 @@ function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 #include "DNS_Mgr.h"
 #include "Trigger.h"
 
-class LookupHostCallback : public DNS_Mgr::LookupCallback {
+class LookupCallback;
+
+class LookupTrigger : public Trigger  {
 public:
-	LookupHostCallback(Trigger* arg_trigger, const CallExpr* arg_call,
-				bool arg_lookup_name)
+	LookupTrigger(Frame* frame, const IPAddr& host, const Location* location);
+	LookupTrigger(Frame* frame, string host, bool text, const Location* location);
+	~LookupTrigger();
+
+	Val* CheckForResult() override
 		{
-		Ref(arg_trigger);
-		trigger = arg_trigger;
-		call = arg_call;
-		lookup_name = arg_lookup_name;
+		if ( ! result )
+			return nullptr;
+
+		Ref(result);
+		return result;
 		}
 
-	~LookupHostCallback()
+	Val* TimeoutResult() override
 		{
-		Unref(trigger);
-		}
-
-	// Overridden from DNS_Mgr:Lookup:Callback.
-	virtual void Resolved(const char* name)
-		{
-		Val* result = new StringVal(name);
-		trigger->Cache(call, result);
-		Unref(result);
-		trigger->Release();
-		}
-
-	virtual void Resolved(TableVal* addrs)
-		{
-		// No Ref() for addrs.
-		trigger->Cache(call, addrs);
-		trigger->Release();
-		}
-
-	virtual void Timeout()
-		{
-		if ( lookup_name )
-			{
-			Val* result = new StringVal("<\?\?\?>");
-			trigger->Cache(call, result);
-			Unref(result);
-			}
-
-		else
+		if ( addr_lookup )
 			{
 			ListVal* lv = new ListVal(TYPE_ADDR);
-			lv->Append(new AddrVal("0.0.0.0"));
-			Val* result = lv->ConvertToSet();
-			trigger->Cache(call, result);
-			Unref(result);
+			Val* timeout_result = lv->ConvertToSet();
 			Unref(lv);
+			return timeout_result;
 			}
-
-		trigger->Release();
+		else
+			return new StringVal("<\?\?\?>");;
 		}
 
 private:
-	Trigger* trigger;
-	const CallExpr* call;
-	bool lookup_name;
+	friend class LookupCallback;
+	bool addr_lookup;
+	LookupCallback* callback;
+	Val* result = 0;
 };
+
+class LookupCallback : public DNS_Mgr::LookupCallback {
+public:	
+	LookupCallback(LookupTrigger* trigger) : trigger(trigger) {}
+
+	void Resolved(TableVal* addrs) override
+		{
+		if ( ! trigger )
+			return;
+		
+		Ref(addrs);
+		trigger->result = addrs;
+		trigger->Evaluate();
+		}
+
+	void Resolved(const char* name) override
+		{
+		if ( ! trigger )
+			return;
+		
+		trigger->result = new StringVal(name);
+		trigger->Evaluate();
+		}
+
+	void Timeout() override
+		{
+		if ( ! trigger )
+			return;
+		
+		trigger->Abort();
+		}
+
+private:
+	friend class LookupTrigger;
+	LookupTrigger* trigger;
+};
+
+LookupTrigger::LookupTrigger(Frame* frame, string host, bool text, const Location* location)
+	: Trigger(frame, DNS_TIMEOUT, true, nullptr, location), addr_lookup(true), callback(new LookupCallback(this))
+	{
+	if ( text )
+		dns_mgr->AsyncLookupNameText(host, callback);
+	else
+		dns_mgr->AsyncLookupName(host, callback);
+	}
+
+LookupTrigger::LookupTrigger(Frame* frame, const IPAddr& host, const Location* location)
+	: Trigger(frame, DNS_TIMEOUT, true, nullptr, location), addr_lookup(false), callback(new LookupCallback(this))
+	{
+	dns_mgr->AsyncLookupAddr(host, callback);
+	}
+
+LookupTrigger::~LookupTrigger()
+	{
+	Unref(result);
+	callback->trigger = nullptr;
+	}
+
 %%}
 
 ## Issues an asynchronous reverse DNS lookup and delays the function result.
@@ -3439,25 +3474,9 @@ private:
 ## .. bro:see:: lookup_hostname
 function lookup_addr%(host: addr%) : string
 	%{
-	// FIXME: It should be easy to adapt the function to synchronous
-	// lookups if we're reading a trace.
-	Trigger* trigger = frame->GetTrigger();
-
-	if ( ! trigger)
-		{
-		builtin_error("lookup_addr() can only be called inside an asynchronous context");
-		return new StringVal("<error>");
-		}
-
-	frame->SetDelayed();
-
-	trigger->SetTimeoutValue(DNS_TIMEOUT + 1);
-	trigger->SetTimeoutResult(new StringVal("<timeout>"));
-	trigger->Hold();
-
-	dns_mgr->AsyncLookupAddr(host->AsAddr(),
-			new LookupHostCallback(trigger, frame->GetCall(), true));
-	return 0;
+	auto trigger = new LookupTrigger(frame, host->AsAddr(), frame->GetCall()->GetLocationInfo());
+	auto result = trigger->Run();
+	return result;
 	%}
 
 ## Issues an asynchronous TEXT DNS lookup and delays the function result.
@@ -3471,23 +3490,9 @@ function lookup_addr%(host: addr%) : string
 ## .. bro:see:: lookup_hostname
 function lookup_hostname_txt%(host: string%) : string
 	%{
-	Trigger* trigger = frame->GetTrigger();
-
-	if ( ! trigger)
-		{
-		builtin_error("lookup_hostname() can only be called inside an asynchronous context");
-		return new StringVal("<error>");
-		}
-
-	frame->SetDelayed();
-
-	trigger->SetTimeoutValue(DNS_TIMEOUT + 1);
-	trigger->SetTimeoutResult(new StringVal("<\?\?\?>"));
-	trigger->Hold();
-
-	dns_mgr->AsyncLookupNameText(host->CheckString(),
-				 new LookupHostCallback(trigger, frame->GetCall(), true));
-	return 0;
+	auto trigger = new LookupTrigger(frame, host->AsString()->CheckString(), true, frame->GetCall()->GetLocationInfo());
+	auto result = trigger->Run();
+	return result;
 	%}
 
 ## Issues an asynchronous DNS lookup and delays the function result.
@@ -3501,53 +3506,73 @@ function lookup_hostname_txt%(host: string%) : string
 ## .. bro:see:: lookup_addr
 function lookup_hostname%(host: string%) : addr_set
 	%{
-	Trigger* trigger = frame->GetTrigger();
-
-	ListVal* lv = new ListVal(TYPE_ADDR);
-	Val* timeout_result = lv->ConvertToSet();
-	Unref(lv);
-
-	if ( ! trigger)
-		{
-		builtin_error("lookup_hostname() can only be called inside an asynchronous context");
-		return timeout_result;
-		}
-
-	frame->SetDelayed();
-	trigger->SetTimeoutValue(DNS_TIMEOUT + 1);
-	trigger->SetTimeoutResult(timeout_result); // takes ownership
-	trigger->Hold();
-
-	dns_mgr->AsyncLookupName(host->CheckString(),
-			new LookupHostCallback(trigger, frame->GetCall(), false));
-	return 0;
+	auto trigger = new LookupTrigger(frame, host->AsString()->CheckString(), false, frame->GetCall()->GetLocationInfo());
+	auto result = trigger->Run();
+	return result;
 	%}
 
 %%{
+class __TestTrigger : public Trigger {
+public:
+	__TestTrigger(Frame* frame, double timeout) : Trigger(frame, timeout, true, nullptr, frame->GetCall()->GetLocationInfo())
+		{
+		tresult = timeout ? new StringVal("<timeout>") : nullptr;
+		}
+
+	~__TestTrigger()
+		{
+		Unref(tresult);
+		}
+	
+	virtual Val* CheckForResult() override
+		{
+		return result;
+		}
+
+	virtual Val* TimeoutResult() override 
+		{
+		auto r = tresult;
+		tresult = 0;
+		return r;
+		}
+
+	Val* result = nullptr;
+	Val* tresult = nullptr;
+};
+
 class __TestTriggerTimer : public Timer
 {
 public:
-	__TestTriggerTimer(double dt, const CallExpr* c, Val* r, Trigger* t)
-		: Timer(network_time + dt, TIMER_SCHEDULE), // Abusing TIMER_SCHEDULE here ...
-		  call(c), result(r), trigger(t) {}
+	__TestTriggerTimer(double dt, Val* r, __TestTrigger* t)
+		: Timer(network_time + dt, TIMER_SCHEDULE), result(r), trigger(t) // Abusing TIMER_SCHEDULE here ...
+			{
+			Ref(trigger);
+			Ref(result);
+			}
+	
+	~__TestTriggerTimer() 
+		{
+		Unref(result);
+		Unref(trigger);
+		}
 
 	void Dispatch(double t, int is_expire)
 		{
-		trigger->Cache(call, result);
-		trigger->Release();
+		Ref(result);
+		trigger->result = result;
+		trigger->Evaluate();
 		}
 
 private:
-	const CallExpr* call;
 	Val* result;
-	Trigger* trigger;
+	__TestTrigger* trigger;
 };
 %%}
 
 ## An asynchronous function for testing purposes that lets the caller
 ## control it's timing behaviour.
 ##
-## result: The function returns this value after *delay* seconds, running in
+## result: The function returns this value after *delay* seconds, running
 ## asynchronously while it's waiting.
 ##
 ## delay: The interval to wait before return *result*.
@@ -3557,24 +3582,10 @@ private:
 ## a timeout. In that case the result will be ``<timeout>``.
 function __test_trigger%(result: string, delay: interval, timeout_: interval%) : string
 	%{
-	Trigger* trigger = frame->GetTrigger();
-
-	trigger->SetTimeoutValue(timeout_);
-	trigger->SetTimeoutResult(new StringVal("<timeout>"));
-
-	if ( ! trigger)
-		{
-		builtin_error("__test_async() can only be called inside an asynchronous context");
-		return new StringVal("<error>");
-		}
-
-	frame->SetDelayed();
-	trigger->Hold();
-
-	timer_mgr->Add(new __TestTriggerTimer(delay, frame->GetCall(), result, trigger));
-	return 0;
+	auto trigger = new __TestTrigger(frame, timeout_);
+	timer_mgr->Add(new __TestTriggerTimer(delay, result, trigger));
+	return trigger->Run();
 	%}
-
 
 %%{
 #ifdef USE_GEOIP

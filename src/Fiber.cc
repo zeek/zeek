@@ -68,6 +68,7 @@ Fiber::Fiber()
 	uctx.uc_stack.ss_sp = safe_malloc(STACK_SIZE);
 	uctx.uc_stack.ss_flags = 0;
 	obj = nullptr;
+	trigger = nullptr;
 
 	// Magic from from libtask/task.c to turn the pointer into two words.
 	// TODO: Probably not portable ...
@@ -193,7 +194,7 @@ void Fiber::Destroy(std::shared_ptr<Fiber> fiber)
 
 void Fiber::Done()
 	{
-	DBG_LOG(DBG_NOTIFIERS, "termination: clearing cache");
+	DBG_LOG(DBG_NOTIFIERS, "termination: clearing fiber cache");
 	cache.clear();
 	}
 

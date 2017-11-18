@@ -5,7 +5,6 @@
 #include "Frame.h"
 #include "Stmt.h"
 #include "Func.h"
-#include "Trigger.h"
 
 vector<Frame*> g_frame_stack;
 
@@ -21,7 +20,6 @@ Frame::Frame(int arg_size, const BroFunc* func, const val_list* fn_args)
 	break_before_next_stmt = false;
 	break_on_return = false;
 
-	trigger = 0;
 	call = 0;
 	delayed = false;
 
@@ -32,7 +30,6 @@ Frame::Frame(int arg_size, const BroFunc* func, const val_list* fn_args)
 
 Frame::~Frame()
 	{
-	Unref(trigger);
 	Release();
 
 	if ( delete_func_args )
@@ -132,20 +129,4 @@ Frame* Frame::ShallowCopy()
 	// Don't copy other fields.
 
 	return f;
-	}
-
-void Frame::SetTrigger(Trigger* arg_trigger)
-	{
-	Unref(trigger);
-
-	if ( arg_trigger )
-		Ref(arg_trigger);
-
-	trigger = arg_trigger;
-	}
-
-void Frame::ClearTrigger()
-	{
-	Unref(trigger);
-	trigger = 0;
 	}

@@ -13,7 +13,6 @@
 #include "RemoteSerializer.h"
 #include "Net.h"
 #include "Traverse.h"
-#include "Trigger.h"
 #include "IPAddr.h"
 
 const char* expr_name(BroExprTag t)
@@ -4501,89 +4500,6 @@ int CallExpr::IsPure() const
 	return pure;
 	}
 
-Val* CallExpr::CheckCache(Trigger* trigger) const
-	{
-	if ( ! trigger )
-		return nullptr;
-
-	auto ret = trigger->Lookup(this);
-
-	if ( ! ret )
-		return nullptr;
-
-	DBG_LOG(DBG_NOTIFIERS, "%s: provides cached function result", trigger->Name());
-	return ret->Ref();
-	}
-
-Val* CallExpr::EvalSync(Frame* f, class Func* func, val_list* v) const
-	{
-	Val* ret = 0;
-
-	Trigger* trigger = f && f->GetTrigger() ? f->GetTrigger() : nullptr;
-
-	if ( (ret = CheckCache(trigger)) )
-		{
-		delete_vals(v);
-		return ret;
-		}
-
-	try
-		{
-		calling_expr = this;
-		ret = func->Call(v, f);
-		calling_expr = 0;
-		}
-
-	catch ( InterpreterException& e )
-		{
-		calling_expr = 0;
-		throw; // Pass exceptions upstream.
-		}
-
-	// Don't Unref() the arguments, as Func::Call already did that.
-	delete v;
-	return ret;
-	}
-
-Val* CallExpr::EvalAsync(Frame* f, class Func* func, val_list* v) const
-	{
-	if ( ! f->GetFiber() )
-		reporter->ExprRuntimeError(this, "script context does not support asynchronous calls");
-
-	auto trigger = new Trigger(nullptr, nullptr, nullptr, nullptr, f, false, false, true, GetLocationInfo());
-	f->SetTrigger(trigger);
-
-	try
-		{
-		calling_expr = this;
-		Val* ret = func->Call(v, f);
-		// TODO: If result returned, use it directly.
-		calling_expr = 0;
-		delete v;
-		}
-	catch ( InterpreterException& e )
-		{
-		throw; // Pass exceptions upstream.
-		}
-
-	DBG_LOG(DBG_NOTIFIERS, "beginning new asynchronous call to %s()", func->Name());
-
-	trigger->Start();
-
-	while ( true )
-		{
-		DBG_LOG(DBG_NOTIFIERS, "%s: yielding in asynchronous call", trigger->Name());
-		f->GetFiber()->Yield();
-
-		if ( auto ret = CheckCache(trigger) )
-			{
-			DBG_LOG(DBG_NOTIFIERS, "got result for %s()", func->Name());
-			f->ClearTrigger();
-			return ret;
-			}
-		}
-	}
-
 Val* CallExpr::Eval(Frame* f) const
 	{
 	if ( IsError() )
@@ -4606,10 +4522,21 @@ Val* CallExpr::Eval(Frame* f) const
 
 	Val* ret = 0;
 
-	if ( call_flavor == ASYNC )
-		ret = EvalAsync(f, func_val->AsFunc(), v);
-	else
-		ret = EvalSync(f, func_val->AsFunc(), v);
+	try
+		{
+		calling_expr = this;
+		ret = func_val->AsFunc()->Call(v, f);
+		calling_expr = 0;
+		}
+
+	catch ( InterpreterException& e )
+		{
+		calling_expr = 0;
+		throw; // Pass exceptions upstream.
+		}
+
+	// Don't Unref() the arguments, as Func::Call already did that.
+	delete v;
 
 	Unref(func_val);
 

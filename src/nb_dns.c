@@ -131,27 +131,40 @@ nb_dns_init(char *errstr)
 		free(nd);
 		return (NULL);
 	}
-	nd->s = socket(PF_INET, SOCK_DGRAM, 0);
-	if (nd->s < 0) {
-		snprintf(errstr, NB_DNS_ERRSIZE, "socket(): %s",
-		    my_strerror(errno));
-		free(nd);
-		return (NULL);
-	}
 
-	/* XXX should use resolver config */
-	nd->server = _res.nsaddr_list[0];
+	for ( int i = 0; i < _res.nscount; ++i )
+		{
+		nd->server = _res.nsaddr_list[i];
 
-	if (connect(nd->s, (struct sockaddr *)&nd->server,
-	    sizeof(struct sockaddr)) < 0) {
-		snprintf(errstr, NB_DNS_ERRSIZE, "connect(%s): %s",
-		    inet_ntoa(nd->server.sin_addr), my_strerror(errno));
-		close(nd->s);
-		free(nd);
-		return (NULL);
-	}
+		/* XXX support IPv6 */
+		if ( nd->server.sin_family != AF_INET )
+			continue;
 
-	return (nd);
+		nd->s = socket(nd->server.sin_family, SOCK_DGRAM, 0);
+
+		if ( nd->s < 0 )
+			{
+			snprintf(errstr, NB_DNS_ERRSIZE, "socket(): %s",
+			         my_strerror(errno));
+			free(nd);
+			return (NULL);
+			}
+
+		if ( connect(nd->s, (struct sockaddr *)&nd->server,
+		             sizeof(struct sockaddr)) < 0 )
+			{
+			snprintf(errstr, NB_DNS_ERRSIZE, "connect(%s): %s",
+			         inet_ntoa(nd->server.sin_addr), my_strerror(errno));
+			close(nd->s);
+			free(nd);
+			return (NULL);
+			}
+
+		return (nd);
+		}
+
+	snprintf(errstr, NB_DNS_ERRSIZE, "no valid nameservers in resolver config");
+	return (NULL);
 }
 
 void

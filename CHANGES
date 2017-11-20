@@ -1,4 +1,10 @@
 
+2.5-345 | 2017-11-20 11:28:59 -0600
+
+  * BIT-1827: fix error on initializing DNS w/ IPv6 nameserver. (Corelight)
+
+  * Add --build-type flag to configure wrapper. (Corelight)
+
 2.5-343 | 2017-11-17 15:27:04 -0800
 
   * Fix ASCII logging of very large values of type "double".

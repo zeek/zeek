@@ -348,17 +348,60 @@ when	return TOK_WHEN;
 @load-sigs{WS}{FILE} {
 	const char* file = skip_whitespace(yytext + 10);
 	string path = find_relative_file(file, "sig");
+	int rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(plugin::Plugin::SIGNATURES, file, path), -1);
 
-	if ( path.empty() )
-		reporter->Error("failed to find file associated with @load-sigs %s",
-		                file);
-	else
-		sig_files.push_back(copy_string(path.c_str()));
+	switch ( rc ) {
+	case -1:
+		// No plugin in charge of this file.
+		if ( path.empty() )
+			reporter->Error("failed to find file associated with @load-sigs %s",
+			                file);
+		else
+			sig_files.push_back(copy_string(path.c_str()));
+		break;
+
+	case 0:
+		if ( ! reporter->Errors() )
+			reporter->Error("Plugin reported error loading signatures %s", file);
+
+		exit(1);
+		break;
+
+	case 1:
+		// A plugin took care of it, just skip.
+		break;
+
+	default:
+		assert(false);
+		break;
+	}
 	}
 
 @load-plugin{WS}{ID} {
 	const char* plugin = skip_whitespace(yytext + 12);
-	plugin_mgr->ActivateDynamicPlugin(plugin);
+	int rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(plugin::Plugin::PLUGIN, plugin, ""), -1);
+
+	switch ( rc ) {
+	case -1:
+		// No plugin in charge of this file.
+		plugin_mgr->ActivateDynamicPlugin(plugin);
+		break;
+
+	case 0:
+		if ( ! reporter->Errors() )
+			reporter->Error("Plugin reported error loading plugin %s", plugin);
+
+		exit(1);
+		break;
+
+	case 1:
+		// A plugin took care of it, just skip.
+		break;
+
+	default:
+		assert(false);
+		break;
+	}
 }
 
 @unload{WS}{FILE}	{
@@ -547,7 +590,8 @@ static bool already_scanned(const string& path)
 
 static int load_files(const char* orig_file)
 	{
-	int rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(orig_file), -1);
+	string file_path = find_relative_file(orig_file, "bro");
+	int rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(plugin::Plugin::SCRIPT, orig_file, file_path), -1);
 
 	if ( rc == 1 )
 		return 0; // A plugin took care of it, just skip.
@@ -568,7 +612,6 @@ static int load_files(const char* orig_file)
 	// Whether we pushed on a FileInfo that will restore the
 	// current module after the final file has been scanned.
 	bool did_module_restore = false;
-	string file_path;
 	FILE* f = 0;
 
 	if ( streq(orig_file, "-") )
@@ -585,8 +628,6 @@ static int load_files(const char* orig_file)
 
 	else
 		{
-		file_path = find_relative_file(orig_file, "bro");
-
 		if ( file_path.empty() )
 			reporter->FatalError("can't find %s", orig_file);
 

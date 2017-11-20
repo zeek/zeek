@@ -10,7 +10,7 @@ namespace Demo_Hooks {
 class Plugin : public ::plugin::Plugin
 {
 protected:
-	int HookLoadFile(const std::string& file, const std::string& ext) override;
+	int HookLoadFile(const LoadType type, const std::string& file, const std::string& resolved) override;
 	std::pair<bool, Val*> HookCallFunction(const Func* func, Frame* frame, val_list* args) override;
 	bool HookQueueEvent(Event* event) override;
 	void HookDrainEvents() override;

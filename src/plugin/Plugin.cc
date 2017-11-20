@@ -345,7 +345,7 @@ void Plugin::RequestBroObjDtor(BroObj* obj)
 	plugin_mgr->RequestBroObjDtor(obj, this);
 	}
 
-int Plugin::HookLoadFile(const std::string& file, const std::string& ext)
+int Plugin::HookLoadFile(const LoadType type, const std::string& file, const std::string& resolved)
 	{
 	return -1;
 	}

@@ -404,6 +404,13 @@ public:
 	typedef std::list<std::pair<HookType, int> > hook_list;
 
 	/**
+	 * The different types of @loads supported by HookLoadFile.
+	 */
+	enum LoadType {
+		SCRIPT, SIGNATURES, PLUGIN
+	};
+
+	/**
 	 * Constructor.
 	 */
 	Plugin();
@@ -611,10 +618,15 @@ protected:
 	 * script directives. The hook can take over the file, in which case
 	 * Bro will not further process it otherwise.
 	 *
-	 * @param file The filename to be loaded, including extension.
+	 * @param type The type of load encountered: script load, signatures load,
+	 *             or plugin load.
 	 *
-	 * @param ext The extension of the filename. This is provided
-	 * separately just for convenience. The dot is excluded.
+	 * @param file The filename that was passed to @load. Only includes
+	 *             an extension if it was given in @load.
+	 *
+	 * @param resolved The file or directory name Bro resolved from
+	 *                 the given path and is going to load. Empty string
+	 *                 if Bro was not able to resolve a path.
 	 *
 	 * @return 1 if the plugin took over the file and loaded it
 	 * successfully; 0 if the plugin took over the file but had trouble
@@ -622,7 +634,7 @@ protected:
 	 * have printed an error message); and -1 if the plugin wasn't
 	 * interested in the file at all.
 	 */
-	virtual int HookLoadFile(const std::string& file, const std::string& ext);
+	virtual int HookLoadFile(const LoadType type, const std::string& file, const std::string& resolved);
 
 	/**
 	 * Hook into executing a script-level function/event/hook. Whenever

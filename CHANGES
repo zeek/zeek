@@ -1,4 +1,8 @@
 
+2.5-347 | 2017-11-20 14:00:37 -0600
+
+  * Fix and extend behavior of HookLoadFile. (Corelight)
+
 2.5-345 | 2017-11-20 11:28:59 -0600
 
   * BIT-1827: fix error on initializing DNS w/ IPv6 nameserver. (Corelight)

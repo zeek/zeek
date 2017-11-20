@@ -237,7 +237,7 @@ public:
 	 * if a plugin took over the file but had trouble loading it; and -1 if
 	 * no plugin was interested in the file at all.
 	 */
-	virtual int HookLoadFile(const string& file);
+	virtual int HookLoadFile(const Plugin::LoadType type, const string& file, const string& resolved);
 
 	/**
 	 * Hook that filters calls to a script function/event/hook.

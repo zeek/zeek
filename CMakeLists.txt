@@ -246,6 +246,8 @@ endif ()
 message(
     "\n====================|  Bro Build Summary  |====================="
     "\n"
+    "\nBuild type:        ${CMAKE_BUILD_TYPE}"
+    "\nBuild dir:         ${CMAKE_BINARY_DIR}"
     "\nInstall prefix:    ${CMAKE_INSTALL_PREFIX}"
     "\nBro Script Path:   ${BRO_SCRIPT_INSTALL_PATH}"
     "\nDebug mode:        ${ENABLE_DEBUG}"

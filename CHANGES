@@ -1,4 +1,9 @@
 
+2.5-352 | 2017-11-21 13:21:51 -0600
+
+  * Fix assignments to event arguments becoming visible to subsequent
+    handlers. (Robin Sommer)
+
 2.5-350 | 2017-11-21 12:19:28 -0600
 
   * Add HookReporter plugin hook function.

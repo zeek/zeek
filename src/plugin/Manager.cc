@@ -841,6 +841,52 @@ bool Manager::HookLogWrite(const std::string& writer,
 	return result;
 	}
 
+bool Manager::HookReporter(const std::string& prefix, const EventHandlerPtr event,
+			   const Connection* conn, const val_list* addl, bool location,
+			   const Location* location1, const Location* location2,
+			   bool time, const std::string& message)
+
+	{
+	HookArgumentList args;
+
+	if ( HavePluginForHook(META_HOOK_PRE) )
+		{
+		args.push_back(HookArgument(prefix));
+		args.push_back(HookArgument(conn));
+		args.push_back(HookArgument(addl));
+		args.push_back(HookArgument(location1));
+		args.push_back(HookArgument(location2));
+		args.push_back(HookArgument(location));
+		args.push_back(HookArgument(time));
+		args.push_back(HookArgument(message));
+		MetaHookPre(HOOK_REPORTER, args);
+		}
+
+	hook_list* l = hooks[HOOK_REPORTER];
+
+	bool result = true;
+
+	if ( l )
+		{
+		for ( hook_list::iterator i = l->begin(); i != l->end(); ++i )
+			{
+			Plugin* p = (*i).second;
+
+			if ( ! p->HookReporter(prefix, event, conn, addl, location, location1, location2, time, message) )
+				{
+				result = false;
+				break;
+				}
+			}
+		}
+
+	if ( HavePluginForHook(META_HOOK_POST) )
+		MetaHookPost(HOOK_REPORTER, args, HookArgument(result));
+
+	return result;
+	}
+
+
 void Manager::MetaHookPre(HookType hook, const HookArgumentList& args) const
 	{
 	hook_list* l = hooks[HOOK_CALL_FUNCTION];

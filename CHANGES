@@ -1,4 +1,15 @@
 
+2.5-350 | 2017-11-21 12:19:28 -0600
+
+  * Add HookReporter plugin hook function.
+
+    This hook gives access to basically all information that is available in
+    the function in Reporter.cc that performs the logging. The hook is
+    called each time when anything passes through the reporter in the cases
+    in which an event usually would be called. This includes weirds. The
+    hook can return false to prevent the normal reporter events from being
+    raised. (Corelight)
+
 2.5-348 | 2017-11-21 11:30:55 -0600
 
   * Fix a nb_dns.c compile error (older OSs) due to C90 vs C99. (Corelight)

@@ -1,4 +1,8 @@
 
+2.5-348 | 2017-11-21 11:30:55 -0600
+
+  * Fix a nb_dns.c compile error (older OSs) due to C90 vs C99. (Corelight)
+
 2.5-347 | 2017-11-20 14:00:37 -0600
 
   * Fix and extend behavior of HookLoadFile. (Corelight)

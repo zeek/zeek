@@ -32,9 +32,10 @@ kernel headers in a standard location::
     # ./configure && make && make install
 
 If the headers are installed somewhere non-standard, add
-``--with-kernel=<kernel-header-directory>`` to the ``configure``
-command. If everything built and installed correctly, you should see
-this::
+``--with-kernel=<kernel-header-directory>`` to the ``configure`` command. Furthermore,
+``--with-latest-kernel`` will use the latest headers available instead of looking for
+the headers matching the running kernel's version. If everything built and installed
+correctly, you should see this::
 
     # bro -NN Bro::AF_Packet
     Bro::AF_Packet - Packet acquisition via AF_Packet (dynamic, version 1.2)

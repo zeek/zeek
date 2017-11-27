@@ -43,7 +43,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --disable-broctl       don't install Broctl
     --disable-auxtools     don't build or install auxiliary tools
     --disable-perftools    don't try to build with Google Perftools
-    --disable-python       don't try to build python bindings for broccoli
+    --disable-python       don't try to build python bindings for broker
 
   Required Packages in Non-Standard Locations:
     --with-openssl=PATH    path to OpenSSL install root
@@ -62,9 +62,6 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-jemalloc=PATH   path to jemalloc install root
     --with-python-lib=PATH path to libpython
     --with-python-inc=PATH path to Python headers
-    --with-ruby=PATH       path to ruby interpreter
-    --with-ruby-lib=PATH   path to ruby library
-    --with-ruby-inc=PATH   path to ruby headers
     --with-swig=PATH       path to SWIG executable
     --with-rocksdb=PATH    path to RocksDB installation
                            (an optional Broker dependency)
@@ -117,7 +114,6 @@ append_cache_entry BRO_ROOT_DIR         PATH   $prefix
 append_cache_entry PY_MOD_INSTALL_DIR   PATH   $prefix/lib/broctl
 append_cache_entry BRO_SCRIPT_INSTALL_PATH STRING $prefix/share/bro
 append_cache_entry BRO_ETC_INSTALL_DIR  PATH   $prefix/etc
-append_cache_entry BROKER_PYTHON_BINDINGS BOOL false
 append_cache_entry ENABLE_DEBUG         BOOL   false
 append_cache_entry ENABLE_PERFTOOLS     BOOL   false
 append_cache_entry ENABLE_PERFTOOLS_DEBUG BOOL false
@@ -129,7 +125,6 @@ append_cache_entry INSTALL_BROCTL       BOOL   true
 append_cache_entry CPACK_SOURCE_IGNORE_FILES STRING
 append_cache_entry ENABLE_MOBILE_IPV6   BOOL   false
 append_cache_entry DISABLE_PERFTOOLS    BOOL   false
-append_cache_entry DISABLE_RUBY_BINDINGS     BOOL   true
 
 # parse arguments
 while [ $# -ne 0 ]; do
@@ -200,9 +195,6 @@ while [ $# -ne 0 ]; do
         --disable-python)
             append_cache_entry DISABLE_PYTHON_BINDINGS     BOOL   true
             ;;
-        --enable-ruby)
-            append_cache_entry DISABLE_RUBY_BINDINGS     BOOL   false
-            ;;
         --with-openssl=*)
             append_cache_entry OPENSSL_ROOT_DIR PATH $optarg
             ;;
@@ -240,16 +232,6 @@ while [ $# -ne 0 ]; do
         --with-python-inc=*)
             append_cache_entry PYTHON_INCLUDE_DIR   PATH    $optarg
             append_cache_entry PYTHON_INCLUDE_PATH  PATH    $optarg
-            ;;
-        --with-ruby=*)
-            append_cache_entry RUBY_EXECUTABLE    PATH    $optarg
-            ;;
-        --with-ruby-lib=*)
-            append_cache_entry RUBY_LIBRARY       PATH    $optarg
-            ;;
-        --with-ruby-inc=*)
-            append_cache_entry RUBY_INCLUDE_DIRS  PATH    $optarg
-            append_cache_entry RUBY_INCLUDE_PATH  PATH    $optarg
             ;;
         --with-swig=*)
             append_cache_entry SWIG_EXECUTABLE      PATH    $optarg

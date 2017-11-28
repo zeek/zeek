@@ -360,10 +360,10 @@ type ServerKeyExchange(rec: HandshakeRecord) = case $context.connection.chosen_c
 # currently supported.
 type EcdheServerKeyExchange(rec: HandshakeRecord) = record {
 	curve_type: uint8;
-	curve: uint16; # only if curve_type = 3 (NAMED_CURVE)
-	point_length: uint8;
-	point: bytestring &length=point_length;
-	signed_params: bytestring &restofdata;
+	named_curve: case curve_type of {
+		NAMED_CURVE -> params: ServerEDCHParamsAndSignature;
+		default -> data: bytestring &restofdata &transient;
+	};
 };
 
 # Parse an ECDH-anon ServerKeyExchange message, which does not contain a
@@ -371,11 +371,18 @@ type EcdheServerKeyExchange(rec: HandshakeRecord) = record {
 # server is not currently supported.
 type EcdhAnonServerKeyExchange(rec: HandshakeRecord) = record {
 	curve_type: uint8;
-	curve: uint16; # only if curve_type = 3 (NAMED_CURVE)
+	named_curve: case curve_type of {
+		NAMED_CURVE -> params: ServerEDCHParamsAndSignature;
+		default -> data: bytestring &restofdata &transient;
+	};
+};
+
+type ServerEDCHParamsAndSignature() = record {
+	curve: uint16;
 	point_length: uint8;
 	point: bytestring &length=point_length;
-	data: bytestring &restofdata &transient;
-};
+	signed_params: bytestring &restofdata; # only present in case of non-anon message
+}
 
 # Parse a DHE ServerKeyExchange message, which contains a signature over the
 # parameters.

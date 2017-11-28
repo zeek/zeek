@@ -1,4 +1,19 @@
 
+2.5-358 | 2017-11-28 12:28:14 -0800
+
+  * Extend the TLS analyzer with several events containing cryptographic
+    parameters from the client and server key exchanges.
+
+   The new events are:
+
+    ssl_ecdh_server_params, ssl_dh_server_params, ssl_server_signature,
+    ssl_ecdh_client_params, ssl_dh_client_params, ssl_rsa_client_pms
+
+    Since ssl_ecdh_server_params contains more information than the old
+    ssl_server_curve event, ssl_server_curve is now marked as deprecated.
+
+    (Luke Valenta)
+
 2.5-352 | 2017-11-21 13:21:51 -0600
 
   * Fix assignments to event arguments becoming visible to subsequent

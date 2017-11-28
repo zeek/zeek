@@ -224,7 +224,7 @@ event ssl_server_hello(c: connection, version: count, possible_ts: time, server_
 		c$ssl$resumed = T;
 	}
 
-event ssl_server_curve(c: connection, curve: count) &priority=5
+event ssl_ecdh_server_params(c: connection, curve: count, point: string) &priority=5
 	{
 	set_session(c);
 

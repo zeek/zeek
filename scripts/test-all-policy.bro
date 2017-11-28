@@ -101,7 +101,6 @@
 @load protocols/ssl/validate-ocsp.bro
 @load protocols/ssl/validate-sct.bro
 @load protocols/ssl/weak-keys.bro
-@load protocols/ssl/ssl-verbose.bro
 @load tuning/__load__.bro
 @load tuning/defaults/__load__.bro
 @load tuning/defaults/extracted_file_limits.bro

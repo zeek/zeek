@@ -364,7 +364,17 @@ type EcdheServerKeyExchange(rec: HandshakeRecord) = record {
 		NAMED_CURVE -> params: ServerEDCHParamsAndSignature;
 		default -> data: bytestring &restofdata &transient;
 	};
+	signature: case curve_type of {
+		NAMED_CURVE -> signed_params: ServerKeyExchangeSignature;
+		default -> nothing: bytestring &length=0;
+	};
 };
+
+type ServerKeyExchangeSignature = record {
+	algorithm: SignatureAndHashAlgorithm;
+	signature_length: uint16;
+	signature: bytestring &length=signature_length;
+}
 
 # Parse an ECDH-anon ServerKeyExchange message, which does not contain a
 # signature over the parameters. Parsing explicit curve parameters from the
@@ -381,7 +391,6 @@ type ServerEDCHParamsAndSignature() = record {
 	curve: uint16;
 	point_length: uint8;
 	point: bytestring &length=point_length;
-	signed_params: bytestring &restofdata; # only present in case of non-anon message
 }
 
 # Parse a DHE ServerKeyExchange message, which contains a signature over the
@@ -393,7 +402,7 @@ type DheServerKeyExchange(rec: HandshakeRecord) = record {
 	dh_g: bytestring &length=dh_g_length;
 	dh_Ys_length: uint16;
 	dh_Ys: bytestring &length=dh_Ys_length;
-	signed_params: bytestring &restofdata;
+	signed_params: ServerKeyExchangeSignature;
 };
 
 # Parse a DH-anon ServerKeyExchange message, which does not contain a

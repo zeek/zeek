@@ -281,8 +281,13 @@ refine connection Handshake_Conn += {
 			bro_analyzer()->Conn(), ${kex.params.curve});
 		BifEvent::generate_ssl_ecdh_server_params(bro_analyzer(),
 			bro_analyzer()->Conn(), ${kex.params.curve}, new StringVal(${kex.params.point}.length(), (const char*)${kex.params.point}.data()));
+
+		RecordVal* ha = new RecordVal(BifType::Record::SSL::SignatureAndHashAlgorithm);
+		ha->Assign(0, new Val(${kex.signed_params.algorithm.HashAlgorithm}, TYPE_COUNT));
+		ha->Assign(1, new Val(${kex.signed_params.algorithm.SignatureAlgorithm}, TYPE_COUNT));
+
 		BifEvent::generate_ssl_server_signature(bro_analyzer(),
-			bro_analyzer()->Conn(), new StringVal(${kex.params.signed_params}.length(), (const char*)${kex.params.signed_params}.data()));
+			bro_analyzer()->Conn(), ha, new StringVal(${kex.signed_params.signature}.length(), (const char*)(${kex.signed_params.signature}).data()));
 
 		return true;
 		%}
@@ -336,7 +341,7 @@ refine connection Handshake_Conn += {
 		return true;
 		%}
 
-	function proc_dhe_server_key_exchange(rec: HandshakeRecord, p: bytestring, g: bytestring, Ys: bytestring, signed_params: bytestring) : bool
+	function proc_dhe_server_key_exchange(rec: HandshakeRecord, p: bytestring, g: bytestring, Ys: bytestring, signed_params: ServerKeyExchangeSignature) : bool
 		%{
 		BifEvent::generate_ssl_dh_server_params(bro_analyzer(),
 			bro_analyzer()->Conn(),
@@ -344,9 +349,14 @@ refine connection Handshake_Conn += {
 		  new StringVal(g.length(), (const char*) g.data()),
 		  new StringVal(Ys.length(), (const char*) Ys.data())
 		  );
+
+		RecordVal* ha = new RecordVal(BifType::Record::SSL::SignatureAndHashAlgorithm);
+		ha->Assign(0, new Val(${signed_params.algorithm.HashAlgorithm}, TYPE_COUNT));
+		ha->Assign(1, new Val(${signed_params.algorithm.SignatureAlgorithm}, TYPE_COUNT));
+
 		BifEvent::generate_ssl_server_signature(bro_analyzer(),
-			bro_analyzer()->Conn(),
-		  new StringVal(signed_params.length(), (const char*) signed_params.data())
+			bro_analyzer()->Conn(), ha,
+		  new StringVal(${signed_params.signature}.length(), (const char*)(${signed_params.signature}).data())
 		  );
 
 		return true;

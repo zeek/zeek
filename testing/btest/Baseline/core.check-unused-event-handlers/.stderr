@@ -1,2 +1,3 @@
 warning in <params>, line 1: event handler never invoked: this_is_never_used
+warning in <params>, line 1: event handler never invoked: InputConfig::new_value
 warning in <params>, line 1: event handler never invoked: InputRaw::process_finished

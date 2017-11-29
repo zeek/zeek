@@ -128,7 +128,7 @@ bool SQLite::DoInit(const ReaderInfo& info, int arg_num_fields, const threading:
 Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int pos, int subpos)
 	{
 	if ( sqlite3_column_type(st, pos ) == SQLITE_NULL )
-		return new Value(field->type, false);
+		return new Value(field->type, field->subtype, false);
 
 	Value* val = new Value(field->type, true);
 

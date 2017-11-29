@@ -6,7 +6,7 @@
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
-%token TOK_BOOL TOK_BREAK TOK_CASE TOK_CONST
+%token TOK_BOOL TOK_BREAK TOK_CASE TOK_OPTION TOK_CONST
 %token TOK_CONSTANT TOK_COPY TOK_COUNT TOK_COUNTER TOK_DEFAULT TOK_DELETE
 %token TOK_DOUBLE TOK_ELSE TOK_ENUM TOK_EVENT TOK_EXPORT TOK_FALLTHROUGH
 %token TOK_FILE TOK_FOR TOK_FUNCTION TOK_GLOBAL TOK_HOOK TOK_ID TOK_IF TOK_INT
@@ -1056,6 +1056,12 @@ decl:
 	|	TOK_GLOBAL def_global_id opt_type init_class opt_init opt_attr ';'
 			{
 			add_global($2, $3, $4, $5, $6, VAR_REGULAR);
+			broxygen_mgr->Identifier($2);
+			}
+
+	|	TOK_OPTION def_global_id opt_type init_class opt_init opt_attr ';'
+			{
+			add_global($2, $3, $4, $5, $6, VAR_OPTION);
 			broxygen_mgr->Identifier($2);
 			}
 

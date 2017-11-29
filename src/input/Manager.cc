@@ -711,7 +711,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 	return true;
 	}
 
-bool Manager::CheckErrorEventTypes(std::string stream_name, Func* ev, bool table)
+bool Manager::CheckErrorEventTypes(std::string stream_name, const Func* ev, bool table) const
 	{
 	if ( ev == nullptr )
 		return true;
@@ -899,7 +899,7 @@ bool Manager::RemoveStreamContinuation(ReaderFrontend* reader)
 	}
 
 bool Manager::UnrollRecordType(vector<Field*> *fields, const RecordType *rec,
-			       const string& nameprepend, bool allow_file_func)
+			       const string& nameprepend, bool allow_file_func) const
 	{
 	for ( int i = 0; i < rec->NumFields(); i++ )
 		{
@@ -1007,7 +1007,7 @@ bool Manager::ForceUpdate(const string &name)
 }
 
 
-Val* Manager::RecordValToIndexVal(RecordVal *r)
+Val* Manager::RecordValToIndexVal(RecordVal *r) const
 	{
 	Val* idxval;
 
@@ -1032,7 +1032,7 @@ Val* Manager::RecordValToIndexVal(RecordVal *r)
 	}
 
 
-Val* Manager::ValueToIndexVal(const Stream* i, int num_fields, const RecordType *type, const Value* const *vals, bool& have_error)
+Val* Manager::ValueToIndexVal(const Stream* i, int num_fields, const RecordType *type, const Value* const *vals, bool& have_error) const
 	{
 	Val* idxval;
 	int position = 0;
@@ -1810,7 +1810,7 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 	return success;
 	}
 
-bool Manager::CallPred(Func* pred_func, const int numvals, ...)
+bool Manager::CallPred(Func* pred_func, const int numvals, ...) const
 	{
 	bool result = false;
 	val_list vl(numvals);
@@ -1835,7 +1835,7 @@ bool Manager::CallPred(Func* pred_func, const int numvals, ...)
 // Raise everything in here as warnings so it is passed to scriptland without
 // looking "fatal". In addition to these warnings, ReaderBackend will queue
 // one reporter message.
-bool Manager::SendEvent(ReaderFrontend* reader, const string& name, const int num_vals, Value* *vals)
+bool Manager::SendEvent(ReaderFrontend* reader, const string& name, const int num_vals, Value* *vals) const
 	{
 	Stream *i = FindStream(reader);
 	if ( i == 0 )
@@ -1871,7 +1871,15 @@ bool Manager::SendEvent(ReaderFrontend* reader, const string& name, const int nu
 
 	val_list* vl = new val_list;
 	for ( int j = 0; j < num_vals; j++)
-		vl->append(ValueToVal(i, vals[j], type->FieldType(j), convert_error));
+		{
+		Val* v = ValueToVal(i, vals[j], convert_error);
+		vl->append(v);
+		if ( v && ! convert_error && ! same_type(type->FieldType(j), v->Type()) )
+			{
+			convert_error = true;
+			type->FieldType(j)->Error("SendEvent types do not match", v->Type());
+			}
+		}
 
 	delete_value_ptr_array(vals, num_vals);
 
@@ -1886,7 +1894,7 @@ bool Manager::SendEvent(ReaderFrontend* reader, const string& name, const int nu
 	return true;
 }
 
-void Manager::SendEvent(EventHandlerPtr ev, const int numvals, ...)
+void Manager::SendEvent(EventHandlerPtr ev, const int numvals, ...) const
 	{
 	val_list* vl = new val_list;
 
@@ -1905,7 +1913,7 @@ void Manager::SendEvent(EventHandlerPtr ev, const int numvals, ...)
 	mgr.QueueEvent(ev, vl, SOURCE_LOCAL);
 	}
 
-void Manager::SendEvent(EventHandlerPtr ev, list<Val*> events)
+void Manager::SendEvent(EventHandlerPtr ev, list<Val*> events) const
 	{
 	val_list* vl = new val_list;
 
@@ -1924,7 +1932,7 @@ void Manager::SendEvent(EventHandlerPtr ev, list<Val*> events)
 
 // Convert a bro list value to a bro record value.
 // I / we could think about moving this functionality to val.cc
-RecordVal* Manager::ListValToRecordVal(ListVal* list, RecordType *request_type, int* position)
+RecordVal* Manager::ListValToRecordVal(ListVal* list, RecordType *request_type, int* position) const
 	{
 	assert(position != 0 ); // we need the pointer to point to data;
 
@@ -1954,7 +1962,7 @@ RecordVal* Manager::ListValToRecordVal(ListVal* list, RecordType *request_type, 
 
 // Convert a threading value to a record value
 RecordVal* Manager::ValueToRecordVal(const Stream* stream, const Value* const *vals,
-	                             RecordType *request_type, int* position, bool& have_error)
+	                             RecordType *request_type, int* position, bool& have_error) const
 	{
 	assert(position != 0); // we need the pointer to point to data.
 
@@ -1991,7 +1999,8 @@ RecordVal* Manager::ValueToRecordVal(const Stream* stream, const Value* const *v
 
 // Count the length of the values used to create a correct length buffer for
 // hashing later
-int Manager::GetValueLength(const Value* val) {
+int Manager::GetValueLength(const Value* val) const
+	{
 	assert( val->present ); // presence has to be checked elsewhere
 	int length = 0;
 
@@ -2081,7 +2090,7 @@ int Manager::GetValueLength(const Value* val) {
 
 // Given a threading::value, copy the raw data bytes into *data and return how many bytes were copied.
 // Used for hashing the values for lookup in the bro table
-int Manager::CopyValue(char *data, const int startpos, const Value* val)
+int Manager::CopyValue(char *data, const int startpos, const Value* val) const
 	{
 	assert( val->present ); // presence has to be checked elsewhere
 
@@ -2205,7 +2214,7 @@ int Manager::CopyValue(char *data, const int startpos, const Value* val)
 	}
 
 // Hash num_elements threading values and return the HashKey for them. At least one of the vals has to be ->present.
-HashKey* Manager::HashValues(const int num_elements, const Value* const *vals)
+HashKey* Manager::HashValues(const int num_elements, const Value* const *vals) const
 	{
 	int length = 0;
 
@@ -2251,19 +2260,19 @@ HashKey* Manager::HashValues(const int num_elements, const Value* const *vals)
 // have_error is a reference to a boolean which is set to true as soon as an error occured.
 // When have_error is set to true at the beginning of the function, it is assumed that
 // an error already occured in the past and processing is aborted.
-Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_type, bool& have_error)
+Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_type, bool& have_error) const
 	{
 	if ( have_error )
-		return 0;
+		return nullptr;
 
 	if ( request_type->Tag() != TYPE_ANY && request_type->Tag() != val->type )
 		{
 		reporter->InternalError("Typetags don't match: %d vs %d in stream %s", request_type->Tag(), val->type, i->name.c_str());
-		return 0;
+		return nullptr;
 		}
 
 	if ( !val->present )
-		return 0; // unset field
+		return nullptr; // unset field
 
 	switch ( val->type ) {
 	case TYPE_BOOL:
@@ -2312,7 +2321,7 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_typ
 
 	case TYPE_SUBNET:
 		{
-		IPAddr* addr = 0;
+		IPAddr* addr = nullptr;
 		switch ( val->val.subnet_val.prefix.family ) {
 		case IPv4:
 			addr = new IPAddr(val->val.subnet_val.prefix.in.in4);
@@ -2359,7 +2368,7 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_typ
 		VectorVal* v = new VectorVal(vt);
 		for ( int j = 0; j < val->val.vector_val.size; j++ )
 			{
-			v->Assign(j, ValueToVal(i, val->val.set_val.vals[j], type, have_error));
+			v->Assign(j, ValueToVal(i, val->val.vector_val.vals[j], type, have_error));
 			}
 
 		Unref(vt);
@@ -2384,7 +2393,7 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_typ
 			                        enum_string.c_str(), i->name.c_str());
 
 			have_error = true;
-			return 0;
+			return nullptr;
 			}
 
 		return new EnumVal(index, request_type->Ref()->AsEnumType());
@@ -2398,9 +2407,177 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_typ
 	return NULL;
 	}
 
-Manager::Stream* Manager::FindStream(const string &name)
+Val* Manager::ValueToVal(const Stream* i, const Value* val, bool& have_error) const
 	{
-	for ( map<ReaderFrontend*, Stream*>::iterator s = readers.begin(); s != readers.end(); ++s )
+	if ( have_error )
+		return nullptr;
+
+	if ( !val->present )
+		return nullptr; // unset field
+
+	switch ( val->type ) {
+	case TYPE_BOOL:
+	case TYPE_INT:
+		return new Val(val->val.int_val, val->type);
+		break;
+
+	case TYPE_COUNT:
+	case TYPE_COUNTER:
+		return new Val(val->val.uint_val, val->type);
+
+	case TYPE_DOUBLE:
+	case TYPE_TIME:
+	case TYPE_INTERVAL:
+		return new Val(val->val.double_val, val->type);
+
+	case TYPE_STRING:
+		{
+		BroString *s = new BroString((const u_char*)val->val.string_val.data, val->val.string_val.length, 1);
+		return new StringVal(s);
+		}
+
+	case TYPE_PORT:
+		return new PortVal(val->val.port_val.port, val->val.port_val.proto);
+
+	case TYPE_ADDR:
+		{
+		IPAddr* addr = 0;
+		switch ( val->val.addr_val.family ) {
+		case IPv4:
+			addr = new IPAddr(val->val.addr_val.in.in4);
+			break;
+
+		case IPv6:
+			addr = new IPAddr(val->val.addr_val.in.in6);
+			break;
+
+		default:
+			assert(false);
+		}
+
+		AddrVal* addrval = new AddrVal(*addr);
+		delete addr;
+		return addrval;
+		}
+
+	case TYPE_SUBNET:
+		{
+		IPAddr* addr = nullptr;
+		switch ( val->val.subnet_val.prefix.family ) {
+		case IPv4:
+			addr = new IPAddr(val->val.subnet_val.prefix.in.in4);
+			break;
+
+		case IPv6:
+			addr = new IPAddr(val->val.subnet_val.prefix.in.in6);
+			break;
+
+		default:
+			assert(false);
+		}
+
+		SubNetVal* subnetval = new SubNetVal(*addr, val->val.subnet_val.length);
+		delete addr;
+		return subnetval;
+		}
+
+	case TYPE_TABLE:
+		{
+		TypeList* set_index;
+		if ( val->val.set_val.size == 0 && val->subtype == TYPE_VOID )
+			// don't know type - unspecified table.
+			set_index = new TypeList();
+		else
+			{
+			// all entries have to have the same type...
+			TypeTag stag = val->subtype;
+			if ( stag == TYPE_VOID )
+				TypeTag stag = val->val.set_val.vals[0]->type;
+
+			set_index = new TypeList(base_type(stag)->Ref());
+			set_index->Append(base_type(stag)->Ref());
+			}
+		SetType* s = new SetType(set_index, 0);
+		TableVal* t = new TableVal(s);
+		for ( int j = 0; j < val->val.set_val.size; j++ )
+			{
+			Val* assignval = ValueToVal(i, val->val.set_val.vals[j], have_error);
+
+			t->Assign(assignval, 0);
+			Unref(assignval); // index is not consumed by assign.
+			}
+
+		Unref(s);
+		return t;
+		}
+
+	case TYPE_VECTOR:
+		{
+		BroType* type;
+		if ( val->val.vector_val.size == 0  && val->subtype == TYPE_VOID )
+			// don't know type - unspecified table.
+			type = base_type(TYPE_ANY);
+		else
+			{
+			// all entries have to have the same type...
+			if ( val->subtype == TYPE_VOID )
+				type = base_type(val->val.vector_val.vals[0]->type);
+			else
+				type = base_type(val->subtype);
+			}
+
+		VectorType* vt = new VectorType(type->Ref());
+		VectorVal* v = new VectorVal(vt);
+		for ( int j = 0; j < val->val.vector_val.size; j++ )
+			{
+			v->Assign(j, ValueToVal(i, val->val.vector_val.vals[j], have_error));
+			}
+
+		Unref(vt);
+		return v;
+		}
+
+	case TYPE_ENUM: {
+		// Convert to string first to not have to deal with missing
+		// \0's...
+		string enum_string(val->val.string_val.data, val->val.string_val.length);
+
+		// let's try looking it up by global ID.
+		ID* id = lookup_ID(enum_string.c_str(), GLOBAL_MODULE_NAME);
+		if ( ! id || ! id->IsEnumConst() )
+			{
+			Warning(i, "Value '%s' for stream '%s' is not a valid enum.",
+			                        enum_string.c_str(), i->name.c_str());
+
+			have_error = true;
+			return nullptr;
+			}
+
+		EnumType* t = id->Type()->AsEnumType();
+		int intval = t->Lookup(id->ModuleName(), id->Name());
+		if ( intval < 0 )
+			{
+			Warning(i, "Enum value '%s' for stream '%s' not found.",
+			                        enum_string.c_str(), i->name.c_str());
+
+			have_error = true;
+			return nullptr;
+			}
+
+		return new EnumVal(intval, t);
+		}
+
+	default:
+		reporter->InternalError("Unsupported type for input_read in stream %s", i->name.c_str());
+	}
+
+	assert(false);
+	return NULL;
+	}
+
+Manager::Stream* Manager::FindStream(const string &name) const
+	{
+	for ( auto s = readers.begin(); s != readers.end(); ++s )
 		{
 		if ( (*s).second->name  == name )
 			return (*s).second;
@@ -2409,9 +2586,9 @@ Manager::Stream* Manager::FindStream(const string &name)
 	return 0;
 	}
 
-Manager::Stream* Manager::FindStream(ReaderFrontend* reader)
+Manager::Stream* Manager::FindStream(ReaderFrontend* reader) const
 	{
-	map<ReaderFrontend*, Stream*>::iterator s = readers.find(reader);
+	auto s = readers.find(reader);
 	if ( s != readers.end() )
 		return s->second;
 
@@ -2433,7 +2610,7 @@ void Manager::Terminate()
 
 	}
 
-void Manager::Info(ReaderFrontend* reader, const char* msg)
+void Manager::Info(ReaderFrontend* reader, const char* msg) const
 	{
 	Stream *i = FindStream(reader);
 	if ( !i )
@@ -2445,7 +2622,7 @@ void Manager::Info(ReaderFrontend* reader, const char* msg)
 	ErrorHandler(i, ErrorType::INFO, false, "%s", msg);
 	}
 
-void Manager::Warning(ReaderFrontend* reader, const char* msg)
+void Manager::Warning(ReaderFrontend* reader, const char* msg) const
 	{
 	Stream *i = FindStream(reader);
 	if ( !i )
@@ -2457,7 +2634,7 @@ void Manager::Warning(ReaderFrontend* reader, const char* msg)
 	ErrorHandler(i, ErrorType::WARNING, false, "%s", msg);
 	}
 
-void Manager::Error(ReaderFrontend* reader, const char* msg)
+void Manager::Error(ReaderFrontend* reader, const char* msg) const
 	{
 	Stream *i = FindStream(reader);
 	if ( !i )
@@ -2469,7 +2646,7 @@ void Manager::Error(ReaderFrontend* reader, const char* msg)
 	ErrorHandler(i, ErrorType::ERROR, false, "%s", msg);
 	}
 
-void Manager::Info(const Stream* i, const char* fmt, ...)
+void Manager::Info(const Stream* i, const char* fmt, ...) const
 	{
 	va_list ap;
 	va_start(ap, fmt);
@@ -2477,7 +2654,7 @@ void Manager::Info(const Stream* i, const char* fmt, ...)
 	va_end(ap);
 	}
 
-void Manager::Warning(const Stream* i, const char* fmt, ...)
+void Manager::Warning(const Stream* i, const char* fmt, ...) const
 	{
 	va_list ap;
 	va_start(ap, fmt);
@@ -2485,7 +2662,7 @@ void Manager::Warning(const Stream* i, const char* fmt, ...)
 	va_end(ap);
 	}
 
-void Manager::Error(const Stream* i, const char* fmt, ...)
+void Manager::Error(const Stream* i, const char* fmt, ...) const
 	{
 	va_list ap;
 	va_start(ap, fmt);
@@ -2493,7 +2670,7 @@ void Manager::Error(const Stream* i, const char* fmt, ...)
 	va_end(ap);
 	}
 
-void Manager::ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, const char* fmt, ...)
+void Manager::ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, const char* fmt, ...) const
 	{
 	va_list ap;
 	va_start(ap, fmt);
@@ -2501,7 +2678,7 @@ void Manager::ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, co
 	va_end(ap);
 	}
 
-void Manager::ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, const char* fmt, va_list ap)
+void Manager::ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, const char* fmt, va_list ap) const
 	{
 	char* buf;
 

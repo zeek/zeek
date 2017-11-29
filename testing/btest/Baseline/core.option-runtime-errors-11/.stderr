@@ -1,0 +1,1 @@
+error in /Users/johanna/corelight/bro/testing/btest/.tmp/core.option-runtime-errors-11/option-runtime-errors.bro, line 4: Option::on_change needs function argument; got 'count' for ID 'A' (Option::set_change_handler(A, A, (coerce 0 to int)))

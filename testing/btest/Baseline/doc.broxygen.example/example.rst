@@ -32,8 +32,8 @@ And a custom directive does the equivalent references:
 
 Summary
 ~~~~~~~
-Options
-#######
+Redefinable Options
+###################
 ==================================================================================== =======================================================
 :bro:id:`BroxygenExample::an_option`: :bro:type:`set` :bro:attr:`&redef`             Add documentation for "an_option" here.
 :bro:id:`BroxygenExample::option_with_init`: :bro:type:`interval` :bro:attr:`&redef` Default initialization will be generated automatically.
@@ -81,8 +81,8 @@ Functions
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
-Options
-#######
+Redefinable Options
+###################
 .. bro:id:: BroxygenExample::an_option
 
    :Type: :bro:type:`set` [:bro:type:`addr`, :bro:type:`addr`, :bro:type:`string`]

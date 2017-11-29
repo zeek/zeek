@@ -9,7 +9,7 @@ export {
 	## Please note that the separator has to be exactly one character long.
 	const separator = Input::separator &redef;
 
-	## Separator between set elements.
+	## Separator between set and vector elements.
 	## Please note that the separator has to be exactly one character long.
 	const set_separator = Input::set_separator &redef;
 

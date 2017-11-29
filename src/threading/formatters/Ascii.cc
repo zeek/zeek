@@ -207,13 +207,14 @@ bool Ascii::Describe(ODesc* desc, threading::Value* val, const string& name) con
 
 threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag type, TypeTag subtype) const
 	{
-	if ( s.compare(separators.unset_field) == 0 )  // field is not set...
+	if ( ! separators.unset_field.empty() && s.compare(separators.unset_field) == 0 )  // field is not set...
 		return new threading::Value(type, false);
 
-	threading::Value* val = new threading::Value(type, true);
+	threading::Value* val = new threading::Value(type, subtype, true);
 	const char* start = s.c_str();
 	char* end = 0;
 	errno = 0;
+	size_t pos;
 
 	switch ( type ) {
 	case TYPE_ENUM:
@@ -260,11 +261,21 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 		break;
 
 	case TYPE_PORT:
+		val->val.port_val.proto = TRANSPORT_UNKNOWN;
+		pos = s.find('/');
+		if ( pos != std::string::npos && s.length() > pos + 1 )
+			{
+			auto proto = s.substr(pos+1);
+			if ( strtolower(proto) == "tcp" )
+				val->val.port_val.proto = TRANSPORT_TCP;
+			else if ( strtolower(proto) == "udp" )
+				val->val.port_val.proto = TRANSPORT_UDP;
+			else if ( strtolower(proto) == "icmp" )
+				val->val.port_val.proto = TRANSPORT_ICMP;
+			}
 		val->val.port_val.port = strtoull(start, &end, 10);
 		if ( CheckNumberError(start, end) )
 			goto parse_error;
-
-		val->val.port_val.proto = TRANSPORT_UNKNOWN;
 		break;
 
 	case TYPE_SUBNET:

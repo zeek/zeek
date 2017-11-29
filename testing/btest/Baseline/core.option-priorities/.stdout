@@ -1,0 +1,6 @@
+Old value, T
+Higher prio - Value of testbool changed from T to F at location ''
+Value of testbool changed from T to T
+Higher prio - Value of testbool changed from T to F at location 'here'
+Value of testbool changed from T to T
+New value, T

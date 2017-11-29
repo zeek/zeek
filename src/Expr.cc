@@ -283,6 +283,9 @@ Expr* NameExpr::MakeLvalue()
 	if ( id->IsConst() && ! in_const_init )
 		ExprError("const is not a modifiable lvalue");
 
+	if ( id->IsOption() && ! in_const_init )
+		ExprError("option is not a modifiable lvalue");
+
 	return new RefExpr(this);
 	}
 

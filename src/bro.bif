@@ -1775,13 +1775,14 @@ function global_ids%(%): id_table
 		rec->Assign(1, new Val(id->IsExport(), TYPE_BOOL));
 		rec->Assign(2, new Val(id->IsConst(), TYPE_BOOL));
 		rec->Assign(3, new Val(id->IsEnumConst(), TYPE_BOOL));
-		rec->Assign(4, new Val(id->IsRedefinable(), TYPE_BOOL));
+		rec->Assign(4, new Val(id->IsOption(), TYPE_BOOL));
+		rec->Assign(5, new Val(id->IsRedefinable(), TYPE_BOOL));
 
 		if ( id->HasVal() )
 			{
 			Val* val = id->ID_Val();
 			Ref(val);
-			rec->Assign(5, val);
+			rec->Assign(6, val);
 			}
 
 		Val* id_name = new StringVal(id->Name());

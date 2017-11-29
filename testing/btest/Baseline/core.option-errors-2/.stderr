@@ -1,0 +1,1 @@
+error in /Users/johanna/corelight/bro/testing/btest/.tmp/core.option-errors-2/option-errors.bro, line 2: option variable must be initialized (testbool)

@@ -142,6 +142,11 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 			id->Error("&persistant/synchronized with constant");
 			return;
 			}
+		else if ( dt == VAR_OPTION )
+			{
+			id->Error("&persistant/synchronized with option");
+			return;
+			}
 
 		if ( ! id->IsGlobal() )
 			{
@@ -205,6 +210,13 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 			id->Error("const variable must be initialized");
 
 		id->SetConst();
+		}
+	if ( dt == VAR_OPTION )
+		{
+		if ( ! init )
+			id->Error("option variable must be initialized");
+
+		id->SetOption();
 		}
 
 	id->UpdateValAttrs();

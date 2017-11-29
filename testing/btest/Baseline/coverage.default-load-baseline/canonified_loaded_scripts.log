@@ -38,6 +38,7 @@ scripts/base/init-bare.bro
     scripts/base/frameworks/input/readers/raw.bro
     scripts/base/frameworks/input/readers/benchmark.bro
     scripts/base/frameworks/input/readers/binary.bro
+    scripts/base/frameworks/input/readers/config.bro
     scripts/base/frameworks/input/readers/sqlite.bro
   scripts/base/frameworks/analyzer/__load__.bro
     scripts/base/frameworks/analyzer/main.bro
@@ -51,6 +52,7 @@ scripts/base/init-bare.bro
     scripts/base/frameworks/files/magic/__load__.bro
   build/scripts/base/bif/__load__.bro
     build/scripts/base/bif/stats.bif.bro
+    build/scripts/base/bif/option.bif.bro
     build/scripts/base/bif/broxygen.bif.bro
     build/scripts/base/bif/pcap.bif.bro
     build/scripts/base/bif/bloom-filter.bif.bro
@@ -161,6 +163,7 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_AsciiReader.ascii.bif.bro
     build/scripts/base/bif/plugins/Bro_BenchmarkReader.benchmark.bif.bro
     build/scripts/base/bif/plugins/Bro_BinaryReader.binary.bif.bro
+    build/scripts/base/bif/plugins/Bro_ConfigReader.config.bif.bro
     build/scripts/base/bif/plugins/Bro_RawReader.raw.bif.bro
     build/scripts/base/bif/plugins/Bro_SQLiteReader.sqlite.bif.bro
     build/scripts/base/bif/plugins/Bro_AsciiWriter.ascii.bif.bro
@@ -238,6 +241,9 @@ scripts/base/init-default.bro
     scripts/base/frameworks/intel/main.bro
     scripts/base/frameworks/intel/files.bro
     scripts/base/frameworks/intel/input.bro
+  scripts/base/frameworks/config/__load__.bro
+    scripts/base/frameworks/config/main.bro
+    scripts/base/frameworks/config/input.bro
   scripts/base/frameworks/sumstats/__load__.bro
     scripts/base/frameworks/sumstats/main.bro
     scripts/base/frameworks/sumstats/plugins/__load__.bro

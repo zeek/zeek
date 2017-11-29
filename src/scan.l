@@ -215,6 +215,7 @@ any	return TOK_ANY;
 bool	return TOK_BOOL;
 break	return TOK_BREAK;
 case	return TOK_CASE;
+option	return TOK_OPTION;
 const	return TOK_CONST;
 copy	return TOK_COPY;
 count	return TOK_COUNT;

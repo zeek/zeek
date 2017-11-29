@@ -1,0 +1,28 @@
+testbool, F
+testcount, 1
+testcount, 2
+testint, -1
+testenum, Conn::LOG
+testport, 45/unknown
+testportandproto, 45/udp
+testaddr, 127.0.0.1
+testaddr, 2607:f8b0:4005:801::200e
+testinterval, 60.0
+testtime, 1507321987.0
+test_set, {
+b,
+c,
+a,
+d,
+erdbeerschnitzel
+}
+test_vector, [1, 2, 3, 4, 5, 6]
+test_set, {
+(empty)
+}
+test_set, {
+
+}
+test_set, {
+-
+}

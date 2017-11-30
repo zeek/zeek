@@ -391,7 +391,7 @@ type ServerEDCHParamsAndSignature() = record {
 	curve: uint16;
 	point_length: uint8;
 	point: bytestring &length=point_length;
-}
+};
 
 # Parse a DHE ServerKeyExchange message, which contains a signature over the
 # parameters.

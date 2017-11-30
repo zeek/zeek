@@ -25,6 +25,8 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
                              - RelWithDebInfo: optimizations on,
                                    debug symbols on, debug flags off
     --generator=GENERATOR  CMake generator to use (see cmake --help)
+    --ccache               use ccache to speed up recompilation (requires
+                           ccache installation and CMake 3.10+)
 
   Installation Directories:
     --prefix=PREFIX        installation directory [/usr/local/bro]
@@ -168,6 +170,9 @@ while [ $# -ne 0 ]; do
             ;;
         --generator=*)
             CMakeGenerator="$optarg"
+            ;;
+        --ccache)
+            append_cache_entry ENABLE_CCACHE         BOOL   true
             ;;
         --prefix=*)
             prefix=$optarg

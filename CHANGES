@@ -1,4 +1,8 @@
 
+2.5-359 | 2017-11-29 14:01:37 -0600
+
+  * Add --ccache option to configure script (requires CMake 3.10+). (Corelight)
+
 2.5-358 | 2017-11-28 12:28:14 -0800
 
   * Extend the TLS analyzer with several events containing cryptographic

@@ -283,8 +283,17 @@ refine connection Handshake_Conn += {
 			bro_analyzer()->Conn(), ${kex.params.curve}, new StringVal(${kex.params.point}.length(), (const char*)${kex.params.point}.data()));
 
 		RecordVal* ha = new RecordVal(BifType::Record::SSL::SignatureAndHashAlgorithm);
-		ha->Assign(0, new Val(${kex.signed_params.algorithm.HashAlgorithm}, TYPE_COUNT));
-		ha->Assign(1, new Val(${kex.signed_params.algorithm.SignatureAlgorithm}, TYPE_COUNT));
+		if ( ${kex.signed_params.uses_signature_and_hashalgorithm} )
+			{
+			ha->Assign(0, new Val(${kex.signed_params.algorithm.HashAlgorithm}, TYPE_COUNT));
+			ha->Assign(1, new Val(${kex.signed_params.algorithm.SignatureAlgorithm}, TYPE_COUNT));
+			}
+			else
+			{
+			// set to impossible value
+			ha->Assign(0, new Val(256, TYPE_COUNT));
+			ha->Assign(1, new Val(256, TYPE_COUNT));
+			}
 
 		BifEvent::generate_ssl_server_signature(bro_analyzer(),
 			bro_analyzer()->Conn(), ha, new StringVal(${kex.signed_params.signature}.length(), (const char*)(${kex.signed_params.signature}).data()));
@@ -351,8 +360,17 @@ refine connection Handshake_Conn += {
 		  );
 
 		RecordVal* ha = new RecordVal(BifType::Record::SSL::SignatureAndHashAlgorithm);
-		ha->Assign(0, new Val(${signed_params.algorithm.HashAlgorithm}, TYPE_COUNT));
-		ha->Assign(1, new Val(${signed_params.algorithm.SignatureAlgorithm}, TYPE_COUNT));
+		if ( ${signed_params.uses_signature_and_hashalgorithm} )
+			{
+			ha->Assign(0, new Val(${signed_params.algorithm.HashAlgorithm}, TYPE_COUNT));
+			ha->Assign(1, new Val(${signed_params.algorithm.SignatureAlgorithm}, TYPE_COUNT));
+			}
+			else
+			{
+			// set to impossible value
+			ha->Assign(0, new Val(256, TYPE_COUNT));
+			ha->Assign(1, new Val(256, TYPE_COUNT));
+			}
 
 		BifEvent::generate_ssl_server_signature(bro_analyzer(),
 			bro_analyzer()->Conn(), ha,

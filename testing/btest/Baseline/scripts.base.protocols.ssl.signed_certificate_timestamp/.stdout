@@ -7,3 +7,9 @@ Verify of, Google 'Aviator' log, T
 Bad verify of, Google 'Aviator' log, F
 Verify of, Google 'Rocketeer' log, T
 Bad verify of, Google 'Rocketeer' log, F
+0, Google 'Rocketeer' log, 1509548284.428, [HashAlgorithm=4, SignatureAlgorithm=3]
+0, Symantec log, 1509548284.713, [HashAlgorithm=4, SignatureAlgorithm=3]
+Verify of, Google 'Rocketeer' log, T
+Bad verify of, Google 'Rocketeer' log, F
+Verify of, Symantec log, T
+Bad verify of, Symantec log, F

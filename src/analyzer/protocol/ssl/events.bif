@@ -233,7 +233,11 @@ event ssl_dh_server_params%(c: connection, p: string, q: string, Ys: string%);
 ## c: The connection.
 ##
 ## signature_and_hashalgorithm: signature and hash algorithm used for the
-##                              digitally_signed struct
+##                              digitally_signed struct. This field is only present
+##                              starting with TLSv1.2 and DTLSv1.2. Earlier versions
+##                              used a hardcoded hash algorithm. For protocol versions
+##                              below D(TLS)v1.2 this field is filled with an dummy
+##                              value of 256.
 ##
 ## signature: Signature part of the digitally_signed struct. The private key
 ##            corresponding to the certified public key in the server's certificate

@@ -8,6 +8,47 @@
 #include "Val.h"
 #include "X509Common.h"
 
+#if (OPENSSL_VERSION_NUMBER < 0x10002000L)
+
+#define X509_get_signature_nid(x) OBJ_obj2nid((x)->sig_alg->algorithm)
+
+#define X509_OBJECT_new()   (X509_OBJECT*)malloc(sizeof(X509_OBJECT))
+#define X509_OBJECT_free(a) free(a)
+
+static X509 *X509_OBJECT_get0_X509(const X509_OBJECT *a)
+{
+	if (a == NULL || a->type != X509_LU_X509)
+		return NULL;
+	return a->data.x509;
+}
+
+#define OCSP_SINGLERESP_get0_id(s) (s)->certId
+#define OCSP_resp_get0_certs(x)    (x)->certs
+
+#endif
+
+#if (OPENSSL_VERSION_NUMBER < 0x1010000fL)
+
+#define EVP_PKEY_get0_DSA(p)    ((p)->pkey.dsa)
+#define EVP_PKEY_get0_EC_KEY(p) ((p)->pkey.ec)
+#define EVP_PKEY_get0_RSA(p)    ((p)->pkey.rsa)
+
+static void DSA_get0_pqg(const DSA *d,
+			 const BIGNUM **p, const BIGNUM **q, const BIGNUM **g)
+{
+	if (p != NULL) *p = d->p;
+	if (q != NULL) *q = d->q;
+	if (g != NULL) *g = d->g;
+}
+
+static void RSA_get0_key(const RSA *r,
+			 const BIGNUM **n, const BIGNUM **e, const BIGNUM **d)
+{
+	if (n != NULL) *n = r->n;
+	if (e != NULL) *e = r->e;
+	if (d != NULL) *d = r->d;
+}
+#endif
 
 namespace file_analysis {
 

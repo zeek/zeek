@@ -21,8 +21,6 @@ extern "C" {
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
-extern "C" void OPENSSL_add_all_algorithms_conf(void);
-
 #include "bsd-getopt-long.h"
 #include "input.h"
 #include "DNS_Mgr.h"

@@ -239,6 +239,8 @@ function x509_get_certificate_string%(cert: opaque of x509, pem: bool &default=F
 ##              x509_get_certificate_string x509_verify
 function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_certs: table_string_of_string, verify_time: time &default=network_time()%): X509::Result
 	%{
+	stack_st_X509* ocsp_certs;
+
 	RecordVal* rval = 0;
 	X509_STORE* ctx = x509_get_root_store(root_certs->AsTableVal());
 	if ( ! ctx )
@@ -317,10 +319,11 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 	// the lookup.
 	// Yay.
 
-	if ( ! basic->certs )
+	ocsp_certs = sk_X509_dup(OCSP_resp_get0_certs(basic));
+	if ( !ocsp_certs )
 		{
-		basic->certs = sk_X509_new_null();
-		if ( ! basic->certs )
+		ocsp_certs = sk_X509_new_null();
+		if ( !ocsp_certs )
 			{
 			rval = x509_result_record(-1, "Could not allocate basic x509 stack");
 			goto x509_ocsp_cleanup;
@@ -330,7 +333,7 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 	issuer_certificate = 0;
 	for ( int i = 0; i < sk_X509_num(untrusted_certs); i++)
 		{
-		sk_X509_push(basic->certs, X509_dup(sk_X509_value(untrusted_certs, i)));
+		sk_X509_push(ocsp_certs, X509_dup(sk_X509_value(untrusted_certs, i)));
 
 		if ( X509_NAME_cmp(X509_get_issuer_name(cert), X509_get_subject_name(sk_X509_value(untrusted_certs, i))) == 0 )
 			issuer_certificate = sk_X509_value(untrusted_certs, i);
@@ -346,7 +349,7 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 
 	if ( !s igner )
 		// if we did not find it in the certificates that were sent, search in the root store
-		signer = x509_get_ocsp_signer(basic->certs, basic->tbsResponseData->responderId);
+		signer = x509_get_ocsp_signer(ocsp_certs, basic->tbsResponseData->responderId);
 	*/
 
 	if ( ! signer )
@@ -356,15 +359,15 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 		}
 
 	csc = X509_STORE_CTX_new();
-	X509_STORE_CTX_init(csc, ctx, signer, basic->certs);
+	X509_STORE_CTX_init(csc, ctx, signer, ocsp_certs);
 	X509_STORE_CTX_set_time(csc, 0, (time_t) verify_time);
 	X509_STORE_CTX_set_purpose(csc, X509_PURPOSE_OCSP_HELPER);
 
 	result = X509_verify_cert(csc);
 	if ( result != 1 )
 		{
-		const char *reason = X509_verify_cert_error_string((*csc).error);
-		rval = x509_result_record(result, X509_verify_cert_error_string((*csc).error));
+		const char *reason = X509_verify_cert_error_string(X509_STORE_CTX_get_error(csc));
+		rval = x509_result_record(result, X509_verify_cert_error_string(X509_STORE_CTX_get_error(csc)));
 		goto x509_ocsp_cleanup;
 		}
 
@@ -392,15 +395,17 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 	else
 		{
 		// issuer not in list sent by server, check store
-		X509_OBJECT obj;
-		int lookup = X509_STORE_get_by_subject(csc, X509_LU_X509, X509_get_subject_name(cert), &obj);
+		X509_OBJECT *obj = X509_OBJECT_new();
+		int lookup = X509_STORE_get_by_subject(csc, X509_LU_X509, X509_get_subject_name(cert), obj);
 		if ( lookup <= 0)
 			{
 			rval = x509_result_record(lookup, "Could not find issuer of host certificate");
+			X509_OBJECT_free(obj);
 			goto x509_ocsp_cleanup;
 			}
 
-		certid = OCSP_cert_to_id(NULL, cert, obj.data.x509);
+		certid = OCSP_cert_to_id(NULL, cert,X509_OBJECT_get0_X509( obj));
+		X509_OBJECT_free(obj);
 		}
 
 
@@ -411,18 +416,22 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 		}
 
 	// for now, assume we have one reply...
-	single = sk_OCSP_SINGLERESP_value(basic->tbsResponseData->responses, 0);
+	single = OCSP_resp_get0(basic, 0);
 	if ( ! single )
 		{
 		rval = x509_result_record(-1, "Could not lookup OCSP response information");
 		goto x509_ocsp_cleanup;
 		}
 
-	if ( OCSP_id_cmp(certid, single->certId) != 0 )
+	if ( OCSP_id_cmp(certid, (OCSP_CERTID*)OCSP_SINGLERESP_get0_id(single)) != 0 )
 		return x509_result_record(-1, "OCSP reply is not for host certificate");
 
 	// next - check freshness of proof...
-	if ( ! ASN1_GENERALIZEDTIME_check(single->thisUpdate) || ! ASN1_GENERALIZEDTIME_check(single->nextUpdate) )
+	ASN1_GENERALIZEDTIME *thisUpdate;
+	ASN1_GENERALIZEDTIME *nextUpdate;
+	int type;
+	type = OCSP_single_get0_status(single, NULL, NULL, &thisUpdate, &nextUpdate);
+	if ( ! ASN1_GENERALIZEDTIME_check(thisUpdate) || ! ASN1_GENERALIZEDTIME_check(nextUpdate) )
 		{
 		rval = x509_result_record(-1, "OCSP reply contains invalid dates");
 		goto x509_ocsp_cleanup;
@@ -435,16 +444,16 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 	// Well, we will do it manually.
 
 
-	if ( X509_cmp_time(single->thisUpdate, &vtime) > 0 )
+	if ( X509_cmp_time(thisUpdate, &vtime) > 0 )
 		rval = x509_result_record(-1, "OCSP reply specifies time in future");
-	else if ( X509_cmp_time(single->nextUpdate, &vtime) < 0 )
+	else if ( X509_cmp_time(nextUpdate, &vtime) < 0 )
 		rval = x509_result_record(-1, "OCSP reply expired");
-	else if ( single->certStatus->type != V_OCSP_CERTSTATUS_GOOD )
-		rval = x509_result_record(-1, OCSP_cert_status_str(single->certStatus->type));
+	else if ( type != V_OCSP_CERTSTATUS_GOOD )
+		rval = x509_result_record(-1, OCSP_cert_status_str(type));
 
 	// if we have no error so far, we are done.
 	if ( !rval )
-		rval = x509_result_record(1, OCSP_cert_status_str(single->certStatus->type));
+		rval = x509_result_record(1, OCSP_cert_status_str(type));
 
 x509_ocsp_cleanup:
 
@@ -521,18 +530,18 @@ function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_str
 	if ( ! untrusted_certs )
 		return x509_result_record(-1, "Problem initializing list of untrusted certificates");
 
-	X509_STORE_CTX csc;
-	X509_STORE_CTX_init(&csc, ctx, cert, untrusted_certs);
-	X509_STORE_CTX_set_time(&csc, 0, (time_t) verify_time);
-	X509_STORE_CTX_set_flags(&csc, X509_V_FLAG_USE_CHECK_TIME);
+	X509_STORE_CTX *csc = X509_STORE_CTX_new();
+	X509_STORE_CTX_init(csc, ctx, cert, untrusted_certs);
+	X509_STORE_CTX_set_time(csc, 0, (time_t) verify_time);
+	X509_STORE_CTX_set_flags(csc, X509_V_FLAG_USE_CHECK_TIME);
 
-	int result = X509_verify_cert(&csc);
+	int result = X509_verify_cert(csc);
 
 	VectorVal* chainVector = 0;
 
 	if ( result == 1 ) // we have a valid chain. try to get it...
 		{
-		STACK_OF(X509)* chain = X509_STORE_CTX_get1_chain(&csc); // get1 = deep copy
+		STACK_OF(X509)* chain = X509_STORE_CTX_get1_chain(csc); // get1 = deep copy
 
 		if ( ! chain )
 			{
@@ -564,11 +573,11 @@ function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_str
 
 x509_verify_chainerror:
 
-	X509_STORE_CTX_cleanup(&csc);
+	X509_STORE_CTX_cleanup(csc);
 
 	sk_X509_free(untrusted_certs);
 
-	RecordVal* rrecord = x509_result_record(csc.error, X509_verify_cert_error_string(csc.error), chainVector);
+	RecordVal* rrecord = x509_result_record(X509_STORE_CTX_get_error(csc), X509_verify_cert_error_string(X509_STORE_CTX_get_error(csc)), chainVector);
 
 	return rrecord;
 	%}
@@ -660,9 +669,12 @@ function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signa
 	uint32 cert_length;
 	if ( precert )
 		{
-		// we also could use i2d_re_X509_tbs, for OpenSSL >= 1.0.2
+#if (OPENSSL_VERSION_NUMBER < 0x10002000L)
 		x->cert_info->enc.modified = 1;
 		cert_length = i2d_X509_CINF(x->cert_info, &cert_out);
+#else
+		i2d_re_X509_tbs(x, &cert_out);
+#endif
 		data.append(reinterpret_cast<const char*>(issuer_key_hash->Bytes()), issuer_key_hash->Len());
 		}
 	else

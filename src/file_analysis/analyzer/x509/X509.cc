@@ -139,7 +139,9 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val, const char* 
 	// we only read 255 bytes because byte 256 is always 0.
 	// if the string is longer than 255, that will be our null-termination,
 	// otherwhise i2t does null-terminate.
-	if ( ! i2t_ASN1_OBJECT(buf, 255, ssl_cert->cert_info->key->algor->algorithm) )
+	ASN1_OBJECT *algorithm;
+	X509_PUBKEY_get0_param(&algorithm, NULL, NULL, NULL, X509_get_X509_PUBKEY(ssl_cert));
+	if ( ! i2t_ASN1_OBJECT(buf, 255, algorithm) )
 		buf[0] = 0;
 
 	pX509Cert->Assign(7, new StringVal(buf));
@@ -150,14 +152,12 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val, const char* 
 	// actually should be (namely - rsaEncryption), so that OpenSSL will parse out the
 	// key later. Otherwise it will just fail to parse the certificate key.
 
-	ASN1_OBJECT* old_algorithm = 0;
-	if ( OBJ_obj2nid(ssl_cert->cert_info->key->algor->algorithm) == NID_md5WithRSAEncryption )
-		{
-		old_algorithm = ssl_cert->cert_info->key->algor->algorithm;
-		ssl_cert->cert_info->key->algor->algorithm = OBJ_nid2obj(NID_rsaEncryption);
-		}
+	if ( X509_get_signature_nid(ssl_cert) == NID_md5WithRSAEncryption )
+		X509_PUBKEY_set0_param(X509_get_X509_PUBKEY(ssl_cert), OBJ_nid2obj(NID_rsaEncryption), 0, NULL, NULL, 0);
+	else
+		algorithm = 0;
 
-	if ( ! i2t_ASN1_OBJECT(buf, 255, ssl_cert->sig_alg->algorithm) )
+	if ( ! i2t_ASN1_OBJECT(buf, 255, OBJ_nid2obj(X509_get_signature_nid(ssl_cert))) )
 		buf[0] = 0;
 
 	pX509Cert->Assign(8, new StringVal(buf));
@@ -166,14 +166,16 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val, const char* 
 	EVP_PKEY *pkey = X509_extract_key(ssl_cert);
 	if ( pkey != NULL )
 		{
-		if ( pkey->type == EVP_PKEY_DSA )
+		if ( EVP_PKEY_base_id(pkey) == EVP_PKEY_DSA )
 			pX509Cert->Assign(9, new StringVal("dsa"));
 
-		else if ( pkey->type == EVP_PKEY_RSA )
+		else if ( EVP_PKEY_base_id(pkey) == EVP_PKEY_RSA )
 			{
 			pX509Cert->Assign(9, new StringVal("rsa"));
 
-			char *exponent = BN_bn2dec(pkey->pkey.rsa->e);
+			const BIGNUM *e;
+			RSA_get0_key(EVP_PKEY_get0_RSA(pkey), NULL, &e, NULL);
+			char *exponent = BN_bn2dec(e);
 			if ( exponent != NULL )
 				{
 				pX509Cert->Assign(11, new StringVal(exponent));
@@ -182,7 +184,7 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val, const char* 
 				}
 			}
 #ifndef OPENSSL_NO_EC
-		else if ( pkey->type == EVP_PKEY_EC )
+		else if ( EVP_PKEY_base_id(pkey) == EVP_PKEY_EC )
 			{
 			pX509Cert->Assign(9, new StringVal("ecdsa"));
 			pX509Cert->Assign(12, KeyCurve(pkey));
@@ -191,8 +193,8 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val, const char* 
 
 		// set key algorithm back. We do not have to free the value that we created because (I think) it
 		// comes out of a static array from OpenSSL memory.
-		if ( old_algorithm )
-			ssl_cert->cert_info->key->algor->algorithm = old_algorithm;
+		if ( algorithm )
+			X509_PUBKEY_set0_param(X509_get_X509_PUBKEY(ssl_cert), algorithm, 0, NULL, NULL, 0);
 
 		unsigned int length = KeyLength(pkey);
 		if ( length > 0 )
@@ -370,7 +372,7 @@ StringVal* file_analysis::X509::KeyCurve(EVP_PKEY *key)
 	// well, we do not have EC-Support...
 	return NULL;
 #else
-	if ( key->type != EVP_PKEY_EC )
+	if ( EVP_PKEY_base_id(key) != EVP_PKEY_EC )
 		{
 		// no EC-key - no curve name
 		return NULL;
@@ -378,7 +380,7 @@ StringVal* file_analysis::X509::KeyCurve(EVP_PKEY *key)
 
 	const EC_GROUP *group;
 	int nid;
-	if ( (group = EC_KEY_get0_group(key->pkey.ec)) == NULL)
+	if ( (group = EC_KEY_get0_group(EVP_PKEY_get0_EC_KEY(key))) == NULL)
 		// I guess we could not parse this
 		return NULL;
 
@@ -399,12 +401,16 @@ unsigned int file_analysis::X509::KeyLength(EVP_PKEY *key)
 	{
 	assert(key != NULL);
 
-	switch(key->type) {
+	switch(EVP_PKEY_base_id(key)) {
 	case EVP_PKEY_RSA:
-		return BN_num_bits(key->pkey.rsa->n);
+		const BIGNUM *n;
+		RSA_get0_key(EVP_PKEY_get0_RSA(key), &n, NULL, NULL);
+		return BN_num_bits(n);
 
 	case EVP_PKEY_DSA:
-		return BN_num_bits(key->pkey.dsa->p);
+		const BIGNUM *p;
+		DSA_get0_pqg(EVP_PKEY_get0_DSA(key), &p, NULL, NULL);
+		return BN_num_bits(p);
 
 #ifndef OPENSSL_NO_EC
 	case EVP_PKEY_EC:
@@ -414,7 +420,7 @@ unsigned int file_analysis::X509::KeyLength(EVP_PKEY *key)
 			// could not malloc bignum?
 			return 0;
 
-		const EC_GROUP *group = EC_KEY_get0_group(key->pkey.ec);
+		const EC_GROUP *group = EC_KEY_get0_group(EVP_PKEY_get0_EC_KEY(key));
 
 		if ( ! group )
 			{

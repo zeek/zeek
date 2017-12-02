@@ -88,7 +88,7 @@ export {
 	## k: the key to lookup.
 	##
 	## Returns: True if the key exists in the data store.
-	global exists: function(h: opaque of Broker::Store, k: any): bool;
+	global exists: function(h: opaque of Broker::Store, k: any): QueryResult;
 
 	## Lookup the value associated with a key in a data store.
 	##
@@ -661,10 +661,9 @@ function close(h: opaque of Broker::Store) : bool
 	return __close(h);
 	}
 
-function exists(h: opaque of Broker::Store, k: any): bool
+function exists(h: opaque of Broker::Store, k: any): QueryResult
 	{
-	local r = __exists(h, k);
-	return r?$result ? (r$result as bool) : F;
+	return __exists(h, k);
 	}
 
 function get(h: opaque of Broker::Store, k: any): QueryResult

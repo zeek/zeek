@@ -48,6 +48,14 @@ Changed Functionality
   event is considered deprecated and will be removed in a future
   version of Bro.
 
+- The Socks analyzer no longer logs passwords by default. This
+  brings its behavior in line with the FTP/HTTP analyzers which also
+  do not log passwords by default.
+
+  To restore the previous behavior and log Socks passwords, use:
+
+  redef SOCKS::default_capture_password = T;
+
 Removed Functionality
 ---------------------
 

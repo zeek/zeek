@@ -1,4 +1,11 @@
 
+2.5-362 | 2017-12-02 09:45:04 -0600
+
+  * BIT-1791: Do not log SOCKS passwords by default and add
+    SOCKS::default_capture_password option.  (Johanna Amann)
+
+  * Add missing ; in SSL binpac parser, found by Luke Valenta. (Johanna Amann)
+
 2.5-359 | 2017-11-29 14:01:37 -0600
 
   * Add --ccache option to configure script (requires CMake 3.10+). (Corelight)

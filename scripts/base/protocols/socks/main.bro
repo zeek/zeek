@@ -6,32 +6,37 @@ module SOCKS;
 export {
 	redef enum Log::ID += { LOG };
 
+	## Whether passwords are captured or not.
+	const default_capture_password = F &redef;
+
 	## The record type which contains the fields of the SOCKS log.
 	type Info: record {
 		## Time when the proxy connection was first detected.
-		ts:          time            &log;
+		ts:               time            &log;
 		## Unique ID for the tunnel - may correspond to connection uid
 		## or be non-existent.
-		uid:         string          &log;
+		uid:              string          &log;
 		## The connection's 4-tuple of endpoint addresses/ports.
-		id:          conn_id         &log;
+		id:               conn_id         &log;
 		## Protocol version of SOCKS.
-		version:     count           &log;
+		version:          count           &log;
 		## Username used to request a login to the proxy.
-		user:        string          &log &optional;
+		user:             string          &log &optional;
 		## Password used to request a login to the proxy.
-		password:    string          &log &optional;
+		password:         string          &log &optional;
 		## Server status for the attempt at using the proxy.
-		status:      string          &log &optional;
+		status:           string          &log &optional;
 		## Client requested SOCKS address. Could be an address, a name
 		## or both.
-		request:     SOCKS::Address  &log &optional;
+		request:          SOCKS::Address  &log &optional;
 		## Client requested port.
-		request_p:   port            &log &optional;
+		request_p:        port            &log &optional;
 		## Server bound address. Could be an address, a name or both.
-		bound:       SOCKS::Address  &log &optional;
+		bound:            SOCKS::Address  &log &optional;
 		## Server bound port.
-		bound_p:     port            &log &optional;
+		bound_p:          port            &log &optional;
+		## Determines if the password will be captured for this request.
+		capture_password: bool            &default=default_capture_password;
 	};
 
 	## Event that can be handled to access the SOCKS
@@ -90,10 +95,12 @@ event socks_reply(c: connection, version: count, reply: count, sa: SOCKS::Addres
 event socks_login_userpass_request(c: connection, user: string, password: string) &priority=5
 	{
 	# Authentication only possible with the version 5.
-	set_session(c, 5); 
+	set_session(c, 5);
 
 	c$socks$user = user;
-	c$socks$password = password;
+
+	if ( c$socks$capture_password )
+		c$socks$password = password;
 	}
 
 event socks_login_userpass_reply(c: connection, code: count) &priority=5

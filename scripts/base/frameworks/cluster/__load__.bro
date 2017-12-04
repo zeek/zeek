@@ -1,5 +1,6 @@
 # Load the core cluster support.
 @load ./main
+@load ./pools
 
 @if ( Cluster::is_enabled() )
 

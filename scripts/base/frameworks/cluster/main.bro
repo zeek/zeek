@@ -8,7 +8,6 @@
 
 @load base/frameworks/control
 @load base/frameworks/broker
-@load base/utils/hash_hrw
 
 module Cluster;
 
@@ -263,90 +262,6 @@ export {
 	## Write a message to the cluster logging stream.
 	global log: function(msg: string);
 
-	## Store state of a cluster within within the context of a work pool.
-	type PoolNode: record {
-		## The node name (e.g. "manager").
-		name: string;
-		## An alias of *name* used to prevent hashing collisions when creating
-		## *site_id*.
-		alias: string;
-		## A 32-bit unique identifier for the pool node, derived from name/alias.
-		site_id: count;
-		## Whether the node is currently alive and can receive work.
-		alive: bool &default=F;
-	};
-
-	## A pool used for distributing data/work amongst a set of cluster nodes.
-	type Pool: record {
-		## Nodes in the pool, indexed by their name (e.g. "manager").
-		nodes: table[string] of PoolNode;
-		## A list of nodes in the pool in a deterministic order.
-		node_list: vector of PoolNode;
-		## The Rendezvous hashing structure.
-		hrw_pool: HashHRW::Pool;
-		## Round-Robin table indexed by arbitrary key and storing the next
-		## index of *node_list* that will be eligible to receive work (if it's
-		## alive at the time of next request).
-		rr_key_seq: table[string] of int;
-	};
-
-	## A pool containing all the proxy nodes of a cluster.
-	global proxy_pool: Pool;
-
-	## A pool containing all the worker nodes of a cluster.
-	global worker_pool: Pool;
-
-	## Initialize a node as a member of a pool.
-	##
-	## pool: the pool to which the node will belong.
-	##
-	## name: the name of the node (e.g. "manager").
-	##
-	## Returns: F if a node of the same name already exists in the pool, else T.
-	global init_pool_node: function(pool: Pool, name: string): bool;
-
-	## Mark a pool node as alive/online/available. :bro:see:`Cluster::hrw_topic`
-	## will distribute keys to nodes marked as alive.
-	##
-	## pool: the pool to which the node belongs.
-	##
-	## name: the name of the node to mark.
-	##
-	## Returns: F if the node does not exist in the pool, else T.
-	global mark_pool_node_alive: function(pool: Pool, name: string): bool;
-
-	## Mark a pool node as dead/offline/unavailable. :bro:see:`Cluster::hrw_topic`
-	## will not distribute keys to nodes marked as dead.
-	##
-	## pool: the pool to which the node belongs.
-	##
-	## name: the name of the node to mark.
-	##
-	## Returns: F if the node does not exist in the pool, else T.
-	global mark_pool_node_dead: function(pool: Pool, name: string): bool;
-
-	## Retrieve the topic associated with the node mapped via Rendezvous hash
-	## of an arbitrary key.
-	##
-	## pool: the pool of nodes to consider.
-	##
-	## key: data used for input to the hashing function that will uniformly
-	##      distribute keys among available nodes.
-	##
-	## Returns: a topic string associated with a cluster node that is alive.
-	global hrw_topic: function(pool: Pool, key: any): string;
-
-	## Retrieve the topic associated with the node in a round-robin fashion.
-	##
-	## pool: the pool of nodes to consider.
-	##
-	## key: an arbitrary string to identify the purpose for which you're
-	##      requesting the topic.  e.g. consider using namespacing of your script
-	##      like "Intel::cluster_rr_key".
-	##
-	## Returns: a topic string associated with a cluster node that is alive.
-	global rr_topic: function(pool: Pool, key: string): string;
-
 	## Retrieve the topic associated with a specific node in the cluster.
 	##
 	## name: the name of the cluster node (e.g. "manager").
@@ -369,49 +284,6 @@ function local_node_type(): NodeType
 function node_topic(name: string): string
 	{
 	return node_topic_prefix + name;
-	}
-
-function hrw_topic(pool: Pool, key: any): string
-	{
-	if ( |pool$hrw_pool$sites| == 0 )
-		return "";
-
-	local site = HashHRW::get_site(pool$hrw_pool, key);
-	local pn: PoolNode = site$user_data;
-	return node_topic_prefix + pn$name;
-	}
-
-function rr_topic(pool: Pool, key: string): string
-	{
-	if ( key !in pool$rr_key_seq )
-		pool$rr_key_seq[key] = 0;
-
-	local next_idx = pool$rr_key_seq[key];
-	local start = next_idx;
-	local rval = "";
-
-	while ( T )
-		{
-		local pn = pool$node_list[next_idx];
-
-		++next_idx;
-
-		if ( next_idx == |pool$node_list| )
-			next_idx = 0;
-
-		if ( pn$alive )
-			{
-			rval = node_topic_prefix + pn$name;
-			break;
-			}
-
-		if ( next_idx == start )
-			# no nodes alive
-			break;
-		}
-
-	pool$rr_key_seq[key] = next_idx;
-	return rval;
 	}
 
 event remote_connection_handshake_done(p: event_peer) &priority=5
@@ -459,12 +331,7 @@ event Cluster::hello(name: string, id: string) &priority=10
 	Cluster::log(fmt("got hello from %s (%s)", name, id));
 
 	if ( n$node_type == WORKER )
-		{
 		++worker_count;
-		mark_pool_node_alive(worker_pool, name);
-		}
-	else if ( n$node_type == PROXY )
-		mark_pool_node_alive(proxy_pool, name);
 
 	for ( store_name in stores )
 		{
@@ -511,12 +378,7 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string) &priority=1
 			delete n$id;
 
 			if ( n$node_type == WORKER )
-				{
 				--worker_count;
-				mark_pool_node_dead(worker_pool, node_name);
-				}
-			else if ( n$node_type == PROXY )
-				mark_pool_node_dead(proxy_pool, node_name);
 
 			for ( store_name in stores )
 				{
@@ -539,93 +401,6 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string) &priority=1
 			event Cluster::node_down(node_name, endpoint$id);
 			break;
 			}
-		}
-	}
-
-function site_id_in_pool(pool: Pool, site_id: count): bool
-	{
-	for ( i in pool$nodes )
-		{
-		local pn = pool$nodes[i];
-
-		if ( pn$site_id == site_id )
-			return T;
-		}
-
-	return F;
-	}
-
-function init_pool_node(pool: Pool, name: string): bool
-	{
-	if ( name in pool$nodes )
-		return F;
-
-	local loop = T;
-	local c = 0;
-
-	while ( loop )
-		{
-		# site id collisions are unlikely, but using aliases handles it...
-		# alternatively could terminate and ask user to pick a new node name
-		# if it ends up colliding.
-		local alias = name + fmt(".%s", c);
-		local site_id = fnv1a32(alias);
-
-		if ( site_id_in_pool(pool, site_id) )
-			++c;
-		else
-			{
-			local pn = PoolNode($name=name, $alias=alias, $site_id=site_id,
-			                    $alive=Cluster::node == name);
-			pool$nodes[name] = pn;
-			pool$node_list[|pool$node_list|] = pn;
-			loop = F;
-			}
-		}
-
-	return T;
-	}
-
-function mark_pool_node_alive(pool: Pool, name: string): bool
-	{
-	if ( name !in pool$nodes )
-		return F;
-
-	local pn = pool$nodes[name];
-	pn$alive = T;
-	HashHRW::add_site(pool$hrw_pool, HashHRW::Site($id=pn$site_id, $user_data=pn));
-	return T;
-	}
-
-function mark_pool_node_dead(pool: Pool, name: string): bool
-	{
-	if ( name !in pool$nodes )
-		return F;
-
-	local pn = pool$nodes[name];
-	pn$alive = F;
-	HashHRW::rem_site(pool$hrw_pool, HashHRW::Site($id=pn$site_id, $user_data=pn));
-	return T;
-	}
-
-event bro_init() &priority=10
-	{
-	local names: vector of string = vector();
-
-	for ( name in nodes )
-		names[|names|] = name;
-
-	names = sort(names, strcmp);
-
-	for ( i in names )
-		{
-		name = names[i];
-		local n = nodes[name];
-
-		if ( n$node_type == WORKER )
-			init_pool_node(worker_pool, name);
-		else if ( n$node_type == PROXY )
-			init_pool_node(proxy_pool, name);
 		}
 	}
 

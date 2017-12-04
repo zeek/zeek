@@ -82,8 +82,12 @@ export {
 	};
 
 	## A table of cluster-enabled data stores that have been created, indexed
-	## by their name.  To customize a particular data store, you may redef this,
-	## defining the :bro:see:`StoreInfo` to associate with the store's name.
+	## by their name.  This table will be populated automatically by
+	## :bro:see:`Cluster::create_store`, but if you need to customize
+	## the options related to a particular data store, you may redef this
+	## table.  Calls to :bro:see:`Cluster::create_store` will first check
+	## the table for an entry of the same name and, if found, will use the
+	## predefined options there when setting up the store.
 	global stores: table[string] of StoreInfo &default=StoreInfo() &redef;
 
 	## Sets up a cluster-enabled data store.  They will also still properly
@@ -197,6 +201,7 @@ export {
 		## Name of a time machine node with which this node connects.
 		time_machine: string      &optional;
 		## A unique identifier assigned to the node by the broker framework.
+		## This field is only set while a node is connected.
 		id: string                &optional;
 	};
 
@@ -241,15 +246,19 @@ export {
 	## Interval for retrying failed connections between cluster nodes.
 	const retry_interval = 1min &redef;
 
-	## When using broker-enabled cluster framework, nodes use this event to
-	## exchange their user-defined name along with a string that uniquely
-	## identifies it for the duration of its lifetime (this string may change if
-	## the node dies and has to reconnect later).
+	## When using broker-enabled cluster framework, nodes broadcast this event
+	## to exchange their user-defined name along with a string that uniquely
+	## identifies it for the duration of its lifetime.  This string may change
+	## if the node dies and has to reconnect later.
 	global hello: event(name: string, id: string);
 
 	## When using broker-enabled cluster framework, this event will be emitted
-	## locally whenever a peer cluster node goes down.
-	global bye: event(name: string, id: string);
+	## locally whenever a cluster node connects or reconnects.
+	global node_up: event(name: string, id: string);
+
+	## When using broker-enabled cluster framework, this event will be emitted
+	## locally whenever a connected cluster node becomes disconnected.
+	global node_down: event(name: string, id: string);
 
 	## Write a message to the cluster logging stream.
 	global log: function(msg: string);
@@ -437,8 +446,14 @@ event Cluster::hello(name: string, id: string) &priority=10
 
 	local n = nodes[name];
 
-	if ( n?$id && n$id != id )
-		Reporter::error(fmt("Got Cluster::hello msg from duplicate node: %s", name));
+	if ( n?$id )
+		{
+		if ( n$id != id )
+			Reporter::error(fmt("Got Cluster::hello msg from duplicate node:%s",
+								name));
+		}
+	else
+		event Cluster::node_up(name, id);
 
 	n$id = id;
 	Cluster::log(fmt("got hello from %s (%s)", name, id));
@@ -521,7 +536,7 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string) &priority=1
 					}
 				}
 
-			event Cluster::bye(node_name, endpoint$id);
+			event Cluster::node_down(node_name, endpoint$id);
 			break;
 			}
 		}

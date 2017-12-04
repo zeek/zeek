@@ -43,7 +43,7 @@ function print_stuff(heading: string)
 		print "hrw", v[i], Cluster::hrw_topic(Cluster::proxy_pool, v[i]);
 	}
 
-event Cluster::hello(name: string, id: string)
+event Cluster::node_up(name: string, id: string)
 	{
 	if ( Cluster::node != "manager-1" )
 		return;
@@ -59,7 +59,7 @@ event Cluster::hello(name: string, id: string)
 		}
 	}
 
-event Cluster::bye(name: string, id: string)
+event Cluster::node_down(name: string, id: string)
 	{
 	if ( Cluster::node != "manager-1" )
 		return;
@@ -78,7 +78,7 @@ event Cluster::bye(name: string, id: string)
 		}
 	}
 
-event Cluster::bye(name: string, id: string)
+event Cluster::node_down(name: string, id: string)
 	{
 	if ( name == "manager-1" )
 		terminate();

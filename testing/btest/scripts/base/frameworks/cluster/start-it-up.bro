@@ -75,7 +75,7 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 		}
 	else
 		{
-		if ( peer_count == 2 )
+		if ( peer_count == 3 )
 			event fully_connected();
 		}
 	}

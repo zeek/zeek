@@ -31,7 +31,7 @@ function nodes_with_type(node_type: NodeType): vector of NamedNode
 	return rval;
 	}
 
-function connect_peer(node_type: NodeType, node_name: string): bool
+function connect_peer(node_type: NodeType, node_name: string)
 	{
 	local nn = nodes_with_type(node_type);
 
@@ -42,12 +42,28 @@ function connect_peer(node_type: NodeType, node_name: string): bool
 		if ( n$name != node_name )
 			next;
 
-		Cluster::log(fmt("initiate peering with %s:%s, retry=%s",
-		                 n$node$ip, n$node$p, Cluster::retry_interval));
-		return Broker::peer(cat(n$node$ip), n$node$p, Cluster::retry_interval);
+		local status = Broker::peer(cat(n$node$ip), n$node$p,
+		                            Cluster::retry_interval);
+		Cluster::log(fmt("initiate peering with %s:%s, retry=%s, status=%s",
+		                 n$node$ip, n$node$p, Cluster::retry_interval,
+		                 status));
 		}
+	}
 
-	return F;
+function connect_peers_with_type(node_type: NodeType)
+	{
+	local rval: vector of NamedNode = vector();
+	local nn = nodes_with_type(node_type);
+
+	for ( i in nn )
+		{
+		local n = nn[i];
+		local status = Broker::peer(cat(n$node$ip), n$node$p,
+		                            Cluster::retry_interval);
+		Cluster::log(fmt("initiate peering with %s:%s, retry=%s, status=%s",
+		                 n$node$ip, n$node$p, Cluster::retry_interval,
+		                 status));
+		}
 	}
 
 event bro_init() &priority=9
@@ -98,40 +114,26 @@ event bro_init() &priority=9
 
 	switch ( self$node_type ) {
 	case MANAGER:
-		if ( self?$logger )
-			connect_peer(LOGGER, self$logger);
+		connect_peers_with_type(LOGGER);
+		connect_peers_with_type(PROXY);
 
 		if ( self?$time_machine )
 			connect_peer(TIME_MACHINE, self$time_machine);
 
 		break;
 	case PROXY:
-		if ( self?$logger )
-			connect_peer(LOGGER, self$logger);
+		connect_peers_with_type(LOGGER);
 
 		if ( self?$manager )
 			connect_peer(MANAGER, self$manager);
-
-		local proxies = nodes_with_type(PROXY);
-
-		for ( i in proxies )
-			{
-			local proxy = proxies[i];
-
-			if ( proxy$node?$proxy )
-				Broker::peer(cat(proxy$node$ip), proxy$node$p, Cluster::retry_interval);
-			}
 
 		break;
 	case WORKER:
-		if ( self?$logger )
-			connect_peer(LOGGER, self$logger);
+		connect_peers_with_type(LOGGER);
+		connect_peers_with_type(PROXY);
 
 		if ( self?$manager )
 			connect_peer(MANAGER, self$manager);
-
-		if ( self?$proxy )
-			connect_peer(PROXY, self$proxy);
 
 		if ( self?$time_machine )
 			connect_peer(TIME_MACHINE, self$time_machine);

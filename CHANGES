@@ -1,4 +1,8 @@
 
+2.5-363 | 2017-12-05 11:00:09 -0600
+
+  * Fix documentation for ReassemblerStats. (Corelight)
+
 2.5-362 | 2017-12-02 09:45:04 -0600
 
   * BIT-1791: Do not log SOCKS passwords by default and add

@@ -82,7 +82,8 @@ int AnonymizeIPAddr::PreserveNet(ipaddr32_t input)
 
 ipaddr32_t AnonymizeIPAddr_Seq::anonymize(ipaddr32_t /* input */)
 	{
-	return htonl(seq++);
+	++seq;
+	return htonl(seq);
 	}
 
 ipaddr32_t AnonymizeIPAddr_RandomMD5::anonymize(ipaddr32_t input)

@@ -545,7 +545,7 @@ bool IndexType::DoUnserialize(UnserialInfo* info)
 	DO_UNSERIALIZE(BroType);
 
 	UNSERIALIZE_OPTIONAL(yield_type, BroType::Unserialize(info));
-	indices = (TypeList*) BroType::Unserialize(info, TYPE_LIST);
+	indices = (TypeList*) BroType::Unserialize(info);
 	return indices != 0;
 	}
 
@@ -865,11 +865,11 @@ bool FuncType::DoUnserialize(UnserialInfo* info)
 
 	UNSERIALIZE_OPTIONAL(yield, BroType::Unserialize(info));
 
-	args = (RecordType*) BroType::Unserialize(info, TYPE_RECORD);
+	args = (RecordType*) BroType::Unserialize(info);
 	if ( ! args )
 		return false;
 
-	arg_types = (TypeList*) BroType::Unserialize(info, TYPE_LIST);
+	arg_types = (TypeList*) BroType::Unserialize(info);
 	if ( ! arg_types )
 		return false;
 

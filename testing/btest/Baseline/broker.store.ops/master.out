@@ -15,8 +15,8 @@ keys, [[data=broker::data{four}], [data=broker::data{one}], [data=broker::data{s
 [12], set, Broker::SUCCESS, [data=broker::data{{A, B, C}}]
 [13], table, Broker::SUCCESS, [data=broker::data{{a -> 1, c -> 3}}]
 [14], vec, Broker::SUCCESS, [data=broker::data{[1, 2, 3, 4]}]
-[15], one, T
-[16], NOPE, F
+[15], one, [status=Broker::SUCCESS, result=[data=broker::data{T}]]
+[16], NOPE, [status=Broker::SUCCESS, result=[data=broker::data{F}]]
 [17], vec, Broker::SUCCESS, [data=broker::data{2}]
 [18], set, Broker::SUCCESS, [data=broker::data{T}]
 [19], table, Broker::SUCCESS, [data=broker::data{1}]

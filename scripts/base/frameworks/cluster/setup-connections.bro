@@ -80,13 +80,13 @@ event bro_init() &priority=9
 		break;
 	case LOGGER:
 		Broker::subscribe(Cluster::logger_topic);
-		Broker::subscribe(Broker::log_topic);
+		Broker::subscribe(Broker::default_log_topic_prefix);
 		break;
 	case MANAGER:
 		Broker::subscribe(Cluster::manager_topic);
 
 		if ( Cluster::manager_is_logger )
-			Broker::subscribe(Broker::log_topic);
+			Broker::subscribe(Broker::default_log_topic_prefix);
 
 		break;
 	case PROXY:

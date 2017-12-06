@@ -129,14 +129,16 @@ Manager::Manager()
 
 Manager::~Manager()
 	{
-	FlushLogBuffer();
+	FlushLogBuffers();
 	}
 
 void Manager::InitPostScript()
 	{
 	DBG_LOG(DBG_BROKER, "Initializing");
 
-	log_topic = get_option("Broker::log_topic")->AsString()->CheckString();
+	default_log_topic_prefix =
+	    get_option("Broker::default_log_topic_prefix")->AsString()->CheckString();
+	log_topic_func = get_option("Broker::log_topic")->AsFunc();
 	log_id_type = internal_type("Log::ID")->AsEnumType();
 	writer_id_type = internal_type("Log::Writer")->AsEnumType();
 
@@ -160,7 +162,7 @@ void Manager::InitPostScript()
 
 void Manager::Terminate()
 	{
-	FlushLogBuffer();
+	FlushLogBuffers();
 
 #if 0
 	// Do we still need this?
@@ -226,7 +228,7 @@ void Manager::Unpeer(const string& addr, uint16_t port)
 	DBG_LOG(DBG_BROKER, "Stopping to peer with %s:%" PRIu16,
 		addr.c_str(), port);
 
-	FlushLogBuffer();
+	FlushLogBuffers();
 	bstate->endpoint.unpeer_nosync(addr, port);
 	}
 
@@ -344,7 +346,7 @@ bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer,
 		fields_data.push_back(move(field_data));
 		}
 
-	std::string topic = log_topic + stream_id;
+	std::string topic = default_log_topic_prefix + stream_id;
 	auto bstream_id = broker::enum_value(move(stream_id));
 	auto bwriter_id = broker::enum_value(move(writer_id));
 	broker::bro::LogCreate msg(move(bstream_id), move(bwriter_id), move(writer_info), move(fields_data));
@@ -402,7 +404,22 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 		vals_data.push_back(move(*field_data));
 		}
 
-	std::string topic = log_topic + stream_id;
+	val_list vl(2);
+	vl.append(stream->Ref());
+	vl.append(new StringVal(path));
+	Val* v = log_topic_func->Call(&vl);
+
+	if ( ! v )
+		{
+		reporter->Error("Failed to remotely log: log_topic_func did not return"
+		                " a value for stream %s at path %s", stream_id,
+		                path.data());
+		return false;
+		}
+
+	std::string topic = v->AsString()->CheckString();
+	Unref(v);
+
 	auto bstream_id = broker::enum_value(move(stream_id));
 	auto bwriter_id = broker::enum_value(move(writer_id));
 	broker::bro::LogWrite msg(move(bstream_id), move(bwriter_id), move(path), move(vals_data));
@@ -413,48 +430,46 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 		log_buffers.resize(stream_id_num + 1);
 
 	auto& lb = log_buffers[stream_id_num];
+	++lb.message_count;
+	auto& pending_batch = lb.msgs[topic];
+	pending_batch.emplace_back(std::move(msg));
 
-	lb.msgs.emplace_back(std::move(msg));
-
-	if ( (lb.msgs.size() >= LOG_BATCH_SIZE) || (network_time - lb.last_flush >= LOG_BUFFER_INTERVAL) )
-		FlushLogBuffer(stream_id_num);
+	if ( lb.message_count >= LOG_BATCH_SIZE ||
+	     (network_time - lb.last_flush >= LOG_BUFFER_INTERVAL) )
+		lb.Flush(Endpoint());
 
 	++statistics.num_logs_outgoing;
 
 	return true;
 	}
 
-
-void Manager::FlushLogBuffer(int stream_id_num)
+void Manager::LogBuffer::Flush(broker::endpoint& endpoint)
 	{
-	if ( stream_id_num == -1 )
-		{
-		// Flush all recursively.
-		DBG_LOG(DBG_BROKER, "Flushing all log buffers");
-		for ( unsigned int i = 0; i < log_buffers.size(); i++ )
-			FlushLogBuffer(i);
-		return;
-		}
-
-
-	auto& lb = log_buffers[stream_id_num];
-
-	if ( ! lb.msgs.size() )
+	if ( ! message_count )
 		// No logs buffered for this stream.
 		return;
 
-	auto stream_id = log_id_type->AsEnumType()->Lookup(stream_id_num);
-	std::string topic = log_topic + stream_id;
+	for ( auto& kv : msgs )
+		{
+		auto& topic = kv.first;
+		auto& pending_batch = kv.second;
+		broker::vector batch;
+		batch.reserve(LOG_BATCH_SIZE + 1);
+		pending_batch.swap(batch);
+		broker::bro::Batch msg(std::move(batch));
+		endpoint.publish(topic, move(msg));
+		}
 
-	DBG_LOG(DBG_BROKER, "Publishing %zu log records to %s", lb.msgs.size(), topic.c_str());
+	last_flush = network_time;
+	message_count = 0;
+	}
 
-	broker::vector batch;
-	batch.reserve(LOG_BATCH_SIZE + 1);
-	lb.msgs.swap(batch);
+void Manager::FlushLogBuffers()
+	{
+	DBG_LOG(DBG_BROKER, "Flushing all log buffers");
 
-	broker::bro::Batch msg(std::move(batch));
-	bstate->endpoint.publish(move(topic), move(msg));
-	lb.last_flush = network_time;
+	for ( auto& lb : log_buffers )
+		lb.Flush(Endpoint());
 	}
 
 bool Manager::AutoPublishEvent(string topic, Val* event)

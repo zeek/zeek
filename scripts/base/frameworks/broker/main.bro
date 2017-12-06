@@ -63,9 +63,22 @@ export {
 	## Forward all received messages to subscribing peers.
 	const forward_messages = F &redef;
 
-	## The topic prefix where logs will be published.  The log's stream id
-	## is appended when writing to a particular stream.
-	const log_topic = "bro/logs/" &redef;
+	## The default topic prefix where logs will be published.  The log's stream
+	## id is appended when writing to a particular stream.
+	const default_log_topic_prefix = "bro/logs/" &redef;
+
+	## A function that will be called for each log entry to determine what
+	## broker topic string will be used for sending it to peers.  The
+	## default implementation will return a value based on
+	## :bro:see:`Broker::default_log_topic_prefix`.
+	##
+	## id: the ID associated with the log stream entry that will be sent.
+	##
+	## path: the path to which the log stream entry will be output.
+	##
+	## Returns: a string representing the broker topic to which the log
+	##          will be sent.
+	const log_topic: function(id: Log::ID, path: string): string &redef;
 
 	type ErrorCode: enum {
 		## The unspecified default error code.
@@ -281,6 +294,11 @@ module Broker;
 event retry_listen(a: string, p: port, retry: interval)
 	{
 	listen(a, p, retry);
+	}
+
+function log_topic(id: Log::ID, path: string): string
+	{
+	return default_log_topic_prefix + cat(id);
 	}
 
 function listen(a: string, p: port, retry: interval): port

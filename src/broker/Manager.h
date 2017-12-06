@@ -277,7 +277,7 @@ private:
 	void ProcessStatus(const broker::status stat);
 	void ProcessError(broker::error err);
 	void ProcessStoreResponse(StoreHandleVal*, broker::store::response response);
-	void FlushLogBuffer(int stream_id_num = -1);
+	void FlushLogBuffers();
 
 	// IOSource interface overrides:
 	void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
@@ -293,14 +293,19 @@ private:
 	broker::endpoint& Endpoint()
 		{ assert(bstate); return bstate->endpoint; }
 
-	std::string log_topic;
+	Func* log_topic_func;
+	std::string default_log_topic_prefix;
 	uint16_t bound_port;
 
 	std::shared_ptr<BrokerState> bstate;
 
 	struct LogBuffer {
-	        broker::vector msgs;
+		// Indexed by topic string.
+		std::unordered_map<std::string, broker::vector> msgs;
 		double last_flush;
+		size_t message_count;
+
+		void Flush(broker::endpoint& endpoint);
 	};
 
 	// Indexed by stream ID enum.

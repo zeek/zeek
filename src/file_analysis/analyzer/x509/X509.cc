@@ -152,7 +152,7 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val, const char* 
 	// actually should be (namely - rsaEncryption), so that OpenSSL will parse out the
 	// key later. Otherwise it will just fail to parse the certificate key.
 
-	if ( X509_get_signature_nid(ssl_cert) == NID_md5WithRSAEncryption )
+	if ( OBJ_obj2nid(algorithm) == NID_md5WithRSAEncryption )
 		X509_PUBKEY_set0_param(X509_get_X509_PUBKEY(ssl_cert), OBJ_nid2obj(NID_rsaEncryption), 0, NULL, NULL, 0);
 	else
 		algorithm = 0;
@@ -380,7 +380,7 @@ StringVal* file_analysis::X509::KeyCurve(EVP_PKEY *key)
 
 	const EC_GROUP *group;
 	int nid;
-	if ( (group = EC_KEY_get0_group(EVP_PKEY_get0_EC_KEY(key))) == NULL)
+	if ( (group = EC_KEY_get0_group(EVP_PKEY_get0_EC_KEY(key))) == NULL )
 		// I guess we could not parse this
 		return NULL;
 

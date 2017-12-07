@@ -153,7 +153,13 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val, const char* 
 	// key later. Otherwise it will just fail to parse the certificate key.
 
 	if ( OBJ_obj2nid(algorithm) == NID_md5WithRSAEncryption )
+		{
+		ASN1_OBJECT *copy = OBJ_dup(algorithm); // the next line will destroy the original algorithm.
 		X509_PUBKEY_set0_param(X509_get_X509_PUBKEY(ssl_cert), OBJ_nid2obj(NID_rsaEncryption), 0, NULL, NULL, 0);
+		algorithm = copy;
+		// we do not have to worry about freeing algorithm in that case - since it will be re-assigned using
+		// set0_param and the cert will take ownership.
+		}
 	else
 		algorithm = 0;
 

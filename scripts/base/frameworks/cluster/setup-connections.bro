@@ -2,10 +2,15 @@
 ##! as defined by :bro:id:`Cluster::nodes`.
 
 @load ./main
+@load ./pools
 @load base/frameworks/communication
 @load base/frameworks/broker
 
 @if ( Cluster::node in Cluster::nodes )
+
+@if ( Cluster::enable_round_robin_logging )
+redef Broker::log_topic = Cluster::rr_log_topic;
+@endif
 
 module Cluster;
 

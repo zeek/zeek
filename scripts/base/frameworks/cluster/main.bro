@@ -15,6 +15,9 @@ export {
 	## Whether the cluster framework uses broker to perform remote communication.
 	const use_broker = T &redef;
 
+	## Whether to distribute log messages among available logging nodes.
+	const enable_round_robin_logging = T &redef;
+
 	## The topic name used for exchanging general messages that are relevant to
 	## any node in a cluster.  Used with broker-enabled cluster communication.
 	const broadcast_topic = "bro/cluster/broadcast" &redef;

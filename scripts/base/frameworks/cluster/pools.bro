@@ -40,6 +40,9 @@ export {
 	## A pool containing all the worker nodes of a cluster.
 	global worker_pool: Pool;
 
+	## A pool containing all the logger nodes of a cluster.
+	global logger_pool: Pool;
+
 	## Initialize a node as a member of a pool.
 	##
 	## pool: the pool to which the node will belong.
@@ -77,7 +80,8 @@ export {
 	## key: data used for input to the hashing function that will uniformly
 	##      distribute keys among available nodes.
 	##
-	## Returns: a topic string associated with a cluster node that is alive.
+	## Returns: a topic string associated with a cluster node that is alive
+	##          or an empty string if nothing is alive.
 	global hrw_topic: function(pool: Pool, key: any): string;
 
 	## Retrieve the topic associated with the node in a round-robin fashion.
@@ -88,8 +92,16 @@ export {
 	##      requesting the topic.  e.g. consider using namespacing of your script
 	##      like "Intel::cluster_rr_key".
 	##
-	## Returns: a topic string associated with a cluster node that is alive.
+	## Returns: a topic string associated with a cluster node that is alive,
+	##          or an empty string if nothing is alive.
 	global rr_topic: function(pool: Pool, key: string): string;
+
+	## Distributes log message topics among logger nodes via round-robin.
+	## This will be automatically assigned to :bro:see:`Broker::log_topic`
+	## if :bro:see:`Cluster::enable_round_robin_logging` is enabled.
+	## If no logger nodes are active, then this will return the value
+	## of :bro:see:`Broker::default_log_topic`.
+	global rr_log_topic: function(id: Log::ID, path: string): string;
 }
 
 function hrw_topic(pool: Pool, key: any): string
@@ -135,6 +147,17 @@ function rr_topic(pool: Pool, key: string): string
 	return rval;
 	}
 
+function rr_log_topic(id: Log::ID, path: string): string
+	{
+	local rval = rr_topic(logger_pool, "Cluster::rr_log_topic");
+
+	if ( rval != "" )
+		return rval;
+
+	rval = Broker::default_log_topic(id, path);
+	return rval;
+	}
+
 event Cluster::node_up(name: string, id: string) &priority=10
 	{
 	if ( name !in nodes )
@@ -145,10 +168,21 @@ event Cluster::node_up(name: string, id: string) &priority=10
 
 	local n = nodes[name];
 
-	if ( n$node_type == WORKER )
+	switch ( n$node_type ) {
+	case WORKER:
 		mark_pool_node_alive(worker_pool, name);
-	else if ( n$node_type == PROXY )
+		break;
+	case PROXY:
 		mark_pool_node_alive(proxy_pool, name);
+		break;
+	case LOGGER:
+		mark_pool_node_alive(logger_pool, name);
+		break;
+	case MANAGER:
+		if ( manager_is_logger )
+			mark_pool_node_alive(logger_pool, name);
+		break;
+	}
 	}
 
 event Cluster::node_down(name: string, id: string) &priority=10
@@ -161,10 +195,21 @@ event Cluster::node_down(name: string, id: string) &priority=10
 
 	local n = nodes[name];
 
-	if ( n$node_type == WORKER )
+	switch ( n$node_type ) {
+	case WORKER:
 		mark_pool_node_dead(worker_pool, name);
-	else if ( n$node_type == PROXY )
+		break;
+	case PROXY:
 		mark_pool_node_dead(proxy_pool, name);
+		break;
+	case LOGGER:
+		mark_pool_node_dead(logger_pool, name);
+		break;
+	case MANAGER:
+		if ( manager_is_logger )
+			mark_pool_node_dead(logger_pool, name);
+		break;
+	}
 	}
 
 function site_id_in_pool(pool: Pool, site_id: count): bool
@@ -247,9 +292,20 @@ event bro_init() &priority=10
 		name = names[i];
 		local n = nodes[name];
 
-		if ( n$node_type == WORKER )
+		switch ( n$node_type ) {
+		case WORKER:
 			init_pool_node(worker_pool, name);
-		else if ( n$node_type == PROXY )
+			break;
+		case PROXY:
 			init_pool_node(proxy_pool, name);
+			break;
+		case LOGGER:
+			init_pool_node(logger_pool, name);
+			break;
+		case MANAGER:
+			if ( manager_is_logger )
+				init_pool_node(logger_pool, name);
+			break;
+		}
 		}
 	}

@@ -67,6 +67,12 @@ export {
 	## id is appended when writing to a particular stream.
 	const default_log_topic_prefix = "bro/logs/" &redef;
 
+	## The default implementation for :bro:see:`Broker::log_topic`.
+	function default_log_topic(id: Log::ID, path: string): string
+		{
+		return default_log_topic_prefix + cat(id);
+		}
+
 	## A function that will be called for each log entry to determine what
 	## broker topic string will be used for sending it to peers.  The
 	## default implementation will return a value based on
@@ -78,7 +84,7 @@ export {
 	##
 	## Returns: a string representing the broker topic to which the log
 	##          will be sent.
-	const log_topic: function(id: Log::ID, path: string): string &redef;
+	const log_topic: function(id: Log::ID, path: string): string = default_log_topic &redef;
 
 	type ErrorCode: enum {
 		## The unspecified default error code.
@@ -294,11 +300,6 @@ module Broker;
 event retry_listen(a: string, p: port, retry: interval)
 	{
 	listen(a, p, retry);
-	}
-
-function log_topic(id: Log::ID, path: string): string
-	{
-	return default_log_topic_prefix + cat(id);
 	}
 
 function listen(a: string, p: port, retry: interval): port

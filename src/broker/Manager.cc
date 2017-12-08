@@ -411,7 +411,7 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 
 	if ( ! v )
 		{
-		reporter->Error("Failed to remotely log: log_topic_func did not return"
+		reporter->Error("Failed to remotely log: log_topic func did not return"
 		                " a value for stream %s at path %s", stream_id,
 		                path.data());
 		return false;

@@ -1,4 +1,10 @@
 
+2.5-368 | 2017-12-08 13:09:25 -0600
+
+  * Improve for-loop iteration performance over empty tables. (Justin Azoff)
+
+  * Fix gcc7 warnings. (Johanna Amann)
+
 2.5-363 | 2017-12-05 11:00:09 -0600
 
   * Fix documentation for ReassemblerStats. (Corelight)

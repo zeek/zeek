@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <list>
+#include <array>
 
 #include "net_util.h"
 #include "Type.h"
@@ -503,12 +504,22 @@ protected:
 #define UDP_PORT_MASK	0x20000
 #define ICMP_PORT_MASK	0x30000
 
+class PortManager {
+public:
+	PortManager();
+	~PortManager();
+
+	// Port number given in host order.
+	PortVal* Get(uint32 port_num) const;
+	PortVal* Get(uint32 port_num, TransportProto port_type) const;
+
+	std::array<std::array<PortVal*, 65536>, NUM_PORT_SPACES> ports;
+};
+
+extern PortManager* port_mgr;
+
 class PortVal : public Val {
 public:
-	// Constructors - both take the port number in host order.
-	PortVal(uint32 p, TransportProto port_type);
-	PortVal(uint32 p);	// used for already-massaged port value.
-
 	Val* SizeVal() const override	{ return new Val(val.uint_val, TYPE_INT); }
 
 	// Returns the port number in host order (not including the mask).
@@ -533,7 +544,12 @@ public:
 
 protected:
 	friend class Val;
+	friend class PortManager;
 	PortVal()	{}
+	// Constructors - both take the port number in host order.
+	PortVal(uint32 p, TransportProto port_type);
+	PortVal(uint32 p);	// used for already-massaged port value.
+
 
 	void ValDescribe(ODesc* d) const override;
 

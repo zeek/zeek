@@ -166,7 +166,7 @@ RecordVal* EventMgr::GetLocalPeerVal()
 		src_val = new RecordVal(peer);
 		src_val->Assign(0, new Val(0, TYPE_COUNT));
 		src_val->Assign(1, new AddrVal("127.0.0.1"));
-		src_val->Assign(2, new PortVal(0));
+		src_val->Assign(2, port_mgr->Get(0));
 		src_val->Assign(3, new Val(true, TYPE_BOOL));
 
 		Ref(peer_description);

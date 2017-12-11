@@ -760,6 +760,53 @@ bool IntervalVal::DoUnserialize(UnserialInfo* info)
 	return true;
 	}
 
+PortManager::PortManager()
+	{
+	for ( auto i = 0u; i < ports.size(); ++i )
+		{
+		auto& arr = ports[i];
+		auto port_type = (TransportProto)i;
+
+		for ( auto j = 0u; j < arr.size(); ++j )
+			arr[j] = new PortVal(j, port_type);
+		}
+	}
+
+PortManager::~PortManager()
+	{
+	for ( auto& arr : ports )
+		for ( auto& pv : arr )
+			Unref(pv);
+	}
+
+PortVal* PortManager::Get(uint32 port_num) const
+	{
+	auto mask = port_num & PORT_SPACE_MASK;
+	port_num &= ~PORT_SPACE_MASK;
+
+	if ( mask == TCP_PORT_MASK )
+		return Get(port_num, TRANSPORT_TCP);
+	else if ( mask == UDP_PORT_MASK )
+		return Get(port_num, TRANSPORT_UDP);
+	else if ( mask == ICMP_PORT_MASK )
+		return Get(port_num, TRANSPORT_ICMP);
+	else
+		return Get(port_num, TRANSPORT_UNKNOWN);
+	}
+
+PortVal* PortManager::Get(uint32 port_num, TransportProto port_type) const
+	{
+	if ( port_num >= 65536 )
+		{
+		reporter->Warning("bad port number %d", port_num);
+		port_num = 0;
+		}
+
+	auto rval = ports[port_type][port_num];
+	::Ref(rval);
+	return rval;
+	}
+
 PortVal::PortVal(uint32 p, TransportProto port_type) : Val(TYPE_PORT)
 	{
 	// Note, for ICMP one-way connections:

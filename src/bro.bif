@@ -2270,7 +2270,7 @@ function port_to_count%(p: port%): count
 ## .. bro:see:: port_to_count
 function count_to_port%(num: count, proto: transport_proto%): port
 	%{
-	return new PortVal(num, (TransportProto)proto->AsEnum());
+	return port_mgr->Get(num, (TransportProto)proto->AsEnum());
 	%}
 
 ## Converts a :bro:type:`string` to an :bro:type:`addr`.
@@ -2430,16 +2430,16 @@ function to_port%(s: string%): port
             {
             ++slash;
             if ( streq(slash, "tcp") )
-                return new PortVal(port, TRANSPORT_TCP);
+                return port_mgr->Get(port, TRANSPORT_TCP);
             else if ( streq(slash, "udp") )
-                return new PortVal(port, TRANSPORT_UDP);
+                return port_mgr->Get(port, TRANSPORT_UDP);
             else if ( streq(slash, "icmp") )
-                return new PortVal(port, TRANSPORT_ICMP);
+                return port_mgr->Get(port, TRANSPORT_ICMP);
             }
         }
 
     builtin_error("wrong port format, must be /[0-9]{1,5}\\/(tcp|udp|icmp)/");
-    return new PortVal(port, TRANSPORT_UNKNOWN);
+    return port_mgr->Get(port, TRANSPORT_UNKNOWN);
 	%}
 
 ## Converts a string of bytes (in network byte order) to a :bro:type:`double`.
@@ -3208,9 +3208,9 @@ function lookup_connection%(cid: conn_id%): connection
 
 	RecordVal* id_val = new RecordVal(conn_id);
 	id_val->Assign(0, new AddrVal((unsigned int) 0));
-	id_val->Assign(1, new PortVal(ntohs(0), TRANSPORT_UDP));
+	id_val->Assign(1, port_mgr->Get(ntohs(0), TRANSPORT_UDP));
 	id_val->Assign(2, new AddrVal((unsigned int) 0));
-	id_val->Assign(3, new PortVal(ntohs(0), TRANSPORT_UDP));
+	id_val->Assign(3, port_mgr->Get(ntohs(0), TRANSPORT_UDP));
 	c->Assign(0, id_val);
 
 	RecordVal* orig_endp = new RecordVal(endpoint);

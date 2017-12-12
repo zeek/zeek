@@ -14,28 +14,6 @@ redef Broker::log_topic = Cluster::rr_log_topic;
 
 module Cluster;
 
-type NamedNode: record {
-	name: string;
-	node: Node;
-};
-
-function nodes_with_type(node_type: NodeType): vector of NamedNode
-	{
-	local rval: vector of NamedNode = vector();
-
-	for ( name in Cluster::nodes )
-		{
-		local n = Cluster::nodes[name];
-
-		if ( n$node_type != node_type )
-			next;
-
-		rval[|rval|] = NamedNode($name=name, $node=n);
-		}
-
-	return rval;
-	}
-
 function connect_peer(node_type: NodeType, node_name: string)
 	{
 	local nn = nodes_with_type(node_type);
@@ -71,12 +49,20 @@ function connect_peers_with_type(node_type: NodeType)
 		}
 	}
 
-event bro_init() &priority=9
+event bro_init() &priority=-10
 	{
 	if ( ! use_broker )
 		return;
 
 	local self = nodes[node];
+
+	for ( i in registered_pools )
+		{
+		local pool = registered_pools[i];
+
+		if ( node in pool$nodes )
+			Broker::subscribe(pool$spec$topic);
+		}
 
 	switch ( self$node_type ) {
 	case NONE:

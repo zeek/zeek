@@ -274,6 +274,35 @@ export {
 	global node_topic: function(name: string): string;
 }
 
+type NamedNode: record {
+	name: string;
+	node: Node;
+};
+
+function nodes_with_type(node_type: NodeType): vector of NamedNode
+	{
+	local rval: vector of NamedNode = vector();
+	local names: vector of string = vector();
+
+	for ( name in Cluster::nodes )
+		names[|names|] = name;
+
+	names = sort(names, strcmp);
+
+	for ( i in names )
+		{
+		name = names[i];
+		local n = Cluster::nodes[name];
+
+		if ( n$node_type != node_type )
+			next;
+
+		rval[|rval|] = NamedNode($name=name, $node=n);
+		}
+
+	return rval;
+	}
+
 function is_enabled(): bool
 	{
 	return (node != "");

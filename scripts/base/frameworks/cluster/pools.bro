@@ -20,19 +20,56 @@ export {
 		alive: bool &default=F;
 	};
 
+	## A pool specification.
+	type PoolSpec: record {
+		## A topic string that can be used to reach all nodes within a pool.
+		topic: string &default = "";
+		## The type of nodes that are contained within the pool.
+		node_type: Cluster::NodeType &default = Cluster::PROXY;
+		## The maximum number of nodes that may belong to the pool.
+		## If not set, then all available nodes will be added to the pool,
+		## else the cluster framework will automatically limit the pool
+		## membership according to the threshhold.
+		max_nodes: count &optional;
+		## Whether the pool requires exclusive access to nodes.  If true,
+		## then *max_nodes* nodes will not be assigned to any other pool.
+		## When using this flag, *max_nodes* must also be set.
+		exclusive: bool &default = F;
+	};
+
+	type PoolNodeTable: table[string] of PoolNode;
+	type RoundRobinTable: table[string] of int;
+
 	## A pool used for distributing data/work among a set of cluster nodes.
 	type Pool: record {
+		## The specification of the pool that was used when registering it.
+		spec: PoolSpec &default = PoolSpec();
 		## Nodes in the pool, indexed by their name (e.g. "manager").
-		nodes: table[string] of PoolNode;
+		nodes: PoolNodeTable &default = PoolNodeTable();
 		## A list of nodes in the pool in a deterministic order.
-		node_list: vector of PoolNode;
+		node_list: vector of PoolNode &default = vector();
 		## The Rendezvous hashing structure.
-		hrw_pool: HashHRW::Pool;
+		hrw_pool: HashHRW::Pool &default = HashHRW::Pool();
 		## Round-Robin table indexed by arbitrary key and storing the next
 		## index of *node_list* that will be eligible to receive work (if it's
 		## alive at the time of next request).
-		rr_key_seq: table[string] of int;
+		rr_key_seq: RoundRobinTable &default = RoundRobinTable();
 	};
+
+	## The specification for :bro:see:`Cluster::proxy_pool`.
+	global proxy_pool_spec: PoolSpec =
+		PoolSpec($topic = "bro/cluster/pool/proxy",
+				 $node_type = Cluster::PROXY) &redef;
+
+	## The specification for :bro:see:`Cluster::worker_pool`.
+	global worker_pool_spec: PoolSpec =
+		PoolSpec($topic = "bro/cluster/pool/worker",
+				 $node_type = Cluster::WORKER) &redef;
+
+	## The specification for :bro:see:`Cluster::logger_pool`.
+	global logger_pool_spec: PoolSpec =
+		PoolSpec($topic = "bro/cluster/pool/logger",
+				 $node_type = Cluster::LOGGER) &redef;
 
 	## A pool containing all the proxy nodes of a cluster.
 	global proxy_pool: Pool;
@@ -42,6 +79,9 @@ export {
 
 	## A pool containing all the logger nodes of a cluster.
 	global logger_pool: Pool;
+
+	## Registers and initializes a pool.
+	global register_pool: function(spec: PoolSpec): Pool;
 
 	## Initialize a node as a member of a pool.
 	##
@@ -104,6 +144,15 @@ export {
 	global rr_log_topic: function(id: Log::ID, path: string): string;
 }
 
+global registered_pools: vector of Pool = vector();
+
+function register_pool(spec: PoolSpec): Pool
+	{
+	local rval = Pool($spec = spec);
+	registered_pools[|registered_pools|] = rval;
+	return rval;
+	}
+
 function hrw_topic(pool: Pool, key: any): string
 	{
 	if ( |pool$hrw_pool$sites| == 0 )
@@ -122,6 +171,10 @@ function rr_topic(pool: Pool, key: string): string
 	local next_idx = pool$rr_key_seq[key];
 	local start = next_idx;
 	local rval = "";
+
+	if ( next_idx >= |pool$node_list| )
+		return rval;;
+
 
 	while ( T )
 		{
@@ -160,56 +213,24 @@ function rr_log_topic(id: Log::ID, path: string): string
 
 event Cluster::node_up(name: string, id: string) &priority=10
 	{
-	if ( name !in nodes )
+	for ( i in registered_pools )
 		{
-		Reporter::error(fmt("unexpected node name: %s", name));
-		return;
+		local pool = registered_pools[i];
+
+		if ( name in pool$nodes )
+			mark_pool_node_alive(pool, name);
 		}
-
-	local n = nodes[name];
-
-	switch ( n$node_type ) {
-	case WORKER:
-		mark_pool_node_alive(worker_pool, name);
-		break;
-	case PROXY:
-		mark_pool_node_alive(proxy_pool, name);
-		break;
-	case LOGGER:
-		mark_pool_node_alive(logger_pool, name);
-		break;
-	case MANAGER:
-		if ( manager_is_logger )
-			mark_pool_node_alive(logger_pool, name);
-		break;
-	}
 	}
 
 event Cluster::node_down(name: string, id: string) &priority=10
 	{
-	if ( name !in nodes )
+	for ( i in registered_pools )
 		{
-		Reporter::error(fmt("unexpected node name: %s", name));
-		return;
+		local pool = registered_pools[i];
+
+		if ( name in pool$nodes )
+			mark_pool_node_dead(pool, name);
 		}
-
-	local n = nodes[name];
-
-	switch ( n$node_type ) {
-	case WORKER:
-		mark_pool_node_dead(worker_pool, name);
-		break;
-	case PROXY:
-		mark_pool_node_dead(proxy_pool, name);
-		break;
-	case LOGGER:
-		mark_pool_node_dead(logger_pool, name);
-		break;
-	case MANAGER:
-		if ( manager_is_logger )
-			mark_pool_node_dead(logger_pool, name);
-		break;
-	}
 	}
 
 function site_id_in_pool(pool: Pool, site_id: count): bool
@@ -278,34 +299,121 @@ function mark_pool_node_dead(pool: Pool, name: string): bool
 	return T;
 	}
 
-event bro_init() &priority=10
+event bro_init()
 	{
-	local names: vector of string = vector();
+	worker_pool = register_pool(worker_pool_spec);
+	proxy_pool = register_pool(proxy_pool_spec);
+	logger_pool = register_pool(logger_pool_spec);
+	}
 
-	for ( name in nodes )
-		names[|names|] = name;
+type PoolEligibilityTracking: record {
+	eligible_nodes: vector of NamedNode &default = vector();
+	next_idx: count &default = 0;
+	excluded: count &default = 0;
+};
 
-	names = sort(names, strcmp);
+global pool_eligibility: table[Cluster::NodeType] of PoolEligibilityTracking = table();
 
-	for ( i in names )
+# Needs to execute before the bro_init in setup-connections
+event bro_init() &priority=-5
+	{
+	pool_eligibility[Cluster::WORKER] =
+		PoolEligibilityTracking($eligible_nodes = nodes_with_type(Cluster::WORKER));
+	pool_eligibility[Cluster::PROXY] =
+		PoolEligibilityTracking($eligible_nodes = nodes_with_type(Cluster::PROXY));
+	pool_eligibility[Cluster::LOGGER] =
+		PoolEligibilityTracking($eligible_nodes = nodes_with_type(Cluster::LOGGER));
+
+	if ( manager_is_logger )
 		{
-		name = names[i];
-		local n = nodes[name];
-
-		switch ( n$node_type ) {
-		case WORKER:
-			init_pool_node(worker_pool, name);
-			break;
-		case PROXY:
-			init_pool_node(proxy_pool, name);
-			break;
-		case LOGGER:
-			init_pool_node(logger_pool, name);
-			break;
-		case MANAGER:
-			if ( manager_is_logger )
-				init_pool_node(logger_pool, name);
-			break;
+		local mgr = nodes_with_type(Cluster::MANAGER);
+		local eln = pool_eligibility[Cluster::LOGGER]$eligible_nodes;
+		eln[|eln|] = mgr[0];
 		}
+
+	local pool: Pool;
+	local pet: PoolEligibilityTracking;
+	local en: vector of NamedNode;
+
+	for ( i in registered_pools )
+		{
+		pool = registered_pools[i];
+
+		if ( pool$spec$node_type !in pool_eligibility )
+			Reporter::fatal(fmt("invalid pool node type: %s", pool$spec$node_type));
+
+		if ( ! pool$spec$exclusive )
+			next;
+
+		if ( ! pool$spec?$max_nodes )
+			Reporter::fatal("Cluster::PoolSpec 'max_nodes' field must be set when using the 'exclusive' flag");
+
+		pet = pool_eligibility[pool$spec$node_type];
+		pet$excluded += pool$spec$max_nodes;
+		}
+
+	for ( nt in pool_eligibility )
+		{
+		pet = pool_eligibility[nt];
+
+		if ( pet$excluded > |pet$eligible_nodes| )
+			Reporter::fatal(fmt("not enough %s nodes to satisfy pool exclusivity requirements: need %d nodes", nt, pet$excluded));
+		}
+
+	for ( i in registered_pools )
+		{
+		pool = registered_pools[i];
+
+		if ( ! pool$spec$exclusive )
+			next;
+
+		pet = pool_eligibility[pool$spec$node_type];
+
+		local e = 0;
+
+		while ( e < pool$spec$max_nodes )
+			{
+			init_pool_node(pool, pet$eligible_nodes[e]$name);
+			++e;
+			}
+
+		local nen: vector of NamedNode = vector();
+
+		for ( j in pet$eligible_nodes )
+			{
+			if ( j < e )
+				next;
+
+			nen[|nen|] = pet$eligible_nodes[j];
+			}
+
+		pet$eligible_nodes = nen;
+		}
+
+	for ( i in registered_pools )
+		{
+		pool = registered_pools[i];
+
+		if ( pool$spec$exclusive )
+			next;
+
+		pet = pool_eligibility[pool$spec$node_type];
+		local nodes_to_init = |pet$eligible_nodes|;
+		
+		if ( pool$spec?$max_nodes &&
+			 pool$spec$max_nodes < |pet$eligible_nodes| )
+			nodes_to_init = pool$spec$max_nodes;
+
+		local nodes_inited = 0;
+
+		while ( nodes_inited < nodes_to_init )
+			{
+			init_pool_node(pool, pet$eligible_nodes[pet$next_idx]$name);
+			++nodes_inited;
+			++pet$next_idx;
+
+			if ( pet$next_idx == |pet$eligible_nodes| )
+				pet$next_idx = 0;
+			}
 		}
 	}

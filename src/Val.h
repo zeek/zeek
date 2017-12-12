@@ -510,9 +510,15 @@ public:
 	~PortManager();
 
 	// Port number given in host order.
-	PortVal* Get(uint32 port_num) const;
 	PortVal* Get(uint32 port_num, TransportProto port_type) const;
 
+	// Host-order port number already masked with port space protocol mask.
+	PortVal* Get(uint32 port_num) const;
+
+	// Returns a masked port number
+	uint32 Mask(uint32 port_num, TransportProto port_type) const;
+
+private:
 	std::array<std::array<PortVal*, 65536>, NUM_PORT_SPACES> ports;
 };
 
@@ -520,6 +526,14 @@ extern PortManager* port_mgr;
 
 class PortVal : public Val {
 public:
+	// Port number given in host order.
+	BRO_DEPRECATED("use port_mgr->Get() instead")
+	PortVal(uint32 p, TransportProto port_type);
+
+	// Host-order port number already masked with port space protocol mask.
+	BRO_DEPRECATED("use port_mgr->Get() instead")
+	PortVal(uint32 p);
+
 	Val* SizeVal() const override	{ return new Val(val.uint_val, TYPE_INT); }
 
 	// Returns the port number in host order (not including the mask).
@@ -546,10 +560,7 @@ protected:
 	friend class Val;
 	friend class PortManager;
 	PortVal()	{}
-	// Constructors - both take the port number in host order.
-	PortVal(uint32 p, TransportProto port_type);
-	PortVal(uint32 p);	// used for already-massaged port value.
-
+	PortVal(uint32 p, bool unused);
 
 	void ValDescribe(ODesc* d) const override;
 

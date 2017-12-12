@@ -768,7 +768,7 @@ PortManager::PortManager()
 		auto port_type = (TransportProto)i;
 
 		for ( auto j = 0u; j < arr.size(); ++j )
-			arr[j] = new PortVal(j, port_type);
+			arr[j] = new PortVal(Mask(j, port_type), true);
 		}
 	}
 
@@ -807,34 +807,45 @@ PortVal* PortManager::Get(uint32 port_num, TransportProto port_type) const
 	return rval;
 	}
 
-PortVal::PortVal(uint32 p, TransportProto port_type) : Val(TYPE_PORT)
+uint32 PortManager::Mask(uint32 port_num, TransportProto port_type) const
 	{
 	// Note, for ICMP one-way connections:
 	// src_port = icmp_type, dst_port = icmp_code.
 
-	if ( p >= 65536 )
+	if ( port_num >= 65536 )
 		{
-		InternalWarning("bad port number");
-		p = 0;
+		reporter->Warning("bad port number %d", port_num);
+		port_num = 0;
 		}
 
 	switch ( port_type ) {
 	case TRANSPORT_TCP:
-		p |= TCP_PORT_MASK;
+		port_num |= TCP_PORT_MASK;
 		break;
 
 	case TRANSPORT_UDP:
-		p |= UDP_PORT_MASK;
+		port_num |= UDP_PORT_MASK;
 		break;
 
 	case TRANSPORT_ICMP:
-		p |= ICMP_PORT_MASK;
+		port_num |= ICMP_PORT_MASK;
 		break;
 
 	default:
-		break;	// "other"
+		break;	// "unknown/other"
 	}
 
+	return port_num;
+	}
+
+PortVal::PortVal(uint32 p, TransportProto port_type) : Val(TYPE_PORT)
+	{
+	auto port_num = port_mgr->Mask(p, port_type);
+	val.uint_val = static_cast<bro_uint_t>(port_num);
+	}
+
+PortVal::PortVal(uint32 p, bool unused) : Val(TYPE_PORT)
+	{
 	val.uint_val = static_cast<bro_uint_t>(p);
 	}
 

@@ -1,4 +1,8 @@
 
+2.5-369 | 2017-12-13 14:22:47 -0600
+
+  * Fix typo in analyzer::Manager API docs (Corelight)
+
 2.5-368 | 2017-12-08 13:09:25 -0600
 
   * Improve for-loop iteration performance over empty tables. (Justin Azoff)

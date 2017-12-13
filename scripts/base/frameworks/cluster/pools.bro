@@ -72,12 +72,18 @@ export {
 				 $node_type = Cluster::LOGGER) &redef;
 
 	## A pool containing all the proxy nodes of a cluster.
+	## The pool's node membership/availability is automatically
+	## maintained by the cluster framework.
 	global proxy_pool: Pool;
 
 	## A pool containing all the worker nodes of a cluster.
+	## The pool's node membership/availability is automatically
+	## maintained by the cluster framework.
 	global worker_pool: Pool;
 
 	## A pool containing all the logger nodes of a cluster.
+	## The pool's node membership/availability is automatically
+	## maintained by the cluster framework.
 	global logger_pool: Pool;
 
 	## Registers and initializes a pool.
@@ -317,6 +323,9 @@ global pool_eligibility: table[Cluster::NodeType] of PoolEligibilityTracking = t
 # Needs to execute before the bro_init in setup-connections
 event bro_init() &priority=-5
 	{
+	if ( ! Cluster::is_enabled() )
+		return;
+
 	pool_eligibility[Cluster::WORKER] =
 		PoolEligibilityTracking($eligible_nodes = nodes_with_type(Cluster::WORKER));
 	pool_eligibility[Cluster::PROXY] =
@@ -327,8 +336,12 @@ event bro_init() &priority=-5
 	if ( manager_is_logger )
 		{
 		local mgr = nodes_with_type(Cluster::MANAGER);
-		local eln = pool_eligibility[Cluster::LOGGER]$eligible_nodes;
-		eln[|eln|] = mgr[0];
+		
+		if ( |mgr| > 0 )
+			{
+			local eln = pool_eligibility[Cluster::LOGGER]$eligible_nodes;
+			eln[|eln|] = mgr[0];
+			}
 		}
 
 	local pool: Pool;

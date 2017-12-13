@@ -60,3 +60,87 @@ function Broker::__unsubscribe%(topic_prefix: string%): bool
 	auto rval = broker_mgr->Unsubscribe(topic_prefix->CheckString());
 	return new Val(rval, TYPE_BOOL);
 	%}
+
+module Cluster;
+
+type Cluster::Pool: record;
+
+function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
+	%{
+	static Func* topic_func = 0;
+
+	if ( ! topic_func )
+		topic_func = global_scope()->Lookup("Cluster::rr_topic")->ID_Val()->AsFunc();
+
+	val_list vl(2);
+	vl.append(pool->Ref());
+	vl.append(key->Ref());
+	auto topic = topic_func->Call(&vl);
+
+	if ( ! topic->AsString()->Len() )
+		{
+		Unref(topic);
+		return new Val(false, TYPE_BOOL);
+		}
+
+	val_list* bif_args = @ARGS@;
+	val_list args(bif_args->length() - 2);
+
+	for ( auto i = 2u; i < bif_args->length(); ++i )
+		args.append((*bif_args)[i]);
+
+	auto ev = broker_mgr->MakeEvent(&args);
+
+	if ( ! ev->Lookup(0) )
+		{
+		Unref(topic);
+		Unref(ev);
+		return new Val(false, TYPE_BOOL);
+		}
+
+	auto rval = broker_mgr->PublishEvent(topic->AsString()->CheckString(),
+										 ev->AsRecordVal());
+	Unref(topic);
+	Unref(ev);
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+function Cluster::publish_hrw%(pool: Pool, key: any, ...%): bool
+	%{
+	static Func* topic_func = 0;
+
+	if ( ! topic_func )
+		topic_func = global_scope()->Lookup("Cluster::hrw_topic")->ID_Val()->AsFunc();
+
+	val_list vl(2);
+	vl.append(pool->Ref());
+	vl.append(key->Ref());
+	auto topic = topic_func->Call(&vl);
+
+	if ( ! topic->AsString()->Len() )
+		{
+		Unref(topic);
+		return new Val(false, TYPE_BOOL);
+		}
+
+	val_list* bif_args = @ARGS@;
+	val_list args(bif_args->length() - 2);
+
+	for ( auto i = 2u; i < bif_args->length(); ++i )
+		args.append((*bif_args)[i]);
+
+	auto ev = broker_mgr->MakeEvent(&args);
+
+	if ( ! ev->Lookup(0) )
+		{
+		Unref(topic);
+		Unref(ev);
+		return new Val(false, TYPE_BOOL);
+		}
+
+	auto rval = broker_mgr->PublishEvent(topic->AsString()->CheckString(),
+										 ev->AsRecordVal());
+	Unref(topic);
+	Unref(ev);
+	return new Val(rval, TYPE_BOOL);
+	%}

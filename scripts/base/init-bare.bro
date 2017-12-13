@@ -4419,6 +4419,11 @@ export {
 	const max_frag_data = 30000 &redef;
 }
 
+module Cluster;
+export {
+	type Cluster::Pool: record {};
+}
+
 module GLOBAL;
 
 ## Seed for hashes computed internally for probabilistic data structures. Using

@@ -89,35 +89,6 @@ export {
 	## Registers and initializes a pool.
 	global register_pool: function(spec: PoolSpec): Pool;
 
-	## Initialize a node as a member of a pool.
-	##
-	## pool: the pool to which the node will belong.
-	##
-	## name: the name of the node (e.g. "manager").
-	##
-	## Returns: F if a node of the same name already exists in the pool, else T.
-	global init_pool_node: function(pool: Pool, name: string): bool;
-
-	## Mark a pool node as alive/online/available. :bro:see:`Cluster::hrw_topic`
-	## will distribute keys to nodes marked as alive.
-	##
-	## pool: the pool to which the node belongs.
-	##
-	## name: the name of the node to mark.
-	##
-	## Returns: F if the node does not exist in the pool, else T.
-	global mark_pool_node_alive: function(pool: Pool, name: string): bool;
-
-	## Mark a pool node as dead/offline/unavailable. :bro:see:`Cluster::hrw_topic`
-	## will not distribute keys to nodes marked as dead.
-	##
-	## pool: the pool to which the node belongs.
-	##
-	## name: the name of the node to mark.
-	##
-	## Returns: F if the node does not exist in the pool, else T.
-	global mark_pool_node_dead: function(pool: Pool, name: string): bool;
-
 	## Retrieve the topic associated with the node mapped via Rendezvous hash
 	## of an arbitrary key.
 	##
@@ -149,6 +120,35 @@ export {
 	## of :bro:see:`Broker::default_log_topic`.
 	global rr_log_topic: function(id: Log::ID, path: string): string;
 }
+
+## Initialize a node as a member of a pool.
+##
+## pool: the pool to which the node will belong.
+##
+## name: the name of the node (e.g. "manager").
+##
+## Returns: F if a node of the same name already exists in the pool, else T.
+global init_pool_node: function(pool: Pool, name: string): bool;
+
+## Mark a pool node as alive/online/available. :bro:see:`Cluster::hrw_topic`
+## will distribute keys to nodes marked as alive.
+##
+## pool: the pool to which the node belongs.
+##
+## name: the name of the node to mark.
+##
+## Returns: F if the node does not exist in the pool, else T.
+global mark_pool_node_alive: function(pool: Pool, name: string): bool;
+
+## Mark a pool node as dead/offline/unavailable. :bro:see:`Cluster::hrw_topic`
+## will not distribute keys to nodes marked as dead.
+##
+## pool: the pool to which the node belongs.
+##
+## name: the name of the node to mark.
+##
+## Returns: F if the node does not exist in the pool, else T.
+global mark_pool_node_dead: function(pool: Pool, name: string): bool;
 
 global registered_pools: vector of Pool = vector();
 

@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 #include <map>
+#include <set>
 #include <unordered_map>
 #include <unordered_set>
 #include "broker/Store.h"
@@ -111,17 +112,6 @@ public:
 	std::string NodeID() const;
 
 	/**
-	 * Send an event to any interested peers.
-	 * @param topic a topic string associated with the message.
-	 * Peers advertise interest by registering a subscription to some prefix
-	 * of this topic name.
-	 * @param name the name of the event
-	 * @param  the event's arguments
-	 * @return true if the message is sent successfully.
-	 */
-	bool PublishEvent(std::string topic, std::string name, broker::vector args);
-
-	/**
 	 * Send an identifier's value to interested peers.
 	 * @param topic a topic string associated with the message.
 	 * @param id the name of the identifier to send.
@@ -134,11 +124,51 @@ public:
 	 * @param topic a topic string associated with the message.
 	 * Peers advertise interest by registering a subscription to some prefix
 	 * of this topic name.
+	 * @param name the name of the event
+	 * @param args the event's arguments
+	 * @return true if the message is sent successfully.
+	 */
+	bool PublishEvent(std::string topic, std::string name, broker::vector args);
+
+	/**
+	 * Send an event to any interested peers.
+	 * @param topic a topic string associated with the message.
+	 * Peers advertise interest by registering a subscription to some prefix
+	 * of this topic name.
 	 * @param ev the event and its arguments to send to peers, in the form of
 	 * a Broker::Event record type.
 	 * @return true if the message is sent successfully.
 	 */
 	bool PublishEvent(std::string topic, RecordVal* ev);
+
+	/**
+	 * Sends an event to any interested peers, who, upon receipt, immediately
+	 * republish the event to a new set of topics.
+	 * @param first_topic the first topic to use when publishing the event
+	 * @param relay_topics the set of topics the receivers will use to
+	 * republish the event.  The event is relayed at most a single hop.
+	 * @param name the name of the event
+	 * @param args the event's arguments
+	 * @return true if the message is sent successfully.
+	 */
+	bool RelayEvent(std::string first_topic,
+					broker::set relay_topics,
+					std::string name,
+					broker::vector args);
+
+	/**
+	 * Sends an event to any interested peers, who, upon receipt, immediately
+	 * republish the event to a new set of topics.
+	 * @param first_topic the first topic to use when publishing the event
+	 * @param relay_topics the set of topics the receivers will use to
+	 * republish the event.  The event is relayed at most a single hop.
+	 * @param ev the event and its arguments to send to peers, in the form of
+	 * a Broker::Event record type.
+	 * @return true if the message is sent successfully.
+	 */
+	bool RelayEvent(std::string first_topic,
+					std::set<std::string> relay_topics,
+					RecordVal* ev);
 
 	/**
 	 * Send a message to create a log stream to any interested peers.
@@ -271,6 +301,7 @@ private:
 
 	void DispatchMessage(broker::data&& msg);
 	void ProcessEvent(const broker::bro::Event le);
+	void ProcessRelayEvent(const broker::bro::RelayEvent re);
 	bool ProcessLogCreate(const broker::bro::LogCreate lc);
 	bool ProcessLogWrite(const broker::bro::LogWrite lw);
 	bool ProcessIdentifierUpdate(const broker::bro::IdentifierUpdate iu);

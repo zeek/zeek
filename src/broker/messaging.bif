@@ -4,6 +4,21 @@
 %%{
 #include "broker/Manager.h"
 #include "logging/Manager.h"
+#include <set>
+
+static bool is_string_set(const BroType* type)
+	{
+	if ( ! type->IsSet() )
+		return false;
+
+	auto index_types = type->AsSetType()->IndexTypes();
+
+	if ( index_types->length() != 1 )
+		return false;
+
+	return (*index_types)[0]->Tag() == TYPE_STRING;
+	}
+
 %%}
 
 module Broker;
@@ -30,7 +45,7 @@ function Broker::make_event%(...%): Broker::Event
 ##
 ## args: Either the event arguments as already made by
 ##       :bro:see:`Broker::make_event` or the argument list to pass along
-###      to it.
+##       to it.
 ##
 ## Returns: true if the message is sent.
 function Broker::publish%(topic: string, ...%): bool
@@ -49,8 +64,86 @@ function Broker::publish%(topic: string, ...%): bool
 	else
 		{
 		auto ev = broker_mgr->MakeEvent(&args);
-		rval = broker_mgr->PublishEvent(topic->CheckString(),
-										ev->AsRecordVal());
+		rval = broker_mgr->PublishEvent(topic->CheckString(), ev);
+		Unref(ev);
+		}
+
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+## Publishes an event at a given topic, with any receivers automatically
+## forwarding it to its peers with a different topic.  The event is relayed
+## at most a single hop.
+##
+## first_topic: the initial topic to use for publishing the event.
+##
+## args: the first member of the argument list may be either a string or
+##       a set of strings indicating the secondary topic that the first
+##       set of receivers will use to re-publish the event.  The remaining
+##       members of the argument list are either the return value of a
+##       previously-made call to :bro:see:`Broker::make_event` or the
+##       argument list that should be passed along to it, so that it can
+##       be called as part of executing this function.
+##
+## Returns: true if the message is sent.
+function Broker::relay%(first_topic: string, ...%): bool
+	%{
+	val_list* bif_args = @ARGS@;
+
+	if ( bif_args->length() < 3 )
+		{
+		builtin_error("Broker::relay requires at least 3 arguments");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	auto second_topic = (*bif_args)[1];
+
+	if ( second_topic->Type()->Tag() != TYPE_STRING &&
+		 ! is_string_set(second_topic->Type()) )
+		{
+		builtin_error("Broker::relay requires a string or string_set as 2nd argument");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	std::set<std::string> topic_set;
+
+	if ( second_topic->Type()->Tag() == TYPE_STRING )
+		topic_set.emplace(second_topic->AsString()->CheckString());
+	else
+		{
+		const PDict(TableEntryVal)* tbl = second_topic->AsTable();
+
+		if ( tbl->Length() == 0 )
+			return new Val(false, TYPE_BOOL);
+
+		IterCookie* c = tbl->InitForIteration();
+		HashKey* k;
+
+		while ( tbl->NextEntry(k, c) )
+			{
+			auto index = second_topic->AsTableVal()->RecoverIndex(k);
+			topic_set.emplace(index->Index(0)->AsString()->CheckString());
+			Unref(index);
+			delete k;
+			}
+		}
+
+	val_list args(bif_args->length() - 2);
+
+	for ( auto i = 2u; i < bif_args->length(); ++i )
+		args.append((*bif_args)[i]);
+
+	auto rval = false;
+
+	if ( args[0]->Type()->Tag() == TYPE_RECORD )
+		rval = broker_mgr->RelayEvent(first_topic->CheckString(),
+									  std::move(topic_set),
+	                                  args[0]->AsRecordVal());
+	else
+		{
+		auto ev = broker_mgr->MakeEvent(&args);
+		rval = broker_mgr->RelayEvent(first_topic->CheckString(),
+									  std::move(topic_set), ev);
 		Unref(ev);
 		}
 

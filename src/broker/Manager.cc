@@ -275,8 +275,55 @@ bool Manager::PublishEvent(string topic, RecordVal* args)
 		xs.emplace_back(data_val->data);
 		}
 
+	return PublishEvent(topic, event_name, std::move(xs));
+	}
 
-	return PublishEvent(topic, event_name, xs);
+bool Manager::RelayEvent(std::string first_topic,
+                         broker::set relay_topics,
+                         std::string name,
+                         broker::vector args)
+	{
+	if ( ! bstate->endpoint.peers().size() )
+		return true;
+
+	DBG_LOG(DBG_BROKER, "Publishing relay event: %s",
+	        RenderEvent(first_topic, name, args).c_str());
+	broker::bro::RelayEvent msg(std::move(relay_topics), std::move(name),
+	                            std::move(args));
+	bstate->endpoint.publish(std::move(first_topic), std::move(msg));
+	++statistics.num_events_outgoing;
+	return true;
+	}
+
+bool Manager::RelayEvent(std::string first_topic,
+                         std::set<std::string> relay_topics,
+                         RecordVal* args)
+	{
+	if ( ! bstate->endpoint.peers().size() )
+		return true;
+
+	if ( ! args->Lookup(0) )
+		return false;
+
+	auto event_name = args->Lookup(0)->AsString()->CheckString();
+	auto vv = args->Lookup(1)->AsVectorVal();
+	broker::vector xs;
+	xs.reserve(vv->Size());
+
+	for ( auto i = 0u; i < vv->Size(); ++i )
+		{
+		auto val = vv->Lookup(i)->AsRecordVal()->Lookup(0);
+		auto data_val = static_cast<DataVal*>(val);
+		xs.emplace_back(data_val->data);
+		}
+
+	broker::set topic_set;
+
+	for ( auto& t : relay_topics )
+		topic_set.emplace(std::move(t));
+
+	return RelayEvent(first_topic, std::move(topic_set), event_name,
+					  std::move(xs));
 	}
 
 bool Manager::PublishIdentifier(std::string topic, std::string id)
@@ -655,6 +702,10 @@ void Manager::DispatchMessage(broker::data&& msg)
 		ProcessEvent(broker::bro::Event(std::move(msg)));
 		break;
 
+	case broker::bro::Message::Type::RelayEvent:
+		ProcessRelayEvent(broker::bro::RelayEvent(std::move(msg)));
+		break;
+
 	case broker::bro::Message::Type::LogCreate:
 		ProcessLogCreate(broker::bro::LogCreate(std::move(msg)));
 		break;
@@ -778,6 +829,17 @@ void Manager::ProcessEvent(const broker::bro::Event ev)
 		mgr.QueueEvent(handler, vl, SOURCE_BROKER);
 	else
 		delete_vals(vl);
+	}
+
+void Manager::ProcessRelayEvent(const broker::bro::RelayEvent ev)
+	{
+	DBG_LOG(DBG_BROKER, "Received relay event: %s", RenderMessage(ev).c_str());
+	++statistics.num_events_incoming;
+
+	for ( auto& t : ev.topics() )
+		PublishEvent(std::move(broker::get<std::string>(t)),
+		             std::move(ev.name()),
+		             std::move(ev.args()));
 	}
 
 bool bro_broker::Manager::ProcessLogCreate(const broker::bro::LogCreate lc)

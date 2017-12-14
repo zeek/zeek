@@ -412,7 +412,7 @@ struct val_converter {
 
 Val* bro_broker::data_to_val(broker::data d, BroType* type, bool require_log_attr)
 	{
-	return broker::visit(val_converter{type, require_log_attr}, d);
+	return broker::visit(val_converter{type, require_log_attr}, std::move(d));
 	}
 
 broker::expected<broker::data> bro_broker::val_to_data(Val* v)

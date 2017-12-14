@@ -299,13 +299,13 @@ private:
 		broker::status_subscriber status_subscriber;
 	};
 
-	void DispatchMessage(broker::data&& msg);
-	void ProcessEvent(const broker::bro::Event le);
-	void ProcessRelayEvent(const broker::bro::RelayEvent re);
-	bool ProcessLogCreate(const broker::bro::LogCreate lc);
-	bool ProcessLogWrite(const broker::bro::LogWrite lw);
-	bool ProcessIdentifierUpdate(const broker::bro::IdentifierUpdate iu);
-	void ProcessStatus(const broker::status stat);
+	void DispatchMessage(broker::data msg);
+	void ProcessEvent(broker::bro::Event ev);
+	void ProcessRelayEvent(broker::bro::RelayEvent re);
+	bool ProcessLogCreate(broker::bro::LogCreate lc);
+	bool ProcessLogWrite(broker::bro::LogWrite lw);
+	bool ProcessIdentifierUpdate(broker::bro::IdentifierUpdate iu);
+	void ProcessStatus(broker::status stat);
 	void ProcessError(broker::error err);
 	void ProcessStoreResponse(StoreHandleVal*, broker::store::response response);
 	void FlushLogBuffers();

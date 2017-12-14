@@ -24,9 +24,36 @@ function Broker::make_event%(...%): Broker::Event
 	return rval;
 	%}
 
-function Broker::__publish%(topic: string, ev: Broker::Event%): bool
+## Publishes an event at a given topic.
+##
+## topic: a topic associated with the event message.
+##
+## args: Either the event arguments as already made by
+##       :bro:see:`Broker::make_event` or the argument list to pass along
+###      to it.
+##
+## Returns: true if the message is sent.
+function Broker::publish%(topic: string, ...%): bool
 	%{
-	auto rval = broker_mgr->PublishEvent(topic->CheckString(), ev->AsRecordVal());
+	val_list* bif_args = @ARGS@;
+	val_list args(bif_args->length() - 1);
+
+	for ( auto i = 1u; i < bif_args->length(); ++i )
+		args.append((*bif_args)[i]);
+
+	auto rval = false;
+
+	if ( args[0]->Type()->Tag() == TYPE_RECORD )
+		rval = broker_mgr->PublishEvent(topic->CheckString(),
+										args[0]->AsRecordVal());
+	else
+		{
+		auto ev = broker_mgr->MakeEvent(&args);
+		rval = broker_mgr->PublishEvent(topic->CheckString(),
+										ev->AsRecordVal());
+		Unref(ev);
+		}
+
 	return new Val(rval, TYPE_BOOL);
 	%}
 

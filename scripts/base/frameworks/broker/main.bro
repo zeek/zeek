@@ -232,15 +232,6 @@ export {
 	## Returns: a unique identifier for the local broker endpoint.
 	global node_id: function(): string;
 
-	## Publishes an event at a given topic.
-	##
-	## topic: a topic associated with the event message.
-	##
-	## ev: The event arguments as made by :bro:see:`Broker::make_event`.
-	##
-	## Returns: true if the message is sent.
-	global publish: function(topic: string, args: Event): bool;
-
 	## Publishes the value of an identifier to a given topic.  The subscribers
 	## will update their local value for that identifier on receipt.
 	##
@@ -330,11 +321,6 @@ function peers(): vector of PeerInfo
 function node_id(): string
 	{
 	return __node_id();
-	}
-
-function publish(topic: string, ev: Event): bool
-	{
-	return __publish(topic, ev);
 	}
 
 function publish_id(topic: string, id: string): bool

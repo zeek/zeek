@@ -56,6 +56,9 @@ Changed Functionality
 
   redef SOCKS::default_capture_password = T;
 
+- The DNS base scripts no longer generate some noisy and annoying
+  weirds (dns_unmatched_msg, dns_unmatched_msg_quantity, dns_unmatched_reply)
+
 Removed Functionality
 ---------------------
 

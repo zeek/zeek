@@ -1,4 +1,10 @@
 
+2.5-372 | 2017-12-15 15:08:51 -0600
+
+  * Remove some DNS weirds that caused volume and are generally not useful:
+    dns_unmatched_msg, dns_unmatched_msg_quantity, dns_unmatched_reply.
+    (Corelight)
+
 2.5-369 | 2017-12-13 14:22:47 -0600
 
   * Fix typo in analyzer::Manager API docs (Corelight)

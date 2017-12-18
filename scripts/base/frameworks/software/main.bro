@@ -70,6 +70,7 @@ export {
 	const asset_tracking = LOCAL_HOSTS &redef;
 	
 	## Other scripts should call this function when they detect software.
+	##
 	## id: The connection id where the software was discovered.
 	##
 	## info: A record representing the software discovered.
@@ -101,6 +102,10 @@ export {
 	## This event can be handled to access the :bro:type:`Software::Info`
 	## record as it is sent on to the logging framework.
 	global log_software: event(rec: Info);
+
+	## This event can be handled to access software information whenever it's
+	## version is found to have changed.
+	global version_change: event(old: Info, new: Info);
 }
 
 event bro_init() &priority=5
@@ -420,15 +425,17 @@ event register(id: conn_id, info: Info)
 	if ( info$name in ts )
 		{
 		local old = ts[info$name];
-		
-		# If the version hasn't changed, then we're just redetecting the
-		# same thing, then we don't care.  This results in no extra logging.
-		# But if the $force_log value is set then we'll continue.
-		if ( ! info$force_log && cmp_versions(old$version, info$version) == 0 )
+		local changed = cmp_versions(old$version, info$version) != 0;
+
+		if ( changed )
+			event Software::version_change(old, info);	
+		else if ( ! info$force_log )
+			# If the version hasn't changed, then we're just redetecting the
+			# same thing, then we don't care. 
 			return;
 		}
+
 	ts[info$name] = info;
-	
 	Log::write(Software::LOG, info);
 	}
 

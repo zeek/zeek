@@ -34,6 +34,7 @@
 @load frameworks/files/entropy-test-all-files.bro
 #@load frameworks/files/extract-all-files.bro
 @load frameworks/files/hash-all-files.bro
+@load files/x509/log-ocsp.bro
 @load frameworks/packet-filter/shunt.bro
 @load frameworks/software/version-changes.bro
 @load frameworks/software/vulnerable.bro
@@ -98,6 +99,7 @@
 #@load protocols/ssl/notary.bro
 @load protocols/ssl/validate-certs.bro
 @load protocols/ssl/validate-ocsp.bro
+@load protocols/ssl/validate-sct.bro
 @load protocols/ssl/weak-keys.bro
 @load tuning/__load__.bro
 @load tuning/defaults/__load__.bro

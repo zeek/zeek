@@ -163,6 +163,10 @@ export {
 		[42] = "early_data", # new for 1.3, state of draft-16
 		[43] = "supported_versions", # new for 1.3, state of draft-16
 		[44] = "cookie", # new for 1.3, state of draft-16
+		[45] = "psk_key_exchange_modes", # new for 1.3, state of draft-18
+		[46] = "TicketEarlyDataInfo", # new for 1.3, state of draft-16
+		[47] = "certificate_authorities", # new for 1.3, state of draft-18
+		[48] = "oid_filters", # new for 1.3, state of draft-18
 		[13172] = "next_protocol_negotiation",
 		[13175] = "origin_bound_certificates",
 		[13180] = "encrypted_client_certificates",
@@ -596,6 +600,11 @@ export {
 	const TLS_ECDHE_PSK_WITH_CHACHA20_POLY1305_SHA256 = 0xCCAC;
 	const TLS_DHE_PSK_WITH_CHACHA20_POLY1305_SHA256 = 0xCCAD;
 	const TLS_RSA_PSK_WITH_CHACHA20_POLY1305_SHA256 = 0xCCAE;
+	# draft-ietf-tls-ecdhe-psk-aead-05
+	const TLS_ECDHE_PSK_WITH_AES_128_GCM_SHA256 = 0xD001;
+	const TLS_ECDHE_PSK_WITH_AES_256_GCM_SHA384 = 0xD002;
+	const TLS_ECDHE_PSK_WITH_AES_128_CCM_8_SHA256 = 0xD003;
+	const TLS_ECDHE_PSK_WITH_AES_128_CCM_SHA256 = 0xD004;
 
 	const SSL_RSA_FIPS_WITH_DES_CBC_SHA = 0xFEFE;
 	const SSL_RSA_FIPS_WITH_3DES_EDE_CBC_SHA = 0xFEFF;
@@ -974,6 +983,10 @@ export {
 		[TLS_ECDHE_PSK_WITH_CHACHA20_POLY1305_SHA256] = "TLS_ECDHE_PSK_WITH_CHACHA20_POLY1305_SHA256",
 		[TLS_DHE_PSK_WITH_CHACHA20_POLY1305_SHA256] = "TLS_DHE_PSK_WITH_CHACHA20_POLY1305_SHA256",
 		[TLS_RSA_PSK_WITH_CHACHA20_POLY1305_SHA256] = "TLS_RSA_PSK_WITH_CHACHA20_POLY1305_SHA256",
+		[TLS_ECDHE_PSK_WITH_AES_128_GCM_SHA256] = "TLS_ECDHE_PSK_WITH_AES_128_GCM_SHA256",
+		[TLS_ECDHE_PSK_WITH_AES_256_GCM_SHA384] = "TLS_ECDHE_PSK_WITH_AES_256_GCM_SHA384",
+		[TLS_ECDHE_PSK_WITH_AES_128_CCM_8_SHA256] = "TLS_ECDHE_PSK_WITH_AES_128_CCM_8_SHA256",
+		[TLS_ECDHE_PSK_WITH_AES_128_CCM_SHA256] = "TLS_ECDHE_PSK_WITH_AES_128_CCM_SHA256",
 		[SSL_RSA_FIPS_WITH_DES_CBC_SHA] = "SSL_RSA_FIPS_WITH_DES_CBC_SHA",
 		[SSL_RSA_FIPS_WITH_3DES_EDE_CBC_SHA] = "SSL_RSA_FIPS_WITH_3DES_EDE_CBC_SHA",
 		[SSL_RSA_FIPS_WITH_DES_CBC_SHA_2] = "SSL_RSA_FIPS_WITH_DES_CBC_SHA_2",

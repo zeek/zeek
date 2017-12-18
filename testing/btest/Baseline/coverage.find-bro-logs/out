@@ -31,6 +31,7 @@ netcontrol_shunt
 notice
 notice_alarm
 ntlm
+ocsp
 open_flow
 packet_filter
 pe

@@ -55,6 +55,7 @@ int File::bof_buffer_size_idx = -1;
 int File::bof_buffer_idx = -1;
 int File::meta_mime_type_idx = -1;
 int File::meta_mime_types_idx = -1;
+int File::meta_inferred_idx = -1;
 
 void File::StaticInit()
 	{
@@ -76,6 +77,7 @@ void File::StaticInit()
 	bof_buffer_idx = Idx("bof_buffer", fa_file_type);
 	meta_mime_type_idx = Idx("mime_type", fa_metadata_type);
 	meta_mime_types_idx = Idx("mime_types", fa_metadata_type);
+	meta_inferred_idx = Idx("inferred", fa_metadata_type);
 	}
 
 File::File(const string& file_id, const string& source_name, Connection* conn,
@@ -288,6 +290,27 @@ void File::DisableReassembly()
 void File::SetReassemblyBuffer(uint64 max)
 	{
 	reassembly_max_buffer = max;
+	}
+
+bool File::SetMime(const string& mime_type)
+	{
+	if ( mime_type.empty() || bof_buffer.size != 0 || did_metadata_inference )
+		return false;
+
+	did_metadata_inference = true;
+	bof_buffer.full = true;
+
+	if ( ! FileEventAvailable(file_sniff) )
+		return false;
+
+	val_list* vl = new val_list();
+	vl->append(val->Ref());
+	RecordVal* meta = new RecordVal(fa_metadata_type);
+	vl->append(meta);
+	meta->Assign(meta_mime_type_idx, new StringVal(mime_type));
+	meta->Assign(meta_inferred_idx, new Val(0, TYPE_BOOL));
+	FileEvent(file_sniff, vl);
+	return true;
 	}
 
 void File::InferMetadata()

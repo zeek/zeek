@@ -136,12 +136,12 @@ Trigger::Trigger(Expr* arg_cond, Stmt* arg_body, Stmt* arg_timeout_stmts,
 
 	if ( timeout_val )
 		{
-		Unref(timeout_val);
 		timeout_value = timeout_val->AsInterval();
+		Unref(timeout_val);
 		}
 
 	// Make sure we don't get deleted if somebody calls a method like
-	// Timeout() while evaluating the trigger. 
+	// Timeout() while evaluating the trigger.
 	Ref(this);
 
 	if ( ! Eval() && timeout_value >= 0 )

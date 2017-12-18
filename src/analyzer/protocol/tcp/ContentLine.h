@@ -10,9 +10,12 @@ namespace analyzer { namespace tcp {
 #define CR_as_EOL 1
 #define LF_as_EOL 2
 
+// Slightly smaller than 16MB so that the buffer is not unnecessarily resized to 32M.
+#define DEFAULT_MAX_LINE_LENGTH 16 * 1024 * 1024 - 100
+
 class ContentLine_Analyzer : public TCP_SupportAnalyzer {
 public:
-	ContentLine_Analyzer(Connection* conn, bool orig);
+	ContentLine_Analyzer(Connection* conn, bool orig, int max_line_length=DEFAULT_MAX_LINE_LENGTH);
 	~ContentLine_Analyzer();
 
 	void SupressWeirds(bool enable)
@@ -60,7 +63,7 @@ public:
 		{ return seq + length <= seq_to_skip; }
 
 protected:
-	ContentLine_Analyzer(const char* name, Connection* conn, bool orig);
+	ContentLine_Analyzer(const char* name, Connection* conn, bool orig, int max_line_length=DEFAULT_MAX_LINE_LENGTH);
 
 	virtual void DeliverStream(int len, const u_char* data, bool is_orig);
 	virtual void Undelivered(uint64 seq, int len, bool orig);
@@ -80,6 +83,7 @@ protected:
 	int offset;	// where we are in buf
 	int buf_len;	// how big buf is, total
 	unsigned int last_char;	// last (non-option) character scanned
+	int max_line_length; // how large of a line to accumulate before emitting and raising a weird
 
 	uint64_t seq;	// last seq number
 	uint64_t seq_to_skip;

@@ -27,6 +27,8 @@
 ## .. bro:see:: ssl_alert ssl_established ssl_extension ssl_server_hello
 ##    ssl_session_ticket_handshake x509_certificate ssl_handshake_message
 ##    ssl_change_cipher_spec
+##    ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
+##    ssl_rsa_client_pms
 event ssl_client_hello%(c: connection, version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec%);
 
 ## Generated for an SSL/TLS server's initial *hello* message. SSL/TLS sessions
@@ -64,6 +66,8 @@ event ssl_client_hello%(c: connection, version: count, possible_ts: time, client
 ## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_extension
 ##    ssl_session_ticket_handshake x509_certificate ssl_server_curve
 ##    ssl_dh_server_params ssl_handshake_message ssl_change_cipher_spec
+##    ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
+##    ssl_rsa_client_pms
 event ssl_server_hello%(c: connection, version: count, possible_ts: time, server_random: string, session_id: string, cipher: count, comp_method: count%);
 
 ## Generated for SSL/TLS extensions seen in an initial handshake.  SSL/TLS
@@ -87,6 +91,7 @@ event ssl_server_hello%(c: connection, version: count, possible_ts: time, server
 ##    ssl_session_ticket_handshake ssl_extension_ec_point_formats
 ##    ssl_extension_elliptic_curves ssl_extension_application_layer_protocol_negotiation
 ##    ssl_extension_server_name ssl_extension_signature_algorithm ssl_extension_key_share
+##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
 event ssl_extension%(c: connection, is_orig: bool, code: count, val: string%);
 
 ## Generated for an SSL/TLS Elliptic Curves extension. This TLS extension is
@@ -103,7 +108,9 @@ event ssl_extension%(c: connection, is_orig: bool, code: count, val: string%);
 ##    ssl_session_ticket_handshake ssl_extension
 ##    ssl_extension_ec_point_formats ssl_extension_application_layer_protocol_negotiation
 ##    ssl_extension_server_name ssl_server_curve ssl_extension_signature_algorithm
-##    ssl_extension_key_share
+##    ssl_extension_key_share ssl_rsa_client_pms ssl_server_signature
+##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
+##    ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
 event ssl_extension_elliptic_curves%(c: connection, is_orig: bool, curves: index_vec%);
 
 ## Generated for an SSL/TLS Supported Point Formats extension. This TLS extension
@@ -122,6 +129,9 @@ event ssl_extension_elliptic_curves%(c: connection, is_orig: bool, curves: index
 ##    ssl_extension_elliptic_curves ssl_extension_application_layer_protocol_negotiation
 ##    ssl_extension_server_name ssl_server_curve ssl_extension_signature_algorithm
 ##    ssl_extension_key_share
+##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
+##    ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
+##    ssl_rsa_client_pms ssl_server_signature
 event ssl_extension_ec_point_formats%(c: connection, is_orig: bool, point_formats: index_vec%);
 
 ## Generated for an Signature Algorithms extension. This TLS extension
@@ -139,6 +149,9 @@ event ssl_extension_ec_point_formats%(c: connection, is_orig: bool, point_format
 ##    ssl_session_ticket_handshake ssl_extension
 ##    ssl_extension_elliptic_curves ssl_extension_application_layer_protocol_negotiation
 ##    ssl_extension_server_name ssl_server_curve ssl_extension_key_share
+##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
+##    ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
+##    ssl_rsa_client_pms ssl_server_signature
 event ssl_extension_signature_algorithm%(c: connection, is_orig: bool, signature_algorithms: signature_and_hashalgorithm_vec%);
 
 ## Generated for a Key Share extension. This TLS extension is defined in TLS1.3-draft16
@@ -155,6 +168,9 @@ event ssl_extension_signature_algorithm%(c: connection, is_orig: bool, signature
 ##    ssl_session_ticket_handshake ssl_extension
 ##    ssl_extension_elliptic_curves ssl_extension_application_layer_protocol_negotiation
 ##    ssl_extension_server_name ssl_server_curve
+##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
+##    ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
+##    ssl_rsa_client_pms ssl_server_signature
 event ssl_extension_key_share%(c: connection, is_orig: bool, curves: index_vec%);
 
 ## Generated if a named curve is chosen by the server for an SSL/TLS connection.
@@ -165,14 +181,35 @@ event ssl_extension_key_share%(c: connection, is_orig: bool, curves: index_vec%)
 ##
 ## curve: The curve.
 ##
+## .. note:: This event is deprecated and superseded by the ssl_ecdh_server_params
+##           event. This event will be removed in a future version of Bro.
+##
 ## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
 ##    ssl_session_ticket_handshake ssl_extension
 ##    ssl_extension_elliptic_curves ssl_extension_application_layer_protocol_negotiation
 ##    ssl_extension_server_name ssl_extension_key_share
-event ssl_server_curve%(c: connection, curve: count%);
+##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
+##    ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
+##    ssl_rsa_client_pms ssl_server_signature
+event ssl_server_curve%(c: connection, curve: count%) &deprecated;
+
+## Generated if a server uses an ECDH-anon or ECDHE cipher suite using a named curve
+## This event contains the named curve name and the server ECDH parameters contained
+## in the ServerKeyExchange message as defined in :rfc:`4492`.
+##
+## c: The connection.
+##
+## curve: The curve parameters.
+##
+## point: The server's ECDH public key.
+##
+## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+##    ssl_session_ticket_handshake ssl_server_curve ssl_server_signature
+##    ssl_dh_client_params ssl_ecdh_client_params ssl_rsa_client_pms
+event ssl_ecdh_server_params%(c: connection, curve: count, point: string%);
 
 ## Generated if a server uses a DH-anon or DHE cipher suite. This event contains
-## the server DH parameters, which are sent in the ServerKeyExchange message as
+## the server DH parameters, contained in the ServerKeyExchange message as
 ## defined in :rfc:`5246`.
 ##
 ## c: The connection.
@@ -184,15 +221,71 @@ event ssl_server_curve%(c: connection, curve: count%);
 ## Ys: The server's DH public key.
 ##
 ## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
-##    ssl_session_ticket_handshake ssl_server_curve
+##    ssl_session_ticket_handshake ssl_server_curve ssl_server_signature
+##    ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
+##    ssl_rsa_client_pms
 event ssl_dh_server_params%(c: connection, p: string, q: string, Ys: string%);
+
+## Generated if a server uses a non-anonymous DHE or ECDHE cipher suite. This event
+## contains the server signature over the key exchange parameters contained in
+## the ServerKeyExchange message as defined in :rfc:`4492` and :rfc:`5246`.
+##
+## c: The connection.
+##
+## signed_params: A hash of the server params, with the signature appropriate to
+##                that hash applied. The private key corresponding to the certified
+##                public key in the server's certificate message is used for signing.
+##
+## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+##    ssl_session_ticket_handshake ssl_server_curve ssl_rsa_client_pms
+##    ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
+event ssl_server_signature%(c: connection, signed_params: string%);
+
+## Generated if a client uses an ECDH-anon or ECDHE cipher suite. This event
+## contains the client ECDH public value contained in the ClientKeyExchange
+## message as defined in :rfc:`4492`.
+##
+## c: The connection.
+##
+## point: The client's ECDH public key.
+##
+## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+##    ssl_session_ticket_handshake ssl_server_curve ssl_server_signature
+##    ssl_dh_client_params ssl_ecdh_server_params ssl_rsa_client_pms
+event ssl_ecdh_client_params%(c: connection, point: string%);
+
+## Generated if a client uses a DH-anon or DHE cipher suite. This event contains
+## the client DH parameters contained in the ClientKeyExchange message as
+## defined in :rfc:`5246`.
+##
+## c: The connection.
+##
+## Yc: The client's DH public key.
+##
+## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+##    ssl_session_ticket_handshake ssl_server_curve ssl_server_signature
+##    ssl_ecdh_server_params ssl_ecdh_client_params ssl_rsa_client_pms
+event ssl_dh_client_params%(c: connection, Yc: string%);
+
+## Generated if a client uses RSA key exchange. This event contains the client
+## encrypted pre-master secret which is encrypted using the public key of the
+## server's certificate as defined in :rfc:`5246`.
+##
+## c: The connection.
+##
+## pms: The encrypted pre-master secret.
+##
+## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+##    ssl_session_ticket_handshake ssl_server_curve ssl_server_signature
+##    ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
+event ssl_rsa_client_pms%(c: connection, pms: string%);
 
 ## Generated for an SSL/TLS Application-Layer Protocol Negotiation extension.
 ## This TLS extension is defined in draft-ietf-tls-applayerprotoneg and sent in
 ## the initial handshake. It contains the list of client supported application
 ## protocols by the client or the server, respectively.
 ##
-## At the moment it is mostly used to negotiate the use of SPDY / HTTP2-drafts.
+## At the moment it is mostly used to negotiate the use of SPDY / HTTP2.
 ##
 ## c: The connection.
 ##
@@ -204,6 +297,8 @@ event ssl_dh_server_params%(c: connection, p: string, q: string, Ys: string%);
 ##    ssl_session_ticket_handshake ssl_extension
 ##    ssl_extension_elliptic_curves ssl_extension_ec_point_formats
 ##    ssl_extension_server_name ssl_extension_key_share
+##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
+##    ssl_extension_signed_certificate_timestamp
 event ssl_extension_application_layer_protocol_negotiation%(c: connection, is_orig: bool, protocols: string_vec%);
 
 ## Generated for an SSL/TLS Server Name extension. This SSL/TLS extension is
@@ -223,7 +318,75 @@ event ssl_extension_application_layer_protocol_negotiation%(c: connection, is_or
 ##    ssl_extension_elliptic_curves ssl_extension_ec_point_formats
 ##    ssl_extension_application_layer_protocol_negotiation
 ##    ssl_extension_key_share
+##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
+##    ssl_extension_signed_certificate_timestamp
 event ssl_extension_server_name%(c: connection, is_orig: bool, names: string_vec%);
+
+## Generated for the signed_certificate_timestamp TLS extension as defined in
+## :rfc:`6962`. The extension is used to transmit signed proofs that are
+## used for Certificate Transparency.
+##
+## c: The connection.
+##
+## is_orig: True if event is raised for originator side of the connection.
+##
+## version: the version of the protocol to which the SCT conforms. Always
+##          should be 0 (representing version 1)
+##
+## logid: 32 bit key id
+##
+## timestamp: the NTP Time when the entry was logged measured since
+##            the epoch, ignoring leap seconds, in milliseconds.
+##
+## signature_and_hashalgorithm: signature and hash algorithm used for the
+##                              digitally_signed struct
+##
+## signature: signature part of the digitally_signed struct
+##
+## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+##    ssl_session_ticket_handshake ssl_extension
+##    ssl_extension_elliptic_curves ssl_extension_ec_point_formats
+##    ssl_extension_server_name ssl_extension_key_share
+##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
+##    ssl_extension_application_layer_protocol_negotiation
+##    x509_ocsp_ext_signed_certificate_timestamp sct_verify
+event ssl_extension_signed_certificate_timestamp%(c: connection, is_orig: bool, version: count, logid: string, timestamp: count, signature_and_hashalgorithm: SSL::SignatureAndHashAlgorithm, signature: string%);
+
+## Generated for an TLS Supported Versions extension. This TLS extension
+## is defined in the TLS 1.3 rfc and sent by the client in the initial handshake.
+## It contains the TLS versions that it supports. This informaion can be used by
+## the server to choose the best TLS version o use.
+##
+## c: The connection.
+##
+## is_orig: True if event is raised for originator side of the connection.
+##
+## versions: List of supported TLS versions.
+##
+## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+##    ssl_session_ticket_handshake ssl_extension
+##    ssl_extension_elliptic_curves ssl_extension_ec_point_formats
+##    ssl_extension_application_layer_protocol_negotiation
+##    ssl_extension_key_share ssl_extension_server_name
+##    ssl_extension_psk_key_exchange_modes ssl_extension_signed_certificate_timestamp
+event ssl_extension_supported_versions%(c: connection, is_orig: bool, versions: index_vec%);
+
+## Generated for an TLS Pre-Shared Key Exchange Modes extension. This TLS extension is defined
+## in the TLS 1.3 rfc and sent by the client in the initial handshake. It contains the
+## list of Pre-Shared Key Exchange Modes that it supports.
+## c: The connection.
+##
+## is_orig: True if event is raised for originator side of the connection.
+##
+## versions: List of supported Pre-Shared Key Exchange Modes.
+##
+## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+##    ssl_session_ticket_handshake ssl_extension
+##    ssl_extension_elliptic_curves ssl_extension_ec_point_formats
+##    ssl_extension_application_layer_protocol_negotiation
+##    ssl_extension_key_share ssl_extension_server_name
+##    ssl_extension_supported_versions ssl_extension_signed_certificate_timestamp
+event ssl_extension_psk_key_exchange_modes%(c: connection, is_orig: bool, modes: index_vec%);
 
 ## Generated at the end of an SSL/TLS handshake. SSL/TLS sessions start with
 ## an unencrypted handshake, and Bro extracts as much information out of that

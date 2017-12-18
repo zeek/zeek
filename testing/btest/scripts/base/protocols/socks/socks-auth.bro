@@ -3,3 +3,9 @@
 # @TEST-EXEC: btest-diff tunnel.log
 
 @load base/protocols/socks
+
+redef SOCKS::default_capture_password = T;
+
+@TEST-START-NEXT
+
+@load base/protocols/socks

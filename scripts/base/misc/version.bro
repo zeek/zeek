@@ -86,5 +86,5 @@ export {
 
 function at_least(version_string: string): bool
 	{
-	return Version::parse(version_string)$version_number >= Version::number;
+	return Version::number >= Version::parse(version_string)$version_number;
 	}

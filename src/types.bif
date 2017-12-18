@@ -30,7 +30,7 @@ enum proc_t %{	# NFSv3 procedures
 	PROC_MKNOD    = 11,	# not implemented
 	PROC_REMOVE   = 12,	# done
 	PROC_RMDIR    = 13,	# done
-	PROC_RENAME   = 14,	# not implemented
+	PROC_RENAME   = 14,	# done
 	PROC_LINK     = 15,	# not implemented
 	PROC_READDIR  = 16,	# done
 	PROC_READDIRPLUS  = 17,	# done
@@ -101,6 +101,7 @@ enum createmode_t %{
 type info_t: record;
 type fattr_t: record;
 type diropargs_t: record;
+type renameopargs_t: record;
 type lookup_reply_t: record;
 type readargs_t: record;
 type read_reply_t: record;
@@ -110,6 +111,7 @@ type wcc_attr_t: record;
 type write_reply_t: record;
 type newobj_reply_t: record;
 type delobj_reply_t: record;
+type renameobj_reply_t: record;
 type readdirargs_t: record;
 type direntry_t: record;
 type direntry_vec_t: vector;

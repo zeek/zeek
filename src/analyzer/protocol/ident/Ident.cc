@@ -17,8 +17,8 @@ Ident_Analyzer::Ident_Analyzer(Connection* conn)
 	{
 	did_bad_reply = did_deliver = 0;
 
-	orig_ident = new tcp::ContentLine_Analyzer(conn, true);
-	resp_ident = new tcp::ContentLine_Analyzer(conn, false);
+	orig_ident = new tcp::ContentLine_Analyzer(conn, true, 1000);
+	resp_ident = new tcp::ContentLine_Analyzer(conn, false, 1000);
 
 	orig_ident->SetIsNULSensitive(true);
 	resp_ident->SetIsNULSensitive(true);

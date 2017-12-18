@@ -1,3 +1,4 @@
+# @TEST-SERIALIZE: comm
 # @TEST-EXEC: bro -b -X broxygen.config %INPUT
 # @TEST-EXEC: btest-diff test.rst
 

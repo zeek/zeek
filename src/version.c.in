@@ -1,1 +1,13 @@
+
+#include "bro-config.h"
+
 char version[] = "@VERSION@";
+
+// A C function that has the current version built into its name.
+// One can link a shared library against this to ensure that it won't
+// load if the version of the main Bro binary differs compared to
+// what the library was compiled against.
+const char* BRO_VERSION_FUNCTION()
+{
+    return "@VERSION_C_IDENT@";
+}

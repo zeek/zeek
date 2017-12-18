@@ -1,0 +1,12 @@
+0, Symantec log, 1474927230.876, 4, 3
+0, Google 'Rocketeer' log, 1474927232.863, 4, 3
+0, Google 'Aviator' log, 1474927232.112, 4, 3
+0, Google 'Pilot' log, 1474927232.304, 4, 3
+Verify of, Symantec log, T
+Bad verify of, Symantec log, F
+Verify of, Google 'Rocketeer' log, T
+Bad verify of, Google 'Rocketeer' log, F
+Verify of, Google 'Aviator' log, T
+Bad verify of, Google 'Aviator' log, F
+Verify of, Google 'Pilot' log, T
+Bad verify of, Google 'Pilot' log, F

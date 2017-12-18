@@ -1012,7 +1012,7 @@ FILE* open_file(const string& path, const string& mode)
 	if ( ! rval )
 		{
 		char buf[256];
-		strerror_r(errno, buf, sizeof(buf));
+		bro_strerror_r(errno, buf, sizeof(buf));
 		reporter->Error("Failed to open file %s: %s", filename, buf);
 		}
 
@@ -1396,9 +1396,13 @@ void _set_processing_status(const char* status)
 	if ( fd < 0 )
 		{
 		char buf[256];
-		strerror_r(errno, buf, sizeof(buf));
-		reporter->Error("Failed to open process status file '%s': %s",
-		                proc_status_file, buf);
+		bro_strerror_r(errno, buf, sizeof(buf));
+		if ( reporter )
+			reporter->Error("Failed to open process status file '%s': %s",
+			                proc_status_file, buf);
+		else
+			fprintf(stderr, "Failed to open process status file '%s': %s\n",
+			                proc_status_file, buf);
 		errno = old_errno;
 		return;
 		}
@@ -1612,7 +1616,7 @@ void safe_close(int fd)
 	if ( close(fd) < 0 && errno != EINTR )
 		{
 		char buf[128];
-		strerror_r(errno, buf, sizeof(buf));
+		bro_strerror_r(errno, buf, sizeof(buf));
 		fprintf(stderr, "safe_close error %d: %s\n", errno, buf);
 		abort();
 		}
@@ -1744,4 +1748,25 @@ std::string canonify_name(const std::string& name)
 		}
 
 	return nname;
+	}
+
+static void strerror_r_helper(char* result, char* buf, size_t buflen)
+	{
+	// Seems the GNU flavor of strerror_r may return a pointer to a static
+	// string. So try to copy as much as possible into desired buffer.
+	auto len = strlen(result);
+	strncpy(buf, result, buflen);
+
+	if ( len >= buflen )
+		buf[buflen - 1] = 0;
+	}
+
+static void strerror_r_helper(int result, char* buf, size_t buflen)
+	{ /* XSI flavor of strerror_r, no-op. */ }
+
+void bro_strerror_r(int bro_errno, char* buf, size_t buflen)
+	{
+	auto res = strerror_r(bro_errno, buf, buflen);
+	// GNU vs. XSI flavors make it harder to use strerror_r.
+	strerror_r_helper(res, buf, buflen);
 	}

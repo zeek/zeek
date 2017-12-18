@@ -37,6 +37,7 @@ protected:
 	EnumVal* nfs3_ftype(const u_char*& buf, int& n);
 	RecordVal* nfs3_wcc_attr(const u_char*& buf, int& n);
 	RecordVal* nfs3_diropargs(const u_char*&buf, int &n);
+	RecordVal* nfs3_renameopargs(const u_char*&buf, int &n);
 	StringVal* nfs3_filename(const u_char*& buf, int& n);
 	StringVal* nfs3_nfspath(const u_char*& buf, int& n)
 		{
@@ -54,6 +55,7 @@ protected:
 	RecordVal* nfs3_write_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status);
 	RecordVal* nfs3_newobj_reply(const u_char*& buf, int&n, BifEnum::NFS3::status_t status);
 	RecordVal* nfs3_delobj_reply(const u_char*& buf, int& n);
+	RecordVal* nfs3_renameobj_reply(const u_char*& buf, int& n);
 	StringVal* nfs3_post_op_fh(const u_char*& buf, int& n);
 	RecordVal* nfs3_readdirargs(bool isplus, const u_char*& buf, int&n);
 	RecordVal* nfs3_readdir_reply(bool isplus, const u_char*& buf, int&n, BifEnum::NFS3::status_t status);

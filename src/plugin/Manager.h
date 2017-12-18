@@ -237,7 +237,7 @@ public:
 	 * if a plugin took over the file but had trouble loading it; and -1 if
 	 * no plugin was interested in the file at all.
 	 */
-	virtual int HookLoadFile(const string& file);
+	virtual int HookLoadFile(const Plugin::LoadType type, const string& file, const string& resolved);
 
 	/**
 	 * Hook that filters calls to a script function/event/hook.
@@ -290,6 +290,103 @@ public:
 	 * called only for objects that a plugin has expressed interest in.
 	 */
 	void HookBroObjDtor(void* obj) const;
+
+	/**
+	 * Hook into log initialization. This method will be called when a
+	 * logging writer is created. A writer represents a single logging
+	 * filter. The method is called in the main thread, on the node that
+	 * causes a log line to be written. It will _not_ be called on the logger
+	 * node. The function will be called once for every instantiated writer.
+	 *
+	 * @param writer The name of the writer being instantiated.
+	 *
+	 * @param instantiating_filter Name of the filter causing the
+	 *        writer instantiation.
+	 *
+	 * @param local True if the filter is logging locally (writer
+	 *              thread will be located in same process).
+	 *
+	 * @param remote True if filter is logging remotely (writer thread
+	 *               will be located in different thread, typically
+	 *               in manager or logger node).
+	 *
+	 * @param info WriterBackend::WriterInfo with information about the writer.
+	 *
+	 * @param num_fields number of fields in the record being written.
+	 *
+	 * @param fields threading::Field description of the fields being logged.
+	 */
+	void HookLogInit(const std::string& writer,
+	                 const std::string& instantiating_filter,
+	                 bool local, bool remote,
+	                 const logging::WriterBackend::WriterInfo& info,
+	                 int num_fields,
+	                 const threading::Field* const* fields) const;
+
+	/**
+	 * Hook into log writing. This method will be called for each log line
+	 * being written by each writer. Each writer represents a single logging
+	 * filter. The method is called in the main thread, on the node that
+	 * causes a log line to be written. It will _not_ be called on the logger
+	 * node.
+	 * This function allows plugins to modify or skip logging of information.
+	 * Note - once a log line is skipped (by returning false), it will not
+	 * passed on to hooks that have not yet been called.
+	 *
+	 * @param writer The name of the writer.
+	 *
+	 * @param filter Name of the filter being written to.
+	 *
+	 * @param info WriterBackend::WriterInfo with information about the writer.
+	 *
+	 * @param num_fields number of fields in the record being written.
+	 *
+	 * @param fields threading::Field description of the fields being logged.
+	 *
+	 * @param vals threading::Values containing the values being written. Values
+	 *             can be modified in the Hook.
+	 *
+	 * @return true if log line should be written, false if log line should be
+	 *         skipped and not passed on to the writer.
+	 */
+	bool HookLogWrite(const std::string& writer,
+	                  const std::string& filter,
+	                  const logging::WriterBackend::WriterInfo& info,
+	                  int num_fields, const threading::Field* const* fields,
+	                  threading::Value** vals) const;
+
+	/**
+	 * Hook into reporting. This method will be called for each reporter call
+	 * made; this includes weirds. The method cannot manipulate the data at
+	 * the current time; however it is possible to prevent script-side events
+	 * from being called by returning false.
+	 *
+	 * @param prefix The prefix passed by the reporter framework
+	 *
+	 * @param event The event to be called
+	 *
+	 * @param conn The associated connection
+	 *
+	 * @param addl Additional Bro values; typically will be passed to the event
+	 *             by the reporter framework.
+	 *
+	 * @param location True if event expects location information
+	 *
+	 * @param location1 First location
+	 *
+	 * @param location2 Second location
+	 *
+	 * @param time True if event expects time information
+	 *
+	 * @param message Message supplied by the reporter framework
+	 *
+	 * @return true if event should be called by the reporter framework, false
+	 *         if the event call should be skipped
+	 */
+	bool HookReporter(const std::string& prefix, const EventHandlerPtr event,
+	                  const Connection* conn, const val_list* addl, bool location,
+	                  const Location* location1, const Location* location2,
+	                  bool time, const std::string& message);
 
 	/**
 	 * Internal method that registers a freshly instantiated plugin with

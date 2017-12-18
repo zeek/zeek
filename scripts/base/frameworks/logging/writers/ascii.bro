@@ -26,6 +26,13 @@ export {
 	## This option is also available as a per-filter ``$config`` option.
 	const use_json = F &redef;
 
+	## Define the gzip level to compress the logs.  If 0, then no gzip
+	## compression is performed. Enabling compression also changes
+	## the log file name extension to include ".gz".
+	##
+	## This option is also available as a per-filter ``$config`` option.
+	const gzip_level = 0 &redef;
+
 	## Format of timestamps when writing out JSON. By default, the JSON
 	## formatter will use double values for timestamps which represent the
 	## number of seconds from the UNIX epoch.
@@ -72,9 +79,12 @@ export {
 # runs the writer's default postprocessor command on it.
 function default_rotation_postprocessor_func(info: Log::RotationInfo) : bool
 	{
+	# If the filename has a ".gz" extension, then keep it.
+	local gz = info$fname[-3:] == ".gz" ? ".gz" : "";
+
 	# Move file to name including both opening and closing time.
-	local dst = fmt("%s.%s.log", info$path,
-			strftime(Log::default_rotation_date_format, info$open));
+	local dst = fmt("%s.%s.log%s", info$path,
+			strftime(Log::default_rotation_date_format, info$open), gz);
 
 	system(fmt("/bin/mv %s %s", info$fname, dst));
 

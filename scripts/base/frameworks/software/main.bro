@@ -70,10 +70,6 @@ export {
 	## Choices are: LOCAL_HOSTS, REMOTE_HOSTS, ALL_HOSTS, NO_HOSTS.
 	const asset_tracking = LOCAL_HOSTS &redef;
 
-	## The broker topic name to which updates to :bro:see:`Software::tracked`
-	## are relayed.
-	const tracking_update_topic = "bro/software/tracking_update" &redef;
-	
 	## Other scripts should call this function when they detect software.
 	##
 	## id: The connection id where the software was discovered.
@@ -108,7 +104,8 @@ export {
 	
 	## The set of software associated with an address.  Data expires from
 	## this table after one day by default so that a detected piece of 
-	## software will be logged once each day.
+	## software will be logged once each day.  In a cluster, this table is
+	## uniformly distributed among proxy nodes.
 	global tracked: table[addr] of SoftwareSet &create_expire=1day;
 	
 	## This event can be handled to access the :bro:type:`Software::Info`
@@ -122,11 +119,6 @@ export {
 
 event bro_init() &priority=5
 	{
-	local lnt = Cluster::local_node_type();
-
-	if ( lnt == Cluster::WORKER || lnt == Cluster::MANAGER )
-		Broker::subscribe(tracking_update_topic);
-
 	Log::create_stream(Software::LOG, [$columns=Info, $ev=log_software, $path="software"]);
 	}
 	
@@ -449,8 +441,16 @@ function software_fmt(i: Info): string
 	return fmt("%s %s", i$name, software_fmt_version(i$version));
 	}
 
-event software_tracking_update(info: Info)
+event software_register(info: Info)
 	{
+	if ( ! info?$version )
+		{
+		local sw = parse(info$unparsed_version);
+		info$unparsed_version = sw$unparsed_version;
+		info$name = sw$name;
+		info$version = sw$version;
+		}
+
 	local ts: SoftwareSet;
 
 	if ( info$host in tracked )
@@ -458,18 +458,6 @@ event software_tracking_update(info: Info)
 	else
 		ts = tracked[info$host] = SoftwareSet();
 
-	ts[info$name] = info;
-	}
-
-# Insert a mapping into the table
-# Overides old entries for the same software and generates events if needed.
-event register(id: conn_id, info: Info)
-	{
-	# Host already known?
-	if ( info$host !in tracked )
-		tracked[info$host] = table();
-
-	local ts = tracked[info$host];
 	# Software already registered for this host?  We don't want to endlessly
 	# log the same thing.
 	if ( info$name in ts )
@@ -485,44 +473,38 @@ event register(id: conn_id, info: Info)
 			return;
 		}
 
-	Cluster::relay_rr(Cluster::proxy_pool, tracking_update_topic,
-					  tracking_update_topic, software_tracking_update, info);
-
 	ts[info$name] = info;
 	Log::write(Software::LOG, info);
 	}
 
 function found(id: conn_id, info: Info): bool
 	{
-	if ( info$force_log || addr_matches_host(info$host, asset_tracking) )
-		{
-		if ( !info?$ts ) 
-			info$ts=network_time();
-		
-		if ( info?$version ) # we have a version number and don't have to parse. check if the name is also set...
-			{
-				if ( ! info?$name ) 
-					{
-					Reporter::error("Required field name not present in Software::found");
-					return F;
-					}
-			}
-		else  # no version present, we have to parse...
-			{
-			if ( !info?$unparsed_version ) 
-				{
-				Reporter::error("No unparsed version string present in Info record with version in Software::found");
-				return F;
-				}
-			local sw = parse(info$unparsed_version);
-			info$unparsed_version = sw$unparsed_version;
-			info$name = sw$name;
-			info$version = sw$version;
-			}
-		
-		event register(id, info);
-		return T;
-		}
-	else
+	if ( ! info$force_log && ! addr_matches_host(info$host, asset_tracking) )
 		return F;
+
+	if ( ! info?$ts ) 
+		info$ts = network_time();
+
+	if ( info?$version )
+		{
+		if ( ! info?$name )
+			{
+			Reporter::error("Required field name not present in Software::found");
+			return F;
+			}
+		}
+	else if ( ! info?$unparsed_version )
+		{
+		Reporter::error("No unparsed version string present in Info record with version in Software::found");
+		return F;
+		}
+
+	@if ( Cluster::is_enabled() )
+		Cluster::publish_hrw(Cluster::proxy_pool, info$host, software_register,
+		                     info);
+	@else
+		event software_register(info);
+	@endif
+
+	return T;
 	}

@@ -6,6 +6,7 @@
 
 @load base/utils/directions-and-hosts
 @load base/utils/numbers
+@load base/frameworks/cluster
 
 module Software;
 
@@ -68,6 +69,10 @@ export {
 	## Hosts whose software should be detected and tracked.
 	## Choices are: LOCAL_HOSTS, REMOTE_HOSTS, ALL_HOSTS, NO_HOSTS.
 	const asset_tracking = LOCAL_HOSTS &redef;
+
+	## The broker topic name to which updates to :bro:see:`Software::tracked`
+	## are relayed.
+	const tracking_update_topic = "bro/software/tracking_update" &redef;
 	
 	## Other scripts should call this function when they detect software.
 	##
@@ -104,10 +109,7 @@ export {
 	## The set of software associated with an address.  Data expires from
 	## this table after one day by default so that a detected piece of 
 	## software will be logged once each day.
-	global tracked: table[addr] of SoftwareSet 
-		&create_expire=1day 
-		&synchronized
-		&redef;
+	global tracked: table[addr] of SoftwareSet &create_expire=1day;
 	
 	## This event can be handled to access the :bro:type:`Software::Info`
 	## record as it is sent on to the logging framework.
@@ -120,6 +122,11 @@ export {
 
 event bro_init() &priority=5
 	{
+	local lnt = Cluster::local_node_type();
+
+	if ( lnt == Cluster::WORKER || lnt == Cluster::MANAGER )
+		Broker::subscribe(tracking_update_topic);
+
 	Log::create_stream(Software::LOG, [$columns=Info, $ev=log_software, $path="software"]);
 	}
 	
@@ -442,6 +449,18 @@ function software_fmt(i: Info): string
 	return fmt("%s %s", i$name, software_fmt_version(i$version));
 	}
 
+event software_tracking_update(info: Info)
+	{
+	local ts: SoftwareSet;
+
+	if ( info$host in tracked )
+		ts = tracked[info$host];
+	else
+		ts = tracked[info$host] = SoftwareSet();
+
+	ts[info$name] = info;
+	}
+
 # Insert a mapping into the table
 # Overides old entries for the same software and generates events if needed.
 event register(id: conn_id, info: Info)
@@ -465,6 +484,9 @@ event register(id: conn_id, info: Info)
 			# same thing, then we don't care. 
 			return;
 		}
+
+	Cluster::relay_rr(Cluster::proxy_pool, tracking_update_topic,
+					  tracking_update_topic, software_tracking_update, info);
 
 	ts[info$name] = info;
 	Log::write(Software::LOG, info);

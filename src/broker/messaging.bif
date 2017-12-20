@@ -402,7 +402,7 @@ function Cluster::publish_hrw%(pool: Pool, key: any, ...%): bool
 ##       be called as part of executing this function.
 ##
 ## Returns: true if the message is sent.
-function Cluster::relay_hrw%(pool: Pool, key: string, ...%): bool
+function Cluster::relay_hrw%(pool: Pool, key: any, ...%): bool
 	%{
 	val_list* bif_args = @ARGS@;
 

@@ -179,8 +179,7 @@ function rr_topic(pool: Pool, key: string): string
 	local rval = "";
 
 	if ( next_idx >= |pool$node_list| )
-		return rval;;
-
+		return rval;
 
 	while ( T )
 		{

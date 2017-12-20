@@ -11,6 +11,7 @@
 
 @load ./main
 @load base/utils/files
+@load base/frameworks/cluster
 
 module IRC;
 
@@ -23,9 +24,33 @@ export {
 		## Sniffed mime type of the file.
 		dcc_mime_type:         string &log &optional;
 	};
+
+	## The broker topic name to which expected DCC transfer updates are
+	## relayed.
+	const dcc_transfer_update_topic = "bro/irc/dcc_transfer_update" &redef;
 }
 
-global dcc_expected_transfers: table[addr, port] of Info &synchronized &read_expire=5mins;
+global dcc_expected_transfers: table[addr, port] of Info &read_expire=5mins;
+
+event dcc_transfer_add(host: addr, p: port, info: Info)
+	{
+	dcc_expected_transfers[host, p] = info;
+	Analyzer::schedule_analyzer(0.0.0.0, host, p,
+	                            Analyzer::ANALYZER_IRC_DATA, 5 min);
+	}
+
+event dcc_transfer_remove(host: addr, p: port)
+	{
+	delete dcc_expected_transfers[host, p];
+	}
+
+event bro_init()
+	{
+	local lnt = Cluster::local_node_type();
+
+	if ( lnt == Cluster::WORKER )
+		Broker::subscribe(dcc_transfer_update_topic);
+	}
 
 function log_dcc(f: fa_file)
 	{
@@ -51,6 +76,9 @@ function log_dcc(f: fa_file)
 		delete irc$dcc_mime_type;
 
 		delete dcc_expected_transfers[cid$resp_h, cid$resp_p];
+		Cluster::relay_rr(Cluster::proxy_pool, dcc_transfer_update_topic,
+		                  dcc_transfer_update_topic, dcc_transfer_remove,
+		                  cid$resp_h, cid$resp_p);
 		return;
 		}
 	}
@@ -74,6 +102,9 @@ event irc_dcc_message(c: connection, is_orig: bool,
 	local p = count_to_port(dest_port, tcp);
 	Analyzer::schedule_analyzer(0.0.0.0, address, p, Analyzer::ANALYZER_IRC_DATA, 5 min);
 	dcc_expected_transfers[address, p] = c$irc;
+	Cluster::relay_rr(Cluster::proxy_pool, dcc_transfer_update_topic,
+	                  dcc_transfer_update_topic, dcc_transfer_add,
+	                  address, p, c$irc);
 	}
 
 event scheduled_analyzer_applied(c: connection, a: Analyzer::Tag) &priority=10
@@ -86,5 +117,10 @@ event scheduled_analyzer_applied(c: connection, a: Analyzer::Tag) &priority=10
 event connection_state_remove(c: connection) &priority=-5
 	{
 	if ( [c$id$resp_h, c$id$resp_p] in dcc_expected_transfers )
+		{
 		delete dcc_expected_transfers[c$id$resp_h, c$id$resp_p];
+		Cluster::relay_rr(Cluster::proxy_pool, dcc_transfer_update_topic,
+		                  dcc_transfer_update_topic, dcc_transfer_remove,
+		                  c$id$resp_h, c$id$resp_p);
+		}
 	}

@@ -9,6 +9,8 @@
 ##!     supplied with information from elsewhere, such as
 ##!     :doc:`/scripts/policy/protocols/dhcp/known-devices-and-hostnames.bro`.
 
+@load base/frameworks/cluster
+
 module Known;
 
 export {
@@ -29,12 +31,41 @@ export {
 	##
 	## We maintain each entry for 24 hours by default so that the existence
 	## of individual addresses is logged each day.
-	global known_devices: set[string] &create_expire=1day &synchronized &redef;
+	##
+	## In cluster operation, this set is distributed uniformly across
+	## data nodes.
+	global known_devices: set[string] &create_expire=1day &redef;
 
 	## An event that can be handled to access the :bro:type:`Known::DevicesInfo`
 	## record as it is sent on to the logging framework.
 	global log_known_devices: event(rec: DevicesInfo);
+
+	## Call this whenever a device is detected and
+	## :bro:see:`Known::known_devices` will be updated and a log entry
+	## generated, if necessary.
+	##
+	## info: the device information to be logged
+	global device_found: function(info: DevicesInfo);
 }
+
+event known_device_add(info: DevicesInfo)
+	{
+	if ( info$mac in known_devices )
+		return;
+
+	add known_devices[info$mac];
+	Log::write(Known::DEVICES_LOG, info);
+	}
+
+function device_found(info: DevicesInfo)
+	{
+@if ( Cluster::is_enabled() )
+	Cluster::publish_hrw(Cluster::proxy_pool, info$mac, known_device_add,
+	                     info);
+@else
+	event known_device_add(info);
+@endif
+	}
 
 event bro_init()
 	{

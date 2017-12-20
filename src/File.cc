@@ -318,7 +318,6 @@ FILE* BroFile::BringIntoCache()
 		return 0;
 		}
 
-	RaiseOpenEvent();
 	UpdateFileSize();
 
 	if ( fseek(f, position, SEEK_SET) < 0 )
@@ -329,6 +328,9 @@ FILE* BroFile::BringIntoCache()
 
 	InsertAtBeginning();
 
+	// Do last to make methid reentrant in case execution comes back here
+	// through the event.
+	RaiseOpenEvent();
 	return f;
 	}
 
@@ -815,14 +817,23 @@ int BroFile::Write(const char* data, int len)
 
 void BroFile::RaiseOpenEvent()
 	{
+	static int in_raise_open_event = 0;
+
+	if ( in_raise_open_event )
+		return;
+
 	if ( ! ::file_opened )
 		return;
+
+	++in_raise_open_event;
 
 	val_list* vl = new val_list;
 	Ref(this);
 	vl->append(new Val(this));
 	Event* event = new ::Event(::file_opened, vl);
 	mgr.Dispatch(event, true);
+
+	--in_raise_open_event;
 	}
 
 void BroFile::UpdateFileSize()

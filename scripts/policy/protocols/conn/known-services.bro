@@ -4,6 +4,7 @@
 ##! during the session, the protocol will also be logged.
 
 @load base/utils/directions-and-hosts
+@load base/frameworks/cluster
 
 module Known;
 
@@ -33,7 +34,12 @@ export {
 	## Tracks the set of daily-detected services for preventing the logging
 	## of duplicates, but can also be inspected by other scripts for
 	## different purposes.
-	global known_services: set[addr, port] &create_expire=1day &synchronized;
+	##
+	## In cluster operation, this set is uniformly distributed across
+	## proxy nodes.
+	##
+	## This set is automatically populated and shouldn't be directly modified.
+	global services: set[addr, port] &create_expire=1day;
 
 	## Event that can be handled to access the :bro:type:`Known::ServicesInfo`
 	## record as it is sent on to the logging framework.
@@ -52,40 +58,57 @@ event bro_init() &priority=5
 	                                         $ev=log_known_services,
 	                                         $path="known_services"]);
 	}
-	
-event log_it(ts: time, a: addr, p: port, services: set[string])
+
+event known_service_add(info: ServicesInfo)
 	{
-	if ( [a, p] !in known_services )
-		{
-		add known_services[a, p];
-	
-		local i: ServicesInfo;
-		i$ts=ts;
-		i$host=a;
-		i$port_num=p;
-		i$port_proto=get_port_transport_proto(p);
-		i$service=services;
-		Log::write(Known::SERVICES_LOG, i);
-		}
+	if ( [info$host, info$port_num] in Known::services )
+		return;
+
+	add Known::services[info$host, info$port_num];
+	Log::write(Known::SERVICES_LOG, info);
 	}
-	
+
+event service_info_commit(info: ServicesInfo)
+	{
+	@if ( Cluster::is_enabled() )
+		local key = cat(info$host, info$port_num);
+		Cluster::publish_hrw(Cluster::proxy_pool, key, known_service_add,
+		                     info);
+	@else
+		event known_service_add(info);
+	@endif
+	}
+
 function known_services_done(c: connection)
 	{
 	local id = c$id;
 	c$known_services_done = T;
-	
-	if ( ! addr_matches_host(id$resp_h, service_tracking) ||
-	     "ftp-data" in c$service || # don't include ftp data sessions
-	     ("DNS" in c$service && c$resp$size == 0) ) # for dns, require that the server talks.
+
+	if ( ! addr_matches_host(id$resp_h, service_tracking) )
 		return;
-	
-	# If no protocol was detected, wait a short
-	# time before attempting to log in case a protocol is detected
-	# on another connection.
+
+	if ( |c$service| == 1 )
+		{
+		if ( "ftp-data" in c$service )
+			# Don't include ftp data sessions.
+			return;
+
+		if ( "DNS" in c$service && c$resp$size == 0 )
+			# For dns, require that the server talks.
+			return;
+		}
+
+	local info = ServicesInfo($ts = network_time(), $host = id$resp_h,
+	                          $port_num = id$resp_p,
+	                          $port_proto = get_port_transport_proto(id$resp_p),
+	                          $service = c$service);
+
+	# If no protocol was detected, wait a short time before attempting to log
+	# in case a protocol is detected on another connection.
 	if ( |c$service| == 0 )
-		schedule 5min { log_it(network_time(), id$resp_h, id$resp_p, c$service) };
+		schedule 5min { service_info_commit(info) };
 	else 
-		event log_it(network_time(), id$resp_h, id$resp_p, c$service);
+		event service_info_commit(info);
 	}
 	
 event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &priority=-5
@@ -96,6 +119,11 @@ event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &pr
 # Handle the connection ending in case no protocol was ever detected.
 event connection_state_remove(c: connection) &priority=-5
 	{
-	if ( ! c$known_services_done && c$resp$state == TCP_ESTABLISHED )
-		known_services_done(c);
+	if ( c$known_services_done )
+		return;
+
+	if ( c$resp$state != TCP_ESTABLISHED )
+		return;
+
+	known_services_done(c);
 	}

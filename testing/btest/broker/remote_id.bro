@@ -1,4 +1,4 @@
-# @TEST-SERIALIZE: brokercomm
+# @TEST-SERIALIZE: comm
 #
 # @TEST-EXEC: btest-bg-run recv "bro -B broker -b ../recv.bro >recv.out"
 # @TEST-EXEC: btest-bg-run send "bro -B broker -b ../send.bro test_var=newval >send.out"

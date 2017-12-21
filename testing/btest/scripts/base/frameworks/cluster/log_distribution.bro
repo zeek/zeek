@@ -1,4 +1,4 @@
-# @TEST-SERIALIZE: brokercomm
+# @TEST-SERIALIZE: comm
 #
 # @TEST-EXEC: btest-bg-run logger-1 BROPATH=$BROPATH:.. CLUSTER_NODE=logger-1 bro %INPUT
 # @TEST-EXEC: btest-bg-run logger-2 BROPATH=$BROPATH:.. CLUSTER_NODE=logger-2 bro %INPUT

@@ -12,9 +12,6 @@
 module Cluster;
 
 export {
-	## Whether the cluster framework uses broker to perform remote communication.
-	const use_broker = T &redef;
-
 	## Whether to distribute log messages among available logging nodes.
 	const enable_round_robin_logging = T &redef;
 
@@ -318,28 +315,6 @@ function node_topic(name: string): string
 	return node_topic_prefix + name;
 	}
 
-event remote_connection_handshake_done(p: event_peer) &priority=5
-	{
-	if ( p$descr in nodes && nodes[p$descr]$node_type == WORKER )
-		{
-		if ( use_broker )
-			Reporter::error(fmt("broker-enabled cluster using old comms: '%s' ", node));
-		else
-			++worker_count;
-		}
-	}
-
-event remote_connection_closed(p: event_peer) &priority=5
-	{
-	if ( p$descr in nodes && nodes[p$descr]$node_type == WORKER )
-		{
-		if ( use_broker )
-			Reporter::error(fmt("broker-enabled cluster using old comms: '%s' ", node));
-		else
-			--worker_count;
-		}
-	}
-
 event Cluster::hello(name: string, id: string) &priority=10
 	{
 	if ( name !in nodes )
@@ -385,9 +360,6 @@ event Cluster::hello(name: string, id: string) &priority=10
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string) &priority=10
 	{
-	if ( ! use_broker )
-		return;
-
 	if ( ! Cluster::is_enabled() )
 		return;
 
@@ -397,9 +369,6 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string) &priority=
 
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string) &priority=10
 	{
-	if ( ! use_broker )
-		return;
-
 	for ( node_name in nodes )
 		{
 		local n = nodes[node_name];

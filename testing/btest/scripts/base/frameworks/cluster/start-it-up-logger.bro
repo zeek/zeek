@@ -1,4 +1,4 @@
-# @TEST-SERIALIZE: brokercomm
+# @TEST-SERIALIZE: comm
 #
 # @TEST-EXEC: btest-bg-run logger-1  CLUSTER_NODE=logger-1 BROPATH=$BROPATH:.. bro %INPUT
 # @TEST-EXEC: sleep 1
@@ -42,12 +42,7 @@ event fully_connected()
 	if ( Cluster::node == "logger-1" )
 		{
 		if ( peer_count == 5 && fully_connected_nodes == 5 )
-			{
-			if ( Cluster::use_broker )
-				terminate();
-			else
-				terminate_communication();
-			}
+			terminate();
 		}
 	}
 
@@ -68,12 +63,7 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	if ( Cluster::node == "logger-1" )
 		{
 		if ( peer_count == 5 && fully_connected_nodes == 5 )
-			{
-			if ( Cluster::use_broker )
-				terminate();
-			else
-				terminate_communication();
-			}
+			terminate();
 		}
 	else if ( Cluster::node == "manager-1" )
 		{
@@ -88,32 +78,6 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	}
 
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
-	{
-	terminate();
-	}
-
-event remote_connection_handshake_done(p: event_peer)
-	{
-	print "Connected to a peer";
-	++peer_count;
-	if ( Cluster::node == "logger-1" )
-		{
-		if ( peer_count == 5 && fully_connected_nodes == 5 )
-			terminate_communication();
-		}
-	else if ( Cluster::node == "manager-1" )
-		{
-		if ( peer_count == 5 )
-			event fully_connected();
-		}
-	else
-		{
-		if ( peer_count == 3 )
-			event fully_connected();
-		}
-	}
-
-event remote_connection_closed(p: event_peer)
 	{
 	terminate();
 	}

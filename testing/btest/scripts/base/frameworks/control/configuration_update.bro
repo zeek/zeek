@@ -1,4 +1,4 @@
-# @TEST-SERIALIZE: brokercomm
+# @TEST-SERIALIZE: comm
 #
 # @TEST-EXEC: btest-bg-run controllee  BROPATH=$BROPATH:.. bro %INPUT frameworks/control/controllee Communication::listen_port=65531/tcp Broker::default_port=65531/tcp
 # @TEST-EXEC: sleep 5

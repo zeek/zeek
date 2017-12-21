@@ -21,14 +21,10 @@ redef enum Notice::Type += {
 	Test_Notice,
 };
 
-event remote_connection_closed(p: event_peer)
+event Cluster::node_down(name: string, id: string)
 	{
 	terminate();
 	}
-
-global ready: event();
-
-redef Cluster::manager2worker_events += /ready/;
 
 event delayed_notice()
 	{
@@ -36,29 +32,26 @@ event delayed_notice()
 		NOTICE([$note=Test_Notice, $msg="test notice!"]);
 	}
 
-@if ( Cluster::local_node_type() == Cluster::WORKER )
-
 event ready()
 	{
 	schedule 1secs { delayed_notice() };
 	}
 
-@endif
-
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
 
 global peer_count = 0;
 
-event remote_connection_handshake_done(p: event_peer)
+event Cluster::node_up(name: string, id: string)
 	{
 	peer_count = peer_count + 1;
+
 	if ( peer_count == 2 )
-		event ready();
+		Broker::publish(Cluster::worker_topic, ready);
 	}
 
 event Notice::log_notice(rec: Notice::Info)
 	{
-	terminate_communication();
+	terminate();
 	}
 
 @endif

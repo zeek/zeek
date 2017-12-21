@@ -1,4 +1,4 @@
-# @TEST-SERIALIZE: brokercomm
+# @TEST-SERIALIZE: comm
 #
 # @TEST-EXEC: btest-bg-run three "bro -B broker -b ../three.bro >three.out"
 # @TEST-EXEC: btest-bg-run two "bro -B broker -b ../two.bro >two.out"

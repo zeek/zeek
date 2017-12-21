@@ -1,4 +1,4 @@
-# @TEST-SERIALIZE: brokercomm
+# @TEST-SERIALIZE: comm
 #
 # @TEST-EXEC: btest-bg-run clone "bro -B broker -b  ../clone-main.bro >clone.out"
 # @TEST-EXEC: btest-bg-run master "bro -B broker -b  ../master-main.bro >master.out"

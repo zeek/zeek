@@ -7,6 +7,10 @@
 # Give the node being started up it's peer name.
 redef peer_description = Cluster::node;
 
+@if ( Cluster::enable_round_robin_logging )
+redef Broker::log_topic = Cluster::rr_log_topic;
+@endif
+
 # Add a cluster prefix.
 @prefixes += cluster
 

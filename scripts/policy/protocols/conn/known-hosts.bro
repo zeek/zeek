@@ -4,6 +4,7 @@
 ##! use on a network per day.
 
 @load base/utils/directions-and-hosts
+@load base/frameworks/cluster
 
 module Known;
 
@@ -29,12 +30,34 @@ export {
 	## inspect if an address has been seen in use.
 	## Maintain the list of known hosts for 24 hours so that the existence
 	## of each individual address is logged each day.
-	global known_hosts: set[addr] &create_expire=1day &synchronized &redef;
+	##
+	## In cluster operation, this set is distributed uniformly across
+	## proxy nodes.
+	global hosts: set[addr] &create_expire=1day &redef;
 
 	## An event that can be handled to access the :bro:type:`Known::HostsInfo`
 	## record as it is sent on to the logging framework.
 	global log_known_hosts: event(rec: HostsInfo);
 }
+
+event known_host_add(info: HostsInfo)
+	{
+	if ( info$host in Known::hosts )
+		return;
+
+	add Known::hosts[info$host];
+	Log::write(Known::HOSTS_LOG, info);
+	}
+
+function host_found(info: HostsInfo)
+	{
+	@if ( Cluster::is_enabled() )
+		Cluster::publish_hrw(Cluster::proxy_pool, info$host, known_host_add,
+		                     info);
+	@else
+		event known_host_add(info);
+	@endif
+	}
 
 event bro_init()
 	{
@@ -43,17 +66,15 @@ event bro_init()
 
 event connection_established(c: connection) &priority=5
 	{
+	if ( c$orig$state != TCP_ESTABLISHED )
+		return;
+
+	if ( c$resp$state != TCP_ESTABLISHED )
+		return;
+
 	local id = c$id;
-	
+
 	for ( host in set(id$orig_h, id$resp_h) )
-		{
-		if ( host !in known_hosts && 
-		     c$orig$state == TCP_ESTABLISHED &&
-		     c$resp$state == TCP_ESTABLISHED &&
-		     addr_matches_host(host, host_tracking) )
-			{
-			add known_hosts[host];
-			Log::write(Known::HOSTS_LOG, [$ts=network_time(), $host=host]);
-			}
-		}
+		if ( addr_matches_host(host, host_tracking) )
+			Known::host_found([$ts = network_time(), $host = host]);
 	}

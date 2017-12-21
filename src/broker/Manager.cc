@@ -804,8 +804,8 @@ void Manager::ProcessEvent(broker::bro::Event ev)
 	auto arg_types = handler->FType()->ArgTypes()->Types();
 	if ( static_cast<size_t>(arg_types->length()) != args.size() )
 		{
-		reporter->Warning("got event message with invalid # of args,"
-				  " got %zd, expected %d", args.size(),
+		reporter->Warning("got event message '%s' with invalid # of args,"
+				  " got %zd, expected %d", ev.name().data(), args.size(),
 				  arg_types->length());
 		return;
 		}

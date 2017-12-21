@@ -102,8 +102,19 @@ void EventHandler::Call(val_list* vl, bool no_remote)
 
 			if ( valid_args )
 				{
-				for ( auto& topic : auto_publish )
-					broker_mgr->PublishEvent(topic, Name(), std::move(xs));
+				for ( auto it = auto_publish.begin(); ; )
+					{
+					const auto& topic = *it;
+					++it;
+
+					if ( it != auto_publish.end() )
+						broker_mgr->PublishEvent(topic, Name(), xs);
+					else
+						{
+						broker_mgr->PublishEvent(topic, Name(), std::move(xs));
+						break;
+						}
+					}
 				}
 			}
 		}

@@ -34,34 +34,7 @@ protected:
 
 	// This method is protected to make sure that everybody goes through
 	// EventMgr::Dispatch().
-	void Dispatch(bool no_remote = false)
-		{
-		if ( event_serializer )
-			{
-			SerialInfo info(event_serializer);
-			event_serializer->Serialize(&info, handler->Name(), args);
-			}
-
-		if ( handler->ErrorHandler() )
-			reporter->BeginErrorHandler();
-
-		try
-			{
-			handler->Call(args, no_remote);
-			}
-
-		catch ( InterpreterException& e )
-			{
-			// Already reported.
-			}
-
-		if ( obj )
-			// obj->EventDone();
-			Unref(obj);
-
-		if ( handler->ErrorHandler() )
-			reporter->EndErrorHandler();
-		}
+	void Dispatch(bool no_remote = false);
 
 	EventHandlerPtr handler;
 	val_list* args;

@@ -48,7 +48,8 @@ std::set<std::string> val_to_topic_set(Val* val)
 	return rval;
 	}
 
-static bool publish_event_args(val_list& args, const BroString* topic)
+static bool publish_event_args(val_list& args, const BroString* topic,
+                               Frame* frame)
 	{
 	auto rval = false;
 
@@ -57,7 +58,7 @@ static bool publish_event_args(val_list& args, const BroString* topic)
 		                                args[0]->AsRecordVal());
 	else
 		{
-		auto ev = broker_mgr->MakeEvent(&args);
+		auto ev = broker_mgr->MakeEvent(&args, frame);
 		rval = broker_mgr->PublishEvent(topic->CheckString(), ev);
 		Unref(ev);
 		}
@@ -66,7 +67,7 @@ static bool publish_event_args(val_list& args, const BroString* topic)
 	}
 
 static bool relay_event_args(val_list& args, const BroString* topic,
-                             std::set<std::string> topic_set)
+                             std::set<std::string> topic_set, Frame* frame)
 	{
 	auto rval = false;
 
@@ -76,7 +77,7 @@ static bool relay_event_args(val_list& args, const BroString* topic,
 		                              args[0]->AsRecordVal());
 	else
 		{
-		auto ev = broker_mgr->MakeEvent(&args);
+		auto ev = broker_mgr->MakeEvent(&args, frame);
 		rval = broker_mgr->RelayEvent(topic->CheckString(),
 									  std::move(topic_set),
 									  ev);
@@ -102,7 +103,7 @@ type Broker::Event: record;
 ##          event.
 function Broker::make_event%(...%): Broker::Event
 	%{
-	auto rval = broker_mgr->MakeEvent(@ARGS@);
+	auto rval = broker_mgr->MakeEvent(@ARGS@, frame);
 	return rval;
 	%}
 
@@ -123,7 +124,7 @@ function Broker::publish%(topic: string, ...%): bool
 	for ( auto i = 1u; i < bif_args->length(); ++i )
 		args.append((*bif_args)[i]);
 
-	auto rval = publish_event_args(args, topic->AsString());
+	auto rval = publish_event_args(args, topic->AsString(), frame);
 	return new Val(rval, TYPE_BOOL);
 	%}
 
@@ -179,7 +180,7 @@ function Broker::relay%(first_topic: string, ...%): bool
 	                                  args[0]->AsRecordVal());
 	else
 		{
-		auto ev = broker_mgr->MakeEvent(&args);
+		auto ev = broker_mgr->MakeEvent(&args, frame);
 		rval = broker_mgr->RelayEvent(first_topic->CheckString(),
 									  std::move(topic_set), ev);
 		Unref(ev);
@@ -261,7 +262,7 @@ function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
 	for ( auto i = 2u; i < bif_args->length(); ++i )
 		args.append((*bif_args)[i]);
 
-	auto rval = publish_event_args(args, topic->AsString());
+	auto rval = publish_event_args(args, topic->AsString(), frame);
 	Unref(topic);
 	return new Val(rval, TYPE_BOOL);
 	%}
@@ -336,7 +337,8 @@ function Cluster::relay_rr%(pool: Pool, key: any, ...%): bool
 	for ( auto i = 3u; i < bif_args->length(); ++i )
 		args.append((*bif_args)[i]);
 
-	auto rval = relay_event_args(args, topic->AsString(), std::move(topic_set));
+	auto rval = relay_event_args(args, topic->AsString(), std::move(topic_set),
+	                             frame);
 	Unref(topic);
 	return new Val(rval, TYPE_BOOL);
 	%}
@@ -378,7 +380,7 @@ function Cluster::publish_hrw%(pool: Pool, key: any, ...%): bool
 	for ( auto i = 2u; i < bif_args->length(); ++i )
 		args.append((*bif_args)[i]);
 
-	auto rval = publish_event_args(args, topic->AsString());
+	auto rval = publish_event_args(args, topic->AsString(), frame);
 	Unref(topic);
 	return new Val(rval, TYPE_BOOL);
 	%}
@@ -451,7 +453,8 @@ function Cluster::relay_hrw%(pool: Pool, key: any, ...%): bool
 	for ( auto i = 3u; i < bif_args->length(); ++i )
 		args.append((*bif_args)[i]);
 
-	auto rval = relay_event_args(args, topic->AsString(), std::move(topic_set));
+	auto rval = relay_event_args(args, topic->AsString(), std::move(topic_set),
+	                             frame);
 	Unref(topic);
 	return new Val(rval, TYPE_BOOL);
 	%}

@@ -45,6 +45,18 @@ struct unref_guard {
 	Val* val;
 };
 
+struct scoped_reporter_location {
+	scoped_reporter_location(Frame* frame)
+		{
+		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
+		}
+
+	~scoped_reporter_location()
+		{
+		reporter->PopLocation();
+		}
+};
+
 #ifdef DEBUG
 static std::string RenderMessage(std::string topic, broker::data x)
 	{
@@ -580,12 +592,13 @@ bool Manager::AutoUnpublishEvent(const string& topic, Val* event)
 	return true;
 	}
 
-RecordVal* Manager::MakeEvent(val_list* args)
+RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 	{
 	auto rval = new RecordVal(BifType::Record::Broker::Event);
 	auto arg_vec = new VectorVal(vector_of_data_type);
 	rval->Assign(1, arg_vec);
 	Func* func = 0;
+	scoped_reporter_location srl{frame};
 
 	for ( auto i = 0; i < args->length(); ++i )
 		{

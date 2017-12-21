@@ -223,10 +223,11 @@ public:
 	 * Create an `Event` record value from an event and its arguments.
 	 * @param args the event and its arguments.  The event is always the first
 	 * elements in the list.
+	 * @param frame the calling frame, used to report location info upon error
 	 * @return an `Event` record value.  If an invalid event or arguments
 	 * were supplied the optional "name" field will not be set.
 	 */
-	RecordVal* MakeEvent(val_list* args);
+	RecordVal* MakeEvent(val_list* args, Frame* frame);
 
 	/**
 	 * Register interest in peer event messages that use a certain topic prefix.

@@ -3375,27 +3375,8 @@ public:
 	LookupTrigger(Frame* frame, string host, bool text, const Location* location);
 	~LookupTrigger();
 
-	Val* CheckForResult() override
-		{
-		if ( ! result )
-			return nullptr;
-
-		Ref(result);
-		return result;
-		}
-
-	Val* TimeoutResult() override
-		{
-		if ( addr_lookup )
-			{
-			ListVal* lv = new ListVal(TYPE_ADDR);
-			Val* timeout_result = lv->ConvertToSet();
-			Unref(lv);
-			return timeout_result;
-			}
-		else
-			return new StringVal("<\?\?\?>");;
-		}
+	Val* CheckForResult() override;
+	Val* TimeoutResult() override;
 
 private:
 	friend class LookupCallback;
@@ -3441,7 +3422,7 @@ private:
 };
 
 LookupTrigger::LookupTrigger(Frame* frame, string host, bool text, const Location* location)
-	: Trigger(frame, DNS_TIMEOUT, true, nullptr, location), addr_lookup(true), callback(new LookupCallback(this))
+	: Trigger(frame, DNS_TIMEOUT, true, nullptr, location), addr_lookup(false), callback(new LookupCallback(this))
 	{
 	if ( text )
 		dns_mgr->AsyncLookupNameText(host, callback);
@@ -3450,7 +3431,7 @@ LookupTrigger::LookupTrigger(Frame* frame, string host, bool text, const Locatio
 	}
 
 LookupTrigger::LookupTrigger(Frame* frame, const IPAddr& host, const Location* location)
-	: Trigger(frame, DNS_TIMEOUT, true, nullptr, location), addr_lookup(false), callback(new LookupCallback(this))
+	: Trigger(frame, DNS_TIMEOUT, true, nullptr, location), addr_lookup(true), callback(new LookupCallback(this))
 	{
 	dns_mgr->AsyncLookupAddr(host, callback);
 	}
@@ -3459,6 +3440,31 @@ LookupTrigger::~LookupTrigger()
 	{
 	Unref(result);
 	callback->trigger = nullptr;
+	}
+
+Val* LookupTrigger::CheckForResult()
+	{
+	if ( ! result )
+		return nullptr;
+
+	Ref(result);
+	return result;
+	}
+
+Val* LookupTrigger::TimeoutResult()
+	{
+	if ( addr_lookup )
+		{
+		ListVal* lv = new ListVal(TYPE_ADDR);
+		Val* timeout_result = lv->ConvertToSet();
+		Unref(lv);
+		return timeout_result;
+		}
+	else
+		return new StringVal("<\?\?\?>");;
+	
+	delete callback;
+	callback = 0;
 	}
 
 %%}
@@ -3476,6 +3482,7 @@ function lookup_addr%(host: addr%) : string
 	%{
 	auto trigger = new LookupTrigger(frame, host->AsAddr(), frame->GetCall()->GetLocationInfo());
 	auto result = trigger->Run();
+	Unref(trigger);
 	return result;
 	%}
 
@@ -3492,6 +3499,7 @@ function lookup_hostname_txt%(host: string%) : string
 	%{
 	auto trigger = new LookupTrigger(frame, host->AsString()->CheckString(), true, frame->GetCall()->GetLocationInfo());
 	auto result = trigger->Run();
+	Unref(trigger);
 	return result;
 	%}
 
@@ -3508,6 +3516,7 @@ function lookup_hostname%(host: string%) : addr_set
 	%{
 	auto trigger = new LookupTrigger(frame, host->AsString()->CheckString(), false, frame->GetCall()->GetLocationInfo());
 	auto result = trigger->Run();
+	Unref(trigger);
 	return result;
 	%}
 
@@ -3584,7 +3593,9 @@ function __test_trigger%(result: string, delay: interval, timeout_: interval%) :
 	%{
 	auto trigger = new __TestTrigger(frame, timeout_);
 	timer_mgr->Add(new __TestTriggerTimer(delay, result, trigger));
-	return trigger->Run();
+	auto v = trigger->Run();
+	Unref(trigger);
+	return v;
 	%}
 
 %%{

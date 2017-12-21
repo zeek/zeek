@@ -115,6 +115,8 @@ Trigger::Trigger(Frame *arg_frame, double arg_timeout, bool arg_require_completi
 		queued = new list<Trigger*>;
 
 	frame = arg_frame;
+	Ref(frame);
+
 	timeout = arg_timeout;
 	trigger_expr = arg_trigger_expr;
 	require_completion = arg_require_completion;
@@ -138,6 +140,8 @@ Trigger::~Trigger()
 		timer->trigger = nullptr;
 
 	UnregisterAll();
+	Unref(trigger_result);
+	Unref(frame);
 
 	--current_triggers;
 	}
@@ -200,9 +204,9 @@ Val* Trigger::Run()
 	if ( require_completion )
 		--pending_triggers_completion;
 
-	Unref(this);
-
-	return trigger_result;
+	auto v = trigger_result;
+	trigger_result = nullptr;
+	return v;
 	}
 
 void Trigger::Evaluate()
@@ -214,6 +218,8 @@ void Trigger::Evaluate()
 
 	try
 		{
+		Unref(trigger_result);
+		trigger_result = nullptr;
 		trigger_result = CheckForResult();
 		}
 	catch ( InterpreterException& e )
@@ -238,6 +244,8 @@ void Trigger::Abort()
 
 	DBG_LOG(DBG_NOTIFIERS, "%s: aborting", Name());
 
+	Unref(trigger_result);
+	trigger_result = nullptr;
 	trigger_result = TimeoutResult();
 	trigger_finished = true;
 	ResumeTrigger(this);
@@ -298,9 +306,9 @@ void Trigger::ResumePendingTriggers()
 
 		DBG_LOG(DBG_NOTIFIERS, "%s: resuming trigger", t->Name());
 		auto fiber = t->frame->GetFiber();
-		Unref(t);
 		fiber->Resume();
-		// TODO: Destroy fiber here if not yielded, right?
+		Unref(t);
+		// TODO: Destroy fiber here if not yielded?
 		}
 
 	queued = orig;

@@ -444,7 +444,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 		if ( sample_logger )
 			sample_logger->LocationSeen(body->GetLocationInfo());
 
-		if ( Flavor() == FUNC_FLAVOR_EVENT ) // && body->MayUseAsync()
+		if ( Flavor() == FUNC_FLAVOR_EVENT ) // && body->MayUseAsync() ) // TODO: After some measurements, we may not actually not need this.
 			{
 			// Called code may potentially yield, so run inside a
 			// fiber to support that.

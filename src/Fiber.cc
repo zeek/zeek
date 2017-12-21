@@ -88,6 +88,8 @@ Fiber::Fiber()
 
 Fiber::~Fiber()
 	{
+	DBG_LOG(DBG_NOTIFIERS, "deallocated fiber %p", this);
+
 	free(uctx.uc_stack.ss_sp);
 	Unref(obj);
 	--current_fibers;
@@ -170,6 +172,7 @@ std::shared_ptr<Fiber> Fiber::Create()
 		{
 	    	std::shared_ptr<Fiber> f = cache.back();
 		cache.pop_back();
+		DBG_LOG(DBG_NOTIFIERS, "reusing fiber %p from cache", f);
 	        return f;
 		}
 	else

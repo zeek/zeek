@@ -71,7 +71,7 @@ void AsyncCallAnalyzer::Analyze(Func* func)
 
 TraversalCode AsyncCallAnalyzer::PreStmt(const Stmt* stmt)
  	{
-	if ( stmt->Tag() != STMT_WHEN )
+	if ( stmt->Tag() == STMT_WHEN )
 		body->may_use_async = Stmt::ASYNC_YES;
 
 	return TC_CONTINUE;
@@ -2266,7 +2266,9 @@ public:
 
 		stmt_flow_type flow = FLOW_NEXT;
 		auto stmts = (triggered ? when_stmt->Body() : when_stmt->TimeoutBody());
-		return stmts ? stmts->Exec(GetFrame(), flow) : nullptr;
+		auto v = stmts ? stmts->Exec(GetFrame(), flow) : nullptr;
+		Unref(this);
+		return v;
 		}
 
 	void Schedule()
@@ -2300,7 +2302,7 @@ public:
 		if ( fiber->Execute(execute_when) )
 			// No yield, all done already.
 			Fiber::Destroy(fiber);
-			else
+		else
 			{
 			// An asynchronous operation yielded. Fiber will stay around,
 			// we'll come back to this body later in
@@ -2319,7 +2321,10 @@ public:
 			}
 
 		if ( v->IsZero() )
+			{
+			Unref(v);
 			return nullptr;
+			}
 
 		triggered = true;
 		return v;

@@ -281,7 +281,7 @@ export {
 	## also expensive for large stores, as it copies the complete set.
 	##
 	## Returns: a vector with the keys. 
-	global keys: function(h: opaque of Broker::Store): vector of Broker::Data;
+	global keys: function(h: opaque of Broker::Store): QueryResult;
 
 	## Deletes all of a store's content, it will be empty afterwards.
 	##
@@ -676,23 +676,9 @@ function get_index_from_value(h: opaque of Broker::Store, k: any, i: any): Query
 	return __get_index_from_value(h, k, i);
 	}
 
-function keys(h: opaque of Broker::Store): vector of Broker::Data
+function keys(h: opaque of Broker::Store): QueryResult
 	{
-	local r = __keys(h);
-
-	if ( ! r?$result )
-		return vector();
-
-	local v: vector of Broker::Data;
-	local i = Broker::set_iterator(r$result);
-
-	while ( ! Broker::set_iterator_last(i) )
-		{
-		v[|v|] = Broker::set_iterator_value(i);
-		Broker::set_iterator_next(i);
-		}
-
-	return v;
+	return __keys(h);
 	}
 
 function put(h: opaque of Broker::Store, k: any, v: any, e: interval) : bool

@@ -101,7 +101,7 @@
   * Patch OOB write in content-line analyzer.
 
     A combination of packets can trigger an out of bound write of '0' byte
-    in the content-line analyzer. Addresses BIT-1856.
+    in the content-line analyzer. Addresses BIT-1856 / CVE-2017-1000458.
     (Frank Meier/Johanna Amann)
 
 2.5-327 | 2017-10-16 12:21:01 -0700

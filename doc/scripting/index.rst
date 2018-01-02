@@ -336,7 +336,7 @@ outside of the ``Known`` namespace.  Were we to want to use the
 ``Known::known_hosts``.  
 
 .. btest-include:: ${BRO_SRC_ROOT}/scripts/policy/protocols/conn/known-hosts.bro
-   :lines: 8-10, 32, 37
+   :lines: 9-11, 28-36, 41
 
 The sample above also makes use of an ``export { ... }`` block.  When the module
 keyword is used in a script, the variables declared are said to be in
@@ -1009,7 +1009,7 @@ which is a factor of 5 to an alternate file, while writing the
 remaining logs to factor.log.  
 
 .. btest-include:: ${DOC_ROOT}/scripting/framework_logging_factorial_03.bro
-   :lines: 38-62
+   :lines: 38-45
    :linenos:
 
 To dynamically alter the file in which a stream writes its logs, a

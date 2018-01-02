@@ -1,44 +1,32 @@
-const broker_port: port = 9999/tcp &redef;
 redef exit_only_after_terminate = T;
 
-global h: opaque of Broker::Handle;
-
-function dv(d: Broker::Data): Broker::DataVector
-	{
-	local rval: Broker::DataVector;
-	rval[0] = d;
-	return rval;
-	}
+global h: opaque of Broker::Store;
 
 global ready: event();
 
-event Broker::outgoing_connection_broken(peer_address: string,
-                                       peer_port: port)
+event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	{
 	terminate();
 	}
 
-event Broker::outgoing_connection_established(peer_address: string,
-                                            peer_port: port,
-                                            peer_name: string)
+event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
 	local myset: set[string] = {"a", "b", "c"};
 	local myvec: vector of string = {"alpha", "beta", "gamma"};
 	h = Broker::create_master("mystore");
-	Broker::insert(h, Broker::data("one"), Broker::data(110));
-	Broker::insert(h, Broker::data("two"), Broker::data(223));
-	Broker::insert(h, Broker::data("myset"), Broker::data(myset));
-	Broker::insert(h, Broker::data("myvec"), Broker::data(myvec));
-	Broker::increment(h, Broker::data("one"));
-	Broker::decrement(h, Broker::data("two"));
-	Broker::add_to_set(h, Broker::data("myset"), Broker::data("d"));
-	Broker::remove_from_set(h, Broker::data("myset"), Broker::data("b"));
-	Broker::push_left(h, Broker::data("myvec"), dv(Broker::data("delta")));
-	Broker::push_right(h, Broker::data("myvec"), dv(Broker::data("omega")));
+	Broker::put(h, "one", 110);
+	Broker::put(h, "two", 223);
+	Broker::put(h, "myset", myset);
+	Broker::put(h, "myvec", myvec);
+	Broker::increment(h, "one");
+	Broker::decrement(h, "two");
+	Broker::insert_into_set(h, "myset", "d");
+	Broker::remove_from(h, "myset", "b");
+	Broker::push(h, "myvec", "delta");
 
-	when ( local res = Broker::size(h) )
+	when ( local res = Broker::exists(h, "myvec") )
 		{
-		print "master size", res;
+		print "master ready", res;
 		event ready();
 		}
 	timeout 10sec
@@ -47,7 +35,6 @@ event Broker::outgoing_connection_established(peer_address: string,
 
 event bro_init()
 	{
-	Broker::enable();
-	Broker::connect("127.0.0.1", broker_port, 1secs);
-	Broker::auto_event("bro/event/ready", ready);
+	Broker::peer("127.0.0.1");
+	Broker::auto_publish("bro/event/ready", ready);
 	}

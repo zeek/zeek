@@ -51,8 +51,8 @@ export {
 	const ssl_certificate = "" &redef;
 
 	## Passphrase to decrypt the private key specified by
-	## :bro:see:`ssl_key`. If set, Bro will require valid certificates for
-	## all peers.
+	## :bro:see:`Broker::ssl_keyfile`. If set, Bro will require valid
+	## certificates for all peers.
 	const ssl_passphrase = "" &redef;
 
 	## Path to the file containing the private key for this node's
@@ -255,7 +255,7 @@ export {
 	## Unregister interest in all peer event messages that use a topic prefix.
 	##
 	## topic_prefix: a prefix previously supplied to a successful call to
-	##               :bro:see:`Broker::subscribe_to_events`.
+	##               :bro:see:`Broker::subscribe`.
 	##
 	## Returns: true if interest in the topic prefix is no longer advertised.
 	global unsubscribe: function(topic_prefix: string): bool;
@@ -274,9 +274,9 @@ export {
 
 	## Stop automatically sending an event to peers upon local dispatch.
 	##
-	## topic: a topic originally given to :bro:see:`Broker::auto_event`.
+	## topic: a topic originally given to :bro:see:`Broker::auto_publish`.
 	##
-	## ev: an event originally given to :bro:see:`Broker::auto_event`.
+	## ev: an event originally given to :bro:see:`Broker::auto_publish`.
 	##
 	## Returns: true if automatic events will not occur for the topic/event
 	##          pair.

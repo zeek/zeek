@@ -56,18 +56,34 @@ event known_cert_add(info: CertsInfo, hash: string)
 		return;
 
 	add Known::certs[info$host, hash];
-	Log::write(Known::CERTS_LOG, info);
+
+	@if ( ! Cluster::is_enabled() ||
+	      Cluster::local_node_type() == Cluster::PROXY )
+		Log::write(Known::CERTS_LOG, info);
+	@endif
 	}
 
 function cert_found(info: CertsInfo, hash: string)
 	{
-	@if ( Cluster::is_enabled() )
-		local key = cat(info$host, hash);
-		Cluster::publish_hrw(Cluster::proxy_pool, key, known_cert_add, info,
-							 hash);
-	@else
-		event known_cert_add(info, hash);
-	@endif
+	local key = cat(info$host, hash);
+	Cluster::publish_hrw(Cluster::proxy_pool, key, known_cert_add, info, hash);
+	event known_cert_add(info, hash);
+	}
+
+event Cluster::node_up(name: string, id: string)
+	{
+	if ( Cluster::local_node_type() != Cluster::WORKER )
+		return;
+
+	Known::certs = table();
+	}
+
+event Cluster::node_down(name: string, id: string)
+	{
+	if ( Cluster::local_node_type() != Cluster::WORKER )
+		return;
+
+	Known::certs = table();
 	}
 
 event ssl_established(c: connection) &priority=3

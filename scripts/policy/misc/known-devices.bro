@@ -56,17 +56,35 @@ event known_device_add(info: DevicesInfo)
 		return;
 
 	add Known::devices[info$mac];
-	Log::write(Known::DEVICES_LOG, info);
+
+	@if ( ! Cluster::is_enabled() ||
+	      Cluster::local_node_type() == Cluster::PROXY )
+		Log::write(Known::DEVICES_LOG, info);
+	@endif
 	}
 
 function device_found(info: DevicesInfo)
 	{
-	@if ( Cluster::is_enabled() )
-		Cluster::publish_hrw(Cluster::proxy_pool, info$mac, known_device_add,
-		                     info);
-	@else
-		event known_device_add(info);
-	@endif
+	Cluster::publish_hrw(Cluster::proxy_pool, info$mac, known_device_add, info);
+	event known_device_add(info);
+	}
+
+event Cluster::node_up(name: string, id: string)
+	{
+	if ( Cluster::local_node_type() != Cluster::WORKER )
+		return;
+
+	# Drop local suppression cache on workers to force HRW key repartitioning.
+	Known::devices = set();
+	}
+
+event Cluster::node_down(name: string, id: string)
+	{
+	if ( Cluster::local_node_type() != Cluster::WORKER )
+		return;
+
+	# Drop local suppression cache on workers to force HRW key repartitioning.
+	Known::devices = set();
 	}
 
 event bro_init()

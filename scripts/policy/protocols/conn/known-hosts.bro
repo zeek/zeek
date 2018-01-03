@@ -46,17 +46,35 @@ event known_host_add(info: HostsInfo)
 		return;
 
 	add Known::hosts[info$host];
-	Log::write(Known::HOSTS_LOG, info);
+
+	@if ( ! Cluster::is_enabled() ||
+	      Cluster::local_node_type() == Cluster::PROXY )
+		Log::write(Known::HOSTS_LOG, info);
+	@endif
+	}
+
+event Cluster::node_up(name: string, id: string)
+	{
+	if ( Cluster::local_node_type() != Cluster::WORKER )
+		return;
+
+	# Drop local suppression cache on workers to force HRW key repartitioning.
+	Known::hosts = set();
+	}
+
+event Cluster::node_down(name: string, id: string)
+	{
+	if ( Cluster::local_node_type() != Cluster::WORKER )
+		return;
+
+	# Drop local suppression cache on workers to force HRW key repartitioning.
+	Known::hosts = set();
 	}
 
 function host_found(info: HostsInfo)
 	{
-	@if ( Cluster::is_enabled() )
-		Cluster::publish_hrw(Cluster::proxy_pool, info$host, known_host_add,
-		                     info);
-	@else
-		event known_host_add(info);
-	@endif
+	Cluster::publish_hrw(Cluster::proxy_pool, info$host, known_host_add, info);
+	event known_host_add(info);
 	}
 
 event bro_init()

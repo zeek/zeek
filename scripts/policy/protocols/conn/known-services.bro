@@ -65,18 +65,36 @@ event known_service_add(info: ServicesInfo)
 		return;
 
 	add Known::services[info$host, info$port_num];
-	Log::write(Known::SERVICES_LOG, info);
+
+	@if ( ! Cluster::is_enabled() ||
+	      Cluster::local_node_type() == Cluster::PROXY )
+		Log::write(Known::SERVICES_LOG, info);
+	@endif
+	}
+
+event Cluster::node_up(name: string, id: string)
+	{
+	if ( Cluster::local_node_type() != Cluster::WORKER )
+		return;
+
+	# Drop local suppression cache on workers to force HRW key repartitioning.
+	Known::services = set();
+	}
+
+event Cluster::node_down(name: string, id: string)
+	{
+	if ( Cluster::local_node_type() != Cluster::WORKER )
+		return;
+
+	# Drop local suppression cache on workers to force HRW key repartitioning.
+	Known::services = set();
 	}
 
 event service_info_commit(info: ServicesInfo)
 	{
-	@if ( Cluster::is_enabled() )
-		local key = cat(info$host, info$port_num);
-		Cluster::publish_hrw(Cluster::proxy_pool, key, known_service_add,
-		                     info);
-	@else
-		event known_service_add(info);
-	@endif
+	local key = cat(info$host, info$port_num);
+	Cluster::publish_hrw(Cluster::proxy_pool, key, known_service_add, info);
+	event known_service_add(info);
 	}
 
 function known_services_done(c: connection)

@@ -26,8 +26,12 @@ function Broker::__create_master%(id: string, b: BackendType,
 	%{
 	auto name = id->CheckString();
 	auto rval = broker_mgr->LookupStore(name);
+
 	if ( rval )
+		{
+		::Ref(rval);
 		return rval;
+		}
 
 	auto e = static_cast<BifEnum::Broker::BackendType>(b->AsEnum());
 	auto type = bro_broker::to_backend_type(e);
@@ -47,8 +51,12 @@ function Broker::__create_clone%(id: string%): opaque of Broker::Store
 	%{
 	auto name = id->CheckString();
 	auto rval = broker_mgr->LookupStore(name);
+
 	if ( rval )
+		{
+		::Ref(rval);
 		return rval;
+		}
 
 	auto store = broker_mgr->MakeClone(name);
 	if ( ! store )

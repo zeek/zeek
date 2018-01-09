@@ -84,6 +84,9 @@ export {
 	## Returns: whether a store is closed or not.
 	global is_closed: function(h: opaque of Broker::Store): bool;
 
+	## Returns: the name of the store.
+	global store_name: function(h: opaque of Broker::Store): string;
+
 	## Check if a key exists in a data store.
 	## 
 	## h: the handle of the store to query.
@@ -667,6 +670,11 @@ function close(h: opaque of Broker::Store): bool
 function is_closed(h: opaque of Broker::Store): bool
 	{
 	return __is_closed(h);
+	}
+
+function store_name(h: opaque of Broker::Store): string
+	{
+	return __store_name(h);
 	}
 
 function exists(h: opaque of Broker::Store, k: any): QueryResult

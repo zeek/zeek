@@ -92,6 +92,18 @@ function Broker::__close%(h: opaque of Broker::Store%): bool
 	return new Val(broker_mgr->CloseStore(handle->store.name()), TYPE_BOOL);
 	%}
 
+function Broker::__store_name%(h: opaque of Broker::Store%): string
+	%{
+	if ( ! h )
+		{
+		reporter->Error("invalid Broker store handle");
+		return new StringVal("");
+		}
+
+	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
+	return new StringVal(handle->store.name());
+	%}
+
 function Broker::__exists%(h: opaque of Broker::Store,
 			   k: any%): Broker::QueryResult
 	%{

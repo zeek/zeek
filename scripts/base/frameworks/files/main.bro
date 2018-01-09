@@ -135,6 +135,20 @@ export {
 	## The default per-file reassembly buffer size.
 	const reassembly_buffer_size = 524288 &redef;
 
+	## Lookup to see if a particular file id exists and is still valid.
+	##
+	## fuid: the file id.
+	##
+	## Returns: T if the file uid is known.
+	global file_exists: function(fuid: string): bool;
+
+	## Lookup an :bro:see:`fa_file` record with the file id.
+	##
+	## fuid: the file id.
+	##
+	## Returns: the associated :bro:see:`fa_file` record.
+	global lookup_file: function(fuid: string): fa_file;
+
 	## Allows the file reassembler to be used if it's necessary because the
 	## file is transferred out of order.
 	##
@@ -336,6 +350,16 @@ function set_info(f: fa_file)
 	f$info$overflow_bytes = f$overflow_bytes;
 	if ( f?$is_orig )
 		f$info$is_orig = f$is_orig;
+	}
+
+function file_exists(fuid: string): bool
+	{
+	return __file_exists(fuid);
+	}
+
+function lookup_file(fuid: string): fa_file
+	{
+	return __lookup_file(fuid);
 	}
 
 function set_timeout_interval(f: fa_file, t: interval): bool

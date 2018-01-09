@@ -1,0 +1,9 @@
+error: file ID asdf not a known file
+warning: non-void function returns without a value: Files::lookup_file
+This should fail but not crash
+This should return F
+F
+lookup fid: FakNcS1Jfe01uljb3
+We should have found the file id: FakNcS1Jfe01uljb3
+This should return T
+T

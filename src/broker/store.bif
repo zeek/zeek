@@ -68,6 +68,18 @@ function Broker::__create_clone%(id: string%): opaque of Broker::Store
 	return store;
 	%}
 
+function Broker::__is_closed%(h: opaque of Broker::Store%): bool
+	%{
+	if ( ! h )
+		{
+		reporter->Error("invalid Broker store handle");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
+	return new Val(broker_mgr->LookupStore(handle->store.name()), TYPE_BOOL);
+	%}
+
 function Broker::__close%(h: opaque of Broker::Store%): bool
 	%{
 	if ( ! h )

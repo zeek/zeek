@@ -79,7 +79,10 @@ export {
 	##
 	## Returns: true if store was valid and is now closed.  The handle can no
 	##          longer be used for data store operations.
-	global close: function(h: opaque of Broker::Store) : bool;
+	global close: function(h: opaque of Broker::Store): bool;
+
+	## Returns: whether a store is closed or not.
+	global is_closed: function(h: opaque of Broker::Store): bool;
 
 	## Check if a key exists in a data store.
 	## 
@@ -656,9 +659,14 @@ function create_clone(name: string): opaque of Broker::Store
 	return __create_clone(name);
 	}
 
-function close(h: opaque of Broker::Store) : bool
+function close(h: opaque of Broker::Store): bool
 	{
 	return __close(h);
+	}
+
+function is_closed(h: opaque of Broker::Store): bool
+	{
+	return __is_closed(h);
 	}
 
 function exists(h: opaque of Broker::Store, k: any): QueryResult

@@ -110,7 +110,9 @@ private:
  */
 class StoreHandleVal : public OpaqueVal {
 public:
-	StoreHandleVal(broker::store s) : store{s}, proxy{store} { }
+	StoreHandleVal(broker::store s)
+		: OpaqueVal(bro_broker::opaque_of_store_handle), store{s}, proxy{store}
+		{ }
 
 	void ValDescribe(ODesc* d) const override;
 

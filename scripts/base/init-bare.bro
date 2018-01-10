@@ -2159,6 +2159,18 @@ export {
 
 	## NFS file attributes. Field names are based on RFC 1813.
 	##
+	## .. bro:see:: nfs_proc_sattr
+	type sattr_t: record {
+		mode: count &optional; ##< Mode
+		uid: count	&optional; ##< User ID.
+		gid: count	&optional; ##< Group ID.
+		size: count &optional; ##< Size.
+		atime: time_how_t &optional; ##< Time of last access.
+		mtime: time_how_t &optional; ##< Time of last modification.
+	};
+
+	## NFS file attributes. Field names are based on RFC 1813.
+	##
 	## .. bro:see:: nfs_proc_getattr
 	type fattr_t: record {
 		ftype: file_type_t;	##< File type.
@@ -2177,6 +2189,14 @@ export {
 		ctime: time;	##< Time of creation.
 	};
 
+	## NFS symlinkdata attributes. Field names are based on RFC 1813
+	##
+	## .. bro:see:: nfs_proc_symlink
+	type symlinkdata_t: record {
+		symlink_attributes: sattr_t; ##< The initial attributes for the symbolic link
+		nfspath: string &optional;	##< The string containing the symbolic link data.
+	};
+
 	## NFS *readdir* arguments.
 	##
 	## .. bro:see:: nfs_proc_readdir
@@ -2193,6 +2213,30 @@ export {
 		src_fname : string;
 		dst_dirfh : string;
 		dst_fname : string;
+	};
+
+	## NFS *symlink* arguments.
+	##
+	## .. bro:see:: nfs_proc_symlink
+	type symlinkargs_t: record {
+		link : diropargs_t;  ##< The location of the link to be created.
+		symlinkdata: symlinkdata_t; ##< The symbolic link to be created.
+	};
+
+	## NFS *link* arguments.
+	##
+	## .. bro:see:: nfs_proc_link
+	type linkargs_t: record {
+		fh : string; ##< The file handle for the existing file system object.
+		link : diropargs_t;  ##< The location of the link to be created.
+	};
+
+	## NFS *sattr* arguments.
+	##
+	## .. bro:see:: nfs_proc_sattr
+	type sattrargs_t: record {
+		fh : string; ##< The file handle for the existing file system object.
+		new_attributes: sattr_t; ##< The new attributes for the file.
 	};
 
 	## NFS lookup reply. If the lookup failed, *dir_attr* may be set. If the
@@ -2251,6 +2295,23 @@ export {
 		size: count;	##< The size.
 		atime: time;	##< Access time.
 		mtime: time;	##< Modification time.
+	};
+
+	## NFS *link* reply.
+	##
+	## .. bro:see:: nfs_proc_link
+	type link_reply_t: record {
+		post_attr: fattr_t &optional; ##< Optional post-operation attributes of the file system object identified by file
+		preattr: wcc_attr_t &optional;	##< Optional attributes associated w/ file.
+		postattr: fattr_t &optional;	##< Optional attributes associated w/ file.
+	};
+
+	## NFS *sattr* reply. If the request fails, *pre|post* attr may be set.
+	## If the request succeeds, *pre|post* attr are set.
+	##
+	type sattr_reply_t: record {
+		dir_pre_attr: wcc_attr_t &optional;	##< Optional attributes associated w/ dir.
+		dir_post_attr: fattr_t &optional;	##< Optional attributes associated w/ dir.
 	};
 
 	## NFS *write* reply. If the request fails, *pre|post* attr may be set.

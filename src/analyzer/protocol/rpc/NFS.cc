@@ -31,6 +31,10 @@ int NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 		callarg = nfs3_fh(buf, n);
 		break;
 
+	case BifEnum::NFS3::PROC_SETATTR:
+		callarg = nfs3_sattrargs(buf, n);
+		break;
+
 	case BifEnum::NFS3::PROC_LOOKUP:
 		callarg = nfs3_diropargs(buf, n);
 		break;
@@ -41,6 +45,14 @@ int NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 
 	case BifEnum::NFS3::PROC_READLINK:
 		callarg = nfs3_fh(buf, n);
+		break;
+
+	case BifEnum::NFS3::PROC_SYMLINK:
+		callarg = nfs3_symlinkargs(buf, n);
+		break;
+
+	case BifEnum::NFS3::PROC_LINK:
+		callarg = nfs3_linkargs(buf, n);
 		break;
 
 	case BifEnum::NFS3::PROC_WRITE:
@@ -159,6 +171,11 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 		event = nfs_proc_getattr;
 		break;
 
+	case BifEnum::NFS3::PROC_SETATTR:
+		reply = nfs3_sattr_reply(buf, n, nfs_status);
+		event = nfs_proc_sattr;
+		break;
+
 	case BifEnum::NFS3::PROC_LOOKUP:
 		reply = nfs3_lookup_reply(buf, n, nfs_status);
 		event = nfs_proc_lookup;
@@ -174,6 +191,16 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 	case BifEnum::NFS3::PROC_READLINK:
 		reply = nfs3_readlink_reply(buf, n, nfs_status);
 		event = nfs_proc_readlink;
+		break;
+
+	case BifEnum::NFS3::PROC_SYMLINK:
+		reply = nfs3_newobj_reply(buf, n, nfs_status);
+		event = nfs_proc_symlink;
+		break;
+
+	case BifEnum::NFS3::PROC_LINK:
+		reply = nfs3_link_reply(buf, n, nfs_status);
+		event = nfs_proc_link;
 		break;
 
 	case BifEnum::NFS3::PROC_WRITE:
@@ -334,6 +361,56 @@ StringVal* NFS_Interp::nfs3_fh(const u_char*& buf, int& n)
 	return new StringVal(new BroString(fh, fh_n, 0));
 	}
 
+
+RecordVal* NFS_Interp::nfs3_sattr(const u_char*& buf, int& n)
+	{
+	RecordVal* attrs = new RecordVal(BifType::Record::NFS3::sattr_t);
+
+	attrs->Assign(0, 0); // mode
+	int mode_set_it =  extract_XDR_uint32(buf, n);
+	if ( mode_set_it )
+		attrs->Assign(0, ExtractUint32(buf, n)); // mode
+
+	attrs->Assign(1, 0); // uid
+	int uid_set_it =  extract_XDR_uint32(buf, n);
+	if ( uid_set_it )
+		attrs->Assign(1, ExtractUint32(buf, n)); // uid
+
+	attrs->Assign(2, 0); // gid
+	int gid_set_it =  extract_XDR_uint32(buf, n);
+	if ( gid_set_it )
+		attrs->Assign(2, ExtractUint32(buf, n)); // gid
+
+	attrs->Assign(3, 0); // size
+	int size_set_it =  extract_XDR_uint32(buf, n);
+	if ( size_set_it )
+		attrs->Assign(3, ExtractTime(buf, n));	 // size
+
+	attrs->Assign(4, nfs3_time_how(buf, n)); // time_how
+
+	attrs->Assign(5, nfs3_time_how(buf, n)); // time_how
+
+	return attrs;
+	}
+
+RecordVal* NFS_Interp::nfs3_sattr_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status)
+	{
+	RecordVal* rep = new RecordVal(BifType::Record::NFS3::sattr_reply_t);
+
+	if ( status == BifEnum::NFS3::NFS3ERR_OK )
+		{
+		rep->Assign(0, nfs3_pre_op_attr(buf, n));
+		rep->Assign(1, nfs3_post_op_attr(buf, n));
+		}
+	else
+		{
+		rep->Assign(1, 0);
+		rep->Assign(2, 0);
+		}
+
+	return rep;
+	}
+
 RecordVal* NFS_Interp::nfs3_fattr(const u_char*& buf, int& n)
 	{
 	RecordVal* attrs = new RecordVal(BifType::Record::NFS3::fattr_t);
@@ -354,6 +431,12 @@ RecordVal* NFS_Interp::nfs3_fattr(const u_char*& buf, int& n)
 	attrs->Assign(13, ExtractTime(buf, n));	// ctime
 
 	return attrs;
+	}
+
+EnumVal* NFS_Interp::nfs3_time_how(const u_char*& buf, int& n)
+	{
+	BifEnum::NFS3::time_how_t t = (BifEnum::NFS3::time_how_t)extract_XDR_uint32(buf, n);
+	return new EnumVal(t, BifType::Enum::NFS3::time_how_t);
 	}
 
 EnumVal* NFS_Interp::nfs3_ftype(const u_char*& buf, int& n)
@@ -392,6 +475,16 @@ RecordVal *NFS_Interp::nfs3_diropargs(const u_char*& buf, int& n)
 	diropargs->Assign(1, nfs3_filename(buf, n));
 
 	return diropargs;
+	}
+
+RecordVal *NFS_Interp::nfs3_symlinkdata(const u_char*& buf, int& n)
+	{
+	RecordVal *symlinkdata = new RecordVal(BifType::Record::NFS3::symlinkdata_t);
+
+	symlinkdata->Assign(0, nfs3_sattr(buf, n));
+	symlinkdata->Assign(1, nfs3_nfspath(buf, n));
+
+	return symlinkdata;
 	}
 
 RecordVal *NFS_Interp::nfs3_renameopargs(const u_char*& buf, int& n)
@@ -509,6 +602,52 @@ RecordVal* NFS_Interp::nfs3_readlink_reply(const u_char*& buf, int& n, BifEnum::
 		}
 
 	return rep;
+	}
+
+RecordVal* NFS_Interp::nfs3_link_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status)
+	{
+	RecordVal *rep = new RecordVal(BifType::Record::NFS3::link_reply_t);
+
+	if (status == BifEnum::NFS3::NFS3ERR_OK)
+		{
+		rep->Assign(0, nfs3_post_op_attr(buf, n));
+
+		// wcc_data
+		rep->Assign(1, nfs3_pre_op_attr(buf, n));
+		rep->Assign(2, nfs3_post_op_attr(buf, n));
+		}
+
+	return rep;
+	}
+
+RecordVal* NFS_Interp::nfs3_symlinkargs(const u_char*& buf, int& n)
+	{
+	RecordVal *symlinkargs = new RecordVal(BifType::Record::NFS3::symlinkargs_t);
+
+	symlinkargs->Assign(0, nfs3_diropargs(buf, n));
+	symlinkargs->Assign(1, nfs3_symlinkdata(buf, n));
+
+	return symlinkargs;
+	}
+
+RecordVal* NFS_Interp::nfs3_sattrargs(const u_char*& buf, int& n)
+	{
+	RecordVal *sattrargs = new RecordVal(BifType::Record::NFS3::sattrargs_t);
+
+	sattrargs->Assign(0, nfs3_fh(buf, n));
+	sattrargs->Assign(1, nfs3_sattr(buf, n));
+
+	return sattrargs;
+	}
+
+RecordVal* NFS_Interp::nfs3_linkargs(const u_char*& buf, int& n)
+	{
+	RecordVal *linkargs = new RecordVal(BifType::Record::NFS3::linkargs_t);
+
+	linkargs->Assign(0, nfs3_fh(buf, n));
+	linkargs->Assign(1, nfs3_diropargs(buf, n));
+
+	return linkargs;
 	}
 
 RecordVal *NFS_Interp::nfs3_writeargs(const u_char*& buf, int& n)

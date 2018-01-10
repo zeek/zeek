@@ -49,6 +49,34 @@ event nfs_proc_null%(c: connection, info: NFS3::info_t%);
 ##    register a port for it or add a DPD payload signature.
 event nfs_proc_getattr%(c: connection, info: NFS3::info_t, fh: string, attrs: NFS3::fattr_t%);
 
+## Generated for NFSv3 request/reply dialogues of type *sattr*. The event is
+## generated once we have either seen both the request and its corresponding
+## reply, or an unanswered request has timed out.
+##
+## NFS is a service running on top of RPC. See `Wikipedia
+## <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+## information about the service.
+##
+## c: The RPC connection.
+##
+## info: Reports the status of the dialogue, along with some meta information.
+##
+## req:  The arguments passed in the request.
+##
+## rep: The attributes returned in the reply. The values may not be
+##	  valid if the request was unsuccessful.
+##
+## .. bro:see:: nfs_proc_create  nfs_proc_lookup nfs_proc_mkdir
+##	  nfs_proc_not_implemented nfs_proc_null nfs_proc_read nfs_proc_readdir
+##	  nfs_proc_readlink nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status
+##	  rpc_call rpc_dialogue rpc_reply file_mode
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##	  analyzer that generates this event; the corresponding script has not yet
+##	  been ported to Bro 2.x. To still enable this event, one needs to
+##	  register a port for it or add a DPD payload signature.
+event nfs_proc_sattr%(c: connection, info: NFS3::info_t, req: NFS3::sattrargs_t, rep: NFS3::sattr_reply_t%);
+
 ## Generated for NFSv3 request/reply dialogues of type *lookup*. The event is
 ## generated once we have either seen both the request and its corresponding
 ## reply, or an unanswered request has timed out.
@@ -124,14 +152,70 @@ event nfs_proc_read%(c: connection, info: NFS3::info_t, req: NFS3::readargs_t, r
 ##
 ## .. bro:see:: nfs_proc_create nfs_proc_getattr nfs_proc_lookup nfs_proc_mkdir
 ##    nfs_proc_not_implemented nfs_proc_null nfs_proc_read nfs_proc_readdir
-##    nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status rpc_call
-##    rpc_dialogue rpc_reply
+##    nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status
+##    nfs_proc_symlink rpc_call rpc_dialogue rpc_reply
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
 ##    been ported to Bro 2.x. To still enable this event, one needs to
 ##    register a port for it or add a DPD payload signature.
 event nfs_proc_readlink%(c: connection, info: NFS3::info_t, fh: string, rep: NFS3::readlink_reply_t%);
+
+## Generated for NFSv3 request/reply dialogues of type *symlink*. The event is
+## generated once we have either seen both the request and its corresponding
+## reply, or an unanswered request has timed out.
+##
+## NFS is a service running on top of RPC. See `Wikipedia
+## <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+## information about the service.
+##
+## c: The RPC connection.
+##
+## info: Reports the status of the dialogue, along with some meta information.
+##
+## req:  The arguments passed in the request.
+##
+## rep: The attributes returned in the reply. The values may not be
+##	  valid if the request was unsuccessful.
+##
+## .. bro:see:: nfs_proc_create  nfs_proc_lookup nfs_proc_mkdir
+##	  nfs_proc_not_implemented nfs_proc_null nfs_proc_read nfs_proc_readdir
+##	  nfs_proc_readlink nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status
+##	  nfs_proc_link rpc_call rpc_dialogue rpc_reply file_mode
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##	  analyzer that generates this event; the corresponding script has not yet
+##	  been ported to Bro 2.x. To still enable this event, one needs to
+##	  register a port for it or add a DPD payload signature.
+event nfs_proc_symlink%(c: connection, info: NFS3::info_t, req: NFS3::symlinkargs_t, rep: NFS3::newobj_reply_t%);
+
+## Generated for NFSv3 request/reply dialogues of type *link*. The event is
+## generated once we have either seen both the request and its corresponding
+## reply, or an unanswered request has timed out.
+##
+## NFS is a service running on top of RPC. See `Wikipedia
+## <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+## information about the service.
+##
+## c: The RPC connection.
+##
+## info: Reports the status of the dialogue, along with some meta information.
+##
+## req:  The arguments passed in the request.
+##
+## rep: The response returned in the reply. The values may not be valid if the
+##		request was unsuccessful.
+##
+## .. bro:see:: nfs_proc_create nfs_proc_getattr nfs_proc_lookup nfs_proc_mkdir
+##	  nfs_proc_not_implemented nfs_proc_null nfs_proc_read nfs_proc_readdir
+##	  nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status rpc_call
+##	  nfs_proc_symlink rpc_dialogue rpc_reply
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##	  analyzer that generates this event; the corresponding script has not yet
+##	  been ported to Bro 2.x. To still enable this event, one needs to
+##	  register a port for it or add a DPD payload signature.
+event nfs_proc_link%(c: connection, info: NFS3::info_t, req: NFS3::linkargs_t, rep: NFS3::link_reply_t%);
 
 ## Generated for NFSv3 request/reply dialogues of type *write*. The event is
 ## generated once we have either seen both the request and its corresponding

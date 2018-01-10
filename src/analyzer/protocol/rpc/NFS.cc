@@ -656,12 +656,12 @@ RecordVal *NFS_Interp::nfs3_writeargs(const u_char*& buf, int& n)
 	uint64_t offset;
 	RecordVal *writeargs = new RecordVal(BifType::Record::NFS3::writeargs_t);
 
-	offset = extract_XDR_uint64(buf, n);
-	bytes = extract_XDR_uint32(buf, n);
-
 	writeargs->Assign(0, nfs3_fh(buf, n));
-	writeargs->Assign(1, new Val(offset, TYPE_COUNT));
-	writeargs->Assign(2, new Val(bytes, TYPE_COUNT));
+	offset = extract_XDR_uint64(buf, n);
+	writeargs->Assign(1, new Val(offset, TYPE_COUNT));  // offset
+	bytes = extract_XDR_uint32(buf, n);
+	writeargs->Assign(2, new Val(bytes, TYPE_COUNT));   // size
+
 	writeargs->Assign(3, nfs3_stable_how(buf, n));
 	writeargs->Assign(4, nfs3_file_data(buf, n, offset, bytes));
 

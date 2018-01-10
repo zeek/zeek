@@ -47,7 +47,7 @@ function Broker::__create_master%(id: string, b: BackendType,
 	return store;
 	%}
 
-function Broker::__create_clone%(id: string%): opaque of Broker::Store
+function Broker::__create_clone%(id: string, resync_interval: interval%): opaque of Broker::Store
 	%{
 	auto name = id->CheckString();
 	auto rval = broker_mgr->LookupStore(name);
@@ -58,7 +58,7 @@ function Broker::__create_clone%(id: string%): opaque of Broker::Store
 		return rval;
 		}
 
-	auto store = broker_mgr->MakeClone(name);
+	auto store = broker_mgr->MakeClone(name, resync_interval);
 	if ( ! store )
 		{
 		reporter->Error("Could not create clone of Broker store '%s'", name);

@@ -259,9 +259,13 @@ public:
 	/**
 	 * Create a new *clone* data store.
 	 * @param name The name of the store.
+	 * @param resync_interval The frequency at which the clone will attempt
+	 * to reconnect/resynchronize with its master in the event it becomes
+	 * disconnected.
 	 * @return a pointer to the newly created store a nullptr on failure.
 	 */
-	StoreHandleVal* MakeClone(const std::string& name);
+	StoreHandleVal* MakeClone(const std::string& name,
+	                          double resync_interval = 10.0);
 
 	/**
 	 * Lookup a data store by it's identifier name and type.

@@ -6,6 +6,10 @@
 module Broker;
 
 export {
+	## The default frequency at which clones will attempt to
+	## reconnect/resynchronize with their master in the event that they become
+	## disconnected.
+	const default_clone_resync_interval = 10sec &redef;
 
 	## Whether a data store query could be completed or not.
 	type QueryStatus: enum {
@@ -71,7 +75,8 @@ export {
 	## name: the unique name which identifies the master data store.
 	##
 	## Returns: a handle to the data store.
-	global create_clone: function(name: string): opaque of Broker::Store;
+	global create_clone: function(name: string,
+	                              resync_interval: interval &default = default_clone_resync_interval): opaque of Broker::Store;
 
 	## Close a data store.
 	##
@@ -657,9 +662,9 @@ function create_master(name: string, b: BackendType &default = MEMORY,
 	return __create_master(name, b, options);
 	}
 
-function create_clone(name: string): opaque of Broker::Store
+function create_clone(name: string, resync_interval: interval &default = default_clone_resync_interval): opaque of Broker::Store
 	{
-	return __create_clone(name);
+	return __create_clone(name, resync_interval);
 	}
 
 function close(h: opaque of Broker::Store): bool

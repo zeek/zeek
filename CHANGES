@@ -1,4 +1,10 @@
 
+2.5-375 | 2018-01-11 11:47:01 -0600
+
+  * Fix a test that fails in some environments (Daniel Thayer)
+
+  * Add CVE ID for BIT-1856. (Johanna Amann)
+
 2.5-372 | 2017-12-15 15:08:51 -0600
 
   * Remove some DNS weirds that caused volume and are generally not useful:

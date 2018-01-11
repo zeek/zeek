@@ -34,16 +34,19 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_create_response )
 			{
+			RecordVal* responseinfo = new RecordVal(BifType::Record::SMB2::CreateResponse);
+			responseinfo->Assign(0, BuildSMB2GUID(${val.file_id}));
+			responseinfo->Assign(1, new Val(${val.eof}, TYPE_COUNT));
+			responseinfo->Assign(2, SMB_BuildMACTimes(${val.last_write_time},
+			                                          ${val.last_access_time},
+			                                          ${val.creation_time},
+			                                          ${val.change_time}));
+			responseinfo->Assign(3, smb2_file_attrs_to_bro(${val.file_attrs}));
+			responseinfo->Assign(4, new Val(${val.create_action}, TYPE_COUNT));
 			BifEvent::generate_smb2_create_response(bro_analyzer(),
 			                                        bro_analyzer()->Conn(),
 			                                        BuildSMB2HeaderVal(h),
-			                                        BuildSMB2GUID(${val.file_id}),
-			                                        ${val.eof},
-			                                        SMB_BuildMACTimes(${val.last_write_time},
-			                                                          ${val.last_access_time},
-			                                                          ${val.creation_time},
-			                                                          ${val.change_time}),
-			                                        smb2_file_attrs_to_bro(${val.file_attrs}));
+			                                        responseinfo);
 			}
 
 		return true;

@@ -262,10 +262,14 @@ public:
 	 * @param resync_interval The frequency at which the clone will attempt
 	 * to reconnect/resynchronize with its master in the event it becomes
 	 * disconnected.
+	 * @param stale_interval The duration after which a clone that is
+	 * disconnected from its master will treat its local cache as stale.
+	 * In this state, queries to the clone will timeout.
 	 * @return a pointer to the newly created store a nullptr on failure.
 	 */
 	StoreHandleVal* MakeClone(const std::string& name,
-	                          double resync_interval = 10.0);
+	                          double resync_interval = 10.0,
+	                          double stale_interval = 300.0);
 
 	/**
 	 * Lookup a data store by it's identifier name and type.

@@ -1074,6 +1074,9 @@ void Manager::ProcessError(broker::error err)
 	{
 	DBG_LOG(DBG_BROKER, "Received error message: %s", RenderMessage(err).c_str());
 
+	if ( ! Broker::error )
+		return;
+
 	BifEnum::Broker::ErrorCode ec;
 	std::string msg;
 
@@ -1126,6 +1129,10 @@ void Manager::ProcessError(broker::error err)
 			ec = BifEnum::Broker::ErrorCode::BACKEND_FAILURE;
 			break;
 
+		case broker::ec::stale_data:
+			ec = BifEnum::Broker::ErrorCode::STALE_DATA;
+			break;
+
 		case broker::ec::unspecified: // fall-through
 		default:
 			ec = BifEnum::Broker::ErrorCode::UNSPECIFIED;
@@ -1166,7 +1173,17 @@ void Manager::ProcessStoreResponse(StoreHandleVal* s, broker::store::response re
 	if ( response.answer )
 		request->second->Result(query_result(make_data_val(*response.answer)));
 	else if ( response.answer.error() == broker::ec::request_timeout )
-		; // Fine, trigger's timeout takes care of things.
+		{
+		// Fine, trigger's timeout takes care of things.
+		}
+	else if ( response.answer.error() == broker::ec::stale_data )
+		{
+		// It's sort of arbitrary whether to make this type of error successful
+		// query with a "fail" status versus going through the when stmt timeout
+		// code path.  I think the timeout path is maybe more expected in order
+		// for failures like "no such key" to actually be distinguishable from
+		// this type of error (which is less easily handled programmatically).
+		}
 	else if ( response.answer.error() == broker::ec::no_such_key )
 		request->second->Result(query_result());
 	else
@@ -1201,14 +1218,16 @@ StoreHandleVal* Manager::MakeMaster(const string& name, broker::backend type,
 	return handle;
 	}
 
-StoreHandleVal* Manager::MakeClone(const string& name, double resync_interval)
+StoreHandleVal* Manager::MakeClone(const string& name, double resync_interval,
+                                   double stale_interval)
 	{
 	if ( LookupStore(name) )
 		return nullptr;
 
 	DBG_LOG(DBG_BROKER, "Creating clone for data store %s", name.c_str());
 
-	auto result = bstate->endpoint.attach_clone(name, resync_interval);
+	auto result = bstate->endpoint.attach_clone(name, resync_interval,
+	                                            stale_interval);
 	if ( ! result )
 		{
 		reporter->Error("Failed to attach clone store %s:",

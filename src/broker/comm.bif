@@ -36,6 +36,7 @@ enum ErrorCode %{
 	TYPE_CLASH = 10,
 	INVALID_DATA = 11,
 	BACKEND_FAILURE = 12,
+	STALE_DATA = 13,
 	CAF_ERROR = 100,
 %}
 

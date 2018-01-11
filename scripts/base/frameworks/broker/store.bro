@@ -11,6 +11,11 @@ export {
 	## disconnected.
 	const default_clone_resync_interval = 10sec &redef;
 
+	## The duration after which a clone that is disconnected from its master
+	## will begin to treat its local cache as stale.  In the stale state,
+	## queries to the cache will timeout.
+	const default_clone_stale_interval = 5min &redef;
+
 	## Whether a data store query could be completed or not.
 	type QueryStatus: enum {
 		SUCCESS,
@@ -74,9 +79,17 @@ export {
 	##
 	## name: the unique name which identifies the master data store.
 	##
+	## resync_interval: the frequency at which a clone that is disconnected from
+	##                  its master attempts to reconnect with it.
+	##
+	## stale_interval: the duration after which a clone that is disconnected
+	##                 from its master will begin to treat its local cache as
+	##                 stale.  In this state, queries to the clone will timeout.
+	##
 	## Returns: a handle to the data store.
 	global create_clone: function(name: string,
-	                              resync_interval: interval &default = default_clone_resync_interval): opaque of Broker::Store;
+	                              resync_interval: interval &default = default_clone_resync_interval,
+	                              stale_interval: interval &default = default_clone_stale_interval): opaque of Broker::Store;
 
 	## Close a data store.
 	##
@@ -662,9 +675,11 @@ function create_master(name: string, b: BackendType &default = MEMORY,
 	return __create_master(name, b, options);
 	}
 
-function create_clone(name: string, resync_interval: interval &default = default_clone_resync_interval): opaque of Broker::Store
+function create_clone(name: string,
+                      resync_interval: interval &default = default_clone_resync_interval,
+                      stale_interval: interval &default = default_clone_stale_interval): opaque of Broker::Store
 	{
-	return __create_clone(name, resync_interval);
+	return __create_clone(name, resync_interval, stale_interval);
 	}
 
 function close(h: opaque of Broker::Store): bool

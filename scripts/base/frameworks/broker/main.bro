@@ -111,6 +111,8 @@ export {
 		INVALID_DATA = 11,
 		## The storage backend failed to execute the operation.
 		BACKEND_FAILURE = 12,
+		## The storage backend failed to execute the operation.
+		STALE_DATA = 13,
 		## Catch-all for a CAF-level problem.
 		CAF_ERROR = 100
 	};

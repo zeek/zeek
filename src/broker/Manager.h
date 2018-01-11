@@ -264,12 +264,20 @@ public:
 	 * disconnected.
 	 * @param stale_interval The duration after which a clone that is
 	 * disconnected from its master will treat its local cache as stale.
-	 * In this state, queries to the clone will timeout.
+	 * In this state, queries to the clone will timeout.  A negative value
+	 * indicates to never treat the local cache as stale.
+	 * @param mutation_buffer_interval The max amount of time that a
+	 * disconnected clone will buffer mutation commands.  If the clone
+	 * reconnects before this time, it replays all buffered commands.  Note
+	 * that this doesn't completely prevent the loss of store updates: all
+	 * mutation messages are fire-and-forget and not explicitly acknowledged by
+	 * the master.  A negative/zero value indicates to never buffer commands.
 	 * @return a pointer to the newly created store a nullptr on failure.
 	 */
 	StoreHandleVal* MakeClone(const std::string& name,
 	                          double resync_interval = 10.0,
-	                          double stale_interval = 300.0);
+	                          double stale_interval = 300.0,
+	                          double mutation_buffer_interval = 120.0);
 
 	/**
 	 * Lookup a data store by it's identifier name and type.

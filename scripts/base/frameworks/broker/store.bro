@@ -13,8 +13,17 @@ export {
 
 	## The duration after which a clone that is disconnected from its master
 	## will begin to treat its local cache as stale.  In the stale state,
-	## queries to the cache will timeout.
+	## queries to the cache will timeout.  A negative value indicates that
+	## the local cache is never treated as stale.
 	const default_clone_stale_interval = 5min &redef;
+
+	## The maximum amount of time that a disconnected clone will
+	## buffer data store mutation commands.  If the clone reconnects before
+	## this time, it will replay all stored commands.  Note that this doesn't
+	## completely prevent the loss of store updates: all mutation messages
+	## are fire-and-forget and not explicitly acknowledged by the master.
+	## A negative/zero value indicates to never buffer commands.
+	const default_clone_mutation_buffer_interval = 2min &redef;
 
 	## Whether a data store query could be completed or not.
 	type QueryStatus: enum {
@@ -85,11 +94,24 @@ export {
 	## stale_interval: the duration after which a clone that is disconnected
 	##                 from its master will begin to treat its local cache as
 	##                 stale.  In this state, queries to the clone will timeout.
+	##                 A negative value indicates that the local cache is never
+	##                 treated as stale.
+	##
+	## mutation_buffer_interval: the amount of time to buffer data store update
+	##                           messages once a clone detects its master is
+	##                           unavailable.  If the clone reconnects before
+	##                           this time, it will replay all buffered
+	##                           commands.  Note that this doesn't completely
+	##                           prevent the loss of store updates: all mutation
+	##                           messages are fire-and-forget and not explicitly
+	##                           acknowledged by the master.  A negative/zero
+	##                           value indicates that commands never buffer.
 	##
 	## Returns: a handle to the data store.
 	global create_clone: function(name: string,
 	                              resync_interval: interval &default = default_clone_resync_interval,
-	                              stale_interval: interval &default = default_clone_stale_interval): opaque of Broker::Store;
+	                              stale_interval: interval &default = default_clone_stale_interval,
+	                              mutation_buffer_interval: interval &default = default_clone_mutation_buffer_interval): opaque of Broker::Store;
 
 	## Close a data store.
 	##
@@ -677,9 +699,11 @@ function create_master(name: string, b: BackendType &default = MEMORY,
 
 function create_clone(name: string,
                       resync_interval: interval &default = default_clone_resync_interval,
-                      stale_interval: interval &default = default_clone_stale_interval): opaque of Broker::Store
+                      stale_interval: interval &default = default_clone_stale_interval,
+                      mutation_buffer_interval: interval &default = default_clone_mutation_buffer_interval): opaque of Broker::Store
 	{
-	return __create_clone(name, resync_interval, stale_interval);
+	return __create_clone(name, resync_interval, stale_interval,
+	                      mutation_buffer_interval);
 	}
 
 function close(h: opaque of Broker::Store): bool

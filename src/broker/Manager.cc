@@ -1219,7 +1219,8 @@ StoreHandleVal* Manager::MakeMaster(const string& name, broker::backend type,
 	}
 
 StoreHandleVal* Manager::MakeClone(const string& name, double resync_interval,
-                                   double stale_interval)
+                                   double stale_interval,
+                                   double mutation_buffer_interval)
 	{
 	if ( LookupStore(name) )
 		return nullptr;
@@ -1227,7 +1228,8 @@ StoreHandleVal* Manager::MakeClone(const string& name, double resync_interval,
 	DBG_LOG(DBG_BROKER, "Creating clone for data store %s", name.c_str());
 
 	auto result = bstate->endpoint.attach_clone(name, resync_interval,
-	                                            stale_interval);
+	                                            stale_interval,
+	                                            mutation_buffer_interval);
 	if ( ! result )
 		{
 		reporter->Error("Failed to attach clone store %s:",

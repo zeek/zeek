@@ -765,3 +765,120 @@ event rpc_call%(c: connection, xid: count, prog: count, ver: count, proc: count,
 ##    call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
 ##    signature.
 event rpc_reply%(c: connection, xid: count, status: rpc_status, reply_len: count%);
+
+## Generated for MOUNT3 request/reply dialogues of type *null*. The event is
+## generated once we have either seen both the request and its corresponding
+## reply, or an unanswered request has timed out.
+## MOUNT is a service running on top of RPC.
+##
+## c: The RPC connection.
+##
+## info: Reports the status of the dialogue, along with some meta information.
+##
+## .. bro:see:: mount_proc_mnt mount_proc_dump mount_proc_umnt
+##    mount_proc_umntall mount_proc_export mount_proc_not_implemented
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event mount_proc_null%(c: connection, info: MOUNT3::info_t%);
+
+## Generated for MOUNT3 request/reply dialogues of type *mnt*. The event is
+## generated once we have either seen both the request and its corresponding
+## reply, or an unanswered request has timed out.
+## MOUNT is a service running on top of RPC.
+##
+## c: The RPC connection.
+##
+## info: Reports the status of the dialogue, along with some meta information.
+##
+## req:  The arguments passed in the request.
+##
+## rep: The response returned in the reply. The values may not be valid if the
+##      request was unsuccessful.
+##
+## .. bro:see:: mount_proc_mnt mount_proc_dump mount_proc_umnt
+##    mount_proc_umntall mount_proc_export mount_proc_not_implemented
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event mount_proc_mnt%(c: connection, info: MOUNT3::info_t, req: MOUNT3::dirmntargs_t, rep: MOUNT3::mnt_reply_t%);
+
+## Generated for MOUNT3 request/reply dialogues of type *umnt*. The event is
+## generated once we have either seen both the request and its corresponding
+## reply, or an unanswered request has timed out.
+## MOUNT is a service running on top of RPC.
+##
+## c: The RPC connection.
+##
+## info: Reports the status of the dialogue, along with some meta information.
+##
+## req:  The arguments passed in the request.
+##
+##
+## .. bro:see:: mount_proc_mnt mount_proc_dump mount_proc_umnt
+##    mount_proc_umntall mount_proc_export mount_proc_not_implemented
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event mount_proc_umnt%(c: connection, info: MOUNT3::info_t, req: MOUNT3::dirmntargs_t%);
+
+## Generated for MOUNT3 request/reply dialogues of type *umn_allt*. The event is
+## generated once we have either seen both the request and its corresponding
+## reply, or an unanswered request has timed out.
+## MOUNT is a service running on top of RPC.
+##
+## c: The RPC connection.
+##
+## info: Reports the status of the dialogue, along with some meta information.
+##
+## req:  The arguments passed in the request.
+##
+##
+## .. bro:see:: mount_proc_mnt mount_proc_dump mount_proc_umnt
+##    mount_proc_umntall mount_proc_export mount_proc_not_implemented
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event mount_proc_umnt_all%(c: connection, info: MOUNT3::info_t, req: MOUNT3::dirmntargs_t%);
+
+## Generated for MOUNT3 request/reply dialogues of a type that Bro's MOUNTv3
+## analyzer does not implement.
+##
+## c: The RPC connection.
+##
+## info: Reports the status of the dialogue, along with some meta information.
+##
+## proc: The procedure called that Bro does not implement.
+##
+## .. bro:see:: mount_proc_mnt mount_proc_dump mount_proc_umnt
+##    mount_proc_umntall mount_proc_export mount_proc_not_implemented
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event mount_proc_not_implemented%(c: connection, info: MOUNT3::info_t, proc: MOUNT3::proc_t%);
+
+## Generated for each MOUNT3 reply message received, reporting just the
+## status included.
+##
+## n: The connection.
+##
+## info: Reports the status included in the reply.
+##
+## .. bro:see:: mount_proc_mnt mount_proc_dump mount_proc_umnt
+##    mount_proc_umntall mount_proc_export mount_proc_not_implemented
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event mount_reply_status%(n: connection, info: MOUNT3::info_t%);

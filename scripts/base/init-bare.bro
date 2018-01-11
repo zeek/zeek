@@ -2350,6 +2350,71 @@ export {
 	};
 } # end export
 
+
+module MOUNT3;
+export {
+
+	## Record summarizing the general results and status of MOUNT3
+	## request/reply pairs.
+	##
+	## Note that when *rpc_stat* or *mount_stat* indicates not successful,
+	## the reply record passed to the corresponding event will be empty and
+	## contain uninitialized fields, so don't use it. Also note that time
+	# and duration values might not be fully accurate. For TCP, we record
+	# times when the corresponding chunk of data is delivered to the
+	# analyzer. Depending on the reassembler, this might be well after the
+	# first packet of the request was received.
+	#
+	# .. bro:see:: mount_proc_mnt mount_proc_dump mount_proc_umnt
+	#    mount_proc_umntall mount_proc_export mount_proc_not_implemented
+	type info_t: record {
+		## The RPC status.
+		rpc_stat: rpc_status;
+		## The MOUNT status.
+		mnt_stat: status_t;
+		## The start time of the request.
+		req_start: time;
+		## The duration of the request.
+		req_dur: interval;
+		## The length in bytes of the request.
+		req_len: count;
+		## The start time of the reply.
+		rep_start: time;
+		## The duration of the reply.
+		rep_dur: interval;
+		## The length in bytes of the reply.
+		rep_len: count;
+		## The user id of the reply.
+		rpc_uid: count;
+		## The group id of the reply.
+		rpc_gid: count;
+		## The stamp of the reply.
+		rpc_stamp: count;
+		## The machine name of the reply.
+		rpc_machine_name: string;
+		## The auxiliary ids of the reply.
+		rpc_auxgids: index_vec;
+	};
+
+	## MOUNT *mnt* arguments.
+	##
+	## .. bro:see:: mount_proc_mnt
+	type dirmntargs_t : record {
+		dirname: string;	##< Name of directory to mount
+	};
+
+	## MOUNT lookup reply. If the mount failed, *dir_attr* may be set. If the
+	## mount succeeded, *fh* is always set.
+	##
+	## .. bro:see:: mount_proc_mnt
+	type mnt_reply_t: record {
+		dirfh: string &optional;	##< Dir handle
+		auth_flavors: vector of auth_flavor_t &optional;	##< Returned authentication flavors
+	};
+
+} # end export
+
+
 module Threading;
 
 export {

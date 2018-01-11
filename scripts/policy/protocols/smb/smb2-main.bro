@@ -129,12 +129,12 @@ event smb2_tree_disconnect_request(c: connection, hdr: SMB2::Header) &priority=5
 		}
 	}
 
-event smb2_create_request(c: connection, hdr: SMB2::Header, name: string) &priority=5
+event smb2_create_request(c: connection, hdr: SMB2::Header, request: SMB2::CreateRequest) &priority=5
 	{
-	if ( name == "")
-		name = "<share_root>";
+	if ( request$filename == "")
+		request$filename = "<share_root>";
 
-	c$smb_state$current_file$name = name;
+	c$smb_state$current_file$name = request$filename;
 
 	switch ( c$smb_state$current_tree$share_type )
 		{

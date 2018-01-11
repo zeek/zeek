@@ -13,10 +13,14 @@ refine connection SMB_Conn += {
 
 		if ( smb2_create_request )
 			{
+			RecordVal* requestinfo = new RecordVal(BifType::Record::SMB2::CreateRequest);
+			requestinfo->Assign(0, filename);
+			requestinfo->Assign(1, new Val(${val.disposition}, TYPE_COUNT));
+			requestinfo->Assign(2, new Val(${val.create_options}, TYPE_COUNT));
 			BifEvent::generate_smb2_create_request(bro_analyzer(),
 			                                       bro_analyzer()->Conn(),
 			                                       BuildSMB2HeaderVal(h),
-			                                       filename);
+			                                       requestinfo);
 			}
 		else
 			{

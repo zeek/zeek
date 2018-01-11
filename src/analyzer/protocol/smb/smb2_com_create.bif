@@ -8,10 +8,10 @@
 ##
 ## hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
 ##
-## file_name: The name of the file being requested.
+## request: A record with more information related to the request.
 ##
 ## .. bro:see:: smb2_message smb2_create_response
-event smb2_create_request%(c: connection, hdr: SMB2::Header, file_name: string%);
+event smb2_create_request%(c: connection, hdr: SMB2::Header, request: SMB2::CreateRequest%);
 
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
 ## version 2 responses of type *create*. This is sent by the server to notify the client of
@@ -33,3 +33,7 @@ event smb2_create_request%(c: connection, hdr: SMB2::Header, file_name: string%)
 ##
 ## .. bro:see:: smb2_message smb2_create_request
 event smb2_create_response%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, size: count, times: SMB::MACTimes, attrs: SMB2::FileAttrs%);
+
+#### Types
+
+type SMB2::CreateRequest: record;

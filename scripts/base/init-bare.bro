@@ -3054,6 +3054,20 @@ export {
 		## The type of share being accessed. Physical disk, named pipe, or printer.
 		share_type: count;
 	};
+
+	## The request sent by the client to request either creation of or access to a file.
+	##
+	## For more information, see MS-SMB2:2.2.13
+	##
+	## .. bro:see:: smb2_create_request
+	type SMB2::CreateRequest: record {
+		## Name of the file
+		filename       : string;
+		## Defines the action the server MUST take if the file that is specified already exists.
+		disposition    : count;
+		## Specifies the options to be applied when creating or opening the file.
+		create_options : count;
+	};
 }
 
 module GLOBAL;

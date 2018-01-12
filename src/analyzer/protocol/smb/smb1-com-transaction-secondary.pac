@@ -2,6 +2,9 @@ refine connection SMB_Conn += {
 
        function proc_smb1_transaction_secondary_request(header: SMB_Header, val: SMB1_transaction_secondary_request): bool
        %{
+	if ( ! smb1_transaction_secondary_request )
+	   return false;
+
 	RecordVal* args = new RecordVal(BifType::Record::SMB1::Trans_Sec_Args);
 	args->Assign(0, new Val(${val.total_param_count}, TYPE_COUNT));
 	args->Assign(1, new Val(${val.total_data_count}, TYPE_COUNT));
@@ -12,16 +15,11 @@ refine connection SMB_Conn += {
 	args->Assign(6, new Val(${val.data_offset}, TYPE_COUNT));
 	args->Assign(7, new Val(${val.data_displacement}, TYPE_COUNT));
 
-	StringVal *parameters = new StringVal(${val.param_count}, (const char*)${val.parameters}.data());
+	StringVal *parameters = new StringVal(${val.parameters}.length(), (const char*)${val.parameters}.data());
 	StringVal *payload_str = nullptr;
 	SMB1_transaction_data *payload = nullptr;
 
-	if ( !parameters )
-	{
-		parameters = new StringVal("");
-	}
-
-	if ( ${val.data_count > 0} )
+	if ( ${val.data_count} > 0 )
 	{
 		payload = ${val.data};
 	}
@@ -47,15 +45,12 @@ refine connection SMB_Conn += {
 		payload_str = new StringVal("");
 	}
 
-	if ( smb1_transaction_secondary_request )
-	{
-		BifEvent::generate_smb1_transaction_secondary_request(bro_analyzer(),
-								      bro_analyzer()->Conn(),
-								      BuildHeaderVal(header),
-								      args,
-								      parameters,
-								      payload_str);
-	}
+	BifEvent::generate_smb1_transaction_secondary_request(bro_analyzer(),
+							      bro_analyzer()->Conn(),
+							      BuildHeaderVal(header),
+							      args,
+							      parameters,
+							      payload_str);
 
 	return true;
        %}

@@ -31,16 +31,14 @@ refine connection SMB_Conn += {
 
 	function proc_smb1_transaction_request(header: SMB_Header, val: SMB1_transaction_request): bool
 		%{
-		StringVal *parameters = new StringVal(${val.param_count}, (const char*)${val.parameters}.data());
+		if ( ! smb1_transaction_request )
+		   return false;
+
+		StringVal *parameters = new StringVal(${val.parameters}.length(), (const char*)${val.parameters}.data());
 		StringVal *payload_str = nullptr;
 		SMB1_transaction_data *payload = nullptr;
 
-		if ( !parameters )
-		{
-			parameters = new StringVal("");
-		}
-
-		if ( ${val.data_count > 0} )
+		if ( ${val.data_count} > 0 )
 		{
 			payload = ${val.data};
 		}
@@ -66,30 +64,27 @@ refine connection SMB_Conn += {
 			payload_str = new StringVal("");
 		}
 
-		if ( smb1_transaction_request )
-			BifEvent::generate_smb1_transaction_request(bro_analyzer(),
-			                                            bro_analyzer()->Conn(),
-			                                            BuildHeaderVal(header),
-			                                            smb_string2stringval(${val.name}),
-			                                            ${val.sub_cmd},
-								    parameters,
-								    payload_str);
+		BifEvent::generate_smb1_transaction_request(bro_analyzer(),
+		                                            bro_analyzer()->Conn(),
+		                                            BuildHeaderVal(header),
+		                                            smb_string2stringval(${val.name}),
+		                                            ${val.sub_cmd},
+							    parameters,
+							    payload_str);
 
 		return true;
 		%}
 
 	function proc_smb1_transaction_response(header: SMB_Header, val: SMB1_transaction_response): bool
 		%{
-		StringVal *parameters = new StringVal(${val.param_count}, (const char*)${val.parameters}.data());
+		if ( !smb1_transaction_response )
+		   return false;
+
+		StringVal *parameters = new StringVal(${val.parameters}.length(), (const char*)${val.parameters}.data());
 		StringVal *payload_str = nullptr;
 		SMB1_transaction_data *payload = nullptr;
 
-		if ( !parameters )
-		{
-			parameters = new StringVal("");
-		}
-
-		if ( ${val.data_count > 0} )
+		if ( ${val.data_count} > 0 )
 		{
 			payload = ${val.data[0]};
 		}
@@ -115,12 +110,11 @@ refine connection SMB_Conn += {
 			payload_str = new StringVal("");
 		}
 
-		if ( smb1_transaction_response )
-			BifEvent::generate_smb1_transaction_response(bro_analyzer(),
-			                                             bro_analyzer()->Conn(),
-			                                             BuildHeaderVal(header),
-								     parameters,
-			                                             payload_str);
+		BifEvent::generate_smb1_transaction_response(bro_analyzer(),
+		                                             bro_analyzer()->Conn(),
+		                                             BuildHeaderVal(header),
+							     parameters,
+		                                             payload_str);
 		return true;
 		%}
 };

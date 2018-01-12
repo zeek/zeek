@@ -1,4 +1,24 @@
 
+2.5-381 | 2018-01-12 10:03:21 -0800
+
+
+  * Preallocate all possible PortVals, mark PortVal ctors deprecated.
+
+    The performance benefit is small (maybe ~1% at most), however, it's a
+    trivial change without downsides. (Jon Siwek)
+
+  * Add BRO_DEPRECATED macro. (Jon Siwek)
+
+  * Add functions for retrieving files by their id.
+
+    There are two new script level functions to query and lookup files
+    from the core by their IDs.  These are adding feature parity for
+    similarly named functions for files.  The function prototypes are
+    as follows:
+
+      Files::file_exists(fuid: string): bool
+      Files::lookup_File(fuid: string): fa_file (Seth Hall)
+
 2.5-375 | 2018-01-11 11:47:01 -0600
 
   * Fix a test that fails in some environments (Daniel Thayer)

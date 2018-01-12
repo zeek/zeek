@@ -36,6 +36,10 @@ New Functionality
   Since ssl_ecdh_server_params contains more information than the old
   ssl_server_curve event, ssl_server_curve is now marked as deprecated.
 
+- Functions for retrieving files by their ID have been added:
+
+  Files::file_exists, Files::lookup_File
+
 Changed Functionality
 ---------------------
 

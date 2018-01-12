@@ -352,9 +352,9 @@ RecordVal* ICMP_Analyzer::ExtractICMP4Context(int len, const u_char*& data)
 	RecordVal* id_val = new RecordVal(conn_id);
 
 	id_val->Assign(0, new AddrVal(src_addr));
-	id_val->Assign(1, new PortVal(src_port, proto));
+	id_val->Assign(1, port_mgr->Get(src_port, proto));
 	id_val->Assign(2, new AddrVal(dst_addr));
-	id_val->Assign(3, new PortVal(dst_port, proto));
+	id_val->Assign(3, port_mgr->Get(dst_port, proto));
 
 	iprec->Assign(0, id_val);
 	iprec->Assign(1, new Val(ip_len, TYPE_COUNT));
@@ -411,9 +411,9 @@ RecordVal* ICMP_Analyzer::ExtractICMP6Context(int len, const u_char*& data)
 	RecordVal* id_val = new RecordVal(conn_id);
 
 	id_val->Assign(0, new AddrVal(src_addr));
-	id_val->Assign(1, new PortVal(src_port, proto));
+	id_val->Assign(1, port_mgr->Get(src_port, proto));
 	id_val->Assign(2, new AddrVal(dst_addr));
-	id_val->Assign(3, new PortVal(dst_port, proto));
+	id_val->Assign(3, port_mgr->Get(dst_port, proto));
 
 	iprec->Assign(0, id_val);
 	iprec->Assign(1, new Val(ip_len, TYPE_COUNT));

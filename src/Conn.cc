@@ -364,9 +364,9 @@ RecordVal* Connection::BuildConnVal()
 
 		RecordVal* id_val = new RecordVal(conn_id);
 		id_val->Assign(0, new AddrVal(orig_addr));
-		id_val->Assign(1, new PortVal(ntohs(orig_port), prot_type));
+		id_val->Assign(1, port_mgr->Get(ntohs(orig_port), prot_type));
 		id_val->Assign(2, new AddrVal(resp_addr));
-		id_val->Assign(3, new PortVal(ntohs(resp_port), prot_type));
+		id_val->Assign(3, port_mgr->Get(ntohs(resp_port), prot_type));
 
 		RecordVal *orig_endp = new RecordVal(endpoint);
 		orig_endp->Assign(0, new Val(0, TYPE_COUNT));

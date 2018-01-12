@@ -434,14 +434,16 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 
 		if ( tcp_contents && ! reass )
 			{
-			PortVal dport(ntohs(conn->RespPort()), TRANSPORT_TCP);
+			auto dport = port_mgr->Get(ntohs(conn->RespPort()), TRANSPORT_TCP);
 			Val* result;
 
 			if ( ! reass )
-				reass = tcp_content_delivery_ports_orig->Lookup(&dport);
+				reass = tcp_content_delivery_ports_orig->Lookup(dport);
 
 			if ( ! reass )
-				reass = tcp_content_delivery_ports_resp->Lookup(&dport);
+				reass = tcp_content_delivery_ports_resp->Lookup(dport);
+
+			Unref(dport);
 			}
 
 		if ( reass )

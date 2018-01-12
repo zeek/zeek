@@ -21,7 +21,7 @@ using namespace file_analysis;
 IMPLEMENT_SERIAL(X509Val, SER_X509_VAL);
 
 file_analysis::X509::X509(RecordVal* args, file_analysis::File* file)
-	: file_analysis::Analyzer(file_mgr->GetComponentTag("X509"), args, file)
+	: file_analysis::X509Common::X509Common(file_mgr->GetComponentTag("X509"), args, file)
 	{
 	cert_data.clear();
 	}
@@ -72,7 +72,7 @@ bool file_analysis::X509::EndOfFile()
 		if ( ! ex )
 			continue;
 
-		ParseExtension(ex);
+		ParseExtension(ex, x509_extension, false);
 		}
 
 	// X509_free(ssl_cert); We do _not_ free the certificate here. It is refcounted
@@ -133,8 +133,8 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val, const char* 
 	pX509Cert->Assign(3, new StringVal(len, buf));
 	BIO_free(bio);
 
-	pX509Cert->Assign(5, new Val(GetTimeFromAsn1(X509_get_notBefore(ssl_cert), fid), TYPE_TIME));
-	pX509Cert->Assign(6, new Val(GetTimeFromAsn1(X509_get_notAfter(ssl_cert), fid), TYPE_TIME));
+	pX509Cert->Assign(5, new Val(GetTimeFromAsn1(X509_get_notBefore(ssl_cert), fid, reporter), TYPE_TIME));
+	pX509Cert->Assign(6, new Val(GetTimeFromAsn1(X509_get_notAfter(ssl_cert), fid, reporter), TYPE_TIME));
 
 	// we only read 255 bytes because byte 256 is always 0.
 	// if the string is longer than 255, that will be our null-termination,
@@ -205,101 +205,6 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val, const char* 
 	return pX509Cert;
 	}
 
-StringVal* file_analysis::X509::GetExtensionFromBIO(BIO* bio)
-	{
-	BIO_flush(bio);
-	ERR_clear_error();
-	int length = BIO_pending(bio);
-
-	if ( ERR_peek_error() != 0 )
-		{
-		char tmp[120];
-		ERR_error_string_n(ERR_get_error(), tmp, sizeof(tmp));
-		reporter->Weird(fmt("X509::GetExtensionFromBIO: %s", tmp));
-		BIO_free_all(bio);
-		return 0;
-		}
-
-	if ( length == 0 )
-		{
-		BIO_free_all(bio);
-		return new StringVal("");
-		}
-
-	char* buffer = (char*) malloc(length);
-
-	if ( ! buffer )
-		{
-		// Just emit an error here and try to continue instead of aborting
-		// because it's unclear the length value is very reliable.
-		reporter->Error("X509::GetExtensionFromBIO malloc(%d) failed", length);
-		BIO_free_all(bio);
-		return 0;
-		}
-
-	BIO_read(bio, (void*) buffer, length);
-	StringVal* ext_val = new StringVal(length, buffer);
-
-	free(buffer);
-	BIO_free_all(bio);
-
-	return ext_val;
-	}
-
-void file_analysis::X509::ParseExtension(X509_EXTENSION* ex)
-	{
-	char name[256];
-	char oid[256];
-
-	ASN1_OBJECT* ext_asn = X509_EXTENSION_get_object(ex);
-	const char* short_name = OBJ_nid2sn(OBJ_obj2nid(ext_asn));
-
-	OBJ_obj2txt(name, 255, ext_asn, 0);
-	OBJ_obj2txt(oid, 255, ext_asn, 1);
-
-	int critical = 0;
-	if ( X509_EXTENSION_get_critical(ex) != 0 )
-		critical = 1;
-
-	BIO *bio = BIO_new(BIO_s_mem());
-	if( ! X509V3_EXT_print(bio, ex, 0, 0))
-		M_ASN1_OCTET_STRING_print(bio,ex->value);
-
-	StringVal* ext_val = GetExtensionFromBIO(bio);
-
-	if ( ! ext_val )
-		ext_val = new StringVal(0, "");
-
-	RecordVal* pX509Ext = new RecordVal(BifType::Record::X509::Extension);
-	pX509Ext->Assign(0, new StringVal(name));
-
-	if ( short_name and strlen(short_name) > 0 )
-		pX509Ext->Assign(1, new StringVal(short_name));
-
-	pX509Ext->Assign(2, new StringVal(oid));
-	pX509Ext->Assign(3, new Val(critical, TYPE_BOOL));
-	pX509Ext->Assign(4, ext_val);
-
-	// send off generic extension event
-	//
-	// and then look if we have a specialized event for the extension we just
-	// parsed. And if we have it, we send the specialized event on top of the
-	// generic event that we just had. I know, that is... kind of not nice,
-	// but I am not sure if there is a better way to do it...
-	val_list* vl = new val_list();
-	vl->append(GetFile()->GetVal()->Ref());
-	vl->append(pX509Ext);
-
-	mgr.QueueEvent(x509_extension, vl);
-
-	// look if we have a specialized handler for this event...
-	if ( OBJ_obj2nid(ext_asn) == NID_basic_constraints )
-		ParseBasicConstraints(ex);
-
-	else if ( OBJ_obj2nid(ext_asn) == NID_subject_alt_name )
-		ParseSAN(ex);
-	}
-
 void file_analysis::X509::ParseBasicConstraints(X509_EXTENSION* ex)
 	{
 	assert(OBJ_obj2nid(X509_EXTENSION_get_object(ex)) == NID_basic_constraints);
@@ -324,6 +229,26 @@ void file_analysis::X509::ParseBasicConstraints(X509_EXTENSION* ex)
 
 	else
 		reporter->Weird(fmt("Certificate with invalid BasicConstraint. fuid %s", GetFile()->GetID().c_str()));
+	}
+
+void file_analysis::X509::ParseExtensionsSpecific(X509_EXTENSION* ex, bool global, ASN1_OBJECT* ext_asn, const char* oid)
+	{
+	// look if we have a specialized handler for this event...
+	if ( OBJ_obj2nid(ext_asn) == NID_basic_constraints )
+		ParseBasicConstraints(ex);
+
+	else if ( OBJ_obj2nid(ext_asn) == NID_subject_alt_name )
+		ParseSAN(ex);
+
+	// In OpenSSL 1.0.2+, we can get the extension by using NID_ct_precert_scts.
+	// In OpenSSL <= 1.0.1, this is not yet defined yet, so we have to manually
+	// look it up by performing a string comparison on the oid.
+#ifdef NID_ct_precert_scts
+	else if ( OBJ_obj2nid(ext_asn) == NID_ct_precert_scts )
+#else
+	else if ( strcmp(oid, "1.3.6.1.4.1.11129.2.4.2") == 0 )
+#endif
+		ParseSignedCertificateTimestamps(ex);
 	}
 
 void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
@@ -516,164 +441,6 @@ unsigned int file_analysis::X509::KeyLength(EVP_PKEY *key)
 
 	reporter->InternalError("cannot be reached");
 	}
-
-double file_analysis::X509::GetTimeFromAsn1(const ASN1_TIME* atime, const char* arg_fid)
-	{
-	const char *fid = arg_fid ? arg_fid : "";
-	time_t lResult = 0;
-
-	char lBuffer[26];
-	char* pBuffer = lBuffer;
-
-	const char *pString = (const char *) atime->data;
-	unsigned int remaining = atime->length;
-
-	if ( atime->type == V_ASN1_UTCTIME )
-		{
-		if ( remaining < 11 || remaining > 17 )
-			{
-			reporter->Weird(fmt("Could not parse time in X509 certificate (fuid %s) -- UTCTime has wrong length", fid));
-			return 0;
-			}
-
-		if ( pString[remaining-1] != 'Z' )
-			{
-			// not valid according to RFC 2459 4.1.2.5.1
-			reporter->Weird(fmt("Could not parse UTC time in non-YY-format in X509 certificate (x509 %s)", fid));
-			return 0;
-			}
-
-		// year is first two digits in YY format. Buffer expects YYYY format.
-		if ( pString[0] < '5' ) // RFC 2459 4.1.2.5.1
-			{
-			*(pBuffer++) = '2';
-			*(pBuffer++) = '0';
-			}
-		else
-			{
-			*(pBuffer++) = '1';
-			*(pBuffer++) = '9';
-			}
-
-		memcpy(pBuffer, pString, 10);
-		pBuffer += 10;
-		pString += 10;
-		remaining -= 10;
-		}
-	else if ( atime->type == V_ASN1_GENERALIZEDTIME )
-		{
-		// generalized time. We apparently ignore the YYYYMMDDHH case
-		// for now and assume we always have minutes and seconds.
-		// This should be ok because it is specified as a requirement in RFC 2459 4.1.2.5.2
-
-		if ( remaining < 12 || remaining > 23 )
-			{
-			reporter->Weird(fmt("Could not parse time in X509 certificate (fuid %s) -- Generalized time has wrong length", fid));
-			return 0;
-			}
-
-		memcpy(pBuffer, pString, 12);
-		pBuffer += 12;
-		pString += 12;
-		remaining -= 12;
-		}
-	else
-		{
-		reporter->Weird(fmt("Invalid time type in X509 certificate (fuid %s)", fid));
-		return 0;
-		}
-
-	if ( (remaining == 0) || (*pString == 'Z') || (*pString == '-') || (*pString == '+') )
-		{
-		*(pBuffer++) = '0';
-		*(pBuffer++) = '0';
-		}
-
-	else if ( remaining >= 2 )
-		{
-		*(pBuffer++) = *(pString++);
-		*(pBuffer++) = *(pString++);
-
-		remaining -= 2;
-
-		// Skip any fractional seconds...
-		if ( (remaining > 0) && (*pString == '.') )
-			{
-			pString++;
-			remaining--;
-
-			while ( (remaining > 0) && (*pString >= '0') && (*pString <= '9') )
-				{
-				pString++;
-				remaining--;
-				}
-			}
-		}
-
-	else
-		{
-		reporter->Weird(fmt("Could not parse time in X509 certificate (fuid %s) -- additional char after time", fid));
-		return 0;
-		}
-
-	*(pBuffer++) = 'Z';
-	*(pBuffer++) = '\0';
-
-	time_t lSecondsFromUTC;
-
-	if ( remaining == 0 || *pString == 'Z' )
-		lSecondsFromUTC = 0;
-	else
-		{
-		if ( remaining < 5 )
-			{
-			reporter->Weird(fmt("Could not parse time in X509 certificate (fuid %s) -- not enough bytes remaining for offset", fid));
-			return 0;
-			}
-
-		if ((*pString != '+') && (*pString != '-'))
-			{
-			reporter->Weird(fmt("Could not parse time in X509 certificate (fuid %s) -- unknown offset type", fid));
-			return 0;
-			}
-
-		lSecondsFromUTC = ((pString[1] - '0') * 10 + (pString[2] - '0')) * 60;
-		lSecondsFromUTC += (pString[3] - '0') * 10 + (pString[4] - '0');
-
-		if (*pString == '-')
-			lSecondsFromUTC = -lSecondsFromUTC;
-		}
-
-	tm lTime;
-	lTime.tm_sec  = ((lBuffer[12] - '0') * 10) + (lBuffer[13] - '0');
-	lTime.tm_min  = ((lBuffer[10] - '0') * 10) + (lBuffer[11] - '0');
-	lTime.tm_hour = ((lBuffer[8] - '0') * 10) + (lBuffer[9] - '0');
-	lTime.tm_mday = ((lBuffer[6] - '0') * 10) + (lBuffer[7] - '0');
-	lTime.tm_mon  = (((lBuffer[4] - '0') * 10) + (lBuffer[5] - '0')) - 1;
-	lTime.tm_year = (lBuffer[0] - '0') * 1000 + (lBuffer[1] - '0') * 100 + ((lBuffer[2] - '0') * 10) + (lBuffer[3] - '0');
-
-	if ( lTime.tm_year > 1900)
-		lTime.tm_year -= 1900;
-
-	lTime.tm_wday = 0;
-	lTime.tm_yday = 0;
-	lTime.tm_isdst = 0;  // No DST adjustment requested
-
-	lResult = mktime(&lTime);
-
-	if ( lResult )
-		{
-		if ( lTime.tm_isdst  != 0 )
-			lResult -= 3600;  // mktime may adjust for DST  (OS dependent)
-
-		lResult += lSecondsFromUTC;
-		}
-
-	else
-		lResult = 0;
-
-	return lResult;
-}
 
 X509Val::X509Val(::X509* arg_certificate) : OpaqueVal(x509_opaque_type)
 	{

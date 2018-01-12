@@ -110,13 +110,22 @@ void Manager::SetHandle(const string& handle)
 
 string Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
                        analyzer::Tag tag, Connection* conn, bool is_orig,
-                       const string& precomputed_id)
+                       const string& precomputed_id, const string& mime_type)
 	{
 	string id = precomputed_id.empty() ? GetFileID(tag, conn, is_orig) : precomputed_id;
 	File* file = GetFile(id, conn, tag, is_orig);
 
 	if ( ! file )
 		return "";
+
+	// This only has any effect when
+	// * called for the first time for a file
+	// * being called before file->DataIn is called for the first time (before data is
+	//   added to the bof buffer).
+	// Afterwards SetMime just ignores what is passed to it. Thus this only has effect during
+	// the first Manager::DataIn call for each file.
+	if ( ! mime_type.empty() )
+		file->SetMime(mime_type);
 
 	file->DataIn(data, len, offset);
 
@@ -130,7 +139,8 @@ string Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
 	}
 
 string Manager::DataIn(const u_char* data, uint64 len, analyzer::Tag tag,
-                       Connection* conn, bool is_orig, const string& precomputed_id)
+		       Connection* conn, bool is_orig, const string& precomputed_id,
+		       const string& mime_type)
 	{
 	string id = precomputed_id.empty() ? GetFileID(tag, conn, is_orig) : precomputed_id;
 	// Sequential data input shouldn't be going over multiple conns, so don't
@@ -139,6 +149,9 @@ string Manager::DataIn(const u_char* data, uint64 len, analyzer::Tag tag,
 
 	if ( ! file )
 		return "";
+
+	if ( ! mime_type.empty() )
+		file->SetMime(mime_type);
 
 	file->DataIn(data, len);
 

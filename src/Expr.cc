@@ -4351,9 +4351,8 @@ Val* InExpr::Fold(Val* v1, Val* v2) const
 		const BroString* s1 = v1->AsString();
 		const BroString* s2 = v2->AsString();
 
-		// Could do better here - either roll our own, to deal with
-		// NULs, and/or Boyer-Moore if done repeatedly.
-		return new Val(strstr(s2->CheckString(), s1->CheckString()) != 0, TYPE_BOOL);
+		// Could do better here e.g. Boyer-Moore if done repeatedly.
+		return new Val(strstr_n(s2->Len(), s2->Bytes(), s1->Len(), reinterpret_cast<const unsigned char*>(s1->CheckString())) != -1, TYPE_BOOL);
 		}
 
 	if ( v1->Type()->Tag() == TYPE_ADDR &&

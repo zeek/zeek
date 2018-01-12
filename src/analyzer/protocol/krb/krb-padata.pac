@@ -75,8 +75,8 @@ VectorVal* proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyzer bro_a
 				string file_id = file_mgr->HashHandle(file_handle.Description());
 
 				file_mgr->DataIn(reinterpret_cast<const u_char*>(cert.data()),
-			                 	 cert.length(), bro_analyzer->GetAnalyzerTag(),
-			                 	 bro_analyzer->Conn(), true, file_id);
+				                 cert.length(), bro_analyzer->GetAnalyzerTag(),
+				                 bro_analyzer->Conn(), true, file_id, "application/x-x509-user-cert");
 				file_mgr->EndOfFile(file_id);
 
 				break;
@@ -99,8 +99,8 @@ VectorVal* proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyzer bro_a
 				string file_id = file_mgr->HashHandle(file_handle.Description());
 
 				file_mgr->DataIn(reinterpret_cast<const u_char*>(cert.data()),
-	                 			 cert.length(), bro_analyzer->GetAnalyzerTag(),
-			 	                 bro_analyzer->Conn(), false, file_id);
+				                 cert.length(), bro_analyzer->GetAnalyzerTag(),
+				                 bro_analyzer->Conn(), false, file_id, "application/x-x509-user-cert");
 				file_mgr->EndOfFile(file_id);
 
 				break;

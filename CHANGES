@@ -1,4 +1,260 @@
 
+2.5-381 | 2018-01-12 10:03:21 -0800
+
+
+  * Preallocate all possible PortVals, mark PortVal ctors deprecated.
+
+    The performance benefit is small (maybe ~1% at most), however, it's a
+    trivial change without downsides. (Jon Siwek)
+
+  * Add BRO_DEPRECATED macro. (Jon Siwek)
+
+  * Add functions for retrieving files by their id.
+
+    There are two new script level functions to query and lookup files
+    from the core by their IDs.  These are adding feature parity for
+    similarly named functions for files.  The function prototypes are
+    as follows:
+
+      Files::file_exists(fuid: string): bool
+      Files::lookup_File(fuid: string): fa_file (Seth Hall)
+
+2.5-375 | 2018-01-11 11:47:01 -0600
+
+  * Fix a test that fails in some environments (Daniel Thayer)
+
+  * Add CVE ID for BIT-1856. (Johanna Amann)
+
+2.5-372 | 2017-12-15 15:08:51 -0600
+
+  * Remove some DNS weirds that caused volume and are generally not useful:
+    dns_unmatched_msg, dns_unmatched_msg_quantity, dns_unmatched_reply.
+    (Corelight)
+
+2.5-369 | 2017-12-13 14:22:47 -0600
+
+  * Fix typo in analyzer::Manager API docs (Corelight)
+
+2.5-368 | 2017-12-08 13:09:25 -0600
+
+  * Improve for-loop iteration performance over empty tables. (Justin Azoff)
+
+  * Fix gcc7 warnings. (Johanna Amann)
+
+2.5-363 | 2017-12-05 11:00:09 -0600
+
+  * Fix documentation for ReassemblerStats. (Corelight)
+
+2.5-362 | 2017-12-02 09:45:04 -0600
+
+  * BIT-1791: Do not log SOCKS passwords by default and add
+    SOCKS::default_capture_password option.  (Johanna Amann)
+
+  * Add missing ; in SSL binpac parser, found by Luke Valenta. (Johanna Amann)
+
+2.5-359 | 2017-11-29 14:01:37 -0600
+
+  * Add --ccache option to configure script (requires CMake 3.10+). (Corelight)
+
+2.5-358 | 2017-11-28 12:28:14 -0800
+
+  * Extend the TLS analyzer with several events containing cryptographic
+    parameters from the client and server key exchanges.
+
+   The new events are:
+
+    ssl_ecdh_server_params, ssl_dh_server_params, ssl_server_signature,
+    ssl_ecdh_client_params, ssl_dh_client_params, ssl_rsa_client_pms
+
+    Since ssl_ecdh_server_params contains more information than the old
+    ssl_server_curve event, ssl_server_curve is now marked as deprecated.
+
+    (Luke Valenta)
+
+2.5-352 | 2017-11-21 13:21:51 -0600
+
+  * Fix assignments to event arguments becoming visible to subsequent
+    handlers. (Robin Sommer)
+
+2.5-350 | 2017-11-21 12:19:28 -0600
+
+  * Add HookReporter plugin hook function.
+
+    This hook gives access to basically all information that is available in
+    the function in Reporter.cc that performs the logging. The hook is
+    called each time when anything passes through the reporter in the cases
+    in which an event usually would be called. This includes weirds. The
+    hook can return false to prevent the normal reporter events from being
+    raised. (Corelight)
+
+2.5-348 | 2017-11-21 11:30:55 -0600
+
+  * Fix a nb_dns.c compile error (older OSs) due to C90 vs C99. (Corelight)
+
+2.5-347 | 2017-11-20 14:00:37 -0600
+
+  * Fix and extend behavior of HookLoadFile. (Corelight)
+
+2.5-345 | 2017-11-20 11:28:59 -0600
+
+  * BIT-1827: fix error on initializing DNS w/ IPv6 nameserver. (Corelight)
+
+  * Add --build-type flag to configure wrapper. (Corelight)
+
+2.5-343 | 2017-11-17 15:27:04 -0800
+
+  * Fix ASCII logging of very large values of type "double".
+    Previously, the nonsensical "NAN.0" would be written to ASCII logs
+    for any value >= 1e248). (Daniel Thayer)
+
+  * Add more test cases to ascii-double.bro (Daniel Thayer)
+
+  * Enforce a maximum line length in ContentLine analyzer. (Justin Azoff)
+
+  * Fix OOB read with IP packets that have a header length greater than the total
+    length of their packet. (Johanna Amann)
+
+  * Verify version field of IP packets read from tunnels. (Johanna Amann)
+
+2.5-332 | 2017-10-27 13:27:16 -0700
+
+  * Bro docs tweaks for correctness and readability. (Christian Kreibich)
+
+  * Fix use-after-free in Trigger.cc. (Johanna Amann)
+
+2.5-328 | 2017-10-16 13:13:41 -0700
+
+  * Patch OOB write in content-line analyzer.
+
+    A combination of packets can trigger an out of bound write of '0' byte
+    in the content-line analyzer. Addresses BIT-1856 / CVE-2017-1000458.
+    (Frank Meier/Johanna Amann)
+
+2.5-327 | 2017-10-16 12:21:01 -0700
+
+  * Updating submodule(s).
+
+2.5-326 | 2017-10-05 14:34:20 -0700
+
+  * Update the SSH analyzer to support the "curve25519-sha256" KEX.
+    (Vlad Grigorescu)
+
+2.5-321 | 2017-10-03 12:00:29 -0500
+
+  * Add "-B scripts" flag to allow debug output of script load order.
+    (Corelight)
+
+  * Fix segmentation fault on eval condition with no return value. (Corelight)
+
+2.5-317 | 2017-09-29 09:54:50 -0400
+
+  * BIT-1853 - Fix an issue with broctl triggering reporter error in the
+    intel framework. (Justin Azoff)
+
+  * BIT-1845 - Make "in" keyword work with binary data. (Johanna Amann)
+
+  * Add TLS 1.3 fix and testcase due to Google Chrome's use of TLS 1.3. 
+
+    It turns out that Chrome supports an experimental mode to support TLS
+    1.3, which uses a non-standard way to negotiate TLS 1.3 with a server.
+    This non-standard way to negotiate TLS 1.3 breaks the current draft RFC
+    and re-uses an extension on the server-side with a different binary
+    formatting, causing us to throw a binpac exception.
+
+    This patch ignores the extension when sent by the server, continuing to
+    correctly parse the server_hello reply (as far as possible).
+
+    From what I can tell this seems to be google working around the fac
+    that MITM equipment cannot deal with TLS 1.3 server hellos; this change
+    makes the fact that TLS 1.3 is used completely opaque unless one looks
+    into a few extensions.
+
+    We currently log this as TLS 1.2. (Johanna Amann)
+
+2.5-310 | 2017-09-21 09:10:21 -0700
+
+  * fix interaction of gridftp scripts with other thresholds. (Justin Azoff)
+
+2.5-307 | 2017-09-20 10:51:09 -0500
+
+  * BIT-1846: Updating broctl submodule to include fix for symlinking
+    issue (Jon Siwek)
+
+2.5-306 | 2017-09-18 14:43:42 -0700
+
+  * Make strerror_r portable, supporting XSI/gnu versions. (Thomas Petersen)
+
+  * Prevent crash when calling bro -U. (Thomas Petersen)
+
+  * Remove annoying error message from connsize bifs. (Johanna Amann)
+
+  * Add test to verify that log rotation works with gzipped logs (Daniel Thayer)
+
+  * Fix ascii writer to not discard a ".gz" file extension. (Daniel Thayer)
+
+    When Bro writes a compressed log, it uses a file extension of ".gz".
+    However, upon log rotation the ascii writer script function
+    "default_rotation_postprocessor_func" was discarding the ".gz"
+    file extension.  Fixed so that the correct file extension is
+    preserved after rotation. (Daniel Thayer)
+
+2.5-297 | 2017-09-11 09:26:33 -0700
+
+  * Fix small OCSP parser bug; serial numbers were not passed to events
+    (Johanna Amann)
+
+  * Fix expire-redef.bro test. (Daniel Thayer)
+
+2.5-294 | 2017-08-11 13:51:49 -0500
+
+  * Fix core.truncation unit test on macOS. (Jon Siwek)
+
+  * Fix a netcontrol test that often fails (Daniel Thayer)
+
+  * Update install instructions for Fedora 26 (Daniel Thayer)
+
+2.5-288 | 2017-08-04 14:17:10 -0700
+
+  * Fix field not being populated, which resulted in a reporter
+    messsage. Addresses BIT-1831. Reported by Chris Herdt. (Seth Hall)
+
+  * Support for OCSP and Signed Certificate Timestamp. (Liang
+    Zhu/Johanna Amann)
+
+      - OCSP parsing is added to the X.509 module.
+
+      - Signed Certificate Timestamp extraction, parsing, & validation
+        is added to the SSL, X.509, and OCSP analyzers. Validation is
+        added to the X.509 BIFs.
+
+    This adds the following events and BIFs:
+
+      - event ocsp_request(f: fa_file, version: count, requestorName: string);
+      - event ocsp_request_certificate(f: fa_file, hashAlgorithm: string, issuerNameHash: string, issuerKeyHash: string, serialNumber: string);
+      - event ocsp_response_status(f: fa_file, status: string);
+      - event ocsp_response_bytes(f: fa_file, resp_ref: opaque of ocsp_resp, status: string, version: count, responderId: string, producedAt: time, signatureAlgorithm: string, certs: x509_opaque_vector);
+      - event ocsp_response_certificate(f: fa_file, hashAlgorithm: string, issuerNameHash: string, issuerKeyHash: string, serialNumber: string, certStatus: string, revokeTime: time, revokeReason: string, thisUpdate: time, nextUpdate: time);
+      - event ocsp_extension(f: fa_file, ext: X509::Extension, global_resp: bool);
+      - event x509_ocsp_ext_signed_certificate_timestamp(f: fa_file, version: count, logid: string, timestamp: count, hash_algorithm: count, signature_algorithm: count, signature: string);
+      - event ssl_extension_signed_certificate_timestamp(c: connection, is_orig: bool, version: count, logid: string, timestamp: count, signature_and_hashalgorithm: SSL::SignatureAndHashAlgorithm, signature: string);
+      - function sct_verify(cert: opaque of x509, logid: string, log_key: string, signature: string, timestamp: count, hash_algorithm: count, issuer_key_hash: string &default=""): bool
+      - function x509_subject_name_hash(cert: opaque of x509, hash_alg: count): string
+      - function x509_issuer_name_hash(cert: opaque of x509, hash_alg: count): string
+      - function x509_spki_hash(cert: opaque of x509, hash_alg: count): string
+
+    This also changes the MIME types that we use to identify X.509
+    certificates in SSL connections from "application/pkix-cert" to
+    "application/x-x509-user-cert" for host certificates and
+    "application/x-x509-ca-cert" for CA certificates.
+
+  * The SSL scripts provide a new hook "ssl_finishing(c: connection)"
+    to trigger actions after the handshake has concluded. (Johanna
+    Amann)
+
+  * Add an internal API for protocol analyzers to provide the MIME
+    type of file data directly, disabling automatic inferrence.
+    (Johanna Amann).
+
 2.5-186 | 2017-07-28 12:22:20 -0700
 
   * Improved handling of '%' at end of line in HTTP analyzer. (Johanna
@@ -800,7 +1056,7 @@
 
 2.4-683 | 2016-07-08 14:55:04 -0700
 
-  * Extendign connection history field to flag with '^' when Bro flips
+  * Extending connection history field to flag with '^' when Bro flips
     a connection's endpoints. Addresses BIT-1629. (Robin Sommer)
 
 2.4-680 | 2016-07-06 09:18:21 -0700

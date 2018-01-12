@@ -87,6 +87,7 @@ int perftools_profile = 0;
 
 DNS_Mgr* dns_mgr;
 TimerMgr* timer_mgr;
+PortManager* port_mgr = 0;
 logging::Manager* log_mgr = 0;
 threading::Manager* thread_mgr = 0;
 input::Manager* input_mgr = 0;
@@ -129,6 +130,7 @@ OpaqueType* cardinality_type = 0;
 OpaqueType* topk_type = 0;
 OpaqueType* bloomfilter_type = 0;
 OpaqueType* x509_opaque_type = 0;
+OpaqueType* ocsp_resp_opaque_type = 0;
 
 // Keep copy of command line
 int bro_argc;
@@ -383,6 +385,7 @@ void terminate_bro()
 	delete plugin_mgr;
 	delete reporter;
 	delete iosource_mgr;
+	delete port_mgr;
 
 	reporter = 0;
 	}
@@ -710,6 +713,7 @@ int main(int argc, char** argv)
 
 	bro_start_time = current_time(true);
 
+	port_mgr = new PortManager();
 	reporter = new Reporter();
 	thread_mgr = new threading::Manager();
 	plugin_mgr = new plugin::Manager();
@@ -839,6 +843,7 @@ int main(int argc, char** argv)
 	topk_type = new OpaqueType("topk");
 	bloomfilter_type = new OpaqueType("bloomfilter");
 	x509_opaque_type = new OpaqueType("x509");
+	ocsp_resp_opaque_type = new OpaqueType("ocsp_resp");
 
 	// The leak-checker tends to produce some false
 	// positives (memory which had already been

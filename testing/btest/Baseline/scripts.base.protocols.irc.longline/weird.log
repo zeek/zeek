@@ -1,0 +1,12 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	weird
+#open	2017-11-03-19-17-18
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
+#types	time	string	addr	port	addr	port	string	string	bool	string
+1509735979.080381	CtPZjS20MLrsMUOJi2	127.0.0.1	50164	127.0.0.1	6667	contentline_size_exceeded	-	F	bro
+1509735979.080381	CtPZjS20MLrsMUOJi2	127.0.0.1	50164	127.0.0.1	6667	irc_line_size_exceeded	-	F	bro
+1509735981.241042	CtPZjS20MLrsMUOJi2	127.0.0.1	50164	127.0.0.1	6667	irc_invalid_command	-	F	bro
+#close	2017-11-03-19-17-18

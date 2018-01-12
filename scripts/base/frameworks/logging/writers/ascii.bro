@@ -79,9 +79,12 @@ export {
 # runs the writer's default postprocessor command on it.
 function default_rotation_postprocessor_func(info: Log::RotationInfo) : bool
 	{
+	# If the filename has a ".gz" extension, then keep it.
+	local gz = info$fname[-3:] == ".gz" ? ".gz" : "";
+
 	# Move file to name including both opening and closing time.
-	local dst = fmt("%s.%s.log", info$path,
-			strftime(Log::default_rotation_date_format, info$open));
+	local dst = fmt("%s.%s.log%s", info$path,
+			strftime(Log::default_rotation_date_format, info$open), gz);
 
 	system(fmt("/bin/mv %s %s", info$fname, dst));
 

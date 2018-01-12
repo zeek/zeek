@@ -9,6 +9,18 @@ include(cmake/CommonCMakeConfig.cmake)
 ########################################################################
 ## Project/Build Configuration
 
+if ( ENABLE_CCACHE )
+    find_program(CCACHE_PROGRAM ccache)
+
+    if ( NOT CCACHE_PROGRAM )
+        message(FATAL_ERROR "ccache not found")
+    endif ()
+
+    message(STATUS "Using ccache: ${CCACHE_PROGRAM}")
+    set(CMAKE_C_COMPILER_LAUNCHER   ${CCACHE_PROGRAM})
+    set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE_PROGRAM})
+endif ()
+
 set(BRO_ROOT_DIR ${CMAKE_INSTALL_PREFIX})
 if (NOT BRO_SCRIPT_INSTALL_PATH)
     # set the default Bro script installation path (user did not specify one)
@@ -246,6 +258,8 @@ endif ()
 message(
     "\n====================|  Bro Build Summary  |====================="
     "\n"
+    "\nBuild type:        ${CMAKE_BUILD_TYPE}"
+    "\nBuild dir:         ${CMAKE_BINARY_DIR}"
     "\nInstall prefix:    ${CMAKE_INSTALL_PREFIX}"
     "\nBro Script Path:   ${BRO_SCRIPT_INSTALL_PATH}"
     "\nDebug mode:        ${ENABLE_DEBUG}"

@@ -106,6 +106,7 @@ export {
 		["baroque_SYN"]                         = ACTION_LOG,
 		["base64_illegal_encoding"]             = ACTION_LOG,
 		["connection_originator_SYN_ack"]       = ACTION_LOG_PER_ORIG,
+		["contentline_size_exceeded"]           = ACTION_LOG,
 		["corrupt_tcp_options"]                 = ACTION_LOG_PER_ORIG,
 		["crud_trailing_HTTP_request"]          = ACTION_LOG,
 		["data_after_reset"]                    = ACTION_LOG,

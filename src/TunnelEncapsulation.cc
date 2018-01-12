@@ -22,9 +22,9 @@ RecordVal* EncapsulatingConn::GetRecordVal() const
 
 	RecordVal* id_val = new RecordVal(conn_id);
 	id_val->Assign(0, new AddrVal(src_addr));
-	id_val->Assign(1, new PortVal(ntohs(src_port), proto));
+	id_val->Assign(1, port_mgr->Get(ntohs(src_port), proto));
 	id_val->Assign(2, new AddrVal(dst_addr));
-	id_val->Assign(3, new PortVal(ntohs(dst_port), proto));
+	id_val->Assign(3, port_mgr->Get(ntohs(dst_port), proto));
 	rv->Assign(0, id_val);
 	rv->Assign(1, new EnumVal(type, BifType::Enum::Tunnel::Type));
 

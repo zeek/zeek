@@ -3,6 +3,15 @@
 #ifndef util_h
 #define util_h
 
+#ifdef __GNUC__
+    #define BRO_DEPRECATED(msg) __attribute__ ((deprecated(msg)))
+#elif defined(_MSC_VER)
+    #define BRO_DEPRECATED(msg) __declspec(deprecated(msg)) func
+#else
+	#pragma message("Warning: BRO_DEPRECATED macro not implemented")
+	#define BRO_DEPRECATED(msg)
+#endif
+
 // Expose C99 functionality from inttypes.h, which would otherwise not be
 // available in C++.
 #ifndef __STDC_FORMAT_MACROS
@@ -515,5 +524,11 @@ struct CompareString
  * @return The canonicalized version of \a name which caller may later delete[].
  */
 std::string canonify_name(const std::string& name);
+
+/**
+ * Reentrant version of strerror(). Takes care of the difference between the
+ * XSI-compliant and the GNU-specific version of strerror_r().
+ */
+void bro_strerror_r(int bro_errno, char* buf, size_t buflen);
 
 #endif

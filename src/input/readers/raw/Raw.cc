@@ -90,7 +90,7 @@ bool Raw::SetFDFlags(int fd, int cmd, int flags)
 		return true;
 
 	char buf[256];
-	strerror_r(errno, buf, sizeof(buf));
+	bro_strerror_r(errno, buf, sizeof(buf));
 	Error(Fmt("failed to set fd flags: %s", buf));
 	return false;
 	}
@@ -197,7 +197,7 @@ bool Raw::Execute()
 			else
 				{
 				char buf[256];
-				strerror_r(errno, buf, sizeof(buf));
+				bro_strerror_r(errno, buf, sizeof(buf));
 				Warning(Fmt("Could not set child process group: %s", buf));
 				}
 			}
@@ -293,7 +293,7 @@ bool Raw::OpenInput()
 			if ( fseek(file.get(), pos, whence) < 0 )
 				{
 				char buf[256];
-				strerror_r(errno, buf, sizeof(buf));
+				bro_strerror_r(errno, buf, sizeof(buf));
 				Error(Fmt("Seek failed in init: %s", buf));
 				}
 			}

@@ -6,11 +6,28 @@ enum smb2_set_info_type {
 };
 
 enum smb_file_info_type {
+	SMB2_FILE_BASIC_INFO        = 0x04,
 	SMB2_FILE_RENAME_INFO       = 0x0a,
 	SMB2_FILE_DISPOSITION_INFO = 0x0d,
 }
 
 refine connection SMB_Conn += {
+
+	function proc_smb2_set_info_request_file(val: SMB2_file_basic_info): bool
+		%{
+		if ( smb2_file_sattr )
+			BifEvent::generate_smb2_file_sattr(bro_analyzer(),
+			                                      bro_analyzer()->Conn(),
+			                                      BuildSMB2HeaderVal(${val.sir.header}),
+			                                      BuildSMB2GUID(${val.sir.file_id}),
+			                                      SMB_BuildMACTimes(${val.last_write_time},
+			                                                        ${val.last_access_time},
+			                                                        ${val.creation_time},
+			                                                        ${val.change_time}),
+			                                      smb2_file_attrs_to_bro(${val.file_attrs}));
+
+		return true;
+		%}
 
 	function proc_smb2_set_info_request_file_rename(val: SMB2_file_rename_info): bool
 		%{
@@ -38,6 +55,16 @@ refine connection SMB_Conn += {
 
 };
 
+type SMB2_file_basic_info(sir: SMB2_set_info_request) = record {
+	creation_time    : SMB_timestamp;
+	last_access_time : SMB_timestamp;
+	last_write_time  : SMB_timestamp;
+	change_time      : SMB_timestamp;
+	file_attrs       : SMB2_file_attributes;
+} &let {
+	proc: bool = $context.connection.proc_smb2_set_info_request_file(this);
+};
+
 type SMB2_file_rename_info(sir: SMB2_set_info_request) = record {
 	replace_if_exists : uint8;
 	reserved          : uint8[7];
@@ -55,6 +82,7 @@ type SMB2_file_disposition_info(sir: SMB2_set_info_request) = record {
 };
 
 type SMB2_set_info_file_class(sir: SMB2_set_info_request) = case sir.info_level of {
+	SMB2_FILE_BASIC_INFO       -> file_basic          : SMB2_file_basic_info(sir);
 	SMB2_FILE_RENAME_INFO      -> file_rename         : SMB2_file_rename_info(sir);
 	SMB2_FILE_DISPOSITION_INFO -> file_disposition    : SMB2_file_disposition_info(sir);
 	default                    -> info_file_unhandled : empty;

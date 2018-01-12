@@ -231,6 +231,26 @@ event smb2_write_request(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, 
 	SMB::write_file_log(c$smb_state);
 	}
 
+event smb2_file_sattr(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, times: SMB::MACTimes, attrs: SMB2::FileAttrs) &priority=-5
+{
+	SMB::write_file_log(c$smb_state);
+}
+
+event smb2_file_sattr(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, times: SMB::MACTimes, attrs: SMB2::FileAttrs) &priority=5
+{
+	SMB::set_current_file(c$smb_state, file_id$persistent+file_id$volatile);
+
+	switch ( c$smb_state$current_tree$share_type )
+		{
+		case "DISK":
+			c$smb_state$current_file$action = SMB::FILE_SET_ATTRIBUTE;
+			break;
+		default:
+			c$smb_state$current_file$action = SMB::FILE_SET_ATTRIBUTE;
+			break;
+		}
+}
+
 event smb2_file_rename(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, dst_filename: string) &priority=5
 	{
 	SMB::set_current_file(c$smb_state, file_id$persistent+file_id$volatile);

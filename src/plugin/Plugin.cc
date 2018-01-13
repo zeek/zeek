@@ -208,6 +208,16 @@ void HookArgument::Describe(ODesc* d) const
 		d->Add("}");
 		}
 		break;
+
+	case LOCATION:
+		if ( arg.loc )
+			{
+			arg.loc->Describe(d);
+			}
+		else
+		 {
+			d->Add("<no location>");
+		 }
 	}
 	}
 
@@ -345,7 +355,7 @@ void Plugin::RequestBroObjDtor(BroObj* obj)
 	plugin_mgr->RequestBroObjDtor(obj, this);
 	}
 
-int Plugin::HookLoadFile(const std::string& file, const std::string& ext)
+int Plugin::HookLoadFile(const LoadType type, const std::string& file, const std::string& resolved)
 	{
 	return -1;
 	}
@@ -389,6 +399,14 @@ bool Plugin::HookLogWrite(const std::string& writer, const std::string& filter,
                           const logging::WriterBackend::WriterInfo& info,
                           int num_fields, const threading::Field* const* fields,
                           threading::Value** vals)
+	{
+	return true;
+	}
+
+bool Plugin::HookReporter(const std::string& prefix, const EventHandlerPtr event,
+			  const Connection* conn, const val_list* addl, bool location,
+			  const Location* location1, const Location* location2,
+			  bool time, const std::string& message)
 	{
 	return true;
 	}

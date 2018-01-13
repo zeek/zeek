@@ -26,6 +26,20 @@ New Functionality
 - The SSL scripts provide a new hook "ssl_finishing(c: connection)"
   to trigger actions after the handshake has concluded.
 
+- New functionality has been added to the TLS parser, adding several
+  events. These events mostly extract information from the server and client
+  key exchange messages. The new events are:
+
+  ssl_ecdh_server_params, ssl_dh_server_params, ssl_server_signature,
+  ssl_ecdh_client_params, ssl_dh_client_params, ssl_rsa_client_pms
+
+  Since ssl_ecdh_server_params contains more information than the old
+  ssl_server_curve event, ssl_server_curve is now marked as deprecated.
+
+- Functions for retrieving files by their ID have been added:
+
+  Files::file_exists, Files::lookup_File
+
 Changed Functionality
 ---------------------
 
@@ -33,6 +47,21 @@ Changed Functionality
   connections changed from "application/pkix-cert" to
   "application/x-x509-user-cert" for host certificates and
   "application/x-x509-ca-cert" for CA certificates.
+
+- With the new ssl_ecdh_server_params event, the ssl_server_curve
+  event is considered deprecated and will be removed in a future
+  version of Bro.
+
+- The Socks analyzer no longer logs passwords by default. This
+  brings its behavior in line with the FTP/HTTP analyzers which also
+  do not log passwords by default.
+
+  To restore the previous behavior and log Socks passwords, use:
+
+  redef SOCKS::default_capture_password = T;
+
+- The DNS base scripts no longer generate some noisy and annoying
+  weirds (dns_unmatched_msg, dns_unmatched_msg_quantity, dns_unmatched_reply)
 
 Removed Functionality
 ---------------------

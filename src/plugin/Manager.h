@@ -237,7 +237,7 @@ public:
 	 * if a plugin took over the file but had trouble loading it; and -1 if
 	 * no plugin was interested in the file at all.
 	 */
-	virtual int HookLoadFile(const string& file);
+	virtual int HookLoadFile(const Plugin::LoadType type, const string& file, const string& resolved);
 
 	/**
 	 * Hook that filters calls to a script function/event/hook.
@@ -354,6 +354,39 @@ public:
 	                  const logging::WriterBackend::WriterInfo& info,
 	                  int num_fields, const threading::Field* const* fields,
 	                  threading::Value** vals) const;
+
+	/**
+	 * Hook into reporting. This method will be called for each reporter call
+	 * made; this includes weirds. The method cannot manipulate the data at
+	 * the current time; however it is possible to prevent script-side events
+	 * from being called by returning false.
+	 *
+	 * @param prefix The prefix passed by the reporter framework
+	 *
+	 * @param event The event to be called
+	 *
+	 * @param conn The associated connection
+	 *
+	 * @param addl Additional Bro values; typically will be passed to the event
+	 *             by the reporter framework.
+	 *
+	 * @param location True if event expects location information
+	 *
+	 * @param location1 First location
+	 *
+	 * @param location2 Second location
+	 *
+	 * @param time True if event expects time information
+	 *
+	 * @param message Message supplied by the reporter framework
+	 *
+	 * @return true if event should be called by the reporter framework, false
+	 *         if the event call should be skipped
+	 */
+	bool HookReporter(const std::string& prefix, const EventHandlerPtr event,
+	                  const Connection* conn, const val_list* addl, bool location,
+	                  const Location* location1, const Location* location2,
+	                  bool time, const std::string& message);
 
 	/**
 	 * Internal method that registers a freshly instantiated plugin with

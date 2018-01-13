@@ -1,4 +1,106 @@
 
+2.5-381 | 2018-01-12 10:03:21 -0800
+
+
+  * Preallocate all possible PortVals, mark PortVal ctors deprecated.
+
+    The performance benefit is small (maybe ~1% at most), however, it's a
+    trivial change without downsides. (Jon Siwek)
+
+  * Add BRO_DEPRECATED macro. (Jon Siwek)
+
+  * Add functions for retrieving files by their id.
+
+    There are two new script level functions to query and lookup files
+    from the core by their IDs.  These are adding feature parity for
+    similarly named functions for files.  The function prototypes are
+    as follows:
+
+      Files::file_exists(fuid: string): bool
+      Files::lookup_File(fuid: string): fa_file (Seth Hall)
+
+2.5-375 | 2018-01-11 11:47:01 -0600
+
+  * Fix a test that fails in some environments (Daniel Thayer)
+
+  * Add CVE ID for BIT-1856. (Johanna Amann)
+
+2.5-372 | 2017-12-15 15:08:51 -0600
+
+  * Remove some DNS weirds that caused volume and are generally not useful:
+    dns_unmatched_msg, dns_unmatched_msg_quantity, dns_unmatched_reply.
+    (Corelight)
+
+2.5-369 | 2017-12-13 14:22:47 -0600
+
+  * Fix typo in analyzer::Manager API docs (Corelight)
+
+2.5-368 | 2017-12-08 13:09:25 -0600
+
+  * Improve for-loop iteration performance over empty tables. (Justin Azoff)
+
+  * Fix gcc7 warnings. (Johanna Amann)
+
+2.5-363 | 2017-12-05 11:00:09 -0600
+
+  * Fix documentation for ReassemblerStats. (Corelight)
+
+2.5-362 | 2017-12-02 09:45:04 -0600
+
+  * BIT-1791: Do not log SOCKS passwords by default and add
+    SOCKS::default_capture_password option.  (Johanna Amann)
+
+  * Add missing ; in SSL binpac parser, found by Luke Valenta. (Johanna Amann)
+
+2.5-359 | 2017-11-29 14:01:37 -0600
+
+  * Add --ccache option to configure script (requires CMake 3.10+). (Corelight)
+
+2.5-358 | 2017-11-28 12:28:14 -0800
+
+  * Extend the TLS analyzer with several events containing cryptographic
+    parameters from the client and server key exchanges.
+
+   The new events are:
+
+    ssl_ecdh_server_params, ssl_dh_server_params, ssl_server_signature,
+    ssl_ecdh_client_params, ssl_dh_client_params, ssl_rsa_client_pms
+
+    Since ssl_ecdh_server_params contains more information than the old
+    ssl_server_curve event, ssl_server_curve is now marked as deprecated.
+
+    (Luke Valenta)
+
+2.5-352 | 2017-11-21 13:21:51 -0600
+
+  * Fix assignments to event arguments becoming visible to subsequent
+    handlers. (Robin Sommer)
+
+2.5-350 | 2017-11-21 12:19:28 -0600
+
+  * Add HookReporter plugin hook function.
+
+    This hook gives access to basically all information that is available in
+    the function in Reporter.cc that performs the logging. The hook is
+    called each time when anything passes through the reporter in the cases
+    in which an event usually would be called. This includes weirds. The
+    hook can return false to prevent the normal reporter events from being
+    raised. (Corelight)
+
+2.5-348 | 2017-11-21 11:30:55 -0600
+
+  * Fix a nb_dns.c compile error (older OSs) due to C90 vs C99. (Corelight)
+
+2.5-347 | 2017-11-20 14:00:37 -0600
+
+  * Fix and extend behavior of HookLoadFile. (Corelight)
+
+2.5-345 | 2017-11-20 11:28:59 -0600
+
+  * BIT-1827: fix error on initializing DNS w/ IPv6 nameserver. (Corelight)
+
+  * Add --build-type flag to configure wrapper. (Corelight)
+
 2.5-343 | 2017-11-17 15:27:04 -0800
 
   * Fix ASCII logging of very large values of type "double".
@@ -25,7 +127,7 @@
   * Patch OOB write in content-line analyzer.
 
     A combination of packets can trigger an out of bound write of '0' byte
-    in the content-line analyzer. Addresses BIT-1856.
+    in the content-line analyzer. Addresses BIT-1856 / CVE-2017-1000458.
     (Frank Meier/Johanna Amann)
 
 2.5-327 | 2017-10-16 12:21:01 -0700

@@ -1,0 +1,13 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	reporter
+#open	2017-07-26-17-58-52
+#fields	ts	level	message	location
+#types	time	enum	string	string
+0.000000	Reporter::INFO	Some Info	/Users/johanna/corelight/bro/testing/btest/.tmp/plugins.reporter-hook/reporter-hook.bro, line 16
+0.000000	Reporter::WARNING	A warning	/Users/johanna/corelight/bro/testing/btest/.tmp/plugins.reporter-hook/reporter-hook.bro, line 17
+0.000000	Reporter::ERROR	An Error	/Users/johanna/corelight/bro/testing/btest/.tmp/plugins.reporter-hook/reporter-hook.bro, line 18
+0.000000	Reporter::ERROR	field value missing [b$a]	/Users/johanna/corelight/bro/testing/btest/.tmp/plugins.reporter-hook/reporter-hook.bro, line 23
+#close	2017-07-26-17-58-52

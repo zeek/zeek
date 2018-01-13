@@ -54,7 +54,7 @@ refine flow Flow += {
 		case 17: proto = TRANSPORT_UDP; break;
 		}
 
-		return new PortVal(n, proto);
+		return port_mgr->Get(n, proto);
 		%}
 
 	#function proc_record(rec: Record) : bool

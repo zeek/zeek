@@ -531,7 +531,7 @@ type EventStats: record {
 	dispatched: count; ##< Total number of events dispatched so far.
 };
 
-## Summary statistics of all regular expression matchers.
+## Holds statistics for all types of reassembly.
 ##
 ## .. bro:see:: get_reassembler_stats
 type ReassemblerStats: record {

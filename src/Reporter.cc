@@ -10,6 +10,8 @@
 #include "NetVar.h"
 #include "Net.h"
 #include "Conn.h"
+#include "plugin/Plugin.h"
+#include "plugin/Manager.h"
 
 #ifdef SYSLOG_INT
 extern "C" {
@@ -323,7 +325,24 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 		// buffer size above.
 		safe_snprintf(buffer + strlen(buffer), size - strlen(buffer), " [%s]", postfix);
 
-	if ( event && via_events && ! in_error_handler )
+	bool raise_event = true;
+
+	if ( via_events && ! in_error_handler )
+		{
+		if ( locations.size() )
+			{
+			auto locs = locations.back();
+			raise_event = PLUGIN_HOOK_WITH_RESULT(HOOK_REPORTER,
+							      HookReporter(prefix, event, conn, addl, location,
+									   locs.first, locs.second, time, buffer), true);
+			}
+		else
+			raise_event = PLUGIN_HOOK_WITH_RESULT(HOOK_REPORTER,
+							      HookReporter(prefix, event, conn, addl, location,
+									   nullptr, nullptr, time, buffer), true);
+		}
+
+	if ( raise_event && event && via_events && ! in_error_handler )
 		{
 		val_list* vl = new val_list;
 

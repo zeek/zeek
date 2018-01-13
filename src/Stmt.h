@@ -16,7 +16,6 @@
 
 class StmtList;
 class ForStmt;
-class AsyncCallAnalyzer;
 
 declare(PDict, int);
 
@@ -59,11 +58,6 @@ public:
 	void AccessStats(ODesc* d) const;
 	uint32 GetAccessCount() const { return access_count; }
 
-	// Returns true if the statement may trigger asynchrounous function
-	// calls, eithe directly or through further child statements it
-	// executes. This is determined statically at startup.
-	bool MayUseAsync();
-
 	// Takes ownership of frame.
 	void ExecuteInsideFiber(Frame* f);
 
@@ -89,8 +83,6 @@ public:
 	static void Init();
 
 protected:
-	friend class AsyncCallAnalyzer;
-
 	Stmt()	{}
 	Stmt(BroStmtTag arg_tag);
 

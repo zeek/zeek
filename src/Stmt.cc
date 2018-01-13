@@ -30,141 +30,8 @@ const char* stmt_name(BroStmtTag t)
 	return stmt_names[int(t)];
 	}
 
-class AsyncCallAnalyzer : public TraversalCallback {
-public:
-	void Analyze(Func* func);
-	virtual TraversalCode PreExpr(const Expr*) override;
-	virtual TraversalCode PreStmt(const Stmt*) override;
-private:
- 	Stmt* body;
-};
-
-void AsyncCallAnalyzer::Analyze(Func* func)
-	{
-	auto bodies = func->GetBodies();
-
-	for ( auto child : bodies )
-		{
-		auto stmts = child.stmts;
-		if ( stmts->may_use_async != Stmt::ASYNC_UNKNOWN )
-			continue;
-
-		stmts->may_use_async = Stmt::ASYNC_PENDING;
-		body = stmts;
-		stmts->Traverse(this);
-
-		if ( stmts->may_use_async == Stmt::ASYNC_PENDING )
-			body->may_use_async = Stmt::ASYNC_NO;
-
-#ifdef DEBUG
-		if ( func->Flavor() == FUNC_FLAVOR_EVENT && body->may_use_async == Stmt::ASYNC_YES )
-			{
-			auto location = stmts->GetLocationInfo();
-
-			DBG_LOG(DBG_NOTIFIERS, "%s@%s:%d-%d: event handler may use asynchronous calls",
-				func->Name(), location->filename,
-				location->first_line, location->last_line);
-			}
-#endif
-		}
-	}
-
-TraversalCode AsyncCallAnalyzer::PreStmt(const Stmt* stmt)
- 	{
-	if ( stmt->Tag() == STMT_WHEN )
-		body->may_use_async = Stmt::ASYNC_YES;
-
-	return TC_CONTINUE;
-	}
-
-TraversalCode AsyncCallAnalyzer::PreExpr(const Expr* expr)
- 	{
-	if ( expr->IsError() )
-		return TC_CONTINUE;
-
-	if ( expr->Tag() != EXPR_CALL )
-		return TC_CONTINUE;
-
-	auto cexpr = expr->AsCallExpr();
-
-	if ( cexpr->GetCallFlavor() == CallExpr::ASYNC )
-		{
-		body->may_use_async = Stmt::ASYNC_YES;
-		return TC_CONTINUE;
-		}
-
-	auto fexpr = cexpr->Func();
-
-	Val* func = 0;
-	NameExpr* nexpr = 0;
-
-	if ( fexpr->Tag() != EXPR_NAME )
-		// It's more complicated ... We cannot figure out statically
-		// if this function may run something asynchrously, so we
-		// have to assume it could.
-		goto indirect_call;
-
-	nexpr = fexpr->AsNameExpr();
-
-	if ( ! nexpr->Id()->HasVal() )
-		{
-		// Not bound;
-		if ( nexpr->IsConst() )
-			// Will never be bound, so ok.
-			return TC_CONTINUE;
-		else
-			// Cannot tell what it might be bound to.
-			goto indirect_call;
-		}
-
-	if ( ! (func = fexpr->Eval(0)) )
-		// Call target cannot be determined statically.
-		goto indirect_call;
-
-      	if ( func->AsFunc()->GetKind() == Func::BUILTIN_FUNC )
-		{
-		// Built-in functions may require being called inside an
-		// asynchronous context but they won't *do* asynchronous
-		// calls.
-		Unref(func);
-		return TC_CONTINUE;
-		}
-
-	AsyncCallAnalyzer().Analyze(func->AsFunc());
-
-	for ( auto child : func->AsFunc()->GetBodies() )
-		{
-		auto stmts = child.stmts;
-		assert(stmts->may_use_async != Stmt::ASYNC_UNKNOWN);
-		if ( stmts->may_use_async == Stmt::ASYNC_YES )
-			body->may_use_async = Stmt::ASYNC_YES;
-		}
-
-	Unref(func);
-	return TC_CONTINUE;
-
-indirect_call:
-#ifdef DEBUG
-	ODesc d;
-	fexpr->Describe(&d);
-	DBG_LOG(DBG_NOTIFIERS, "- indirect call: %s", d.Description());
-#endif
-
-	body->may_use_async = Stmt::ASYNC_YES;
-	return TC_CONTINUE;
-	}
-
 void Stmt::Init()
 	{
-	// Flag bodes that can potentially trigger asynchronous function call.s
-	PDict(ID)* globals = global_scope()->Vars();
-	IterCookie* c = globals->InitForIteration();
-
-	while ( auto id = globals->NextEntry(c) )
-		{
-		if ( id->HasVal() && id->Type()->Tag() == TYPE_FUNC )
-			AsyncCallAnalyzer().Analyze(id->ID_Val()->AsFunc());
-		}
 	}
 
 Stmt::Stmt(BroStmtTag arg_tag)
@@ -253,12 +120,6 @@ void Stmt::AccessStats(ODesc* d) const
 		d->Add(")");
 		d->NL();
 		}
-	}
-
-bool Stmt::MayUseAsync()
-	{
-	assert(may_use_async == ASYNC_NO || may_use_async == ASYNC_YES);
-	return may_use_async == ASYNC_YES;
 	}
 
 void Stmt::ExecuteInsideFiber(Frame* frame)

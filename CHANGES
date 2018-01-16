@@ -1,6 +1,15 @@
 
-2.5-381 | 2018-01-12 10:03:21 -0800
+2.5-385 | 2018-01-16 14:51:07 -0600
 
+  * Make tunnel_parents in conn.log optional.
+
+    This makes conn.logs a bit prettier (and smaller) because all lines tha
+    do not use a tunnel will now have a "-" instead of the "(empty)" for
+    tunnel_parents. (Johanna Amann)
+
+  * Correct include-path in x509Common.h (Johanna Amann)
+
+2.5-381 | 2018-01-12 10:03:21 -0800
 
   * Preallocate all possible PortVals, mark PortVal ctors deprecated.
 

@@ -1,4 +1,18 @@
 
+2.5-388 | 2018-01-16 15:35:21 -0600
+
+  * HTTP: Recognize and skip upgrade/websocket connections.
+
+    This patches the HTTP analyzerto recognize when a connections is upgraded
+    to a different protocol (e.g. client uses the Upgrade header and gets a
+    101 reply).  In this case, the analyzer stops further processing (which
+    would have resulted in DPD errors) and raises a new event:
+
+      event http_connection_upgrade(c: connection, protocol: string);
+
+    The protocol parameter contains the name of the protocol that is being
+    upgraded to, as specified in one of the header values. (Johanna Amann)
+
 2.5-385 | 2018-01-16 14:51:07 -0600
 
   * Make tunnel_parents in conn.log optional.

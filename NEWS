@@ -40,6 +40,9 @@ New Functionality
 
   Files::file_exists, Files::lookup_File
 
+- HTTP now recognizes and skips upgraded/websocket connections.  A new event,
+  http_connection_upgrade, is raised in such cases.
+
 Changed Functionality
 ---------------------
 

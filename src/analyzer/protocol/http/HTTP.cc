@@ -822,6 +822,9 @@ HTTP_Analyzer::HTTP_Analyzer(Connection* conn)
 
 	connect_request = false;
 	pia = 0;
+	upgraded = false;
+	upgrade_connection = false;
+	upgrade_protocol.clear();
 
 	content_line_orig = new tcp::ContentLine_Analyzer(conn, true);
 	AddSupportAnalyzer(content_line_orig);
@@ -877,6 +880,9 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, is_orig);
 
 	if ( TCP() && TCP()->IsPartial() )
+		return;
+
+	if ( upgraded )
 		return;
 
 	if ( pia )
@@ -1468,15 +1474,35 @@ void HTTP_Analyzer::ReplyMade(const int interrupted, const char* msg)
 		unanswered_requests.pop();
 		}
 
-	reply_code = 0;
-
 	if ( reply_reason_phrase )
 		{
 		Unref(reply_reason_phrase);
 		reply_reason_phrase = 0;
 		}
 
-	if ( interrupted )
+	// unanswered requests = 1 because there is no pop after 101.
+	if ( reply_code == 101 && unanswered_requests.size() == 1 && upgrade_connection &&
+	     upgrade_protocol.size() )
+		{
+		// Upgraded connection that switches immediately - e.g. websocket.
+		upgraded = true;
+		RemoveSupportAnalyzer(content_line_orig);
+		RemoveSupportAnalyzer(content_line_resp);
+
+		if ( http_connection_upgrade )
+			{
+			val_list* vl = new val_list();
+			vl->append(BuildConnVal());
+			vl->append(new StringVal(upgrade_protocol));
+			ConnectionEvent(http_connection_upgrade, vl);
+			}
+		}
+
+	reply_code = 0;
+	upgrade_connection = false;
+	upgrade_protocol.clear();
+
+	if ( interrupted || upgraded )
 		reply_state = EXPECT_REPLY_NOTHING;
 	else
 		reply_state = EXPECT_REPLY_LINE;
@@ -1611,10 +1637,16 @@ void HTTP_Analyzer::HTTP_Header(int is_orig, mime::MIME_Header* h)
 
 	if ( ! is_orig &&
 	     mime::strcasecmp_n(h->get_name(), "connection") == 0 )
-	        {
+		{
 		if ( mime::strcasecmp_n(h->get_value_token(), "close") == 0 )
-		        connection_close = 1;
+			connection_close = 1;
+		else if ( mime::strcasecmp_n(h->get_value_token(), "upgrade") == 0 )
+			upgrade_connection = true;
 		}
+
+	if ( ! is_orig &&
+	     mime::strcasecmp_n(h->get_name(), "upgrade") == 0 )
+	     upgrade_protocol.assign(h->get_value_token().data, h->get_value_token().length);
 
 	if ( http_header )
 		{

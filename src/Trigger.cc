@@ -77,22 +77,21 @@ public:
 		if ( ! trigger )
 		     return;
 
-		// The network_time may still have been zero when the
-		// timer was instantiated.  In this case, it fires
-		// immediately and we simply restart it.
-		if ( time )
-			{
-			if ( trigger->GetFrame()->GetFiber()->GetTrigger() )
-				trigger->GetFrame()->GetFiber()->GetTrigger()->Abort();
-			else
-				trigger->Abort();
-			}
-		else
+		// The network_time may still have been zero when the timer
+		// was instantiated.  In this case, it fires immediately and
+		// we simply restart it.
+		if ( ! time )
 			{
 			TriggerTimer* timer = new TriggerTimer(timeout, trigger);
 			timer_mgr->Add(timer);
 			trigger->timer = timer;
+			return;
 			}
+
+		if ( trigger->GetFrame()->GetFiber()->GetTrigger() )
+			trigger->GetFrame()->GetFiber()->GetTrigger()->Abort();
+		else
+			trigger->Abort();
 		}
 
   protected:

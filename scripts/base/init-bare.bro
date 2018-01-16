@@ -612,7 +612,7 @@ type AsyncStats: record {
 	## Number of all "trigger" objects currently instantiated.
 	triggers_current_all: count;
 	## Number of "trigger" objects currently instantiated that must finish
-        ## before Bro terminates.
+	## before Bro terminates.
 	triggers_current_completion: count;
 	## Total number of "trigger" objects instantiated since startup.
 	triggers_total: count;
@@ -623,7 +623,7 @@ type AsyncStats: record {
 	## Total number of "fiber" objects instantiated since startup.
 	fibers_total: count;
 	## Maximum number of "fiber" objects concurrently instantiated since
-        ## startup.
+	## startup.
 	fibers_max: count;
 };
 

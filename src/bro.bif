@@ -3386,14 +3386,14 @@ private:
 };
 
 class LookupCallback : public DNS_Mgr::LookupCallback {
-public:	
+public:
 	LookupCallback(LookupTrigger* trigger) : trigger(trigger) {}
 
 	void Resolved(TableVal* addrs) override
 		{
 		if ( ! trigger )
 			return;
-		
+
 		Ref(addrs);
 		trigger->result = addrs;
 		trigger->Evaluate();
@@ -3403,7 +3403,7 @@ public:
 		{
 		if ( ! trigger )
 			return;
-		
+
 		trigger->result = new StringVal(name);
 		trigger->Evaluate();
 		}
@@ -3412,7 +3412,7 @@ public:
 		{
 		if ( ! trigger )
 			return;
-		
+
 		trigger->Abort();
 		}
 
@@ -3462,7 +3462,7 @@ Val* LookupTrigger::TimeoutResult()
 		}
 	else
 		return new StringVal("<\?\?\?>");;
-	
+
 	delete callback;
 	callback = 0;
 	}
@@ -3532,13 +3532,13 @@ public:
 		{
 		Unref(tresult);
 		}
-	
+
 	virtual Val* CheckForResult() override
 		{
 		return result;
 		}
 
-	virtual Val* TimeoutResult() override 
+	virtual Val* TimeoutResult() override
 		{
 		auto r = tresult;
 		tresult = 0;
@@ -3558,8 +3558,8 @@ public:
 			Ref(trigger);
 			Ref(result);
 			}
-	
-	~__TestTriggerTimer() 
+
+	~__TestTriggerTimer()
 		{
 		Unref(result);
 		Unref(trigger);

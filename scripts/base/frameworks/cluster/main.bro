@@ -78,6 +78,15 @@ export {
 		backend: Broker::BackendType &default=default_backend;
 		## Parameters used for configuring the backend.
 		options: Broker::BackendOptions &default=Broker::BackendOptions();
+		## A resync/reconnect interval to pass through to
+		## :bro:see:`Broker::create_clone`.
+		clone_resync_interval: interval &default=Broker::default_clone_resync_interval;
+		## A staleness duration to pass through to
+		## :bro:see:`Broker::create_clone`.
+		clone_stale_interval: interval &default=Broker::default_clone_stale_interval;
+		## A mutation buffer interval to pass through to
+		## :bro:see:`Broker::create_clone`.
+		clone_mutation_buffer_interval: interval &default=Broker::default_clone_mutation_buffer_interval;
 	};
 
 	## A table of cluster-enabled data stores that have been created, indexed
@@ -339,23 +348,6 @@ event Cluster::hello(name: string, id: string) &priority=10
 
 	if ( n$node_type == WORKER )
 		++worker_count;
-
-	for ( store_name in stores )
-		{
-		local info = stores[store_name];
-
-		if ( info?$store )
-			next;
-
-		if ( info$master )
-			next;
-
-		if ( info$master_node == name )
-			{
-			info$store = Broker::create_clone(info$name);
-			Cluster::log(fmt("created clone store: %s", info$name));
-			}
-		}
 	}
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string) &priority=10
@@ -380,24 +372,6 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string) &priority=1
 
 			if ( n$node_type == WORKER )
 				--worker_count;
-
-			for ( store_name in stores )
-				{
-				local info = stores[store_name];
-
-				if ( ! info?$store )
-					next;
-
-				if ( info$master )
-					next;
-
-				if ( info$master_node == node_name )
-					{
-					Broker::close(info$store);
-					delete info$store;
-					Cluster::log(fmt("clone store closed: %s", info$name));
-					}
-				}
 
 			event Cluster::node_down(node_name, endpoint$id);
 			break;
@@ -462,7 +436,6 @@ function create_store(name: string, persistent: bool &default=F): Cluster::Store
 		info$store = Broker::create_master(name, info$backend, info$options);
 		info$master = T;
 		stores[name] = info;
-		Cluster::log(fmt("created master store: %s", name));
 		return info;
 		}
 
@@ -475,12 +448,17 @@ function create_store(name: string, persistent: bool &default=F): Cluster::Store
 		info$store = Broker::create_master(name, info$backend, info$options);
 		info$master = T;
 		stores[name] = info;
+		Cluster::log(fmt("created master store: %s", name));
 		return info;
 		}
 
 	info$master = F;
 	stores[name] = info;
-	Cluster::log(fmt("pending clone store creation: %s", name));
+	info$store = Broker::create_clone(info$name,
+									  info$clone_resync_interval,
+									  info$clone_stale_interval,
+									  info$clone_mutation_buffer_interval);
+	Cluster::log(fmt("created clone store: %s", info$name));
 	return info;
 	}
 

@@ -455,9 +455,9 @@ function create_store(name: string, persistent: bool &default=F): Cluster::Store
 	info$master = F;
 	stores[name] = info;
 	info$store = Broker::create_clone(info$name,
-									  info$clone_resync_interval,
-									  info$clone_stale_interval,
-									  info$clone_mutation_buffer_interval);
+	                                  info$clone_resync_interval,
+	                                  info$clone_stale_interval,
+	                                  info$clone_mutation_buffer_interval);
 	Cluster::log(fmt("created clone store: %s", info$name));
 	return info;
 	}

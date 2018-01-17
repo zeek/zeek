@@ -299,7 +299,8 @@ public:
 	 * @param cb the callback info to use when the query completes or times out.
 	 * @return true if now tracking a data store query.
 	 */
-	bool TrackStoreQuery(broker::request_id id, StoreQueryCallback* cb);
+	bool TrackStoreQuery(StoreHandleVal* handle, broker::request_id id,
+	                     StoreQueryCallback* cb);
 
 	/**
 	 * @return communication statistics.
@@ -360,8 +361,20 @@ private:
 	std::vector<LogBuffer> log_buffers;
 
 	// Data stores
+	using query_id = std::pair<broker::request_id, StoreHandleVal*>;
+
+	struct query_id_hasher {
+		size_t operator()(const query_id& qid) const
+			{
+			size_t rval = 0;
+			broker::detail::hash_combine(rval, qid.first);
+			broker::detail::hash_combine(rval, qid.second);
+			return rval;
+			}
+	};
+
 	std::unordered_map<std::string, StoreHandleVal*> data_stores;
-	std::unordered_map<broker::request_id, StoreQueryCallback*> pending_queries;
+	std::unordered_map<query_id, StoreQueryCallback*, query_id_hasher> pending_queries;
 
 	Stats statistics;
 	double next_timestamp;

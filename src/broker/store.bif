@@ -146,7 +146,7 @@ function Broker::__exists%(h: opaque of Broker::Store,
 	auto cb = new bro_broker::StoreQueryCallback(trigger, frame->GetCall(),
 						     handle->store);
 	auto req_id = handle->proxy.exists(static_cast<bro_broker::DataVal*>(key)->data);
-	broker_mgr->TrackStoreQuery(req_id, cb);
+	broker_mgr->TrackStoreQuery(handle, req_id, cb);
 
 	return 0;
 	%}
@@ -190,7 +190,7 @@ function Broker::__get%(h: opaque of Broker::Store,
 	auto cb = new bro_broker::StoreQueryCallback(trigger, frame->GetCall(),
                                                handle->store);
 	auto req_id = handle->proxy.get(static_cast<bro_broker::DataVal*>(key)->data);
-	broker_mgr->TrackStoreQuery(req_id, cb);
+	broker_mgr->TrackStoreQuery(handle, req_id, cb);
 
 	return 0;
 	%}
@@ -239,7 +239,7 @@ function Broker::__get_index_from_value%(h: opaque of Broker::Store,
 						     handle->store);
 	auto req_id = handle->proxy.get_index_from_value(static_cast<bro_broker::DataVal*>(key)->data,
 							 static_cast<bro_broker::DataVal*>(index)->data);
-	broker_mgr->TrackStoreQuery(req_id, cb);
+	broker_mgr->TrackStoreQuery(handle, req_id, cb);
 
 	return 0;
 	%}
@@ -278,7 +278,7 @@ function Broker::__keys%(h: opaque of Broker::Store%): Broker::QueryResult
 	auto cb = new bro_broker::StoreQueryCallback(trigger, frame->GetCall(),
 						     handle->store);
 	auto req_id = handle->proxy.keys();
-	broker_mgr->TrackStoreQuery(req_id, cb);
+	broker_mgr->TrackStoreQuery(handle, req_id, cb);
 
 	return 0;
 	%}

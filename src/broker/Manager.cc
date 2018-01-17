@@ -790,7 +790,7 @@ void Manager::Process()
 			}
 		}
 
-	for ( auto &s : data_stores )
+	for ( auto& s : data_stores )
 		{
 		while ( ! s.second->proxy.mailbox().empty())
 			{
@@ -1154,10 +1154,11 @@ void Manager::ProcessStoreResponse(StoreHandleVal* s, broker::store::response re
 	{
 	DBG_LOG(DBG_BROKER, "Received store response: %s", RenderMessage(response).c_str());
 
-	auto request = pending_queries.find(response.id);
+	auto request = pending_queries.find(std::make_pair(response.id, s));
+
 	if ( request == pending_queries.end() )
 		{
-		reporter->Warning("unmatched response to query %" PRIu64 "on store %s",
+		reporter->Warning("unmatched response to query %" PRIu64 " on store %s",
 				  response.id, s->store.name().c_str());
 		return;
 		}
@@ -1276,9 +1277,10 @@ bool Manager::CloseStore(const string& name)
 	return true;
 	}
 
-bool Manager::TrackStoreQuery(broker::request_id id, StoreQueryCallback* cb)
+bool Manager::TrackStoreQuery(StoreHandleVal* handle, broker::request_id id,
+                              StoreQueryCallback* cb)
 	{
-	return pending_queries.emplace(id, cb).second;
+	return pending_queries.emplace(std::make_pair(id, handle), cb).second;
 	}
 
 const Stats& Manager::GetStatistics()

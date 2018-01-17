@@ -21,13 +21,12 @@ event bro_init()
 
 	Log::disable_stream(SSH::LOG);
 
-    local cid = [$orig_h=1.2.3.4, $orig_p=1234/tcp, $resp_h=2.3.4.5, $resp_p=80/tcp];
+	local cid = [$orig_h=1.2.3.4, $orig_p=1234/tcp, $resp_h=2.3.4.5, $resp_p=80/tcp];
 
 	Log::write(SSH::LOG, [$t=network_time(), $id=cid, $status="success"]);
 	Log::write(SSH::LOG, [$t=network_time(), $id=cid, $status="failure", $country="US"]);
 	Log::write(SSH::LOG, [$t=network_time(), $id=cid, $status="failure", $country="UK"]);
 	Log::write(SSH::LOG, [$t=network_time(), $id=cid, $status="success", $country="BR"]);
 	Log::write(SSH::LOG, [$t=network_time(), $id=cid, $status="failure", $country="MX"]);
-	
 }
 

@@ -300,7 +300,7 @@ export {
 	##          the correct type.
 	##
 	## .. bro:see:: Log::remove_filter Log::add_default_filter
-	##    Log::remove_default_filter
+	##    Log::remove_default_filter Log::get_filter Log::get_filter_names
 	global add_filter: function(id: ID, filter: Filter) : bool;
 
 	## Removes a filter from an existing logging stream.
@@ -315,8 +315,20 @@ export {
 	##          if no filter associated with *name* was found.
 	##
 	## .. bro:see:: Log::remove_filter Log::add_default_filter
-	##    Log::remove_default_filter
+	##    Log::remove_default_filter Log::get_filter Log::get_filter_names
 	global remove_filter: function(id: ID, name: string) : bool;
+
+	## Gets the names of all filters associated with an existing
+	## logging stream.
+	##
+	## id: The ID of a logging stream from which to obtain the list
+	##     of filter names.
+	##
+	## Returns: The set of filter names associated with the stream.
+	##
+	## ..bro:see:: Log::remove_filter Log::add_default_filter
+	##   Log::remove_default_filter Log::get_filter
+	global get_filter_names: function(id: ID) : set[string];
 
 	## Gets a filter associated with an existing logging stream.
 	##
@@ -331,7 +343,7 @@ export {
 	##          :bro:id:`Log::no_filter` sentinel value.
 	##
 	## .. bro:see:: Log::add_filter Log::remove_filter Log::add_default_filter
-	##              Log::remove_default_filter
+	##              Log::remove_default_filter Log::get_filter_names
 	global get_filter: function(id: ID, name: string) : Filter;
 
 	## Writes a new log line/entry to a logging stream.
@@ -432,6 +444,8 @@ export {
 
 global all_streams: table[ID] of Stream = table();
 
+global stream_filters: table[ID] of set[string] = table();
+
 # We keep a script-level copy of all filters so that we can manipulate them.
 global filters: table[ID, string] of Filter;
 
@@ -523,16 +537,47 @@ function create_stream(id: ID, stream: Stream) : bool
 
 function remove_stream(id: ID) : bool
 	{
-	delete active_streams[id];
-	delete all_streams[id];
+	if ( id in active_streams )
+		delete active_streams[id];
+	if ( id in all_streams )
+		delete all_streams[id];
+
+	if ( id in stream_filters )
+		{
+		for ( i in stream_filters[id] )
+			{
+			if ( [id, i] in filters )
+				delete filters[id, i];
+			}
+		delete stream_filters[id];
+		}
 	return __remove_stream(id);
 	}
 
 function disable_stream(id: ID) : bool
 	{
-	delete active_streams[id];
+	if ( id in active_streams )
+		delete active_streams[id];
 
 	return __disable_stream(id);
+	}
+
+function enable_stream(id: ID) : bool
+	{
+	if ( ! __enable_stream(id) )
+		return F;
+
+	if ( id in all_streams )
+		active_streams[id] = all_streams[id];
+	}
+
+# convenience function to add a filter name to stream_filters
+function add_stream_filters(id: ID, name: string)
+	{
+	if ( id in stream_filters )
+		add stream_filters[id][name];
+	else
+		stream_filters[id] = set(name);
 	}
 
 function add_filter(id: ID, filter: Filter) : bool
@@ -545,13 +590,22 @@ function add_filter(id: ID, filter: Filter) : bool
 	if ( ! filter?$path && ! filter?$path_func )
 		filter$path_func = default_path_func;
 
-	filters[id, filter$name] = filter;
-	return __add_filter(id, filter);
+	local res = __add_filter(id, filter);
+	if ( res )
+		{
+		add_stream_filters(id, filter$name);
+		filters[id, filter$name] = filter;
+		}
+	return res;
 	}
 
 function remove_filter(id: ID, name: string) : bool
 	{
-	delete filters[id, name];
+	if ( id in stream_filters && name in stream_filters[id] )
+		delete stream_filters[id][name];
+	if ( [id, name] in filters )
+		delete filters[id, name];
+
 	return __remove_filter(id, name);
 	}
 
@@ -561,6 +615,14 @@ function get_filter(id: ID, name: string) : Filter
 		return filters[id, name];
 
 	return no_filter;
+	}
+
+function get_filter_names(id: ID) : set[string]
+	{
+	if ( id in stream_filters )
+		return stream_filters[id];
+	else
+		return set();
 	}
 
 function write(id: ID, columns: any) : bool

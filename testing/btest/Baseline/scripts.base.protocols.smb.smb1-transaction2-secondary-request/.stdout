@@ -1,0 +1,1 @@
+smb1_transaction2_secondary_request hdr: [command=51, status=0, flags=0, flags2=0, tid=29550, pid=1, uid=25541, mid=2], args: [total_param_count=11, total_data_count=9, param_count=11, param_offset=54, param_displacement=9, data_count=9, data_offset=68, data_displacement=11, FID=65535], params: some_params, data: some_data

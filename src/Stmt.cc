@@ -2116,7 +2116,7 @@ WhenStmt::~WhenStmt()
 class WhenTrigger : public Trigger {
 public:
 	WhenTrigger(Frame* frame, const WhenStmt* stmt, double timeout, bool is_return, const Location* location)
-		    : Trigger(frame, timeout, true, stmt->Cond(), location), when_stmt(stmt), triggered(false), is_return(is_return)
+		    : Trigger(frame, timeout, true, stmt->Cond(), location), when_stmt(stmt), triggered(false), got_timeout(false), is_return(is_return)
 			{
 			}
 
@@ -2129,7 +2129,7 @@ public:
 		// true, or the timeout has kicked in.
 
 		stmt_flow_type flow = FLOW_NEXT;
-		auto stmts = (triggered ? when_stmt->Body() : when_stmt->TimeoutBody());
+		auto stmts = (triggered && ! got_timeout ? when_stmt->Body() : when_stmt->TimeoutBody());
 		auto v = stmts ? stmts->Exec(GetFrame(), flow) : nullptr;
 		Unref(this);
 		return v;
@@ -2196,12 +2196,14 @@ public:
 
 	Val* TimeoutResult() override
 		{
+		got_timeout = true;
 		return nullptr;
 		}
 
 private:
 	const WhenStmt* when_stmt;
 	bool triggered;
+	bool got_timeout;
 	bool is_return;
 	};
 

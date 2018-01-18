@@ -59,6 +59,7 @@ protected:
 	void Register(ID* id);
 	void Register(Val* val);
 	void UnregisterAll();
+	void FlagTimeout();
 
 	// Overidden from Notifier. If we get a notification, we queue the
 	// trigger for reevaluation.

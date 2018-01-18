@@ -70,7 +70,8 @@ public:
 		}
 
 	~TriggerTimer()
-		{ }
+		{
+		}
 
 	void Dispatch(double t, int is_expire)
 		{
@@ -88,8 +89,12 @@ public:
 			return;
 			}
 
-		if ( trigger->GetFrame()->GetFiber()->GetTrigger() )
+		if ( trigger->GetFrame()->GetFiber()->GetTrigger() ) 
+			{
 			trigger->GetFrame()->GetFiber()->GetTrigger()->Abort();
+			if ( trigger->GetFrame()->GetFiber()->GetTrigger() != trigger )
+				trigger->FlagTimeout();
+			}
 		else
 			trigger->Abort();
 		}
@@ -159,7 +164,11 @@ Val* Trigger::Run()
 		trigger_expr->Traverse(&cb);
 		}
 
-	if ( timeout )
+	auto old_trigger = frame->GetFiber()->GetTrigger();
+
+	auto have_outer_timer = (old_trigger && old_trigger->timer);
+
+	if ( timeout && ! have_outer_timer ) // Outer trigger will time out.
 		{
 		timer = new TriggerTimer(timeout, this);
 		timer_mgr->Add(timer);
@@ -182,7 +191,6 @@ Val* Trigger::Run()
 	// it. (And note that this shortcut would immediately be triggered by
 	// all the DNS tests with BRO_DNS_FAKE set.)
 
-	auto old_trigger = frame->GetFiber()->GetTrigger();
 	frame->GetFiber()->SetTrigger(this);
 
 	Evaluate();
@@ -243,11 +251,21 @@ void Trigger::Abort()
 
 	DBG_LOG(DBG_NOTIFIERS, "%s: aborting", Name());
 
+	FlagTimeout();
+	ResumeTrigger(this);
+	}
+
+void Trigger::FlagTimeout()
+	{
+	if ( ! running )
+		return;
+
+	DBG_LOG(DBG_NOTIFIERS, "%s: flagging timeout", Name());
+
 	Unref(trigger_result);
 	trigger_result = nullptr;
 	trigger_result = TimeoutResult();
 	trigger_finished = true;
-	ResumeTrigger(this);
 	}
 
 const char* Trigger::Name() const

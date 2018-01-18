@@ -2,6 +2,12 @@
 # @TEST-EXEC: sleep 2
 # @TEST-EXEC: mv configfile2 configfile
 # @TEST-EXEC: touch configfile
+# @TEST-EXEC: sleep 2
+# @TEST-EXEC: mv configfile3 configfile
+# @TEST-EXEC: touch configfile
+# @TEST-EXEC: sleep 2
+# @TEST-EXEC: mv configfile4 configfile
+# @TEST-EXEC: touch configfile
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff bro/config.log
 
@@ -44,6 +50,33 @@ test_set a,b,c,d,erdbeerschnitzel
 test_vector 1,2,3,4,5,9
 @TEST-END-FILE
 
+@TEST-START-FILE configfile3
+testbool F
+testcount    2
+testcount 2
+testcount 2
+testint		-1
+testenum Conn::LOG
+testport 45
+testinterval 60
+testtime 1507321987
+test_set a,b,c,d,erdbeerschnitzel
+@TEST-END-FILE
+
+@TEST-START-FILE configfile4
+testbool F
+testcount    2
+testcount 2
+testcount 2
+testint		-1
+testenum Conn::LOG
+testport 45
+testinterval 60
+testtime 1507321987
+test_set a,b,c,d,erdbeerschnitzel
+test_vector 1,2,3,4,5,9
+@TEST-END-FILE
+
 @load base/protocols/ssh
 @load base/protocols/conn
 
@@ -71,6 +104,6 @@ event Input::end_of_data(name: string, source:string)
 
 	eolcount += 1;
 
-	if ( eolcount == 2 )
+	if ( eolcount == 4 )
 		terminate();
 	}

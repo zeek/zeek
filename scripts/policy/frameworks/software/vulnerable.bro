@@ -82,27 +82,28 @@ event grab_vulnerable_versions(i: count)
 		return;
 		}
 
-	local result = async lookup_hostname_txt(cat(i,".",vulnerable_versions_update_endpoint));
-
-	local parts = split_string1(result, /\x09/);
-	if ( |parts| != 2 ) #failure or end of list!
+	when ( local result = lookup_hostname_txt(cat(i,".",vulnerable_versions_update_endpoint)) )
 		{
-		schedule vulnerable_versions_update_interval { grab_vulnerable_versions(1) };
-		return;
+		local parts = split_string1(result, /\x09/);
+		if ( |parts| != 2 ) #failure or end of list!
+			{
+			schedule vulnerable_versions_update_interval { grab_vulnerable_versions(1) };
+			return;
+			}
+
+		local sw = parts[0];
+		local vvr = decode_vulnerable_version_range(parts[1]);
+		if ( sw !in internal_vulnerable_versions )
+			internal_vulnerable_versions[sw] = set();
+		add internal_vulnerable_versions[sw][vvr];
+
+		event grab_vulnerable_versions(i+1);
 		}
-
-	local sw = parts[0];
-	local vvr = decode_vulnerable_version_range(parts[1]);
-	if ( sw !in internal_vulnerable_versions )
-		internal_vulnerable_versions[sw] = set();
-	add internal_vulnerable_versions[sw][vvr];
-	event grab_vulnerable_versions(i+1);
-
-#	timeout 5secs
-#	       {
-#	       # In case a lookup fails, try starting over in one minute.
-#	       schedule 1min { grab_vulnerable_versions(1) };
-#              }
+	timeout 5secs
+		{
+		# In case a lookup fails, try starting over in one minute.
+		schedule 1min { grab_vulnerable_versions(1) };
+		}
 	}
 
 function update_vulnerable_sw()

@@ -400,6 +400,9 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 			for ( unsigned int i = 0; i < pos; i++ )
 				delete lvals[i];
 
+			// and set the length of the set to 0, otherwhise the destructor will crash.
+			val->val.vector_val.size = 0;
+
 			goto parse_error;
 		}
 

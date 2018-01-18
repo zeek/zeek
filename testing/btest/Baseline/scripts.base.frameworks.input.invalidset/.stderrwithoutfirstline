@@ -1,0 +1,8 @@
+warning: ../input.log/Input::READER_ASCII: Invalid value for subnet: 127.0.0.1
+warning: ../input.log/Input::READER_ASCII: Error while reading set or vector
+warning: ../input.log/Input::READER_ASCII: Could not convert line 'name	127.0.0.1' to Val. Ignoring line.
+warning: ../input.log/Input::READER_ASCII: Invalid value for subnet: 127.0.0.1
+warning: ../input.log/Input::READER_ASCII: Error while reading set or vector
+warning: ../input.log/Input::READER_ASCII: Could not convert line 'name	127.0.0.1' to Val. Ignoring line.
+received termination signal
+>>>

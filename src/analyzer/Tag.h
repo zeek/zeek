@@ -46,7 +46,7 @@ public:
 	 *       "safe bool" idiom (not necessary if "explicit" is available),
 	 *       otherwise this may allow nonsense/undesired comparison operations.
 	 */
-	operator bool() const	{ return *this != Tag(); }
+	explicit operator bool() const	{ return *this != Tag(); }
 
 	/**
 	 * Assignment operator.

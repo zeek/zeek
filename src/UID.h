@@ -61,7 +61,7 @@ public:
 	 *         and not yet initialized w/ Set().
 	 * TODO: this would be better as an "explicit" conversion operator (C++11)
 	 */
-	operator bool() const
+	explicit operator bool() const
 		{ return initialized; }
 
 	/**

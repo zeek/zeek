@@ -227,9 +227,9 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 		}
 
 	case TYPE_BOOL:
-		if ( s == "T" )
+		if ( s == "T" || s == "1" )
 			val->val.int_val = 1;
-		else if ( s == "F" )
+		else if ( s == "F" || s == "0" )
 			val->val.int_val = 0;
 		else
 			{

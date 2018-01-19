@@ -3388,6 +3388,7 @@ private:
 class LookupCallback : public DNS_Mgr::LookupCallback {
 public:
 	LookupCallback(LookupTrigger* trigger) : trigger(trigger) {}
+	virtual ~LookupCallback();
 
 	void Resolved(TableVal* addrs) override
 		{
@@ -3439,7 +3440,9 @@ LookupTrigger::LookupTrigger(Frame* frame, const IPAddr& host, const Location* l
 LookupTrigger::~LookupTrigger()
 	{
 	Unref(result);
-	callback->trigger = nullptr;
+	
+	if ( callback )
+		callback->trigger = nullptr;
 	}
 
 Val* LookupTrigger::CheckForResult()
@@ -3462,9 +3465,12 @@ Val* LookupTrigger::TimeoutResult()
 		}
 	else
 		return new StringVal("<\?\?\?>");;
+	}
 
-	delete callback;
-	callback = 0;
+LookupCallback::~LookupCallback()
+	{
+	if ( trigger )
+		trigger->callback = 0;
 	}
 
 %%}

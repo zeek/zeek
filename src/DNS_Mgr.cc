@@ -1041,12 +1041,14 @@ static void resolve_lookup_cb(DNS_Mgr::LookupCallback* callback,
 	{
 	callback->Resolved(result);
 	Unref(result);
+	delete callback;
 	}
 
 static void resolve_lookup_cb(DNS_Mgr::LookupCallback* callback,
                               const char* result)
 	{
 	callback->Resolved(result);
+	delete callback;
 	}
 
 void DNS_Mgr::AsyncLookupAddr(const IPAddr& host, LookupCallback* callback)

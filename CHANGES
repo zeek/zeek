@@ -1,4 +1,8 @@
 
+2.5-392 | 2018-01-19 11:39:34 -0600
+
+  * Make nearly all bool conversion operators explicit. (Corelight)
+
 2.5-390 | 2018-01-17 16:09:55 -0600
 
   * Logging: implement get_filter_names and small fixes.

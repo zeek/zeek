@@ -42,9 +42,6 @@ public:
 	/**
 	 * Returns false if the tag represents an error value rather than a
 	 * legal analyzer type.
-	 * TODO: make this conversion operator "explicit" (C++11) or use a
-	 *       "safe bool" idiom (not necessary if "explicit" is available),
-	 *       otherwise this may allow nonsense/undesired comparison operations.
 	 */
 	explicit operator bool() const	{ return *this != Tag(); }
 

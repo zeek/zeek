@@ -40,6 +40,11 @@ New Functionality
 
   Files::file_exists, Files::lookup_File
 
+- New functions in the logging API: Log::get_filter_names, Log::enable_stream
+
+- HTTP now recognizes and skips upgraded/websocket connections.  A new event,
+  http_connection_upgrade, is raised in such cases.
+
 Changed Functionality
 ---------------------
 
@@ -62,6 +67,10 @@ Changed Functionality
 
 - The DNS base scripts no longer generate some noisy and annoying
   weirds (dns_unmatched_msg, dns_unmatched_msg_quantity, dns_unmatched_reply)
+
+- The 'tunnel_parents' field of conn.log is now marked &optional, so, for
+  the default configuration of logs, this field will show "-" instead of
+  "(empty)" for connections that lack any tunelling.
 
 Removed Functionality
 ---------------------

@@ -1,6 +1,45 @@
 
-2.5-381 | 2018-01-12 10:03:21 -0800
+2.5-392 | 2018-01-19 11:39:34 -0600
 
+  * Make nearly all bool conversion operators explicit. (Corelight)
+
+2.5-390 | 2018-01-17 16:09:55 -0600
+
+  * Logging: implement get_filter_names and small fixes.
+
+    get_filter_names(id: ID) : set[string] returns the names of the current
+    list of filters for a specified log stream.
+
+    Furthermore this commit makes a number of logging functions more robust
+    by checking existence of values before trying to modify them. This
+    commit also really implements (and tests) the enable_stream function.
+    (Corelight)
+
+2.5-388 | 2018-01-16 15:35:21 -0600
+
+  * HTTP: Recognize and skip upgrade/websocket connections.
+
+    This patches the HTTP analyzerto recognize when a connections is upgraded
+    to a different protocol (e.g. client uses the Upgrade header and gets a
+    101 reply).  In this case, the analyzer stops further processing (which
+    would have resulted in DPD errors) and raises a new event:
+
+      event http_connection_upgrade(c: connection, protocol: string);
+
+    The protocol parameter contains the name of the protocol that is being
+    upgraded to, as specified in one of the header values. (Johanna Amann)
+
+2.5-385 | 2018-01-16 14:51:07 -0600
+
+  * Make tunnel_parents in conn.log optional.
+
+    This makes conn.logs a bit prettier (and smaller) because all lines tha
+    do not use a tunnel will now have a "-" instead of the "(empty)" for
+    tunnel_parents. (Johanna Amann)
+
+  * Correct include-path in x509Common.h (Johanna Amann)
+
+2.5-381 | 2018-01-12 10:03:21 -0800
 
   * Preallocate all possible PortVals, mark PortVal ctors deprecated.
 

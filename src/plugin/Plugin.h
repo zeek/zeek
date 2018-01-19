@@ -78,7 +78,7 @@ struct VersionNumber {
 	/**
 	 *  Returns true if the version is set to a non-negative value.
 	 */
-	operator bool() const { return major >= 0 && minor >= 0; }
+	explicit operator bool() const { return major >= 0 && minor >= 0; }
 };
 
 /**

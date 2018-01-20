@@ -58,8 +58,8 @@ public:
 	void AccessStats(ODesc* d) const;
 	uint32 GetAccessCount() const { return access_count; }
 
-	// Takes ownership of frame.
-	void ExecuteInsideFiber(Frame* f);
+	// Took ownership of frame if it returns false.
+	bool ExecuteInsideFiber(Frame* f);
 
 	virtual void Describe(ODesc* d) const;
 

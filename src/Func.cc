@@ -366,15 +366,6 @@ Val* BroFunc::CallFunctionBody(Stmt* body, val_list* args, stmt_flow_type& flow,
 	return result;
 	}
 
-void BroFunc::CallEventBodyInsideFiber(Stmt* body, Frame* f) const
-	{
-	assert(Flavor() == FUNC_FLAVOR_EVENT);
-
-	// Create a shallow copy of the frame that can stay
-	// around during asynchronous execution.
-	body->ExecuteInsideFiber(f->ShallowCopy());
-	}
-
 Val* BroFunc::Call(val_list* args, Frame* parent) const
 	{
 #ifdef PROFILE_BRO_FUNCTIONS
@@ -463,7 +454,12 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 			body->GetLocationInfo()->Describe(&d);
 			DBG_LOG(DBG_NOTIFIERS, "%s: calling event body (%s)", Name(), d.Description());
 #endif
-			CallEventBodyInsideFiber(body, f);
+			// Create a shallow copy of the frame that can stay
+			// around during asynchronous execution.
+			if ( ! body->ExecuteInsideFiber(f) )
+				// Took ownership, need a new one.
+				f = f->ShallowCopy();
+
 			continue;
 			}
 

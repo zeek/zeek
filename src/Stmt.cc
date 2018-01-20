@@ -122,7 +122,7 @@ void Stmt::AccessStats(ODesc* d) const
 		}
 	}
 
-void Stmt::ExecuteInsideFiber(Frame* frame)
+bool Stmt::ExecuteInsideFiber(Frame* frame)
 	{
 	assert(! frame->GetFiber());
 	auto fiber = Fiber::Create();
@@ -130,8 +130,7 @@ void Stmt::ExecuteInsideFiber(Frame* frame)
 	// Function that will run inside the fiber.
 	auto execute_body = [=]() -> bool
 		{
-		// Create a shallow copy of the frame that can stay
-		// around during asynchronous execution.
+		::Ref(frame);
 		frame->SetFiber(fiber);
 
 		try
@@ -155,13 +154,18 @@ void Stmt::ExecuteInsideFiber(Frame* frame)
 		};
 
 	if ( fiber->Execute(execute_body) )
+		{
 		// No yield, all done already.
 		Fiber::Destroy(fiber);
+		frame->ClearFiber();
+		return true;
+		}
 	else
 		{
 		// An asynchronous operation yielded. Fiber will stay around,
 		// we'll come back to this body later in
-		// Trigger::ResumePendingTriggers.
+		Unref(frame); // Taking ownership.
+		return false;
 		}
 	}
 

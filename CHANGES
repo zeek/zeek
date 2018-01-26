@@ -1,4 +1,9 @@
 
+2.5-395 | 2018-01-26 15:46:05 -0600
+
+  * BIT-1894: fix bad integer casts in BIFs: sort, rand, order, to_int
+    (Corelight)
+
 2.5-392 | 2018-01-19 11:39:34 -0600
 
   * Make nearly all bool conversion operators explicit. (Corelight)

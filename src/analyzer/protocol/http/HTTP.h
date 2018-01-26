@@ -40,8 +40,8 @@ public:
 			{ zip->Done(); delete zip; }
 		}
 
-	void EndOfData();
-	void Deliver(int len, const char* data, int trailing_CRLF);
+	void EndOfData() override;
+	void Deliver(int len, const char* data, int trailing_CRLF) override;
 	int Undelivered(int64_t len);
 	int64_t BodyLength() const 		{ return body_length; }
 	int64_t HeaderLength() const 	{ return header_length; }
@@ -68,17 +68,17 @@ protected:
 	bool send_size; // whether to send size indication to FAF
 	std::string precomputed_file_id;
 
-	MIME_Entity* NewChildEntity() { return new HTTP_Entity(http_message, this, 1); }
+	MIME_Entity* NewChildEntity() override { return new HTTP_Entity(http_message, this, 1); }
 
 	void DeliverBody(int len, const char* data, int trailing_CRLF);
 	void DeliverBodyClear(int len, const char* data, int trailing_CRLF);
 
-	void SubmitData(int len, const char* buf);
+	void SubmitData(int len, const char* buf) override;
 
 	void SetPlainDelivery(int64_t length);
 
-	void SubmitHeader(mime::MIME_Header* h);
-	void SubmitAllHeaders();
+	void SubmitHeader(mime::MIME_Header* h) override;
+	void SubmitAllHeaders() override;
 };
 
 enum {
@@ -106,18 +106,18 @@ public:
 			 bool is_orig, int expect_body, int64_t init_header_length);
 	~HTTP_Message();
 	void Done(const int interrupted, const char* msg);
-	void Done() { Done(0, "message ends normally"); }
+	void Done() override { Done(0, "message ends normally"); }
 
 	int Undelivered(int64_t len);
 
-	void BeginEntity(mime::MIME_Entity* /* entity */);
-	void EndEntity(mime::MIME_Entity* entity);
-	void SubmitHeader(mime::MIME_Header* h);
-	void SubmitAllHeaders(mime::MIME_HeaderList& /* hlist */);
-	void SubmitData(int len, const char* buf);
-	int RequestBuffer(int* plen, char** pbuf);
+	void BeginEntity(mime::MIME_Entity* /* entity */) override;
+	void EndEntity(mime::MIME_Entity* entity) override;
+	void SubmitHeader(mime::MIME_Header* h) override;
+	void SubmitAllHeaders(mime::MIME_HeaderList& /* hlist */) override;
+	void SubmitData(int len, const char* buf) override;
+	int RequestBuffer(int* plen, char** pbuf) override;
 	void SubmitAllData();
-	void SubmitEvent(int event_type, const char* detail);
+	void SubmitEvent(int event_type, const char* detail) override;
 
 	void SubmitTrailingHeaders(mime::MIME_HeaderList& /* hlist */);
 	void SetPlainDelivery(int64_t length);
@@ -169,15 +169,15 @@ public:
 	int HTTP_ReplyCode() const { return reply_code; };
 
 	// Overriden from Analyzer.
-	virtual void Done();
-	virtual void DeliverStream(int len, const u_char* data, bool orig);
-	virtual void Undelivered(uint64 seq, int len, bool orig);
+	void Done() override;
+	void DeliverStream(int len, const u_char* data, bool orig) override;
+	void Undelivered(uint64 seq, int len, bool orig) override;
 
 	// Overriden from tcp::TCP_ApplicationAnalyzer
-	virtual void EndpointEOF(bool is_orig);
-	virtual void ConnectionFinished(int half_finished);
-	virtual void ConnectionReset();
-	virtual void PacketWithRST();
+	void EndpointEOF(bool is_orig) override;
+	void ConnectionFinished(int half_finished) override;
+	void ConnectionReset() override;
+	void PacketWithRST() override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new HTTP_Analyzer(conn); }
@@ -234,6 +234,13 @@ protected:
 
 	bool connect_request;
 	pia::PIA_TCP *pia;
+	// set to true after a connection was upgraded
+	bool upgraded;
+	// set to true when encountering an "connection" header in a reply.
+	bool upgrade_connection;
+	// set to the protocol string when encountering an "upgrade" header
+	// in a reply.
+	std::string upgrade_protocol;
 
 	Val* request_method;
 

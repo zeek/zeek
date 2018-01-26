@@ -448,7 +448,7 @@ bool Manager::IsDisabled(analyzer::Tag tag)
 	if ( ! disabled )
 		disabled = internal_const_val("Files::disable")->AsTableVal();
 
-	Val* index = new Val(tag, TYPE_COUNT);
+	Val* index = new Val(bool(tag), TYPE_COUNT);
 	Val* yield = disabled->Lookup(index);
 	Unref(index);
 

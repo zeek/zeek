@@ -697,7 +697,7 @@ void bro_broker::Manager::Process()
 				{
 				val_list* vl = new val_list;
 				vl->append(new StringVal(u.relation.remote_tuple().first));
-				vl->append(new PortVal(u.relation.remote_tuple().second,
+				vl->append(port_mgr->Get(u.relation.remote_tuple().second,
 				                       TRANSPORT_TCP));
 				vl->append(new StringVal(u.peer_name));
 				mgr.QueueEvent(Broker::outgoing_connection_established, vl);
@@ -709,7 +709,7 @@ void bro_broker::Manager::Process()
 				{
 				val_list* vl = new val_list;
 				vl->append(new StringVal(u.relation.remote_tuple().first));
-				vl->append(new PortVal(u.relation.remote_tuple().second,
+				vl->append(port_mgr->Get(u.relation.remote_tuple().second,
 				                       TRANSPORT_TCP));
 				mgr.QueueEvent(Broker::outgoing_connection_broken, vl);
 				}
@@ -720,7 +720,7 @@ void bro_broker::Manager::Process()
 				{
 				val_list* vl = new val_list;
 				vl->append(new StringVal(u.relation.remote_tuple().first));
-				vl->append(new PortVal(u.relation.remote_tuple().second,
+				vl->append(port_mgr->Get(u.relation.remote_tuple().second,
 				                       TRANSPORT_TCP));
 				mgr.QueueEvent(Broker::outgoing_connection_incompatible, vl);
 				}

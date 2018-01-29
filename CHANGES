@@ -1,4 +1,101 @@
 
+2.5-395 | 2018-01-26 15:46:05 -0600
+
+  * BIT-1894: fix bad integer casts in BIFs: sort, rand, order, to_int
+    (Corelight)
+
+2.5-392 | 2018-01-19 11:39:34 -0600
+
+  * Make nearly all bool conversion operators explicit. (Corelight)
+
+2.5-390 | 2018-01-17 16:09:55 -0600
+
+  * Logging: implement get_filter_names and small fixes.
+
+    get_filter_names(id: ID) : set[string] returns the names of the current
+    list of filters for a specified log stream.
+
+    Furthermore this commit makes a number of logging functions more robust
+    by checking existence of values before trying to modify them. This
+    commit also really implements (and tests) the enable_stream function.
+    (Corelight)
+
+2.5-388 | 2018-01-16 15:35:21 -0600
+
+  * HTTP: Recognize and skip upgrade/websocket connections.
+
+    This patches the HTTP analyzerto recognize when a connections is upgraded
+    to a different protocol (e.g. client uses the Upgrade header and gets a
+    101 reply).  In this case, the analyzer stops further processing (which
+    would have resulted in DPD errors) and raises a new event:
+
+      event http_connection_upgrade(c: connection, protocol: string);
+
+    The protocol parameter contains the name of the protocol that is being
+    upgraded to, as specified in one of the header values. (Johanna Amann)
+
+2.5-385 | 2018-01-16 14:51:07 -0600
+
+  * Make tunnel_parents in conn.log optional.
+
+    This makes conn.logs a bit prettier (and smaller) because all lines tha
+    do not use a tunnel will now have a "-" instead of the "(empty)" for
+    tunnel_parents. (Johanna Amann)
+
+  * Correct include-path in x509Common.h (Johanna Amann)
+
+2.5-381 | 2018-01-12 10:03:21 -0800
+
+  * Preallocate all possible PortVals, mark PortVal ctors deprecated.
+
+    The performance benefit is small (maybe ~1% at most), however, it's a
+    trivial change without downsides. (Jon Siwek)
+
+  * Add BRO_DEPRECATED macro. (Jon Siwek)
+
+  * Add functions for retrieving files by their id.
+
+    There are two new script level functions to query and lookup files
+    from the core by their IDs.  These are adding feature parity for
+    similarly named functions for files.  The function prototypes are
+    as follows:
+
+      Files::file_exists(fuid: string): bool
+      Files::lookup_File(fuid: string): fa_file (Seth Hall)
+
+2.5-375 | 2018-01-11 11:47:01 -0600
+
+  * Fix a test that fails in some environments (Daniel Thayer)
+
+  * Add CVE ID for BIT-1856. (Johanna Amann)
+
+2.5-372 | 2017-12-15 15:08:51 -0600
+
+  * Remove some DNS weirds that caused volume and are generally not useful:
+    dns_unmatched_msg, dns_unmatched_msg_quantity, dns_unmatched_reply.
+    (Corelight)
+
+2.5-369 | 2017-12-13 14:22:47 -0600
+
+  * Fix typo in analyzer::Manager API docs (Corelight)
+
+2.5-368 | 2017-12-08 13:09:25 -0600
+
+  * Improve for-loop iteration performance over empty tables. (Justin Azoff)
+
+  * Fix gcc7 warnings. (Johanna Amann)
+
+2.5-363 | 2017-12-05 11:00:09 -0600
+
+  * Fix documentation for ReassemblerStats. (Corelight)
+
+2.5-362 | 2017-12-02 09:45:04 -0600
+
+  * BIT-1791: Do not log SOCKS passwords by default and add
+    SOCKS::default_capture_password option.  (Johanna Amann)
+
+  * Add missing ; in SSL binpac parser, found by Luke Valenta. (Johanna Amann)
+
 2.5-359 | 2017-11-29 14:01:37 -0600
 
   * Add --ccache option to configure script (requires CMake 3.10+). (Corelight)
@@ -74,7 +171,7 @@
   * Patch OOB write in content-line analyzer.
 
     A combination of packets can trigger an out of bound write of '0' byte
-    in the content-line analyzer. Addresses BIT-1856.
+    in the content-line analyzer. Addresses BIT-1856 / CVE-2017-1000458.
     (Frank Meier/Johanna Amann)
 
 2.5-327 | 2017-10-16 12:21:01 -0700

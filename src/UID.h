@@ -59,9 +59,8 @@ public:
 	/**
 	 * @return false if the UID instance was created via the default ctor
 	 *         and not yet initialized w/ Set().
-	 * TODO: this would be better as an "explicit" conversion operator (C++11)
 	 */
-	operator bool() const
+	explicit operator bool() const
 		{ return initialized; }
 
 	/**

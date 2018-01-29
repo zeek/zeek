@@ -796,8 +796,7 @@ function sha256_hash_finish%(handle: opaque of sha256%): string
 ##      provided by the OS.
 function rand%(max: count%): count
 	%{
-	int result;
-	result = bro_uint_t(double(max) * double(bro_random()) / (RAND_MAX + 1.0));
+	auto result = bro_uint_t(double(max) * double(bro_random()) / (RAND_MAX + 1.0));
 	return new Val(result, TYPE_COUNT);
 	%}
 
@@ -1211,33 +1210,48 @@ bool sort_function(Val* a, Val* b)
 	int int_result = result->CoerceToInt();
 	Unref(result);
 
-	sort_func_args.remove_nth(1);
-	sort_func_args.remove_nth(0);
-
 	return int_result < 0;
 	}
 
-bool indirect_sort_function(int a, int b)
+bool indirect_sort_function(size_t a, size_t b)
 	{
 	return sort_function(index_map[a], index_map[b]);
 	}
 
-bool int_sort_function (Val* a, Val* b)
+bool signed_sort_function (Val* a, Val* b)
 	{
 	if ( ! a )
 		return 0;
 	if ( ! b )
 		return 1;
 
-	int ia = a->CoerceToInt();
-	int ib = b->CoerceToInt();
+	auto ia = a->CoerceToInt();
+	auto ib = b->CoerceToInt();
 
 	return ia < ib;
 	}
 
-bool indirect_int_sort_function(int a, int b)
+bool unsigned_sort_function (Val* a, Val* b)
 	{
-	return int_sort_function(index_map[a], index_map[b]);
+	if ( ! a )
+		return 0;
+	if ( ! b )
+		return 1;
+
+	auto ia = a->CoerceToUnsigned();
+	auto ib = b->CoerceToUnsigned();
+
+	return ia < ib;
+	}
+
+bool indirect_signed_sort_function(size_t a, size_t b)
+	{
+	return signed_sort_function(index_map[a], index_map[b]);
+	}
+
+bool indirect_unsigned_sort_function(size_t a, size_t b)
+	{
+	return unsigned_sort_function(index_map[a], index_map[b]);
 	}
 %%}
 
@@ -1302,7 +1316,12 @@ function sort%(v: any, ...%) : any
 		sort(vv.begin(), vv.end(), sort_function);
 		}
 	else
-		sort(vv.begin(), vv.end(), int_sort_function);
+		{
+		if ( elt_type->InternalType() == TYPE_INTERNAL_UNSIGNED )
+			sort(vv.begin(), vv.end(), unsigned_sort_function);
+		else
+			sort(vv.begin(), vv.end(), signed_sort_function);
+		}
 
 	return v;
 	%}
@@ -1351,13 +1370,13 @@ function order%(v: any, ...%) : index_vec
 		builtin_error("comparison function required for order() with non-integral types");
 
 	vector<Val*>& vv = *v->AsVector();
-	int n = vv.size();
+	auto n = vv.size();
 
 	// Set up initial mapping of indices directly to corresponding
 	// elements.
-	vector<int> ind_vv(n);
+	vector<size_t> ind_vv(n);
 	index_map = new Val*[n];
-	int i;
+	size_t i;
 	for ( i = 0; i < n; ++i )
 		{
 		ind_vv[i] = i;
@@ -1379,7 +1398,12 @@ function order%(v: any, ...%) : index_vec
 		sort(ind_vv.begin(), ind_vv.end(), indirect_sort_function);
 		}
 	else
-		sort(ind_vv.begin(), ind_vv.end(), indirect_int_sort_function);
+		{
+		if ( elt_type->InternalType() == TYPE_INTERNAL_UNSIGNED )
+			sort(ind_vv.begin(), ind_vv.end(), indirect_unsigned_sort_function);
+		else
+			sort(ind_vv.begin(), ind_vv.end(), indirect_signed_sort_function);
+		}
 
 	delete [] index_map;
 	index_map = 0;
@@ -2132,8 +2156,7 @@ function to_int%(str: string%): int
 	const char* s = str->CheckString();
 	char* end_s;
 
-	long l = strtol(s, &end_s, 10);
-	int i = int(l);
+	bro_int_t i = strtoll(s, &end_s, 10);
 
 #if 0
 	// Not clear we should complain.  For example, is " 205 "
@@ -2271,7 +2294,7 @@ function port_to_count%(p: port%): count
 ## .. bro:see:: port_to_count
 function count_to_port%(num: count, proto: transport_proto%): port
 	%{
-	return new PortVal(num, (TransportProto)proto->AsEnum());
+	return port_mgr->Get(num, (TransportProto)proto->AsEnum());
 	%}
 
 ## Converts a :bro:type:`string` to an :bro:type:`addr`.
@@ -2431,16 +2454,16 @@ function to_port%(s: string%): port
             {
             ++slash;
             if ( streq(slash, "tcp") )
-                return new PortVal(port, TRANSPORT_TCP);
+                return port_mgr->Get(port, TRANSPORT_TCP);
             else if ( streq(slash, "udp") )
-                return new PortVal(port, TRANSPORT_UDP);
+                return port_mgr->Get(port, TRANSPORT_UDP);
             else if ( streq(slash, "icmp") )
-                return new PortVal(port, TRANSPORT_ICMP);
+                return port_mgr->Get(port, TRANSPORT_ICMP);
             }
         }
 
     builtin_error("wrong port format, must be /[0-9]{1,5}\\/(tcp|udp|icmp)/");
-    return new PortVal(port, TRANSPORT_UNKNOWN);
+    return port_mgr->Get(port, TRANSPORT_UNKNOWN);
 	%}
 
 ## Converts a string of bytes (in network byte order) to a :bro:type:`double`.
@@ -3209,9 +3232,9 @@ function lookup_connection%(cid: conn_id%): connection
 
 	RecordVal* id_val = new RecordVal(conn_id);
 	id_val->Assign(0, new AddrVal((unsigned int) 0));
-	id_val->Assign(1, new PortVal(ntohs(0), TRANSPORT_UDP));
+	id_val->Assign(1, port_mgr->Get(ntohs(0), TRANSPORT_UDP));
 	id_val->Assign(2, new AddrVal((unsigned int) 0));
-	id_val->Assign(3, new PortVal(ntohs(0), TRANSPORT_UDP));
+	id_val->Assign(3, port_mgr->Get(ntohs(0), TRANSPORT_UDP));
 	c->Assign(0, id_val);
 
 	RecordVal* orig_endp = new RecordVal(endpoint);

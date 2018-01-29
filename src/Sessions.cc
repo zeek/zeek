@@ -339,7 +339,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 
 	// For both of these it is safe to pass ip_hdr because the presence
 	// is guaranteed for the functions that pass data to us.
-	int ip_hdr_len = ip_hdr->HdrLen();
+	uint16 ip_hdr_len = ip_hdr->HdrLen();
 	if ( ip_hdr_len > len )
 		{
 		Weird("invalid_IP_header_size", ip_hdr, encapsulation);

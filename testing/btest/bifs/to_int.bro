@@ -6,5 +6,6 @@ event bro_init()
 	{
 	print to_int("1");
 	print to_int("-1");
+	print to_int("4294967296");
 	print to_int("not an int");
 	}

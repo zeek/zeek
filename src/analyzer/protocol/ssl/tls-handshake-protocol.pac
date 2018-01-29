@@ -382,7 +382,7 @@ type ServerEDCHParamsAndSignature() = record {
 	point_length: uint8;
 	point: bytestring &length=point_length;
 	signed_params: bytestring &restofdata; # only present in case of non-anon message
-}
+};
 
 # Parse a DHE ServerKeyExchange message, which contains a signature over the
 # parameters.

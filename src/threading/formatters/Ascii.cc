@@ -329,6 +329,9 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 		if ( separators.empty_field.size() > 0 && s.compare(separators.empty_field) == 0 )
 			length = 0;
 
+		if ( separators.empty_field.empty() && s.empty() )
+			length = 0;
+
 		threading::Value** lvals = new threading::Value* [length];
 
 		if ( type == TYPE_TABLE )

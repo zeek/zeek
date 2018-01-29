@@ -22,7 +22,7 @@ testinterval 60
 testtime 1507321987
 test_set a,b,c,d,erdbeerschnitzel
 test_vector 1,2,3,4,5,6
-test_set (empty)
+test_set 
 test_set -
 @TEST-END-FILE
 

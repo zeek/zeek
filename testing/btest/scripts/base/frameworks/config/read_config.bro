@@ -6,6 +6,7 @@
 @load base/protocols/conn
 
 redef exit_only_after_terminate = T;
+redef InputConfig::empty_field = "(empty)";
 
 @TEST-START-FILE configfile
 testbool F

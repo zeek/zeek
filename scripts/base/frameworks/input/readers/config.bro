@@ -8,7 +8,9 @@ export {
 	const set_separator = Input::set_separator &redef;
 
 	## String to use for empty fields.
-	const empty_field = Input::empty_field &redef;
+	## By default this is the empty string, meaning that an empty input field
+	## will result in an empty set.
+	const empty_field = "" &redef;
 
 	## Fail on file read problems. If set to true, the config
 	## input reader will fail when encountering any problems

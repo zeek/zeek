@@ -1,4 +1,9 @@
 
+2.5-399 | 2018-01-30 14:31:45 -0800
+
+  * Adapt the X509 analyzer to partially support OpenSSL 1.1.
+    (Hilgo Bengen, Johanna Amann)
+
 2.5-395 | 2018-01-26 15:46:05 -0600
 
   * BIT-1894: fix bad integer casts in BIFs: sort, rand, order, to_int

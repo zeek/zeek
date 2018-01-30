@@ -692,7 +692,7 @@ void BroFile::InitEncrypt(const char* keyfile)
 	// Depending on the OpenSSL version, EVP_*_cbc()
 	// returns a const or a non-const.
 	EVP_CIPHER* cipher_type = (EVP_CIPHER*) EVP_bf_cbc();
-	cipher_ctx = new EVP_CIPHER_CTX;
+	cipher_ctx = EVP_CIPHER_CTX_new();
 
 	unsigned char secret[EVP_PKEY_size(pub_key)];
 	unsigned char* psecret = secret;
@@ -747,7 +747,7 @@ void BroFile::FinishEncrypt()
 			return;
 			}
 
-		delete cipher_ctx;
+		EVP_CIPHER_CTX_free(cipher_ctx);
 		cipher_ctx = 0;
 		}
 	}

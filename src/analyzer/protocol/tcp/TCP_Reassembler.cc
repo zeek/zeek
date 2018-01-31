@@ -501,7 +501,8 @@ int TCP_Reassembler::DataSent(double t, uint64 seq, int len,
 		}
 
 	if ( tcp_excessive_data_without_further_acks &&
-	     NumUndeliveredBytes() > static_cast<uint64>(tcp_excessive_data_without_further_acks) )
+	     blocks && blocks->seq < last_reassem_seq &&
+	     last_reassem_seq - blocks->seq > static_cast<uint64>(tcp_excessive_data_without_further_acks) )
 		{
 		tcp_analyzer->Weird("excessive_data_without_further_acks");
 		ClearBlocks();

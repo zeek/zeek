@@ -41,6 +41,12 @@ public:
 	// these is empty.
 	void SizeBufferedData(uint64& waiting_on_hole, uint64& waiting_on_ack) const;
 
+	// Returns the amount of buffered data waiting to be ack'd.
+	uint64 BufferSizeAwaitingAck() const;
+
+	// Returns the amount of buffered data waiting for a hole to fill.
+	uint64 BufferSizeAwaitingHole() const;
+
 	// How much data is pending delivery since it's not yet reassembled.
 	// Includes the data due to holes (so this value is a bit different
 	// from waiting_on_hole above; and is computed in a different fashion).

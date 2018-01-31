@@ -88,6 +88,28 @@ void TCP_Reassembler::SizeBufferedData(uint64& waiting_on_hole,
 		}
 	}
 
+uint64 TCP_Reassembler::BufferSizeAwaitingAck() const
+	{
+	uint64 rval = 0;
+
+	for ( DataBlock* b = blocks; b; b = b->next )
+		if ( b->seq <= last_reassem_seq )
+			rval += b->Size();
+
+	return rval;
+	}
+
+uint64 TCP_Reassembler::BufferSizeAwaitingHole() const
+	{
+	uint64 rval = 0;
+
+	for ( DataBlock* b = blocks; b; b = b->next )
+		if ( b->seq > last_reassem_seq )
+			rval += b->Size();
+
+	return rval;
+	}
+
 void TCP_Reassembler::SetContentsFile(BroFile* f)
 	{
 	if ( ! f->IsOpen() )
@@ -501,7 +523,7 @@ int TCP_Reassembler::DataSent(double t, uint64 seq, int len,
 		}
 
 	if ( tcp_excessive_data_without_further_acks &&
-	     NumUndeliveredBytes() > static_cast<uint64>(tcp_excessive_data_without_further_acks) )
+	     BufferSizeAwaitingAck() > static_cast<uint64>(tcp_excessive_data_without_further_acks) )
 		{
 		tcp_analyzer->Weird("excessive_data_without_further_acks");
 		ClearBlocks();

@@ -18,11 +18,16 @@ enum ReassemblerType {
 	REASSEM_NUM,
 };
 
+struct DataBlockListInfo {
+	uint64 totalSize;
+};
+
 class DataBlock {
 public:
-	DataBlock(const u_char* data, uint64 size, uint64 seq,
-		  DataBlock* prev, DataBlock* next,
-		  ReassemblerType reassem_type = REASSEM_UNKNOWN);
+	DataBlock(DataBlockListInfo* list_info, const u_char* data,
+	          uint64 size, uint64 seq,
+	          DataBlock* prev, DataBlock* next,
+	          ReassemblerType reassem_type = REASSEM_UNKNOWN);
 
 	~DataBlock();
 
@@ -33,6 +38,7 @@ public:
 	uint64 seq, upper;
 	u_char* block;
 	ReassemblerType rtype;
+	DataBlockListInfo* info;
 };
 
 class Reassembler : public BroObj {
@@ -86,6 +92,7 @@ protected:
 	void CheckOverlap(DataBlock *head, DataBlock *tail,
 				uint64 seq, uint64 len, const u_char* data);
 
+	DataBlockListInfo block_list_info;
 	DataBlock* blocks;
 	DataBlock* last_block;
 
@@ -105,6 +112,7 @@ protected:
 
 inline DataBlock::~DataBlock()
 	{
+	info->totalSize -= Size();
 	Reassembler::total_size -= pad_size(upper - seq) + padded_sizeof(DataBlock);
 	Reassembler::sizes[rtype] -= pad_size(upper - seq) + padded_sizeof(DataBlock);
 	delete [] block;

@@ -426,8 +426,8 @@ void init_net_var()
 
 	entropy_test_result = internal_type("entropy_test_result")->AsRecordType();
 
-	dhcp_router_list = internal_type("dhcp_router_list")->AsTableType();
-	dhcp_msg = internal_type("dhcp_msg")->AsRecordType();
+	dhcp_router_list = internal_type("DHCP::dhcp_router_list")->AsTableType();
+	dhcp_msg = internal_type("DHCP::dhcp_msg")->AsRecordType();
 
 	dns_msg = internal_type("dns_msg")->AsRecordType();
 	dns_answer = internal_type("dns_answer")->AsRecordType();

@@ -9,6 +9,10 @@
 ##
 ## host_name: The value of the host name option, if specified by the client.
 ##
+## client_id: The value of the client id (usually the MAC ADDRESS).
+##
+## req_params: The Parameters Request List.
+##
 ## .. bro:see:: dhcp_discover dhcp_offer dhcp_request dhcp_decline dhcp_ack dhcp_nak
 ##              dhcp_release dhcp_inform
 ##
@@ -16,7 +20,7 @@
 ##    protocol). It treats broadcast addresses just like any other and
 ##    associates packets into transport-level flows in the same way as usual.
 ##
-event dhcp_discover%(c: connection, msg: dhcp_msg, req_addr: addr, host_name: string%);
+event dhcp_discover%(c: connection, msg: DHCP::dhcp_msg, req_addr: addr, host_name: string, client_id: DHCP::dhcp_client_id, req_params: DHCP::dhcp_params_list%);
 
 ## Generated for DHCP messages of type *DHCPOFFER* (server to client in response
 ## to DHCPDISCOVER with offer of configuration parameters).
@@ -43,7 +47,7 @@ event dhcp_discover%(c: connection, msg: dhcp_msg, req_addr: addr, host_name: st
 ##    protocol). It treats broadcast addresses just like any other and
 ##    associates packets into transport-level flows in the same way as usual.
 ##
-event dhcp_offer%(c: connection, msg: dhcp_msg, mask: addr, router: dhcp_router_list, lease: interval, serv_addr: addr, host_name: string%);
+event dhcp_offer%(c: connection, msg: DHCP::dhcp_msg, mask: addr, router: DHCP::dhcp_router_list, lease: interval, serv_addr: addr, host_name: string%);
 
 ## Generated for DHCP messages of type *DHCPREQUEST* (Client message to servers either
 ## (a) requesting offered parameters from one server and implicitly declining offers
@@ -60,6 +64,10 @@ event dhcp_offer%(c: connection, msg: dhcp_msg, mask: addr, router: dhcp_router_
 ##
 ## host_name: The value of the host name option, if specified by the client.
 ##
+## client_id: The client id.
+##
+## req_parms: The Parameters Request List.
+##
 ## .. bro:see:: dhcp_discover dhcp_offer dhcp_decline dhcp_ack dhcp_nak
 ##              dhcp_release dhcp_inform
 ##
@@ -67,7 +75,7 @@ event dhcp_offer%(c: connection, msg: dhcp_msg, mask: addr, router: dhcp_router_
 ##    protocol). It treats broadcast addresses just like any other and
 ##    associates packets into transport-level flows in the same way as usual.
 ##
-event dhcp_request%(c: connection, msg: dhcp_msg, req_addr: addr, serv_addr: addr, host_name: string%);
+event dhcp_request%(c: connection, msg: DHCP::dhcp_msg, req_addr: addr, serv_addr: addr, host_name: string, client_id: DHCP::dhcp_client_id, req_params: DHCP::dhcp_params_list%);
 
 ## Generated for DHCP messages of type *DHCPDECLINE* (Client to server indicating
 ## network address is already in use).
@@ -85,7 +93,7 @@ event dhcp_request%(c: connection, msg: dhcp_msg, req_addr: addr, serv_addr: add
 ##    protocol). It treats broadcast addresses just like any other and
 ##    associates packets into transport-level flows in the same way as usual.
 ##
-event dhcp_decline%(c: connection, msg: dhcp_msg, host_name: string%);
+event dhcp_decline%(c: connection, msg: DHCP::dhcp_msg, host_name: string%);
 
 ## Generated for DHCP messages of type *DHCPACK* (Server to client with configuration
 ## parameters, including committed network address).
@@ -105,10 +113,21 @@ event dhcp_decline%(c: connection, msg: dhcp_msg, host_name: string%);
 ## host_name: Optional host name value. May differ from the host name requested
 ##            from the client.
 ##
+## reb_time: A 32-bit unsigned integer indicating the number of seconds before
+##	     the cilent enters the rebinding state if it has not renewed its
+##           current address lease with the DHCP server.
+##
+## ren_time: A 32-bit unsigned integer indicating the number of seconds before
+##	     the client begins to renew its address lease with the DHCP server.
+##
+## sub_opt: DHCP relay agent information option list of suboption values
+##          (see http://slaptijack.com/networking/what-is-dhcp-option-82/ or
+##           http://www.juniper.net/documentation/en_US/junose14.3/topics/concept/dhcp-relay-option-82-suboptions-overview.html)
+##
 ## .. bro:see:: dhcp_discover dhcp_offer dhcp_request dhcp_decline dhcp_nak
 ##              dhcp_release dhcp_inform
 ##
-event dhcp_ack%(c: connection, msg: dhcp_msg, mask: addr, router: dhcp_router_list, lease: interval, serv_addr: addr, host_name: string%);
+event dhcp_ack%(c: connection, msg: DHCP::dhcp_msg, mask: addr, router: DHCP::dhcp_router_list, lease: interval, serv_addr: addr, host_name: string, reb_time: count, ren_time: count, sub_opt: DHCP::dhcp_sub_opt_list%);
 
 ## Generated for DHCP messages of type *DHCPNAK* (Server to client indicating client's
 ## notion of network address is incorrect (e.g., client has moved to new subnet) or
@@ -127,7 +146,7 @@ event dhcp_ack%(c: connection, msg: dhcp_msg, mask: addr, router: dhcp_router_li
 ##    protocol). It treats broadcast addresses just like any other and
 ##    associates packets into transport-level flows in the same way as usual.
 ##
-event dhcp_nak%(c: connection, msg: dhcp_msg, host_name: string%);
+event dhcp_nak%(c: connection, msg: DHCP::dhcp_msg, host_name: string%);
 
 ## Generated for DHCP messages of type *DHCPRELEASE* (Client to server relinquishing
 ## network address and cancelling remaining lease).
@@ -141,7 +160,7 @@ event dhcp_nak%(c: connection, msg: dhcp_msg, host_name: string%);
 ## .. bro:see:: dhcp_discover dhcp_offer dhcp_request dhcp_decline dhcp_ack dhcp_nak
 ##              dhcp_inform
 ##
-event dhcp_release%(c: connection, msg: dhcp_msg, host_name: string%);
+event dhcp_release%(c: connection, msg: DHCP::dhcp_msg, host_name: string%);
 
 ## Generated for DHCP messages of type *DHCPINFORM* (Client to server, asking only for
 ## local configuration parameters; client already has externally configured network
@@ -153,6 +172,8 @@ event dhcp_release%(c: connection, msg: dhcp_msg, host_name: string%);
 ##
 ## host_name: The value of the host name option, if specified by the client.
 ##
+## req_parms: The Parameters Request List.
+##
 ## .. bro:see:: dhcp_discover dhcp_offer dhcp_request dhcp_decline dhcp_ack dhcp_nak
 ##              dhcp_release
 ##
@@ -160,5 +181,5 @@ event dhcp_release%(c: connection, msg: dhcp_msg, host_name: string%);
 ##    protocol). It treats broadcast addresses just like any other and
 ##    associates packets into transport-level flows in the same way as usual.
 ##
-event dhcp_inform%(c: connection, msg: dhcp_msg, host_name: string%);
+event dhcp_inform%(c: connection, msg: DHCP::dhcp_msg, host_name: string, req_params: DHCP::dhcp_params_list%);
 

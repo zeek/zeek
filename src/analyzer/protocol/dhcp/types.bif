@@ -1,0 +1,10 @@
+module DHCP;
+
+type dhcp_msg: record;
+type dhcp_router_list: table;
+type dhcp_params_list:   table;
+type dhcp_sub_opt_list: table;
+type dhcp_sub_opt:      record;
+type dhcp_client_id: record;
+
+module GLOBAL;

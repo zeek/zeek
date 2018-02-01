@@ -59,6 +59,10 @@ void Reassembler::CheckOverlap(DataBlock *head, DataBlock *tail,
 	if ( ! head || ! tail )
 		return;
 
+	if ( seq == tail->upper )
+		// Special case check for common case of appending to the end.
+		return;
+
 	uint64 upper = (seq + len);
 
 	for ( DataBlock* b = head; b; b = b->next )

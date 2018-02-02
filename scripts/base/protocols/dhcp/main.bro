@@ -59,91 +59,60 @@ redef record connection += {
 const ports = { 67/udp, 68/udp };
 redef likely_server_ports += { 67/udp };
 
-global info: Info;
-
 event bro_init() &priority=5
 	{
 	Log::create_stream(DHCP::LOG, [$columns=Info, $ev=log_dhcp, $path="dhcp"]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_DHCP, ports);
 	}
 
-event dhcp_ack(c: connection, msg: dhcp_msg, mask: addr, router: dhcp_router_list, lease: interval, serv_addr: addr, host_name: string, reb_time: count, ren_time: count, sub_opt: dhcp_sub_opt_list) &priority=5
+event dhcp_message(c: connection, is_orig: bool, msg: DHCP::Msg, options: DHCP::Options) &priority=-5
 	{
-	#local info: Info;
-	info$ts          = network_time();
-	info$id          = c$id;
-	info$uid         = c$uid;
-	info$lease_time  = lease;
-	info$trans_id    = msg$xid;
-	info$msg_type	 = message_types[msg$m_type];
+	if ( msg$m_type == 5 ) # DHCP_ACK
+		{
+		local info = Info($ts       = network_time(),
+		                  $id       = c$id,
+		                  $uid      = c$uid,
+		                  $trans_id = msg$xid);
 
-	info$server_id	 = serv_addr;
-	info$host_name   = host_name;
+		if ( msg$h_addr != "" )
+			info$mac = msg$h_addr;
 
-	if ( msg$h_addr != "" )
-		info$mac = msg$h_addr;
+		if ( reverse_ip(msg$yiaddr) != 0.0.0.0 )
+			info$assigned_ip = reverse_ip(msg$yiaddr);
+		else
+			info$assigned_ip = c$id$orig_h;
 
-	if ( reverse_ip(msg$yiaddr) != 0.0.0.0 )
-		info$assigned_ip = reverse_ip(msg$yiaddr);
-	else
-		info$assigned_ip = c$id$orig_h;
+		if ( options?$lease )
+			info$lease_time  = options$lease;
 
-	for (param in sub_opt)
-	{
-		#if ( sub_opt[param]$code == 1 ) 
-                #{
-                #print fmt("Relay Agent Information:");
-                #print fmt( "sub option: code=%d circuit id=%s",sub_opt[param]$code,sub_opt[param]$value );
-                #}
-                if ( sub_opt[param]$code == 2 )
-                        info$agent_remote_id = bytestring_to_hexstr(sub_opt[param]$value);
+		if ( options?$sub_opt )
+			{
+			for ( param in options$sub_opt )
+				{
+				local sub_opt = options$sub_opt[param];
 
-                if ( sub_opt[param]$code == 6 )
-                        info$subscriber_id = (sub_opt[param]$value);
+				#if ( sub_opt$code == 1 ) 
+				#	{
+				#	print fmt("Relay Agent Information:");
+				#	print fmt( "sub option: code=%d circuit id=%s",sub_opt$code,sub_opt$value );
+				#	}
+				
+				if ( sub_opt$code == 2 )
+					info$agent_remote_id = bytestring_to_hexstr(sub_opt$value);
+
+				if ( sub_opt$code == 6 )
+					info$subscriber_id = (sub_opt$value);
+				}
+			}
+
+		c$dhcp = info;
+		}
 	}
 
-	c$dhcp = info;
-	}
-
-event dhcp_ack(c: connection, msg: dhcp_msg, mask: addr, router: dhcp_router_list, lease: interval, serv_addr: addr, host_name: string, reb_time: count, ren_time: count, sub_opt: dhcp_sub_opt_list) &priority=-5
+event dhcp_message(c: connection, is_orig: bool, msg: DHCP::Msg, options: DHCP::Options) &priority=-5
 	{
-	Log::write(DHCP::LOG, c$dhcp);
+	if ( msg$m_type == 5 ) # DHCP_ACK
+		{
+		Log::write(DHCP::LOG, c$dhcp);
+		}
 	}
-
-event dhcp_request(c: connection, msg: dhcp_msg, req_addr: addr, serv_addr: addr, host_name: string, c_id: dhcp_client_id, req_params: table[count] of count) &priority=5
-	{
-	info$ts          = network_time();
-	info$id          = c$id;
-	info$uid         = c$uid;
-	info$trans_id    = msg$xid;
-	info$msg_type	 = message_types[msg$m_type];
-	info$server_id	 = serv_addr;
-	info$host_name   = host_name;
-	info$client_id 	 = c_id$hwaddr;
-
-	c$dhcp = info;
-	}
-
-event dhcp_request(c: connection, msg: dhcp_msg, req_addr: addr, serv_addr: addr, host_name: string, c_id: dhcp_client_id, req_params: table[count] of count) &priority=-5
-	{
-	Log::write(DHCP::LOG, c$dhcp);
-	}
-
-event dhcp_discover(c: connection, msg: dhcp_msg, req_addr: addr, host_name: string, c_id: dhcp_client_id, req_params: table[count] of count) &priority=5
-	{
-	info$ts		= network_time();
-	info$id		= c$id;
-	info$uid	= c$uid;
-	info$trans_id	= msg$xid;
-	info$msg_type	= message_types[msg$m_type];
-	info$host_name	= host_name;
-	info$client_id	= c_id$hwaddr;
-
-	c$dhcp = info;
-	}
-
-event dhcp_discover(c: connection, msg: dhcp_msg, req_addr: addr, host_name: string, c_id: dhcp_client_id, req_params: table[count] of count) &priority=-5
-	{
-	Log::write(DHCP::LOG, c$dhcp);
-	}
-

@@ -3064,11 +3064,12 @@ export {
 	## A list of router addresses offered by a DHCP server.
 	##
 	## .. bro:see:: dhcp_ack dhcp_offer
-	type DHCP::dhcp_router_list: table[count] of addr;
+	type DHCP::RouterList: table[count] of addr;
+
 	## A DHCP message.
 	## .. bro:see:: dhcp_ack dhcp_decline dhcp_discover dhcp_inform dhcp_nak
 	##    dhcp_offer dhcp_release dhcp_request
-	type DHCP::dhcp_msg: record {
+	type DHCP::Msg: record {
 		op: count;	##< Message OP code. 1 = BOOTREQUEST, 2 = BOOTREPLY
 		m_type: count;	##< The type of DHCP message.
 		xid: count;	##< Transaction ID of a DHCP session.
@@ -3076,22 +3077,55 @@ export {
 		ciaddr: addr;	##< Original IP address of the client.
 		yiaddr: addr;	##< IP address assigned to the client.
 	};
-	## DHCP Paremeter Reuqest list (Option 55)
+
+	## DHCP Parameter Request list (Option 55)
 	## .. bro:see:: dhcp_request dhcp_discover
-	type DHCP::dhcp_params_list: table[count] of count;
+	type DHCP::ParamsList: table[count] of count;
+
 	## DHCP Relay Agent Information Option (Option 82)
 	## .. bro:see:: dhcp_ack
-	type DHCP::dhcp_sub_opt: record {
+	type DHCP::SubOpt: record {
 		code: count;
 		value: string;
 	};
+
 	## DHCP Client Identifier (Option 61)
 	## .. bro:see:: dhcp_request dhcp_discover
-	type DHCP::dhcp_client_id: record {
+	type DHCP::ClientID: record {
 		hwtype: count;
 		hwaddr: string;
 	};
-	type DHCP::dhcp_sub_opt_list: table[count] of DHCP::dhcp_sub_opt;
+
+	type DHCP::SubOptList: table[count] of DHCP::SubOpt;
+
+	type DHCP::Options: record {
+		subnet_mask:    addr &optional;
+
+		host_name:      string &optional;
+
+		req_addr:       addr &optional;
+
+		router_list:    DHCP::RouterList &optional;
+
+		lease:          interval &optional;
+
+		serv_addr:      addr &optional;
+
+		## DHCP Parameter Request list (Option 55)
+		param_list:     DHCP::ParamsList &optional;
+
+		ren_time:       interval &optional;
+
+		reb_time:       interval &optional;
+
+		## DHCP Client Identifier (Option 61)
+		client_id:      DHCP::ClientID &optional;
+
+		## DHCP Relay Agent Information Option (Option 82)
+		sub_opt:        DHCP::SubOptList &optional;
+	};
+
+
 }
 
 module GLOBAL;

@@ -6,24 +6,7 @@ enum OP_type {
 	BOOTREPLY	= 2
 };
 
-# Refer to RFC 1533 for option types.
-# The option types are by no means complete.
-# Anyone can add a new option type in RFC 1533 to be parsed here.
-enum OPTION_type {
-	SUBNET_OPTION	 = 1,
-	ROUTER_OPTION	 = 3,
-	HOST_NAME_OPTION = 12,
-	REQ_IP_OPTION	 = 50,
-	LEASE_OPTION	 = 51,
-	MSG_TYPE_OPTION  = 53,
-	SERV_ID_OPTION	 = 54, # Server address, actually :)
-	PAR_REQ_LIST	 = 55, # Parameters Request List - NEW
-	REN_TIME_OPTION	 = 58, # Renewal time - NEW
-	REB_TIME_OPTION  = 59, # Rebinding time - NEW
-	CLIENT_ID_OPTION = 61, # Client Identifier - NEW
-	RELAY_AGENT_INF  = 82, # Relay Agent Information - NEW
-	END_OPTION	 = 255
-};
+let MSG_TYPE_OPTION = 53;
 
 enum DHCP_message_type {
 	DHCPDISCOVER		= 1,
@@ -41,74 +24,82 @@ enum DHCP_message_type {
 	DHCPLEASEACTIVE		= 13	# RFC 4388
 };
 
-type Relay_Agent_SubOption(tot_len: uint8) = record {
-	code	: uint8;
-	length	: uint8;
-	value	: bytestring &length = length;
-} &let {
-	sum_len: uint8 = $context.flow.get_dhcp_sumlen(length + 2);
-	last: bool = (sum_len == tot_len);
+type OptionValue(code: uint8, length: uint8) = case code of {
+	# This is extended in dhcp-options.pac
+	MSG_TYPE_OPTION  -> msg_type     : uint8;
+	default          -> other        : bytestring &length = length;
 };
 
-type Client_Identifier(length: uint8) = record {
-	hwtype	: uint8;
-	hwaddr	: bytestring &length = length -1;
-};
-
-enum DHCP_hardware_type
-{
-	ETHERNET = 1,
-	EXPERIMENTAL_ETHERNET = 2
-};
-
-type Option_Info(code: uint8)  = record {
-	length		: uint8;
-	value		: case code of {
-		SUBNET_OPTION	 -> mask	 : uint32;
-		ROUTER_OPTION	 -> router_list  : uint32[length/4];
-		REQ_IP_OPTION	 -> req_addr	 : uint32;
-		LEASE_OPTION	 -> lease	 : uint32;
-		MSG_TYPE_OPTION	 -> msg_type	 : uint8;
-		SERV_ID_OPTION	 -> serv_addr	 : uint32;
-		HOST_NAME_OPTION -> host_name	 : bytestring &length = length;
-		PAR_REQ_LIST	 -> par_req_list : uint8[length];
-		REB_TIME_OPTION	 -> reb_time	 : uint32;
-		REN_TIME_OPTION  -> ren_time	 : uint32;
-		CLIENT_ID_OPTION -> client_id	 : Client_Identifier(length);
-		RELAY_AGENT_INF  -> relay_agent_inf : Relay_Agent_SubOption(length)[] &until($element.last);
-		default		 -> other	 : bytestring &length = length;
-	};
-};
-
-type DHCP_Option = record {
-	code		: uint8;
-	data		: case code of {
-		0, 255	-> none	: empty;
-		default	-> info	: Option_Info(code);
+type Option = record {
+	code   : uint8;
+	length : uint8;
+	data   : case code of {
+		0, 255  -> none : empty;
+		default -> info : OptionValue(code, length);
 	};
 } &let {
-	last: bool	= (code == END_OPTION);   # Mark the end of a list of options
+	last = (code == 255); # Mark the end of a list of options
 };
 
-type DHCP_Message = record {
-	op	: uint8;
-	htype	: uint8;
-	hlen	: uint8;
-	hops	: uint8;
-	xid	: uint32;
-	secs	: uint16;
-	flags	: uint16;
-	ciaddr	: uint32;
-	yiaddr	: uint32;
-	siaddr	: uint32;
-	giaddr	: uint32;
+type DHCP_Message(is_orig: bool) = record {
+	op      : uint8;
+	htype   : uint8;
+	hlen    : uint8;
+	hops    : uint8;
+	xid     : uint32;
+	secs    : uint16;
+	flags   : uint16;
+	ciaddr  : uint32;
+	yiaddr  : uint32;
+	siaddr  : uint32;
+	giaddr  : uint32;
 	chaddr  : bytestring &length = 16;
-	sname	: bytestring &length = 64;
-	file	: bytestring &length = 128;
+	sname   : bytestring &length = 64;
+	file    : bytestring &length = 128;
 	# Cookie belongs to options in RFC 2131, but we separate
 	# them here for easy parsing.
 	cookie  : uint32;
-	options	: DHCP_Option[] &until($element.last);
+	options : Option[] &until($element.last);
 } &let {
-	type	: uint8 = $context.flow.get_dhcp_msgtype(options);
+	type = $context.flow.get_dhcp_msgtype(options);
 } &byteorder = bigendian;
+
+refine flow DHCP_Flow += {
+	%member{
+		uint8 sum_len;
+	%}
+
+	%init{
+		sum_len = 0;
+	%}
+
+	%cleanup{
+		sum_len = 0;
+	%}
+
+	function get_dhcp_sumlen(len: uint8): uint8
+		%{
+		sum_len = len + sum_len;
+		return sum_len;
+		%}
+
+	function get_dhcp_msgtype(options: Option[]): uint8
+		%{
+		uint8 type = 0;
+		for ( auto ptr = options->begin();
+		      ptr != options->end() && ! (*ptr)->last(); ++ptr )
+			{
+			if ( (*ptr)->code() == MSG_TYPE_OPTION )
+				{
+				type = (*ptr)->info()->msg_type();
+				break;
+				}
+			}
+
+		if ( type == 0 )
+			connection()->bro_analyzer()->ProtocolViolation("no DHCP message type option");
+
+		return type;
+		%}
+};
+

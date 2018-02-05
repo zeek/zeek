@@ -170,7 +170,7 @@ type SMB_Message_Request(header: SMB_Header, offset: uint16, command: uint8, is_
 #	#SMB_COM_QUERY_INFORMATION2       -> query_information2     : SMB_query_information2_request(header);
 	SMB_COM_LOCKING_ANDX             -> locking_andx           : SMB1_locking_andx_request(header, offset);
 	SMB_COM_TRANSACTION              -> transaction            : SMB1_transaction_request(header);
-#	SMB_COM_TRANSACTION_SECONDARY    -> transaction_secondary  : SMB1_transaction_secondary_request(header);
+	SMB_COM_TRANSACTION_SECONDARY     -> transaction_secondary  : SMB1_transaction_secondary_request(header);
 #	#SMB_COM_IOCTL                    -> ioctl                  : SMB_ioctl_request(header);
 #	#SMB_COM_IOCTL_SECONDARY          -> ioctl_secondary        : SMB_ioctl_secondary_request(header);
 #	#SMB_COM_COPY                     -> copy                   : SMB_copy_request(header);
@@ -179,7 +179,7 @@ type SMB_Message_Request(header: SMB_Header, offset: uint16, command: uint8, is_
 #	#SMB_COM_WRITE_AND_CLOSE          -> write_and_close        : SMB_write_and_close_request(header);
 #	#SMB_COM_NEW_FILE_SIZE            -> new_file_size          : SMB_new_file_size_request(header);
 #	#SMB_COM_CLOSE_AND_TREE_DISC      -> close_and_tree_disc    : SMB_close_and_tree_disc_request(header);
-#	#SMB_COM_TRANSACTION2_SECONDARY   -> transaction2_secondary : SMB1_transaction2_secondary_request(header);
+	SMB_COM_TRANSACTION2_SECONDARY   -> transaction2_secondary : SMB1_transaction2_secondary_request(header);
 #	#SMB_COM_FIND_CLOSE2              -> find_close2            : SMB_find_close2_request(header);
 #	#SMB_COM_FIND_NOTIFY_CLOSE        -> find_notify_close      : SMB_find_notify_close_request(header);
 #	#SMB_COM_TREE_CONNECT             -> tree_connect           : SMB_tree_connect_request(header);

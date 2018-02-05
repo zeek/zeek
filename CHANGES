@@ -1,4 +1,44 @@
 
+2.5-422 | 2018-02-05 16:28:25 -0600
+
+  * fix setup field handling in smb1_com_transaction_request messages
+
+    This field is an array of 16 bit words and was parsed as an array of
+    32 bit words. Moreover, one can not assume the format is going to be a
+    16 bits opcode followed by a 16 bit file ID, the content of the setup
+    field is different according to its first 16 bits word that defines
+    the subcommand code. See MS-CIFS section 2.2.4.33.1 :
+
+    Setup (variable): An array of two-byte words that provides transaction
+    context to the server. The size and content of the array are specific
+    to individual subcommands. (Jeffrey Bencteux)
+
+  * add smb1_transaction2_secondary_request event
+
+    parse and expose SMB_COM_TRANSACTION2_SECONDARY (0x33) message to
+    script level. See MS-CIFS section 2.2.4.47.1. (Jeffrey Bencteux)
+
+  * add smb1_transaction_secondary_request event
+
+    expose SMB_COM_TRANSACTION_SECONDARY (0x26) message to script
+    language. See MS-CIFS section 2.2.4.34.1. (Jeffrey Bencteux)
+
+  * add parameters and data to smb1_transaction_request/response messages
+
+    expose SMB_Data.Trans_Parameters and SMB_Data.Trans_Data fields of
+    SMB_COM_TRANSACTION (0x25) message type. See MS-CIFS section
+    2.2.4.33.1.
+
+    These fields are exposed to the script level as Bro strings. Note that
+    this commit also expose a new event smb1_transaction_response.
+    (Jeffrey Bencteux)
+
+  * add SMB_Parameters.Words to smb1_transaction2_request event
+
+    expose the fields contained in SMB_Parameters.Words of the
+    SMB_COM_TRANSACTION2 (0x32) message to the script language. See
+    MS-CIFS section 2.2.46.1. (Jeffrey Bencteux)
+
 2.5-410 | 2018-02-05 15:18:41 -0600
 
   * Fix warnings when building sphinx docs (Corelight)

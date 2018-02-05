@@ -56,6 +56,9 @@ New Functionality
 
 - Added new NFS events: nfs_proc_symlink, nfs_proc_link, nfs_proc_sattr
 
+- Added new SMB events: smb1_transaction_secondary_request,
+  smb1_transaction2_secondary_request, smb1_transaction_response
+
 Changed Functionality
 ---------------------
 
@@ -82,6 +85,11 @@ Changed Functionality
 - The 'tunnel_parents' field of conn.log is now marked &optional, so, for
   the default configuration of logs, this field will show "-" instead of
   "(empty)" for connections that lack any tunelling.
+
+- SMB event argument changes
+  - smb1_transaction_request now has two additional arguments, "parameters"
+    and "data" strings
+  - smb1_transaction2_request now has an additional "args" record argument
 
 Removed Functionality
 ---------------------

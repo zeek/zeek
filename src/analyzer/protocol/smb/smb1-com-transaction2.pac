@@ -23,7 +23,23 @@ refine connection SMB_Conn += {
 	function proc_smb1_transaction2_request(header: SMB_Header, val: SMB1_transaction2_request): bool
 		%{
 		if ( smb1_transaction2_request )
-			BifEvent::generate_smb1_transaction2_request(bro_analyzer(), bro_analyzer()->Conn(), BuildHeaderVal(header), ${val.sub_cmd});
+			{
+			RecordVal* args = new RecordVal(BifType::Record::SMB1::Trans2_Args);
+			args->Assign(0, new Val(${val.total_param_count}, TYPE_COUNT));
+			args->Assign(1, new Val(${val.total_data_count}, TYPE_COUNT));
+			args->Assign(2, new Val(${val.max_param_count}, TYPE_COUNT));
+			args->Assign(3, new Val(${val.max_data_count}, TYPE_COUNT));
+			args->Assign(4, new Val(${val.max_setup_count}, TYPE_COUNT));
+			args->Assign(5, new Val(${val.flags}, TYPE_COUNT));
+			args->Assign(6, new Val(${val.timeout}, TYPE_COUNT));
+			args->Assign(7, new Val(${val.param_count}, TYPE_COUNT));
+			args->Assign(8, new Val(${val.param_offset}, TYPE_COUNT));
+			args->Assign(9, new Val(${val.data_count}, TYPE_COUNT));
+			args->Assign(10, new Val(${val.data_offset}, TYPE_COUNT));
+			args->Assign(11, new Val(${val.setup_count}, TYPE_COUNT));
+
+			BifEvent::generate_smb1_transaction2_request(bro_analyzer(), bro_analyzer()->Conn(), BuildHeaderVal(header), args, ${val.sub_cmd});
+			}
 
 		return true;
 		%}

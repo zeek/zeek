@@ -1,0 +1,1 @@
+smb1_transaction2_request hdr: [command=50, status=0, flags=0, flags2=0, tid=47242, pid=1, uid=2017, mid=2], args: [total_param_count=13, total_data_count=0, max_param_count=0, max_data_count=0, max_setup_count=0, flags=0, trans_timeout=0, param_count=13, param_offset=69, data_count=0, data_offset=0, setup_count=1], sub_cmd: 5

@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2017-05-02-20-38-47
+#open	2018-02-05-22-27-42
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -114,7 +114,9 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_SMB.smb1_com_read_andx.bif.bro
     build/scripts/base/bif/plugins/Bro_SMB.smb1_com_session_setup_andx.bif.bro
     build/scripts/base/bif/plugins/Bro_SMB.smb1_com_transaction.bif.bro
+    build/scripts/base/bif/plugins/Bro_SMB.smb1_com_transaction_secondary.bif.bro
     build/scripts/base/bif/plugins/Bro_SMB.smb1_com_transaction2.bif.bro
+    build/scripts/base/bif/plugins/Bro_SMB.smb1_com_transaction2_secondary.bif.bro
     build/scripts/base/bif/plugins/Bro_SMB.smb1_com_tree_connect_andx.bif.bro
     build/scripts/base/bif/plugins/Bro_SMB.smb1_com_tree_disconnect.bif.bro
     build/scripts/base/bif/plugins/Bro_SMB.smb1_com_write_andx.bif.bro
@@ -168,4 +170,4 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_SQLiteWriter.sqlite.bif.bro
 scripts/policy/misc/loaded-scripts.bro
   scripts/base/utils/paths.bro
-#close	2017-05-02-20-38-47
+#close	2018-02-05-22-27-42

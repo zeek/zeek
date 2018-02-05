@@ -2960,6 +2960,73 @@ export {
 		security_blob	: string &optional;
 	};
 
+	type SMB1::Trans2_Args: record {
+	     ## Total parameter count
+	     total_param_count: count;
+	     ## Total data count
+	     total_data_count: count;
+	     ## Max parameter count
+	     max_param_count: count;
+	     ## Max data count
+	     max_data_count: count;
+	     ## Max setup count
+	     max_setup_count: count;
+	     ## Flags
+	     flags: count;
+	     ## Timeout
+	     trans_timeout: count;
+	     ## Parameter count
+	     param_count: count;
+	     ## Parameter offset
+	     param_offset: count;
+	     ## Data count
+	     data_count: count;
+	     ## Data offset
+	     data_offset: count;
+	     ## Setup count
+	     setup_count: count;
+	};
+
+	type SMB1::Trans_Sec_Args: record {
+	     ## Total parameter count
+	     total_param_count: count;
+	     ## Total data count
+	     total_data_count: count;
+	     ## Parameter count
+	     param_count: count;
+	     ## Parameter offset
+	     param_offset: count;
+	     ## Parameter displacement
+	     param_displacement: count;
+	     ## Data count
+	     data_count: count;
+	     ## Data offset
+	     data_offset: count;
+	     ## Data displacement
+	     data_displacement: count;
+	};
+
+	type SMB1::Trans2_Sec_Args: record {
+	     ## Total parameter count
+	     total_param_count: count;
+	     ## Total data count
+	     total_data_count: count;
+	     ## Parameter count
+	     param_count: count;
+	     ## Parameter offset
+	     param_offset: count;
+	     ## Parameter displacement
+	     param_displacement: count;
+	     ## Data count
+	     data_count: count;
+	     ## Data offset
+	     data_offset: count;
+	     ## Data displacement
+	     data_displacement: count;
+	     ## File ID
+	     FID: count;
+	};
+
 	type SMB1::Find_First2_Request_Args: record {
 		## File attributes to apply as a constraint to the search
 		search_attrs		: count;

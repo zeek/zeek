@@ -1,4 +1,9 @@
 
+2.5-427 | 2018-02-05 15:09:14 -0800
+
+  * BIT-1898: Fix problems with SumStats non-cluster.bro script.
+    Reported by Jim Mellander. (Jon Siwek)
+
 2.5-424 | 2018-02-05 15:07:20 -0800
 
   * Add a .travis.yml. file (Daniel Thayer)

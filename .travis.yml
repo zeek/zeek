@@ -1,0 +1,30 @@
+language: cpp
+compiler:
+  - clang
+  - gcc
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - bison
+      - cmake
+      - flex
+      - libpcap-dev
+      - libssl-dev
+      - python-dev
+      - swig
+      - zlib1g-dev
+
+install: ./configure && make -j 4
+
+script:
+  - make -C testing/btest btest-verbose
+  - make -C testing/external init && make -C testing/external
+
+after_failure:
+  # Output each diag.log that contains failed test results.
+  - for i in testing/btest/diag.log testing/external/bro-testing/diag.log; do
+    grep -qs '... failed$' $i && cat $i ;
+    done

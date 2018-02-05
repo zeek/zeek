@@ -1,4 +1,8 @@
 
+2.5-424 | 2018-02-05 15:07:20 -0800
+
+  * Add a .travis.yml. file (Daniel Thayer)
+
 2.5-422 | 2018-02-05 16:28:25 -0600
 
   * fix setup field handling in smb1_com_transaction_request messages

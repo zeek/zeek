@@ -54,6 +54,8 @@ New Functionality
     mount_proc_umnt, mount_proc_umnt_all, mount_proc_not_implemented,
     mount_reply_status.
 
+- Added new NFS events: nfs_proc_symlink, nfs_proc_link, nfs_proc_sattr
+
 Changed Functionality
 ---------------------
 

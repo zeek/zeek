@@ -1,4 +1,11 @@
 
+2.5-409 | 2018-02-05 14:12:21 -0600
+
+  * Bug fix: nfs3_writeargs didn't properly return filehandle. (Devin Trejo)
+
+  * Add NFS events and unit tests: nfs_proc_symlink, nfs_proc_link,
+    nfs_proc_sattr. (Devin Trejo)
+
 2.5-405 | 2018-02-05 13:29:39 -0600
 
   * Add MOUNT3 protocol parser.

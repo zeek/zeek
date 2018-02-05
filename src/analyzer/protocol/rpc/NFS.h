@@ -34,11 +34,17 @@ protected:
 	// are based on the type names of RFC 1813.
 	StringVal* nfs3_fh(const u_char*& buf, int& n);
 	RecordVal* nfs3_fattr(const u_char*& buf, int& n);
+	RecordVal* nfs3_sattr(const u_char*& buf, int& n);
 	EnumVal* nfs3_ftype(const u_char*& buf, int& n);
+	EnumVal* nfs3_time_how(const u_char*& buf, int& n);
 	RecordVal* nfs3_wcc_attr(const u_char*& buf, int& n);
 	RecordVal* nfs3_diropargs(const u_char*&buf, int &n);
+	RecordVal* nfs3_symlinkdata(const u_char*& buf, int& n);
 	RecordVal* nfs3_renameopargs(const u_char*&buf, int &n);
 	StringVal* nfs3_filename(const u_char*& buf, int& n);
+	RecordVal* nfs3_linkargs(const u_char*& buf, int& n);
+	RecordVal* nfs3_symlinkargs(const u_char*& buf, int& n);
+	RecordVal* nfs3_sattrargs(const u_char*& buf, int& n);
 	StringVal* nfs3_nfspath(const u_char*& buf, int& n)
 		{
 		return nfs3_filename(buf,n);
@@ -46,10 +52,12 @@ protected:
 
 	RecordVal* nfs3_post_op_attr(const u_char*&buf, int &n);	// Return 0 or an fattr
 	RecordVal* nfs3_pre_op_attr(const u_char*&buf, int &n);	// Return 0 or an wcc_attr
+	RecordVal* nfs3_sattr_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status);
 	RecordVal* nfs3_lookup_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status);
 	RecordVal* nfs3_readargs(const u_char*& buf, int& n);
 	RecordVal* nfs3_read_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status, bro_uint_t offset);
 	RecordVal* nfs3_readlink_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status);
+	RecordVal* nfs3_link_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status);
 	RecordVal* nfs3_writeargs(const u_char*& buf, int& n);
 	EnumVal* nfs3_stable_how(const u_char*& buf, int& n);
 	RecordVal* nfs3_write_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status);

@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	x509
+#open	2017-11-30-19-59-22
+#fields	ts	id	certificate.version	certificate.serial	certificate.subject	certificate.issuer	certificate.not_valid_before	certificate.not_valid_after	certificate.key_alg	certificate.sig_alg	certificate.key_type	certificate.key_length	certificate.exponent	certificate.curve	san.dns	san.uri	san.email	san.ip	basic_constraints.ca	basic_constraints.path_len
+#types	time	string	count	string	string	string	time	time	string	string	string	count	string	string	vector[string]	vector[string]	vector[string]	vector[addr]	bool	count
+1512070269.021156	Fox0Fc3MY8kLKfhNK6	3	87AAFFBCA26E44BF	O=Internet Widgits Pty Ltd,ST=Some-State,C=AU	O=Internet Widgits Pty Ltd,ST=Some-State,C=AU	1512070108.000000	1543606108.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	-	-	-	-	T	-
+#close	2017-11-30-19-59-22

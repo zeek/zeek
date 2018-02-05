@@ -4,6 +4,12 @@
 # @TEST-EXEC: cat ssl.log >> ssl-all.log
 # @TEST-EXEC: bro -r $TRACES/tls/ssl.v3.trace %INPUT
 # @TEST-EXEC: cat ssl.log >> ssl-all.log
+# @TEST-EXEC: bro -r $TRACES/tls/tls1_1.pcap %INPUT
+# @TEST-EXEC: cat ssl.log >> ssl-all.log
+# @TEST-EXEC: bro -r $TRACES/tls/dtls1_0.pcap %INPUT
+# @TEST-EXEC: cat ssl.log >> ssl-all.log
+# @TEST-EXEC: bro -r $TRACES/tls/dtls1_2.pcap %INPUT
+# @TEST-EXEC: cat ssl.log >> ssl-all.log
 # @TEST-EXEC: btest-diff ssl-all.log
 
 # Test the new client and server key exchange events.
@@ -28,6 +34,8 @@ export {
 		server_dh_q: string &log &optional;
 		server_dh_Ys: string &log &optional;
 		server_ecdh_point: string &log &optional;
+		server_signature_sig_alg: count &log &optional;
+		server_signature_hash_alg: count &log &optional;
 		server_signature: string &log &optional;
 
 		# ServerCertificate
@@ -91,10 +99,12 @@ event ssl_ecdh_server_params(c: connection, curve: count, point: string) &priori
 	c$ssl$server_ecdh_point = bytestring_to_hexstr(point);
 	}
 
-event ssl_server_signature(c: connection, signed_params: string) &priority=5
+event ssl_server_signature(c: connection, signature_and_hashalgorithm: SSL::SignatureAndHashAlgorithm, signature: string) &priority=5
 	{
 	set_session(c);
-	c$ssl$server_signature = bytestring_to_hexstr(signed_params);
+	c$ssl$server_signature_sig_alg = signature_and_hashalgorithm$SignatureAlgorithm;
+	c$ssl$server_signature_hash_alg = signature_and_hashalgorithm$HashAlgorithm;
+	c$ssl$server_signature = bytestring_to_hexstr(signature);
 	}
 
 event ssl_rsa_client_pms(c: connection, pms: string) &priority=5

@@ -232,14 +232,21 @@ event ssl_dh_server_params%(c: connection, p: string, q: string, Ys: string%);
 ##
 ## c: The connection.
 ##
-## signed_params: A hash of the server params, with the signature appropriate to
-##                that hash applied. The private key corresponding to the certified
-##                public key in the server's certificate message is used for signing.
+## signature_and_hashalgorithm: signature and hash algorithm used for the
+##                              digitally_signed struct. This field is only present
+##                              starting with TLSv1.2 and DTLSv1.2. Earlier versions
+##                              used a hardcoded hash algorithm. For protocol versions
+##                              below D(TLS)v1.2 this field is filled with an dummy
+##                              value of 256.
+##
+## signature: Signature part of the digitally_signed struct. The private key
+##            corresponding to the certified public key in the server's certificate
+##            message is used for signing.
 ##
 ## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
 ##    ssl_session_ticket_handshake ssl_server_curve ssl_rsa_client_pms
 ##    ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
-event ssl_server_signature%(c: connection, signed_params: string%);
+event ssl_server_signature%(c: connection, signature_and_hashalgorithm: SSL::SignatureAndHashAlgorithm, signature: string%);
 
 ## Generated if a client uses an ECDH-anon or ECDHE cipher suite. This event
 ## contains the client ECDH public value contained in the ClientKeyExchange

@@ -45,6 +45,15 @@ New Functionality
 - HTTP now recognizes and skips upgraded/websocket connections.  A new event,
   http_connection_upgrade, is raised in such cases.
 
+- Added a MOUNT3 protocol parser
+
+  - This is not enabled by default (no ports are registered and no
+    DPD signatures exist, so no connections will end up attaching the
+    new Mount analyzer).  If it were to be activated by users, the
+    following events are available: mount_proc_null, mount_proc_mnt,
+    mount_proc_umnt, mount_proc_umnt_all, mount_proc_not_implemented,
+    mount_reply_status.
+
 Changed Functionality
 ---------------------
 

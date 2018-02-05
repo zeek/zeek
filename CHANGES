@@ -1,4 +1,12 @@
 
+2.5-405 | 2018-02-05 13:29:39 -0600
+
+  * Add MOUNT3 protocol parser.
+  
+    It's not activated by default.  New events available: mount_proc_null,
+    mount_proc_mnt, mount_proc_umnt, mount_proc_umnt_all,
+    mount_proc_not_implemented, mount_reply_status. (Devin Trejo)
+
 2.5-402 | 2018-02-05 10:43:59 -0600
 
   * Fix (unlikely) memory leak in nb_dns.c (Corelight)

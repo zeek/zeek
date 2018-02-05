@@ -1,4 +1,10 @@
 
+2.5-402 | 2018-02-05 10:43:59 -0600
+
+  * Fix (unlikely) memory leak in nb_dns.c (Corelight)
+
+  * Remove bro-plugins submodule from .gitmodules file (Daniel Thayer)
+
 2.5-399 | 2018-01-30 14:31:45 -0800
 
   * Adapt the X509 analyzer to partially support OpenSSL 1.1.

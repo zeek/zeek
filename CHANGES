@@ -1,8 +1,20 @@
 
+2.5-435 | 2018-02-06 08:40:38 -0800
+
+  * BIT-1854: Improve reassembly overlap checking. (Corelight)
+
+  * BIT-1854: Fix the 'tcp_excessive_data_without_further_acks'
+    option. (Corelight)
+
+  * Make parsing of ServerKeyExchange work for D(TLS) < 1.2. (Johanna
+    Amann)
+
+  * Add more details to ssl_server_signature. (Johanna Amann)
+
 2.5-427 | 2018-02-05 15:09:14 -0800
 
   * BIT-1898: Fix problems with SumStats non-cluster.bro script.
-    Reported by Jim Mellander. (Jon Siwek)
+    Reported by Jim Mellander. (Corelight)
 
 2.5-424 | 2018-02-05 15:07:20 -0800
 

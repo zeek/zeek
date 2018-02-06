@@ -91,6 +91,10 @@ Changed Functionality
     and "data" strings
   - smb1_transaction2_request now has an additional "args" record argument
 
+- SSL event argument changes:
+  - event ssl_server_signature now has an additional argument
+    "signature_and_hashalgorithm".
+
 Removed Functionality
 ---------------------
 

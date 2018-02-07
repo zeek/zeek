@@ -1,5 +1,5 @@
 
-2.5-444 | 2018-02-06 17:11:26 -0800
+2.5-445 | 2018-02-07 14:20:59 -0800
 
   * Add new configuration framework for dynamically changing script
     options at runtime. See NEWS for more. (Corelight)

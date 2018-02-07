@@ -1,5 +1,6 @@
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
 # @TEST-EXEC: btest-bg-wait 10
+# @TEST-EXEC: sort bro/config.log >bro/config.log.tmp && mv bro/config.log.tmp bro/config.log
 # @TEST-EXEC: btest-diff bro/config.log
 
 @load base/frameworks/config

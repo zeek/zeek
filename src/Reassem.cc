@@ -42,7 +42,7 @@ uint64 Reassembler::sizes[REASSEM_NUM];
 Reassembler::Reassembler(uint64 init_seq, ReassemblerType reassem_type)
 	:  blocks(), last_block(), old_blocks(), last_old_block(),
 	  last_reassem_seq(init_seq), trim_seq(init_seq),
-	  max_old_blocks(0), total_old_blocks(0), size(0),
+	  max_old_blocks(0), total_old_blocks(0), size_of_all_blocks(0),
 	  rtype(reassem_type)
 	{
 	}

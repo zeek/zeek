@@ -3,4 +3,5 @@
 @load ./readers/raw
 @load ./readers/benchmark
 @load ./readers/binary
+@load ./readers/config
 @load ./readers/sqlite

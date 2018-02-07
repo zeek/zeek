@@ -2,6 +2,7 @@ barnyard2
 capture_loss
 cluster
 communication
+config
 conn
 dce__r_pc
 dhcp

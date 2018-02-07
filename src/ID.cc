@@ -21,12 +21,13 @@ ID::ID(const char* arg_name, IDScope arg_scope, bool arg_is_export)
 	name = copy_string(arg_name);
 	scope = arg_scope;
 	is_export = arg_is_export;
+	is_option = false;
 	type = 0;
 	val = 0;
 	attrs = 0;
-	is_const = 0;
-	is_enum_const = 0;
-	is_type = 0;
+	is_const = false;
+	is_enum_const = false;
+	is_type = false;
 	offset = 0;
 
 	infer_return_type = false;
@@ -40,6 +41,9 @@ ID::~ID()
 	delete [] name;
 	Unref(type);
 	Unref(attrs);
+
+	for ( auto element : option_handlers )
+		Unref(element.second);
 
 	if ( ! weak_ref )
 		Unref(val);
@@ -772,3 +776,18 @@ void ID::UpdateValID()
 	}
 #endif
 
+void ID::AddOptionHandler(Func* callback, int priority)
+	{
+	option_handlers.insert({priority, callback});
+	}
+
+vector<Func*> ID::GetOptionHandlers() const
+	{
+	// multimap is sorted
+	// It might be worth caching this if we expect it to be called
+	// a lot...
+	vector<Func*> v;
+	for ( auto& element : option_handlers )
+		v.push_back(element.second);
+	return std::move(v);
+	}

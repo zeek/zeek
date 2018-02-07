@@ -160,7 +160,7 @@ ScriptInfo::ScriptInfo(const string& arg_name, const string& arg_path)
       name(arg_name), path(arg_path),
       is_pkg_loader(SafeBasename(name).result == PACKAGE_LOADER),
       dependencies(), module_usages(), comments(), id_info(),
-      options(), constants(), state_vars(), types(), events(), hooks(),
+      redef_options(), constants(), state_vars(), types(), events(), hooks(),
       functions(), redefs()
 	{
 	}
@@ -219,9 +219,9 @@ void ScriptInfo::DoInitPostScript()
 			{
 			if ( id->FindAttr(ATTR_REDEF) )
 				{
-				DBG_LOG(DBG_BROXYGEN, "Filter id '%s' in '%s' as an option",
+				DBG_LOG(DBG_BROXYGEN, "Filter id '%s' in '%s' as a redef_option",
 				        id->Name(), name.c_str());
-				options.push_back(info);
+				redef_options.push_back(info);
 				}
 			else
 				{
@@ -229,6 +229,14 @@ void ScriptInfo::DoInitPostScript()
 				        id->Name(), name.c_str());
 				constants.push_back(info);
 				}
+
+			continue;
+			}
+		else if ( id->IsOption() )
+			{
+			DBG_LOG(DBG_BROXYGEN, "Filter id '%s' in '%s' as an runtime option",
+							id->Name(), name.c_str());
+			options.push_back(info);
 
 			continue;
 			}
@@ -309,7 +317,8 @@ string ScriptInfo::DoReStructuredText(bool roles_only) const
 	rval += fmt(":Source File: :download:`/scripts/%s`\n", name.c_str());
 	rval += "\n";
 	rval += broxygen::make_heading("Summary", '~');
-	rval += make_summary("Options", '#', '=', options);
+	rval += make_summary("Runtime Options", '#', '=', options);
+	rval += make_summary("Redefinable Options", '#', '=', redef_options);
 	rval += make_summary("Constants", '#', '=', constants);
 	rval += make_summary("State Variables", '#', '=', state_vars);
 	rval += make_summary("Types", '#', '=', types);
@@ -319,7 +328,8 @@ string ScriptInfo::DoReStructuredText(bool roles_only) const
 	rval += make_summary("Functions", '#', '=', functions);
 	rval += "\n";
 	rval += broxygen::make_heading("Detailed Interface", '~');
-	rval += make_details("Options", '#', options);
+	rval += make_details("Runtime Options", '#', options);
+	rval += make_details("Redefinable Options", '#', redef_options);
 	rval += make_details("Constants", '#', constants);
 	rval += make_details("State Variables", '#', state_vars);
 	rval += make_details("Types", '#', types);

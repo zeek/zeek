@@ -161,12 +161,13 @@ bool Value::IsCompatibleType(BroType* t, bool atomic_only)
 
 bool Value::Read(SerializationFormat* fmt)
 	{
-	int ty;
+	int ty, sty;
 
-	if ( ! (fmt->Read(&ty, "type") && fmt->Read(&present, "present")) )
+	if ( ! (fmt->Read(&ty, "type") && fmt->Read(&sty, "subtype") && fmt->Read(&present, "present")) )
 		return false;
 
 	type = (TypeTag)(ty);
+	subtype = (TypeTag)(sty);
 
 	if ( ! present )
 		return true;
@@ -311,6 +312,7 @@ bool Value::Read(SerializationFormat* fmt)
 bool Value::Write(SerializationFormat* fmt) const
 	{
 	if ( ! (fmt->Write((int)type, "type") &&
+		fmt->Write((int)subtype, "subtype") &&
 		fmt->Write(present, "present")) )
 		return false;
 

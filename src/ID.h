@@ -11,6 +11,7 @@
 
 class Val;
 class SerialInfo;
+class Func;
 
 typedef enum { INIT_NONE, INIT_FULL, INIT_EXTRA, INIT_REMOVE, } init_class;
 typedef enum { SCOPE_FUNCTION, SCOPE_MODULE, SCOPE_GLOBAL } IDScope;
@@ -34,7 +35,7 @@ public:
 	BroType* Type()			{ return type; }
 	const BroType* Type() const	{ return type; }
 
-	void MakeType()			{ is_type = 1; }
+	void MakeType()			{ is_type = true; }
 	BroType* AsType()		{ return is_type ? Type() : 0; }
 	const BroType* AsType() const	{ return is_type ? Type() : 0; }
 
@@ -51,21 +52,24 @@ public:
 	void SetVal(Val* v, init_class c);
 	void SetVal(Expr* ev, init_class c);
 
-	int HasVal() const		{ return val != 0; }
+	bool HasVal() const		{ return val != 0; }
 	Val* ID_Val()			{ return val; }
 	const Val* ID_Val() const	{ return val; }
 	void ClearVal();
 
-	void SetConst()			{ is_const = 1; }
-	int IsConst() const		{ return is_const; }
+	void SetConst()			{ is_const = true; }
+	bool IsConst() const		{ return is_const; }
 
-	void SetEnumConst()		{ is_enum_const = 1; }
-	int IsEnumConst() const		{ return is_enum_const; }
+	void SetOption()			{ is_option = true; }
+	bool IsOption() const		{ return is_option; }
+
+	void SetEnumConst()		{ is_enum_const = true; }
+	bool IsEnumConst() const		{ return is_enum_const; }
 
 	void SetOffset(int arg_offset)	{ offset = arg_offset; }
 	int Offset() const		{ return offset; }
 
-	int IsRedefinable() const	{ return FindAttr(ATTR_REDEF) != 0; }
+	bool IsRedefinable() const	{ return FindAttr(ATTR_REDEF) != 0; }
 
 	// Returns true if ID is one of those internal globally unique IDs
 	// to which MutableVals are bound (there name start with a '#').
@@ -97,11 +101,19 @@ public:
 	bool Serialize(SerialInfo* info) const;
 	static ID* Unserialize(UnserialInfo* info);
 
-	bool DoInferReturnType()        { return infer_return_type; }
+	bool DoInferReturnType() const
+		{ return infer_return_type; }
 	void SetInferReturnType(bool infer)
-	        { infer_return_type = infer; }
+		{ infer_return_type = infer; }
 
 	virtual TraversalCode Traverse(TraversalCallback* cb) const;
+
+	bool HasOptionHandlers() const
+		{ return !option_handlers.empty(); }
+
+	// Takes ownership of callback.
+	void AddOptionHandler(Func* callback, int priority);
+	vector<Func*> GetOptionHandlers() const;
 
 protected:
 	ID()	{ name = 0; type = 0; val = 0; attrs = 0; }
@@ -119,10 +131,12 @@ protected:
 	IDScope scope;
 	bool is_export;
 	BroType* type;
-	int is_const, is_enum_const, is_type;
+	bool is_const, is_enum_const, is_type, is_option;
 	int offset;
 	Val* val;
 	Attributes* attrs;
+	// contains list of functions that are called when an option changes
+	std::multimap<int, Func*> option_handlers;
 
 	bool infer_return_type;
 	bool weak_ref;

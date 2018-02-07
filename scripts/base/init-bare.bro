@@ -631,6 +631,7 @@ type script_id: record {
 	exported: bool;	##< True if the identifier is exported.
 	constant: bool;	##< True if the identifier is a constant.
 	enum_constant: bool;	##< True if the identifier is an enum value.
+	option_value: bool;	##< True if the identifier is an option.
 	redefinable: bool;	##< True if the identifier is declared with the :bro:attr:`&redef` attribute.
 	value: any &optional;	##< The current value of the identifier.
 };

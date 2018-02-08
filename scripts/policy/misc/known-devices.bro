@@ -26,6 +26,37 @@ export {
 		mac:     string &log;
 	};
 
+	## Toggles between different implementations of this script.
+	## When true, use a Broker data store, else use a regular Bro set
+	## with keys uniformly distributed over proxy nodes in cluster
+	## operation.
+	const use_device_store = T &redef;
+	
+@if ( Known::use_device_store )
+	## Holds the set of all known devices.  Keys in the store are strings
+	## representing MAC addresses and their associated value is always the
+	## boolean value of "true".
+	global device_store: Cluster::StoreInfo;
+
+	## The Broker topic name to use for :bro:see:`Known::device_store`.
+	const device_store_name = "bro/known/devices" &redef;
+
+	## The expiry interval of new entries in :bro:see:`Known::device_store`.
+	## This also changes the interval at which devices get logged.
+	const device_store_expiry = 1day &redef;
+
+	## The timeout interval to use for operations against
+	## :bro:see:`Known::device_store`.
+	const device_store_timeout = 15sec &redef;
+
+	## The retry interval to use for failed operations against
+	## :bro:see:`Known::device_store`.
+	const device_store_retry = 30sec &redef;
+
+	## The maximum number of times to retry timed-out operations against
+	## :bro:see:`Known::device_store`.
+	const device_store_max_retries = 10 &redef;
+@else
 	## The set of all known MAC addresses. It can accessed from other
 	## scripts to add, and check for, addresses seen in use.
 	##
@@ -37,6 +68,7 @@ export {
 	##
 	## Use :bro:see:`Known::device_found` to update this set.
 	global devices: set[string] &create_expire=1day &redef;
+@endif
 
 	## An event that can be handled to access the :bro:type:`Known::DevicesInfo`
 	## record as it is sent on to the logging framework.
@@ -49,6 +81,42 @@ export {
 	## info: the device information to be logged
 	global device_found: function(info: DevicesInfo);
 }
+
+@if ( Known::use_device_store )
+
+event bro_init()
+	{
+	Known::device_store = Cluster::create_store(Known::device_store_name);
+	}
+
+event known_device_add(info: DevicesInfo, attempt_number: count &default = 0)
+	{
+	when ( local r = Broker::put_unique(Known::device_store$store, info$mac,
+	                                    T, Known::device_store_expiry) )
+		{
+		if ( r$status == Broker::SUCCESS )
+			{
+			if ( r$result as bool )
+				Log::write(Known::DEVICES_LOG, info);
+			}
+		else
+			Reporter::error(fmt("%s: data store put_unique failure",
+			                    Known::device_store_name));
+		}
+	timeout Known::device_store_timeout
+		{
+		if ( attempt_number < device_store_max_retries )
+			schedule Known::device_store_retry
+				{ known_device_add(info, ++attempt_number) };
+		}
+	}
+
+function device_found(info: DevicesInfo)
+	{
+	event known_device_add(info);
+	}
+
+@else
 
 event known_device_add(info: DevicesInfo)
 	{
@@ -86,6 +154,8 @@ event Cluster::node_down(name: string, id: string)
 	# Drop local suppression cache on workers to force HRW key repartitioning.
 	Known::devices = set();
 	}
+
+@endif
 
 event bro_init()
 	{

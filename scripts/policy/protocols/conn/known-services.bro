@@ -26,11 +26,47 @@ export {
 		## A set of protocols that match the service's connection payloads.
 		service:        set[string]     &log;
 	};
+
+	## Toggles between different implementations of this script.
+	## When true, use a Broker data store, else use a regular Bro set
+	## with keys uniformly distributed over proxy nodes in cluster
+	## operation.
+	const use_service_store = T &redef;
 	
 	## The hosts whose services should be tracked and logged.
 	## See :bro:type:`Host` for possible choices.
 	const service_tracking = LOCAL_HOSTS &redef;
 
+@if ( Known::use_service_store )
+	type AddrPortPair: record {
+		host: addr;
+		p: port;
+	};
+
+	## Holds the set of all known services.  Keys in the store are
+	## :bro:type:`Known::AddrPortPair` and their associated value is
+	## always the boolean value of "true".
+	global service_store: Cluster::StoreInfo;
+
+	## The Broker topic name to use for :bro:see:`Known::service_store`.
+	const service_store_name = "bro/known/services" &redef;
+
+	## The expiry interval of new entries in :bro:see:`Known::service_store`.
+	## This also changes the interval at which services get logged.
+	const service_store_expiry = 1day &redef;
+
+	## The timeout interval to use for operations against
+	## :bro:see:`Known::service_store`.
+	const service_store_timeout = 15sec &redef;
+
+	## The retry interval to use for failed operations against
+	## :bro:see:`Known::service_store`.
+	const service_store_retry = 30sec &redef;
+
+	## The maximum number of times to retry timed-out operations against
+	## :bro:see:`Known::service_store`.
+	const service_store_max_retries = 10 &redef;
+@else
 	## Tracks the set of daily-detected services for preventing the logging
 	## of duplicates, but can also be inspected by other scripts for
 	## different purposes.
@@ -40,6 +76,8 @@ export {
 	##
 	## This set is automatically populated and shouldn't be directly modified.
 	global services: set[addr, port] &create_expire=1day;
+
+@endif
 
 	## Event that can be handled to access the :bro:type:`Known::ServicesInfo`
 	## record as it is sent on to the logging framework.
@@ -52,12 +90,39 @@ redef record connection += {
 	known_services_done: bool &default=F;
 };
 
-event bro_init() &priority=5
+@if ( Known::use_service_store )
+
+event bro_init()
 	{
-	Log::create_stream(Known::SERVICES_LOG, [$columns=ServicesInfo,
-	                                         $ev=log_known_services,
-	                                         $path="known_services"]);
+	Known::service_store = Cluster::create_store(Known::service_store_name);
 	}
+
+event service_info_commit(info: ServicesInfo,
+                          attempt_number: count &default = 0)
+	{
+	local key = AddrPortPair($host = info$host, $p = info$port_num);
+
+	when ( local r = Broker::put_unique(Known::service_store$store, key,
+	                                    T, Known::service_store_expiry) )
+		{
+		if ( r$status == Broker::SUCCESS )
+			{
+			if ( r$result as bool )
+				Log::write(Known::SERVICES_LOG, info);
+			}
+		else
+			Reporter::error(fmt("%s: data store put_unique failure",
+			                    Known::service_store_name));
+		}
+	timeout Known::service_store_timeout
+		{
+		if ( attempt_number < service_store_max_retries )
+			schedule Known::service_store_retry
+				{ service_info_commit(info, ++attempt_number) };
+		}
+	}
+
+@else
 
 event known_service_add(info: ServicesInfo)
 	{
@@ -90,12 +155,15 @@ event Cluster::node_down(name: string, id: string)
 	Known::services = set();
 	}
 
-event service_info_commit(info: ServicesInfo)
+event service_info_commit(info: ServicesInfo,
+                          attempt_number: count &default = 0)
 	{
 	local key = cat(info$host, info$port_num);
 	Cluster::publish_hrw(Cluster::proxy_pool, key, known_service_add, info);
 	event known_service_add(info);
 	}
+
+@endif
 
 function known_services_done(c: connection)
 	{
@@ -145,3 +213,11 @@ event connection_state_remove(c: connection) &priority=-5
 
 	known_services_done(c);
 	}
+
+event bro_init() &priority=5
+	{
+	Log::create_stream(Known::SERVICES_LOG, [$columns=ServicesInfo,
+	                                         $ev=log_known_services,
+	                                         $path="known_services"]);
+	}
+

@@ -145,6 +145,23 @@ export {
 	## Returns: the result of the query.
 	global get: function(h: opaque of Broker::Store, k: any): QueryResult;
 
+	## Insert a key-value pair in to the store, but only if the key does not
+	## already exist.
+	##
+	## h: the handle of the store to modify.
+	##
+	## k: the key to insert.
+	##
+	## v: the value to insert.
+	##
+	## e: the expiration interval of the key-value pair.
+	##
+	## Returns: the result of the query which is a boolean data value that is
+	##          true if the insertion happened, or false if it was rejected
+	##          due to the key already existing.
+	global put_unique: function(h: opaque of Broker::Store,
+	                            k: any, v: any, e: interval &default=0sec): QueryResult;
+
 	## Retrieve a specific index from an existing container value. This
 	## is supported for values of types set, table, and vector.
 	##
@@ -730,6 +747,12 @@ function get(h: opaque of Broker::Store, k: any): QueryResult
 	{
 	return __get(h, k);
 	}
+
+function put_unique(h: opaque of Broker::Store, k: any, v: any,
+             e: interval &default=0sec): QueryResult
+    {
+    return __put_unique(h, k, v, e);
+    }
 
 function get_index_from_value(h: opaque of Broker::Store, k: any, i: any): QueryResult
 	{

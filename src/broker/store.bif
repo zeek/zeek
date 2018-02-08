@@ -195,6 +195,56 @@ function Broker::__get%(h: opaque of Broker::Store,
 	return 0;
 	%}
 
+function Broker::__put_unique%(h: opaque of Broker::Store,
+                               k: any, v: any, e: interval%): Broker::QueryResult
+	%{
+	if ( ! h )
+		{
+		reporter->Error("invalid Broker store handle");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
+	auto key = bro_broker::val_to_data(k);
+	auto val = bro_broker::val_to_data(v);
+
+	if ( ! key || ! val )
+		return bro_broker::query_result();
+
+	auto trigger = frame->GetTrigger();
+	if ( ! trigger )
+		{
+		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
+		reporter->Error("Broker queries can only be called inside when-condition");
+		reporter->PopLocation();
+		return bro_broker::query_result();
+		}
+
+	auto timeout = trigger->TimeoutValue();
+	if ( timeout < 0 )
+		{
+		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
+		reporter->Error("Broker queries must specify a timeout block");
+		reporter->PopLocation();
+		return bro_broker::query_result();
+		}
+
+	frame->SetDelayed();
+	trigger->Hold();
+
+	auto cb = new bro_broker::StoreQueryCallback(trigger, frame->GetCall(),
+	                                             handle->store);
+
+	broker::timespan ts;
+	broker::convert(e, ts);
+
+	auto req_id = handle->proxy.put_unique(std::move(*key), std::move(*val),
+	                                       std::move(ts));
+	broker_mgr->TrackStoreQuery(handle, req_id, cb);
+
+	return 0;
+	%}
+
 function Broker::__get_index_from_value%(h: opaque of Broker::Store,
 					 k: any, i: any%): Broker::QueryResult
 	%{

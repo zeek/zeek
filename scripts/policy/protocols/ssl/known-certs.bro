@@ -30,6 +30,43 @@ export {
 	## The certificates whose existence should be logged and tracked.
 	## Choices are: LOCAL_HOSTS, REMOTE_HOSTS, ALL_HOSTS, NO_HOSTS.
 	const cert_tracking = LOCAL_HOSTS &redef;
+
+	## Toggles between different implementations of this script.
+	## When true, use a Broker data store, else use a regular Bro set
+	## with keys uniformly distributed over proxy nodes in cluster
+	## operation.
+	const use_cert_store = T &redef;
+	
+@if ( Known::use_cert_store )
+	type AddrCertHashPair: record {
+		host: addr;
+		hash: string;
+	};
+
+	## Holds the set of all known certificates.  Keys in the store are of
+	## type :bro:type:`Known::AddrCertHashPair` and their associated value is
+	## always the boolean value of "true".
+	global cert_store: Cluster::StoreInfo;
+
+	## The Broker topic name to use for :bro:see:`Known::cert_store`.
+	const cert_store_name = "bro/known/certs" &redef;
+
+	## The expiry interval of new entries in :bro:see:`Known::cert_store`.
+	## This also changes the interval at which certs get logged.
+	const cert_store_expiry = 1day &redef;
+
+	## The timeout interval to use for operations against
+	## :bro:see:`Known::cert_store`.
+	const cert_store_timeout = 15sec &redef;
+
+	## The retry interval to use for failed operations against
+	## :bro:see:`Known::cert_store`.
+	const cert_store_retry = 30sec &redef;
+
+	## The maximum number of times to retry timed-out operations against
+	## :bro:see:`Known::cert_store`.
+	const cert_store_max_retries = 10 &redef;
+@else
 	
 	## The set of all known certificates to store for preventing duplicate 
 	## logging. It can also be used from other scripts to 
@@ -39,16 +76,46 @@ export {
 	## In cluster operation, this set is uniformly distributed across
 	## proxy nodes.
 	global certs: set[addr, string] &create_expire=1day &redef;
+@endif
 	
 	## Event that can be handled to access the loggable record as it is sent
 	## on to the logging framework.
 	global log_known_certs: event(rec: CertsInfo);
 }
 
-event bro_init() &priority=5
+@if ( Known::use_cert_store )
+
+event bro_init()
 	{
-	Log::create_stream(Known::CERTS_LOG, [$columns=CertsInfo, $ev=log_known_certs, $path="known_certs"]);
+	Known::cert_store = Cluster::create_store(Known::cert_store_name);
 	}
+
+event Known::cert_found(info: CertsInfo, hash: string,
+                        attempt_number: count &default = 0)
+    {
+	local key = AddrCertHashPair($host = info$host, $hash = hash);
+
+	when ( local r = Broker::put_unique(Known::cert_store$store, key,
+	                                    T, Known::cert_store_expiry) )
+		{
+		if ( r$status == Broker::SUCCESS )
+			{
+			if ( r$result as bool )
+				Log::write(Known::CERTS_LOG, info);
+			}
+		else
+			Reporter::error(fmt("%s: data store put_unique failure",
+			                    Known::cert_store_name));
+		}
+	timeout Known::cert_store_timeout
+		{
+		if ( attempt_number < cert_store_max_retries )
+			schedule Known::cert_store_retry
+				{ Known::cert_found(info, hash, ++attempt_number) };
+		}
+    }
+
+@else
 
 event known_cert_add(info: CertsInfo, hash: string)
 	{
@@ -63,7 +130,8 @@ event known_cert_add(info: CertsInfo, hash: string)
 	@endif
 	}
 
-function cert_found(info: CertsInfo, hash: string)
+event Known::cert_found(info: CertsInfo, hash: string,
+                        attempt_number: count &default = 0)
 	{
 	local key = cat(info$host, hash);
 	Cluster::publish_hrw(Cluster::proxy_pool, key, known_cert_add, info, hash);
@@ -85,6 +153,8 @@ event Cluster::node_down(name: string, id: string)
 
 	Known::certs = table();
 	}
+
+@endif
 
 event ssl_established(c: connection) &priority=3
 	{
@@ -117,5 +187,10 @@ event ssl_established(c: connection) &priority=3
 	                       $port_num = c$id$resp_p, $subject = cert$subject,
 	                       $issuer_subject = cert$issuer,
 	                       $serial = cert$serial);
-	Known::cert_found(info, hash);
+	event Known::cert_found(info, hash);
+	}
+
+event bro_init() &priority=5
+	{
+	Log::create_stream(Known::CERTS_LOG, [$columns=CertsInfo, $ev=log_known_certs, $path="known_certs"]);
 	}

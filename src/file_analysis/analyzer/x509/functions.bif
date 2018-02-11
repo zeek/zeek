@@ -668,7 +668,7 @@ function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signa
 	uint32 cert_length;
 	if ( precert )
 		{
-#if (OPENSSL_VERSION_NUMBER < 0x10002000L)
+#if (OPENSSL_VERSION_NUMBER < 0x10002000L || LIBRESSL_VERSION_NUMBER)
 		x->cert_info->enc.modified = 1;
 		cert_length = i2d_X509_CINF(x->cert_info, &cert_out);
 #else

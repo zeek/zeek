@@ -260,15 +260,27 @@ RecordVal* MOUNT_Interp::mount3_mnt_reply(const u_char*& buf, int& n,
 		{
 		rep->Assign(0, mount3_fh(buf,n));
 
-		int auth_flavors_count =  extract_XDR_uint32(buf, n);
+		auto auth_flavors_count_in_reply =  extract_XDR_uint32(buf, n);
+		auto auth_flavors_count = auth_flavors_count_in_reply;
+		const auto max_auth_flavors = 32u;
+
+		if ( auth_flavors_count_in_reply > max_auth_flavors )
+			{
+			Weird("excessive_MNT_auth_flavors");
+			auth_flavors_count = max_auth_flavors;
+			}
+
 		VectorType* enum_vector = new VectorType(base_type(TYPE_ENUM));
 		VectorVal* auth_flavors = new VectorVal(enum_vector);
 		Unref(enum_vector);
 
-		for (int i = 0; i < auth_flavors_count; i++)
-			{
-			auth_flavors->Assign(auth_flavors->Size(), mount3_auth_flavor(buf, n)); // authentication
-			}
+		for ( auto i = 0u; i < auth_flavors_count; ++i )
+			auth_flavors->Assign(auth_flavors->Size(),
+			                     mount3_auth_flavor(buf, n));
+
+		if ( auth_flavors_count_in_reply > max_auth_flavors )
+			// Prevent further "excess RPC" weirds
+			n = 0;
 
 		rep->Assign(1, auth_flavors);
 		}

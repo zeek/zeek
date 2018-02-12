@@ -1,4 +1,10 @@
 
+2.5-447 | 2018-02-12 11:00:44 -0600
+
+  * Add limit to number of auth flavors parsed out of MNT replies (Corelight)
+
+  * Treat LibreSSL as an older OpenSSL (Xiaogrill)
+
 2.5-445 | 2018-02-07 14:20:59 -0800
 
   * Add new configuration framework for dynamically changing script

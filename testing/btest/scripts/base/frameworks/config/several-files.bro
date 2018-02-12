@@ -42,10 +42,17 @@ export {
 	option test_vector: vector of count = {};
 }
 
-event Input::end_of_data(name: string, source:string)
+global ct = 0;
+
+event Input::end_of_data(name: string, source: string)
 	{
-	if ( sub_bytes(name, 1,  7) != "config-" )
+	if ( sub_bytes(name, 1, 7) != "config-" )
 		return;
 
-	terminate();
+	++ct;
+
+	# Exit after this event has been raised for each config file.
+	if ( ct == 2 )
+		terminate();
+
 	}

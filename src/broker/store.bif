@@ -343,19 +343,22 @@ function Broker::__put%(h: opaque of Broker::Store,
 		}
 
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
+	auto key = bro_broker::val_to_data(k);
+	auto val = bro_broker::val_to_data(v);
 
-	auto& key = bro_broker::opaque_field_to_data(bro_broker::make_data_val(k), frame);
-	auto& val = bro_broker::opaque_field_to_data(bro_broker::make_data_val(v), frame);
+	if ( ! key || ! val )
+		return new Val(false, TYPE_BOOL);
 
 	broker::optional<broker::timespan> ts;
-	if ( ts )
+
+	if ( e > 0 )
 		{
-		broker::timespan x;
-		broker::convert(e, x);
-		ts = x;
+		broker::timespan tmp;
+		broker::convert(e, tmp);
+		ts = tmp;
 		}
 
-	handle->store.put(key, val, ts);
+	handle->store.put(std::move(*key), std::move(*val), std::move(ts));
 	return new Val(true, TYPE_BOOL);
 	%}
 

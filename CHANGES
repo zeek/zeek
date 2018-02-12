@@ -1,4 +1,8 @@
 
+2.5-448 | 2018-02-12 11:09:00 -0600
+
+  * Fix pessimizing-move compiler warning. (Corelight)
+
 2.5-447 | 2018-02-12 11:00:44 -0600
 
   * Add limit to number of auth flavors parsed out of MNT replies (Corelight)

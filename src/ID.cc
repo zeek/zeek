@@ -789,5 +789,5 @@ vector<Func*> ID::GetOptionHandlers() const
 	vector<Func*> v;
 	for ( auto& element : option_handlers )
 		v.push_back(element.second);
-	return std::move(v);
+	return v;
 	}

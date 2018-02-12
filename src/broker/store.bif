@@ -235,8 +235,14 @@ function Broker::__put_unique%(h: opaque of Broker::Store,
 	auto cb = new bro_broker::StoreQueryCallback(trigger, frame->GetCall(),
 	                                             handle->store);
 
-	broker::timespan ts;
-	broker::convert(e, ts);
+	broker::optional<broker::timespan> ts;
+
+	if ( e > 0 )
+		{
+		broker::timespan tmp;
+		broker::convert(e, tmp);
+		ts = tmp;
+		}
 
 	auto req_id = handle->proxy.put_unique(std::move(*key), std::move(*val),
 	                                       std::move(ts));

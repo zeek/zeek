@@ -800,7 +800,7 @@ function fnv1a32%(input: any%): count
 	uint32 prime32 = 16777619;
 	uint32 rval = offset32;
 
-	for ( auto i = 0u; i < desc.Len(); ++i )
+	for ( auto i = 0; i < desc.Len(); ++i )
 		{
 		rval ^= (uint32) bytes[i];
 		rval *= prime32;

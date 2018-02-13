@@ -121,7 +121,7 @@ function Broker::publish%(topic: string, ...%): bool
 	val_list* bif_args = @ARGS@;
 	val_list args(bif_args->length() - 1);
 
-	for ( auto i = 1u; i < bif_args->length(); ++i )
+	for ( auto i = 1; i < bif_args->length(); ++i )
 		args.append((*bif_args)[i]);
 
 	auto rval = publish_event_args(args, topic->AsString(), frame);
@@ -169,7 +169,7 @@ function Broker::relay%(first_topic: string, ...%): bool
 
 	val_list args(bif_args->length() - 2);
 
-	for ( auto i = 2u; i < bif_args->length(); ++i )
+	for ( auto i = 2; i < bif_args->length(); ++i )
 		args.append((*bif_args)[i]);
 
 	auto rval = false;
@@ -259,7 +259,7 @@ function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
 	val_list* bif_args = @ARGS@;
 	val_list args(bif_args->length() - 2);
 
-	for ( auto i = 2u; i < bif_args->length(); ++i )
+	for ( auto i = 2; i < bif_args->length(); ++i )
 		args.append((*bif_args)[i]);
 
 	auto rval = publish_event_args(args, topic->AsString(), frame);
@@ -334,7 +334,7 @@ function Cluster::relay_rr%(pool: Pool, key: any, ...%): bool
 
 	val_list args(bif_args->length() - 3);
 
-	for ( auto i = 3u; i < bif_args->length(); ++i )
+	for ( auto i = 3; i < bif_args->length(); ++i )
 		args.append((*bif_args)[i]);
 
 	auto rval = relay_event_args(args, topic->AsString(), std::move(topic_set),
@@ -377,7 +377,7 @@ function Cluster::publish_hrw%(pool: Pool, key: any, ...%): bool
 	val_list* bif_args = @ARGS@;
 	val_list args(bif_args->length() - 2);
 
-	for ( auto i = 2u; i < bif_args->length(); ++i )
+	for ( auto i = 2; i < bif_args->length(); ++i )
 		args.append((*bif_args)[i]);
 
 	auto rval = publish_event_args(args, topic->AsString(), frame);
@@ -450,7 +450,7 @@ function Cluster::relay_hrw%(pool: Pool, key: any, ...%): bool
 
 	val_list args(bif_args->length() - 3);
 
-	for ( auto i = 3u; i < bif_args->length(); ++i )
+	for ( auto i = 3; i < bif_args->length(); ++i )
 		args.append((*bif_args)[i]);
 
 	auto rval = relay_event_args(args, topic->AsString(), std::move(topic_set),

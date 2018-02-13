@@ -61,10 +61,10 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-flex=PATH       path to flex executable
     --with-bison=PATH      path to bison executable
     --with-python=PATH     path to Python executable
-
-  Optional Packages in Non-Standard Locations:
     --with-caf=PATH        path to C++ Actor Framework installation
                            (a required Broker dependency)
+
+  Optional Packages in Non-Standard Locations:
     --with-geoip=PATH      path to the libGeoIP install root
     --with-perftools=PATH  path to Google Perftools install root
     --with-jemalloc=PATH   path to jemalloc install root

@@ -280,8 +280,8 @@ void ArrayType::GenArrayLength(Output *out_cc, Env *env, const DataPtr& data)
 
 		// Check for overlong array length. We cap it at the
 		// maximum data size as we won't store more elements.
-		out_cc->println("if ( t_begin_of_data + %s > t_end_of_data + 1 )",
-			env->LValue(arraylength_var()));
+		out_cc->println("if ( t_begin_of_data + %s > t_end_of_data + 1 || t_begin_of_data + %s < t_begin_of_data )",
+			env->LValue(arraylength_var()), env->LValue(arraylength_var()));
 		out_cc->inc_indent();
 		out_cc->println("{");
 		out_cc->println("%s = t_end_of_data - t_begin_of_data + 1;",

@@ -6,6 +6,20 @@
 #include "broker/Store.h"
 #include "broker/Data.h"
 #include "Trigger.h"
+
+static broker::optional<broker::timespan> prepare_expiry(double e)
+	{
+	broker::optional<broker::timespan> ts;
+
+	if ( e )
+		{
+		broker::timespan x;
+		broker::convert(e, x);
+		ts = x;
+		}
+
+	return ts;
+	}
 %%}
 
 module Broker;
@@ -22,7 +36,7 @@ enum BackendType %{
 %}
 
 function Broker::__create_master%(id: string, b: BackendType,
-                               options: BackendOptions &default = BackendOptions()%): opaque of Broker::Store
+                                  options: BackendOptions &default = BackendOptions()%): opaque of Broker::Store
 	%{
 	auto name = id->CheckString();
 	auto rval = broker_mgr->LookupStore(name);
@@ -38,9 +52,10 @@ function Broker::__create_master%(id: string, b: BackendType,
 	auto opts = bro_broker::to_backend_options(type, options->AsRecordVal());
 
 	auto store = broker_mgr->MakeMaster(name, type, std::move(opts));
+
 	if ( ! store )
 		{
-		reporter->Error("Could not create Broker master store '%s'", name);
+		builtin_error(fmt("Could not create Broker master store '%s'", name));
 		return nullptr;
 		}
 
@@ -64,7 +79,7 @@ function Broker::__create_clone%(id: string, resync_interval: interval,
 	                                   mutation_buffer_interval);
 	if ( ! store )
 		{
-		reporter->Error("Could not create clone of Broker store '%s'", name);
+		builtin_error(fmt("Could not create clone of Broker store '%s'", name));
 		return nullptr;
 		}
 
@@ -75,7 +90,7 @@ function Broker::__is_closed%(h: opaque of Broker::Store%): bool
 	%{
 	if ( ! h )
 		{
-		reporter->Error("invalid Broker store handle");
+		builtin_error("invalid Broker store handle");
 		return new Val(false, TYPE_BOOL);
 		}
 
@@ -87,7 +102,7 @@ function Broker::__close%(h: opaque of Broker::Store%): bool
 	%{
 	if ( ! h )
 		{
-		reporter->Error("invalid Broker store handle");
+		builtin_error("invalid Broker store handle");
 		return new Val(false, TYPE_BOOL);
 		}
 
@@ -99,7 +114,7 @@ function Broker::__store_name%(h: opaque of Broker::Store%): string
 	%{
 	if ( ! h )
 		{
-		reporter->Error("invalid Broker store handle");
+		builtin_error("invalid Broker store handle");
 		return new StringVal("");
 		}
 
@@ -108,35 +123,36 @@ function Broker::__store_name%(h: opaque of Broker::Store%): string
 	%}
 
 function Broker::__exists%(h: opaque of Broker::Store,
-			   k: any%): Broker::QueryResult
+                           k: any%): Broker::QueryResult
 	%{
 	if ( ! h )
 		{
-		reporter->Error("invalid Broker store handle");
+		builtin_error("invalid Broker store handle");
 		return new Val(false, TYPE_BOOL);
 		}
 
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
+	auto key = bro_broker::val_to_data(k);
 
-	auto key = bro_broker::make_data_val(k)->Lookup(0);
 	if ( ! key )
+		{
+		builtin_error("invalid Broker data conversion for key argument");
 		return bro_broker::query_result();
+		}
 
 	auto trigger = frame->GetTrigger();
+
 	if ( ! trigger )
 		{
-		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
-		reporter->Error("Broker queries can only be called inside when-condition");
-		reporter->PopLocation();
+		builtin_error("Broker queries can only be called inside when-condition");
 		return bro_broker::query_result();
 		}
 
 	auto timeout = trigger->TimeoutValue();
+
 	if ( timeout < 0 )
 		{
-		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
-		reporter->Error("Broker queries must specify a timeout block");
-		reporter->PopLocation();
+		builtin_error("Broker queries must specify a timeout block");
 		return bro_broker::query_result();
 		}
 
@@ -144,43 +160,44 @@ function Broker::__exists%(h: opaque of Broker::Store,
 	trigger->Hold();
 
 	auto cb = new bro_broker::StoreQueryCallback(trigger, frame->GetCall(),
-						     handle->store);
-	auto req_id = handle->proxy.exists(static_cast<bro_broker::DataVal*>(key)->data);
+	                                             handle->store);
+	auto req_id = handle->proxy.exists(std::move(*key));
 	broker_mgr->TrackStoreQuery(handle, req_id, cb);
 
 	return 0;
 	%}
 
 function Broker::__get%(h: opaque of Broker::Store,
-			k: any%): Broker::QueryResult
+                        k: any%): Broker::QueryResult
 	%{
 	if ( ! h )
 		{
-		reporter->Error("invalid Broker store handle");
+		builtin_error("invalid Broker store handle");
 		return new Val(false, TYPE_BOOL);
 		}
 
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
+	auto key = bro_broker::val_to_data(k);
 
-	auto key = bro_broker::make_data_val(k)->Lookup(0);
 	if ( ! key )
+		{
+		builtin_error("invalid Broker data conversion for key argument");
 		return bro_broker::query_result();
+		}
 
 	auto trigger = frame->GetTrigger();
+
 	if ( ! trigger )
 		{
-		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
-		reporter->Error("Broker queries can only be called inside when-condition");
-		reporter->PopLocation();
+		builtin_error("Broker queries can only be called inside when-condition");
 		return bro_broker::query_result();
 		}
 
 	auto timeout = trigger->TimeoutValue();
+
 	if ( timeout < 0 )
 		{
-		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
-		reporter->Error("Broker queries must specify a timeout block");
-		reporter->PopLocation();
+		builtin_error("Broker queries must specify a timeout block");
 		return bro_broker::query_result();
 		}
 
@@ -188,8 +205,8 @@ function Broker::__get%(h: opaque of Broker::Store,
 	trigger->Hold();
 
 	auto cb = new bro_broker::StoreQueryCallback(trigger, frame->GetCall(),
-                                               handle->store);
-	auto req_id = handle->proxy.get(static_cast<bro_broker::DataVal*>(key)->data);
+	                                             handle->store);
+	auto req_id = handle->proxy.get(std::move(*key));
 	broker_mgr->TrackStoreQuery(handle, req_id, cb);
 
 	return 0;
@@ -200,7 +217,7 @@ function Broker::__put_unique%(h: opaque of Broker::Store,
 	%{
 	if ( ! h )
 		{
-		reporter->Error("invalid Broker store handle");
+		builtin_error("invalid Broker store handle");
 		return new Val(false, TYPE_BOOL);
 		}
 
@@ -208,24 +225,31 @@ function Broker::__put_unique%(h: opaque of Broker::Store,
 	auto key = bro_broker::val_to_data(k);
 	auto val = bro_broker::val_to_data(v);
 
-	if ( ! key || ! val )
+	if ( ! key )
+		{
+		builtin_error("invalid Broker data conversion for key argument");
 		return bro_broker::query_result();
+		}
+
+	if ( ! val )
+		{
+		builtin_error("invalid Broker data conversion for value argument");
+		return bro_broker::query_result();
+		}
 
 	auto trigger = frame->GetTrigger();
+
 	if ( ! trigger )
 		{
-		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
-		reporter->Error("Broker queries can only be called inside when-condition");
-		reporter->PopLocation();
+		builtin_error("Broker queries can only be called inside when-condition");
 		return bro_broker::query_result();
 		}
 
 	auto timeout = trigger->TimeoutValue();
+
 	if ( timeout < 0 )
 		{
-		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
-		reporter->Error("Broker queries must specify a timeout block");
-		reporter->PopLocation();
+		builtin_error("Broker queries must specify a timeout block");
 		return bro_broker::query_result();
 		}
 
@@ -235,56 +259,52 @@ function Broker::__put_unique%(h: opaque of Broker::Store,
 	auto cb = new bro_broker::StoreQueryCallback(trigger, frame->GetCall(),
 	                                             handle->store);
 
-	broker::optional<broker::timespan> ts;
-
-	if ( e > 0 )
-		{
-		broker::timespan tmp;
-		broker::convert(e, tmp);
-		ts = tmp;
-		}
-
 	auto req_id = handle->proxy.put_unique(std::move(*key), std::move(*val),
-	                                       std::move(ts));
+	                                       prepare_expiry(e));
 	broker_mgr->TrackStoreQuery(handle, req_id, cb);
 
 	return 0;
 	%}
 
 function Broker::__get_index_from_value%(h: opaque of Broker::Store,
-					 k: any, i: any%): Broker::QueryResult
+                                         k: any, i: any%): Broker::QueryResult
 	%{
 	if ( ! h )
 		{
-		reporter->Error("invalid Broker store handle");
+		builtin_error("invalid Broker store handle");
 		return new Val(false, TYPE_BOOL);
 		}
 
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
+	auto key = bro_broker::val_to_data(k);
 
-	auto key = bro_broker::make_data_val(k)->Lookup(0);
 	if ( ! key )
+		{
+		builtin_error("invalid Broker data conversion for key argument");
 		return bro_broker::query_result();
+		}
 
-	auto index = bro_broker::make_data_val(i)->Lookup(0);
+	auto index = bro_broker::val_to_data(i);
+
 	if ( ! index )
+		{
+		builtin_error("invalid Broker data conversion for index argument");
 		return bro_broker::query_result();
+		}
 	
 	auto trigger = frame->GetTrigger();
+
 	if ( ! trigger )
 		{
-		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
-		reporter->Error("Broker queries can only be called inside when-condition");
-		reporter->PopLocation();
+		builtin_error("Broker queries can only be called inside when-condition");
 		return bro_broker::query_result();
 		}
 
 	auto timeout = trigger->TimeoutValue();
+
 	if ( timeout < 0 )
 		{
-		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
-		reporter->Error("Broker queries must specify a timeout block");
-		reporter->PopLocation();
+		builtin_error("Broker queries must specify a timeout block");
 		return bro_broker::query_result();
 		}
 
@@ -293,8 +313,8 @@ function Broker::__get_index_from_value%(h: opaque of Broker::Store,
 
 	auto cb = new bro_broker::StoreQueryCallback(trigger, frame->GetCall(),
 						     handle->store);
-	auto req_id = handle->proxy.get_index_from_value(static_cast<bro_broker::DataVal*>(key)->data,
-							 static_cast<bro_broker::DataVal*>(index)->data);
+	auto req_id = handle->proxy.get_index_from_value(std::move(*key),
+	                                                 std::move(*index));
 	broker_mgr->TrackStoreQuery(handle, req_id, cb);
 
 	return 0;
@@ -304,27 +324,25 @@ function Broker::__keys%(h: opaque of Broker::Store%): Broker::QueryResult
 	%{
 	if ( ! h )
 		{
-		reporter->Error("invalid Broker store handle");
+		builtin_error("invalid Broker store handle");
 		return new Val(false, TYPE_BOOL);
 		}
 
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 
 	auto trigger = frame->GetTrigger();
+
 	if ( ! trigger )
 		{
-		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
-		reporter->Error("Broker queries can only be called inside when-condition");
-		reporter->PopLocation();
+		builtin_error("Broker queries can only be called inside when-condition");
 		return bro_broker::query_result();
 		}
 
 	auto timeout = trigger->TimeoutValue();
+
 	if ( timeout < 0 )
 		{
-		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
-		reporter->Error("Broker queries must specify a timeout block");
-		reporter->PopLocation();
+		builtin_error("Broker queries must specify a timeout block");
 		return bro_broker::query_result();
 		}
 
@@ -332,7 +350,7 @@ function Broker::__keys%(h: opaque of Broker::Store%): Broker::QueryResult
 	trigger->Hold();
 
 	auto cb = new bro_broker::StoreQueryCallback(trigger, frame->GetCall(),
-						     handle->store);
+	                                             handle->store);
 	auto req_id = handle->proxy.keys();
 	broker_mgr->TrackStoreQuery(handle, req_id, cb);
 
@@ -344,7 +362,7 @@ function Broker::__put%(h: opaque of Broker::Store,
 	%{
 	if ( ! h )
 		{
-		reporter->Error("invalid Broker store handle");
+		builtin_error("invalid Broker store handle");
 		return new Val(false, TYPE_BOOL);
 		}
 
@@ -352,19 +370,19 @@ function Broker::__put%(h: opaque of Broker::Store,
 	auto key = bro_broker::val_to_data(k);
 	auto val = bro_broker::val_to_data(v);
 
-	if ( ! key || ! val )
-		return new Val(false, TYPE_BOOL);
-
-	broker::optional<broker::timespan> ts;
-
-	if ( e > 0 )
+	if ( ! key )
 		{
-		broker::timespan tmp;
-		broker::convert(e, tmp);
-		ts = tmp;
+		builtin_error("invalid Broker data conversion for key argument");
+		return new Val(false, TYPE_BOOL);
 		}
 
-	handle->store.put(std::move(*key), std::move(*val), std::move(ts));
+	if ( ! val )
+		{
+		builtin_error("invalid Broker data conversion for value argument");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	handle->store.put(std::move(*key), std::move(*val), prepare_expiry(e));
 	return new Val(true, TYPE_BOOL);
 	%}
 
@@ -372,153 +390,255 @@ function Broker::__erase%(h: opaque of Broker::Store, k: any%): bool
 	%{
 	if ( ! h )
 		{
-		reporter->Error("invalid Broker store handle");
+		builtin_error("invalid Broker store handle");
 		return new Val(false, TYPE_BOOL);
 		}
 
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
+	auto key = bro_broker::val_to_data(k);
 
-	auto& key = bro_broker::opaque_field_to_data(bro_broker::make_data_val(k), frame);
-	handle->store.erase(key);
+	if ( ! key )
+		{
+		builtin_error("invalid Broker data conversion for key argument");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	handle->store.erase(std::move(*key));
 	return new Val(true, TYPE_BOOL);
 	%}
 
-%%{
-static bro_broker::StoreHandleVal* prepare_store_handle(Val* h)
-	{
+function Broker::__increment%(h: opaque of Broker::Store, k: any, a: any,
+                              e: interval%): bool
+	%{
 	if ( ! h )
 		{
-		reporter->Error("invalid Broker store handle");
-		return nullptr;
+		builtin_error("invalid Broker store handle");
+		return new Val(false, TYPE_BOOL);
 		}
 
-	return static_cast<bro_broker::StoreHandleVal*>(h);
-	}
+	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
+	auto key = bro_broker::val_to_data(k);
+	auto amount = bro_broker::val_to_data(a);
 
-static broker::optional<broker::timespan> prepare_expiry(double e)
-	{
-	broker::optional<broker::timespan> ts;
-
-	if ( e ) 
+	if ( ! key )
 		{
-		broker::timespan x;
-		broker::convert(e, x);
-		ts = x;
+		builtin_error("invalid Broker data conversion for key argument");
+		return new Val(false, TYPE_BOOL);
 		}
 
-	return ts;
-	}
-%%}
-
-function Broker::__increment%(h: opaque of Broker::Store, k: any, a: any, e: interval%): bool
-	%{
-	auto handle = prepare_store_handle(h);
-
-	if ( ! handle )
+	if ( ! amount )
+		{
+		builtin_error("invalid Broker data conversion for amount argument");
 		return new Val(false, TYPE_BOOL);
+		}
 
-	auto& key = bro_broker::opaque_field_to_data(bro_broker::make_data_val(k), frame);
-	auto& amount = bro_broker::opaque_field_to_data(bro_broker::make_data_val(a), frame);
-	auto expiry = prepare_expiry(e);
-	handle->store.increment(key, amount, expiry);
+	handle->store.increment(std::move(*key), std::move(*amount),
+	                        prepare_expiry(e));
 	return new Val(true, TYPE_BOOL);
 	%}
 
-function Broker::__decrement%(h: opaque of Broker::Store, k: any, a: any, e: interval%): bool
+function Broker::__decrement%(h: opaque of Broker::Store, k: any, a: any,
+                              e: interval%): bool
 	%{
-	auto handle = prepare_store_handle(h);
-
-	if ( ! handle )
+	if ( ! h )
+		{
+		builtin_error("invalid Broker store handle");
 		return new Val(false, TYPE_BOOL);
+		}
 
-	auto& key = bro_broker::opaque_field_to_data(bro_broker::make_data_val(k), frame);
-	auto& amount = bro_broker::opaque_field_to_data(bro_broker::make_data_val(a), frame);
-	auto expiry = prepare_expiry(e);
-	handle->store.decrement(key, amount, expiry);
+	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
+	auto key = bro_broker::val_to_data(k);
+	auto amount = bro_broker::val_to_data(a);
+
+	if ( ! key )
+		{
+		builtin_error("invalid Broker data conversion for key argument");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	if ( ! amount )
+		{
+		builtin_error("invalid Broker data conversion for amount argument");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	handle->store.decrement(std::move(*key), std::move(*amount), prepare_expiry(e));
 	return new Val(true, TYPE_BOOL);
 	%}
 
-function Broker::__append%(h: opaque of Broker::Store, k: any, s: any, e: interval%): bool
+function Broker::__append%(h: opaque of Broker::Store, k: any, s: any,
+                           e: interval%): bool
 	%{
-	auto handle = prepare_store_handle(h);
-
-	if ( ! handle )
+	if ( ! h )
+		{
+		builtin_error("invalid Broker store handle");
 		return new Val(false, TYPE_BOOL);
+		}
 
-	auto& key = bro_broker::opaque_field_to_data(bro_broker::make_data_val(k), frame);
-	auto& str = bro_broker::opaque_field_to_data(bro_broker::make_data_val(s), frame);
-	auto expiry = prepare_expiry(e);
-	handle->store.append(key, str, expiry);
+	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
+	auto key = bro_broker::val_to_data(k);
+	auto str = bro_broker::val_to_data(s);
+
+	if ( ! key )
+		{
+		builtin_error("invalid Broker data conversion for key argument");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	if ( ! str )
+		{
+		builtin_error("invalid Broker data conversion for str argument");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	handle->store.append(std::move(*key), std::move(*str), prepare_expiry(e));
 	return new Val(true, TYPE_BOOL);
 	%}
 
-function Broker::__insert_into_set%(h: opaque of Broker::Store, k: any, i: any, e: interval%): bool
+function Broker::__insert_into_set%(h: opaque of Broker::Store, k: any, i: any,
+                                    e: interval%): bool
 	%{
-	auto handle = prepare_store_handle(h);
-
-	if ( ! handle )
+	if ( ! h )
+		{
+		builtin_error("invalid Broker store handle");
 		return new Val(false, TYPE_BOOL);
+		}
 
-	auto& key = bro_broker::opaque_field_to_data(bro_broker::make_data_val(k), frame);
-	auto& idx = bro_broker::opaque_field_to_data(bro_broker::make_data_val(i), frame);
-	auto expiry = prepare_expiry(e);
-	handle->store.insert_into(key, idx, expiry);
+	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
+	auto key = bro_broker::val_to_data(k);
+	auto idx = bro_broker::val_to_data(i);
+
+	if ( ! key )
+		{
+		builtin_error("invalid Broker data conversion for key argument");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	if ( ! idx )
+		{
+		builtin_error("invalid Broker data conversion for index argument");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	handle->store.insert_into(std::move(*key), std::move(*idx),
+	                          prepare_expiry(e));
 	return new Val(true, TYPE_BOOL);
 	%}
 
-function Broker::__insert_into_table%(h: opaque of Broker::Store, k: any, i: any, v: any, e: interval%): bool
+function Broker::__insert_into_table%(h: opaque of Broker::Store, k: any,
+                                      i: any, v: any, e: interval%): bool
 	%{
-	auto handle = prepare_store_handle(h);
-
-	if ( ! handle )
+	if ( ! h )
+		{
+		builtin_error("invalid Broker store handle");
 		return new Val(false, TYPE_BOOL);
+		}
 
-	auto& key = bro_broker::opaque_field_to_data(bro_broker::make_data_val(k), frame);
-	auto& idx = bro_broker::opaque_field_to_data(bro_broker::make_data_val(i), frame);
-	auto& val = bro_broker::opaque_field_to_data(bro_broker::make_data_val(v), frame);
-	auto expiry = prepare_expiry(e);
-	handle->store.insert_into(key, idx, val, expiry);
+	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
+	auto key = bro_broker::val_to_data(k);
+	auto idx = bro_broker::val_to_data(i);
+	auto val = bro_broker::val_to_data(v);
+
+	if ( ! key )
+		{
+		builtin_error("invalid Broker data conversion for key argument");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	if ( ! idx )
+		{
+		builtin_error("invalid Broker data conversion for index argument");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	if ( ! val )
+		{
+		builtin_error("invalid Broker data conversion for value argument");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	handle->store.insert_into(std::move(*key), std::move(*idx),
+	                          std::move(*val), prepare_expiry(e));
 	return new Val(true, TYPE_BOOL);
 	%}
 
-function Broker::__remove_from%(h: opaque of Broker::Store, k: any, i: any, e: interval%): bool
+function Broker::__remove_from%(h: opaque of Broker::Store, k: any, i: any,
+                                e: interval%): bool
 	%{
-	auto handle = prepare_store_handle(h);
-
-	if ( ! handle )
+	if ( ! h )
+		{
+		builtin_error("invalid Broker store handle");
 		return new Val(false, TYPE_BOOL);
+		}
 
-	auto& key = bro_broker::opaque_field_to_data(bro_broker::make_data_val(k), frame);
-	auto& idx = bro_broker::opaque_field_to_data(bro_broker::make_data_val(i), frame);
-	auto expiry = prepare_expiry(e);
-	handle->store.remove_from(key, idx, expiry);
+	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
+	auto key = bro_broker::val_to_data(k);
+	auto idx = bro_broker::val_to_data(i);
+
+	if ( ! key )
+		{
+		builtin_error("invalid Broker data conversion for key argument");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	if ( ! idx )
+		{
+		builtin_error("invalid Broker data conversion for index argument");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	handle->store.remove_from(std::move(*key), std::move(*idx),
+	                          prepare_expiry(e));
 	return new Val(true, TYPE_BOOL);
 	%}
 
-function Broker::__push%(h: opaque of Broker::Store, k: any, v: any, e: interval%): bool
+function Broker::__push%(h: opaque of Broker::Store, k: any, v: any,
+                         e: interval%): bool
 	%{
-	auto handle = prepare_store_handle(h);
-
-	if ( ! handle )
+	if ( ! h )
+		{
+		builtin_error("invalid Broker store handle");
 		return new Val(false, TYPE_BOOL);
+		}
 
-	auto& key = bro_broker::opaque_field_to_data(bro_broker::make_data_val(k), frame);
-	auto& val = bro_broker::opaque_field_to_data(bro_broker::make_data_val(v), frame);
-	auto expiry = prepare_expiry(e);
-	handle->store.push(key, val, expiry);
+	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
+	auto key = bro_broker::val_to_data(k);
+	auto val = bro_broker::val_to_data(v);
+
+	if ( ! key )
+		{
+		builtin_error("invalid Broker data conversion for key argument");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	if ( ! val )
+		{
+		builtin_error("invalid Broker data conversion for value argument");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	handle->store.push(std::move(*key), std::move(*val), prepare_expiry(e));
 	return new Val(true, TYPE_BOOL);
 	%}
 
 function Broker::__pop%(h: opaque of Broker::Store, k: any, e: interval%): bool
 	%{
-	auto handle = prepare_store_handle(h);
-
-	if ( ! handle )
+	if ( ! h )
+		{
+		builtin_error("invalid Broker store handle");
 		return new Val(false, TYPE_BOOL);
+		}
 
-	auto& key = bro_broker::opaque_field_to_data(bro_broker::make_data_val(k), frame);
-	auto expiry = prepare_expiry(e);
-	handle->store.pop(key, expiry);
+	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
+	auto key = bro_broker::val_to_data(k);
+
+	if ( ! key )
+		{
+		builtin_error("invalid Broker data conversion for key argument");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	handle->store.pop(std::move(*key), prepare_expiry(e));
 	return new Val(true, TYPE_BOOL);
 	%}
 
@@ -526,7 +646,7 @@ function Broker::__clear%(h: opaque of Broker::Store%): bool
 	%{
 	if ( ! h )
 		{
-		reporter->Error("invalid Broker store handle");
+		builtin_error("invalid Broker store handle");
 		return new Val(false, TYPE_BOOL);
 		}
 

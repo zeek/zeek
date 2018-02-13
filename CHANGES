@@ -1,4 +1,11 @@
 
+2.5.3 | 2018-02-13 09:35:56 -0800
+
+  * Release 2.5.3. (Johanna Amann)
+
+	* Patch in Binpac submodule that fixes an integer overflow
+	  (Philippe Antoine/Catena cyber).
+
 2.5.2 | 2017-10-16 13:37:47 -0700
 
   * Release 2.5.2
@@ -6,7 +13,7 @@
   * Patch OOB write in content-line analyzer.
 
     A combination of packets can trigger an out of bound write of '0' byte
-    in the content-line analyzer. Addresses BIT-1856.
+    in the content-line analyzer. Addresses BIT-1856/CVE-2017-1000458.
     (Frank Meier/Johanna Amann)
 
 2.5.1 | 2017-06-26 15:55:45 -0700

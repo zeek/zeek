@@ -115,6 +115,10 @@ export {
 	## This event can be handled to access software information whenever it's
 	## version is found to have changed.
 	global version_change: event(old: Info, new: Info);
+
+	## This event is raised when software is about to be registered for
+	## tracking in :bro:see:`Software::tracked`.
+	global register: event(info: Info);
 }
 
 event bro_init() &priority=5
@@ -441,7 +445,7 @@ function software_fmt(i: Info): string
 	return fmt("%s %s", i$name, software_fmt_version(i$version));
 	}
 
-event software_register(info: Info)
+event Software::register(info: Info)
 	{
 	if ( ! info?$version )
 		{
@@ -500,10 +504,10 @@ function found(id: conn_id, info: Info): bool
 		}
 
 	@if ( Cluster::is_enabled() )
-		Cluster::publish_hrw(Cluster::proxy_pool, info$host, software_register,
+		Cluster::publish_hrw(Cluster::proxy_pool, info$host, Software::register,
 		                     info);
 	@else
-		event software_register(info);
+		event Software::register(info);
 	@endif
 
 	return T;

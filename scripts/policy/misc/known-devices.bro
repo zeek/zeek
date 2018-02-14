@@ -74,9 +74,8 @@ export {
 	## record as it is sent on to the logging framework.
 	global log_known_devices: event(rec: DevicesInfo);
 
-	## Call this whenever a device is detected and
-	## :bro:see:`Known::devices` will be updated and a log entry
-	## generated, if necessary.
+	## Call this whenever a device is detected and the device database
+	## will be updated and a log entry generated, if necessary.
 	##
 	## info: the device information to be logged
 	global device_found: function(info: DevicesInfo);

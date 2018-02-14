@@ -33,26 +33,31 @@ communication framework.
   ``@load base/frameworks/broker`` and using the Broker API:
   :doc:`/scripts/base/frameworks/broker/main.bro`
 
-- The &synchronized attribute no longer exists.
+- The ``&synchronized`` attribute should no longer be used.
 
 - :bro:see:`Software::tracked` is now partitioned among proxy nodes
   instead of synchronized in its entirety to all nodes.
 
-- ``Known::known_devices`` is renamed to :bro:see:`Known::devices` and
-  partitioned among proxy nodes instead of synchronized in its entirety
-  to all nodes.  Also use :bro:see:`Known::device_found` instead
-  of updating the set directly.
+- ``Known::known_devices`` is renamed to :bro:see:`Known::device_store`
+  and implemented via the new Broker data store interface.
+  Also use :bro:see:`Known::device_found` instead of updating the
+  store directly directly.
 
-- ``Known::known_hosts`` is renamed to :bro:see:`Known::hosts` and
-  partitioned among proxy nodes instead of synchronized in its entirety
-  to all nodes.
+- ``Known::known_hosts`` is renamed to :bro:see:`Known::host_store` and
+  implemented via the new Broker data store interface.
 
-- ``Known::known_services`` is renamed to :bro:see:`Known::services` and
-  partitioned among proxy nodes instead of synchronized in its entirety
-  to all nodes.
+- ``Known::known_services`` is renamed to :bro:see:`Known::service_store`
+  and implemented via the new Broker data store interface.
 
-- :bro:see:`Known::certs` is now partitioned among proxy nodes instead
-  of synchronized in its entirety to all nodes.
+- ``Known::certs`` is renamed to :bro:see:`Known::cert_store`
+  and implemented via the new Broker data store interface.
+
+- Instead of using e.g. ``Cluster::manager2worker_events`` (and all
+  permutations for every node type), what you'd now use is either 
+  :bro:see:`Broker::publish` or :bro:see:`Broker::auto_publish` with
+  either the topic associated with a specific node or class of nodes,
+  like :bro:see:`Cluster::node_topic` or
+  :bro:see:`Cluster::worker_topic`.
 
 New Cluster Layout/API
 ======================
@@ -68,32 +73,71 @@ The cluster topology has changed.
 
 - All node types connect to all logger nodes and the manager node.
 
-TODO: add a diagram
+This looks like:
 
-Data Partitioning API
----------------------
+.. figure:: broker/cluster-layout.png
+
+Data Management Strategies
+==========================
+
+There's maybe no single, best approach or pattern to use when you need a
+Bro script to store long-term state and data.  The two approaches that
+were previously used were either using ``&synchronized`` attribute on
+tables/sets or by explicitly sending events to specific nodes on which
+you wanted data to be stored.  The former is no longer possible, though
+there are several new possibilities that the new Broker/Cluster
+framework offer, namely distributed data store and data partitioning
+APIs.
+
+Data Stores
+-----------
+
+Broker provides a distributed key-value store interface with optional
+choice of suing a persistent backend. For more detail, see
+:ref:`this example <data_store_example>`.
+
+Some ideas/considerations/scenarios when deciding whether to use
+a data store for your use-case:
+
+* If you need the full data set locally in order to achieve low-latency
+  queries using data store "clones" can provide that.
+
+* If you need data that persists across restarts of Bro processes, then
+  data stores can also provide that.
+
+* If the data you want to store is complex (tables, sets, records) or
+  you expect to read, modify, and store back, then data stores may not
+  be able to provide simple, race-free methods of performing the pattern
+  of logic that you want.
+
+Data Partitioning
+-----------------
 
 New data partitioning strategies are available using the API in
 :doc:`/scripts/base/frameworks/cluster/pools.bro`.
 
-One example strategy that is used several times in the standard Bro scripts
-is to use Highest Random Weight (HRW) hashing to partition data tables amongst
-proxy nodes.  This allows clusters to be scaled more easily than the old
-approach of "the entire data set gets synchronized to all nodes" as the
-solution to memory limitations becomes "just add another proxy node".  It
-may also take away some of the messaging load that used to be required to
-synchronize data sets across all nodes.
+One example strategy is to use Highest Random Weight (HRW) hashing to
+partition data tables amongst proxy nodes.  e.g. using
+:bro:see:`Cluster::publish_hrw`.  This could allow clusters to
+be scaled more easily than the approach of "the entire data set gets
+synchronized to all nodes" as the solution to memory limitations becomes
+"just add another proxy node".  It may also take away some of the
+messaging load that used to be required to synchronize data sets across
+all nodes.
 
 The tradeoff of this approach, is that nodes that leave the pool (due to
-crashing, etc.) cause a temporary gap in the total data set until workers start
-hashing keys to a new proxy node that is still alive, causing data to now
-be located and updated there.
+crashing, etc.) cause a temporary gap in the total data set until
+workers start hashing keys to a new proxy node that is still alive,
+causing data to now be located and updated there.
 
 New Broker Framework
 ====================
 
 The broker framework provides basic facilities for connecting Bro instances
 to eachother and exchanging messages, like events or logs.
+
+See :doc:`/scripts/base/frameworks/broker/main.bro` for an overview
+of the main Broker API.
 
 Connecting to Peers
 -------------------
@@ -157,8 +201,13 @@ in logs written by peers.  The topic names that Bro uses are determined by
 Note that logging events are only raised locally on the node that performs
 the :bro:see:`Log::write` and not automatically published to peers.
 
+.. _data_store_example:
+
 Distributed Data Stores
 -----------------------
+
+See :doc:`/scripts/base/frameworks/broker/store.bro` for an overview
+of the Broker data store API.
 
 There are two flavors of key-value data store interfaces: master and clone.
 

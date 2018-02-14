@@ -96,7 +96,6 @@ event bro_init() &priority=-10
 	switch ( self$node_type ) {
 	case MANAGER:
 		connect_peers_with_type(LOGGER);
-		connect_peers_with_type(PROXY);
 
 		if ( self?$time_machine )
 			connect_peer(TIME_MACHINE, self$time_machine);

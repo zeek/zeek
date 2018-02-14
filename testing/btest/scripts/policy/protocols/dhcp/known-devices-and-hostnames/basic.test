@@ -2,7 +2,15 @@
 # that devices are logged by MAC address, and that
 # the DHCP hostname is added, if available.
 
-# @TEST-EXEC: bro -r $TRACES/dhcp/dhcp.trace -r $TRACES/dhcp/dhcp_inform.trace %INPUT
-# @TEST-EXEC: btest-diff known_devices.log
+# @TEST-EXEC: btest-bg-run bro bro -r $TRACES/dhcp/dhcp.trace %INPUT
+# @TEST-EXEC: btest-bg-wait -k 10
+# @TEST-EXEC: btest-diff bro/known_devices.log
 
 @load policy/protocols/dhcp/known-devices-and-hostnames
+
+redef exit_only_after_terminate=T;
+
+event Known::log_known_devices(info: Known::DevicesInfo)
+	{
+	terminate();
+	}

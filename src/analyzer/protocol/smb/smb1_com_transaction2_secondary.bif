@@ -6,7 +6,7 @@
 ## c: The connection.
 ##
 ## hdr: The parsed header of the :abbr:`SMB (Server Message Block)`
-## version 1 message.
+##      version 1 message.
 ##
 ## args: arguments of the message (SMB_Parameters.Words)
 ##

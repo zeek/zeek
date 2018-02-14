@@ -1,4 +1,9 @@
 
+2.5-449 | 2018-02-14 08:49:27 -0800
+
+  * Patch in Binpac submodule that fixes an integer overflow
+    (Philippe Antoine/Catena cyber).
+
 2.5-448 | 2018-02-12 11:09:00 -0600
 
   * Fix pessimizing-move compiler warning. (Corelight)

@@ -1009,8 +1009,6 @@ which is a factor of 5 to an alternate file, while writing the
 remaining logs to factor.log.  
 
 .. btest-include:: ${DOC_ROOT}/scripting/framework_logging_factorial_03.bro
-   :lines: 38-62
-   :linenos:
 
 To dynamically alter the file in which a stream writes its logs, a
 filter can specify a function that returns a string to be used as the

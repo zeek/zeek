@@ -29,7 +29,9 @@ event bro_init() &priority=-10
 		                     Control::configuration_update_response);
 		Broker::auto_publish("bro/event/framework/control/shutdown_response",
 		                     Control::shutdown_response);
-		Broker::listen();
+
+		if ( Control::controllee_listen )
+			Broker::listen();
 		}
 	else
 		{

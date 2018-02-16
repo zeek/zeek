@@ -21,11 +21,11 @@
 redef Cluster::manager_is_logger = F;
 redef Cluster::nodes = {
 	["logger-1"] = [$node_type=Cluster::LOGGER,   $ip=127.0.0.1, $p=37757/tcp],
-	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=37758/tcp, $logger="logger-1", $workers=set("worker-1")],
-	["proxy-1"] = [$node_type=Cluster::PROXY,     $ip=127.0.0.1, $p=37759/tcp, $logger="logger-1", $manager="manager-1", $workers=set("worker-1")],
-	["proxy-2"] = [$node_type=Cluster::PROXY,     $ip=127.0.0.1, $p=37760/tcp, $logger="logger-1", $manager="manager-1", $workers=set("worker-2")],
-	["worker-1"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=37761/tcp, $logger="logger-1", $manager="manager-1", $proxy="proxy-1", $interface="eth0"],
-	["worker-2"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=37762/tcp, $logger="logger-1", $manager="manager-1", $proxy="proxy-2", $interface="eth1"],
+	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=37758/tcp],
+	["proxy-1"] = [$node_type=Cluster::PROXY,     $ip=127.0.0.1, $p=37759/tcp, $manager="manager-1"],
+	["proxy-2"] = [$node_type=Cluster::PROXY,     $ip=127.0.0.1, $p=37760/tcp, $manager="manager-1"],
+	["worker-1"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=37761/tcp, $manager="manager-1", $interface="eth0"],
+	["worker-2"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=37762/tcp, $manager="manager-1", $interface="eth1"],
 };
 @TEST-END-FILE
 

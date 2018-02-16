@@ -197,15 +197,8 @@ export {
 		p:            port;
 		## Identifier for the interface a worker is sniffing.
 		interface:    string      &optional;
-		## Name of the logger node this node uses.  For manager, proxies and workers.
-		logger:       string      &optional;
 		## Name of the manager node this node uses.  For workers and proxies.
 		manager:      string      &optional;
-		## Name of the proxy node this node uses.  For workers and managers.
-		proxy:        string      &optional;
-		## Names of worker nodes that this node connects with.
-		## For managers and proxies.
-		workers:      set[string] &optional;
 		## Name of a time machine node with which this node connects.
 		time_machine: string      &optional;
 		## A unique identifier assigned to the node by the broker framework.

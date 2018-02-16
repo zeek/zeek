@@ -8,6 +8,10 @@ export {
 	## Whether the control framework uses broker to perform remote communication.
 	const use_broker = T &redef;
 
+	## Whether the controllee should call :bro:see:`Broker::listen`.
+	## In a cluster, this isn't needed since the setup process calls it.
+	const controllee_listen = T &redef;
+
 	## The address of the host that will be controlled.
 	const host = 0.0.0.0 &redef;
 

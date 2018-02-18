@@ -5233,8 +5233,8 @@ Val* CastExpr::Eval(Frame* f) const
 	d.Add("' to type '");
 	Type()->Describe(&d);
 	d.Add("'");
-	reporter->ExprRuntimeError(this, "%s", d.Description());
 	Unref(v);
+	reporter->ExprRuntimeError(this, "%s", d.Description());
 	return 0;  // not reached.
 	}
 

@@ -447,14 +447,6 @@ function software_fmt(i: Info): string
 
 event Software::register(info: Info)
 	{
-	if ( ! info?$version )
-		{
-		local sw = parse(info$unparsed_version);
-		info$unparsed_version = sw$unparsed_version;
-		info$name = sw$name;
-		info$version = sw$version;
-		}
-
 	local ts: SoftwareSet;
 
 	if ( info$host in tracked )
@@ -501,6 +493,14 @@ function found(id: conn_id, info: Info): bool
 		{
 		Reporter::error("No unparsed version string present in Info record with version in Software::found");
 		return F;
+		}
+
+	if ( ! info?$version )
+		{
+		local sw = parse(info$unparsed_version);
+		info$unparsed_version = sw$unparsed_version;
+		info$name = sw$name;
+		info$version = sw$version;
 		}
 
 	@if ( Cluster::is_enabled() )

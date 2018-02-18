@@ -1,4 +1,16 @@
 
+2.5-457 | 2018-02-18 17:35:50 -0600
+
+  * Fix another warning when building the documentation (Daniel Thayer)
+
+  * Fix a warning when building documentation (Daniel Thayer)
+
+  * Fix the config framework several-files.bro test (Daniel Thayer)
+
+  * Update Mozilla CA list to state of NSS 3.35. (Johanna Amann)
+
+  * Update list of Certificate Transparency logs. (Johanna Amann)
+
 2.5-449 | 2018-02-14 08:49:27 -0800
 
   * Patch in Binpac submodule that fixes an integer overflow

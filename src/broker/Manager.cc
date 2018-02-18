@@ -1172,7 +1172,7 @@ void Manager::ProcessStoreResponse(StoreHandleVal* s, broker::store::response re
 		}
 
 	if ( response.answer )
-		request->second->Result(query_result(make_data_val(*response.answer)));
+		request->second->Result(query_result(make_data_val(std::move(*response.answer))));
 	else if ( response.answer.error() == broker::ec::request_timeout )
 		{
 		// Fine, trigger's timeout takes care of things.

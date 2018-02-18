@@ -54,7 +54,7 @@ public:
 	Manager();
 
 	/**
-	 * Destructor.  Any still-pending data store queries are aborted.
+	 * Destructor.
 	 */
 	~Manager();
 

@@ -141,7 +141,6 @@ Manager::Manager()
 
 Manager::~Manager()
 	{
-	FlushLogBuffers();
 	}
 
 void Manager::InitPostScript()
@@ -176,8 +175,6 @@ void Manager::Terminate()
 	{
 	FlushLogBuffers();
 
-#if 0
-	// Do we still need this?
 	vector<string> stores_to_close;
 
 	for ( auto& x : data_stores )
@@ -187,23 +184,31 @@ void Manager::Terminate()
 		// This doesn't loop directly over data_stores, because CloseStore
 		// modifies the map and invalidates iterators.
 		CloseStore(x);
-#endif
 
-#if 0
-	bstate->endpoint.shutdown();
-#else
+	FlushLogBuffers();
+
 	for ( auto p : bstate->endpoint.peers() )
 		bstate->endpoint.unpeer(p.peer.network->address, p.peer.network->port);
-#endif
+
+	bstate->endpoint.shutdown();
 	}
 
 bool Manager::Active()
 	{
-	return bound_port > 0 || bstate->endpoint.peers().size();
+	if ( bstate->endpoint.is_shutdown() )
+		return false;
+
+	if ( bound_port > 0 )
+		return true;
+
+	return bstate->endpoint.peers().size();
 	}
 
 uint16_t Manager::Listen(const string& addr, uint16_t port)
 	{
+	if ( bstate->endpoint.is_shutdown() )
+		return 0;
+
 	bound_port = bstate->endpoint.listen(addr, port);
 
 	if ( bound_port == 0 )
@@ -221,6 +226,9 @@ uint16_t Manager::Listen(const string& addr, uint16_t port)
 
 void Manager::Peer(const string& addr, uint16_t port, double retry)
 	{
+	if ( bstate->endpoint.is_shutdown() )
+		return;
+
 	DBG_LOG(DBG_BROKER, "Starting to peer with %s:%" PRIu16,
 		addr.c_str(), port);
 
@@ -237,6 +245,9 @@ void Manager::Peer(const string& addr, uint16_t port, double retry)
 
 void Manager::Unpeer(const string& addr, uint16_t port)
 	{
+	if ( bstate->endpoint.is_shutdown() )
+		return;
+
 	DBG_LOG(DBG_BROKER, "Stopping to peer with %s:%" PRIu16,
 		addr.c_str(), port);
 
@@ -246,6 +257,9 @@ void Manager::Unpeer(const string& addr, uint16_t port)
 
 std::vector<broker::peer_info> Manager::Peers() const
 	{
+	if ( bstate->endpoint.is_shutdown() )
+		return {};
+
 	return bstate->endpoint.peers();
 	}
 
@@ -256,6 +270,9 @@ std::string Manager::NodeID() const
 
 bool Manager::PublishEvent(string topic, std::string name, broker::vector args)
 	{
+	if ( bstate->endpoint.is_shutdown() )
+		return true;
+
 	if ( ! bstate->endpoint.peers().size() )
 		return true;
 
@@ -269,6 +286,9 @@ bool Manager::PublishEvent(string topic, std::string name, broker::vector args)
 
 bool Manager::PublishEvent(string topic, RecordVal* args)
 	{
+	if ( bstate->endpoint.is_shutdown() )
+		return true;
+
 	if ( ! bstate->endpoint.peers().size() )
 		return true;
 
@@ -295,6 +315,9 @@ bool Manager::RelayEvent(std::string first_topic,
                          std::string name,
                          broker::vector args)
 	{
+	if ( bstate->endpoint.is_shutdown() )
+		return true;
+
 	if ( ! bstate->endpoint.peers().size() )
 		return true;
 
@@ -311,6 +334,9 @@ bool Manager::RelayEvent(std::string first_topic,
                          std::set<std::string> relay_topics,
                          RecordVal* args)
 	{
+	if ( bstate->endpoint.is_shutdown() )
+		return true;
+
 	if ( ! bstate->endpoint.peers().size() )
 		return true;
 
@@ -340,6 +366,12 @@ bool Manager::RelayEvent(std::string first_topic,
 
 bool Manager::PublishIdentifier(std::string topic, std::string id)
 	{
+	if ( bstate->endpoint.is_shutdown() )
+		return true;
+
+	if ( ! bstate->endpoint.peers().size() )
+		return true;
+
 	ID* i = global_scope()->Lookup(id.c_str());
 
 	if ( ! i )
@@ -374,6 +406,9 @@ bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer,
 			       int num_fields, const threading::Field* const * fields,
 			       const broker::endpoint_info& peer)
 	{
+	if ( bstate->endpoint.is_shutdown() )
+		return true;
+
 	if ( ! bstate->endpoint.peers().size() )
 		return true;
 
@@ -424,6 +459,9 @@ bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer,
 
 bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int num_vals, const threading::Value* const * vals)
 	{
+	if ( bstate->endpoint.is_shutdown() )
+		return true;
+
 	if ( ! bstate->endpoint.peers().size() )
 		return true;
 
@@ -504,6 +542,9 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 
 void Manager::LogBuffer::Flush(broker::endpoint& endpoint)
 	{
+	if ( endpoint.is_shutdown() )
+		return;
+
 	if ( ! message_count )
 		// No logs buffered for this stream.
 		return;
@@ -1198,6 +1239,9 @@ void Manager::ProcessStoreResponse(StoreHandleVal* s, broker::store::response re
 StoreHandleVal* Manager::MakeMaster(const string& name, broker::backend type,
                                     broker::backend_options opts)
 	{
+	if ( bstate->endpoint.is_shutdown() )
+		return nullptr;
+
 	if ( LookupStore(name) )
 		return nullptr;
 
@@ -1223,6 +1267,9 @@ StoreHandleVal* Manager::MakeClone(const string& name, double resync_interval,
                                    double stale_interval,
                                    double mutation_buffer_interval)
 	{
+	if ( bstate->endpoint.is_shutdown() )
+		return nullptr;
+
 	if ( LookupStore(name) )
 		return nullptr;
 
@@ -1285,7 +1332,11 @@ bool Manager::TrackStoreQuery(StoreHandleVal* handle, broker::request_id id,
 
 const Stats& Manager::GetStatistics()
 	{
-	statistics.num_peers = bstate->endpoint.peers().size();
+	if ( bstate->endpoint.is_shutdown() )
+		statistics.num_peers = 0;
+	else
+		statistics.num_peers = bstate->endpoint.peers().size();
+
 	statistics.num_stores = data_stores.size();
 	statistics.num_pending_queries = pending_queries.size();
 

@@ -71,6 +71,28 @@ function Files::__analyzer_name%(tag: Files::Tag%) : string
 	return new StringVal(file_mgr->GetComponentName(tag));
 	%}
 
+## :bro:see:`Files::file_exists`.
+function Files::__file_exists%(fuid: string%): bool
+	%{
+	if ( file_mgr->LookupFile(fuid->CheckString()) != nullptr )
+		return new Val(true, TYPE_BOOL);
+	else
+		return new Val(false, TYPE_BOOL);
+	%}
+
+## :bro:see:`Files::lookup_file`.
+function Files::__lookup_file%(fuid: string%): fa_file
+	%{
+	auto f = file_mgr->LookupFile(fuid->CheckString());
+	if ( f != nullptr )
+		{
+		return f->GetVal()->Ref();
+		}
+	
+	reporter->Error("file ID %s not a known file", fuid->CheckString());
+	return 0;
+	%}
+
 module GLOBAL;
 
 ## For use within a :bro:see:`get_file_handle` handler to set a unique

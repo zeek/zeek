@@ -37,6 +37,7 @@
 @load base/frameworks/control
 @load base/frameworks/cluster
 @load base/frameworks/intel
+@load base/frameworks/config
 @load base/frameworks/reporter
 @load base/frameworks/sumstats
 @load base/frameworks/tunnels

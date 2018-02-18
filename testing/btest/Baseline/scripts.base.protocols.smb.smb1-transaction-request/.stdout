@@ -1,0 +1,1 @@
+smb1_transaction_request hdr: [command=37, status=0, flags=0, flags2=0, tid=31335, pid=1, uid=11132, mid=2], name: \\PIPE\lsarpc, sub_cmd: 2600, params: some_params, data: some_data

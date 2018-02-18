@@ -232,16 +232,16 @@ class MIME_Mail : public MIME_Message {
 public:
 	MIME_Mail(analyzer::Analyzer* mail_conn, bool is_orig, int buf_size = 0);
 	~MIME_Mail();
-	void Done();
+	void Done() override;
 
-	void BeginEntity(MIME_Entity* entity);
-	void EndEntity(MIME_Entity* entity);
-	void SubmitHeader(MIME_Header* h);
-	void SubmitAllHeaders(MIME_HeaderList& hlist);
-	void SubmitData(int len, const char* buf);
-	int RequestBuffer(int* plen, char** pbuf);
+	void BeginEntity(MIME_Entity* entity) override;
+	void EndEntity(MIME_Entity* entity) override;
+	void SubmitHeader(MIME_Header* h) override;
+	void SubmitAllHeaders(MIME_HeaderList& hlist) override;
+	void SubmitData(int len, const char* buf) override;
+	int RequestBuffer(int* plen, char** pbuf) override;
 	void SubmitAllData();
-	void SubmitEvent(int event_type, const char* detail);
+	void SubmitEvent(int event_type, const char* detail) override;
 	void Undelivered(int len);
 
 protected:
@@ -283,6 +283,6 @@ extern int MIME_get_value(int len, const char* data, BroString*& buf,
 extern int MIME_get_field_name(int len, const char* data, data_chunk_t* name);
 extern BroString* MIME_decode_quoted_pairs(data_chunk_t buf);
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*
 
 #endif

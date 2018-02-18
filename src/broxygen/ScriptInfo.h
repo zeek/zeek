@@ -108,6 +108,7 @@ private:
 	string_set module_usages;
 	std::vector<std::string> comments;
 	id_info_map id_info;
+	id_info_list redef_options;
 	id_info_list options;
 	id_info_list constants;
 	id_info_list state_vars;

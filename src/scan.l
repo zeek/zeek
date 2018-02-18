@@ -216,6 +216,7 @@ as	return TOK_AS;
 bool	return TOK_BOOL;
 break	return TOK_BREAK;
 case	return TOK_CASE;
+option	return TOK_OPTION;
 const	return TOK_CONST;
 copy	return TOK_COPY;
 count	return TOK_COUNT;
@@ -476,7 +477,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
-		RET_CONST(new PortVal(p, TRANSPORT_TCP))
+		RET_CONST(port_mgr->Get(p, TRANSPORT_TCP))
 		}
 {D}"/udp"	{
 		uint32 p = atoi(yytext);
@@ -485,7 +486,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
-		RET_CONST(new PortVal(p, TRANSPORT_UDP))
+		RET_CONST(port_mgr->Get(p, TRANSPORT_UDP))
 		}
 {D}"/icmp"	{
 		uint32 p = atoi(yytext);
@@ -494,7 +495,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
-		RET_CONST(new PortVal(p, TRANSPORT_ICMP))
+		RET_CONST(port_mgr->Get(p, TRANSPORT_ICMP))
 		}
 {D}"/unknown"	{
 		uint32 p = atoi(yytext);
@@ -503,7 +504,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
-		RET_CONST(new PortVal(p, TRANSPORT_UNKNOWN))
+		RET_CONST(port_mgr->Get(p, TRANSPORT_UNKNOWN))
 		}
 
 {FLOAT}{OWS}day(s?)	RET_CONST(new IntervalVal(atof(yytext),Days))

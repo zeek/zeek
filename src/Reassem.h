@@ -18,11 +18,14 @@ enum ReassemblerType {
 	REASSEM_NUM,
 };
 
+class Reassembler;
+
 class DataBlock {
 public:
-	DataBlock(const u_char* data, uint64 size, uint64 seq,
-		  DataBlock* prev, DataBlock* next,
-		  ReassemblerType reassem_type = REASSEM_UNKNOWN);
+	DataBlock(Reassembler* reass, const u_char* data,
+	          uint64 size, uint64 seq,
+	          DataBlock* prev, DataBlock* next,
+	          ReassemblerType reassem_type = REASSEM_UNKNOWN);
 
 	~DataBlock();
 
@@ -33,6 +36,8 @@ public:
 	uint64 seq, upper;
 	u_char* block;
 	ReassemblerType rtype;
+
+	Reassembler* reassembler; // Non-owning pointer back to parent.
 };
 
 class Reassembler : public BroObj {
@@ -96,6 +101,7 @@ protected:
 	uint64 trim_seq;	// how far we've trimmed
 	uint32 max_old_blocks;
 	uint32 total_old_blocks;
+	uint64 size_of_all_blocks;
 
 	ReassemblerType rtype;
 
@@ -105,6 +111,7 @@ protected:
 
 inline DataBlock::~DataBlock()
 	{
+	reassembler->size_of_all_blocks -= Size();
 	Reassembler::total_size -= pad_size(upper - seq) + padded_sizeof(DataBlock);
 	Reassembler::sizes[rtype] -= pad_size(upper - seq) + padded_sizeof(DataBlock);
 	delete [] block;

@@ -1085,7 +1085,7 @@ void Manager::ProcessStatus(broker::status stat)
 			auto ni = internal_type("Broker::NetworkInfo")->AsRecordType();
 			auto network_info = new RecordVal(ni);
 			network_info->Assign(0, new AddrVal(IPAddr(ctx->network->address)));
-			network_info->Assign(1, new PortVal(ctx->network->port, TRANSPORT_TCP));
+			network_info->Assign(1, port_mgr->Get(ctx->network->port, TRANSPORT_TCP));
 			endpoint_info->Assign(1, network_info);
 			}
 		else
@@ -1096,7 +1096,7 @@ void Manager::ProcessStatus(broker::status stat)
 			auto ni = internal_type("Broker::NetworkInfo")->AsRecordType();
 			auto network_info = new RecordVal(ni);
 			network_info->Assign(0, new AddrVal("0.0.0.0"));
-			network_info->Assign(1, new PortVal(0, TRANSPORT_TCP));
+			network_info->Assign(1, port_mgr->Get(0, TRANSPORT_TCP));
 			endpoint_info->Assign(1, network_info);
 			}
 		}

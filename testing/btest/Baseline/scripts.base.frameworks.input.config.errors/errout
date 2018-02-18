@@ -1,0 +1,14 @@
+warning: ../configfile/Input::READER_CONFIG: Field: testbool Invalid value for boolean: A
+warning: ../configfile/Input::READER_CONFIG: Could not convert line 'testbool A' to value. Ignoring line.
+warning: ../configfile/Input::READER_CONFIG: Could not parse 'testtesttesttesttesttest'; line has invalid format. Ignoring line.
+warning: ../configfile/Input::READER_CONFIG: Field: testbool Invalid value for boolean: A B
+warning: ../configfile/Input::READER_CONFIG: Could not convert line 'testbool A B' to value. Ignoring line.
+warning: ../configfile/Input::READER_CONFIG: String 'A' contained no parseable number
+warning: ../configfile/Input::READER_CONFIG: Could not convert line 'testcount A' to value. Ignoring line.
+warning: Value 'unknown' for stream 'configuration' is not a valid enum.
+error: SendEvent for event InputConfig::new_value failed
+warning: ../configfile/Input::READER_CONFIG: Option 'testbooool' does not exist. Ignoring line.
+warning: ../configfile/Input::READER_CONFIG: Option 'test_any' has type 'any', which is not supported for file input. Ignoring line.
+warning: ../configfile/Input::READER_CONFIG: Option 'test_table' has type 'table', which is not supported for file input. Ignoring line.
+received termination signal
+>>>

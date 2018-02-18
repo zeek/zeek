@@ -124,6 +124,7 @@ set(BIF_SRCS
     types.bif
     strings.bif
     reporter.bif
+    option.bif
 )
 
 foreach (bift ${BIF_SRCS})

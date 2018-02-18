@@ -654,6 +654,7 @@ type script_id: record {
 	exported: bool;	##< True if the identifier is exported.
 	constant: bool;	##< True if the identifier is a constant.
 	enum_constant: bool;	##< True if the identifier is an enum value.
+	option_value: bool;	##< True if the identifier is an option.
 	redefinable: bool;	##< True if the identifier is declared with the :bro:attr:`&redef` attribute.
 	value: any &optional;	##< The current value of the identifier.
 };
@@ -2182,6 +2183,18 @@ export {
 
 	## NFS file attributes. Field names are based on RFC 1813.
 	##
+	## .. bro:see:: nfs_proc_sattr
+	type sattr_t: record {
+		mode: count &optional; ##< Mode
+		uid: count	&optional; ##< User ID.
+		gid: count	&optional; ##< Group ID.
+		size: count &optional; ##< Size.
+		atime: time_how_t &optional; ##< Time of last access.
+		mtime: time_how_t &optional; ##< Time of last modification.
+	};
+
+	## NFS file attributes. Field names are based on RFC 1813.
+	##
 	## .. bro:see:: nfs_proc_getattr
 	type fattr_t: record {
 		ftype: file_type_t;	##< File type.
@@ -2200,6 +2213,14 @@ export {
 		ctime: time;	##< Time of creation.
 	};
 
+	## NFS symlinkdata attributes. Field names are based on RFC 1813
+	##
+	## .. bro:see:: nfs_proc_symlink
+	type symlinkdata_t: record {
+		symlink_attributes: sattr_t; ##< The initial attributes for the symbolic link
+		nfspath: string &optional;	##< The string containing the symbolic link data.
+	};
+
 	## NFS *readdir* arguments.
 	##
 	## .. bro:see:: nfs_proc_readdir
@@ -2216,6 +2237,30 @@ export {
 		src_fname : string;
 		dst_dirfh : string;
 		dst_fname : string;
+	};
+
+	## NFS *symlink* arguments.
+	##
+	## .. bro:see:: nfs_proc_symlink
+	type symlinkargs_t: record {
+		link : diropargs_t;  ##< The location of the link to be created.
+		symlinkdata: symlinkdata_t; ##< The symbolic link to be created.
+	};
+
+	## NFS *link* arguments.
+	##
+	## .. bro:see:: nfs_proc_link
+	type linkargs_t: record {
+		fh : string; ##< The file handle for the existing file system object.
+		link : diropargs_t;  ##< The location of the link to be created.
+	};
+
+	## NFS *sattr* arguments.
+	##
+	## .. bro:see:: nfs_proc_sattr
+	type sattrargs_t: record {
+		fh : string; ##< The file handle for the existing file system object.
+		new_attributes: sattr_t; ##< The new attributes for the file.
 	};
 
 	## NFS lookup reply. If the lookup failed, *dir_attr* may be set. If the
@@ -2274,6 +2319,23 @@ export {
 		size: count;	##< The size.
 		atime: time;	##< Access time.
 		mtime: time;	##< Modification time.
+	};
+
+	## NFS *link* reply.
+	##
+	## .. bro:see:: nfs_proc_link
+	type link_reply_t: record {
+		post_attr: fattr_t &optional; ##< Optional post-operation attributes of the file system object identified by file
+		preattr: wcc_attr_t &optional;	##< Optional attributes associated w/ file.
+		postattr: fattr_t &optional;	##< Optional attributes associated w/ file.
+	};
+
+	## NFS *sattr* reply. If the request fails, *pre|post* attr may be set.
+	## If the request succeeds, *pre|post* attr are set.
+	##
+	type sattr_reply_t: record {
+		dir_pre_attr: wcc_attr_t &optional;	##< Optional attributes associated w/ dir.
+		dir_post_attr: fattr_t &optional;	##< Optional attributes associated w/ dir.
 	};
 
 	## NFS *write* reply. If the request fails, *pre|post* attr may be set.
@@ -2372,6 +2434,71 @@ export {
 		invarsec: interval;	##< TODO.
 	};
 } # end export
+
+
+module MOUNT3;
+export {
+
+	## Record summarizing the general results and status of MOUNT3
+	## request/reply pairs.
+	##
+	## Note that when *rpc_stat* or *mount_stat* indicates not successful,
+	## the reply record passed to the corresponding event will be empty and
+	## contain uninitialized fields, so don't use it. Also note that time
+	# and duration values might not be fully accurate. For TCP, we record
+	# times when the corresponding chunk of data is delivered to the
+	# analyzer. Depending on the reassembler, this might be well after the
+	# first packet of the request was received.
+	#
+	# .. bro:see:: mount_proc_mnt mount_proc_dump mount_proc_umnt
+	#    mount_proc_umntall mount_proc_export mount_proc_not_implemented
+	type info_t: record {
+		## The RPC status.
+		rpc_stat: rpc_status;
+		## The MOUNT status.
+		mnt_stat: status_t;
+		## The start time of the request.
+		req_start: time;
+		## The duration of the request.
+		req_dur: interval;
+		## The length in bytes of the request.
+		req_len: count;
+		## The start time of the reply.
+		rep_start: time;
+		## The duration of the reply.
+		rep_dur: interval;
+		## The length in bytes of the reply.
+		rep_len: count;
+		## The user id of the reply.
+		rpc_uid: count;
+		## The group id of the reply.
+		rpc_gid: count;
+		## The stamp of the reply.
+		rpc_stamp: count;
+		## The machine name of the reply.
+		rpc_machine_name: string;
+		## The auxiliary ids of the reply.
+		rpc_auxgids: index_vec;
+	};
+
+	## MOUNT *mnt* arguments.
+	##
+	## .. bro:see:: mount_proc_mnt
+	type dirmntargs_t : record {
+		dirname: string;	##< Name of directory to mount
+	};
+
+	## MOUNT lookup reply. If the mount failed, *dir_attr* may be set. If the
+	## mount succeeded, *fh* is always set.
+	##
+	## .. bro:see:: mount_proc_mnt
+	type mnt_reply_t: record {
+		dirfh: string &optional;	##< Dir handle
+		auth_flavors: vector of auth_flavor_t &optional;	##< Returned authentication flavors
+	};
+
+} # end export
+
 
 module Threading;
 
@@ -2855,6 +2982,73 @@ export {
 		primary_domain	: string &optional;
 		## Security blob if NTLM
 		security_blob	: string &optional;
+	};
+
+	type SMB1::Trans2_Args: record {
+	     ## Total parameter count
+	     total_param_count: count;
+	     ## Total data count
+	     total_data_count: count;
+	     ## Max parameter count
+	     max_param_count: count;
+	     ## Max data count
+	     max_data_count: count;
+	     ## Max setup count
+	     max_setup_count: count;
+	     ## Flags
+	     flags: count;
+	     ## Timeout
+	     trans_timeout: count;
+	     ## Parameter count
+	     param_count: count;
+	     ## Parameter offset
+	     param_offset: count;
+	     ## Data count
+	     data_count: count;
+	     ## Data offset
+	     data_offset: count;
+	     ## Setup count
+	     setup_count: count;
+	};
+
+	type SMB1::Trans_Sec_Args: record {
+	     ## Total parameter count
+	     total_param_count: count;
+	     ## Total data count
+	     total_data_count: count;
+	     ## Parameter count
+	     param_count: count;
+	     ## Parameter offset
+	     param_offset: count;
+	     ## Parameter displacement
+	     param_displacement: count;
+	     ## Data count
+	     data_count: count;
+	     ## Data offset
+	     data_offset: count;
+	     ## Data displacement
+	     data_displacement: count;
+	};
+
+	type SMB1::Trans2_Sec_Args: record {
+	     ## Total parameter count
+	     total_param_count: count;
+	     ## Total data count
+	     total_data_count: count;
+	     ## Parameter count
+	     param_count: count;
+	     ## Parameter offset
+	     param_offset: count;
+	     ## Parameter displacement
+	     param_displacement: count;
+	     ## Data count
+	     data_count: count;
+	     ## Data offset
+	     data_offset: count;
+	     ## Data displacement
+	     data_displacement: count;
+	     ## File ID
+	     FID: count;
 	};
 
 	type SMB1::Find_First2_Request_Args: record {

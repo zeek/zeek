@@ -213,7 +213,7 @@ void file_analysis::X509Common::ParseSignedCertificateTimestamps(X509_EXTENSION*
 		reporter->Error("X509::ParseSignedCertificateTimestamps could not parse SCT");
 		}
 
-	M_ASN1_OCTET_STRING_free(inner);
+	ASN1_OCTET_STRING_free(inner);
 	OPENSSL_free(ext_val_second_pointer);
 
 	interp->FlowEOF();
@@ -239,7 +239,15 @@ void file_analysis::X509Common::ParseExtension(X509_EXTENSION* ex, EventHandlerP
 
 	BIO *bio = BIO_new(BIO_s_mem());
 	if( ! X509V3_EXT_print(bio, ex, 0, 0))
-		M_ASN1_OCTET_STRING_print(bio,ex->value);
+		{
+		unsigned char *buf = nullptr;
+		int len = i2d_ASN1_OCTET_STRING(X509_EXTENSION_get_data(ex), &buf);
+		if ( len >=0 )
+			{
+			BIO_write(bio, &buf, len);
+			OPENSSL_free(buf);
+			}
+		}
 
 	StringVal* ext_val = GetExtensionFromBIO(bio);
 

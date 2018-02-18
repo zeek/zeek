@@ -1,0 +1,12 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	x509
+#open	2017-11-30-20-08-27
+#fields	ts	id	certificate.version	certificate.serial	certificate.subject	certificate.issuer	certificate.not_valid_before	certificate.not_valid_after	certificate.key_alg	certificate.sig_alg	certificate.key_type	certificate.key_length	certificate.exponent	certificate.curve	san.dns	san.uri	san.email	san.ip	basic_constraints.ca	basic_constraints.path_len
+#types	time	string	count	string	string	string	time	time	string	string	string	count	string	string	vector[string]	vector[string]	vector[string]	vector[addr]	bool	count
+1512072318.462960	F1uIRd10FHM79akjJ1	3	3D1DE44E346ECE68	CN=*.google.com,O=Google Inc,L=Mountain View,ST=California,C=US	CN=Google Internet Authority G2,O=Google Inc,C=US	1509544136.000000	1516800660.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	*.google.com,*.android.com,*.appengine.google.com,*.cloud.google.com,*.db833953.google.cn,*.g.co,*.gcp.gvt2.com,*.google-analytics.com,*.google.ca,*.google.cl,*.google.co.in,*.google.co.jp,*.google.co.uk,*.google.com.ar,*.google.com.au,*.google.com.br,*.google.com.co,*.google.com.mx,*.google.com.tr,*.google.com.vn,*.google.de,*.google.es,*.google.fr,*.google.hu,*.google.it,*.google.nl,*.google.pl,*.google.pt,*.googleadapis.com,*.googleapis.cn,*.googlecommerce.com,*.googlevideo.com,*.gstatic.cn,*.gstatic.com,*.gvt1.com,*.gvt2.com,*.metric.gstatic.com,*.urchin.com,*.url.google.com,*.youtube-nocookie.com,*.youtube.com,*.youtubeeducation.com,*.yt.be,*.ytimg.com,android.clients.google.com,android.com,developer.android.google.cn,developers.android.google.cn,g.co,goo.gl,google-analytics.com,google.com,googlecommerce.com,source.android.google.cn,urchin.com,www.goo.gl,youtu.be,youtube.com,youtubeeducation.com,yt.be	-	-	-	F	-
+1512072318.462960	FBy2pg1ix88ibHSEEf	3	0100212588B0FA59A777EF057B6627DF	CN=Google Internet Authority G2,O=Google Inc,C=US	CN=GeoTrust Global CA,O=GeoTrust Inc.,C=US	1495452757.000000	1546300799.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	-	-	-	-	T	0
+1512072318.462960	FlfUEZ3rbay3xxsd9i	3	12BBE6	CN=GeoTrust Global CA,O=GeoTrust Inc.,C=US	OU=Equifax Secure Certificate Authority,O=Equifax,C=US	1021953600.000000	1534824000.000000	rsaEncryption	sha1WithRSAEncryption	rsa	2048	65537	-	-	-	-	-	T	-
+#close	2017-11-30-20-08-27

@@ -1,0 +1,6 @@
+
+module InputConfig;
+
+const set_separator: string;
+const empty_field: string;
+const fail_on_file_problem: bool;

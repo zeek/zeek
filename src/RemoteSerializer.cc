@@ -1809,7 +1809,7 @@ RecordVal* RemoteSerializer::MakePeerVal(Peer* peer)
 	v->Assign(0, new Val(uint32(peer->id), TYPE_COUNT));
 	// Sic! Network order for AddrVal, host order for PortVal.
 	v->Assign(1, new AddrVal(peer->ip));
-	v->Assign(2, new PortVal(peer->port, TRANSPORT_TCP));
+	v->Assign(2, port_mgr->Get(peer->port, TRANSPORT_TCP));
 	v->Assign(3, new Val(false, TYPE_BOOL));
 	v->Assign(4, new StringVal(""));	// set when received
 	v->Assign(5, peer->peer_class.size() ?

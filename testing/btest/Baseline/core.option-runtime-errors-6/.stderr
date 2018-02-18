@@ -1,0 +1,1 @@
+error in /Users/johanna/corelight/bro/testing/btest/.tmp/core.option-runtime-errors-6/option-runtime-errors.bro, line 7: Passed function needs to return type 'count' for ID 'A'; got 'bool' (Option::set_change_handler(A, option_changed, (coerce 0 to int)))

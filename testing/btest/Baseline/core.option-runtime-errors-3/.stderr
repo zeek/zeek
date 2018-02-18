@@ -1,0 +1,1 @@
+error in /Users/johanna/corelight/bro/testing/btest/.tmp/core.option-runtime-errors-3/option-runtime-errors.bro, line 3: ID 'A' is not an option (Option::set(A, 6, ))

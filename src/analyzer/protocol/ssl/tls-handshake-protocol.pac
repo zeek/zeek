@@ -112,6 +112,7 @@ type ServerHelloChoice(rec: HandshakeRecord) = record {
 		0x7F -> 0x7F00; # map any draft version to 00
 		default -> server_version;
 	};
+	version_set : bool = $context.connection.set_version(server_version);
 };
 
 type ServerHello(rec: HandshakeRecord, server_version: uint16) = record {
@@ -361,9 +362,26 @@ type ServerKeyExchange(rec: HandshakeRecord) = case $context.connection.chosen_c
 type EcdheServerKeyExchange(rec: HandshakeRecord) = record {
 	curve_type: uint8;
 	named_curve: case curve_type of {
-		NAMED_CURVE -> params: ServerEDCHParamsAndSignature;
+		NAMED_CURVE -> params: ServerECDHParamsAndSignature;
 		default -> data: bytestring &restofdata &transient;
 	};
+	signature: case curve_type of {
+		NAMED_CURVE -> signed_params: ServerKeyExchangeSignature;
+		default -> nothing: bytestring &length=0;
+	};
+};
+
+type ServerKeyExchangeSignature = record {
+	alg: case uses_signature_and_hashalgorithm of {
+		true -> algorithm: SignatureAndHashAlgorithm;
+		false -> nothing: bytestring &length=0;
+	} &requires(uses_signature_and_hashalgorithm);
+	signature_length: uint16;
+	signature: bytestring &length=signature_length;
+} &let {
+	uses_signature_and_hashalgorithm : bool =
+		($context.connection.chosen_version() > TLSv11) &&
+		($context.connection.chosen_version() != DTLSv10);
 };
 
 # Parse an ECDH-anon ServerKeyExchange message, which does not contain a
@@ -372,16 +390,15 @@ type EcdheServerKeyExchange(rec: HandshakeRecord) = record {
 type EcdhAnonServerKeyExchange(rec: HandshakeRecord) = record {
 	curve_type: uint8;
 	named_curve: case curve_type of {
-		NAMED_CURVE -> params: ServerEDCHParamsAndSignature;
+		NAMED_CURVE -> params: ServerECDHParamsAndSignature;
 		default -> data: bytestring &restofdata &transient;
 	};
 };
 
-type ServerEDCHParamsAndSignature() = record {
+type ServerECDHParamsAndSignature() = record {
 	curve: uint16;
 	point_length: uint8;
 	point: bytestring &length=point_length;
-	signed_params: bytestring &restofdata; # only present in case of non-anon message
 };
 
 # Parse a DHE ServerKeyExchange message, which contains a signature over the
@@ -393,7 +410,7 @@ type DheServerKeyExchange(rec: HandshakeRecord) = record {
 	dh_g: bytestring &length=dh_g_length;
 	dh_Ys_length: uint16;
 	dh_Ys: bytestring &length=dh_Ys_length;
-	signed_params: bytestring &restofdata;
+	signed_params: ServerKeyExchangeSignature;
 };
 
 # Parse a DH-anon ServerKeyExchange message, which does not contain a
@@ -867,10 +884,12 @@ refine connection Handshake_Conn += {
 
 	%member{
 		uint32 chosen_cipher_;
+		uint16 chosen_version_;
 	%}
 
 	%init{
 		chosen_cipher_ = NO_CHOSEN_CIPHER;
+		chosen_version_ = UNKNOWN_VERSION;
 	%}
 
 	function chosen_cipher() : int %{ return chosen_cipher_; %}
@@ -878,6 +897,14 @@ refine connection Handshake_Conn += {
 	function set_cipher(cipher: uint32) : bool
 		%{
 		chosen_cipher_ = cipher;
+		return true;
+		%}
+
+	function chosen_version() : int %{ return chosen_version_; %}
+
+	function set_version(version: uint16) : bool
+		%{
+		chosen_version_ = version;
 		return true;
 		%}
 };

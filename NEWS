@@ -11,6 +11,93 @@ Bro 2.6 (in progress)
 New Functionality
 -----------------
 
+- Bro now comes with a new "configuration framework" that allows
+  updating script options dynamically at runtime. This functionality
+  consists of three larger pieces working together:
+
+  - Option variables: The new "option" keyword allows variables to be
+    declared as runtime options. Such variables cannot be changed
+    using normal assignments. Instead, they can be changed using the
+    new function Option::set.
+
+    It is possible to "subscribe" to option through
+    Option::set_change_handler, which will trigger a handler callback
+    when an option changes. Change handlers can optionally modify
+    values before they are applied by returning the desired value, or
+    reject updates by returning the old value. Priorities can be
+    specified if there are several handlers for one option.
+
+    Example script:
+
+        option testbool: bool = T;
+
+        function option_changed(ID: string, new_value: bool): bool
+            {
+            print fmt("Value of %s changed from %s to %s", ID, testbool, new_value);
+            return new_value;
+            }
+
+        event bro_init()
+            {
+            print "Old value", testbool;
+            Option::set_change_handler("testbool", option_changed);
+            Option::set("testbool", F);
+            print "New value", testbool;
+            }
+
+  - Script-level configuration framework: The new script framework
+    base/framework/config facilitates reading in new option values
+    from external files at runtime. The format for these files looks
+    like this:
+
+        [option name][tab/spaces][new variable value]
+
+    Configuration files to read can be specified by adding them to
+    Config::config_files.
+
+    Usage example:
+
+        redef Config::config_files += { "/path/to/config.dat" };
+
+        module TestConfig;
+
+        export {
+            option testbool: bool = F;
+        }
+
+    The specified file will now monitored contionoulsy for changes, so
+    that writing "testbool T" into /path/to/config.dat will
+    automatically update the option's value accordingly.
+
+    The configutation framework creates a config.log that shows all
+    value changes that took place.
+
+  - Config reader: Internally, the configuration framework use a new
+    type of input reader to read such configuration files into Bro.
+    The reader uses the option name to look up the type that variable
+    has, converts the read value to the correct type, and then updates
+    the option's value. Example script use:
+
+    type Idx: record {
+        option_name: string;
+    };
+
+    type Val: record {
+        option_val: string;
+    };
+
+    global currconfig: table[string] of string = table();
+
+    event InputConfig::new_value(name: string, source: string, id: string, value: any)
+        {
+        print id, value;
+        }
+
+    event bro_init()
+        {
+        Input::add_table([$reader=Input::READER_CONFIG, $source="../configfile", $name="configuration", $idx=Idx, $val=Val, $destination=currconfig, $want_record=F]);
+        }
+
 - Support for OCSP and Signed Certificate Timestamp. This adds the
   following events and BIFs:
 
@@ -36,6 +123,29 @@ New Functionality
   Since ssl_ecdh_server_params contains more information than the old
   ssl_server_curve event, ssl_server_curve is now marked as deprecated.
 
+- Functions for retrieving files by their ID have been added:
+
+  Files::file_exists, Files::lookup_File
+
+- New functions in the logging API: Log::get_filter_names, Log::enable_stream
+
+- HTTP now recognizes and skips upgraded/websocket connections.  A new event,
+  http_connection_upgrade, is raised in such cases.
+
+- Added a MOUNT3 protocol parser
+
+  - This is not enabled by default (no ports are registered and no
+    DPD signatures exist, so no connections will end up attaching the
+    new Mount analyzer).  If it were to be activated by users, the
+    following events are available: mount_proc_null, mount_proc_mnt,
+    mount_proc_umnt, mount_proc_umnt_all, mount_proc_not_implemented,
+    mount_reply_status.
+
+- Added new NFS events: nfs_proc_symlink, nfs_proc_link, nfs_proc_sattr
+
+- Added new SMB events: smb1_transaction_secondary_request,
+  smb1_transaction2_secondary_request, smb1_transaction_response
+
 Changed Functionality
 ---------------------
 
@@ -58,6 +168,19 @@ Changed Functionality
 
 - The DNS base scripts no longer generate some noisy and annoying
   weirds (dns_unmatched_msg, dns_unmatched_msg_quantity, dns_unmatched_reply)
+
+- The 'tunnel_parents' field of conn.log is now marked &optional, so, for
+  the default configuration of logs, this field will show "-" instead of
+  "(empty)" for connections that lack any tunelling.
+
+- SMB event argument changes
+  - smb1_transaction_request now has two additional arguments, "parameters"
+    and "data" strings
+  - smb1_transaction2_request now has an additional "args" record argument
+
+- SSL event argument changes:
+  - event ssl_server_signature now has an additional argument
+    "signature_and_hashalgorithm".
 
 Removed Functionality
 ---------------------

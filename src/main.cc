@@ -21,8 +21,6 @@ extern "C" {
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
-extern "C" void OPENSSL_add_all_algorithms_conf(void);
-
 #include "bsd-getopt-long.h"
 #include "input.h"
 #include "DNS_Mgr.h"
@@ -84,6 +82,7 @@ int perftools_profile = 0;
 
 DNS_Mgr* dns_mgr;
 TimerMgr* timer_mgr;
+PortManager* port_mgr = 0;
 logging::Manager* log_mgr = 0;
 threading::Manager* thread_mgr = 0;
 input::Manager* input_mgr = 0;
@@ -380,6 +379,7 @@ void terminate_bro()
 	delete plugin_mgr;
 	delete reporter;
 	delete iosource_mgr;
+	delete port_mgr;
 
 	reporter = 0;
 	}
@@ -707,6 +707,7 @@ int main(int argc, char** argv)
 
 	bro_start_time = current_time(true);
 
+	port_mgr = new PortManager();
 	reporter = new Reporter();
 	thread_mgr = new threading::Manager();
 	plugin_mgr = new plugin::Manager();

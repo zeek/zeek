@@ -166,6 +166,7 @@ nb_dns_init(char *errstr)
 		}
 
 	snprintf(errstr, NB_DNS_ERRSIZE, "no valid nameservers in resolver config");
+	free(nd);
 	return (NULL);
 }
 

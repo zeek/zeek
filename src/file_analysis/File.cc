@@ -34,9 +34,9 @@ static RecordVal* get_conn_id_val(const Connection* conn)
 	{
 	RecordVal* v = new RecordVal(conn_id);
 	v->Assign(0, new AddrVal(conn->OrigAddr()));
-	v->Assign(1, new PortVal(ntohs(conn->OrigPort()), conn->ConnTransport()));
+	v->Assign(1, port_mgr->Get(ntohs(conn->OrigPort()), conn->ConnTransport()));
 	v->Assign(2, new AddrVal(conn->RespAddr()));
-	v->Assign(3, new PortVal(ntohs(conn->RespPort()), conn->ConnTransport()));
+	v->Assign(3, port_mgr->Get(ntohs(conn->RespPort()), conn->ConnTransport()));
 	return v;
 	}
 

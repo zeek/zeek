@@ -27,7 +27,7 @@ event bro_init()
 	filter$path= "ssh-new-default";
 	Log::add_filter(SSH::LOG, filter);
 
-    local cid = [$orig_h=1.2.3.4, $orig_p=1234/tcp, $resp_h=2.3.4.5, $resp_p=80/tcp];
+	local cid = [$orig_h=1.2.3.4, $orig_p=1234/tcp, $resp_h=2.3.4.5, $resp_p=80/tcp];
 	Log::write(SSH::LOG, [$t=network_time(), $id=cid, $status="success"]);
 	Log::write(SSH::LOG, [$t=network_time(), $id=cid, $status="failure", $country="US"]);
 }

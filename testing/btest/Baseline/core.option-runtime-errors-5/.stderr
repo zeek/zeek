@@ -1,0 +1,1 @@
+error in /Users/johanna/corelight/bro/testing/btest/.tmp/core.option-runtime-errors-5/option-runtime-errors.bro, line 7: Wrong number of arguments for passed function in Option::on_change for ID 'A'; expected 2 or 3, got 1 (Option::set_change_handler(A, option_changed, (coerce 0 to int)))

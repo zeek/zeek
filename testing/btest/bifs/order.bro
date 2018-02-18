@@ -46,4 +46,10 @@ event bro_init()
 	local d2 = order(c2, myfunc2);
 	print c2;
 	print d2;
+
+	# Tests with large numbers
+
+	local l1 = vector(2304, 1156, 13, 42, 4294967296);
+	print l1;
+	print order(l1);
 	}

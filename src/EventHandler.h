@@ -98,7 +98,7 @@ public:
 
 	EventHandler* Ptr()	{ return handler; }
 
-	operator bool() const	{ return handler && *handler; }
+	explicit operator bool() const	{ return handler && *handler; }
 	EventHandler* operator->()	{ return handler; }
 	const EventHandler* operator->() const	{ return handler; }
 

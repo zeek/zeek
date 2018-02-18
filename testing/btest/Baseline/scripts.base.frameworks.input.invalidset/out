@@ -1,0 +1,14 @@
+TableErrorEvent, Invalid value for subnet: 127.0.0.1, Reporter::WARNING
+TableErrorEvent, Error while reading set or vector, Reporter::WARNING
+TableErrorEvent, Could not convert line 'name\x09127.0.0.1' to Val. Ignoring line., Reporter::WARNING
+Event, [s={
+
+}]
+EventErrorEvent, Invalid value for subnet: 127.0.0.1, Reporter::WARNING
+EventErrorEvent, Error while reading set or vector, Reporter::WARNING
+EventErrorEvent, Could not convert line 'name\x09127.0.0.1' to Val. Ignoring line., Reporter::WARNING
+{
+[name] = [s={
+
+}]
+}

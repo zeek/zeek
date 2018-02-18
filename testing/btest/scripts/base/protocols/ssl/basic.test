@@ -3,3 +3,4 @@
 # @TEST-EXEC: bro -r $TRACES/tls/tls-conn-with-extensions.trace %INPUT
 # @TEST-EXEC: btest-diff ssl.log
 # @TEST-EXEC: btest-diff x509.log
+# @TEST-EXEC: test ! -f dpd.log

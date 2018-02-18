@@ -5219,8 +5219,13 @@ Val* CastExpr::Eval(Frame* f) const
 	if ( ! v )
 		return 0;
 
-	if ( Val* nv = cast_value_to_type(v, Type()) )
+	Val* nv = cast_value_to_type(v, Type());
+
+	if ( nv )
+		{
+		Unref(v);
 		return nv;
+		}
 
 	ODesc d;
 	d.Add("cannot cast value of type '");
@@ -5229,6 +5234,7 @@ Val* CastExpr::Eval(Frame* f) const
 	Type()->Describe(&d);
 	d.Add("'");
 	reporter->ExprRuntimeError(this, "%s", d.Description());
+	Unref(v);
 	return 0;  // not reached.
 	}
 

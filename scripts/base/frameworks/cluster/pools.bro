@@ -319,11 +319,20 @@ type PoolEligibilityTracking: record {
 
 global pool_eligibility: table[Cluster::NodeType] of PoolEligibilityTracking = table();
 
+function pool_sorter(a: Pool, b: Pool): int
+	{
+	return strcmp(a$spec$topic, b$spec$topic);
+	}
+
 # Needs to execute before the bro_init in setup-connections
 event bro_init() &priority=-5
 	{
 	if ( ! Cluster::is_enabled() )
 		return;
+
+	# Sorting now ensures the node distribution process is stable even if
+	# there's a change in the order of time-of-registration between Bro runs.
+	sort(registered_pools, pool_sorter);
 
 	pool_eligibility[Cluster::WORKER] =
 		PoolEligibilityTracking($eligible_nodes = nodes_with_type(Cluster::WORKER));

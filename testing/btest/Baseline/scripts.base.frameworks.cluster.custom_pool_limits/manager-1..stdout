@@ -16,8 +16,6 @@ hrw (custom pool), 42, bro/cluster/node/proxy-2
 hrw, 101, bro/cluster/node/proxy-1
 hrw (custom pool), 101, bro/cluster/node/proxy-2
 rr, bro/cluster/node/proxy-1
-rr (custom pool), bro/cluster/node/proxy-2
-rr, bro/cluster/node/proxy-1
 rr (custom pool), bro/cluster/node/proxy-1
 rr, bro/cluster/node/proxy-1
 rr (custom pool), bro/cluster/node/proxy-2
@@ -31,6 +29,8 @@ rr, bro/cluster/node/proxy-1
 rr (custom pool), bro/cluster/node/proxy-2
 rr, bro/cluster/node/proxy-1
 rr (custom pool), bro/cluster/node/proxy-1
+rr, bro/cluster/node/proxy-1
+rr (custom pool), bro/cluster/node/proxy-2
 hrw, 0, bro/cluster/node/proxy-1
 hrw (custom pool), 0, bro/cluster/node/proxy-1
 hrw, 1, bro/cluster/node/proxy-1

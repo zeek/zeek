@@ -137,9 +137,7 @@ function Broker::__set_iterator_value%(it: opaque of Broker::SetIterator%): Brok
 
 	if ( set_it->it == set_it->dat.end() )
 		{
-		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
-		reporter->Warning("attempt to retrieve value of invalid set iterator");
-		reporter->PopLocation();
+		builtin_error("attempt to retrieve value of invalid set iterator");
 		return rval;
 		}
 
@@ -297,9 +295,7 @@ function Broker::__table_iterator_value%(it: opaque of Broker::TableIterator%): 
 
 	if ( ti->it == ti->dat.end() )
 		{
-		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
-		reporter->Warning("attempt to retrieve value of invalid table iterator");
-		reporter->PopLocation();
+		builtin_error("attempt to retrieve value of invalid table iterator");
 		return rval;
 		}
 
@@ -418,9 +414,7 @@ function Broker::__vector_iterator_value%(it: opaque of Broker::VectorIterator%)
 
 	if ( vi->it == vi->dat.end() )
 		{
-		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
-		reporter->Warning("attempt to retrieve value of invalid vector iterator");
-		reporter->PopLocation();
+		builtin_error("attempt to retrieve value of invalid vector iterator");
 		return rval;
 		}
 
@@ -499,9 +493,7 @@ function Broker::__record_iterator_value%(it: opaque of Broker::RecordIterator%)
 
 	if ( ri->it == ri->dat.end() )
 		{
-		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
-		reporter->Warning("attempt to retrieve value of invalid record iterator");
-		reporter->PopLocation();
+		builtin_error("attempt to retrieve value of invalid record iterator");
 		return rval;
 		}
 

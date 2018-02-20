@@ -4535,13 +4535,21 @@ Val* CallExpr::Eval(Frame* f) const
 	if ( func_val && v )
 		{
 		const ::Func* func = func_val->AsFunc();
-		calling_expr = this;
 		const CallExpr* current_call = f ? f->GetCall() : 0;
+		call_stack.emplace_back(CallInfo{this, func});
 
 		if ( f )
 			f->SetCall(this);
 
-		ret = func->Call(v, f); // No try/catch here; we pass exceptions upstream.
+		try
+			{
+			ret = func->Call(v, f);
+			}
+		catch ( ... )
+			{
+			call_stack.pop_back();
+			throw;
+			}
 
 		if ( f )
 			f->SetCall(current_call);
@@ -4549,7 +4557,7 @@ Val* CallExpr::Eval(Frame* f) const
 		// Don't Unref() the arguments, as Func::Call already did that.
 		delete v;
 
-		calling_expr = 0;
+		call_stack.pop_back();
 		}
 	else
 		delete_vals(v);

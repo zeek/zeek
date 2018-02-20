@@ -50,7 +50,7 @@
 
 extern	RETSIGTYPE sig_handler(int signo);
 
-const Expr* calling_expr = 0;
+vector<CallInfo> call_stack;
 bool did_builtin_init = false;
 
 vector<Func*> Func::unique_ids;
@@ -637,10 +637,60 @@ bool BuiltinFunc::DoUnserialize(UnserialInfo* info)
 
 void builtin_error(const char* msg, BroObj* arg)
 	{
-	if ( calling_expr )
-		calling_expr->Error(msg, arg);
-	else
+	if ( call_stack.empty() )
+		{
 		reporter->Error(msg, arg);
+		return;
+		}
+
+	auto last_call = call_stack.back();
+
+	if ( call_stack.size() < 2 )
+		{
+		// Don't need to check for wrapper function like "<module>::__<func>"
+		last_call.call->Error(msg, arg);
+		return;
+		}
+
+	auto starts_with_double_underscore = [](const std::string& name) -> bool
+		{ return name.size() > 2 && name[0] == '_' && name[1] == '_'; };
+	auto last_loc = last_call.call->GetLocationInfo();
+	std::string last_func = last_call.func->Name();
+
+	auto pos = last_func.find_first_of("::");
+	std::string wrapper_func;
+
+	if ( pos == std::string::npos )
+		{
+		if ( ! starts_with_double_underscore(last_func) )
+			{
+			last_call.call->Error(msg, arg);
+			return;
+			}
+
+		wrapper_func = last_func.substr(2);
+		}
+	else
+		{
+		auto module_name = last_func.substr(0, pos);
+		auto func_name = last_func.substr(pos + 2);
+
+		if ( ! starts_with_double_underscore(func_name) )
+			{
+			last_call.call->Error(msg, arg);
+			return;
+			}
+
+		wrapper_func = module_name + "::" + func_name.substr(2);
+		}
+
+	auto parent_call = call_stack[call_stack.size() - 2];
+	auto parent_func = parent_call.func->Name();
+
+	if ( wrapper_func == parent_func )
+		parent_call.call->Error(msg, arg);
+	else
+		last_call.call->Error(msg, arg);
 	}
 
 #include "bro.bif.func_h"

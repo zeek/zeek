@@ -140,10 +140,12 @@ extern void init_builtin_funcs_subdirs();
 
 extern bool check_built_in_call(BuiltinFunc* f, CallExpr* call);
 
-// This global is set prior to the interpreter making a function call.
-// It's there so that built-in functions can access the location information
-// associated with a call when reporting error messages.
-extern const Expr* calling_expr;
+struct CallInfo {
+	const CallExpr* call;
+	const Func* func;
+};
+
+extern vector<CallInfo> call_stack;
 
 // This is set to true after the built-in functions have been initialized.
 extern bool did_builtin_init;

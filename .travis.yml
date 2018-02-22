@@ -17,6 +17,15 @@ addons:
       - swig
       - zlib1g-dev
 
+branches:
+  only:
+  - master
+
+notifications:
+  email:
+    recipients:
+    - bro-commits-internal@bro.org
+
 install: ./configure && make -j 4
 
 script:

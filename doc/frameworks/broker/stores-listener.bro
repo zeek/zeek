@@ -4,6 +4,7 @@ global h: opaque of Broker::Store;
 global expected_key_count = 4;
 global key_count = 0;
 
+# Lookup a value in the store based on an arbitrary key string.
 function do_lookup(key: string)
 	{
 	when ( local res = Broker::get(h, key) )
@@ -11,21 +12,36 @@ function do_lookup(key: string)
 		++key_count;
 		print "lookup", key, res;
 
-		if ( key_count == expected_key_count )
+		# End after we iterated over looking up each key in the store twice.
+		if ( key_count == expected_key_count * 2 )
 			terminate();
 		}
-	timeout 10sec
+	# All data store queries must specify a timeout
+	timeout 3sec
 		{ print "timeout", key; }
 	}
 
-event do_it()
+event check_keys()
 	{
+	# Here we just query for the list of keys in the store, and show how to
+	# look up each one's value.
 	when ( local res = Broker::keys(h) )
 		{
 		print "clone keys", res;
 
 		if ( res?$result )
 			{
+			# Since we know that the keys we are storing are all strings,
+			# we can conveniently cast the result of Broker::keys to
+			# a native Bro type, namely 'set[string]'.
+			for ( k in res$result as string_set )
+				do_lookup(k);
+
+			# Alternatively, we can use a generic iterator to iterate
+			# over the results (which we know is of the 'set' type because
+			# that's what Broker::keys() always returns).  If the keys
+			# we stored were not all of the same type, then you would
+			# likely want to use this method of inspecting the store's keys.
 			local i = Broker::set_iterator(res$result);
 
 			while ( ! Broker::set_iterator_last(i) )
@@ -35,18 +51,29 @@ event do_it()
 				}
 			}
 		}
-	timeout 10sec
-		{ print "timeout"; }
+	# All data store queries must specify a timeout.
+	# You also might see timeouts on connecting/initializing a clone since
+	# it hasn't had time to get fully set up yet.
+	timeout 1sec
+		{
+		print "timeout";
+		schedule 1sec { check_keys() };
+		}
 	}
 
-event ready()
+event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
+	print "peer added";
+	# We could create a clone early, like in bro_init and it will periodically
+	# try to synchronize with its master once it connects, however, we just
+	# create it now since we know the peer w/ the master store has just
+	# connected.
 	h = Broker::create_clone("mystore");
-	schedule 1sec { do_it() };
+
+	event check_keys();
 	}
 
 event bro_init()
 	{
-	Broker::subscribe("bro/event/ready");
 	Broker::listen("127.0.0.1");
 	}

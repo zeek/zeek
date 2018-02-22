@@ -343,7 +343,9 @@ export {
 	## any of the element, it may no longer actually be there. The function is
 	## also expensive for large stores, as it copies the complete set.
 	##
-	## Returns: a vector with the keys. 
+	## Returns: a set with the keys.  If you expect the keys to be of
+	##          non-uniform type, consider using
+	##          :bro:see:`Broker::set_iterator` to iterate over the result.
 	global keys: function(h: opaque of Broker::Store): QueryResult;
 
 	## Deletes all of a store's content, it will be empty afterwards.
@@ -357,9 +359,9 @@ export {
 
 	## Convert any Bro value to communication data.
 	##
-	## Note: Normally you won't need to use this function as data
-	## conversion happens implicitly when passing Bro values into Broker
-	## functions.
+	## .. note:: Normally you won't need to use this function as data
+	##    conversion happens implicitly when passing Bro values into Broker
+	##    functions.
 	##
 	## d: any Bro value to attempt to convert (not all types are supported).
 	##

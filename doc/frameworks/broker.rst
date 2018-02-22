@@ -1,3 +1,4 @@
+.. _CAF: https://github.com/actor-framework/actor-framework
 
 .. _brokercomm-framework:
 
@@ -9,23 +10,34 @@ Broker-Enabled Communication/Cluster Framework
 
     Bro now uses the `Broker Library
     <../components/broker/README.html>`_ to exchange information with
-    other Bro processes.  With this comes changes in how clusters
-    operate and, since Broker significantly differs from the previous
-    communication framework, there are several changes in the set of
-    scripts that Bro ships with that may break your own customizations.
-    This document aims to describe the changes that have been made,
-    making it easier to port your own scripts, as well as go over the
-    features of Broker and the new cluster framework that are now
-    available to use in new Bro scripts and customizations.
+    other Bro processes.  Broker itself uses CAF_ (C++ Actor Framework)
+    internally for connecting nodes and exchanging arbitrary data over
+    networks.  Broker then introduces, on top of CAF, a topic-based
+    publish/subscribe communication pattern using a data model that is
+    compatible to Bro's.  Broker itself can be utilized outside the
+    context of Bro, with Bro itself making use of only a few predefined
+    Broker message formats that represent Bro events, log entries, etc.
+
+    With this comes changes in how clusters operate and, since Broker
+    significantly differs from the previous communication framework,
+    there are several changes in the set of scripts that Bro ships with
+    that may break your own customizations.  This document aims to
+    describe the changes that have been made, making it easier to port
+    your own scripts.  It also gives examples of Broker and the new
+    cluster framework that show off all the new features and
+    capabilities.
 
 .. contents::
 
-Porting Guide / Notable Script API Changes
-==========================================
+Porting Guide
+=============
 
 Review and use the points below as a guide to port your own scripts
 to the latest version of Bro, which uses the new cluster and Broker
 communication framework.
+
+General Porting Tips
+--------------------
 
 - ``@load policy/frameworks/communication/listen`` and
   ``@load base/frameworks/communication`` indicates use of the
@@ -34,6 +46,18 @@ communication framework.
   :doc:`/scripts/base/frameworks/broker/main.bro`
 
 - The ``&synchronized`` attribute should no longer be used.
+
+- Instead of using e.g. ``Cluster::manager2worker_events`` (and all
+  permutations for every node type), what you'd now use is either 
+  :bro:see:`Broker::publish` or :bro:see:`Broker::auto_publish` with
+  either the topic associated with a specific node or class of nodes,
+  like :bro:see:`Cluster::node_topic` or
+  :bro:see:`Cluster::worker_topic`.
+
+- Instead of using the ``send_id`` BIF, use :bro:see:`Broker::publish_id`.
+
+Notable / Specific Script API Changes
+-------------------------------------
 
 - :bro:see:`Software::tracked` is now partitioned among proxy nodes
   instead of synchronized in its entirety to all nodes.
@@ -52,15 +76,8 @@ communication framework.
 - ``Known::certs`` is renamed to :bro:see:`Known::cert_store`
   and implemented via the new Broker data store interface.
 
-- Instead of using e.g. ``Cluster::manager2worker_events`` (and all
-  permutations for every node type), what you'd now use is either 
-  :bro:see:`Broker::publish` or :bro:see:`Broker::auto_publish` with
-  either the topic associated with a specific node or class of nodes,
-  like :bro:see:`Cluster::node_topic` or
-  :bro:see:`Cluster::worker_topic`.
-
-New Cluster Layout/API
-======================
+New Cluster Layout / API
+========================
 
 Layout / Topology
 -----------------
@@ -77,17 +94,48 @@ This looks like:
 
 .. figure:: broker/cluster-layout.png
 
-Data Management Strategies
-==========================
+Some general suggestions as to the purpose/utilization of each node type:
+
+- Workers: are a good first choice for doing the brunt of any work you need
+  done.  They should be spending a lot of time performing the actual job
+  of parsing/analyzing incoming data from packets, so you might choose
+  to look at them as doing a "first pass" analysis and then deciding how
+  the results should be shared with other nodes in the cluster.
+
+- Proxies: serve as intermediaries for data storage and work/calculation
+  offloading.  Good for helping offload work or data in a scalable and
+  distributed way.  i.e. since any given worker is connected to all
+  proxies and can agree on an "arbitrary key -> proxy node" mapping
+  (more on that later), you can partition work or data amongst them in a
+  uniform manner.  e.g. you might choose to use proxies as a method of
+  sharing non-persistent state or as a "second pass" analysis for any
+  work that you don't want interferring with the workers' capacity to
+  keep up with capturing and parsing packets.
+
+- Manager: this node will be good at performing decisions that require a
+  global view of things since it is in a centralized location, connected
+  to everything.  However, that also makes it easy to overload, so try
+  to use it sparingly and only for tasks that must be done in a
+  centralized or authoritative location. Optionally, for some
+  deployments, the Manager can also serve as the sole Logger.
+
+- Loggers: these nodes should simply be spending their time writing out
+  logs to disk and not used for much else.  In the default cluster
+  configuration, logs get distributed among available loggers in a
+  round-robin fashion, providing failover capability should any given
+  logger temporarily go offline.
+
+Data Management/Sharing Strategies
+==================================
 
 There's maybe no single, best approach or pattern to use when you need a
-Bro script to store long-term state and data.  The two approaches that
-were previously used were either using ``&synchronized`` attribute on
-tables/sets or by explicitly sending events to specific nodes on which
-you wanted data to be stored.  The former is no longer possible, though
-there are several new possibilities that the new Broker/Cluster
-framework offer, namely distributed data store and data partitioning
-APIs.
+Bro script to store or share long-term state and data.  The two
+approaches that were previously used were either using ``&synchronized``
+attribute on tables/sets or by explicitly sending events to specific
+nodes on which you wanted data to be stored.  The former is no longer
+possible, though there are several new possibilities that the new
+Broker/Cluster framework offer, namely distributed data store and data
+partitioning APIs.
 
 Data Stores
 -----------
@@ -158,9 +206,12 @@ Remote Events
 
 To receive remote events, you need to first subscribe to a "topic" to which
 the events are being sent.  A topic is just a string chosen by the sender,
-and named in a way that helps organize events into various categories.  Use
-the :bro:see:`Broker::subscribe` function to subscribe to topics and define
-any event handlers for events that peers will send.
+and named in a way that helps organize events into various categories.
+See the :ref:`topic naming conventions section <broker_topic_naming>` for
+more on how topics work and are chosen.
+
+Use the :bro:see:`Broker::subscribe` function to subscribe to topics and
+define any event handlers for events that peers will send.
 
 .. btest-include:: ${DOC_ROOT}/frameworks/broker/events-listener.bro
 
@@ -230,3 +281,58 @@ time relative to the entry's last modification time.
 
 Note that all data store queries must be made within Bro's asynchronous
 ``when`` statements and must specify a timeout block.
+
+.. _broker_topic_naming:
+
+Topic Naming Conventions
+------------------------
+
+Broker itself supports a publish/subscribe communication pattern using
+arbitrary topic name strings, however Bro generally follows certain
+conventions in choosing these topics to help avoid conflicts and generally
+make them easier to remember.
+
+As a reminder of how topic subscriptions work, subscribers advertise
+interest in a topic **prefix** and then receive any messages publish by a
+peer to a topic name that starts with that prefix.  E.g. Alice
+subscribes to the "alice/dogs" prefix, then would receive the following
+message topics published by Bob:
+
+- topic "alice/dogs/corgi"
+- topic "alice/dogs"
+- topic "alice/dogsarecool/oratleastilikethem"
+
+Alice would **not** receive the following message topics published by Bob:
+
+- topic "alice/cats/siamese"
+- topic "alice/cats"
+- topic "alice/dog"
+- topic "alice"
+
+Note that the topics aren't required to form a slash-delimited hierarchy,
+the subscription matching is purely a byte-per-byte prefix comparison.
+
+However, Bro scripts generally will follow a topic naming hierarchy and
+any given script will make the topic names it uses apparent via some
+redef'able constant in its export section.  Generally topics that Bro
+scripts use will be along the lines of "bro/<namespace>/<specifics>"
+with "<namespace>" being the script's module name (in all-undercase).
+For example, you might expect an imaginary "Pretend" framework to
+publish/subscribe using topic names like "bro/pretend/my_cool_event".
+
+For cluster operation, see :doc:`/scripts/base/frameworks/cluster/main.bro`
+for a list of topics that are useful for steering published events to
+the various node classes.  E.g. you have the ability to broadcast to all
+directly-connected nodes, only those of a given class (e.g. just workers),
+or to a specific node within a class.
+
+The topic names that logs get published under are a bit nuanced.  In the
+default cluster configuration, they are round-robin published to
+explicit topic names that identify a single logger.  In standalone Bro
+processes, logs get published to the topic indicated by
+:bro:see:`Broker::default_log_topic_prefix`.
+
+For those writing their own scripts which need new topic names, a
+suggestion would be to avoid prefixing any new topics/prefixes with
+"bro/" as any changes in scripts shipping with Bro will use that prefix
+and it's better to not risk unintended conflicts.

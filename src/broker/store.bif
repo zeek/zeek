@@ -38,6 +38,7 @@ enum BackendType %{
 function Broker::__create_master%(id: string, b: BackendType,
                                   options: BackendOptions &default = BackendOptions()%): opaque of Broker::Store
 	%{
+	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto name = id->CheckString();
 	auto rval = broker_mgr->LookupStore(name);
 
@@ -66,6 +67,7 @@ function Broker::__create_clone%(id: string, resync_interval: interval,
                                  stale_interval: interval,
                                  mutation_buffer_interval: interval%): opaque of Broker::Store
 	%{
+	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto name = id->CheckString();
 	auto rval = broker_mgr->LookupStore(name);
 
@@ -88,6 +90,8 @@ function Broker::__create_clone%(id: string, resync_interval: interval,
 
 function Broker::__is_closed%(h: opaque of Broker::Store%): bool
 	%{
+	bro_broker::Manager::ScriptScopeGuard ssg;
+
 	if ( ! h )
 		{
 		builtin_error("invalid Broker store handle");
@@ -100,6 +104,8 @@ function Broker::__is_closed%(h: opaque of Broker::Store%): bool
 
 function Broker::__close%(h: opaque of Broker::Store%): bool
 	%{
+	bro_broker::Manager::ScriptScopeGuard ssg;
+
 	if ( ! h )
 		{
 		builtin_error("invalid Broker store handle");

@@ -52,6 +52,8 @@ enum PeerStatus %{
 
 function Broker::__listen%(a: string, p: port%): port
 	%{
+	bro_broker::Manager::ScriptScopeGuard ssg;
+
 	if ( ! p->IsTCP() )
 		{
 		builtin_error("listen port must use tcp");
@@ -64,6 +66,8 @@ function Broker::__listen%(a: string, p: port%): port
 
 function Broker::__peer%(a: string, p: port, retry: interval%): bool
 	%{
+	bro_broker::Manager::ScriptScopeGuard ssg;
+
 	if ( ! p->IsTCP() )
 		{
 		builtin_error("remote connection port must use tcp");
@@ -76,6 +80,8 @@ function Broker::__peer%(a: string, p: port, retry: interval%): bool
 
 function Broker::__unpeer%(a: string, p: port%): bool
 	%{
+	bro_broker::Manager::ScriptScopeGuard ssg;
+
 	if ( ! p->IsTCP() )
 		{
 		builtin_error("remote connection port must use tcp");
@@ -88,6 +94,7 @@ function Broker::__unpeer%(a: string, p: port%): bool
 
 function Broker::__peers%(%): PeerInfos
 	%{
+	bro_broker::Manager::ScriptScopeGuard ssg;
 	VectorVal* rval = new VectorVal(internal_type("Broker::PeerInfos")->AsVectorType());
 	auto i = 0;
 
@@ -128,5 +135,6 @@ function Broker::__peers%(%): PeerInfos
 
 function Broker::__node_id%(%): string
 	%{
+	bro_broker::Manager::ScriptScopeGuard ssg;
 	return new StringVal(broker_mgr->NodeID());
 	%}

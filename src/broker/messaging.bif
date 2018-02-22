@@ -51,6 +51,7 @@ std::set<std::string> val_to_topic_set(Val* val)
 static bool publish_event_args(val_list& args, const BroString* topic,
                                Frame* frame)
 	{
+	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = false;
 
 	if ( args[0]->Type()->Tag() == TYPE_RECORD )
@@ -69,6 +70,7 @@ static bool publish_event_args(val_list& args, const BroString* topic,
 static bool relay_event_args(val_list& args, const BroString* topic,
                              std::set<std::string> topic_set, Frame* frame)
 	{
+	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = false;
 
 	if ( args[0]->Type()->Tag() == TYPE_RECORD )
@@ -103,6 +105,7 @@ type Broker::Event: record;
 ##          event.
 function Broker::make_event%(...%): Broker::Event
 	%{
+	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->MakeEvent(@ARGS@, frame);
 	return rval;
 	%}
@@ -145,6 +148,7 @@ function Broker::publish%(topic: string, ...%): bool
 ## Returns: true if the message is sent.
 function Broker::relay%(first_topic: string, ...%): bool
 	%{
+	bro_broker::Manager::ScriptScopeGuard ssg;
 	val_list* bif_args = @ARGS@;
 
 	if ( bif_args->length() < 3 )
@@ -191,6 +195,7 @@ function Broker::relay%(first_topic: string, ...%): bool
 
 function Broker::__publish_id%(topic: string, id: string%): bool
 	%{
+	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->PublishIdentifier(topic->CheckString(),
 	                                          id->CheckString());
 	return new Val(rval, TYPE_BOOL);
@@ -198,24 +203,28 @@ function Broker::__publish_id%(topic: string, id: string%): bool
 
 function Broker::__auto_publish%(topic: string, ev: any%): bool
 	%{
+	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->AutoPublishEvent(topic->CheckString(), ev);
 	return new Val(rval, TYPE_BOOL);
 	%}
 
 function Broker::__auto_unpublish%(topic: string, ev: any%): bool
 	%{
+	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->AutoUnpublishEvent(topic->CheckString(), ev);
 	return new Val(rval, TYPE_BOOL);
 	%}
 
 function Broker::__subscribe%(topic_prefix: string%): bool
 	%{
+	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->Subscribe(topic_prefix->CheckString());
 	return new Val(rval, TYPE_BOOL);
 	%}
 
 function Broker::__unsubscribe%(topic_prefix: string%): bool
 	%{
+	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->Unsubscribe(topic_prefix->CheckString());
 	return new Val(rval, TYPE_BOOL);
 	%}

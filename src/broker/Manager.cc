@@ -38,6 +38,7 @@ EnumType* Manager::writer_id_type;
 int Manager::send_flags_self_idx;
 int Manager::send_flags_peers_idx;
 int Manager::send_flags_unsolicited_idx;
+int Manager::script_scope = 0;
 
 struct unref_guard {
 	unref_guard(Val* v) : val(v) {}
@@ -212,8 +213,8 @@ uint16_t Manager::Listen(const string& addr, uint16_t port)
 	bound_port = bstate->endpoint.listen(addr, port);
 
 	if ( bound_port == 0 )
-		reporter->Error("Failed to listen on %s:%" PRIu16,
-		                addr.empty() ? "INADDR_ANY" : addr.c_str(), port);
+		Error("Failed to listen on %s:%" PRIu16,
+		      addr.empty() ? "INADDR_ANY" : addr.c_str(), port);
 
 	// Register as a "does-count" source now.
 	iosource_mgr->Register(this, false);
@@ -388,8 +389,8 @@ bool Manager::PublishIdentifier(std::string topic, std::string id)
 
 	if ( ! data )
 		{
-		reporter->Error("Failed to publish ID with unsupported type: %s (%s)",
-		                id.c_str(), type_name(val->Type()->Tag()));
+		Error("Failed to publish ID with unsupported type: %s (%s)",
+		      id.c_str(), type_name(val->Type()->Tag()));
 		return false;
 		}
 
@@ -572,26 +573,39 @@ void Manager::FlushLogBuffers()
 		lb.Flush(Endpoint());
 	}
 
+void Manager::Error(const char* format, ...)
+	{
+	va_list args;
+	va_start(args, format);
+	auto msg = fmt(format, args);
+	va_end(args);
+
+	if ( script_scope )
+		builtin_error(msg);
+	else
+		reporter->Error("%s", msg);
+	}
+
 bool Manager::AutoPublishEvent(string topic, Val* event)
 	{
 	if ( event->Type()->Tag() != TYPE_FUNC )
 		{
-		reporter->Error("Broker::auto_publish must operate on an event");
+		Error("Broker::auto_publish must operate on an event");
 		return false;
 		}
 
 	auto event_val = event->AsFunc();
 	if ( event_val->Flavor() != FUNC_FLAVOR_EVENT )
 		{
-		reporter->Error("Broker::auto_publish must operate on an event");
+		Error("Broker::auto_publish must operate on an event");
 		return false;
 		}
 
 	auto handler = event_registry->Lookup(event_val->Name());
 	if ( ! handler )
 		{
-		reporter->Error("Broker::auto_publish failed to lookup event '%s'",
-		                event_val->Name());
+		Error("Broker::auto_publish failed to lookup event '%s'",
+		      event_val->Name());
 		return false;
 		}
 
@@ -605,7 +619,7 @@ bool Manager::AutoUnpublishEvent(const string& topic, Val* event)
 	{
 	if ( event->Type()->Tag() != TYPE_FUNC )
 		{
-		reporter->Error("Broker::auto_event_stop must operate on an event");
+		Error("Broker::auto_event_stop must operate on an event");
 		return false;
 		}
 
@@ -613,7 +627,7 @@ bool Manager::AutoUnpublishEvent(const string& topic, Val* event)
 
 	if ( event_val->Flavor() != FUNC_FLAVOR_EVENT )
 		{
-		reporter->Error("Broker::auto_event_stop must operate on an event");
+		Error("Broker::auto_event_stop must operate on an event");
 		return false;
 		}
 
@@ -621,8 +635,8 @@ bool Manager::AutoUnpublishEvent(const string& topic, Val* event)
 
 	if ( ! handler )
 		{
-		reporter->Error("Broker::auto_event_stop failed to lookup event '%s'",
-		                event_val->Name());
+		Error("Broker::auto_event_stop failed to lookup event '%s'",
+		      event_val->Name());
 		return false;
 		}
 
@@ -651,7 +665,7 @@ RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 
 			if ( arg_val->Type()->Tag() != TYPE_FUNC )
 				{
-				reporter->Error("1st param of Broker::event_args must be event");
+				Error("attempt to convert non-event into an event type");
 				return rval;
 				}
 
@@ -659,7 +673,7 @@ RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 
 			if ( func->Flavor() != FUNC_FLAVOR_EVENT )
 				{
-				reporter->Error("1st param of Broker::event_args must be event");
+				Error("attempt to convert non-event into an event type");
 				return rval;
 				}
 
@@ -667,8 +681,8 @@ RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 
 			if ( num_args != args->length() - 1 )
 				{
-				reporter->Error("bad # of Broker::event_args: got %d, expect %d",
-				                args->length(), num_args + 1);
+				Error("bad # of arguments: got %d, expect %d",
+				      args->length(), num_args + 1);
 				return rval;
 				}
 
@@ -676,12 +690,15 @@ RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 			continue;
 			}
 
+		auto got_type = (*args)[i]->Type();
 		auto expected_type = (*func->FType()->ArgTypes()->Types())[i - 1];
 
-		if ( ! same_type((*args)[i]->Type(), expected_type) )
+		if ( ! same_type(got_type, expected_type) )
 			{
 			rval->Assign(0, 0);
-			reporter->Error("Broker::event_args param %d type mismatch", i);
+			Error("event parameter #%d type mismatch, got %s, expect %s", i,
+			      type_name(got_type->Tag()),
+			      type_name(expected_type->Tag()));
 			return rval;
 			}
 
@@ -691,7 +708,8 @@ RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 			{
 			Unref(data_val);
 			rval->Assign(0, 0);
-			reporter->Error("Broker::event_args unsupported event/params");
+			Error("failed to convert param #%d of type %s to broker data",
+				  i, type_name(got_type->Tag()));
 			return rval;
 			}
 
@@ -868,13 +886,18 @@ void Manager::ProcessEvent(broker::bro::Event ev)
 
 	for ( auto i = 0u; i < args.size(); ++i )
 		{
-		auto val = data_to_val(std::move(args[i]), (*arg_types)[i]);
+		auto got_type = args[i].get_type_name();
+		auto expected_type = (*arg_types)[i];
+		auto val = data_to_val(std::move(args[i]), expected_type);
 
 		if ( val )
 			vl->append(val);
 		else
 			{
-			reporter->Warning("failed to convert remote event arg # %d", i);
+			reporter->Warning("failed to convert remote event '%s' arg #%d,"
+			                  " got %s, expected %s",
+			                  ev.name().data(), i, got_type,
+			                  type_name(expected_type->Tag()));
 			break;
 			}
 		}
@@ -1250,8 +1273,8 @@ StoreHandleVal* Manager::MakeMaster(const string& name, broker::backend type,
 	auto result = bstate->endpoint.attach_master(name, type, move(opts));
 	if ( ! result )
 		{
-		reporter->Error("Failed to attach master store %s:",
-		                to_string(result.error()).c_str());
+		Error("Failed to attach master store %s:",
+		      to_string(result.error()).c_str());
 		return nullptr;
 		}
 
@@ -1280,8 +1303,8 @@ StoreHandleVal* Manager::MakeClone(const string& name, double resync_interval,
 	                                            mutation_buffer_interval);
 	if ( ! result )
 		{
-		reporter->Error("Failed to attach clone store %s:",
-		                to_string(result.error()).c_str());
+		Error("Failed to attach clone store %s:",
+		      to_string(result.error()).c_str());
 		return nullptr;
 		}
 

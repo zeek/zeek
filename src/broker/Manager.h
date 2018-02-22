@@ -307,6 +307,16 @@ public:
 	 */
 	const Stats& GetStatistics();
 
+	/**
+	 * Creating an instance of this struct simply helps the manager
+	 * keep track of whether calls into its API are coming from script
+	 * layer BIFs so that error messages can emit useful call site info.
+	 */
+	struct ScriptScopeGuard {
+		ScriptScopeGuard() { ++script_scope; }
+		~ScriptScopeGuard() { --script_scope; }
+	};
+
 private:
 
 	class BrokerState {
@@ -327,6 +337,9 @@ private:
 	void ProcessError(broker::error err);
 	void ProcessStoreResponse(StoreHandleVal*, broker::store::response response);
 	void FlushLogBuffers();
+
+	void Error(const char* format, ...)
+		__attribute__((format (printf, 2, 3)));
 
 	// IOSource interface overrides:
 	void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
@@ -378,6 +391,7 @@ private:
 
 	Stats statistics;
 	double next_timestamp;
+	static int script_scope;
 
 	static VectorType* vector_of_data_type;
 	static EnumType* log_id_type;

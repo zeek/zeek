@@ -542,7 +542,7 @@ const char* fmt_bytes(const char* data, int len)
 	return buf;
 	}
 
-const char* fmt(const char* format, ...)
+const char* fmt(const char* format, va_list al)
 	{
 	static char* buf = 0;
 	static unsigned int buf_len = 1024;
@@ -550,26 +550,32 @@ const char* fmt(const char* format, ...)
 	if ( ! buf )
 		buf = (char*) safe_malloc(buf_len);
 
-	va_list al;
-	va_start(al, format);
+	va_list alc;
+	va_copy(alc, al);
 	int n = safe_vsnprintf(buf, buf_len, format, al);
-	va_end(al);
 
 	if ( (unsigned int) n >= buf_len )
 		{ // Not enough room, grow the buffer.
 		buf_len = n + 32;
 		buf = (char*) safe_realloc(buf, buf_len);
 
-		// Is it portable to restart?
-		va_start(al, format);
-		n = safe_vsnprintf(buf, buf_len, format, al);
-		va_end(al);
+		n = safe_vsnprintf(buf, buf_len, format, alc);
 
 		if ( (unsigned int) n >= buf_len )
 			reporter->InternalError("confusion reformatting in fmt()");
 		}
 
+	va_end(alc);
 	return buf;
+	}
+
+const char* fmt(const char* format, ...)
+	{
+	va_list al;
+	va_start(al, format);
+	auto rval = fmt(format, al);
+	va_end(al);
+	return rval;
 	}
 
 const char* fmt_access_time(double t)

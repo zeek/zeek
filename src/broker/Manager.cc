@@ -35,9 +35,6 @@ const broker::endpoint_info Manager::NoPeer{{}, {}};
 VectorType* Manager::vector_of_data_type;
 EnumType* Manager::log_id_type;
 EnumType* Manager::writer_id_type;
-int Manager::send_flags_self_idx;
-int Manager::send_flags_peers_idx;
-int Manager::send_flags_unsolicited_idx;
 int Manager::script_scope = 0;
 
 struct unref_guard {

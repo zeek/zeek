@@ -396,9 +396,6 @@ private:
 	static VectorType* vector_of_data_type;
 	static EnumType* log_id_type;
 	static EnumType* writer_id_type;
-	static int send_flags_self_idx;
-	static int send_flags_peers_idx;
-	static int send_flags_unsolicited_idx;
 };
 
 } // namespace bro_broker

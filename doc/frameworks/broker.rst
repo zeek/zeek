@@ -180,8 +180,8 @@ crashing, etc.) cause a temporary gap in the total data set until
 workers start hashing keys to a new proxy node that is still alive,
 causing data to now be located and updated there.
 
-New Broker Framework
-====================
+Broker Framework Examples
+=========================
 
 The broker framework provides basic facilities for connecting Bro instances
 to eachother and exchanging messages, like events or logs.
@@ -345,3 +345,136 @@ time relative to the entry's last modification time.
 Note that all data store queries must be made within Bro's asynchronous
 ``when`` statements and must specify a timeout block.
 
+Cluster Framework Examples
+==========================
+
+This section contains a few brief examples of how various communication
+patterns one might use when developing Bro scripts that are to operate in
+the context of a cluster.
+
+Manager Sending Events To Workers
+---------------------------------
+
+This is fairly straightforward, we just need a topic name which we know
+all workers are subscribed combined with the event we want to send them.
+
+.. code:: bro
+
+    event manager_to_workers(s: string)
+        {
+        print "got event from manager", s;
+        }
+
+    event some_event_handled_on_manager()
+        {
+        Broker::publish(Cluster::worker_topic, manager_to_workers,
+                        "hello v0");
+
+        # If you know this event is only handled on the manager, you don't
+        # need any of the following conditions, they're just here as an
+        # example of how you can further discriminate based on node identity.
+
+        # Can check based on the name of the node.
+        if ( Cluster::node == "manager" )
+            Broker::publish(Cluster::worker_topic, manager_to_workers,
+                            "hello v1");
+
+        # Can check based on the type of the node.
+        if ( Cluster::local_node_type() == Cluster::MANAGER )
+            Broker::publish(Cluster::worker_topic, manager_to_workers,
+                            "hello v2");
+
+        # The run-time overhead of the above conditions can even be
+        # eliminated by using the following conditional directives.
+        # It's evaluated once per node at parse-time and, if false,
+        # any code within is just ignored / treated as not existing at all.
+        @if ( Cluster::local_node_type() == Cluster::MANAGER )
+            Broker::publish(Cluster::worker_topic, manager_to_workers,
+                            "hello v3");
+        @endif
+        }
+
+Worker Sending Events To Manager
+--------------------------------
+
+This should look almost identical to the previous case of sending an event
+from the manager to workers, except it simply changes the topic name to
+one which the manager is subscribed.
+
+.. code:: bro
+
+    event worker_to_manager(worker_name: string)
+        {
+        print "got event from worker", worker_name;
+        }
+
+    event some_event_handled_on_worker()
+        {
+        Broker::publish(Cluster::manager_topic, worker_to_manager,
+                        Cluster::node);
+        }
+
+Worker Sending Events To All Workers
+------------------------------------
+
+Since workers are not directly connected to each other in the cluster
+topology, this type of communication is a bit different than what we
+did before.  Instead of using :bro:see:`Broker::publish` we use different
+"relay" calls to hop the message from a different node that *is* connected.
+
+.. code:: bro
+
+    event worker_to_workers(worker_name: string)
+        {
+        print "got event from worker", worker_name;
+        }
+
+    event some_event_handled_on_worker()
+        {
+        # We know the manager is connected to all workers, so we could
+        # choose to relay the event across it.  Note that sending the event
+        # this way will not allow the manager to handle it, even if it
+        # does have an event handler.
+        Broker::relay(Cluster::manager_topic, Cluster::worker_topic,
+                      worker_to_workers, Cluster::node + " (via manager)");
+
+        # We also know that any given proxy is connected to all workers,
+        # though now we have a choice of which proxy to use.  If we
+        # want to distribute the work associated with relaying uniformly,
+        # we can use a round-robin strategy.  The key used here is simply
+        # used by the cluster framework internally to keep track of the
+        # which node is up next in the round-robin.
+        Cluster::relay_rr(Cluster::proxy_pool, "example_key",
+                          Cluster::worker_topic, worker_to_workers,
+                          Cluster::node + " (via a proxy)");
+        }
+
+Worker Distributing Events Uniformly Across Proxies
+---------------------------------------------------
+
+If you want to offload some data/work from a worker to your proxies,
+we can make use of a `Highest Random Weight (HRW) hashing
+<https://en.wikipedia.org/wiki/Rendezvous_hashing>`_ distribution strategy
+to uniformly map an arbitrary key space across all available proxies.
+
+.. code:: bro
+
+    event worker_to_proxies(worker_name: string)
+        {
+        print "got event from worker", worker_name;
+        }
+
+    global my_counter = 0;
+
+    event some_event_handled_on_worker()
+        {
+        # The key here is used to choose which proxy shall receive
+        # the event.  Different keys may map to different nodes, but
+        # any given key always maps to the same node provided the
+        # pool of nodes remains consistent.  If a proxy goes offline,
+        # that key maps to a different node until the original comes
+        # back up.
+        Cluster::publish_hrw(Cluster::proxy_pool,
+                             cat("example_key", ++my_counter),
+                             worker_to_proxies, Cluster::node);
+        }

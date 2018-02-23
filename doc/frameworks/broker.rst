@@ -18,14 +18,16 @@ Broker-Enabled Communication/Cluster Framework
     context of Bro, with Bro itself making use of only a few predefined
     Broker message formats that represent Bro events, log entries, etc.
 
-    With this comes changes in how clusters operate and, since Broker
-    significantly differs from the previous communication framework,
-    there are several changes in the set of scripts that Bro ships with
-    that may break your own customizations.  This document aims to
-    describe the changes that have been made, making it easier to port
-    your own scripts.  It also gives examples of Broker and the new
-    cluster framework that show off all the new features and
-    capabilities.
+    In summary, the Bro's Broker framework provides basic facilities for
+    connecting broker-enabled peers (e.g. Bro instances) to each other
+    and exchanging messages (e.g. events and logs).  With this comes
+    changes in how clusters operate and, since Broker significantly
+    differs from the previous communication framework, there are several
+    changes in the set of scripts that Bro ships with that may break
+    your own customizations.  This document aims to describe the changes
+    that have been made, making it easier to port your own scripts.  It
+    also gives examples of Broker and the new cluster framework that
+    show off all the new features and capabilities.
 
 .. contents::
 
@@ -187,6 +189,67 @@ to eachother and exchanging messages, like events or logs.
 See :doc:`/scripts/base/frameworks/broker/main.bro` for an overview
 of the main Broker API.
 
+.. _broker_topic_naming:
+
+Topic Naming Conventions
+------------------------
+
+All Broker-based messaging involves two components: the information you
+want to send (e.g. an event w/ its arguments) along with an associated
+topic name string.  The topic strings are used as a filtering mechanism:
+Broker uses a publish/subscribe communication pattern where peers
+advertise interest in topic **prefixes** and only receive messages which
+match one of their prefix subscriptions.
+
+Broker itself supports arbitrary topic strings, however Bro generally
+follows certain conventions in choosing these topics to help avoid
+conflicts and generally make them easier to remember.
+
+As a reminder of how topic subscriptions work, subscribers advertise
+interest in a topic **prefix** and then receive any messages publish by a
+peer to a topic name that starts with that prefix.  E.g. Alice
+subscribes to the "alice/dogs" prefix, then would receive the following
+message topics published by Bob:
+
+- topic "alice/dogs/corgi"
+- topic "alice/dogs"
+- topic "alice/dogsarecool/oratleastilikethem"
+
+Alice would **not** receive the following message topics published by Bob:
+
+- topic "alice/cats/siamese"
+- topic "alice/cats"
+- topic "alice/dog"
+- topic "alice"
+
+Note that the topics aren't required to form a slash-delimited hierarchy,
+the subscription matching is purely a byte-per-byte prefix comparison.
+
+However, Bro scripts generally will follow a topic naming hierarchy and
+any given script will make the topic names it uses apparent via some
+redef'able constant in its export section.  Generally topics that Bro
+scripts use will be along the lines of "bro/<namespace>/<specifics>"
+with "<namespace>" being the script's module name (in all-undercase).
+For example, you might expect an imaginary "Pretend" framework to
+publish/subscribe using topic names like "bro/pretend/my_cool_event".
+
+For cluster operation, see :doc:`/scripts/base/frameworks/cluster/main.bro`
+for a list of topics that are useful for steering published events to
+the various node classes.  E.g. you have the ability to broadcast to all
+directly-connected nodes, only those of a given class (e.g. just workers),
+or to a specific node within a class.
+
+The topic names that logs get published under are a bit nuanced.  In the
+default cluster configuration, they are round-robin published to
+explicit topic names that identify a single logger.  In standalone Bro
+processes, logs get published to the topic indicated by
+:bro:see:`Broker::default_log_topic_prefix`.
+
+For those writing their own scripts which need new topic names, a
+suggestion would be to avoid prefixing any new topics/prefixes with
+"bro/" as any changes in scripts shipping with Bro will use that prefix
+and it's better to not risk unintended conflicts.
+
 Connecting to Peers
 -------------------
 
@@ -282,57 +345,3 @@ time relative to the entry's last modification time.
 Note that all data store queries must be made within Bro's asynchronous
 ``when`` statements and must specify a timeout block.
 
-.. _broker_topic_naming:
-
-Topic Naming Conventions
-------------------------
-
-Broker itself supports a publish/subscribe communication pattern using
-arbitrary topic name strings, however Bro generally follows certain
-conventions in choosing these topics to help avoid conflicts and generally
-make them easier to remember.
-
-As a reminder of how topic subscriptions work, subscribers advertise
-interest in a topic **prefix** and then receive any messages publish by a
-peer to a topic name that starts with that prefix.  E.g. Alice
-subscribes to the "alice/dogs" prefix, then would receive the following
-message topics published by Bob:
-
-- topic "alice/dogs/corgi"
-- topic "alice/dogs"
-- topic "alice/dogsarecool/oratleastilikethem"
-
-Alice would **not** receive the following message topics published by Bob:
-
-- topic "alice/cats/siamese"
-- topic "alice/cats"
-- topic "alice/dog"
-- topic "alice"
-
-Note that the topics aren't required to form a slash-delimited hierarchy,
-the subscription matching is purely a byte-per-byte prefix comparison.
-
-However, Bro scripts generally will follow a topic naming hierarchy and
-any given script will make the topic names it uses apparent via some
-redef'able constant in its export section.  Generally topics that Bro
-scripts use will be along the lines of "bro/<namespace>/<specifics>"
-with "<namespace>" being the script's module name (in all-undercase).
-For example, you might expect an imaginary "Pretend" framework to
-publish/subscribe using topic names like "bro/pretend/my_cool_event".
-
-For cluster operation, see :doc:`/scripts/base/frameworks/cluster/main.bro`
-for a list of topics that are useful for steering published events to
-the various node classes.  E.g. you have the ability to broadcast to all
-directly-connected nodes, only those of a given class (e.g. just workers),
-or to a specific node within a class.
-
-The topic names that logs get published under are a bit nuanced.  In the
-default cluster configuration, they are round-robin published to
-explicit topic names that identify a single logger.  In standalone Bro
-processes, logs get published to the topic indicated by
-:bro:see:`Broker::default_log_topic_prefix`.
-
-For those writing their own scripts which need new topic names, a
-suggestion would be to avoid prefixing any new topics/prefixes with
-"bro/" as any changes in scripts shipping with Bro will use that prefix
-and it's better to not risk unintended conflicts.

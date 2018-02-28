@@ -8,6 +8,7 @@
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff worker-1/.stdout
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff worker-2/.stdout
 # @TEST-EXEC: btest-diff manager-1/intel.log
+# @TEST-EXEC: btest-diff manager-1/reporter.log
 
 @TEST-START-FILE cluster-layout.bro
 redef Cluster::nodes = {
@@ -17,13 +18,11 @@ redef Cluster::nodes = {
 };
 @TEST-END-FILE
 
-@load base/frameworks/control
-
 module Intel;
 
 redef Log::default_rotation_interval=0sec;
 
-event remote_connection_handshake_done(p: event_peer)
+event Cluster::node_up(name: string, id: string)
 	{
 	# Insert the data once both workers are connected.
 	if ( Cluster::local_node_type() == Cluster::MANAGER && Cluster::worker_count == 2 )
@@ -34,12 +33,10 @@ event remote_connection_handshake_done(p: event_peer)
 
 global worker2_data = 0;
 global sent_data = F;
-event Intel::cluster_new_item(item: Intel::Item)
+# Watch for new indicators send to workers.
+event Intel::insert_indicator(item: Intel::Item)
 	{
-	if ( ! is_remote_event() )
-		return;
-
-	print fmt("cluster_new_item: %s inserted by %s (from peer: %s)", item$indicator, item$meta$source, get_event_peer()$descr);
+	print fmt("new_indicator: %s inserted by %s", item$indicator, item$meta$source);
 
 	if ( ! sent_data )
 		{
@@ -67,14 +64,26 @@ event Intel::cluster_new_item(item: Intel::Item)
 		}
 	}
 
-event Intel::log_intel(rec: Intel::Info)
+# Watch for remote inserts sent to the manager.
+event Intel::insert_item(item: Intel::Item)
 	{
-	event Control::shutdown_request();
+	print fmt("insert_item: %s inserted by %s", item$indicator, item$meta$source);
 	}
 
-event remote_connection_closed(p: event_peer)
+# Watch for new items.
+event Intel::new_item(item: Intel::Item)
+	{
+	print fmt("new_item triggered for %s by %s on %s", item$indicator,
+			item$meta$source, Cluster::node);
+	}
+
+event Intel::log_intel(rec: Intel::Info)
+	{
+	terminate();
+	}
+
+event Cluster::node_down(name: string, id: string)
 	{
 	# Cascading termination
-	#print fmt("disconnected from: %s", p);
-	terminate_communication();
+	terminate();
 	}

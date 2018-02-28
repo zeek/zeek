@@ -3,9 +3,9 @@
 #empty_field	(empty)
 #unset_field	-
 #path	reporter
-#open	2017-02-11-16-36-40
+#open	2018-02-27-17-25-30
 #fields	ts	level	message	location
 #types	time	enum	string	string
-0.000000	Reporter::INFO	Tried to remove non-existing item '192.168.1.1' (Intel::ADDR).	/home/johanna/bro/master/scripts/base/frameworks/intel/./main.bro, lines 520-521
+0.000000	Reporter::INFO	Tried to remove non-existing item '192.168.1.1' (Intel::ADDR).	/home/jgras/devel/bro/scripts/base/frameworks/intel/./main.bro, lines 547-548
 0.000000	Reporter::INFO	received termination signal	(empty)
-#close	2017-02-11-16-36-40
+#close	2018-02-27-17-25-30

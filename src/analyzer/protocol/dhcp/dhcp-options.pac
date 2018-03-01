@@ -1,4 +1,3 @@
-
 ##############################
 # SUBNET OPTION
 ##############################
@@ -6,19 +5,86 @@ let SUBNET_OPTION = 1;
 
 # Parse the option
 refine casetype OptionValue += {
-	SUBNET_OPTION -> mask : uint32;
+	SUBNET_OPTION -> subnet : uint32;
 };
 
 refine flow DHCP_Flow += {
 	function process_subnet_option(v: OptionValue): bool
 		%{
-		${context.flow}->options->Assign(0, new AddrVal(htonl(${v.mask})));
+		${context.flow}->options->Assign(1, new AddrVal(htonl(${v.subnet})));
 		return true;
 		%}
 };
 
 refine typeattr Option += &let {
-	proc_subnet_option = $context.flow.process_subnet_option(info) &if(code==SUBNET_OPTION);
+	proc_subnet_option = $context.flow.process_subnet_option(info.value) &if(code==SUBNET_OPTION);
+};
+
+
+##############################
+# ROUTER OPTION
+##############################
+let ROUTER_OPTION = 3;
+
+# Parse the option
+refine casetype OptionValue += {
+	ROUTER_OPTION -> router_list : uint32[length/4];
+};
+
+refine flow DHCP_Flow += {
+	function process_router_option(v: OptionValue): bool
+		%{
+		VectorVal* router_list = new VectorVal(BifType::Vector::DHCP::Addrs);
+		int num_routers = ${v.router_list}->size();
+		vector<uint32>* rlist = ${v.router_list};
+
+		for ( int i = 0; i < num_routers; ++i )
+			{
+			uint32 raddr = (*rlist)[i];
+			router_list->Assign(i, new AddrVal(htonl(raddr)));
+			}
+
+		${context.flow}->options->Assign(2, router_list);
+
+		return true;
+		%}
+};
+
+refine typeattr Option += &let {
+	proc_router_option = $context.flow.process_router_option(info.value) &if(code==ROUTER_OPTION);
+};
+
+
+##############################
+# DNS SERVER OPTION
+##############################
+let DNS_SERVER_OPTION = 6;
+
+# Parse the option
+refine casetype OptionValue += {
+	DNS_SERVER_OPTION -> dns_server_list : uint32[length/4];
+};
+
+refine flow DHCP_Flow += {
+	function process_dns_server_option(v: OptionValue): bool
+		%{
+		VectorVal* server_list = new VectorVal(BifType::Vector::DHCP::Addrs);
+		int num_servers = ${v.dns_server_list}->size();
+		vector<uint32>* rlist = ${v.dns_server_list};
+
+		for ( int i = 0; i < num_servers; ++i )
+			{
+			uint32 raddr = (*rlist)[i];
+			server_list->Assign(i, new AddrVal(htonl(raddr)));
+			}
+
+		${context.flow}->options->Assign(3, server_list);
+		return true;
+		%}
+};
+
+refine typeattr Option += &let {
+	proc_dns_server_option = $context.flow.process_dns_server_option(info.value) &if(code==DNS_SERVER_OPTION);
 };
 
 
@@ -35,76 +101,177 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_host_name_option(v: OptionValue): bool
 		%{
-		${context.flow}->options->Assign(1, new StringVal(${v.host_name}.length(), (const char*) ${v.host_name}.begin()));
+		${context.flow}->options->Assign(4, new StringVal(${v.host_name}.length(),
+		                                                  reinterpret_cast<const char*>(${v.host_name}.begin())));
 
 		return true;
 		%}
 };
 
 refine typeattr Option += &let {
-	proc_host_name_option = $context.flow.process_host_name_option(info) &if(code==HOST_NAME_OPTION);
+	proc_host_name_option = $context.flow.process_host_name_option(info.value) &if(code==HOST_NAME_OPTION);
 };
 
 
 ##############################
-# REQ IP OPTION
+# DOMAIN NAME OPTION
 ##############################
-let REQ_IP_OPTION = 50;
+let DOMAIN_NAME_OPTION = 15;
 
 # Parse the option
 refine casetype OptionValue += {
-	REQ_IP_OPTION -> req_addr : uint32;
+	DOMAIN_NAME_OPTION -> domain_name : bytestring &length=length;
 };
 
 refine flow DHCP_Flow += {
-	function process_req_ip_option(v: OptionValue): bool
+	function process_domain_name_option(v: OptionValue): bool
 		%{
-		${context.flow}->options->Assign(2, new AddrVal(htonl(${v.req_addr})));
-
-		return true;
-		%}
-};
-
-refine typeattr Option += &let {
-	proc_req_ip_option = $context.flow.process_req_ip_option(info) &if(code==REQ_IP_OPTION);
-};
-
-##############################
-# ROUTER OPTION
-##############################
-let ROUTER_OPTION = 3;
-
-# Parse the option
-refine casetype OptionValue += {
-	ROUTER_OPTION -> router_list : uint32[length/4];
-};
-
-refine flow DHCP_Flow += {
-	function process_router_option(v: OptionValue): bool
-		%{
-		TableVal* router_list = new TableVal(BifType::Table::DHCP::RouterList);
-		int num_routers = ${v.router_list}->size();
-		vector<uint32>* rlist = ${v.router_list};
-
-		for ( int i = 0; i < num_routers; ++i )
+		int last_non_null = 0;
+		for ( int i=0; i < ${v.domain_name}.length(); i++)
 			{
-			uint32 raddr = (*rlist)[i];
-			::uint32 tmp_addr;
-			tmp_addr = htonl(raddr);
-			// index starting from 1
-			Val* index = new Val(i + 1, TYPE_COUNT);
-			router_list->Assign(index, new AddrVal(tmp_addr));
-			Unref(index);
+			if ( *(${v.domain_name}.begin()+i) != 0 )
+				last_non_null = i;
 			}
 
-		${context.flow}->options->Assign(3, router_list);
+		${context.flow}->options->Assign(5, new StringVal(last_non_null == 0 ? 0 : last_non_null+1,
+		                                                  reinterpret_cast<const char*>(${v.domain_name}.begin())));
 
 		return true;
 		%}
 };
 
 refine typeattr Option += &let {
-	proc_router_option = $context.flow.process_router_option(info) &if(code==ROUTER_OPTION);
+	proc_domain_name_option = $context.flow.process_domain_name_option(info.value) &if(code==DOMAIN_NAME_OPTION);
+};
+
+
+##############################
+# FORWARDING OPTION
+##############################
+let FORWARDING_OPTION = 19;
+
+# Parse the option
+refine casetype OptionValue += {
+	FORWARDING_OPTION -> forwarding : uint8;
+};
+
+refine flow DHCP_Flow += {
+	function process_forwarding_option(v: OptionValue): bool
+		%{
+		${context.flow}->options->Assign(6, new Val(${v.forwarding} == 0 ? false : true, TYPE_BOOL));
+
+		return true;
+		%}
+};
+
+refine typeattr Option += &let {
+	proc_forwarding_option = $context.flow.process_forwarding_option(info.value) &if(code==FORWARDING_OPTION);
+};
+
+
+##############################
+# BROADCAST ADDRESS OPTION
+##############################
+let BROADCAST_ADDRESS_OPTION = 28;
+
+# Parse the option
+refine casetype OptionValue += {
+	BROADCAST_ADDRESS_OPTION -> broadcast_address : uint32;
+};
+
+refine flow DHCP_Flow += {
+	function process_broadcast_address_option(v: OptionValue): bool
+		%{
+		${context.flow}->options->Assign(7, new AddrVal(htonl(${v.broadcast_address})));
+
+		return true;
+		%}
+};
+
+refine typeattr Option += &let {
+	proc_broadcast_address_option = $context.flow.process_broadcast_address_option(info.value) &if(code==BROADCAST_ADDRESS_OPTION);
+};
+
+
+##############################
+# VENDOR SPECIFIC OPTION
+##############################
+let VENDOR_SPECIFIC_OPTION = 43;
+
+# Parse the option
+refine casetype OptionValue += {
+	VENDOR_SPECIFIC_OPTION -> vendor_specific : bytestring &length=length;
+};
+
+refine flow DHCP_Flow += {
+	function process_vendor_specific_option(v: OptionValue): bool
+		%{
+		${context.flow}->options->Assign(8, new StringVal(${v.vendor_specific}.length(),
+		                                                  reinterpret_cast<const char*>(${v.vendor_specific}.begin())));
+
+		return true;
+		%}
+};
+
+refine typeattr Option += &let {
+	proc_vendor_specific_option = $context.flow.process_vendor_specific_option(info.value) &if(code==VENDOR_SPECIFIC_OPTION);
+};
+
+
+##############################
+# NETBIOS NAME SERVER OPTION
+##############################
+let NBNS_OPTION = 44;
+
+# Parse the option
+refine casetype OptionValue += {
+	NBNS_OPTION -> nbns : uint32[length/4];
+};
+
+refine flow DHCP_Flow += {
+	function process_nbns_option(v: OptionValue): bool
+		%{
+		VectorVal* server_list = new VectorVal(BifType::Vector::DHCP::Addrs);
+		int num_servers = ${v.nbns}->size();
+		vector<uint32>* rlist = ${v.nbns};
+
+		for ( int i = 0; i < num_servers; ++i )
+			{
+			uint32 raddr = (*rlist)[i];
+			server_list->Assign(i, new AddrVal(htonl(raddr)));
+			}
+
+		${context.flow}->options->Assign(9, server_list);
+		return true;
+		%}
+};
+
+refine typeattr Option += &let {
+	proc_nbns_option = $context.flow.process_nbns_option(info.value) &if(code==NBNS_OPTION);
+};
+
+
+##############################
+# ADDR REQUEST OPTION
+##############################
+let ADDR_REQUEST_OPTION = 50;
+
+# Parse the option
+refine casetype OptionValue += {
+	ADDR_REQUEST_OPTION -> addr_request : uint32;
+};
+
+refine flow DHCP_Flow += {
+	function process_addr_request_option(v: OptionValue): bool
+		%{
+		${context.flow}->options->Assign(10, new AddrVal(htonl(${v.addr_request})));
+
+		return true;
+		%}
+};
+
+refine typeattr Option += &let {
+	proc_addr_request_option = $context.flow.process_addr_request_option(info.value) &if(code==ADDR_REQUEST_OPTION);
 };
 
 
@@ -122,15 +289,16 @@ refine flow DHCP_Flow += {
 	function process_lease_option(v: OptionValue): bool
 		%{
 		double lease = static_cast<double>(${v.lease});
-		${context.flow}->options->Assign(4, new Val(lease, TYPE_INTERVAL));
+		${context.flow}->options->Assign(11, new Val(lease, TYPE_INTERVAL));
 
 		return true;
 		%}
 };
 
 refine typeattr Option += &let {
-	proc_lease_option = $context.flow.process_lease_option(info) &if(code==LEASE_OPTION);
+	proc_lease_option = $context.flow.process_lease_option(info.value) &if(code==LEASE_OPTION);
 };
+
 
 ##############################
 # SERV_ID_OPTION OPTION
@@ -145,14 +313,14 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_serv_id_option(v: OptionValue): bool
 		%{
-		${context.flow}->options->Assign(5, new AddrVal(htonl(${v.serv_addr})));
+		${context.flow}->options->Assign(12, new AddrVal(htonl(${v.serv_addr})));
 
 		return true;
 		%}
 };
 
 refine typeattr Option += &let {
-	proc_serv_id_option = $context.flow.process_serv_id_option(info) &if(code==SERV_ID_OPTION);
+	proc_serv_id_option = $context.flow.process_serv_id_option(info.value) &if(code==SERV_ID_OPTION);
 };
 
 
@@ -169,76 +337,148 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_par_req_list_option(v: OptionValue): bool
 		%{
-		TableVal* params_list = new TableVal(BifType::Table::DHCP::ParamsList);
+		VectorVal* params = new VectorVal(index_vec);
 		int num_parms = ${v.par_req_list}->size();
 		vector<uint8>* plist = ${v.par_req_list};
 		
 		for (int i=0; i < num_parms; ++i)
 			{
 			uint8 param = (*plist)[i];
-			Val* index = new Val(i+1, TYPE_COUNT);
-			params_list->Assign(index, new Val(param, TYPE_COUNT));
-			Unref(index);
+			params->Assign(i, new Val(param, TYPE_COUNT));
 			}
 
-		${context.flow}->options->Assign(6, params_list);
+		${context.flow}->options->Assign(13, params);
 
 		return true;
 		%}
 };
 
 refine typeattr Option += &let {
-	proc_par_req_list_option = $context.flow.process_par_req_list_option(info) &if(code==PAR_REQ_LIST_OPTION);
+	proc_par_req_list_option = $context.flow.process_par_req_list_option(info.value) &if(code==PAR_REQ_LIST_OPTION);
 };
 
 
 ##############################
-# REN_TIME_OPTION OPTION
+# MESSAGE OPTION
 ##############################
-let REN_TIME_OPTION = 58;
+let MESSAGE_OPTION = 56;
 
 # Parse the option
 refine casetype OptionValue += {
-	REN_TIME_OPTION -> ren_time : uint32;
+	MESSAGE_OPTION -> message : bytestring &length=length;
 };
 
 refine flow DHCP_Flow += {
-	function process_ren_time_option(v: OptionValue): bool
+	function process_message_option(v: OptionValue): bool
 		%{
-		double ren_time = static_cast<double>(${v.ren_time});
-		${context.flow}->options->Assign(7, new Val(ren_time, TYPE_INTERVAL));
+		${context.flow}->options->Assign(14, new StringVal(${v.message}.length(), 
+		                                                   reinterpret_cast<const char*>(${v.message}.begin())));
 
 		return true;
 		%}
 };
 
 refine typeattr Option += &let {
-	proc_ren_time_option = $context.flow.process_ren_time_option(info) &if(code==REN_TIME_OPTION);
+	proc_message_option = $context.flow.process_message_option(info.value) &if(code==MESSAGE_OPTION);
 };
 
 
 ##############################
-# REB_TIME_OPTION OPTION
+# MAX MESSAGE SIZE OPTION
 ##############################
-let REB_TIME_OPTION = 59;
+let MAX_MESSAGE_SIZE_OPTION = 57;
 
 # Parse the option
 refine casetype OptionValue += {
-	REB_TIME_OPTION -> reb_time : uint32;
+	MAX_MESSAGE_SIZE_OPTION -> max_msg_size : uint16;
 };
 
 refine flow DHCP_Flow += {
-	function process_reb_time_option(v: OptionValue): bool
+	function process_max_message_size_option(v: OptionValue): bool
 		%{
-		double reb_time = static_cast<double>(${v.reb_time});
-		${context.flow}->options->Assign(8, new Val(reb_time, TYPE_INTERVAL));
+		${context.flow}->options->Assign(15, new Val(${v.max_msg_size}, TYPE_COUNT));
 
 		return true;
 		%}
 };
 
 refine typeattr Option += &let {
-	proc_reb_time_option = $context.flow.process_reb_time_option(info) &if(code==REB_TIME_OPTION);
+	proc_max_message_size_option = $context.flow.process_max_message_size_option(info.value) &if(code==MAX_MESSAGE_SIZE_OPTION);
+};
+
+
+##############################
+# RENEWAL_TIME_OPTION OPTION
+##############################
+let RENEWAL_TIME_OPTION = 58;
+
+# Parse the option
+refine casetype OptionValue += {
+	RENEWAL_TIME_OPTION -> renewal_time : uint32;
+};
+
+refine flow DHCP_Flow += {
+	function process_renewal_time_option(v: OptionValue): bool
+		%{
+		double renewal_time = static_cast<double>(${v.renewal_time});
+		${context.flow}->options->Assign(16, new Val(renewal_time, TYPE_INTERVAL));
+
+		return true;
+		%}
+};
+
+refine typeattr Option += &let {
+	proc_renewal_time_option = $context.flow.process_renewal_time_option(info.value) &if(code==RENEWAL_TIME_OPTION);
+};
+
+
+##############################
+# REBINDING_TIME_OPTION OPTION
+##############################
+let REBINDING_TIME_OPTION = 59;
+
+# Parse the option
+refine casetype OptionValue += {
+	REBINDING_TIME_OPTION -> rebinding_time : uint32;
+};
+
+refine flow DHCP_Flow += {
+	function process_rebinding_time_option(v: OptionValue): bool
+		%{
+		double rebinding_time = static_cast<double>(${v.rebinding_time});
+		${context.flow}->options->Assign(17, new Val(rebinding_time, TYPE_INTERVAL));
+
+		return true;
+		%}
+};
+
+refine typeattr Option += &let {
+	proc_rebinding_time_option = $context.flow.process_rebinding_time_option(info.value) &if(code==REBINDING_TIME_OPTION);
+};
+
+
+##############################
+# VENDOR CLASS OPTION
+##############################
+let VENDOR_CLASS_OPTION = 60;
+
+# Parse the option
+refine casetype OptionValue += {
+	VENDOR_CLASS_OPTION -> vendor_class : bytestring &length=length;
+};
+
+refine flow DHCP_Flow += {
+	function process_vendor_class_option(v: OptionValue): bool
+		%{
+		${context.flow}->options->Assign(18, new StringVal(${v.vendor_class}.length(), 
+		                                                   reinterpret_cast<const char*>(${v.vendor_class}.begin())));
+
+		return true;
+		%}
+};
+
+refine typeattr Option += &let {
+	proc_vendor_class_option = $context.flow.process_vendor_class_option(info.value) &if(code==VENDOR_CLASS_OPTION);
 };
 
 
@@ -264,16 +504,78 @@ refine flow DHCP_Flow += {
 		client_id->Assign(0, new Val(${v.client_id.hwtype}, TYPE_COUNT));
 		client_id->Assign(1, new StringVal(fmt_mac(${v.client_id.hwaddr}.begin(), ${v.client_id.hwaddr}.length())));
 
-		${context.flow}->options->Assign(9, client_id);
+		${context.flow}->options->Assign(19, client_id);
 
 		return true;
 		%}
 };
 
 refine typeattr Option += &let {
-	proc_client_id_option = $context.flow.process_client_id_option(info) &if(code==CLIENT_ID_OPTION);
+	proc_client_id_option = $context.flow.process_client_id_option(info.value) &if(code==CLIENT_ID_OPTION);
 };
 
+
+##############################
+# USER CLASS OPTION
+##############################
+let USER_CLASS_OPTION = 77;
+
+# Parse the option
+refine casetype OptionValue += {
+	USER_CLASS_OPTION -> user_class : bytestring &length=length;
+};
+
+refine flow DHCP_Flow += {
+	function process_user_class_option(v: OptionValue): bool
+		%{
+		${context.flow}->options->Assign(20, new StringVal(${v.user_class}.length(),
+		                                                   reinterpret_cast<const char*>(${v.user_class}.begin())));
+
+		return true;
+		%}
+};
+
+refine typeattr Option += &let {
+	proc_user_class_option = $context.flow.process_user_class_option(info.value) &if(code==USER_CLASS_OPTION);
+};
+
+
+##############################
+# CLIENT FQDN OPTION
+##############################
+let CLIENT_FQDN_OPTION = 81;
+
+type Client_FQDN(length: uint8) = record {
+	flags       : uint8;
+	rcode1      : uint8;
+	rcode2      : uint8;
+	domain_name : bytestring &length=length-3;
+};
+
+# Parse the option
+refine casetype OptionValue += {
+	CLIENT_FQDN_OPTION -> client_fqdn : Client_FQDN(length);
+};
+
+refine flow DHCP_Flow += {
+	function process_client_fqdn_option(v: OptionValue): bool
+		%{
+		RecordVal* client_fqdn = new RecordVal(BifType::Record::DHCP::ClientFQDN);
+		client_fqdn->Assign(0, new Val(${v.client_fqdn.flags}, TYPE_COUNT));
+		client_fqdn->Assign(1, new Val(${v.client_fqdn.rcode1}, TYPE_COUNT));
+		client_fqdn->Assign(2, new Val(${v.client_fqdn.rcode2}, TYPE_COUNT));
+		const char* domain_name = reinterpret_cast<const char*>(${v.client_fqdn.domain_name}.begin());
+		client_fqdn->Assign(3, new StringVal(${v.client_fqdn.domain_name}.length(), domain_name));
+
+		${context.flow}->options->Assign(21, client_fqdn);
+
+		return true;
+		%}
+};
+
+refine typeattr Option += &let {
+	proc_client_fqdn_option = $context.flow.process_client_fqdn_option(info.value) &if(code==CLIENT_FQDN_OPTION);
+};
 
 
 ##############################
@@ -296,11 +598,30 @@ refine casetype OptionValue += {
 };
 
 refine flow DHCP_Flow += {
+	%member{
+		uint8 sum_len;
+	%}
+
+	%init{
+		sum_len = 0;
+	%}
+
+	%cleanup{
+		sum_len = 0;
+	%}
+
+	function get_dhcp_sumlen(len: uint8): uint8
+		%{
+		sum_len = len + sum_len;
+		return sum_len;
+		%}
+
 	function process_relay_agent_inf_option(v: OptionValue): bool
 		%{
-		TableVal* relay_agent_sub_opt = new TableVal(BifType::Table::DHCP::SubOptList);
+		VectorVal* relay_agent_sub_opt = new VectorVal(BifType::Vector::DHCP::SubOpts);
 		RecordVal* r = new RecordVal(BifType::Record::DHCP::SubOpt);
-		uint i = 1;
+
+		uint16 i = 0;
 		for ( auto ptrsubopt = ${v.relay_agent_inf}->begin();
 		      ptrsubopt != ${v.relay_agent_inf}->end(); ++ptrsubopt )
 			{
@@ -308,20 +629,69 @@ refine flow DHCP_Flow += {
 			r->Assign(0, new Val((*ptrsubopt)->code(), TYPE_COUNT));
 			r->Assign(1, bytestring_to_val((*ptrsubopt)->value()));
 
-			Val* index = new Val(i, TYPE_COUNT);
-			relay_agent_sub_opt->Assign(index, r);
-			Unref(index);
+			relay_agent_sub_opt->Assign(i, r);
 			++i;
 			}
 
-		${context.flow}->options->Assign(10, relay_agent_sub_opt);
+		${context.flow}->options->Assign(22, relay_agent_sub_opt);
 		return true;
 		%}
 };
 
 refine typeattr Option += &let {
-	proc_relay_agent_info_option = $context.flow.process_relay_agent_inf_option(info) &if(code==RELAY_AGENT_INF_OPTION);
+	proc_relay_agent_info_option = $context.flow.process_relay_agent_inf_option(info.value) &if(code==RELAY_AGENT_INF_OPTION);
 };
 
+
+##############################
+# AUTO_CONFIG OPTION
+##############################
+let AUTO_CONFIG_OPTION = 116;
+
+# Parse the option
+refine casetype OptionValue += {
+	AUTO_CONFIG_OPTION -> auto_config : uint8;
+};
+
+refine flow DHCP_Flow += {
+	function process_auto_config_option(v: OptionValue): bool
+		%{
+		${context.flow}->options->Assign(23, new Val(${v.auto_config} == 0 ? false : true, TYPE_BOOL));
+
+		return true;
+		%}
+};
+
+refine typeattr Option += &let {
+	proc_auto_config_option = $context.flow.process_auto_config_option(info.value) &if(code==AUTO_CONFIG_OPTION);
+};
+
+
+##############################
+# AUTO PROXY CONFIG OPTION
+##############################
+let AUTO_PROXY_CONFIG_OPTION = 252;
+
+# Parse the option
+refine casetype OptionValue += {
+	AUTO_PROXY_CONFIG_OPTION -> auto_proxy_config : bytestring &length=length;
+};
+
+refine flow DHCP_Flow += {
+	function process_auto_proxy_config_option(v: OptionValue): bool
+		%{
+		int string_len = ${v.auto_proxy_config}.length();
+		const char* last_char = reinterpret_cast<const char*>(${v.auto_proxy_config}.begin()+${v.auto_proxy_config}.length());
+		bool has_newline = strncmp(last_char, "\x0a", 1);
+		${context.flow}->options->Assign(24, new StringVal(string_len - (has_newline ? 1 : 0),
+		                                                   reinterpret_cast<const char*>(${v.auto_proxy_config}.begin())));
+
+		return true;
+		%}
+};
+
+refine typeattr Option += &let {
+	proc_auto_proxy_config_option = $context.flow.process_auto_proxy_config_option(info.value) &if(code==AUTO_PROXY_CONFIG_OPTION);
+};
 
 

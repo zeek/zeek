@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2017-05-02-20-39-05
+#open	2018-03-01-16-09-46
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -66,6 +66,7 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_DCE_RPC.types.bif.bro
     build/scripts/base/bif/plugins/Bro_DCE_RPC.events.bif.bro
     build/scripts/base/bif/plugins/Bro_DHCP.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_DHCP.types.bif.bro
     build/scripts/base/bif/plugins/Bro_DNP3.events.bif.bro
     build/scripts/base/bif/plugins/Bro_DNS.events.bif.bro
     build/scripts/base/bif/plugins/Bro_File.events.bif.bro
@@ -267,7 +268,6 @@ scripts/base/init-default.bro
   scripts/base/protocols/dhcp/__load__.bro
     scripts/base/protocols/dhcp/consts.bro
     scripts/base/protocols/dhcp/main.bro
-      scripts/base/protocols/dhcp/utils.bro
   scripts/base/protocols/dnp3/__load__.bro
     scripts/base/protocols/dnp3/main.bro
       scripts/base/protocols/dnp3/consts.bro
@@ -357,4 +357,4 @@ scripts/base/init-default.bro
   scripts/base/misc/find-filtered-trace.bro
   scripts/base/misc/version.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2017-05-02-20-39-05
+#close	2018-03-01-16-09-46

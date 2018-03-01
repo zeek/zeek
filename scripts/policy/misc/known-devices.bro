@@ -2,12 +2,6 @@
 ##! been able to determine the MAC address, and it logs them once per day (by
 ##! default).  The log that is output provides an easy way to determine a count
 ##! of the devices in use on a network per day.
-##!
-##! .. note::
-##!
-##!     This script will not generate any logs on its own, it needs to be
-##!     supplied with information from elsewhere, such as
-##!     :doc:`/scripts/policy/protocols/dhcp/known-devices-and-hostnames.bro`.
 
 module Known;
 

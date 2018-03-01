@@ -1,9 +1,9 @@
 module DHCP;
 
 type Msg: record;
-type RouterList: table;
-type ParamsList:   table;
-type SubOptList: table;
+type Addrs: vector;
 type SubOpt: record;
+type SubOpts: vector;
+type ClientFQDN: record;
 type ClientID: record;
 type Options: record;

@@ -58,6 +58,15 @@ General Porting Tips
 
 - Instead of using the ``send_id`` BIF, use :bro:see:`Broker::publish_id`.
 
+- Use :bro:see:`terminate` instead of :bro:see:`terminate_communication`.
+  The later refers to the old communication system and no longer effects
+  the new Broker-based system.
+
+- For replacing :bro:see:`remote_connection_established` and
+  :bro:see:`remote_connection_closed`, consider :bro:see:`Broker::peer_added`
+  or :bro:see:`Broker::peer_lost`.  There's also :bro:see:`Cluster::node_up`
+  and :bro:see:`Cluster::node_down`.
+
 Notable / Specific Script API Changes
 -------------------------------------
 

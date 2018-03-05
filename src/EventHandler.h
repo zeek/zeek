@@ -22,7 +22,7 @@ public:
 
 	const char* Name()	{ return name; }
 	Func* LocalHandler()	{ return local; }
-	FuncType* FType();
+	FuncType* FType(bool check_export = true);
 
 	void SetLocalHandler(Func* f);
 

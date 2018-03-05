@@ -33,12 +33,13 @@ EventHandler::operator bool() const
 			   || ! auto_publish.empty());
 	}
 
-FuncType* EventHandler::FType()
+FuncType* EventHandler::FType(bool check_export)
 	{
 	if ( type )
 		return type;
 
-	ID* id = lookup_ID(name, current_module.c_str());
+	ID* id = lookup_ID(name, current_module.c_str(), false, false,
+	                   check_export);
 
 	if ( ! id )
 		return 0;

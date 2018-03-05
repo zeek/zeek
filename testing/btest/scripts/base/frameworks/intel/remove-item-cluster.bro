@@ -14,8 +14,6 @@ redef Cluster::nodes = {
 };
 # @TEST-END-FILE
 
-@load base/frameworks/control
-
 module Intel;
 
 redef Log::default_rotation_interval=0sec;
@@ -37,7 +35,7 @@ event test_worker()
 	Intel::seen([$host=10.10.10.10, $where=Intel::IN_ANYWHERE]);
 	}
 
-event remote_connection_handshake_done(p: event_peer)
+event Cluster::node_up(name: string, id: string)
 	{
 	# Insert the data once all workers are connected.
 	if ( Cluster::local_node_type() == Cluster::MANAGER && Cluster::worker_count == 1 )
@@ -54,7 +52,7 @@ event remote_connection_handshake_done(p: event_peer)
 	}
 
 global worker_data = 0;
-event Intel::cluster_new_item(item: Intel::Item)
+event Intel::insert_indicator(item: Intel::Item)
 	{
 	# Run test on worker-1 when all items have been inserted
 	if ( Cluster::node == "worker-1" )
@@ -70,7 +68,7 @@ event Intel::remove_item(item: Item, purge_indicator: bool)
 	print fmt("Removing %s (source: %s).", item$indicator, item$meta$source);
 	}
 
-event purge_item(item: Item)
+event remove_indicator(item: Item)
 	{
 	print fmt("Purging %s.", item$indicator);
 	}
@@ -78,11 +76,11 @@ event purge_item(item: Item)
 event Intel::log_intel(rec: Intel::Info)
 	{
 	print "Logging intel hit!";
-	event Control::shutdown_request();
+	terminate();
 	}
 
-event remote_connection_closed(p: event_peer)
+event Cluster::node_down(name: string, id: string)
 	{
 	# Cascading termination
-	terminate_communication();
+	terminate();
 	}

@@ -24,15 +24,12 @@ event NetControl::init_done()
 	continue_processing();
 	}
 
-event Broker::outgoing_connection_established(peer_address: string,
-                                            peer_port: port,
-                                            peer_name: string)
+event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
-	print "Broker::outgoing_connection_established", peer_address, peer_port;
+	print "Broker peer added", endpoint$network;
 	}
 
-event Broker::outgoing_connection_broken(peer_address: string,
-                                       peer_port: port)
+event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	{
 	terminate();
 	}
@@ -88,28 +85,27 @@ redef exit_only_after_terminate = T;
 
 event bro_init()
 	{
-	Broker::enable();
-	Broker::subscribe_to_events("bro/event/netcontroltest");
+	Broker::subscribe("bro/event/netcontroltest");
 	Broker::listen("127.0.0.1");
 	}
 
-event Broker::incoming_connection_established(peer_name: string)
+event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
-	print "Broker::incoming_connection_established";
+	print "Broker peer added";
 	}
 
 event NetControl::acld_add_rule(id: count, r: NetControl::Rule, ar: NetControl::AclRule)
 	{
 	print "add_rule", id, r$entity, r$ty, ar;
 
-	Broker::send_event("bro/event/netcontroltest", Broker::event_args(NetControl::acld_rule_added, id, r, ar$command));
+	Broker::publish("bro/event/netcontroltest", NetControl::acld_rule_added, id, r, ar$command);
 	}
 
 event NetControl::acld_remove_rule(id: count, r: NetControl::Rule, ar: NetControl::AclRule)
 	{
 	print "remove_rule", id, r$entity, r$ty, ar;
 
-	Broker::send_event("bro/event/netcontroltest", Broker::event_args(NetControl::acld_rule_removed, id, r, ar$command));
+	Broker::publish("bro/event/netcontroltest", NetControl::acld_rule_removed, id, r, ar$command);
 
 	if ( r$cid == 4 )
 		terminate();

@@ -6,8 +6,6 @@ module NetControl;
 @load ../plugin
 @load base/frameworks/broker
 
-@ifdef ( Broker::__enable )
-
 export {
 	type AclRule : record {
 		command: string;
@@ -243,7 +241,7 @@ function acld_add_rule_fun(p: PluginState, r: Rule) : bool
 	if ( ar$command == "" )
 		return F;
 
-	Broker::publish(p$acld_config$acld_topic, Broker::make_event(acld_add_rule, p$acld_id, r, ar));
+	Broker::publish(p$acld_config$acld_topic, acld_add_rule, p$acld_id, r, ar);
 	return T;
 	}
 
@@ -266,13 +264,12 @@ function acld_remove_rule_fun(p: PluginState, r: Rule, reason: string) : bool
 			ar$comment = reason;
 		}
 
-	Broker::publish(p$acld_config$acld_topic, Broker::make_event(acld_remove_rule, p$acld_id, r, ar));
+	Broker::publish(p$acld_config$acld_topic, acld_remove_rule, p$acld_id, r, ar);
 	return T;
 	}
 
 function acld_init(p: PluginState)
 	{
-	Broker::enable();
 	Broker::peer(cat(p$acld_config$acld_host), p$acld_config$acld_port);
 	Broker::subscribe(p$acld_config$acld_topic);
 	}
@@ -317,5 +314,3 @@ function create_acld(config: AcldConfig) : PluginState
 
 	return p;
 	}
-
-@endif

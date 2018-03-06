@@ -28,7 +28,7 @@ event bro_init()
 	suspend_processing();
 	}
 
-event remote_connection_handshake_done(p: event_peer)
+event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
 	continue_processing();
 	}
@@ -51,9 +51,10 @@ event terminate_me() {
 	terminate();
 }
 
-event remote_connection_closed(p: event_peer) {
+event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
+	{
 	schedule 1sec { terminate_me() };
-}
+	}
 
 event NetControl::rule_added(r: NetControl::Rule, p: NetControl::PluginState, msg: string &default="")
 	{

@@ -49,7 +49,8 @@ event terminate_me() {
 	terminate();
 }
 
-event remote_connection_closed(p: event_peer) {
+event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
+	{
 	schedule 1sec { terminate_me() };
-}
+	}
 

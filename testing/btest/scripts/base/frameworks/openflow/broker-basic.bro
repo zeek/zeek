@@ -1,5 +1,4 @@
 # @TEST-SERIALIZE: comm
-# @TEST-REQUIRES: grep -q ENABLE_BROKER:BOOL=true $BUILD/CMakeCache.txt
 # @TEST-EXEC: btest-bg-run recv "bro -b ../recv.bro broker_port=$BROKER_PORT >recv.out"
 # @TEST-EXEC: btest-bg-run send "bro -b -r $TRACES/smtp.trace --pseudo-realtime ../send.bro broker_port=$BROKER_PORT >send.out"
 
@@ -20,14 +19,17 @@ global of_controller: OpenFlow::Controller;
 event bro_init()
 	{
 	suspend_processing();
-	of_controller = OpenFlow::broker_new("broker1", 127.0.0.1, broker_port, "bro/event/openflow", 42);
+	of_controller = OpenFlow::broker_new("broker1", 127.0.0.1, broker_port, "bro/openflow", 42);
 	}
 
-event Broker::outgoing_connection_established(peer_address: string,
-                                            peer_port: port,
-                                            peer_name: string)
+event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
-	print "Broker::outgoing_connection_established", peer_address, peer_port;
+	print "Broker peer added", endpoint$network;
+	}
+
+event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
+	{
+	terminate();
 	}
 
 event OpenFlow::controller_activated(name: string, controller: OpenFlow::Controller)
@@ -35,12 +37,6 @@ event OpenFlow::controller_activated(name: string, controller: OpenFlow::Control
 	continue_processing();
 	OpenFlow::flow_clear(of_controller);
 	OpenFlow::flow_mod(of_controller, [], [$cookie=OpenFlow::generate_cookie(1), $command=OpenFlow::OFPFC_ADD, $actions=[$out_ports=vector(3, 7)]]);
-	}
-
-event Broker::outgoing_connection_broken(peer_address: string,
-                                       peer_port: port)
-	{
-	terminate();
 	}
 
 event connection_established(c: connection)
@@ -83,14 +79,18 @@ global msg_count: count = 0;
 
 event bro_init()
 	{
-	Broker::enable();
-	Broker::subscribe_to_events("bro/event/openflow");
-	Broker::listen(broker_port, "127.0.0.1");
+	Broker::subscribe("bro/openflow");
+	Broker::listen("127.0.0.1", broker_port);
 	}
 
-event Broker::incoming_connection_established(peer_name: string)
+event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
-	print "Broker::incoming_connection_established";
+	print "Broker peer added";
+	}
+
+event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
+	{
+	terminate();
 	}
 
 function got_message()
@@ -104,8 +104,8 @@ function got_message()
 event OpenFlow::broker_flow_mod(name: string, dpid: count, match: OpenFlow::ofp_match, flow_mod: OpenFlow::ofp_flow_mod)
 	{
 	print "got flow_mod", dpid, match, flow_mod;
-	Broker::send_event("bro/event/openflow", Broker::event_args(OpenFlow::flow_mod_success, name, match, flow_mod, ""));
-	Broker::send_event("bro/event/openflow", Broker::event_args(OpenFlow::flow_mod_failure, name, match, flow_mod, ""));
+	Broker::publish("bro/openflow", OpenFlow::flow_mod_success, name, match, flow_mod, "");
+	Broker::publish("bro/openflow", OpenFlow::flow_mod_failure, name, match, flow_mod, "");
 	got_message();
 	}
 
@@ -114,7 +114,6 @@ event OpenFlow::broker_flow_clear(name: string, dpid: count)
 	print "flow_clear", dpid;
 	got_message();
 	}
-
 
 @TEST-END-FILE
 

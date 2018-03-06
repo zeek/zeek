@@ -180,10 +180,6 @@ export {
 	## Events raised by TimeMachine instances and handled by workers.
 	const tm2worker_events = /EMPTY/ &redef;
 
-	## Events sent by the control host (i.e., BroControl) when dynamically
-	## connecting to a running instance to update settings or request data.
-	const control_events = Control::controller_events &redef;
-
 	## Record type to indicate a node in a cluster.
 	type Node: record {
 		## Identifies the type of cluster node in this node's configuration.

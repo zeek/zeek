@@ -1,6 +1,6 @@
 # @TEST-SERIALIZE: comm
-# @TEST-EXEC: btest-bg-run recv "bro -b ../recv.bro broker_port=$BROKER_PORT >recv.out"
-# @TEST-EXEC: btest-bg-run send "bro -b -r $TRACES/smtp.trace --pseudo-realtime ../send.bro broker_port=$BROKER_PORT >send.out"
+# @TEST-EXEC: btest-bg-run recv "bro -b ../recv.bro >recv.out"
+# @TEST-EXEC: btest-bg-run send "bro -b -r $TRACES/smtp.trace --pseudo-realtime ../send.bro >send.out"
 
 # @TEST-EXEC: btest-bg-wait 20
 # @TEST-EXEC: btest-diff recv/recv.out
@@ -11,7 +11,6 @@
 @load base/protocols/conn
 @load base/frameworks/openflow
 
-const broker_port: port &redef;
 redef exit_only_after_terminate = T;
 
 global of_controller: OpenFlow::Controller;
@@ -19,7 +18,7 @@ global of_controller: OpenFlow::Controller;
 event bro_init()
 	{
 	suspend_processing();
-	of_controller = OpenFlow::broker_new("broker1", 127.0.0.1, broker_port, "bro/openflow", 42);
+	of_controller = OpenFlow::broker_new("broker1", 127.0.0.1, Broker::default_port, "bro/openflow", 42);
 	}
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
@@ -72,7 +71,6 @@ event OpenFlow::flow_mod_failure(name: string, match: OpenFlow::ofp_match, flow_
 
 @load base/frameworks/openflow
 
-const broker_port: port &redef;
 redef exit_only_after_terminate = T;
 
 global msg_count: count = 0;
@@ -80,7 +78,7 @@ global msg_count: count = 0;
 event bro_init()
 	{
 	Broker::subscribe("bro/openflow");
-	Broker::listen("127.0.0.1", broker_port);
+	Broker::listen("127.0.0.1");
 	}
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)

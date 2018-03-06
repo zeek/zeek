@@ -3,8 +3,8 @@
 # @TEST-REQUIRES: bro --help 2>&1 | grep -q mem-leaks
 # @TEST-GROUP: leaks
 
-# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run recv "bro -m -b ../common.bro ../recv.bro broker_port=$BROKER_PORT >recv.out"
-# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run send "bro -m -b ../common.bro ../send.bro broker_port=$BROKER_PORT >send.out"
+# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run recv "bro -m -b ../common.bro ../recv.bro >recv.out"
+# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run send "bro -m -b ../common.bro ../send.bro >send.out"
 
 # @TEST-EXEC: btest-bg-wait 45
 # @TEST-EXEC: btest-diff recv/recv.out
@@ -37,13 +37,12 @@ event bro_init() &priority=5
 
 @TEST-START-FILE recv.bro
 
-const broker_port: port &redef;
 redef exit_only_after_terminate = T;
 
 event bro_init()
 	{
 	Broker::subscribe_to_logs("bro/log/");
-	Broker::listen(broker_port, "127.0.0.1");
+	Broker::listen("127.0.0.1");
 	}
 
 event Test::log_test(rec: Test::Info)
@@ -58,13 +57,12 @@ event Test::log_test(rec: Test::Info)
 
 @TEST-START-FILE send.bro
 
-const broker_port: port &redef;
 redef exit_only_after_terminate = T;
 
 event bro_init()
 	{
 	Broker::enable_remote_logs(Test::LOG);
-	Broker::connect("127.0.0.1", broker_port, 1secs);
+	Broker::peer("127.0.0.1", Broker::default_port, 1secs);
 	}
 
 global n = 0;

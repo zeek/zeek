@@ -3,15 +3,14 @@
 # @TEST-REQUIRES: bro --help 2>&1 | grep -q mem-leaks
 # @TEST-GROUP: leaks
 
-# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run clone "bro -m -b ../clone.bro broker_port=$BROKER_PORT >clone.out"
-# @TEST-EXEC: btest-bg-run master "bro -b ../master.bro broker_port=$BROKER_PORT >master.out"
+# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run clone "bro -m -b ../clone.bro >clone.out"
+# @TEST-EXEC: btest-bg-run master "bro -b ../master.bro >master.out"
 
 # @TEST-EXEC: btest-bg-wait 45
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff clone/clone.out
 
 @TEST-START-FILE clone.bro
 
-const broker_port: port &redef;
 redef exit_only_after_terminate = T;
 
 global h: opaque of Broker::Handle;
@@ -52,14 +51,13 @@ event bro_init()
 	{
 	Broker::enable();
 	Broker::subscribe_to_events("bro/event/ready");
-	Broker::listen(broker_port, "127.0.0.1");
+	Broker::listen("127.0.0.1");
 	}
 
 @TEST-END-FILE
 
 @TEST-START-FILE master.bro
 
-const broker_port: port &redef;
 redef exit_only_after_terminate = T;
 
 global h: opaque of Broker::Handle;
@@ -107,7 +105,7 @@ event bro_init()
 	Broker::enable();
 	Broker::auto_event("bro/event/ready", ready);
 	h = Broker::create_master("mystore");
-	Broker::connect("127.0.0.1", broker_port, 1secs);
+	Broker::peer("127.0.0.1", Broker::default_port, 1secs);
 	}
 
 @TEST-END-FILE

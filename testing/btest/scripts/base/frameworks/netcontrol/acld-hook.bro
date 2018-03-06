@@ -1,7 +1,7 @@
 # @TEST-SERIALIZE: comm
 # @TEST-REQUIRES: grep -q ENABLE_BROKER:BOOL=true $BUILD/CMakeCache.txt
-# @TEST-EXEC: btest-bg-run recv "bro -b ../recv.bro broker_port=$BROKER_PORT >recv.out"
-# @TEST-EXEC: btest-bg-run send "bro -b -r $TRACES/tls/ecdhe.pcap --pseudo-realtime ../send.bro broker_port=$BROKER_PORT >send.out"
+# @TEST-EXEC: btest-bg-run recv "bro -b ../recv.bro >recv.out"
+# @TEST-EXEC: btest-bg-run send "bro -b -r $TRACES/tls/ecdhe.pcap --pseudo-realtime ../send.bro >send.out"
 
 # @TEST-EXEC: btest-bg-wait 20
 # @TEST-EXEC: btest-diff recv/recv.out
@@ -11,13 +11,12 @@
 
 @load base/frameworks/netcontrol
 
-const broker_port: port &redef;
 redef exit_only_after_terminate = T;
 
 event NetControl::init()
 	{
 	suspend_processing();
-	local netcontrol_acld = NetControl::create_acld(NetControl::AcldConfig($acld_host=127.0.0.1, $acld_port=broker_port, $acld_topic="bro/event/netcontroltest"));
+	local netcontrol_acld = NetControl::create_acld(NetControl::AcldConfig($acld_host=127.0.0.1, $acld_port=Broker::default_port, $acld_topic="bro/event/netcontroltest"));
 	NetControl::activate(netcontrol_acld, 0);
 	}
 
@@ -86,14 +85,13 @@ event NetControl::rule_removed(r: NetControl::Rule, p: NetControl::PluginState, 
 @load base/frameworks/netcontrol
 @load base/frameworks/broker
 
-const broker_port: port &redef;
 redef exit_only_after_terminate = T;
 
 event bro_init()
 	{
 	Broker::enable();
 	Broker::subscribe_to_events("bro/event/netcontroltest");
-	Broker::listen(broker_port, "127.0.0.1");
+	Broker::listen("127.0.0.1");
 	}
 
 event Broker::incoming_connection_established(peer_name: string)

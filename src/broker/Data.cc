@@ -214,16 +214,31 @@ struct val_converter {
 
 		for ( auto& item : a )
 			{
+			auto expected_index_types = tt->Indices()->Types();
 			broker::vector composite_key;
 			auto indices = broker::get_if<broker::vector>(item);
 
-			if ( ! indices )
+			if ( indices )
+				{
+				if ( expected_index_types->length() == 1 )
+					{
+					auto index_is_vector_or_record =
+					     (*expected_index_types)[0]->Tag() == TYPE_RECORD ||
+					     (*expected_index_types)[0]->Tag() == TYPE_VECTOR;
+
+					if ( index_is_vector_or_record )
+						{
+						// Disambiguate from composite key w/ multiple vals.
+						composite_key.emplace_back(move(item));
+						indices = &composite_key;
+						}
+					}
+				}
+			else
 				{
 				composite_key.emplace_back(move(item));
 				indices = &composite_key;
 				}
-
-			auto expected_index_types = tt->Indices()->Types();
 
 			if ( static_cast<size_t>(expected_index_types->length()) !=
 			     indices->size() )
@@ -267,16 +282,31 @@ struct val_converter {
 
 		for ( auto& item : a )
 			{
+			auto expected_index_types = tt->Indices()->Types();
 			broker::vector composite_key;
 			auto indices = broker::get_if<broker::vector>(item.first);
 
-			if ( ! indices )
+			if ( indices )
+				{
+				if ( expected_index_types->length() == 1 )
+					{
+					auto index_is_vector_or_record =
+					     (*expected_index_types)[0]->Tag() == TYPE_RECORD ||
+					     (*expected_index_types)[0]->Tag() == TYPE_VECTOR;
+
+					if ( index_is_vector_or_record )
+						{
+						// Disambiguate from composite key w/ multiple vals.
+						composite_key.emplace_back(move(item.first));
+						indices = &composite_key;
+						}
+					}
+				}
+			else
 				{
 				composite_key.emplace_back(move(item.first));
 				indices = &composite_key;
 				}
-
-			auto expected_index_types = tt->Indices()->Types();
 
 			if ( static_cast<size_t>(expected_index_types->length()) !=
 			     indices->size() )

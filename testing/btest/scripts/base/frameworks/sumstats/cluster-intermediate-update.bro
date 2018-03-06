@@ -43,7 +43,7 @@ event bro_init() &priority=5
 	                  	}]);
 	}
 
-event remote_connection_closed(p: event_peer)
+event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	{
 	terminate();
 	}
@@ -56,9 +56,9 @@ event do_stats(i: count)
 	SumStats::observe("test.metric", [$host=1.2.3.4], [$num=i]);
 	}
 
-event remote_connection_handshake_done(p: event_peer)
+event Cluster::node_up(name: string, id: string)
 	{
-	if ( p$descr == "manager-1" )
+	if ( name == "manager-1" )
 		{
 		if ( Cluster::node == "worker-1" )
 			{
@@ -69,5 +69,3 @@ event remote_connection_handshake_done(p: event_peer)
 			schedule 0.5sec { do_stats(40) };
 		}
 	}
-
-

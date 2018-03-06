@@ -37,13 +37,12 @@ event bro_init() &priority=5
 	                  	}]);
 	}
 
-event remote_connection_closed(p: event_peer)
+event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	{
 	terminate();
 	}
 
 global ready_for_data: event();
-redef Cluster::manager2worker_events += /^ready_for_data$/;
 
 event ready_for_data()
 	{
@@ -71,10 +70,17 @@ event ready_for_data()
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
 
+event bro_init() &priority=100
+	{
+	Broker::auto_publish(Cluster::worker_topic, ready_for_data);
+	}
+
 global peer_count = 0;
-event remote_connection_handshake_done(p: event_peer) &priority=-5
+
+event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
 	++peer_count;
+
 	if ( peer_count == 2 )
 		event ready_for_data();
 	}

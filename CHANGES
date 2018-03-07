@@ -1,4 +1,13 @@
 
+2.5-459 | 2018-03-07 12:46:57 -0600
+
+  * Update a doc test/baseline (Corelight)
+
+  * Add removed root certificate back to test that requires it.
+
+    Test has a trace that contains a WoSign certificate - they are no longer
+    recognized by pretty much anyone. (Johanna Amann)
+
 2.5-457 | 2018-02-18 17:35:50 -0600
 
   * Fix another warning when building the documentation (Daniel Thayer)

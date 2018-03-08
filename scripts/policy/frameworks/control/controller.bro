@@ -24,30 +24,18 @@ event bro_init() &priority=5
 		terminate();
 		}
 
-	if ( use_broker )
-		{
-		Broker::auto_publish("bro/event/framework/control/id_value_request",
-		                     Control::id_value_request);
-		Broker::auto_publish("bro/event/framework/control/peer_status_request",
-		                     Control::peer_status_request);
-		Broker::auto_publish("bro/event/framework/control/net_stats_request",
-		                     Control::net_stats_request);
-		Broker::auto_publish("bro/event/framework/control/configuration_update_request",
-		                     Control::configuration_update_request);
-		Broker::auto_publish("bro/event/framework/control/shutdown_request",
-                             Control::shutdown_request);
-		Broker::subscribe("bro/event/framework/control");
-		Broker::peer(cat(host), host_port);
-		}
-	else
-		{
-		# Establish the communication configuration and only request response
-		# messages.
-		Communication::nodes["control"] = [$host=host, $zone_id=zone_id,
-		                                   $p=host_port, $sync=F, $connect=T,
-		                                   $class="control",
-		                                   $events=Control::controllee_events];
-		}
+	Broker::auto_publish(Control::topic_prefix + "/id_value_request",
+		                 Control::id_value_request);
+	Broker::auto_publish(Control::topic_prefix + "/peer_status_request",
+		                 Control::peer_status_request);
+	Broker::auto_publish(Control::topic_prefix + "/net_stats_request",
+		                 Control::net_stats_request);
+	Broker::auto_publish(Control::topic_prefix + "/configuration_update_request",
+		                 Control::configuration_update_request);
+	Broker::auto_publish(Control::topic_prefix + "/shutdown_request",
+                         Control::shutdown_request);
+	Broker::subscribe(Control::topic_prefix);
+	Broker::peer(cat(host), host_port);
 	}
 
 event Control::id_value_response(id: string, val: string) &priority=-10
@@ -157,7 +145,10 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string) &priority=
 		local ids = configurable_ids();
 
 		for ( id in ids )
-			Broker::publish_id(cat("bro/id/framework/control/", id), id);
+			{
+			local topic = fmt("%s/id/%s", Control::topic_prefix, id);
+			Broker::publish_id(topic, id);
+			}
 
 		Reporter::info(fmt("Control framework sent %d IDs", |ids|));
 		}

@@ -5,8 +5,8 @@
 module Control;
 
 export {
-	## Whether the control framework uses broker to perform remote communication.
-	const use_broker = T &redef;
+	## The topic prefix used for exchanging control messages via Broker.
+	const topic_prefix = "bro/control";
 
 	## Whether the controllee should call :bro:see:`Broker::listen`.
 	## In a cluster, this isn't needed since the setup process calls it.
@@ -28,12 +28,6 @@ export {
 
 	## This can be used by commands that take an argument.
 	const arg = "" &redef;
-
-	## Events that need to be handled by controllers.
-	const controller_events = /Control::.*_request/ &redef;
-	
-	## Events that need to be handled by controllees.
-	const controllee_events = /Control::.*_response/ &redef;
 
 	## The commands that can currently be given on the command line for
 	## remote control.
@@ -80,11 +74,7 @@ export {
 	global shutdown_response: event();
 }
 
-
 event terminate_event()
 	{
-	if ( use_broker )
-		terminate();
-	else
-		terminate_communication();
+	terminate();
 	}

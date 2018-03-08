@@ -5,11 +5,6 @@
 # @TEST-EXEC: btest-bg-wait -k 10
 # @TEST-EXEC: btest-diff controller/.stdout
 
-redef Communication::nodes = {
-	# We're waiting for connections from this host for control.
-	["control"] = [$host=127.0.0.1, $class="control", $events=Control::controller_events],
-};
-
 # This value shouldn't ever be printed to the controllers stdout.
 const test_var = "Original value" &redef;
 

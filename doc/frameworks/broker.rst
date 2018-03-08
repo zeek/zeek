@@ -47,7 +47,8 @@ General Porting Tips
   ``@load base/frameworks/broker`` and using the Broker API:
   :doc:`/scripts/base/frameworks/broker/main.bro`
 
-- The ``&synchronized`` attribute should no longer be used.
+- The ``&synchronized`` and ``&persistent`` attributes are deprecated,
+  consider using `Data Stores`_ instead.
 
 - Instead of using e.g. ``Cluster::manager2worker_events`` (and all
   permutations for every node type), what you'd now use is either 

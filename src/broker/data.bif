@@ -25,7 +25,6 @@ enum DataType %{
 	SET,
 	TABLE,
 	VECTOR,
-	RECORD,
 %}
 
 type Broker::Data: record;

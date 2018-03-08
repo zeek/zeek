@@ -772,24 +772,17 @@ struct data_type_getter {
 
 	result_type operator()(const broker::vector&)
 		{
-		auto result = result_type{nullptr};
-		if (type->Tag() == TYPE_VECTOR)
-			result = new EnumVal(BifEnum::Broker::VECTOR,
-					     BifType::Enum::Broker::DataType);
-		else if (type->Tag() == TYPE_RECORD)
-			result = new EnumVal(BifEnum::Broker::RECORD,
-					     BifType::Enum::Broker::DataType);
-		assert(result);
-		return result;
+		// Note that Broker uses vectors to store record data, so there's
+		// no actual way to tell if this data was originally associated
+		// with a Bro record.
+		return new EnumVal(BifEnum::Broker::VECTOR,
+		                   BifType::Enum::Broker::DataType);
 		}
-
-	BroType* type;
 };
 
 EnumVal* bro_broker::get_data_type(RecordVal* v, Frame* frame)
 	{
-	return broker::visit(data_type_getter{v->Type()},
-			     opaque_field_to_data(v, frame));
+	return broker::visit(data_type_getter{}, opaque_field_to_data(v, frame));
 	}
 
 broker::data& bro_broker::opaque_field_to_data(RecordVal* v, Frame* f)

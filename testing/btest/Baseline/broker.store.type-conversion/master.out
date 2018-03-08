@@ -11,9 +11,9 @@ Broker::INTERVAL
 Broker::ENUM
 Broker::SET
 Broker::TABLE
-Broker::RECORD
-Broker::RECORD
-Broker::RECORD
+Broker::VECTOR
+Broker::VECTOR
+Broker::VECTOR
 ***************************
 T
 F

@@ -18,9 +18,8 @@ global auto_event_handler: event(msg: string, c: count);
 
 event bro_init()
 	{
-	Broker::enable();
-	Broker::subscribe_to_events("bro/event/");
-	Broker::auto_event("bro/event/my_topic", auto_event_handler);
+	Broker::subscribe("bro/event/");
+	Broker::auto_publish("bro/event/my_topic", auto_event_handler);
 	Broker::listen("127.0.0.1");
 	}
 
@@ -39,8 +38,7 @@ event event_handler(msg: string, n: count)
 		}
 
 	event auto_event_handler(msg, n);
-	local args = Broker::event_args(event_handler, "pong", n);
-	Broker::send_event("bro/event/my_topic", args);
+	Broker::publish("bro/event/my_topic", event_handler, "pong", n);
 	}
 
 @TEST-END-FILE
@@ -54,25 +52,20 @@ global auto_event_handler: event(msg: string, c: count);
 
 event bro_init()
 	{
-	Broker::enable();
-	Broker::subscribe_to_events("bro/event/my_topic");
+	Broker::subscribe("bro/event/my_topic");
 	Broker::peer("127.0.0.1", Broker::default_port, 1secs);
 	}
 
 global event_count = 0;
 
-event Broker::outgoing_connection_established(peer_address: string,
-                                            peer_port: port,
-                                            peer_name: string)
+event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
-	print "Broker::outgoing_connection_established", peer_address, peer_port;
-	local args = Broker::event_args(event_handler, "ping", event_count);
-	Broker::send_event("bro/event/hi", args);
+	print "Broker peer added", endpoint$network;
+	Broker::publish("bro/event/hi", event_handler, "ping", event_count);
 	++event_count;
 	}
 
-event Broker::outgoing_connection_broken(peer_address: string,
-                                       peer_port: port)
+event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	{
 	terminate();
 	}
@@ -80,8 +73,7 @@ event Broker::outgoing_connection_broken(peer_address: string,
 event event_handler(msg: string, n: count)
 	{
 	print "got event msg", msg, n;
-	local args = Broker::event_args(event_handler, "ping", event_count);
-	Broker::send_event("bro/event/hi", args);
+	Broker::publish("bro/event/hi", event_handler, "ping", event_count);
 	++event_count;
 	}
 

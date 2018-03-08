@@ -16,24 +16,24 @@ type bro_record : record {
 };
 
 function broker_to_bro_record_recurse(it: opaque of Broker::RecordIterator,
-                                           rval: bro_record,
-                                           idx: count): bro_record
+                                      rval: bro_record,
+                                      idx: count): bro_record
 	{
 	if ( Broker::record_iterator_last(it) )
 		return rval;
 
 	local field_value = Broker::record_iterator_value(it);
 
-	if ( field_value?$d )
+	if ( field_value?$data )
 		switch ( idx ) {
 		case 0:
-			rval$a = Broker::refine_to_string(field_value);
+			rval$a = field_value as string;
 			break;
 		case 1:
-			rval$b = Broker::refine_to_string(field_value);
+			rval$b = field_value as string;
 			break;
 		case 2:
-			rval$c = Broker::refine_to_count(field_value);
+			rval$c = field_value as count;
 			break;
 		};
 
@@ -45,7 +45,7 @@ function broker_to_bro_record_recurse(it: opaque of Broker::RecordIterator,
 function broker_to_bro_record(d: Broker::Data): bro_record
 	{
 	return broker_to_bro_record_recurse(Broker::record_iterator(d),
-	                                         bro_record($c = 0), 0);
+	                                    bro_record($c = 0), 0);
 	}
 
 function
@@ -55,7 +55,7 @@ broker_to_bro_set_recurse(it: opaque of Broker::SetIterator,
 	if ( Broker::set_iterator_last(it) )
 		return rval;
 
-	add rval[Broker::refine_to_string(Broker::set_iterator_value(it))];
+	add rval[Broker::set_iterator_value(it) as string];
 	Broker::set_iterator_next(it);
 	return broker_to_bro_set_recurse(it, rval);
 	}
@@ -74,7 +74,7 @@ broker_to_bro_table_recurse(it: opaque of Broker::TableIterator,
 		return rval;
 
 	local item = Broker::table_iterator_value(it);
-	rval[Broker::refine_to_string(item$key)] = Broker::refine_to_count(item$val);
+	rval[item$key as string] = item$val as count;
 	Broker::table_iterator_next(it);
 	return broker_to_bro_table_recurse(it, rval);
 	}
@@ -82,16 +82,16 @@ broker_to_bro_table_recurse(it: opaque of Broker::TableIterator,
 function broker_to_bro_table(d: Broker::Data): bro_table
 	{
 	return broker_to_bro_table_recurse(Broker::table_iterator(d),
-	                                       bro_table());
+	                                   bro_table());
 	}
 
 function broker_to_bro_vector_recurse(it: opaque of Broker::VectorIterator,
-                                           rval: bro_vector): bro_vector
+                                      rval: bro_vector): bro_vector
 	{
 	if ( Broker::vector_iterator_last(it) )
 		return rval;
 
-	rval[|rval|] = Broker::refine_to_string(Broker::vector_iterator_value(it));
+	rval[|rval|] = Broker::vector_iterator_value(it) as string;
 	Broker::vector_iterator_next(it);
 	return broker_to_bro_vector_recurse(it, rval);
 	}
@@ -99,19 +99,15 @@ function broker_to_bro_vector_recurse(it: opaque of Broker::VectorIterator,
 function broker_to_bro_vector(d: Broker::Data): bro_vector
 	{
 	return broker_to_bro_vector_recurse(Broker::vector_iterator(d),
-	                                         bro_vector());
+	                                    bro_vector());
 	}
-
-event bro_init()
-{
-Broker::enable();
-}
 
 global did_it = F;
 
 event new_connection(c: connection)
 {
 if ( did_it ) return;
+
 did_it = T;
 
 ### Print every broker data type
@@ -140,22 +136,22 @@ print "***************************";
 
 ### Convert a Bro value to a broker value, then print the result
 
-print Broker::refine_to_bool(Broker::data(T));
-print Broker::refine_to_bool(Broker::data(F));
-print Broker::refine_to_int(Broker::data(+1));
-print Broker::refine_to_int(Broker::data(+0));
-print Broker::refine_to_int(Broker::data(-1));
-print Broker::refine_to_count(Broker::data(1));
-print Broker::refine_to_count(Broker::data(0));
-print Broker::refine_to_double(Broker::data(1.1));
-print Broker::refine_to_double(Broker::data(-11.1));
-print Broker::refine_to_string(Broker::data("hello"));
-print Broker::refine_to_addr(Broker::data(1.2.3.4));
-print Broker::refine_to_subnet(Broker::data(192.168.1.1/16));
-print Broker::refine_to_port(Broker::data(22/tcp));
-print Broker::refine_to_time(Broker::data(double_to_time(42)));
-print Broker::refine_to_interval(Broker::data(3min));
-print Broker::refine_to_enum_name(Broker::data(Broker::BOOL));
+print (Broker::data(T)) as bool;
+print (Broker::data(F)) as bool;
+print (Broker::data(+1)) as int;
+print (Broker::data(+0)) as int;
+print (Broker::data(-1)) as int;
+print (Broker::data(1)) as count;
+print (Broker::data(0)) as count;
+print (Broker::data(1.1)) as double;
+print (Broker::data(-11.1)) as double;
+print (Broker::data("hello")) as string;
+print (Broker::data(1.2.3.4)) as addr;
+print (Broker::data(192.168.1.1/16)) as subnet;
+print (Broker::data(22/tcp)) as port;
+print (Broker::data(double_to_time(42))) as time;
+print (Broker::data(3min)) as interval;
+print (Broker::data(Broker::BOOL)) as Broker::DataType;
 
 local cs = Broker::data(s);
 print broker_to_bro_set(cs);
@@ -183,17 +179,17 @@ print "***************************";
 
 cs = Broker::set_create();
 print Broker::set_size(cs);
-print Broker::set_insert(cs, Broker::data("hi"));
+print Broker::set_insert(cs, ("hi"));
 print Broker::set_size(cs);
-print Broker::set_contains(cs, Broker::data("hi"));
-print Broker::set_contains(cs, Broker::data("bye"));
-print Broker::set_insert(cs, Broker::data("bye"));
+print Broker::set_contains(cs, ("hi"));
+print Broker::set_contains(cs, ("bye"));
+print Broker::set_insert(cs, ("bye"));
 print Broker::set_size(cs);
-print Broker::set_insert(cs, Broker::data("bye"));
+print Broker::set_insert(cs, ("bye"));
 print Broker::set_size(cs);
-print Broker::set_remove(cs, Broker::data("hi"));
+print Broker::set_remove(cs, ("hi"));
 print Broker::set_size(cs);
-print Broker::set_remove(cs, Broker::data("hi"));
+print Broker::set_remove(cs, ("hi"));
 print broker_to_bro_set(cs);
 print Broker::set_clear(cs);
 print Broker::set_size(cs);
@@ -205,19 +201,19 @@ print "***************************";
 
 ct = Broker::table_create();
 print Broker::table_size(ct);
-print Broker::table_insert(ct, Broker::data("hi"), Broker::data(42));
+print Broker::table_insert(ct, ("hi"), (42));
 print Broker::table_size(ct);
-print Broker::table_contains(ct, Broker::data("hi"));
-print Broker::refine_to_count(Broker::table_lookup(ct, Broker::data("hi")));
-print Broker::table_contains(ct, Broker::data("bye"));
-print Broker::table_insert(ct, Broker::data("bye"), Broker::data(7));
+print Broker::table_contains(ct, ("hi"));
+print (Broker::table_lookup(ct, ("hi"))) as count;
+print Broker::table_contains(ct, ("bye"));
+print Broker::table_insert(ct, ("bye"), (7));
 print Broker::table_size(ct);
-print Broker::table_insert(ct, Broker::data("bye"), Broker::data(37));
+print Broker::table_insert(ct, ("bye"), (37));
 print Broker::table_size(ct);
-print Broker::refine_to_count(Broker::table_lookup(ct, Broker::data("bye")));
-print Broker::table_remove(ct, Broker::data("hi"));
+print (Broker::table_lookup(ct, ("bye"))) as count;
+print Broker::table_remove(ct, ("hi"));
 print Broker::table_size(ct);
-print Broker::table_remove(ct, Broker::data("hi"));
+print Broker::table_remove(ct, ("hi"));
 print Broker::table_size(ct);
 print Broker::table_clear(ct);
 print Broker::table_size(ct);
@@ -229,13 +225,13 @@ print "***************************";
 
 cv = Broker::vector_create();
 print Broker::vector_size(cv);
-print Broker::vector_insert(cv, Broker::data("hi"), 0);
-print Broker::vector_insert(cv, Broker::data("hello"), 1);
-print Broker::vector_insert(cv, Broker::data("greetings"), 2);
-print Broker::vector_insert(cv, Broker::data("salutations"), 1);
+print Broker::vector_insert(cv, 0, ("hi"));
+print Broker::vector_insert(cv, 1, ("hello"));
+print Broker::vector_insert(cv, 2, ("greetings"));
+print Broker::vector_insert(cv, 1, ("salutations"));
 print broker_to_bro_vector(cv);
 print Broker::vector_size(cv);
-print Broker::vector_replace(cv, Broker::data("bah"), 2);
+print Broker::vector_replace(cv, 2, ("bah"));
 print Broker::vector_lookup(cv, 2);
 print Broker::vector_lookup(cv, 0);
 print broker_to_bro_vector(cv);
@@ -252,14 +248,14 @@ print "***************************";
 
 cr = Broker::record_create(3);
 print Broker::record_size(cr);
-print Broker::record_assign(cr, Broker::data("hi"), 0);
-print Broker::record_assign(cr, Broker::data("hello"), 1);
-print Broker::record_assign(cr, Broker::data(37), 2);
+print Broker::record_assign(cr, 0, ("hi"));
+print Broker::record_assign(cr, 1, ("hello"));
+print Broker::record_assign(cr, 2, (37));
 print Broker::record_lookup(cr, 0);
 print Broker::record_lookup(cr, 1);
 print Broker::record_lookup(cr, 2);
 print Broker::record_size(cr);
-print Broker::record_assign(cr, Broker::data("goodbye"), 1);
+print Broker::record_assign(cr, 1, ("goodbye"));
 print Broker::record_size(cr);
 print Broker::record_lookup(cr, 1);
 }

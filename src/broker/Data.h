@@ -231,21 +231,6 @@ inline T& require_data_type(RecordVal* v, TypeTag tag, Frame* f)
 	return require_data_type<T>(opaque_field_to_data(v, f), tag, f);
 	}
 
-/**
- * Convert a Broker::Data Bro value to a Bro value of a given type.
- * @tparam a type that a Broker data variant may contain.
- * @param v a Broker::Data value.
- * @param tag a Bro type to convert to.
- * @param f used to get location information on error.
- * A runtime interpret exception is thrown if trying to access a type which
- * is not currently stored in the Broker data.
- */
-template <typename T>
-inline Val* refine(RecordVal* v, TypeTag tag, Frame* f)
-	{
-	return new Val(require_data_type<T>(v, tag, f), tag);
-	}
-
 // Copying data in to iterator vals is not the fastest approach, but safer...
 
 class SetIterator : public OpaqueVal {

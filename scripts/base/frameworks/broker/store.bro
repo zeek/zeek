@@ -374,7 +374,9 @@ export {
 	##
 	## d: the communication data.
 	##
-	## Returns: the data type associated with the communication data.
+	## Returns: The data type associated with the communication data.
+	##          Note that broker represents records in the same way as
+	##          vectors, so there is no "record" type.
 	global data_type: function(d: Broker::Data): Broker::DataType;
 
 	## Create communication data of type "set".

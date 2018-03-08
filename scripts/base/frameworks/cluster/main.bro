@@ -147,39 +147,6 @@ export {
 		TIME_MACHINE,
 	};
 
-	## Events raised by a manager and handled by the workers.
-	const manager2worker_events = /Drop::.*/ &redef;
-
-	## Events raised by a manager and handled by proxies.
-	const manager2proxy_events = /EMPTY/ &redef;
-
-	## Events raised by a manager and handled by loggers.
-	const manager2logger_events = /EMPTY/ &redef;
-
-	## Events raised by proxies and handled by loggers.
-	const proxy2logger_events = /EMPTY/ &redef;
-
-	## Events raised by proxies and handled by a manager.
-	const proxy2manager_events = /EMPTY/ &redef;
-
-	## Events raised by proxies and handled by workers.
-	const proxy2worker_events = /EMPTY/ &redef;
-
-	## Events raised by workers and handled by loggers.
-	const worker2logger_events = /EMPTY/ &redef;
-
-	## Events raised by workers and handled by a manager.
-	const worker2manager_events = /(TimeMachine::command|Drop::.*)/ &redef;
-
-	## Events raised by workers and handled by proxies.
-	const worker2proxy_events = /EMPTY/ &redef;
-
-	## Events raised by TimeMachine instances and handled by a manager.
-	const tm2manager_events = /EMPTY/ &redef;
-
-	## Events raised by TimeMachine instances and handled by workers.
-	const tm2worker_events = /EMPTY/ &redef;
-
 	## Record type to indicate a node in a cluster.
 	type Node: record {
 		## Identifies the type of cluster node in this node's configuration.

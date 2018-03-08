@@ -32,7 +32,6 @@ export {
 	## operation.
 	const use_device_store = T &redef;
 	
-@if ( Known::use_device_store )
 	## Holds the set of all known devices.  Keys in the store are strings
 	## representing MAC addresses and their associated value is always the
 	## boolean value of "true".
@@ -56,7 +55,7 @@ export {
 	## The maximum number of times to retry timed-out operations against
 	## :bro:see:`Known::device_store`.
 	const device_store_max_retries = 10 &redef;
-@else
+
 	## The set of all known MAC addresses. It can accessed from other
 	## scripts to add, and check for, addresses seen in use.
 	##
@@ -68,7 +67,6 @@ export {
 	##
 	## Use :bro:see:`Known::device_found` to update this set.
 	global devices: set[string] &create_expire=1day &redef;
-@endif
 
 	## An event that can be handled to access the :bro:type:`Known::DevicesInfo`
 	## record as it is sent on to the logging framework.
@@ -81,15 +79,19 @@ export {
 	global device_found: function(info: DevicesInfo);
 }
 
-@if ( Known::use_device_store )
-
 event bro_init()
 	{
+	if ( ! Known::use_device_store )
+		return;
+
 	Known::device_store = Cluster::create_store(Known::device_store_name);
 	}
 
 event known_device_add(info: DevicesInfo, attempt_number: count &default = 0)
 	{
+	if ( ! Known::use_device_store )
+		return;
+
 	when ( local r = Broker::put_unique(Known::device_store$store, info$mac,
 	                                    T, Known::device_store_expiry) )
 		{
@@ -110,15 +112,11 @@ event known_device_add(info: DevicesInfo, attempt_number: count &default = 0)
 		}
 	}
 
-function device_found(info: DevicesInfo)
+event known_device_add(info: DevicesInfo, attempt_number: count &default = 0)
 	{
-	event known_device_add(info);
-	}
+	if ( Known::use_device_store )
+		return;
 
-@else
-
-event known_device_add(info: DevicesInfo)
-	{
 	if ( info$mac in Known::devices )
 		return;
 
@@ -130,14 +128,11 @@ event known_device_add(info: DevicesInfo)
 	@endif
 	}
 
-function device_found(info: DevicesInfo)
-	{
-	Cluster::publish_hrw(Cluster::proxy_pool, info$mac, known_device_add, info);
-	event known_device_add(info);
-	}
-
 event Cluster::node_up(name: string, id: string)
 	{
+	if ( Known::use_device_store )
+		return;
+
 	if ( Cluster::local_node_type() != Cluster::WORKER )
 		return;
 
@@ -147,6 +142,9 @@ event Cluster::node_up(name: string, id: string)
 
 event Cluster::node_down(name: string, id: string)
 	{
+	if ( Known::use_device_store )
+		return;
+
 	if ( Cluster::local_node_type() != Cluster::WORKER )
 		return;
 
@@ -154,7 +152,14 @@ event Cluster::node_down(name: string, id: string)
 	Known::devices = set();
 	}
 
-@endif
+function device_found(info: DevicesInfo)
+	{
+	if ( ! Known::use_device_store )
+		Cluster::publish_hrw(Cluster::proxy_pool, info$mac,
+		                     known_device_add, info);
+
+	event known_device_add(info);
+	}
 
 event bro_init()
 	{

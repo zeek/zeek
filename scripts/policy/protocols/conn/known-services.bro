@@ -37,7 +37,6 @@ export {
 	## See :bro:type:`Host` for possible choices.
 	const service_tracking = LOCAL_HOSTS &redef;
 
-@if ( Known::use_service_store )
 	type AddrPortPair: record {
 		host: addr;
 		p: port;
@@ -66,7 +65,7 @@ export {
 	## The maximum number of times to retry timed-out operations against
 	## :bro:see:`Known::service_store`.
 	const service_store_max_retries = 10 &redef;
-@else
+
 	## Tracks the set of daily-detected services for preventing the logging
 	## of duplicates, but can also be inspected by other scripts for
 	## different purposes.
@@ -76,8 +75,6 @@ export {
 	##
 	## This set is automatically populated and shouldn't be directly modified.
 	global services: set[addr, port] &create_expire=1day;
-
-@endif
 
 	## Event that can be handled to access the :bro:type:`Known::ServicesInfo`
 	## record as it is sent on to the logging framework.
@@ -90,16 +87,21 @@ redef record connection += {
 	known_services_done: bool &default=F;
 };
 
-@if ( Known::use_service_store )
 
 event bro_init()
 	{
+	if ( ! Known::use_service_store )
+		return;
+
 	Known::service_store = Cluster::create_store(Known::service_store_name);
 	}
 
 event service_info_commit(info: ServicesInfo,
                           attempt_number: count &default = 0)
 	{
+	if ( ! Known::use_service_store )
+		return;
+
 	local key = AddrPortPair($host = info$host, $p = info$port_num);
 
 	when ( local r = Broker::put_unique(Known::service_store$store, key,
@@ -122,10 +124,11 @@ event service_info_commit(info: ServicesInfo,
 		}
 	}
 
-@else
-
 event known_service_add(info: ServicesInfo)
 	{
+	if ( Known::use_service_store )
+		return;
+
 	if ( [info$host, info$port_num] in Known::services )
 		return;
 
@@ -139,6 +142,9 @@ event known_service_add(info: ServicesInfo)
 
 event Cluster::node_up(name: string, id: string)
 	{
+	if ( Known::use_service_store )
+		return;
+
 	if ( Cluster::local_node_type() != Cluster::WORKER )
 		return;
 
@@ -148,6 +154,9 @@ event Cluster::node_up(name: string, id: string)
 
 event Cluster::node_down(name: string, id: string)
 	{
+	if ( Known::use_service_store )
+		return;
+
 	if ( Cluster::local_node_type() != Cluster::WORKER )
 		return;
 
@@ -158,12 +167,13 @@ event Cluster::node_down(name: string, id: string)
 event service_info_commit(info: ServicesInfo,
                           attempt_number: count &default = 0)
 	{
+	if ( Known::use_service_store )
+		return;
+
 	local key = cat(info$host, info$port_num);
 	Cluster::publish_hrw(Cluster::proxy_pool, key, known_service_add, info);
 	event known_service_add(info);
 	}
-
-@endif
 
 function known_services_done(c: connection)
 	{

@@ -37,7 +37,6 @@ export {
 	## operation.
 	const use_cert_store = T &redef;
 	
-@if ( Known::use_cert_store )
 	type AddrCertHashPair: record {
 		host: addr;
 		hash: string;
@@ -66,7 +65,6 @@ export {
 	## The maximum number of times to retry timed-out operations against
 	## :bro:see:`Known::cert_store`.
 	const cert_store_max_retries = 10 &redef;
-@else
 	
 	## The set of all known certificates to store for preventing duplicate 
 	## logging. It can also be used from other scripts to 
@@ -76,23 +74,26 @@ export {
 	## In cluster operation, this set is uniformly distributed across
 	## proxy nodes.
 	global certs: set[addr, string] &create_expire=1day &redef;
-@endif
 	
 	## Event that can be handled to access the loggable record as it is sent
 	## on to the logging framework.
 	global log_known_certs: event(rec: CertsInfo);
 }
 
-@if ( Known::use_cert_store )
-
 event bro_init()
 	{
+	if ( ! Known::use_cert_store )
+		return;
+
 	Known::cert_store = Cluster::create_store(Known::cert_store_name);
 	}
 
 event Known::cert_found(info: CertsInfo, hash: string,
                         attempt_number: count &default = 0)
     {
+	if ( ! Known::use_cert_store )
+		return;
+
 	local key = AddrCertHashPair($host = info$host, $hash = hash);
 
 	when ( local r = Broker::put_unique(Known::cert_store$store, key,
@@ -115,10 +116,11 @@ event Known::cert_found(info: CertsInfo, hash: string,
 		}
     }
 
-@else
-
 event known_cert_add(info: CertsInfo, hash: string)
 	{
+	if ( Known::use_cert_store )
+		return;
+
 	if ( [info$host, hash] in Known::certs )
 		return;
 
@@ -133,6 +135,9 @@ event known_cert_add(info: CertsInfo, hash: string)
 event Known::cert_found(info: CertsInfo, hash: string,
                         attempt_number: count &default = 0)
 	{
+	if ( Known::use_cert_store )
+		return;
+
 	local key = cat(info$host, hash);
 	Cluster::publish_hrw(Cluster::proxy_pool, key, known_cert_add, info, hash);
 	event known_cert_add(info, hash);
@@ -140,6 +145,9 @@ event Known::cert_found(info: CertsInfo, hash: string,
 
 event Cluster::node_up(name: string, id: string)
 	{
+	if ( Known::use_cert_store )
+		return;
+
 	if ( Cluster::local_node_type() != Cluster::WORKER )
 		return;
 
@@ -148,13 +156,14 @@ event Cluster::node_up(name: string, id: string)
 
 event Cluster::node_down(name: string, id: string)
 	{
+	if ( Known::use_cert_store )
+		return;
+
 	if ( Cluster::local_node_type() != Cluster::WORKER )
 		return;
 
 	Known::certs = table();
 	}
-
-@endif
 
 event ssl_established(c: connection) &priority=3
 	{

@@ -31,7 +31,6 @@ export {
 	## See :bro:type:`Host` for possible choices.
 	const host_tracking = LOCAL_HOSTS &redef;
 	
-@if ( Known::use_host_store )
 	## Holds the set of all known hosts.  Keys in the store are addresses
 	## and their associated value will always be the "true" boolean.
 	global host_store: Cluster::StoreInfo;
@@ -54,7 +53,7 @@ export {
 	## The maximum number of times to retry timed-out operations against
 	## :bro:see:`Known::host_store`.
 	const host_store_max_retries = 10 &redef;
-@else
+
 	## The set of all known addresses to store for preventing duplicate 
 	## logging of addresses.  It can also be used from other scripts to 
 	## inspect if an address has been seen in use.
@@ -64,21 +63,25 @@ export {
 	## In cluster operation, this set is distributed uniformly across
 	## proxy nodes.
 	global hosts: set[addr] &create_expire=1day &redef;
-@endif
 
 	## An event that can be handled to access the :bro:type:`Known::HostsInfo`
 	## record as it is sent on to the logging framework.
 	global log_known_hosts: event(rec: HostsInfo);
 }
 
-@if ( Known::use_host_store )
 event bro_init()
 	{
+	if ( ! Known::use_host_store )
+		return;
+
 	Known::host_store = Cluster::create_store(Known::host_store_name);
 	}
 
 event Known::host_found(info: HostsInfo, attempt_number: count &default = 0)
 	{
+	if ( ! Known::use_host_store )
+		return;
+
 	when ( local r = Broker::put_unique(Known::host_store$store, info$host,
 	                                    T, Known::host_store_expiry) )
 		{
@@ -97,9 +100,12 @@ event Known::host_found(info: HostsInfo, attempt_number: count &default = 0)
 			schedule Known::host_store_retry { Known::host_found(info, ++attempt_number) };
 		}
 	}
-@else
+
 event known_host_add(info: HostsInfo)
 	{
+	if ( use_host_store )
+		return;
+
 	if ( info$host in Known::hosts )
 		return;
 
@@ -113,6 +119,9 @@ event known_host_add(info: HostsInfo)
 
 event Cluster::node_up(name: string, id: string)
 	{
+	if ( use_host_store )
+		return;
+
 	if ( Cluster::local_node_type() != Cluster::WORKER )
 		return;
 
@@ -122,6 +131,9 @@ event Cluster::node_up(name: string, id: string)
 
 event Cluster::node_down(name: string, id: string)
 	{
+	if ( use_host_store )
+		return;
+
 	if ( Cluster::local_node_type() != Cluster::WORKER )
 		return;
 
@@ -131,10 +143,12 @@ event Cluster::node_down(name: string, id: string)
 
 event Known::host_found(info: HostsInfo, attempt_number: count &default = 0)
 	{
+	if ( use_host_store )
+		return;
+
 	Cluster::publish_hrw(Cluster::proxy_pool, info$host, known_host_add, info);
 	event known_host_add(info);
 	}
-@endif
 
 event bro_init()
 	{

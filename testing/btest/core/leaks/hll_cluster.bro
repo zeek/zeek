@@ -28,8 +28,6 @@ redef Log::default_rotation_interval = 0secs;
 
 global hll_data: event(data: opaque of cardinality);
 
-redef Cluster::worker2manager_events += /hll_data/;
-
 @if ( Cluster::local_node_type() == Cluster::WORKER )
 
 event bro_init()

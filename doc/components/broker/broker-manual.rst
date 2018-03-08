@@ -1,1 +1,1 @@
-../../../aux/broker/broker-manual.rst
+../../../aux/broker/doc/index.rst

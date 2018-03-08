@@ -45,9 +45,6 @@ event fully_connected()
 		}
 	}
 
-redef Cluster::worker2manager_events += /fully_connected/;
-redef Cluster::proxy2manager_events += /fully_connected/;
-
 event bro_init()
 	{
 	Broker::auto_publish(Cluster::manager_topic, fully_connected);

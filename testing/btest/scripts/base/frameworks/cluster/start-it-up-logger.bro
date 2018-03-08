@@ -46,10 +46,6 @@ event fully_connected()
 		}
 	}
 
-redef Cluster::worker2logger_events += /fully_connected/;
-redef Cluster::proxy2logger_events += /fully_connected/;
-redef Cluster::manager2logger_events += /fully_connected/;
-
 event bro_init()
 	{
 	Broker::auto_publish(Cluster::logger_topic, fully_connected);

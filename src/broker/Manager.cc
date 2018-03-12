@@ -166,7 +166,11 @@ void Manager::InitPostScript()
 	options.disable_ssl = get_option("Broker::disable_ssl")->AsBool();
 	options.forward = get_option("Broker::forward_messages")->AsBool();
 
+	if ( ! iosource_mgr->GetPktSrcs().empty() )
+		options.use_custom_clock = true;
+
 	bstate = std::make_shared<BrokerState>(options);
+	bstate->clock = bstate->endpoint.clock();
 	}
 
 void Manager::Terminate()
@@ -200,6 +204,20 @@ bool Manager::Active()
 		return true;
 
 	return bstate->endpoint.peers().size();
+	}
+
+void Manager::AdvanceTime(double seconds_since_unix_epoch)
+	{
+	if ( ! bstate->clock )
+		return;
+
+	if ( bstate->endpoint.is_shutdown() )
+		return;
+
+	auto secs = std::chrono::duration<double>(seconds_since_unix_epoch);
+	auto d = std::chrono::duration_cast<broker::custom_clock::duration_type>(secs);
+	broker::custom_clock::time_point tp(d);
+	bstate->clock->advance(tp);
 	}
 
 uint16_t Manager::Listen(const string& addr, uint16_t port)

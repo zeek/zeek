@@ -75,6 +75,11 @@ public:
 	bool Active();
 
 	/**
+	 * Advances time.
+	 */
+	void AdvanceTime(double seconds_since_unix_epoch);
+
+	/**
 	 * Listen for remote connections.
 	 * @param port the TCP port to listen on.
 	 * @param addr an address string on which to accept connections, e.g.
@@ -323,6 +328,7 @@ private:
 	public:
 		BrokerState(broker::broker_options options);
 		broker::endpoint endpoint;
+		broker::custom_clock* clock;
 		broker::subscriber subscriber;
 		broker::status_subscriber status_subscriber;
 	};

@@ -29,7 +29,7 @@ expected to change at runtime, but they cannot be used for values that
 need to be modified occasionally. While a "redef" allows a
 re-definition of an already defined constant in Bro, these
 redefinitions can only be performed when Bro first starts. Afterwards,
-constants no longer be modified.
+constants can no longer be modified.
 
 However, it is clearly desirable to be able to change at runtime many
 of the configuration options that Bro offers. Having to restart Bro

@@ -1,4 +1,11 @@
 
+2.5-467 | 2018-03-15 14:58:40 -0700
+
+  * Configure Travis CI email recipients and build branches. (Daniel Thayer)
+
+  * Add documentation of the configuration framework, and improve
+    existing script comments.  (Daniel Thayer)
+
 2.5-459 | 2018-03-07 12:46:57 -0600
 
   * Update a doc test/baseline (Corelight)

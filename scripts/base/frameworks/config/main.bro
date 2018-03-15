@@ -1,6 +1,6 @@
 ##! The configuration framework provides a way to change Bro options
-##! (as specified by the option keyword) at runtime. It also logs runtime changes
-##! to options to config.log.
+##! (as specified by the "option" keyword) at runtime. It also logs runtime
+##! changes to options to config.log.
 
 module Config;
 

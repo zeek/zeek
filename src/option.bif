@@ -1,6 +1,5 @@
-##! The option built-in functions allow the scripting layer to
-##! change the value of option-values and to be notified when
-##! option values change.
+##! Definitions of built-in functions that allow the scripting layer to
+##! change the value of options and to be notified when option values change.
 
 module Option;
 
@@ -8,16 +7,16 @@ module Option;
 #include "NetVar.h"
 %%}
 
-## Sets an option to a new value. This change will also cause the option change handlers
-## to be called.
+## Set an option to a new value. This change will also cause the option change
+## handlers to be called.
 ##
 ## ID: The ID of the option to update.
 ##
 ## val: The new value of the option.
 ##
-## location: optional parameter detailing where this change originated from.
+## location: Optional parameter detailing where this change originated from.
 ##
-## Returns: true on success, false when an error occured.
+## Returns: true on success, false when an error occurred.
 ##
 ## .. bro:see:: Option::set_change_handler
 function Option::set%(ID: string, val: any, location: string &default=""%): bool
@@ -74,24 +73,26 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 	return new Val(1, TYPE_BOOL);
 	%}
 
-## Set the change handler for the option *ID*. The change handler will be called anytime
-## :bro:id:`Option::set` is called fot *ID*.
+## Set a change handler for an option. The change handler will be
+## called anytime :bro:id:`Option::set` is called for the option.
 ##
 ## ID: The ID of the option for which change notifications are desired.
 ##
-## on_change: The function that will be called when a change occurs. The function can choose to
-##            receive two or three parameters: the first parameter is a string containing *ID*,
-##            the second parameter is the new option value. The third, optional, parameter is the
-##            location string as passed to Option::set. Note that the global value is not yet changed
-##            when the function is called. The passed function has to return the new value that
-##            it wants the option to be set to. This enables it to reject changes, or change values
-##            that are being set. When several change handlers are set for an option they are chained;
-##            the second change handler will see the return value of the first change handler as the
-##            "new value".
+## on_change: The function that will be called when a change occurs. The
+##            function can choose to receive two or three parameters: the first
+##            parameter is a string containing *ID*, the second parameter is
+##            the new option value. The third, optional, parameter is the
+##            location string as passed to Option::set. Note that the global
+##            value is not yet changed when the function is called. The passed
+##            function has to return the new value that it wants the option to
+##            be set to. This enables it to reject changes, or change values
+##            that are being set. When several change handlers are set for an
+##            option they are chained; the second change handler will see the
+##            return value of the first change handler as the "new value".
 ##
-## priority: The priority of the function that was added; functions with higher priority are
-##           called first, functions with the same priority are called in the order in which
-##           they were added.
+## priority: The priority of the function that was added; functions with higher
+##           priority are called first, functions with the same priority are
+##           called in the order in which they were added.
 ##
 ## Returns: true when the change handler was set, false when an error occurred.
 ##

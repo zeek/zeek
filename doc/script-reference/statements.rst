@@ -20,6 +20,9 @@ Declarations
 +----------------------------+-----------------------------+
 | :bro:keyword:`const`       | Declare a constant          |
 +----------------------------+-----------------------------+
+| :bro:keyword:`option`      | Declare a configuration     |
+|                            | option                      |
++----------------------------+-----------------------------+
 | :bro:keyword:`type`        | Declare a user-defined type |
 +----------------------------+-----------------------------+
 | :bro:keyword:`redef`       | Redefine a global value or  |
@@ -174,6 +177,25 @@ all loaded Bro scripts.
 
     Note that the "const" keyword cannot be used with either the "local"
     or "global" keywords (i.e., "const" replaces "local" and "global").
+
+
+.. bro:keyword:: option
+
+    A variable declared with the "option" keyword is a configuration option.
+
+    Options are required to be initialized at the
+    time of declaration.  Normally, the type is inferred from the initializer,
+    but the type can be explicitly specified.  Example::
+
+        option hostname = "host-1";
+        option peers: set[addr] = {};
+
+    The value of an option cannot be changed by an assignment statement.
+
+    The scope of an option is global.
+
+    Note that an "option" declaration cannot also use the "local", "global",
+    or "const" keywords.
 
 
 .. bro:keyword:: type

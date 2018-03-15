@@ -6,6 +6,7 @@ Frameworks
 .. toctree::
    :maxdepth: 1
 
+   configuration
    file-analysis
    geoip
    input

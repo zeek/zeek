@@ -34,7 +34,7 @@ class HTTP_Entity : public mime::MIME_Entity {
 public:
 	HTTP_Entity(HTTP_Message* msg, MIME_Entity* parent_entity,
 			int expect_body);
-	~HTTP_Entity()
+	~HTTP_Entity() override
 		{
 		if ( zip )
 			{ zip->Done(); delete zip; }
@@ -104,7 +104,7 @@ friend class HTTP_Entity;
 public:
 	HTTP_Message(HTTP_Analyzer* analyzer, tcp::ContentLine_Analyzer* cl,
 			 bool is_orig, int expect_body, int64_t init_header_length);
-	~HTTP_Message();
+	~HTTP_Message() override;
 	void Done(const int interrupted, const char* msg);
 	void Done() override { Done(0, "message ends normally"); }
 
@@ -153,7 +153,7 @@ protected:
 class HTTP_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
 	HTTP_Analyzer(Connection* conn);
-	~HTTP_Analyzer();
+	~HTTP_Analyzer() override;
 
 	void HTTP_Header(int is_orig, mime::MIME_Header* h);
 	void HTTP_EntityData(int is_orig, BroString* entity_data);

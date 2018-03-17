@@ -56,7 +56,7 @@ public:
 	    : Timer(t, TIMER_TIMERMGR_EXPIRE), mgr(arg_mgr)
 		{ }
 
-	virtual void Dispatch(double t, int is_expire);
+	void Dispatch(double t, int is_expire) override;
 
 protected:
 	TimerMgr* mgr;
@@ -260,9 +260,9 @@ public:
 	: Timer(t + BifConst::Tunnel::ip_tunnel_timeout,
 			TIMER_IP_TUNNEL_INACTIVITY), tunnel_idx(p) {}
 
-	~IPTunnelTimer() {}
+	~IPTunnelTimer() override {}
 
-	void Dispatch(double t, int is_expire);
+	void Dispatch(double t, int is_expire) override;
 
 protected:
 	NetSessions::IPPair tunnel_idx;

@@ -11,13 +11,13 @@ namespace analyzer { namespace bittorrent {
 
 class BitTorrent_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
-	BitTorrent_Analyzer(Connection* conn);
-	virtual ~BitTorrent_Analyzer();
+	explicit BitTorrent_Analyzer(Connection* conn);
+	~BitTorrent_Analyzer() override;
 
-	virtual void Done();
-	virtual void DeliverStream(int len, const u_char* data, bool orig);
-	virtual void Undelivered(uint64 seq, int len, bool orig);
-	virtual void EndpointEOF(bool is_orig);
+	void Done() override;
+	void DeliverStream(int len, const u_char* data, bool orig) override;
+	void Undelivered(uint64 seq, int len, bool orig) override;
+	void EndpointEOF(bool is_orig) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new BitTorrent_Analyzer(conn); }

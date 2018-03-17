@@ -15,7 +15,7 @@ class CallExpr;
 class Frame : public BroObj {
 public:
 	Frame(int size, const BroFunc* func, const val_list *fn_args);
-	~Frame();
+	~Frame() override;
 
 	Val* NthElement(int n)		{ return frame[n]; }
 	void SetElement(int n, Val* v)
@@ -27,7 +27,7 @@ public:
 	void Reset(int startIdx);
 	void Release();
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 
 	// For which function is this stack frame.
 	const BroFunc* GetFunction() const	{ return function; }

@@ -88,7 +88,7 @@ public:
 	 * @param s String containing an IP address as either a dotted IPv4
 	 * address or a hex IPv6 address.
 	 */
-	IPAddr(const BroString& s)
+	explicit IPAddr(const BroString& s)
 		{
 		Init(s.CheckString());
 		}

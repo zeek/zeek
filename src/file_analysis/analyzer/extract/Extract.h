@@ -22,7 +22,7 @@ public:
 	/**
 	 * Destructor.  Will close the file that was used for data extraction.
 	 */
-	virtual ~Extract();
+	~Extract() override;
 
 	/**
 	 * Write a chunk of file data to the local extraction file.
@@ -31,7 +31,7 @@ public:
 	 * @return false if there was no extraction file open and the data couldn't
 	 *         be written, else true.
 	 */
-	virtual bool DeliverStream(const u_char* data, uint64 len);
+	bool DeliverStream(const u_char* data, uint64 len) override;
 
 	/**
 	 * Report undelivered bytes.
@@ -39,7 +39,7 @@ public:
 	 * @param len number of bytes undelivered.
 	 * @return true
 	 */
-	virtual bool Undelivered(uint64 offset, uint64 len);
+	bool Undelivered(uint64 offset, uint64 len) override;
 
 	/**
 	 * Create a new instance of an Extract analyzer.

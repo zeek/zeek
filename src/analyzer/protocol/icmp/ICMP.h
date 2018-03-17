@@ -17,19 +17,19 @@ typedef enum {
 // RuleMatcherState to perform our own matching.
 class ICMP_Analyzer : public analyzer::TransportLayerAnalyzer {
 public:
-	ICMP_Analyzer(Connection* conn);
+	explicit ICMP_Analyzer(Connection* conn);
 
-	virtual void UpdateConnVal(RecordVal *conn_val);
+	void UpdateConnVal(RecordVal *conn_val) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new ICMP_Analyzer(conn); }
 
 protected:
-	virtual void Done();
-	virtual void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64 seq, const IP_Hdr* ip, int caplen);
-	virtual bool IsReuse(double t, const u_char* pkt);
-	virtual unsigned int MemoryAllocation() const;
+	void Done() override;
+	void DeliverPacket(int len, const u_char* data, bool orig,
+					uint64 seq, const IP_Hdr* ip, int caplen) override;
+	bool IsReuse(double t, const u_char* pkt) override;
+	unsigned int MemoryAllocation() const override;
 
 	void ICMP_Sent(const struct icmp* icmpp, int len, int caplen, int icmpv6,
 	               const u_char* data, const IP_Hdr* ip_hdr);

@@ -11,24 +11,23 @@ namespace logging { namespace writer {
 
 class None : public WriterBackend {
 public:
-	None(WriterFrontend* frontend) : WriterBackend(frontend)	{}
-	~None()	{};
+	explicit None(WriterFrontend* frontend) : WriterBackend(frontend)	{}
+	~None() override {};
 
 	static WriterBackend* Instantiate(WriterFrontend* frontend)
 		{ return new None(frontend); }
 
 protected:
-	virtual bool DoInit(const WriterInfo& info, int num_fields,
-			    const threading::Field* const * fields);
-
-	virtual bool DoWrite(int num_fields, const threading::Field* const* fields,
-			     threading::Value** vals)	{ return true; }
-	virtual bool DoSetBuf(bool enabled)	{ return true; }
-	virtual bool DoRotate(const char* rotated_path, double open,
-			      double close, bool terminating);
-	virtual bool DoFlush(double network_time)	{ return true; }
-	virtual bool DoFinish(double network_time)	{ return true; }
-	virtual bool DoHeartbeat(double network_time, double current_time)	{ return true; }
+	bool DoInit(const WriterInfo& info, int num_fields,
+			    const threading::Field* const * fields) override;
+	bool DoWrite(int num_fields, const threading::Field* const* fields,
+			     threading::Value** vals) override { return true; }
+	bool DoSetBuf(bool enabled) override { return true; }
+	bool DoRotate(const char* rotated_path, double open,
+			      double close, bool terminating) override;
+	bool DoFlush(double network_time) override { return true; }
+	bool DoFinish(double network_time) override { return true; }
+	bool DoHeartbeat(double network_time, double current_time) override { return true; }
 };
 
 }

@@ -121,7 +121,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	~X509Val();
+	~X509Val() override;
 
 	/**
 	 * Get the wrapped X509 certificate. Please take care, that the

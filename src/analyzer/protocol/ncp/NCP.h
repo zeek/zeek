@@ -31,7 +31,7 @@ namespace analyzer { namespace ncp {
 
 class NCP_Session {
 public:
-	NCP_Session(analyzer::Analyzer* analyzer);
+	explicit NCP_Session(analyzer::Analyzer* analyzer);
 	virtual ~NCP_Session() {}
 
 	virtual void Deliver(int is_orig, int len, const u_char* data);
@@ -51,7 +51,7 @@ protected:
 
 class FrameBuffer {
 public:
-	FrameBuffer(int header_length);
+	explicit FrameBuffer(int header_length);
 	virtual ~FrameBuffer();
 
 	// Returns true if a frame is ready
@@ -80,17 +80,17 @@ public:
 	NCP_FrameBuffer() : FrameBuffer(NCP_TCPIP_HEADER_LENGTH) {}
 
 protected:
-	void compute_msg_length();
+	void compute_msg_length() override;
 };
 
 class Contents_NCP_Analyzer : public tcp::TCP_SupportAnalyzer {
 public:
 	Contents_NCP_Analyzer(Connection* conn, bool orig, NCP_Session* session);
-	~Contents_NCP_Analyzer();
+	~Contents_NCP_Analyzer() override;
 
 protected:
-	virtual void DeliverStream(int len, const u_char* data, bool orig);
-	virtual void Undelivered(uint64 seq, int len, bool orig);
+	void DeliverStream(int len, const u_char* data, bool orig) override;
+	void Undelivered(uint64 seq, int len, bool orig) override;
 
 	NCP_FrameBuffer buffer;
 	NCP_Session* session;
@@ -101,8 +101,8 @@ protected:
 
 class NCP_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
-	NCP_Analyzer(Connection* conn);
-	virtual ~NCP_Analyzer();
+	explicit NCP_Analyzer(Connection* conn);
+	~NCP_Analyzer() override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new NCP_Analyzer(conn); }

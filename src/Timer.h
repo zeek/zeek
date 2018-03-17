@@ -56,7 +56,7 @@ class Timer : public SerialObj, public PQ_Element {
 public:
 	Timer(double t, TimerType arg_type) : PQ_Element(t)
 		{ type = (char) arg_type; }
-	virtual ~Timer()	{ }
+	~Timer() override { }
 
 	TimerType Type() const	{ return (TimerType) type; }
 
@@ -118,7 +118,7 @@ public:
 	static unsigned int* CurrentTimers()	{ return current_timers; }
 
 protected:
- 	TimerMgr(const Tag& arg_tag)
+	explicit TimerMgr(const Tag& arg_tag)
  		{
  		t = 0.0;
  		num_expired = 0;
@@ -141,19 +141,19 @@ protected:
 
 class PQ_TimerMgr : public TimerMgr {
 public:
-	PQ_TimerMgr(const Tag& arg_tag);
-	~PQ_TimerMgr();
+	explicit PQ_TimerMgr(const Tag& arg_tag);
+	~PQ_TimerMgr() override;
 
-	void Add(Timer* timer);
-	void Expire();
+	void Add(Timer* timer) override;
+	void Expire() override;
 
-	int Size() const	{ return q->Size(); }
-	int PeakSize() const	{ return q->PeakSize(); }
-	uint64 CumulativeNum() const	{ return q->CumulativeNum(); }
+	int Size() const override { return q->Size(); }
+	int PeakSize() const override { return q->PeakSize(); }
+	uint64 CumulativeNum() const override { return q->CumulativeNum(); }
 
 protected:
-	int DoAdvance(double t, int max_expire);
-	void Remove(Timer* timer);
+	int DoAdvance(double t, int max_expire) override;
+	void Remove(Timer* timer) override;
 
 	Timer* Remove()			{ return (Timer*) q->Remove(); }
 	Timer* Top()			{ return (Timer*) q->Top(); }
@@ -163,20 +163,20 @@ protected:
 
 class CQ_TimerMgr : public TimerMgr {
 public:
-	CQ_TimerMgr(const Tag& arg_tag);
-	~CQ_TimerMgr();
+	explicit CQ_TimerMgr(const Tag& arg_tag);
+	~CQ_TimerMgr() override;
 
-	void Add(Timer* timer);
-	void Expire();
+	void Add(Timer* timer) override;
+	void Expire() override;
 
-	int Size() const	{ return cq_size(cq); }
-	int PeakSize() const	{ return cq_max_size(cq); }
-	uint64 CumulativeNum() const	{ return cq_cumulative_num(cq); }
+	int Size() const override { return cq_size(cq); }
+	int PeakSize() const override { return cq_max_size(cq); }
+	uint64 CumulativeNum() const override { return cq_cumulative_num(cq); }
 	unsigned int MemoryUsage() const;
 
 protected:
-	int DoAdvance(double t, int max_expire);
-	void Remove(Timer* timer);
+	int DoAdvance(double t, int max_expire) override;
+	void Remove(Timer* timer) override;
 
 	struct cq_handle *cq;
 };

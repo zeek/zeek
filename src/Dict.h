@@ -29,7 +29,7 @@ extern void generic_delete_func(void*);
 
 class Dictionary {
 public:
-	Dictionary(dict_order ordering = UNORDERED,
+	explicit Dictionary(dict_order ordering = UNORDERED,
 			int initial_size = DEFAULT_DICT_SIZE);
 	virtual ~Dictionary();
 
@@ -141,8 +141,8 @@ private:
 	int NextPrime(int n) const;
 	int IsPrime(int n) const;
 	void StartChangeSize(int new_size);
-	void FinishChangeSize(void);
-	void MoveChains(void);
+	void FinishChangeSize();
+	void MoveChains();
 
 	// The following get and set the "density" threshold - if the
 	// average hash chain length exceeds this threshold, the
@@ -195,7 +195,7 @@ private:
 #define PDictdeclare(type)	\
 class PDict(type) : public Dictionary {	\
 public:	\
-	PDict(type)(dict_order ordering = UNORDERED,	\
+	explicit PDict(type)(dict_order ordering = UNORDERED,	\
 			int initial_size = DEFAULT_DICT_SIZE) :	\
 		Dictionary(ordering, initial_size) {}	\
 	type* Lookup(const char* key) const	\

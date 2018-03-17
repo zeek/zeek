@@ -36,11 +36,11 @@ public:
 
 class Gnutella_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
-	Gnutella_Analyzer(Connection* conn);
-	~Gnutella_Analyzer();
+	explicit Gnutella_Analyzer(Connection* conn);
+	~Gnutella_Analyzer() override;
 
-	virtual void Done ();
-	virtual void DeliverStream(int len, const u_char* data, bool orig);
+	void Done () override;
+	void DeliverStream(int len, const u_char* data, bool orig) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new Gnutella_Analyzer(conn); }

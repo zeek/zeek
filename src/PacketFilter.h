@@ -8,7 +8,7 @@
 
 class PacketFilter {
 public:
-	PacketFilter(bool arg_default)	{ default_match = arg_default; }
+	explicit PacketFilter(bool arg_default)	{ default_match = arg_default; }
 	~PacketFilter()	{}
 
 	// Drops all packets from a particular source (which may be given

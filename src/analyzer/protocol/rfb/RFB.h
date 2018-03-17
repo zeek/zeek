@@ -15,17 +15,17 @@ class RFB_Analyzer
 : public tcp::TCP_ApplicationAnalyzer {
 
 public:
-	RFB_Analyzer(Connection* conn);
-	virtual ~RFB_Analyzer();
+	explicit RFB_Analyzer(Connection* conn);
+	~RFB_Analyzer() override;
 
 	// Overriden from Analyzer.
-	virtual void Done();
+	void Done() override;
 
-	virtual void DeliverStream(int len, const u_char* data, bool orig);
-	virtual void Undelivered(uint64 seq, int len, bool orig);
+	void DeliverStream(int len, const u_char* data, bool orig) override;
+	void Undelivered(uint64 seq, int len, bool orig) override;
 
 	// Overriden from tcp::TCP_ApplicationAnalyzer.
-	virtual void EndpointEOF(bool is_orig);
+	void EndpointEOF(bool is_orig) override;
 
 
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)

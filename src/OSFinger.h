@@ -81,7 +81,7 @@ enum FingerprintMode {
 
 class OSFingerprint {
 public:
-	OSFingerprint(FingerprintMode mode);
+	explicit OSFingerprint(FingerprintMode mode);
 	~OSFingerprint()	{}
 
 	bool Error() const	{ return err; }

@@ -35,7 +35,7 @@ class Contents_Rlogin_Analyzer : public tcp::ContentLine_Analyzer {
 public:
 	Contents_Rlogin_Analyzer(Connection* conn, bool orig,
 					Rlogin_Analyzer* analyzer);
-	~Contents_Rlogin_Analyzer();
+	~Contents_Rlogin_Analyzer() override;
 
 	void SetPeer(Contents_Rlogin_Analyzer* arg_peer)
 		{ peer = arg_peer; }
@@ -44,7 +44,7 @@ public:
 		{ return state; }
 
 protected:
-	void DoDeliver(int len, const u_char* data);
+	void DoDeliver(int len, const u_char* data) override;
 	void BadProlog();
 
 	rlogin_state state, save_state;
@@ -56,7 +56,7 @@ protected:
 
 class Rlogin_Analyzer : public Login_Analyzer {
 public:
-	Rlogin_Analyzer(Connection* conn);
+	explicit Rlogin_Analyzer(Connection* conn);
 
 	void ClientUserName(const char* s);
 	void ServerUserName(const char* s);

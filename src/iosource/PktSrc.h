@@ -57,7 +57,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	virtual ~PktSrc();
+	~PktSrc() override;
 
 	/**
 	 * Returns the path associated with the source. This is the interface
@@ -345,13 +345,13 @@ private:
 	bool ExtractNextPacketInternal();
 
 	// IOSource interface implementation.
-	virtual void Init();
-	virtual void Done();
-	virtual void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
-	                    iosource::FD_Set* except);
-	virtual double NextTimestamp(double* local_network_time);
-	virtual void Process();
-	virtual const char* Tag();
+	void Init() override;
+	void Done() override;
+	void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
+	                    iosource::FD_Set* except) override;
+	double NextTimestamp(double* local_network_time) override;
+	void Process() override;
+	const char* Tag() override;
 
 	Properties props;
 

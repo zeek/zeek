@@ -17,7 +17,7 @@ class UnserialInfo;
 
 class EventHandler {
 public:
-	EventHandler(const char* name);
+	explicit EventHandler(const char* name);
 	~EventHandler();
 
 	const char* Name()	{ return name; }
@@ -44,7 +44,7 @@ public:
 	void Call(val_list* vl, bool no_remote = false);
 
 	// Returns true if there is at least one local or remote handler.
-	operator  bool() const;
+	explicit operator  bool() const;
 
 	void SetUsed()	{ used = true; }
 	bool Used()	{ return used; }

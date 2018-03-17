@@ -48,7 +48,7 @@ public:
 
 	StateAccess(const StateAccess& sa);
 
-	virtual ~StateAccess();
+	~StateAccess() override;
 
 	// Replays this access in the our environment.
 	void Replay();

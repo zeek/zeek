@@ -103,7 +103,7 @@ declare(PDict,RPC_CallInfo);
 
 class RPC_Interpreter {
 public:
-	RPC_Interpreter(analyzer::Analyzer* analyzer);
+	explicit RPC_Interpreter(analyzer::Analyzer* analyzer);
 	virtual ~RPC_Interpreter();
 
 	// Delivers the given RPC.  Returns true if "len" bytes were
@@ -190,7 +190,7 @@ protected:
 class Contents_RPC : public tcp::TCP_SupportAnalyzer {
 public:
 	Contents_RPC(Connection* conn, bool orig, RPC_Interpreter* interp);
-	virtual ~Contents_RPC();
+	~Contents_RPC() override;
 
 protected:
 	typedef enum {
@@ -209,10 +209,10 @@ protected:
 		RESYNC_INIT,
 	} resync_state_t;
 
-	virtual void Init();
+	void Init() override;
 	virtual bool CheckResync(int& len, const u_char*& data, bool orig);
-	virtual void DeliverStream(int len, const u_char* data, bool orig);
-	virtual void Undelivered(uint64 seq, int len, bool orig);
+	void DeliverStream(int len, const u_char* data, bool orig) override;
+	void Undelivered(uint64 seq, int len, bool orig) override;
 
 	virtual void NeedResync() {
 		resync_state = NEED_RESYNC;
@@ -237,13 +237,13 @@ class RPC_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
 	RPC_Analyzer(const char* name, Connection* conn,
 			RPC_Interpreter* arg_interp);
-	virtual ~RPC_Analyzer();
+	~RPC_Analyzer() override;
 
-	virtual void Done();
+	void Done() override;
 
 protected:
-	virtual void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64 seq, const IP_Hdr* ip, int caplen);
+	void DeliverPacket(int len, const u_char* data, bool orig,
+					uint64 seq, const IP_Hdr* ip, int caplen) override;
 
 	void ExpireTimer(double t);
 

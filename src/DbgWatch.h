@@ -7,8 +7,8 @@
 
 class DbgWatch {
 public:
-	DbgWatch(BroObj* var_to_watch);
-	DbgWatch(Expr* expr_to_watch);
+	explicit DbgWatch(BroObj* var_to_watch);
+	explicit DbgWatch(Expr* expr_to_watch);
 	~DbgWatch();
 
 protected:

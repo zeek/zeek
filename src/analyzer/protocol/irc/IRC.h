@@ -17,7 +17,7 @@ public:
 	/**
 	* \brief Constructor, builds a new analyzer object.
 	*/
-	IRC_Analyzer(Connection* conn);
+	explicit IRC_Analyzer(Connection* conn);
 
 	/**
 	* \brief Called when connection is closed.

@@ -7,7 +7,7 @@ namespace analyzer { namespace gtpv1 {
 
 class GTPv1_Analyzer : public analyzer::Analyzer {
 public:
-	GTPv1_Analyzer(Connection* conn);
+	explicit GTPv1_Analyzer(Connection* conn);
 	virtual ~GTPv1_Analyzer();
 
 	virtual void Done();

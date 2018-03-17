@@ -23,7 +23,8 @@ public:
 
 protected:
 	HashVal() { };
-	HashVal(OpaqueType* t);
+	explicit HashVal(OpaqueType* t);
+
 	virtual bool DoInit();
 	virtual bool DoFeed(const void* data, size_t size);
 	virtual StringVal* DoGet();
@@ -48,9 +49,9 @@ public:
 protected:
 	friend class Val;
 
-	virtual bool DoInit() override;
-	virtual bool DoFeed(const void* data, size_t size) override;
-	virtual StringVal* DoGet() override;
+	bool DoInit() override;
+	bool DoFeed(const void* data, size_t size) override;
+	StringVal* DoGet() override;
 
 	DECLARE_SERIAL(MD5Val);
 
@@ -67,9 +68,9 @@ public:
 protected:
 	friend class Val;
 
-	virtual bool DoInit() override;
-	virtual bool DoFeed(const void* data, size_t size) override;
-	virtual StringVal* DoGet() override;
+	bool DoInit() override;
+	bool DoFeed(const void* data, size_t size) override;
+	StringVal* DoGet() override;
 
 	DECLARE_SERIAL(SHA1Val);
 
@@ -86,9 +87,9 @@ public:
 protected:
 	friend class Val;
 
-	virtual bool DoInit() override;
-	virtual bool DoFeed(const void* data, size_t size) override;
-	virtual StringVal* DoGet() override;
+	bool DoInit() override;
+	bool DoFeed(const void* data, size_t size) override;
+	StringVal* DoGet() override;
 
 	DECLARE_SERIAL(SHA256Val);
 
@@ -116,7 +117,7 @@ private:
 class BloomFilterVal : public OpaqueVal {
 public:
 	explicit BloomFilterVal(probabilistic::BloomFilter* bf);
-	virtual ~BloomFilterVal();
+	~BloomFilterVal() override;
 
 	BroType* Type() const;
 	bool Typify(BroType* type);
@@ -133,7 +134,7 @@ public:
 protected:
 	friend class Val;
 	BloomFilterVal();
-	BloomFilterVal(OpaqueType* t);
+	explicit BloomFilterVal(OpaqueType* t);
 
 	DECLARE_SERIAL(BloomFilterVal);
 
@@ -151,7 +152,7 @@ private:
 class CardinalityVal: public OpaqueVal {
 public:
 	explicit CardinalityVal(probabilistic::CardinalityCounter*);
-	virtual ~CardinalityVal();
+	~CardinalityVal() override;
 
 	void Add(const Val* val);
 

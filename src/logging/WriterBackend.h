@@ -47,7 +47,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	virtual ~WriterBackend();
+	~WriterBackend() override;
 
 	/**
 	 * A struct passing information to the writer at initialization time.

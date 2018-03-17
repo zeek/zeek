@@ -23,7 +23,7 @@ class DFA_State : public BroObj {
 public:
 	DFA_State(int state_num, const EquivClass* ec,
 			NFA_state_list* nfa_states, AcceptingSet* accept);
-	~DFA_State();
+	~DFA_State() override;
 
 	int StateNum() const		{ return state_num; }
 	int NFAStateNum() const		{ return nfa_states->length(); }
@@ -44,7 +44,7 @@ public:
 	// Returns the equivalence classes of ec's corresponding to this state.
 	const EquivClass* MetaECs() const	{ return meta_ec; }
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 	void Dump(FILE* f, DFA_Machine* m);
 	void Stats(unsigned int* computed, unsigned int* uncomputed);
 	unsigned int Size();
@@ -117,7 +117,7 @@ typedef PList(DFA_State) DFA_state_list;
 class DFA_Machine : public BroObj {
 public:
 	DFA_Machine(NFA_Machine* n, EquivClass* ec);
-	~DFA_Machine();
+	~DFA_Machine() override;
 
 	DFA_State* StartState() const	{ return start_state; }
 
@@ -127,7 +127,7 @@ public:
 
 	int Rep(int sym);
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 	void Dump(FILE* f);
 
 	unsigned int MemoryAllocation() const;

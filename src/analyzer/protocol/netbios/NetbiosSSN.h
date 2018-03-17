@@ -64,7 +64,7 @@ struct NetbiosDGM_RawMsgHdr {
 
 class NetbiosSSN_Interpreter {
 public:
-	NetbiosSSN_Interpreter(Analyzer* analyzer);
+	explicit NetbiosSSN_Interpreter(Analyzer* analyzer);
 
 	int ParseMessage(unsigned int type, unsigned int flags,
 			const u_char* data, int len, int is_query);
@@ -117,7 +117,7 @@ class Contents_NetbiosSSN : public tcp::TCP_SupportAnalyzer {
 public:
 	Contents_NetbiosSSN(Connection* conn, bool orig,
 				NetbiosSSN_Interpreter* interp);
-	~Contents_NetbiosSSN();
+	~Contents_NetbiosSSN() override;
 
 	void Flush();	// process any partially-received data
 
@@ -141,8 +141,8 @@ protected:
 
 class NetbiosSSN_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
-	NetbiosSSN_Analyzer(Connection* conn);
-	~NetbiosSSN_Analyzer();
+	explicit NetbiosSSN_Analyzer(Connection* conn);
+	~NetbiosSSN_Analyzer() override;
 
 	void Done() override;
 	void DeliverPacket(int len, const u_char* data, bool orig,

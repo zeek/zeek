@@ -29,7 +29,7 @@ public:
 	 * Constructor.  Nothing special.
 	 * @param arg_file the file to which all analyzers in the set are attached.
 	 */
-	AnalyzerSet(File* arg_file);
+	explicit AnalyzerSet(File* arg_file);
 
 	/**
 	 * Destructor.  Any queued analyzer additions/removals are aborted and
@@ -173,9 +173,9 @@ private:
 		 */
 		AddMod(file_analysis::Analyzer* arg_a, HashKey* arg_key)
 			: Modification(), a(arg_a), key(arg_key) {}
-		virtual ~AddMod() {}
-		virtual bool Perform(AnalyzerSet* set);
-		virtual void Abort() { delete a; delete key; }
+		~AddMod() override {}
+		bool Perform(AnalyzerSet* set) override;
+		void Abort() override { delete a; delete key; }
 
 	protected:
 		file_analysis::Analyzer* a;
@@ -194,9 +194,9 @@ private:
 		 */
 		RemoveMod(file_analysis::Tag arg_tag, HashKey* arg_key)
 			: Modification(), tag(arg_tag), key(arg_key) {}
-		virtual ~RemoveMod() {}
-		virtual bool Perform(AnalyzerSet* set);
-		virtual void Abort() { delete key; }
+		~RemoveMod() override {}
+		bool Perform(AnalyzerSet* set) override;
+		void Abort() override { delete key; }
 
 	protected:
 		file_analysis::Tag tag;

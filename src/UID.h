@@ -28,7 +28,7 @@ public:
 	 * Construct a UID of a given bit-length, optionally from given values.
 	 * @see UID::Set
 	 */
-	UID(bro_uint_t bits, const uint64* v = 0, size_t n = 0)
+	explicit UID(bro_uint_t bits, const uint64* v = 0, size_t n = 0)
 		{ Set(bits, v, n); }
 
 	/**

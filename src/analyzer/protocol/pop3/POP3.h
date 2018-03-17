@@ -64,11 +64,11 @@ typedef enum {
 
 class POP3_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
-	POP3_Analyzer(Connection* conn);
-	~POP3_Analyzer();
+	explicit POP3_Analyzer(Connection* conn);
+	~POP3_Analyzer() override;
 
-	virtual void Done();
-	virtual void DeliverStream(int len, const u_char* data, bool orig);
+	void Done() override;
+	void DeliverStream(int len, const u_char* data, bool orig) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{

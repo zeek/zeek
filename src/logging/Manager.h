@@ -275,7 +275,6 @@ private:
 	void RemoveDisabledWriters(Stream* stream);
 	void InstallRotationTimer(WriterInfo* winfo);
 	void Rotate(WriterInfo* info);
-	Filter* FindFilter(EnumVal* id, StringVal* filter);
 	WriterInfo* FindWriter(WriterFrontend* writer);
 	bool CompareFields(const Filter* filter, const WriterFrontend* writer);
 	bool CheckFilterWriterConflict(const WriterInfo* winfo, const Filter* filter);

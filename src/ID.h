@@ -118,7 +118,6 @@ public:
 protected:
 	ID()	{ name = 0; type = 0; val = 0; attrs = 0; }
 
-	void CheckAttr(Attr* attr);
 	void EvalFunc(Expr* ef, Expr* ev);
 
 #ifdef DEBUG

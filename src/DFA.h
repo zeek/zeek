@@ -117,8 +117,6 @@ typedef PList(DFA_State) DFA_state_list;
 class DFA_Machine : public BroObj {
 public:
 	DFA_Machine(NFA_Machine* n, EquivClass* ec);
-	DFA_Machine(int** xtion_ptrs, int num_states, int num_ecs,
-			int* acc_array);
 	~DFA_Machine();
 
 	DFA_State* StartState() const	{ return start_state; }

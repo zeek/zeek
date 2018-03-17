@@ -175,7 +175,6 @@ public:
 	RE_Matcher(const char* pat);
 	virtual ~RE_Matcher();
 
-	void AddDef(const char* defn_name, const char* defn_val);
 	void AddPat(const char* pat);
 
 	int Compile(int lazy = 0);

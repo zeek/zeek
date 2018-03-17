@@ -150,7 +150,6 @@ public:
 	int Size() const	{ return q->Size(); }
 	int PeakSize() const	{ return q->PeakSize(); }
 	uint64 CumulativeNum() const	{ return q->CumulativeNum(); }
-	unsigned int MemoryUsage() const;
 
 protected:
 	int DoAdvance(double t, int max_expire);

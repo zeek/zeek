@@ -90,13 +90,6 @@ public:
 		uint8 TTL, uint16 WSS, uint8 ocnt, uint8* op, uint16 MSS,
 		uint8 win_scale, uint32 tstamp, uint32 quirks, uint8 ECN) const;
 	bool CacheMatch(const IPAddr& addr, int id);
-
-	int Get_OS_From_SYN(struct os_type* retval,
-			uint16 tot, uint8 DF_flag, uint8 TTL, uint16 WSS,
-			uint8 ocnt, uint8* op, uint16 MSS, uint8 win_scale,
-			uint32 tstamp, /* uint8 TOS, */ uint32 quirks,
-			uint8 ecn) const;
-
 	void load_config(const char* file);
 
 protected:

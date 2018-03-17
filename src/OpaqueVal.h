@@ -106,7 +106,6 @@ public:
 
 protected:
 	friend class Val;
-	EntropyVal(OpaqueType* t);
 
 	DECLARE_SERIAL(EntropyVal);
 

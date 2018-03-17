@@ -49,8 +49,6 @@ public:
 		}
 
 protected:
-	void ExpireTimer(double t);
-
 	bool valid_orig;
 	bool valid_resp;
 };

@@ -22,8 +22,6 @@ public:
 		{ return new Syslog_Analyzer(conn); }
 
 protected:
-	void ExpireTimer(double t);
-
 	int did_session_done;
 
 	binpac::Syslog::Syslog_Conn* interp;

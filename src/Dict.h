@@ -109,8 +109,6 @@ public:
 	// which should be delete'd when no longer needed.
 	IterCookie* InitForIteration() const;
 	void* NextEntry(HashKey*& h, IterCookie*& cookie, int return_hash) const;
-	void* NextEntry(const void*& key, int& key_len, IterCookie*& cookie)
-		const;
 	void StopIteration(IterCookie* cookie) const;
 
 	void SetDeleteFunc(dict_delete_func f)		{ delete_func = f; }

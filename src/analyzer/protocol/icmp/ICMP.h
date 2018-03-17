@@ -25,8 +25,6 @@ public:
 		{ return new ICMP_Analyzer(conn); }
 
 protected:
-	ICMP_Analyzer(analyzer::Tag tag, Connection* conn);
-
 	virtual void Done();
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,
 					uint64 seq, const IP_Hdr* ip, int caplen);
@@ -37,8 +35,6 @@ protected:
 	               const u_char* data, const IP_Hdr* ip_hdr);
 
 	void Echo(double t, const struct icmp* icmpp, int len,
-			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr);
-	void Context(double t, const struct icmp* icmpp, int len,
 			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr);
 	void Redirect(double t, const struct icmp* icmpp, int len,
 			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr);

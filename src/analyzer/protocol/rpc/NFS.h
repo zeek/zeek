@@ -74,7 +74,6 @@ protected:
 	//   * size is the amount of bytes read (or requested to be written),
 	StringVal* nfs3_file_data(const u_char*& buf, int& n, uint64_t offset, int size);
 
-	RecordVal* ExtractOptAttrs(const u_char*& buf, int& n);
 	Val* ExtractUint32(const u_char*& buf, int& n);
 	Val* ExtractUint64(const u_char*& buf, int& n);
 	Val* ExtractTime(const u_char*& buf, int& n);

@@ -93,11 +93,6 @@ public:
 	const char* ErrorMsg() const;
 
 	/**
-	 * Returns the size of the link-layer header for this source.
-	 */
-	int HdrSize() const;
-
-	/**
 	 * In pseudo-realtime mode, returns the logical timestamp of the
 	 * current packet. Undefined if not running pseudo-realtime mode.
 	 */

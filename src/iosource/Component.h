@@ -30,11 +30,6 @@ public:
 	Component(const std::string& name);
 
 	/**
-	 * Copy constructor.
-	 */
-	Component(const Component& other);
-
-	/**
 	 * Destructor.
 	 */
 	~Component();

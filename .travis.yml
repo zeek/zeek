@@ -4,6 +4,7 @@ compiler:
   - gcc
 
 addons:
+  ssh_known_hosts: git.bro.org
   apt:
     sources:
       - ubuntu-toolchain-r-test
@@ -26,14 +27,8 @@ notifications:
     recipients:
     - bro-commits-internal@bro.org
 
-install: ./configure && make -j 4
+before_script: sh .travis.job build
 
-script:
-  - make -C testing/btest btest-verbose
-  - make -C testing/external init && make -C testing/external
+script: sh .travis.job run
 
-after_failure:
-  # Output each diag.log that contains failed test results.
-  - for i in testing/btest/diag.log testing/external/bro-testing/diag.log; do
-    grep -qs '... failed$' $i && cat $i ;
-    done
+after_failure: sh .travis.job failure

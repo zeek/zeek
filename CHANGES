@@ -1,4 +1,10 @@
 
+2.5-471 | 2018-03-21 13:56:57 -0700
+
+  * Fix a memory leak in SMBv1 share mapping. (Corelight)
+
+  * Fix one new minor typo in the config framework docs. (Daniel Thayer)
+
 2.5-467 | 2018-03-15 14:58:40 -0700
 
   * Configure Travis CI email recipients and build branches. (Daniel Thayer)

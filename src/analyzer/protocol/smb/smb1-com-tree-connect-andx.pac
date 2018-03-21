@@ -13,8 +13,9 @@ refine connection SMB_Conn += {
 
 	function proc_smb1_tree_connect_andx_response(header: SMB_Header, val: SMB1_tree_connect_andx_response): bool
 		%{
-		if ( strncmp((const char*) smb_string2stringval(${val.service})->Bytes(),
-		     "IPC", 3) == 0 )
+		auto service_string = smb_string2stringval(${val.service});
+		auto s = reinterpret_cast<const char*>(service_string->Bytes());
+		if ( strncmp(s, "IPC", 3) == 0 )
 			{
 			set_tree_is_pipe(${header.tid});
 			}
@@ -24,8 +25,12 @@ refine connection SMB_Conn += {
 			BifEvent::generate_smb1_tree_connect_andx_response(bro_analyzer(),
 			                                                   bro_analyzer()->Conn(),
 			                                                   BuildHeaderVal(header),
-			                                                   smb_string2stringval(${val.service}),
+			                                                   service_string,
 			                                                   ${val.byte_count} > ${val.service.a}->size() ? smb_string2stringval(${val.native_file_system[0]}) : new StringVal(""));
+			}
+		else
+			{
+			Unref(service_string);
 			}
 
 		return true;

@@ -2,7 +2,7 @@
 #
 # Downloads all traces as specified in <cwd>/traces.cfg to directory $1.
 #
-# traces.cfg must consist of lines of the form "<url> <md5sum>"
+# traces.cfg must consist of lines of the form "<url> [<http-user>[:<http-password>]]"
 
 if [ "$1" == "" ]; then
     echo "usage: `basename $0` <traces-directory>"
@@ -45,11 +45,15 @@ cat $cfg | while read line; do
 
     if [ "$auth" != "" ]; then
         auth="-u $auth"
+        # Hide the hostname and directory names in output messages
+        safe_url=`echo $url | sed 's#/[A-Za-z].*/#/[hidden]/#'`
+    else
+        safe_url=$url
     fi
 
     # Get the fingerprint file.
     if ! eval "$proxy curl $auth -fsS --anyauth $url.md5sum -o $fp.tmp"; then
-        echo "Error: Could not get $url.md5sum, skipping download."
+        echo "Error: Could not get $safe_url.md5sum, skipping download."
         continue
     fi
 
@@ -64,7 +68,7 @@ cat $cfg | while read line; do
     fi
 
     if [ "$download" = "1" ]; then
-        echo Getting $url ...
+        echo Getting $safe_url ...
         echo
         eval "$proxy curl $auth -f --anyauth $url -o $file"
         echo

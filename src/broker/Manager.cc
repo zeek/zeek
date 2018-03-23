@@ -24,7 +24,7 @@ namespace bro_broker {
 
 // Max number of log messages buffered per stream before we send them out as
 // a batch.
-static const int LOG_BATCH_SIZE = 100;
+static const int LOG_BATCH_SIZE = 400;
 
 // Max secs to buffer log messages before sending the current set out as a
 // batch.
@@ -185,7 +185,7 @@ void Manager::Terminate()
 
 	FlushLogBuffers();
 
-	for ( auto p : bstate->endpoint.peers() )
+	for ( auto& p : bstate->endpoint.peers() )
 		bstate->endpoint.unpeer(p.peer.network->address, p.peer.network->port);
 
 	bstate->endpoint.shutdown();
@@ -431,6 +431,7 @@ bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer,
 	auto writer_info = info.ToBroker();
 
 	broker::vector fields_data;
+	fields_data.reserve(num_fields);
 
 	for ( auto i = 0; i < num_fields; ++i )
 		{
@@ -455,7 +456,7 @@ bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer,
 	return true;
 	}
 
-bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int num_vals, const threading::Value* const * vals)
+bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int num_fields, const threading::Value* const * vals)
 	{
 	if ( bstate->endpoint.is_shutdown() )
 		return true;
@@ -482,22 +483,32 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 		return false;
 		}
 
-	broker::vector vals_data;
+	BinarySerializationFormat fmt;
+	char* data;
+	int len;
 
-	for ( auto i = 0; i < num_vals; ++i )
+	fmt.StartWrite();
+
+	bool success = fmt.Write(num_fields, "num_fields");
+
+	if ( ! success )
 		{
-		auto field_data = threading_val_to_data(vals[i]);
+		reporter->Error("Failed to remotely log stream %s: num_fields serialization failed", stream_id);
+		return false;
+		}
 
-		if ( ! field_data )
+	for ( int i = 0; i < num_fields; ++i )
+		{
+		if ( ! vals[i]->Write(&fmt) )
 			{
-			reporter->Error("Failed to remotely log stream %s: "
-			                "unsupported type for field #%d",
-			                stream_id, i);
+			reporter->Error("Failed to remotely log stream %s: field %d serialization failed", stream_id, i);
 			return false;
 			}
-
-		vals_data.push_back(move(*field_data));
 		}
+
+	len = fmt.EndWrite(&data);
+	std::string serial_data(data, len);
+	free(data);
 
 	val_list vl(2);
 	vl.append(stream->Ref());
@@ -517,7 +528,8 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 
 	auto bstream_id = broker::enum_value(move(stream_id));
 	auto bwriter_id = broker::enum_value(move(writer_id));
-	broker::bro::LogWrite msg(move(bstream_id), move(bwriter_id), move(path), move(vals_data));
+	broker::bro::LogWrite msg(move(bstream_id), move(bwriter_id), move(path),
+	                          move(serial_data));
 
 	DBG_LOG(DBG_BROKER, "Buffering log record: %s", RenderMessage(topic, msg).c_str());
 
@@ -755,7 +767,7 @@ double Manager::NextTimestamp(double* local_network_time)
 	if ( bstate->status_subscriber.available() || bstate->subscriber.available() )
 		return timer_mgr->Time();
 
-	for ( auto &s : data_stores )
+	for ( auto& s : data_stores )
 		{
 		if ( ! s.second->proxy.mailbox().empty() )
 			return timer_mgr->Time();
@@ -790,8 +802,10 @@ void Manager::DispatchMessage(broker::data msg)
 	case broker::bro::Message::Type::Batch:
 		{
 		broker::bro::Batch batch(std::move(msg));
-		for ( auto i : batch.batch() )
+
+		for ( auto& i : batch.batch() )
 			DispatchMessage(std::move(i));
+
 		break;
 		}
 
@@ -806,19 +820,19 @@ void Manager::Process()
 	{
 	bool had_input = false;
 
-	while ( bstate->status_subscriber.available() )
+	auto status_msgs = bstate->status_subscriber.poll();
+
+	for ( auto& status_msg : status_msgs )
 		{
 		had_input = true;
 
-		auto elem = bstate->status_subscriber.get();
-
-		if ( auto stat = broker::get_if<broker::status>(elem) )
+		if ( auto stat = broker::get_if<broker::status>(status_msg) )
 			{
 			ProcessStatus(std::move(*stat));
 			continue;
 			}
 
-		if ( auto err = broker::get_if<broker::error>(elem) )
+		if ( auto err = broker::get_if<broker::error>(status_msg) )
 			{
 			ProcessError(std::move(*err));
 			continue;
@@ -827,13 +841,14 @@ void Manager::Process()
 		reporter->InternalWarning("ignoring status_subscriber message with unexpected type");
 		}
 
-	while ( bstate->subscriber.available() )
+	auto messages = bstate->subscriber.poll();
+
+	for ( auto& message : messages )
 		{
 		had_input = true;
 
-		auto elem = bstate->subscriber.get();
-		auto topic = elem.first;
-		auto msg = elem.second;
+		auto& topic = message.first;
+		auto& msg = message.second;
 
 		try
 			{
@@ -988,12 +1003,15 @@ bool bro_broker::Manager::ProcessLogWrite(broker::bro::LogWrite lw)
 	DBG_LOG(DBG_BROKER, "Received log-write: %s", RenderMessage(lw).c_str());
 
 	++statistics.num_logs_incoming;
+	auto& stream_id_name = lw.stream_id().name;
 
 	// Get stream ID.
 	auto stream_id = data_to_val(std::move(lw.stream_id()), log_id_type);
+
 	if ( ! stream_id )
 		{
-		reporter->Warning("failed to unpack remote log stream id");
+		reporter->Warning("failed to unpack remote log stream id: %s",
+		                  stream_id_name.data());
 		return false;
 		}
 
@@ -1003,7 +1021,7 @@ bool bro_broker::Manager::ProcessLogWrite(broker::bro::LogWrite lw)
 	auto writer_id = data_to_val(std::move(lw.writer_id()), writer_id_type);
 	if ( ! writer_id )
 		{
-		reporter->Warning("failed to unpack remote log writer id");
+		reporter->Warning("failed to unpack remote log writer id for stream: %s", stream_id_name.data());
 		return false;
 		}
 
@@ -1011,30 +1029,47 @@ bool bro_broker::Manager::ProcessLogWrite(broker::bro::LogWrite lw)
 
 	 try
 		{
-		auto path = std::move(broker::get<std::string>(lw.path()));
-		auto vals_data = std::move(broker::get<broker::vector>(lw.vals_data()));
-		auto num_vals = vals_data.size();
-		auto vals = new threading::Value* [num_vals];
+		auto& path = broker::get<std::string>(lw.path());
+		auto& serial_data = broker::get<std::string>(lw.serial_data());
 
-		for ( auto i = 0u; i < num_vals; ++i )
+		BinarySerializationFormat fmt;
+		fmt.StartRead(serial_data.data(), serial_data.size());
+
+		int num_fields;
+		bool success = fmt.Read(&num_fields, "num_fields");
+
+		if ( ! success )
 			{
-			if ( auto val = data_to_threading_val(std::move(vals_data[i])) )
-				vals[i] = val;
-			else
+			reporter->Warning("failed to unserialize remote log num fields for stream: %s", stream_id_name.data());
+			return false;
+			}
+
+		auto vals = new threading::Value* [num_fields];
+
+		for ( int i = 0; i < num_fields; ++i )
+			{
+			vals[i] = new threading::Value;
+
+			if ( ! vals[i]->Read(&fmt) )
 				{
-				std::cerr << vals << " | " << vals_data[i] << std::endl;
-				reporter->Warning("failed to convert remote log arg # %d", i);
+				for ( int j = 0; j <=i; ++j )
+					delete vals[j];
+
+				delete [] vals;
+				reporter->Warning("failed to unserialize remote log field %d for stream: %s", i, stream_id_name.data());
+
 				return false;
 				}
 			}
 
-		log_mgr->WriteFromRemote(stream_id->AsEnumVal(), writer_id->AsEnumVal(), path, num_vals, vals);
+		log_mgr->WriteFromRemote(stream_id->AsEnumVal(), writer_id->AsEnumVal(), std::move(path), num_fields, vals);
+		fmt.EndRead();
 		return true;
 		}
 
 	catch ( const broker::bad_variant_access& e)
 		{
-		reporter->Warning("failed to unpack remote log values");
+		reporter->Warning("failed to unpack remote log values (bad variant) for stream: %s", stream_id_name.data());
 		return false;
 		}
 	}

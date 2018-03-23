@@ -479,7 +479,7 @@ broker::expected<broker::data> bro_broker::val_to_data(Val* v)
 		auto a = broker::address(reinterpret_cast<const uint32_t*>(&tmp),
 		                         broker::address::family::ipv6,
 		                         broker::address::byte_order::network);
-		return {broker::subnet(a, s.Length())};
+		return {broker::subnet(std::move(a), s.Length())};
 		}
 		break;
 	case TYPE_DOUBLE:
@@ -579,7 +579,7 @@ broker::expected<broker::data> bro_broker::val_to_data(Val* v)
 				}
 			}
 
-		return {rval};
+		return {std::move(rval)};
 		}
 	case TYPE_VECTOR:
 		{
@@ -602,7 +602,7 @@ broker::expected<broker::data> bro_broker::val_to_data(Val* v)
 			rval.emplace_back(move(*item));
 			}
 
-		return {rval};
+		return {std::move(rval)};
 		}
 	case TYPE_RECORD:
 		{
@@ -630,13 +630,13 @@ broker::expected<broker::data> bro_broker::val_to_data(Val* v)
 			rval.emplace_back(move(*item));
 			}
 
-		return {rval};
+		return {std::move(rval)};
 		}
 	case TYPE_PATTERN:
 		{
 		RE_Matcher* p = v->AsPattern();
 		broker::vector rval = {p->PatternText(), p->AnywherePatternText()};
-		return {rval};
+		return {std::move(rval)};
 		}
 	case TYPE_OPAQUE:
 		{
@@ -654,7 +654,7 @@ broker::expected<broker::data> bro_broker::val_to_data(Val* v)
 		uint32 len = form->EndWrite(&data);
 		string rval(data, len);
 		free(data);
-		return {rval};
+		return {std::move(rval)};
 		}
 	default:
 		reporter->Error("unsupported Broker::Data type: %s",
@@ -914,7 +914,7 @@ static broker::expected<broker::data> threading_val_to_data_internal(TypeTag typ
 		auto s = broker::address(reinterpret_cast<const uint32_t*>(&tmp),
 		                         broker::address::family::ipv6,
 		                         broker::address::byte_order::network);
-		return {broker::subnet(s, length)};
+		return {broker::subnet(std::move(s), length)};
 		}
 
 	case TYPE_DOUBLE:
@@ -953,7 +953,7 @@ static broker::expected<broker::data> threading_val_to_data_internal(TypeTag typ
 			if ( ! c )
 				return broker::ec::invalid_data;
 
-			s.emplace(*c);
+			s.emplace(std::move(*c));
 			}
 
 		return {move(s)};
@@ -962,6 +962,7 @@ static broker::expected<broker::data> threading_val_to_data_internal(TypeTag typ
 	case TYPE_VECTOR:
 		{
 		auto s = broker::vector();
+		s.reserve(val.vector_val.size);
 
 		for ( int i = 0; i < val.vector_val.size; ++i )
 			{
@@ -970,7 +971,7 @@ static broker::expected<broker::data> threading_val_to_data_internal(TypeTag typ
 			if ( ! c )
 				return broker::ec::invalid_data;
 
-			s.emplace_back(*c);
+			s.emplace_back(std::move(*c));
 			}
 
 		return {move(s)};
@@ -996,10 +997,10 @@ broker::expected<broker::data> bro_broker::threading_val_to_data(const threading
 		if ( ! x )
 			return broker::ec::invalid_data;
 
-		d = *x;
+		d = std::move(*x);
 		}
 
-	return broker::vector{static_cast<uint64_t>(v->type), v->present, std::move(d)};
+	return {broker::vector{static_cast<uint64_t>(v->type), v->present, std::move(d)}};
 	};
 
 struct threading_val_converter {
@@ -1173,7 +1174,7 @@ struct threading_val_converter {
 		return false;
 		}
 
-	result_type operator()(const broker::set& a)
+	result_type operator()(broker::set& a)
 		{
 		if ( type == TYPE_TABLE )
 			{
@@ -1196,7 +1197,7 @@ struct threading_val_converter {
 		return false;
 		}
 
-	result_type operator()(const broker::vector& a)
+	result_type operator()(broker::vector& a)
 		{
 		if ( type == TYPE_VECTOR )
 			{
@@ -1220,10 +1221,10 @@ threading::Value* bro_broker::data_to_threading_val(broker::data d)
 	if ( ! broker::is<broker::vector>(d) )
 		return nullptr;
 
-	auto v = broker::get<broker::vector>(d);
+	auto& v = broker::get<broker::vector>(d);
 	auto type = broker::get_if<uint64_t>(v[0]);
 	auto present = broker::get_if<bool>(v[1]);
-	auto data = v[2];
+	auto& data = v[2];
 
 	if ( ! (type && present) )
 		return nullptr;
@@ -1235,7 +1236,7 @@ threading::Value* bro_broker::data_to_threading_val(broker::data d)
 	tv->type = static_cast<TypeTag>(*type);
 	tv->present = *present;
 
-	if ( *present && ! broker::visit(threading_val_converter{tv->type, tv->val}, data) )
+	if ( *present && ! broker::visit(threading_val_converter{tv->type, tv->val}, std::move(data)) )
 		{
 		delete tv;
 		return nullptr;
@@ -1264,7 +1265,7 @@ threading::Field* bro_broker::data_to_threading_field(broker::data d)
 	if ( ! broker::is<broker::vector>(d) )
 		return nullptr;
 
-	auto v = broker::get<broker::vector>(d);
+	auto& v = broker::get<broker::vector>(d);
 	auto name = broker::get_if<std::string>(v[0]);
 	auto secondary = v[1];
 	auto type = broker::get_if<broker::count>(v[2]);

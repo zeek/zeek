@@ -98,7 +98,7 @@ function Broker::__peers%(%): PeerInfos
 	VectorVal* rval = new VectorVal(internal_type("Broker::PeerInfos")->AsVectorType());
 	auto i = 0;
 
-	for ( auto p : broker_mgr->Peers() )
+	for ( auto& p : broker_mgr->Peers() )
 		{
 		auto pi = internal_type("Broker::PeerInfo")->AsRecordType();
 		auto ei = internal_type("Broker::EndpointInfo")->AsRecordType();

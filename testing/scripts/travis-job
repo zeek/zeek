@@ -47,10 +47,11 @@ run_coverity() {
 }
 
 run() {
-    set -e
-
-    # Run the tests
+    # Run the tests, but don't exit upon failure.
     make -C testing/btest btest-verbose
+    ret=$?
+
+    set -e
 
     # Get the test repo
     make -C testing/external init
@@ -67,6 +68,9 @@ run() {
 
     # Run the external tests
     make -C testing/external
+
+    # If we get here, then external tests were successful.
+    exit $ret
 }
 
 failure() {

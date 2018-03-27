@@ -786,13 +786,17 @@ type SSLExtension(rec: HandshakeRecord) = record {
 
 type SupportedVersionsSelector(rec: HandshakeRecord, data_len: uint16) = case rec.is_orig of {
 	true -> a: SupportedVersions(rec);
-	false -> b: bytestring &length=data_len &transient;
+	false -> b: OneSupportedVersion(rec);
 }
 
 type SupportedVersions(rec: HandshakeRecord) = record {
 	length: uint8;
 	versions: uint16[] &until($input.length() == 0);
 } &length=length+1;
+
+type OneSupportedVersion(rec: HandshakeRecord) = record {
+	version: uint16;
+};
 
 type PSKKeyExchangeModes(rec: HandshakeRecord) = record {
 	length: uint8;

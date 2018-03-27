@@ -216,12 +216,27 @@ event ssl_server_hello(c: connection, version: count, possible_ts: time, server_
 	{
 	set_session(c);
 
-	c$ssl$version_num = version;
-	c$ssl$version = version_strings[version];
+	# If it is already filled, we saw a supported_versions extensions which overrides this.
+	if ( ! c$ssl?$version_num )
+		{
+		c$ssl$version_num = version;
+		c$ssl$version = version_strings[version];
+		}
 	c$ssl$cipher = cipher_desc[cipher];
 
 	if ( c$ssl?$session_id && c$ssl$session_id == bytestring_to_hexstr(session_id) )
 		c$ssl$resumed = T;
+	}
+
+event ssl_extension_supported_versions(c: connection, is_orig: bool, versions: index_vec)
+	{
+	if ( is_orig || |versions| != 1 )
+		return;
+
+	set_session(c);
+
+	c$ssl$version_num = versions[0];
+	c$ssl$version = version_strings[versions[0]];
 	}
 
 event ssl_ecdh_server_params(c: connection, curve: count, point: string) &priority=5

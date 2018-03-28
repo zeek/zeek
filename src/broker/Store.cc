@@ -120,7 +120,7 @@ broker::backend_options to_backend_options(broker::backend backend,
 
 	case broker::rocksdb:
 		{
-		auto path = options->Lookup(0)->AsRecordVal()
+		auto path = options->Lookup(1)->AsRecordVal()
 			->Lookup(0)->AsStringVal()->CheckString();
 		return {{"path", path}};
 		}

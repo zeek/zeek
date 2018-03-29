@@ -205,6 +205,17 @@ refine connection Handshake_Conn += {
 		return true;
 		%}
 
+	function proc_one_supported_version(rec: HandshakeRecord, version: uint16) : bool
+		%{
+		VectorVal* versions = new VectorVal(internal_type("index_vec")->AsVectorType());
+		versions->Assign(0u, new Val(version, TYPE_COUNT));
+
+		BifEvent::generate_ssl_extension_supported_versions(bro_analyzer(), bro_analyzer()->Conn(),
+			${rec.is_orig}, versions);
+
+		return true;
+		%}
+
 	function proc_psk_key_exchange_modes(rec: HandshakeRecord, mode_list: uint8[]) : bool
 		%{
 		VectorVal* modes = new VectorVal(internal_type("index_vec")->AsVectorType());
@@ -499,6 +510,10 @@ refine typeattr EcdhClientKeyExchange += &let {
 
 refine typeattr SupportedVersions += &let {
 	proc : bool = $context.connection.proc_supported_versions(rec, versions);
+};
+
+refine typeattr OneSupportedVersion += &let {
+	proc : bool = $context.connection.proc_one_supported_version(rec, version);
 };
 
 refine typeattr PSKKeyExchangeModes += &let {

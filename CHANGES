@@ -1,10 +1,10 @@
 
-2.5-482 | 2018-03-29 13:21:21 -0700
+2.5-483 | 2018-03-29 14:10:48 -0700
 
   * Source code clean up (Johanna Amann)
-        - Mark one-parameter constructors as explicit & use override where possible
-        - Remove unimplemented & unused functions from header files.
-        - Make some data flows more explicit for complilers.
+      - Mark one-parameter constructors as 'explicit' & use 'override' where possible
+      - Remove unimplemented & unused functions from header files.
+      - Make some data flows more explicit for compilers.
 
 2.5-478 | 2018-03-29 12:59:49 -0700
 

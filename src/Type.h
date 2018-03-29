@@ -82,8 +82,8 @@ const int MATCHES_INDEX_VECTOR = 2;
 
 class BroType : public BroObj {
 public:
-	BroType(TypeTag tag, bool base_type = false);
-	~BroType() { }
+	explicit BroType(TypeTag tag, bool base_type = false);
+	~BroType() override { }
 
 	BroType* Clone() const;
 
@@ -249,7 +249,7 @@ public:
 
 	BroType* Ref()		{ ::Ref(this); return this; }
 
-	virtual void Describe(ODesc* d) const override;
+	void Describe(ODesc* d) const override;
 	virtual void DescribeReST(ODesc* d, bool roles_only = false) const;
 
 	virtual unsigned MemoryAllocation() const;
@@ -265,7 +265,7 @@ public:
 	static std::set<BroType*> GetAliases(const std::string& type_name)
 		{ return BroType::type_aliases[type_name]; }
 
-	static void AddAlias(const std::string type_name, BroType* type)
+	static void AddAlias(const std::string &type_name, BroType* type)
 		{ BroType::type_aliases[type_name].insert(type); }
 
 protected:
@@ -287,13 +287,13 @@ private:
 
 class TypeList : public BroType {
 public:
-	TypeList(BroType* arg_pure_type = 0) : BroType(TYPE_LIST)
+	explicit TypeList(BroType* arg_pure_type = 0) : BroType(TYPE_LIST)
 		{
 		pure_type = arg_pure_type;
 		if ( pure_type )
 			pure_type->Ref();
 		}
-	~TypeList();
+	~TypeList() override;
 
 	const type_list* Types() const	{ return &types; }
 	type_list* Types()		{ return &types; }
@@ -352,7 +352,7 @@ protected:
 		indices = arg_indices;
 		yield_type = arg_yield_type;
 		}
-	~IndexType();
+	~IndexType() override;
 
 	DECLARE_SERIAL(IndexType)
 
@@ -379,7 +379,7 @@ protected:
 class SetType : public TableType {
 public:
 	SetType(TypeList* ind, ListExpr* arg_elements);
-	~SetType();
+	~SetType() override;
 
 	ListExpr* SetElements() const	{ return elements; }
 
@@ -395,7 +395,7 @@ class FuncType : public BroType {
 public:
 	FuncType(RecordType* args, BroType* yield, function_flavor f);
 
-	~FuncType();
+	~FuncType() override;
 
 	RecordType* Args() const	{ return args; }
 	BroType* YieldType() override;
@@ -428,8 +428,8 @@ protected:
 
 class TypeType : public BroType {
 public:
-	TypeType(BroType* t) : BroType(TYPE_TYPE)	{ type = t->Ref(); }
-	~TypeType()	{ Unref(type); }
+	explicit TypeType(BroType* t) : BroType(TYPE_TYPE)	{ type = t->Ref(); }
+	~TypeType() override { Unref(type); }
 
 	BroType* Type()	{ return type; }
 
@@ -460,9 +460,9 @@ public:
 
 class RecordType : public BroType {
 public:
-	RecordType(type_decl_list* types);
+	explicit RecordType(type_decl_list* types);
 
-	~RecordType();
+	~RecordType() override;
 
 	int HasField(const char* field) const override;
 	BroType* FieldType(const char* field) const override;
@@ -512,8 +512,8 @@ protected:
 
 class FileType : public BroType {
 public:
-	FileType(BroType* yield_type);
-	~FileType();
+	explicit FileType(BroType* yield_type);
+	~FileType() override;
 
 	BroType* YieldType() override;
 
@@ -529,8 +529,8 @@ protected:
 
 class OpaqueType : public BroType {
 public:
-	OpaqueType(const string& name);
-	virtual ~OpaqueType() { };
+	explicit OpaqueType(const string& name);
+	~OpaqueType() override { };
 
 	const string& Name() const { return name; }
 
@@ -549,9 +549,9 @@ class EnumType : public BroType {
 public:
 	typedef std::list<std::pair<string, bro_int_t> > enum_name_list;
 
-	EnumType(EnumType* e);
-	EnumType(const string& arg_name);
-	~EnumType();
+	explicit EnumType(EnumType* e);
+	explicit EnumType(const string& arg_name);
+	~EnumType() override;
 
 	// The value of this name is next internal counter value, starting
 	// with zero. The internal counter is incremented.
@@ -598,8 +598,8 @@ protected:
 
 class VectorType : public BroType {
 public:
-	VectorType(BroType* t);
-	virtual ~VectorType();
+	explicit VectorType(BroType* t);
+	~VectorType() override;
 	BroType* YieldType() override;
 	const BroType* YieldType() const;
 

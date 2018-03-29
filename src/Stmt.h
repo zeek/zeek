@@ -23,15 +23,15 @@ class Stmt : public BroObj {
 public:
 	BroStmtTag Tag() const	{ return tag; }
 
-	virtual ~Stmt();
+	~Stmt() override;
 
 	virtual Val* Exec(Frame* f, stmt_flow_type& flow) const = 0;
 
 	Stmt* Ref()			{ ::Ref(this); return this; }
 
-	bool SetLocationInfo(const Location* loc)
+	bool SetLocationInfo(const Location* loc) override
 		{ return Stmt::SetLocationInfo(loc, loc); }
-	bool SetLocationInfo(const Location* start, const Location* end);
+	bool SetLocationInfo(const Location* start, const Location* end) override;
 
 	// True if the statement has no side effects, false otherwise.
 	virtual int IsPure() const;
@@ -58,7 +58,7 @@ public:
 	void AccessStats(ODesc* d) const;
 	uint32 GetAccessCount() const { return access_count; }
 
-	virtual void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 
 	virtual void IncrBPCount()	{ ++breakpoint_count; }
 	virtual void DecrBPCount()
@@ -78,7 +78,7 @@ public:
 
 protected:
 	Stmt()	{}
-	Stmt(BroStmtTag arg_tag);
+	explicit Stmt(BroStmtTag arg_tag);
 
 	void AddTag(ODesc* d) const;
 	void DescribeDone(ODesc* d) const;
@@ -97,18 +97,18 @@ class ExprListStmt : public Stmt {
 public:
 	const ListExpr* ExprList() const	{ return l; }
 
-	TraversalCode Traverse(TraversalCallback* cb) const;
+	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
 	ExprListStmt()	{ l = 0; }
 	ExprListStmt(BroStmtTag t, ListExpr* arg_l);
 
-	virtual ~ExprListStmt();
+	~ExprListStmt() override;
 
-	Val* Exec(Frame* f, stmt_flow_type& flow) const;
+	Val* Exec(Frame* f, stmt_flow_type& flow) const override;
 	virtual Val* DoExec(val_list* vals, stmt_flow_type& flow) const = 0;
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 	void PrintVals(ODesc* d, val_list* vals, int offset) const;
 
 	DECLARE_ABSTRACT_SERIAL(ExprListStmt);
@@ -118,7 +118,7 @@ protected:
 
 class PrintStmt : public ExprListStmt {
 public:
-	PrintStmt(ListExpr* l) : ExprListStmt(STMT_PRINT, l)	{ }
+	explicit PrintStmt(ListExpr* l) : ExprListStmt(STMT_PRINT, l)	{ }
 
 protected:
 	friend class Stmt;
@@ -131,8 +131,8 @@ protected:
 
 class ExprStmt : public Stmt {
 public:
-	ExprStmt(Expr* e);
-	virtual ~ExprStmt();
+	explicit ExprStmt(Expr* e);
+	~ExprStmt() override;
 
 	Val* Exec(Frame* f, stmt_flow_type& flow) const override;
 
@@ -159,7 +159,7 @@ protected:
 class IfStmt : public ExprStmt {
 public:
 	IfStmt(Expr* test, Stmt* s1, Stmt* s2);
-	~IfStmt();
+	~IfStmt() override;
 
 	const Stmt* TrueBranch() const	{ return s1; }
 	const Stmt* FalseBranch() const	{ return s2; }
@@ -184,7 +184,7 @@ protected:
 class Case : public BroObj {
 public:
 	Case(ListExpr* c, Stmt* arg_s);
-	~Case();
+	~Case() override;
 
 	const ListExpr* Cases() const	{ return cases; }
 	ListExpr* Cases()		{ return cases; }
@@ -212,7 +212,7 @@ protected:
 class SwitchStmt : public ExprStmt {
 public:
 	SwitchStmt(Expr* index, case_list* cases);
-	~SwitchStmt();
+	~SwitchStmt() override;
 
 	const case_list* Cases() const	{ return cases; }
 
@@ -250,7 +250,7 @@ protected:
 
 class AddStmt : public ExprStmt {
 public:
-	AddStmt(Expr* e);
+	explicit AddStmt(Expr* e);
 
 	int IsPure() const override;
 	Val* Exec(Frame* f, stmt_flow_type& flow) const override;
@@ -266,7 +266,7 @@ protected:
 
 class DelStmt : public ExprStmt {
 public:
-	DelStmt(Expr* e);
+	explicit DelStmt(Expr* e);
 
 	int IsPure() const override;
 	Val* Exec(Frame* f, stmt_flow_type& flow) const override;
@@ -282,7 +282,7 @@ protected:
 
 class EventStmt : public ExprStmt {
 public:
-	EventStmt(EventExpr* e);
+	explicit EventStmt(EventExpr* e);
 
 	Val* Exec(Frame* f, stmt_flow_type& flow) const override;
 
@@ -301,7 +301,7 @@ class WhileStmt : public Stmt {
 public:
 
 	WhileStmt(Expr* loop_condition, Stmt* body);
-	~WhileStmt();
+	~WhileStmt() override;
 
 	int IsPure() const override;
 
@@ -326,7 +326,7 @@ protected:
 class ForStmt : public ExprStmt {
 public:
 	ForStmt(id_list* loop_vars, Expr* loop_expr);
-	~ForStmt();
+	~ForStmt() override;
 
 	void AddBody(Stmt* arg_body)	{ body = arg_body; }
 
@@ -399,7 +399,7 @@ protected:
 
 class ReturnStmt : public ExprStmt {
 public:
-	ReturnStmt(Expr* e);
+	explicit ReturnStmt(Expr* e);
 
 	Val* Exec(Frame* f, stmt_flow_type& flow) const override;
 
@@ -415,7 +415,7 @@ protected:
 class StmtList : public Stmt {
 public:
 	StmtList();
-	~StmtList();
+	~StmtList() override;
 
 	Val* Exec(Frame* f, stmt_flow_type& flow) const override;
 
@@ -456,14 +456,14 @@ protected:
 
 class InitStmt : public Stmt {
 public:
-	InitStmt(id_list* arg_inits) : Stmt(STMT_INIT)
+	explicit InitStmt(id_list* arg_inits) : Stmt(STMT_INIT)
 		{
 		inits = arg_inits;
 		if ( arg_inits && arg_inits->length() )
 			SetLocationInfo((*arg_inits)[0]->GetLocationInfo());
 		}
 
-	~InitStmt();
+	~InitStmt() override;
 
 	Val* Exec(Frame* f, stmt_flow_type& flow) const override;
 
@@ -501,7 +501,7 @@ class WhenStmt : public Stmt {
 public:
 	// s2 is null if no timeout block given.
 	WhenStmt(Expr* cond, Stmt* s1, Stmt* s2, Expr* timeout, bool is_return);
-	~WhenStmt();
+	~WhenStmt() override;
 
 	Val* Exec(Frame* f, stmt_flow_type& flow) const override;
 	int IsPure() const override;

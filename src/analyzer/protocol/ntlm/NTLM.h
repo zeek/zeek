@@ -15,8 +15,8 @@ class NTLM_Analyzer
 : public tcp::TCP_ApplicationAnalyzer {
 
 public:
-	NTLM_Analyzer(Connection* conn);
-	virtual ~NTLM_Analyzer();
+	explicit NTLM_Analyzer(Connection* conn);
+	~NTLM_Analyzer() override;
 
 	// Overriden from Analyzer.
 	void Done() override;

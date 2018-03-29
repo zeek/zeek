@@ -8,8 +8,8 @@ namespace analyzer { namespace smb {
 
 class SMB_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
-	SMB_Analyzer(Connection* conn);
-	virtual ~SMB_Analyzer();
+	explicit SMB_Analyzer(Connection* conn);
+	~SMB_Analyzer() override;
 
 	void Done() override;
 	void DeliverStream(int len, const u_char* data, bool orig) override;

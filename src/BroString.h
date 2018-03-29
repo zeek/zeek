@@ -36,8 +36,8 @@ public:
 
 	// Constructors creating internal copies of the data passed in.
 	BroString(const u_char* str, int arg_n, int add_NUL);
-	BroString(const char* str);
-	BroString(const string& str);
+	explicit BroString(const char* str);
+	explicit BroString(const string& str);
 	BroString(const BroString& bs);
 
 	// Constructor that takes owernship of the vector passed in.
@@ -158,7 +158,7 @@ protected:
 //
 class BroStringLenCmp {
 public:
-	BroStringLenCmp(bool increasing = true) { _increasing = increasing; }
+	explicit BroStringLenCmp(bool increasing = true) { _increasing = increasing; }
 	bool operator()(BroString*const& bst1, BroString*const& bst2);
 
  private:

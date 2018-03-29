@@ -132,7 +132,7 @@ protected:
 	 *
 	 * @param val An enum value of script type \c Analyzer::Tag.
 	 */
-	Tag(EnumVal* val);
+	explicit Tag(EnumVal* val);
 
 private:
 	type_t type;            // Main type.

@@ -25,7 +25,7 @@ public:
 	 * @param offset number of bytes from start of file at which chunk occurs.
 	 * @return always true
 	 */
-	virtual bool DeliverChunk(const u_char* data, uint64 len, uint64 offset);
+	bool DeliverChunk(const u_char* data, uint64 len, uint64 offset) override;
 
 	/**
 	 * Generates the event, if any, specified by the "stream_event" field of
@@ -34,7 +34,7 @@ public:
 	 * @param len number of bytes in the data chunk.
 	 * @return always true
 	 */
-	virtual bool DeliverStream(const u_char* data, uint64 len);
+	bool DeliverStream(const u_char* data, uint64 len) override;
 
 	/**
 	 * Create a new instance of a DataEvent analyzer.

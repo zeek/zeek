@@ -112,7 +112,7 @@ public:
 	IPAddr ReqAddr() const		{ return req_addr; }
 	string ReqStr() const
 		{
-		return req_host ? req_host : req_addr;
+		return req_host ? req_host : req_addr.AsString();
 		}
 
 	ListVal* Addrs();

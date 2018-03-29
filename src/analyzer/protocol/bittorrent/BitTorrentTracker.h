@@ -44,13 +44,13 @@ enum btt_benc_states {
 
 class BitTorrentTracker_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
-	BitTorrentTracker_Analyzer(Connection* conn);
-	virtual ~BitTorrentTracker_Analyzer();
+	explicit BitTorrentTracker_Analyzer(Connection* conn);
+	~BitTorrentTracker_Analyzer() override;
 
-	virtual void Done();
-	virtual void DeliverStream(int len, const u_char* data, bool orig);
-	virtual void Undelivered(uint64 seq, int len, bool orig);
-	virtual void EndpointEOF(bool is_orig);
+	void Done() override;
+	void DeliverStream(int len, const u_char* data, bool orig) override;
+	void Undelivered(uint64 seq, int len, bool orig) override;
+	void EndpointEOF(bool is_orig) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new BitTorrentTracker_Analyzer(conn); }
@@ -59,7 +59,7 @@ protected:
 	void ClientRequest(int len, const u_char* data);
 	void ServerReply(int len, const u_char* data);
 
-	void InitBencParser(void);
+	void InitBencParser();
 
 	void DeliverWeird(const char* msg, bool orig);
 
@@ -67,19 +67,19 @@ protected:
 	void RequestGet(char* uri);
 	void RequestHeader(char* name, char* value)
 		{ ParseHeader(name, value, true); }
-	void EmitRequest(void);
+	void EmitRequest();
 
 	bool ParseResponse(char* line);
 	void ResponseStatus(char* status);
 	void ResponseHeader(char* name, char* value)
 		{ ParseHeader(name, value, false); }
-	void ResponseBody(void);
+	void ResponseBody();
 	void ResponseBenc(int name_len, char* name, enum btt_benc_types type,
 				int value_len, char* value);
 	void ResponseBenc(int name_len, char* name, enum btt_benc_types type,
 				bro_int_t value);
-	int ResponseParseBenc(void);
-	void EmitResponse(void);
+	int ResponseParseBenc();
+	void EmitResponse();
 
 	void ParseHeader(char* name, char* value, bool is_request);
 

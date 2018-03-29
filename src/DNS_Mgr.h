@@ -42,8 +42,8 @@ enum DNS_MgrMode {
 
 class DNS_Mgr : public iosource::IOSource {
 public:
-	DNS_Mgr(DNS_MgrMode mode);
-	virtual ~DNS_Mgr();
+	explicit DNS_Mgr(DNS_MgrMode mode);
+	~DNS_Mgr() override;
 
 	void InitPostScript();
 	void Flush();
@@ -132,11 +132,11 @@ protected:
 	void DoProcess(bool flush);
 
 	// IOSource interface.
-	virtual void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
-	                    iosource::FD_Set* except);
-	virtual double NextTimestamp(double* network_time);
-	virtual void Process();
-	virtual const char* Tag()	{ return "DNS_Mgr"; }
+	void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
+	                    iosource::FD_Set* except) override;
+	double NextTimestamp(double* network_time) override;
+	void Process() override;
+	const char* Tag() override { return "DNS_Mgr"; }
 
 	DNS_MgrMode mode;
 

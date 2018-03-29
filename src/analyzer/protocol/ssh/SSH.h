@@ -13,16 +13,16 @@ namespace analyzer {
 		class SSH_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 
 		public:
-			SSH_Analyzer(Connection* conn);
-			virtual ~SSH_Analyzer();
+			explicit SSH_Analyzer(Connection* conn);
+			~SSH_Analyzer() override;
 
 			// Overriden from Analyzer.
-			virtual void Done();
-			virtual void DeliverStream(int len, const u_char* data, bool orig);
-			virtual void Undelivered(uint64 seq, int len, bool orig);
+			void Done() override;
+			void DeliverStream(int len, const u_char* data, bool orig) override;
+			void Undelivered(uint64 seq, int len, bool orig) override;
 
 			// Overriden from tcp::TCP_ApplicationAnalyzer.
-			virtual void EndpointEOF(bool is_orig);
+			void EndpointEOF(bool is_orig) override;
 
 			static analyzer::Analyzer* Instantiate(Connection* conn)
 				{ return new SSH_Analyzer(conn); }

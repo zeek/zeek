@@ -42,7 +42,7 @@ public:
 		{ return padded_sizeof(*this) + pad_size(max_entries * sizeof(ent)); }
 
 protected:
-	BaseList(int = 0);
+	explicit BaseList(int = 0);
 	BaseList(BaseList&);
 
 	void insert(ent);	// add at head of list
@@ -102,9 +102,9 @@ protected:
 #define Listdeclare(type)						\
 struct List(type) : BaseList						\
 	{								\
-	List(type)(type ...);						\
+	explicit List(type)(type ...);						\
 	List(type)() : BaseList(0) {}					\
-	List(type)(int sz) : BaseList(sz) {}				\
+	explicit List(type)(int sz) : BaseList(sz) {}				\
 	List(type)(List(type)& l) : BaseList((BaseList&)l) {}		\
 									\
 	void operator=(List(type)& l)					\
@@ -143,9 +143,9 @@ List(type)::List(type)(type e1 ...) : BaseList()			\
 #define PListdeclare(type)						\
 struct PList(type) : BaseList						\
 	{								\
-	PList(type)(type* ...);						\
+	explicit PList(type)(type* ...);						\
 	PList(type)() : BaseList(0) {}					\
-	PList(type)(int sz) : BaseList(sz) {}				\
+	explicit PList(type)(int sz) : BaseList(sz) {}				\
 	PList(type)(PList(type)& l) : BaseList((BaseList&)l) {}		\
 									\
 	void operator=(PList(type)& l)					\

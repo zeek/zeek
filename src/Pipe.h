@@ -15,7 +15,7 @@ public:
 	 * @param status_flags0 descriptor status flags to set on read end of pipe.
 	 * @param status_flags1 descriptor status flags to set on write end of pipe.
 	 */
-	Pipe(int flags0 = 0, int flags1 = 0, int status_flags0 = 0,
+	explicit Pipe(int flags0 = 0, int flags1 = 0, int status_flags0 = 0,
 	     int status_flags1 = 0);
 
 	/**

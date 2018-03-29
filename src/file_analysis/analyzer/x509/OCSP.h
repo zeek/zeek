@@ -40,7 +40,7 @@ private:
 class OCSP_RESPVal: public OpaqueVal {
 public:
 	explicit OCSP_RESPVal(OCSP_RESPONSE *);
-	~OCSP_RESPVal();
+	~OCSP_RESPVal() override;
 	OCSP_RESPONSE *GetResp() const;
 protected:
 	OCSP_RESPVal();

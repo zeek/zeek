@@ -39,7 +39,7 @@ public:
 	void incr(int& index)	{ index < max_entries ? ++index : index = 0; }
 
 protected:
-	BaseQueue(int = 0);
+	explicit BaseQueue(int = 0);
 
 	void push_front(ent);	// add in front of queue
 	void push_back(ent);	// add at end of queue
@@ -73,7 +73,7 @@ protected:
 struct Queue(type) : BaseQueue						\
 	{								\
 	Queue(type)() : BaseQueue(0) {}					\
-	Queue(type)(int sz) : BaseQueue(sz) {}				\
+	explicit Queue(type)(int sz) : BaseQueue(sz) {}				\
 									\
 	void push_front(type a)	{ BaseQueue::push_front(ent(a)); }	\
 	void push_back(type a)	{ BaseQueue::push_back(ent(a)); }	\
@@ -88,7 +88,7 @@ struct Queue(type) : BaseQueue						\
 struct PQueue(type) : BaseQueue						\
 	{								\
 	PQueue(type)() : BaseQueue(0) {}				\
-	PQueue(type)(int sz) : BaseQueue(sz) {}				\
+	explicit PQueue(type)(int sz) : BaseQueue(sz) {}				\
 									\
 	void push_front(type* a){ BaseQueue::push_front(ent(a)); }	\
 	void push_back(type* a)	{ BaseQueue::push_back(ent(a)); }	\

@@ -10,7 +10,7 @@ namespace analyzer { namespace krb {
 class KRB_Analyzer : public analyzer::Analyzer {
 
 public:
-	KRB_Analyzer(Connection* conn);
+	explicit KRB_Analyzer(Connection* conn);
 	virtual ~KRB_Analyzer();
 
 	virtual void Done();

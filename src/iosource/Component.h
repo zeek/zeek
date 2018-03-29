@@ -27,17 +27,12 @@ public:
 	 * @param name A descriptive name for the component.  This name must
 	 * be unique across all components of this type.
 	 */
-	Component(const std::string& name);
-
-	/**
-	 * Copy constructor.
-	 */
-	Component(const Component& other);
+	explicit Component(const std::string& name);
 
 	/**
 	 * Destructor.
 	 */
-	~Component();
+	~Component() override;
 
 protected:
 	/**
@@ -85,7 +80,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	virtual ~PktSrcComponent();
+	~PktSrcComponent() override;
 
 	/**
 	 * Returns the prefix(es) passed to the constructor.
@@ -118,7 +113,7 @@ public:
 	 * Generates a human-readable description of the component. This goes
 	 * into the output of \c "bro -NN".
 	 */
-	virtual void DoDescribe(ODesc* d) const;
+	void DoDescribe(ODesc* d) const override;
 
 private:
 	std::vector<std::string> prefixes;
@@ -144,7 +139,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	~PktDumperComponent();
+	~PktDumperComponent() override;
 
 	/**
 	 * Returns the prefix(es) passed to the constructor.
@@ -165,7 +160,7 @@ public:
 	 * Generates a human-readable description of the component. This goes
 	 * into the output of \c "bro -NN".
 	 */
-	virtual void DoDescribe(ODesc* d) const;
+	void DoDescribe(ODesc* d) const override;
 
 private:
 	std::vector<std::string> prefixes;

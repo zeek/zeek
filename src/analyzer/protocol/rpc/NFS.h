@@ -11,13 +11,13 @@ namespace analyzer { namespace rpc {
 
 class NFS_Interp : public RPC_Interpreter {
 public:
-	NFS_Interp(analyzer::Analyzer* arg_analyzer) : RPC_Interpreter(arg_analyzer) { }
+	explicit NFS_Interp(analyzer::Analyzer* arg_analyzer) : RPC_Interpreter(arg_analyzer) { }
 
 protected:
-	int RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n);
+	int RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n) override;
 	int RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 				const u_char*& buf, int& n, double start_time,
-				double last_time, int reply_len);
+				double last_time, int reply_len) override;
 
 	// Returns a new val_list that already has a conn_val, rpc_status and
 	// nfs_status. These are the first parameters for each nfs_* event
@@ -74,7 +74,6 @@ protected:
 	//   * size is the amount of bytes read (or requested to be written),
 	StringVal* nfs3_file_data(const u_char*& buf, int& n, uint64_t offset, int size);
 
-	RecordVal* ExtractOptAttrs(const u_char*& buf, int& n);
 	Val* ExtractUint32(const u_char*& buf, int& n);
 	Val* ExtractUint64(const u_char*& buf, int& n);
 	Val* ExtractTime(const u_char*& buf, int& n);
@@ -84,8 +83,8 @@ protected:
 
 class NFS_Analyzer : public RPC_Analyzer {
 public:
-	NFS_Analyzer(Connection* conn);
-	virtual void Init();
+	explicit NFS_Analyzer(Connection* conn);
+	void Init() override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new NFS_Analyzer(conn); }

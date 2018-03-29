@@ -23,7 +23,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	virtual ~Entropy();
+	~Entropy() override;
 
 	/**
 	 * Create a new instance of an Extract analyzer.
@@ -40,13 +40,13 @@ public:
 	 * @param len number of bytes in the data chunk.
 	 * @return false if the digest is in an invalid state, else true.
 	 */
-	virtual bool DeliverStream(const u_char* data, uint64 len);
+	bool DeliverStream(const u_char* data, uint64 len) override;
 
 	/**
 	 * Finalizes the hash and raises a "file_entropy_test" event.
 	 * @return always false so analyze will be deteched from file.
 	 */
-	virtual bool EndOfFile();
+	bool EndOfFile() override;
 
 	/**
 	 * Missing data can't be handled, so just indicate the this analyzer should
@@ -55,7 +55,7 @@ public:
 	 * @param len number of missing bytes.
 	 * @return always false so analyzer will detach from file.
 	 */
-	virtual bool Undelivered(uint64 offset, uint64 len);
+	bool Undelivered(uint64 offset, uint64 len) override;
 
 protected:
 

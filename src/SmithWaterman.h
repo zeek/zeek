@@ -41,10 +41,10 @@ public:
 	typedef BSSAlignVec::iterator BSSAlignVecIt;
 	typedef BSSAlignVec::const_iterator BSSAlignVecCIt;
 
-	BroSubstring(const string& string)
+	explicit BroSubstring(const string& string)
 		: BroString(string), _num(), _new(false) { }
 
-	BroSubstring(const BroString& string)
+	explicit BroSubstring(const BroString& string)
 		: BroString(string), _num(), _new(false) { }
 
 	BroSubstring(const BroSubstring& bst);
@@ -97,7 +97,7 @@ private:
 //
 class BroSubstringCmp {
 public:
-	BroSubstringCmp(unsigned int index)	{ _index = index; }
+	explicit BroSubstringCmp(unsigned int index)	{ _index = index; }
 	bool operator()(const BroSubstring* bst1, const BroSubstring* bst2) const;
 
  private:
@@ -119,7 +119,7 @@ enum SWVariant {
 // Parameters for Smith-Waterman are stored in this simple record.
 //
 struct SWParams {
-	SWParams(unsigned int min_toklen = 3, SWVariant sw_variant = SW_SINGLE)
+	explicit SWParams(unsigned int min_toklen = 3, SWVariant sw_variant = SW_SINGLE)
 		{
 		_min_toklen = min_toklen;
 		_sw_variant = sw_variant;

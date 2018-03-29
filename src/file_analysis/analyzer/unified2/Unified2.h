@@ -17,9 +17,9 @@ namespace file_analysis {
  */
 class Unified2 : public file_analysis::Analyzer {
 public:
-	virtual ~Unified2();
+	~Unified2() override;
 
-	virtual bool DeliverStream(const u_char* data, uint64 len);
+	bool DeliverStream(const u_char* data, uint64 len) override;
 
 	static file_analysis::Analyzer* Instantiate(RecordVal* args, File* file);
 

@@ -11,7 +11,7 @@ namespace analyzer { namespace dnp3 {
 
 class DNP3_Base {
 public:
-	DNP3_Base(analyzer::Analyzer* analyzer);
+	explicit DNP3_Base(analyzer::Analyzer* analyzer);
 	virtual ~DNP3_Base();
 
 	binpac::DNP3::DNP3_Conn* Interpreter()	{ return interp; }
@@ -64,13 +64,13 @@ protected:
 
 class DNP3_TCP_Analyzer : public DNP3_Base, public tcp::TCP_ApplicationAnalyzer {
 public:
-	DNP3_TCP_Analyzer(Connection* conn);
-	virtual ~DNP3_TCP_Analyzer();
+	explicit DNP3_TCP_Analyzer(Connection* conn);
+	~DNP3_TCP_Analyzer() override;
 
-	virtual void Done();
-	virtual void DeliverStream(int len, const u_char* data, bool orig);
-	virtual void Undelivered(uint64 seq, int len, bool orig);
-	virtual void EndpointEOF(bool is_orig);
+	void Done() override;
+	void DeliverStream(int len, const u_char* data, bool orig) override;
+	void Undelivered(uint64 seq, int len, bool orig) override;
+	void EndpointEOF(bool is_orig) override;
 
 	static Analyzer* Instantiate(Connection* conn)
 		{ return new DNP3_TCP_Analyzer(conn); }
@@ -78,11 +78,11 @@ public:
 
 class DNP3_UDP_Analyzer : public DNP3_Base, public analyzer::Analyzer {
 public:
-	DNP3_UDP_Analyzer(Connection* conn);
-	virtual ~DNP3_UDP_Analyzer();
+	explicit DNP3_UDP_Analyzer(Connection* conn);
+	~DNP3_UDP_Analyzer() override;
 
-	virtual void DeliverPacket(int len, const u_char* data, bool orig,
-                    uint64 seq, const IP_Hdr* ip, int caplen);
+	void DeliverPacket(int len, const u_char* data, bool orig,
+                    uint64 seq, const IP_Hdr* ip, int caplen) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new DNP3_UDP_Analyzer(conn); }

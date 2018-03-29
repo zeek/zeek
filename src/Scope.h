@@ -19,8 +19,8 @@ declare(PDict,ID);
 
 class Scope : public BroObj {
 public:
-	Scope(ID* id);
-	~Scope();
+	explicit Scope(ID* id);
+	~Scope() override;
 
 	ID* Lookup(const char* name) const	{ return local->Lookup(name); }
 	void Insert(const char* name, ID* id)	{ local->Insert(name, id); }
@@ -47,7 +47,7 @@ public:
 	// Adds a variable to the list.
 	void AddInit(ID* id)		{ inits->append(id); }
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const;
 

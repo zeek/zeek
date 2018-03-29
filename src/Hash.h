@@ -20,14 +20,14 @@ typedef enum {
 
 class HashKey {
 public:
-	HashKey(bro_int_t i);
-	HashKey(bro_uint_t u);
-	HashKey(uint32 u);
+	explicit HashKey(bro_int_t i);
+	explicit HashKey(bro_uint_t u);
+	explicit HashKey(uint32 u);
 	HashKey(const uint32 u[], int n);
-	HashKey(double d);
-	HashKey(const void* p);
-	HashKey(const char* s);
-	HashKey(const BroString* s);
+	explicit HashKey(double d);
+	explicit HashKey(const void* p);
+	explicit HashKey(const char* s);
+	explicit HashKey(const BroString* s);
 	~HashKey()
 		{
 		if ( is_our_dynamic )

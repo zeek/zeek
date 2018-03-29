@@ -1,4 +1,11 @@
 
+2.5-482 | 2018-03-29 13:21:21 -0700
+
+  * Source code clean up (Johanna Amann)
+        - Mark one-parameter constructors as explicit & use override where possible
+        - Remove unimplemented & unused functions from header files.
+        - Make some data flows more explicit for complilers.
+
 2.5-478 | 2018-03-29 12:59:49 -0700
 
   * Recognize TLS 1.3 negotiation correctly. The way in which TLS 1.3

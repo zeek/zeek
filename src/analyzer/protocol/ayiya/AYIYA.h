@@ -7,7 +7,7 @@ namespace analyzer { namespace ayiya {
 
 class AYIYA_Analyzer : public analyzer::Analyzer {
 public:
-	AYIYA_Analyzer(Connection* conn);
+	explicit AYIYA_Analyzer(Connection* conn);
 	virtual ~AYIYA_Analyzer();
 
 	virtual void Done();
@@ -18,8 +18,6 @@ public:
 		{ return new AYIYA_Analyzer(conn); }
 
 protected:
-	void ExpireTimer(double t);
-
 	binpac::AYIYA::AYIYA_Conn* interp;
 };
 

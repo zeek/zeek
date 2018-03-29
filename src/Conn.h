@@ -57,7 +57,7 @@ class Connection : public BroObj {
 public:
 	Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
 	           uint32 flow, const Packet* pkt, const EncapsulationStack* arg_encap);
-	virtual ~Connection();
+	~Connection() override;
 
 	// Invoked when an encapsulation is discovered. It records the
 	// encapsulation with the connection and raises a "tunnel_changed"
@@ -252,7 +252,7 @@ public:
 	// Sets the transport protocol in use.
 	void SetTransport(TransportProto arg_proto)	{ proto = arg_proto; }
 
-	void SetUID(Bro::UID arg_uid)	 { uid = arg_uid; }
+	void SetUID(const Bro::UID &arg_uid)	 { uid = arg_uid; }
 
 	Bro::UID GetUID() const { return uid; }
 
@@ -336,7 +336,7 @@ public:
 			double arg_t, int arg_do_expire, TimerType arg_type)
 		: Timer(arg_t, arg_type)
 		{ Init(arg_conn, arg_timer, arg_do_expire); }
-	virtual ~ConnectionTimer();
+	~ConnectionTimer() override;
 
 	void Dispatch(double t, int is_expire) override;
 

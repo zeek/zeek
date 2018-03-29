@@ -19,7 +19,7 @@ typedef enum { SCOPE_FUNCTION, SCOPE_MODULE, SCOPE_GLOBAL } IDScope;
 class ID : public BroObj {
 public:
 	ID(const char* name, IDScope arg_scope, bool arg_is_export);
-	~ID();
+	~ID() override;
 
 	const char* Name() const	{ return name; }
 
@@ -118,7 +118,6 @@ public:
 protected:
 	ID()	{ name = 0; type = 0; val = 0; attrs = 0; }
 
-	void CheckAttr(Attr* attr);
 	void EvalFunc(Expr* ef, Expr* ev);
 
 #ifdef DEBUG

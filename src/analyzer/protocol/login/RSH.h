@@ -26,12 +26,12 @@ class Rsh_Analyzer;
 class Contents_Rsh_Analyzer : public tcp::ContentLine_Analyzer {
 public:
 	Contents_Rsh_Analyzer(Connection* conn, bool orig, Rsh_Analyzer* analyzer);
-	~Contents_Rsh_Analyzer();
+	~Contents_Rsh_Analyzer() override;
 
 	rsh_state RshSaveState() const	{ return save_state; }
 
 protected:
-	virtual void DoDeliver(int len, const u_char* data);
+	void DoDeliver(int len, const u_char* data) override;
 	void BadProlog();
 
 	rsh_state state, save_state;
@@ -42,9 +42,9 @@ protected:
 
 class Rsh_Analyzer : public Login_Analyzer {
 public:
-	Rsh_Analyzer(Connection* conn);
+	explicit Rsh_Analyzer(Connection* conn);
 
-	virtual void DeliverStream(int len, const u_char* data, bool orig);
+	void DeliverStream(int len, const u_char* data, bool orig) override;
 
 	void ClientUserName(const char* s);
 	void ServerUserName(const char* s);

@@ -8,14 +8,14 @@ namespace analyzer { namespace modbus {
 
 class ModbusTCP_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
-	ModbusTCP_Analyzer(Connection* conn);
-	virtual ~ModbusTCP_Analyzer();
+	explicit ModbusTCP_Analyzer(Connection* conn);
+	~ModbusTCP_Analyzer() override;
 
-	virtual void Done();
-	virtual void DeliverStream(int len, const u_char* data, bool orig);
+	void Done() override;
+	void DeliverStream(int len, const u_char* data, bool orig) override;
 
-	virtual void Undelivered(uint64 seq, int len, bool orig);
-	virtual void EndpointEOF(bool is_orig);
+	void Undelivered(uint64 seq, int len, bool orig) override;
+	void EndpointEOF(bool is_orig) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new ModbusTCP_Analyzer(conn); }

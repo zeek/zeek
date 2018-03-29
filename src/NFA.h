@@ -27,8 +27,8 @@ typedef PList(NFA_State) NFA_state_list;
 class NFA_State : public BroObj  {
 public:
 	NFA_State(int sym, EquivClass* ec);
-	NFA_State(CCL* ccl);
-	~NFA_State();
+	explicit NFA_State(CCL* ccl);
+	~NFA_State() override;
 
 	void AddXtion(NFA_State* next_state)	{ xtions.append(next_state); }
 	NFA_state_list* Transitions()		{ return &xtions; }
@@ -52,7 +52,7 @@ public:
 
 	NFA_state_list* EpsilonClosure();
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 	void Dump(FILE* f);
 
 	// Recursivly count all the reachable states.
@@ -75,8 +75,8 @@ public:
 
 class NFA_Machine : public BroObj {
 public:
-	NFA_Machine(NFA_State* first, NFA_State* final = 0);
-	~NFA_Machine();
+	explicit NFA_Machine(NFA_State* first, NFA_State* final = 0);
+	~NFA_Machine() override;
 
 	NFA_State* FirstState() const	{ return first_state; }
 
@@ -103,7 +103,7 @@ public:
 	void AppendState(NFA_State* new_state);
 	void AppendMachine(NFA_Machine* new_mach);
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 	void Dump(FILE* f);
 
 	unsigned int MemoryAllocation() const

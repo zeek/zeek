@@ -18,7 +18,7 @@ public:
 	// encode_base64()), encoding-errors will go to Reporter instead of
 	// Weird. Usage errors go to Reporter in any case. Empty alphabet
 	// indicates the default base64 alphabet.
-	Base64Converter(Connection* conn, const string& alphabet = "");
+	explicit Base64Converter(Connection* conn, const string& alphabet = "");
 	~Base64Converter();
 
 	// A note on Decode():

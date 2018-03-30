@@ -796,7 +796,7 @@ int main(int argc, char** argv)
 	log_mgr = new logging::Manager();
 	input_mgr = new input::Manager();
 	file_mgr = new file_analysis::Manager();
-	broker_mgr = new bro_broker::Manager();
+	broker_mgr = new bro_broker::Manager(read_files.length() > 0);
 
 	plugin_mgr->InitPreScript();
 	analyzer_mgr->InitPreScript();

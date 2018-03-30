@@ -51,7 +51,7 @@ public:
 	/**
 	 * Constructor.
 	 */
-	Manager();
+	Manager(bool reading_pcaps);
 
 	/**
 	 * Destructor.
@@ -73,6 +73,12 @@ public:
 	 * Returns true if any Broker communincation is currently active.
 	 */
 	bool Active();
+
+	/**
+	 * Advances time.  Broker data store expiration is driven by this
+	 * simulated time instead of real/wall time.
+	 */
+	void AdvanceTime(double seconds_since_unix_epoch);
 
 	/**
 	 * Listen for remote connections.
@@ -337,6 +343,7 @@ private:
 	void ProcessError(broker::error err);
 	void ProcessStoreResponse(StoreHandleVal*, broker::store::response response);
 	void FlushLogBuffers();
+	void FlushPendingQueries();
 
 	void Error(const char* format, ...)
 		__attribute__((format (printf, 2, 3)));
@@ -391,6 +398,7 @@ private:
 
 	Stats statistics;
 	double next_timestamp;
+	bool reading_pcaps;
 	static int script_scope;
 
 	static VectorType* vector_of_data_type;

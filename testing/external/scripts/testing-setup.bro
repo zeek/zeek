@@ -12,11 +12,3 @@
 	# (json-logs.bro activates this).
 	redef LogAscii::use_json = F;
 @endif
-
-# Use an alternate implementation of scripts that use broker data stores
-# to avoid problems with the store expiration/timeouts (e.g. wall time
-# versus packet time makes scripts operate differently on offline pcaps).
-redef Known::use_host_store = F;
-redef Known::use_cert_store = F;
-redef Known::use_device_store = F;
-redef Known::use_service_store = F;

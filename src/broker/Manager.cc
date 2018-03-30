@@ -129,12 +129,13 @@ Manager::BrokerState::BrokerState(broker::broker_options options)
 	{
 	}
 
-Manager::Manager()
+Manager::Manager(bool reading_pcaps)
 	{
 	bound_port = 0;
 
 	next_timestamp = 1;
 	SetIdle(false);
+	this->reading_pcaps = reading_pcaps;
 	}
 
 Manager::~Manager()
@@ -165,6 +166,7 @@ void Manager::InitPostScript()
 	broker::broker_options options;
 	options.disable_ssl = get_option("Broker::disable_ssl")->AsBool();
 	options.forward = get_option("Broker::forward_messages")->AsBool();
+	options.use_real_time = ! reading_pcaps;
 
 	bstate = std::make_shared<BrokerState>(options);
 	}
@@ -200,6 +202,30 @@ bool Manager::Active()
 		return true;
 
 	return bstate->endpoint.peers().size();
+	}
+
+void Manager::AdvanceTime(double seconds_since_unix_epoch)
+	{
+	if ( bstate->endpoint.is_shutdown() )
+		return;
+
+	if ( bstate->endpoint.use_real_time() )
+		return;
+
+	auto secs = std::chrono::duration<double>(seconds_since_unix_epoch);
+	auto span = std::chrono::duration_cast<broker::timespan>(secs);
+	broker::timestamp next_time{span};
+	bstate->endpoint.advance_time(next_time);
+	}
+
+void Manager::FlushPendingQueries()
+	{
+	while ( ! pending_queries.empty() )
+		{
+		// possibly an infinite loop if a query can recursively
+		// generate more queries...
+		Process();
+		}
 	}
 
 uint16_t Manager::Listen(const string& addr, uint16_t port)
@@ -1316,6 +1342,12 @@ StoreHandleVal* Manager::MakeMaster(const string& name, broker::backend type,
 
 	data_stores.emplace(name, handle);
 
+	if ( bstate->endpoint.use_real_time() )
+		return handle;
+
+	// Wait for master to become available/responsive.
+	// Possibly avoids timeouts in scripts during unit tests.
+	handle->store.exists("");
 	return handle;
 	}
 
@@ -1383,7 +1415,13 @@ bool Manager::CloseStore(const string& name)
 bool Manager::TrackStoreQuery(StoreHandleVal* handle, broker::request_id id,
                               StoreQueryCallback* cb)
 	{
-	return pending_queries.emplace(std::make_pair(id, handle), cb).second;
+	auto rval = pending_queries.emplace(std::make_pair(id, handle), cb).second;
+
+	if ( bstate->endpoint.use_real_time() )
+		return rval;
+
+	FlushPendingQueries();
+	return rval;
 	}
 
 const Stats& Manager::GetStatistics()

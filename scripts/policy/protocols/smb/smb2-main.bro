@@ -129,12 +129,12 @@ event smb2_tree_disconnect_request(c: connection, hdr: SMB2::Header) &priority=5
 		}
 	}
 
-event smb2_create_request(c: connection, hdr: SMB2::Header, name: string) &priority=5
+event smb2_create_request(c: connection, hdr: SMB2::Header, request: SMB2::CreateRequest) &priority=5
 	{
-	if ( name == "")
-		name = "<share_root>";
+	if ( request$filename == "")
+		request$filename = "<share_root>";
 
-	c$smb_state$current_file$name = name;
+	c$smb_state$current_file$name = request$filename;
 
 	switch ( c$smb_state$current_tree$share_type )
 		{
@@ -153,28 +153,28 @@ event smb2_create_request(c: connection, hdr: SMB2::Header, name: string) &prior
 		}
 	}
 
-event smb2_create_response(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, file_size: count, times: SMB::MACTimes, attrs: SMB2::FileAttrs) &priority=5
+event smb2_create_response(c: connection, hdr: SMB2::Header, response: SMB2::CreateResponse) &priority=5
 	{
-	SMB::set_current_file(c$smb_state, file_id$persistent+file_id$volatile);
+	SMB::set_current_file(c$smb_state, response$file_id$persistent+response$file_id$volatile);
 
-	c$smb_state$current_file$fid = file_id$persistent+file_id$volatile;
-	c$smb_state$current_file$size = file_size;
+	c$smb_state$current_file$fid = response$file_id$persistent+response$file_id$volatile;
+	c$smb_state$current_file$size = response$size;
 
 	if ( c$smb_state$current_tree?$path )
 		c$smb_state$current_file$path = c$smb_state$current_tree$path;
 
 	# I'm seeing negative data from IPC tree transfers
-	if ( time_to_double(times$modified) > 0.0 )
-		c$smb_state$current_file$times = times;
+	if ( time_to_double(response$times$modified) > 0.0 )
+		c$smb_state$current_file$times = response$times;
 
 	# We can identify the file by its file id now so let's stick it 
 	# in the file map.
-	c$smb_state$fid_map[file_id$persistent+file_id$volatile] = c$smb_state$current_file;
+	c$smb_state$fid_map[response$file_id$persistent+response$file_id$volatile] = c$smb_state$current_file;
 	
-	c$smb_state$current_file = c$smb_state$fid_map[file_id$persistent+file_id$volatile];
+	c$smb_state$current_file = c$smb_state$fid_map[response$file_id$persistent+response$file_id$volatile];
 	}
 
-event smb2_create_response(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, file_size: count, times: SMB::MACTimes, attrs: SMB2::FileAttrs) &priority=-5
+event smb2_create_response(c: connection, hdr: SMB2::Header, response: SMB2::CreateResponse) &priority=-5
 	{
 	SMB::write_file_log(c$smb_state);
 	}

@@ -1,1 +1,0 @@
-../../../aux/broccoli/doc/broccoli-manual.rst

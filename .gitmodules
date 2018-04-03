@@ -19,9 +19,6 @@
 [submodule "aux/broker"]
 	path = aux/broker
 	url = git://git.bro.org/broker
-[submodule "aux/broccoli"]
-	path = aux/broccoli
-	url = git://git.bro.org/broccoli
 [submodule "aux/netcontrol-connectors"]
 	path = aux/netcontrol-connectors
 	url = git://git.bro.org/bro-netcontrol

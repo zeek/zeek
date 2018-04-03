@@ -31,7 +31,6 @@ sdf
 3rw43wRRERLlL#RWERERERE.
 @TEST-END-FILE
 
-@load base/frameworks/communication  # let network-time run
 
 module A;
 

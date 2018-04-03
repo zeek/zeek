@@ -7,7 +7,6 @@
 # @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run bro bro -b -m -r $TRACES/wikipedia.trace %INPUT
 # @TEST-EXEC: btest-bg-wait 60
 
-@load base/frameworks/communication # keep network time running
 redef exit_only_after_terminate = T;
 
 const foo: set[addr] = {

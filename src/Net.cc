@@ -326,7 +326,8 @@ void net_run()
 				}
 			}
 
-		else if ( (have_pending_timers || communication_enabled) &&
+		else if ( (have_pending_timers || communication_enabled ||
+		           BifConst::exit_only_after_terminate) &&
 			  ! pseudo_realtime )
 			{
 			// Take advantage of the lull to get up to

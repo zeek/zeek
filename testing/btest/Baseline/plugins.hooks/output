@@ -176,7 +176,6 @@
 0.000000   MetaHookPost  CallFunction(Files::register_protocol, <frame>, (Analyzer::ANALYZER_SSL, [get_file_handle=SSL::get_file_handle{ return ()}, describe=SSL::describe_file{ <init> SSL::cid{ if (SSL::f$source != SSL || !SSL::f?$info || !SSL::f$info?$x509 || !SSL::f$info$x509?$certificate) return ()for ([SSL::cid] in SSL::f$conns) { if (SSL::f$conns[SSL::cid]?$ssl) { SSL::c = SSL::f$conns[SSL::cid]return (cat(SSL::c$id$resp_h, :, SSL::c$id$resp_p))}}return (cat(Serial: , SSL::f$info$x509$certificate$serial,  Subject: , SSL::f$info$x509$certificate$subject,  Issuer: , SSL::f$info$x509$certificate$issuer))}}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (Broker::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=broker, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (Cluster::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=cluster, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (Communication::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=communication, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (Config::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=config, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (Conn::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=conn, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (DCE_RPC::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=dce_rpc, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
@@ -221,7 +220,6 @@
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (mysql::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=mysql, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Broker::LOG, [columns=<no value description>, ev=<uninitialized>, path=broker])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Cluster::LOG, [columns=<no value description>, ev=<uninitialized>, path=cluster])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Communication::LOG, [columns=<no value description>, ev=<uninitialized>, path=communication])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Config::LOG, [columns=<no value description>, ev=Config::log_config, path=config])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Conn::LOG, [columns=<no value description>, ev=Conn::log_conn, path=conn])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (DCE_RPC::LOG, [columns=<no value description>, ev=<uninitialized>, path=dce_rpc])) -> <no result>
@@ -264,10 +262,9 @@
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1518991937.732755, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1522791175.007183, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Broker::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Communication::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Config::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Conn::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (DCE_RPC::LOG)) -> <no result>
@@ -312,7 +309,6 @@
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (mysql::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (Broker::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (Cluster::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (Communication::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (Config::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (Conn::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (DCE_RPC::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
@@ -357,7 +353,6 @@
 0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (mysql::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (Broker::LOG, default)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (Cluster::LOG, default)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (Communication::LOG, default)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (Config::LOG, default)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (Conn::LOG, default)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (DCE_RPC::LOG, default)) -> <no result>
@@ -402,7 +397,6 @@
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (mysql::LOG, default)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Broker::LOG, [columns=<no value description>, ev=<uninitialized>, path=broker])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Cluster::LOG, [columns=<no value description>, ev=<uninitialized>, path=cluster])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Communication::LOG, [columns=<no value description>, ev=<uninitialized>, path=communication])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Config::LOG, [columns=<no value description>, ev=Config::log_config, path=config])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Conn::LOG, [columns=<no value description>, ev=Conn::log_conn, path=conn])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (DCE_RPC::LOG, [columns=<no value description>, ev=<uninitialized>, path=dce_rpc])) -> <no result>
@@ -445,7 +439,7 @@
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1518991937.732755, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1522791175.007183, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
 0.000000   MetaHookPost  CallFunction(NetControl::check_plugins, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(NetControl::init, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Notice::want_pp, <frame>, ()) -> <no result>
@@ -702,7 +696,6 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/broker) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/cluster) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/comm.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(0, base<...>/communication) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/config) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/conn) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/conn-ids.bro) -> -1
@@ -979,7 +972,6 @@
 0.000000   MetaHookPre   CallFunction(Files::register_protocol, <frame>, (Analyzer::ANALYZER_SSL, [get_file_handle=SSL::get_file_handle{ return ()}, describe=SSL::describe_file{ <init> SSL::cid{ if (SSL::f$source != SSL || !SSL::f?$info || !SSL::f$info?$x509 || !SSL::f$info$x509?$certificate) return ()for ([SSL::cid] in SSL::f$conns) { if (SSL::f$conns[SSL::cid]?$ssl) { SSL::c = SSL::f$conns[SSL::cid]return (cat(SSL::c$id$resp_h, :, SSL::c$id$resp_p))}}return (cat(Serial: , SSL::f$info$x509$certificate$serial,  Subject: , SSL::f$info$x509$certificate$subject,  Issuer: , SSL::f$info$x509$certificate$issuer))}}]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (Broker::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=broker, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (Cluster::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=cluster, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}]))
-0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (Communication::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=communication, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (Config::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=config, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (Conn::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=conn, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (DCE_RPC::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=dce_rpc, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}]))
@@ -1024,7 +1016,6 @@
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (mysql::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=mysql, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Broker::LOG, [columns=<no value description>, ev=<uninitialized>, path=broker]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Cluster::LOG, [columns=<no value description>, ev=<uninitialized>, path=cluster]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Communication::LOG, [columns=<no value description>, ev=<uninitialized>, path=communication]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Config::LOG, [columns=<no value description>, ev=Config::log_config, path=config]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Conn::LOG, [columns=<no value description>, ev=Conn::log_conn, path=conn]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (DCE_RPC::LOG, [columns=<no value description>, ev=<uninitialized>, path=dce_rpc]))
@@ -1067,10 +1058,9 @@
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql]))
-0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1518991937.732755, node=bro, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1522791175.007183, node=bro, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Broker::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG))
-0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Communication::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Config::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Conn::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (DCE_RPC::LOG))
@@ -1115,7 +1105,6 @@
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (mysql::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (Broker::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (Cluster::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}]))
-0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (Communication::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (Config::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (Conn::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (DCE_RPC::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}]))
@@ -1160,7 +1149,6 @@
 0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (mysql::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (Broker::LOG, default))
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (Cluster::LOG, default))
-0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (Communication::LOG, default))
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (Config::LOG, default))
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (Conn::LOG, default))
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (DCE_RPC::LOG, default))
@@ -1205,7 +1193,6 @@
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (mysql::LOG, default))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Broker::LOG, [columns=<no value description>, ev=<uninitialized>, path=broker]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Cluster::LOG, [columns=<no value description>, ev=<uninitialized>, path=cluster]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Communication::LOG, [columns=<no value description>, ev=<uninitialized>, path=communication]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Config::LOG, [columns=<no value description>, ev=Config::log_config, path=config]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Conn::LOG, [columns=<no value description>, ev=Conn::log_conn, path=conn]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (DCE_RPC::LOG, [columns=<no value description>, ev=<uninitialized>, path=dce_rpc]))
@@ -1248,7 +1235,7 @@
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql]))
-0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1518991937.732755, node=bro, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1522791175.007183, node=bro, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(NetControl::check_plugins, <frame>, ())
 0.000000   MetaHookPre   CallFunction(NetControl::init, <null>, ())
 0.000000   MetaHookPre   CallFunction(Notice::want_pp, <frame>, ())
@@ -1505,7 +1492,6 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/broker)
 0.000000   MetaHookPre   LoadFile(0, base<...>/cluster)
 0.000000   MetaHookPre   LoadFile(0, base<...>/comm.bif.bro)
-0.000000   MetaHookPre   LoadFile(0, base<...>/communication)
 0.000000   MetaHookPre   LoadFile(0, base<...>/config)
 0.000000   MetaHookPre   LoadFile(0, base<...>/conn)
 0.000000   MetaHookPre   LoadFile(0, base<...>/conn-ids.bro)
@@ -1781,7 +1767,6 @@
 0.000000 | HookCallFunction Files::register_protocol(Analyzer::ANALYZER_SSL, [get_file_handle=SSL::get_file_handle{ return ()}, describe=SSL::describe_file{ <init> SSL::cid{ if (SSL::f$source != SSL || !SSL::f?$info || !SSL::f$info?$x509 || !SSL::f$info$x509?$certificate) return ()for ([SSL::cid] in SSL::f$conns) { if (SSL::f$conns[SSL::cid]?$ssl) { SSL::c = SSL::f$conns[SSL::cid]return (cat(SSL::c$id$resp_h, :, SSL::c$id$resp_p))}}return (cat(Serial: , SSL::f$info$x509$certificate$serial,  Subject: , SSL::f$info$x509$certificate$subject,  Issuer: , SSL::f$info$x509$certificate$issuer))}}])
 0.000000 | HookCallFunction Log::__add_filter(Broker::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=broker, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::__add_filter(Cluster::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=cluster, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])
-0.000000 | HookCallFunction Log::__add_filter(Communication::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=communication, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::__add_filter(Config::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=config, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::__add_filter(Conn::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=conn, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::__add_filter(DCE_RPC::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=dce_rpc, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])
@@ -1826,7 +1811,6 @@
 0.000000 | HookCallFunction Log::__add_filter(mysql::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=mysql, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::__create_stream(Broker::LOG, [columns=<no value description>, ev=<uninitialized>, path=broker])
 0.000000 | HookCallFunction Log::__create_stream(Cluster::LOG, [columns=<no value description>, ev=<uninitialized>, path=cluster])
-0.000000 | HookCallFunction Log::__create_stream(Communication::LOG, [columns=<no value description>, ev=<uninitialized>, path=communication])
 0.000000 | HookCallFunction Log::__create_stream(Config::LOG, [columns=<no value description>, ev=Config::log_config, path=config])
 0.000000 | HookCallFunction Log::__create_stream(Conn::LOG, [columns=<no value description>, ev=Conn::log_conn, path=conn])
 0.000000 | HookCallFunction Log::__create_stream(DCE_RPC::LOG, [columns=<no value description>, ev=<uninitialized>, path=dce_rpc])
@@ -1869,10 +1853,9 @@
 0.000000 | HookCallFunction Log::__create_stream(Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])
 0.000000 | HookCallFunction Log::__create_stream(X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])
 0.000000 | HookCallFunction Log::__create_stream(mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])
-0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1518991937.732755, node=bro, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1522791175.007183, node=bro, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction Log::add_default_filter(Broker::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Cluster::LOG)
-0.000000 | HookCallFunction Log::add_default_filter(Communication::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Config::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Conn::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(DCE_RPC::LOG)
@@ -1917,7 +1900,6 @@
 0.000000 | HookCallFunction Log::add_default_filter(mysql::LOG)
 0.000000 | HookCallFunction Log::add_filter(Broker::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::add_filter(Cluster::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])
-0.000000 | HookCallFunction Log::add_filter(Communication::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::add_filter(Config::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::add_filter(Conn::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::add_filter(DCE_RPC::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])
@@ -1962,7 +1944,6 @@
 0.000000 | HookCallFunction Log::add_filter(mysql::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::add_stream_filters(Broker::LOG, default)
 0.000000 | HookCallFunction Log::add_stream_filters(Cluster::LOG, default)
-0.000000 | HookCallFunction Log::add_stream_filters(Communication::LOG, default)
 0.000000 | HookCallFunction Log::add_stream_filters(Config::LOG, default)
 0.000000 | HookCallFunction Log::add_stream_filters(Conn::LOG, default)
 0.000000 | HookCallFunction Log::add_stream_filters(DCE_RPC::LOG, default)
@@ -2007,7 +1988,6 @@
 0.000000 | HookCallFunction Log::add_stream_filters(mysql::LOG, default)
 0.000000 | HookCallFunction Log::create_stream(Broker::LOG, [columns=<no value description>, ev=<uninitialized>, path=broker])
 0.000000 | HookCallFunction Log::create_stream(Cluster::LOG, [columns=<no value description>, ev=<uninitialized>, path=cluster])
-0.000000 | HookCallFunction Log::create_stream(Communication::LOG, [columns=<no value description>, ev=<uninitialized>, path=communication])
 0.000000 | HookCallFunction Log::create_stream(Config::LOG, [columns=<no value description>, ev=Config::log_config, path=config])
 0.000000 | HookCallFunction Log::create_stream(Conn::LOG, [columns=<no value description>, ev=Conn::log_conn, path=conn])
 0.000000 | HookCallFunction Log::create_stream(DCE_RPC::LOG, [columns=<no value description>, ev=<uninitialized>, path=dce_rpc])
@@ -2050,7 +2030,7 @@
 0.000000 | HookCallFunction Log::create_stream(Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])
 0.000000 | HookCallFunction Log::create_stream(X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])
 0.000000 | HookCallFunction Log::create_stream(mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])
-0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1518991937.732755, node=bro, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1522791175.007183, node=bro, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction NetControl::check_plugins()
 0.000000 | HookCallFunction NetControl::init()
 0.000000 | HookCallFunction Notice::want_pp()
@@ -2316,7 +2296,6 @@
 0.000000 | HookLoadFile  base<...>/broker
 0.000000 | HookLoadFile  base<...>/cluster
 0.000000 | HookLoadFile  base<...>/comm.bif.bro
-0.000000 | HookLoadFile  base<...>/communication
 0.000000 | HookLoadFile  base<...>/config
 0.000000 | HookLoadFile  base<...>/conn
 0.000000 | HookLoadFile  base<...>/conn-ids.bro
@@ -2402,7 +2381,7 @@
 0.000000 | HookLoadFile  base<...>/x509
 0.000000 | HookLoadFile  base<...>/xmpp
 0.000000 | HookLogInit   packet_filter 1/1 {ts (time), node (string), filter (string), init (bool), success (bool)}
-0.000000 | HookLogWrite  packet_filter [ts=1518991937.732755, node=bro, filter=ip or not ip, init=T, success=T]
+0.000000 | HookLogWrite  packet_filter [ts=1522791175.007183, node=bro, filter=ip or not ip, init=T, success=T]
 0.000000 | HookQueueEvent NetControl::init()
 0.000000 | HookQueueEvent bro_init()
 0.000000 | HookQueueEvent filter_change_tracking()

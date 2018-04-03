@@ -33,7 +33,6 @@
 @load base/frameworks/signatures
 @load base/frameworks/packet-filter
 @load base/frameworks/software
-@load base/frameworks/communication
 @load base/frameworks/control
 @load base/frameworks/cluster
 @load base/frameworks/intel

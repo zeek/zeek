@@ -7,7 +7,6 @@
 ##!     bro <scripts> frameworks/control/controller Control::host=<host_addr> Control::host_port=<host_port> Control::cmd=<command> [Control::arg=<arg>]
 
 @load base/frameworks/control
-@load base/frameworks/communication
 @load base/frameworks/broker
 
 module Control;
@@ -119,22 +118,6 @@ function send_control_request()
 		Reporter::fatal(fmt("unhandled Control::cmd, %s", cmd));
 		break;
 	}
-	}
-
-event remote_connection_handshake_done(p: event_peer) &priority=-10
-	{
-	if ( cmd == "configuration_update" )
-		{
-		# Send all &redef'able consts to the peer.
-		local ids = configurable_ids();
-
-		for ( id in ids )
-			send_id(p, id);
-
-		Reporter::info(fmt("Control framework sent %d IDs", |ids|));
-		}
-
-	send_control_request();
 	}
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string) &priority=-10

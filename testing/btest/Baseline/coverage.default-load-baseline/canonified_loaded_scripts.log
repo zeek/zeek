@@ -239,8 +239,6 @@ scripts/base/init-default.bro
     scripts/base/frameworks/packet-filter/netstats.bro
   scripts/base/frameworks/software/__load__.bro
     scripts/base/frameworks/software/main.bro
-  scripts/base/frameworks/communication/__load__.bro
-    scripts/base/frameworks/communication/main.bro
   scripts/base/frameworks/intel/__load__.bro
     scripts/base/frameworks/intel/main.bro
     scripts/base/frameworks/intel/files.bro

@@ -8,7 +8,6 @@
 ##!     bro <scripts> frameworks/control/controllee
 
 @load base/frameworks/control
-@load base/frameworks/communication
 @load base/frameworks/broker
 
 module Control;

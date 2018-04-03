@@ -290,14 +290,12 @@ when	return TOK_WHEN;
 	}
 
 &mergeable {
-	// Not yet deprecated, but soon.
-	//deprecated_attr(yytext);
+	deprecated_attr(yytext);
 	return TOK_ATTR_MERGEABLE;
 	}
 
 &persistent {
-	// Not yet deprecated, but soon.
-	//deprecated_attr(yytext);
+	deprecated_attr(yytext);
 	return TOK_ATTR_PERSISTENT;
 	}
 
@@ -312,8 +310,7 @@ when	return TOK_WHEN;
 	}
 
 &synchronized  {
-	// Not yet deprecated, but soon.
-	//deprecated_attr(yytext);
+	deprecated_attr(yytext);
 	return TOK_ATTR_SYNCHRONIZED;
 	}
 

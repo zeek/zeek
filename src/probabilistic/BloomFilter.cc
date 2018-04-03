@@ -67,12 +67,13 @@ size_t BasicBloomFilter::K(size_t cells, size_t capacity)
 
 bool BasicBloomFilter::Empty() const
 	{
-	return bits->AllZero();
+	return empty;
 	}
 
 void BasicBloomFilter::Clear()
 	{
 	bits->Reset();
+	empty = true;
 	}
 
 bool BasicBloomFilter::Merge(const BloomFilter* other)
@@ -95,6 +96,7 @@ bool BasicBloomFilter::Merge(const BloomFilter* other)
 		}
 
 	(*bits) |= *o->bits;
+	empty &= o->empty;
 
 	return true;
 	}
@@ -105,6 +107,7 @@ BasicBloomFilter* BasicBloomFilter::Clone() const
 
 	copy->hasher = hasher->Clone();
 	copy->bits = new BitVector(*bits);
+	copy->empty = empty;
 
 	return copy;
 	}
@@ -117,12 +120,14 @@ std::string BasicBloomFilter::InternalState() const
 BasicBloomFilter::BasicBloomFilter()
 	{
 	bits = 0;
+	empty = true;
 	}
 
 BasicBloomFilter::BasicBloomFilter(const Hasher* hasher, size_t cells)
 	: BloomFilter(hasher)
 	{
 	bits = new BitVector(cells);
+	empty = true;
 	}
 
 BasicBloomFilter::~BasicBloomFilter()
@@ -135,12 +140,14 @@ IMPLEMENT_SERIAL(BasicBloomFilter, SER_BASICBLOOMFILTER)
 bool BasicBloomFilter::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_BASICBLOOMFILTER, BloomFilter);
+	SERIALIZE(empty);
 	return bits->Serialize(info);
 	}
 
 bool BasicBloomFilter::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(BloomFilter);
+	UNSERIALIZE(&empty);
 	bits = BitVector::Unserialize(info);
 	return (bits != 0);
 	}
@@ -151,6 +158,8 @@ void BasicBloomFilter::Add(const HashKey* key)
 
 	for ( size_t i = 0; i < h.size(); ++i )
 		bits->Set(h[i] % bits->Size());
+
+	empty = false;
 	}
 
 size_t BasicBloomFilter::Count(const HashKey* key) const
@@ -176,6 +185,7 @@ CountingBloomFilter::CountingBloomFilter(const Hasher* hasher,
 	: BloomFilter(hasher)
 	{
 	cells = new CounterVector(width, arg_cells);
+	empty = true;
 	}
 
 CountingBloomFilter::~CountingBloomFilter()
@@ -185,12 +195,14 @@ CountingBloomFilter::~CountingBloomFilter()
 
 bool CountingBloomFilter::Empty() const
 	{
-	return cells->AllZero();
+	// Don't call cells.AllZero() here, as that's O(n).
+	return empty;
 	}
 
 void CountingBloomFilter::Clear()
 	{
 	cells->Reset();
+	empty = true;
 	}
 
 bool CountingBloomFilter::Merge(const BloomFilter* other)
@@ -213,6 +225,7 @@ bool CountingBloomFilter::Merge(const BloomFilter* other)
 		}
 
 	(*cells) |= *o->cells;
+	empty &= o->empty;
 
 	return true;
 	}
@@ -223,6 +236,7 @@ CountingBloomFilter* CountingBloomFilter::Clone() const
 
 	copy->hasher = hasher->Clone();
 	copy->cells = new CounterVector(*cells);
+	copy->empty = empty;
 
 	return copy;
 	}
@@ -237,12 +251,14 @@ IMPLEMENT_SERIAL(CountingBloomFilter, SER_COUNTINGBLOOMFILTER)
 bool CountingBloomFilter::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_COUNTINGBLOOMFILTER, BloomFilter);
+	SERIALIZE(empty);
 	return cells->Serialize(info);
 	}
 
 bool CountingBloomFilter::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(BloomFilter);
+	UNSERIALIZE(&empty);
 	cells = CounterVector::Unserialize(info);
 	return (cells != 0);
 	}
@@ -254,6 +270,8 @@ void CountingBloomFilter::Add(const HashKey* key)
 
 	for ( size_t i = 0; i < h.size(); ++i )
 		cells->Increment(h[i] % cells->Size());
+
+	empty = false;
 	}
 
 size_t CountingBloomFilter::Count(const HashKey* key) const

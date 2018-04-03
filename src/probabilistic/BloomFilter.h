@@ -178,6 +178,7 @@ protected:
 
 private:
 	BitVector* bits;
+	bool empty;
 };
 
 /**
@@ -223,6 +224,7 @@ protected:
 
 private:
 	CounterVector* cells;
+	bool empty;
 };
 
 }

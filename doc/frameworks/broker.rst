@@ -170,6 +170,11 @@ a data store for your use-case:
   be able to provide simple, race-free methods of performing the pattern
   of logic that you want.
 
+* If the data set you want to store is excessively large, that's still
+  problematic even for stores that use a persistent backend as they are
+  implemented in a way that requires a full snapshot of the store's
+  contents to fit in memory (this limitation may change in the future).
+
 Data Partitioning
 -----------------
 

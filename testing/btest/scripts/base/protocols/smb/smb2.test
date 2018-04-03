@@ -8,13 +8,14 @@
 
 @load policy/protocols/smb
 
-event smb2_create_request(c: connection, hdr: SMB2::Header, request: SMB2::CreateRequest )
+# Add some tests for SMB2 create request and response.
+event smb2_create_request(c: connection, hdr: SMB2::Header, request: SMB2::CreateRequest)
 	{
-	print "smb2_create_request", c, hdr, request;
+	print fmt("smb2_create_request %s -> %s:%d %s", c$id$orig_h, c$id$resp_h, c$id$resp_p, request);
 	}
 
-event smb2_create_response(c: connection, hdr: SMB2::Header, response: SMB2::CreateResponse )
+event smb2_create_response(c: connection, hdr: SMB2::Header, response: SMB2::CreateResponse)
 	{
-	print "smb2_create_response", c, hdr, response;
+	print fmt("smb2_create_response %s -> %s:%d %s", c$id$orig_h, c$id$resp_h, c$id$resp_p, response);
 	}
 

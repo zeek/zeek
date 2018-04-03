@@ -28,31 +28,61 @@ refine connection GSSAPI_Conn += {
 
 	function forward_blob(val: GSSAPI_NEG_TOKEN_MECH_TOKEN, is_orig: bool): bool
 		%{
-		if ( ${val.mech_token}.length() >= 7 &&
-		     memcmp("NTLMSSP", ${val.mech_token}.begin(), 7) == 0 )
-			{
-			// ntlmssp
-			if ( ! ntlm )
-				ntlm = analyzer_mgr->InstantiateAnalyzer("NTLM", bro_analyzer()->Conn());
+        if ( ${val.token}.length() >= 7 &&
+             memcmp("NTLMSSP", ${val.token}.begin(), 7) == 0 )
+            {
+            // ntlmssp
+            if ( ! ntlm )
+                ntlm = analyzer_mgr->InstantiateAnalyzer("NTLM", bro_analyzer()->Conn());
 
-			if ( ntlm )
-				ntlm->DeliverStream(${val.mech_token}.length(), ${val.mech_token}.begin(), is_orig);
-			}
-		else if ( ${val.mech_token}.length() == 9 &&
-		          (memcmp("\x2a\x86\x48\x86\xf7\x12\x01\x02\x02", ${val.mech_token}.begin(), ${val.mech_token}.length()) == 0 ||
-		           memcmp("\x2a\x86\x48\x82\xf7\x12\x01\x02\x02", ${val.mech_token}.begin(), ${val.mech_token}.length()) == 0 ) )
-			{
-			// krb5 && ms-krb5
-			if ( ! krb5 )
-				krb5 = analyzer_mgr->InstantiateAnalyzer("KRB", bro_analyzer()->Conn());
+            if ( ntlm )
+                ntlm->DeliverStream(${val.token}.length(),
+                                    ${val.token}.begin(), is_orig);
+            }
 
-			// 0x0100 is a special marker
-			if ( krb5 && memcmp("\x01\x00", ${val.mech_token}.begin(), 2) == 0 )
-				{
-				krb5->DeliverPacket(${val.mech_token}.length()-2, ${val.mech_token}.begin()+2, is_orig, 0, 0, 0);
-				}
-			}
 
+        else if ( 0x60 == *(${val.token}.begin()) )
+            {
+            // probably KRB
+
+            const unsigned char *p = ${val.token}.begin();
+            int len_to_send = ${val.token}.length();
+            p++;
+            len_to_send--;
+
+            int shift = 1;
+            if ( ((*p) & 0x80) > 0 )
+                {
+                    shift += (*p) & 0x7f;
+                }
+
+            p += shift;  // eating an ASN.1 meta
+            len_to_send -= shift;
+
+            // should now be pointing at OID
+            if ( (*p) == 0x06 )
+                {
+                    p++;
+                    len_to_send--;
+                    len_to_send -= (*p) + 1;
+                    p += (*p) + 1;  // eating the OID.  assuming short form on
+                                    // OID len
+
+                    // should now be pointing at the type of KRB
+                    // 0x0100 or 0x0200
+                    // krb5 && ms-krb5
+                    if ( ! krb5 )
+                        krb5 = analyzer_mgr->InstantiateAnalyzer("KRB", bro_analyzer()->Conn());
+
+                    if ( krb5 ) // accepting all KRB types (REQ, REP, etc)
+                          
+                        {
+                        krb5->DeliverPacket(len_to_send-2,
+                                            p+2, 
+                                            is_orig, 0, 0, 0);
+                        }
+                }
+            } 
 		return true;
 		%}
 

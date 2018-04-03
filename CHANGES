@@ -1,4 +1,10 @@
 
+2.5-498 | 2018-04-03 01:59:46 -0400
+
+  * Improvements to GSSAPI handling of Kerberos messages (John E. Rollinson, Seth Hall, juno0812, Justin Oursler)
+
+  * Improve SMB2 Create command events and add newly parsed data. (Julien Wallior)
+
 2.5-483 | 2018-03-29 14:10:48 -0700
 
   * Source code clean up (Johanna Amann)

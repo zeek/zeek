@@ -46,14 +46,6 @@ export {
 	## :bro:see:`Known::host_store`.
 	const host_store_timeout = 15sec &redef;
 
-	## The retry interval to use for failed operations against
-	## :bro:see:`Known::host_store`.
-	const host_store_retry = 30sec &redef;
-
-	## The maximum number of times to retry timed-out operations against
-	## :bro:see:`Known::host_store`.
-	const host_store_max_retries = 10 &redef;
-
 	## The set of all known addresses to store for preventing duplicate 
 	## logging of addresses.  It can also be used from other scripts to 
 	## inspect if an address has been seen in use.
@@ -77,7 +69,7 @@ event bro_init()
 	Known::host_store = Cluster::create_store(Known::host_store_name);
 	}
 
-event Known::host_found(info: HostsInfo, attempt_number: count &default = 0)
+event Known::host_found(info: HostsInfo)
 	{
 	if ( ! Known::use_host_store )
 		return;
@@ -96,8 +88,8 @@ event Known::host_found(info: HostsInfo, attempt_number: count &default = 0)
 		}
 	timeout Known::host_store_timeout
 		{
-		if ( attempt_number < host_store_max_retries )
-			schedule Known::host_store_retry { Known::host_found(info, ++attempt_number) };
+		# Can't really tell if master store ended up inserting a key.
+		Log::write(Known::HOSTS_LOG, info);
 		}
 	}
 
@@ -141,7 +133,7 @@ event Cluster::node_down(name: string, id: string)
 	Known::hosts = set();
 	}
 
-event Known::host_found(info: HostsInfo, attempt_number: count &default = 0)
+event Known::host_found(info: HostsInfo)
 	{
 	if ( use_host_store )
 		return;

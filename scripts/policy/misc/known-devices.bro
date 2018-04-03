@@ -48,14 +48,6 @@ export {
 	## :bro:see:`Known::device_store`.
 	const device_store_timeout = 15sec &redef;
 
-	## The retry interval to use for failed operations against
-	## :bro:see:`Known::device_store`.
-	const device_store_retry = 30sec &redef;
-
-	## The maximum number of times to retry timed-out operations against
-	## :bro:see:`Known::device_store`.
-	const device_store_max_retries = 10 &redef;
-
 	## The set of all known MAC addresses. It can accessed from other
 	## scripts to add, and check for, addresses seen in use.
 	##
@@ -87,7 +79,7 @@ event bro_init()
 	Known::device_store = Cluster::create_store(Known::device_store_name);
 	}
 
-event known_device_add(info: DevicesInfo, attempt_number: count &default = 0)
+event known_device_add(info: DevicesInfo)
 	{
 	if ( ! Known::use_device_store )
 		return;
@@ -106,13 +98,12 @@ event known_device_add(info: DevicesInfo, attempt_number: count &default = 0)
 		}
 	timeout Known::device_store_timeout
 		{
-		if ( attempt_number < device_store_max_retries )
-			schedule Known::device_store_retry
-				{ known_device_add(info, ++attempt_number) };
+		# Can't really tell if master store ended up inserting a key.
+		Log::write(Known::DEVICES_LOG, info);
 		}
 	}
 
-event known_device_add(info: DevicesInfo, attempt_number: count &default = 0)
+event known_device_add(info: DevicesInfo)
 	{
 	if ( Known::use_device_store )
 		return;

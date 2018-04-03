@@ -58,14 +58,6 @@ export {
 	## :bro:see:`Known::cert_store`.
 	const cert_store_timeout = 15sec &redef;
 
-	## The retry interval to use for failed operations against
-	## :bro:see:`Known::cert_store`.
-	const cert_store_retry = 30sec &redef;
-
-	## The maximum number of times to retry timed-out operations against
-	## :bro:see:`Known::cert_store`.
-	const cert_store_max_retries = 10 &redef;
-	
 	## The set of all known certificates to store for preventing duplicate 
 	## logging. It can also be used from other scripts to 
 	## inspect if a certificate has been seen in use. The string value 
@@ -88,8 +80,7 @@ event bro_init()
 	Known::cert_store = Cluster::create_store(Known::cert_store_name);
 	}
 
-event Known::cert_found(info: CertsInfo, hash: string,
-                        attempt_number: count &default = 0)
+event Known::cert_found(info: CertsInfo, hash: string)
     {
 	if ( ! Known::use_cert_store )
 		return;
@@ -110,9 +101,8 @@ event Known::cert_found(info: CertsInfo, hash: string,
 		}
 	timeout Known::cert_store_timeout
 		{
-		if ( attempt_number < cert_store_max_retries )
-			schedule Known::cert_store_retry
-				{ Known::cert_found(info, hash, ++attempt_number) };
+		# Can't really tell if master store ended up inserting a key.
+		Log::write(Known::CERTS_LOG, info);
 		}
     }
 
@@ -132,8 +122,7 @@ event known_cert_add(info: CertsInfo, hash: string)
 	@endif
 	}
 
-event Known::cert_found(info: CertsInfo, hash: string,
-                        attempt_number: count &default = 0)
+event Known::cert_found(info: CertsInfo, hash: string)
 	{
 	if ( Known::use_cert_store )
 		return;

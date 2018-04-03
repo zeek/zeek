@@ -58,14 +58,6 @@ export {
 	## :bro:see:`Known::service_store`.
 	const service_store_timeout = 15sec &redef;
 
-	## The retry interval to use for failed operations against
-	## :bro:see:`Known::service_store`.
-	const service_store_retry = 30sec &redef;
-
-	## The maximum number of times to retry timed-out operations against
-	## :bro:see:`Known::service_store`.
-	const service_store_max_retries = 10 &redef;
-
 	## Tracks the set of daily-detected services for preventing the logging
 	## of duplicates, but can also be inspected by other scripts for
 	## different purposes.
@@ -96,8 +88,8 @@ event bro_init()
 	Known::service_store = Cluster::create_store(Known::service_store_name);
 	}
 
-event service_info_commit(info: ServicesInfo,
-                          attempt_number: count &default = 0)
+event service_info_commit(info: ServicesInfo)
+                          
 	{
 	if ( ! Known::use_service_store )
 		return;
@@ -118,9 +110,7 @@ event service_info_commit(info: ServicesInfo,
 		}
 	timeout Known::service_store_timeout
 		{
-		if ( attempt_number < service_store_max_retries )
-			schedule Known::service_store_retry
-				{ service_info_commit(info, ++attempt_number) };
+		Log::write(Known::SERVICES_LOG, info);
 		}
 	}
 
@@ -164,8 +154,7 @@ event Cluster::node_down(name: string, id: string)
 	Known::services = set();
 	}
 
-event service_info_commit(info: ServicesInfo,
-                          attempt_number: count &default = 0)
+event service_info_commit(info: ServicesInfo)
 	{
 	if ( Known::use_service_store )
 		return;

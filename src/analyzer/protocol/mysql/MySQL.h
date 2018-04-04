@@ -15,17 +15,17 @@ class MySQL_Analyzer
 : public tcp::TCP_ApplicationAnalyzer {
 
 public:
-	MySQL_Analyzer(Connection* conn);
-	virtual ~MySQL_Analyzer();
+	explicit MySQL_Analyzer(Connection* conn);
+	~MySQL_Analyzer() override;
 
 	// Overriden from Analyzer.
-	virtual void Done();
+	void Done() override;
 
-	virtual void DeliverStream(int len, const u_char* data, bool orig);
-	virtual void Undelivered(uint64 seq, int len, bool orig);
+	void DeliverStream(int len, const u_char* data, bool orig) override;
+	void Undelivered(uint64 seq, int len, bool orig) override;
 
 	// Overriden from tcp::TCP_ApplicationAnalyzer.
-	virtual void EndpointEOF(bool is_orig);
+	void EndpointEOF(bool is_orig) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new MySQL_Analyzer(conn); }

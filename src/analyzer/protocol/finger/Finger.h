@@ -10,12 +10,12 @@ namespace analyzer { namespace finger {
 
 class Finger_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
-	Finger_Analyzer(Connection* conn);
-	virtual ~Finger_Analyzer()	{}
+	explicit Finger_Analyzer(Connection* conn);
+	~Finger_Analyzer() override {}
 
-	virtual void Done();
+	void Done() override;
 	// Line-based input.
-	virtual void DeliverStream(int len, const u_char* data, bool orig);
+	void DeliverStream(int len, const u_char* data, bool orig) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new Finger_Analyzer(conn); }

@@ -54,13 +54,6 @@ public:
 	 */
 	int HdrSize() const;
 
-	/**
-	 * Writes a packet to the dumper.
-	 *
-	 * @param pkt The packet to record.
-	 */
-	bool Record(const Packet* pkt);
-
 	// PktDumper interface for derived classes to implement.
 
 	/**

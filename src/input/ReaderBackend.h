@@ -68,7 +68,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	virtual ~ReaderBackend();
+	~ReaderBackend() override;
 
 	/**
 	 * A struct passing information to the reader at initialization time.

@@ -15,23 +15,23 @@ namespace logging { namespace writer {
 
 class SQLite : public WriterBackend {
 public:
-	SQLite(WriterFrontend* frontend);
-	~SQLite();
+	explicit SQLite(WriterFrontend* frontend);
+	~SQLite() override;
 
 	static WriterBackend* Instantiate(WriterFrontend* frontend)
 		{ return new SQLite(frontend); }
 
 protected:
-	virtual bool DoInit(const WriterInfo& info, int arg_num_fields,
-			    const threading::Field* const* arg_fields);
-	virtual bool DoWrite(int num_fields, const threading::Field* const* fields,
-			     threading::Value** vals);
-	virtual bool DoSetBuf(bool enabled) { return true; }
-	virtual bool DoRotate(const char* rotated_path, double open,
-			      double close, bool terminating);
-	virtual bool DoFlush(double network_time)	{ return true; }
-	virtual bool DoFinish(double network_time)	{ return true; }
-	virtual bool DoHeartbeat(double network_time, double current_time)	{ return true; }
+	bool DoInit(const WriterInfo& info, int arg_num_fields,
+			    const threading::Field* const* arg_fields) override;
+	bool DoWrite(int num_fields, const threading::Field* const* fields,
+			     threading::Value** vals) override;
+	bool DoSetBuf(bool enabled) override { return true; }
+	bool DoRotate(const char* rotated_path, double open,
+			      double close, bool terminating) override;
+	bool DoFlush(double network_time) override { return true; }
+	bool DoFinish(double network_time) override { return true; }
+	bool DoHeartbeat(double network_time, double current_time) override { return true; }
 
 private:
 	bool checkError(int code);

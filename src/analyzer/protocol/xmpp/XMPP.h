@@ -11,8 +11,8 @@ namespace analyzer { namespace xmpp {
 
 class XMPP_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
-	XMPP_Analyzer(Connection* conn);
-	virtual ~XMPP_Analyzer();
+	explicit XMPP_Analyzer(Connection* conn);
+	~XMPP_Analyzer() override;
 
 	void Done() override;
 	void DeliverStream(int len, const u_char* data, bool orig) override;

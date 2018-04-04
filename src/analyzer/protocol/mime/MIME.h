@@ -65,7 +65,7 @@ protected:
 
 class MIME_Header {
 public:
-	MIME_Header(MIME_Multiline* hl);
+	explicit MIME_Header(MIME_Multiline* hl);
 	~MIME_Header();
 
 	data_chunk_t get_name() const	{ return name; }
@@ -181,7 +181,7 @@ protected:
 
 class MIME_Message {
 public:
-	MIME_Message(analyzer::Analyzer* arg_analyzer)
+	explicit MIME_Message(analyzer::Analyzer* arg_analyzer)
 		{
 		// Cannot initialize top_level entity because we do
 		// not know its type yet (MIME_Entity / MIME_Mail /
@@ -231,7 +231,7 @@ protected:
 class MIME_Mail : public MIME_Message {
 public:
 	MIME_Mail(analyzer::Analyzer* mail_conn, bool is_orig, int buf_size = 0);
-	~MIME_Mail();
+	~MIME_Mail() override;
 	void Done() override;
 
 	void BeginEntity(MIME_Entity* entity) override;

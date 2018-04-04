@@ -15,7 +15,7 @@ class FileReassembler : public Reassembler {
 public:
 
 	FileReassembler(File* f, uint64 starting_offset);
-	virtual ~FileReassembler();
+	~FileReassembler() override;
 
 	void Done();
 

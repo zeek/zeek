@@ -13,11 +13,11 @@ class File_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
 	File_Analyzer(const char* name, Connection* conn);
 
-	virtual void Done();
+	void Done() override;
 
-	virtual void DeliverStream(int len, const u_char* data, bool orig);
+	void DeliverStream(int len, const u_char* data, bool orig) override;
 
-	void Undelivered(uint64 seq, int len, bool orig);
+	void Undelivered(uint64 seq, int len, bool orig) override;
 
 //	static analyzer::Analyzer* Instantiate(Connection* conn)
 //		{ return new File_Analyzer(conn); }
@@ -34,7 +34,7 @@ protected:
 
 class IRC_Data : public File_Analyzer {
 public:
-	IRC_Data(Connection* conn)
+	explicit IRC_Data(Connection* conn)
 		: File_Analyzer("IRC_Data", conn)
 		{ }
 
@@ -44,7 +44,7 @@ public:
 
 class FTP_Data : public File_Analyzer {
 public:
-	FTP_Data(Connection* conn)
+	explicit FTP_Data(Connection* conn)
 		: File_Analyzer("FTP_Data", conn)
 		{ }
 

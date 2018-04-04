@@ -49,7 +49,7 @@ typedef enum { MATCH_ANYWHERE, MATCH_EXACTLY, } match_type;
 
 class Specific_RE_Matcher {
 public:
-	Specific_RE_Matcher(match_type mt, int multiline=0);
+	explicit Specific_RE_Matcher(match_type mt, int multiline=0);
 	~Specific_RE_Matcher();
 
 	void AddPat(const char* pat);
@@ -133,7 +133,7 @@ protected:
 
 class RE_Match_State {
 public:
-	RE_Match_State(Specific_RE_Matcher* matcher)
+	explicit RE_Match_State(Specific_RE_Matcher* matcher)
 		{
 		dfa = matcher->DFA() ? matcher->DFA() : 0;
 		ecs = matcher->EC()->EquivClasses();
@@ -172,11 +172,10 @@ protected:
 class RE_Matcher : SerialObj {
 public:
 	RE_Matcher();
-	RE_Matcher(const char* pat);
+	explicit RE_Matcher(const char* pat);
 	RE_Matcher(const char* exact_pat, const char* anywhere_pat);
-	virtual ~RE_Matcher();
+	virtual ~RE_Matcher() override;
 
-	void AddDef(const char* defn_name, const char* defn_val);
 	void AddPat(const char* pat);
 
 	int Compile(int lazy = 0);

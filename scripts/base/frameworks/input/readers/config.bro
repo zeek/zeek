@@ -33,12 +33,12 @@ export {
 	## and also does not track removals. If you need this, combine the event
 	## with a table reader.
 	##
-	## name: name of the input stream.
+	## name: Name of the input stream.
 	##
-	## source: source of the input stream.
+	## source: Source of the input stream.
 	##
 	## id: ID of the configuration option being set.
 	##
-	## value: new value of the configuration option being set.
+	## value: New value of the configuration option being set.
 	global new_value: event(name: string, source: string, id: string, value: any);
 }

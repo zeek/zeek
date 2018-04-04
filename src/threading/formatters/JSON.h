@@ -20,12 +20,12 @@ public:
 		};
 
 	JSON(threading::MsgThread* t, TimeFormat tf);
-	virtual ~JSON();
+	~JSON() override;
 
-	virtual bool Describe(ODesc* desc, threading::Value* val, const string& name = "") const;
-	virtual bool Describe(ODesc* desc, int num_fields, const threading::Field* const * fields,
-	                      threading::Value** vals) const;
-	virtual threading::Value* ParseValue(const string& s, const string& name, TypeTag type, TypeTag subtype = TYPE_ERROR) const;
+	bool Describe(ODesc* desc, threading::Value* val, const string& name = "") const override;
+	bool Describe(ODesc* desc, int num_fields, const threading::Field* const * fields,
+	                      threading::Value** vals) const override;
+	threading::Value* ParseValue(const string& s, const string& name, TypeTag type, TypeTag subtype = TYPE_ERROR) const override;
 
 	void SurroundingBraces(bool use_braces);
 

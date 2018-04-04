@@ -19,7 +19,7 @@ declare(PDict,SteppingStoneEndpoint);
 class SteppingStoneEndpoint : public BroObj {
 public:
 	SteppingStoneEndpoint(tcp::TCP_Endpoint* e, SteppingStoneManager* m);
-	~SteppingStoneEndpoint();
+	~SteppingStoneEndpoint() override;
 	void Done();
 
 	int DataSent(double t, uint64 seq, int len, int caplen, const u_char* data,
@@ -47,11 +47,11 @@ protected:
 
 class SteppingStone_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
-	SteppingStone_Analyzer(Connection* c);
-	virtual ~SteppingStone_Analyzer() {};
+	explicit SteppingStone_Analyzer(Connection* c);
+	~SteppingStone_Analyzer() override {};
 
-	virtual void Init();
-	virtual void Done();
+	void Init() override;
+	void Done() override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new SteppingStone_Analyzer(conn); }
@@ -59,9 +59,9 @@ public:
 protected:
 	// We support both packet and stream input and can be put in place even
 	// if the TCP analyzer is not yet reassebmling.
-	virtual void DeliverPacket(int len, const u_char* data, bool is_orig,
-					uint64 seq, const IP_Hdr* ip, int caplen);
-	virtual void DeliverStream(int len, const u_char* data, bool is_orig);
+	void DeliverPacket(int len, const u_char* data, bool is_orig,
+					uint64 seq, const IP_Hdr* ip, int caplen) override;
+	void DeliverStream(int len, const u_char* data, bool is_orig) override;
 
 	int orig_stream_pos;
 	int resp_stream_pos;

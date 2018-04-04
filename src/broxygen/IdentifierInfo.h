@@ -36,7 +36,7 @@ public:
 	/**
 	 * Dtor.  Releases any references to script-level objects.
 	 */
-	~IdentifierInfo();
+	~IdentifierInfo() override;
 
 	/**
 	 * Add a comment associated with the identifier.  If the identifier is a
@@ -131,12 +131,12 @@ public:
 
 private:
 
-	time_t DoGetModificationTime() const;
+	time_t DoGetModificationTime() const override;
 
-	std::string DoName() const
+	std::string DoName() const override
 		{ return id->Name(); }
 
-	std::string DoReStructuredText(bool roles_only) const;
+	std::string DoReStructuredText(bool roles_only) const override;
 
 	struct RecordField {
 		~RecordField()

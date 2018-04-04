@@ -131,11 +131,11 @@ public:
 #endif
 		}
 
-	Val(Func* f);
+	explicit Val(Func* f);
 
 	// Note, will unref 'f' when it's done, closing it unless
 	// class has ref'd it.
-	Val(BroFile* f);
+	explicit Val(BroFile* f);
 
 	Val(BroType* t, bool type_type) // Extra arg to differentiate from protected version.
 		{
@@ -154,7 +154,7 @@ public:
 #endif
 		}
 
-	virtual ~Val();
+	~Val() override;
 
 	Val* Ref()			{ ::Ref(this); return this; }
 	virtual Val* Clone() const;
@@ -365,7 +365,7 @@ protected:
 	virtual void ValDescribe(ODesc* d) const;
 	virtual void ValDescribeReST(ODesc* d) const;
 
-	Val(TypeTag t)
+	explicit Val(TypeTag t)
 		{
 		type = base_type(t);
 #ifdef DEBUG
@@ -373,7 +373,7 @@ protected:
 #endif
 		}
 
-	Val(BroType* t)
+	explicit Val(BroType* t)
 		{
 		type = t->Ref();
 #ifdef DEBUG
@@ -444,7 +444,7 @@ public:
 #endif
 		}
 
-	virtual uint64 LastModified() const override	{ return last_modified; }
+	uint64 LastModified() const override	{ return last_modified; }
 
 	// Mark value as changed.
 	void Modified()
@@ -453,10 +453,10 @@ public:
 		}
 
 protected:
-	MutableVal(BroType* t) : Val(t)
+	explicit MutableVal(BroType* t) : Val(t)
 		{ props = 0; id = 0; last_modified = SerialObj::ALWAYS; }
 	MutableVal()	{ props = 0; id = 0; last_modified = SerialObj::ALWAYS; }
-	~MutableVal();
+	~MutableVal() override;
 
 	friend class ID;
 	friend class Val;
@@ -532,7 +532,7 @@ public:
 
 	// Host-order port number already masked with port space protocol mask.
 	BRO_DEPRECATED("use port_mgr->Get() instead")
-	PortVal(uint32 p);
+	explicit PortVal(uint32 p);
 
 	Val* SizeVal() const override	{ return new Val(val.uint_val, TYPE_INT); }
 
@@ -569,36 +569,37 @@ protected:
 
 class AddrVal : public Val {
 public:
-	AddrVal(const char* text);
-	~AddrVal();
+	explicit AddrVal(const char* text);
+	explicit AddrVal(const std::string& text);
+	~AddrVal() override;
 
 	Val* SizeVal() const override;
 
 	// Constructor for address already in network order.
-	AddrVal(uint32 addr);          // IPv4.
-	AddrVal(const uint32 addr[4]); // IPv6.
-	AddrVal(const IPAddr& addr);
+	explicit AddrVal(uint32 addr);          // IPv4.
+	explicit AddrVal(const uint32 addr[4]); // IPv6.
+	explicit AddrVal(const IPAddr& addr);
 
 	unsigned int MemoryAllocation() const override;
 
 protected:
 	friend class Val;
 	AddrVal()	{}
-	AddrVal(TypeTag t) : Val(t)	{ }
-	AddrVal(BroType* t) : Val(t)	{ }
+	explicit AddrVal(TypeTag t) : Val(t)	{ }
+	explicit AddrVal(BroType* t) : Val(t)	{ }
 
 	DECLARE_SERIAL(AddrVal);
 };
 
 class SubNetVal : public Val {
 public:
-	SubNetVal(const char* text);
+	explicit SubNetVal(const char* text);
 	SubNetVal(const char* text, int width);
 	SubNetVal(uint32 addr, int width); // IPv4.
 	SubNetVal(const uint32 addr[4], int width); // IPv6.
 	SubNetVal(const IPAddr& addr, int width);
-	SubNetVal(const IPPrefix& prefix);
-	~SubNetVal();
+	explicit SubNetVal(const IPPrefix& prefix);
+	~SubNetVal() override;
 
 	Val* SizeVal() const override;
 
@@ -621,9 +622,9 @@ protected:
 
 class StringVal : public Val {
 public:
-	StringVal(BroString* s);
-	StringVal(const char* s);
-	StringVal(const string& s);
+	explicit StringVal(BroString* s);
+	explicit StringVal(const char* s);
+	explicit StringVal(const string& s);
 	StringVal(int length, const char* s);
 
 	Val* SizeVal() const override
@@ -653,8 +654,8 @@ protected:
 
 class PatternVal : public Val {
 public:
-	PatternVal(RE_Matcher* re);
-	~PatternVal();
+	explicit PatternVal(RE_Matcher* re);
+	~PatternVal() override;
 
 	int AddTo(Val* v, int is_first_init) const override;
 
@@ -675,8 +676,8 @@ protected:
 // element in their index.
 class ListVal : public Val {
 public:
-	ListVal(TypeTag t);
-	~ListVal();
+	explicit ListVal(TypeTag t);
+	~ListVal() override;
 
 	TypeTag BaseTag() const		{ return tag; }
 
@@ -722,7 +723,7 @@ extern double bro_start_network_time;
 
 class TableEntryVal {
 public:
-	TableEntryVal(Val* v)
+	explicit TableEntryVal(Val* v)
 		{
 		val = v;
 		last_access_time = network_time;
@@ -764,9 +765,9 @@ protected:
 class TableValTimer : public Timer {
 public:
 	TableValTimer(TableVal* val, double t);
-	~TableValTimer();
+	~TableValTimer() override;
 
-	virtual void Dispatch(double t, int is_expire);
+	void Dispatch(double t, int is_expire) override;
 
 	TableVal* Table()	{ return table; }
 
@@ -777,8 +778,8 @@ protected:
 class CompositeHash;
 class TableVal : public MutableVal {
 public:
-	TableVal(TableType* t, Attributes* attrs = 0);
-	~TableVal();
+	explicit TableVal(TableType* t, Attributes* attrs = 0);
+	~TableVal() override;
 
 	// Returns true if the assignment typechecked, false if not. The
 	// methods take ownership of new_val, but not of the index. Second
@@ -919,8 +920,8 @@ protected:
 
 class RecordVal : public MutableVal {
 public:
-	RecordVal(RecordType* t);
-	~RecordVal();
+	explicit RecordVal(RecordType* t);
+	~RecordVal() override;
 
 	Val* SizeVal() const override
 		{ return new Val(record_type->NumFields(), TYPE_COUNT); }
@@ -999,8 +1000,8 @@ protected:
 
 class VectorVal : public MutableVal {
 public:
-	VectorVal(VectorType* t);
-	~VectorVal();
+	explicit VectorVal(VectorType* t);
+	~VectorVal() override;
 
 	Val* SizeVal() const override
 		{ return new Val(uint32(val.vector_val->size()), TYPE_COUNT); }
@@ -1061,8 +1062,8 @@ protected:
 // functions). See OpaqueVal.h for derived classes.
 class OpaqueVal : public Val {
 public:
-	OpaqueVal(OpaqueType* t);
-	virtual ~OpaqueVal();
+	explicit OpaqueVal(OpaqueType* t);
+	~OpaqueVal() override;
 
 protected:
 	friend class Val;

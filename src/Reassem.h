@@ -43,7 +43,7 @@ public:
 class Reassembler : public BroObj {
 public:
 	Reassembler(uint64 init_seq, ReassemblerType reassem_type = REASSEM_UNKNOWN);
-	virtual ~Reassembler();
+	~Reassembler() override;
 
 	void NewBlock(double t, uint64 seq, uint64 len, const u_char* data);
 
@@ -60,7 +60,7 @@ public:
 
 	uint64 TotalSize() const;	// number of bytes buffered up
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 
 	bool Serialize(SerialInfo* info) const;
 	static Reassembler* Unserialize(UnserialInfo* info);

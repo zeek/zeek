@@ -22,7 +22,7 @@ public:
 	TCP_Reassembler(Analyzer* arg_dst_analyzer, TCP_Analyzer* arg_tcp_analyzer,
 	                Type arg_type, TCP_Endpoint* arg_endp);
 
-	virtual ~TCP_Reassembler();
+	~TCP_Reassembler() override;
 
 	void Done();
 

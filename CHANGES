@@ -1,4 +1,52 @@
 
+2.5-498 | 2018-04-03 01:59:46 -0400
+
+  * Improvements to GSSAPI handling of Kerberos messages (John E. Rollinson, Seth Hall, juno0812, Justin Oursler)
+
+  * Improve SMB2 Create command events and add newly parsed data. (Julien Wallior)
+
+2.5-483 | 2018-03-29 14:10:48 -0700
+
+  * Source code clean up (Johanna Amann)
+      - Mark one-parameter constructors as 'explicit' & use 'override' where possible
+      - Remove unimplemented & unused functions from header files.
+      - Make some data flows more explicit for compilers.
+
+2.5-478 | 2018-03-29 12:59:49 -0700
+
+  * Recognize TLS 1.3 negotiation correctly. The way in which TLS 1.3
+    is negotiated was changed slightly in later revisions of the
+    standard. (Johanna Amann)
+
+  * Fix the travis-job script to always run external tests. (Daniel
+    Thayer)
+
+  * Fix information leak in the update-traces script. (Daniel Thayer)
+
+  * Add Coverity scan and private testing to Travis CI. (Daniel Thayer)
+
+2.5-471 | 2018-03-21 13:56:57 -0700
+
+  * Fix a memory leak in SMBv1 share mapping. (Corelight)
+
+  * Fix one new minor typo in the config framework docs. (Daniel Thayer)
+
+2.5-467 | 2018-03-15 14:58:40 -0700
+
+  * Configure Travis CI email recipients and build branches. (Daniel Thayer)
+
+  * Add documentation of the configuration framework, and improve
+    existing script comments.  (Daniel Thayer)
+
+2.5-459 | 2018-03-07 12:46:57 -0600
+
+  * Update a doc test/baseline (Corelight)
+
+  * Add removed root certificate back to test that requires it.
+
+    Test has a trace that contains a WoSign certificate - they are no longer
+    recognized by pretty much anyone. (Johanna Amann)
+
 2.5-457 | 2018-02-18 17:35:50 -0600
 
   * Fix another warning when building the documentation (Daniel Thayer)

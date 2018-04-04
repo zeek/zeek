@@ -16,7 +16,7 @@ public:
 	Event(EventHandlerPtr handler, val_list* args,
 		SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
 		TimerMgr* mgr = 0, BroObj* obj = 0);
-	~Event();
+	~Event() override;
 
 	void SetNext(Event* n)		{ next_event = n; }
 	Event* NextEvent() const	{ return next_event; }
@@ -27,7 +27,7 @@ public:
 	EventHandlerPtr Handler() const	{ return handler; }
 	val_list* Args() const	{ return args; }
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 
 protected:
 	friend class EventMgr;
@@ -51,9 +51,9 @@ extern uint64 num_events_dispatched;
 class EventMgr : public BroObj {
 public:
 	EventMgr();
-	~EventMgr();
+	~EventMgr() override;
 
-	void QueueEvent(EventHandlerPtr h, val_list* vl,
+	void QueueEvent(const EventHandlerPtr &h, val_list* vl,
 			SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
 			TimerMgr* mgr = 0, BroObj* obj = 0)
 		{
@@ -91,7 +91,7 @@ public:
 	// Returns a peer record describing the local Bro.
 	RecordVal* GetLocalPeerVal();
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 
 protected:
 	void QueueEvent(Event* event);

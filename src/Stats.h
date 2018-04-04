@@ -63,14 +63,14 @@ protected:
 class ProfileLogger : public SegmentStatsReporter {
 public:
 	ProfileLogger(BroFile* file, double interval);
-	~ProfileLogger();
+	~ProfileLogger() override;
 
 	void Log();
 	BroFile* File()	{ return file; }
 
 protected:
 	void SegmentProfile(const char* name, const Location* loc,
-				double dtime, int dmem);
+				double dtime, int dmem) override;
 
 private:
 	BroFile* file;
@@ -82,7 +82,7 @@ private:
 class SampleLogger : public SegmentStatsReporter {
 public:
 	SampleLogger();
-	~SampleLogger();
+	~SampleLogger() override;
 
 	// These are called to report that a given function or location
 	// has been seen during the sampling.
@@ -91,7 +91,7 @@ public:
 
 protected:
 	void SegmentProfile(const char* name, const Location* loc,
-				double dtime, int dmem);
+				double dtime, int dmem) override;
 
 	TableVal* load_samples;
 };

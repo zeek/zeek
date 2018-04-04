@@ -914,6 +914,11 @@ AddrVal::AddrVal(const char* text) : Val(TYPE_ADDR)
 	val.addr_val = new IPAddr(text);
 	}
 
+AddrVal::AddrVal(const std::string& text) : Val(TYPE_ADDR)
+	{
+	val.addr_val = new IPAddr(text);
+	}
+
 AddrVal::AddrVal(uint32 addr) : Val(TYPE_ADDR)
 	{
 	// ### perhaps do gethostbyaddr here?

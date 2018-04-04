@@ -1,0 +1,114 @@
+#!/bin/sh
+
+if [ "${TRAVIS}" != "true" ]; then
+    echo "$0: this script is intended for Travis CI"
+    exit 1
+fi
+
+if [ $# -ne 1 ]; then
+    echo "usage: $0 build|run|failure"
+    exit 1
+fi
+
+step=$1
+
+build() {
+    ./configure && make -j 4
+}
+
+build_coverity() {
+    # Get the coverity tools
+    set -e
+    wget -nv https://scan.coverity.com/download/cxx/linux64 --post-data "token=${COV_TOKEN}&project=Bro" -O coverity_tool.tgz
+    tar xzf coverity_tool.tgz
+    mv cov-analysis* coverity-tools
+    rm coverity_tool.tgz
+
+    # Configure Bro
+    ./configure --prefix=`pwd`/build/root --enable-debug --disable-perftools
+
+    # Build Bro with coverity tools
+    export PATH=`pwd`/coverity-tools/bin:$PATH
+    cd build
+    cov-build --dir cov-int make -j 4
+}
+
+run_coverity() {
+    set -e
+
+    EMAIL=bro-commits-internal@bro.org
+    FILE=myproject.bz2
+    VER=`cat VERSION`
+    DESC=`git rev-parse HEAD`
+
+    cd build
+    tar cjf ${FILE} cov-int
+    curl --form token=${COV_TOKEN} --form email=${EMAIL} --form file=@${FILE} --form version=${VER} --form description=${DESC} https://scan.coverity.com/builds?project=Bro
+}
+
+run() {
+    # Run the tests, but don't exit upon failure.
+    make -C testing/btest btest-verbose
+    ret=$?
+
+    set -e
+
+    # Get the test repo
+    make -C testing/external init
+
+    # Get the private test repo
+    curl https://www.bro.org/static/travis-ci/travis_key.enc -o travis_key.enc
+    openssl aes-256-cbc -K $encrypted_6a6fe747ff7b_key -iv $encrypted_6a6fe747ff7b_iv -in travis_key.enc -out travis_key -d
+    chmod 600 travis_key
+    mv travis_key $HOME/.ssh/id_rsa
+    cd testing/external
+    git clone ssh://git@git.bro.org/bro-testing-private
+    cd ../..
+    rm $HOME/.ssh/id_rsa
+
+    # Run the external tests
+    make -C testing/external
+
+    # If we get here, then external tests were successful.
+    exit $ret
+}
+
+failure() {
+    # Output each diag.log that contains failed test results.
+    for i in testing/btest/diag.log testing/external/bro-testing/diag.log; do
+        grep -qs '... failed$' $i && cat $i ;
+    done
+}
+
+# Coverity scan is run from a Travis CI cron job.
+if [ "$TRAVIS_EVENT_TYPE" = "cron" ]; then
+    # Each Travis CI build consists of multiple jobs.  Here we choose one job
+    # to run the coverity scan.
+    JOB=`echo $TRAVIS_JOB_NUMBER | cut -d . -f 2`
+
+    if [ "$JOB" != "1" ]; then
+        echo "Coverity scan is performed only in the first job of this build"
+        exit 0
+    fi
+
+    # This is split up into two steps because the build outputs thousands of
+    # lines (which are collapsed into a single line on the web page).
+    if [ "$step" = "build" ]; then
+        build_coverity
+    elif [ "$step" = "run" ]; then
+        run_coverity
+    fi
+    exit 0
+fi
+
+# Run one step of a Travis CI job.  The "build" and "run" are split up into
+# separate steps because the build outputs thousands of lines (which are
+# collapsed into a single line on the web page).  The "failure" step is run
+# only when at least one test fails.
+if [ "$step" = "build" ]; then
+    build
+elif [ "$step" = "run" ]; then
+    run
+elif [ "$step" = "failure" ]; then
+    failure
+fi

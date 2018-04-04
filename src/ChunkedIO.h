@@ -167,21 +167,21 @@ public:
 	// messages, and pid gives a pid to monitor (if the process dies, we
 	// return EOF).
 	ChunkedIOFd(int fd, const char* tag, pid_t pid = 0);
-	virtual ~ChunkedIOFd();
+	~ChunkedIOFd() override;
 
-	virtual bool Read(Chunk** chunk, bool may_block = false);
-	virtual bool Write(Chunk* chunk);
-	virtual bool Flush();
-	virtual const char* Error();
-	virtual bool CanRead();
-	virtual bool CanWrite();
-	virtual bool IsIdle();
-	virtual bool IsFillingUp();
-	virtual void Clear();
-	virtual bool Eof()	{ return eof; }
-	virtual int Fd()	{ return fd; }
-	virtual iosource::FD_Set ExtraReadFDs() const;
-	virtual void Stats(char* buffer, int length);
+	bool Read(Chunk** chunk, bool may_block = false) override;
+	bool Write(Chunk* chunk) override;
+	bool Flush() override;
+	const char* Error() override;
+	bool CanRead() override;
+	bool CanWrite() override;
+	bool IsIdle() override;
+	bool IsFillingUp() override;
+	void Clear() override;
+	bool Eof() override { return eof; }
+	int Fd() override { return fd; }
+	iosource::FD_Set ExtraReadFDs() const override;
+	void Stats(char* buffer, int length) override;
 
 private:
 
@@ -252,22 +252,22 @@ public:
 	// Argument is an open socket and a flag indicating whether we are the
 	// server side of the connection.
 	ChunkedIOSSL(int socket, bool server);
-	virtual ~ChunkedIOSSL();
+	~ChunkedIOSSL() override;
 
-	virtual bool Init();
-	virtual bool Read(Chunk** chunk, bool mayblock = false);
-	virtual bool Write(Chunk* chunk);
-	virtual bool Flush();
-	virtual const char* Error();
-	virtual bool CanRead();
-	virtual bool CanWrite();
-	virtual bool IsIdle();
-	virtual bool IsFillingUp();
-	virtual void Clear();
-	virtual bool Eof()	{ return eof; }
-	virtual int Fd()	{ return socket; }
-	virtual iosource::FD_Set ExtraReadFDs() const;
-	virtual void Stats(char* buffer, int length);
+	bool Init() override;
+	bool Read(Chunk** chunk, bool mayblock = false) override;
+	bool Write(Chunk* chunk) override;
+	bool Flush() override;
+	const char* Error() override;
+	bool CanRead() override;
+	bool CanWrite() override;
+	bool IsIdle() override;
+	bool IsFillingUp() override;
+	void Clear() override;
+	bool Eof() override { return eof; }
+	int Fd() override { return socket; }
+	iosource::FD_Set ExtraReadFDs() const override;
+	void Stats(char* buffer, int length) override;
 
 private:
 
@@ -315,27 +315,27 @@ private:
 // Wrapper class around a another ChunkedIO which the (un-)compresses data.
 class CompressedChunkedIO : public ChunkedIO {
 public:
-	CompressedChunkedIO(ChunkedIO* arg_io) // takes ownership
+	explicit CompressedChunkedIO(ChunkedIO* arg_io) // takes ownership
 	    : io(arg_io), zin(), zout(), error(), compress(), uncompress(),
 	      uncompressed_bytes_read(), uncompressed_bytes_written() {}
-	virtual ~CompressedChunkedIO()	{ delete io; }
+	~CompressedChunkedIO() override { delete io; }
 
-	virtual bool Init(); // does *not* call arg_io->Init()
-	virtual bool Read(Chunk** chunk, bool may_block = false);
-	virtual bool Write(Chunk* chunk);
-	virtual bool Flush()	{ return io->Flush(); }
-	virtual const char* Error()	{ return error ? error : io->Error(); }
-	virtual bool CanRead()	{ return io->CanRead(); }
-	virtual bool CanWrite()	{ return io->CanWrite(); }
-	virtual bool IsIdle()	{ return io->IsIdle(); }
-	virtual bool IsFillingUp()	{ return io->IsFillingUp(); }
-	virtual void Clear()	{ return io->Clear(); }
+	bool Init() override; // does *not* call arg_io->Init()
+	bool Read(Chunk** chunk, bool may_block = false) override;
+	bool Write(Chunk* chunk) override;
+	bool Flush() override { return io->Flush(); }
+	const char* Error() override { return error ? error : io->Error(); }
+	bool CanRead() override { return io->CanRead(); }
+	bool CanWrite() override { return io->CanWrite(); }
+	bool IsIdle() override { return io->IsIdle(); }
+	bool IsFillingUp() override { return io->IsFillingUp(); }
+	void Clear() override { return io->Clear(); }
+	bool Eof() override { return io->Eof(); }
 
-	virtual bool Eof()	{ return io->Eof(); }
-	virtual int Fd()	{ return io->Fd(); }
-	virtual iosource::FD_Set ExtraReadFDs() const
+	int Fd() override { return io->Fd(); }
+	iosource::FD_Set ExtraReadFDs() const override
 		{ return io->ExtraReadFDs(); }
-	virtual void Stats(char* buffer, int length);
+	void Stats(char* buffer, int length) override;
 
 	void EnableCompression(int level)
 		{ deflateInit(&zout, level); compress = true; }

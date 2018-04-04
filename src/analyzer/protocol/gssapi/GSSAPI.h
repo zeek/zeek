@@ -15,8 +15,8 @@ class GSSAPI_Analyzer
 : public tcp::TCP_ApplicationAnalyzer {
 
 public:
-	GSSAPI_Analyzer(Connection* conn);
-	virtual ~GSSAPI_Analyzer();
+	explicit GSSAPI_Analyzer(Connection* conn);
+	~GSSAPI_Analyzer() override;
 
 	// Overriden from Analyzer.
 	void Done() override;

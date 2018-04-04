@@ -25,7 +25,7 @@ public:
 	 * and component instances can accordingly access it via Tag().
 	 * If not used, leave at zero.
 	 */
-	TaggedComponent(typename T::subtype_t subtype = 0);
+	explicit TaggedComponent(typename T::subtype_t subtype = 0);
 
 	/**
 	 * Initializes tag by creating the unique tag value for thos componend.

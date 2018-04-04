@@ -102,7 +102,7 @@ public:
 	 *
 	 * @param conn The connection the analyzer is associated with.
 	 */
-	Analyzer(Connection* conn);
+	explicit Analyzer(Connection* conn);
 
 	/**
 	 * Destructor.
@@ -731,7 +731,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	virtual ~SupportAnalyzer() {}
+	~SupportAnalyzer() override {}
 
 	/**
 	 * Returns true if this is a support analyzer for the connection's
@@ -755,8 +755,8 @@ public:
 	*
 	* Parameters same as for Analyzer::ForwardPacket.
 	*/
-	virtual void ForwardPacket(int len, const u_char* data, bool orig,
-					uint64 seq, const IP_Hdr* ip, int caplen);
+	void ForwardPacket(int len, const u_char* data, bool orig,
+					uint64 seq, const IP_Hdr* ip, int caplen) override;
 
 	/**
 	* Passes stream input to the next sibling SupportAnalyzer if any, or
@@ -766,7 +766,7 @@ public:
 	*
 	* Parameters same as for Analyzer::ForwardStream.
 	*/
-	virtual void ForwardStream(int len, const u_char* data, bool orig);
+	void ForwardStream(int len, const u_char* data, bool orig) override;
 
 	/**
 	* Passes gap information to the next sibling SupportAnalyzer if any,
@@ -776,7 +776,7 @@ public:
 	*
 	* Parameters same as for Analyzer::ForwardPacket.
 	*/
-	virtual void ForwardUndelivered(uint64 seq, int len, bool orig);
+	void ForwardUndelivered(uint64 seq, int len, bool orig) override;
 
 protected:
 	friend class Analyzer;
@@ -814,7 +814,7 @@ public:
 	/**
 	 * Overridden from parent class.
 	 */
-	virtual void Done();
+	void Done() override;
 
 	/**
 	 * Returns true if the analyzer determines that in fact a new

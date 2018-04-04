@@ -284,8 +284,8 @@ protected:
 class SafeDirname : public SafePathOp {
 public:
 
-	SafeDirname(const char* path, bool error_aborts = true);
-	SafeDirname(const std::string& path, bool error_aborts = true);
+	explicit SafeDirname(const char* path, bool error_aborts = true);
+	explicit SafeDirname(const std::string& path, bool error_aborts = true);
 
 private:
 
@@ -295,8 +295,8 @@ private:
 class SafeBasename : public SafePathOp {
 public:
 
-	SafeBasename(const char* path, bool error_aborts = true);
-	SafeBasename(const std::string& path, bool error_aborts = true);
+	explicit SafeBasename(const char* path, bool error_aborts = true);
+	explicit SafeBasename(const std::string& path, bool error_aborts = true);
 
 private:
 

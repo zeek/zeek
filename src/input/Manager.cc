@@ -2710,6 +2710,7 @@ void Manager::ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, co
 
 			default:
 				reporter->InternalError("Unknown error type while trying to report input error %s", fmt);
+				__builtin_unreachable();
 			}
 
 		StringVal* message = new StringVal(buf);

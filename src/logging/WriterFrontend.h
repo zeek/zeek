@@ -136,19 +136,6 @@ public:
 	void Rotate(const char* rotated_path, double open, double close, bool terminating);
 
 	/**
-	 * Finalizes writing to this tream.
-	 *
-	 * This method generates a message to the backend writer and triggers
-	 * the corresponding message there. If the backend method fails, it
-	 * sends a message back that will asynchronously call Disable().
-	 *
-	 * This method must only be called from the main thread.
-	 *
-	 * @param network_time The network time when the finish was triggered.
-	 */
-	void Finish(double network_time);
-
-	/**
 	 * Explicitly triggers a transfer of all potentially buffered Write()
 	 * operations over to the backend.
 	 *

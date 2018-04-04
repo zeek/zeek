@@ -10,7 +10,7 @@ class ListVal;
 
 class CompositeHash {
 public:
-	CompositeHash(TypeList* composite_type);
+	explicit CompositeHash(TypeList* composite_type);
 	~CompositeHash();
 
 	// Compute the hash corresponding to the given index val,

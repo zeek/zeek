@@ -24,13 +24,13 @@ public:
 // Implements the "event" keyword.
 class RuleActionEvent : public RuleAction {
 public:
-	RuleActionEvent(const char* arg_msg)	{ msg = copy_string(arg_msg); }
-	virtual ~RuleActionEvent()	{ delete [] msg; }
+	explicit RuleActionEvent(const char* arg_msg)	{ msg = copy_string(arg_msg); }
+	~RuleActionEvent() override { delete [] msg; }
 
-	virtual void DoAction(const Rule* parent, RuleEndpointState* state,
-				const u_char* data, int len);
+	void DoAction(const Rule* parent, RuleEndpointState* state,
+				const u_char* data, int len) override;
 
-	virtual void PrintDebug();
+	void PrintDebug() override;
 
 private:
 	const char* msg;
@@ -38,17 +38,17 @@ private:
 
 class RuleActionMIME : public RuleAction {
 public:
-	RuleActionMIME(const char* arg_mime, int arg_strength = 0)
+	explicit RuleActionMIME(const char* arg_mime, int arg_strength = 0)
 		{ mime = copy_string(arg_mime); strength = arg_strength; }
 
-	virtual ~RuleActionMIME()
+	~RuleActionMIME() override
 		{ delete [] mime; }
 
-	virtual void DoAction(const Rule* parent, RuleEndpointState* state,
-	                      const u_char* data, int len)
+	void DoAction(const Rule* parent, RuleEndpointState* state,
+	                      const u_char* data, int len) override
 		{ }
 
-	virtual void PrintDebug();
+	void PrintDebug() override;
 
 	string GetMIME() const
 		{ return mime; }
@@ -64,12 +64,12 @@ private:
 // Base class for enable/disable actions.
 class RuleActionAnalyzer : public RuleAction {
 public:
-	RuleActionAnalyzer(const char* analyzer);
+	explicit RuleActionAnalyzer(const char* analyzer);
 
-	virtual void DoAction(const Rule* parent, RuleEndpointState* state,
-			      const u_char* data, int len) = 0;
+	void DoAction(const Rule* parent, RuleEndpointState* state,
+			      const u_char* data, int len) override = 0;
 
-	virtual void PrintDebug();
+	void PrintDebug() override;
 
 	analyzer::Tag Analyzer() const { return analyzer; }
 	analyzer::Tag ChildAnalyzer() const { return child_analyzer; }
@@ -81,22 +81,22 @@ private:
 
 class RuleActionEnable : public RuleActionAnalyzer {
 public:
-	RuleActionEnable(const char* analyzer) : RuleActionAnalyzer(analyzer)	{}
+	explicit RuleActionEnable(const char* analyzer) : RuleActionAnalyzer(analyzer)	{}
 
-	virtual void DoAction(const Rule* parent, RuleEndpointState* state,
-				const u_char* data, int len);
+	void DoAction(const Rule* parent, RuleEndpointState* state,
+				const u_char* data, int len) override;
 
-	virtual void PrintDebug();
+	void PrintDebug() override;
 };
 
 class RuleActionDisable : public RuleActionAnalyzer {
 public:
-	RuleActionDisable(const char* analyzer) : RuleActionAnalyzer(analyzer)	{}
+	explicit RuleActionDisable(const char* analyzer) : RuleActionAnalyzer(analyzer)	{}
 
-	virtual void DoAction(const Rule* parent, RuleEndpointState* state,
-				const u_char* data, int len);
+	void DoAction(const Rule* parent, RuleEndpointState* state,
+				const u_char* data, int len) override;
 
-	virtual void PrintDebug();
+	void PrintDebug() override;
 };
 
 #endif

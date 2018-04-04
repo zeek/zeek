@@ -20,14 +20,14 @@ New Functionality
     using normal assignments. Instead, they can be changed using the
     new function Option::set.
 
-    It is possible to "subscribe" to option through
+    It is possible to "subscribe" to an option through
     Option::set_change_handler, which will trigger a handler callback
     when an option changes. Change handlers can optionally modify
     values before they are applied by returning the desired value, or
     reject updates by returning the old value. Priorities can be
     specified if there are several handlers for one option.
 
-    Example script:
+    Example script::
 
         option testbool: bool = T;
 
@@ -55,7 +55,7 @@ New Functionality
     Configuration files to read can be specified by adding them to
     Config::config_files.
 
-    Usage example:
+    Usage example::
 
         redef Config::config_files += { "/path/to/config.dat" };
 
@@ -65,38 +65,38 @@ New Functionality
             option testbool: bool = F;
         }
 
-    The specified file will now monitored contionoulsy for changes, so
+    The specified file will now be monitored continuously for changes, so
     that writing "testbool T" into /path/to/config.dat will
     automatically update the option's value accordingly.
 
-    The configutation framework creates a config.log that shows all
+    The configuration framework creates a config.log that shows all
     value changes that took place.
 
-  - Config reader: Internally, the configuration framework use a new
+  - Config reader: Internally, the configuration framework uses a new
     type of input reader to read such configuration files into Bro.
     The reader uses the option name to look up the type that variable
     has, converts the read value to the correct type, and then updates
-    the option's value. Example script use:
+    the option's value. Example script use::
 
-    type Idx: record {
-        option_name: string;
-    };
+        type Idx: record {
+            option_name: string;
+        };
 
-    type Val: record {
-        option_val: string;
-    };
+        type Val: record {
+            option_val: string;
+        };
 
-    global currconfig: table[string] of string = table();
+        global currconfig: table[string] of string = table();
 
-    event InputConfig::new_value(name: string, source: string, id: string, value: any)
-        {
-        print id, value;
-        }
+        event InputConfig::new_value(name: string, source: string, id: string, value: any)
+            {
+            print id, value;
+            }
 
-    event bro_init()
-        {
-        Input::add_table([$reader=Input::READER_CONFIG, $source="../configfile", $name="configuration", $idx=Idx, $val=Val, $destination=currconfig, $want_record=F]);
-        }
+        event bro_init()
+            {
+            Input::add_table([$reader=Input::READER_CONFIG, $source="../configfile", $name="configuration", $idx=Idx, $val=Val, $destination=currconfig, $want_record=F]);
+            }
 
 - Support for OCSP and Signed Certificate Timestamp. This adds the
   following events and BIFs:
@@ -173,12 +173,15 @@ Changed Functionality
   the default configuration of logs, this field will show "-" instead of
   "(empty)" for connections that lack any tunelling.
 
-- SMB event argument changes
+- SMB event argument changes:
+
   - smb1_transaction_request now has two additional arguments, "parameters"
     and "data" strings
+
   - smb1_transaction2_request now has an additional "args" record argument
 
 - SSL event argument changes:
+
   - event ssl_server_signature now has an additional argument
     "signature_and_hashalgorithm".
 

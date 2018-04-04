@@ -99,14 +99,14 @@ protected:
 	 * @param subtype The sub type, which is left to an analyzer for
 	 * interpretation. By default it's set to zero.
 	 */
-	Tag(type_t type, subtype_t subtype = 0);
+	explicit Tag(type_t type, subtype_t subtype = 0);
 
 	/**
 	 * Constructor.
 	 *
 	 * @param val An enum value of script type \c Analyzer::Tag.
 	 */
-	Tag(EnumVal* val) : ::Tag(val) {}
+	explicit Tag(EnumVal* val) : ::Tag(val) {}
 };
 
 }

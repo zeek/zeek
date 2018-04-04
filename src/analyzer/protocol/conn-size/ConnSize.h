@@ -11,15 +11,15 @@ namespace analyzer { namespace conn_size {
 
 class ConnSize_Analyzer : public analyzer::Analyzer {
 public:
-	ConnSize_Analyzer(Connection* c);
-	virtual ~ConnSize_Analyzer();
+	explicit ConnSize_Analyzer(Connection* c);
+	~ConnSize_Analyzer() override;
 
-	virtual void Init();
-	virtual void Done();
+	void Init() override;
+	void Done() override;
 
 	// from Analyzer.h
-	virtual void UpdateConnVal(RecordVal *conn_val);
-	virtual void FlipRoles();
+	void UpdateConnVal(RecordVal *conn_val) override;
+	void FlipRoles() override;
 
 	void SetThreshold(uint64_t threshold, bool bytes, bool orig);
 	uint64 GetThreshold(bool bytes, bool orig);
@@ -28,8 +28,8 @@ public:
 		{ return new ConnSize_Analyzer(conn); }
 
 protected:
-	virtual void DeliverPacket(int len, const u_char* data, bool is_orig,
-					uint64 seq, const IP_Hdr* ip, int caplen);
+	void DeliverPacket(int len, const u_char* data, bool is_orig,
+					uint64 seq, const IP_Hdr* ip, int caplen) override;
 	void CheckSizes(bool is_orig);
 
 	void ThresholdEvent(EventHandlerPtr f, uint64 threshold, bool is_orig);

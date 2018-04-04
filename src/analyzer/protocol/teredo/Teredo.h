@@ -9,17 +9,17 @@ namespace analyzer { namespace teredo {
 
 class Teredo_Analyzer : public analyzer::Analyzer {
 public:
-	Teredo_Analyzer(Connection* conn) : Analyzer("TEREDO", conn),
+	explicit Teredo_Analyzer(Connection* conn) : Analyzer("TEREDO", conn),
 	                                    valid_orig(false), valid_resp(false)
 		{}
 
-	virtual ~Teredo_Analyzer()
+	~Teredo_Analyzer() override
 		{}
 
-	virtual void Done();
+	void Done() override;
 
-	virtual void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64 seq, const IP_Hdr* ip, int caplen);
+	void DeliverPacket(int len, const u_char* data, bool orig,
+					uint64 seq, const IP_Hdr* ip, int caplen) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new Teredo_Analyzer(conn); }
@@ -49,15 +49,13 @@ public:
 		}
 
 protected:
-	void ExpireTimer(double t);
-
 	bool valid_orig;
 	bool valid_resp;
 };
 
 class TeredoEncapsulation {
 public:
-	TeredoEncapsulation(const Teredo_Analyzer* ta)
+	explicit TeredoEncapsulation(const Teredo_Analyzer* ta)
 		: inner_ip(0), origin_indication(0), auth(0), analyzer(ta)
 		{}
 

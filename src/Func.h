@@ -22,9 +22,9 @@ public:
 
 	enum Kind { BRO_FUNC, BUILTIN_FUNC };
 
-	Func(Kind arg_kind);
+	explicit Func(Kind arg_kind);
 
-	virtual ~Func();
+	~Func() override;
 
 	virtual int IsPure() const = 0;
 	function_flavor Flavor() const	{ return FType()->Flavor(); }
@@ -56,7 +56,7 @@ public:
 	const char* Name() const { return name.c_str(); }
 	void SetName(const char* arg_name)	{ name = arg_name; }
 
-	virtual void Describe(ODesc* d) const = 0;
+	void Describe(ODesc* d) const override = 0;
 	virtual void DescribeDebug(ODesc* d, const val_list* args) const;
 
 	// This (un-)serializes only a single body (as given in SerialInfo).
@@ -90,7 +90,7 @@ protected:
 class BroFunc : public Func {
 public:
 	BroFunc(ID* id, Stmt* body, id_list* inits, int frame_size, int priority);
-	~BroFunc();
+	~BroFunc() override;
 
 	int IsPure() const override;
 	Val* Call(val_list* args, Frame* parent) const override;
@@ -116,7 +116,7 @@ typedef Val* (*built_in_func)(Frame* frame, val_list* args);
 class BuiltinFunc : public Func {
 public:
 	BuiltinFunc(built_in_func func, const char* name, int is_pure);
-	~BuiltinFunc();
+	~BuiltinFunc() override;
 
 	int IsPure() const override;
 	Val* Call(val_list* args, Frame* parent) const override;

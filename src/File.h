@@ -22,10 +22,10 @@ class RotateTimer;
 
 class BroFile : public BroObj {
 public:
-	BroFile(FILE* arg_f);
+	explicit BroFile(FILE* arg_f);
 	BroFile(FILE* arg_f, const char* filename, const char* access);
 	BroFile(const char* filename, const char* access, BroType* arg_t = 0);
-	virtual ~BroFile();
+	~BroFile() override;
 
 	const char* Name() const;
 

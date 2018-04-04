@@ -20,7 +20,7 @@ namespace input { namespace reader {
 class Config : public ReaderBackend {
 public:
 	explicit Config(ReaderFrontend* frontend);
-	~Config();
+	~Config() override;
 
 	// prohibit copying and moving
 	Config(const Config&) = delete;

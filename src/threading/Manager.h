@@ -33,7 +33,7 @@ public:
 	/**
 	 * Destructir.
 	 */
-	~Manager();
+	~Manager() override;
 
 	/**
 	 * Terminates the manager's processor. The method signals all threads
@@ -103,23 +103,23 @@ protected:
 	/**
 	 * Part of the IOSource interface.
 	 */
-	virtual void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
-	                    iosource::FD_Set* except);
+	void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
+	                    iosource::FD_Set* except) override;
 
 	/**
 	 * Part of the IOSource interface.
 	 */
-	virtual double NextTimestamp(double* network_time);
+	double NextTimestamp(double* network_time) override;
 
 	/**
 	 * Part of the IOSource interface.
 	 */
-	virtual void Process();
+	void Process() override;
 
 	/**
 	 * Part of the IOSource interface.
 	 */
-	virtual const char* Tag()	{ return "threading::Manager"; }
+	const char* Tag() override { return "threading::Manager"; }
 
 private:
 	typedef std::list<BasicThread*> all_thread_list;

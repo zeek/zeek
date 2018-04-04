@@ -26,7 +26,7 @@ public:
 	 *
 	 * @pre `cells > 0 && width > 0`
 	 */
-	CounterVector(size_t width, size_t cells = 1024);
+	explicit CounterVector(size_t width, size_t cells = 1024);
 
 	/**
 	 * Copy-constructs a counter vector.
@@ -38,7 +38,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	~CounterVector();
+	~CounterVector() override;
 
 	/**
 	 * Increments a given cell.

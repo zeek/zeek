@@ -40,8 +40,8 @@ typedef enum {
 
 class Attr : public BroObj {
 public:
-	Attr(attr_tag t, Expr* e = 0);
-	~Attr();
+	explicit Attr(attr_tag t, Expr* e = 0);
+	~Attr() override;
 
 	attr_tag Tag() const	{ return tag; }
 	Expr* AttrExpr() const	{ return expr; }
@@ -56,7 +56,7 @@ public:
 	int RedundantAttrOkay() const
 		{ return tag == ATTR_REDEF || tag == ATTR_OPTIONAL; }
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d) const;
 
 	bool operator==(const Attr& other) const
@@ -84,7 +84,7 @@ protected:
 class Attributes : public BroObj {
 public:
 	Attributes(attr_list* a, BroType* t, bool in_record);
-	~Attributes();
+	~Attributes() override;
 
 	void AddAttr(Attr* a);
 	void AddAttrs(Attributes* a);	// Unref's 'a' when done

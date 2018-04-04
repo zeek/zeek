@@ -10,7 +10,7 @@ class PriorityQueue;
 
 class PQ_Element {
 public:
-	PQ_Element(double t)	{ time = t; offset = -1; }
+	explicit PQ_Element(double t)	{ time = t; offset = -1; }
 	virtual ~PQ_Element()	{ }
 
 	double Time() const	{ return time; }
@@ -28,7 +28,7 @@ protected:
 
 class PriorityQueue {
 public:
-	PriorityQueue(int initial_size = 16);
+	explicit PriorityQueue(int initial_size = 16);
 	~PriorityQueue();
 
 	// Returns the top of queue, or nil if the queue is empty.

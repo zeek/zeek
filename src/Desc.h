@@ -27,7 +27,7 @@ class BroType;
 
 class ODesc {
 public:
-	ODesc(desc_type t=DESC_READABLE, BroFile* f=0);
+	explicit ODesc(desc_type t=DESC_READABLE, BroFile* f=0);
 
 	~ODesc();
 

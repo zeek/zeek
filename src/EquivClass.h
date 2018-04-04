@@ -9,7 +9,7 @@
 
 class EquivClass {
 public:
-	EquivClass(int size);
+	explicit EquivClass(int size);
 	~EquivClass();
 
 	void UniqueChar(int sym);

@@ -25,7 +25,7 @@ namespace threading {
 class RemoteSerializer : public Serializer, public iosource::IOSource {
 public:
 	RemoteSerializer();
-	virtual ~RemoteSerializer();
+	~RemoteSerializer() override;
 
 	// Initialize the remote serializer (calling this will fork).
 	void Enable();
@@ -140,12 +140,12 @@ public:
 	void Finish();
 
 	// Overidden from IOSource:
-	virtual void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
-	                    iosource::FD_Set* except);
-	virtual double NextTimestamp(double* local_network_time);
-	virtual void Process();
-	virtual TimerMgr::Tag* GetCurrentTag();
-	virtual const char* Tag()	{ return "RemoteSerializer"; }
+	void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
+	                    iosource::FD_Set* except) override;
+	double NextTimestamp(double* local_network_time) override;
+	void Process() override;
+	TimerMgr::Tag* GetCurrentTag() override;
+	const char* Tag() override { return "RemoteSerializer"; }
 
 	// Gracefully finishes communication by first making sure that all
 	// remaining data (parent & child) has been sent out.
@@ -246,17 +246,17 @@ protected:
 
 	static void Log(LogLevel level, const char* msg, Peer* peer, LogSrc src = LogParent);
 
-	virtual void ReportError(const char* msg);
+	void ReportError(const char* msg) override;
 
-	virtual void GotEvent(const char* name, double time,
-				EventHandlerPtr event, val_list* args);
-	virtual void GotFunctionCall(const char* name, double time,
-				Func* func, val_list* args);
-	virtual void GotID(ID* id, Val* val);
-	virtual void GotStateAccess(StateAccess* s);
-	virtual void GotTimer(Timer* t);
-	virtual void GotConnection(Connection* c);
-	virtual void GotPacket(Packet* packet);
+	void GotEvent(const char* name, double time,
+				EventHandlerPtr event, val_list* args) override;
+	void GotFunctionCall(const char* name, double time,
+				Func* func, val_list* args) override;
+	void GotID(ID* id, Val* val) override;
+	void GotStateAccess(StateAccess* s) override;
+	void GotTimer(Timer* t) override;
+	void GotConnection(Connection* c) override;
+	void GotPacket(Packet* packet) override;
 
 	void Fork();
 

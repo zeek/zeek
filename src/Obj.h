@@ -36,7 +36,7 @@ public:
 		text = 0;
 		}
 
-	virtual ~Location()
+	~Location() override
 		{
 		if ( delete_data )
 			delete [] filename;
@@ -112,7 +112,7 @@ public:
 			SetLocationInfo(&start_location, &end_location);
 		}
 
-	virtual ~BroObj();
+	~BroObj() override;
 
 	// Report user warnings/errors.  If obj2 is given, then it's
 	// included in the message, though if pinpoint_only is non-zero,

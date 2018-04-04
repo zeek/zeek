@@ -16,7 +16,7 @@ namespace analyzer { namespace tcp {
 class ContentLine_Analyzer : public TCP_SupportAnalyzer {
 public:
 	ContentLine_Analyzer(Connection* conn, bool orig, int max_line_length=DEFAULT_MAX_LINE_LENGTH);
-	~ContentLine_Analyzer();
+	~ContentLine_Analyzer() override;
 
 	void SupressWeirds(bool enable)
 		{ suppress_weirds = enable; }
@@ -65,9 +65,9 @@ public:
 protected:
 	ContentLine_Analyzer(const char* name, Connection* conn, bool orig, int max_line_length=DEFAULT_MAX_LINE_LENGTH);
 
-	virtual void DeliverStream(int len, const u_char* data, bool is_orig);
-	virtual void Undelivered(uint64 seq, int len, bool orig);
-	virtual void EndpointEOF(bool is_orig);
+	void DeliverStream(int len, const u_char* data, bool is_orig) override;
+	void Undelivered(uint64 seq, int len, bool orig) override;
+	void EndpointEOF(bool is_orig) override;
 
 	class State;
 	void InitState();

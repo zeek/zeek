@@ -13,10 +13,10 @@ class Plugin : public plugin::Plugin {
 public:
 	Plugin();
 
-	plugin::Configuration Configure();
+	plugin::Configuration Configure() override;
 
-	virtual void InitPreScript();
-	virtual void Done();
+	void InitPreScript() override;
+	void Done() override;
 
 	std::unique_lock<std::mutex> ForkMutex();
 

@@ -18,7 +18,7 @@ public:
 	 * Create the reST table object.
 	 * @param arg_num_cols The number of columns in the table.
 	 */
-	ReStructuredTextTable(size_t arg_num_cols);
+	explicit ReStructuredTextTable(size_t arg_num_cols);
 
 	/**
 	 * Add a new content row to the table.

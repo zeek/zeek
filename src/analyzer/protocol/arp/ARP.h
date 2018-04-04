@@ -36,11 +36,11 @@ namespace analyzer { namespace arp {
 class ARP_Analyzer : public BroObj {
 public:
 	ARP_Analyzer();
-	virtual ~ARP_Analyzer();
+	~ARP_Analyzer() override;
 
 	void NextPacket(double t, const Packet* pkt);
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 	void RREvent(EventHandlerPtr e, const u_char* src, const u_char* dst,
 			const char* spa, const char* sha,
 			const char* tpa, const char* tha);

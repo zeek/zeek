@@ -11,7 +11,7 @@ class SNMP_Analyzer : public analyzer::Analyzer {
 
 public:
 
-	SNMP_Analyzer(Connection* conn);
+	explicit SNMP_Analyzer(Connection* conn);
 	virtual ~SNMP_Analyzer();
 
 	virtual void Done();

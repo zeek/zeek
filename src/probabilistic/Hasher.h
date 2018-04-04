@@ -43,7 +43,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	virtual ~Hasher() { }
+	~Hasher() override { }
 
 	/**
 	 * Computes hash values for an element.
@@ -138,7 +138,7 @@ public:
 	 *
 	 * @param arg_seed The seed to use for this instance.
 	 */
-	UHF(Hasher::seed_t arg_seed);
+	explicit UHF(Hasher::seed_t arg_seed);
 
 	template <typename T>
 	Hasher::digest operator()(const T& x) const
@@ -204,9 +204,9 @@ public:
 	DefaultHasher(size_t k, Hasher::seed_t seed);
 
 	// Overridden from Hasher.
-	virtual digest_vector Hash(const void* x, size_t n) const final;
-	virtual DefaultHasher* Clone() const final;
-	virtual bool Equals(const Hasher* other) const final;
+	digest_vector Hash(const void* x, size_t n) const final;
+	DefaultHasher* Clone() const final;
+	bool Equals(const Hasher* other) const final;
 
 	DECLARE_SERIAL(DefaultHasher);
 
@@ -232,9 +232,9 @@ public:
 	DoubleHasher(size_t k, Hasher::seed_t seed);
 
 	// Overridden from Hasher.
-	virtual digest_vector Hash(const void* x, size_t n) const final;
-	virtual DoubleHasher* Clone() const final;
-	virtual bool Equals(const Hasher* other) const final;
+	digest_vector Hash(const void* x, size_t n) const final;
+	DoubleHasher* Clone() const final;
+	bool Equals(const Hasher* other) const final;
 
 	DECLARE_SERIAL(DoubleHasher);
 

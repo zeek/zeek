@@ -27,7 +27,7 @@ public:
 	 * an empty string most methods are a no-op.
 	 * @param delim The delimiter between target fields.
 	 */
-	Config(const std::string& file, const std::string& delim = "\t");
+	explicit Config(const std::string& file, const std::string& delim = "\t");
 
 	/**
 	  * Destructor, cleans up targets created when parsing config file.

@@ -22,7 +22,7 @@ public:
 	 * @param name The name of the Bro script package (relative path from a
 	 * component within BROPATH.
 	 */
-	PackageInfo(const std::string& name);
+	explicit PackageInfo(const std::string& name);
 
 	/**
 	 * @return The content of the package's README file, each line being
@@ -34,12 +34,12 @@ public:
 
 private:
 
-	time_t DoGetModificationTime() const;
+	time_t DoGetModificationTime() const override;
 
-	std::string DoName() const
+	std::string DoName() const override
 		{ return pkg_name; }
 
-	std::string DoReStructuredText(bool roles_only) const;
+	std::string DoReStructuredText(bool roles_only) const override;
 
 	std::string pkg_name;
 	std::vector<std::string> readme;

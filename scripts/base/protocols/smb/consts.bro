@@ -255,10 +255,12 @@ export {
 	} &default=function(i: count): string { return fmt("unknown-%d", i); };
 
 	const dialects: table[count] of string = {
-		[0x0202] = "2.002",
+		[0x0202] = "2.0.2",
 		[0x0210] = "2.1",
 		[0x0300] = "3.0",
-		[0x0302] = "3.02",
+		[0x0302] = "3.0.2",
+		[0x0311] = "3.1.1",
+		[0x02FF] = "2.1+",
 	} &default=function(i: count): string { return fmt("unknown-%d", i); };
 
 	const share_types: table[count] of string = {

@@ -6,17 +6,10 @@ compiler:
 addons:
   ssh_known_hosts: git.bro.org
   apt:
-    sources:
-      - ubuntu-toolchain-r-test
     packages:
-      - bison
-      - cmake
-      - flex
       - libpcap-dev
       - libssl-dev
-      - python-dev
       - swig
-      - zlib1g-dev
 
 branches:
   only:

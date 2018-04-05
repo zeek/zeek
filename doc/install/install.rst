@@ -45,7 +45,6 @@ To build Bro from source, the following additional dependencies are required:
     * OpenSSL headers                   (http://www.openssl.org)
     * zlib headers                      (https://zlib.net/)
     * Python                            (https://www.python.org/)
-    * C++ Actor Framework (CAF) 0.15.5+ (https://actor-framework.org)
 
 To install the required dependencies, you can use:
 
@@ -109,7 +108,7 @@ To install the required dependencies, you can use:
   Distributions of these dependencies can likely be obtained from your
   preferred Mac OS X package management system (e.g. Homebrew_,
   MacPorts_, or Fink_). Specifically for Homebrew, the ``cmake``,
-  ``swig``, ``openssl``, ``actor-framework``, and ``bison`` packages
+  ``swig``, ``openssl``, and ``bison`` packages
   provide the required dependencies.  For MacPorts, the ``cmake``,
   ``swig``, ``swig-python``, ``openssl``, and ``bison`` packages provide
   the required dependencies.

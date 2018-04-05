@@ -233,6 +233,9 @@ add_subdirectory(aux/broker)
 set(brodeps ${brodeps} broker)
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/aux/broker
                            ${CMAKE_CURRENT_BINARY_DIR}/aux/broker)
+include_directories(BEFORE ${CAF_INCLUDE_DIR_CORE})
+include_directories(BEFORE ${CAF_INCLUDE_DIR_IO})
+include_directories(BEFORE ${CAF_INCLUDE_DIR_OPENSSL})
 
 add_subdirectory(src)
 add_subdirectory(scripts)

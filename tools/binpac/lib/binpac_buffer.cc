@@ -25,6 +25,7 @@ FlowBuffer::FlowBuffer(LineBreakStyle linebreak_style)
 	orig_data_end_ = 0;
 
 	linebreak_style_ = linebreak_style;
+	linebreak_style_default = linebreak_style;
 	ResetLineState();
 
 	mode_ = UNKNOWN_MODE;
@@ -85,6 +86,8 @@ void FlowBuffer::ResetLineState()
 		case STRICT_CRLF:
 			state_ = STRICT_CRLF_0;
 			break;
+		case LINE_BREAKER:
+			break; // Nothing to reset
 		default:
 			BINPAC_ASSERT(0);
 			break;
@@ -113,6 +116,18 @@ void FlowBuffer::ExpandBuffer(int length)
 	delete [] buffer_;
 #endif
 	buffer_ = new_buf;
+	}
+
+void FlowBuffer::SetLineBreaker(u_char *lbreaker) 
+	{
+	linebreaker_ = *lbreaker;
+	linebreak_style_default = linebreak_style_;
+	linebreak_style_ = LINE_BREAKER;
+	}
+
+void FlowBuffer::UnsetLineBreaker() 
+	{
+	linebreak_style_ = linebreak_style_default;
 	}
 
 void FlowBuffer::NewLine()
@@ -261,6 +276,9 @@ void FlowBuffer::MarkOrCopyLine()
 		case STRICT_CRLF:
 			MarkOrCopyLine_STRICT_CRLF();
 			break;
+		case LINE_BREAKER:
+			MarkOrCopyLine_LINEBREAK();
+			break;
 		default:
 			BINPAC_ASSERT(0);
 			break;
@@ -399,6 +417,42 @@ found_end_of_line:
 		string((const char *) begin(), (const char *) end()).c_str());
 #endif
 	}
+
+void FlowBuffer::MarkOrCopyLine_LINEBREAK()
+	{
+	if ( ! (orig_data_begin_ && orig_data_end_) )
+		return;
+
+	const_byteptr data;
+	for ( data = orig_data_begin_; data < orig_data_end_; ++data )
+		{
+		if ( *data == linebreaker_ )
+			goto found_end_of_line;
+		}
+
+	AppendToBuffer(orig_data_begin_, orig_data_end_ - orig_data_begin_);
+	return;
+
+found_end_of_line:
+	if ( buffer_n_ == 0 )
+		{
+		frame_length_ = data - orig_data_begin_;
+		}
+	else
+		{
+		AppendToBuffer(orig_data_begin_, data + 1 - orig_data_begin_);
+		// But eliminate the last CR or LF
+		--buffer_n_;
+		}
+	message_complete_ = true;
+
+#if DEBUG_FLOW_BUFFER
+	fprintf(stderr, "%.6f Line complete: [%s]\n",
+		network_time(),
+		string((const char *) begin(), (const char *) end()).c_str());
+#endif
+	}
+
 
 // Invariants:
 //

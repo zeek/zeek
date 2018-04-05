@@ -58,6 +58,7 @@ Type::Type(TypeType tot)
 	attr_length_expr_ = 0;
 	attr_letfields_ = 0;
 	attr_multiline_end_ = 0;
+	attr_linebreaker_ = 0;
 	attr_oneline_ = false;
 	attr_refcount_ = false;
 	attr_requires_ = new ExprList();
@@ -187,7 +188,9 @@ void Type::ProcessAttr(Attr* a)
 			break;
 
 		case ATTR_LINEBREAKER:
-			ASSERT(0);
+			if (strlen(a->expr()->orig()) != 6 )
+				throw Exception(this, "invalid line breaker length, must be a single ASCII character. (Ex: \"\\001\".)");
+			attr_linebreaker_ = a->expr();
 			break;
 
 		case ATTR_MULTILINE:
@@ -445,7 +448,12 @@ void Type::GenBufferConfiguration(Output *out_cc, Env *env)
 				env->RValue(buffering_state_id));
 			out_cc->inc_indent();
 			out_cc->println("{");
-
+			if(BufferableWithLineBreaker())
+				out_cc->println("%s->SetLineBreaker((u_char*)%s);", 
+				    env->LValue(flow_buffer_id), LineBreaker()->orig());
+			else 
+				out_cc->println("%s->UnsetLineBreaker();", 
+				    env->LValue(flow_buffer_id));
 			out_cc->println("%s->NewLine();",
 				env->LValue(flow_buffer_id));
 
@@ -997,6 +1005,17 @@ bool Type::Bufferable() const
 	{
 	// If the input is an ASCII line or an "frame buffer"
 	return IsEmptyType() || BufferableByLength() || BufferableByLine();
+	}
+
+bool Type::BufferableWithLineBreaker() const
+	{
+	// If the input is an ASCII line with a given linebreaker;
+	return attr_linebreaker_ != 0;
+	}
+
+Expr* Type::LineBreaker() const
+	{
+	return attr_linebreaker_;
 	}
 
 Type::BufferMode Type::buffer_mode() const

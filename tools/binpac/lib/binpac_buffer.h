@@ -12,6 +12,7 @@ public:
 		CR_OR_LF, 	// CR or LF or CRLF
 		STRICT_CRLF, 	// CR followed by LF
 		CR_LF_NUL,	// CR or LF or CR-LF or CR-NUL
+		LINE_BREAKER,   // User specified linebreaker 
 	};
 
 	FlowBuffer(LineBreakStyle linebreak_style = CR_OR_LF);
@@ -72,6 +73,8 @@ public:
 		return buffer_n_ > 0 || orig_data_end_ > orig_data_begin_;
 		}
 
+	void SetLineBreaker(u_char *lbreaker);
+	void UnsetLineBreaker();
 	void NewLine();
 	// A negative frame_length represents a frame till EOF
 	void NewFrame(int frame_length, bool chunked_);
@@ -119,6 +122,7 @@ protected:
 
 	void MarkOrCopyLine_CR_OR_LF();
 	void MarkOrCopyLine_STRICT_CRLF();
+	void MarkOrCopyLine_LINEBREAK();
 
 	int 	buffer_n_;		// number of bytes in the buffer
 	int 	buffer_length_;	// size of the buffer
@@ -129,6 +133,8 @@ protected:
 	const_byteptr orig_data_begin_, orig_data_end_;
 
 	LineBreakStyle linebreak_style_;
+	LineBreakStyle linebreak_style_default;
+	u_char  linebreaker_;
 
 	enum {
 		UNKNOWN_MODE,

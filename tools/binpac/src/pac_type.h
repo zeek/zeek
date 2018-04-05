@@ -201,6 +201,8 @@ public:
 	bool Bufferable() const;
 	bool BufferableByLength() const;
 	bool BufferableByLine() const;
+	bool BufferableWithLineBreaker() const;
+	Expr* LineBreaker() const;
 
 	enum BufferMode {
 		NOT_BUFFERABLE,
@@ -288,6 +290,7 @@ protected:
 	Expr *attr_length_expr_;
 	FieldList *attr_letfields_;
 	Expr *attr_multiline_end_;
+	Expr *attr_linebreaker_;
 	bool attr_oneline_;
 	bool attr_refcount_;
 	ExprList *attr_requires_;

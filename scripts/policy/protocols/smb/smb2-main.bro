@@ -72,7 +72,9 @@ event smb2_message(c: connection, hdr: SMB2::Header, is_orig: bool) &priority=-5
 		# marked as PENDING, then we'll skip all of this and wait
 		# for a reply that isn't marked pending.
 		if ( c$smb_state$current_cmd$status == "PENDING" )
+			{
 			return;
+			}
 
 		if ( SMB::write_cmd_log &&
 		     c$smb_state$current_cmd$status !in SMB::ignored_command_statuses &&

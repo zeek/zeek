@@ -1,4 +1,10 @@
 
+2.5-504 | 2018-04-06 10:51:19 -0700
+
+  * Trim the Travis CI build log output. (Daniel Thayer)
+
+  * Remove unneeded lines from .travis.yml. (Daniel Thayer)
+
 2.5-501 | 2018-04-06 10:49:54 -0700
 
   * Fix NETBIOSSSN analyzer name (Vladimir Ruzanov)

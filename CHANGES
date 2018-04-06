@@ -1,4 +1,10 @@
 
+2.5-501 | 2018-04-06 10:49:54 -0700
+
+  * Fix NETBIOSSSN analyzer name (Vladimir Ruzanov)
+
+  * Additional fix for Kerberos in GSSAPI. (Seth Hall)
+
 2.5-498 | 2018-04-03 01:59:46 -0400
 
   * Improvements to GSSAPI handling of Kerberos messages (John E. Rollinson, Seth Hall, juno0812, Justin Oursler)

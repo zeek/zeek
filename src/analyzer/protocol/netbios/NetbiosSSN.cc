@@ -455,7 +455,7 @@ void Contents_NetbiosSSN::DeliverStream(int len, const u_char* data, bool orig)
 	}
 
 NetbiosSSN_Analyzer::NetbiosSSN_Analyzer(Connection* conn)
-: tcp::TCP_ApplicationAnalyzer("NETBIOS", conn)
+: tcp::TCP_ApplicationAnalyzer("NETBIOSSSN", conn)
 	{
 	//smb_session = new SMB_Session(this);
 	interp = new NetbiosSSN_Interpreter(this);

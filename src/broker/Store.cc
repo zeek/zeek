@@ -129,7 +129,7 @@ broker::backend_options to_backend_options(broker::backend backend,
 		break;
 	}
 
-	return {};
+	return broker::backend_options{};
 	}
 
 } // namespace bro_broker

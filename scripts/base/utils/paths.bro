@@ -2,6 +2,42 @@
 
 const absolute_path_pat = /(\/|[A-Za-z]:[\\\/]).*/;
 
+## Get the filename from a fully specified file. This 
+## is the same behavior as the UNIX basename command. It works
+## with Windows and UNIX file specifications.
+##
+## input: a fully specified directory and file
+##
+## Returns: the file name.
+function basename(input: string): string
+	{
+	const dir_pattern = /(\\[^ ]|\/)[^\\\/]*$/;
+	local parts = split_string_all(input, dir_pattern);
+
+	if ( |parts| < 3 )
+		return "";
+
+	return parts[1][1:];
+	}
+
+## Get the directory name from a fully specified file. This 
+## is the same behavior as the UNIX basename command. It works
+## with Windows and UNIX file specifications.
+##
+## input: a fully specified directory and file
+##
+## Returns: the directory name.
+function dirname(input: string): string
+	{
+	const dir_pattern = /(\\[^ ]|\/)[^\\\/]*$/;
+	local parts = split_string_all(input, dir_pattern);
+
+	if ( |parts| < 3 )
+		return "";
+
+	return parts[0];
+	}
+
 ## Given an arbitrary string, extracts a single, absolute path (directory
 ## with filename).
 ##

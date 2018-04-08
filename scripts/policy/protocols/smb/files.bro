@@ -1,4 +1,5 @@
 @load base/frameworks/files
+@load base/utils/paths
 @load ./main
 
 module SMB;
@@ -64,6 +65,6 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 			f$total_bytes = c$smb_state$current_file$size;
 
 		if ( c$smb_state$current_file?$name )
-			f$info$filename = c$smb_state$current_file$name;
+			f$info$filename = basename(c$smb_state$current_file$name);
 		}
 	}

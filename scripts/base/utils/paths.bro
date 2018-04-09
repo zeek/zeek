@@ -11,13 +11,13 @@ const absolute_path_pat = /(\/|[A-Za-z]:[\\\/]).*/;
 ## Returns: the file name.
 function basename(input: string): string
 	{
-	const dir_pattern = /(\\[^ ]|\/)[^\\\/]*$/;
+	const dir_pattern = /[^\\\/]+$/;
 	local parts = split_string_all(input, dir_pattern);
 
 	if ( |parts| < 3 )
 		return "";
 
-	return parts[1][1:];
+	return parts[1];
 	}
 
 ## Get the directory name from a fully specified file. This 
@@ -29,13 +29,16 @@ function basename(input: string): string
 ## Returns: the directory name.
 function dirname(input: string): string
 	{
-	const dir_pattern = /(\\[^ ]|\/)[^\\\/]*$/;
+	const dir_pattern = /[^\\\/]*$/;
 	local parts = split_string_all(input, dir_pattern);
 
 	if ( |parts| < 3 )
 		return "";
 
-	return parts[0];
+	if ( parts[0][-1] == /[\\\/]/ )
+		return parts[0][0:-1];
+	else
+		return parts[0];
 	}
 
 ## Given an arbitrary string, extracts a single, absolute path (directory

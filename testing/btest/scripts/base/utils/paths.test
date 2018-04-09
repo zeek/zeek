@@ -4,9 +4,9 @@
 # This is loaded by default.
 #@load base/utils/paths
 
-function test_extract(str: string, expect: string)
+function test_mod(func: function(input:string): string, str: string, expect: string)
 	{
-	local result = extract_path(str);
+	local result = func(str);
 	print fmt("Given : %s", str);
 	print fmt("Expect: %s", expect);
 	print fmt("Result: %s", result);
@@ -14,35 +14,43 @@ function test_extract(str: string, expect: string)
 	print "===============================";
 	}
 
-function test_compress(str: string, expect: string)
-	{
-	local result = compress_path(str);
-	print fmt("Given : %s", str);
-	print fmt("Expect: %s", expect);
-	print fmt("Result: %s", result);
-	print fmt("Result: %s", result == expect ? "SUCCESS" : "FAIL");
-	print "===============================";
-	}
+print "test basename()";
+print "===============================";
+test_mod(basename, "windows\\System32\\LogFiles\\Firewall\\Domainfirewall.log", "Domainfirewall.log");
+test_mod(basename, "a\\b\\ file with embedded spaces.txt", " file with embedded spaces.txt");
+test_mod(basename, "a b c\\ path \\and file with embedded spaces.txt", "and file with embedded spaces.txt");
+test_mod(basename, "nopath.txt", "nopath.txt");
+test_mod(basename, "a\\b\\\x01\x02filewithbinarycharacters.txt", "\x01\x02filewithbinarycharacters.txt");
+
+print "test dirname()";
+print "===============================";
+test_mod(dirname, "windows\\System32\\LogFiles\\Firewall\\Domainfirewall.log", "windows\\System32\\LogFiles\\Firewall");
+test_mod(dirname, "a\\b\\ file with embedded spaces.txt", "a\\b");
+test_mod(dirname, "a b c\\ path \\and file with embedded spaces.txt", "a b c\\ path ");
+test_mod(dirname, "nopath.txt", "");
+test_mod(dirname, "a\\b\\\x01\x02filewithbinarycharacters.txt", "a\\b");
+
 
 print "test compress_path()";
 print "===============================";
-test_compress("foo//bar", "foo/bar");
-test_compress("foo//bar/..", "foo");
-test_compress("foo/bar/../..", "");
-test_compress("foo//bar/../..", "");
-test_compress("/foo/../bar", "/bar");
-test_compress("/foo/../bar/..", "/");
-test_compress("/foo/baz/../..", "/");
-test_compress("../..", "../..");
-test_compress("foo/../../..", "../..");
+test_mod(compress_path, "foo//bar", "foo/bar");
+test_mod(compress_path, "foo//bar/..", "foo");
+test_mod(compress_path, "foo/bar/../..", "");
+test_mod(compress_path, "foo//bar/../..", "");
+test_mod(compress_path, "/foo/../bar", "/bar");
+test_mod(compress_path, "/foo/../bar/..", "/");
+test_mod(compress_path, "/foo/baz/../..", "/");
+test_mod(compress_path, "../..", "../..");
+test_mod(compress_path, "foo/../../..", "../..");
 
 print "test extract_path()";
 print "===============================";
-test_extract("\"/this/is/a/dir\" is current directory", "/this/is/a/dir");
-test_extract("/this/is/a/dir is current directory", "/this/is/a/dir");
-test_extract("/this/is/a/dir\\ is\\ current\\ directory", "/this/is/a/dir\\ is\\ current\\ directory");
-test_extract("hey, /foo/bar/baz.bro is a cool script", "/foo/bar/baz.bro");
-test_extract("here's two dirs: /foo/bar and /foo/baz", "/foo/bar");
+test_mod(extract_path, "\"/this/is/a/dir\" is current directory", "/this/is/a/dir");
+test_mod(extract_path, "/this/is/a/dir is current directory", "/this/is/a/dir");
+test_mod(extract_path, "/this/is/a/dir\\ is\\ current\\ directory", "/this/is/a/dir\\ is\\ current\\ directory");
+test_mod(extract_path, "hey, /foo/bar/baz.bro is a cool script", "/foo/bar/baz.bro");
+test_mod(extract_path, "here's two dirs: /foo/bar and /foo/baz", "/foo/bar");
+
 
 print "test build_path_compressed()";
 print "===============================";
@@ -55,4 +63,3 @@ print "test build_full_path()";
 print "===============================";
 print build_path("/home/bro/", "policy/somefile.bro");
 print build_path("/home/bro/", "/usr/local/bro/share/bro/somefile.bro");
-

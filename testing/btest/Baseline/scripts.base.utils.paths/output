@@ -1,3 +1,57 @@
+test basename()
+===============================
+Given : windows\System32\LogFiles\Firewall\Domainfirewall.log
+Expect: Domainfirewall.log
+Result: Domainfirewall.log
+Result: SUCCESS
+===============================
+Given : a\b\ file with embedded spaces.txt
+Expect:  file with embedded spaces.txt
+Result:  file with embedded spaces.txt
+Result: SUCCESS
+===============================
+Given : a b c\ path \and file with embedded spaces.txt
+Expect: and file with embedded spaces.txt
+Result: and file with embedded spaces.txt
+Result: SUCCESS
+===============================
+Given : nopath.txt
+Expect: nopath.txt
+Result: nopath.txt
+Result: SUCCESS
+===============================
+Given : a\b\\x01\x02filewithbinarycharacters.txt
+Expect: \x01\x02filewithbinarycharacters.txt
+Result: \x01\x02filewithbinarycharacters.txt
+Result: SUCCESS
+===============================
+test dirname()
+===============================
+Given : windows\System32\LogFiles\Firewall\Domainfirewall.log
+Expect: windows\System32\LogFiles\Firewall
+Result: windows\System32\LogFiles\Firewall
+Result: SUCCESS
+===============================
+Given : a\b\ file with embedded spaces.txt
+Expect: a\b
+Result: a\b
+Result: SUCCESS
+===============================
+Given : a b c\ path \and file with embedded spaces.txt
+Expect: a b c\ path 
+Result: a b c\ path 
+Result: SUCCESS
+===============================
+Given : nopath.txt
+Expect: 
+Result: 
+Result: SUCCESS
+===============================
+Given : a\b\\x01\x02filewithbinarycharacters.txt
+Expect: a\b
+Result: a\b
+Result: SUCCESS
+===============================
 test compress_path()
 ===============================
 Given : foo//bar

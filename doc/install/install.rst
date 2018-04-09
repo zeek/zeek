@@ -73,7 +73,7 @@ To install the required dependencies, you can use:
 
   .. console::
 
-      sudo pkg install bash cmake swig bison python py27-sqlite3
+      sudo pkg install bash cmake swig30 bison python py27-sqlite3 py27-ipaddress
 
   For older versions of FreeBSD (especially FreeBSD 9.x), the system compiler
   is not new enough to compile Bro. For these systems, you will have to install

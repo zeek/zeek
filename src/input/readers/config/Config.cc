@@ -2,12 +2,12 @@
 
 #include <sstream>
 #include <unordered_set>
-#include <regex>
 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <errno.h>
+#include <regex.h>
 
 #include "Config.h"
 #include "config.bif.h"
@@ -191,18 +191,24 @@ bool Config::DoUpdate()
 		unseen_options.insert(i.first);
 		}
 
+	regex_t re;
+	if ( regcomp(&re, "^([^[:blank:]]+)[[:blank:]]+(.*)$", REG_EXTENDED) )
+		{
+		Error(Fmt("Failed to compile regex."));
+		return true;
+		}
+
 	while ( GetLine(line) )
 		{
-		static std::regex re("^(.*?)\\s+(.*)$");
-		std::smatch match;
-		if ( ! std::regex_search(line, match, re) )
+		regmatch_t match[3];
+		if ( regexec(&re, line.c_str(), 3, match, 0) )
 			{
 			Warning(Fmt("Could not parse '%s'; line has invalid format. Ignoring line.", line.c_str()));
 			continue;
 			}
 
-		string key = match[1];
-		string value = match[2];
+		string key = line.substr(match[1].rm_so, match[1].rm_eo - match[1].rm_so);
+		string value = line.substr(match[2].rm_so, match[2].rm_eo - match[2].rm_so);
 
 		auto typeit = option_types.find(key);
 		if ( typeit == option_types.end() )
@@ -277,6 +283,8 @@ bool Config::DoUpdate()
 			SendEvent("InputConfig::new_value", 4, vals);
 			}
 		}
+
+	regfree(&re);
 
 	if ( Info().mode != MODE_STREAM )
 		EndCurrentSend();

@@ -705,9 +705,8 @@ RPC_Analyzer::RPC_Analyzer(const char* name, Connection* conn,
 	: tcp::TCP_ApplicationAnalyzer(name, conn),
 	  interp(arg_interp), orig_rpc(), resp_rpc()
 	{
-	if ( Conn()->ConnTransport() == TRANSPORT_UDP )
-		ADD_ANALYZER_TIMER(&RPC_Analyzer::ExpireTimer,
-			network_time + rpc_timeout, 1, TIMER_RPC_EXPIRE);
+	ADD_ANALYZER_TIMER(&RPC_Analyzer::ExpireTimer,
+		network_time + rpc_timeout, 1, TIMER_RPC_EXPIRE);
 	}
 
 RPC_Analyzer::~RPC_Analyzer()

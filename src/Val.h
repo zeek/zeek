@@ -920,6 +920,8 @@ protected:
 
 class RecordVal : public MutableVal {
 public:
+	static vector<RecordVal*> parse_time_records;
+
 	explicit RecordVal(RecordType* t);
 	~RecordVal() override;
 
@@ -929,6 +931,11 @@ public:
 	void Assign(int field, Val* new_val, Opcode op = OP_ASSIGN);
 	Val* Lookup(int field) const;	// Does not Ref() value.
 	Val* LookupWithDefault(int field) const;	// Does Ref() value.
+
+	// Extend the underlying array to match the number of fields in the
+	// record type (they may mismatch as a result of parse-time record type
+	// redefinitions.
+	bool Resize();
 
 	/**
 	 * Looks up the value of a field by field name.  If the field doesn't

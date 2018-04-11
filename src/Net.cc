@@ -61,6 +61,7 @@ double bro_start_time = 0.0; // time Bro started.
 double bro_start_network_time;	// timestamp of first packet
 double last_watchdog_proc_time = 0.0;	// value of above during last watchdog
 bool terminating = false;	// whether we're done reading and finishing up
+bool is_parsing = false;
 
 const Packet *current_pkt = 0;
 int current_dispatched = 0;

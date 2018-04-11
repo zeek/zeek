@@ -70,6 +70,9 @@ extern bool terminating;
 // True if the remote serializer is to be activated.
 extern bool using_communication;
 
+// True if Bro is currently parsing scripts.
+extern bool is_parsing;
+
 extern const Packet* current_pkt;
 extern int current_dispatched;
 extern double current_timestamp;

@@ -227,8 +227,6 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 ########################################################################
 ## Recurse on sub-directories
 
-# Broker
-set (BROKER_DISABLE_DOCS true)
 add_subdirectory(aux/broker)
 set(brodeps ${brodeps} broker)
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/aux/broker

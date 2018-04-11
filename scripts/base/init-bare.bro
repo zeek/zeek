@@ -760,7 +760,7 @@ type IPAddrAnonymizationClass: enum {
 ## A locally unique ID identifying a communication peer. The ID is returned by
 ## :bro:id:`connect`.
 ##
-## .. bro:see:: connect Communication
+## .. bro:see:: connect
 type peer_id: count;
 
 ## A communication peer.
@@ -783,7 +783,7 @@ type event_peer: record {
 	p: port;
 	is_local: bool;		##< True if this record describes the local process.
 	descr: string;		##< The peer's :bro:see:`peer_description`.
-	class: string &optional;	##< The self-assigned *class* of the peer. See :bro:see:`Communication::Node`.
+	class: string &optional;	##< The self-assigned *class* of the peer.
 };
 
 ## Deprecated.

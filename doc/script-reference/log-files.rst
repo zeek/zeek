@@ -168,8 +168,8 @@ Bro Diagnostics
 +----------------------------+---------------------------------------+---------------------------------+
 | cluster.log                | Bro cluster messages                  | :bro:type:`Cluster::Info`       |
 +----------------------------+---------------------------------------+---------------------------------+
-| communication.log          | Communication events between Bro or   | :bro:type:`Communication::Info` |
-|                            | Broccoli instances                    |                                 |
+| broker.log                 | Peering status events between Bro or  | :bro:type:`Broker::Info`        |
+|                            | Broker-enabled processes              |                                 |
 +----------------------------+---------------------------------------+---------------------------------+
 | loaded_scripts.log         | Shows all scripts loaded by Bro       | :bro:type:`LoadedScripts::Info` |
 +----------------------------+---------------------------------------+---------------------------------+

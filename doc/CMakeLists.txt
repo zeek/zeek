@@ -2,6 +2,8 @@ set(SPHINX_INPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/sphinx_input)
 set(SPHINX_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/sphinx_output)
 set(BROXYGEN_SCRIPT_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/broxygen_script_output)
 set(BROXYGEN_CACHE_DIR ${CMAKE_CURRENT_BINARY_DIR}/broxygen_cache)
+set(BROKER_DOCS_SRC ${CMAKE_BINARY_DIR}/aux/broker/doc/html)
+set(BROKER_DOCS_DST ${CMAKE_BINARY_DIR}/html/broker-manual)
 
 # Find out what BROPATH to use when executing bro.
 execute_process(COMMAND ${CMAKE_BINARY_DIR}/bro-path-dev
@@ -59,6 +61,9 @@ add_custom_target(sphinxdoc
     COMMAND "${CMAKE_COMMAND}" -E create_symlink
             ${SPHINX_OUTPUT_DIR}/html
             ${CMAKE_BINARY_DIR}/html
+    # Copy Broker manual into output dir.
+    COMMAND rm -rf ${BROKER_DOCS_DST} &&
+            cp -r ${BROKER_DOCS_SRC} ${BROKER_DOCS_DST}
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     COMMENT "[Sphinx] Generate HTML documentation in ${CMAKE_BINARY_DIR}/html")
 
@@ -71,7 +76,10 @@ add_custom_target(sphinxdoc_clean
     COMMAND "${CMAKE_COMMAND}" -E remove_directory ${BROXYGEN_CACHE_DIR}
     VERBATIM)
 
-add_custom_target(doc)
+if (NOT TARGET doc)
+  add_custom_target(doc)
+endif ()
+
 add_custom_target(docclean)
 add_dependencies(doc sphinxdoc)
 add_dependencies(docclean sphinxdoc_clean)

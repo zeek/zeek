@@ -451,7 +451,8 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 	else if ( mime::strcasecmp_n(h->get_name(), "content-encoding") == 0 )
 		{
 		data_chunk_t vt = h->get_value_token();
-		if ( mime::strcasecmp_n(vt, "gzip") == 0 )
+		if ( mime::strcasecmp_n(vt, "gzip") == 0 ||
+		     mime::strcasecmp_n(vt, "x-gzip") == 0 )
 			encoding = GZIP;
 		if ( mime::strcasecmp_n(vt, "deflate") == 0 )
 			encoding = DEFLATE;

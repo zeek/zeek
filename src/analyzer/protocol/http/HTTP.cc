@@ -470,8 +470,15 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 
 	else if ( mime::strcasecmp_n(h->get_name(), "transfer-encoding") == 0 )
 		{
+		double http_version = 0;
+		if (http_message->analyzer->GetRequestOngoing())
+			http_version = http_message->analyzer->GetRequestVersion();
+		else // reply_ongoing
+			http_version = http_message->analyzer->GetReplyVersion();
+
 		data_chunk_t vt = h->get_value_token();
-		if ( mime::strcasecmp_n(vt, "chunked") == 0 )
+		if ( mime::strcasecmp_n(vt, "chunked") == 0 &&
+		     http_version == 1.1)
 			chunked_transfer_state = BEFORE_CHUNK;
 		}
 

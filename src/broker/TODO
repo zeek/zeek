@@ -5,8 +5,6 @@
   have the same cause. (Actually I'm seeing some random crashes
   anyways, at termination I believe).
 
-- Implement a better version of DataVal::canCastTo
-
 For later:
 
 - Routing isn't supported yet

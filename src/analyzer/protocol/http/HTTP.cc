@@ -364,7 +364,19 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 			{
 			int64_t n;
 			if ( atoi_n(vt.length, vt.data, 0, 10, n) )
+				{
 				content_length = n;
+
+				if ( is_partial_content && range_length != content_length )
+					{
+					// Possible evasion attempt.
+					http_message->Weird("HTTP_range_not_matching_len");
+
+					// Take the maximum of both lengths to avoid evasions.
+					if ( range_length > content_length )
+						content_length = range_length;
+					}
+				}
 			else
 				content_length = 0;
 			}
@@ -432,7 +444,16 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 
 			is_partial_content = true;
 			offset = f;
-			content_length = len;
+			range_length = len;
+			if ( content_length != 0 && content_length != range_length )
+				{
+				// Possible evasion attempt.
+				http_message->Weird("HTTP_range_not_matching_len");
+
+				// Take the maximum of both lengths to avoid evasions.
+				if ( range_length > content_length )
+					content_length = range_length;
+				}
 			}
 		else
 			{

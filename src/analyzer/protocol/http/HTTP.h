@@ -55,6 +55,7 @@ protected:
 	HTTP_Message* http_message;
 	int chunked_transfer_state;
 	int64_t content_length;
+	int64_t range_length;
 	int64_t expect_data_length;
 	int expect_body;
 	int64_t body_length;

@@ -378,6 +378,7 @@ void terminate_bro()
 	delete log_mgr;
 	delete plugin_mgr;
 	delete reporter;
+	// broker_mgr is deleted via iosource_mgr
 	delete iosource_mgr;
 	delete port_mgr;
 

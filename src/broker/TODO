@@ -1,10 +1,4 @@
 
-- Deleting the broker_mgr leads to crashes, so I've disabled that
-  for now in main (that delete didn't use to be there at all). I've
-  also seen rare crashes even with that disabled, which may or may not
-  have the same cause. (Actually I'm seeing some random crashes
-  anyways, at termination I believe).
-
 For later:
 
 - Routing isn't supported yet

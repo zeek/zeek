@@ -46,7 +46,7 @@ struct Stats {
  */
 class Manager : public iosource::IOSource {
 public:
-        static const broker::endpoint_info NoPeer;
+    static const broker::endpoint_info NoPeer;
 
 	/**
 	 * Constructor.
@@ -56,7 +56,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	~Manager();
+	~Manager() override;
 
 	/**
 	 * Initialization of the manager. This is called late during Bro's

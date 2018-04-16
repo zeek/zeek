@@ -1329,6 +1329,29 @@ StoreHandleVal* Manager::MakeMaster(const string& name, broker::backend type,
 
 	DBG_LOG(DBG_BROKER, "Creating master for data store %s", name.c_str());
 
+	auto it = opts.find("path");
+
+	if ( it == opts.end() )
+		it = opts.emplace("path", "").first;
+
+	if ( it->second == broker::data("") )
+		{
+		auto suffix = ".store";
+
+		switch ( type ) {
+		case broker::backend::sqlite:
+			suffix = ".sqlite";
+			break;
+		case broker::backend::rocksdb:
+			suffix = ".rocksdb";
+			break;
+		default:
+			break;
+		}
+
+		it->second = name + suffix;
+		}
+
 	auto result = bstate->endpoint.attach_master(name, type, move(opts));
 	if ( ! result )
 		{

@@ -51,13 +51,17 @@ export {
 	## Options to tune the SQLite storage backend.
 	type SQLiteOptions: record {
 		## File system path of the database.
-		path: string &default = "store.sqlite";
+		## If left empty, will be derived from the name of the store,
+		## and use the '.sqlite' file suffix.
+		path: string &default = "";
 	};
 
 	## Options to tune the RocksDB storage backend.
 	type RocksDBOptions: record {
 		## File system path of the database.
-		path: string &default = "store.rocksdb";
+		## If left empty, will be derived from the name of the store.
+		## and use the '.rocksdb' file suffix.
+		path: string &default = "";
 	};
 
 	## Options to tune the particular storage backends.

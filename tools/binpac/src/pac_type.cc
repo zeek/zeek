@@ -784,6 +784,20 @@ void Type::GenParseCode3(Output* out_cc, Env* env, const DataPtr& data, int flag
 
 	if ( size_var() )
 		ASSERT(env->Evaluated(size_var()));
+
+	foreach(i, ExprList, attr_checks_)
+		{
+		Expr* check = *i;
+		const char* check_expr = check->EvalExpr(out_cc, env);
+		out_cc->println("// Evaluate '&check' attribute");
+		out_cc->println("if (!%s)", check_expr);
+		out_cc->inc_indent();
+		out_cc->println("{");
+		out_cc->println("throw binpac::ExceptionCheckViolation(\"%s\");", data_id_str_.c_str());
+		out_cc->println("}");
+		out_cc->dec_indent();
+		}
+
 	}
 
 Type *Type::MemberDataType(const ID *member_id) const

@@ -22,6 +22,15 @@ protected:
 	string msg_;
 };
 
+class ExceptionCheckViolation : public Exception
+{
+public:
+	ExceptionCheckViolation(const char* where)
+		{
+		append(binpac_fmt("check violation : %s", where));
+		}
+};
+
 class ExceptionOutOfBound : public Exception
 {
 public:

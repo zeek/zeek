@@ -186,7 +186,7 @@ type ReadDiscreteInputsResponse(header: ModbusTCP_TransportHeader) = record {
 # REQUEST FC=3
 type ReadHoldingRegistersRequest(header: ModbusTCP_TransportHeader) = record {
 	start_address: uint16;
-	quantity:      uint16 &check(1 <= quantity && quantity <= 125);
+	quantity:      uint16 &check(quantity <= 125);
 } &let {
 	deliver: bool = $context.flow.deliver_ReadHoldingRegistersRequest(header, this);
 } &byteorder=bigendian;
@@ -202,7 +202,7 @@ type ReadHoldingRegistersResponse(header: ModbusTCP_TransportHeader) = record {
 # REQUEST FC=4
 type ReadInputRegistersRequest(header: ModbusTCP_TransportHeader) = record {
 	start_address: uint16;
-	quantity:      uint16 &check(1 <= quantity && quantity <= 125);
+	quantity:      uint16 &check(quantity <= 125);
 } &let {
 	deliver: bool = $context.flow.deliver_ReadInputRegistersRequest(header, this);
 } &byteorder=bigendian;
@@ -295,7 +295,7 @@ type FileRecordRequest = record {
 
 # REQUEST FC=20
 type ReadFileRecordRequest(header: ModbusTCP_TransportHeader) = record {
-	byte_count: uint8               &check(byte_count >= 0x07 && byte_count <= 0xF5);
+	byte_count: uint8               &check(byte_count <= 0xF5);
 	references: FileRecordRequest[] &length=byte_count;
 } &let {
 	deliver: bool = $context.flow.deliver_ReadFileRecordRequest(header, this);

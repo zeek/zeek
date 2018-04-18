@@ -1,7 +1,7 @@
-dnp3_header_block, T, 25605, 11, 196, 1, 100
+dnp3_header_block, T, 11, 196, 1, 100
 dnp3_application_request_header, T, 199, 1
 dnp3_object_header, T, 15361, 6, 0, 65535, 65535
-dnp3_header_block, F, 25605, 255, 68, 100, 1
+dnp3_header_block, F, 255, 68, 100, 1
 dnp3_application_response_header, F, 135, 129, 5120
 dnp3_object_header, F, 257, 1, 1024, 0, 1023
 dnp3_object_prefix, F, 0
@@ -2114,7 +2114,7 @@ dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 0
 dnp3_analog_input_SPwFlag, F, 1, 0
 dnp3_response_data_object, F, 255
-dnp3_header_block, F, 25605, 255, 68, 100, 1
+dnp3_header_block, F, 255, 68, 100, 1
 dnp3_application_response_header, F, 72, 129, 5120
 dnp3_object_header, F, 7685, 1, 224, 276, 499
 dnp3_object_prefix, F, 0

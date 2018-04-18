@@ -8,7 +8,8 @@ type DNP3_PDU(is_orig: bool) = case is_orig of {
 } &byteorder = bigendian;
 
 type Header_Block = record {
-	start: uint16 &check(start == 0x0564);
+	start_1: uint8 &check(start_1 == 0x05);
+	start_2: uint8 &check(start_2 == 0x64);
 	len: uint8;
 	ctrl: uint8;
 	dest_addr: uint16;
@@ -34,11 +35,11 @@ type DNP3_Request = record {
 		FREEZE_AT_TIME_NR -> freeze_time_nr_requests: Request_Objects(app_header.function_code)[];
 		COLD_RESTART -> cold_restart: empty;
 		WARM_RESTART -> warm_restart: empty;
-		INITIALIZE_DATA -> initilize_data: empty &check(0);  # obsolete
+		INITIALIZE_DATA -> initilize_data: empty;  # obsolete
 		INITIALIZE_APPL -> initilize_appl: Request_Objects(app_header.function_code)[];
 		START_APPL -> start_appl: Request_Objects(app_header.function_code)[];
 		STOP_APPL -> stop_appl: Request_Objects(app_header.function_code)[];
-		SAVE_CONFIG -> save_config: empty &check(0);  # depracated
+		SAVE_CONFIG -> save_config: empty;  # depracated
 		ENABLE_UNSOLICITED -> enable_unsolicited: Request_Objects(app_header.function_code)[];
 		DISABLE_UNSOLICITED -> disable_unsolicited: Request_Objects(app_header.function_code)[];
 		ASSIGN_CLASS -> assign_class: Request_Objects(app_header.function_code)[];
@@ -92,7 +93,7 @@ type Request_Objects(function_code: uint8) = record {
 	data: case (object_header.object_type_field) of {
 		0x0c03 -> bocmd_PM: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ ( object_header.number_of_item / 8 ) + 1*( object_header.number_of_item > ( (object_header.number_of_item / 8)*8 ) ) ];
 		0x3202 -> time_interval_ojbects: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item]
-							&check( object_header.qualifer_field == 0x0f && object_header.number_of_item == 0x01);
+							&check( object_header.qualifier_field == 0x0f && object_header.number_of_item == 0x01);
 		default -> ojbects: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
 	};
 	# dump_data is always empty; I intend to use it for checking some conditions;
@@ -135,12 +136,7 @@ type Object_Header(function_code: uint8) = record {
 		8 -> range_field_8: uint16;
 		9 -> range_field_9: uint32;
 		0x0b -> range_field_b: uint8;
-		default -> unknown: bytestring &restofdata &check(0);
-	};
-	# dump_data is always empty; used to check dependency bw object_type_field and qualifier_field
-	dump_data: case ( object_type_field & 0xff00 ) of {
-		0x3C00 -> dump_3c: empty &check( (object_type_field == 0x3C01 || object_type_field == 0x3C02 || object_type_field == 0x3C03 || object_type_field == 0x3C04) && ( qualifier_field == 0x06 ) );
-		default -> dump_def: empty;
+		default -> unknown: bytestring &restofdata;
 	};
 }
       &let{

@@ -1,4 +1,8 @@
 
+2.5-514 | 2018-04-18 10:54:24 -0500
+
+  * Improve HLL cardinality estimate unit test. (Corelight)
+
 2.5-513 | 2018-04-18 10:38:41 -0500
 
   * Updating the defined SMB2 dialects to match Microsofts current docs.

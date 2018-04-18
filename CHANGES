@@ -1,4 +1,10 @@
 
+2.5-515 | 2018-04-18 11:44:36 -0500
+
+  * Improve std::map usages in SMB code
+
+    Removed redundant lookup operations (Corelight)
+
 2.5-514 | 2018-04-18 10:54:24 -0500
 
   * Improve HLL cardinality estimate unit test. (Corelight)

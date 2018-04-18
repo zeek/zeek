@@ -157,10 +157,12 @@ refine connection SMB_Conn += {
 	function get_request_tree_id(message_id: uint64): uint64
 		%{
 		// This is stored at the request and used at the reply.
-		if ( smb2_request_tree_id.count(message_id) > 0 )
-			return smb2_request_tree_id[message_id];
-		else
+		auto it = smb2_request_tree_id.find(message_id);
+
+		if ( it == smb2_request_tree_id.end() )
 			return 0;
+
+		return it->second;
 		%}
 };
 

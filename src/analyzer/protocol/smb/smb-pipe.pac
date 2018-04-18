@@ -22,7 +22,12 @@ refine connection SMB_Conn += {
 
 	function get_tree_is_pipe(tree_id: uint32): bool
 		%{
-		return ( tree_is_pipe_map.count(tree_id) > 0 && tree_is_pipe_map.at(tree_id) );
+		auto it = tree_is_pipe_map.find(tree_id);
+
+		if ( it == tree_is_pipe_map.end() )
+			return false;
+
+		return it->second;
 		%}
 
 	function unset_tree_is_pipe(tree_id: uint32): bool
@@ -40,10 +45,13 @@ refine connection SMB_Conn += {
 	function forward_dce_rpc(pipe_data: bytestring, fid: uint64, is_orig: bool): bool
 		%{
 		analyzer::dce_rpc::DCE_RPC_Analyzer *pipe_dcerpc = nullptr;
-		if ( fid_to_analyzer_map.count(fid) == 0 )
+		auto it = fid_to_analyzer_map.find(fid);
+
+		if ( it == fid_to_analyzer_map.end() )
 			{
 			auto tmp_analyzer = analyzer_mgr->InstantiateAnalyzer("DCE_RPC", bro_analyzer()->Conn());
 			pipe_dcerpc = static_cast<analyzer::dce_rpc::DCE_RPC_Analyzer *>(tmp_analyzer);
+
 			if ( pipe_dcerpc )
 				{
 				pipe_dcerpc->SetFileID(fid);
@@ -52,7 +60,7 @@ refine connection SMB_Conn += {
 			}
 		else
 			{
-			pipe_dcerpc = fid_to_analyzer_map.at(fid);
+			pipe_dcerpc = it->second;
 			}
 
 		if ( pipe_dcerpc )

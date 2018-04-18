@@ -94,6 +94,12 @@ type SMB2_Message_Response(header: SMB2_Header) = case header.command of {
 
 refine connection SMB_Conn += {
 
+	%member{
+		// Track tree_ids given in requests.  Sometimes the server doesn't
+		// reply with the tree_id.  Index is message_id, yield is tree_id
+		std::map<uint64,uint64> smb2_request_tree_id;
+	%}
+
 	function BuildSMB2HeaderVal(hdr: SMB2_Header): BroVal
 		%{
 		RecordVal* r = new RecordVal(BifType::Record::SMB2::Header);
@@ -124,8 +130,20 @@ refine connection SMB_Conn += {
 
 	function proc_smb2_message(h: SMB2_Header, is_orig: bool): bool
 		%{
-		//if ( ${h.command} == SMB2_READ )
-		//	printf("got a read %s command\n", is_orig ? "request" : "response");
+		if ( is_orig )
+			{
+			// Store the tree_id
+			smb2_request_tree_id[${h.message_id}] = ${h.tree_id};
+			}
+		else
+			{
+			// Remove the stored tree_id unless the reply is pending.  It will
+			// have already been used by the time this code is reached.
+			if ( ${h.status} != 0x00000103 )
+				{
+				smb2_request_tree_id.erase(${h.message_id});
+				}
+			}
 
 		if ( smb2_message )
 			{
@@ -134,6 +152,15 @@ refine connection SMB_Conn += {
 			                                is_orig);
 			}
 		return true;
+		%}
+
+	function get_request_tree_id(message_id: uint64): uint64
+		%{
+		// This is stored at the request and used at the reply.
+		if ( smb2_request_tree_id.count(message_id) > 0 )
+			return smb2_request_tree_id[message_id];
+		else
+			return 0;
 		%}
 };
 
@@ -199,7 +226,8 @@ type SMB2_Header(is_orig: bool) = record {
 	related  = (flags >> 26) & 1;
 	msigned  = (flags >> 27) & 1;
 	dfs      = (flags) & 1;
-	is_pipe: bool = $context.connection.get_tree_is_pipe(tree_id);
+	request_tree_id = $context.connection.get_request_tree_id(message_id);
+	is_pipe: bool = $context.connection.get_tree_is_pipe(is_orig ? tree_id : request_tree_id);
 	proc : bool = $context.connection.proc_smb2_message(this, is_orig);
 } &byteorder=littleendian;
 

@@ -1,4 +1,18 @@
 
+2.5-513 | 2018-04-18 10:38:41 -0500
+
+  * Updating the defined SMB2 dialects to match Microsofts current docs.
+    (Corelight)
+
+  * BIT-1862: Improve handling SMB pending commands and read response tree id.
+    (Stefano Rinaldi, Corelight)
+
+    On rare occasions, SMB server doesn't return the tree id on read responses.
+
+  * Better reporter for Brostring with embedded NUL (Philippe Antoine)
+
+  * Fix config input reader on systems with gcc 4.8 (Daniel Thayer)
+
 2.5-504 | 2018-04-06 10:51:19 -0700
 
   * Trim the Travis CI build log output. (Daniel Thayer)

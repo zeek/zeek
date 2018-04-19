@@ -3,18 +3,12 @@
 type Prefix_Type(qualifier_field: uint8) = record {
 	prefix: case ( qualifier_field & 0xf0 ) of {
 		0x00 -> none: empty;
-		0x10 -> prefix8: uint8 &check(qualifier_field == 0x17 ||
-						qualifier_field == 0x18 ||
-						qualifier_field == 0x19 );
-		0x20 -> prefix16: uint16 &check(qualifier_field == 0x27 ||
-						qualifier_field == 0x28 ||
-						qualifier_field == 0x29 );
-		0x30 -> prefix32: uint32 &check(qualifier_field == 0x37 ||
-						qualifier_field == 0x38 ||
-						qualifier_field == 0x39 );
-		0x40 -> object_size8: uint8 &check(qualifier_field == 0x4B);
-		0x50 -> object_size16: uint16 &check(qualifier_field == 0x5B);
-		0x60 -> object_size32: uint32 &check(qualifier_field == 0x6B);
+		0x10 -> prefix8: uint8; # &check(qualifier_field == 0x17 || qualifier_field == 0x18 || qualifier_field == 0x19 );
+		0x20 -> prefix16: uint16; # &check(qualifier_field == 0x27 || qualifier_field == 0x28 || qualifier_field == 0x29 );
+		0x30 -> prefix32: uint32; # &check(qualifier_field == 0x37 || qualifier_field == 0x38 || qualifier_field == 0x39 );
+		0x40 -> object_size8: uint8; # &check(qualifier_field == 0x4B);
+		0x50 -> object_size16: uint16; # &check(qualifier_field == 0x5B);
+		0x60 -> object_size32: uint32; # &check(qualifier_field == 0x6B);
 	 	default -> unknownprefix: empty;
 	};
 } &let{
@@ -109,10 +103,8 @@ type Request_Data_Object(function_code: uint8, qualifier_field: uint8, object_ty
 		0x0b02 -> boewatime: empty;
 
 	# binary output command g12
-		0x0c01 -> bocmd_CROB: CROB &check (function_code == RESPONSE || function_code == SELECT || function_code == OPERATE ||
-							function_code == DIRECT_OPERATE || function_code == DIRECT_OPERATE_NR );
-		0x0c02 -> bocmd_PCB: PCB &check (function_code == RESPONSE || function_code == SELECT || function_code == OPERATE ||
-							function_code == DIRECT_OPERATE || function_code == DIRECT_OPERATE_NR || function_code == WRITE );
+		0x0c01 -> bocmd_CROB: CROB; # &check (function_code == RESPONSE || function_code == SELECT || function_code == OPERATE || function_code == DIRECT_OPERATE || function_code == DIRECT_OPERATE_NR );
+		0x0c02 -> bocmd_PCB: PCB; # &check (function_code == RESPONSE || function_code == SELECT || function_code == OPERATE || function_code == DIRECT_OPERATE || function_code == DIRECT_OPERATE_NR || function_code == WRITE );
 		0x0c03 -> bocmd_PM: uint8;
 
 	# binary output command event g13
@@ -265,19 +257,15 @@ type Request_Data_Object(function_code: uint8, qualifier_field: uint8, object_ty
 		0x3402 -> time_fine: uint16;
 
 	# class objects g60
-		0x3C01 -> class0data: empty &check(qualifier_field == 0x06);
-		#0x3C02 -> class1data: uint8 &check(qualifier_field == 0x06);
-		0x3C02 -> class1data: empty &check(qualifier_field == 0x06 ||
-							qualifier_field == 0x07 || qualifier_field == 0x08);
-		0x3C03 -> class2data: empty &check(qualifier_field == 0x06 ||
-							qualifier_field == 0x07 || qualifier_field == 0x08);
-		0x3C04 -> class3data: empty &check(qualifier_field == 0x06 ||
-							qualifier_field == 0x07 || qualifier_field == 0x08);
+		0x3C01 -> class0data: empty; # &check(qualifier_field == 0x06);
+		#0x3C02 -> class1data: uint8; # &check(qualifier_field == 0x06);
+		0x3C02 -> class1data: empty; # &check(qualifier_field == 0x06 || qualifier_field == 0x07 || qualifier_field == 0x08);
+		0x3C03 -> class2data: empty; # &check(qualifier_field == 0x06 || qualifier_field == 0x07 || qualifier_field == 0x08);
+		0x3C04 -> class3data: empty; # &check(qualifier_field == 0x06 || qualifier_field == 0x07 || qualifier_field == 0x08);
 	# file control g70
 		0x4601 -> file_control_id: File_Control_ID;
 		0x4602 -> file_control_auth: File_Control_Auth_Wrap(function_code);
-		0x4603 -> file_control_cmd: File_Control_Cmd &check( file_control_cmd.op_mode == 0 || file_control_cmd.op_mode == 1 ||
-							  file_control_cmd.op_mode == 2 || file_control_cmd.op_mode == 3 );
+		0x4603 -> file_control_cmd: File_Control_Cmd; # &check( file_control_cmd.op_mode == 0 || file_control_cmd.op_mode == 1 || file_control_cmd.op_mode == 2 || file_control_cmd.op_mode == 3 );
 		#0x4604 -> file_control_cmd_status: File_Control_Cmd_Status_Wrap(function_code, prefix.prefix_value);  # example shown in P66
 		0x4604 -> file_control_cmd_status: File_Control_Cmd_Status(prefix.prefix_value);  # example shown in P66
 		0x4605 -> file_trans: File_Transport(prefix.prefix_value);
@@ -415,10 +403,8 @@ type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_t
 		0x0b02 -> boewatime: BinOutEveAtime;
 
 	# binary output command g12
-		0x0c01 -> bocmd_CROB: CROB &check (function_code == RESPONSE || function_code == SELECT || function_code == OPERATE ||
-							function_code == DIRECT_OPERATE || function_code == DIRECT_OPERATE_NR );
-		0x0c02 -> bocmd_PCB: PCB &check (function_code == RESPONSE || function_code == SELECT || function_code == OPERATE ||
-							function_code == DIRECT_OPERATE || function_code == DIRECT_OPERATE_NR || function_code == WRITE );
+		0x0c01 -> bocmd_CROB: CROB; # &check (function_code == RESPONSE || function_code == SELECT || function_code == OPERATE || function_code == DIRECT_OPERATE || function_code == DIRECT_OPERATE_NR );
+		0x0c02 -> bocmd_PCB: PCB; # &check (function_code == RESPONSE || function_code == SELECT || function_code == OPERATE || function_code == DIRECT_OPERATE || function_code == DIRECT_OPERATE_NR || function_code == WRITE );
 		0x0c03 -> bocmd_PM: uint8;
 
 	# binary output command event g13
@@ -559,10 +545,8 @@ type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_t
 
 	# file control g70
 		0x4601 -> file_control_id: File_Control_ID;
-		0x4602 -> file_control_auth: File_Control_Auth &check(file_control_auth.usr_name_size == 0 && file_control_auth.pwd_size == 0);
-		0x4603 -> file_control_cmd: File_Control_Cmd &check(file_control_cmd.name_size == 0 &&
-							( file_control_cmd.op_mode == 0 || file_control_cmd.op_mode == 1 ||
-							  file_control_cmd.op_mode == 2 || file_control_cmd.op_mode == 3) );
+		0x4602 -> file_control_auth: File_Control_Auth; # &check(file_control_auth.usr_name_size == 0 && file_control_auth.pwd_size == 0);
+		0x4603 -> file_control_cmd: File_Control_Cmd; # &check(file_control_cmd.name_size == 0 && ( file_control_cmd.op_mode == 0 || file_control_cmd.op_mode == 1 || file_control_cmd.op_mode == 2 || file_control_cmd.op_mode == 3) );
 		0x4604 -> file_control_cmd_status: File_Control_Cmd_Status(prefix.prefix_value);
 		0x4605 -> file_trans: File_Transport(prefix.prefix_value);
 		0x4606 -> file_trans_status: File_Transport_Status(prefix.prefix_value);
@@ -615,7 +599,7 @@ type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_t
 		0x7806 -> keyChange: AuthSessionKeyChange(prefix.prefix_value);
 		0x7807 -> error: AuthError(prefix.prefix_value);
 
-		#default -> unkonwndata: Debug_Byte &check( T );
+		#default -> unkonwndata: Debug_Byte; # &check( T );
 		default -> unmatched: Default_Wrap(object_type_field);
 	};
 }
@@ -689,8 +673,7 @@ type BinOutEveAtime = record {
 
 # g12v1 group: 12; variation: 1
 type CROB = record {
-	control_code: uint8 &check ( (control_code & 0xCF) == 0x00 || (control_code & 0xCF) == 0x01 || (control_code & 0xCF) == 0x03 || (control_code & 0xCF) == 0x04 ||
-					(control_code & 0xCF) == 0x41 || (control_code & 0xCF) == 0x81  );
+	control_code: uint8; # &check ( (control_code & 0xCF) == 0x00 || (control_code & 0xCF) == 0x01 || (control_code & 0xCF) == 0x03 || (control_code & 0xCF) == 0x04 || (control_code & 0xCF) == 0x41 || (control_code & 0xCF) == 0x81  );
 	count: uint8;
 	on_time: uint32;
 	off_time: uint32;
@@ -699,8 +682,7 @@ type CROB = record {
 
 # g12v2; same as g12v1
 type PCB = record {
-	control_code: uint8 &check ( (control_code & 0xCF) == 0x00 || (control_code & 0xCF) == 0x01 || (control_code & 0xCF) == 0x03 || (control_code & 0xCF) == 0x04 ||
-					(control_code & 0xCF) == 0x41 || (control_code & 0xCF) == 0x81  );
+	control_code: uint8; # &check ( (control_code & 0xCF) == 0x00 || (control_code & 0xCF) == 0x01 || (control_code & 0xCF) == 0x03 || (control_code & 0xCF) == 0x04 || (control_code & 0xCF) == 0x41 || (control_code & 0xCF) == 0x81  );
 	count: uint8;
 	on_time: uint32;
 	off_time: uint32;
@@ -1184,7 +1166,7 @@ type File_Control_ID = record {
 	end_rec: uint16;
 	file_size: uint32;
 	time_create: bytestring &length = 6;
-	permission: uint16 &check ( (permission & 0xFE00 ) == 0x0000);
+	permission: uint16; # &check ( (permission & 0xFE00 ) == 0x0000);
 	file_id: uint32;
 	owner_id: uint32;
 	group_id: uint32;
@@ -1197,7 +1179,7 @@ type File_Control_ID = record {
 # g70v2
 type File_Control_Auth_Wrap(fc: uint8) = record {
 	data: case(fc) of {
-		AUTHENTICATE_FILE -> auth_file: File_Control_Auth &check(auth_file.auth_key == 0) ;
+		AUTHENTICATE_FILE -> auth_file: File_Control_Auth; # &check(auth_file.auth_key == 0) ;
 		default -> null: empty;
 	};
 };
@@ -1216,7 +1198,7 @@ type File_Control_Auth = record {
 type File_Control_Cmd_Wrap(function_code: uint8) = record {
 	data_obj: case (function_code) of {
 		OPEN_FILE -> fc_cmd_open: File_Control_Cmd;
-		DELETE_FILE -> fc_cmd_del: File_Control_Cmd &check( fc_cmd_del.op_mode == 0 &&  fc_cmd_del.name_size == 0 && fc_cmd_del.time_create == 0x0);
+		DELETE_FILE -> fc_cmd_del: File_Control_Cmd; # &check( fc_cmd_del.op_mode == 0 &&  fc_cmd_del.name_size == 0 && fc_cmd_del.time_create == 0x0);
 		default -> null: empty;
 	};
 
@@ -1226,7 +1208,7 @@ type File_Control_Cmd = record {
 	name_offset: uint16;
 	name_size: uint16;
 	time_create: bytestring &length = 6;
-	permission: uint16 &check ( (permission & 0xFE00 ) == 0x0000);
+	permission: uint16; # &check ( (permission & 0xFE00 ) == 0x0000);
 	auth_key: uint32;
 	file_size: uint32;
 	op_mode: uint16;
@@ -1238,7 +1220,7 @@ type File_Control_Cmd = record {
 # g70v4
 type File_Control_Cmd_Status_Wrap(function_code: uint8, obj_size: uint32) = record {
 	data_obj: case (function_code) of {
-		ABORT_FILE -> abort: File_Control_Cmd_Status(obj_size) &check(abort.file_size == 0 && abort.max_block_size ==0 && abort.status_code ==0 );
+		ABORT_FILE -> abort: File_Control_Cmd_Status(obj_size); # &check(abort.file_size == 0 && abort.max_block_size ==0 && abort.status_code ==0 );
 		RESPONSE -> fc_cmd_status: File_Control_Cmd_Status(obj_size);
 		default -> null: empty;
 	};
@@ -1274,11 +1256,7 @@ type File_Transport_Status(obj_size: uint32) = record {
 # g70v7
 type File_Desc_Wrap(function_code: uint8) = record {
 	data: case(function_code) of {
-		GET_FILE_INFO -> get_file_info: File_Desc &check(get_file_info.type ==0 &&
-								get_file_info.f_size == 0 &&
-								get_file_info.time_create_low == 0 &&
-								get_file_info.time_create_high == 0 &&
-								get_file_info.permission == 0);
+		GET_FILE_INFO -> get_file_info: File_Desc; # &check(get_file_info.type ==0 && get_file_info.f_size == 0 && get_file_info.time_create_low == 0 && get_file_info.time_create_high == 0 && get_file_info.permission == 0);
 		default -> null: empty;
 	};
 } &byteorder = littleendian;
@@ -1290,7 +1268,7 @@ type File_Desc = record {
 	f_size: uint32;
 	time_create_low: uint32;
 	time_create_high: uint16;
-	permission: uint16 &check ( (permission & 0xFE00 ) == 0x0000);
+	permission: uint16; # &check ( (permission & 0xFE00 ) == 0x0000);
 	req_id: uint16;
 	f_name: bytestring &length = name_size;
 } &byteorder = littleendian;

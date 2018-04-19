@@ -78,9 +78,9 @@ type ClientHello(rec: HandshakeRecord) = record {
 		DTLSv10, DTLSv12 -> cookie: ClientHelloCookie(rec);
 		default -> nothing: bytestring &length=0;
 	};
-	csuit_len : uint16 &check(csuit_len > 1 && csuit_len % 2 == 0);
+	csuit_len : uint16; # &check(csuit_len > 1 && csuit_len % 2 == 0);
 	csuits : uint16[csuit_len/2];
-	cmeth_len : uint8 &check(cmeth_len > 0);
+	cmeth_len : uint8; # &check(cmeth_len > 0);
 	cmeths : uint8[cmeth_len];
 	# This weirdness is to deal with the possible existence or absence
 	# of the following fields.

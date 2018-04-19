@@ -182,7 +182,12 @@ ESCSEQ	(\\([^\n]|[0-7]{3}|x[[:xdigit:]]{2}))
 
 <INITIAL>&also			return TOK_ATTR_ALSO;
 <INITIAL>&byteorder		return TOK_ATTR_BYTEORDER;
-<INITIAL>&check			return TOK_ATTR_CHECK;
+<INITIAL>&check			{
+	fprintf(stderr,
+	        "warning in %s:%d: &check is a deprecated no-op, use &enforce\n",
+	        input_filename.c_str(), line_number);
+	return TOK_ATTR_CHECK;
+	}
 <INITIAL>&chunked		return TOK_ATTR_CHUNKED;
 <INITIAL>&enforce			return TOK_ATTR_ENFORCE;
 <INITIAL>&exportsourcedata	return TOK_ATTR_EXPORTSOURCEDATA;

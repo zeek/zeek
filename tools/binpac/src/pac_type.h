@@ -284,6 +284,7 @@ protected:
 
 	Expr *attr_byteorder_expr_;
 	ExprList *attr_checks_;
+	ExprList *attr_enforces_;
 	bool attr_chunked_;
 	bool attr_exportsourcedata_;
 	Expr *attr_if_expr_;

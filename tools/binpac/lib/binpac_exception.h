@@ -22,12 +22,12 @@ protected:
 	string msg_;
 };
 
-class ExceptionCheckViolation : public Exception
+class ExceptionEnforceViolation : public Exception
 {
 public:
-	ExceptionCheckViolation(const char* where)
+	ExceptionEnforceViolation(const char* where)
 		{
-		append(binpac_fmt("check violation : %s", where));
+		append(binpac_fmt("&enforce violation : %s", where));
 		}
 };
 

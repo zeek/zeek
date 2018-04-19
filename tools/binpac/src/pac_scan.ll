@@ -184,6 +184,7 @@ ESCSEQ	(\\([^\n]|[0-7]{3}|x[[:xdigit:]]{2}))
 <INITIAL>&byteorder		return TOK_ATTR_BYTEORDER;
 <INITIAL>&check			return TOK_ATTR_CHECK;
 <INITIAL>&chunked		return TOK_ATTR_CHUNKED;
+<INITIAL>&enforce			return TOK_ATTR_ENFORCE;
 <INITIAL>&exportsourcedata	return TOK_ATTR_EXPORTSOURCEDATA;
 <INITIAL>&if			return TOK_ATTR_IF;
 <INITIAL>&length		return TOK_ATTR_LENGTH;

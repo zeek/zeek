@@ -8,8 +8,8 @@ type DNP3_PDU(is_orig: bool) = case is_orig of {
 } &byteorder = bigendian;
 
 type Header_Block = record {
-	start_1: uint8 &check(start_1 == 0x05);
-	start_2: uint8 &check(start_2 == 0x64);
+	start_1: uint8 &enforce(start_1 == 0x05);
+	start_2: uint8 &enforce(start_2 == 0x64);
 	len: uint8;
 	ctrl: uint8;
 	dest_addr: uint16;
@@ -137,6 +137,11 @@ type Object_Header(function_code: uint8) = record {
 		9 -> range_field_9: uint32;
 		0x0b -> range_field_b: uint8;
 		default -> unknown: bytestring &restofdata;
+	};
+	# dump_data is always empty; used to check dependency bw object_type_field and qualifier_field
+	dump_data: case ( object_type_field & 0xff00 ) of {
+		0x3C00 -> dump_3c: empty &check( (object_type_field == 0x3C01 || object_type_field == 0x3C02 || object_type_field == 0x3C03 || object_type_field == 0x3C04) && ( qualifier_field == 0x06 ) );
+		default -> dump_def: empty;
 	};
 }
       &let{

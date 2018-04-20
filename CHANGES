@@ -1,9 +1,11 @@
 
+2.5-519 | 2018-04-20 07:46:07 -0700
+
+  * Reduce number of btest threads running tests on Travis CI. (Daniel Thayer)
+
 2.5-515 | 2018-04-18 11:44:36 -0500
 
-  * Improve std::map usages in SMB code
-
-    Removed redundant lookup operations (Corelight)
+  * Improve std::map usages in SMB code. (Corelight)
 
 2.5-514 | 2018-04-18 10:54:24 -0500
 

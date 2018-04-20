@@ -12,7 +12,7 @@ export {
 	};
 }
 
-event dhcp_request(c: connection, msg: dhcp_msg, req_addr: addr, serv_addr: addr, host_name: string)
+event dhcp_request(c: connection, msg: DHCP::dhcp_msg, req_addr: addr, serv_addr: addr, host_name: string, client_id: DHCP::dhcp_client_id, req_params: DHCP::dhcp_params_list)
 	{
 	if ( msg$h_addr == "" )
 		return;
@@ -24,7 +24,7 @@ event dhcp_request(c: connection, msg: dhcp_msg, req_addr: addr, serv_addr: addr
 		}
 	}
 
-event dhcp_inform(c: connection, msg: dhcp_msg, host_name: string)
+event dhcp_inform(c: connection, msg: DHCP::dhcp_msg, host_name: string, req_params: DHCP::dhcp_params_list)
 	{
 	if ( msg$h_addr == "" )
 		return;

@@ -1,6 +1,7 @@
 #include "DHCP.h"
 
 #include "events.bif.h"
+#include "types.bif.h"
 
 using namespace analyzer::dhcp;
 

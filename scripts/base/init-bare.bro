@@ -3285,24 +3285,43 @@ export {
 
 module GLOBAL;
 
-## A list of router addresses offered by a DHCP server.
-##
-## .. bro:see:: dhcp_ack dhcp_offer
-type dhcp_router_list: table[count] of addr;
+module DHCP;
 
-## A DHCP message.
-##
-## .. bro:see:: dhcp_ack dhcp_decline dhcp_discover dhcp_inform dhcp_nak
-##    dhcp_offer dhcp_release dhcp_request
-type dhcp_msg: record {
-	op: count;	##< Message OP code. 1 = BOOTREQUEST, 2 = BOOTREPLY
-	m_type: count;	##< The type of DHCP message.
-	xid: count;	##< Transaction ID of a DHCP session.
-	h_addr: string;	##< Hardware address of the client.
-	ciaddr: addr;	##< Original IP address of the client.
-	yiaddr: addr;	##< IP address assigned to the client.
-};
+export {
+	## A list of router addresses offered by a DHCP server.
+	##
+	## .. bro:see:: dhcp_ack dhcp_offer
+	type DHCP::dhcp_router_list: table[count] of addr;
+	## A DHCP message.
+	## .. bro:see:: dhcp_ack dhcp_decline dhcp_discover dhcp_inform dhcp_nak
+	##    dhcp_offer dhcp_release dhcp_request
+	type DHCP::dhcp_msg: record {
+		op: count;	##< Message OP code. 1 = BOOTREQUEST, 2 = BOOTREPLY
+		m_type: count;	##< The type of DHCP message.
+		xid: count;	##< Transaction ID of a DHCP session.
+		h_addr: string;	##< Hardware address of the client.
+		ciaddr: addr;	##< Original IP address of the client.
+		yiaddr: addr;	##< IP address assigned to the client.
+	};
+	## DHCP Paremeter Reuqest list (Option 55)
+	## .. bro:see:: dhcp_request dhcp_discover
+	type DHCP::dhcp_params_list: table[count] of count;
+	## DHCP Relay Agent Information Option (Option 82)
+	## .. bro:see:: dhcp_ack
+	type DHCP::dhcp_sub_opt: record {
+		code: count;
+		value: string;
+	};
+	## DHCP Client Identifier (Option 61)
+	## .. bro:see:: dhcp_request dhcp_discover
+	type DHCP::dhcp_client_id: record {
+		hwtype: count;
+		hwaddr: string;
+	};
+	type DHCP::dhcp_sub_opt_list: table[count] of DHCP::dhcp_sub_opt;
+}
 
+module GLOBAL;
 ## A DNS message.
 ##
 ## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl

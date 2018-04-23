@@ -1,5 +1,6 @@
 #
-# @TEST-EXEC: bro -b -r ${TRACES}/rotation.trace %INPUT 2>&1 | grep "test" >out
+# @TEST-EXEC: bro -b -r ${TRACES}/rotation.trace %INPUT >bro.out 2>&1
+# @TEST-EXEC: grep "test" bro.out | sort >out
 # @TEST-EXEC: for i in `ls test.*.log | sort`; do printf '> %s\n' $i; cat $i; done >>out
 # @TEST-EXEC: btest-diff out
 

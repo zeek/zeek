@@ -4,8 +4,11 @@
 # failing behavior.
 
 # @TEST-EXEC: btest-bg-run bro bro %INPUT
-# @TEST-EXEC: sleep 2; cp does-exist.dat does-not-exist.dat
-# @TEST-EXEC: sleep 2; mv does-not-exist.dat does-not-exist-again.dat; echo "Streaming still works" >> does-not-exist-again.dat
+# @TEST-EXEC: sleep 10
+# @TEST-EXEC: mv does-exist.dat does-not-exist.dat
+# @TEST-EXEC: sleep 2
+# @TEST-EXEC: mv does-not-exist.dat does-not-exist-again.dat
+# @TEST-EXEC: echo "Streaming still works" >> does-not-exist-again.dat
 # @TEST-EXEC: btest-bg-wait -k 3
 # @TEST-EXEC: btest-diff bro/.stdout
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff bro/.stderr
@@ -30,7 +33,7 @@ type Val: record {
 
 event line(description: Input::EventDescription, tpe: Input::Event, v: Val)
 	{
-	print v$line;
+	print fmt("%s: %s", description$name, v$line);
 	}
 
 event line2(description: Input::EventDescription, tpe: Input::Event, v: Val)

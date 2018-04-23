@@ -193,6 +193,12 @@ function Broker::relay%(first_topic: string, ...%): bool
 	return new Val(rval, TYPE_BOOL);
 	%}
 
+function Broker::__flush_logs%(%): count
+	%{
+	auto rval = broker_mgr->FlushLogBuffers();
+	return new Val(static_cast<uint64>(rval), TYPE_COUNT);
+	%}
+
 function Broker::__publish_id%(topic: string, id: string%): bool
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;

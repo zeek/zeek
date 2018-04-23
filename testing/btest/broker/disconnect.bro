@@ -6,7 +6,7 @@
 # @TEST-EXEC: sleep 6 && kill $(cat recv/.pid) && sleep 1 && echo 0 >recv/.exitcode
 # @TEST-EXEC: btest-bg-run recv2 "bro -B broker -b ../recv.bro >recv2.out"
 #
-# @TEST-EXEC: btest-bg-wait 20
+# @TEST-EXEC: btest-bg-wait 25
 # @TEST-EXEC: btest-diff send/send.out
 # @TEST-EXEC: btest-diff recv/recv.out
 # @TEST-EXEC: btest-diff recv2/recv2.out
@@ -24,9 +24,14 @@ redef Broker::default_connect_retry=1secs;
 redef Broker::default_listen_retry=1secs;
 redef exit_only_after_terminate = T;
 
+event self_terminate()
+	{
+	terminate();
+	}
+
 event do_terminate()
     {
-    terminate();
+    schedule 2sec { self_terminate() };
     }
 
 event print_something(i: int)

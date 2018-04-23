@@ -234,6 +234,10 @@ export {
 	## Returns: a unique identifier for the local broker endpoint.
 	global node_id: function(): string;
 
+	## Sends all pending log messages to remote peers.  This normally
+	## doesn't need to be used except for test cases that are time-sensitive.
+	global flush_logs: function(): count;
+
 	## Publishes the value of an identifier to a given topic.  The subscribers
 	## will update their local value for that identifier on receipt.
 	##
@@ -323,6 +327,11 @@ function peers(): vector of PeerInfo
 function node_id(): string
 	{
 	return __node_id();
+	}
+
+function flush_logs(): count
+	{
+	return __flush_logs();
 	}
 
 function publish_id(topic: string, id: string): bool

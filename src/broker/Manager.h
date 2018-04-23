@@ -309,6 +309,12 @@ public:
 	                     StoreQueryCallback* cb);
 
 	/**
+	 * Send all pending log write messages.
+	 * @return the number of messages sent.
+	 */
+	size_t FlushLogBuffers();
+
+	/**
 	 * @return communication statistics.
 	 */
 	const Stats& GetStatistics();
@@ -342,7 +348,6 @@ private:
 	void ProcessStatus(broker::status stat);
 	void ProcessError(broker::error err);
 	void ProcessStoreResponse(StoreHandleVal*, broker::store::response response);
-	void FlushLogBuffers();
 	void FlushPendingQueries();
 
 	void Error(const char* format, ...)
@@ -374,7 +379,7 @@ private:
 		double last_flush;
 		size_t message_count;
 
-		void Flush(broker::endpoint& endpoint);
+		size_t Flush(broker::endpoint& endpoint);
 	};
 
 	// Indexed by stream ID enum.

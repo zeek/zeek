@@ -75,6 +75,11 @@ redef exit_only_after_terminate = T;
 
 global msg_count: count = 0;
 
+event die()
+	{
+	terminate();
+	}
+
 event bro_init()
 	{
 	Broker::subscribe("bro/openflow");
@@ -96,7 +101,9 @@ function got_message()
 	++msg_count;
 
 	if ( msg_count >= 4 )
-		terminate();
+		{
+		schedule 2sec { die() };
+		}
 	}
 
 event OpenFlow::broker_flow_mod(name: string, dpid: count, match: OpenFlow::ofp_match, flow_mod: OpenFlow::ofp_flow_mod)

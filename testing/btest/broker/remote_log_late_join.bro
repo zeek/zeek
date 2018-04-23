@@ -77,10 +77,18 @@ event bro_init()
 	++n;
 	}
 
+event die()
+	{
+	terminate();
+	}
+
 event do_write()
 	{
 	if ( n == 6 )
-		terminate();
+		{
+		Broker::flush_logs();
+		schedule 1sec { die() };
+		}
 	else
 		{
 		Log::write(Test::LOG, [$msg = "ping", $num = n]);

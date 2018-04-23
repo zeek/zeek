@@ -83,6 +83,11 @@ event NetControl::rule_removed(r: NetControl::Rule, p: NetControl::PluginState, 
 
 redef exit_only_after_terminate = T;
 
+event die()
+	{
+	terminate();
+	}
+
 event bro_init()
 	{
 	Broker::subscribe("bro/event/netcontroltest");
@@ -108,7 +113,9 @@ event NetControl::acld_remove_rule(id: count, r: NetControl::Rule, ar: NetContro
 	Broker::publish("bro/event/netcontroltest", NetControl::acld_rule_removed, id, r, ar$command);
 
 	if ( r$cid == 4 )
-		terminate();
+		{
+		schedule 2sec { die() };
+		}
 	}
 
 @TEST-END-FILE

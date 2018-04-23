@@ -569,21 +569,19 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 
 	if ( lb.message_count >= LOG_BATCH_SIZE ||
 	     (network_time - lb.last_flush >= LOG_BUFFER_INTERVAL) )
-		lb.Flush(Endpoint());
-
-	++statistics.num_logs_outgoing;
+		statistics.num_logs_outgoing += lb.Flush(Endpoint());
 
 	return true;
 	}
 
-void Manager::LogBuffer::Flush(broker::endpoint& endpoint)
+size_t Manager::LogBuffer::Flush(broker::endpoint& endpoint)
 	{
 	if ( endpoint.is_shutdown() )
-		return;
+		return 0;
 
 	if ( ! message_count )
 		// No logs buffered for this stream.
-		return;
+		return 0;
 
 	for ( auto& kv : msgs )
 		{
@@ -596,16 +594,21 @@ void Manager::LogBuffer::Flush(broker::endpoint& endpoint)
 		endpoint.publish(topic, move(msg));
 		}
 
+	auto rval = message_count;
 	last_flush = network_time;
 	message_count = 0;
+	return rval;
 	}
 
-void Manager::FlushLogBuffers()
+size_t Manager::FlushLogBuffers()
 	{
 	DBG_LOG(DBG_BROKER, "Flushing all log buffers");
+	auto rval = 0u;
 
 	for ( auto& lb : log_buffers )
-		lb.Flush(Endpoint());
+		rval += lb.Flush(Endpoint());
+
+	return rval;
 	}
 
 void Manager::Error(const char* format, ...)
@@ -889,7 +892,7 @@ void Manager::Process()
 
 	for ( auto& s : data_stores )
 		{
-		while ( ! s.second->proxy.mailbox().empty())
+		while ( ! s.second->proxy.mailbox().empty() )
 			{
 			had_input = true;
 			auto response = s.second->proxy.receive();

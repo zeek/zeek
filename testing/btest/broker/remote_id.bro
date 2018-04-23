@@ -15,11 +15,16 @@ event bro_init()
 	Broker::peer("127.0.0.1");
 	}
 
+event die()
+	{
+	terminate();
+	}
+
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
 	print "peer added";
 	Broker::publish_id("bro/ids/test", "test_var");
-	terminate();
+	schedule 1sec { die() };
 	}
 
 @TEST-END-FILE

@@ -72,6 +72,11 @@ event NetControl::rule_timeout(r: NetControl::Rule, i: NetControl::FlowInfo, p: 
 
 redef exit_only_after_terminate = T;
 
+event die()
+	{
+	terminate();
+	}
+
 event bro_init()
 	{
 	Broker::subscribe("bro/event/netcontroltest");
@@ -103,7 +108,9 @@ event NetControl::broker_remove_rule(id: count, r: NetControl::Rule, reason: str
 	Broker::publish("bro/event/netcontroltest", NetControl::broker_rule_removed, id, r, "");
 
 	if ( r$cid == 3 )
-		terminate();
+		{
+		schedule 2sec { die() };
+		}
 	}
 
 @TEST-END-FILE

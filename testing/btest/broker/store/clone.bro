@@ -3,7 +3,7 @@
 # @TEST-EXEC: btest-bg-run clone "bro -B broker -b  ../clone-main.bro >clone.out"
 # @TEST-EXEC: btest-bg-run master "bro -B broker -b  ../master-main.bro >master.out"
 #
-# @TEST-EXEC: btest-bg-wait 20
+# @TEST-EXEC: btest-bg-wait 25
 # @TEST-EXEC: btest-diff clone/clone.out
 # @TEST-EXEC: btest-diff master/master.out
 
@@ -45,7 +45,7 @@ event inserted()
 	print_index("four");
 	print_index("five");
 	print_index("six");
-        schedule 2secs { done() };
+    schedule 2secs { done() };
 	}
 
 event bro_init()
@@ -69,7 +69,7 @@ event insert_more()
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
-        schedule 4secs { insert_more() };
+    schedule 4secs { insert_more() };
 	}
 
 @TEST-END-FILE
@@ -98,6 +98,11 @@ function print_index(k: any)
                 }
         }
 
+event done()
+	{
+	terminate();
+	}
+
 event lookup(stage: count)
 	{
 	print("----");
@@ -116,14 +121,12 @@ event lookup(stage: count)
 		{
 		Broker::put(h, "five", "555");
 		Broker::put(h, "six", "666");
-		event inserted();
-		schedule 2secs { lookup(3) };
+		schedule 4sec { inserted() };
+		schedule 8secs { lookup(3) };
 		}
-	}
 
-event done()
-	{
-	terminate();
+	if ( stage == 3 )
+		schedule 4sec { done() };
 	}
 
 event bro_init()

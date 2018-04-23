@@ -49,7 +49,10 @@ event do_count()
 	Log::write(Test::LOG, [$num = ++c]);
 
 	if ( c == 100 )
-		schedule 0.1sec { go_away() };
+		{
+		Broker::flush_logs();
+		schedule 2sec { go_away() };
+		}
 	else
 		schedule 0.01sec { do_count() };
 	}
@@ -72,6 +75,6 @@ event Cluster::node_down(name: string, id: string)
 	--peer_count;
 
 	if ( name == "worker-1" )
-		schedule 0.25sec { go_away() };
+		schedule 2sec { go_away() };
 	}
 

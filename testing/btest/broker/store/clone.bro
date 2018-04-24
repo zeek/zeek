@@ -45,7 +45,7 @@ event inserted()
 	print_index("four");
 	print_index("five");
 	print_index("six");
-    schedule 2secs { done() };
+	schedule 6secs { done() };
 	}
 
 event bro_init()

@@ -30,6 +30,10 @@ static const int LOG_BATCH_SIZE = 400;
 // batch.
 static const double LOG_BUFFER_INTERVAL = 1.0;
 
+// Number of buffered messages (at the Broker/CAF layer) after which
+// subscribers consider themselves congested.
+static const size_t SUBSCRIBER_MAX_QSIZE = 20u;
+
 const broker::endpoint_info Manager::NoPeer{{}, {}};
 
 VectorType* Manager::vector_of_data_type;
@@ -124,7 +128,7 @@ public:
 
 Manager::BrokerState::BrokerState(broker::broker_options options)
 	: endpoint(configuration(options)),
-	  subscriber(endpoint.make_subscriber({})),
+	  subscriber(endpoint.make_subscriber({}, SUBSCRIBER_MAX_QSIZE)),
 	  status_subscriber(endpoint.make_status_subscriber(true))
 	{
 	}

@@ -1,0 +1,1 @@
+error: string with embedded NUL: "hi\x00there"

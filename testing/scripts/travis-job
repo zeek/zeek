@@ -48,8 +48,10 @@ run_coverity() {
 
 run() {
     # Run the tests, but don't exit upon failure.
-    make -C testing/btest btest-verbose
+    cd testing/btest
+    ../../aux/btest/btest -j 4 -b -f diag.log
     ret=$?
+    cd ../..
 
     set -e
 
@@ -74,9 +76,10 @@ run() {
 }
 
 failure() {
-    # Output each diag.log that contains failed test results.
+    # Output each diag.log that contains failed test results, but don't show
+    # skipped tests.
     for i in testing/btest/diag.log testing/external/bro-testing/diag.log; do
-        grep -qs '... failed$' $i && cat $i ;
+        grep -qs '... failed$' $i && grep -v "... not available, skipped" $i ;
     done
 }
 

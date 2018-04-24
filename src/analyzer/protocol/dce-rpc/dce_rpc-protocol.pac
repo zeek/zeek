@@ -180,9 +180,11 @@ flow DCE_RPC_Flow(is_orig: bool) {
 	# Fragment reassembly.
 	function reassemble_fragment(header: DCE_RPC_Header, frag: bytestring): bool
 		%{
+		auto it = fb.find(${header.call_id});
+
 		if ( ${header.firstfrag} )
 			{
-			if ( fb.count(${header.call_id}) > 0 )
+			if ( it != fb.end() )
 				{
 				// We already had a first frag earlier.
 				reporter->Weird(connection()->bro_analyzer()->Conn(),
@@ -199,9 +201,11 @@ flow DCE_RPC_Flow(is_orig: bool) {
 			else
 				{
 				// first frag, but not last so we start a flowbuffer
-				fb[${header.call_id}] = std::unique_ptr<FlowBuffer>(new FlowBuffer());
-				fb[${header.call_id}]->NewFrame(0, true);
-				fb[${header.call_id}]->BufferData(frag.begin(), frag.end());
+				auto it = fb.emplace(${header.call_id},
+				                     std::unique_ptr<FlowBuffer>(new FlowBuffer()));
+				auto& flowbuf = it.first->second;
+				flowbuf->NewFrame(0, true);
+				flowbuf->BufferData(frag.begin(), frag.end());
 
 				if ( fb.size() > BifConst::DCE_RPC::max_cmd_reassembly )
 					{
@@ -210,7 +214,7 @@ flow DCE_RPC_Flow(is_orig: bool) {
 					connection()->bro_analyzer()->SetSkip(true);
 					}
 
-				if ( fb[${header.call_id}]->data_length() > (int)BifConst::DCE_RPC::max_frag_data )
+				if ( flowbuf->data_length() > (int)BifConst::DCE_RPC::max_frag_data )
 					{
 					reporter->Weird(connection()->bro_analyzer()->Conn(),
 					                "too_much_dce_rpc_fragment_data");
@@ -220,12 +224,13 @@ flow DCE_RPC_Flow(is_orig: bool) {
 				return false;
 				}
 			}
-		else if ( fb.count(${header.call_id}) > 0 )
+		else if ( it != fb.end() )
 			{
 			// not the first frag, but we have a flow buffer so add to it
-			fb[${header.call_id}]->BufferData(frag.begin(), frag.end());
+			auto& flowbuf = it->second;
+			flowbuf->BufferData(frag.begin(), frag.end());
 
-			if ( fb[${header.call_id}]->data_length() > (int)BifConst::DCE_RPC::max_frag_data )
+			if ( flowbuf->data_length() > (int)BifConst::DCE_RPC::max_frag_data )
 				{
 				reporter->Weird(connection()->bro_analyzer()->Conn(),
 				                "too_much_dce_rpc_fragment_data");
@@ -247,12 +252,14 @@ flow DCE_RPC_Flow(is_orig: bool) {
 	function reassembled_body(h: DCE_RPC_Header, body: bytestring): const_bytestring
 		%{
 		const_bytestring bd = body;
+		auto it = fb.find(${h.call_id});
 
-		if ( fb.count(${h.call_id}) > 0 )
-			{
-			bd = const_bytestring(fb[${h.call_id}]->begin(), fb[${h.call_id}]->end());
-			fb.erase(${h.call_id});
-			}
+		if ( it == fb.end() )
+			return bd;
+
+		auto& flowbuf = it->second;
+		bd = const_bytestring(flowbuf->begin(), flowbuf->end());
+		fb.erase(it);
 
 		return bd;
 		%}

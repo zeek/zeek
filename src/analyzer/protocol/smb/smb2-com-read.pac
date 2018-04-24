@@ -3,20 +3,23 @@ refine connection SMB_Conn += {
 	%member{
 		// Track read offsets to provide correct
 		// offsets for file manager.
-		std::map<uint16,uint64> smb2_read_offsets;
+		std::map<uint64,uint64> smb2_read_offsets;
 		std::map<uint64,uint64> smb2_read_fids;
 	%}
 
-	function get_file_id(message_id: uint64): uint64
+	function get_file_id(message_id: uint64, forget: bool): uint64
 		%{
-		if ( smb2_read_fids.count(message_id) == 0 )
+		auto it = smb2_read_fids.find(message_id);
+
+		if ( it == smb2_read_fids.end() )
 			return 0;
-		else
-			{
-			uint64 fid = smb2_read_fids[message_id];
-			smb2_read_fids.erase(message_id);
-			return fid;
-			}
+
+		uint64 fid = it->second;
+
+		if ( forget )
+			smb2_read_fids.erase(it);
+
+		return fid;
 		%}
 
 	function proc_smb2_read_request(h: SMB2_Header, val: SMB2_read_request) : bool
@@ -40,7 +43,10 @@ refine connection SMB_Conn += {
 	function proc_smb2_read_response(h: SMB2_Header, val: SMB2_read_response) : bool
 		%{
 		uint64 offset = smb2_read_offsets[${h.message_id}];
-		smb2_read_offsets.erase(${h.message_id});
+
+		// If a PENDING status was received, keep this around.
+		if ( ${h.status} != 0x00000103 )
+			smb2_read_offsets.erase(${h.message_id});
 
 		if ( ! ${h.is_pipe} && ${val.data_len} > 0 )
 			{
@@ -83,7 +89,8 @@ type SMB2_read_response(header: SMB2_Header) = record {
 	pad               : padding to data_offset - header.head_length;
 	data              : bytestring &length=data_len;
 } &let {
-	fid       : uint64 = $context.connection.get_file_id(header.message_id);
+	# If a reply is has a pending status, let it remain.
+	fid       : uint64 = $context.connection.get_file_id(header.message_id, header.status != 0x00000103);
 	pipe_proc : bool   = $context.connection.forward_dce_rpc(data, fid, false) &if(header.is_pipe);
 
 	proc: bool = $context.connection.proc_smb2_read_response(header, this);

@@ -26,6 +26,7 @@ FlowBuffer::FlowBuffer(LineBreakStyle linebreak_style)
 
 	linebreak_style_ = linebreak_style;
 	linebreak_style_default = linebreak_style;
+	linebreaker_ = 0;
 	ResetLineState();
 
 	mode_ = UNKNOWN_MODE;

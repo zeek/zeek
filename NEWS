@@ -185,6 +185,8 @@ Changed Functionality
   - event ssl_server_signature now has an additional argument
     "signature_and_hashalgorithm".
 
+- The "dnp3_header_block" event no longer has the "start" parameter
+
 Removed Functionality
 ---------------------
 

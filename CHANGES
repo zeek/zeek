@@ -1,4 +1,12 @@
 
+2.5-526 | 2018-04-25 11:06:50 -0500
+
+  * BIT-1914: comment out &check usages now that they emit warnings
+    and convert some to &enforce (Corelight)
+
+  * Removed the "start" parameter of the dnp3_header_block event
+    since it's always the same value. (Corelight)
+
 2.5-522 | 2018-04-25 10:48:38 -0500
 
   * Improve dce-rpc/consts.bro operations table organization (Luciano Mammino)

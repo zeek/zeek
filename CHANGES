@@ -1,4 +1,8 @@
 
+2.5-522 | 2018-04-25 10:48:38 -0500
+
+  * Improve dce-rpc/consts.bro operations table organization (Luciano Mammino)
+
 2.5-519 | 2018-04-20 07:46:07 -0700
 
   * Reduce number of btest threads running tests on Travis CI. (Daniel Thayer)

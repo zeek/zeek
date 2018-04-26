@@ -31,7 +31,7 @@
 
 %token TOK_NO_TEST
 
-%left ',' '|'
+%left ','
 %right '=' TOK_ADD_TO TOK_REMOVE_FROM
 %right '?' ':'
 %left TOK_OR_OR
@@ -39,10 +39,13 @@
 %nonassoc TOK_HOOK
 %nonassoc '<' '>' TOK_LE TOK_GE TOK_EQ TOK_NE
 %left TOK_IN TOK_NOT_IN
+%left '|'
+%left '^'
+%left '&'
 %left '+' '-'
 %left '*' '/' '%'
 %left TOK_INCR TOK_DECR
-%right '!'
+%right '!' '~'
 %left '$' '[' ']' '(' ')' TOK_HAS_FIELD TOK_HAS_ATTR
 
 %type <b> opt_no_test opt_no_test_block opt_deprecated
@@ -334,6 +337,12 @@ expr:
 			$$ = new NotExpr($2);
 			}
 
+	|	'~' expr
+			{
+			set_location(@1, @2);
+			$$ = new ComplementExpr($2);
+			}
+
 	|	'-' expr	%prec '!'
 			{
 			set_location(@1, @2);
@@ -386,6 +395,24 @@ expr:
 			{
 			set_location(@1, @3);
 			$$ = new ModExpr($1, $3);
+			}
+
+	|	expr '&' expr
+			{
+			set_location(@1, @3);
+			$$ = new BitExpr(EXPR_AND, $1, $3);
+			}
+
+	|	expr '|' expr
+			{
+			set_location(@1, @3);
+			$$ = new BitExpr(EXPR_OR, $1, $3);
+			}
+
+	|	expr '^' expr
+			{
+			set_location(@1, @3);
+			$$ = new BitExpr(EXPR_XOR, $1, $3);
 			}
 
 	|	expr TOK_AND_AND expr
@@ -700,7 +727,7 @@ expr:
 			$$ = new ConstExpr(new PatternVal($1));
 			}
 
-	|       '|' expr '|'
+	|       '|' expr '|'	%prec '('
 			{
 			set_location(@1, @3);
 			$$ = new SizeExpr($2);

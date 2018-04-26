@@ -23,7 +23,7 @@ const char* expr_name(BroExprTag t)
 	static const char* expr_names[int(NUM_EXPRS)] = {
 		"name", "const",
 		"(*)",
-		"++", "--", "!", "+", "-",
+		"++", "--", "!", "~", "+", "-",
 		"+", "-", "+=", "-=", "*", "/", "%",
 		"&", "|", "^",
 		"&&", "||",
@@ -706,6 +706,12 @@ Val* BinaryExpr::Fold(Val* v1, Val* v2) const
 	else \
 		Internal("bad type in BinaryExpr::Fold");
 
+#define DO_UINT_FOLD(op) \
+	if ( is_unsigned ) \
+		u3 = u1 op u2; \
+	else \
+		Internal("bad type in BinaryExpr::Fold");
+
 #define DO_FOLD(op) \
 	if ( is_integral ) \
 		i3 = i1 op i2; \
@@ -778,6 +784,10 @@ Val* BinaryExpr::Fold(Val* v1, Val* v2) const
 		}
 
 		break;
+
+	case EXPR_AND:		DO_UINT_FOLD(&); break;
+	case EXPR_OR:		DO_UINT_FOLD(|); break;
+	case EXPR_XOR:		DO_UINT_FOLD(^); break;
 
 	case EXPR_AND_AND:	DO_INT_FOLD(&&); break;
 	case EXPR_OR_OR:	DO_INT_FOLD(||); break;
@@ -1076,6 +1086,39 @@ bool IncrExpr::DoSerialize(SerialInfo* info) const
 	}
 
 bool IncrExpr::DoUnserialize(UnserialInfo* info)
+	{
+	DO_UNSERIALIZE(UnaryExpr);
+	return true;
+	}
+
+ComplementExpr::ComplementExpr(Expr* arg_op) : UnaryExpr(EXPR_COMPLEMENT, arg_op)
+	{
+	if ( IsError() )
+		return;
+
+	BroType* t = op->Type();
+	TypeTag bt = t->Tag();
+
+	if ( bt != TYPE_COUNT )
+		ExprError("requires \"count\" operand");
+	else
+		SetType(base_type(TYPE_COUNT));
+	}
+
+Val* ComplementExpr::Fold(Val* v) const
+	{
+	return new Val(~ v->InternalUnsigned(), type->Tag());
+	}
+
+IMPLEMENT_SERIAL(ComplementExpr, SER_COMPLEMENT_EXPR);
+
+bool ComplementExpr::DoSerialize(SerialInfo* info) const
+	{
+	DO_SERIALIZE(SER_COMPLEMENT_EXPR, UnaryExpr);
+	return true;
+	}
+
+bool ComplementExpr::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(UnaryExpr);
 	return true;
@@ -1812,6 +1855,46 @@ bool BoolExpr::DoSerialize(SerialInfo* info) const
 	}
 
 bool BoolExpr::DoUnserialize(UnserialInfo* info)
+	{
+	DO_UNSERIALIZE(BinaryExpr);
+	return true;
+	}
+
+BitExpr::BitExpr(BroExprTag arg_tag, Expr* arg_op1, Expr* arg_op2)
+: BinaryExpr(arg_tag, arg_op1, arg_op2)
+	{
+	if ( IsError() )
+		return;
+
+	TypeTag bt1 = op1->Type()->Tag();
+	if ( IsVector(bt1) )
+		bt1 = op1->Type()->AsVectorType()->YieldType()->Tag();
+
+	TypeTag bt2 = op2->Type()->Tag();
+	if ( IsVector(bt2) )
+		bt2 = op2->Type()->AsVectorType()->YieldType()->Tag();
+
+	if ( bt1 == TYPE_COUNT && bt2 == bt1 )
+		{
+		if ( is_vector(op1) || is_vector(op2) )
+			SetType(new VectorType(base_type(bt1)));
+		else
+			SetType(base_type(bt1));
+		}
+
+	else
+		ExprError("requires \"count\" operands");
+	}
+
+IMPLEMENT_SERIAL(BitExpr, SER_BIT_EXPR);
+
+bool BitExpr::DoSerialize(SerialInfo* info) const
+	{
+	DO_SERIALIZE(SER_BIT_EXPR, BinaryExpr);
+	return true;
+	}
+
+bool BitExpr::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(BinaryExpr);
 	return true;

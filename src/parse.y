@@ -34,8 +34,8 @@
 %left ',' '|'
 %right '=' TOK_ADD_TO TOK_REMOVE_FROM
 %right '?' ':'
-%left TOK_OR
-%left TOK_AND
+%left TOK_OR_OR
+%left TOK_AND_AND
 %nonassoc TOK_HOOK
 %nonassoc '<' '>' TOK_LE TOK_GE TOK_EQ TOK_NE
 %left TOK_IN TOK_NOT_IN
@@ -388,16 +388,16 @@ expr:
 			$$ = new ModExpr($1, $3);
 			}
 
-	|	expr TOK_AND expr
+	|	expr TOK_AND_AND expr
 			{
 			set_location(@1, @3);
-			$$ = new BoolExpr(EXPR_AND, $1, $3);
+			$$ = new BoolExpr(EXPR_AND_AND, $1, $3);
 			}
 
-	|	expr TOK_OR expr
+	|	expr TOK_OR_OR expr
 			{
 			set_location(@1, @3);
-			$$ = new BoolExpr(EXPR_OR, $1, $3);
+			$$ = new BoolExpr(EXPR_OR_OR, $1, $3);
 			}
 
 	|	expr TOK_EQ expr

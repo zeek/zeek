@@ -24,7 +24,9 @@ const char* expr_name(BroExprTag t)
 		"name", "const",
 		"(*)",
 		"++", "--", "!", "+", "-",
-		"+", "-", "+=", "-=", "*", "/", "%", "&&", "||",
+		"+", "-", "+=", "-=", "*", "/", "%",
+		"&", "|", "^",
+		"&&", "||",
 		"<", "<=", "==", "!=", ">=", ">", "?:", "ref",
 		"=", "~", "[]", "$", "?$", "[=]",
 		"table()", "set()", "vector()",
@@ -777,8 +779,8 @@ Val* BinaryExpr::Fold(Val* v1, Val* v2) const
 
 		break;
 
-	case EXPR_AND:		DO_INT_FOLD(&&); break;
-	case EXPR_OR:		DO_INT_FOLD(||); break;
+	case EXPR_AND_AND:	DO_INT_FOLD(&&); break;
+	case EXPR_OR_OR:	DO_INT_FOLD(||); break;
 
 	case EXPR_LT:		DO_INT_VAL_FOLD(<); break;
 	case EXPR_LE:		DO_INT_VAL_FOLD(<=); break;
@@ -1672,14 +1674,14 @@ Val* BoolExpr::DoSingleEval(Frame* f, Val* v1, Expr* op2) const
 		RE_Matcher* re1 = v1->AsPattern();
 		RE_Matcher* re2 = v2->AsPattern();
 
-		RE_Matcher* res = tag == EXPR_AND ?
+		RE_Matcher* res = tag == EXPR_AND_AND ?
 			RE_Matcher_conjunction(re1, re2) :
 			RE_Matcher_disjunction(re1, re2);
 
 		return new PatternVal(res);
 		}
 
-	if ( tag == EXPR_AND )
+	if ( tag == EXPR_AND_AND )
 		{
 		if ( v1->IsZero() )
 			return v1;
@@ -1743,8 +1745,8 @@ Val* BoolExpr::Eval(Frame* f) const
 
 		VectorVal* result = 0;
 
-		// It's either and EXPR_AND or an EXPR_OR.
-		bool is_and = (tag == EXPR_AND);
+		// It's either and EXPR_AND_AND or an EXPR_OR_OR.
+		bool is_and = (tag == EXPR_AND_AND);
 
 		if ( scalar_v->IsZero() == is_and )
 			{
@@ -1785,7 +1787,7 @@ Val* BoolExpr::Eval(Frame* f) const
 		Val* op2 = vec_v2->Lookup(i);
 		if ( op1 && op2 )
 			{
-			bool local_result = (tag == EXPR_AND) ?
+			bool local_result = (tag == EXPR_AND_AND) ?
 				(! op1->IsZero() && ! op2->IsZero()) :
 				(! op1->IsZero() || ! op2->IsZero());
 

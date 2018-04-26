@@ -146,6 +146,10 @@ New Functionality
 - Added new SMB events: smb1_transaction_secondary_request,
   smb1_transaction2_secondary_request, smb1_transaction_response
 
+- Added support for bitwise operations on "count" values.  '&', '|' and
+  '^' are binary "and", "or" and "xor" operators, and '~' is a unary
+  ones-complement operator.
+
 Changed Functionality
 ---------------------
 

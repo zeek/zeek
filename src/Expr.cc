@@ -1874,12 +1874,15 @@ BitExpr::BitExpr(BroExprTag arg_tag, Expr* arg_op1, Expr* arg_op2)
 	if ( IsVector(bt2) )
 		bt2 = op2->Type()->AsVectorType()->YieldType()->Tag();
 
-	if ( bt1 == TYPE_COUNT && bt2 == bt1 )
+	if ( (bt1 == TYPE_COUNT || bt1 == TYPE_COUNTER) &&
+	     (bt2 == TYPE_COUNT || bt2 == TYPE_COUNTER) )
 		{
-		if ( is_vector(op1) || is_vector(op2) )
-			SetType(new VectorType(base_type(bt1)));
+		if ( bt1 == TYPE_COUNTER && bt2 == TYPE_COUNTER )
+			ExprError("cannot apply a bitwise operator to two \"counter\" operands");
+		else if ( is_vector(op1) || is_vector(op2) )
+			SetType(new VectorType(base_type(TYPE_COUNT)));
 		else
-			SetType(base_type(bt1));
+			SetType(base_type(TYPE_COUNT));
 		}
 
 	else

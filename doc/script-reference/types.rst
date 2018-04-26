@@ -233,6 +233,13 @@ Here is a more detailed description of each type:
     is false since "oob" does not appear at the start of "foobar".  The
     ``!in`` operator would yield the negation of ``in``.
 
+    Finally, you can create a disjunction (either-or) of two patterns
+    using the ``|`` operator.  For example::
+
+	/foo/ | /bar/ in "foobar"
+
+    yields true, like in the similar example above.
+
 .. bro:type:: port
 
     A type representing transport-level port numbers (besides TCP and

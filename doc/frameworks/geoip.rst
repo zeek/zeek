@@ -8,11 +8,13 @@ GeoLocation
 .. rst-class:: opening
 
     During the process of creating policy scripts the need may arise
-    to find the geographic location for an IP address. Bro has support
+    to find the geographic location for an IP address. Bro had support
     for the `GeoIP library <http://www.maxmind.com/app/c>`__ at the
-    policy script level beginning with release 1.3 to account for this
-    need.  To use this functionality, you need to first install the libGeoIP
-    software, and then install the GeoLite city database before building
+    policy script level from release 1.3 to 2.5.X to account for this
+    need.  Starting with release 2.6 GeoIP support requires `libmaxminddb
+    <https://github.com/maxmind/libmaxminddb/releases>`__.
+    To use this functionality, you need to first install the libmaxminddb
+    software, and then install the GeoLite2 city database before building
     Bro.
 
 .. contents::
@@ -20,85 +22,91 @@ GeoLocation
 Install libGeoIP
 ----------------
 
-Before building Bro, you need to install libGeoIP.
+Before building Bro, you need to install libmaxminddb.
 
 * FreeBSD:
 
   .. console::
 
-      sudo pkg install GeoIP
+      sudo pkg install libmaxminddb
 
 * RPM/RedHat-based Linux:
 
   .. console::
 
-      sudo yum install GeoIP-devel
+      sudo yum install libmaxminddb-devel
 
 * DEB/Debian-based Linux:
 
   .. console::
 
-      sudo apt-get install libgeoip-dev
+      sudo apt-get install libmaxminddb-dev
 
 * Mac OS X:
 
   You need to install from your preferred package management system
   (e.g. MacPorts, Fink, or Homebrew).  The name of the package that you need
-  may be libgeoip, geoip, or geoip-dev, depending on which package management
-  system you are using.
+  may be libmaxminddb, maxminddb, or libmaxminddb-dev, depending on which
+  package management system you are using.
 
 
-GeoIPLite Database Installation
--------------------------------
+GeoLite2-City Database Installation
+-----------------------------------
 
-A country database for GeoIPLite is included when you do the C API
-install, but for Bro, we are using the city database which includes
-cities and regions in addition to countries.
+Bro can use the city or country database.  The city database includes cities
+and regions in addition to countries.
 
-`Download <http://www.maxmind.com/app/geolitecity>`__ the GeoLite city
-binary database:
+`Download <http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.tar.gz>`__
+the GeoLite2 city binary database:
 
 .. console::
 
-    wget http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz
-    gunzip GeoLiteCity.dat.gz
+    wget http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.tar.gz
+    tar zxf GeoLite2-City.tar.gz
 
-Next, the file needs to be renamed and put in the GeoIP database directory.
-This directory should already exist and will vary depending on which platform
-and package you are using.  For FreeBSD, use ``/usr/local/share/GeoIP``.  For
-Linux, use ``/usr/share/GeoIP`` or ``/var/lib/GeoIP`` (choose whichever one
-already exists).
+Next, the file "GeoLite2-City_YYYYMMDD/GeoLite2-City.mmdb" needs to be renamed
+and put in the GeoIP database directory.  This directory should already exist
+and will vary depending on which platform and package you are using.  For
+FreeBSD, use ``/usr/local/share/GeoIP``.  For Linux, use ``/usr/share/GeoIP``
+or ``/var/lib/GeoIP`` (choose whichever one already exists).
     
 .. console::
 
-    mv GeoLiteCity.dat <path_to_database_dir>/GeoIPCity.dat
-
-Note that there is a separate database for IPv6 addresses, which can also
-be installed if you want GeoIP functionality for IPv6.
+    mv <extracted subdir>/GeoLite2-City.mmdb <path_to_database_dir>/GeoLite2-City.mmdb
 
 Testing
 -------
 
 Before using the GeoIP functionality, it is a good idea to verify that
-everything is setup correctly.  After installing libGeoIP and the GeoIP city
-database, and building Bro, you can quickly check if the GeoIP functionality
-works by running a command like this:
+everything is setup correctly.  After installing libmaxminddb and the GeoIP
+city database, and building Bro, you can quickly check if the GeoIP
+functionality works by running a command like this:
 
 .. console::
 
     bro -e "print lookup_location(8.8.8.8);"
 
-If you see an error message similar to "Failed to open GeoIP City database",
-then you may need to either rename or move your GeoIP city database file (the
-error message should give you the full pathname of the database file that
-Bro is looking for).
+If you see an error message similar to "Failed to open GeoIP location
+database", then you may need to either rename or move your GeoIP
+location database file.  Bro looks for location database files in the
+following order by default:
+
+    /usr/share/GeoIP/GeoLite2-City.mmdb
+    /var/lib/GeoIP/GeoLite2-City.mmdb
+    /usr/local/share/GeoIP/GeoLite2-City.mmdb
+    /usr/local/var/GeoIP/GeoLite2-City.mmdb
+    /usr/share/GeoIP/GeoLite2-Country.mmdb
+    /var/lib/GeoIP/GeoLite2-Country.mmdb
+    /usr/local/share/GeoIP/GeoLite2-Country.mmdb
+    /usr/local/var/GeoIP/GeoLite2-Country.mmdb
 
 If you see an error message similar to "Bro was not configured for GeoIP
-support", then you need to rebuild Bro and make sure it is linked against
-libGeoIP.  Normally, if libGeoIP is installed correctly then it should
-automatically be found when building Bro.  If this doesn't happen, then
-you may need to specify the path to the libGeoIP installation
-(e.g. ``./configure --with-geoip=<path>``).
+support", then you either need to rebuild Bro and make sure it is linked
+against libmaxminddb or else set the :bro:see:`mmdb_dir`` value
+correctly.  Normally, if libmaxminddb is installed correctly then it
+should automatically be found when building Bro.  If this doesn't
+happen, then you may need to specify the path to the libmaxminddb
+installation (e.g. ``./configure --with-geoip=<path>``).
 
 Usage
 -----

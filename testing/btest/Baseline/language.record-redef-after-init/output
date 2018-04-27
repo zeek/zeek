@@ -1,0 +1,10 @@
+[a=redef, d=<uninitialized>, e=<uninitialized>, f=<uninitialized>, g=<uninitialized>, h=<uninitialized>, i=<uninitialized>, j=<uninitialized>, k=<uninitialized>, l=<uninitialized>, m=<uninitialized>, n=<uninitialized>, o=<uninitialized>, p=<uninitialized>, q=<uninitialized>]
+[a=runtime, d=<uninitialized>, e=<uninitialized>, f=<uninitialized>, g=<uninitialized>, h=<uninitialized>, i=<uninitialized>, j=<uninitialized>, k=<uninitialized>, l=<uninitialized>, m=<uninitialized>, n=<uninitialized>, o=<uninitialized>, p=<uninitialized>, q=OPTQ]
+[a=local, d=<uninitialized>, e=<uninitialized>, f=<uninitialized>, g=<uninitialized>, h=<uninitialized>, i=<uninitialized>, j=<uninitialized>, k=<uninitialized>, l=<uninitialized>, m=<uninitialized>, n=<uninitialized>, o=<uninitialized>, p=<uninitialized>, q=OPTQ]
+[a=redef, d=<uninitialized>, e=<uninitialized>, f=<uninitialized>, g=<uninitialized>, h=<uninitialized>, i=<uninitialized>, j=<uninitialized>, k=<uninitialized>, l=<uninitialized>, m=<uninitialized>, n=<uninitialized>, o=<uninitialized>, p=<uninitialized>, q=<uninitialized>]
+[a=redef, d=<uninitialized>, e=<uninitialized>, f=<uninitialized>, g=<uninitialized>, h=<uninitialized>, i=<uninitialized>, j=<uninitialized>, k=<uninitialized>, l=<uninitialized>, m=<uninitialized>, n=<uninitialized>, o=<uninitialized>, p=<uninitialized>, q=<uninitialized>]
+newp
+[a=redef, d=<uninitialized>, e=<uninitialized>, f=<uninitialized>, g=<uninitialized>, h=<uninitialized>, i=<uninitialized>, j=<uninitialized>, k=<uninitialized>, l=<uninitialized>, m=<uninitialized>, n=<uninitialized>, o=<uninitialized>, p=newp, q=<uninitialized>]
+OPTQ
+our value
+[a=redef, d=<uninitialized>, e=<uninitialized>, f=<uninitialized>, g=<uninitialized>, h=<uninitialized>, i=<uninitialized>, j=<uninitialized>, k=<uninitialized>, l=<uninitialized>, m=<uninitialized>, n=<uninitialized>, o=<uninitialized>, p=newp, q=our value]

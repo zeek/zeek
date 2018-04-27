@@ -25,14 +25,14 @@ connection DNP3_Conn(bro_analyzer: BroAnalyzer) {
 flow DNP3_Flow(is_orig: bool) {
 	flowunit = DNP3_PDU(is_orig) withcontext (connection, this);
 
-	function get_dnp3_header_block(start: uint16, len: uint16, ctrl: uint8, dest_addr: uint16, src_addr: uint16): bool
+	function get_dnp3_header_block(len: uint16, ctrl: uint8, dest_addr: uint16, src_addr: uint16): bool
 		%{
 		if ( ::dnp3_header_block )
 			{
 			BifEvent::generate_dnp3_header_block(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
-				is_orig(), start, len, ctrl, dest_addr, src_addr);
+				is_orig(), len, ctrl, dest_addr, src_addr);
 			}
 
 		return true;
@@ -741,7 +741,7 @@ flow DNP3_Flow(is_orig: bool) {
 };
 
 refine typeattr Header_Block += &let {
-	get_header: bool =  $context.flow.get_dnp3_header_block(start, len, ctrl, dest_addr, src_addr);
+	get_header: bool =  $context.flow.get_dnp3_header_block(len, ctrl, dest_addr, src_addr);
 };
 
 refine typeattr DNP3_Application_Request_Header += &let {

@@ -216,6 +216,13 @@ all of the documentation for the latest Bro release is available on the
 Bro web site), there are instructions in ``doc/README`` in the source
 distribution.
 
+Cross Compiling
+---------------
+
+See :doc:`cross-compiling` for an example of how
+to cross compile Bro for a different target platform than the one on
+which you build.
+
 Configure the Run-Time Environment
 ==================================
 

@@ -149,10 +149,6 @@ export {
 		# IActivation
 		["4d9f4ab8-7d1c-11cf-861e-0020af6e7c57",0] = "RemoteActivation",
 
-		# IRemoteSCMActivator
-		["000001a0-0000-0000-c000-000000000046",3] = "RemoteGetClassObject",
-		["000001a0-0000-0000-c000-000000000046",4] = "RemoteCreateInstance",
-
 		# nspi
 		["f5cc5a18-4264-101a-8c59-08002b2f8426",0] = "NspiBind",
 		["f5cc5a18-4264-101a-8c59-08002b2f8426",1] = "NspiUnbind",
@@ -222,8 +218,8 @@ export {
 		["000001a0-0000-0000-c000-000000000046",0] = "QueryInterfaceIRemoteSCMActivator",
 		["000001a0-0000-0000-c000-000000000046",1] = "AddRefIRemoteISCMActivator",
 		["000001a0-0000-0000-c000-000000000046",2] = "ReleaseIRemoteISCMActivator",
-		#["000001a0-0000-0000-c000-000000000046",3] = "RemoteGetClassObject",
-		#["000001a0-0000-0000-c000-000000000046",4] = "RemoteCreateInstance",
+		["000001a0-0000-0000-c000-000000000046",3] = "RemoteGetClassObject",
+		["000001a0-0000-0000-c000-000000000046",4] = "RemoteCreateInstance",
 
 		# netlogon
 		["12345678-1234-abcd-ef00-01234567cffb",0] = "NetrLogonUasLogon",

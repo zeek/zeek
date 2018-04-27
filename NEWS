@@ -149,6 +149,9 @@ New Functionality
 Changed Functionality
 ---------------------
 
+- The --with-binpac= configure option has changed to mean "path
+  to the binpac executable" instead of "path to binpac installation root".
+
 - The MIME types used to identify X.509 certificates in SSL
   connections changed from "application/pkix-cert" to
   "application/x-x509-user-cert" for host certificates and
@@ -184,6 +187,8 @@ Changed Functionality
 
   - event ssl_server_signature now has an additional argument
     "signature_and_hashalgorithm".
+
+- The "dnp3_header_block" event no longer has the "start" parameter
 
 Removed Functionality
 ---------------------

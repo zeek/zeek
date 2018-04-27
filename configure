@@ -27,6 +27,8 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --generator=GENERATOR  CMake generator to use (see cmake --help)
     --ccache               use ccache to speed up recompilation (requires
                            ccache installation and CMake 3.10+)
+    --toolchain=PATH       path to a CMAKE_TOOLCHAIN_FILE
+                           (useful for cross-compiling)
 
   Installation Directories:
     --prefix=PREFIX        installation directory [/usr/local/bro]
@@ -57,7 +59,10 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-openssl=PATH    path to OpenSSL install root
     --with-bind=PATH       path to BIND install root
     --with-pcap=PATH       path to libpcap install root
-    --with-binpac=PATH     path to BinPAC install root
+    --with-binpac=PATH     path to BinPAC executable
+                           (useful for cross-compiling)
+    --with-bifcl=PATH      path to Bro BIF compiler executable
+                           (useful for cross-compiling)
     --with-flex=PATH       path to flex executable
     --with-bison=PATH      path to bison executable
     --with-python=PATH     path to Python executable
@@ -162,6 +167,9 @@ while [ $# -ne 0 ]; do
         --ccache)
             append_cache_entry ENABLE_CCACHE         BOOL   true
             ;;
+        --toolchain=*)
+            append_cache_entry CMAKE_TOOLCHAIN_FILE  PATH   $optarg
+            ;;
         --prefix=*)
             prefix=$optarg
             append_cache_entry CMAKE_INSTALL_PREFIX PATH   $optarg
@@ -223,7 +231,10 @@ while [ $# -ne 0 ]; do
             append_cache_entry PCAP_ROOT_DIR PATH $optarg
             ;;
         --with-binpac=*)
-            append_cache_entry BinPAC_ROOT_DIR PATH $optarg
+            append_cache_entry BINPAC_EXE_PATH     PATH $optarg
+            ;;
+        --with-bifcl=*)
+            append_cache_entry BIFCL_EXE_PATH      PATH   $optarg
             ;;
         --with-flex=*)
             append_cache_entry FLEX_EXECUTABLE PATH $optarg

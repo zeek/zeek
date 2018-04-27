@@ -2,27 +2,13 @@
 
 type Prefix_Type(qualifier_field: uint8) = record {
 	prefix: case ( qualifier_field & 0xf0 ) of {
-		0x00 -> none: empty &check(qualifier_field == 0x01 ||
-						qualifier_field == 0x02 ||
-						qualifier_field == 0x03 ||
-						qualifier_field == 0x04 ||
-						qualifier_field == 0x05 ||
-						qualifier_field == 0x06 ||
-						qualifier_field == 0x07 ||
-						qualifier_field == 0x08 ||
-						qualifier_field == 0x09 );
-		0x10 -> prefix8: uint8 &check(qualifier_field == 0x17 ||
-						qualifier_field == 0x18 ||
-						qualifier_field == 0x19 );
-		0x20 -> prefix16: uint16 &check(qualifier_field == 0x27 ||
-						qualifier_field == 0x28 ||
-						qualifier_field == 0x29 );
-		0x30 -> prefix32: uint32 &check(qualifier_field == 0x37 ||
-						qualifier_field == 0x38 ||
-						qualifier_field == 0x39 );
-		0x40 -> object_size8: uint8 &check(qualifier_field == 0x4B);
-		0x50 -> object_size16: uint16 &check(qualifier_field == 0x5B);
-		0x60 -> object_size32: uint32 &check(qualifier_field == 0x6B);
+		0x00 -> none: empty;
+		0x10 -> prefix8: uint8; # &check(qualifier_field == 0x17 || qualifier_field == 0x18 || qualifier_field == 0x19 );
+		0x20 -> prefix16: uint16; # &check(qualifier_field == 0x27 || qualifier_field == 0x28 || qualifier_field == 0x29 );
+		0x30 -> prefix32: uint32; # &check(qualifier_field == 0x37 || qualifier_field == 0x38 || qualifier_field == 0x39 );
+		0x40 -> object_size8: uint8; # &check(qualifier_field == 0x4B);
+		0x50 -> object_size16: uint16; # &check(qualifier_field == 0x5B);
+		0x60 -> object_size32: uint32; # &check(qualifier_field == 0x6B);
 	 	default -> unknownprefix: empty;
 	};
 } &let{
@@ -117,10 +103,8 @@ type Request_Data_Object(function_code: uint8, qualifier_field: uint8, object_ty
 		0x0b02 -> boewatime: empty;
 
 	# binary output command g12
-		0x0c01 -> bocmd_CROB: CROB &check (function_code == SELECT || function_code == OPERATE ||
-							function_code == DIRECT_OPERATE || function_code == DIRECT_OPERATE_NR );
-		0x0c02 -> bocmd_PCB: PCB &check (function_code == SELECT || function_code == OPERATE ||
-							function_code == DIRECT_OPERATE || function_code == DIRECT_OPERATE_NR || function_code == WRITE );
+		0x0c01 -> bocmd_CROB: CROB; # &check (function_code == RESPONSE || function_code == SELECT || function_code == OPERATE || function_code == DIRECT_OPERATE || function_code == DIRECT_OPERATE_NR );
+		0x0c02 -> bocmd_PCB: PCB; # &check (function_code == RESPONSE || function_code == SELECT || function_code == OPERATE || function_code == DIRECT_OPERATE || function_code == DIRECT_OPERATE_NR || function_code == WRITE );
 		0x0c03 -> bocmd_PM: uint8;
 
 	# binary output command event g13
@@ -132,48 +116,48 @@ type Request_Data_Object(function_code: uint8, qualifier_field: uint8, object_ty
 		0x1400 -> counter_default: empty;
 		0x1401 -> counter_32_wflag: empty;
 		0x1402 -> counter_16_wflag: empty;
-		0x1403 -> counter_32_wflag_delta: empty &check (0); # obsolete situation; generate warning
-		0x1404 -> counter_16_wflag_delta: empty &check (0); # obsolete situations; generate warning
+		0x1403 -> counter_32_wflag_delta: empty; # obsolete situation; generate warning
+		0x1404 -> counter_16_wflag_delta: empty; # obsolete situations; generate warning
 		0x1405 -> counter_32_woflag: empty;
 		0x1406 -> counter_16_woflag: empty;
-		0x1407 -> counter_32_woflag_delta: empty &check (0); # obsolete
-		0x1408 -> counter_16_woflag_delta: empty &check (0); # obsolete
+		0x1407 -> counter_32_woflag_delta: empty; # obsolete
+		0x1408 -> counter_16_woflag_delta: empty; # obsolete
 	# frozen counter ; g21
 		0x1500 -> f_counter_default: empty;
 		0x1501 -> f_counter_32_wflag: empty;
 		0x1502 -> f_counter_16_wflag: empty;
-		0x1503 -> f_counter_32_wflag_delta: empty &check (0); # obsolete situation; generate warning
-		0x1504 -> f_counter_16_wflag_delta: empty &check (0); # obsolete situations; generate warning
+		0x1503 -> f_counter_32_wflag_delta: empty; # obsolete situation; generate warning
+		0x1504 -> f_counter_16_wflag_delta: empty; # obsolete situations; generate warning
 		0x1505 -> f_counter_32_wflag_time: empty;
 		0x1506 -> f_counter_16_wflag_time: empty;
-		0x1507 -> f_counter_32_wflag_time_delta: empty &check (0); # obsolete
-		0x1508 -> f_counter_16_wflag_time_delta: empty &check (0); # obsolete
+		0x1507 -> f_counter_32_wflag_time_delta: empty; # obsolete
+		0x1508 -> f_counter_16_wflag_time_delta: empty; # obsolete
 		0x1509 -> f_counter_32_woflag: empty;
 		0x150a -> f_counter_16_woflag: empty;
-		0x150b -> f_counter_32_woflag_delta: empty &check (0); # obsolete
-		0x150c -> f_counter_16_woflag_delta: empty &check (0); # obsolete
+		0x150b -> f_counter_32_woflag_delta: empty; # obsolete
+		0x150c -> f_counter_16_woflag_delta: empty; # obsolete
 
 	# counter event g22
 		0x1600 -> counter_event_default: empty;
 		0x1601 -> counter_event_32_wflag: empty;
 		0x1602 -> counter_event_16_wflag: empty;
-		0x1603 -> counter_event_32_wflag_delta: empty &check(0);
-		0x1604 -> counter_event_16_wflag_delta: empty &check(0);
+		0x1603 -> counter_event_32_wflag_delta: empty;
+		0x1604 -> counter_event_16_wflag_delta: empty;
 		0x1605 -> counter_event_32_wflag_time: empty;
 		0x1606 -> counter_event_16_wflag_time: empty;
-		0x1607 -> counter_event_32_wflag_time_delta: empty &check(0);
-		0x1608 -> counter_event_16_wflag_time_delat: empty &check(0);
+		0x1607 -> counter_event_32_wflag_time_delta: empty;
+		0x1608 -> counter_event_16_wflag_time_delat: empty;
 
 	# counter event g23
 		0x1700 -> f_counter_event_default: empty;
 		0x1701 -> f_counter_event_32_wflag: empty;
 		0x1702 -> f_counter_event_16_wflag: empty;
-		0x1703 -> f_counter_event_32_wflag_delta: empty &check(0);
-		0x1704 -> f_counter_event_16_wflag_delta: empty &check(0);
+		0x1703 -> f_counter_event_32_wflag_delta: empty;
+		0x1704 -> f_counter_event_16_wflag_delta: empty;
 		0x1705 -> f_counter_event_32_wflag_time: empty;
 		0x1706 -> f_counter_event_16_wflag_time: empty;
-		0x1707 -> f_counter_event_32_wflag_time_delta: empty &check(0);
-		0x1708 -> f_counter_event_16_wflag_time_delat: empty &check(0);
+		0x1707 -> f_counter_event_32_wflag_time_delta: empty;
+		0x1708 -> f_counter_event_16_wflag_time_delat: empty;
 
 	#analog input g30
 		0x1e00 -> ai_default: empty;
@@ -273,19 +257,15 @@ type Request_Data_Object(function_code: uint8, qualifier_field: uint8, object_ty
 		0x3402 -> time_fine: uint16;
 
 	# class objects g60
-		0x3C01 -> class0data: empty &check(object_header.qualifier_field == 0x06);
-		#0x3C02 -> class1data: uint8 &check(object_header.qualifier_field == 0x06);
-		0x3C02 -> class1data: empty &check(object_header.qualifier_field == 0x06 ||
-							object_header.qualifier_field == 0x07 || object_header.qualifier_field == 0x08);
-		0x3C03 -> class2data: empty &check(object_header.qualifier_field == 0x06 ||
-							object_header.qualifier_field == 0x07 || object_header.qualifier_field == 0x08);
-		0x3C04 -> class3data: empty &check(object_header.qualifier_field == 0x06 ||
-							object_header.qualifier_field == 0x07 || object_header.qualifier_field == 0x08);
+		0x3C01 -> class0data: empty; # &check(qualifier_field == 0x06);
+		#0x3C02 -> class1data: uint8; # &check(qualifier_field == 0x06);
+		0x3C02 -> class1data: empty; # &check(qualifier_field == 0x06 || qualifier_field == 0x07 || qualifier_field == 0x08);
+		0x3C03 -> class2data: empty; # &check(qualifier_field == 0x06 || qualifier_field == 0x07 || qualifier_field == 0x08);
+		0x3C04 -> class3data: empty; # &check(qualifier_field == 0x06 || qualifier_field == 0x07 || qualifier_field == 0x08);
 	# file control g70
-		0x4601 -> file_control_id: File_Control_ID &check(0);
+		0x4601 -> file_control_id: File_Control_ID;
 		0x4602 -> file_control_auth: File_Control_Auth_Wrap(function_code);
-		0x4603 -> file_control_cmd: File_Control_Cmd &check( file_control_cmd.op_mode == 0 || file_control_cmd.op_mode == 1 ||
-							  file_control_cmd.op_mode == 2 || file_control_cmd.op_mode == 3 );
+		0x4603 -> file_control_cmd: File_Control_Cmd; # &check( file_control_cmd.op_mode == 0 || file_control_cmd.op_mode == 1 || file_control_cmd.op_mode == 2 || file_control_cmd.op_mode == 3 );
 		#0x4604 -> file_control_cmd_status: File_Control_Cmd_Status_Wrap(function_code, prefix.prefix_value);  # example shown in P66
 		0x4604 -> file_control_cmd_status: File_Control_Cmd_Status(prefix.prefix_value);  # example shown in P66
 		0x4605 -> file_trans: File_Transport(prefix.prefix_value);
@@ -423,10 +403,8 @@ type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_t
 		0x0b02 -> boewatime: BinOutEveAtime;
 
 	# binary output command g12
-		0x0c01 -> bocmd_CROB: CROB &check (function_code == SELECT || function_code == OPERATE ||
-							function_code == DIRECT_OPERATE || function_code == DIRECT_OPERATE_NR );
-		0x0c02 -> bocmd_PCB: PCB &check (function_code == SELECT || function_code == OPERATE ||
-							function_code == DIRECT_OPERATE || function_code == DIRECT_OPERATE_NR || function_code == WRITE );
+		0x0c01 -> bocmd_CROB: CROB; # &check (function_code == RESPONSE || function_code == SELECT || function_code == OPERATE || function_code == DIRECT_OPERATE || function_code == DIRECT_OPERATE_NR );
+		0x0c02 -> bocmd_PCB: PCB; # &check (function_code == RESPONSE || function_code == SELECT || function_code == OPERATE || function_code == DIRECT_OPERATE || function_code == DIRECT_OPERATE_NR || function_code == WRITE );
 		0x0c03 -> bocmd_PM: uint8;
 
 	# binary output command event g13
@@ -436,46 +414,46 @@ type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_t
 	# counter ; g20
 		0x1401 -> counter_32_wflag: Counter32wFlag;
 		0x1402 -> counter_16_wflag: Counter16wFlag;
-		0x1403 -> counter_32_wflag_delta: Debug_Byte &check (0); # obsolete situation; generate warning
-		0x1404 -> counter_16_wflag_delta: Debug_Byte &check (0); # obsolete situations; generate warning
+		0x1403 -> counter_32_wflag_delta: Debug_Byte; # obsolete situation; generate warning
+		0x1404 -> counter_16_wflag_delta: Debug_Byte; # obsolete situations; generate warning
 		0x1405 -> counter_32_woflag: Counter32woFlag;
 		0x1406 -> counter_16_woflag: Counter16woFlag;
-		0x1407 -> counter_32_woflag_delta: Debug_Byte &check (0); # obsolete
-		0x1408 -> counter_16_woflag_delta: Debug_Byte &check (0); # obsolete
+		0x1407 -> counter_32_woflag_delta: Debug_Byte; # obsolete
+		0x1408 -> counter_16_woflag_delta: Debug_Byte; # obsolete
 	# frozen counter ; g21
 		#0x1500 -> f_counter_default: empty;
 		0x1501 -> f_counter_32_wflag: FrozenCounter32wFlag;
 		0x1502 -> f_counter_16_wflag: FrozenCounter16wFlag;
-		0x1503 -> f_counter_32_wflag_delta: Debug_Byte &check (0); # obsolete situation; generate warning
-		0x1504 -> f_counter_16_wflag_delta: Debug_Byte &check (0); # obsolete situations; generate warning
+		0x1503 -> f_counter_32_wflag_delta: Debug_Byte; # obsolete situation; generate warning
+		0x1504 -> f_counter_16_wflag_delta: Debug_Byte; # obsolete situations; generate warning
 		0x1505 -> f_counter_32_wflag_time: FrozenCounter32wFlagTime;
 		0x1506 -> f_counter_16_wflag_time: FrozenCounter16wFlagTime;
-		0x1507 -> f_counter_32_wflag_time_delta: Debug_Byte &check (0); # obsolete
-		0x1508 -> f_counter_16_wflag_time_delta: Debug_Byte &check (0); # obsolete
-		0x1509 -> f_counter_32_woflag: FrozenCounter32woFlag &check (f_counter_32_woflag.count_value == 23);
+		0x1507 -> f_counter_32_wflag_time_delta: Debug_Byte; # obsolete
+		0x1508 -> f_counter_16_wflag_time_delta: Debug_Byte; # obsolete
+		0x1509 -> f_counter_32_woflag: FrozenCounter32woFlag;
 		0x150a -> f_counter_16_woflag: FrozenCounter16woFlag;
-		0x150b -> f_counter_32_woflag_delta: Debug_Byte &check (0); # obsolete
-		0x150c -> f_counter_16_woflag_delta: Debug_Byte &check (0); # obsolete
+		0x150b -> f_counter_32_woflag_delta: Debug_Byte; # obsolete
+		0x150c -> f_counter_16_woflag_delta: Debug_Byte; # obsolete
 
 	# counter event g22
 		0x1601 -> counter_event_32_wflag: CounterEve32wFlag;
 		0x1602 -> counter_event_16_wflag: CounterEve16wFlag;
-		0x1603 -> counter_event_32_wflag_delta: Debug_Byte &check(0);
-		0x1604 -> counter_event_16_wflag_delta: Debug_Byte &check(0);
+		0x1603 -> counter_event_32_wflag_delta: Debug_Byte;
+		0x1604 -> counter_event_16_wflag_delta: Debug_Byte;
 		0x1605 -> counter_event_32_wflag_time: CounterEve32wFlagTime;
 		0x1606 -> counter_event_16_wflag_time: CounterEve16wFlagTime;
-		0x1607 -> counter_event_32_wflag_time_delta: Debug_Byte &check(0);
-		0x1608 -> counter_event_16_wflag_time_delat: Debug_Byte &check(0);
+		0x1607 -> counter_event_32_wflag_time_delta: Debug_Byte;
+		0x1608 -> counter_event_16_wflag_time_delat: Debug_Byte;
 
 	# counter event g23
 		0x1701 -> f_counter_event_32_wflag: CounterEve32wFlag;
 		0x1702 -> f_counter_event_16_wflag: CounterEve16wFlag;
-		0x1703 -> f_counter_event_32_wflag_delta: Debug_Byte &check(0);
-		0x1704 -> f_counter_event_16_wflag_delta: Debug_Byte &check(0);
+		0x1703 -> f_counter_event_32_wflag_delta: Debug_Byte;
+		0x1704 -> f_counter_event_16_wflag_delta: Debug_Byte;
 		0x1705 -> f_counter_event_32_wflag_time: CounterEve32wFlagTime;
 		0x1706 -> f_counter_event_16_wflag_time: CounterEve16wFlagTime;
-		0x1707 -> f_counter_event_32_wflag_time_delta: Debug_Byte &check(0);
-		0x1708 -> f_counter_event_16_wflag_time_delat: Debug_Byte &check(0);
+		0x1707 -> f_counter_event_32_wflag_time_delta: Debug_Byte;
+		0x1708 -> f_counter_event_16_wflag_time_delat: Debug_Byte;
 
 	# analog input g30
 		0x1e01 -> ai_32_wflag: AnalogInput32wFlag;
@@ -566,11 +544,9 @@ type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_t
 		0x3402 -> time_fine: uint16;
 
 	# file control g70
-		0x4601 -> file_control_id: File_Control_ID &check(0);
-		0x4602 -> file_control_auth: File_Control_Auth &check(file_control_auth.usr_name_size == 0 && file_control_auth.pwd_size == 0);
-		0x4603 -> file_control_cmd: File_Control_Cmd &check(file_control_cmd.name_size == 0 &&
-							( file_control_cmd.op_mode == 0 || file_control_cmd.op_mode == 1 ||
-							  file_control_cmd.op_mode == 2 || file_control_cmd.op_mode == 3) );
+		0x4601 -> file_control_id: File_Control_ID;
+		0x4602 -> file_control_auth: File_Control_Auth; # &check(file_control_auth.usr_name_size == 0 && file_control_auth.pwd_size == 0);
+		0x4603 -> file_control_cmd: File_Control_Cmd; # &check(file_control_cmd.name_size == 0 && ( file_control_cmd.op_mode == 0 || file_control_cmd.op_mode == 1 || file_control_cmd.op_mode == 2 || file_control_cmd.op_mode == 3) );
 		0x4604 -> file_control_cmd_status: File_Control_Cmd_Status(prefix.prefix_value);
 		0x4605 -> file_trans: File_Transport(prefix.prefix_value);
 		0x4606 -> file_trans_status: File_Transport_Status(prefix.prefix_value);
@@ -623,7 +599,7 @@ type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_t
 		0x7806 -> keyChange: AuthSessionKeyChange(prefix.prefix_value);
 		0x7807 -> error: AuthError(prefix.prefix_value);
 
-		#default -> unkonwndata: Debug_Byte &check( T );
+		#default -> unkonwndata: Debug_Byte; # &check( T );
 		default -> unmatched: Default_Wrap(object_type_field);
 	};
 }
@@ -697,8 +673,7 @@ type BinOutEveAtime = record {
 
 # g12v1 group: 12; variation: 1
 type CROB = record {
-	control_code: uint8 &check ( (control_code & 0xCF) == 0x00 || (control_code & 0xCF) == 0x01 || (control_code & 0xCF) == 0x03 || (control_code & 0xCF) == 0x04 ||
-					(control_code & 0xCF) == 0x41 || (control_code & 0xCF) == 0x81  );
+	control_code: uint8; # &check ( (control_code & 0xCF) == 0x00 || (control_code & 0xCF) == 0x01 || (control_code & 0xCF) == 0x03 || (control_code & 0xCF) == 0x04 || (control_code & 0xCF) == 0x41 || (control_code & 0xCF) == 0x81  );
 	count: uint8;
 	on_time: uint32;
 	off_time: uint32;
@@ -707,8 +682,7 @@ type CROB = record {
 
 # g12v2; same as g12v1
 type PCB = record {
-	control_code: uint8 &check ( (control_code & 0xCF) == 0x00 || (control_code & 0xCF) == 0x01 || (control_code & 0xCF) == 0x03 || (control_code & 0xCF) == 0x04 ||
-					(control_code & 0xCF) == 0x41 || (control_code & 0xCF) == 0x81  );
+	control_code: uint8; # &check ( (control_code & 0xCF) == 0x00 || (control_code & 0xCF) == 0x01 || (control_code & 0xCF) == 0x03 || (control_code & 0xCF) == 0x04 || (control_code & 0xCF) == 0x41 || (control_code & 0xCF) == 0x81  );
 	count: uint8;
 	on_time: uint32;
 	off_time: uint32;
@@ -1192,7 +1166,7 @@ type File_Control_ID = record {
 	end_rec: uint16;
 	file_size: uint32;
 	time_create: bytestring &length = 6;
-	permission: uint16 &check ( (permission & 0xFE00 ) == 0x0000);
+	permission: uint16; # &check ( (permission & 0xFE00 ) == 0x0000);
 	file_id: uint32;
 	owner_id: uint32;
 	group_id: uint32;
@@ -1205,7 +1179,7 @@ type File_Control_ID = record {
 # g70v2
 type File_Control_Auth_Wrap(fc: uint8) = record {
 	data: case(fc) of {
-		AUTHENTICATE_FILE -> auth_file: File_Control_Auth &check(auth_file.auth_key == 0) ;
+		AUTHENTICATE_FILE -> auth_file: File_Control_Auth; # &check(auth_file.auth_key == 0) ;
 		default -> null: empty;
 	};
 };
@@ -1224,7 +1198,7 @@ type File_Control_Auth = record {
 type File_Control_Cmd_Wrap(function_code: uint8) = record {
 	data_obj: case (function_code) of {
 		OPEN_FILE -> fc_cmd_open: File_Control_Cmd;
-		DELETE_FILE -> fc_cmd_del: File_Control_Cmd &check( fc_cmd_del.op_mode == 0 &&  fc_cmd_del.name_size == 0 && fc_cmd_del.time_create == 0x0);
+		DELETE_FILE -> fc_cmd_del: File_Control_Cmd; # &check( fc_cmd_del.op_mode == 0 &&  fc_cmd_del.name_size == 0 && fc_cmd_del.time_create == 0x0);
 		default -> null: empty;
 	};
 
@@ -1234,7 +1208,7 @@ type File_Control_Cmd = record {
 	name_offset: uint16;
 	name_size: uint16;
 	time_create: bytestring &length = 6;
-	permission: uint16 &check ( (permission & 0xFE00 ) == 0x0000);
+	permission: uint16; # &check ( (permission & 0xFE00 ) == 0x0000);
 	auth_key: uint32;
 	file_size: uint32;
 	op_mode: uint16;
@@ -1246,7 +1220,7 @@ type File_Control_Cmd = record {
 # g70v4
 type File_Control_Cmd_Status_Wrap(function_code: uint8, obj_size: uint32) = record {
 	data_obj: case (function_code) of {
-		ABORT_FILE -> abort: File_Control_Cmd_Status(obj_size) &check(abort.file_size == 0 && abort.max_block_size ==0 && abort.status_code ==0 );
+		ABORT_FILE -> abort: File_Control_Cmd_Status(obj_size); # &check(abort.file_size == 0 && abort.max_block_size ==0 && abort.status_code ==0 );
 		RESPONSE -> fc_cmd_status: File_Control_Cmd_Status(obj_size);
 		default -> null: empty;
 	};
@@ -1282,11 +1256,7 @@ type File_Transport_Status(obj_size: uint32) = record {
 # g70v7
 type File_Desc_Wrap(function_code: uint8) = record {
 	data: case(function_code) of {
-		GET_FILE_INFO -> get_file_info: File_Desc &check(get_file_info.type ==0 &&
-								get_file_info.f_size == 0 &&
-								get_file_info.time_create_low == 0 &&
-								get_file_info.time_create_high == 0 &&
-								get_file_info.permission == 0);
+		GET_FILE_INFO -> get_file_info: File_Desc; # &check(get_file_info.type ==0 && get_file_info.f_size == 0 && get_file_info.time_create_low == 0 && get_file_info.time_create_high == 0 && get_file_info.permission == 0);
 		default -> null: empty;
 	};
 } &byteorder = littleendian;
@@ -1298,7 +1268,7 @@ type File_Desc = record {
 	f_size: uint32;
 	time_create_low: uint32;
 	time_create_high: uint16;
-	permission: uint16 &check ( (permission & 0xFE00 ) == 0x0000);
+	permission: uint16; # &check ( (permission & 0xFE00 ) == 0x0000);
 	req_id: uint16;
 	f_name: bytestring &length = name_size;
 } &byteorder = littleendian;

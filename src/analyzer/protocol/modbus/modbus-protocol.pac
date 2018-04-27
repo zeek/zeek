@@ -154,7 +154,7 @@ type Exception(header: ModbusTCP_TransportHeader) = record {
 # REQUEST FC=1
 type ReadCoilsRequest(header: ModbusTCP_TransportHeader) = record {
 	start_address:  uint16;
-	quantity:       uint16 &check(quantity <= 2000);
+	quantity:       uint16; # &check(quantity <= 2000);
 } &let {
 	deliver: bool = $context.flow.deliver_ReadCoilsRequest(header, this);
 } &byteorder=bigendian;
@@ -170,7 +170,7 @@ type ReadCoilsResponse(header: ModbusTCP_TransportHeader) = record {
 # REQUEST FC=2
 type ReadDiscreteInputsRequest(header: ModbusTCP_TransportHeader) = record {
 	start_address: uint16;
-	quantity:      uint16 &check(quantity <= 2000);
+	quantity:      uint16; # &check(quantity <= 2000);
 } &let {
 	deliver: bool = $context.flow.deliver_ReadDiscreteInputsRequest(header, this);
 } &byteorder=bigendian;
@@ -186,7 +186,7 @@ type ReadDiscreteInputsResponse(header: ModbusTCP_TransportHeader) = record {
 # REQUEST FC=3
 type ReadHoldingRegistersRequest(header: ModbusTCP_TransportHeader) = record {
 	start_address: uint16;
-	quantity:      uint16 &check(1 <= quantity && quantity <= 125);
+	quantity:      uint16; # &check(quantity <= 125);
 } &let {
 	deliver: bool = $context.flow.deliver_ReadHoldingRegistersRequest(header, this);
 } &byteorder=bigendian;
@@ -202,7 +202,7 @@ type ReadHoldingRegistersResponse(header: ModbusTCP_TransportHeader) = record {
 # REQUEST FC=4
 type ReadInputRegistersRequest(header: ModbusTCP_TransportHeader) = record {
 	start_address: uint16;
-	quantity:      uint16 &check(1 <= quantity && quantity <= 125);
+	quantity:      uint16; # &check(quantity <= 125);
 } &let {
 	deliver: bool = $context.flow.deliver_ReadInputRegistersRequest(header, this);
 } &byteorder=bigendian;
@@ -218,7 +218,7 @@ type ReadInputRegistersResponse(header: ModbusTCP_TransportHeader) = record {
 # REQUEST FC=5
 type WriteSingleCoilRequest(header: ModbusTCP_TransportHeader) = record {
 	address: uint16;
-	value:   uint16 &check(value == 0x0000 || value == 0xFF00);
+	value:   uint16; # &check(value == 0x0000 || value == 0xFF00);
 } &let {
 	deliver: bool = $context.flow.deliver_WriteSingleCoilRequest(header, this);
 } &byteorder=bigendian;
@@ -226,7 +226,7 @@ type WriteSingleCoilRequest(header: ModbusTCP_TransportHeader) = record {
 # RESPONSE FC=5
 type WriteSingleCoilResponse(header: ModbusTCP_TransportHeader) = record {
 	address: uint16;
-	value:   uint16 &check(value == 0x0000 || value == 0xFF00);
+	value:   uint16; # &check(value == 0x0000 || value == 0xFF00);
 } &let {
 	deliver: bool = $context.flow.deliver_WriteSingleCoilResponse(header, this);
 } &byteorder=bigendian;
@@ -250,8 +250,8 @@ type WriteSingleRegisterResponse(header: ModbusTCP_TransportHeader) = record {
 # REQUEST FC=15
 type WriteMultipleCoilsRequest(header: ModbusTCP_TransportHeader) = record {
 	start_address:    uint16;
-	quantity:         uint16     &check(quantity <= 0x07B0);
-	byte_count:       uint8      &check(byte_count == (quantity + 7)/8);
+	quantity:         uint16; #     &check(quantity <= 0x07B0);
+	byte_count:       uint8; #      &check(byte_count == (quantity + 7)/8);
 	coils:            bytestring &length=byte_count;
 } &let {
 	deliver: bool = $context.flow.deliver_WriteMultipleCoilsRequest(header, this);
@@ -260,7 +260,7 @@ type WriteMultipleCoilsRequest(header: ModbusTCP_TransportHeader) = record {
 # RESPONSE FC=15
 type WriteMultipleCoilsResponse(header: ModbusTCP_TransportHeader) = record {
 	start_address:   uint16;
-	quantity:        uint16 &check(quantity <= 0x07B0);
+	quantity:        uint16; # &check(quantity <= 0x07B0);
 } &let {
 	deliver: bool = $context.flow.deliver_WriteMultipleCoilsResponse(header, this);
 } &byteorder=bigendian;
@@ -287,15 +287,15 @@ type WriteMultipleRegistersResponse(header: ModbusTCP_TransportHeader) = record 
 
 # Support data structure for following message type.
 type FileRecordRequest = record {
-	ref_type:   uint8  &check(ref_type == 6);
-	file_num:   uint16 &check(file_num > 0);
-	record_num: uint16 &check(record_num <= 0x270F);
+	ref_type:   uint8; #  &check(ref_type == 6);
+	file_num:   uint16; # &check(file_num > 0);
+	record_num: uint16; # &check(record_num <= 0x270F);
 	record_len: uint16;
 } &byteorder=bigendian;
 
 # REQUEST FC=20
 type ReadFileRecordRequest(header: ModbusTCP_TransportHeader) = record {
-	byte_count: uint8               &check(byte_count >= 0x07 && byte_count <= 0xF5);
+	byte_count: uint8; #               &check(byte_count <= 0xF5);
 	references: FileRecordRequest[] &length=byte_count;
 } &let {
 	deliver: bool = $context.flow.deliver_ReadFileRecordRequest(header, this);
@@ -303,14 +303,14 @@ type ReadFileRecordRequest(header: ModbusTCP_TransportHeader) = record {
 
 # Support data structure for the following message type.
 type FileRecordResponse = record {
-	file_len:    uint8    &check(file_len >= 0x07 && file_len <= 0xF5);
-	ref_type:    uint8    &check(ref_type == 6);
+	file_len:    uint8; #    &check(file_len >= 0x07 && file_len <= 0xF5);
+	ref_type:    uint8; #    &check(ref_type == 6);
 	record_data: uint16[file_len/2] &length=file_len;
 } &byteorder=bigendian;
 
 # RESPONSE FC=20
 type ReadFileRecordResponse(header: ModbusTCP_TransportHeader) = record {
-	byte_count: uint8 &check(byte_count >= 0x07 && byte_count <= 0xF5);
+	byte_count: uint8; # &check(byte_count >= 0x07 && byte_count <= 0xF5);
 	references: FileRecordResponse[] &length=byte_count;
 } &let {
 	deliver: bool = $context.flow.deliver_ReadFileRecordResponse(header, this);
@@ -362,9 +362,9 @@ type MaskWriteRegisterResponse(header: ModbusTCP_TransportHeader) = record {
 # REQUEST FC=23
 type ReadWriteMultipleRegistersRequest(header: ModbusTCP_TransportHeader) = record {
 	read_start_address:    uint16;
-	read_quantity:         uint16                 &check(read_quantity <= 125);
+	read_quantity:         uint16; #                 &check(read_quantity <= 125);
 	write_start_address:   uint16;
-	write_quantity:        uint16                 &check(write_quantity <= 100);
+	write_quantity:        uint16; #                 &check(write_quantity <= 100);
 	write_byte_count:      uint8;
 	write_register_values: uint16[write_quantity] &length=write_byte_count;
 } &let {
@@ -388,8 +388,8 @@ type ReadFIFOQueueRequest(header: ModbusTCP_TransportHeader) = record {
 
 # RESPONSE FC=24
 type ReadFIFOQueueResponse(header: ModbusTCP_TransportHeader) = record {
-	byte_count:    uint16             &check(byte_count <= 62);
-	fifo_count:    uint16             &check(fifo_count <= 31);
+	byte_count:    uint16; #             &check(byte_count <= 62);
+	fifo_count:    uint16; #             &check(fifo_count <= 31);
 	register_data: uint16[fifo_count] &length=fifo_count*2;
 } &let {
 	deliver: bool = $context.flow.deliver_ReadFIFOQueueResponse(header, this);

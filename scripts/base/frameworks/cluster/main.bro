@@ -195,11 +195,7 @@ export {
 	## Note that BroControl handles all of this automatically.
 	## The table is typically indexed by node names/labels (e.g. "manager"
 	## or "worker-1").
-	# TODO: this isn't meant to be modifiable at runtime, however, there
-	# is a bug with respect to ordering of record redefinitions which
-	# requires it to be populated in bro_init.
-	# See https://bro-tracker.atlassian.net/browse/BIT-1909
-	global nodes: table[string] of Node = {} &redef;
+	const nodes: table[string] of Node = {} &redef;
 
 	## Indicates whether or not the manager will act as the logger and receive
 	## logs.  This value should be set in the cluster-layout.bro script (the
@@ -337,43 +333,6 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string) &priority=1
 			break;
 			}
 		}
-	}
-
-event bro_init() &priority=100
-	{
-	# TODO: re-populating the node table at runtime is only needed
-	# because there's an ordering issue with record redefinitions.
-	# e.g. load-balancing.bro adds a record field to Cluster::Node,
-	# but before that has been parsed, cluster-layout.bro has already
-	# created record values using the original record type (the one
-	# without the new field).  Leads to crashes when trying to access
-	# that field ...
-	# See https://bro-tracker.atlassian.net/browse/BIT-1909
-	local node_table: table[string] of Node = table();
-
-	for ( name in Cluster::nodes )
-		{
-		local n = Cluster::nodes[name];
-		local fixed_node = Cluster::Node($node_type = n$node_type,
-		                                 $ip = n$ip, $p = n$p);
-		fixed_node$zone_id = n$zone_id;
-
-		if ( n?$interface )
-			fixed_node$interface = n$interface;
-
-		if ( n?$manager )
-			fixed_node$manager = n$manager;
-
-		if ( n?$time_machine )
-			fixed_node$time_machine = n$time_machine;
-
-		if ( n?$id )
-			fixed_node$id = n$id;
-
-		node_table[name] = fixed_node;
-		}
-
-	Cluster::nodes = node_table;
 	}
 
 event bro_init() &priority=5

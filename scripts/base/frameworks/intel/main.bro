@@ -248,7 +248,7 @@ function expire_subnet_data(data: table[subnet] of MetaDataTable, idx: subnet): 
 	for ( src in meta_tbl )
 		add metas[meta_tbl[src]];
 
-	return expire_item(cat(idx), ADDR, metas);
+	return expire_item(cat(idx), SUBNET, metas);
 	}
 
 function expire_string_data(data: table[string, Type] of MetaDataTable, idx: any): interval

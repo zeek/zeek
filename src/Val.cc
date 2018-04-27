@@ -2722,6 +2722,8 @@ unsigned int TableVal::MemoryAllocation() const
 		+ table_hash->MemoryAllocation();
 	}
 
+vector<RecordVal*> RecordVal::parse_time_records;
+
 RecordVal::RecordVal(RecordType* t) : MutableVal(t)
 	{
 	origin = 0;
@@ -2767,6 +2769,12 @@ RecordVal::RecordVal(RecordType* t) : MutableVal(t)
 		vl->append(def ? def->Ref() : 0);
 
 		Unref(def);
+
+		if ( is_parsing )
+			{
+			parse_time_records.emplace_back(this);
+			Ref();
+			}
 		}
 	}
 
@@ -2830,6 +2838,29 @@ Val* RecordVal::LookupWithDefault(int field) const
 		return val->Ref();
 
 	return record_type->FieldDefault(field);
+	}
+
+void RecordVal::ResizeParseTimeRecords()
+	{
+	for ( auto& rv : parse_time_records )
+		{
+		auto vs = rv->val.val_list_val;
+		auto rt = rv->record_type;
+		auto current_length = vs->length();
+		auto required_length = rt->NumFields();
+
+		if ( required_length > current_length )
+			{
+			vs->resize(required_length);
+
+			for ( auto i = current_length; i < required_length; ++i )
+				vs->replace(i, nullptr);
+			}
+
+		Unref(rv);
+		}
+
+	parse_time_records.clear();
 	}
 
 Val* RecordVal::Lookup(const char* field, bool with_default) const

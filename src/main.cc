@@ -848,7 +848,11 @@ int main(int argc, char** argv)
 	HeapLeakChecker::Disabler disabler;
 #endif
 
+	is_parsing = true;
 	yyparse();
+	is_parsing = false;
+
+	RecordVal::ResizeParseTimeRecords();
 
 	init_general_global_var();
 	init_net_var();

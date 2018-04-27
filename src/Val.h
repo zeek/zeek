@@ -965,6 +965,11 @@ public:
 	unsigned int MemoryAllocation() const override;
 	void DescribeReST(ODesc* d) const override;
 
+	// Extend the underlying arrays of record instances created during
+	// parsing to match the number of fields in the record type (they may
+	// mismatch as a result of parse-time record type redefinitions.
+	static void ResizeParseTimeRecords();
+
 protected:
 	friend class Val;
 	RecordVal()	{}
@@ -976,6 +981,8 @@ protected:
 
 	RecordType* record_type;
 	BroObj* origin;
+
+	static vector<RecordVal*> parse_time_records;
 };
 
 class EnumVal : public Val {

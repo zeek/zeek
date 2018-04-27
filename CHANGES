@@ -1,4 +1,10 @@
 
+2.5-534 | 2018-04-27 19:59:46 -0400
+
+  * Fix subnet expiration in the intel framework. (Seth Hall)
+
+  * BIT-1909: fix invalid redef'd record field accesses (Jon Siwek)
+
 2.5-527 | 2018-04-27 11:01:03 -0500
 
   * BIT-1430: Improve cross compilation support (Corelight)

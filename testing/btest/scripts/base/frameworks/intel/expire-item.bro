@@ -7,6 +7,7 @@
 # @TEST-START-FILE intel.dat
 #fields	indicator	indicator_type	meta.source	meta.desc	meta.url
 1.2.3.4	Intel::ADDR	source1	this host is bad	http://some-data-distributor.com/1
+192.168.0.0/16	Intel::SUBNET	source1	this network is bad	http://some-data-distributor.com/2
 # @TEST-END-FILE
 
 @load frameworks/intel/do_expire

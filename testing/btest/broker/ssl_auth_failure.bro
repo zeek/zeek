@@ -3,7 +3,7 @@
 # @TEST-EXEC: btest-bg-run recv "bro -B broker -b ../recv.bro >recv.out"
 # @TEST-EXEC: btest-bg-run send "bro -B broker -b ../send.bro >send.out"
 #
-# @TEST-EXEC: btest-bg-wait 20
+# @TEST-EXEC: btest-bg-wait 15
 # @TEST-EXEC: btest-diff recv/recv.out
 # @TEST-EXEC: btest-diff send/send.out
 
@@ -109,7 +109,7 @@ event bro_init()
     {
     Broker::subscribe("bro/event/my_topic");
     Broker::peer("127.0.0.1");
-    schedule 3secs { do_terminate()   };
+    schedule 5secs { do_terminate()   };
     }
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
@@ -152,7 +152,7 @@ event do_terminate()
 event bro_init()
         {
         Broker::listen("127.0.0.1");
-	schedule 3secs { do_terminate()   };
+        schedule 10secs { do_terminate()   };
         }
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)

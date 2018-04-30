@@ -81,5 +81,5 @@ event Control::shutdown_request()
 	# Send the acknowledgement event.
 	event Control::shutdown_response();
 	# Schedule the shutdown to let the current event queue flush itself first.
-	event terminate_event();
+	schedule 1sec { terminate_event() };
 	}

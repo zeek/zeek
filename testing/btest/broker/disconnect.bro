@@ -2,7 +2,7 @@
 #
 # @TEST-EXEC: btest-bg-run recv "bro -B broker -b ../recv.bro >recv.out"
 # @TEST-EXEC: btest-bg-run send "bro -B broker -b ../send.bro >send.out"
-# @TEST-EXEC:
+#
 # @TEST-EXEC: sleep 6 && kill $(cat recv/.pid) && sleep 1 && echo 0 >recv/.exitcode
 # @TEST-EXEC: btest-bg-run recv2 "bro -B broker -b ../recv.bro >recv2.out"
 #
@@ -46,9 +46,9 @@ event bro_init()
     Broker::auto_publish("bro/event/my_topic", do_terminate);
     Broker::peer("127.0.0.1");
 
-    schedule 4secs { print_something(1) };
-    schedule 10secs { print_something(2) };
-    schedule 15secs { do_terminate() };
+    schedule 3secs { print_something(1) };
+    schedule 12secs { print_something(2) };
+    schedule 13secs { do_terminate() };
     }
 
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)

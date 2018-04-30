@@ -26,9 +26,22 @@ event bro_init()
 	of_controller = OpenFlow::log_new(42);
 	}
 
+event terminate_me()
+	{
+	terminate();
+	}
+
+global done = F;
+
 event connection_established(c: connection)
 	{
+	if ( done )
+		return;
+
+	done = T;
+
 	print "conn established";
+
 	local match = OpenFlow::match_conn(c$id);
 	local match_rev = OpenFlow::match_conn(c$id, T);
 
@@ -42,15 +55,11 @@ event connection_established(c: connection)
 	OpenFlow::flow_mod(of_controller, match, flow_mod);
 	OpenFlow::flow_mod(of_controller, match_rev, flow_mod);
 
-	terminate();
+	schedule 2sec { terminate_me() };
 	}
-
-event terminate_me() {
-	terminate();
-}
 
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	{
-	schedule 1sec { terminate_me() };
+	schedule 2sec { terminate_me() };
 	}
 

@@ -381,6 +381,24 @@ void net_run()
 			// Check whether we have timers scheduled for
 			// the future on which we need to wait.
 			have_pending_timers = timer_mgr->Size() > 0;
+
+		if ( pseudo_realtime && communication_enabled )
+			{
+			auto have_active_packet_source = false;
+
+			for ( auto& ps : iosource_mgr->GetPktSrcs() )
+				{
+				if ( ps->IsOpen() )
+					{
+					have_active_packet_source = true;
+					break;
+					}
+				}
+
+			if (  ! have_active_packet_source )
+				// Can turn off pseudo realtime now
+				pseudo_realtime = 0;
+			}
 		}
 
 	// Get the final statistics now, and not when net_finish() is

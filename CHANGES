@@ -1,4 +1,8 @@
 
+2.5-535 | 2018-04-30 16:22:30 -0500
+
+  * Improve how coverage unit tests handle name of build dir (Corelight)
+
 2.5-534 | 2018-04-27 19:59:46 -0400
 
   * Fix subnet expiration in the intel framework. (Seth Hall)

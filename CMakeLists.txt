@@ -114,7 +114,6 @@ endif ()
 
 include_directories(BEFORE
                     ${PCAP_INCLUDE_DIR}
-                    ${OPENSSL_INCLUDE_DIR}
                     ${BIND_INCLUDE_DIR}
                     ${BinPAC_INCLUDE_DIR}
                     ${ZLIB_INCLUDE_DIR}
@@ -163,6 +162,12 @@ if (ENABLE_PERFTOOLS_DEBUG OR ENABLE_PERFTOOLS)
     # ENABLE_PERFTOOLS_DEBUG or ENABLE_PERFTOOLS not being used if google
     # perftools weren't found
 endif ()
+
+# Making sure any non-standard OpenSSL includes get searched earlier
+# than other dependencies which tend to be in standard system locations
+# and thus cause the system OpenSSL headers to still be picked up even
+# if one specifies --with-openssl (which may be common).
+include_directories(BEFORE ${OPENSSL_INCLUDE_DIR})
 
 set(brodeps
     ${BinPAC_LIBRARY}

@@ -1,4 +1,9 @@
 
+2.5-545 | 2018-05-01 18:09:30 -0500
+
+  * Improve canonicalization of build dir path in a coverage unit test
+    (Corelight)
+
 2.5-544 | 2018-05-01 17:57:15 -0500
 
   * Rewrite the DHCP analyzer and accompanying script-layer API.

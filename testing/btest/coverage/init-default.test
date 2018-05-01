@@ -11,7 +11,8 @@
 #@TEST-EXEC: test -e $DIST/scripts/base/init-default.bro
 #@TEST-EXEC: ( cd $DIST/scripts/base && find . -name '*.bro' ) | sort >"all scripts found"
 #@TEST-EXEC: bro misc/loaded-scripts
-#@TEST-EXEC: cat loaded_scripts.log | egrep -v "/$(test -L $BUILD && basename $(readlink $BUILD) || basename $BUILD)/scripts/|/loaded-scripts.bro|#" | sed 's#/./#/#g'  >loaded_scripts.log.tmp
+#@TEST-EXEC: (test -L $BUILD && basename $(readlink $BUILD) || basename $BUILD) >buildprefix
+#@TEST-EXEC: cat loaded_scripts.log | egrep -v "/build/scripts/|$(cat buildprefix)/scripts/|/loaded-scripts.bro|#" | sed 's#/./#/#g'  >loaded_scripts.log.tmp
 #@TEST-EXEC: cat loaded_scripts.log.tmp | sed 's/ //g' | sed -e ':a' -e '$!N' -e 's/^\(.*\).*\n\1.*/\1/' -e 'ta' >prefix
 #@TEST-EXEC: cat loaded_scripts.log.tmp | sed 's/ //g' | sed "s#`cat prefix`#./#g" | sort >init-default.bro
 #@TEST-EXEC: diff -u "all scripts found" init-default.bro | egrep "^-[^-]" > missing_loads

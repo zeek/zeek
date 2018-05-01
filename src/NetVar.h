@@ -113,9 +113,6 @@ extern RecordType* geo_location;
 
 extern RecordType* entropy_test_result;
 
-extern TableType* dhcp_router_list;
-extern RecordType* dhcp_msg;
-
 extern RecordType* dns_msg;
 extern RecordType* dns_answer;
 extern RecordType* dns_soa;

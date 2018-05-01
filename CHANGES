@@ -1,4 +1,22 @@
 
+2.5-544 | 2018-05-01 17:57:15 -0500
+
+  * Rewrite the DHCP analyzer and accompanying script-layer API.
+    (Valerio G, Corelight)
+
+     * Reduced all DHCP events into a single dhcp_message event.
+       (removed legacy events since they weren't widely used anyway)
+     - Support many more DHCP options.
+
+     - DHCP log is completely reworked and now represents DHCP sessions
+       based on the transaction ID (and works on clusters).
+
+     - Removed the known-devices-and-hostnames.bro and known-devices.bro
+       scripts since it's generally less relevant now with the updated log.
+
+  * Change include directory search order to better support --with-openssl.
+    (Johanna Amann)
+
 2.5-535 | 2018-04-30 16:22:30 -0500
 
   * Improve how coverage unit tests handle name of build dir (Corelight)

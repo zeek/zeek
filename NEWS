@@ -149,6 +149,34 @@ New Functionality
 Changed Functionality
 ---------------------
 
+- The DHCP analyzer and its script-layer interface have been rewritten.
+
+  - Supports more DHCP options than before.
+
+  - The DHCP log now represents DHCP sessions based on transaction ID
+    and works on Bro cluster deployments.
+
+  - Removed the policy/protocols/dhcp/known-devices-and-hostnames.bro
+    script since it's generally less relevant now with the updated log.
+
+  - Removed policy/misc/known-devices.bro script and thus
+    known_devices.log will no longer be created.
+
+  - Removed the base/protocols/dhcp/utils.bro script and thus the
+    'reverse_ip' function.
+
+  - Replaced all DHCP events with the single 'dhcp_message' event.
+    The list of removed events includes:
+
+    - dhcp_discover
+    - dhcp_offer
+    - dhcp_request
+    - dhcp_decline
+    - dhcp_ack
+    - dhcp_nak
+    - dhcp_release
+    - dhcp_inform
+
 - The --with-binpac= configure option has changed to mean "path
   to the binpac executable" instead of "path to binpac installation root".
 

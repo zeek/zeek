@@ -3285,24 +3285,151 @@ export {
 
 module GLOBAL;
 
-## A list of router addresses offered by a DHCP server.
-##
-## .. bro:see:: dhcp_ack dhcp_offer
-type dhcp_router_list: table[count] of addr;
+module DHCP;
 
-## A DHCP message.
-##
-## .. bro:see:: dhcp_ack dhcp_decline dhcp_discover dhcp_inform dhcp_nak
-##    dhcp_offer dhcp_release dhcp_request
-type dhcp_msg: record {
-	op: count;	##< Message OP code. 1 = BOOTREQUEST, 2 = BOOTREPLY
-	m_type: count;	##< The type of DHCP message.
-	xid: count;	##< Transaction ID of a DHCP session.
-	h_addr: string;	##< Hardware address of the client.
-	ciaddr: addr;	##< Original IP address of the client.
-	yiaddr: addr;	##< IP address assigned to the client.
-};
+export {
+	## A list of addresses offered by a DHCP server.  Could be routers,
+	## DNS servers, or other.
+	##
+	## .. bro:see:: dhcp_message
+	type DHCP::Addrs: vector of addr;
 
+	## A DHCP message.
+	## .. bro:see:: dhcp_message
+	type DHCP::Msg: record {
+		op: count;      ##< Message OP code. 1 = BOOTREQUEST, 2 = BOOTREPLY
+		m_type: count;  ##< The type of DHCP message.
+		xid: count;     ##< Transaction ID of a DHCP session.
+		## Number of seconds since client began address acquisition
+		## or renewal process
+		secs: interval;
+		flags: count;
+		ciaddr: addr;   ##< Original IP address of the client.
+		yiaddr: addr;   ##< IP address assigned to the client.
+		siaddr: addr;   ##< IP address of the server.
+		giaddr: addr;   ##< IP address of the relaying gateway.
+		chaddr: string; ##< Client hardware address.
+		sname:  string &default=""; ##< Server host name.
+		file_n: string &default=""; ##< Boot file name.
+	};
+
+	## DHCP Client Identifier (Option 61)
+	## .. bro:see:: dhcp_message
+	type DHCP::ClientID: record {
+		hwtype: count;
+		hwaddr: string;
+	};
+
+	## DHCP Client FQDN Option information (Option 81)
+	type DHCP::ClientFQDN: record {
+		## An unparsed bitfield of flags (refer to RFC 4702).
+		flags: count;
+		## This field is deprecated in the standard.
+		rcode1: count;
+		## This field is deprecated in the standard.
+		rcode2: count;
+		## The Domain Name part of the option carries all or part of the FQDN
+		## of a DHCP client.
+		domain_name: string;
+	};
+
+	## DHCP Relay Agent Information Option (Option 82)
+	## .. bro:see:: dhcp_message
+	type DHCP::SubOpt: record {
+		code: count;
+		value: string;
+	};
+
+	type DHCP::SubOpts: vector of DHCP::SubOpt;
+
+	type DHCP::Options: record {
+		## The ordered list of all DHCP option numbers.
+		options:         index_vec &optional;
+
+		## Subnet Mask Value (option 1)
+		subnet_mask:     addr &optional;
+
+		## Router addresses (option 3)
+		routers:         DHCP::Addrs &optional;
+
+		## DNS Server addresses (option 6)
+		dns_servers:     DHCP::Addrs &optional;
+
+		## The Hostname of the client (option 12)
+		host_name:       string &optional;
+
+		## The DNS domain name of the client (option 15)
+		domain_name:     string &optional;
+
+		## Enable/Disable IP Forwarding (option 19)
+		forwarding:      bool &optional;
+
+		## Broadcast Address (option 28)
+		broadcast:       addr &optional;
+
+		## Vendor specific data. This can frequently
+		## be unparsed binary data. (option 43)
+		vendor:          string &optional;
+
+		## NETBIOS name server list (option 44)
+		nbns:            DHCP::Addrs &optional;
+
+		## Address requested by the client (option 50)
+		addr_request:    addr &optional;
+
+		## Lease time offered by the server. (option 51)
+		lease:           interval &optional;
+
+		## Server address to allow clients to distinguish
+		## between lease offers. (option 54)
+		serv_addr:       addr &optional;
+
+		## DHCP Parameter Request list (option 55)
+		param_list:      index_vec &optional;
+
+		## Textual error message (option 56)
+		message:         string &optional;
+
+		## Maximum Message Size (option 57)
+		max_msg_size:    count &optional;
+
+		## This option specifies the time interval from address
+		## assignment until the client transitions to the
+		## RENEWING state. (option 58)
+		renewal_time:    interval &optional;
+
+		## This option specifies the time interval from address
+		## assignment until the client transitions to the
+		## REBINDING state. (option 59)
+		rebinding_time:  interval &optional;
+
+		## This option is used by DHCP clients to optionally
+		## identify the vendor type and configuration of a DHCP
+		## client. (option 60)
+		vendor_class:    string &optional;
+
+		## DHCP Client Identifier (Option 61)
+		client_id:       DHCP::ClientID &optional;
+
+		## User Class opaque value (Option 77)
+		user_class:      string &optional;
+
+		## DHCP Client FQDN (Option 81)
+		client_fqdn:     DHCP::ClientFQDN &optional;
+
+		## DHCP Relay Agent Information Option (Option 82)
+		sub_opt:         DHCP::SubOpts &optional;
+
+		## Auto Config option to let host know if it's allowed to
+		## auto assign an IP address. (Option 116)
+		auto_config:     bool &optional;
+
+		## URL to find a proxy.pac for auto proxy config (Option 252)
+		auto_proxy_config: string &optional;
+	};
+}
+
+module GLOBAL;
 ## A DNS message.
 ##
 ## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl

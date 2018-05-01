@@ -1,227 +1,44 @@
-connection DHCP_Conn(bro_analyzer: BroAnalyzer) {
-	upflow = DHCP_Flow(true);
-	downflow = DHCP_Flow(false);
-};
 
-flow DHCP_Flow(is_orig: bool) {
-	datagram = DHCP_Message withcontext(connection, this);
-
+refine flow DHCP_Flow += {
 	%member{
-		BroVal dhcp_msg_val_;
+		RecordVal* options;
+		VectorVal* all_options;
 	%}
 
 	%init{
-		dhcp_msg_val_ = 0;
+		options = nullptr;
+		all_options = nullptr;
 	%}
 
 	%cleanup{
-		Unref(dhcp_msg_val_);
-		dhcp_msg_val_ = 0;
+		Unref(options);
+		options = nullptr;
+
+		Unref(all_options);
+		all_options = nullptr;
 	%}
 
-	function get_dhcp_msgtype(options: DHCP_Option[]): uint8
+	function init_options(): bool
 		%{
-		vector<DHCP_Option*>::const_iterator ptr;
-		uint8 type = 0;
-
-		// Leave the for loop if the message type is found.
-		bool parsed = false;
-
-		for ( ptr = options->begin();
-		      ptr != options->end() && ! (*ptr)->last(); ++ptr )
+		if ( ! options )
 			{
-			// We use a switch for future expandability.
-			switch ( (*ptr)->code() ) {
-			case MSG_TYPE_OPTION:
-				type = (*ptr)->info()->msg_type();
-				parsed = true;
-				break;
-			}
-
-			if ( parsed )
-				break;
-			}
-
-		if ( type == 0 )
-			connection()->bro_analyzer()->ProtocolViolation("no DHCP message type option");
-
-		return type;
-		%}
-
-	function parse_request(options: DHCP_Option[], type: uint8): bool
-		%{
-		vector<DHCP_Option*>::const_iterator ptr;
-
-		// Requested IP address to the server.
-		::uint32 req_addr = 0, serv_addr = 0;
-		StringVal* host_name = 0;
-
-		for ( ptr = options->begin();  ptr != options->end() && ! (*ptr)->last(); ++ptr )
-			{
-			switch ( (*ptr)->code() )
-				{
-				case REQ_IP_OPTION:
-					req_addr = htonl((*ptr)->info()->req_addr());
-					break;
-
-				case SERV_ID_OPTION:
-					serv_addr = htonl((*ptr)->info()->serv_addr());
-					break;
-
-				case HOST_NAME_OPTION:
-					Unref(host_name);
-					host_name = new StringVal((*ptr)->info()->host_name().length(),
-								  (const char*) (*ptr)->info()->host_name().begin());
-					break;
-				}
-			}
-
-		if ( host_name == 0 )
-			host_name = new StringVal("");
-
-		switch ( type )
-			{
-			case DHCPDISCOVER:
-				BifEvent::generate_dhcp_discover(connection()->bro_analyzer(),
-								 connection()->bro_analyzer()->Conn(),
-								 dhcp_msg_val_->Ref(), new AddrVal(req_addr), host_name);
-				break;
-
-			case DHCPREQUEST:
-				BifEvent::generate_dhcp_request(connection()->bro_analyzer(),
-								connection()->bro_analyzer()->Conn(),
-								dhcp_msg_val_->Ref(), new AddrVal(req_addr),
-								new AddrVal(serv_addr), host_name);
-				break;
-
-			case DHCPDECLINE:
-				BifEvent::generate_dhcp_decline(connection()->bro_analyzer(),
-								connection()->bro_analyzer()->Conn(),
-								dhcp_msg_val_->Ref(), host_name);
-				break;
-
-			case DHCPRELEASE:
-				BifEvent::generate_dhcp_release(connection()->bro_analyzer(),
-								connection()->bro_analyzer()->Conn(),
-								dhcp_msg_val_->Ref(), host_name);
-				break;
-
-			case DHCPINFORM:
-				BifEvent::generate_dhcp_inform(connection()->bro_analyzer(),
-							       connection()->bro_analyzer()->Conn(),
-							       dhcp_msg_val_->Ref(), host_name);
-				break;
-
-			default:
-				Unref(host_name);
-				break;
+			options = new RecordVal(BifType::Record::DHCP::Options);
+			all_options = new VectorVal(index_vec);
+			options->Assign(0, all_options->Ref());
 			}
 
 		return true;
 		%}
 
-	function parse_reply(options: DHCP_Option[], type: uint8): bool
+	function create_options(code: uint8): bool
 		%{
-		vector<DHCP_Option*>::const_iterator ptr;
+		init_options();
 
-		// RFC 1533 allows a list of router addresses.
-		TableVal* router_list = 0;
-
-		::uint32 subnet_mask = 0, serv_addr = 0;
-
-		uint32 lease = 0;
-		StringVal* host_name = 0;
-
-		for ( ptr = options->begin();
-		      ptr != options->end() && ! (*ptr)->last(); ++ptr )
-			{
-			switch ( (*ptr)->code() )
-				{
-				case SUBNET_OPTION:
-					subnet_mask = htonl((*ptr)->info()->mask());
-					break;
-
-				case ROUTER_OPTION:
-					// Let's hope there aren't multiple
-					// such options.
-					Unref(router_list);
-					router_list = new TableVal(dhcp_router_list);
-
-						{
-						int num_routers = (*ptr)->info()->router_list()->size();
-
-						for ( int i = 0; i < num_routers; ++i )
-							{
-							vector<uint32>* rlist = (*ptr)->info()->router_list();
-
-							uint32 raddr = (*rlist)[i];
-							::uint32 tmp_addr;
-							tmp_addr = htonl(raddr);
-
-							// index starting from 1
-							Val* index = new Val(i + 1, TYPE_COUNT);
-							router_list->Assign(index, new AddrVal(tmp_addr));
-							Unref(index);
-							}
-						}
-					break;
-
-				case LEASE_OPTION:
-					lease = (*ptr)->info()->lease();
-					break;
-
-				case SERV_ID_OPTION:
-					serv_addr = htonl((*ptr)->info()->serv_addr());
-					break;
-
-				case HOST_NAME_OPTION:
-					Unref(host_name);
-					host_name = new StringVal((*ptr)->info()->host_name().length(),
-								  (const char*) (*ptr)->info()->host_name().begin());
-					break;
-				}
-			}
-
-			if ( host_name == 0 )
-				host_name = new StringVal("");
-
-		switch ( type )
-			{
-			case DHCPOFFER:
-				if ( ! router_list )
-					router_list = new TableVal(dhcp_router_list);
-
-				BifEvent::generate_dhcp_offer(connection()->bro_analyzer(),
-							      connection()->bro_analyzer()->Conn(),
-							      dhcp_msg_val_->Ref(), new AddrVal(subnet_mask),
-							      router_list, lease, new AddrVal(serv_addr), host_name);
-				break;
-
-			case DHCPACK:
-				if ( ! router_list )
-					router_list = new TableVal(dhcp_router_list);
-
-				BifEvent::generate_dhcp_ack(connection()->bro_analyzer(),
-							    connection()->bro_analyzer()->Conn(),
-							    dhcp_msg_val_->Ref(), new AddrVal(subnet_mask),
-							    router_list, lease, new AddrVal(serv_addr), host_name);
-				break;
-
-			case DHCPNAK:
-				Unref(router_list);
-				BifEvent::generate_dhcp_nak(connection()->bro_analyzer(),
-							    connection()->bro_analyzer()->Conn(),
-							    dhcp_msg_val_->Ref(), host_name);
-				break;
-
-			default:
-				Unref(router_list);
-				Unref(host_name);
-				break;
-			}
+		if ( code != 255 )
+			all_options->Assign(all_options->Size(),
+			                    new Val(code, TYPE_COUNT));
 
 		return true;
-
 		%}
 
 	function process_dhcp_message(msg: DHCP_Message): bool
@@ -235,52 +52,67 @@ flow DHCP_Flow(is_orig: bool) {
 			return false;
 			}
 
-		Unref(dhcp_msg_val_);
-
-		std::string mac_str = fmt_mac(${msg.chaddr}.data(), ${msg.chaddr}.length());
-
-		RecordVal* r = new RecordVal(dhcp_msg);
-		r->Assign(0, new Val(${msg.op}, TYPE_COUNT));
-		r->Assign(1, new Val(${msg.type}, TYPE_COUNT));
-		r->Assign(2, new Val(${msg.xid}, TYPE_COUNT));
-		r->Assign(3, new StringVal(mac_str));
-		r->Assign(4, new AddrVal(${msg.ciaddr}));
-		r->Assign(5, new AddrVal(${msg.yiaddr}));
-
-		dhcp_msg_val_ = r;
-
-		switch ( ${msg.op} )
+		if ( dhcp_message )
 			{
-			case BOOTREQUEST:	// presumably from client to server
-				if ( ${msg.type} == DHCPDISCOVER ||
-			     	     ${msg.type} == DHCPREQUEST ||
-			     	     ${msg.type} == DHCPDECLINE ||
-			     	     ${msg.type} == DHCPRELEASE ||
-			     	     ${msg.type} == DHCPINFORM )
-					parse_request(${msg.options}, ${msg.type});
-				else
-					connection()->bro_analyzer()->ProtocolViolation(fmt("unknown DHCP message type option for BOOTREQUEST (%d)",
-											    ${msg.type}));
-				break;
+			std::string mac_str = fmt_mac(${msg.chaddr}.data(), ${msg.chaddr}.length());
+			double secs = static_cast<double>(${msg.secs});
 
-			case BOOTREPLY:		// presumably from server to client
-				if ( ${msg.type} == DHCPOFFER ||
-			     	     ${msg.type} == DHCPACK ||
-				     ${msg.type} == DHCPNAK )
-					parse_reply(${msg.options}, ${msg.type});
-				else
-					connection()->bro_analyzer()->ProtocolViolation(fmt("unknown DHCP message type option for BOOTREPLY (%d)",
-											    ${msg.type}));
+			auto dhcp_msg_val = new RecordVal(BifType::Record::DHCP::Msg);
+			dhcp_msg_val->Assign(0, new Val(${msg.op}, TYPE_COUNT));
+			dhcp_msg_val->Assign(1, new Val(${msg.type}, TYPE_COUNT));
+			dhcp_msg_val->Assign(2, new Val(${msg.xid}, TYPE_COUNT));
+			dhcp_msg_val->Assign(3, new Val(secs, TYPE_INTERVAL));
+			dhcp_msg_val->Assign(4, new Val(${msg.flags}, TYPE_COUNT));
+			dhcp_msg_val->Assign(5, new AddrVal(htonl(${msg.ciaddr})));
+			dhcp_msg_val->Assign(6, new AddrVal(htonl(${msg.yiaddr})));
+			dhcp_msg_val->Assign(7, new AddrVal(htonl(${msg.siaddr})));
+			dhcp_msg_val->Assign(8, new AddrVal(htonl(${msg.giaddr})));
+			dhcp_msg_val->Assign(9, new StringVal(mac_str));
 
-				break;
+			int last_non_null = 0;
 
-			default:
-				connection()->bro_analyzer()->ProtocolViolation(fmt("unknown DHCP message op code (%d). Known codes: 1=BOOTREQUEST, 2=BOOTREPLY",
-										${msg.op}));
-				break;
+			for ( int i = 0; i < ${msg.sname}.length(); ++i )
+				{
+				if ( *(${msg.sname}.begin() + i) != 0 )
+					last_non_null = i;
+				}
+
+			if ( last_non_null > 0 )
+				dhcp_msg_val->Assign(10, new StringVal(last_non_null + 1,
+				                                       reinterpret_cast<const char*>(${msg.sname}.begin())));
+
+			last_non_null = 0;
+
+			for ( int i = 0; i < ${msg.file_n}.length(); ++i )
+				{
+				if ( *(${msg.file_n}.begin() + i) != 0 )
+					last_non_null = i;
+				}
+
+			if ( last_non_null > 0 )
+				dhcp_msg_val->Assign(11, new StringVal(last_non_null + 1,
+				                                       reinterpret_cast<const char*>(${msg.file_n}.begin())));
+
+			init_options();
+
+			BifEvent::generate_dhcp_message(connection()->bro_analyzer(),
+			                                connection()->bro_analyzer()->Conn(),
+			                                ${msg.is_orig},
+			                                dhcp_msg_val,
+			                                options);
+
+			options = nullptr;
+			Unref(all_options);
+			all_options = nullptr;
 			}
 
+		// A single message reaching this point is enough to confirm the protocol
+		// because it's not uncommon to see a single DHCP message
+		// on a "connection".
+		// The binpac analyzer would have thrown an error before this point
+		// if there was a problem too (and subsequently called ProtocolViolation).
 		connection()->bro_analyzer()->ProtocolConfirmation();
+
 		return true;
 		%}
 };
@@ -288,3 +120,8 @@ flow DHCP_Flow(is_orig: bool) {
 refine typeattr DHCP_Message += &let {
 	proc_dhcp_message = $context.flow.process_dhcp_message(this);
 };
+
+refine typeattr Option += &let {
+	proc_create_options = $context.flow.create_options(code);
+};
+

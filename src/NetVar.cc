@@ -110,9 +110,6 @@ RecordType* geo_location;
 
 RecordType* entropy_test_result;
 
-TableType* dhcp_router_list;
-RecordType* dhcp_msg;
-
 RecordType* dns_msg;
 RecordType* dns_answer;
 RecordType* dns_soa;
@@ -425,9 +422,6 @@ void init_net_var()
 	geo_location = internal_type("geo_location")->AsRecordType();
 
 	entropy_test_result = internal_type("entropy_test_result")->AsRecordType();
-
-	dhcp_router_list = internal_type("dhcp_router_list")->AsTableType();
-	dhcp_msg = internal_type("dhcp_msg")->AsRecordType();
 
 	dns_msg = internal_type("dns_msg")->AsRecordType();
 	dns_answer = internal_type("dns_answer")->AsRecordType();

@@ -15,7 +15,6 @@ http
 intel
 irc
 known_certs
-known_devices
 known_hosts
 known_modbus
 known_services

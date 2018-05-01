@@ -63,8 +63,8 @@ To install the required dependencies, you can use:
 
      sudo apt-get install cmake make gcc g++ flex bison libpcap-dev libssl-dev python-dev swig zlib1g-dev
 
-  In order to build Bro on Debian 9, install ``libssl1.0-dev`` instead
-  of ``libssl-dev``.
+  In order to build Bro on Debian 9 or Ubuntu 18.04, install ``libssl1.0-dev``
+  instead of ``libssl-dev``.
 
 * FreeBSD:
 

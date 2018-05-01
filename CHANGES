@@ -1,4 +1,13 @@
 
+2.5-551 | 2018-05-01 18:27:38 -0500
+
+  * Fix the ip-broken-header.bro test on macOS due to missing 'xzcat'
+    (Daniel Thayer)
+
+  * Improve reliability of the logging rotate.bro test (Daniel Thayer)
+
+  * Improve reliability of missing-file-initially.bro test (Daniel thayer)
+
 2.5-547 | 2018-05-01 18:17:14 -0500
 
   * Update install instructions for Ubuntu 18.04 (Daniel Thayer)

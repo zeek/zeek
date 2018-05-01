@@ -1,4 +1,8 @@
 
+2.5-547 | 2018-05-01 18:17:14 -0500
+
+  * Update install instructions for Ubuntu 18.04 (Daniel Thayer)
+
 2.5-545 | 2018-05-01 18:09:30 -0500
 
   * Improve canonicalization of build dir path in a coverage unit test

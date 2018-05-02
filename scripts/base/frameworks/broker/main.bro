@@ -1,13 +1,4 @@
-#! Various data structure definitions for use with Bro's communication system.
-
-module Log;
-
-export {
-	type Log::ID: enum {
-		## Dummy place-holder.
-		UNKNOWN
-	};
-}
+##! The Broker-based communication API and its various options.
 
 module Broker;
 
@@ -134,8 +125,8 @@ export {
 	};
 
 	type NetworkInfo: record {
-		## The IP address where the endpoint listens.
-		address: addr &log;
+		## The IP address or hostname where the endpoint listens.
+		address: string &log;
 		## The port where the endpoint is bound to.
 		bound_port: port &log;
 	};

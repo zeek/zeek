@@ -1,4 +1,4 @@
-##! Various data structure definitions for use with Bro's communication system.
+##! The Broker-based data store API and its various options.
 
 @load ./main
 @load base/bif/data.bif

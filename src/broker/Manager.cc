@@ -1168,26 +1168,23 @@ void Manager::ProcessStatus(broker::status stat)
 	if ( ctx )
 		{
 		endpoint_info->Assign(0, new StringVal(to_string(ctx->node)));
+		auto ni = internal_type("Broker::NetworkInfo")->AsRecordType();
+		auto network_info = new RecordVal(ni);
 
 		if ( ctx->network )
 			{
-			auto ni = internal_type("Broker::NetworkInfo")->AsRecordType();
-			auto network_info = new RecordVal(ni);
-			network_info->Assign(0, new AddrVal(IPAddr(ctx->network->address)));
+			network_info->Assign(0, new StringVal(ctx->network->address.data()));
 			network_info->Assign(1, port_mgr->Get(ctx->network->port, TRANSPORT_TCP));
-			endpoint_info->Assign(1, network_info);
 			}
 		else
 			{
-			// TODO: This happens for all(?) status messages
-			// currently because Broker no longer passes the
-			// network info along with the status. Once fixed, remove this.
-			auto ni = internal_type("Broker::NetworkInfo")->AsRecordType();
-			auto network_info = new RecordVal(ni);
-			network_info->Assign(0, new AddrVal("0.0.0.0"));
+			// TODO: are there any status messages where the ctx->network
+			// is not set and actually could be?
+			network_info->Assign(0, new StringVal("<unknown>"));
 			network_info->Assign(1, port_mgr->Get(0, TRANSPORT_TCP));
-			endpoint_info->Assign(1, network_info);
 			}
+
+		endpoint_info->Assign(1, network_info);
 		}
 
 	auto str = stat.message();

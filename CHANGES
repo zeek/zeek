@@ -1,4 +1,50 @@
 
+2.5-551 | 2018-05-01 18:27:38 -0500
+
+  * Fix the ip-broken-header.bro test on macOS due to missing 'xzcat'
+    (Daniel Thayer)
+
+  * Improve reliability of the logging rotate.bro test (Daniel Thayer)
+
+  * Improve reliability of missing-file-initially.bro test (Daniel thayer)
+
+2.5-547 | 2018-05-01 18:17:14 -0500
+
+  * Update install instructions for Ubuntu 18.04 (Daniel Thayer)
+
+2.5-545 | 2018-05-01 18:09:30 -0500
+
+  * Improve canonicalization of build dir path in a coverage unit test
+    (Corelight)
+
+2.5-544 | 2018-05-01 17:57:15 -0500
+
+  * Rewrite the DHCP analyzer and accompanying script-layer API.
+    (Valerio G, Corelight)
+
+     * Reduced all DHCP events into a single dhcp_message event.
+       (removed legacy events since they weren't widely used anyway)
+     - Support many more DHCP options.
+
+     - DHCP log is completely reworked and now represents DHCP sessions
+       based on the transaction ID (and works on clusters).
+
+     - Removed the known-devices-and-hostnames.bro and known-devices.bro
+       scripts since it's generally less relevant now with the updated log.
+
+  * Change include directory search order to better support --with-openssl.
+    (Johanna Amann)
+
+2.5-535 | 2018-04-30 16:22:30 -0500
+
+  * Improve how coverage unit tests handle name of build dir (Corelight)
+
+2.5-534 | 2018-04-27 19:59:46 -0400
+
+  * Fix subnet expiration in the intel framework. (Seth Hall)
+
+  * BIT-1909: fix invalid redef'd record field accesses (Jon Siwek)
+
 2.5-527 | 2018-04-27 11:01:03 -0500
 
   * BIT-1430: Improve cross compilation support (Corelight)

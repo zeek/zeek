@@ -40,7 +40,7 @@ void NCP_Session::Deliver(int is_orig, int len, const u_char* data)
 		}
 	catch ( const binpac::Exception& e )
 		{
-		analyzer->Weird(e.msg().c_str());
+		analyzer->ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
 		}
 	}
 

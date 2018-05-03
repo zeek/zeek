@@ -1,4 +1,8 @@
 
+2.5-553 | 2018-05-03 14:59:53 -0500
+
+  * Make BinPAC exception handling more consistent (Vlad Grigorescu)
+
 2.5-551 | 2018-05-01 18:27:38 -0500
 
   * Fix the ip-broken-header.bro test on macOS due to missing 'xzcat'

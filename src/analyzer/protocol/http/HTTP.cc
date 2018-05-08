@@ -357,7 +357,7 @@ void HTTP_Entity::SetPlainDelivery(int64_t length)
 
 void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 	{
-	if ( mime::strcasecmp_n(h->get_name(), "content-length") == 0 )
+	if ( mime::istrequal(h->get_name(), "content-length") )
 		{
 		data_chunk_t vt = h->get_value_token();
 		if ( ! mime::is_null_data_chunk(vt) )
@@ -383,7 +383,7 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 		}
 
 	// Figure out content-length for HTTP 206 Partial Content response
-	else if ( mime::strcasecmp_n(h->get_name(), "content-range") == 0 &&
+	else if ( mime::istrequal(h->get_name(), "content-range") &&
 		      http_message->MyHTTP_Analyzer()->HTTP_ReplyCode() == 206 )
 		{
 		data_chunk_t vt = h->get_value_token();
@@ -468,7 +468,7 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 			}
 		}
 
-	else if ( mime::strcasecmp_n(h->get_name(), "transfer-encoding") == 0 )
+	else if ( mime::istrequal(h->get_name(), "transfer-encoding") )
 		{
 		double http_version = 0;
 		if (http_message->analyzer->GetRequestOngoing())
@@ -477,18 +477,16 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 			http_version = http_message->analyzer->GetReplyVersion();
 
 		data_chunk_t vt = h->get_value_token();
-		if ( mime::strcasecmp_n(vt, "chunked") == 0 &&
-		     http_version == 1.1)
+		if ( mime::istrequal(vt, "chunked") && http_version == 1.1 )
 			chunked_transfer_state = BEFORE_CHUNK;
 		}
 
-	else if ( mime::strcasecmp_n(h->get_name(), "content-encoding") == 0 )
+	else if ( mime::istrequal(h->get_name(), "content-encoding") )
 		{
 		data_chunk_t vt = h->get_value_token();
-		if ( mime::strcasecmp_n(vt, "gzip") == 0 ||
-		     mime::strcasecmp_n(vt, "x-gzip") == 0 )
+		if ( mime::istrequal(vt, "gzip") || mime::istrequal(vt, "x-gzip") )
 			encoding = GZIP;
-		if ( mime::strcasecmp_n(vt, "deflate") == 0 )
+		if ( mime::istrequal(vt, "deflate") )
 			encoding = DEFLATE;
 		}
 
@@ -1651,11 +1649,11 @@ void HTTP_Analyzer::HTTP_Header(int is_orig, mime::MIME_Header* h)
 	{
 #if 0
 	// ### Only call ParseVersion if we're tracking versions:
-	if ( strcasecmp_n(h->get_name(), "server") == 0 )
+	if ( istrequal(h->get_name(), "server") )
 		ParseVersion(h->get_value(),
 				(is_orig ? Conn()->OrigAddr() : Conn()->RespAddr()), false);
 
-	else if ( strcasecmp_n(h->get_name(), "user-agent") == 0 )
+	else if ( istrequal(h->get_name(), "user-agent") )
 		ParseVersion(h->get_value(),
 				(is_orig ? Conn()->OrigAddr() : Conn()->RespAddr()), true);
 #endif
@@ -1664,23 +1662,23 @@ void HTTP_Analyzer::HTTP_Header(int is_orig, mime::MIME_Header* h)
 	// side, and if seen assume the connection to be persistent.
 	// This seems fairly safe - at worst, the client does indeed
 	// send additional requests, and the server ignores them.
-	if ( is_orig && mime::strcasecmp_n(h->get_name(), "connection") == 0 )
+	if ( is_orig && mime::istrequal(h->get_name(), "connection") )
 		{
-		if ( mime::strcasecmp_n(h->get_value_token(), "keep-alive") == 0 )
+		if ( mime::istrequal(h->get_value_token(), "keep-alive") )
 			keep_alive = 1;
 		}
 
 	if ( ! is_orig &&
-	     mime::strcasecmp_n(h->get_name(), "connection") == 0 )
+	     mime::istrequal(h->get_name(), "connection") )
 		{
-		if ( mime::strcasecmp_n(h->get_value_token(), "close") == 0 )
+		if ( mime::istrequal(h->get_value_token(), "close") )
 			connection_close = 1;
-		else if ( mime::strcasecmp_n(h->get_value_token(), "upgrade") == 0 )
+		else if ( mime::istrequal(h->get_value_token(), "upgrade") )
 			upgrade_connection = true;
 		}
 
 	if ( ! is_orig &&
-	     mime::strcasecmp_n(h->get_name(), "upgrade") == 0 )
+	     mime::istrequal(h->get_name(), "upgrade") )
 	     upgrade_protocol.assign(h->get_value_token().data, h->get_value_token().length);
 
 	if ( http_header )

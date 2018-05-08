@@ -29,7 +29,6 @@ using namespace std;
 TableType* var_sizes;
 
 static iosource::PktDumper* addl_pkt_dumper = 0;
-static StringVal* open_file_dumper;
 
 bro_int_t parse_int(const char*& fmt)
 	{
@@ -3292,16 +3291,15 @@ function dump_current_packet%(file_name: string%) : bool
 		{
 		addl_pkt_dumper = iosource_mgr->OpenPktDumper(file_name->CheckString(), true);
 		{
-	else if ( addl_pkt_dumper && open_file_dumper != file_name)
+	else if ( addl_pkt_dumper && addl_pkt_dumper->Path() != file_name->CheckString())
 		{
 		addl_pkt_dumper->Close();
 		addl_pkt_dumper = iosource_mgr->OpenPktDumper(file_name->CheckString(), true);
 		}
-	// else if (addl_pkt_dumper && open_file_dumper == file_name) do nothing
+	// else if (addl_pkt_dumper && addl_pkt_dumper->Path() == file_name->CheckString()) do nothing
 
 	if ( addl_pkt_dumper )
 		{
-		open_file_dumper = file_name;
 		addl_pkt_dumper->Dump(pkt);
 		}
 
@@ -3376,17 +3374,15 @@ function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 		{
 		addl_pkt_dumper = iosource_mgr->OpenPktDumper(file_name->CheckString(), true);
 		{
-	else if ( addl_pkt_dumper && open_file_dumper != file_name)
+	else if ( addl_pkt_dumper && addl_pkt_dumper->Path() != file_name->CheckString())
 		{
 		addl_pkt_dumper->Close();
 		addl_pkt_dumper = iosource_mgr->OpenPktDumper(file_name->CheckString(), true);
 		}
-	// else if (addl_pkt_dumper && open_file_dumper == file_name) do nothing
+	// else if (addl_pkt_dumper && addl_pkt_dumper->Path() == file_name->CheckString()) do nothing
 
 	if ( addl_pkt_dumper )
 		{
-		open_file_dumper = file_name;
-		
 		pkt_timeval ts;
 		uint32 caplen, len, link_type;
 		u_char *data;

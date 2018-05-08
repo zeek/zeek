@@ -42,7 +42,7 @@ HTTP_Entity::HTTP_Entity(HTTP_Message *arg_message, MIME_Entity* parent_entity, 
 	http_message = arg_message;
 	expect_body = arg_expect_body;
 	chunked_transfer_state = NON_CHUNKED_TRANSFER;
-	content_length = -1;	// unspecified
+	content_length = range_length = -1;	// unspecified
 	expect_data_length = 0;
 	body_length = 0;
 	header_length = 0;
@@ -445,15 +445,21 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 			is_partial_content = true;
 			offset = f;
 			range_length = len;
-			if ( content_length != 0 && content_length != range_length )
-				{
-				// Possible evasion attempt.
-				http_message->Weird("HTTP_range_not_matching_len");
 
-				// Take the maximum of both lengths to avoid evasions.
-				if ( range_length > content_length )
-					content_length = range_length;
+			if ( content_length > 0 )
+				{
+				if ( content_length != range_length )
+					{
+					// Possible evasion attempt.
+					http_message->Weird("HTTP_range_not_matching_len");
+
+					// Take the maximum of both lengths to avoid evasions.
+					if ( range_length > content_length )
+						content_length = range_length;
+					}
 				}
+			else
+				content_length = range_length;
 			}
 		else
 			{

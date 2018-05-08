@@ -1,4 +1,19 @@
 
+2.5-565 | 2018-05-08 15:29:53 -0500
+
+  * BIT-1926: add unit tests for misc. HTTP patches (Corelight)
+
+  * Fix case insensitive HTTP/MIME header name comparisons
+    (Jeffrey Bencteux)
+
+  * Don't use chunked mode Transfer-Encoding with HTTP/1.0 (Jeffrey Bencteux)
+
+  * Fix handling of HTTP body length when Content-Range length differs
+    from Content-Length. (Jeffrey Bencteux)
+
+  * Decode 'x-gzip' HTTP Content-Encoding the same as 'gzip'
+    (Jeffrey Bencteux)
+
 2.5-559 | 2018-05-08 11:23:28 -0700
 
   * Add test for dump_current_packet bif. (Johanna Amann)

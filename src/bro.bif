@@ -3287,6 +3287,12 @@ function dump_current_packet%(file_name: string%) : bool
 	     ! current_pktsrc->GetCurrentPacket(&pkt) )
 		return new Val(0, TYPE_BOOL);
 
+	if ( addl_pkt_dumper && addl_pkt_dumper->Path() != file_name->CheckString())
+		{
+		addl_pkt_dumper->Close();
+		addl_pkt_dumper = nullptr;
+		}
+
 	if ( ! addl_pkt_dumper )
 		addl_pkt_dumper = iosource_mgr->OpenPktDumper(file_name->CheckString(), true);
 
@@ -3362,10 +3368,16 @@ function get_current_packet_header%(%) : raw_pkt_hdr
 ## .. bro:see:: get_current_packet dump_current_packet send_current_packet
 function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 	%{
+	if ( addl_pkt_dumper && addl_pkt_dumper->Path() != file_name->CheckString())
+		{
+		addl_pkt_dumper->Close();
+		addl_pkt_dumper = nullptr;
+		}
+
 	if ( ! addl_pkt_dumper )
 		addl_pkt_dumper = iosource_mgr->OpenPktDumper(file_name->CheckString(), true);
 
-	if ( addl_pkt_dumper )
+	if ( ! addl_pkt_dumper->IsError() )
 		{
 		pkt_timeval ts;
 		uint32 caplen, len, link_type;

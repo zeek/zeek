@@ -1,4 +1,11 @@
 
+2.5-559 | 2018-05-08 11:23:28 -0700
+
+  * Add test for dump_current_packet bif. (Johanna Amann)
+
+	* Fix dump_packet & dump_current_packet to work with several filenames.
+    (Assaf Morami)
+
 2.5-553 | 2018-05-03 14:59:53 -0500
 
   * Make BinPAC exception handling more consistent (Vlad Grigorescu)

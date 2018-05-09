@@ -169,6 +169,13 @@ endif ()
 # if one specifies --with-openssl (which may be common).
 include_directories(BEFORE ${OPENSSL_INCLUDE_DIR})
 
+set(USE_KRB5 false)
+find_package(LibKrb5)
+if (LibKrb5_FOUND)
+   set(USE_KRB5 true)
+   list(APPEND OPTLIBS ${LibKrb5_LIBRARY})
+endif ()
+
 set(brodeps
     ${BinPAC_LIBRARY}
     ${PCAP_LIBRARY}
@@ -286,6 +293,7 @@ message(
     "\n        tcmalloc:  ${USE_PERFTOOLS_TCMALLOC}"
     "\n       debugging:  ${USE_PERFTOOLS_DEBUG}"
     "\njemalloc:          ${ENABLE_JEMALLOC}"
+    "\nkerberos:          ${USE_KRB5}"
     "\n"
     "\n================================================================\n"
 )

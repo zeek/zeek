@@ -12,6 +12,7 @@ KRB_Analyzer::KRB_Analyzer(Connection* conn)
 	{
 	interp = new binpac::KRB::KRB_Conn(this);
 
+#ifdef USE_KRB5
 	const char* keytab_filename = BifConst::KRB::keytab->CheckString();
 	if (access(keytab_filename, R_OK) != 0)
 		{
@@ -34,11 +35,13 @@ KRB_Analyzer::KRB_Analyzer(Connection* conn)
 					reporter->Warning("KRB: Couldn't resolve keytab (%s)", krb5_get_error_message(krb_context, retval));
 				}
 		}
+#endif
 
 	}
 
 KRB_Analyzer::~KRB_Analyzer()
 	{
+#ifdef USE_KRB5
 	if (krb_available)
 		{
 			krb5_error_code retval = krb5_kt_close(krb_context, krb_keytab);
@@ -48,6 +51,7 @@ KRB_Analyzer::~KRB_Analyzer()
 				}
 			krb5_free_context(krb_context);
 		}
+#endif
 	delete interp;
 	}
 
@@ -74,6 +78,7 @@ void KRB_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 StringVal* KRB_Analyzer::GetAuthenticationInfo(const BroString* principal, const BroString* ciphertext, const bro_uint_t enctype)
 	{
 		StringVal* ret = new StringVal("nouser");
+#ifdef USE_KRB5
 		if (!krb_available)
 			{
 			return ret;
@@ -131,6 +136,7 @@ StringVal* KRB_Analyzer::GetAuthenticationInfo(const BroString* principal, const
 		ret = new StringVal(cp);
 
 		krb5_free_unparsed_name(krb_context, cp);
+#endif
 
 		return ret;
 

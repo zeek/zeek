@@ -5,7 +5,9 @@
 
 #include "krb_pac.h"
 
+#ifdef USE_KRB5
 #include <krb5.h>
+#endif
 
 namespace analyzer { namespace krb {
 
@@ -29,8 +31,10 @@ protected:
 	binpac::KRB::KRB_Conn* interp;
 
 	bool krb_available;
+#ifdef USE_KRB5
 	krb5_context krb_context;
 	krb5_keytab krb_keytab;
+#endif
 };
 
 } } // namespace analyzer::*

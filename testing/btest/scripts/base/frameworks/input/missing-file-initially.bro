@@ -8,17 +8,17 @@
 # @TEST-EXEC: mv does-exist.dat does-not-exist.dat
 # @TEST-EXEC: sleep 2
 # @TEST-EXEC: mv does-not-exist.dat does-not-exist-again.dat
-# @TEST-EXEC: echo "Streaming still works" >> does-not-exist-again.dat
+# @TEST-EXEC: echo "3 streaming still works" >> does-not-exist-again.dat
 # @TEST-EXEC: btest-bg-wait -k 3
-# @TEST-EXEC: btest-diff bro/.stdout
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff bro/.stdout
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff bro/.stderr
 
 @TEST-START-FILE does-exist.dat
 #separator \x09
 #fields	line
 #types	string
-now it does
-and more!
+1 now it does
+2 and more!
 @TEST-END-FILE
 
 redef exit_only_after_terminate = T;

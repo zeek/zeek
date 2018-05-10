@@ -1,5 +1,5 @@
-input: now it does
-input: and more!
-inputstream: now it does
-inputstream: and more!
-inputstream: Streaming still works
+input: 1 now it does
+input: 2 and more!
+inputstream: 1 now it does
+inputstream: 2 and more!
+inputstream: 3 streaming still works

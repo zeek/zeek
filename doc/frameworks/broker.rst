@@ -153,7 +153,7 @@ Data Stores
 -----------
 
 Broker provides a distributed key-value store interface with optional
-choice of suing a persistent backend. For more detail, see
+choice of using a persistent backend. For more detail, see
 :ref:`this example <data_store_example>`.
 
 Some ideas/considerations/scenarios when deciding whether to use

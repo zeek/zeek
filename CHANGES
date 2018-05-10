@@ -1,4 +1,12 @@
 
+2.5-569 | 2018-05-10 11:24:07 -0500
+
+  * BIT-1927: relocate notice/extend-email/ scripts to policy/ dir and
+    load it from local.bro to allow users to control whether it is used.
+    (Stephen Hosom)
+
+  * Sort output of the missing-file-initially.bro test (Daniel Thayer)
+
 2.5-565 | 2018-05-08 15:29:53 -0500
 
   * BIT-1926: add unit tests for misc. HTTP patches (Corelight)

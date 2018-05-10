@@ -226,7 +226,6 @@ scripts/base/init-default.bro
     scripts/base/frameworks/notice/actions/email_admin.bro
     scripts/base/frameworks/notice/actions/page.bro
     scripts/base/frameworks/notice/actions/add-geodata.bro
-    scripts/base/frameworks/notice/extend-email/hostnames.bro
     scripts/base/frameworks/notice/non-cluster.bro
     scripts/base/frameworks/notice/actions/pp-alarms.bro
   scripts/base/frameworks/dpd/__load__.bro

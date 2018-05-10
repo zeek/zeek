@@ -34,6 +34,8 @@
 @load frameworks/files/entropy-test-all-files.bro
 #@load frameworks/files/extract-all-files.bro
 @load frameworks/files/hash-all-files.bro
+@load frameworks/notice/__load__.bro
+@load frameworks/notice/extend-email/hostnames.bro
 @load files/x509/log-ocsp.bro
 @load frameworks/packet-filter/shunt.bro
 @load frameworks/software/version-changes.bro

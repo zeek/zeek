@@ -626,7 +626,6 @@
 0.000000   MetaHookPost  LoadFile(0, .<...>/gridftp.bro) -> -1
 0.000000   MetaHookPost  LoadFile(0, .<...>/hll_unique.bro) -> -1
 0.000000   MetaHookPost  LoadFile(0, .<...>/hooks.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(0, .<...>/hostnames.bro) -> -1
 0.000000   MetaHookPost  LoadFile(0, .<...>/inactivity.bro) -> -1
 0.000000   MetaHookPost  LoadFile(0, .<...>/info.bro) -> -1
 0.000000   MetaHookPost  LoadFile(0, .<...>/init.bro) -> -1
@@ -1420,7 +1419,6 @@
 0.000000   MetaHookPre   LoadFile(0, .<...>/gridftp.bro)
 0.000000   MetaHookPre   LoadFile(0, .<...>/hll_unique.bro)
 0.000000   MetaHookPre   LoadFile(0, .<...>/hooks.bif.bro)
-0.000000   MetaHookPre   LoadFile(0, .<...>/hostnames.bro)
 0.000000   MetaHookPre   LoadFile(0, .<...>/inactivity.bro)
 0.000000   MetaHookPre   LoadFile(0, .<...>/info.bro)
 0.000000   MetaHookPre   LoadFile(0, .<...>/init.bro)
@@ -2218,7 +2216,6 @@
 0.000000 | HookLoadFile  .<...>/gridftp.bro
 0.000000 | HookLoadFile  .<...>/hll_unique.bro
 0.000000 | HookLoadFile  .<...>/hooks.bif.bro
-0.000000 | HookLoadFile  .<...>/hostnames.bro
 0.000000 | HookLoadFile  .<...>/image.sig
 0.000000 | HookLoadFile  .<...>/inactivity.bro
 0.000000 | HookLoadFile  .<...>/info.bro

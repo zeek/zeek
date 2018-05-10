@@ -3,7 +3,7 @@
 ##! :bro:type:`Notice::Info`'s *src* and *dst* fields as determined by a
 ##! DNS lookup.
 
-@load ../main
+@load base/frameworks/notice/main
 
 module Notice;
 

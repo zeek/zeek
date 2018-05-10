@@ -85,6 +85,9 @@
 # Detect SHA1 sums in Team Cymru's Malware Hash Registry.
 @load frameworks/files/detect-MHR
 
+# Extend email alerting to include hostnames
+@load policy/frameworks/notice/extend-email/hostnames
+
 # Uncomment the following line to enable detection of the heartbleed attack. Enabling
 # this might impact performance a bit.
 # @load policy/protocols/ssl/heartbleed

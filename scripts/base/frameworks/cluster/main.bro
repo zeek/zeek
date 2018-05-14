@@ -45,7 +45,9 @@ export {
 
 	## Name of the node on which master data stores will be created if no other
 	## has already been specified by the user in :bro:see:`Cluster::stores`.
-	const default_master_node = "manager" &redef;
+	## An empty value means "use whatever name corresponds to the manager
+	## node".
+	const default_master_node = "" &redef;
 
 	## The type of data store backend that will be used for all data stores if
 	## no other has already been specified by the user in :bro:see:`Cluster::stores`.
@@ -395,7 +397,18 @@ function create_store(name: string, persistent: bool &default=F): Cluster::Store
 		return info;
 		}
 
-	if ( info$master_node !in Cluster::nodes )
+	if ( info$master_node == "" )
+		{
+		local mgr_nodes = nodes_with_type(Cluster::MANAGER);
+
+		if ( |mgr_nodes| == 0 )
+			Reporter::fatal(fmt("empty master node name for cluster store " +
+								"'%s', but there's no manager node to default",
+			                    name));
+
+		info$master_node = mgr_nodes[0]$name;
+		}
+	else if ( info$master_node !in Cluster::nodes )
 		Reporter::fatal(fmt("master node '%s' for cluster store '%s' does not exist",
 		                    info$master_node, name));
 

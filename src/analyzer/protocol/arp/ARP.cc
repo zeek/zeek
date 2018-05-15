@@ -140,7 +140,7 @@ void ARP_Analyzer::NextPacket(double t, const Packet* pkt)
 
 
 	// Check MAC src address = ARP sender MAC address.
-	if ( memcmp((const char*) (data+6), ar_sha(ah), ah->ar_hln) )
+	if ( memcmp(pkt->l2_src, ar_sha(ah), ah->ar_hln) )
 		{
 		BadARP(ah, "weird-arp-sha");
 		return;

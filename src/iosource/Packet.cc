@@ -86,6 +86,9 @@ int Packet::GetLinkHeaderSize(int link_type)
 	case DLT_PPP_SERIAL:	// PPP_SERIAL
 		return 4;
 
+	case DLT_IEEE802_11:  // 802.11 monitor
+		return 34;
+
 	case DLT_IEEE802_11_RADIO:	// 802.11 plus RadioTap
 		return 59;
 
@@ -279,12 +282,15 @@ void Packet::ProcessLayer2()
 			}
 
 		pdata += rtheader_len;
+		}
 
+	case DLT_IEEE802_11:
+		{
 		u_char len_80211 = 24; // minimal length of data frames
 
 		if ( pdata + len_80211 >= end_of_data )
 			{
-			Weird("truncated_radiotap_header");
+			Weird("truncated_802_11_header");
 			return;
 			}
 
@@ -316,7 +322,7 @@ void Packet::ProcessLayer2()
 
 		if ( pdata + len_80211 >= end_of_data )
 			{
-			Weird("truncated_radiotap_header");
+			Weird("truncated_802_11_header");
 			return;
 			}
 
@@ -349,7 +355,7 @@ void Packet::ProcessLayer2()
 
 		if ( pdata + 8 >= end_of_data )
 			{
-			Weird("truncated_radiotap_header");
+			Weird("truncated_802_11_header");
 			return;
 			}
 		// Check that the DSAP and SSAP are both SNAP and that the control
@@ -374,9 +380,11 @@ void Packet::ProcessLayer2()
 			l3_proto = L3_IPV4;
 		else if ( protocol == 0x86DD )
 			l3_proto = L3_IPV6;
+		else if ( protocol == 0x0806 || protocol == 0x8035 )
+			l3_proto = L3_ARP;
 		else
 			{
-			Weird("non_ip_packet_in_ieee802_11_radio_encapsulation");
+			Weird("non_ip_packet_in_ieee802_11");
 			return;
 			}
 		pdata += 2;

@@ -5,6 +5,8 @@
 #ifndef LOGGING_MANAGER_H
 #define LOGGING_MANAGER_H
 
+#include <broker/endpoint_info.hh>
+
 #include "../Val.h"
 #include "../Tag.h"
 #include "../EventHandler.h"
@@ -173,7 +175,7 @@ public:
 	/**
 	 * Announces all instantiated writers to a given Broker peer.
 	 */
-	void SendAllWritersTo(const string& peer);
+	void SendAllWritersTo(const broker::endpoint_info& ei);
 
 	/**
 	 * Sets log streams buffering state. This adjusts all associated
@@ -203,14 +205,12 @@ public:
 	 */
 	void Terminate();
 
-#ifdef ENABLE_BROKER
 	/**
 	 * Enable remote logs for a given stream.
 	 * @param stream_id the stream to enable remote logs for.
-	 * @param flags tune behavior of how log entries are sent to peer endpoints.
 	 * @return true if remote logs are enabled.
 	 */
-	bool EnableRemoteLogs(EnumVal* stream_id, int flags);
+	bool EnableRemoteLogs(EnumVal* stream_id);
 
 	/**
 	 * Disable remote logs for a given stream.
@@ -229,7 +229,6 @@ public:
 	 * a given log stream.
 	 */
 	RecordType* StreamColumns(EnumVal* stream_id);
-#endif
 
 protected:
 	friend class WriterFrontend;

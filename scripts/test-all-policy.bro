@@ -9,7 +9,6 @@
 
 # The base/ scripts are all loaded by default and not included here.
 
-# @load frameworks/communication/listen.bro
 # @load frameworks/control/controllee.bro
 # @load frameworks/control/controller.bro
 @load frameworks/dpd/detect-protocols.bro

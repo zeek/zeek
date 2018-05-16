@@ -1,0 +1,2 @@
+error in /home/robin/bro/lang-ext/testing/btest/.tmp/language.type-cast-error-static/type-cast-error-static.bro, line 14: cast not supported (string as count)
+error in /home/robin/bro/lang-ext/testing/btest/.tmp/language.type-cast-error-static/type-cast-error-static.bro, line 15: cast not supported (string as X)

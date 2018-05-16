@@ -31,25 +31,40 @@ event signature_match(state: signature_state, msg: string, data: string) &priori
 	local si: Software::Info;
 	si = [$name=msg, $unparsed_version=msg, $host=c$id$resp_h, $host_p=c$id$resp_p, $software_type=WEB_APPLICATION];
 	si$url = build_url_http(c$http);
-	if ( c$id$resp_h in Software::tracked &&
-	     si$name in Software::tracked[c$id$resp_h] )
-		{
-		# If the new url is a substring of an existing, known url then let's
-		# use that as the new url for the software.
-		# PROBLEM: different version of the same software on the same server with a shared root path
-		local is_substring = 0;
-		if ( Software::tracked[c$id$resp_h][si$name]?$url &&
-		     |si$url| <= |Software::tracked[c$id$resp_h][si$name]$url| )
-			is_substring = strstr(Software::tracked[c$id$resp_h][si$name]$url, si$url);
-		
-		if ( is_substring == 1 )
-			{
-			Software::tracked[c$id$resp_h][si$name]$url = si$url;
-			# Force the software to be logged because it indicates a URL
-			# closer to the root of the site.
-			si$force_log = T;
-			}
-		}
-	
 	Software::found(c$id, si);
+	}
+
+event Software::register(info: Software::Info) &priority=5
+	{
+	if ( info$host !in Software::tracked )
+		return;
+
+	local ss = Software::tracked[info$host];
+
+	if ( info$name !in ss )
+		return;
+
+	local old_info = ss[info$name];
+
+	if ( ! old_info?$url )
+		return;
+
+	if ( ! info?$url )
+		return;
+
+	# If the new url is a substring of an existing, known url then let's
+	# use that as the new url for the software.
+	# PROBLEM: different version of the same software on the same server with a shared root path
+	local is_substring = 0;
+
+	if ( |info$url| <= |old_info$url| )
+		is_substring = strstr(old_info$url, info$url);
+
+	if ( is_substring != 1 )
+		return;
+
+	old_info$url = info$url;
+	# Force the software to be logged because it indicates a URL
+	# closer to the root of the site.
+	info$force_log = T;
 	}

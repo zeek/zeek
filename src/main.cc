@@ -56,14 +56,11 @@ extern "C" {
 #include "file_analysis/Manager.h"
 #include "broxygen/Manager.h"
 #include "iosource/Manager.h"
+#include "broker/Manager.h"
 
 #include "binpac_bro.h"
 
 #include "3rdparty/sqlite3.h"
-
-#ifdef ENABLE_BROKER
-#include "broker/Manager.h"
-#endif
 
 Brofiler brofiler;
 
@@ -94,9 +91,7 @@ analyzer::Manager* analyzer_mgr = 0;
 file_analysis::Manager* file_mgr = 0;
 broxygen::Manager* broxygen_mgr = 0;
 iosource::Manager* iosource_mgr = 0;
-#ifdef ENABLE_BROKER
 bro_broker::Manager* broker_mgr = 0;
-#endif
 
 const char* prog;
 char* writefile = 0;
@@ -366,6 +361,7 @@ void terminate_bro()
 	log_mgr->Terminate();
 	input_mgr->Terminate();
 	thread_mgr->Terminate();
+	broker_mgr->Terminate();
 
 	mgr.Drain();
 
@@ -382,6 +378,7 @@ void terminate_bro()
 	delete log_mgr;
 	delete plugin_mgr;
 	delete reporter;
+	// broker_mgr is deleted via iosource_mgr
 	delete iosource_mgr;
 	delete port_mgr;
 
@@ -800,10 +797,7 @@ int main(int argc, char** argv)
 	log_mgr = new logging::Manager();
 	input_mgr = new input::Manager();
 	file_mgr = new file_analysis::Manager();
-
-#ifdef ENABLE_BROKER
-	broker_mgr = new bro_broker::Manager();
-#endif
+	broker_mgr = new bro_broker::Manager(read_files.length() > 0);
 
 	plugin_mgr->InitPreScript();
 	analyzer_mgr->InitPreScript();
@@ -871,6 +865,7 @@ int main(int argc, char** argv)
 
 	plugin_mgr->InitPostScript();
 	broxygen_mgr->InitPostScript();
+	broker_mgr->InitPostScript();
 
 	if ( print_plugins )
 		{

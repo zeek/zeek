@@ -1,5 +1,5 @@
 # @TEST-EXEC: btest-bg-run standalone bro %INPUT
-# @TEST-EXEC: btest-bg-wait 5
+# @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff standalone/.stdout
 
 redef exit_only_after_terminate=T;

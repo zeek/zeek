@@ -13,12 +13,7 @@ current, independent component releases.
    :maxdepth: 1
 
    BinPAC - A protocol parser generator <binpac/README>
-   Broccoli - The Bro Client Communication Library (README) <broccoli/README>
-   Broccoli - User Manual <broccoli/broccoli-manual>
-   Broccoli Python Bindings <broccoli-python/README>
-   Broccoli Ruby Bindings <broccoli-ruby/README>
-   Broker - Bro's (New) Messaging Library (README) <broker/README>
-   Broker - User Manual <broker/broker-manual.rst>
+   Broker - Bro's (New) Messaging Library <broker/README>
    BroControl - Interactive Bro management shell <broctl/README>
    Bro-Aux - Small auxiliary tools for Bro <bro-aux/README>
    BTest - A unit testing framework <btest/README>
@@ -26,5 +21,5 @@ current, independent component releases.
    PySubnetTree - Python module for CIDR lookups<pysubnettree/README>
    trace-summary - Script for generating break-downs of network traffic <trace-summary/README>
 
-The `Broccoli API Reference <../broccoli-api/index.html>`_ may also be of
+The `Broker User Manual <../broker-manual/index.html>`_ may also be of
 interest.

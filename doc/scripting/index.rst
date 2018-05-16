@@ -325,29 +325,14 @@ variable declared while scripts using a different namespace or no
 namespace altogether will not have access to the variable.
 Alternatively, if a global variable is declared within an ``export { ... }``
 block that variable is available to any other script through the
-naming convention of ``MODULE::variable_name``.
+naming convention of ``<module name>::<variable name>``, i.e. the variable
+needs to be "scoped" by the name of the module in which it was declared.
 
-The declaration below is taken from the
-:doc:`/scripts/policy/protocols/conn/known-hosts.bro` script and
-declares a variable called ``known_hosts`` as a global set of unique
-IP addresses within the ``Known`` namespace and exports it for use
-outside of the ``Known`` namespace.  Were we to want to use the
-``known_hosts`` variable we'd be able to access it through
-``Known::known_hosts``.  
-
-.. btest-include:: ${BRO_SRC_ROOT}/scripts/policy/protocols/conn/known-hosts.bro
-   :lines: 8-10, 32, 37
-
-The sample above also makes use of an ``export { ... }`` block.  When the module
-keyword is used in a script, the variables declared are said to be in
-that module's "namespace".  Where as a global variable can be accessed
-by its name alone when it is not declared within a module, a global
-variable declared within a module must be exported and then accessed
-via ``MODULE_NAME::VARIABLE_NAME``.  As in the example above, we would be
-able to access the ``known_hosts`` in a separate script variable via
-``Known::known_hosts`` due to the fact that ``known_hosts`` was declared as
-a global variable within an export block under the ``Known`` namespace.
-
+When the ``module`` keyword is used in a script, the variables declared
+are said to be in that module's "namespace".  Where as a global variable
+can be accessed by its name alone when it is not declared within a
+module, a global variable declared within a module must be exported and
+then accessed via ``<module name>::<variable name>``.
 
 Constants
 ~~~~~~~~~

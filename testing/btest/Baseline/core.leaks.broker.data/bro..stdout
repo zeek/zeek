@@ -12,7 +12,7 @@ Broker::ENUM
 Broker::SET
 Broker::TABLE
 Broker::VECTOR
-Broker::RECORD
+Broker::VECTOR
 ***************************
 T
 F
@@ -67,19 +67,19 @@ T
 }
 ***************************
 0
-[d=<uninitialized>]
+[data=<uninitialized>]
 1
 T
 42
 F
-[d=<uninitialized>]
+[data=<uninitialized>]
 2
-[d=broker::data{7}]
+[data=broker::data{7}]
 2
 37
-[d=broker::data{42}]
+[data=broker::data{42}]
 1
-[d=<uninitialized>]
+[data=<uninitialized>]
 1
 T
 0
@@ -94,11 +94,11 @@ T
 T
 [hi, salutations, hello, greetings]
 4
-[d=broker::data{hello}]
-[d=broker::data{bah}]
-[d=broker::data{hi}]
+[data=broker::data{hello}]
+[data=broker::data{bah}]
+[data=broker::data{hi}]
 [hi, salutations, bah, greetings]
-[d=broker::data{bah}]
+[data=broker::data{bah}]
 [hi, salutations, greetings]
 3
 T
@@ -109,10 +109,10 @@ T
 T
 T
 T
-[d=broker::data{hi}]
-[d=broker::data{hello}]
-[d=broker::data{37}]
+[data=broker::data{hi}]
+[data=broker::data{hello}]
+[data=broker::data{37}]
 3
 T
 3
-[d=broker::data{goodbye}]
+[data=broker::data{goodbye}]

@@ -28,7 +28,6 @@
 4.3.2.1	Intel::ADDR	source2	this host might also be baaad	http://some-data-distributor.com/4321	T
 # @TEST-END-FILE
 
-@load base/frameworks/communication # let network-time run
 @load frameworks/intel/do_notice
 
 redef exit_only_after_terminate = T;

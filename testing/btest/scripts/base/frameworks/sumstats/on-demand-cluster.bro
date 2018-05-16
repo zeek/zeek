@@ -11,7 +11,7 @@
 
 @TEST-START-FILE cluster-layout.bro
 redef Cluster::nodes = {
-	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=37757/tcp, $workers=set("worker-1", "worker-2")],
+	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=37757/tcp],
 	["worker-1"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=37760/tcp, $manager="manager-1", $interface="eth0"],
 	["worker-2"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=37761/tcp, $manager="manager-1", $interface="eth1"],
 };
@@ -29,13 +29,17 @@ event bro_init() &priority=5
 	                  $reducers=set(r1)]);
 	}
 
-event remote_connection_closed(p: event_peer)
+event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	{
 	terminate();
 	}
 
 global ready_for_data: event();
-redef Cluster::manager2worker_events += /^ready_for_data$/;
+
+event bro_init()
+	{
+	Broker::auto_publish(Cluster::worker_topic, ready_for_data);
+	}
 
 event on_demand()
 	{
@@ -72,8 +76,11 @@ event ready_for_data()
 	}
 
 global peer_count = 0;
-event remote_connection_handshake_done(p: event_peer) &priority=-5
+event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
+	if ( Cluster::node != "manager-1" )
+		return;
+
 	++peer_count;
 	if ( peer_count == 2 )
 		{

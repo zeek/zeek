@@ -173,7 +173,8 @@ class RE_Matcher : SerialObj {
 public:
 	RE_Matcher();
 	explicit RE_Matcher(const char* pat);
-	~RE_Matcher() override;
+	RE_Matcher(const char* exact_pat, const char* anywhere_pat);
+	virtual ~RE_Matcher() override;
 
 	void AddPat(const char* pat);
 

@@ -1,0 +1,47 @@
+Broker::BOOL
+Broker::INT
+Broker::COUNT
+Broker::DOUBLE
+Broker::STRING
+Broker::ADDR
+Broker::SUBNET
+Broker::PORT
+Broker::TIME
+Broker::INTERVAL
+Broker::ENUM
+Broker::SET
+Broker::TABLE
+Broker::VECTOR
+Broker::VECTOR
+Broker::VECTOR
+***************************
+T
+F
+1
+0
+-1
+1
+0
+1.1
+-11.1
+hello
+1.2.3.4
+192.168.0.0/16
+22/tcp
+42.0
+180.0
+Broker::BOOL
+{
+two,
+one,
+three
+}
+{
+[two] = 2,
+[one] = 1,
+[three] = 3
+}
+[zero, one, two]
+[s=abc]
+[c=123, r1=[s=xyz]]
+opaque of sha256, T

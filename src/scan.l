@@ -212,6 +212,7 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 add	return TOK_ADD;
 addr	return TOK_ADDR;
 any	return TOK_ANY;
+as	return TOK_AS;
 bool	return TOK_BOOL;
 break	return TOK_BREAK;
 case	return TOK_CASE;
@@ -240,6 +241,7 @@ in	return TOK_IN;
 "!"{OWS}in/[^A-Za-z0-9]	return TOK_NOT_IN;	/* don't confuse w "! infoo"! */
 int	return TOK_INT;
 interval	return TOK_INTERVAL;
+is	return TOK_IS;
 list	return TOK_LIST;
 local	return TOK_LOCAL;
 module	return TOK_MODULE;
@@ -288,14 +290,12 @@ when	return TOK_WHEN;
 	}
 
 &mergeable {
-	// Not yet deprecated, but soon.
-	//deprecated_attr(yytext);
+	deprecated_attr(yytext);
 	return TOK_ATTR_MERGEABLE;
 	}
 
 &persistent {
-	// Not yet deprecated, but soon.
-	//deprecated_attr(yytext);
+	deprecated_attr(yytext);
 	return TOK_ATTR_PERSISTENT;
 	}
 
@@ -310,8 +310,7 @@ when	return TOK_WHEN;
 	}
 
 &synchronized  {
-	// Not yet deprecated, but soon.
-	//deprecated_attr(yytext);
+	deprecated_attr(yytext);
 	return TOK_ATTR_SYNCHRONIZED;
 	}
 

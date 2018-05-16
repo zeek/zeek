@@ -8,6 +8,7 @@
 #include "../Net.h"
 #include "../Type.h"
 
+#include "broker/Manager.h"
 #include "threading/Manager.h"
 #include "threading/SerialTypes.h"
 
@@ -17,10 +18,6 @@
 #include "logging.bif.h"
 #include "../plugin/Plugin.h"
 #include "../plugin/Manager.h"
-
-#ifdef ENABLE_BROKER
-#include "broker/Manager.h"
-#endif
 
 using namespace logging;
 
@@ -82,10 +79,7 @@ struct Manager::Stream {
 
 	WriterMap writers;	// Writers indexed by id/path pair.
 
-#ifdef ENABLE_BROKER
 	bool enable_remote;
-	int remote_flags;
-#endif
 
 	~Stream();
 	};
@@ -310,10 +304,7 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 	streams[idx]->event = event ? event_registry->Lookup(event->Name()) : 0;
 	streams[idx]->columns = columns->Ref()->AsRecordType();
 
-#ifdef ENABLE_BROKER
 	streams[idx]->enable_remote = internal_val("Log::enable_remote_logging")->AsBool();
-	streams[idx]->remote_flags = broker::PEERS;
-#endif
 
 	DBG_LOG(DBG_LOGGING, "Created new logging stream '%s', raising event %s",
 		streams[idx]->name.c_str(), event ? streams[idx]->event->Name() : "<none>");
@@ -1241,11 +1232,7 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
 	winfo->info->rotation_interval = winfo->interval;
 	winfo->info->rotation_base = parse_rotate_base_time(base_time);
 
-#ifdef ENABLE_BROKER
-	winfo->writer = new WriterFrontend(*winfo->info, id, writer, local, remote, stream->remote_flags);
-#else
-	winfo->writer = new WriterFrontend(*winfo->info, id, writer, local, remote, 0);
-#endif
+	winfo->writer = new WriterFrontend(*winfo->info, id, writer, local, remote);
 	winfo->writer->Init(num_fields, fields);
 
 	if ( ! from_remote )
@@ -1326,7 +1313,7 @@ void Manager::SendAllWritersTo(RemoteSerializer::PeerID peer)
 		{
 		Stream* stream = (*s);
 
-		if ( ! stream )
+		if ( ! (stream && stream->enable_remote) )
 			continue;
 
 		for ( Stream::WriterMap::iterator i = stream->writers.begin();
@@ -1344,14 +1331,13 @@ void Manager::SendAllWritersTo(RemoteSerializer::PeerID peer)
 		}
 	}
 
-void Manager::SendAllWritersTo(const string& peer)
+void Manager::SendAllWritersTo(const broker::endpoint_info& ei)
 	{
-#ifdef ENABLE_BROKER
 	for ( vector<Stream *>::iterator s = streams.begin(); s != streams.end(); ++s )
 		{
 		Stream* stream = (*s);
 
-		if ( ! stream )
+		if ( ! (stream && stream->enable_remote) )
 			continue;
 
 		for ( Stream::WriterMap::iterator i = stream->writers.begin();
@@ -1360,16 +1346,14 @@ void Manager::SendAllWritersTo(const string& peer)
 			WriterFrontend* writer = i->second->writer;
 
 			EnumVal writer_val(i->first.first, internal_type("Log::Writer")->AsEnumType());
-			broker_mgr->CreateLog((*s)->id,
-					      &writer_val,
-					      *i->second->info,
-					      writer->NumFields(),
-					      writer->Fields(),
-					      stream->remote_flags,
-					      peer);
+			broker_mgr->PublishLogCreate((*s)->id,
+						     &writer_val,
+						     *i->second->info,
+						     writer->NumFields(),
+						     writer->Fields(),
+						     ei);
 			}
 		}
-#endif
 	}
 
 bool Manager::SetBuf(EnumVal* id, bool enabled)
@@ -1418,9 +1402,7 @@ void Manager::Terminate()
 		}
 	}
 
-#ifdef ENABLE_BROKER
-
-bool Manager::EnableRemoteLogs(EnumVal* stream_id, int flags)
+bool Manager::EnableRemoteLogs(EnumVal* stream_id)
 	{
 	auto stream = FindStream(stream_id);
 
@@ -1428,7 +1410,6 @@ bool Manager::EnableRemoteLogs(EnumVal* stream_id, int flags)
 		return false;
 
 	stream->enable_remote = true;
-	stream->remote_flags = flags;
 	return true;
 	}
 
@@ -1462,8 +1443,6 @@ RecordType* Manager::StreamColumns(EnumVal* stream_id)
 
 	return stream->columns;
 	}
-
-#endif
 
 // Timer which on dispatching rotates the filter.
 class RotationTimer : public Timer {

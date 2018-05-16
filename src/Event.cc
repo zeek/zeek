@@ -54,6 +54,38 @@ void Event::Describe(ODesc* d) const
 		d->Add("(");
 	}
 
+void Event::Dispatch(bool no_remote)
+	{
+	if ( src == SOURCE_BROKER )
+		no_remote = true;
+
+	if ( event_serializer )
+		{
+		SerialInfo info(event_serializer);
+		event_serializer->Serialize(&info, handler->Name(), args);
+		}
+
+	if ( handler->ErrorHandler() )
+		reporter->BeginErrorHandler();
+
+	try
+		{
+		handler->Call(args, no_remote);
+		}
+
+	catch ( InterpreterException& e )
+		{
+		// Already reported.
+		}
+
+	if ( obj )
+		// obj->EventDone();
+		Unref(obj);
+
+	if ( handler->ErrorHandler() )
+		reporter->EndErrorHandler();
+	}
+
 EventMgr::EventMgr()
 	{
 	head = tail = 0;

@@ -5,8 +5,6 @@
 
 module OpenFlow;
 
-@ifdef ( Broker::__enable )
-
 export {
 	redef enum Plugin += {
 		BROKER,
@@ -49,27 +47,28 @@ function broker_describe(state: ControllerState): string
 
 function broker_flow_mod_fun(state: ControllerState, match: ofp_match, flow_mod: OpenFlow::ofp_flow_mod): bool
 	{
-	Broker::send_event(state$broker_topic, Broker::event_args(broker_flow_mod, state$_name, state$broker_dpid, match, flow_mod));
+	Broker::publish(state$broker_topic, Broker::make_event(broker_flow_mod, state$_name, state$broker_dpid, match, flow_mod));
 
 	return T;
 	}
 
 function broker_flow_clear_fun(state: OpenFlow::ControllerState): bool
 	{
-	Broker::send_event(state$broker_topic, Broker::event_args(broker_flow_clear, state$_name, state$broker_dpid));
+	Broker::publish(state$broker_topic, Broker::make_event(broker_flow_clear, state$_name, state$broker_dpid));
 
 	return T;
 	}
 
 function broker_init(state: OpenFlow::ControllerState)
 	{
-	Broker::enable();
-	Broker::connect(cat(state$broker_host), state$broker_port, 1sec);
-	Broker::subscribe_to_events(state$broker_topic); # openflow success and failure events are directly sent back via the other plugin via broker.
+	Broker::peer(cat(state$broker_host), state$broker_port);
+	Broker::subscribe(state$broker_topic); # openflow success and failure events are directly sent back via the other plugin via broker.
 	}
 
-event Broker::outgoing_connection_established(peer_address: string, peer_port: port, peer_name: string)
+event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
+	local peer_address = cat(endpoint$network$address);
+	local peer_port = endpoint$network$bound_port;
 	if ( [peer_port, peer_address] !in broker_peers )
 		# ok, this one was none of ours...
 		return;
@@ -94,5 +93,3 @@ function broker_new(name: string, host: addr, host_port: port, topic: string, dp
 
 	return c;
 	}
-
-@endif

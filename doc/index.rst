@@ -45,6 +45,8 @@ Reference Section
    script-reference/index.rst
    components/index.rst
 
+`Broker User Manual <../broker-manual/index.html>`_
+
 Development
 ===========
 

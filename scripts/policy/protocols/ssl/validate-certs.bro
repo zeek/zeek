@@ -3,6 +3,7 @@
 # Also caches all intermediate certificates encountered so far and use them
 # for future validations.
 
+@load base/frameworks/cluster
 @load base/frameworks/notice
 @load base/protocols/ssl
 
@@ -61,11 +62,12 @@ export {
 global intermediate_cache: table[string] of vector of opaque of x509;
 
 @if ( Cluster::is_enabled() )
-@load base/frameworks/cluster
-redef Cluster::manager2worker_events += /SSL::intermediate_add/;
-redef Cluster::worker2manager_events += /SSL::new_intermediate/;
+event bro_init()
+	{
+	Broker::auto_publish(Cluster::worker_topic, SSL::intermediate_add);
+	Broker::auto_publish(Cluster::manager_topic, SSL::new_intermediate);
+	}
 @endif
-
 
 function add_to_cache(key: string, value: vector of opaque of x509)
 	{

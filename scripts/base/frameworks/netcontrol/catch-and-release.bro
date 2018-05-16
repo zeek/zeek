@@ -225,9 +225,22 @@ global blocks: table[addr] of BlockInfo = {}
 
 
 @if ( Cluster::is_enabled() )
-@load base/frameworks/cluster
-redef Cluster::manager2worker_events += /NetControl::catch_release_block_(new|delete)/;
-redef Cluster::worker2manager_events += /NetControl::catch_release_(add|delete|encountered)/;
+
+@if ( Cluster::local_node_type() == Cluster::MANAGER )
+event bro_init()
+	{
+	Broker::auto_publish(Cluster::worker_topic, NetControl::catch_release_block_new);
+	Broker::auto_publish(Cluster::worker_topic, NetControl::catch_release_block_delete);
+	}
+@else
+event bro_init()
+	{
+	Broker::auto_publish(Cluster::manager_topic, NetControl::catch_release_add);
+	Broker::auto_publish(Cluster::manager_topic, NetControl::catch_release_delete);
+	Broker::auto_publish(Cluster::manager_topic, NetControl::catch_release_encountered);
+	}
+@endif
+
 @endif
 
 function cr_check_rule(r: Rule): bool

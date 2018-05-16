@@ -39,12 +39,9 @@ public:
 	 * remote: If true, the writer will forward logs to remote
 	 * clients.
 	 *
-	 * remote_flags: Broker flags controlling where remote logs are
-	 * propagated to.
-	 *
 	 * Frontends must only be instantiated by the main thread.
 	 */
-	WriterFrontend(const WriterBackend::WriterInfo& info, EnumVal* stream, EnumVal* writer, bool local, bool remote, int remote_flags);
+	WriterFrontend(const WriterBackend::WriterInfo& info, EnumVal* stream, EnumVal* writer, bool local, bool remote);
 
 	/**
 	 * Destructor.
@@ -202,7 +199,6 @@ protected:
 	bool buf;	// True if buffering is enabled (default).
 	bool local;	// True if logging locally.
 	bool remote;	// True if loggin remotely.
-	int remote_flags;	// Broker propagation flags.
 
 	const char* name;	// Descriptive name of the
 	WriterBackend::WriterInfo* info;	// The writer information.

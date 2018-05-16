@@ -1,112 +1,475 @@
 
-##! Functions for peering and various messaging patterns (e.g. print/log/event).
+##! Functions for peering and various messaging patterns.
 
 %%{
 #include "broker/Manager.h"
 #include "logging/Manager.h"
+#include <set>
+#include <string>
+
+static bool is_string_set(const BroType* type)
+	{
+	if ( ! type->IsSet() )
+		return false;
+
+	auto index_types = type->AsSetType()->IndexTypes();
+
+	if ( index_types->length() != 1 )
+		return false;
+
+	return (*index_types)[0]->Tag() == TYPE_STRING;
+	}
+
+std::set<std::string> val_to_topic_set(Val* val)
+	{
+	std::set<std::string> rval;
+
+	if ( val->Type()->Tag() == TYPE_STRING )
+		rval.emplace(val->AsString()->CheckString());
+	else
+		{
+		const PDict(TableEntryVal)* tbl = val->AsTable();
+
+		if ( tbl->Length() == 0 )
+			return rval;
+
+		IterCookie* c = tbl->InitForIteration();
+		HashKey* k;
+
+		while ( tbl->NextEntry(k, c) )
+			{
+			auto index = val->AsTableVal()->RecoverIndex(k);
+			rval.emplace(index->Index(0)->AsString()->CheckString());
+			Unref(index);
+			delete k;
+			}
+		}
+
+	return rval;
+	}
+
+static bool publish_event_args(val_list& args, const BroString* topic,
+                               Frame* frame)
+	{
+	bro_broker::Manager::ScriptScopeGuard ssg;
+	auto rval = false;
+
+	if ( args[0]->Type()->Tag() == TYPE_RECORD )
+		rval = broker_mgr->PublishEvent(topic->CheckString(),
+		                                args[0]->AsRecordVal());
+	else
+		{
+		auto ev = broker_mgr->MakeEvent(&args, frame);
+		rval = broker_mgr->PublishEvent(topic->CheckString(), ev);
+		Unref(ev);
+		}
+
+	return rval;
+	}
+
+static bool relay_event_args(val_list& args, const BroString* topic,
+                             std::set<std::string> topic_set, Frame* frame)
+	{
+	bro_broker::Manager::ScriptScopeGuard ssg;
+	auto rval = false;
+
+	if ( args[0]->Type()->Tag() == TYPE_RECORD )
+		rval = broker_mgr->RelayEvent(topic->CheckString(),
+									  std::move(topic_set),
+		                              args[0]->AsRecordVal());
+	else
+		{
+		auto ev = broker_mgr->MakeEvent(&args, frame);
+		rval = broker_mgr->RelayEvent(topic->CheckString(),
+									  std::move(topic_set),
+									  ev);
+		Unref(ev);
+		}
+
+	return rval;
+	}
+
 %%}
 
 module Broker;
 
-type Broker::SendFlags: record;
-
-type Broker::EventArgs: record;
-
-## Used to handle remote print messages from peers that call
-## :bro:see:`Broker::send_print`.
-event Broker::print_handler%(msg: string%);
-
-function Broker::__send_print%(topic: string, msg: string, flags: Broker::SendFlags%): bool
-	%{
-	auto rval = broker_mgr->Print(topic->CheckString(), msg->CheckString(),
-	                            flags);
-	return new Val(rval, TYPE_BOOL);
-	%}
-
-function Broker::__subscribe_to_prints%(topic_prefix: string%): bool
-	%{
-	auto rval = broker_mgr->SubscribeToPrints(topic_prefix->CheckString());
-	return new Val(rval, TYPE_BOOL);
-	%}
-
-function Broker::__unsubscribe_to_prints%(topic_prefix: string%): bool
-	%{
-	auto rval = broker_mgr->UnsubscribeToPrints(topic_prefix->CheckString());
-	return new Val(rval, TYPE_BOOL);
-	%}
+type Broker::Event: record;
 
 ## Create a data structure that may be used to send a remote event via
-## :bro:see:`Broker::send_event`.
+## :bro:see:`Broker::publish`.
 ##
 ## args: an event, followed by a list of argument values that may be used
 ##       to call it.
 ##
 ## Returns: opaque communication data that may be used to send a remote
 ##          event.
-function Broker::event_args%(...%): Broker::EventArgs
+function Broker::make_event%(...%): Broker::Event
 	%{
-	auto rval = broker_mgr->MakeEventArgs(@ARGS@);
+	bro_broker::Manager::ScriptScopeGuard ssg;
+	auto rval = broker_mgr->MakeEvent(@ARGS@, frame);
 	return rval;
 	%}
 
-function Broker::__event%(topic: string, args: Broker::EventArgs, flags: Broker::SendFlags%): bool
+## Publishes an event at a given topic.
+##
+## topic: a topic associated with the event message.
+##
+## args: Either the event arguments as already made by
+##       :bro:see:`Broker::make_event` or the argument list to pass along
+##       to it.
+##
+## Returns: true if the message is sent.
+function Broker::publish%(topic: string, ...%): bool
 	%{
-	auto rval = broker_mgr->Event(topic->CheckString(), args->AsRecordVal(),
-	                            flags);
+	val_list* bif_args = @ARGS@;
+	val_list args(bif_args->length() - 1);
+
+	for ( auto i = 1; i < bif_args->length(); ++i )
+		args.append((*bif_args)[i]);
+
+	auto rval = publish_event_args(args, topic->AsString(), frame);
 	return new Val(rval, TYPE_BOOL);
 	%}
 
-function Broker::__auto_event%(topic: string, ev: any, flags: Broker::SendFlags%): bool
+## Publishes an event at a given topic, with any receivers automatically
+## forwarding it to its peers with a different topic.  The event is relayed
+## at most a single hop.
+##
+## first_topic: the initial topic to use for publishing the event.
+##
+## args: the first member of the argument list may be either a string or
+##       a set of strings indicating the secondary topic that the first
+##       set of receivers will use to re-publish the event.  The remaining
+##       members of the argument list are either the return value of a
+##       previously-made call to :bro:see:`Broker::make_event` or the
+##       argument list that should be passed along to it, so that it can
+##       be called as part of executing this function.
+##
+## Returns: true if the message is sent.
+function Broker::relay%(first_topic: string, ...%): bool
 	%{
-	auto rval = broker_mgr->AutoEvent(topic->CheckString(), ev, flags);
+	bro_broker::Manager::ScriptScopeGuard ssg;
+	val_list* bif_args = @ARGS@;
+
+	if ( bif_args->length() < 3 )
+		{
+		builtin_error("Broker::relay requires at least 3 arguments");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	auto second_topic = (*bif_args)[1];
+
+	if ( second_topic->Type()->Tag() != TYPE_STRING &&
+		 ! is_string_set(second_topic->Type()) )
+		{
+		builtin_error("Broker::relay requires a string or string_set as 2nd argument");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	auto topic_set = val_to_topic_set(second_topic);
+
+	if ( topic_set.empty() )
+		return new Val(false, TYPE_BOOL);
+
+	val_list args(bif_args->length() - 2);
+
+	for ( auto i = 2; i < bif_args->length(); ++i )
+		args.append((*bif_args)[i]);
+
+	auto rval = false;
+
+	if ( args[0]->Type()->Tag() == TYPE_RECORD )
+		rval = broker_mgr->RelayEvent(first_topic->CheckString(),
+									  std::move(topic_set),
+	                                  args[0]->AsRecordVal());
+	else
+		{
+		auto ev = broker_mgr->MakeEvent(&args, frame);
+		rval = broker_mgr->RelayEvent(first_topic->CheckString(),
+									  std::move(topic_set), ev);
+		Unref(ev);
+		}
+
 	return new Val(rval, TYPE_BOOL);
 	%}
 
-function Broker::__auto_event_stop%(topic: string, ev: any%): bool
+function Broker::__flush_logs%(%): count
 	%{
-	auto rval = broker_mgr->AutoEventStop(topic->CheckString(), ev);
+	auto rval = broker_mgr->FlushLogBuffers();
+	return new Val(static_cast<uint64>(rval), TYPE_COUNT);
+	%}
+
+function Broker::__publish_id%(topic: string, id: string%): bool
+	%{
+	bro_broker::Manager::ScriptScopeGuard ssg;
+	auto rval = broker_mgr->PublishIdentifier(topic->CheckString(),
+	                                          id->CheckString());
 	return new Val(rval, TYPE_BOOL);
 	%}
 
-function Broker::__subscribe_to_events%(topic_prefix: string%): bool
+function Broker::__auto_publish%(topic: string, ev: any%): bool
 	%{
-	auto rval = broker_mgr->SubscribeToEvents(topic_prefix->CheckString());
+	bro_broker::Manager::ScriptScopeGuard ssg;
+	auto rval = broker_mgr->AutoPublishEvent(topic->CheckString(), ev);
 	return new Val(rval, TYPE_BOOL);
 	%}
 
-function Broker::__unsubscribe_to_events%(topic_prefix: string%): bool
+function Broker::__auto_unpublish%(topic: string, ev: any%): bool
 	%{
-	auto rval = broker_mgr->UnsubscribeToEvents(topic_prefix->CheckString());
+	bro_broker::Manager::ScriptScopeGuard ssg;
+	auto rval = broker_mgr->AutoUnpublishEvent(topic->CheckString(), ev);
 	return new Val(rval, TYPE_BOOL);
 	%}
 
-function Broker::__enable_remote_logs%(id: Log::ID, flags: Broker::SendFlags%): bool
+function Broker::__subscribe%(topic_prefix: string%): bool
 	%{
-	auto rval = log_mgr->EnableRemoteLogs(id->AsEnumVal(),
-	                                   bro_broker::Manager::send_flags_to_int(flags));
+	bro_broker::Manager::ScriptScopeGuard ssg;
+	auto rval = broker_mgr->Subscribe(topic_prefix->CheckString());
 	return new Val(rval, TYPE_BOOL);
 	%}
 
-function Broker::__disable_remote_logs%(id: Log::ID%): bool
+function Broker::__unsubscribe%(topic_prefix: string%): bool
 	%{
-	auto rval = log_mgr->DisableRemoteLogs(id->AsEnumVal());
+	bro_broker::Manager::ScriptScopeGuard ssg;
+	auto rval = broker_mgr->Unsubscribe(topic_prefix->CheckString());
 	return new Val(rval, TYPE_BOOL);
 	%}
 
-function Broker::__remote_logs_enabled%(id: Log::ID%): bool
+module Cluster;
+
+type Cluster::Pool: record;
+
+## Publishes an event to a node within a pool according to Round-Robin
+## distribution strategy.
+##
+## pool: the pool of nodes that are eligible to receive the revent
+##
+## key: an arbitrary string to identify the purpose for which you're
+##      distributing the event.  e.g. consider using namespacing of your
+##      script like "Intel::cluster_rr_key".
+##
+## args: Either the event arguments as already made by
+##       :bro:see:`Broker::make_event` or the argument list to pass along
+##       to it.
+##
+## Returns: true if the message is sent.
+function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
 	%{
-	auto rval = log_mgr->RemoteLogsAreEnabled(id->AsEnumVal());
+	static Func* topic_func = 0;
+
+	if ( ! topic_func )
+		topic_func = global_scope()->Lookup("Cluster::rr_topic")->ID_Val()->AsFunc();
+
+	val_list vl(2);
+	vl.append(pool->Ref());
+	vl.append(key->Ref());
+	auto topic = topic_func->Call(&vl);
+
+	if ( ! topic->AsString()->Len() )
+		{
+		Unref(topic);
+		return new Val(false, TYPE_BOOL);
+		}
+
+	val_list* bif_args = @ARGS@;
+	val_list args(bif_args->length() - 2);
+
+	for ( auto i = 2; i < bif_args->length(); ++i )
+		args.append((*bif_args)[i]);
+
+	auto rval = publish_event_args(args, topic->AsString(), frame);
+	Unref(topic);
 	return new Val(rval, TYPE_BOOL);
 	%}
 
-function Broker::__subscribe_to_logs%(topic_prefix: string%): bool
+
+## Publishes an event at a given topic, with a receiver node chosen
+## from a pool according to Round-Robin distribution strategy.  The receiving
+## node, then automatically forwards it to its peers with a different topic.
+## The event is relayed at most a single hop.
+##
+## pool: the pool of nodes that are eligible to receive the revent
+##
+## key: an arbitrary string to identify the purpose for which you're
+##      distributing the event.  e.g. consider using namespacing of your
+##      script like "Intel::cluster_rr_key".
+##
+## args: the first member of the argument list may be either a string or
+##       a set of strings indicating the secondary topic that the receiver
+##       will use to re-publish the event.  The remaining
+##       members of the argument list are either the return value of a
+##       previously-made call to :bro:see:`Broker::make_event` or the
+##       argument list that should be passed along to it, so that it can
+##       be called as part of executing this function.
+##
+## Returns: true if the message is sent.
+function Cluster::relay_rr%(pool: Pool, key: any, ...%): bool
 	%{
-	auto rval = broker_mgr->SubscribeToLogs(topic_prefix->CheckString());
+	val_list* bif_args = @ARGS@;
+
+	if ( bif_args->length() < 4 )
+		{
+		builtin_error("Cluster::relay_rr requires at least 4 arguments");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	static Func* topic_func = 0;
+
+	if ( ! topic_func )
+		topic_func = global_scope()->Lookup("Cluster::rr_topic")->ID_Val()->AsFunc();
+
+	val_list vl(2);
+	vl.append(pool->Ref());
+	vl.append(key->Ref());
+	auto topic = topic_func->Call(&vl);
+
+	if ( ! topic->AsString()->Len() )
+		{
+		Unref(topic);
+		return new Val(false, TYPE_BOOL);
+		}
+
+	auto second_topic = (*bif_args)[2];
+
+	if ( second_topic->Type()->Tag() != TYPE_STRING &&
+		 ! is_string_set(second_topic->Type()) )
+		{
+		builtin_error("Cluster::relay_rr requires a string or string_set as 3rd argument");
+		Unref(topic);
+		return new Val(false, TYPE_BOOL);
+		}
+
+	auto topic_set = val_to_topic_set(second_topic);
+
+	if ( topic_set.empty() )
+		{
+		Unref(topic);
+		return new Val(false, TYPE_BOOL);
+		}
+
+	val_list args(bif_args->length() - 3);
+
+	for ( auto i = 3; i < bif_args->length(); ++i )
+		args.append((*bif_args)[i]);
+
+	auto rval = relay_event_args(args, topic->AsString(), std::move(topic_set),
+	                             frame);
+	Unref(topic);
 	return new Val(rval, TYPE_BOOL);
 	%}
 
-function Broker::__unsubscribe_to_logs%(topic_prefix: string%): bool
+## Publishes an event to a node within a pool according to Rendezvous
+## (Highest Random Weight) hashing strategy.
+##
+## pool: the pool of nodes that are eligible to receive the revent
+##
+## key: data used for input to the hashing function that will uniformly
+##      distribute keys among available nodes.
+##
+## args: Either the event arguments as already made by
+##       :bro:see:`Broker::make_event` or the argument list to pass along
+##       to it.
+##
+## Returns: true if the message is sent.
+function Cluster::publish_hrw%(pool: Pool, key: any, ...%): bool
 	%{
-	auto rval = broker_mgr->UnsubscribeToLogs(topic_prefix->CheckString());
+	static Func* topic_func = 0;
+
+	if ( ! topic_func )
+		topic_func = global_scope()->Lookup("Cluster::hrw_topic")->ID_Val()->AsFunc();
+
+	val_list vl(2);
+	vl.append(pool->Ref());
+	vl.append(key->Ref());
+	auto topic = topic_func->Call(&vl);
+
+	if ( ! topic->AsString()->Len() )
+		{
+		Unref(topic);
+		return new Val(false, TYPE_BOOL);
+		}
+
+	val_list* bif_args = @ARGS@;
+	val_list args(bif_args->length() - 2);
+
+	for ( auto i = 2; i < bif_args->length(); ++i )
+		args.append((*bif_args)[i]);
+
+	auto rval = publish_event_args(args, topic->AsString(), frame);
+	Unref(topic);
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+## Publishes an event at a given topic, with a receiver node chosen
+## from a pool according to Rendezvous (Highest Random Weight) distribution
+## strategy.  The receiving nodes then automatically forwards it to its peers
+## with a different topic.  The event is relayed at most a single hop.
+##
+## pool: the pool of nodes that are eligible to receive the revent
+##
+## key: data used for input to the hashing function that will uniformly
+##      distribute keys among available nodes.
+##
+## args: the first member of the argument list may be either a string or
+##       a set of strings indicating the secondary topic that the receiver
+##       will use to re-publish the event.  The remaining
+##       members of the argument list are either the return value of a
+##       previously-made call to :bro:see:`Broker::make_event` or the
+##       argument list that should be passed along to it, so that it can
+##       be called as part of executing this function.
+##
+## Returns: true if the message is sent.
+function Cluster::relay_hrw%(pool: Pool, key: any, ...%): bool
+	%{
+	val_list* bif_args = @ARGS@;
+
+	if ( bif_args->length() < 4 )
+		{
+		builtin_error("Cluster::relay_hrw requires at least 4 arguments");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	static Func* topic_func = 0;
+
+	if ( ! topic_func )
+		topic_func = global_scope()->Lookup("Cluster::hrw_topic")->ID_Val()->AsFunc();
+
+	val_list vl(2);
+	vl.append(pool->Ref());
+	vl.append(key->Ref());
+	auto topic = topic_func->Call(&vl);
+
+	if ( ! topic->AsString()->Len() )
+		{
+		Unref(topic);
+		return new Val(false, TYPE_BOOL);
+		}
+
+	auto second_topic = (*bif_args)[2];
+
+	if ( second_topic->Type()->Tag() != TYPE_STRING &&
+		 ! is_string_set(second_topic->Type()) )
+		{
+		builtin_error("Cluster::relay_hrw requires a string or string_set as 3rd argument");
+		Unref(topic);
+		return new Val(false, TYPE_BOOL);
+		}
+
+	auto topic_set = val_to_topic_set(second_topic);
+
+	if ( topic_set.empty() )
+		{
+		Unref(topic);
+		return new Val(false, TYPE_BOOL);
+		}
+
+	val_list args(bif_args->length() - 3);
+
+	for ( auto i = 3; i < bif_args->length(); ++i )
+		args.append((*bif_args)[i]);
+
+	auto rval = relay_event_args(args, topic->AsString(), std::move(topic_set),
+	                             frame);
+	Unref(topic);
 	return new Val(rval, TYPE_BOOL);
 	%}

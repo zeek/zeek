@@ -1,0 +1,1 @@
+error in /home/robin/bro/lang-ext/testing/btest/.tmp/language.switch-error-mixed/switch-error-mixed.bro, line 6: cannot mix cases with expressions and types (switch (v) {case 42:{ return (42!)}case type count:{ return (Count!)}})

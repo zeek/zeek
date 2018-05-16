@@ -57,8 +57,6 @@
 
 redef exit_only_after_terminate = T;
 
-@load base/frameworks/communication  # let network-time run
-
 redef InputAscii::empty_field = "EMPTY";
 
 module A;

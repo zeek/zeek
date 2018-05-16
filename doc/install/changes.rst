@@ -17,23 +17,11 @@ BroControl
 
 .. literalinclude:: CHANGES-broctl.txt
 
---------
-Broccoli
---------
+------
+Broker
+------
 
-.. literalinclude:: CHANGES-broccoli.txt
-
----------------
-Broccoli Python
----------------
-
-.. literalinclude:: CHANGES-broccoli-python.txt
-
--------------
-Broccoli Ruby
--------------
-
-.. literalinclude:: CHANGES-broccoli-ruby.txt
+.. literalinclude:: CHANGES-broker.txt
 
 --------
 Capstats

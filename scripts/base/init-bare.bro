@@ -603,6 +603,29 @@ type ThreadStats: record {
 	num_threads: count;
 };
 
+## Statistics about Broker communication.
+##
+## .. bro:see:: get_broker_stats
+type BrokerStats: record {
+	num_peers: count;
+	## Number of active data stores.
+	num_stores: count;
+	## Number of pending data store queries.
+	num_pending_queries: count;
+	## Number of total log messages received.
+	num_events_incoming: count;
+	## Number of total log messages sent.
+	num_events_outgoing: count;
+	## Number of total log records received.
+	num_logs_incoming: count;
+	## Number of total log records sent.
+	num_logs_outgoing: count;
+	## Number of total identifiers received.
+	num_ids_incoming: count;
+	## Number of total identifiers sent.
+	num_ids_outgoing: count;
+};
+
 ## Deprecated.
 ##
 ## .. todo:: Remove. It's still declared internally but doesn't seem  used anywhere
@@ -737,7 +760,7 @@ type IPAddrAnonymizationClass: enum {
 ## A locally unique ID identifying a communication peer. The ID is returned by
 ## :bro:id:`connect`.
 ##
-## .. bro:see:: connect Communication
+## .. bro:see:: connect
 type peer_id: count;
 
 ## A communication peer.
@@ -760,7 +783,7 @@ type event_peer: record {
 	p: port;
 	is_local: bool;		##< True if this record describes the local process.
 	descr: string;		##< The peer's :bro:see:`peer_description`.
-	class: string &optional;	##< The self-assigned *class* of the peer. See :bro:see:`Communication::Node`.
+	class: string &optional;	##< The self-assigned *class* of the peer.
 };
 
 ## Deprecated.
@@ -4783,6 +4806,11 @@ export {
 	const max_frag_data = 30000 &redef;
 }
 
+module Cluster;
+export {
+	type Cluster::Pool: record {};
+}
+
 module GLOBAL;
 
 ## Seed for hashes computed internally for probabilistic data structures. Using
@@ -4797,8 +4825,8 @@ const bits_per_uid: count = 96 &redef;
 
 # Load these frameworks here because they use fairly deep integration with
 # BiFs and script-land defined types.
-@load base/frameworks/broker
 @load base/frameworks/logging
+@load base/frameworks/broker
 @load base/frameworks/input
 @load base/frameworks/analyzer
 @load base/frameworks/files

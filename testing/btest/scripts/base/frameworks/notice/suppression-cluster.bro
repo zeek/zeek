@@ -10,10 +10,10 @@
 
 @TEST-START-FILE cluster-layout.bro
 redef Cluster::nodes = {
-	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=27757/tcp, $workers=set("worker-1", "worker-2")],
-	["proxy-1"] = [$node_type=Cluster::PROXY,     $ip=127.0.0.1, $p=27758/tcp, $manager="manager-1", $workers=set("worker-1", "worker-2")],
-	["worker-1"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=27760/tcp, $manager="manager-1", $proxy="proxy-1"],
-	["worker-2"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=27761/tcp, $manager="manager-1", $proxy="proxy-1"],
+	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=27757/tcp],
+	["proxy-1"] = [$node_type=Cluster::PROXY,     $ip=127.0.0.1, $p=27758/tcp, $manager="manager-1"],
+	["worker-1"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=27760/tcp, $manager="manager-1"],
+	["worker-2"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=27761/tcp, $manager="manager-1"],
 };
 @TEST-END-FILE
 
@@ -23,14 +23,10 @@ redef enum Notice::Type += {
 	Test_Notice,
 };
 
-event remote_connection_closed(p: event_peer)
+event Cluster::node_down(name: string, id: string)
 	{
 	terminate();
 	}
-
-global ready: event();
-
-redef Cluster::manager2worker_events += /ready/;
 
 event delayed_notice()
 	{
@@ -38,8 +34,6 @@ event delayed_notice()
 	        $msg="test notice!",
 	        $identifier="this identifier is static"]);
 	}
-
-@if ( Cluster::local_node_type() == Cluster::WORKER )
 
 event ready()
     {
@@ -52,20 +46,19 @@ event ready()
 event Notice::suppressed(n: Notice::Info)
 	{
 	if ( Cluster::node == "worker-1" )
-		terminate_communication();
+		terminate();
 	}
-
-@endif
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
 
 global peer_count = 0;
 
-event remote_connection_handshake_done(p: event_peer)
+event Cluster::node_up(name: string, id: string)
 	{
 	peer_count = peer_count + 1;
+
 	if ( peer_count == 3 )
-		event ready();
+		Broker::publish(Cluster::worker_topic, ready);
 	}
 
 @endif

@@ -116,8 +116,12 @@ event bro_init() &priority=5
 	Analyzer::register_for_ports(Analyzer::ANALYZER_DHCP, ports);
 	}
 
-# Setup the clusterized config that is needed to tie messages together on a cluster.
-redef Cluster::worker2manager_events += /DHCP::aggregate_msgs/;
+@if ( Cluster::is_enabled() )
+event bro_init()
+	{
+	Broker::auto_publish(Cluster::manager_topic, DHCP::aggregate_msgs);
+	}
+@endif
 
 function join_data_expiration(t: table[count] of Info, idx: count): interval
 	{

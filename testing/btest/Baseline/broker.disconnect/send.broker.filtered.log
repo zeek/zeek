@@ -1,0 +1,4 @@
+1524513026.795171 Broker::STATUS peer-added 127.0.0.1 XXX received handshake from remote core
+1524513033.340316 Broker::STATUS connection-terminated 127.0.0.1 XXX lost remote peer
+1524513035.437373 Broker::STATUS peer-added 127.0.0.1 XXX received handshake from remote core
+1524513041.743002 Broker::STATUS connection-terminated 127.0.0.1 XXX lost remote peer

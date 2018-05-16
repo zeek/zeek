@@ -2,23 +2,20 @@
 
 connecting-listener.bro
 
-const broker_port: port = 9999/tcp &redef;
 redef exit_only_after_terminate = T;
-redef Broker::endpoint_name = "listener";
 
 event bro_init()
 	{
-	Broker::enable();
-	Broker::listen(broker_port, "127.0.0.1");
+	Broker::listen("127.0.0.1");
 	}
 
-event Broker::incoming_connection_established(peer_name: string)
+event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
-	print "Broker::incoming_connection_established", peer_name;
+	print "peer added", endpoint;
 	}
 
-event Broker::incoming_connection_broken(peer_name: string)
+event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	{
-	print "Broker::incoming_connection_broken", peer_name;
+	print "peer lost", endpoint;
 	terminate();
 	}

@@ -8,21 +8,11 @@
 #include "Val.h"
 #include "Trigger.h"
 
-#include <broker/store/frontend.hh>
+#include <broker/broker.hh>
 
 namespace bro_broker {
 
 extern OpaqueType* opaque_of_store_handle;
-
-/**
- * Enumerates the possible types of data stores.
- */
-enum StoreType {
-	// Just a view in to a remote store, contains no data itself.
-	FRONTEND,
-	MASTER,
-	CLONE,
-};
 
 /**
  * Create a Broker::QueryStatus value.
@@ -75,12 +65,9 @@ inline RecordVal* query_result(RecordVal* data)
  */
 class StoreQueryCallback {
 public:
-
 	StoreQueryCallback(Trigger* arg_trigger, const CallExpr* arg_call,
-					   broker::store::identifier arg_store_id,
-	                   StoreType arg_store_type)
-		: trigger(arg_trigger), call(arg_call), store_id(move(arg_store_id)),
-	      store_type(arg_store_type)
+			   broker::store store)
+		: trigger(arg_trigger), call(arg_call), store(move(store))
 		{
 		Ref(trigger);
 		}
@@ -108,18 +95,14 @@ public:
 	bool Disabled() const
 		{ return trigger->Disabled(); }
 
-	const broker::store::identifier& StoreID() const
-		{ return store_id; }
-
-	StoreType GetStoreType() const
-		{ return store_type; }
+	const broker::store& Store() const
+		{ return store; }
 
 private:
 
 	Trigger* trigger;
 	const CallExpr* call;
-	broker::store::identifier store_id;
-	StoreType store_type;
+	broker::store store;
 };
 
 /**
@@ -127,26 +110,27 @@ private:
  */
 class StoreHandleVal : public OpaqueVal {
 public:
-
-	StoreHandleVal(broker::store::identifier id,
-		       bro_broker::StoreType arg_type,
-		       broker::util::optional<BifEnum::Broker::BackendType> arg_back,
-		       RecordVal* backend_options,
-		       std::chrono::duration<double> resync = std::chrono::seconds(1));
+	StoreHandleVal(broker::store s)
+		: OpaqueVal(bro_broker::opaque_of_store_handle), store{s}, proxy{store}
+		{ }
 
 	void ValDescribe(ODesc* d) const override;
 
 	DECLARE_SERIAL(StoreHandleVal);
 
-	broker::store::frontend* store;
-	bro_broker::StoreType store_type;
-	broker::util::optional<BifEnum::Broker::BackendType> backend_type;
+	broker::store store;
+	broker::store::proxy proxy;
 
 protected:
-
-	StoreHandleVal()
-		{}
+	StoreHandleVal() = default;
 };
+
+// Helper function to construct a broker backend type from script land.
+broker::backend to_backend_type(BifEnum::Broker::BackendType type);
+
+// Helper function to construct broker backend options from script land.
+broker::backend_options to_backend_options(broker::backend backend,
+                                           RecordVal* options);
 
 } // namespace bro_broker
 

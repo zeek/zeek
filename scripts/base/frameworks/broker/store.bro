@@ -1,4 +1,4 @@
-##! Various data structure definitions for use with Bro's communication system.
+##! The Broker-based data store API and its various options.
 
 @load ./main
 @load base/bif/data.bif
@@ -6,20 +6,29 @@
 module Broker;
 
 export {
+	## The default frequency at which clones will attempt to
+	## reconnect/resynchronize with their master in the event that they become
+	## disconnected.
+	const default_clone_resync_interval = 10sec &redef;
+
+	## The duration after which a clone that is disconnected from its master
+	## will begin to treat its local cache as stale.  In the stale state,
+	## queries to the cache will timeout.  A negative value indicates that
+	## the local cache is never treated as stale.
+	const default_clone_stale_interval = 5min &redef;
+
+	## The maximum amount of time that a disconnected clone will
+	## buffer data store mutation commands.  If the clone reconnects before
+	## this time, it will replay all stored commands.  Note that this doesn't
+	## completely prevent the loss of store updates: all mutation messages
+	## are fire-and-forget and not explicitly acknowledged by the master.
+	## A negative/zero value indicates to never buffer commands.
+	const default_clone_mutation_buffer_interval = 2min &redef;
 
 	## Whether a data store query could be completed or not.
 	type QueryStatus: enum {
 		SUCCESS,
 		FAILURE,
-	};
-
-	## An expiry time for a key-value pair inserted in to a data store.
-	type ExpiryTime: record {
-		## Absolute point in time at which to expire the entry.
-		absolute: time &optional;
-		## A point in time relative to the last modification time at which
-		## to expire the entry.  New modifications will delay the expiration.
-		since_last_modification: interval &optional;
 	};
 
 	## The result of a data store query.
@@ -42,13 +51,17 @@ export {
 	## Options to tune the SQLite storage backend.
 	type SQLiteOptions: record {
 		## File system path of the database.
-		path: string &default = "store.sqlite";
+		## If left empty, will be derived from the name of the store,
+		## and use the '.sqlite' file suffix.
+		path: string &default = "";
 	};
 
 	## Options to tune the RocksDB storage backend.
 	type RocksDBOptions: record {
 		## File system path of the database.
-		path: string &default = "store.rocksdb";
+		## If left empty, will be derived from the name of the store.
+		## and use the '.rocksdb' file suffix.
+		path: string &default = "";
 	};
 
 	## Options to tune the particular storage backends.
@@ -57,54 +70,52 @@ export {
 		rocksdb: RocksDBOptions &default = RocksDBOptions();
 	};
 
-@ifdef ( Broker::__enable )
-
 	## Create a master data store which contains key-value pairs.
 	##
-	## id: a unique name for the data store.
+	## name: a unique name for the data store.
 	##
 	## b: the storage backend to use.
 	##
 	## options: tunes how some storage backends operate.
 	##
 	## Returns: a handle to the data store.
-	global create_master: function(id: string, b: BackendType &default = MEMORY,
-	                               options: BackendOptions &default = BackendOptions()): opaque of Broker::Handle;
+	global create_master: function(name: string, b: BackendType &default = MEMORY,
+	                               options: BackendOptions &default = BackendOptions()): opaque of Broker::Store;
 
 	## Create a clone of a master data store which may live with a remote peer.
-	## A clone automatically synchronizes to the master by automatically
+	## A clone automatically synchronizes to the master by
 	## receiving modifications and applying them locally.  Direct modifications
 	## are not possible, they must be sent through the master store, which then
 	## automatically broadcasts the changes out to clones.  But queries may be
 	## made directly against the local cloned copy, which may be resolved
 	## quicker than reaching out to a remote master store.
 	##
-	## id: the unique name which identifies the master data store.
+	## name: the unique name which identifies the master data store.
 	##
-	## b: the storage backend to use.
+	## resync_interval: the frequency at which a clone that is disconnected from
+	##                  its master attempts to reconnect with it.
 	##
-	## options: tunes how some storage backends operate.
+	## stale_interval: the duration after which a clone that is disconnected
+	##                 from its master will begin to treat its local cache as
+	##                 stale.  In this state, queries to the clone will timeout.
+	##                 A negative value indicates that the local cache is never
+	##                 treated as stale.
 	##
-	## resync: the interval at which to re-attempt synchronizing with the master
-	##         store should the connection be lost.  If the clone has not yet
-	##         synchronized for the first time, updates and queries queue up
-	##         until the synchronization completes.  After, if the connection
-	##         to the master store is lost, queries continue to use the clone's
-	##         version, but updates will be lost until the master is once again
-	##         available.
-	##
-	## Returns: a handle to the data store.
-	global create_clone: function(id: string, b: BackendType &default = MEMORY,
-	                              options: BackendOptions &default = BackendOptions(),
-	                              resync: interval &default = 1sec): opaque of Broker::Handle;
-
-	## Create a frontend interface to an existing master data store that allows
-	## querying and updating its contents.
-	##
-	## id: the unique name which identifies the master data store.
+	## mutation_buffer_interval: the amount of time to buffer data store update
+	##                           messages once a clone detects its master is
+	##                           unavailable.  If the clone reconnects before
+	##                           this time, it will replay all buffered
+	##                           commands.  Note that this doesn't completely
+	##                           prevent the loss of store updates: all mutation
+	##                           messages are fire-and-forget and not explicitly
+	##                           acknowledged by the master.  A negative/zero
+	##                           value indicates that commands never buffer.
 	##
 	## Returns: a handle to the data store.
-	global create_frontend: function(id: string): opaque of Broker::Handle;
+	global create_clone: function(name: string,
+	                              resync_interval: interval &default = default_clone_resync_interval,
+	                              stale_interval: interval &default = default_clone_stale_interval,
+	                              mutation_buffer_interval: interval &default = default_clone_mutation_buffer_interval): opaque of Broker::Store;
 
 	## Close a data store.
 	##
@@ -112,11 +123,64 @@ export {
 	##
 	## Returns: true if store was valid and is now closed.  The handle can no
 	##          longer be used for data store operations.
-	global close_by_handle: function(h: opaque of Broker::Handle): bool;
+	global close: function(h: opaque of Broker::Store): bool;
 
-	###########################
-	# non-blocking update API #
-	###########################
+	## Returns: whether a store is closed or not.
+	global is_closed: function(h: opaque of Broker::Store): bool;
+
+	## Returns: the name of the store.
+	global store_name: function(h: opaque of Broker::Store): string;
+
+	## Check if a key exists in a data store.
+	## 
+	## h: the handle of the store to query.
+	##
+	## k: the key to lookup.
+	##
+	## Returns: True if the key exists in the data store.
+	global exists: function(h: opaque of Broker::Store, k: any): QueryResult;
+
+	## Lookup the value associated with a key in a data store.
+	##
+	## h: the handle of the store to query.
+	##
+	## k: the key to lookup.
+	##
+	## Returns: the result of the query.
+	global get: function(h: opaque of Broker::Store, k: any): QueryResult;
+
+	## Insert a key-value pair in to the store, but only if the key does not
+	## already exist.
+	##
+	## h: the handle of the store to modify.
+	##
+	## k: the key to insert.
+	##
+	## v: the value to insert.
+	##
+	## e: the expiration interval of the key-value pair.
+	##
+	## Returns: the result of the query which is a boolean data value that is
+	##          true if the insertion happened, or false if it was rejected
+	##          due to the key already existing.
+	global put_unique: function(h: opaque of Broker::Store,
+	                            k: any, v: any, e: interval &default=0sec): QueryResult;
+
+	## Retrieve a specific index from an existing container value. This
+	## is supported for values of types set, table, and vector.
+	##
+	## h: the handle of the store to query.
+	##
+	## k: the key of the container value to lookup.
+	##
+	## i: the index to retrieve from the container value.
+	## 
+	## Returns: For tables and vectors, the value at the given index, or
+	##          failure if the index doesn't exist. For sets, a boolean
+	##          indicating whether the index exists. Returns failure if the key
+	##          does not exist at all.
+	global get_index_from_value: function(h: opaque of Broker::Store,
+	                                      k: any, i: any): QueryResult;
 
 	## Insert a key-value pair in to the store.
 	##
@@ -126,12 +190,11 @@ export {
 	##
 	## v: the value to insert.
 	##
-	## e: the expiration time of the key-value pair.
+	## e: the expiration interval of the key-value pair.
 	##
 	## Returns: false if the store handle was not valid.
-	global insert: function(h: opaque of Broker::Handle,
-	                        k: Broker::Data, v: Broker::Data,
-	                        e: Broker::ExpiryTime &default = Broker::ExpiryTime()): bool;
+	global put: function(h: opaque of Broker::Store,
+	                     k: any, v: any, e: interval &default=0sec) : bool;
 
 	## Remove a key-value pair from the store.
 	##
@@ -140,260 +203,185 @@ export {
 	## k: the key to remove.
 	##
 	## Returns: false if the store handle was not valid.
-	global erase: function(h: opaque of Broker::Handle, k: Broker::Data): bool;
+	global erase: function(h: opaque of Broker::Store, k: any) : bool;
 
-	## Remove all key-value pairs from the store.
+	## Increments an existing value by a given amount. This is supported for all
+	## numerical types, as well as for timestamps.
 	##
 	## h: the handle of the store to modify.
 	##
+	## k: the key whose associated value is to be modified. The key must
+	##    already exist.
+	##
+	## a: the amount to increment the value by. 
+	##
+	## e: the new expiration interval of the modified key. If null, the
+	##    current expiration time isn't changed.
+	##
 	## Returns: false if the store handle was not valid.
-	global clear: function(h: opaque of Broker::Handle): bool;
+	global increment: function(h: opaque of Broker::Store, k: any,
+	                           a: any &default = 1,
+	                           e: interval &default=0sec) : bool;
 
-	## Increment an integer value in a data store.
+	## Decrements an existing value by a given amount. This is supported for all
+	## numerical types, as well as for timestamps.
 	##
 	## h: the handle of the store to modify.
 	##
-	## k: the key whose associated value is to be modified.
+	## k: the key whose associated value is to be modified. The key must
+	##    already exist.
 	##
-	## by: the amount to increment the value by.  A non-existent key will first
-	##     create it with an implicit value of zero before incrementing.
+	## amount: the amount to decrement the value by. 
+	##
+	## e: the new expiration interval of the modified key. If null, the current
+	##    expiration time isn't changed.
 	##
 	## Returns: false if the store handle was not valid.
-	global increment: function(h: opaque of Broker::Handle,
-	                           k: Broker::Data, by: int &default = +1): bool;
+	global decrement: function(h: opaque of Broker::Store, k: any,
+	                           a: any &default = 1,
+	                           e: interval &default=0sec) : bool;
 
-	## Decrement an integer value in a data store.
+	## Extends an existing string with another.
 	##
 	## h: the handle of the store to modify.
 	##
-	## k: the key whose associated value is to be modified.
+	## k: the key whose associated value is to be modified. The key must
+	##    already exist.
 	##
-	## by: the amount to decrement the value by.  A non-existent key will first
-	##     create it with an implicit value of zero before decrementing.
+	## s: the string to append.
+	##
+	## e: the new expiration interval of the modified key. If null, the
+	##    current expiration time isn't changed.
 	##
 	## Returns: false if the store handle was not valid.
-	global decrement: function(h: opaque of Broker::Handle,
-	                           k: Broker::Data, by: int &default = +1): bool;
+	global append: function(h: opaque of Broker::Store, k: any, s: string, 
+	                        e: interval &default=0sec) : bool;
 
-	## Add an element to a set value in a data store.
+	## Inserts an element into an existing set.
 	##
 	## h: the handle of the store to modify.
 	##
-	## k: the key whose associated value is to be modified.
+	## k: the key whose associated value is to be modified. The key must
+	##    already exist.
 	##
-	## element: the element to add to the set.  A non-existent key will first
-	##          create it with an implicit empty set value before modifying.
+	## i: the index to insert into the set.
+	##
+	## e: the new expiration interval of the modified key. If null, the
+	##    current expiration time isn't changed.
 	##
 	## Returns: false if the store handle was not valid.
-	global add_to_set: function(h: opaque of Broker::Handle,
-	                            k: Broker::Data, element: Broker::Data): bool;
+	global insert_into_set: function(h: opaque of Broker::Store,
+	                                 k: any, i: any, 
+	                                 e: interval &default=0sec) : bool;
 
-	## Remove an element from a set value in a data store.
+	## Inserts an element into an existing table.
 	##
 	## h: the handle of the store to modify.
 	##
-	## k: the key whose associated value is to be modified.
+	## k: the key whose associated value is to be modified. The key must
+	##    already exist.
 	##
-	## element: the element to remove from the set.  A non-existent key will
-	##          implicitly create an empty set value associated with the key.
+	## i: the index to insert into the table
+	## 
+	## v: the value to associate with the index.
+	##
+	## e: the new expiration interval of the modified key. If null, the
+	##    current expiration time isn't changed.
 	##
 	## Returns: false if the store handle was not valid.
-	global remove_from_set: function(h: opaque of Broker::Handle,
-	                                 k: Broker::Data, element: Broker::Data): bool;
+	global insert_into_table: function(h: opaque of Broker::Store,
+	                                   k: any, i: any, v: any,
+	                                   e: interval &default=0sec) : bool;
 
-	## Add a new item to the head of a vector value in a data store.
+	## Removes an element from an existing set or table.
 	##
-	## h: the handle of store to modify.
+	## h: the handle of the store to modify.
 	##
-	## k: the key whose associated value is to be modified.
+	## k: the key whose associated value is to be modified. The key must
+	##    already exist.
 	##
-	## items: the element to insert in to the vector.  A non-existent key will
-	##        first create an empty vector value before modifying.
+	## i: the index to remove from the set or table.
+	##
+	## e: the new expiration interval of the modified key. If null, the
+	##    current expiration time isn't changed.
 	##
 	## Returns: false if the store handle was not valid.
-	global push_left: function(h: opaque of Broker::Handle, k: Broker::Data,
-	                           items: Broker::DataVector): bool;
+	global remove_from: function(h: opaque of Broker::Store,
+	                             k: any, i: any, 
+	                             e: interval &default=0sec) : bool;
 
-	## Add a new item to the tail of a vector value in a data store.
+	## Appends an element to an existing vector.
 	##
-	## h: the handle of store to modify.
+	## h: the handle of the store to modify.
 	##
-	## k: the key whose associated value is to be modified.
+	## k: the key whose associated value is to be modified. The key must
+	##    already exist.
 	##
-	## items: the element to insert in to the vector.  A non-existent key will
-	##        first create an empty vector value before modifying.
+	## b: the value to append to the vector.
+	##
+	## e: the new expiration interval of the modified key. If null, the
+	##    current expiration time isn't changed.
 	##
 	## Returns: false if the store handle was not valid.
-	global push_right: function(h: opaque of Broker::Handle, k: Broker::Data,
-	                            items: Broker::DataVector): bool;
+	global push: function(h: opaque of Broker::Store,
+	                      k: any, v: any, 
+	                      e: interval &default=0sec) : bool;
+
+	## Removes the last element of an existing vector.
+	##
+	## h: the handle of the store to modify.
+	##
+	## k: the key whose associated value is to be modified. The key must
+	##    already exist.
+	##
+	## e: the new expiration interval of the modified key. If null, the
+	##    current expiration time isn't changed.
+	##
+	## Returns: false if the store handle was not valid.
+	global pop: function(h: opaque of Broker::Store,
+	                     k: any,
+	                     e: interval &default=0sec) : bool;
+
+	## Returns a set with all of a store's keys. The results reflect a snapshot
+	## in time that may diverge from reality soon afterwards.   When acessing
+	## any of the element, it may no longer actually be there. The function is
+	## also expensive for large stores, as it copies the complete set.
+	##
+	## Returns: a set with the keys.  If you expect the keys to be of
+	##          non-uniform type, consider using
+	##          :bro:see:`Broker::set_iterator` to iterate over the result.
+	global keys: function(h: opaque of Broker::Store): QueryResult;
+
+	## Deletes all of a store's content, it will be empty afterwards.
+	##
+	## Returns: false if the store handle was not valid.
+	global clear: function(h: opaque of Broker::Store) : bool;
 
 	##########################
-	# non-blocking query API #
-	##########################
-
-	## Pop the head of a data store vector value.
-	##
-	## h: the handle of the store to query.
-	##
-	## k: the key associated with the vector to modify.
-	##
-	## Returns: the result of the query.
-	global pop_left: function(h: opaque of Broker::Handle,
-	                          k: Broker::Data): QueryResult;
-
-	## Pop the tail of a data store vector value.
-	##
-	## h: the handle of the store to query.
-	##
-	## k: the key associated with the vector to modify.
-	##
-	## Returns: the result of the query.
-	global pop_right: function(h: opaque of Broker::Handle,
-	                           k: Broker::Data): QueryResult;
-
-	## Lookup the value associated with a key in a data store.
-	##
-	## h: the handle of the store to query.
-	##
-	## k: the key to lookup.
-	##
-	## Returns: the result of the query.
-	global lookup: function(h: opaque of Broker::Handle,
-	                       k: Broker::Data): QueryResult;
-
-	## Check if a data store contains a given key.
-	##
-	## h: the handle of the store to query.
-	##
-	## k: the key to check for existence.
-	##
-	## Returns: the result of the query (uses :bro:see:`Broker::BOOL`).
-	global exists: function(h: opaque of Broker::Handle,
-	                        k: Broker::Data): QueryResult;
-
-	## Retrieve all keys in a data store.
-	##
-	## h: the handle of the store to query.
-	##
-	## Returns: the result of the query (uses :bro:see:`Broker::VECTOR`).
-	global keys: function(h: opaque of Broker::Handle): QueryResult;
-
-	## Get the number of key-value pairs in a data store.
-	##
-	## h: the handle of the store to query.
-	##
-	## Returns: the result of the query (uses :bro:see:`Broker::COUNT`).
-	global size: function(h: opaque of Broker::Handle): QueryResult;
-
-	##########################
-	# data API               #
+	# Data API               #
 	##########################
 
 	## Convert any Bro value to communication data.
 	##
+	## .. note:: Normally you won't need to use this function as data
+	##    conversion happens implicitly when passing Bro values into Broker
+	##    functions.
+	##
 	## d: any Bro value to attempt to convert (not all types are supported).
 	##
-	## Returns: the converted communication data.  The returned record's optional
-	##          field will not be set if the conversion was not possible (this can
-	##          happen if the Bro data type does not support being converted to
-	##          communication data).
+	## Returns: the converted communication data.  If the supplied Bro data
+	##          type does not support conversion to communication data, the
+	##          returned record's optional field will not be set.
 	global data: function(d: any): Broker::Data;
 
 	## Retrieve the type of data associated with communication data.
 	##
 	## d: the communication data.
 	##
-	## Returns: the data type associated with the communication data.
+	## Returns: The data type associated with the communication data.
+	##          Note that broker represents records in the same way as
+	##          vectors, so there is no "record" type.
 	global data_type: function(d: Broker::Data): Broker::DataType;
-
-	## Convert communication data with a type of :bro:see:`Broker::BOOL` to
-	## an actual Bro value.
-	##
-	## d: the communication data to convert.
-	##
-	## Returns: the value retrieved from the communication data.
-	global refine_to_bool: function(d: Broker::Data): bool;
-
-	## Convert communication data with a type of :bro:see:`Broker::INT` to
-	## an actual Bro value.
-	##
-	## d: the communication data to convert.
-	##
-	## Returns: the value retrieved from the communication data.
-	global refine_to_int: function(d: Broker::Data): int;
-
-	## Convert communication data with a type of :bro:see:`Broker::COUNT` to
-	## an actual Bro value.
-	##
-	## d: the communication data to convert.
-	##
-	## Returns: the value retrieved from the communication data.
-	global refine_to_count: function(d: Broker::Data): count;
-
-	## Convert communication data with a type of :bro:see:`Broker::DOUBLE` to
-	## an actual Bro value.
-	##
-	## d: the communication data to convert.
-	##
-	## Returns: the value retrieved from the communication data.
-	global refine_to_double: function(d: Broker::Data): double;
-
-	## Convert communication data with a type of :bro:see:`Broker::STRING` to
-	## an actual Bro value.
-	##
-	## d: the communication data to convert.
-	##
-	## Returns: the value retrieved from the communication data.
-	global refine_to_string: function(d: Broker::Data): string;
-
-	## Convert communication data with a type of :bro:see:`Broker::ADDR` to
-	## an actual Bro value.
-	##
-	## d: the communication data to convert.
-	##
-	## Returns: the value retrieved from the communication data.
-	global refine_to_addr: function(d: Broker::Data): addr;
-
-	## Convert communication data with a type of :bro:see:`Broker::SUBNET` to
-	## an actual Bro value.
-	##
-	## d: the communication data to convert.
-	##
-	## Returns: the value retrieved from the communication data.
-	global refine_to_subnet: function(d: Broker::Data): subnet;
-
-	## Convert communication data with a type of :bro:see:`Broker::PORT` to
-	## an actual Bro value.
-	##
-	## d: the communication data to convert.
-	##
-	## Returns: the value retrieved from the communication data.
-	global refine_to_port: function(d: Broker::Data): port;
-
-	## Convert communication data with a type of :bro:see:`Broker::TIME` to
-	## an actual Bro value.
-	##
-	## d: the communication data to convert.
-	##
-	## Returns: the value retrieved from the communication data.
-	global refine_to_time: function(d: Broker::Data): time;
-
-	## Convert communication data with a type of :bro:see:`Broker::INTERVAL` to
-	## an actual Bro value.
-	##
-	## d: the communication data to convert.
-	##
-	## Returns: the value retrieved from the communication data.
-	global refine_to_interval: function(d: Broker::Data): interval;
-
-	## Convert communication data with a type of :bro:see:`Broker::ENUM` to
-	## the name of the enum value.  :bro:see:`lookup_ID` may be used to convert
-	## the name to the actual enum value.
-	##
-	## d: the communication data to convert.
-	##
-	## Returns: the enum name retrieved from the communication data.
-	global refine_to_enum_name: function(d: Broker::Data): string;
 
 	## Create communication data of type "set".
 	global set_create: function(): Broker::Data;
@@ -403,7 +391,7 @@ export {
 	## s: the set to clear.
 	##
 	## Returns: always true.
-	global set_clear: function(s: Broker::Data): bool;
+	global set_clear: function(s: Broker::Data) : bool;
 
 	## Get the number of elements within a set.
 	##
@@ -419,7 +407,7 @@ export {
 	## key: the element to check for existence.
 	##
 	## Returns: true if the key exists in the set.
-	global set_contains: function(s: Broker::Data, key: Broker::Data): bool;
+	global set_contains: function(s: Broker::Data, key: any) : bool;
 
 	## Insert an element into a set.
 	##
@@ -428,7 +416,7 @@ export {
 	## key: the element to insert.
 	##
 	## Returns: true if the key was inserted, or false if it already existed.
-	global set_insert: function(s: Broker::Data, key: Broker::Data): bool;
+	global set_insert: function(s: Broker::Data, key: any) : bool;
 
 	## Remove an element from a set.
 	##
@@ -437,7 +425,7 @@ export {
 	## key: the element to remove.
 	##
 	## Returns: true if the element existed in the set and is now removed.
-	global set_remove: function(s: Broker::Data, key: Broker::Data): bool;
+	global set_remove: function(s: Broker::Data, key: any) : bool;
 
 	## Create an iterator for a set.  Note that this makes a copy of the set
 	## internally to ensure the iterator is always valid.
@@ -453,7 +441,7 @@ export {
 	##
 	## Returns: true if there are no more elements to iterator over, i.e.
 	##          the iterator is one-past-the-final-element.
-	global set_iterator_last: function(it: opaque of Broker::SetIterator): bool;
+	global set_iterator_last: function(it: opaque of Broker::SetIterator) : bool;
 
 	## Advance an iterator.
 	##
@@ -462,7 +450,7 @@ export {
 	## Returns: true if the iterator, after advancing, still references an element
 	##          in the collection.  False if the iterator, after advancing, is
 	##          one-past-the-final-element.
-	global set_iterator_next: function(it: opaque of Broker::SetIterator): bool;
+	global set_iterator_next: function(it: opaque of Broker::SetIterator) : bool;
 
 	## Retrieve the data at an iterator's current position.
 	##
@@ -479,7 +467,7 @@ export {
 	## t: the table to clear.
 	##
 	## Returns: always true.
-	global table_clear: function(t: Broker::Data): bool;
+	global table_clear: function(t: Broker::Data) : bool;
 
 	## Get the number of elements within a table.
 	##
@@ -495,7 +483,7 @@ export {
 	## key: the key to check for existence.
 	##
 	## Returns: true if the key exists in the table.
-	global table_contains: function(t: Broker::Data, key: Broker::Data): bool;
+	global table_contains: function(t: Broker::Data, key: any) : bool;
 
 	## Insert a key-value pair into a table.
 	##
@@ -507,7 +495,7 @@ export {
 	##
 	## Returns: true if the key-value pair was inserted, or false if the key
 	##          already existed in the table.
-	global table_insert: function(t: Broker::Data, key: Broker::Data, val: Broker::Data): Broker::Data;
+	global table_insert: function(t: Broker::Data, key: any, val: any): Broker::Data;
 
 	## Remove a key-value pair from a table.
 	##
@@ -517,7 +505,7 @@ export {
 	##
 	## Returns: the value associated with the key.  If the key did not exist, then
 	##          the optional field of the returned record is not set.
-	global table_remove: function(t: Broker::Data, key: Broker::Data): Broker::Data;
+	global table_remove: function(t: Broker::Data, key: any): Broker::Data;
 
 	## Retrieve a value from a table.
 	##
@@ -527,7 +515,7 @@ export {
 	##
 	## Returns: the value associated with the key.  If the key did not exist, then
 	##          the optional field of the returned record is not set.
-	global table_lookup: function(t: Broker::Data, key: Broker::Data): Broker::Data;
+	global table_lookup: function(t: Broker::Data, key: any): Broker::Data;
 
 	## Create an iterator for a table.  Note that this makes a copy of the table
 	## internally to ensure the iterator is always valid.
@@ -543,7 +531,7 @@ export {
 	##
 	## Returns: true if there are no more elements to iterator over, i.e.
 	##          the iterator is one-past-the-final-element.
-	global table_iterator_last: function(it: opaque of Broker::TableIterator): bool;
+	global table_iterator_last: function(it: opaque of Broker::TableIterator) : bool;
 
 	## Advance an iterator.
 	##
@@ -552,7 +540,7 @@ export {
 	## Returns: true if the iterator, after advancing, still references an element
 	##          in the collection.  False if the iterator, after advancing, is
 	##          one-past-the-final-element.
-	global table_iterator_next: function(it: opaque of Broker::TableIterator): bool;
+	global table_iterator_next: function(it: opaque of Broker::TableIterator) : bool;
 
 	## Retrieve the data at an iterator's current position.
 	##
@@ -569,7 +557,7 @@ export {
 	## v: the vector to clear.
 	##
 	## Returns: always true.
-	global vector_clear: function(v: Broker::Data): bool;
+	global vector_clear: function(v: Broker::Data) : bool;
 
 	## Get the number of elements within a vector.
 	##
@@ -589,7 +577,7 @@ export {
 	##      current size of the vector, the element is inserted at the end.
 	##
 	## Returns: always true.
-	global vector_insert: function(v: Broker::Data, d: Broker::Data, idx: count): bool;
+	global vector_insert: function(v: Broker::Data, idx: count, d: any) : bool;
 
 	## Replace an element in a vector at a particular position.
 	##
@@ -601,7 +589,7 @@ export {
 	##
 	## Returns: the value that was just evicted.  If the index was larger than any
 	##          valid index, the optional field of the returned record is not set.
-	global vector_replace: function(v: Broker::Data, d: Broker::Data, idx: count): Broker::Data;
+	global vector_replace: function(v: Broker::Data, idx: count, d: any): Broker::Data;
 
 	## Remove an element from a vector at a particular position.
 	##
@@ -637,7 +625,7 @@ export {
 	##
 	## Returns: true if there are no more elements to iterator over, i.e.
 	##          the iterator is one-past-the-final-element.
-	global vector_iterator_last: function(it: opaque of Broker::VectorIterator): bool;
+	global vector_iterator_last: function(it: opaque of Broker::VectorIterator) : bool;
 
 	## Advance an iterator.
 	##
@@ -646,7 +634,7 @@ export {
 	## Returns: true if the iterator, after advancing, still references an element
 	##          in the collection.  False if the iterator, after advancing, is
 	##          one-past-the-final-element.
-	global vector_iterator_next: function(it: opaque of Broker::VectorIterator): bool;
+	global vector_iterator_next: function(it: opaque of Broker::VectorIterator) : bool;
 
 	## Retrieve the data at an iterator's current position.
 	##
@@ -678,7 +666,7 @@ export {
 	## idx: the index to replace.
 	##
 	## Returns: false if the index was larger than any valid index, else true.
-	global record_assign: function(r: Broker::Data, d: Broker::Data, idx: count): bool;
+	global record_assign: function(r: Broker::Data, idx: count, d: any) : bool;
 
 	## Lookup a field in a record at a particular position.
 	##
@@ -705,7 +693,7 @@ export {
 	##
 	## Returns: true if there are no more elements to iterator over, i.e.
 	##          the iterator is one-past-the-final-element.
-	global record_iterator_last: function(it: opaque of Broker::RecordIterator): bool;
+	global record_iterator_last: function(it: opaque of Broker::RecordIterator) : bool;
 
 	## Advance an iterator.
 	##
@@ -714,7 +702,7 @@ export {
 	## Returns: true if the iterator, after advancing, still references an element
 	##          in the collection.  False if the iterator, after advancing, is
 	##          one-past-the-final-element.
-	global record_iterator_next: function(it: opaque of Broker::RecordIterator): bool;
+	global record_iterator_next: function(it: opaque of Broker::RecordIterator) : bool;
 
 	## Retrieve the data at an iterator's current position.
 	##
@@ -722,124 +710,121 @@ export {
 	##
 	## Returns: element in the collection that the iterator currently references.
 	global record_iterator_value: function(it: opaque of Broker::RecordIterator): Broker::Data;
-
-@endif
 }
 
 @load base/bif/store.bif
 
 module Broker;
 
-@ifdef ( Broker::__enable )
-
-function create_master(id: string, b: BackendType &default = MEMORY,
-                       options: BackendOptions &default = BackendOptions()): opaque of Broker::Handle
+function create_master(name: string, b: BackendType &default = MEMORY,
+                       options: BackendOptions &default = BackendOptions()): opaque of Broker::Store
 	{
-	return __create_master(id, b, options);
+	return __create_master(name, b, options);
 	}
 
-function create_clone(id: string, b: BackendType &default = MEMORY,
-                      options: BackendOptions &default = BackendOptions(),
-                      resync: interval &default = 1sec): opaque of Broker::Handle
+function create_clone(name: string,
+                      resync_interval: interval &default = default_clone_resync_interval,
+                      stale_interval: interval &default = default_clone_stale_interval,
+                      mutation_buffer_interval: interval &default = default_clone_mutation_buffer_interval): opaque of Broker::Store
 	{
-	return __create_clone(id, b, options, resync);
+	return __create_clone(name, resync_interval, stale_interval,
+	                      mutation_buffer_interval);
 	}
 
-function create_frontend(id: string): opaque of Broker::Handle
+function close(h: opaque of Broker::Store): bool
 	{
-	return __create_frontend(id);
+	return __close(h);
 	}
 
-function close_by_handle(h: opaque of Broker::Handle): bool
+function is_closed(h: opaque of Broker::Store): bool
 	{
-	return __close_by_handle(h);
+	return __is_closed(h);
 	}
 
-function insert(h: opaque of Broker::Handle, k: Broker::Data, v: Broker::Data,
-                e: Broker::ExpiryTime &default = Broker::ExpiryTime()): bool
+function store_name(h: opaque of Broker::Store): string
 	{
-	return __insert(h, k, v, e);
+	return __store_name(h);
 	}
 
-function erase(h: opaque of Broker::Handle, k: Broker::Data): bool
-	{
-	return __erase(h, k);
-	}
-
-function clear(h: opaque of Broker::Handle): bool
-	{
-	return __clear(h);
-	}
-
-function increment(h: opaque of Broker::Handle,
-                           k: Broker::Data, by: int &default = +1): bool
-	{
-	return __increment(h, k, by);
-	}
-
-function decrement(h: opaque of Broker::Handle,
-                           k: Broker::Data, by: int &default = +1): bool
-	{
-	return __decrement(h, k, by);
-	}
-
-function add_to_set(h: opaque of Broker::Handle,
-                            k: Broker::Data, element: Broker::Data): bool
-	{
-	return __add_to_set(h, k, element);
-	}
-
-function remove_from_set(h: opaque of Broker::Handle,
-                                 k: Broker::Data, element: Broker::Data): bool
-	{
-	return __remove_from_set(h, k, element);
-	}
-
-function push_left(h: opaque of Broker::Handle, k: Broker::Data,
-                           items: Broker::DataVector): bool
-	{
-	return __push_left(h, k, items);
-	}
-
-function push_right(h: opaque of Broker::Handle, k: Broker::Data,
-                            items: Broker::DataVector): bool
-	{
-	return __push_right(h, k, items);
-	}
-
-function pop_left(h: opaque of Broker::Handle, k: Broker::Data): QueryResult
-	{
-	return __pop_left(h, k);
-	}
-
-function pop_right(h: opaque of Broker::Handle, k: Broker::Data): QueryResult
-	{
-	return __pop_right(h, k);
-	}
-
-function lookup(h: opaque of Broker::Handle, k: Broker::Data): QueryResult
-	{
-	return __lookup(h, k);
-	}
-
-function exists(h: opaque of Broker::Handle, k: Broker::Data): QueryResult
+function exists(h: opaque of Broker::Store, k: any): QueryResult
 	{
 	return __exists(h, k);
 	}
 
-function keys(h: opaque of Broker::Handle): QueryResult
+function get(h: opaque of Broker::Store, k: any): QueryResult
+	{
+	return __get(h, k);
+	}
+
+function put_unique(h: opaque of Broker::Store, k: any, v: any,
+             e: interval &default=0sec): QueryResult
+    {
+    return __put_unique(h, k, v, e);
+    }
+
+function get_index_from_value(h: opaque of Broker::Store, k: any, i: any): QueryResult
+	{
+	return __get_index_from_value(h, k, i);
+	}
+
+function keys(h: opaque of Broker::Store): QueryResult
 	{
 	return __keys(h);
 	}
 
-function size(h: opaque of Broker::Handle): QueryResult
+function put(h: opaque of Broker::Store, k: any, v: any, e: interval) : bool
 	{
-	return __size(h);
+	return __put(h, k, v, e);
 	}
 
-function data(d: any): Broker::Data
+function erase(h: opaque of Broker::Store, k: any) : bool
 	{
-	return __data(d);
+	return __erase(h, k);
+	}
+
+function increment(h: opaque of Broker::Store, k: any, a: any, e: interval) : bool
+	{
+	return __increment(h, k, a, e);
+	}
+
+function decrement(h: opaque of Broker::Store, k: any, a: any, e: interval) : bool
+	{
+	return __decrement(h, k, a, e);
+	}
+
+function append(h: opaque of Broker::Store, k: any, s: string, e: interval) : bool
+	{
+	return __append(h, k, s, e);
+	}
+
+function insert_into_set(h: opaque of Broker::Store, k: any, i: any, e: interval) : bool
+	{
+	return __insert_into_set(h, k, i, e);
+	}
+
+function insert_into_table(h: opaque of Broker::Store, k: any, i: any, v: any, e: interval) : bool
+	{
+	return __insert_into_table(h, k, i, v, e);
+	}
+
+function remove_from(h: opaque of Broker::Store, k: any, i: any, e: interval) : bool
+	{
+	return __remove_from(h, k, i, e);
+	}
+
+function push(h: opaque of Broker::Store, k: any, v: any, e: interval) : bool
+	{
+	return __push(h, k, v, e);
+	}
+
+function pop(h: opaque of Broker::Store, k: any, e: interval) : bool
+	{
+	return __pop(h, k, e);
+	}
+
+function clear(h: opaque of Broker::Store) : bool
+	{
+	return __clear(h);
 	}
 
 function data_type(d: Broker::Data): Broker::DataType
@@ -847,59 +832,9 @@ function data_type(d: Broker::Data): Broker::DataType
 	return __data_type(d);
 	}
 
-function refine_to_bool(d: Broker::Data): bool
+function data(d: any): Broker::Data
 	{
-	return __refine_to_bool(d);
-	}
-
-function refine_to_int(d: Broker::Data): int
-	{
-	return __refine_to_int(d);
-	}
-
-function refine_to_count(d: Broker::Data): count
-	{
-	return __refine_to_count(d);
-	}
-
-function refine_to_double(d: Broker::Data): double
-	{
-	return __refine_to_double(d);
-	}
-
-function refine_to_string(d: Broker::Data): string
-	{
-	return __refine_to_string(d);
-	}
-
-function refine_to_addr(d: Broker::Data): addr
-	{
-	return __refine_to_addr(d);
-	}
-
-function refine_to_subnet(d: Broker::Data): subnet
-	{
-	return __refine_to_subnet(d);
-	}
-
-function refine_to_port(d: Broker::Data): port
-	{
-	return __refine_to_port(d);
-	}
-
-function refine_to_time(d: Broker::Data): time
-	{
-	return __refine_to_time(d);
-	}
-
-function refine_to_interval(d: Broker::Data): interval
-	{
-	return __refine_to_interval(d);
-	}
-
-function refine_to_enum_name(d: Broker::Data): string
-	{
-	return __refine_to_enum_name(d);
+	return __data(d);
 	}
 
 function set_create(): Broker::Data
@@ -907,7 +842,7 @@ function set_create(): Broker::Data
 	return __set_create();
 	}
 
-function set_clear(s: Broker::Data): bool
+function set_clear(s: Broker::Data) : bool
 	{
 	return __set_clear(s);
 	}
@@ -917,17 +852,17 @@ function set_size(s: Broker::Data): count
 	return __set_size(s);
 	}
 
-function set_contains(s: Broker::Data, key: Broker::Data): bool
+function set_contains(s: Broker::Data, key: any) : bool
 	{
 	return __set_contains(s, key);
 	}
 
-function set_insert(s: Broker::Data, key: Broker::Data): bool
+function set_insert(s: Broker::Data, key: any) : bool
 	{
 	return __set_insert(s, key);
 	}
 
-function set_remove(s: Broker::Data, key: Broker::Data): bool
+function set_remove(s: Broker::Data, key: any) : bool
 	{
 	return __set_remove(s, key);
 	}
@@ -937,12 +872,12 @@ function set_iterator(s: Broker::Data): opaque of Broker::SetIterator
 	return __set_iterator(s);
 	}
 
-function set_iterator_last(it: opaque of Broker::SetIterator): bool
+function set_iterator_last(it: opaque of Broker::SetIterator) : bool
 	{
 	return __set_iterator_last(it);
 	}
 
-function set_iterator_next(it: opaque of Broker::SetIterator): bool
+function set_iterator_next(it: opaque of Broker::SetIterator) : bool
 	{
 	return __set_iterator_next(it);
 	}
@@ -957,7 +892,7 @@ function table_create(): Broker::Data
 	return __table_create();
 	}
 
-function table_clear(t: Broker::Data): bool
+function table_clear(t: Broker::Data) : bool
 	{
 	return __table_clear(t);
 	}
@@ -967,22 +902,22 @@ function table_size(t: Broker::Data): count
 	return __table_size(t);
 	}
 
-function table_contains(t: Broker::Data, key: Broker::Data): bool
+function table_contains(t: Broker::Data, key: any) : bool
 	{
 	return __table_contains(t, key);
 	}
 
-function table_insert(t: Broker::Data, key: Broker::Data, val: Broker::Data): Broker::Data
+function table_insert(t: Broker::Data, key: any, val: any): Broker::Data
 	{
 	return __table_insert(t, key, val);
 	}
 
-function table_remove(t: Broker::Data, key: Broker::Data): Broker::Data
+function table_remove(t: Broker::Data, key: any): Broker::Data
 	{
 	return __table_remove(t, key);
 	}
 
-function table_lookup(t: Broker::Data, key: Broker::Data): Broker::Data
+function table_lookup(t: Broker::Data, key: any): Broker::Data
 	{
 	return __table_lookup(t, key);
 	}
@@ -992,12 +927,12 @@ function table_iterator(t: Broker::Data): opaque of Broker::TableIterator
 	return __table_iterator(t);
 	}
 
-function table_iterator_last(it: opaque of Broker::TableIterator): bool
+function table_iterator_last(it: opaque of Broker::TableIterator) : bool
 	{
 	return __table_iterator_last(it);
 	}
 
-function table_iterator_next(it: opaque of Broker::TableIterator): bool
+function table_iterator_next(it: opaque of Broker::TableIterator) : bool
 	{
 	return __table_iterator_next(it);
 	}
@@ -1012,7 +947,7 @@ function vector_create(): Broker::Data
 	return __vector_create();
 	}
 
-function vector_clear(v: Broker::Data): bool
+function vector_clear(v: Broker::Data) : bool
 	{
 	return __vector_clear(v);
 	}
@@ -1022,14 +957,14 @@ function vector_size(v: Broker::Data): count
 	return __vector_size(v);
 	}
 
-function vector_insert(v: Broker::Data, d: Broker::Data, idx: count): bool
+function vector_insert(v: Broker::Data, idx: count, d: any) : bool
 	{
-	return __vector_insert(v, d, idx);
+	return __vector_insert(v, idx, d);
 	}
 
-function vector_replace(v: Broker::Data, d: Broker::Data, idx: count): Broker::Data
+function vector_replace(v: Broker::Data, idx: count, d: any): Broker::Data
 	{
-	return __vector_replace(v, d, idx);
+	return __vector_replace(v, idx, d);
 	}
 
 function vector_remove(v: Broker::Data, idx: count): Broker::Data
@@ -1047,12 +982,12 @@ function vector_iterator(v: Broker::Data): opaque of Broker::VectorIterator
 	return __vector_iterator(v);
 	}
 
-function vector_iterator_last(it: opaque of Broker::VectorIterator): bool
+function vector_iterator_last(it: opaque of Broker::VectorIterator) : bool
 	{
 	return __vector_iterator_last(it);
 	}
 
-function vector_iterator_next(it: opaque of Broker::VectorIterator): bool
+function vector_iterator_next(it: opaque of Broker::VectorIterator) : bool
 	{
 	return __vector_iterator_next(it);
 	}
@@ -1072,9 +1007,9 @@ function record_size(r: Broker::Data): count
 	return __record_size(r);
 	}
 
-function record_assign(r: Broker::Data, d: Broker::Data, idx: count): bool
+function record_assign(r: Broker::Data, idx: count, d: any) : bool
 	{
-	return __record_assign(r, d, idx);
+	return __record_assign(r, idx, d);
 	}
 
 function record_lookup(r: Broker::Data, idx: count): Broker::Data
@@ -1087,12 +1022,12 @@ function record_iterator(r: Broker::Data): opaque of Broker::RecordIterator
 	return __record_iterator(r);
 	}
 
-function record_iterator_last(it: opaque of Broker::RecordIterator): bool
+function record_iterator_last(it: opaque of Broker::RecordIterator) : bool
 	{
 	return __record_iterator_last(it);
 	}
 
-function record_iterator_next(it: opaque of Broker::RecordIterator): bool
+function record_iterator_next(it: opaque of Broker::RecordIterator) : bool
 	{
 	return __record_iterator_next(it);
 	}
@@ -1102,4 +1037,3 @@ function record_iterator_value(it: opaque of Broker::RecordIterator): Broker::Da
 	return __record_iterator_value(it);
 	}
 
-@endif

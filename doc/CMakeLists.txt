@@ -2,6 +2,8 @@ set(SPHINX_INPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/sphinx_input)
 set(SPHINX_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/sphinx_output)
 set(BROXYGEN_SCRIPT_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/broxygen_script_output)
 set(BROXYGEN_CACHE_DIR ${CMAKE_CURRENT_BINARY_DIR}/broxygen_cache)
+set(BROCCOLI_DOCS_SRC ${CMAKE_BINARY_DIR}/aux/broccoli/doc/html)
+set(BROCCOLI_DOCS_DST ${CMAKE_BINARY_DIR}/html/broccoli-api)
 set(BROKER_DOCS_SRC ${CMAKE_BINARY_DIR}/aux/broker/doc/html)
 set(BROKER_DOCS_DST ${CMAKE_BINARY_DIR}/html/broker-manual)
 

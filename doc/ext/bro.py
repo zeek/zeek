@@ -265,7 +265,7 @@ class BroDomain(Domain):
             if doc == docname:
                 to_delete.append((typ, name))
 
-        for (typ, name) in to_delete:        
+        for (typ, name) in to_delete:
             del self.data['objects'][typ, name]
 
     def resolve_xref(self, env, fromdocname, builder, typ, target, node,

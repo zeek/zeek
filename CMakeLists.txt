@@ -249,6 +249,7 @@ include(CheckOptionalBuildSources)
 
 CheckOptionalBuildSources(aux/broctl   Broctl   INSTALL_BROCTL)
 CheckOptionalBuildSources(aux/bro-aux  Bro-Aux  INSTALL_AUX_TOOLS)
+CheckOptionalBuildSources(aux/broccoli Broccoli INSTALL_BROCCOLI)
 
 ########################################################################
 ## Packaging Setup
@@ -288,6 +289,7 @@ message(
     "\nCXXFLAGS:          ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BuildType}}"
     "\nCPP:               ${CMAKE_CXX_COMPILER}"
     "\n"
+    "\nBroccoli:          ${INSTALL_BROCCOLI}"
     "\nBroctl:            ${INSTALL_BROCTL}"
     "\nAux. Tools:        ${INSTALL_AUX_TOOLS}"
     "\n"

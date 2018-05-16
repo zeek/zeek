@@ -1,7 +1,14 @@
 
-2.5-573 | 2018-05-16 23:46:35 +0000
+2.5-574 | 2018-05-16 23:52:05 +0000
 
-  * Support 802.11 monitor mode. (Pierre LALET)
+  * Switch Bro's communication over to Broker; deprecate the old
+    communication system, including Broccoli. See NEWS for more.
+
+  * Extend switch statement to branch by type of the operand. See NEWS
+    for more.
+
+  * Add new operators "is" and "as" for dynamic type casting and type
+    checking. See NEWS for more.
 
 2.5-569 | 2018-05-10 11:24:07 -0500
 

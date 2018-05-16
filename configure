@@ -50,6 +50,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
                            (automatically on when perftools is present on Linux)
     --enable-perftools-debug use Google's perftools for debugging
     --enable-jemalloc      link against jemalloc
+    --enable-broccoli      build or install the Broccoli library (deprecated)
     --disable-broctl       don't install Broctl
     --disable-auxtools     don't build or install auxiliary tools
     --disable-perftools    don't try to build with Google Perftools
@@ -66,7 +67,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-flex=PATH       path to flex executable
     --with-bison=PATH      path to bison executable
     --with-python=PATH     path to Python executable
-    --with-caf=PATH        path to C++ Actor Framework installation
+    --with-caf=PATH        path to C++ Actor Framework installation for using external version
                            (a required Broker dependency)
 
   Optional Packages in Non-Standard Locations:
@@ -133,6 +134,7 @@ append_cache_entry ENABLE_PERFTOOLS_DEBUG BOOL false
 append_cache_entry ENABLE_JEMALLOC      BOOL   false
 append_cache_entry BinPAC_SKIP_INSTALL  BOOL   true
 append_cache_entry BUILD_SHARED_LIBS    BOOL   true
+append_cache_entry INSTALL_BROCCOLI     BOOL   false
 append_cache_entry INSTALL_AUX_TOOLS    BOOL   true
 append_cache_entry INSTALL_BROCTL       BOOL   true
 append_cache_entry CPACK_SOURCE_IGNORE_FILES STRING
@@ -209,7 +211,10 @@ while [ $# -ne 0 ]; do
         --enable-jemalloc)
             append_cache_entry ENABLE_JEMALLOC     BOOL   true
             ;;
-        --disable-broctl)
+        --enable-broccoli)
+            append_cache_entry INSTALL_BROCCOLI     BOOL   yes
+            ;;
+       --disable-broctl)
             append_cache_entry INSTALL_BROCTL       BOOL   false
             ;;
         --disable-auxtools)

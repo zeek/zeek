@@ -739,7 +739,7 @@ SwitchStmt::SwitchStmt(Expr* index, case_list* arg_cases) :
 	{
 	Init();
 
-bool have_exprs = false;
+	bool have_exprs = false;
 	bool have_types = false;
 
 	loop_over_list(*cases, i)

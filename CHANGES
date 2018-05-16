@@ -1,4 +1,8 @@
 
+2.5-573 | 2018-05-16 23:46:35 +0000
+
+  * Support 802.11 monitor mode. (Pierre LALET)
+
 2.5-569 | 2018-05-10 11:24:07 -0500
 
   * BIT-1927: relocate notice/extend-email/ scripts to policy/ dir and

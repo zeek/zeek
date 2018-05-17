@@ -149,7 +149,7 @@ void StringType::Prepare(Env* env, int flags)
 	{
 	if ( (flags & TO_BE_PARSED) && StaticSize(env) < 0 )
 		{
-		ID *string_length_var = new ID(fmt("%s_string_length", 
+		ID *string_length_var = new ID(strfmt("%s_string_length", 
 			value_var() ? value_var()->Name() : "val"));
 		string_length_var_field_ = new TempVarField(
 			string_length_var, extern_type_int->Clone());
@@ -314,14 +314,16 @@ void StringType::DoGenParseCode(Output* out_cc, Env* env,
 	}
 
 void StringType::GenStringMismatch(Output* out_cc, Env* env, 
-		const DataPtr& data, const char *pattern)
+		const DataPtr& data, string pattern)
 	{
+	string tmp = 
+		strfmt("string((const char *) (%s), (const char *) %s).c_str()", 
+			data.ptr_expr(),
+			env->RValue(end_of_data));
 	out_cc->println("throw binpac::ExceptionStringMismatch(\"%s\", %s, %s);",
 		Location(), 
-		pattern,
-		fmt("string((const char *) (%s), (const char *) %s).c_str()", 
-			data.ptr_expr(),
-			env->RValue(end_of_data)));
+		pattern.c_str(),
+		tmp.c_str());
 	}
 
 void StringType::GenCheckingCStr(Output* out_cc, Env* env, 
@@ -341,7 +343,7 @@ void StringType::GenCheckingCStr(Output* out_cc, Env* env,
 		str_size.c_str());
 	out_cc->inc_indent();
 	out_cc->println("{");
-	GenStringMismatch(out_cc, env, data, str_val.c_str());
+	GenStringMismatch(out_cc, env, data, str_val);
 	out_cc->println("}");
 	out_cc->dec_indent();
 	}
@@ -378,8 +380,8 @@ void StringType::GenDynamicSizeRegEx(Output* out_cc, Env* env,
 		env->RValue(string_length_var()));
 	out_cc->inc_indent();
 	out_cc->println("{");
-	GenStringMismatch(out_cc, env, data, 
-		fmt("\"%s\"", regex_->str().c_str()));
+	string tmp = strfmt("\"%s\"", regex_->str().c_str());
+	GenStringMismatch(out_cc, env, data, tmp);
 	out_cc->println("}");
 	out_cc->dec_indent();
 	}

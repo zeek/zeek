@@ -63,7 +63,7 @@ void CaseType::Prepare(Env* env, int flags)
 	{
 	ASSERT(flags & TO_BE_PARSED);
 
-	index_var_ = new ID(fmt("%s_case_index", value_var()->Name()));
+	index_var_ = new ID(strfmt("%s_case_index", value_var()->Name()));
 	env->AddID(index_var_, MEMBER_VAR, extern_type_int);
 
 	// Sort the cases_ to put the default case at the end of the list

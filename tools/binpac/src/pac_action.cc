@@ -103,7 +103,7 @@ Type *ActionParam::DataType() const
 		if ( ! member_type )
 			{
 			throw Exception(type()->field_id(),
-				fmt("cannot find member type for `%s.%s'",
+				strfmt("cannot find member type for `%s.%s'",
 				    type()->type_id()->Name(),
 				    type()->field_id()->Name()));
 			}

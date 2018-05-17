@@ -328,7 +328,7 @@ const DataPtr& RecordField::getFieldEnd(Output* out_cc, Env* env)
 			{
 			// If not, we add a variable for the offset after the field
 			end_of_field_dataptr_var = new ID(
-				fmt("dataptr_after_%s", id()->Name()));
+				strfmt("dataptr_after_%s", id()->Name()));
 			env->AddID(end_of_field_dataptr_var, 
 		           	TEMP_VAR, 
 		           	extern_type_const_byteptr);
@@ -546,7 +546,7 @@ void RecordPaddingField::Prepare(Env* env)
 		{
 		if ( ! expr_->ConstFold(env, &wordsize_) )
 			throw ExceptionPaddingError(this, 
-				fmt("padding word size not a constant"));
+				strfmt("padding word size not a constant"));
 		}
 	}
 
@@ -585,7 +585,7 @@ int RecordPaddingField::StaticSize(Env* env, int offset) const
 			if ( offset > target_offset )
 				throw ExceptionPaddingError(
 					this,
-					fmt("current offset = %d, "
+					strfmt("current offset = %d, "
 					    "target offset = %d", 
 					    offset, target_offset));
 			return target_offset - offset;

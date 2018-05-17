@@ -205,9 +205,9 @@ void ArrayType::Prepare(Env *env, int flags)
 	{
 	if ( flags & TO_BE_PARSED )
 		{
-		ID *arraylength_var = new ID(fmt("%s__arraylength", value_var()->Name()));
-		ID *elem_var = new ID(fmt("%s__elem", value_var()->Name()));
-		ID *elem_it_var = new ID(fmt("%s__it", elem_var->Name()));
+		ID *arraylength_var = new ID(strfmt("%s__arraylength", value_var()->Name()));
+		ID *elem_var = new ID(strfmt("%s__elem", value_var()->Name()));
+		ID *elem_it_var = new ID(strfmt("%s__it", elem_var->Name()));
 
 		elem_var_field_ =
 			new ParseVarField(Field::CLASS_MEMBER, elem_var, elemtype_);
@@ -235,7 +235,7 @@ void ArrayType::Prepare(Env *env, int flags)
 
 			// Add elem_dataptr_var only when not parsing incrementally
 			ID *elem_dataptr_var =
-				new ID(fmt("%s__dataptr", elem_var->Name()));
+				new ID(strfmt("%s__dataptr", elem_var->Name()));
 			elem_dataptr_var_field_ = new TempVarField(
 				elem_dataptr_var,
 				extern_type_const_byteptr->Clone());
@@ -385,7 +385,7 @@ void ArrayType::GenCleanUpCode(Output *out_cc, Env *env)
 		{
 		if ( ! elem_var_field_ )
 			{
-			ID *elem_var = new ID(fmt("%s__elem", value_var()->Name()));
+			ID *elem_var = new ID(strfmt("%s__elem", value_var()->Name()));
 			elem_var_field_ =
 				new ParseVarField(
 					Field::NOT_CLASS_MEMBER,
@@ -623,7 +623,7 @@ void ArrayType::DoGenParseCode(Output *out_cc, Env *env,
 void ArrayType::GenUntilInputCheck(Output *out_cc, Env *env)
 	{
 	ID *elem_input_var_id = new ID(
-		fmt("%s__elem_input", value_var()->Name()));
+		strfmt("%s__elem_input", value_var()->Name()));
 	elem_input_var_field_ = new TempVarField(
 		elem_input_var_id, extern_type_const_bytestring->Clone());
 	elem_input_var_field_->Prepare(env);

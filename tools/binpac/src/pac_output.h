@@ -19,7 +19,7 @@ protected:
 
 class Output {
 public:
-	Output(const char *filename);
+	Output(string filename);
 	~Output();
 
 	int println(const char* fmt, ...);

@@ -156,8 +156,9 @@ void LetDecl::GenCode(Output * out_h, Output *out_cc)
 void LetDecl::GenEval(Output *out_cc, Env * /* env */)
 	{
 	Env *env = global_env();
+	string tmp = strfmt("%s const", type_->DataTypeStr().c_str());
 	out_cc->println("%s %s = %s;", 
-		fmt("%s const", type_->DataTypeStr().c_str()),
+		tmp.c_str(),
 		env->LValue(id_), 
 	       	expr_->EvalExpr(out_cc, env));
 

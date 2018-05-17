@@ -39,7 +39,7 @@ namespace {
 AnalyzerContextDecl::AnalyzerContextDecl(
 		ID *id, 
 		ContextFieldList *context_fields)
-	: TypeDecl(new ID(fmt("Context%s", id->Name())), 
+	: TypeDecl(new ID(strfmt("Context%s", id->Name())), 
 		ContextFieldsToParams(context_fields), 
 		new DummyType())
 	{
@@ -47,7 +47,7 @@ AnalyzerContextDecl::AnalyzerContextDecl(
 	if ( current_analyzer_context_ != 0 )
 		{
 		throw Exception(this, 
-		                fmt("multiple declaration of analyzer context; "
+		                strfmt("multiple declaration of analyzer context; "
 		                    "the previous one is `%s'",
 		                    current_analyzer_context_->id()->Name()));
 		}
@@ -108,7 +108,7 @@ string AnalyzerContextDecl::mb_buffer(Env *env)
 	{
 	// A hack. The orthodox way would be to build an Expr of
 	// context.flow_buffer_var, and then EvalExpr.
-	return fmt("%s->%s()", 
+	return strfmt("%s->%s()", 
 		env->RValue(analyzer_context_id), 
 		kFlowBufferVar);
 	}

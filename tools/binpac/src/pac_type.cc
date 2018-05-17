@@ -283,7 +283,7 @@ void Type::Prepare(Env* env, int flags)
 	if ( attr_if_expr() )
 		{
 		ASSERT(value_var());
-		ID *has_value_id = new ID(fmt("has_%s", value_var()->Name()));
+		ID *has_value_id = new ID(strfmt("has_%s", value_var()->Name()));
 		has_value_field_ = new LetField(has_value_id, 
 			extern_type_bool->Clone(),
 			attr_if_expr());
@@ -294,7 +294,7 @@ void Type::Prepare(Env* env, int flags)
 		{
 		ASSERT(flags & TO_BE_PARSED);
 		ID *parsing_complete_var = 
-			new ID(fmt("%s_parsing_complete", 
+			new ID(strfmt("%s_parsing_complete", 
 				value_var() ? value_var()->Name() : "val"));
 		DEBUG_MSG("Adding parsing complete var: %s\n",
 			parsing_complete_var->Name());
@@ -837,7 +837,7 @@ bool Type::AddSizeVar(Output* out_cc, Env* env)
 
 	ASSERT(! incremental_input());
 
-	ID *size_var_id = new ID(fmt("%s__size", 
+	ID *size_var_id = new ID(strfmt("%s__size", 
 		value_var() ? value_var()->Name() : decl_id()->Name()));
 
 	DEBUG_MSG("adding size var `%s' to env %p\n", size_var_id->Name(), env);

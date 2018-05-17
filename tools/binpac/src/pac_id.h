@@ -43,7 +43,7 @@ class Evaluatable;
 class ID : public Object
 {
 public:
-	ID(const char *arg_name)
+	ID(string arg_name)
 		: name(arg_name), anonymous_id_(false)
 		{
 		locname = nfmt("%s:%s", Location(), Name());

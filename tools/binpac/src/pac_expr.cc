@@ -72,7 +72,7 @@ Expr::Expr(ID* arg_id)
 	expr_type_ = EXPR_ID;
 	id_ = arg_id;
 	num_operands_ = 0;
-	orig_ = fmt("%s", id_->Name());
+	orig_ = strfmt("%s", id_->Name());
 	}
 
 Expr::Expr(Number* arg_num)
@@ -82,7 +82,7 @@ Expr::Expr(Number* arg_num)
 	expr_type_ = EXPR_NUM;
 	num_ = arg_num;
 	num_operands_ = 0;
-	orig_ = fmt("((int) %s)", num_->Str());
+	orig_ = strfmt("((int) %s)", num_->Str());
 	}
 
 Expr::Expr(ConstString *cstr)
@@ -102,7 +102,7 @@ Expr::Expr(RegEx *regex)
 	expr_type_ = EXPR_REGEX;
 	regex_ = regex;
 	num_operands_ = 0;
-	orig_ = fmt("/%s/", regex_->str().c_str());
+	orig_ = strfmt("/%s/", regex_->str().c_str());
 	}
 
 Expr::Expr(ExprType arg_type, Expr* op1)
@@ -112,7 +112,7 @@ Expr::Expr(ExprType arg_type, Expr* op1)
 	expr_type_ = arg_type;
 	num_operands_ = 1;
 	operand_[0] = op1;
-	orig_ = fmt(expr_fmt[expr_type_], op1->orig());
+	orig_ = strfmt(expr_fmt[expr_type_], op1->orig());
 	}
 
 Expr::Expr(ExprType arg_type, Expr* op1, Expr* op2)
@@ -124,7 +124,7 @@ Expr::Expr(ExprType arg_type, Expr* op1, Expr* op2)
 	operand_[0] = op1;
 	operand_[1] = op2;
 	operand_[2] = 0;
-	orig_ = fmt(expr_fmt[expr_type_], op1->orig(), op2->orig());
+	orig_ = strfmt(expr_fmt[expr_type_], op1->orig(), op2->orig());
 	}
 
 Expr::Expr(ExprType arg_type, Expr* op1, Expr* op2, Expr* op3)
@@ -136,7 +136,7 @@ Expr::Expr(ExprType arg_type, Expr* op1, Expr* op2, Expr* op3)
 	operand_[0] = op1;
 	operand_[1] = op2;
 	operand_[2] = op3;
-	orig_ = fmt(expr_fmt[expr_type_], op1->orig(), op2->orig(), op3->orig());
+	orig_ = strfmt(expr_fmt[expr_type_], op1->orig(), op2->orig(), op3->orig());
 	}
 
 Expr::Expr(ExprList *args)
@@ -196,16 +196,16 @@ void Expr::GenStrFromFormat(Env *env)
 	switch ( num_operands_ )
 		{
 		case 1:
-			str_ = fmt(expr_fmt[expr_type_], 
+			str_ = strfmt(expr_fmt[expr_type_], 
 				operand_[0]->str());
 			break; 
 		case 2:
-			str_ = fmt(expr_fmt[expr_type_], 
+			str_ = strfmt(expr_fmt[expr_type_], 
 				operand_[0]->str(),
 				operand_[1]->str());
 			break; 
 		case 3:
-			str_ = fmt(expr_fmt[expr_type_], 
+			str_ = strfmt(expr_fmt[expr_type_], 
 				operand_[0]->str(),
 				operand_[1]->str(),
 				operand_[2]->str());
@@ -334,11 +334,19 @@ void Expr::GenEval(Output* out_cc, Env* env)
 
 			Type *ty0 = operand_[0]->DataType(env);
 
-			str_ = fmt("%s%s",
-				operand_[0]->EvalExpr(out_cc, env),
-				ty0 ? 
-				ty0->EvalMember(operand_[1]->id()).c_str() :
-				fmt("->%s()", operand_[1]->id()->Name()));
+			if ( ty0 )
+				{
+				str_ = strfmt("%s%s",
+				              operand_[0]->EvalExpr(out_cc, env),
+				              ty0->EvalMember(operand_[1]->id()).c_str());
+				}
+			else
+				{
+				string tmp = strfmt("->%s()", operand_[1]->id()->Name());
+				str_ = strfmt("%s%s",
+				              operand_[0]->EvalExpr(out_cc, env),
+				              tmp.c_str());
+				}
 			}
 			break;
 
@@ -354,7 +362,7 @@ void Expr::GenEval(Output* out_cc, Env* env)
 			if ( ty0 )
 				str_ = ty0->EvalElement(v0, v1);
 			else
-				str_ = fmt("%s[%s]", v0.c_str(), v1.c_str());
+				str_ = strfmt("%s[%s]", v0.c_str(), v1.c_str());
 			}
 			break;
 
@@ -368,7 +376,7 @@ void Expr::GenEval(Output* out_cc, Env* env)
 				{
 				if ( (rf = GetRecordField(id, env)) != 0 )
 					{
-					str_ = fmt("%s", rf->FieldSize(out_cc, env));
+					str_ = strfmt("%s", rf->FieldSize(out_cc, env));
 					}
 				}
 			catch ( ExceptionIDNotFound &e )
@@ -377,7 +385,7 @@ void Expr::GenEval(Output* out_cc, Env* env)
 					{
 					int ty_size = ty->StaticSize(global_env());
 					if ( ty_size >= 0 )
-						str_ = fmt("%d", ty_size);
+						str_ = strfmt("%d", ty_size);
 					else
 						throw Exception(id, "unknown size");
 					}
@@ -391,7 +399,7 @@ void Expr::GenEval(Output* out_cc, Env* env)
 			{
 			const ID *id = operand_[0]->id();
 			RecordField *rf = GetRecordField(id, env);
-			str_ = fmt("%s", rf->FieldOffset(out_cc, env));
+			str_ = strfmt("%s", rf->FieldOffset(out_cc, env));
 			}
 			break;
 
@@ -501,7 +509,7 @@ Type *Expr::DataType(Env *env) const
 			if ( ! Type::CompatibleTypes(type1, type2) )
 				{
 				throw Exception(this, 
-					fmt("type mismatch: %s vs %s",
+					strfmt("type mismatch: %s vs %s",
 					    type1->DataTypeStr().c_str(),
 					    type2->DataTypeStr().c_str()));
 				}
@@ -526,7 +534,7 @@ Type *Expr::DataType(Env *env) const
 					if ( ! Type::CompatibleTypes(type1, type2) )
 						{
 						throw Exception(this, 
-							fmt("type mismatch: %s vs %s",
+							strfmt("type mismatch: %s vs %s",
 					    		    type1->DataTypeStr().c_str(),
 					                    type2->DataTypeStr().c_str()));
 						}
@@ -581,7 +589,7 @@ string Expr::DataTypeStr(Env *env) const
 	if ( ! type )
 		{
 		throw Exception(this, 
-		                fmt("cannot find data type for expression `%s'",
+		                strfmt("cannot find data type for expression `%s'",
 		                    orig()));
 		}
 
@@ -605,7 +613,7 @@ string Expr::SetFunc(Output *out, Env *env)
 			break;
 		default:
 			throw Exception(this, 
-			                fmt("cannot generate set function "
+			                strfmt("cannot generate set function "
 			                    "for expression `%s'", orig()));
 			break;
 		}

@@ -39,7 +39,7 @@ int ID::anonymous_id_seq = 0;
 
 ID *ID::NewAnonymousID(const string &prefix)
 	{
-	ID *id = new ID(fmt("%s%03d", prefix.c_str(), ++anonymous_id_seq));
+	ID *id = new ID(strfmt("%s%03d", prefix.c_str(), ++anonymous_id_seq));
 	id->anonymous_id_ = true;
 	return id;
 	}
@@ -297,7 +297,7 @@ void Env::SetEvaluated(const ID* id, bool v)
 			{
 			throw Exception(
 				context_object_,
-				fmt("INTERNAL ERROR: "
+				strfmt("INTERNAL ERROR: "
 				"evaluating let field '%s' in a branch! "
 				"To work around this problem, "
 				"add '&requires(%s)' to the case type. "

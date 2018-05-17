@@ -44,7 +44,7 @@ protected:
 
 	// Generate a string mismatch exception
 	void GenStringMismatch(Output* out_cc, Env* env, 
-		const DataPtr& data, const char *pattern);
+		const DataPtr& data, string pattern);
 
 	void DoGenParseCode(Output* out, Env* env, const DataPtr& data, int flags);
 

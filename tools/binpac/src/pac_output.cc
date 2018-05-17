@@ -15,9 +15,9 @@ OutputException::~OutputException()
 	{
 	}
 
-Output::Output(const char* filename)
+Output::Output(string filename)
 	{
-	fp = fopen(filename, "w");
+	fp = fopen(filename.c_str(), "w");
 	if ( ! fp )
 		throw OutputException(strerror(errno));
 	indent_ = 0;

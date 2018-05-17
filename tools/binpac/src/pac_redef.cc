@@ -16,7 +16,7 @@ Decl *find_decl(const ID *id)
 	if ( ! decl )
 		{
 		throw Exception(id, 
-		                fmt("cannot find declaration for %s", 
+		                strfmt("cannot find declaration for %s", 
 		                    id->Name()));
 		}
 
@@ -32,7 +32,7 @@ Decl *ProcessTypeRedef(const ID *id, FieldList *fieldlist)
 	if ( decl->decl_type() != Decl::TYPE )
 		{
 		throw Exception(id, 
-		                fmt("not a type declaration: %s", 
+		                strfmt("not a type declaration: %s", 
 		                    id->Name()));
 		}
 
@@ -74,7 +74,7 @@ Decl *ProcessCaseTypeRedef(const ID *id, CaseFieldList *casefieldlist)
 	if ( decl->decl_type() != Decl::TYPE )
 		{
 		throw Exception(id, 
-		                fmt("not a type declaration: %s", 
+		                strfmt("not a type declaration: %s", 
 		                    id->Name()));
 		}
 
@@ -85,7 +85,7 @@ Decl *ProcessCaseTypeRedef(const ID *id, CaseFieldList *casefieldlist)
 	if ( type->tot() != Type::CASE )
 		{
 		throw Exception(id, 
-		                fmt("not a case type: %s", 
+		                strfmt("not a case type: %s", 
 		                    id->Name()));
 		}
 
@@ -108,7 +108,7 @@ Decl *ProcessCaseExprRedef(const ID *id, CaseExprList *caseexprlist)
 	if ( decl->decl_type() != Decl::FUNC )
 		{
 		throw Exception(id, 
-		                fmt("not a function declaration: %s", 
+		                strfmt("not a function declaration: %s", 
 		                    id->Name()));
 		}
 
@@ -119,7 +119,7 @@ Decl *ProcessCaseExprRedef(const ID *id, CaseExprList *caseexprlist)
 	if ( ! expr ||expr->expr_type() != Expr::EXPR_CASE )
 		{
 		throw Exception(id, 
-		                fmt("function not defined by a case expression: %s", 
+		                strfmt("function not defined by a case expression: %s", 
 		                    id->Name()));
 		}
 
@@ -141,7 +141,7 @@ Decl *ProcessAnalyzerRedef(const ID *id,
 	if ( decl->decl_type() != decl_type )
 		{
 		throw Exception(id, 
-		                fmt("not a connection/flow declaration: %s", 
+		                strfmt("not a connection/flow declaration: %s", 
 		                    id->Name()));
 		}
 
@@ -160,7 +160,7 @@ Decl *ProcessTypeAttrRedef(const ID *id, AttrList *attrlist)
 	if ( decl->decl_type() != Decl::TYPE )
 		{
 		throw Exception(id, 
-		                fmt("not a type declaration: %s", 
+		                strfmt("not a type declaration: %s", 
 		                    id->Name()));
 		}
 

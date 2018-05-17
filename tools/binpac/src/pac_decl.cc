@@ -132,7 +132,7 @@ int HelperDecl::helper_id_seq = 0;
 HelperDecl::HelperDecl(HelperType helper_type, 
                        ID* context_id, 
                        EmbeddedCode* code)
- 	: Decl(new ID(fmt("helper_%d", ++helper_id_seq)), HELPER), 
+ 	: Decl(new ID(strfmt("helper_%d", ++helper_id_seq)), HELPER), 
 	  helper_type_(helper_type),
 	  context_id_(context_id),
 	  code_(code)

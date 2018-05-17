@@ -253,7 +253,7 @@ string TypeDecl::ParseFuncPrototype(Env* env)
 	if ( RequiresAnalyzerContext::compute(type_) )
 		{
 		Type *param_type = analyzer_context()->param_type();
-		params += fmt(", %s %s", 
+		params += strfmt(", %s %s", 
 			param_type->DataTypeConstRefStr().c_str(),
 			env->LValue(analyzer_context_id));
 		}
@@ -261,7 +261,7 @@ string TypeDecl::ParseFuncPrototype(Env* env)
 	// Add parameter "byteorder"
 	if ( type_->RequiresByteOrder() && ! type_->attr_byteorder_expr() )
 		{
-		params += fmt(", int %s", env->LValue(byteorder_id));
+		params += strfmt(", int %s", env->LValue(byteorder_id));
 		}
 
 	// Returns "<return type> %s<func name>(<params>)%s".
@@ -358,7 +358,8 @@ void TypeDecl::GenParseFunc(Output* out_h, Output* out_cc)
 
 	out_h->println(proto.c_str(), "", ";");
 
-	out_cc->println(proto.c_str(), fmt("%s::", class_name().c_str()), "");
+	string tmp = strfmt("%s::", class_name().c_str());
+	out_cc->println(proto.c_str(), tmp.c_str(), "");
 	out_cc->inc_indent();
 	out_cc->println("{");
 
@@ -382,7 +383,7 @@ void TypeDecl::GenInitialBufferLengthFunc(Output* out_h, Output* out_cc)
 	if ( init_buffer_length < 0 )  // cannot be statically determined
 		{
 		throw Exception(type()->attr_length_expr(), 
-		                fmt("cannot determine initial buffer length"
+		                strfmt("cannot determine initial buffer length"
 		                    " for type %s", id_->Name()));
 		}
 

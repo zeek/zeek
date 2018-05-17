@@ -43,7 +43,7 @@ void ConnDecl::ProcessFlowElement(AnalyzerFlow *flow_elem)
 	if ( flows_[flow_index] )
 		{
 		throw Exception(flow_elem,
-		                fmt("%sflow already defined", 
+		                strfmt("%sflow already defined", 
 		                    flow_index == 0 ? "up" : "down"));
 		}
 

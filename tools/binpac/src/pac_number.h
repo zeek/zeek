@@ -7,7 +7,7 @@ class Number : public Object
 {
 public:
 	Number(int arg_n)
-		: s(fmt("%d", arg_n)), n(arg_n) {}
+		: s(strfmt("%d", arg_n)), n(arg_n) {}
 	Number(const char* arg_s, int arg_n)
 		: s(arg_s), n(arg_n) {}
 	const char* Str() const 	{ return s.c_str(); }

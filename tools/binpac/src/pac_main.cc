@@ -103,7 +103,8 @@ int compile(const char* filename)
 	FILE* fp_input = fopen(filename, "r");
 	if ( ! fp_input )
 		{
-		perror(fmt("Error in opening %s", filename));
+		string tmp = strfmt("Error in opening %s", filename);
+		perror(tmp.c_str());
 		return -1;
 		}
 	input_filename = filename;
@@ -142,8 +143,8 @@ int compile(const char* filename)
 		if ( yyparse() )
 			return 1;
 
-		Output out_h(fmt("%s.h", basename.c_str()));
-		Output out_cc(fmt("%s.cc", basename.c_str()));
+		Output out_h(strfmt("%s.h", basename.c_str()));
+		Output out_cc(strfmt("%s.cc", basename.c_str()));
 
 		header_output = &out_h;
 		source_output = &out_cc;

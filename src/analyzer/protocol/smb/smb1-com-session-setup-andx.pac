@@ -99,7 +99,7 @@ refine connection SMB_Conn += {
 					response->Assign(1, new Val(${val.ntlm.is_guest}, TYPE_BOOL));
 					response->Assign(2, smb_string2stringval(${val.ntlm.native_os}));
 					response->Assign(3, smb_string2stringval(${val.ntlm.native_lanman}));
-					response->Assign(4, smb_string2stringval(${val.ntlm.primary_domain}));
+					//response->Assign(4, smb_string2stringval(${val.ntlm.primary_domain}));
 					//response->Assign(5, bytestring_to_val(${val.ntlm.security_blob}));
 					break;
 				default: // Error!
@@ -242,7 +242,6 @@ type SMB1_session_setup_andx_response_ntlm(header: SMB_Header, offset: uint16) =
 	# offset + 1 due to word_count in the parent type
 	native_os            : SMB_string(header.unicode, offsetof(native_os) + 1);
 	native_lanman        : SMB_string(header.unicode, offsetof(native_lanman) + 1);
-	primary_domain       : SMB_string(header.unicode, offsetof(primary_domain) + 1);
 
 	extra_byte_parameters : bytestring &transient &length=(andx.offset == 0 || andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters)));
 

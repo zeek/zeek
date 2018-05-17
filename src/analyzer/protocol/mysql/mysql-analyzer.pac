@@ -67,10 +67,41 @@ refine flow MySQL_Flow += {
 
 	function proc_resultset(msg: Resultset): bool
 		%{
-		if ( mysql_ok )
-			BifEvent::generate_mysql_ok(connection()->bro_analyzer(),
-										connection()->bro_analyzer()->Conn(),
-										${msg.rows}->size());
+		if ( connection()->get_results_seen() == 1 )
+			{
+			// This is a bit fake...
+			if ( mysql_ok )
+				BifEvent::generate_mysql_ok(connection()->bro_analyzer(),
+				                            connection()->bro_analyzer()->Conn(),
+				                            0);
+			}
+
+		if ( ${msg.is_eof} )
+			return true;
+
+		if ( ! mysql_result_row )
+			return true;
+
+		auto vt = internal_type("string_vec")->AsVectorType();
+		auto vv = new VectorVal(vt);
+
+		auto& bstring = ${msg.row.first_field.val};
+		auto ptr = reinterpret_cast<const char*>(bstring.data());
+		vv->Assign(vv->Size(), new StringVal(bstring.length(), ptr));
+
+		auto& fields = *${msg.row.fields};
+
+		for ( auto& f : fields )
+			{
+			auto& bstring = f->val();
+			auto ptr = reinterpret_cast<const char*>(bstring.data());
+			vv->Assign(vv->Size(), new StringVal(bstring.length(), ptr));
+			}
+
+		BifEvent::generate_mysql_result_row(connection()->bro_analyzer(),
+		                                    connection()->bro_analyzer()->Conn(),
+		                                    vv);
+
 		return true;
 		%}
 

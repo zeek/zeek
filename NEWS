@@ -11,6 +11,102 @@ Bro 2.6 (in progress)
 New Functionality
 -----------------
 
+- Bro has switched to using the new Broker library for all its
+  communication. Broker's API has been completely redesigned (compared
+  to the version in 2.5), and much of its implementation has been
+  redone. There's a new script-level "broker" framework that
+  supersedes the old "communication" framework, which is now
+  depracated. The "cluster" and "control" frameworks have been ported
+  to Broker; same for BroControl. For more about the new Broker
+  framework, see doc/frameworks/broker.rst (there's also guide there
+  for porting existing Bro scripts to Broker). For more about Broker
+  itself, including its API for external applications, see
+  aux/broker/doc.
+
+  TODO: Replace documentation paths with URLs once these are available
+  online.
+
+  When using BroControl, the meaning of proxies has changed with
+  Broker. If you are upgrading and have configured more than one proxy
+  currenty, we recommend going back down to a single proxy node now.
+  Unless you are using custom scripts doing significant data
+  distribution themselves through the new cluster framework, that
+  should be fine.
+
+- Bro now has new "is" and "as" script operators for dynamic
+  type-checking and casting.
+
+    - "v as T" casts a value v into a value of type T, assuming that's
+      possible (if not, it triggers a runtime error).
+
+    - "v is T" returns a boolean indicating whether value v can be
+      casted into type T (i.e., if true then "v as T" will succeed).
+
+    This casting supports three cases currently: (1) a value of
+    declared type "any" can be casted to its actual underlying type;
+    (2) Broker values can be casted to their corresponding script
+    types; and (3) all values can be casted to their declared types
+    (i.e., a no-op).
+
+    Example for "any":
+
+        # cat a.bro
+        function check(a: any)
+            {
+            local s: string = "default";
+
+            if ( a is string )
+                s = (a as string);
+
+            print fmt("s=%s", s);
+            }
+
+        event bro_init()
+            {
+            check("Foo");
+            check(1);
+            }
+
+        # bro a.bro
+        s=Foo
+        s=default
+
+- The existing "switch" got extended to now also support switching by
+  type rather than value. The new syntax supports two type-based versions
+  of "case":
+
+    - "case type T: ...": Take branch if operand can be casted to type T.
+
+    - "case type T as x: ... ": Take branch if operand can be casted
+      to type T, and make the casted value available through ID "x".
+
+    Multiple types can be listed per branch, separated by commas.
+    However, one cannot mix cases with expressions and types inside a
+    single switch statement.
+
+    Example:
+
+        function switch_one(v: any)
+            {
+            switch (v) {
+            case type string:
+                    print "It's a string!";
+                    break;
+
+            case type count as c:
+                    print "It's a count!", c;
+                    break;
+
+            case type bool, type addr:
+                    print "It's a bool or address!";
+                    break;
+
+            default:
+                    print "Something else!";
+                    break;
+            }
+            }
+
 - Bro now comes with a new "configuration framework" that allows
   updating script options dynamically at runtime. This functionality
   consists of three larger pieces working together:
@@ -149,7 +245,11 @@ New Functionality
 Changed Functionality
 ---------------------
 
-- The DHCP analyzer and its script-layer interface have been rewritten.
+  - ALl communication is now handled through Broker, requiring changes
+    to existing scripts to port them over to the new API. The Broker
+    framework documentation comes with a porting guide.
+
+  - The DHCP analyzer and its script-layer interface have been rewritten.
 
   - Supports more DHCP options than before.
 
@@ -226,6 +326,28 @@ Removed Functionality
   been moved over to use the Bro Package Manager instead. See
   https://github.com/bro/packages for a list of Bro packages currently
   available.
+
+- BroControl: The option 'IPv6Comm' and 'ZoneID' options are no longer
+  available (though Broker should be able to handle IPv6
+  automatically).
+
+Deprecated Functionality
+------------------------
+
+- The old communication system is now deprecated and scheduled for
+  removal with the next Bro release. This includes the "communication"
+  framework, the &sychronized attributes, and the existing
+  communication-related BiFs. Use Broker instead.
+
+- The infrastructure for serializing Bro values into a binary
+  representation is now deprecated and scheduled for removal with the
+  next Bro release. This includes the &persistent attribute, as well
+  as BiFs like send_id(). Use Broker data stores and the new
+  configuration framework instead.
+
+- BroControl: The 'update' command is deprecated and scheduled for
+  removal with the next Bro release. Bro's new configuration framework
+  is taking its place.
 
 Bro 2.5.1
 =========

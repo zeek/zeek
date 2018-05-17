@@ -1,14 +1,21 @@
 
-2.5-574 | 2018-05-16 23:52:05 +0000
+2.5-576 | 2018-05-17 00:54:28 +0000
 
   * Switch Bro's communication over to Broker; deprecate the old
     communication system, including Broccoli. See NEWS for more.
 
+    (Many people contributed to this effort. Broker library: Jon
+    Siwek, Matthias Vallentin, Robin Sommer, Dominik Charousset.
+    Porting Bro to Broker: Daniel Thayer, Robin Sommer, Jon Siwek.
+    Further contributions by: Johanna Amann, Justin Azoff, Matthias
+    Fischer, Jan Grashoefer, and Seth Hall. The final integration was
+    supported by Corelight.)
+
   * Extend switch statement to branch by type of the operand. See NEWS
-    for more.
+    for more. (Robin Sommer)
 
   * Add new operators "is" and "as" for dynamic type casting and type
-    checking. See NEWS for more.
+    checking. See NEWS for more. (Robin Sommer)
 
 2.5-569 | 2018-05-10 11:24:07 -0500
 

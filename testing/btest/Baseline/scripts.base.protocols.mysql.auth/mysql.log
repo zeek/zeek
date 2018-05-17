@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	mysql
-#open	2016-07-13-16-16-46
+#open	2018-05-17-12-54-47
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	cmd	arg	success	rows	response
 #types	time	string	addr	port	addr	port	string	string	bool	count	string
 1362452327.618353	CtPZjS20MLrsMUOJi2	192.168.1.3	55845	192.168.1.8	3306	login	root_nope	F	-	Access denied for user 'root_nope'@'lumberjack.home' (using password: NO)
@@ -16,6 +16,6 @@
 1362452360.410803	C0LAHyvtKSQHyJxIl	192.168.1.3	55863	192.168.1.8	3306	login	root	F	-	Access denied for user 'root'@'lumberjack.home' (using password: YES)
 1362452361.886123	CFLRIC3zaTU1loLGxh	192.168.1.3	55864	192.168.1.8	3306	login	root	F	-	Access denied for user 'root'@'lumberjack.home' (using password: YES)
 1362452372.452858	C9rXSW3KSpTYvPrlI1	192.168.1.3	55865	192.168.1.8	3306	login	root	T	0	-
-1362452372.454995	C9rXSW3KSpTYvPrlI1	192.168.1.3	55865	192.168.1.8	3306	query	select @@version_comment limit 1	T	1	-
+1362452372.454995	C9rXSW3KSpTYvPrlI1	192.168.1.3	55865	192.168.1.8	3306	query	select @@version_comment limit 1	T	0	-
 1362452372.991997	C9rXSW3KSpTYvPrlI1	192.168.1.3	55865	192.168.1.8	3306	quit	(empty)	-	-	-
-#close	2016-07-13-16-16-46
+#close	2018-05-17-12-54-47

@@ -1,0 +1,17 @@
+# @TEST-EXEC: bro -r $TRACES/arp-leak.pcap %INPUT
+# @TEST-EXEC: btest-diff .stdout
+
+event arp_request(mac_src: string, mac_dst: string, SPA: addr, SHA: string, TPA: addr, THA: string)
+	{
+	print "REQ", mac_src, mac_dst, SPA, SHA, TPA, THA;
+	}
+
+event arp_reply(mac_src: string, mac_dst: string, SPA: addr, SHA: string, TPA: addr, THA: string)
+	{
+	print "REP", mac_src, mac_dst, SPA, SHA, TPA, THA;
+	}
+
+event bad_arp(SPA: addr, SHA: string, TPA: addr, THA: string, explanation: string)
+	{
+	print "BAD", SPA, SHA, TPA, THA, explanation;
+	}

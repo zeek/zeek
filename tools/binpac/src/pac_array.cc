@@ -683,6 +683,17 @@ int ArrayType::StaticSize(Env *env) const
 void ArrayType::SetBoundaryChecked()
 	{
 	Type::SetBoundaryChecked();
+
+	if ( attr_length_expr_ )
+		{
+		// When using &length on an array, only treat its elements as
+		// already-bounds-checked if they are a single byte in length.
+		if ( elemtype_->StaticSize(env()) == 1 )
+			elemtype_->SetBoundaryChecked();
+
+		return;
+		}
+
 	elemtype_->SetBoundaryChecked();
 	}
 

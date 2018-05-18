@@ -527,7 +527,22 @@ void ArrayType::DoGenParseCode(Output *out_cc, Env *env,
 		GenUntilCheck(out_cc, env, attr_generic_until_expr_, true);
 
 	if ( elem_dataptr_var() )
-		GenUntilCheck(out_cc, env, elem_dataptr_until_expr_, false);
+		{
+		if ( length_ )
+			{
+			// Array has a known-length expression like uint16[4] vs. uint16[].
+			// Here, arriving at the end of the data buffer should not be a
+			// valid loop-termination condition (which is what the
+			// GenUntilCheck() call produces).  Instead, rely on the loop
+			// counter to terminate iteration or else the parsing code
+			// generated for each element should throw an OOB exception if
+			// there's insufficient data in the buffer.
+			}
+		else
+			{
+			GenUntilCheck(out_cc, env, elem_dataptr_until_expr_, false);
+			}
+		}
 
 	elemtype_->GenPreParsing(out_cc, env);
 	elemtype_->GenParseCode(out_cc, env, elem_data, flags);

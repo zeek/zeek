@@ -140,7 +140,7 @@ void ARP_Analyzer::NextPacket(double t, const Packet* pkt)
 
 
 	// Check MAC src address = ARP sender MAC address.
-	if ( memcmp((const char*) (data+6), ar_sha(ah), ah->ar_hln) )
+	if ( memcmp(pkt->l2_src, ar_sha(ah), ah->ar_hln) )
 		{
 		BadARP(ah, "weird-arp-sha");
 		return;
@@ -149,12 +149,12 @@ void ARP_Analyzer::NextPacket(double t, const Packet* pkt)
 	// Check the code is supported.
 	switch ( ntohs(ah->ar_op) ) {
 	case ARPOP_REQUEST:
-		RREvent(arp_request, data+6, data,
+		RREvent(arp_request, pkt->l2_src, pkt->l2_dst,
 				ar_spa(ah), ar_sha(ah), ar_tpa(ah), ar_tha(ah));
 		break;
 
 	case ARPOP_REPLY:
-		RREvent(arp_reply, data+6, data,
+		RREvent(arp_reply, pkt->l2_src, pkt->l2_dst,
 				ar_spa(ah), ar_sha(ah), ar_tpa(ah), ar_tha(ah));
 		break;
 

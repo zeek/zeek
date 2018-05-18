@@ -915,7 +915,7 @@ std::pair<int, ID*> SwitchStmt::FindCaseLabelMatch(const Val* v) const
 			{
 			reporter->PushLocation(e->GetLocationInfo());
 			reporter->Error("switch expression type mismatch (%s/%s)",
-			    type_name(v->Type()->Tag()), type_name(e->Type()->Tag()));
+					type_name(v->Type()->Tag()), type_name(e->Type()->Tag()));
 			return std::make_pair(-1, nullptr);
 			}
 

@@ -113,7 +113,7 @@ TraversalCode Scope::Traverse(TraversalCallback* cb) const
 
 
 ID* lookup_ID(const char* name, const char* curr_module, bool no_global,
-              bool same_module_only, bool check_export)
+	      bool same_module_only, bool check_export)
 	{
 	string fullname = make_full_var_name(curr_module, name);
 

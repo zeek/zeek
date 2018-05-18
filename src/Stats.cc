@@ -226,16 +226,16 @@ void ProfileLogger::Log()
 	auto cs = broker_mgr->GetStatistics();
 
 	file->Write(fmt("%0.6f Comm: peers=%zu stores=%zu "
-	                "pending_queries=%zu "
-	                "events_in=%zu events_out=%zu "
-	                "logs_in=%zu logs_out=%zu "
-	                "ids_in=%zu ids_out=%zu ",
-	                network_time, cs.num_peers, cs.num_stores,
-	                cs.num_pending_queries,
-	                cs.num_events_incoming, cs.num_events_outgoing,
-	                cs.num_logs_incoming, cs.num_logs_outgoing,
-	                cs.num_ids_incoming, cs.num_ids_outgoing
-	                ));
+			"pending_queries=%zu "
+			"events_in=%zu events_out=%zu "
+			"logs_in=%zu logs_out=%zu "
+			"ids_in=%zu ids_out=%zu ",
+			network_time, cs.num_peers, cs.num_stores,
+			cs.num_pending_queries,
+			cs.num_events_incoming, cs.num_events_outgoing,
+			cs.num_logs_incoming, cs.num_logs_outgoing,
+			cs.num_ids_incoming, cs.num_ids_outgoing
+		       ));
 
 	// Script-level state.
 	unsigned int size, mem = 0;

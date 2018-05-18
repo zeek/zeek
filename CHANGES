@@ -1,5 +1,5 @@
 
-2.5-576 | 2018-05-17 00:54:28 +0000
+2.5-587 | 2018-05-21 18:02:23 +0000
 
   * Switch Bro's communication over to Broker; deprecate the old
     communication system, including Broccoli. See NEWS for more.

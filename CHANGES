@@ -1,5 +1,5 @@
 
-2.5-587 | 2018-05-21 18:02:23 +0000
+2.5-589 | 2018-05-21 21:37:54 +0000
 
   * Switch Bro's communication over to Broker; deprecate the old
     communication system, including Broccoli. See NEWS for more.
@@ -16,6 +16,16 @@
 
   * Add new operators "is" and "as" for dynamic type casting and type
     checking. See NEWS for more. (Robin Sommer)
+
+2.5-582 | 2018-05-21 13:34:16 -0500
+
+  * Update link to flex pattern docs (Corelight)
+
+  * Add non-standard experimental Google post-quantum ciphers (Johanna Amann)
+
+  * ARP: fix the l2 source address check for ARP over Wi-Fi (Pierre LALET)
+
+  * Support 802.11 monitor mode (Pierre LALET)
 
 2.5-569 | 2018-05-10 11:24:07 -0500
 

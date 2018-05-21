@@ -198,7 +198,7 @@ Here is a more detailed description of each type:
     for fast text-searching operations.  Pattern constants are created
     by enclosing text within forward slashes (/) and is the same syntax
     as the patterns supported by the `flex lexical analyzer
-    <http://flex.sourceforge.net/manual/Patterns.html>`_.  The speed of
+    <http://westes.github.io/flex/manual/Patterns.html>`_.  The speed of
     regular expression matching does not depend on the complexity or
     size of the patterns.  Patterns support two types of matching, exact
     and embedded.

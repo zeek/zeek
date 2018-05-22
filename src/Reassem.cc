@@ -255,12 +255,7 @@ void Reassembler::ClearOldBlocks()
 
 uint64 Reassembler::TotalSize() const
 	{
-	uint64 size = 0;
-
-	for ( DataBlock* b = blocks; b; b = b->next )
-		size += b->Size();
-
-	return size;
+	return size_of_all_blocks;
 	}
 
 void Reassembler::Describe(ODesc* d) const

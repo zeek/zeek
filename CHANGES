@@ -1,4 +1,8 @@
 
+2.5-591 | 2018-05-22 09:19:59 -0500
+
+  * Make Reassembler::TotalSize a constant time operation (Corelight)
+
 2.5-589 | 2018-05-21 21:37:54 +0000
 
   * Switch Bro's communication over to Broker; deprecate the old

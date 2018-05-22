@@ -97,6 +97,7 @@ protected:
 
 	// Re-sync for partial connections (or after a content gap).
 	bool resync;
+	bool resync_set;
 };
 
 class NCP_Analyzer : public tcp::TCP_ApplicationAnalyzer {

@@ -159,11 +159,7 @@ Contents_NCP_Analyzer::Contents_NCP_Analyzer(Connection* conn, bool orig, NCP_Se
 	{
 	session = arg_session;
 	resync = true;
-
-	tcp::TCP_Analyzer* tcp = static_cast<tcp::TCP_ApplicationAnalyzer*>(Parent())->TCP();
-	if ( tcp )
-		resync = (orig ? tcp->OrigState() : tcp->RespState()) !=
-						tcp::TCP_ENDPOINT_ESTABLISHED;
+	resync_set = false;
 	}
 
 Contents_NCP_Analyzer::~Contents_NCP_Analyzer()
@@ -174,20 +170,23 @@ void Contents_NCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig
 	{
 	tcp::TCP_SupportAnalyzer::DeliverStream(len, data, orig);
 
-	tcp::TCP_Analyzer* tcp = static_cast<tcp::TCP_ApplicationAnalyzer*>(Parent())->TCP();
+	auto tcp = static_cast<NCP_Analyzer*>(Parent())->TCP();
+
+	if ( ! resync_set )
+		{
+		resync_set = true;
+		resync = (IsOrig() ? tcp->OrigState() : tcp->RespState()) !=
+						tcp::TCP_ENDPOINT_ESTABLISHED;
+		}
 
 	if ( tcp && tcp->HadGap(orig) )
 		return;
-
-	DEBUG_MSG("NCP deliver: len = %d resync = %d buffer.empty = %d\n",
-		len, resync, buffer.empty());
 
 	if ( buffer.empty() && resync )
 		{
 		// Assume NCP frames align with packet boundary.
 		if ( (IsOrig() && len < 22) || (! IsOrig() && len < 16) )
 			{ // ignore small fragmeents
-			DEBUG_MSG("NCP discard small pieces: %d\n", len);
 			return;
 			}
 
@@ -224,13 +223,13 @@ NCP_Analyzer::NCP_Analyzer(Connection* conn)
 	{
 	session = new NCP_Session(this);
 	o_ncp = new Contents_NCP_Analyzer(conn, true, session);
+	AddSupportAnalyzer(o_ncp);
 	r_ncp = new Contents_NCP_Analyzer(conn, false, session);
+	AddSupportAnalyzer(r_ncp);
 	}
 
 NCP_Analyzer::~NCP_Analyzer()
 	{
 	delete session;
-	delete o_ncp;
-	delete r_ncp;
 	}
 

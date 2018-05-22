@@ -278,23 +278,6 @@ void ArrayType::GenArrayLength(Output *out_cc, Env *env, const DataPtr& data)
 
 		env->SetEvaluated(arraylength_var());
 
-		// Check for overlong array length. We cap it at the
-		// maximum data size as we won't store more elements.
-		// e.g. this helps prevent user-controlled length fields
-		// from causing an excessive memory-allocation (for
-		// the array we'll be parsing into) unless they actually
-		// sent enough data to go along with it.  Note that this check
-		// is *not* looking for whether the contents of the array will
-		// extend past the end of the data buffer.
-		out_cc->println("if ( t_begin_of_data + %s > t_end_of_data + 1 || t_begin_of_data + %s < t_begin_of_data )",
-			env->LValue(arraylength_var()), env->LValue(arraylength_var()));
-		out_cc->inc_indent();
-		out_cc->println("{");
-		out_cc->println("%s = t_end_of_data - t_begin_of_data + 1;",
-			env->LValue(arraylength_var()));
-		out_cc->println("}");
-		out_cc->dec_indent();
-
 		// Check negative array length
 		out_cc->println("if ( %s < 0 )",
 			env->LValue(arraylength_var()));
@@ -305,27 +288,45 @@ void ArrayType::GenArrayLength(Output *out_cc, Env *env, const DataPtr& data)
 		out_cc->println("}");
 		out_cc->dec_indent();
 
-		if ( elemtype_->StaticSize(env) != -1 )
+		string array_size;
+
+		if ( elemtype_->StaticSize(env) == -1 )
+			{
+			// Check for overlong array quantity.  We cap it at the maximum
+			// array size (assume 1-byte elements * array length) as we can't
+			// possibly store more elements.  e.g. this helps prevent
+			// user-controlled length fields from causing an excessive
+			// iteration and/or memory-allocation (for the array we'll be
+			// parsing into) unless they actually sent enough data to go along
+			// with it.  Note that this check is *not* looking for whether the
+			// contents of the array will extend past the end of the data
+			// buffer.
+			out_cc->println("// Check array element quantity: %s",
+			                data_id_str_.c_str());
+			array_size = strfmt("(%s)", env->RValue(arraylength_var()));
+			}
+		else
 			{
 			// Boundary check the entire array if elements have static size.
-			string array_size = strfmt("((%d) * (%s))",
-			                           elemtype_->StaticSize(env),
-			                           env->RValue(arraylength_var()));
 			out_cc->println("// Check bounds for static-size array: %s",
 			                data_id_str_.c_str());
-			out_cc->println("if ( t_begin_of_data + %s > t_end_of_data || "
-			                "t_begin_of_data + %s < t_begin_of_data )",
-			                array_size.c_str(), array_size.c_str());
-			out_cc->inc_indent();
-			out_cc->println("throw binpac::ExceptionOutOfBound(\"%s\",",
-			                data_id_str_.c_str());
-			out_cc->println("  %s, (%s) - (%s));",
-			                array_size.c_str(),
-			                env->RValue(end_of_data),
-			                env->RValue(begin_of_data));
-			out_cc->dec_indent();
 			elemtype_->SetBoundaryChecked();
+			array_size = strfmt("((%d) * (%s))",
+			                    elemtype_->StaticSize(env),
+			                    env->RValue(arraylength_var()));
 			}
+
+		out_cc->println("if ( t_begin_of_data + %s > t_end_of_data || "
+		                "t_begin_of_data + %s < t_begin_of_data )",
+		                array_size.c_str(), array_size.c_str());
+		out_cc->inc_indent();
+		out_cc->println("throw binpac::ExceptionOutOfBound(\"%s\",",
+		                data_id_str_.c_str());
+		out_cc->println("  %s, (%s) - (%s));",
+		                array_size.c_str(),
+		                env->RValue(end_of_data),
+		                env->RValue(begin_of_data));
+		out_cc->dec_indent();
 		}
 	else if ( attr_restofdata_ )
 		{

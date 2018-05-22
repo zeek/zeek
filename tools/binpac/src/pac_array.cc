@@ -283,8 +283,12 @@ void ArrayType::GenArrayLength(Output *out_cc, Env *env, const DataPtr& data)
 			env->LValue(arraylength_var()));
 		out_cc->inc_indent();
 		out_cc->println("{");
-		out_cc->println("%s = 0;",
-			env->LValue(arraylength_var()));
+		out_cc->println("throw binpac::ExceptionOutOfBound(\"%s\",",
+		                data_id_str_.c_str());
+		out_cc->println("  %s, (%s) - (%s));",
+		                env->LValue(arraylength_var()),
+		                env->RValue(end_of_data),
+		                env->RValue(begin_of_data));
 		out_cc->println("}");
 		out_cc->dec_indent();
 

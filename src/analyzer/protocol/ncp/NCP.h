@@ -54,8 +54,9 @@ public:
 	FrameBuffer(int header_length);
 	virtual ~FrameBuffer();
 
-	// Returns true if a frame is ready
-	bool Deliver(int& len, const u_char* &data);
+	// Returns -1 if frame is not ready, 0 if it else, and 1 if
+	// the frame would require too large of a buffer allocation.
+	int Deliver(int& len, const u_char* &data);
 
 	void Reset();
 
@@ -68,9 +69,9 @@ protected:
 
 	int hdr_len;
 	u_char* msg_buf;
-	int msg_len;
-	int buf_n;	// number of bytes in msg_buf
-	int buf_len;	// size off msg_buf
+	uint64 msg_len;
+	size_t buf_n;	// number of bytes in msg_buf
+	size_t buf_len;	// size off msg_buf
 };
 
 #define NCP_TCPIP_HEADER_LENGTH 8

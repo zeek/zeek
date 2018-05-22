@@ -1,4 +1,21 @@
 
+2.5-598 | 2018-05-22 15:05:24 -0500
+
+  * Fixes for MySQL and SMB protocol parsers (Corelight)
+
+    * MySQL: the parser for this was generally broken (not following
+      the specification well) and needed many changes.  One addition is a
+      new "mysql_result_row" event that provides access to the results of
+      queries.
+
+    * SMB: the spec seems to explitly call out the omission of the
+      PrimaryDomain field on SMB_COM_SESSION_SETUP_ANDX responses (and I
+      don't see that field in pcaps either), so this may have just been a
+      typo that used to work fine in the past only due to faulty array
+      parsing behavior in binpac.
+
+  * BIT-1829: add unit test for modbus parser issue (Corelight)
+
 2.5-591 | 2018-05-22 09:19:59 -0500
 
   * Make Reassembler::TotalSize a constant time operation (Corelight)

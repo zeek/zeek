@@ -17,6 +17,10 @@ type LengthEncodedInteger = record {
 	integer : LengthEncodedIntegerLookahead(length);
 };
 
+type LengthEncodedIntegerArg(length: uint8) = record {
+	integer : LengthEncodedIntegerLookahead(length);
+};
+
 type LengthEncodedIntegerLookahead(length: uint8) = record {
 	val: case length of {
 		0xfb    -> i0        : empty;
@@ -33,6 +37,11 @@ type LengthEncodedString = record {
 	val: bytestring &length=to_int()(len);
 };
 
+type LengthEncodedStringArg(first_byte: uint8) = record {
+	len: LengthEncodedIntegerArg(first_byte);
+	val: bytestring &length=to_int()(len);
+};
+
 %header{
 	class to_int
 		{
@@ -43,6 +52,20 @@ type LengthEncodedString = record {
 			}
 
 		int operator()(LengthEncodedInteger* lei) const
+			{
+			if ( lei->length() < 0xfb )
+				return lei->length();
+			else if ( lei->length() == 0xfc )
+				return lei->integer()->i2();
+			else if ( lei->length() == 0xfd )
+				return to_int()(lei->integer()->i3());
+			else if ( lei->length() == 0xfe )
+				return lei->integer()->i4();
+			else
+				return 0;
+			}
+
+		int operator()(LengthEncodedIntegerArg* lei) const
 			{
 			if ( lei->length() < 0xfb )
 				return lei->length();
@@ -107,7 +130,8 @@ enum command_consts {
 	COM_SET_OPTION          = 0x1b,
 	COM_STMT_FETCH          = 0x1c,
 	COM_DAEMON              = 0x1d,
-	COM_BINLOG_DUMP_GTID    = 0x1e
+	COM_BINLOG_DUMP_GTID    = 0x1e,
+	COM_RESET_CONNECTION    = 0x1f,
 };
 
 enum state {
@@ -119,11 +143,12 @@ enum Expected {
 	NO_EXPECTATION,
 	EXPECT_STATUS,
 	EXPECT_COLUMN_DEFINITION,
+	EXPECT_COLUMN_DEFINITION_OR_EOF,
 	EXPECT_COLUMN_COUNT,
-	EXPECT_EOF1,
-	EXPECT_EOF2,
+	EXPECT_EOF,
 	EXPECT_RESULTSET,
-	EXPECT_QUERY_RESPONSE,
+	EXPECT_REST_OF_PACKET,
+	EXPECT_AUTH_SWITCH,
 };
 
 type NUL_String = RE/[^\0]*/;
@@ -133,7 +158,7 @@ type NUL_String = RE/[^\0]*/;
 type MySQL_PDU(is_orig: bool) = record {
 	hdr		: Header;
 	msg		: case is_orig of {
-		false -> server_msg: Server_Message(hdr.seq_id);
+		false -> server_msg: Server_Message(hdr.seq_id, hdr.len);
 		true  -> client_msg: Client_Message(state);
 	} &requires(state);
 } &let {
@@ -147,9 +172,9 @@ type Header = record {
 	len   : uint32 = to_int()(le_len) + 4;
 } &length=4;
 
-type Server_Message(seq_id: uint8) = case seq_id of {
+type Server_Message(seq_id: uint8, pkt_len: uint32) = case seq_id of {
 	0       -> initial_handshake: Initial_Handshake_Packet;
-	default -> command_response : Command_Response;
+	default -> command_response : Command_Response(pkt_len);
 };
 
 type Client_Message(state: int) = case state of {
@@ -225,18 +250,20 @@ type Command_Request_Packet = record {
 	command			: uint8;
 	arg    			: bytestring &restofdata;
 } &let {
-	update_expectation	: bool = $context.connection.set_next_expected(EXPECT_COLUMN_COUNT);
+	update_expectation	: bool = $context.connection.set_next_expected_from_command(command);
 };
 
 # Command Response
 
-type Command_Response = case $context.connection.get_expectation() of {
+type Command_Response(pkt_len: uint32) = case $context.connection.get_expectation() of {
 	EXPECT_COLUMN_COUNT		-> col_count_meta	: ColumnCountMeta;
-	EXPECT_COLUMN_DEFINITION	-> col_defs		: ColumnDefinitions;
-	EXPECT_RESULTSET		-> resultset		: Resultset;
+	EXPECT_COLUMN_DEFINITION	-> col_def		: ColumnDefinition;
+	EXPECT_COLUMN_DEFINITION_OR_EOF	-> def_or_eof	: ColumnDefinitionOrEOF(pkt_len);
+	EXPECT_RESULTSET		-> resultset		: Resultset(pkt_len);
+	EXPECT_REST_OF_PACKET		-> rest		: bytestring &restofdata;
 	EXPECT_STATUS			-> status		: Command_Response_Status;
-	EXPECT_EOF1			-> eof1			: EOF1;
-	EXPECT_EOF2			-> eof2			: EOF2;
+	EXPECT_AUTH_SWITCH -> auth_switch : AuthSwitchRequest;
+	EXPECT_EOF			-> eof			: EOF1;
 	default				-> unknow		: empty;
 };
 
@@ -265,39 +292,55 @@ type ColumnCount(byte: uint8) = record {
 } &let {
 	col_num			: uint32 = to_int()(le_column_count);
 	update_col_num		: bool = $context.connection.set_col_count(col_num);
+	update_remain		: bool = $context.connection.set_remaining_cols(col_num);
 	update_expectation	: bool = $context.connection.set_next_expected(EXPECT_COLUMN_DEFINITION);
 };
 
-type ColumnDefinitions = record {
-	defs				: ColumnDefinition41[1];
+type ColumnDefinition = record {
+	dummy: uint8;
+	def				: ColumnDefinition41(dummy);
 } &let {
-	update_expectation	: bool = $context.connection.set_next_expected(EXPECT_EOF1);
+	update_remain	: bool = $context.connection.dec_remaining_cols();
+	update_expectation	: bool = $context.connection.set_next_expected($context.connection.get_remaining_cols() > 0 ? EXPECT_COLUMN_DEFINITION : EXPECT_EOF);
 };
+
+type ColumnDefinitionOrEOF(pkt_len: uint32) = record {
+	marker: uint8;
+	def_or_eof: case is_eof of {
+		true  -> eof: EOF_Packet;
+		false -> def: ColumnDefinition41(marker);
+	} &requires(is_eof);
+} &let {
+	is_eof: bool = (marker == 0xfe && pkt_len <= 9);
+};
+
 
 type EOF1 = record {
 	eof					: EOF_Packet;
 } &let {
+	update_result_seen	: bool = $context.connection.set_results_seen(0);
 	update_expectation	: bool = $context.connection.set_next_expected(EXPECT_RESULTSET);
 };
 
-type EOF2 = record {
-	eof					: EOF_Packet;
+type Resultset(pkt_len: uint32) = record {
+	marker: uint8;
+	row_or_eof: case is_eof of {
+		true  -> eof: EOF_Packet;
+		false -> row: ResultsetRow(marker);
+	} &requires(is_eof);
 } &let {
-	update_expectation	: bool = $context.connection.set_next_expected(NO_EXPECTATION);
+	is_eof: bool = (marker == 0xfe && pkt_len <= 9);
+	update_result_seen	: bool = $context.connection.inc_results_seen();
+	update_expectation	: bool = $context.connection.set_next_expected(is_eof ? NO_EXPECTATION : EXPECT_RESULTSET);
 };
 
-type Resultset = record {
-	rows				: ResultsetRow[] &until($input.length()==0);
-} &let {
-	update_expectation	: bool = $context.connection.set_next_expected(EXPECT_EOF2);
+type ResultsetRow(first_byte: uint8) = record {
+	first_field: LengthEncodedStringArg(first_byte);
+	fields: LengthEncodedString[$context.connection.get_col_count() - 1];
 };
 
-type ResultsetRow = record {
-	fields: LengthEncodedString[$context.connection.get_col_count()];
-};
-
-type ColumnDefinition41 = record {
-	catalog  : LengthEncodedString;
+type ColumnDefinition41(first_byte: uint8) = record {
+	catalog  : LengthEncodedStringArg(first_byte);
 	schema   : LengthEncodedString;
 	table    : LengthEncodedString;
 	org_table: LengthEncodedString;
@@ -310,6 +353,12 @@ type ColumnDefinition41 = record {
 	flags    : uint16;
 	decimals : uint8;
 	filler   : padding[2];
+};
+
+type AuthSwitchRequest = record {
+	status: uint8;
+	name: NUL_String;
+	data: bytestring &restofdata;
 };
 
 type ColumnDefinition320 = record {
@@ -352,6 +401,8 @@ refine connection MySQL_Conn += {
 		int state_;
 		Expected expected_;
 		uint32 col_count_;
+		uint32 remaining_cols_;
+		uint32 results_seen_;
 	%}
 
 	%init{
@@ -359,6 +410,8 @@ refine connection MySQL_Conn += {
 		state_ = CONNECTION_PHASE;
 		expected_ = EXPECT_STATUS;
 		col_count_ = 0;
+		remaining_cols_ = 0;
+		results_seen_ = 0;
 	%}
 
 	function get_version(): uint8
@@ -394,6 +447,112 @@ refine connection MySQL_Conn += {
 		return true;
 		%}
 
+	function set_next_expected_from_command(cmd: uint8): bool
+		%{
+		switch ( cmd ) {
+		case COM_SLEEP:
+			expected_ = EXPECT_STATUS;
+			break;
+		case COM_QUIT:
+			expected_ = EXPECT_STATUS;
+			break;
+		case COM_INIT_DB:
+			expected_ = EXPECT_STATUS;
+			break;
+		case COM_QUERY:
+			expected_ = EXPECT_COLUMN_COUNT;
+			break;
+		case COM_FIELD_LIST:
+			expected_ = EXPECT_COLUMN_DEFINITION_OR_EOF;
+			break;
+		case COM_CREATE_DB:
+			expected_ = EXPECT_STATUS;
+			break;
+		case COM_DROP_DB:
+			expected_ = EXPECT_STATUS;
+			break;
+		case COM_REFRESH:
+			expected_ = EXPECT_STATUS;
+			break;
+		case COM_SHUTDOWN:
+			expected_ = EXPECT_STATUS;
+			break;
+		case COM_STATISTICS:
+			expected_ = EXPECT_REST_OF_PACKET;
+			break;
+		case COM_PROCESS_INFO:
+			expected_ = EXPECT_COLUMN_COUNT;
+			break;
+		case COM_CONNECT:
+			expected_ = EXPECT_STATUS;
+			break;
+		case COM_PROCESS_KILL:
+			expected_ = EXPECT_STATUS;
+			break;
+		case COM_DEBUG:
+			expected_ = EXPECT_STATUS;
+			break;
+		case COM_PING:
+			expected_ = EXPECT_STATUS;
+			break;
+		case COM_TIME:
+			expected_ = EXPECT_STATUS;
+			break;
+		case COM_DELAYED_INSERT:
+			expected_ = EXPECT_STATUS;
+			break;
+		case COM_CHANGE_USER:
+			expected_ = EXPECT_AUTH_SWITCH;
+			break;
+		case COM_BINLOG_DUMP:
+			expected_ = NO_EXPECTATION;
+			break;
+		case COM_TABLE_DUMP:
+			expected_ = NO_EXPECTATION;
+			break;
+		case COM_CONNECT_OUT:
+			expected_ = NO_EXPECTATION;
+			break;
+		case COM_REGISTER_SLAVE:
+			expected_ = NO_EXPECTATION;
+			break;
+		case COM_STMT_PREPARE:
+			expected_ = NO_EXPECTATION;
+			break;
+		case COM_STMT_EXECUTE:
+			expected_ = NO_EXPECTATION;
+			break;
+		case COM_STMT_SEND_LONG_DATA:
+			expected_ = NO_EXPECTATION;
+			break;
+		case COM_STMT_CLOSE:
+			expected_ = NO_EXPECTATION;
+			break;
+		case COM_STMT_RESET:
+			expected_ = NO_EXPECTATION;
+			break;
+		case COM_SET_OPTION:
+			expected_ = NO_EXPECTATION;
+			break;
+		case COM_STMT_FETCH:
+			expected_ = NO_EXPECTATION;
+			break;
+		case COM_DAEMON:
+			expected_ = EXPECT_STATUS;
+			break;
+		case COM_BINLOG_DUMP_GTID:
+			expected_ = NO_EXPECTATION;
+			break;
+		case COM_RESET_CONNECTION:
+			expected_ = EXPECT_STATUS;
+			break;
+		default:
+			expected_ = NO_EXPECTATION;
+			break;
+		}
+		return true;
+		%}
+
 	function get_col_count(): uint32
 		%{
 		return col_count_;
@@ -402,6 +561,40 @@ refine connection MySQL_Conn += {
 	function set_col_count(i: uint32): bool
 		%{
 		col_count_ = i;
+		return true;
+		%}
+
+	function get_remaining_cols(): uint32
+		%{
+		return remaining_cols_;
+		%}
+
+	function set_remaining_cols(i: uint32): bool
+		%{
+		remaining_cols_ = i;
+		return true;
+		%}
+
+	function dec_remaining_cols(): bool
+		%{
+		--remaining_cols_;
+		return true;
+		%}
+
+	function get_results_seen(): uint32
+		%{
+		return results_seen_;
+		%}
+
+	function set_results_seen(i: uint32): bool
+		%{
+		results_seen_ = i;
+		return true;
+		%}
+
+	function inc_results_seen(): bool
+		%{
+		++results_seen_;
 		return true;
 		%}
 };

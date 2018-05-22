@@ -4806,6 +4806,12 @@ export {
 	const max_frag_data = 30000 &redef;
 }
 
+module NCP;
+export {
+	## The maximum number of bytes to allocate when parsing NCP frames.
+	const max_frame_size = 65536 &redef;
+}
+
 module Cluster;
 export {
 	type Cluster::Pool: record {};

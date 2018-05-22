@@ -9,6 +9,7 @@
 #include "NCP.h"
 
 #include "events.bif.h"
+#include "consts.bif.h"
 
 using namespace std;
 using namespace analyzer::ncp;
@@ -105,13 +106,12 @@ void FrameBuffer::Reset()
 	msg_len = 0;
 	}
 
-// Returns true if we have a complete frame
-bool FrameBuffer::Deliver(int &len, const u_char* &data)
+int FrameBuffer::Deliver(int &len, const u_char* &data)
 	{
 	ASSERT(buf_len >= hdr_len);
 
 	if ( len == 0 )
-		return false;
+		return -1;
 
 	if ( buf_n < hdr_len )
 		{
@@ -123,13 +123,16 @@ bool FrameBuffer::Deliver(int &len, const u_char* &data)
 			}
 
 		if ( buf_n < hdr_len )
-			return false;
+			return -1;
 
 		compute_msg_length();
 
 		if ( msg_len > buf_len )
 			{
-			buf_len = msg_len * 2;
+			if ( msg_len > BifConst::NCP::max_frame_size )
+				return 1;
+
+			buf_len = msg_len;
 			u_char* new_buf = new u_char[buf_len];
 			memcpy(new_buf, msg_buf, buf_n);
 			delete [] msg_buf;
@@ -143,7 +146,13 @@ bool FrameBuffer::Deliver(int &len, const u_char* &data)
 		++buf_n; ++data; --len;
 		}
 
-	return buf_n >= msg_len;
+	if ( buf_n < msg_len )
+		return -1;
+
+	if ( buf_n == msg_len )
+		return 0;
+
+	return 1;
 	}
 
 void NCP_FrameBuffer::compute_msg_length()
@@ -203,10 +212,27 @@ void Contents_NCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig
 		resync = false;
 		}
 
-	while ( buffer.Deliver(len, data) )
+	for ( ; ; )
 		{
-		session->Deliver(IsOrig(), buffer.Len(), buffer.Data());
-		buffer.Reset();
+		auto result = buffer.Deliver(len, data);
+
+		if ( result < 0 )
+			break;
+
+		if ( result == 0 )
+			{
+			session->Deliver(IsOrig(), buffer.Len(), buffer.Data());
+			buffer.Reset();
+			}
+		else
+			{
+			// The rest of the data available in this delivery will
+			// be discarded and will need to resync to a new frame header.
+			Weird("ncp_large_frame");
+			buffer.Reset();
+			resync = true;
+			break;
+			}
 		}
 	}
 

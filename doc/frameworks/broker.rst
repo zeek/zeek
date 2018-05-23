@@ -74,11 +74,6 @@ Notable / Specific Script API Changes
 - :bro:see:`Software::tracked` is now partitioned among proxy nodes
   instead of synchronized in its entirety to all nodes.
 
-- ``Known::known_devices`` is renamed to :bro:see:`Known::device_store`
-  and implemented via the new Broker data store interface.
-  Also use :bro:see:`Known::device_found` instead of updating the
-  store directly directly.
-
 - ``Known::known_hosts`` is renamed to :bro:see:`Known::host_store` and
   implemented via the new Broker data store interface.
 
@@ -116,13 +111,18 @@ Some general suggestions as to the purpose/utilization of each node type:
 
 - Proxies: serve as intermediaries for data storage and work/calculation
   offloading.  Good for helping offload work or data in a scalable and
-  distributed way.  i.e. since any given worker is connected to all
+  distributed way.  Since any given worker is connected to all
   proxies and can agree on an "arbitrary key -> proxy node" mapping
   (more on that later), you can partition work or data amongst them in a
   uniform manner.  e.g. you might choose to use proxies as a method of
   sharing non-persistent state or as a "second pass" analysis for any
   work that you don't want interferring with the workers' capacity to
-  keep up with capturing and parsing packets.
+  keep up with capturing and parsing packets.  Note that the default scripts
+  that come with Bro don't utilize proxies themselves, so if you are coming
+  from a previous BroControl deployment, you may want to try reducing down
+  to a single proxy node.  If you come to have custom/community scripts
+  that utilize proxies, that would be the time to start considering scaling
+  up the number of proxies to meet demands.
 
 - Manager: this node will be good at performing decisions that require a
   global view of things since it is in a centralized location, connected
@@ -179,10 +179,12 @@ Data Partitioning
 -----------------
 
 New data partitioning strategies are available using the API in
-:doc:`/scripts/base/frameworks/cluster/pools.bro`.
+:doc:`/scripts/base/frameworks/cluster/pools.bro`.  Using that API, developers
+of custom Bro scripts can define a custom pool of nodes that best fits the
+needs of their script.
 
 One example strategy is to use Highest Random Weight (HRW) hashing to
-partition data tables amongst proxy nodes.  e.g. using
+partition data tables amongst the pool of all proxy nodes.  e.g. using
 :bro:see:`Cluster::publish_hrw`.  This could allow clusters to
 be scaled more easily than the approach of "the entire data set gets
 synchronized to all nodes" as the solution to memory limitations becomes
@@ -194,6 +196,13 @@ The tradeoff of this approach, is that nodes that leave the pool (due to
 crashing, etc.) cause a temporary gap in the total data set until
 workers start hashing keys to a new proxy node that is still alive,
 causing data to now be located and updated there.
+
+If the developer of a script expects its workload to be particularly
+intensive, wants to ensure that their operations get exclusive
+access to nodes, or otherwise set containts on the number of nodes within
+a pool utilized by their script, then the :bro:see:`Cluster::PoolSpec`
+structure will allow them to that while still allowing users of that script
+to override the default suggestions made by the original developer.
 
 Broker Framework Examples
 =========================

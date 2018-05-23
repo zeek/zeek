@@ -130,9 +130,6 @@ Network Observations
 +============================+=======================================+=================================+
 | known_certs.log            | SSL certificates                      | :bro:type:`Known::CertsInfo`    |
 +----------------------------+---------------------------------------+---------------------------------+
-| known_devices.log          | MAC addresses of devices on the       | :bro:type:`Known::DevicesInfo`  |
-|                            | network                               |                                 |
-+----------------------------+---------------------------------------+---------------------------------+
 | known_hosts.log            | Hosts that have completed TCP         | :bro:type:`Known::HostsInfo`    |
 |                            | handshakes                            |                                 |
 +----------------------------+---------------------------------------+---------------------------------+

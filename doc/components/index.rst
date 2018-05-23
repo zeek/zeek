@@ -20,6 +20,3 @@ current, independent component releases.
    Capstats - Command-line packet statistic tool <capstats/README>
    PySubnetTree - Python module for CIDR lookups<pysubnettree/README>
    trace-summary - Script for generating break-downs of network traffic <trace-summary/README>
-
-The `Broker User Manual <../broker-manual/index.html>`_ may also be of
-interest.

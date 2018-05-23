@@ -1,4 +1,8 @@
 
+2.5-599 | 2018-05-23 16:50:12 -0500
+
+  * Documentation improvements/fixes (Corelight)
+
 2.5-598 | 2018-05-22 15:05:24 -0500
 
   * Fixes for MySQL and SMB protocol parsers (Corelight)

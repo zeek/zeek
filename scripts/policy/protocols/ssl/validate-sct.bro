@@ -180,6 +180,8 @@ hook ssl_finishing(c: connection) &priority=19
 					{
 					if ( i == 0 ) # end-host-cert
 						next;
+					if ( ! c$ssl$cert_chain[i]?$x509 || ! c$ssl$cert_chain[i]$x509?$handle )
+						next;
 
 					issuer_key_hash = x509_spki_hash(c$ssl$cert_chain[i]$x509$handle, 4);
 					valid = sct_verify(cert, proof$logid, log$key, proof$signature, proof$timestamp, proof$hash_alg, issuer_key_hash);

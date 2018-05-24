@@ -54,6 +54,8 @@ export {
 		## index of *node_list* that will be eligible to receive work (if it's
 		## alive at the time of next request).
 		rr_key_seq: RoundRobinTable &default = RoundRobinTable();
+		## Number of pool nodes that are currently alive.
+		alive_count: count &default = 0;
 	};
 
 	## The specification for :bro:see:`Cluster::proxy_pool`.
@@ -275,6 +277,10 @@ function init_pool_node(pool: Pool, name: string): bool
 			                    $alive=Cluster::node == name);
 			pool$nodes[name] = pn;
 			pool$node_list[|pool$node_list|] = pn;
+
+			if ( pn$alive )
+				++pool$alive_count;
+
 			loop = F;
 			}
 		}
@@ -288,7 +294,13 @@ function mark_pool_node_alive(pool: Pool, name: string): bool
 		return F;
 
 	local pn = pool$nodes[name];
-	pn$alive = T;
+
+	if ( ! pn$alive )
+		{
+		pn$alive = T;
+		++pool$alive_count;
+		}
+
 	HashHRW::add_site(pool$hrw_pool, HashHRW::Site($id=pn$site_id, $user_data=pn));
 	return T;
 	}
@@ -299,7 +311,13 @@ function mark_pool_node_dead(pool: Pool, name: string): bool
 		return F;
 
 	local pn = pool$nodes[name];
-	pn$alive = F;
+
+	if ( pn$alive )
+		{
+		pn$alive = F;
+		--pool$alive_count;
+		}
+
 	HashHRW::rem_site(pool$hrw_pool, HashHRW::Site($id=pn$site_id, $user_data=pn));
 	return T;
 	}

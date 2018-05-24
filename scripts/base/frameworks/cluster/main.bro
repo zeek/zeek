@@ -238,6 +238,8 @@ export {
 	global node_topic: function(name: string): string;
 }
 
+global active_worker_ids: set[string] = set();
+
 type NamedNode: record {
 	name: string;
 	node: Node;
@@ -305,7 +307,10 @@ event Cluster::hello(name: string, id: string) &priority=10
 	Cluster::log(fmt("got hello from %s (%s)", name, id));
 
 	if ( n$node_type == WORKER )
-		++worker_count;
+		{
+		add active_worker_ids[id];
+		worker_count = |active_worker_ids|;
+		}
 	}
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string) &priority=10
@@ -329,7 +334,10 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string) &priority=1
 			delete n$id;
 
 			if ( n$node_type == WORKER )
-				--worker_count;
+				{
+				delete active_worker_ids[endpoint$id];
+				worker_count = |active_worker_ids|;
+				}
 
 			event Cluster::node_down(node_name, endpoint$id);
 			break;

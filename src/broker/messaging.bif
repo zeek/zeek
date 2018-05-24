@@ -288,7 +288,7 @@ function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
 ## node, then automatically forwards it to its peers with a different topic.
 ## The event is relayed at most a single hop.
 ##
-## pool: the pool of nodes that are eligible to receive the revent
+## pool: the pool of nodes that are eligible to receive the event
 ##
 ## key: an arbitrary string to identify the purpose for which you're
 ##      distributing the event.  e.g. consider using namespacing of your

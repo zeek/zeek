@@ -1,0 +1,5 @@
+new_indicator: 1.2.3.4 inserted by manager
+new_item triggered for 4.3.2.1 by worker-2 on worker-2
+new_indicator: 4.3.2.1 inserted by worker-2
+new_indicator: 123.123.123.123 inserted by worker-1
+Doing a lookup

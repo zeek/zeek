@@ -54,7 +54,11 @@ event Cluster::node_up(name: string, id: string)
 # has to be distributed.
 event Intel::new_item(item: Item) &priority=5
 	{
-	Broker::publish(indicator_topic, Intel::insert_indicator, item);
+	if ( Cluster::proxy_pool$alive_count == 0 )
+		Broker::publish(indicator_topic, Intel::insert_indicator, item);
+	else
+		Cluster::relay_rr(Cluster::proxy_pool, "Intel::new_item_relay_rr",
+		                  indicator_topic, Intel::insert_indicator, item);
 	}
 
 # Handling of item insertion triggered by remote node.

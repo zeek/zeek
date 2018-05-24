@@ -1,0 +1,5 @@
+new_item triggered for 1.2.3.4 by manager on manager-1
+insert_item: 4.3.2.1 inserted by worker-2
+new_item triggered for 4.3.2.1 by worker-2 on manager-1
+insert_item: 123.123.123.123 inserted by worker-1
+new_item triggered for 123.123.123.123 by worker-1 on manager-1

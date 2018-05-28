@@ -376,6 +376,28 @@ This section contains a few brief examples of how various communication
 patterns one might use when developing Bro scripts that are to operate in
 the context of a cluster.
 
+A Reminder About Events and Module Namespaces
+---------------------------------------------
+
+For the following examples, please keep in mind that when referring to event names that were
+defined inside a module namespace, you should always use that namespace scoping when referring to the event name, even within the module itself.  For instance:
+
+.. code:: bro
+
+    module ModuleName;
+
+    event manager_to_workers(s: string)
+        {
+        print "got event from manager", s;
+        }
+
+    event some_event_handled_on_manager()
+        {
+        Broker::publish(Cluster::worker_topic, ModuleName::manager_to_workers,
+                        "hello v0");
+        }
+
+
 Manager Sending Events To Workers
 ---------------------------------
 

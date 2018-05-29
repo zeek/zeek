@@ -376,6 +376,74 @@ This section contains a few brief examples of how various communication
 patterns one might use when developing Bro scripts that are to operate in
 the context of a cluster.
 
+A Reminder About Events and Module Namespaces
+---------------------------------------------
+
+For simplicity, the following examples do not use any modules/namespaces.
+If you choose to use them within your own code, it's important to
+remember that the ``event`` and ``schedule`` dispatching statements
+should always use the fully-qualified event name.
+
+For example, this will likely not work as expected:
+
+.. code:: bro
+
+    module MyModule;
+
+    export {
+        global my_event: event();
+    }
+
+    event my_event()
+        {
+        print "got my event";
+        }
+
+    event bro_init()
+        {
+        event my_event();
+        schedule 10sec { my_event() };
+        }
+
+This code runs without errors, however, the local ``my_event`` handler
+will never be called and also not any remote handlers either, even if
+:bro:see:`Broker::auto_publish` was used elsewhere for it.  Instead, at
+minimum you would need change the ``bro_init()`` handler:
+
+.. code:: bro
+
+    event bro_init()
+        {
+        event MyModule::my_event();
+        schedule 10sec { MyModule::my_event() };
+        }
+
+Though, an easy rule of thumb to remember would be to always use the
+explicit module namespace scoping and you can't go wrong:
+
+.. code:: bro
+
+    module MyModule;
+
+    export {
+        global MyModule::my_event: event();
+    }
+
+    event MyModule::my_event()
+        {
+        print "got my event";
+        }
+
+    event bro_init()
+        {
+        event MyModule::my_event();
+        schedule 10sec { MyModule::my_event() };
+        }
+
+Note that other identifiers in Bro do not have this inconsistency
+related to module namespacing, it's just events that require
+explicitness.
+
 Manager Sending Events To Workers
 ---------------------------------
 

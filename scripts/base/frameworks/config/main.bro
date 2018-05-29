@@ -2,6 +2,8 @@
 ##! (as specified by the "option" keyword) at runtime. It also logs runtime
 ##! changes to options to config.log.
 
+@load base/frameworks/cluster
+
 module Config;
 
 export {
@@ -25,7 +27,62 @@ export {
 	## Event that can be handled to access the :bro:type:`Config::Info`
 	## record as it is sent on to the logging framework.
 	global log_config: event(rec: Info);
+
+	## Broker topic for announcing new configuration value. Sending new_value,
+	## peers can send configuration changes that will be distributed accross
+	## the entire cluster.
+	const change_topic = "bro/config/change";
+
+	## This function is the config framework layer around the lower-level
+	## :bro:see:`Option::set` call. Config::set_value will set the configuration
+	## value for all nodes in the cluster, no matter where it was called. Note
+	## that `bro:see:`Option::set` does not distribute configuration changes
+	## to other nodes.
+	##
+	## ID: The ID of the option to update.
+	##
+	## val: The new value of the option.
+	##
+	## location: Optional parameter detailing where this change originated from.
+	##
+	## Returns: true on success, false when an error ocured.
+	global set_value: function(ID: string, val: any, location: string &default = "" &optional): bool;
 }
+
+@if ( Cluster::is_enabled() )
+event bro_init()
+	{
+	Broker::subscribe(change_topic);
+	}
+
+event Config::cluster_set_option(ID: string, val: any, location: string)
+	{
+	Option::set(ID, val, location);
+	}
+
+function set_value(ID: string, val: any, location: string &default = "" &optional): bool
+	{
+	# First try setting it locally - abort if not possible.
+	if ( ! Option::set(ID, val, location) )
+		{
+		return F;
+		}
+	# If it turns out that it is possible - send it to everyone else to apply.
+	Broker::publish(change_topic, Config::cluster_set_option, ID, val, location);
+	if ( Cluster::local_node_type() != Cluster::MANAGER )
+		{
+		Broker::relay(change_topic, change_topic, Config::cluster_set_option, ID, val, location);
+		}
+	return T;
+	}
+@else
+	# Standalone implementation
+	function set_value(ID: string, val: any, location: string &default = "" &optional): bool
+		{
+		return Option::set(ID, val, location);
+		}
+@endif
+
 
 function format_value(value: any) : string
 	{
@@ -64,6 +121,8 @@ event bro_init() &priority=10
 	{
 	Log::create_stream(LOG, [$columns=Info, $ev=log_config, $path="config"]);
 
+	# Limit logging to the manager - everyone else just feeds off it.
+@if ( !Cluster::is_enabled() || Cluster::local_node_type() == Cluster::MANAGER )
 	# Iterate over all existing options and add ourselves as change handlers with
 	# a low priority so that we can log the changes.
 	local gids = global_ids();
@@ -74,4 +133,5 @@ event bro_init() &priority=10
 
 		Option::set_change_handler(i, config_option_changed, -100);
 		}
+@endif
 	}

@@ -48,7 +48,7 @@ New Functionality
     types; and (3) all values can be casted to their declared types
     (i.e., a no-op).
 
-    Example for "any":
+    Example for "any"::
 
         # cat a.bro
         function check(a: any)
@@ -84,7 +84,7 @@ New Functionality
     However, one cannot mix cases with expressions and types inside a
     single switch statement.
 
-    Example:
+    Example::
 
         function switch_one(v: any)
             {

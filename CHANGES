@@ -1,4 +1,19 @@
 
+2.5-611 | 2018-05-29 10:13:17 -0500
+
+  * Fix NEWS file formatting (Corelight)
+
+  * Improve Broker docs with reminder about modules and event namespace
+    scoping interactions. (Michael Dopheide)
+
+  * Change Intel framework to round-robin insertion events across proxies
+    (Corelight)
+
+  * Add a counter for number of alive nodes within a given cluster pool
+    (Corelight)
+
+  * Fix how cluster framework tracks worker count (Corelight)
+
 2.5-599 | 2018-05-23 16:50:12 -0500
 
   * Documentation improvements/fixes (Corelight)

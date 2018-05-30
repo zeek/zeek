@@ -4,6 +4,33 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as BroControl and Broccoli, come with
 their own ``CHANGES``.)
 
+Bro 2.5.4
+=========
+
+Bro 2.5.4 primarily fixes security issues:
+
+* Multiple fixes and improvements to BinPAC generated code related to
+  array parsing, with potential impact to all Bro's BinPAC-generated
+  analyzers in the form of buffer over-reads or other invalid memory
+  accesses depending on whether a particular analyzer incorrectly
+  assumed that the evaulated-array-length expression is actually the
+  number of elements that were parsed out from the input.
+
+* The NCP analyzer (not enabled by default and also updated to actually
+  work with newer Bro APIs in the release) performed a memory allocation
+  based directly on a field in the input packet and using signed integer
+  storage.  This could result in a signed integer overflow and memory
+  allocations of negative or very large size, leading to a crash or
+  memory exhaustion.  The new NCP::max_frame_size tuning option now
+  limits the maximum amount of memory that can be allocated.
+
+There's also the following bug fixes:
+
+* A memory leak in the SMBv1 analyzer.
+
+* The MySQL analyzer was generally not working as intended, for example,
+  it now is able to parse responses that contain multiple results/rows.
+
 Bro 2.5.3
 =========
 

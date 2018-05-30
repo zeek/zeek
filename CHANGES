@@ -1,4 +1,27 @@
 
+2.5.4 | 2018-05-29 19:54:21 -0500
+
+  * Release 2.5.4.
+
+  * Add NCP::max_frame_size tuning option (Corelight)
+
+  * Migrate NCP analyzer to use latest analyzer API (Corelight)
+
+  * Fixes for MySQL and SMB protocol parsers (Corelight)
+
+    * MySQL: the parser for this was generally broken (not following
+      the specification well) and needed many changes.  One addition is a
+      new "mysql_result_row" event that provides access to the results of
+      queries.
+
+    * SMB: the spec seems to explitly call out the omission of the
+      PrimaryDomain field on SMB_COM_SESSION_SETUP_ANDX responses (and I
+      don't see that field in pcaps either), so this may have just been a
+      typo that used to work fine in the past only due to faulty array
+      parsing behavior in binpac.
+
+  * Fix a memory leak in SMBv1 share mapping (Corelight)
+
 2.5.3 | 2018-02-14 07:26:57 -0800
 
   * Release 2.5.3. (Johanna Amann)

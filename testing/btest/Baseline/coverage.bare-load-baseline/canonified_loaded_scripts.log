@@ -89,6 +89,7 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_Modbus.events.bif.bro
     build/scripts/base/bif/plugins/Bro_MySQL.events.bif.bro
     build/scripts/base/bif/plugins/Bro_NCP.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_NCP.consts.bif.bro
     build/scripts/base/bif/plugins/Bro_NetBIOS.events.bif.bro
     build/scripts/base/bif/plugins/Bro_NetBIOS.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_NTLM.types.bif.bro

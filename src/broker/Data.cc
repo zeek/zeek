@@ -772,6 +772,9 @@ struct type_checker {
 
 Val* bro_broker::data_to_val(broker::data d, BroType* type)
 	{
+	if ( type->Tag() == TYPE_ANY )
+		return bro_broker::make_data_val(move(d));
+
 	return broker::visit(val_converter{type}, std::move(d));
 	}
 

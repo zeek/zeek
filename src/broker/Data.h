@@ -54,12 +54,10 @@ broker::expected<broker::data> val_to_data(Val* v);
  * Convert a Broker data value to a Bro value.
  * @param d a Broker data value.
  * @param type the expected type of the value to return.
- * @param require_log_attr if true, skip over record fields that don't have the
- * &log attribute.
  * @return a pointer to a new Bro value or a nullptr if the conversion was not
  * possible.
  */
-Val* data_to_val(broker::data d, BroType* type, bool require_log_attr = false);
+Val* data_to_val(broker::data d, BroType* type);
 
 /**
  * Convert a Bro threading::Value to a Broker data value.

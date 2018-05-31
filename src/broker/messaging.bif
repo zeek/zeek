@@ -76,13 +76,13 @@ static bool relay_event_args(val_list& args, const BroString* topic,
 	if ( args[0]->Type()->Tag() == TYPE_RECORD )
 		rval = broker_mgr->RelayEvent(topic->CheckString(),
 									  std::move(topic_set),
-		                              args[0]->AsRecordVal());
+		                              args[0]->AsRecordVal(), false);
 	else
 		{
 		auto ev = broker_mgr->MakeEvent(&args, frame);
 		rval = broker_mgr->RelayEvent(topic->CheckString(),
 									  std::move(topic_set),
-									  ev);
+									  ev, false);
 		Unref(ev);
 		}
 
@@ -133,7 +133,7 @@ function Broker::publish%(topic: string, ...%): bool
 
 ## Publishes an event at a given topic, with any receivers automatically
 ## forwarding it to its peers with a different topic.  The event is relayed
-## at most a single hop.
+## at most a single hop and the relayer does not call any local event handlers.
 ##
 ## first_topic: the initial topic to use for publishing the event.
 ##
@@ -181,12 +181,74 @@ function Broker::relay%(first_topic: string, ...%): bool
 	if ( args[0]->Type()->Tag() == TYPE_RECORD )
 		rval = broker_mgr->RelayEvent(first_topic->CheckString(),
 									  std::move(topic_set),
-	                                  args[0]->AsRecordVal());
+	                                  args[0]->AsRecordVal(), false);
 	else
 		{
 		auto ev = broker_mgr->MakeEvent(&args, frame);
 		rval = broker_mgr->RelayEvent(first_topic->CheckString(),
-									  std::move(topic_set), ev);
+									  std::move(topic_set), ev, false);
+		Unref(ev);
+		}
+
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+## Publishes an event at a given topic, with any receivers automatically
+## forwarding it to its peers with a different topic.  The event is relayed
+## at most a single hop and the relayer does call local event handlers.
+##
+## first_topic: the initial topic to use for publishing the event.
+##
+## args: the first member of the argument list may be either a string or
+##       a set of strings indicating the secondary topic that the first
+##       set of receivers will use to re-publish the event.  The remaining
+##       members of the argument list are either the return value of a
+##       previously-made call to :bro:see:`Broker::make_event` or the
+##       argument list that should be passed along to it, so that it can
+##       be called as part of executing this function.
+##
+## Returns: true if the message is sent.
+function Broker::publish_and_relay%(first_topic: string, ...%): bool
+	%{
+	bro_broker::Manager::ScriptScopeGuard ssg;
+	val_list* bif_args = @ARGS@;
+
+	if ( bif_args->length() < 3 )
+		{
+		builtin_error("Broker::publish_and_relay requires at least 3 arguments");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	auto second_topic = (*bif_args)[1];
+
+	if ( second_topic->Type()->Tag() != TYPE_STRING &&
+		 ! is_string_set(second_topic->Type()) )
+		{
+		builtin_error("Broker::publish_and_relay requires a string or string_set as 2nd argument");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	auto topic_set = val_to_topic_set(second_topic);
+
+	if ( topic_set.empty() )
+		return new Val(false, TYPE_BOOL);
+
+	val_list args(bif_args->length() - 2);
+
+	for ( auto i = 2; i < bif_args->length(); ++i )
+		args.append((*bif_args)[i]);
+
+	auto rval = false;
+
+	if ( args[0]->Type()->Tag() == TYPE_RECORD )
+		rval = broker_mgr->RelayEvent(first_topic->CheckString(),
+									  std::move(topic_set),
+	                                  args[0]->AsRecordVal(), true);
+	else
+		{
+		auto ev = broker_mgr->MakeEvent(&args, frame);
+		rval = broker_mgr->RelayEvent(first_topic->CheckString(),
+									  std::move(topic_set), ev, true);
 		Unref(ev);
 		}
 

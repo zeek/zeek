@@ -1185,7 +1185,14 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 		if ( d->FindType(td->type) )
 			d->Add("<recursion>");
 		else
-			td->DescribeReST(d);
+			{
+			if ( num_fields == 1 && streq(td->id, "va_args") &&
+			     td->type->Tag() == TYPE_ANY )
+				// This was a BIF using variable argument list
+				d->Add("...");
+			else
+				td->DescribeReST(d);
+			}
 
 		if ( func_args )
 			continue;

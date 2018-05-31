@@ -1128,7 +1128,7 @@ broker::data& bro_broker::opaque_field_to_data(RecordVal* v, Frame* f)
 
 bool bro_broker::DataVal::canCastTo(BroType* t) const
 	{
-	return broker::visit(type_checker{type}, data);
+	return broker::visit(type_checker{t}, data);
 	}
 
 Val* bro_broker::DataVal::castTo(BroType* t)

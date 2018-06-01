@@ -1,4 +1,14 @@
 
+2.5-618 | 2018-06-01 10:03:24 -0500
+
+  * BIT-1635: fix `make doc` warnings (Corelight)
+
+  * Add smb2_file_sattr event (Devin Trejo)
+
+  * Add bad ARP tests (Pierre LATET)
+
+  * Fix SCT validation when invalid certificates are in chain. (Johanna Amann)
+
 2.5-611 | 2018-05-29 10:13:17 -0500
 
   * Fix NEWS file formatting (Corelight)

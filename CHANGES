@@ -1,4 +1,8 @@
 
+2.5-619 | 2018-06-01 11:29:15 -0500
+
+  * Relocate temporary script coverage files (Corelight)
+
 2.5-618 | 2018-06-01 10:03:24 -0500
 
   * BIT-1635: fix `make doc` warnings (Corelight)

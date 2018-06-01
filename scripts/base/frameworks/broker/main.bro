@@ -14,7 +14,7 @@ export {
 	## Default address on which to listen.
 	##
 	## .. bro:see:: Broker::listen
-	const default_listen_address = "" &redef;
+	const default_listen_address = getenv("BRO_DEFAULT_LISTEN_ADDRESS") &redef;
 
 	## Default interval to retry connecting to a peer if it cannot be made to work
 	## initially, or if it ever becomes disconnected.

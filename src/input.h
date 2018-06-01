@@ -14,6 +14,7 @@ extern int yydebug;
 extern int brolex();
 extern char last_tok[128];
 
+extern void add_essential_input_file(const char* file);
 extern void add_input_file(const char* file);
 extern void add_input_file_at_front(const char* file);
 

@@ -4245,7 +4245,8 @@ export {
 
 module KRB;
 export {
-	const keytab = "/etc/krb5.keytab" &redef;
+	## Kerberos keytab file name. Used to decrypt tickets encountered on the wire.
+	const keytab = "" &redef;
 	## KDC Options. See :rfc:`4120`
 	type KRB::KDC_Options: record {
 		## The ticket to be issued should have its forwardable flag set.

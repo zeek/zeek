@@ -13,6 +13,9 @@ KRB_Analyzer::KRB_Analyzer(Connection* conn)
 	interp = new binpac::KRB::KRB_Conn(this);
 
 #ifdef USE_KRB5
+	if ( BifConst::KRB::keytab->Len() == 0 )
+		return; // no keytab set
+
 	const char* keytab_filename = BifConst::KRB::keytab->CheckString();
 	if ( access(keytab_filename, R_OK) != 0 )
 		{

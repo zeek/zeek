@@ -6,13 +6,25 @@
 
 using namespace analyzer::krb;
 
+bool KRB_Analyzer::krb_available = false;
+#ifdef USE_KRB5
+krb5_context KRB_Analyzer::krb_context = nullptr;
+krb5_keytab KRB_Analyzer::krb_keytab = nullptr;
+std::once_flag KRB_Analyzer::krb_initialized;
+#endif
+
 KRB_Analyzer::KRB_Analyzer(Connection* conn)
-	: Analyzer("KRB", conn),
-	  krb_available(false)
+	: Analyzer("KRB", conn)
 	{
 	interp = new binpac::KRB::KRB_Conn(this);
+#ifdef USE_KRB5
+	std::call_once(krb_initialized, Initialize_Krb);
+#endif
+	}
 
 #ifdef USE_KRB5
+void KRB_Analyzer::Initialize_Krb()
+	{
 	if ( BifConst::KRB::keytab->Len() == 0 )
 		return; // no keytab set
 
@@ -37,20 +49,11 @@ KRB_Analyzer::KRB_Analyzer(Connection* conn)
 		return;
 		}
 	krb_available = true;
-#endif
 	}
+#endif
 
 KRB_Analyzer::~KRB_Analyzer()
 	{
-#ifdef USE_KRB5
-	if ( krb_available )
-		{
-		krb5_error_code retval = krb5_kt_close(krb_context, krb_keytab);
-		if ( retval )
-			reporter->Warning("KRB: Couldn't close keytab (%s)", krb5_get_error_message(krb_context, retval));
-		krb5_free_context(krb_context);
-		}
-#endif
 	delete interp;
 	}
 
@@ -125,7 +128,9 @@ StringVal* KRB_Analyzer::GetAuthenticationInfo(const BroString* principal, const
 	StringVal* ret = new StringVal(cp);
 
 	krb5_free_unparsed_name(krb_context, cp);
-#endif
 
 	return ret;
+#else
+	return nullptr;
+#endif
 	}

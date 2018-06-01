@@ -242,6 +242,9 @@ New Functionality
 - Added new SMB events: smb1_transaction_secondary_request,
   smb1_transaction2_secondary_request, smb1_transaction_response
 
+- Bro can now decrypt Kerberos tickets, and retrieve the authentication from
+  them, given a suitable keytab file.
+
 Changed Functionality
 ---------------------
 

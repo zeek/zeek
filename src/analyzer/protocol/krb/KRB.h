@@ -30,10 +30,13 @@ protected:
 
 	binpac::KRB::KRB_Conn* interp;
 
-	bool krb_available;
+private:
+	static bool krb_available;
 #ifdef USE_KRB5
-	krb5_context krb_context;
-	krb5_keytab krb_keytab;
+	static std::once_flag krb_initialized;
+	static void Initialize_Krb();
+	static krb5_context krb_context;
+	static krb5_keytab krb_keytab;
 #endif
 };
 

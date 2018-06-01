@@ -108,6 +108,9 @@
 /* GeoIP geographic lookup functionality */
 #cmakedefine USE_GEOIP
 
+/* Define if KRB5 is available */
+#cmakedefine USE_KRB5
+
 /* Whether the found GeoIP API supports IPv6 Country Edition */
 #cmakedefine HAVE_GEOIP_COUNTRY_EDITION_V6
 

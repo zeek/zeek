@@ -143,6 +143,13 @@ if (LIBGEOIP_FOUND)
     list(APPEND OPTLIBS ${LibGeoIP_LIBRARY})
 endif ()
 
+set(USE_KRB5 false)
+find_package(LibKrb5)
+if (LibKrb5_FOUND)
+   set(USE_KRB5 true)
+   list(APPEND OPTLIBS ${LibKrb5_LIBRARY})
+endif ()
+
 set(HAVE_PERFTOOLS false)
 set(USE_PERFTOOLS_DEBUG false)
 set(USE_PERFTOOLS_TCMALLOC false)
@@ -294,6 +301,7 @@ message(
     "\nAux. Tools:        ${INSTALL_AUX_TOOLS}"
     "\n"
     "\nGeoIP:             ${USE_GEOIP}"
+    "\nKerberos:          ${USE_KRB5}"
     "\ngperftools found:  ${HAVE_PERFTOOLS}"
     "\n        tcmalloc:  ${USE_PERFTOOLS_TCMALLOC}"
     "\n       debugging:  ${USE_PERFTOOLS_DEBUG}"

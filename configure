@@ -72,6 +72,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
 
   Optional Packages in Non-Standard Locations:
     --with-geoip=PATH      path to the libGeoIP install root
+    --with-krb5=PATH       path to krb5 install root
     --with-perftools=PATH  path to Google Perftools install root
     --with-jemalloc=PATH   path to jemalloc install root
     --with-python-lib=PATH path to libpython
@@ -249,6 +250,9 @@ while [ $# -ne 0 ]; do
             ;;
         --with-geoip=*)
             append_cache_entry LibGeoIP_ROOT_DIR PATH $optarg
+            ;;
+        --with-krb5=*)
+            append_cache_entry LibKrb5_ROOT_DIR PATH $optarg
             ;;
         --with-perftools=*)
             append_cache_entry GooglePerftools_ROOT_DIR PATH $optarg

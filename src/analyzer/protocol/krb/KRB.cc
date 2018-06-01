@@ -73,31 +73,30 @@ void KRB_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 
 StringVal* KRB_Analyzer::GetAuthenticationInfo(const BroString* principal, const BroString* ciphertext, const bro_uint_t enctype)
 	{
-	StringVal* ret = new StringVal("nouser");
 #ifdef USE_KRB5
 	if ( !krb_available )
-		return ret;
+		return nullptr;
 
 	BroString delim("/");
 	int pos = principal->FindSubstring(&delim);
 	if ( pos == -1 )
 		{
 		reporter->Warning("KRB: Couldn't parse principal (%s)", principal->CheckString());
-		return ret;
+		return nullptr;
 		}
 	std::unique_ptr<BroString> service = unique_ptr<BroString>(principal->GetSubstring(0, pos));
 	std::unique_ptr<BroString> hostname = unique_ptr<BroString>(principal->GetSubstring(pos + 1, -1));
 	if ( !service || !hostname )
 		{
 		reporter->Warning("KRB: Couldn't parse principal (%s)", principal->CheckString());
-		return ret;
+		return nullptr;
 		}
 	krb5_principal sprinc;
 	krb5_error_code retval = krb5_sname_to_principal(krb_context, hostname->CheckString(), service->CheckString(), KRB5_NT_SRV_HST, &sprinc);
 	if ( retval )
 		{
 		reporter->Warning("KRB: Couldn't generate principal name (%s)", krb5_get_error_message(krb_context, retval));
-		return ret;
+		return nullptr;
 		}
 
 	krb5_ticket tkt;
@@ -110,7 +109,7 @@ StringVal* KRB_Analyzer::GetAuthenticationInfo(const BroString* principal, const
 	if ( retval )
 		{
 		reporter->Warning("KRB: Couldn't decrypt ticket (%s)", krb5_get_error_message(krb_context, retval));
-		return ret;
+		return nullptr;
 		}
 
 	char* cp;
@@ -118,10 +117,9 @@ StringVal* KRB_Analyzer::GetAuthenticationInfo(const BroString* principal, const
 	if ( retval )
 		{
 		reporter->Warning("KRB: Couldn't unparse name (%s)", krb5_get_error_message(krb_context, retval));
-		return ret;
+		return nullptr;
 		}
-	free(ret);
-	ret = new StringVal(cp);
+	StringVal* ret = new StringVal(cp);
 
 	krb5_free_unparsed_name(krb_context, cp);
 #endif

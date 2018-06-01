@@ -247,7 +247,8 @@ refine connection KRB_Conn += {
 
 			RecordVal* rvticket = proc_ticket(${msg.ticket});
 			StringVal* authenticationinfo = bro_analyzer()->GetAuthenticationInfo(rvticket->Lookup(2)->AsString(), rvticket->Lookup(4)->AsString(), rvticket->Lookup(3)->AsCount());
-			rvticket->Assign(5, authenticationinfo);
+			if ( authenticationinfo )
+				rvticket->Assign(5, authenticationinfo);
 			BifEvent::generate_krb_ap_request(bro_analyzer(), bro_analyzer()->Conn(),
 						      rvticket, rv);
 			}

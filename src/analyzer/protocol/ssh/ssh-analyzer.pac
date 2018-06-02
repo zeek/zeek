@@ -178,7 +178,7 @@ refine flow SSH_Flow += {
 		%{
 		switch (v) {
 			case SSH1:
-				return packet_length + 4 + 8 -(packet_length%8);
+				return packet_length + 4 + 8 - (packet_length % 8);
 			case SSH2:
 				return packet_length + 4;
 			default:

@@ -38,7 +38,7 @@ type SSH1_Key_Exchange(is_orig: bool, packet_length: uint32) = record {
 	msg_type      : uint8;
 	message       : SSH1_Message(is_orig, msg_type, packet_length - 5);
 	crc           : uint32;
-} &length = packet_length + 8 - (packet_length % 8);
+} &length = $context.flow.get_kex_length($context.connection.get_version(), packet_length) - 4;
 
 type SSH1_Message(is_orig: bool, msg_type: uint8, length: uint32) = case msg_type of {
 	SSH_SMSG_PUBLIC_KEY  -> public_key  : SSH1_PUBLIC_KEY(length);

@@ -1,4 +1,43 @@
 
+2.5-641 | 2018-06-04 09:18:59 -0700
+
+  * Add Broker::publish_and_relay BIF
+
+    Like Broker::relay, except the relaying-node also calls event handlers. (Corelight)
+
+  * Document variable argument list BIFs using ellipsis. (Corelight).
+
+  * Support unserializing broker data into type 'any'
+
+    The receiver side will wrap the data as a Broker::Data value, which
+    can then be type-checked/cast via 'is' or 'as' operators to a specific
+    Bro type. For example:
+
+    Sender:
+
+        Broker::publish("topic", my_event, "hello")
+
+    Receiver:
+
+        event my_event(arg: any)
+            {
+            if ( arg is string )
+                print arg as string;
+            }
+
+     (Corelight)
+
+  * Fix a bug in broker data type-casting check (Corelight)
+
+  * Remove dead code in broker data/val conversion function (Corelight)
+
+  * SSH protocol now assesses the packet length at an earlier stage within binpac
+    (Andrew Woodford).
+
+  * Remove some UTF-8 characters that snuck into a few scripts. (Corelight)
+
+  * Decrypt the krb ticket and extract authentication data. (Julien Wallior)
+
 2.5-619 | 2018-06-01 11:29:15 -0500
 
   * Relocate temporary script coverage files (Corelight)

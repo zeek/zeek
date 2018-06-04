@@ -244,7 +244,7 @@ void file_analysis::X509Common::ParseExtension(X509_EXTENSION* ex, EventHandlerP
 		int len = i2d_ASN1_OCTET_STRING(X509_EXTENSION_get_data(ex), &buf);
 		if ( len >=0 )
 			{
-			BIO_write(bio, &buf, len);
+			BIO_write(bio, buf, len);
 			OPENSSL_free(buf);
 			}
 		}

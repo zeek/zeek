@@ -1,4 +1,8 @@
 
+2.5-642 | 2018-06-04 13:52:46 -0500
+
+  * Make 0 be a valid packet source timestamp (Corelight)
+
 2.5-641 | 2018-06-04 09:18:59 -0700
 
   * Add Broker::publish_and_relay BIF

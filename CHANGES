@@ -1,4 +1,8 @@
 
+2.5-647 | 2018-06-05 15:19:16 -0500
+
+  * Update `make doc`: don't copy broker docs (Corelight)
+
 2.5-646 | 2018-06-05 11:31:43 -0500
 
   * Add NCP::max_frame_size tuning option (Corelight)

@@ -1,4 +1,12 @@
 
+2.5-646 | 2018-06-05 11:31:43 -0500
+
+  * Add NCP::max_frame_size tuning option (Corelight)
+
+  * Migrate NCP analyzer to use latest analyzer API (Corelight)
+
+  * Fix read at invalid address in X509 extension parser (Johanna Amann)
+
 2.5-642 | 2018-06-04 13:52:46 -0500
 
   * Make 0 be a valid packet source timestamp (Corelight)

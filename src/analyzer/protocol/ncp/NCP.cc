@@ -9,6 +9,7 @@
 #include "NCP.h"
 
 #include "events.bif.h"
+#include "consts.bif.h"
 
 using namespace std;
 using namespace analyzer::ncp;
@@ -105,13 +106,12 @@ void FrameBuffer::Reset()
 	msg_len = 0;
 	}
 
-// Returns true if we have a complete frame
-bool FrameBuffer::Deliver(int &len, const u_char* &data)
+int FrameBuffer::Deliver(int &len, const u_char* &data)
 	{
 	ASSERT(buf_len >= hdr_len);
 
 	if ( len == 0 )
-		return false;
+		return -1;
 
 	if ( buf_n < hdr_len )
 		{
@@ -123,13 +123,16 @@ bool FrameBuffer::Deliver(int &len, const u_char* &data)
 			}
 
 		if ( buf_n < hdr_len )
-			return false;
+			return -1;
 
 		compute_msg_length();
 
 		if ( msg_len > buf_len )
 			{
-			buf_len = msg_len * 2;
+			if ( msg_len > BifConst::NCP::max_frame_size )
+				return 1;
+
+			buf_len = msg_len;
 			u_char* new_buf = new u_char[buf_len];
 			memcpy(new_buf, msg_buf, buf_n);
 			delete [] msg_buf;
@@ -143,7 +146,13 @@ bool FrameBuffer::Deliver(int &len, const u_char* &data)
 		++buf_n; ++data; --len;
 		}
 
-	return buf_n >= msg_len;
+	if ( buf_n < msg_len )
+		return -1;
+
+	if ( buf_n == msg_len )
+		return 0;
+
+	return 1;
 	}
 
 void NCP_FrameBuffer::compute_msg_length()
@@ -159,11 +168,7 @@ Contents_NCP_Analyzer::Contents_NCP_Analyzer(Connection* conn, bool orig, NCP_Se
 	{
 	session = arg_session;
 	resync = true;
-
-	tcp::TCP_Analyzer* tcp = static_cast<tcp::TCP_ApplicationAnalyzer*>(Parent())->TCP();
-	if ( tcp )
-		resync = (orig ? tcp->OrigState() : tcp->RespState()) !=
-						tcp::TCP_ENDPOINT_ESTABLISHED;
+	resync_set = false;
 	}
 
 Contents_NCP_Analyzer::~Contents_NCP_Analyzer()
@@ -174,20 +179,23 @@ void Contents_NCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig
 	{
 	tcp::TCP_SupportAnalyzer::DeliverStream(len, data, orig);
 
-	tcp::TCP_Analyzer* tcp = static_cast<tcp::TCP_ApplicationAnalyzer*>(Parent())->TCP();
+	auto tcp = static_cast<NCP_Analyzer*>(Parent())->TCP();
+
+	if ( ! resync_set )
+		{
+		resync_set = true;
+		resync = (IsOrig() ? tcp->OrigState() : tcp->RespState()) !=
+						tcp::TCP_ENDPOINT_ESTABLISHED;
+		}
 
 	if ( tcp && tcp->HadGap(orig) )
 		return;
-
-	DEBUG_MSG("NCP deliver: len = %d resync = %d buffer.empty = %d\n",
-		len, resync, buffer.empty());
 
 	if ( buffer.empty() && resync )
 		{
 		// Assume NCP frames align with packet boundary.
 		if ( (IsOrig() && len < 22) || (! IsOrig() && len < 16) )
 			{ // ignore small fragmeents
-			DEBUG_MSG("NCP discard small pieces: %d\n", len);
 			return;
 			}
 
@@ -204,10 +212,27 @@ void Contents_NCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig
 		resync = false;
 		}
 
-	while ( buffer.Deliver(len, data) )
+	for ( ; ; )
 		{
-		session->Deliver(IsOrig(), buffer.Len(), buffer.Data());
-		buffer.Reset();
+		auto result = buffer.Deliver(len, data);
+
+		if ( result < 0 )
+			break;
+
+		if ( result == 0 )
+			{
+			session->Deliver(IsOrig(), buffer.Len(), buffer.Data());
+			buffer.Reset();
+			}
+		else
+			{
+			// The rest of the data available in this delivery will
+			// be discarded and will need to resync to a new frame header.
+			Weird("ncp_large_frame");
+			buffer.Reset();
+			resync = true;
+			break;
+			}
 		}
 	}
 
@@ -224,13 +249,13 @@ NCP_Analyzer::NCP_Analyzer(Connection* conn)
 	{
 	session = new NCP_Session(this);
 	o_ncp = new Contents_NCP_Analyzer(conn, true, session);
+	AddSupportAnalyzer(o_ncp);
 	r_ncp = new Contents_NCP_Analyzer(conn, false, session);
+	AddSupportAnalyzer(r_ncp);
 	}
 
 NCP_Analyzer::~NCP_Analyzer()
 	{
 	delete session;
-	delete o_ncp;
-	delete r_ncp;
 	}
 

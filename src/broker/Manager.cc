@@ -136,6 +136,7 @@ Manager::BrokerState::BrokerState(broker::broker_options options)
 Manager::Manager(bool reading_pcaps)
 	{
 	bound_port = 0;
+	peer_count = 0;
 
 	next_timestamp = 1;
 	SetIdle(false);
@@ -205,7 +206,7 @@ bool Manager::Active()
 	if ( bound_port > 0 )
 		return true;
 
-	return bstate->endpoint.peers().size();
+	return peer_count > 0;
 	}
 
 void Manager::AdvanceTime(double seconds_since_unix_epoch)
@@ -301,7 +302,7 @@ bool Manager::PublishEvent(string topic, std::string name, broker::vector args)
 	if ( bstate->endpoint.is_shutdown() )
 		return true;
 
-	if ( ! bstate->endpoint.peers().size() )
+	if ( peer_count == 0 )
 		return true;
 
 	DBG_LOG(DBG_BROKER, "Publishing event: %s",
@@ -317,7 +318,7 @@ bool Manager::PublishEvent(string topic, RecordVal* args)
 	if ( bstate->endpoint.is_shutdown() )
 		return true;
 
-	if ( ! bstate->endpoint.peers().size() )
+	if ( peer_count == 0 )
 		return true;
 
 	if ( ! args->Lookup(0) )
@@ -347,7 +348,7 @@ bool Manager::RelayEvent(std::string first_topic,
 	if ( bstate->endpoint.is_shutdown() )
 		return true;
 
-	if ( ! bstate->endpoint.peers().size() )
+	if ( peer_count == 0 )
 		return true;
 
 	DBG_LOG(DBG_BROKER, "Publishing %s-relay event: %s",
@@ -381,7 +382,7 @@ bool Manager::RelayEvent(std::string first_topic,
 	if ( bstate->endpoint.is_shutdown() )
 		return true;
 
-	if ( ! bstate->endpoint.peers().size() )
+	if ( peer_count == 0 )
 		return true;
 
 	if ( ! args->Lookup(0) )
@@ -413,7 +414,7 @@ bool Manager::PublishIdentifier(std::string topic, std::string id)
 	if ( bstate->endpoint.is_shutdown() )
 		return true;
 
-	if ( ! bstate->endpoint.peers().size() )
+	if ( peer_count == 0 )
 		return true;
 
 	ID* i = global_scope()->Lookup(id.c_str());
@@ -453,7 +454,7 @@ bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer,
 	if ( bstate->endpoint.is_shutdown() )
 		return true;
 
-	if ( ! bstate->endpoint.peers().size() )
+	if ( peer_count == 0 )
 		return true;
 
 	auto stream_id = stream->Type()->AsEnumType()->Lookup(stream->AsEnum());
@@ -507,7 +508,7 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 	if ( bstate->endpoint.is_shutdown() )
 		return true;
 
-	if ( ! bstate->endpoint.peers().size() )
+	if ( peer_count == 0 )
 		return true;
 
 	auto stream_id_num = stream->AsEnum();
@@ -1185,16 +1186,19 @@ void Manager::ProcessStatus(broker::status stat)
 		break;
 
 	case broker::sc::peer_added:
-	        assert(ctx);
-	        log_mgr->SendAllWritersTo(*ctx);
+		++peer_count;
+		assert(ctx);
+		log_mgr->SendAllWritersTo(*ctx);
 		event = Broker::peer_added;
 		break;
 
 	case broker::sc::peer_removed:
+		--peer_count;
 		event = Broker::peer_removed;
 		break;
 
 	case broker::sc::peer_lost:
+		--peer_count;
 		event = Broker::peer_lost;
 		break;
 	}
@@ -1490,11 +1494,7 @@ bool Manager::TrackStoreQuery(StoreHandleVal* handle, broker::request_id id,
 
 const Stats& Manager::GetStatistics()
 	{
-	if ( bstate->endpoint.is_shutdown() )
-		statistics.num_peers = 0;
-	else
-		statistics.num_peers = bstate->endpoint.peers().size();
-
+	statistics.num_peers = peer_count;
 	statistics.num_stores = data_stores.size();
 	statistics.num_pending_queries = pending_queries.size();
 

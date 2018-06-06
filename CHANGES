@@ -1,4 +1,8 @@
 
+2.5-650 | 2018-06-06 16:20:18 -0500
+
+  * Improve Broker performance (Corelight)
+
 2.5-648 | 2018-06-05 17:32:47 -0500
 
   * BIT-1936: improve Broxygen warnings (Corelight)

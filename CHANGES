@@ -1,4 +1,8 @@
 
+2.5-651 | 2018-06-07 09:57:29 -0500
+
+  * Fix signed/unsigned comparison compiler warning (Corelight)
+
 2.5-650 | 2018-06-06 16:20:18 -0500
 
   * Improve Broker performance (Corelight)

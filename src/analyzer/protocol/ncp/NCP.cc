@@ -80,7 +80,7 @@ void NCP_Session::DeliverFrame(const binpac::NCP::ncp_frame* frame)
 		}
 	}
 
-FrameBuffer::FrameBuffer(int header_length)
+FrameBuffer::FrameBuffer(size_t header_length)
 	{
 	hdr_len = header_length;
 	msg_buf = 0;

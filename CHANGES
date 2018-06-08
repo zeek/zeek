@@ -1,5 +1,5 @@
 
-2.5-651 | 2018-06-08 16:37:38 +0000
+2.5-658 | 2018-06-08 16:41:07 +0000
 
   * Allow BRO_DEFAULT_LISTEN_ADDRESS to control broker listen address.
     This environment variable is now set to listen only on IPv4
@@ -10,6 +10,23 @@
     init-frameworks-and-bifs.bro in order to better support calling BIFs
     (like `getenv`) from variable initializations in those particular
     frameworks. (Corelight)
+
+2.5-655 | 2018-06-08 10:43:03 -0500
+
+  * Correct conn history field documentation (Corelight)
+
+2.5-652 | 2018-06-07 13:57:23 -0500
+
+  * GH-131: disable krb ticket decryption on non-Linux (Corelight)
+
+2.5-651 | 2018-06-07 09:57:29 -0500
+
+  * Fix signed/unsigned comparison compiler warning (Corelight)
+
+2.5-650 | 2018-06-06 16:20:18 -0500
+
+  * Improve Broker performance (Corelight)
+>>>>>>> b51e6f39ddc641811d4875cda4543d3a60fb5a63
 
 2.5-648 | 2018-06-05 17:32:47 -0500
 

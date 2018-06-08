@@ -414,6 +414,8 @@ private:
 	Stats statistics;
 	double next_timestamp;
 	bool reading_pcaps;
+	int peer_count;
+
 	static int script_scope;
 
 	static VectorType* vector_of_data_type;

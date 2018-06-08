@@ -51,7 +51,7 @@ protected:
 
 class FrameBuffer {
 public:
-	explicit FrameBuffer(int header_length);
+	explicit FrameBuffer(size_t header_length);
 	virtual ~FrameBuffer();
 
 	// Returns -1 if frame is not ready, 0 if it else, and 1 if
@@ -67,7 +67,7 @@ public:
 protected:
 	virtual void compute_msg_length() = 0;
 
-	int hdr_len;
+	size_t hdr_len;
 	u_char* msg_buf;
 	uint64 msg_len;
 	size_t buf_n;	// number of bytes in msg_buf

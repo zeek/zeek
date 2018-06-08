@@ -95,9 +95,12 @@ export {
 		##
 		## If the event comes from the originator, the letter is in
 		## upper-case; if it comes from the responder, it's in
-		## lower-case. Multiple packets of the same type will only be
-		## noted once (e.g. we only record one "d" in each direction,
-		## regardless of how many data packets were seen.)
+		## lower-case.  The 'a', 'c', 'd', 'i', 'q', and 't' flags are
+		## recorded a maximum of one time in either direction regardless
+		## of how many are actually seen.  However, 'f', 'h', 'r', or
+		## 's' may be recorded multiple times for either direction and
+		## only compressed when sharing a sequence number with the
+		## last-seen packet of the same flag type.
 		history:      string          &log &optional;
 		## Number of packets that the originator sent.
 		## Only set if :bro:id:`use_conn_size_analyzer` = T.

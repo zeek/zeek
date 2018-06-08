@@ -1,4 +1,8 @@
 
+2.5-655 | 2018-06-08 10:43:03 -0500
+
+  * Correct conn history field documentation (Corelight)
+
 2.5-652 | 2018-06-07 13:57:23 -0500
 
   * GH-131: disable krb ticket decryption on non-Linux (Corelight)

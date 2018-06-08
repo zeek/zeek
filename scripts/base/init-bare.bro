@@ -1,4 +1,4 @@
-@load base/bif/const.bif.bro
+@load base/bif/const.bif
 @load base/bif/types.bif
 
 # Type declarations
@@ -1797,9 +1797,11 @@ type gtp_delete_pdp_ctx_response_elements: record {
 };
 
 # Prototypes of Bro built-in functions.
-@load base/bif/strings.bif
 @load base/bif/bro.bif
+@load base/bif/stats.bif
 @load base/bif/reporter.bif
+@load base/bif/strings.bif
+@load base/bif/option.bif
 
 ## Deprecated. This is superseded by the new logging framework.
 global log_file_name: function(tag: string): string &redef;
@@ -4832,17 +4834,3 @@ const global_hash_seed: string = "" &redef;
 ## files.  The larger the value, the more confidence in UID uniqueness.
 ## The maximum is currently 128 bits.
 const bits_per_uid: count = 96 &redef;
-
-# Load these frameworks here because they use fairly deep integration with
-# BiFs and script-land defined types.
-@load base/frameworks/logging
-@load base/frameworks/broker
-@load base/frameworks/input
-@load base/frameworks/analyzer
-@load base/frameworks/files
-
-@load base/bif
-
-# Load BiFs defined by plugins.
-@load base/bif/plugins
-

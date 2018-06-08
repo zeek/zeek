@@ -755,7 +755,9 @@ int main(int argc, char** argv)
 
 	broxygen_mgr = new broxygen::Manager(broxygen_config, bro_argv[0]);
 
-	add_input_file("base/init-bare.bro");
+	add_essential_input_file("base/init-bare.bro");
+	add_essential_input_file("base/init-frameworks-and-bifs.bro");
+
 	if ( ! bare_mode )
 		add_input_file("base/init-default.bro");
 

@@ -3,18 +3,21 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2018-06-05-16-19-07
+#open	2018-06-08-16-37-20
 #fields	name
 #types	string
 scripts/base/init-bare.bro
   build/scripts/base/bif/const.bif.bro
   build/scripts/base/bif/types.bif.bro
-  build/scripts/base/bif/strings.bif.bro
   build/scripts/base/bif/bro.bif.bro
+  build/scripts/base/bif/stats.bif.bro
   build/scripts/base/bif/reporter.bif.bro
+  build/scripts/base/bif/strings.bif.bro
+  build/scripts/base/bif/option.bif.bro
   build/scripts/base/bif/plugins/Bro_SNMP.types.bif.bro
   build/scripts/base/bif/plugins/Bro_KRB.types.bif.bro
   build/scripts/base/bif/event.bif.bro
+scripts/base/init-frameworks-and-bifs.bro
   scripts/base/frameworks/logging/__load__.bro
     scripts/base/frameworks/logging/main.bro
       build/scripts/base/bif/logging.bif.bro
@@ -52,8 +55,6 @@ scripts/base/init-bare.bro
         scripts/base/utils/patterns.bro
     scripts/base/frameworks/files/magic/__load__.bro
   build/scripts/base/bif/__load__.bro
-    build/scripts/base/bif/stats.bif.bro
-    build/scripts/base/bif/option.bif.bro
     build/scripts/base/bif/broxygen.bif.bro
     build/scripts/base/bif/pcap.bif.bro
     build/scripts/base/bif/bloom-filter.bif.bro
@@ -365,4 +366,4 @@ scripts/base/init-default.bro
   scripts/base/misc/find-filtered-trace.bro
   scripts/base/misc/version.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2018-06-05-16-19-07
+#close	2018-06-08-16-37-20

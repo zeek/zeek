@@ -821,6 +821,18 @@ void do_atendif()
 // are referred to (in order to save the locations of tokens and statements,
 // for error reporting and debugging).
 static name_list input_files;
+static name_list essential_input_files;
+
+void add_essential_input_file(const char* file)
+	{
+	if ( ! file )
+		reporter->InternalError("empty filename");
+
+	if ( ! filename )
+		(void) load_files(file);
+	else
+		essential_input_files.append(copy_string(file));
+	}
 
 void add_input_file(const char* file)
 	{
@@ -869,7 +881,7 @@ int yywrap()
 	if ( ! did_builtin_init && file_stack.length() == 1 )
 		{
 		// ### This is a gross hack - we know that the first file
-		// we parse is bro.init, and after it it's safe to initialize
+		// we parse is init-bare.bro, and after it it's safe to initialize
 		// the built-ins.  Furthermore, we want to initialize the
 		// built-in's *right* after parsing bro.init, so that other
 		// source files can use built-in's when initializing globals.
@@ -885,19 +897,22 @@ int yywrap()
 		return 0;
 
 	// Stack is now empty.
-	while ( input_files.length() > 0 )
+	while ( essential_input_files.length() > 0 || input_files.length() > 0 )
 		{
-		if ( load_files(input_files[0]) )
+		name_list& files = essential_input_files.length() > 0 ?
+		             essential_input_files : input_files;
+
+		if ( load_files(files[0]) )
 			{
 			// Don't delete the filename - it's pointed to by
 			// every BroObj created when parsing it.
-			(void) input_files.remove_nth(0);
+			(void) files.remove_nth(0);
 			return 0;
 			}
 
 		// We already scanned the file.  Pop it and try the next,
 		// if any.
-		(void) input_files.remove_nth(0);
+		(void) files.remove_nth(0);
 		}
 
 	// For each file scanned so far, and for each @prefix, look for a

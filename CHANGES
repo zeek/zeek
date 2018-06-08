@@ -1,4 +1,16 @@
 
+2.5-651 | 2018-06-08 16:37:38 +0000
+
+  * Allow BRO_DEFAULT_LISTEN_ADDRESS to control broker listen address.
+    This environment variable is now set to listen only on IPv4
+    loopback when running unit tests (instead of using the default
+    INADDR_ANY). (Corelight)
+
+  * Move some of the @loads out from init-bare.bro into a new
+    init-frameworks-and-bifs.bro in order to better support calling BIFs
+    (like `getenv`) from variable initializations in those particular
+    frameworks. (Corelight)
+
 2.5-648 | 2018-06-05 17:32:47 -0500
 
   * BIT-1936: improve Broxygen warnings (Corelight)

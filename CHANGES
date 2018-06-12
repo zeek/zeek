@@ -1,4 +1,9 @@
 
+2.5-660 | 2018-06-12 13:49:39 -0500
+
+  * Add Broker::max_live_threads and Broker::max_pcap_threads tunables
+    (Corelight)
+
 2.5-658 | 2018-06-08 16:41:07 +0000
 
   * Allow BRO_DEFAULT_LISTEN_ADDRESS to control broker listen address.

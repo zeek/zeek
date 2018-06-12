@@ -113,21 +113,18 @@ static inline Val* get_option(const char* option)
 	return id->ID_Val();
 	}
 
-class configuration : public broker::configuration {
-public:
-	configuration(broker::broker_options options)
-		: broker::configuration(options)
-		{
-		openssl_cafile = get_option("Broker::ssl_cafile")->AsString()->CheckString();
-		openssl_capath = get_option("Broker::ssl_capath")->AsString()->CheckString();
-		openssl_certificate = get_option("Broker::ssl_certificate")->AsString()->CheckString();
-		openssl_key = get_option("Broker::ssl_keyfile")->AsString()->CheckString();
-		openssl_passphrase = get_option("Broker::ssl_passphrase")->AsString()->CheckString();
-		}
-};
+Manager::BrokerConfig::BrokerConfig(broker::broker_options options)
+	: broker::configuration(options)
+	{
+	openssl_cafile = get_option("Broker::ssl_cafile")->AsString()->CheckString();
+	openssl_capath = get_option("Broker::ssl_capath")->AsString()->CheckString();
+	openssl_certificate = get_option("Broker::ssl_certificate")->AsString()->CheckString();
+	openssl_key = get_option("Broker::ssl_keyfile")->AsString()->CheckString();
+	openssl_passphrase = get_option("Broker::ssl_passphrase")->AsString()->CheckString();
+	}
 
-Manager::BrokerState::BrokerState(broker::broker_options options)
-	: endpoint(configuration(options)),
+Manager::BrokerState::BrokerState(BrokerConfig config)
+	: endpoint(std::move(config)),
 	  subscriber(endpoint.make_subscriber({}, SUBSCRIBER_MAX_QSIZE)),
 	  status_subscriber(endpoint.make_status_subscriber(true))
 	{
@@ -173,7 +170,22 @@ void Manager::InitPostScript()
 	options.forward = get_option("Broker::forward_messages")->AsBool();
 	options.use_real_time = ! reading_pcaps;
 
-	bstate = std::make_shared<BrokerState>(options);
+	BrokerConfig config{std::move(options)};
+	auto max_live_threads = get_option("Broker::max_live_threads")->AsCount();
+	auto max_pcap_threads = get_option("Broker::max_pcap_threads")->AsCount();
+
+	if ( reading_pcaps )
+		{
+		if ( max_pcap_threads )
+			config.scheduler_max_threads = max_pcap_threads;
+		}
+	else
+		{
+		if ( max_live_threads )
+			config.scheduler_max_threads = max_live_threads;
+		}
+
+	bstate = std::make_shared<BrokerState>(std::move(config));
 	}
 
 void Manager::Terminate()

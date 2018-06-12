@@ -339,9 +339,14 @@ public:
 
 private:
 
+	class BrokerConfig : public broker::configuration {
+	public:
+		BrokerConfig(broker::broker_options options);
+	};
+
 	class BrokerState {
 	public:
-		BrokerState(broker::broker_options options);
+		BrokerState(BrokerConfig config);
 		broker::endpoint endpoint;
 		broker::subscriber subscriber;
 		broker::status_subscriber status_subscriber;

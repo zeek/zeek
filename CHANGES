@@ -1,4 +1,11 @@
 
+2.5-663 | 2018-06-14 12:51:28 -0500
+
+  * Add Broker::max_threads and Broker::max_sleep tuning options,
+    remove Broker::max_live_threads and Broker::max_pcap threads (Corelight)
+
+  * Minor optimization to bro_broker::Manager::FlushPendingQueries (Corelight)
+
 2.5-660 | 2018-06-12 13:49:39 -0500
 
   * Add Broker::max_live_threads and Broker::max_pcap_threads tunables

@@ -171,19 +171,40 @@ void Manager::InitPostScript()
 	options.use_real_time = ! reading_pcaps;
 
 	BrokerConfig config{std::move(options)};
-	auto max_live_threads = get_option("Broker::max_live_threads")->AsCount();
-	auto max_pcap_threads = get_option("Broker::max_pcap_threads")->AsCount();
+	auto max_threads = get_option("Broker::max_threads")->AsCount();
+	auto max_sleep = get_option("Broker::max_sleep")->AsCount();
 
-	if ( reading_pcaps )
-		{
-		if ( max_pcap_threads )
-			config.scheduler_max_threads = max_pcap_threads;
-		}
+	if ( max_threads )
+		config.scheduler_max_threads = max_threads;
 	else
 		{
-		if ( max_live_threads )
-			config.scheduler_max_threads = max_live_threads;
+		// On high-core-count systems, spawning one thread per core
+		// can lead to significant performance problems even if most
+		// threads are under-utilized.  Related:
+		// https://github.com/actor-framework/actor-framework/issues/699
+		if ( reading_pcaps )
+			config.scheduler_max_threads = 2u;
+		else
+			{
+			auto hc = std::thread::hardware_concurrency();
+
+			if ( hc > 8u )
+				hc = 8u;
+			else if ( hc < 4u)
+				hc = 4u;
+
+			config.scheduler_max_threads = hc;
+			}
 		}
+
+	if ( max_sleep )
+		config.work_stealing_relaxed_sleep_duration_us = max_sleep;
+	else
+		// 64ms is just an arbitrary amount derived from testing
+		// the overhead of a unused CAF actor system on a 32-core system.
+		// Performance was within 2% of baseline timings (w/o CAF)
+		// when using this sleep duration.
+		config.work_stealing_relaxed_sleep_duration_us = 64000;
 
 	bstate = std::make_shared<BrokerState>(std::move(config));
 	}

@@ -51,21 +51,15 @@ export {
 	## all peers.
 	const ssl_keyfile = "" &redef;
 
-	## Max number of threads to use for Broker/CAF functionality when
-	## operating on a live interface.  Using zero will cause this to
-	## be automatically determined based on number of available CPUs.
-	const max_live_threads = 0 &redef;
+	## Max number of threads to use for Broker/CAF functionality.
+	## Using zero will cause this to be automatically determined
+	## based on number of available CPUs.
+	const max_threads = 0 &redef;
 
-	## Max number of threads to use for Broker/CAF functionality when
-	## operating on a pcap file.  Using zero will cause this to be
-	## automaticallu determined based on number of available CPUs.
-	# TODO: on systems where number of CPUs starts exceeding ~10,
-	# simply creating a caf::actor_system and not using it incurs
-	# significant performance overhead.  Can CAF be updated to
-	# be more efficient in the case where the application isn't
-	# actually making much use of most of those threads instead
-	# of hardcoding this to the minimal 4 threads?
-	const max_pcap_threads = 4 &redef;
+	## Max number of microseconds for under-utilized Broker/CAF
+	## threads to sleep.  Using zero will cause this to be automatically
+	## determined or just use CAF's default setting.
+	const max_sleep = 0 &redef;
 
 	## Forward all received messages to subscribing peers.
 	const forward_messages = F &redef;

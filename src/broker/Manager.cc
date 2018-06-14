@@ -241,8 +241,17 @@ void Manager::FlushPendingQueries()
 		{
 		// possibly an infinite loop if a query can recursively
 		// generate more queries...
-		Process();
+		for ( auto& s : data_stores )
+			{
+			while ( ! s.second->proxy.mailbox().empty() )
+				{
+				auto response = s.second->proxy.receive();
+				ProcessStoreResponse(s.second, move(response));
+				}
+			}
 		}
+
+	SetIdle(false);
 	}
 
 uint16_t Manager::Listen(const string& addr, uint16_t port)

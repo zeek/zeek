@@ -44,6 +44,7 @@ extern "C" {
 #include "EventRegistry.h"
 #include "Stats.h"
 #include "Brofiler.h"
+#include "Traverse.h"
 
 #include "threading/Manager.h"
 #include "input/Manager.h"
@@ -114,6 +115,7 @@ char* command_line_policy = 0;
 vector<string> params;
 set<string> requested_plugins;
 char* proc_status_file = 0;
+int old_comm_usage_count = 0;
 
 OpaqueType* md5_type = 0;
 OpaqueType* sha1_type = 0;
@@ -422,6 +424,70 @@ static void atexit_handler()
 static void bro_new_handler()
 	{
 	out_of_memory("new");
+	}
+
+static auto old_comm_ids = std::set<const char*, CompareString>{
+	"connect",
+	"disconnect",
+	"request_remote_events",
+	"request_remote_sync",
+	"request_remote_logs",
+	"set_accept_state",
+	"set_compression_level",
+	"listen",
+	"send_id",
+	"terminate_communication",
+	"complete_handshake",
+	"send_ping",
+	"send_current_packet",
+	"get_event_peer",
+	"send_capture_filter",
+	"suspend_state_updates",
+	"resume_state_updates",
+};
+
+static bool is_old_comm_usage(const ID* id)
+	{
+	auto name = id->Name();
+
+	if ( old_comm_ids.find(name) == old_comm_ids.end() )
+		return false;
+
+	return true;
+	}
+
+class OldCommUsageTraversalCallback : public TraversalCallback {
+public:
+	virtual TraversalCode PreExpr(const Expr* expr) override
+		{
+		switch ( expr->Tag() ) {
+		case EXPR_CALL:
+			{
+			const CallExpr* call = static_cast<const CallExpr*>(expr);
+			auto func = call->Func();
+
+			if ( func->Tag() == EXPR_NAME )
+				{
+				const NameExpr* ne = static_cast<const NameExpr*>(func);
+				auto id = ne->Id();
+
+				if ( is_old_comm_usage(id) )
+					++old_comm_usage_count;
+				}
+			}
+			break;
+		default:
+			break;
+		}
+
+		return TC_CONTINUE;
+		}
+};
+
+static void find_old_comm_usages()
+	{
+	OldCommUsageTraversalCallback cb;
+	traverse_all(&cb);
 	}
 
 int main(int argc, char** argv)
@@ -853,6 +919,22 @@ int main(int argc, char** argv)
 	is_parsing = true;
 	yyparse();
 	is_parsing = false;
+
+	find_old_comm_usages();
+
+	if ( old_comm_usage_count )
+		{
+		auto old_comm_ack_id = global_scope()->Lookup("old_comm_usage_is_ok");
+
+		if ( ! old_comm_ack_id->ID_Val()->AsBool() )
+			reporter->FatalError("Detected old, deprecated communication "
+								 "system usages that will not work unless "
+								 "you explicitly take action to initizialize "
+								 "and set up the old comm. system.  "
+								 "Set the 'old_comm_usage_is_ok' flag "
+								 "to bypass this error if you've taken such "
+								 "actions.");
+		}
 
 	RecordVal::ResizeParseTimeRecords();
 

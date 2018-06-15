@@ -1,4 +1,9 @@
 
+2.5-668 | 2018-06-15 17:14:33 -0500
+
+  * Make old comm. system usages an error unless old_comm_usage_is_ok is set
+    (Corelight)
+
 2.5-667 | 2018-06-15 15:30:11 -0500
 
   * Add --disable-broker-tests configure option (Corelight)

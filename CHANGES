@@ -1,4 +1,8 @@
 
+2.5-667 | 2018-06-15 15:30:11 -0500
+
+  * Add --disable-broker-tests configure option (Corelight)
+
 2.5-663 | 2018-06-14 12:51:28 -0500
 
   * Add Broker::max_threads and Broker::max_sleep tuning options,

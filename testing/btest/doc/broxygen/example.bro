@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -X broxygen.config %INPUT
+# @TEST-EXEC: unset BRO_DISABLE_BROXYGEN; bro -X broxygen.config %INPUT
 # @TEST-EXEC: btest-diff example.rst
 
 @TEST-START-FILE broxygen.config

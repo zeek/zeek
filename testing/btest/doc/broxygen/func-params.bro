@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b -X broxygen.config %INPUT
+# @TEST-EXEC: unset BRO_DISABLE_BROXYGEN; bro -b -X broxygen.config %INPUT
 # @TEST-EXEC: btest-diff autogen-reST-func-params.rst
 
 @TEST-START-FILE broxygen.config

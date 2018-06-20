@@ -2,7 +2,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 %}
 
-%expect 78
+%expect 77
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
@@ -49,13 +49,12 @@
 %left '$' '[' ']' '(' ')' TOK_HAS_FIELD TOK_HAS_ATTR
 
 %type <b> opt_no_test opt_no_test_block opt_deprecated
-%type <str> TOK_ID TOK_PATTERN_TEXT single_pattern
+%type <str> TOK_ID TOK_PATTERN_TEXT
 %type <id> local_id global_id def_global_id event_id global_or_event_id resolve_id begin_func
 %type <id_l> local_id_list
 %type <ic> init_class
 %type <expr> opt_init
 %type <val> TOK_CONSTANT
-%type <re> pattern
 %type <expr> expr opt_expr init anonymous_function
 %type <event_expr> event
 %type <stmt> stmt stmt_list func_body for_head
@@ -720,11 +719,15 @@ expr:
 			$$ = new ConstExpr($1);
 			}
 
-	|	pattern
+	|	'/' { begin_RE(); } TOK_PATTERN_TEXT { end_RE(); } '/'
 			{
-			set_location(@1);
-			$1->Compile();
-			$$ = new ConstExpr(new PatternVal($1));
+			set_location(@3);
+
+			RE_Matcher* re = new RE_Matcher($3);
+			delete [] $3;
+
+			re->Compile();
+			$$ = new ConstExpr(new PatternVal(re));
 			}
 
 	|       '|' expr '|'	%prec '('
@@ -752,25 +755,6 @@ opt_expr_list:
 		expr_list
 	|
 		{ $$ = new ListExpr(); }
-	;
-
-pattern:
-		pattern '|' single_pattern
-			{
-			$1->AddPat($3);
-			delete [] $3;
-			}
-
-	|	single_pattern
-			{
-			$$ = new RE_Matcher($1);
-			delete [] $1;
-			}
-	;
-
-single_pattern:
-		'/' { begin_RE(); } TOK_PATTERN_TEXT { end_RE(); } '/'
-			{ $$ = $3; }
 	;
 
 enum_body:

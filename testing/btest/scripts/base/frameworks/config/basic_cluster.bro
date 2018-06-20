@@ -2,7 +2,10 @@
 # @TEST-EXEC: sleep 1
 # @TEST-EXEC: btest-bg-run worker-1  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-1 bro %INPUT
 # @TEST-EXEC: btest-bg-run worker-2  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-2 bro %INPUT
-# @TEST-EXEC: btest-bg-wait 10
+# @TEST-EXEC: btest-bg-wait 15
+# @TEST-EXEC: btest-diff manager-1/.stdout
+# @TEST-EXEC: btest-diff worker-1/.stdout
+# @TEST-EXEC: btest-diff worker-2/.stdout
 
 @load base/frameworks/config
 
@@ -24,10 +27,6 @@ export {
 
 global n = 0;
 
-event bro_init() &priority=5
-	{
-	}
-
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	{
 	terminate();
@@ -46,7 +45,26 @@ event ready_for_data()
 	Config::set_value("testport", 44/tcp);
 	Config::set_value("teststring", "b", "comment");
 	}
+
 @endif
+
+event die()
+	{
+	terminate();
+	}
+
+function option_changed(ID: string, new_value: any, location: string): any
+	{
+	print "option changed", ID, new_value, location;
+	schedule 5sec { die() };
+	return new_value;
+	}
+
+event bro_init() &priority=5
+	{
+	Option::set_change_handler("testport", option_changed, -100);
+	Option::set_change_handler("teststring", option_changed, -100);
+	}
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
 

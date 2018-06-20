@@ -48,7 +48,6 @@ struct val_converter {
 	using result_type = Val*;
 
 	BroType* type;
-	bool require_log_attr;
 
 	result_type operator()(broker::none)
 		{
@@ -379,9 +378,6 @@ struct val_converter {
 
 			for ( auto i = 0u; i < static_cast<size_t>(rt->NumFields()); ++i )
 				{
-				if ( require_log_attr && ! rt->FieldDecl(i)->FindAttr(ATTR_LOG) )
-					continue;
-
 				if ( idx >= a.size() )
 					{
 					Unref(rval);
@@ -774,9 +770,12 @@ struct type_checker {
 		}
 };
 
-Val* bro_broker::data_to_val(broker::data d, BroType* type, bool require_log_attr)
+Val* bro_broker::data_to_val(broker::data d, BroType* type)
 	{
-	return broker::visit(val_converter{type, require_log_attr}, std::move(d));
+	if ( type->Tag() == TYPE_ANY )
+		return bro_broker::make_data_val(move(d));
+
+	return broker::visit(val_converter{type}, std::move(d));
 	}
 
 broker::expected<broker::data> bro_broker::val_to_data(Val* v)
@@ -1132,12 +1131,12 @@ broker::data& bro_broker::opaque_field_to_data(RecordVal* v, Frame* f)
 
 bool bro_broker::DataVal::canCastTo(BroType* t) const
 	{
-	return broker::visit(type_checker{type}, data);
+	return broker::visit(type_checker{t}, data);
 	}
 
 Val* bro_broker::DataVal::castTo(BroType* t)
 	{
-	return data_to_val(data, t, false);
+	return data_to_val(data, t);
 	}
 
 IMPLEMENT_SERIAL(bro_broker::DataVal, SER_COMM_DATA_VAL);

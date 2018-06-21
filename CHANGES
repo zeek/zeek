@@ -1,4 +1,12 @@
 
+2.5-671 | 2018-06-21 11:55:39 -0500
+
+  * Add ability for BroControl to skip cluster setup (Corelight)
+
+  * BIT-1938: fix crash in Broker manager shutdown (Corelight)
+
+  * Disable broxygen when running unit tests (Daniel Thayer)
+
 2.5-668 | 2018-06-15 17:14:33 -0500
 
   * Make old comm. system usages an error unless old_comm_usage_is_ok is set

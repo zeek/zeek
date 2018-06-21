@@ -16,7 +16,7 @@ New Functionality
   to the version in 2.5), and much of its implementation has been
   redone. There's a new script-level "broker" framework that
   supersedes the old "communication" framework, which is now
-  depracated. The "cluster" and "control" frameworks have been ported
+  deprecated. The "cluster" and "control" frameworks have been ported
   to Broker; same for BroControl. For more about the new Broker
   framework, see doc/frameworks/broker.rst (there's also guide there
   for porting existing Bro scripts to Broker). For more about Broker
@@ -252,7 +252,7 @@ New Functionality
 Changed Functionality
 ---------------------
 
-  - ALl communication is now handled through Broker, requiring changes
+  - All communication is now handled through Broker, requiring changes
     to existing scripts to port them over to the new API. The Broker
     framework documentation comes with a porting guide.
 

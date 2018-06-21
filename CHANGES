@@ -1,4 +1,9 @@
 
+2.5-679 | 2018-06-21 16:00:48 -0500
+
+  * Add support for bitwise operations (&, |, ^, ~) on "count" values.
+    (Vern Paxson)
+
 2.5-671 | 2018-06-21 11:55:39 -0500
 
   * Add ability for BroControl to skip cluster setup (Corelight)
@@ -55,7 +60,6 @@
 2.5-650 | 2018-06-06 16:20:18 -0500
 
   * Improve Broker performance (Corelight)
->>>>>>> b51e6f39ddc641811d4875cda4543d3a60fb5a63
 
 2.5-648 | 2018-06-05 17:32:47 -0500
 

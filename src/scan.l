@@ -193,7 +193,7 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 	RET_CONST(new SubNetVal(IPPrefix(IPAddr(ip), len)))
 }
 
-[!%*/+\-,:;<=>?()\[\]{}~$|]	return yytext[0];
+[!%*/+\-,:;<=>?()\[\]{}~$|&^]	return yytext[0];
 
 "--"	return TOK_DECR;
 "++"	return TOK_INCR;
@@ -206,8 +206,8 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 ">="	return TOK_GE;
 "<="	return TOK_LE;
 
-"&&"	return TOK_AND;
-"||"	return TOK_OR;
+"&&"	return TOK_AND_AND;
+"||"	return TOK_OR_OR;
 
 add	return TOK_ADD;
 addr	return TOK_ADDR;

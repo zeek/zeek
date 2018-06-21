@@ -245,6 +245,10 @@ New Functionality
 - Bro can now decrypt Kerberos tickets, and retrieve the authentication from
   them, given a suitable keytab file.
 
+- Added support for bitwise operations on "count" values.  '&', '|' and
+  '^' are binary "and", "or" and "xor" operators, and '~' is a unary
+  ones-complement operator.
+
 Changed Functionality
 ---------------------
 

@@ -226,7 +226,9 @@ void Manager::Terminate()
 	FlushLogBuffers();
 
 	for ( auto& p : bstate->endpoint.peers() )
-		bstate->endpoint.unpeer(p.peer.network->address, p.peer.network->port);
+		if ( p.peer.network )
+			bstate->endpoint.unpeer(p.peer.network->address,
+			                        p.peer.network->port);
 
 	bstate->endpoint.shutdown();
 	}

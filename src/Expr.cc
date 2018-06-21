@@ -1695,7 +1695,10 @@ BoolExpr::BoolExpr(BroExprTag arg_tag, Expr* arg_op1, Expr* arg_op2)
 		}
 
 	else if ( bt1 == TYPE_PATTERN && bt2 == bt1 )
+		{
+		reporter->Warning("&& and || operators deprecated for pattern operands");
 		SetType(base_type(TYPE_PATTERN));
+		}
 
 	else
 		ExprError("requires boolean operands");

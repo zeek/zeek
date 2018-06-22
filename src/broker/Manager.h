@@ -148,33 +148,41 @@ public:
 	bool PublishEvent(std::string topic, RecordVal* ev);
 
 	/**
-	 * Sends an event to any interested peers, who, upon receipt, immediately
-	 * republish the event to a new set of topics.
+	 * Sends an event to any interested peers, who, upon receipt,
+	 * republishes the event to a new set of topics and optionally
+	 * calls event handlers.
 	 * @param first_topic the first topic to use when publishing the event
 	 * @param relay_topics the set of topics the receivers will use to
 	 * republish the event.  The event is relayed at most a single hop.
 	 * @param name the name of the event
 	 * @param args the event's arguments
+	 * @param handle_on_relayer whether they relaying-node should call event
+	 * handlers.
 	 * @return true if the message is sent successfully.
 	 */
 	bool RelayEvent(std::string first_topic,
 					broker::set relay_topics,
 					std::string name,
-					broker::vector args);
+					broker::vector args,
+					bool handle_on_relayer);
 
 	/**
-	 * Sends an event to any interested peers, who, upon receipt, immediately
-	 * republish the event to a new set of topics.
+	 * Sends an event to any interested peers, who, upon receipt,
+	 * republishes the event to a new set of topics and optionally
+	 * calls event handlers.
 	 * @param first_topic the first topic to use when publishing the event
 	 * @param relay_topics the set of topics the receivers will use to
 	 * republish the event.  The event is relayed at most a single hop.
 	 * @param ev the event and its arguments to send to peers, in the form of
 	 * a Broker::Event record type.
+	 * @param handle_on_relayer whether they relaying-node should call event
+	 * handlers.
 	 * @return true if the message is sent successfully.
 	 */
 	bool RelayEvent(std::string first_topic,
 					std::set<std::string> relay_topics,
-					RecordVal* ev);
+					RecordVal* ev,
+					bool handle_on_relayer);
 
 	/**
 	 * Send a message to create a log stream to any interested peers.
@@ -331,17 +339,24 @@ public:
 
 private:
 
+	class BrokerConfig : public broker::configuration {
+	public:
+		BrokerConfig(broker::broker_options options);
+	};
+
 	class BrokerState {
 	public:
-		BrokerState(broker::broker_options options);
+		BrokerState(BrokerConfig config);
 		broker::endpoint endpoint;
 		broker::subscriber subscriber;
 		broker::status_subscriber status_subscriber;
 	};
 
 	void DispatchMessage(broker::data msg);
+	void ProcessEvent(std::string name, broker::vector args);
 	void ProcessEvent(broker::bro::Event ev);
 	void ProcessRelayEvent(broker::bro::RelayEvent re);
+	void ProcessHandleAndRelayEvent(broker::bro::HandleAndRelayEvent ev);
 	bool ProcessLogCreate(broker::bro::LogCreate lc);
 	bool ProcessLogWrite(broker::bro::LogWrite lw);
 	bool ProcessIdentifierUpdate(broker::bro::IdentifierUpdate iu);
@@ -404,6 +419,8 @@ private:
 	Stats statistics;
 	double next_timestamp;
 	bool reading_pcaps;
+	int peer_count;
+
 	static int script_scope;
 
 	static VectorType* vector_of_data_type;

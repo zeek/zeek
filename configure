@@ -55,6 +55,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --disable-auxtools     don't build or install auxiliary tools
     --disable-perftools    don't try to build with Google Perftools
     --disable-python       don't try to build python bindings for broker
+    --disable-broker-tests don'e try to build Broker unit tests
 
   Required Packages in Non-Standard Locations:
     --with-openssl=PATH    path to OpenSSL install root
@@ -72,6 +73,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
 
   Optional Packages in Non-Standard Locations:
     --with-geoip=PATH      path to the libGeoIP install root
+    --with-krb5=PATH       path to krb5 install root
     --with-perftools=PATH  path to Google Perftools install root
     --with-jemalloc=PATH   path to jemalloc install root
     --with-python-lib=PATH path to libpython
@@ -226,6 +228,9 @@ while [ $# -ne 0 ]; do
         --disable-python)
             append_cache_entry DISABLE_PYTHON_BINDINGS     BOOL   true
             ;;
+        --disable-broker-tests)
+            append_cache_entry BROKER_DISABLE_TESTS     BOOL   true
+            ;;
         --with-openssl=*)
             append_cache_entry OPENSSL_ROOT_DIR PATH $optarg
             ;;
@@ -249,6 +254,9 @@ while [ $# -ne 0 ]; do
             ;;
         --with-geoip=*)
             append_cache_entry LibGeoIP_ROOT_DIR PATH $optarg
+            ;;
+        --with-krb5=*)
+            append_cache_entry LibKrb5_ROOT_DIR PATH $optarg
             ;;
         --with-perftools=*)
             append_cache_entry GooglePerftools_ROOT_DIR PATH $optarg

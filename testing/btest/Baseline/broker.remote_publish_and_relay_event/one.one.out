@@ -1,0 +1,3 @@
+sender added peer: endpoint=127.0.0.1 msg=received handshake from remote core
+got ready event
+sender lost peer: endpoint=127.0.0.1 msg=lost remote peer

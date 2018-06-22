@@ -21,8 +21,10 @@ const char* expr_name(BroExprTag t)
 	static const char* expr_names[int(NUM_EXPRS)] = {
 		"name", "const",
 		"(*)",
-		"++", "--", "!", "+", "-",
-		"+", "-", "+=", "-=", "*", "/", "%", "&&", "||",
+		"++", "--", "!", "~", "+", "-",
+		"+", "-", "+=", "-=", "*", "/", "%",
+		"&", "|", "^",
+		"&&", "||",
 		"<", "<=", "==", "!=", ">=", ">", "?:", "ref",
 		"=", "~", "[]", "$", "?$", "[=]",
 		"table()", "set()", "vector()",
@@ -702,6 +704,12 @@ Val* BinaryExpr::Fold(Val* v1, Val* v2) const
 	else \
 		Internal("bad type in BinaryExpr::Fold");
 
+#define DO_UINT_FOLD(op) \
+	if ( is_unsigned ) \
+		u3 = u1 op u2; \
+	else \
+		Internal("bad type in BinaryExpr::Fold");
+
 #define DO_FOLD(op) \
 	if ( is_integral ) \
 		i3 = i1 op i2; \
@@ -775,8 +783,12 @@ Val* BinaryExpr::Fold(Val* v1, Val* v2) const
 
 		break;
 
-	case EXPR_AND:		DO_INT_FOLD(&&); break;
-	case EXPR_OR:		DO_INT_FOLD(||); break;
+	case EXPR_AND:		DO_UINT_FOLD(&); break;
+	case EXPR_OR:		DO_UINT_FOLD(|); break;
+	case EXPR_XOR:		DO_UINT_FOLD(^); break;
+
+	case EXPR_AND_AND:	DO_INT_FOLD(&&); break;
+	case EXPR_OR_OR:	DO_INT_FOLD(||); break;
 
 	case EXPR_LT:		DO_INT_VAL_FOLD(<); break;
 	case EXPR_LE:		DO_INT_VAL_FOLD(<=); break;
@@ -1072,6 +1084,39 @@ bool IncrExpr::DoSerialize(SerialInfo* info) const
 	}
 
 bool IncrExpr::DoUnserialize(UnserialInfo* info)
+	{
+	DO_UNSERIALIZE(UnaryExpr);
+	return true;
+	}
+
+ComplementExpr::ComplementExpr(Expr* arg_op) : UnaryExpr(EXPR_COMPLEMENT, arg_op)
+	{
+	if ( IsError() )
+		return;
+
+	BroType* t = op->Type();
+	TypeTag bt = t->Tag();
+
+	if ( bt != TYPE_COUNT )
+		ExprError("requires \"count\" operand");
+	else
+		SetType(base_type(TYPE_COUNT));
+	}
+
+Val* ComplementExpr::Fold(Val* v) const
+	{
+	return new Val(~ v->InternalUnsigned(), type->Tag());
+	}
+
+IMPLEMENT_SERIAL(ComplementExpr, SER_COMPLEMENT_EXPR);
+
+bool ComplementExpr::DoSerialize(SerialInfo* info) const
+	{
+	DO_SERIALIZE(SER_COMPLEMENT_EXPR, UnaryExpr);
+	return true;
+	}
+
+bool ComplementExpr::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(UnaryExpr);
 	return true;
@@ -1670,14 +1715,14 @@ Val* BoolExpr::DoSingleEval(Frame* f, Val* v1, Expr* op2) const
 		RE_Matcher* re1 = v1->AsPattern();
 		RE_Matcher* re2 = v2->AsPattern();
 
-		RE_Matcher* res = tag == EXPR_AND ?
+		RE_Matcher* res = tag == EXPR_AND_AND ?
 			RE_Matcher_conjunction(re1, re2) :
 			RE_Matcher_disjunction(re1, re2);
 
 		return new PatternVal(res);
 		}
 
-	if ( tag == EXPR_AND )
+	if ( tag == EXPR_AND_AND )
 		{
 		if ( v1->IsZero() )
 			return v1;
@@ -1741,8 +1786,8 @@ Val* BoolExpr::Eval(Frame* f) const
 
 		VectorVal* result = 0;
 
-		// It's either and EXPR_AND or an EXPR_OR.
-		bool is_and = (tag == EXPR_AND);
+		// It's either and EXPR_AND_AND or an EXPR_OR_OR.
+		bool is_and = (tag == EXPR_AND_AND);
 
 		if ( scalar_v->IsZero() == is_and )
 			{
@@ -1783,7 +1828,7 @@ Val* BoolExpr::Eval(Frame* f) const
 		Val* op2 = vec_v2->Lookup(i);
 		if ( op1 && op2 )
 			{
-			bool local_result = (tag == EXPR_AND) ?
+			bool local_result = (tag == EXPR_AND_AND) ?
 				(! op1->IsZero() && ! op2->IsZero()) :
 				(! op1->IsZero() || ! op2->IsZero());
 
@@ -1808,6 +1853,49 @@ bool BoolExpr::DoSerialize(SerialInfo* info) const
 	}
 
 bool BoolExpr::DoUnserialize(UnserialInfo* info)
+	{
+	DO_UNSERIALIZE(BinaryExpr);
+	return true;
+	}
+
+BitExpr::BitExpr(BroExprTag arg_tag, Expr* arg_op1, Expr* arg_op2)
+: BinaryExpr(arg_tag, arg_op1, arg_op2)
+	{
+	if ( IsError() )
+		return;
+
+	TypeTag bt1 = op1->Type()->Tag();
+	if ( IsVector(bt1) )
+		bt1 = op1->Type()->AsVectorType()->YieldType()->Tag();
+
+	TypeTag bt2 = op2->Type()->Tag();
+	if ( IsVector(bt2) )
+		bt2 = op2->Type()->AsVectorType()->YieldType()->Tag();
+
+	if ( (bt1 == TYPE_COUNT || bt1 == TYPE_COUNTER) &&
+	     (bt2 == TYPE_COUNT || bt2 == TYPE_COUNTER) )
+		{
+		if ( bt1 == TYPE_COUNTER && bt2 == TYPE_COUNTER )
+			ExprError("cannot apply a bitwise operator to two \"counter\" operands");
+		else if ( is_vector(op1) || is_vector(op2) )
+			SetType(new VectorType(base_type(TYPE_COUNT)));
+		else
+			SetType(base_type(TYPE_COUNT));
+		}
+
+	else
+		ExprError("requires \"count\" operands");
+	}
+
+IMPLEMENT_SERIAL(BitExpr, SER_BIT_EXPR);
+
+bool BitExpr::DoSerialize(SerialInfo* info) const
+	{
+	DO_SERIALIZE(SER_BIT_EXPR, BinaryExpr);
+	return true;
+	}
+
+bool BitExpr::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(BinaryExpr);
 	return true;

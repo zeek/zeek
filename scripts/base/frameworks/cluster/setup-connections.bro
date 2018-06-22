@@ -44,6 +44,9 @@ function connect_peers_with_type(node_type: NodeType)
 
 event bro_init() &priority=-10
 	{
+	if ( getenv("BROCTL_CHECK_CONFIG") != "" )
+		return;
+
 	local self = nodes[node];
 
 	for ( i in registered_pools )

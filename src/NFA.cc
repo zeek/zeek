@@ -55,7 +55,10 @@ void NFA_State::AddXtionsTo(NFA_state_list* ns)
 NFA_State* NFA_State::DeepCopy()
 	{
 	if ( mark )
+		{
+		Ref(mark);
 		return mark;
+		}
 
 	NFA_State* copy = ccl ? new NFA_State(ccl) : new NFA_State(sym, 0);
 	SetMark(copy);

@@ -113,21 +113,18 @@ static inline Val* get_option(const char* option)
 	return id->ID_Val();
 	}
 
-class configuration : public broker::configuration {
-public:
-	configuration(broker::broker_options options)
-		: broker::configuration(options)
-		{
-		openssl_cafile = get_option("Broker::ssl_cafile")->AsString()->CheckString();
-		openssl_capath = get_option("Broker::ssl_capath")->AsString()->CheckString();
-		openssl_certificate = get_option("Broker::ssl_certificate")->AsString()->CheckString();
-		openssl_key = get_option("Broker::ssl_keyfile")->AsString()->CheckString();
-		openssl_passphrase = get_option("Broker::ssl_passphrase")->AsString()->CheckString();
-		}
-};
+Manager::BrokerConfig::BrokerConfig(broker::broker_options options)
+	: broker::configuration(options)
+	{
+	openssl_cafile = get_option("Broker::ssl_cafile")->AsString()->CheckString();
+	openssl_capath = get_option("Broker::ssl_capath")->AsString()->CheckString();
+	openssl_certificate = get_option("Broker::ssl_certificate")->AsString()->CheckString();
+	openssl_key = get_option("Broker::ssl_keyfile")->AsString()->CheckString();
+	openssl_passphrase = get_option("Broker::ssl_passphrase")->AsString()->CheckString();
+	}
 
-Manager::BrokerState::BrokerState(broker::broker_options options)
-	: endpoint(configuration(options)),
+Manager::BrokerState::BrokerState(BrokerConfig config)
+	: endpoint(std::move(config)),
 	  subscriber(endpoint.make_subscriber({}, SUBSCRIBER_MAX_QSIZE)),
 	  status_subscriber(endpoint.make_status_subscriber(true))
 	{
@@ -136,6 +133,7 @@ Manager::BrokerState::BrokerState(broker::broker_options options)
 Manager::Manager(bool reading_pcaps)
 	{
 	bound_port = 0;
+	peer_count = 0;
 
 	next_timestamp = 1;
 	SetIdle(false);
@@ -172,7 +170,43 @@ void Manager::InitPostScript()
 	options.forward = get_option("Broker::forward_messages")->AsBool();
 	options.use_real_time = ! reading_pcaps;
 
-	bstate = std::make_shared<BrokerState>(options);
+	BrokerConfig config{std::move(options)};
+	auto max_threads = get_option("Broker::max_threads")->AsCount();
+	auto max_sleep = get_option("Broker::max_sleep")->AsCount();
+
+	if ( max_threads )
+		config.scheduler_max_threads = max_threads;
+	else
+		{
+		// On high-core-count systems, spawning one thread per core
+		// can lead to significant performance problems even if most
+		// threads are under-utilized.  Related:
+		// https://github.com/actor-framework/actor-framework/issues/699
+		if ( reading_pcaps )
+			config.scheduler_max_threads = 2u;
+		else
+			{
+			auto hc = std::thread::hardware_concurrency();
+
+			if ( hc > 8u )
+				hc = 8u;
+			else if ( hc < 4u)
+				hc = 4u;
+
+			config.scheduler_max_threads = hc;
+			}
+		}
+
+	if ( max_sleep )
+		config.work_stealing_relaxed_sleep_duration_us = max_sleep;
+	else
+		// 64ms is just an arbitrary amount derived from testing
+		// the overhead of a unused CAF actor system on a 32-core system.
+		// Performance was within 2% of baseline timings (w/o CAF)
+		// when using this sleep duration.
+		config.work_stealing_relaxed_sleep_duration_us = 64000;
+
+	bstate = std::make_shared<BrokerState>(std::move(config));
 	}
 
 void Manager::Terminate()
@@ -192,7 +226,9 @@ void Manager::Terminate()
 	FlushLogBuffers();
 
 	for ( auto& p : bstate->endpoint.peers() )
-		bstate->endpoint.unpeer(p.peer.network->address, p.peer.network->port);
+		if ( p.peer.network )
+			bstate->endpoint.unpeer(p.peer.network->address,
+			                        p.peer.network->port);
 
 	bstate->endpoint.shutdown();
 	}
@@ -205,7 +241,7 @@ bool Manager::Active()
 	if ( bound_port > 0 )
 		return true;
 
-	return bstate->endpoint.peers().size();
+	return peer_count > 0;
 	}
 
 void Manager::AdvanceTime(double seconds_since_unix_epoch)
@@ -228,8 +264,17 @@ void Manager::FlushPendingQueries()
 		{
 		// possibly an infinite loop if a query can recursively
 		// generate more queries...
-		Process();
+		for ( auto& s : data_stores )
+			{
+			while ( ! s.second->proxy.mailbox().empty() )
+				{
+				auto response = s.second->proxy.receive();
+				ProcessStoreResponse(s.second, move(response));
+				}
+			}
 		}
+
+	SetIdle(false);
 	}
 
 uint16_t Manager::Listen(const string& addr, uint16_t port)
@@ -301,7 +346,7 @@ bool Manager::PublishEvent(string topic, std::string name, broker::vector args)
 	if ( bstate->endpoint.is_shutdown() )
 		return true;
 
-	if ( ! bstate->endpoint.peers().size() )
+	if ( peer_count == 0 )
 		return true;
 
 	DBG_LOG(DBG_BROKER, "Publishing event: %s",
@@ -317,7 +362,7 @@ bool Manager::PublishEvent(string topic, RecordVal* args)
 	if ( bstate->endpoint.is_shutdown() )
 		return true;
 
-	if ( ! bstate->endpoint.peers().size() )
+	if ( peer_count == 0 )
 		return true;
 
 	if ( ! args->Lookup(0) )
@@ -341,31 +386,47 @@ bool Manager::PublishEvent(string topic, RecordVal* args)
 bool Manager::RelayEvent(std::string first_topic,
                          broker::set relay_topics,
                          std::string name,
-                         broker::vector args)
+                         broker::vector args,
+                         bool handle_on_relayer)
 	{
 	if ( bstate->endpoint.is_shutdown() )
 		return true;
 
-	if ( ! bstate->endpoint.peers().size() )
+	if ( peer_count == 0 )
 		return true;
 
-	DBG_LOG(DBG_BROKER, "Publishing relay event: %s",
+	DBG_LOG(DBG_BROKER, "Publishing %s-relay event: %s",
+			handle_on_relayer ? "handle" : "",
 	        RenderEvent(first_topic, name, args).c_str());
-	broker::bro::RelayEvent msg(std::move(relay_topics), std::move(name),
-	                            std::move(args));
-	bstate->endpoint.publish(std::move(first_topic), std::move(msg));
+
+	if ( handle_on_relayer )
+		{
+		broker::bro::HandleAndRelayEvent msg(std::move(relay_topics),
+		                                     std::move(name),
+		                                     std::move(args));
+		bstate->endpoint.publish(std::move(first_topic), std::move(msg));
+		}
+	else
+		{
+		broker::bro::RelayEvent msg(std::move(relay_topics),
+		                            std::move(name),
+		                            std::move(args));
+		bstate->endpoint.publish(std::move(first_topic), std::move(msg));
+		}
+
 	++statistics.num_events_outgoing;
 	return true;
 	}
 
 bool Manager::RelayEvent(std::string first_topic,
                          std::set<std::string> relay_topics,
-                         RecordVal* args)
+                         RecordVal* args,
+                         bool handle_on_relayer)
 	{
 	if ( bstate->endpoint.is_shutdown() )
 		return true;
 
-	if ( ! bstate->endpoint.peers().size() )
+	if ( peer_count == 0 )
 		return true;
 
 	if ( ! args->Lookup(0) )
@@ -389,7 +450,7 @@ bool Manager::RelayEvent(std::string first_topic,
 		topic_set.emplace(std::move(t));
 
 	return RelayEvent(first_topic, std::move(topic_set), event_name,
-					  std::move(xs));
+					  std::move(xs), handle_on_relayer);
 	}
 
 bool Manager::PublishIdentifier(std::string topic, std::string id)
@@ -397,7 +458,7 @@ bool Manager::PublishIdentifier(std::string topic, std::string id)
 	if ( bstate->endpoint.is_shutdown() )
 		return true;
 
-	if ( ! bstate->endpoint.peers().size() )
+	if ( peer_count == 0 )
 		return true;
 
 	ID* i = global_scope()->Lookup(id.c_str());
@@ -437,7 +498,7 @@ bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer,
 	if ( bstate->endpoint.is_shutdown() )
 		return true;
 
-	if ( ! bstate->endpoint.peers().size() )
+	if ( peer_count == 0 )
 		return true;
 
 	auto stream_id = stream->Type()->AsEnumType()->Lookup(stream->AsEnum());
@@ -491,7 +552,7 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 	if ( bstate->endpoint.is_shutdown() )
 		return true;
 
-	if ( ! bstate->endpoint.peers().size() )
+	if ( peer_count == 0 )
 		return true;
 
 	auto stream_id_num = stream->AsEnum();
@@ -820,6 +881,10 @@ void Manager::DispatchMessage(broker::data msg)
 		ProcessRelayEvent(std::move(msg));
 		break;
 
+	case broker::bro::Message::Type::HandleAndRelayEvent:
+		ProcessHandleAndRelayEvent(std::move(msg));
+		break;
+
 	case broker::bro::Message::Type::LogCreate:
 		ProcessLogCreate(std::move(msg));
 		break;
@@ -907,23 +972,23 @@ void Manager::Process()
 	SetIdle(! had_input);
 	}
 
-void Manager::ProcessEvent(broker::bro::Event ev)
+
+void Manager::ProcessEvent(std::string name, broker::vector args)
 	{
-	DBG_LOG(DBG_BROKER, "Received event: %s", RenderMessage(ev).c_str());
-
+	DBG_LOG(DBG_BROKER, "Process event: %s %s",
+			name.data(), RenderMessage(args).data());
 	++statistics.num_events_incoming;
+	auto handler = event_registry->Lookup(name.data());
 
-	auto handler = event_registry->Lookup(ev.name().c_str());
 	if ( ! handler )
 		return;
 
-	auto& args = ev.args();
 	auto arg_types = handler->FType(false)->ArgTypes()->Types();
 
 	if ( static_cast<size_t>(arg_types->length()) != args.size() )
 		{
 		reporter->Warning("got event message '%s' with invalid # of args,"
-				  " got %zd, expected %d", ev.name().data(), args.size(),
+				  " got %zd, expected %d", name.data(), args.size(),
 				  arg_types->length());
 		return;
 		}
@@ -942,7 +1007,7 @@ void Manager::ProcessEvent(broker::bro::Event ev)
 			{
 			reporter->Warning("failed to convert remote event '%s' arg #%d,"
 			                  " got %s, expected %s",
-			                  ev.name().data(), i, got_type,
+			                  name.data(), i, got_type,
 			                  type_name(expected_type->Tag()));
 			break;
 			}
@@ -954,10 +1019,27 @@ void Manager::ProcessEvent(broker::bro::Event ev)
 		delete_vals(vl);
 	}
 
+void Manager::ProcessEvent(broker::bro::Event ev)
+	{
+	ProcessEvent(std::move(ev.name()), std::move(ev.args()));
+	}
+
 void Manager::ProcessRelayEvent(broker::bro::RelayEvent ev)
 	{
 	DBG_LOG(DBG_BROKER, "Received relay event: %s", RenderMessage(ev).c_str());
 	++statistics.num_events_incoming;
+
+	for ( auto& t : ev.topics() )
+		PublishEvent(std::move(broker::get<std::string>(t)),
+		             std::move(ev.name()),
+		             std::move(ev.args()));
+	}
+
+void Manager::ProcessHandleAndRelayEvent(broker::bro::HandleAndRelayEvent ev)
+	{
+	DBG_LOG(DBG_BROKER, "Received handle-relay event: %s",
+	        RenderMessage(ev).c_str());
+	ProcessEvent(ev.name(), ev.args());
 
 	for ( auto& t : ev.topics() )
 		PublishEvent(std::move(broker::get<std::string>(t)),
@@ -1148,16 +1230,19 @@ void Manager::ProcessStatus(broker::status stat)
 		break;
 
 	case broker::sc::peer_added:
-	        assert(ctx);
-	        log_mgr->SendAllWritersTo(*ctx);
+		++peer_count;
+		assert(ctx);
+		log_mgr->SendAllWritersTo(*ctx);
 		event = Broker::peer_added;
 		break;
 
 	case broker::sc::peer_removed:
+		--peer_count;
 		event = Broker::peer_removed;
 		break;
 
 	case broker::sc::peer_lost:
+		--peer_count;
 		event = Broker::peer_lost;
 		break;
 	}
@@ -1453,11 +1538,7 @@ bool Manager::TrackStoreQuery(StoreHandleVal* handle, broker::request_id id,
 
 const Stats& Manager::GetStatistics()
 	{
-	if ( bstate->endpoint.is_shutdown() )
-		statistics.num_peers = 0;
-	else
-		statistics.num_peers = bstate->endpoint.peers().size();
-
+	statistics.num_peers = peer_count;
 	statistics.num_stores = data_stores.size();
 	statistics.num_pending_queries = pending_queries.size();
 

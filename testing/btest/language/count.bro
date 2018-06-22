@@ -47,6 +47,17 @@ event bro_init()
 	test_case( "assignment operator", c2 == 8 );
 	c2 -= 2;
 	test_case( "assignment operator", c2 == 6 );
+	test_case( "bitwise and", c2 & 0x4 == 0x4 );
+	test_case( "bitwise and", c4 & 0x4 == 0x4 );
+	test_case( "bitwise and", c8 & 0x4 == 0x0 );
+	test_case( "bitwise or", c2 | 0x4 == c2 );
+	test_case( "bitwise or", c4 | 0x4 == c4 );
+	test_case( "bitwise or", c8 | 0x4 == c7 );
+	test_case( "bitwise xor", c7 ^ 0x4 == c8 );
+	test_case( "bitwise xor", c4 ^ 0x4 == 251 );
+	test_case( "bitwise xor", c8 ^ 0x4 == c7 );
+	test_case( "bitwise complement", ~c6 == 0 );
+	test_case( "bitwise complement", ~~c4 == c4 );
 
 	# Max. value tests
 

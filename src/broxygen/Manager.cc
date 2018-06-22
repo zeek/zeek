@@ -12,7 +12,13 @@ using namespace std;
 
 static void DbgAndWarn(const char* msg)
 	{
-	reporter->InternalWarning("%s", msg);
+	if ( reporter->Errors() )
+		// We've likely already reported to real source of the problem
+		// as an error, avoid adding an additional warning which may
+		// be confusing.
+		return;
+
+	reporter->Warning("%s", msg);
 	DBG_LOG(DBG_BROXYGEN, "%s", msg);
 	}
 
@@ -22,7 +28,8 @@ static void WarnMissingScript(const char* type, const ID* id,
 	if ( script == "<command line>" )
 		return;
 
-	DbgAndWarn(fmt("Can't document %s %s, lookup of %s failed",
+	DbgAndWarn(fmt("Can't generate Broxygen doumentation for %s %s, "
+	               "lookup of %s failed",
 	               type, id->Name(), script.c_str()));
 	}
 
@@ -122,7 +129,8 @@ void Manager::Script(const string& path)
 
 	if ( scripts.GetInfo(name) )
 		{
-		DbgAndWarn(fmt("Duplicate script documentation: %s", name.c_str()));
+		DbgAndWarn(fmt("Duplicate Broxygen script documentation: %s",
+		               name.c_str()));
 		return;
 		}
 
@@ -138,7 +146,8 @@ void Manager::Script(const string& path)
 
 	if ( packages.GetInfo(name) )
 		{
-		DbgAndWarn(fmt("Duplicate package documentation: %s", name.c_str()));
+		DbgAndWarn(fmt("Duplicate Broxygen package documentation: %s",
+		               name.c_str()));
 		return;
 		}
 
@@ -155,7 +164,8 @@ void Manager::ScriptDependency(const string& path, const string& dep)
 
 	if ( dep.empty() )
 		{
-		DbgAndWarn(fmt("Empty script doc dependency: %s", path.c_str()));
+		DbgAndWarn(fmt("Empty Broxygen script doc dependency: %s",
+		               path.c_str()));
 		return;
 		}
 
@@ -165,8 +175,8 @@ void Manager::ScriptDependency(const string& path, const string& dep)
 
 	if ( ! script_info )
 		{
-		DbgAndWarn(fmt("Failed to add script doc dependency %s for %s",
-		               depname.c_str(), name.c_str()));
+		DbgAndWarn(fmt("Failed to add Broxygen script doc dependency %s "
+		               "for %s", depname.c_str(), name.c_str()));
 		return;
 		}
 
@@ -189,7 +199,7 @@ void Manager::ModuleUsage(const string& path, const string& module)
 
 	if ( ! script_info )
 		{
-		DbgAndWarn(fmt("Failed to add module usage %s in %s",
+		DbgAndWarn(fmt("Failed to add Broxygen module usage %s in %s",
 		               module.c_str(), name.c_str()));
 		return;
 		}
@@ -231,7 +241,8 @@ void Manager::StartType(ID* id)
 
 	if ( id->GetLocationInfo() == &no_location )
 		{
-		DbgAndWarn(fmt("Can't document %s, no location available", id->Name()));
+		DbgAndWarn(fmt("Can't generate broxygen doumentation for %s, "
+		               "no location available", id->Name()));
 		return;
 		}
 
@@ -323,7 +334,8 @@ void Manager::RecordField(const ID* id, const TypeDecl* field,
 
 	if ( ! idd )
 		{
-		DbgAndWarn(fmt("Can't document record field %s, unknown record: %s",
+		DbgAndWarn(fmt("Can't generate broxygen doumentation for "
+		               "record field %s, unknown record: %s",
 		               field->id, id->Name()));
 		return;
 		}
@@ -348,7 +360,8 @@ void Manager::Redef(const ID* id, const string& path)
 
 	if ( ! id_info )
 		{
-		DbgAndWarn(fmt("Can't document redef of %s, identifier lookup failed",
+		DbgAndWarn(fmt("Can't generate broxygen doumentation for "
+		               "redef of %s, identifier lookup failed",
 		               id->Name()));
 		return;
 		}

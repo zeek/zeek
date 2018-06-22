@@ -50,6 +50,13 @@ General Porting Tips
 - The ``&synchronized`` and ``&persistent`` attributes are deprecated,
   consider using `Data Stores`_ instead.
 
+- Usages of the old communications system features are all deprecated,
+  however, they also do not work in the default Bro configuration unless
+  you manually take action to set up the old communication system.
+  To aid in porting, such usages will default to raising a fatal error
+  unless you explicitly acknowledge that such usages of the old system
+  are ok.  Set the :bro:see:`old_comm_usage_is_ok`` flag in this case.
+
 - Instead of using e.g. ``Cluster::manager2worker_events`` (and all
   permutations for every node type), what you'd now use is either 
   :bro:see:`Broker::publish` or :bro:see:`Broker::auto_publish` with

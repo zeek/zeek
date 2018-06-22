@@ -22,21 +22,23 @@ type SSH_Version(is_orig: bool) = record {
 	update_version : bool = $context.connection.update_version(version, is_orig);
 };
 
-type SSH_Key_Exchange(is_orig: bool) = case $context.connection.get_version() of {
-	SSH1 -> ssh1_msg : SSH1_Key_Exchange(is_orig);
-	SSH2 -> ssh2_msg : SSH2_Key_Exchange(is_orig);
-};
+type SSH_Key_Exchange(is_orig: bool) = record {
+	packet_length: uint32;
+	key_ex: case $context.connection.get_version() of {
+		SSH1 -> ssh1_msg : SSH1_Key_Exchange(is_orig, packet_length);
+		SSH2 -> ssh2_msg : SSH2_Key_Exchange(is_orig, packet_length);
+	};
+} &length = $context.flow.get_kex_length($context.connection.get_version(), packet_length);
 
 # SSH1 constructs
 #################
 
-type SSH1_Key_Exchange(is_orig: bool) = record {
-	packet_length : uint32;
+type SSH1_Key_Exchange(is_orig: bool, packet_length: uint32) = record {
 	pad_fill      : bytestring &length = 8 - (packet_length % 8);
 	msg_type      : uint8;
 	message       : SSH1_Message(is_orig, msg_type, packet_length - 5);
 	crc           : uint32;
-} &length = packet_length + 4 + 8 - (packet_length % 8);
+} &length = $context.flow.get_kex_length($context.connection.get_version(), packet_length) - 4;
 
 type SSH1_Message(is_orig: bool, msg_type: uint8, length: uint32) = case msg_type of {
 	SSH_SMSG_PUBLIC_KEY  -> public_key  : SSH1_PUBLIC_KEY(length);
@@ -73,8 +75,7 @@ type ssh1_mp_int = record {
 
 ## SSH2
 
-type SSH2_Header(is_orig: bool) = record {
-	packet_length  : uint32;
+type SSH2_Header(is_orig: bool, packet_length: uint32) = record {
 	padding_length : uint8;
 	msg_type       : uint8;
 } &let {
@@ -82,11 +83,11 @@ type SSH2_Header(is_orig: bool) = record {
 	detach         : bool = $context.connection.update_state(ENCRYPTED, is_orig) &if(msg_type == MSG_NEWKEYS);
 };
 
-type SSH2_Key_Exchange(is_orig: bool) = record {
-	header   : SSH2_Header(is_orig);
+type SSH2_Key_Exchange(is_orig: bool, packet_length: uint32) = record {
+	header   : SSH2_Header(is_orig, packet_length);
 	payload  : SSH2_Message(is_orig, header.msg_type, header.payload_length);
 	pad      : bytestring &length=header.padding_length;
-} &length=header.packet_length + 4;
+} &length=packet_length;
 
 type SSH2_Message(is_orig: bool, msg_type: uint8, length: uint32) = case $context.connection.get_state(is_orig) of {
 	KEX_INIT   -> kex        : SSH2_KEXINIT(length, is_orig);

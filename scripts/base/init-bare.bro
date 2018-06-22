@@ -1,4 +1,4 @@
-@load base/bif/const.bif.bro
+@load base/bif/const.bif
 @load base/bif/types.bif
 
 # Type declarations
@@ -1797,9 +1797,11 @@ type gtp_delete_pdp_ctx_response_elements: record {
 };
 
 # Prototypes of Bro built-in functions.
-@load base/bif/strings.bif
 @load base/bif/bro.bif
+@load base/bif/stats.bif
 @load base/bif/reporter.bif
+@load base/bif/strings.bif
+@load base/bif/option.bif
 
 ## Deprecated. This is superseded by the new logging framework.
 global log_file_name: function(tag: string): string &redef;
@@ -4245,6 +4247,8 @@ export {
 
 module KRB;
 export {
+	## Kerberos keytab file name. Used to decrypt tickets encountered on the wire.
+	const keytab = "" &redef;
 	## KDC Options. See :rfc:`4120`
 	type KRB::KDC_Options: record {
 		## The ticket to be issued should have its forwardable flag set.
@@ -4367,6 +4371,8 @@ export {
 		cipher		: count;
 		## Cipher text of the ticket
 		ciphertext  : string &optional;
+		## Authentication info
+		authenticationinfo: string &optional;
 	};
 
 	type KRB::Ticket_Vector: vector of KRB::Ticket;
@@ -4806,6 +4812,12 @@ export {
 	const max_frag_data = 30000 &redef;
 }
 
+module NCP;
+export {
+	## The maximum number of bytes to allocate when parsing NCP frames.
+	const max_frame_size = 65536 &redef;
+}
+
 module Cluster;
 export {
 	type Cluster::Pool: record {};
@@ -4823,16 +4835,9 @@ const global_hash_seed: string = "" &redef;
 ## The maximum is currently 128 bits.
 const bits_per_uid: count = 96 &redef;
 
-# Load these frameworks here because they use fairly deep integration with
-# BiFs and script-land defined types.
-@load base/frameworks/logging
-@load base/frameworks/broker
-@load base/frameworks/input
-@load base/frameworks/analyzer
-@load base/frameworks/files
-
-@load base/bif
-
-# Load BiFs defined by plugins.
-@load base/bif/plugins
-
+## Whether usage of the old communication system is considered an error or
+## not.  The default Bro configuration no longer works with the non-Broker
+## communication system unless you have manually taken action to initialize
+## and set up the old comm. system.  Deprecation warnings are still emitted
+## when setting this flag, but they will not result in a fatal error.
+const old_comm_usage_is_ok: bool = F &redef;

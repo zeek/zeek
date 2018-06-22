@@ -91,6 +91,10 @@ Here is a more detailed description of each type:
     type, but a unary plus or minus applied to a "count" results in an
     "int".
 
+    In addition, "count" types support bitwise operations.  You can use
+    ``&``, ``|``, and ``^`` for bitwise ``and'', ``or'', and ``xor''.  You
+    can also use ``~`` for bitwise (one's) complement.
+
 .. bro:type:: double
 
     A numeric type representing a double-precision floating-point
@@ -232,6 +236,14 @@ Here is a more detailed description of each type:
 
     is false since "oob" does not appear at the start of "foobar".  The
     ``!in`` operator would yield the negation of ``in``.
+
+    Finally, you can create a disjunction (either-or) of two literal patterns
+    using the ``|`` operator.  For example::
+
+	/foo/ | /bar/ in "foobar"
+
+    yields true, like in the similar example above.  (This does not presently
+    work for variables whose values are patterns, however.)
 
 .. bro:type:: port
 
@@ -584,6 +596,9 @@ Here is a more detailed description of each type:
     "or" (``||``) operators (both operands must have same number of elements).
     The resulting vector of bool is the logical "and" (or logical "or") of
     each element of the operand vectors.
+
+    Vectors of type ``count`` can also be operands for the bitwise and/or/xor
+    operators, ``&``, ``|`` and ``^``.
 
     See the :bro:keyword:`for` statement for info on how to iterate over
     the elements in a vector.

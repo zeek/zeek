@@ -14,7 +14,7 @@ export {
 	## Default address on which to listen.
 	##
 	## .. bro:see:: Broker::listen
-	const default_listen_address = "" &redef;
+	const default_listen_address = getenv("BRO_DEFAULT_LISTEN_ADDRESS") &redef;
 
 	## Default interval to retry connecting to a peer if it cannot be made to work
 	## initially, or if it ever becomes disconnected.
@@ -50,6 +50,16 @@ export {
 	## certificate. If set, Bro will require valid certificates for
 	## all peers.
 	const ssl_keyfile = "" &redef;
+
+	## Max number of threads to use for Broker/CAF functionality.
+	## Using zero will cause this to be automatically determined
+	## based on number of available CPUs.
+	const max_threads = 0 &redef;
+
+	## Max number of microseconds for under-utilized Broker/CAF
+	## threads to sleep.  Using zero will cause this to be automatically
+	## determined or just use CAF's default setting.
+	const max_sleep = 0 &redef;
 
 	## Forward all received messages to subscribing peers.
 	const forward_messages = F &redef;

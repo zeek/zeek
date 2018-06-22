@@ -2966,6 +2966,8 @@ function merge_pattern%(p1: pattern, p2: pattern%): pattern
 		return 0;
 		}
 
+	reporter->Warning("merge_pattern() builtin-function has been deprecated");
+
 	RE_Matcher* re = new RE_Matcher();
 	re->AddPat(p1->PatternText());
 	re->AddPat(p2->PatternText());

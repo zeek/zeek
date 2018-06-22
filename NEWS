@@ -360,6 +360,9 @@ Deprecated Functionality
   corresponding to the vector v with the scalar e added to each of
   its elements, has been deprecated.
 
+- The built-in function merge_pattern() has been deprecated.  It will
+  be replaced by the '&' operator for patterns.
+
 - The undocumented feature of using "&&" and "||" operators for patterns
   has been deprecated.
 

@@ -1,0 +1,2 @@
+1499913965.846216 Broker::STATUS peer-added 127.0.0.1 XXX handshake successful
+1499913969.834114 Broker::STATUS connection-terminated 127.0.0.1 XXX lost remote peer

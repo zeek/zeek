@@ -65,7 +65,7 @@ export {
 		[9]  = "WINDOWS_CE_GUI",
 		[10] = "EFI_APPLICATION",
 		[11] = "EFI_BOOT_SERVICE_DRIVER",
-		[12] = "EFI_RUNTIME_ DRIVER",
+		[12] = "EFI_RUNTIME_DRIVER",
 		[13] = "EFI_ROM",
 		[14] = "XBOX"
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };

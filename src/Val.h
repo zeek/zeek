@@ -965,6 +965,11 @@ public:
 	unsigned int MemoryAllocation() const override;
 	void DescribeReST(ODesc* d) const override;
 
+	// Extend the underlying arrays of record instances created during
+	// parsing to match the number of fields in the record type (they may
+	// mismatch as a result of parse-time record type redefinitions.
+	static void ResizeParseTimeRecords();
+
 protected:
 	friend class Val;
 	RecordVal()	{}
@@ -976,6 +981,8 @@ protected:
 
 	RecordType* record_type;
 	BroObj* origin;
+
+	static vector<RecordVal*> parse_time_records;
 };
 
 class EnumVal : public Val {
@@ -1093,5 +1100,23 @@ extern void delete_vals(val_list* vals);
 
 // True if the given Val* has a vector type.
 inline bool is_vector(Val* v)	{ return  v->Type()->Tag() == TYPE_VECTOR; }
+
+// Returns v casted to type T if the type supports that. Returns null if not.
+// The returned value will be ref'ed.
+//
+// Note: This implements the script-level cast operator.
+extern Val* cast_value_to_type(Val* v, BroType* t);
+
+// Returns true if v can be casted to type T. If so, check_and_cast() will
+// succeed as well.
+//
+// Note: This implements the script-level type comparision operator.
+extern bool can_cast_value_to_type(const Val* v, BroType* t);
+
+// Returns true if values of type s may support casting to type t. This is
+// purely static check to weed out cases early on that will never succeed.
+// However, even this function returns true, casting may still fail for a
+// specific instance later.
+extern bool can_cast_value_to_type(const BroType* s, BroType* t);
 
 #endif

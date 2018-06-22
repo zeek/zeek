@@ -1,4 +1,310 @@
 
+2.5-679 | 2018-06-21 16:00:48 -0500
+
+  * Add support for bitwise operations (&, |, ^, ~) on "count" values.
+    (Vern Paxson)
+
+2.5-671 | 2018-06-21 11:55:39 -0500
+
+  * Add ability for BroControl to skip cluster setup (Corelight)
+
+  * BIT-1938: fix crash in Broker manager shutdown (Corelight)
+
+  * Disable broxygen when running unit tests (Daniel Thayer)
+
+2.5-668 | 2018-06-15 17:14:33 -0500
+
+  * Make old comm. system usages an error unless old_comm_usage_is_ok is set
+    (Corelight)
+
+2.5-667 | 2018-06-15 15:30:11 -0500
+
+  * Add --disable-broker-tests configure option (Corelight)
+
+2.5-663 | 2018-06-14 12:51:28 -0500
+
+  * Add Broker::max_threads and Broker::max_sleep tuning options,
+    remove Broker::max_live_threads and Broker::max_pcap threads (Corelight)
+
+  * Minor optimization to bro_broker::Manager::FlushPendingQueries (Corelight)
+
+2.5-660 | 2018-06-12 13:49:39 -0500
+
+  * Add Broker::max_live_threads and Broker::max_pcap_threads tunables
+    (Corelight)
+
+2.5-658 | 2018-06-08 16:41:07 +0000
+
+  * Allow BRO_DEFAULT_LISTEN_ADDRESS to control broker listen address.
+    This environment variable is now set to listen only on IPv4
+    loopback when running unit tests (instead of using the default
+    INADDR_ANY). (Corelight)
+
+  * Move some of the @loads out from init-bare.bro into a new
+    init-frameworks-and-bifs.bro in order to better support calling BIFs
+    (like `getenv`) from variable initializations in those particular
+    frameworks. (Corelight)
+
+2.5-655 | 2018-06-08 10:43:03 -0500
+
+  * Correct conn history field documentation (Corelight)
+
+2.5-652 | 2018-06-07 13:57:23 -0500
+
+  * GH-131: disable krb ticket decryption on non-Linux (Corelight)
+
+2.5-651 | 2018-06-07 09:57:29 -0500
+
+  * Fix signed/unsigned comparison compiler warning (Corelight)
+
+2.5-650 | 2018-06-06 16:20:18 -0500
+
+  * Improve Broker performance (Corelight)
+
+2.5-648 | 2018-06-05 17:32:47 -0500
+
+  * BIT-1936: improve Broxygen warnings (Corelight)
+
+2.5-647 | 2018-06-05 15:19:16 -0500
+
+  * Update `make doc`: don't copy broker docs (Corelight)
+
+2.5-646 | 2018-06-05 11:31:43 -0500
+
+  * Add NCP::max_frame_size tuning option (Corelight)
+
+  * Migrate NCP analyzer to use latest analyzer API (Corelight)
+
+  * Fix read at invalid address in X509 extension parser (Johanna Amann)
+
+2.5-642 | 2018-06-04 13:52:46 -0500
+
+  * Make 0 be a valid packet source timestamp (Corelight)
+
+2.5-641 | 2018-06-04 09:18:59 -0700
+
+  * Add Broker::publish_and_relay BIF
+
+    Like Broker::relay, except the relaying-node also calls event handlers. (Corelight)
+
+  * Document variable argument list BIFs using ellipsis. (Corelight).
+
+  * Support unserializing broker data into type 'any'
+
+    The receiver side will wrap the data as a Broker::Data value, which
+    can then be type-checked/cast via 'is' or 'as' operators to a specific
+    Bro type. For example:
+
+    Sender:
+
+        Broker::publish("topic", my_event, "hello")
+
+    Receiver:
+
+        event my_event(arg: any)
+            {
+            if ( arg is string )
+                print arg as string;
+            }
+
+     (Corelight)
+
+  * Fix a bug in broker data type-casting check (Corelight)
+
+  * Remove dead code in broker data/val conversion function (Corelight)
+
+  * SSH protocol now assesses the packet length at an earlier stage within binpac
+    (Andrew Woodford).
+
+  * Remove some UTF-8 characters that snuck into a few scripts. (Corelight)
+
+  * Decrypt the krb ticket and extract authentication data. (Julien Wallior)
+
+2.5-619 | 2018-06-01 11:29:15 -0500
+
+  * Relocate temporary script coverage files (Corelight)
+
+2.5-618 | 2018-06-01 10:03:24 -0500
+
+  * BIT-1635: fix `make doc` warnings (Corelight)
+
+  * Add smb2_file_sattr event (Devin Trejo)
+
+  * Add bad ARP tests (Pierre LATET)
+
+  * Fix SCT validation when invalid certificates are in chain. (Johanna Amann)
+
+2.5-611 | 2018-05-29 10:13:17 -0500
+
+  * Fix NEWS file formatting (Corelight)
+
+  * Improve Broker docs with reminder about modules and event namespace
+    scoping interactions. (Michael Dopheide)
+
+  * Change Intel framework to round-robin insertion events across proxies
+    (Corelight)
+
+  * Add a counter for number of alive nodes within a given cluster pool
+    (Corelight)
+
+  * Fix how cluster framework tracks worker count (Corelight)
+
+2.5-599 | 2018-05-23 16:50:12 -0500
+
+  * Documentation improvements/fixes (Corelight)
+
+2.5-598 | 2018-05-22 15:05:24 -0500
+
+  * Fixes for MySQL and SMB protocol parsers (Corelight)
+
+    * MySQL: the parser for this was generally broken (not following
+      the specification well) and needed many changes.  One addition is a
+      new "mysql_result_row" event that provides access to the results of
+      queries.
+
+    * SMB: the spec seems to explitly call out the omission of the
+      PrimaryDomain field on SMB_COM_SESSION_SETUP_ANDX responses (and I
+      don't see that field in pcaps either), so this may have just been a
+      typo that used to work fine in the past only due to faulty array
+      parsing behavior in binpac.
+
+  * BIT-1829: add unit test for modbus parser issue (Corelight)
+
+2.5-591 | 2018-05-22 09:19:59 -0500
+
+  * Make Reassembler::TotalSize a constant time operation (Corelight)
+
+2.5-589 | 2018-05-21 21:37:54 +0000
+
+  * Switch Bro's communication over to Broker; deprecate the old
+    communication system, including Broccoli. See NEWS for more.
+
+    (Many people contributed to this effort. Broker library: Jon
+    Siwek, Matthias Vallentin, Robin Sommer, Dominik Charousset.
+    Porting Bro to Broker: Daniel Thayer, Robin Sommer, Jon Siwek.
+    Further contributions by: Johanna Amann, Justin Azoff, Matthias
+    Fischer, Jan Grashoefer, and Seth Hall. The final integration was
+    supported by Corelight.)
+
+  * Extend switch statement to branch by type of the operand. See NEWS
+    for more. (Robin Sommer)
+
+  * Add new operators "is" and "as" for dynamic type casting and type
+    checking. See NEWS for more. (Robin Sommer)
+
+2.5-582 | 2018-05-21 13:34:16 -0500
+
+  * Update link to flex pattern docs (Corelight)
+
+  * Add non-standard experimental Google post-quantum ciphers (Johanna Amann)
+
+  * ARP: fix the l2 source address check for ARP over Wi-Fi (Pierre LALET)
+
+  * Support 802.11 monitor mode (Pierre LALET)
+
+2.5-569 | 2018-05-10 11:24:07 -0500
+
+  * BIT-1927: relocate notice/extend-email/ scripts to policy/ dir and
+    load it from local.bro to allow users to control whether it is used.
+    (Stephen Hosom)
+
+  * Sort output of the missing-file-initially.bro test (Daniel Thayer)
+
+2.5-565 | 2018-05-08 15:29:53 -0500
+
+  * BIT-1926: add unit tests for misc. HTTP patches (Corelight)
+
+  * Fix case insensitive HTTP/MIME header name comparisons
+    (Jeffrey Bencteux)
+
+  * Don't use chunked mode Transfer-Encoding with HTTP/1.0 (Jeffrey Bencteux)
+
+  * Fix handling of HTTP body length when Content-Range length differs
+    from Content-Length. (Jeffrey Bencteux)
+
+  * Decode 'x-gzip' HTTP Content-Encoding the same as 'gzip'
+    (Jeffrey Bencteux)
+
+2.5-559 | 2018-05-08 11:23:28 -0700
+
+  * Add test for dump_current_packet bif. (Johanna Amann)
+
+	* Fix dump_packet & dump_current_packet to work with several filenames.
+    (Assaf Morami)
+
+2.5-553 | 2018-05-03 14:59:53 -0500
+
+  * Make BinPAC exception handling more consistent (Vlad Grigorescu)
+
+2.5-551 | 2018-05-01 18:27:38 -0500
+
+  * Fix the ip-broken-header.bro test on macOS due to missing 'xzcat'
+    (Daniel Thayer)
+
+  * Improve reliability of the logging rotate.bro test (Daniel Thayer)
+
+  * Improve reliability of missing-file-initially.bro test (Daniel thayer)
+
+2.5-547 | 2018-05-01 18:17:14 -0500
+
+  * Update install instructions for Ubuntu 18.04 (Daniel Thayer)
+
+2.5-545 | 2018-05-01 18:09:30 -0500
+
+  * Improve canonicalization of build dir path in a coverage unit test
+    (Corelight)
+
+2.5-544 | 2018-05-01 17:57:15 -0500
+
+  * Rewrite the DHCP analyzer and accompanying script-layer API.
+    (Valerio G, Corelight)
+
+     * Reduced all DHCP events into a single dhcp_message event.
+       (removed legacy events since they weren't widely used anyway)
+     - Support many more DHCP options.
+
+     - DHCP log is completely reworked and now represents DHCP sessions
+       based on the transaction ID (and works on clusters).
+
+     - Removed the known-devices-and-hostnames.bro and known-devices.bro
+       scripts since it's generally less relevant now with the updated log.
+
+  * Change include directory search order to better support --with-openssl.
+    (Johanna Amann)
+
+2.5-535 | 2018-04-30 16:22:30 -0500
+
+  * Improve how coverage unit tests handle name of build dir (Corelight)
+
+2.5-534 | 2018-04-27 19:59:46 -0400
+
+  * Fix subnet expiration in the intel framework. (Seth Hall)
+
+  * BIT-1909: fix invalid redef'd record field accesses (Jon Siwek)
+
+2.5-527 | 2018-04-27 11:01:03 -0500
+
+  * BIT-1430: Improve cross compilation support (Corelight)
+
+    * Add --toolchain= configure option
+
+    * Add --with-bifcl= configure option
+
+    * Change --with-binpac= configure option to mean "path to binpac
+      executable"
+
+2.5-526 | 2018-04-25 11:06:50 -0500
+
+  * BIT-1914: comment out &check usages now that they emit warnings
+    and convert some to &enforce (Corelight)
+
+  * Removed the "start" parameter of the dnp3_header_block event
+    since it's always the same value. (Corelight)
+
+2.5-522 | 2018-04-25 10:48:38 -0500
+
+  * Improve dce-rpc/consts.bro operations table organization (Luciano Mammino)
+
 2.5-519 | 2018-04-20 07:46:07 -0700
 
   * Reduce number of btest threads running tests on Travis CI. (Daniel Thayer)

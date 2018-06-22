@@ -177,12 +177,12 @@ export {
 }
 
 # Internal handler for matches with no metadata available.
-global match_no_items: event(s: Seen);
+global match_remote: event(s: Seen);
 
-# Internal events for cluster data distribution.
+# Internal events for (cluster) data distribution.
 global new_item: event(item: Item);
 global remove_item: event(item: Item, purge_indicator: bool);
-global purge_item: event(item: Item);
+global remove_indicator: event(item: Item);
 
 # Optionally store metadata.  This is used internally depending on
 # if this is a cluster deployment or not.
@@ -248,7 +248,7 @@ function expire_subnet_data(data: table[subnet] of MetaDataTable, idx: subnet): 
 	for ( src in meta_tbl )
 		add metas[meta_tbl[src]];
 
-	return expire_item(cat(idx), ADDR, metas);
+	return expire_item(cat(idx), SUBNET, metas);
 	}
 
 function expire_string_data(data: table[string, Type] of MetaDataTable, idx: any): interval
@@ -357,7 +357,7 @@ function Intel::seen(s: Seen)
 			}
 		else
 			{
-			event Intel::match_no_items(s);
+			event Intel::match_remote(s);
 			}
 		}
 	}
@@ -389,9 +389,11 @@ hook extend_match(info: Info, s: Seen, items: set[Item]) &priority=5
 		}
 	}
 
-function insert(item: Item)
+# Function to insert metadata of an item. The function returns T
+# if the given indicator is new.
+function insert_meta_data(item: Item): bool
 	{
-	# Create and fill out the metadata item.
+	# Prepare the metadata entry.
 	local meta = item$meta;
 	local meta_tbl: table [string] of MetaData;
 	local is_new: bool = T;
@@ -399,11 +401,11 @@ function insert(item: Item)
 	# All intelligence is case insensitive at the moment.
 	local lower_indicator = to_lower(item$indicator);
 
-	if ( item$indicator_type == ADDR )
+	switch ( item$indicator_type )
 		{
-		local host = to_addr(item$indicator);
-		if ( have_full_data )
-			{
+		case ADDR:
+			local host = to_addr(item$indicator);
+
 			if ( host !in data_store$host_data )
 				data_store$host_data[host] = table();
 			else
@@ -414,15 +416,10 @@ function insert(item: Item)
 				}
 
 			meta_tbl = data_store$host_data[host];
-			}
+			break;
+		case SUBNET:
+			local net = to_subnet(item$indicator);
 
-		add min_data_store$host_data[host];
-		}
-	else if ( item$indicator_type == SUBNET )
-		{
-		local net = to_subnet(item$indicator);
-		if ( have_full_data )
-			{
 			if ( !check_subnet(net, data_store$subnet_data) )
 				data_store$subnet_data[net] = table();
 			else
@@ -433,14 +430,8 @@ function insert(item: Item)
 				}
 
 			meta_tbl = data_store$subnet_data[net];
-			}
-
-		add min_data_store$subnet_data[net];
-		}
-	else
-		{
-		if ( have_full_data )
-			{
+			break;
+		default:
 			if ( [lower_indicator, item$indicator_type] !in data_store$string_data )
 				data_store$string_data[lower_indicator, item$indicator_type] = table();
 			else
@@ -452,21 +443,57 @@ function insert(item: Item)
 				}
 
 			meta_tbl = data_store$string_data[lower_indicator, item$indicator_type];
-			}
+			break;
+		}
 
-		add min_data_store$string_data[lower_indicator, item$indicator_type];
+	# Insert new metadata or update if already present.
+	meta_tbl[meta$source] = meta;
+
+	return is_new;
+	}
+
+# Function to encapsulate insertion logic. The first_dispatch parameter
+# indicates whether the item might be new for other nodes.
+function _insert(item: Item, first_dispatch: bool &default = T)
+	{
+	# Assume that the item is new by default.
+	local is_new: bool = T;
+
+	# All intelligence is case insensitive at the moment.
+	local lower_indicator = to_lower(item$indicator);
+
+	# Insert indicator into MinDataStore (might exist already).
+	switch ( item$indicator_type )
+		{
+		case ADDR:
+			local host = to_addr(item$indicator);
+			add min_data_store$host_data[host];
+			break;
+		case SUBNET:
+			local net = to_subnet(item$indicator);
+			add min_data_store$subnet_data[net];
+			break;
+		default:
+			add min_data_store$string_data[lower_indicator, item$indicator_type];
+			break;
 		}
 
 	if ( have_full_data )
 		{
-		# Insert new metadata or update if already present
-		meta_tbl[meta$source] = meta;
+		# Insert new metadata or update if already present.
+		is_new = insert_meta_data(item);
 		}
 
-	if ( is_new )
-		# Trigger insert for cluster in case the item is new
-		# or insert was called on a worker
+	if ( first_dispatch && is_new )
+		# Announce a (possibly) new item if this is the first dispatch and
+		# we know it is new or have to assume that on a worker.
 		event Intel::new_item(item);
+	}
+
+function insert(item: Item)
+	{
+	# Insert possibly new item.
+	_insert(item, T);
 	}
 
 # Function to check whether an item is present.
@@ -549,12 +576,12 @@ function remove(item: Item, purge_indicator: bool)
 				break;
 			}
 		# Trigger deletion in minimal data stores
-		event Intel::purge_item(item);
+		event Intel::remove_indicator(item);
 		}
 	}
 
 # Handling of indicator removal in minimal data stores.
-event purge_item(item: Item)
+event remove_indicator(item: Item)
 	{
 	switch ( item$indicator_type )
 		{
@@ -571,4 +598,3 @@ event purge_item(item: Item)
 			break;
 		}
 	}
-

@@ -9,10 +9,7 @@
 #include "DNS_Mgr.h"
 #include "Trigger.h"
 #include "threading/Manager.h"
-
-#ifdef ENABLE_BROKER
 #include "broker/Manager.h"
-#endif
 
 uint64 killed_by_inactivity = 0;
 
@@ -226,25 +223,19 @@ void ProfileLogger::Log()
 			    ));
 		}
 
-#ifdef ENABLE_BROKER
-	auto cs = broker_mgr->ConsumeStatistics();
+	auto cs = broker_mgr->GetStatistics();
 
 	file->Write(fmt("%0.6f Comm: peers=%zu stores=%zu "
-	                "store_queries=%zu store_responses=%zu "
-	                "outgoing_conn_status=%zu incoming_conn_status=%zu "
-	                "reports=%zu\n",
-	                network_time, cs.outgoing_peer_count, cs.data_store_count,
-	                cs.pending_query_count, cs.response_count,
-	                cs.outgoing_conn_status_count, cs.incoming_conn_status_count,
-	                cs.report_count));
-
-	for ( const auto& s : cs.print_count )
-		file->Write(fmt("    %-25s prints dequeued=%zu\n", s.first.data(), s.second));
-	for ( const auto& s : cs.event_count )
-		file->Write(fmt("    %-25s events dequeued=%zu\n", s.first.data(), s.second));
-	for ( const auto& s : cs.log_count )
-		file->Write(fmt("    %-25s logs dequeued=%zu\n", s.first.data(), s.second));
-#endif
+			"pending_queries=%zu "
+			"events_in=%zu events_out=%zu "
+			"logs_in=%zu logs_out=%zu "
+			"ids_in=%zu ids_out=%zu ",
+			network_time, cs.num_peers, cs.num_stores,
+			cs.num_pending_queries,
+			cs.num_events_incoming, cs.num_events_outgoing,
+			cs.num_logs_incoming, cs.num_logs_outgoing,
+			cs.num_ids_incoming, cs.num_ids_outgoing
+		       ));
 
 	// Script-level state.
 	unsigned int size, mem = 0;

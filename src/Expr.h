@@ -47,7 +47,9 @@ typedef enum {
 	EXPR_VECTOR_COERCE,
 	EXPR_SIZE,
 	EXPR_FLATTEN,
-#define NUM_EXPRS (int(EXPR_FLATTEN) + 1)
+	EXPR_CAST,
+	EXPR_IS,
+#define NUM_EXPRS (int(EXPR_IS) + 1)
 } BroExprTag;
 
 extern const char* expr_name(BroExprTag t);
@@ -1072,6 +1074,37 @@ protected:
 	RecordAssignExpr()	{ }
 
 	DECLARE_SERIAL(RecordAssignExpr);
+};
+
+class CastExpr : public UnaryExpr {
+public:
+	CastExpr(Expr* op, BroType* t);
+
+protected:
+	friend class Expr;
+	CastExpr()	{ }
+
+	Val* Eval(Frame* f) const override;
+	void ExprDescribe(ODesc* d) const override;
+
+	DECLARE_SERIAL(CastExpr);
+};
+
+class IsExpr : public UnaryExpr {
+public:
+	IsExpr(Expr* op, BroType* t);
+	virtual ~IsExpr();
+
+protected:
+	friend class Expr;
+	IsExpr()	{ }
+
+	Val* Fold(Val* v) const override;
+	void ExprDescribe(ODesc* d) const override;
+	DECLARE_SERIAL(IsExpr);
+
+private:
+	BroType* t;
 };
 
 inline Val* Expr::ExprVal() const

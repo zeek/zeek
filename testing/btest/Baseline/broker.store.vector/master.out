@@ -1,0 +1,27 @@
+0
+T
+T
+T
+T
+4
+[data=broker::data{[hi, salutations, hello, greetings]}], [hi, salutations, hello, greetings]
+| [data=broker::data{hi}]
+| [data=broker::data{salutations}]
+| [data=broker::data{hello}]
+| [data=broker::data{greetings}]
+
+[data=broker::data{hello}]
+[data=broker::data{[hi, salutations, bah, greetings]}], [hi, salutations, bah, greetings]
+
+[data=broker::data{bah}]
+[data=broker::data{hi}]
+[data=broker::data{[hi, salutations, bah, greetings]}], [hi, salutations, bah, greetings]
+
+[data=broker::data{bah}]
+[data=broker::data{[hi, salutations, greetings]}], [hi, salutations, greetings]
+
+3
+T
+0
+[data=broker::data{[]}], []
+

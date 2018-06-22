@@ -1,7 +1,8 @@
 #include "Data.h"
 #include "broker/data.bif.h"
-#include <caf/binary_serializer.hpp>
-#include <caf/binary_deserializer.hpp>
+#include <caf/stream_serializer.hpp>
+#include <caf/stream_deserializer.hpp>
+#include <caf/streambuf.hpp>
 
 using namespace std;
 
@@ -10,6 +11,8 @@ OpaqueType* bro_broker::opaque_of_set_iterator;
 OpaqueType* bro_broker::opaque_of_table_iterator;
 OpaqueType* bro_broker::opaque_of_vector_iterator;
 OpaqueType* bro_broker::opaque_of_record_iterator;
+
+BroType* bro_broker::DataVal::script_data_type = nullptr;
 
 static broker::port::protocol to_broker_port_proto(TransportProto tp)
 	{
@@ -45,7 +48,11 @@ struct val_converter {
 	using result_type = Val*;
 
 	BroType* type;
-	bool require_log_attr;
+
+	result_type operator()(broker::none)
+		{
+		return nullptr;
+		}
 
 	result_type operator()(bool a)
 		{
@@ -96,14 +103,34 @@ struct val_converter {
 			}
 		case TYPE_FUNC:
 			{
-			auto id = lookup_ID(a.data(), GLOBAL_MODULE_NAME);
-			auto rval = id ? id->ID_Val() : nullptr;
-			Unref(id);
+			auto id = global_scope()->Lookup(a.data());
 
-			if ( rval && rval->Type()->Tag() == TYPE_FUNC )
-				return rval;
+			if ( ! id )
+				return nullptr;
 
-			return nullptr;
+			auto rval = id->ID_Val();
+
+			if ( ! rval )
+				return nullptr;
+
+			auto t = rval->Type();
+
+			if ( ! t )
+				return nullptr;
+
+			if ( t->Tag() != TYPE_FUNC )
+				return nullptr;
+
+			return rval->Ref();
+			}
+		case TYPE_OPAQUE:
+			{
+			SerializationFormat* form = new BinarySerializationFormat();
+			form->StartRead(a.data(), a.size());
+			CloneSerializer ss(form);
+			UnserialInfo uinfo(&ss);
+			uinfo.cache = false;
+			return Val::Unserialize(&uinfo, type->Tag());
 			}
 		default:
 			return nullptr;
@@ -140,20 +167,24 @@ struct val_converter {
 		return nullptr;
 		}
 
-	result_type operator()(broker::time_point& a)
+	result_type operator()(broker::timestamp& a)
 		{
-		if ( type->Tag() == TYPE_TIME )
-			return new Val(a.value, TYPE_TIME);
+		if ( type->Tag() != TYPE_TIME )
+			return nullptr;
 
-		return nullptr;
+		using namespace std::chrono;
+		auto s = duration_cast<broker::fractional_seconds>(a.time_since_epoch());
+		return new Val(s.count(), TYPE_TIME);
 		}
 
-	result_type operator()(broker::time_duration& a)
+	result_type operator()(broker::timespan& a)
 		{
-		if ( type->Tag() == TYPE_INTERVAL )
-			return new Val(a.value, TYPE_INTERVAL);
+		if ( type->Tag() != TYPE_INTERVAL )
+			return nullptr;
 
-		return nullptr;
+		using namespace std::chrono;
+		auto s = duration_cast<broker::fractional_seconds>(a);
+		return new Val(s.count(), TYPE_INTERVAL);
 		}
 
 	result_type operator()(broker::enum_value& a)
@@ -182,16 +213,31 @@ struct val_converter {
 
 		for ( auto& item : a )
 			{
+			auto expected_index_types = tt->Indices()->Types();
 			broker::vector composite_key;
-			auto indices = broker::get<broker::vector>(item);
+			auto indices = broker::get_if<broker::vector>(item);
 
-			if ( ! indices )
+			if ( indices )
+				{
+				if ( expected_index_types->length() == 1 )
+					{
+					auto index_is_vector_or_record =
+					     (*expected_index_types)[0]->Tag() == TYPE_RECORD ||
+					     (*expected_index_types)[0]->Tag() == TYPE_VECTOR;
+
+					if ( index_is_vector_or_record )
+						{
+						// Disambiguate from composite key w/ multiple vals.
+						composite_key.emplace_back(move(item));
+						indices = &composite_key;
+						}
+					}
+				}
+			else
 				{
 				composite_key.emplace_back(move(item));
 				indices = &composite_key;
 				}
-
-			auto expected_index_types = tt->Indices()->Types();
 
 			if ( static_cast<size_t>(expected_index_types->length()) !=
 			     indices->size() )
@@ -235,16 +281,31 @@ struct val_converter {
 
 		for ( auto& item : a )
 			{
+			auto expected_index_types = tt->Indices()->Types();
 			broker::vector composite_key;
-			auto indices = broker::get<broker::vector>(item.first);
+			auto indices = broker::get_if<broker::vector>(item.first);
 
-			if ( ! indices )
+			if ( indices )
+				{
+				if ( expected_index_types->length() == 1 )
+					{
+					auto index_is_vector_or_record =
+					     (*expected_index_types)[0]->Tag() == TYPE_RECORD ||
+					     (*expected_index_types)[0]->Tag() == TYPE_VECTOR;
+
+					if ( index_is_vector_or_record )
+						{
+						// Disambiguate from composite key w/ multiple vals.
+						composite_key.emplace_back(move(item.first));
+						indices = &composite_key;
+						}
+					}
+				}
+			else
 				{
 				composite_key.emplace_back(move(item.first));
 				indices = &composite_key;
 				}
-
-			auto expected_index_types = tt->Indices()->Types();
 
 			if ( static_cast<size_t>(expected_index_types->length()) !=
 			     indices->size() )
@@ -289,78 +350,435 @@ struct val_converter {
 
 	result_type operator()(broker::vector& a)
 		{
-		if ( type->Tag() != TYPE_VECTOR )
-			return nullptr;
-
-		auto vt = type->AsVectorType();
-		auto rval = new VectorVal(vt);
-
-		for ( auto& item : a )
+		if ( type->Tag() == TYPE_VECTOR )
 			{
-			auto item_val = bro_broker::data_to_val(move(item), vt->YieldType());
+			auto vt = type->AsVectorType();
+			auto rval = new VectorVal(vt);
 
-			if ( ! item_val )
+			for ( auto& item : a )
 				{
-				Unref(rval);
-				return nullptr;
+				auto item_val = bro_broker::data_to_val(move(item), vt->YieldType());
+
+				if ( ! item_val )
+					{
+					Unref(rval);
+					return nullptr;
+					}
+
+				rval->Assign(rval->Size(), item_val);
 				}
 
-			rval->Assign(rval->Size(), item_val);
+			return rval;
 			}
-
-		return rval;
-		}
-
-	result_type operator()(broker::record& a)
-		{
-		if ( type->Tag() != TYPE_RECORD )
-			return nullptr;
-
-		auto rt = type->AsRecordType();
-		auto rval = new RecordVal(rt);
-		auto idx = 0u;
-
-		for ( auto i = 0u; i < static_cast<size_t>(rt->NumFields()); ++i )
+		else if ( type->Tag() == TYPE_RECORD )
 			{
-			if ( require_log_attr && ! rt->FieldDecl(i)->FindAttr(ATTR_LOG) )
-				continue;
+			auto rt = type->AsRecordType();
+			auto rval = new RecordVal(rt);
+			auto idx = 0u;
 
-			if ( idx >= a.fields.size() )
+			for ( auto i = 0u; i < static_cast<size_t>(rt->NumFields()); ++i )
 				{
-				Unref(rval);
-				return nullptr;
-				}
+				if ( idx >= a.size() )
+					{
+					Unref(rval);
+					return nullptr;
+					}
 
-			if ( ! a.fields[idx] )
-				{
-				rval->Assign(i, nullptr);
+				if ( broker::get_if<broker::none>(a[idx]) != nullptr )
+					{
+					rval->Assign(i, nullptr);
+					++idx;
+					continue;
+					}
+
+				auto item_val = bro_broker::data_to_val(move(a[idx]),
+																								rt->FieldType(i));
+
+				if ( ! item_val )
+					{
+					Unref(rval);
+					return nullptr;
+					}
+
+				rval->Assign(i, item_val);
 				++idx;
-				continue;
 				}
 
-			auto item_val = bro_broker::data_to_val(move(*a.fields[idx]),
-			                                        rt->FieldType(i));
+			return rval;
+			}
+		else if ( type->Tag() == TYPE_PATTERN )
+			{
+			if ( a.size() != 2 )
+				return nullptr;
 
-			if ( ! item_val )
+			auto exact_text = broker::get_if<std::string>(a[0]);
+			auto anywhere_text = broker::get_if<std::string>(a[1]);
+
+			if ( ! exact_text || ! anywhere_text )
+				return nullptr;
+
+			RE_Matcher* re = new RE_Matcher(exact_text->c_str(),
+			                                anywhere_text->c_str());
+
+			if ( ! re->Compile() )
 				{
-				Unref(rval);
+				reporter->Error("failed compiling unserialized pattern: %s, %s",
+				                exact_text->c_str(), anywhere_text->c_str());
+				delete re;
 				return nullptr;
 				}
 
-			rval->Assign(i, item_val);
-			++idx;
+			auto rval = new PatternVal(re);
+			return rval;
 			}
 
-		return rval;
+		return nullptr;
 		}
 };
 
-Val* bro_broker::data_to_val(broker::data d, BroType* type, bool require_log_attr)
+struct type_checker {
+	using result_type = bool;
+
+	BroType* type;
+
+	result_type operator()(broker::none)
+		{
+		return false;
+		}
+
+	result_type operator()(bool a)
+		{
+		if ( type->Tag() == TYPE_BOOL )
+			return true;
+		return false;
+		}
+
+	result_type operator()(uint64_t a)
+		{
+		if ( type->Tag() == TYPE_COUNT )
+			return true;
+		if ( type->Tag() == TYPE_COUNTER )
+			return true;
+		return false;
+		}
+
+	result_type operator()(int64_t a)
+		{
+		if ( type->Tag() == TYPE_INT )
+			return true;
+		return false;
+		}
+
+	result_type operator()(double a)
+		{
+		if ( type->Tag() == TYPE_DOUBLE )
+			return true;
+		return false;
+		}
+
+	result_type operator()(const std::string& a)
+		{
+		switch ( type->Tag() ) {
+		case TYPE_STRING:
+			return true;
+		case TYPE_FILE:
+			return true;
+		case TYPE_FUNC:
+			{
+			auto id = global_scope()->Lookup(a.data());
+
+			if ( ! id )
+				return false;
+
+			auto rval = id->ID_Val();
+
+			if ( ! rval )
+				return false;
+
+			auto t = rval->Type();
+
+			if ( ! t )
+				return false;
+
+			if ( t->Tag() != TYPE_FUNC )
+				return false;
+
+			return true;
+			}
+		case TYPE_OPAQUE:
+			{
+			// TODO
+			SerializationFormat* form = new BinarySerializationFormat();
+			form->StartRead(a.data(), a.size());
+			CloneSerializer ss(form);
+			UnserialInfo uinfo(&ss);
+			uinfo.cache = false;
+			return Val::Unserialize(&uinfo, type->Tag());
+			}
+		default:
+			return false;
+		}
+		}
+
+	result_type operator()(const broker::address& a)
+		{
+		if ( type->Tag() == TYPE_ADDR )
+			return true;
+
+		return false;
+		}
+
+	result_type operator()(const broker::subnet& a)
+		{
+		if ( type->Tag() == TYPE_SUBNET )
+			return true;
+
+		return false;
+		}
+
+	result_type operator()(const broker::port& a)
+		{
+		if ( type->Tag() == TYPE_PORT )
+			return true;
+
+		return false;
+		}
+
+	result_type operator()(const broker::timestamp& a)
+		{
+		if ( type->Tag() == TYPE_TIME )
+			return true;
+
+		return false;
+		}
+
+	result_type operator()(const broker::timespan& a)
+		{
+		if ( type->Tag() == TYPE_INTERVAL )
+			return true;
+
+		return false;
+		}
+
+	result_type operator()(const broker::enum_value& a)
+		{
+		if ( type->Tag() == TYPE_ENUM )
+			{
+			auto etype = type->AsEnumType();
+			auto i = etype->Lookup(GLOBAL_MODULE_NAME, a.name.data());
+			return i != -1;
+			}
+
+		return false;
+		}
+
+	result_type operator()(const broker::set& a)
+		{
+		if ( ! type->IsSet() )
+			return false;
+
+		auto tt = type->AsTableType();
+
+		for ( const auto& item : a )
+			{
+			auto expected_index_types = tt->Indices()->Types();
+			auto indices = broker::get_if<broker::vector>(item);
+			vector<const broker::data*> indices_to_check;
+
+			if ( indices )
+				{
+				if ( expected_index_types->length() == 1 )
+					{
+					auto index_is_vector_or_record =
+					     (*expected_index_types)[0]->Tag() == TYPE_RECORD ||
+					     (*expected_index_types)[0]->Tag() == TYPE_VECTOR;
+
+					if ( index_is_vector_or_record )
+						// Disambiguate from composite key w/ multiple vals.
+						indices_to_check.emplace_back(&item);
+					else
+						{
+						indices_to_check.reserve(indices->size());
+
+						for ( auto i = 0u; i < indices->size(); ++i )
+							indices_to_check.emplace_back(&(*indices)[i]);
+						}
+					}
+				else
+					{
+					indices_to_check.reserve(indices->size());
+
+					for ( auto i = 0u; i < indices->size(); ++i )
+						indices_to_check.emplace_back(&(*indices)[i]);
+					}
+				}
+			else
+				indices_to_check.emplace_back(&item);
+
+			if ( static_cast<size_t>(expected_index_types->length()) !=
+			     indices_to_check.size() )
+				return false;
+
+			for ( auto i = 0u; i < indices_to_check.size(); ++i )
+				{
+				auto expect = (*expected_index_types)[i];
+				auto& index_to_check = *(indices_to_check)[i];
+
+				if ( ! broker::visit(type_checker{expect}, index_to_check) )
+					return false;
+				}
+			}
+
+		return true;
+		}
+
+	result_type operator()(const broker::table& a)
+		{
+		if ( ! type->IsTable() )
+			return false;
+
+		auto tt = type->AsTableType();
+
+		for ( auto& item : a )
+			{
+			auto expected_index_types = tt->Indices()->Types();
+			auto indices = broker::get_if<broker::vector>(item.first);
+			vector<const broker::data*> indices_to_check;
+
+			if ( indices )
+				{
+				if ( expected_index_types->length() == 1 )
+					{
+					auto index_is_vector_or_record =
+					     (*expected_index_types)[0]->Tag() == TYPE_RECORD ||
+					     (*expected_index_types)[0]->Tag() == TYPE_VECTOR;
+
+					if ( index_is_vector_or_record )
+						// Disambiguate from composite key w/ multiple vals.
+						indices_to_check.emplace_back(&item.first);
+					else
+						{
+						indices_to_check.reserve(indices->size());
+
+						for ( auto i = 0u; i < indices->size(); ++i )
+							indices_to_check.emplace_back(&(*indices)[i]);
+						}
+					}
+				else
+					{
+					indices_to_check.reserve(indices->size());
+
+					for ( auto i = 0u; i < indices->size(); ++i )
+						indices_to_check.emplace_back(&(*indices)[i]);
+					}
+				}
+			else
+				indices_to_check.emplace_back(&item.first);
+
+
+			if ( static_cast<size_t>(expected_index_types->length()) !=
+			     indices_to_check.size() )
+				{
+				return false;
+				}
+
+			auto list_val = new ListVal(TYPE_ANY);
+
+			for ( auto i = 0u; i < indices_to_check.size(); ++i )
+				{
+				auto expect = (*expected_index_types)[i];
+				auto& index_to_check = *(indices_to_check)[i];
+
+				if ( ! broker::visit(type_checker{expect}, index_to_check) )
+					return false;
+				}
+
+			if ( ! broker::visit(type_checker{tt->YieldType()},
+			                     item.second) )
+				return false;
+			}
+
+		return true;
+		}
+
+	result_type operator()(const broker::vector& a)
+		{
+		if ( type->Tag() == TYPE_VECTOR )
+			{
+			auto vt = type->AsVectorType();
+
+			for ( auto& item : a )
+				{
+				if ( ! broker::visit(type_checker{vt->YieldType()}, item) )
+					return false;
+				}
+
+			return true;
+			}
+		else if ( type->Tag() == TYPE_RECORD )
+			{
+			auto rt = type->AsRecordType();
+			auto idx = 0u;
+
+			for ( auto i = 0u; i < static_cast<size_t>(rt->NumFields()); ++i )
+				{
+				if ( idx >= a.size() )
+					return false;
+
+				if ( broker::get_if<broker::none>(a[idx]) != nullptr )
+					{
+					++idx;
+					continue;
+					}
+
+				if ( ! broker::visit(type_checker{rt->FieldType(i)},
+				                     a[idx]) )
+					return false;
+
+				++idx;
+				}
+
+			return true;
+			}
+		else if ( type->Tag() == TYPE_PATTERN )
+			{
+			if ( a.size() != 2 )
+				return false;
+
+			auto exact_text = broker::get_if<std::string>(a[0]);
+			auto anywhere_text = broker::get_if<std::string>(a[1]);
+
+			if ( ! exact_text || ! anywhere_text )
+				return false;
+
+			RE_Matcher* re = new RE_Matcher(exact_text->c_str(),
+			                                anywhere_text->c_str());
+			auto compiled = re->Compile();
+			delete re;
+
+			if ( ! compiled )
+				{
+				reporter->Error("failed compiling pattern: %s, %s",
+				                exact_text->c_str(), anywhere_text->c_str());
+				return false;
+				}
+
+			return true;
+			}
+
+		return false;
+		}
+};
+
+Val* bro_broker::data_to_val(broker::data d, BroType* type)
 	{
-	return broker::visit(val_converter{type, require_log_attr}, d);
+	if ( type->Tag() == TYPE_ANY )
+		return bro_broker::make_data_val(move(d));
+
+	return broker::visit(val_converter{type}, std::move(d));
 	}
 
-broker::util::optional<broker::data> bro_broker::val_to_data(Val* v)
+broker::expected<broker::data> bro_broker::val_to_data(Val* v)
 	{
 	switch ( v->Type()->Tag() ) {
 	case TYPE_BOOL:
@@ -394,15 +812,22 @@ broker::util::optional<broker::data> bro_broker::val_to_data(Val* v)
 		auto a = broker::address(reinterpret_cast<const uint32_t*>(&tmp),
 		                         broker::address::family::ipv6,
 		                         broker::address::byte_order::network);
-		return {broker::subnet(a, s.Length())};
+		return {broker::subnet(std::move(a), s.Length())};
 		}
 		break;
 	case TYPE_DOUBLE:
 		return {v->AsDouble()};
 	case TYPE_TIME:
-		return {broker::time_point(v->AsTime())};
+		{
+	  auto secs = broker::fractional_seconds{v->AsTime()};
+	  auto since_epoch = std::chrono::duration_cast<broker::timespan>(secs);
+		return {broker::timestamp{since_epoch}};
+		}
 	case TYPE_INTERVAL:
-		return {broker::time_duration(v->AsInterval())};
+		{
+	  auto secs = broker::fractional_seconds{v->AsInterval()};
+		return {std::chrono::duration_cast<broker::timespan>(secs)};
+		}
 	case TYPE_ENUM:
 		{
 		auto enum_type = v->Type()->AsEnumType();
@@ -462,7 +887,7 @@ broker::util::optional<broker::data> bro_broker::val_to_data(Val* v)
 				auto key_part = val_to_data((*vl->Vals())[k]);
 
 				if ( ! key_part )
-					return {};
+					return broker::ec::invalid_data;
 
 				composite_key.emplace_back(move(*key_part));
 				}
@@ -475,20 +900,19 @@ broker::util::optional<broker::data> bro_broker::val_to_data(Val* v)
 				key = move(composite_key);
 
 			if ( is_set )
-				broker::get<broker::set>(rval)->emplace(move(key));
+				broker::get<broker::set>(rval).emplace(move(key));
 			else
 				{
 				auto val = val_to_data(entry->Value());
 
 				if ( ! val )
-					return {};
+					return broker::ec::invalid_data;
 
-				broker::get<broker::table>(rval)->emplace(move(key),
-				                                          move(*val));
+				broker::get<broker::table>(rval).emplace(move(key), move(*val));
 				}
 			}
 
-		return {rval};
+		return {std::move(rval)};
 		}
 	case TYPE_VECTOR:
 		{
@@ -506,19 +930,19 @@ broker::util::optional<broker::data> bro_broker::val_to_data(Val* v)
 			auto item = val_to_data(item_val);
 
 			if ( ! item )
-				return {};
+				return broker::ec::invalid_data;
 
 			rval.emplace_back(move(*item));
 			}
 
-		return {rval};
+		return {std::move(rval)};
 		}
 	case TYPE_RECORD:
 		{
 		auto rec = v->AsRecordVal();
-		broker::record rval;
+		broker::vector rval;
 		size_t num_fields = v->Type()->AsRecordType()->NumFields();
-		rval.fields.reserve(num_fields);
+		rval.reserve(num_fields);
 
 		for ( auto i = 0u; i < num_fields; ++i )
 			{
@@ -526,7 +950,7 @@ broker::util::optional<broker::data> bro_broker::val_to_data(Val* v)
 
 			if ( ! item_val )
 				{
-				rval.fields.emplace_back(broker::record::field{});
+				rval.emplace_back(broker::nil);
 				continue;
 				}
 
@@ -534,12 +958,36 @@ broker::util::optional<broker::data> bro_broker::val_to_data(Val* v)
 			Unref(item_val);
 
 			if ( ! item )
-				return {};
+				return broker::ec::invalid_data;
 
-			rval.fields.emplace_back(broker::record::field{move(*item)});
+			rval.emplace_back(move(*item));
 			}
 
-		return {rval};
+		return {std::move(rval)};
+		}
+	case TYPE_PATTERN:
+		{
+		RE_Matcher* p = v->AsPattern();
+		broker::vector rval = {p->PatternText(), p->AnywherePatternText()};
+		return {std::move(rval)};
+		}
+	case TYPE_OPAQUE:
+		{
+		SerializationFormat* form = new BinarySerializationFormat();
+		form->StartWrite();
+		CloneSerializer ss(form);
+		SerialInfo sinfo(&ss);
+		sinfo.cache = false;
+		sinfo.include_locations = false;
+
+		if ( ! v->Serialize(&sinfo) )
+			return broker::ec::invalid_data;
+
+		char* data;
+		uint32 len = form->EndWrite(&data);
+		string rval(data, len);
+		free(data);
+		return {std::move(rval)};
 		}
 	default:
 		reporter->Error("unsupported Broker::Data type: %s",
@@ -547,7 +995,7 @@ broker::util::optional<broker::data> bro_broker::val_to_data(Val* v)
 		break;
 	}
 
-	return {};
+	return broker::ec::invalid_data;
 	}
 
 RecordVal* bro_broker::make_data_val(Val* v)
@@ -571,93 +1019,96 @@ RecordVal* bro_broker::make_data_val(broker::data d)
 struct data_type_getter {
 	using result_type = EnumVal*;
 
-	result_type operator()(bool a)
+	result_type operator()(broker::none)
+		{
+		return new EnumVal(BifEnum::Broker::NONE,
+		                   BifType::Enum::Broker::DataType);
+		}
+
+	result_type operator()(bool)
 		{
 		return new EnumVal(BifEnum::Broker::BOOL,
 		                   BifType::Enum::Broker::DataType);
 		}
 
-	result_type operator()(uint64_t a)
+	result_type operator()(uint64_t)
 		{
 		return new EnumVal(BifEnum::Broker::COUNT,
 		                   BifType::Enum::Broker::DataType);
 		}
 
-	result_type operator()(int64_t a)
+	result_type operator()(int64_t)
 		{
 		return new EnumVal(BifEnum::Broker::INT,
 		                   BifType::Enum::Broker::DataType);
 		}
 
-	result_type operator()(double a)
+	result_type operator()(double)
 		{
 		return new EnumVal(BifEnum::Broker::DOUBLE,
 		                   BifType::Enum::Broker::DataType);
 		}
 
-	result_type operator()(const std::string& a)
+	result_type operator()(const std::string&)
 		{
 		return new EnumVal(BifEnum::Broker::STRING,
 		                   BifType::Enum::Broker::DataType);
 		}
 
-	result_type operator()(const broker::address& a)
+	result_type operator()(const broker::address&)
 		{
 		return new EnumVal(BifEnum::Broker::ADDR,
 		                   BifType::Enum::Broker::DataType);
 		}
 
-	result_type operator()(const broker::subnet& a)
+	result_type operator()(const broker::subnet&)
 		{
 		return new EnumVal(BifEnum::Broker::SUBNET,
 		                   BifType::Enum::Broker::DataType);
 		}
 
-	result_type operator()(const broker::port& a)
+	result_type operator()(const broker::port&)
 		{
 		return new EnumVal(BifEnum::Broker::PORT,
 		                   BifType::Enum::Broker::DataType);
 		}
 
-	result_type operator()(const broker::time_point& a)
+	result_type operator()(const broker::timestamp&)
 		{
 		return new EnumVal(BifEnum::Broker::TIME,
 		                   BifType::Enum::Broker::DataType);
 		}
 
-	result_type operator()(const broker::time_duration& a)
+	result_type operator()(const broker::timespan&)
 		{
 		return new EnumVal(BifEnum::Broker::INTERVAL,
 		                   BifType::Enum::Broker::DataType);
 		}
 
-	result_type operator()(const broker::enum_value& a)
+	result_type operator()(const broker::enum_value&)
 		{
 		return new EnumVal(BifEnum::Broker::ENUM,
 		                   BifType::Enum::Broker::DataType);
 		}
 
-	result_type operator()(const broker::set& a)
+	result_type operator()(const broker::set&)
 		{
 		return new EnumVal(BifEnum::Broker::SET,
 		                   BifType::Enum::Broker::DataType);
 		}
 
-	result_type operator()(const broker::table& a)
+	result_type operator()(const broker::table&)
 		{
 		return new EnumVal(BifEnum::Broker::TABLE,
 		                   BifType::Enum::Broker::DataType);
 		}
 
-	result_type operator()(const broker::vector& a)
+	result_type operator()(const broker::vector&)
 		{
+		// Note that Broker uses vectors to store record data, so there's
+		// no actual way to tell if this data was originally associated
+		// with a Bro record.
 		return new EnumVal(BifEnum::Broker::VECTOR,
-		                   BifType::Enum::Broker::DataType);
-		}
-
-	result_type operator()(const broker::record& a)
-		{
-		return new EnumVal(BifEnum::Broker::RECORD,
 		                   BifType::Enum::Broker::DataType);
 		}
 };
@@ -678,17 +1129,28 @@ broker::data& bro_broker::opaque_field_to_data(RecordVal* v, Frame* f)
 	return static_cast<DataVal*>(d)->data;
 	}
 
+bool bro_broker::DataVal::canCastTo(BroType* t) const
+	{
+	return broker::visit(type_checker{t}, data);
+	}
+
+Val* bro_broker::DataVal::castTo(BroType* t)
+	{
+	return data_to_val(data, t);
+	}
+
 IMPLEMENT_SERIAL(bro_broker::DataVal, SER_COMM_DATA_VAL);
 
 bool bro_broker::DataVal::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_COMM_DATA_VAL, OpaqueVal);
 
-	std::string serial;
-	caf::binary_serializer bs(std::back_inserter(serial));
-	bs << data;
+	std::string buffer;
+	caf::containerbuf<std::string> sb{buffer};
+	caf::stream_serializer<caf::containerbuf<std::string>&> serializer{sb};
+	serializer << data;
 
-	if ( ! SERIALIZE_STR(serial.data(), serial.size()) )
+	if ( ! SERIALIZE_STR(buffer.data(), buffer.size()) )
 		return false;
 
 	return true;
@@ -704,439 +1166,50 @@ bool bro_broker::DataVal::DoUnserialize(UnserialInfo* info)
 	if ( ! UNSERIALIZE_STR(&serial, &len) )
 		return false;
 
-	caf::binary_deserializer bd(serial, len);
-	caf::uniform_typeid<broker::data>()->deserialize(&data, &bd);
+	caf::arraybuf<char> sb{const_cast<char*>(serial), // will not write
+	                       static_cast<size_t>(len)};
+	caf::stream_deserializer<caf::arraybuf<char>&> deserializer{sb};
+	deserializer >> data;
+
 	delete [] serial;
 	return true;
 	}
 
-static broker::util::optional<broker::data> threading_val_to_data_internal(TypeTag type, const threading::Value::_val& val)
-	{
-	switch ( type ) {
-	case TYPE_BOOL:
-	        return {val.int_val != 0};
-
-	case TYPE_INT:
-	        return {val.int_val};
-
-	case TYPE_COUNT:
-	case TYPE_COUNTER:
-	        return {val.uint_val};
-
-	case TYPE_PORT:
-		return {broker::port(val.port_val.port, to_broker_port_proto(val.port_val.proto))};
-
-	case TYPE_ADDR:
-		{
-		IPAddr a;
-
-		switch ( val.addr_val.family ) {
-		case IPv4:
-			a = IPAddr(val.addr_val.in.in4);
-			break;
-
-		case IPv6:
-			a = IPAddr(val.addr_val.in.in6);
-			break;
-
-		default:
-			reporter->InternalError("unsupported protocol family in threading_val_to_data");
-		}
-
-		in6_addr tmp;
-		a.CopyIPv6(&tmp);
-		return {broker::address(reinterpret_cast<const uint32_t*>(&tmp),
-					broker::address::family::ipv6,
-					broker::address::byte_order::network)};
-		}
-
-	case TYPE_SUBNET:
-		{
-		IPAddr a;
-		int length;
-
-		switch ( val.subnet_val.prefix.family ) {
-		case IPv4:
-			a = IPAddr(val.subnet_val.prefix.in.in4);
-			length = (val.subnet_val.length - 96);
-			break;
-
-		case IPv6:
-			a = IPAddr(val.subnet_val.prefix.in.in6);
-			length = val.subnet_val.length;
-			break;
-
-		default:
-			reporter->InternalError("unsupported protocol family in threading_val_to_data");
-		}
-
-		in6_addr tmp;
-		a.CopyIPv6(&tmp);
-
-		auto s = broker::address(reinterpret_cast<const uint32_t*>(&tmp),
-		                         broker::address::family::ipv6,
-		                         broker::address::byte_order::network);
-		return {broker::subnet(s, length)};
-		}
-
-	case TYPE_DOUBLE:
-	        return {val.double_val};
-
-	case TYPE_TIME:
-		return {broker::time_point(val.double_val)};
-
-	case TYPE_INTERVAL:
-		return {broker::time_duration(val.double_val)};
-
-	case TYPE_ENUM:
-		return {broker::enum_value(std::string(val.string_val.data, val.string_val.length))};
-
-	case TYPE_STRING:
-	case TYPE_FILE:
-	case TYPE_FUNC:
-		return {std::string(val.string_val.data, val.string_val.length)};
-
-	case TYPE_TABLE:
-		{
-		auto s = broker::set();
-
-		for ( int i = 0; i < val.set_val.size; ++i )
-			{
-			auto c = bro_broker::threading_val_to_data(val.set_val.vals[i]);
-
-			if ( ! c )
-				return {};
-
-			s.emplace(*c);
-			}
-
-		return {move(s)};
-		}
-
-	case TYPE_VECTOR:
-		{
-		auto s = broker::vector();
-
-		for ( int i = 0; i < val.vector_val.size; ++i )
-			{
-			auto c = bro_broker::threading_val_to_data(val.vector_val.vals[i]);
-
-			if ( ! c )
-				return {};
-
-			s.emplace_back(*c);
-			}
-
-		return {move(s)};
-		}
-
-	default:
-		reporter->InternalError("unsupported type %s in threading_val_to_data",
-		                        type_name(type));
-	}
-
-	return {};
-	}
-
-
-broker::util::optional<broker::data> bro_broker::threading_val_to_data(const threading::Value* v)
-	{
-	broker::util::optional<broker::data> d;
-
-	if ( v->present )
-		{
-		d = threading_val_to_data_internal(v->type, v->val);
-
-		if ( ! d )
-			return {};
-		}
-
-	auto type = broker::record::field(static_cast<uint64_t>(v->type));
-	auto present = broker::record::field(v->present);
-	auto data = (v->present) ? broker::record::field(*d) : broker::util::optional<broker::data>();
-
-	return {broker::record({move(type), move(present), move(data)})};
-	};
-
-struct threading_val_converter {
-	using result_type = bool;
-
-	TypeTag type;
-	threading::Value::_val& val;
-
-	result_type operator()(bool a)
-		{
-		if ( type == TYPE_BOOL )
-			{
-			val.int_val = (a ? 1 : 0);
-			return true;
-			}
-
-		return false;
-		}
-
-	result_type operator()(uint64_t a)
-		{
-		if ( type == TYPE_COUNT || type == TYPE_COUNTER )
-			{
-			val.uint_val = a;
-			return true;
-			}
-
-		return false;
-		}
-
-	result_type operator()(int64_t a)
-		{
-		if ( type == TYPE_INT )
-			{
-			val.int_val = a;
-			return true;
-			}
-
-		return false;
-		}
-
-	result_type operator()(double a)
-		{
-		if ( type == TYPE_DOUBLE )
-			{
-			val.double_val = a;
-			return true;
-			}
-
-		return false;
-		}
-
-
-	result_type operator()(const std::string& a)
-		{
-		if ( type == TYPE_STRING || type == TYPE_FILE || type == TYPE_FUNC )
-			{
-			auto n = a.size();
-			val.string_val.length = n;
-			val.string_val.data = new char[n];
-			memcpy(val.string_val.data, a.data(), n);
-			return true;
-			}
-
-		return false;
-		}
-
-	result_type operator()(const broker::address& a)
-		{
-		if ( type == TYPE_ADDR )
-			{
-			auto bits = reinterpret_cast<const in6_addr*>(&a.bytes());
-			auto b = IPAddr(*bits);
-
-			if ( a.is_v4() )
-				{
-				val.addr_val.family = IPv4;
-				b.CopyIPv4(&val.addr_val.in.in4);
-				return true;
-				}
-
-			if ( a.is_v6() )
-				{
-				val.addr_val.family = IPv6;
-				b.CopyIPv6(&val.addr_val.in.in6);
-				return true;
-				}
-			}
-
-		return false;
-		}
-
-	result_type operator()(const broker::subnet& s)
-		{
-		if ( type == TYPE_SUBNET )
-			{
-			auto bits = reinterpret_cast<const in6_addr*>(&s.network().bytes());
-			auto a = IPAddr(*bits);
-
-			val.subnet_val.length = s.length();
-
-			if ( s.network().is_v4() )
-				{
-				val.subnet_val.prefix.family = IPv4;
-				a.CopyIPv4(&val.subnet_val.prefix.in.in4);
-				val.subnet_val.length += 96;
-				return true;
-				}
-
-			if ( s.network().is_v6() )
-				{
-				val.subnet_val.prefix.family = IPv6;
-				a.CopyIPv6(&val.subnet_val.prefix.in.in6);
-				return true;
-				}
-			}
-
-		return false;
-		}
-
-	result_type operator()(const broker::port& a)
-		{
-		if ( type == TYPE_PORT )
-			{
-			val.port_val.port = a.number();
-			val.port_val.proto = bro_broker::to_bro_port_proto(a.type());
-			return true;
-			}
-
-		return false;
-		}
-
-	result_type operator()(const broker::time_point& a)
-		{
-		if ( type == TYPE_TIME )
-			{
-			val.double_val = a.value;
-			return true;
-			}
-
-		return false;
-		}
-
-	result_type operator()(const broker::time_duration& a)
-		{
-		if ( type == TYPE_INTERVAL )
-			{
-			val.double_val = a.value;
-			return true;
-			}
-
-		return false;
-		}
-
-	result_type operator()(const broker::enum_value& a)
-		{
-		if ( type == TYPE_ENUM )
-			{
-			auto n = a.name.size();
-			val.string_val.length = n;
-			val.string_val.data = new char[n];
-			memcpy(val.string_val.data, a.name.data(), n);
-			return true;
-			}
-
-		return false;
-		}
-
-	result_type operator()(const broker::set& a)
-		{
-		if ( type == TYPE_TABLE )
-			{
-			val.set_val.size = a.size();
-			val.set_val.vals = new threading::Value* [val.set_val.size];
-
-			auto p = val.set_val.vals;
-
-			for ( auto& i : a )
-				*p++ = bro_broker::data_to_threading_val(move(i));
-
-			return true;
-			}
-
-		return false;
-		}
-
-	result_type operator()(const broker::table& a)
-		{
-		return false;
-		}
-
-	result_type operator()(const broker::vector& a)
-		{
-		if ( type == TYPE_VECTOR )
-			{
-			val.vector_val.size = a.size();
-			val.vector_val.vals = new threading::Value* [val.vector_val.size];
-
-			auto p = val.vector_val.vals;
-
-			for ( auto& i : a )
-				*p++ = bro_broker::data_to_threading_val(move(i));
-
-			return true;
-			}
-
-		return false;
-		}
-
-	result_type operator()(const broker::record& a)
-		{
-		return false;
-		}
-};
-
-threading::Value* bro_broker::data_to_threading_val(broker::data d)
-	{
-	auto r = broker::get<broker::record>(d);
-
-	if ( ! r )
-		return nullptr;
-
-	auto type = broker::get<uint64_t>(*r->get(0));
-	auto present = broker::get<bool>(*r->get(1));
-	auto data = r->get(2);
-
-	if ( ! (type && present) )
-		return nullptr;
-
-	if ( *present && ! data )
-		return nullptr;
-
-	auto tv = new threading::Value;
-	tv->type = static_cast<TypeTag>(*type);
-	tv->present = *present;
-
-	if ( *present && ! broker::visit(threading_val_converter{tv->type, tv->val}, *data) )
-		{
-		delete tv;
-		return nullptr;
-		}
-
-	return tv;
-	}
-
 broker::data bro_broker::threading_field_to_data(const threading::Field* f)
 	{
-	auto name = broker::record::field(f->name);
-	auto type = broker::record::field(static_cast<uint64_t>(f->type));
-	auto subtype = broker::record::field(static_cast<uint64_t>(f->subtype));
-	auto optional = broker::record::field(f->optional);
+	auto name = f->name;
+	auto type = static_cast<uint64_t>(f->type);
+	auto subtype = static_cast<uint64_t>(f->subtype);
+	auto optional = f->optional;
 
-	broker::util::optional<broker::data> secondary;
+	broker::data secondary = broker::nil;
 
 	if ( f->secondary_name )
 		secondary = {f->secondary_name};
 
-	return move(broker::record({name, secondary, type, subtype, optional}));
+	return broker::vector({name, secondary, type, subtype, optional});
 	}
 
 threading::Field* bro_broker::data_to_threading_field(broker::data d)
 	{
-	auto r = broker::get<broker::record>(d);
-
-	if ( ! r )
+	if ( ! broker::is<broker::vector>(d) )
 		return nullptr;
 
-	auto name = broker::get<std::string>(*r->get(0));
-	auto secondary = r->get(1);
-	auto type = broker::get<uint64_t>(*r->get(2));
-	auto subtype = broker::get<uint64_t>(*r->get(3));
-	auto optional = broker::get<bool>(*r->get(4));
+	auto& v = broker::get<broker::vector>(d);
+	auto name = broker::get_if<std::string>(v[0]);
+	auto secondary = v[1];
+	auto type = broker::get_if<broker::count>(v[2]);
+	auto subtype = broker::get_if<broker::count>(v[3]);
+	auto optional = broker::get_if<broker::boolean>(v[4]);
 
 	if ( ! (name && type && subtype && optional) )
 		return nullptr;
 
-	if ( secondary && ! broker::is<std::string>(*secondary) )
+	if ( secondary != broker::nil && ! broker::is<std::string>(secondary) )
 		return nullptr;
 
 	return new threading::Field(name->c_str(),
-				    secondary ? broker::get<std::string>(*secondary)->c_str() : nullptr,
+				    secondary != broker::nil ? broker::get<std::string>(secondary).c_str() : nullptr,
 				    static_cast<TypeTag>(*type),
 				    static_cast<TypeTag>(*subtype),
 				    *optional);

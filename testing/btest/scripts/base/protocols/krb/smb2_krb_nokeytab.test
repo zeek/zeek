@@ -1,0 +1,20 @@
+# This test verifies that without a keytab file no entries are
+# created and no errors happen.
+#
+# @TEST-REQUIRES: grep -q "#define USE_KRB5" $BUILD/bro-config.h
+#
+# @TEST-COPY-FILE: ${TRACES}/krb/smb2_krb.keytab
+# @TEST-EXEC: bro -C -r $TRACES/krb/smb2_krb.pcap %INPUT
+# @TEST-EXEC: btest-diff .stdout
+# @TEST-EXEC: btest-diff .stderr
+
+global monitor_ports: set[port] = { 445/tcp, 139/tcp } &redef;
+
+event bro_init() &priority=5{
+	Analyzer::register_for_ports(Analyzer::ANALYZER_SMB, monitor_ports);
+}
+
+event krb_ap_request(c: connection, ticket: KRB::Ticket, opts:  KRB::AP_Options){
+   print ticket?$authenticationinfo;
+}
+

@@ -44,6 +44,7 @@ extern "C" {
 #include "EventRegistry.h"
 #include "Stats.h"
 #include "Brofiler.h"
+#include "Traverse.h"
 
 #include "threading/Manager.h"
 #include "input/Manager.h"
@@ -56,14 +57,11 @@ extern "C" {
 #include "file_analysis/Manager.h"
 #include "broxygen/Manager.h"
 #include "iosource/Manager.h"
+#include "broker/Manager.h"
 
 #include "binpac_bro.h"
 
 #include "3rdparty/sqlite3.h"
-
-#ifdef ENABLE_BROKER
-#include "broker/Manager.h"
-#endif
 
 Brofiler brofiler;
 
@@ -94,9 +92,7 @@ analyzer::Manager* analyzer_mgr = 0;
 file_analysis::Manager* file_mgr = 0;
 broxygen::Manager* broxygen_mgr = 0;
 iosource::Manager* iosource_mgr = 0;
-#ifdef ENABLE_BROKER
 bro_broker::Manager* broker_mgr = 0;
-#endif
 
 const char* prog;
 char* writefile = 0;
@@ -119,6 +115,7 @@ char* command_line_policy = 0;
 vector<string> params;
 set<string> requested_plugins;
 char* proc_status_file = 0;
+int old_comm_usage_count = 0;
 
 OpaqueType* md5_type = 0;
 OpaqueType* sha1_type = 0;
@@ -366,6 +363,7 @@ void terminate_bro()
 	log_mgr->Terminate();
 	input_mgr->Terminate();
 	thread_mgr->Terminate();
+	broker_mgr->Terminate();
 
 	mgr.Drain();
 
@@ -382,6 +380,7 @@ void terminate_bro()
 	delete log_mgr;
 	delete plugin_mgr;
 	delete reporter;
+	// broker_mgr is deleted via iosource_mgr
 	delete iosource_mgr;
 	delete port_mgr;
 
@@ -425,6 +424,70 @@ static void atexit_handler()
 static void bro_new_handler()
 	{
 	out_of_memory("new");
+	}
+
+static auto old_comm_ids = std::set<const char*, CompareString>{
+	"connect",
+	"disconnect",
+	"request_remote_events",
+	"request_remote_sync",
+	"request_remote_logs",
+	"set_accept_state",
+	"set_compression_level",
+	"listen",
+	"send_id",
+	"terminate_communication",
+	"complete_handshake",
+	"send_ping",
+	"send_current_packet",
+	"get_event_peer",
+	"send_capture_filter",
+	"suspend_state_updates",
+	"resume_state_updates",
+};
+
+static bool is_old_comm_usage(const ID* id)
+	{
+	auto name = id->Name();
+
+	if ( old_comm_ids.find(name) == old_comm_ids.end() )
+		return false;
+
+	return true;
+	}
+
+class OldCommUsageTraversalCallback : public TraversalCallback {
+public:
+	virtual TraversalCode PreExpr(const Expr* expr) override
+		{
+		switch ( expr->Tag() ) {
+		case EXPR_CALL:
+			{
+			const CallExpr* call = static_cast<const CallExpr*>(expr);
+			auto func = call->Func();
+
+			if ( func->Tag() == EXPR_NAME )
+				{
+				const NameExpr* ne = static_cast<const NameExpr*>(func);
+				auto id = ne->Id();
+
+				if ( is_old_comm_usage(id) )
+					++old_comm_usage_count;
+				}
+			}
+			break;
+		default:
+			break;
+		}
+
+		return TC_CONTINUE;
+		}
+};
+
+static void find_old_comm_usages()
+	{
+	OldCommUsageTraversalCallback cb;
+	traverse_all(&cb);
 	}
 
 int main(int argc, char** argv)
@@ -758,7 +821,9 @@ int main(int argc, char** argv)
 
 	broxygen_mgr = new broxygen::Manager(broxygen_config, bro_argv[0]);
 
-	add_input_file("base/init-bare.bro");
+	add_essential_input_file("base/init-bare.bro");
+	add_essential_input_file("base/init-frameworks-and-bifs.bro");
+
 	if ( ! bare_mode )
 		add_input_file("base/init-default.bro");
 
@@ -800,10 +865,7 @@ int main(int argc, char** argv)
 	log_mgr = new logging::Manager();
 	input_mgr = new input::Manager();
 	file_mgr = new file_analysis::Manager();
-
-#ifdef ENABLE_BROKER
-	broker_mgr = new bro_broker::Manager();
-#endif
+	broker_mgr = new bro_broker::Manager(read_files.length() > 0);
 
 	plugin_mgr->InitPreScript();
 	analyzer_mgr->InitPreScript();
@@ -854,7 +916,27 @@ int main(int argc, char** argv)
 	HeapLeakChecker::Disabler disabler;
 #endif
 
+	is_parsing = true;
 	yyparse();
+	is_parsing = false;
+
+	find_old_comm_usages();
+
+	if ( old_comm_usage_count )
+		{
+		auto old_comm_ack_id = global_scope()->Lookup("old_comm_usage_is_ok");
+
+		if ( ! old_comm_ack_id->ID_Val()->AsBool() )
+			reporter->FatalError("Detected old, deprecated communication "
+								 "system usages that will not work unless "
+								 "you explicitly take action to initizialize "
+								 "and set up the old comm. system.  "
+								 "Set the 'old_comm_usage_is_ok' flag "
+								 "to bypass this error if you've taken such "
+								 "actions.");
+		}
+
+	RecordVal::ResizeParseTimeRecords();
 
 	init_general_global_var();
 	init_net_var();
@@ -867,6 +949,7 @@ int main(int argc, char** argv)
 
 	plugin_mgr->InitPostScript();
 	broxygen_mgr->InitPostScript();
+	broker_mgr->InitPostScript();
 
 	if ( print_plugins )
 		{

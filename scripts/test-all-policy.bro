@@ -9,7 +9,6 @@
 
 # The base/ scripts are all loaded by default and not included here.
 
-# @load frameworks/communication/listen.bro
 # @load frameworks/control/controllee.bro
 # @load frameworks/control/controller.bro
 @load frameworks/dpd/detect-protocols.bro
@@ -34,6 +33,8 @@
 @load frameworks/files/entropy-test-all-files.bro
 #@load frameworks/files/extract-all-files.bro
 @load frameworks/files/hash-all-files.bro
+@load frameworks/notice/__load__.bro
+@load frameworks/notice/extend-email/hostnames.bro
 @load files/x509/log-ocsp.bro
 @load frameworks/packet-filter/shunt.bro
 @load frameworks/software/version-changes.bro
@@ -48,7 +49,6 @@
 @load misc/detect-traceroute/__load__.bro
 @load misc/detect-traceroute/main.bro
 # @load misc/dump-events.bro
-@load misc/known-devices.bro
 @load misc/load-balancing.bro
 @load misc/loaded-scripts.bro
 @load misc/profiling.bro
@@ -60,7 +60,9 @@
 @load protocols/conn/mac-logging.bro
 @load protocols/conn/vlan-logging.bro
 @load protocols/conn/weirds.bro
-@load protocols/dhcp/known-devices-and-hostnames.bro
+@load protocols/dhcp/msg-orig.bro
+@load protocols/dhcp/software.bro
+@load protocols/dhcp/sub-opts.bro
 @load protocols/dns/auth-addl.bro
 @load protocols/dns/detect-external-names.bro
 @load protocols/ftp/detect-bruteforcing.bro

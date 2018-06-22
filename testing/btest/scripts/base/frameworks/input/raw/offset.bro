@@ -10,7 +10,6 @@ sdfkh:KH;fdkncv;ISEUp34:Fkdj;YVpIODhfDF
 @TEST-END-FILE
 
 redef exit_only_after_terminate = T;
-@load base/frameworks/communication # keep network time running
 
 global outfile: file;
 global try: count;

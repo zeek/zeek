@@ -3,15 +3,15 @@
 #empty_field	(empty)
 #unset_field	-
 #path	intel
-#open	2017-02-09-18-29-44
+#open	2018-04-27-23-53-04
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	seen.indicator	seen.indicator_type	seen.where	seen.node	matched	sources	fuid	file_mime_type	file_desc
 #types	time	string	addr	port	addr	port	string	enum	enum	string	set[enum]	set[string]	string	string	string
-1486664984.510411	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	bro	Intel::ADDR	source1	-	-	-
-1486664987.510937	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	bro	Intel::ADDR	source1	-	-	-
-1486664990.511265	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	bro	Intel::ADDR	source1,source2	-	-	-
-1486664993.512024	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	bro	Intel::ADDR	source1,source2	-	-	-
-1486664996.512265	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	bro	Intel::ADDR	source1,source2	-	-	-
-#close	2017-02-09-18-30-03
+1524873184.861542	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	bro	Intel::ADDR	source1	-	-	-
+1524873187.913197	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	bro	Intel::ADDR	source1	-	-	-
+1524873190.976201	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	bro	Intel::ADDR	source1,source2	-	-	-
+1524873194.052686	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	bro	Intel::ADDR	source1,source2	-	-	-
+1524873197.128942	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	bro	Intel::ADDR	source1,source2	-	-	-
+#close	2018-04-27-23-53-20
 -- Run 1 --
 Trigger: 1.2.3.4
 Seen: 1.2.3.4
@@ -22,6 +22,7 @@ Seen: 1.2.3.4
 -- Run 3 --
 Trigger: 1.2.3.4
 Seen: 1.2.3.4
+Expired: 192.168.0.0/16
 -- Run 4 --
 Trigger: 1.2.3.4
 Seen: 1.2.3.4

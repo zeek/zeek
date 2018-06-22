@@ -212,6 +212,7 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 add	return TOK_ADD;
 addr	return TOK_ADDR;
 any	return TOK_ANY;
+as	return TOK_AS;
 bool	return TOK_BOOL;
 break	return TOK_BREAK;
 case	return TOK_CASE;
@@ -240,6 +241,7 @@ in	return TOK_IN;
 "!"{OWS}in/[^A-Za-z0-9]	return TOK_NOT_IN;	/* don't confuse w "! infoo"! */
 int	return TOK_INT;
 interval	return TOK_INTERVAL;
+is	return TOK_IS;
 list	return TOK_LIST;
 local	return TOK_LOCAL;
 module	return TOK_MODULE;
@@ -288,14 +290,12 @@ when	return TOK_WHEN;
 	}
 
 &mergeable {
-	// Not yet deprecated, but soon.
-	//deprecated_attr(yytext);
+	deprecated_attr(yytext);
 	return TOK_ATTR_MERGEABLE;
 	}
 
 &persistent {
-	// Not yet deprecated, but soon.
-	//deprecated_attr(yytext);
+	deprecated_attr(yytext);
 	return TOK_ATTR_PERSISTENT;
 	}
 
@@ -310,8 +310,8 @@ when	return TOK_WHEN;
 	}
 
 &synchronized  {
-	// Not yet deprecated, but soon.
-	//deprecated_attr(yytext);
+	++old_comm_usage_count;
+	deprecated_attr(yytext);
 	return TOK_ATTR_SYNCHRONIZED;
 	}
 
@@ -822,6 +822,18 @@ void do_atendif()
 // are referred to (in order to save the locations of tokens and statements,
 // for error reporting and debugging).
 static name_list input_files;
+static name_list essential_input_files;
+
+void add_essential_input_file(const char* file)
+	{
+	if ( ! file )
+		reporter->InternalError("empty filename");
+
+	if ( ! filename )
+		(void) load_files(file);
+	else
+		essential_input_files.append(copy_string(file));
+	}
 
 void add_input_file(const char* file)
 	{
@@ -870,7 +882,7 @@ int yywrap()
 	if ( ! did_builtin_init && file_stack.length() == 1 )
 		{
 		// ### This is a gross hack - we know that the first file
-		// we parse is bro.init, and after it it's safe to initialize
+		// we parse is init-bare.bro, and after it it's safe to initialize
 		// the built-ins.  Furthermore, we want to initialize the
 		// built-in's *right* after parsing bro.init, so that other
 		// source files can use built-in's when initializing globals.
@@ -886,19 +898,22 @@ int yywrap()
 		return 0;
 
 	// Stack is now empty.
-	while ( input_files.length() > 0 )
+	while ( essential_input_files.length() > 0 || input_files.length() > 0 )
 		{
-		if ( load_files(input_files[0]) )
+		name_list& files = essential_input_files.length() > 0 ?
+		             essential_input_files : input_files;
+
+		if ( load_files(files[0]) )
 			{
 			// Don't delete the filename - it's pointed to by
 			// every BroObj created when parsing it.
-			(void) input_files.remove_nth(0);
+			(void) files.remove_nth(0);
 			return 0;
 			}
 
 		// We already scanned the file.  Pop it and try the next,
 		// if any.
-		(void) input_files.remove_nth(0);
+		(void) files.remove_nth(0);
 		}
 
 	// For each file scanned so far, and for each @prefix, look for a

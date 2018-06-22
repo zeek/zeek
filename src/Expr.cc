@@ -18,8 +18,6 @@
 
 const char* expr_name(BroExprTag t)
 	{
-	static char errbuf[512];
-
 	static const char* expr_names[int(NUM_EXPRS)] = {
 		"name", "const",
 		"(*)",
@@ -33,7 +31,7 @@ const char* expr_name(BroExprTag t)
 		"$=", "in", "<<>>",
 		"()", "event", "schedule",
 		"coerce", "record_coerce", "table_coerce",
-		"sizeof", "flatten"
+		"sizeof", "flatten", "cast", "is"
 	};
 
 	if ( int(t) >= NUM_EXPRS )
@@ -929,10 +927,16 @@ void BinaryExpr::PromoteOps(TypeTag t)
 	TypeTag bt1 = op1->Type()->Tag();
 	TypeTag bt2 = op2->Type()->Tag();
 
-	if ( IsVector(bt1) )
+	bool is_vec1 = IsVector(bt1);
+	bool is_vec2 = IsVector(bt2);
+
+	if ( is_vec1 )
 		bt1 = op1->Type()->AsVectorType()->YieldType()->Tag();
-	if ( IsVector(bt2) )
+	if ( is_vec2 )
 		bt2 = op2->Type()->AsVectorType()->YieldType()->Tag();
+
+	if ( (is_vec1 || is_vec2) && ! (is_vec1 && is_vec2) )
+		reporter->Warning("mixing vector and scalar operands is deprecated");
 
 	if ( bt1 != t )
 		op1 = new ArithCoerceExpr(op1, t);
@@ -1023,7 +1027,10 @@ IncrExpr::IncrExpr(BroExprTag arg_tag, Expr* arg_op)
 		if ( ! IsIntegral(t->AsVectorType()->YieldType()->Tag()) )
 			ExprError("vector elements must be integral for increment operator");
 		else
+			{
+			reporter->Warning("increment/decrement operations for vectors deprecated");
 			SetType(t->Ref());
+			}
 		}
 	else
 		{
@@ -1709,9 +1716,19 @@ BoolExpr::BoolExpr(BroExprTag arg_tag, Expr* arg_op1, Expr* arg_op2)
 	if ( BothBool(bt1, bt2) )
 		{
 		if ( is_vector(op1) || is_vector(op2) )
+			{
+			if ( ! (is_vector(op1) && is_vector(op2)) )
+				reporter->Warning("mixing vector and scalar operands is deprecated");
 			SetType(new VectorType(base_type(TYPE_BOOL)));
+			}
 		else
 			SetType(base_type(TYPE_BOOL));
+		}
+
+	else if ( bt1 == TYPE_PATTERN && bt2 == bt1 )
+		{
+		reporter->Warning("&& and || operators deprecated for pattern operands");
+		SetType(base_type(TYPE_PATTERN));
 		}
 
 	else
@@ -1787,7 +1804,7 @@ Val* BoolExpr::Eval(Frame* f) const
 
 		VectorVal* result = 0;
 
-		// It's either and EXPR_AND_AND or an EXPR_OR_OR.
+		// It's either an EXPR_AND_AND or an EXPR_OR_OR.
 		bool is_and = (tag == EXPR_AND_AND);
 
 		if ( scalar_v->IsZero() == is_and )
@@ -4634,13 +4651,21 @@ Val* CallExpr::Eval(Frame* f) const
 	if ( func_val && v )
 		{
 		const ::Func* func = func_val->AsFunc();
-		calling_expr = this;
 		const CallExpr* current_call = f ? f->GetCall() : 0;
+		call_stack.emplace_back(CallInfo{this, func});
 
 		if ( f )
 			f->SetCall(this);
 
-		ret = func->Call(v, f); // No try/catch here; we pass exceptions upstream.
+		try
+			{
+			ret = func->Call(v, f);
+			}
+		catch ( ... )
+			{
+			call_stack.pop_back();
+			throw;
+			}
 
 		if ( f )
 			f->SetCall(current_call);
@@ -4648,7 +4673,7 @@ Val* CallExpr::Eval(Frame* f) const
 		// Don't Unref() the arguments, as Func::Call already did that.
 		delete v;
 
-		calling_expr = 0;
+		call_stack.pop_back();
 		}
 	else
 		delete_vals(v);
@@ -4969,7 +4994,7 @@ Val* ListExpr::InitVal(const BroType* t, Val* aggr) const
 				Unref(v);
 				return 0;
 				}
-				
+
 			v->Append(vi);
 			}
 		return v;
@@ -5300,6 +5325,112 @@ bool RecordAssignExpr::DoUnserialize(UnserialInfo* info)
 	return true;
 	}
 
+CastExpr::CastExpr(Expr* arg_op, BroType* t) : UnaryExpr(EXPR_CAST, arg_op)
+	{
+	auto stype = Op()->Type();
+
+	::Ref(t);
+	SetType(t);
+
+	if ( ! can_cast_value_to_type(stype, t) )
+		ExprError("cast not supported");
+	}
+
+Val* CastExpr::Eval(Frame* f) const
+	{
+	if ( IsError() )
+		return 0;
+
+	Val* v = op->Eval(f);
+
+	if ( ! v )
+		return 0;
+
+	Val* nv = cast_value_to_type(v, Type());
+
+	if ( nv )
+		{
+		Unref(v);
+		return nv;
+		}
+
+	ODesc d;
+	d.Add("cannot cast value of type '");
+	v->Type()->Describe(&d);
+	d.Add("' to type '");
+	Type()->Describe(&d);
+	d.Add("'");
+	Unref(v);
+	reporter->ExprRuntimeError(this, "%s", d.Description());
+	return 0;  // not reached.
+	}
+
+void CastExpr::ExprDescribe(ODesc* d) const
+	{
+	Op()->Describe(d);
+	d->Add(" as ");
+	Type()->Describe(d);
+	}
+
+IMPLEMENT_SERIAL(CastExpr, SER_CAST_EXPR);
+
+bool CastExpr::DoSerialize(SerialInfo* info) const
+	{
+	DO_SERIALIZE(SER_CAST_EXPR, UnaryExpr);
+	return true;
+	}
+
+bool CastExpr::DoUnserialize(UnserialInfo* info)
+	{
+	DO_UNSERIALIZE(UnaryExpr);
+	return true;
+	}
+
+IsExpr::IsExpr(Expr* arg_op, BroType* arg_t) : UnaryExpr(EXPR_IS, arg_op)
+	{
+	t = arg_t;
+	::Ref(t);
+
+	SetType(base_type(TYPE_BOOL));
+	}
+
+IsExpr::~IsExpr()
+	{
+	Unref(t);
+	}
+
+Val* IsExpr::Fold(Val* v) const
+	{
+	if ( IsError() )
+		return 0;
+
+	if ( can_cast_value_to_type(v, t) )
+		return new Val(1, TYPE_BOOL);
+	else
+		return new Val(0, TYPE_BOOL);
+	}
+
+void IsExpr::ExprDescribe(ODesc* d) const
+	{
+	Op()->Describe(d);
+	d->Add(" is ");
+	t->Describe(d);
+	}
+
+IMPLEMENT_SERIAL(IsExpr, SER_IS_EXPR_ /* sic */);
+
+bool IsExpr::DoSerialize(SerialInfo* info) const
+	{
+	DO_SERIALIZE(SER_IS_EXPR_, UnaryExpr);
+	return true;
+	}
+
+bool IsExpr::DoUnserialize(UnserialInfo* info)
+	{
+	DO_UNSERIALIZE(UnaryExpr);
+	return true;
+	}
+
 Expr* get_assign_expr(Expr* op1, Expr* op2, int is_init)
 	{
 	if ( op1->Type()->Tag() == TYPE_RECORD &&
@@ -5308,7 +5439,6 @@ Expr* get_assign_expr(Expr* op1, Expr* op2, int is_init)
 	else
 		return new AssignExpr(op1, op2, is_init);
 	}
-
 
 int check_and_promote_expr(Expr*& e, BroType* t)
 	{

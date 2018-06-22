@@ -3,25 +3,21 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2018-02-05-22-27-42
+#open	2018-06-08-16-37-15
 #fields	name
 #types	string
 scripts/base/init-bare.bro
   build/scripts/base/bif/const.bif.bro
   build/scripts/base/bif/types.bif.bro
-  build/scripts/base/bif/strings.bif.bro
   build/scripts/base/bif/bro.bif.bro
+  build/scripts/base/bif/stats.bif.bro
   build/scripts/base/bif/reporter.bif.bro
+  build/scripts/base/bif/strings.bif.bro
+  build/scripts/base/bif/option.bif.bro
   build/scripts/base/bif/plugins/Bro_SNMP.types.bif.bro
   build/scripts/base/bif/plugins/Bro_KRB.types.bif.bro
   build/scripts/base/bif/event.bif.bro
-  scripts/base/frameworks/broker/__load__.bro
-    scripts/base/frameworks/broker/main.bro
-      build/scripts/base/bif/comm.bif.bro
-      build/scripts/base/bif/messaging.bif.bro
-    scripts/base/frameworks/broker/store.bro
-      build/scripts/base/bif/data.bif.bro
-      build/scripts/base/bif/store.bif.bro
+scripts/base/init-frameworks-and-bifs.bro
   scripts/base/frameworks/logging/__load__.bro
     scripts/base/frameworks/logging/main.bro
       build/scripts/base/bif/logging.bif.bro
@@ -31,6 +27,14 @@ scripts/base/init-bare.bro
     scripts/base/frameworks/logging/writers/ascii.bro
     scripts/base/frameworks/logging/writers/sqlite.bro
     scripts/base/frameworks/logging/writers/none.bro
+  scripts/base/frameworks/broker/__load__.bro
+    scripts/base/frameworks/broker/main.bro
+      build/scripts/base/bif/comm.bif.bro
+      build/scripts/base/bif/messaging.bif.bro
+    scripts/base/frameworks/broker/store.bro
+      build/scripts/base/bif/data.bif.bro
+      build/scripts/base/bif/store.bif.bro
+    scripts/base/frameworks/broker/log.bro
   scripts/base/frameworks/input/__load__.bro
     scripts/base/frameworks/input/main.bro
       build/scripts/base/bif/input.bif.bro
@@ -51,8 +55,6 @@ scripts/base/init-bare.bro
         scripts/base/utils/patterns.bro
     scripts/base/frameworks/files/magic/__load__.bro
   build/scripts/base/bif/__load__.bro
-    build/scripts/base/bif/stats.bif.bro
-    build/scripts/base/bif/option.bif.bro
     build/scripts/base/bif/broxygen.bif.bro
     build/scripts/base/bif/pcap.bif.bro
     build/scripts/base/bif/bloom-filter.bif.bro
@@ -68,6 +70,7 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_DCE_RPC.types.bif.bro
     build/scripts/base/bif/plugins/Bro_DCE_RPC.events.bif.bro
     build/scripts/base/bif/plugins/Bro_DHCP.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_DHCP.types.bif.bro
     build/scripts/base/bif/plugins/Bro_DNP3.events.bif.bro
     build/scripts/base/bif/plugins/Bro_DNS.events.bif.bro
     build/scripts/base/bif/plugins/Bro_File.events.bif.bro
@@ -91,6 +94,7 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_Modbus.events.bif.bro
     build/scripts/base/bif/plugins/Bro_MySQL.events.bif.bro
     build/scripts/base/bif/plugins/Bro_NCP.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_NCP.consts.bif.bro
     build/scripts/base/bif/plugins/Bro_NetBIOS.events.bif.bro
     build/scripts/base/bif/plugins/Bro_NetBIOS.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_NTLM.types.bif.bro
@@ -173,4 +177,4 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_SQLiteWriter.sqlite.bif.bro
 scripts/policy/misc/loaded-scripts.bro
   scripts/base/utils/paths.bro
-#close	2018-02-05-22-27-42
+#close	2018-06-08-16-37-15

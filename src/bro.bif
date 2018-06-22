@@ -782,6 +782,63 @@ function sha256_hash_finish%(handle: opaque of sha256%): string
 	return static_cast<HashVal*>(handle)->Get();
 	%}
 
+## Returns 32-bit digest of arbitrary input values using FNV-1a hash algorithm.
+## See `<https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function>`_.
+##
+## input: The desired input value to hash.
+##
+## Returns: The hashed value.
+##
+## .. bro:see:: hrw_weight
+function fnv1a32%(input: any%): count
+	%{
+	ODesc desc(DESC_BINARY);
+	input->Describe(&desc);
+	auto bytes = desc.Bytes();
+
+	uint32 offset32 = 2166136261;
+	uint32 prime32 = 16777619;
+	uint32 rval = offset32;
+
+	for ( auto i = 0; i < desc.Len(); ++i )
+		{
+		rval ^= (uint32) bytes[i];
+		rval *= prime32;
+		}
+
+	return new Val(rval, TYPE_COUNT);
+	%}
+
+## Calculates a weight value for use in a Rendezvous Hashing algorithm.
+## See `<https://en.wikipedia.org/wiki/Rendezvous_hashing>`_.
+## The weight function used is the one recommended in the original
+## paper: `<http://www.eecs.umich.edu/techreports/cse/96/CSE-TR-316-96.pdf>`_.
+##
+## key_digest: A 32-bit digest of a key.  E.g. use :bro:see:`fnv1a32` to
+##             produce this.
+##
+## site_id: A 32-bit site/node identifier.
+##
+## Returns: The weight value for the key/site pair.
+##
+## .. bro:see:: fnv1a32
+function hrw_weight%(key_digest: count, site_id: count%): count
+	%{
+	uint32 d = key_digest;
+	d &= 0x7fffffff; // 31-bit digest
+	int32 si = site_id;
+	auto a = 1103515245;
+	auto b = 12345;
+	auto m = 2147483648; // 2**31
+
+	int32 rval = (a * ((a * si + b) ^ d) + b) % m;
+
+	if ( rval < 0 )
+		rval += m; // [0, 2**31 - 1]
+
+	return new Val((uint64) rval, TYPE_COUNT);
+	%}
+
 ## Generates a random number.
 ##
 ## max: The maximum value of the random number.
@@ -2739,7 +2796,7 @@ function encode_base64%(s: string, a: string &default=""%): string
 		return new StringVal(t);
 	else
 		{
-		reporter->Error("error in encoding string %s", s->CheckString());
+		reporter->Error("Broker query has an invalid data store");
 		return new StringVal("");
 		}
 	%}
@@ -2908,6 +2965,8 @@ function merge_pattern%(p1: pattern, p2: pattern%): pattern
 		builtin_error("merge_pattern can only be called at init time");
 		return 0;
 		}
+
+	reporter->Warning("merge_pattern() builtin-function has been deprecated");
 
 	RE_Matcher* re = new RE_Matcher();
 	re->AddPat(p1->PatternText());
@@ -3287,6 +3346,12 @@ function dump_current_packet%(file_name: string%) : bool
 	     ! current_pktsrc->GetCurrentPacket(&pkt) )
 		return new Val(0, TYPE_BOOL);
 
+	if ( addl_pkt_dumper && addl_pkt_dumper->Path() != file_name->CheckString())
+		{
+		addl_pkt_dumper->Close();
+		addl_pkt_dumper = nullptr;
+		}
+
 	if ( ! addl_pkt_dumper )
 		addl_pkt_dumper = iosource_mgr->OpenPktDumper(file_name->CheckString(), true);
 
@@ -3362,10 +3427,16 @@ function get_current_packet_header%(%) : raw_pkt_hdr
 ## .. bro:see:: get_current_packet dump_current_packet send_current_packet
 function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 	%{
+	if ( addl_pkt_dumper && addl_pkt_dumper->Path() != file_name->CheckString())
+		{
+		addl_pkt_dumper->Close();
+		addl_pkt_dumper = nullptr;
+		}
+
 	if ( ! addl_pkt_dumper )
 		addl_pkt_dumper = iosource_mgr->OpenPktDumper(file_name->CheckString(), true);
 
-	if ( addl_pkt_dumper )
+	if ( ! addl_pkt_dumper->IsError() )
 		{
 		pkt_timeval ts;
 		uint32 caplen, len, link_type;
@@ -4648,7 +4719,7 @@ function uninstall_dst_net_filter%(snet: subnet%) : bool
 ## Enables the communication system. By default, the communication is off until
 ## explicitly enabled, and all other calls to communication-related functions
 ## will be ignored until done so.
-function enable_communication%(%): any
+function enable_communication%(%): any &deprecated
 	%{
 	if ( bro_start_network_time != 0.0 )
 		{
@@ -4758,7 +4829,7 @@ function capture_state_updates%(filename: string%) : bool
 ##              set_compression_level
 ##              send_state
 ##              send_id
-function connect%(ip: addr, zone_id: string, p: port, our_class: string, retry: interval, ssl: bool%) : count
+function connect%(ip: addr, zone_id: string, p: port, our_class: string, retry: interval, ssl: bool%) : count &deprecated
 	%{
 	return new Val(uint32(remote_serializer->Connect(ip->AsAddr(),
 	               zone_id->CheckString(), p->Port(), our_class->CheckString(),
@@ -4773,7 +4844,7 @@ function connect%(ip: addr, zone_id: string, p: port, our_class: string, retry: 
 ## Returns: True on success.
 ##
 ## .. bro:see:: connect listen
-function disconnect%(p: event_peer%) : bool
+function disconnect%(p: event_peer%) : bool &deprecated
     %{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
 	return new Val(remote_serializer->CloseConnection(id), TYPE_BOOL);
@@ -4791,7 +4862,7 @@ function disconnect%(p: event_peer%) : bool
 ## .. bro:see:: request_remote_sync
 ##              request_remote_logs
 ##              set_accept_state
-function request_remote_events%(p: event_peer, handlers: pattern%) : bool
+function request_remote_events%(p: event_peer, handlers: pattern%) : bool &deprecated
 	%{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
 	return new Val(remote_serializer->RequestEvents(id, handlers),
@@ -4810,7 +4881,7 @@ function request_remote_events%(p: event_peer, handlers: pattern%) : bool
 ## .. bro:see:: request_remote_events
 ##              request_remote_logs
 ##              set_accept_state
-function request_remote_sync%(p: event_peer, auth: bool%) : bool
+function request_remote_sync%(p: event_peer, auth: bool%) : bool &deprecated
 	%{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
 	return new Val(remote_serializer->RequestSync(id, auth), TYPE_BOOL);
@@ -4824,7 +4895,7 @@ function request_remote_sync%(p: event_peer, auth: bool%) : bool
 ##
 ## .. bro:see:: request_remote_events
 ##              request_remote_sync
-function request_remote_logs%(p: event_peer%) : bool
+function request_remote_logs%(p: event_peer%) : bool &deprecated
 	%{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
 	return new Val(remote_serializer->RequestLogs(id), TYPE_BOOL);
@@ -4841,7 +4912,7 @@ function request_remote_logs%(p: event_peer%) : bool
 ## .. bro:see:: request_remote_events
 ##              request_remote_sync
 ##              set_compression_level
-function set_accept_state%(p: event_peer, accept: bool%) : bool
+function set_accept_state%(p: event_peer, accept: bool%) : bool &deprecated
 	%{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
 	return new Val(remote_serializer->SetAcceptState(id, accept),
@@ -4858,7 +4929,7 @@ function set_accept_state%(p: event_peer, accept: bool%) : bool
 ## Returns: True on success.
 ##
 ## .. bro:see:: set_accept_state
-function set_compression_level%(p: event_peer, level: count%) : bool
+function set_compression_level%(p: event_peer, level: count%) : bool &deprecated
 	%{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
 	return new Val(remote_serializer->SetCompressionLevel(id, level),
@@ -4885,7 +4956,7 @@ function set_compression_level%(p: event_peer, level: count%) : bool
 ## Returns: True on success.
 ##
 ## .. bro:see:: connect disconnect
-function listen%(ip: addr, p: port, ssl: bool, ipv6: bool, zone_id: string, retry_interval: interval%) : bool
+function listen%(ip: addr, p: port, ssl: bool, ipv6: bool, zone_id: string, retry_interval: interval%) : bool &deprecated
 	%{
 	return new Val(remote_serializer->Listen(ip->AsAddr(), p->Port(), ssl, ipv6, zone_id->CheckString(), retry_interval), TYPE_BOOL);
 	%}
@@ -4921,7 +4992,7 @@ function send_state%(p: event_peer%) : bool
 ## Returns: True on success.
 ##
 ## .. bro:see:: send_state send_ping send_current_packet send_capture_filter
-function send_id%(p: event_peer, id: string%) : bool
+function send_id%(p: event_peer, id: string%) : bool &deprecated
 	%{
 	RemoteSerializer::PeerID pid = p->AsRecordVal()->Lookup(0)->AsCount();
 
@@ -4940,7 +5011,7 @@ function send_id%(p: event_peer, id: string%) : bool
 ## data from parent and child has been sent out.
 ##
 ## Returns: True if the termination process has been started successfully.
-function terminate_communication%(%) : bool
+function terminate_communication%(%) : bool &deprecated
 	%{
 	return new Val(remote_serializer->Terminate(), TYPE_BOOL);
 	%}
@@ -4951,7 +5022,7 @@ function terminate_communication%(%) : bool
 ## p: The peer ID returned from :bro:id:`connect`.
 ##
 ## Returns: True on success.
-function complete_handshake%(p: event_peer%) : bool
+function complete_handshake%(p: event_peer%) : bool &deprecated
 	%{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
 	return new Val(remote_serializer->CompleteHandshake(id), TYPE_BOOL);
@@ -4968,7 +5039,7 @@ function complete_handshake%(p: event_peer%) : bool
 ## Returns: True if sending the ping succeeds.
 ##
 ## .. bro:see:: send_state send_id send_current_packet send_capture_filter
-function send_ping%(p: event_peer, seq: count%) : bool
+function send_ping%(p: event_peer, seq: count%) : bool &deprecated
 	%{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
 	return new Val(remote_serializer->SendPing(id, seq), TYPE_BOOL);
@@ -4982,7 +5053,7 @@ function send_ping%(p: event_peer, seq: count%) : bool
 ##
 ## .. bro:see:: send_id send_state send_ping send_capture_filter
 ##              dump_packet dump_current_packet get_current_packet
-function send_current_packet%(p: event_peer%) : bool
+function send_current_packet%(p: event_peer%) : bool &deprecated
 	%{
 	const Packet* pkt;
 
@@ -4998,15 +5069,27 @@ function send_current_packet%(p: event_peer%) : bool
 
 ## Returns the peer who generated the last event.
 ##
+## Note, this function is deprecated. It works correctly only for local events and
+## events received through the legacy communication system. It does *not* work for
+## events received through Broker and will report an error in that case.
+##
 ## Returns: The ID of the peer who generated the last event.
 ##
 ## .. bro:see:: get_local_event_peer
-function get_event_peer%(%) : event_peer
+function get_event_peer%(%) : event_peer &deprecated
 	%{
 	SourceID src = mgr.CurrentSource();
 
 	if ( src == SOURCE_LOCAL )
 		{
+		RecordVal* p = mgr.GetLocalPeerVal();
+		Ref(p);
+		return p;
+		}
+
+	if ( src == SOURCE_BROKER )
+		{
+		reporter->Error("get_event_peer() does not support Broker events");
 		RecordVal* p = mgr.GetLocalPeerVal();
 		Ref(p);
 		return p;
@@ -5032,7 +5115,7 @@ function get_event_peer%(%) : event_peer
 ## Returns: The peer ID of the local Bro instance.
 ##
 ## .. bro:see:: get_event_peer
-function get_local_event_peer%(%) : event_peer
+function get_local_event_peer%(%) : event_peer &deprecated
 	%{
 	RecordVal* p = mgr.GetLocalPeerVal();
 	Ref(p);
@@ -5048,7 +5131,7 @@ function get_local_event_peer%(%) : event_peer
 ## Returns: True if sending the packet succeeds.
 ##
 ## .. bro:see:: send_id send_state send_ping send_current_packet
-function send_capture_filter%(p: event_peer, s: string%) : bool
+function send_capture_filter%(p: event_peer, s: string%) : bool &deprecated
 	%{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
 	return new Val(remote_serializer->SendCaptureFilter(id, s->CheckString()), TYPE_BOOL);
@@ -5077,7 +5160,7 @@ function continue_processing%(%) : any
 ## Stops propagating :bro:attr:`&synchronized` accesses.
 ##
 ## .. bro:see:: suspend_processing continue_processing resume_state_updates
-function suspend_state_updates%(%) : any
+function suspend_state_updates%(%) : any &deprecated
 	%{
 	if ( remote_serializer )
 		remote_serializer->SuspendStateUpdates();
@@ -5087,7 +5170,7 @@ function suspend_state_updates%(%) : any
 ## Resumes propagating :bro:attr:`&synchronized` accesses.
 ##
 ## .. bro:see:: suspend_processing continue_processing suspend_state_updates
-function resume_state_updates%(%) : any
+function resume_state_updates%(%) : any &deprecated
 	%{
 	if ( remote_serializer )
 		remote_serializer->ResumeStateUpdates();

@@ -2722,6 +2722,8 @@ unsigned int TableVal::MemoryAllocation() const
 		+ table_hash->MemoryAllocation();
 	}
 
+vector<RecordVal*> RecordVal::parse_time_records;
+
 RecordVal::RecordVal(RecordType* t) : MutableVal(t)
 	{
 	origin = 0;
@@ -2767,6 +2769,12 @@ RecordVal::RecordVal(RecordType* t) : MutableVal(t)
 		vl->append(def ? def->Ref() : 0);
 
 		Unref(def);
+
+		if ( is_parsing )
+			{
+			parse_time_records.emplace_back(this);
+			Ref();
+			}
 		}
 	}
 
@@ -2830,6 +2838,29 @@ Val* RecordVal::LookupWithDefault(int field) const
 		return val->Ref();
 
 	return record_type->FieldDefault(field);
+	}
+
+void RecordVal::ResizeParseTimeRecords()
+	{
+	for ( auto& rv : parse_time_records )
+		{
+		auto vs = rv->val.val_list_val;
+		auto rt = rv->record_type;
+		auto current_length = vs->length();
+		auto required_length = rt->NumFields();
+
+		if ( required_length > current_length )
+			{
+			vs->resize(required_length);
+
+			for ( auto i = current_length; i < required_length; ++i )
+				vs->replace(i, nullptr);
+			}
+
+		Unref(rv);
+		}
+
+	parse_time_records.clear();
 	}
 
 Val* RecordVal::Lookup(const char* field, bool with_default) const
@@ -3195,7 +3226,7 @@ bool VectorVal::AssignRepeat(unsigned int index, unsigned int how_many,
 	ResizeAtLeast(index + how_many);
 
 	for ( unsigned int i = index; i < index + how_many; ++i )
-		if ( ! Assign(i, element ) )
+		if ( ! Assign(i, element->Ref() ) )
 			return false;
 
 	return true;
@@ -3495,3 +3526,67 @@ void delete_vals(val_list* vals)
 		delete vals;
 		}
 	}
+
+Val* cast_value_to_type(Val* v, BroType* t)
+	{
+	// Note: when changing this function, adapt all three of
+	// cast_value_to_type()/can_cast_value_to_type()/can_cast_value_to_type().
+
+	if ( ! v )
+		return 0;
+
+	// Always allow casting to same type. This also covers casting 'any'
+	// to the actual type.
+	if ( same_type(v->Type(), t) )
+		return v->Ref();
+
+	if ( same_type(v->Type(), bro_broker::DataVal::ScriptDataType()) )
+		{
+		auto dv = v->AsRecordVal()->Lookup(0);
+		return static_cast<bro_broker::DataVal *>(dv)->castTo(t);
+		}
+
+	return 0;
+	}
+
+bool can_cast_value_to_type(const Val* v, BroType* t)
+	{
+	// Note: when changing this function, adapt all three of
+	// cast_value_to_type()/can_cast_value_to_type()/can_cast_value_to_type().
+
+	if ( ! v )
+		return false;
+
+	// Always allow casting to same type. This also covers casting 'any'
+	// to the actual type.
+	if ( same_type(v->Type(), t) )
+		return true;
+
+	if ( same_type(v->Type(), bro_broker::DataVal::ScriptDataType()) )
+		{
+		auto dv = v->AsRecordVal()->Lookup(0);
+		return static_cast<const bro_broker::DataVal *>(dv)->canCastTo(t);
+		}
+
+	return false;
+	}
+
+bool can_cast_value_to_type(const BroType* s, BroType* t)
+	{
+	// Note: when changing this function, adapt all three of
+	// cast_value_to_type()/can_cast_value_to_type()/can_cast_value_to_type().
+
+	// Always allow casting to same type. This also covers casting 'any'
+	// to the actual type.
+	if ( same_type(s, t) )
+		return true;
+
+	if ( same_type(s, bro_broker::DataVal::ScriptDataType()) )
+		// As Broker is dynamically typed, we don't know if we will be able
+		// to convert the type as intended. We optimistically assume that we
+		// will.
+		return true;
+
+	return false;
+	}
+

@@ -51,10 +51,10 @@ type ncp_over_tcpip_frame(is_orig: bool) = record {
 		};
 	ncp		: ncp_frame(is_orig, length - offsetof(ncp));
 } &byteorder = bigendian,
-  &length = length,
-  &check( ncp.frame_type == 0x1111 ||
-          ncp.frame_type == 0x2222 ||
-          ncp.frame_type == 0x3333 ||
-          ncp.frame_type == 0x5555 ||
-          ncp.frame_type == 0x7777 ||
-          ncp.frame_type == 0x9999 );
+  &length = length;
+  #&check( ncp.frame_type == 0x1111 ||
+  #        ncp.frame_type == 0x2222 ||
+  #        ncp.frame_type == 0x3333 ||
+  #        ncp.frame_type == 0x5555 ||
+  #        ncp.frame_type == 0x7777 ||
+  #        ncp.frame_type == 0x9999 );

@@ -4,7 +4,6 @@
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff out
 
 redef exit_only_after_terminate = T;
-@load base/frameworks/communication  # let network-time run. otherwise there are no heartbeats...
 
 global outfile: file;
 global processes_finished: count = 0;

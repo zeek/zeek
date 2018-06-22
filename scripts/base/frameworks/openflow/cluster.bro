@@ -13,8 +13,14 @@ export {
 	global cluster_flow_clear: event(name: string);
 }
 
-## Workers need ability to forward commands to manager.
-redef Cluster::worker2manager_events += /OpenFlow::cluster_flow_(mod|clear)/;
+@if ( Cluster::local_node_type() != Cluster::MANAGER )
+# Workers need ability to forward commands to manager.
+event bro_init()
+	{
+	Broker::auto_publish(Cluster::manager_topic, OpenFlow::cluster_flow_mod);
+	Broker::auto_publish(Cluster::manager_topic, OpenFlow::cluster_flow_clear);
+	}
+@endif
 
 # the flow_mod function wrapper
 function flow_mod(controller: Controller, match: ofp_match, flow_mod: ofp_flow_mod): bool

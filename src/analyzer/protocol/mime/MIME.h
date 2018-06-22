@@ -268,7 +268,7 @@ extern StringVal* new_string_val(int length, const char* data);
 extern StringVal* new_string_val(const char* data, const char* end_of_data);
 extern StringVal* new_string_val(const data_chunk_t buf);
 extern int fputs(data_chunk_t b, FILE* fp);
-extern int strcasecmp_n(data_chunk_t s, const char* t);
+extern bool istrequal(data_chunk_t s, const char* t);
 extern int is_lws(char ch);
 extern int MIME_is_field_name_char(char ch);
 extern int MIME_count_leading_lws(int len, const char* data);

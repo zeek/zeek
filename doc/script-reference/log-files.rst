@@ -130,9 +130,6 @@ Network Observations
 +============================+=======================================+=================================+
 | known_certs.log            | SSL certificates                      | :bro:type:`Known::CertsInfo`    |
 +----------------------------+---------------------------------------+---------------------------------+
-| known_devices.log          | MAC addresses of devices on the       | :bro:type:`Known::DevicesInfo`  |
-|                            | network                               |                                 |
-+----------------------------+---------------------------------------+---------------------------------+
 | known_hosts.log            | Hosts that have completed TCP         | :bro:type:`Known::HostsInfo`    |
 |                            | handshakes                            |                                 |
 +----------------------------+---------------------------------------+---------------------------------+
@@ -168,8 +165,8 @@ Bro Diagnostics
 +----------------------------+---------------------------------------+---------------------------------+
 | cluster.log                | Bro cluster messages                  | :bro:type:`Cluster::Info`       |
 +----------------------------+---------------------------------------+---------------------------------+
-| communication.log          | Communication events between Bro or   | :bro:type:`Communication::Info` |
-|                            | Broccoli instances                    |                                 |
+| broker.log                 | Peering status events between Bro or  | :bro:type:`Broker::Info`        |
+|                            | Broker-enabled processes              |                                 |
 +----------------------------+---------------------------------------+---------------------------------+
 | loaded_scripts.log         | Shows all scripts loaded by Bro       | :bro:type:`LoadedScripts::Info` |
 +----------------------------+---------------------------------------+---------------------------------+

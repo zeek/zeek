@@ -1,0 +1,147 @@
+1st stuff
+hrw, 0, bro/cluster/node/proxy-1
+hrw (custom pool), 0, bro/cluster/node/proxy-2
+hrw, 1, bro/cluster/node/proxy-1
+hrw (custom pool), 1, bro/cluster/node/proxy-2
+hrw, 2, bro/cluster/node/proxy-1
+hrw (custom pool), 2, bro/cluster/node/proxy-2
+hrw, 3, bro/cluster/node/proxy-1
+hrw (custom pool), 3, bro/cluster/node/proxy-2
+hrw, 13, bro/cluster/node/proxy-1
+hrw (custom pool), 13, bro/cluster/node/proxy-2
+hrw, 37, bro/cluster/node/proxy-1
+hrw (custom pool), 37, bro/cluster/node/proxy-2
+hrw, 42, bro/cluster/node/proxy-1
+hrw (custom pool), 42, bro/cluster/node/proxy-2
+hrw, 101, bro/cluster/node/proxy-1
+hrw (custom pool), 101, bro/cluster/node/proxy-2
+rr, bro/cluster/node/proxy-1
+rr (custom pool), bro/cluster/node/proxy-2
+rr, bro/cluster/node/proxy-1
+rr (custom pool), bro/cluster/node/proxy-2
+rr, bro/cluster/node/proxy-1
+rr (custom pool), bro/cluster/node/proxy-2
+rr, bro/cluster/node/proxy-1
+rr (custom pool), bro/cluster/node/proxy-2
+rr, bro/cluster/node/proxy-1
+rr (custom pool), bro/cluster/node/proxy-2
+rr, bro/cluster/node/proxy-1
+rr (custom pool), bro/cluster/node/proxy-2
+rr, bro/cluster/node/proxy-1
+rr (custom pool), bro/cluster/node/proxy-2
+rr, bro/cluster/node/proxy-1
+rr (custom pool), bro/cluster/node/proxy-2
+hrw, 0, bro/cluster/node/proxy-1
+hrw (custom pool), 0, bro/cluster/node/proxy-2
+hrw, 1, bro/cluster/node/proxy-1
+hrw (custom pool), 1, bro/cluster/node/proxy-2
+hrw, 2, bro/cluster/node/proxy-1
+hrw (custom pool), 2, bro/cluster/node/proxy-2
+hrw, 3, bro/cluster/node/proxy-1
+hrw (custom pool), 3, bro/cluster/node/proxy-2
+hrw, 13, bro/cluster/node/proxy-1
+hrw (custom pool), 13, bro/cluster/node/proxy-2
+hrw, 37, bro/cluster/node/proxy-1
+hrw (custom pool), 37, bro/cluster/node/proxy-2
+hrw, 42, bro/cluster/node/proxy-1
+hrw (custom pool), 42, bro/cluster/node/proxy-2
+hrw, 101, bro/cluster/node/proxy-1
+hrw (custom pool), 101, bro/cluster/node/proxy-2
+2nd stuff
+hrw, 0, 
+hrw (custom pool), 0, bro/cluster/node/proxy-2
+hrw, 1, 
+hrw (custom pool), 1, bro/cluster/node/proxy-2
+hrw, 2, 
+hrw (custom pool), 2, bro/cluster/node/proxy-2
+hrw, 3, 
+hrw (custom pool), 3, bro/cluster/node/proxy-2
+hrw, 13, 
+hrw (custom pool), 13, bro/cluster/node/proxy-2
+hrw, 37, 
+hrw (custom pool), 37, bro/cluster/node/proxy-2
+hrw, 42, 
+hrw (custom pool), 42, bro/cluster/node/proxy-2
+hrw, 101, 
+hrw (custom pool), 101, bro/cluster/node/proxy-2
+rr, 
+rr (custom pool), bro/cluster/node/proxy-2
+rr, 
+rr (custom pool), bro/cluster/node/proxy-2
+rr, 
+rr (custom pool), bro/cluster/node/proxy-2
+rr, 
+rr (custom pool), bro/cluster/node/proxy-2
+rr, 
+rr (custom pool), bro/cluster/node/proxy-2
+rr, 
+rr (custom pool), bro/cluster/node/proxy-2
+rr, 
+rr (custom pool), bro/cluster/node/proxy-2
+rr, 
+rr (custom pool), bro/cluster/node/proxy-2
+hrw, 0, 
+hrw (custom pool), 0, bro/cluster/node/proxy-2
+hrw, 1, 
+hrw (custom pool), 1, bro/cluster/node/proxy-2
+hrw, 2, 
+hrw (custom pool), 2, bro/cluster/node/proxy-2
+hrw, 3, 
+hrw (custom pool), 3, bro/cluster/node/proxy-2
+hrw, 13, 
+hrw (custom pool), 13, bro/cluster/node/proxy-2
+hrw, 37, 
+hrw (custom pool), 37, bro/cluster/node/proxy-2
+hrw, 42, 
+hrw (custom pool), 42, bro/cluster/node/proxy-2
+hrw, 101, 
+hrw (custom pool), 101, bro/cluster/node/proxy-2
+no stuff
+hrw, 0, 
+hrw (custom pool), 0, 
+hrw, 1, 
+hrw (custom pool), 1, 
+hrw, 2, 
+hrw (custom pool), 2, 
+hrw, 3, 
+hrw (custom pool), 3, 
+hrw, 13, 
+hrw (custom pool), 13, 
+hrw, 37, 
+hrw (custom pool), 37, 
+hrw, 42, 
+hrw (custom pool), 42, 
+hrw, 101, 
+hrw (custom pool), 101, 
+rr, 
+rr (custom pool), 
+rr, 
+rr (custom pool), 
+rr, 
+rr (custom pool), 
+rr, 
+rr (custom pool), 
+rr, 
+rr (custom pool), 
+rr, 
+rr (custom pool), 
+rr, 
+rr (custom pool), 
+rr, 
+rr (custom pool), 
+hrw, 0, 
+hrw (custom pool), 0, 
+hrw, 1, 
+hrw (custom pool), 1, 
+hrw, 2, 
+hrw (custom pool), 2, 
+hrw, 3, 
+hrw (custom pool), 3, 
+hrw, 13, 
+hrw (custom pool), 13, 
+hrw, 37, 
+hrw (custom pool), 37, 
+hrw, 42, 
+hrw (custom pool), 42, 
+hrw, 101, 
+hrw (custom pool), 101, 

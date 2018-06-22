@@ -16,10 +16,25 @@ export {
 	global cluster_netcontrol_delete_rule: event(id: string, reason: string);
 }
 
-## Workers need ability to forward commands to manager.
-redef Cluster::worker2manager_events += /NetControl::cluster_netcontrol_(add|remove|delete)_rule/;
-## Workers need to see the result events from the manager.
-redef Cluster::manager2worker_events += /NetControl::rule_(added|removed|timeout|error|exists|new|destroyed)/;
+@if ( Cluster::local_node_type() == Cluster::MANAGER )
+event bro_init()
+	{
+	Broker::auto_publish(Cluster::worker_topic, NetControl::rule_added);
+	Broker::auto_publish(Cluster::worker_topic, NetControl::rule_removed);
+	Broker::auto_publish(Cluster::worker_topic, NetControl::rule_timeout);
+	Broker::auto_publish(Cluster::worker_topic, NetControl::rule_error);
+	Broker::auto_publish(Cluster::worker_topic, NetControl::rule_exists);
+	Broker::auto_publish(Cluster::worker_topic, NetControl::rule_new);
+	Broker::auto_publish(Cluster::worker_topic, NetControl::rule_destroyed);
+	}
+@else
+event bro_init()
+	{
+	Broker::auto_publish(Cluster::manager_topic, NetControl::cluster_netcontrol_add_rule);
+	Broker::auto_publish(Cluster::manager_topic, NetControl::cluster_netcontrol_remove_rule);
+	Broker::auto_publish(Cluster::manager_topic, NetControl::cluster_netcontrol_delete_rule);
+	}
+@endif
 
 function activate(p: PluginState, priority: int)
 	{

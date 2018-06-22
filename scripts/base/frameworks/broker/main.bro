@@ -1,55 +1,170 @@
-##! Various data structure definitions for use with Bro's communication system.
-
-module Log;
-
-export {
-    type Log::ID: enum {
-        ## Dummy place-holder.
-        UNKNOWN
-    };
-}
+##! The Broker-based communication API and its various options.
 
 module Broker;
 
 export {
+	## Default port for Broker communication. Where not specified
+	## otherwise, this is the port to connect to and listen on.
+	const default_port = 9999/tcp &redef;
 
-	## A name used to identify this endpoint to peers.
+	## Default interval to retry listening on a port if it's currently in
+	## use already.
+	const default_listen_retry = 30sec &redef;
+
+	## Default address on which to listen.
 	##
-	## .. bro:see:: Broker::connect Broker::listen
-	const endpoint_name = "" &redef;
+	## .. bro:see:: Broker::listen
+	const default_listen_address = getenv("BRO_DEFAULT_LISTEN_ADDRESS") &redef;
 
-	## Change communication behavior.
-	type EndpointFlags: record {
-		## Whether to restrict message topics that can be published to peers.
-		auto_publish: bool &default = T;
-		## Whether to restrict what message topics or data store identifiers
-		## the local endpoint advertises to peers (e.g. subscribing to
-		## events or making a master data store available).
-		auto_advertise: bool &default = T;
+	## Default interval to retry connecting to a peer if it cannot be made to work
+	## initially, or if it ever becomes disconnected.
+	const default_connect_retry = 30sec &redef;
+
+	## If false, do not use SSL for network connections. By default, SSL will even
+	## be used if no certificates / CAs have been configured. In that case
+	## (which is the default) the communication will be encrypted, but not
+	## authenticated.
+	const disable_ssl = F &redef;
+
+	## Path to a file containing concatenated trusted certificates 
+	## in PEM format. If set, Bro will require valid certificates forx
+	## all peers.
+	const ssl_cafile = "" &redef;
+
+	## Path to an OpenSSL-style directory of trusted certificates.
+	## If set, Bro will require valid certificates forx
+	## all peers.
+	const ssl_capath = "" &redef;
+
+	## Path to a file containing a X.509 certificate for this
+	## node in PEM format. If set, Bro will require valid certificates for
+	## all peers.
+	const ssl_certificate = "" &redef;
+
+	## Passphrase to decrypt the private key specified by
+	## :bro:see:`Broker::ssl_keyfile`. If set, Bro will require valid
+	## certificates for all peers.
+	const ssl_passphrase = "" &redef;
+
+	## Path to the file containing the private key for this node's
+	## certificate. If set, Bro will require valid certificates for
+	## all peers.
+	const ssl_keyfile = "" &redef;
+
+	## Max number of threads to use for Broker/CAF functionality.
+	## Using zero will cause this to be automatically determined
+	## based on number of available CPUs.
+	const max_threads = 0 &redef;
+
+	## Max number of microseconds for under-utilized Broker/CAF
+	## threads to sleep.  Using zero will cause this to be automatically
+	## determined or just use CAF's default setting.
+	const max_sleep = 0 &redef;
+
+	## Forward all received messages to subscribing peers.
+	const forward_messages = F &redef;
+
+	## The default topic prefix where logs will be published.  The log's stream
+	## id is appended when writing to a particular stream.
+	const default_log_topic_prefix = "bro/logs/" &redef;
+
+	## The default implementation for :bro:see:`Broker::log_topic`.
+	function default_log_topic(id: Log::ID, path: string): string
+		{
+		return default_log_topic_prefix + cat(id);
+		}
+
+	## A function that will be called for each log entry to determine what
+	## broker topic string will be used for sending it to peers.  The
+	## default implementation will return a value based on
+	## :bro:see:`Broker::default_log_topic_prefix`.
+	##
+	## id: the ID associated with the log stream entry that will be sent.
+	##
+	## path: the path to which the log stream entry will be output.
+	##
+	## Returns: a string representing the broker topic to which the log
+	##          will be sent.
+	const log_topic: function(id: Log::ID, path: string): string = default_log_topic &redef;
+
+	type ErrorCode: enum {
+		## The unspecified default error code.
+		UNSPECIFIED = 1,
+		## Version incompatibility.
+		PEER_INCOMPATIBLE = 2,
+		## Referenced peer does not exist.
+		PEER_INVALID = 3,
+		## Remote peer not listening.
+		PEER_UNAVAILABLE = 4,
+		## An peering request timed out.
+		PEER_TIMEOUT = 5,
+		## Master with given name already exist.
+		MASTER_EXISTS = 6,
+		## Master with given name does not exist.
+		NO_SUCH_MASTER = 7,
+		## The given data store key does not exist.
+		NO_SUCH_KEY = 8,
+		## The store operation timed out.
+		REQUEST_TIMEOUT = 9,
+		## The operation expected a different type than provided
+		TYPE_CLASH = 10,
+		## The data value cannot be used to carry out the desired operation.
+		INVALID_DATA = 11,
+		## The storage backend failed to execute the operation.
+		BACKEND_FAILURE = 12,
+		## The storage backend failed to execute the operation.
+		STALE_DATA = 13,
+		## Catch-all for a CAF-level problem.
+		CAF_ERROR = 100
 	};
 
-	## Fine-grained tuning of communication behavior for a particular message.
-	type SendFlags: record {
-		## Send the message to the local endpoint.
-		self: bool &default = F;
-		## Send the message to peer endpoints that advertise interest in
-		## the topic associated with the message.
-		peers: bool &default = T;
-		## Send the message to peer endpoints even if they don't advertise
-		## interest in the topic associated with the message.
-		unsolicited: bool &default = F;
+	## The possible states of a peer endpoint.
+	type PeerStatus: enum {
+		## The peering process is initiated.
+		INITIALIZING,
+		## Connection establishment in process.
+		CONNECTING,
+		## Connection established, peering pending.
+		CONNECTED,
+		## Successfully peered.
+		PEERED,
+		## Connection to remote peer lost.
+		DISCONNECTED,
+		## Reconnecting to peer after a lost connection.
+		RECONNECTING,
 	};
+
+	type NetworkInfo: record {
+		## The IP address or hostname where the endpoint listens.
+		address: string &log;
+		## The port where the endpoint is bound to.
+		bound_port: port &log;
+	};
+
+	type EndpointInfo: record {
+		## A unique identifier of the node.
+		id: string;
+		## Network-level information.
+		network: NetworkInfo &optional;
+	};
+
+	type PeerInfo: record {
+		peer: EndpointInfo;
+		status: PeerStatus;
+	};
+
+	type PeerInfos: vector of PeerInfo;
 
 	## Opaque communication data.
 	type Data: record {
-		d: opaque of Broker::Data &optional;
+		data: opaque of Broker::Data &optional;
 	};
 
-	## Opaque communication data.
+	## Opaque communication data sequence.
 	type DataVector: vector of Broker::Data;
 
 	## Opaque event communication data.
-	type EventArgs: record {
+	type Event: record {
 		## The name of the event.  Not set if invalid event or arguments.
 		name: string &optional;
 		## The arguments to the event.
@@ -63,52 +178,23 @@ export {
 		val: Broker::Data;
 	};
 
-	## Enable use of communication.
-	##
-	## flags: used to tune the local Broker endpoint behavior.
-	##
-	## Returns: true if communication is successfully initialized.
-	global enable: function(flags: EndpointFlags &default = EndpointFlags()): bool;
-
-	## Changes endpoint flags originally supplied to :bro:see:`Broker::enable`.
-	##
-	## flags: the new endpoint behavior flags to use.
-	##
-	## Returns: true if flags were changed.
-	global set_endpoint_flags: function(flags: EndpointFlags &default = EndpointFlags()): bool;
-
-	## Allow sending messages to peers if associated with the given topic.
-	## This has no effect if auto publication behavior is enabled via the flags
-	## supplied to :bro:see:`Broker::enable` or :bro:see:`Broker::set_endpoint_flags`.
-	##
-	## topic: a topic to allow messages to be published under.
-	##
-	## Returns: true if successful.
-	global publish_topic: function(topic: string): bool;
-
-	## Disallow sending messages to peers if associated with the given topic.
-	## This has no effect if auto publication behavior is enabled via the flags
-	## supplied to :bro:see:`Broker::enable` or :bro:see:`Broker::set_endpoint_flags`.
-	##
-	## topic: a topic to disallow messages to be published under.
-	##
-	## Returns: true if successful.
-	global unpublish_topic: function(topic: string): bool;
-
 	## Listen for remote connections.
-	##
-	## p: the TCP port to listen on.
 	##
 	## a: an address string on which to accept connections, e.g.
 	##    "127.0.0.1".  An empty string refers to @p INADDR_ANY.
 	##
-	## reuse: equivalent to behavior of SO_REUSEADDR.
+	## p: the TCP port to listen on. The value 0 means that the OS should choose
+	##    the next available free port.
 	##
-	## Returns: true if the local endpoint is now listening for connections.
+	## retry: If non-zero, retries listening in regular intervals if the port cannot be
+	##        acquired immediately. 0 disables retries.
 	##
-	## .. bro:see:: Broker::incoming_connection_established
-	global listen: function(p: port, a: string &default = "", reuse: bool &default = T): bool;
-
+	## Returns: the bound port or 0/? on failure.
+	##
+	## .. bro:see:: Broker::status
+	global listen: function(a: string &default = default_listen_address,
+	                        p: port &default = default_port,
+	                        retry: interval &default = default_listen_retry): port;
 	## Initiate a remote connection.
 	##
 	## a: an address to connect to, e.g. "localhost" or "127.0.0.1".
@@ -120,63 +206,66 @@ export {
 	##        if it ever becomes disconnected.
 	##
 	## Returns: true if it's possible to try connecting with the peer and
-	##          it's a new peer.  The actual connection may not be established
+	##          it's a new peer. The actual connection may not be established
 	##          until a later point in time.
 	##
-	## .. bro:see:: Broker::outgoing_connection_established
-	global connect: function(a: string, p: port, retry: interval): bool;
+	## .. bro:see:: Broker::status
+	global peer: function(a: string, p: port &default=default_port,
+	                      retry: interval &default=default_connect_retry): bool;
 
 	## Remove a remote connection.
 	##
-	## a: the address used in previous successful call to :bro:see:`Broker::connect`.
+	## Note that this does not terminate the connection to the peer, it
+	## just means that we won't exchange any further information with it
+	## unless peering resumes later.
 	##
-	## p: the port used in previous successful call to :bro:see:`Broker::connect`.
+	## a: the address used in previous successful call to :bro:see:`Broker::peer`.
+	##
+	## p: the port used in previous successful call to :bro:see:`Broker::peer`.
 	##
 	## Returns: true if the arguments match a previously successful call to
-	##          :bro:see:`Broker::connect`.
-	global disconnect: function(a: string, p: port): bool;
+	##          :bro:see:`Broker::peer`.
+	##
+	## TODO: We do not have a function yet to terminate a connection.
+	global unpeer: function(a: string, p: port): bool;
 
-	## Print a simple message to any interested peers.  The receiver can use
-	## :bro:see:`Broker::print_handler` to handle messages.
+	## Returns: a list of all peer connections.
+	global peers: function(): vector of PeerInfo;
+
+	## Returns: a unique identifier for the local broker endpoint.
+	global node_id: function(): string;
+
+	## Sends all pending log messages to remote peers.  This normally
+	## doesn't need to be used except for test cases that are time-sensitive.
+	global flush_logs: function(): count;
+
+	## Publishes the value of an identifier to a given topic.  The subscribers
+	## will update their local value for that identifier on receipt.
 	##
-	## topic: a topic associated with the printed message.
+	## topic: a topic associated with the message.
 	##
-	## msg: the print message to send to peers.
-	##
-	## flags: tune the behavior of how the message is sent.
+	## id: the identifier to publish.
 	##
 	## Returns: true if the message is sent.
-	global send_print: function(topic: string, msg: string, flags: SendFlags &default = SendFlags()): bool;
+	global publish_id: function(topic: string, id: string): bool;
 
-	## Register interest in all peer print messages that use a certain topic
-	## prefix. Use :bro:see:`Broker::print_handler` to handle received
-	## messages.
+	## Register interest in all peer event messages that use a certain topic
+	## prefix.
 	##
 	## topic_prefix: a prefix to match against remote message topics.
 	##               e.g. an empty prefix matches everything and "a" matches
 	##               "alice" and "amy" but not "bob".
 	##
-	## Returns: true if it's a new print subscription and it is now registered.
-	global subscribe_to_prints: function(topic_prefix: string): bool;
+	## Returns: true if it's a new event subscription and it is now registered.
+	global subscribe: function(topic_prefix: string): bool;
 
-	## Unregister interest in all peer print messages that use a topic prefix.
+	## Unregister interest in all peer event messages that use a topic prefix.
 	##
 	## topic_prefix: a prefix previously supplied to a successful call to
-	##               :bro:see:`Broker::subscribe_to_prints`.
+	##               :bro:see:`Broker::subscribe`.
 	##
 	## Returns: true if interest in the topic prefix is no longer advertised.
-	global unsubscribe_to_prints: function(topic_prefix: string): bool;
-
-	## Send an event to any interested peers.
-	##
-	## topic: a topic associated with the event message.
-	##
-	## args: event arguments as made by :bro:see:`Broker::event_args`.
-	##
-	## flags: tune the behavior of how the message is sent.
-	##
-	## Returns: true if the message is sent.
-	global send_event: function(topic: string, args: EventArgs, flags: SendFlags &default = SendFlags()): bool;
+	global unsubscribe: function(topic_prefix: string): bool;
 
 	## Automatically send an event to any interested peers whenever it is
 	## locally dispatched (e.g. using "event my_event(...);" in a script).
@@ -187,83 +276,18 @@ export {
 	##
 	## ev: a Bro event value.
 	##
-	## flags: tune the behavior of how the message is sent.
-	##
 	## Returns: true if automatic event sending is now enabled.
-	global auto_event: function(topic: string, ev: any, flags: SendFlags &default = SendFlags()): bool;
+	global auto_publish: function(topic: string, ev: any): bool;
 
 	## Stop automatically sending an event to peers upon local dispatch.
 	##
-	## topic: a topic originally given to :bro:see:`Broker::auto_event`.
+	## topic: a topic originally given to :bro:see:`Broker::auto_publish`.
 	##
-	## ev: an event originally given to :bro:see:`Broker::auto_event`.
+	## ev: an event originally given to :bro:see:`Broker::auto_publish`.
 	##
 	## Returns: true if automatic events will not occur for the topic/event
 	##          pair.
-	global auto_event_stop: function(topic: string, ev: any): bool;
-
-	## Register interest in all peer event messages that use a certain topic
-	## prefix.
-	##
-	## topic_prefix: a prefix to match against remote message topics.
-	##               e.g. an empty prefix matches everything and "a" matches
-	##               "alice" and "amy" but not "bob".
-	##
-	## Returns: true if it's a new event subscription and it is now registered.
-	global subscribe_to_events: function(topic_prefix: string): bool;
-
-	## Unregister interest in all peer event messages that use a topic prefix.
-	##
-	## topic_prefix: a prefix previously supplied to a successful call to
-	##               :bro:see:`Broker::subscribe_to_events`.
-	##
-	## Returns: true if interest in the topic prefix is no longer advertised.
-	global unsubscribe_to_events: function(topic_prefix: string): bool;
-
-	## Enable remote logs for a given log stream.
-	##
-	## id: the log stream to enable remote logs for.
-	##
-	## flags: tune the behavior of how log entry messages are sent.
-	##
-	## Returns: true if remote logs are enabled for the stream.
-	global enable_remote_logs: function(id: Log::ID, flags: SendFlags &default = SendFlags()): bool;
-
-	## Disable remote logs for a given log stream.
-	##
-	## id: the log stream to disable remote logs for.
-	##
-	## Returns: true if remote logs are disabled for the stream.
-	global disable_remote_logs: function(id: Log::ID): bool;
-
-	## Check if remote logs are enabled for a given log stream.
-	##
-	## id: the log stream to check.
-	##
-	## Returns: true if remote logs are enabled for the given stream.
-	global remote_logs_enabled: function(id: Log::ID): bool;
-
-	## Register interest in all peer log messages that use a certain topic
-	## prefix. Logs are implicitly sent with topic "bro/log/<stream-name>" and
-	## the receiving side processes them through the logging framework as usual.
-	##
-	## topic_prefix: a prefix to match against remote message topics.
-	##               e.g. an empty prefix matches everything and "a" matches
-	##               "alice" and "amy" but not "bob".
-	##
-	## Returns: true if it's a new log subscription and it is now registered.
-	global subscribe_to_logs: function(topic_prefix: string): bool;
-
-	## Unregister interest in all peer log messages that use a topic prefix.
-	## Logs are implicitly sent with topic "bro/log/<stream-name>" and the
-	## receiving side processes them through the logging framework as usual.
-	##
-	## topic_prefix: a prefix previously supplied to a successful call to
-	##               :bro:see:`Broker::subscribe_to_logs`.
-	##
-	## Returns: true if interest in the topic prefix is no longer advertised.
-	global unsubscribe_to_logs: function(topic_prefix: string): bool;
-
+	global auto_unpublish: function(topic: string, ev: any): bool;
 }
 
 @load base/bif/comm.bif
@@ -271,106 +295,67 @@ export {
 
 module Broker;
 
-@ifdef ( Broker::__enable )
+event retry_listen(a: string, p: port, retry: interval)
+	{
+	listen(a, p, retry);
+	}
 
-function enable(flags: EndpointFlags &default = EndpointFlags()) : bool
-    {
-    return __enable(flags);
-    }
+function listen(a: string, p: port, retry: interval): port
+	{
+	local bound = __listen(a, p);
 
-function set_endpoint_flags(flags: EndpointFlags &default = EndpointFlags()): bool
-    {
-    return __set_endpoint_flags(flags);
-    }
+	if ( bound == 0/tcp && retry != 0secs )
+		schedule retry { retry_listen(a, p, retry) };
 
-function publish_topic(topic: string): bool
-    {
-    return __publish_topic(topic);
-    }
+	return bound;
+	}
 
-function unpublish_topic(topic: string): bool
-    {
-    return __unpublish_topic(topic);
-    }
+function peer(a: string, p: port, retry: interval): bool
+	{
+	return __peer(a, p, retry);
+	}
 
-function listen(p: port, a: string &default = "", reuse: bool &default = T): bool
-    {
-    return __listen(p, a, reuse);
-    }
+function unpeer(a: string, p: port): bool
+	{
+	return __unpeer(a, p);
+	}
 
-function connect(a: string, p: port, retry: interval): bool
-    {
-    return __connect(a, p, retry);
-    }
+function peers(): vector of PeerInfo
+	{
+	return __peers();
+	}
 
-function disconnect(a: string, p: port): bool
-    {
-    return __disconnect(a, p);
-    }
+function node_id(): string
+	{
+	return __node_id();
+	}
 
-function send_print(topic: string, msg: string, flags: SendFlags &default = SendFlags()): bool
-    {
-    return __send_print(topic, msg, flags);
-    }
+function flush_logs(): count
+	{
+	return __flush_logs();
+	}
 
-function subscribe_to_prints(topic_prefix: string): bool
-    {
-    return __subscribe_to_prints(topic_prefix);
-    }
+function publish_id(topic: string, id: string): bool
+	{
+	return __publish_id(topic, id);
+	}
 
-function unsubscribe_to_prints(topic_prefix: string): bool
-    {
-    return __unsubscribe_to_prints(topic_prefix);
-    }
+function subscribe(topic_prefix: string): bool
+	{
+	return __subscribe(topic_prefix);
+	}
 
-function send_event(topic: string, args: EventArgs, flags: SendFlags &default = SendFlags()): bool
-    {
-    return __event(topic, args, flags);
-    }
+function unsubscribe(topic_prefix: string): bool
+	{
+	return __unsubscribe(topic_prefix);
+	}
 
-function auto_event(topic: string, ev: any, flags: SendFlags &default = SendFlags()): bool
-    {
-    return __auto_event(topic, ev, flags);
-    }
+function auto_publish(topic: string, ev: any): bool
+	{
+	return __auto_publish(topic, ev);
+	}
 
-function auto_event_stop(topic: string, ev: any): bool
-    {
-    return __auto_event_stop(topic, ev);
-    }
-
-function subscribe_to_events(topic_prefix: string): bool
-    {
-    return __subscribe_to_events(topic_prefix);
-    }
-
-function unsubscribe_to_events(topic_prefix: string): bool
-    {
-    return __unsubscribe_to_events(topic_prefix);
-    }
-
-function enable_remote_logs(id: Log::ID, flags: SendFlags &default = SendFlags()): bool
-    {
-    return __enable_remote_logs(id, flags);
-    }
-
-function disable_remote_logs(id: Log::ID): bool
-    {
-    return __disable_remote_logs(id);
-    }
-
-function remote_logs_enabled(id: Log::ID): bool
-    {
-    return __remote_logs_enabled(id);
-    }
-
-function subscribe_to_logs(topic_prefix: string): bool
-    {
-    return __subscribe_to_logs(topic_prefix);
-    }
-
-function unsubscribe_to_logs(topic_prefix: string): bool
-    {
-    return __unsubscribe_to_logs(topic_prefix);
-    }
-
-@endif
+function auto_unpublish(topic: string, ev: any): bool
+	{
+	return __auto_unpublish(topic, ev);
+	}

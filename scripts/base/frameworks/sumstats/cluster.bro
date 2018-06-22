@@ -55,17 +55,19 @@ export {
 	global cluster_threshold_crossed: event(ss_name: string, key: SumStats::Key, thold_index: count);
 }
 
-# Add events to the cluster framework to make this work.
-redef Cluster::manager2worker_events += /SumStats::cluster_(ss_request|get_result|threshold_crossed)/;
-redef Cluster::manager2worker_events += /SumStats::(get_a_key)/;
-redef Cluster::worker2manager_events += /SumStats::cluster_(send_result|key_intermediate_response)/;
-redef Cluster::worker2manager_events += /SumStats::(send_a_key|send_no_key)/;
-
 # This variable is maintained to know what keys have recently sent or received
 # intermediate updates so they don't overwhelm the manager.
 global recent_global_view_keys: set[string, Key] &create_expire=1min;
 
 @if ( Cluster::local_node_type() != Cluster::MANAGER )
+
+event bro_init() &priority=100
+	{
+	Broker::auto_publish(Cluster::manager_topic, SumStats::cluster_send_result);
+	Broker::auto_publish(Cluster::manager_topic, SumStats::cluster_key_intermediate_response);
+	Broker::auto_publish(Cluster::manager_topic, SumStats::send_a_key);
+	Broker::auto_publish(Cluster::manager_topic, SumStats::send_no_key);
+	}
 
 # Result tables indexed on a uid that are currently being sent to the
 # manager.
@@ -206,6 +208,14 @@ function request_key(ss_name: string, key: Key): Result
 
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
+
+event bro_init() &priority=100
+	{
+	Broker::auto_publish(Cluster::worker_topic, SumStats::cluster_ss_request);
+	Broker::auto_publish(Cluster::worker_topic, SumStats::cluster_get_result);
+	Broker::auto_publish(Cluster::worker_topic, SumStats::cluster_threshold_crossed);
+	Broker::auto_publish(Cluster::worker_topic, SumStats::get_a_key);
+	}
 
 # This variable is maintained by manager nodes as they collect and aggregate
 # results.

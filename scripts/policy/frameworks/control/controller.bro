@@ -7,7 +7,7 @@
 ##!     bro <scripts> frameworks/control/controller Control::host=<host_addr> Control::host_port=<host_port> Control::cmd=<command> [Control::arg=<arg>]
 
 @load base/frameworks/control
-@load base/frameworks/communication
+@load base/frameworks/broker
 
 module Control;
 
@@ -19,18 +19,23 @@ event bro_init() &priority=5
 	# shutdown.
 	if ( cmd !in commands )
 		{
-		# TODO: do an actual error here.  Maybe through the reporter events?
-		print fmt("The '%s' control command is unknown.", cmd);
+		Reporter::error(fmt("The '%s' control command is unknown.", cmd));
 		terminate();
 		}
-	
-	# Establish the communication configuration and only request response
-	# messages.
-	Communication::nodes["control"] = [$host=host, $zone_id=zone_id,
-	                                   $p=host_port, $sync=F, $connect=T,
-	                                   $class="control", $events=Control::controllee_events];
-	}
 
+	Broker::auto_publish(Control::topic_prefix + "/id_value_request",
+		                 Control::id_value_request);
+	Broker::auto_publish(Control::topic_prefix + "/peer_status_request",
+		                 Control::peer_status_request);
+	Broker::auto_publish(Control::topic_prefix + "/net_stats_request",
+		                 Control::net_stats_request);
+	Broker::auto_publish(Control::topic_prefix + "/configuration_update_request",
+		                 Control::configuration_update_request);
+	Broker::auto_publish(Control::topic_prefix + "/shutdown_request",
+                         Control::shutdown_request);
+	Broker::subscribe(Control::topic_prefix);
+	Broker::peer(cat(host), host_port);
+	}
 
 event Control::id_value_response(id: string, val: string) &priority=-10
 	{
@@ -56,12 +61,12 @@ event Control::shutdown_response() &priority=-10
 	{
 	event terminate_event();
 	}
-	
-function configuration_update_func(p: event_peer)
+
+function configurable_ids(): id_table
 	{
-	# Send all &redef'able consts to the peer.
+	local rval: id_table = table();
 	local globals = global_ids();
-    local cnt = 0;
+
 	for ( id in globals )
 		{
         if ( id in ignore_ids )
@@ -77,39 +82,59 @@ function configuration_update_func(p: event_peer)
 		# NOTE: functions are currently not fully supported for serialization and hence
 		# aren't sent.
 		if ( t$constant && t$redefinable && t$type_name != "func" )
-			{
-			send_id(p, id);
-			++cnt;
-			}
+			rval[id] = t;
 		}
 
-	print fmt("sent %d IDs", cnt);
-	event terminate_event();
+	return rval;
 	}
 
-event remote_connection_handshake_done(p: event_peer) &priority=-10
+function send_control_request()
 	{
-	if ( cmd == "id_value" )
-		{
-		if ( arg != "" )
-			event Control::id_value_request(arg);
-		else
-			{
-			# TODO: do an actual error here.  Maybe through the reporter events?
-			print "The id_value command requires that Control::arg have some value.";
-			terminate();
-			}
-		}
-	else if ( cmd == "peer_status" )
+	switch ( cmd ) {
+	case "id_value":
+		if ( arg == "" )
+			Reporter::fatal("The Control::id_value command requires that Control::arg also has some value.");
+
+		event Control::id_value_request(arg);
+		break;
+
+	case "peer_status":
 		event Control::peer_status_request();
-	else if ( cmd == "net_stats" )
+		break;
+
+	case "net_stats":
 		event Control::net_stats_request();
-	else if ( cmd == "shutdown" )
+		break;
+
+	case "shutdown":
 		event Control::shutdown_request();
-	else if ( cmd == "configuration_update" )
-		{
-		configuration_update_func(p);
-		# Signal configuration update to peer.
+		break;
+
+	case "configuration_update":
 		event Control::configuration_update_request();
+		break;
+
+	default:
+		Reporter::fatal(fmt("unhandled Control::cmd, %s", cmd));
+		break;
+	}
+	}
+
+event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string) &priority=-10
+	{
+	if ( cmd == "configuration_update" )
+		{
+		# Send all &redef'able consts to the peer.
+		local ids = configurable_ids();
+
+		for ( id in ids )
+			{
+			local topic = fmt("%s/id/%s", Control::topic_prefix, id);
+			Broker::publish_id(topic, id);
+			}
+
+		Reporter::info(fmt("Control framework sent %d IDs", |ids|));
 		}
+
+	send_control_request();
 	}

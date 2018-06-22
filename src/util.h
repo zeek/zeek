@@ -167,6 +167,8 @@ extern std::string strtolower(const std::string& s);
 extern const char* fmt_bytes(const char* data, int len);
 
 // Note: returns a pointer into a shared buffer.
+extern const char* fmt(const char* format, va_list args);
+// Note: returns a pointer into a shared buffer.
 extern const char* fmt(const char* format, ...)
 	__attribute__((format (printf, 1, 2)));
 extern const char* fmt_access_time(double time);
@@ -235,6 +237,13 @@ extern uint64 rand64bit();
 typedef ptr_compat_uint SourceID;
 #define PRI_SOURCE_ID PRI_PTR_COMPAT_UINT
 static const SourceID SOURCE_LOCAL = 0;
+
+// TODO: This is a temporary marker to flag events coming in via Broker.
+// Those are remote events but we don't have any further peer informationa
+// available for them (as the old communication code would have). Once we
+// remove RemoteSerializer, we can turn the SourceID into a simple boolean
+// indicating whether it's a local or remote event.
+static const SourceID SOURCE_BROKER = 0xffffffff;
 
 extern void pinpoint();
 extern int int_list_cmp(const void* v1, const void* v2);

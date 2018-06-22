@@ -1,10 +1,15 @@
 # Load the core cluster support.
 @load ./main
+@load ./pools
 
 @if ( Cluster::is_enabled() )
 
 # Give the node being started up it's peer name.
 redef peer_description = Cluster::node;
+
+@if ( Cluster::enable_round_robin_logging )
+redef Broker::log_topic = Cluster::rr_log_topic;
+@endif
 
 # Add a cluster prefix.
 @prefixes += cluster
@@ -18,13 +23,6 @@ redef peer_description = Cluster::node;
 @if ( Cluster::node in Cluster::nodes )
 
 @load ./setup-connections
-
-# Don't load the listening script until we're a bit more sure that the
-# cluster framework is actually being enabled.
-@load frameworks/communication/listen
-
-## Set the port that this node is supposed to listen on.
-redef Communication::listen_port = Cluster::nodes[Cluster::node]$p;
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
 @load ./nodes/manager

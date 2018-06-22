@@ -1017,7 +1017,7 @@ double EventPlayer::NextTimestamp(double* local_network_time)
 		return ne_time;
 
 	if ( ! io )
-		return 0;
+		return -1;
 
 	// Read next event if we don't have one waiting.
 	if ( ! ne_time )
@@ -1028,7 +1028,7 @@ double EventPlayer::NextTimestamp(double* local_network_time)
 		}
 
 	if ( ! ne_time )
-		return 0;
+		return -1;
 
 	if ( ! network_time )
 		{

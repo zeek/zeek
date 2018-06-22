@@ -1,0 +1,2 @@
+receiver added peer: endpoint=127.0.0.1 msg=handshake successful
+got my_event, hello world

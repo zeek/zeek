@@ -53,7 +53,7 @@ void MySQL_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		}
 	catch ( const binpac::Exception& e )
 		{
-		reporter->Weird(e.msg().c_str());
+		ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
 		}
 	}
 

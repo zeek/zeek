@@ -10,3 +10,4 @@ Installation
 
    install
    upgrade
+   cross-compiling

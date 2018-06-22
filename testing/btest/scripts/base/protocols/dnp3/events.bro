@@ -27,9 +27,9 @@ event dnp3_object_prefix(c: connection, is_orig: bool, prefix_value: count)
 	print "dnp3_object_prefix", is_orig, prefix_value;
 	}
 
-event dnp3_header_block(c: connection, is_orig: bool, start: count, len: count, ctrl: count, dest_addr: count, src_addr: count)
+event dnp3_header_block(c: connection, is_orig: bool, len: count, ctrl: count, dest_addr: count, src_addr: count)
 	{
-	print "dnp3_header_block", is_orig, start, len, ctrl, dest_addr, src_addr;
+	print "dnp3_header_block", is_orig, len, ctrl, dest_addr, src_addr;
 	}
 
 event dnp3_response_data_object(c: connection, is_orig: bool, data_value: count)

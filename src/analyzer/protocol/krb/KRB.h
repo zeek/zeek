@@ -5,6 +5,10 @@
 
 #include "krb_pac.h"
 
+#ifdef USE_KRB5
+#include <krb5.h>
+#endif
+
 namespace analyzer { namespace krb {
 
 class KRB_Analyzer : public analyzer::Analyzer {
@@ -20,9 +24,20 @@ public:
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new KRB_Analyzer(conn); }
 
+	StringVal* GetAuthenticationInfo(const BroString* principal, const BroString* ciphertext, const bro_uint_t enctype);
+
 protected:
 
 	binpac::KRB::KRB_Conn* interp;
+
+private:
+	static bool krb_available;
+#ifdef USE_KRB5
+	static std::once_flag krb_initialized;
+	static void Initialize_Krb();
+	static krb5_context krb_context;
+	static krb5_keytab krb_keytab;
+#endif
 };
 
 } } // namespace analyzer::*

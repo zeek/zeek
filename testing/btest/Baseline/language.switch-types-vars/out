@@ -1,0 +1,9 @@
+string!, My StrIng
+count!, 42
+Bool or address?
+    addr, 1.2.3.4
+Bool or address?
+    bool, T
+int!
+double or port
+double or port

@@ -6,5 +6,6 @@ include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DI
 bro_plugin_begin(Bro DHCP)
 bro_plugin_cc(DHCP.cc Plugin.cc)
 bro_plugin_bif(events.bif)
-bro_plugin_pac(dhcp.pac dhcp-protocol.pac dhcp-analyzer.pac)
+bro_plugin_bif(types.bif)
+bro_plugin_pac(dhcp.pac dhcp-protocol.pac dhcp-analyzer.pac dhcp-options.pac)
 bro_plugin_end()

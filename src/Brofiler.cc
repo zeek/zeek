@@ -50,10 +50,18 @@ bool Brofiler::WriteStats()
 	char* bf = getenv("BRO_PROFILER_FILE");
 	if ( ! bf ) return false;
 
-	FILE* f;
-	const char* p = strstr(bf, ".XXXXXX");
+	SafeDirname dirname{bf};
 
-	if ( p && ! p[7] )
+	if ( ! ensure_intermediate_dirs(dirname.result.data()) )
+		{
+		reporter->Error("Failed to open BRO_PROFILER_FILE destination '%s' for writing", bf);
+		return false;
+		}
+
+	FILE* f;
+	const char* p = strstr(bf, "XXXXXX");
+
+	if ( p && ! p[6] )
 		{
 		mode_t old_umask = umask(S_IXUSR | S_IRWXO | S_IRWXG);
 		int fd = mkstemp(bf);

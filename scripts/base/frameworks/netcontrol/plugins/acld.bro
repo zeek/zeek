@@ -6,8 +6,6 @@ module NetControl;
 @load ../plugin
 @load base/frameworks/broker
 
-@ifdef ( Broker::__enable )
-
 export {
 	type AclRule : record {
 		command: string;
@@ -243,7 +241,7 @@ function acld_add_rule_fun(p: PluginState, r: Rule) : bool
 	if ( ar$command == "" )
 		return F;
 
-	Broker::send_event(p$acld_config$acld_topic, Broker::event_args(acld_add_rule, p$acld_id, r, ar));
+	Broker::publish(p$acld_config$acld_topic, acld_add_rule, p$acld_id, r, ar);
 	return T;
 	}
 
@@ -266,19 +264,20 @@ function acld_remove_rule_fun(p: PluginState, r: Rule, reason: string) : bool
 			ar$comment = reason;
 		}
 
-	Broker::send_event(p$acld_config$acld_topic, Broker::event_args(acld_remove_rule, p$acld_id, r, ar));
+	Broker::publish(p$acld_config$acld_topic, acld_remove_rule, p$acld_id, r, ar);
 	return T;
 	}
 
 function acld_init(p: PluginState)
 	{
-	Broker::enable();
-	Broker::connect(cat(p$acld_config$acld_host), p$acld_config$acld_port, 1sec);
-	Broker::subscribe_to_events(p$acld_config$acld_topic);
+	Broker::peer(cat(p$acld_config$acld_host), p$acld_config$acld_port);
+	Broker::subscribe(p$acld_config$acld_topic);
 	}
 
-event Broker::outgoing_connection_established(peer_address: string, peer_port: port, peer_name: string)
+event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
+	local peer_address = cat(endpoint$network$address);
+	local peer_port = endpoint$network$bound_port;
 	if ( [peer_port, peer_address] !in netcontrol_acld_peers )
 		# ok, this one was none of ours...
 		return;
@@ -315,5 +314,3 @@ function create_acld(config: AcldConfig) : PluginState
 
 	return p;
 	}
-
-@endif

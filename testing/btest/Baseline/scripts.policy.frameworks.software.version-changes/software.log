@@ -1,0 +1,17 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	software
+#open	2017-12-21-02-29-09
+#fields	ts	host	host_p	software_type	name	version.major	version.minor	version.minor2	version.minor3	version.addl	unparsed_version
+#types	time	addr	port	enum	string	count	count	count	count	string	string
+1513823349.733021	127.0.0.1	-	Software::UNKNOWN	my_fake_software	1	0	0	-	-	my_fake_software 1.0.0
+1513823349.733021	127.0.0.1	-	Software::UNKNOWN	my_fake_software	1	1	0	-	-	my_fake_software 1.1.0
+1513823349.733021	127.0.0.1	-	Software::UNKNOWN	my_fake_software	1	2	0	-	-	my_fake_software 1.2.0
+1513823349.733021	127.0.0.1	-	Software::UNKNOWN	my_fake_software	1	0	0	-	-	my_fake_software 1.0.0
+1513823349.733021	127.0.0.1	-	Software::UNKNOWN	my_fake_software	1	1	0	-	-	my_fake_software 1.1.0
+1513823349.733021	127.0.0.1	-	Software::UNKNOWN	my_fake_software	1	2	0	-	-	my_fake_software 1.2.0
+1513823349.733021	127.0.0.1	-	Software::UNKNOWN	my_fake_software	1	0	0	-	-	my_fake_software 1.0.0
+1513823349.733021	127.0.0.1	-	Software::UNKNOWN	my_fake_software	1	1	0	-	-	my_fake_software 1.1.0
+#close	2017-12-21-02-29-09

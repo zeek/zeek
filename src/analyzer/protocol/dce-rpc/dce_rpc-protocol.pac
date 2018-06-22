@@ -49,7 +49,7 @@ type NDR_Format = record {
 };
 
 type DCE_RPC_Header(is_orig: bool) = record {
-	rpc_vers       : uint8 &check(rpc_vers == 5);
+	rpc_vers       : uint8 &enforce(rpc_vers == 5);
 	rpc_vers_minor : uint8;
 	PTYPE          : uint8;
 	pfc_flags      : uint8;

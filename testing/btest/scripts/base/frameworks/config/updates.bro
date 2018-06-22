@@ -13,7 +13,6 @@
 
 @load base/frameworks/config
 @load base/protocols/conn
-@load base/frameworks/communication  # let network-time run
 
 redef exit_only_after_terminate = T;
 redef Config::config_files += {"../configfile"};

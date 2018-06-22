@@ -408,6 +408,14 @@ RE_Matcher::RE_Matcher(const char* pat)
 	AddPat(pat);
 	}
 
+RE_Matcher::RE_Matcher(const char* exact_pat, const char* anywhere_pat)
+	{
+	re_anywhere = new Specific_RE_Matcher(MATCH_ANYWHERE);
+	re_anywhere->SetPat(anywhere_pat);
+	re_exact = new Specific_RE_Matcher(MATCH_EXACTLY);
+	re_exact->SetPat(exact_pat);
+	}
+
 RE_Matcher::~RE_Matcher()
 	{
 	delete re_anywhere;

@@ -4,8 +4,9 @@
 # In old version, the event would keep triggering endlessely, with the network
 # time not moving forward and Bro not terminating. 
 # 
-# Note that the output will be 10 (not 20) because we still execute two rounds
-# of events every time we drain.
+# Note that the output will not be 20 because we still execute two rounds
+# of events every time we drain and also at startup several (currently 3)
+# rounds of events drain with the same network_time.
 
 redef exit_only_after_terminate=T;
 

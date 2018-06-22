@@ -33,10 +33,7 @@
 #include "iosource/PktSrc.h"
 #include "iosource/PktDumper.h"
 #include "plugin/Manager.h"
-
-#ifdef ENABLE_BROKER
 #include "broker/Manager.h"
-#endif
 
 extern "C" {
 #include "setsignal.h"
@@ -61,6 +58,7 @@ double bro_start_time = 0.0; // time Bro started.
 double bro_start_network_time;	// timestamp of first packet
 double last_watchdog_proc_time = 0.0;	// value of above during last watchdog
 bool terminating = false;	// whether we're done reading and finishing up
+bool is_parsing = false;
 
 const Packet *current_pkt = 0;
 int current_dispatched = 0;
@@ -311,11 +309,7 @@ void net_run()
 			}
 #endif
 		current_iosrc = src;
-		bool communication_enabled = using_communication;
-
-#ifdef ENABLE_BROKER
-		communication_enabled |= broker_mgr->Enabled();
-#endif
+		auto communication_enabled = using_communication || broker_mgr->Active();
 
 		if ( src )
 			src->Process();	// which will call net_packet_dispatch()
@@ -333,7 +327,8 @@ void net_run()
 				}
 			}
 
-		else if ( (have_pending_timers || communication_enabled) &&
+		else if ( (have_pending_timers || communication_enabled ||
+		           BifConst::exit_only_after_terminate) &&
 			  ! pseudo_realtime )
 			{
 			// Take advantage of the lull to get up to
@@ -386,6 +381,24 @@ void net_run()
 			// Check whether we have timers scheduled for
 			// the future on which we need to wait.
 			have_pending_timers = timer_mgr->Size() > 0;
+
+		if ( pseudo_realtime && communication_enabled )
+			{
+			auto have_active_packet_source = false;
+
+			for ( auto& ps : iosource_mgr->GetPktSrcs() )
+				{
+				if ( ps->IsOpen() )
+					{
+					have_active_packet_source = true;
+					break;
+					}
+				}
+
+			if (  ! have_active_packet_source )
+				// Can turn off pseudo realtime now
+				pseudo_realtime = 0;
+			}
 		}
 
 	// Get the final statistics now, and not when net_finish() is

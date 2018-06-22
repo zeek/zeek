@@ -35,6 +35,6 @@ void SNMP_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		}
 	catch ( const binpac::Exception& e )
 		{
-		ProtocolViolation(e.c_msg());
+		ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
 		}
 	}

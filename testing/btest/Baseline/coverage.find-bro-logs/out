@@ -1,7 +1,7 @@
 barnyard2
+broker
 capture_loss
 cluster
-communication
 config
 conn
 dce__r_pc
@@ -15,7 +15,6 @@ http
 intel
 irc
 known_certs
-known_devices
 known_hosts
 known_modbus
 known_services

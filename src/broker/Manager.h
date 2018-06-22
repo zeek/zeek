@@ -1,11 +1,13 @@
 #ifndef BRO_COMM_MANAGER_H
 #define BRO_COMM_MANAGER_H
 
-#include <broker/endpoint.hh>
-#include <broker/message_queue.hh>
+#include <broker/broker.hh>
+#include <broker/bro.hh>
 #include <memory>
 #include <string>
 #include <map>
+#include <set>
+#include <unordered_map>
 #include <unordered_set>
 #include "broker/Store.h"
 #include "Reporter.h"
@@ -15,31 +17,27 @@
 namespace bro_broker {
 
 /**
- * Communication statistics.  Some are tracked in relation to last
- * sample (bro_broker::Manager::ConsumeStatistics()).
+ * Communication statistics.
  */
 struct Stats {
-	// Number of outgoing peer connections (at time of sample).
-	size_t outgoing_peer_count = 0;
-	// Number of data stores (at time of sample).
-	size_t data_store_count = 0;
-	// Number of pending data store queries (at time of sample).
-	size_t pending_query_count = 0;
-	// Number of data store responses received (since last sample).
-	size_t response_count = 0;
-	// Number of outgoing connection updates received (since last sample).
-	size_t outgoing_conn_status_count = 0;
-	// Number of incoming connection updates received (since last sample).
-	size_t incoming_conn_status_count = 0;
-	// Number of broker report messages (e.g. debug, warning, errors) received
-	// (since last sample).
-	size_t report_count = 0;
-	// Number of print messages received per topic-prefix (since last sample).
-	std::map<std::string, size_t> print_count;
-	// Number of event messages received per topic-prefix (since last sample).
-	std::map<std::string, size_t> event_count;
-	// Number of log messages received per topic-prefix (since last sample).
-	std::map<std::string, size_t> log_count;
+	// Number of active peer connections.
+	size_t num_peers = 0;
+	// Number of active data stores.
+	size_t num_stores = 0;
+	// Number of pending data store queries.
+	size_t num_pending_queries = 0;
+	// Number of total log messages received.
+	size_t num_events_incoming = 0;
+	// Number of total log messages sent.
+	size_t num_events_outgoing = 0;
+	// Number of total log records received.
+	size_t num_logs_incoming = 0;
+	// Number of total log records sent.
+	size_t num_logs_outgoing = 0;
+	// Number of total identifiers received.
+	size_t num_ids_incoming = 0;
+	// Number of total identifiers sent.
+	size_t num_ids_outgoing = 0;
 };
 
 /**
@@ -47,126 +45,144 @@ struct Stats {
  * or other external applications via use of the Broker messaging library.
  */
 class Manager : public iosource::IOSource {
-friend class StoreHandleVal;
 public:
+    static const broker::endpoint_info NoPeer;
 
 	/**
 	 * Constructor.
 	 */
-	Manager();
+	Manager(bool reading_pcaps);
 
 	/**
-	 * Destructor.  Any still-pending data store queries are aborted.
+	 * Destructor.
 	 */
-	~Manager();
+	~Manager() override;
 
 	/**
-	 * Enable use of communication.
-	 * @param flags used to tune the local Broker endpoint's behavior.
-	 * See the Broker::EndpointFlags record type.
-	 * @return true if communication is successfully initialized.
+	 * Initialization of the manager. This is called late during Bro's
+	 * initialization after any scripts are processed.
 	 */
-	bool Enable(Val* flags);
+	void InitPostScript();
 
 	/**
-	 * Changes endpoint flags originally supplied to bro_broker::Manager::Enable().
-	 * @param flags the new behavior flags to use.
-	 * @return true if flags were changed.
+	 * Shuts Broker down at termination.
 	 */
-	bool SetEndpointFlags(Val* flags);
+	void Terminate();
 
 	/**
-	 * @return true if bro_broker::Manager::Enable() has previously been called and
-	 * it succeeded.
+	 * Returns true if any Broker communincation is currently active.
 	 */
-	bool Enabled()
-		{ return endpoint != nullptr; }
+	bool Active();
+
+	/**
+	 * Advances time.  Broker data store expiration is driven by this
+	 * simulated time instead of real/wall time.
+	 */
+	void AdvanceTime(double seconds_since_unix_epoch);
 
 	/**
 	 * Listen for remote connections.
 	 * @param port the TCP port to listen on.
 	 * @param addr an address string on which to accept connections, e.g.
-	 * "127.0.0.1".  A nullptr refers to @p INADDR_ANY.
-	 * @param reuse_addr equivalent to behavior of SO_REUSEADDR.
-	 * @return true if the local endpoint is now listening for connections.
+	 * "127.0.0.1".  The empty string refers to @p INADDR_ANY.
+	 * @return 0 on failure or the bound port otherwise. If *port* != 0, then the
+	 * return value equals *port* on success. If *port* equals 0, then the
+	 * return values represents the bound port as chosen by the OS.
 	 */
-	bool Listen(uint16_t port, const char* addr = nullptr,
-	            bool reuse_addr = true);
+	uint16_t Listen(const std::string& addr, uint16_t port);
 
 	/**
-	 * Initiate a remote connection.
+	 * Initiate a peering with a remote endpoint.
 	 * @param addr an address to connect to, e.g. "localhost" or "127.0.0.1".
 	 * @param port the TCP port on which the remote side is listening.
-	 * @param retry_interval an interval at which to retry establishing the
-	 * connection with the remote peer.
-	 * @return true if it's possible to try connecting with the peer and
-	 * it's a new peer.  The actual connection may not be established until a
-	 * later point in time.
+	 * @param retry If non-zero, the time after which to retry if
+	 * connection cannot be established, or breaks.
 	 */
-	bool Connect(std::string addr, uint16_t port,
-	             std::chrono::duration<double> retry_interval);
+	void Peer(const std::string& addr, uint16_t port, double retry = 10.0);
 
 	/**
-	 * Remove a remote connection.
-	 * @param addr the address used in bro_broker::Manager::Connect().
-	 * @param port the port used in bro_broker::Manager::Connect().
-	 * @return true if the arguments match a previously successful call to
-	 * bro_broker::Manager::Connect().
+	 * Remove a remote peering.
+	 * @param addr the address used in bro_broker::Manager::Peer().
+	 * @param port the port used in bro_broker::Manager::Peer().
 	 */
-	bool Disconnect(const std::string& addr, uint16_t port);
+	void Unpeer(const std::string& addr, uint16_t port);
 
 	/**
-	 * Print a simple message to any interested peers.
-	 * @param topic a topic string associated with the print message.
-	 * Peers advertise interest by registering a subscription to some prefix
-	 * of this topic name.
-	 * @param msg the string to send to peers.
-	 * @param flags tune the behavior of how the message is send.
-	 * See the Broker::SendFlags record type.
+	 * @return a list of peer endpoints.
+	 */
+	std::vector<broker::peer_info> Peers() const;
+
+	/**
+	 * @return a unique identifier for this broker endpoint.
+	 */
+	std::string NodeID() const;
+
+	/**
+	 * Send an identifier's value to interested peers.
+	 * @param topic a topic string associated with the message.
+	 * @param id the name of the identifier to send.
 	 * @return true if the message is sent successfully.
 	 */
-	bool Print(std::string topic, std::string msg, Val* flags);
+	bool PublishIdentifier(std::string topic, std::string id);
 
 	/**
 	 * Send an event to any interested peers.
-	 * @param topic a topic string associated with the print message.
+	 * @param topic a topic string associated with the message.
 	 * Peers advertise interest by registering a subscription to some prefix
 	 * of this topic name.
-	 * @param msg the event to send to peers, which is the name of the event
-	 * as a string followed by all of its arguments.
-	 * @param flags tune the behavior of how the message is send.
-	 * See the Broker::SendFlags record type.
+	 * @param name the name of the event
+	 * @param args the event's arguments
 	 * @return true if the message is sent successfully.
 	 */
-	bool Event(std::string topic, broker::message msg, int flags);
+	bool PublishEvent(std::string topic, std::string name, broker::vector args);
 
 	/**
 	 * Send an event to any interested peers.
-	 * @param topic a topic string associated with the print message.
+	 * @param topic a topic string associated with the message.
 	 * Peers advertise interest by registering a subscription to some prefix
 	 * of this topic name.
-	 * @param args the event and its arguments to send to peers.  See the
-	 * Broker::EventArgs record type.
-	 * @param flags tune the behavior of how the message is send.
-	 * See the Broker::SendFlags record type.
+	 * @param ev the event and its arguments to send to peers, in the form of
+	 * a Broker::Event record type.
 	 * @return true if the message is sent successfully.
 	 */
-	bool Event(std::string topic, RecordVal* args, Val* flags);
+	bool PublishEvent(std::string topic, RecordVal* ev);
 
 	/**
-	 * Send a log entry to any interested peers.  The topic name used is
-	 * implicitly "bro/log/<stream-name>".
-	 * @param stream the stream to which the log entry belongs.
-	 * @param writer the writer to use for outputting this log entry.
-	 * @param path the log path to output the log entry to.
-	 * @param num_vals the number of fields to log.
-	 * @param vals the log values to log, of size num_vals.
-	 * @param flags tune the behavior of how the message is send.
-	 * See the Broker::SendFlags record type.
+	 * Sends an event to any interested peers, who, upon receipt,
+	 * republishes the event to a new set of topics and optionally
+	 * calls event handlers.
+	 * @param first_topic the first topic to use when publishing the event
+	 * @param relay_topics the set of topics the receivers will use to
+	 * republish the event.  The event is relayed at most a single hop.
+	 * @param name the name of the event
+	 * @param args the event's arguments
+	 * @param handle_on_relayer whether they relaying-node should call event
+	 * handlers.
 	 * @return true if the message is sent successfully.
 	 */
-	bool Log(EnumVal* stream, EnumVal* writer, string path, int num_vals,
-		 const threading::Value* const * vals, int flags);
+	bool RelayEvent(std::string first_topic,
+					broker::set relay_topics,
+					std::string name,
+					broker::vector args,
+					bool handle_on_relayer);
+
+	/**
+	 * Sends an event to any interested peers, who, upon receipt,
+	 * republishes the event to a new set of topics and optionally
+	 * calls event handlers.
+	 * @param first_topic the first topic to use when publishing the event
+	 * @param relay_topics the set of topics the receivers will use to
+	 * republish the event.  The event is relayed at most a single hop.
+	 * @param ev the event and its arguments to send to peers, in the form of
+	 * a Broker::Event record type.
+	 * @param handle_on_relayer whether they relaying-node should call event
+	 * handlers.
+	 * @return true if the message is sent successfully.
+	 */
+	bool RelayEvent(std::string first_topic,
+					std::set<std::string> relay_topics,
+					RecordVal* ev,
+					bool handle_on_relayer);
 
 	/**
 	 * Send a message to create a log stream to any interested peers.
@@ -177,13 +193,26 @@ public:
 	 * @param info backend initialization information for the writer.
 	 * @param num_fields the number of fields the log has.
 	 * @param fields the log's fields, of size num_fields.
-	 * @param flags tune the behavior of how the message is send.
 	 * See the Broker::SendFlags record type.
 	 * @param peer If given, send the message only to this peer.
 	 * @return true if the message is sent successfully.
 	 */
-	bool CreateLog(EnumVal* stream, EnumVal* writer, const logging::WriterBackend::WriterInfo& info,
-		       int num_fields, const threading::Field* const * fields, int flags, const string& peer = "");
+	bool PublishLogCreate(EnumVal* stream, EnumVal* writer, const logging::WriterBackend::WriterInfo& info,
+			      int num_fields, const threading::Field* const * fields, const broker::endpoint_info& peer = NoPeer);
+
+	/**
+	 * Send a log entry to any interested peers.  The topic name used is
+	 * implicitly "bro/log/<stream-name>".
+	 * @param stream the stream to which the log entry belongs.
+	 * @param writer the writer to use for outputting this log entry.
+	 * @param path the log path to output the log entry to.
+	 * @param num_vals the number of fields to log.
+	 * @param vals the log values to log, of size num_vals.
+	 * See the Broker::SendFlags record type.
+	 * @return true if the message is sent successfully.
+	 */
+	bool PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int num_vals,
+			     const threading::Value* const * vals);
 
 	/**
 	 * Automatically send an event to any interested peers whenever it is
@@ -192,45 +221,27 @@ public:
 	 * Peers advertise interest by registering a subscription to some prefix
 	 * of this topic name.
 	 * @param event a Bro event value.
-	 * @param flags tune the behavior of how the message is send.
-	 * See the Broker::SendFlags record type.
 	 * @return true if automatic event sending is now enabled.
 	 */
-	bool AutoEvent(std::string topic, Val* event, Val* flags);
+	bool AutoPublishEvent(std::string topic, Val* event);
 
 	/**
 	 * Stop automatically sending an event to peers upon local dispatch.
-	 * @param topic a topic originally given to bro_broker::Manager::AutoEvent().
-	 * @param event an event originally given to bro_broker::Manager::AutoEvent().
+	 * @param topic a topic originally given to bro_broker::Manager::AutoPublish().
+	 * @param event an event originally given to bro_broker::Manager::AutoPublish().
 	 * @return true if automatic events will no occur for the topic/event pair.
 	 */
-	bool AutoEventStop(const std::string& topic, Val* event);
+	bool AutoUnpublishEvent(const std::string& topic, Val* event);
 
 	/**
-	 * Create an EventArgs record value from an event and its arguments.
+	 * Create an `Event` record value from an event and its arguments.
 	 * @param args the event and its arguments.  The event is always the first
 	 * elements in the list.
-	 * @return an EventArgs record value.  If an invalid event or arguments
+	 * @param frame the calling frame, used to report location info upon error
+	 * @return an `Event` record value.  If an invalid event or arguments
 	 * were supplied the optional "name" field will not be set.
 	 */
-	RecordVal* MakeEventArgs(val_list* args);
-
-	/**
-	 * Register interest in peer print messages that use a certain topic prefix.
-	 * @param topic_prefix a prefix to match against remote message topics.
-	 * e.g. an empty prefix will match everything and "a" will match "alice"
-	 * and "amy" but not "bob".
-	 * @return true if it's a new print subscriptions and it is now registered.
-	 */
-	bool SubscribeToPrints(std::string topic_prefix);
-
-	/**
-	 * Unregister interest in peer print messages.
-	 * @param topic_prefix a prefix previously supplied to a successful call
-	 * to bro_broker::Manager::SubscribeToPrints().
-	 * @return true if interest in topic prefix is no longer advertised.
-	 */
-	bool UnsubscribeToPrints(const std::string& topic_prefix);
+	RecordVal* MakeEvent(val_list* args, Frame* frame);
 
 	/**
 	 * Register interest in peer event messages that use a certain topic prefix.
@@ -239,111 +250,124 @@ public:
 	 * and "amy" but not "bob".
 	 * @return true if it's a new event subscription and it is now registered.
 	 */
-	bool SubscribeToEvents(std::string topic_prefix);
+	bool Subscribe(const std::string& topic_prefix);
 
 	/**
 	 * Unregister interest in peer event messages.
 	 * @param topic_prefix a prefix previously supplied to a successful call
-	 * to bro_broker::Manager::SubscribeToEvents().
+	 * to bro_broker::Manager::Subscribe().
 	 * @return true if interest in topic prefix is no longer advertised.
 	 */
-	bool UnsubscribeToEvents(const std::string& topic_prefix);
+	bool Unsubscribe(const std::string& topic_prefix);
 
 	/**
-	 * Register interest in peer log messages that use a certain topic prefix.
-	 * @param topic_prefix a prefix to match against remote message topics.
-	 * e.g. an empty prefix will match everything and "a" will match "alice"
-	 * and "amy" but not "bob".
-	 * @return true if it's a new log subscription and it is now registered.
+	 * Create a new *master* data store.
+	 * @param name The name of the store.
+	 * @param type The backend type.
+	 * @param opts The backend options.
+	 * @return a pointer to the newly created store a nullptr on failure.
 	 */
-	bool SubscribeToLogs(std::string topic_prefix);
+	StoreHandleVal* MakeMaster(const std::string& name, broker::backend type,
+				   broker::backend_options opts);
 
 	/**
-	 * Unregister interest in peer log messages.
-	 * @param topic_prefix a prefix previously supplied to a successful call
-	 * to bro_broker::Manager::SubscribeToLogs().
-	 * @return true if interest in topic prefix is no longer advertised.
+	 * Create a new *clone* data store.
+	 * @param name The name of the store.
+	 * @param resync_interval The frequency at which the clone will attempt
+	 * to reconnect/resynchronize with its master in the event it becomes
+	 * disconnected.
+	 * @param stale_interval The duration after which a clone that is
+	 * disconnected from its master will treat its local cache as stale.
+	 * In this state, queries to the clone will timeout.  A negative value
+	 * indicates to never treat the local cache as stale.
+	 * @param mutation_buffer_interval The max amount of time that a
+	 * disconnected clone will buffer mutation commands.  If the clone
+	 * reconnects before this time, it replays all buffered commands.  Note
+	 * that this doesn't completely prevent the loss of store updates: all
+	 * mutation messages are fire-and-forget and not explicitly acknowledged by
+	 * the master.  A negative/zero value indicates to never buffer commands.
+	 * @return a pointer to the newly created store a nullptr on failure.
 	 */
-	bool UnsubscribeToLogs(const std::string& topic_prefix);
-
-	/**
-	 * Allow sending messages to peers if associated with the given topic.
-	 * This has no effect if auto publication behavior is enabled via the flags
-	 * supplied to bro_broker::Manager::Enable() or bro_broker::Manager::SetEndpointFlags().
-	 * @param t a topic to allow messages to be published under.
-	 * @return true if successful.
-	 */
-	bool PublishTopic(broker::topic t);
-
-	/**
-	 * Disallow sending messages to peers if associated with the given topic.
-	 * This has no effect if auto publication behavior is enabled via the flags
-	 * supplied to bro_broker::Manager::Enable() or bro_broker::Manager::SetEndpointFlags().
-	 * @param t a topic to disallow messages to be published under.
-	 * @return true if successful.
-	 */
-	bool UnpublishTopic(broker::topic t);
-
-	/**
-	 * Allow advertising interest in the given topic to peers.
-	 * This has no effect if auto advertise behavior is enabled via the flags
-	 * supplied to bro_broker::Manager::Enable() or bro_broker::Manager::SetEndpointFlags().
-	 * @param t a topic to allow advertising interest/subscription to peers.
-	 * @return true if successful.
-	 */
-	bool AdvertiseTopic(broker::topic t);
-
-	/**
-	 * Disallow advertising interest in the given topic to peers.
-	 * This has no effect if auto advertise behavior is enabled via the flags
-	 * supplied to bro_broker::Manager::Enable() or bro_broker::Manager::SetEndpointFlags().
-	 * @param t a topic to disallow advertising interest/subscription to peers.
-	 * @return true if successful.
-	 */
-	bool UnadvertiseTopic(broker::topic t);
-
-	/**
-	 * Register the availability of a data store.
-	 * @param handle the data store.
-	 * @return true if the store was valid and not already away of it.
-	 */
-	bool AddStore(StoreHandleVal* handle);
+	StoreHandleVal* MakeClone(const std::string& name,
+	                          double resync_interval = 10.0,
+	                          double stale_interval = 300.0,
+	                          double mutation_buffer_interval = 120.0);
 
 	/**
 	 * Lookup a data store by it's identifier name and type.
-	 * @param id the store's name.
-	 * @param type the type of data store.
+	 * @param name the store's name.
 	 * @return a pointer to the store handle if it exists else nullptr.
 	 */
-	StoreHandleVal* LookupStore(const broker::store::identifier& id, StoreType type);
+	StoreHandleVal* LookupStore(const std::string& name);
 
 	/**
 	 * Close and unregister a data store.  Any existing references to the
 	 * store handle will not be able to be used for any data store operations.
-	 * @param id the stores' name.
-	 * @param type the type of the data store.
+	 * @param name the stores' name.
 	 * @return true if such a store existed and is now closed.
 	 */
-	bool CloseStore(const broker::store::identifier& id, StoreType type);
+	bool CloseStore(const std::string& name);
 
 	/**
 	 * Register a data store query callback.
 	 * @param cb the callback info to use when the query completes or times out.
 	 * @return true if now tracking a data store query.
 	 */
-	bool TrackStoreQuery(StoreQueryCallback* cb);
+	bool TrackStoreQuery(StoreHandleVal* handle, broker::request_id id,
+	                     StoreQueryCallback* cb);
+
+	/**
+	 * Send all pending log write messages.
+	 * @return the number of messages sent.
+	 */
+	size_t FlushLogBuffers();
 
 	/**
 	 * @return communication statistics.
 	 */
-	Stats ConsumeStatistics();
+	const Stats& GetStatistics();
 
 	/**
-	 * Convert Broker::SendFlags to int flags for use with broker::send().
+	 * Creating an instance of this struct simply helps the manager
+	 * keep track of whether calls into its API are coming from script
+	 * layer BIFs so that error messages can emit useful call site info.
 	 */
-	static int send_flags_to_int(Val* flags);
+	struct ScriptScopeGuard {
+		ScriptScopeGuard() { ++script_scope; }
+		~ScriptScopeGuard() { --script_scope; }
+	};
 
 private:
+
+	class BrokerConfig : public broker::configuration {
+	public:
+		BrokerConfig(broker::broker_options options);
+	};
+
+	class BrokerState {
+	public:
+		BrokerState(BrokerConfig config);
+		broker::endpoint endpoint;
+		broker::subscriber subscriber;
+		broker::status_subscriber status_subscriber;
+	};
+
+	void DispatchMessage(broker::data msg);
+	void ProcessEvent(std::string name, broker::vector args);
+	void ProcessEvent(broker::bro::Event ev);
+	void ProcessRelayEvent(broker::bro::RelayEvent re);
+	void ProcessHandleAndRelayEvent(broker::bro::HandleAndRelayEvent ev);
+	bool ProcessLogCreate(broker::bro::LogCreate lc);
+	bool ProcessLogWrite(broker::bro::LogWrite lw);
+	bool ProcessIdentifierUpdate(broker::bro::IdentifierUpdate iu);
+	void ProcessStatus(broker::status stat);
+	void ProcessError(broker::error err);
+	void ProcessStoreResponse(StoreHandleVal*, broker::store::response response);
+	void FlushPendingQueries();
+
+	void Error(const char* format, ...)
+		__attribute__((format (printf, 2, 3)));
+
 	// IOSource interface overrides:
 	void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
 	            iosource::FD_Set* except) override;
@@ -356,35 +380,52 @@ private:
 		{ return "Broker::Manager"; }
 
 	broker::endpoint& Endpoint()
-		{ return *endpoint; }
+		{ assert(bstate); return bstate->endpoint; }
 
-	bool ProcessCreateLog(broker::message msg);
-	bool ProcessWriteLog(broker::message msg);
+	Func* log_topic_func;
+	std::string default_log_topic_prefix;
+	uint16_t bound_port;
 
-	struct QueueWithStats {
-		broker::message_queue q;
-		size_t received = 0;
+	std::shared_ptr<BrokerState> bstate;
+
+	struct LogBuffer {
+		// Indexed by topic string.
+		std::unordered_map<std::string, broker::vector> msgs;
+		double last_flush;
+		size_t message_count;
+
+		size_t Flush(broker::endpoint& endpoint);
 	};
 
-	std::unique_ptr<broker::endpoint> endpoint;
-	std::map<std::pair<std::string, uint16_t>, broker::peering> peers;
-	std::map<std::string, QueueWithStats> print_subscriptions;
-	std::map<std::string, QueueWithStats> event_subscriptions;
-	std::map<std::string, QueueWithStats> log_subscriptions;
+	// Indexed by stream ID enum.
+	std::vector<LogBuffer> log_buffers;
 
-	std::map<std::pair<broker::store::identifier, StoreType>,
-	         StoreHandleVal*> data_stores;
-	std::unordered_set<StoreQueryCallback*> pending_queries;
+	// Data stores
+	using query_id = std::pair<broker::request_id, StoreHandleVal*>;
+
+	struct query_id_hasher {
+		size_t operator()(const query_id& qid) const
+			{
+			size_t rval = 0;
+			broker::detail::hash_combine(rval, qid.first);
+			broker::detail::hash_combine(rval, qid.second);
+			return rval;
+			}
+	};
+
+	std::unordered_map<std::string, StoreHandleVal*> data_stores;
+	std::unordered_map<query_id, StoreQueryCallback*, query_id_hasher> pending_queries;
 
 	Stats statistics;
 	double next_timestamp;
+	bool reading_pcaps;
+	int peer_count;
+
+	static int script_scope;
 
 	static VectorType* vector_of_data_type;
 	static EnumType* log_id_type;
 	static EnumType* writer_id_type;
-	static int send_flags_self_idx;
-	static int send_flags_peers_idx;
-	static int send_flags_unsolicited_idx;
 };
 
 } // namespace bro_broker

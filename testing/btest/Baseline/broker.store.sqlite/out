@@ -1,0 +1,13 @@
+Run, 1
+Inserting
+Run, 2
+Retrieving
+one, Broker::SUCCESS, [data=broker::data{110}]
+two, Broker::SUCCESS, [data=broker::data{220}]
+three, Broker::SUCCESS, [data=broker::data{330}]
+four, Broker::SUCCESS, [data=broker::data{{1, 2, 3}}]
+five, Broker::FAILURE, [data=<uninitialized>]
+{
+y,
+x
+}, Broker::SUCCESS, [data=broker::data{[1/tcp, 2/tcp, 3/tcp]}]

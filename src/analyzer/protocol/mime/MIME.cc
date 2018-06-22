@@ -146,9 +146,14 @@ void MIME_Mail::Undelivered(int len)
 	                              is_orig, cur_entity_id);
 	}
 
-int strcasecmp_n(data_chunk_t s, const char* t)
+bool istrequal(data_chunk_t s, const char* t)
 	{
-	return strncasecmp(s.data, t, s.length);
+	int len = strlen(t);
+
+	if ( s.length != len )
+		return false;
+
+	return strncasecmp(s.data, t, len) == 0;
 	}
 
 int MIME_count_leading_lws(int len, const char* data)
@@ -751,7 +756,7 @@ int MIME_Entity::LookupMIMEHeaderName(data_chunk_t name)
 	// header names are case-insensitive (RFC 822, 2822, 2045).
 
 	for ( int i = 0; MIMEHeaderName[i] != 0; ++i )
-		if ( strcasecmp_n(name, MIMEHeaderName[i]) == 0 )
+		if ( istrequal(name, MIMEHeaderName[i]) )
 			return i;
 	return -1;
 	}
@@ -876,7 +881,7 @@ int MIME_Entity::ParseFieldParameters(int len, const char* data)
 
 		if ( current_field_type == MIME_CONTENT_TYPE &&
 		     content_type == CONTENT_TYPE_MULTIPART &&
-		     strcasecmp_n(attr, "boundary") == 0 )
+		     istrequal(attr, "boundary") )
 			{
 			// token or quoted-string (and some lenience for characters
 			// not explicitly allowed by the RFC, but encountered in the wild)
@@ -915,13 +920,13 @@ void MIME_Entity::ParseContentType(data_chunk_t type, data_chunk_t sub_type)
 	{
 	int i;
 	for ( i = 0; MIMEContentTypeName[i]; ++i )
-		if ( strcasecmp_n(type, MIMEContentTypeName[i]) == 0 )
+		if ( istrequal(type, MIMEContentTypeName[i]) )
 			break;
 
 	content_type = i;
 
 	for ( i = 0; MIMEContentSubtypeName[i]; ++i )
-		if ( strcasecmp_n(sub_type, MIMEContentSubtypeName[i]) == 0 )
+		if ( istrequal(sub_type, MIMEContentSubtypeName[i]) )
 			break;
 
 	content_subtype = i;
@@ -942,8 +947,7 @@ void MIME_Entity::ParseContentEncoding(data_chunk_t encoding_mechanism)
 	{
 	int i;
 	for ( i = 0; MIMEContentEncodingName[i]; ++i )
-		if ( strcasecmp_n(encoding_mechanism,
-					MIMEContentEncodingName[i]) == 0 )
+		if ( istrequal(encoding_mechanism, MIMEContentEncodingName[i]) )
 			break;
 
 	content_encoding = i;

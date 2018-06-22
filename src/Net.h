@@ -70,6 +70,9 @@ extern bool terminating;
 // True if the remote serializer is to be activated.
 extern bool using_communication;
 
+// True if Bro is currently parsing scripts.
+extern bool is_parsing;
+
 extern const Packet* current_pkt;
 extern int current_dispatched;
 extern double current_timestamp;
@@ -79,6 +82,8 @@ extern iosource::IOSource* current_iosrc;
 extern iosource::PktDumper* pkt_dumper;	// where to save packets
 
 extern char* writefile;
+
+extern int old_comm_usage_count;
 
 // Script file we have already scanned (or are in the process of scanning).
 // They are identified by inode number.

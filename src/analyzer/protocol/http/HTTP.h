@@ -55,6 +55,7 @@ protected:
 	HTTP_Message* http_message;
 	int chunked_transfer_state;
 	int64_t content_length;
+	int64_t range_length;
 	int64_t expect_data_length;
 	int expect_body;
 	int64_t body_length;
@@ -176,6 +177,11 @@ public:
 	void ConnectionFinished(int half_finished) override;
 	void ConnectionReset() override;
 	void PacketWithRST() override;
+
+	double GetRequestVersion() { return request_version; };
+	double GetReplyVersion() { return reply_version; };
+	int GetRequestOngoing() { return request_ongoing; };
+	int GetReplyOngoing() { return reply_ongoing; };
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new HTTP_Analyzer(conn); }

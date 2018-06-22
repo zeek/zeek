@@ -45,6 +45,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
 
   Optional Features:
     --enable-debug         compile in debugging mode (like --build-type=Debug)
+    --enable-coverage      compile with code coverage support (implies debugging mode)
     --enable-mobile-ipv6   analyze mobile IPv6 features defined by RFC 6275
     --enable-perftools     force use of Google perftools on non-Linux systems
                            (automatically on when perftools is present on Linux)
@@ -142,6 +143,8 @@ append_cache_entry INSTALL_BROCTL       BOOL   true
 append_cache_entry CPACK_SOURCE_IGNORE_FILES STRING
 append_cache_entry ENABLE_MOBILE_IPV6   BOOL   false
 append_cache_entry DISABLE_PERFTOOLS    BOOL   false
+append_cache_entry DISABLE_RUBY_BINDINGS     BOOL   true
+append_cache_entry ENABLE_COVERAGE	BOOL   false
 
 # parse arguments
 while [ $# -ne 0 ]; do
@@ -196,6 +199,10 @@ while [ $# -ne 0 ]; do
             ;;
         --logdir=*)
             append_cache_entry BRO_LOG_DIR  PATH   $optarg
+            ;;
+        --enable-coverage)
+            append_cache_entry ENABLE_COVERAGE         BOOL   true
+            append_cache_entry ENABLE_DEBUG         BOOL   true
             ;;
         --enable-debug)
             append_cache_entry ENABLE_DEBUG         BOOL   true

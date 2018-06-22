@@ -21,6 +21,7 @@ coverage:
 cleanup:
 	@rm -f $(DIAG)
 	@rm -rf $(SCRIPT_COV)*
+	@find ../../ -name "*.gcda" -exec rm {} \;
 
 distclean: cleanup
 	@rm -rf .btest.failed.dat \

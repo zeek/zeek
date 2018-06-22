@@ -909,10 +909,16 @@ void BinaryExpr::PromoteOps(TypeTag t)
 	TypeTag bt1 = op1->Type()->Tag();
 	TypeTag bt2 = op2->Type()->Tag();
 
-	if ( IsVector(bt1) )
+	bool is_vec1 = IsVector(bt1);
+	bool is_vec2 = IsVector(bt2);
+
+	if ( is_vec1 )
 		bt1 = op1->Type()->AsVectorType()->YieldType()->Tag();
-	if ( IsVector(bt2) )
+	if ( is_vec2 )
 		bt2 = op2->Type()->AsVectorType()->YieldType()->Tag();
+
+	if ( (is_vec1 || is_vec2) && ! (is_vec1 && is_vec2) )
+		reporter->Warning("mixing vector and scalar operands is deprecated");
 
 	if ( bt1 != t )
 		op1 = new ArithCoerceExpr(op1, t);
@@ -1003,7 +1009,10 @@ IncrExpr::IncrExpr(BroExprTag arg_tag, Expr* arg_op)
 		if ( ! IsIntegral(t->AsVectorType()->YieldType()->Tag()) )
 			ExprError("vector elements must be integral for increment operator");
 		else
+			{
+			reporter->Warning("increment/decrement operations for vectors deprecated");
 			SetType(t->Ref());
+			}
 		}
 	else
 		{

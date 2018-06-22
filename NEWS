@@ -356,6 +356,13 @@ Deprecated Functionality
   removal with the next Bro release. Bro's new configuration framework
   is taking its place.
 
+- Mixing of scalars and vectors, such as "v + e" yielding a vector
+  corresponding to the vector v with the scalar e added to each of
+  its elements, has been deprecated.
+
+- The undocumented feature of using "&&" and "||" operators for patterns
+  has been deprecated.
+
 Bro 2.5.1
 =========
 

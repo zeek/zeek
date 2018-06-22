@@ -23,5 +23,3 @@ notifications:
 before_script: sh testing/scripts/travis-job build
 
 script: sh testing/scripts/travis-job run
-
-after_failure: sh testing/scripts/travis-job failure

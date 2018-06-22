@@ -1698,7 +1698,11 @@ BoolExpr::BoolExpr(BroExprTag arg_tag, Expr* arg_op1, Expr* arg_op2)
 	if ( BothBool(bt1, bt2) )
 		{
 		if ( is_vector(op1) || is_vector(op2) )
+			{
+			if ( ! (is_vector(op1) && is_vector(op2)) )
+				reporter->Warning("mixing vector and scalar operands is deprecated");
 			SetType(new VectorType(base_type(TYPE_BOOL)));
+			}
 		else
 			SetType(base_type(TYPE_BOOL));
 		}

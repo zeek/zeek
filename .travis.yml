@@ -1,15 +1,13 @@
 language: cpp
-compiler:
-  - clang
-  - gcc
+
+services:
+  - docker
 
 addons:
-  ssh_known_hosts: git.bro.org
   apt:
     packages:
       - libpcap-dev
       - libssl-dev
-      - swig
 
 branches:
   only:
@@ -20,6 +18,17 @@ notifications:
     recipients:
     - bro-commits-internal@bro.org
 
-before_script: sh testing/scripts/travis-job build
+# Build Bro and run tests in the following Linux distros (specifying "travis"
+# builds bro in Travis without using docker).
+env:
+  - distro: centos_7
+  - distro: debian_9
+  - distro: fedora_28
+  - distro: ubuntu_16.04
+  - distro: ubuntu_18.04
 
-script: sh testing/scripts/travis-job run
+install: sh testing/scripts/travis-job install $distro
+
+before_script: sh testing/scripts/travis-job build $distro
+
+script: sh testing/scripts/travis-job run $distro

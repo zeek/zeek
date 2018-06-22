@@ -3,12 +3,15 @@
 # This script (along with the .travis.yml file) is used by Travis CI to
 # build Bro and run the tests.
 
-if [ $# -ne 1 ]; then
-    echo "usage: $0 build|run"
+if [ $# -ne 2 ]; then
+    echo "usage: $0 CMD DISTRO"
+    echo "  CMD is a build step (install, build, or run)"
+    echo "  DISTRO is a Linux distro, or 'travis' to run in Travis without docker"
     exit 1
 fi
 
 step=$1
+distro=$2
 
 # Build Bro with the coverity tools.
 build_coverity() {
@@ -48,6 +51,50 @@ run_coverity() {
     curl --form token=${COV_TOKEN} --form email=${EMAIL} --form file=@${FILE} --form "version=${VER}" --form "description=${DESC}" https://scan.coverity.com/builds?project=Bro
 }
 
+
+# Setup a docker container.
+setup_docker() {
+    case $distro in
+        centos_7)
+        distro_cmds="yum -y install cmake make gcc gcc-c++ flex bison libpcap-devel openssl-devel git openssl which"
+        ;;
+        debian_9)
+        distro_cmds="apt-get update; apt-get -y install cmake make gcc g++ flex bison python libpcap-dev libssl1.0-dev zlib1g-dev git sqlite3 curl bsdmainutils"
+        ;;
+        fedora_28)
+        distro_cmds="yum -y install cmake make gcc gcc-c++ flex bison libpcap-devel compat-openssl10-devel git sqlite findutils which; ln -s /usr/bin/python3 /usr/local/bin/python"
+        ;;
+        ubuntu_16.04)
+        distro_cmds="apt-get update; apt-get -y install cmake make gcc g++ flex bison python libpcap-dev libssl-dev zlib1g-dev git sqlite3 curl bsdmainutils"
+        ;;
+        ubuntu_18.04)
+        distro_cmds="apt-get update; apt-get -y install cmake make gcc g++ flex bison python3 libpcap-dev libssl1.0-dev zlib1g-dev git sqlite3 curl bsdmainutils; ln -s /usr/bin/python3 /usr/local/bin/python"
+        ;;
+        *)
+        echo "Error: distro ${distro} is not recognized by this script"
+        exit 1
+        ;;
+    esac
+
+    docker_image=`echo $distro | tr '_' ':'`
+    docker run --name brotest -id -v "`pwd`:/bro" -w /bro ${docker_image} sh
+    docker exec brotest sh -c "${distro_cmds}"
+}
+
+
+# Build bro in a docker container.
+build_docker() {
+    docker exec -e TRAVIS brotest sh testing/scripts/travis-job $step travis
+}
+
+
+# Run Bro tests in a docker container.
+run_docker() {
+    prepare_env
+    docker exec -t -e TRAVIS -e TRAVIS_PULL_REQUEST -e trav_key -e trav_iv brotest sh testing/scripts/travis-job $step travis
+}
+
+
 # Build Bro.
 build() {
     # Skip building broker tests, python bindings, and broctl, as these are
@@ -55,7 +102,22 @@ build() {
     ./configure --build-type=Release --disable-broker-tests --disable-python --disable-broctl && make -j 2
 }
 
-# Run all Bro tests.
+
+# Rename the encrypted environment variables to avoid having the hash value
+# hard-coded multiple times in this script.
+prepare_env() {
+    if [ -z "$trav_key" ]; then
+        hash=6a6fe747ff7b
+        eval "trav_key=\$encrypted_${hash}_key"
+        eval "trav_iv=\$encrypted_${hash}_iv"
+        # Export so they are visible in docker containers.
+        export trav_key
+        export trav_iv
+    fi
+}
+
+
+# Run Bro tests.
 run() {
     echo
     echo "Running unit tests ##################################################"
@@ -73,18 +135,15 @@ run() {
     set -e
 
     make init
-
-    # Rename the encrypted environment variables to avoid having the hash value
-    # hard-coded multiple times in this script.
-    hash=6a6fe747ff7b
-    eval "trav_key=\$encrypted_${hash}_key"
-    eval "trav_iv=\$encrypted_${hash}_iv"
+    prepare_env
 
     if [ -n "$trav_key" ] && [ -n "$trav_iv" ]; then
         curl https://www.bro.org/static/travis-ci/travis_key.enc -o travis_key.enc
         openssl aes-256-cbc -K $trav_key -iv $trav_iv -in travis_key.enc -out travis_key -d
         chmod 600 travis_key
+        mkdir -p ~/.ssh
         mv travis_key ~/.ssh/id_rsa
+        ssh-keyscan -H -p 22 -t rsa git.bro.org >> ~/.ssh/known_hosts
         git clone ssh://git@git.bro.org/bro-testing-private
         rm ~/.ssh/id_rsa
     elif [ -n "${TRAVIS_PULL_REQUEST}" ] && [ "${TRAVIS_PULL_REQUEST}" != "false" ]; then
@@ -118,7 +177,7 @@ showdiag() {
       grep -v "... not available, skipped" $f
 }
 
-if [ "$step" != "build" ] && [ "$step" != "run" ]; then
+if [ "$step" != "install" ] && [ "$step" != "build" ] && [ "$step" != "run" ]; then
     echo "Error: unknown build step: $step"
     exit 1
 fi
@@ -153,7 +212,7 @@ if [ "${TRAVIS_EVENT_TYPE}" = "cron" ]; then
     elif [ "$step" = "run" ]; then
         run_coverity
     fi
-else
+elif [ "$distro" = "travis" ]; then
     # Build bro and run tests.
 
     # The "build" and "run" steps are split up into separate steps because the
@@ -163,5 +222,15 @@ else
         build
     elif [ "$step" = "run" ]; then
         run
+    fi
+else
+    # Build bro and run tests in a docker container.
+
+    if [ "$step" = "install" ]; then
+        setup_docker
+    elif [ "$step" = "build" ]; then
+        build_docker
+    elif [ "$step" = "run" ]; then
+        run_docker
     fi
 fi

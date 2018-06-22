@@ -1798,7 +1798,7 @@ Val* BoolExpr::Eval(Frame* f) const
 
 		VectorVal* result = 0;
 
-		// It's either and EXPR_AND_AND or an EXPR_OR_OR.
+		// It's either an EXPR_AND_AND or an EXPR_OR_OR.
 		bool is_and = (tag == EXPR_AND_AND);
 
 		if ( scalar_v->IsZero() == is_and )

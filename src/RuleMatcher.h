@@ -192,6 +192,7 @@ private:
 	int payload_size;
 
 	int_list matched_rules;		// Rules for which all conditions have matched
+	int_list failed_rules;		// Rules for which have failed to match 
 };
 
 /**
@@ -350,6 +351,11 @@ private:
 
 	// Execute the actions associated with a rule.
 	void ExecRuleActions(Rule* r, RuleEndpointState* state,
+				const u_char* data, int len, bool eos);
+
+	// wzj
+	// Trigger the signature_not_match function
+	void RuleNotMatch(Rule* r, RuleEndpointState* state,
 				const u_char* data, int len, bool eos);
 
 	// Evaluate all rule conditions except patterns and "header".

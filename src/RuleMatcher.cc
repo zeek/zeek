@@ -11,6 +11,8 @@
 #include "File.h"
 #include "Reporter.h"
 
+#include "Event.h"
+
 // FIXME: Things that are not fully implemented/working yet:
 //
 //		  - "ip-options" always evaluates to false
@@ -599,6 +601,7 @@ bool RuleMatcher::AllRulePatternsMatched(const Rule* r, MatchPos matchpos,
 	// Check whether all patterns of the rule have matched.
 	loop_over_list(r->patterns, j)
 		{
+		DBG_LOG(DBG_RULES, "Checking rule pattern: %s", r->patterns[j]->pattern);
 		if ( ams.find(r->patterns[j]->id) == ams.end() )
 			return false;
 
@@ -858,10 +861,65 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
 	loop_over_list(state->matchers, x)
 		{
 		RuleEndpointState::Matcher* m = state->matchers[x];
-		if ( m->type == type &&
-		     m->state->Match((const u_char*) data, data_len,
+		if ( m->type == type )
+			{
+			if ( m->state->Match((const u_char*) data, data_len,
 					bol, eol, clear) )
-			newmatch = true;
+				{
+				newmatch = true;
+				}
+			else 
+				{
+				// wzj
+				if ( m->state->MatchFailed() ) 
+					{
+					// match failed.
+					// Does this include the case in which the connection finishes before a match or not match found?
+					AcceptIdx aidx = m->state->getDFA()->getNFA()->FinalState()->Accept();
+					Rule* r = Rule::rule_table[aidx - 1];
+
+					// Skip if rule has matched for this connection.
+					if ( state->matched_rules.is_member(r->Index()) )
+						continue;
+
+					// Check whether the rule really belong to any of our nodes.
+					DBG_LOG(DBG_RULES, "Failed rule: %s", r->id);
+
+					loop_over_list(state->hdr_tests, k)
+						{
+						RuleHdrTest* h = state->hdr_tests[k];
+
+						DBG_LOG(DBG_RULES, "Checking for failed rule on HdrTest %d", h->id);
+
+						// Skip if rule does not belong to this node.
+						if ( ! h->ruleset->Contains(r->Index()) )
+							continue;
+
+						DBG_LOG(DBG_RULES, "On current node");
+
+						// Skip if rule already fired for this connection.
+						if ( state->failed_rules.is_member(r->Index()) )
+							continue;
+
+						// Remember that all patterns have matched.
+						//if ( ! state->matched_by_patterns.is_member(r) )
+						//	{
+						//	state->matched_by_patterns.append(r);
+						//	BroString* s = new BroString(data, data_len, 0);
+						//	state->matched_text.append(s);
+						//	}
+
+						DBG_LOG(DBG_RULES, "And has not already fired");
+						// Eval additional conditions.
+						if ( ! EvalRuleConditions(r, state, data, data_len, 0) )
+							continue;
+
+						// Found a not match.
+						RuleNotMatch(r, state, data, data_len, 0);
+						}
+					}
+				}
+			}
 		}
 
 	// If no new match found, we're already done.
@@ -1057,6 +1115,27 @@ void RuleMatcher::ExecRuleActions(Rule* r, RuleEndpointState* state,
 		ExecRule(dep, state, eos);
 		if ( state->opposite )
 			ExecRule(dep, state->opposite, eos);
+		}
+	}
+
+// wzj
+void RuleMatcher::RuleNotMatch(Rule* r, RuleEndpointState* state,
+				const u_char* data, int len, bool eos)
+	{
+	state->failed_rules.append(r->Index());
+
+	if ( signature_not_match ) 
+		{
+		val_list* vl = new val_list;
+		vl->append(rule_matcher->BuildRuleStateValue(r, state));
+		vl->append(new StringVal(r->id));
+		
+		if ( data )
+			vl->append(new StringVal(len, (const char*)data));
+		else
+			vl->append(new StringVal(""));
+
+		mgr.QueueEvent(signature_not_match, vl);
 		}
 	}
 

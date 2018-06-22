@@ -331,6 +331,13 @@ type endpoint: record {
 	flow_label: count;
 	## The link-layer address seen in the first packet (if available).
 	l2_addr: string &optional;
+	## wzj
+	## Number of data packets sent. Only set if :bro:id:`use_conn_size_analyzer`
+	## is true.
+	num_data_pkts: count &optional;
+	## Number of data bytes sent. Only set if 
+	## :bro:id:`use_conn_size_analyzer` is true.
+	num_data_bytes: count &optional;
 };
 
 ## A connection. This is Bro's basic connection type describing IP- and

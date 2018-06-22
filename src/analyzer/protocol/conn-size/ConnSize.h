@@ -39,6 +39,12 @@ protected:
 	uint64_t orig_pkts;
 	uint64_t resp_pkts;
 
+	// wzj
+	uint64_t orig_data_bytes;	// data bytes sent from orig
+	uint64_t resp_data_bytes;	// data bytes sent form resp
+	uint64_t orig_data_pkts;	// data packets sent from orig
+	uint64_t resp_data_pkts;	// data packets sent form resp
+
 	uint64_t orig_bytes_thresh;
 	uint64_t resp_bytes_thresh;
 	uint64_t orig_pkts_thresh;

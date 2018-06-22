@@ -503,6 +503,25 @@ event load_sample%(samples: load_sample_info, CPU: interval, dmem: int%);
 ##       triggering the match will be passed on to the event.
 event signature_match%(state: signature_state, msg: string, data: string%);
 
+## Generated when a signature does not match. Bro's signature engine provides
+## high-performance pattern matching separately from the normal script
+## processing. If a signature with an ``event`` action does not match, this event is
+## raised.
+##
+## See the :doc:`user manual </frameworks/signatures>` for more information
+## about Bro's signature engine.
+##
+## state: Context about the match, including which signatures triggered the
+##        event and the connection for which the not match was found.
+##
+## msg: The message passed to the ``event`` signature action.
+##
+## data: The last chunk of input that triggered the not match. Note that the
+##       specifics here are not well-defined as Bro does not buffer any input.
+##       If a match is split across packet boundaries, only the last chunk
+##       triggering the not match will be passed on to the event.
+event signature_not_match%(state: signature_state, msg: string, data: string%);
+
 ## Generated when a protocol analyzer finds an identification of a software
 ## used on a system. This is a protocol-independent event that is fed by
 ## different analyzers. For example, the HTTP analyzer reports user-agent and

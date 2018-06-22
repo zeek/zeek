@@ -13,6 +13,7 @@ using namespace analyzer::conn_size;
 ConnSize_Analyzer::ConnSize_Analyzer(Connection* c)
     : Analyzer("CONNSIZE", c),
       orig_bytes(), resp_bytes(), orig_pkts(), resp_pkts(),
+      orig_data_bytes(), resp_data_bytes(), orig_data_pkts(), resp_data_pkts(),
       orig_bytes_thresh(), resp_bytes_thresh(), orig_pkts_thresh(), resp_pkts_thresh()
 	{
 	}
@@ -30,6 +31,12 @@ void ConnSize_Analyzer::Init()
 	orig_pkts = 0;
 	resp_bytes = 0;
 	resp_pkts = 0;
+
+	// wzj
+	orig_data_bytes = 0;
+	orig_data_pkts = 0;
+	resp_data_bytes = 0;
+	resp_data_pkts = 0;
 
 	orig_bytes_thresh = 0;
 	orig_pkts_thresh = 0;
@@ -94,11 +101,25 @@ void ConnSize_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 		{
 		orig_bytes += ip->TotalLen();
 		orig_pkts ++;
+		// wzj
+		if ( len > 0 )
+			{
+			// record the data packets and total bytes
+			orig_data_pkts ++;
+			orig_data_bytes += len;
+			}
 		}
 	else
 		{
 		resp_bytes += ip->TotalLen();
 		resp_pkts ++;
+		// wzj
+		if ( len > 0 )
+			{
+			// record the data packets and total bytes
+			resp_data_pkts ++;
+			resp_data_bytes += len;
+			}
 		}
 
 	CheckSizes(is_orig);
@@ -159,10 +180,26 @@ void ConnSize_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	if ( bytesidx < 0 )
 		reporter->InternalError("'endpoint' record missing 'num_bytes_ip' field");
 
+	// wzj
+	int datapktidx = endpoint->FieldOffset("num_data_pkts");
+	int databytesidx = endpoint->FieldOffset("num_data_bytes");
+
+	if ( datapktidx < 0 )
+		reporter->InternalError("'endpoint' record missing 'num_data_pkts' field");
+
+	if ( databytesidx < 0 )
+		reporter->InternalError("'endpoint' record missing 'num_data_bytes' field");
+
 	orig_endp->Assign(pktidx, new Val(orig_pkts, TYPE_COUNT));
 	orig_endp->Assign(bytesidx, new Val(orig_bytes, TYPE_COUNT));
 	resp_endp->Assign(pktidx, new Val(resp_pkts, TYPE_COUNT));
 	resp_endp->Assign(bytesidx, new Val(resp_bytes, TYPE_COUNT));
+
+	// wzj
+	orig_endp->Assign(datapktidx, new Val(orig_data_pkts, TYPE_COUNT));
+	orig_endp->Assign(databytesidx, new Val(orig_data_bytes, TYPE_COUNT));
+	resp_endp->Assign(datapktidx, new Val(resp_data_pkts, TYPE_COUNT));
+	resp_endp->Assign(databytesidx, new Val(resp_data_bytes, TYPE_COUNT));
 
 	Analyzer::UpdateConnVal(conn_val);
 	}
@@ -180,5 +217,14 @@ void ConnSize_Analyzer::FlipRoles()
 	tmp = orig_pkts;
 	orig_pkts = resp_pkts;
 	resp_pkts = tmp;
+
+	// wzj
+	tmp = orig_data_bytes;
+	orig_data_bytes = resp_data_bytes;
+	resp_data_bytes = tmp;
+
+	tmp = orig_data_pkts;
+	orig_data_pkts = resp_data_pkts;
+	resp_data_pkts = tmp;
 	}
 

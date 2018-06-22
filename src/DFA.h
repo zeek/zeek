@@ -132,6 +132,9 @@ public:
 
 	unsigned int MemoryAllocation() const;
 
+	// wzj: expose nfa
+	NFA_Machine* getNFA() { return nfa; }
+
 protected:
 	friend class DFA_State;	// for DFA_State::ComputeXtion
 	friend class DFA_State_Cache;

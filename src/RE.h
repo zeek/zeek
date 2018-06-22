@@ -151,6 +151,12 @@ public:
 	// If clear is true, starts matching over.
 	bool Match(const u_char* bv, int n, bool bol, bool eol, bool clear);
 
+	// wzj
+	// Test if the Match failed. Should always be called after calling Match function.
+	// If the Match returns false, it doesn't mean failed. It may still match partial data.
+	// Only if the pattern doesn't match any of the data, it fails.
+	bool MatchFailed() { return current_state == 0; }
+
 	void Clear()
 		{
 		current_pos = -1;
@@ -159,6 +165,9 @@ public:
 		}
 
 	void AddMatches(const AcceptingSet& as, MatchPos position);
+
+	// wzj: expose dfa
+	DFA_Machine* getDFA() { return dfa; }
 
 protected:
 	DFA_Machine* dfa;

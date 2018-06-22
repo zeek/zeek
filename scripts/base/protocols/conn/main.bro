@@ -239,6 +239,16 @@ function set_conn(c: connection, eoc: bool)
 			c$conn$resp_pkts = c$resp$num_pkts;
 			c$conn$resp_ip_bytes = c$resp$num_bytes_ip;
 			}
+		# wzj
+		if ( c$orig?$num_data_pkts )
+			{
+			# these are set if use_conn_size_analyzer=T
+			c$conn$orig_data_pkts = c$orig$num_data_pkts;
+			c$conn$orig_data_bytes = c$orig$num_data_bytes;
+			c$conn$resp_data_pkts = c$resp$num_data_pkts;
+			c$conn$resp_data_bytes = c$resp$num_data_bytes;
+			}
+			
 		local service = determine_service(c);
 		if ( service != "" )
 			c$conn$service=service;

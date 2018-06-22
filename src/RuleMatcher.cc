@@ -995,6 +995,10 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
 				continue;
 
 			// Found a match.
+
+			// wzj 
+			RuleMatches(r, state, data, data_len, 0);
+
 			ExecRuleActions(r, state, data, data_len, 0);
 			}
 		}
@@ -1119,6 +1123,25 @@ void RuleMatcher::ExecRuleActions(Rule* r, RuleEndpointState* state,
 	}
 
 // wzj
+void RuleMatcher::RuleMatches(Rule* r, RuleEndpointState* state,
+				const u_char* data, int len, bool eos)
+	{
+	state->matched_rules.append(r->Index());
+
+	if ( signature_match ) 
+		{
+		val_list* vl = new val_list;
+		vl->append(rule_matcher->BuildRuleStateValue(r, state));
+		vl->append(new StringVal(r->id));
+		
+		if ( data )
+			vl->append(new StringVal(len, (const char*)data));
+		else
+			vl->append(new StringVal(""));
+
+		mgr.QueueEvent(signature_match, vl);
+		}
+	}
 void RuleMatcher::RuleNotMatch(Rule* r, RuleEndpointState* state,
 				const u_char* data, int len, bool eos)
 	{

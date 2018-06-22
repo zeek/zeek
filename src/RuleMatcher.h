@@ -354,7 +354,10 @@ private:
 				const u_char* data, int len, bool eos);
 
 	// wzj
-	// Trigger the signature_not_match function
+	// Trigger the signature_match event
+	void RuleMatches(Rule* r, RuleEndpointState* state,
+				const u_char* data, int len, bool eos);
+	// Trigger the signature_not_match event
 	void RuleNotMatch(Rule* r, RuleEndpointState* state,
 				const u_char* data, int len, bool eos);
 

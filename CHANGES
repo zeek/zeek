@@ -1,4 +1,10 @@
 
+2.5-681 | 2018-06-22 20:17:06 -0500
+
+  * Fix null pointer deref in AST traversal (Corelight)
+
+  * Fix for ancient reference-counting bug in NFA.cc (Vern Paxson)
+
 2.5-679 | 2018-06-21 16:00:48 -0500
 
   * Add support for bitwise operations (&, |, ^, ~) on "count" values.

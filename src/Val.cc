@@ -1704,14 +1704,58 @@ int TableVal::RemoveFrom(Val* val) const
 	HashKey* k;
 	while ( tbl->NextEntry(k, c) )
 		{
-		Val* index = RecoverIndex(k);
+		// ### The following code appears to be a complete
+		// no-op.  Commented out 8+ years after it was
+		// introduced. -VP  22Jun18
+		// Val* index = RecoverIndex(k);
+		//
+		// Unref(index);
 
-		Unref(index);
+		// Not sure that this is 100% sound, since the HashKey
+		// comes from one table but is being used in another.
+		// OTOH, they are both the same type, so as long as
+		// we don't have hash keys that are keyed per dictionary,
+		// it should work ...
 		Unref(t->Delete(k));
 		delete k;
 		}
 
 	return 1;
+	}
+
+TableVal* TableVal::Intersect(const TableVal* tv) const
+	{
+	TableVal* result = new TableVal(table_type);
+
+	const PDict(TableEntryVal)* t1 = tv->AsTable();
+	const PDict(TableEntryVal)* t2 = AsTable();
+	const PDict(TableEntryVal)* t3 = result->AsTable();
+
+	// Figure out which is smaller.
+	if ( t1->Length() > t2->Length() )
+		{ // Swap.
+		const PDict(TableEntryVal)* t3 = t1;
+		t1 = t2;
+		t2 = t3;
+		}
+
+	IterCookie* c = t1->InitForIteration();
+	HashKey* k;
+	while ( t1->NextEntry(k, c) )
+		{
+//### 		// Here we leverage the same assumption about consistent
+//### 		// hashes as in TableVal::RemoveFrom above.
+//### 		if ( t2->Lookup(k) )
+//### 			{
+//### 			Val* index = RecoverIndex();
+//### 			result->
+//### 
+//### 		Unref(index);
+//### 		Unref(t->Delete(k));
+//### 		delete k;
+		}
+
+	return result;
 	}
 
 int TableVal::ExpandAndInit(Val* index, Val* new_val)

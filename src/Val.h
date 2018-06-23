@@ -809,6 +809,12 @@ public:
 	// Returns true if the addition typechecked, false if not.
 	int RemoveFrom(Val* v) const override;
 
+	// Returns a new table that is the intersection of this
+	// table and the given table.  Intersection is just done
+	// on index, not on yield value, so this really only makes
+	// sense for sets.
+	TableVal* Intersect(const TableVal* v) const;
+
 	// Expands any lists in the index into multiple initializations.
 	// Returns true if the initializations typecheck, false if not.
 	int ExpandAndInit(Val* index, Val* new_val);

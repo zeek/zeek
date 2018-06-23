@@ -329,6 +329,9 @@ protected:
 	// Same for when the constants are strings.
 	virtual Val* StringFold(Val* v1, Val* v2) const;
 
+	// Same for when the constants are sets.
+	virtual Val* SetFold(Val* v1, Val* v2) const;
+
 	// Same for when the constants are addresses or subnets.
 	virtual Val* AddrFold(Val* v1, Val* v2) const;
 	virtual Val* SubNetFold(Val* v1, Val* v2) const;

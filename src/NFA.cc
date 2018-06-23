@@ -185,6 +185,8 @@ void NFA_Machine::AddAccept(int accept_val)
 		AppendState(new EpsilonState());
 
 	final_state->SetAccept(accept_val);
+	// wzj
+	accept_list.append(accept_val);
 	}
 
 void NFA_Machine::LinkCopies(int n)

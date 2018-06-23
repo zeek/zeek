@@ -874,48 +874,51 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
 				if ( m->state->MatchFailed() ) 
 					{
 					// match failed.
-					// Does this include the case in which the connection finishes before a match or not match found?
-					AcceptIdx aidx = m->state->getDFA()->getNFA()->FinalState()->Accept();
-					Rule* r = Rule::rule_table[aidx - 1];
-
-					// Skip if rule has matched for this connection.
-					if ( state->matched_rules.is_member(r->Index()) )
-						continue;
-
-					// Check whether the rule really belong to any of our nodes.
-					DBG_LOG(DBG_RULES, "Failed rule: %s", r->id);
-
-					loop_over_list(state->hdr_tests, k)
+					// find rule from NFA machine
+					NFA_Machine *nfa = m->state->getDFA()->getNFA();
+					loop_over_list(nfa->accept_list, aidx)
 						{
-						RuleHdrTest* h = state->hdr_tests[k];
+						Rule* r = Rule::rule_table[aidx - 1];
 
-						DBG_LOG(DBG_RULES, "Checking for failed rule on HdrTest %d", h->id);
-
-						// Skip if rule does not belong to this node.
-						if ( ! h->ruleset->Contains(r->Index()) )
+						// Skip if rule already matched for this connection.
+						if ( state->matched_rules.is_member(r->Index()) )
 							continue;
 
-						DBG_LOG(DBG_RULES, "On current node");
-
-						// Skip if rule already fired for this connection.
+						// Skip if rule already failed for this connection.
 						if ( state->failed_rules.is_member(r->Index()) )
 							continue;
 
-						// Remember that all patterns have matched.
-						//if ( ! state->matched_by_patterns.is_member(r) )
-						//	{
-						//	state->matched_by_patterns.append(r);
-						//	BroString* s = new BroString(data, data_len, 0);
-						//	state->matched_text.append(s);
-						//	}
+						// Check whether the rule really belong to any of our nodes.
+						DBG_LOG(DBG_RULES, "Failed rule: %s", r->id);
 
-						DBG_LOG(DBG_RULES, "And has not already fired");
-						// Eval additional conditions.
-						if ( ! EvalRuleConditions(r, state, data, data_len, 0) )
-							continue;
+						loop_over_list(state->hdr_tests, k)
+							{
+							RuleHdrTest* h = state->hdr_tests[k];
 
-						// Found a not match.
-						RuleNotMatch(r, state, data, data_len, 0);
+							DBG_LOG(DBG_RULES, "Checking for failed rule on HdrTest %d", h->id);
+
+							// Skip if rule does not belong to this node.
+							if ( ! h->ruleset->Contains(r->Index()) )
+								continue;
+
+							DBG_LOG(DBG_RULES, "On current node");
+
+							// Remember that all patterns have matched.
+							//if ( ! state->matched_by_patterns.is_member(r) )
+							//	{
+							//	state->matched_by_patterns.append(r);
+							//	BroString* s = new BroString(data, data_len, 0);
+							//	state->matched_text.append(s);
+							//	}
+
+							DBG_LOG(DBG_RULES, "And has not already fired");
+							// Eval additional conditions.
+							if ( ! EvalRuleConditions(r, state, data, data_len, 0) )
+								continue;
+
+							// Found a not match.
+							RuleNotMatch(r, state, data, data_len, 0);
+							}
 						}
 					}
 				}

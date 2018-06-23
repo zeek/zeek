@@ -109,6 +109,9 @@ public:
 	unsigned int MemoryAllocation() const
 		{ return padded_sizeof(*this) + first_state->TotalMemoryAllocation(); }
 
+	// wzj: remember the rule pattern id associated with the NFA machine
+	int_list accept_list;
+
 protected:
 	NFA_State* first_state;
 	NFA_State* final_state;

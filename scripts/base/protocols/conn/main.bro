@@ -120,6 +120,19 @@ export {
 		## *uid* values for any encapsulating parent connections
 		## used over the lifetime of this inner connection.
 		tunnel_parents: set[string] &log &optional;
+		## wzj
+		## Number of data packets that the originator sent.
+		## Only set if :bro:id:`use_conn_size_analyzer` = T.
+		orig_data_pkts:     count      &log &optional;
+		## Number of data bytes that the originator sent.
+		## Only set if :bro:id:`use_conn_size_analyzer` = T.
+		orig_data_bytes: count      &log &optional;
+		## Number of data packets that the responder sent.
+		## Only set if :bro:id:`use_conn_size_analyzer` = T.
+		resp_data_pkts:     count      &log &optional;
+		## Number of data bytes that the responder sent.
+		## Only set if :bro:id:`use_conn_size_analyzer` = T.
+		resp_data_bytes: count      &log &optional;
 	};
 
 	## Event that can be handled to access the :bro:type:`Conn::Info`

@@ -860,6 +860,9 @@ Val* BinaryExpr::SetFold(Val* v1, Val* v2) const
 	if ( tag != EXPR_AND && tag != EXPR_OR && tag != EXPR_SUB )
 		BadTag("BinaryExpr::SetFold");
 
+	if ( tag == EXPR_AND )
+		return tv1->Intersect(tv2);
+
 	// TableVal* result = new TableVal(v1->Type()->AsTableType());
 	TableVal* result = v1->Clone()->AsTableVal();
 
@@ -874,6 +877,9 @@ Val* BinaryExpr::SetFold(Val* v1, Val* v2) const
 		if ( ! tv2->RemoveFrom(result) )
 			reporter->InternalError("set difference failed to type check");
 		}
+
+	else
+		BadTag("BinaryExpr::SetFold", expr_name(tag));
 
 	return result;
 	}

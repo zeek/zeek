@@ -1729,7 +1729,7 @@ TableVal* TableVal::Intersect(const TableVal* tv) const
 
 	const PDict(TableEntryVal)* t1 = tv->AsTable();
 	const PDict(TableEntryVal)* t2 = AsTable();
-	const PDict(TableEntryVal)* t3 = result->AsTable();
+	PDict(TableEntryVal)* t3 = result->AsNonConstTable();
 
 	// Figure out which is smaller.
 	if ( t1->Length() > t2->Length() )
@@ -1743,16 +1743,12 @@ TableVal* TableVal::Intersect(const TableVal* tv) const
 	HashKey* k;
 	while ( t1->NextEntry(k, c) )
 		{
-//### 		// Here we leverage the same assumption about consistent
-//### 		// hashes as in TableVal::RemoveFrom above.
-//### 		if ( t2->Lookup(k) )
-//### 			{
-//### 			Val* index = RecoverIndex();
-//### 			result->
-//### 
-//### 		Unref(index);
-//### 		Unref(t->Delete(k));
-//### 		delete k;
+ 		// Here we leverage the same assumption about consistent
+ 		// hashes as in TableVal::RemoveFrom above.
+ 		if ( t2->Lookup(k) )
+			t3->Insert(k, new TableEntryVal(0));
+
+		delete k;
 		}
 
 	return result;

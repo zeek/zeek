@@ -27,6 +27,8 @@
 #include "Reporter.h"
 #include "IPAddr.h"
 
+#include "broker/Data.h"
+
 Val::Val(Func* f)
 	{
 	val.func_val = f;

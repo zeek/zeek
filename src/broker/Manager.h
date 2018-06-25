@@ -371,12 +371,6 @@ private:
 	const char* Tag() override
 		{ return "Broker::Manager"; }
 
-	Func* log_topic_func;
-	std::string default_log_topic_prefix;
-	uint16_t bound_port;
-
-	std::shared_ptr<BrokerState> bstate;
-
 	struct LogBuffer {
 		// Indexed by topic string.
 		std::unordered_map<std::string, broker::vector> msgs;
@@ -385,9 +379,6 @@ private:
 
 		size_t Flush(broker::endpoint& endpoint);
 	};
-
-	// Indexed by stream ID enum.
-	std::vector<LogBuffer> log_buffers;
 
 	// Data stores
 	using query_id = std::pair<broker::request_id, StoreHandleVal*>;
@@ -402,19 +393,25 @@ private:
 			}
 	};
 
+	std::vector<LogBuffer> log_buffers; // Indexed by stream ID enum.
+	std::string default_log_topic_prefix;
+	std::shared_ptr<BrokerState> bstate;
 	std::unordered_map<std::string, StoreHandleVal*> data_stores;
-	std::unordered_map<query_id, StoreQueryCallback*, query_id_hasher> pending_queries;
+	std::unordered_map<query_id, StoreQueryCallback*,
+	                   query_id_hasher> pending_queries;
 
 	Stats statistics;
-	double next_timestamp;
+
+	uint16_t bound_port;
 	bool reading_pcaps;
 	int peer_count;
 
-	static int script_scope;
+	Func* log_topic_func;
+	VectorType* vector_of_data_type;
+	EnumType* log_id_type;
+	EnumType* writer_id_type;
 
-	static VectorType* vector_of_data_type;
-	static EnumType* log_id_type;
-	static EnumType* writer_id_type;
+	static int script_scope;
 };
 
 } // namespace bro_broker

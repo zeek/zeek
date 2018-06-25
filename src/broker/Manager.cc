@@ -73,9 +73,6 @@ public:
 
 const broker::endpoint_info Manager::NoPeer{{}, {}};
 
-VectorType* Manager::vector_of_data_type;
-EnumType* Manager::log_id_type;
-EnumType* Manager::writer_id_type;
 int Manager::script_scope = 0;
 
 struct unref_guard {
@@ -140,14 +137,17 @@ static std::string RenderMessage(const broker::error& e)
 
 #endif
 
-Manager::Manager(bool reading_pcaps)
+Manager::Manager(bool arg_reading_pcaps)
 	{
 	bound_port = 0;
+	reading_pcaps = arg_reading_pcaps;
 	peer_count = 0;
+	log_topic_func = nullptr;
+	vector_of_data_type = nullptr;
+	log_id_type = nullptr;
+	writer_id_type = nullptr;
 
-	next_timestamp = 1;
 	SetIdle(false);
-	this->reading_pcaps = reading_pcaps;
 	}
 
 Manager::~Manager()

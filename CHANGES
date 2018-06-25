@@ -1,4 +1,10 @@
 
+2.5-687 | 2018-06-25 16:35:25 -0500
+
+  * Reorganize internal + private broker/Manager.h bits (Corelight)
+
+  * Reduce proliferation of including broker header files (Corelight)
+
 2.5-684 | 2018-06-25 11:26:55 -0500
 
   * Use docker containers to run Bro tests on Travis CI (Daniel Thayer)

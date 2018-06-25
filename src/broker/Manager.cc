@@ -34,6 +34,43 @@ static const double LOG_BUFFER_INTERVAL = 1.0;
 // subscribers consider themselves congested.
 static const size_t SUBSCRIBER_MAX_QSIZE = 20u;
 
+static inline Val* get_option(const char* option)
+	{
+	auto id = global_scope()->Lookup(option);
+
+	if ( ! (id && id->ID_Val()) )
+		reporter->FatalError("Unknown Broker option %s", option);
+
+	return id->ID_Val();
+	}
+
+class BrokerConfig : public broker::configuration {
+public:
+	BrokerConfig(broker::broker_options options)
+		: broker::configuration(options)
+		{
+		openssl_cafile = get_option("Broker::ssl_cafile")->AsString()->CheckString();
+		openssl_capath = get_option("Broker::ssl_capath")->AsString()->CheckString();
+		openssl_certificate = get_option("Broker::ssl_certificate")->AsString()->CheckString();
+		openssl_key = get_option("Broker::ssl_keyfile")->AsString()->CheckString();
+		openssl_passphrase = get_option("Broker::ssl_passphrase")->AsString()->CheckString();
+		}
+};
+
+class BrokerState {
+public:
+	BrokerState(BrokerConfig config)
+		: endpoint(std::move(config)),
+		  subscriber(endpoint.make_subscriber({}, SUBSCRIBER_MAX_QSIZE)),
+		  status_subscriber(endpoint.make_status_subscriber(true))
+		{
+		}
+
+	broker::endpoint endpoint;
+	broker::subscriber subscriber;
+	broker::status_subscriber status_subscriber;
+};
+
 const broker::endpoint_info Manager::NoPeer{{}, {}};
 
 VectorType* Manager::vector_of_data_type;
@@ -102,33 +139,6 @@ static std::string RenderMessage(const broker::error& e)
 	}
 
 #endif
-
-static inline Val* get_option(const char* option)
-	{
-	auto id = global_scope()->Lookup(option);
-
-	if ( ! (id && id->ID_Val()) )
-		reporter->FatalError("Unknown Broker option %s", option);
-
-	return id->ID_Val();
-	}
-
-Manager::BrokerConfig::BrokerConfig(broker::broker_options options)
-	: broker::configuration(options)
-	{
-	openssl_cafile = get_option("Broker::ssl_cafile")->AsString()->CheckString();
-	openssl_capath = get_option("Broker::ssl_capath")->AsString()->CheckString();
-	openssl_certificate = get_option("Broker::ssl_certificate")->AsString()->CheckString();
-	openssl_key = get_option("Broker::ssl_keyfile")->AsString()->CheckString();
-	openssl_passphrase = get_option("Broker::ssl_passphrase")->AsString()->CheckString();
-	}
-
-Manager::BrokerState::BrokerState(BrokerConfig config)
-	: endpoint(std::move(config)),
-	  subscriber(endpoint.make_subscriber({}, SUBSCRIBER_MAX_QSIZE)),
-	  status_subscriber(endpoint.make_status_subscriber(true))
-	{
-	}
 
 Manager::Manager(bool reading_pcaps)
 	{
@@ -634,7 +644,7 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 
 	if ( lb.message_count >= LOG_BATCH_SIZE ||
 	     (network_time - lb.last_flush >= LOG_BUFFER_INTERVAL) )
-		statistics.num_logs_outgoing += lb.Flush(Endpoint());
+		statistics.num_logs_outgoing += lb.Flush(bstate->endpoint);
 
 	return true;
 	}
@@ -671,7 +681,7 @@ size_t Manager::FlushLogBuffers()
 	auto rval = 0u;
 
 	for ( auto& lb : log_buffers )
-		rval += lb.Flush(Endpoint());
+		rval += lb.Flush(bstate->endpoint);
 
 	return rval;
 	}

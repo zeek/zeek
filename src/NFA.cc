@@ -185,8 +185,6 @@ void NFA_Machine::AddAccept(int accept_val)
 		AppendState(new EpsilonState());
 
 	final_state->SetAccept(accept_val);
-	// wzj
-	accept_list.append(accept_val);
 	}
 
 void NFA_Machine::LinkCopies(int n)
@@ -352,4 +350,32 @@ int NFA_state_cmp_neg(const void* v1, const void* v2)
 		return 0;
 	else
 		return 1;
+	}
+
+// wzj
+void NFA_Machine::collect_accept_list_state(NFA_State *state, std::unordered_set<NFA_State*> &visited) 
+	{
+	if ( visited.find(state) != visited.end() )
+		// has been visited
+		return;
+
+	visited.insert(state);
+
+	// process
+	if ( state->Accept() )
+		{
+		accept_list.append(state->Accept());
+		}
+
+	NFA_state_list &xtions = *(state->Transitions());
+	for ( int i = 0; i < xtions.length(); ++i )
+		collect_accept_list_state(xtions[i], visited);
+	}
+
+// recursively collect the accept list
+void NFA_Machine::collect_accept_list() 
+	{
+	accept_list.clear();
+	std::unordered_set<NFA_State*> visited;
+	collect_accept_list_state(first_state, visited);
 	}

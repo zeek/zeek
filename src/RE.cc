@@ -146,8 +146,6 @@ int Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx)
 			}
 
 		nfa->FinalState()->SetAccept(idx[i]);
-		// wzj
-		nfa->accept_list.append(idx[i]);
 
 		set_nfa = set_nfa ? make_alternate(nfa, set_nfa) : nfa;
 		}
@@ -163,6 +161,9 @@ int Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx)
 
 	dfa = new DFA_Machine(nfa, EC());
 	ecs = EC()->EquivClasses();
+
+	// wzj
+	nfa->collect_accept_list();
 
 	return 1;
 	}

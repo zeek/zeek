@@ -6,6 +6,8 @@
 #include "RE.h"
 #include "IntSet.h"
 
+#include <unordered_set>
+
 class NFA_State;
 class EquivClass;
 
@@ -111,6 +113,8 @@ public:
 
 	// wzj: remember the rule pattern id associated with the NFA machine
 	int_list accept_list;
+	void collect_accept_list();
+	void collect_accept_list_state(NFA_State *state, std::unordered_set<NFA_State*> &visited);
 
 protected:
 	NFA_State* first_state;

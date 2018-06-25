@@ -876,9 +876,13 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
 					// match failed.
 					// find rule from NFA machine
 					NFA_Machine *nfa = m->state->getDFA()->getNFA();
+					//FILE *fp = fopen("nfa.dump", "w");
+					//nfa->Dump(fp);
+					//fclose(fp);
 					loop_over_list(nfa->accept_list, aidx)
 						{
-						Rule* r = Rule::rule_table[aidx - 1];
+						int rule_id = nfa->accept_list[aidx];
+						Rule* r = Rule::rule_table[rule_id - 1];
 
 						// Skip if rule already matched for this connection.
 						if ( state->matched_rules.is_member(r->Index()) )

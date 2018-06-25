@@ -1,24 +1,28 @@
 #!/bin/sh
+#
+# This script (along with the .travis.yml file) is used by Travis CI to
+# build Bro and run the tests.
 
-if [ "${TRAVIS}" != "true" ]; then
-    echo "$0: this script is intended for Travis CI"
-    exit 1
-fi
-
-if [ $# -ne 1 ]; then
-    echo "usage: $0 build|run|failure"
+if [ $# -ne 2 ]; then
+    echo "usage: $0 CMD DISTRO"
+    echo "  CMD is a build step (install, build, or run)"
+    echo "  DISTRO is a Linux distro, or 'travis' to run in Travis without docker"
     exit 1
 fi
 
 step=$1
+distro=$2
 
-build() {
-    ./configure && make -j 4
-}
-
+# Build Bro with the coverity tools.
 build_coverity() {
     # Get the coverity tools
     set -e
+
+    if [ -z "${COV_TOKEN}" ]; then
+        echo "Error: COV_TOKEN is not defined (should be defined in environment variables section of Travis settings for this repo)"
+        exit 1
+    fi
+
     wget -nv https://scan.coverity.com/download/cxx/linux64 --post-data "token=${COV_TOKEN}&project=Bro" -O coverity_tool.tgz
     tar xzf coverity_tool.tgz
     mv cov-analysis* coverity-tools
@@ -33,6 +37,7 @@ build_coverity() {
     cov-build --dir cov-int make -j 4
 }
 
+# Create a tar file and send it to coverity.
 run_coverity() {
     set -e
 
@@ -43,75 +48,189 @@ run_coverity() {
 
     cd build
     tar cjf ${FILE} cov-int
-    curl --form token=${COV_TOKEN} --form email=${EMAIL} --form file=@${FILE} --form version=${VER} --form description=${DESC} https://scan.coverity.com/builds?project=Bro
+    curl --form token=${COV_TOKEN} --form email=${EMAIL} --form file=@${FILE} --form "version=${VER}" --form "description=${DESC}" https://scan.coverity.com/builds?project=Bro
 }
 
+
+# Setup a docker container.
+setup_docker() {
+    case $distro in
+        centos_7)
+        distro_cmds="yum -y install cmake make gcc gcc-c++ flex bison libpcap-devel openssl-devel git openssl which"
+        ;;
+        debian_9)
+        distro_cmds="apt-get update; apt-get -y install cmake make gcc g++ flex bison python libpcap-dev libssl1.0-dev zlib1g-dev git sqlite3 curl bsdmainutils"
+        ;;
+        fedora_28)
+        distro_cmds="yum -y install cmake make gcc gcc-c++ flex bison libpcap-devel compat-openssl10-devel git sqlite findutils which; ln -s /usr/bin/python3 /usr/local/bin/python"
+        ;;
+        ubuntu_16.04)
+        distro_cmds="apt-get update; apt-get -y install cmake make gcc g++ flex bison python libpcap-dev libssl-dev zlib1g-dev git sqlite3 curl bsdmainutils"
+        ;;
+        ubuntu_18.04)
+        distro_cmds="apt-get update; apt-get -y install cmake make gcc g++ flex bison python3 libpcap-dev libssl1.0-dev zlib1g-dev git sqlite3 curl bsdmainutils; ln -s /usr/bin/python3 /usr/local/bin/python"
+        ;;
+        *)
+        echo "Error: distro ${distro} is not recognized by this script"
+        exit 1
+        ;;
+    esac
+
+    docker_image=`echo $distro | tr '_' ':'`
+    docker run --name brotest -id -v "`pwd`:/bro" -w /bro ${docker_image} sh
+    docker exec brotest sh -c "${distro_cmds}"
+}
+
+
+# Build bro in a docker container.
+build_docker() {
+    docker exec -e TRAVIS brotest sh testing/scripts/travis-job $step travis
+}
+
+
+# Run Bro tests in a docker container.
+run_docker() {
+    prepare_env
+    docker exec -t -e TRAVIS -e TRAVIS_PULL_REQUEST -e trav_key -e trav_iv brotest sh testing/scripts/travis-job $step travis
+}
+
+
+# Build Bro.
+build() {
+    # Skip building broker tests, python bindings, and broctl, as these are
+    # not needed by the bro tests.
+    ./configure --build-type=Release --disable-broker-tests --disable-python --disable-broctl && make -j 2
+}
+
+
+# Rename the encrypted environment variables to avoid having the hash value
+# hard-coded multiple times in this script.
+prepare_env() {
+    if [ -z "$trav_key" ]; then
+        hash=6a6fe747ff7b
+        eval "trav_key=\$encrypted_${hash}_key"
+        eval "trav_iv=\$encrypted_${hash}_iv"
+        # Export so they are visible in docker containers.
+        export trav_key
+        export trav_iv
+    fi
+}
+
+
+# Run Bro tests.
 run() {
-    # Run the tests, but don't exit upon failure.
+    echo
+    echo "Running unit tests ##################################################"
+    echo
     cd testing/btest
-    ../../aux/btest/btest -j 4 -b -f diag.log
+    # Must specify a value for "-j" option, otherwise Travis uses a huge value.
+    ../../aux/btest/btest -j 4 -d
     ret=$?
-    cd ../..
+
+    echo
+    echo "Getting external tests ##############################################"
+    echo
+    cd ../external
 
     set -e
 
-    # Get the test repo
-    make -C testing/external init
+    make init
+    prepare_env
 
-    # Get the private test repo
-    curl https://www.bro.org/static/travis-ci/travis_key.enc -o travis_key.enc
-    openssl aes-256-cbc -K $encrypted_6a6fe747ff7b_key -iv $encrypted_6a6fe747ff7b_iv -in travis_key.enc -out travis_key -d
-    chmod 600 travis_key
-    mv travis_key $HOME/.ssh/id_rsa
-    cd testing/external
-    git clone ssh://git@git.bro.org/bro-testing-private
-    cd ../..
-    rm $HOME/.ssh/id_rsa
+    if [ -n "$trav_key" ] && [ -n "$trav_iv" ]; then
+        curl https://www.bro.org/static/travis-ci/travis_key.enc -o travis_key.enc
+        openssl aes-256-cbc -K $trav_key -iv $trav_iv -in travis_key.enc -out travis_key -d
+        chmod 600 travis_key
+        mkdir -p ~/.ssh
+        mv travis_key ~/.ssh/id_rsa
+        ssh-keyscan -H -p 22 -t rsa git.bro.org >> ~/.ssh/known_hosts
+        git clone ssh://git@git.bro.org/bro-testing-private
+        rm ~/.ssh/id_rsa
+    elif [ -n "${TRAVIS_PULL_REQUEST}" ] && [ "${TRAVIS_PULL_REQUEST}" != "false" ]; then
+        # For pull request builds, the private key is not available, so skip
+        # the private tests to avoid failing.
+        echo "Note: skipping private tests because encrypted env. variables are not defined."
+    else
+        echo "Error: cannot get private tests because encrypted env. variables are not defined."
+        exit 1
+    fi
 
-    # Run the external tests
-    make -C testing/external
+    echo
+    echo "Running external tests ##############################################"
+    echo
+    trap showdiag EXIT
+    make
 
     # If we get here, then external tests were successful.
     exit $ret
 }
 
-failure() {
-    # Output each diag.log that contains failed test results, but don't show
-    # skipped tests.
-    for i in testing/btest/diag.log testing/external/bro-testing/diag.log; do
-        grep -qs '... failed$' $i && grep -v "... not available, skipped" $i ;
-    done
+# Output the contents of diag.log when a test fails.
+showdiag() {
+    # Show failed tests only, not skipped tests.
+    f=bro-testing/diag.log
+
+    grep -qs '... failed$' $f && \
+      echo && \
+      echo "Output of failed external tests #####################################" && \
+      echo && \
+      grep -v "... not available, skipped" $f
 }
 
-# Coverity scan is run from a Travis CI cron job.
-if [ "$TRAVIS_EVENT_TYPE" = "cron" ]; then
-    # Each Travis CI build consists of multiple jobs.  Here we choose one job
-    # to run the coverity scan.
-    JOB=`echo $TRAVIS_JOB_NUMBER | cut -d . -f 2`
+if [ "$step" != "install" ] && [ "$step" != "build" ] && [ "$step" != "run" ]; then
+    echo "Error: unknown build step: $step"
+    exit 1
+fi
 
-    if [ "$JOB" != "1" ]; then
+if [ "${TRAVIS}" != "true" ]; then
+    echo "$0: this script is intended for Travis CI"
+    exit 1
+fi
+
+if [ "${TRAVIS_EVENT_TYPE}" = "cron" ]; then
+    # Run the coverity scan from a Travis CI cron job.
+
+    # Extract second component of the job number.
+    if [ -z "${TRAVIS_JOB_NUMBER}" ]; then
+        echo "Error: TRAVIS_JOB_NUMBER is not defined (it should be defined by Travis CI)"
+        exit 1
+    fi
+    job=`echo ${TRAVIS_JOB_NUMBER} | cut -d . -f 2`
+
+    # If this isn't the first job in a Travis CI build, then just output a
+    # message and exit (this is not an error).
+    if [ "$job" != "1" ]; then
         echo "Coverity scan is performed only in the first job of this build"
         exit 0
     fi
 
     # This is split up into two steps because the build outputs thousands of
-    # lines (which are collapsed into a single line on the web page).
+    # lines (which are conveniently collapsed into a single line in the
+    # "Job log" on the Travis CI web site).
     if [ "$step" = "build" ]; then
         build_coverity
     elif [ "$step" = "run" ]; then
         run_coverity
     fi
-    exit 0
-fi
+elif [ "$distro" = "travis" ]; then
+    # Build bro and run tests.
 
-# Run one step of a Travis CI job.  The "build" and "run" are split up into
-# separate steps because the build outputs thousands of lines (which are
-# collapsed into a single line on the web page).  The "failure" step is run
-# only when at least one test fails.
-if [ "$step" = "build" ]; then
-    build
-elif [ "$step" = "run" ]; then
-    run
-elif [ "$step" = "failure" ]; then
-    failure
+    # The "build" and "run" steps are split up into separate steps because the
+    # build outputs thousands of lines (which are conveniently collapsed into
+    # a single line when viewing the "Job log" on the Travis CI web site).
+    if [ "$step" = "build" ]; then
+        build
+    elif [ "$step" = "run" ]; then
+        run
+    fi
+else
+    # Build bro and run tests in a docker container.
+
+    if [ "$step" = "install" ]; then
+        setup_docker
+    elif [ "$step" = "build" ]; then
+        build_docker
+    elif [ "$step" = "run" ]; then
+        run_docker
+    fi
 fi

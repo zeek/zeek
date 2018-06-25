@@ -1,4 +1,10 @@
 
+2.5-684 | 2018-06-25 11:26:55 -0500
+
+  * Use docker containers to run Bro tests on Travis CI (Daniel Thayer)
+
+  * Travis CI fewer failures and improved output messages (Daniel Thayer)
+
 2.5-681 | 2018-06-22 20:17:06 -0500
 
   * Fix null pointer deref in AST traversal (Corelight)

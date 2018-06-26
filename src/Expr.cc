@@ -663,6 +663,9 @@ Val* BinaryExpr::Fold(Val* v1, Val* v2) const
 	if ( it == TYPE_INTERNAL_STRING )
 		return StringFold(v1, v2);
 
+	if ( v1->Type()->Tag() == TYPE_PATTERN )
+		return PatternFold(v1, v2);
+
 	if ( it == TYPE_INTERNAL_ADDR )
 		return AddrFold(v1, v2);
 
@@ -847,6 +850,21 @@ Val* BinaryExpr::StringFold(Val* v1, Val* v2) const
 	}
 
 	return new Val(result, TYPE_BOOL);
+	}
+
+Val* BinaryExpr::PatternFold(Val* v1, Val* v2) const
+	{
+	const RE_Matcher* re1 = v1->AsPattern();
+	const RE_Matcher* re2 = v2->AsPattern();
+
+	if ( tag != EXPR_AND && tag != EXPR_OR )
+		BadTag("BinaryExpr::PatternFold");
+
+	RE_Matcher* res = tag == EXPR_AND ?
+		RE_Matcher_conjunction(re1, re2) :
+		RE_Matcher_disjunction(re1, re2);
+
+	return new PatternVal(res);
 	}
 
 Val* BinaryExpr::AddrFold(Val* v1, Val* v2) const
@@ -1722,22 +1740,6 @@ Val* BoolExpr::DoSingleEval(Frame* f, Val* v1, Expr* op2) const
 	if ( ! v1 )
 		return 0;
 
-	if ( Type()->Tag() == TYPE_PATTERN )
-		{
-		Val* v2 = op2->Eval(f);
-		if ( ! v2 )
-			return 0;
-
-		RE_Matcher* re1 = v1->AsPattern();
-		RE_Matcher* re2 = v2->AsPattern();
-
-		RE_Matcher* res = tag == EXPR_AND_AND ?
-			RE_Matcher_conjunction(re1, re2) :
-			RE_Matcher_disjunction(re1, re2);
-
-		return new PatternVal(res);
-		}
-
 	if ( tag == EXPR_AND_AND )
 		{
 		if ( v1->IsZero() )
@@ -1897,6 +1899,16 @@ BitExpr::BitExpr(BroExprTag arg_tag, Expr* arg_op1, Expr* arg_op2)
 			SetType(new VectorType(base_type(TYPE_COUNT)));
 		else
 			SetType(base_type(TYPE_COUNT));
+		}
+
+	if ( bt1 == TYPE_PATTERN )
+		{
+		if ( bt2 != TYPE_PATTERN )
+			ExprError("cannot mix pattern and non-pattern operands");
+		else if ( tag == EXPR_XOR )
+			ExprError("'^' operator does not apply to patterns");
+		else
+			SetType(base_type(TYPE_PATTERN));
 		}
 
 	else

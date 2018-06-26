@@ -27,6 +27,10 @@ event bro_init()
 	test_case( "in operator", p1 in "foobar" );
 	test_case( "in operator", p2 in "foobar" );
 	test_case( "!in operator", p3 !in "foobar" );
+	test_case( "& operator", p1 & p2 in "baroob" );
+	test_case( "& operator", p2 & p1 in "baroob" );
+	test_case( "| operator", p1 | p2 in "lazybarlazy" );
+	test_case( "| operator", p3 | p4 in "xoob" );
 
 }
 

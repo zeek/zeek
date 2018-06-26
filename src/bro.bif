@@ -2958,7 +2958,7 @@ function uuid_to_string%(uuid: string%): string
 ##
 ##      This function must be called at Bro startup time, e.g., in the event
 ##      :bro:id:`bro_init`.
-function merge_pattern%(p1: pattern, p2: pattern%): pattern
+function merge_pattern%(p1: pattern, p2: pattern%): pattern &deprecated
 	%{
 	if ( bro_start_network_time != 0.0 )
 		{

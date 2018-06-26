@@ -16,7 +16,7 @@ New Functionality
   to the version in 2.5), and much of its implementation has been
   redone. There's a new script-level "broker" framework that
   supersedes the old "communication" framework, which is now
-  depracated. The "cluster" and "control" frameworks have been ported
+  deprecated. The "cluster" and "control" frameworks have been ported
   to Broker; same for BroControl. For more about the new Broker
   framework, see doc/frameworks/broker.rst (there's also guide there
   for porting existing Bro scripts to Broker). For more about Broker
@@ -252,7 +252,7 @@ New Functionality
 Changed Functionality
 ---------------------
 
-  - ALl communication is now handled through Broker, requiring changes
+  - All communication is now handled through Broker, requiring changes
     to existing scripts to port them over to the new API. The Broker
     framework documentation comes with a porting guide.
 
@@ -355,6 +355,16 @@ Deprecated Functionality
 - BroControl: The 'update' command is deprecated and scheduled for
   removal with the next Bro release. Bro's new configuration framework
   is taking its place.
+
+- Mixing of scalars and vectors, such as "v + e" yielding a vector
+  corresponding to the vector v with the scalar e added to each of
+  its elements, has been deprecated.
+
+- The built-in function merge_pattern() has been deprecated.  It will
+  be replaced by the '&' operator for patterns.
+
+- The undocumented feature of using "&&" and "||" operators for patterns
+  has been deprecated.
 
 Bro 2.5.1
 =========

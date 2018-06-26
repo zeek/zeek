@@ -1,4 +1,8 @@
 
+2.5-690 | 2018-06-26 15:05:23 -0500
+
+  * Fix deprecated actor_system_config field usages (Corelight)
+
 2.5-689 | 2018-06-26 11:45:52 -0500
 
   * Remove header self-inclusions (Corelight)

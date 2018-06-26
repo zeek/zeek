@@ -1901,7 +1901,7 @@ BitExpr::BitExpr(BroExprTag arg_tag, Expr* arg_op1, Expr* arg_op2)
 			SetType(base_type(TYPE_COUNT));
 		}
 
-	if ( bt1 == TYPE_PATTERN )
+	else if ( bt1 == TYPE_PATTERN )
 		{
 		if ( bt2 != TYPE_PATTERN )
 			ExprError("cannot mix pattern and non-pattern operands");

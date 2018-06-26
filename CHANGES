@@ -1,4 +1,10 @@
 
+2.5-689 | 2018-06-26 11:45:52 -0500
+
+  * Remove header self-inclusions (Corelight)
+
+  * Fix travis-job script to not fail when all tests succeed (Daniel Thayer)
+
 2.5-687 | 2018-06-25 16:35:25 -0500
 
   * Reorganize internal + private broker/Manager.h bits (Corelight)

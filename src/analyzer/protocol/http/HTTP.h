@@ -12,8 +12,6 @@
 #include "IPAddr.h"
 #include "analyzer/protocol/http/events.bif.h"
 
-#include "HTTP.h"
-
 namespace analyzer { namespace http {
 
 enum CHUNKED_TRANSFER_STATE {

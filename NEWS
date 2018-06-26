@@ -252,7 +252,7 @@ New Functionality
 - The '&' and '|' operators can apply to patterns, too.  p1 & p2 yields
   a pattern that represents matching p1 followed by p2, and p1 | p2 yields
   a pattern representing matching p1 or p2.  The p1 | p2 functionality was
-  semi-present in previous versions of Bro, but required constants as as
+  semi-present in previous versions of Bro, but required constants as
   its operands; now you can use any pattern-valued expressions.
 
 Changed Functionality

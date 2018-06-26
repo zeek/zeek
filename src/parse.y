@@ -14,7 +14,7 @@
 %token TOK_DOUBLE TOK_ELSE TOK_ENUM TOK_EVENT TOK_EXPORT TOK_FALLTHROUGH
 %token TOK_FILE TOK_FOR TOK_FUNCTION TOK_GLOBAL TOK_HOOK TOK_ID TOK_IF TOK_INT
 %token TOK_INTERVAL TOK_LIST TOK_LOCAL TOK_MODULE
-%token TOK_NEXT TOK_OF TOK_OPAQUE TOK_PATTERN TOK_PATTERN_TEXT
+%token TOK_NEXT TOK_OF TOK_OPAQUE TOK_PATTERN TOK_PATTERN_END TOK_PATTERN_TEXT
 %token TOK_PORT TOK_PRINT TOK_RECORD TOK_REDEF
 %token TOK_REMOVE_FROM TOK_RETURN TOK_SCHEDULE TOK_SET
 %token TOK_STRING TOK_SUBNET TOK_SWITCH TOK_TABLE
@@ -52,7 +52,7 @@
 %left '$' '[' ']' '(' ')' TOK_HAS_FIELD TOK_HAS_ATTR
 %nonassoc TOK_AS TOK_IS
 
-%type <b> opt_no_test opt_no_test_block opt_deprecated
+%type <b> opt_no_test opt_no_test_block opt_deprecated TOK_PATTERN_END
 %type <str> TOK_ID TOK_PATTERN_TEXT
 %type <id> local_id global_id def_global_id event_id global_or_event_id resolve_id begin_func case_type
 %type <id_l> local_id_list case_type_list
@@ -723,12 +723,15 @@ expr:
 			$$ = new ConstExpr($1);
 			}
 
-	|	'/' { begin_RE(); } TOK_PATTERN_TEXT { end_RE(); } '/'
+	|	'/' { begin_RE(); } TOK_PATTERN_TEXT TOK_PATTERN_END
 			{
 			set_location(@3);
 
 			RE_Matcher* re = new RE_Matcher($3);
 			delete [] $3;
+
+			if ( $4 )
+				re->MakeCaseInsensitive();
 
 			re->Compile();
 			$$ = new ConstExpr(new PatternVal(re));

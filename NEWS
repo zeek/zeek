@@ -255,6 +255,12 @@ New Functionality
   semi-present in previous versions of Bro, but required constants as as
   its operands; now you can use any pattern-valued expressions.
 
+- You can now specify that a pattern should be match in a case-insensitive
+  fashion by adding 'i' to the end of its specification.  So for example
+  /fOO/i == "Foo" yields T, as does /fOO/i in "xFoObar".  Characters
+  enclosed in quotes however keep their casing, so /"fOO"/i in "xFoObar"
+  yields F, though it yields T for "xfOObar".
+
 Changed Functionality
 ---------------------
 

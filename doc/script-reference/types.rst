@@ -92,7 +92,7 @@ Here is a more detailed description of each type:
     "int".
 
     In addition, "count" types support bitwise operations.  You can use
-    ``&``, ``|``, and ``^`` for bitwise ``and'', ``or'', and ``xor''.  You
+    ``&``, ``|``, and ``^`` for bitwise ``and``, ``or``, and ``xor``.  You
     can also use ``~`` for bitwise (one's) complement.
 
 .. bro:type:: double

@@ -870,7 +870,7 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
 				}
 			else 
 				{
-				// wzj
+				// wzj: signature_not_match event
 				if ( m->state->MatchFailed() ) 
 					{
 					// match failed.
@@ -1003,7 +1003,11 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
 
 			// Found a match.
 
-			// wzj 
+			// wzj: signature match event
+			// note that, it's possible that for the originator it already raised a signature_not_match event,
+			// but for the responder, it raise a signature_match event.
+			// But if the originator already raise a signature_match event, 
+			// the responder will not raise any signature_not_match event. That's the original logic.
 			RuleMatches(r, state, data, data_len, 0);
 
 			ExecRuleActions(r, state, data, data_len, 0);
@@ -1133,6 +1137,10 @@ void RuleMatcher::ExecRuleActions(Rule* r, RuleEndpointState* state,
 void RuleMatcher::RuleMatches(Rule* r, RuleEndpointState* state,
 				const u_char* data, int len, bool eos)
 	{
+	// only process TCP 
+	if ( ! state->analyzer->IsAnalyzer("PIA_TCP") )
+		return;
+
 	state->matched_rules.append(r->Index());
 
 	if ( signature_match ) 
@@ -1152,6 +1160,10 @@ void RuleMatcher::RuleMatches(Rule* r, RuleEndpointState* state,
 void RuleMatcher::RuleNotMatch(Rule* r, RuleEndpointState* state,
 				const u_char* data, int len, bool eos)
 	{
+	// only process TCP 
+	if ( ! state->analyzer->IsAnalyzer("PIA_TCP") )
+		return;
+
 	state->failed_rules.append(r->Index());
 
 	if ( signature_not_match ) 

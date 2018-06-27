@@ -36,8 +36,6 @@ static int my_isprint(int c)	{ return isprint(c); }
 static int my_ispunct(int c)	{ return ispunct(c); }
 static int my_isspace(int c)	{ return isspace(c); }
 static int my_isxdigit(int c)	{ return isxdigit(c); }
-
-static int my_is_letter(int c)	{ return my_islower(c) || my_isupper(c); }
 %}
 
 %option caseless nodefault nostdinit noyywrap
@@ -178,14 +176,14 @@ CCL_EXPR	("[:"[[:alpha:]]+":]")
 	"[:lower:]"	{
 			BEGIN(SC_CCL);
 			yylval.cce_val =
-				case_insensitive ? my_is_letter : my_islower;
+				case_insensitive ? my_isalpha : my_islower;
 			return TOK_CCE;
 			}
 
 	"[:upper:]"	{
 			BEGIN(SC_CCL);
 			yylval.cce_val =
-				case_insensitive ? my_is_letter : my_isupper;
+				case_insensitive ? my_isalpha : my_isupper;
 			return TOK_CCE;
 			}
 

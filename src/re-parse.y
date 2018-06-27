@@ -11,7 +11,6 @@
 int csize = 256;
 int syntax_error = 0;
 
-int is_letter(int sym);
 int cupper(int sym);
 int clower(int sym);
 void yyerror(const char msg[]);
@@ -163,9 +162,9 @@ ccl		:  ccl TOK_CHAR '-' TOK_CHAR
 				synerr("negative range in character class");
 
 			else if ( case_insensitive &&
-				  (is_letter($2) || is_letter($4)) )
+				  (isalpha($2) || isalpha($4)) )
 				{
-				if ( is_letter($2) && is_letter($4) &&
+				if ( isalpha($2) && isalpha($4) &&
 				     isupper($2) == isupper($4) )
 					{ // Compatible range, do both versions
 					int l2 = tolower($2);
@@ -191,7 +190,7 @@ ccl		:  ccl TOK_CHAR '-' TOK_CHAR
 
 		|  ccl TOK_CHAR
 			{
-			if ( case_insensitive && is_letter($2) )
+			if ( case_insensitive && isalpha($2) )
 				{
 				$1->Add(clower($2));
 				$1->Add(cupper($2));
@@ -227,11 +226,6 @@ string		:  string TOK_CHAR
 			{ $$ = new NFA_Machine(new EpsilonState()); }
 		;
 %%
-
-int is_letter(int sym)
-	{
-	return isascii(sym) && (islower(sym) || isupper(sym));
-	}
 
 int cupper(int sym)
 	{

@@ -141,6 +141,32 @@ field name must be in the declaration of the record type.
 +------------------------------+-------------+-------------------------------+
 
 
+Pattern operators
+-----------------
+
+In the table below, *p* is a pattern, and *s* is a string.
+
++------------------------------+-------------+-------------------------------+
+| Name                         | Syntax      | Notes                         |
++==============================+=============+===============================+
+| Exact matching               | *p* == *s*  | Evaluates to a boolean,       |
+|                              |             | indicating if the entire      |
+|                              |             | string exactly matches the    |
+|                              |             | pattern.                      |
++------------------------------+-------------+-------------------------------+
+| Embedded matching            | *p* in *s*  | Evaluates to a boolean,       |
+|                              |             | indicating if pattern is      |
+|                              |             | found somewhere in the string.|
++------------------------------+-------------+-------------------------------+
+| Conjunction                  | *p1* & *p2* | Evaluates to a pattern that   |
+|                              |             | represents matching p1        |
+|                              |             | followed by p2.               |
++------------------------------+-------------+-------------------------------+
+| Disjunction                  | *p1* | *p2* | Evaluates to a pattern that   |
+|                              |             | represents matching p1 or p2. |
++------------------------------+-------------+-------------------------------+
+
+
 Type casting
 ------------
 

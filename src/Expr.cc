@@ -663,6 +663,9 @@ Val* BinaryExpr::Fold(Val* v1, Val* v2) const
 	if ( it == TYPE_INTERNAL_STRING )
 		return StringFold(v1, v2);
 
+	if ( v1->Type()->Tag() == TYPE_PATTERN )
+		return PatternFold(v1, v2);
+
 	if ( it == TYPE_INTERNAL_ADDR )
 		return AddrFold(v1, v2);
 
@@ -849,6 +852,21 @@ Val* BinaryExpr::StringFold(Val* v1, Val* v2) const
 	return new Val(result, TYPE_BOOL);
 	}
 
+Val* BinaryExpr::PatternFold(Val* v1, Val* v2) const
+	{
+	const RE_Matcher* re1 = v1->AsPattern();
+	const RE_Matcher* re2 = v2->AsPattern();
+
+	if ( tag != EXPR_AND && tag != EXPR_OR )
+		BadTag("BinaryExpr::PatternFold");
+
+	RE_Matcher* res = tag == EXPR_AND ?
+		RE_Matcher_conjunction(re1, re2) :
+		RE_Matcher_disjunction(re1, re2);
+
+	return new PatternVal(res);
+	}
+
 Val* BinaryExpr::AddrFold(Val* v1, Val* v2) const
 	{
 	IPAddr a1 = v1->AsAddr();
@@ -909,10 +927,16 @@ void BinaryExpr::PromoteOps(TypeTag t)
 	TypeTag bt1 = op1->Type()->Tag();
 	TypeTag bt2 = op2->Type()->Tag();
 
-	if ( IsVector(bt1) )
+	bool is_vec1 = IsVector(bt1);
+	bool is_vec2 = IsVector(bt2);
+
+	if ( is_vec1 )
 		bt1 = op1->Type()->AsVectorType()->YieldType()->Tag();
-	if ( IsVector(bt2) )
+	if ( is_vec2 )
 		bt2 = op2->Type()->AsVectorType()->YieldType()->Tag();
+
+	if ( (is_vec1 || is_vec2) && ! (is_vec1 && is_vec2) )
+		reporter->Warning("mixing vector and scalar operands is deprecated");
 
 	if ( bt1 != t )
 		op1 = new ArithCoerceExpr(op1, t);
@@ -1003,7 +1027,10 @@ IncrExpr::IncrExpr(BroExprTag arg_tag, Expr* arg_op)
 		if ( ! IsIntegral(t->AsVectorType()->YieldType()->Tag()) )
 			ExprError("vector elements must be integral for increment operator");
 		else
+			{
+			reporter->Warning("increment/decrement operations for vectors deprecated");
 			SetType(t->Ref());
+			}
 		}
 	else
 		{
@@ -1689,13 +1716,20 @@ BoolExpr::BoolExpr(BroExprTag arg_tag, Expr* arg_op1, Expr* arg_op2)
 	if ( BothBool(bt1, bt2) )
 		{
 		if ( is_vector(op1) || is_vector(op2) )
+			{
+			if ( ! (is_vector(op1) && is_vector(op2)) )
+				reporter->Warning("mixing vector and scalar operands is deprecated");
 			SetType(new VectorType(base_type(TYPE_BOOL)));
+			}
 		else
 			SetType(base_type(TYPE_BOOL));
 		}
 
 	else if ( bt1 == TYPE_PATTERN && bt2 == bt1 )
+		{
+		reporter->Warning("&& and || operators deprecated for pattern operands");
 		SetType(base_type(TYPE_PATTERN));
+		}
 
 	else
 		ExprError("requires boolean operands");
@@ -1705,22 +1739,6 @@ Val* BoolExpr::DoSingleEval(Frame* f, Val* v1, Expr* op2) const
 	{
 	if ( ! v1 )
 		return 0;
-
-	if ( Type()->Tag() == TYPE_PATTERN )
-		{
-		Val* v2 = op2->Eval(f);
-		if ( ! v2 )
-			return 0;
-
-		RE_Matcher* re1 = v1->AsPattern();
-		RE_Matcher* re2 = v2->AsPattern();
-
-		RE_Matcher* res = tag == EXPR_AND_AND ?
-			RE_Matcher_conjunction(re1, re2) :
-			RE_Matcher_disjunction(re1, re2);
-
-		return new PatternVal(res);
-		}
 
 	if ( tag == EXPR_AND_AND )
 		{
@@ -1786,7 +1804,7 @@ Val* BoolExpr::Eval(Frame* f) const
 
 		VectorVal* result = 0;
 
-		// It's either and EXPR_AND_AND or an EXPR_OR_OR.
+		// It's either an EXPR_AND_AND or an EXPR_OR_OR.
 		bool is_and = (tag == EXPR_AND_AND);
 
 		if ( scalar_v->IsZero() == is_and )
@@ -1881,6 +1899,16 @@ BitExpr::BitExpr(BroExprTag arg_tag, Expr* arg_op1, Expr* arg_op2)
 			SetType(new VectorType(base_type(TYPE_COUNT)));
 		else
 			SetType(base_type(TYPE_COUNT));
+		}
+
+	else if ( bt1 == TYPE_PATTERN )
+		{
+		if ( bt2 != TYPE_PATTERN )
+			ExprError("cannot mix pattern and non-pattern operands");
+		else if ( tag == EXPR_XOR )
+			ExprError("'^' operator does not apply to patterns");
+		else
+			SetType(base_type(TYPE_PATTERN));
 		}
 
 	else

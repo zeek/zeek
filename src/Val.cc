@@ -3228,7 +3228,7 @@ bool VectorVal::AssignRepeat(unsigned int index, unsigned int how_many,
 	ResizeAtLeast(index + how_many);
 
 	for ( unsigned int i = index; i < index + how_many; ++i )
-		if ( ! Assign(i, element ) )
+		if ( ! Assign(i, element->Ref() ) )
 			return false;
 
 	return true;

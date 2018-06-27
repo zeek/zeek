@@ -1,14 +1,18 @@
-# @TEST-EXEC: bro -b %INPUT >out
-# @TEST-EXEC: btest-diff out
+# @TEST-GROUP: leaks
+# @TEST-REQUIRES: bro --help 2>&1 | grep -q mem-leaks
+
+# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run bro bro -m -b -r $TRACES/http/get.trace %INPUT
+# @TEST-EXEC: btest-bg-wait 60
 
 function test_case(msg: string, expect: bool)
-        {
-        print fmt("%s (%s)", msg, expect ? "PASS" : "FAIL");
-        }
+    {
+    print fmt("%s (%s)", msg, expect ? "PASS" : "FAIL");
+    }
 
+event new_connection(c: connection)
+	{
+	print "new connection";
 
-event bro_init()
-{
 	local p1: pattern = /foo|bar/; 
 	local p2: pattern = /oob/; 
 	local p3: pattern = /^oob/; 
@@ -31,6 +35,4 @@ event bro_init()
 	test_case( "& operator", p2 & p1 in "baroob" );
 	test_case( "| operator", p1 | p2 in "lazybarlazy" );
 	test_case( "| operator", p3 | p4 in "xoob" );
-
-}
-
+	}

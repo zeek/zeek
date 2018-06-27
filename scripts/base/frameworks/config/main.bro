@@ -50,25 +50,43 @@ export {
 }
 
 @if ( Cluster::is_enabled() )
+type OptionCacheValue: record {
+	val: any;
+	location: string;
+};
+
+global option_cache: table[string] of OptionCacheValue;
+
 event bro_init()
 	{
 	Broker::subscribe(change_topic);
 	}
 
+
 event Config::cluster_set_option(ID: string, val: any, location: string)
 	{
+@if ( Cluster::local_node_type() == Cluster::MANAGER )
+	option_cache[ID] = OptionCacheValue($val=val, $location=location);
+@endif
 	Option::set(ID, val, location);
 	}
 
 function set_value(ID: string, val: any, location: string &default = "" &optional): bool
 	{
+	local cache_val: any;
+	# first cache value in case setting it succeeds and we have to store it.
+	if ( Cluster::local_node_type() == Cluster::MANAGER )
+		cache_val = copy(val);
 	# First try setting it locally - abort if not possible.
 	if ( ! Option::set(ID, val, location) )
-		{
 		return F;
-		}
+	# If setting worked, copy the new value into the cache on the manager
+	if ( Cluster::local_node_type() == Cluster::MANAGER )
+		option_cache[ID] = OptionCacheValue($val=cache_val, $location=location);
+
 	# If it turns out that it is possible - send it to everyone else to apply.
 	Broker::publish(change_topic, Config::cluster_set_option, ID, val, location);
+
 	if ( Cluster::local_node_type() != Cluster::MANAGER )
 		{
 		Broker::relay(change_topic, change_topic, Config::cluster_set_option, ID, val, location);
@@ -76,11 +94,27 @@ function set_value(ID: string, val: any, location: string &default = "" &optiona
 	return T;
 	}
 @else
-	# Standalone implementation
-	function set_value(ID: string, val: any, location: string &default = "" &optional): bool
+# Standalone implementation
+function set_value(ID: string, val: any, location: string &default = "" &optional): bool
+	{
+	return Option::set(ID, val, location);
+	}
+@endif
+
+@if ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER )
+# Handling of new worker nodes.
+event Cluster::node_up(name: string, id: string)
+	{
+	# When a node connects, send it all current Option values.
+	if ( name in Cluster::nodes )
 		{
-		return Option::set(ID, val, location);
+		print option_cache;
+		for ( ID in option_cache )
+			{
+			Broker::publish(Cluster::node_topic(name), Config::cluster_set_option, ID, option_cache[ID]$val, option_cache[ID]$location);
+			}
 		}
+	}
 @endif
 
 

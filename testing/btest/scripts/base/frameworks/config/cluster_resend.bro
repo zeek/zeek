@@ -1,12 +1,16 @@
 # @TEST-EXEC: btest-bg-run manager-1 BROPATH=$BROPATH:.. CLUSTER_NODE=manager-1 bro %INPUT
 # @TEST-EXEC: sleep 1
 # @TEST-EXEC: btest-bg-run worker-1  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-1 bro %INPUT
+# @TEST-EXEC: sleep 15
 # @TEST-EXEC: btest-bg-run worker-2  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-2 bro %INPUT
 # @TEST-EXEC: btest-bg-wait 15
 # @TEST-EXEC: btest-diff manager-1/.stdout
 # @TEST-EXEC: btest-diff worker-1/.stdout
 # @TEST-EXEC: btest-diff worker-2/.stdout
 # @TEST-EXEC: btest-diff manager-1/config.log
+
+# In this test we check if values get updated on a worker, even if they were set before the
+# worker is present.
 
 @load base/frameworks/config
 
@@ -48,6 +52,13 @@ event ready_for_data()
 	}
 @endif
 
+@if ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER )
+event Cluster::node_up(name: string, id: string)
+	{
+	 print "Node up", name;
+	}
+@endif
+
 event die()
 	{
 	terminate();
@@ -56,7 +67,7 @@ event die()
 function option_changed(ID: string, new_value: any, location: string): any
 	{
 	print "option changed", ID, new_value, location;
-	schedule 5sec { die() };
+	#schedule 5sec { die() };
 	return new_value;
 	}
 
@@ -72,8 +83,20 @@ global peer_count = 0;
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
 	++peer_count;
-	if ( peer_count == 2 )
+	if ( peer_count == 1 )
 		event ready_for_data();
 	}
 
 @endif
+
+event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
+	{
+	terminate();
+	}
+
+module Config;
+
+event Config::cluster_set_option(ID: string, val: any, location: string)
+	{
+	print "cluster_set_option for ", ID;
+	}

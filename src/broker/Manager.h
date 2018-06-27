@@ -16,6 +16,8 @@
 
 namespace bro_broker {
 
+class BrokerState;
+
 /**
  * Communication statistics.
  */
@@ -197,8 +199,11 @@ public:
 	 * @param peer If given, send the message only to this peer.
 	 * @return true if the message is sent successfully.
 	 */
-	bool PublishLogCreate(EnumVal* stream, EnumVal* writer, const logging::WriterBackend::WriterInfo& info,
-			      int num_fields, const threading::Field* const * fields, const broker::endpoint_info& peer = NoPeer);
+	bool PublishLogCreate(EnumVal* stream, EnumVal* writer,
+	                      const logging::WriterBackend::WriterInfo& info,
+	                      int num_fields,
+	                      const threading::Field* const * fields,
+	                      const broker::endpoint_info& peer = NoPeer);
 
 	/**
 	 * Send a log entry to any interested peers.  The topic name used is
@@ -268,7 +273,7 @@ public:
 	 * @return a pointer to the newly created store a nullptr on failure.
 	 */
 	StoreHandleVal* MakeMaster(const std::string& name, broker::backend type,
-				   broker::backend_options opts);
+	                           broker::backend_options opts);
 
 	/**
 	 * Create a new *clone* data store.
@@ -339,19 +344,6 @@ public:
 
 private:
 
-	class BrokerConfig : public broker::configuration {
-	public:
-		BrokerConfig(broker::broker_options options);
-	};
-
-	class BrokerState {
-	public:
-		BrokerState(BrokerConfig config);
-		broker::endpoint endpoint;
-		broker::subscriber subscriber;
-		broker::status_subscriber status_subscriber;
-	};
-
 	void DispatchMessage(broker::data msg);
 	void ProcessEvent(std::string name, broker::vector args);
 	void ProcessEvent(broker::bro::Event ev);
@@ -379,15 +371,6 @@ private:
 	const char* Tag() override
 		{ return "Broker::Manager"; }
 
-	broker::endpoint& Endpoint()
-		{ assert(bstate); return bstate->endpoint; }
-
-	Func* log_topic_func;
-	std::string default_log_topic_prefix;
-	uint16_t bound_port;
-
-	std::shared_ptr<BrokerState> bstate;
-
 	struct LogBuffer {
 		// Indexed by topic string.
 		std::unordered_map<std::string, broker::vector> msgs;
@@ -396,9 +379,6 @@ private:
 
 		size_t Flush(broker::endpoint& endpoint);
 	};
-
-	// Indexed by stream ID enum.
-	std::vector<LogBuffer> log_buffers;
 
 	// Data stores
 	using query_id = std::pair<broker::request_id, StoreHandleVal*>;
@@ -413,19 +393,25 @@ private:
 			}
 	};
 
+	std::vector<LogBuffer> log_buffers; // Indexed by stream ID enum.
+	std::string default_log_topic_prefix;
+	std::shared_ptr<BrokerState> bstate;
 	std::unordered_map<std::string, StoreHandleVal*> data_stores;
-	std::unordered_map<query_id, StoreQueryCallback*, query_id_hasher> pending_queries;
+	std::unordered_map<query_id, StoreQueryCallback*,
+	                   query_id_hasher> pending_queries;
 
 	Stats statistics;
-	double next_timestamp;
+
+	uint16_t bound_port;
 	bool reading_pcaps;
 	int peer_count;
 
-	static int script_scope;
+	Func* log_topic_func;
+	VectorType* vector_of_data_type;
+	EnumType* log_id_type;
+	EnumType* writer_id_type;
 
-	static VectorType* vector_of_data_type;
-	static EnumType* log_id_type;
-	static EnumType* writer_id_type;
+	static int script_scope;
 };
 
 } // namespace bro_broker

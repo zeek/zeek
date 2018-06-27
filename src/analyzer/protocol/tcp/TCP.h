@@ -4,7 +4,6 @@
 #define ANALYZER_PROTOCOL_TCP_TCP_H
 
 #include "analyzer/Analyzer.h"
-#include "analyzer/protocol/tcp/TCP.h"
 #include "PacketDumper.h"
 #include "IPAddr.h"
 #include "TCP_Endpoint.h"

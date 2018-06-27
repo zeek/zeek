@@ -34,11 +34,45 @@ static const double LOG_BUFFER_INTERVAL = 1.0;
 // subscribers consider themselves congested.
 static const size_t SUBSCRIBER_MAX_QSIZE = 20u;
 
+static inline Val* get_option(const char* option)
+	{
+	auto id = global_scope()->Lookup(option);
+
+	if ( ! (id && id->ID_Val()) )
+		reporter->FatalError("Unknown Broker option %s", option);
+
+	return id->ID_Val();
+	}
+
+class BrokerConfig : public broker::configuration {
+public:
+	BrokerConfig(broker::broker_options options)
+		: broker::configuration(options)
+		{
+		openssl_cafile = get_option("Broker::ssl_cafile")->AsString()->CheckString();
+		openssl_capath = get_option("Broker::ssl_capath")->AsString()->CheckString();
+		openssl_certificate = get_option("Broker::ssl_certificate")->AsString()->CheckString();
+		openssl_key = get_option("Broker::ssl_keyfile")->AsString()->CheckString();
+		openssl_passphrase = get_option("Broker::ssl_passphrase")->AsString()->CheckString();
+		}
+};
+
+class BrokerState {
+public:
+	BrokerState(BrokerConfig config)
+		: endpoint(std::move(config)),
+		  subscriber(endpoint.make_subscriber({}, SUBSCRIBER_MAX_QSIZE)),
+		  status_subscriber(endpoint.make_status_subscriber(true))
+		{
+		}
+
+	broker::endpoint endpoint;
+	broker::subscriber subscriber;
+	broker::status_subscriber status_subscriber;
+};
+
 const broker::endpoint_info Manager::NoPeer{{}, {}};
 
-VectorType* Manager::vector_of_data_type;
-EnumType* Manager::log_id_type;
-EnumType* Manager::writer_id_type;
 int Manager::script_scope = 0;
 
 struct unref_guard {
@@ -103,41 +137,17 @@ static std::string RenderMessage(const broker::error& e)
 
 #endif
 
-static inline Val* get_option(const char* option)
-	{
-	auto id = global_scope()->Lookup(option);
-
-	if ( ! (id && id->ID_Val()) )
-		reporter->FatalError("Unknown Broker option %s", option);
-
-	return id->ID_Val();
-	}
-
-Manager::BrokerConfig::BrokerConfig(broker::broker_options options)
-	: broker::configuration(options)
-	{
-	openssl_cafile = get_option("Broker::ssl_cafile")->AsString()->CheckString();
-	openssl_capath = get_option("Broker::ssl_capath")->AsString()->CheckString();
-	openssl_certificate = get_option("Broker::ssl_certificate")->AsString()->CheckString();
-	openssl_key = get_option("Broker::ssl_keyfile")->AsString()->CheckString();
-	openssl_passphrase = get_option("Broker::ssl_passphrase")->AsString()->CheckString();
-	}
-
-Manager::BrokerState::BrokerState(BrokerConfig config)
-	: endpoint(std::move(config)),
-	  subscriber(endpoint.make_subscriber({}, SUBSCRIBER_MAX_QSIZE)),
-	  status_subscriber(endpoint.make_status_subscriber(true))
-	{
-	}
-
-Manager::Manager(bool reading_pcaps)
+Manager::Manager(bool arg_reading_pcaps)
 	{
 	bound_port = 0;
+	reading_pcaps = arg_reading_pcaps;
 	peer_count = 0;
+	log_topic_func = nullptr;
+	vector_of_data_type = nullptr;
+	log_id_type = nullptr;
+	writer_id_type = nullptr;
 
-	next_timestamp = 1;
 	SetIdle(false);
-	this->reading_pcaps = reading_pcaps;
 	}
 
 Manager::~Manager()
@@ -175,7 +185,7 @@ void Manager::InitPostScript()
 	auto max_sleep = get_option("Broker::max_sleep")->AsCount();
 
 	if ( max_threads )
-		config.scheduler_max_threads = max_threads;
+		config.set("scheduler.max-threads", max_threads);
 	else
 		{
 		// On high-core-count systems, spawning one thread per core
@@ -183,7 +193,7 @@ void Manager::InitPostScript()
 		// threads are under-utilized.  Related:
 		// https://github.com/actor-framework/actor-framework/issues/699
 		if ( reading_pcaps )
-			config.scheduler_max_threads = 2u;
+			config.set("scheduler.max-threads", 2u);
 		else
 			{
 			auto hc = std::thread::hardware_concurrency();
@@ -193,18 +203,18 @@ void Manager::InitPostScript()
 			else if ( hc < 4u)
 				hc = 4u;
 
-			config.scheduler_max_threads = hc;
+			config.set("scheduler.max-threads", hc);
 			}
 		}
 
 	if ( max_sleep )
-		config.work_stealing_relaxed_sleep_duration_us = max_sleep;
+		config.set("work-stealing.relaxed-sleep-duration-us", max_sleep);
 	else
 		// 64ms is just an arbitrary amount derived from testing
 		// the overhead of a unused CAF actor system on a 32-core system.
 		// Performance was within 2% of baseline timings (w/o CAF)
 		// when using this sleep duration.
-		config.work_stealing_relaxed_sleep_duration_us = 64000;
+		config.set("work-stealing.relaxed-sleep-duration-us", 64000);
 
 	bstate = std::make_shared<BrokerState>(std::move(config));
 	}
@@ -634,7 +644,7 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 
 	if ( lb.message_count >= LOG_BATCH_SIZE ||
 	     (network_time - lb.last_flush >= LOG_BUFFER_INTERVAL) )
-		statistics.num_logs_outgoing += lb.Flush(Endpoint());
+		statistics.num_logs_outgoing += lb.Flush(bstate->endpoint);
 
 	return true;
 	}
@@ -671,7 +681,7 @@ size_t Manager::FlushLogBuffers()
 	auto rval = 0u;
 
 	for ( auto& lb : log_buffers )
-		rval += lb.Flush(Endpoint());
+		rval += lb.Flush(bstate->endpoint);
 
 	return rval;
 	}

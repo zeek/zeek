@@ -6,11 +6,12 @@
 #define LOGGING_WRITERBACKEND_H
 
 #include "threading/MsgThread.h"
-#include "broker/Data.h"
 
 #include "Component.h"
 
 class RemoteSerializer;
+
+namespace broker { class data; }
 
 namespace logging  {
 

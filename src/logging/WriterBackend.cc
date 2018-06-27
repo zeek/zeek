@@ -1,5 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include <broker/data.hh>
+
 #include "util.h"
 #include "threading/SerialTypes.h"
 

@@ -196,8 +196,15 @@ CCL_EXPR	("[:"[[:alpha:]]+":]")
 
 %%
 
+YY_BUFFER_STATE RE_buf;
+
 void RE_set_input(const char* str)
 	{
 	RE_parse_input = str;
-	yy_scan_string(str);
+	RE_buf = yy_scan_string(str);
+	}
+
+void RE_done_with_scan()
+	{
+	yy_delete_buffer(RE_buf);
 	}

@@ -237,13 +237,19 @@ Here is a more detailed description of each type:
     is false since "oob" does not appear at the start of "foobar".  The
     ``!in`` operator would yield the negation of ``in``.
 
-    Finally, you can create a disjunction (either-or) of two literal patterns
+    You can create a disjunction (either-or) of two patterns
     using the ``|`` operator.  For example::
 
 	/foo/ | /bar/ in "foobar"
 
-    yields true, like in the similar example above.  (This does not presently
-    work for variables whose values are patterns, however.)
+    yields true, like in the similar example above.  You can also
+    create the conjunction (concatenation) of patterns using the ``&``
+    operator.  For example:
+
+	/foo/ & /bar/ in "foobar"
+
+    will yield true because the pattern /(foo)(bar)/ appears in
+    the string "foobar".
 
 .. bro:type:: port
 

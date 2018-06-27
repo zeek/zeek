@@ -1,4 +1,48 @@
 
+2.5-710 | 2018-06-26 18:06:22 -0500
+
+  * Add memory leak unit test for pattern operations (Corelight)
+
+  * fixed 3 leaks in creating pattern values (Vern Paxson)
+
+  * add & and | operators for patterns (Vern Paxson)
+
+  * deprecate merge_patterns() (Vern Paxson)
+
+  * deprecate boolean scalar+vector operations (Vern Paxson)
+
+  * deprecate mixing scalars and vectors (Vern Paxson)
+
+  * deprecate && / || operators for patterns (Vern Paxson)
+
+2.5-690 | 2018-06-26 15:05:23 -0500
+
+  * Fix deprecated actor_system_config field usages (Corelight)
+
+2.5-689 | 2018-06-26 11:45:52 -0500
+
+  * Remove header self-inclusions (Corelight)
+
+  * Fix travis-job script to not fail when all tests succeed (Daniel Thayer)
+
+2.5-687 | 2018-06-25 16:35:25 -0500
+
+  * Reorganize internal + private broker/Manager.h bits (Corelight)
+
+  * Reduce proliferation of including broker header files (Corelight)
+
+2.5-684 | 2018-06-25 11:26:55 -0500
+
+  * Use docker containers to run Bro tests on Travis CI (Daniel Thayer)
+
+  * Travis CI fewer failures and improved output messages (Daniel Thayer)
+
+2.5-681 | 2018-06-22 20:17:06 -0500
+
+  * Fix null pointer deref in AST traversal (Corelight)
+
+  * Fix for ancient reference-counting bug in NFA.cc (Vern Paxson)
+
 2.5-679 | 2018-06-21 16:00:48 -0500
 
   * Add support for bitwise operations (&, |, ^, ~) on "count" values.

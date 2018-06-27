@@ -36,6 +36,8 @@ static int my_isprint(int c)	{ return isprint(c); }
 static int my_ispunct(int c)	{ return ispunct(c); }
 static int my_isspace(int c)	{ return isspace(c); }
 static int my_isxdigit(int c)	{ return isxdigit(c); }
+
+static int my_is_letter(int c)	{ return my_islower(c) || my_isupper(c); }
 %}
 
 %option caseless nodefault nostdinit noyywrap
@@ -168,15 +170,22 @@ CCL_EXPR	("[:"[[:alpha:]]+":]")
 	"[:cntrl:]"	RET_CCE(my_iscntrl)
 	"[:digit:]"	RET_CCE(my_isdigit)
 	"[:graph:]"	RET_CCE(my_isgraph)
-	"[:lower:]"	RET_CCE(my_islower)
 	"[:print:]"	RET_CCE(my_isprint)
 	"[:punct:]"	RET_CCE(my_ispunct)
 	"[:space:]"	RET_CCE(my_isspace)
 	"[:xdigit:]"	RET_CCE(my_isxdigit)
+
+	"[:lower:]"	{
+			BEGIN(SC_CCL);
+			yylval.cce_val =
+				case_insensitive ? my_is_letter : my_islower;
+			return TOK_CCE;
+			}
+
 	"[:upper:]"	{
 			BEGIN(SC_CCL);
 			yylval.cce_val =
-				case_insensitive ? my_islower : my_isupper;
+				case_insensitive ? my_is_letter : my_isupper;
 			return TOK_CCE;
 			}
 

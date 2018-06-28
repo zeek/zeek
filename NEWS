@@ -18,7 +18,7 @@ New Functionality
   supersedes the old "communication" framework, which is now
   deprecated. The "cluster" and "control" frameworks have been ported
   to Broker; same for BroControl. For more about the new Broker
-  framework, see doc/frameworks/broker.rst (there's also guide there
+  framework, see doc/frameworks/broker.rst (there's also a guide there
   for porting existing Bro scripts to Broker). For more about Broker
   itself, including its API for external applications, see
   aux/broker/doc.
@@ -258,11 +258,11 @@ New Functionality
 Changed Functionality
 ---------------------
 
-  - All communication is now handled through Broker, requiring changes
-    to existing scripts to port them over to the new API. The Broker
-    framework documentation comes with a porting guide.
+- All communication is now handled through Broker, requiring changes
+  to existing scripts to port them over to the new API. The Broker
+  framework documentation comes with a porting guide.
 
-  - The DHCP analyzer and its script-layer interface have been rewritten.
+- The DHCP analyzer and its script-layer interface have been rewritten.
 
   - Supports more DHCP options than before.
 
@@ -271,9 +271,6 @@ Changed Functionality
 
   - Removed the policy/protocols/dhcp/known-devices-and-hostnames.bro
     script since it's generally less relevant now with the updated log.
-
-  - Removed policy/misc/known-devices.bro script and thus
-    known_devices.log will no longer be created.
 
   - Removed the base/protocols/dhcp/utils.bro script and thus the
     'reverse_ip' function.
@@ -289,6 +286,9 @@ Changed Functionality
     - dhcp_nak
     - dhcp_release
     - dhcp_inform
+
+- Removed policy/misc/known-devices.bro script and thus
+  known_devices.log will no longer be created.
 
 - The --with-binpac= configure option has changed to mean "path
   to the binpac executable" instead of "path to binpac installation root".
@@ -315,7 +315,7 @@ Changed Functionality
 
 - The 'tunnel_parents' field of conn.log is now marked &optional, so, for
   the default configuration of logs, this field will show "-" instead of
-  "(empty)" for connections that lack any tunelling.
+  "(empty)" for connections that lack any tunneling.
 
 - SMB event argument changes:
 
@@ -335,14 +335,13 @@ Removed Functionality
 ---------------------
 
 - We no longer maintain any Bro plugins as part of the Bro
-  distribution. Most of the plugins that used be in aux/plugins have
+  distribution. Most of the plugins that used to be in aux/plugins have
   been moved over to use the Bro Package Manager instead. See
   https://github.com/bro/packages for a list of Bro packages currently
   available.
 
 - BroControl: The option 'IPv6Comm' and 'ZoneID' options are no longer
-  available (though Broker should be able to handle IPv6
-  automatically).
+  available (though Broker should be able to handle IPv6 automatically).
 
 Deprecated Functionality
 ------------------------

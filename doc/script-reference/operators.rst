@@ -85,6 +85,25 @@ Arithmetic operators
 |                              |             | of elements.                  |
 +------------------------------+-------------+-------------------------------+
 
+Bitwise operators
+-----------------
+
+The bitwise operators work with operands of type :bro:type:`count` or
+``vector of count``, but the bitwise complement operator works with ``count``
+only.
+
++------------------------------+-------------+
+| Name                         | Syntax      |
++==============================+=============+
+| Bitwise AND                  | *a* & *b*   |
++------------------------------+-------------+
+| Bitwise OR                   | *a* | *b*   |
++------------------------------+-------------+
+| Bitwise XOR                  | *a* ^ *b*   |
++------------------------------+-------------+
+| Bitwise complement           | ~ *a*       |
++------------------------------+-------------+
+
 
 Assignment operators
 --------------------
@@ -120,6 +139,73 @@ field name must be in the declaration of the record type.
 |                              |             | has been assigned a value, or |
 |                              |             | false if not.                 |
 +------------------------------+-------------+-------------------------------+
+
+
+Pattern operators
+-----------------
+
+In the table below, *p* is a pattern, and *s* is a string.
+
++------------------------------+-------------+-------------------------------+
+| Name                         | Syntax      | Notes                         |
++==============================+=============+===============================+
+| Exact matching               | *p* == *s*  | Evaluates to a boolean,       |
+|                              |             | indicating if the entire      |
+|                              |             | string exactly matches the    |
+|                              |             | pattern.                      |
++------------------------------+-------------+-------------------------------+
+| Embedded matching            | *p* in *s*  | Evaluates to a boolean,       |
+|                              |             | indicating if pattern is      |
+|                              |             | found somewhere in the string.|
++------------------------------+-------------+-------------------------------+
+| Conjunction                  | *p1* & *p2* | Evaluates to a pattern that   |
+|                              |             | represents matching p1        |
+|                              |             | followed by p2.               |
++------------------------------+-------------+-------------------------------+
+| Disjunction                  | *p1* | *p2* | Evaluates to a pattern that   |
+|                              |             | represents matching p1 or p2. |
++------------------------------+-------------+-------------------------------+
+
+
+Type casting
+------------
+
+The "as" operator performs type casting and the "is" operator checks if a
+type cast is supported or not.  For both operators, the first operand is a
+value and the second operand is the name of a Bro script type (either built-in
+or user-defined).
+
++------------------------------+-------------+-------------------------------+
+| Name                         | Syntax      | Notes                         |
++==============================+=============+===============================+
+| Type cast                    | *v* as *t*  | Cast value "v" into type "t". |
+|                              |             | Evaluates to the value casted |
+|                              |             | to the specified type.        |
+|                              |             | If this is not a supported    |
+|                              |             | cast, then a runtime error is |
+|                              |             | triggered.                    |
++------------------------------+-------------+-------------------------------+
+| Check if a cast is supported | *v* is *t*  | Evaluates to boolean. If true,|
+|                              |             | then "v as t" would succeed.  |
++------------------------------+-------------+-------------------------------+
+
+Only the following kinds of type casts are supported currently:
+
+- Broker values (i.e., :bro:see:`Broker::Data` values returned from
+  functions such as :bro:id:`Broker::data`) can be casted to their
+  corresponding Bro script types.
+- A value of declared type "any" can be casted to its actual underlying type.
+- All values can be casted to their declared types (i.e., this is a no-op).
+
+The function in this example tries to cast a value to a string::
+
+    function example(a: any)
+        {
+        local s: string;
+
+        if ( a is string )
+            s = (a as string);
+        }
 
 
 Other operators

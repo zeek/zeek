@@ -59,7 +59,7 @@ export {
 	## Options to tune the RocksDB storage backend.
 	type RocksDBOptions: record {
 		## File system path of the database.
-		## If left empty, will be derived from the name of the store.
+		## If left empty, will be derived from the name of the store,
 		## and use the '.rocksdb' file suffix.
 		path: string &default = "";
 	};
@@ -125,9 +125,13 @@ export {
 	##          longer be used for data store operations.
 	global close: function(h: opaque of Broker::Store): bool;
 
-	## Returns: whether a store is closed or not.
+	## Check if a store is closed or not.
+	##
+	## Returns: true if the store is closed.
 	global is_closed: function(h: opaque of Broker::Store): bool;
 
+	## Get the name of a store.
+	##
 	## Returns: the name of the store.
 	global store_name: function(h: opaque of Broker::Store): string;
 

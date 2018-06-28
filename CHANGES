@@ -1,4 +1,12 @@
 
+2.5-719 | 2018-06-27 20:02:52 -0500
+
+  * Fix some typos and formatting in NEWS and other documentation
+    (Daniel Thayer)
+
+  * Add documentation for type-based switch statment, as/is operators,
+    bitwise operators, and pattern operators (Daniel Thayer)
+
 2.5-711 | 2018-06-27 19:11:58 -0500
 
   * Prevent double-wrapping Broker::Data in published event args (Corelight)

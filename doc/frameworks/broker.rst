@@ -55,7 +55,7 @@ General Porting Tips
   you manually take action to set up the old communication system.
   To aid in porting, such usages will default to raising a fatal error
   unless you explicitly acknowledge that such usages of the old system
-  are ok.  Set the :bro:see:`old_comm_usage_is_ok`` flag in this case.
+  are ok.  Set the :bro:see:`old_comm_usage_is_ok` flag in this case.
 
 - Instead of using e.g. ``Cluster::manager2worker_events`` (and all
   permutations for every node type), what you'd now use is either 
@@ -67,7 +67,7 @@ General Porting Tips
 - Instead of using the ``send_id`` BIF, use :bro:see:`Broker::publish_id`.
 
 - Use :bro:see:`terminate` instead of :bro:see:`terminate_communication`.
-  The later refers to the old communication system and no longer effects
+  The latter refers to the old communication system and no longer affects
   the new Broker-based system.
 
 - For replacing :bro:see:`remote_connection_established` and
@@ -123,7 +123,7 @@ Some general suggestions as to the purpose/utilization of each node type:
   (more on that later), you can partition work or data amongst them in a
   uniform manner.  e.g. you might choose to use proxies as a method of
   sharing non-persistent state or as a "second pass" analysis for any
-  work that you don't want interferring with the workers' capacity to
+  work that you don't want interfering with the workers' capacity to
   keep up with capturing and parsing packets.  Note that the default scripts
   that come with Bro don't utilize proxies themselves, so if you are coming
   from a previous BroControl deployment, you may want to try reducing down
@@ -149,7 +149,7 @@ Data Management/Sharing Strategies
 
 There's maybe no single, best approach or pattern to use when you need a
 Bro script to store or share long-term state and data.  The two
-approaches that were previously used were either using ``&synchronized``
+approaches that were previously used were either using the ``&synchronized``
 attribute on tables/sets or by explicitly sending events to specific
 nodes on which you wanted data to be stored.  The former is no longer
 possible, though there are several new possibilities that the new
@@ -206,16 +206,16 @@ causing data to now be located and updated there.
 
 If the developer of a script expects its workload to be particularly
 intensive, wants to ensure that their operations get exclusive
-access to nodes, or otherwise set containts on the number of nodes within
+access to nodes, or otherwise set constraints on the number of nodes within
 a pool utilized by their script, then the :bro:see:`Cluster::PoolSpec`
-structure will allow them to that while still allowing users of that script
+structure will allow them to do that while still allowing users of that script
 to override the default suggestions made by the original developer.
 
 Broker Framework Examples
 =========================
 
 The broker framework provides basic facilities for connecting Bro instances
-to eachother and exchanging messages, like events or logs.
+to each other and exchanging messages, like events or logs.
 
 See :doc:`/scripts/base/frameworks/broker/main.bro` for an overview
 of the main Broker API.
@@ -320,7 +320,7 @@ the event are not called.
 The second option is to call the :bro:see:`Broker::auto_publish` function where
 you specify a particular event that will be automatically sent to peers
 whenever the event is called locally via the normal event invocation syntax.
-When auto-publishing events, local event handler for the event are called
+When auto-publishing events, local event handlers for the event are called
 in addition to sending the event to any subscribed peers.
 
 .. btest-include:: ${DOC_ROOT}/frameworks/broker/events-connector.bro
@@ -541,7 +541,7 @@ did before.  Instead of using :bro:see:`Broker::publish` we use different
         # though now we have a choice of which proxy to use.  If we
         # want to distribute the work associated with relaying uniformly,
         # we can use a round-robin strategy.  The key used here is simply
-        # used by the cluster framework internally to keep track of the
+        # used by the cluster framework internally to keep track of
         # which node is up next in the round-robin.
         Cluster::relay_rr(Cluster::proxy_pool, "example_key",
                           Cluster::worker_topic, worker_to_workers,

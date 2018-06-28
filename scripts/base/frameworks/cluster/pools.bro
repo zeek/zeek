@@ -1,5 +1,5 @@
 ##! Defines an interface for managing pools of cluster nodes.  Pools are
-##! are useful way to distribute work or data among nodes within a cluster.
+##! a useful way to distribute work or data among nodes within a cluster.
 
 @load ./main
 @load base/utils/hash_hrw
@@ -7,7 +7,7 @@
 module Cluster;
 
 export {
-	## Store state of a cluster within within the context of a work pool.
+	## Store state of a cluster within the context of a work pool.
 	type PoolNode: record {
 		## The node name (e.g. "manager").
 		name: string;

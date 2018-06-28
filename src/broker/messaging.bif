@@ -304,7 +304,7 @@ type Cluster::Pool: record;
 ## Publishes an event to a node within a pool according to Round-Robin
 ## distribution strategy.
 ##
-## pool: the pool of nodes that are eligible to receive the revent
+## pool: the pool of nodes that are eligible to receive the event.
 ##
 ## key: an arbitrary string to identify the purpose for which you're
 ##      distributing the event.  e.g. consider using namespacing of your
@@ -350,7 +350,7 @@ function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
 ## node, then automatically forwards it to its peers with a different topic.
 ## The event is relayed at most a single hop.
 ##
-## pool: the pool of nodes that are eligible to receive the event
+## pool: the pool of nodes that are eligible to receive the event.
 ##
 ## key: an arbitrary string to identify the purpose for which you're
 ##      distributing the event.  e.g. consider using namespacing of your
@@ -423,7 +423,7 @@ function Cluster::relay_rr%(pool: Pool, key: any, ...%): bool
 ## Publishes an event to a node within a pool according to Rendezvous
 ## (Highest Random Weight) hashing strategy.
 ##
-## pool: the pool of nodes that are eligible to receive the revent
+## pool: the pool of nodes that are eligible to receive the event.
 ##
 ## key: data used for input to the hashing function that will uniformly
 ##      distribute keys among available nodes.
@@ -467,7 +467,7 @@ function Cluster::publish_hrw%(pool: Pool, key: any, ...%): bool
 ## strategy.  The receiving nodes then automatically forwards it to its peers
 ## with a different topic.  The event is relayed at most a single hop.
 ##
-## pool: the pool of nodes that are eligible to receive the revent
+## pool: the pool of nodes that are eligible to receive the event.
 ##
 ## key: data used for input to the hashing function that will uniformly
 ##      distribute keys among available nodes.

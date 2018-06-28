@@ -815,7 +815,15 @@ RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 			return rval;
 			}
 
-		auto data_val = make_data_val((*args)[i]);
+		RecordVal* data_val;
+
+		if ( same_type(got_type, bro_broker::DataVal::ScriptDataType()) )
+			{
+			data_val = (*args)[i]->AsRecordVal();
+			Ref(data_val);
+			}
+		else
+			data_val = make_data_val((*args)[i]);
 
 		if ( ! data_val->Lookup(0) )
 			{

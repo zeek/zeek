@@ -13,8 +13,8 @@ using namespace analyzer::conn_size;
 ConnSize_Analyzer::ConnSize_Analyzer(Connection* c)
     : Analyzer("CONNSIZE", c),
       orig_bytes(), resp_bytes(), orig_pkts(), resp_pkts(),
-      orig_data_bytes(), resp_data_bytes(), orig_data_pkts(), resp_data_pkts(),
-      orig_bytes_thresh(), resp_bytes_thresh(), orig_pkts_thresh(), resp_pkts_thresh()
+      orig_bytes_thresh(), resp_bytes_thresh(), orig_pkts_thresh(), resp_pkts_thresh(),
+      orig_data_bytes(), resp_data_bytes(), orig_data_pkts(), resp_data_pkts()
 	{
 	}
 
@@ -201,6 +201,22 @@ void ConnSize_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	resp_endp->Assign(datapktidx, new Val(resp_data_pkts, TYPE_COUNT));
 	resp_endp->Assign(databytesidx, new Val(resp_data_bytes, TYPE_COUNT));
 
+	ListVal* list_matched = new ListVal(TYPE_STRING);
+	for ( std::set<std::string>::const_iterator it = rules_matched_later_packets.begin(); 
+			it != rules_matched_later_packets.end(); ++it )
+		{
+		list_matched->Append(new StringVal(*it));
+		}
+	conn_val->Assign(11, list_matched->ConvertToSet());	// rules_matched_later_packets
+
+	ListVal* list_not_matched = new ListVal(TYPE_STRING);
+	for ( std::set<std::string>::const_iterator it = rules_not_matched_later_packets.begin(); 
+			it != rules_not_matched_later_packets.end(); ++it )
+		{
+		list_not_matched->Append(new StringVal(*it));
+		}
+	conn_val->Assign(12, list_not_matched->ConvertToSet());	// rules_not_matched_later_packets
+
 	Analyzer::UpdateConnVal(conn_val);
 	}
 
@@ -226,5 +242,28 @@ void ConnSize_Analyzer::FlipRoles()
 	tmp = orig_data_pkts;
 	orig_data_pkts = resp_data_pkts;
 	resp_data_pkts = tmp;
+	}
+
+// wzj
+void ConnSize_Analyzer::RuleMatches(Rule *r, bool is_orig)
+	{
+	uint64_t data_pkts;
+	if ( is_orig ) 
+		data_pkts = orig_data_pkts;
+	else
+		data_pkts = resp_data_pkts;
+	if ( data_pkts > 0 )
+		rules_matched_later_packets.insert(r->ID());
+	}
+
+void ConnSize_Analyzer::RuleNotMatch(Rule *r, bool is_orig)
+	{
+	uint64_t data_pkts;
+	if ( is_orig ) 
+		data_pkts = orig_data_pkts;
+	else
+		data_pkts = resp_data_pkts;
+	if ( data_pkts > 0 )
+		rules_not_matched_later_packets.insert(r->ID());
 	}
 

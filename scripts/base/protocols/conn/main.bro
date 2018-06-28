@@ -123,16 +123,20 @@ export {
 		## wzj
 		## Number of data packets that the originator sent.
 		## Only set if :bro:id:`use_conn_size_analyzer` = T.
-		orig_data_pkts:     count      &log &optional;
+		orig_data_pkts:	count      &log &optional;
 		## Number of data bytes that the originator sent.
 		## Only set if :bro:id:`use_conn_size_analyzer` = T.
 		orig_data_bytes: count      &log &optional;
 		## Number of data packets that the responder sent.
 		## Only set if :bro:id:`use_conn_size_analyzer` = T.
-		resp_data_pkts:     count      &log &optional;
+		resp_data_pkts: count      &log &optional;
 		## Number of data bytes that the responder sent.
 		## Only set if :bro:id:`use_conn_size_analyzer` = T.
 		resp_data_bytes: count      &log &optional;
+		## Set of rules that are matched on later packets.
+		rules_matched_later_packets: set[string]	&log &optional;
+		## Set of rules that are matched on later packets.
+		rules_not_matched_later_packets: set[string]	&log &optional;
 	};
 
 	## Event that can be handled to access the :bro:type:`Conn::Info`
@@ -261,6 +265,11 @@ function set_conn(c: connection, eoc: bool)
 			c$conn$resp_data_pkts = c$resp$num_data_pkts;
 			c$conn$resp_data_bytes = c$resp$num_data_bytes;
 			}
+
+		if ( c?$rules_matched_later_packets )
+			c$conn$rules_matched_later_packets = c$rules_matched_later_packets;
+		if ( c?$rules_not_matched_later_packets )
+			c$conn$rules_not_matched_later_packets = c$rules_not_matched_later_packets;
 			
 		local service = determine_service(c);
 		if ( service != "" )

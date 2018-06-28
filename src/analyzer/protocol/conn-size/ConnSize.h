@@ -7,6 +7,9 @@
 #include "analyzer/Analyzer.h"
 #include "NetVar.h"
 
+#include <set>
+#include <string>
+
 namespace analyzer { namespace conn_size {
 
 class ConnSize_Analyzer : public analyzer::Analyzer {
@@ -27,6 +30,10 @@ public:
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new ConnSize_Analyzer(conn); }
 
+	// wzj
+	void RuleMatches(Rule *r, bool is_orig);
+	void RuleNotMatch(Rule *r, bool is_orig);
+
 protected:
 	void DeliverPacket(int len, const u_char* data, bool is_orig,
 					uint64 seq, const IP_Hdr* ip, int caplen) override;
@@ -39,16 +46,19 @@ protected:
 	uint64_t orig_pkts;
 	uint64_t resp_pkts;
 
+	uint64_t orig_bytes_thresh;
+	uint64_t resp_bytes_thresh;
+	uint64_t orig_pkts_thresh;
+	uint64_t resp_pkts_thresh;
+
 	// wzj
 	uint64_t orig_data_bytes;	// data bytes sent from orig
 	uint64_t resp_data_bytes;	// data bytes sent form resp
 	uint64_t orig_data_pkts;	// data packets sent from orig
 	uint64_t resp_data_pkts;	// data packets sent form resp
 
-	uint64_t orig_bytes_thresh;
-	uint64_t resp_bytes_thresh;
-	uint64_t orig_pkts_thresh;
-	uint64_t resp_pkts_thresh;
+	std::set<std::string> rules_matched_later_packets;
+	std::set<std::string> rules_not_matched_later_packets;
 };
 
 } } // namespace analyzer::* 

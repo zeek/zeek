@@ -13,6 +13,11 @@
 
 #include "Event.h"
 
+#include "analyzer/protocol/conn-size/ConnSize.h"
+#include "Conn.h"
+
+using namespace analyzer::conn_size;
+
 // FIXME: Things that are not fully implemented/working yet:
 //
 //		  - "ip-options" always evaluates to false
@@ -1141,7 +1146,12 @@ void RuleMatcher::RuleMatches(Rule* r, RuleEndpointState* state,
 	if ( ! state->analyzer->IsAnalyzer("PIA_TCP") )
 		return;
 
-	state->matched_rules.append(r->Index());
+	//state->matched_rules.append(r->Index());
+
+	// if not first packet, store rule ID into ConnSize_Analyzer::rule_matched_later_packets
+	Connection* conn = state->GetAnalyzer()->Conn();
+	ConnSize_Analyzer* cs_analyzer = static_cast<ConnSize_Analyzer*>(conn->FindAnalyzer("CONNSIZE"));
+	cs_analyzer->RuleMatches(r, state->IsOrig());
 
 	if ( signature_match ) 
 		{
@@ -1165,6 +1175,11 @@ void RuleMatcher::RuleNotMatch(Rule* r, RuleEndpointState* state,
 		return;
 
 	state->failed_rules.append(r->Index());
+
+	// if not first packet, store rule ID into ConnSize_Analyzer::rules_not_matched_later_packets
+	Connection* conn = state->GetAnalyzer()->Conn();
+	ConnSize_Analyzer* cs_analyzer = static_cast<ConnSize_Analyzer*>(conn->FindAnalyzer("CONNSIZE"));
+	cs_analyzer->RuleNotMatch(r, state->IsOrig());
 
 	if ( signature_not_match ) 
 		{

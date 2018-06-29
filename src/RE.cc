@@ -168,7 +168,8 @@ int Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx)
 
 			if ( set_nfa != nfa )
 				Unref(set_nfa);
-			Unref(nfa);
+			else
+				Unref(nfa);
 			nfa = 0;
 
 			return 0;

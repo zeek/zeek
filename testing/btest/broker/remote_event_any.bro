@@ -69,7 +69,7 @@ const events_to_recv = 5;
 global handler: event(msg: string, c: count);
 global auto_handler: event(msg: string, c: count);
 
-global pong: event(msg: string, c: count);
+global pong: event(msg: string, c: any);
 
 event bro_init()
         {
@@ -101,7 +101,11 @@ event ping(msg: string, n: any)
                 return;
                 }
 
-        Broker::publish("bro/event/my_topic", pong, msg, n as count);
+		if ( (n as count) % 2 == 0 )
+			Broker::publish("bro/event/my_topic", pong, msg, n as count);
+		else
+			# internals should not wrap n into another Broker::Data record
+			Broker::publish("bro/event/my_topic", pong, msg, n);
         }
 
 @TEST-END-FILE

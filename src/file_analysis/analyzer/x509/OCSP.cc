@@ -422,13 +422,10 @@ void file_analysis::OCSP::ParseRequest(OCSP_REQUEST* req, const char* fid)
 	vl->append(GetFile()->GetVal()->Ref());
 
 	uint64 version = 0;
-	GENERAL_NAME* general_name = nullptr;
 
 #if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
 	if ( req->tbsRequest->version )
 		version = (uint64)ASN1_INTEGER_get(req->tbsRequest->version);
-
-	general_name = req->tbsRequest->requestorName;
 #else
 	version = parse_request_version(req);
 	// TODO: try to parse out general name ?
@@ -437,16 +434,6 @@ void file_analysis::OCSP::ParseRequest(OCSP_REQUEST* req, const char* fid)
 	vl->append(new Val(version, TYPE_COUNT));
 
 	BIO *bio = BIO_new(BIO_s_mem());
-
-	if ( general_name )
-		{
-		GENERAL_NAME_print(bio, general_name);
-		int len = BIO_read(bio, buf, sizeof(buf));
-		vl->append(new StringVal(len, buf));
-		BIO_reset(bio);
-		}
-	else
-		vl->append(new StringVal(0, ""));
 
 	mgr.QueueEvent(ocsp_request, vl);
 

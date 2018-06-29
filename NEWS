@@ -344,6 +344,8 @@ Removed Functionality
   available (though Broker should be able to handle IPv6
   automatically).
 
+- The "ocsp_request" event no longer has "requestorName" parameter.
+
 Deprecated Functionality
 ------------------------
 

@@ -16,9 +16,9 @@ event ocsp_extension(f: fa_file, ext: X509::Extension, global_resp: bool)
 	print "extension: ", ext, global_resp;
 	}
 
-event ocsp_request(f: fa_file, version: count, requestorName: string)
+event ocsp_request(f: fa_file, version: count)
 	{
-	print "request", version, requestorName;
+	print "request", version, "";
 	}
 
 event ocsp_request_certificate(f: fa_file, hashAlgorithm: string, issuerNameHash: string, issuerKeyHash: string, serialNumber: string)

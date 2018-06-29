@@ -104,7 +104,7 @@ void Specific_RE_Matcher::AddPat(const char* new_pat,
 
 void Specific_RE_Matcher::MakeCaseInsensitive()
 	{
-	const char fmt[] = "(+i %s)";
+	const char fmt[] = "(?i:%s)";
 	int n = strlen(pattern_text) + strlen(fmt);
 
 	char* s = new char[n + 5 /* slop */];

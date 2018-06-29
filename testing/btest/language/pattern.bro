@@ -61,8 +61,8 @@ event bro_init()
 	test_case( "/i pattern character class", /ba[0a-c99S-Z0]/i & /bEz/ == "bArbEz" );
 	test_case( "/i pattern character class", /ba[0a-c99M-S0]/i & /bEz/ == "bArbEz" );
 
-	test_case( "(+i ...) pattern construct", /foo|(+i bar)/ in "xBAry" );
-	test_case( "(+i ...) pattern construct", /foo|(+i bar)/ in "xFOoy" );
-	test_case( "(+i ...) pattern construct", /foo|(+i bar)/ | /foo/i in "xFOoy" );
+	test_case( "(?i:...) pattern construct", /foo|(?i:bar)/ in "xBAry" );
+	test_case( "(?i:...) pattern construct", /foo|(?i:bar)/ in "xFOoy" );
+	test_case( "(?i:...) pattern construct", /foo|(?i:bar)/ | /foo/i in "xFOoy" );
 
 }

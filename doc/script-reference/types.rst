@@ -256,9 +256,8 @@ Here is a more detailed description of each type:
     a "foo", "Foo", "BaR", etc.
 
     You can also introduce a case-insensitive sub-pattern by enclosing it
-    in ``(+i``<pattern>``)``.  For clarity, you can optionally include
-    trailing whitespace after the ``+i`` designator.  So, for example,
-    ``/foo|(+i bar)/`` will match "foo" and "BaR", but *not* "Foo".
+    in ``(?i:``<pattern>``)``.  So, for example, ``/foo|(?i:bar)/`` will
+    match "foo" and "BaR", but *not* "Foo".
 
     For both ways of specifying case-insensitivity, characters enclosed
     in double quotes maintain their case-sensitivity.  So for example

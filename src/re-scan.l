@@ -114,7 +114,7 @@ CCL_EXPR	("[:"[[:alpha:]]+":]")
 				}
 			}
 
-	"(+i"[ \t]*	case_insensitive = 1; return TOK_CASE_INSENSITIVE;
+	"(?i:"		case_insensitive = 1; return TOK_CASE_INSENSITIVE;
 
 	[a-zA-Z]	{
 			if ( case_insensitive )

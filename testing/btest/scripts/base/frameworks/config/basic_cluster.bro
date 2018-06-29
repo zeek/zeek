@@ -69,7 +69,7 @@ event bro_init() &priority=5
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
 
 global peer_count = 0;
-event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
+event Cluster::node_up(name: string, id: string)
 	{
 	++peer_count;
 	if ( peer_count == 2 )

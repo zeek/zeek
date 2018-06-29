@@ -48,7 +48,12 @@ static bool call_option_handlers_and_set_value(StringVal* name, ID* i, Val* val,
 ##
 ## Returns: true on success, false when an error occurred.
 ##
-## .. bro:see:: Option::set_change_handler
+## .. bro:see:: Option::set_change_handler Config::set_value
+##
+## .. note:: :bro:id:`Option::set` only works on one node and does not distribute
+##           new values across a cluster. The higher-level :bro:id:`Config::set_value`
+##           supports clusterization and should typically be used instead of this
+##           lower-level function.
 function Option::set%(ID: string, val: any, location: string &default=""%): bool
 	%{
 	auto i = global_scope()->Lookup(ID->CheckString());

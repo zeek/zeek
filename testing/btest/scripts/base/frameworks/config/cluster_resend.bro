@@ -28,6 +28,7 @@ redef Log::default_rotation_interval = 0secs;
 export {
 	option testport = 42/tcp;
 	option teststring = "a";
+	option testcount: count = 0;
 }
 
 global n = 0;
@@ -52,10 +53,10 @@ event ready_for_data()
 	}
 @endif
 
-@if ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER )
-event Cluster::node_up(name: string, id: string)
+@if ( Cluster::node == "manager-1" )
+event ready_for_data()
 	{
-	 print "Node up", name;
+	Config::set_value("testcount", 1);
 	}
 @endif
 
@@ -64,10 +65,18 @@ event die()
 	terminate();
 	}
 
+@if ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER )
+event Cluster::node_up(name: string, id: string)
+	{
+		print "Node up", name;
+		if ( name == "worker-2" )
+		schedule 5sec { die() };
+	}
+@endif
+
 function option_changed(ID: string, new_value: any, location: string): any
 	{
 	print "option changed", ID, new_value, location;
-	#schedule 5sec { die() };
 	return new_value;
 	}
 
@@ -75,12 +84,13 @@ event bro_init() &priority=5
 	{
 	Option::set_change_handler("testport", option_changed, -100);
 	Option::set_change_handler("teststring", option_changed, -100);
+	Option::set_change_handler("testcount", option_changed, -100);
 	}
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
 
 global peer_count = 0;
-event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
+event Cluster::node_up(name: string, id: string) &priority=-5
 	{
 	++peer_count;
 	if ( peer_count == 1 )
@@ -92,11 +102,4 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	{
 	terminate();
-	}
-
-module Config;
-
-event Config::cluster_set_option(ID: string, val: any, location: string)
-	{
-	print "cluster_set_option for ", ID;
 	}

@@ -1,0 +1,5 @@
+Node up, worker-1
+option changed, testcount, 1, 
+option changed, testport, 44/tcp, 
+option changed, teststring, b, comment
+Node up, worker-2

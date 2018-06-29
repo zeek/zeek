@@ -62,7 +62,6 @@ event bro_init()
 	Broker::subscribe(change_topic);
 	}
 
-
 event Config::cluster_set_option(ID: string, val: any, location: string)
 	{
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
@@ -103,17 +102,12 @@ function set_value(ID: string, val: any, location: string &default = "" &optiona
 
 @if ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER )
 # Handling of new worker nodes.
-event Cluster::node_up(name: string, id: string)
+event Cluster::node_up(name: string, id: string) &priority=-10
 	{
 	# When a node connects, send it all current Option values.
 	if ( name in Cluster::nodes )
-		{
-		print option_cache;
 		for ( ID in option_cache )
-			{
 			Broker::publish(Cluster::node_topic(name), Config::cluster_set_option, ID, option_cache[ID]$val, option_cache[ID]$location);
-			}
-		}
 	}
 @endif
 

@@ -266,6 +266,11 @@ New Functionality
   by whitespace.  So for example "/foo|(+i bar)/" will match "BaR", but
   not "FoO".
 
+  For both ways of specifying case-insensitivity, characters enclosed in
+  double quotes maintain their case-sensitivity.  So for example /"foo"/i
+  will not match "Foo", but it will match "foo".
+
+
 Changed Functionality
 ---------------------
 

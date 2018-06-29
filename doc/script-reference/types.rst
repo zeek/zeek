@@ -260,6 +260,10 @@ Here is a more detailed description of each type:
     trailing whitespace after the ``+i`` designator.  So, for example,
     ``/foo|(+i bar)/`` will match "foo" and "BaR", but *not* "Foo".
 
+    For both ways of specifying case-insensitivity, characters enclosed
+    in double quotes maintain their case-sensitivity.  So for example
+    /"foo"/i will not match "Foo", but it will match "foo".
+
 .. bro:type:: port
 
     A type representing transport-level port numbers (besides TCP and

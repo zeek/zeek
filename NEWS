@@ -261,6 +261,11 @@ New Functionality
   enclosed in quotes however keep their casing, so /"fOO"/i in "xFoObar"
   yields F, though it yields T for "xfOObar".
 
+  You can achieve the same functionality for a subpattern enclosed in
+  parentheses by adding "+i" to the open parenthesis, optionally followed
+  by whitespace.  So for example "/foo|(+i bar)/" will match "BaR", but
+  not "FoO".
+
 Changed Functionality
 ---------------------
 

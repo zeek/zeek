@@ -198,9 +198,9 @@ Here is a more detailed description of each type:
 
 .. bro:type:: pattern
 
-    A type representing regular-expression patterns which can be used
+    A type representing regular-expression patterns that can be used
     for fast text-searching operations.  Pattern constants are created
-    by enclosing text within forward slashes (/) and is the same syntax
+    by enclosing text within forward slashes (``/``) and use the same syntax
     as the patterns supported by the `flex lexical analyzer
     <http://westes.github.io/flex/manual/Patterns.html>`_.  The speed of
     regular expression matching does not depend on the complexity or
@@ -244,12 +244,21 @@ Here is a more detailed description of each type:
 
     yields true, like in the similar example above.  You can also
     create the conjunction (concatenation) of patterns using the ``&``
-    operator.  For example:
+    operator.  For example::
 
 	/foo/ & /bar/ in "foobar"
 
     will yield true because the pattern /(foo)(bar)/ appears in
     the string "foobar".
+
+    When specifying a pattern, you can add a final ``i`` specifier to
+    mark it as case-insensitive.  For example, ``/foo|bar/i`` will match
+    a "foo", "Foo", "BaR", etc.
+
+    You can also introduce a case-insensitive sub-pattern by enclosing it
+    in ``(+i``<pattern>``)``.  For clarity, you can optionally include
+    trailing whitespace after the ``+i`` designator.  So, for example,
+    ``/foo|(+i bar)/`` will match "foo" and "BaR", but *not* "Foo".
 
 .. bro:type:: port
 

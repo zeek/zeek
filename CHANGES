@@ -1,4 +1,8 @@
 
+2.5-721 | 2018-07-02 16:29:21 -0500
+
+  * BIT-1941: improve reliability of broker.disconnect unit test (Corelight)
+
 2.5-719 | 2018-06-27 20:02:52 -0500
 
   * Fix some typos and formatting in NEWS and other documentation

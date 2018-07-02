@@ -1,0 +1,24 @@
+#! /usr/bin/env bash
+
+# Sleeps until a file comes into existence.
+
+if [[ $# -ne 2 ]]; then
+  >&2 echo "usage: $0 <file to wait for> <max secs to wait>"
+  exit 1
+fi
+
+wait_file=$1
+max_wait=$2
+wait_count=0
+
+while [[ ! -e $wait_file ]]; do
+  let "wait_count += 1"
+
+  if [[ $wait_count -ge $max_wait ]]; then
+    >&2 echo "error: file '$wait_file' does not exist after $max_wait seconds"
+    exit 1
+  fi
+
+  sleep 1
+done
+

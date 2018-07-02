@@ -1,0 +1,24 @@
+#! /usr/bin/env bash
+
+# Sleeps until a process id no longer exists.
+
+if [[ $# -ne 2 ]]; then
+  >&2 echo "usage: $0 <pid to wait for> <max secs to wait>"
+  exit 1
+fi
+
+wait_pid=$1
+max_wait=$2
+wait_count=0
+
+while kill -0 $wait_pid &> /dev/null; do
+  let "wait_count += 1"
+
+  if [[ $wait_count -ge $max_wait ]]; then
+    >&2 echo "error: process $wait_pid still exists after $max_wait seconds"
+    exit 1
+  fi
+
+  sleep 1
+done
+

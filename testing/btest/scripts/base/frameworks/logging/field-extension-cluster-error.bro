@@ -5,7 +5,7 @@
 # @TEST-EXEC: btest-bg-run worker-1  "cp ../cluster-layout.bro . && CLUSTER_NODE=worker-1 bro --pseudo-realtime -C -r $TRACES/wikipedia.trace %INPUT"
 # @TEST-EXEC: btest-bg-wait 20
 # @TEST-EXEC: cat manager-1/reporter.log | grep -v "reporter/" > manager-reporter.log
-# @TEST-EXEC: btest-diff manager-reporter.log
+# @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-canonifier | grep -v ^# | $SCRIPTS/diff-sort" btest-diff manager-reporter.log
 
 
 @TEST-START-FILE cluster-layout.bro

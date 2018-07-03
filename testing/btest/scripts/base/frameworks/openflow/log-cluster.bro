@@ -1,7 +1,6 @@
 # @TEST-SERIALIZE: comm
 #
 # @TEST-EXEC: btest-bg-run manager-1 "cp ../cluster-layout.bro . && CLUSTER_NODE=manager-1 bro %INPUT"
-# @TEST-EXEC: sleep 1
 # @TEST-EXEC: btest-bg-run worker-1  "cp ../cluster-layout.bro . && CLUSTER_NODE=worker-1 bro --pseudo-realtime -C -r $TRACES/smtp.trace %INPUT"
 # @TEST-EXEC: btest-bg-wait 20
 # @TEST-EXEC: btest-diff manager-1/openflow.log
@@ -13,6 +12,9 @@ redef Cluster::nodes = {
 };
 @TEST-END-FILE
 
+redef Cluster::retry_interval = 1sec;
+redef Broker::default_listen_retry = 1sec;
+redef Broker::default_connect_retry = 1sec;
 redef Log::default_rotation_interval = 0secs;
 #redef exit_only_after_terminate = T;
 
@@ -20,6 +22,18 @@ redef Log::default_rotation_interval = 0secs;
 @load base/frameworks/openflow
 
 global of_controller: OpenFlow::Controller;
+
+@if ( Cluster::local_node_type() == Cluster::WORKER )
+event bro_init()
+	{
+	suspend_processing();
+	}
+
+event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
+	{
+	continue_processing();
+	}
+@endif
 
 event bro_init()
 	{

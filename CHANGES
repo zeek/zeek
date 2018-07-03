@@ -1,4 +1,8 @@
 
+2.5-725 | 2018-07-03 14:56:10 -0500
+
+  * BIT-1941: improve unit test stability (Corelight)
+
 2.5-723 | 2018-07-03 09:34:10 -0500
 
   * Fix unstable config framework test (Corelight)

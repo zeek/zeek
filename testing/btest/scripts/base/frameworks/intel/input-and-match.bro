@@ -1,4 +1,3 @@
-# @TEST-SERIALIZE: comm
 
 # @TEST-EXEC: btest-bg-run broproc bro %INPUT
 # @TEST-EXEC: btest-bg-wait -k 5

@@ -1,4 +1,8 @@
 
+2.5-722 | 2018-07-03 09:16:37 -0500
+
+  * BIT-1941: teach diff-remove-timestamps about time 0 (Corelight)
+
 2.5-721 | 2018-07-02 16:29:21 -0500
 
   * BIT-1941: improve reliability of broker.disconnect unit test (Corelight)

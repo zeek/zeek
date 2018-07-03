@@ -1,4 +1,8 @@
 
+2.5-723 | 2018-07-03 09:34:10 -0500
+
+  * Fix unstable config framework test (Corelight)
+
 2.5-722 | 2018-07-03 09:16:37 -0500
 
   * BIT-1941: teach diff-remove-timestamps about time 0 (Corelight)

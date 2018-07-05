@@ -2960,12 +2960,6 @@ function uuid_to_string%(uuid: string%): string
 ##      :bro:id:`bro_init`.
 function merge_pattern%(p1: pattern, p2: pattern%): pattern
 	%{
-	if ( bro_start_network_time != 0.0 )
-		{
-		builtin_error("merge_pattern can only be called at init time");
-		return 0;
-		}
-
 	reporter->Warning("merge_pattern() builtin-function has been deprecated");
 
 	RE_Matcher* re = new RE_Matcher();
@@ -3035,12 +3029,6 @@ function convert_for_pattern%(s: string%): string
 ##      :bro:id:`bro_init`.
 function string_to_pattern%(s: string, convert: bool%): pattern
 	%{
-	if ( bro_start_network_time != 0.0 )
-		{
-		builtin_error("string_to_pattern can only be called at init time");
-		return 0;
-		}
-
 	const char* ss = (const char*) (s->Bytes());
 	int sn = s->Len();
 	char* pat;

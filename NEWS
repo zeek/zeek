@@ -249,6 +249,9 @@ New Functionality
   '^' are binary "and", "or" and "xor" operators, and '~' is a unary
   ones-complement operator.
 
+- The string_to_pattern() built-in (and the now-deprecated merge_pattern()
+  built-in) is no longer restricted to only be called at initialization time.
+
 Changed Functionality
 ---------------------
 

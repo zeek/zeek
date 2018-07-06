@@ -1734,9 +1734,9 @@ TableVal* TableVal::Intersect(const TableVal* tv) const
 	// Figure out which is smaller.
 	if ( t1->Length() > t2->Length() )
 		{ // Swap.
-		const PDict(TableEntryVal)* t3 = t1;
+		const PDict(TableEntryVal)* tmp = t1;
 		t1 = t2;
-		t2 = t3;
+		t2 = tmp;
 		}
 
 	IterCookie* c = t1->InitForIteration();

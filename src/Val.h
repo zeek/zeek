@@ -815,6 +815,16 @@ public:
 	// sense for sets.
 	TableVal* Intersect(const TableVal* v) const;
 
+	// Returns true if this set contains the same members as the
+	// given set.  Note that comparisons are done using hash keys,
+	// so errors can arise for compound sets such as sets-of-sets.
+	// See https://bro-tracker.atlassian.net/browse/BIT-1949.
+	bool EqualTo(const TableVal* v) const;
+
+	// Returns true if this set is a subset (not necessarily proper)
+	// of the given set.
+	bool IsSubsetOf(const TableVal* v) const;
+
 	// Expands any lists in the index into multiple initializations.
 	// Returns true if the initializations typecheck, false if not.
 	int ExpandAndInit(Val* index, Val* new_val);

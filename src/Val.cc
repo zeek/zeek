@@ -1727,16 +1727,16 @@ TableVal* TableVal::Intersect(const TableVal* tv) const
 	{
 	TableVal* result = new TableVal(table_type);
 
+	const PDict(TableEntryVal)* t0 = AsTable();
 	const PDict(TableEntryVal)* t1 = tv->AsTable();
-	const PDict(TableEntryVal)* t2 = AsTable();
-	PDict(TableEntryVal)* t3 = result->AsNonConstTable();
+	PDict(TableEntryVal)* t2 = result->AsNonConstTable();
 
-	// Figure out which is smaller.
-	if ( t1->Length() > t2->Length() )
+	// Figure out which is smaller; assign it to t1.
+	if ( t1->Length() > t0->Length() )
 		{ // Swap.
 		const PDict(TableEntryVal)* tmp = t1;
-		t1 = t2;
-		t2 = tmp;
+		t1 = t0;
+		t0 = tmp;
 		}
 
 	IterCookie* c = t1->InitForIteration();
@@ -1745,13 +1745,65 @@ TableVal* TableVal::Intersect(const TableVal* tv) const
 		{
  		// Here we leverage the same assumption about consistent
  		// hashes as in TableVal::RemoveFrom above.
- 		if ( t2->Lookup(k) )
-			t3->Insert(k, new TableEntryVal(0));
+ 		if ( t0->Lookup(k) )
+			t2->Insert(k, new TableEntryVal(0));
 
 		delete k;
 		}
 
 	return result;
+	}
+
+bool TableVal::EqualTo(const TableVal* tv) const
+	{
+	const PDict(TableEntryVal)* t0 = AsTable();
+	const PDict(TableEntryVal)* t1 = tv->AsTable();
+
+	if ( t0->Length() != t1->Length() )
+		return false;
+
+	IterCookie* c = t0->InitForIteration();
+	HashKey* k;
+	while ( t0->NextEntry(k, c) )
+		{
+ 		// Here we leverage the same assumption about consistent
+ 		// hashes as in TableVal::RemoveFrom above.
+ 		if ( ! t1->Lookup(k) )
+			{
+			delete k;
+			return false;
+			}
+
+		delete k;
+		}
+
+	return true;
+	}
+
+bool TableVal::IsSubsetOf(const TableVal* tv) const
+	{
+	const PDict(TableEntryVal)* t0 = AsTable();
+	const PDict(TableEntryVal)* t1 = tv->AsTable();
+
+	if ( t0->Length() > t1->Length() )
+		return false;
+
+	IterCookie* c = t0->InitForIteration();
+	HashKey* k;
+	while ( t0->NextEntry(k, c) )
+		{
+ 		// Here we leverage the same assumption about consistent
+ 		// hashes as in TableVal::RemoveFrom above.
+ 		if ( ! t1->Lookup(k) )
+			{
+			delete k;
+			return false;
+			}
+
+		delete k;
+		}
+
+	return true;
 	}
 
 int TableVal::ExpandAndInit(Val* index, Val* new_val)

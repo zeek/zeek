@@ -240,6 +240,17 @@ public:
 			return true;
 		}
 
+	// Increments the passed counter and adds it as a history
+	// code if it has crossed the next scaling threshold.  Scaling
+	// is done in terms of powers of the third argument.
+	// Returns true if the threshold was crossed, false otherwise.
+	bool ScaledHistoryEntry(char code,
+				uint32& counter, uint32& scaling_threshold,
+				uint32 scaling_base = 10);
+
+	void HistoryThresholdEvent(EventHandlerPtr e, bool is_orig,
+					uint32 threshold);
+
 	void AddHistory(char code)	{ history += code; }
 
 	void DeleteTimer(double t);

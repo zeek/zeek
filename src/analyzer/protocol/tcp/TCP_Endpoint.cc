@@ -32,6 +32,9 @@ TCP_Endpoint::TCP_Endpoint(TCP_Analyzer* arg_analyzer, int arg_is_orig)
 	tcp_analyzer = arg_analyzer;
 	is_orig = arg_is_orig;
 
+	chk_cnt = rxmt_cnt = win0_cnt = 0;
+	chk_thresh = rxmt_thresh = win0_thresh = 1;
+
 	hist_last_SYN = hist_last_FIN = hist_last_RST = 0;
 
 	src_addr = is_orig ? Conn()->RespAddr() : Conn()->OrigAddr();
@@ -284,3 +287,29 @@ void TCP_Endpoint::AddHistory(char code)
 	Conn()->AddHistory(code);
 	}
 
+void TCP_Endpoint::ChecksumError()
+	{
+	uint32 t = chk_thresh;
+	if ( Conn()->ScaledHistoryEntry(IsOrig() ? 'C' : 'c',
+					chk_cnt, chk_thresh) )
+		Conn()->HistoryThresholdEvent(tcp_multiple_checksum_errors,
+						IsOrig(), t);
+	}
+
+void TCP_Endpoint::DidRxmit()
+	{
+	uint32 t = rxmt_thresh;
+	if ( Conn()->ScaledHistoryEntry(IsOrig() ? 'T' : 't',
+					rxmt_cnt, rxmt_thresh) )
+		Conn()->HistoryThresholdEvent(tcp_multiple_retransmissions,
+						IsOrig(), t);
+	}
+
+void TCP_Endpoint::ZeroWindow()
+	{
+	uint32 t = win0_thresh;
+	if ( Conn()->ScaledHistoryEntry(IsOrig() ? 'W' : 'w',
+					win0_cnt, win0_thresh) )
+		Conn()->HistoryThresholdEvent(tcp_multiple_zero_windows,
+						IsOrig(), t);
+	}

@@ -459,7 +459,7 @@ bool TCP_Analyzer::ValidateChecksum(const struct tcphdr* tp,
 	     ! endpoint->ValidChecksum(tp, len) )
 		{
 		Weird("bad_TCP_checksum");
-		endpoint->CheckHistory(HIST_CORRUPT_PKT, 'C');
+		endpoint->ChecksumError();
 		return false;
 		}
 	else
@@ -579,16 +579,38 @@ static void init_window(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 static void update_window(TCP_Endpoint* endpoint, unsigned int window,
                           uint32 base_seq, uint32 ack_seq, TCP_Flags flags)
 	{
-	// Note, the offered window on an initial SYN is unscaled, even
-	// if the SYN includes scaling, so we need to do the following
-	// test *before* updating the scaling information below.  (Hmmm,
-	// how does this work for windows on SYN/ACKs? ###)
+	// Note, applying scaling here would be incorrect for an initial SYN,
+	// whose window value is always unscaled.  However, we don't
+	// check the window's value for recision in that case anyway, so
+	// no-harm-no-foul.
 	int scale = endpoint->window_scale;
 	window = window << scale;
 
+	// Zero windows are boring if either (1) they come with a RST packet
+	// or after a RST packet, or (2) they come after the peer has sent
+	// a FIN (because there's no relevant window at that point anyway).
+	// (They're also boring if they come after the peer has sent a RST,
+	// but *nothing* should be sent in response to a RST, so we ignore
+	// that case.)
+	//
+	// However, they *are* potentially interesting if sent by an
+	// endpoint that's already sent a FIN, since that FIN meant "I'm
+	// not going to send any more", but doesn't mean "I won't receive
+	// any more".
+	if ( window == 0 && ! flags.RST() &&
+	     endpoint->peer->state != TCP_ENDPOINT_CLOSED &&
+	     endpoint->state != TCP_ENDPOINT_RESET )
+		endpoint->ZeroWindow();
+
 	// Don't analyze window values off of SYNs, they're sometimes
-	// immediately rescinded.
-	if ( ! flags.SYN() )
+	// immediately rescinded.  Also don't do so for FINs or RSTs,
+	// or if the connection has already been partially closed, since
+	// such recisions occur frequently in practice, probably as the
+	// receiver loses buffer memory due to its process going away.
+
+	if ( ! flags.SYN() && ! flags.FIN() && ! flags.RST() &&
+	     endpoint->state != TCP_ENDPOINT_CLOSED &&
+	     endpoint->state != TCP_ENDPOINT_RESET )
 		{
 		// ### Decide whether to accept new window based on Active
 		// Mapping policy.
@@ -601,29 +623,20 @@ static void update_window(TCP_Endpoint* endpoint, unsigned int window,
 
 			if ( advance < 0 )
 				{
-				// A window recision.  We don't report these
-				// for FINs or RSTs, or if the connection
-				// has already been partially closed, since
-				// such recisions occur frequently in practice,
-				// probably as the receiver loses buffer memory
-				// due to its process going away.
-				//
-				// We also, for window scaling, allow a bit
-				// of slop ###.  This is because sometimes
-				// there will be an apparent recision due
-				// to the granularity of the scaling.
-				if ( ! flags.FIN() && ! flags.RST() &&
-				     endpoint->state != TCP_ENDPOINT_CLOSED &&
-				     endpoint->state != TCP_ENDPOINT_RESET &&
-				     (-advance) >= (1 << scale) )
+				// An apparent window recision.  Allow a
+				// bit of slop for window scaling.  This is
+				// because sometimes there will be an
+				// apparent recision due to the granularity
+				// of the scaling.
+				if ( (-advance) >= (1 << scale) )
 					endpoint->Conn()->Weird("window_recision");
 				}
-
-			endpoint->window = window;
-			endpoint->window_ack_seq = ack_seq;
-			endpoint->window_seq = base_seq;
 			}
 		}
+
+	endpoint->window = window;
+	endpoint->window_ack_seq = ack_seq;
+	endpoint->window_seq = base_seq;
 	}
 
 static void syn_weirds(TCP_Flags flags, TCP_Endpoint* endpoint, int data_len)
@@ -1206,7 +1219,7 @@ static int32 update_last_seq(TCP_Endpoint* endpoint, uint32 last_seq,
 		endpoint->UpdateLastSeq(last_seq);
 
 	else if ( delta_last < 0 && len > 0 )
-		endpoint->CheckHistory(HIST_RXMIT, 'T');
+		endpoint->DidRxmit();
 
 	return delta_last;
 	}

@@ -31,6 +31,8 @@ protected:
 	bool IsReuse(double t, const u_char* pkt) override;
 	unsigned int MemoryAllocation() const override;
 
+	void ChecksumEvent(bool is_orig, uint32 threshold);
+
 	// Returns true if the checksum is valid, false if not
 	static bool ValidateChecksum(const IP_Hdr* ip, const struct udphdr* up,
 	                             int len);
@@ -44,6 +46,10 @@ private:
 #define HIST_RESP_DATA_PKT 0x2
 #define HIST_ORIG_CORRUPT_PKT 0x4
 #define HIST_RESP_CORRUPT_PKT 0x8
+
+	// For tracking checksum history.
+	uint32 req_chk_cnt, req_chk_thresh;
+	uint32 rep_chk_cnt, rep_chk_thresh;
 };
 
 } } // namespace analyzer::* 

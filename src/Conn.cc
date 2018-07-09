@@ -289,6 +289,45 @@ bool Connection::IsReuse(double t, const u_char* pkt)
 	return root_analyzer && root_analyzer->IsReuse(t, pkt);
 	}
 
+bool Connection::ScaledHistoryEntry(char code,
+				uint32& counter, uint32& scaling_threshold,
+				uint32 scaling_base)
+	{
+	if ( ++counter == scaling_threshold )
+		{
+		AddHistory(code);
+
+		int new_threshold = scaling_threshold * scaling_base;
+
+		if ( new_threshold <= scaling_threshold )
+			// This can happen due to wrap-around.  In that
+			// case, reset the counter but leave the threshold
+			// unchanged.
+			counter = 0;
+
+		else
+			scaling_threshold = new_threshold;
+
+		return true;
+		}
+
+	return false;
+	}
+
+void Connection::HistoryThresholdEvent(EventHandlerPtr e, bool is_orig,
+					uint32 threshold)
+	{
+	if ( ! e )
+	        return;
+
+	val_list* vl = new val_list;
+	vl->append(BuildConnVal());
+	vl->append(new Val(is_orig, TYPE_BOOL));
+	vl->append(new Val(threshold, TYPE_COUNT));
+
+	ConnectionEvent(e, 0, vl);
+	}
+
 void Connection::DeleteTimer(double /* t */)
 	{
 	if ( is_active )

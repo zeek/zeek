@@ -255,6 +255,16 @@ New Functionality
   semi-present in previous versions of Bro, but required constants as
   its operands; now you can use any pattern-valued expressions.
 
+- The new history character 'W' indicates that the originator ('w' = responder)
+  advertised a TCP zero window (instructing the peer to not send any data
+  until receiving a non-zero window).
+
+- The history characters 'C' (checksum error seen), 'T' (retransmission
+  seen), and 'W' (zero window advertised) are now repeated in a logarithmic
+  fashion upon seeing multiple instances of the corresponding behavior.
+  Thus a connection with 2 C's in its history means that the originator
+  sent >= 10 packets with checksum errors; 3 C's means >= 100, etc.
+
 Changed Functionality
 ---------------------
 

@@ -169,7 +169,7 @@ History
 
 Bro's history goes back much further than many people realize. `Vern
 Paxson <http://www.icir.org/vern>`_ designed and implemented the
-initial version almost two decades ago.
+initial version more than two decades ago.
 Vern began work on the code in 1995 as a researcher at the `Lawrence
 Berkeley National Laboratory (LBNL) <http://www.lbl.gov>`_. Berkeley
 Lab began operational deployment in 1996, and the USENIX Security

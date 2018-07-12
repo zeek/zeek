@@ -108,6 +108,10 @@ if (NOT BinPAC_ROOT_DIR AND
 endif ()
 FindRequiredPackage(BinPAC)
 
+if ( NOT BIFCL_EXE_PATH )
+  add_subdirectory(aux/bifcl)
+endif ()
+
 if (ENABLE_JEMALLOC)
     find_package(JeMalloc)
 endif ()

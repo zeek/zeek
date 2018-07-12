@@ -25,3 +25,6 @@
 [submodule "aux/netcontrol-connectors"]
 	path = aux/netcontrol-connectors
 	url = git://git.bro.org/bro-netcontrol
+[submodule "aux/bifcl"]
+	path = aux/bifcl
+	url = git://git.bro.org/bifcl

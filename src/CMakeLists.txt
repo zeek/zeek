@@ -44,15 +44,6 @@ endmacro(REPLACE_YY_PREFIX_TARGET)
 
 set(BISON_FLAGS "--debug")
 
-# BIF parser/scanner
-bison_target(BIFParser builtin-func.y
-             ${CMAKE_CURRENT_BINARY_DIR}/bif_parse.cc
-             HEADER ${CMAKE_CURRENT_BINARY_DIR}/bif_parse.h
-             #VERBOSE ${CMAKE_CURRENT_BINARY_DIR}/bif_parse.output
-             COMPILE_FLAGS "${BISON_FLAGS}")
-flex_target(BIFScanner builtin-func.l ${CMAKE_CURRENT_BINARY_DIR}/bif_lex.cc)
-add_flex_bison_dependency(BIFScanner BIFParser)
-
 # Rule parser/scanner
 bison_target(RuleParser rule-parse.y
              ${CMAKE_CURRENT_BINARY_DIR}/rup.cc
@@ -92,24 +83,6 @@ replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/p.cc
                          bro yy)
 flex_target(Scanner scan.l ${CMAKE_CURRENT_BINARY_DIR}/scan.cc
             COMPILE_FLAGS "-Pbro")
-
-########################################################################
-## bifcl (BIF compiler) target
-
-set(bifcl_SRCS
-   ${BISON_BIFParser_INPUT}
-   ${FLEX_BIFScanner_INPUT}
-   ${BISON_BIFParser_OUTPUTS}
-   ${FLEX_BIFScanner_OUTPUTS}
-   bif_arg.cc
-   module_util.cc
-   bif_arg.h
-   module_util.h
-)
-
-add_executable(bifcl ${bifcl_SRCS})
-
-target_link_libraries(bifcl)
 
 ########################################################################
 ## bifcl-dependent targets

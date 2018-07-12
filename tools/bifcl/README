@@ -1,0 +1,19 @@
+.. _Bro: https://bro.org
+
+================
+Bro BIF Compiler
+================
+
+The ``bifcl`` program simply takes a ``.bif`` file as input and
+generates C++ header/source files along with a ``.bro`` script
+that all-together provide the declaration and implementation of Bro_
+Built-In-Functions (BIFs), which can then be compiled and shipped
+as part of a Bro plugin.
+
+A BIF allows one to write arbitrary C++ code and access it via a
+function call inside a Bro script.  In this way, they can also be
+used to access parts of Bro's internal C++ API that aren't already
+exposed via their own BIFs.
+
+At the moment, learning the format of a ``.bif`` file is likely easiest
+by just taking a look at the ``.bif`` files inside the Bro source-tree.

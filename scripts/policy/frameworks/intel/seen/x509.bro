@@ -2,9 +2,16 @@
 @load base/files/x509
 @load ./where-locations
 
+module Intel;
+
+export {
+        ## Enables the extraction of subject alternate names from the X509 SAN DNS field
+        const enable_x509_ext_subject_alternative_name = T &redef;
+}
+
 event x509_ext_subject_alternative_name(f: fa_file, ext: X509::SubjectAlternativeName)
 	{
-	if ( ext?$dns )
+	if ( enable_x509_ext_subject_alternative_name && ext?$dns )
 		{
 		for ( i in ext$dns )
 			Intel::seen([$indicator=ext$dns[i],

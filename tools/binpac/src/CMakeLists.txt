@@ -100,9 +100,7 @@ set(binpac_SRCS
 
 add_executable(binpac ${binpac_SRCS})
 
-if (NOT BinPAC_SKIP_INSTALL)
-    install(TARGETS binpac DESTINATION bin)
-endif ()
+install(TARGETS binpac DESTINATION bin)
 
 # This is set to assist superprojects that want to build BinPac
 # from source and rely on it as a target

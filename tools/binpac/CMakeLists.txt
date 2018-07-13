@@ -36,12 +36,6 @@ add_subdirectory(src)
 ########################################################################
 ## Build Summary
 
-if (BinPAC_SKIP_INSTALL)
-    set(binpac_install_summary "Install skipped")
-else ()
-    set(binpac_install_summary "${CMAKE_INSTALL_PREFIX}")
-endif ()
-
 if (CMAKE_BUILD_TYPE)
     string(TOUPPER ${CMAKE_BUILD_TYPE} BuildType)
 endif ()
@@ -49,7 +43,7 @@ endif ()
 message(
     "\n==================|  BinPAC Build Summary  |===================="
     "\n"
-    "\nInstall prefix:    ${binpac_install_summary}"
+    "\nInstall prefix:    ${CMAKE_INSTALL_PREFIX}"
     "\nDebug mode:        ${ENABLE_DEBUG}"
     "\n"
     "\nCC:                ${CMAKE_C_COMPILER}"

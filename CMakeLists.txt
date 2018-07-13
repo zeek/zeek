@@ -235,12 +235,15 @@ endif ()
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/bro-config.h.in
                ${CMAKE_CURRENT_BINARY_DIR}/bro-config.h)
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/bro-config.h DESTINATION include/bro)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/bro-config.in
                ${CMAKE_CURRENT_BINARY_DIR}/bro-config @ONLY)
 install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/bro-config DESTINATION bin)
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cmake DESTINATION share/bro
+        USE_SOURCE_PERMISSIONS)
 
 ########################################################################
 ## Recurse on sub-directories

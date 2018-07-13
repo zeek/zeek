@@ -7,11 +7,13 @@ site_dir=@BRO_SCRIPT_INSTALL_PATH@/site
 plugin_dir=@BRO_PLUGIN_INSTALL_PATH@
 config_dir=@BRO_ETC_INSTALL_DIR@
 python_dir=@PY_MOD_INSTALL_DIR@
+cmake_dir=@CMAKE_INSTALL_PREFIX@/share/bro/cmake
+include_dir=@CMAKE_INSTALL_PREFIX@/include/bro
 bropath=@DEFAULT_BROPATH@
 bro_dist=@BRO_DIST@
 
 usage="\
-Usage: bro-config [--version] [--prefix] [--script_dir] [--site_dir] [--plugin_dir] [--config_dir] [--python_dir] [--bropath] [--bro_dist]"
+Usage: bro-config [--version] [--prefix] [--script_dir] [--site_dir] [--plugin_dir] [--config_dir] [--python_dir] [--include_dir] [--cmake_dir] [--bropath] [--bro_dist]"
 
 if [ $# -eq 0 ] ; then
       echo "${usage}" 1>&2
@@ -45,6 +47,12 @@ while [ $# -ne 0 ]; do
       ;;
     --python_dir)
       echo $python_dir
+      ;;
+    --cmake_dir)
+      echo $cmake_dir
+      ;;
+    --include_dir)
+      echo $include_dir
       ;;
     --bropath)
       echo $bropath

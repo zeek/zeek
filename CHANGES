@@ -1,4 +1,9 @@
 
+2.5-741 | 2018-07-16 16:06:02 -0500
+
+  * Improve Specific_RE_Matcher::CompileSet() error condition cleanup
+    (Jon Siwek, Corelight)
+
 2.5-740 | 2018-07-16 16:01:31 -0500
 
   * Add support for case-insensitive patterns (Vern Paxson, Corelight)

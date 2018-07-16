@@ -166,7 +166,7 @@ int Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx)
 			{
 			reporter->Error("error compiling pattern /%s/", set[i]);
 
-			if ( set_nfa != nfa )
+			if ( set_nfa && set_nfa != nfa )
 				Unref(set_nfa);
 			else
 				Unref(nfa);

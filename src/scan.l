@@ -554,7 +554,19 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 	return TOK_PATTERN_TEXT;
 	}
 
-<RE>[/\\\n]	return yytext[0];
+<RE>"/"	{
+	BEGIN(INITIAL);
+	yylval.b = false;
+	return TOK_PATTERN_END;
+	}
+
+<RE>"/i"	{
+	BEGIN(INITIAL);
+	yylval.b = true;
+	return TOK_PATTERN_END;
+	}
+
+<RE>[\\\n]	return yytext[0];	// should cause a parse error
 
 <*>.	reporter->Error("unrecognized character - %s", yytext);
 
@@ -696,11 +708,6 @@ static int load_files(const char* orig_file)
 void begin_RE()
 	{
 	BEGIN(RE);
-	}
-
-void end_RE()
-	{
-	BEGIN(INITIAL);
 	}
 
 class LocalNameFinder : public TraversalCallback {

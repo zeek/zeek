@@ -1,4 +1,8 @@
 
+2.5-740 | 2018-07-16 16:01:31 -0500
+
+  * Add support for case-insensitive patterns (Vern Paxson, Corelight)
+
 2.5-730 | 2018-07-16 10:39:33 -0500
 
   * de-restrict pattern-oriented BiFs to no longer require only running at init

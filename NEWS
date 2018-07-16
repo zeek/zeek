@@ -331,6 +331,9 @@ Changed Functionality
 
 - The "dnp3_header_block" event no longer has the "start" parameter
 
+- The string_to_pattern() built-in (and the now-deprecated merge_pattern()
+  built-in) is no longer restricted to only be called at initialization time.
+
 Removed Functionality
 ---------------------
 

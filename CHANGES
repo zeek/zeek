@@ -1,4 +1,12 @@
 
+2.5-730 | 2018-07-16 10:39:33 -0500
+
+  * de-restrict pattern-oriented BiFs to no longer require only running at init
+    (Vern Paxson)
+
+  * Add option to toggle extraction of subject alternate names from X509 SAN
+    DNS field (Liviu Valsan)
+
 2.5-725 | 2018-07-03 14:56:10 -0500
 
   * BIT-1941: improve unit test stability (Corelight)

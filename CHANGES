@@ -1,4 +1,8 @@
 
+2.5-746 | 2018-07-17 17:51:13 -0500
+
+  * Improve an input framework unit test (Jon Siwek, Corelight)
+
 2.5-745 | 2018-07-17 16:46:16 -0500
 
   * Add explicit key in Travis known_hosts (Jon Siwek, Corelight)

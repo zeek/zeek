@@ -265,6 +265,15 @@ New Functionality
   Thus a connection with 2 C's in its history means that the originator
   sent >= 10 packets with checksum errors; 3 C's means >= 100, etc.
 
+- The above behaviors occurring multiple times (i.e., starting at
+  10 instances, than again for 100 instances, etc.) generate corresponding
+  events: tcp_multiple_checksum_errors, udp_multiple_checksum_errors,
+  tcp_multiple_zero_windows, and tcp_multiple_retransmissions.  Each
+  has the same form, e.g.
+
+  event tcp_multiple_retransmissions(c: connection, is_orig: bool,
+				     threshold: count);
+
 Changed Functionality
 ---------------------
 

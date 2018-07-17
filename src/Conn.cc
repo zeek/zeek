@@ -320,6 +320,11 @@ void Connection::HistoryThresholdEvent(EventHandlerPtr e, bool is_orig,
 	if ( ! e )
 	        return;
 
+	if ( threshold == 1 )
+		// This will be far and away the most common case,
+		// and at this stage it's not a *multiple* instance.
+		return;
+
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
 	vl->append(new Val(is_orig, TYPE_BOOL));

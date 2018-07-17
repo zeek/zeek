@@ -1,4 +1,8 @@
 
+2.5-745 | 2018-07-17 16:46:16 -0500
+
+  * Add explicit key in Travis known_hosts (Jon Siwek, Corelight)
+
 2.5-743 | 2018-07-17 14:20:19 -0500
 
   * Port broker::data variant usages to use CAF API directly

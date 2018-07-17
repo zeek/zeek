@@ -143,7 +143,7 @@ run() {
         chmod 600 travis_key
         mkdir -p ~/.ssh
         mv travis_key ~/.ssh/id_rsa
-        ssh-keyscan -H -p 22 -t rsa git.bro.org >> ~/.ssh/known_hosts
+        echo "git.bro.org ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEmlu+EaJfPKTVqoEUzb5JBEdvNiFxO2wm7Vl61dGBl57avakFl8YnRujbA2yxlpC2xnEKD5y++hXxtxRLefyCM=" >> ~/.ssh/known_hosts
         git clone ssh://git@git.bro.org/bro-testing-private
         rm ~/.ssh/id_rsa
     elif [ -n "${TRAVIS_PULL_REQUEST}" ] && [ "${TRAVIS_PULL_REQUEST}" != "false" ]; then

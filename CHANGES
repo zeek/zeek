@@ -1,4 +1,9 @@
 
+2.5-743 | 2018-07-17 14:20:19 -0500
+
+  * Port broker::data variant usages to use CAF API directly
+    (Jon Siwek, Corelight)
+
 2.5-741 | 2018-07-16 16:06:02 -0500
 
   * Improve Specific_RE_Matcher::CompileSet() error condition cleanup

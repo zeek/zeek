@@ -1,8 +1,8 @@
 # @TEST-EXEC: cp input1.log input.log
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT 
-# @TEST-EXEC: sleep 3
+# @TEST-EXEC: $SCRIPTS/wait-for-file bro/got1 5 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: cat input2.log >> input.log
-# @TEST-EXEC: sleep 3
+# @TEST-EXEC: $SCRIPTS/wait-for-file bro/got3 5 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: cat input3.log >> input.log
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff out
@@ -38,12 +38,16 @@ global outfile: file;
 
 event line(description: Input::EventDescription, tpe: Input::Event, s: string)
 	{
-	print outfile, description;
+	print outfile, description$source, description$reader, description$mode, description$name;
 	print outfile, tpe;
 	print outfile, s;
 
 	try = try + 1;
-	if ( try == 8 )
+	if ( try == 1 )
+		system("touch got1");
+	else if ( try == 3 )
+		system("touch got3");
+	else if ( try == 8 )
 		{
 		print outfile, "done";
 		close(outfile);

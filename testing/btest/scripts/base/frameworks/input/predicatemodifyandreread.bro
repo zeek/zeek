@@ -1,12 +1,12 @@
 # @TEST-EXEC: cp input1.log input.log
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
-# @TEST-EXEC: sleep 2
+# @TEST-EXEC: $SCRIPTS/wait-for-file bro/got1 5 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: cp input2.log input.log
-# @TEST-EXEC: sleep 2
+# @TEST-EXEC: $SCRIPTS/wait-for-file bro/got2 5 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: cp input3.log input.log
-# @TEST-EXEC: sleep 2
+# @TEST-EXEC: $SCRIPTS/wait-for-file bro/got3 5 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: cp input4.log input.log
-# @TEST-EXEC: sleep 2
+# @TEST-EXEC: $SCRIPTS/wait-for-file bro/got4 5 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: cp input5.log input.log
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff out
@@ -96,7 +96,15 @@ event Input::end_of_data(name: string, source: string)
 	try = try + 1;
 	print outfile, fmt("Update_finished for %s, try %d", name, try);
 	print outfile, servers;
-	
+
+	if ( try == 1 )
+		system("touch got1");
+	else if ( try == 2 )
+		system("touch got2");
+	else if ( try == 3 )
+		system("touch got3");
+	else if ( try == 4 )
+		system("touch got4");
 	if ( try == 5 )
 		{
 		close(outfile);

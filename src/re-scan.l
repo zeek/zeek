@@ -114,6 +114,25 @@ CCL_EXPR	("[:"[[:alpha:]]+":]")
 				}
 			}
 
+	"(?i:"		case_insensitive = 1; return TOK_CASE_INSENSITIVE;
+
+	[a-zA-Z]	{
+			if ( case_insensitive )
+				{
+				char c = yytext[0];	// unput trashes yytext!
+				// Push back the character inside a CCL,
+				// so the parser can then expand it.
+				unput(']');
+				unput(c);
+				unput('[');
+				}
+			else
+				{
+				yylval.int_val = yytext[0];
+				return TOK_CHAR;
+				}
+			}
+
 	[|*+?.(){}]	return yytext[0];
 	.		yylval.int_val = yytext[0]; return TOK_CHAR;
 	\n		return 0;	// treat as end of pattern
@@ -149,15 +168,22 @@ CCL_EXPR	("[:"[[:alpha:]]+":]")
 	"[:cntrl:]"	RET_CCE(my_iscntrl)
 	"[:digit:]"	RET_CCE(my_isdigit)
 	"[:graph:]"	RET_CCE(my_isgraph)
-	"[:lower:]"	RET_CCE(my_islower)
 	"[:print:]"	RET_CCE(my_isprint)
 	"[:punct:]"	RET_CCE(my_ispunct)
 	"[:space:]"	RET_CCE(my_isspace)
 	"[:xdigit:]"	RET_CCE(my_isxdigit)
+
+	"[:lower:]"	{
+			BEGIN(SC_CCL);
+			yylval.cce_val =
+				case_insensitive ? my_isalpha : my_islower;
+			return TOK_CCE;
+			}
+
 	"[:upper:]"	{
 			BEGIN(SC_CCL);
 			yylval.cce_val =
-				case_insensitive ? my_isupper : my_islower;
+				case_insensitive ? my_isalpha : my_isupper;
 			return TOK_CCE;
 			}
 

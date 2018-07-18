@@ -102,6 +102,19 @@ void Specific_RE_Matcher::AddPat(const char* new_pat,
 	pattern_text = s;
 	}
 
+void Specific_RE_Matcher::MakeCaseInsensitive()
+	{
+	const char fmt[] = "(?i:%s)";
+	int n = strlen(pattern_text) + strlen(fmt);
+
+	char* s = new char[n + 5 /* slop */];
+
+	safe_snprintf(s, n + 5, fmt, pattern_text);
+
+	delete [] pattern_text;
+	pattern_text = s;
+	}
+
 int Specific_RE_Matcher::Compile(int lazy)
 	{
 	if ( ! pattern_text )
@@ -153,11 +166,12 @@ int Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx)
 			{
 			reporter->Error("error compiling pattern /%s/", set[i]);
 
-			if ( set_nfa != nfa )
+			if ( set_nfa && set_nfa != nfa )
 				Unref(set_nfa);
-			Unref(nfa);
-			nfa = 0;
+			else
+				Unref(nfa);
 
+			nfa = 0;
 			return 0;
 			}
 
@@ -442,6 +456,12 @@ void RE_Matcher::AddPat(const char* new_pat)
 	{
 	re_anywhere->AddPat(new_pat);
 	re_exact->AddPat(new_pat);
+	}
+
+void RE_Matcher::MakeCaseInsensitive()
+	{
+	re_anywhere->MakeCaseInsensitive();
+	re_exact->MakeCaseInsensitive();
 	}
 
 int RE_Matcher::Compile(int lazy)

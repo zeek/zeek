@@ -1,27 +1,9 @@
-Input::EVENT_NEW
-..:
-F
-Input::EVENT_NEW
-bro
-F
-Input::EVENT_NEW
-out
-F
-Input::EVENT_NEW
-stderr.bro
-F
-Input::EVENT_NEW
-stderr output contained nonexistant
-T
-Input::EVENT_NEW
-stderr output contained nonexistant
-T
-Input::EVENT_NEW
-stderr output contained nonexistant
-T
-done
-End of Data event
-input
-Process finished event
-input
-Exit code != 0
+Input::EVENT_NEW line output (stderr=F): ../mydir:
+Input::EVENT_NEW line output (stderr=F): a
+Input::EVENT_NEW line output (stderr=F): b
+Input::EVENT_NEW line output (stderr=F): c
+Input::EVENT_NEW line output (stderr=T): <stderr output contained nonexistant>
+Input::EVENT_NEW line output (stderr=T): <stderr output contained nonexistant>
+Input::EVENT_NEW line output (stderr=T): <stderr output contained nonexistant>
+End of Data event, input
+Process finished event, input, T

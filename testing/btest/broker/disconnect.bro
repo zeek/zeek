@@ -1,22 +1,19 @@
 # @TEST-SERIALIZE: comm
-#
+
 # @TEST-EXEC: btest-bg-run recv "bro -B broker -b ../recv.bro >recv.out"
 # @TEST-EXEC: btest-bg-run send "bro -B broker -b ../send.bro >send.out"
-#
-# @TEST-EXEC: sleep 6 && kill $(cat recv/.pid) && sleep 1 && echo 0 >recv/.exitcode
+
+# @TEST-EXEC: $SCRIPTS/wait-for-file recv/got-event 30 || (btest-bg-wait -k 1 && false)
+# @TEST-EXEC: kill $(cat recv/.pid)
+# @TEST-EXEC: $SCRIPTS/wait-for-pid $(cat recv/.pid) 10 || (btest-bg-wait -k 1 && false)
+# @TEST-EXEC: echo 0 >recv/.exitcode
+
 # @TEST-EXEC: btest-bg-run recv2 "bro -B broker -b ../recv.bro >recv2.out"
-#
-# @TEST-EXEC: btest-bg-wait 25
+# @TEST-EXEC: btest-bg-wait 30
+
 # @TEST-EXEC: btest-diff send/send.out
 # @TEST-EXEC: btest-diff recv/recv.out
 # @TEST-EXEC: btest-diff recv2/recv2.out
-#
-# @TEST-EXEC: cat send/broker.log | awk '/Broker::STATUS/ { $5="XXX"; print; }' >send/broker.filtered.log
-# @TEST-EXEC: cat recv/broker.log | awk '/Broker::STATUS/ { $5="XXX"; print; }' >recv/broker.filtered.log
-# @TEST-EXEC: cat recv2/broker.log | grep -v "lost remote peer" | awk '/Broker::STATUS/ { $5="XXX"; print; }' >recv2/broker.filtered.log
-# @TEST-EXEC: btest-diff send/broker.filtered.log
-# @TEST-EXEC: btest-diff recv/broker.filtered.log
-# @TEST-EXEC: btest-diff recv2/broker.filtered.log
 
 @TEST-START-FILE send.bro
 
@@ -24,42 +21,34 @@ redef Broker::default_connect_retry=1secs;
 redef Broker::default_listen_retry=1secs;
 redef exit_only_after_terminate = T;
 
-event self_terminate()
+global peers = 0;
+const test_topic = "bro/test/my_topic";
+
+event my_event(i: count)
 	{
-	terminate();
+	print "sender got event", i;
 	}
 
-event do_terminate()
-    {
-    schedule 2sec { self_terminate() };
-    }
-
-event print_something(i: int)
-    {
-    print "Something sender", i;
-    }
-
 event bro_init()
-    {
-    Broker::subscribe("bro/event/my_topic");
-    Broker::auto_publish("bro/event/my_topic", print_something);
-    Broker::auto_publish("bro/event/my_topic", do_terminate);
-    Broker::peer("127.0.0.1");
-
-    schedule 3secs { print_something(1) };
-    schedule 12secs { print_something(2) };
-    schedule 13secs { do_terminate() };
-    }
+	{
+	Broker::subscribe(test_topic);
+	Broker::peer("127.0.0.1");
+	}
 
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
-    {
-    print "peer lost", msg;
-    }
+	{
+	print "peer lost", msg;
+
+	if ( peers == 2 )
+		terminate();
+	}
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
-    {
-    print "peer added", msg;
-    }
+	{
+	++peers;
+	print "peer added", msg;
+	Broker::publish(test_topic, my_event, peers);
+	}
 
 @TEST-END-FILE
 
@@ -70,31 +59,33 @@ redef Broker::default_connect_retry=1secs;
 redef Broker::default_listen_retry=1secs;
 redef exit_only_after_terminate = T;
 
-event do_terminate()
-    {
-    terminate();
-    }
+const test_topic = "bro/test/my_topic";
 
-event print_something(i: int)
-    {
-    print "Something receiver", i;
-    }
+event my_event(i: count)
+	{
+	print "receiver got event", i;
+
+	if ( i == 1 )
+		# In the first case, terminate via `kill` from btest command.
+		system("touch got-event");
+	else
+		terminate();
+	}
 
 event bro_init()
-    {
-    Broker::subscribe("bro/event/my_topic");
-    Broker::listen("127.0.0.1");
-    }
+	{
+	Broker::subscribe(test_topic);
+	Broker::listen("127.0.0.1");
+	}
 
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
-    {
-    # In the 2nd run, this may be lost at termination, so don't output.
-    #print "peer lost", msg;
-    }
+	{
+	terminate();
+	}
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
-    {
-    print "peer added", msg;
-    }
+	{
+	print "peer added", msg;
+	}
 
 @TEST-END-FILE

@@ -54,6 +54,8 @@ public:
 
 	void AddPat(const char* pat);
 
+	void MakeCaseInsensitive();
+
 	void SetPat(const char* pat)	{ pattern_text = copy_string(pat); }
 
 	int Compile(int lazy = 0);
@@ -177,6 +179,9 @@ public:
 	virtual ~RE_Matcher() override;
 
 	void AddPat(const char* pat);
+
+	// Makes the matcher as specified to date case-insensitive.
+	void MakeCaseInsensitive();
 
 	int Compile(int lazy = 0);
 

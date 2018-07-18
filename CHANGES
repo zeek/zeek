@@ -1,4 +1,54 @@
 
+2.5-747 | 2018-07-18 09:51:13 -0500
+
+  * Improve some netcontrol unit tests (Jon Siwek, Corelight)
+
+2.5-746 | 2018-07-17 17:51:13 -0500
+
+  * Improve an input framework unit test (Jon Siwek, Corelight)
+
+2.5-745 | 2018-07-17 16:46:16 -0500
+
+  * Add explicit key in Travis known_hosts (Jon Siwek, Corelight)
+
+2.5-743 | 2018-07-17 14:20:19 -0500
+
+  * Port broker::data variant usages to use CAF API directly
+    (Jon Siwek, Corelight)
+
+2.5-741 | 2018-07-16 16:06:02 -0500
+
+  * Improve Specific_RE_Matcher::CompileSet() error condition cleanup
+    (Jon Siwek, Corelight)
+
+2.5-740 | 2018-07-16 16:01:31 -0500
+
+  * Add support for case-insensitive patterns (Vern Paxson, Corelight)
+
+2.5-730 | 2018-07-16 10:39:33 -0500
+
+  * de-restrict pattern-oriented BiFs to no longer require only running at init
+    (Vern Paxson)
+
+  * Add option to toggle extraction of subject alternate names from X509 SAN
+    DNS field (Liviu Valsan)
+
+2.5-725 | 2018-07-03 14:56:10 -0500
+
+  * BIT-1941: improve unit test stability (Corelight)
+
+2.5-723 | 2018-07-03 09:34:10 -0500
+
+  * Fix unstable config framework test (Corelight)
+
+2.5-722 | 2018-07-03 09:16:37 -0500
+
+  * BIT-1941: teach diff-remove-timestamps about time 0 (Corelight)
+
+2.5-721 | 2018-07-02 16:29:21 -0500
+
+  * BIT-1941: improve reliability of broker.disconnect unit test (Corelight)
+
 2.5-719 | 2018-06-27 20:02:52 -0500
 
   * Fix some typos and formatting in NEWS and other documentation

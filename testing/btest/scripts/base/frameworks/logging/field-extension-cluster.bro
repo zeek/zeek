@@ -1,7 +1,6 @@
 # @TEST-SERIALIZE: comm
 #
 # @TEST-EXEC: btest-bg-run manager-1 "cp ../cluster-layout.bro . && CLUSTER_NODE=manager-1 bro %INPUT"
-# @TEST-EXEC: sleep 1
 # @TEST-EXEC: btest-bg-run worker-1  "cp ../cluster-layout.bro . && CLUSTER_NODE=worker-1 bro --pseudo-realtime -C -r $TRACES/wikipedia.trace %INPUT"
 # @TEST-EXEC: btest-bg-wait 20
 # @TEST-EXEC: btest-diff manager-1/http.log
@@ -20,6 +19,9 @@ redef Cluster::nodes = {
 redef exit_only_after_terminate = T;
 @endif
 
+redef Cluster::retry_interval = 1sec;
+redef Broker::default_listen_retry = 1sec;
+redef Broker::default_connect_retry = 1sec;
 redef Log::default_rotation_interval = 0secs;
 
 redef Log::default_scope_sep="_";
@@ -59,9 +61,12 @@ event bro_init()
 	{
 	if ( Cluster::node == "worker-1" )
 		Broker::subscribe("death");
+	}
 
+event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
+	{
 	if ( Cluster::node == "manager-1" )
-		schedule 13sec { kill_worker() };
+		schedule 2sec { kill_worker() };
 	}
 
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)

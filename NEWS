@@ -255,6 +255,21 @@ New Functionality
   semi-present in previous versions of Bro, but required constants as
   its operands; now you can use any pattern-valued expressions.
 
+- You can now specify that a pattern matches in a case-insensitive
+  fashion by adding 'i' to the end of its specification.  So for example
+  /fOO/i == "Foo" yields T, as does /fOO/i in "xFoObar".  Characters
+  enclosed in quotes however keep their casing, so /"fOO"/i in "xFoObar"
+  yields F, though it yields T for "xfOObar".
+
+  You can achieve the same functionality for a subpattern enclosed in
+  parentheses by adding "?i:" to the open parenthesis.  So for example
+  "/foo|(?i:bar)/" will match "BaR", but not "FoO".
+
+  For both ways of specifying case-insensitivity, characters enclosed in
+  double quotes maintain their case-sensitivity.  So for example /"foo"/i
+  will not match "Foo", but it will match "foo".
+
+
 Changed Functionality
 ---------------------
 
@@ -330,6 +345,9 @@ Changed Functionality
     "signature_and_hashalgorithm".
 
 - The "dnp3_header_block" event no longer has the "start" parameter
+
+- The string_to_pattern() built-in (and the now-deprecated merge_pattern()
+  built-in) is no longer restricted to only be called at initialization time.
 
 Removed Functionality
 ---------------------

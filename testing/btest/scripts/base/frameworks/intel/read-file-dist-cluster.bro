@@ -1,7 +1,6 @@
 # @TEST-SERIALIZE: comm
 #
 # @TEST-EXEC: btest-bg-run manager-1 BROPATH=$BROPATH:.. CLUSTER_NODE=manager-1 bro %INPUT
-# @TEST-EXEC: sleep 2
 # @TEST-EXEC: btest-bg-run worker-1  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-1 bro %INPUT
 # @TEST-EXEC: btest-bg-run worker-2  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-2 bro %INPUT
 # @TEST-EXEC: btest-bg-wait -k 10
@@ -26,6 +25,10 @@ e@mail.com	Intel::EMAIL	source1	Phishing email source	http://some-data-distribut
 @TEST-END-FILE
 
 @load base/frameworks/control
+redef Cluster::retry_interval = 1sec;
+redef Broker::default_listen_retry = 1sec;
+redef Broker::default_connect_retry = 1sec;
+
 redef Log::default_rotation_interval=0sec;
 
 module Intel;

@@ -1,4 +1,8 @@
 
+2.5-747 | 2018-07-18 09:51:13 -0500
+
+  * Improve some netcontrol unit tests (Jon Siwek, Corelight)
+
 2.5-746 | 2018-07-17 17:51:13 -0500
 
   * Improve an input framework unit test (Jon Siwek, Corelight)

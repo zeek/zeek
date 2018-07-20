@@ -52,7 +52,7 @@ export {
 	option teststring = "a";
 	option test_set: set[string] = {};
 	option test_set_full: set[count] = {1, 2, 3, 7, 10, 15};
-	#option test_vector: vector of count = {};
+	option test_vector: vector of count = {};
 }
 
 event bro_init()

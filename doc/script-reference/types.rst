@@ -526,6 +526,15 @@ Here is a more detailed description of each type:
 
         |s|
 
+    You can compute the union, intersection, or difference of two sets
+    using the ``|``, ``&``, and ``-`` operators.  You can compare
+    sets for equality (they have exactly the same elements) using ``==``.
+    The ``<`` operator returns ``T`` if the lefthand operand is a proper
+    subset of the righthand operand.  Similarly, ``<=`` returns ``T``
+    if the lefthand operator is a subset (not necessarily proper, i.e.,
+    it may be equal to the righthand operand).  The operators ``!=``, ``>``
+    and ``>=`` provide the expected complementary operations.
+
     See the :bro:keyword:`for` statement for info on how to iterate over
     the elements in a set.
 

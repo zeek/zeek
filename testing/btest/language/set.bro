@@ -136,5 +136,50 @@ event bro_init()
 	delete sg3["curly"];
 	test_case( "remove element", |sg3| == 3 );
 	test_case( "!in operator", "curly" !in sg3 );
+
+
+	local a = set(1,5,7,9,8,14);
+	local b = set(1,7,9,2);
+
+	local a_plus_b = set(1,2,5,7,9,8,14);
+	local a_also_b = set(1,7,9);
+	local a_sans_b = set(5,8,14);
+	local b_sans_a = set(2);
+
+	local a_or_b = a | b;
+	local a_and_b = a & b;
+
+	test_case( "union", a_or_b == a_plus_b );
+	test_case( "intersection", a_and_b == a_plus_b );
+	test_case( "difference", a - b == a_sans_b );
+	test_case( "difference", b - a == b_sans_a );
+
+	test_case( "union/inter.", |b & set(1,7,9,2)| == |b | set(1,7,2,9)| );
+	test_case( "relational", |b & a_or_b| == |b| && |b| < |a_or_b| );
+	test_case( "relational", b < a_or_b && a < a_or_b && a_or_b > a_and_b );
+
+	test_case( "subset", b < a );
+	test_case( "subset", a < b );
+	test_case( "subset", b < (a | set(2)) );
+	test_case( "superset", b > a );
+	test_case( "superset", b > (a | set(2)) );
+	test_case( "superset", b | set(8, 14, 5) > (a | set(2)) );
+	test_case( "superset", b | set(8, 14, 99, 5) > (a | set(2)) );
+
+	test_case( "non-ordering", (a <= b) || (a >= b) );
+	test_case( "non-ordering", (a <= a_or_b) && (a_or_b >= b) );
+
+	test_case( "superset", (b | set(14, 5)) > a - set(8) );
+	test_case( "superset", (b | set(14)) > a - set(8) );
+	test_case( "superset", (b | set(14)) > a - set(8,5) );
+	test_case( "superset", b >= a - set(5,8,14) );
+	test_case( "superset", b > a - set(5,8,14) );
+	test_case( "superset", (b - set(2)) > a - set(5,8,14) );
+	test_case( "equality", a == a | set(5) );
+	test_case( "equality", a == a | set(5,11) );
+	test_case( "non-equality", a != a | set(5,11) );
+	test_case( "equality", a == a | set(5,11) );
+
+	test_case( "magnitude", |a_and_b| == |a_or_b|);
 }
 

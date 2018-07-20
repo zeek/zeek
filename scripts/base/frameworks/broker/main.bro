@@ -51,6 +51,11 @@ export {
 	## all peers.
 	const ssl_keyfile = "" &redef;
 
+	## The number of buffered messages at the Broker/CAF layer after which
+	## a subscriber considers themselves congested (i.e. tune the congestion
+	## control mechanisms).
+	const congestion_queue_size = 200 &redef;
+
 	## Max number of threads to use for Broker/CAF functionality.
 	## Using zero will cause this to be automatically determined
 	## based on number of available CPUs.

@@ -30,10 +30,6 @@ static const int LOG_BATCH_SIZE = 400;
 // batch.
 static const double LOG_BUFFER_INTERVAL = 1.0;
 
-// Number of buffered messages (at the Broker/CAF layer) after which
-// subscribers consider themselves congested.
-static const size_t SUBSCRIBER_MAX_QSIZE = 20u;
-
 static inline Val* get_option(const char* option)
 	{
 	auto id = global_scope()->Lookup(option);
@@ -59,9 +55,9 @@ public:
 
 class BrokerState {
 public:
-	BrokerState(BrokerConfig config)
+	BrokerState(BrokerConfig config, size_t congestion_queue_size)
 		: endpoint(std::move(config)),
-		  subscriber(endpoint.make_subscriber({}, SUBSCRIBER_MAX_QSIZE)),
+		  subscriber(endpoint.make_subscriber({}, congestion_queue_size)),
 		  status_subscriber(endpoint.make_status_subscriber(true))
 		{
 		}
@@ -216,7 +212,8 @@ void Manager::InitPostScript()
 		// when using this sleep duration.
 		config.set("work-stealing.relaxed-sleep-duration-us", 64000);
 
-	bstate = std::make_shared<BrokerState>(std::move(config));
+	auto cqs = get_option("Broker::congestion_queue_size")->AsCount();
+	bstate = std::make_shared<BrokerState>(std::move(config), cqs);
 	}
 
 void Manager::Terminate()

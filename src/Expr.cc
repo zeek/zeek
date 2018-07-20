@@ -456,7 +456,13 @@ Val* UnaryExpr::Eval(Frame* f) const
 	if ( is_vector(v) )
 		{
 		VectorVal* v_op = v->AsVectorVal();
-		VectorVal* result = new VectorVal(Type()->AsVectorType());
+		VectorType* out_t;
+		if ( Type()->Tag() == TYPE_ANY )
+			out_t = v->Type()->AsVectorType();
+		else
+			out_t = Type()->AsVectorType();
+
+		VectorVal* result = new VectorVal(out_t);
 
 		for ( unsigned int i = 0; i < v_op->Size(); ++i )
 			{

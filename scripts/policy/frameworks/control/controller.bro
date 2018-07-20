@@ -126,14 +126,17 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string) &priority=
 		{
 		# Send all &redef'able consts to the peer.
 		local ids = configurable_ids();
+		local publish_count = 0;
 
 		for ( id in ids )
 			{
 			local topic = fmt("%s/id/%s", Control::topic_prefix, id);
-			Broker::publish_id(topic, id);
+
+			if ( Broker::publish_id(topic, id) )
+				++publish_count;
 			}
 
-		Reporter::info(fmt("Control framework sent %d IDs", |ids|));
+		Reporter::info(fmt("Control framework sent %d IDs", publish_count));
 		}
 
 	send_control_request();

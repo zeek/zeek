@@ -4,6 +4,7 @@ bison_target(PACParser pac_parse.yy ${CMAKE_CURRENT_BINARY_DIR}/pac_parse.cc
              COMPILE_FLAGS "--debug")
 flex_target(PACScanner pac_scan.ll ${CMAKE_CURRENT_BINARY_DIR}/pac_scan.cc)
 add_flex_bison_dependency(PACScanner PACParser)
+set_property(SOURCE pac_scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "-Wno-sign-compare")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}
                     ${CMAKE_CURRENT_BINARY_DIR})

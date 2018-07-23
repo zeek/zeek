@@ -5,6 +5,36 @@ module Option;
 
 %%{
 #include "NetVar.h"
+#include "broker/Data.h"
+
+static bool call_option_handlers_and_set_value(StringVal* name, ID* i, Val* val,
+                                               StringVal* location)
+	{
+	val->Ref();
+	if ( i->HasOptionHandlers() )
+		{
+		for ( auto handler_function : i->GetOptionHandlers() )
+			{
+			val_list vl(2);
+			vl.append(name->Ref());
+			vl.append(val);
+			if ( handler_function->FType()->AsFuncType()->ArgTypes()->Types()->length() == 3 )
+				vl.append(location->Ref());
+
+			val = handler_function->Call(&vl); // consumed by next call.
+			if ( ! val )
+				{
+				// Someone messed up, don't change value and just return
+				return false;
+				}
+			}
+		}
+
+	// clone to prevent changes
+	i->SetVal(val->Clone());
+	Unref(val); // Either ref'd once or function call result.
+	return true;
+	}
 %%}
 
 ## Set an option to a new value. This change will also cause the option change
@@ -18,7 +48,12 @@ module Option;
 ##
 ## Returns: true on success, false when an error occurred.
 ##
-## .. bro:see:: Option::set_change_handler
+## .. bro:see:: Option::set_change_handler Config::set_value
+##
+## .. note:: :bro:id:`Option::set` only works on one node and does not distribute
+##           new values across a cluster. The higher-level :bro:id:`Config::set_value`
+##           supports clusterization and should typically be used instead of this
+##           lower-level function.
 function Option::set%(ID: string, val: any, location: string &default=""%): bool
 	%{
 	auto i = global_scope()->Lookup(ID->CheckString());
@@ -41,36 +76,32 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 		return new Val(0, TYPE_BOOL);
 		}
 
+	if ( same_type(val->Type(), bro_broker::DataVal::ScriptDataType()) )
+		{
+		auto dv = static_cast<bro_broker::DataVal*>(val->AsRecordVal()->Lookup(0));
+		auto val_from_data = dv->castTo(i->Type());
+
+		if ( ! val_from_data )
+			{
+			builtin_error(fmt("Incompatible type for set of ID '%s': got broker data '%s', need '%s'",
+				ID->CheckString(), dv->data.get_type_name(), type_name(i->Type()->Tag())));
+			return new Val(0, TYPE_BOOL);
+			}
+
+		auto rval = call_option_handlers_and_set_value(ID, i, val_from_data, location);
+		Unref(val_from_data);
+		return new Val(rval, TYPE_BOOL);
+		}
+
 	if ( ! same_type(i->Type(), val->Type()) )
 		{
 		builtin_error(fmt("Incompatible type for set of ID '%s': got '%s', need '%s'",
 			ID->CheckString(), type_name(val->Type()->Tag()), type_name(i->Type()->Tag())));
+		return new Val(0, TYPE_BOOL);
 		}
 
-	val->Ref();
-	if ( i->HasOptionHandlers() )
-		{
-		for ( auto handler_function : i->GetOptionHandlers() )
-			{
-			val_list vl(2);
-			vl.append(ID->Ref());
-			vl.append(val);
-			if ( handler_function->FType()->AsFuncType()->ArgTypes()->Types()->length() == 3 )
-				vl.append(location->Ref());
-
-			val = handler_function->Call(&vl); // consumed by next call.
-			if ( ! val )
-				{
-				// Someone messed up, don't change value and just return
-				return new Val(0, TYPE_BOOL);
-				}
-			}
-		}
-
-	// clone to prevent changes
-	i->SetVal(val->Clone());
-	Unref(val); // Either ref'd once or function call result.
-	return new Val(1, TYPE_BOOL);
+	auto rval = call_option_handlers_and_set_value(ID, i, val, location);
+	return new Val(rval, TYPE_BOOL);
 	%}
 
 ## Set a change handler for an option. The change handler will be

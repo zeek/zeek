@@ -1,4 +1,14 @@
 
+2.5-765 | 2018-07-23 23:38:28 +0000
+
+  * Clusterization of configureation framework. (Johanna Amann, Corelight)
+
+  * Fix special-case-bug for vectors in UnaryExpr. (Johanna Amann, Corelight)
+
+  * Teach Option::set to unwrap Broker::Data values (Jon Siwek, Corelight)
+
+  * Fix some compiler warnings. (Robin Sommer, Corelight)
+
 2.5-749 | 2018-07-20 12:08:06 -0500
 
   * Make Broker congestion queue size tunable and increase default

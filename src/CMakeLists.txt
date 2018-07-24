@@ -428,6 +428,7 @@ install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
         PATTERN "*.bif.func_h"
         PATTERN "*.bif.netvar_h"
         PATTERN "*.bif.h"
+        PATTERN "CMakeFiles" EXCLUDE
 )
 
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sqlite3.h

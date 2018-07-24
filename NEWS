@@ -275,6 +275,8 @@ New Functionality
   creating "bro-devel" packages providing all files necessary to build
   plugins.
 
+- Bro now supports PPPoE over QinQ.
+
 Changed Functionality
 ---------------------
 

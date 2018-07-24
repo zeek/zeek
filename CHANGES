@@ -1,4 +1,8 @@
 
+2.5-773 | 2018-07-24 15:04:41 +0000
+
+  * BIT-1950: Support PPPoE over QinQ (Jon Siwek, Corelight)
+
 2.5-771 | 2018-07-24 02:26:17 +0000
 
   * Support building plugins from Bro installation prefix so that it

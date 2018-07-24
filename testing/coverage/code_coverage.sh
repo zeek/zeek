@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # On a Bro build configured with --enable-coverage, this script
 # produces a code coverage report after Bro has been invoked. The
@@ -17,7 +17,7 @@
 #	4b. Send .gcov files to appropriate path
 #
 CURR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )" # Location of script
-BASE="$(realpath "${CURR}/../../")"
+BASE="$(readlink -f "${CURR}/../../")"
 TMP="${CURR}/tmp.$$"
 mkdir -p $TMP
 
@@ -96,14 +96,20 @@ done
 echo "ok"
 
 # 3a. Run gcov (-p to preserve path) and move into tmp directory
+# ... if system does not have gcov installed, exit with message.
 echo -n "Creating coverage files... "
-( cd "$TMP" && find "$BASE" -name "*.o" -exec gcov -p {} > /dev/null 2>&1 \; )
-NUM_GCOVS=$(ls "$TMP"/*.gcov | wc -l)
-if [ $NUM_GCOVS -eq 0 ]; then
-	echo "no gcov files produced, aborting"
+if which gcov; then
+	( cd "$TMP" && find "$BASE" -name "*.o" -exec gcov -p {} > /dev/null 2>&1 \; )
+	NUM_GCOVS=$(find "$TMP" -name *.gcov | wc -l)
+	if [ $NUM_GCOVS -eq 0 ]; then
+		echo "no gcov files produced, aborting"
+		exit 1
+	fi
+	echo "ok, $NUM_GCOVS coverage files"
+else
+	echo "gcov is not installed on system, aborting"
 	exit 1
 fi
-echo "ok, $NUM_GCOVS coverage files"
 
 # 3b. Prune gcov files that fall outside of the Bro tree:
 # Look for files containing gcov's slash substitution character "#"

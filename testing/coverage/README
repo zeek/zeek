@@ -1,0 +1,13 @@
+On a Bro build configured with --enable-coverage, this script produces a code coverage report after Bro has been invoked. The intended application of this script is after the btest testsuite has run. This combination (btests first, coverage computation afterward) happens automatically when running "make" in the testing directory.  This script puts .gcov files (which are included in .gitignore) alongside the corresponding source files.
+
+This depends on gcov, which should come with your gcc. If gcov is not installed, the script will abort with an error message.
+
+TODO: Use `make html` as make target in this directory to output the html files that gcov can create (must have lcov on system).
+
+The goal of code-coverage.sh script is to automate code coverage testing. See the following steps for the code structure:
+	1. Run test suite
+ 	2. Check for .gcda files existing.
+	3a. Run gcov (-p to preserve path)
+	3b. Prune .gcov files for objects outside of the Bro tree
+	4a. Analyze .gcov files generated and create summary file
+	4b. Send .gcov files to appropriate path

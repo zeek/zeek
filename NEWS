@@ -269,6 +269,11 @@ New Functionality
   double quotes maintain their case-sensitivity.  So for example /"foo"/i
   will not match "Foo", but it will match "foo".
 
+- "make install" now installs Bro's include headers (and more) into
+  --prefix so that compiling plugins does no longer need access to a
+  source/build tree. For OS distributions, this also facilitates
+  creating "bro-devel" packages providing all files necessary to build
+  plugins.
 
 Changed Functionality
 ---------------------

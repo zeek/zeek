@@ -1,4 +1,15 @@
 
+2.5-771 | 2018-07-24 02:26:17 +0000
+
+  * Support building plugins from Bro installation prefix so that it
+    does no longer need access to a Bro source/build tree. This
+    required installing various Bro headers, BinPAC and it's headers,
+    bifcl, and Bro's custom CMake modules. (Jon Siwek, Corelight)
+
+  * Add binpac to install process. (Jon Siwek, Corelight)
+
+  * Move bifcl to a separate repo. (Jon Siwek, Corelight)
+
 2.5-766 | 2018-07-24 01:39:07 +0000
 
   * Clusterization of configureation framework. (Johanna Amann, Corelight)

@@ -238,6 +238,20 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/bro-config.h.in
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/bro-config.h DESTINATION include/bro)
 
+if ( CAF_ROOT_DIR )
+  set(BRO_CONFIG_CAF_ROOT_DIR ${CAF_ROOT_DIR})
+else ()
+  set(BRO_CONFIG_CAF_ROOT_DIR ${BRO_ROOT_DIR})
+endif ()
+
+if ( BinPAC_ROOT_DIR )
+  set(BRO_CONFIG_BINPAC_ROOT_DIR ${BinPAC_ROOT_DIR})
+else ()
+  set(BRO_CONFIG_BINPAC_ROOT_DIR ${BRO_ROOT_DIR})
+endif ()
+
+set(BRO_CONFIG_BROKER_ROOT_DIR ${BRO_ROOT_DIR})
+
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/bro-config.in
                ${CMAKE_CURRENT_BINARY_DIR}/bro-config @ONLY)
 install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/bro-config DESTINATION bin)

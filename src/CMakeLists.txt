@@ -98,24 +98,6 @@ flex_target(Scanner scan.l ${CMAKE_CURRENT_BINARY_DIR}/scan.cc
 set_property(SOURCE scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "-Wno-sign-compare")
 
 ########################################################################
-## bifcl (BIF compiler) target
-
-set(bifcl_SRCS
-   ${BISON_BIFParser_INPUT}
-   ${FLEX_BIFScanner_INPUT}
-   ${BISON_BIFParser_OUTPUTS}
-   ${FLEX_BIFScanner_OUTPUTS}
-   bif_arg.cc
-   module_util.cc
-   bif_arg.h
-   module_util.h
-)
-
-add_executable(bifcl ${bifcl_SRCS})
-
-target_link_libraries(bifcl)
-
-########################################################################
 ## bifcl-dependent targets
 
 include(BifCl)
@@ -431,3 +413,23 @@ install(CODE "
        ${BRO_SCRIPT_INSTALL_PATH}/policy/tuning/logs-to-elasticsearch.bro
    )
 ")
+
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+        DESTINATION include/bro
+        FILES_MATCHING
+        PATTERN "*.h"
+        PATTERN "*.pac"
+        PATTERN "3rdparty/*" EXCLUDE
+)
+
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
+        DESTINATION include/bro
+        FILES_MATCHING
+        PATTERN "*.bif.func_h"
+        PATTERN "*.bif.netvar_h"
+        PATTERN "*.bif.h"
+)
+
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sqlite3.h
+        DESTINATION include/bro/3rdparty
+)

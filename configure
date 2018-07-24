@@ -134,7 +134,6 @@ append_cache_entry ENABLE_DEBUG         BOOL   false
 append_cache_entry ENABLE_PERFTOOLS     BOOL   false
 append_cache_entry ENABLE_PERFTOOLS_DEBUG BOOL false
 append_cache_entry ENABLE_JEMALLOC      BOOL   false
-append_cache_entry BinPAC_SKIP_INSTALL  BOOL   true
 append_cache_entry BUILD_SHARED_LIBS    BOOL   true
 append_cache_entry INSTALL_BROCCOLI     BOOL   false
 append_cache_entry INSTALL_AUX_TOOLS    BOOL   true

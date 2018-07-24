@@ -30,7 +30,13 @@ add_library(binpac_lib STATIC ${binpac_lib_SRCS})
 set_target_properties(binpac_lib PROPERTIES OUTPUT_NAME binpac)
 
 install(TARGETS binpac_lib DESTINATION lib)
-install(FILES ${binpac_headers} DESTINATION include)
+
+if ( BRO_ROOT_DIR )
+    # Installed in binpac subdir just for organization purposes.
+    install(FILES ${binpac_headers} DESTINATION include/binpac)
+else ()
+    install(FILES ${binpac_headers} DESTINATION include)
+endif ()
 
 # This is set to assist superprojects that want to build BinPac
 # from source and rely on it as a target

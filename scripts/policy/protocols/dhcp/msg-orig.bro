@@ -17,5 +17,5 @@ export {
 
 event DHCP::aggregate_msgs(ts: time, id: conn_id, uid: string, is_orig: bool, msg: DHCP::Msg, options: DHCP::Options) &priority=3
 	{
-	log_info$msg_orig[|log_info$msg_orig|] = is_orig ? id$orig_h : id$resp_h;
+	log_info$msg_orig += is_orig ? id$orig_h : id$resp_h;
 	}

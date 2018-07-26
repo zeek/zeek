@@ -178,7 +178,7 @@ event DHCP::aggregate_msgs(ts: time, id: conn_id, uid: string, is_orig: bool, ms
 	if ( uid !in log_info$uids )
 		add log_info$uids[uid];
 
-	log_info$msg_types[|log_info$msg_types|] = DHCP::message_types[msg$m_type];
+	log_info$msg_types += DHCP::message_types[msg$m_type];
 
 	# Let's watch for messages in any DHCP message type
 	# and split them out based on client and server.

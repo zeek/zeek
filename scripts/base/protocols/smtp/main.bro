@@ -295,7 +295,7 @@ event mime_one_header(c: connection, h: mime_header_rec) &priority=3
 		c$smtp$process_received_from = F;
 		}
 	if ( c$smtp$path[|c$smtp$path|-1] != ip )
-		c$smtp$path[|c$smtp$path|] = ip;
+		c$smtp$path += ip;
 	}
 
 event connection_state_remove(c: connection) &priority=-5

@@ -43,7 +43,7 @@ function sample_add_sample(obs:Observation, rv: ResultVal)
 	++rv$sample_elements;
 
 	if ( |rv$samples| < rv$num_samples )
-		rv$samples[|rv$samples|] = obs;
+		rv$samples += obs;
 	else
 		{
 		local ra = rand(rv$sample_elements);

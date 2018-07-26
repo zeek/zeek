@@ -91,7 +91,7 @@ function broker_to_bro_vector_recurse(it: opaque of Broker::VectorIterator,
 	if ( Broker::vector_iterator_last(it) )
 		return rval;
 
-	rval[|rval|] = Broker::vector_iterator_value(it) as string;
+	rval += Broker::vector_iterator_value(it) as string;
 	Broker::vector_iterator_next(it);
 	return broker_to_bro_vector_recurse(it, rval);
 	}

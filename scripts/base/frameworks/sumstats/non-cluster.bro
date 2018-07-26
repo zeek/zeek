@@ -11,7 +11,7 @@ event SumStats::process_epoch_result(ss: SumStat, now: time, data: ResultTable)
 	for ( key in data )
 		{
 		ss$epoch_result(now, key, data[key]);
-		keys_to_delete[|keys_to_delete|] = key;
+		keys_to_delete += key;
 
 		if ( --i == 0 )
 			break;

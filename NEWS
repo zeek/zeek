@@ -277,6 +277,9 @@ New Functionality
 
 - Bro now supports PPPoE over QinQ.
 
+- An expression of the form v += e will append the value of the expression
+  e to the end of the vector v (of course assuming type-compatbility).
+
 Changed Functionality
 ---------------------
 

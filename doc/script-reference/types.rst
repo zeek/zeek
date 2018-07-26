@@ -599,6 +599,20 @@ Here is a more detailed description of each type:
 
         |v|
 
+    A particularly common operation on a vector is to append an element
+    to its end.  You can do so using:
+
+    .. code:: bro
+
+        v += e;
+
+    where if e's type is ``X``, v's type is ``vector of X``.  Note that
+    this expression is equivalent to:
+
+    .. code:: bro
+
+        v[|v|] = e;
+
     Vectors of integral types (``int`` or ``count``) support the pre-increment
     (``++``) and pre-decrement operators (``--``), which will increment or
     decrement each element in the vector.

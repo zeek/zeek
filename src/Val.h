@@ -1015,8 +1015,6 @@ public:
 
 	// Returns false if the type of the argument was wrong.
 	// The vector will automatically grow to accomodate the index.
-	// 'assigner" is the expression that is doing the assignment;
-	// it's just used for pinpointing errors.
 	//
 	// Note: does NOT Ref() the element! Remember to do so unless
 	//       the element was just created and thus has refcount 1.

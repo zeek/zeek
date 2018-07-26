@@ -1390,7 +1390,8 @@ bool AddExpr::DoUnserialize(UnserialInfo* info)
 	}
 
 AddToExpr::AddToExpr(Expr* arg_op1, Expr* arg_op2)
-: BinaryExpr(EXPR_ADD_TO, arg_op1->MakeLvalue(), arg_op2)
+: BinaryExpr(EXPR_ADD_TO,
+	     is_vector(arg_op1) ? arg_op1 : arg_op1->MakeLvalue(), arg_op2)
 	{
 	if ( IsError() )
 		return;
@@ -1404,6 +1405,32 @@ AddToExpr::AddToExpr(Expr* arg_op1, Expr* arg_op2)
 		SetType(base_type(bt1));
 	else if ( BothInterval(bt1, bt2) )
 		SetType(base_type(bt1));
+
+	else if ( IsVector(bt1) )
+		{
+		bt1 = op1->Type()->AsVectorType()->YieldType()->Tag();
+
+		if ( IsArithmetic(bt1) )
+			{
+			if ( IsArithmetic(bt2) )
+				{
+				if ( bt2 != bt1 )
+					op2 = new ArithCoerceExpr(op2, bt1);
+
+				SetType(op1->Type()->Ref());
+				}
+
+			else
+				ExprError("appending non-arithmetic to arithmetic vector");
+			}
+
+		else if ( bt1 != bt2 )
+			ExprError("incompatible vector append");
+
+		else
+			SetType(op1->Type()->Ref());
+		}
+
 	else
 		ExprError("requires two arithmetic or two string operands");
 	}
@@ -1419,6 +1446,14 @@ Val* AddToExpr::Eval(Frame* f) const
 		{
 		Unref(v1);
 		return 0;
+		}
+
+	if ( is_vector(v1) )
+		{
+		VectorVal* vv = v1->AsVectorVal();
+		if ( ! vv->Assign(vv->Size(), v2) )
+			reporter->Error("type-checking failed in vector append");
+		return v1;
 		}
 
 	Val* result = Fold(v1, v2);

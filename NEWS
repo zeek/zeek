@@ -4,6 +4,24 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as BroControl and Broccoli, come with
 their own ``CHANGES``.)
 
+Bro 2.5.5
+=========
+
+- "Weird" events are now generally suppressed/sampled by default according to
+  some tunable parameters:
+
+  - Weird::sampling_whitelist
+  - Weird::sampling_threshold
+  - Weird::sampling_rate
+  - Weird::sampling_duration
+
+  Those options can be changed if one needs the previous behavior of
+  a "net_weird", "flow_weird", or "conn_weird" event being raised for
+  every single event.  Otherwise, there is a new weird_stats.log which
+  contains concise summaries of weird counts per type per time period
+  and the original weird.log may not differ much either, except in
+  the cases where a particular weird type exceeds the sampling threshold.
+
 Bro 2.5.4
 =========
 

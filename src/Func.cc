@@ -722,6 +722,7 @@ void init_builtin_funcs()
 	FileAnalysisStats = internal_type("FileAnalysisStats")->AsRecordType();
 	ThreadStats = internal_type("ThreadStats")->AsRecordType();
 	BrokerStats = internal_type("BrokerStats")->AsRecordType();
+	ReporterStats = internal_type("ReporterStats")->AsRecordType();
 
 	var_sizes = internal_type("var_sizes")->AsTableType();
 

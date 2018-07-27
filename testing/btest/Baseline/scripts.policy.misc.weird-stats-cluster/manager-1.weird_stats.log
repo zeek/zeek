@@ -1,0 +1,13 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	weird_stats
+#open	2018-07-26-23-11-27
+#fields	ts	name	num_seen
+#types	time	string	count
+1532646687.827249	weird3	1
+1532646687.827249	weird2	1000
+1532646687.827249	weird1	2000
+1532646692.877464	weird1	2
+#close	2018-07-26-23-11-34

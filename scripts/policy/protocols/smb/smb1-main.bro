@@ -316,7 +316,7 @@ event smb_pipe_request(c: connection, hdr: SMB1::Header, op_num: count)
 	if ( ! f?$uuid )
 		{
 		# TODO: figure out why this is happening.
-		event conn_weird("smb_pipe_request_missing_uuid", c, "");
+		Reporter::conn_weird("smb_pipe_request_missing_uuid", c, "");
 		return;
 		}
 	local arg = fmt("%s: %s",

@@ -5,6 +5,9 @@
 
 #include <sys/types.h>
 
+#include <unordered_map>
+#include <string>
+
 #include "Dict.h"
 #include "Val.h"
 #include "Timer.h"
@@ -264,6 +267,9 @@ public:
 	uint32 GetOrigFlowLabel() { return orig_flow_label; }
 	uint32 GetRespFlowLabel() { return resp_flow_label; }
 
+	bool PermitWeird(const char* name, uint64 threshold, uint64 rate,
+	                 double duration);
+
 protected:
 
 	Connection()	{ persistent = 0; }
@@ -328,6 +334,14 @@ protected:
 	analyzer::pia::PIA* primary_PIA;
 
 	Bro::UID uid;	// Globally unique connection ID.
+
+	struct WeirdState {
+		WeirdState() { count = 0; sampling_start_time = 0; }
+		uint64 count = 0;
+		double sampling_start_time = 0;
+	};
+
+	std::unordered_map<std::string, WeirdState> weird_state;
 };
 
 class ConnectionTimer : public Timer {

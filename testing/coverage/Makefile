@@ -9,7 +9,4 @@ distclean: cleanup
 	@find ../../ -name "*.gcno" -exec rm {} \;
 
 html:
-	@(cd ../../; if which lcov; then\
-		lcov --capture --directory . --output-file coverage.info \
-		&& genhtml coverage.info && rm coverage.info; \
-	fi)
+	@./lcov_html.sh $(COVERAGE_HTML_DIR)

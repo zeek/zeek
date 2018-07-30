@@ -17,13 +17,12 @@
 #	4b. Send .gcov files to appropriate path
 #
 CURR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )" # Location of script
-BASE="$(readlink -f "${CURR}/../../")"
+BASE="$( cd "$CURR" && cd ../../ && pwd )"
 TMP="${CURR}/tmp.$$"
 mkdir -p $TMP
 
 # DEFINE CLEANUP PROCESS
 function finish {
-	find "$BASE" -name "*.gcda" -exec rm {} \; > /dev/null 2>&1
 	rm -rf $TMP
 }
 trap finish EXIT
@@ -98,13 +97,20 @@ echo "ok"
 # 3a. Run gcov (-p to preserve path) and move into tmp directory
 # ... if system does not have gcov installed, exit with message.
 echo -n "Creating coverage files... "
-if which gcov; then
+if which gcov > /dev/null 2>&1; then
 	( cd "$TMP" && find "$BASE" -name "*.o" -exec gcov -p {} > /dev/null 2>&1 \; )
 	NUM_GCOVS=$(find "$TMP" -name *.gcov | wc -l)
 	if [ $NUM_GCOVS -eq 0 ]; then
 		echo "no gcov files produced, aborting"
 		exit 1
 	fi
+
+	# Account for '^' that occurs in macOS due to LLVM
+	# This character seems to be equivalent to ".." (up 1 dir)
+	for file in $(ls $TMP/*.gcov | grep '\^'); do
+		mv $file "$(sed 's/#[^#]*#\^//g' <<< "$file")"
+	done
+
 	echo "ok, $NUM_GCOVS coverage files"
 else
 	echo "gcov is not installed on system, aborting"

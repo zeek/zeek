@@ -2,12 +2,7 @@ On a Bro build configured with --enable-coverage, this script produces a code co
 
 This depends on gcov, which should come with your gcc. If gcov is not installed, the script will abort with an error message.
 
-TODO: Use `make html` as make target in this directory to output the html files that gcov can create (must have lcov on system).
+After `make all` in the upper directory, use `make html` as make target in this directory to output the html files that lcov can create. By default, the html files will be contained in a directory named "coverage-html" in the base directory. To set a custom name, use `make html COVERAGE_HTML_DIR=custom-dir-name`.
 
-The goal of code-coverage.sh script is to automate code coverage testing. See the following steps for the code structure:
-	1. Run test suite
- 	2. Check for .gcda files existing.
-	3a. Run gcov (-p to preserve path)
-	3b. Prune .gcov files for objects outside of the Bro tree
-	4a. Analyze .gcov files generated and create summary file
-	4b. Send .gcov files to appropriate path
+The script code_coverage.sh is triggered by `make coverage` (included in `make` in /testing), and its goal is to automate code coverage testing. 
+The script lcov_html.sh is triggered by `make html`, and its goal is to create html files from the aforementioned coverage data.

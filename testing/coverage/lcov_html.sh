@@ -22,19 +22,19 @@ function verify-run {
 }
 trap finish EXIT 
 
+TMP=".tmp.$$"
 COVERAGE_FILE="./$TMP/coverage.info"
 COVERAGE_HTML_DIR="${1:-"coverage-html"}"
-REMOVE_TARGETS="*.yy *.ll *.y *.l"
+REMOVE_TARGETS="*.yy *.ll *.y *.l */bro.dir/* *.bif"
 
 # 1. Move to base dir, create tmp dir
 cd ../../; 
-TMP=".tmp.$$"
 mkdir "$TMP"
 
 # 2. Check for .gcno and .gcda file presence
 echo -n "Checking for coverage files... "
 for pat in gcda gcno; do
-    if [ -z "$(find "$BASE" -name "*.$pat" 2>/dev/null)" ]; then
+    if [ -z "$(find . -name "*.$pat" 2>/dev/null)" ]; then
         echo "no .$pat files, nothing to do"
 	exit 0
     fi
@@ -58,4 +58,4 @@ done
 
 # 5. Create HTML files. 
 echo -n "Creating HTML files... "
-verify-run "genhtml -q -o $COVERAGE_HTML_DIR $COVERAGE_FILE"
+verify-run "genhtml -o $COVERAGE_HTML_DIR $COVERAGE_FILE"

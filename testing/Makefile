@@ -25,3 +25,4 @@ coverage:
 	@rm -f brocov.tmp.*
 	@cd coverage && make coverage
 
+.PHONY: coverage

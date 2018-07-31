@@ -140,11 +140,11 @@ include_directories(BEFORE
 # Optional Dependencies
 
 set(USE_GEOIP false)
-find_package(LibGeoIP)
-if (LIBGEOIP_FOUND)
+find_package(LibMMDB)
+if (LibMMDB_FOUND)
     set(USE_GEOIP true)
-    include_directories(BEFORE ${LibGeoIP_INCLUDE_DIR})
-    list(APPEND OPTLIBS ${LibGeoIP_LIBRARY})
+    include_directories(BEFORE ${LibMMDB_INCLUDE_DIR})
+    list(APPEND OPTLIBS ${LibMMDB_LIBRARY})
 endif ()
 
 set(USE_KRB5 false)
@@ -327,7 +327,7 @@ message(
     "\nBroctl:            ${INSTALL_BROCTL}"
     "\nAux. Tools:        ${INSTALL_AUX_TOOLS}"
     "\n"
-    "\nGeoIP:             ${USE_GEOIP}"
+    "\nlibmaxminddb:      ${USE_GEOIP}"
     "\nKerberos:          ${USE_KRB5}"
     "\ngperftools found:  ${HAVE_PERFTOOLS}"
     "\n        tcmalloc:  ${USE_PERFTOOLS_TCMALLOC}"

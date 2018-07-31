@@ -3599,77 +3599,269 @@ function lookup_hostname%(host: string%) : addr_set
 %%{
 #ifdef USE_GEOIP
 extern "C" {
-#include <GeoIPCity.h>
+#include <maxminddb.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/ip.h>
 }
 
-static GeoIP* open_geoip_db(GeoIPDBTypes type)
+class MMDB {
+public:
+	MMDB(const char* filename);
+
+	~MMDB();
+
+	MMDB_lookup_result_s Lookup(const struct sockaddr* const sa);
+
+private:
+	MMDB_s mmdb;
+};
+
+MMDB::MMDB(const char *filename)
 	{
-	GeoIP* geoip = 0;
+	int status = MMDB_open(filename, MMDB_MODE_MMAP, &mmdb);
 
-	if ( GeoIP_db_avail(type) )
-		geoip = GeoIP_open_type(type, GEOIP_MEMORY_CACHE);
-
-	return geoip;
+	if ( MMDB_SUCCESS != status )
+		{
+		throw std::runtime_error(MMDB_strerror(status));
+		}
 	}
 
-static GeoIP* open_geoip_city_db()
+MMDB::~MMDB()
 	{
-	GeoIP* geoip = open_geoip_db(GEOIP_CITY_EDITION_REV0);
-
-	if ( ! geoip )
-		geoip = open_geoip_db(GEOIP_CITY_EDITION_REV1);
-
-	if ( ! geoip )
-		{
-		string rev0_path = GeoIPDBFileName[GEOIP_CITY_EDITION_REV0];
-		string rev1_path = GeoIPDBFileName[GEOIP_CITY_EDITION_REV1];
-		string db_path = rev0_path;
-
-		// Maybe in the future the revisions won't share a common default path.
-		if ( rev0_path != rev1_path )
-			db_path = rev0_path + " or " + rev1_path;
-
-		reporter->Info("Failed to open GeoIP City database: %s",
-		               db_path.c_str());
-		}
-
-	return geoip;
+	MMDB_close(&mmdb);
 	}
 
-static GeoIP* open_geoip_city_db_v6()
+MMDB_lookup_result_s MMDB::Lookup(const struct sockaddr* const sa)
 	{
-	GeoIP* geoip = 0;
+	int mmdb_error;
+	MMDB_lookup_result_s result = MMDB_lookup_sockaddr(&mmdb, sa, &mmdb_error);
 
-	// Both city edition revisions for IPv6 show up in libGeoIP 1.4.7.
-#ifdef HAVE_GEOIP_CITY_EDITION_REV0_V6
-	geoip = open_geoip_db(GEOIP_CITY_EDITION_REV0_V6);
-
-	if ( ! geoip )
-		geoip = open_geoip_db(GEOIP_CITY_EDITION_REV1_V6);
-
-	if ( ! geoip )
+	if ( MMDB_SUCCESS != mmdb_error )
 		{
-		string rev0_path = GeoIPDBFileName[GEOIP_CITY_EDITION_REV0_V6];
-		string rev1_path = GeoIPDBFileName[GEOIP_CITY_EDITION_REV1_V6];
-		string db_path = rev0_path;
-
-		// Maybe in the future the revisions won't share a common default path.
-		if ( rev0_path != rev1_path )
-			db_path = rev0_path + " or " + rev1_path;
-
-		reporter->Info("Failed to open GeoIP Cityv6 database: %s",
-		               db_path.c_str());
+		throw std::runtime_error(MMDB_strerror(mmdb_error));
 		}
-#endif
 
-	return geoip;
+	return result;
+	}
+
+std::unique_ptr<MMDB> mmdb_loc;
+std::unique_ptr<MMDB> mmdb_asn;
+
+static bool mmdb_open(const char* filename, bool asn)
+	{
+	struct stat buf;
+
+	if ( 0 != stat(filename, &buf) )
+		{
+		return false;
+		}
+
+	try
+		{
+		if ( asn )
+			{
+			mmdb_asn.reset(new MMDB(filename));
+			}
+		else
+			{
+			mmdb_loc.reset(new MMDB(filename));
+			}
+		}
+
+	catch ( const std::exception& e )
+		{
+		reporter->Info("Failed to open MaxMind DB: %s [%s]", filename,
+		               e.what());
+		return false;
+		}
+
+	return true;
+	}
+
+static bool mmdb_open_loc(const char* filename)
+	{
+	return mmdb_open(filename, false);
+	}
+
+static bool mmdb_open_asn(const char* filename)
+	{
+	return mmdb_open(filename, true);
+	}
+
+static bool mmdb_lookup(const IPAddr& addr, MMDB_lookup_result_s& result,
+                        bool asn)
+	{
+	struct sockaddr_storage ss = {0};
+
+	if ( IPv4 == addr.GetFamily() )
+		{
+		struct sockaddr_in* sa = (struct sockaddr_in*)&ss;
+		sa->sin_family = AF_INET;
+		addr.CopyIPv4(&sa->sin_addr);
+		}
+
+	else
+		{
+		struct sockaddr_in6* sa = (struct sockaddr_in6*)&ss;
+		sa->sin6_family = AF_INET6;
+		addr.CopyIPv6(&sa->sin6_addr);
+		}
+
+	try
+		{
+		result = asn ? mmdb_asn->Lookup((struct sockaddr*)&ss)
+		             : mmdb_loc->Lookup((struct sockaddr*)&ss);
+		}
+
+	catch ( const std::exception& e )
+		{
+		reporter->Info("MaxMind DB lookup location error [%s]",
+		               e.what());
+		return false;
+		}
+
+	return result.found_entry;
+	}
+
+static bool mmdb_lookup_loc(const IPAddr& addr, MMDB_lookup_result_s& result)
+	{
+	return mmdb_lookup(addr, result, false);
+	}
+
+static bool mmdb_lookup_asn(const IPAddr& addr, MMDB_lookup_result_s& result)
+	{
+	return mmdb_lookup(addr, result, true);
+	}
+
+static Val* mmdb_getvalue(MMDB_entry_data_s* entry_data, int status,
+                          int data_type )
+	{
+	switch (status)
+		{
+		case MMDB_SUCCESS:
+			if ( entry_data->has_data )
+				{
+				switch (data_type)
+					{
+					case MMDB_DATA_TYPE_UTF8_STRING:
+						return new StringVal(entry_data->data_size,
+						                     entry_data->utf8_string);
+						break;
+
+					case MMDB_DATA_TYPE_DOUBLE:
+						return new Val(entry_data->double_value, TYPE_DOUBLE);
+						break;
+
+					case MMDB_DATA_TYPE_UINT32:
+						return new Val(entry_data->uint32, TYPE_COUNT);
+
+					default:
+						break;
+					}
+				}
+			break;
+
+		case MMDB_LOOKUP_PATH_DOES_NOT_MATCH_DATA_ERROR:
+			// key doesn't exist, nothing to do
+			break;
+
+		default:
+			reporter->Info("MaxMind DB error [%s]", MMDB_strerror(status));
+			break;
+		}
+
+	return nullptr;
+	}
+
+static bool mmdb_try_open_loc ()
+	{
+	// City database is always preferred over Country database.
+	auto mmdb_dir_val = global_scope()->Lookup("mmdb_dir")->ID_Val();
+	std::string mmdb_dir = mmdb_dir_val->AsString()->CheckString();
+
+	if ( ! mmdb_dir.empty() )
+		{
+		auto d = mmdb_dir + "/GeoLite2-City.mmdb";
+
+		if ( mmdb_open_loc(d.data()) )
+			return true;
+
+		d = mmdb_dir + "/GeoLite2-Country.mmdb";
+
+		if ( mmdb_open_loc(d.data()) )
+			return true;;
+		}
+
+	return mmdb_open_loc("/usr/share/GeoIP/GeoLite2-City.mmdb")
+	    || mmdb_open_loc("/var/lib/GeoIP/GeoLite2-City.mmdb")
+	    || mmdb_open_loc("/usr/local/share/GeoIP/GeoLite2-City.mmdb")
+	    || mmdb_open_loc("/usr/local/var/GeoIP/GeoLite2-City.mmdb")
+	    || mmdb_open_loc("/usr/share/GeoIP/GeoLite2-Country.mmdb")
+	    || mmdb_open_loc("/var/lib/GeoIP/GeoLite2-Country.mmdb")
+	    || mmdb_open_loc("/usr/local/share/GeoIP/GeoLite2-Country.mmdb")
+	    || mmdb_open_loc("/usr/local/var/GeoIP/GeoLite2-Country.mmdb");
+	}
+
+static bool mmdb_try_open_asn ()
+	{
+	auto mmdb_dir_val = global_scope()->Lookup("mmdb_dir")->ID_Val();
+	std::string mmdb_dir = mmdb_dir_val->AsString()->CheckString();
+
+	if ( ! mmdb_dir.empty() )
+		{
+		auto d = mmdb_dir + "/GeoLite2-ASN.mmdb";
+
+		if ( mmdb_open_asn(d.data()) )
+			return true;
+		}
+
+	return mmdb_open_asn("/usr/share/GeoIP/GeoLite2-ASN.mmdb")
+	    || mmdb_open_asn("/var/lib/GeoIP/GeoLite2-ASN.mmdb")
+	    || mmdb_open_asn("/usr/local/share/GeoIP/GeoLite2-ASN.mmdb")
+	    || mmdb_open_asn("/usr/local/var/GeoIP/GeoLite2-ASN.mmdb");
 	}
 
 #endif
 %%}
 
+## Initializes MMDB for later use of lookup_location.
+## Requires Bro to be built with ``libmaxminddb``.
+##
+## f: The filename of the MaxMind City or Country DB.
+##
+## Returns: A boolean indicating whether the db was successfully opened.
+##
+## .. bro:see:: lookup_asn
+function mmdb_open_location_db%(f: string%) : bool
+	%{
+#ifdef USE_GEOIP
+	return new Val(mmdb_open_loc(f->CheckString()), TYPE_BOOL);
+#else
+        return new Val(0, TYPE_BOOL);
+#endif
+	%}
+
+## Initializes MMDB for later use of lookup_asn.
+## Requires Bro to be built with ``libmaxminddb``.
+##
+## f: The filename of the MaxMind ASN DB.
+##
+## Returns: A boolean indicating whether the db was successfully opened.
+##
+## .. bro:see:: lookup_asn
+function mmdb_open_asn_db%(f: string%) : bool
+	%{
+#ifdef USE_GEOIP
+	return new Val(mmdb_open_asn(f->CheckString()), TYPE_BOOL);
+#else
+	return new Val(0, TYPE_BOOL);
+#endif
+	%}
+
 ## Performs a geo-lookup of an IP address.
-## Requires Bro to be built with ``libgeoip``.
+## Requires Bro to be built with ``libmaxminddb``.
 ##
 ## a: The IP address to lookup.
 ##
@@ -3681,104 +3873,52 @@ function lookup_location%(a: addr%) : geo_location
 	RecordVal* location = new RecordVal(geo_location);
 
 #ifdef USE_GEOIP
-	static bool geoip_initialized = false;
-	static GeoIP* geoip = 0;
-	static GeoIP* geoip_v6 = 0;
-	static bool have_city_db = false;
-	static bool have_cityv6_db = false;
-	GeoIPRecord* gir = 0;
-	const char* cc = 0;
-
-	if ( ! geoip_initialized )
+	if ( ! mmdb_loc )
 		{
-		geoip_initialized = true;
-		geoip = open_geoip_city_db();
-
-		if ( ! geoip )
+		if ( ! mmdb_try_open_loc() )
 			{
-			geoip = open_geoip_db(GEOIP_COUNTRY_EDITION);
-			string db_path = GeoIPDBFileName[GEOIP_COUNTRY_EDITION];
-
-			if ( ! geoip )
-				builtin_error(fmt("Failed fall back to GeoIP Country "
-				                  "database: %s",
-				                  GeoIPDBFileName[GEOIP_COUNTRY_EDITION]));
-			else
-				reporter->Info("Fell back to GeoIP Country database");
+			builtin_error("Failed to open GeoIP location database");
+			return location;
 			}
-		else
-			have_city_db = true;
-
-		geoip_v6 = open_geoip_city_db_v6();
-
-		if ( geoip_v6 )
-			have_cityv6_db = true;
-
-#ifdef HAVE_GEOIP_COUNTRY_EDITION_V6
-		if ( ! geoip_v6 )
-			{
-			geoip_v6 = open_geoip_db(GEOIP_COUNTRY_EDITION_V6);
-
-			if ( ! geoip_v6 )
-				reporter->Info("Failed to open GeoIPv6 Country database: %s",
-				               GeoIPDBFileName[GEOIP_COUNTRY_EDITION_V6]);
-			}
-#endif
-
-		if ( ! geoip_v6 )
-			builtin_error("Can't open GeoIPv6 City/Country database");
 		}
 
-#ifdef HAVE_GEOIP_COUNTRY_EDITION_V6
-	if ( geoip_v6 && a->AsAddr().GetFamily() == IPv6 )
+	MMDB_lookup_result_s result;
+
+	if ( mmdb_lookup_loc(a->AsAddr(), result) )
 		{
-		geoipv6_t ga;
-		a->AsAddr().CopyIPv6(&ga);
-		if ( have_cityv6_db )
-			gir = GeoIP_record_by_ipnum_v6(geoip_v6, ga);
-		else
-			cc = GeoIP_country_code_by_ipnum_v6(geoip_v6, ga);
-		}
-	else
-#endif
+		MMDB_entry_data_s entry_data;
+		int status;
 
-	if ( geoip && a->AsAddr().GetFamily() == IPv4 )
-		{
-		const uint32* bytes;
-		a->AsAddr().GetBytes(&bytes);
-		if ( have_city_db )
-			gir = GeoIP_record_by_ipnum(geoip, ntohl(*bytes));
-		else
-			cc = GeoIP_country_code_by_ipnum(geoip, ntohl(*bytes));
-		}
+		// Get Country ISO Code
+		status = MMDB_get_value(&result.entry, &entry_data,
+		                        "country", "iso_code", nullptr);
+		location->Assign(0, mmdb_getvalue(&entry_data, status,
+		                 MMDB_DATA_TYPE_UTF8_STRING));
 
-	if ( gir )
-		{
-		if ( gir->country_code )
-			location->Assign(0, new StringVal(gir->country_code));
+		// Get Major Subdivision ISO Code
+		status = MMDB_get_value(&result.entry, &entry_data,
+		                        "subdivisions", "0", "iso_code", nullptr);
+		location->Assign(1, mmdb_getvalue(&entry_data, status,
+		                 MMDB_DATA_TYPE_UTF8_STRING));
 
-		if ( gir->region )
-			location->Assign(1, new StringVal(gir->region));
+		// Get City English Name
+		status = MMDB_get_value(&result.entry, &entry_data,
+		                        "city", "names", "en", nullptr);
+		location->Assign(2, mmdb_getvalue(&entry_data, status,
+		                 MMDB_DATA_TYPE_UTF8_STRING));
 
-		if ( gir->city )
-			location->Assign(2, new StringVal(gir->city));
+		// Get Location Latitude
+		status = MMDB_get_value(&result.entry, &entry_data,
+		                        "location", "latitude", nullptr);
+		location->Assign(3, mmdb_getvalue(&entry_data, status,
+		                 MMDB_DATA_TYPE_DOUBLE));
 
-		if ( gir->latitude )
-			location->Assign(3, new Val(gir->latitude,
-							TYPE_DOUBLE));
+		// Get Location Longitude
+		status = MMDB_get_value(&result.entry, &entry_data,
+		                        "location", "longitude", nullptr);
+		location->Assign(4, mmdb_getvalue(&entry_data, status,
+		                 MMDB_DATA_TYPE_DOUBLE));
 
-		if ( gir->longitude )
-			location->Assign(4, new Val(gir->longitude,
-						TYPE_DOUBLE));
-
-		GeoIPRecord_delete(gir);
-
-		return location;
-		}
-
-	else if ( cc )
-		{
-		location->Assign(0, new StringVal(cc));
 		return location;
 		}
 
@@ -3792,64 +3932,45 @@ function lookup_location%(a: addr%) : geo_location
 		}
 #endif
 
-	// We can get here even if we have GeoIP support if we weren't
+	// We can get here even if we have MMDB support if we weren't
 	// able to initialize it or it didn't return any information for
 	// the address.
 
 	return location;
 	%}
 
-## Performs an AS lookup of an IP address.
-## Requires Bro to be built with ``libgeoip``.
+## Performs an ASN lookup of an IP address.
+## Requires Bro to be built with ``libmaxminddb``.
 ##
 ## a: The IP address to lookup.
 ##
-## Returns: The number of the AS that contains *a*.
+## Returns: The number of the ASN that contains *a*.
 ##
 ## .. bro:see:: lookup_location
 function lookup_asn%(a: addr%) : count
 	%{
 #ifdef USE_GEOIP
-	static GeoIP* geoip_asn = 0;
-	static bool geoip_asn_initialized = false;
-	char* gir = 0;
-
-	if ( ! geoip_asn_initialized )
+	if ( ! mmdb_asn )
 		{
-		geoip_asn_initialized = true;
-		geoip_asn = open_geoip_db(GEOIP_ASNUM_EDITION);
-
-		if ( ! geoip_asn )
-			builtin_error(fmt("Can't open GeoIP ASNUM database: %s",
-			                  GeoIPDBFileName[GEOIP_ASNUM_EDITION]));
-		}
-
-	if ( geoip_asn )
-		{
-// IPv6 support showed up in 1.4.5.
-#ifdef HAVE_GEOIP_COUNTRY_EDITION_V6
-		if ( a->AsAddr().GetFamily() == IPv6 )
+		if ( ! mmdb_try_open_asn() )
 			{
-			geoipv6_t ga;
-			a->AsAddr().CopyIPv6(&ga);
-			gir = GeoIP_name_by_ipnum_v6(geoip_asn, ga);
-			}
-		else
-#endif
-
-		if ( a->AsAddr().GetFamily() == IPv4 )
-			{
-			const uint32* bytes;
-			a->AsAddr().GetBytes(&bytes);
-			gir = GeoIP_name_by_ipnum(geoip_asn, ntohl(*bytes));
+			builtin_error("No open GeoIP ASN database");
+			return new Val(0, TYPE_COUNT);
 			}
 		}
 
-	if ( gir )
+	MMDB_lookup_result_s result;
+
+	if ( mmdb_lookup_asn(a->AsAddr(), result) )
 		{
-		// Move the pointer +2 so we don't return
-		// the first two characters: "AS".
-		return new Val(atoi(gir+2), TYPE_COUNT);
+		MMDB_entry_data_s entry_data;
+		int status;
+
+		// Get Autonomous System Number
+		status = MMDB_get_value(&result.entry, &entry_data,
+		                        "autonomous_system_number", nullptr);
+		Val* asn = mmdb_getvalue(&entry_data, status, MMDB_DATA_TYPE_UINT32);
+		return asn == nullptr ? new Val(0, TYPE_COUNT) : asn;
 		}
 
 #else // not USE_GEOIP

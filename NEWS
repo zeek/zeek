@@ -358,6 +358,15 @@ Changed Functionality
 - The string_to_pattern() built-in (and the now-deprecated merge_pattern()
   built-in) is no longer restricted to only be called at initialization time.
 
+- GeoIP Legacy Database support has been replaced with GeoIP2 MaxMind DB
+  format support.
+
+  - This updates the "lookup_location" and "lookup_asn" BIFs to use
+    libmaxminddb.  The motivation for this is that MaxMind is discontinuing
+    GeoLite Legacy databases: no updates after April 1, 2018, no downloads
+    after January 2, 2019.  It's also noted that all GeoIP Legacy databases
+    may be discontinued as they are superseded by GeoIP2.
+
 Removed Functionality
 ---------------------
 

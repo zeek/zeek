@@ -1,4 +1,11 @@
 
+2.5-787 | 2018-07-31 16:50:55 -0500
+
+  * Add Cisco FabricPath support (Damani Wade, Corelight)
+
+  * Replace GeoIP Legacy DB support with MaxMind DB support
+    (Jonathan Perkins, Corelight)
+
 2.5-782 | 2018-07-31 11:53:22 +0200
 
   * Update install instructions for OpenSSL 1.1 compat (Jon Siwek, Corelight)

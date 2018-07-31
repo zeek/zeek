@@ -132,6 +132,9 @@ static string trim_whitespace(const char* in)
 
 void POP3_Analyzer::ProcessRequest(int length, const char* line)
 	{
+	if ( length == 0 )
+		return;
+
 	if ( waitingForAuthentication )
 		{
 		++authLines;

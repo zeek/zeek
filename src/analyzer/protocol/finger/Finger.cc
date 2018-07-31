@@ -41,6 +41,9 @@ void Finger_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig
 	const char* line = (const char*) data;
 	const char* end_of_line = line + length;
 
+	if ( length == 0 )
+		return;
+
 	if ( is_orig )
 		{
 

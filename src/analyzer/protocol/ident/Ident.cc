@@ -56,6 +56,9 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 	if ( TCP() )
 		s = is_orig ? TCP()->Orig() : TCP()->Resp();
 
+	if ( length == 0 )
+		return;
+
 	if ( is_orig )
 		{
 		if ( ! ident_request )

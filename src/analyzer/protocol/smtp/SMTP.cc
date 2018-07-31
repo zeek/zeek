@@ -269,7 +269,9 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 			if ( smtp_request )
 				{
 				int data_len = end_of_line - line;
-				RequestEvent(cmd_len, cmd, data_len, line);
+
+				if ( cmd_len > 0 || data_len > 0 )
+					RequestEvent(cmd_len, cmd, data_len, line);
 				}
 
 			if ( cmd_code != SMTP_CMD_END_OF_DATA )

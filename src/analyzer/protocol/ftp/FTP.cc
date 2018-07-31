@@ -69,6 +69,10 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 	const char* line = (const char*) data;
 	const char* end_of_line = line + length;
 
+	if ( length == 0 )
+		// Could emit "ftp empty request/reply" weird, but maybe not worth it.
+		return;
+
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
 

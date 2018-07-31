@@ -1,4 +1,19 @@
 
+2.5-782 | 2018-07-31 11:53:22 +0200
+
+  * Update install instructions for OpenSSL 1.1 compat (Jon Siwek, Corelight)
+
+  * Remove requestorName parameter of ocsp_request event
+
+    This field isn't publicly available via the OpenSSL 1.1 API, not used
+    in the base scripts, and has no example in the test suit, so removing
+    it is simpler than trying to support manually parsing it out of the
+    raw data. (Jon Siwek, Corelight)
+
+  * Adjust x509 unit tests to work around OpenSSL 1.0 vs. 1.1 differences (Jon Siwek, Corelight)
+
+  * Fixes for OpenSSL 1.1 support (Jon Siwek, Corelight)
+
 2.5-775 | 2018-07-24 16:39:34 -0500
 
   * Add broker/binpac/caf dirs to bro-config script (Jon Siwek, Corelight)

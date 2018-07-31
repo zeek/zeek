@@ -224,6 +224,10 @@ include(CheckNameserCompat)
 include(GetArchitecture)
 include(RequireCXX11)
 
+if ( (OPENSSL_VERSION VERSION_EQUAL "1.1.0") OR (OPENSSL_VERSION VERSION_GREATER "1.1.0") )
+  set(BRO_HAVE_OPENSSL_1_1 true CACHE INTERNAL "" FORCE)
+endif()
+
 # Tell the plugin code that we're building as part of the main tree.
 set(BRO_PLUGIN_INTERNAL_BUILD true CACHE INTERNAL "" FORCE)
 

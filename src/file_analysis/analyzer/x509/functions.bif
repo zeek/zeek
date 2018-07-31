@@ -109,21 +109,36 @@ STACK_OF(X509)* x509_get_untrusted_stack(VectorVal* certs_vec)
 
 // We need this function to be able to identify the signer certificate of an
 // OCSP request out of a list of possible certificates.
-X509* x509_get_ocsp_signer(STACK_OF(X509) *certs, OCSP_RESPID *rid)
+X509* x509_get_ocsp_signer(const STACK_OF(X509)* certs,
+                           OCSP_BASICRESP* basic_resp)
 	{
-	// We support two lookup types - either by response id or by key.
-	if ( rid->type == V_OCSP_RESPID_NAME )
-		return X509_find_by_subject(certs, rid->value.byName);
+	const ASN1_OCTET_STRING* key  = nullptr;
+	const X509_NAME*         name = nullptr;
 
-	// There only should be name and type - but let's be sure...
-	if ( rid->type != V_OCSP_RESPID_KEY )
+#if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
+	OCSP_RESPID* resp_id = basic_resp->tbsResponseData->responderId;
+
+	if ( resp_id->type == V_OCSP_RESPID_NAME )
+		name = resp_id->value.byName;
+	else if ( resp_id->type == V_OCSP_RESPID_KEY )
+		key = resp_id->value.byKey;
+	else
 		return 0;
+#else
+	if ( ! OCSP_resp_get0_id(basic_resp, &key, &name) )
+		return 0;
+#endif
+
+	if ( name )
+		return X509_find_by_subject(const_cast<STACK_OF(X509)*>(certs),
+									const_cast<X509_NAME*>(name));
 
 	// Just like OpenSSL, we just support SHA-1 lookups and bail out otherwhise.
-	if ( rid->value.byKey->length != SHA_DIGEST_LENGTH )
+	if ( key->length != SHA_DIGEST_LENGTH )
 		return 0;
 
-	unsigned char* key_hash = rid->value.byKey->data;
+	unsigned char* key_hash = key->data;
+
 	for ( int i = 0; i < sk_X509_num(certs); ++i )
 		{
 		unsigned char digest[SHA_DIGEST_LENGTH];
@@ -328,15 +343,19 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 
 	// Because we actually want to be able to give nice error messages that show why we were
 	// not able to verify the OCSP response - do our own verification logic first.
-	signer = x509_get_ocsp_signer(basic->certs, basic->tbsResponseData->responderId);
+#if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
+	signer = x509_get_ocsp_signer(basic->certs, basic);
+#else
+	signer = x509_get_ocsp_signer(OCSP_resp_get0_certs(basic), basic);
+#endif
 
 	/*
 	Do this perhaps - OpenSSL also cannot do it, so I do not really feel bad about it.
 	Needs a different lookup because the root store is no stack of X509 certs
 
-	if ( !s igner )
+	if ( ! signer )
 		// if we did not find it in the certificates that were sent, search in the root store
-		signer = x509_get_ocsp_signer(ocsp_certs, basic->tbsResponseData->responderId);
+		signer = x509_get_ocsp_signer(ocsp_certs, basic);
 	*/
 
 	if ( ! signer )

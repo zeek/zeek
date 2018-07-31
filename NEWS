@@ -277,6 +277,8 @@ New Functionality
 
 - Bro now supports PPPoE over QinQ.
 
+- Bro now supports OpenSSL 1.1.
+
 Changed Functionality
 ---------------------
 
@@ -367,6 +369,8 @@ Removed Functionality
 
 - BroControl: The option 'IPv6Comm' and 'ZoneID' options are no longer
   available (though Broker should be able to handle IPv6 automatically).
+
+- The "ocsp_request" event no longer has "requestorName" parameter.
 
 Deprecated Functionality
 ------------------------

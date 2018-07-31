@@ -13,7 +13,7 @@ function die {
 function finish {
 	rm -rf "$TMP"
 }
-function verify-run {
+function verify_run {
 	if bash -c "$1" > /dev/null 2>&1; then
 		echo ${2:-"ok"}
 	else
@@ -43,19 +43,19 @@ echo "ok"
 
 # 3. If lcov does not exist, abort process. 
 echo -n "Checking for lcov... "
-verify-run "which lcov" \
+verify_run "which lcov" \
 	"lcov installed on system, continue" \
 	"lcov not installed, abort"
 
 # 4. Create a "tracefile" through lcov, which is necessary to create html files later on.
 echo -n "Creating tracefile for html generation... " 
-verify-run "lcov --no-external --capture --directory . --output-file $COVERAGE_FILE"
+verify_run "lcov --no-external --capture --directory . --output-file $COVERAGE_FILE"
 
 for TARGET in $REMOVE_TARGETS; do
 	echo -n "Getting rid of $TARGET files from tracefile... "
-	verify-run "lcov --remove $COVERAGE_FILE $TARGET --output-file $COVERAGE_FILE"
+	verify_run "lcov --remove $COVERAGE_FILE $TARGET --output-file $COVERAGE_FILE"
 done
 
 # 5. Create HTML files. 
 echo -n "Creating HTML files... "
-verify-run "genhtml -o $COVERAGE_HTML_DIR $COVERAGE_FILE"
+verify_run "genhtml -o $COVERAGE_HTML_DIR $COVERAGE_FILE"

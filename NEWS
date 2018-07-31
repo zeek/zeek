@@ -114,7 +114,11 @@ New Functionality
   - Option variables: The new "option" keyword allows variables to be
     declared as runtime options. Such variables cannot be changed
     using normal assignments. Instead, they can be changed using the
-    new function Option::set.
+    new function Config::set_value.  This function will automatically
+    apply the change to all nodes in a cluster.  Note that options can also
+    be changed using the new function Option::set, but this function will
+    not send the change to any other nodes, so Config::set_value should
+    typically be used instead of Option::set.
 
     It is possible to "subscribe" to an option through
     Option::set_change_handler, which will trigger a handler callback

@@ -1,4 +1,8 @@
 
+2.5-792 | 2018-08-01 12:15:31 -0500
+
+  * fix NTLM NegotiateFlags field offsets (Jeffrey Bencteux)
+
 2.5-790 | 2018-08-01 11:25:27 -0500
 
   * Fix --with-binpac configure option (Jon Siwek, Corelight)

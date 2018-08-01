@@ -72,7 +72,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
                            (a required Broker dependency)
 
   Optional Packages in Non-Standard Locations:
-    --with-geoip=PATH      path to the libGeoIP install root
+    --with-geoip=PATH      path to the libmaxminddb install root
     --with-krb5=PATH       path to krb5 install root
     --with-perftools=PATH  path to Google Perftools install root
     --with-jemalloc=PATH   path to jemalloc install root
@@ -241,6 +241,7 @@ while [ $# -ne 0 ]; do
             ;;
         --with-binpac=*)
             append_cache_entry BINPAC_EXE_PATH     PATH $optarg
+            append_cache_entry BinPAC_ROOT_DIR     PATH "$(dirname $optarg)/.."
             ;;
         --with-bifcl=*)
             append_cache_entry BIFCL_EXE_PATH      PATH   $optarg
@@ -252,7 +253,7 @@ while [ $# -ne 0 ]; do
             append_cache_entry BISON_EXECUTABLE PATH $optarg
             ;;
         --with-geoip=*)
-            append_cache_entry LibGeoIP_ROOT_DIR PATH $optarg
+            append_cache_entry LibMMDB_ROOT_DIR PATH $optarg
             ;;
         --with-krb5=*)
             append_cache_entry LibKrb5_ROOT_DIR PATH $optarg

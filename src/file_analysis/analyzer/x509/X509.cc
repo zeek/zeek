@@ -290,7 +290,11 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 				continue;
 				}
 
+#if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
 			const char* name = (const char*) ASN1_STRING_data(gen->d.ia5);
+#else
+			const char* name = (const char*) ASN1_STRING_get0_data(gen->d.ia5);
+#endif
 			StringVal* bs = new StringVal(name);
 
 			switch ( gen->type )

@@ -140,6 +140,20 @@ void Packet::ProcessLayer2()
 
 	case DLT_EN10MB:
 		{
+		// Skip past Cisco FabricPath to encapsulated ethernet frame.
+		if ( pdata[12] == 0x89 && pdata[13] == 0x03 )
+			{
+			auto constexpr cfplen = 16;
+
+			if ( pdata + cfplen + GetLinkHeaderSize(link_type) >= end_of_data )
+				{
+				Weird("truncated_link_header_cfp");
+				return;
+				}
+
+			pdata += cfplen;
+			}
+
 		// Get protocol being carried from the ethernet frame.
 		int protocol = (pdata[12] << 8) + pdata[13];
 

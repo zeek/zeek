@@ -95,14 +95,15 @@ FindRequiredPackage(OpenSSL)
 FindRequiredPackage(BIND)
 FindRequiredPackage(ZLIB)
 
-find_package(CAF COMPONENTS core io)
+find_package(CAF COMPONENTS core io openssl)
 if (CAF_FOUND)
+    # e.g. if not using embedded CAF, then need to know where to look
+    # for CAF headers since that may differ from where Broker headers
+    # are found (and including a Broker header may pull in CAF headers).
 	include_directories(BEFORE ${CAF_INCLUDE_DIRS})
-else ()
-	list(APPEND MISSING_PREREQ_DESCS CAF)
 endif ()
 
-if (NOT BinPAC_ROOT_DIR AND
+if (NOT BINPAC_EXE_PATH AND
     EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/aux/binpac/CMakeLists.txt)
     add_subdirectory(aux/binpac)
 endif ()
@@ -140,11 +141,11 @@ include_directories(BEFORE
 # Optional Dependencies
 
 set(USE_GEOIP false)
-find_package(LibGeoIP)
-if (LIBGEOIP_FOUND)
+find_package(LibMMDB)
+if (LibMMDB_FOUND)
     set(USE_GEOIP true)
-    include_directories(BEFORE ${LibGeoIP_INCLUDE_DIR})
-    list(APPEND OPTLIBS ${LibGeoIP_LIBRARY})
+    include_directories(BEFORE ${LibMMDB_INCLUDE_DIR})
+    list(APPEND OPTLIBS ${LibMMDB_LIBRARY})
 endif ()
 
 set(USE_KRB5 false)
@@ -223,6 +224,10 @@ include(OpenSSLTests)
 include(CheckNameserCompat)
 include(GetArchitecture)
 include(RequireCXX11)
+
+if ( (OPENSSL_VERSION VERSION_EQUAL "1.1.0") OR (OPENSSL_VERSION VERSION_GREATER "1.1.0") )
+  set(BRO_HAVE_OPENSSL_1_1 true CACHE INTERNAL "" FORCE)
+endif()
 
 # Tell the plugin code that we're building as part of the main tree.
 set(BRO_PLUGIN_INTERNAL_BUILD true CACHE INTERNAL "" FORCE)
@@ -323,7 +328,7 @@ message(
     "\nBroctl:            ${INSTALL_BROCTL}"
     "\nAux. Tools:        ${INSTALL_AUX_TOOLS}"
     "\n"
-    "\nGeoIP:             ${USE_GEOIP}"
+    "\nlibmaxminddb:      ${USE_GEOIP}"
     "\nKerberos:          ${USE_KRB5}"
     "\ngperftools found:  ${HAVE_PERFTOOLS}"
     "\n        tcmalloc:  ${USE_PERFTOOLS_TCMALLOC}"

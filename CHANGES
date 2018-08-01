@@ -1,4 +1,10 @@
 
+2.5-790 | 2018-08-01 11:25:27 -0500
+
+  * Fix --with-binpac configure option (Jon Siwek, Corelight)
+
+  * Update CAF-finding logic (Jon Siwek, Corelight)
+
 2.5-787 | 2018-07-31 16:50:55 -0500
 
   * Add Cisco FabricPath support (Damani Wade, Corelight)

@@ -103,7 +103,7 @@ if (CAF_FOUND)
 	include_directories(BEFORE ${CAF_INCLUDE_DIRS})
 endif ()
 
-if (NOT BinPAC_ROOT_DIR AND
+if (NOT BINPAC_EXE_PATH AND
     EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/aux/binpac/CMakeLists.txt)
     add_subdirectory(aux/binpac)
 endif ()

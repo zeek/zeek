@@ -95,11 +95,12 @@ FindRequiredPackage(OpenSSL)
 FindRequiredPackage(BIND)
 FindRequiredPackage(ZLIB)
 
-find_package(CAF COMPONENTS core io)
+find_package(CAF COMPONENTS core io openssl)
 if (CAF_FOUND)
+    # e.g. if not using embedded CAF, then need to know where to look
+    # for CAF headers since that may differ from where Broker headers
+    # are found (and including a Broker header may pull in CAF headers).
 	include_directories(BEFORE ${CAF_INCLUDE_DIRS})
-else ()
-	list(APPEND MISSING_PREREQ_DESCS CAF)
 endif ()
 
 if (NOT BinPAC_ROOT_DIR AND

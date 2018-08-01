@@ -1,4 +1,12 @@
 
+2.5-796 | 2018-08-01 16:31:25 -0500
+
+  * Add 'W' connection history indicator for zero windows
+    (Vern Paxson, Corelight)
+  
+  * Allow logarithmic 'T'/'C'/'W' connection history repetitions, which
+    also now raise their own events (Vern Paxson, Corelight)
+
 2.5-792 | 2018-08-01 12:15:31 -0500
 
   * fix NTLM NegotiateFlags field offsets (Jeffrey Bencteux)

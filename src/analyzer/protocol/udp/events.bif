@@ -36,3 +36,16 @@ event udp_reply%(u: connection%);
 ##    udp_content_deliver_all_orig udp_content_deliver_all_resp
 ##    udp_content_delivery_ports_orig udp_content_delivery_ports_resp
 event udp_contents%(u: connection, is_orig: bool, contents: string%);
+
+## Generated if a UDP flow crosses a checksum-error threshold, per
+## 'C'/'c' history reporting.
+##
+## u: The connection record for the corresponding UDP flow.
+##
+## is_orig: True if the event is raised for the originator side.
+##
+## threshold: the threshold that was crossed
+##
+## .. bro:see::  udp_reply udp_request udp_session_done
+##    tcp_multiple_checksum_errors
+event udp_multiple_checksum_errors%(u: connection, is_orig: bool, threshold: count%);

@@ -166,6 +166,15 @@ public:
 
 	int ValidChecksum(const struct tcphdr* tp, int len) const;
 
+	// Called to inform endpoint that it has generated a checksum error.
+	void ChecksumError();
+
+	// Called to inform endpoint that it has generated a retransmission.
+	void DidRxmit();
+
+	// Called to inform endpoint that it has offered a zero window.
+	void ZeroWindow();
+
 	// Returns true if the data was used (and hence should be recorded
 	// in the save file), false otherwise.
 	int DataSent(double t, uint64 seq, int len, int caplen, const u_char* data,
@@ -188,6 +197,7 @@ public:
 #define HIST_MULTI_FLAG_PKT 0x40
 #define HIST_CORRUPT_PKT 0x80
 #define HIST_RXMIT 0x100
+#define HIST_WIN0 0x200
 	int CheckHistory(uint32 mask, char code);
 	void AddHistory(char code);
 
@@ -202,7 +212,7 @@ public:
 	double start_time, last_time;
 	IPAddr src_addr; // the other endpoint
 	IPAddr dst_addr; // this endpoint
-	uint32 window; // current congestion window (*scaled*, not pre-scaling)
+	uint32 window; // current advertised window (*scaled*, not pre-scaling)
 	int window_scale;  // from the TCP option
 	uint32 window_ack_seq; // at which ack_seq number did we record 'window'
 	uint32 window_seq; // at which sending sequence number did we record 'window'
@@ -225,6 +235,11 @@ protected:
 	uint32 last_seq, ack_seq;	// in host order
 	uint32 seq_wraps, ack_wraps;	// Number of times 32-bit TCP sequence space
 					// has wrapped around (overflowed).
+
+	// Performance history accounting.
+	uint32 chk_cnt, chk_thresh;
+	uint32 rxmt_cnt, rxmt_thresh;
+	uint32 win0_cnt, win0_thresh;
 };
 
 #define ENDIAN_UNKNOWN 0

@@ -149,7 +149,7 @@ run() {
     elif [ -n "${TRAVIS_PULL_REQUEST}" ] && [ "${TRAVIS_PULL_REQUEST}" != "false" ]; then
         # For pull request builds, the private key is not available, so skip
         # the private tests to avoid failing.
-        echo "Note: skipping private tests because encrypted env. variables are not defined."
+        echo "Note: skipping private tests because encrypted env. variables are not available in pull request builds."
     else
         echo "Error: cannot get private tests because encrypted env. variables are not defined."
         exit 1

@@ -672,6 +672,9 @@ Val* BinaryExpr::Fold(Val* v1, Val* v2) const
 	if ( v1->Type()->Tag() == TYPE_PATTERN )
 		return PatternFold(v1, v2);
 
+	if ( v1->Type()->IsSet() )
+		return SetFold(v1, v2);
+
 	if ( it == TYPE_INTERNAL_ADDR )
 		return AddrFold(v1, v2);
 
@@ -858,6 +861,7 @@ Val* BinaryExpr::StringFold(Val* v1, Val* v2) const
 	return new Val(result, TYPE_BOOL);
 	}
 
+
 Val* BinaryExpr::PatternFold(Val* v1, Val* v2) const
 	{
 	const RE_Matcher* re1 = v1->AsPattern();
@@ -871,6 +875,61 @@ Val* BinaryExpr::PatternFold(Val* v1, Val* v2) const
 		RE_Matcher_disjunction(re1, re2);
 
 	return new PatternVal(res);
+	}
+
+Val* BinaryExpr::SetFold(Val* v1, Val* v2) const
+	{
+	TableVal* tv1 = v1->AsTableVal();
+	TableVal* tv2 = v2->AsTableVal();
+	TableVal* result;
+	bool res;
+
+	switch ( tag ) {
+	case EXPR_AND:
+		return tv1->Intersect(tv2);
+
+	case EXPR_OR:
+		result = v1->Clone()->AsTableVal();
+
+		if ( ! tv2->AddTo(result, false, false) )
+			reporter->InternalError("set union failed to type check");
+		return result;
+
+	case EXPR_SUB:
+		result = v1->Clone()->AsTableVal();
+
+		if ( ! tv2->RemoveFrom(result) )
+			reporter->InternalError("set difference failed to type check");
+		return result;
+
+	case EXPR_EQ:
+		res = tv1->EqualTo(tv2);
+		break;
+
+	case EXPR_NE:
+		res = ! tv1->EqualTo(tv2);
+		break;
+
+	case EXPR_LT:
+		res = tv1->IsSubsetOf(tv2) && tv1->Size() < tv2->Size();
+		break;
+
+	case EXPR_LE:
+		res = tv1->IsSubsetOf(tv2);
+		break;
+
+	case EXPR_GE:
+	case EXPR_GT:
+		// These should't happen due to canonicalization.
+		reporter->InternalError("confusion over canonicalization in set comparison");
+		break;
+
+	default:
+		BadTag("BinaryExpr::SetFold", expr_name(tag));
+		return 0;
+	}
+
+	return new Val(res, TYPE_BOOL);
 	}
 
 Val* BinaryExpr::AddrFold(Val* v1, Val* v2) const
@@ -1454,24 +1513,39 @@ SubExpr::SubExpr(Expr* arg_op1, Expr* arg_op2)
 	if ( IsError() )
 		return;
 
-	TypeTag bt1 = op1->Type()->Tag();
-	if ( IsVector(bt1) )
-		bt1 = op1->Type()->AsVectorType()->YieldType()->Tag();
+	const BroType* t1 = op1->Type();
+	const BroType* t2 = op2->Type();
 
-	TypeTag bt2 = op2->Type()->Tag();
+	TypeTag bt1 = t1->Tag();
+	if ( IsVector(bt1) )
+		bt1 = t1->AsVectorType()->YieldType()->Tag();
+
+	TypeTag bt2 = t2->Tag();
 	if ( IsVector(bt2) )
-		bt2 = op2->Type()->AsVectorType()->YieldType()->Tag();
+		bt2 = t2->AsVectorType()->YieldType()->Tag();
 
 	BroType* base_result_type = 0;
 
 	if ( bt1 == TYPE_TIME && bt2 == TYPE_INTERVAL )
 		base_result_type = base_type(bt1);
+
 	else if ( bt1 == TYPE_TIME && bt2 == TYPE_TIME )
 		SetType(base_type(TYPE_INTERVAL));
+
 	else if ( bt1 == TYPE_INTERVAL && bt2 == TYPE_INTERVAL )
 		base_result_type = base_type(bt1);
+
+	else if ( t1->IsSet() && t2->IsSet() )
+		{
+		if ( same_type(t1, t2) )
+			SetType(op1->Type()->Ref());
+		else
+			ExprError("incompatible \"set\" operands");
+		}
+
 	else if ( BothArithmetic(bt1, bt2) )
 		PromoteType(max_type(bt1, bt2), is_vector(op1) || is_vector(op2));
+
 	else
 		ExprError("requires arithmetic operands");
 
@@ -1888,13 +1962,16 @@ BitExpr::BitExpr(BroExprTag arg_tag, Expr* arg_op1, Expr* arg_op2)
 	if ( IsError() )
 		return;
 
-	TypeTag bt1 = op1->Type()->Tag();
-	if ( IsVector(bt1) )
-		bt1 = op1->Type()->AsVectorType()->YieldType()->Tag();
+	const BroType* t1 = op1->Type();
+	const BroType* t2 = op2->Type();
 
-	TypeTag bt2 = op2->Type()->Tag();
+	TypeTag bt1 = t1->Tag();
+	if ( IsVector(bt1) )
+		bt1 = t1->AsVectorType()->YieldType()->Tag();
+
+	TypeTag bt2 = t2->Tag();
 	if ( IsVector(bt2) )
-		bt2 = op2->Type()->AsVectorType()->YieldType()->Tag();
+		bt2 = t2->AsVectorType()->YieldType()->Tag();
 
 	if ( (bt1 == TYPE_COUNT || bt1 == TYPE_COUNTER) &&
 	     (bt2 == TYPE_COUNT || bt2 == TYPE_COUNTER) )
@@ -1917,8 +1994,16 @@ BitExpr::BitExpr(BroExprTag arg_tag, Expr* arg_op1, Expr* arg_op2)
 			SetType(base_type(TYPE_PATTERN));
 		}
 
+	else if ( t1->IsSet() && t2->IsSet() )
+		{
+		if ( same_type(t1, t2) )
+			SetType(op1->Type()->Ref());
+		else
+			ExprError("incompatible \"set\" operands");
+		}
+
 	else
-		ExprError("requires \"count\" operands");
+		ExprError("requires \"count\" or compatible \"set\" operands");
 	}
 
 IMPLEMENT_SERIAL(BitExpr, SER_BIT_EXPR);
@@ -1943,13 +2028,16 @@ EqExpr::EqExpr(BroExprTag arg_tag, Expr* arg_op1, Expr* arg_op2)
 
 	Canonicize();
 
-	TypeTag bt1 = op1->Type()->Tag();
-	if ( IsVector(bt1) )
-		bt1 = op1->Type()->AsVectorType()->YieldType()->Tag();
+	const BroType* t1 = op1->Type();
+	const BroType* t2 = op2->Type();
 
-	TypeTag bt2 = op2->Type()->Tag();
+	TypeTag bt1 = t1->Tag();
+	if ( IsVector(bt1) )
+		bt1 = t1->AsVectorType()->YieldType()->Tag();
+
+	TypeTag bt2 = t2->Tag();
 	if ( IsVector(bt2) )
-		bt2 = op2->Type()->AsVectorType()->YieldType()->Tag();
+		bt2 = t2->AsVectorType()->YieldType()->Tag();
 
 	if ( is_vector(op1) || is_vector(op2) )
 		SetType(new VectorType(base_type(TYPE_BOOL)));
@@ -1979,9 +2067,19 @@ EqExpr::EqExpr(BroExprTag arg_tag, Expr* arg_op1, Expr* arg_op2)
 			break;
 
 		case TYPE_ENUM:
-			if ( ! same_type(op1->Type(), op2->Type()) )
+			if ( ! same_type(t1, t2) )
 				ExprError("illegal enum comparison");
 			break;
+
+		case TYPE_TABLE:
+			if ( t1->IsSet() && t2->IsSet() )
+				{
+				if ( ! same_type(t1, t2) )
+					ExprError("incompatible sets in comparison");
+				break;
+				}
+
+			// FALL THROUGH
 
 		default:
 			ExprError("illegal comparison");
@@ -2045,13 +2143,16 @@ RelExpr::RelExpr(BroExprTag arg_tag, Expr* arg_op1, Expr* arg_op2)
 
 	Canonicize();
 
-	TypeTag bt1 = op1->Type()->Tag();
-	if ( IsVector(bt1) )
-		bt1 = op1->Type()->AsVectorType()->YieldType()->Tag();
+	const BroType* t1 = op1->Type();
+	const BroType* t2 = op2->Type();
 
-	TypeTag bt2 = op2->Type()->Tag();
+	TypeTag bt1 = t1->Tag();
+	if ( IsVector(bt1) )
+		bt1 = t1->AsVectorType()->YieldType()->Tag();
+
+	TypeTag bt2 = t2->Tag();
 	if ( IsVector(bt2) )
-		bt2 = op2->Type()->AsVectorType()->YieldType()->Tag();
+		bt2 = t2->AsVectorType()->YieldType()->Tag();
 
 	if ( is_vector(op1) || is_vector(op2) )
 		SetType(new VectorType(base_type(TYPE_BOOL)));
@@ -2060,6 +2161,12 @@ RelExpr::RelExpr(BroExprTag arg_tag, Expr* arg_op1, Expr* arg_op2)
 
 	if ( BothArithmetic(bt1, bt2) )
 		PromoteOps(max_type(bt1, bt2));
+
+	else if ( t1->IsSet() && t2->IsSet() )
+		{
+		if ( ! same_type(t1, t2) )
+			ExprError("incompatible sets in comparison");
+		}
 
 	else if ( bt1 != bt2 )
 		ExprError("operands must be of the same type");

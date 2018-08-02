@@ -300,6 +300,15 @@ New Functionality
       event tcp_multiple_retransmissions(c: connection, is_orig: bool,
 				                         threshold: count);
 
+- Added support for set union, intersection, difference, and comparison
+  operations.  The corresponding operators for the first three are
+  "s1 | s2", "s1 & s2", and "s1 - s2".  Relationals are in terms
+  of subsets, so "s1 < s2" yields true if s1 is a proper subset of s2
+  and "s1 == s2" if the two sets have exactly the same elements.
+  "s1 <= s2" holds for subsets or equality, and similarly "s1 != s2",
+  "s1 > s2", and "s1 >= s2" have the expected meanings in terms
+  of non-equality, proper superset, and superset-or-equal.
+
 Changed Functionality
 ---------------------
 

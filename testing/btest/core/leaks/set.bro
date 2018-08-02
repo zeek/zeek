@@ -1,11 +1,13 @@
-# @TEST-EXEC: bro -b %INPUT >out
-# @TEST-EXEC: btest-diff out
+# @TEST-GROUP: leaks
+# @TEST-REQUIRES: bro --help 2>&1 | grep -q mem-leaks
+
+# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run bro bro -m -b -r $TRACES/http/get.trace %INPUT
+# @TEST-EXEC: btest-bg-wait 60
 
 function test_case(msg: string, expect: bool)
-        {
-        print fmt("%s (%s)", msg, expect ? "PASS" : "FAIL");
-        }
-
+    {
+    print fmt("%s (%s)", msg, expect ? "PASS" : "FAIL");
+    }
 
 # Note: only global sets can be initialized with curly braces
 global sg1: set[string] = { "curly", "braces" };
@@ -13,8 +15,15 @@ global sg2: set[port, string, bool] = { [10/udp, "curly", F],
 		[11/udp, "braces", T] };
 global sg3 = { "more", "curly", "braces" };
 
-event bro_init()
-{
+global did_once = F;
+
+event new_connection(cc: connection)
+	{
+	if ( did_once )
+		return;
+
+	did_once = T;
+
 	local s1: set[string] = set( "test", "example" );
 	local s2: set[string] = set();
 	local s3: set[string];
@@ -181,5 +190,5 @@ event bro_init()
 	test_case( "equality", a == a | set(5,11) );
 
 	test_case( "magnitude", |a_and_b| == |a_or_b|);
-}
+	}
 

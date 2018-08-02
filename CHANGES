@@ -1,4 +1,9 @@
 
+2.5-802 | 2018-08-02 10:40:36 -0500
+
+  * Add set operations: union, intersection, difference, comparison
+    (Vern Paxson, Corelight)
+
 2.5-796 | 2018-08-01 16:31:25 -0500
 
   * Add 'W' connection history indicator for zero windows

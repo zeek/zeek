@@ -59,16 +59,16 @@ setup_docker() {
         distro_cmds="yum -y install cmake make gcc gcc-c++ flex bison libpcap-devel openssl-devel git openssl which"
         ;;
         debian_9)
-        distro_cmds="apt-get update; apt-get -y install cmake make gcc g++ flex bison python libpcap-dev libssl1.0-dev zlib1g-dev git sqlite3 curl bsdmainutils"
+        distro_cmds="apt-get update; apt-get -y install cmake make gcc g++ flex bison python libpcap-dev libssl-dev zlib1g-dev git sqlite3 curl bsdmainutils"
         ;;
         fedora_28)
-        distro_cmds="yum -y install cmake make gcc gcc-c++ flex bison libpcap-devel compat-openssl10-devel git sqlite findutils which; ln -s /usr/bin/python3 /usr/local/bin/python"
+        distro_cmds="yum -y install cmake make gcc gcc-c++ flex bison libpcap-devel openssl-devel git sqlite findutils which; ln -s /usr/bin/python3 /usr/local/bin/python"
         ;;
         ubuntu_16.04)
         distro_cmds="apt-get update; apt-get -y install cmake make gcc g++ flex bison python libpcap-dev libssl-dev zlib1g-dev git sqlite3 curl bsdmainutils"
         ;;
         ubuntu_18.04)
-        distro_cmds="apt-get update; apt-get -y install cmake make gcc g++ flex bison python3 libpcap-dev libssl1.0-dev zlib1g-dev git sqlite3 curl bsdmainutils; ln -s /usr/bin/python3 /usr/local/bin/python"
+        distro_cmds="apt-get update; apt-get -y install cmake make gcc g++ flex bison python3 libpcap-dev libssl-dev zlib1g-dev git sqlite3 curl bsdmainutils; ln -s /usr/bin/python3 /usr/local/bin/python"
         ;;
         *)
         echo "Error: distro ${distro} is not recognized by this script"

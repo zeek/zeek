@@ -35,7 +35,7 @@ hook notice(n: Notice::Info) &priority=10
 		when ( local src_name = lookup_addr(n$src) )
 			{
 			output = string_cat("orig/src hostname: ", src_name, "\n");
-			tmp_notice_storage[uid]$email_body_sections[|tmp_notice_storage[uid]$email_body_sections|] = output;
+			tmp_notice_storage[uid]$email_body_sections += output;
 			delete tmp_notice_storage[uid]$email_delay_tokens["hostnames-src"];
 			}
 		}
@@ -45,7 +45,7 @@ hook notice(n: Notice::Info) &priority=10
 		when ( local dst_name = lookup_addr(n$dst) )
 			{
 			output = string_cat("resp/dst hostname: ", dst_name, "\n");
-			tmp_notice_storage[uid]$email_body_sections[|tmp_notice_storage[uid]$email_body_sections|] = output;
+			tmp_notice_storage[uid]$email_body_sections += output;
 			delete tmp_notice_storage[uid]$email_delay_tokens["hostnames-dst"];
 			}
 		}

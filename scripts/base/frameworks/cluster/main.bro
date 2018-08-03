@@ -251,7 +251,7 @@ function nodes_with_type(node_type: NodeType): vector of NamedNode
 	local names: vector of string = vector();
 
 	for ( name in Cluster::nodes )
-		names[|names|] = name;
+		names += name;
 
 	names = sort(names, strcmp);
 
@@ -263,7 +263,7 @@ function nodes_with_type(node_type: NodeType): vector of NamedNode
 		if ( n$node_type != node_type )
 			next;
 
-		rval[|rval|] = NamedNode($name=name, $node=n);
+		rval += NamedNode($name=name, $node=n);
 		}
 
 	return rval;

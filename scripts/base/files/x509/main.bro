@@ -66,7 +66,7 @@ event x509_certificate(f: fa_file, cert_ref: opaque of x509, cert: X509::Certifi
 event x509_extension(f: fa_file, ext: X509::Extension) &priority=5
 	{
 	if ( f$info?$x509 )
-		f$info$x509$extensions[|f$info$x509$extensions|] = ext;
+		f$info$x509$extensions += ext;
 	}
 
 event x509_ext_basic_constraints(f: fa_file, ext: X509::BasicConstraints) &priority=5

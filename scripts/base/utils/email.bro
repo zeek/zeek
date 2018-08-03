@@ -10,7 +10,7 @@ function extract_email_addrs_vec(str: string): string_vec
 
 	local raw_addrs = find_all(str, /(^|[<,:[:blank:]])[^<,:[:blank:]@]+"@"[^>,;[:blank:]]+([>,;[:blank:]]|$)/);
 	for ( raw_addr in raw_addrs )
-		addrs[|addrs|] = gsub(raw_addr, /[<>,:;[:blank:]]/, "");
+		addrs += gsub(raw_addr, /[<>,:;[:blank:]]/, "");
 
 	return addrs;
 	}

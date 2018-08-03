@@ -163,5 +163,10 @@ event bro_init()
 	test_case( "&& operator", v14[0] == F && v14[1] == F && v14[2] == T );
 	test_case( "|| operator", v15[0] == T && v15[1] == F && v15[2] == T );
 
+	# Test += operator.
+	local v16 = v6;
+	v16 += 40;
+	test_case( "+= operator", all_set(v16 == vector( 10, 20, 30, 40 )) );
+
 }
 

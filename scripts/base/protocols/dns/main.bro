@@ -324,11 +324,11 @@ hook DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string) 
 			{
 			if ( ! c$dns?$answers )
 				c$dns$answers = vector();
-			c$dns$answers[|c$dns$answers|] = reply;
+			c$dns$answers += reply;
 
 			if ( ! c$dns?$TTLs )
 				c$dns$TTLs = vector();
-			c$dns$TTLs[|c$dns$TTLs|] = ans$TTL;
+			c$dns$TTLs += ans$TTL;
 			}
 		}
 	}

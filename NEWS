@@ -309,6 +309,9 @@ New Functionality
   "s1 > s2", and "s1 >= s2" have the expected meanings in terms
   of non-equality, proper superset, and superset-or-equal.
 
+- An expression of the form "v += e" will append the value of the expression
+  "e" to the end of the vector "v" (of course assuming type-compatbility).
+
 Changed Functionality
 ---------------------
 

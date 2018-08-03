@@ -56,7 +56,7 @@ event ssl_established(c: connection) &priority=3
 	local waits_already = digest in waitlist;
 	if ( ! waits_already )
 		waitlist[digest] = vector();
-	waitlist[digest][|waitlist[digest]|] = c$ssl;
+	waitlist[digest] += c$ssl;
 	if ( waits_already )
 		return;
 

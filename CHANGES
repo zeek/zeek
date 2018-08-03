@@ -1,4 +1,15 @@
 
+2.5-811 | 2018-08-03 11:33:57 -0500
+
+  * Update scripts to use vector "+=" append operation (Vern Paxson, Corelight)
+
+  * Add vector "+=" append operation (Vern Paxson, Corelight)
+
+  * Improve a travis output message in pull request builds (Daniel Thayer)
+
+  * Use default version of OpenSSL on all travis docker containers
+    (Daniel Thayer)
+
 2.5-802 | 2018-08-02 10:40:36 -0500
 
   * Add set operations: union, intersection, difference, comparison

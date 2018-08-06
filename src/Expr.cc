@@ -882,7 +882,7 @@ Val* BinaryExpr::SetFold(Val* v1, Val* v2) const
 	TableVal* tv1 = v1->AsTableVal();
 	TableVal* tv2 = v2->AsTableVal();
 	TableVal* result;
-	bool res;
+	bool res = false;
 
 	switch ( tag ) {
 	case EXPR_AND:

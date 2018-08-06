@@ -1,4 +1,11 @@
 
+2.5-815 | 2018-08-06 17:07:56 -0500
+
+  * Fix an "uninitialized" compiler warning (Jon Siwek, Corelight)
+
+  * Fix (non)suppression of proxy-bound events in known-*.bro scripts
+    (Jon Siwek, Corelight)
+
 2.5-811 | 2018-08-03 11:33:57 -0500
 
   * Update scripts to use vector "+=" append operation (Vern Paxson, Corelight)

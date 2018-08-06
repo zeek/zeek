@@ -159,6 +159,9 @@ event service_info_commit(info: ServicesInfo)
 	if ( Known::use_service_store )
 		return;
 
+	if ( [info$host, info$port_num] in Known::services )
+		return;
+
 	local key = cat(info$host, info$port_num);
 	Cluster::publish_hrw(Cluster::proxy_pool, key, known_service_add, info);
 	event known_service_add(info);

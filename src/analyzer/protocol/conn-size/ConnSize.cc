@@ -208,6 +208,7 @@ void ConnSize_Analyzer::UpdateConnVal(RecordVal *conn_val)
 		list_matched->Append(new StringVal(*it));
 		}
 	conn_val->Assign(11, list_matched->ConvertToSet());	// rules_matched_later_packets
+	Unref(list_matched);
 
 	ListVal* list_not_matched = new ListVal(TYPE_STRING);
 	for ( std::set<std::string>::const_iterator it = rules_not_matched_later_packets.begin(); 
@@ -216,6 +217,7 @@ void ConnSize_Analyzer::UpdateConnVal(RecordVal *conn_val)
 		list_not_matched->Append(new StringVal(*it));
 		}
 	conn_val->Assign(12, list_not_matched->ConvertToSet());	// rules_not_matched_later_packets
+	Unref(list_not_matched);
 
 	Analyzer::UpdateConnVal(conn_val);
 	}

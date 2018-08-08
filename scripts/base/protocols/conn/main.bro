@@ -137,6 +137,8 @@ export {
 		## Number of data bytes that the responder sent.
 		## Only set if :bro:id:`use_conn_size_analyzer` = T.
 		resp_data_bytes: count      &log &optional;
+		## Set of rules that are matched on the first packet.
+		rules_matched_first_packet: set[string]	&log &optional;
 		## Set of rules that are matched on later packets.
 		rules_matched_later_packets: set[string]	&log &optional;
 		## Set of rules that are matched on later packets.
@@ -270,6 +272,8 @@ function set_conn(c: connection, eoc: bool)
 			c$conn$resp_data_bytes = c$resp$num_data_bytes;
 			}
 
+		if ( c?$rules_matched_first_packet )
+			c$conn$rules_matched_first_packet = c$rules_matched_first_packet;
 		if ( c?$rules_matched_later_packets )
 			c$conn$rules_matched_later_packets = c$rules_matched_later_packets;
 		if ( c?$rules_not_matched_later_packets )

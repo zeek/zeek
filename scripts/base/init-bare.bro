@@ -381,6 +381,8 @@ type connection: record {
 	inner_vlan: int &optional;
 	
 	## wzj
+	## Rules matched on the first packet
+	rules_matched_first_packet: set[string] &optional;
 	## Rules matched on later packets
 	rules_matched_later_packets: set[string] &optional;
 	## Rules failed to match on later packets

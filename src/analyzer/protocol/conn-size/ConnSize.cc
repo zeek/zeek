@@ -201,23 +201,32 @@ void ConnSize_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	resp_endp->Assign(datapktidx, new Val(resp_data_pkts, TYPE_COUNT));
 	resp_endp->Assign(databytesidx, new Val(resp_data_bytes, TYPE_COUNT));
 
-	ListVal* list_matched = new ListVal(TYPE_STRING);
+	ListVal* list_matched_first = new ListVal(TYPE_STRING);
+	for ( std::set<std::string>::const_iterator it = rules_matched_first_packet.begin(); 
+			it != rules_matched_first_packet.end(); ++it )
+		{
+		list_matched_first->Append(new StringVal(*it));
+		}
+	conn_val->Assign(11, list_matched_first->ConvertToSet());	// rules_matched_first_packet
+	Unref(list_matched_first);
+        
+	ListVal* list_matched_later = new ListVal(TYPE_STRING);
 	for ( std::set<std::string>::const_iterator it = rules_matched_later_packets.begin(); 
 			it != rules_matched_later_packets.end(); ++it )
 		{
-		list_matched->Append(new StringVal(*it));
+		list_matched_later->Append(new StringVal(*it));
 		}
-	conn_val->Assign(11, list_matched->ConvertToSet());	// rules_matched_later_packets
-	Unref(list_matched);
+	conn_val->Assign(12, list_matched_later->ConvertToSet());	// rules_matched_later_packets
+	Unref(list_matched_later);
 
-	ListVal* list_not_matched = new ListVal(TYPE_STRING);
+	ListVal* list_not_matched_later = new ListVal(TYPE_STRING);
 	for ( std::set<std::string>::const_iterator it = rules_not_matched_later_packets.begin(); 
 			it != rules_not_matched_later_packets.end(); ++it )
 		{
-		list_not_matched->Append(new StringVal(*it));
+		list_not_matched_later->Append(new StringVal(*it));
 		}
-	conn_val->Assign(12, list_not_matched->ConvertToSet());	// rules_not_matched_later_packets
-	Unref(list_not_matched);
+	conn_val->Assign(13, list_not_matched_later->ConvertToSet());	// rules_not_matched_later_packets
+	Unref(list_not_matched_later);
 
 	Analyzer::UpdateConnVal(conn_val);
 	}
@@ -254,7 +263,9 @@ void ConnSize_Analyzer::RuleMatches(Rule *r, bool is_orig)
 		data_pkts = orig_data_pkts;
 	else
 		data_pkts = resp_data_pkts;
-	if ( data_pkts > 0 )
+	if ( data_pkts == 0)
+		rules_matched_first_packet.insert(r->ID());
+	else if ( data_pkts > 0 )
 		rules_matched_later_packets.insert(r->ID());
 	}
 

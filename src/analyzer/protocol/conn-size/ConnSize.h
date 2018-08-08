@@ -57,6 +57,7 @@ protected:
 	uint64_t orig_data_pkts;	// data packets sent from orig
 	uint64_t resp_data_pkts;	// data packets sent form resp
 
+	std::set<std::string> rules_matched_first_packet;
 	std::set<std::string> rules_matched_later_packets;
 	std::set<std::string> rules_not_matched_later_packets;
 };

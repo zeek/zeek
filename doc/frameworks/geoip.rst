@@ -102,7 +102,7 @@ following order by default:
 
 If you see an error message similar to "Bro was not configured for GeoIP
 support", then you either need to rebuild Bro and make sure it is linked
-against libmaxminddb or else set the :bro:see:`mmdb_dir`` value
+against libmaxminddb or else set the :bro:see:`mmdb_dir` value
 correctly.  Normally, if libmaxminddb is installed correctly then it
 should automatically be found when building Bro.  If this doesn't
 happen, then you may need to specify the path to the libmaxminddb

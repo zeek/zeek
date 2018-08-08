@@ -1,4 +1,10 @@
 
+2.5-819 | 2018-08-08 13:03:22 -0500
+
+  * Fix cluster layout graphic and doc warnings (Jon Siwek, Corelight)
+
+  * Added missing tcp-state for signature dpd_rfb_server (Zhongjie Wang)
+
 2.5-815 | 2018-08-06 17:07:56 -0500
 
   * Fix an "uninitialized" compiler warning (Jon Siwek, Corelight)

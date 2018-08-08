@@ -872,7 +872,7 @@ type geo_location: record {
 	longitude: double &optional;	##< Longitude.
 } &log;
 
-## The directory containing MaxMind DB (*.mmdb) files to use for GeoIP support.
+## The directory containing MaxMind DB (.mmdb) files to use for GeoIP support.
 const mmdb_dir: string = "" &redef;
 
 ## Computed entropy values. The record captures a number of measures that are

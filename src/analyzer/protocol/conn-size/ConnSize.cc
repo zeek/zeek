@@ -14,7 +14,8 @@ ConnSize_Analyzer::ConnSize_Analyzer(Connection* c)
     : Analyzer("CONNSIZE", c),
       orig_bytes(), resp_bytes(), orig_pkts(), resp_pkts(),
       orig_bytes_thresh(), resp_bytes_thresh(), orig_pkts_thresh(), resp_pkts_thresh(),
-      orig_data_bytes(), resp_data_bytes(), orig_data_pkts(), resp_data_pkts()
+      orig_data_bytes(), resp_data_bytes(), orig_data_pkts(), resp_data_pkts(),
+      data_bytes(), data_pkts()
 	{
 	}
 
@@ -42,6 +43,9 @@ void ConnSize_Analyzer::Init()
 	orig_pkts_thresh = 0;
 	resp_bytes_thresh = 0;
 	resp_pkts_thresh = 0;
+
+	data_bytes = 0;
+	data_pkts = 0;
 	}
 
 void ConnSize_Analyzer::Done()
@@ -107,6 +111,8 @@ void ConnSize_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 			// record the data packets and total bytes
 			orig_data_pkts ++;
 			orig_data_bytes += len;
+			data_pkts ++;
+			data_bytes += len;
 			}
 		}
 	else
@@ -119,6 +125,8 @@ void ConnSize_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 			// record the data packets and total bytes
 			resp_data_pkts ++;
 			resp_data_bytes += len;
+			data_pkts ++;
+			data_bytes += len;
 			}
 		}
 
@@ -258,11 +266,11 @@ void ConnSize_Analyzer::FlipRoles()
 // wzj
 void ConnSize_Analyzer::RuleMatches(Rule *r, bool is_orig)
 	{
-	uint64_t data_pkts;
-	if ( is_orig ) 
-		data_pkts = orig_data_pkts;
-	else
-		data_pkts = resp_data_pkts;
+	//uint64_t data_pkts;
+	//if ( is_orig ) 
+	//	data_pkts = orig_data_pkts;
+	//else
+	//	data_pkts = resp_data_pkts;
 	if ( data_pkts == 0)
 		rules_matched_first_packet.insert(r->ID());
 	else if ( data_pkts > 0 )
@@ -271,11 +279,11 @@ void ConnSize_Analyzer::RuleMatches(Rule *r, bool is_orig)
 
 void ConnSize_Analyzer::RuleNotMatch(Rule *r, bool is_orig)
 	{
-	uint64_t data_pkts;
-	if ( is_orig ) 
-		data_pkts = orig_data_pkts;
-	else
-		data_pkts = resp_data_pkts;
+	//uint64_t data_pkts;
+	//if ( is_orig ) 
+	//	data_pkts = orig_data_pkts;
+	//else
+	//	data_pkts = resp_data_pkts;
 	if ( data_pkts > 0 )
 		rules_not_matched_later_packets.insert(r->ID());
 	}

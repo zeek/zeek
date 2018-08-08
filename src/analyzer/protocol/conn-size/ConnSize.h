@@ -56,6 +56,8 @@ protected:
 	uint64_t resp_data_bytes;	// data bytes sent form resp
 	uint64_t orig_data_pkts;	// data packets sent from orig
 	uint64_t resp_data_pkts;	// data packets sent form resp
+	uint64_t data_bytes;            // data bytes sent from both directions
+	uint64_t data_pkts;             // data packets sent form both directions
 
 	std::set<std::string> rules_matched_first_packet;
 	std::set<std::string> rules_matched_later_packets;

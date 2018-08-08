@@ -76,7 +76,7 @@ event bro_init()
 
 event ssl_extension_signed_certificate_timestamp(c: connection, is_orig: bool, version: count, logid: string, timestamp: count, signature_and_hashalgorithm: SSL::SignatureAndHashAlgorithm, signature: string) &priority=5
 	{
-	c$ssl$ct_proofs[|c$ssl$ct_proofs|] = SctInfo($version=version, $logid=logid, $timestamp=timestamp, $sig_alg=signature_and_hashalgorithm$SignatureAlgorithm, $hash_alg=signature_and_hashalgorithm$HashAlgorithm, $signature=signature, $source=SCT_TLS_EXT);
+	c$ssl$ct_proofs += SctInfo($version=version, $logid=logid, $timestamp=timestamp, $sig_alg=signature_and_hashalgorithm$SignatureAlgorithm, $hash_alg=signature_and_hashalgorithm$HashAlgorithm, $signature=signature, $source=SCT_TLS_EXT);
 	}
 
 event x509_ocsp_ext_signed_certificate_timestamp(f: fa_file, version: count, logid: string, timestamp: count, hash_algorithm: count, signature_algorithm: count, signature: string) &priority=5
@@ -103,7 +103,7 @@ event x509_ocsp_ext_signed_certificate_timestamp(f: fa_file, version: count, log
 		local c = f$conns[cid];
 		}
 
-	c$ssl$ct_proofs[|c$ssl$ct_proofs|] = SctInfo($version=version, $logid=logid, $timestamp=timestamp, $sig_alg=signature_algorithm, $hash_alg=hash_algorithm, $signature=signature, $source=src);
+	c$ssl$ct_proofs += SctInfo($version=version, $logid=logid, $timestamp=timestamp, $sig_alg=signature_algorithm, $hash_alg=hash_algorithm, $signature=signature, $source=src);
 	}
 
 # Priority = 19 will be handled after validation is done

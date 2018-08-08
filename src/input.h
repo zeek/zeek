@@ -23,7 +23,6 @@ extern void add_input_file_at_front(const char* file);
 extern void add_to_name_list(char* s, char delim, name_list& nl);
 
 extern void begin_RE();
-extern void end_RE();
 
 extern void do_atif(Expr* expr);
 extern void do_atifdef(const char* id);

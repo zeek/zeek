@@ -6,13 +6,13 @@
 #
 # @TEST-EXEC: cp input1.log input.log
 # @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run bro bro -m -b %INPUT
-# @TEST-EXEC: sleep 60
+# @TEST-EXEC: $SCRIPTS/wait-for-file bro/got2 60 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: cp input2.log input.log
-# @TEST-EXEC: sleep 10
+# @TEST-EXEC: $SCRIPTS/wait-for-file bro/got4 10 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: cp input3.log input.log
-# @TEST-EXEC: sleep 10
+# @TEST-EXEC: $SCRIPTS/wait-for-file bro/got6 10 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: cp input4.log input.log
-# @TEST-EXEC: sleep 10
+# @TEST-EXEC: $SCRIPTS/wait-for-file bro/got8 10 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: cp input5.log input.log
 # @TEST-EXEC: btest-bg-wait 120
 
@@ -145,7 +145,16 @@ event Input::end_of_data(name: string, source: string)
 	}
 	
 	try = try + 1;
-	if ( try == 10 )
+
+	if ( try == 2 )
+		system("touch got2");
+	else if ( try == 4 )
+		system("touch got4");
+	else if ( try == 6 )
+		system("touch got6");
+	else if ( try == 8 )
+		system("touch got8");
+	else if ( try == 10 )
 		{
 		print outfile, "done";
 		close(outfile);

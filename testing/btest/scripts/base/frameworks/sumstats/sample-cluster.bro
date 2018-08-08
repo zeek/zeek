@@ -1,7 +1,6 @@
 # @TEST-SERIALIZE: comm
 #
 # @TEST-EXEC: btest-bg-run manager-1 BROPATH=$BROPATH:.. CLUSTER_NODE=manager-1 bro %INPUT
-# @TEST-EXEC: sleep 1
 # @TEST-EXEC: btest-bg-run worker-1  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-1 bro %INPUT
 # @TEST-EXEC: btest-bg-run worker-2  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-2 bro %INPUT
 # @TEST-EXEC: btest-bg-wait 15
@@ -15,6 +14,9 @@ redef Cluster::nodes = {
 };
 @TEST-END-FILE
 
+redef Cluster::retry_interval = 1sec;
+redef Broker::default_listen_retry = 1sec;
+redef Broker::default_connect_retry = 1sec;
 redef Log::default_rotation_interval = 0secs;
 
 event bro_init() &priority=5
@@ -29,7 +31,7 @@ event bro_init() &priority=5
 	                  	print fmt("Host: %s  Sampled observations: %d", key$host, r$sample_elements);
 	                  	local sample_nums: vector of count = vector();
 	                  	for ( sample in r$samples ) 
-	                  		sample_nums[|sample_nums|] =r$samples[sample]$num;
+	                  		sample_nums += r$samples[sample]$num;
 
 	                  	print fmt("    %s", sort(sample_nums));
 	                  	},

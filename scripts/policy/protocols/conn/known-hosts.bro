@@ -138,6 +138,9 @@ event Known::host_found(info: HostsInfo)
 	if ( use_host_store )
 		return;
 
+	if ( info$host in Known::hosts )
+		return;
+
 	Cluster::publish_hrw(Cluster::proxy_pool, info$host, known_host_add, info);
 	event known_host_add(info);
 	}

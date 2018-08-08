@@ -1,4 +1,216 @@
 
+2.5-815 | 2018-08-06 17:07:56 -0500
+
+  * Fix an "uninitialized" compiler warning (Jon Siwek, Corelight)
+
+  * Fix (non)suppression of proxy-bound events in known-*.bro scripts
+    (Jon Siwek, Corelight)
+
+2.5-811 | 2018-08-03 11:33:57 -0500
+
+  * Update scripts to use vector "+=" append operation (Vern Paxson, Corelight)
+
+  * Add vector "+=" append operation (Vern Paxson, Corelight)
+
+  * Improve a travis output message in pull request builds (Daniel Thayer)
+
+  * Use default version of OpenSSL on all travis docker containers
+    (Daniel Thayer)
+
+2.5-802 | 2018-08-02 10:40:36 -0500
+
+  * Add set operations: union, intersection, difference, comparison
+    (Vern Paxson, Corelight)
+
+2.5-796 | 2018-08-01 16:31:25 -0500
+
+  * Add 'W' connection history indicator for zero windows
+    (Vern Paxson, Corelight)
+  
+  * Allow logarithmic 'T'/'C'/'W' connection history repetitions, which
+    also now raise their own events (Vern Paxson, Corelight)
+
+2.5-792 | 2018-08-01 12:15:31 -0500
+
+  * fix NTLM NegotiateFlags field offsets (Jeffrey Bencteux)
+
+2.5-790 | 2018-08-01 11:25:27 -0500
+
+  * Fix --with-binpac configure option (Jon Siwek, Corelight)
+
+  * Update CAF-finding logic (Jon Siwek, Corelight)
+
+2.5-787 | 2018-07-31 16:50:55 -0500
+
+  * Add Cisco FabricPath support (Damani Wade, Corelight)
+
+  * Replace GeoIP Legacy DB support with MaxMind DB support
+    (Jonathan Perkins, Corelight)
+
+2.5-782 | 2018-07-31 11:53:22 +0200
+
+  * Update install instructions for OpenSSL 1.1 compat (Jon Siwek, Corelight)
+
+  * Remove requestorName parameter of ocsp_request event
+
+    This field isn't publicly available via the OpenSSL 1.1 API, not used
+    in the base scripts, and has no example in the test suit, so removing
+    it is simpler than trying to support manually parsing it out of the
+    raw data. (Jon Siwek, Corelight)
+
+  * Adjust x509 unit tests to work around OpenSSL 1.0 vs. 1.1 differences (Jon Siwek, Corelight)
+
+  * Fixes for OpenSSL 1.1 support (Jon Siwek, Corelight)
+
+2.5-775 | 2018-07-24 16:39:34 -0500
+
+  * Add broker/binpac/caf dirs to bro-config script (Jon Siwek, Corelight)
+
+  * Exclude CMakeFiles from header installation path (Jon Siwek, Corelight)
+
+2.5-773 | 2018-07-24 15:04:41 +0000
+
+  * BIT-1950: Support PPPoE over QinQ (Jon Siwek, Corelight)
+
+2.5-771 | 2018-07-24 02:26:17 +0000
+
+  * Support building plugins from Bro installation prefix so that it
+    does no longer need access to a Bro source/build tree. This
+    required installing various Bro headers, BinPAC and it's headers,
+    bifcl, and Bro's custom CMake modules. (Jon Siwek, Corelight)
+
+  * Add binpac to install process. (Jon Siwek, Corelight)
+
+  * Move bifcl to a separate repo. (Jon Siwek, Corelight)
+
+2.5-766 | 2018-07-24 01:39:07 +0000
+
+  * Clusterization of configureation framework. (Johanna Amann, Corelight)
+
+  * Fix special-case-bug for vectors in UnaryExpr. (Johanna Amann, Corelight)
+
+  * Teach Option::set to unwrap Broker::Data values (Jon Siwek, Corelight)
+
+  * Fix some compiler warnings. (Robin Sommer, Corelight)
+
+2.5-749 | 2018-07-20 12:08:06 -0500
+
+  * Make Broker congestion queue size tunable and increase default
+    (Jon Siwek, Corelight)
+
+  * Improve control framework id-update/test output (Jon Siwek, Corelight)
+
+2.5-747 | 2018-07-18 09:51:13 -0500
+
+  * Improve some netcontrol unit tests (Jon Siwek, Corelight)
+
+2.5-746 | 2018-07-17 17:51:13 -0500
+
+  * Improve an input framework unit test (Jon Siwek, Corelight)
+
+2.5-745 | 2018-07-17 16:46:16 -0500
+
+  * Add explicit key in Travis known_hosts (Jon Siwek, Corelight)
+
+2.5-743 | 2018-07-17 14:20:19 -0500
+
+  * Port broker::data variant usages to use CAF API directly
+    (Jon Siwek, Corelight)
+
+2.5-741 | 2018-07-16 16:06:02 -0500
+
+  * Improve Specific_RE_Matcher::CompileSet() error condition cleanup
+    (Jon Siwek, Corelight)
+
+2.5-740 | 2018-07-16 16:01:31 -0500
+
+  * Add support for case-insensitive patterns (Vern Paxson, Corelight)
+
+2.5-730 | 2018-07-16 10:39:33 -0500
+
+  * de-restrict pattern-oriented BiFs to no longer require only running at init
+    (Vern Paxson)
+
+  * Add option to toggle extraction of subject alternate names from X509 SAN
+    DNS field (Liviu Valsan)
+
+2.5-725 | 2018-07-03 14:56:10 -0500
+
+  * BIT-1941: improve unit test stability (Corelight)
+
+2.5-723 | 2018-07-03 09:34:10 -0500
+
+  * Fix unstable config framework test (Corelight)
+
+2.5-722 | 2018-07-03 09:16:37 -0500
+
+  * BIT-1941: teach diff-remove-timestamps about time 0 (Corelight)
+
+2.5-721 | 2018-07-02 16:29:21 -0500
+
+  * BIT-1941: improve reliability of broker.disconnect unit test (Corelight)
+
+2.5-719 | 2018-06-27 20:02:52 -0500
+
+  * Fix some typos and formatting in NEWS and other documentation
+    (Daniel Thayer)
+
+  * Add documentation for type-based switch statment, as/is operators,
+    bitwise operators, and pattern operators (Daniel Thayer)
+
+2.5-711 | 2018-06-27 19:11:58 -0500
+
+  * Prevent double-wrapping Broker::Data in published event args (Corelight)
+
+2.5-710 | 2018-06-26 18:06:22 -0500
+
+  * Add memory leak unit test for pattern operations (Corelight)
+
+  * fixed 3 leaks in creating pattern values (Vern Paxson)
+
+  * add & and | operators for patterns (Vern Paxson)
+
+  * deprecate merge_patterns() (Vern Paxson)
+
+  * deprecate boolean scalar+vector operations (Vern Paxson)
+
+  * deprecate mixing scalars and vectors (Vern Paxson)
+
+  * deprecate && / || operators for patterns (Vern Paxson)
+
+2.5-690 | 2018-06-26 15:05:23 -0500
+
+  * Fix deprecated actor_system_config field usages (Corelight)
+
+2.5-689 | 2018-06-26 11:45:52 -0500
+
+  * Remove header self-inclusions (Corelight)
+
+  * Fix travis-job script to not fail when all tests succeed (Daniel Thayer)
+
+2.5-687 | 2018-06-25 16:35:25 -0500
+
+  * Reorganize internal + private broker/Manager.h bits (Corelight)
+
+  * Reduce proliferation of including broker header files (Corelight)
+
+2.5-684 | 2018-06-25 11:26:55 -0500
+
+  * Use docker containers to run Bro tests on Travis CI (Daniel Thayer)
+
+  * Travis CI fewer failures and improved output messages (Daniel Thayer)
+
+2.5-681 | 2018-06-22 20:17:06 -0500
+
+  * Fix null pointer deref in AST traversal (Corelight)
+
+  * Fix for ancient reference-counting bug in NFA.cc (Vern Paxson)
+
+2.5-679 | 2018-06-21 16:00:48 -0500
+
+  * Add support for bitwise operations (&, |, ^, ~) on "count" values.
+    (Vern Paxson)
+
 2.5-671 | 2018-06-21 11:55:39 -0500
 
   * Add ability for BroControl to skip cluster setup (Corelight)
@@ -55,7 +267,6 @@
 2.5-650 | 2018-06-06 16:20:18 -0500
 
   * Improve Broker performance (Corelight)
->>>>>>> b51e6f39ddc641811d4875cda4543d3a60fb5a63
 
 2.5-648 | 2018-06-05 17:32:47 -0500
 

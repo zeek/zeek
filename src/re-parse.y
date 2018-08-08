@@ -11,11 +11,12 @@
 int csize = 256;
 int syntax_error = 0;
 
+int cupper(int sym);
 int clower(int sym);
 void yyerror(const char msg[]);
 %}
 
-%token TOK_CHAR TOK_NUMBER TOK_CCL TOK_CCE
+%token TOK_CHAR TOK_NUMBER TOK_CCL TOK_CCE TOK_CASE_INSENSITIVE
 
 %union {
 	int int_val;
@@ -126,12 +127,11 @@ singleton	:  singleton '*'
 		|  '(' re ')'
 			{ $$ = $2; }
 
+		|  TOK_CASE_INSENSITIVE re ')'
+			{ $$ = $2; case_insensitive = 0; }
+
 		|  TOK_CHAR
-			{
-			if ( case_insensitive && $1 >= 'A' && $1 <= 'Z' )
-				$1 = clower($1);
-			$$ = new NFA_Machine(new NFA_State($1, rem->EC()));
-			}
+			{ $$ = new NFA_Machine(new NFA_State($1, rem->EC())); }
 
 		|  '^'
 			{
@@ -158,16 +158,28 @@ full_ccl	:  '[' ccl ']'
 
 ccl		:  ccl TOK_CHAR '-' TOK_CHAR
 			{
-			if ( case_insensitive )
-				{
-				if ( $2 >= 'A' && $2 <= 'Z' )
-					$2 = clower($2);
-				if ( $4 >= 'A' && $4 <= 'Z' )
-					$4 = clower($4);
-				}
-
 			if ( $2 > $4 )
 				synerr("negative range in character class");
+
+			else if ( case_insensitive &&
+				  (isalpha($2) || isalpha($4)) )
+				{
+				if ( isalpha($2) && isalpha($4) &&
+				     isupper($2) == isupper($4) )
+					{ // Compatible range, do both versions
+					int l2 = tolower($2);
+					int l4 = tolower($4);
+
+					for ( int i = l2; i<= l4; ++i )
+						{
+						$1->Add(i);
+						$1->Add(toupper(i));
+						}
+					}
+
+				else
+					synerr("ambiguous case-insensitive character class");
+				}
 
 			else
 				{
@@ -178,10 +190,13 @@ ccl		:  ccl TOK_CHAR '-' TOK_CHAR
 
 		|  ccl TOK_CHAR
 			{
-			if ( case_insensitive && $2 >= 'A' && $2 <= 'Z' )
-				$2 = clower($2);
-
-			$1->Add($2);
+			if ( case_insensitive && isalpha($2) )
+				{
+				$1->Add(clower($2));
+				$1->Add(cupper($2));
+				}
+			else
+				$1->Add($2);
 			}
 
 		|  ccl ccl_expr
@@ -200,9 +215,10 @@ ccl_expr:	   TOK_CCE
 
 string		:  string TOK_CHAR
 			{
-			if ( case_insensitive && $2 >= 'A' && $2 <= 'Z' )
-				$2 = clower($2);
-
+			// Even if case-insensitivity is set,
+			// leave this alone; that provides a way
+			// of "escaping" out of insensitivity
+			// if needed.
 			$1->AppendState(new NFA_State($2, rem->EC()));
 			}
 
@@ -210,6 +226,11 @@ string		:  string TOK_CHAR
 			{ $$ = new NFA_Machine(new EpsilonState()); }
 		;
 %%
+
+int cupper(int sym)
+	{
+	return (isascii(sym) && islower(sym)) ?  toupper(sym) : sym;
+	}
 
 int clower(int sym)
 	{

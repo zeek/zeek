@@ -1,12 +1,9 @@
 # @TEST-SERIALIZE: comm
 #
 # @TEST-EXEC: btest-bg-run logger-1  CLUSTER_NODE=logger-1 BROPATH=$BROPATH:.. bro %INPUT
-# @TEST-EXEC: sleep 1
 # @TEST-EXEC: btest-bg-run manager-1 CLUSTER_NODE=manager-1 BROPATH=$BROPATH:.. bro %INPUT
-# @TEST-EXEC: sleep 1
 # @TEST-EXEC: btest-bg-run proxy-1   CLUSTER_NODE=proxy-1 BROPATH=$BROPATH:.. bro %INPUT
 # @TEST-EXEC: btest-bg-run proxy-2   CLUSTER_NODE=proxy-2 BROPATH=$BROPATH:.. bro %INPUT
-# @TEST-EXEC: sleep 1
 # @TEST-EXEC: btest-bg-run worker-1  CLUSTER_NODE=worker-1 BROPATH=$BROPATH:.. bro %INPUT
 # @TEST-EXEC: btest-bg-run worker-2  CLUSTER_NODE=worker-2 BROPATH=$BROPATH:.. bro %INPUT
 # @TEST-EXEC: btest-bg-wait 30
@@ -28,6 +25,10 @@ redef Cluster::nodes = {
 	["worker-2"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=37762/tcp, $manager="manager-1", $interface="eth1"],
 };
 @TEST-END-FILE
+
+redef Cluster::retry_interval = 1sec;
+redef Broker::default_listen_retry = 1sec;
+redef Broker::default_connect_retry = 1sec;
 
 global fully_connected: event();
 

@@ -7,6 +7,7 @@ redef exit_only_after_terminate = T;
 
 global outfile: file;
 global processes_finished: count = 0;
+global lines_received: count = 0;
 global n: count = 0;
 global total_processes: count = 0;
 
@@ -20,10 +21,23 @@ type Val: record {
 	s: string;
 };
 
+global more_input: function(name_prefix: string);
+
+function check_terminate_condition()
+	{
+	if ( processes_finished != total_processes )
+		return;
+
+	if ( lines_received != (total_processes - 1) * 2 )
+		return;
+
+	terminate();
+	}
+
 event line(description: Input::EventDescription, tpe: Input::Event, s: string)
 	{
-	print outfile, tpe, description$source, description$name;
-	print outfile, s;
+	++lines_received;
+	print outfile, tpe, description$source, description$name, s;
 	}
 
 event InputRaw::process_finished(name: string, source:string, exit_code:count, signal_exit:bool)
@@ -31,10 +45,18 @@ event InputRaw::process_finished(name: string, source:string, exit_code:count, s
 	print "process_finished", name, source;
 	Input::remove(name);
 	++processes_finished;
-	if ( processes_finished == total_processes )
+	if ( processes_finished == 1 )
+		{
+		more_input("input");
+		more_input("input");
+		more_input("input");
+		more_input("input");
+		more_input("input");
+		}
+	else if ( processes_finished == total_processes )
 		{
 		close(outfile);
-		terminate();
+		check_terminate_condition();
 		}
 	}
 
@@ -59,9 +81,4 @@ event bro_init()
 	                  $reader=Input::READER_RAW, $mode=Input::STREAM,
 	                  $name="input", $fields=Val, $ev=line, $want_record=F,
 	                  $config=config_strings]);
-	more_input("input");
-	more_input("input");
-	more_input("input");
-	more_input("input");
-	more_input("input");
 	}

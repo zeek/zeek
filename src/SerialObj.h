@@ -3,7 +3,7 @@
 // How to make objects of class Foo serializable:
 //
 //    1. Derive Foo (directly or indirectly) from SerialObj.
-//    2. Add a SER_FOO constant to SerialTypes below.
+//    2. Add a SER_FOO constant to SerialTypes in SerialTypes.h.
 //    3. Add DECLARE_SERIAL(Foo) into class definition.
 //    4. Add a (preferably protected) default ctor if it doesn't already exist.
 //    5. For non-abstract classes, add IMPLEMENT_SERIAL(Foo, SER_FOO) to *.cc

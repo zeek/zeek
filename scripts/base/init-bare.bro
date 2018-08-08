@@ -885,6 +885,9 @@ type geo_location: record {
 	longitude: double &optional;	##< Longitude.
 } &log;
 
+## The directory containing MaxMind DB (*.mmdb) files to use for GeoIP support.
+const mmdb_dir: string = "" &redef;
+
 ## Computed entropy values. The record captures a number of measures that are
 ## computed in parallel. See `A Pseudorandom Number Sequence Test Program
 ## <http://www.fourmilab.ch/random>`_ for more information, Bro uses the same

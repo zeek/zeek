@@ -1,0 +1,11 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	config
+#open	2018-06-22-18-27-45
+#fields	ts	id	old_value	new_value	location
+#types	time	string	string	string	string
+1529692065.525489	testport	42/tcp	44/tcp	-
+1529692065.562594	teststring	a	b	comment
+#close	2018-06-22-18-27-50

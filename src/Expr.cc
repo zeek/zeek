@@ -21,8 +21,10 @@ const char* expr_name(BroExprTag t)
 	static const char* expr_names[int(NUM_EXPRS)] = {
 		"name", "const",
 		"(*)",
-		"++", "--", "!", "+", "-",
-		"+", "-", "+=", "-=", "*", "/", "%", "&&", "||",
+		"++", "--", "!", "~", "+", "-",
+		"+", "-", "+=", "-=", "*", "/", "%",
+		"&", "|", "^",
+		"&&", "||",
 		"<", "<=", "==", "!=", ">=", ">", "?:", "ref",
 		"=", "~", "[]", "$", "?$", "[=]",
 		"table()", "set()", "vector()",
@@ -454,7 +456,13 @@ Val* UnaryExpr::Eval(Frame* f) const
 	if ( is_vector(v) )
 		{
 		VectorVal* v_op = v->AsVectorVal();
-		VectorVal* result = new VectorVal(Type()->AsVectorType());
+		VectorType* out_t;
+		if ( Type()->Tag() == TYPE_ANY )
+			out_t = v->Type()->AsVectorType();
+		else
+			out_t = Type()->AsVectorType();
+
+		VectorVal* result = new VectorVal(out_t);
 
 		for ( unsigned int i = 0; i < v_op->Size(); ++i )
 			{
@@ -661,6 +669,12 @@ Val* BinaryExpr::Fold(Val* v1, Val* v2) const
 	if ( it == TYPE_INTERNAL_STRING )
 		return StringFold(v1, v2);
 
+	if ( v1->Type()->Tag() == TYPE_PATTERN )
+		return PatternFold(v1, v2);
+
+	if ( v1->Type()->IsSet() )
+		return SetFold(v1, v2);
+
 	if ( it == TYPE_INTERNAL_ADDR )
 		return AddrFold(v1, v2);
 
@@ -698,6 +712,12 @@ Val* BinaryExpr::Fold(Val* v1, Val* v2) const
 	if ( is_integral ) \
 		i3 = i1 op i2; \
 	else if ( is_unsigned ) \
+		u3 = u1 op u2; \
+	else \
+		Internal("bad type in BinaryExpr::Fold");
+
+#define DO_UINT_FOLD(op) \
+	if ( is_unsigned ) \
 		u3 = u1 op u2; \
 	else \
 		Internal("bad type in BinaryExpr::Fold");
@@ -775,8 +795,12 @@ Val* BinaryExpr::Fold(Val* v1, Val* v2) const
 
 		break;
 
-	case EXPR_AND:		DO_INT_FOLD(&&); break;
-	case EXPR_OR:		DO_INT_FOLD(||); break;
+	case EXPR_AND:		DO_UINT_FOLD(&); break;
+	case EXPR_OR:		DO_UINT_FOLD(|); break;
+	case EXPR_XOR:		DO_UINT_FOLD(^); break;
+
+	case EXPR_AND_AND:	DO_INT_FOLD(&&); break;
+	case EXPR_OR_OR:	DO_INT_FOLD(||); break;
 
 	case EXPR_LT:		DO_INT_VAL_FOLD(<); break;
 	case EXPR_LE:		DO_INT_VAL_FOLD(<=); break;
@@ -835,6 +859,77 @@ Val* BinaryExpr::StringFold(Val* v1, Val* v2) const
 	}
 
 	return new Val(result, TYPE_BOOL);
+	}
+
+
+Val* BinaryExpr::PatternFold(Val* v1, Val* v2) const
+	{
+	const RE_Matcher* re1 = v1->AsPattern();
+	const RE_Matcher* re2 = v2->AsPattern();
+
+	if ( tag != EXPR_AND && tag != EXPR_OR )
+		BadTag("BinaryExpr::PatternFold");
+
+	RE_Matcher* res = tag == EXPR_AND ?
+		RE_Matcher_conjunction(re1, re2) :
+		RE_Matcher_disjunction(re1, re2);
+
+	return new PatternVal(res);
+	}
+
+Val* BinaryExpr::SetFold(Val* v1, Val* v2) const
+	{
+	TableVal* tv1 = v1->AsTableVal();
+	TableVal* tv2 = v2->AsTableVal();
+	TableVal* result;
+	bool res = false;
+
+	switch ( tag ) {
+	case EXPR_AND:
+		return tv1->Intersect(tv2);
+
+	case EXPR_OR:
+		result = v1->Clone()->AsTableVal();
+
+		if ( ! tv2->AddTo(result, false, false) )
+			reporter->InternalError("set union failed to type check");
+		return result;
+
+	case EXPR_SUB:
+		result = v1->Clone()->AsTableVal();
+
+		if ( ! tv2->RemoveFrom(result) )
+			reporter->InternalError("set difference failed to type check");
+		return result;
+
+	case EXPR_EQ:
+		res = tv1->EqualTo(tv2);
+		break;
+
+	case EXPR_NE:
+		res = ! tv1->EqualTo(tv2);
+		break;
+
+	case EXPR_LT:
+		res = tv1->IsSubsetOf(tv2) && tv1->Size() < tv2->Size();
+		break;
+
+	case EXPR_LE:
+		res = tv1->IsSubsetOf(tv2);
+		break;
+
+	case EXPR_GE:
+	case EXPR_GT:
+		// These should't happen due to canonicalization.
+		reporter->InternalError("confusion over canonicalization in set comparison");
+		break;
+
+	default:
+		BadTag("BinaryExpr::SetFold", expr_name(tag));
+		return 0;
+	}
+
+	return new Val(res, TYPE_BOOL);
 	}
 
 Val* BinaryExpr::AddrFold(Val* v1, Val* v2) const
@@ -897,10 +992,16 @@ void BinaryExpr::PromoteOps(TypeTag t)
 	TypeTag bt1 = op1->Type()->Tag();
 	TypeTag bt2 = op2->Type()->Tag();
 
-	if ( IsVector(bt1) )
+	bool is_vec1 = IsVector(bt1);
+	bool is_vec2 = IsVector(bt2);
+
+	if ( is_vec1 )
 		bt1 = op1->Type()->AsVectorType()->YieldType()->Tag();
-	if ( IsVector(bt2) )
+	if ( is_vec2 )
 		bt2 = op2->Type()->AsVectorType()->YieldType()->Tag();
+
+	if ( (is_vec1 || is_vec2) && ! (is_vec1 && is_vec2) )
+		reporter->Warning("mixing vector and scalar operands is deprecated");
 
 	if ( bt1 != t )
 		op1 = new ArithCoerceExpr(op1, t);
@@ -991,7 +1092,10 @@ IncrExpr::IncrExpr(BroExprTag arg_tag, Expr* arg_op)
 		if ( ! IsIntegral(t->AsVectorType()->YieldType()->Tag()) )
 			ExprError("vector elements must be integral for increment operator");
 		else
+			{
+			reporter->Warning("increment/decrement operations for vectors deprecated");
 			SetType(t->Ref());
+			}
 		}
 	else
 		{
@@ -1072,6 +1176,39 @@ bool IncrExpr::DoSerialize(SerialInfo* info) const
 	}
 
 bool IncrExpr::DoUnserialize(UnserialInfo* info)
+	{
+	DO_UNSERIALIZE(UnaryExpr);
+	return true;
+	}
+
+ComplementExpr::ComplementExpr(Expr* arg_op) : UnaryExpr(EXPR_COMPLEMENT, arg_op)
+	{
+	if ( IsError() )
+		return;
+
+	BroType* t = op->Type();
+	TypeTag bt = t->Tag();
+
+	if ( bt != TYPE_COUNT )
+		ExprError("requires \"count\" operand");
+	else
+		SetType(base_type(TYPE_COUNT));
+	}
+
+Val* ComplementExpr::Fold(Val* v) const
+	{
+	return new Val(~ v->InternalUnsigned(), type->Tag());
+	}
+
+IMPLEMENT_SERIAL(ComplementExpr, SER_COMPLEMENT_EXPR);
+
+bool ComplementExpr::DoSerialize(SerialInfo* info) const
+	{
+	DO_SERIALIZE(SER_COMPLEMENT_EXPR, UnaryExpr);
+	return true;
+	}
+
+bool ComplementExpr::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(UnaryExpr);
 	return true;
@@ -1312,7 +1449,8 @@ bool AddExpr::DoUnserialize(UnserialInfo* info)
 	}
 
 AddToExpr::AddToExpr(Expr* arg_op1, Expr* arg_op2)
-: BinaryExpr(EXPR_ADD_TO, arg_op1->MakeLvalue(), arg_op2)
+: BinaryExpr(EXPR_ADD_TO,
+             is_vector(arg_op1) ? arg_op1 : arg_op1->MakeLvalue(), arg_op2)
 	{
 	if ( IsError() )
 		return;
@@ -1326,6 +1464,32 @@ AddToExpr::AddToExpr(Expr* arg_op1, Expr* arg_op2)
 		SetType(base_type(bt1));
 	else if ( BothInterval(bt1, bt2) )
 		SetType(base_type(bt1));
+
+	else if ( IsVector(bt1) )
+		{
+		bt1 = op1->Type()->AsVectorType()->YieldType()->Tag();
+
+		if ( IsArithmetic(bt1) )
+			{
+			if ( IsArithmetic(bt2) )
+				{
+				if ( bt2 != bt1 )
+					op2 = new ArithCoerceExpr(op2, bt1);
+
+				SetType(op1->Type()->Ref());
+				}
+
+			else
+				ExprError("appending non-arithmetic to arithmetic vector");
+			}
+
+		else if ( bt1 != bt2 )
+			ExprError("incompatible vector append");
+
+		else
+			SetType(op1->Type()->Ref());
+		}
+
 	else
 		ExprError("requires two arithmetic or two string operands");
 	}
@@ -1341,6 +1505,14 @@ Val* AddToExpr::Eval(Frame* f) const
 		{
 		Unref(v1);
 		return 0;
+		}
+
+	if ( is_vector(v1) )
+		{
+		VectorVal* vv = v1->AsVectorVal();
+		if ( ! vv->Assign(vv->Size(), v2) )
+			reporter->Error("type-checking failed in vector append");
+		return v1;
 		}
 
 	Val* result = Fold(v1, v2);
@@ -1376,24 +1548,39 @@ SubExpr::SubExpr(Expr* arg_op1, Expr* arg_op2)
 	if ( IsError() )
 		return;
 
-	TypeTag bt1 = op1->Type()->Tag();
-	if ( IsVector(bt1) )
-		bt1 = op1->Type()->AsVectorType()->YieldType()->Tag();
+	const BroType* t1 = op1->Type();
+	const BroType* t2 = op2->Type();
 
-	TypeTag bt2 = op2->Type()->Tag();
+	TypeTag bt1 = t1->Tag();
+	if ( IsVector(bt1) )
+		bt1 = t1->AsVectorType()->YieldType()->Tag();
+
+	TypeTag bt2 = t2->Tag();
 	if ( IsVector(bt2) )
-		bt2 = op2->Type()->AsVectorType()->YieldType()->Tag();
+		bt2 = t2->AsVectorType()->YieldType()->Tag();
 
 	BroType* base_result_type = 0;
 
 	if ( bt1 == TYPE_TIME && bt2 == TYPE_INTERVAL )
 		base_result_type = base_type(bt1);
+
 	else if ( bt1 == TYPE_TIME && bt2 == TYPE_TIME )
 		SetType(base_type(TYPE_INTERVAL));
+
 	else if ( bt1 == TYPE_INTERVAL && bt2 == TYPE_INTERVAL )
 		base_result_type = base_type(bt1);
+
+	else if ( t1->IsSet() && t2->IsSet() )
+		{
+		if ( same_type(t1, t2) )
+			SetType(op1->Type()->Ref());
+		else
+			ExprError("incompatible \"set\" operands");
+		}
+
 	else if ( BothArithmetic(bt1, bt2) )
 		PromoteType(max_type(bt1, bt2), is_vector(op1) || is_vector(op2));
+
 	else
 		ExprError("requires arithmetic operands");
 
@@ -1644,13 +1831,20 @@ BoolExpr::BoolExpr(BroExprTag arg_tag, Expr* arg_op1, Expr* arg_op2)
 	if ( BothBool(bt1, bt2) )
 		{
 		if ( is_vector(op1) || is_vector(op2) )
+			{
+			if ( ! (is_vector(op1) && is_vector(op2)) )
+				reporter->Warning("mixing vector and scalar operands is deprecated");
 			SetType(new VectorType(base_type(TYPE_BOOL)));
+			}
 		else
 			SetType(base_type(TYPE_BOOL));
 		}
 
 	else if ( bt1 == TYPE_PATTERN && bt2 == bt1 )
+		{
+		reporter->Warning("&& and || operators deprecated for pattern operands");
 		SetType(base_type(TYPE_PATTERN));
+		}
 
 	else
 		ExprError("requires boolean operands");
@@ -1661,23 +1855,7 @@ Val* BoolExpr::DoSingleEval(Frame* f, Val* v1, Expr* op2) const
 	if ( ! v1 )
 		return 0;
 
-	if ( Type()->Tag() == TYPE_PATTERN )
-		{
-		Val* v2 = op2->Eval(f);
-		if ( ! v2 )
-			return 0;
-
-		RE_Matcher* re1 = v1->AsPattern();
-		RE_Matcher* re2 = v2->AsPattern();
-
-		RE_Matcher* res = tag == EXPR_AND ?
-			RE_Matcher_conjunction(re1, re2) :
-			RE_Matcher_disjunction(re1, re2);
-
-		return new PatternVal(res);
-		}
-
-	if ( tag == EXPR_AND )
+	if ( tag == EXPR_AND_AND )
 		{
 		if ( v1->IsZero() )
 			return v1;
@@ -1741,8 +1919,8 @@ Val* BoolExpr::Eval(Frame* f) const
 
 		VectorVal* result = 0;
 
-		// It's either and EXPR_AND or an EXPR_OR.
-		bool is_and = (tag == EXPR_AND);
+		// It's either an EXPR_AND_AND or an EXPR_OR_OR.
+		bool is_and = (tag == EXPR_AND_AND);
 
 		if ( scalar_v->IsZero() == is_and )
 			{
@@ -1783,7 +1961,7 @@ Val* BoolExpr::Eval(Frame* f) const
 		Val* op2 = vec_v2->Lookup(i);
 		if ( op1 && op2 )
 			{
-			bool local_result = (tag == EXPR_AND) ?
+			bool local_result = (tag == EXPR_AND_AND) ?
 				(! op1->IsZero() && ! op2->IsZero()) :
 				(! op1->IsZero() || ! op2->IsZero());
 
@@ -1813,6 +1991,70 @@ bool BoolExpr::DoUnserialize(UnserialInfo* info)
 	return true;
 	}
 
+BitExpr::BitExpr(BroExprTag arg_tag, Expr* arg_op1, Expr* arg_op2)
+: BinaryExpr(arg_tag, arg_op1, arg_op2)
+	{
+	if ( IsError() )
+		return;
+
+	const BroType* t1 = op1->Type();
+	const BroType* t2 = op2->Type();
+
+	TypeTag bt1 = t1->Tag();
+	if ( IsVector(bt1) )
+		bt1 = t1->AsVectorType()->YieldType()->Tag();
+
+	TypeTag bt2 = t2->Tag();
+	if ( IsVector(bt2) )
+		bt2 = t2->AsVectorType()->YieldType()->Tag();
+
+	if ( (bt1 == TYPE_COUNT || bt1 == TYPE_COUNTER) &&
+	     (bt2 == TYPE_COUNT || bt2 == TYPE_COUNTER) )
+		{
+		if ( bt1 == TYPE_COUNTER && bt2 == TYPE_COUNTER )
+			ExprError("cannot apply a bitwise operator to two \"counter\" operands");
+		else if ( is_vector(op1) || is_vector(op2) )
+			SetType(new VectorType(base_type(TYPE_COUNT)));
+		else
+			SetType(base_type(TYPE_COUNT));
+		}
+
+	else if ( bt1 == TYPE_PATTERN )
+		{
+		if ( bt2 != TYPE_PATTERN )
+			ExprError("cannot mix pattern and non-pattern operands");
+		else if ( tag == EXPR_XOR )
+			ExprError("'^' operator does not apply to patterns");
+		else
+			SetType(base_type(TYPE_PATTERN));
+		}
+
+	else if ( t1->IsSet() && t2->IsSet() )
+		{
+		if ( same_type(t1, t2) )
+			SetType(op1->Type()->Ref());
+		else
+			ExprError("incompatible \"set\" operands");
+		}
+
+	else
+		ExprError("requires \"count\" or compatible \"set\" operands");
+	}
+
+IMPLEMENT_SERIAL(BitExpr, SER_BIT_EXPR);
+
+bool BitExpr::DoSerialize(SerialInfo* info) const
+	{
+	DO_SERIALIZE(SER_BIT_EXPR, BinaryExpr);
+	return true;
+	}
+
+bool BitExpr::DoUnserialize(UnserialInfo* info)
+	{
+	DO_UNSERIALIZE(BinaryExpr);
+	return true;
+	}
+
 EqExpr::EqExpr(BroExprTag arg_tag, Expr* arg_op1, Expr* arg_op2)
 : BinaryExpr(arg_tag, arg_op1, arg_op2)
 	{
@@ -1821,13 +2063,16 @@ EqExpr::EqExpr(BroExprTag arg_tag, Expr* arg_op1, Expr* arg_op2)
 
 	Canonicize();
 
-	TypeTag bt1 = op1->Type()->Tag();
-	if ( IsVector(bt1) )
-		bt1 = op1->Type()->AsVectorType()->YieldType()->Tag();
+	const BroType* t1 = op1->Type();
+	const BroType* t2 = op2->Type();
 
-	TypeTag bt2 = op2->Type()->Tag();
+	TypeTag bt1 = t1->Tag();
+	if ( IsVector(bt1) )
+		bt1 = t1->AsVectorType()->YieldType()->Tag();
+
+	TypeTag bt2 = t2->Tag();
 	if ( IsVector(bt2) )
-		bt2 = op2->Type()->AsVectorType()->YieldType()->Tag();
+		bt2 = t2->AsVectorType()->YieldType()->Tag();
 
 	if ( is_vector(op1) || is_vector(op2) )
 		SetType(new VectorType(base_type(TYPE_BOOL)));
@@ -1857,9 +2102,19 @@ EqExpr::EqExpr(BroExprTag arg_tag, Expr* arg_op1, Expr* arg_op2)
 			break;
 
 		case TYPE_ENUM:
-			if ( ! same_type(op1->Type(), op2->Type()) )
+			if ( ! same_type(t1, t2) )
 				ExprError("illegal enum comparison");
 			break;
+
+		case TYPE_TABLE:
+			if ( t1->IsSet() && t2->IsSet() )
+				{
+				if ( ! same_type(t1, t2) )
+					ExprError("incompatible sets in comparison");
+				break;
+				}
+
+			// FALL THROUGH
 
 		default:
 			ExprError("illegal comparison");
@@ -1923,13 +2178,16 @@ RelExpr::RelExpr(BroExprTag arg_tag, Expr* arg_op1, Expr* arg_op2)
 
 	Canonicize();
 
-	TypeTag bt1 = op1->Type()->Tag();
-	if ( IsVector(bt1) )
-		bt1 = op1->Type()->AsVectorType()->YieldType()->Tag();
+	const BroType* t1 = op1->Type();
+	const BroType* t2 = op2->Type();
 
-	TypeTag bt2 = op2->Type()->Tag();
+	TypeTag bt1 = t1->Tag();
+	if ( IsVector(bt1) )
+		bt1 = t1->AsVectorType()->YieldType()->Tag();
+
+	TypeTag bt2 = t2->Tag();
 	if ( IsVector(bt2) )
-		bt2 = op2->Type()->AsVectorType()->YieldType()->Tag();
+		bt2 = t2->AsVectorType()->YieldType()->Tag();
 
 	if ( is_vector(op1) || is_vector(op2) )
 		SetType(new VectorType(base_type(TYPE_BOOL)));
@@ -1938,6 +2196,12 @@ RelExpr::RelExpr(BroExprTag arg_tag, Expr* arg_op1, Expr* arg_op2)
 
 	if ( BothArithmetic(bt1, bt2) )
 		PromoteOps(max_type(bt1, bt2));
+
+	else if ( t1->IsSet() && t2->IsSet() )
+		{
+		if ( ! same_type(t1, t2) )
+			ExprError("incompatible sets in comparison");
+		}
 
 	else if ( bt1 != bt2 )
 		ExprError("operands must be of the same type");

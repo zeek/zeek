@@ -12,6 +12,7 @@ NFA_State::NFA_State(int arg_sym, EquivClass* ec)
 	sym = arg_sym;
 	ccl = 0;
 	accept = NO_ACCEPT;
+	first_trans_is_back_ref = false;
 	mark = 0;
 	epsclosure = 0;
 	id = ++nfa_state_id;
@@ -33,6 +34,7 @@ NFA_State::NFA_State(CCL* arg_ccl)
 	sym = SYM_CCL;
 	ccl = arg_ccl;
 	accept = NO_ACCEPT;
+	first_trans_is_back_ref = false;
 	mark = 0;
 	id = ++nfa_state_id;
 	epsclosure = 0;
@@ -41,7 +43,8 @@ NFA_State::NFA_State(CCL* arg_ccl)
 NFA_State::~NFA_State()
 	{
 	for ( int i = 0; i < xtions.length(); ++i )
-		Unref(xtions[i]);
+		if ( i > 0 || ! first_trans_is_back_ref )
+			Unref(xtions[i]);
 
 	delete epsclosure;
 	}
@@ -55,7 +58,10 @@ void NFA_State::AddXtionsTo(NFA_state_list* ns)
 NFA_State* NFA_State::DeepCopy()
 	{
 	if ( mark )
+		{
+		Ref(mark);
 		return mark;
+		}
 
 	NFA_State* copy = ccl ? new NFA_State(ccl) : new NFA_State(sym, 0);
 	SetMark(copy);
@@ -244,7 +250,10 @@ void NFA_Machine::MakePositiveClosure()
 	{
 	AppendEpsilon();
 	final_state->AddXtion(first_state);
-	Ref(first_state);
+
+	// Don't Ref the state the final epsilon points to, otherwise we'll
+	// have reference cycles that lead to leaks.
+	final_state->SetFirstTransIsBackRef();
 	}
 
 void NFA_Machine::MakeRepl(int lower, int upper)
@@ -303,6 +312,13 @@ NFA_Machine* make_alternate(NFA_Machine* m1, NFA_Machine* m2)
 	m1->AppendState(last);
 	m2->AppendState(last);
 	Ref(last);
+
+	// Keep these around.
+	Ref(m1->FirstState());
+	Ref(m2->FirstState());
+
+	Unref(m1);
+	Unref(m2);
 
 	return new NFA_Machine(first, last);
 	}

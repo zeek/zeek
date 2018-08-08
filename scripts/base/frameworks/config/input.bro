@@ -54,12 +54,14 @@ event InputConfig::new_value(name: string, source: string, id: string, value: an
 	{
 	if ( sub_bytes(name, 1,  15) != "config-oneshot-" && source !in config_files )
 		return;
-	
-	Option::set(id, value, source);
+
+	Config::set_value(id, value, source);
 	}
 
 function read_config(filename: string)
 	{
+	# Only read the configuration on the manager. The other nodes are being fed from
+	# the manager.
 	if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
 		return;
 

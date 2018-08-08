@@ -1,11 +1,11 @@
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
-# @TEST-EXEC: sleep 2
+# @TEST-EXEC: $SCRIPTS/wait-for-file bro/got1 5 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: mv configfile2 configfile
 # @TEST-EXEC: touch configfile
-# @TEST-EXEC: sleep 2
+# @TEST-EXEC: $SCRIPTS/wait-for-file bro/got2 5 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: mv configfile3 configfile
 # @TEST-EXEC: touch configfile
-# @TEST-EXEC: sleep 2
+# @TEST-EXEC: $SCRIPTS/wait-for-file bro/got3 5 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: mv configfile4 configfile
 # @TEST-EXEC: touch configfile
 # @TEST-EXEC: btest-bg-wait 10
@@ -103,6 +103,12 @@ event Input::end_of_data(name: string, source:string)
 
 	eolcount += 1;
 
-	if ( eolcount == 4 )
+	if ( eolcount == 1 )
+		system("touch got1");
+	else if ( eolcount == 2 )
+		system("touch got2");
+	else if ( eolcount == 3 )
+		system("touch got3");
+	else if ( eolcount == 4 )
 		terminate();
 	}

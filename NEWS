@@ -16,9 +16,9 @@ New Functionality
   to the version in 2.5), and much of its implementation has been
   redone. There's a new script-level "broker" framework that
   supersedes the old "communication" framework, which is now
-  depracated. The "cluster" and "control" frameworks have been ported
+  deprecated. The "cluster" and "control" frameworks have been ported
   to Broker; same for BroControl. For more about the new Broker
-  framework, see doc/frameworks/broker.rst (there's also guide there
+  framework, see doc/frameworks/broker.rst (there's also a guide there
   for porting existing Bro scripts to Broker). For more about Broker
   itself, including its API for external applications, see
   aux/broker/doc.
@@ -245,14 +245,81 @@ New Functionality
 - Bro can now decrypt Kerberos tickets, and retrieve the authentication from
   them, given a suitable keytab file.
 
+- Added support for bitwise operations on "count" values.  '&', '|' and
+  '^' are binary "and", "or" and "xor" operators, and '~' is a unary
+  ones-complement operator.
+
+- The '&' and '|' operators can apply to patterns, too.  p1 & p2 yields
+  a pattern that represents matching p1 followed by p2, and p1 | p2 yields
+  a pattern representing matching p1 or p2.  The p1 | p2 functionality was
+  semi-present in previous versions of Bro, but required constants as
+  its operands; now you can use any pattern-valued expressions.
+
+- You can now specify that a pattern matches in a case-insensitive
+  fashion by adding 'i' to the end of its specification.  So for example
+  /fOO/i == "Foo" yields T, as does /fOO/i in "xFoObar".  Characters
+  enclosed in quotes however keep their casing, so /"fOO"/i in "xFoObar"
+  yields F, though it yields T for "xfOObar".
+
+  You can achieve the same functionality for a subpattern enclosed in
+  parentheses by adding "?i:" to the open parenthesis.  So for example
+  "/foo|(?i:bar)/" will match "BaR", but not "FoO".
+
+  For both ways of specifying case-insensitivity, characters enclosed in
+  double quotes maintain their case-sensitivity.  So for example /"foo"/i
+  will not match "Foo", but it will match "foo".
+
+- "make install" now installs Bro's include headers (and more) into
+  --prefix so that compiling plugins does no longer need access to a
+  source/build tree. For OS distributions, this also facilitates
+  creating "bro-devel" packages providing all files necessary to build
+  plugins.
+
+- Bro now supports PPPoE over QinQ.
+
+- Bro now supports OpenSSL 1.1.
+
+- The new connection/conn.log history character 'W' indicates that
+  the originator ('w' = responder) advertised a TCP zero window
+  (instructing the peer to not send any data until receiving a
+  non-zero window).
+
+- The connection/conn.log history characters 'C' (checksum error seen),
+  'T' (retransmission seen), and 'W' (zero window advertised) are now
+  repeated in a logarithmic fashion upon seeing multiple instances
+  of the corresponding behavior.  Thus a connection with 2 C's in its
+  history means that the originator sent >= 10 packets with checksum
+  errors; 3 C's means >= 100, etc.
+
+- The above connection history behaviors occurring multiple times
+  (i.e., starting at 10 instances, than again for 100 instances,
+  etc.) generate corresponding events: tcp_multiple_checksum_errors,
+  udp_multiple_checksum_errors, tcp_multiple_zero_windows, and
+  tcp_multiple_retransmissions.  Each has the same form, e.g.
+
+      event tcp_multiple_retransmissions(c: connection, is_orig: bool,
+				                         threshold: count);
+
+- Added support for set union, intersection, difference, and comparison
+  operations.  The corresponding operators for the first three are
+  "s1 | s2", "s1 & s2", and "s1 - s2".  Relationals are in terms
+  of subsets, so "s1 < s2" yields true if s1 is a proper subset of s2
+  and "s1 == s2" if the two sets have exactly the same elements.
+  "s1 <= s2" holds for subsets or equality, and similarly "s1 != s2",
+  "s1 > s2", and "s1 >= s2" have the expected meanings in terms
+  of non-equality, proper superset, and superset-or-equal.
+
+- An expression of the form "v += e" will append the value of the expression
+  "e" to the end of the vector "v" (of course assuming type-compatbility).
+
 Changed Functionality
 ---------------------
 
-  - ALl communication is now handled through Broker, requiring changes
-    to existing scripts to port them over to the new API. The Broker
-    framework documentation comes with a porting guide.
+- All communication is now handled through Broker, requiring changes
+  to existing scripts to port them over to the new API. The Broker
+  framework documentation comes with a porting guide.
 
-  - The DHCP analyzer and its script-layer interface have been rewritten.
+- The DHCP analyzer and its script-layer interface have been rewritten.
 
   - Supports more DHCP options than before.
 
@@ -261,9 +328,6 @@ Changed Functionality
 
   - Removed the policy/protocols/dhcp/known-devices-and-hostnames.bro
     script since it's generally less relevant now with the updated log.
-
-  - Removed policy/misc/known-devices.bro script and thus
-    known_devices.log will no longer be created.
 
   - Removed the base/protocols/dhcp/utils.bro script and thus the
     'reverse_ip' function.
@@ -279,6 +343,9 @@ Changed Functionality
     - dhcp_nak
     - dhcp_release
     - dhcp_inform
+
+- Removed policy/misc/known-devices.bro script and thus
+  known_devices.log will no longer be created.
 
 - The --with-binpac= configure option has changed to mean "path
   to the binpac executable" instead of "path to binpac installation root".
@@ -305,7 +372,7 @@ Changed Functionality
 
 - The 'tunnel_parents' field of conn.log is now marked &optional, so, for
   the default configuration of logs, this field will show "-" instead of
-  "(empty)" for connections that lack any tunelling.
+  "(empty)" for connections that lack any tunneling.
 
 - SMB event argument changes:
 
@@ -321,18 +388,31 @@ Changed Functionality
 
 - The "dnp3_header_block" event no longer has the "start" parameter
 
+- The string_to_pattern() built-in (and the now-deprecated merge_pattern()
+  built-in) is no longer restricted to only be called at initialization time.
+
+- GeoIP Legacy Database support has been replaced with GeoIP2 MaxMind DB
+  format support.
+
+  - This updates the "lookup_location" and "lookup_asn" BIFs to use
+    libmaxminddb.  The motivation for this is that MaxMind is discontinuing
+    GeoLite Legacy databases: no updates after April 1, 2018, no downloads
+    after January 2, 2019.  It's also noted that all GeoIP Legacy databases
+    may be discontinued as they are superseded by GeoIP2.
+
 Removed Functionality
 ---------------------
 
 - We no longer maintain any Bro plugins as part of the Bro
-  distribution. Most of the plugins that used be in aux/plugins have
+  distribution. Most of the plugins that used to be in aux/plugins have
   been moved over to use the Bro Package Manager instead. See
   https://github.com/bro/packages for a list of Bro packages currently
   available.
 
 - BroControl: The option 'IPv6Comm' and 'ZoneID' options are no longer
-  available (though Broker should be able to handle IPv6
-  automatically).
+  available (though Broker should be able to handle IPv6 automatically).
+
+- The "ocsp_request" event no longer has "requestorName" parameter.
 
 Deprecated Functionality
 ------------------------
@@ -351,6 +431,16 @@ Deprecated Functionality
 - BroControl: The 'update' command is deprecated and scheduled for
   removal with the next Bro release. Bro's new configuration framework
   is taking its place.
+
+- Mixing of scalars and vectors, such as "v + e" yielding a vector
+  corresponding to the vector v with the scalar e added to each of
+  its elements, has been deprecated.
+
+- The built-in function merge_pattern() has been deprecated.  It will
+  be replaced by the '&' operator for patterns.
+
+- The undocumented feature of using "&&" and "||" operators for patterns
+  has been deprecated.
 
 Bro 2.5.1
 =========

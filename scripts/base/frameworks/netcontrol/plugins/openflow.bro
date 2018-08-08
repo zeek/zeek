@@ -158,17 +158,17 @@ function entity_to_match(p: PluginState, e: Entity): vector of OpenFlow::ofp_mat
 
 	if ( e$ty == CONNECTION )
 		{
-		v[|v|] = OpenFlow::match_conn(e$conn); # forward and...
-		v[|v|] = OpenFlow::match_conn(e$conn, T); # reverse
+		v += OpenFlow::match_conn(e$conn); # forward and...
+		v += OpenFlow::match_conn(e$conn, T); # reverse
 		return openflow_match_pred(p, e, v);
 		}
 
 	if ( e$ty == MAC )
 		{
-		v[|v|] = OpenFlow::ofp_match(
+		v += OpenFlow::ofp_match(
 			$dl_src=e$mac
 		);
-		v[|v|] = OpenFlow::ofp_match(
+		v += OpenFlow::ofp_match(
 			$dl_dst=e$mac
 		);
 
@@ -182,12 +182,12 @@ function entity_to_match(p: PluginState, e: Entity): vector of OpenFlow::ofp_mat
 		if ( is_v6_subnet(e$ip) )
 			dl_type = OpenFlow::ETH_IPv6;
 
-		v[|v|] = OpenFlow::ofp_match(
+		v += OpenFlow::ofp_match(
 			$dl_type=dl_type,
 			$nw_src=e$ip
 		);
 
-		v[|v|] = OpenFlow::ofp_match(
+		v += OpenFlow::ofp_match(
 			$dl_type=dl_type,
 			$nw_dst=e$ip
 		);
@@ -231,7 +231,7 @@ function entity_to_match(p: PluginState, e: Entity): vector of OpenFlow::ofp_mat
 			m$tp_dst = port_to_count(f$dst_p);
 			}
 
-		v[|v|] = m;
+		v += m;
 
 		return openflow_match_pred(p, e, v);
 		}

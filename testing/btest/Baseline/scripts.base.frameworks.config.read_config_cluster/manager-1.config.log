@@ -1,0 +1,24 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	config
+#open	2018-07-20-20-40-10
+#fields	ts	id	old_value	new_value	location
+#types	time	string	string	string	string
+1532119210.151927	testbool	T	F	../configfile
+1532119210.151927	testcount	0	1	../configfile
+1532119210.151927	testcount	1	2	../configfile
+1532119210.151927	testint	0	-1	../configfile
+1532119210.151927	testenum	SSH::LOG	Conn::LOG	../configfile
+1532119210.151927	testport	42/tcp	45/unknown	../configfile
+1532119210.151927	testaddr	127.0.0.1	127.0.0.1	../configfile
+1532119210.151927	testaddr	127.0.0.1	2607:f8b0:4005:801::200e	../configfile
+1532119210.151927	testinterval	1.0 sec	60.0	../configfile
+1532119210.151927	testtime	0.0	1507321987.0	../configfile
+1532119210.151927	test_set	(empty)	b,c,a,d,erdbeerschnitzel	../configfile
+1532119210.151927	test_vector	(empty)	1,2,3,4,5,6	../configfile
+1532119210.151927	test_set	b,c,a,d,erdbeerschnitzel	\x28empty)	../configfile
+1532119210.151927	test_set	\x28empty)	\x2d	../configfile
+1532119210.151927	test_set_full	2,1,7,15,10,3	6,4,1,7,5,3	../configfile
+#close	2018-07-20-20-40-22

@@ -52,6 +52,7 @@ bison_target(BIFParser builtin-func.y
              COMPILE_FLAGS "${BISON_FLAGS}")
 flex_target(BIFScanner builtin-func.l ${CMAKE_CURRENT_BINARY_DIR}/bif_lex.cc)
 add_flex_bison_dependency(BIFScanner BIFParser)
+set_property(SOURCE bif_lex.cc APPEND_STRING PROPERTY COMPILE_FLAGS "-Wno-sign-compare")
 
 # Rule parser/scanner
 bison_target(RuleParser rule-parse.y
@@ -67,6 +68,7 @@ replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/rup.h
                          rules_ rules_)
 flex_target(RuleScanner rule-scan.l ${CMAKE_CURRENT_BINARY_DIR}/rule-scan.cc
             COMPILE_FLAGS "-Prules_")
+set_property(SOURCE rule-scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "-Wno-sign-compare")
 
 # RE parser/scanner
 bison_target(REParser re-parse.y
@@ -80,6 +82,7 @@ replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/rep.cc
 flex_target(REScanner re-scan.l ${CMAKE_CURRENT_BINARY_DIR}/re-scan.cc
             COMPILE_FLAGS "-Pre_")
 add_flex_bison_dependency(REScanner REParser)
+set_property(SOURCE re-scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "-Wno-sign-compare")
 
 # Parser/Scanner
 bison_target(Parser parse.y
@@ -92,24 +95,7 @@ replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/p.cc
                          bro yy)
 flex_target(Scanner scan.l ${CMAKE_CURRENT_BINARY_DIR}/scan.cc
             COMPILE_FLAGS "-Pbro")
-
-########################################################################
-## bifcl (BIF compiler) target
-
-set(bifcl_SRCS
-   ${BISON_BIFParser_INPUT}
-   ${FLEX_BIFScanner_INPUT}
-   ${BISON_BIFParser_OUTPUTS}
-   ${FLEX_BIFScanner_OUTPUTS}
-   bif_arg.cc
-   module_util.cc
-   bif_arg.h
-   module_util.h
-)
-
-add_executable(bifcl ${bifcl_SRCS})
-
-target_link_libraries(bifcl)
+set_property(SOURCE scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "-Wno-sign-compare")
 
 ########################################################################
 ## bifcl-dependent targets
@@ -427,3 +413,24 @@ install(CODE "
        ${BRO_SCRIPT_INSTALL_PATH}/policy/tuning/logs-to-elasticsearch.bro
    )
 ")
+
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+        DESTINATION include/bro
+        FILES_MATCHING
+        PATTERN "*.h"
+        PATTERN "*.pac"
+        PATTERN "3rdparty/*" EXCLUDE
+)
+
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
+        DESTINATION include/bro
+        FILES_MATCHING
+        PATTERN "*.bif.func_h"
+        PATTERN "*.bif.netvar_h"
+        PATTERN "*.bif.h"
+        PATTERN "CMakeFiles" EXCLUDE
+)
+
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sqlite3.h
+        DESTINATION include/bro/3rdparty
+)

@@ -7,13 +7,10 @@
 ##
 ## req: version: the version of the OCSP request. Typically 0 (Version 1).
 ##
-## requestorName: name of the OCSP requestor. This attribute is optional; if
-##                it is not set, an empty string is returned here.
-##
 ## .. bro:see:: ocsp_request_certificate ocsp_response_status
 ##              ocsp_response_bytes ocsp_response_certificate ocsp_extension
 ##              x509_ocsp_ext_signed_certificate_timestamp
-event ocsp_request%(f: fa_file, version: count, requestorName: string%);
+event ocsp_request%(f: fa_file, version: count%);
 
 ## Event that is raised when encountering an OCSP request for a certificate,
 ## e.g. in an HTTP connection. See :rfc:`6960` for more details.

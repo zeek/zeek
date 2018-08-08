@@ -126,7 +126,7 @@ event pe_section_header(f: fa_file, h: PE::SectionHeader) &priority=5
 
 	if ( ! f$pe?$section_names )
 		f$pe$section_names = vector();
-	f$pe$section_names[|f$pe$section_names|] = h$name;
+	f$pe$section_names += h$name;
 	}
 
 event file_state_remove(f: fa_file) &priority=-5

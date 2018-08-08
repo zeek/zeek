@@ -30,15 +30,45 @@ static const int LOG_BATCH_SIZE = 400;
 // batch.
 static const double LOG_BUFFER_INTERVAL = 1.0;
 
-// Number of buffered messages (at the Broker/CAF layer) after which
-// subscribers consider themselves congested.
-static const size_t SUBSCRIBER_MAX_QSIZE = 20u;
+static inline Val* get_option(const char* option)
+	{
+	auto id = global_scope()->Lookup(option);
+
+	if ( ! (id && id->ID_Val()) )
+		reporter->FatalError("Unknown Broker option %s", option);
+
+	return id->ID_Val();
+	}
+
+class BrokerConfig : public broker::configuration {
+public:
+	BrokerConfig(broker::broker_options options)
+		: broker::configuration(options)
+		{
+		openssl_cafile = get_option("Broker::ssl_cafile")->AsString()->CheckString();
+		openssl_capath = get_option("Broker::ssl_capath")->AsString()->CheckString();
+		openssl_certificate = get_option("Broker::ssl_certificate")->AsString()->CheckString();
+		openssl_key = get_option("Broker::ssl_keyfile")->AsString()->CheckString();
+		openssl_passphrase = get_option("Broker::ssl_passphrase")->AsString()->CheckString();
+		}
+};
+
+class BrokerState {
+public:
+	BrokerState(BrokerConfig config, size_t congestion_queue_size)
+		: endpoint(std::move(config)),
+		  subscriber(endpoint.make_subscriber({}, congestion_queue_size)),
+		  status_subscriber(endpoint.make_status_subscriber(true))
+		{
+		}
+
+	broker::endpoint endpoint;
+	broker::subscriber subscriber;
+	broker::status_subscriber status_subscriber;
+};
 
 const broker::endpoint_info Manager::NoPeer{{}, {}};
 
-VectorType* Manager::vector_of_data_type;
-EnumType* Manager::log_id_type;
-EnumType* Manager::writer_id_type;
 int Manager::script_scope = 0;
 
 struct unref_guard {
@@ -103,41 +133,17 @@ static std::string RenderMessage(const broker::error& e)
 
 #endif
 
-static inline Val* get_option(const char* option)
-	{
-	auto id = global_scope()->Lookup(option);
-
-	if ( ! (id && id->ID_Val()) )
-		reporter->FatalError("Unknown Broker option %s", option);
-
-	return id->ID_Val();
-	}
-
-Manager::BrokerConfig::BrokerConfig(broker::broker_options options)
-	: broker::configuration(options)
-	{
-	openssl_cafile = get_option("Broker::ssl_cafile")->AsString()->CheckString();
-	openssl_capath = get_option("Broker::ssl_capath")->AsString()->CheckString();
-	openssl_certificate = get_option("Broker::ssl_certificate")->AsString()->CheckString();
-	openssl_key = get_option("Broker::ssl_keyfile")->AsString()->CheckString();
-	openssl_passphrase = get_option("Broker::ssl_passphrase")->AsString()->CheckString();
-	}
-
-Manager::BrokerState::BrokerState(BrokerConfig config)
-	: endpoint(std::move(config)),
-	  subscriber(endpoint.make_subscriber({}, SUBSCRIBER_MAX_QSIZE)),
-	  status_subscriber(endpoint.make_status_subscriber(true))
-	{
-	}
-
-Manager::Manager(bool reading_pcaps)
+Manager::Manager(bool arg_reading_pcaps)
 	{
 	bound_port = 0;
+	reading_pcaps = arg_reading_pcaps;
 	peer_count = 0;
+	log_topic_func = nullptr;
+	vector_of_data_type = nullptr;
+	log_id_type = nullptr;
+	writer_id_type = nullptr;
 
-	next_timestamp = 1;
 	SetIdle(false);
-	this->reading_pcaps = reading_pcaps;
 	}
 
 Manager::~Manager()
@@ -175,7 +181,7 @@ void Manager::InitPostScript()
 	auto max_sleep = get_option("Broker::max_sleep")->AsCount();
 
 	if ( max_threads )
-		config.scheduler_max_threads = max_threads;
+		config.set("scheduler.max-threads", max_threads);
 	else
 		{
 		// On high-core-count systems, spawning one thread per core
@@ -183,7 +189,7 @@ void Manager::InitPostScript()
 		// threads are under-utilized.  Related:
 		// https://github.com/actor-framework/actor-framework/issues/699
 		if ( reading_pcaps )
-			config.scheduler_max_threads = 2u;
+			config.set("scheduler.max-threads", 2u);
 		else
 			{
 			auto hc = std::thread::hardware_concurrency();
@@ -193,20 +199,21 @@ void Manager::InitPostScript()
 			else if ( hc < 4u)
 				hc = 4u;
 
-			config.scheduler_max_threads = hc;
+			config.set("scheduler.max-threads", hc);
 			}
 		}
 
 	if ( max_sleep )
-		config.work_stealing_relaxed_sleep_duration_us = max_sleep;
+		config.set("work-stealing.relaxed-sleep-duration-us", max_sleep);
 	else
 		// 64ms is just an arbitrary amount derived from testing
 		// the overhead of a unused CAF actor system on a 32-core system.
 		// Performance was within 2% of baseline timings (w/o CAF)
 		// when using this sleep duration.
-		config.work_stealing_relaxed_sleep_duration_us = 64000;
+		config.set("work-stealing.relaxed-sleep-duration-us", 64000);
 
-	bstate = std::make_shared<BrokerState>(std::move(config));
+	auto cqs = get_option("Broker::congestion_queue_size")->AsCount();
+	bstate = std::make_shared<BrokerState>(std::move(config), cqs);
 	}
 
 void Manager::Terminate()
@@ -634,7 +641,7 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 
 	if ( lb.message_count >= LOG_BATCH_SIZE ||
 	     (network_time - lb.last_flush >= LOG_BUFFER_INTERVAL) )
-		statistics.num_logs_outgoing += lb.Flush(Endpoint());
+		statistics.num_logs_outgoing += lb.Flush(bstate->endpoint);
 
 	return true;
 	}
@@ -671,7 +678,7 @@ size_t Manager::FlushLogBuffers()
 	auto rval = 0u;
 
 	for ( auto& lb : log_buffers )
-		rval += lb.Flush(Endpoint());
+		rval += lb.Flush(bstate->endpoint);
 
 	return rval;
 	}
@@ -805,7 +812,15 @@ RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 			return rval;
 			}
 
-		auto data_val = make_data_val((*args)[i]);
+		RecordVal* data_val;
+
+		if ( same_type(got_type, bro_broker::DataVal::ScriptDataType()) )
+			{
+			data_val = (*args)[i]->AsRecordVal();
+			Ref(data_val);
+			}
+		else
+			data_val = make_data_val((*args)[i]);
 
 		if ( ! data_val->Lookup(0) )
 			{
@@ -924,13 +939,13 @@ void Manager::Process()
 		{
 		had_input = true;
 
-		if ( auto stat = broker::get_if<broker::status>(status_msg) )
+		if ( auto stat = caf::get_if<broker::status>(&status_msg) )
 			{
 			ProcessStatus(std::move(*stat));
 			continue;
 			}
 
-		if ( auto err = broker::get_if<broker::error>(status_msg) )
+		if ( auto err = caf::get_if<broker::error>(&status_msg) )
 			{
 			ProcessError(std::move(*err));
 			continue;
@@ -1030,7 +1045,7 @@ void Manager::ProcessRelayEvent(broker::bro::RelayEvent ev)
 	++statistics.num_events_incoming;
 
 	for ( auto& t : ev.topics() )
-		PublishEvent(std::move(broker::get<std::string>(t)),
+		PublishEvent(std::move(caf::get<std::string>(t)),
 		             std::move(ev.name()),
 		             std::move(ev.args()));
 	}
@@ -1042,7 +1057,7 @@ void Manager::ProcessHandleAndRelayEvent(broker::bro::HandleAndRelayEvent ev)
 	ProcessEvent(ev.name(), ev.args());
 
 	for ( auto& t : ev.topics() )
-		PublishEvent(std::move(broker::get<std::string>(t)),
+		PublishEvent(std::move(caf::get<std::string>(t)),
 		             std::move(ev.name()),
 		             std::move(ev.args()));
 	}
@@ -1077,40 +1092,38 @@ bool bro_broker::Manager::ProcessLogCreate(broker::bro::LogCreate lc)
 		}
 
 	// Get log fields.
+	auto fields_data = caf::get_if<broker::vector>(&lc.fields_data());
 
-	try
-		{
-		auto fields_data = std::move(broker::get<broker::vector>(lc.fields_data()));
-		auto num_fields = fields_data.size();
-		auto fields = new threading::Field* [num_fields];
-
-		for ( auto i = 0u; i < num_fields; ++i )
-			{
-			if ( auto field = data_to_threading_field(std::move(fields_data[i])) )
-				fields[i] = field;
-			else
-				{
-				reporter->Warning("failed to convert remote log field # %d", i);
-				return false;
-				}
-			}
-
-		if ( ! log_mgr->CreateWriterForRemoteLog(stream_id->AsEnumVal(), writer_id->AsEnumVal(), writer_info.get(), num_fields, fields) )
-			{
-			ODesc d;
-			stream_id->Describe(&d);
-			reporter->Warning("failed to create remote log stream for %s locally", d.Description());
-			}
-
-		writer_info.release(); // log_mgr took ownership.
-		return true;
-		}
-
-	catch (const broker::bad_variant_access& e)
+	if ( ! fields_data )
 		{
 		reporter->Warning("failed to unpack remote log fields");
 		return false;
 		}
+
+	auto num_fields = fields_data->size();
+	auto fields = new threading::Field* [num_fields];
+
+	for ( auto i = 0u; i < num_fields; ++i )
+		{
+		if ( auto field = data_to_threading_field(std::move((*fields_data)[i])) )
+			fields[i] = field;
+		else
+			{
+			reporter->Warning("failed to convert remote log field # %d", i);
+			delete [] fields;
+			return false;
+			}
+		}
+
+	if ( ! log_mgr->CreateWriterForRemoteLog(stream_id->AsEnumVal(), writer_id->AsEnumVal(), writer_info.get(), num_fields, fields) )
+		{
+		ODesc d;
+		stream_id->Describe(&d);
+		reporter->Warning("failed to create remote log stream for %s locally", d.Description());
+		}
+
+	writer_info.release(); // log_mgr took ownership.
+	return true;
 	}
 
 bool bro_broker::Manager::ProcessLogWrite(broker::bro::LogWrite lw)
@@ -1141,52 +1154,56 @@ bool bro_broker::Manager::ProcessLogWrite(broker::bro::LogWrite lw)
 		}
 
 	unref_guard writer_id_unreffer{writer_id};
+	auto path = caf::get_if<std::string>(&lw.path());
 
-	 try
+	if ( ! path )
 		{
-		auto& path = broker::get<std::string>(lw.path());
-		auto& serial_data = broker::get<std::string>(lw.serial_data());
-
-		BinarySerializationFormat fmt;
-		fmt.StartRead(serial_data.data(), serial_data.size());
-
-		int num_fields;
-		bool success = fmt.Read(&num_fields, "num_fields");
-
-		if ( ! success )
-			{
-			reporter->Warning("failed to unserialize remote log num fields for stream: %s", stream_id_name.data());
-			return false;
-			}
-
-		auto vals = new threading::Value* [num_fields];
-
-		for ( int i = 0; i < num_fields; ++i )
-			{
-			vals[i] = new threading::Value;
-
-			if ( ! vals[i]->Read(&fmt) )
-				{
-				for ( int j = 0; j <=i; ++j )
-					delete vals[j];
-
-				delete [] vals;
-				reporter->Warning("failed to unserialize remote log field %d for stream: %s", i, stream_id_name.data());
-
-				return false;
-				}
-			}
-
-		log_mgr->WriteFromRemote(stream_id->AsEnumVal(), writer_id->AsEnumVal(), std::move(path), num_fields, vals);
-		fmt.EndRead();
-		return true;
-		}
-
-	catch ( const broker::bad_variant_access& e)
-		{
-		reporter->Warning("failed to unpack remote log values (bad variant) for stream: %s", stream_id_name.data());
+		reporter->Warning("failed to unpack remote log values (bad path variant) for stream: %s", stream_id_name.data());
 		return false;
 		}
+
+	auto serial_data = caf::get_if<std::string>(&lw.serial_data());
+
+	if ( ! serial_data )
+		{
+		reporter->Warning("failed to unpack remote log values (bad serial_data variant) for stream: %s", stream_id_name.data());
+		return false;
+		}
+
+	BinarySerializationFormat fmt;
+	fmt.StartRead(serial_data->data(), serial_data->size());
+
+	int num_fields;
+	bool success = fmt.Read(&num_fields, "num_fields");
+
+	if ( ! success )
+		{
+		reporter->Warning("failed to unserialize remote log num fields for stream: %s", stream_id_name.data());
+		return false;
+		}
+
+	auto vals = new threading::Value* [num_fields];
+
+	for ( int i = 0; i < num_fields; ++i )
+		{
+		vals[i] = new threading::Value;
+
+		if ( ! vals[i]->Read(&fmt) )
+			{
+			for ( int j = 0; j <=i; ++j )
+				delete vals[j];
+
+			delete [] vals;
+			reporter->Warning("failed to unserialize remote log field %d for stream: %s", i, stream_id_name.data());
+
+			return false;
+			}
+		}
+
+	log_mgr->WriteFromRemote(stream_id->AsEnumVal(), writer_id->AsEnumVal(),
+	                         std::move(*path), num_fields, vals);
+	fmt.EndRead();
+	return true;
 	}
 
 bool Manager::ProcessIdentifierUpdate(broker::bro::IdentifierUpdate iu)

@@ -5,7 +5,7 @@
 // Switching parser table type fixes ambiguity problems.
 %define lr.type ielr
 
-%expect 142
+%expect 141
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
@@ -14,7 +14,7 @@
 %token TOK_DOUBLE TOK_ELSE TOK_ENUM TOK_EVENT TOK_EXPORT TOK_FALLTHROUGH
 %token TOK_FILE TOK_FOR TOK_FUNCTION TOK_GLOBAL TOK_HOOK TOK_ID TOK_IF TOK_INT
 %token TOK_INTERVAL TOK_LIST TOK_LOCAL TOK_MODULE
-%token TOK_NEXT TOK_OF TOK_OPAQUE TOK_PATTERN TOK_PATTERN_TEXT
+%token TOK_NEXT TOK_OF TOK_OPAQUE TOK_PATTERN TOK_PATTERN_END TOK_PATTERN_TEXT
 %token TOK_PORT TOK_PRINT TOK_RECORD TOK_REDEF
 %token TOK_REMOVE_FROM TOK_RETURN TOK_SCHEDULE TOK_SET
 %token TOK_STRING TOK_SUBNET TOK_SWITCH TOK_TABLE
@@ -34,29 +34,31 @@
 
 %token TOK_NO_TEST
 
-%left ',' '|'
+%left ','
 %right '=' TOK_ADD_TO TOK_REMOVE_FROM
 %right '?' ':'
-%left TOK_OR
-%left TOK_AND
+%left TOK_OR_OR
+%left TOK_AND_AND
 %nonassoc TOK_HOOK
 %nonassoc '<' '>' TOK_LE TOK_GE TOK_EQ TOK_NE
 %left TOK_IN TOK_NOT_IN
+%left '|'
+%left '^'
+%left '&'
 %left '+' '-'
 %left '*' '/' '%'
 %left TOK_INCR TOK_DECR
-%right '!'
+%right '!' '~'
 %left '$' '[' ']' '(' ')' TOK_HAS_FIELD TOK_HAS_ATTR
 %nonassoc TOK_AS TOK_IS
 
-%type <b> opt_no_test opt_no_test_block opt_deprecated
-%type <str> TOK_ID TOK_PATTERN_TEXT single_pattern
+%type <b> opt_no_test opt_no_test_block opt_deprecated TOK_PATTERN_END
+%type <str> TOK_ID TOK_PATTERN_TEXT
 %type <id> local_id global_id def_global_id event_id global_or_event_id resolve_id begin_func case_type
 %type <id_l> local_id_list case_type_list
 %type <ic> init_class
 %type <expr> opt_init
 %type <val> TOK_CONSTANT
-%type <re> pattern
 %type <expr> expr opt_expr init anonymous_function
 %type <event_expr> event
 %type <stmt> stmt stmt_list func_body for_head
@@ -338,6 +340,12 @@ expr:
 			$$ = new NotExpr($2);
 			}
 
+	|	'~' expr
+			{
+			set_location(@1, @2);
+			$$ = new ComplementExpr($2);
+			}
+
 	|	'-' expr	%prec '!'
 			{
 			set_location(@1, @2);
@@ -392,16 +400,34 @@ expr:
 			$$ = new ModExpr($1, $3);
 			}
 
-	|	expr TOK_AND expr
+	|	expr '&' expr
 			{
 			set_location(@1, @3);
-			$$ = new BoolExpr(EXPR_AND, $1, $3);
+			$$ = new BitExpr(EXPR_AND, $1, $3);
 			}
 
-	|	expr TOK_OR expr
+	|	expr '|' expr
 			{
 			set_location(@1, @3);
-			$$ = new BoolExpr(EXPR_OR, $1, $3);
+			$$ = new BitExpr(EXPR_OR, $1, $3);
+			}
+
+	|	expr '^' expr
+			{
+			set_location(@1, @3);
+			$$ = new BitExpr(EXPR_XOR, $1, $3);
+			}
+
+	|	expr TOK_AND_AND expr
+			{
+			set_location(@1, @3);
+			$$ = new BoolExpr(EXPR_AND_AND, $1, $3);
+			}
+
+	|	expr TOK_OR_OR expr
+			{
+			set_location(@1, @3);
+			$$ = new BoolExpr(EXPR_OR_OR, $1, $3);
 			}
 
 	|	expr TOK_EQ expr
@@ -697,14 +723,21 @@ expr:
 			$$ = new ConstExpr($1);
 			}
 
-	|	pattern
+	|	'/' { begin_RE(); } TOK_PATTERN_TEXT TOK_PATTERN_END
 			{
-			set_location(@1);
-			$1->Compile();
-			$$ = new ConstExpr(new PatternVal($1));
+			set_location(@3);
+
+			RE_Matcher* re = new RE_Matcher($3);
+			delete [] $3;
+
+			if ( $4 )
+				re->MakeCaseInsensitive();
+
+			re->Compile();
+			$$ = new ConstExpr(new PatternVal(re));
 			}
 
-	|       '|' expr '|'
+	|       '|' expr '|'	%prec '('
 			{
 			set_location(@1, @3);
 			$$ = new SizeExpr($2);
@@ -741,25 +774,6 @@ opt_expr_list:
 		expr_list
 	|
 		{ $$ = new ListExpr(); }
-	;
-
-pattern:
-		pattern '|' single_pattern
-			{
-			$1->AddPat($3);
-			delete [] $3;
-			}
-
-	|	single_pattern
-			{
-			$$ = new RE_Matcher($1);
-			delete [] $1;
-			}
-	;
-
-single_pattern:
-		'/' { begin_RE(); } TOK_PATTERN_TEXT { end_RE(); } '/'
-			{ $$ = $3; }
 	;
 
 enum_body:

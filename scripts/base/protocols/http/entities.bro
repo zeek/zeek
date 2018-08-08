@@ -87,14 +87,14 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 			if ( ! c$http?$orig_fuids )
 				c$http$orig_fuids = string_vec(f$id);
 			else
-				c$http$orig_fuids[|c$http$orig_fuids|] = f$id;
+				c$http$orig_fuids += f$id;
 
 			if ( f$info?$filename )
 				{
 				if ( ! c$http?$orig_filenames )
 					c$http$orig_filenames = string_vec(f$info$filename);
 				else
-					c$http$orig_filenames[|c$http$orig_filenames|] = f$info$filename;
+					c$http$orig_filenames += f$info$filename;
 				}
 			}
 
@@ -103,14 +103,14 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 			if ( ! c$http?$resp_fuids )
 				c$http$resp_fuids = string_vec(f$id);
 			else
-				c$http$resp_fuids[|c$http$resp_fuids|] = f$id;
+				c$http$resp_fuids += f$id;
 
 			if ( f$info?$filename )
 				{
 				if ( ! c$http?$resp_filenames )
 					c$http$resp_filenames = string_vec(f$info$filename);
 				else
-					c$http$resp_filenames[|c$http$resp_filenames|] = f$info$filename;
+					c$http$resp_filenames += f$info$filename;
 				}
 
 			}
@@ -130,14 +130,14 @@ event file_sniff(f: fa_file, meta: fa_metadata) &priority=5
 		if ( ! f$http?$orig_mime_types )
 			f$http$orig_mime_types = string_vec(meta$mime_type);
 		else
-			f$http$orig_mime_types[|f$http$orig_mime_types|] = meta$mime_type;
+			f$http$orig_mime_types += meta$mime_type;
 		}
 	else
 		{
 		if ( ! f$http?$resp_mime_types )
 			f$http$resp_mime_types = string_vec(meta$mime_type);
 		else
-			f$http$resp_mime_types[|f$http$resp_mime_types|] = meta$mime_type;
+			f$http$resp_mime_types += meta$mime_type;
 		}
 	}
 

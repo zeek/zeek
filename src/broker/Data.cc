@@ -215,7 +215,7 @@ struct val_converter {
 			{
 			auto expected_index_types = tt->Indices()->Types();
 			broker::vector composite_key;
-			auto indices = broker::get_if<broker::vector>(item);
+			auto indices = caf::get_if<broker::vector>(&item);
 
 			if ( indices )
 				{
@@ -283,7 +283,7 @@ struct val_converter {
 			{
 			auto expected_index_types = tt->Indices()->Types();
 			broker::vector composite_key;
-			auto indices = broker::get_if<broker::vector>(item.first);
+			auto indices = caf::get_if<broker::vector>(&item.first);
 
 			if ( indices )
 				{
@@ -384,7 +384,7 @@ struct val_converter {
 					return nullptr;
 					}
 
-				if ( broker::get_if<broker::none>(a[idx]) != nullptr )
+				if ( caf::get_if<broker::none>(&a[idx]) != nullptr )
 					{
 					rval->Assign(i, nullptr);
 					++idx;
@@ -411,8 +411,8 @@ struct val_converter {
 			if ( a.size() != 2 )
 				return nullptr;
 
-			auto exact_text = broker::get_if<std::string>(a[0]);
-			auto anywhere_text = broker::get_if<std::string>(a[1]);
+			auto exact_text = caf::get_if<std::string>(&a[0]);
+			auto anywhere_text = caf::get_if<std::string>(&a[1]);
 
 			if ( ! exact_text || ! anywhere_text )
 				return nullptr;
@@ -582,7 +582,7 @@ struct type_checker {
 		for ( const auto& item : a )
 			{
 			auto expected_index_types = tt->Indices()->Types();
-			auto indices = broker::get_if<broker::vector>(item);
+			auto indices = caf::get_if<broker::vector>(&item);
 			vector<const broker::data*> indices_to_check;
 
 			if ( indices )
@@ -624,7 +624,7 @@ struct type_checker {
 				auto expect = (*expected_index_types)[i];
 				auto& index_to_check = *(indices_to_check)[i];
 
-				if ( ! broker::visit(type_checker{expect}, index_to_check) )
+				if ( ! caf::visit(type_checker{expect}, index_to_check) )
 					return false;
 				}
 			}
@@ -642,7 +642,7 @@ struct type_checker {
 		for ( auto& item : a )
 			{
 			auto expected_index_types = tt->Indices()->Types();
-			auto indices = broker::get_if<broker::vector>(item.first);
+			auto indices = caf::get_if<broker::vector>(&item.first);
 			vector<const broker::data*> indices_to_check;
 
 			if ( indices )
@@ -689,11 +689,11 @@ struct type_checker {
 				auto expect = (*expected_index_types)[i];
 				auto& index_to_check = *(indices_to_check)[i];
 
-				if ( ! broker::visit(type_checker{expect}, index_to_check) )
+				if ( ! caf::visit(type_checker{expect}, index_to_check) )
 					return false;
 				}
 
-			if ( ! broker::visit(type_checker{tt->YieldType()},
+			if ( ! caf::visit(type_checker{tt->YieldType()},
 			                     item.second) )
 				return false;
 			}
@@ -709,7 +709,7 @@ struct type_checker {
 
 			for ( auto& item : a )
 				{
-				if ( ! broker::visit(type_checker{vt->YieldType()}, item) )
+				if ( ! caf::visit(type_checker{vt->YieldType()}, item) )
 					return false;
 				}
 
@@ -725,13 +725,13 @@ struct type_checker {
 				if ( idx >= a.size() )
 					return false;
 
-				if ( broker::get_if<broker::none>(a[idx]) != nullptr )
+				if ( caf::get_if<broker::none>(&a[idx]) != nullptr )
 					{
 					++idx;
 					continue;
 					}
 
-				if ( ! broker::visit(type_checker{rt->FieldType(i)},
+				if ( ! caf::visit(type_checker{rt->FieldType(i)},
 				                     a[idx]) )
 					return false;
 
@@ -745,8 +745,8 @@ struct type_checker {
 			if ( a.size() != 2 )
 				return false;
 
-			auto exact_text = broker::get_if<std::string>(a[0]);
-			auto anywhere_text = broker::get_if<std::string>(a[1]);
+			auto exact_text = caf::get_if<std::string>(&a[0]);
+			auto anywhere_text = caf::get_if<std::string>(&a[1]);
 
 			if ( ! exact_text || ! anywhere_text )
 				return false;
@@ -775,7 +775,7 @@ Val* bro_broker::data_to_val(broker::data d, BroType* type)
 	if ( type->Tag() == TYPE_ANY )
 		return bro_broker::make_data_val(move(d));
 
-	return broker::visit(val_converter{type}, std::move(d));
+	return caf::visit(val_converter{type}, std::move(d));
 	}
 
 broker::expected<broker::data> bro_broker::val_to_data(Val* v)
@@ -900,7 +900,7 @@ broker::expected<broker::data> bro_broker::val_to_data(Val* v)
 				key = move(composite_key);
 
 			if ( is_set )
-				broker::get<broker::set>(rval).emplace(move(key));
+				caf::get<broker::set>(rval).emplace(move(key));
 			else
 				{
 				auto val = val_to_data(entry->Value());
@@ -908,7 +908,7 @@ broker::expected<broker::data> bro_broker::val_to_data(Val* v)
 				if ( ! val )
 					return broker::ec::invalid_data;
 
-				broker::get<broker::table>(rval).emplace(move(key), move(*val));
+				caf::get<broker::table>(rval).emplace(move(key), move(*val));
 				}
 			}
 
@@ -1115,7 +1115,7 @@ struct data_type_getter {
 
 EnumVal* bro_broker::get_data_type(RecordVal* v, Frame* frame)
 	{
-	return broker::visit(data_type_getter{}, opaque_field_to_data(v, frame));
+	return caf::visit(data_type_getter{}, opaque_field_to_data(v, frame));
 	}
 
 broker::data& bro_broker::opaque_field_to_data(RecordVal* v, Frame* f)
@@ -1131,7 +1131,7 @@ broker::data& bro_broker::opaque_field_to_data(RecordVal* v, Frame* f)
 
 bool bro_broker::DataVal::canCastTo(BroType* t) const
 	{
-	return broker::visit(type_checker{t}, data);
+	return caf::visit(type_checker{t}, data);
 	}
 
 Val* bro_broker::DataVal::castTo(BroType* t)
@@ -1192,24 +1192,24 @@ broker::data bro_broker::threading_field_to_data(const threading::Field* f)
 
 threading::Field* bro_broker::data_to_threading_field(broker::data d)
 	{
-	if ( ! broker::is<broker::vector>(d) )
+	if ( ! caf::holds_alternative<broker::vector>(d) )
 		return nullptr;
 
-	auto& v = broker::get<broker::vector>(d);
-	auto name = broker::get_if<std::string>(v[0]);
+	auto& v = caf::get<broker::vector>(d);
+	auto name = caf::get_if<std::string>(&v[0]);
 	auto secondary = v[1];
-	auto type = broker::get_if<broker::count>(v[2]);
-	auto subtype = broker::get_if<broker::count>(v[3]);
-	auto optional = broker::get_if<broker::boolean>(v[4]);
+	auto type = caf::get_if<broker::count>(&v[2]);
+	auto subtype = caf::get_if<broker::count>(&v[3]);
+	auto optional = caf::get_if<broker::boolean>(&v[4]);
 
 	if ( ! (name && type && subtype && optional) )
 		return nullptr;
 
-	if ( secondary != broker::nil && ! broker::is<std::string>(secondary) )
+	if ( secondary != broker::nil && ! caf::holds_alternative<std::string>(secondary) )
 		return nullptr;
 
 	return new threading::Field(name->c_str(),
-				    secondary != broker::nil ? broker::get<std::string>(secondary).c_str() : nullptr,
+				    secondary != broker::nil ? caf::get<std::string>(secondary).c_str() : nullptr,
 				    static_cast<TypeTag>(*type),
 				    static_cast<TypeTag>(*subtype),
 				    *optional);

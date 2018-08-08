@@ -11,22 +11,35 @@
 @load base/frameworks/netcontrol
 
 redef exit_only_after_terminate = T;
+global have_peer = F;
+global did_init = F;
+
+event bro_init()
+	{
+	suspend_processing();
+	}
 
 event NetControl::init()
 	{
-	suspend_processing();
 	local netcontrol_acld = NetControl::create_acld(NetControl::AcldConfig($acld_host=127.0.0.1, $acld_port=Broker::default_port, $acld_topic="bro/event/netcontroltest"));
 	NetControl::activate(netcontrol_acld, 0);
 	}
 
 event NetControl::init_done()
 	{
-	continue_processing();
+	did_init = T;
+
+	if ( did_init && have_peer )
+		continue_processing();
 	}
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
 	print "Broker peer added", endpoint$network;
+	have_peer = T;
+
+	if ( did_init && have_peer )
+		continue_processing();
 	}
 
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)

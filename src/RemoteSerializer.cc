@@ -255,7 +255,7 @@ struct ping_args {
 # define DEBUG_COMM(msg)
 #endif
 
-#define READ_CHUNK(i, c, do_if_eof) \
+#define READ_CHUNK(i, c, do_if_eof, kill_me) \
 	{ \
 	if ( ! i->Read(&c) ) \
 		{ \
@@ -264,7 +264,7 @@ struct ping_args {
 			do_if_eof; \
 			} \
 		else \
-			Error(fmt("can't read data chunk: %s", io->Error()), i == io); \
+			Error(fmt("can't read data chunk: %s", io->Error()), kill_me); \
 		return false; \
 		} \
 	\
@@ -3586,7 +3586,7 @@ bool SocketComm::ProcessParentMessage()
 		{
 		// Argument chunk follows.
 		ChunkedIO::Chunk* c = 0;
-		READ_CHUNK(io, c, Error("parent died", true));
+		READ_CHUNK(io, c, Error("parent died", true), true);
 		parent_args = c;
 		parent_msgstate = TYPE;
 		bool result = DoParentMessage();
@@ -3872,7 +3872,7 @@ bool SocketComm::ProcessRemoteMessage(SocketComm::Peer* peer)
 		{ // CMsg follows
 		ChunkedIO::Chunk* c;
 		READ_CHUNK(peer->io, c,
-			(CloseConnection(peer, true), peer))
+			(CloseConnection(peer, true), peer), false)
 
 		CMsg* msg = (CMsg*) c->data;
 
@@ -3907,7 +3907,7 @@ bool SocketComm::ProcessRemoteMessage(SocketComm::Peer* peer)
 		// forward to our parent.
 		ChunkedIO::Chunk* c;
 		READ_CHUNK(peer->io, c,
-			(CloseConnection(peer, true), peer))
+			(CloseConnection(peer, true), peer), false)
 
 		// Set time3.
 		ping_args* args = (ping_args*) c->data;
@@ -3921,7 +3921,7 @@ bool SocketComm::ProcessRemoteMessage(SocketComm::Peer* peer)
 		// forward to our parent.
 		ChunkedIO::Chunk* c;
 		READ_CHUNK(peer->io, c,
-			(CloseConnection(peer, true), peer))
+			(CloseConnection(peer, true), peer), false)
 
 		// Calculate time delta.
 		ping_args* args = (ping_args*) c->data;
@@ -3944,7 +3944,7 @@ bool SocketComm::ProcessRemoteMessage(SocketComm::Peer* peer)
 		// forward to our parent.
 		ChunkedIO::Chunk* c;
 		READ_CHUNK(peer->io, c,
-			(CloseConnection(peer, true), peer))
+			(CloseConnection(peer, true), peer), false)
 
 		return ForwardChunkToParent(peer, c);
 		}

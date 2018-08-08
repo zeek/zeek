@@ -69,14 +69,14 @@ event Exec::line(description: Input::EventDescription, tpe: Input::Event, s: str
 		if ( ! result?$stderr )
 			result$stderr = vector(s);
 		else
-			result$stderr[|result$stderr|] = s;
+			result$stderr += s;
 		}
 	else
 		{
 		if ( ! result?$stdout )
 			result$stdout = vector(s);
 		else
-			result$stdout[|result$stdout|] = s;
+			result$stdout += s;
 		}
 	}
 
@@ -93,7 +93,7 @@ event Exec::file_line(description: Input::EventDescription, tpe: Input::Event, s
 	if ( track_file !in result$files )
 		result$files[track_file] = vector(s);
 	else
-		result$files[track_file][|result$files[track_file]|] = s;
+		result$files[track_file] += s;
 	}
 
 event Input::end_of_data(orig_name: string, source:string)

@@ -20,19 +20,19 @@ export {
 	## initially, or if it ever becomes disconnected.
 	const default_connect_retry = 30sec &redef;
 
-	## If false, do not use SSL for network connections. By default, SSL will even
-	## be used if no certificates / CAs have been configured. In that case
+	## If true, do not use SSL for network connections. By default, SSL will
+	## even be used if no certificates / CAs have been configured. In that case
 	## (which is the default) the communication will be encrypted, but not
 	## authenticated.
 	const disable_ssl = F &redef;
 
 	## Path to a file containing concatenated trusted certificates 
-	## in PEM format. If set, Bro will require valid certificates forx
+	## in PEM format. If set, Bro will require valid certificates for
 	## all peers.
 	const ssl_cafile = "" &redef;
 
 	## Path to an OpenSSL-style directory of trusted certificates.
-	## If set, Bro will require valid certificates forx
+	## If set, Bro will require valid certificates for
 	## all peers.
 	const ssl_capath = "" &redef;
 
@@ -50,6 +50,11 @@ export {
 	## certificate. If set, Bro will require valid certificates for
 	## all peers.
 	const ssl_keyfile = "" &redef;
+
+	## The number of buffered messages at the Broker/CAF layer after which
+	## a subscriber considers themselves congested (i.e. tune the congestion
+	## control mechanisms).
+	const congestion_queue_size = 200 &redef;
 
 	## Max number of threads to use for Broker/CAF functionality.
 	## Using zero will cause this to be automatically determined
@@ -96,9 +101,9 @@ export {
 		PEER_INVALID = 3,
 		## Remote peer not listening.
 		PEER_UNAVAILABLE = 4,
-		## An peering request timed out.
+		## A peering request timed out.
 		PEER_TIMEOUT = 5,
-		## Master with given name already exist.
+		## Master with given name already exists.
 		MASTER_EXISTS = 6,
 		## Master with given name does not exist.
 		NO_SUCH_MASTER = 7,
@@ -106,7 +111,7 @@ export {
 		NO_SUCH_KEY = 8,
 		## The store operation timed out.
 		REQUEST_TIMEOUT = 9,
-		## The operation expected a different type than provided
+		## The operation expected a different type than provided.
 		TYPE_CLASH = 10,
 		## The data value cannot be used to carry out the desired operation.
 		INVALID_DATA = 11,
@@ -181,7 +186,7 @@ export {
 	## Listen for remote connections.
 	##
 	## a: an address string on which to accept connections, e.g.
-	##    "127.0.0.1".  An empty string refers to @p INADDR_ANY.
+	##    "127.0.0.1".  An empty string refers to INADDR_ANY.
 	##
 	## p: the TCP port to listen on. The value 0 means that the OS should choose
 	##    the next available free port.
@@ -229,9 +234,13 @@ export {
 	## TODO: We do not have a function yet to terminate a connection.
 	global unpeer: function(a: string, p: port): bool;
 
+	## Get a list of all peer connections.
+	##
 	## Returns: a list of all peer connections.
 	global peers: function(): vector of PeerInfo;
 
+	## Get a unique identifier for the local broker endpoint.
+	##
 	## Returns: a unique identifier for the local broker endpoint.
 	global node_id: function(): string;
 
@@ -268,7 +277,8 @@ export {
 	global unsubscribe: function(topic_prefix: string): bool;
 
 	## Automatically send an event to any interested peers whenever it is
-	## locally dispatched (e.g. using "event my_event(...);" in a script).
+	## locally dispatched. (For example, using "event my_event(...);" in a
+	## script.)
 	##
 	## topic: a topic string associated with the event message.
 	##        Peers advertise interest by registering a subscription to some

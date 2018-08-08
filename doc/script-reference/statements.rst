@@ -571,6 +571,42 @@ Here are the statements that the Bro scripting language supports.
     do not indicate the presence of a `compound statement`_), and that no
     semicolon is needed at the end of a "switch" statement.
 
+    There is an alternative form of the switch statement that supports
+    switching by type rather than value.  This form of the switch statement
+    uses type-based versions of "case":
+
+    - "case type t: ...": Take branch if the value of the switch expression
+      could be casted to type t (where "t" is the name of a Bro script type,
+      either built-in or user-defined).
+
+    - "case type t as x: ...": Same as above, but the casted value is
+      available through ID "x".
+
+    Multiple types can be listed per branch, separated by commas (the "type"
+    keyword must be repeated for each type in the list).
+
+    Example::
+
+        function example(v: any)
+            {
+            switch (v) {
+            case type count as c:
+                    print "It's a count", c;
+                    break;
+
+            case type bool, type addr:
+                    print "It's a bool or address";
+                    break;
+            }
+            }
+
+    Note that a single switch statement switches either by type or by value,
+    but not both.
+
+    Also note that the type-based switch statement will trigger a runtime
+    error if any cast in any "case" is an unsupported cast (see the
+    documentation of the type casting operator "as").
+
 
 .. bro:keyword:: when
 

@@ -1,6 +1,6 @@
 # @TEST-EXEC: cp input1.log input.log
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
-# @TEST-EXEC: sleep 5
+# @TEST-EXEC: $SCRIPTS/wait-for-file bro/got2 5 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: cp input3.log input.log
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff event.out
@@ -116,7 +116,9 @@ event Input::end_of_data(name: string, source: string)
 	#print fin_out, servers;
 	
 	try = try + 1;
-	if ( try == 3 )
+	if ( try == 2 )
+		system("touch got2");
+	else if ( try == 3 )
 		{
 		print fin_out, "done";
 		print fin_out, servers;

@@ -1,5 +1,5 @@
 ##! Defines an interface for managing pools of cluster nodes.  Pools are
-##! are useful way to distribute work or data among nodes within a cluster.
+##! a useful way to distribute work or data among nodes within a cluster.
 
 @load ./main
 @load base/utils/hash_hrw
@@ -7,7 +7,7 @@
 module Cluster;
 
 export {
-	## Store state of a cluster within within the context of a work pool.
+	## Store state of a cluster within the context of a work pool.
 	type PoolNode: record {
 		## The node name (e.g. "manager").
 		name: string;
@@ -157,7 +157,7 @@ global registered_pools: vector of Pool = vector();
 function register_pool(spec: PoolSpec): Pool
 	{
 	local rval = Pool($spec = spec);
-	registered_pools[|registered_pools|] = rval;
+	registered_pools += rval;
 	return rval;
 	}
 
@@ -276,7 +276,7 @@ function init_pool_node(pool: Pool, name: string): bool
 			local pn = PoolNode($name=name, $alias=alias, $site_id=site_id,
 			                    $alive=Cluster::node == name);
 			pool$nodes[name] = pn;
-			pool$node_list[|pool$node_list|] = pn;
+			pool$node_list += pn;
 
 			if ( pn$alive )
 				++pool$alive_count;
@@ -366,7 +366,7 @@ event bro_init() &priority=-5
 		if ( |mgr| > 0 )
 			{
 			local eln = pool_eligibility[Cluster::LOGGER]$eligible_nodes;
-			eln[|eln|] = mgr[0];
+			eln += mgr[0];
 			}
 		}
 
@@ -423,7 +423,7 @@ event bro_init() &priority=-5
 			if ( j < e )
 				next;
 
-			nen[|nen|] = pet$eligible_nodes[j];
+			nen += pet$eligible_nodes[j];
 			}
 
 		pet$eligible_nodes = nen;

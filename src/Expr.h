@@ -17,10 +17,13 @@ typedef enum {
 	EXPR_ANY = -1,
 	EXPR_NAME, EXPR_CONST,
 	EXPR_CLONE,
-	EXPR_INCR, EXPR_DECR, EXPR_NOT, EXPR_POSITIVE, EXPR_NEGATE,
+	EXPR_INCR, EXPR_DECR,
+	EXPR_NOT, EXPR_COMPLEMENT,
+	EXPR_POSITIVE, EXPR_NEGATE,
 	EXPR_ADD, EXPR_SUB, EXPR_ADD_TO, EXPR_REMOVE_FROM,
 	EXPR_TIMES, EXPR_DIVIDE, EXPR_MOD,
-	EXPR_AND, EXPR_OR,
+	EXPR_AND, EXPR_OR, EXPR_XOR,
+	EXPR_AND_AND, EXPR_OR_OR,
 	EXPR_LT, EXPR_LE, EXPR_EQ, EXPR_NE, EXPR_GE, EXPR_GT,
 	EXPR_COND,
 	EXPR_REF,
@@ -326,6 +329,12 @@ protected:
 	// Same for when the constants are strings.
 	virtual Val* StringFold(Val* v1, Val* v2) const;
 
+	// Same for when the constants are patterns.
+	virtual Val* PatternFold(Val* v1, Val* v2) const;
+
+	// Same for when the constants are sets.
+	virtual Val* SetFold(Val* v1, Val* v2) const;
+
 	// Same for when the constants are addresses or subnets.
 	virtual Val* AddrFold(Val* v1, Val* v2) const;
 	virtual Val* SubNetFold(Val* v1, Val* v2) const;
@@ -377,6 +386,19 @@ protected:
 	IncrExpr()	{ }
 
 	DECLARE_SERIAL(IncrExpr);
+};
+
+class ComplementExpr : public UnaryExpr {
+public:
+	explicit ComplementExpr(Expr* op);
+
+protected:
+	friend class Expr;
+	ComplementExpr()	{ }
+
+	Val* Fold(Val* v) const override;
+
+	DECLARE_SERIAL(ComplementExpr);
 };
 
 class NotExpr : public UnaryExpr {
@@ -530,6 +552,17 @@ protected:
 	BoolExpr()	{ }
 
 	DECLARE_SERIAL(BoolExpr);
+};
+
+class BitExpr : public BinaryExpr {
+public:
+	BitExpr(BroExprTag tag, Expr* op1, Expr* op2);
+
+protected:
+	friend class Expr;
+	BitExpr()	{ }
+
+	DECLARE_SERIAL(BitExpr);
 };
 
 class EqExpr : public BinaryExpr {

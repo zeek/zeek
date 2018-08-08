@@ -1,11 +1,10 @@
 # @TEST-SERIALIZE: comm
 #
 # @TEST-EXEC: btest-bg-run manager-1 "cp ../cluster-layout.bro . && CLUSTER_NODE=manager-1 bro %INPUT"
-# @TEST-EXEC: sleep 1
 # @TEST-EXEC: btest-bg-run worker-1  "cp ../cluster-layout.bro . && CLUSTER_NODE=worker-1 bro --pseudo-realtime -C -r $TRACES/wikipedia.trace %INPUT"
 # @TEST-EXEC: btest-bg-wait 20
 # @TEST-EXEC: cat manager-1/reporter.log | grep -v "reporter/" > manager-reporter.log
-# @TEST-EXEC: btest-diff manager-reporter.log
+# @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-canonifier | grep -v ^# | $SCRIPTS/diff-sort" btest-diff manager-reporter.log
 
 
 @TEST-START-FILE cluster-layout.bro
@@ -20,6 +19,10 @@ redef Cluster::nodes = {
 @if ( Cluster::node == "worker-1" )
 redef exit_only_after_terminate = T;
 @endif
+
+redef Cluster::retry_interval = 1sec;
+redef Broker::default_listen_retry = 1sec;
+redef Broker::default_connect_retry = 1sec;
 
 redef Log::default_rotation_interval = 0secs;
 

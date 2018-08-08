@@ -40,7 +40,7 @@ event bro_init() &priority=5
 
 	# Sort nodes list so that every node iterates over it in same order.
 	for ( name in Cluster::nodes )
-		sorted_node_names[|sorted_node_names|] = name;
+		sorted_node_names += name;
 
 	sort(sorted_node_names, strcmp);
 

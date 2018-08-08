@@ -1,9 +1,10 @@
 # @TEST-SERIALIZE: comm
 #
 # @TEST-EXEC: btest-bg-run manager-1 "cp ../cluster-layout.bro . && CLUSTER_NODE=manager-1 bro %INPUT"
-# @TEST-EXEC: sleep 1
 # @TEST-EXEC: btest-bg-run worker-1  "cp ../cluster-layout.bro . && CLUSTER_NODE=worker-1 bro --pseudo-realtime -C -r $TRACES/tls/ecdhe.pcap %INPUT"
-# @TEST-EXEC: sleep 1
+
+# @TEST-EXEC: $SCRIPTS/wait-for-pid $(cat worker-1/.pid) 10 || (btest-bg-wait -k 1 && false)
+
 # @TEST-EXEC: btest-bg-run worker-2  "cp ../cluster-layout.bro . && CLUSTER_NODE=worker-2 bro --pseudo-realtime -C -r $TRACES/tls/ecdhe.pcap %INPUT"
 # @TEST-EXEC: btest-bg-wait 20
 # @TEST-EXEC: btest-diff worker-1/.stdout
@@ -16,6 +17,10 @@ redef Cluster::nodes = {
 	["worker-2"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=37761/tcp, $manager="manager-1", $interface="eth0"],
 };
 @TEST-END-FILE
+
+redef Cluster::retry_interval = 1sec;
+redef Broker::default_listen_retry = 1sec;
+redef Broker::default_connect_retry = 1sec;
 
 redef Log::default_rotation_interval = 0secs;
 #redef exit_only_after_terminate = T;
@@ -51,9 +56,14 @@ event terminate_me() {
 	terminate();
 }
 
+global peers_lost = 0;
+
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	{
-	schedule 1sec { terminate_me() };
+	++peers_lost;
+
+	if ( peers_lost == 2 )
+		schedule 2sec { terminate_me() };
 	}
 
 event NetControl::rule_added(r: NetControl::Rule, p: NetControl::PluginState, msg: string &default="")

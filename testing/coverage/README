@@ -1,0 +1,21 @@
+On a Bro build configured with --enable-coverage, this script produces a code
+coverage report after Bro has been invoked. The intended application of this
+script is after the btest testsuite has run. This combination (btests first,
+coverage computation afterward) happens automatically when running "make" in
+the testing directory.  This script puts .gcov files (which are included in
+.gitignore) alongside the corresponding source files.
+
+This depends on gcov, which should come with your gcc. If gcov is not
+installed, the script will abort with an error message.
+
+After `make all` in the upper directory, use `make html` as make target in this
+directory to output the html files that lcov can create. By default, the html
+files will be contained in a directory named "coverage-html" in the base
+directory. To set a custom name, use `make html
+COVERAGE_HTML_DIR=custom-dir-name`.
+
+The script code_coverage.sh is triggered by `make coverage` (included in `make`
+in /testing), and its goal is to automate code coverage testing.
+
+The script lcov_html.sh is triggered by `make html`, and its goal is to create
+html files from the aforementioned coverage data.

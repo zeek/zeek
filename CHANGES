@@ -1,4 +1,15 @@
 
+2.5-826 | 2018-08-08 13:09:27 -0700
+
+  * Add support for code coverage statistics for bro source files after running btest
+    test suite
+
+    This adds --enable-coverage flag to configure Bro with gcov.
+    A new directory named /testing/coverage/ contains a new
+    coverage target. By default a coverage.log is created; running
+    make html in testing/coverage creates a HTML report.
+    (Chung Min Kim, Corelight)
+
 2.5-819 | 2018-08-08 13:03:22 -0500
 
   * Fix cluster layout graphic and doc warnings (Jon Siwek, Corelight)
@@ -32,7 +43,7 @@
 
   * Add 'W' connection history indicator for zero windows
     (Vern Paxson, Corelight)
-  
+
   * Allow logarithmic 'T'/'C'/'W' connection history repetitions, which
     also now raise their own events (Vern Paxson, Corelight)
 

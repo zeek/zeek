@@ -261,8 +261,10 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 		break;
 
 	case TYPE_PORT:
+		{
 		val->val.port_val.proto = TRANSPORT_UNKNOWN;
 		pos = s.find('/');
+		string numberpart;
 		if ( pos != std::string::npos && s.length() > pos + 1 )
 			{
 			auto proto = s.substr(pos+1);
@@ -272,10 +274,22 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 				val->val.port_val.proto = TRANSPORT_UDP;
 			else if ( strtolower(proto) == "icmp" )
 				val->val.port_val.proto = TRANSPORT_ICMP;
+			else if ( strtolower(proto) == "unknown" )
+				val->val.port_val.proto = TRANSPORT_UNKNOWN;
+			else
+				GetThread()->Warning(GetThread()->Fmt("Port '%s' contained unknown protocol '%s'", s.c_str(), proto.c_str()));
+			}
+
+			// make the string end at the position of "/";
+		if ( pos != std::string::npos && pos > 0 )
+			{
+			numberpart = s.substr(0, pos);
+			start = numberpart.c_str();
 			}
 		val->val.port_val.port = strtoull(start, &end, 10);
 		if ( CheckNumberError(start, end) )
 			goto parse_error;
+		}
 		break;
 
 	case TYPE_SUBNET:

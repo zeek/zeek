@@ -66,6 +66,9 @@ public:
 	 */
 	void InitPostScript();
 
+	void BroInitDone()
+		{ after_bro_init = true; }
+
 	/**
 	 * Shuts Broker down at termination.
 	 */
@@ -404,6 +407,7 @@ private:
 
 	uint16_t bound_port;
 	bool reading_pcaps;
+	bool after_bro_init;
 	int peer_count;
 
 	Func* log_topic_func;

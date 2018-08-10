@@ -1,4 +1,14 @@
 
+2.5-831 | 2018-08-10 17:12:53 -0500
+
+  * Immediately apply broker subscriptions made during bro_init()
+    (Jon Siwek, Corelight)
+
+  * Update default broker threading configuration to use 4 threads and allow
+    tuning via BRO_BROKER_MAX_THREADS env. variable (Jon Siwek, Corelight)
+
+  * Misc. unit test improvements (Jon Siwek, Corelight)
+
 2.5-826 | 2018-08-08 13:09:27 -0700
 
   * Add support for code coverage statistics for bro source files after running btest

@@ -137,6 +137,7 @@ Manager::Manager(bool arg_reading_pcaps)
 	{
 	bound_port = 0;
 	reading_pcaps = arg_reading_pcaps;
+	after_bro_init = false;
 	peer_count = 0;
 	log_topic_func = nullptr;
 	vector_of_data_type = nullptr;
@@ -847,14 +848,14 @@ RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 bool Manager::Subscribe(const string& topic_prefix)
 	{
 	DBG_LOG(DBG_BROKER, "Subscribing to topic prefix %s", topic_prefix.c_str());
-	bstate->subscriber.add_topic(topic_prefix);
+	bstate->subscriber.add_topic(topic_prefix, ! after_bro_init);
 	return true;
 	}
 
 bool Manager::Unsubscribe(const string& topic_prefix)
 	{
 	DBG_LOG(DBG_BROKER, "Unsubscribing from topic prefix %s", topic_prefix.c_str());
-	bstate->subscriber.remove_topic(topic_prefix);
+	bstate->subscriber.remove_topic(topic_prefix, ! after_bro_init);
 	return true;
 	}
 

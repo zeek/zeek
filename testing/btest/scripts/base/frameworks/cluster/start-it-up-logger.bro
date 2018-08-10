@@ -1,13 +1,13 @@
 # @TEST-SERIALIZE: comm
 #
-# @TEST-EXEC: btest-bg-run logger-1  CLUSTER_NODE=logger-1 BROPATH=$BROPATH:.. bro %INPUT
+# @TEST-EXEC: btest-bg-run logger-1  CLUSTER_NODE=logger-1  BROPATH=$BROPATH:.. bro %INPUT
 # @TEST-EXEC: btest-bg-run manager-1 CLUSTER_NODE=manager-1 BROPATH=$BROPATH:.. bro %INPUT
-# @TEST-EXEC: btest-bg-run proxy-1   CLUSTER_NODE=proxy-1 BROPATH=$BROPATH:.. bro %INPUT
-# @TEST-EXEC: btest-bg-run proxy-2   CLUSTER_NODE=proxy-2 BROPATH=$BROPATH:.. bro %INPUT
-# @TEST-EXEC: btest-bg-run worker-1  CLUSTER_NODE=worker-1 BROPATH=$BROPATH:.. bro %INPUT
-# @TEST-EXEC: btest-bg-run worker-2  CLUSTER_NODE=worker-2 BROPATH=$BROPATH:.. bro %INPUT
+# @TEST-EXEC: btest-bg-run proxy-1   CLUSTER_NODE=proxy-1   BROPATH=$BROPATH:.. bro %INPUT
+# @TEST-EXEC: btest-bg-run proxy-2   CLUSTER_NODE=proxy-2   BROPATH=$BROPATH:.. bro %INPUT
+# @TEST-EXEC: btest-bg-run worker-1  CLUSTER_NODE=worker-1  BROPATH=$BROPATH:.. bro %INPUT
+# @TEST-EXEC: btest-bg-run worker-2  CLUSTER_NODE=worker-2  BROPATH=$BROPATH:.. bro %INPUT
 # @TEST-EXEC: btest-bg-wait 30
-# @TEST-EXEC: btest-diff logger-1/.stdout
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff logger-1/.stdout
 # @TEST-EXEC: btest-diff manager-1/.stdout
 # @TEST-EXEC: btest-diff proxy-1/.stdout
 # @TEST-EXEC: btest-diff proxy-2/.stdout
@@ -30,20 +30,27 @@ redef Cluster::retry_interval = 1sec;
 redef Broker::default_listen_retry = 1sec;
 redef Broker::default_connect_retry = 1sec;
 
-global fully_connected: event();
-
 global peer_count = 0;
 
 global fully_connected_nodes = 0;
 
-event fully_connected()
+event fully_connected(n: string)
 	{
 	++fully_connected_nodes;
 
 	if ( Cluster::node == "logger-1" )
 		{
+		print "got fully_connected event from", n;
+
 		if ( peer_count == 5 && fully_connected_nodes == 5 )
+			{
+			print "termination condition met: shutting down";
 			terminate();
+			}
+		}
+	else
+		{
+		print "sent fully_connected event";
 		}
 	}
 
@@ -60,17 +67,20 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	if ( Cluster::node == "logger-1" )
 		{
 		if ( peer_count == 5 && fully_connected_nodes == 5 )
+			{
+			print "termination condition met: shutting down";
 			terminate();
+			}
 		}
 	else if ( Cluster::node == "manager-1" )
 		{
 		if ( peer_count == 5 )
-			event fully_connected();
+			event fully_connected(Cluster::node);
 		}
 	else
 		{
 		if ( peer_count == 4 )
-			event fully_connected();
+			event fully_connected(Cluster::node);
 		}
 	}
 

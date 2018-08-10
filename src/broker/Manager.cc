@@ -184,22 +184,29 @@ void Manager::InitPostScript()
 		config.set("scheduler.max-threads", max_threads);
 	else
 		{
-		// On high-core-count systems, spawning one thread per core
-		// can lead to significant performance problems even if most
-		// threads are under-utilized.  Related:
-		// https://github.com/actor-framework/actor-framework/issues/699
-		if ( reading_pcaps )
-			config.set("scheduler.max-threads", 2u);
+		auto max_threads_env = getenv("BRO_BROKER_MAX_THREADS");
+
+		if ( max_threads_env )
+			config.set("scheduler.max-threads", atoi(max_threads_env));
 		else
 			{
-			auto hc = std::thread::hardware_concurrency();
-
-			if ( hc > 8u )
-				hc = 8u;
-			else if ( hc < 4u)
-				hc = 4u;
-
-			config.set("scheduler.max-threads", hc);
+			// On high-core-count systems, letting CAF spawn a thread per core
+			// can lead to significant performance problems even if most
+			// threads are under-utilized.  Related:
+			// https://github.com/actor-framework/actor-framework/issues/699
+			if ( reading_pcaps )
+				config.set("scheduler.max-threads", 2u);
+			else
+				// If the goal was to map threads to actors, 4 threads seems
+				// like a minimal default that could make sense -- the main
+				// actors that should be doing work are (1) the core,
+				// (2) the subscriber, (3) data stores (actually made of
+				// a frontend + proxy actor).  Number of data stores may
+				// actually vary, but lumped togather for simplicity.  A (4)
+				// may be CAF's multiplexing or other internals...
+				// 4 is also the minimum number that CAF uses by default,
+				// even for systems with less than 4 cores.
+				config.set("scheduler.max-threads", 4u);
 			}
 		}
 

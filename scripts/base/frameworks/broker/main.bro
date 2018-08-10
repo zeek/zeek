@@ -56,9 +56,11 @@ export {
 	## control mechanisms).
 	const congestion_queue_size = 200 &redef;
 
-	## Max number of threads to use for Broker/CAF functionality.
-	## Using zero will cause this to be automatically determined
-	## based on number of available CPUs.
+	## Max number of threads to use for Broker/CAF functionality.  Setting to
+	## zero implies using the value of BRO_BROKER_MAX_THREADS environment
+	## variable, if set, or else typically defaults to 4 (actually 2 threads
+	## when simply reading offline pcaps as there's not expected to be any
+	## communication and more threads just adds more overhead).
 	const max_threads = 0 &redef;
 
 	## Max number of microseconds for under-utilized Broker/CAF

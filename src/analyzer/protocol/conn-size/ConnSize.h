@@ -60,8 +60,9 @@ protected:
 	uint64_t data_pkts;             // data packets sent form both directions
 
 	std::set<std::string> rules_matched_first_packet;
+	std::set<std::string> rules_failed_first_packet;
 	std::set<std::string> rules_matched_later_packets;
-	std::set<std::string> rules_not_matched_later_packets;
+	std::set<std::string> rules_failed_later_packets;
 };
 
 } } // namespace analyzer::* 

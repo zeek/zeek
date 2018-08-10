@@ -383,10 +383,12 @@ type connection: record {
 	## wzj
 	## Rules matched on the first packet
 	rules_matched_first_packet: set[string] &optional;
+	## Rules failed to match on the first packet
+	rules_failed_first_packet: set[string] &optional;
 	## Rules matched on later packets
 	rules_matched_later_packets: set[string] &optional;
 	## Rules failed to match on later packets
-	rules_not_matched_later_packets: set[string] &optional;
+	rules_failed_later_packets: set[string] &optional;
 };
 
 ## Default amount of time a file can be inactive before the file analysis

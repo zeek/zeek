@@ -139,10 +139,12 @@ export {
 		resp_data_bytes: count      &log &optional;
 		## Set of rules that are matched on the first packet.
 		rules_matched_first_packet: set[string]	&log &optional;
+		## Set of rules that are failed to match on the first packet.
+		rules_failed_first_packet: set[string]	&log &optional;
 		## Set of rules that are matched on later packets.
 		rules_matched_later_packets: set[string]	&log &optional;
-		## Set of rules that are matched on later packets.
-		rules_not_matched_later_packets: set[string]	&log &optional;
+		## Set of rules that are failed to match on later packets.
+		rules_failed_later_packets: set[string]	&log &optional;
 	};
 
 	## Event that can be handled to access the :bro:type:`Conn::Info`
@@ -274,10 +276,12 @@ function set_conn(c: connection, eoc: bool)
 
 		if ( c?$rules_matched_first_packet )
 			c$conn$rules_matched_first_packet = c$rules_matched_first_packet;
+		if ( c?$rules_failed_first_packet )
+			c$conn$rules_failed_first_packet = c$rules_failed_first_packet;
 		if ( c?$rules_matched_later_packets )
 			c$conn$rules_matched_later_packets = c$rules_matched_later_packets;
-		if ( c?$rules_not_matched_later_packets )
-			c$conn$rules_not_matched_later_packets = c$rules_not_matched_later_packets;
+		if ( c?$rules_failed_later_packets )
+			c$conn$rules_failed_later_packets = c$rules_failed_later_packets;
 			
 		local service = determine_service(c);
 		if ( service != "" )

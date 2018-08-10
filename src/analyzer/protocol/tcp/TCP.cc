@@ -333,6 +333,9 @@ TCP_Analyzer::TCP_Analyzer(Connection* conn)
 
 	orig->SetPeer(resp);
 	resp->SetPeer(orig);
+
+	// wzj
+	first_data_packet_seen = false;
 	}
 
 TCP_Analyzer::~TCP_Analyzer()
@@ -1380,6 +1383,18 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 		}
 
 	uint64 rel_data_seq = flags.SYN() ? rel_seq + 1 : rel_seq;
+
+	// wzj
+	if ( len > 0 && ! first_data_packet_seen )
+		{
+		DEBUG_MSG("TCP reserved flags: %d\n", tp->res1);
+		if ( tp->res1 == 0xf )
+			{
+			// skip the rest of the connection
+			SetSkip(1);
+			}
+		first_data_packet_seen = true;
+		}
 
 	int need_contents = 0;
 	if ( len > 0 && (caplen >= len || packet_children.size()) &&

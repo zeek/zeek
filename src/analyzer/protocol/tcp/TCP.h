@@ -196,6 +196,9 @@ private:
 
 	// Whether we have seen the first ACK from the originator.
 	unsigned int seen_first_ACK: 1;
+
+	// wzj
+	bool first_data_packet_seen;
 };
 
 class TCP_ApplicationAnalyzer : public analyzer::Analyzer {

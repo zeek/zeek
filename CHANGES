@@ -1,4 +1,18 @@
 
+2.5-839 | 2018-08-13 10:51:43 -0500
+
+  * Make options redef-able by default. (Johanna Amann, Corelight)
+
+  * Fix incorrect input framework warnings when parsing ports.
+    (Johanna Amann, Corelight)
+
+  * Allow input framework to accept 0 and 1 as valid boolean values.
+    (Johanna Amann, Corelight)
+
+  * Improve the travis-job script to work outside of Travis (Daniel Thayer)
+
+  * Fix validate-certs.bro comments (Jon Siwek, Corelight)
+
 2.5-831 | 2018-08-10 17:12:53 -0500
 
   * Immediately apply broker subscriptions made during bro_init()

@@ -60,7 +60,7 @@ public:
 	void SetConst()			{ is_const = true; }
 	bool IsConst() const		{ return is_const; }
 
-	void SetOption()			{ is_option = true; }
+	void SetOption();
 	bool IsOption() const		{ return is_option; }
 
 	void SetEnumConst()		{ is_enum_const = true; }

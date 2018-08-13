@@ -807,12 +807,22 @@ void SMTP_Analyzer::UpdateState(const int cmd_code, const int reply_code, bool o
 #endif
 	}
 
+static bool istrequal(const char* s, const char* cmd, int s_len)
+	{
+	auto cmd_len = strlen(cmd);
+
+	if ( cmd_len != s_len )
+		return false;
+
+	return strncasecmp(s, cmd, s_len) == 0;
+	}
+
 void SMTP_Analyzer::ProcessExtension(int ext_len, const char* ext)
 	{
 	if ( ! ext )
 		return;
 
-	if ( ! strncasecmp(ext, "PIPELINING", ext_len) )
+	if ( istrequal(ext, "PIPELINING", ext_len) )
 		pipelining = 1;
 	}
 
@@ -822,11 +832,11 @@ int SMTP_Analyzer::ParseCmd(int cmd_len, const char* cmd)
 		return -1;
 
 	// special case because we cannot define our usual macros with "-"
-	if ( strncmp(cmd, "X-ANONYMOUSTLS", cmd_len) == 0 )
+	if ( istrequal(cmd, "X-ANONYMOUSTLS", cmd_len) )
 		return SMTP_CMD_X_ANONYMOUSTLS;
 
 	for ( int code = SMTP_CMD_EHLO; code < SMTP_CMD_LAST; ++code )
-		if ( ! strncasecmp(cmd, smtp_cmd_word[code - SMTP_CMD_EHLO], cmd_len) )
+		if ( istrequal(cmd, smtp_cmd_word[code - SMTP_CMD_EHLO], cmd_len) )
 			return code;
 
 	return -1;

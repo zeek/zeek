@@ -399,7 +399,7 @@ function create(ss: SumStat)
 	schedule ss$epoch { SumStats::finish_epoch(ss) };
 	}
 
-function observe(id: string, key: Key, obs: Observation)
+function observe(id: string, orig_key: Key, obs: Observation)
 	{
 	if ( id !in reducer_store )
 		return;
@@ -407,8 +407,7 @@ function observe(id: string, key: Key, obs: Observation)
 	# Try to add the data to all of the defined reducers.
 	for ( r in reducer_store[id] )
 		{
-		if ( r?$normalize_key )
-			key = r$normalize_key(copy(key));
+		local key = r?$normalize_key ? r$normalize_key(copy(orig_key)) : orig_key;
 
 		# If this reducer has a predicate, run the predicate
 		# and skip this key if the predicate return false.

@@ -1,4 +1,9 @@
 
+2.5-840 | 2018-08-13 17:40:06 -0500
+
+  * Fix SumStats::observe key normalization logic
+    (reported by Jim Mellander and fixed by Jon Siwek, Corelight)
+
 2.5-839 | 2018-08-13 10:51:43 -0500
 
   * Make options redef-able by default. (Johanna Amann, Corelight)

@@ -381,7 +381,17 @@ void SMTP_Analyzer::NewCmd(const int cmd_code)
 		if ( first_cmd < 0 )
 			first_cmd = cmd_code;
 		else
+			{
+			auto constexpr max_pending_cmd_q_size = 1000;
+
+			if ( pending_cmd_q.size() == max_pending_cmd_q_size )
+				{
+				Weird("smtp_excessive_pending_cmds");
+				pending_cmd_q.clear();
+				}
+
 			pending_cmd_q.push_back(cmd_code);
+			}
 		}
 	else
 		first_cmd = cmd_code;

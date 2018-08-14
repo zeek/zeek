@@ -1,4 +1,8 @@
 
+2.5-841 | 2018-08-14 16:45:09 -0500
+
+  * BIT-1798: fix PPTP GRE tunnel decapsulation (Jon Siwek, Corelight)
+
 2.5-840 | 2018-08-13 17:40:06 -0500
 
   * Fix SumStats::observe key normalization logic

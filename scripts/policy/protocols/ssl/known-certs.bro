@@ -127,6 +127,9 @@ event Known::cert_found(info: CertsInfo, hash: string)
 	if ( Known::use_cert_store )
 		return;
 
+	if ( [info$host, hash] in Known::certs )
+		return;
+
 	local key = cat(info$host, hash);
 	Cluster::publish_hrw(Cluster::proxy_pool, key, known_cert_add, info, hash);
 	event known_cert_add(info, hash);
@@ -140,6 +143,7 @@ event Cluster::node_up(name: string, id: string)
 	if ( Cluster::local_node_type() != Cluster::WORKER )
 		return;
 
+	# Drop local suppression cache on workers to force HRW key repartitioning.
 	Known::certs = table();
 	}
 
@@ -151,6 +155,7 @@ event Cluster::node_down(name: string, id: string)
 	if ( Cluster::local_node_type() != Cluster::WORKER )
 		return;
 
+	# Drop local suppression cache on workers to force HRW key repartitioning.
 	Known::certs = table();
 	}
 

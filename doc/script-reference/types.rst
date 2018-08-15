@@ -544,6 +544,15 @@ Here is a more detailed description of each type:
 
         |s|
 
+    You can compute the union, intersection, or difference of two sets
+    using the ``|``, ``&``, and ``-`` operators.  You can compare
+    sets for equality (they have exactly the same elements) using ``==``.
+    The ``<`` operator returns ``T`` if the lefthand operand is a proper
+    subset of the righthand operand.  Similarly, ``<=`` returns ``T``
+    if the lefthand operator is a subset (not necessarily proper, i.e.,
+    it may be equal to the righthand operand).  The operators ``!=``, ``>``
+    and ``>=`` provide the expected complementary operations.
+
     See the :bro:keyword:`for` statement for info on how to iterate over
     the elements in a set.
 
@@ -598,6 +607,20 @@ Here is a more detailed description of each type:
     .. code:: bro
 
         |v|
+
+    A particularly common operation on a vector is to append an element
+    to its end.  You can do so using:
+
+    .. code:: bro
+
+        v += e;
+
+    where if e's type is ``X``, v's type is ``vector of X``.  Note that
+    this expression is equivalent to:
+
+    .. code:: bro
+
+        v[|v|] = e;
 
     Vectors of integral types (``int`` or ``count``) support the pre-increment
     (``++``) and pre-decrement operators (``--``), which will increment or

@@ -18,6 +18,8 @@ event bro_init()
 
 	cast_to_string(42);
 	cast_to_string(x);
+	cast_to_string(Broker::Data());
+	print "data is string", Broker::Data() is string;
 	}
 
 

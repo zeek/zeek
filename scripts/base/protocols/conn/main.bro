@@ -86,8 +86,9 @@ export {
 		## d       packet with payload ("data")
 		## f       packet with FIN bit set
 		## r       packet with RST bit set
-		## c       packet with a bad checksum
+		## c       packet with a bad checksum (applies to UDP too)
 		## t       packet with retransmitted payload
+		## w       packet with a zero window advertisement
 		## i       inconsistent packet (e.g. FIN+RST bits set)
 		## q       multi-flag packet (SYN+FIN or SYN+RST bits set)
 		## ^       connection direction was flipped by Bro's heuristic
@@ -95,12 +96,15 @@ export {
 		##
 		## If the event comes from the originator, the letter is in
 		## upper-case; if it comes from the responder, it's in
-		## lower-case.  The 'a', 'c', 'd', 'i', 'q', and 't' flags are
+		## lower-case.  The 'a', 'd', 'i' and 'q' flags are
 		## recorded a maximum of one time in either direction regardless
-		## of how many are actually seen.  However, 'f', 'h', 'r', or
-		## 's' may be recorded multiple times for either direction and
-		## only compressed when sharing a sequence number with the
+		## of how many are actually seen.  'f', 'h', 'r' and
+		## 's' can be recorded multiple times for either direction
+		## if the associated sequence number differs from the
 		## last-seen packet of the same flag type.
+		## 'c', 't' and 'w' are recorded in a logarithmic fashion:
+		## the second instance represents that the event was seen
+		## (at least) 10 times; the third instance, 100 times; etc.
 		history:      string          &log &optional;
 		## Number of packets that the originator sent.
 		## Only set if :bro:id:`use_conn_size_analyzer` = T.

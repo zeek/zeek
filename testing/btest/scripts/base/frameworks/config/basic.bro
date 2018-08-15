@@ -1,6 +1,7 @@
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff bro/config.log
+# @TEST-EXEC: btest-diff bro/.stderr
 
 @load base/frameworks/config
 @load base/protocols/conn
@@ -16,6 +17,8 @@ testcount 2
 testint		-1
 testenum Conn::LOG
 testport 45
+testporttcp 42/tcp
+testportudp 42/udp
 testaddr 127.0.0.1
 testaddr 2607:f8b0:4005:801::200e
 testinterval 60
@@ -35,6 +38,8 @@ export {
 	option testint: int = 0;
 	option testenum = SSH::LOG;
 	option testport = 42/tcp;
+	option testporttcp = 40/udp;
+	option testportudp = 40/tcp;
 	option testaddr = 127.0.0.1;
 	option testtime = network_time();
 	option testinterval = 1sec;

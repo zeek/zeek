@@ -267,7 +267,7 @@ function add_observe_plugin_dependency(calc: Calculation, depends_on: Calculatio
 	{
 	if ( calc !in calc_deps )
 		calc_deps[calc] = vector();
-	calc_deps[calc][|calc_deps[calc]|] = depends_on;
+	calc_deps[calc] += depends_on;
 	}
 
 event bro_init() &priority=100000
@@ -348,7 +348,7 @@ function add_calc_deps(calcs: vector of Calculation, c: Calculation)
 			{
 			if ( calc_deps[c][i] in calc_deps )
 				add_calc_deps(calcs, calc_deps[c][i]);
-			calcs[|c|] = calc_deps[c][i];
+			calcs += calc_deps[c][i];
 			#print fmt("add dep for %s [%s] ", c, calc_deps[c][i]);
 			}
 		}
@@ -387,7 +387,7 @@ function create(ss: SumStat)
 					skip_calc=T;
 				}
 			if ( ! skip_calc )
-				reducer$calc_funcs[|reducer$calc_funcs|] = calc;
+				reducer$calc_funcs += calc;
 			}
 
 		if ( reducer$stream !in reducer_store )
@@ -399,7 +399,7 @@ function create(ss: SumStat)
 	schedule ss$epoch { SumStats::finish_epoch(ss) };
 	}
 
-function observe(id: string, key: Key, obs: Observation)
+function observe(id: string, orig_key: Key, obs: Observation)
 	{
 	if ( id !in reducer_store )
 		return;
@@ -407,8 +407,7 @@ function observe(id: string, key: Key, obs: Observation)
 	# Try to add the data to all of the defined reducers.
 	for ( r in reducer_store[id] )
 		{
-		if ( r?$normalize_key )
-			key = r$normalize_key(copy(key));
+		local key = r?$normalize_key ? r$normalize_key(copy(orig_key)) : orig_key;
 
 		# If this reducer has a predicate, run the predicate
 		# and skip this key if the predicate return false.

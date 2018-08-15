@@ -22,7 +22,7 @@ files_cwd=`ls $@`
 files_baseline=`cd $TEST_BASELINE && ls $@`
 
 for i in `echo $files_cwd $files_baseline | sort | uniq`; do
-    if [[ "$i" != "loaded_scripts.log" && "$i" != "prof.log" && "$i" != "debug.log" && "$i" != "stats.log" ]]; then
+    if [[ "$i" != "loaded_scripts.log" && "$i" != "prof.log" && "$i" != "debug.log" && "$i" != "stats.log" && "$i" != broker_*.log ]]; then
 
         if [[ "$i" == "reporter.log" ]]; then
             # Do not diff the reporter.log if it only complains about missing

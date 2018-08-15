@@ -1,4 +1,90 @@
 
+2.5-842 | 2018-08-15 11:00:20 -0500
+
+  * Fix seg fault on trying to type-cast invalid/nil Broker::Data
+    (Jon Siwek, Corelight)
+
+2.5-841 | 2018-08-14 16:45:09 -0500
+
+  * BIT-1798: fix PPTP GRE tunnel decapsulation (Jon Siwek, Corelight)
+
+2.5-840 | 2018-08-13 17:40:06 -0500
+
+  * Fix SumStats::observe key normalization logic
+    (reported by Jim Mellander and fixed by Jon Siwek, Corelight)
+
+2.5-839 | 2018-08-13 10:51:43 -0500
+
+  * Make options redef-able by default. (Johanna Amann, Corelight)
+
+  * Fix incorrect input framework warnings when parsing ports.
+    (Johanna Amann, Corelight)
+
+  * Allow input framework to accept 0 and 1 as valid boolean values.
+    (Johanna Amann, Corelight)
+
+  * Improve the travis-job script to work outside of Travis (Daniel Thayer)
+
+  * Fix validate-certs.bro comments (Jon Siwek, Corelight)
+
+2.5-831 | 2018-08-10 17:12:53 -0500
+
+  * Immediately apply broker subscriptions made during bro_init()
+    (Jon Siwek, Corelight)
+
+  * Update default broker threading configuration to use 4 threads and allow
+    tuning via BRO_BROKER_MAX_THREADS env. variable (Jon Siwek, Corelight)
+
+  * Misc. unit test improvements (Jon Siwek, Corelight)
+
+2.5-826 | 2018-08-08 13:09:27 -0700
+
+  * Add support for code coverage statistics for bro source files after running btest
+    test suite
+
+    This adds --enable-coverage flag to configure Bro with gcov.
+    A new directory named /testing/coverage/ contains a new
+    coverage target. By default a coverage.log is created; running
+    make html in testing/coverage creates a HTML report.
+    (Chung Min Kim, Corelight)
+
+2.5-819 | 2018-08-08 13:03:22 -0500
+
+  * Fix cluster layout graphic and doc warnings (Jon Siwek, Corelight)
+
+  * Added missing tcp-state for signature dpd_rfb_server (Zhongjie Wang)
+
+2.5-815 | 2018-08-06 17:07:56 -0500
+
+  * Fix an "uninitialized" compiler warning (Jon Siwek, Corelight)
+
+  * Fix (non)suppression of proxy-bound events in known-*.bro scripts
+    (Jon Siwek, Corelight)
+
+2.5-811 | 2018-08-03 11:33:57 -0500
+
+  * Update scripts to use vector "+=" append operation (Vern Paxson, Corelight)
+
+  * Add vector "+=" append operation (Vern Paxson, Corelight)
+
+  * Improve a travis output message in pull request builds (Daniel Thayer)
+
+  * Use default version of OpenSSL on all travis docker containers
+    (Daniel Thayer)
+
+2.5-802 | 2018-08-02 10:40:36 -0500
+
+  * Add set operations: union, intersection, difference, comparison
+    (Vern Paxson, Corelight)
+
+2.5-796 | 2018-08-01 16:31:25 -0500
+
+  * Add 'W' connection history indicator for zero windows
+    (Vern Paxson, Corelight)
+
+  * Allow logarithmic 'T'/'C'/'W' connection history repetitions, which
+    also now raise their own events (Vern Paxson, Corelight)
+
 2.5-792 | 2018-08-01 12:15:31 -0500
 
   * fix NTLM NegotiateFlags field offsets (Jeffrey Bencteux)

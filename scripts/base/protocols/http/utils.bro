@@ -47,7 +47,7 @@ function extract_keys(data: string, kv_splitter: pattern): string_vec
 		{
 		local key_val = split_string1(parts[part_index], /=/);
 		if ( 0 in key_val )
-			key_vec[|key_vec|] = key_val[0];
+			key_vec += key_val[0];
 		}
 	return key_vec;
 	}

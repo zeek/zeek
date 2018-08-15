@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	dns
+#open	2018-08-14-21-42-31
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	trans_id	rtt	query	qclass	qclass_name	qtype	qtype_name	rcode	rcode_name	AA	TC	RD	RA	Z	answers	TTLs	rejected
+#types	time	string	addr	port	addr	port	enum	count	interval	string	count	string	count	string	count	string	bool	bool	bool	bool	count	vector[string]	vector[interval]	bool
+1417577703.821897	C4J4Th3PJpwUYZZ6gc	172.16.44.3	40768	8.8.8.8	53	udp	42540	-	xqt-detect-mode2-97712e88-167a-45b9-93ee-913140e76678	1	C_INTERNET	28	AAAA	3	NXDOMAIN	F	F	T	F	0	-	-	F
+#close	2018-08-14-21-42-31

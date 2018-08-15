@@ -1706,14 +1706,101 @@ int TableVal::RemoveFrom(Val* val) const
 	HashKey* k;
 	while ( tbl->NextEntry(k, c) )
 		{
-		Val* index = RecoverIndex(k);
-
-		Unref(index);
+		// Not sure that this is 100% sound, since the HashKey
+		// comes from one table but is being used in another.
+		// OTOH, they are both the same type, so as long as
+		// we don't have hash keys that are keyed per dictionary,
+		// it should work ...
 		Unref(t->Delete(k));
 		delete k;
 		}
 
 	return 1;
+	}
+
+TableVal* TableVal::Intersect(const TableVal* tv) const
+	{
+	TableVal* result = new TableVal(table_type);
+
+	const PDict(TableEntryVal)* t0 = AsTable();
+	const PDict(TableEntryVal)* t1 = tv->AsTable();
+	PDict(TableEntryVal)* t2 = result->AsNonConstTable();
+
+	// Figure out which is smaller; assign it to t1.
+	if ( t1->Length() > t0->Length() )
+		{ // Swap.
+		const PDict(TableEntryVal)* tmp = t1;
+		t1 = t0;
+		t0 = tmp;
+		}
+
+	IterCookie* c = t1->InitForIteration();
+	HashKey* k;
+	while ( t1->NextEntry(k, c) )
+		{
+		// Here we leverage the same assumption about consistent
+		// hashes as in TableVal::RemoveFrom above.
+		if ( t0->Lookup(k) )
+			t2->Insert(k, new TableEntryVal(0));
+
+		delete k;
+		}
+
+	return result;
+	}
+
+bool TableVal::EqualTo(const TableVal* tv) const
+	{
+	const PDict(TableEntryVal)* t0 = AsTable();
+	const PDict(TableEntryVal)* t1 = tv->AsTable();
+
+	if ( t0->Length() != t1->Length() )
+		return false;
+
+	IterCookie* c = t0->InitForIteration();
+	HashKey* k;
+	while ( t0->NextEntry(k, c) )
+		{
+		// Here we leverage the same assumption about consistent
+		// hashes as in TableVal::RemoveFrom above.
+		if ( ! t1->Lookup(k) )
+			{
+			delete k;
+			t0->StopIteration(c);
+			return false;
+			}
+
+		delete k;
+		}
+
+	return true;
+	}
+
+bool TableVal::IsSubsetOf(const TableVal* tv) const
+	{
+	const PDict(TableEntryVal)* t0 = AsTable();
+	const PDict(TableEntryVal)* t1 = tv->AsTable();
+
+	if ( t0->Length() > t1->Length() )
+		return false;
+
+	IterCookie* c = t0->InitForIteration();
+	HashKey* k;
+	while ( t0->NextEntry(k, c) )
+		{
+		// Here we leverage the same assumption about consistent
+		// hashes as in TableVal::RemoveFrom above.
+		if ( ! t1->Lookup(k) )
+			{
+			delete k;
+			t0->StopIteration(c);
+			return false;
+			}
+
+		delete k;
+		}
+
+	return true;
 	}
 
 int TableVal::ExpandAndInit(Val* index, Val* new_val)
@@ -3545,6 +3632,10 @@ Val* cast_value_to_type(Val* v, BroType* t)
 	if ( same_type(v->Type(), bro_broker::DataVal::ScriptDataType()) )
 		{
 		auto dv = v->AsRecordVal()->Lookup(0);
+
+		if ( ! dv )
+			return 0;
+
 		return static_cast<bro_broker::DataVal *>(dv)->castTo(t);
 		}
 
@@ -3567,6 +3658,10 @@ bool can_cast_value_to_type(const Val* v, BroType* t)
 	if ( same_type(v->Type(), bro_broker::DataVal::ScriptDataType()) )
 		{
 		auto dv = v->AsRecordVal()->Lookup(0);
+
+		if ( ! dv )
+			return false;
+
 		return static_cast<const bro_broker::DataVal *>(dv)->canCastTo(t);
 		}
 

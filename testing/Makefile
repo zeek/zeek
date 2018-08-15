@@ -8,6 +8,7 @@ brief: make-brief coverage
 distclean:
 	@rm -f coverage.log
 	$(MAKE) -C btest $@
+	$(MAKE) -C coverage $@
 
 make-verbose:
 	@for repo in $(DIRS); do (cd $$repo && make -s ); done
@@ -22,4 +23,6 @@ coverage:
 	@echo "Complete test suite code coverage:"
 	@./scripts/coverage-calc "brocov.tmp.*" coverage.log `pwd`/../scripts
 	@rm -f brocov.tmp.*
+	@cd coverage && make coverage
 
+.PHONY: coverage

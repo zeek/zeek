@@ -2,4 +2,10 @@ Connected to a peer
 Connected to a peer
 Connected to a peer
 Connected to a peer
+got fully_connected event from, worker-1
 Connected to a peer
+got fully_connected event from, proxy-1
+got fully_connected event from, proxy-2
+got fully_connected event from, manager-1
+got fully_connected event from, worker-2
+termination condition met: shutting down

@@ -283,6 +283,39 @@ New Functionality
 
 - Bro now supports OpenSSL 1.1.
 
+- The new connection/conn.log history character 'W' indicates that
+  the originator ('w' = responder) advertised a TCP zero window
+  (instructing the peer to not send any data until receiving a
+  non-zero window).
+
+- The connection/conn.log history characters 'C' (checksum error seen),
+  'T' (retransmission seen), and 'W' (zero window advertised) are now
+  repeated in a logarithmic fashion upon seeing multiple instances
+  of the corresponding behavior.  Thus a connection with 2 C's in its
+  history means that the originator sent >= 10 packets with checksum
+  errors; 3 C's means >= 100, etc.
+
+- The above connection history behaviors occurring multiple times
+  (i.e., starting at 10 instances, than again for 100 instances,
+  etc.) generate corresponding events: tcp_multiple_checksum_errors,
+  udp_multiple_checksum_errors, tcp_multiple_zero_windows, and
+  tcp_multiple_retransmissions.  Each has the same form, e.g.
+
+      event tcp_multiple_retransmissions(c: connection, is_orig: bool,
+				                         threshold: count);
+
+- Added support for set union, intersection, difference, and comparison
+  operations.  The corresponding operators for the first three are
+  "s1 | s2", "s1 & s2", and "s1 - s2".  Relationals are in terms
+  of subsets, so "s1 < s2" yields true if s1 is a proper subset of s2
+  and "s1 == s2" if the two sets have exactly the same elements.
+  "s1 <= s2" holds for subsets or equality, and similarly "s1 != s2",
+  "s1 > s2", and "s1 >= s2" have the expected meanings in terms
+  of non-equality, proper superset, and superset-or-equal.
+
+- An expression of the form "v += e" will append the value of the expression
+  "e" to the end of the vector "v" (of course assuming type-compatbility).
+
 Changed Functionality
 ---------------------
 

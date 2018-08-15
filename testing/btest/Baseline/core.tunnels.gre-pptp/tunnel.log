@@ -1,0 +1,11 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	tunnel
+#open	2018-08-14-21-42-31
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	tunnel_type	action
+#types	time	string	addr	port	addr	port	enum	enum
+1417577703.821897	CHhAvVGS1DHFjwGM9	2402:f000:1:8e01::5555	0	2607:fcd0:100:2300::b108:2a6b	0	Tunnel::IP	Tunnel::DISCOVER
+1417577703.821897	ClEkJM2Vm5giqnMf4h	16.0.0.200	0	192.52.166.154	0	Tunnel::GRE	Tunnel::DISCOVER
+#close	2018-08-14-21-42-31

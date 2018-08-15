@@ -121,13 +121,13 @@ event file_sniff(f: fa_file, meta: fa_metadata) &priority=5
 
 	if ( f$is_orig )
 		{
-		c$ssl$client_cert_chain[|c$ssl$client_cert_chain|] = f$info;
-		c$ssl$client_cert_chain_fuids[|c$ssl$client_cert_chain_fuids|] = f$id;
+		c$ssl$client_cert_chain += f$info;
+		c$ssl$client_cert_chain_fuids += f$id;
 		}
 	else
 		{
-		c$ssl$cert_chain[|c$ssl$cert_chain|] = f$info;
-		c$ssl$cert_chain_fuids[|c$ssl$cert_chain_fuids|] = f$id;
+		c$ssl$cert_chain += f$info;
+		c$ssl$cert_chain_fuids += f$id;
 		}
 	}
 

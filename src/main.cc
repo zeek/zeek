@@ -1182,6 +1182,7 @@ int main(int argc, char** argv)
 	// Drain the event queue here to support the protocols framework configuring DPM
 	mgr.Drain();
 
+	broker_mgr->BroInitDone();
 	analyzer_mgr->DumpDebug();
 
 	have_pending_timers = ! reading_traces && timer_mgr->Size() > 0;

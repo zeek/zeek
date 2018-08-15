@@ -532,7 +532,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 		// If a carried packet has ethernet, this will help skip it.
 		unsigned int eth_len = 0;
 		unsigned int gre_len = gre_header_len(flags_ver);
-		unsigned int ppp_len = gre_version == 1 ? 1 : 0;
+		unsigned int ppp_len = gre_version == 1 ? 4 : 0;
 
 		if ( gre_version != 0 && gre_version != 1 )
 			{
@@ -598,7 +598,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 
 		if ( gre_version == 1 )
 			{
-			int ppp_proto = *((uint8*)(data + gre_len));
+			uint16 ppp_proto = ntohs(*((uint16*)(data + gre_len + 2)));
 
 			if ( ppp_proto != 0x0021 && ppp_proto != 0x0057 )
 				{

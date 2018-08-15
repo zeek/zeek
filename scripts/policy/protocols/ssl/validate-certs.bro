@@ -50,11 +50,11 @@ export {
 	## and is thus disabled by default.
 	global ssl_store_valid_chain: bool = F &redef;
 
-	## Event from a worker to the manager that it has encountered a new
-	## valid intermediate.
+	## Event from a manager to workers when encountering a new, valid
+	## intermediate.
 	global intermediate_add: event(key: string, value: vector of opaque of x509);
 
-	## Event from the manager to the workers that a new intermediate chain
+	## Event from workers to the manager when a new intermediate chain
 	## is to be added.
 	global new_intermediate: event(key: string, value: vector of opaque of x509);
 }

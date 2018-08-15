@@ -118,7 +118,7 @@ function extract_ip_addresses(input: string): string_vec
 	for ( i in parts )
 		{
 		if ( i % 2 == 1 && is_valid_ip(parts[i]) )
-			output[|output|] = parts[i];
+			output += parts[i];
 		}
 	return output;
 	}

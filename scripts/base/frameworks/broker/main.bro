@@ -56,9 +56,11 @@ export {
 	## control mechanisms).
 	const congestion_queue_size = 200 &redef;
 
-	## Max number of threads to use for Broker/CAF functionality.
-	## Using zero will cause this to be automatically determined
-	## based on number of available CPUs.
+	## Max number of threads to use for Broker/CAF functionality.  Setting to
+	## zero implies using the value of BRO_BROKER_MAX_THREADS environment
+	## variable, if set, or else typically defaults to 4 (actually 2 threads
+	## when simply reading offline pcaps as there's not expected to be any
+	## communication and more threads just adds more overhead).
 	const max_threads = 0 &redef;
 
 	## Max number of microseconds for under-utilized Broker/CAF
@@ -259,7 +261,8 @@ export {
 	global publish_id: function(topic: string, id: string): bool;
 
 	## Register interest in all peer event messages that use a certain topic
-	## prefix.
+	## prefix.  Note that subscriptions may not be altered immediately after
+	## calling (except during :bro:see:`bro_init`).
 	##
 	## topic_prefix: a prefix to match against remote message topics.
 	##               e.g. an empty prefix matches everything and "a" matches
@@ -269,6 +272,8 @@ export {
 	global subscribe: function(topic_prefix: string): bool;
 
 	## Unregister interest in all peer event messages that use a topic prefix.
+	## Note that subscriptions may not be altered immediately after calling
+	## (except during :bro:see:`bro_init`).
 	##
 	## topic_prefix: a prefix previously supplied to a successful call to
 	##               :bro:see:`Broker::subscribe`.

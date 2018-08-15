@@ -11,8 +11,3 @@ option testbool : bool;
 
 option testopt = 5;
 testopt = 6;
-
-@TEST-START-NEXT
-
-option testopt = 5;
-redef testopt = 6;

@@ -8,7 +8,7 @@
 
 event bro_init()
 	{
-	local cp: opaque of cardinality = hll_cardinality_init(0.1, 0.99);
+	local cp: opaque of cardinality = hll_cardinality_init(0.1, 1.0);
 	local base: count = 2130706432; # 127.0.0.0
 	local i: count = 0;
 	while ( ++i < 170000 )

@@ -120,14 +120,14 @@ function format_value(value: any) : string
 		{
 		local it: set[bool] = value;
 		for ( sv in it )
-			part[|part|] = cat(sv);
+			part += cat(sv);
 		return join_string_vec(part, ",");
 		}
 	else if ( /^vector/ in tn )
 		{
 		local vit: vector of any = value;
 		for ( i in vit )
-			part[|part|] = cat(vit[i]);
+			part += cat(vit[i]);
 		return join_string_vec(part, ",");
 		}
 	else if ( tn == "string" )

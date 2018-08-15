@@ -43,6 +43,6 @@ print_bar(bar6);
 local r: MyRecord = [$c=13];
 print r;
 print |r$v|;
-r$v[|r$v|] = "test";
+r$v += "test";
 print r;
 print |r$v|;

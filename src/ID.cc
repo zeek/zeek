@@ -294,6 +294,22 @@ void ID::RemoveAttr(attr_tag a)
 		}
 	}
 
+void ID::SetOption()
+	{
+	if ( is_option )
+		return;
+
+	is_option = true;
+
+	// option implied redefinable
+	if ( ! IsRedefinable() )
+		{
+		attr_list* attr = new attr_list;
+		attr->append(new Attr(ATTR_REDEF));
+		AddAttrs(new Attributes(attr, Type(), false));
+		}
+	}
+
 void ID::EvalFunc(Expr* ef, Expr* ev)
 	{
 	Expr* arg1 = new ConstExpr(val->Ref());

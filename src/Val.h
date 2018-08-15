@@ -809,6 +809,22 @@ public:
 	// Returns true if the addition typechecked, false if not.
 	int RemoveFrom(Val* v) const override;
 
+	// Returns a new table that is the intersection of this
+	// table and the given table.  Intersection is just done
+	// on index, not on yield value, so this really only makes
+	// sense for sets.
+	TableVal* Intersect(const TableVal* v) const;
+
+	// Returns true if this set contains the same members as the
+	// given set.  Note that comparisons are done using hash keys,
+	// so errors can arise for compound sets such as sets-of-sets.
+	// See https://bro-tracker.atlassian.net/browse/BIT-1949.
+	bool EqualTo(const TableVal* v) const;
+
+	// Returns true if this set is a subset (not necessarily proper)
+	// of the given set.
+	bool IsSubsetOf(const TableVal* v) const;
+
 	// Expands any lists in the index into multiple initializations.
 	// Returns true if the initializations typecheck, false if not.
 	int ExpandAndInit(Val* index, Val* new_val);
@@ -1015,8 +1031,6 @@ public:
 
 	// Returns false if the type of the argument was wrong.
 	// The vector will automatically grow to accomodate the index.
-	// 'assigner" is the expression that is doing the assignment;
-	// it's just used for pinpointing errors.
 	//
 	// Note: does NOT Ref() the element! Remember to do so unless
 	//       the element was just created and thus has refcount 1.

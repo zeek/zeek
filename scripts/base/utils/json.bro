@@ -66,7 +66,7 @@ function to_json(v: any, only_loggable: bool &default=F, field_escape_pattern: p
 			if ( field_desc?$value && (!only_loggable || field_desc$log) )
 				{
 				local onepart = cat("\"", field, "\": ", to_json(field_desc$value, only_loggable));
-				rec_parts[|rec_parts|] = onepart;
+				rec_parts += onepart;
 				}
 			}
 			return cat("{", join_string_vec(rec_parts, ", "), "}");
@@ -79,7 +79,7 @@ function to_json(v: any, only_loggable: bool &default=F, field_escape_pattern: p
 		local sa: set[bool] = v;
 		for ( sv in sa )
 			{
-			set_parts[|set_parts|] = to_json(sv, only_loggable);
+			set_parts += to_json(sv, only_loggable);
 			}
 		return cat("[", join_string_vec(set_parts, ", "), "]");
 		}
@@ -91,7 +91,7 @@ function to_json(v: any, only_loggable: bool &default=F, field_escape_pattern: p
 			{
 			local ts = to_json(ti);
 			local if_quotes = (ts[0] == "\"") ? "" : "\"";
-			tab_parts[|tab_parts|] = cat(if_quotes, ts, if_quotes, ": ", to_json(ta[ti], only_loggable));
+			tab_parts += cat(if_quotes, ts, if_quotes, ": ", to_json(ta[ti], only_loggable));
 			}
 		return cat("{", join_string_vec(tab_parts, ", "), "}");
 		}
@@ -101,7 +101,7 @@ function to_json(v: any, only_loggable: bool &default=F, field_escape_pattern: p
 		local va: vector of any = v;
 		for ( vi in va )
 			{
-			vec_parts[|vec_parts|] = to_json(va[vi], only_loggable);
+			vec_parts += to_json(va[vi], only_loggable);
 			}
 		return cat("[", join_string_vec(vec_parts, ", "), "]");
 		}

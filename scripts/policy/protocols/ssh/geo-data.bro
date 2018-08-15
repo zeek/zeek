@@ -21,7 +21,7 @@ export {
 
 	## The set of countries for which you'd like to generate notices upon
 	## successful login.
-	const watched_countries: set[string] = {"RO"} &redef;
+	option watched_countries: set[string] = {"RO"};
 }
 
 function get_location(c: connection): geo_location

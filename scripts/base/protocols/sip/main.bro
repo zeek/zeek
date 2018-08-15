@@ -80,9 +80,9 @@ export {
 	## A list of SIP methods. Other methods will generate a weird. Note
 	## that the SIP analyzer will only accept methods consisting solely
 	## of letters ``[A-Za-z]``.
-	const sip_methods: set[string] = {
+	option sip_methods: set[string] = {
 		"REGISTER", "INVITE", "ACK", "CANCEL", "BYE", "OPTIONS", "NOTIFY", "SUBSCRIBE"
-	} &redef;
+	};
 
 	## Event that can be handled to access the SIP record as it is sent on
 	## to the logging framework.

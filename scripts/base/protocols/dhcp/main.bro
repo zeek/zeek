@@ -77,7 +77,7 @@ export {
 	## The maximum amount of time that a transation ID will be watched
 	## for to try and tie messages together into a single DHCP
 	## transaction narrative.
-	const DHCP::max_txid_watch_time = 30secs &redef;
+	option DHCP::max_txid_watch_time = 30secs;
 
 	## This event is used internally to distribute data around clusters
 	## since DHCP doesn't follow the normal "connection" model used by

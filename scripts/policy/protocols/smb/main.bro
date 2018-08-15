@@ -32,19 +32,19 @@ export {
 	};
 
 	## The file actions which are logged.
-	const logged_file_actions: set[Action] = {
+	option logged_file_actions: set[Action] = {
 		FILE_OPEN,
 		FILE_RENAME,
 		FILE_DELETE,
 
 		PRINT_OPEN,
 		PRINT_CLOSE,
-	} &redef;
+	};
 
 	## The server response statuses which are *not* logged.
-	const ignored_command_statuses: set[string] = {
+	option ignored_command_statuses: set[string] = {
 		"MORE_PROCESSING_REQUIRED",
-	} &redef;
+	};
 	
 	## This record is for the smb_files.log
 	type FileInfo: record {
@@ -159,7 +159,7 @@ export {
 
 	## Optionally write out the SMB commands log.  This is 
 	## primarily useful for debugging so is disabled by default.
-	const write_cmd_log = F &redef;
+	option write_cmd_log = F;
 
 	## Everything below here is used internally in the SMB scripts.
 

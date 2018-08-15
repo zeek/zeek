@@ -27,11 +27,11 @@ export {
 	## notices will be suppressed by the notice framework for 1 day after 
 	## a particular certificate has had a notice generated.
 	## Choices are: LOCAL_HOSTS, REMOTE_HOSTS, ALL_HOSTS, NO_HOSTS
-	const notify_certs_expiration = LOCAL_HOSTS &redef;
+	option notify_certs_expiration = LOCAL_HOSTS;
 	
 	## The time before a certificate is going to expire that you would like
 	## to start receiving :bro:enum:`SSL::Certificate_Expires_Soon` notices.
-	const notify_when_cert_expiring_in = 30days &redef;
+	option notify_when_cert_expiring_in = 30days;
 }
 
 event ssl_established(c: connection) &priority=3

@@ -17,13 +17,13 @@ export {
 	redef enum Log::ID += { LOG };
 
 	## List of commands that should have their command/response pairs logged.
-	const logged_commands = {
+	option logged_commands = {
 		"APPE", "DELE", "RETR", "STOR", "STOU", "ACCT", "PORT", "PASV", "EPRT",
 		"EPSV"
-	} &redef;
+	};
 
 	## User IDs that can be considered "anonymous".
-	const guest_ids = { "anonymous", "ftp", "ftpuser", "guest" } &redef;
+	option guest_ids = { "anonymous", "ftp", "ftpuser", "guest" };
 
 	## This record is to hold a parsed FTP reply code.  For example, for the
 	## 201 status code, the digits would be parsed as: x->2, y->0, z->1.

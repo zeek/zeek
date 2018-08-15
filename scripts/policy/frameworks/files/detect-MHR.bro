@@ -32,7 +32,7 @@ export {
 	## A/V engines.  Team Cymru returns a percentage to indicate how
 	## many A/V engines flagged the sample as malicious. This threshold
 	## allows you to require a minimum detection rate.
-	const notice_threshold = 10 &redef;
+	option notice_threshold = 10;
 }
 
 function do_mhr_lookup(hash: string, fi: Notice::FileInfo)

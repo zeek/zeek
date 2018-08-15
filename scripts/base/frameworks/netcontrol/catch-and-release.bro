@@ -142,7 +142,7 @@ export {
 
 	## If true, catch and release warns if packets of an IP address are still seen after it
 	## should have been blocked.
-	const catch_release_warn_blocked_ip_encountered = F &redef;
+	option catch_release_warn_blocked_ip_encountered = F;
 
 	## Time intervals for which subsequent drops of the same IP take
 	## effect.

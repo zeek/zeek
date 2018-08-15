@@ -1,4 +1,8 @@
 
+2.5-843 | 2018-08-15 18:01:56 -0500
+
+  * BIT-1544: allow NULs in file analysis handles (Jon Siwek, Corelight)
+
 2.5-842 | 2018-08-15 11:00:20 -0500
 
   * Fix seg fault on trying to type-cast invalid/nil Broker::Data

@@ -16,6 +16,8 @@
 #include "Trigger.h"
 #include "IPAddr.h"
 
+#include "broker/Data.h"
+
 const char* expr_name(BroExprTag t)
 	{
 	static const char* expr_names[int(NUM_EXPRS)] = {
@@ -5503,11 +5505,16 @@ Val* CastExpr::Eval(Frame* f) const
 		}
 
 	ODesc d;
-	d.Add("cannot cast value of type '");
+	d.Add("invalid cast of value with type '");
 	v->Type()->Describe(&d);
 	d.Add("' to type '");
 	Type()->Describe(&d);
 	d.Add("'");
+
+	if ( same_type(v->Type(), bro_broker::DataVal::ScriptDataType()) &&
+		 ! v->AsRecordVal()->Lookup(0) )
+		d.Add(" (nil $data field)");
+
 	Unref(v);
 	reporter->ExprRuntimeError(this, "%s", d.Description());
 	return 0;  // not reached.

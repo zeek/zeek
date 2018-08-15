@@ -113,11 +113,6 @@ export {
 	## DNS message query/transaction ID.
 	type PendingMessages: table[count] of Queue::Queue;
 
-	## The amount of time that DNS queries or replies for a given
-	## query/transaction ID are allowed to be queued while waiting for
-	## a matching reply or query.
-	const pending_msg_expiry_interval = 2min &redef;
-
 	## Give up trying to match pending DNS queries or replies for a given
 	## query/transaction ID once this number of unmatched queries or replies
 	## is reached (this shouldn't happen unless either the DNS server/resolver

@@ -9,8 +9,8 @@ export {
 	};
 
 	## Places where it's suspicious for mail to originate from represented
-	## as all-capital, two character country codes (e.g., US).  It requires 
-	## libGeoIP support built in.
+	## as all-capital, two character country codes (e.g., US).  It requires
+	## Bro to be built with GeoIP support.
 	const suspicious_origination_countries: set[string] = {} &redef;
 	const suspicious_origination_networks: set[subnet] = {} &redef;
 

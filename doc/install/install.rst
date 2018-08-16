@@ -117,7 +117,7 @@ Optional Dependencies
 Bro can make use of some optional libraries and tools if they are found at
 build time:
 
-    * LibGeoIP (for geolocating IP addresses)
+    * libmaxminddb (for geolocating IP addresses)
     * sendmail (enables Bro and BroControl to send mail)
     * curl (used by a Bro script that implements active HTTP)
     * gperftools (tcmalloc is used to improve memory and CPU usage)
@@ -125,9 +125,9 @@ build time:
     * PF_RING (Linux only, see :doc:`Cluster Configuration <../configuration/index>`)
     * ipsumdump (for trace-summary; http://www.cs.ucla.edu/~kohler/ipsumdump)
 
-LibGeoIP is probably the most interesting and can be installed
+Geolocation is probably the most interesting and can be installed
 on most platforms by following the instructions for :ref:`installing
-libGeoIP and the GeoIP database
+the GeoIP library and database
 <geolocation>`.
 
 

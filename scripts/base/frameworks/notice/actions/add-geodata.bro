@@ -19,7 +19,7 @@ export {
 	};
 	
 	redef record Info += {
-		## If libGeoIP support is built in, notices can have geographic
+		## If GeoIP support is built in, notices can have geographic
 		## information attached to them.
 		remote_location: geo_location  &log &optional;
 	};

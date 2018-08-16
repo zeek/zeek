@@ -889,12 +889,20 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
 						int rule_id = nfa->accept_list[aidx];
 						Rule* r = Rule::rule_table[rule_id - 1];
 
-						// Skip if rule already matched for this connection.
+						// Skip if rule already matched for this direction.
 						if ( state->matched_rules.is_member(r->Index()) )
 							continue;
 
-						// Skip if rule already failed for this connection.
+						// Skip if rule already failed for this direction.
 						if ( state->failed_rules.is_member(r->Index()) )
+							continue;
+
+						// Skip if rule already matched for the opposite direction.
+						if ( state->opposite->matched_rules.is_member(r->Index()) )
+							continue;
+
+						// Skip if rule already failed for the opposite direction..
+						if ( state->opposite->failed_rules.is_member(r->Index()) )
 							continue;
 
 						// Check whether the rule really belong to any of our nodes.
@@ -922,8 +930,8 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
 
 							DBG_LOG(DBG_RULES, "And has not already fired");
 							// Eval additional conditions.
-							if ( ! EvalRuleConditions(r, state, data, data_len, 0) )
-								continue;
+							//if ( ! EvalRuleConditions(r, state, data, data_len, 0) )
+							//	continue;
 
 							// Found a not match.
 							RuleNotMatch(r, state, data, data_len, 0);
@@ -993,6 +1001,10 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
 			if ( state->matched_rules.is_member(r->Index()) )
 				continue;
 
+			// Skip if rule already matched for the opposite direction.
+			if ( state->opposite->matched_rules.is_member(r->Index()) )
+				continue;
+
 			// Remember that all patterns have matched.
 			if ( ! state->matched_by_patterns.is_member(r) )
 				{
@@ -1034,6 +1046,41 @@ void RuleMatcher::FinishEndpoint(RuleEndpointState* state)
 	loop_over_list(state->matched_by_patterns, i)
 		ExecRulePurely(state->matched_by_patterns[i],
 				state->matched_text[i], state, 1);
+
+	// wzj
+	// trigger rule not match event for all the unfinished matchers
+	loop_over_list(state->matchers, x)
+		{
+		RuleEndpointState::Matcher* m = state->matchers[x];
+                if ( m->type == Rule::PAYLOAD )
+			{
+			NFA_Machine *nfa = m->state->getDFA()->getNFA();
+			loop_over_list(nfa->accept_list, aidx)
+				{
+				int rule_id = nfa->accept_list[aidx];
+				Rule* r = Rule::rule_table[rule_id - 1];
+
+				// Skip if rule already matched for this direction.
+				if ( state->matched_rules.is_member(r->Index()) )
+					continue;
+
+				// Skip if rule already failed for this direction.
+				if ( state->failed_rules.is_member(r->Index()) )
+					continue;
+
+				// Skip if rule already matched for the opposite direction.
+				if ( state->opposite->matched_rules.is_member(r->Index()) )
+					continue;
+
+				// Skip if rule already failed for the opposite direction..
+				if ( state->opposite->failed_rules.is_member(r->Index()) )
+					continue;
+
+				// Found a not match.
+				RuleNotMatch(r, state, (const u_char *) "", 0, 1);
+				}
+			}
+		}
 	}
 
 void RuleMatcher::ExecPureRules(RuleEndpointState* state, bool eos)

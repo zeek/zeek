@@ -209,6 +209,10 @@ void ConnSize_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	resp_endp->Assign(datapktidx, new Val(resp_data_pkts, TYPE_COUNT));
 	resp_endp->Assign(databytesidx, new Val(resp_data_bytes, TYPE_COUNT));
 
+	std::set<std::string> rules_matched;
+	rules_matched.insert(rules_matched_first_packet.begin(), rules_matched_first_packet.end());
+	rules_matched.insert(rules_matched_later_packets.begin(), rules_matched_later_packets.end());
+        
 	ListVal* list_matched_first = new ListVal(TYPE_STRING);
 	for ( std::set<std::string>::const_iterator it = rules_matched_first_packet.begin(); 
 			it != rules_matched_first_packet.end(); ++it )
@@ -222,6 +226,7 @@ void ConnSize_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	for ( std::set<std::string>::const_iterator it = rules_failed_first_packet.begin(); 
 			it != rules_failed_first_packet.end(); ++it )
 		{
+		if ( rules_matched.count(*it) > 0 ) continue;
 		list_failed_first->Append(new StringVal(*it));
 		}
 	conn_val->Assign(12, list_failed_first->ConvertToSet());	// rules_failed_first_packet
@@ -240,6 +245,8 @@ void ConnSize_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	for ( std::set<std::string>::const_iterator it = rules_failed_later_packets.begin(); 
 			it != rules_failed_later_packets.end(); ++it )
 		{
+		if ( rules_matched.count(*it) > 0 ) continue;
+		if ( rules_failed_first_packet.count(*it) > 0 ) continue;
 		list_failed_later->Append(new StringVal(*it));
 		}
 	conn_val->Assign(14, list_failed_later->ConvertToSet());	// rules_failed_later_packets

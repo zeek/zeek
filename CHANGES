@@ -1,4 +1,10 @@
 
+2.5-846 | 2018-08-16 14:11:02 -0500
+
+  * BIT-1858: fix logged-names for DNS RR types 44 and 45 (Jon Siwek, Corelight)
+
+  * BIT-1850: add missing DCE/RPC PDU type enum values (Jon Siwek, Corelight)
+
 2.5-844 | 2018-08-16 12:13:16 -0500
 
   * Add env. variables to override Broker listen/connect retry intervals

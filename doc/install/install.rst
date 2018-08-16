@@ -60,6 +60,9 @@ To install the required dependencies, you can use:
 
      sudo apt-get install cmake make gcc g++ flex bison libpcap-dev libssl-dev python-dev swig zlib1g-dev
 
+  If your system uses Python 2.7, then you will also need to install the
+  "python-ipaddress" package.
+
 * FreeBSD:
 
   Most required dependencies should come with a minimal FreeBSD install

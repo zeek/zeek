@@ -62,8 +62,6 @@
 @load base/protocols/rfb
 @load base/protocols/sip
 @load base/protocols/snmp
-# This DOES NOT enable the SMB analyzer.  It's just some base support
-# for other protocols.
 @load base/protocols/smb
 @load base/protocols/smtp
 @load base/protocols/socks

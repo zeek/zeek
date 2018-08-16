@@ -1,4 +1,9 @@
 
+2.5-848 | 2018-08-16 17:21:28 -0500
+
+  * Enable SMB by default by moving scripts from policy/ to base/
+    (Jon Siwek, Corelight)
+
 2.5-847 | 2018-08-16 16:07:14 -0500
 
   * BIT-1924: add DHCP port to software.log for completeness

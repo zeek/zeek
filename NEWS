@@ -239,6 +239,9 @@ New Functionality
 
 - Added new NFS events: nfs_proc_symlink, nfs_proc_link, nfs_proc_sattr
 
+- The SMB scripts in policy/protocols/smb are now moved into base/protocols/smb
+  and loaded/enabled by default.
+
 - Added new SMB events: smb1_transaction_secondary_request,
   smb1_transaction2_secondary_request, smb1_transaction_response
 

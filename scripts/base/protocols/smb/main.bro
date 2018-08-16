@@ -1,4 +1,6 @@
-@load base/protocols/smb
+@load ./consts
+@load ./const-dos-error
+@load ./const-nt-status
 
 module SMB;
 

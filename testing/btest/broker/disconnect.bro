@@ -17,8 +17,6 @@
 
 @TEST-START-FILE send.bro
 
-redef Broker::default_connect_retry=1secs;
-redef Broker::default_listen_retry=1secs;
 redef exit_only_after_terminate = T;
 
 global peers = 0;
@@ -55,8 +53,6 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 
 @TEST-START-FILE recv.bro
 
-redef Broker::default_connect_retry=1secs;
-redef Broker::default_listen_retry=1secs;
 redef exit_only_after_terminate = T;
 
 const test_topic = "bro/test/my_topic";

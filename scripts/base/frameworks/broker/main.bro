@@ -8,7 +8,9 @@ export {
 	const default_port = 9999/tcp &redef;
 
 	## Default interval to retry listening on a port if it's currently in
-	## use already.
+	## use already.  Use of the BRO_DEFAULT_LISTEN_RETRY environment variable
+	## (set as a number of seconds) will override this option and also
+	## any values given to :bro:see:`Broker::listen`.
 	const default_listen_retry = 30sec &redef;
 
 	## Default address on which to listen.
@@ -16,8 +18,11 @@ export {
 	## .. bro:see:: Broker::listen
 	const default_listen_address = getenv("BRO_DEFAULT_LISTEN_ADDRESS") &redef;
 
-	## Default interval to retry connecting to a peer if it cannot be made to work
-	## initially, or if it ever becomes disconnected.
+	## Default interval to retry connecting to a peer if it cannot be made to
+	## work initially, or if it ever becomes disconnected.  Use of the
+	## BRO_DEFAULT_CONNECT_RETRY environment variable (set as number of
+	## seconds) will override this option and also any values given to
+	## :bro:see:`Broker::peer`.
 	const default_connect_retry = 30sec &redef;
 
 	## If true, do not use SSL for network connections. By default, SSL will
@@ -194,7 +199,9 @@ export {
 	##    the next available free port.
 	##
 	## retry: If non-zero, retries listening in regular intervals if the port cannot be
-	##        acquired immediately. 0 disables retries.
+	##        acquired immediately. 0 disables retries.  If the
+	##        BRO_DEFAULT_LISTEN_RETRY environment variable is set (as number
+	##        of seconds), it overrides any value given here.
 	##
 	## Returns: the bound port or 0/? on failure.
 	##
@@ -210,7 +217,9 @@ export {
 	##
 	## retry: an interval at which to retry establishing the
 	##        connection with the remote peer if it cannot be made initially, or
-	##        if it ever becomes disconnected.
+	##        if it ever becomes disconnected.  If the
+	##        BRO_DEFAULT_CONNECT_RETRY environment variable is set (as number
+	##        of seconds), it overrides any value given here.
 	##
 	## Returns: true if it's possible to try connecting with the peer and
 	##          it's a new peer. The actual connection may not be established
@@ -319,8 +328,16 @@ function listen(a: string, p: port, retry: interval): port
 	{
 	local bound = __listen(a, p);
 
-	if ( bound == 0/tcp && retry != 0secs )
-		schedule retry { retry_listen(a, p, retry) };
+	if ( bound == 0/tcp )
+		{
+		local e = getenv("BRO_DEFAULT_LISTEN_RETRY");
+
+		if ( e != "" )
+			retry = double_to_interval(to_double(e));
+
+		if ( retry != 0secs )
+			schedule retry { retry_listen(a, p, retry) };
+		}
 
 	return bound;
 	}

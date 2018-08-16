@@ -210,6 +210,8 @@ export {
 	const node = getenv("CLUSTER_NODE") &redef;
 
 	## Interval for retrying failed connections between cluster nodes.
+	## If set, the BRO_DEFAULT_CONNECT_RETRY (given in number of seconds)
+	## overrides this option.
 	const retry_interval = 1min &redef;
 
 	## When using broker-enabled cluster framework, nodes broadcast this event

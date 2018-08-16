@@ -41,6 +41,13 @@ export {
 		## IP address.
 		server_addr:    addr        &log &optional;
 
+		## Client port number seen at time of server handing out IP (expected
+		## as 68/udp).
+		client_port:    port             &optional;
+		## Server port number seen at time of server handing out IP (expected
+		## as 67/udp).
+		server_port:    port             &optional;
+
 		## Client's hardware address.
 		mac:            string      &log &optional;
 
@@ -224,6 +231,8 @@ event DHCP::aggregate_msgs(ts: time, id: conn_id, uid: string, is_orig: bool, ms
 		     id$resp_h != 255.255.255.255 )
 			{
 			log_info$server_addr = id$resp_h;
+			log_info$server_port = id$resp_p;
+			log_info$client_port = id$orig_p;
 			}
 
 		# Only use the client hardware address from the server

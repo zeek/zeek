@@ -1,4 +1,9 @@
 
+2.5-847 | 2018-08-16 16:07:14 -0500
+
+  * BIT-1924: add DHCP port to software.log for completeness
+    (Jon Siwek, Corelight)
+
 2.5-846 | 2018-08-16 14:11:02 -0500
 
   * BIT-1858: fix logged-names for DNS RR types 44 and 45 (Jon Siwek, Corelight)

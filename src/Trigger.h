@@ -21,7 +21,7 @@ public:
 	// right away.
 	Trigger(Expr* cond, Stmt* body, Stmt* timeout_stmts, Expr* timeout,
 		Frame* f, bool is_return, const Location* loc);
-	~Trigger();
+	~Trigger() override;
 
 	// Evaluates the condition. If true, executes the body and deletes
 	// the object deleted.
@@ -57,16 +57,16 @@ public:
 
 	bool Disabled() const { return disabled; }
 
-	virtual void Describe(ODesc* d) const { d->Add("<trigger>"); }
-
+	void Describe(ODesc* d) const override
+		{ d->Add("<trigger>"); }
 	// Overidden from Notifier.  We queue the trigger and evaluate it
 	// later to avoid race conditions.
-	virtual void Access(ID* id, const StateAccess& sa)
+	void Access(ID* id, const StateAccess& sa) override
 		{ QueueTrigger(this); }
-	virtual void Access(Val* val, const StateAccess& sa)
+	void Access(Val* val, const StateAccess& sa) override
 		{ QueueTrigger(this); }
 
-	virtual const char* Name() const;
+	const char* Name() const override;
 
 	static void QueueTrigger(Trigger* trigger);
 

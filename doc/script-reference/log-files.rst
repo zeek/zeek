@@ -14,6 +14,8 @@ Network Protocols
 +============================+=======================================+=================================+
 | conn.log                   | TCP/UDP/ICMP connections              | :bro:type:`Conn::Info`          |
 +----------------------------+---------------------------------------+---------------------------------+
+| config.log                 | Configuration option changes          | :bro:type:`Config::Info`        |
++----------------------------+---------------------------------------+---------------------------------+
 | dce_rpc.log                | Distributed Computing Environment/RPC | :bro:type:`DCE_RPC::Info`       |
 +----------------------------+---------------------------------------+---------------------------------+
 | dhcp.log                   | DHCP leases                           | :bro:type:`DHCP::Info`          |
@@ -76,6 +78,10 @@ Files
 +============================+=======================================+=================================+
 | files.log                  | File analysis results                 | :bro:type:`Files::Info`         |
 +----------------------------+---------------------------------------+---------------------------------+
+| ocsp.log                   | Online Certificate Status Protocol    | :bro:type:`OCSP::Info`          |
+|                            | (OCSP). Only created if policy script |                                 |
+|                            | is loaded.                            |                                 |
++----------------------------+---------------------------------------+---------------------------------+
 | pe.log                     | Portable Executable (PE)              | :bro:type:`PE::Info`            |
 +----------------------------+---------------------------------------+---------------------------------+
 | x509.log                   | X.509 certificate info                | :bro:type:`X509::Info`          |
@@ -124,9 +130,6 @@ Network Observations
 +============================+=======================================+=================================+
 | known_certs.log            | SSL certificates                      | :bro:type:`Known::CertsInfo`    |
 +----------------------------+---------------------------------------+---------------------------------+
-| known_devices.log          | MAC addresses of devices on the       | :bro:type:`Known::DevicesInfo`  |
-|                            | network                               |                                 |
-+----------------------------+---------------------------------------+---------------------------------+
 | known_hosts.log            | Hosts that have completed TCP         | :bro:type:`Known::HostsInfo`    |
 |                            | handshakes                            |                                 |
 +----------------------------+---------------------------------------+---------------------------------+
@@ -162,8 +165,8 @@ Bro Diagnostics
 +----------------------------+---------------------------------------+---------------------------------+
 | cluster.log                | Bro cluster messages                  | :bro:type:`Cluster::Info`       |
 +----------------------------+---------------------------------------+---------------------------------+
-| communication.log          | Communication events between Bro or   | :bro:type:`Communication::Info` |
-|                            | Broccoli instances                    |                                 |
+| broker.log                 | Peering status events between Bro or  | :bro:type:`Broker::Info`        |
+|                            | Broker-enabled processes              |                                 |
 +----------------------------+---------------------------------------+---------------------------------+
 | loaded_scripts.log         | Shows all scripts loaded by Bro       | :bro:type:`LoadedScripts::Info` |
 +----------------------------+---------------------------------------+---------------------------------+

@@ -1,0 +1,20 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	weird
+#open	2017-10-19-17-26-34
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
+#types	time	string	addr	port	addr	port	string	string	bool	string
+1500557630.000000	-	ff00:0:6929::6904:ff:3bbf	0	ffff:0:69:2900:0:69:400:ff3b	0	invalid_inner_IP_version_in_tunnel	-	F	bro
+#close	2017-10-19-17-26-35
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	weird
+#open	2017-10-19-17-26-36
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
+#types	time	string	addr	port	addr	port	string	string	bool	string
+1500557630.000000	-	b100:7265::6904:2aff	0	3bbf:ff00:40:21:ffff:ffff:fffd:f7ff	0	invalid_inner_IP_version	-	F	bro
+#close	2017-10-19-17-26-37

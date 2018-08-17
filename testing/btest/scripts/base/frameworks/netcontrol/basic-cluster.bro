@@ -1,9 +1,10 @@
 # @TEST-SERIALIZE: comm
 #
 # @TEST-EXEC: btest-bg-run manager-1 "cp ../cluster-layout.bro . && CLUSTER_NODE=manager-1 bro %INPUT"
-# @TEST-EXEC: sleep 1
 # @TEST-EXEC: btest-bg-run worker-1  "cp ../cluster-layout.bro . && CLUSTER_NODE=worker-1 bro --pseudo-realtime -C -r $TRACES/tls/ecdhe.pcap %INPUT"
-# @TEST-EXEC: sleep 1
+
+# @TEST-EXEC: $SCRIPTS/wait-for-pid $(cat worker-1/.pid) 10 || (btest-bg-wait -k 1 && false)
+
 # @TEST-EXEC: btest-bg-run worker-2  "cp ../cluster-layout.bro . && CLUSTER_NODE=worker-2 bro --pseudo-realtime -C -r $TRACES/tls/ecdhe.pcap %INPUT"
 # @TEST-EXEC: btest-bg-wait 20
 # @TEST-EXEC: btest-diff worker-1/.stdout
@@ -11,7 +12,7 @@
 
 @TEST-START-FILE cluster-layout.bro
 redef Cluster::nodes = {
-	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=37757/tcp, $workers=set("worker-1", "worker-2")],
+	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=37757/tcp],
 	["worker-1"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=37760/tcp, $manager="manager-1", $interface="eth0"],
 	["worker-2"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=37761/tcp, $manager="manager-1", $interface="eth0"],
 };
@@ -28,7 +29,7 @@ event bro_init()
 	suspend_processing();
 	}
 
-event remote_connection_handshake_done(p: event_peer)
+event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
 	continue_processing();
 	}
@@ -51,9 +52,15 @@ event terminate_me() {
 	terminate();
 }
 
-event remote_connection_closed(p: event_peer) {
-	schedule 1sec { terminate_me() };
-}
+global peers_lost = 0;
+
+event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
+	{
+	++peers_lost;
+
+	if ( peers_lost == 2 )
+		schedule 2sec { terminate_me() };
+	}
 
 event NetControl::rule_added(r: NetControl::Rule, p: NetControl::PluginState, msg: string &default="")
 	{

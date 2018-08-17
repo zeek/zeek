@@ -11,7 +11,7 @@ namespace analyzer { namespace interconn {
 
 class InterConnEndpoint : public BroObj {
 public:
-	InterConnEndpoint(tcp::TCP_Endpoint* e);
+	explicit InterConnEndpoint(tcp::TCP_Endpoint* e);
 
 	int DataSent(double t, uint64 seq, int len, int caplen, const u_char* data,
 		     const IP_Hdr* ip, const struct tcphdr* tp);
@@ -42,11 +42,11 @@ protected:
 
 class InterConn_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
-	InterConn_Analyzer(Connection* c);
-	~InterConn_Analyzer();
+	explicit InterConn_Analyzer(Connection* c);
+	~InterConn_Analyzer() override;
 
-	virtual void Init();
-	virtual void Done();
+	void Init() override;
+	void Done() override;
 	void StatTimer(double t, int is_expire);
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
@@ -55,9 +55,9 @@ public:
 protected:
 	// We support both packet and stream input and can be put in place even
 	// if the TCP analyzer is not yet reassembling.
-	virtual void DeliverPacket(int len, const u_char* data, bool is_orig,
-					uint64 seq, const IP_Hdr* ip, int caplen);
-	virtual void DeliverStream(int len, const u_char* data, bool is_orig);
+	void DeliverPacket(int len, const u_char* data, bool is_orig,
+					uint64 seq, const IP_Hdr* ip, int caplen) override;
+	void DeliverStream(int len, const u_char* data, bool is_orig) override;
 
 	void StatEvent();
 	void RemoveEvent();
@@ -75,9 +75,9 @@ protected:
 class InterConnTimer : public Timer {
 public:
 	InterConnTimer(double t, InterConn_Analyzer* a);
-	~InterConnTimer();
+	~InterConnTimer() override;
 
-	void Dispatch(double t, int is_expire);
+	void Dispatch(double t, int is_expire) override;
 
 protected:
 	InterConn_Analyzer* analyzer;

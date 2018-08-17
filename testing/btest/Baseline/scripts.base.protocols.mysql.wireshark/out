@@ -1,0 +1,42 @@
+mysql ok, 0
+mysql request, 3, select @@version_comment limit 1
+mysql ok, 0
+mysql result row, [Gentoo Linux mysql-5.0.54]
+mysql request, 3, SELECT DATABASE()
+mysql ok, 0
+mysql result row, []
+mysql request, 2, test
+mysql ok, 0
+mysql request, 3, show databases
+mysql ok, 0
+mysql result row, [information_schema]
+mysql result row, [test]
+mysql request, 3, show tables
+mysql ok, 0
+mysql result row, [agent]
+mysql request, 4, agent\x00
+mysql request, 3, create table foo (id BIGINT( 10 ) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, animal VARCHAR(64) NOT NULL, name VARCHAR(64) NULL DEFAULT NULL) ENGINE = MYISAM
+mysql ok, 0
+mysql request, 3, insert into foo (animal, name) values ("dog", "Goofy")
+mysql ok, 1
+mysql request, 3, insert into foo (animal, name) values ("cat", "Garfield")
+mysql ok, 1
+mysql request, 3, select * from foo
+mysql ok, 0
+mysql result row, [1, dog, Goofy]
+mysql result row, [2, cat, Garfield]
+mysql request, 3, delete from foo where name like '%oo%'
+mysql ok, 1
+mysql request, 3, delete from foo where id = 1
+mysql ok, 0
+mysql request, 3, select count(*) from foo
+mysql ok, 0
+mysql result row, [1]
+mysql request, 3, select * from foo
+mysql ok, 0
+mysql result row, [2, cat, Garfield]
+mysql request, 3, delete from foo
+mysql ok, 1
+mysql request, 3, drop table foo
+mysql ok, 0
+mysql request, 1, 

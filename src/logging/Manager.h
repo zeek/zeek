@@ -5,6 +5,8 @@
 #ifndef LOGGING_MANAGER_H
 #define LOGGING_MANAGER_H
 
+#include <broker/endpoint_info.hh>
+
 #include "../Val.h"
 #include "../Tag.h"
 #include "../EventHandler.h"
@@ -130,6 +132,52 @@ public:
 	bool Write(EnumVal* id, RecordVal* columns);
 
 	/**
+	 * Create a new log writer frontend. This is exposed so that the
+	 * communication system can recreate remote log streams locally.
+	 *
+	 * @param id The enum value corresponding to the log stream.
+	 *
+	 * @param writer The enum value corresponding to the desired log writer.
+	 *
+	 * @param info A fully initialized object defining the
+	 * characteristics of the backend writer instance. The method takes
+	 * ownership of this.
+	 *
+	 * @param num_fields The number of log fields to write.
+	 *
+	 * @param vals An array of log fields to write, of size num_fields.
+	 * The method takes ownership of the array.
+	 *
+	 * @return Returns true if the writer was successfully created.
+	 */
+	bool CreateWriterForRemoteLog(EnumVal* id, EnumVal* writer, WriterBackend::WriterInfo* info,
+				      int num_fields, const threading::Field* const* fields);
+
+	/**
+	 * Writes out log entries that have already passed through all
+	 * filters (and have raised any events). This is meant called for logs
+	 * received already processed from remote.
+	 *
+	 * @param stream The enum value corresponding to the log stream.
+	 *
+	 * @param writer The enum value corresponding to the desired log writer.
+	 *
+	 * @param path The path of the target log stream to write to.
+	 *
+	 * @param num_fields The number of log values to write.
+	 *
+	 * @param vals An array of log values to write, of size num_fields.
+	 * The method takes ownership of the array.
+	 */
+	bool WriteFromRemote(EnumVal* stream, EnumVal* writer, string path,
+			     int num_fields, threading::Value** vals);
+
+	/**
+	 * Announces all instantiated writers to a given Broker peer.
+	 */
+	void SendAllWritersTo(const broker::endpoint_info& ei);
+
+	/**
 	 * Sets log streams buffering state. This adjusts all associated
 	 * writers to the new state.
 	 *
@@ -157,14 +205,12 @@ public:
 	 */
 	void Terminate();
 
-#ifdef ENABLE_BROKER
 	/**
 	 * Enable remote logs for a given stream.
 	 * @param stream_id the stream to enable remote logs for.
-	 * @param flags tune behavior of how log entries are sent to peer endpoints.
 	 * @return true if remote logs are enabled.
 	 */
-	bool EnableRemoteLogs(EnumVal* stream_id, int flags);
+	bool EnableRemoteLogs(EnumVal* stream_id);
 
 	/**
 	 * Disable remote logs for a given stream.
@@ -183,7 +229,6 @@ public:
 	 * a given log stream.
 	 */
 	RecordType* StreamColumns(EnumVal* stream_id);
-#endif
 
 protected:
 	friend class WriterFrontend;
@@ -202,10 +247,6 @@ protected:
 	WriterFrontend* CreateWriter(EnumVal* id, EnumVal* writer, WriterBackend::WriterInfo* info,
 				int num_fields, const threading::Field* const* fields,
 				bool local, bool remote, bool from_remote, const string& instantiating_filter="");
-
-	// Takes ownership of values..
-	bool Write(EnumVal* id, EnumVal* writer, string path,
-		   int num_fields, threading::Value** vals);
 
 	// Announces all instantiated writers to peer.
 	void SendAllWritersTo(RemoteSerializer::PeerID peer);
@@ -233,7 +274,6 @@ private:
 	void RemoveDisabledWriters(Stream* stream);
 	void InstallRotationTimer(WriterInfo* winfo);
 	void Rotate(WriterInfo* info);
-	Filter* FindFilter(EnumVal* id, StringVal* filter);
 	WriterInfo* FindWriter(WriterFrontend* writer);
 	bool CompareFields(const Filter* filter, const WriterFrontend* writer);
 	bool CheckFilterWriterConflict(const WriterInfo* winfo, const Filter* filter);

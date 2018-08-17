@@ -21,7 +21,7 @@ class FragReassembler : public Reassembler {
 public:
 	FragReassembler(NetSessions* s, const IP_Hdr* ip, const u_char* pkt,
 			HashKey* k, double t);
-	~FragReassembler();
+	~FragReassembler() override;
 
 	void AddFragment(double t, const IP_Hdr* ip, const u_char* pkt);
 
@@ -33,8 +33,8 @@ public:
 	HashKey* Key() const	{ return key; }
 
 protected:
-	void BlockInserted(DataBlock* start_block);
-	void Overlap(const u_char* b1, const u_char* b2, uint64 n);
+	void BlockInserted(DataBlock* start_block) override;
+	void Overlap(const u_char* b1, const u_char* b2, uint64 n) override;
 	void Weird(const char* name) const;
 
 	u_char* proto_hdr;
@@ -53,9 +53,9 @@ public:
 	FragTimer(FragReassembler* arg_f, double arg_t)
 		: Timer(arg_t, TIMER_FRAG)
 			{ f = arg_f; }
-	~FragTimer();
+	~FragTimer() override;
 
-	void Dispatch(double t, int is_expire);
+	void Dispatch(double t, int is_expire) override;
 
 	// Break the association between this timer and its creator.
 	void ClearReassembler()	{ f = 0; }

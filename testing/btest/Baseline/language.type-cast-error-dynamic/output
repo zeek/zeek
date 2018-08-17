@@ -1,0 +1,4 @@
+expression error in /Users/jon/projects/bro/bro/testing/btest/.tmp/language.type-cast-error-dynamic/type-cast-error-dynamic.bro, line 11: invalid cast of value with type 'count' to type 'string' [a as string]
+expression error in /Users/jon/projects/bro/bro/testing/btest/.tmp/language.type-cast-error-dynamic/type-cast-error-dynamic.bro, line 11: invalid cast of value with type 'record { a:addr; b:port; }' to type 'string' [a as string]
+expression error in /Users/jon/projects/bro/bro/testing/btest/.tmp/language.type-cast-error-dynamic/type-cast-error-dynamic.bro, line 11: invalid cast of value with type 'record { data:opaque of Broker::Data; }' to type 'string' (nil $data field) [a as string]
+data is string, F

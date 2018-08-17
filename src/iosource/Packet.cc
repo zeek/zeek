@@ -86,6 +86,9 @@ int Packet::GetLinkHeaderSize(int link_type)
 	case DLT_PPP_SERIAL:	// PPP_SERIAL
 		return 4;
 
+	case DLT_IEEE802_11:  // 802.11 monitor
+		return 34;
+
 	case DLT_IEEE802_11_RADIO:	// 802.11 plus RadioTap
 		return 59;
 
@@ -137,6 +140,20 @@ void Packet::ProcessLayer2()
 
 	case DLT_EN10MB:
 		{
+		// Skip past Cisco FabricPath to encapsulated ethernet frame.
+		if ( pdata[12] == 0x89 && pdata[13] == 0x03 )
+			{
+			auto constexpr cfplen = 16;
+
+			if ( pdata + cfplen + GetLinkHeaderSize(link_type) >= end_of_data )
+				{
+				Weird("truncated_link_header_cfp");
+				return;
+				}
+
+			pdata += cfplen;
+			}
+
 		// Get protocol being carried from the ethernet frame.
 		int protocol = (pdata[12] << 8) + pdata[13];
 
@@ -146,36 +163,17 @@ void Packet::ProcessLayer2()
 
 		pdata += GetLinkHeaderSize(link_type);
 
-		switch ( protocol )
+		bool saw_vlan = false;
+
+		while ( protocol == 0x8100 || protocol == 0x9100 ||
+				protocol == 0x8864 )
 			{
-			// MPLS carried over the ethernet frame.
-			case 0x8847:
-				have_mpls = true;
-				break;
-
-			// VLAN carried over the ethernet frame.
-			// 802.1q / 802.1ad
-			case 0x8100:
-			case 0x9100:
-				if ( pdata + 4 >= end_of_data )
-					{
-					Weird("truncated_link_header");
-					return;
-					}
-
-				vlan = ((pdata[0] << 8) + pdata[1]) & 0xfff;
-				protocol = ((pdata[2] << 8) + pdata[3]);
-				pdata += 4; // Skip the vlan header
-
-				// Check for MPLS in VLAN.
-				if ( protocol == 0x8847 )
-					{
-					have_mpls = true;
-					break;
-					}
-
-				// Check for double-tagged (802.1ad)
-				if ( protocol == 0x8100 || protocol == 0x9100 )
+			switch ( protocol )
+				{
+				// VLAN carried over the ethernet frame.
+				// 802.1q / 802.1ad
+				case 0x8100:
+				case 0x9100:
 					{
 					if ( pdata + 4 >= end_of_data )
 						{
@@ -183,38 +181,45 @@ void Packet::ProcessLayer2()
 						return;
 						}
 
-					inner_vlan = ((pdata[0] << 8) + pdata[1]) & 0xfff;
+					auto& vlan_ref = saw_vlan ? inner_vlan : vlan;
+					vlan_ref = ((pdata[0] << 8) + pdata[1]) & 0xfff;
 					protocol = ((pdata[2] << 8) + pdata[3]);
 					pdata += 4; // Skip the vlan header
+					saw_vlan = true;
+					eth_type = protocol;
 					}
+					break;
 
-				eth_type = protocol;
-				break;
-
-			// PPPoE carried over the ethernet frame.
-			case 0x8864:
-				if ( pdata + 8 >= end_of_data )
+				// PPPoE carried over the ethernet frame.
+				case 0x8864:
 					{
-					Weird("truncated_link_header");
-					return;
+					if ( pdata + 8 >= end_of_data )
+						{
+						Weird("truncated_link_header");
+						return;
+						}
+
+					protocol = (pdata[6] << 8) + pdata[7];
+					pdata += 8; // Skip the PPPoE session and PPP header
+
+					if ( protocol == 0x0021 )
+						l3_proto = L3_IPV4;
+					else if ( protocol == 0x0057 )
+						l3_proto = L3_IPV6;
+					else
+						{
+						// Neither IPv4 nor IPv6.
+						Weird("non_ip_packet_in_pppoe_encapsulation");
+						return;
+						}
 					}
-
-				protocol = (pdata[6] << 8) + pdata[7];
-				pdata += 8; // Skip the PPPoE session and PPP header
-
-				if ( protocol == 0x0021 )
-					l3_proto = L3_IPV4;
-				else if ( protocol == 0x0057 )
-					l3_proto = L3_IPV6;
-				else
-					{
-					// Neither IPv4 nor IPv6.
-					Weird("non_ip_packet_in_pppoe_encapsulation");
-					return;
-					}
-
-				break;
+					break;
+				}
 			}
+
+		// Check for MPLS in VLAN.
+		if ( protocol == 0x8847 )
+			have_mpls = true;
 
 		// Normal path to determine Layer 3 protocol.
 		if ( ! have_mpls && l3_proto == L3_UNKNOWN )
@@ -279,12 +284,15 @@ void Packet::ProcessLayer2()
 			}
 
 		pdata += rtheader_len;
+		}
 
+	case DLT_IEEE802_11:
+		{
 		u_char len_80211 = 24; // minimal length of data frames
 
 		if ( pdata + len_80211 >= end_of_data )
 			{
-			Weird("truncated_radiotap_header");
+			Weird("truncated_802_11_header");
 			return;
 			}
 
@@ -316,7 +324,7 @@ void Packet::ProcessLayer2()
 
 		if ( pdata + len_80211 >= end_of_data )
 			{
-			Weird("truncated_radiotap_header");
+			Weird("truncated_802_11_header");
 			return;
 			}
 
@@ -349,7 +357,7 @@ void Packet::ProcessLayer2()
 
 		if ( pdata + 8 >= end_of_data )
 			{
-			Weird("truncated_radiotap_header");
+			Weird("truncated_802_11_header");
 			return;
 			}
 		// Check that the DSAP and SSAP are both SNAP and that the control
@@ -374,9 +382,11 @@ void Packet::ProcessLayer2()
 			l3_proto = L3_IPV4;
 		else if ( protocol == 0x86DD )
 			l3_proto = L3_IPV6;
+		else if ( protocol == 0x0806 || protocol == 0x8035 )
+			l3_proto = L3_ARP;
 		else
 			{
-			Weird("non_ip_packet_in_ieee802_11_radio_encapsulation");
+			Weird("non_ip_packet_in_ieee802_11");
 			return;
 			}
 		pdata += 2;

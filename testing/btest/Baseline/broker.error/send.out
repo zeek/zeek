@@ -1,0 +1,1 @@
+error, Broker::PEER_INVALID, (invalid-node, *1.2.3.4:1947, "no such peer when unpeering")

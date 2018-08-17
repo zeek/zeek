@@ -19,12 +19,12 @@
 [submodule "src/3rdparty"]
 	path = src/3rdparty
 	url = git://git.bro.org/bro-3rdparty
-[submodule "aux/plugins"]
-	path = aux/plugins
-	url = git://git.bro.org/bro-plugins
 [submodule "aux/broker"]
 	path = aux/broker
 	url = git://git.bro.org/broker
 [submodule "aux/netcontrol-connectors"]
 	path = aux/netcontrol-connectors
 	url = git://git.bro.org/bro-netcontrol
+[submodule "aux/bifcl"]
+	path = aux/bifcl
+	url = git://git.bro.org/bifcl

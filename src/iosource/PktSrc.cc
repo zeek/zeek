@@ -10,6 +10,8 @@
 #include "Hash.h"
 #include "Net.h"
 #include "Sessions.h"
+#include "broker/Manager.h"
+#include "iosource/Manager.h"
 
 #include "pcap/pcap.bif.h"
 
@@ -304,13 +306,19 @@ bool PktSrc::ExtractNextPacketInternal()
 		return 1;
 		}
 
-	if ( pseudo_realtime && using_communication && ! IsOpen() )
+	if ( pseudo_realtime && ! IsOpen() )
 		{
-		// Source has gone dry, we're done.
-		if ( remote_trace_sync_interval )
-			remote_serializer->SendFinalSyncPoint();
-		else
-			remote_serializer->Terminate();
+		if ( using_communication )
+			{
+			// Source has gone dry, we're done.
+			if ( remote_trace_sync_interval )
+				remote_serializer->SendFinalSyncPoint();
+			else
+				remote_serializer->Terminate();
+			}
+
+		if ( broker_mgr->Active() )
+			iosource_mgr->Terminate();
 		}
 
 	SetIdle(true);

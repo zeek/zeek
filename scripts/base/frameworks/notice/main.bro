@@ -4,6 +4,8 @@
 ##! what is bad activity for sites.  More extensive documentation about using
 ##! the notice framework can be found in :doc:`/frameworks/notice`.
 
+@load base/frameworks/cluster
+
 module Notice;
 
 export {
@@ -117,9 +119,10 @@ export {
 		## Associated count, or perhaps a status code.
 		n:              count          &log &optional;
 
-		## Peer that raised this notice.
-		src_peer:       event_peer     &optional;
-		## Textual description for the peer that raised this notice.
+		## Name of remote peer that raised this notice.
+		peer_name:      string         &optional;
+		## Textual description for the peer that raised this notice,
+		## including name, host address and port.
 		peer_descr:     string         &log &optional;
 
 		## The actions which have been applied to this notice.
@@ -261,9 +264,14 @@ export {
 
 	## This event is generated when a notice begins to be suppressed.
 	##
-	## n: The record containing notice data regarding the notice type
-	##    about to be suppressed.
-	global begin_suppression: event(n: Notice::Info);
+	## ts: time indicating then when the notice to be suppressed occured.
+	##
+	## suppress_for: length of time that this notice should be suppressed.
+	##
+	## note: The :bro:type:`Notice::Type` of the notice.
+	##
+	## identifier: The identifier string of the notice that should be suppressed.
+	global begin_suppression: event(ts: time, suppress_for: interval, note: Type, identifier: string);
 
 	## A function to determine if an event is supposed to be suppressed.
 	##
@@ -311,7 +319,35 @@ export {
 	##
 	## n: The record of notice data.
 	global internal_NOTICE: function(n: Notice::Info);
+
+	## This is the event used to transport notices on the cluster.
+	##
+	## n: The notice information to be sent to the cluster manager for
+	##    further processing.
+	global cluster_notice: event(n: Notice::Info);
 }
+
+module GLOBAL;
+
+function NOTICE(n: Notice::Info)
+	{
+	if ( Notice::is_being_suppressed(n) )
+		return;
+
+	@if ( Cluster::is_enabled() )
+		if ( Cluster::local_node_type() == Cluster::MANAGER )
+			Notice::internal_NOTICE(n);
+		else
+			{
+			n$peer_name = n$peer_descr = Cluster::node;
+			Broker::publish(Cluster::manager_topic, Notice::cluster_notice, n);
+			}
+	@else
+		Notice::internal_NOTICE(n);
+	@endif
+	}
+
+module Notice;
 
 # This is used as a hack to implement per-item expiration intervals.
 function per_notice_suppression_interval(t: table[Notice::Type, string] of time, idx: any): interval
@@ -362,24 +398,6 @@ event bro_init() &priority=5
 		    [$name="alarm-mail", $path="alarm-mail", $writer=Log::WRITER_ASCII,
 		     $interv=24hrs, $postprocessor=log_mailing_postprocessor]);
 	}
-
-# TODO: fix this.
-#function notice_tags(n: Notice::Info) : table[string] of string
-#	{
-#	local tgs: table[string] of string = table();
-#	if ( is_remote_event() )
-#		{
-#		if ( n$src_peer$descr != "" )
-#			tgs["es"] = n$src_peer$descr;
-#		else
-#			tgs["es"] = fmt("%s/%s", n$src_peer$host, n$src_peer$p);
-#		}
-#	else
-#		{
-#		tgs["es"] = peer_description;
-#		}
-#	return tgs;
-#	}
 
 function email_headers(subject_desc: string, dest: string): string
 	{
@@ -501,11 +519,25 @@ hook Notice::notice(n: Notice::Info) &priority=-5
 	if ( n?$identifier &&
 	     [n$note, n$identifier] !in suppressing &&
 	     n$suppress_for != 0secs )
-		{
-		local suppress_until = n$ts + n$suppress_for;
-		suppressing[n$note, n$identifier] = suppress_until;
-		event Notice::begin_suppression(n);
-		}
+	    {
+		event Notice::begin_suppression(n$ts, n$suppress_for, n$note, n$identifier);
+	    }
+	}
+
+event Notice::begin_suppression(ts: time, suppress_for: interval, note: Type,
+								identifier: string)
+	{
+	local suppress_until = ts + suppress_for;
+	suppressing[note, identifier] = suppress_until;
+	}
+
+event bro_init()
+	{
+	if ( ! Cluster::is_enabled() )
+		return;
+
+	Broker::auto_publish(Cluster::worker_topic, Notice::begin_suppression);
+	Broker::auto_publish(Cluster::proxy_topic, Notice::begin_suppression);
 	}
 
 function is_being_suppressed(n: Notice::Info): bool
@@ -607,12 +639,6 @@ function apply_policy(n: Notice::Info)
 			n$dst = n$iconn$resp_h;
 		}
 
-	if ( ! n?$src_peer )
-		n$src_peer = get_event_peer();
-	if ( ! n?$peer_descr )
-		n$peer_descr = n$src_peer?$descr ?
-		                   n$src_peer$descr : fmt("%s", n$src_peer$host);
-
 	if ( ! n?$email_body_sections )
 		n$email_body_sections = vector();
 	if ( ! n?$email_delay_tokens )
@@ -647,6 +673,7 @@ function internal_NOTICE(n: Notice::Info)
 	hook Notice::notice(n);
 	}
 
-module GLOBAL;
-
-global NOTICE: function(n: Notice::Info);
+event Notice::cluster_notice(n: Notice::Info)
+	{
+	NOTICE(n);
+	}

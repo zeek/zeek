@@ -1,7 +1,6 @@
 
 #include "AYIYA.h"
 #include "Func.h"
-#include "events.bif.h"
 
 using namespace analyzer::ayiya;
 

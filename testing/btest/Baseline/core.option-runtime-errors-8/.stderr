@@ -1,0 +1,1 @@
+error in /Users/johanna/corelight/bro/testing/btest/.tmp/core.option-runtime-errors-8/option-runtime-errors.bro, line 7: Option::on_change needs function argument; not hook or event (Option::set_change_handler(A, option_changed, (coerce 0 to int)))

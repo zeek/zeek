@@ -22,23 +22,16 @@ export {
 	const interesting_version_changes: set[string] = { } &redef;
 }
 
-event log_software(rec: Info)
+event Software::version_change(old: Software::Info, new: Software::Info)
 	{
-	local ts = tracked[rec$host];
-	
-	if ( rec$name in ts )
-		{
-		local old = ts[rec$name];
-	
-		# Is it a potentially interesting version change?
-		if ( rec$name in interesting_version_changes )
-			{
-			local msg = fmt("%.6f %s switched from %s to %s (%s)",
-					network_time(), rec$software_type,
-					software_fmt_version(old$version),
-					software_fmt(rec), rec$software_type);
-			NOTICE([$note=Software_Version_Change, $src=rec$host,
-			        $msg=msg, $sub=software_fmt(rec)]);
-			}
-		}
+	if ( old$name !in interesting_version_changes )
+		return;
+
+	local msg = fmt("%.6f %s '%s' version changed from %s to %s",
+	                network_time(), old$software_type, old$name,
+	                software_fmt_version(old$version),
+                	software_fmt_version(new$version));
+
+	NOTICE([$note=Software_Version_Change, $src=new$host,
+	        $msg=msg, $sub=software_fmt(new)]);
 	}

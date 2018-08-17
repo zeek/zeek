@@ -61,19 +61,19 @@ protected:
 
 class TelnetTerminalOption : public TelnetOption {
 public:
-	TelnetTerminalOption(NVT_Analyzer* arg_endp)
+	explicit TelnetTerminalOption(NVT_Analyzer* arg_endp)
 		: TelnetOption(arg_endp, TELNET_OPTION_TERMINAL)	{ }
 
-	void RecvSubOption(u_char* data, int len);
+	void RecvSubOption(u_char* data, int len) override;
 };
 
 class TelnetEncryptOption : public TelnetOption {
 public:
-	TelnetEncryptOption(NVT_Analyzer* arg_endp)
+	explicit TelnetEncryptOption(NVT_Analyzer* arg_endp)
 		: TelnetOption(arg_endp, TELNET_OPTION_ENCRYPT)
 			{ did_encrypt_request = doing_encryption = 0; }
 
-	void RecvSubOption(u_char* data, int len);
+	void RecvSubOption(u_char* data, int len) override;
 
 	int DidRequest() const		{ return did_encrypt_request; }
 	int DoingEncryption() const	{ return doing_encryption; }
@@ -85,11 +85,11 @@ protected:
 
 class TelnetAuthenticateOption : public TelnetOption {
 public:
-	TelnetAuthenticateOption(NVT_Analyzer* arg_endp)
+	explicit TelnetAuthenticateOption(NVT_Analyzer* arg_endp)
 		: TelnetOption(arg_endp, TELNET_OPTION_AUTHENTICATE)
 			{ authentication_requested = 0; }
 
-	void RecvSubOption(u_char* data, int len);
+	void RecvSubOption(u_char* data, int len) override;
 
 	int DidRequestAuthentication() const
 		{ return authentication_requested; }
@@ -101,11 +101,11 @@ protected:
 
 class TelnetEnvironmentOption : public TelnetOption {
 public:
-	TelnetEnvironmentOption(NVT_Analyzer* arg_endp)
+	explicit TelnetEnvironmentOption(NVT_Analyzer* arg_endp)
 		: TelnetOption(arg_endp, TELNET_OPTION_ENVIRON)
 			{ }
 
-	void RecvSubOption(u_char* data, int len);
+	void RecvSubOption(u_char* data, int len) override;
 
 protected:
 	char* ExtractEnv(u_char*& data, int& len, int& code);
@@ -113,20 +113,20 @@ protected:
 
 class TelnetBinaryOption : public TelnetOption {
 public:
-	TelnetBinaryOption(NVT_Analyzer* arg_endp)
+	explicit TelnetBinaryOption(NVT_Analyzer* arg_endp)
 		: TelnetOption(arg_endp, TELNET_OPTION_BINARY)
 			{ }
 
-	void SetActive(int is_active);
+	void SetActive(int is_active) override;
 
 protected:
-	void InconsistentOption(unsigned int type);
+	void InconsistentOption(unsigned int type) override;
 };
 
 class NVT_Analyzer : public tcp::ContentLine_Analyzer {
 public:
 	NVT_Analyzer(Connection* conn, bool orig);
-	~NVT_Analyzer();
+	~NVT_Analyzer() override;
 
 	TelnetOption* FindOption(unsigned int code);
 	TelnetOption* FindPeerOption(unsigned int code);
@@ -146,7 +146,7 @@ public:
 		{ return authentication_has_been_accepted; }
 
 protected:
-	void DoDeliver(int len, const u_char* data);
+	void DoDeliver(int len, const u_char* data) override;
 
 	void ScanOption(int seq, int len, const u_char* data);
 	virtual void SawOption(unsigned int code);

@@ -193,7 +193,7 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 	RET_CONST(new SubNetVal(IPPrefix(IPAddr(ip), len)))
 }
 
-[!%*/+\-,:;<=>?()\[\]{}~$|]	return yytext[0];
+[!%*/+\-,:;<=>?()\[\]{}~$|&^]	return yytext[0];
 
 "--"	return TOK_DECR;
 "++"	return TOK_INCR;
@@ -206,15 +206,17 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 ">="	return TOK_GE;
 "<="	return TOK_LE;
 
-"&&"	return TOK_AND;
-"||"	return TOK_OR;
+"&&"	return TOK_AND_AND;
+"||"	return TOK_OR_OR;
 
 add	return TOK_ADD;
 addr	return TOK_ADDR;
 any	return TOK_ANY;
+as	return TOK_AS;
 bool	return TOK_BOOL;
 break	return TOK_BREAK;
 case	return TOK_CASE;
+option	return TOK_OPTION;
 const	return TOK_CONST;
 copy	return TOK_COPY;
 count	return TOK_COUNT;
@@ -239,6 +241,7 @@ in	return TOK_IN;
 "!"{OWS}in/[^A-Za-z0-9]	return TOK_NOT_IN;	/* don't confuse w "! infoo"! */
 int	return TOK_INT;
 interval	return TOK_INTERVAL;
+is	return TOK_IS;
 list	return TOK_LIST;
 local	return TOK_LOCAL;
 module	return TOK_MODULE;
@@ -287,14 +290,12 @@ when	return TOK_WHEN;
 	}
 
 &mergeable {
-	// Not yet deprecated, but soon.
-	//deprecated_attr(yytext);
+	deprecated_attr(yytext);
 	return TOK_ATTR_MERGEABLE;
 	}
 
 &persistent {
-	// Not yet deprecated, but soon.
-	//deprecated_attr(yytext);
+	deprecated_attr(yytext);
 	return TOK_ATTR_PERSISTENT;
 	}
 
@@ -309,8 +310,8 @@ when	return TOK_WHEN;
 	}
 
 &synchronized  {
-	// Not yet deprecated, but soon.
-	//deprecated_attr(yytext);
+	++old_comm_usage_count;
+	deprecated_attr(yytext);
 	return TOK_ATTR_SYNCHRONIZED;
 	}
 
@@ -348,17 +349,60 @@ when	return TOK_WHEN;
 @load-sigs{WS}{FILE} {
 	const char* file = skip_whitespace(yytext + 10);
 	string path = find_relative_file(file, "sig");
+	int rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(plugin::Plugin::SIGNATURES, file, path), -1);
 
-	if ( path.empty() )
-		reporter->Error("failed to find file associated with @load-sigs %s",
-		                file);
-	else
-		sig_files.push_back(copy_string(path.c_str()));
+	switch ( rc ) {
+	case -1:
+		// No plugin in charge of this file.
+		if ( path.empty() )
+			reporter->Error("failed to find file associated with @load-sigs %s",
+			                file);
+		else
+			sig_files.push_back(copy_string(path.c_str()));
+		break;
+
+	case 0:
+		if ( ! reporter->Errors() )
+			reporter->Error("Plugin reported error loading signatures %s", file);
+
+		exit(1);
+		break;
+
+	case 1:
+		// A plugin took care of it, just skip.
+		break;
+
+	default:
+		assert(false);
+		break;
+	}
 	}
 
 @load-plugin{WS}{ID} {
 	const char* plugin = skip_whitespace(yytext + 12);
-	plugin_mgr->ActivateDynamicPlugin(plugin);
+	int rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(plugin::Plugin::PLUGIN, plugin, ""), -1);
+
+	switch ( rc ) {
+	case -1:
+		// No plugin in charge of this file.
+		plugin_mgr->ActivateDynamicPlugin(plugin);
+		break;
+
+	case 0:
+		if ( ! reporter->Errors() )
+			reporter->Error("Plugin reported error loading plugin %s", plugin);
+
+		exit(1);
+		break;
+
+	case 1:
+		// A plugin took care of it, just skip.
+		break;
+
+	default:
+		assert(false);
+		break;
+	}
 }
 
 @unload{WS}{FILE}	{
@@ -431,7 +475,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
-		RET_CONST(new PortVal(p, TRANSPORT_TCP))
+		RET_CONST(port_mgr->Get(p, TRANSPORT_TCP))
 		}
 {D}"/udp"	{
 		uint32 p = atoi(yytext);
@@ -440,7 +484,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
-		RET_CONST(new PortVal(p, TRANSPORT_UDP))
+		RET_CONST(port_mgr->Get(p, TRANSPORT_UDP))
 		}
 {D}"/icmp"	{
 		uint32 p = atoi(yytext);
@@ -449,7 +493,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
-		RET_CONST(new PortVal(p, TRANSPORT_ICMP))
+		RET_CONST(port_mgr->Get(p, TRANSPORT_ICMP))
 		}
 {D}"/unknown"	{
 		uint32 p = atoi(yytext);
@@ -458,7 +502,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
-		RET_CONST(new PortVal(p, TRANSPORT_UNKNOWN))
+		RET_CONST(port_mgr->Get(p, TRANSPORT_UNKNOWN))
 		}
 
 {FLOAT}{OWS}day(s?)	RET_CONST(new IntervalVal(atof(yytext),Days))
@@ -510,7 +554,19 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 	return TOK_PATTERN_TEXT;
 	}
 
-<RE>[/\\\n]	return yytext[0];
+<RE>"/"	{
+	BEGIN(INITIAL);
+	yylval.b = false;
+	return TOK_PATTERN_END;
+	}
+
+<RE>"/i"	{
+	BEGIN(INITIAL);
+	yylval.b = true;
+	return TOK_PATTERN_END;
+	}
+
+<RE>[\\\n]	return yytext[0];	// should cause a parse error
 
 <*>.	reporter->Error("unrecognized character - %s", yytext);
 
@@ -547,7 +603,8 @@ static bool already_scanned(const string& path)
 
 static int load_files(const char* orig_file)
 	{
-	int rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(orig_file), -1);
+	string file_path = find_relative_file(orig_file, "bro");
+	int rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(plugin::Plugin::SCRIPT, orig_file, file_path), -1);
 
 	if ( rc == 1 )
 		return 0; // A plugin took care of it, just skip.
@@ -568,7 +625,6 @@ static int load_files(const char* orig_file)
 	// Whether we pushed on a FileInfo that will restore the
 	// current module after the final file has been scanned.
 	bool did_module_restore = false;
-	string file_path;
 	FILE* f = 0;
 
 	if ( streq(orig_file, "-") )
@@ -585,8 +641,6 @@ static int load_files(const char* orig_file)
 
 	else
 		{
-		file_path = find_relative_file(orig_file, "bro");
-
 		if ( file_path.empty() )
 			reporter->FatalError("can't find %s", orig_file);
 
@@ -636,6 +690,8 @@ static int load_files(const char* orig_file)
 
 	broxygen_mgr->Script(file_path);
 
+	DBG_LOG(DBG_SCRIPTS, "Loading %s", file_path.c_str());
+
 	// "orig_file", could be an alias for yytext, which is ephemeral
 	//  and will be zapped after the yy_switch_to_buffer() below.
 	yy_switch_to_buffer(yy_create_buffer(f, YY_BUF_SIZE));
@@ -652,11 +708,6 @@ static int load_files(const char* orig_file)
 void begin_RE()
 	{
 	BEGIN(RE);
-	}
-
-void end_RE()
-	{
-	BEGIN(INITIAL);
 	}
 
 class LocalNameFinder : public TraversalCallback {
@@ -778,6 +829,18 @@ void do_atendif()
 // are referred to (in order to save the locations of tokens and statements,
 // for error reporting and debugging).
 static name_list input_files;
+static name_list essential_input_files;
+
+void add_essential_input_file(const char* file)
+	{
+	if ( ! file )
+		reporter->InternalError("empty filename");
+
+	if ( ! filename )
+		(void) load_files(file);
+	else
+		essential_input_files.append(copy_string(file));
+	}
 
 void add_input_file(const char* file)
 	{
@@ -826,7 +889,7 @@ int yywrap()
 	if ( ! did_builtin_init && file_stack.length() == 1 )
 		{
 		// ### This is a gross hack - we know that the first file
-		// we parse is bro.init, and after it it's safe to initialize
+		// we parse is init-bare.bro, and after it it's safe to initialize
 		// the built-ins.  Furthermore, we want to initialize the
 		// built-in's *right* after parsing bro.init, so that other
 		// source files can use built-in's when initializing globals.
@@ -842,19 +905,22 @@ int yywrap()
 		return 0;
 
 	// Stack is now empty.
-	while ( input_files.length() > 0 )
+	while ( essential_input_files.length() > 0 || input_files.length() > 0 )
 		{
-		if ( load_files(input_files[0]) )
+		name_list& files = essential_input_files.length() > 0 ?
+		             essential_input_files : input_files;
+
+		if ( load_files(files[0]) )
 			{
 			// Don't delete the filename - it's pointed to by
 			// every BroObj created when parsing it.
-			(void) input_files.remove_nth(0);
+			(void) files.remove_nth(0);
 			return 0;
 			}
 
 		// We already scanned the file.  Pop it and try the next,
 		// if any.
-		(void) input_files.remove_nth(0);
+		(void) files.remove_nth(0);
 		}
 
 	// For each file scanned so far, and for each @prefix, look for a

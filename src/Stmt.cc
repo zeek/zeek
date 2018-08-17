@@ -546,8 +546,8 @@ static BroStmtTag get_last_stmt_tag(const Stmt* stmt)
 	return get_last_stmt_tag(stmts->Stmts()[len - 1]);
 	}
 
-Case::Case(ListExpr* c, Stmt* arg_s)
-    : cases(c), s(arg_s)
+Case::Case(ListExpr* arg_expr_cases, id_list* arg_type_cases, Stmt* arg_s)
+	: expr_cases(arg_expr_cases), type_cases(arg_type_cases), s(arg_s)
 	{
 	BroStmtTag t = get_last_stmt_tag(Body());
 
@@ -557,13 +557,18 @@ Case::Case(ListExpr* c, Stmt* arg_s)
 
 Case::~Case()
 	{
-	Unref(cases);
+	Unref(expr_cases);
 	Unref(s);
+
+	loop_over_list((*type_cases), i)
+		Unref((*type_cases)[i]);
+
+	delete type_cases;
 	}
 
 void Case::Describe(ODesc* d) const
 	{
-	if ( ! Cases() )
+	if ( ! (expr_cases || type_cases) )
 		{
 		if ( ! d->IsBinary() )
 			d->Add("default:");
@@ -578,20 +583,49 @@ void Case::Describe(ODesc* d) const
 		return;
 		}
 
-	const expr_list& e = Cases()->Exprs();
-
 	if ( ! d->IsBinary() )
 		d->Add("case");
 
-	d->AddCount(e.length());
-
-	loop_over_list(e, j)
+	if ( expr_cases )
 		{
-		if ( j > 0 && ! d->IsReadable() )
-			d->Add(",");
+		const expr_list& e = expr_cases->Exprs();
 
-		d->SP();
-		e[j]->Describe(d);
+		d->AddCount(e.length());
+
+		loop_over_list(e, i)
+			{
+			if ( i > 0 && d->IsReadable() )
+				d->Add(",");
+
+			d->SP();
+			e[i]->Describe(d);
+			}
+		}
+
+	if ( type_cases )
+		{
+		const id_list& t = *type_cases;
+
+		d->AddCount(t.length());
+
+		loop_over_list(t, i)
+			{
+			if ( i > 0 && d->IsReadable() )
+				d->Add(",");
+
+			d->SP();
+			d->Add("type");
+			d->SP();
+			t[i]->Type()->Describe(d);
+
+			if ( t[i]->Name() )
+				{
+				d->SP();
+				d->Add("as");
+				d->SP();
+				d->Add(t[i]->Name());
+				}
+			}
 		}
 
 	if ( d->IsReadable() )
@@ -607,10 +641,15 @@ TraversalCode Case::Traverse(TraversalCallback* cb) const
 	{
 	TraversalCode tc;
 
-	if ( cases )
+	if ( expr_cases )
 		{
-		tc = cases->Traverse(cb);
+		tc = expr_cases->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);
+		}
+
+	if ( type_cases )
+		{
+		// No traverse support for types.
 		}
 
 	tc = s->Traverse(cb);
@@ -634,16 +673,47 @@ IMPLEMENT_SERIAL(Case, SER_CASE);
 bool Case::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_CASE, BroObj);
-	return cases->Serialize(info) && this->s->Serialize(info);
+
+	if ( ! expr_cases->Serialize(info) )
+		return false;
+
+	id_list empty;
+	id_list* types = (type_cases ? type_cases : &empty);
+
+	if ( ! SERIALIZE(types->length()) )
+		return false;
+
+	loop_over_list((*types), i)
+		{
+		if ( ! (*types)[i]->Serialize(info) )
+			return false;
+		}
+
+	return this->s->Serialize(info);
 	}
 
 bool Case::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(BroObj);
 
-	cases = (ListExpr*) Expr::Unserialize(info, EXPR_LIST);
-	if ( ! cases )
+	expr_cases = (ListExpr*) Expr::Unserialize(info, EXPR_LIST);
+	if ( ! expr_cases )
 		return false;
+
+	int len;
+	if ( ! UNSERIALIZE(&len) )
+		return false;
+
+	type_cases = new id_list;
+
+	while ( len-- )
+		{
+		ID* id = ID::Unserialize(info);
+		if ( ! id )
+			return false;
+
+		type_cases->append(id);
+		}
 
 	this->s = Stmt::Unserialize(info);
 	return this->s != 0;
@@ -661,7 +731,7 @@ void SwitchStmt::Init()
 	comp_hash = new CompositeHash(t);
 	Unref(t);
 
-	case_label_map.SetDeleteFunc(int_del_func);
+	case_label_value_map.SetDeleteFunc(int_del_func);
 	}
 
 SwitchStmt::SwitchStmt(Expr* index, case_list* arg_cases) :
@@ -669,16 +739,22 @@ SwitchStmt::SwitchStmt(Expr* index, case_list* arg_cases) :
 	{
 	Init();
 
-	if ( ! is_atomic_type(e->Type()) )
-		e->Error("switch expression must be of an atomic type");
+	bool have_exprs = false;
+	bool have_types = false;
 
 	loop_over_list(*cases, i)
 		{
 		Case* c = (*cases)[i];
-		ListExpr* le = c->Cases();
+		ListExpr* le = c->ExprCases();
+		id_list* tl = c->TypeCases();
 
 		if ( le )
 			{
+			have_exprs = true;
+
+			if ( ! is_atomic_type(e->Type()) )
+				e->Error("switch expression must be of an atomic type when cases are expressions");
+
 			if ( ! le->Type()->AsTypeList()->AllMatch(e->Type(), false) )
 				{
 				le->Error("case expression type differs from switch type", e);
@@ -736,8 +812,30 @@ SwitchStmt::SwitchStmt(Expr* index, case_list* arg_cases) :
 					exprs[j]->Error("case label expression isn't constant");
 				else
 					{
-					if ( ! AddCaseLabelMapping(exprs[j]->ExprVal(), i) )
+					if ( ! AddCaseLabelValueMapping(exprs[j]->ExprVal(), i) )
 						exprs[j]->Error("duplicate case label");
+					}
+				}
+			}
+
+		else if ( tl )
+			{
+			have_types = true;
+
+			loop_over_list((*tl), j)
+				{
+				BroType* ct = (*tl)[j]->Type();
+
+	   			if ( ! can_cast_value_to_type(e->Type(), ct) )
+					{
+					c->Error("cannot cast switch expression to case type");
+					continue;
+					}
+
+				if ( ! AddCaseLabelTypeMapping((*tl)[j], i) )
+					{
+					c->Error("duplicate case label");
+					continue;
 					}
 				}
 			}
@@ -750,6 +848,10 @@ SwitchStmt::SwitchStmt(Expr* index, case_list* arg_cases) :
 				default_case_idx = i;
 			}
 		}
+
+	if ( have_exprs && have_types )
+		Error("cannot mix cases with expressions and types");
+
 	}
 
 SwitchStmt::~SwitchStmt()
@@ -761,7 +863,7 @@ SwitchStmt::~SwitchStmt()
 	delete comp_hash;
 	}
 
-bool SwitchStmt::AddCaseLabelMapping(const Val* v, int idx)
+bool SwitchStmt::AddCaseLabelValueMapping(const Val* v, int idx)
 	{
 	HashKey* hk = comp_hash->ComputeHash(v, 1);
 
@@ -772,7 +874,7 @@ bool SwitchStmt::AddCaseLabelMapping(const Val* v, int idx)
 		    type_name(v->Type()->Tag()), type_name(e->Type()->Tag()));
 		}
 
-	int* label_idx = case_label_map.Lookup(hk);
+	int* label_idx = case_label_value_map.Lookup(hk);
 
 	if ( label_idx )
 		{
@@ -780,38 +882,76 @@ bool SwitchStmt::AddCaseLabelMapping(const Val* v, int idx)
 		return false;
 		}
 
-	case_label_map.Insert(hk, new int(idx));
+	case_label_value_map.Insert(hk, new int(idx));
 	delete hk;
 	return true;
 	}
 
-int SwitchStmt::FindCaseLabelMatch(const Val* v) const
+bool SwitchStmt::AddCaseLabelTypeMapping(ID* t, int idx)
 	{
-	HashKey* hk = comp_hash->ComputeHash(v, 1);
-
-	if ( ! hk )
+	for ( auto i : case_label_type_list )
 		{
-		reporter->PushLocation(e->GetLocationInfo());
-		reporter->Error("switch expression type mismatch (%s/%s)",
-		    type_name(v->Type()->Tag()), type_name(e->Type()->Tag()));
-		return -1;
+		if ( same_type(i.first->Type(), t->Type()) )
+			return false;
 		}
 
-	int* label_idx = case_label_map.Lookup(hk);
+	auto e = std::make_pair(t, idx);
+	case_label_type_list.push_back(e);
 
-	delete hk;
+	return true;
+	}
 
-	if ( ! label_idx )
-		return default_case_idx;
+std::pair<int, ID*> SwitchStmt::FindCaseLabelMatch(const Val* v) const
+	{
+	int label_idx = -1;
+	ID* label_id = 0;
+
+	// Find matching expression cases.
+	if ( case_label_value_map.Length() )
+		{
+		HashKey* hk = comp_hash->ComputeHash(v, 1);
+
+		if ( ! hk )
+			{
+			reporter->PushLocation(e->GetLocationInfo());
+			reporter->Error("switch expression type mismatch (%s/%s)",
+					type_name(v->Type()->Tag()), type_name(e->Type()->Tag()));
+			return std::make_pair(-1, nullptr);
+			}
+
+		if ( auto i = case_label_value_map.Lookup(hk) )
+			label_idx = *i;
+
+		delete hk;
+		}
+
+	// Find matching type cases.
+	for ( auto i : case_label_type_list )
+		{
+		auto id = i.first;
+		auto type = id->Type();
+
+		if ( can_cast_value_to_type(v, type) )
+			{
+			label_idx = i.second;
+			label_id = id;
+			break;
+			}
+		}
+
+	if ( label_idx < 0 )
+		return std::make_pair(default_case_idx, nullptr);
 	else
-		return *label_idx;
+		return std::make_pair(label_idx, label_id);
 	}
 
 Val* SwitchStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 	{
 	Val* rval = 0;
 
-	int matching_label_idx = FindCaseLabelMatch(v);
+	auto m = FindCaseLabelMatch(v);
+	int matching_label_idx = m.first;
+	ID* matching_id = m.second;
 
 	if ( matching_label_idx == -1 )
 		return 0;
@@ -819,6 +959,12 @@ Val* SwitchStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 	for ( int i = matching_label_idx; i < cases->length(); ++i )
 		{
 		const Case* c = (*cases)[i];
+
+		if ( matching_id )
+			{
+			auto cv = cast_value_to_type(v, matching_id->Type());
+			f->SetElement(matching_id->Offset(), cv);
+			}
 
 		flow = FLOW_NEXT;
 		rval = c->Body()->Exec(f, flow);
@@ -841,7 +987,7 @@ int SwitchStmt::IsPure() const
 	loop_over_list(*cases, i)
 		{
 		Case* c = (*cases)[i];
-		if ( ! c->Cases()->IsPure() || ! c->Body()->IsPure() )
+		if ( ! c->ExprCases()->IsPure() || ! c->Body()->IsPure() )
 			return 0;
 		}
 
@@ -928,7 +1074,7 @@ bool SwitchStmt::DoUnserialize(UnserialInfo* info)
 
 	loop_over_list(*cases, i)
 		{
-		const ListExpr* le = (*cases)[i]->Cases();
+		const ListExpr* le = (*cases)[i]->ExprCases();
 
 		if ( ! le )
 			continue;
@@ -937,7 +1083,7 @@ bool SwitchStmt::DoUnserialize(UnserialInfo* info)
 
 		loop_over_list(exprs, j)
 			{
-			if ( ! AddCaseLabelMapping(exprs[j]->ExprVal(), i) )
+			if ( ! AddCaseLabelValueMapping(exprs[j]->ExprVal(), i) )
 				return false;
 			}
 		}
@@ -1293,6 +1439,9 @@ Val* ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 		TableVal* tv = v->AsTableVal();
 		const PDict(TableEntryVal)* loop_vals = tv->AsTable();
 
+		if ( ! loop_vals->Length() )
+			return 0;
+
 		HashKey* k;
 		IterCookie* c = loop_vals->InitForIteration();
 		while ( loop_vals->NextEntry(k, c) )
@@ -1387,7 +1536,7 @@ void ForStmt::Describe(ODesc* d) const
 		if ( i > 0 )
 			d->Add(",");
 		}
-	
+
 	if ( loop_vars->length() )
 		d->Add("]");
 

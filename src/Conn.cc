@@ -289,6 +289,50 @@ bool Connection::IsReuse(double t, const u_char* pkt)
 	return root_analyzer && root_analyzer->IsReuse(t, pkt);
 	}
 
+bool Connection::ScaledHistoryEntry(char code, uint32& counter,
+                                    uint32& scaling_threshold,
+                                    uint32 scaling_base)
+	{
+	if ( ++counter == scaling_threshold )
+		{
+		AddHistory(code);
+
+		auto new_threshold = scaling_threshold * scaling_base;
+
+		if ( new_threshold <= scaling_threshold )
+			// This can happen due to wrap-around.  In that
+			// case, reset the counter but leave the threshold
+			// unchanged.
+			counter = 0;
+
+		else
+			scaling_threshold = new_threshold;
+
+		return true;
+		}
+
+	return false;
+	}
+
+void Connection::HistoryThresholdEvent(EventHandlerPtr e, bool is_orig,
+                                       uint32 threshold)
+	{
+	if ( ! e )
+		return;
+
+	if ( threshold == 1 )
+		// This will be far and away the most common case,
+		// and at this stage it's not a *multiple* instance.
+		return;
+
+	val_list* vl = new val_list;
+	vl->append(BuildConnVal());
+	vl->append(new Val(is_orig, TYPE_BOOL));
+	vl->append(new Val(threshold, TYPE_COUNT));
+
+	ConnectionEvent(e, 0, vl);
+	}
+
 void Connection::DeleteTimer(double /* t */)
 	{
 	if ( is_active )
@@ -364,9 +408,9 @@ RecordVal* Connection::BuildConnVal()
 
 		RecordVal* id_val = new RecordVal(conn_id);
 		id_val->Assign(0, new AddrVal(orig_addr));
-		id_val->Assign(1, new PortVal(ntohs(orig_port), prot_type));
+		id_val->Assign(1, port_mgr->Get(ntohs(orig_port), prot_type));
 		id_val->Assign(2, new AddrVal(resp_addr));
-		id_val->Assign(3, new PortVal(ntohs(resp_port), prot_type));
+		id_val->Assign(3, port_mgr->Get(ntohs(resp_port), prot_type));
 
 		RecordVal *orig_endp = new RecordVal(endpoint);
 		orig_endp->Assign(0, new Val(0, TYPE_COUNT));

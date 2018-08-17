@@ -67,4 +67,9 @@ event bro_init()
 	local d2 = sort(c2, myfunc2);
 	print c2;
 	print d2;
+
+	# Testing large numbers
+	local l1 = vector(2304, 1156, 11, 42, 4294967296);
+	print l1;
+	print sort(l1);
 	}

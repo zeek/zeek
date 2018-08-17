@@ -1,7 +1,7 @@
-expression error in /Users/jon/Projects/bro/bro/testing/btest/.tmp/core.when-interpreter-exceptions/when-interpreter-exceptions.bro, line 48: field value missing [myrecord$notset]
-expression error in /Users/jon/Projects/bro/bro/testing/btest/.tmp/core.when-interpreter-exceptions/when-interpreter-exceptions.bro, line 92: field value missing [myrecord$notset]
-expression error in /Users/jon/Projects/bro/bro/testing/btest/.tmp/core.when-interpreter-exceptions/when-interpreter-exceptions.bro, line 73: field value missing [myrecord$notset]
-expression error in /Users/jon/Projects/bro/bro/testing/btest/.tmp/core.when-interpreter-exceptions/when-interpreter-exceptions.bro, line 104: field value missing [myrecord$notset]
+expression error in /Users/jon/Projects/bro/bro/testing/btest/.tmp/core.when-interpreter-exceptions/when-interpreter-exceptions.bro, line 47: field value missing [myrecord$notset]
+expression error in /Users/jon/Projects/bro/bro/testing/btest/.tmp/core.when-interpreter-exceptions/when-interpreter-exceptions.bro, line 91: field value missing [myrecord$notset]
+expression error in /Users/jon/Projects/bro/bro/testing/btest/.tmp/core.when-interpreter-exceptions/when-interpreter-exceptions.bro, line 72: field value missing [myrecord$notset]
+expression error in /Users/jon/Projects/bro/bro/testing/btest/.tmp/core.when-interpreter-exceptions/when-interpreter-exceptions.bro, line 103: field value missing [myrecord$notset]
 received termination signal
 [f(F)]
 f() done, no exception, T

@@ -9,12 +9,12 @@ namespace analyzer { namespace dhcp {
 
 class DHCP_Analyzer : public analyzer::Analyzer {
 public:
-	DHCP_Analyzer(Connection* conn);
-	virtual ~DHCP_Analyzer();
+	explicit DHCP_Analyzer(Connection* conn);
+	~DHCP_Analyzer() override;
 
-	virtual void Done();
-	virtual void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64 seq, const IP_Hdr* ip, int caplen);
+	void Done() override;
+	void DeliverPacket(int len, const u_char* data, bool orig,
+	                   uint64 seq, const IP_Hdr* ip, int caplen) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new DHCP_Analyzer(conn); }

@@ -31,15 +31,15 @@ public:
 		STATE_STATELESS = 8
 	};
 
-	RuleConditionTCPState(int arg_tcpstates)
+	explicit RuleConditionTCPState(int arg_tcpstates)
 		{ tcpstates = arg_tcpstates; }
 
-	virtual ~RuleConditionTCPState()	{ }
+	~RuleConditionTCPState() override { }
 
-	virtual bool DoMatch(Rule* rule, RuleEndpointState* state,
-				const u_char* data, int len);
+	bool DoMatch(Rule* rule, RuleEndpointState* state,
+				const u_char* data, int len) override;
 
-	virtual void PrintDebug();
+	void PrintDebug() override;
 
 private:
 	int tcpstates;
@@ -56,13 +56,15 @@ public:
 		OPT_SSRR = 8,
 	};
 
-	RuleConditionIPOptions(int arg_options)	{ options = arg_options; }
-	virtual ~RuleConditionIPOptions()	{ }
+	explicit RuleConditionIPOptions(int arg_options)	{ options = arg_options; }
 
-	virtual bool DoMatch(Rule* rule, RuleEndpointState* state,
-				const u_char* data, int len);
+	~RuleConditionIPOptions() override
+		{ }
 
-	virtual void PrintDebug();
+	bool DoMatch(Rule* rule, RuleEndpointState* state,
+				const u_char* data, int len) override;
+
+	void PrintDebug() override;
 
 private:
 	int options;
@@ -72,12 +74,12 @@ private:
 class RuleConditionSameIP : public RuleCondition {
 public:
 	RuleConditionSameIP()	{ }
-	virtual ~RuleConditionSameIP()	{}
+	~RuleConditionSameIP() override {}
 
-	virtual bool DoMatch(Rule* rule, RuleEndpointState* state,
-				const u_char* data, int len);
+	bool DoMatch(Rule* rule, RuleEndpointState* state,
+				const u_char* data, int len) override;
 
-	virtual void PrintDebug();
+	void PrintDebug() override;
 };
 
 // Implements "payload-size".
@@ -88,12 +90,12 @@ public:
 	RuleConditionPayloadSize(uint32 arg_val, Comp arg_comp)
 		{ val = arg_val; comp = arg_comp; }
 
-	virtual ~RuleConditionPayloadSize()	{}
+	~RuleConditionPayloadSize() override {}
 
-	virtual bool DoMatch(Rule* rule, RuleEndpointState* state,
-				const u_char* data, int len);
+	bool DoMatch(Rule* rule, RuleEndpointState* state,
+				const u_char* data, int len) override;
 
-	virtual void PrintDebug();
+	void PrintDebug() override;
 
 private:
 	uint32 val;
@@ -103,13 +105,13 @@ private:
 // Implements "eval" which evaluates the given Bro identifier.
 class RuleConditionEval : public RuleCondition {
 public:
-	RuleConditionEval(const char* func);
-	virtual ~RuleConditionEval() {}
+	explicit RuleConditionEval(const char* func);
+	~RuleConditionEval() override {}
 
-	virtual bool DoMatch(Rule* rule, RuleEndpointState* state,
-				const u_char* data, int len);
+	bool DoMatch(Rule* rule, RuleEndpointState* state,
+				const u_char* data, int len) override;
 
-	virtual void PrintDebug();
+	void PrintDebug() override;
 private:
 	ID* id;
 };

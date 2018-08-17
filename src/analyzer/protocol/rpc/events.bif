@@ -49,6 +49,34 @@ event nfs_proc_null%(c: connection, info: NFS3::info_t%);
 ##    register a port for it or add a DPD payload signature.
 event nfs_proc_getattr%(c: connection, info: NFS3::info_t, fh: string, attrs: NFS3::fattr_t%);
 
+## Generated for NFSv3 request/reply dialogues of type *sattr*. The event is
+## generated once we have either seen both the request and its corresponding
+## reply, or an unanswered request has timed out.
+##
+## NFS is a service running on top of RPC. See `Wikipedia
+## <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+## information about the service.
+##
+## c: The RPC connection.
+##
+## info: Reports the status of the dialogue, along with some meta information.
+##
+## req:  The arguments passed in the request.
+##
+## rep: The attributes returned in the reply. The values may not be
+##      valid if the request was unsuccessful.
+##
+## .. bro:see:: nfs_proc_create  nfs_proc_lookup nfs_proc_mkdir
+##    nfs_proc_not_implemented nfs_proc_null nfs_proc_read nfs_proc_readdir
+##    nfs_proc_readlink nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status
+##    rpc_call rpc_dialogue rpc_reply file_mode
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event nfs_proc_sattr%(c: connection, info: NFS3::info_t, req: NFS3::sattrargs_t, rep: NFS3::sattr_reply_t%);
+
 ## Generated for NFSv3 request/reply dialogues of type *lookup*. The event is
 ## generated once we have either seen both the request and its corresponding
 ## reply, or an unanswered request has timed out.
@@ -124,14 +152,70 @@ event nfs_proc_read%(c: connection, info: NFS3::info_t, req: NFS3::readargs_t, r
 ##
 ## .. bro:see:: nfs_proc_create nfs_proc_getattr nfs_proc_lookup nfs_proc_mkdir
 ##    nfs_proc_not_implemented nfs_proc_null nfs_proc_read nfs_proc_readdir
-##    nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status rpc_call
-##    rpc_dialogue rpc_reply
+##    nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status
+##    nfs_proc_symlink rpc_call rpc_dialogue rpc_reply
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
 ##    been ported to Bro 2.x. To still enable this event, one needs to
 ##    register a port for it or add a DPD payload signature.
 event nfs_proc_readlink%(c: connection, info: NFS3::info_t, fh: string, rep: NFS3::readlink_reply_t%);
+
+## Generated for NFSv3 request/reply dialogues of type *symlink*. The event is
+## generated once we have either seen both the request and its corresponding
+## reply, or an unanswered request has timed out.
+##
+## NFS is a service running on top of RPC. See `Wikipedia
+## <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+## information about the service.
+##
+## c: The RPC connection.
+##
+## info: Reports the status of the dialogue, along with some meta information.
+##
+## req:  The arguments passed in the request.
+##
+## rep: The attributes returned in the reply. The values may not be
+##      valid if the request was unsuccessful.
+##
+## .. bro:see:: nfs_proc_create  nfs_proc_lookup nfs_proc_mkdir
+##    nfs_proc_not_implemented nfs_proc_null nfs_proc_read nfs_proc_readdir
+##    nfs_proc_readlink nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status
+##    nfs_proc_link rpc_call rpc_dialogue rpc_reply file_mode
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event nfs_proc_symlink%(c: connection, info: NFS3::info_t, req: NFS3::symlinkargs_t, rep: NFS3::newobj_reply_t%);
+
+## Generated for NFSv3 request/reply dialogues of type *link*. The event is
+## generated once we have either seen both the request and its corresponding
+## reply, or an unanswered request has timed out.
+##
+## NFS is a service running on top of RPC. See `Wikipedia
+## <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+## information about the service.
+##
+## c: The RPC connection.
+##
+## info: Reports the status of the dialogue, along with some meta information.
+##
+## req:  The arguments passed in the request.
+##
+## rep: The response returned in the reply. The values may not be valid if the
+##      request was unsuccessful.
+##
+## .. bro:see:: nfs_proc_create nfs_proc_getattr nfs_proc_lookup nfs_proc_mkdir
+##    nfs_proc_not_implemented nfs_proc_null nfs_proc_read nfs_proc_readdir
+##    nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status rpc_call
+##    nfs_proc_symlink rpc_dialogue rpc_reply
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event nfs_proc_link%(c: connection, info: NFS3::info_t, req: NFS3::linkargs_t, rep: NFS3::link_reply_t%);
 
 ## Generated for NFSv3 request/reply dialogues of type *write*. The event is
 ## generated once we have either seen both the request and its corresponding
@@ -273,6 +357,34 @@ event nfs_proc_remove%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t
 ##    been ported to Bro 2.x. To still enable this event, one needs to
 ##    register a port for it or add a DPD payload signature.
 event nfs_proc_rmdir%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t, rep: NFS3::delobj_reply_t%);
+
+## Generated for NFSv3 request/reply dialogues of type *rename*. The event is
+## generated once we have either seen both the request and its corresponding
+## reply, or an unanswered request has timed out.
+##
+## NFS is a service running on top of RPC. See `Wikipedia
+## <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+## information about the service.
+##
+## c: The RPC connection.
+##
+## info: Reports the status of the dialogue, along with some meta information.
+##
+## req: TODO.
+##
+## rep: The response returned in the reply. The values may not be valid if the
+##      request was unsuccessful.
+##
+## .. bro:see:: nfs_proc_create nfs_proc_getattr nfs_proc_lookup nfs_proc_mkdir
+##    nfs_proc_not_implemented nfs_proc_null nfs_proc_read nfs_proc_readdir
+##    nfs_proc_readlink nfs_proc_remove nfs_proc_rename nfs_proc_write
+##    nfs_reply_status rpc_call rpc_dialogue rpc_reply
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event nfs_proc_rename%(c: connection, info: NFS3::info_t, req: NFS3::renameopargs_t, rep: NFS3::renameobj_reply_t%);
 
 ## Generated for NFSv3 request/reply dialogues of type *readdir*. The event is
 ## generated once we have either seen both the request and its corresponding
@@ -737,3 +849,118 @@ event rpc_call%(c: connection, xid: count, prog: count, ver: count, proc: count,
 ##    call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
 ##    signature.
 event rpc_reply%(c: connection, xid: count, status: rpc_status, reply_len: count%);
+
+## Generated for MOUNT3 request/reply dialogues of type *null*. The event is
+## generated once we have either seen both the request and its corresponding
+## reply, or an unanswered request has timed out.
+## MOUNT is a service running on top of RPC.
+##
+## c: The RPC connection.
+##
+## info: Reports the status of the dialogue, along with some meta information.
+##
+## .. bro:see:: mount_proc_mnt mount_proc_umnt
+##    mount_proc_umnt_all mount_proc_not_implemented
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event mount_proc_null%(c: connection, info: MOUNT3::info_t%);
+
+## Generated for MOUNT3 request/reply dialogues of type *mnt*. The event is
+## generated once we have either seen both the request and its corresponding
+## reply, or an unanswered request has timed out.
+## MOUNT is a service running on top of RPC.
+##
+## c: The RPC connection.
+##
+## info: Reports the status of the dialogue, along with some meta information.
+##
+## req:  The arguments passed in the request.
+##
+## rep: The response returned in the reply. The values may not be valid if the
+##      request was unsuccessful.
+##
+## .. bro:see:: mount_proc_mnt mount_proc_umnt
+##    mount_proc_umnt_all mount_proc_not_implemented
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event mount_proc_mnt%(c: connection, info: MOUNT3::info_t, req: MOUNT3::dirmntargs_t, rep: MOUNT3::mnt_reply_t%);
+
+## Generated for MOUNT3 request/reply dialogues of type *umnt*. The event is
+## generated once we have either seen both the request and its corresponding
+## reply, or an unanswered request has timed out.
+## MOUNT is a service running on top of RPC.
+##
+## c: The RPC connection.
+##
+## info: Reports the status of the dialogue, along with some meta information.
+##
+## req:  The arguments passed in the request.
+##
+## .. bro:see:: mount_proc_mnt mount_proc_umnt
+##    mount_proc_umnt_all mount_proc_not_implemented
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event mount_proc_umnt%(c: connection, info: MOUNT3::info_t, req: MOUNT3::dirmntargs_t%);
+
+## Generated for MOUNT3 request/reply dialogues of type *umnt_all*. The event is
+## generated once we have either seen both the request and its corresponding
+## reply, or an unanswered request has timed out.
+## MOUNT is a service running on top of RPC.
+##
+## c: The RPC connection.
+##
+## info: Reports the status of the dialogue, along with some meta information.
+##
+## req:  The arguments passed in the request.
+##
+## .. bro:see:: mount_proc_mnt mount_proc_umnt
+##    mount_proc_umnt_all mount_proc_not_implemented
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event mount_proc_umnt_all%(c: connection, info: MOUNT3::info_t, req: MOUNT3::dirmntargs_t%);
+
+## Generated for MOUNT3 request/reply dialogues of a type that Bro's MOUNTv3
+## analyzer does not implement.
+##
+## c: The RPC connection.
+##
+## info: Reports the status of the dialogue, along with some meta information.
+##
+## proc: The procedure called that Bro does not implement.
+##
+## .. bro:see:: mount_proc_mnt mount_proc_umnt
+##    mount_proc_umnt_all mount_proc_not_implemented
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event mount_proc_not_implemented%(c: connection, info: MOUNT3::info_t, proc: MOUNT3::proc_t%);
+
+## Generated for each MOUNT3 reply message received, reporting just the
+## status included.
+##
+## n: The connection.
+##
+## info: Reports the status included in the reply.
+##
+## .. bro:see:: mount_proc_mnt mount_proc_umnt
+##    mount_proc_umnt_all mount_proc_not_implemented
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event mount_reply_status%(n: connection, info: MOUNT3::info_t%);

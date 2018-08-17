@@ -782,6 +782,63 @@ function sha256_hash_finish%(handle: opaque of sha256%): string
 	return static_cast<HashVal*>(handle)->Get();
 	%}
 
+## Returns 32-bit digest of arbitrary input values using FNV-1a hash algorithm.
+## See `<https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function>`_.
+##
+## input: The desired input value to hash.
+##
+## Returns: The hashed value.
+##
+## .. bro:see:: hrw_weight
+function fnv1a32%(input: any%): count
+	%{
+	ODesc desc(DESC_BINARY);
+	input->Describe(&desc);
+	auto bytes = desc.Bytes();
+
+	uint32 offset32 = 2166136261;
+	uint32 prime32 = 16777619;
+	uint32 rval = offset32;
+
+	for ( auto i = 0; i < desc.Len(); ++i )
+		{
+		rval ^= (uint32) bytes[i];
+		rval *= prime32;
+		}
+
+	return new Val(rval, TYPE_COUNT);
+	%}
+
+## Calculates a weight value for use in a Rendezvous Hashing algorithm.
+## See `<https://en.wikipedia.org/wiki/Rendezvous_hashing>`_.
+## The weight function used is the one recommended in the original
+## paper: `<http://www.eecs.umich.edu/techreports/cse/96/CSE-TR-316-96.pdf>`_.
+##
+## key_digest: A 32-bit digest of a key.  E.g. use :bro:see:`fnv1a32` to
+##             produce this.
+##
+## site_id: A 32-bit site/node identifier.
+##
+## Returns: The weight value for the key/site pair.
+##
+## .. bro:see:: fnv1a32
+function hrw_weight%(key_digest: count, site_id: count%): count
+	%{
+	uint32 d = key_digest;
+	d &= 0x7fffffff; // 31-bit digest
+	int32 si = site_id;
+	auto a = 1103515245;
+	auto b = 12345;
+	auto m = 2147483648; // 2**31
+
+	int32 rval = (a * ((a * si + b) ^ d) + b) % m;
+
+	if ( rval < 0 )
+		rval += m; // [0, 2**31 - 1]
+
+	return new Val((uint64) rval, TYPE_COUNT);
+	%}
+
 ## Generates a random number.
 ##
 ## max: The maximum value of the random number.
@@ -796,8 +853,7 @@ function sha256_hash_finish%(handle: opaque of sha256%): string
 ##      provided by the OS.
 function rand%(max: count%): count
 	%{
-	int result;
-	result = bro_uint_t(double(max) * double(bro_random()) / (RAND_MAX + 1.0));
+	auto result = bro_uint_t(double(max) * double(bro_random()) / (RAND_MAX + 1.0));
 	return new Val(result, TYPE_COUNT);
 	%}
 
@@ -1211,33 +1267,48 @@ bool sort_function(Val* a, Val* b)
 	int int_result = result->CoerceToInt();
 	Unref(result);
 
-	sort_func_args.remove_nth(1);
-	sort_func_args.remove_nth(0);
-
 	return int_result < 0;
 	}
 
-bool indirect_sort_function(int a, int b)
+bool indirect_sort_function(size_t a, size_t b)
 	{
 	return sort_function(index_map[a], index_map[b]);
 	}
 
-bool int_sort_function (Val* a, Val* b)
+bool signed_sort_function (Val* a, Val* b)
 	{
 	if ( ! a )
 		return 0;
 	if ( ! b )
 		return 1;
 
-	int ia = a->CoerceToInt();
-	int ib = b->CoerceToInt();
+	auto ia = a->CoerceToInt();
+	auto ib = b->CoerceToInt();
 
 	return ia < ib;
 	}
 
-bool indirect_int_sort_function(int a, int b)
+bool unsigned_sort_function (Val* a, Val* b)
 	{
-	return int_sort_function(index_map[a], index_map[b]);
+	if ( ! a )
+		return 0;
+	if ( ! b )
+		return 1;
+
+	auto ia = a->CoerceToUnsigned();
+	auto ib = b->CoerceToUnsigned();
+
+	return ia < ib;
+	}
+
+bool indirect_signed_sort_function(size_t a, size_t b)
+	{
+	return signed_sort_function(index_map[a], index_map[b]);
+	}
+
+bool indirect_unsigned_sort_function(size_t a, size_t b)
+	{
+	return unsigned_sort_function(index_map[a], index_map[b]);
 	}
 %%}
 
@@ -1302,7 +1373,12 @@ function sort%(v: any, ...%) : any
 		sort(vv.begin(), vv.end(), sort_function);
 		}
 	else
-		sort(vv.begin(), vv.end(), int_sort_function);
+		{
+		if ( elt_type->InternalType() == TYPE_INTERNAL_UNSIGNED )
+			sort(vv.begin(), vv.end(), unsigned_sort_function);
+		else
+			sort(vv.begin(), vv.end(), signed_sort_function);
+		}
 
 	return v;
 	%}
@@ -1351,13 +1427,13 @@ function order%(v: any, ...%) : index_vec
 		builtin_error("comparison function required for order() with non-integral types");
 
 	vector<Val*>& vv = *v->AsVector();
-	int n = vv.size();
+	auto n = vv.size();
 
 	// Set up initial mapping of indices directly to corresponding
 	// elements.
-	vector<int> ind_vv(n);
+	vector<size_t> ind_vv(n);
 	index_map = new Val*[n];
-	int i;
+	size_t i;
 	for ( i = 0; i < n; ++i )
 		{
 		ind_vv[i] = i;
@@ -1379,7 +1455,12 @@ function order%(v: any, ...%) : index_vec
 		sort(ind_vv.begin(), ind_vv.end(), indirect_sort_function);
 		}
 	else
-		sort(ind_vv.begin(), ind_vv.end(), indirect_int_sort_function);
+		{
+		if ( elt_type->InternalType() == TYPE_INTERNAL_UNSIGNED )
+			sort(ind_vv.begin(), ind_vv.end(), indirect_unsigned_sort_function);
+		else
+			sort(ind_vv.begin(), ind_vv.end(), indirect_signed_sort_function);
+		}
 
 	delete [] index_map;
 	index_map = 0;
@@ -1775,13 +1856,14 @@ function global_ids%(%): id_table
 		rec->Assign(1, new Val(id->IsExport(), TYPE_BOOL));
 		rec->Assign(2, new Val(id->IsConst(), TYPE_BOOL));
 		rec->Assign(3, new Val(id->IsEnumConst(), TYPE_BOOL));
-		rec->Assign(4, new Val(id->IsRedefinable(), TYPE_BOOL));
+		rec->Assign(4, new Val(id->IsOption(), TYPE_BOOL));
+		rec->Assign(5, new Val(id->IsRedefinable(), TYPE_BOOL));
 
 		if ( id->HasVal() )
 			{
 			Val* val = id->ID_Val();
 			Ref(val);
-			rec->Assign(5, val);
+			rec->Assign(6, val);
 			}
 
 		Val* id_name = new StringVal(id->Name());
@@ -2131,8 +2213,7 @@ function to_int%(str: string%): int
 	const char* s = str->CheckString();
 	char* end_s;
 
-	long l = strtol(s, &end_s, 10);
-	int i = int(l);
+	bro_int_t i = strtoll(s, &end_s, 10);
 
 #if 0
 	// Not clear we should complain.  For example, is " 205 "
@@ -2270,7 +2351,7 @@ function port_to_count%(p: port%): count
 ## .. bro:see:: port_to_count
 function count_to_port%(num: count, proto: transport_proto%): port
 	%{
-	return new PortVal(num, (TransportProto)proto->AsEnum());
+	return port_mgr->Get(num, (TransportProto)proto->AsEnum());
 	%}
 
 ## Converts a :bro:type:`string` to an :bro:type:`addr`.
@@ -2430,16 +2511,16 @@ function to_port%(s: string%): port
             {
             ++slash;
             if ( streq(slash, "tcp") )
-                return new PortVal(port, TRANSPORT_TCP);
+                return port_mgr->Get(port, TRANSPORT_TCP);
             else if ( streq(slash, "udp") )
-                return new PortVal(port, TRANSPORT_UDP);
+                return port_mgr->Get(port, TRANSPORT_UDP);
             else if ( streq(slash, "icmp") )
-                return new PortVal(port, TRANSPORT_ICMP);
+                return port_mgr->Get(port, TRANSPORT_ICMP);
             }
         }
 
     builtin_error("wrong port format, must be /[0-9]{1,5}\\/(tcp|udp|icmp)/");
-    return new PortVal(port, TRANSPORT_UNKNOWN);
+    return port_mgr->Get(port, TRANSPORT_UNKNOWN);
 	%}
 
 ## Converts a string of bytes (in network byte order) to a :bro:type:`double`.
@@ -2715,7 +2796,7 @@ function encode_base64%(s: string, a: string &default=""%): string
 		return new StringVal(t);
 	else
 		{
-		reporter->Error("error in encoding string %s", s->CheckString());
+		reporter->Error("Broker query has an invalid data store");
 		return new StringVal("");
 		}
 	%}
@@ -2877,14 +2958,8 @@ function uuid_to_string%(uuid: string%): string
 ##
 ##      This function must be called at Bro startup time, e.g., in the event
 ##      :bro:id:`bro_init`.
-function merge_pattern%(p1: pattern, p2: pattern%): pattern
+function merge_pattern%(p1: pattern, p2: pattern%): pattern &deprecated
 	%{
-	if ( bro_start_network_time != 0.0 )
-		{
-		builtin_error("merge_pattern can only be called at init time");
-		return 0;
-		}
-
 	RE_Matcher* re = new RE_Matcher();
 	re->AddPat(p1->PatternText());
 	re->AddPat(p2->PatternText());
@@ -2952,12 +3027,6 @@ function convert_for_pattern%(s: string%): string
 ##      :bro:id:`bro_init`.
 function string_to_pattern%(s: string, convert: bool%): pattern
 	%{
-	if ( bro_start_network_time != 0.0 )
-		{
-		builtin_error("string_to_pattern can only be called at init time");
-		return 0;
-		}
-
 	const char* ss = (const char*) (s->Bytes());
 	int sn = s->Len();
 	char* pat;
@@ -3208,9 +3277,9 @@ function lookup_connection%(cid: conn_id%): connection
 
 	RecordVal* id_val = new RecordVal(conn_id);
 	id_val->Assign(0, new AddrVal((unsigned int) 0));
-	id_val->Assign(1, new PortVal(ntohs(0), TRANSPORT_UDP));
+	id_val->Assign(1, port_mgr->Get(ntohs(0), TRANSPORT_UDP));
 	id_val->Assign(2, new AddrVal((unsigned int) 0));
-	id_val->Assign(3, new PortVal(ntohs(0), TRANSPORT_UDP));
+	id_val->Assign(3, port_mgr->Get(ntohs(0), TRANSPORT_UDP));
 	c->Assign(0, id_val);
 
 	RecordVal* orig_endp = new RecordVal(endpoint);
@@ -3262,6 +3331,12 @@ function dump_current_packet%(file_name: string%) : bool
 	if ( ! current_pktsrc ||
 	     ! current_pktsrc->GetCurrentPacket(&pkt) )
 		return new Val(0, TYPE_BOOL);
+
+	if ( addl_pkt_dumper && addl_pkt_dumper->Path() != file_name->CheckString())
+		{
+		addl_pkt_dumper->Close();
+		addl_pkt_dumper = nullptr;
+		}
 
 	if ( ! addl_pkt_dumper )
 		addl_pkt_dumper = iosource_mgr->OpenPktDumper(file_name->CheckString(), true);
@@ -3338,10 +3413,16 @@ function get_current_packet_header%(%) : raw_pkt_hdr
 ## .. bro:see:: get_current_packet dump_current_packet send_current_packet
 function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 	%{
+	if ( addl_pkt_dumper && addl_pkt_dumper->Path() != file_name->CheckString())
+		{
+		addl_pkt_dumper->Close();
+		addl_pkt_dumper = nullptr;
+		}
+
 	if ( ! addl_pkt_dumper )
 		addl_pkt_dumper = iosource_mgr->OpenPktDumper(file_name->CheckString(), true);
 
-	if ( addl_pkt_dumper )
+	if ( ! addl_pkt_dumper->IsError() )
 		{
 		pkt_timeval ts;
 		uint32 caplen, len, link_type;
@@ -3518,77 +3599,269 @@ function lookup_hostname%(host: string%) : addr_set
 %%{
 #ifdef USE_GEOIP
 extern "C" {
-#include <GeoIPCity.h>
+#include <maxminddb.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/ip.h>
 }
 
-static GeoIP* open_geoip_db(GeoIPDBTypes type)
+class MMDB {
+public:
+	MMDB(const char* filename);
+
+	~MMDB();
+
+	MMDB_lookup_result_s Lookup(const struct sockaddr* const sa);
+
+private:
+	MMDB_s mmdb;
+};
+
+MMDB::MMDB(const char *filename)
 	{
-	GeoIP* geoip = 0;
+	int status = MMDB_open(filename, MMDB_MODE_MMAP, &mmdb);
 
-	if ( GeoIP_db_avail(type) )
-		geoip = GeoIP_open_type(type, GEOIP_MEMORY_CACHE);
-
-	return geoip;
+	if ( MMDB_SUCCESS != status )
+		{
+		throw std::runtime_error(MMDB_strerror(status));
+		}
 	}
 
-static GeoIP* open_geoip_city_db()
+MMDB::~MMDB()
 	{
-	GeoIP* geoip = open_geoip_db(GEOIP_CITY_EDITION_REV0);
-
-	if ( ! geoip )
-		geoip = open_geoip_db(GEOIP_CITY_EDITION_REV1);
-
-	if ( ! geoip )
-		{
-		string rev0_path = GeoIPDBFileName[GEOIP_CITY_EDITION_REV0];
-		string rev1_path = GeoIPDBFileName[GEOIP_CITY_EDITION_REV1];
-		string db_path = rev0_path;
-
-		// Maybe in the future the revisions won't share a common default path.
-		if ( rev0_path != rev1_path )
-			db_path = rev0_path + " or " + rev1_path;
-
-		reporter->Info("Failed to open GeoIP City database: %s",
-		               db_path.c_str());
-		}
-
-	return geoip;
+	MMDB_close(&mmdb);
 	}
 
-static GeoIP* open_geoip_city_db_v6()
+MMDB_lookup_result_s MMDB::Lookup(const struct sockaddr* const sa)
 	{
-	GeoIP* geoip = 0;
+	int mmdb_error;
+	MMDB_lookup_result_s result = MMDB_lookup_sockaddr(&mmdb, sa, &mmdb_error);
 
-	// Both city edition revisions for IPv6 show up in libGeoIP 1.4.7.
-#ifdef HAVE_GEOIP_CITY_EDITION_REV0_V6
-	geoip = open_geoip_db(GEOIP_CITY_EDITION_REV0_V6);
-
-	if ( ! geoip )
-		geoip = open_geoip_db(GEOIP_CITY_EDITION_REV1_V6);
-
-	if ( ! geoip )
+	if ( MMDB_SUCCESS != mmdb_error )
 		{
-		string rev0_path = GeoIPDBFileName[GEOIP_CITY_EDITION_REV0_V6];
-		string rev1_path = GeoIPDBFileName[GEOIP_CITY_EDITION_REV1_V6];
-		string db_path = rev0_path;
-
-		// Maybe in the future the revisions won't share a common default path.
-		if ( rev0_path != rev1_path )
-			db_path = rev0_path + " or " + rev1_path;
-
-		reporter->Info("Failed to open GeoIP Cityv6 database: %s",
-		               db_path.c_str());
+		throw std::runtime_error(MMDB_strerror(mmdb_error));
 		}
-#endif
 
-	return geoip;
+	return result;
+	}
+
+std::unique_ptr<MMDB> mmdb_loc;
+std::unique_ptr<MMDB> mmdb_asn;
+
+static bool mmdb_open(const char* filename, bool asn)
+	{
+	struct stat buf;
+
+	if ( 0 != stat(filename, &buf) )
+		{
+		return false;
+		}
+
+	try
+		{
+		if ( asn )
+			{
+			mmdb_asn.reset(new MMDB(filename));
+			}
+		else
+			{
+			mmdb_loc.reset(new MMDB(filename));
+			}
+		}
+
+	catch ( const std::exception& e )
+		{
+		reporter->Info("Failed to open MaxMind DB: %s [%s]", filename,
+		               e.what());
+		return false;
+		}
+
+	return true;
+	}
+
+static bool mmdb_open_loc(const char* filename)
+	{
+	return mmdb_open(filename, false);
+	}
+
+static bool mmdb_open_asn(const char* filename)
+	{
+	return mmdb_open(filename, true);
+	}
+
+static bool mmdb_lookup(const IPAddr& addr, MMDB_lookup_result_s& result,
+                        bool asn)
+	{
+	struct sockaddr_storage ss = {0};
+
+	if ( IPv4 == addr.GetFamily() )
+		{
+		struct sockaddr_in* sa = (struct sockaddr_in*)&ss;
+		sa->sin_family = AF_INET;
+		addr.CopyIPv4(&sa->sin_addr);
+		}
+
+	else
+		{
+		struct sockaddr_in6* sa = (struct sockaddr_in6*)&ss;
+		sa->sin6_family = AF_INET6;
+		addr.CopyIPv6(&sa->sin6_addr);
+		}
+
+	try
+		{
+		result = asn ? mmdb_asn->Lookup((struct sockaddr*)&ss)
+		             : mmdb_loc->Lookup((struct sockaddr*)&ss);
+		}
+
+	catch ( const std::exception& e )
+		{
+		reporter->Info("MaxMind DB lookup location error [%s]",
+		               e.what());
+		return false;
+		}
+
+	return result.found_entry;
+	}
+
+static bool mmdb_lookup_loc(const IPAddr& addr, MMDB_lookup_result_s& result)
+	{
+	return mmdb_lookup(addr, result, false);
+	}
+
+static bool mmdb_lookup_asn(const IPAddr& addr, MMDB_lookup_result_s& result)
+	{
+	return mmdb_lookup(addr, result, true);
+	}
+
+static Val* mmdb_getvalue(MMDB_entry_data_s* entry_data, int status,
+                          int data_type )
+	{
+	switch (status)
+		{
+		case MMDB_SUCCESS:
+			if ( entry_data->has_data )
+				{
+				switch (data_type)
+					{
+					case MMDB_DATA_TYPE_UTF8_STRING:
+						return new StringVal(entry_data->data_size,
+						                     entry_data->utf8_string);
+						break;
+
+					case MMDB_DATA_TYPE_DOUBLE:
+						return new Val(entry_data->double_value, TYPE_DOUBLE);
+						break;
+
+					case MMDB_DATA_TYPE_UINT32:
+						return new Val(entry_data->uint32, TYPE_COUNT);
+
+					default:
+						break;
+					}
+				}
+			break;
+
+		case MMDB_LOOKUP_PATH_DOES_NOT_MATCH_DATA_ERROR:
+			// key doesn't exist, nothing to do
+			break;
+
+		default:
+			reporter->Info("MaxMind DB error [%s]", MMDB_strerror(status));
+			break;
+		}
+
+	return nullptr;
+	}
+
+static bool mmdb_try_open_loc ()
+	{
+	// City database is always preferred over Country database.
+	auto mmdb_dir_val = global_scope()->Lookup("mmdb_dir")->ID_Val();
+	std::string mmdb_dir = mmdb_dir_val->AsString()->CheckString();
+
+	if ( ! mmdb_dir.empty() )
+		{
+		auto d = mmdb_dir + "/GeoLite2-City.mmdb";
+
+		if ( mmdb_open_loc(d.data()) )
+			return true;
+
+		d = mmdb_dir + "/GeoLite2-Country.mmdb";
+
+		if ( mmdb_open_loc(d.data()) )
+			return true;;
+		}
+
+	return mmdb_open_loc("/usr/share/GeoIP/GeoLite2-City.mmdb")
+	    || mmdb_open_loc("/var/lib/GeoIP/GeoLite2-City.mmdb")
+	    || mmdb_open_loc("/usr/local/share/GeoIP/GeoLite2-City.mmdb")
+	    || mmdb_open_loc("/usr/local/var/GeoIP/GeoLite2-City.mmdb")
+	    || mmdb_open_loc("/usr/share/GeoIP/GeoLite2-Country.mmdb")
+	    || mmdb_open_loc("/var/lib/GeoIP/GeoLite2-Country.mmdb")
+	    || mmdb_open_loc("/usr/local/share/GeoIP/GeoLite2-Country.mmdb")
+	    || mmdb_open_loc("/usr/local/var/GeoIP/GeoLite2-Country.mmdb");
+	}
+
+static bool mmdb_try_open_asn ()
+	{
+	auto mmdb_dir_val = global_scope()->Lookup("mmdb_dir")->ID_Val();
+	std::string mmdb_dir = mmdb_dir_val->AsString()->CheckString();
+
+	if ( ! mmdb_dir.empty() )
+		{
+		auto d = mmdb_dir + "/GeoLite2-ASN.mmdb";
+
+		if ( mmdb_open_asn(d.data()) )
+			return true;
+		}
+
+	return mmdb_open_asn("/usr/share/GeoIP/GeoLite2-ASN.mmdb")
+	    || mmdb_open_asn("/var/lib/GeoIP/GeoLite2-ASN.mmdb")
+	    || mmdb_open_asn("/usr/local/share/GeoIP/GeoLite2-ASN.mmdb")
+	    || mmdb_open_asn("/usr/local/var/GeoIP/GeoLite2-ASN.mmdb");
 	}
 
 #endif
 %%}
 
+## Initializes MMDB for later use of lookup_location.
+## Requires Bro to be built with ``libmaxminddb``.
+##
+## f: The filename of the MaxMind City or Country DB.
+##
+## Returns: A boolean indicating whether the db was successfully opened.
+##
+## .. bro:see:: lookup_asn
+function mmdb_open_location_db%(f: string%) : bool
+	%{
+#ifdef USE_GEOIP
+	return new Val(mmdb_open_loc(f->CheckString()), TYPE_BOOL);
+#else
+        return new Val(0, TYPE_BOOL);
+#endif
+	%}
+
+## Initializes MMDB for later use of lookup_asn.
+## Requires Bro to be built with ``libmaxminddb``.
+##
+## f: The filename of the MaxMind ASN DB.
+##
+## Returns: A boolean indicating whether the db was successfully opened.
+##
+## .. bro:see:: lookup_asn
+function mmdb_open_asn_db%(f: string%) : bool
+	%{
+#ifdef USE_GEOIP
+	return new Val(mmdb_open_asn(f->CheckString()), TYPE_BOOL);
+#else
+	return new Val(0, TYPE_BOOL);
+#endif
+	%}
+
 ## Performs a geo-lookup of an IP address.
-## Requires Bro to be built with ``libgeoip``.
+## Requires Bro to be built with ``libmaxminddb``.
 ##
 ## a: The IP address to lookup.
 ##
@@ -3600,104 +3873,52 @@ function lookup_location%(a: addr%) : geo_location
 	RecordVal* location = new RecordVal(geo_location);
 
 #ifdef USE_GEOIP
-	static bool geoip_initialized = false;
-	static GeoIP* geoip = 0;
-	static GeoIP* geoip_v6 = 0;
-	static bool have_city_db = false;
-	static bool have_cityv6_db = false;
-	GeoIPRecord* gir = 0;
-	const char* cc = 0;
-
-	if ( ! geoip_initialized )
+	if ( ! mmdb_loc )
 		{
-		geoip_initialized = true;
-		geoip = open_geoip_city_db();
-
-		if ( ! geoip )
+		if ( ! mmdb_try_open_loc() )
 			{
-			geoip = open_geoip_db(GEOIP_COUNTRY_EDITION);
-			string db_path = GeoIPDBFileName[GEOIP_COUNTRY_EDITION];
-
-			if ( ! geoip )
-				builtin_error(fmt("Failed fall back to GeoIP Country "
-				                  "database: %s",
-				                  GeoIPDBFileName[GEOIP_COUNTRY_EDITION]));
-			else
-				reporter->Info("Fell back to GeoIP Country database");
+			builtin_error("Failed to open GeoIP location database");
+			return location;
 			}
-		else
-			have_city_db = true;
-
-		geoip_v6 = open_geoip_city_db_v6();
-
-		if ( geoip_v6 )
-			have_cityv6_db = true;
-
-#ifdef HAVE_GEOIP_COUNTRY_EDITION_V6
-		if ( ! geoip_v6 )
-			{
-			geoip_v6 = open_geoip_db(GEOIP_COUNTRY_EDITION_V6);
-
-			if ( ! geoip_v6 )
-				reporter->Info("Failed to open GeoIPv6 Country database: %s",
-				               GeoIPDBFileName[GEOIP_COUNTRY_EDITION_V6]);
-			}
-#endif
-
-		if ( ! geoip_v6 )
-			builtin_error("Can't open GeoIPv6 City/Country database");
 		}
 
-#ifdef HAVE_GEOIP_COUNTRY_EDITION_V6
-	if ( geoip_v6 && a->AsAddr().GetFamily() == IPv6 )
+	MMDB_lookup_result_s result;
+
+	if ( mmdb_lookup_loc(a->AsAddr(), result) )
 		{
-		geoipv6_t ga;
-		a->AsAddr().CopyIPv6(&ga);
-		if ( have_cityv6_db )
-			gir = GeoIP_record_by_ipnum_v6(geoip_v6, ga);
-		else
-			cc = GeoIP_country_code_by_ipnum_v6(geoip_v6, ga);
-		}
-	else
-#endif
+		MMDB_entry_data_s entry_data;
+		int status;
 
-	if ( geoip && a->AsAddr().GetFamily() == IPv4 )
-		{
-		const uint32* bytes;
-		a->AsAddr().GetBytes(&bytes);
-		if ( have_city_db )
-			gir = GeoIP_record_by_ipnum(geoip, ntohl(*bytes));
-		else
-			cc = GeoIP_country_code_by_ipnum(geoip, ntohl(*bytes));
-		}
+		// Get Country ISO Code
+		status = MMDB_get_value(&result.entry, &entry_data,
+		                        "country", "iso_code", nullptr);
+		location->Assign(0, mmdb_getvalue(&entry_data, status,
+		                 MMDB_DATA_TYPE_UTF8_STRING));
 
-	if ( gir )
-		{
-		if ( gir->country_code )
-			location->Assign(0, new StringVal(gir->country_code));
+		// Get Major Subdivision ISO Code
+		status = MMDB_get_value(&result.entry, &entry_data,
+		                        "subdivisions", "0", "iso_code", nullptr);
+		location->Assign(1, mmdb_getvalue(&entry_data, status,
+		                 MMDB_DATA_TYPE_UTF8_STRING));
 
-		if ( gir->region )
-			location->Assign(1, new StringVal(gir->region));
+		// Get City English Name
+		status = MMDB_get_value(&result.entry, &entry_data,
+		                        "city", "names", "en", nullptr);
+		location->Assign(2, mmdb_getvalue(&entry_data, status,
+		                 MMDB_DATA_TYPE_UTF8_STRING));
 
-		if ( gir->city )
-			location->Assign(2, new StringVal(gir->city));
+		// Get Location Latitude
+		status = MMDB_get_value(&result.entry, &entry_data,
+		                        "location", "latitude", nullptr);
+		location->Assign(3, mmdb_getvalue(&entry_data, status,
+		                 MMDB_DATA_TYPE_DOUBLE));
 
-		if ( gir->latitude )
-			location->Assign(3, new Val(gir->latitude,
-							TYPE_DOUBLE));
+		// Get Location Longitude
+		status = MMDB_get_value(&result.entry, &entry_data,
+		                        "location", "longitude", nullptr);
+		location->Assign(4, mmdb_getvalue(&entry_data, status,
+		                 MMDB_DATA_TYPE_DOUBLE));
 
-		if ( gir->longitude )
-			location->Assign(4, new Val(gir->longitude,
-						TYPE_DOUBLE));
-
-		GeoIPRecord_delete(gir);
-
-		return location;
-		}
-
-	else if ( cc )
-		{
-		location->Assign(0, new StringVal(cc));
 		return location;
 		}
 
@@ -3711,64 +3932,45 @@ function lookup_location%(a: addr%) : geo_location
 		}
 #endif
 
-	// We can get here even if we have GeoIP support if we weren't
+	// We can get here even if we have MMDB support if we weren't
 	// able to initialize it or it didn't return any information for
 	// the address.
 
 	return location;
 	%}
 
-## Performs an AS lookup of an IP address.
-## Requires Bro to be built with ``libgeoip``.
+## Performs an ASN lookup of an IP address.
+## Requires Bro to be built with ``libmaxminddb``.
 ##
 ## a: The IP address to lookup.
 ##
-## Returns: The number of the AS that contains *a*.
+## Returns: The number of the ASN that contains *a*.
 ##
 ## .. bro:see:: lookup_location
 function lookup_asn%(a: addr%) : count
 	%{
 #ifdef USE_GEOIP
-	static GeoIP* geoip_asn = 0;
-	static bool geoip_asn_initialized = false;
-	char* gir = 0;
-
-	if ( ! geoip_asn_initialized )
+	if ( ! mmdb_asn )
 		{
-		geoip_asn_initialized = true;
-		geoip_asn = open_geoip_db(GEOIP_ASNUM_EDITION);
-
-		if ( ! geoip_asn )
-			builtin_error(fmt("Can't open GeoIP ASNUM database: %s",
-			                  GeoIPDBFileName[GEOIP_ASNUM_EDITION]));
-		}
-
-	if ( geoip_asn )
-		{
-// IPv6 support showed up in 1.4.5.
-#ifdef HAVE_GEOIP_COUNTRY_EDITION_V6
-		if ( a->AsAddr().GetFamily() == IPv6 )
+		if ( ! mmdb_try_open_asn() )
 			{
-			geoipv6_t ga;
-			a->AsAddr().CopyIPv6(&ga);
-			gir = GeoIP_name_by_ipnum_v6(geoip_asn, ga);
-			}
-		else
-#endif
-
-		if ( a->AsAddr().GetFamily() == IPv4 )
-			{
-			const uint32* bytes;
-			a->AsAddr().GetBytes(&bytes);
-			gir = GeoIP_name_by_ipnum(geoip_asn, ntohl(*bytes));
+			builtin_error("No open GeoIP ASN database");
+			return new Val(0, TYPE_COUNT);
 			}
 		}
 
-	if ( gir )
+	MMDB_lookup_result_s result;
+
+	if ( mmdb_lookup_asn(a->AsAddr(), result) )
 		{
-		// Move the pointer +2 so we don't return
-		// the first two characters: "AS".
-		return new Val(atoi(gir+2), TYPE_COUNT);
+		MMDB_entry_data_s entry_data;
+		int status;
+
+		// Get Autonomous System Number
+		status = MMDB_get_value(&result.entry, &entry_data,
+		                        "autonomous_system_number", nullptr);
+		Val* asn = mmdb_getvalue(&entry_data, status, MMDB_DATA_TYPE_UINT32);
+		return asn == nullptr ? new Val(0, TYPE_COUNT) : asn;
 		}
 
 #else // not USE_GEOIP
@@ -4039,6 +4241,7 @@ function set_inactivity_timeout%(cid: conn_id, t: interval%): interval
 ##
 ## .. bro:see:: active_file open_for_append close write_file
 ##              get_file_name set_buf flush_all mkdir enable_raw_output
+##              rmdir unlink rename
 function open%(f: string%): file
 	%{
 	const char* file = f->CheckString();
@@ -4058,6 +4261,7 @@ function open%(f: string%): file
 ##
 ## .. bro:see:: active_file open close write_file
 ##              get_file_name set_buf flush_all mkdir enable_raw_output
+##              rmdir unlink rename
 function open_for_append%(f: string%): file
 	%{
 	return new Val(new BroFile(f->CheckString(), "a"));
@@ -4071,6 +4275,7 @@ function open_for_append%(f: string%): file
 ##
 ## .. bro:see:: active_file open open_for_append write_file
 ##              get_file_name set_buf flush_all mkdir enable_raw_output
+##              rmdir unlink rename
 function close%(f: file%): bool
 	%{
 	return new Val(f->Close(), TYPE_BOOL);
@@ -4086,6 +4291,7 @@ function close%(f: file%): bool
 ##
 ## .. bro:see:: active_file open open_for_append close
 ##              get_file_name set_buf flush_all mkdir enable_raw_output
+##              rmdir unlink rename
 function write_file%(f: file, data: string%): bool
 	%{
 	if ( ! f )
@@ -4106,6 +4312,7 @@ function write_file%(f: file, data: string%): bool
 ##
 ## .. bro:see:: active_file open open_for_append close
 ##              get_file_name write_file flush_all mkdir enable_raw_output
+##              rmdir unlink rename
 function set_buf%(f: file, buffered: bool%): any
 	%{
 	f->SetBuf(buffered);
@@ -4118,6 +4325,7 @@ function set_buf%(f: file, buffered: bool%): any
 ##
 ## .. bro:see:: active_file open open_for_append close
 ##              get_file_name write_file set_buf mkdir enable_raw_output
+##              rmdir unlink rename
 function flush_all%(%): bool
 	%{
 	return new Val(fflush(0) == 0, TYPE_BOOL);
@@ -4127,17 +4335,102 @@ function flush_all%(%): bool
 ##
 ## f: The directory name.
 ##
-## Returns: Returns true if the operation succeeds or if *f* already exists,
+## Returns: True if the operation succeeds or if *f* already exists,
 ##          and false if the file creation fails.
 ##
 ## .. bro:see:: active_file open_for_append close write_file
 ##              get_file_name set_buf flush_all enable_raw_output
+##              rmdir unlink rename
 function mkdir%(f: string%): bool
 	%{
 	const char* filename = f->CheckString();
-	if ( mkdir(filename, 0777) < 0 && errno != EEXIST )
+
+	if ( mkdir(filename, 0777) < 0 )
 		{
-		builtin_error("cannot create directory", @ARG@[0]);
+		int error = errno;
+		struct stat filestat;
+		// check if already exists and is directory.
+		if ( errno == EEXIST && stat(filename, &filestat) == 0
+		     && S_ISDIR(filestat.st_mode) )
+			return new Val(1, TYPE_BOOL);
+
+		builtin_error(fmt("cannot create directory '%s': %s", filename,
+		                  strerror(error)));
+		return new Val(0, TYPE_BOOL);
+		}
+	else
+		return new Val(1, TYPE_BOOL);
+	%}
+
+
+## Removes a directory.
+##
+## d: The directory name.
+##
+## Returns: True if the operation succeeds, and false if the
+##          directory delete operation fails.
+##
+## .. bro:see:: active_file open_for_append close write_file
+##              get_file_name set_buf flush_all enable_raw_output
+##              mkdir unlink rename
+function rmdir%(d: string%): bool
+	%{
+	const char* dirname = d->CheckString();
+
+	if ( rmdir(dirname) < 0 )
+		{
+		builtin_error(fmt("cannot remove directory '%s': %s", dirname,
+		                  strerror(errno)));
+		return new Val(0, TYPE_BOOL);
+		}
+	else
+		return new Val(1, TYPE_BOOL);
+	%}
+
+## Removes a file from a directory.
+##
+## f: the file to delete.
+##
+## Returns: True if the operation succeeds and the file was deleted,
+##          and false if the deletion fails.
+##
+## .. bro:see:: active_file open_for_append close write_file
+##              get_file_name set_buf flush_all enable_raw_output
+##              mkdir rmdir rename
+function unlink%(f: string%): bool
+	%{
+	const char* filename = f->CheckString();
+
+	if ( unlink(filename) < 0 )
+		{
+		builtin_error(fmt("cannot unlink file '%s': %s", filename,
+		                  strerror(errno)));
+		return new Val(0, TYPE_BOOL);
+		}
+	else
+		return new Val(1, TYPE_BOOL);
+	%}
+
+## Renames a file from src_f to dst_f.
+##
+## src_f: the name of the file to rename.
+##
+## dest_f: the name of the file after the rename operation.
+##
+## Returns: True if the rename succeeds and false otherwise.
+##
+## .. bro:see:: active_file open_for_append close write_file
+##              get_file_name set_buf flush_all enable_raw_output
+##              mkdir rmdir unlink
+function rename%(src_f: string, dst_f: string%): bool
+	%{
+	const char* src_filename = src_f->CheckString();
+	const char* dst_filename = dst_f->CheckString();
+
+	if ( rename(src_filename, dst_filename) < 0 )
+		{
+		builtin_error(fmt("cannot rename file '%s' to '%s': %s", src_filename,
+		                  dst_filename, strerror(errno)));
 		return new Val(0, TYPE_BOOL);
 		}
 	else
@@ -4533,7 +4826,7 @@ function uninstall_dst_net_filter%(snet: subnet%) : bool
 ## Enables the communication system. By default, the communication is off until
 ## explicitly enabled, and all other calls to communication-related functions
 ## will be ignored until done so.
-function enable_communication%(%): any
+function enable_communication%(%): any &deprecated
 	%{
 	if ( bro_start_network_time != 0.0 )
 		{
@@ -4643,7 +4936,7 @@ function capture_state_updates%(filename: string%) : bool
 ##              set_compression_level
 ##              send_state
 ##              send_id
-function connect%(ip: addr, zone_id: string, p: port, our_class: string, retry: interval, ssl: bool%) : count
+function connect%(ip: addr, zone_id: string, p: port, our_class: string, retry: interval, ssl: bool%) : count &deprecated
 	%{
 	return new Val(uint32(remote_serializer->Connect(ip->AsAddr(),
 	               zone_id->CheckString(), p->Port(), our_class->CheckString(),
@@ -4658,7 +4951,7 @@ function connect%(ip: addr, zone_id: string, p: port, our_class: string, retry: 
 ## Returns: True on success.
 ##
 ## .. bro:see:: connect listen
-function disconnect%(p: event_peer%) : bool
+function disconnect%(p: event_peer%) : bool &deprecated
     %{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
 	return new Val(remote_serializer->CloseConnection(id), TYPE_BOOL);
@@ -4676,7 +4969,7 @@ function disconnect%(p: event_peer%) : bool
 ## .. bro:see:: request_remote_sync
 ##              request_remote_logs
 ##              set_accept_state
-function request_remote_events%(p: event_peer, handlers: pattern%) : bool
+function request_remote_events%(p: event_peer, handlers: pattern%) : bool &deprecated
 	%{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
 	return new Val(remote_serializer->RequestEvents(id, handlers),
@@ -4695,7 +4988,7 @@ function request_remote_events%(p: event_peer, handlers: pattern%) : bool
 ## .. bro:see:: request_remote_events
 ##              request_remote_logs
 ##              set_accept_state
-function request_remote_sync%(p: event_peer, auth: bool%) : bool
+function request_remote_sync%(p: event_peer, auth: bool%) : bool &deprecated
 	%{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
 	return new Val(remote_serializer->RequestSync(id, auth), TYPE_BOOL);
@@ -4709,7 +5002,7 @@ function request_remote_sync%(p: event_peer, auth: bool%) : bool
 ##
 ## .. bro:see:: request_remote_events
 ##              request_remote_sync
-function request_remote_logs%(p: event_peer%) : bool
+function request_remote_logs%(p: event_peer%) : bool &deprecated
 	%{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
 	return new Val(remote_serializer->RequestLogs(id), TYPE_BOOL);
@@ -4726,7 +5019,7 @@ function request_remote_logs%(p: event_peer%) : bool
 ## .. bro:see:: request_remote_events
 ##              request_remote_sync
 ##              set_compression_level
-function set_accept_state%(p: event_peer, accept: bool%) : bool
+function set_accept_state%(p: event_peer, accept: bool%) : bool &deprecated
 	%{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
 	return new Val(remote_serializer->SetAcceptState(id, accept),
@@ -4743,7 +5036,7 @@ function set_accept_state%(p: event_peer, accept: bool%) : bool
 ## Returns: True on success.
 ##
 ## .. bro:see:: set_accept_state
-function set_compression_level%(p: event_peer, level: count%) : bool
+function set_compression_level%(p: event_peer, level: count%) : bool &deprecated
 	%{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
 	return new Val(remote_serializer->SetCompressionLevel(id, level),
@@ -4770,7 +5063,7 @@ function set_compression_level%(p: event_peer, level: count%) : bool
 ## Returns: True on success.
 ##
 ## .. bro:see:: connect disconnect
-function listen%(ip: addr, p: port, ssl: bool, ipv6: bool, zone_id: string, retry_interval: interval%) : bool
+function listen%(ip: addr, p: port, ssl: bool, ipv6: bool, zone_id: string, retry_interval: interval%) : bool &deprecated
 	%{
 	return new Val(remote_serializer->Listen(ip->AsAddr(), p->Port(), ssl, ipv6, zone_id->CheckString(), retry_interval), TYPE_BOOL);
 	%}
@@ -4806,7 +5099,7 @@ function send_state%(p: event_peer%) : bool
 ## Returns: True on success.
 ##
 ## .. bro:see:: send_state send_ping send_current_packet send_capture_filter
-function send_id%(p: event_peer, id: string%) : bool
+function send_id%(p: event_peer, id: string%) : bool &deprecated
 	%{
 	RemoteSerializer::PeerID pid = p->AsRecordVal()->Lookup(0)->AsCount();
 
@@ -4825,7 +5118,7 @@ function send_id%(p: event_peer, id: string%) : bool
 ## data from parent and child has been sent out.
 ##
 ## Returns: True if the termination process has been started successfully.
-function terminate_communication%(%) : bool
+function terminate_communication%(%) : bool &deprecated
 	%{
 	return new Val(remote_serializer->Terminate(), TYPE_BOOL);
 	%}
@@ -4836,7 +5129,7 @@ function terminate_communication%(%) : bool
 ## p: The peer ID returned from :bro:id:`connect`.
 ##
 ## Returns: True on success.
-function complete_handshake%(p: event_peer%) : bool
+function complete_handshake%(p: event_peer%) : bool &deprecated
 	%{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
 	return new Val(remote_serializer->CompleteHandshake(id), TYPE_BOOL);
@@ -4853,7 +5146,7 @@ function complete_handshake%(p: event_peer%) : bool
 ## Returns: True if sending the ping succeeds.
 ##
 ## .. bro:see:: send_state send_id send_current_packet send_capture_filter
-function send_ping%(p: event_peer, seq: count%) : bool
+function send_ping%(p: event_peer, seq: count%) : bool &deprecated
 	%{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
 	return new Val(remote_serializer->SendPing(id, seq), TYPE_BOOL);
@@ -4867,7 +5160,7 @@ function send_ping%(p: event_peer, seq: count%) : bool
 ##
 ## .. bro:see:: send_id send_state send_ping send_capture_filter
 ##              dump_packet dump_current_packet get_current_packet
-function send_current_packet%(p: event_peer%) : bool
+function send_current_packet%(p: event_peer%) : bool &deprecated
 	%{
 	const Packet* pkt;
 
@@ -4883,15 +5176,27 @@ function send_current_packet%(p: event_peer%) : bool
 
 ## Returns the peer who generated the last event.
 ##
+## Note, this function is deprecated. It works correctly only for local events and
+## events received through the legacy communication system. It does *not* work for
+## events received through Broker and will report an error in that case.
+##
 ## Returns: The ID of the peer who generated the last event.
 ##
 ## .. bro:see:: get_local_event_peer
-function get_event_peer%(%) : event_peer
+function get_event_peer%(%) : event_peer &deprecated
 	%{
 	SourceID src = mgr.CurrentSource();
 
 	if ( src == SOURCE_LOCAL )
 		{
+		RecordVal* p = mgr.GetLocalPeerVal();
+		Ref(p);
+		return p;
+		}
+
+	if ( src == SOURCE_BROKER )
+		{
+		reporter->Error("get_event_peer() does not support Broker events");
 		RecordVal* p = mgr.GetLocalPeerVal();
 		Ref(p);
 		return p;
@@ -4917,7 +5222,7 @@ function get_event_peer%(%) : event_peer
 ## Returns: The peer ID of the local Bro instance.
 ##
 ## .. bro:see:: get_event_peer
-function get_local_event_peer%(%) : event_peer
+function get_local_event_peer%(%) : event_peer &deprecated
 	%{
 	RecordVal* p = mgr.GetLocalPeerVal();
 	Ref(p);
@@ -4933,7 +5238,7 @@ function get_local_event_peer%(%) : event_peer
 ## Returns: True if sending the packet succeeds.
 ##
 ## .. bro:see:: send_id send_state send_ping send_current_packet
-function send_capture_filter%(p: event_peer, s: string%) : bool
+function send_capture_filter%(p: event_peer, s: string%) : bool &deprecated
 	%{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
 	return new Val(remote_serializer->SendCaptureFilter(id, s->CheckString()), TYPE_BOOL);
@@ -4962,7 +5267,7 @@ function continue_processing%(%) : any
 ## Stops propagating :bro:attr:`&synchronized` accesses.
 ##
 ## .. bro:see:: suspend_processing continue_processing resume_state_updates
-function suspend_state_updates%(%) : any
+function suspend_state_updates%(%) : any &deprecated
 	%{
 	if ( remote_serializer )
 		remote_serializer->SuspendStateUpdates();
@@ -4972,7 +5277,7 @@ function suspend_state_updates%(%) : any
 ## Resumes propagating :bro:attr:`&synchronized` accesses.
 ##
 ## .. bro:see:: suspend_processing continue_processing suspend_state_updates
-function resume_state_updates%(%) : any
+function resume_state_updates%(%) : any &deprecated
 	%{
 	if ( remote_serializer )
 		remote_serializer->ResumeStateUpdates();

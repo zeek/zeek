@@ -1,6 +1,7 @@
 #include "DHCP.h"
 
 #include "events.bif.h"
+#include "types.bif.h"
 
 using namespace analyzer::dhcp;
 
@@ -24,5 +25,14 @@ void DHCP_Analyzer::DeliverPacket(int len, const u_char* data,
 			bool orig, uint64 seq, const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
-	interp->NewData(orig, data, data + len);
+
+	try
+		{
+		interp->NewData(orig, data, data + len);
+		}
+	catch ( const binpac::Exception& e )
+		{
+		ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
+		}
+
 	}

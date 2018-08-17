@@ -183,7 +183,7 @@ event connection_flow_label_changed%(c: connection, is_orig: bool, old_label: co
 
 ## Generated for a new connection received from the communication subsystem.
 ## Remote peers can inject packets into Bro's packet loop, for example via
-## :doc:`Broccoli </components/broccoli/README>`.  The communication system
+## Broccoli.  The communication system
 ## raises this event with the first packet of a connection coming in this way.
 ##
 ## c: The connection.

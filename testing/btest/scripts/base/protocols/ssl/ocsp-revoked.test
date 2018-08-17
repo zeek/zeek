@@ -1,0 +1,43 @@
+# This tests OCSP response with revocation
+
+# @TEST-EXEC: bro -C -r $TRACES/tls/ocsp-revoked.pcap %INPUT
+# @TEST-EXEC: btest-diff ocsp.log
+# @TEST-EXEC: btest-diff .stdout
+
+@load files/x509/log-ocsp
+
+event bro_init()
+	{
+	Files::register_for_mime_type(Files::ANALYZER_OCSP_REQUEST, "application/ocsp-request");
+	Files::register_for_mime_type(Files::ANALYZER_OCSP_REPLY, "application/ocsp-response");
+	}
+
+event ocsp_extension(f: fa_file, ext: X509::Extension, global_resp: bool)
+	{
+	print "extension: ", ext, global_resp;
+	}
+
+event ocsp_request(f: fa_file, version: count)
+	{
+	print "request", version, "";
+	}
+
+event ocsp_request_certificate(f: fa_file, hashAlgorithm: string, issuerNameHash: string, issuerKeyHash: string, serialNumber: string)
+	{
+	print "request cert", hashAlgorithm, issuerNameHash, issuerKeyHash, serialNumber;
+	}
+
+event ocsp_response_status(f: fa_file, status: string)
+	{
+	print "ocsp_response_status", status;
+	}
+
+event ocsp_response_bytes(f: fa_file, resp_ref: opaque of ocsp_resp, status: string, version: count, responderId: string, producedAt: time, signatureAlgorithm: string, certs: x509_opaque_vector)
+	{
+	print "ocsp_response_bytes", status, version, responderId, producedAt, signatureAlgorithm;
+	}
+
+event ocsp_response_certificate(f: fa_file, hashAlgorithm: string, issuerNameHash: string, issuerKeyHash: string, serialNumber: string, certStatus: string, revoketime: time, revokereason: string, thisUpdate: time, nextUpdate: time)
+	{
+	print "ocsp_response_certificate", hashAlgorithm, issuerNameHash, issuerKeyHash, serialNumber, certStatus, revoketime, revokereason, thisUpdate, nextUpdate;
+	}

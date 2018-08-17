@@ -10,9 +10,9 @@
 
 static const bool DEBUG_reassem = false;
 
-DataBlock::DataBlock(const u_char* data, uint64 size, uint64 arg_seq,
-		     DataBlock* arg_prev, DataBlock* arg_next,
-		     ReassemblerType reassem_type)
+DataBlock::DataBlock(Reassembler* reass, const u_char* data,
+                     uint64 size, uint64 arg_seq, DataBlock* arg_prev,
+                     DataBlock* arg_next, ReassemblerType reassem_type)
 	{
 	seq = arg_seq;
 	upper = seq + size;
@@ -28,6 +28,9 @@ DataBlock::DataBlock(const u_char* data, uint64 size, uint64 arg_seq,
 	if ( next )
 		next->prev = this;
 
+	reassembler = reass;
+	reassembler->size_of_all_blocks += size;
+
 	rtype = reassem_type;
 	Reassembler::sizes[rtype] += pad_size(size) + padded_sizeof(DataBlock);
 	Reassembler::total_size += pad_size(size) + padded_sizeof(DataBlock);
@@ -37,12 +40,11 @@ uint64 Reassembler::total_size = 0;
 uint64 Reassembler::sizes[REASSEM_NUM];
 
 Reassembler::Reassembler(uint64 init_seq, ReassemblerType reassem_type)
+	:  blocks(), last_block(), old_blocks(), last_old_block(),
+	  last_reassem_seq(init_seq), trim_seq(init_seq),
+	  max_old_blocks(0), total_old_blocks(0), size_of_all_blocks(0),
+	  rtype(reassem_type)
 	{
-	blocks = last_block = 0;
-	old_blocks = last_old_block = 0;
-	total_old_blocks = max_old_blocks = 0;
-	trim_seq = last_reassem_seq = init_seq;
-	rtype = reassem_type;
 	}
 
 Reassembler::~Reassembler()
@@ -55,6 +57,10 @@ void Reassembler::CheckOverlap(DataBlock *head, DataBlock *tail,
 					uint64 seq, uint64 len, const u_char* data)
 	{
 	if ( ! head || ! tail )
+		return;
+
+	if ( seq == tail->upper )
+		// Special case check for common case of appending to the end.
 		return;
 
 	uint64 upper = (seq + len);
@@ -116,7 +122,7 @@ void Reassembler::NewBlock(double t, uint64 seq, uint64 len, const u_char* data)
 
 	if ( ! blocks )
 		blocks = last_block = start_block =
-			new DataBlock(data, len, seq, 0, 0, rtype);
+			new DataBlock(this, data, len, seq, 0, 0, rtype);
 	else
 		start_block = AddAndCheck(blocks, seq, upper_seq, data);
 
@@ -249,12 +255,7 @@ void Reassembler::ClearOldBlocks()
 
 uint64 Reassembler::TotalSize() const
 	{
-	uint64 size = 0;
-
-	for ( DataBlock* b = blocks; b; b = b->next )
-		size += b->Size();
-
-	return size;
+	return size_of_all_blocks;
 	}
 
 void Reassembler::Describe(ODesc* d) const
@@ -280,8 +281,8 @@ DataBlock* Reassembler::AddAndCheck(DataBlock* b, uint64 seq, uint64 upper,
 	// Special check for the common case of appending to the end.
 	if ( last_block && seq == last_block->upper )
 		{
-		last_block = new DataBlock(data, upper - seq, seq,
-					   last_block, 0, rtype);
+		last_block = new DataBlock(this, data, upper - seq,
+		                           seq, last_block, 0, rtype);
 		return last_block;
 		}
 
@@ -294,7 +295,8 @@ DataBlock* Reassembler::AddAndCheck(DataBlock* b, uint64 seq, uint64 upper,
 		{
 		// b is the last block, and it comes completely before
 		// the new block.
-		last_block = new DataBlock(data, upper - seq, seq, b, 0, rtype);
+		last_block = new DataBlock(this, data, upper - seq,
+		                           seq, b, 0, rtype);
 		return last_block;
 		}
 
@@ -303,7 +305,8 @@ DataBlock* Reassembler::AddAndCheck(DataBlock* b, uint64 seq, uint64 upper,
 	if ( upper <= b->seq )
 		{
 		// The new block comes completely before b.
-		new_b = new DataBlock(data, upper - seq, seq, b->prev, b, rtype);
+		new_b = new DataBlock(this, data, upper - seq, seq,
+		                      b->prev, b, rtype);
 		if ( b == blocks )
 			blocks = new_b;
 		return new_b;
@@ -314,7 +317,8 @@ DataBlock* Reassembler::AddAndCheck(DataBlock* b, uint64 seq, uint64 upper,
 		{
 		// The new block has a prefix that comes before b.
 		uint64 prefix_len = b->seq - seq;
-		new_b = new DataBlock(data, prefix_len, seq, b->prev, b, rtype);
+		new_b = new DataBlock(this, data, prefix_len, seq,
+		                      b->prev, b, rtype);
 		if ( b == blocks )
 			blocks = new_b;
 

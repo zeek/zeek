@@ -1,0 +1,122 @@
+# Test the to_json() function on every basic data type.  For container types,
+# test with no elements, with one element, and with more than one element.
+# Test that the "only_loggable" option works (output only record fields with
+# the &log attribute).
+# @TEST-EXEC: bro %INPUT >output
+# @TEST-EXEC: btest-diff output
+
+type color: enum { Red, White, Blue };
+
+type myrec1: record {
+	c: count &optional;
+	s: string &log;
+};
+
+type myrec2: record {
+	m: myrec1 &log;
+};
+
+event bro_init()
+	{
+	# #####################################
+	# Test the basic (non-container) types:
+
+	local b: bool = T;
+	print to_json(b);
+
+	local c: count = 123;
+	print to_json(c);
+
+	local i: int = -999;
+	print to_json(i);
+
+	local d1: double = 3.14;
+	local d2: double = -1.23456789e308;
+	local d3: double = 9e-308;
+	print to_json(d1);
+	print to_json(d2);
+	print to_json(d3);
+
+	local t: time = double_to_time(1480788576.868945);
+	print to_json(t);
+
+	local ti: interval = -12hr;
+	print to_json(ti);
+
+	local s1: string = "hello";
+	local s2: string = "";
+	print to_json(s1);
+	print to_json(s2);
+
+	local p1: port = 65535/tcp;
+	local p2: port = 1/udp;
+	local p3: port = 123/icmp;
+	local p4: port = 0/unknown;
+	print to_json(p1);
+	print to_json(p2);
+	print to_json(p3);
+	print to_json(p4);
+
+	local a1: addr = 1.2.3.4;
+	local a2: addr = [ffff:1234::1];
+	local a3: addr = [::ffff:123.123.123.123];
+	print to_json(a1);
+	print to_json(a2);
+	print to_json(a3);
+
+	local su1: subnet = 192.0.0.0/8;
+	local su2: subnet = [fe80::]/64;
+	print to_json(su1);
+	print to_json(su2);
+
+	local e: color = Red;
+	print to_json(e);
+
+	# #########################
+	# Test the container types:
+
+	# Records
+	local re1 = myrec1($c=100, $s="test");
+	local re2 = myrec1($s="test");
+	local re3 = myrec2($m=myrec1($c=15, $s="test"));
+	print to_json(re1);
+	print to_json(re1, T);
+	print to_json(re2);
+	print to_json(re3, T);
+
+	# Vectors
+	local ve1: vector of count = vector();
+	local ve2: vector of count = vector(2, 1);
+	local ve3: vector of addr = vector(1.2.3.4);
+	local ve4: vector of set[bool] = vector(set(T, F));
+	local ve5: vector of myrec1 = vector(myrec1($s="test", $c=2));
+	print to_json(ve1);
+	print to_json(ve2);
+	print to_json(ve3);
+	print to_json(ve4);
+	print to_json(ve5, T);
+
+	# Sets
+	local st1: set[count] = set();
+	local st2: set[count] = set(2, 1);
+	local st3: set[addr] = set(1.2.3.4);
+	local st4: set[myrec1] = set(myrec1($s="test"));
+	local st5: set[myrec1] = set(myrec1($s="test", $c=2));
+	print to_json(st1);
+	print to_json(st2);
+	print to_json(st3);
+	print to_json(st4);
+	print to_json(st5, T);
+
+	# Tables
+	local ta1: table[count] of addr = table();
+	local ta2: table[count] of addr = {[1] = 10.1.1.1, [2] = 10.2.2.2};
+	local ta3: table[addr] of table[string] of count = {[10.1.1.1] = table(["a"] = 1), [10.2.2.2] = table(["b"] = 2)};
+	local ta4: table[addr] of vector of count = {[10.1.1.1] = vector(1, 2), [10.2.2.2] = vector(3, 5)};
+	local ta5: table[count] of myrec1 = {[1] = myrec1($s="test", $c=2)};
+	print to_json(ta1);
+	print to_json(ta2);
+	print to_json(ta3);
+	print to_json(ta4);
+	print to_json(ta5, T);
+	}

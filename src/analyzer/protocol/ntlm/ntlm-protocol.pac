@@ -171,7 +171,7 @@ type NTLM_Negotiate_Flags = record {
 	request_non_nt_session_key          : bool = (flags & 0x00400000) > 0;
 	negotiate_identify                  : bool = (flags & 0x00100000) > 0;
 
-	negotiate_extended_sessionsecurity  : bool = (flags & 0x00040000) > 0;
+	negotiate_extended_sessionsecurity  : bool = (flags & 0x00080000) > 0;
 	target_type_server                  : bool = (flags & 0x00020000) > 0;
 	target_type_domain                  : bool = (flags & 0x00010000) > 0;
 
@@ -179,14 +179,14 @@ type NTLM_Negotiate_Flags = record {
 	negotiate_oem_workstation_supplied  : bool = (flags & 0x00002000) > 0;
 	negotiate_oem_domain_supplied       : bool = (flags & 0x00001000) > 0;
 
-	negotiate_anonymous_connection      : bool = (flags & 0x00000400) > 0;
-	negotiate_ntlm                      : bool = (flags & 0x00000100) > 0;
+	negotiate_anonymous_connection      : bool = (flags & 0x00000800) > 0;
+	negotiate_ntlm                      : bool = (flags & 0x00000200) > 0;
 
 	negotiate_lm_key                    : bool = (flags & 0x00000080) > 0;
 	negotiate_datagram                  : bool = (flags & 0x00000040) > 0;
 	negotiate_seal                      : bool = (flags & 0x00000020) > 0;
+	negotiate_sign                      : bool = (flags & 0x00000010) > 0;
 
-	negotiate_sign                      : bool = (flags & 0x00000008) > 0;
 	request_target                      : bool = (flags & 0x00000004) > 0;
 	negotiate_oem                       : bool = (flags & 0x00000002) > 0;
 	negotiate_unicode                   : bool = (flags & 0x00000001) > 0;

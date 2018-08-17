@@ -2,6 +2,7 @@
 %%{ // C segment
 #include "util.h"
 #include "threading/Manager.h"
+#include "broker/Manager.h"
 
 RecordType* ProcStats;
 RecordType* NetStats;
@@ -14,6 +15,7 @@ RecordType* EventStats;
 RecordType* ThreadStats;
 RecordType* TimerStats;
 RecordType* FileAnalysisStats;
+RecordType* BrokerStats;
 %%}
 
 ## Returns packet capture statistics. Statistics include the number of
@@ -32,6 +34,7 @@ RecordType* FileAnalysisStats;
 ##              get_reassembler_stats
 ##              get_thread_stats
 ##              get_timer_stats
+##              get_broker_stats
 function get_net_stats%(%): NetStats
 	%{
 	uint64 recv = 0;
@@ -79,6 +82,7 @@ function get_net_stats%(%): NetStats
 ##              get_reassembler_stats
 ##              get_thread_stats
 ##              get_timer_stats
+##              get_broker_stats
 function get_conn_stats%(%): ConnStats
 	%{
 	RecordVal* r = new RecordVal(ConnStats);
@@ -128,6 +132,7 @@ function get_conn_stats%(%): ConnStats
 ##              get_reassembler_stats
 ##              get_thread_stats
 ##              get_timer_stats
+##              get_broker_stats
 function get_proc_stats%(%): ProcStats
 	%{
 	struct rusage ru;
@@ -183,6 +188,7 @@ function get_proc_stats%(%): ProcStats
 ##              get_reassembler_stats
 ##              get_thread_stats
 ##              get_timer_stats
+##              get_broker_stats
 function get_event_stats%(%): EventStats
 	%{
 	RecordVal* r = new RecordVal(EventStats);
@@ -208,6 +214,7 @@ function get_event_stats%(%): EventStats
 ##              get_proc_stats
 ##              get_thread_stats
 ##              get_timer_stats
+##              get_broker_stats
 function get_reassembler_stats%(%): ReassemblerStats
 	%{
 	RecordVal* r = new RecordVal(ReassemblerStats);
@@ -235,6 +242,7 @@ function get_reassembler_stats%(%): ReassemblerStats
 ##              get_reassembler_stats
 ##              get_thread_stats
 ##              get_timer_stats
+##              get_broker_stats
 function get_dns_stats%(%): DNSStats
 	%{
 	RecordVal* r = new RecordVal(DNSStats);
@@ -267,6 +275,7 @@ function get_dns_stats%(%): DNSStats
 ##              get_proc_stats
 ##              get_reassembler_stats
 ##              get_thread_stats
+##              get_broker_stats
 function get_timer_stats%(%): TimerStats
 	%{
 	RecordVal* r = new RecordVal(TimerStats);
@@ -293,6 +302,7 @@ function get_timer_stats%(%): TimerStats
 ##              get_reassembler_stats
 ##              get_thread_stats
 ##              get_timer_stats
+##              get_broker_stats
 function get_file_analysis_stats%(%): FileAnalysisStats
 	%{
 	RecordVal* r = new RecordVal(FileAnalysisStats);
@@ -319,6 +329,7 @@ function get_file_analysis_stats%(%): FileAnalysisStats
 ##              get_proc_stats
 ##              get_reassembler_stats
 ##              get_timer_stats
+##              get_broker_stats
 function get_thread_stats%(%): ThreadStats
 	%{
 	RecordVal* r = new RecordVal(ThreadStats);
@@ -343,6 +354,7 @@ function get_thread_stats%(%): ThreadStats
 ##              get_reassembler_stats
 ##              get_thread_stats
 ##              get_timer_stats
+##              get_broker_stats
 function get_gap_stats%(%): GapStats
 	%{
 	RecordVal* r = new RecordVal(GapStats);
@@ -373,6 +385,7 @@ function get_gap_stats%(%): GapStats
 ##              get_reassembler_stats
 ##              get_thread_stats
 ##              get_timer_stats
+##              get_broker_stats
 function get_matcher_stats%(%): MatcherStats
 	%{
 	RecordVal* r = new RecordVal(MatcherStats);
@@ -394,29 +407,37 @@ function get_matcher_stats%(%): MatcherStats
 	return r;
 	%}
 
-# function get_broker_stats%(%): BrokerStats
-# 	%{
-# 	RecordVal* r = new RecordVal(CommunicationStats);
-# 	int n = 0;
-#
-# #ifdef ENABLE_BROKER
-# 	auto cs = broker_mgr->ConsumeStatistics();
-#
-# 	r->Assign(n++, new Val(cs.outgoing_peer_count, TYPE_COUNT));
-# 	r->Assign(n++, new Val(cs.data_store_count, TYPE_COUNT));
-# 	r->Assign(n++, new Val(cs.pending_query_count, TYPE_COUNT));
-# 	r->Assign(n++, new Val(cs.response_count, TYPE_COUNT));
-# 	r->Assign(n++, new Val(cs.outgoing_conn_status_count, TYPE_COUNT));
-# 	r->Assign(n++, new Val(cs.incoming_conn_status_count, TYPE_COUNT));
-# 	r->Assign(n++, new Val(cs.report_count, TYPE_COUNT));
-#
-# 	//for ( const auto& s : cs.print_count )
-# 	//	file->Write(fmt("    %-25s prints dequeued=%zu\n", s.first.data(), s.second));
-# 	//for ( const auto& s : cs.event_count )
-# 	//	file->Write(fmt("    %-25s events dequeued=%zu\n", s.first.data(), s.second));
-# 	//for ( const auto& s : cs.log_count )
-# 	//	file->Write(fmt("    %-25s logs dequeued=%zu\n", s.first.data(), s.second));
-# #endif
-#
-# 	return r;
-# 	%}
+## Returns statistics about Broker communication.
+##
+## Returns: A record with Broker statistics.
+##
+## .. bro:see:: get_conn_stats
+##              get_dns_stats
+##              get_event_stats
+##              get_file_analysis_stats
+##              get_gap_stats
+##              get_matcher_stats
+##              get_net_stats
+##              get_proc_stats
+##              get_reassembler_stats
+##              get_thread_stats
+##              get_timer_stats
+##              get_broker_stats
+function get_broker_stats%(%): BrokerStats
+	%{
+	RecordVal* r = new RecordVal(BrokerStats);
+	int n = 0;
+	
+	auto cs = broker_mgr->GetStatistics();
+	r->Assign(n++, new Val(static_cast<uint64_t>(cs.num_peers), TYPE_COUNT));
+	r->Assign(n++, new Val(static_cast<uint64_t>(cs.num_stores), TYPE_COUNT));
+	r->Assign(n++, new Val(static_cast<uint64_t>(cs.num_pending_queries), TYPE_COUNT));
+	r->Assign(n++, new Val(static_cast<uint64_t>(cs.num_events_incoming), TYPE_COUNT));
+	r->Assign(n++, new Val(static_cast<uint64_t>(cs.num_events_outgoing), TYPE_COUNT));
+	r->Assign(n++, new Val(static_cast<uint64_t>(cs.num_logs_incoming), TYPE_COUNT));
+	r->Assign(n++, new Val(static_cast<uint64_t>(cs.num_logs_outgoing), TYPE_COUNT));
+	r->Assign(n++, new Val(static_cast<uint64_t>(cs.num_ids_incoming), TYPE_COUNT));
+	r->Assign(n++, new Val(static_cast<uint64_t>(cs.num_ids_outgoing), TYPE_COUNT));
+
+	return r;
+	%}

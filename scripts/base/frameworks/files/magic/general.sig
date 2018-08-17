@@ -116,7 +116,7 @@ signature file-reg-utf16 {
 
 # Microsoft Registry format (typically DESKTOP.DAT)
 signature file-regf {
-	file-mime "application vnd.ms-regf", 49
+	file-mime "application/vnd.ms-regf", 49
 	file-magic /^\x72\x65\x67\x66/
 }
 

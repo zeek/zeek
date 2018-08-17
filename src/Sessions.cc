@@ -337,11 +337,25 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 		return;
 		}
 
+	// For both of these it is safe to pass ip_hdr because the presence
+	// is guaranteed for the functions that pass data to us.
+	uint16 ip_hdr_len = ip_hdr->HdrLen();
+	if ( ip_hdr_len > len )
+		{
+		Weird("invalid_IP_header_size", ip_hdr, encapsulation);
+		return;
+		}
+
+	if ( ip_hdr_len > caplen )
+		{
+		Weird("internally_truncated_header", ip_hdr, encapsulation);
+		return;
+		}
+
 	// Ignore if packet matches packet filter.
 	if ( packet_filter && packet_filter->Match(ip_hdr, len, caplen) )
 		 return;
 
-	int ip_hdr_len = ip_hdr->HdrLen();
 	if ( ! ignore_checksums && ip4 &&
 	     ones_complement_checksum((void*) ip4, ip_hdr_len, 0) != 0xffff )
 		{
@@ -381,6 +395,12 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 
 			caplen = len = ip_hdr->TotalLen();
 			ip_hdr_len = ip_hdr->HdrLen();
+
+			if ( ip_hdr_len > len )
+				{
+				Weird("invalid_IP_header_size", ip_hdr, encapsulation);
+				return;
+				}
 			}
 		}
 
@@ -431,7 +451,6 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 		return;
 		}
 #endif
-
 	int proto = ip_hdr->NextProto();
 
 	if ( CheckHeaderTrunc(proto, len, caplen, pkt, encapsulation) )
@@ -510,6 +529,11 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 		uint16 proto_typ = ntohs(*((uint16*)(data + 2)));
 		int gre_version = flags_ver & 0x0007;
 
+		// If a carried packet has ethernet, this will help skip it.
+		unsigned int eth_len = 0;
+		unsigned int gre_len = gre_header_len(flags_ver);
+		unsigned int ppp_len = gre_version == 1 ? 4 : 0;
+
 		if ( gre_version != 0 && gre_version != 1 )
 			{
 			Weird(fmt("unknown_gre_version_%d", gre_version), ip_hdr,
@@ -519,7 +543,18 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 
 		if ( gre_version == 0 )
 			{
-			if ( proto_typ != 0x0800 && proto_typ != 0x86dd )
+			if ( proto_typ == 0x6558 && len > gre_len + 14 )
+				{
+				// transparent ethernet bridging
+				eth_len = 14;
+				proto_typ = ntohs(*((uint16*)(data + gre_len + 12)));
+				}
+
+			if ( proto_typ == 0x0800 )
+				proto = IPPROTO_IPV4;
+			else if ( proto_typ == 0x86dd )
+				proto = IPPROTO_IPV6;
+			else
 				{
 				// Not IPv4/IPv6 payload.
 				Weird(fmt("unknown_gre_protocol_%" PRIu16, proto_typ), ip_hdr,
@@ -527,7 +562,6 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 				return;
 				}
 
-			proto = (proto_typ == 0x0800) ? IPPROTO_IPV4 : IPPROTO_IPV6;
 			}
 
 		else // gre_version == 1
@@ -556,10 +590,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 			return;
 			}
 
-		unsigned int gre_len = gre_header_len(flags_ver);
-		unsigned int ppp_len = gre_version == 1 ? 1 : 0;
-
-		if ( len < gre_len + ppp_len || caplen < gre_len + ppp_len )
+		if ( len < gre_len + ppp_len + eth_len || caplen < gre_len + ppp_len + eth_len )
 			{
 			Weird("truncated_GRE", ip_hdr, encapsulation);
 			return;
@@ -567,7 +598,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 
 		if ( gre_version == 1 )
 			{
-			int ppp_proto = *((uint8*)(data + gre_len));
+			uint16 ppp_proto = ntohs(*((uint16*)(data + gre_len + 2)));
 
 			if ( ppp_proto != 0x0021 && ppp_proto != 0x0057 )
 				{
@@ -578,9 +609,9 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 			proto = (ppp_proto == 0x0021) ? IPPROTO_IPV4 : IPPROTO_IPV6;
 			}
 
-		data += gre_len + ppp_len;
-		len -= gre_len + ppp_len;
-		caplen -= gre_len + ppp_len;
+		data += gre_len + ppp_len + eth_len;
+		len -= gre_len + ppp_len + eth_len;
+		caplen -= gre_len + ppp_len + eth_len;
 
 		// Treat GRE tunnel like IP tunnels, fallthrough to logic below now
 		// that GRE header is stripped and only payload packet remains.
@@ -607,10 +638,10 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 		// Check for a valid inner packet first.
 		IP_Hdr* inner = 0;
 		int result = ParseIPPacket(caplen, data, proto, inner);
-
-		if ( result < 0 )
+		if ( result == -2 )
+			Weird("invalid_inner_IP_version", ip_hdr, encapsulation);
+		else if ( result < 0 )
 			Weird("truncated_inner_IP", ip_hdr, encapsulation);
-
 		else if ( result > 0 )
 			Weird("inner_IP_payload_length_mismatch", ip_hdr, encapsulation);
 
@@ -794,6 +825,7 @@ void NetSessions::DoNextInnerPacket(double t, const Packet* pkt,
 	// Construct fake packet for DoNextPacket
 	Packet p;
 	p.Init(DLT_RAW, &ts, caplen, len, data, false, "");
+
 	DoNextPacket(t, &p, inner, outer);
 
 	delete inner;
@@ -808,7 +840,10 @@ int NetSessions::ParseIPPacket(int caplen, const u_char* const pkt, int proto,
 		if ( caplen < (int)sizeof(struct ip6_hdr) )
 			return -1;
 
-		inner = new IP_Hdr((const struct ip6_hdr*) pkt, false, caplen);
+		const struct ip6_hdr* ip6 = (const struct ip6_hdr*) pkt;
+		inner = new IP_Hdr(ip6, false, caplen);
+		if ( ( ip6->ip6_ctlun.ip6_un2_vfc & 0xF0 ) != 0x60 )
+			return -2;
 		}
 
 	else if ( proto == IPPROTO_IPV4 )
@@ -816,7 +851,10 @@ int NetSessions::ParseIPPacket(int caplen, const u_char* const pkt, int proto,
 		if ( caplen < (int)sizeof(struct ip) )
 			return -1;
 
-		inner = new IP_Hdr((const struct ip*) pkt, false);
+		const struct ip* ip4 = (const struct ip*) pkt;
+		inner = new IP_Hdr(ip4, false);
+		if ( ip4->ip_v != 4 )
+			return -2;
 		}
 
 	else
@@ -1212,28 +1250,11 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 	if ( ! WantConnection(src_h, dst_h, tproto, flags, flip) )
 		return 0;
 
-	ConnID flip_id = *id;
-
-	if ( flip )
-		{
-		// Make a guess that we're seeing the tail half of
-		// an analyzable connection.
-		const IPAddr ta = flip_id.src_addr;
-		flip_id.src_addr = flip_id.dst_addr;
-		flip_id.dst_addr = ta;
-
-		uint32 t = flip_id.src_port;
-		flip_id.src_port = flip_id.dst_port;
-		flip_id.dst_port = t;
-
-		id = &flip_id;
-		}
-
 	Connection* conn = new Connection(this, k, t, id, flow_label, pkt, encapsulation);
 	conn->SetTransport(tproto);
 
 	if ( flip )
-		conn->AddHistory('^');
+		conn->FlipRoles();
 
 	if ( ! analyzer_mgr->BuildInitialAnalyzerTree(conn) )
 		{

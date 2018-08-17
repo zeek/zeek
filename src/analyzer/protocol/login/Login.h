@@ -24,16 +24,16 @@ typedef enum {
 class Login_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
 	Login_Analyzer(const char* name, Connection* conn);
-	~Login_Analyzer();
+	~Login_Analyzer() override;
 
-	virtual void DeliverStream(int len, const u_char* data, bool orig);
+	void DeliverStream(int len, const u_char* data, bool orig) override;
 
-	virtual void SetEnv(bool orig, char* name, char* val);
+	void SetEnv(bool orig, char* name, char* val) override;
 
 	login_state LoginState() const		{ return state; }
 	void SetLoginState(login_state s)	{ state = s; }
 
-	virtual void EndpointEOF(bool is_orig);
+	void EndpointEOF(bool is_orig) override;
 
 protected:
 	void NewLine(bool orig, char* line);

@@ -15,15 +15,15 @@ namespace pcap {
 class PcapDumper : public PktDumper {
 public:
 	PcapDumper(const std::string& path, bool append);
-	virtual ~PcapDumper();
+	~PcapDumper() override;
 
 	static PktDumper* Instantiate(const std::string& path, bool appen);
 
 protected:
 	// PktDumper interface.
-	virtual void Open();
-	virtual void Close();
-	virtual bool Dump(const Packet* pkt);
+	void Open() override;
+	void Close() override;
+	bool Dump(const Packet* pkt) override;
 
 private:
 	Properties props;

@@ -90,30 +90,27 @@ bool Raw::SetFDFlags(int fd, int cmd, int flags)
 		return true;
 
 	char buf[256];
-	strerror_r(errno, buf, sizeof(buf));
+	bro_strerror_r(errno, buf, sizeof(buf));
 	Error(Fmt("failed to set fd flags: %s", buf));
 	return false;
 	}
 
 
-bool Raw::LockForkMutex()
+std::unique_lock<std::mutex> Raw::AcquireForkMutex()
 	{
-	int res = pthread_mutex_lock(plugin::Bro_RawReader::plugin.ForkMutex());
-	if ( res == 0 )
-		return true;
+	auto lock = plugin::Bro_RawReader::plugin.ForkMutex();
 
-	Error(Fmt("cannot lock fork mutex: %d", res));
-	return false;
-	}
+	try
+		{
+		lock.lock();
+		}
 
-bool Raw::UnlockForkMutex()
-	{
-	int res = pthread_mutex_unlock(plugin::Bro_RawReader::plugin.ForkMutex());
-	if ( res == 0 )
-		return true;
+	catch ( const std::system_error& e )
+		{
+		reporter->FatalErrorWithCore("cannot lock fork mutex: %s", e.what());
+		}
 
-	Error(Fmt("cannot unlock fork mutex: %d", res));
-	return false;
+	return lock;
 	}
 
 bool Raw::Execute()
@@ -126,12 +123,10 @@ bool Raw::Execute()
 	// never crops up... ("never" meaning I haven't seen in it in
 	// hundreds of tests using 50+ threads where before I'd see the issue
 	// w/ just 2 threads ~33% of the time).
-	if ( ! LockForkMutex() )
-		return false;
+	auto lock = AcquireForkMutex();
 
 	if ( pipe(pipes) != 0 || pipe(pipes+2) || pipe(pipes+4) )
 		{
-		UnlockForkMutex();
 		Error(Fmt("Could not open pipe: %d", errno));
 		return false;
 		}
@@ -139,7 +134,6 @@ bool Raw::Execute()
 	childpid = fork();
 	if ( childpid < 0 )
 		{
-		UnlockForkMutex();
 		Error(Fmt("Could not create child process: %d", errno));
 		return false;
 		}
@@ -203,13 +197,12 @@ bool Raw::Execute()
 			else
 				{
 				char buf[256];
-				strerror_r(errno, buf, sizeof(buf));
+				bro_strerror_r(errno, buf, sizeof(buf));
 				Warning(Fmt("Could not set child process group: %s", buf));
 				}
 			}
 
-		if ( ! UnlockForkMutex() )
-			return false;
+		lock.unlock();
 
 		ClosePipeEnd(stdout_out);
 
@@ -300,7 +293,7 @@ bool Raw::OpenInput()
 			if ( fseek(file.get(), pos, whence) < 0 )
 				{
 				char buf[256];
-				strerror_r(errno, buf, sizeof(buf));
+				bro_strerror_r(errno, buf, sizeof(buf));
 				Error(Fmt("Seek failed in init: %s", buf));
 				}
 			}

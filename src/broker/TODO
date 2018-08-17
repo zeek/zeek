@@ -1,0 +1,8 @@
+
+For later:
+
+- Routing isn't supported yet
+
+- Error logging doesn't record the relevant peer. That's because
+  Broker doesn't pass the endpoint_info on for errors, as status
+  messages do.

@@ -6,21 +6,66 @@
 #include <string>
 
 #include "Val.h"
-#include "../File.h"
-#include "Analyzer.h"
+#include "X509Common.h"
 
-#include <openssl/x509.h>
-#include <openssl/asn1.h>
+#if (OPENSSL_VERSION_NUMBER < 0x10002000L || LIBRESSL_VERSION_NUMBER)
+
+#define X509_get_signature_nid(x) OBJ_obj2nid((x)->sig_alg->algorithm)
+
+#endif
+
+#if (OPENSSL_VERSION_NUMBER < 0x1010000fL || LIBRESSL_VERSION_NUMBER)
+
+#define X509_OBJECT_new()   (X509_OBJECT*)malloc(sizeof(X509_OBJECT))
+#define X509_OBJECT_free(a) free(a)
+
+#define OCSP_SINGLERESP_get0_id(s) (s)->certId
+#define OCSP_resp_get0_certs(x)    (x)->certs
+
+#define EVP_PKEY_get0_DSA(p)    ((p)->pkey.dsa)
+#define EVP_PKEY_get0_EC_KEY(p) ((p)->pkey.ec)
+#define EVP_PKEY_get0_RSA(p)    ((p)->pkey.rsa)
+
+static X509 *X509_OBJECT_get0_X509(const X509_OBJECT *a)
+{
+	if ( a == nullptr || a->type != X509_LU_X509 )
+		return nullptr;
+	return a->data.x509;
+}
+
+static void DSA_get0_pqg(const DSA *d,
+			 const BIGNUM **p, const BIGNUM **q, const BIGNUM **g)
+{
+	if ( p != nullptr )
+		*p = d->p;
+	if ( q != nullptr )
+		*q = d->q;
+	if ( g != nullptr )
+		*g = d->g;
+}
+
+static void RSA_get0_key(const RSA *r,
+			 const BIGNUM **n, const BIGNUM **e, const BIGNUM **d)
+{
+	if ( n != nullptr )
+		*n = r->n;
+	if ( e != nullptr )
+		*e = r->e;
+	if ( d != nullptr )
+		*d = r->d;
+}
+
+#endif
 
 namespace file_analysis {
 
 class X509Val;
 
-class X509 : public file_analysis::Analyzer {
+class X509 : public file_analysis::X509Common {
 public:
-	virtual bool DeliverStream(const u_char* data, uint64 len);
-	virtual bool Undelivered(uint64 offset, uint64 len);
-	virtual bool EndOfFile();
+	bool DeliverStream(const u_char* data, uint64 len) override;
+	bool Undelivered(uint64 offset, uint64 len) override;
+	bool EndOfFile() override;
 
 	/**
 	 * Converts an X509 certificate into a \c X509::Certificate record
@@ -40,29 +85,17 @@ public:
 	static file_analysis::Analyzer* Instantiate(RecordVal* args, File* file)
 		{ return new X509(args, file); }
 
-	/**
-	 * Retrieve an X509 extension value from an OpenSSL BIO to which it was
-	 * written.
-	 *
-	 * @param bio the OpenSSL BIO to read. It will be freed by the function,
-	 * including when an error occurs.
-	 *
-	 * @return The X509 extension value.
-	 */
-	static StringVal* GetExtensionFromBIO(BIO* bio);
-
 protected:
 	X509(RecordVal* args, File* file);
 
 private:
-	void ParseExtension(X509_EXTENSION* ex);
 	void ParseBasicConstraints(X509_EXTENSION* ex);
 	void ParseSAN(X509_EXTENSION* ex);
+	void ParseExtensionsSpecific(X509_EXTENSION* ex, bool, ASN1_OBJECT*, const char*) override;
 
 	std::string cert_data;
 
 	// Helpers for ParseCertificate.
-	static double GetTimeFromAsn1(const ASN1_TIME * atime, const char* fid);
 	static StringVal* KeyCurve(EVP_PKEY *key);
 	static unsigned int KeyLength(EVP_PKEY *key);
 };
@@ -88,7 +121,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	~X509Val();
+	~X509Val() override;
 
 	/**
 	 * Get the wrapped X509 certificate. Please take care, that the

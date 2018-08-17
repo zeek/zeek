@@ -31,7 +31,7 @@ namespace analyzer { namespace ncp {
 
 class NCP_Session {
 public:
-	NCP_Session(analyzer::Analyzer* analyzer);
+	explicit NCP_Session(analyzer::Analyzer* analyzer);
 	virtual ~NCP_Session() {}
 
 	virtual void Deliver(int is_orig, int len, const u_char* data);
@@ -51,11 +51,12 @@ protected:
 
 class FrameBuffer {
 public:
-	FrameBuffer(int header_length);
+	explicit FrameBuffer(size_t header_length);
 	virtual ~FrameBuffer();
 
-	// Returns true if a frame is ready
-	bool Deliver(int& len, const u_char* &data);
+	// Returns -1 if frame is not ready, 0 if it else, and 1 if
+	// the frame would require too large of a buffer allocation.
+	int Deliver(int& len, const u_char* &data);
 
 	void Reset();
 
@@ -66,11 +67,11 @@ public:
 protected:
 	virtual void compute_msg_length() = 0;
 
-	int hdr_len;
+	size_t hdr_len;
 	u_char* msg_buf;
-	int msg_len;
-	int buf_n;	// number of bytes in msg_buf
-	int buf_len;	// size off msg_buf
+	uint64 msg_len;
+	size_t buf_n;	// number of bytes in msg_buf
+	size_t buf_len;	// size off msg_buf
 };
 
 #define NCP_TCPIP_HEADER_LENGTH 8
@@ -80,29 +81,30 @@ public:
 	NCP_FrameBuffer() : FrameBuffer(NCP_TCPIP_HEADER_LENGTH) {}
 
 protected:
-	void compute_msg_length();
+	void compute_msg_length() override;
 };
 
 class Contents_NCP_Analyzer : public tcp::TCP_SupportAnalyzer {
 public:
 	Contents_NCP_Analyzer(Connection* conn, bool orig, NCP_Session* session);
-	~Contents_NCP_Analyzer();
+	~Contents_NCP_Analyzer() override;
 
 protected:
-	virtual void DeliverStream(int len, const u_char* data, bool orig);
-	virtual void Undelivered(uint64 seq, int len, bool orig);
+	void DeliverStream(int len, const u_char* data, bool orig) override;
+	void Undelivered(uint64 seq, int len, bool orig) override;
 
 	NCP_FrameBuffer buffer;
 	NCP_Session* session;
 
 	// Re-sync for partial connections (or after a content gap).
 	bool resync;
+	bool resync_set;
 };
 
 class NCP_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
-	NCP_Analyzer(Connection* conn);
-	virtual ~NCP_Analyzer();
+	explicit NCP_Analyzer(Connection* conn);
+	~NCP_Analyzer() override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new NCP_Analyzer(conn); }

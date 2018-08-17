@@ -207,13 +207,14 @@ bool Ascii::Describe(ODesc* desc, threading::Value* val, const string& name) con
 
 threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag type, TypeTag subtype) const
 	{
-	if ( s.compare(separators.unset_field) == 0 )  // field is not set...
+	if ( ! separators.unset_field.empty() && s.compare(separators.unset_field) == 0 )  // field is not set...
 		return new threading::Value(type, false);
 
-	threading::Value* val = new threading::Value(type, true);
+	threading::Value* val = new threading::Value(type, subtype, true);
 	const char* start = s.c_str();
 	char* end = 0;
 	errno = 0;
+	size_t pos;
 
 	switch ( type ) {
 	case TYPE_ENUM:
@@ -226,9 +227,9 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 		}
 
 	case TYPE_BOOL:
-		if ( s == "T" )
+		if ( s == "T" || s == "1" )
 			val->val.int_val = 1;
-		else if ( s == "F" )
+		else if ( s == "F" || s == "0" )
 			val->val.int_val = 0;
 		else
 			{
@@ -260,11 +261,34 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 		break;
 
 	case TYPE_PORT:
+		{
+		val->val.port_val.proto = TRANSPORT_UNKNOWN;
+		pos = s.find('/');
+		string numberpart;
+		if ( pos != std::string::npos && s.length() > pos + 1 )
+			{
+			auto proto = s.substr(pos+1);
+			if ( strtolower(proto) == "tcp" )
+				val->val.port_val.proto = TRANSPORT_TCP;
+			else if ( strtolower(proto) == "udp" )
+				val->val.port_val.proto = TRANSPORT_UDP;
+			else if ( strtolower(proto) == "icmp" )
+				val->val.port_val.proto = TRANSPORT_ICMP;
+			else if ( strtolower(proto) == "unknown" )
+				val->val.port_val.proto = TRANSPORT_UNKNOWN;
+			else
+				GetThread()->Warning(GetThread()->Fmt("Port '%s' contained unknown protocol '%s'", s.c_str(), proto.c_str()));
+			}
+
+		if ( pos != std::string::npos && pos > 0 )
+			{
+			numberpart = s.substr(0, pos);
+			start = numberpart.c_str();
+			}
 		val->val.port_val.port = strtoull(start, &end, 10);
 		if ( CheckNumberError(start, end) )
 			goto parse_error;
-
-		val->val.port_val.proto = TRANSPORT_UNKNOWN;
+		}
 		break;
 
 	case TYPE_SUBNET:
@@ -316,6 +340,9 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 		bool error = false;
 
 		if ( separators.empty_field.size() > 0 && s.compare(separators.empty_field) == 0 )
+			length = 0;
+
+		if ( separators.empty_field.empty() && s.empty() )
 			length = 0;
 
 		threading::Value** lvals = new threading::Value* [length];
@@ -388,6 +415,9 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 			// been read so far
 			for ( unsigned int i = 0; i < pos; i++ )
 				delete lvals[i];
+
+			// and set the length of the set to 0, otherwhise the destructor will crash.
+			val->val.vector_val.size = 0;
 
 			goto parse_error;
 		}

@@ -1,6 +1,7 @@
 %%{
 #include "file_analysis/analyzer/x509/X509.h"
 #include "types.bif.h"
+#include "net_util.h"
 
 #include <openssl/x509.h>
 #include <openssl/asn1.h>
@@ -108,21 +109,36 @@ STACK_OF(X509)* x509_get_untrusted_stack(VectorVal* certs_vec)
 
 // We need this function to be able to identify the signer certificate of an
 // OCSP request out of a list of possible certificates.
-X509* x509_get_ocsp_signer(STACK_OF(X509) *certs, OCSP_RESPID *rid)
+X509* x509_get_ocsp_signer(const STACK_OF(X509)* certs,
+                           OCSP_BASICRESP* basic_resp)
 	{
-	// We support two lookup types - either by response id or by key.
-	if ( rid->type == V_OCSP_RESPID_NAME )
-		return X509_find_by_subject(certs, rid->value.byName);
+	const ASN1_OCTET_STRING* key  = nullptr;
+	const X509_NAME*         name = nullptr;
 
-	// There only should be name and type - but let's be sure...
-	if ( rid->type != V_OCSP_RESPID_KEY )
+#if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
+	OCSP_RESPID* resp_id = basic_resp->tbsResponseData->responderId;
+
+	if ( resp_id->type == V_OCSP_RESPID_NAME )
+		name = resp_id->value.byName;
+	else if ( resp_id->type == V_OCSP_RESPID_KEY )
+		key = resp_id->value.byKey;
+	else
 		return 0;
+#else
+	if ( ! OCSP_resp_get0_id(basic_resp, &key, &name) )
+		return 0;
+#endif
+
+	if ( name )
+		return X509_find_by_subject(const_cast<STACK_OF(X509)*>(certs),
+									const_cast<X509_NAME*>(name));
 
 	// Just like OpenSSL, we just support SHA-1 lookups and bail out otherwhise.
-	if ( rid->value.byKey->length != SHA_DIGEST_LENGTH )
+	if ( key->length != SHA_DIGEST_LENGTH )
 		return 0;
 
-	unsigned char* key_hash = rid->value.byKey->data;
+	unsigned char* key_hash = key->data;
+
 	for ( int i = 0; i < sk_X509_num(certs); ++i )
 		{
 		unsigned char digest[SHA_DIGEST_LENGTH];
@@ -137,6 +153,35 @@ X509* x509_get_ocsp_signer(STACK_OF(X509) *certs, OCSP_RESPID *rid)
 		}
 
 	return 0;
+	}
+
+// Convert hash algorithm registry numbers to the OpenSSL EVP_MD.
+// Mapping at https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-18
+const EVP_MD* hash_to_evp(int hash)
+	{
+	switch ( hash )
+		{
+		case 1:
+			return EVP_md5();
+			break;
+		case 2:
+			return EVP_sha1();
+			break;
+		case 3:
+			return EVP_sha224();
+			break;
+		case 4:
+			return EVP_sha256();
+			break;
+		case 5:
+			return EVP_sha384();
+			break;
+		case 6:
+			return EVP_sha512();
+			break;
+		default:
+			return nullptr;
+		}
 	}
 
 %%}
@@ -252,6 +297,7 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 	OCSP_SINGLERESP *single = 0;
 	X509_STORE_CTX *csc = 0;
 	OCSP_CERTID *certid = 0;
+	stack_st_X509* ocsp_certs = nullptr;
 	int status = -1;
 	int out = -1;
 	int result = -1;
@@ -278,7 +324,6 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 		goto x509_ocsp_cleanup;
 		}
 
-
 	// the following code took me _forever_ to get right.
 	// The OCSP_basic_verify command takes a list of certificates. However (which is not immediately
 	// visible or understandable), those are only used to find the signer certificate. They are _not_
@@ -287,20 +332,10 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 	// the lookup.
 	// Yay.
 
-	if ( ! basic->certs )
-		{
-		basic->certs = sk_X509_new_null();
-		if ( ! basic->certs )
-			{
-			rval = x509_result_record(-1, "Could not allocate basic x509 stack");
-			goto x509_ocsp_cleanup;
-			}
-		}
-
 	issuer_certificate = 0;
 	for ( int i = 0; i < sk_X509_num(untrusted_certs); i++)
 		{
-		sk_X509_push(basic->certs, X509_dup(sk_X509_value(untrusted_certs, i)));
+		OCSP_basic_add1_cert(basic, sk_X509_value(untrusted_certs, i));
 
 		if ( X509_NAME_cmp(X509_get_issuer_name(cert), X509_get_subject_name(sk_X509_value(untrusted_certs, i))) == 0 )
 			issuer_certificate = sk_X509_value(untrusted_certs, i);
@@ -308,15 +343,19 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 
 	// Because we actually want to be able to give nice error messages that show why we were
 	// not able to verify the OCSP response - do our own verification logic first.
-	signer = x509_get_ocsp_signer(basic->certs, basic->tbsResponseData->responderId);
+#if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
+	signer = x509_get_ocsp_signer(basic->certs, basic);
+#else
+	signer = x509_get_ocsp_signer(OCSP_resp_get0_certs(basic), basic);
+#endif
 
 	/*
 	Do this perhaps - OpenSSL also cannot do it, so I do not really feel bad about it.
 	Needs a different lookup because the root store is no stack of X509 certs
 
-	if ( !s igner )
+	if ( ! signer )
 		// if we did not find it in the certificates that were sent, search in the root store
-		signer = x509_get_ocsp_signer(basic->certs, basic->tbsResponseData->responderId);
+		signer = x509_get_ocsp_signer(ocsp_certs, basic);
 	*/
 
 	if ( ! signer )
@@ -325,16 +364,24 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 		goto x509_ocsp_cleanup;
 		}
 
+		{
+		auto basic_certs = OCSP_resp_get0_certs(basic);
+		if ( basic_certs )
+			ocsp_certs = sk_X509_dup(basic_certs);
+
+		assert(ocsp_certs);
+		}
+
 	csc = X509_STORE_CTX_new();
-	X509_STORE_CTX_init(csc, ctx, signer, basic->certs);
+	X509_STORE_CTX_init(csc, ctx, signer, ocsp_certs);
 	X509_STORE_CTX_set_time(csc, 0, (time_t) verify_time);
 	X509_STORE_CTX_set_purpose(csc, X509_PURPOSE_OCSP_HELPER);
 
 	result = X509_verify_cert(csc);
 	if ( result != 1 )
 		{
-		const char *reason = X509_verify_cert_error_string((*csc).error);
-		rval = x509_result_record(result, X509_verify_cert_error_string((*csc).error));
+		const char *reason = X509_verify_cert_error_string(X509_STORE_CTX_get_error(csc));
+		rval = x509_result_record(result, X509_verify_cert_error_string(X509_STORE_CTX_get_error(csc)));
 		goto x509_ocsp_cleanup;
 		}
 
@@ -350,7 +397,7 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 
 	// ok, now we verified the OCSP response. This means that we have a valid chain tying it
 	// to a root that we trust and that the signature also hopefully is valid. This does not yet
-	// mean that the ocsp response actually matches the certificate the server send us or that
+	// mean that the ocsp response actually matches the certificate the server sent us or that
 	// the OCSP response even says that the certificate is valid.
 
 	// let's start this out by checking that the response is actually for the certificate we want
@@ -362,15 +409,17 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 	else
 		{
 		// issuer not in list sent by server, check store
-		X509_OBJECT obj;
-		int lookup = X509_STORE_get_by_subject(csc, X509_LU_X509, X509_get_subject_name(cert), &obj);
+		X509_OBJECT *obj = X509_OBJECT_new();
+		int lookup = X509_STORE_get_by_subject(csc, X509_LU_X509, X509_get_subject_name(cert), obj);
 		if ( lookup <= 0)
 			{
 			rval = x509_result_record(lookup, "Could not find issuer of host certificate");
+			X509_OBJECT_free(obj);
 			goto x509_ocsp_cleanup;
 			}
 
-		certid = OCSP_cert_to_id(NULL, cert, obj.data.x509);
+		certid = OCSP_cert_to_id(NULL, cert,X509_OBJECT_get0_X509( obj));
+		X509_OBJECT_free(obj);
 		}
 
 
@@ -381,18 +430,22 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 		}
 
 	// for now, assume we have one reply...
-	single = sk_OCSP_SINGLERESP_value(basic->tbsResponseData->responses, 0);
+	single = OCSP_resp_get0(basic, 0);
 	if ( ! single )
 		{
 		rval = x509_result_record(-1, "Could not lookup OCSP response information");
 		goto x509_ocsp_cleanup;
 		}
 
-	if ( OCSP_id_cmp(certid, single->certId) != 0 )
+	if ( OCSP_id_cmp(certid, (OCSP_CERTID*)OCSP_SINGLERESP_get0_id(single)) != 0 )
 		return x509_result_record(-1, "OCSP reply is not for host certificate");
 
 	// next - check freshness of proof...
-	if ( ! ASN1_GENERALIZEDTIME_check(single->thisUpdate) || ! ASN1_GENERALIZEDTIME_check(single->nextUpdate) )
+	ASN1_GENERALIZEDTIME *thisUpdate;
+	ASN1_GENERALIZEDTIME *nextUpdate;
+	int type;
+	type = OCSP_single_get0_status(single, NULL, NULL, &thisUpdate, &nextUpdate);
+	if ( ! ASN1_GENERALIZEDTIME_check(thisUpdate) || ! ASN1_GENERALIZEDTIME_check(nextUpdate) )
 		{
 		rval = x509_result_record(-1, "OCSP reply contains invalid dates");
 		goto x509_ocsp_cleanup;
@@ -405,18 +458,21 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 	// Well, we will do it manually.
 
 
-	if ( X509_cmp_time(single->thisUpdate, &vtime) > 0 )
+	if ( X509_cmp_time(thisUpdate, &vtime) > 0 )
 		rval = x509_result_record(-1, "OCSP reply specifies time in future");
-	else if ( X509_cmp_time(single->nextUpdate, &vtime) < 0 )
+	else if ( X509_cmp_time(nextUpdate, &vtime) < 0 )
 		rval = x509_result_record(-1, "OCSP reply expired");
-	else if ( single->certStatus->type != V_OCSP_CERTSTATUS_GOOD )
-		rval = x509_result_record(-1, OCSP_cert_status_str(single->certStatus->type));
+	else if ( type != V_OCSP_CERTSTATUS_GOOD )
+		rval = x509_result_record(-1, OCSP_cert_status_str(type));
 
 	// if we have no error so far, we are done.
 	if ( !rval )
-		rval = x509_result_record(1, OCSP_cert_status_str(single->certStatus->type));
+		rval = x509_result_record(1, OCSP_cert_status_str(type));
 
 x509_ocsp_cleanup:
+
+	if ( ocsp_certs )
+		sk_X509_free(ocsp_certs);
 
 	if ( untrusted_certs )
 		sk_X509_free(untrusted_certs);
@@ -455,7 +511,7 @@ x509_ocsp_cleanup:
 ##
 ## .. bro:see:: x509_certificate x509_extension x509_ext_basic_constraints
 ##              x509_ext_subject_alternative_name x509_parse
-##              x509_get_certificate_string x509_ocsp_verify
+##              x509_get_certificate_string x509_ocsp_verify sct_verify
 function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_string, verify_time: time &default=network_time()%): X509::Result
 	%{
 	X509_STORE* ctx = x509_get_root_store(root_certs->AsTableVal());
@@ -491,18 +547,18 @@ function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_str
 	if ( ! untrusted_certs )
 		return x509_result_record(-1, "Problem initializing list of untrusted certificates");
 
-	X509_STORE_CTX csc;
-	X509_STORE_CTX_init(&csc, ctx, cert, untrusted_certs);
-	X509_STORE_CTX_set_time(&csc, 0, (time_t) verify_time);
-	X509_STORE_CTX_set_flags(&csc, X509_V_FLAG_USE_CHECK_TIME);
+	X509_STORE_CTX *csc = X509_STORE_CTX_new();
+	X509_STORE_CTX_init(csc, ctx, cert, untrusted_certs);
+	X509_STORE_CTX_set_time(csc, 0, (time_t) verify_time);
+	X509_STORE_CTX_set_flags(csc, X509_V_FLAG_USE_CHECK_TIME);
 
-	int result = X509_verify_cert(&csc);
+	int result = X509_verify_cert(csc);
 
 	VectorVal* chainVector = 0;
 
 	if ( result == 1 ) // we have a valid chain. try to get it...
 		{
-		STACK_OF(X509)* chain = X509_STORE_CTX_get1_chain(&csc); // get1 = deep copy
+		STACK_OF(X509)* chain = X509_STORE_CTX_get1_chain(csc); // get1 = deep copy
 
 		if ( ! chain )
 			{
@@ -534,11 +590,306 @@ function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_str
 
 x509_verify_chainerror:
 
-	X509_STORE_CTX_cleanup(&csc);
+	RecordVal* rrecord = x509_result_record(X509_STORE_CTX_get_error(csc), X509_verify_cert_error_string(X509_STORE_CTX_get_error(csc)), chainVector);
+
+	X509_STORE_CTX_cleanup(csc);
+	X509_STORE_CTX_free(csc);
 
 	sk_X509_free(untrusted_certs);
 
-	RecordVal* rrecord = x509_result_record(csc.error, X509_verify_cert_error_string(csc.error), chainVector);
-
 	return rrecord;
+	%}
+
+## Verifies a Signed Certificate Timestamp as used for Certificate Transparency.
+## See RFC6962 for more details.
+##
+## cert: Certificate against which the SCT should be validated.
+##
+## logid: Log id of the SCT.
+##
+## log_key: Public key of the Log that issued the SCT proof.
+##
+## timestamp: Timestamp at which the proof was generated.
+##
+## hash_algorithm: Hash algorithm that was used for the SCT proof.
+##
+## issuer_key_hash: The SHA-256 hash of the certificate issuer's public key.
+##                  This only has to be provided if the SCT was encountered in an X.509
+##                  certificate extension; in that case, it is necessary for validation.
+##
+## Returns: T if the validation could be performed succesfully, F otherwhise.
+##
+## .. bro:see:: ssl_extension_signed_certificate_timestamp
+##              x509_ocsp_ext_signed_certificate_timestamp
+##              x509_verify
+function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signature: string, timestamp: count, hash_algorithm: count, issuer_key_hash: string &default=""%): bool
+	%{
+	assert(cert);
+	file_analysis::X509Val* h = (file_analysis::X509Val*) cert;
+	X509* x = ((file_analysis::X509Val*) h)->GetCertificate();
+
+	assert(sizeof(timestamp) >= 8);
+	uint64_t timestamp_network = htonll(timestamp);
+
+	bool precert = issuer_key_hash->Len() > 0;
+	if ( precert && issuer_key_hash->Len() != 32)
+		{
+		reporter->Error("Invalid issuer_key_hash length");
+		return new Val(0, TYPE_BOOL);
+		}
+
+	std::string data;
+	data.push_back(0); // version
+	data.push_back(0); // signature_type -> certificate_timestamp
+	data.append(reinterpret_cast<const char*>(&timestamp_network), sizeof(timestamp_network)); // timestamp -> 64 bits
+	if ( precert )
+		data.append("\0\1", 2); // entry-type: precert_entry
+	else
+		data.append("\0\0", 2); // entry-type: x509_entry
+
+	if ( precert )
+		{
+		x = X509_dup(x);
+		assert(x);
+		// In OpenSSL 1.0.2+, we can get the extension by using NID_ct_precert_scts.
+		// In OpenSSL <= 1.0.1, this is not yet defined yet, so we have to manually
+		// look it up by performing a string comparison on the oid.
+#ifdef NID_ct_precert_scts
+		int pos = X509_get_ext_by_NID(x, NID_ct_precert_scts, -1);
+		if ( pos < 0 )
+			{
+			reporter->Error("NID_ct_precert_scts not found");
+			return new Val(0, TYPE_BOOL);
+			}
+#else
+		int num_ext = X509_get_ext_count(x);
+		int pos = -1;
+		for ( int k = 0; k < num_ext; ++k )
+			{
+			char oid[256];
+			X509_EXTENSION* ex = X509_get_ext(x, k);
+			ASN1_OBJECT* ext_asn = X509_EXTENSION_get_object(ex);
+			OBJ_obj2txt(oid, 255, ext_asn, 1);
+			if ( strcmp(oid, "1.3.6.1.4.1.11129.2.4.2") == 0 )
+				{
+				pos = k;
+				break;
+				}
+			}
+#endif
+		X509_EXTENSION_free(X509_delete_ext(x, pos));
+#ifdef NID_ct_precert_scts
+		assert( X509_get_ext_by_NID(x, NID_ct_precert_scts, -1) == -1 );
+#endif
+		}
+
+	unsigned char *cert_out = nullptr;
+	uint32 cert_length;
+	if ( precert )
+		{
+#if (OPENSSL_VERSION_NUMBER < 0x10002000L || LIBRESSL_VERSION_NUMBER)
+		x->cert_info->enc.modified = 1;
+		cert_length = i2d_X509_CINF(x->cert_info, &cert_out);
+#else
+		cert_length = i2d_re_X509_tbs(x, &cert_out);
+#endif
+		data.append(reinterpret_cast<const char*>(issuer_key_hash->Bytes()), issuer_key_hash->Len());
+		}
+	else
+		cert_length = i2d_X509(x, &cert_out);
+	assert( cert_out );
+	uint32 cert_length_network = htonl(cert_length);
+	assert( sizeof(cert_length_network) == 4);
+
+	data.append(reinterpret_cast<const char*>(&cert_length_network)+1, 3); // 3 bytes certificate length
+	data.append(reinterpret_cast<const char*>(cert_out), cert_length); // der-encoded certificate
+	OPENSSL_free(cert_out);
+	if ( precert )
+		X509_free(x);
+	data.append("\0\0", 2); // no extensions
+
+	// key is given as a DER-encoded SubjectPublicKeyInfo.
+	const unsigned char *key_char = log_key->Bytes();
+	EVP_PKEY* key = d2i_PUBKEY(nullptr, &key_char, log_key->Len());
+
+	EVP_MD_CTX *mdctx = EVP_MD_CTX_create();
+	assert(mdctx);
+
+	string errstr;
+	int success = 0;
+
+	const EVP_MD* hash = hash_to_evp(hash_algorithm);
+	if ( ! hash )
+		{
+		errstr = "Unknown hash algorithm";
+		goto sct_verify_err;
+		}
+
+	if ( ! key )
+		{
+		errstr = "Could not load log key";
+		goto sct_verify_err;
+		}
+
+	if ( ! EVP_DigestVerifyInit(mdctx, NULL, hash, NULL, key) )
+		{
+		errstr = "Could not init signature verification";
+		goto sct_verify_err;
+		}
+
+	if ( ! EVP_DigestVerifyUpdate(mdctx, data.data(), data.size()) )
+		{
+		errstr = "Could not update digest for verification";
+		goto sct_verify_err;
+		}
+
+#ifdef NID_ct_precert_scts
+	success = EVP_DigestVerifyFinal(mdctx, signature->Bytes(), signature->Len());
+#else
+	// older versions of OpenSSL use a non-const-char *sigh*
+	// I don't think they actually manipulate the value though.
+	// todo - this needs a cmake test
+	success = EVP_DigestVerifyFinal(mdctx, (unsigned char*) signature->Bytes(), signature->Len());
+#endif
+	EVP_MD_CTX_destroy(mdctx);
+	EVP_PKEY_free(key);
+
+	return new Val(success, TYPE_BOOL);
+
+sct_verify_err:
+	if (mdctx)
+		EVP_MD_CTX_destroy(mdctx);
+	if (key)
+		EVP_PKEY_free(key);
+
+	reporter->Error("%s", errstr.c_str());
+	return new Val(0, TYPE_BOOL);
+	%}
+
+
+%%{
+/**
+ * 0 -> subject name
+ * 1 -> issuer name
+ * 2 -> pubkey
+ */
+StringVal* x509_entity_hash(file_analysis::X509Val *cert_handle, unsigned int hash_alg, unsigned int type)
+	{
+	assert(cert_handle);
+
+	if ( type > 2 )
+		{
+		reporter->InternalError("Unknown type in x509_entity_hash");
+		return nullptr;
+		}
+
+	X509 *cert_x509 = cert_handle->GetCertificate();
+	if ( cert_x509 == nullptr )
+		{
+		builtin_error("cannot get cert from opaque");
+		return nullptr;
+		}
+
+	X509_NAME *subject_name = X509_get_subject_name(cert_x509);
+	X509_NAME *issuer_name = X509_get_issuer_name(cert_x509);
+	if ( subject_name == nullptr || issuer_name == nullptr )
+		{
+		builtin_error("fail to get subject/issuer name from certificate");
+		return nullptr;
+		}
+
+	const EVP_MD *dgst = hash_to_evp(hash_alg);
+	if ( dgst == nullptr )
+		{
+		builtin_error("Unknown hash algorithm.");
+		return nullptr;
+		}
+
+	unsigned char md[EVP_MAX_MD_SIZE];
+	memset(md, 0, sizeof(md));
+	unsigned int len = 0;
+
+	int res = 0;
+
+	if ( type == 0 )
+		res = X509_NAME_digest(subject_name, dgst, md, &len);
+	else if ( type == 1 )
+		res = X509_NAME_digest(issuer_name, dgst, md, &len);
+	else if ( type == 2 )
+		{
+		unsigned char *spki = nullptr;
+		int pklen = i2d_X509_PUBKEY(X509_get_X509_PUBKEY(cert_x509), &spki);
+		if ( ! pklen )
+			{
+			builtin_error("Could not get SPKI");
+			return nullptr;
+			}
+		res = EVP_Digest(spki, pklen, md, &len, dgst, nullptr);
+		OPENSSL_free(spki);
+		}
+
+	if ( ! res )
+		{
+		builtin_error("Could not perform hash");
+		return nullptr;
+		}
+
+	assert( len <= sizeof(md) );
+
+	return new StringVal(len, reinterpret_cast<const char*>(md));
+	}
+%%}
+
+## Get the hash of the subject's distinguished name.
+##
+## cert: The X509 certificate opaque handle.
+##
+## hash_alg: the hash algorithm to use, according to the IANA mapping at
+##           https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-18
+##
+## Returns: The hash as a string.
+##
+## .. bro:see:: x509_issuer_name_hash x509_spki_hash
+##              x509_verify sct_verify
+function x509_subject_name_hash%(cert: opaque of x509, hash_alg: count%): string
+	%{
+	file_analysis::X509Val *cert_handle = (file_analysis::X509Val *) cert;
+
+	return x509_entity_hash(cert_handle, hash_alg, 0);
+	%}
+
+## Get the hash of the issuer's distinguished name.
+##
+## cert: The X509 certificate opaque handle.
+##
+## hash_alg: the hash algorithm to use, according to the IANA mapping at
+##           https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-18
+##
+## Returns: The hash as a string.
+##
+## .. bro:see:: x509_subject_name_hash x509_spki_hash
+##              x509_verify sct_verify
+function x509_issuer_name_hash%(cert: opaque of x509, hash_alg: count%): string
+	%{
+	file_analysis::X509Val *cert_handle = (file_analysis::X509Val *) cert;
+
+	return x509_entity_hash(cert_handle, hash_alg, 1);
+	%}
+
+## Get the hash of the Subject Public Key Information of the certificate.
+##
+## cert: The X509 certificate opaque handle.
+##
+## hash_alg: the hash algorithm to use, according to the IANA mapping at
+##           https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-18
+##
+## Returns: The hash as a string.
+##
+## .. bro:see:: x509_subject_name_hash x509_issuer_name_hash
+##              x509_verify sct_verify
+function x509_spki_hash%(cert: opaque of x509, hash_alg: count%): string
+	%{
+	file_analysis::X509Val *cert_handle = (file_analysis::X509Val *) cert;
+
+	return x509_entity_hash(cert_handle, hash_alg, 2);
 	%}

@@ -12,7 +12,7 @@
 class IntSet {
 public:
 	// n is a hint for the value of the largest integer.
-	IntSet(unsigned int n = 1);
+	explicit IntSet(unsigned int n = 1);
 	~IntSet();
 
 	void Insert(unsigned int i);

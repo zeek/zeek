@@ -555,19 +555,19 @@ function quarantine_host(infected: addr, dns: addr, quarantine: addr, t: interva
 	local orules: vector of string = vector();
 	local edrop: Entity = [$ty=FLOW, $flow=Flow($src_h=addr_to_subnet(infected))];
 	local rdrop: Rule = [$ty=DROP, $target=FORWARD, $entity=edrop, $expire=t, $location=location];
-	orules[|orules|] = add_rule(rdrop);
+	orules += add_rule(rdrop);
 
 	local todnse: Entity = [$ty=FLOW, $flow=Flow($src_h=addr_to_subnet(infected), $dst_h=addr_to_subnet(dns), $dst_p=53/udp)];
 	local todnsr = Rule($ty=MODIFY, $target=FORWARD, $entity=todnse, $expire=t, $location=location, $mod=FlowMod($dst_h=quarantine), $priority=+5);
-	orules[|orules|] = add_rule(todnsr);
+	orules += add_rule(todnsr);
 
 	local fromdnse: Entity = [$ty=FLOW, $flow=Flow($src_h=addr_to_subnet(dns), $src_p=53/udp, $dst_h=addr_to_subnet(infected))];
 	local fromdnsr = Rule($ty=MODIFY, $target=FORWARD, $entity=fromdnse, $expire=t, $location=location, $mod=FlowMod($src_h=dns), $priority=+5);
-	orules[|orules|] = add_rule(fromdnsr);
+	orules += add_rule(fromdnsr);
 
 	local wle: Entity = [$ty=FLOW, $flow=Flow($src_h=addr_to_subnet(infected), $dst_h=addr_to_subnet(quarantine), $dst_p=80/tcp)];
 	local wlr = Rule($ty=WHITELIST, $target=FORWARD, $entity=wle, $expire=t, $location=location, $priority=+5);
-	orules[|orules|] = add_rule(wlr);
+	orules += add_rule(wlr);
 
 	return orules;
 	}
@@ -637,7 +637,7 @@ event NetControl::init() &priority=-20
 function activate_impl(p: PluginState, priority: int)
 	{
 	p$_priority = priority;
-	plugins[|plugins|] = p;
+	plugins += p;
 	sort(plugins, function(p1: PluginState, p2: PluginState) : int { return p2$_priority - p1$_priority; });
 
 	plugin_ids[plugin_counter] = p;
@@ -734,7 +734,7 @@ function find_rules_subnet(sn: subnet) : vector of Rule
 		for ( rule_id in rules_by_subnets[sn_entry] )
 			{
 			if ( rule_id in rules )
-				ret[|ret|] = rules[rule_id];
+				ret += rules[rule_id];
 			else
 				Reporter::error("find_rules_subnet - internal data structure error, missing rule");
 			}

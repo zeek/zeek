@@ -3,7 +3,7 @@
 // How to make objects of class Foo serializable:
 //
 //    1. Derive Foo (directly or indirectly) from SerialObj.
-//    2. Add a SER_FOO constant to SerialTypes below.
+//    2. Add a SER_FOO constant to SerialTypes in SerialTypes.h.
 //    3. Add DECLARE_SERIAL(Foo) into class definition.
 //    4. Add a (preferably protected) default ctor if it doesn't already exist.
 //    5. For non-abstract classes, add IMPLEMENT_SERIAL(Foo, SER_FOO) to *.cc
@@ -163,16 +163,16 @@ public:
 // Macro helpers.
 
 #define DECLARE_ABSTRACT_SERIAL(classname) \
-	virtual bool DoSerialize(SerialInfo*) const; \
-	virtual bool DoUnserialize(UnserialInfo*); \
+	bool DoSerialize(SerialInfo*) const override; \
+	bool DoUnserialize(UnserialInfo*) override; \
 
 #define DECLARE_SERIAL(classname) \
 	static classname* Instantiate(); \
 	static SerialTypeRegistrator register_type; \
-	virtual bool DoSerialize(SerialInfo*) const override; \
-	virtual bool DoUnserialize(UnserialInfo*) override; \
-	virtual const TransientID*  GetTID() const override	{ return &tid; } \
-	virtual SerialType GetSerialType() const override; \
+	bool DoSerialize(SerialInfo*) const override; \
+	bool DoUnserialize(UnserialInfo*) override; \
+	const TransientID*  GetTID() const override	{ return &tid; } \
+	SerialType GetSerialType() const override; \
 	TransientID tid;
 
 // Only needed (and usable) for non-abstract classes.

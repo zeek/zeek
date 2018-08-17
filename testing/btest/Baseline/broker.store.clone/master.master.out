@@ -1,0 +1,8 @@
+----
+master, one, Broker::SUCCESS, [data=broker::data{110}]
+master, two, Broker::SUCCESS, [data=broker::data{223}]
+master, [1, 2], Broker::SUCCESS, [data=broker::data{1947/tcp}]
+master, three, Broker::SUCCESS, [data=broker::data{3.140000}]
+master, four, Broker::FAILURE, [data=<uninitialized>]
+master, five, Broker::SUCCESS, [data=broker::data{555}]
+master, six, Broker::SUCCESS, [data=broker::data{666}]

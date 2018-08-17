@@ -255,7 +255,7 @@ struct ping_args {
 # define DEBUG_COMM(msg)
 #endif
 
-#define READ_CHUNK(i, c, do_if_eof) \
+#define READ_CHUNK(i, c, do_if_eof, kill_me) \
 	{ \
 	if ( ! i->Read(&c) ) \
 		{ \
@@ -264,7 +264,7 @@ struct ping_args {
 			do_if_eof; \
 			} \
 		else \
-			Error(fmt("can't read data chunk: %s", io->Error()), i == io); \
+			Error(fmt("can't read data chunk: %s", io->Error()), kill_me); \
 		return false; \
 		} \
 	\
@@ -1809,7 +1809,7 @@ RecordVal* RemoteSerializer::MakePeerVal(Peer* peer)
 	v->Assign(0, new Val(uint32(peer->id), TYPE_COUNT));
 	// Sic! Network order for AddrVal, host order for PortVal.
 	v->Assign(1, new AddrVal(peer->ip));
-	v->Assign(2, new PortVal(peer->port, TRANSPORT_TCP));
+	v->Assign(2, port_mgr->Get(peer->port, TRANSPORT_TCP));
 	v->Assign(3, new Val(false, TYPE_BOOL));
 	v->Assign(4, new StringVal(""));	// set when received
 	v->Assign(5, peer->peer_class.size() ?
@@ -2730,10 +2730,10 @@ bool RemoteSerializer::ProcessLogCreateWriter()
 	id_val = new EnumVal(id, internal_type("Log::ID")->AsEnumType());
 	writer_val = new EnumVal(writer, internal_type("Log::Writer")->AsEnumType());
 
-	if ( ! log_mgr->CreateWriter(id_val, writer_val, info, num_fields, fields,
-	                             true, false, true) )
+	if ( ! log_mgr->CreateWriterForRemoteLog(id_val, writer_val, info, num_fields, fields) )
 		{
-		delete_fields_up_to = num_fields;
+		info = 0;
+		fields = 0;
 		goto error;
 		}
 
@@ -2803,7 +2803,7 @@ bool RemoteSerializer::ProcessLogWrite()
 		id_val = new EnumVal(id, internal_type("Log::ID")->AsEnumType());
 		writer_val = new EnumVal(writer, internal_type("Log::Writer")->AsEnumType());
 
-		success = log_mgr->Write(id_val, writer_val, path, num_fields, vals);
+		success = log_mgr->WriteFromRemote(id_val, writer_val, path, num_fields, vals);
 
 		Unref(id_val);
 		Unref(writer_val);
@@ -3586,7 +3586,7 @@ bool SocketComm::ProcessParentMessage()
 		{
 		// Argument chunk follows.
 		ChunkedIO::Chunk* c = 0;
-		READ_CHUNK(io, c, Error("parent died", true));
+		READ_CHUNK(io, c, Error("parent died", true), true);
 		parent_args = c;
 		parent_msgstate = TYPE;
 		bool result = DoParentMessage();
@@ -3872,7 +3872,7 @@ bool SocketComm::ProcessRemoteMessage(SocketComm::Peer* peer)
 		{ // CMsg follows
 		ChunkedIO::Chunk* c;
 		READ_CHUNK(peer->io, c,
-			(CloseConnection(peer, true), peer))
+			(CloseConnection(peer, true), peer), false)
 
 		CMsg* msg = (CMsg*) c->data;
 
@@ -3907,7 +3907,7 @@ bool SocketComm::ProcessRemoteMessage(SocketComm::Peer* peer)
 		// forward to our parent.
 		ChunkedIO::Chunk* c;
 		READ_CHUNK(peer->io, c,
-			(CloseConnection(peer, true), peer))
+			(CloseConnection(peer, true), peer), false)
 
 		// Set time3.
 		ping_args* args = (ping_args*) c->data;
@@ -3921,7 +3921,7 @@ bool SocketComm::ProcessRemoteMessage(SocketComm::Peer* peer)
 		// forward to our parent.
 		ChunkedIO::Chunk* c;
 		READ_CHUNK(peer->io, c,
-			(CloseConnection(peer, true), peer))
+			(CloseConnection(peer, true), peer), false)
 
 		// Calculate time delta.
 		ping_args* args = (ping_args*) c->data;
@@ -3944,7 +3944,7 @@ bool SocketComm::ProcessRemoteMessage(SocketComm::Peer* peer)
 		// forward to our parent.
 		ChunkedIO::Chunk* c;
 		READ_CHUNK(peer->io, c,
-			(CloseConnection(peer, true), peer))
+			(CloseConnection(peer, true), peer), false)
 
 		return ForwardChunkToParent(peer, c);
 		}

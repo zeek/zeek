@@ -1,6 +1,7 @@
 
 #include "Net.h"
 #include "threading/SerialTypes.h"
+#include "broker/Manager.h"
 
 #include "Manager.h"
 #include "WriterFrontend.h"
@@ -167,11 +168,19 @@ void WriterFrontend::Init(int arg_num_fields, const Field* const * arg_fields)
 		backend->SendIn(new InitMessage(backend, arg_num_fields, arg_fields));
 
 	if ( remote )
+		{
 		remote_serializer->SendLogCreateWriter(stream,
 						       writer,
 						       *info,
 						       arg_num_fields,
 						       arg_fields);
+
+		broker_mgr->PublishLogCreate(stream,
+					     writer,
+					     *info,
+					     arg_num_fields,
+					     arg_fields);
+		}
 
 	}
 
@@ -191,11 +200,19 @@ void WriterFrontend::Write(int arg_num_fields, Value** vals)
 		}
 
 	if ( remote )
+		{
 		remote_serializer->SendLogWrite(stream,
 						writer,
 						info->path,
 						num_fields,
 						vals);
+
+		broker_mgr->PublishLogWrite(stream,
+				writer,
+				info->path,
+				num_fields,
+				vals);
+		}
 
 	if ( ! backend )
 		{

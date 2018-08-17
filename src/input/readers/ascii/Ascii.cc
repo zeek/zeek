@@ -49,6 +49,9 @@ FieldMapping FieldMapping::subType()
 Ascii::Ascii(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	{
 	mtime = 0;
+	suppress_warnings = false;
+	fail_on_file_problem = false;
+	fail_on_invalid_lines = false;
 	}
 
 Ascii::~Ascii()
@@ -61,6 +64,8 @@ void Ascii::DoClose()
 
 bool Ascii::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fields)
 	{
+	suppress_warnings = false;
+
 	separator.assign( (const char*) BifConst::InputAscii::separator->Bytes(),
 	                 BifConst::InputAscii::separator->Len());
 
@@ -72,6 +77,9 @@ bool Ascii::DoInit(const ReaderInfo& info, int num_fields, const Field* const* f
 
 	unset_field.assign( (const char*) BifConst::InputAscii::unset_field->Bytes(),
 	                   BifConst::InputAscii::unset_field->Len());
+
+	fail_on_invalid_lines = BifConst::InputAscii::fail_on_invalid_lines;
+	fail_on_file_problem = BifConst::InputAscii::fail_on_file_problem;
 
 	// Set per-filter configuration options.
 	for ( ReaderInfo::config_map::const_iterator i = info.config.begin(); i != info.config.end(); i++ )
@@ -87,6 +95,12 @@ bool Ascii::DoInit(const ReaderInfo& info, int num_fields, const Field* const* f
 
 		else if ( strcmp(i->first, "unset_field") == 0 )
 			unset_field.assign(i->second);
+
+		else if ( strcmp(i->first, "fail_on_invalid_lines") == 0 )
+			fail_on_invalid_lines = (strncmp(i->second, "T", 1) == 0);
+
+		else if ( strcmp(i->first, "fail_on_file_problem") == 0 )
+			fail_on_file_problem = (strncmp(i->second, "T", 1) == 0);
 		}
 
 	if ( separator.size() != 1 )
@@ -98,25 +112,50 @@ bool Ascii::DoInit(const ReaderInfo& info, int num_fields, const Field* const* f
 	formatter::Ascii::SeparatorInfo sep_info(separator, set_separator, unset_field, empty_field);
 	formatter = unique_ptr<threading::formatter::Formatter>(new formatter::Ascii(this, sep_info));
 
-	file.open(info.source);
+	return DoUpdate();
+	}
+
+void Ascii::FailWarn(bool is_error, const char *msg, bool suppress_future)
+	{
+	if ( is_error )
+		Error(msg);
+	else
+		{
+		// suppress error message when we are already in error mode.
+		// There is no reason to repeat it every second.
+		if ( ! suppress_warnings )
+			Warning(msg);
+
+		if ( suppress_future )
+			suppress_warnings = true;
+		}
+	}
+
+bool Ascii::OpenFile()
+	{
+	if ( file.is_open() )
+		return true;
+
+	file.open(Info().source);
+
 	if ( ! file.is_open() )
 		{
-		Error(Fmt("Init: cannot open %s", info.source));
-		return false;
+		FailWarn(fail_on_file_problem, Fmt("Init: cannot open %s", Info().source), true);
+
+		return ! fail_on_file_problem;
 		}
 
 	if ( ReadHeader(false) == false )
 		{
-		Error(Fmt("Init: cannot open %s; headers are incorrect", info.source));
+		FailWarn(fail_on_file_problem, Fmt("Init: cannot open %s; problem reading file header", Info().source), true);
+
 		file.close();
-		return false;
+		return ! fail_on_file_problem;
 		}
 
-	DoUpdate();
-
+	suppress_warnings = false;
 	return true;
 	}
-
 
 bool Ascii::ReadHeader(bool useCached)
 	{
@@ -128,7 +167,8 @@ bool Ascii::ReadHeader(bool useCached)
 		{
 		if ( ! GetLine(line) )
 			{
-			Error("could not read first line");
+			FailWarn(fail_on_file_problem, Fmt("Could not read input data file %s; first line could not be read",
+							 Info().source), true);
 			return false;
 			}
 
@@ -170,8 +210,9 @@ bool Ascii::ReadHeader(bool useCached)
 				continue;
 				}
 
-			Error(Fmt("Did not find requested field %s in input data file %s.",
-				  field->name, Info().source));
+			FailWarn(fail_on_file_problem, Fmt("Did not find requested field %s in input data file %s.",
+							 field->name, Info().source), true);
+
 			return false;
 			}
 
@@ -182,8 +223,9 @@ bool Ascii::ReadHeader(bool useCached)
 			map<string, uint32_t>::iterator fit2 = ifields.find(field->secondary_name);
 			if ( fit2 == ifields.end() )
 				{
-				Error(Fmt("Could not find requested port type field %s in input data file.",
-					  field->secondary_name));
+				FailWarn(fail_on_file_problem, Fmt("Could not find requested port type field %s in input data file.",
+								 field->secondary_name), true);
+
 				return false;
 				}
 
@@ -192,7 +234,6 @@ bool Ascii::ReadHeader(bool useCached)
 
 		columnMap.push_back(f);
 		}
-
 
 	// well, that seems to have worked...
 	return true;
@@ -224,6 +265,9 @@ bool Ascii::GetLine(string& str)
 // read the entire file and send appropriate thingies back to InputMgr
 bool Ascii::DoUpdate()
 	{
+	if ( ! OpenFile() )
+		return ! fail_on_file_problem;
+
 	switch ( Info().mode ) {
 		case MODE_REREAD:
 			{
@@ -231,8 +275,10 @@ bool Ascii::DoUpdate()
 			struct stat sb;
 			if ( stat(Info().source, &sb) == -1 )
 				{
-				Error(Fmt("Could not get stat for %s", Info().source));
-				return false;
+				FailWarn(fail_on_file_problem, Fmt("Could not get stat for %s", Info().source), true);
+
+				file.close();
+				return ! fail_on_file_problem;
 				}
 
 			if ( sb.st_mtime <= mtime ) // no change
@@ -254,8 +300,10 @@ bool Ascii::DoUpdate()
 				if ( Info().mode == MODE_STREAM )
 					{
 					file.clear(); // remove end of file evil bits
-					if ( !ReadHeader(true) )
-						return false; // header reading failed
+					if ( ! ReadHeader(true) )
+						{
+						return ! fail_on_file_problem; // header reading failed
+						}
 
 					break;
 					}
@@ -263,17 +311,7 @@ bool Ascii::DoUpdate()
 				file.close();
 				}
 
-			file.open(Info().source);
-			if ( ! file.is_open() )
-				{
-				Error(Fmt("cannot open %s", Info().source));
-				return false;
-				}
-
-			if ( ReadHeader(false) == false )
-				{
-				return false;
-				}
+			OpenFile();
 
 			break;
 			}
@@ -327,14 +365,23 @@ bool Ascii::DoUpdate()
 
 			if ( (*fit).position > pos || (*fit).secondary_position > pos )
 				{
-				Error(Fmt("Not enough fields in line %s. Found %d fields, want positions %d and %d",
-					  line.c_str(), pos,  (*fit).position, (*fit).secondary_position));
+				FailWarn(fail_on_invalid_lines, Fmt("Not enough fields in line %s. Found %d fields, want positions %d and %d",
+					  line.c_str(), pos, (*fit).position, (*fit).secondary_position));
 
-				for ( int i = 0; i < fpos; i++ )
-					delete fields[i];
+				if ( fail_on_invalid_lines )
+					{
+					for ( int i = 0; i < fpos; i++ )
+						delete fields[i];
 
-				delete [] fields;
-				return false;
+					delete [] fields;
+
+					return false;
+					}
+				else
+					{
+					error = true;
+					break;
+					}
 				}
 
 			Value* val = formatter->ParseValue(stringfields[(*fit).position], (*fit).name, (*fit).type, (*fit).subtype);
@@ -390,6 +437,9 @@ bool Ascii::DoUpdate()
 
 bool Ascii::DoHeartbeat(double network_time, double current_time)
 	{
+	if ( ! OpenFile() )
+		return ! fail_on_file_problem;
+
 	switch ( Info().mode )
 		{
 		case MODE_MANUAL:

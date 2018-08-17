@@ -19,6 +19,7 @@ int case_insensitive = 0;
 
 extern int RE_parse(void);
 extern void RE_set_input(const char* str);
+extern void RE_done_with_scan();
 
 Specific_RE_Matcher::Specific_RE_Matcher(match_type arg_mt, int arg_multiline)
 : equiv_class(NUM_SYM)
@@ -101,6 +102,19 @@ void Specific_RE_Matcher::AddPat(const char* new_pat,
 	pattern_text = s;
 	}
 
+void Specific_RE_Matcher::MakeCaseInsensitive()
+	{
+	const char fmt[] = "(?i:%s)";
+	int n = strlen(pattern_text) + strlen(fmt);
+
+	char* s = new char[n + 5 /* slop */];
+
+	safe_snprintf(s, n + 5, fmt, pattern_text);
+
+	delete [] pattern_text;
+	pattern_text = s;
+	}
+
 int Specific_RE_Matcher::Compile(int lazy)
 	{
 	if ( ! pattern_text )
@@ -108,9 +122,15 @@ int Specific_RE_Matcher::Compile(int lazy)
 
 	rem = this;
 	RE_set_input(pattern_text);
-	if ( RE_parse() )
+
+	int parse_status = RE_parse();
+	RE_done_with_scan();
+
+	if ( parse_status )
 		{
 		reporter->Error("error compiling pattern /%s/", pattern_text);
+		Unref(nfa);
+		nfa = 0;
 		return 0;
 		}
 
@@ -139,9 +159,19 @@ int Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx)
 	loop_over_list(set, i)
 		{
 		RE_set_input(set[i]);
-		if ( RE_parse() )
+		int parse_status = RE_parse();
+		RE_done_with_scan();
+
+		if ( parse_status )
 			{
 			reporter->Error("error compiling pattern /%s/", set[i]);
+
+			if ( set_nfa && set_nfa != nfa )
+				Unref(set_nfa);
+			else
+				Unref(nfa);
+
+			nfa = 0;
 			return 0;
 			}
 
@@ -408,6 +438,14 @@ RE_Matcher::RE_Matcher(const char* pat)
 	AddPat(pat);
 	}
 
+RE_Matcher::RE_Matcher(const char* exact_pat, const char* anywhere_pat)
+	{
+	re_anywhere = new Specific_RE_Matcher(MATCH_ANYWHERE);
+	re_anywhere->SetPat(anywhere_pat);
+	re_exact = new Specific_RE_Matcher(MATCH_EXACTLY);
+	re_exact->SetPat(exact_pat);
+	}
+
 RE_Matcher::~RE_Matcher()
 	{
 	delete re_anywhere;
@@ -418,6 +456,12 @@ void RE_Matcher::AddPat(const char* new_pat)
 	{
 	re_anywhere->AddPat(new_pat);
 	re_exact->AddPat(new_pat);
+	}
+
+void RE_Matcher::MakeCaseInsensitive()
+	{
+	re_anywhere->MakeCaseInsensitive();
+	re_exact->MakeCaseInsensitive();
 	}
 
 int RE_Matcher::Compile(int lazy)

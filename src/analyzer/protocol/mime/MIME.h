@@ -65,7 +65,7 @@ protected:
 
 class MIME_Header {
 public:
-	MIME_Header(MIME_Multiline* hl);
+	explicit MIME_Header(MIME_Multiline* hl);
 	~MIME_Header();
 
 	data_chunk_t get_name() const	{ return name; }
@@ -181,7 +181,7 @@ protected:
 
 class MIME_Message {
 public:
-	MIME_Message(analyzer::Analyzer* arg_analyzer)
+	explicit MIME_Message(analyzer::Analyzer* arg_analyzer)
 		{
 		// Cannot initialize top_level entity because we do
 		// not know its type yet (MIME_Entity / MIME_Mail /
@@ -231,17 +231,17 @@ protected:
 class MIME_Mail : public MIME_Message {
 public:
 	MIME_Mail(analyzer::Analyzer* mail_conn, bool is_orig, int buf_size = 0);
-	~MIME_Mail();
-	void Done();
+	~MIME_Mail() override;
+	void Done() override;
 
-	void BeginEntity(MIME_Entity* entity);
-	void EndEntity(MIME_Entity* entity);
-	void SubmitHeader(MIME_Header* h);
-	void SubmitAllHeaders(MIME_HeaderList& hlist);
-	void SubmitData(int len, const char* buf);
-	int RequestBuffer(int* plen, char** pbuf);
+	void BeginEntity(MIME_Entity* entity) override;
+	void EndEntity(MIME_Entity* entity) override;
+	void SubmitHeader(MIME_Header* h) override;
+	void SubmitAllHeaders(MIME_HeaderList& hlist) override;
+	void SubmitData(int len, const char* buf) override;
+	int RequestBuffer(int* plen, char** pbuf) override;
 	void SubmitAllData();
-	void SubmitEvent(int event_type, const char* detail);
+	void SubmitEvent(int event_type, const char* detail) override;
 	void Undelivered(int len);
 
 protected:
@@ -268,7 +268,7 @@ extern StringVal* new_string_val(int length, const char* data);
 extern StringVal* new_string_val(const char* data, const char* end_of_data);
 extern StringVal* new_string_val(const data_chunk_t buf);
 extern int fputs(data_chunk_t b, FILE* fp);
-extern int strcasecmp_n(data_chunk_t s, const char* t);
+extern bool istrequal(data_chunk_t s, const char* t);
 extern int is_lws(char ch);
 extern int MIME_is_field_name_char(char ch);
 extern int MIME_count_leading_lws(int len, const char* data);
@@ -283,6 +283,6 @@ extern int MIME_get_value(int len, const char* data, BroString*& buf,
 extern int MIME_get_field_name(int len, const char* data, data_chunk_t* name);
 extern BroString* MIME_decode_quoted_pairs(data_chunk_t buf);
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*
 
 #endif

@@ -1,12 +1,12 @@
 # @TEST-EXEC: cp input1.log input.log
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
-# @TEST-EXEC: sleep 2
+# @TEST-EXEC: $SCRIPTS/wait-for-file bro/got1 5 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: cp input2.log input.log
-# @TEST-EXEC: sleep 2
+# @TEST-EXEC: $SCRIPTS/wait-for-file bro/got2 5 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: cp input3.log input.log
-# @TEST-EXEC: sleep 2
+# @TEST-EXEC: $SCRIPTS/wait-for-file bro/got3 5 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: cp input4.log input.log
-# @TEST-EXEC: sleep 2
+# @TEST-EXEC: $SCRIPTS/wait-for-file bro/got4 5 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: cp input5.log input.log
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff out
@@ -43,7 +43,7 @@ T	-42	SSH::LOG	21	123	10.0.0.0/24	1.2.3.4	3.14	1315801931.273616	100.000000	hurz
 F	-43	SSH::LOG	21	123	10.0.0.0/24	1.2.3.4	3.14	1315801931.273616	100.000000	hurz	2,4,1,3	CC,AA,BB	EMPTY	10,20,30	EMPTY	SSH::foo\x0a{ \x0aif (0 < SSH::i) \x0a\x09return (Foo);\x0aelse\x0a\x09return (Bar);\x0a\x0a}
 F	-44	SSH::LOG	21	123	10.0.0.0/24	1.2.3.4	3.14	1315801931.273616	100.000000	hurz	2,4,1,3	CC,AA,BB	EMPTY	10,20,30	EMPTY	SSH::foo\x0a{ \x0aif (0 < SSH::i) \x0a\x09return (Foo);\x0aelse\x0a\x09return (Bar);\x0a\x0a}
 F	-45	SSH::LOG	21	123	10.0.0.0/24	1.2.3.4	3.14	1315801931.273616	100.000000	hurz	2,4,1,3	CC,AA,BB	EMPTY	10,20,30	EMPTY	SSH::foo\x0a{ \x0aif (0 < SSH::i) \x0a\x09return (Foo);\x0aelse\x0a\x09return (Bar);\x0a\x0a}
-F	-46	SSH::LOG	21	123	10.0.0.0/24	1.2.3.4	3.14	1315801931.273616	100.000000	hurz	2,4,1,3	CC,AA,BB	EMPTY	10,20,30	EMPTY	SSH::foo\x0a{ \x0aif (0 < SSH::i) \x0a\x09return (Foo);\x0aelse\x0a\x09return (Bar);\x0a\x0a}
+0	-46	SSH::LOG	21	123	10.0.0.0/24	1.2.3.4	3.14	1315801931.273616	100.000000	hurz	2,4,1,3	CC,AA,BB	EMPTY	10,20,30	EMPTY	SSH::foo\x0a{ \x0aif (0 < SSH::i) \x0a\x09return (Foo);\x0aelse\x0a\x09return (Bar);\x0a\x0a}
 F	-47	SSH::LOG	21	123	10.0.0.0/24	1.2.3.4	3.14	1315801931.273616	100.000000	hurz	2,4,1,3	CC,AA,BB	EMPTY	10,20,30	EMPTY	SSH::foo\x0a{ \x0aif (0 < SSH::i) \x0a\x09return (Foo);\x0aelse\x0a\x09return (Bar);\x0a\x0a}
 F	-48	SSH::LOG	21	123	10.0.0.0/24	1.2.3.4	3.14	1315801931.273616	100.000000	hurz	2,4,1,3	CC,AA,BB	EMPTY	10,20,30	EMPTY	SSH::foo\x0a{ \x0aif (0 < SSH::i) \x0a\x09return (Foo);\x0aelse\x0a\x09return (Bar);\x0a\x0a}
 @TEST-END-FILE
@@ -56,7 +56,6 @@ F	-48	SSH::LOG	21	123	10.0.0.0/24	1.2.3.4	3.14	1315801931.273616	100.000000	hurz
 @TEST-END-FILE
 
 @load base/protocols/ssh
-@load base/frameworks/communication  # let network-time run
 
 redef exit_only_after_terminate = T;
 redef InputAscii::empty_field = "EMPTY";
@@ -127,7 +126,16 @@ event Input::end_of_data(name: string, source: string)
 	print outfile, servers;
 	
 	try = try + 1;
-	if ( try == 5 )
+
+	if ( try == 1 )
+		system("touch got1");
+	else if ( try == 2 )
+		system("touch got2");
+	else if ( try == 3 )
+		system("touch got3");
+	else if ( try == 4 )
+		system("touch got4");
+	else if ( try == 5 )
 		{
 		print outfile, "done";
 		close(outfile);

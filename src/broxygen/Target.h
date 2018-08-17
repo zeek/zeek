@@ -27,7 +27,7 @@ struct TargetFile {
 	 * directories that don't already exist.
 	 *
 	 */
-	TargetFile(const std::string& arg_name);
+	explicit TargetFile(const std::string& arg_name);
 
 	/**
 	 * Close the file.
@@ -185,9 +185,9 @@ protected:
 
 private:
 
-	void DoFindDependencies(const std::vector<Info*>& infos);
+	void DoFindDependencies(const std::vector<Info*>& infos) override;
 
-	void DoGenerate() const;
+	void DoGenerate() const override;
 
 	virtual void DoCreateAnalyzerDoc(FILE* f) const = 0;
 };
@@ -209,7 +209,7 @@ public:
 
 private:
 
-	void DoCreateAnalyzerDoc(FILE* f) const;
+	void DoCreateAnalyzerDoc(FILE* f) const override;
 };
 
 /**
@@ -229,7 +229,7 @@ public:
 
 private:
 
-	void DoCreateAnalyzerDoc(FILE* f) const;
+	void DoCreateAnalyzerDoc(FILE* f) const override;
 };
 
 /**
@@ -249,9 +249,9 @@ public:
 
 private:
 
-	void DoFindDependencies(const std::vector<Info*>& infos);
+	void DoFindDependencies(const std::vector<Info*>& infos) override;
 
-	void DoGenerate() const;
+	void DoGenerate() const override;
 
 	std::vector<PackageInfo*> pkg_deps;
 	std::vector<ScriptInfo*> script_deps;
@@ -276,9 +276,9 @@ public:
 
 private:
 
-	void DoFindDependencies(const std::vector<Info*>& infos);
+	void DoFindDependencies(const std::vector<Info*>& infos) override;
 
-	void DoGenerate() const;
+	void DoGenerate() const override;
 
 	std::vector<PackageInfo*> pkg_deps;
 };
@@ -301,7 +301,7 @@ public:
 		: Target(name, pattern), script_deps()
 		{ }
 
-	~ScriptTarget()
+	~ScriptTarget() override
 		{ for ( size_t i = 0; i < pkg_deps.size(); ++i ) delete pkg_deps[i]; }
 
 protected:
@@ -310,9 +310,9 @@ protected:
 
 private:
 
-	void DoFindDependencies(const std::vector<Info*>& infos);
+	void DoFindDependencies(const std::vector<Info*>& infos) override;
 
-	void DoGenerate() const;
+	void DoGenerate() const override;
 
 	bool IsDir() const
 		{ return Name()[Name().size() - 1] == '/'; }
@@ -337,7 +337,7 @@ public:
 
 private:
 
-	void DoGenerate() const /* override */;
+	void DoGenerate() const override /* override */;
 };
 
 /**
@@ -357,7 +357,7 @@ public:
 
 private:
 
-	void DoGenerate() const /* override */;
+	void DoGenerate() const override /* override */;
 };
 
 /**
@@ -377,9 +377,9 @@ public:
 
 private:
 
-	void DoFindDependencies(const std::vector<Info*>& infos);
+	void DoFindDependencies(const std::vector<Info*>& infos) override;
 
-	void DoGenerate() const;
+	void DoGenerate() const override;
 
 	std::vector<IdentifierInfo*> id_deps;
 };

@@ -1,7 +1,8 @@
 barnyard2
+broker
 capture_loss
 cluster
-communication
+config
 conn
 dce__r_pc
 dhcp
@@ -14,7 +15,6 @@ http
 intel
 irc
 known_certs
-known_devices
 known_hosts
 known_modbus
 known_services
@@ -30,6 +30,7 @@ netcontrol_shunt
 notice
 notice_alarm
 ntlm
+ocsp
 open_flow
 packet_filter
 pe

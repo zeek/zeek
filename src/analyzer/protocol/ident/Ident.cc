@@ -17,8 +17,8 @@ Ident_Analyzer::Ident_Analyzer(Connection* conn)
 	{
 	did_bad_reply = did_deliver = 0;
 
-	orig_ident = new tcp::ContentLine_Analyzer(conn, true);
-	resp_ident = new tcp::ContentLine_Analyzer(conn, false);
+	orig_ident = new tcp::ContentLine_Analyzer(conn, true, 1000);
+	resp_ident = new tcp::ContentLine_Analyzer(conn, false, 1000);
 
 	orig_ident->SetIsNULSensitive(true);
 	resp_ident->SetIsNULSensitive(true);
@@ -82,8 +82,8 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 
 		val_list* vl = new val_list;
 		vl->append(BuildConnVal());
-		vl->append(new PortVal(local_port, TRANSPORT_TCP));
-		vl->append(new PortVal(remote_port, TRANSPORT_TCP));
+		vl->append(port_mgr->Get(local_port, TRANSPORT_TCP));
+		vl->append(port_mgr->Get(remote_port, TRANSPORT_TCP));
 
 		ConnectionEvent(ident_request, vl);
 
@@ -143,8 +143,8 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 			{
 			val_list* vl = new val_list;
 			vl->append(BuildConnVal());
-			vl->append(new PortVal(local_port, TRANSPORT_TCP));
-			vl->append(new PortVal(remote_port, TRANSPORT_TCP));
+			vl->append(port_mgr->Get(local_port, TRANSPORT_TCP));
+			vl->append(port_mgr->Get(remote_port, TRANSPORT_TCP));
 			vl->append(new StringVal(end_of_line - line, line));
 
 			ConnectionEvent(ident_error, vl);
@@ -177,8 +177,8 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 
 			val_list* vl = new val_list;
 			vl->append(BuildConnVal());
-			vl->append(new PortVal(local_port, TRANSPORT_TCP));
-			vl->append(new PortVal(remote_port, TRANSPORT_TCP));
+			vl->append(port_mgr->Get(local_port, TRANSPORT_TCP));
+			vl->append(port_mgr->Get(remote_port, TRANSPORT_TCP));
 			vl->append(new StringVal(end_of_line - line, line));
 			vl->append(new StringVal(sys_type_s));
 

@@ -1,0 +1,2 @@
+warning in /Users/jon/projects/bro/bro/testing/btest/.tmp/core.old_comm_usage/old_comm_usage.bro, line 6: deprecated (terminate_communication)
+fatal error: Detected old, deprecated communication system usages that will not work unless you explicitly take action to initizialize and set up the old comm. system.  Set the 'old_comm_usage_is_ok' flag to bypass this error if you've taken such actions.

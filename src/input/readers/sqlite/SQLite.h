@@ -16,16 +16,16 @@ namespace input { namespace reader {
 
 class SQLite : public ReaderBackend {
 public:
-	SQLite(ReaderFrontend* frontend);
-	~SQLite();
+	explicit SQLite(ReaderFrontend* frontend);
+	~SQLite() override;
 
 	static ReaderBackend* Instantiate(ReaderFrontend* frontend) { return new SQLite(frontend); }
 
 protected:
-	virtual bool DoInit(const ReaderInfo& info, int arg_num_fields, const threading::Field* const* arg_fields);
-	virtual void DoClose();
-	virtual bool DoUpdate();
-	virtual bool DoHeartbeat(double network_time, double current_time)	{ return true; }
+	bool DoInit(const ReaderInfo& info, int arg_num_fields, const threading::Field* const* arg_fields) override;
+	void DoClose() override;
+	bool DoUpdate() override;
+	bool DoHeartbeat(double network_time, double current_time) override { return true; }
 
 private:
 	bool checkError(int code);

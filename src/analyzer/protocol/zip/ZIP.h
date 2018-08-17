@@ -15,11 +15,11 @@ public:
 	enum Method { GZIP, DEFLATE };
 
 	ZIP_Analyzer(Connection* conn, bool orig, Method method = GZIP);
-	~ZIP_Analyzer();
+	~ZIP_Analyzer() override;
 
-	virtual void Done();
+	void Done() override;
 
-	virtual void DeliverStream(int len, const u_char* data, bool orig);
+	void DeliverStream(int len, const u_char* data, bool orig) override;
 
 protected:
 	enum { NONE, ZIP_OK, ZIP_FAIL };

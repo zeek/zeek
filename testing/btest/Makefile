@@ -1,6 +1,7 @@
 
 DIAG=diag.log
 BTEST=../../aux/btest/btest
+SCRIPT_COV=.tmp/script-coverage
 
 all: cleanup btest-verbose coverage
 
@@ -15,11 +16,12 @@ btest-brief:
 	@$(BTEST) -j -b -f $(DIAG)
 
 coverage:
-	@../scripts/coverage-calc ".tmp/script-coverage*" coverage.log `pwd`/../../scripts
+	@../scripts/coverage-calc "$(SCRIPT_COV)/*" coverage.log `pwd`/../../scripts
 
 cleanup:
 	@rm -f $(DIAG)
-	@rm -f .tmp/script-coverage*
+	@rm -rf $(SCRIPT_COV)*
+	@find ../../ -name "*.gcda" -exec rm {} \;
 
 distclean: cleanup
 	@rm -rf .btest.failed.dat \

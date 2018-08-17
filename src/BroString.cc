@@ -166,17 +166,19 @@ void BroString::Set(const BroString& str)
 
 const char* BroString::CheckString() const
 	{
+	void *nulTerm;
 	if ( n == 0 )
 		return "";
 
-	if ( memchr(b, '\0', n + final_NUL) != &b[n] )
+	nulTerm = memchr(b, '\0', n + final_NUL);
+	if ( nulTerm != &b[n] )
 		{
 		// Either an embedded NUL, or no final NUL.
 		char* exp_s = Render();
-		if ( b[n-1] != '\0' )
-			reporter->Error("string without NUL terminator: \"%s\"", exp_s);
-		else
+		if ( nulTerm )
 			reporter->Error("string with embedded NUL: \"%s\"", exp_s);
+		else
+			reporter->Error("string without NUL terminator: \"%s\"", exp_s);
 
 		delete [] exp_s;
 		return "<string-with-NUL>";

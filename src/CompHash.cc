@@ -703,7 +703,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 			break;
 
 		case TYPE_PORT:
-			pval = new PortVal(*kp);
+			pval = port_mgr->Get(*kp);
 			break;
 
 		default:

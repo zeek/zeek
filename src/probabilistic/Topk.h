@@ -45,12 +45,12 @@ public:
 	 *
 	 * @return A newly initialized TopkVal
 	 */
-	TopkVal(uint64 size);
+	explicit TopkVal(uint64 size);
 
 	/**
 	 * Destructor.
 	 */
-	~TopkVal();
+	~TopkVal() override;
 
 	/**
 	 * Call this when a new value is encountered. Note that on the first

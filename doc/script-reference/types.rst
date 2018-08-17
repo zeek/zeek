@@ -91,6 +91,10 @@ Here is a more detailed description of each type:
     type, but a unary plus or minus applied to a "count" results in an
     "int".
 
+    In addition, "count" types support bitwise operations.  You can use
+    ``&``, ``|``, and ``^`` for bitwise ``and``, ``or``, and ``xor``.  You
+    can also use ``~`` for bitwise (one's) complement.
+
 .. bro:type:: double
 
     A numeric type representing a double-precision floating-point
@@ -194,11 +198,11 @@ Here is a more detailed description of each type:
 
 .. bro:type:: pattern
 
-    A type representing regular-expression patterns which can be used
+    A type representing regular-expression patterns that can be used
     for fast text-searching operations.  Pattern constants are created
-    by enclosing text within forward slashes (/) and is the same syntax
+    by enclosing text within forward slashes (``/``) and use the same syntax
     as the patterns supported by the `flex lexical analyzer
-    <http://flex.sourceforge.net/manual/Patterns.html>`_.  The speed of
+    <http://westes.github.io/flex/manual/Patterns.html>`_.  The speed of
     regular expression matching does not depend on the complexity or
     size of the patterns.  Patterns support two types of matching, exact
     and embedded.
@@ -232,6 +236,32 @@ Here is a more detailed description of each type:
 
     is false since "oob" does not appear at the start of "foobar".  The
     ``!in`` operator would yield the negation of ``in``.
+
+    You can create a disjunction (either-or) of two patterns
+    using the ``|`` operator.  For example::
+
+	/foo/ | /bar/ in "foobar"
+
+    yields true, like in the similar example above.  You can also
+    create the conjunction (concatenation) of patterns using the ``&``
+    operator.  For example::
+
+	/foo/ & /bar/ in "foobar"
+
+    will yield true because the pattern /(foo)(bar)/ appears in
+    the string "foobar".
+
+    When specifying a pattern, you can add a final ``i`` specifier to
+    mark it as case-insensitive.  For example, ``/foo|bar/i`` will match
+    a "foo", "Foo", "BaR", etc.
+
+    You can also introduce a case-insensitive sub-pattern by enclosing it
+    in ``(?i:``<pattern>``)``.  So, for example, ``/foo|(?i:bar)/`` will
+    match "foo" and "BaR", but *not* "Foo".
+
+    For both ways of specifying case-insensitivity, characters enclosed
+    in double quotes maintain their case-sensitivity.  So for example
+    /"foo"/i will not match "Foo", but it will match "foo".
 
 .. bro:type:: port
 
@@ -514,6 +544,15 @@ Here is a more detailed description of each type:
 
         |s|
 
+    You can compute the union, intersection, or difference of two sets
+    using the ``|``, ``&``, and ``-`` operators.  You can compare
+    sets for equality (they have exactly the same elements) using ``==``.
+    The ``<`` operator returns ``T`` if the lefthand operand is a proper
+    subset of the righthand operand.  Similarly, ``<=`` returns ``T``
+    if the lefthand operator is a subset (not necessarily proper, i.e.,
+    it may be equal to the righthand operand).  The operators ``!=``, ``>``
+    and ``>=`` provide the expected complementary operations.
+
     See the :bro:keyword:`for` statement for info on how to iterate over
     the elements in a set.
 
@@ -569,6 +608,20 @@ Here is a more detailed description of each type:
 
         |v|
 
+    A particularly common operation on a vector is to append an element
+    to its end.  You can do so using:
+
+    .. code:: bro
+
+        v += e;
+
+    where if e's type is ``X``, v's type is ``vector of X``.  Note that
+    this expression is equivalent to:
+
+    .. code:: bro
+
+        v[|v|] = e;
+
     Vectors of integral types (``int`` or ``count``) support the pre-increment
     (``++``) and pre-decrement operators (``--``), which will increment or
     decrement each element in the vector.
@@ -584,6 +637,9 @@ Here is a more detailed description of each type:
     "or" (``||``) operators (both operands must have same number of elements).
     The resulting vector of bool is the logical "and" (or logical "or") of
     each element of the operand vectors.
+
+    Vectors of type ``count`` can also be operands for the bitwise and/or/xor
+    operators, ``&``, ``|`` and ``^``.
 
     See the :bro:keyword:`for` statement for info on how to iterate over
     the elements in a vector.

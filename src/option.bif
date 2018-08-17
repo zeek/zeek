@@ -1,0 +1,197 @@
+##! Definitions of built-in functions that allow the scripting layer to
+##! change the value of options and to be notified when option values change.
+
+module Option;
+
+%%{
+#include "NetVar.h"
+#include "broker/Data.h"
+
+static bool call_option_handlers_and_set_value(StringVal* name, ID* i, Val* val,
+                                               StringVal* location)
+	{
+	val->Ref();
+	if ( i->HasOptionHandlers() )
+		{
+		for ( auto handler_function : i->GetOptionHandlers() )
+			{
+			val_list vl(2);
+			vl.append(name->Ref());
+			vl.append(val);
+			if ( handler_function->FType()->AsFuncType()->ArgTypes()->Types()->length() == 3 )
+				vl.append(location->Ref());
+
+			val = handler_function->Call(&vl); // consumed by next call.
+			if ( ! val )
+				{
+				// Someone messed up, don't change value and just return
+				return false;
+				}
+			}
+		}
+
+	// clone to prevent changes
+	i->SetVal(val->Clone());
+	Unref(val); // Either ref'd once or function call result.
+	return true;
+	}
+%%}
+
+## Set an option to a new value. This change will also cause the option change
+## handlers to be called.
+##
+## ID: The ID of the option to update.
+##
+## val: The new value of the option.
+##
+## location: Optional parameter detailing where this change originated from.
+##
+## Returns: true on success, false when an error occurred.
+##
+## .. bro:see:: Option::set_change_handler Config::set_value
+##
+## .. note:: :bro:id:`Option::set` only works on one node and does not distribute
+##           new values across a cluster. The higher-level :bro:id:`Config::set_value`
+##           supports clusterization and should typically be used instead of this
+##           lower-level function.
+function Option::set%(ID: string, val: any, location: string &default=""%): bool
+	%{
+	auto i = global_scope()->Lookup(ID->CheckString());
+	if ( ! i )
+		{
+		builtin_error(fmt("Could not find ID named '%s'", ID->CheckString()));
+		return new Val(0, TYPE_BOOL);
+		}
+
+	if ( ! i->HasVal() )
+		{
+		// should be impossible because initialization is enforced
+		builtin_error(fmt("ID '%s' has no value", ID->CheckString()));
+		return new Val(0, TYPE_BOOL);
+		}
+
+	if ( ! i->IsOption() )
+		{
+		builtin_error(fmt("ID '%s' is not an option", ID->CheckString()));
+		return new Val(0, TYPE_BOOL);
+		}
+
+	if ( same_type(val->Type(), bro_broker::DataVal::ScriptDataType()) )
+		{
+		auto dv = static_cast<bro_broker::DataVal*>(val->AsRecordVal()->Lookup(0));
+		auto val_from_data = dv->castTo(i->Type());
+
+		if ( ! val_from_data )
+			{
+			builtin_error(fmt("Incompatible type for set of ID '%s': got broker data '%s', need '%s'",
+				ID->CheckString(), dv->data.get_type_name(), type_name(i->Type()->Tag())));
+			return new Val(0, TYPE_BOOL);
+			}
+
+		auto rval = call_option_handlers_and_set_value(ID, i, val_from_data, location);
+		Unref(val_from_data);
+		return new Val(rval, TYPE_BOOL);
+		}
+
+	if ( ! same_type(i->Type(), val->Type()) )
+		{
+		builtin_error(fmt("Incompatible type for set of ID '%s': got '%s', need '%s'",
+			ID->CheckString(), type_name(val->Type()->Tag()), type_name(i->Type()->Tag())));
+		return new Val(0, TYPE_BOOL);
+		}
+
+	auto rval = call_option_handlers_and_set_value(ID, i, val, location);
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+## Set a change handler for an option. The change handler will be
+## called anytime :bro:id:`Option::set` is called for the option.
+##
+## ID: The ID of the option for which change notifications are desired.
+##
+## on_change: The function that will be called when a change occurs. The
+##            function can choose to receive two or three parameters: the first
+##            parameter is a string containing *ID*, the second parameter is
+##            the new option value. The third, optional, parameter is the
+##            location string as passed to Option::set. Note that the global
+##            value is not yet changed when the function is called. The passed
+##            function has to return the new value that it wants the option to
+##            be set to. This enables it to reject changes, or change values
+##            that are being set. When several change handlers are set for an
+##            option they are chained; the second change handler will see the
+##            return value of the first change handler as the "new value".
+##
+## priority: The priority of the function that was added; functions with higher
+##           priority are called first, functions with the same priority are
+##           called in the order in which they were added.
+##
+## Returns: true when the change handler was set, false when an error occurred.
+##
+## .. bro:see:: Option::set
+function Option::set_change_handler%(ID: string, on_change: any, priority: int &default=0%): bool
+	%{
+	auto i = global_scope()->Lookup(ID->CheckString());
+	if ( ! i )
+		{
+		builtin_error(fmt("Could not find ID named '%s'", ID->CheckString()));
+		return new Val(0, TYPE_BOOL);
+		}
+
+	if ( ! i->IsOption() )
+		{
+		builtin_error(fmt("ID '%s' is not an option", ID->CheckString()));
+		return new Val(0, TYPE_BOOL);
+		}
+
+	if ( on_change->Type()->Tag() != TYPE_FUNC )
+		{
+		builtin_error(fmt("Option::on_change needs function argument; got '%s' for ID '%s'",
+			type_name(on_change->Type()->Tag()), ID->CheckString()));
+		return new Val(0, TYPE_BOOL);
+		}
+
+	if ( on_change->Type()->AsFuncType()->Flavor() != FUNC_FLAVOR_FUNCTION )
+		{
+		builtin_error("Option::on_change needs function argument; not hook or event");
+		return new Val(0, TYPE_BOOL);
+		}
+
+	const type_list* args = on_change->Type()->AsFuncType()->ArgTypes()->Types();
+	if ( args->length() < 2 || args->length() > 3 )
+		{
+		builtin_error(fmt("Wrong number of arguments for passed function in Option::on_change for ID '%s'; expected 2 or 3, got %d",
+			ID->CheckString(), args->length()));
+		return new Val(0, TYPE_BOOL);
+		}
+
+	if ( (*args)[0]->Tag() != TYPE_STRING )
+		{
+		builtin_error(fmt("First argument of passed function has to be string in Option::on_change for ID '%s'; got '%s'",
+			ID->CheckString(), type_name((*args)[0]->Tag())));
+		return new Val(0, TYPE_BOOL);
+		}
+
+	if ( ! same_type((*args)[1], i->Type()) )
+		{
+		builtin_error(fmt("Second argument of passed function has to be %s in Option::on_change for ID '%s'; got '%s'",
+			type_name(i->Type()->Tag()), ID->CheckString(), type_name((*args)[1]->Tag())));
+		return new Val(0, TYPE_BOOL);
+		}
+
+	if ( args->length() == 3 && (*args)[2]->Tag() != TYPE_STRING )
+		{
+		builtin_error(fmt("Third argument of passed function has to be string in Option::on_change for ID '%s'; got '%s'",
+			ID->CheckString(), type_name((*args)[2]->Tag())));
+		return new Val(0, TYPE_BOOL);
+		}
+
+	if ( ! same_type(on_change->Type()->AsFuncType()->YieldType(), i->Type()) )
+		{
+		builtin_error(fmt("Passed function needs to return type '%s' for ID '%s'; got '%s'",
+			type_name(i->Type()->Tag()), ID->CheckString(), type_name(on_change->Type()->AsFuncType()->YieldType()->Tag())));
+		return new Val(0, TYPE_BOOL);
+		}
+
+	i->AddOptionHandler(on_change->Ref()->AsFunc(), -priority);
+	return new Val(1, TYPE_BOOL);
+	%}

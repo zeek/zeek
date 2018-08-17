@@ -1,5 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include <broker/data.hh>
+
 #include "util.h"
 #include "threading/SerialTypes.h"
 
@@ -114,6 +116,55 @@ bool WriterBackend::WriterInfo::Write(SerializationFormat* fmt) const
 		{
 		if ( ! (fmt->Write(i->first, "config-value") && fmt->Write(i->second, "config-key")) )
 			return false;
+		}
+
+	return true;
+	}
+
+broker::data WriterBackend::WriterInfo::ToBroker() const
+	{
+	auto t = broker::table();
+
+	for ( config_map::const_iterator i = config.begin(); i != config.end(); ++i )
+		{
+		auto key = std::string(i->first);
+		auto value = std::string(i->second);
+		t.insert(std::make_pair(key, value));
+		}
+
+	return broker::vector({path, rotation_base, rotation_interval, network_time, std::move(t)});
+	}
+
+bool WriterBackend::WriterInfo::FromBroker(broker::data d)
+	{
+	if ( ! caf::holds_alternative<broker::vector>(d) )
+		return false;
+
+	auto v = caf::get<broker::vector>(d);
+	auto bpath = caf::get_if<std::string>(&v[0]);
+	auto brotation_base = caf::get_if<double>(&v[1]);
+	auto brotation_interval = caf::get_if<double>(&v[2]);
+	auto bnetwork_time = caf::get_if<double>(&v[3]);
+	auto bconfig = caf::get_if<broker::table>(&v[4]);
+
+	if ( ! (bpath && brotation_base && brotation_interval && bnetwork_time && bconfig) )
+		return false;
+
+	path = copy_string(bpath->c_str());
+	rotation_base = *brotation_base;
+	rotation_interval = *brotation_interval;
+	network_time = *bnetwork_time;
+
+	for ( auto i : *bconfig )
+		{
+		auto k = caf::get_if<std::string>(&i.first);
+		auto v = caf::get_if<std::string>(&i.second);
+
+		if ( ! (k && v) )
+			return false;
+
+		auto p = std::make_pair(copy_string(k->c_str()), copy_string(v->c_str()));
+		config.insert(p);
 		}
 
 	return true;

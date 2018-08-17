@@ -14,7 +14,7 @@
 192.168.128.0/18	Intel::SUBNET	source1	this subnetwork might be baaad	http://some-data-distributor.com/5
 # @TEST-END-FILE
 
-@load frameworks/communication/listen
+redef exit_only_after_terminate = T;
 
 redef Intel::read_files += { "../intel.dat" };
 redef enum Intel::Where += { SOMEWHERE };

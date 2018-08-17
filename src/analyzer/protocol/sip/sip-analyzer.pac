@@ -8,7 +8,7 @@ refine flow SIP_Flow += {
 
 	%init{
 		content_length = 0;
-		build_headers = (sip_all_headers != 0);
+		build_headers = bool(sip_all_headers);
 	%}
 
 	function get_content_length(): int

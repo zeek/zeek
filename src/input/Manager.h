@@ -98,6 +98,21 @@ public:
 	 */
 	void Terminate();
 
+	/**
+	 * Checks if a Bro type can be used for data reading. Note that
+	 * this function only applies to input streams; the logging framework
+	 * has an equivalent function; however we support logging of a wider
+	 * variety of types (e.g. functions).
+	 *
+	 * @param t The type to check.
+	 *
+	 * @param atomic_only Set to true to forbid non-atomic types
+	 *        (records/sets/vectors).
+	 *
+	 * @return True if the type is compatible with the input framework.
+	 */
+	static bool IsCompatibleType(BroType* t, bool atomic_only=false);
+
 protected:
 	friend class ReaderFrontend;
 	friend class PutMessage;
@@ -130,7 +145,7 @@ protected:
 	// Allows readers to directly send Bro events. The num_vals and vals
 	// must be the same the named event expects. Takes ownership of
 	// threading::Value fields.
-	bool SendEvent(ReaderFrontend* reader, const string& name, const int num_vals, threading::Value* *vals);
+	bool SendEvent(ReaderFrontend* reader, const string& name, const int num_vals, threading::Value* *vals) const;
 
 	// Instantiates a new ReaderBackend of the given type (note that
 	// doing so creates a new thread!).
@@ -147,9 +162,9 @@ protected:
 	// Signal Informational messages, warnings and errors. These will be
 	// passed to the error function in scriptland. Note that the messages
 	// are not passed to reporter - this is done in ReaderBackend.
-	void Info(ReaderFrontend* reader, const char* msg);
-	void Warning(ReaderFrontend* reader, const char* msg);
-	void Error(ReaderFrontend* reader, const char* msg);
+	void Info(ReaderFrontend* reader, const char* msg) const;
+	void Warning(ReaderFrontend* reader, const char* msg) const;
+	void Error(ReaderFrontend* reader, const char* msg) const;
 
 	/**
 	 * Deletes an existing input stream.
@@ -176,7 +191,7 @@ private:
 	// Check if the types of the error_ev event are correct. If table is
 	// true, check for tablestream type, otherwhise check for eventstream
 	// type.
-	bool CheckErrorEventTypes(std::string stream_name, Func* error_event, bool table);
+	bool CheckErrorEventTypes(std::string stream_name, const Func* error_event, bool table) const;
 
 	// SendEntry implementation for Table stream.
 	int SendEntryTable(Stream* i, const threading::Value* const *vals);
@@ -187,63 +202,63 @@ private:
 	// SendEntry and Put implementation for Event stream.
 	int SendEventStreamEvent(Stream* i, EnumVal* type, const threading::Value* const *vals);
 
-	// Checks that a Bro type can be used for data reading. The
-	// equivalend in threading cannot be used, because we have support
-	// different types from the log framework
-	bool IsCompatibleType(BroType* t, bool atomic_only=false);
 	// Check if a record is made up of compatible types and return a list
 	// of all fields that are in the record in order. Recursively unrolls
 	// records
-	bool UnrollRecordType(vector<threading::Field*> *fields, const RecordType *rec, const string& nameprepend, bool allow_file_func);
+	bool UnrollRecordType(vector<threading::Field*> *fields, const RecordType *rec, const string& nameprepend, bool allow_file_func) const;
 
 	// Send events
-	void SendEvent(EventHandlerPtr ev, const int numvals, ...);
-	void SendEvent(EventHandlerPtr ev, list<Val*> events);
+	void SendEvent(EventHandlerPtr ev, const int numvals, ...) const;
+	void SendEvent(EventHandlerPtr ev, list<Val*> events) const;
 
 	// Implementation of SendEndOfData (send end_of_data event).
 	void SendEndOfData(const Stream *i);
 
 	// Call predicate function and return result.
-	bool CallPred(Func* pred_func, const int numvals, ...);
+	bool CallPred(Func* pred_func, const int numvals, ...) const;
 
 	// Get a hashkey for a set of threading::Values.
-	HashKey* HashValues(const int num_elements, const threading::Value* const *vals);
+	HashKey* HashValues(const int num_elements, const threading::Value* const *vals) const;
 
 	// Get the memory used by a specific value.
-	int GetValueLength(const threading::Value* val);
+	int GetValueLength(const threading::Value* val) const;
 
 	// Copies the raw data in a specific threading::Value to position
 	// startpos.
-	int CopyValue(char *data, const int startpos, const threading::Value* val);
+	int CopyValue(char *data, const int startpos, const threading::Value* val) const;
 
 	// Convert Threading::Value to an internal Bro Type (works also with
 	// Records).
-	Val* ValueToVal(const Stream* i, const threading::Value* val, BroType* request_type, bool& have_error);
+	Val* ValueToVal(const Stream* i, const threading::Value* val, BroType* request_type, bool& have_error) const;
 
-	// Convert Threading::Value to an internal Bro List type.
-	Val* ValueToIndexVal(const Stream* i, int num_fields, const RecordType* type, const threading::Value* const *vals, bool& have_error);
+	// Convert Threading::Value to an internal Bro type just using the information given in the threading::Value.
+	// This allows more flexibility, especially given structures in script-land that contain any types.
+	Val* ValueToVal(const Stream* i, const threading::Value* val, bool& have_error) const;
+
+	// Convert Threading::Value to an internal Bro list type.
+	Val* ValueToIndexVal(const Stream* i, int num_fields, const RecordType* type, const threading::Value* const *vals, bool& have_error) const;
 
 	// Converts a threading::value to a record type. Mostly used by
 	// ValueToVal.
-	RecordVal* ValueToRecordVal(const Stream* i, const threading::Value* const *vals, RecordType *request_type, int* position, bool& have_error);
+	RecordVal* ValueToRecordVal(const Stream* i, const threading::Value* const *vals, RecordType *request_type, int* position, bool& have_error) const;
 
-	Val* RecordValToIndexVal(RecordVal *r);
+	Val* RecordValToIndexVal(RecordVal *r) const;
 
 	// Converts a Bro ListVal to a RecordVal given the record type.
-	RecordVal* ListValToRecordVal(ListVal* list, RecordType *request_type, int* position);
+	RecordVal* ListValToRecordVal(ListVal* list, RecordType *request_type, int* position) const;
 
 	// Internally signal errors, warnings, etc.
 	// These are sent on to input scriptland and reporter.log
-	void Info(const Stream* i, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
-	void Warning(const Stream* i, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
-	void Error(const Stream* i, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
+	void Info(const Stream* i, const char* fmt, ...) const __attribute__((format(printf, 3, 4)));
+	void Warning(const Stream* i, const char* fmt, ...) const __attribute__((format(printf, 3, 4)));
+	void Error(const Stream* i, const char* fmt, ...) const __attribute__((format(printf, 3, 4)));
 
 	enum class ErrorType { INFO, WARNING, ERROR };
-	void ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, const char* fmt, ...) __attribute__((format(printf, 5, 6)));
-	void ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, const char* fmt, va_list ap);
+	void ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, const char* fmt, ...) const __attribute__((format(printf, 5, 6)));
+	void ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, const char* fmt, va_list ap) const __attribute__((format(printf, 5, 0)));
 
-	Stream* FindStream(const string &name);
-	Stream* FindStream(ReaderFrontend* reader);
+	Stream* FindStream(const string &name) const;
+	Stream* FindStream(ReaderFrontend* reader) const;
 
 	enum StreamType { TABLE_STREAM, EVENT_STREAM, ANALYSIS_STREAM };
 

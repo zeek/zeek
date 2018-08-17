@@ -50,7 +50,23 @@ type GSSAPI_NEG_TOKEN_RESP_Arg = record {
 };
 
 type GSSAPI_NEG_TOKEN_MECH_TOKEN(is_orig: bool) = record {
-	meta       : ASN1EncodingMeta;
-	mech_token : bytestring &length=meta.length;
+	meta  : ASN1EncodingMeta;
+	token : bytestring &length=meta.length;
+} &let {
+	ntlm : bytestring withinput token &if($context.connection.is_first_byte(token, 0x4E)) &restofdata;
+	krb : KRB_BLOB withinput token &if($context.connection.is_first_byte(token, 0x60)) &restofdata;
 };
 
+type KRB_BLOB = record {
+	meta     : ASN1EncodingMeta;
+	oid      : ASN1OctetString;
+	token_id : uint16 &byteorder=littleendian;
+	blob     : bytestring &restofdata;
+};
+
+refine connection GSSAPI_Conn += {
+	function is_first_byte(token: bytestring, byte: uint8): bool
+		%{
+		return token[0] == byte;
+		%}
+};

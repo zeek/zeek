@@ -1,7 +1,6 @@
-# @TEST-SERIALIZE: brokercomm
-# @TEST-REQUIRES: grep -q ENABLE_BROKER:BOOL=true $BUILD/CMakeCache.txt
-# @TEST-EXEC: btest-bg-run recv "bro -b ../recv.bro broker_port=$BROKER_PORT >recv.out"
-# @TEST-EXEC: btest-bg-run send "bro -b -r $TRACES/tls/ecdhe.pcap --pseudo-realtime ../send.bro broker_port=$BROKER_PORT >send.out"
+# @TEST-SERIALIZE: comm
+# @TEST-EXEC: btest-bg-run recv "bro -b ../recv.bro >recv.out"
+# @TEST-EXEC: btest-bg-run send "bro -b -r $TRACES/tls/ecdhe.pcap --pseudo-realtime ../send.bro >send.out"
 
 # @TEST-EXEC: btest-bg-wait 20
 # @TEST-EXEC: btest-diff send/netcontrol.log
@@ -12,30 +11,39 @@
 
 @load base/frameworks/netcontrol
 
-const broker_port: port &redef;
 redef exit_only_after_terminate = T;
+global have_peer = F;
+global did_init = F;
+
+event bro_init()
+	{
+	suspend_processing();
+	}
 
 event NetControl::init()
 	{
-	suspend_processing();
-	local netcontrol_acld = NetControl::create_acld(NetControl::AcldConfig($acld_host=127.0.0.1, $acld_port=broker_port, $acld_topic="bro/event/netcontroltest"));
+	local netcontrol_acld = NetControl::create_acld(NetControl::AcldConfig($acld_host=127.0.0.1, $acld_port=Broker::default_port, $acld_topic="bro/event/netcontroltest"));
 	NetControl::activate(netcontrol_acld, 0);
 	}
 
-event Broker::outgoing_connection_established(peer_address: string,
-                                            peer_port: port,
-                                            peer_name: string)
+event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
-	print "Broker::outgoing_connection_established", peer_address, peer_port;
+	print "Broker peer added", endpoint$network;
+	have_peer = T;
+
+	if ( did_init && have_peer )
+		continue_processing();
 	}
 
 event NetControl::init_done()
 	{
-	continue_processing();
+	did_init = T;
+
+	if ( did_init && have_peer )
+		continue_processing();
 	}
 
-event Broker::outgoing_connection_broken(peer_address: string,
-                                       peer_port: port)
+event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	{
 	terminate();
 	}
@@ -79,6 +87,11 @@ event NetControl::rule_removed(r: NetControl::Rule, p: NetControl::PluginState, 
 	print "rule removed", r$entity, r$ty;
 	}
 
+event NetControl::rule_error(r: NetControl::Rule, p: NetControl::PluginState, msg: string)
+	{
+	print "rule error", r$entity, r$ty;
+	}
+
 @TEST-END-FILE
 
 @TEST-START-FILE recv.bro
@@ -86,19 +99,22 @@ event NetControl::rule_removed(r: NetControl::Rule, p: NetControl::PluginState, 
 @load base/frameworks/netcontrol
 @load base/frameworks/broker
 
-const broker_port: port &redef;
 redef exit_only_after_terminate = T;
+
+event die()
+	{
+	terminate();
+	}
 
 event bro_init()
 	{
-	Broker::enable();
-	Broker::subscribe_to_events("bro/event/netcontroltest");
-	Broker::listen(broker_port, "127.0.0.1");
+	Broker::subscribe("bro/event/netcontroltest");
+	Broker::listen("127.0.0.1");
 	}
 
-event Broker::incoming_connection_established(peer_name: string)
+event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
-	print "Broker::incoming_connection_established";
+	print "Broker peer added";
 	}
 
 event NetControl::acld_add_rule(id: count, r: NetControl::Rule, ar: NetControl::AclRule)
@@ -106,19 +122,24 @@ event NetControl::acld_add_rule(id: count, r: NetControl::Rule, ar: NetControl::
 	print "add_rule", id, r$entity, r$ty, ar;
 
 	if ( r$cid != 3 )
-		Broker::send_event("bro/event/netcontroltest", Broker::event_args(NetControl::acld_rule_added, id, r, ar$command));
+		Broker::publish("bro/event/netcontroltest", NetControl::acld_rule_added, id, r, ar$command);
 	else
-		Broker::send_event("bro/event/netcontroltest", Broker::event_args(NetControl::acld_rule_exists, id, r, ar$command));
+		Broker::publish("bro/event/netcontroltest", NetControl::acld_rule_exists, id, r, ar$command);
 	}
 
 event NetControl::acld_remove_rule(id: count, r: NetControl::Rule, ar: NetControl::AclRule)
 	{
 	print "remove_rule", id, r$entity, r$ty, ar;
 
-	Broker::send_event("bro/event/netcontroltest", Broker::event_args(NetControl::acld_rule_removed, id, r, ar$command));
+	if ( r$cid != 2 )
+		Broker::publish("bro/event/netcontroltest", NetControl::acld_rule_removed, id, r, ar$command);
+	else
+		Broker::publish("bro/event/netcontroltest", NetControl::acld_rule_error, id, r, ar$command);
 
 	if ( r$cid == 4 )
-		terminate();
+		{
+		schedule 2sec { die() };
+		}
 	}
 
 @TEST-END-FILE

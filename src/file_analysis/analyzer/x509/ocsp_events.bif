@@ -1,0 +1,117 @@
+## Event that is raised when encountering an OCSP request, e.g. in an HTTP
+## connection. See :rfc:`6960` for more details.
+##
+## This event is raised exactly once for each OCSP Request.
+##
+## f: The file.
+##
+## req: version: the version of the OCSP request. Typically 0 (Version 1).
+##
+## .. bro:see:: ocsp_request_certificate ocsp_response_status
+##              ocsp_response_bytes ocsp_response_certificate ocsp_extension
+##              x509_ocsp_ext_signed_certificate_timestamp
+event ocsp_request%(f: fa_file, version: count%);
+
+## Event that is raised when encountering an OCSP request for a certificate,
+## e.g. in an HTTP connection. See :rfc:`6960` for more details.
+##
+## Note that a single OCSP request can contain requests for several certificates.
+## Thus this event can fire several times for one OCSP request, each time
+## requesting information for a different (or in theory even the same) certificate.
+##
+## f: The file.
+##
+## hashAlgorithm: The hash algorithm used for the issuerKeyHash.
+##
+## issuerKeyHash: Hash of the issuers public key.
+##
+## serialNumber: Serial number of the certificate for which the status is requested.
+##
+## .. bro:see:: ocsp_request ocsp_response_status
+##              ocsp_response_bytes ocsp_response_certificate ocsp_extension
+##              x509_ocsp_ext_signed_certificate_timestamp
+event ocsp_request_certificate%(f: fa_file, hashAlgorithm: string, issuerNameHash: string, issuerKeyHash: string, serialNumber: string%);
+
+## This event is raised when encountering an OCSP reply, e.g. in an HTTP
+## connection or a TLS extension. See :rfc:`6960` for more details.
+##
+## This event is raised exactly once for each OCSP reply.
+##
+## f: The file.
+##
+## status: The status of the OCSP response (e.g. succesful, malformedRequest, tryLater).
+##
+## .. bro:see:: ocsp_request ocsp_request_certificate
+##              ocsp_response_bytes ocsp_response_certificate ocsp_extension
+##              x509_ocsp_ext_signed_certificate_timestamp
+event ocsp_response_status%(f: fa_file, status: string%);
+
+## This event is raised when encountering an OCSP response that contains response information.
+## An OCSP reply can be encountered, for example, in an HTTP connection or
+## a TLS extension. See :rfc:`6960` for more details on OCSP.
+##
+## f: The file.
+##
+## req_ref: An opaque pointer to the underlying OpenSSL data structure of the
+##          OCSP response.
+##
+## status: The status of the OCSP response (e.g. succesful, malformedRequest, tryLater).
+##
+## version: Version of the OCSP response (typically - for version 1).
+##
+## responderId: The id of the OCSP responder; either a public key hash or a distinguished name.
+##
+## producedAt: Time at which the reply was produced.
+##
+## signatureAlgorithm: Algorithm used for the OCSP signature.
+##
+## certs: Optional list of certificates that are sent with the OCSP response; these typically
+##        are needed to perform validation of the reply.
+##
+## .. bro:see:: ocsp_request ocsp_request_certificate ocsp_response_status
+##              ocsp_response_certificate ocsp_extension
+##              x509_ocsp_ext_signed_certificate_timestamp
+event ocsp_response_bytes%(f: fa_file, resp_ref: opaque of ocsp_resp, status: string, version: count, responderId: string, producedAt: time, signatureAlgorithm: string, certs: x509_opaque_vector%);
+
+## This event is raised for each SingleResponse contained in an OCSP response.
+## See :rfc:`6960` for more details on OCSP.
+##
+## f: The file.
+##
+## hashAlgorithm: The hash algorithm used for issuerNameHash and issuerKeyHash.
+##
+## issuerNameHash: Hash of the issuer's distinguished name.
+##
+## issuerKeyHash: Hash of the issuer's public key.
+##
+## serialNumber: Serial number of the affected certificate.
+##
+## certStatus: Status of the certificate.
+##
+## revokeTime: Time the certificate was revoked, 0 if not revoked.
+##
+## revokeTeason: Reason certificate was revoked; empty string if not revoked or not specified.
+##
+## thisUpdate: Time this response was generated.
+##
+## nextUpdate: Time next response will be ready; 0 if not supploed.
+##
+## .. bro:see:: ocsp_request ocsp_request_certificate ocsp_response_status
+##              ocsp_response_bytes ocsp_extension
+##              x509_ocsp_ext_signed_certificate_timestamp
+event ocsp_response_certificate%(f: fa_file, hashAlgorithm: string, issuerNameHash: string, issuerKeyHash: string, serialNumber: string, certStatus: string, revokeTime: time, revokeReason: string, thisUpdate: time, nextUpdate: time%);
+
+## This event is raised when an OCSP extension is encountered in an OCSP response.
+## See :rfc:`6960` for more details on OCSP.
+##
+## f: The file.
+##
+## ext: The parsed extension (same format as X.509 extensions).
+##
+## global_resp: T if extension encountered in the global response (in ResponseData),
+##              F when encountered in a SingleResponse.
+##
+## .. bro:see:: ocsp_request ocsp_request_certificate ocsp_response_status
+##              ocsp_response_bytes ocsp_response_certificate
+##              x509_ocsp_ext_signed_certificate_timestamp
+event ocsp_extension%(f: fa_file, ext: X509::Extension, global_resp: bool%);

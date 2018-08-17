@@ -57,7 +57,7 @@ class Connection : public BroObj {
 public:
 	Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
 	           uint32 flow, const Packet* pkt, const EncapsulationStack* arg_encap);
-	virtual ~Connection();
+	~Connection() override;
 
 	// Invoked when an encapsulation is discovered. It records the
 	// encapsulation with the connection and raises a "tunnel_changed"
@@ -240,6 +240,17 @@ public:
 			return true;
 		}
 
+	// Increments the passed counter and adds it as a history
+	// code if it has crossed the next scaling threshold.  Scaling
+	// is done in terms of powers of the third argument.
+	// Returns true if the threshold was crossed, false otherwise.
+	bool ScaledHistoryEntry(char code, uint32& counter,
+	                        uint32& scaling_threshold,
+	                        uint32 scaling_base = 10);
+
+	void HistoryThresholdEvent(EventHandlerPtr e, bool is_orig,
+	                           uint32 threshold);
+
 	void AddHistory(char code)	{ history += code; }
 
 	void DeleteTimer(double t);
@@ -252,7 +263,7 @@ public:
 	// Sets the transport protocol in use.
 	void SetTransport(TransportProto arg_proto)	{ proto = arg_proto; }
 
-	void SetUID(Bro::UID arg_uid)	 { uid = arg_uid; }
+	void SetUID(const Bro::UID &arg_uid)	 { uid = arg_uid; }
 
 	Bro::UID GetUID() const { return uid; }
 
@@ -336,7 +347,7 @@ public:
 			double arg_t, int arg_do_expire, TimerType arg_type)
 		: Timer(arg_t, arg_type)
 		{ Init(arg_conn, arg_timer, arg_do_expire); }
-	virtual ~ConnectionTimer();
+	~ConnectionTimer() override;
 
 	void Dispatch(double t, int is_expire) override;
 

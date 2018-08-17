@@ -19,7 +19,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	virtual ~BloomFilter();
+	~BloomFilter() override;
 
 	/**
 	 * Adds an element to the Bloom filter.
@@ -103,7 +103,7 @@ protected:
 	 *
 	 * @param hasher The hasher to use for this Bloom filter.
 	 */
-	BloomFilter(const Hasher* hasher);
+	explicit BloomFilter(const Hasher* hasher);
 
 	const Hasher* hasher;
 };
@@ -127,7 +127,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	~BasicBloomFilter();
+	~BasicBloomFilter() override;
 
 	/**
 	 * Computes the number of cells based on a given false positive rate
@@ -158,11 +158,11 @@ public:
 	static size_t K(size_t cells, size_t capacity);
 
 	// Overridden from BloomFilter.
-	virtual bool Empty() const override;
-	virtual void Clear() override;
-	virtual bool Merge(const BloomFilter* other) override;
-	virtual BasicBloomFilter* Clone() const override;
-	virtual string InternalState() const override;
+	bool Empty() const override;
+	void Clear() override;
+	bool Merge(const BloomFilter* other) override;
+	BasicBloomFilter* Clone() const override;
+	string InternalState() const override;
 
 protected:
 	DECLARE_SERIAL(BasicBloomFilter);
@@ -173,8 +173,8 @@ protected:
 	BasicBloomFilter();
 
 	// Overridden from BloomFilter.
-	virtual void Add(const HashKey* key) override;
-	virtual size_t Count(const HashKey* key) const override;
+	void Add(const HashKey* key) override;
+	size_t Count(const HashKey* key) const override;
 
 private:
 	BitVector* bits;
@@ -200,14 +200,14 @@ public:
 	/**
 	 * Destructor.
 	 */
-	~CountingBloomFilter();
+	~CountingBloomFilter() override;
 
 	// Overridden from BloomFilter.
-	virtual bool Empty() const override;
-	virtual void Clear() override;
-	virtual bool Merge(const BloomFilter* other) override;
-	virtual CountingBloomFilter* Clone() const override;
-	virtual string InternalState() const override;
+	bool Empty() const override;
+	void Clear() override;
+	bool Merge(const BloomFilter* other) override;
+	CountingBloomFilter* Clone() const override;
+	string InternalState() const override;
 
 protected:
 	DECLARE_SERIAL(CountingBloomFilter);
@@ -218,8 +218,8 @@ protected:
 	CountingBloomFilter();
 
 	// Overridden from BloomFilter.
-	virtual void Add(const HashKey* key) override;
-	virtual size_t Count(const HashKey* key) const override;
+	void Add(const HashKey* key) override;
+	size_t Count(const HashKey* key) const override;
 
 private:
 	CounterVector* cells;

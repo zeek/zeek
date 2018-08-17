@@ -19,7 +19,7 @@
 ##
 ## .. bro:see:: http_all_headers http_begin_entity http_content_type http_end_entity
 ##    http_entity_data http_event http_header http_message_done http_reply http_stats
-##    truncate_http_URI
+##    truncate_http_URI http_connection_upgrade
 event http_request%(c: connection, method: string, original_URI: string, unescaped_URI: string, version: string%);
 
 ## Generated for HTTP replies. Bro supports persistent and pipelined HTTP
@@ -40,7 +40,7 @@ event http_request%(c: connection, method: string, original_URI: string, unescap
 ##
 ## .. bro:see:: http_all_headers http_begin_entity http_content_type http_end_entity
 ##    http_entity_data http_event http_header http_message_done http_request
-##    http_stats
+##    http_stats http_connection_upgrade
 event http_reply%(c: connection, version: string, code: count, reason: string%);
 
 ## Generated for HTTP headers. Bro supports persistent and pipelined HTTP
@@ -60,7 +60,7 @@ event http_reply%(c: connection, version: string, code: count, reason: string%);
 ##
 ## .. bro:see:: http_all_headers http_begin_entity http_content_type http_end_entity
 ##    http_entity_data http_event  http_message_done http_reply http_request
-##    http_stats
+##    http_stats http_connection_upgrade
 ##
 ## .. note:: This event is also raised for headers found in nested body
 ##    entities.
@@ -83,6 +83,7 @@ event http_header%(c: connection, is_orig: bool, name: string, value: string%);
 ##
 ## .. bro:see::  http_begin_entity http_content_type http_end_entity http_entity_data
 ##    http_event http_header http_message_done http_reply http_request http_stats
+##    http_connection_upgrade
 ##
 ## .. note:: This event is also raised for headers found in nested body
 ##    entities.
@@ -104,7 +105,7 @@ event http_all_headers%(c: connection, is_orig: bool, hlist: mime_header_list%);
 ##
 ## .. bro:see:: http_all_headers  http_content_type http_end_entity http_entity_data
 ##    http_event http_header http_message_done http_reply http_request http_stats
-##    mime_begin_entity
+##    mime_begin_entity http_connection_upgrade
 event http_begin_entity%(c: connection, is_orig: bool%);
 
 ## Generated when finishing parsing an HTTP body entity. This event is generated
@@ -123,7 +124,7 @@ event http_begin_entity%(c: connection, is_orig: bool%);
 ##
 ## .. bro:see:: http_all_headers http_begin_entity http_content_type http_entity_data
 ##    http_event http_header http_message_done http_reply http_request
-##    http_stats   mime_end_entity
+##    http_stats mime_end_entity http_connection_upgrade
 event http_end_entity%(c: connection, is_orig: bool%);
 
 ## Generated when parsing an HTTP body entity, passing on the data. This event
@@ -152,6 +153,7 @@ event http_end_entity%(c: connection, is_orig: bool%);
 ## .. bro:see:: http_all_headers http_begin_entity http_content_type http_end_entity
 ##    http_event http_header http_message_done http_reply http_request http_stats
 ##    mime_entity_data http_entity_data_delivery_size skip_http_data
+##    http_connection_upgrade
 event http_entity_data%(c: connection, is_orig: bool, length: count, data: string%);
 
 ## Generated for reporting an HTTP body's content type.  This event is
@@ -173,6 +175,7 @@ event http_entity_data%(c: connection, is_orig: bool, length: count, data: strin
 ##
 ## .. bro:see:: http_all_headers http_begin_entity  http_end_entity http_entity_data
 ##    http_event http_header http_message_done http_reply http_request http_stats
+##    http_connection_upgrade
 ##
 ## .. note:: This event is also raised for headers found in nested body
 ##    entities.
@@ -198,6 +201,7 @@ event http_content_type%(c: connection, is_orig: bool, ty: string, subty: string
 ##
 ## .. bro:see:: http_all_headers http_begin_entity http_content_type http_end_entity
 ##    http_entity_data http_event http_header  http_reply http_request http_stats
+##    http_connection_upgrade
 event http_message_done%(c: connection, is_orig: bool, stat: http_message_stat%);
 
 ## Generated for errors found when decoding HTTP requests or replies.
@@ -214,7 +218,7 @@ event http_message_done%(c: connection, is_orig: bool, stat: http_message_stat%)
 ##
 ## .. bro:see:: http_all_headers http_begin_entity http_content_type http_end_entity
 ##    http_entity_data  http_header http_message_done http_reply http_request
-##    http_stats mime_event
+##    http_stats mime_event http_connection_upgrade
 event http_event%(c: connection, event_type: string, detail: string%);
 
 ## Generated at the end of an HTTP session to report statistics about it. This
@@ -228,5 +232,18 @@ event http_event%(c: connection, event_type: string, detail: string%);
 ##
 ## .. bro:see:: http_all_headers http_begin_entity http_content_type http_end_entity
 ##    http_entity_data http_event http_header http_message_done http_reply
-##    http_request
+##    http_request http_connection_upgrade
 event http_stats%(c: connection, stats: http_stats_rec%);
+
+## Generated when a HTTP session is upgraded to a different protocol (e.g. websocket).
+## This event is raised when a server replies with a HTTP 101 reply. No more HTTP events
+## will be raised after this event.
+##
+## c: The connection.
+##
+## protocol: The protocol to which the connection is switching.
+##
+## .. bro:see:: http_all_headers http_begin_entity http_content_type http_end_entity
+##    http_entity_data http_event http_header http_message_done http_reply
+##    http_request
+event http_connection_upgrade%(c: connection, protocol: string%);

@@ -1,0 +1,19 @@
+# @TEST-EXEC: bro -C -r $TRACES/tls/chrome-63.0.3211.0-canary-tls_experiment.pcap %INPUT
+# @TEST-EXEC: btest-diff ssl.log
+# @TEST-EXEC: btest-diff .stdout
+
+# This is a trace that uses a completely non-standard way of establishing TLS 1.3; this seems
+# to be an undocumented extension where the TLS version is negotiated via the server sending back
+# an supported_versions extension (which, according to the RFC is strictly prohibited).
+#
+# This only seems to happen with Chrome talking to google servers. We do not recognize this as
+# TLS 1.3, but we do not abort when encountering traffic like this.
+#
+# In the meantime this way of establishing TLS 1.3 was standardized. Still keeping the test even
+# though we parse this correctly now.
+
+event ssl_extension(c: connection, is_orig: bool, code: count, val: string)
+	{
+	if ( ! is_orig && code == 43 )
+		print bytestring_to_hexstr(val);
+	}

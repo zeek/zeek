@@ -2,12 +2,24 @@ project(Bro C CXX)
 
 # When changing the minimum version here, also adapt
 # aux/bro-aux/plugin-support/skeleton/CMakeLists.txt
-cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
+cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
 
 include(cmake/CommonCMakeConfig.cmake)
 
 ########################################################################
 ## Project/Build Configuration
+
+if ( ENABLE_CCACHE )
+    find_program(CCACHE_PROGRAM ccache)
+
+    if ( NOT CCACHE_PROGRAM )
+        message(FATAL_ERROR "ccache not found")
+    endif ()
+
+    message(STATUS "Using ccache: ${CCACHE_PROGRAM}")
+    set(CMAKE_C_COMPILER_LAUNCHER   ${CCACHE_PROGRAM})
+    set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE_PROGRAM})
+endif ()
 
 set(BRO_ROOT_DIR ${CMAKE_INSTALL_PREFIX})
 if (NOT BRO_SCRIPT_INSTALL_PATH)
@@ -40,11 +52,25 @@ file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev.csh
      "setenv PATH \"${CMAKE_CURRENT_BINARY_DIR}/src\":$PATH\n")
 
 file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" VERSION LIMIT_COUNT 1)
+execute_process(COMMAND grep "^#define  *BRO_PLUGIN_API_VERSION"
+                INPUT_FILE ${CMAKE_CURRENT_SOURCE_DIR}/src/plugin/Plugin.h
+                OUTPUT_VARIABLE API_VERSION
+                OUTPUT_STRIP_TRAILING_WHITESPACE)
+string(REGEX REPLACE "^#define.*VERSION *" "" API_VERSION "${API_VERSION}")
+
 string(REPLACE "." " " version_numbers ${VERSION})
 separate_arguments(version_numbers)
 list(GET version_numbers 0 VERSION_MAJOR)
 list(GET version_numbers 1 VERSION_MINOR)
 set(VERSION_MAJ_MIN "${VERSION_MAJOR}.${VERSION_MINOR}")
+
+set(VERSION_C_IDENT "${VERSION}_plugin_${API_VERSION}")
+string(REGEX REPLACE "-[0-9]*$" "_git" VERSION_C_IDENT "${VERSION_C_IDENT}")
+string(REGEX REPLACE "[^a-zA-Z0-9_\$]" "_" VERSION_C_IDENT "${VERSION_C_IDENT}")
+
+if(${ENABLE_DEBUG})
+    set(VERSION_C_IDENT "${VERSION_C_IDENT}_debug")
+endif()
 
 ########################################################################
 ## Dependency Configuration
@@ -69,14 +95,32 @@ FindRequiredPackage(OpenSSL)
 FindRequiredPackage(BIND)
 FindRequiredPackage(ZLIB)
 
-if (NOT BinPAC_ROOT_DIR AND
+find_package(CAF COMPONENTS core io openssl)
+if (CAF_FOUND)
+    # e.g. if not using embedded CAF, then need to know where to look
+    # for CAF headers since that may differ from where Broker headers
+    # are found (and including a Broker header may pull in CAF headers).
+	include_directories(BEFORE ${CAF_INCLUDE_DIRS})
+endif ()
+
+if (NOT BINPAC_EXE_PATH AND
     EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/aux/binpac/CMakeLists.txt)
     add_subdirectory(aux/binpac)
 endif ()
 FindRequiredPackage(BinPAC)
 
+if ( NOT BIFCL_EXE_PATH )
+  add_subdirectory(aux/bifcl)
+endif ()
+
 if (ENABLE_JEMALLOC)
     find_package(JeMalloc)
+endif ()
+
+if ( BISON_VERSION AND BISON_VERSION VERSION_LESS 2.5 )
+    set(MISSING_PREREQS true)
+    list(APPEND MISSING_PREREQ_DESCS
+         " Could not find prerequisite package Bison >= 2.5, found: ${BISON_VERSION}")
 endif ()
 
 if (MISSING_PREREQS)
@@ -88,7 +132,6 @@ endif ()
 
 include_directories(BEFORE
                     ${PCAP_INCLUDE_DIR}
-                    ${OPENSSL_INCLUDE_DIR}
                     ${BIND_INCLUDE_DIR}
                     ${BinPAC_INCLUDE_DIR}
                     ${ZLIB_INCLUDE_DIR}
@@ -98,11 +141,20 @@ include_directories(BEFORE
 # Optional Dependencies
 
 set(USE_GEOIP false)
-find_package(LibGeoIP)
-if (LIBGEOIP_FOUND)
+find_package(LibMMDB)
+if (LibMMDB_FOUND)
     set(USE_GEOIP true)
-    include_directories(BEFORE ${LibGeoIP_INCLUDE_DIR})
-    list(APPEND OPTLIBS ${LibGeoIP_LIBRARY})
+    include_directories(BEFORE ${LibMMDB_INCLUDE_DIR})
+    list(APPEND OPTLIBS ${LibMMDB_LIBRARY})
+endif ()
+
+set(USE_KRB5 false)
+if ( ${CMAKE_SYSTEM_NAME} MATCHES Linux )
+  find_package(LibKrb5)
+  if (LibKrb5_FOUND)
+     set(USE_KRB5 true)
+     list(APPEND OPTLIBS ${LibKrb5_LIBRARY})
+  endif ()
 endif ()
 
 set(HAVE_PERFTOOLS false)
@@ -138,6 +190,12 @@ if (ENABLE_PERFTOOLS_DEBUG OR ENABLE_PERFTOOLS)
     # perftools weren't found
 endif ()
 
+# Making sure any non-standard OpenSSL includes get searched earlier
+# than other dependencies which tend to be in standard system locations
+# and thus cause the system OpenSSL headers to still be picked up even
+# if one specifies --with-openssl (which may be common).
+include_directories(BEFORE ${OPENSSL_INCLUDE_DIR})
+
 set(brodeps
     ${BinPAC_LIBRARY}
     ${PCAP_LIBRARY}
@@ -167,6 +225,10 @@ include(CheckNameserCompat)
 include(GetArchitecture)
 include(RequireCXX11)
 
+if ( (OPENSSL_VERSION VERSION_EQUAL "1.1.0") OR (OPENSSL_VERSION VERSION_GREATER "1.1.0") )
+  set(BRO_HAVE_OPENSSL_1_1 true CACHE INTERNAL "" FORCE)
+endif()
+
 # Tell the plugin code that we're building as part of the main tree.
 set(BRO_PLUGIN_INTERNAL_BUILD true CACHE INTERNAL "" FORCE)
 
@@ -178,22 +240,40 @@ endif ()
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/bro-config.h.in
                ${CMAKE_CURRENT_BINARY_DIR}/bro-config.h)
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/bro-config.h DESTINATION include/bro)
+
+if ( CAF_ROOT_DIR )
+  set(BRO_CONFIG_CAF_ROOT_DIR ${CAF_ROOT_DIR})
+else ()
+  set(BRO_CONFIG_CAF_ROOT_DIR ${BRO_ROOT_DIR})
+endif ()
+
+if ( BinPAC_ROOT_DIR )
+  set(BRO_CONFIG_BINPAC_ROOT_DIR ${BinPAC_ROOT_DIR})
+else ()
+  set(BRO_CONFIG_BINPAC_ROOT_DIR ${BRO_ROOT_DIR})
+endif ()
+
+set(BRO_CONFIG_BROKER_ROOT_DIR ${BRO_ROOT_DIR})
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/bro-config.in
                ${CMAKE_CURRENT_BINARY_DIR}/bro-config @ONLY)
 install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/bro-config DESTINATION bin)
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cmake DESTINATION share/bro
+        USE_SOURCE_PERMISSIONS)
 
 ########################################################################
 ## Recurse on sub-directories
 
-if ( ENABLE_BROKER )
-    add_subdirectory(aux/broker)
-    set(brodeps ${brodeps} broker)
-    add_definitions(-DENABLE_BROKER)
-    include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/aux/broker)
-endif ()
+add_subdirectory(aux/broker)
+set(brodeps ${brodeps} broker)
+include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/aux/broker
+                           ${CMAKE_CURRENT_BINARY_DIR}/aux/broker)
+include_directories(BEFORE ${CAF_INCLUDE_DIR_CORE})
+include_directories(BEFORE ${CAF_INCLUDE_DIR_IO})
+include_directories(BEFORE ${CAF_INCLUDE_DIR_OPENSSL})
 
 add_subdirectory(src)
 add_subdirectory(scripts)
@@ -232,6 +312,8 @@ endif ()
 message(
     "\n====================|  Bro Build Summary  |====================="
     "\n"
+    "\nBuild type:        ${CMAKE_BUILD_TYPE}"
+    "\nBuild dir:         ${CMAKE_BINARY_DIR}"
     "\nInstall prefix:    ${CMAKE_INSTALL_PREFIX}"
     "\nBro Script Path:   ${BRO_SCRIPT_INSTALL_PATH}"
     "\nDebug mode:        ${ENABLE_DEBUG}"
@@ -242,13 +324,12 @@ message(
     "\nCXXFLAGS:          ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BuildType}}"
     "\nCPP:               ${CMAKE_CXX_COMPILER}"
     "\n"
-    "\nBroker:            ${ENABLE_BROKER}"
-    "\nBroker Python:     ${BROKER_PYTHON_BINDINGS}"
     "\nBroccoli:          ${INSTALL_BROCCOLI}"
     "\nBroctl:            ${INSTALL_BROCTL}"
     "\nAux. Tools:        ${INSTALL_AUX_TOOLS}"
     "\n"
-    "\nGeoIP:             ${USE_GEOIP}"
+    "\nlibmaxminddb:      ${USE_GEOIP}"
+    "\nKerberos:          ${USE_KRB5}"
     "\ngperftools found:  ${HAVE_PERFTOOLS}"
     "\n        tcmalloc:  ${USE_PERFTOOLS_TCMALLOC}"
     "\n       debugging:  ${USE_PERFTOOLS_DEBUG}"

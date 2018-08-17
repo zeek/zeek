@@ -3,6 +3,15 @@
 #ifndef util_h
 #define util_h
 
+#ifdef __GNUC__
+    #define BRO_DEPRECATED(msg) __attribute__ ((deprecated(msg)))
+#elif defined(_MSC_VER)
+    #define BRO_DEPRECATED(msg) __declspec(deprecated(msg)) func
+#else
+	#pragma message("Warning: BRO_DEPRECATED macro not implemented")
+	#define BRO_DEPRECATED(msg)
+#endif
+
 // Expose C99 functionality from inttypes.h, which would otherwise not be
 // available in C++.
 #ifndef __STDC_FORMAT_MACROS
@@ -158,6 +167,8 @@ extern std::string strtolower(const std::string& s);
 extern const char* fmt_bytes(const char* data, int len);
 
 // Note: returns a pointer into a shared buffer.
+extern const char* fmt(const char* format, va_list args);
+// Note: returns a pointer into a shared buffer.
 extern const char* fmt(const char* format, ...)
 	__attribute__((format (printf, 1, 2)));
 extern const char* fmt_access_time(double time);
@@ -227,6 +238,13 @@ typedef ptr_compat_uint SourceID;
 #define PRI_SOURCE_ID PRI_PTR_COMPAT_UINT
 static const SourceID SOURCE_LOCAL = 0;
 
+// TODO: This is a temporary marker to flag events coming in via Broker.
+// Those are remote events but we don't have any further peer informationa
+// available for them (as the old communication code would have). Once we
+// remove RemoteSerializer, we can turn the SourceID into a simple boolean
+// indicating whether it's a local or remote event.
+static const SourceID SOURCE_BROKER = 0xffffffff;
+
 extern void pinpoint();
 extern int int_list_cmp(const void* v1, const void* v2);
 
@@ -266,8 +284,8 @@ protected:
 class SafeDirname : public SafePathOp {
 public:
 
-	SafeDirname(const char* path, bool error_aborts = true);
-	SafeDirname(const std::string& path, bool error_aborts = true);
+	explicit SafeDirname(const char* path, bool error_aborts = true);
+	explicit SafeDirname(const std::string& path, bool error_aborts = true);
 
 private:
 
@@ -277,8 +295,8 @@ private:
 class SafeBasename : public SafePathOp {
 public:
 
-	SafeBasename(const char* path, bool error_aborts = true);
-	SafeBasename(const std::string& path, bool error_aborts = true);
+	explicit SafeBasename(const char* path, bool error_aborts = true);
+	explicit SafeBasename(const std::string& path, bool error_aborts = true);
 
 private:
 
@@ -515,5 +533,11 @@ struct CompareString
  * @return The canonicalized version of \a name which caller may later delete[].
  */
 std::string canonify_name(const std::string& name);
+
+/**
+ * Reentrant version of strerror(). Takes care of the difference between the
+ * XSI-compliant and the GNU-specific version of strerror_r().
+ */
+void bro_strerror_r(int bro_errno, char* buf, size_t buflen);
 
 #endif

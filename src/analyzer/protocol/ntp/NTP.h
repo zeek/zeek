@@ -38,15 +38,15 @@ struct ntpdata {
 
 class NTP_Analyzer : public analyzer::Analyzer {
 public:
-	NTP_Analyzer(Connection* conn);
+	explicit NTP_Analyzer(Connection* conn);
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new NTP_Analyzer(conn); }
 
 protected:
-	virtual void Done();
-	virtual void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64 seq, const IP_Hdr* ip, int caplen);
+	void Done() override;
+	void DeliverPacket(int len, const u_char* data, bool orig,
+					uint64 seq, const IP_Hdr* ip, int caplen) override;
 
 	int Request(const u_char* data, int len);
 	int Reply(const u_char* data, int len);

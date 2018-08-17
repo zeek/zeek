@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	ssl
+#open	2018-03-27-21-57-37
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer
+#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string
+1520820013.621497	CHhAvVGS1DHFjwGM9	192.168.86.23	63449	52.32.149.186	443	TLSv13-draft23	TLS_AES_128_GCM_SHA256	-	tls13.crypto.mozilla.org	T	-	-	T	-	-	-	-	-	-
+#close	2018-03-27-21-57-37

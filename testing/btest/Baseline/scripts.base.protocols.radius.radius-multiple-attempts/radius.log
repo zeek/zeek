@@ -1,0 +1,16 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	radius
+#open	2017-02-20-04-56-31
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	username	mac	framed_addr	remote_ip	connect_info	reply_msg	result	ttl
+#types	time	string	addr	port	addr	port	string	string	addr	addr	string	string	string	interval
+1440447766.440305	CHhAvVGS1DHFjwGM9	127.0.0.1	53031	127.0.0.1	1812	steve	-	172.16.3.33	-	-	-	failed	1.005906
+1440447839.947454	ClEkJM2Vm5giqnMf4h	127.0.0.1	65443	127.0.0.1	1812	steve	-	172.16.3.33	-	-	-	success	0.000779
+1440447848.196115	C4J4Th3PJpwUYZZ6gc	127.0.0.1	57717	127.0.0.1	1812	steve	-	-	-	-	-	success	0.000275
+1440447860.613743	CtPZjS20MLrsMUOJi2	127.0.0.1	64691	127.0.0.1	1812	steve	-	-	-	-	-	success	0.000273
+1440447880.931272	CUM0KZ3MLUfNB0cl11	127.0.0.1	52178	127.0.0.1	1812	steve	-	-	-	-	-	failed	1.001459
+1440447904.122012	CmES5u32sYpV7JYN	127.0.0.1	62956	127.0.0.1	1812	steve	-	-	-	-	-	unknown	-
+1440448190.335333	CP5puj4I8PtEU4qzYg	127.0.0.1	53127	127.0.0.1	1812	steve	-	-	-	-	-	success	0.000517
+#close	2017-02-20-04-56-31

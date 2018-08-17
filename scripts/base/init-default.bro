@@ -14,6 +14,7 @@
 @load base/utils/exec
 @load base/utils/files
 @load base/utils/geoip-distance
+@load base/utils/hash_hrw
 @load base/utils/numbers
 @load base/utils/paths
 @load base/utils/patterns
@@ -32,10 +33,10 @@
 @load base/frameworks/signatures
 @load base/frameworks/packet-filter
 @load base/frameworks/software
-@load base/frameworks/communication
 @load base/frameworks/control
 @load base/frameworks/cluster
 @load base/frameworks/intel
+@load base/frameworks/config
 @load base/frameworks/reporter
 @load base/frameworks/sumstats
 @load base/frameworks/tunnels
@@ -61,8 +62,6 @@
 @load base/protocols/rfb
 @load base/protocols/sip
 @load base/protocols/snmp
-# This DOES NOT enable the SMB analyzer.  It's just some base support
-# for other protocols.
 @load base/protocols/smb
 @load base/protocols/smtp
 @load base/protocols/socks

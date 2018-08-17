@@ -40,6 +40,9 @@ global matched_software: table[string] of Software::Description = {
 		[$name="The Bat!", $version=[$major=2,$minor=0,$minor2=9,$addl="Personal"], $unparsed_version=""],
 	["Flash/10,2,153,1"] =
 		[$name="Flash", $version=[$major=10,$minor=2,$minor2=153,$minor3=1], $unparsed_version=""],
+	# The addl on the following entry isn't so great, but it'll do.
+	["Flash%20Player/26.0.0.137 CFNetwork/811.5.4 Darwin/16.6.0 (x86_64)"] =
+		[$name="Flash", $version=[$major=26,$minor=0,$minor2=0,$minor3=137,$addl="CFNetwork/811"], $unparsed_version=""],
 	["mt2/1.2.3.967 Oct 13 2010-13:40:24 ord-pixel-x2 pid 0x35a3 13731"] = 
 		[$name="mt2", $version=[$major=1,$minor=2,$minor2=3,$minor3=967,$addl="Oct"], $unparsed_version=""],
 	["CacheFlyServe v26b"] =
@@ -110,6 +113,14 @@ global matched_software: table[string] of Software::Description = {
 		[$name="AdobeAIR", $version=[$major=1,$minor=0], $unparsed_version=""],
 	["Mozilla/5.0 (Windows; U; en) AppleWebKit/420+ (KHTML, like Gecko) AdobeAIR/1.0"] = 
 		[$name="AdobeAIR", $version=[$major=1,$minor=0], $unparsed_version=""],
+	["\\xe6\\xbc\\xab\\xe7\\x94\\xbb\\xe4\\xba\\xba 2.6.2 rv:1.2 (iPhone; iOS 10.3.2; en_US)"] =
+		[$name="\xe6\xbc\xab\xe7\x94\xbb\xe4\xba\xba", $version=[$major=2,$minor=6,$minor2=2,$addl="rv:1"], $unparsed_version=""],
+	["%E6%9C%89%E9%81%93%E8%AF%8D%E5%85%B8/128 CFNetwork/760.2.6 Darwin/15.3.0 (x86_64)"] =
+		[$name="\xe6\x9c\x89\xe9\x81\x93\xe8\xaf\x8d\xe5\x85\xb8", $version=[$major=128,$addl="CFNetwork/760"], $unparsed_version=""],
+	["QQ%E9%82%AE%E7%AE%B1/5.3.2.8 CFNetwork/811.5.4 Darwin/16.6.0"] =
+		[$name="QQ\xe9\x82\xae\xe7\xae\xb1", $version=[$major=5,$minor=3,$minor2=2,$minor3=8,$addl="CFNetwork/811"], $unparsed_version=""],
+	["Mozilla/5.0 (Windows Phone 10.0; Android 6.0.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Mobile Safari/537.36 Edge/15.15063"] =
+		[$name="Edge", $version=[$major=15,$minor=15063], $unparsed_version=""],
 };
 
 event bro_init()

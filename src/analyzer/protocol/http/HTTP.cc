@@ -42,7 +42,7 @@ HTTP_Entity::HTTP_Entity(HTTP_Message *arg_message, MIME_Entity* parent_entity, 
 	http_message = arg_message;
 	expect_body = arg_expect_body;
 	chunked_transfer_state = NON_CHUNKED_TRANSFER;
-	content_length = -1;	// unspecified
+	content_length = range_length = -1;	// unspecified
 	expect_data_length = 0;
 	body_length = 0;
 	header_length = 0;
@@ -357,21 +357,33 @@ void HTTP_Entity::SetPlainDelivery(int64_t length)
 
 void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 	{
-	if ( mime::strcasecmp_n(h->get_name(), "content-length") == 0 )
+	if ( mime::istrequal(h->get_name(), "content-length") )
 		{
 		data_chunk_t vt = h->get_value_token();
 		if ( ! mime::is_null_data_chunk(vt) )
 			{
 			int64_t n;
 			if ( atoi_n(vt.length, vt.data, 0, 10, n) )
+				{
 				content_length = n;
+
+				if ( is_partial_content && range_length != content_length )
+					{
+					// Possible evasion attempt.
+					http_message->Weird("HTTP_range_not_matching_len");
+
+					// Take the maximum of both lengths to avoid evasions.
+					if ( range_length > content_length )
+						content_length = range_length;
+					}
+				}
 			else
 				content_length = 0;
 			}
 		}
 
 	// Figure out content-length for HTTP 206 Partial Content response
-	else if ( mime::strcasecmp_n(h->get_name(), "content-range") == 0 &&
+	else if ( mime::istrequal(h->get_name(), "content-range") &&
 		      http_message->MyHTTP_Analyzer()->HTTP_ReplyCode() == 206 )
 		{
 		data_chunk_t vt = h->get_value_token();
@@ -432,7 +444,22 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 
 			is_partial_content = true;
 			offset = f;
-			content_length = len;
+			range_length = len;
+
+			if ( content_length > 0 )
+				{
+				if ( content_length != range_length )
+					{
+					// Possible evasion attempt.
+					http_message->Weird("HTTP_range_not_matching_len");
+
+					// Take the maximum of both lengths to avoid evasions.
+					if ( range_length > content_length )
+						content_length = range_length;
+					}
+				}
+			else
+				content_length = range_length;
 			}
 		else
 			{
@@ -441,19 +468,25 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 			}
 		}
 
-	else if ( mime::strcasecmp_n(h->get_name(), "transfer-encoding") == 0 )
+	else if ( mime::istrequal(h->get_name(), "transfer-encoding") )
 		{
+		double http_version = 0;
+		if (http_message->analyzer->GetRequestOngoing())
+			http_version = http_message->analyzer->GetRequestVersion();
+		else // reply_ongoing
+			http_version = http_message->analyzer->GetReplyVersion();
+
 		data_chunk_t vt = h->get_value_token();
-		if ( mime::strcasecmp_n(vt, "chunked") == 0 )
+		if ( mime::istrequal(vt, "chunked") && http_version == 1.1 )
 			chunked_transfer_state = BEFORE_CHUNK;
 		}
 
-	else if ( mime::strcasecmp_n(h->get_name(), "content-encoding") == 0 )
+	else if ( mime::istrequal(h->get_name(), "content-encoding") )
 		{
 		data_chunk_t vt = h->get_value_token();
-		if ( mime::strcasecmp_n(vt, "gzip") == 0 )
+		if ( mime::istrequal(vt, "gzip") || mime::istrequal(vt, "x-gzip") )
 			encoding = GZIP;
-		if ( mime::strcasecmp_n(vt, "deflate") == 0 )
+		if ( mime::istrequal(vt, "deflate") )
 			encoding = DEFLATE;
 		}
 
@@ -822,6 +855,9 @@ HTTP_Analyzer::HTTP_Analyzer(Connection* conn)
 
 	connect_request = false;
 	pia = 0;
+	upgraded = false;
+	upgrade_connection = false;
+	upgrade_protocol.clear();
 
 	content_line_orig = new tcp::ContentLine_Analyzer(conn, true);
 	AddSupportAnalyzer(content_line_orig);
@@ -877,6 +913,9 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, is_orig);
 
 	if ( TCP() && TCP()->IsPartial() )
+		return;
+
+	if ( upgraded )
 		return;
 
 	if ( pia )
@@ -1468,15 +1507,35 @@ void HTTP_Analyzer::ReplyMade(const int interrupted, const char* msg)
 		unanswered_requests.pop();
 		}
 
-	reply_code = 0;
-
 	if ( reply_reason_phrase )
 		{
 		Unref(reply_reason_phrase);
 		reply_reason_phrase = 0;
 		}
 
-	if ( interrupted )
+	// unanswered requests = 1 because there is no pop after 101.
+	if ( reply_code == 101 && unanswered_requests.size() == 1 && upgrade_connection &&
+	     upgrade_protocol.size() )
+		{
+		// Upgraded connection that switches immediately - e.g. websocket.
+		upgraded = true;
+		RemoveSupportAnalyzer(content_line_orig);
+		RemoveSupportAnalyzer(content_line_resp);
+
+		if ( http_connection_upgrade )
+			{
+			val_list* vl = new val_list();
+			vl->append(BuildConnVal());
+			vl->append(new StringVal(upgrade_protocol));
+			ConnectionEvent(http_connection_upgrade, vl);
+			}
+		}
+
+	reply_code = 0;
+	upgrade_connection = false;
+	upgrade_protocol.clear();
+
+	if ( interrupted || upgraded )
 		reply_state = EXPECT_REPLY_NOTHING;
 	else
 		reply_state = EXPECT_REPLY_LINE;
@@ -1590,11 +1649,11 @@ void HTTP_Analyzer::HTTP_Header(int is_orig, mime::MIME_Header* h)
 	{
 #if 0
 	// ### Only call ParseVersion if we're tracking versions:
-	if ( strcasecmp_n(h->get_name(), "server") == 0 )
+	if ( istrequal(h->get_name(), "server") )
 		ParseVersion(h->get_value(),
 				(is_orig ? Conn()->OrigAddr() : Conn()->RespAddr()), false);
 
-	else if ( strcasecmp_n(h->get_name(), "user-agent") == 0 )
+	else if ( istrequal(h->get_name(), "user-agent") )
 		ParseVersion(h->get_value(),
 				(is_orig ? Conn()->OrigAddr() : Conn()->RespAddr()), true);
 #endif
@@ -1603,18 +1662,24 @@ void HTTP_Analyzer::HTTP_Header(int is_orig, mime::MIME_Header* h)
 	// side, and if seen assume the connection to be persistent.
 	// This seems fairly safe - at worst, the client does indeed
 	// send additional requests, and the server ignores them.
-	if ( is_orig && mime::strcasecmp_n(h->get_name(), "connection") == 0 )
+	if ( is_orig && mime::istrequal(h->get_name(), "connection") )
 		{
-		if ( mime::strcasecmp_n(h->get_value_token(), "keep-alive") == 0 )
+		if ( mime::istrequal(h->get_value_token(), "keep-alive") )
 			keep_alive = 1;
 		}
 
 	if ( ! is_orig &&
-	     mime::strcasecmp_n(h->get_name(), "connection") == 0 )
-	        {
-		if ( mime::strcasecmp_n(h->get_value_token(), "close") == 0 )
-		        connection_close = 1;
+	     mime::istrequal(h->get_name(), "connection") )
+		{
+		if ( mime::istrequal(h->get_value_token(), "close") )
+			connection_close = 1;
+		else if ( mime::istrequal(h->get_value_token(), "upgrade") )
+			upgrade_connection = true;
 		}
+
+	if ( ! is_orig &&
+	     mime::istrequal(h->get_name(), "upgrade") )
+	     upgrade_protocol.assign(h->get_value_token().data, h->get_value_token().length);
 
 	if ( http_header )
 		{
@@ -1843,10 +1908,20 @@ BroString* analyzer::http::unescape_URI(const u_char* line, const u_char* line_e
 
 			if ( line == line_end )
 				{
-				// How to deal with % at end of line?
-				// *URI_p++ = '%';
+				*URI_p++ = '%';
 				if ( analyzer )
 					analyzer->Weird("illegal_%_at_end_of_URI");
+				break;
+				}
+
+			else if ( line + 1 == line_end )
+				{
+				// % + one character at end of line. Log weird
+				// and just add to unescpaped URI.
+				*URI_p++ = '%';
+				*URI_p++ = *line;
+				if ( analyzer )
+					analyzer->Weird("partial_escape_at_end_of_URI");
 				break;
 				}
 

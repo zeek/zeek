@@ -86,8 +86,9 @@ export {
 		## d       packet with payload ("data")
 		## f       packet with FIN bit set
 		## r       packet with RST bit set
-		## c       packet with a bad checksum
+		## c       packet with a bad checksum (applies to UDP too)
 		## t       packet with retransmitted payload
+		## w       packet with a zero window advertisement
 		## i       inconsistent packet (e.g. FIN+RST bits set)
 		## q       multi-flag packet (SYN+FIN or SYN+RST bits set)
 		## ^       connection direction was flipped by Bro's heuristic
@@ -95,9 +96,15 @@ export {
 		##
 		## If the event comes from the originator, the letter is in
 		## upper-case; if it comes from the responder, it's in
-		## lower-case. Multiple packets of the same type will only be
-		## noted once (e.g. we only record one "d" in each direction,
-		## regardless of how many data packets were seen.)
+		## lower-case.  The 'a', 'd', 'i' and 'q' flags are
+		## recorded a maximum of one time in either direction regardless
+		## of how many are actually seen.  'f', 'h', 'r' and
+		## 's' can be recorded multiple times for either direction
+		## if the associated sequence number differs from the
+		## last-seen packet of the same flag type.
+		## 'c', 't' and 'w' are recorded in a logarithmic fashion:
+		## the second instance represents that the event was seen
+		## (at least) 10 times; the third instance, 100 times; etc.
 		history:      string          &log &optional;
 		## Number of packets that the originator sent.
 		## Only set if :bro:id:`use_conn_size_analyzer` = T.
@@ -116,7 +123,7 @@ export {
 		## If this connection was over a tunnel, indicate the
 		## *uid* values for any encapsulating parent connections
 		## used over the lifetime of this inner connection.
-		tunnel_parents: set[string] &log;
+		tunnel_parents: set[string] &log &optional;
 	};
 
 	## Event that can be handled to access the :bro:type:`Conn::Info`
@@ -207,7 +214,11 @@ function set_conn(c: connection, eoc: bool)
 	c$conn$uid=c$uid;
 	c$conn$id=c$id;
 	if ( c?$tunnel && |c$tunnel| > 0 )
+		{
+		if ( ! c$conn?$tunnel_parents )
+			c$conn$tunnel_parents = set();
 		add c$conn$tunnel_parents[c$tunnel[|c$tunnel|-1]$uid];
+		}
 	c$conn$proto=get_port_transport_proto(c$id$resp_p);
 	if( |Site::local_nets| > 0 )
 		{
@@ -253,7 +264,11 @@ event tunnel_changed(c: connection, e: EncapsulatingConnVector) &priority=5
 	{
 	set_conn(c, F);
 	if ( |e| > 0 )
+		{
+		if ( ! c$conn?$tunnel_parents )
+			c$conn$tunnel_parents = set();
 		add c$conn$tunnel_parents[e[|e|-1]$uid];
+		}
 	c$tunnel = e;
 	}
 

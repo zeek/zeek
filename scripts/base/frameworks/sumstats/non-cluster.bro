@@ -6,28 +6,25 @@ event SumStats::process_epoch_result(ss: SumStat, now: time, data: ResultTable)
 	{
 	# TODO: is this the right processing group size?
 	local i = 50;
+	local keys_to_delete: vector of SumStats::Key = vector();
+
 	for ( key in data )
 		{
 		ss$epoch_result(now, key, data[key]);
-		delete data[key];
+		keys_to_delete += key;
 
-		if ( |data| == 0 )
-			{
-			if ( ss?$epoch_finished )
-				ss$epoch_finished(now);
-
-			# Now that no data is left we can finish.
-			return;
-			}
-
-		i = i-1;
-		if ( i == 0 )
-			{
-			# TODO: is this the right interval?
-			schedule 0.01 secs { process_epoch_result(ss, now, data) };
+		if ( --i == 0 )
 			break;
-			}
 		}
+
+	for ( idx in keys_to_delete )
+		delete data[keys_to_delete[idx]];
+
+	if ( |data| > 0 )
+		# TODO: is this the right interval?
+		schedule 0.01 secs { SumStats::process_epoch_result(ss, now, data) };
+	else if ( ss?$epoch_finished )
+		ss$epoch_finished(now);
 	}
 
 event SumStats::finish_epoch(ss: SumStat)
@@ -46,9 +43,9 @@ event SumStats::finish_epoch(ss: SumStat)
 				if ( ss?$epoch_finished )
 					ss$epoch_finished(now);
 				}
-			else
+			else if ( |data| > 0 )
 				{
-				event SumStats::process_epoch_result(ss, now, data);
+				event SumStats::process_epoch_result(ss, now, copy(data));
 				}
 			}
 		

@@ -5,14 +5,14 @@ refine connection SMB_Conn += {
 
 	function get_ioctl_fid(message_id: uint64): uint64
 		%{
-		if ( smb2_ioctl_fids.count(message_id) == 0 )
+		auto it = smb2_ioctl_fids.find(message_id);
+
+		if ( it == smb2_ioctl_fids.end() )
 			return 0;
-		else
-			{
-			uint64 fid = smb2_ioctl_fids[message_id];
-			smb2_ioctl_fids.erase(message_id);
-			return fid;
-			}
+
+		uint64 fid = it->second;
+		smb2_ioctl_fids.erase(it);
+		return fid;
 		%}
 
 	function proc_smb2_ioctl_request(val: SMB2_ioctl_request) : bool

@@ -1,7 +1,6 @@
-# @TEST-SERIALIZE: brokercomm
-# @TEST-REQUIRES: grep -q ENABLE_BROKER:BOOL=true $BUILD/CMakeCache.txt
-# @TEST-EXEC: btest-bg-run recv "bro -b ../recv.bro broker_port=$BROKER_PORT >recv.out"
-# @TEST-EXEC: btest-bg-run send "bro -b -r $TRACES/smtp.trace --pseudo-realtime ../send.bro broker_port=$BROKER_PORT >send.out"
+# @TEST-SERIALIZE: comm
+# @TEST-EXEC: btest-bg-run recv "bro -b ../recv.bro >recv.out"
+# @TEST-EXEC: btest-bg-run send "bro -b -r $TRACES/smtp.trace --pseudo-realtime ../send.bro >send.out"
 
 # @TEST-EXEC: btest-bg-wait 20
 # @TEST-EXEC: btest-diff send/netcontrol.log
@@ -12,30 +11,39 @@
 
 @load base/frameworks/netcontrol
 
-const broker_port: port &redef;
 redef exit_only_after_terminate = T;
+global have_peer = F;
+global did_init = F;
+
+event bro_init()
+	{
+	suspend_processing();
+	}
 
 event NetControl::init()
 	{
-	suspend_processing();
-	local netcontrol_broker = NetControl::create_broker(NetControl::BrokerConfig($host=127.0.0.1, $bport=broker_port, $topic="bro/event/netcontroltest"), T);
+	local netcontrol_broker = NetControl::create_broker(NetControl::BrokerConfig($host=127.0.0.1, $bport=Broker::default_port, $topic="bro/event/netcontroltest"), T);
 	NetControl::activate(netcontrol_broker, 0);
 	}
 
 event NetControl::init_done()
 	{
-	continue_processing();
+	did_init = T;
+
+	if ( did_init && have_peer )
+		continue_processing();
 	}
 
-event Broker::outgoing_connection_established(peer_address: string,
-                                            peer_port: port,
-                                            peer_name: string)
+event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
-	print "Broker::outgoing_connection_established", peer_address, peer_port;
+	print "Broker peer added", endpoint$network;
+	have_peer = T;
+
+	if ( did_init && have_peer )
+		continue_processing();
 	}
 
-event Broker::outgoing_connection_broken(peer_address: string,
-                                       peer_port: port)
+event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	{
 	terminate();
 	}
@@ -75,19 +83,22 @@ event NetControl::rule_timeout(r: NetControl::Rule, i: NetControl::FlowInfo, p: 
 @load base/frameworks/netcontrol
 @load base/frameworks/broker
 
-const broker_port: port &redef;
 redef exit_only_after_terminate = T;
+
+event die()
+	{
+	terminate();
+	}
 
 event bro_init()
 	{
-	Broker::enable();
-	Broker::subscribe_to_events("bro/event/netcontroltest");
-	Broker::listen(broker_port, "127.0.0.1");
+	Broker::subscribe("bro/event/netcontroltest");
+	Broker::listen("127.0.0.1");
 	}
 
-event Broker::incoming_connection_established(peer_name: string)
+event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
-	print "Broker::incoming_connection_established";
+	print "Broker peer added";
 	}
 
 event NetControl::broker_add_rule(id: count, r: NetControl::Rule)
@@ -95,22 +106,24 @@ event NetControl::broker_add_rule(id: count, r: NetControl::Rule)
 	print "add_rule", id, r$entity, r$ty;
 
 	if ( r$cid == 3 )
-		Broker::send_event("bro/event/netcontroltest", Broker::event_args(NetControl::broker_rule_added, id, r, ""));
+		Broker::publish("bro/event/netcontroltest", NetControl::broker_rule_added, id, r, "");
 	if ( r$cid == 2 )
-		Broker::send_event("bro/event/netcontroltest", Broker::event_args(NetControl::broker_rule_exists, id, r, ""));
+		Broker::publish("bro/event/netcontroltest", NetControl::broker_rule_exists, id, r, "");
 
 	if ( r$cid == 2 )
-		Broker::send_event("bro/event/netcontroltest", Broker::event_args(NetControl::broker_rule_timeout, id, r, NetControl::FlowInfo()));
+		Broker::publish("bro/event/netcontroltest", NetControl::broker_rule_timeout, id, r, NetControl::FlowInfo());
 	}
 
 event NetControl::broker_remove_rule(id: count, r: NetControl::Rule, reason: string)
 	{
 	print "remove_rule", id, r$entity, r$ty, reason;
 
-	Broker::send_event("bro/event/netcontroltest", Broker::event_args(NetControl::broker_rule_removed, id, r, ""));
+	Broker::publish("bro/event/netcontroltest", NetControl::broker_rule_removed, id, r, "");
 
 	if ( r$cid == 3 )
-		terminate();
+		{
+		schedule 2sec { die() };
+		}
 	}
 
 @TEST-END-FILE

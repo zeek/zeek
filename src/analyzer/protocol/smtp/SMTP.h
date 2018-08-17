@@ -39,13 +39,13 @@ typedef enum {
 
 class SMTP_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
-	SMTP_Analyzer(Connection* conn);
-	~SMTP_Analyzer();
+	explicit SMTP_Analyzer(Connection* conn);
+	~SMTP_Analyzer() override;
 
-	virtual void Done();
-	virtual void DeliverStream(int len, const u_char* data, bool orig);
-	virtual void ConnectionFinished(int half_finished);
-	virtual void Undelivered(uint64 seq, int len, bool orig);
+	void Done() override;
+	void DeliverStream(int len, const u_char* data, bool orig) override;
+	void ConnectionFinished(int half_finished) override;
+	void Undelivered(uint64 seq, int len, bool orig) override;
 
 	void SkipData()	{ skip_data = 1; }	// skip delivery of data lines
 

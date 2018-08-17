@@ -5,6 +5,7 @@
 
 #include "RPC.h"
 #include "NFS.h"
+#include "MOUNT.h"
 #include "Portmap.h"
 
 namespace plugin {
@@ -15,6 +16,7 @@ public:
 	plugin::Configuration Configure()
 		{
 		AddComponent(new ::analyzer::Component("NFS", ::analyzer::rpc::NFS_Analyzer::Instantiate));
+		AddComponent(new ::analyzer::Component("MOUNT", ::analyzer::rpc::MOUNT_Analyzer::Instantiate));
 		AddComponent(new ::analyzer::Component("Portmapper", ::analyzer::rpc::Portmapper_Analyzer::Instantiate));
 		AddComponent(new ::analyzer::Component("Contents_RPC", 0));
 		AddComponent(new ::analyzer::Component("Contents_NFS", 0));

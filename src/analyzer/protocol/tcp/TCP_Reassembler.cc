@@ -38,18 +38,19 @@ TCP_Reassembler::TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer,
 
 	if ( ::tcp_contents )
 		{
-		// Val dst_port_val(ntohs(Conn()->RespPort()), TYPE_PORT);
-		PortVal dst_port_val(ntohs(tcp_analyzer->Conn()->RespPort()),
+		auto dst_port_val = port_mgr->Get(ntohs(tcp_analyzer->Conn()->RespPort()),
 					TRANSPORT_TCP);
 		TableVal* ports = IsOrig() ?
 			tcp_content_delivery_ports_orig :
 			tcp_content_delivery_ports_resp;
-		Val* result = ports->Lookup(&dst_port_val);
+		Val* result = ports->Lookup(dst_port_val);
 
 		if ( (IsOrig() && tcp_content_deliver_all_orig) ||
 		     (! IsOrig() && tcp_content_deliver_all_resp) ||
 		     (result && result->AsBool()) )
 			deliver_tcp_contents = 1;
+
+		Unref(dst_port_val);
 		}
 	}
 
@@ -500,7 +501,7 @@ int TCP_Reassembler::DataSent(double t, uint64 seq, int len,
 		}
 
 	if ( tcp_excessive_data_without_further_acks &&
-	     NumUndeliveredBytes() > static_cast<uint64>(tcp_excessive_data_without_further_acks) )
+	     size_of_all_blocks > static_cast<uint64>(tcp_excessive_data_without_further_acks) )
 		{
 		tcp_analyzer->Weird("excessive_data_without_further_acks");
 		ClearBlocks();

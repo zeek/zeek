@@ -14,13 +14,13 @@ namespace analyzer { namespace RADIUS {
 
 class RADIUS_Analyzer : public analyzer::Analyzer {
 public:
-	RADIUS_Analyzer(Connection* conn);
-	virtual ~RADIUS_Analyzer();
+	explicit RADIUS_Analyzer(Connection* conn);
+	~RADIUS_Analyzer() override;
 
 	// Overriden from Analyzer.
-	virtual void Done();
-	virtual void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64 seq, const IP_Hdr* ip, int caplen);
+	void Done() override;
+	void DeliverPacket(int len, const u_char* data, bool orig,
+					uint64 seq, const IP_Hdr* ip, int caplen) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new RADIUS_Analyzer(conn); }

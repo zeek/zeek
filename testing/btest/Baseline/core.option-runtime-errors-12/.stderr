@@ -1,0 +1,1 @@
+error in /Users/johanna/corelight/bro/testing/btest/.tmp/core.option-runtime-errors-12/option-runtime-errors.bro, line 7: Third argument of passed function has to be string in Option::on_change for ID 'A'; got 'count' (Option::set_change_handler(A, option_changed, (coerce 0 to int)))

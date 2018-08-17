@@ -8,8 +8,6 @@ module NetControl;
 @load ../plugin
 @load base/frameworks/broker
 
-@ifdef ( Broker::__enable )
-
 export {
 	## This record specifies the configuration that is passed to :bro:see:`NetControl::create_broker`.
 	type BrokerConfig: record {
@@ -151,7 +149,7 @@ function broker_add_rule_fun(p: PluginState, r: Rule) : bool
 	if ( ! broker_check_rule(p, r) )
 		return F;
 
-	Broker::send_event(p$broker_config$topic, Broker::event_args(broker_add_rule, p$broker_id, r));
+	Broker::publish(p$broker_config$topic, Broker::make_event(broker_add_rule, p$broker_id, r));
 	return T;
 	}
 
@@ -160,19 +158,20 @@ function broker_remove_rule_fun(p: PluginState, r: Rule, reason: string) : bool
 	if ( ! broker_check_rule(p, r) )
 		return F;
 
-	Broker::send_event(p$broker_config$topic, Broker::event_args(broker_remove_rule, p$broker_id, r, reason));
+	Broker::publish(p$broker_config$topic, Broker::make_event(broker_remove_rule, p$broker_id, r, reason));
 	return T;
 	}
 
 function broker_init(p: PluginState)
 	{
-	Broker::enable();
-	Broker::connect(cat(p$broker_config$host), p$broker_config$bport, 1sec);
-	Broker::subscribe_to_events(p$broker_config$topic);
+	Broker::subscribe(p$broker_config$topic);
+	Broker::peer(cat(p$broker_config$host), p$broker_config$bport);
 	}
 
-event Broker::outgoing_connection_established(peer_address: string, peer_port: port, peer_name: string)
+event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
+	local peer_address = cat(endpoint$network$address);
+	local peer_port = endpoint$network$bound_port;
 	if ( [peer_port, peer_address] !in netcontrol_broker_peers )
 		return;
 
@@ -219,5 +218,3 @@ function create_broker(config: BrokerConfig, can_expire: bool) : PluginState
 
 	return p;
 	}
-
-@endif

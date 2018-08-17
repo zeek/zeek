@@ -11,7 +11,8 @@ class StateAccess;
 class PersistenceSerializer : public FileSerializer {
 public:
 	PersistenceSerializer();
-	virtual ~PersistenceSerializer();
+
+	~PersistenceSerializer() override;
 
 	// Define the directory where to store the data.
 	void SetDir(const char* arg_dir)	{ dir = copy_string(arg_dir); }
@@ -59,15 +60,15 @@ protected:
 	friend class RemoteSerializer;
 	friend class IncrementalWriteTimer;
 
-	virtual void GotID(ID* id, Val* val);
-	virtual void GotEvent(const char* name, double time,
-				EventHandlerPtr event, val_list* args);
-	virtual void GotFunctionCall(const char* name, double time,
-				Func* func, val_list* args) ;
-	virtual void GotStateAccess(StateAccess* s);
-	virtual void GotTimer(Timer* t);
-	virtual void GotConnection(Connection* c);
-	virtual void GotPacket(Packet* packet);
+	void GotID(ID* id, Val* val) override;
+	void GotEvent(const char* name, double time,
+				EventHandlerPtr event, val_list* args) override;
+	void GotFunctionCall(const char* name, double time,
+				Func* func, val_list* args) override;
+	void GotStateAccess(StateAccess* s) override;
+	void GotTimer(Timer* t) override;
+	void GotConnection(Connection* c) override;
+	void GotPacket(Packet* packet) override;
 
 	// If file has changed since last check, read it.
 	bool CheckForFile(UnserialInfo* info, const char* file,

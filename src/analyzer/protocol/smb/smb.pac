@@ -24,7 +24,9 @@
 #include "smb1_com_read_andx.bif.h"
 #include "smb1_com_session_setup_andx.bif.h"
 #include "smb1_com_transaction.bif.h"
+#include "smb1_com_transaction_secondary.bif.h"
 #include "smb1_com_transaction2.bif.h"
+#include "smb1_com_transaction2_secondary.bif.h"
 #include "smb1_com_tree_connect_andx.bif.h"
 #include "smb1_com_tree_disconnect.bif.h"
 #include "smb1_com_write_andx.bif.h"
@@ -74,6 +76,7 @@ connection SMB_Conn(bro_analyzer: BroAnalyzer) {
 %include smb1-com-transaction-secondary.pac
 %include smb1-com-transaction.pac
 %include smb1-com-transaction2.pac
+%include smb1-com-transaction2-secondary.pac
 %include smb1-com-tree-connect-andx.pac
 %include smb1-com-tree-disconnect.pac
 %include smb1-com-write-andx.pac

@@ -4,8 +4,8 @@
 #define INPUT_READERS_RAW_H
 
 #include <vector>
-#include <pthread.h>
 #include <memory>
+#include <mutex>
 
 #include "input/ReaderBackend.h"
 
@@ -18,7 +18,7 @@ namespace input { namespace reader {
 class Raw : public ReaderBackend {
 public:
 	explicit Raw(ReaderFrontend* frontend);
-	~Raw();
+	~Raw() override;
 
 	// prohibit copying and moving
 	Raw(const Raw&) = delete;
@@ -37,8 +37,7 @@ protected:
 private:
 	void ClosePipeEnd(int i);
 	bool SetFDFlags(int fd, int cmd, int flags);
-	bool LockForkMutex();
-	bool UnlockForkMutex();
+	std::unique_lock<std::mutex> AcquireForkMutex();
 
 	bool OpenInput();
 	bool CloseInput();
@@ -87,7 +86,6 @@ private:
 	};
 
 	static const int block_size;
-	static pthread_mutex_t fork_mutex;
 };
 
 }

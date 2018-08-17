@@ -2,7 +2,6 @@
 ##! their responses.
 
 @load base/utils/queue
-@load base/frameworks/notice/weird
 @load ./consts
 
 module DNS;
@@ -177,9 +176,6 @@ function log_unmatched_msgs_queue(q: Queue::Queue)
 
 	for ( i in infos )
 		{
-		local wi = Weird::Info($ts=network_time(), $name="dns_unmatched_msg", $uid=infos[i]$uid,
-		                       $id=infos[i]$id);
-		Weird::weird(wi);
 		Log::write(DNS::LOG, infos[i]);
 		}
 	}
@@ -187,21 +183,19 @@ function log_unmatched_msgs_queue(q: Queue::Queue)
 function log_unmatched_msgs(msgs: PendingMessages)
 	{
 	for ( trans_id in msgs )
+		{
 		log_unmatched_msgs_queue(msgs[trans_id]);
+		}
 
 	clear_table(msgs);
 	}
 
 function enqueue_new_msg(msgs: PendingMessages, id: count, msg: Info)
 	{
-	local wi: Weird::Info;
 	if ( id !in msgs )
 		{
 		if ( |msgs| > max_pending_query_ids )
 			{
-			wi = Weird::Info($ts=network_time(), $name="dns_unmatched_msg", $uid=msg$uid,
-			                       $id=msg$id);
-			Weird::weird(wi);
 			# Throw away all unmatched on assumption they'll never be matched.
 			log_unmatched_msgs(msgs);
 			}
@@ -212,9 +206,6 @@ function enqueue_new_msg(msgs: PendingMessages, id: count, msg: Info)
 		{
 		if ( Queue::len(msgs[id]) > max_pending_msgs )
 			{
-			wi = Weird::Info($ts=network_time(), $name="dns_unmatched_msg_quantity", $uid=msg$uid,
-			                       $id=msg$id);
-			Weird::weird(wi);
 			log_unmatched_msgs_queue(msgs[id]);
 			# Throw away all unmatched on assumption they'll never be matched.
 			msgs[id] = Queue::init();
@@ -271,7 +262,6 @@ hook set_session(c: connection, msg: dns_msg, is_query: bool) &priority=5
 			# Create a new DNS session and put it in the reply queue so
 			# we can wait for a matching query.
 			c$dns = new_session(c, msg$id);
-			event conn_weird("dns_unmatched_reply", c, "");
 			enqueue_new_msg(c$dns_state$pending_replies, msg$id, c$dns);
 			}
 		}
@@ -334,11 +324,11 @@ hook DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string) 
 			{
 			if ( ! c$dns?$answers )
 				c$dns$answers = vector();
-			c$dns$answers[|c$dns$answers|] = reply;
+			c$dns$answers += reply;
 
 			if ( ! c$dns?$TTLs )
 				c$dns$TTLs = vector();
-			c$dns$TTLs[|c$dns$TTLs|] = ans$TTL;
+			c$dns$TTLs += ans$TTL;
 			}
 		}
 	}

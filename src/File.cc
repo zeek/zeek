@@ -302,7 +302,7 @@ FILE* BroFile::BringIntoCache()
 
 	if ( ! f )
 		{
-		strerror_r(errno, buf, sizeof(buf));
+		bro_strerror_r(errno, buf, sizeof(buf));
 		reporter->Error("can't open %s: %s", name, buf);
 
 		f = fopen("/dev/null", "w");
@@ -313,7 +313,7 @@ FILE* BroFile::BringIntoCache()
 			return f;
 			}
 
-		strerror_r(errno, buf, sizeof(buf));
+		bro_strerror_r(errno, buf, sizeof(buf));
 		reporter->Error("can't open /dev/null: %s", buf);
 		return 0;
 		}
@@ -323,7 +323,7 @@ FILE* BroFile::BringIntoCache()
 
 	if ( fseek(f, position, SEEK_SET) < 0 )
 		{
-		strerror_r(errno, buf, sizeof(buf));
+		bro_strerror_r(errno, buf, sizeof(buf));
 		reporter->Error("reopen seek failed: %s", buf);
 		}
 
@@ -413,7 +413,7 @@ void BroFile::Suspend()
 	if ( (position = ftell(f)) < 0 )
 		{
 		char buf[256];
-		strerror_r(errno, buf, sizeof(buf));
+		bro_strerror_r(errno, buf, sizeof(buf));
 		reporter->Error("ftell failed: %s", buf);
 		position = 0;
 		}
@@ -692,7 +692,7 @@ void BroFile::InitEncrypt(const char* keyfile)
 	// Depending on the OpenSSL version, EVP_*_cbc()
 	// returns a const or a non-const.
 	EVP_CIPHER* cipher_type = (EVP_CIPHER*) EVP_bf_cbc();
-	cipher_ctx = new EVP_CIPHER_CTX;
+	cipher_ctx = EVP_CIPHER_CTX_new();
 
 	unsigned char secret[EVP_PKEY_size(pub_key)];
 	unsigned char* psecret = secret;
@@ -747,7 +747,7 @@ void BroFile::FinishEncrypt()
 			return;
 			}
 
-		delete cipher_ctx;
+		EVP_CIPHER_CTX_free(cipher_ctx);
 		cipher_ctx = 0;
 		}
 	}

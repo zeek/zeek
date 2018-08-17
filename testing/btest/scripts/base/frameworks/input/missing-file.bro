@@ -3,6 +3,7 @@
 # @TEST-EXEC: btest-diff bro/.stderr
 
 redef exit_only_after_terminate = T;
+redef InputAscii::fail_on_file_problem = T;
 
 global outfile: file;
 global try: count;

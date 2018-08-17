@@ -81,7 +81,7 @@ IOSource* Manager::FindSoonest(double* ts)
 			all_idle = false;
 			double local_network_time = 0;
 			double ts = (*i)->src->NextTimestamp(&local_network_time);
-			if ( ts > 0 && ts < soonest_ts )
+			if ( ts >= 0 && ts < soonest_ts )
 				{
 				soonest_ts = ts;
 				soonest_src = (*i)->src;
@@ -162,7 +162,7 @@ IOSource* Manager::FindSoonest(double* ts)
 				{
 				double local_network_time = 0;
 				double ts = src->src->NextTimestamp(&local_network_time);
-				if ( ts > 0.0 && ts < soonest_ts )
+				if ( ts >= 0.0 && ts < soonest_ts )
 					{
 					soonest_ts = ts;
 					soonest_src = src->src;

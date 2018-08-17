@@ -24,7 +24,7 @@ export {
 		## at least one, since some servers might support no authentication at all.
 		## It's important to note that not all of these are failures, since
 		## some servers require two-factor auth (e.g. password AND pubkey)
-		auth_attempts:   count        &log &optional;
+		auth_attempts:   count        &log &default=0;
 		## Direction of the connection. If the client was a local host
 		## logging into an external host, this would be OUTBOUND. INBOUND
 		## would be set for the opposite situation.
@@ -185,13 +185,7 @@ event ssh_auth_attempted(c: connection, authenticated: bool) &priority=5
 		return;
 
 	c$ssh$auth_success = authenticated;
-
-	if ( c$ssh?$auth_attempts )
-		c$ssh$auth_attempts += 1;
-	else
-		{
-		c$ssh$auth_attempts = 1;
-		}
+	c$ssh$auth_attempts += 1;
 
 	if ( authenticated && disable_analyzer_after_detection )
 		disable_analyzer(c$id, c$ssh$analyzer_id);

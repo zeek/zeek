@@ -1,0 +1,1 @@
+error in /Users/johanna/corelight/bro/testing/btest/.tmp/core.option-runtime-errors-9/option-runtime-errors.bro, line 5: Could not find ID named 'A' (Option::set_change_handler(A, option_changed, (coerce 0 to int)))

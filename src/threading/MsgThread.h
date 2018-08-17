@@ -2,8 +2,6 @@
 #ifndef THREADING_MSGTHREAD_H
 #define THREADING_MSGTHREAD_H
 
-#include <pthread.h>
-
 #include "DebugLogger.h"
 
 #include "BasicThread.h"
@@ -341,7 +339,7 @@ protected:
 	 * @param arg_name A descriptive name for the type of message. Used
 	 * mainly for debugging purposes.
 	 */
-	Message(const char* arg_name)
+	explicit Message(const char* arg_name)
 		{ name = copy_string(arg_name); }
 
 private:
@@ -360,7 +358,7 @@ protected:
 	 * @param name A descriptive name for the type of message. Used
 	 * mainly for debugging purposes.
 	 */
-	BasicInputMessage(const char* name) : Message(name)	{}
+	explicit BasicInputMessage(const char* name) : Message(name)	{}
 };
 
 /**
@@ -375,7 +373,7 @@ protected:
 	 * @param name A descriptive name for the type of message. Used
 	 * mainly for debugging purposes.
 	 */
-	BasicOutputMessage(const char* name) : Message(name)	{}
+	explicit BasicOutputMessage(const char* name) : Message(name)	{}
 };
 
 /**

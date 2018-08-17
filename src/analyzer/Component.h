@@ -61,7 +61,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	~Component();
+	~Component() override;
 
 	/**
 	 * Initialization function. This function has to be called before any

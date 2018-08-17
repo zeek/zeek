@@ -1,0 +1,1 @@
+smb1_transaction_response hdr: [command=37, status=0, flags=128, flags2=0, tid=41669, pid=1, uid=17768, mid=2], params: some_params, data: some_data

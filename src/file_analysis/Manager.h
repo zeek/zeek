@@ -70,7 +70,8 @@ public:
 
 	/**
 	 * Creates a file identifier from a unique file handle string.
-	 * @param handle a unique string which identifies a single file.
+	 * @param handle a unique string (may contain NULs) which identifies
+	 * a single file.
 	 * @return a prettified MD5 hash of \a handle, truncated to *bits_per_uid* bits.
 	 */
 	string HashHandle(const string& handle) const;
@@ -78,7 +79,8 @@ public:
 	/**
 	 * Take in a unique file handle string to identify next piece of
 	 * incoming file data/information.
-	 * @param handle a unique string which identifies a single file.
+	 * @param handle a unique string (may contain NULs) which identifies
+	 * a single file.
 	 */
 	void SetHandle(const string& handle);
 
@@ -93,6 +95,13 @@ public:
 	 *        or false if is being sent in the opposite direction.
 	 * @param precomputed_file_id may be set to a previous return value in order to
 	 *        bypass costly file handle lookups.
+	 * @param mime_type may be set to the mime type of the file, if already known due
+	 *        to the protocol. This is, e.g., the case in TLS connections where X.509
+	 *        certificates are passed as files; here the type of the file is set by
+	 *        the protocol. If this parameter is given, MIME type detection will be
+	 *        disabled.
+	 *        This parameter only has any effect for the first DataIn call of each
+	 *        file. It is ignored for all subsequent calls.
 	 * @return a unique file ID string which, in certain contexts, may be
 	 *         cached and passed back in to a subsequent function call in order
 	 *         to avoid costly file handle lookups (which have to go through
@@ -101,7 +110,8 @@ public:
 	 */
 	std::string DataIn(const u_char* data, uint64 len, uint64 offset,
 	                   analyzer::Tag tag, Connection* conn, bool is_orig,
-	                   const std::string& precomputed_file_id = "");
+	                   const std::string& precomputed_file_id = "",
+	                   const std::string& mime_type = "");
 
 	/**
 	 * Pass in sequential file data.
@@ -113,6 +123,12 @@ public:
 	 *        or false if is being sent in the opposite direction.
 	 * @param precomputed_file_id may be set to a previous return value in order to
 	 *        bypass costly file handle lookups.
+	 * @param mime_type may be set to the mime type of the file, if already known due
+	 *        to the protocol. This is, e.g., the case in TLS connections where X.509
+	 *        certificates are passed as files; here the type of the file is set by
+	 *        the protocol. If this parameter is give, mime type detection will be
+	 *        disabled.
+	 *        This parameter is only used for the first bit of data for each file.
 	 * @return a unique file ID string which, in certain contexts, may be
 	 *         cached and passed back in to a subsequent function call in order
 	 *         to avoid costly file handle lookups (which have to go through
@@ -121,7 +137,8 @@ public:
 	 */
 	std::string DataIn(const u_char* data, uint64 len, analyzer::Tag tag,
 	                   Connection* conn, bool is_orig,
-	                   const std::string& precomputed_file_id = "");
+	                   const std::string& precomputed_file_id = "",
+	                   const std::string& mime_type = "");
 
 	/**
 	 * Pass in sequential file data from external source (e.g. input framework).
@@ -242,6 +259,14 @@ public:
 	                        uint64 n) const;
 
 	/**
+	 * Try to retrieve a file that's being analyzed, using its identifier/hash.
+	 * @param file_id the file identifier/hash.
+	 * @return the File object mapped to \a file_id, or a null pointer if no
+	 *         mapping exists.
+	 */
+	File* LookupFile(const string& file_id) const;
+
+	/**
 	 * Queue attachment of an analzer to the file identifier.  Multiple
 	 * analyzers of a given type can be attached per file identifier at a time
 	 * as long as the arguments differ.
@@ -339,14 +364,6 @@ protected:
 	              analyzer::Tag tag = analyzer::Tag::Error,
 	              bool is_orig = false, bool update_conn = true,
 	              const char* source_name = 0);
-
-	/**
-	 * Try to retrieve a file that's being analyzed, using its identifier/hash.
-	 * @param file_id the file identifier/hash.
-	 * @return the File object mapped to \a file_id, or a null pointer if no
-	 *         mapping exists.
-	 */
-	File* LookupFile(const string& file_id) const;
 
 	/**
 	 * Evaluate timeout policy for a file and remove the File object mapped to

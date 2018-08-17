@@ -1,7 +1,6 @@
 # @TEST-SERIALIZE: comm
 #
 # @TEST-EXEC: btest-bg-run manager-1 BROPATH=$BROPATH:.. CLUSTER_NODE=manager-1 bro %INPUT
-# @TEST-EXEC: sleep 3
 # @TEST-EXEC: btest-bg-run worker-1  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-1 bro %INPUT 
 # @TEST-EXEC: btest-bg-run worker-2  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-2 bro %INPUT
 # @TEST-EXEC: btest-bg-wait 20
@@ -9,7 +8,7 @@
 
 @TEST-START-FILE cluster-layout.bro
 redef Cluster::nodes = {
-	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=37757/tcp, $workers=set("worker-1", "worker-2")],
+	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=37757/tcp],
 	["worker-1"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=37760/tcp, $manager="manager-1", $interface="eth0"],
 	["worker-2"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=37761/tcp, $manager="manager-1", $interface="eth1"],
 };
@@ -43,7 +42,7 @@ event bro_init() &priority=5
 	                  	}]);
 	}
 
-event remote_connection_closed(p: event_peer)
+event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	{
 	terminate();
 	}
@@ -56,9 +55,9 @@ event do_stats(i: count)
 	SumStats::observe("test.metric", [$host=1.2.3.4], [$num=i]);
 	}
 
-event remote_connection_handshake_done(p: event_peer)
+event Cluster::node_up(name: string, id: string)
 	{
-	if ( p$descr == "manager-1" )
+	if ( name == "manager-1" )
 		{
 		if ( Cluster::node == "worker-1" )
 			{
@@ -69,5 +68,3 @@ event remote_connection_handshake_done(p: event_peer)
 			schedule 0.5sec { do_stats(40) };
 		}
 	}
-
-

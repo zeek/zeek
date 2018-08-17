@@ -50,33 +50,33 @@ event bro_init()
 	# Minimum length a heartbeat packet must have for different cipher suites.
 	# Note - tls 1.1f and 1.0 have different lengths :(
 	# This should be all cipher suites usually supported by vulnerable servers.
-	min_lengths_tls11[|min_lengths_tls11|] = [$cipher=/_AES_256_GCM_SHA384$/, $min_length=43];
-	min_lengths_tls11[|min_lengths_tls11|] = [$cipher=/_AES_128_GCM_SHA256$/, $min_length=43];
-	min_lengths_tls11[|min_lengths_tls11|] = [$cipher=/_256_CBC_SHA384$/, $min_length=96];
-	min_lengths_tls11[|min_lengths_tls11|] = [$cipher=/_256_CBC_SHA256$/, $min_length=80];
-	min_lengths_tls11[|min_lengths_tls11|] = [$cipher=/_256_CBC_SHA$/, $min_length=64];
-	min_lengths_tls11[|min_lengths_tls11|] = [$cipher=/_128_CBC_SHA256$/, $min_length=80];
-	min_lengths_tls11[|min_lengths_tls11|] = [$cipher=/_128_CBC_SHA$/, $min_length=64];
-	min_lengths_tls11[|min_lengths_tls11|] = [$cipher=/_3DES_EDE_CBC_SHA$/, $min_length=48];
-	min_lengths_tls11[|min_lengths_tls11|] = [$cipher=/_SEED_CBC_SHA$/, $min_length=64];
-	min_lengths_tls11[|min_lengths_tls11|] = [$cipher=/_IDEA_CBC_SHA$/, $min_length=48];
-	min_lengths_tls11[|min_lengths_tls11|] = [$cipher=/_DES_CBC_SHA$/, $min_length=48];
-	min_lengths_tls11[|min_lengths_tls11|] = [$cipher=/_DES40_CBC_SHA$/, $min_length=48];
-	min_lengths_tls11[|min_lengths_tls11|] = [$cipher=/_RC4_128_SHA$/, $min_length=39];
-	min_lengths_tls11[|min_lengths_tls11|] = [$cipher=/_RC4_128_MD5$/, $min_length=35];
-	min_lengths_tls11[|min_lengths_tls11|] = [$cipher=/_RC4_40_MD5$/, $min_length=35];
-	min_lengths_tls11[|min_lengths_tls11|] = [$cipher=/_RC2_CBC_40_MD5$/, $min_length=48];
-	min_lengths[|min_lengths|] = [$cipher=/_256_CBC_SHA$/, $min_length=48];
-	min_lengths[|min_lengths|] = [$cipher=/_128_CBC_SHA$/, $min_length=48];
-	min_lengths[|min_lengths|] = [$cipher=/_3DES_EDE_CBC_SHA$/, $min_length=40];
-	min_lengths[|min_lengths|] = [$cipher=/_SEED_CBC_SHA$/, $min_length=48];
-	min_lengths[|min_lengths|] = [$cipher=/_IDEA_CBC_SHA$/, $min_length=40];
-	min_lengths[|min_lengths|] = [$cipher=/_DES_CBC_SHA$/, $min_length=40];
-	min_lengths[|min_lengths|] = [$cipher=/_DES40_CBC_SHA$/, $min_length=40];
-	min_lengths[|min_lengths|] = [$cipher=/_RC4_128_SHA$/, $min_length=39];
-	min_lengths[|min_lengths|] = [$cipher=/_RC4_128_MD5$/, $min_length=35];
-	min_lengths[|min_lengths|] = [$cipher=/_RC4_40_MD5$/, $min_length=35];
-	min_lengths[|min_lengths|] = [$cipher=/_RC2_CBC_40_MD5$/, $min_length=40];
+	min_lengths_tls11 += [$cipher=/_AES_256_GCM_SHA384$/, $min_length=43];
+	min_lengths_tls11 += [$cipher=/_AES_128_GCM_SHA256$/, $min_length=43];
+	min_lengths_tls11 += [$cipher=/_256_CBC_SHA384$/, $min_length=96];
+	min_lengths_tls11 += [$cipher=/_256_CBC_SHA256$/, $min_length=80];
+	min_lengths_tls11 += [$cipher=/_256_CBC_SHA$/, $min_length=64];
+	min_lengths_tls11 += [$cipher=/_128_CBC_SHA256$/, $min_length=80];
+	min_lengths_tls11 += [$cipher=/_128_CBC_SHA$/, $min_length=64];
+	min_lengths_tls11 += [$cipher=/_3DES_EDE_CBC_SHA$/, $min_length=48];
+	min_lengths_tls11 += [$cipher=/_SEED_CBC_SHA$/, $min_length=64];
+	min_lengths_tls11 += [$cipher=/_IDEA_CBC_SHA$/, $min_length=48];
+	min_lengths_tls11 += [$cipher=/_DES_CBC_SHA$/, $min_length=48];
+	min_lengths_tls11 += [$cipher=/_DES40_CBC_SHA$/, $min_length=48];
+	min_lengths_tls11 += [$cipher=/_RC4_128_SHA$/, $min_length=39];
+	min_lengths_tls11 += [$cipher=/_RC4_128_MD5$/, $min_length=35];
+	min_lengths_tls11 += [$cipher=/_RC4_40_MD5$/, $min_length=35];
+	min_lengths_tls11 += [$cipher=/_RC2_CBC_40_MD5$/, $min_length=48];
+	min_lengths += [$cipher=/_256_CBC_SHA$/, $min_length=48];
+	min_lengths += [$cipher=/_128_CBC_SHA$/, $min_length=48];
+	min_lengths += [$cipher=/_3DES_EDE_CBC_SHA$/, $min_length=40];
+	min_lengths += [$cipher=/_SEED_CBC_SHA$/, $min_length=48];
+	min_lengths += [$cipher=/_IDEA_CBC_SHA$/, $min_length=40];
+	min_lengths += [$cipher=/_DES_CBC_SHA$/, $min_length=40];
+	min_lengths += [$cipher=/_DES40_CBC_SHA$/, $min_length=40];
+	min_lengths += [$cipher=/_RC4_128_SHA$/, $min_length=39];
+	min_lengths += [$cipher=/_RC4_128_MD5$/, $min_length=35];
+	min_lengths += [$cipher=/_RC4_40_MD5$/, $min_length=35];
+	min_lengths += [$cipher=/_RC2_CBC_40_MD5$/, $min_length=40];
 	}
 
 event ssl_heartbeat(c: connection, is_orig: bool, length: count, heartbeat_type: count, payload_length: count, payload: string)

@@ -64,7 +64,6 @@ export {
 		## Flag to indicate if this ssl session has been established
 		## successfully, or if it was aborted during the handshake.
 		established:      bool             &log &default=F;
-
 		## Flag to indicate if this record already has been logged, to
 		## prevent duplicates.
 		logged:           bool             &default=F;
@@ -73,6 +72,26 @@ export {
 	## The default root CA bundle.  By default, the mozilla-ca-list.bro
 	## script sets this to Mozilla's root CA list.
 	const root_certs: table[string] of string = {} &redef;
+
+	## The record type which contains the field for the Certificate
+	## Transparency log bundle.
+	type CTInfo: record {
+		## Description of the Log
+		description:           string;
+		## Operator of the Log
+		operator:              string;
+		## Public key of the Log.
+		key:                   string;
+		## Maximum merge delay of the Log
+		maximum_merge_delay:   count;
+		## URL of the Log
+		url:                   string;
+	};
+
+	## The Certificate Transparency log bundle. By default, the ct-list.bro
+	## script sets this to the current list of known logs. Entries
+	## are indexed by (binary) log-id.
+	const ct_logs: table[string] of CTInfo = {} &redef;
 
 	## If true, detach the SSL analyzer from the connection to prevent
 	## continuing to process encrypted traffic. Helps with performance
@@ -90,6 +109,10 @@ export {
 	## Event that can be handled to access the SSL
 	## record as it is sent on to the logging framework.
 	global log_ssl: event(rec: Info);
+
+	# Hook that can be used to perform actions right before the log record
+	# is written.
+	global ssl_finishing: hook(c: connection);
 }
 
 redef record connection += {
@@ -193,15 +216,30 @@ event ssl_server_hello(c: connection, version: count, possible_ts: time, server_
 	{
 	set_session(c);
 
-	c$ssl$version_num = version;
-	c$ssl$version = version_strings[version];
+	# If it is already filled, we saw a supported_versions extensions which overrides this.
+	if ( ! c$ssl?$version_num )
+		{
+		c$ssl$version_num = version;
+		c$ssl$version = version_strings[version];
+		}
 	c$ssl$cipher = cipher_desc[cipher];
 
 	if ( c$ssl?$session_id && c$ssl$session_id == bytestring_to_hexstr(session_id) )
 		c$ssl$resumed = T;
 	}
 
-event ssl_server_curve(c: connection, curve: count) &priority=5
+event ssl_extension_supported_versions(c: connection, is_orig: bool, versions: index_vec)
+	{
+	if ( is_orig || |versions| != 1 )
+		return;
+
+	set_session(c);
+
+	c$ssl$version_num = versions[0];
+	c$ssl$version = version_strings[versions[0]];
+	}
+
+event ssl_ecdh_server_params(c: connection, curve: count, point: string) &priority=5
 	{
 	set_session(c);
 
@@ -281,9 +319,20 @@ event ssl_established(c: connection) &priority=7
 	c$ssl$established = T;
 	}
 
+event ssl_established(c: connection) &priority=20
+	{
+	hook ssl_finishing(c);
+	}
+
 event ssl_established(c: connection) &priority=-5
 	{
 	finish(c, T);
+	}
+
+event connection_state_remove(c: connection) &priority=20
+	{
+	if ( c?$ssl && ! c$ssl$logged )
+		hook ssl_finishing(c);
 	}
 
 event connection_state_remove(c: connection) &priority=-5

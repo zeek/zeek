@@ -11,19 +11,17 @@ namespace analyzer { namespace syslog {
 
 class Syslog_Analyzer : public analyzer::Analyzer {
 public:
-	Syslog_Analyzer(Connection* conn);
-	virtual ~Syslog_Analyzer();
+	explicit Syslog_Analyzer(Connection* conn);
+	~Syslog_Analyzer() override;
 
-	virtual void Done();
-	virtual void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64 seq, const IP_Hdr* ip, int caplen);
+	void Done() override;
+	void DeliverPacket(int len, const u_char* data, bool orig,
+					uint64 seq, const IP_Hdr* ip, int caplen) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new Syslog_Analyzer(conn); }
 
 protected:
-	void ExpireTimer(double t);
-
 	int did_session_done;
 
 	binpac::Syslog::Syslog_Conn* interp;

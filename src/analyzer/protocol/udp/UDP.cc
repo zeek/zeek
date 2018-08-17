@@ -20,6 +20,9 @@ UDP_Analyzer::UDP_Analyzer(Connection* conn)
 	conn->EnableStatusUpdateTimer();
 	conn->SetInactivityTimeout(udp_inactivity_timeout);
 	request_len = reply_len = -1;	// -1 means "haven't seen any activity"
+
+	req_chk_cnt = rep_chk_cnt = 0;
+	req_chk_thresh = rep_chk_thresh = 1;
 	}
 
 UDP_Analyzer::~UDP_Analyzer()
@@ -77,9 +80,19 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 			Weird("bad_UDP_checksum");
 
 			if ( is_orig )
-				Conn()->CheckHistory(HIST_ORIG_CORRUPT_PKT, 'C');
+				{
+				uint32 t = req_chk_thresh;
+				if ( Conn()->ScaledHistoryEntry('C', req_chk_cnt,
+				                                req_chk_thresh) )
+					ChecksumEvent(is_orig, t);
+				}
 			else
-				Conn()->CheckHistory(HIST_RESP_CORRUPT_PKT, 'c');
+				{
+				uint32 t = rep_chk_thresh;
+				if ( Conn()->ScaledHistoryEntry('c', rep_chk_cnt,
+				                                rep_chk_thresh) )
+					ChecksumEvent(is_orig, t);
+				}
 
 			return;
 			}
@@ -97,14 +110,14 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 	if ( udp_contents )
 		{
-		PortVal port_val(ntohs(up->uh_dport), TRANSPORT_UDP);
+		auto port_val = port_mgr->Get(ntohs(up->uh_dport), TRANSPORT_UDP);
 		Val* result = 0;
 		bool do_udp_contents = false;
 
 		if ( is_orig )
 			{
 			result = udp_content_delivery_ports_orig->Lookup(
-								&port_val);
+								port_val);
 			if ( udp_content_deliver_all_orig ||
 			     (result && result->AsBool()) )
 				do_udp_contents = true;
@@ -112,7 +125,7 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 		else
 			{
 			result = udp_content_delivery_ports_resp->Lookup(
-								&port_val);
+								port_val);
 			if ( udp_content_deliver_all_resp ||
 			     (result && result->AsBool()) )
 				do_udp_contents = true;
@@ -126,6 +139,8 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 			vl->append(new StringVal(len, (const char*) data));
 			ConnectionEvent(udp_contents, vl);
 			}
+
+		Unref(port_val);
 		}
 
 	if ( is_orig )
@@ -205,6 +220,12 @@ unsigned int UDP_Analyzer::MemoryAllocation() const
 	{
 	// A rather low lower bound....
 	return Analyzer::MemoryAllocation() + padded_sizeof(*this) - 24;
+	}
+
+void UDP_Analyzer::ChecksumEvent(bool is_orig, uint32 threshold)
+	{
+	Conn()->HistoryThresholdEvent(udp_multiple_checksum_errors,
+	                              is_orig, threshold);
 	}
 
 bool UDP_Analyzer::ValidateChecksum(const IP_Hdr* ip, const udphdr* up, int len)

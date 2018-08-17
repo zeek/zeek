@@ -1,12 +1,10 @@
-# @TEST-SERIALIZE: comm
-
 # @TEST-EXEC: cp intel1.dat intel.dat
 # @TEST-EXEC: btest-bg-run broproc bro %INPUT
-# @TEST-EXEC: sleep 2
+# @TEST-EXEC: $SCRIPTS/wait-for-file broproc/got1 5 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: cp intel2.dat intel.dat
-# @TEST-EXEC: sleep 2
+# @TEST-EXEC: $SCRIPTS/wait-for-file broproc/got2 5 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: cp intel3.dat intel.dat
-# @TEST-EXEC: btest-bg-wait 6
+# @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: cat broproc/intel.log > output
 # @TEST-EXEC: cat broproc/notice.log >> output
 # @TEST-EXEC: btest-diff output
@@ -28,7 +26,6 @@
 4.3.2.1	Intel::ADDR	source2	this host might also be baaad	http://some-data-distributor.com/4321	T
 # @TEST-END-FILE
 
-@load base/frameworks/communication # let network-time run
 @load frameworks/intel/do_notice
 
 redef exit_only_after_terminate = T;
@@ -36,6 +33,8 @@ redef Intel::read_files += { "../intel.dat" };
 redef enum Intel::Where += { SOMEWHERE };
 
 global runs = 0;
+global entries_read = 0;
+
 event do_it()
 	{
 	Intel::seen([$host=1.2.3.4,
@@ -44,8 +43,11 @@ event do_it()
 	             $where=SOMEWHERE]);
 
 	++runs;
-	if ( runs < 3 )
-		schedule 3sec { do_it() };
+
+	if ( runs == 1 )
+		system("touch got1");
+	if ( runs == 2 )
+		system("touch got2");
 	}
 
 global log_lines = 0;
@@ -56,7 +58,17 @@ event Intel::log_intel(rec: Intel::Info)
 		terminate();
 	}
 
-event bro_init() &priority=-10
+module Intel;
+
+event Intel::read_entry(desc: Input::EventDescription, tpe: Input::Event, item: Intel::Item)
 	{
-	schedule 1sec { do_it() };
+	++entries_read;
+	print entries_read;
+
+	if ( entries_read == 1 )
+		event do_it();
+	else if ( entries_read == 3 )
+		event do_it();
+	else if ( entries_read == 5 )
+		event do_it();
 	}

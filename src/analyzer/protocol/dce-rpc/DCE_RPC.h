@@ -14,8 +14,8 @@ namespace analyzer { namespace dce_rpc {
 
 class DCE_RPC_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
-	DCE_RPC_Analyzer(Connection* conn);
-	~DCE_RPC_Analyzer();
+	explicit DCE_RPC_Analyzer(Connection* conn);
+	~DCE_RPC_Analyzer() override;
 
 	void Done() override;
 	void DeliverStream(int len, const u_char* data, bool orig) override;

@@ -1,0 +1,1 @@
+error in /Users/johanna/corelight/bro/testing/btest/.tmp/core.option-errors-3/option-errors.bro, line 3: option is not a modifiable lvalue (testopt)

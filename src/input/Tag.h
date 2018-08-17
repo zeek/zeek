@@ -98,14 +98,14 @@ protected:
 	 * @param subtype The sub type, which is left to an reader for
 	 * interpretation. By default it's set to zero.
 	 */
-	Tag(type_t type, subtype_t subtype = 0);
+	explicit Tag(type_t type, subtype_t subtype = 0);
 
 	/**
 	 * Constructor.
 	 *
 	 * @param val An enum value of script type \c Input::Reader.
 	 */
-	Tag(EnumVal* val) : ::Tag(val) {}
+	explicit Tag(EnumVal* val) : ::Tag(val) {}
 };
 
 }

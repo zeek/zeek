@@ -6,9 +6,9 @@
 #
 # @TEST-EXEC: cp input1.log input.log
 # @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run bro bro -m -b %INPUT 
-# @TEST-EXEC: sleep 5
+# @TEST-EXEC: $SCRIPTS/wait-for-file bro/got2 8 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: cat input2.log >> input.log
-# @TEST-EXEC: sleep 5
+# @TEST-EXEC: $SCRIPTS/wait-for-file bro/got6 8 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: cat input3.log >> input.log
 # @TEST-EXEC: btest-bg-wait 60
 
@@ -31,7 +31,6 @@ sdf
 3rw43wRRERLlL#RWERERERE.
 @TEST-END-FILE
 
-@load base/frameworks/communication  # let network-time run
 
 module A;
 
@@ -49,7 +48,12 @@ event line(description: Input::EventDescription, tpe: Input::Event, s: string)
 	print outfile, s;
 
 	try = try + 1;
-	if ( try == 16 )
+
+	if ( try == 2 )
+		system("touch got2");
+	else if ( try == 6 )
+		system("touch got6");
+	else if ( try == 16 )
 		{
 		print outfile, "done";
 		close(outfile);

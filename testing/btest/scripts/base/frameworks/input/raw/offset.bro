@@ -1,6 +1,6 @@
 # @TEST-EXEC: cp input.log input2.log
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
-# @TEST-EXEC: sleep 2
+# @TEST-EXEC: $SCRIPTS/wait-for-file bro/got2 5 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: echo "hi" >> input2.log
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff out
@@ -10,7 +10,6 @@ sdfkh:KH;fdkncv;ISEUp34:Fkdj;YVpIODhfDF
 @TEST-END-FILE
 
 redef exit_only_after_terminate = T;
-@load base/frameworks/communication # keep network time running
 
 global outfile: file;
 global try: count;
@@ -25,7 +24,9 @@ event line(description: Input::EventDescription, tpe: Input::Event, s: string)
 	{
 	print outfile, s;
 	try = try + 1;
-	if ( try == 3 )
+	if ( try == 2 )
+		system("touch got2");
+	else if ( try == 3 )
 		{
 		close(outfile);
 		terminate();

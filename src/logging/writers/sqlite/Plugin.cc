@@ -10,7 +10,7 @@ namespace Bro_SQLiteWriter {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::logging::Component("SQLite", ::logging::writer::SQLite::Instantiate));
 

@@ -1,0 +1,1 @@
+error in /Users/johanna/corelight/bro/testing/btest/.tmp/core.option-runtime-errors-10/option-runtime-errors.bro, line 7: ID 'A' is not an option (Option::set_change_handler(A, option_changed, (coerce 0 to int)))

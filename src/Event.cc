@@ -54,6 +54,38 @@ void Event::Describe(ODesc* d) const
 		d->Add("(");
 	}
 
+void Event::Dispatch(bool no_remote)
+	{
+	if ( src == SOURCE_BROKER )
+		no_remote = true;
+
+	if ( event_serializer )
+		{
+		SerialInfo info(event_serializer);
+		event_serializer->Serialize(&info, handler->Name(), args);
+		}
+
+	if ( handler->ErrorHandler() )
+		reporter->BeginErrorHandler();
+
+	try
+		{
+		handler->Call(args, no_remote);
+		}
+
+	catch ( InterpreterException& e )
+		{
+		// Already reported.
+		}
+
+	if ( obj )
+		// obj->EventDone();
+		Unref(obj);
+
+	if ( handler->ErrorHandler() )
+		reporter->EndErrorHandler();
+	}
+
 EventMgr::EventMgr()
 	{
 	head = tail = 0;
@@ -166,7 +198,7 @@ RecordVal* EventMgr::GetLocalPeerVal()
 		src_val = new RecordVal(peer);
 		src_val->Assign(0, new Val(0, TYPE_COUNT));
 		src_val->Assign(1, new AddrVal("127.0.0.1"));
-		src_val->Assign(2, new PortVal(0));
+		src_val->Assign(2, port_mgr->Get(0));
 		src_val->Assign(3, new Val(true, TYPE_BOOL));
 
 		Ref(peer_description);

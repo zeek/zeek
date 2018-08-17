@@ -56,7 +56,7 @@ public:
 	    : Timer(t, TIMER_TIMERMGR_EXPIRE), mgr(arg_mgr)
 		{ }
 
-	virtual void Dispatch(double t, int is_expire);
+	void Dispatch(double t, int is_expire) override;
 
 protected:
 	TimerMgr* mgr;
@@ -151,8 +151,9 @@ public:
 
 	/**
 	 * Returns a wrapper IP_Hdr object if \a pkt appears to be a valid IPv4
-	 * or IPv6 header based on whether it's long enough to contain such a header
-	 * and also that the payload length field of that header matches the actual
+	 * or IPv6 header based on whether it's long enough to contain such a header,
+	 * if version given in the header matches the proto argument, and also checks
+	 * that the payload length field of that header matches the actual
 	 * length of \a pkt given by \a caplen.
 	 *
 	 * @param caplen The length of \a pkt in bytes.
@@ -163,7 +164,8 @@ public:
 	 *        if \a pkt looks like a valid IP packet or at least long enough
 	 *        to hold an IP header.
 	 * @return 0 If the inner IP packet appeared valid, else -1 if \a caplen
-	 *         is greater than the supposed IP packet's payload length field or
+	 *         is greater than the supposed IP packet's payload length field, -2
+	 *         if the version of the inner header does not match proto or
 	 *         1 if \a caplen is less than the supposed packet's payload length.
 	 *         In the -1 case, \a inner may still be non-null if \a caplen was
 	 *         long enough to be an IP header, and \a inner is always non-null
@@ -258,9 +260,9 @@ public:
 	: Timer(t + BifConst::Tunnel::ip_tunnel_timeout,
 			TIMER_IP_TUNNEL_INACTIVITY), tunnel_idx(p) {}
 
-	~IPTunnelTimer() {}
+	~IPTunnelTimer() override {}
 
-	void Dispatch(double t, int is_expire);
+	void Dispatch(double t, int is_expire) override;
 
 protected:
 	NetSessions::IPPair tunnel_idx;

@@ -1,4 +1,6 @@
-// See the file  in the main distribution directory for copyright.
+// See the file in the main distribution directory for copyright.
+
+#include <mutex>
 
 #include "plugin/Plugin.h"
 
@@ -11,16 +13,15 @@ class Plugin : public plugin::Plugin {
 public:
 	Plugin();
 
-	plugin::Configuration Configure();
+	plugin::Configuration Configure() override;
 
-	virtual void InitPreScript();
-	virtual void Done();
+	void InitPreScript() override;
+	void Done() override;
 
-	pthread_mutex_t * ForkMutex();
+	std::unique_lock<std::mutex> ForkMutex();
 
 private:
-	bool init;
-	pthread_mutex_t fork_mutex;
+	std::mutex fork_mutex;
 
 };
 

@@ -182,7 +182,7 @@ int DNS_Interpreter::ParseQuestion(DNS_MsgInfo* msg,
 		return 0;
 		}
 
-	EventHandlerPtr dns_event = 0;
+	EventHandlerPtr dns_event = nullptr;
 
 	if ( msg->QR == 0 )
 		dns_event = dns_request;

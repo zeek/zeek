@@ -92,14 +92,14 @@ private:
 	typedef std::map<std::string, IdentifierInfo*> id_info_map;
 	typedef std::set<std::string> string_set;
 
-	time_t DoGetModificationTime() const;
+	time_t DoGetModificationTime() const override;
 
-	std::string DoName() const
+	std::string DoName() const override
 		{ return name; }
 
-	std::string DoReStructuredText(bool roles_only) const;
+	std::string DoReStructuredText(bool roles_only) const override;
 
-	void DoInitPostScript() /* override */;
+	void DoInitPostScript() override /* override */;
 
 	std::string name;
 	std::string path;
@@ -108,6 +108,7 @@ private:
 	string_set module_usages;
 	std::vector<std::string> comments;
 	id_info_map id_info;
+	id_info_list redef_options;
 	id_info_list options;
 	id_info_list constants;
 	id_info_list state_vars;

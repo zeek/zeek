@@ -8,13 +8,14 @@
 #include "logging/WriterBackend.h"
 #include "threading/formatters/Ascii.h"
 #include "threading/formatters/JSON.h"
+#include "zlib.h"
 
 namespace logging { namespace writer {
 
 class Ascii : public WriterBackend {
 public:
-	Ascii(WriterFrontend* frontend);
-	~Ascii();
+	explicit Ascii(WriterFrontend* frontend);
+	~Ascii() override;
 
 	static string LogExt();
 
@@ -22,19 +23,19 @@ public:
 		{ return new Ascii(frontend); }
 
 protected:
-	virtual bool DoInit(const WriterInfo& info, int num_fields,
-			    const threading::Field* const* fields);
-	virtual bool DoWrite(int num_fields, const threading::Field* const* fields,
-			     threading::Value** vals);
-	virtual bool DoSetBuf(bool enabled);
-	virtual bool DoRotate(const char* rotated_path, double open,
-			      double close, bool terminating);
-	virtual bool DoFlush(double network_time);
-	virtual bool DoFinish(double network_time);
-	virtual bool DoHeartbeat(double network_time, double current_time);
+	bool DoInit(const WriterInfo& info, int num_fields,
+			    const threading::Field* const* fields) override;
+	bool DoWrite(int num_fields, const threading::Field* const* fields,
+			     threading::Value** vals) override;
+	bool DoSetBuf(bool enabled) override;
+	bool DoRotate(const char* rotated_path, double open,
+			      double close, bool terminating) override;
+	bool DoFlush(double network_time) override;
+	bool DoFinish(double network_time) override;
+	bool DoHeartbeat(double network_time, double current_time) override;
 
 private:
-	bool IsSpecial(string path) 	{ return path.find("/dev/") == 0; }
+	bool IsSpecial(const string &path) 	{ return path.find("/dev/") == 0; }
 	bool WriteHeader(const string& path);
 	bool WriteHeaderField(const string& key, const string& value);
 	void CloseFile(double t);
@@ -42,8 +43,11 @@ private:
 	void InitConfigOptions();
 	bool InitFilterOptions();
 	bool InitFormatter();
+	bool InternalWrite(int fd, const char* data, int len);
+	bool InternalClose(int fd);
 
 	int fd;
+	gzFile gzfile;
 	string fname;
 	ODesc desc;
 	bool ascii_done;
@@ -59,6 +63,7 @@ private:
 	string unset_field;
 	string meta_prefix;
 
+	int gzip_level; // level > 0 enables gzip compression
 	bool use_json;
 	string json_timestamps;
 

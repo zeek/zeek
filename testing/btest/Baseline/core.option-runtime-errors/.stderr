@@ -1,0 +1,1 @@
+error in /Users/johanna/corelight/bro/testing/btest/.tmp/core.option-runtime-errors/option-runtime-errors.bro, line 8: Could not find ID named 'B' (Option::set(B, 6, ))

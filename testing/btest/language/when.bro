@@ -4,7 +4,7 @@
 # @TEST-EXEC: mv test1/.stdout out
 # @TEST-EXEC: btest-diff out
 
-@load frameworks/communication/listen
+redef exit_only_after_terminate = T;
 
 event bro_init()
 {

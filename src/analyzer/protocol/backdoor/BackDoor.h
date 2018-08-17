@@ -12,7 +12,7 @@ namespace analyzer { namespace backdoor {
 
 class BackDoorEndpoint {
 public:
-	BackDoorEndpoint(tcp::TCP_Endpoint* e);
+	explicit BackDoorEndpoint(tcp::TCP_Endpoint* e);
 
 	int DataSent(double t, uint64 seq, int len, int caplen, const u_char* data,
 		     const IP_Hdr* ip, const struct tcphdr* tp);
@@ -66,11 +66,11 @@ protected:
 
 class BackDoor_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
-	BackDoor_Analyzer(Connection* c);
-	~BackDoor_Analyzer();
+	explicit BackDoor_Analyzer(Connection* c);
+	~BackDoor_Analyzer() override;
 
-	virtual void Init();
-	virtual void Done();
+	void Init() override;
+	void Done() override;
 	void StatTimer(double t, int is_expire);
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
@@ -79,9 +79,9 @@ public:
 protected:
 	// We support both packet and stream input, and can be instantiated
 	// even if the TCP analyzer is not yet reassembling.
-	virtual void DeliverPacket(int len, const u_char* data, bool is_orig,
-					uint64 seq, const IP_Hdr* ip, int caplen);
-	virtual void DeliverStream(int len, const u_char* data, bool is_orig);
+	void DeliverPacket(int len, const u_char* data, bool is_orig,
+					uint64 seq, const IP_Hdr* ip, int caplen) override;
+	void DeliverStream(int len, const u_char* data, bool is_orig) override;
 
 	void StatEvent();
 	void RemoveEvent();
@@ -99,9 +99,9 @@ protected:
 class BackDoorTimer : public Timer {
 public:
 	BackDoorTimer(double t, BackDoor_Analyzer* a);
-	~BackDoorTimer();
+	~BackDoorTimer() override;
 
-	void Dispatch(double t, int is_expire);
+	void Dispatch(double t, int is_expire) override;
 
 protected:
 	BackDoor_Analyzer* analyzer;

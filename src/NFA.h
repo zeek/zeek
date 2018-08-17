@@ -27,8 +27,8 @@ typedef PList(NFA_State) NFA_state_list;
 class NFA_State : public BroObj  {
 public:
 	NFA_State(int sym, EquivClass* ec);
-	NFA_State(CCL* ccl);
-	~NFA_State();
+	explicit NFA_State(CCL* ccl);
+	~NFA_State() override;
 
 	void AddXtion(NFA_State* next_state)	{ xtions.append(next_state); }
 	NFA_state_list* Transitions()		{ return &xtions; }
@@ -46,13 +46,15 @@ public:
 	NFA_State* Mark() const		{ return mark; }
 	void ClearMarks();
 
+	void SetFirstTransIsBackRef()	{ first_trans_is_back_ref = true; }
+
 	int TransSym() const	{ return sym; }
 	CCL* TransCCL() const	{ return ccl; }
 	int ID() const		{ return id; }
 
 	NFA_state_list* EpsilonClosure();
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 	void Dump(FILE* f);
 
 	// Recursivly count all the reachable states.
@@ -62,7 +64,13 @@ protected:
 	int sym;	// if SYM_CCL, then use ccl
 	CCL* ccl;	// if nil, then use sym
 	int accept;
+
+	// Whether the first transition points backwards.  Used
+	// to avoid reference-counting loops.
+	bool first_trans_is_back_ref;
+
 	int id;	// number that uniquely identifies this state
+
 	NFA_state_list xtions;
 	NFA_state_list* epsclosure;
 	NFA_State* mark;
@@ -75,8 +83,8 @@ public:
 
 class NFA_Machine : public BroObj {
 public:
-	NFA_Machine(NFA_State* first, NFA_State* final = 0);
-	~NFA_Machine();
+	explicit NFA_Machine(NFA_State* first, NFA_State* final = 0);
+	~NFA_Machine() override;
 
 	NFA_State* FirstState() const	{ return first_state; }
 
@@ -103,7 +111,7 @@ public:
 	void AppendState(NFA_State* new_state);
 	void AppendMachine(NFA_Machine* new_mach);
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 	void Dump(FILE* f);
 
 	unsigned int MemoryAllocation() const

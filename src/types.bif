@@ -13,12 +13,49 @@ enum rpc_status %{
 	RPC_UNKNOWN_ERROR,
 %}
 
+module MOUNT3;
+
+enum proc_t %{ # MOUNT3 procedures
+	PROC_NULL         = 0,  # done
+	PROC_MNT          = 1,  # done
+	PROC_DUMP         = 2,  # not implemented
+	PROC_UMNT         = 3,  # done
+	PROC_UMNT_ALL     = 4,  # done
+	PROC_EXPORT       = 5,  # not implemented
+	PROC_END_OF_PROCS = 6,	# not implemented
+%}
+
+enum status_t %{ # MOUNT3 return status
+	MNT3_OK             = 0,
+	MNT3ERR_PERM        = 1,
+	MNT3ERR_NOENT       = 2,
+	MNT3ERR_IO          = 5,
+	MNT3ERR_ACCES       = 13,
+	MNT3ERR_NOTDIR      = 20,
+	MNT3ERR_INVAL       = 22,
+	MNT3ERR_NAMETOOLONG = 63,
+	MNT3ERR_NOTSUPP     = 10004,
+	MNT3ERR_SERVERFAULT = 10006,
+	MOUNT3ERR_UNKNOWN   = 0xffffffff,
+%}
+
+enum auth_flavor_t %{ # MOUNT3 auth flavors
+	AUTH_NULL   = 0,
+	AUTH_UNIX   = 1,
+	AUTH_SHORT  = 2,
+	AUTH_DES    = 3,
+%}
+
+type info_t: record;
+type mnt_reply_t: record;
+type dirmntargs_t: record;
+
 module NFS3;
 
 enum proc_t %{	# NFSv3 procedures
 	PROC_NULL     = 0,	# done
 	PROC_GETATTR  = 1,	# done
-	PROC_SETATTR  = 2,	# not implemented
+	PROC_SETATTR  = 2,	# done
 	PROC_LOOKUP   = 3,	# done
 	PROC_ACCESS   = 4,	# not implemented
 	PROC_READLINK = 5,	# done
@@ -26,12 +63,12 @@ enum proc_t %{	# NFSv3 procedures
 	PROC_WRITE    = 7,	# done
 	PROC_CREATE   = 8,	# partial
 	PROC_MKDIR    = 9,	# partial
-	PROC_SYMLINK  = 10,	# not implemented
+	PROC_SYMLINK  = 10,	# done
 	PROC_MKNOD    = 11,	# not implemented
 	PROC_REMOVE   = 12,	# done
 	PROC_RMDIR    = 13,	# done
-	PROC_RENAME   = 14,	# not implemented
-	PROC_LINK     = 15,	# not implemented
+	PROC_RENAME   = 14,	# done
+	PROC_LINK     = 15,	# done
 	PROC_READDIR  = 16,	# done
 	PROC_READDIRPLUS  = 17,	# done
 	PROC_FSSTAT   = 18,	# not implemented
@@ -74,6 +111,12 @@ enum status_t %{	# NFSv3 return status
 	NFS3ERR_UNKNOWN     = 0xffffffff,
 %}
 
+enum time_how_t %{
+	DONT_CHANGE = 0,
+	SET_TO_SERVER_TIME = 1,
+	SET_TO_CLIENT_TIME = 2,
+%}
+
 enum file_type_t %{
 	FTYPE_REG   = 1,
 	FTYPE_DIR   = 2,
@@ -83,6 +126,7 @@ enum file_type_t %{
 	FTYPE_SOCK  = 6,
 	FTYPE_FIFO  = 7,
 %}
+
 
 enum stable_how_t %{
 	UNSTABLE = 0,
@@ -100,16 +144,25 @@ enum createmode_t %{
 # defined in init-bare.bro.
 type info_t: record;
 type fattr_t: record;
+type sattr_t: record;
+type symlinkdata_t: record;
 type diropargs_t: record;
+type symlinkargs_t: record;
+type sattrargs_t: record;
+type linkargs_t: record;
+type renameopargs_t: record;
+type sattr_reply_t: record;
 type lookup_reply_t: record;
 type readargs_t: record;
 type read_reply_t: record;
 type readlink_reply_t: record;
+type link_reply_t: record;
 type writeargs_t: record;
 type wcc_attr_t: record;
 type write_reply_t: record;
 type newobj_reply_t: record;
 type delobj_reply_t: record;
+type renameobj_reply_t: record;
 type readdirargs_t: record;
 type direntry_t: record;
 type direntry_vec_t: vector;

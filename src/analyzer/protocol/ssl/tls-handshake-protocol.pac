@@ -78,9 +78,9 @@ type ClientHello(rec: HandshakeRecord) = record {
 		DTLSv10, DTLSv12 -> cookie: ClientHelloCookie(rec);
 		default -> nothing: bytestring &length=0;
 	};
-	csuit_len : uint16 &check(csuit_len > 1 && csuit_len % 2 == 0);
+	csuit_len : uint16; # &check(csuit_len > 1 && csuit_len % 2 == 0);
 	csuits : uint16[csuit_len/2];
-	cmeth_len : uint8 &check(cmeth_len > 0);
+	cmeth_len : uint8; # &check(cmeth_len > 0);
 	cmeths : uint8[cmeth_len];
 	# This weirdness is to deal with the possible existence or absence
 	# of the following fields.
@@ -112,6 +112,7 @@ type ServerHelloChoice(rec: HandshakeRecord) = record {
 		0x7F -> 0x7F00; # map any draft version to 00
 		default -> server_version;
 	};
+	version_set : bool = $context.connection.set_version(server_version);
 };
 
 type ServerHello(rec: HandshakeRecord, server_version: uint16) = record {
@@ -176,13 +177,349 @@ type CertificateStatus(rec: HandshakeRecord) = record {
 # V3 Server Key Exchange Message (7.4.3.)
 ######################################################################
 
-# Usually, the server key exchange does not contain any information
-# that we are interested in.
-#
-# The exception is when we are using an ECDHE, DHE or DH-Anon suite.
-# In this case, we can extract information about the chosen cipher from
-# here.
+# The server key exchange contains the server public key exchange values, and a
+# signature over those values for non-anonymous exchanges. The server key
+# exchange messages is only sent for ECDHE, ECDH-anon, DHE, and DH-anon cipher
+# suites.
 type ServerKeyExchange(rec: HandshakeRecord) = case $context.connection.chosen_cipher() of {
+	# ECDHE suites
+	TLS_ECDHE_ECDSA_WITH_NULL_SHA,
+	TLS_ECDHE_ECDSA_WITH_RC4_128_SHA,
+	TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA,
+	TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
+	TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,
+	TLS_ECDHE_RSA_WITH_NULL_SHA,
+	TLS_ECDHE_RSA_WITH_RC4_128_SHA,
+	TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,
+	TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
+	TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
+	TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,
+	TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384,
+	TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,
+	TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,
+	TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+	TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+	TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+	TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+	TLS_ECDHE_PSK_WITH_RC4_128_SHA,
+	TLS_ECDHE_PSK_WITH_3DES_EDE_CBC_SHA,
+	TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA,
+	TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA,
+	TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256,
+	TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA384,
+	TLS_ECDHE_PSK_WITH_NULL_SHA,
+	TLS_ECDHE_PSK_WITH_NULL_SHA256,
+	TLS_ECDHE_PSK_WITH_NULL_SHA384,
+	TLS_ECDHE_ECDSA_WITH_ARIA_128_CBC_SHA256,
+	TLS_ECDHE_ECDSA_WITH_ARIA_256_CBC_SHA384,
+	TLS_ECDHE_RSA_WITH_ARIA_128_CBC_SHA256,
+	TLS_ECDHE_RSA_WITH_ARIA_256_CBC_SHA384,
+	TLS_ECDHE_ECDSA_WITH_ARIA_128_GCM_SHA256,
+	TLS_ECDHE_ECDSA_WITH_ARIA_256_GCM_SHA384,
+	TLS_ECDHE_RSA_WITH_ARIA_128_GCM_SHA256,
+	TLS_ECDHE_RSA_WITH_ARIA_256_GCM_SHA384,
+	TLS_ECDHE_PSK_WITH_ARIA_128_CBC_SHA256,
+	TLS_ECDHE_PSK_WITH_ARIA_256_CBC_SHA384,
+	TLS_ECDHE_ECDSA_WITH_CAMELLIA_128_CBC_SHA256,
+	TLS_ECDHE_ECDSA_WITH_CAMELLIA_256_CBC_SHA384,
+	TLS_ECDHE_RSA_WITH_CAMELLIA_128_CBC_SHA256,
+	TLS_ECDHE_RSA_WITH_CAMELLIA_256_CBC_SHA384,
+	TLS_ECDHE_ECDSA_WITH_CAMELLIA_128_GCM_SHA256,
+	TLS_ECDHE_ECDSA_WITH_CAMELLIA_256_GCM_SHA384,
+	TLS_ECDHE_RSA_WITH_CAMELLIA_128_GCM_SHA256,
+	TLS_ECDHE_RSA_WITH_CAMELLIA_256_GCM_SHA384,
+	TLS_ECDHE_PSK_WITH_CAMELLIA_128_CBC_SHA256,
+	TLS_ECDHE_PSK_WITH_CAMELLIA_256_CBC_SHA384,
+	TLS_ECDHE_ECDSA_WITH_AES_128_CCM,
+	TLS_ECDHE_ECDSA_WITH_AES_256_CCM,
+	TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8,
+	TLS_ECDHE_ECDSA_WITH_AES_256_CCM_8,
+	TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,
+	TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256
+		-> ecdhe_server_key_exchange : EcdheServerKeyExchange(rec);
+
+	# ECDH-anon suites
+	TLS_ECDH_ANON_WITH_NULL_SHA,
+	TLS_ECDH_ANON_WITH_RC4_128_SHA,
+	TLS_ECDH_ANON_WITH_3DES_EDE_CBC_SHA,
+	TLS_ECDH_ANON_WITH_AES_128_CBC_SHA,
+	TLS_ECDH_ANON_WITH_AES_256_CBC_SHA
+	# ECDH non-anon suites do not send a ServerKeyExchange
+		-> ecdh_anon_server_key_exchange : EcdhAnonServerKeyExchange(rec);
+
+	# DHE suites
+	TLS_DHE_DSS_EXPORT_WITH_DES40_CBC_SHA,
+	TLS_DHE_DSS_WITH_DES_CBC_SHA,
+	TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA,
+	TLS_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA,
+	TLS_DHE_RSA_WITH_DES_CBC_SHA,
+	TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA,
+	TLS_DHE_DSS_WITH_AES_128_CBC_SHA,
+	TLS_DHE_RSA_WITH_AES_128_CBC_SHA,
+	TLS_DHE_DSS_WITH_AES_256_CBC_SHA,
+	TLS_DHE_RSA_WITH_AES_256_CBC_SHA,
+	TLS_DHE_DSS_WITH_AES_128_CBC_SHA256,
+	TLS_DHE_DSS_WITH_CAMELLIA_128_CBC_SHA,
+	TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA,
+	TLS_DHE_DSS_EXPORT1024_WITH_DES_CBC_SHA,
+	TLS_DHE_DSS_EXPORT1024_WITH_RC4_56_SHA,
+	TLS_DHE_DSS_WITH_RC4_128_SHA,
+	TLS_DHE_RSA_WITH_AES_128_CBC_SHA256,
+	TLS_DHE_DSS_WITH_AES_256_CBC_SHA256,
+	TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,
+	TLS_DHE_DSS_WITH_3DES_EDE_CBC_RMD,
+	TLS_DHE_DSS_WITH_AES_128_CBC_RMD,
+	TLS_DHE_DSS_WITH_AES_256_CBC_RMD,
+	TLS_DHE_RSA_WITH_3DES_EDE_CBC_RMD,
+	TLS_DHE_RSA_WITH_AES_128_CBC_RMD,
+	TLS_DHE_RSA_WITH_AES_256_CBC_RMD,
+	TLS_DHE_DSS_WITH_CAMELLIA_256_CBC_SHA,
+	TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA,
+	TLS_DHE_PSK_WITH_RC4_128_SHA,
+	TLS_DHE_PSK_WITH_3DES_EDE_CBC_SHA,
+	TLS_DHE_PSK_WITH_AES_128_CBC_SHA,
+	TLS_DHE_PSK_WITH_AES_256_CBC_SHA,
+	TLS_DHE_DSS_WITH_SEED_CBC_SHA,
+	TLS_DHE_RSA_WITH_SEED_CBC_SHA,
+	TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,
+	TLS_DHE_RSA_WITH_AES_256_GCM_SHA384,
+	TLS_DHE_DSS_WITH_AES_128_GCM_SHA256,
+	TLS_DHE_DSS_WITH_AES_256_GCM_SHA384,
+	TLS_DHE_PSK_WITH_AES_128_GCM_SHA256,
+	TLS_DHE_PSK_WITH_AES_256_GCM_SHA384,
+	TLS_DHE_PSK_WITH_AES_128_CBC_SHA256,
+	TLS_DHE_PSK_WITH_AES_256_CBC_SHA384,
+	TLS_DHE_PSK_WITH_NULL_SHA256,
+	TLS_DHE_PSK_WITH_NULL_SHA384,
+	TLS_DHE_DSS_WITH_CAMELLIA_128_CBC_SHA256,
+	TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA256,
+	TLS_DHE_DSS_WITH_CAMELLIA_256_CBC_SHA256,
+	TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256,
+	TLS_DHE_DSS_WITH_ARIA_128_CBC_SHA256,
+	TLS_DHE_DSS_WITH_ARIA_256_CBC_SHA384,
+	TLS_DHE_RSA_WITH_ARIA_128_CBC_SHA256,
+	TLS_DHE_RSA_WITH_ARIA_256_CBC_SHA384,
+	TLS_DHE_RSA_WITH_ARIA_128_GCM_SHA256,
+	TLS_DHE_RSA_WITH_ARIA_256_GCM_SHA384,
+	TLS_DHE_DSS_WITH_ARIA_128_GCM_SHA256,
+	TLS_DHE_DSS_WITH_ARIA_256_GCM_SHA384,
+	TLS_DHE_PSK_WITH_ARIA_128_CBC_SHA256,
+	TLS_DHE_PSK_WITH_ARIA_256_CBC_SHA384,
+	TLS_DHE_PSK_WITH_ARIA_128_GCM_SHA256,
+	TLS_DHE_PSK_WITH_ARIA_256_GCM_SHA384,
+	TLS_DHE_RSA_WITH_CAMELLIA_128_GCM_SHA256,
+	TLS_DHE_RSA_WITH_CAMELLIA_256_GCM_SHA384,
+	TLS_DHE_DSS_WITH_CAMELLIA_128_GCM_SHA256,
+	TLS_DHE_DSS_WITH_CAMELLIA_256_GCM_SHA384,
+	TLS_DHE_PSK_WITH_CAMELLIA_128_GCM_SHA256,
+	TLS_DHE_PSK_WITH_CAMELLIA_256_GCM_SHA384,
+	TLS_DHE_PSK_WITH_CAMELLIA_128_CBC_SHA256,
+	TLS_DHE_PSK_WITH_CAMELLIA_256_CBC_SHA384,
+	TLS_DHE_RSA_WITH_AES_128_CCM,
+	TLS_DHE_RSA_WITH_AES_256_CCM,
+	TLS_DHE_RSA_WITH_AES_128_CCM_8,
+	TLS_DHE_RSA_WITH_AES_256_CCM_8,
+	TLS_DHE_PSK_WITH_AES_128_CCM,
+	TLS_DHE_PSK_WITH_AES_256_CCM,
+	TLS_PSK_DHE_WITH_AES_128_CCM_8,
+	TLS_PSK_DHE_WITH_AES_256_CCM_8,
+	TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256
+		-> dhe_server_key_exchange : DheServerKeyExchange(rec);
+
+	# DH-anon suites
+	TLS_DH_ANON_EXPORT_WITH_RC4_40_MD5,
+	TLS_DH_ANON_WITH_RC4_128_MD5,
+	TLS_DH_ANON_EXPORT_WITH_DES40_CBC_SHA,
+	TLS_DH_ANON_WITH_DES_CBC_SHA,
+	TLS_DH_ANON_WITH_3DES_EDE_CBC_SHA,
+	TLS_DH_ANON_WITH_AES_128_CBC_SHA,
+	TLS_DH_ANON_WITH_AES_256_CBC_SHA,
+	TLS_DH_ANON_WITH_CAMELLIA_128_CBC_SHA,
+	TLS_DH_ANON_WITH_AES_128_CBC_SHA256,
+	TLS_DH_ANON_WITH_AES_256_CBC_SHA256,
+	TLS_DH_ANON_WITH_CAMELLIA_256_CBC_SHA,
+	TLS_DH_ANON_WITH_SEED_CBC_SHA,
+	TLS_DH_ANON_WITH_AES_128_GCM_SHA256,
+	TLS_DH_ANON_WITH_AES_256_GCM_SHA384,
+	TLS_DH_ANON_WITH_CAMELLIA_128_CBC_SHA256,
+	TLS_DH_ANON_WITH_CAMELLIA_256_CBC_SHA256,
+	TLS_DH_ANON_WITH_ARIA_128_CBC_SHA256,
+	TLS_DH_ANON_WITH_ARIA_256_CBC_SHA384,
+	TLS_DH_ANON_WITH_ARIA_128_GCM_SHA256,
+	TLS_DH_ANON_WITH_ARIA_256_GCM_SHA384,
+	TLS_DH_ANON_WITH_CAMELLIA_128_GCM_SHA256,
+	TLS_DH_ANON_WITH_CAMELLIA_256_GCM_SHA384
+	# DH non-anon suites do not send a ServerKeyExchange
+		-> dh_anon_server_key_exchange : DhAnonServerKeyExchange(rec);
+
+	default
+		-> key : bytestring &restofdata &transient;
+};
+
+# Parse an ECDHE ServerKeyExchange message, which contains a signature over the
+# parameters. Parsing explicit curve parameters from the server is not
+# currently supported.
+type EcdheServerKeyExchange(rec: HandshakeRecord) = record {
+	curve_type: uint8;
+	named_curve: case curve_type of {
+		NAMED_CURVE -> params: ServerECDHParamsAndSignature;
+		default -> data: bytestring &restofdata &transient;
+	};
+	signature: case curve_type of {
+		NAMED_CURVE -> signed_params: ServerKeyExchangeSignature;
+		default -> nothing: bytestring &length=0;
+	};
+};
+
+type ServerKeyExchangeSignature = record {
+	alg: case uses_signature_and_hashalgorithm of {
+		true -> algorithm: SignatureAndHashAlgorithm;
+		false -> nothing: bytestring &length=0;
+	} &requires(uses_signature_and_hashalgorithm);
+	signature_length: uint16;
+	signature: bytestring &length=signature_length;
+} &let {
+	uses_signature_and_hashalgorithm : bool =
+		($context.connection.chosen_version() > TLSv11) &&
+		($context.connection.chosen_version() != DTLSv10);
+};
+
+# Parse an ECDH-anon ServerKeyExchange message, which does not contain a
+# signature over the parameters. Parsing explicit curve parameters from the
+# server is not currently supported.
+type EcdhAnonServerKeyExchange(rec: HandshakeRecord) = record {
+	curve_type: uint8;
+	named_curve: case curve_type of {
+		NAMED_CURVE -> params: ServerECDHParamsAndSignature;
+		default -> data: bytestring &restofdata &transient;
+	};
+};
+
+type ServerECDHParamsAndSignature() = record {
+	curve: uint16;
+	point_length: uint8;
+	point: bytestring &length=point_length;
+};
+
+# Parse a DHE ServerKeyExchange message, which contains a signature over the
+# parameters.
+type DheServerKeyExchange(rec: HandshakeRecord) = record {
+	dh_p_length: uint16;
+	dh_p: bytestring &length=dh_p_length;
+	dh_g_length: uint16;
+	dh_g: bytestring &length=dh_g_length;
+	dh_Ys_length: uint16;
+	dh_Ys: bytestring &length=dh_Ys_length;
+	signed_params: ServerKeyExchangeSignature;
+};
+
+# Parse a DH-anon ServerKeyExchange message, which does not contain a
+# signature over the parameters.
+type DhAnonServerKeyExchange(rec: HandshakeRecord) = record {
+	dh_p_length: uint16;
+	dh_p: bytestring &length=dh_p_length;
+	dh_g_length: uint16;
+	dh_g: bytestring &length=dh_g_length;
+	dh_Ys_length: uint16;
+	dh_Ys: bytestring &length=dh_Ys_length;
+	data: bytestring &restofdata &transient;
+};
+
+######################################################################
+# V3 Certificate Request (7.4.4.)
+######################################################################
+
+# For now, ignore Certificate Request Details; just eat up message.
+type CertificateRequest(rec: HandshakeRecord) = record {
+	cont : bytestring &restofdata &transient;
+};
+
+
+######################################################################
+# V3 Server Hello Done (7.4.5.)
+######################################################################
+
+# Server Hello Done is empty
+type ServerHelloDone(rec: HandshakeRecord) = empty;
+
+
+######################################################################
+# V3 Client Certificate (7.4.6.)
+######################################################################
+
+# Client Certificate is identical to Server Certificate;
+# no further definition here
+
+
+######################################################################
+# V3 Client Key Exchange Message (7.4.7.)
+######################################################################
+
+# Parse a ClientKeyExchange message. For RSA cipher suites, this consists of an
+# encrypted pre-master secret. For DH, DH-anon, and DHE cipher suites, this
+# consists of the client public finite-field Diffie-Hellman value. For ECDH,
+# ECDH-anon, and ECDHE cipher suites, this consists of the client public
+# elliptic curve point.
+type ClientKeyExchange(rec: HandshakeRecord) = case $context.connection.chosen_cipher() of {
+	# RSA suites
+	TLS_RSA_WITH_NULL_MD5,
+	TLS_RSA_WITH_NULL_SHA,
+	TLS_RSA_EXPORT_WITH_RC4_40_MD5,
+	TLS_RSA_WITH_RC4_128_MD5,
+	TLS_RSA_WITH_RC4_128_SHA,
+	TLS_RSA_EXPORT_WITH_RC2_CBC_40_MD5,
+	TLS_RSA_WITH_IDEA_CBC_SHA,
+	TLS_RSA_EXPORT_WITH_DES40_CBC_SHA,
+	TLS_RSA_WITH_DES_CBC_SHA,
+	TLS_RSA_WITH_3DES_EDE_CBC_SHA,
+	TLS_RSA_WITH_AES_128_CBC_SHA,
+	TLS_RSA_WITH_AES_256_CBC_SHA,
+	TLS_RSA_WITH_NULL_SHA256,
+	TLS_RSA_WITH_AES_128_CBC_SHA256,
+	TLS_RSA_WITH_AES_256_CBC_SHA256,
+	TLS_RSA_WITH_CAMELLIA_128_CBC_SHA,
+	TLS_RSA_EXPORT1024_WITH_RC4_56_MD5,
+	TLS_RSA_EXPORT1024_WITH_RC2_CBC_56_MD5,
+	TLS_RSA_EXPORT1024_WITH_DES_CBC_SHA,
+	TLS_RSA_EXPORT1024_WITH_RC4_56_SHA,
+	TLS_RSA_WITH_3DES_EDE_CBC_RMD,
+	TLS_RSA_WITH_AES_128_CBC_RMD,
+	TLS_RSA_WITH_AES_256_CBC_RMD,
+	TLS_RSA_WITH_CAMELLIA_256_CBC_SHA,
+	TLS_RSA_PSK_WITH_RC4_128_SHA,
+	TLS_RSA_PSK_WITH_3DES_EDE_CBC_SHA,
+	TLS_RSA_PSK_WITH_AES_128_CBC_SHA,
+	TLS_RSA_PSK_WITH_AES_256_CBC_SHA,
+	TLS_RSA_WITH_SEED_CBC_SHA,
+	TLS_RSA_WITH_AES_128_GCM_SHA256,
+	TLS_RSA_WITH_AES_256_GCM_SHA384,
+	TLS_RSA_PSK_WITH_AES_128_CBC_SHA256,
+	TLS_RSA_PSK_WITH_AES_256_CBC_SHA384,
+	TLS_RSA_PSK_WITH_NULL_SHA256,
+	TLS_RSA_PSK_WITH_NULL_SHA384,
+	TLS_RSA_WITH_CAMELLIA_128_CBC_SHA256,
+	TLS_RSA_WITH_CAMELLIA_256_CBC_SHA256,
+	TLS_RSA_WITH_ARIA_128_CBC_SHA256,
+	TLS_RSA_WITH_ARIA_256_CBC_SHA384,
+	TLS_RSA_WITH_ARIA_128_GCM_SHA256,
+	TLS_RSA_WITH_ARIA_256_GCM_SHA384,
+	TLS_RSA_PSK_WITH_ARIA_128_CBC_SHA256,
+	TLS_RSA_PSK_WITH_ARIA_256_CBC_SHA384,
+	TLS_RSA_PSK_WITH_ARIA_128_GCM_SHA256,
+	TLS_RSA_PSK_WITH_ARIA_256_GCM_SHA384,
+	TLS_RSA_WITH_CAMELLIA_128_GCM_SHA256,
+	TLS_RSA_WITH_CAMELLIA_256_GCM_SHA384,
+	TLS_RSA_PSK_WITH_CAMELLIA_128_GCM_SHA256,
+	TLS_RSA_PSK_WITH_CAMELLIA_256_GCM_SHA384,
+	TLS_RSA_PSK_WITH_CAMELLIA_128_CBC_SHA256,
+	TLS_RSA_PSK_WITH_CAMELLIA_256_CBC_SHA384,
+	TLS_RSA_WITH_AES_128_CCM,
+	TLS_RSA_WITH_AES_256_CCM,
+	TLS_RSA_WITH_AES_128_CCM_8,
+	TLS_RSA_WITH_AES_256_CCM_8
+		-> rsa_client_key_exchange: RsaClientKeyExchange(rec);
+
+	#ECHDE
 	TLS_ECDH_ECDSA_WITH_NULL_SHA,
 	TLS_ECDH_ECDSA_WITH_RC4_128_SHA,
 	TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA,
@@ -275,7 +612,7 @@ type ServerKeyExchange(rec: HandshakeRecord) = case $context.connection.chosen_c
 	TLS_ECDHE_ECDSA_WITH_AES_256_CCM_8,
 	TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,
 	TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256
-		-> ec_server_key_exchange : EcServerKeyExchange(rec);
+		-> ecdh_client_key_exchange : EcdhClientKeyExchange(rec);
 
 	# DHE suites
 	TLS_DHE_DSS_EXPORT_WITH_DES40_CBC_SHA,
@@ -377,71 +714,23 @@ type ServerKeyExchange(rec: HandshakeRecord) = case $context.connection.chosen_c
 	TLS_DH_ANON_WITH_ARIA_256_GCM_SHA384,
 	TLS_DH_ANON_WITH_CAMELLIA_128_GCM_SHA256,
 	TLS_DH_ANON_WITH_CAMELLIA_256_GCM_SHA384
-	# DH non-anon suites do not send a ServerKeyExchange
-		-> dh_server_key_exchange : DhServerKeyExchange(rec);
+		-> dh_server_key_exchange : DhClientKeyExchange(rec);
 
 	default
 		-> key : bytestring &restofdata &transient;
 };
 
-# For the moment, we really only are interested in the curve name. If it
-# is not set (if the server sends explicit parameters), we do not bother.
-# We also do not parse the actual signature data following the named curve.
-type EcServerKeyExchange(rec: HandshakeRecord) = record {
-	curve_type: uint8;
-	curve: uint16; # only if curve_type = 3 (NAMED_CURVE)
-	data: bytestring &restofdata &transient;
+type RsaClientKeyExchange(rec: HandshakeRecord) = record {
+	rsa_pms : bytestring &restofdata;
 };
 
-# For both, dh_anon and dhe the ServerKeyExchange starts with a ServerDHParams
-# structure. After that, they start to differ, but we do not care about that.
-type DhServerKeyExchange(rec: HandshakeRecord) = record {
-	dh_p_length: uint16;
-	dh_p: bytestring &length=dh_p_length;
-	dh_g_length: uint16;
-	dh_g: bytestring &length=dh_g_length;
-	dh_Ys_length: uint16;
-	dh_Ys: bytestring &length=dh_Ys_length;
-	data: bytestring &restofdata &transient;
+type DhClientKeyExchange(rec: HandshakeRecord) = record {
+	dh_Yc : bytestring &restofdata;
 };
 
-
-######################################################################
-# V3 Certificate Request (7.4.4.)
-######################################################################
-
-# For now, ignore Certificate Request Details; just eat up message.
-type CertificateRequest(rec: HandshakeRecord) = record {
-	cont : bytestring &restofdata &transient;
+type EcdhClientKeyExchange(rec: HandshakeRecord) = record {
+	point : bytestring &restofdata;
 };
-
-
-######################################################################
-# V3 Server Hello Done (7.4.5.)
-######################################################################
-
-# Server Hello Done is empty
-type ServerHelloDone(rec: HandshakeRecord) = empty;
-
-
-######################################################################
-# V3 Client Certificate (7.4.6.)
-######################################################################
-
-# Client Certificate is identical to Server Certificate;
-# no further definition here
-
-
-######################################################################
-# V3 Client Key Exchange Message (7.4.7.)
-######################################################################
-
-# For now ignore details of ClientKeyExchange (most of it is
-# encrypted anyway); just eat up message.
-type ClientKeyExchange(rec: HandshakeRecord) = record {
-	key : bytestring &restofdata &transient;
-};
-
 
 ######################################################################
 # V3 Certificate Verify (7.4.8.)
@@ -485,10 +774,34 @@ type SSLExtension(rec: HandshakeRecord) = record {
 #		EXT_STATUS_REQUEST -> status_request: StatusRequest(rec)[] &until($element == 0 || $element != 0);
 		EXT_SERVER_NAME -> server_name: ServerNameExt(rec)[] &until($element == 0 || $element != 0);
 		EXT_SIGNATURE_ALGORITHMS -> signature_algorithm: SignatureAlgorithm(rec)[] &until($element == 0 || $element != 0);
+		EXT_SIGNED_CERTIFICATE_TIMESTAMP -> certificate_timestamp: SignedCertificateTimestampList(rec)[] &until($element == 0 || $element != 0);
 		EXT_KEY_SHARE -> key_share: KeyShare(rec)[] &until($element == 0 || $element != 0);
+		EXT_SUPPORTED_VERSIONS -> supported_versions_selector: SupportedVersionsSelector(rec, data_len)[] &until($element == 0 || $element != 0);
+		EXT_PSK_KEY_EXCHANGE_MODES -> psk_key_exchange_modes: PSKKeyExchangeModes(rec)[] &until($element == 0 || $element != 0);
 		default -> data: bytestring &restofdata;
 	};
 } &length=data_len+4 &exportsourcedata;
+
+%include tls-handshake-signed_certificate_timestamp.pac
+
+type SupportedVersionsSelector(rec: HandshakeRecord, data_len: uint16) = case rec.is_orig of {
+	true -> a: SupportedVersions(rec);
+	false -> b: OneSupportedVersion(rec);
+}
+
+type SupportedVersions(rec: HandshakeRecord) = record {
+	length: uint8;
+	versions: uint16[] &until($input.length() == 0);
+} &length=length+1;
+
+type OneSupportedVersion(rec: HandshakeRecord) = record {
+	version: uint16;
+};
+
+type PSKKeyExchangeModes(rec: HandshakeRecord) = record {
+	length: uint8;
+	modes: uint8[] &until($input.length() == 0);
+} &length=length+1;
 
 type ServerNameHostName() = record {
 	length: uint16;
@@ -551,11 +864,6 @@ type KeyShare(rec: HandshakeRecord) = case rec.msg_type of {
 	default -> other : bytestring &restofdata &transient;
 };
 
-type SignatureAndHashAlgorithm() = record {
-	HashAlgorithm: uint8;
-	SignatureAlgorithm: uint8;
-}
-
 type SignatureAlgorithm(rec: HandshakeRecord) = record {
 	length: uint16;
 	supported_signature_algorithms: SignatureAndHashAlgorithm[] &until($input.length() == 0);
@@ -580,10 +888,12 @@ refine connection Handshake_Conn += {
 
 	%member{
 		uint32 chosen_cipher_;
+		uint16 chosen_version_;
 	%}
 
 	%init{
 		chosen_cipher_ = NO_CHOSEN_CIPHER;
+		chosen_version_ = UNKNOWN_VERSION;
 	%}
 
 	function chosen_cipher() : int %{ return chosen_cipher_; %}
@@ -591,6 +901,14 @@ refine connection Handshake_Conn += {
 	function set_cipher(cipher: uint32) : bool
 		%{
 		chosen_cipher_ = cipher;
+		return true;
+		%}
+
+	function chosen_version() : int %{ return chosen_version_; %}
+
+	function set_version(version: uint16) : bool
+		%{
+		chosen_version_ = version;
 		return true;
 		%}
 };

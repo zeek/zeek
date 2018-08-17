@@ -226,7 +226,7 @@ event sip_header(c: connection, is_request: bool, name: string, value: string) &
 				c$sip$user_agent = value;
 				break;
 			case "VIA", "V":
-				c$sip$request_path[|c$sip$request_path|] = split_string1(value, /;[ ]?branch/)[0];
+				c$sip$request_path += split_string1(value, /;[ ]?branch/)[0];
 				break;
 			}
 
@@ -256,7 +256,7 @@ event sip_header(c: connection, is_request: bool, name: string, value: string) &
 				c$sip$response_to = value;
 				break;
 			case "VIA", "V":
-				c$sip$response_path[|c$sip$response_path|] = split_string1(value, /;[ ]?branch/)[0];
+				c$sip$response_path += split_string1(value, /;[ ]?branch/)[0];
 				break;
 			}
 

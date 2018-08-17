@@ -120,6 +120,11 @@ public:
 	bool RemoveAnalyzer(file_analysis::Tag tag, RecordVal* args);
 
 	/**
+	 * Signal that this analyzer can be deleted once it's safe to do so.
+	 */
+	void DoneWithAnalyzer(Analyzer* analyzer);
+
+	/**
 	 * Pass in non-sequential data and deliver to attached analyzers.
 	 * @param data pointer to start of a chunk of file data.
 	 * @param len number of bytes in the data chunk.
@@ -165,6 +170,27 @@ public:
 	 * @param vl list of argument values to pass to event call.
 	 */
 	void FileEvent(EventHandlerPtr h, val_list* vl);
+
+
+	/**
+	 * Sets the MIME type for a file to a specific value.
+	 *
+	 * Setting the MIME type has to be done before the MIME type is
+	 * inferred from the content, and before any data is passed to the
+	 * analyzer (the beginning of file buffer has to be empty). After
+	 * data has been sent or a MIME type has been set once, it cannot be
+	 * changed.
+	 *
+	 * This function should only be called when it does not make sense
+	 * to perform automated MIME type detections. This is e.g. the case
+	 * in protocols where the file type is fixed in the protocol description.
+	 * This is for example the case for TLS and X.509 certificates.
+	 *
+	 * @param mime_type mime type to set
+	 * @return true if the mime type was set. False if it could not be set because
+	 *         a mime type was already set or inferred.
+	 */
+	bool SetMime(const string& mime_type);
 
 protected:
 	friend class Manager;
@@ -287,6 +313,7 @@ protected:
 	bool postpone_timeout;     /**< Whether postponing timeout is requested. */
 	bool done;                 /**< If this object is about to be deleted. */
 	AnalyzerSet analyzers;     /**< A set of attached file analyzers. */
+	std::list<Analyzer *> done_analyzers; /**< Analyzers we're done with, remembered here until they can be safely deleted. */
 
 	struct BOF_Buffer {
 		BOF_Buffer() : full(false), size(0) {}
@@ -313,6 +340,7 @@ protected:
 	static int bof_buffer_idx;
 	static int mime_type_idx;
 	static int mime_types_idx;
+	static int meta_inferred_idx;
 
 	static int meta_mime_type_idx;
 	static int meta_mime_types_idx;

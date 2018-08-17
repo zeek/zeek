@@ -13,15 +13,15 @@ namespace analyzer { namespace imap {
 
 class IMAP_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
-	IMAP_Analyzer(Connection* conn);
-	virtual ~IMAP_Analyzer();
+	explicit IMAP_Analyzer(Connection* conn);
+	~IMAP_Analyzer() override;
 
-	virtual void Done();
-	virtual void DeliverStream(int len, const u_char* data, bool orig);
-	virtual void Undelivered(uint64 seq, int len, bool orig);
+	void Done() override;
+	void DeliverStream(int len, const u_char* data, bool orig) override;
+	void Undelivered(uint64 seq, int len, bool orig) override;
 
 	// Overriden from tcp::TCP_ApplicationAnalyzer.
-	virtual void EndpointEOF(bool is_orig);
+	void EndpointEOF(bool is_orig) override;
 
 	void StartTLS();
 

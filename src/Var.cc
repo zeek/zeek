@@ -139,7 +139,12 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 		{
 		if ( dt == VAR_CONST )
 			{
-			id->Error("&persistant/synchronized with constant");
+			id->Error("&persistent/synchronized with constant");
+			return;
+			}
+		else if ( dt == VAR_OPTION )
+			{
+			id->Error("&persistent/synchronized with option");
 			return;
 			}
 
@@ -205,6 +210,14 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 			id->Error("const variable must be initialized");
 
 		id->SetConst();
+		}
+
+	if ( dt == VAR_OPTION )
+		{
+		if ( ! init )
+			id->Error("option variable must be initialized");
+
+		id->SetOption();
 		}
 
 	id->UpdateValAttrs();

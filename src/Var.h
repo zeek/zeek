@@ -10,7 +10,7 @@
 class Func;
 class EventHandlerPtr;
 
-typedef enum { VAR_REGULAR, VAR_CONST, VAR_REDEF, } decl_type;
+typedef enum { VAR_REGULAR, VAR_CONST, VAR_REDEF, VAR_OPTION, } decl_type;
 
 extern void add_global(ID* id, BroType* t, init_class c, Expr* init,
 			attr_list* attr, decl_type dt);

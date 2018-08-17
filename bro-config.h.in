@@ -108,11 +108,8 @@
 /* GeoIP geographic lookup functionality */
 #cmakedefine USE_GEOIP
 
-/* Whether the found GeoIP API supports IPv6 Country Edition */
-#cmakedefine HAVE_GEOIP_COUNTRY_EDITION_V6
-
-/* Whether the found GeoIP API supports IPv6 City Edition */
-#cmakedefine HAVE_GEOIP_CITY_EDITION_REV0_V6
+/* Define if KRB5 is available */
+#cmakedefine USE_KRB5
 
 /* Use Google's perftools */
 #cmakedefine USE_PERFTOOLS_DEBUG
@@ -229,3 +226,14 @@
 #ifndef BRO_PLUGIN_INTERNAL_BUILD
 #define BRO_PLUGIN_INTERNAL_BUILD @BRO_PLUGIN_INTERNAL_BUILD@
 #endif
+
+/* A C function that has the Bro version encoded into its name. */
+#define BRO_VERSION_FUNCTION bro_version_@VERSION_C_IDENT@
+#ifdef __cplusplus
+extern "C" {
+#endif
+extern const char* BRO_VERSION_FUNCTION();
+#ifdef __cplusplus
+}
+#endif
+

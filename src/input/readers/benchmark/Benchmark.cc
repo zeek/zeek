@@ -125,7 +125,7 @@ bool Benchmark::DoUpdate()
 
 threading::Value* Benchmark::EntryToVal(TypeTag type, TypeTag subtype)
 	{
-	Value* val = new Value(type, true);
+	Value* val = new Value(type, subtype, true);
 
 	// basically construct something random from the fields that we want.
 

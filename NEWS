@@ -4,6 +4,501 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as BroControl and Broccoli, come with
 their own ``CHANGES``.)
 
+
+Bro 2.6 (in progress)
+=====================
+
+New Functionality
+-----------------
+
+- Bro has switched to using the new Broker library for all its
+  communication. Broker's API has been completely redesigned (compared
+  to the version in 2.5), and much of its implementation has been
+  redone. There's a new script-level "broker" framework that
+  supersedes the old "communication" framework, which is now
+  deprecated. The "cluster" and "control" frameworks have been ported
+  to Broker; same for BroControl. For more about the new Broker
+  framework, see doc/frameworks/broker.rst (there's also a guide there
+  for porting existing Bro scripts to Broker). For more about Broker
+  itself, including its API for external applications, see
+  aux/broker/doc.
+
+  TODO: Replace documentation paths with URLs once these are available
+  online.
+
+  When using BroControl, the meaning of proxies has changed with
+  Broker. If you are upgrading and have configured more than one proxy
+  currenty, we recommend going back down to a single proxy node now.
+  Unless you are using custom scripts doing significant data
+  distribution themselves through the new cluster framework, that
+  should be fine.
+
+- Bro now has new "is" and "as" script operators for dynamic
+  type-checking and casting.
+
+    - "v as T" casts a value v into a value of type T, assuming that's
+      possible (if not, it triggers a runtime error).
+
+    - "v is T" returns a boolean indicating whether value v can be
+      casted into type T (i.e., if true then "v as T" will succeed).
+
+    This casting supports three cases currently: (1) a value of
+    declared type "any" can be casted to its actual underlying type;
+    (2) Broker values can be casted to their corresponding script
+    types; and (3) all values can be casted to their declared types
+    (i.e., a no-op).
+
+    Example for "any"::
+
+        # cat a.bro
+        function check(a: any)
+            {
+            local s: string = "default";
+
+            if ( a is string )
+                s = (a as string);
+
+            print fmt("s=%s", s);
+            }
+
+        event bro_init()
+            {
+            check("Foo");
+            check(1);
+            }
+
+        # bro a.bro
+        s=Foo
+        s=default
+
+- The existing "switch" got extended to now also support switching by
+  type rather than value. The new syntax supports two type-based versions
+  of "case":
+
+    - "case type T: ...": Take branch if operand can be casted to type T.
+
+    - "case type T as x: ... ": Take branch if operand can be casted
+      to type T, and make the casted value available through ID "x".
+
+    Multiple types can be listed per branch, separated by commas.
+    However, one cannot mix cases with expressions and types inside a
+    single switch statement.
+
+    Example::
+
+        function switch_one(v: any)
+            {
+            switch (v) {
+            case type string:
+                    print "It's a string!";
+                    break;
+
+            case type count as c:
+                    print "It's a count!", c;
+                    break;
+
+            case type bool, type addr:
+                    print "It's a bool or address!";
+                    break;
+
+            default:
+                    print "Something else!";
+                    break;
+            }
+            }
+
+- Bro now comes with a new "configuration framework" that allows
+  updating script options dynamically at runtime. This functionality
+  consists of three larger pieces working together:
+
+  - Option variables: The new "option" keyword allows variables to be
+    declared as runtime options. Such variables cannot be changed
+    using normal assignments. Instead, they can be changed using the
+    new function Option::set.
+
+    It is possible to "subscribe" to an option through
+    Option::set_change_handler, which will trigger a handler callback
+    when an option changes. Change handlers can optionally modify
+    values before they are applied by returning the desired value, or
+    reject updates by returning the old value. Priorities can be
+    specified if there are several handlers for one option.
+
+    Example script::
+
+        option testbool: bool = T;
+
+        function option_changed(ID: string, new_value: bool): bool
+            {
+            print fmt("Value of %s changed from %s to %s", ID, testbool, new_value);
+            return new_value;
+            }
+
+        event bro_init()
+            {
+            print "Old value", testbool;
+            Option::set_change_handler("testbool", option_changed);
+            Option::set("testbool", F);
+            print "New value", testbool;
+            }
+
+  - Script-level configuration framework: The new script framework
+    base/framework/config facilitates reading in new option values
+    from external files at runtime. The format for these files looks
+    like this:
+
+        [option name][tab/spaces][new variable value]
+
+    Configuration files to read can be specified by adding them to
+    Config::config_files.
+
+    Usage example::
+
+        redef Config::config_files += { "/path/to/config.dat" };
+
+        module TestConfig;
+
+        export {
+            option testbool: bool = F;
+        }
+
+    The specified file will now be monitored continuously for changes, so
+    that writing "testbool T" into /path/to/config.dat will
+    automatically update the option's value accordingly.
+
+    The configuration framework creates a config.log that shows all
+    value changes that took place.
+
+  - Config reader: Internally, the configuration framework uses a new
+    type of input reader to read such configuration files into Bro.
+    The reader uses the option name to look up the type that variable
+    has, converts the read value to the correct type, and then updates
+    the option's value. Example script use::
+
+        type Idx: record {
+            option_name: string;
+        };
+
+        type Val: record {
+            option_val: string;
+        };
+
+        global currconfig: table[string] of string = table();
+
+        event InputConfig::new_value(name: string, source: string, id: string, value: any)
+            {
+            print id, value;
+            }
+
+        event bro_init()
+            {
+            Input::add_table([$reader=Input::READER_CONFIG, $source="../configfile", $name="configuration", $idx=Idx, $val=Val, $destination=currconfig, $want_record=F]);
+            }
+
+- Support for OCSP and Signed Certificate Timestamp. This adds the
+  following events and BIFs:
+
+  - Events: ocsp_request, ocsp_request_certificate,
+    ocsp_response_status, ocsp_response_bytes
+    ocsp_response_certificate ocsp_extension
+    x509_ocsp_ext_signed_certificate_timestamp
+    ssl_extension_signed_certificate_timestamp
+
+  - Functions: sct_verify, x509_subject_name_hash,
+    x509_issuer_name_hash x509_spki_hash
+
+- The SSL scripts provide a new hook "ssl_finishing(c: connection)"
+  to trigger actions after the handshake has concluded.
+
+- New functionality has been added to the TLS parser, adding several
+  events. These events mostly extract information from the server and client
+  key exchange messages. The new events are:
+
+  ssl_ecdh_server_params, ssl_dh_server_params, ssl_server_signature,
+  ssl_ecdh_client_params, ssl_dh_client_params, ssl_rsa_client_pms
+
+  Since ssl_ecdh_server_params contains more information than the old
+  ssl_server_curve event, ssl_server_curve is now marked as deprecated.
+
+- Functions for retrieving files by their ID have been added:
+
+  Files::file_exists, Files::lookup_File
+
+- New functions in the logging API: Log::get_filter_names, Log::enable_stream
+
+- HTTP now recognizes and skips upgraded/websocket connections.  A new event,
+  http_connection_upgrade, is raised in such cases.
+
+- Added a MOUNT3 protocol parser
+
+  - This is not enabled by default (no ports are registered and no
+    DPD signatures exist, so no connections will end up attaching the
+    new Mount analyzer).  If it were to be activated by users, the
+    following events are available: mount_proc_null, mount_proc_mnt,
+    mount_proc_umnt, mount_proc_umnt_all, mount_proc_not_implemented,
+    mount_reply_status.
+
+- Added new NFS events: nfs_proc_symlink, nfs_proc_link, nfs_proc_sattr
+
+- The SMB scripts in policy/protocols/smb are now moved into base/protocols/smb
+  and loaded/enabled by default.
+
+- Added new SMB events: smb1_transaction_secondary_request,
+  smb1_transaction2_secondary_request, smb1_transaction_response
+
+- Bro can now decrypt Kerberos tickets, and retrieve the authentication from
+  them, given a suitable keytab file.
+
+- Added support for bitwise operations on "count" values.  '&', '|' and
+  '^' are binary "and", "or" and "xor" operators, and '~' is a unary
+  ones-complement operator.
+
+- The '&' and '|' operators can apply to patterns, too.  p1 & p2 yields
+  a pattern that represents matching p1 followed by p2, and p1 | p2 yields
+  a pattern representing matching p1 or p2.  The p1 | p2 functionality was
+  semi-present in previous versions of Bro, but required constants as
+  its operands; now you can use any pattern-valued expressions.
+
+- You can now specify that a pattern matches in a case-insensitive
+  fashion by adding 'i' to the end of its specification.  So for example
+  /fOO/i == "Foo" yields T, as does /fOO/i in "xFoObar".  Characters
+  enclosed in quotes however keep their casing, so /"fOO"/i in "xFoObar"
+  yields F, though it yields T for "xfOObar".
+
+  You can achieve the same functionality for a subpattern enclosed in
+  parentheses by adding "?i:" to the open parenthesis.  So for example
+  "/foo|(?i:bar)/" will match "BaR", but not "FoO".
+
+  For both ways of specifying case-insensitivity, characters enclosed in
+  double quotes maintain their case-sensitivity.  So for example /"foo"/i
+  will not match "Foo", but it will match "foo".
+
+- "make install" now installs Bro's include headers (and more) into
+  --prefix so that compiling plugins does no longer need access to a
+  source/build tree. For OS distributions, this also facilitates
+  creating "bro-devel" packages providing all files necessary to build
+  plugins.
+
+- Bro now supports PPPoE over QinQ.
+
+- Bro now supports OpenSSL 1.1.
+
+- The new connection/conn.log history character 'W' indicates that
+  the originator ('w' = responder) advertised a TCP zero window
+  (instructing the peer to not send any data until receiving a
+  non-zero window).
+
+- The connection/conn.log history characters 'C' (checksum error seen),
+  'T' (retransmission seen), and 'W' (zero window advertised) are now
+  repeated in a logarithmic fashion upon seeing multiple instances
+  of the corresponding behavior.  Thus a connection with 2 C's in its
+  history means that the originator sent >= 10 packets with checksum
+  errors; 3 C's means >= 100, etc.
+
+- The above connection history behaviors occurring multiple times
+  (i.e., starting at 10 instances, than again for 100 instances,
+  etc.) generate corresponding events: tcp_multiple_checksum_errors,
+  udp_multiple_checksum_errors, tcp_multiple_zero_windows, and
+  tcp_multiple_retransmissions.  Each has the same form, e.g.
+
+      event tcp_multiple_retransmissions(c: connection, is_orig: bool,
+				                         threshold: count);
+
+- Added support for set union, intersection, difference, and comparison
+  operations.  The corresponding operators for the first three are
+  "s1 | s2", "s1 & s2", and "s1 - s2".  Relationals are in terms
+  of subsets, so "s1 < s2" yields true if s1 is a proper subset of s2
+  and "s1 == s2" if the two sets have exactly the same elements.
+  "s1 <= s2" holds for subsets or equality, and similarly "s1 != s2",
+  "s1 > s2", and "s1 >= s2" have the expected meanings in terms
+  of non-equality, proper superset, and superset-or-equal.
+
+- An expression of the form "v += e" will append the value of the expression
+  "e" to the end of the vector "v" (of course assuming type-compatbility).
+
+Changed Functionality
+---------------------
+
+- All communication is now handled through Broker, requiring changes
+  to existing scripts to port them over to the new API. The Broker
+  framework documentation comes with a porting guide.
+
+- The DHCP analyzer and its script-layer interface have been rewritten.
+
+  - Supports more DHCP options than before.
+
+  - The DHCP log now represents DHCP sessions based on transaction ID
+    and works on Bro cluster deployments.
+
+  - Removed the policy/protocols/dhcp/known-devices-and-hostnames.bro
+    script since it's generally less relevant now with the updated log.
+
+  - Removed the base/protocols/dhcp/utils.bro script and thus the
+    'reverse_ip' function.
+
+  - Replaced all DHCP events with the single 'dhcp_message' event.
+    The list of removed events includes:
+
+    - dhcp_discover
+    - dhcp_offer
+    - dhcp_request
+    - dhcp_decline
+    - dhcp_ack
+    - dhcp_nak
+    - dhcp_release
+    - dhcp_inform
+
+- Removed policy/misc/known-devices.bro script and thus
+  known_devices.log will no longer be created.
+
+- The --with-binpac= configure option has changed to mean "path
+  to the binpac executable" instead of "path to binpac installation root".
+
+- The MIME types used to identify X.509 certificates in SSL
+  connections changed from "application/pkix-cert" to
+  "application/x-x509-user-cert" for host certificates and
+  "application/x-x509-ca-cert" for CA certificates.
+
+- With the new ssl_ecdh_server_params event, the ssl_server_curve
+  event is considered deprecated and will be removed in a future
+  version of Bro.
+
+- The Socks analyzer no longer logs passwords by default. This
+  brings its behavior in line with the FTP/HTTP analyzers which also
+  do not log passwords by default.
+
+  To restore the previous behavior and log Socks passwords, use:
+
+  redef SOCKS::default_capture_password = T;
+
+- The DNS base scripts no longer generate some noisy and annoying
+  weirds (dns_unmatched_msg, dns_unmatched_msg_quantity, dns_unmatched_reply)
+
+- The 'tunnel_parents' field of conn.log is now marked &optional, so, for
+  the default configuration of logs, this field will show "-" instead of
+  "(empty)" for connections that lack any tunneling.
+
+- SMB event argument changes:
+
+  - smb1_transaction_request now has two additional arguments, "parameters"
+    and "data" strings
+
+  - smb1_transaction2_request now has an additional "args" record argument
+
+- The SMB::write_cmd_log option has been removed and the corresponding
+  logic moving to policy/protocols/smb/log-cmds.bro which can simply
+  be loaded to produce the same effect of toggling the old flag on.
+
+- SSL event argument changes:
+
+  - event ssl_server_signature now has an additional argument
+    "signature_and_hashalgorithm".
+
+- The "dnp3_header_block" event no longer has the "start" parameter
+
+- The string_to_pattern() built-in (and the now-deprecated merge_pattern()
+  built-in) is no longer restricted to only be called at initialization time.
+
+- GeoIP Legacy Database support has been replaced with GeoIP2 MaxMind DB
+  format support.
+
+  - This updates the "lookup_location" and "lookup_asn" BIFs to use
+    libmaxminddb.  The motivation for this is that MaxMind is discontinuing
+    GeoLite Legacy databases: no updates after April 1, 2018, no downloads
+    after January 2, 2019.  It's also noted that all GeoIP Legacy databases
+    may be discontinued as they are superseded by GeoIP2.
+
+Removed Functionality
+---------------------
+
+- We no longer maintain any Bro plugins as part of the Bro
+  distribution. Most of the plugins that used to be in aux/plugins have
+  been moved over to use the Bro Package Manager instead. See
+  https://github.com/bro/packages for a list of Bro packages currently
+  available.
+
+- BroControl: The option 'IPv6Comm' and 'ZoneID' options are no longer
+  available (though Broker should be able to handle IPv6 automatically).
+
+- The "ocsp_request" event no longer has "requestorName" parameter.
+
+Deprecated Functionality
+------------------------
+
+- The old communication system is now deprecated and scheduled for
+  removal with the next Bro release. This includes the "communication"
+  framework, the &sychronized attributes, and the existing
+  communication-related BiFs. Use Broker instead.
+
+- The infrastructure for serializing Bro values into a binary
+  representation is now deprecated and scheduled for removal with the
+  next Bro release. This includes the &persistent attribute, as well
+  as BiFs like send_id(). Use Broker data stores and the new
+  configuration framework instead.
+
+- BroControl: The 'update' command is deprecated and scheduled for
+  removal with the next Bro release. Bro's new configuration framework
+  is taking its place.
+
+- Mixing of scalars and vectors, such as "v + e" yielding a vector
+  corresponding to the vector v with the scalar e added to each of
+  its elements, has been deprecated.
+
+- The built-in function merge_pattern() has been deprecated.  It will
+  be replaced by the '&' operator for patterns.
+
+- The undocumented feature of using "&&" and "||" operators for patterns
+  has been deprecated.
+
+Bro 2.5.1
+=========
+
+New Functionality
+-----------------
+
+- Bro now includes bifs for rename, unlink, and rmdir.
+
+- Bro now includes events for two extensions used by TLS 1.3:
+  ssl_extension_supported_versions and ssl_extension_psk_key_exchange_modes
+
+- Bro now includes hooks that can be used to interact with log processing
+  on the C++ level.
+
+- Bro now supports ERSPAN. Currently this ignores the ethernet header that is
+  carried over the tunnel; if a MAC is logged currently only the outer MAC
+  is returned.
+
+- Added a new BroControl option CrashExpireInterval to enable
+  "broctl cron" to remove crash directories that are older than the
+  specified number of days (the default value is 0, which means crash
+  directories never expire).
+
+- Added a new BroControl option MailReceivingPackets to control
+  whether or not "broctl cron" will mail a warning when it notices
+  that no packets were seen on an interface.
+
+- There is a new broctl command-line option "--version" which outputs
+  the BroControl version.
+
+Changed Functionality
+---------------------
+
+- The input framework's Ascii reader is now more resilient. If an input
+  is marked to reread a file when it changes and the file didn't exist
+  during a check Bro would stop watching the file in previous versions.
+  The same could happen with bad data in a line of a file.  These
+  situations do not cause Bro to stop watching input files anymore. The
+  old behavior is available through settings in the Ascii reader.
+
+- The RADIUS scripts have been reworked. Requests are now logged even if
+  there is no response. The new framed_addr field in the log indicates
+  if the radius server is hinting at an address for the client. The ttl
+  field indicates how quickly the server is replying to the network access
+  server.
+
+- With the introduction of the Bro package manager, the Bro plugin repository
+  is considered deprecated. The af_packet, postgresql, and tcprs plugins have
+  already been removed and are available via bro-pkg.
+
 Bro 2.5
 =======
 

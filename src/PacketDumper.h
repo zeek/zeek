@@ -12,7 +12,7 @@ using namespace std;
 
 class PacketDumper {
 public:
-	PacketDumper(pcap_dumper_t* pkt_dump);
+	explicit PacketDumper(pcap_dumper_t* pkt_dump);
 
 	void DumpPacket(const struct pcap_pkthdr* hdr,
 			const u_char* pkt, int len);

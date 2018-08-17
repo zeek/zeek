@@ -7,133 +7,134 @@
 
 module Broker;
 
-type Broker::EndpointFlags: record;
+## Generated when something changes in the Broker sub-system.
+event Broker::status%(endpoint: EndpointInfo, msg: string%);
 
-function Broker::__enable%(flags: EndpointFlags%): bool
+## Generated when a new peering has been established.
+event Broker::peer_added%(endpoint: EndpointInfo, msg: string%);
+
+## Generated when an existing peer has been removed.
+event Broker::peer_removed%(endpoint: EndpointInfo, msg: string%);
+
+## Generated when an existing peering has been lost.
+event Broker::peer_lost%(endpoint: EndpointInfo, msg: string%);
+
+## Generated when an error occurs in the Broker sub-system.
+event Broker::error%(code: ErrorCode, msg: string%);
+
+## Enumerates the possible error types. 
+enum ErrorCode %{
+	UNSPECIFIED = 1,
+	PEER_INCOMPATIBLE = 2,
+	PEER_INVALID = 3,
+	PEER_UNAVAILABLE = 4,
+	PEER_TIMEOUT = 5,
+	MASTER_EXISTS = 6,
+	NO_SUCH_MASTER = 7,
+	NO_SUCH_KEY = 8,
+	REQUEST_TIMEOUT = 9,
+	TYPE_CLASH = 10,
+	INVALID_DATA = 11,
+	BACKEND_FAILURE = 12,
+	STALE_DATA = 13,
+	CAF_ERROR = 100,
+%}
+
+## The possible states of a peer endpoint.
+enum PeerStatus %{
+	INITIALIZING,
+	CONNECTING,
+	CONNECTED,
+	PEERED,
+	DISCONNECTED,
+	RECONNECTING,
+%}
+
+function Broker::__listen%(a: string, p: port%): port
 	%{
-	return new Val(broker_mgr->Enable(flags), TYPE_BOOL);
-	%}
+	bro_broker::Manager::ScriptScopeGuard ssg;
 
-function Broker::__set_endpoint_flags%(flags: EndpointFlags%): bool
-	%{
-	return new Val(broker_mgr->SetEndpointFlags(flags), TYPE_BOOL);
-	%}
-
-function Broker::__publish_topic%(topic: string%): bool
-	%{
-	return new Val(broker_mgr->PublishTopic(topic->CheckString()), TYPE_BOOL);
-	%}
-
-function Broker::__unpublish_topic%(topic: string%): bool
-	%{
-	return new Val(broker_mgr->UnpublishTopic(topic->CheckString()), TYPE_BOOL);
-	%}
-
-## Allow advertising interest in the given topic to peers.
-## This has no effect if auto advertise behavior is enabled via the flags
-## supplied to :bro:see:`Broker::enable` or :bro:see:`Broker::set_endpoint_flags`.
-##
-## topic: a topic to allow advertising interest/subscription to peers.
-##
-## Returns: true if successful.
-function Broker::advertise_topic%(topic: string%): bool
-	%{
-	return new Val(broker_mgr->AdvertiseTopic(topic->CheckString()), TYPE_BOOL);
-	%}
-
-## Disallow advertising interest in the given topic to peers.
-## This has no effect if auto advertise behavior is enabled via the flags
-## supplied to :bro:see:`Broker::enable` or :bro:see:`Broker::set_endpoint_flags`.
-##
-## topic: a topic to disallow advertising interest/subscription to peers.
-##
-## Returns: true if successful.
-function Broker::unadvertise_topic%(topic: string%): bool
-	%{
-	return new Val(broker_mgr->UnadvertiseTopic(topic->CheckString()), TYPE_BOOL);
-	%}
-
-## Generated when a connection has been established due to a previous call
-## to :bro:see:`Broker::connect`.
-##
-## peer_address: the address used to connect to the peer.
-##
-## peer_port: the port used to connect to the peer.
-##
-## peer_name: the name by which the peer identified itself.
-event Broker::outgoing_connection_established%(peer_address: string,
-                                             peer_port: port,
-                                             peer_name: string%);
-
-## Generated when a previously established connection becomes broken.
-## Reconnection will automatically be attempted at a frequency given
-## by the original call to :bro:see:`Broker::connect`.
-##
-## peer_address: the address used to connect to the peer.
-##
-## peer_port: the port used to connect to the peer.
-##
-## .. bro:see:: Broker::outgoing_connection_established
-event Broker::outgoing_connection_broken%(peer_address: string,
-                                        peer_port: port%);
-
-## Generated when a connection via :bro:see:`Broker::connect` has failed
-## because the remote side is incompatible.
-##
-## peer_address: the address used to connect to the peer.
-##
-## peer_port: the port used to connect to the peer.
-event Broker::outgoing_connection_incompatible%(peer_address: string,
-                                              peer_port: port%);
-
-## Generated when a peer has established a connection with this process
-## as a result of previously performing a :bro:see:`Broker::listen`.
-##
-## peer_name: the name by which the peer identified itself.
-event Broker::incoming_connection_established%(peer_name: string%);
-
-## Generated when a peer that previously established a connection with this
-## process becomes disconnected.
-##
-## peer_name: the name by which the peer identified itself.
-##
-## .. bro:see:: Broker::incoming_connection_established
-event Broker::incoming_connection_broken%(peer_name: string%);
-
-function Broker::__listen%(p: port, a: string, reuse: bool%): bool
-	%{
 	if ( ! p->IsTCP() )
 		{
-		reporter->Error("listen port must use tcp");
+		builtin_error("listen port must use tcp");
+		return port_mgr->Get(0, TRANSPORT_UNKNOWN);
+		}
+
+	auto rval = broker_mgr->Listen(a->Len() ? a->CheckString() : "", p->Port());
+	return port_mgr->Get(rval, TRANSPORT_TCP);
+	%}
+
+function Broker::__peer%(a: string, p: port, retry: interval%): bool
+	%{
+	bro_broker::Manager::ScriptScopeGuard ssg;
+
+	if ( ! p->IsTCP() )
+		{
+		builtin_error("remote connection port must use tcp");
 		return new Val(false, TYPE_BOOL);
 		}
 
-	auto rval = broker_mgr->Listen(p->Port(), a->Len() ? a->CheckString() : 0,
-								 reuse);
-	return new Val(rval, TYPE_BOOL);
+	broker_mgr->Peer(a->CheckString(), p->Port(), retry);
+	return new Val(true, TYPE_BOOL);
 	%}
 
-function Broker::__connect%(a: string, p: port, retry: interval%): bool
+function Broker::__unpeer%(a: string, p: port%): bool
 	%{
+	bro_broker::Manager::ScriptScopeGuard ssg;
+
 	if ( ! p->IsTCP() )
 		{
-		reporter->Error("remote connection port must use tcp");
+		builtin_error("remote connection port must use tcp");
 		return new Val(false, TYPE_BOOL);
 		}
 
-	auto rval = broker_mgr->Connect(a->CheckString(), p->Port(),
-	                              std::chrono::duration<double>(retry));
-	return new Val(rval, TYPE_BOOL);
+	broker_mgr->Unpeer(a->CheckString(), p->Port());
+	return new Val(true, TYPE_BOOL);
 	%}
 
-function Broker::__disconnect%(a: string, p: port%): bool
+function Broker::__peers%(%): PeerInfos
 	%{
-	if ( ! p->IsTCP() )
+	bro_broker::Manager::ScriptScopeGuard ssg;
+	VectorVal* rval = new VectorVal(internal_type("Broker::PeerInfos")->AsVectorType());
+	auto i = 0;
+
+	for ( auto& p : broker_mgr->Peers() )
 		{
-		reporter->Error("remote connection port must use tcp");
-		return new Val(false, TYPE_BOOL);
+		auto pi = internal_type("Broker::PeerInfo")->AsRecordType();
+		auto ei = internal_type("Broker::EndpointInfo")->AsRecordType();
+		auto ni = internal_type("Broker::NetworkInfo")->AsRecordType();
+		auto peer_info = new RecordVal(pi);
+		auto endpoint_info = new RecordVal(ei);
+		auto network_info = new RecordVal(ni);
+		auto n = p.peer.network;
+
+		if ( n )
+			{
+			network_info->Assign(0, new AddrVal(IPAddr(n->address)));
+			network_info->Assign(1, port_mgr->Get(n->port, TRANSPORT_TCP));
+			}
+		else
+			{
+			network_info->Assign(0, new AddrVal("0.0.0.0"));
+			network_info->Assign(1, port_mgr->Get(0, TRANSPORT_TCP));
+			}
+
+		endpoint_info->Assign(0, new StringVal(to_string(p.peer.node)));
+		endpoint_info->Assign(1, network_info);
+
+		auto ps = (BifEnum::Broker::PeerStatus)p.status;
+		peer_info->Assign(0, endpoint_info);
+		peer_info->Assign(1, new EnumVal(ps, BifType::Enum::Broker::PeerStatus));
+
+		rval->Assign(i, peer_info);
+		++i;
 		}
 
-	auto rval = broker_mgr->Disconnect(a->CheckString(), p->Port());
-	return new Val(rval, TYPE_BOOL);
+	return rval;
+	%}
+
+function Broker::__node_id%(%): string
+	%{
+	bro_broker::Manager::ScriptScopeGuard ssg;
+	return new StringVal(broker_mgr->NodeID());
 	%}

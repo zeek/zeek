@@ -96,7 +96,7 @@ public:
 
 protected:
 	// Format defaults to binary serialization.
-	Serializer(SerializationFormat* format = 0);
+	explicit Serializer(SerializationFormat* format = 0);
 	virtual ~Serializer();
 
 	// Reads next object.
@@ -159,7 +159,7 @@ public:
 
 	// If max_cache_size is greater than zero, we'll remove old entries
 	// automatically if limit is reached (LRU expiration).
-	SerializationCache(unsigned int max_cache_size = 0);
+	explicit SerializationCache(unsigned int max_cache_size = 0);
 	~SerializationCache();
 
 	PermanentID Register(const SerialObj* obj, PermanentID pid,
@@ -261,27 +261,27 @@ private:
 // minimal implementation of Serializer!
 class CloneSerializer : public Serializer {
 public:
-	CloneSerializer(SerializationFormat* format = 0) : Serializer(format) { }
-	virtual ~CloneSerializer()	{ }
+	explicit CloneSerializer(SerializationFormat* format = 0) : Serializer(format) { }
+	~CloneSerializer() override
+		{ }
 
 protected:
-	virtual void ReportError(const char* msg)	{ reporter->Error("%s", msg); }
-	virtual void GotID(ID* id, Val* val)	{ }
-	virtual void GotEvent(const char* name, double time,
-				EventHandlerPtr event, val_list* args)	{ }
-	virtual void GotFunctionCall(const char* name, double time,
-				Func* func, val_list* args)	{ }
-	virtual void GotStateAccess(StateAccess* s)	{ delete s; }
-	virtual void GotTimer(Timer* t)	{ }
-	virtual void GotConnection(Connection* c)	{ }
-	virtual void GotPacket(Packet* packet)	{ }
+	void ReportError(const char* msg) override { reporter->Error("%s", msg); }
+	void GotID(ID* id, Val* val) override { }
+	void GotEvent(const char* name, double time, EventHandlerPtr event, val_list* args) override { }
+	void GotFunctionCall(const char* name, double time,
+				Func* func, val_list* args) override { }
+	void GotStateAccess(StateAccess* s) override { delete s; }
+	void GotTimer(Timer* t) override { }
+	void GotConnection(Connection* c) override { }
+	void GotPacket(Packet* packet) override { }
 };
 
 // Write values/events to file or fd.
 class FileSerializer : public Serializer {
 public:
-	FileSerializer(SerializationFormat* format = 0);
-	virtual ~FileSerializer();
+	explicit FileSerializer(SerializationFormat* format = 0);
+	~FileSerializer() override;
 
 	// Opens the file for serialization.
 	bool Open(const char* file, bool pure = false);
@@ -291,16 +291,16 @@ public:
 	bool Read(UnserialInfo* info, const char* file, bool header = true);
 
 protected:
-	virtual void ReportError(const char* msg);
-	virtual void GotID(ID* id, Val* val);
-	virtual void GotEvent(const char* name, double time,
-				EventHandlerPtr event, val_list* args);
-	virtual void GotFunctionCall(const char* name, double time,
-				Func* func, val_list* args);
-	virtual void GotStateAccess(StateAccess* s);
-	virtual void GotTimer(Timer* t);
-	virtual void GotConnection(Connection* c);
-	virtual void GotPacket(Packet* packet);
+	void ReportError(const char* msg) override;
+	void GotID(ID* id, Val* val) override;
+	void GotEvent(const char* name, double time,
+				EventHandlerPtr event, val_list* args) override;
+	void GotFunctionCall(const char* name, double time,
+				Func* func, val_list* args) override;
+	void GotStateAccess(StateAccess* s) override;
+	void GotTimer(Timer* t) override;
+	void GotConnection(Connection* c) override;
+	void GotPacket(Packet* packet) override;
 
 	bool OpenFile(const char* file, bool readonly, bool should_exist = false);
 	void CloseFile();
@@ -331,21 +331,21 @@ public:
 // Plays a file of events back.
 class EventPlayer : public FileSerializer, public iosource::IOSource {
 public:
-	EventPlayer(const char* file);
-	virtual ~EventPlayer();
+	explicit EventPlayer(const char* file);
+	~EventPlayer() override;
 
-	virtual void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
-	                    iosource::FD_Set* except);
-	virtual double NextTimestamp(double* local_network_time);
-	virtual void Process();
-	virtual const char* Tag()	{ return "EventPlayer"; }
+	void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
+	                    iosource::FD_Set* except) override;
+	double NextTimestamp(double* local_network_time) override;
+	void Process() override;
+	const char* Tag() override { return "EventPlayer"; }
 
 protected:
-	virtual void GotID(ID* id, Val* val)	{}
-	virtual void GotEvent(const char* name, double time,
-				EventHandlerPtr event, val_list* args);
-	virtual void GotFunctionCall(const char* name, double time,
-				Func* func, val_list* args);
+	void GotID(ID* id, Val* val) override {}
+	void GotEvent(const char* name, double time,
+				EventHandlerPtr event, val_list* args) override;
+	void GotFunctionCall(const char* name, double time,
+				Func* func, val_list* args) override;
 
 	double stream_time;	// time of first captured event
 	double replay_time;	// network time of replay start

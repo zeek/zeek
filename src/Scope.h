@@ -19,8 +19,8 @@ declare(PDict,ID);
 
 class Scope : public BroObj {
 public:
-	Scope(ID* id);
-	~Scope();
+	explicit Scope(ID* id);
+	~Scope() override;
 
 	ID* Lookup(const char* name) const	{ return local->Lookup(name); }
 	void Insert(const char* name, ID* id)	{ local->Insert(name, id); }
@@ -47,7 +47,7 @@ public:
 	// Adds a variable to the list.
 	void AddInit(ID* id)		{ inits->append(id); }
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const;
 
@@ -64,7 +64,8 @@ extern bool in_debug;
 // If no_global is true, don't search in the default "global" namespace.
 // This passed ownership of a ref'ed ID to the caller.
 extern ID* lookup_ID(const char* name, const char* module,
-		     bool no_global = false, bool same_module_only=false);
+		     bool no_global = false, bool same_module_only = false,
+		     bool check_export = true);
 extern ID* install_ID(const char* name, const char* module_name,
 			bool is_global, bool is_export);
 

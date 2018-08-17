@@ -130,7 +130,7 @@ RecordVal* TeredoEncapsulation::BuildVal(const IP_Hdr* inner) const
 		RecordVal* teredo_origin = new RecordVal(teredo_origin_type);
 		uint16 port = ntohs(*((uint16*)(origin_indication + 2))) ^ 0xFFFF;
 		uint32 addr = ntohl(*((uint32*)(origin_indication + 4))) ^ 0xFFFFFFFF;
-		teredo_origin->Assign(0, new PortVal(port, TRANSPORT_UDP));
+		teredo_origin->Assign(0, port_mgr->Get(port, TRANSPORT_UDP));
 		teredo_origin->Assign(1, new AddrVal(htonl(addr)));
 		teredo_hdr->Assign(1, teredo_origin);
 		}
@@ -195,7 +195,7 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 	else
 		{
 		delete inner;
-		ProtocolViolation("Truncated Teredo", (const char*) data, len);
+		ProtocolViolation("Truncated Teredo or invalid inner IP version", (const char*) data, len);
 		return;
 		}
 

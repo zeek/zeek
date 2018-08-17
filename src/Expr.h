@@ -17,10 +17,13 @@ typedef enum {
 	EXPR_ANY = -1,
 	EXPR_NAME, EXPR_CONST,
 	EXPR_CLONE,
-	EXPR_INCR, EXPR_DECR, EXPR_NOT, EXPR_POSITIVE, EXPR_NEGATE,
+	EXPR_INCR, EXPR_DECR,
+	EXPR_NOT, EXPR_COMPLEMENT,
+	EXPR_POSITIVE, EXPR_NEGATE,
 	EXPR_ADD, EXPR_SUB, EXPR_ADD_TO, EXPR_REMOVE_FROM,
 	EXPR_TIMES, EXPR_DIVIDE, EXPR_MOD,
-	EXPR_AND, EXPR_OR,
+	EXPR_AND, EXPR_OR, EXPR_XOR,
+	EXPR_AND_AND, EXPR_OR_OR,
 	EXPR_LT, EXPR_LE, EXPR_EQ, EXPR_NE, EXPR_GE, EXPR_GT,
 	EXPR_COND,
 	EXPR_REF,
@@ -44,7 +47,9 @@ typedef enum {
 	EXPR_VECTOR_COERCE,
 	EXPR_SIZE,
 	EXPR_FLATTEN,
-#define NUM_EXPRS (int(EXPR_FLATTEN) + 1)
+	EXPR_CAST,
+	EXPR_IS,
+#define NUM_EXPRS (int(EXPR_IS) + 1)
 } BroExprTag;
 
 extern const char* expr_name(BroExprTag t);
@@ -63,7 +68,7 @@ public:
 	BroType* Type() const		{ return type; }
 	BroExprTag Tag() const	{ return tag; }
 
-	virtual ~Expr();
+	~Expr() override;
 
 	Expr* Ref()			{ ::Ref(this); return this; }
 
@@ -182,7 +187,7 @@ public:
 		return (AssignExpr*) this;
 		}
 
-	void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const override;
 
 	bool Serialize(SerialInfo* info) const;
 	static Expr* Unserialize(UnserialInfo* info, BroExprTag want = EXPR_ANY);
@@ -191,7 +196,7 @@ public:
 
 protected:
 	Expr()	{ type = 0; }
-	Expr(BroExprTag arg_tag);
+	explicit Expr(BroExprTag arg_tag);
 
 	virtual void ExprDescribe(ODesc* d) const = 0;
 	void AddTag(ODesc* d) const;
@@ -215,8 +220,8 @@ protected:
 
 class NameExpr : public Expr {
 public:
-	NameExpr(ID* id, bool const_init = false);
-	~NameExpr();
+	explicit NameExpr(ID* id, bool const_init = false);
+	~NameExpr() override;
 
 	ID* Id() const		{ return id; }
 
@@ -241,8 +246,8 @@ protected:
 
 class ConstExpr : public Expr {
 public:
-	ConstExpr(Val* val);
-	~ConstExpr();
+	explicit ConstExpr(Val* val);
+	~ConstExpr() override;
 
 	Val* Value() const	{ return val; }
 
@@ -278,7 +283,7 @@ protected:
 	UnaryExpr()	{ op = 0; }
 
 	UnaryExpr(BroExprTag arg_tag, Expr* arg_op);
-	virtual ~UnaryExpr();
+	~UnaryExpr() override;
 
 	void ExprDescribe(ODesc* d) const override;
 
@@ -316,13 +321,19 @@ protected:
 		if ( op1->IsError() || op2->IsError() )
 			SetError();
 		}
-	virtual ~BinaryExpr();
+	~BinaryExpr() override;
 
 	// Returns the expression folded using the given constants.
 	virtual Val* Fold(Val* v1, Val* v2) const;
 
 	// Same for when the constants are strings.
 	virtual Val* StringFold(Val* v1, Val* v2) const;
+
+	// Same for when the constants are patterns.
+	virtual Val* PatternFold(Val* v1, Val* v2) const;
+
+	// Same for when the constants are sets.
+	virtual Val* SetFold(Val* v1, Val* v2) const;
 
 	// Same for when the constants are addresses or subnets.
 	virtual Val* AddrFold(Val* v1, Val* v2) const;
@@ -350,7 +361,7 @@ protected:
 
 class CloneExpr : public UnaryExpr {
 public:
-	CloneExpr(Expr* op);
+	explicit CloneExpr(Expr* op);
 	Val* Eval(Frame* f) const override;
 
 protected:
@@ -377,9 +388,22 @@ protected:
 	DECLARE_SERIAL(IncrExpr);
 };
 
+class ComplementExpr : public UnaryExpr {
+public:
+	explicit ComplementExpr(Expr* op);
+
+protected:
+	friend class Expr;
+	ComplementExpr()	{ }
+
+	Val* Fold(Val* v) const override;
+
+	DECLARE_SERIAL(ComplementExpr);
+};
+
 class NotExpr : public UnaryExpr {
 public:
-	NotExpr(Expr* op);
+	explicit NotExpr(Expr* op);
 
 protected:
 	friend class Expr;
@@ -392,7 +416,7 @@ protected:
 
 class PosExpr : public UnaryExpr {
 public:
-	PosExpr(Expr* op);
+	explicit PosExpr(Expr* op);
 
 protected:
 	friend class Expr;
@@ -405,7 +429,7 @@ protected:
 
 class NegExpr : public UnaryExpr {
 public:
-	NegExpr(Expr* op);
+	explicit NegExpr(Expr* op);
 
 protected:
 	friend class Expr;
@@ -418,7 +442,7 @@ protected:
 
 class SizeExpr : public UnaryExpr {
 public:
-	SizeExpr(Expr* op);
+	explicit SizeExpr(Expr* op);
 	Val* Eval(Frame* f) const override;
 
 protected:
@@ -530,6 +554,17 @@ protected:
 	DECLARE_SERIAL(BoolExpr);
 };
 
+class BitExpr : public BinaryExpr {
+public:
+	BitExpr(BroExprTag tag, Expr* op1, Expr* op2);
+
+protected:
+	friend class Expr;
+	BitExpr()	{ }
+
+	DECLARE_SERIAL(BitExpr);
+};
+
 class EqExpr : public BinaryExpr {
 public:
 	EqExpr(BroExprTag tag, Expr* op1, Expr* op2);
@@ -559,7 +594,7 @@ protected:
 class CondExpr : public Expr {
 public:
 	CondExpr(Expr* op1, Expr* op2, Expr* op3);
-	~CondExpr();
+	~CondExpr() override;
 
 	const Expr* Op1() const	{ return op1; }
 	const Expr* Op2() const	{ return op2; }
@@ -585,7 +620,7 @@ protected:
 
 class RefExpr : public UnaryExpr {
 public:
-	RefExpr(Expr* op);
+	explicit RefExpr(Expr* op);
 
 	void Assign(Frame* f, Val* v, Opcode op = OP_ASSIGN) override;
 	Expr* MakeLvalue() override;
@@ -602,7 +637,7 @@ public:
 	// If val is given, evaluating this expression will always yield the val
 	// yet still perform the assignment.  Used for triggers.
 	AssignExpr(Expr* op1, Expr* op2, int is_init, Val* val = 0, attr_list* attrs = 0);
-	virtual ~AssignExpr()	{ Unref(val); }
+	~AssignExpr() override { Unref(val); }
 
 	Val* Eval(Frame* f) const override;
 	void EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const override;
@@ -657,7 +692,7 @@ protected:
 class FieldExpr : public UnaryExpr {
 public:
 	FieldExpr(Expr* op, const char* field_name);
-	~FieldExpr();
+	~FieldExpr() override;
 
 	int Field() const	{ return field; }
 	const char* FieldName() const	{ return field_name; }
@@ -689,7 +724,7 @@ protected:
 class HasFieldExpr : public UnaryExpr {
 public:
 	HasFieldExpr(Expr* op, const char* field_name);
-	~HasFieldExpr();
+	~HasFieldExpr() override;
 
 	const char* FieldName() const	{ return field_name; }
 
@@ -709,8 +744,8 @@ protected:
 
 class RecordConstructorExpr : public UnaryExpr {
 public:
-	RecordConstructorExpr(ListExpr* constructor_list);
-	~RecordConstructorExpr();
+	explicit RecordConstructorExpr(ListExpr* constructor_list);
+	~RecordConstructorExpr() override;
 
 protected:
 	friend class Expr;
@@ -728,7 +763,7 @@ class TableConstructorExpr : public UnaryExpr {
 public:
 	TableConstructorExpr(ListExpr* constructor_list, attr_list* attrs,
 	                     BroType* arg_type = 0);
-	~TableConstructorExpr()	{ Unref(attrs); }
+	~TableConstructorExpr() override { Unref(attrs); }
 
 	Attributes* Attrs() { return attrs; }
 
@@ -751,7 +786,7 @@ class SetConstructorExpr : public UnaryExpr {
 public:
 	SetConstructorExpr(ListExpr* constructor_list, attr_list* attrs,
 	                   BroType* arg_type = 0);
-	~SetConstructorExpr()	{ Unref(attrs); }
+	~SetConstructorExpr() override { Unref(attrs); }
 
 	Attributes* Attrs() { return attrs; }
 
@@ -772,7 +807,7 @@ protected:
 
 class VectorConstructorExpr : public UnaryExpr {
 public:
-	VectorConstructorExpr(ListExpr* constructor_list, BroType* arg_type = 0);
+	explicit VectorConstructorExpr(ListExpr* constructor_list, BroType* arg_type = 0);
 
 	Val* Eval(Frame* f) const override;
 
@@ -824,7 +859,7 @@ protected:
 class RecordCoerceExpr : public UnaryExpr {
 public:
 	RecordCoerceExpr(Expr* op, RecordType* r);
-	~RecordCoerceExpr();
+	~RecordCoerceExpr() override;
 
 protected:
 	friend class Expr;
@@ -844,7 +879,7 @@ protected:
 class TableCoerceExpr : public UnaryExpr {
 public:
 	TableCoerceExpr(Expr* op, TableType* r);
-	~TableCoerceExpr();
+	~TableCoerceExpr() override;
 
 protected:
 	friend class Expr;
@@ -858,7 +893,7 @@ protected:
 class VectorCoerceExpr : public UnaryExpr {
 public:
 	VectorCoerceExpr(Expr* op, VectorType* v);
-	~VectorCoerceExpr();
+	~VectorCoerceExpr() override;
 
 protected:
 	friend class Expr;
@@ -873,7 +908,7 @@ protected:
 // into a list of individual values.
 class FlattenExpr : public UnaryExpr {
 public:
-	FlattenExpr(Expr* op);
+	explicit FlattenExpr(Expr* op);
 
 protected:
 	friend class Expr;
@@ -892,9 +927,9 @@ class ScheduleTimer : public Timer {
 public:
 	ScheduleTimer(EventHandlerPtr event, val_list* args, double t,
 			TimerMgr* tmgr);
-	~ScheduleTimer();
+	~ScheduleTimer() override;
 
-	void Dispatch(double t, int is_expire);
+	void Dispatch(double t, int is_expire) override;
 
 protected:
 	EventHandlerPtr event;
@@ -905,7 +940,7 @@ protected:
 class ScheduleExpr : public Expr {
 public:
 	ScheduleExpr(Expr* when, EventExpr* event);
-	~ScheduleExpr();
+	~ScheduleExpr() override;
 
 	int IsPure() const override;
 
@@ -945,7 +980,7 @@ protected:
 class CallExpr : public Expr {
 public:
 	CallExpr(Expr* func, ListExpr* args, bool in_hook = false);
-	~CallExpr();
+	~CallExpr() override;
 
 	Expr* Func() const	{ return func; }
 	ListExpr* Args() const	{ return args; }
@@ -971,7 +1006,7 @@ protected:
 class EventExpr : public Expr {
 public:
 	EventExpr(const char* name, ListExpr* args);
-	~EventExpr();
+	~EventExpr() override;
 
 	const char* Name() const	{ return name.c_str(); }
 	ListExpr* Args() const		{ return args; }
@@ -997,8 +1032,8 @@ protected:
 class ListExpr : public Expr {
 public:
 	ListExpr();
-	ListExpr(Expr* e);
-	~ListExpr();
+	explicit ListExpr(Expr* e);
+	~ListExpr() override;
 
 	void Append(Expr* e);
 
@@ -1042,6 +1077,37 @@ protected:
 	RecordAssignExpr()	{ }
 
 	DECLARE_SERIAL(RecordAssignExpr);
+};
+
+class CastExpr : public UnaryExpr {
+public:
+	CastExpr(Expr* op, BroType* t);
+
+protected:
+	friend class Expr;
+	CastExpr()	{ }
+
+	Val* Eval(Frame* f) const override;
+	void ExprDescribe(ODesc* d) const override;
+
+	DECLARE_SERIAL(CastExpr);
+};
+
+class IsExpr : public UnaryExpr {
+public:
+	IsExpr(Expr* op, BroType* t);
+	virtual ~IsExpr();
+
+protected:
+	friend class Expr;
+	IsExpr()	{ }
+
+	Val* Fold(Val* v) const override;
+	void ExprDescribe(ODesc* d) const override;
+	DECLARE_SERIAL(IsExpr);
+
+private:
+	BroType* t;
 };
 
 inline Val* Expr::ExprVal() const

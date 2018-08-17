@@ -1,0 +1,2 @@
+The configuration framework provides a way to change the Bro configuration
+in "option" values at run-time.

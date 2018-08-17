@@ -1,6 +1,6 @@
 # @TEST-EXEC: cp input1.log input.log
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
-# @TEST-EXEC: sleep 2
+# @TEST-EXEC: $SCRIPTS/wait-for-file bro/got1 5 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: cp input2.log input.log
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff out
@@ -19,8 +19,6 @@
 1	TEST	-
 2	TEST	TEST
 @TEST-END-FILE
-
-@load base/frameworks/communication  # let network-time run
 
 redef exit_only_after_terminate = T;
 
@@ -77,7 +75,9 @@ event Input::end_of_data(name: string, source: string)
 	print outfile, servers;
 	
 	try = try + 1;
-	if ( try == 2 )
+	if ( try == 1 )
+		system("touch got1");
+	else if ( try == 2 )
 		{
 		print outfile, "done";
 		close(outfile);

@@ -5,10 +5,6 @@
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff controllee/.stdout
 
-redef Cluster::retry_interval = 1sec;
-redef Broker::default_listen_retry = 1sec;
-redef Broker::default_connect_retry = 1sec;
-
 const test_var = "ORIGINAL VALUE (this should be printed out first)" &redef;
 
 @TEST-START-FILE test-redef.bro

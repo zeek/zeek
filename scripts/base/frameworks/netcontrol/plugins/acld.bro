@@ -270,8 +270,8 @@ function acld_remove_rule_fun(p: PluginState, r: Rule, reason: string) : bool
 
 function acld_init(p: PluginState)
 	{
-	Broker::peer(cat(p$acld_config$acld_host), p$acld_config$acld_port);
 	Broker::subscribe(p$acld_config$acld_topic);
+	Broker::peer(cat(p$acld_config$acld_host), p$acld_config$acld_port);
 	}
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)

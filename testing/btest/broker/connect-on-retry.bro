@@ -9,8 +9,7 @@
 
 @TEST-START-FILE send.bro
 
-redef Broker::default_connect_retry=1secs;
-redef Broker::default_listen_retry=1secs;
+# Using btest's environment settings for connect/listen retry of 1sec.
 redef exit_only_after_terminate = T;
 
 global event_count = 0;
@@ -52,8 +51,6 @@ event pong(msg: string, n: count)
 
 @TEST-START-FILE recv.bro
 
-redef Broker::default_connect_retry=1secs;
-redef Broker::default_listen_retry=1secs;
 redef exit_only_after_terminate = T;
 
 const events_to_recv = 5;

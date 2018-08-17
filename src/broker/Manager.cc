@@ -320,6 +320,11 @@ void Manager::Peer(const string& addr, uint16_t port, double retry)
 	DBG_LOG(DBG_BROKER, "Starting to peer with %s:%" PRIu16,
 		addr.c_str(), port);
 
+	auto e = getenv("BRO_DEFAULT_CONNECT_RETRY");
+
+	if ( e )
+		retry = atoi(e);
+
 	if ( retry > 0.0 && retry < 1.0 )
 		// Ensure that it doesn't get turned into zero.
 		retry = 1.0;

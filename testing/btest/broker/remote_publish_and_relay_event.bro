@@ -11,8 +11,6 @@
 
 @TEST-START-FILE one.bro
 
-redef Broker::default_connect_retry=1secs;
-redef Broker::default_listen_retry=1secs;
 redef exit_only_after_terminate = T;
 
 event my_event(s: string)
@@ -52,8 +50,6 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 
 @TEST-START-FILE two.bro
 
-redef Broker::default_connect_retry=1secs;
-redef Broker::default_listen_retry=1secs;
 redef exit_only_after_terminate = T;
 
 global peers_added = 0;
@@ -96,8 +92,6 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 
 @TEST-START-FILE three.bro
 
-redef Broker::default_connect_retry=1secs;
-redef Broker::default_listen_retry=1secs;
 redef exit_only_after_terminate = T;
 
 event my_event(s: string)

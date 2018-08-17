@@ -42,21 +42,22 @@ event DHCP::log_dhcp(rec: DHCP::Info)
 	if ( rec?$assigned_addr && rec?$server_addr &&
 	     (rec?$client_software || rec?$server_software) )
 		{
-		# Not quite right to just blindly use 67 and 68 as the ports
-		local id: conn_id = [$orig_h=rec$assigned_addr, $orig_p=68/udp,
-		                     $resp_h=rec$server_addr, $resp_p=67/udp];
+		local id: conn_id = [$orig_h=rec$assigned_addr,
+		                     $orig_p=rec$client_port,
+		                     $resp_h=rec$server_addr,
+		                     $resp_p=rec$server_port];
 
 		if ( rec?$client_software && rec$assigned_addr != 255.255.255.255 )
 			{
 			Software::found(id, [$unparsed_version=rec$client_software,
-			                     $host=rec$assigned_addr,
+			                     $host=rec$assigned_addr, $host_p=id$orig_p,
 			                     $software_type=DHCP::CLIENT]);
 			}
 
 		if ( rec?$server_software )
 			{
 			Software::found(id, [$unparsed_version=rec$server_software,
-			                     $host=rec$server_addr,
+			                     $host=rec$server_addr, $host_p=id$resp_p,
 			                     $software_type=DHCP::SERVER]);
 			}
 		}

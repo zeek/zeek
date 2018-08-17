@@ -327,6 +327,10 @@ scripts/base/init-default.bro
         scripts/base/protocols/smb/consts.bro
         scripts/base/protocols/smb/const-dos-error.bro
         scripts/base/protocols/smb/const-nt-status.bro
+        scripts/base/protocols/smb/main.bro
+        scripts/base/protocols/smb/smb1-main.bro
+        scripts/base/protocols/smb/smb2-main.bro
+        scripts/base/protocols/smb/files.bro
   scripts/base/protocols/pop3/__load__.bro
   scripts/base/protocols/radius/__load__.bro
     scripts/base/protocols/radius/main.bro

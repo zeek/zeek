@@ -17,9 +17,11 @@ enum dce_rpc_ptype {
 	DCE_RPC_BIND_NAK,
 	DCE_RPC_ALTER_CONTEXT,
 	DCE_RPC_ALTER_CONTEXT_RESP,
+	DCE_RPC_AUTH3,
 	DCE_RPC_SHUTDOWN,
 	DCE_RPC_CO_CANCEL,
 	DCE_RPC_ORPHANED,
+	DCE_RPC_RTS,
 };
 
 type uuid = bytestring &length = 16;

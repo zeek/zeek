@@ -105,7 +105,9 @@ module GLOBAL;
 ## .. bro:see:: get_file_handle
 function set_file_handle%(handle: string%): any
 	%{
-	file_mgr->SetHandle(handle->CheckString());
+	auto bytes = reinterpret_cast<const char*>(handle->Bytes());
+	auto h = std::string(bytes, handle->Len());
+	file_mgr->SetHandle(h);
 	return 0;
 	%}
 

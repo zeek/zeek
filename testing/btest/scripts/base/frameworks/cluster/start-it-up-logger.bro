@@ -26,10 +26,6 @@ redef Cluster::nodes = {
 };
 @TEST-END-FILE
 
-redef Cluster::retry_interval = 1sec;
-redef Broker::default_listen_retry = 1sec;
-redef Broker::default_connect_retry = 1sec;
-
 global peer_count = 0;
 
 global fully_connected_nodes = 0;

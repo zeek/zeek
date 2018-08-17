@@ -70,7 +70,8 @@ public:
 
 	/**
 	 * Creates a file identifier from a unique file handle string.
-	 * @param handle a unique string which identifies a single file.
+	 * @param handle a unique string (may contain NULs) which identifies
+	 * a single file.
 	 * @return a prettified MD5 hash of \a handle, truncated to *bits_per_uid* bits.
 	 */
 	string HashHandle(const string& handle) const;
@@ -78,7 +79,8 @@ public:
 	/**
 	 * Take in a unique file handle string to identify next piece of
 	 * incoming file data/information.
-	 * @param handle a unique string which identifies a single file.
+	 * @param handle a unique string (may contain NULs) which identifies
+	 * a single file.
 	 */
 	void SetHandle(const string& handle);
 

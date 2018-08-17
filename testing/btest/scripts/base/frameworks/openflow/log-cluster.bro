@@ -12,9 +12,6 @@ redef Cluster::nodes = {
 };
 @TEST-END-FILE
 
-redef Cluster::retry_interval = 1sec;
-redef Broker::default_listen_retry = 1sec;
-redef Broker::default_connect_retry = 1sec;
 redef Log::default_rotation_interval = 0secs;
 #redef exit_only_after_terminate = T;
 

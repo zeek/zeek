@@ -101,7 +101,8 @@ public:
 	 * @param addr an address to connect to, e.g. "localhost" or "127.0.0.1".
 	 * @param port the TCP port on which the remote side is listening.
 	 * @param retry If non-zero, the time after which to retry if
-	 * connection cannot be established, or breaks.
+	 * connection cannot be established, or breaks.  BRO_DEFAULT_CONNECT_RETRY
+	 * environment variable overrides this value.
 	 */
 	void Peer(const std::string& addr, uint16_t port, double retry = 10.0);
 

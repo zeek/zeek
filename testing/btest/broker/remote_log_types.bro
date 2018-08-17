@@ -14,8 +14,6 @@
 
 @TEST-START-FILE common.bro
 
-redef Broker::default_connect_retry=1secs;
-redef Broker::default_listen_retry=1secs;
 redef exit_only_after_terminate = T;
 
 global quit_receiver: event();

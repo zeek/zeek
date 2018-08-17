@@ -1,4 +1,46 @@
 
+2.5-850 | 2018-08-17 11:12:53 -0500
+
+  * BIT-1815: move SMB::write_cmd_log functionality into policy/ script
+
+    The option is removed, but same functionality is now enabled simply
+    by loading policy/protocols/smb/log-cmds.bro (Jon Siwek, Corelight)
+
+2.5-849 | 2018-08-17 10:29:58 -0500
+
+  * Fix possible race in netcontrol acld/broker plugins (Jon Siwek, Corelight)
+
+2.5-848 | 2018-08-16 17:21:28 -0500
+
+  * Enable SMB by default by moving scripts from policy/ to base/
+    (Jon Siwek, Corelight)
+
+2.5-847 | 2018-08-16 16:07:14 -0500
+
+  * BIT-1924: add DHCP port to software.log for completeness
+    (Jon Siwek, Corelight)
+
+2.5-846 | 2018-08-16 14:11:02 -0500
+
+  * BIT-1858: fix logged-names for DNS RR types 44 and 45 (Jon Siwek, Corelight)
+
+  * BIT-1850: add missing DCE/RPC PDU type enum values (Jon Siwek, Corelight)
+
+2.5-844 | 2018-08-16 12:13:16 -0500
+
+  * Add env. variables to override Broker listen/connect retry intervals
+    And use them to default retries to 1sec for all unit tests.
+    (Jon Siwek, Corelight)
+
+2.5-843 | 2018-08-15 18:01:56 -0500
+
+  * BIT-1544: allow NULs in file analysis handles (Jon Siwek, Corelight)
+
+2.5-842 | 2018-08-15 11:00:20 -0500
+
+  * Fix seg fault on trying to type-cast invalid/nil Broker::Data
+    (Jon Siwek, Corelight)
+
 2.5-841 | 2018-08-14 16:45:09 -0500
 
   * BIT-1798: fix PPTP GRE tunnel decapsulation (Jon Siwek, Corelight)

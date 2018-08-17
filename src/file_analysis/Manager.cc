@@ -104,7 +104,16 @@ void Manager::SetHandle(const string& handle)
 	if ( handle.empty() )
 		return;
 
-	DBG_LOG(DBG_FILE_ANALYSIS, "Set current handle to %s", handle.c_str());
+#ifdef DEBUG
+	if ( debug_logger.IsEnabled(DBG_FILE_ANALYSIS) )
+		{
+		BroString tmp{handle};
+		auto rendered = tmp.Render();
+		DBG_LOG(DBG_FILE_ANALYSIS, "Set current handle to %s", rendered);
+		delete [] rendered;
+		}
+#endif
+
 	current_file_id = HashHandle(handle);
 	}
 

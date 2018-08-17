@@ -242,6 +242,9 @@ New Functionality
 
 - Added new NFS events: nfs_proc_symlink, nfs_proc_link, nfs_proc_sattr.
 
+- The SMB scripts in policy/protocols/smb are now moved into base/protocols/smb
+  and loaded/enabled by default.
+
 - Added new SMB events: smb1_transaction_secondary_request,
   smb1_transaction2_secondary_request, smb1_transaction_response.
 
@@ -381,6 +384,10 @@ Changed Functionality
     and "data" strings
 
   - smb1_transaction2_request now has an additional "args" record argument
+
+- The SMB::write_cmd_log option has been removed and the corresponding
+  logic moving to policy/protocols/smb/log-cmds.bro which can simply
+  be loaded to produce the same effect of toggling the old flag on.
 
 - SSL event argument changes:
 

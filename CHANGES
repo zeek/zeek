@@ -1,4 +1,8 @@
 
+2.5-852 | 2018-08-17 15:15:55 -0500
+
+  * BIT-466: add redef += support to vectors (Jon Siwek, Corelight)
+
 2.5-850 | 2018-08-17 11:12:53 -0500
 
   * BIT-1815: move SMB::write_cmd_log functionality into policy/ script

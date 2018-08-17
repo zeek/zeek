@@ -1046,6 +1046,10 @@ public:
 	bool AssignRepeat(unsigned int index, unsigned int how_many,
 			  Val* element);
 
+	// Add this value to the given value (if appropriate).
+	// Returns true if succcessful.
+	int AddTo(Val* v, int is_first_init) const override;
+
 	// Returns nil if no element was at that value.
 	// Lookup does NOT grow the vector to this size.
 	// The Val* variant assumes that the index Val* has been type-checked.

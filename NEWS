@@ -314,6 +314,9 @@ New Functionality
 
 - An expression of the form "v += e" will append the value of the expression
   "e" to the end of the vector "v" (of course assuming type-compatbility).
+  "redef v += { a, b, c }" will similarly extend a vector previously declared
+  with &redef by appending the result of expressions "a", "b", and "c" to
+  the vector at initialization-time.
 
 Changed Functionality
 ---------------------

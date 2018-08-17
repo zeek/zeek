@@ -253,10 +253,10 @@ Here is a more detailed description of each type:
 
     When specifying a pattern, you can add a final ``i`` specifier to
     mark it as case-insensitive.  For example, ``/foo|bar/i`` will match
-    a "foo", "Foo", "BaR", etc.
+    "foo", "Foo", "BaR", etc.
 
     You can also introduce a case-insensitive sub-pattern by enclosing it
-    in ``(?i:``<pattern>``)``.  So, for example, ``/foo|(?i:bar)/`` will
+    in ``(?i:<pattern>)``.  So, for example, ``/foo|(?i:bar)/`` will
     match "foo" and "BaR", but *not* "Foo".
 
     For both ways of specifying case-insensitivity, characters enclosed
@@ -545,13 +545,14 @@ Here is a more detailed description of each type:
         |s|
 
     You can compute the union, intersection, or difference of two sets
-    using the ``|``, ``&``, and ``-`` operators.  You can compare
-    sets for equality (they have exactly the same elements) using ``==``.
-    The ``<`` operator returns ``T`` if the lefthand operand is a proper
-    subset of the righthand operand.  Similarly, ``<=`` returns ``T``
-    if the lefthand operator is a subset (not necessarily proper, i.e.,
-    it may be equal to the righthand operand).  The operators ``!=``, ``>``
-    and ``>=`` provide the expected complementary operations.
+    using the ``|``, ``&``, and ``-`` operators.
+
+    You can compare sets for equality (they have exactly the same elements)
+    using ``==``.  The ``<`` operator returns ``T`` if the lefthand operand
+    is a proper subset of the righthand operand.  Similarly, ``<=``
+    returns ``T`` if the lefthand operator is a subset (not necessarily proper,
+    i.e., it may be equal to the righthand operand).  The operators ``!=``,
+    ``>`` and ``>=`` provide the expected complementary operations.
 
     See the :bro:keyword:`for` statement for info on how to iterate over
     the elements in a set.
@@ -601,8 +602,9 @@ Here is a more detailed description of each type:
 
         v[3] = "four";
 
-    The number of elements in a vector can be obtained by placing the vector
-    identifier between vertical pipe characters:
+    The size of a vector (this is one greater than the highest index value, and
+    is normally equal to the number of elements in the vector) can be obtained
+    by placing the vector identifier between vertical pipe characters:
 
     .. code:: bro
 
@@ -621,6 +623,11 @@ Here is a more detailed description of each type:
     .. code:: bro
 
         v[|v|] = e;
+
+    The "in" operator can be used to check if a value has been assigned at a
+    specified index value in the vector.  For example, if a vector has size 4,
+    then the expression ``3 in v`` would yield true and ``4 in v`` would yield
+    false.
 
     Vectors of integral types (``int`` or ``count``) support the pre-increment
     (``++``) and pre-decrement operators (``--``), which will increment or

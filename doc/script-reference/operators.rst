@@ -10,6 +10,11 @@ Relational operators
 
 The relational operators evaluate to type :bro:type:`bool`.
 
+In addition to numeric operands, the relational operators also work with
+operands of type :bro:type:`interval`, :bro:type:`time`, :bro:type:`string`,
+:bro:type:`port`, :bro:type:`addr`, and :bro:type:`set`.
+
+
 +------------------------------+--------------+
 | Name                         | Syntax       |
 +==============================+==============+
@@ -104,11 +109,26 @@ only.
 | Bitwise complement           | ~ *a*       |
 +------------------------------+-------------+
 
+Set operators
+-------------
+
++------------------------------+-------------+
+| Name                         | Syntax      |
++==============================+=============+
+| Set intersection             | *s1* & *s2* |
++------------------------------+-------------+
+| Set union                    | *s1* | *s2* |
++------------------------------+-------------+
+| Set difference               | *s1* - *s2* |
++------------------------------+-------------+
 
 Assignment operators
 --------------------
 
 The assignment operators evaluate to the result of the assignment.
+
+The "+=" operator can also be used to append an element to the end of a
+vector.  For example, ``v += e`` is equivalent to ``v[|v|] = e``.
 
 +------------------------------+-------------+
 | Name                         | Syntax      |
@@ -215,7 +235,14 @@ Other operators
 | Name                           | Syntax            | Notes                  |
 +================================+===================+========================+
 | Membership test                | *a* in *b*        |Evaluates to type       |
-|                                |                   |:bro:type:`bool`. Do not|
+|                                |                   |:bro:type:`bool`. Works |
+|                                |                   |with :bro:type:`string`,|
+|                                |                   |:bro:type:`pattern`,    |
+|                                |                   |:bro:type:`subnet`,     |
+|                                |                   |:bro:type:`set`,        |
+|                                |                   |:bro:type:`table`, or   |
+|                                |                   |:bro:type:`vector`      |
+|                                |                   |operands.  Do not       |
 |                                |                   |confuse this use of "in"|
 |                                |                   |with that used in a     |
 |                                |                   |:bro:keyword:`for`      |

@@ -60,8 +60,8 @@ event InputConfig::new_value(name: string, source: string, id: string, value: an
 
 function read_config(filename: string)
 	{
-	# Only read the configuration on the manager. The other nodes are being fed from
-	# the manager.
+	# Only read the configuration on the manager. The other nodes are being fed
+	# from the manager.
 	if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
 		return;
 

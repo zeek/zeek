@@ -1,4 +1,8 @@
 
+2.5-870 | 2018-08-17 17:07:57 -0500
+
+  * Documentation improvements (Daniel Thayer)
+
 2.5-855 | 2018-08-17 16:34:51 -0500
 
   * Add script to support the old DHCP events (Vlad Grigorescu)

@@ -66,7 +66,7 @@
 # certificate notary service; see http://notary.icsi.berkeley.edu .
 # @load protocols/ssl/notary
 
-# If you have libGeoIP support built in, do some geographic detections and
+# If you have GeoIP support built in, do some geographic detections and
 # logging for SSH traffic.
 @load protocols/ssh/geo-data
 # Detect hosts doing SSH bruteforce attacks.

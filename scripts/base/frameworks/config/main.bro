@@ -28,15 +28,15 @@ export {
 	## record as it is sent on to the logging framework.
 	global log_config: event(rec: Info);
 
-	## Broker topic for announcing new configuration value. Sending new_value,
-	## peers can send configuration changes that will be distributed accross
+	## Broker topic for announcing new configuration values. Sending new_value,
+	## peers can send configuration changes that will be distributed across
 	## the entire cluster.
 	const change_topic = "bro/config/change";
 
 	## This function is the config framework layer around the lower-level
 	## :bro:see:`Option::set` call. Config::set_value will set the configuration
 	## value for all nodes in the cluster, no matter where it was called. Note
-	## that `bro:see:`Option::set` does not distribute configuration changes
+	## that :bro:see:`Option::set` does not distribute configuration changes
 	## to other nodes.
 	##
 	## ID: The ID of the option to update.
@@ -45,7 +45,7 @@ export {
 	##
 	## location: Optional parameter detailing where this change originated from.
 	##
-	## Returns: true on success, false when an error ocured.
+	## Returns: true on success, false when an error occurs.
 	global set_value: function(ID: string, val: any, location: string &default = "" &optional): bool;
 }
 
@@ -73,7 +73,7 @@ event Config::cluster_set_option(ID: string, val: any, location: string)
 function set_value(ID: string, val: any, location: string &default = "" &optional): bool
 	{
 	local cache_val: any;
-	# first cache value in case setting it succeeds and we have to store it.
+	# First cache value in case setting it succeeds and we have to store it.
 	if ( Cluster::local_node_type() == Cluster::MANAGER )
 		cache_val = copy(val);
 	# First try setting it locally - abort if not possible.
@@ -151,8 +151,8 @@ event bro_init() &priority=10
 
 	# Limit logging to the manager - everyone else just feeds off it.
 @if ( !Cluster::is_enabled() || Cluster::local_node_type() == Cluster::MANAGER )
-	# Iterate over all existing options and add ourselves as change handlers with
-	# a low priority so that we can log the changes.
+	# Iterate over all existing options and add ourselves as change handlers
+	# with a low priority so that we can log the changes.
 	local gids = global_ids();
 	for ( i in gids )
 		{

@@ -1,4 +1,8 @@
 
+2.5-855 | 2018-08-17 16:34:51 -0500
+
+  * Add script to support the old DHCP events (Vlad Grigorescu)
+
 2.5-852 | 2018-08-17 15:15:55 -0500
 
   * BIT-466: add redef += support to vectors (Jon Siwek, Corelight)

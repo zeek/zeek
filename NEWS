@@ -350,6 +350,13 @@ Changed Functionality
     - dhcp_release
     - dhcp_inform
 
+  - A new script, policy/protocols/dhcp/deprecated_events.bro, may be loaded
+    to aid those transitioning away from the list of "removed" events above.
+    The script provides definitions for the old events and automatically
+    generates them from a dhcp_message handler, thus providing equivalent
+    functionality to the previous Bro release.  Such usage emits deprecation
+    warnings.
+
 - Removed policy/misc/known-devices.bro script and thus
   known_devices.log will no longer be created.
 

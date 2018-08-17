@@ -60,6 +60,7 @@
 @load protocols/conn/mac-logging.bro
 @load protocols/conn/vlan-logging.bro
 @load protocols/conn/weirds.bro
+#@load protocols/dhcp/deprecated_events.bro
 @load protocols/dhcp/msg-orig.bro
 @load protocols/dhcp/software.bro
 @load protocols/dhcp/sub-opts.bro

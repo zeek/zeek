@@ -1,4 +1,8 @@
 
+2.5-849 | 2018-08-17 10:29:58 -0500
+
+  * Fix possible race in netcontrol acld/broker plugins (Jon Siwek, Corelight)
+
 2.5-848 | 2018-08-16 17:21:28 -0500
 
   * Enable SMB by default by moving scripts from policy/ to base/

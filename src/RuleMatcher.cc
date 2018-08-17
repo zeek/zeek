@@ -898,11 +898,11 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
 							continue;
 
 						// Skip if rule already matched for the opposite direction.
-						if ( state->opposite->matched_rules.is_member(r->Index()) )
+						if ( state->opposite && state->opposite->matched_rules.is_member(r->Index()) )
 							continue;
 
 						// Skip if rule already failed for the opposite direction..
-						if ( state->opposite->failed_rules.is_member(r->Index()) )
+						if ( state->opposite && state->opposite->failed_rules.is_member(r->Index()) )
 							continue;
 
 						// Check whether the rule really belong to any of our nodes.
@@ -1002,7 +1002,7 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
 				continue;
 
 			// Skip if rule already matched for the opposite direction.
-			if ( state->opposite->matched_rules.is_member(r->Index()) )
+			if ( state->opposite && state->opposite->matched_rules.is_member(r->Index()) )
 				continue;
 
 			// Remember that all patterns have matched.
@@ -1069,11 +1069,11 @@ void RuleMatcher::FinishEndpoint(RuleEndpointState* state)
 					continue;
 
 				// Skip if rule already matched for the opposite direction.
-				if ( state->opposite->matched_rules.is_member(r->Index()) )
+				if ( state->opposite && state->opposite->matched_rules.is_member(r->Index()) )
 					continue;
 
 				// Skip if rule already failed for the opposite direction..
-				if ( state->opposite->failed_rules.is_member(r->Index()) )
+				if ( state->opposite && state->opposite->failed_rules.is_member(r->Index()) )
 					continue;
 
 				// Found a not match.

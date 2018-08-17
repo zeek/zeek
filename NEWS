@@ -384,6 +384,10 @@ Changed Functionality
 
   - smb1_transaction2_request now has an additional "args" record argument
 
+- The SMB::write_cmd_log option has been removed and the corresponding
+  logic moving to policy/protocols/smb/log-cmds.bro which can simply
+  be loaded to produce the same effect of toggling the old flag on.
+
 - SSL event argument changes:
 
   - event ssl_server_signature now has an additional argument

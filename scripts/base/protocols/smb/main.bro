@@ -6,7 +6,6 @@ module SMB;
 
 export {
 	redef enum Log::ID += { 
-		CMD_LOG,
 		AUTH_LOG,
 		MAPPING_LOG,
 		FILES_LOG
@@ -43,11 +42,6 @@ export {
 		PRINT_CLOSE,
 	} &redef;
 
-	## The server response statuses which are *not* logged.
-	const ignored_command_statuses: set[string] = {
-		"MORE_PROCESSING_REQUIRED",
-	} &redef;
-	
 	## This record is for the smb_files.log
 	type FileInfo: record {
 		## Time when the file was first discovered.
@@ -159,25 +153,12 @@ export {
 		recent_files : set[string] &default=string_set() &read_expire=3min;
 	};
 
-	## Optionally write out the SMB commands log.  This is 
-	## primarily useful for debugging so is disabled by default.
-	const write_cmd_log = F &redef;
-
 	## Everything below here is used internally in the SMB scripts.
 
 	redef record connection += {
 		smb_state : State &optional;
 	};
 	
-	## Internal use only.
-	## Some commands shouldn't be logged by the smb1_message event.
-	const deferred_logging_cmds: set[string] = {
-		"NEGOTIATE",
-		"READ_ANDX",
-		"SESSION_SETUP_ANDX",
-		"TREE_CONNECT_ANDX",
-	};
-
 	## This is an internally used function.
 	const set_current_file: function(smb_state: State, file_id: count) &redef;
 
@@ -198,7 +179,6 @@ redef likely_server_ports += { ports };
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(SMB::CMD_LOG, [$columns=SMB::CmdInfo, $path="smb_cmd"]);
 	Log::create_stream(SMB::FILES_LOG, [$columns=SMB::FileInfo, $path="smb_files"]);
 	Log::create_stream(SMB::MAPPING_LOG, [$columns=SMB::TreeInfo, $path="smb_mapping"]);
 

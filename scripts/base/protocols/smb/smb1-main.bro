@@ -68,17 +68,10 @@ event smb1_message(c: connection, hdr: SMB1::Header, is_orig: bool) &priority=5
 
 event smb1_message(c: connection, hdr: SMB1::Header, is_orig: bool) &priority=-5
 	{
-	# Is this a response?
-	if ( !is_orig )
-		{
-		if ( SMB::write_cmd_log &&
-		     c$smb_state$current_cmd$status !in SMB::ignored_command_statuses &&
-		     c$smb_state$current_cmd$command !in SMB::deferred_logging_cmds )
-			{
-			Log::write(SMB::CMD_LOG, c$smb_state$current_cmd);
-			}
-		delete c$smb_state$pending_cmds[hdr$mid];
-		}
+	if ( is_orig )
+		return;
+
+	delete c$smb_state$pending_cmds[hdr$mid];
 	}
 
 
@@ -324,19 +317,4 @@ event smb_pipe_request(c: connection, hdr: SMB1::Header, op_num: count)
 	                SMB::rpc_sub_cmds[f$uuid][op_num]);
 
 	c$smb_state$current_cmd$argument = arg;
-	}
-
-event smb1_error(c: connection, hdr: SMB1::Header, is_orig: bool)
-	{
-	if ( ! is_orig )
-		{
-		# This is for deferred commands only.
-		# The more specific messages won't fire for errors
-		if ( SMB::write_cmd_log &&
-		     c$smb_state$current_cmd$status !in SMB::ignored_command_statuses &&
-		     c$smb_state$current_cmd$command in SMB::deferred_logging_cmds )
-			{
-			Log::write(SMB::CMD_LOG, c$smb_state$current_cmd);
-			}
-		}
 	}

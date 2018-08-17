@@ -1,4 +1,11 @@
 
+2.5-850 | 2018-08-17 11:12:53 -0500
+
+  * BIT-1815: move SMB::write_cmd_log functionality into policy/ script
+
+    The option is removed, but same functionality is now enabled simply
+    by loading policy/protocols/smb/log-cmds.bro (Jon Siwek, Corelight)
+
 2.5-849 | 2018-08-17 10:29:58 -0500
 
   * Fix possible race in netcontrol acld/broker plugins (Jon Siwek, Corelight)

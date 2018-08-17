@@ -213,7 +213,6 @@
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (RFB::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=rfb, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (Reporter::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=reporter, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (SIP::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=sip, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (SMB::CMD_LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=smb_cmd, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (SMB::FILES_LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=smb_files, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (SMB::MAPPING_LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=smb_mapping, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (SMTP::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=smtp, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
@@ -260,7 +259,6 @@
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (RFB::LOG, [columns=<no value description>, ev=RFB::log_rfb, path=rfb])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Reporter::LOG, [columns=<no value description>, ev=<uninitialized>, path=reporter])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (SIP::LOG, [columns=<no value description>, ev=SIP::log_sip, path=sip])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (SMB::CMD_LOG, [columns=<no value description>, ev=<uninitialized>, path=smb_cmd])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (SMB::FILES_LOG, [columns=<no value description>, ev=<uninitialized>, path=smb_files])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (SMB::MAPPING_LOG, [columns=<no value description>, ev=<uninitialized>, path=smb_mapping])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (SMTP::LOG, [columns=<no value description>, ev=SMTP::log_smtp, path=smtp])) -> <no result>
@@ -276,7 +274,7 @@
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1534455885.275568, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1534522064.090237, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Broker::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Config::LOG)) -> <no result>
@@ -308,7 +306,6 @@
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (RFB::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Reporter::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (SIP::LOG)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (SMB::CMD_LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (SMB::FILES_LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (SMB::MAPPING_LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (SMTP::LOG)) -> <no result>
@@ -355,7 +352,6 @@
 0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (RFB::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (Reporter::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (SIP::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (SMB::CMD_LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (SMB::FILES_LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (SMB::MAPPING_LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (SMTP::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
@@ -402,7 +398,6 @@
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (RFB::LOG, default)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (Reporter::LOG, default)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (SIP::LOG, default)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (SMB::CMD_LOG, default)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (SMB::FILES_LOG, default)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (SMB::MAPPING_LOG, default)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (SMTP::LOG, default)) -> <no result>
@@ -449,7 +444,6 @@
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (RFB::LOG, [columns=<no value description>, ev=RFB::log_rfb, path=rfb])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Reporter::LOG, [columns=<no value description>, ev=<uninitialized>, path=reporter])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (SIP::LOG, [columns=<no value description>, ev=SIP::log_sip, path=sip])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (SMB::CMD_LOG, [columns=<no value description>, ev=<uninitialized>, path=smb_cmd])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (SMB::FILES_LOG, [columns=<no value description>, ev=<uninitialized>, path=smb_files])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (SMB::MAPPING_LOG, [columns=<no value description>, ev=<uninitialized>, path=smb_mapping])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (SMTP::LOG, [columns=<no value description>, ev=SMTP::log_smtp, path=smtp])) -> <no result>
@@ -465,7 +459,7 @@
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1534455885.275568, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1534522064.090237, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
 0.000000   MetaHookPost  CallFunction(NetControl::check_plugins, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(NetControl::init, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Notice::want_pp, <frame>, ()) -> <no result>
@@ -1042,7 +1036,6 @@
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (RFB::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=rfb, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (Reporter::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=reporter, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (SIP::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=sip, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}]))
-0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (SMB::CMD_LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=smb_cmd, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (SMB::FILES_LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=smb_files, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (SMB::MAPPING_LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=smb_mapping, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (SMTP::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=smtp, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}]))
@@ -1089,7 +1082,6 @@
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (RFB::LOG, [columns=<no value description>, ev=RFB::log_rfb, path=rfb]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Reporter::LOG, [columns=<no value description>, ev=<uninitialized>, path=reporter]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (SIP::LOG, [columns=<no value description>, ev=SIP::log_sip, path=sip]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (SMB::CMD_LOG, [columns=<no value description>, ev=<uninitialized>, path=smb_cmd]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (SMB::FILES_LOG, [columns=<no value description>, ev=<uninitialized>, path=smb_files]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (SMB::MAPPING_LOG, [columns=<no value description>, ev=<uninitialized>, path=smb_mapping]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (SMTP::LOG, [columns=<no value description>, ev=SMTP::log_smtp, path=smtp]))
@@ -1105,7 +1097,7 @@
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql]))
-0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1534455885.275568, node=bro, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1534522064.090237, node=bro, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Broker::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Config::LOG))
@@ -1137,7 +1129,6 @@
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (RFB::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Reporter::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (SIP::LOG))
-0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (SMB::CMD_LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (SMB::FILES_LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (SMB::MAPPING_LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (SMTP::LOG))
@@ -1184,7 +1175,6 @@
 0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (RFB::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (Reporter::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (SIP::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}]))
-0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (SMB::CMD_LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (SMB::FILES_LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (SMB::MAPPING_LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (SMTP::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}]))
@@ -1231,7 +1221,6 @@
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (RFB::LOG, default))
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (Reporter::LOG, default))
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (SIP::LOG, default))
-0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (SMB::CMD_LOG, default))
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (SMB::FILES_LOG, default))
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (SMB::MAPPING_LOG, default))
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (SMTP::LOG, default))
@@ -1278,7 +1267,6 @@
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (RFB::LOG, [columns=<no value description>, ev=RFB::log_rfb, path=rfb]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Reporter::LOG, [columns=<no value description>, ev=<uninitialized>, path=reporter]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (SIP::LOG, [columns=<no value description>, ev=SIP::log_sip, path=sip]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (SMB::CMD_LOG, [columns=<no value description>, ev=<uninitialized>, path=smb_cmd]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (SMB::FILES_LOG, [columns=<no value description>, ev=<uninitialized>, path=smb_files]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (SMB::MAPPING_LOG, [columns=<no value description>, ev=<uninitialized>, path=smb_mapping]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (SMTP::LOG, [columns=<no value description>, ev=SMTP::log_smtp, path=smtp]))
@@ -1294,7 +1282,7 @@
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql]))
-0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1534455885.275568, node=bro, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1534522064.090237, node=bro, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(NetControl::check_plugins, <frame>, ())
 0.000000   MetaHookPre   CallFunction(NetControl::init, <null>, ())
 0.000000   MetaHookPre   CallFunction(Notice::want_pp, <frame>, ())
@@ -1870,7 +1858,6 @@
 0.000000 | HookCallFunction Log::__add_filter(RFB::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=rfb, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::__add_filter(Reporter::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=reporter, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::__add_filter(SIP::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=sip, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])
-0.000000 | HookCallFunction Log::__add_filter(SMB::CMD_LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=smb_cmd, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::__add_filter(SMB::FILES_LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=smb_files, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::__add_filter(SMB::MAPPING_LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=smb_mapping, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::__add_filter(SMTP::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=smtp, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])
@@ -1917,7 +1904,6 @@
 0.000000 | HookCallFunction Log::__create_stream(RFB::LOG, [columns=<no value description>, ev=RFB::log_rfb, path=rfb])
 0.000000 | HookCallFunction Log::__create_stream(Reporter::LOG, [columns=<no value description>, ev=<uninitialized>, path=reporter])
 0.000000 | HookCallFunction Log::__create_stream(SIP::LOG, [columns=<no value description>, ev=SIP::log_sip, path=sip])
-0.000000 | HookCallFunction Log::__create_stream(SMB::CMD_LOG, [columns=<no value description>, ev=<uninitialized>, path=smb_cmd])
 0.000000 | HookCallFunction Log::__create_stream(SMB::FILES_LOG, [columns=<no value description>, ev=<uninitialized>, path=smb_files])
 0.000000 | HookCallFunction Log::__create_stream(SMB::MAPPING_LOG, [columns=<no value description>, ev=<uninitialized>, path=smb_mapping])
 0.000000 | HookCallFunction Log::__create_stream(SMTP::LOG, [columns=<no value description>, ev=SMTP::log_smtp, path=smtp])
@@ -1933,7 +1919,7 @@
 0.000000 | HookCallFunction Log::__create_stream(Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])
 0.000000 | HookCallFunction Log::__create_stream(X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])
 0.000000 | HookCallFunction Log::__create_stream(mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])
-0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1534455885.275568, node=bro, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1534522064.090237, node=bro, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction Log::add_default_filter(Broker::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Cluster::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Config::LOG)
@@ -1965,7 +1951,6 @@
 0.000000 | HookCallFunction Log::add_default_filter(RFB::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Reporter::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(SIP::LOG)
-0.000000 | HookCallFunction Log::add_default_filter(SMB::CMD_LOG)
 0.000000 | HookCallFunction Log::add_default_filter(SMB::FILES_LOG)
 0.000000 | HookCallFunction Log::add_default_filter(SMB::MAPPING_LOG)
 0.000000 | HookCallFunction Log::add_default_filter(SMTP::LOG)
@@ -2012,7 +1997,6 @@
 0.000000 | HookCallFunction Log::add_filter(RFB::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::add_filter(Reporter::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::add_filter(SIP::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])
-0.000000 | HookCallFunction Log::add_filter(SMB::CMD_LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::add_filter(SMB::FILES_LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::add_filter(SMB::MAPPING_LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::add_filter(SMTP::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])
@@ -2059,7 +2043,6 @@
 0.000000 | HookCallFunction Log::add_stream_filters(RFB::LOG, default)
 0.000000 | HookCallFunction Log::add_stream_filters(Reporter::LOG, default)
 0.000000 | HookCallFunction Log::add_stream_filters(SIP::LOG, default)
-0.000000 | HookCallFunction Log::add_stream_filters(SMB::CMD_LOG, default)
 0.000000 | HookCallFunction Log::add_stream_filters(SMB::FILES_LOG, default)
 0.000000 | HookCallFunction Log::add_stream_filters(SMB::MAPPING_LOG, default)
 0.000000 | HookCallFunction Log::add_stream_filters(SMTP::LOG, default)
@@ -2106,7 +2089,6 @@
 0.000000 | HookCallFunction Log::create_stream(RFB::LOG, [columns=<no value description>, ev=RFB::log_rfb, path=rfb])
 0.000000 | HookCallFunction Log::create_stream(Reporter::LOG, [columns=<no value description>, ev=<uninitialized>, path=reporter])
 0.000000 | HookCallFunction Log::create_stream(SIP::LOG, [columns=<no value description>, ev=SIP::log_sip, path=sip])
-0.000000 | HookCallFunction Log::create_stream(SMB::CMD_LOG, [columns=<no value description>, ev=<uninitialized>, path=smb_cmd])
 0.000000 | HookCallFunction Log::create_stream(SMB::FILES_LOG, [columns=<no value description>, ev=<uninitialized>, path=smb_files])
 0.000000 | HookCallFunction Log::create_stream(SMB::MAPPING_LOG, [columns=<no value description>, ev=<uninitialized>, path=smb_mapping])
 0.000000 | HookCallFunction Log::create_stream(SMTP::LOG, [columns=<no value description>, ev=SMTP::log_smtp, path=smtp])
@@ -2122,7 +2104,7 @@
 0.000000 | HookCallFunction Log::create_stream(Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])
 0.000000 | HookCallFunction Log::create_stream(X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])
 0.000000 | HookCallFunction Log::create_stream(mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])
-0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1534455885.275568, node=bro, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1534522064.090237, node=bro, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction NetControl::check_plugins()
 0.000000 | HookCallFunction NetControl::init()
 0.000000 | HookCallFunction Notice::want_pp()
@@ -2480,7 +2462,7 @@
 0.000000 | HookLoadFile  base<...>/x509
 0.000000 | HookLoadFile  base<...>/xmpp
 0.000000 | HookLogInit   packet_filter 1/1 {ts (time), node (string), filter (string), init (bool), success (bool)}
-0.000000 | HookLogWrite  packet_filter [ts=1534455885.275568, node=bro, filter=ip or not ip, init=T, success=T]
+0.000000 | HookLogWrite  packet_filter [ts=1534522064.090237, node=bro, filter=ip or not ip, init=T, success=T]
 0.000000 | HookQueueEvent NetControl::init()
 0.000000 | HookQueueEvent bro_init()
 0.000000 | HookQueueEvent filter_change_tracking()

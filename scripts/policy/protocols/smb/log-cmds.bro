@@ -11,9 +11,9 @@ export {
 	};
 
 	## The server response statuses which are *not* logged.
-	const ignored_command_statuses: set[string] = {
+	option ignored_command_statuses: set[string] = {
 		"MORE_PROCESSING_REQUIRED",
-	} &redef;
+	};
 }
 
 ## Internal use only.

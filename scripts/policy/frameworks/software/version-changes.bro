@@ -19,7 +19,7 @@ export {
 	## Some software is more interesting when the version changes and this
 	## is a set of all software that should raise a notice when a different
 	## version is seen on a host.
-	const interesting_version_changes: set[string] = { } &redef;
+	option interesting_version_changes: set[string] = {};
 }
 
 event Software::version_change(old: Software::Info, new: Software::Info)

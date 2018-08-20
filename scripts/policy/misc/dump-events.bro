@@ -7,7 +7,7 @@ module DumpEvents;
 
 export {
 	## If true, include event arguments in output.
-	const include_args = T &redef;
+	option include_args = T;
 
 	## Only include events matching the given pattern into output. By default, the
 	## pattern matches all events.

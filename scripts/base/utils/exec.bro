@@ -42,9 +42,6 @@ export {
 	## Returns: A record representing the full results from the
 	##          external program execution.
 	global run: function(cmd: Command): Result;
-
-	## The system directory for temporary files.
-	const tmp_dir = "/tmp" &redef;
 }
 
 # Indexed by command uid.

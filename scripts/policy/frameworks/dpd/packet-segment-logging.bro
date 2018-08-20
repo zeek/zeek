@@ -16,7 +16,7 @@ export {
 	};
 
 	## Size of the packet segment to display in the DPD log.
-	const packet_segment_size: int = 255 &redef;
+	option packet_segment_size: int = 255;
 }
 
 

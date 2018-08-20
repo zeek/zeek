@@ -21,24 +21,24 @@ export {
 	## keys/ciphers/protocol_versions.  By default, these notices will be suppressed
 	## by the notice framework for 1 day after a particular host has had a notice
 	## generated. Choices are: LOCAL_HOSTS, REMOTE_HOSTS, ALL_HOSTS, NO_HOSTS
-	const notify_weak_keys = LOCAL_HOSTS &redef;
+	option notify_weak_keys = LOCAL_HOSTS;
 
 	## The minimal key length in bits that is considered to be safe. Any shorter
 	## (non-EC) key lengths will trigger a notice.
-	const notify_minimal_key_length = 2048 &redef;
+	option notify_minimal_key_length = 2048;
 
 	## Warn if the DH key length is smaller than the certificate key length. This is
 	## potentially unsafe because it gives a wrong impression of safety due to the
 	## certificate key length. However, it is very common and cannot be avoided in some
 	## settings (e.g. with old jave clients).
-	const notify_dh_length_shorter_cert_length = T &redef;
+	option notify_dh_length_shorter_cert_length = T;
 
 	## Warn if a server negotiates a SSL session with a protocol version smaller than
 	## the specified version. By default, the minimal version is TLSv10 because SSLv2
 	## and v3 have serious security issued.
 	## See https://tools.ietf.org/html/draft-thomson-sslv3-diediedie-00
 	## To disable, set to SSLv20
-	const tls_minimum_version = TLSv10 &redef;
+	option tls_minimum_version = TLSv10;
 
 	## Warn if a server negotiates an unsafe cipher suite. By default, we only warn when
 	## encountering old export cipher suites, or RC4 (see RFC7465).

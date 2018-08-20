@@ -140,10 +140,11 @@ void ID::SetVal(Val* v, init_class c)
 		}
 
 	if ( type->Tag() != TYPE_TABLE &&
-	     (type->Tag() != TYPE_PATTERN || c == INIT_REMOVE) )
+	     (type->Tag() != TYPE_PATTERN || c == INIT_REMOVE) &&
+	     (type->Tag() != TYPE_VECTOR  || c == INIT_REMOVE) )
 		{
 		if ( c == INIT_EXTRA )
-			Error("+= initializer only applies to tables, sets and patterns", v);
+			Error("+= initializer only applies to tables, sets, vectors and patterns", v);
 		else
 			Error("-= initializer only applies to tables and sets", v);
 		}

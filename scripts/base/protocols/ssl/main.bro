@@ -263,7 +263,7 @@ event ssl_extension_server_name(c: connection, is_orig: bool, names: string_vec)
 		{
 		c$ssl$server_name = names[0];
 		if ( |names| > 1 )
-			event conn_weird("SSL_many_server_names", c, cat(names));
+			Reporter::conn_weird("SSL_many_server_names", c, cat(names));
 		}
 	}
 

@@ -190,7 +190,11 @@ all loaded Bro scripts.
         option hostname = "host-1";
         option peers: set[addr] = {};
 
-    The value of an option cannot be changed by an assignment statement.
+    The initial value can be redefined with a :bro:keyword:`redef`.
+
+    The value of an option cannot be changed by an assignment statement, but
+    it can be changed by either the :bro:id:`Config::set_value` function or
+    by changing a config file specified in :bro:id:`Config::config_files`.
 
     The scope of an option is global.
 
@@ -215,26 +219,30 @@ all loaded Bro scripts.
 
 .. bro:keyword:: redef
 
-    There are three ways that "redef" can be used:  to change the value of
-    a global variable (but only if it has the :bro:attr:`&redef` attribute),
-    to extend a record type or enum type, or to specify
-    a new event handler body that replaces all those that were previously
-    defined.
+    There are several ways that "redef" can be used:  to redefine the initial
+    value of a global variable or runtime option, to extend a record type or
+    enum type, or to specify a new event handler body that replaces all those
+    that were previously defined.
 
-    If you're using "redef" to change a global variable (defined using either
-    :bro:keyword:`const` or :bro:keyword:`global`), then the variable that you
-    want to change must have the :bro:attr:`&redef` attribute.  If the variable
-    you're changing is a table, set, or pattern, you can use ``+=`` to add
-    new elements, or you can use ``=`` to specify a new value (all previous
-    contents of the object are removed).  If the variable you're changing is a
-    set or table, then you can use the ``-=`` operator to remove the
-    specified elements (nothing happens for specified elements that don't
+    If you're using "redef" to redefine the initial value of a global variable
+    (defined using either :bro:keyword:`const` or :bro:keyword:`global`), then
+    the variable that you want to change must have the :bro:attr:`&redef`
+    attribute.  You can use "redef" to redefine the initial value of a
+    runtime option (defined using :bro:keyword:`option`) even if it doesn't
+    have the :bro:attr:`&redef` attribute.
+
+    If the variable you're changing is a table, set, vector, or pattern, you can
+    use ``+=`` to add new elements, or you can use ``=`` to specify a new value
+    (all previous contents of the object are removed).  If the variable you're
+    changing is a set or table, then you can use the ``-=`` operator to remove
+    the specified elements (nothing happens for specified elements that don't
     exist).  If the variable you are changing is not a table, set, or pattern,
     then you must use the ``=`` operator.
 
     Examples::
 
         redef pi = 3.14;
+        redef set_of_ports += { 22/tcp, 53/udp };
 
     If you're using "redef" to extend a record or enum, then you must
     use the ``+=`` assignment operator.

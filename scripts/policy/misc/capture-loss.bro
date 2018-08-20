@@ -44,7 +44,7 @@ export {
 	## when the :bro:enum:`CaptureLoss::Too_Much_Loss` notice should be
 	## generated. The value is expressed as a double between 0 and 1 with 1
 	## being 100%.
-	const too_much_loss: double = 0.1 &redef;
+	option too_much_loss: double = 0.1;
 }
 
 event CaptureLoss::take_measurement(last_ts: time, last_acks: count, last_gaps: count)

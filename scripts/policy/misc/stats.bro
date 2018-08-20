@@ -8,7 +8,7 @@ export {
 	redef enum Log::ID += { LOG };
 
 	## How often stats are reported.
-	const report_interval = 5min &redef;
+	option report_interval = 5min;
 
 	type Info: record {
 		## Timestamp for the measurement.

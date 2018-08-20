@@ -7,6 +7,10 @@
 
 #include <list>
 #include <utility>
+#include <string>
+#include <map>
+#include <unordered_set>
+#include <unordered_map>
 
 #include "util.h"
 #include "EventHandler.h"
@@ -36,6 +40,11 @@ protected:
 
 class Reporter {
 public:
+	using IPPair = std::pair<IPAddr, IPAddr>;
+	using WeirdCountMap = std::unordered_map<std::string, uint64>;
+	using WeirdFlowMap = std::map<IPPair, WeirdCountMap>;
+	using WeirdSet = std::unordered_set<std::string>;
+
 	Reporter();
 	~Reporter();
 
@@ -76,7 +85,6 @@ public:
 	// that may lead to incorrectly processing a connnection.
 	void Weird(const char* name);	// Raises net_weird().
 	void Weird(Connection* conn, const char* name, const char* addl = "");	// Raises conn_weird().
-	void Weird(Val* conn_val, const char* name, const char* addl = "");	// Raises conn_weird().
 	void Weird(const IPAddr& orig, const IPAddr& resp, const char* name);	// Raises flow_weird().
 
 	// Syslog a message. This methods does nothing if we're running
@@ -120,6 +128,30 @@ public:
 	// Signals that we're done processing an error handler event.
 	void EndErrorHandler()	{ --in_error_handler; }
 
+	/**
+	 * Reset/cleanup state tracking for a "net" weird.
+	 */
+	void ResetNetWeird(const std::string& name);
+
+	/**
+	 * Reset/cleanup state tracking for a "flow" weird.
+	 */
+	void ResetFlowWeird(const IPAddr& orig, const IPAddr& resp);
+
+	/**
+	 * Return the total number of weirds generated (counts weirds before
+	 * any rate-limiting occurs).
+	 */
+	uint64 GetWeirdCount() const
+		{ return weird_count; }
+
+	/**
+	 * Return number of weirds generated per weird type/name (counts weirds
+	 * before any rate-limiting occurs).
+	 */
+	const WeirdCountMap& GetWeirdsByType() const
+		{ return weird_count_by_type; }
+
 private:
 	void DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 		   Connection* conn, val_list* addl, bool location, bool time,
@@ -129,6 +161,11 @@ private:
 	// contain format specifiers
 	void WeirdHelper(EventHandlerPtr event, Val* conn_val, const char* addl, const char* fmt_name, ...) __attribute__((format(printf, 5, 6)));;
 	void WeirdFlowHelper(const IPAddr& orig, const IPAddr& resp, const char* fmt_name, ...) __attribute__((format(printf, 4, 5)));;
+	void UpdateWeirdStats(const char* name);
+	inline bool WeirdOnSamplingWhiteList(const char* name)
+		{ return weird_sampling_whitelist.find(name) != weird_sampling_whitelist.end(); }
+	bool PermitNetWeird(const char* name);
+	bool PermitFlowWeird(const char* name, const IPAddr& o, const IPAddr& r);
 
 	int errors;
 	bool via_events;
@@ -138,6 +175,18 @@ private:
 	bool errors_to_stderr;
 
 	std::list<std::pair<const Location*, const Location*> > locations;
+
+	uint64 weird_count;
+	WeirdCountMap weird_count_by_type;
+
+	WeirdCountMap net_weird_state;
+	WeirdFlowMap flow_weird_state;
+
+	WeirdSet weird_sampling_whitelist;
+	uint64 weird_sampling_threshold;
+	uint64 weird_sampling_rate;
+	double weird_sampling_duration;
+
 };
 
 extern Reporter* reporter;

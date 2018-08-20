@@ -14,8 +14,6 @@ Network Protocols
 +============================+=======================================+=================================+
 | conn.log                   | TCP/UDP/ICMP connections              | :bro:type:`Conn::Info`          |
 +----------------------------+---------------------------------------+---------------------------------+
-| config.log                 | Configuration option changes          | :bro:type:`Config::Info`        |
-+----------------------------+---------------------------------------+---------------------------------+
 | dce_rpc.log                | Distributed Computing Environment/RPC | :bro:type:`DCE_RPC::Info`       |
 +----------------------------+---------------------------------------+---------------------------------+
 | dhcp.log                   | DHCP leases                           | :bro:type:`DHCP::Info`          |
@@ -154,6 +152,8 @@ Miscellaneous
 +----------------------------+---------------------------------------+---------------------------------+
 | weird.log                  | Unexpected network-level activity     | :bro:type:`Weird::Info`         |
 +----------------------------+---------------------------------------+---------------------------------+
+| weird-stats.log            | Statistics about unexpected activity  | :bro:type:`WeirdStats::Info`    |
++----------------------------+---------------------------------------+---------------------------------+
 
 Bro Diagnostics
 ---------------
@@ -161,12 +161,14 @@ Bro Diagnostics
 +----------------------------+---------------------------------------+---------------------------------+
 | Log File                   | Description                           | Field Descriptions              |
 +============================+=======================================+=================================+
+| broker.log                 | Peering status events between Bro or  | :bro:type:`Broker::Info`        |
+|                            | Broker-enabled processes              |                                 |
++----------------------------+---------------------------------------+---------------------------------+
 | capture_loss.log           | Packet loss rate                      | :bro:type:`CaptureLoss::Info`   |
 +----------------------------+---------------------------------------+---------------------------------+
 | cluster.log                | Bro cluster messages                  | :bro:type:`Cluster::Info`       |
 +----------------------------+---------------------------------------+---------------------------------+
-| broker.log                 | Peering status events between Bro or  | :bro:type:`Broker::Info`        |
-|                            | Broker-enabled processes              |                                 |
+| config.log                 | Configuration option changes          | :bro:type:`Config::Info`        |
 +----------------------------+---------------------------------------+---------------------------------+
 | loaded_scripts.log         | Shows all scripts loaded by Bro       | :bro:type:`LoadedScripts::Info` |
 +----------------------------+---------------------------------------+---------------------------------+

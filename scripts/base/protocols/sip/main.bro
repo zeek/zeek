@@ -80,9 +80,9 @@ export {
 	## A list of SIP methods. Other methods will generate a weird. Note
 	## that the SIP analyzer will only accept methods consisting solely
 	## of letters ``[A-Za-z]``.
-	const sip_methods: set[string] = {
+	option sip_methods: set[string] = {
 		"REGISTER", "INVITE", "ACK", "CANCEL", "BYE", "OPTIONS", "NOTIFY", "SUBSCRIBE"
-	} &redef;
+	};
 
 	## Event that can be handled to access the SIP record as it is sent on
 	## to the logging framework.
@@ -168,7 +168,7 @@ event sip_request(c: connection, method: string, original_URI: string, version: 
 	c$sip$uri = original_URI;
 
 	if ( method !in sip_methods )
-		event conn_weird("unknown_SIP_method", c, method);
+		Reporter::conn_weird("unknown_SIP_method", c, method);
 	}
 
 event sip_reply(c: connection, version: string, code: count, reason: string) &priority=5

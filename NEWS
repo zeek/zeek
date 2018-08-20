@@ -114,7 +114,11 @@ New Functionality
   - Option variables: The new "option" keyword allows variables to be
     declared as runtime options. Such variables cannot be changed
     using normal assignments. Instead, they can be changed using the
-    new function Option::set.
+    new function Config::set_value.  This function will automatically
+    apply the change to all nodes in a cluster.  Note that options can also
+    be changed using the new function Option::set, but this function will
+    not send the change to any other nodes, so Config::set_value should
+    typically be used instead of Option::set.
 
     It is possible to "subscribe" to an option through
     Option::set_change_handler, which will trigger a handler callback
@@ -162,7 +166,7 @@ New Functionality
         }
 
     The specified file will now be monitored continuously for changes, so
-    that writing "testbool T" into /path/to/config.dat will
+    that writing "TestConfig::testbool T" into /path/to/config.dat will
     automatically update the option's value accordingly.
 
     The configuration framework creates a config.log that shows all
@@ -220,7 +224,6 @@ New Functionality
   ssl_server_curve event, ssl_server_curve is now marked as deprecated.
 
 - Functions for retrieving files by their ID have been added:
-
   Files::file_exists, Files::lookup_File
 
 - New functions in the logging API: Log::get_filter_names, Log::enable_stream
@@ -237,13 +240,13 @@ New Functionality
     mount_proc_umnt, mount_proc_umnt_all, mount_proc_not_implemented,
     mount_reply_status.
 
-- Added new NFS events: nfs_proc_symlink, nfs_proc_link, nfs_proc_sattr
+- Added new NFS events: nfs_proc_symlink, nfs_proc_link, nfs_proc_sattr.
 
 - The SMB scripts in policy/protocols/smb are now moved into base/protocols/smb
   and loaded/enabled by default.
 
 - Added new SMB events: smb1_transaction_secondary_request,
-  smb1_transaction2_secondary_request, smb1_transaction_response
+  smb1_transaction2_secondary_request, smb1_transaction_response.
 
 - Bro can now decrypt Kerberos tickets, and retrieve the authentication from
   them, given a suitable keytab file.
@@ -260,20 +263,18 @@ New Functionality
 
 - You can now specify that a pattern matches in a case-insensitive
   fashion by adding 'i' to the end of its specification.  So for example
-  /fOO/i == "Foo" yields T, as does /fOO/i in "xFoObar".  Characters
-  enclosed in quotes however keep their casing, so /"fOO"/i in "xFoObar"
-  yields F, though it yields T for "xfOObar".
+  /fOO/i == "Foo" yields T, as does /fOO/i in "xFoObar".
 
   You can achieve the same functionality for a subpattern enclosed in
   parentheses by adding "?i:" to the open parenthesis.  So for example
-  "/foo|(?i:bar)/" will match "BaR", but not "FoO".
+  /foo|(?i:bar)/ will match "BaR", but not "FoO".
 
   For both ways of specifying case-insensitivity, characters enclosed in
-  double quotes maintain their case-sensitivity.  So for example /"foo"/i
-  will not match "Foo", but it will match "foo".
+  double quotes remain case-sensitive.  So for example /"foo"/i will not
+  match "Foo", but it will match "foo".
 
 - "make install" now installs Bro's include headers (and more) into
-  --prefix so that compiling plugins does no longer need access to a
+  --prefix so that compiling plugins no longer needs access to a
   source/build tree. For OS distributions, this also facilitates
   creating "bro-devel" packages providing all files necessary to build
   plugins.
@@ -313,7 +314,10 @@ New Functionality
   of non-equality, proper superset, and superset-or-equal.
 
 - An expression of the form "v += e" will append the value of the expression
-  "e" to the end of the vector "v" (of course assuming type-compatbility).
+  "e" to the end of the vector "v" (of course assuming type-compatibility).
+  "redef v += { a, b, c }" will similarly extend a vector previously declared
+  with &redef by appending the result of expressions "a", "b", and "c" to
+  the vector at initialization-time.
 
 Changed Functionality
 ---------------------
@@ -333,9 +337,9 @@ Changed Functionality
     script since it's generally less relevant now with the updated log.
 
   - Removed the base/protocols/dhcp/utils.bro script and thus the
-    'reverse_ip' function.
+    "reverse_ip" function.
 
-  - Replaced all DHCP events with the single 'dhcp_message' event.
+  - Replaced all DHCP events with the single "dhcp_message" event.
     The list of removed events includes:
 
     - dhcp_discover
@@ -346,6 +350,13 @@ Changed Functionality
     - dhcp_nak
     - dhcp_release
     - dhcp_inform
+
+  - A new script, policy/protocols/dhcp/deprecated_events.bro, may be loaded
+    to aid those transitioning away from the list of "removed" events above.
+    The script provides definitions for the old events and automatically
+    generates them from a dhcp_message handler, thus providing equivalent
+    functionality to the previous Bro release.  Such usage emits deprecation
+    warnings.
 
 - Removed policy/misc/known-devices.bro script and thus
   known_devices.log will no longer be created.
@@ -371,9 +382,9 @@ Changed Functionality
   redef SOCKS::default_capture_password = T;
 
 - The DNS base scripts no longer generate some noisy and annoying
-  weirds (dns_unmatched_msg, dns_unmatched_msg_quantity, dns_unmatched_reply)
+  weirds (dns_unmatched_msg, dns_unmatched_msg_quantity, dns_unmatched_reply).
 
-- The 'tunnel_parents' field of conn.log is now marked &optional, so, for
+- The "tunnel_parents" field of conn.log is now marked &optional, so, for
   the default configuration of logs, this field will show "-" instead of
   "(empty)" for connections that lack any tunneling.
 
@@ -393,10 +404,11 @@ Changed Functionality
   - event ssl_server_signature now has an additional argument
     "signature_and_hashalgorithm".
 
-- The "dnp3_header_block" event no longer has the "start" parameter
+- The "dnp3_header_block" event no longer has the "start" parameter.
 
 - The string_to_pattern() built-in (and the now-deprecated merge_pattern()
   built-in) is no longer restricted to only be called at initialization time.
+
 
 - GeoIP Legacy Database support has been replaced with GeoIP2 MaxMind DB
   format support.
@@ -407,6 +419,21 @@ Changed Functionality
     after January 2, 2019.  It's also noted that all GeoIP Legacy databases
     may be discontinued as they are superseded by GeoIP2.
 
+- "Weird" events are now generally suppressed/sampled by default according to
+  some tunable parameters:
+
+  - Weird::sampling_whitelist
+  - Weird::sampling_threshold
+  - Weird::sampling_rate
+  - Weird::sampling_duration
+
+  Those options can be changed if one needs the previous behavior of
+  a "net_weird", "flow_weird", or "conn_weird" event being raised for
+  every single event.  Otherwise, there is a new weird_stats.log which
+  contains concise summaries of weird counts per type per time period
+  and the original weird.log may not differ much either, except in
+  the cases where a particular weird type exceeds the sampling threshold.
+
 Removed Functionality
 ---------------------
 
@@ -416,10 +443,12 @@ Removed Functionality
   https://github.com/bro/packages for a list of Bro packages currently
   available.
 
-- BroControl: The option 'IPv6Comm' and 'ZoneID' options are no longer
+- The "ocsp_request" event no longer has "requestorName" parameter.
+
+- BroControl: The "IPv6Comm" and "ZoneID" options are no longer
   available (though Broker should be able to handle IPv6 automatically).
 
-- The "ocsp_request" event no longer has "requestorName" parameter.
+- The node-specific ``site/local-*.bro`` scripts have been removed.
 
 Deprecated Functionality
 ------------------------
@@ -435,10 +464,6 @@ Deprecated Functionality
   as BiFs like send_id(). Use Broker data stores and the new
   configuration framework instead.
 
-- BroControl: The 'update' command is deprecated and scheduled for
-  removal with the next Bro release. Bro's new configuration framework
-  is taking its place.
-
 - Mixing of scalars and vectors, such as "v + e" yielding a vector
   corresponding to the vector v with the scalar e added to each of
   its elements, has been deprecated.
@@ -448,6 +473,10 @@ Deprecated Functionality
 
 - The undocumented feature of using "&&" and "||" operators for patterns
   has been deprecated.
+
+- BroControl: The "update" command is deprecated and scheduled for
+  removal with the next Bro release. Bro's new configuration framework
+  is taking its place.
 
 Bro 2.5.1
 =========

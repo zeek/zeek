@@ -33,14 +33,14 @@ export {
 	};
 
 	## The file actions which are logged.
-	const logged_file_actions: set[Action] = {
+	option logged_file_actions: set[Action] = {
 		FILE_OPEN,
 		FILE_RENAME,
 		FILE_DELETE,
 
 		PRINT_OPEN,
 		PRINT_CLOSE,
-	} &redef;
+	};
 
 	## This record is for the smb_files.log
 	type FileInfo: record {

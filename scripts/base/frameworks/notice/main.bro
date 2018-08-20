@@ -201,14 +201,14 @@ export {
 	## Address that emails will be from.
 	##
 	## Note that this is overridden by the BroControl MailFrom option.
-	const mail_from           = "Big Brother <bro@localhost>" &redef;
+	option mail_from           = "Big Brother <bro@localhost>";
 	## Reply-to address used in outbound email.
-	const reply_to            = "" &redef;
+	option reply_to            = "";
 	## Text string prefixed to the subject of all emails sent out.
 	##
 	## Note that this is overridden by the BroControl MailSubjectPrefix
 	## option.
-	const mail_subject_prefix = "[Bro]" &redef;
+	option mail_subject_prefix = "[Bro]";
 	## The maximum amount of time a plugin can delay email from being sent.
 	const max_email_delay     = 15secs &redef;
 

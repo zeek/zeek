@@ -54,12 +54,14 @@
 @load misc/profiling.bro
 @load misc/scan.bro
 @load misc/stats.bro
+@load misc/weird-stats.bro
 @load misc/trim-trace-file.bro
 @load protocols/conn/known-hosts.bro
 @load protocols/conn/known-services.bro
 @load protocols/conn/mac-logging.bro
 @load protocols/conn/vlan-logging.bro
 @load protocols/conn/weirds.bro
+#@load protocols/dhcp/deprecated_events.bro
 @load protocols/dhcp/msg-orig.bro
 @load protocols/dhcp/software.bro
 @load protocols/dhcp/sub-opts.bro

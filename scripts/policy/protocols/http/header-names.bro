@@ -18,10 +18,10 @@ export {
 	};
 	
 	## A boolean value to determine if client header names are to be logged.
-	const log_client_header_names = T &redef;
+	option log_client_header_names = T;
 	
 	## A boolean value to determine if server header names are to be logged.
-	const log_server_header_names = F &redef;
+	option log_server_header_names = F;
 }
 
 event http_header(c: connection, is_orig: bool, name: string, value: string) &priority=3

@@ -3321,6 +3321,29 @@ bool VectorVal::AssignRepeat(unsigned int index, unsigned int how_many,
 	return true;
 	}
 
+int VectorVal::AddTo(Val* val, int /* is_first_init */) const
+	{
+	if ( val->Type()->Tag() != TYPE_VECTOR )
+		{
+		val->Error("not a vector");
+		return 0;
+		}
+
+	VectorVal* v = val->AsVectorVal();
+
+	if ( ! same_type(type, v->Type()) )
+		{
+		type->Error("vector type clash", v->Type());
+		return 0;
+		}
+
+	auto last_idx = v->Size();
+
+	for ( auto i = 0u; i < Size(); ++i )
+		v->Assign(last_idx++, Lookup(i)->Ref());
+
+	return 1;
+	}
 
 Val* VectorVal::Lookup(unsigned int index) const
 	{

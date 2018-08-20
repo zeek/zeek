@@ -48,7 +48,7 @@ export {
 	};
 
 	## The server response error texts which are *not* logged.
-	const ignored_errors: set[string] = {
+	option ignored_errors: set[string] = {
 		# This will significantly increase the noisiness of the log.
 		# However, one attack is to iterate over principals, looking
 		# for ones that don't require preauth, and then performn
@@ -58,7 +58,7 @@ export {
 		# This is a more specific version of NEEDED_PREAUTH that's used
 		# by Windows AD Kerberos.
 		"Need to use PA-ENC-TIMESTAMP/PA-PK-AS-REQ",
-	} &redef;
+	};
 
 	## Event that can be handled to access the KRB record as it is sent on
 	## to the logging framework.

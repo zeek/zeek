@@ -1,4 +1,13 @@
 
+2.5-875 | 2018-08-20 12:45:32 -0500
+
+  * Improve diff-remove-abspath canonifier: collapse '/' sequences
+    (Jon Siwek, Corelight)
+
+  * Remove unused redef-able constants (Daniel Thayer)
+
+  * Convert some redef-able constants to runtime options (Daniel Thayer)
+
 2.5-870 | 2018-08-17 17:07:57 -0500
 
   * Documentation improvements (Daniel Thayer)

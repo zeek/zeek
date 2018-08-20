@@ -269,7 +269,9 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 			if ( smtp_request )
 				{
 				int data_len = end_of_line - line;
-				RequestEvent(cmd_len, cmd, data_len, line);
+
+				if ( cmd_len > 0 || data_len > 0 )
+					RequestEvent(cmd_len, cmd, data_len, line);
 				}
 
 			if ( cmd_code != SMTP_CMD_END_OF_DATA )
@@ -379,7 +381,17 @@ void SMTP_Analyzer::NewCmd(const int cmd_code)
 		if ( first_cmd < 0 )
 			first_cmd = cmd_code;
 		else
+			{
+			auto constexpr max_pending_cmd_q_size = 1000;
+
+			if ( pending_cmd_q.size() == max_pending_cmd_q_size )
+				{
+				Weird("smtp_excessive_pending_cmds");
+				pending_cmd_q.clear();
+				}
+
 			pending_cmd_q.push_back(cmd_code);
+			}
 		}
 	else
 		first_cmd = cmd_code;
@@ -805,12 +817,22 @@ void SMTP_Analyzer::UpdateState(const int cmd_code, const int reply_code, bool o
 #endif
 	}
 
+static bool istrequal(const char* s, const char* cmd, int s_len)
+	{
+	auto cmd_len = strlen(cmd);
+
+	if ( cmd_len != s_len )
+		return false;
+
+	return strncasecmp(s, cmd, s_len) == 0;
+	}
+
 void SMTP_Analyzer::ProcessExtension(int ext_len, const char* ext)
 	{
 	if ( ! ext )
 		return;
 
-	if ( ! strncasecmp(ext, "PIPELINING", ext_len) )
+	if ( istrequal(ext, "PIPELINING", ext_len) )
 		pipelining = 1;
 	}
 
@@ -820,11 +842,11 @@ int SMTP_Analyzer::ParseCmd(int cmd_len, const char* cmd)
 		return -1;
 
 	// special case because we cannot define our usual macros with "-"
-	if ( strncmp(cmd, "X-ANONYMOUSTLS", cmd_len) == 0 )
+	if ( istrequal(cmd, "X-ANONYMOUSTLS", cmd_len) )
 		return SMTP_CMD_X_ANONYMOUSTLS;
 
 	for ( int code = SMTP_CMD_EHLO; code < SMTP_CMD_LAST; ++code )
-		if ( ! strncasecmp(cmd, smtp_cmd_word[code - SMTP_CMD_EHLO], cmd_len) )
+		if ( istrequal(cmd, smtp_cmd_word[code - SMTP_CMD_EHLO], cmd_len) )
 			return code;
 
 	return -1;

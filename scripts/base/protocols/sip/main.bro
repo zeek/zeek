@@ -168,7 +168,7 @@ event sip_request(c: connection, method: string, original_URI: string, version: 
 	c$sip$uri = original_URI;
 
 	if ( method !in sip_methods )
-		event conn_weird("unknown_SIP_method", c, method);
+		Reporter::conn_weird("unknown_SIP_method", c, method);
 	}
 
 event sip_reply(c: connection, version: string, code: count, reason: string) &priority=5

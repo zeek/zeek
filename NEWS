@@ -432,6 +432,8 @@ Removed Functionality
 - BroControl: The "IPv6Comm" and "ZoneID" options are no longer
   available (though Broker should be able to handle IPv6 automatically).
 
+- The node-specific ``site/local-*.bro`` scripts have been removed.
+
 Deprecated Functionality
 ------------------------
 

@@ -1,4 +1,8 @@
 
+2.5-877 | 2018-08-20 14:58:58 -0500
+
+  * Remove the node-specific local-*.bro scripts (Daniel Thayer)
+
 2.5-875 | 2018-08-20 12:45:32 -0500
 
   * Improve diff-remove-abspath canonifier: collapse '/' sequences

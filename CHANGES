@@ -1,4 +1,8 @@
 
+2.5-888 | 2018-08-21 15:54:56 -0500
+
+  * Add --with-broker configure option (Jon Siwek, Corelight)
+
 2.5-887 | 2018-08-21 14:54:12 -0500
 
   * Change default snaplen to 9216 bytes to better accommodate jumbo frames

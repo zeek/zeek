@@ -1,4 +1,9 @@
 
+2.5-887 | 2018-08-21 14:54:12 -0500
+
+  * Change default snaplen to 9216 bytes to better accommodate jumbo frames
+    (Justin Azoff)
+
 2.5-884 | 2018-08-20 15:39:21 -0500
 
   * Fix outdated documentation test baselines (Jon Siwek, Corelight)

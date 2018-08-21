@@ -198,8 +198,16 @@ run() {
         make init
     fi
 
+    if [ -d bro-testing ]; then
+        ( cd bro-testing && git checkout `cat ../commit-hash.bro-testing` )
+    fi
+
     if [ ! -d bro-testing-private ]; then
         get_private_tests
+    fi
+
+    if [ -d bro-testing-private ]; then
+        ( cd bro-testing-private && git checkout `cat ../commit-hash.bro-testing-private` )
     fi
 
     echo

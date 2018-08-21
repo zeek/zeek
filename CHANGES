@@ -1,4 +1,11 @@
 
+2.5-890 | 2018-08-21 16:47:52 -0500
+
+  * Fix Travis CI script to checkout particular commits of external tests
+    (Jon Siwek, Corelight)
+
+  * Fix signed/unsigned comparison warning (Jon Siwek, Corelight)
+
 2.5-888 | 2018-08-21 15:54:56 -0500
 
   * Add --with-broker configure option (Jon Siwek, Corelight)

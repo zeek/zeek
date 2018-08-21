@@ -819,7 +819,7 @@ void SMTP_Analyzer::UpdateState(const int cmd_code, const int reply_code, bool o
 
 static bool istrequal(const char* s, const char* cmd, int s_len)
 	{
-	auto cmd_len = strlen(cmd);
+	int cmd_len = strlen(cmd);
 
 	if ( cmd_len != s_len )
 		return false;

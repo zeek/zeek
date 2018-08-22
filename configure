@@ -144,8 +144,6 @@ append_cache_entry INSTALL_BROCTL       BOOL   true
 append_cache_entry CPACK_SOURCE_IGNORE_FILES STRING
 append_cache_entry ENABLE_MOBILE_IPV6   BOOL   false
 append_cache_entry DISABLE_PERFTOOLS    BOOL   false
-append_cache_entry DISABLE_RUBY_BINDINGS     BOOL   true
-append_cache_entry ENABLE_COVERAGE	BOOL   false
 
 # parse arguments
 while [ $# -ne 0 ]; do
@@ -222,6 +220,7 @@ while [ $# -ne 0 ]; do
             append_cache_entry ENABLE_JEMALLOC     BOOL   true
             ;;
         --enable-broccoli)
+            append_cache_entry DISABLE_RUBY_BINDINGS     BOOL   true
             append_cache_entry INSTALL_BROCCOLI     BOOL   yes
             ;;
        --disable-broctl)

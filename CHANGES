@@ -1,4 +1,8 @@
 
+2.5-892 | 2018-08-22 11:49:12 -0500
+
+  * Fix "unused CMake variable" configuration warnings (Jon Siwek, Corelight)
+
 2.5-890 | 2018-08-21 16:47:52 -0500
 
   * Fix Travis CI script to checkout particular commits of external tests

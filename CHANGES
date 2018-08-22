@@ -1,4 +1,8 @@
 
+2.5-894 | 2018-08-22 12:05:19 -0500
+
+  * Ensure external test repo hashes track origin/master (Jon Siwek, Corelight)
+
 2.5-892 | 2018-08-22 11:49:12 -0500
 
   * Fix "unused CMake variable" configuration warnings (Jon Siwek, Corelight)

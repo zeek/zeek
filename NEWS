@@ -434,6 +434,19 @@ Changed Functionality
   and the original weird.log may not differ much either, except in
   the cases where a particular weird type exceeds the sampling threshold.
 
+- Improved DCE-RPC analysis via tracking of context identifier mappings
+
+  - These DCE-RPC events now contain an additional context-id argument:
+
+    - dce_rpc_bind
+    - dce_rpc_request
+    - dce_rpc_response
+
+  - Added new events:
+
+    - dce_rpc_alter_context
+    - dce_rpc_alter_context_resp
+
 Removed Functionality
 ---------------------
 

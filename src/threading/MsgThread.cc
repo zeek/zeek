@@ -21,6 +21,8 @@ public:
 		network_time(network_time) { }
 
 	virtual bool Process()	{
+		if ( Object()->child_finished )
+			return true;
 		bool result = Object()->OnFinish(network_time);
 		Object()->Finished();
 		return result;
@@ -90,7 +92,19 @@ public:
 	KillMeMessage(MsgThread* thread)
 		: OutputMessage<MsgThread>("ReporterMessage", thread) 	{}
 
-	virtual bool Process()	{ thread_mgr->KillThread(Object()); return true; }
+	virtual bool Process()
+		{
+		auto rval = true;
+
+		if ( ! Object()->child_finished )
+			{
+			rval = Object()->OnFinish(network_time);
+			Object()->Finished();
+			}
+
+		thread_mgr->KillThread(Object());
+		return rval;
+		}
 };
 
 #ifdef DEBUG

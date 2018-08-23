@@ -160,6 +160,7 @@ void Manager::Process()
 	for ( all_thread_list::iterator i = to_delete.begin(); i != to_delete.end(); i++ )
 		{
 		BasicThread* t = *i;
+		t->WaitForStop();
 
 		all_threads.remove(t);
 

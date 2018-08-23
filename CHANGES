@@ -1,4 +1,10 @@
 
+2.5-903 | 2018-08-23 16:54:24 -0500
+
+  * Fix finding of kerberos and libmaxminddb CMake < 3.3 (Daniel Thayer)
+
+  * BIT-1885: fix "kill" threading message (Jon Siwek, Corelight)
+
 2.5-900 | 2018-08-23 15:18:48 -0500
 
   * Improve readability of the Travis job log (Daniel Thayer)

@@ -199,15 +199,21 @@ run() {
     fi
 
     if [ -d bro-testing ]; then
-        ( cd bro-testing && git checkout `cat ../commit-hash.bro-testing` )
+        commit=`cat commit-hash.bro-testing`
+        echo "Checking out $commit"
+        ( cd bro-testing && git checkout -q $commit )
     fi
+
+    echo
 
     if [ ! -d bro-testing-private ]; then
         get_private_tests
     fi
 
     if [ -d bro-testing-private ]; then
-        ( cd bro-testing-private && git checkout `cat ../commit-hash.bro-testing-private` )
+        commit=`cat commit-hash.bro-testing-private`
+        echo "Checking out $commit"
+        ( cd bro-testing-private && git checkout -q $commit )
     fi
 
     echo

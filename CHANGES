@@ -1,4 +1,17 @@
 
+2.5-900 | 2018-08-23 15:18:48 -0500
+
+  * Improve readability of the Travis job log (Daniel Thayer)
+
+  * Fix tracking of DCE-RPC context identifier mappings
+
+    This adds previously-missing support for "Alter Context"
+    request/response PDUs (initial patch contributed by Mark Fernandez).
+
+    Also, context ID arguments were added to dce_rpc_bind, dce_rpc_request,
+    and dce_rpc_response in order to properly track what endpoint/operation
+    a given opnum maps to. (Jon Siwek, Corelight)
+
 2.5-897 | 2018-08-23 15:53:16 +0000
 
  * BIT-1885: Fix input framework memory leak. For input threads that

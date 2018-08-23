@@ -94,16 +94,10 @@ public:
 
 	virtual bool Process()
 		{
-		auto rval = true;
-
-		if ( ! Object()->child_finished )
-			{
-			rval = Object()->OnFinish(network_time);
-			Object()->Finished();
-			}
-
+		Object()->SignalStop();
+		Object()->WaitForStop();
 		thread_mgr->KillThread(Object());
-		return rval;
+		return true;
 		}
 };
 

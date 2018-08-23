@@ -71,8 +71,9 @@ void SSL_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		}
 	}
 
-void SSL_Analyzer::SendHandshake(const u_char* begin, const u_char* end, bool orig)
+void SSL_Analyzer::SendHandshake(uint16 raw_tls_version, const u_char* begin, const u_char* end, bool orig)
 	{
+	handshake_interp->set_record_version(raw_tls_version);
 	try
 		{
 		handshake_interp->NewData(orig, begin, end);

@@ -42,7 +42,7 @@ refine connection SSL_Conn += {
 		if ( foffset == 0 && length == flength )
 			{
 			//fprintf(stderr, "Complete fragment, forwarding...\n");
-			bro_analyzer()->SendHandshake(${rec.msg_type}, length, ${rec.data}.begin(), ${rec.data}.end(), ${pdu.is_orig});
+			bro_analyzer()->SendHandshake(${pdu.raw_tls_version}, ${rec.msg_type}, length, ${rec.data}.begin(), ${rec.data}.end(), ${pdu.is_orig});
 			return true;
 			}
 
@@ -131,7 +131,7 @@ refine connection SSL_Conn += {
 			if ( ( ~(i->message_sequence_seen) & ( ( 1<<(total_length+1) ) -1 ) ) == 0 )
 				{
 				//fprintf(stderr, "ALl fragments here. Total length %u\n", length);
-				bro_analyzer()->SendHandshake(${rec.msg_type}, length, i->buffer, i->buffer + length, ${pdu.is_orig});
+				bro_analyzer()->SendHandshake(${pdu.raw_tls_version}, ${rec.msg_type}, length, i->buffer, i->buffer + length, ${pdu.is_orig});
 				}
 			}
 

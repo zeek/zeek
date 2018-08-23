@@ -23,7 +23,7 @@
 
 			BifEvent::generate_ssl_server_hello(bro_analyzer(),
 							bro_analyzer()->Conn(),
-							version, ts, new StringVal(server_random.length(),
+							version, record_version(), ts, new StringVal(server_random.length(),
 							(const char*) server_random.data()),
 							to_string_val(session_id),
 							ciphers->size()==0 ? 0 : ciphers->at(0), comp_method);

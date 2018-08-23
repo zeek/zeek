@@ -56,7 +56,7 @@ refine connection SSL_Conn += {
 
 		if ( ssl_encrypted_data )
 			BifEvent::generate_ssl_encrypted_data(bro_analyzer(),
-				bro_analyzer()->Conn(), ${rec.is_orig}, ${rec.content_type}, ${rec.raw_tls_version}, ${rec.length});
+				bro_analyzer()->Conn(), ${rec.is_orig}, ${rec.raw_tls_version}, ${rec.content_type}, ${rec.length});
 
 		return true;
 		%}
@@ -65,7 +65,7 @@ refine connection SSL_Conn += {
 		%{
 		if ( ssl_plaintext_data )
 			BifEvent::generate_ssl_plaintext_data(bro_analyzer(),
-				bro_analyzer()->Conn(), ${rec.is_orig}, ${rec.content_type}, ${rec.raw_tls_version}, ${rec.length});
+				bro_analyzer()->Conn(), ${rec.is_orig}, ${rec.raw_tls_version}, ${rec.content_type}, ${rec.length});
 
 		return true;
 		%}

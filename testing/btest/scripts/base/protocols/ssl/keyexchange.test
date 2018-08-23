@@ -62,7 +62,7 @@ event ssl_established(c: connection) &priority=5
 	c$ssl$server_cert_sha1 = c$ssl$cert_chain[0]$sha1;
 	}
 
-event ssl_client_hello(c: connection, version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec) &priority=5
+event ssl_client_hello(c: connection, version: count, record_version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec, comp_methods: index_vec) &priority=5
 	{
 	set_session(c);
 	c$ssl$client_random = bytestring_to_hexstr(client_random);
@@ -79,7 +79,7 @@ event ssl_client_hello(c: connection, version: count, possible_ts: time, client_
 	c$ssl$client_cipher_suites = ciphers_str;
 	}
 
-event ssl_server_hello(c: connection, version: count, possible_ts: time, server_random: string, session_id: string, cipher: count, comp_method: count) &priority=5
+event ssl_server_hello(c: connection, version: count, record_version: count, possible_ts: time, server_random: string, session_id: string, cipher: count, comp_method: count) &priority=5
 	{
 	set_session(c);
 	c$ssl$server_random = bytestring_to_hexstr(server_random);

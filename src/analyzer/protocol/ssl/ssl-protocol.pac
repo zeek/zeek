@@ -15,7 +15,7 @@ type SSLRecord(is_orig: bool) = record {
 		$context.connection.determine_ssl_record_layer(head0, head1, head2, head3, head4, is_orig);
 
 	# unmodified tls record layer version of this packet. Do not use this if you are parsing SSLv2
-	raw_tls_version: int = case version of {
+	raw_tls_version: uint16 = case version of {
 		SSLv20 -> 0;
 		default -> (head1<<8) | head2;
 	} &requires(version);
@@ -213,5 +213,7 @@ refine connection SSL_Conn += {
 		bro_analyzer()->SetSkip(true);
 		return UNKNOWN_VERSION;
 		%}
+
+	function record_version() : uint16 %{ return 0; %}
 
 };

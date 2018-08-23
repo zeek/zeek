@@ -40,7 +40,7 @@
 				}
 
 			BifEvent::generate_ssl_client_hello(bro_analyzer(), bro_analyzer()->Conn(),
-							version, ts, new StringVal(client_random.length(),
+							version, record_version(), ts, new StringVal(client_random.length(),
 							(const char*) client_random.data()),
 							to_string_val(session_id),
 							cipher_vec, comp_vec);

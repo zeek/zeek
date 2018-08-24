@@ -255,7 +255,7 @@ export {
 
 	## To completely ignore a specific weird for a host, add the host
 	## and weird name into this set.
-	option ignore_hosts: set[addr, string];
+	option ignore_hosts: set[addr, string] = {};
 
 	## Don't ignore repeats for weirds in this set.  For example,
 	## it's handy keeping track of clustered checksum errors.

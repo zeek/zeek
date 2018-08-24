@@ -1,4 +1,8 @@
 
+2.5-905 | 2018-08-24 10:21:35 -0500
+
+  * Detect MaxMind DB changes and auto-reload (Jonathan Perkins, Corelight)
+
 2.5-903 | 2018-08-23 16:54:24 -0500
 
   * Fix finding of kerberos and libmaxminddb CMake < 3.3 (Daniel Thayer)

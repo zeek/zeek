@@ -198,8 +198,22 @@ run() {
         make init
     fi
 
+    if [ -d bro-testing ]; then
+        commit=`cat commit-hash.bro-testing`
+        echo "Checking out $commit"
+        ( cd bro-testing && git checkout -q $commit )
+    fi
+
+    echo
+
     if [ ! -d bro-testing-private ]; then
         get_private_tests
+    fi
+
+    if [ -d bro-testing-private ]; then
+        commit=`cat commit-hash.bro-testing-private`
+        echo "Checking out $commit"
+        ( cd bro-testing-private && git checkout -q $commit )
     fi
 
     echo

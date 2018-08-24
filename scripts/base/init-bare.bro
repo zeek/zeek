@@ -4813,7 +4813,7 @@ export {
 module Pcap;
 export {
 	## Number of bytes per packet to capture from live interfaces.
-	const snaplen = 8192 &redef;
+	const snaplen = 9216 &redef;
 
 	## Number of Mbytes to provide as buffer space when capturing from live
 	## interfaces.

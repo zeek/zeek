@@ -1,4 +1,63 @@
 
+2.5-906 | 2018-08-24 14:57:55 -0500
+
+  * Stabilize a cluster logging unit test (Jon Siwek, Corelight)
+
+2.5-905 | 2018-08-24 10:21:35 -0500
+
+  * Detect MaxMind DB changes and auto-reload (Jonathan Perkins, Corelight)
+
+2.5-903 | 2018-08-23 16:54:24 -0500
+
+  * Fix finding of kerberos and libmaxminddb CMake < 3.3 (Daniel Thayer)
+
+  * BIT-1885: fix "kill" threading message (Jon Siwek, Corelight)
+
+2.5-900 | 2018-08-23 15:18:48 -0500
+
+  * Improve readability of the Travis job log (Daniel Thayer)
+
+  * Fix tracking of DCE-RPC context identifier mappings
+
+    This adds previously-missing support for "Alter Context"
+    request/response PDUs (initial patch contributed by Mark Fernandez).
+
+    Also, context ID arguments were added to dce_rpc_bind, dce_rpc_request,
+    and dce_rpc_response in order to properly track what endpoint/operation
+    a given opnum maps to. (Jon Siwek, Corelight)
+
+2.5-897 | 2018-08-23 15:53:16 +0000
+
+ * BIT-1885: Fix input framework memory leak. For input threads that
+   get joined during run-time, messages could remain in the thread's
+   queue and leak. (Jon Siwek, Corelight)
+
+ * Increase timeout for a memleak test. (Jon Siwek, Corelight)
+
+2.5-894 | 2018-08-22 12:05:19 -0500
+
+  * Ensure external test repo hashes track origin/master (Jon Siwek, Corelight)
+
+2.5-892 | 2018-08-22 11:49:12 -0500
+
+  * Fix "unused CMake variable" configuration warnings (Jon Siwek, Corelight)
+
+2.5-890 | 2018-08-21 16:47:52 -0500
+
+  * Fix Travis CI script to checkout particular commits of external tests
+    (Jon Siwek, Corelight)
+
+  * Fix signed/unsigned comparison warning (Jon Siwek, Corelight)
+
+2.5-888 | 2018-08-21 15:54:56 -0500
+
+  * Add --with-broker configure option (Jon Siwek, Corelight)
+
+2.5-887 | 2018-08-21 14:54:12 -0500
+
+  * Change default snaplen to 9216 bytes to better accommodate jumbo frames
+    (Justin Azoff)
+
 2.5-884 | 2018-08-20 15:39:21 -0500
 
   * Fix outdated documentation test baselines (Jon Siwek, Corelight)

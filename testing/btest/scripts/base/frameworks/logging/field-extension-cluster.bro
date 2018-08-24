@@ -57,13 +57,19 @@ event kill_worker()
 event bro_init()
 	{
 	if ( Cluster::node == "worker-1" )
+		{
+		suspend_processing();
 		Broker::subscribe("death");
+		}
 	}
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
 	if ( Cluster::node == "manager-1" )
 		schedule 2sec { kill_worker() };
+
+	if ( Cluster::node == "worker-1" )
+		continue_processing();
 	}
 
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)

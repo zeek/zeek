@@ -3,8 +3,9 @@
 # @TEST-EXEC: btest-bg-run manager-1 "cp ../cluster-layout.bro . && CLUSTER_NODE=manager-1 bro %INPUT"
 # @TEST-EXEC: btest-bg-run worker-1  "cp ../cluster-layout.bro . && CLUSTER_NODE=worker-1 bro --pseudo-realtime -C -r $TRACES/wikipedia.trace %INPUT"
 # @TEST-EXEC: btest-bg-wait 20
-# @TEST-EXEC: cat manager-1/reporter.log | grep -v "reporter/" > manager-reporter.log
-# @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-canonifier | grep -v ^# | $SCRIPTS/diff-sort" btest-diff manager-reporter.log
+# @TEST-EXEC: grep qux manager-1/reporter.log   | sed 's#line ..#line XX#g'  > manager-reporter.log
+# @TEST-EXEC: grep qux manager-1/reporter-2.log | sed 's#line ..*#line XX#g' >> manager-reporter.log
+# @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-canonifier | $SCRIPTS/diff-remove-abspath | grep -v ^# | $SCRIPTS/diff-sort" btest-diff manager-reporter.log
 
 
 @TEST-START-FILE cluster-layout.bro
@@ -35,7 +36,7 @@ type Extension: record {
 function add_extension(path: string): Extension
 	{
 	return Extension($write_ts    = network_time(),
-	                 $stream      = path,
+	                 $stream      = "bah",
 	                 $system_name = peer_description);
 	}
 
@@ -56,16 +57,31 @@ event slow_death()
 
 event kill_worker()
 	{
+	Reporter::info("qux");
 	Broker::publish("death", slow_death);
 	}
 
 event bro_init()
 	{
 	if ( Cluster::node == "worker-1" )
+		{
 		Broker::subscribe("death");
+		suspend_processing();
+		}
+	}
 
+event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
+	{
 	if ( Cluster::node == "manager-1" )
-		schedule 13sec { kill_worker() };
+		{
+		schedule 2sec { kill_worker() };
+		}
+
+	if ( Cluster::node == "worker-1" )
+		{
+		continue_processing();
+		Reporter::info("qux");
+		}
 	}
 
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)

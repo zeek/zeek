@@ -1,0 +1,12 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	dce_rpc
+#open	2018-08-23-19-54-19
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	rtt	named_pipe	endpoint	operation
+#types	time	string	addr	port	addr	port	interval	string	string	string
+1347446180.330312	CHhAvVGS1DHFjwGM9	192.168.122.145	55614	192.168.122.3	1024	0.005544	\\PIPE\\drsuapi	drsuapi	DRSBind
+1347446180.336310	CHhAvVGS1DHFjwGM9	192.168.122.145	55614	192.168.122.3	1024	0.000788	\\PIPE\\drsuapi	drsuapi	DRSCrackNames
+1347446180.369165	CHhAvVGS1DHFjwGM9	192.168.122.145	55614	192.168.122.3	1024	0.000580	\\PIPE\\drsuapi	drsuapi	DRSUnbind
+#close	2018-08-23-19-54-19

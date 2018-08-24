@@ -17,7 +17,7 @@ export {
 
 	# This matches content in SMTP error messages that indicate some
 	# block list doesn't like the connection/mail.
-	const blocklist_error_messages = 
+	option blocklist_error_messages =
 		  /spamhaus\.org\//
 		| /sophos\.com\/security\//
 		| /spamcop\.net\/bl/
@@ -32,7 +32,7 @@ export {
 		| /rbl\.knology\.net\//
 		| /intercept\.datapacket\.net\//
 		| /uceprotect\.net\//
-		| /hostkarma\.junkemailfilter\.com\// &redef;
+		| /hostkarma\.junkemailfilter\.com\//;
 	
 }
 

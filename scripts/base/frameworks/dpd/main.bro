@@ -28,11 +28,11 @@ export {
 	};
 
 	## Analyzers which you don't want to throw 
-	const ignore_violations: set[Analyzer::Tag] = set() &redef;
+	option ignore_violations: set[Analyzer::Tag] = set();
 
 	## Ignore violations which go this many bytes into the connection.
 	## Set to 0 to never ignore protocol violations.
-	const ignore_violations_after = 10 * 1024 &redef;
+	option ignore_violations_after = 10 * 1024;
 }
 
 redef record connection += {

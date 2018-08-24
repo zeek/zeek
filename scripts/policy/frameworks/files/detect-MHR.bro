@@ -15,18 +15,18 @@ export {
 	};
 
 	## File types to attempt matching against the Malware Hash Registry.
-	const match_file_types = /application\/x-dosexec/ |
+	option match_file_types = /application\/x-dosexec/ |
 	                         /application\/vnd.ms-cab-compressed/ |
 	                         /application\/pdf/ |
 	                         /application\/x-shockwave-flash/ |
 	                         /application\/x-java-applet/ |
 	                         /application\/jar/ |
-	                         /video\/mp4/ &redef;
+	                         /video\/mp4/;
 
 	## The Match notice has a sub message with a URL where you can get more
 	## information about the file. The %s will be replaced with the SHA-1
 	## hash of the file.
-	const match_sub_url = "https://www.virustotal.com/en/search/?query=%s" &redef;
+	option match_sub_url = "https://www.virustotal.com/en/search/?query=%s";
 
 	## The malware hash registry runs each malware sample through several
 	## A/V engines.  Team Cymru returns a percentage to indicate how

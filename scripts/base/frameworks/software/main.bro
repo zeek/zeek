@@ -68,7 +68,7 @@ export {
 	
 	## Hosts whose software should be detected and tracked.
 	## Choices are: LOCAL_HOSTS, REMOTE_HOSTS, ALL_HOSTS, NO_HOSTS.
-	const asset_tracking = LOCAL_HOSTS &redef;
+	option asset_tracking = LOCAL_HOSTS;
 
 	## Other scripts should call this function when they detect software.
 	##

@@ -96,7 +96,7 @@ export {
 	};
 
 	## A list of HTTP headers typically used to indicate proxied requests.
-	const proxy_headers: set[string] = {
+	option proxy_headers: set[string] = {
 		"FORWARDED",
 		"X-FORWARDED-FOR",
 		"X-FORWARDED-FROM",
@@ -104,7 +104,7 @@ export {
 		"VIA",
 		"XROXY-CONNECTION",
 		"PROXY-CONNECTION",
-	} &redef;
+	};
 
 	## A list of HTTP methods. Other methods will generate a weird. Note
 	## that the HTTP analyzer will only accept methods consisting solely

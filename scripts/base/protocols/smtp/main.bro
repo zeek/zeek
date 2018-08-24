@@ -76,7 +76,7 @@ export {
 	##    LOCAL_HOSTS - only capture the path until the external host is discovered.
 	##    ALL_HOSTS - always capture the entire path.
 	##    NO_HOSTS - never capture the path.
-	const mail_path_capture = ALL_HOSTS &redef;
+	option mail_path_capture = ALL_HOSTS;
 
 	## Create an extremely shortened representation of a log line.
 	global describe: function(rec: Info): string;

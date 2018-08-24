@@ -11,7 +11,7 @@ export {
 
 	## Only include events matching the given pattern into output. By default, the
 	## pattern matches all events.
-	const include = /.*/ &redef;
+	option include = /.*/;
 }
 
 event new_event(name: string, args: call_argument_vector)

@@ -33,17 +33,17 @@ export {
 	## with incorrect data.  If you would like to detect mail clients for
 	## incoming messages (network traffic originating from a non-local
 	## address), set this variable to EXTERNAL_HOSTS or ALL_HOSTS.
-	const detect_clients_in_messages_from = LOCAL_HOSTS &redef;
+	option detect_clients_in_messages_from = LOCAL_HOSTS;
 	
 	## A regular expression to match USER-AGENT-like headers to find if a 
 	## message was sent with a webmail interface.
-	const webmail_user_agents = 
+	option webmail_user_agents =
 	                     /^iPlanet Messenger/ 
 	                   | /^Sun Java\(tm\) System Messenger Express/
 	                   | /\(IMP\)/  # Horde Internet Messaging Program
 	                   | /^SquirrelMail/
 	                   | /^NeoMail/ 
-	                   | /ZimbraWebClient/ &redef;
+	                   | /ZimbraWebClient/;
 }
 
 event mime_one_header(c: connection, h: mime_header_rec) &priority=4

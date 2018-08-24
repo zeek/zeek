@@ -7,6 +7,7 @@
 #include <vector>
 #include <fstream>
 #include <memory>
+#include <sys/types.h>
 
 #include "input/ReaderBackend.h"
 #include "threading/formatters/Ascii.h"
@@ -63,6 +64,7 @@ private:
 
 	ifstream file;
 	time_t mtime;
+	ino_t ino;
 
 	// map columns in the file to columns to send back to the manager
 	vector<FieldMapping> columnMap;

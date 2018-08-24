@@ -1,4 +1,8 @@
 
+2.5-906 | 2018-08-24 14:57:55 -0500
+
+  * Stabilize a cluster logging unit test (Jon Siwek, Corelight)
+
 2.5-905 | 2018-08-24 10:21:35 -0500
 
   * Detect MaxMind DB changes and auto-reload (Jonathan Perkins, Corelight)

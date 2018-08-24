@@ -1,0 +1,15 @@
+dce_rpc_bind :: fid  == 0
+dce_rpc_bind :: ctx_id  == 0
+dce_rpc_bind :: uuid == e3514235-4b06-11d1-ab04-00c04fc2dcd2
+dce_rpc_bind :: fid  == 0
+dce_rpc_bind :: ctx_id  == 1
+dce_rpc_bind :: uuid == e3514235-4b06-11d1-ab04-00c04fc2dcd2
+dce_rpc_bind :: fid  == 0
+dce_rpc_bind :: ctx_id  == 2
+dce_rpc_bind :: uuid == e3514235-4b06-11d1-ab04-00c04fc2dcd2
+dce_rpc_bind_ack :: fid      == 0
+dce_rpc_bind_ack :: sec_addr == \PIPE\drsuapi
+dce_rpc_alter_context :: fid  == 0
+dce_rpc_alter_context :: ctx_id  == 0
+dce_rpc_alter_context :: uuid == e3514235-4b06-11d1-ab04-00c04fc2dcd2
+dce_rpc_alter_context_resp :: fid      == 0

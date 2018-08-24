@@ -69,8 +69,10 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-flex=PATH       path to flex executable
     --with-bison=PATH      path to bison executable
     --with-python=PATH     path to Python executable
-    --with-caf=PATH        path to C++ Actor Framework installation for using external version
-                           (a required Broker dependency)
+    --with-broker=PATH     path to Broker install root
+                           (Bro uses an embedded version by default)
+    --with-caf=PATH        path to C++ Actor Framework install root
+                           (a Broker dependency that is embedded by default)
 
   Optional Packages in Non-Standard Locations:
     --with-geoip=PATH      path to the libmaxminddb install root
@@ -142,8 +144,6 @@ append_cache_entry INSTALL_BROCTL       BOOL   true
 append_cache_entry CPACK_SOURCE_IGNORE_FILES STRING
 append_cache_entry ENABLE_MOBILE_IPV6   BOOL   false
 append_cache_entry DISABLE_PERFTOOLS    BOOL   false
-append_cache_entry DISABLE_RUBY_BINDINGS     BOOL   true
-append_cache_entry ENABLE_COVERAGE	BOOL   false
 
 # parse arguments
 while [ $# -ne 0 ]; do
@@ -220,6 +220,7 @@ while [ $# -ne 0 ]; do
             append_cache_entry ENABLE_JEMALLOC     BOOL   true
             ;;
         --enable-broccoli)
+            append_cache_entry DISABLE_RUBY_BINDINGS     BOOL   true
             append_cache_entry INSTALL_BROCCOLI     BOOL   yes
             ;;
        --disable-broctl)
@@ -284,6 +285,9 @@ while [ $# -ne 0 ]; do
             ;;
         --with-swig=*)
             append_cache_entry SWIG_EXECUTABLE      PATH    $optarg
+            ;;
+        --with-broker=*)
+            append_cache_entry BROKER_ROOT_DIR      PATH   $optarg
             ;;
         --with-caf=*)
             append_cache_entry CAF_ROOT_DIR      PATH   $optarg

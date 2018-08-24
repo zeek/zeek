@@ -409,6 +409,7 @@ Changed Functionality
 - The string_to_pattern() built-in (and the now-deprecated merge_pattern()
   built-in) is no longer restricted to only be called at initialization time.
 
+
 - GeoIP Legacy Database support has been replaced with GeoIP2 MaxMind DB
   format support.
 
@@ -417,6 +418,34 @@ Changed Functionality
     GeoLite Legacy databases: no updates after April 1, 2018, no downloads
     after January 2, 2019.  It's also noted that all GeoIP Legacy databases
     may be discontinued as they are superseded by GeoIP2.
+
+- "Weird" events are now generally suppressed/sampled by default according to
+  some tunable parameters:
+
+  - Weird::sampling_whitelist
+  - Weird::sampling_threshold
+  - Weird::sampling_rate
+  - Weird::sampling_duration
+
+  Those options can be changed if one needs the previous behavior of
+  a "net_weird", "flow_weird", or "conn_weird" event being raised for
+  every single event.  Otherwise, there is a new weird_stats.log which
+  contains concise summaries of weird counts per type per time period
+  and the original weird.log may not differ much either, except in
+  the cases where a particular weird type exceeds the sampling threshold.
+
+- Improved DCE-RPC analysis via tracking of context identifier mappings
+
+  - These DCE-RPC events now contain an additional context-id argument:
+
+    - dce_rpc_bind
+    - dce_rpc_request
+    - dce_rpc_response
+
+  - Added new events:
+
+    - dce_rpc_alter_context
+    - dce_rpc_alter_context_resp
 
 Removed Functionality
 ---------------------
@@ -431,6 +460,11 @@ Removed Functionality
 
 - BroControl: The "IPv6Comm" and "ZoneID" options are no longer
   available (though Broker should be able to handle IPv6 automatically).
+
+- The node-specific ``site/local-*.bro`` scripts have been removed.
+
+- The default value of ``Pcap::snaplen`` changed from 8192 to 9216 bytes
+  to better accommodate jumbo frames.
 
 Deprecated Functionality
 ------------------------

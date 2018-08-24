@@ -181,6 +181,7 @@ protected:
 	friend class HeartbeatMessage;
 	friend class FinishMessage;
 	friend class FinishedMessage;
+	friend class KillMeMessage;
 
 	/**
 	 * Pops a message sent by the child from the child-to-main queue.

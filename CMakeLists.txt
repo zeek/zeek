@@ -95,14 +95,6 @@ FindRequiredPackage(OpenSSL)
 FindRequiredPackage(BIND)
 FindRequiredPackage(ZLIB)
 
-find_package(CAF COMPONENTS core io openssl)
-if (CAF_FOUND)
-    # e.g. if not using embedded CAF, then need to know where to look
-    # for CAF headers since that may differ from where Broker headers
-    # are found (and including a Broker header may pull in CAF headers).
-	include_directories(BEFORE ${CAF_INCLUDE_DIRS})
-endif ()
-
 if (NOT BINPAC_EXE_PATH AND
     EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/aux/binpac/CMakeLists.txt)
     add_subdirectory(aux/binpac)
@@ -142,7 +134,7 @@ include_directories(BEFORE
 
 set(USE_GEOIP false)
 find_package(LibMMDB)
-if (LibMMDB_FOUND)
+if (LIBMMDB_FOUND)
     set(USE_GEOIP true)
     include_directories(BEFORE ${LibMMDB_INCLUDE_DIR})
     list(APPEND OPTLIBS ${LibMMDB_LIBRARY})
@@ -151,7 +143,7 @@ endif ()
 set(USE_KRB5 false)
 if ( ${CMAKE_SYSTEM_NAME} MATCHES Linux )
   find_package(LibKrb5)
-  if (LibKrb5_FOUND)
+  if (LIBKRB5_FOUND)
      set(USE_KRB5 true)
      list(APPEND OPTLIBS ${LibKrb5_LIBRARY})
   endif ()
@@ -255,7 +247,11 @@ else ()
   set(BRO_CONFIG_BINPAC_ROOT_DIR ${BRO_ROOT_DIR})
 endif ()
 
-set(BRO_CONFIG_BROKER_ROOT_DIR ${BRO_ROOT_DIR})
+if ( BROKER_ROOT_DIR )
+  set(BRO_CONFIG_BROKER_ROOT_DIR ${BROKER_ROOT_DIR})
+else ()
+  set(BRO_CONFIG_BROKER_ROOT_DIR ${BRO_ROOT_DIR})
+endif ()
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/bro-config.in
                ${CMAKE_CURRENT_BINARY_DIR}/bro-config @ONLY)
@@ -267,10 +263,22 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cmake DESTINATION share/bro
 ########################################################################
 ## Recurse on sub-directories
 
-add_subdirectory(aux/broker)
-set(brodeps ${brodeps} broker)
-include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/aux/broker
-                           ${CMAKE_CURRENT_BINARY_DIR}/aux/broker)
+if ( BROKER_ROOT_DIR )
+  find_package(Broker REQUIRED)
+  find_package(CAF COMPONENTS core io openssl REQUIRED)
+
+  set(brodeps ${brodeps} ${BROKER_LIBRARY} ${CAF_LIBRARIES})
+  include_directories(BEFORE ${BROKER_INCLUDE_DIR})
+else ()
+  add_subdirectory(aux/broker)
+
+  set(brodeps ${brodeps} broker)
+  include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/aux/broker
+                             ${CMAKE_CURRENT_BINARY_DIR}/aux/broker)
+endif ()
+
+# CAF headers aren't necessarily in same location as Broker headers and
+# inclusion of a Broker header may pull in CAF headers.
 include_directories(BEFORE ${CAF_INCLUDE_DIR_CORE})
 include_directories(BEFORE ${CAF_INCLUDE_DIR_IO})
 include_directories(BEFORE ${CAF_INCLUDE_DIR_OPENSSL})

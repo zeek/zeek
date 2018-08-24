@@ -71,7 +71,7 @@ type Syntax = record {
 	ver_minor : uint16;
 };
 
-type ContextRequest = record {
+type ContextRequest(ptype: uint8) = record {
 	id                : uint16;
 	num_syntaxes      : uint8;
 	reserved          : padding[1];
@@ -85,11 +85,11 @@ type ContextReply = record {
 	syntax            : Syntax;
 };
 
-type ContextList(is_request: bool) = record {
+type ContextList(is_request: bool, ptype: uint8) = record {
 	num_contexts   : uint8;
 	reserved       : padding[3];
 	req_reply      : case is_request of {
-		true  -> request_contexts : ContextRequest[num_contexts];
+		true  -> request_contexts : ContextRequest(ptype)[num_contexts];
 		false -> reply_contexts   : ContextReply[num_contexts];
 	};
 };
@@ -98,7 +98,7 @@ type DCE_RPC_Bind = record {
 	max_xmit_frag  : uint16;
 	max_recv_frag  : uint16;
 	assoc_group_id : uint32;
-	context_list   : ContextList(1);
+	context_list   : ContextList(1, DCE_RPC_BIND);
 };
 
 type DCE_RPC_Bind_Ack = record {
@@ -108,7 +108,7 @@ type DCE_RPC_Bind_Ack = record {
 	sec_addr_length : uint16;
 	sec_addr        : bytestring &length=sec_addr_length;
 	pad             : padding align 4;
-	contexts        : ContextList(0);
+	contexts        : ContextList(0, DCE_RPC_BIND_ACK);
 };
 
 type DCE_RPC_Request(h: DCE_RPC_Header) = record {
@@ -136,15 +136,17 @@ type DCE_RPC_AlterContext = record {
 	max_xmit_frag  : uint16;
 	max_recv_frag  : uint16;
 	assoc_group_id : uint32;
-	contexts       : ContextList(0);
+	context_list   : ContextList(1, DCE_RPC_ALTER_CONTEXT);
 };
 
 type DCE_RPC_AlterContext_Resp = record {
-	max_xmit_frag  : uint16;
-	max_recv_frag  : uint16;
-	assoc_group_id : uint32;
-	sec_addr_len   : uint16;
-	contexts       : ContextList(0);
+	max_xmit_frag   : uint16;
+	max_recv_frag   : uint16;
+	assoc_group_id  : uint32;
+	sec_addr_length : uint16;
+	sec_addr        : bytestring &length=sec_addr_length;
+	pad             : padding align 4;
+	contexts        : ContextList(0, DCE_RPC_ALTER_CONTEXT_RESP);
 };
 
 type DCE_RPC_Body(header: DCE_RPC_Header) = case header.PTYPE of {
@@ -152,9 +154,8 @@ type DCE_RPC_Body(header: DCE_RPC_Header) = case header.PTYPE of {
 	DCE_RPC_BIND_ACK           -> bind_ack      : DCE_RPC_Bind_Ack;
 	DCE_RPC_REQUEST            -> request       : DCE_RPC_Request(header);
 	DCE_RPC_RESPONSE           -> response      : DCE_RPC_Response;
-	# TODO: Something about the two following structures isn't being handled correctly.
-	#DCE_RPC_ALTER_CONTEXT      -> alter_context : DCE_RPC_AlterContext;
-	#DCE_RPC_ALTER_CONTEXT_RESP -> alter_resp    : DCE_RPC_AlterContext_Resp;
+	DCE_RPC_ALTER_CONTEXT      -> alter_context : DCE_RPC_AlterContext;
+	DCE_RPC_ALTER_CONTEXT_RESP -> alter_resp    : DCE_RPC_AlterContext_Resp;
 	default                    -> other         : bytestring &restofdata;
 };
 

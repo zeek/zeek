@@ -1,6 +1,12 @@
 # @TEST-EXEC: bro -b -r $TRACES/wikipedia.trace %INPUT
-# @TEST-EXEC: btest-diff 1.pcap
-# @TEST-EXEC: btest-diff 2.pcap
+# @TEST-EXEC: hexdump -C 1.pcap >1.hex
+# @TEST-EXEC: hexdump -C 2.pcap >2.hex
+# @TEST-EXEC: btest-diff 1.hex
+# @TEST-EXEC: btest-diff 2.hex
+
+# Note that the hex output will contain global pcap header information,
+# including Bro's snaplen setting (so maybe check that out in the case
+# you are reading this message due to this test failing in the future).
 
 global i: count = 0;
 

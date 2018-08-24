@@ -71,3 +71,44 @@ function Reporter::fatal%(msg: string%): bool
 	reporter->PopLocation();
 	return new Val(1, TYPE_BOOL);
 	%}
+
+## Generates a "net" weird.
+##
+## name: the name of the weird.
+##
+## Returns: Always true.
+function Reporter::net_weird%(name: string%): bool
+	%{
+	reporter->Weird(name->CheckString());
+	return new Val(1, TYPE_BOOL);
+	%}
+
+## Generates a "flow" weird.
+##
+## name: the name of the weird.
+##
+## orig: the originator host associated with the weird.
+##
+## resp: the responder host associated with the weird.
+##
+## Returns: Always true.
+function Reporter::flow_weird%(name: string, orig: addr, resp: addr%): bool
+	%{
+	reporter->Weird(orig->AsAddr(), resp->AsAddr(), name->CheckString());
+	return new Val(1, TYPE_BOOL);
+	%}
+
+## Generates a "conn" weird.
+##
+## name: the name of the weird.
+##
+## c: the connection associated with the weird.
+##
+## addl: additional information to accompany the weird.
+##
+## Returns: Always true.
+function Reporter::conn_weird%(name: string, c: connection, addl: string &default=""%): bool
+	%{
+	reporter->Weird(c, name->CheckString(), addl->CheckString());
+	return new Val(1, TYPE_BOOL);
+	%}

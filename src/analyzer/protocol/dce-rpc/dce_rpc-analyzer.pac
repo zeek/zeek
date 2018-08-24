@@ -54,9 +54,26 @@ refine connection DCE_RPC_Conn += {
 			BifEvent::generate_dce_rpc_bind(bro_analyzer(),
 			                                bro_analyzer()->Conn(),
 			                                fid,
+			                                ${req.id},
 			                                bytestring_to_val(${req.abstract_syntax.uuid}),
 			                                ${req.abstract_syntax.ver_major},
 			                                ${req.abstract_syntax.ver_minor});
+			}
+
+		return true;
+		%}
+
+	function process_dce_rpc_alter_context(req: ContextRequest): bool
+		%{
+		if ( dce_rpc_alter_context )
+			{
+			BifEvent::generate_dce_rpc_alter_context(bro_analyzer(),
+			                                         bro_analyzer()->Conn(),
+			                                         fid,
+			                                         ${req.id},
+			                                         bytestring_to_val(${req.abstract_syntax.uuid}),
+			                                         ${req.abstract_syntax.ver_major},
+			                                         ${req.abstract_syntax.ver_minor});
 			}
 
 		return true;
@@ -86,6 +103,17 @@ refine connection DCE_RPC_Conn += {
 		return true;
 		%}
 
+	function process_dce_rpc_alter_context_resp(bind: DCE_RPC_AlterContext_Resp): bool
+		%{
+		if ( dce_rpc_alter_context_resp )
+			{
+			BifEvent::generate_dce_rpc_alter_context_resp(bro_analyzer(),
+			                                              bro_analyzer()->Conn(),
+			                                              fid);
+			}
+		return true;
+		%}
+
 	function process_dce_rpc_request(req: DCE_RPC_Request): bool
 		%{
 		if ( dce_rpc_request )
@@ -93,6 +121,7 @@ refine connection DCE_RPC_Conn += {
 			BifEvent::generate_dce_rpc_request(bro_analyzer(),
 			                                   bro_analyzer()->Conn(),
 			                                   fid,
+			                                   ${req.context_id},
 			                                   ${req.opnum},
 			                                   ${req.stub}.length());
 			}
@@ -109,6 +138,7 @@ refine connection DCE_RPC_Conn += {
 			BifEvent::generate_dce_rpc_response(bro_analyzer(),
 			                                    bro_analyzer()->Conn(),
 			                                    fid,
+			                                    ${resp.context_id},
 			                                    get_cont_id_opnum_map(${resp.context_id}),
 			                                    ${resp.stub}.length());
 			}
@@ -127,11 +157,18 @@ refine typeattr DCE_RPC_Header += &let {
 };
 
 refine typeattr ContextRequest += &let {
-	proc = $context.connection.process_dce_rpc_bind(this);
+	proc = case ptype of {
+		DCE_RPC_BIND          -> $context.connection.process_dce_rpc_bind(this);
+		DCE_RPC_ALTER_CONTEXT -> $context.connection.process_dce_rpc_alter_context(this);
+	};
 };
 
 refine typeattr DCE_RPC_Bind_Ack += &let {
 	proc = $context.connection.process_dce_rpc_bind_ack(this);
+};
+
+refine typeattr DCE_RPC_AlterContext_Resp += &let {
+	proc = $context.connection.process_dce_rpc_alter_context_resp(this);
 };
 
 refine typeattr DCE_RPC_Request += &let {

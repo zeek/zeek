@@ -1,4 +1,107 @@
 
+2.5-906 | 2018-08-24 14:57:55 -0500
+
+  * Stabilize a cluster logging unit test (Jon Siwek, Corelight)
+
+2.5-905 | 2018-08-24 10:21:35 -0500
+
+  * Detect MaxMind DB changes and auto-reload (Jonathan Perkins, Corelight)
+
+2.5-903 | 2018-08-23 16:54:24 -0500
+
+  * Fix finding of kerberos and libmaxminddb CMake < 3.3 (Daniel Thayer)
+
+  * BIT-1885: fix "kill" threading message (Jon Siwek, Corelight)
+
+2.5-900 | 2018-08-23 15:18:48 -0500
+
+  * Improve readability of the Travis job log (Daniel Thayer)
+
+  * Fix tracking of DCE-RPC context identifier mappings
+
+    This adds previously-missing support for "Alter Context"
+    request/response PDUs (initial patch contributed by Mark Fernandez).
+
+    Also, context ID arguments were added to dce_rpc_bind, dce_rpc_request,
+    and dce_rpc_response in order to properly track what endpoint/operation
+    a given opnum maps to. (Jon Siwek, Corelight)
+
+2.5-897 | 2018-08-23 15:53:16 +0000
+
+ * BIT-1885: Fix input framework memory leak. For input threads that
+   get joined during run-time, messages could remain in the thread's
+   queue and leak. (Jon Siwek, Corelight)
+
+ * Increase timeout for a memleak test. (Jon Siwek, Corelight)
+
+2.5-894 | 2018-08-22 12:05:19 -0500
+
+  * Ensure external test repo hashes track origin/master (Jon Siwek, Corelight)
+
+2.5-892 | 2018-08-22 11:49:12 -0500
+
+  * Fix "unused CMake variable" configuration warnings (Jon Siwek, Corelight)
+
+2.5-890 | 2018-08-21 16:47:52 -0500
+
+  * Fix Travis CI script to checkout particular commits of external tests
+    (Jon Siwek, Corelight)
+
+  * Fix signed/unsigned comparison warning (Jon Siwek, Corelight)
+
+2.5-888 | 2018-08-21 15:54:56 -0500
+
+  * Add --with-broker configure option (Jon Siwek, Corelight)
+
+2.5-887 | 2018-08-21 14:54:12 -0500
+
+  * Change default snaplen to 9216 bytes to better accommodate jumbo frames
+    (Justin Azoff)
+
+2.5-884 | 2018-08-20 15:39:21 -0500
+
+  * Fix outdated documentation test baselines (Jon Siwek, Corelight)
+
+  * Add 'smtp_excessive_pending_cmds' weird (Jon Siwek, Corelight)
+
+  * Fix SMTP command string comparisons (Jon Siwek, Corelight)
+
+  * Improve handling of empty lines in several text protocol analyzers
+    (Jon Siwek, Corelight)
+
+  * Add rate-limiting sampling mechanism for weird events
+
+    The generation of weird events, by default, are now rate-limited
+    according to these tunable options:
+
+      - Weird::sampling_whitelist
+      - Weird::sampling_threshold
+      - Weird::sampling_rate
+      - Weird::sampling_duration
+
+    The new get_reporter_stats() BIF also allows one to query the
+    total number of weirds generated (pre-sampling) which the new
+    policy/misc/weird-stats.bro script uses periodically to populate
+    a weird_stats.log.
+
+    There's also new reporter BIFs to allow generating weirds from the
+    script-layer such that they go through the same, internal
+    rate-limiting/sampling mechanisms:
+
+      - Reporter::conn_weird
+      - Reporter::flow_weird
+      - Reporter::net_weird
+
+    Some of the code was adapted from previous work by Johanna Amann.
+    (Jon Siwek, Corelight)
+
+  * Teach timestamp canonifier about timestamps before ~2001
+    (Jon Siwek, Corelight)
+
+2.5-877 | 2018-08-20 14:58:58 -0500
+
+  * Remove the node-specific local-*.bro scripts (Daniel Thayer)
+
 2.5-875 | 2018-08-20 12:45:32 -0500
 
   * Improve diff-remove-abspath canonifier: collapse '/' sequences

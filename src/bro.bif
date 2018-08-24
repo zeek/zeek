@@ -3598,6 +3598,8 @@ function lookup_hostname%(host: string%) : addr_set
 
 %%{
 #ifdef USE_GEOIP
+#include <chrono>
+
 extern "C" {
 #include <maxminddb.h>
 #include <sys/stat.h>
@@ -3608,17 +3610,24 @@ extern "C" {
 
 class MMDB {
 public:
-	MMDB(const char* filename);
+	MMDB(const char* filename, struct stat info);
 
 	~MMDB();
 
 	MMDB_lookup_result_s Lookup(const struct sockaddr* const sa);
+	bool StaleDB();
+	const char* Filename();
 
 private:
 	MMDB_s mmdb;
+	struct stat file_info;
+	bool lookup_error;
+	std::chrono::time_point<std::chrono::steady_clock> last_check;
 };
 
-MMDB::MMDB(const char *filename)
+MMDB::MMDB(const char* filename, struct stat info)
+	: file_info{info}, lookup_error{false},
+	  last_check{std::chrono::steady_clock::now()}
 	{
 	int status = MMDB_open(filename, MMDB_MODE_MMAP, &mmdb);
 
@@ -3640,10 +3649,48 @@ MMDB_lookup_result_s MMDB::Lookup(const struct sockaddr* const sa)
 
 	if ( MMDB_SUCCESS != mmdb_error )
 		{
+		lookup_error = true;
 		throw std::runtime_error(MMDB_strerror(mmdb_error));
 		}
 
 	return result;
+	}
+
+// Check to see if the Maxmind DB should be closed and reopened.  This will
+// happen if there was a lookup error or if the mmap'd file has been replaced
+// by an external process.
+bool MMDB::StaleDB()
+	{
+	struct stat buf;
+	using Clock = std::chrono::steady_clock;
+	std::chrono::time_point<Clock> now = Clock::now();
+
+	if ( lookup_error )
+		return true;
+
+	// Only perform stat once per 5 minutes.
+	using Min = std::chrono::minutes;
+	if ( std::chrono::duration_cast<Min>(now - last_check).count() < 5 )
+		return false;
+
+	last_check = now;
+
+	if ( 0 != stat(mmdb.filename, &buf) )
+		return true;
+
+	if ( buf.st_ino != file_info.st_ino || buf.st_mtime != file_info.st_mtime )
+		{
+		reporter->Info("Inode change detected for MaxMind DB [%s]",
+		               mmdb.filename);
+		return true;
+		}
+
+	return false;
+	}
+
+const char* MMDB::Filename()
+	{
+	return mmdb.filename;
 	}
 
 std::unique_ptr<MMDB> mmdb_loc;
@@ -3662,11 +3709,11 @@ static bool mmdb_open(const char* filename, bool asn)
 		{
 		if ( asn )
 			{
-			mmdb_asn.reset(new MMDB(filename));
+			mmdb_asn.reset(new MMDB(filename, buf));
 			}
 		else
 			{
-			mmdb_loc.reset(new MMDB(filename));
+			mmdb_loc.reset(new MMDB(filename, buf));
 			}
 		}
 
@@ -3688,6 +3735,24 @@ static bool mmdb_open_loc(const char* filename)
 static bool mmdb_open_asn(const char* filename)
 	{
 	return mmdb_open(filename, true);
+	}
+
+static void mmdb_check_loc()
+	{
+	if ( mmdb_loc && mmdb_loc->StaleDB() )
+		{
+		reporter->Info("Closing stale MaxMind DB [%s]", mmdb_loc->Filename());
+		mmdb_loc.release();
+		}
+	}
+
+static void mmdb_check_asn()
+	{
+	if ( mmdb_asn && mmdb_asn->StaleDB() )
+		{
+		reporter->Info("Closing stale MaxMind DB [%s]", mmdb_asn->Filename());
+		mmdb_asn.release();
+		}
 	}
 
 static bool mmdb_lookup(const IPAddr& addr, MMDB_lookup_result_s& result,
@@ -3873,6 +3938,7 @@ function lookup_location%(a: addr%) : geo_location
 	RecordVal* location = new RecordVal(geo_location);
 
 #ifdef USE_GEOIP
+	mmdb_check_loc();
 	if ( ! mmdb_loc )
 		{
 		if ( ! mmdb_try_open_loc() )
@@ -3950,6 +4016,7 @@ function lookup_location%(a: addr%) : geo_location
 function lookup_asn%(a: addr%) : count
 	%{
 #ifdef USE_GEOIP
+	mmdb_check_asn();
 	if ( ! mmdb_asn )
 		{
 		if ( ! mmdb_try_open_asn() )

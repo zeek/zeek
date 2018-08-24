@@ -10,6 +10,7 @@
 #include "NetVar.h"
 #include "Net.h"
 #include "Conn.h"
+#include "Timer.h"
 #include "plugin/Plugin.h"
 #include "plugin/Manager.h"
 
@@ -36,6 +37,11 @@ Reporter::Reporter()
 	warnings_to_stderr = true;
 	errors_to_stderr = true;
 
+	weird_count = 0;
+	weird_sampling_rate = 0;
+	weird_sampling_duration = 0;
+	weird_sampling_threshold = 0;
+
 	openlog("bro", 0, LOG_LOCAL5);
 	}
 
@@ -49,6 +55,24 @@ void Reporter::InitOptions()
 	info_to_stderr = internal_const_val("Reporter::info_to_stderr")->AsBool();
 	warnings_to_stderr = internal_const_val("Reporter::warnings_to_stderr")->AsBool();
 	errors_to_stderr = internal_const_val("Reporter::errors_to_stderr")->AsBool();
+	weird_sampling_rate = internal_const_val("Weird::sampling_rate")->AsCount();
+	weird_sampling_threshold = internal_const_val("Weird::sampling_threshold")->AsCount();
+	weird_sampling_duration = internal_const_val("Weird::sampling_duration")->AsInterval();
+	auto wl_val = internal_const_val("Weird::sampling_whitelist")->AsTableVal();
+	auto wl_table = wl_val->AsTable();
+
+	HashKey* k;
+	IterCookie* c = wl_table->InitForIteration();
+	TableEntryVal* v;
+
+	while ( (v = wl_table->NextEntry(k, c)) )
+		{
+		auto index = wl_val->RecoverIndex(k);
+		string key = index->Index(0)->AsString()->CheckString();
+		weird_sampling_whitelist.emplace(move(key));
+		Unref(index);
+		delete k;
+		}
 	}
 
 void Reporter::Info(const char* fmt, ...)
@@ -221,23 +245,121 @@ void Reporter::WeirdFlowHelper(const IPAddr& orig, const IPAddr& resp, const cha
 	delete vl;
 	}
 
+void Reporter::UpdateWeirdStats(const char* name)
+	{
+	++weird_count;
+	++weird_count_by_type[name];
+	}
+
+class NetWeirdTimer : public Timer {
+public:
+	NetWeirdTimer(double t, const char* name, double timeout)
+	: Timer(t + timeout, TIMER_NET_WEIRD_EXPIRE), weird_name(name)
+		{}
+
+	void Dispatch(double t, int is_expire) override
+		{ reporter->ResetNetWeird(weird_name); }
+
+	std::string weird_name;
+};
+
+class FlowWeirdTimer : public Timer {
+public:
+	using IPPair = std::pair<IPAddr, IPAddr>;
+
+	FlowWeirdTimer(double t, IPPair p, double timeout)
+	: Timer(t + timeout, TIMER_FLOW_WEIRD_EXPIRE), endpoints(p)
+		{}
+
+	void Dispatch(double t, int is_expire) override
+		{ reporter->ResetFlowWeird(endpoints.first, endpoints.second); }
+
+	IPPair endpoints;
+};
+
+void Reporter::ResetNetWeird(const std::string& name)
+	{
+	net_weird_state.erase(name);
+	}
+
+void Reporter::ResetFlowWeird(const IPAddr& orig, const IPAddr& resp)
+	{
+	flow_weird_state.erase(std::make_pair(orig, resp));
+	}
+
+bool Reporter::PermitNetWeird(const char* name)
+	{
+	auto& count = net_weird_state[name];
+	++count;
+
+	if ( count == 1 )
+		timer_mgr->Add(new NetWeirdTimer(network_time, name,
+		                                 weird_sampling_duration));
+
+	if ( count < weird_sampling_threshold )
+		return true;
+
+	auto num_above_threshold = count - weird_sampling_threshold;
+	return num_above_threshold % weird_sampling_rate == 0;
+	}
+
+bool Reporter::PermitFlowWeird(const char* name,
+                               const IPAddr& orig, const IPAddr& resp)
+	{
+	auto endpoints = std::make_pair(orig, resp);
+	auto& map = flow_weird_state[endpoints];
+
+	if ( map.empty() )
+		timer_mgr->Add(new FlowWeirdTimer(network_time, endpoints,
+		                                  weird_sampling_duration));
+
+	auto& count = map[name];
+	++count;
+
+	if ( count < weird_sampling_threshold )
+		return true;
+
+	auto num_above_threshold = count - weird_sampling_threshold;
+	return num_above_threshold % weird_sampling_rate == 0;
+	}
+
 void Reporter::Weird(const char* name)
 	{
+	UpdateWeirdStats(name);
+
+	if ( ! WeirdOnSamplingWhiteList(name) )
+		{
+		if ( ! PermitNetWeird(name) )
+			return;
+		}
+
 	WeirdHelper(net_weird, 0, 0, "%s", name);
 	}
 
 void Reporter::Weird(Connection* conn, const char* name, const char* addl)
 	{
-	WeirdHelper(conn_weird, conn->BuildConnVal(), addl, "%s", name);
-	}
+	UpdateWeirdStats(name);
 
-void Reporter::Weird(Val* conn_val, const char* name, const char* addl)
-	{
-	WeirdHelper(conn_weird, conn_val, addl, "%s", name);
+	if ( ! WeirdOnSamplingWhiteList(name) )
+		{
+		if ( ! conn->PermitWeird(name, weird_sampling_threshold,
+		                         weird_sampling_rate, weird_sampling_duration) )
+			return;
+		}
+
+	WeirdHelper(conn_weird, conn->BuildConnVal(), addl, "%s", name);
 	}
 
 void Reporter::Weird(const IPAddr& orig, const IPAddr& resp, const char* name)
 	{
+	UpdateWeirdStats(name);
+
+	if ( ! WeirdOnSamplingWhiteList(name) )
+		{
+		if ( ! PermitFlowWeird(name, orig, resp) )
+			 return;
+		}
+
 	WeirdFlowHelper(orig, resp, "%s", name);
 	}
 

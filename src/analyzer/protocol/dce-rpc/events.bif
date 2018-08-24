@@ -16,7 +16,7 @@
 event dce_rpc_message%(c: connection, is_orig: bool, fid: count, ptype_id: count, ptype: DCE_RPC::PType%);
 
 ## Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` bind request message.
-## Since RPC offers the ability for a client to request connections to multiple endpoints, this event can occur 
+## Since RPC offers the ability for a client to request connections to multiple endpoints, this event can occur
 ## multiple times for a single RPC message.
 ##
 ## c: The connection.
@@ -25,6 +25,8 @@ event dce_rpc_message%(c: connection, is_orig: bool, fid: count, ptype_id: count
 ##      message. Zero will be used if the :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` was
 ##      not transported over a pipe.
 ##
+## ctx_id: The context identifier of the data representation.
+##
 ## uuid: The string interpretted uuid of the endpoint being requested.
 ##
 ## ver_major: The major version of the endpoint being requested.
@@ -32,7 +34,28 @@ event dce_rpc_message%(c: connection, is_orig: bool, fid: count, ptype_id: count
 ## ver_minor: The minor version of the endpoint being requested.
 ##
 ## .. bro:see:: dce_rpc_message dce_rpc_bind_ack dce_rpc_request dce_rpc_response
-event dce_rpc_bind%(c: connection, fid: count, uuid: string, ver_major: count, ver_minor: count%);
+event dce_rpc_bind%(c: connection, fid: count, ctx_id: count, uuid: string, ver_major: count, ver_minor: count%);
+
+## Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` alter context request message.
+## Since RPC offers the ability for a client to request connections to multiple endpoints, this event can occur
+## multiple times for a single RPC message.
+##
+## c: The connection.
+##
+## fid: File ID of the PIPE that carried the :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)`
+##      message. Zero will be used if the :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` was
+##      not transported over a pipe.
+##
+## ctx_id: The context identifier of the data representation.
+##
+## uuid: The string interpretted uuid of the endpoint being requested.
+##
+## ver_major: The major version of the endpoint being requested.
+##
+## ver_minor: The minor version of the endpoint being requested.
+##
+## .. bro:see:: dce_rpc_message dce_rpc_bind dce_rpc_bind_ack dce_rpc_request dce_rpc_response dce_rpc_alter_context_resp
+event dce_rpc_alter_context%(c: connection, fid: count, ctx_id: count, uuid: string, ver_major: count, ver_minor: count%);
 
 ## Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` bind request ack message.
 ##
@@ -47,6 +70,17 @@ event dce_rpc_bind%(c: connection, fid: count, uuid: string, ver_major: count, v
 ## .. bro:see:: dce_rpc_message dce_rpc_bind dce_rpc_request dce_rpc_response
 event dce_rpc_bind_ack%(c: connection, fid: count, sec_addr: string%);
 
+## Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` alter context response message.
+##
+## c: The connection.
+##
+## fid: File ID of the PIPE that carried the :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)`
+##      message. Zero will be used if the :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` was
+##      not transported over a pipe.
+##
+## .. bro:see:: dce_rpc_message dce_rpc_bind dce_rpc_bind_ack dce_rpc_request dce_rpc_response dce_rpc_alter_context
+event dce_rpc_alter_context_resp%(c: connection, fid: count%);
+
 ## Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` request message.
 ##
 ## c: The connection.
@@ -55,12 +89,14 @@ event dce_rpc_bind_ack%(c: connection, fid: count, sec_addr: string%);
 ##      message. Zero will be used if the :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` was
 ##      not transported over a pipe.
 ##
+## ctx_id: The context identifier of the data representation.
+##
 ## opnum: Number of the RPC operation.
 ##
 ## stub_len: Length of the data for the request.
 ##
 ## .. bro:see:: dce_rpc_message dce_rpc_bind dce_rpc_bind_ack dce_rpc_response
-event dce_rpc_request%(c: connection, fid: count, opnum: count, stub_len: count%);
+event dce_rpc_request%(c: connection, fid: count, ctx_id: count, opnum: count, stub_len: count%);
 
 ## Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` response message.
 ##
@@ -70,9 +106,11 @@ event dce_rpc_request%(c: connection, fid: count, opnum: count, stub_len: count%
 ##      message. Zero will be used if the :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` was
 ##      not transported over a pipe.
 ##
+## ctx_id: The context identifier of the data representation.
+###
 ## opnum: Number of the RPC operation.
 ##
 ## stub_len: Length of the data for the response.
 ##
 ## .. bro:see:: dce_rpc_message dce_rpc_bind dce_rpc_bind_ack dce_rpc_request
-event dce_rpc_response%(c: connection, fid: count, opnum: count, stub_len: count%);
+event dce_rpc_response%(c: connection, fid: count, ctx_id: count, opnum: count, stub_len: count%);

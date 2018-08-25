@@ -1,4 +1,10 @@
 
+2.5-911 | 2018-08-24 17:47:03 -0700
+
+  * Add a missing initializer to a runtime option (Daniel Thayer)
+
+  * Convert more redef-able constants to runtime options (Daniel Thayer)
+
 2.5-907 | 2018-08-24 17:23:46 -0700
 
   * Fix base/misc/version.bro version parsing. (Johanna Amann)

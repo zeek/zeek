@@ -33,7 +33,7 @@ export {
 	};
 
 	## DOS and NT status codes that indicate authentication failure.
-	const auth_failure_statuses: set[count] = {
+	option auth_failure_statuses: set[count] = {
 		0x052e0001, # logonfailure
 		0x08c00002, # badClient
 		0x08c10002, # badLogonTime
@@ -46,7 +46,7 @@ export {
 		0xC0000070, # INVALID_WORKSTATION
 		0xC0000071, # PASSWORD_EXPIRED
 		0xC0000072, # ACCOUNT_DISABLED
-	} &redef;
+	};
 }
 
 redef DPD::ignore_violations += { Analyzer::ANALYZER_NTLM };

@@ -130,7 +130,7 @@ export {
 	const analyze_by_mime_type_automatically = T &redef;
 
 	## The default setting for file reassembly.
-	const enable_reassembler = T &redef;
+	option enable_reassembler = T;
 
 	## The default per-file reassembly buffer size.
 	const reassembly_buffer_size = 524288 &redef;

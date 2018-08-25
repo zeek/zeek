@@ -38,7 +38,7 @@ export {
 	};
 	
 	## The interval at which capture loss reports are created.
-	const watch_interval = 15mins &redef;
+	option watch_interval = 15mins;
 	
 	## The percentage of missed data that is considered "too much" 
 	## when the :bro:enum:`CaptureLoss::Too_Much_Loss` notice should be

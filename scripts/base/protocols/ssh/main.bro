@@ -50,12 +50,12 @@ export {
 
 	## The set of compression algorithms. We can't accurately determine
 	## authentication success or failure when compression is enabled.
-	const compression_algorithms = set("zlib", "zlib@openssh.com") &redef;
+	option compression_algorithms = set("zlib", "zlib@openssh.com");
 
 	## If true, after detection detach the SSH analyzer from the connection
 	## to prevent continuing to process encrypted traffic. Helps with performance
 	## (especially with large file transfers).
-	const disable_analyzer_after_detection = T &redef;
+	option disable_analyzer_after_detection = T;
 
 	## Event that can be handled to access the SSH record as it is sent on
 	## to the logging framework.

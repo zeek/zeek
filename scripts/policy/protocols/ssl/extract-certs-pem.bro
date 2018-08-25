@@ -19,7 +19,7 @@ export {
 	## Control if host certificates offered by the defined hosts
 	## will be written to the PEM certificates file.
 	## Choices are: LOCAL_HOSTS, REMOTE_HOSTS, ALL_HOSTS, NO_HOSTS.
-	const extract_certs_pem = LOCAL_HOSTS &redef;
+	option extract_certs_pem = LOCAL_HOSTS;
 }
 
 # This is an internally maintained variable to prevent relogging of

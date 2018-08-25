@@ -26,7 +26,7 @@ export {
 	
 	## Notice types which should have the "remote" location looked up.
 	## If GeoIP support is not built in, this does nothing.
-	const lookup_location_types: set[Notice::Type] = {} &redef;
+	option lookup_location_types: set[Notice::Type] = {};
 }
 
 hook policy(n: Notice::Info) &priority=10

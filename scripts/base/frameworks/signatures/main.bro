@@ -104,7 +104,7 @@ export {
 	} &redef &default = SIG_ALARM;
 
 	## Signature IDs that should always be ignored.
-	const ignored_ids = /NO_DEFAULT_MATCHES/ &redef;
+	option ignored_ids = /NO_DEFAULT_MATCHES/;
 	
 	## Generate a notice if, for a pair [orig, signature], the number of
 	## different responders has reached one of the thresholds.
@@ -120,7 +120,7 @@ export {
 	
 	## The interval between when :bro:enum:`Signatures::Signature_Summary`
 	## notices are generated.
-	const summary_interval = 1 day &redef;
+	option summary_interval = 1 day;
 
 	## This event can be handled to access/alter data about to be logged
 	## to the signature logging stream.

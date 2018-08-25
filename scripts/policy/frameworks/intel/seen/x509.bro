@@ -6,7 +6,7 @@ module Intel;
 
 export {
         ## Enables the extraction of subject alternate names from the X509 SAN DNS field
-        const enable_x509_ext_subject_alternative_name = T &redef;
+        option enable_x509_ext_subject_alternative_name = T;
 }
 
 event x509_ext_subject_alternative_name(f: fa_file, ext: X509::SubjectAlternativeName)

@@ -21,7 +21,7 @@ export {
 
 	type dir: enum { NONE, INCOMING, OUTGOING, BOTH };
 
-	const valids: table[Analyzer::Tag, addr, port] of dir = {
+	option valids: table[Analyzer::Tag, addr, port] of dir = {
 		# A couple of ports commonly used for benign HTTP servers.
 
 		# For now we want to see everything.
@@ -37,23 +37,23 @@ export {
 		# [Analyzer::ANALYZER_HTTP, 0.0.0.0, 6346/tcp] = BOTH, # Gnutella
 		# [Analyzer::ANALYZER_HTTP, 0.0.0.0, 6347/tcp] = BOTH, # Gnutella
 		# [Analyzer::ANALYZER_HTTP, 0.0.0.0, 6348/tcp] = BOTH, # Gnutella
-	} &redef;
+	};
 
 	# Set of analyzers for which we suppress Server_Found notices
 	# (but not Protocol_Found).  Along with avoiding clutter in the
 	# log files, this also saves memory because for these we don't
 	# need to remember which servers we already have reported, which
 	# for some can be a lot.
-	const suppress_servers: set [Analyzer::Tag] = {
+	option suppress_servers: set [Analyzer::Tag] = {
 		# Analyzer::ANALYZER_HTTP
-	} &redef;
+	};
 
 	# We consider a connection to use a protocol X if the analyzer for X
 	# is still active (i) after an interval of minimum_duration, or (ii)
 	# after a payload volume of minimum_volume, or (iii) at the end of the
 	# connection.
-	const minimum_duration = 30 secs &redef;
-	const minimum_volume = 4e3 &redef;	# bytes
+	option minimum_duration = 30 secs;
+	option minimum_volume = 4e3;	# bytes
 
 	# How often to check the size of the connection.
 	const check_interval = 5 secs;

@@ -91,12 +91,12 @@ export {
 	## The Certificate Transparency log bundle. By default, the ct-list.bro
 	## script sets this to the current list of known logs. Entries
 	## are indexed by (binary) log-id.
-	const ct_logs: table[string] of CTInfo = {} &redef;
+	option ct_logs: table[string] of CTInfo = {};
 
 	## If true, detach the SSL analyzer from the connection to prevent
 	## continuing to process encrypted traffic. Helps with performance
 	## (especially with large file transfers).
-	const disable_analyzer_after_detection = T &redef;
+	option disable_analyzer_after_detection = T;
 
 	## Delays an SSL record for a specific token: the record will not be
 	## logged as long as the token exists or until 15 seconds elapses.

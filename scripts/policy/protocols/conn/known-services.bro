@@ -35,7 +35,7 @@ export {
 	
 	## The hosts whose services should be tracked and logged.
 	## See :bro:type:`Host` for possible choices.
-	const service_tracking = LOCAL_HOSTS &redef;
+	option service_tracking = LOCAL_HOSTS;
 
 	type AddrPortPair: record {
 		host: addr;
@@ -56,7 +56,7 @@ export {
 
 	## The timeout interval to use for operations against
 	## :bro:see:`Known::service_store`.
-	const service_store_timeout = 15sec &redef;
+	option service_store_timeout = 15sec;
 
 	## Tracks the set of daily-detected services for preventing the logging
 	## of duplicates, but can also be inspected by other scripts for

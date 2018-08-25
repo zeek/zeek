@@ -28,11 +28,11 @@ export {
 
 	## These are DCE-RPC operations that are ignored, typically due to
 	## the operations being noisy and low value on most networks.
-	const ignored_operations: table[string] of set[string] = {
+	option ignored_operations: table[string] of set[string] = {
 		["winreg"] = set("BaseRegCloseKey", "BaseRegGetVersion", "BaseRegOpenKey", "BaseRegQueryValue", "BaseRegDeleteKeyEx", "OpenLocalMachine", "BaseRegEnumKey", "OpenClassesRoot"),
 		["spoolss"] = set("RpcSplOpenPrinter", "RpcClosePrinter"),
 		["wkssvc"] = set("NetrWkstaGetInfo"),
-	} &redef;
+	};
 
 	type State: record {
 		uuid       : string &optional;

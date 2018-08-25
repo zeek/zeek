@@ -29,11 +29,11 @@ export {
 
 	## The DNS zone where runtime vulnerable software updates will
 	## be loaded from.
-	const vulnerable_versions_update_endpoint = "" &redef;
+	option vulnerable_versions_update_endpoint = "";
 
 	## The interval at which vulnerable versions should grab updates
 	## over DNS.
-	const vulnerable_versions_update_interval = 1hr &redef;
+	option vulnerable_versions_update_interval = 1hr;
 
 	## This is a table of software versions indexed by the name of the
 	## software and a set of version ranges that are declared to be

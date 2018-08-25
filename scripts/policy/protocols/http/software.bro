@@ -15,7 +15,7 @@ export {
 	};
 
 	## The pattern of HTTP User-Agents which you would like to ignore.
-	const ignored_user_agents = /NO_DEFAULT/ &redef;
+	option ignored_user_agents = /NO_DEFAULT/;
 }
 
 event http_header(c: connection, is_orig: bool, name: string, value: string) &priority=2

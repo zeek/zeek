@@ -1,4 +1,8 @@
 
+2.5-907 | 2018-08-24 17:23:46 -0700
+
+  * Fix base/misc/version.bro version parsing. (Johanna Amann)
+
 2.5-906 | 2018-08-24 14:57:55 -0500
 
   * Stabilize a cluster logging unit test (Jon Siwek, Corelight)

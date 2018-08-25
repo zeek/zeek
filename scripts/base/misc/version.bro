@@ -66,7 +66,7 @@ function parse(version_string: string): VersionDescription
 	local commit = 0;
 	if ( |components| > 1 )
 		{
-		local commitpart = find_last(components[1], /\-[[:digit:]]+/);
+		local commitpart = find_last(cat("-", components[1]), /\-[[:digit:]]+/);
 		commit = ( |commitpart| > 0 ) ? to_count(sub_bytes(commitpart, 2, 999)) : 0;
 		}
 

@@ -57,7 +57,11 @@ typedef enum {
 	TYPE_TKEY = 249,	///< Transaction Key (RFC 2930)
 	TYPE_TSIG = 250,	///< Transaction Signature (RFC 2845)
 	TYPE_CAA = 257,		///< Certification Authority Authorization (RFC 6844)
-
+	// DNSSEC RR's
+	TYPE_RRSIG = 46,	///< RR Signature record type (RFC4043)	
+	TYPE_NSEC = 47,		///< Next Secure record (RFC4043)
+	TYPE_DNSKEY = 48,	///< DNS Key record (RFC 4034)
+	TYPE_DS = 43,		///< Delegation signer (RFC 4034)
 	// The following are only valid in queries.
 	TYPE_AXFR = 252,
 	TYPE_ALL = 255,
@@ -75,6 +79,18 @@ typedef enum {
 	DNS_ADDITIONAL,
 } DNS_AnswerType;
 
+typedef enum {
+	reserved0 = 0,
+    RSA_MD5 = 1,          ///<	[RFC2537]  NOT RECOMMENDED
+    Diffie_Hellman = 2,	///< [RFC2539]
+    DSA_SHA1 = 3,	///< [RFC2536]  OPTIONAL
+    Elliptic_Curve = 4,
+    RSA_SHA1 = 5,	///< [RFC3110]  MANDATORY
+    Indirect = 252,	///<
+    PrivateDNS = 253,	///<  OPTIONAL
+    PrivateOID = 254,	///<  OPTIONAL
+    reserved255 = 255,
+} DNSSEC_Algo;
 
 struct DNS_RawMsgHdr {
 	unsigned short id;
@@ -105,6 +121,18 @@ struct TSIG_DATA {
 	unsigned short rr_error;
 };
 
+struct RRSIG_DATA {
+	unsigned short type_covered;		// 16 : ExtractShort(data, len)
+	unsigned short algorithm;		// 8
+	unsigned short labels;		// 8
+	uint32 orig_ttl;		// 32
+	unsigned long sig_exp;		// 32
+	unsigned long sig_incep;		// 32
+	unsigned short key_tag;		//16
+	BroString* signer_name;
+	BroString* signature;
+};
+
 class DNS_MsgInfo {
 public:
 	DNS_MsgInfo(DNS_RawMsgHdr* hdr, int is_query);
@@ -114,6 +142,7 @@ public:
 	Val* BuildAnswerVal();
 	Val* BuildEDNS_Val();
 	Val* BuildTSIG_Val();
+	Val* BuildRRSIG_Val();
 
 	int id;
 	int opcode;	///< query type, see DNS_Opcode
@@ -143,15 +172,16 @@ public:
 				///< for forward lookups
 
 	// More values for spesific DNS types.
-	// struct EDNS_ADDITIONAL* edns;
-
+	//struct EDNS_ADDITIONAL* edns;
+	//DNSSEC_Algo dnssec_algo;
 	struct TSIG_DATA* tsig;
+	struct RRSIG_DATA* rrsig;
 };
 
 
 class DNS_Interpreter {
 public:
-	explicit DNS_Interpreter(analyzer::Analyzer* analyzer);
+	DNS_Interpreter(analyzer::Analyzer* analyzer);
 
 	int ParseMessage(const u_char* data, int len, int is_query);
 
@@ -182,6 +212,8 @@ protected:
 	uint16 ExtractShort(const u_char*& data, int& len);
 	uint32 ExtractLong(const u_char*& data, int& len);
 	void ExtractOctets(const u_char*& data, int& len, BroString** p);
+
+	void ExtractStream(const u_char*& data, int& len, BroString** p, int sig_len);
 
 	int ParseRR_Name(DNS_MsgInfo* msg,
 				const u_char*& data, int& len, int rdlength,
@@ -218,6 +250,9 @@ protected:
 	int ParseRR_TSIG(DNS_MsgInfo* msg,
 				const u_char*& data, int& len, int rdlength,
 				const u_char* msg_start);
+	int ParseRR_RRSIG(DNS_MsgInfo* msg,
+				const u_char*& data, int& len, int rdlength,
+				const u_char* msg_start);
 
 	void SendReplyOrRejectEvent(DNS_MsgInfo* msg, EventHandlerPtr event,
 					const u_char*& data, int& len,
@@ -239,14 +274,14 @@ typedef enum {
 class Contents_DNS : public tcp::TCP_SupportAnalyzer {
 public:
 	Contents_DNS(Connection* c, bool orig, DNS_Interpreter* interp);
-	~Contents_DNS() override;
+	~Contents_DNS();
 
 	void Flush();		///< process any partially-received data
 
 	TCP_DNS_state State() const	{ return state; }
 
 protected:
-	void DeliverStream(int len, const u_char* data, bool orig) override;
+	virtual void DeliverStream(int len, const u_char* data, bool orig);
 
 	DNS_Interpreter* interp;
 
@@ -260,16 +295,16 @@ protected:
 // Works for both TCP and UDP.
 class DNS_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit DNS_Analyzer(Connection* conn);
-	~DNS_Analyzer() override;
+	DNS_Analyzer(Connection* conn);
+	~DNS_Analyzer();
 
-	void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64 seq, const IP_Hdr* ip, int caplen) override;
+	virtual void DeliverPacket(int len, const u_char* data, bool orig,
+					uint64 seq, const IP_Hdr* ip, int caplen);
 
-	void Init() override;
-	void Done() override;
-	void ConnectionClosed(tcp::TCP_Endpoint* endpoint,
-					tcp::TCP_Endpoint* peer, int gen_event) override;
+	virtual void Init();
+	virtual void Done();
+	virtual void ConnectionClosed(tcp::TCP_Endpoint* endpoint,
+					tcp::TCP_Endpoint* peer, int gen_event);
 
 	void ExpireTimer(double t);
 

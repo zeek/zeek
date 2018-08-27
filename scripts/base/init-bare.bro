@@ -3544,6 +3544,24 @@ type dns_tsig_additional: record {
 	is_query: count;	##< TODO.
 };
 
+## An DNS RRSIG record.
+##
+## .. bro:see:: dns_RRSIG_addl
+type dns_rrsig_additional: record {
+	query: string;	##< Query.
+	answer_type: count;	##< Ans type.
+	type_covered: count;	## qtype covered by RRSIG RR.
+	algorithm: count;	##< Algorithm.
+	labels: count;		##< labels in the owner's name.
+	orig_ttl: interval;	##< original TTL
+	sig_exp: time;		##< Time when signed RR expires.
+	sig_incep: time;	##< Time when signed.
+	key_tag: count;		## key tag value
+	signer_name: string;	##< Signature.
+	signature: string;	##< Hash of the RRDATA
+	is_query: count;	##< The RR is a query/Response.
+};
+
 # DNS answer types.
 #
 # .. bro:see:: dns_answerr

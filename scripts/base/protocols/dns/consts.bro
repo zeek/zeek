@@ -76,4 +76,19 @@ export {
 		[254] = "C_NONE",
 		[255] = "C_ANY",
 	} &default = function(n: count): string { return fmt("qclass-%d", n); };
+	
+	## Possible values of the algorithms used in DNSKEY, DS and RRSIG records
+	const algorithms = {
+                [0] = "reserved0",
+        	[1] = "RSA_MD5",
+        	[2] = "Diffie_Hellman",
+        	[3] = "DSA_SHA1",
+        	[4] = "Elliptic_Curve",
+        	[5] = "RSA_SHA1",
+        	[252] = "Indirect",
+        	[253] = "PrivateDNS",
+        	[254] = "PrivateOID",
+        	[255] = "reserved255",
+        } &default = function(n: count): string { return fmt("qclass-%d", n); };
+
 }

@@ -181,7 +181,7 @@ public:
 
 class DNS_Interpreter {
 public:
-	DNS_Interpreter(analyzer::Analyzer* analyzer);
+	explicit DNS_Interpreter(analyzer::Analyzer* analyzer);
 
 	int ParseMessage(const u_char* data, int len, int is_query);
 
@@ -274,14 +274,14 @@ typedef enum {
 class Contents_DNS : public tcp::TCP_SupportAnalyzer {
 public:
 	Contents_DNS(Connection* c, bool orig, DNS_Interpreter* interp);
-	~Contents_DNS();
+	~Contents_DNS() override;
 
 	void Flush();		///< process any partially-received data
 
 	TCP_DNS_state State() const	{ return state; }
 
 protected:
-	virtual void DeliverStream(int len, const u_char* data, bool orig);
+	void DeliverStream(int len, const u_char* data, bool orig) override;
 
 	DNS_Interpreter* interp;
 
@@ -295,16 +295,16 @@ protected:
 // Works for both TCP and UDP.
 class DNS_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
-	DNS_Analyzer(Connection* conn);
-	~DNS_Analyzer();
+	explicit DNS_Analyzer(Connection* conn);
+	~DNS_Analyzer() override;
 
-	virtual void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64 seq, const IP_Hdr* ip, int caplen);
+	void DeliverPacket(int len, const u_char* data, bool orig,
+					uint64 seq, const IP_Hdr* ip, int caplen) override;
 
-	virtual void Init();
-	virtual void Done();
-	virtual void ConnectionClosed(tcp::TCP_Endpoint* endpoint,
-					tcp::TCP_Endpoint* peer, int gen_event);
+	void Init() override;
+	void Done() override;
+	void ConnectionClosed(tcp::TCP_Endpoint* endpoint,
+					tcp::TCP_Endpoint* peer, int gen_event) override;
 
 	void ExpireTimer(double t);
 

@@ -12,7 +12,7 @@ export {
 	redef enum Log::ID += { Modbus::REGISTER_CHANGE_LOG };
 
 	## The hosts that should have memory mapping enabled.
-	const track_memmap: Host = ALL_HOSTS &redef;
+	option track_memmap: Host = ALL_HOSTS;
 
 	type MemmapInfo: record {
 		## Timestamp for the detected register change.

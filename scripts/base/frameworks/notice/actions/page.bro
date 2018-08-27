@@ -14,7 +14,7 @@ export {
 	
 	## Email address to send notices with the :bro:enum:`Notice::ACTION_PAGE`
 	## action.
-	const mail_page_dest = "" &redef;
+	option mail_page_dest = "";
 }
 
 hook notice(n: Notice::Info) &priority=-5

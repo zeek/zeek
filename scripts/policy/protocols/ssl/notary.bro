@@ -12,7 +12,7 @@ export {
 	};
 
 	## The notary domain to query.
-	const domain = "notary.icsi.berkeley.edu" &redef;
+	option domain = "notary.icsi.berkeley.edu";
 }
 
 redef record SSL::Info += {

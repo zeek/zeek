@@ -255,14 +255,14 @@ export {
 
 	## To completely ignore a specific weird for a host, add the host
 	## and weird name into this set.
-	const ignore_hosts: set[addr, string] &redef;
+	option ignore_hosts: set[addr, string] = {};
 
 	## Don't ignore repeats for weirds in this set.  For example,
 	## it's handy keeping track of clustered checksum errors.
-	const weird_do_not_ignore_repeats = {
+	option weird_do_not_ignore_repeats = {
 		"bad_IP_checksum", "bad_TCP_checksum", "bad_UDP_checksum",
 		"bad_ICMP_checksum",
-	} &redef;
+	};
 
 	## This table is used to track identifier and name pairs that should be
 	## temporarily ignored because the problem has already been reported.

@@ -29,7 +29,7 @@ export {
 	
 	## The certificates whose existence should be logged and tracked.
 	## Choices are: LOCAL_HOSTS, REMOTE_HOSTS, ALL_HOSTS, NO_HOSTS.
-	const cert_tracking = LOCAL_HOSTS &redef;
+	option cert_tracking = LOCAL_HOSTS;
 
 	## Toggles between different implementations of this script.
 	## When true, use a Broker data store, else use a regular Bro set
@@ -52,11 +52,11 @@ export {
 
 	## The expiry interval of new entries in :bro:see:`Known::cert_store`.
 	## This also changes the interval at which certs get logged.
-	const cert_store_expiry = 1day &redef;
+	option cert_store_expiry = 1day;
 
 	## The timeout interval to use for operations against
 	## :bro:see:`Known::cert_store`.
-	const cert_store_timeout = 15sec &redef;
+	option cert_store_timeout = 15sec;
 
 	## The set of all known certificates to store for preventing duplicate 
 	## logging. It can also be used from other scripts to 

@@ -18,7 +18,7 @@ module Conn;
 export {
 	## The prefix given to files containing extracted connections as they
 	## are opened on disk.
-	const extraction_prefix = "contents" &redef;
+	option extraction_prefix = "contents";
 	
 	## If this variable is set to ``T``, then all contents of all
 	## connections will be extracted.

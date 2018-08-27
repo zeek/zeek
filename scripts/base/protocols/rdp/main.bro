@@ -58,11 +58,11 @@ export {
 
 	## If true, detach the RDP analyzer from the connection to prevent
 	## continuing to process encrypted traffic.
-	const disable_analyzer_after_detection = F &redef;
+	option disable_analyzer_after_detection = F;
 
 	## The amount of time to monitor an RDP session from when it is first 
 	## identified. When this interval is reached, the session is logged.
-	const rdp_check_interval = 10secs &redef;
+	option rdp_check_interval = 10secs;
 
 	## Event that can be handled to access the rdp record as it is sent on
 	## to the logging framework.

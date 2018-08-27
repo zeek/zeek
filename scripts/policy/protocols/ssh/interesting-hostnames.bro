@@ -17,14 +17,14 @@ export {
 	};
 	
 	## Strange/bad host names to see successful SSH logins from or to.
-	const interesting_hostnames =
+	option interesting_hostnames =
 			/^d?ns[0-9]*\./ |
 			/^smtp[0-9]*\./ |
 			/^mail[0-9]*\./ |
 			/^pop[0-9]*\./  |
 			/^imap[0-9]*\./ |
 			/^www[0-9]*\./  |
-			/^ftp[0-9]*\./  &redef;
+			/^ftp[0-9]*\./;
 }
 
 function check_ssh_hostname(id: conn_id, uid: string, host: addr)

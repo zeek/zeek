@@ -118,12 +118,12 @@ export {
 	## is reached (this shouldn't happen unless either the DNS server/resolver
 	## is broken, Bro is not seeing all the DNS traffic, or an AXFR query
 	## response is ongoing).
-	const max_pending_msgs = 50 &redef;
+	option max_pending_msgs = 50;
 
 	## Give up trying to match pending DNS queries or replies across all
 	## query/transaction IDs once there is at least one unmatched query or
 	## reply across this number of different query IDs.
-	const max_pending_query_ids = 50 &redef;
+	option max_pending_query_ids = 50;
 
 	## A record type which tracks the status of DNS queries for a given
 	## :bro:type:`connection`.

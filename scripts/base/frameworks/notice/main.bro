@@ -173,13 +173,13 @@ export {
 	};
 
 	## Ignored notice types.
-	const ignored_types: set[Notice::Type] = {} &redef;
+	option ignored_types: set[Notice::Type] = {};
 	## Emailed notice types.
-	const emailed_types: set[Notice::Type] = {} &redef;
+	option emailed_types: set[Notice::Type] = {};
 	## Alarmed notice types.
-	const alarmed_types: set[Notice::Type] = {} &redef;
+	option alarmed_types: set[Notice::Type] = {};
 	## Types that should be suppressed for the default suppression interval.
-	const not_suppressed_types: set[Notice::Type] = {} &redef;
+	option not_suppressed_types: set[Notice::Type] = {};
 	## This table can be used as a shorthand way to modify suppression
 	## intervals for entire notice types.
 	const type_suppression_intervals: table[Notice::Type] of interval = {} &redef;
@@ -190,7 +190,7 @@ export {
 	## Local system sendmail program.
 	##
 	## Note that this is overridden by the BroControl SendMail option.
-	const sendmail            = "/usr/sbin/sendmail" &redef;
+	option sendmail            = "/usr/sbin/sendmail";
 	## Email address to send notices with the
 	## :bro:enum:`Notice::ACTION_EMAIL` action or to send bulk alarm logs
 	## on rotation with :bro:enum:`Notice::ACTION_ALARM`.

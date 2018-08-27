@@ -29,7 +29,7 @@ export {
 	
 	## The hosts whose existence should be logged and tracked.
 	## See :bro:type:`Host` for possible choices.
-	const host_tracking = LOCAL_HOSTS &redef;
+	option host_tracking = LOCAL_HOSTS;
 	
 	## Holds the set of all known hosts.  Keys in the store are addresses
 	## and their associated value will always be the "true" boolean.
@@ -44,7 +44,7 @@ export {
 
 	## The timeout interval to use for operations against
 	## :bro:see:`Known::host_store`.
-	const host_store_timeout = 15sec &redef;
+	option host_store_timeout = 15sec;
 
 	## The set of all known addresses to store for preventing duplicate 
 	## logging of addresses.  It can also be used from other scripts to 

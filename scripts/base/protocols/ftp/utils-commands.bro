@@ -18,7 +18,7 @@ export {
 	type PendingCmds: table[count] of CmdArg;
 	
 	## Possible response codes for a wide variety of FTP commands.
-	const cmd_reply_code: set[string, count] = {
+	option cmd_reply_code: set[string, count] = {
 		# According to RFC 959
 		["<init>", [120, 220, 421]],
 		["USER", [230, 331, 332, 421, 530, 500, 501]],
@@ -72,7 +72,7 @@ export {
 		["<init>", 0],    # unexpected command-reply pair
 		["<missing>", 0], # unexpected command-reply pair
 		["QUIT", 0],      # unexpected command-reply pair
-	} &redef;
+	};
 }
 
 function add_pending_cmd(pc: PendingCmds, cmd: string, arg: string): CmdArg

@@ -42,7 +42,7 @@ export {
 
 	## Warn if a server negotiates an unsafe cipher suite. By default, we only warn when
 	## encountering old export cipher suites, or RC4 (see RFC7465).
-	const unsafe_ciphers_regex = /(_EXPORT_)|(_RC4_)/ &redef;
+	option unsafe_ciphers_regex = /(_EXPORT_)|(_RC4_)/;
 }
 
 # We check key lengths only for DSA or RSA certificates. For others, we do

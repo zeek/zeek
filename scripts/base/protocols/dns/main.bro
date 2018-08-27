@@ -465,6 +465,10 @@ event dns_SRV_reply(c: connection, msg: dns_msg, ans: dns_answer, target: string
 #	{
 #
 #	}
+event dns_RRSIG_addl(c: connection, msg: dns_msg, ans: dns_answer, rrsig: dns_rrsig_additional)
+        {
+        hook DNS::do_reply(c, msg, ans, rrsig$signer_name);
+        }
 
 event dns_rejected(c: connection, msg: dns_msg, query: string, qtype: count, qclass: count) &priority=5
 	{

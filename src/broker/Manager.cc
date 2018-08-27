@@ -403,76 +403,6 @@ bool Manager::PublishEvent(string topic, RecordVal* args)
 	return PublishEvent(topic, event_name, std::move(xs));
 	}
 
-bool Manager::RelayEvent(std::string first_topic,
-                         broker::set relay_topics,
-                         std::string name,
-                         broker::vector args,
-                         bool handle_on_relayer)
-	{
-	if ( bstate->endpoint.is_shutdown() )
-		return true;
-
-	if ( peer_count == 0 )
-		return true;
-
-	DBG_LOG(DBG_BROKER, "Publishing %s-relay event: %s",
-			handle_on_relayer ? "handle" : "",
-	        RenderEvent(first_topic, name, args).c_str());
-
-	if ( handle_on_relayer )
-		{
-		broker::bro::HandleAndRelayEvent msg(std::move(relay_topics),
-		                                     std::move(name),
-		                                     std::move(args));
-		bstate->endpoint.publish(std::move(first_topic), std::move(msg));
-		}
-	else
-		{
-		broker::bro::RelayEvent msg(std::move(relay_topics),
-		                            std::move(name),
-		                            std::move(args));
-		bstate->endpoint.publish(std::move(first_topic), std::move(msg));
-		}
-
-	++statistics.num_events_outgoing;
-	return true;
-	}
-
-bool Manager::RelayEvent(std::string first_topic,
-                         std::set<std::string> relay_topics,
-                         RecordVal* args,
-                         bool handle_on_relayer)
-	{
-	if ( bstate->endpoint.is_shutdown() )
-		return true;
-
-	if ( peer_count == 0 )
-		return true;
-
-	if ( ! args->Lookup(0) )
-		return false;
-
-	auto event_name = args->Lookup(0)->AsString()->CheckString();
-	auto vv = args->Lookup(1)->AsVectorVal();
-	broker::vector xs;
-	xs.reserve(vv->Size());
-
-	for ( auto i = 0u; i < vv->Size(); ++i )
-		{
-		auto val = vv->Lookup(i)->AsRecordVal()->Lookup(0);
-		auto data_val = static_cast<DataVal*>(val);
-		xs.emplace_back(data_val->data);
-		}
-
-	broker::set topic_set;
-
-	for ( auto& t : relay_topics )
-		topic_set.emplace(std::move(t));
-
-	return RelayEvent(first_topic, std::move(topic_set), event_name,
-					  std::move(xs), handle_on_relayer);
-	}
-
 bool Manager::PublishIdentifier(std::string topic, std::string id)
 	{
 	if ( bstate->endpoint.is_shutdown() )
@@ -905,14 +835,6 @@ void Manager::DispatchMessage(broker::data msg)
 		ProcessEvent(std::move(msg));
 		break;
 
-	case broker::bro::Message::Type::RelayEvent:
-		ProcessRelayEvent(std::move(msg));
-		break;
-
-	case broker::bro::Message::Type::HandleAndRelayEvent:
-		ProcessHandleAndRelayEvent(std::move(msg));
-		break;
-
 	case broker::bro::Message::Type::LogCreate:
 		ProcessLogCreate(std::move(msg));
 		break;
@@ -1050,29 +972,6 @@ void Manager::ProcessEvent(std::string name, broker::vector args)
 void Manager::ProcessEvent(broker::bro::Event ev)
 	{
 	ProcessEvent(std::move(ev.name()), std::move(ev.args()));
-	}
-
-void Manager::ProcessRelayEvent(broker::bro::RelayEvent ev)
-	{
-	DBG_LOG(DBG_BROKER, "Received relay event: %s", RenderMessage(ev).c_str());
-	++statistics.num_events_incoming;
-
-	for ( auto& t : ev.topics() )
-		PublishEvent(std::move(caf::get<std::string>(t)),
-		             std::move(ev.name()),
-		             std::move(ev.args()));
-	}
-
-void Manager::ProcessHandleAndRelayEvent(broker::bro::HandleAndRelayEvent ev)
-	{
-	DBG_LOG(DBG_BROKER, "Received handle-relay event: %s",
-	        RenderMessage(ev).c_str());
-	ProcessEvent(ev.name(), ev.args());
-
-	for ( auto& t : ev.topics() )
-		PublishEvent(std::move(caf::get<std::string>(t)),
-		             std::move(ev.name()),
-		             std::move(ev.args()));
 	}
 
 bool bro_broker::Manager::ProcessLogCreate(broker::bro::LogCreate lc)

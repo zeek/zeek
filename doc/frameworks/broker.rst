@@ -518,24 +518,28 @@ Worker Sending Events To All Workers
 
 Since workers are not directly connected to each other in the cluster
 topology, this type of communication is a bit different than what we
-did before.  Instead of using :bro:see:`Broker::publish` we use different
-"relay" calls to hop the message from a different node that *is* connected.
+did before since we have to manually relay the event via some node that *is*
+connected to all workers.  The manager or a proxy satisfies that requirement:
 
 .. code:: bro
 
     event worker_to_workers(worker_name: string)
         {
-        print "got event from worker", worker_name;
+        @if ( Cluster::local_node_type() == Cluster::MANAGER ||
+              Cluster::local_node_type() == Cluster::PROXY )
+            Broker::publish(Cluster::worker_topic, worker_to_workers,
+                            worker_name)
+        @else
+            print "got event from worker", worker_name;
+        @endif
         }
 
     event some_event_handled_on_worker()
         {
         # We know the manager is connected to all workers, so we could
-        # choose to relay the event across it.  Note that sending the event
-        # this way will not allow the manager to handle it, even if it
-        # does have an event handler.
-        Broker::relay(Cluster::manager_topic, Cluster::worker_topic,
-                      worker_to_workers, Cluster::node + " (via manager)");
+        # choose to relay the event across it.
+        Broker::publish(Cluster::manager_topic,  worker_to_workers,
+                        Cluster::node + " (via manager)");
 
         # We also know that any given proxy is connected to all workers,
         # though now we have a choice of which proxy to use.  If we
@@ -543,9 +547,9 @@ did before.  Instead of using :bro:see:`Broker::publish` we use different
         # we can use a round-robin strategy.  The key used here is simply
         # used by the cluster framework internally to keep track of
         # which node is up next in the round-robin.
-        Cluster::relay_rr(Cluster::proxy_pool, "example_key",
-                          Cluster::worker_topic, worker_to_workers,
-                          Cluster::node + " (via a proxy)");
+        local pt = Cluster::rr_topic(Cluster::proxy_pool, "example_key");
+        Broker::publish(pt, worker_to_workers,
+                        Cluster::node + " (via a proxy)");
         }
 
 Worker Distributing Events Uniformly Across Proxies

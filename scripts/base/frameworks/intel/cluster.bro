@@ -54,11 +54,14 @@ event Cluster::node_up(name: string, id: string)
 # has to be distributed.
 event Intel::new_item(item: Item) &priority=5
 	{
-	if ( Cluster::proxy_pool$alive_count == 0 )
-		Broker::publish(indicator_topic, Intel::insert_indicator, item);
-	else
-		Cluster::relay_rr(Cluster::proxy_pool, "Intel::new_item_relay_rr",
-		                  indicator_topic, Intel::insert_indicator, item);
+	local pt = Cluster::rr_topic(Cluster::proxy_pool, indicator_topic);
+
+	if ( pt == "" )
+		# No proxies alive, publish to all workers ourself instead of
+		# relaying via a proxy.
+		pt = indicator_topic;
+
+	Broker::publish(pt, Intel::insert_indicator, item);
 	}
 
 # Handling of item insertion triggered by remote node.
@@ -103,3 +106,12 @@ event Intel::insert_indicator(item: Intel::Item) &priority=5
 	Intel::_insert(item, F);
 	}
 @endif
+
+@if ( Cluster::local_node_type() == Cluster::PROXY )
+event Intel::insert_indicator(item: Intel::Item) &priority=5
+	{
+	# Just forwarding from manager to workers.
+	Broker::publish(indicator_topic, Intel::insert_indicator, item);
+	}
+@endif
+

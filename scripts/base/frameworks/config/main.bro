@@ -28,11 +28,6 @@ export {
 	## record as it is sent on to the logging framework.
 	global log_config: event(rec: Info);
 
-	## Broker topic for announcing new configuration values. Sending new_value,
-	## peers can send configuration changes that will be distributed across
-	## the entire cluster.
-	const change_topic = "bro/config/change";
-
 	## This function is the config framework layer around the lower-level
 	## :bro:see:`Option::set` call. Config::set_value will set the configuration
 	## value for all nodes in the cluster, no matter where it was called. Note
@@ -57,48 +52,46 @@ type OptionCacheValue: record {
 
 global option_cache: table[string] of OptionCacheValue;
 
-event bro_init()
-	{
-	Broker::subscribe(change_topic);
-	}
-
 event Config::cluster_set_option(ID: string, val: any, location: string)
 	{
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
 	option_cache[ID] = OptionCacheValue($val=val, $location=location);
+	Broker::publish(Cluster::broadcast_topic, Config::cluster_set_option,
+	                ID, val, location);
 @endif
+
 	Option::set(ID, val, location);
 	}
 
 function set_value(ID: string, val: any, location: string &default = "" &optional): bool
 	{
-	local cache_val: any;
-	# First cache value in case setting it succeeds and we have to store it.
-	if ( Cluster::local_node_type() == Cluster::MANAGER )
-		cache_val = copy(val);
+	# Always copy the value to break references -- if caller mutates their
+	# value afterwards, we still guarantee the option has not changed.  If
+	# one wants it to change, they need to explicitly call Option::set_value
+	# or Option::set with the intended value at the time of the call.
+	val = copy(val);
+
 	# First try setting it locally - abort if not possible.
 	if ( ! Option::set(ID, val, location) )
 		return F;
-	# If setting worked, copy the new value into the cache on the manager
-	if ( Cluster::local_node_type() == Cluster::MANAGER )
-		option_cache[ID] = OptionCacheValue($val=cache_val, $location=location);
 
-	# If it turns out that it is possible - send it to everyone else to apply.
-	Broker::publish(change_topic, Config::cluster_set_option, ID, val, location);
+@if ( Cluster::local_node_type() == Cluster::MANAGER )
+	option_cache[ID] = OptionCacheValue($val=val, $location=location);
+	Broker::publish(Cluster::broadcast_topic, Config::cluster_set_option,
+	                ID, val, location);
+@else
+	Broker::publish(Cluster::manager_topic, Config::cluster_set_option,
+	                ID, val, location);
+@endif
 
-	if ( Cluster::local_node_type() != Cluster::MANAGER )
-		{
-		Broker::relay(change_topic, change_topic, Config::cluster_set_option, ID, val, location);
-		}
 	return T;
 	}
-@else
-# Standalone implementation
+@else # Standalone implementation
 function set_value(ID: string, val: any, location: string &default = "" &optional): bool
 	{
 	return Option::set(ID, val, location);
 	}
-@endif
+@endif # Cluster::is_enabled
 
 @if ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER )
 # Handling of new worker nodes.

@@ -118,6 +118,7 @@ extern RecordType* dns_answer;
 extern RecordType* dns_soa;
 extern RecordType* dns_edns_additional;
 extern RecordType* dns_tsig_additional;
+extern RecordType* dns_rrsig_additional;
 extern TableVal* dns_skip_auth;
 extern TableVal* dns_skip_addl;
 extern int dns_skip_all_auth;

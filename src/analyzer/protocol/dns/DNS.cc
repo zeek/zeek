@@ -182,7 +182,7 @@ int DNS_Interpreter::ParseQuestion(DNS_MsgInfo* msg,
 		return 0;
 		}
 
-	EventHandlerPtr dns_event = nullptr;
+	EventHandlerPtr dns_event = 0;
 
 	if ( msg->QR == 0 )
 		dns_event = dns_request;
@@ -310,6 +310,10 @@ int DNS_Interpreter::ParseAnswer(DNS_MsgInfo* msg,
 
 		case TYPE_TSIG:
 			status = ParseRR_TSIG(msg, data, len, rdlength, msg_start);
+			break;
+
+		case TYPE_RRSIG:
+			status = ParseRR_RRSIG(msg, data, len, rdlength, msg_start);
 			break;
 
 		default:
@@ -724,6 +728,20 @@ void DNS_Interpreter::ExtractOctets(const u_char*& data, int& len,
 	len -= dlen;
 	}
 
+void DNS_Interpreter::ExtractStream(const u_char*& data, int& len,
+                                    BroString** p, int siglen)
+	{
+
+	uint16 dlen = min(len, siglen); // Len in bytes of the algorithm use
+
+	if ( p )
+		*p = new BroString(data, dlen, 0);
+
+	data += dlen;
+	len -= dlen;
+
+	}
+
 int DNS_Interpreter::ParseRR_TSIG(DNS_MsgInfo* msg,
 				const u_char*& data, int& len, int rdlength,
 				const u_char* msg_start)
@@ -765,6 +783,83 @@ int DNS_Interpreter::ParseRR_TSIG(DNS_MsgInfo* msg,
 	vl->append(msg->BuildTSIG_Val());
 
 	analyzer->ConnectionEvent(dns_TSIG_addl, vl);
+
+	return 1;
+	}
+
+int DNS_Interpreter::ParseRR_RRSIG(DNS_MsgInfo* msg,
+				const u_char*& data, int& len, int rdlength,
+				const u_char* msg_start)
+	{
+	
+	unsigned int type_covered = ExtractShort(data, len);
+	// split the two bytes for algo and labels extraction
+	uint32 algo_lab = ExtractShort(data, len);
+	unsigned int algo = (algo_lab >> 8) & 0xff;
+	unsigned int lab = algo_lab & 0xff;
+
+	uint32 orig_ttl = ExtractLong(data, len);
+	uint32 sign_exp = ExtractLong(data, len);
+	uint32 sign_incp = ExtractLong(data, len);
+	unsigned int key_tag = ExtractShort(data, len);
+
+	//implement signer's name with the msg_start offset
+	const u_char* data_start = data;
+	u_char name[513];
+	int name_len = sizeof(name) - 1;
+
+	u_char* name_end = ExtractName(data, len, name, name_len, msg_start);
+	if ( ! name_end )
+		return 0;
+
+	int sig_len = rdlength - ((data - data_start) + 18);
+	DNSSEC_Algo dsa = DNSSEC_Algo(algo);
+	BroString* signature;
+	
+	switch ( dsa ) {
+
+		case DSA_SHA1:
+			ExtractStream(data, len, &signature, sig_len);
+			break;
+	
+		case RSA_SHA1:
+			ExtractStream(data, len, &signature, sig_len);
+			break;
+
+		case PrivateDNS:
+			ExtractStream(data, len, &signature, sig_len);
+			break;
+
+		case PrivateOID:
+			ExtractStream(data, len, &signature, sig_len);
+			break;
+
+		default:
+			analyzer->Weird("DNS_RRSIG_unknown_ZoneSignAlgo", fmt("%d", algo));
+			data += sig_len;
+			len -= sig_len;
+			break;
+	}
+
+	msg->rrsig = new RRSIG_DATA;
+	msg->rrsig->type_covered = type_covered;
+	msg->rrsig->orig_ttl = orig_ttl;
+	msg->rrsig->sig_exp = sign_exp;
+	msg->rrsig->sig_incep = sign_incp;
+	msg->rrsig->key_tag = key_tag;
+	msg->rrsig->algorithm = algo;
+	msg->rrsig->labels = lab;
+	msg->rrsig->signer_name = new BroString(name, name_end - name, 1);
+	msg->rrsig->signature = signature;
+
+	val_list* vl = new val_list;
+
+	vl->append(analyzer->BuildConnVal());
+	vl->append(msg->BuildHdrVal());
+	vl->append(msg->BuildAnswerVal());
+	vl->append(msg->BuildRRSIG_Val());
+
+	analyzer->ConnectionEvent(dns_RRSIG_addl, vl);
 
 	return 1;
 	}
@@ -1003,6 +1098,7 @@ DNS_MsgInfo::DNS_MsgInfo(DNS_RawMsgHdr* hdr, int arg_is_query)
 	answer_type = DNS_QUESTION;
 	skip_event = 0;
 	tsig = 0;
+	rrsig = 0;
 	}
 
 DNS_MsgInfo::~DNS_MsgInfo()
@@ -1063,7 +1159,7 @@ Val* DNS_MsgInfo::BuildEDNS_Val()
 
 	// Need to break the TTL field into three components:
 	// initial: [------------- ttl (32) ---------------------]
-	// after:   [DO][ ext rcode (7)][ver # (8)][ Z field (16)]
+	// after:   [ ext rcode (8)][ver # (8)][   Z field (16)  ]
 
 	unsigned int ercode = (ttl >> 24) & 0xff;
 	unsigned int version = (ttl >> 16) & 0xff;
@@ -1100,6 +1196,30 @@ Val* DNS_MsgInfo::BuildTSIG_Val()
 
 	delete tsig;
 	tsig = 0;
+
+	return r;
+	}
+
+Val* DNS_MsgInfo::BuildRRSIG_Val()
+	{
+	RecordVal* r = new RecordVal(dns_rrsig_additional);
+
+	Ref(query_name);
+	r->Assign(0, query_name);
+	r->Assign(1, new Val(int(answer_type), TYPE_COUNT));
+	r->Assign(2, new Val(rrsig->type_covered, TYPE_COUNT));
+	r->Assign(3, new Val(rrsig->algorithm, TYPE_COUNT));
+	r->Assign(4, new Val(rrsig->labels, TYPE_COUNT));
+	r->Assign(5, new IntervalVal(double(rrsig->orig_ttl), Seconds));
+	r->Assign(6, new Val(double(rrsig->sig_exp), TYPE_TIME));
+	r->Assign(7, new Val(double(rrsig->sig_incep), TYPE_TIME));
+	r->Assign(8, new Val(rrsig->key_tag, TYPE_COUNT));
+	r->Assign(9, new StringVal(rrsig->signer_name));
+	r->Assign(10, new StringVal(rrsig->signature));
+	r->Assign(11, new Val(is_query, TYPE_COUNT));
+
+	delete rrsig;
+	rrsig = 0;
 
 	return r;
 	}

@@ -53,7 +53,7 @@ export {
 	## utilizing the *identifier* field in :bro:type:`Notice::Info` records.
 	## Set this to "0secs" to completely disable automated notice
 	## suppression.
-	const default_suppression_interval = 1hrs &redef;
+	option default_suppression_interval = 1hrs;
 
 	## The record type that is used for representing and logging notices.
 	type Info: record {

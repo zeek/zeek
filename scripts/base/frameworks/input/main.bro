@@ -24,10 +24,10 @@ export {
 	};
 
 	## The default input reader used. Defaults to `READER_ASCII`.
-	const default_reader = READER_ASCII &redef;
+	option default_reader = READER_ASCII;
 
 	## The default reader mode used. Defaults to `MANUAL`.
-	const default_mode = MANUAL &redef;
+	option default_mode = MANUAL;
 
 	## Separator between fields.
 	## Please note that the separator has to be exactly one character long.

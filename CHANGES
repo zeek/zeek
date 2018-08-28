@@ -1,4 +1,13 @@
 
+2.5-915 | 2018-08-28 14:22:25 -0700
+
+  * Improve input framework re-read logic
+
+    Changed from checking for "has newer modification time" to "has
+    different modification time or inode number". (Jon Siwek, Corelight)
+
+  * Convert more redef-able constants to runtime options (Daniel Thayer)
+
 2.5-911 | 2018-08-24 17:47:03 -0700
 
   * Add a missing initializer to a runtime option (Daniel Thayer)

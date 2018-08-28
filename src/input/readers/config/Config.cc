@@ -23,6 +23,7 @@ using threading::Field;
 Config::Config(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	{
 	mtime = 0;
+	ino = 0;
 	suppress_warnings = false;
 	fail_on_file_problem = false;
 
@@ -146,10 +147,12 @@ bool Config::DoUpdate()
 				return ! fail_on_file_problem;
 				}
 
-			if ( sb.st_mtime <= mtime ) // no change
+			if ( sb.st_ino == ino && sb.st_mtime == mtime )
+				// no change
 				return true;
 
 			mtime = sb.st_mtime;
+			ino = sb.st_ino;
 			// file changed. reread.
 
 			// fallthrough

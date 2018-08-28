@@ -383,12 +383,12 @@ type connection: record {
 
 ## Default amount of time a file can be inactive before the file analysis
 ## gives up and discards any internal state related to the file.
-const default_file_timeout_interval: interval = 2 mins &redef;
+option default_file_timeout_interval: interval = 2 mins;
 
 ## Default amount of bytes that file analysis will buffer in order to use
 ## for mime type matching.  File analyzers attached at the time of mime type
 ## matching or later, will receive a copy of this buffer.
-const default_file_bof_buffer_size: count = 4096 &redef;
+option default_file_bof_buffer_size: count = 4096;
 
 ## A file that Bro is analyzing.  This is Bro's type for describing the basic
 ## internal metadata collected about a "file", which is essentially just a

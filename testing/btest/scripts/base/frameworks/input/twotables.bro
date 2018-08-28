@@ -1,7 +1,7 @@
-# @TEST-EXEC: cp input1.log input.log
+# @TEST-EXEC: mv input1.log input.log
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
 # @TEST-EXEC: $SCRIPTS/wait-for-file bro/got2 5 || (btest-bg-wait -k 1 && false)
-# @TEST-EXEC: cp input3.log input.log
+# @TEST-EXEC: mv input3.log input.log
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff event.out
 # @TEST-EXEC: btest-diff pred1.out

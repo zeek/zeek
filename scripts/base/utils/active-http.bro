@@ -7,10 +7,10 @@ module ActiveHTTP;
 
 export {
 	## The default timeout for HTTP requests.
-	const default_max_time = 1min &redef;
+	option default_max_time = 1min;
 
 	## The default HTTP method/verb to use for requests.
-	const default_method = "GET" &redef;
+	option default_method = "GET";
 
 	type Response: record {
 		## Numeric response code from the server.

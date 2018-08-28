@@ -31,6 +31,7 @@ Raw::Raw(ReaderFrontend *frontend) : ReaderBackend(frontend), file(nullptr, fclo
 	execute = false;
 	firstrun = true;
 	mtime = 0;
+	ino = 0;
 	forcekill = false;
 	offset = 0;
 	separator.assign( (const char*) BifConst::InputRaw::record_separator->Bytes(),
@@ -341,6 +342,7 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 
 	fname = info.source;
 	mtime = 0;
+	ino = 0;
 	execute = false;
 	firstrun = true;
 	int want_fields = 1;
@@ -553,11 +555,12 @@ bool Raw::DoUpdate()
 				return false;
 				}
 
-			if ( sb.st_mtime <= mtime )
+			if ( sb.st_ino == ino && sb.st_mtime == mtime )
 				// no change
 				return true;
 
 			mtime = sb.st_mtime;
+			ino = sb.st_ino;
 			// file changed. reread.
 			//
 			// fallthrough

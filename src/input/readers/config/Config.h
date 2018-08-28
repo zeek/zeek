@@ -8,6 +8,7 @@
 #include <fstream>
 #include <memory>
 #include <unordered_map>
+#include <sys/types.h>
 
 #include "input/ReaderBackend.h"
 #include "threading/formatters/Ascii.h"
@@ -46,6 +47,7 @@ private:
 
 	ifstream file;
 	time_t mtime;
+	ino_t ino;
 
 	bool fail_on_file_problem;
 	// this is an internal indicator in case the read is currently in a failed state

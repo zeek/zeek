@@ -4,6 +4,7 @@
 #define INPUT_READERS_BINARY_H
 
 #include <fstream>
+#include <sys/types.h>
 
 #include "input/ReaderBackend.h"
 
@@ -36,6 +37,7 @@ private:
 	string fname;
 	ifstream* in;
 	time_t mtime;
+	ino_t ino;
 	bool firstrun;
 
 	// options set from the script-level.

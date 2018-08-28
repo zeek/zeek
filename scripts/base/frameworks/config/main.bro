@@ -52,12 +52,25 @@ type OptionCacheValue: record {
 
 global option_cache: table[string] of OptionCacheValue;
 
+global Config::cluster_set_option: event(ID: string, val: any, location: string);
+
+function broadcast_option(ID: string, val: any, location: string)
+	{
+	# There's not currently a common topic to broadcast to as then enabling
+	# implicit Broker forwarding would cause a routing loop.
+	Broker::publish(Cluster::worker_topic, Config::cluster_set_option,
+	                ID, val, location);
+	Broker::publish(Cluster::proxy_topic, Config::cluster_set_option,
+	                ID, val, location);
+	Broker::publish(Cluster::logger_topic, Config::cluster_set_option,
+	                ID, val, location);
+	}
+
 event Config::cluster_set_option(ID: string, val: any, location: string)
 	{
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
 	option_cache[ID] = OptionCacheValue($val=val, $location=location);
-	Broker::publish(Cluster::broadcast_topic, Config::cluster_set_option,
-	                ID, val, location);
+	broadcast_option(ID, val, location);
 @endif
 
 	Option::set(ID, val, location);
@@ -77,8 +90,7 @@ function set_value(ID: string, val: any, location: string &default = "" &optiona
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
 	option_cache[ID] = OptionCacheValue($val=val, $location=location);
-	Broker::publish(Cluster::broadcast_topic, Config::cluster_set_option,
-	                ID, val, location);
+	broadcast_option(ID, val, location);
 @else
 	Broker::publish(Cluster::manager_topic, Config::cluster_set_option,
 	                ID, val, location);

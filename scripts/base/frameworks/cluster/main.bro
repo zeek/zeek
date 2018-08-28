@@ -15,10 +15,6 @@ export {
 	## Whether to distribute log messages among available logging nodes.
 	const enable_round_robin_logging = T &redef;
 
-	## The topic name used for exchanging general messages that are relevant to
-	## any node in a cluster.  Used with broker-enabled cluster communication.
-	const broadcast_topic = "bro/cluster/broadcast" &redef;
-
 	## The topic name used for exchanging messages that are relevant to
 	## logger nodes in a cluster.  Used with broker-enabled cluster communication.
 	const logger_topic = "bro/cluster/logger" &redef;
@@ -42,6 +38,10 @@ export {
 	## The topic prefix used for exchanging messages that are relevant to
 	## a named node in a cluster.  Used with broker-enabled cluster communication.
 	const node_topic_prefix = "bro/cluster/node/" &redef;
+
+	## The topic prefix used for exchanging messages that are relevant to
+	## a unique node in a cluster.  Used with broker-enabled cluster communication.
+	const nodeid_topic_prefix = "bro/cluster/nodeid/" &redef;
 
 	## Name of the node on which master data stores will be created if no other
 	## has already been specified by the user in :bro:see:`Cluster::stores`.
@@ -238,6 +238,15 @@ export {
 	## Returns: a topic string that may used to send a message exclusively to
 	##          a given cluster node.
 	global node_topic: function(name: string): string;
+
+	## Retrieve the topic associated with a specific node in the cluster.
+	##
+	## id: the id of the cluster node (from :bro:see:`Broker::EndpointInfo`
+	##     or :bro:see:`Broker::node_id`.
+	##
+	## Returns: a topic string that may used to send a message exclusively to
+	##          a given cluster node.
+	global nodeid_topic: function(id: string): string;
 }
 
 global active_worker_ids: set[string] = set();
@@ -286,6 +295,11 @@ function node_topic(name: string): string
 	return node_topic_prefix + name;
 	}
 
+function nodeid_topic(id: string): string
+	{
+	return node_topic_prefix + id;
+	}
+
 event Cluster::hello(name: string, id: string) &priority=10
 	{
 	if ( name !in nodes )
@@ -321,7 +335,7 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string) &priority=
 		return;
 
 	local e = Broker::make_event(Cluster::hello, node, Broker::node_id());
-	Broker::publish(Cluster::broadcast_topic, e);
+	Broker::publish(nodeid_topic(endpoint$id), e);
 	}
 
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string) &priority=10

@@ -271,9 +271,9 @@ communication flows unrelated to Bro cluster, new topics are declared
 
 For cluster operation, see :doc:`/scripts/base/frameworks/cluster/main.bro`
 for a list of topics that are useful for steering published events to
-the various node classes.  E.g. you have the ability to broadcast to all
-directly-connected nodes, only those of a given class (e.g. just workers),
-or to a specific node within a class.
+the various node classes.  E.g. you have the ability to broadcast
+to all nodes of a given class (e.g. just workers) or just send to a
+specific node within a class.
 
 The topic names that logs get published under are a bit nuanced.  In the
 default cluster configuration, they are round-robin published to

@@ -237,7 +237,7 @@ follows certain conventions in choosing these topics to help avoid
 conflicts and generally make them easier to remember.
 
 As a reminder of how topic subscriptions work, subscribers advertise
-interest in a topic **prefix** and then receive any messages publish by a
+interest in a topic **prefix** and then receive any messages published by a
 peer to a topic name that starts with that prefix.  E.g. Alice
 subscribes to the "alice/dogs" prefix, then would receive the following
 message topics published by Bob:
@@ -263,6 +263,11 @@ scripts use will be along the lines of "bro/<namespace>/<specifics>"
 with "<namespace>" being the script's module name (in all-undercase).
 For example, you might expect an imaginary "Pretend" framework to
 publish/subscribe using topic names like "bro/pretend/my_cool_event".
+For scripts that use Broker as a means of cluster-aware analysis,
+it's usually sufficient for them to make use of the topics declared
+by the cluster framework.  For scripts that are meant to establish
+communication flows unrelated to Bro cluster, new topics are declared
+(examples being the NetControl and Control frameworks).
 
 For cluster operation, see :doc:`/scripts/base/frameworks/cluster/main.bro`
 for a list of topics that are useful for steering published events to
@@ -279,7 +284,12 @@ processes, logs get published to the topic indicated by
 For those writing their own scripts which need new topic names, a
 suggestion would be to avoid prefixing any new topics/prefixes with
 "bro/" as any changes in scripts shipping with Bro will use that prefix
-and it's better to not risk unintended conflicts.
+and it's better to not risk unintended conflicts.  Again, it's
+often less confusing to just re-use existing topic names instead
+of introducing new topic names.  The typical use case is writing
+a cluster-enabled script, which usually just needs to route events
+based upon node classes, and that already has usable topics in the
+cluster framework.
 
 Connecting to Peers
 -------------------

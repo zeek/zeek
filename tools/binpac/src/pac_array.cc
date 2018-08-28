@@ -320,16 +320,18 @@ void ArrayType::GenArrayLength(Output *out_cc, Env *env, const DataPtr& data)
 			                    env->RValue(arraylength_var()));
 			}
 
-		out_cc->println("if ( t_begin_of_data + %s > t_end_of_data || "
-		                "t_begin_of_data + %s < t_begin_of_data )",
-		                array_size.c_str(), array_size.c_str());
+		const char* array_ptr_expr = data.ptr_expr();
+
+		out_cc->println("if ( %s + %s > %s || %s + %s < %s )",
+		                array_ptr_expr, array_size.c_str(), env->RValue(end_of_data),
+		                array_ptr_expr, array_size.c_str(), array_ptr_expr);
 		out_cc->inc_indent();
 		out_cc->println("throw binpac::ExceptionOutOfBound(\"%s\",",
 		                data_id_str_.c_str());
 		out_cc->println("  %s, (%s) - (%s));",
 		                array_size.c_str(),
 		                env->RValue(end_of_data),
-		                env->RValue(begin_of_data));
+		                array_ptr_expr);
 		out_cc->dec_indent();
 		}
 	else if ( attr_restofdata_ )

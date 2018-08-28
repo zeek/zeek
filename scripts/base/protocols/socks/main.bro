@@ -7,7 +7,7 @@ export {
 	redef enum Log::ID += { LOG };
 
 	## Whether passwords are captured or not.
-	const default_capture_password = F &redef;
+	option default_capture_password = F;
 
 	## The record type which contains the fields of the SOCKS log.
 	type Info: record {

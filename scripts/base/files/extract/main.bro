@@ -9,7 +9,7 @@ export {
 
 	## The default max size for extracted files (they won't exceed this
 	## number of bytes). A value of zero means unlimited.
-	const default_limit = 0 &redef;
+	option default_limit = 0;
 
 	redef record Files::Info += {
 		## Local filename of extracted file.

@@ -22,7 +22,7 @@ export {
 	
 	## If this variable is set to ``T``, then all contents of all
 	## connections will be extracted.
-	const default_extract = F &redef;
+	option default_extract = F;
 }
 
 redef record connection += {

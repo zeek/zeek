@@ -7,7 +7,7 @@ module NetControl;
 
 export {
 	## The default priority that is used when creating rules.
-	const default_priority: int = +0 &redef;
+	option default_priority: int = +0;
 
 	## The default priority that is used when using the high-level functions to
 	## push whitelist entries to the backends (:bro:see:`NetControl::whitelist_address` and

@@ -7,7 +7,7 @@ module Dir;
 export {
 	## The default interval this module checks for files in directories when
 	## using the :bro:see:`Dir::monitor` function.
-	const polling_interval = 30sec &redef;
+	option polling_interval = 30sec;
 
 	## Register a directory to monitor with a callback that is called
 	## every time a previously unseen file is seen.  If a file is deleted

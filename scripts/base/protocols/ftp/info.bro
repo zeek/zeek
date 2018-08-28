@@ -8,7 +8,7 @@ export {
 
 	## This setting changes if passwords used in FTP sessions are
 	## captured or not.
-	const default_capture_password = F &redef;
+	option default_capture_password = F;
 
 	## The expected endpoints of an FTP data channel.
 	type ExpectedDataChannel: record {

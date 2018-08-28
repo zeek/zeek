@@ -7,8 +7,24 @@ their own ``CHANGES``.)
 Bro 2.5.5
 =========
 
-- "Weird" events are now generally suppressed/sampled by default according to
-  some tunable parameters:
+Bro 2.5.5 primarily addresses security issues.
+
+- Fix array bounds checking in BinPAC: for arrays that are fields within
+  a record, the bounds check was based on a pointer to the start of the
+  record rather than the start of the array field, potentially resulting
+  in a buffer over-read.
+
+- Fix SMTP command string comparisons: the number of bytes compared was
+  based on the user-supplied string length and can lead to incorrect
+  matches.  e.g. giving a command of "X" incorrectly matched
+  "X-ANONYMOUSTLS" (and an empty commands match anything).
+
+The following changes address potential vectors for Denial of Service
+reported by Christian Titze & Jan Grashöfer of Karlsruhe Institute of
+Technology:
+
+- "Weird" events are now generally suppressed/sampled by default according
+   to some tunable parameters:
 
   - Weird::sampling_whitelist
   - Weird::sampling_threshold
@@ -21,6 +37,15 @@ Bro 2.5.5
   contains concise summaries of weird counts per type per time period
   and the original weird.log may not differ much either, except in
   the cases where a particular weird type exceeds the sampling threshold.
+  These changes help improve performance issues resulting from excessive
+  numbers of weird events.
+
+- Improved handling of empty lines in several text protocol analyzers
+  that can cause performance issues when seen in long sequences.
+
+- Add 'smtp_excessive_pending_cmds' weird which serves as a notification
+  for when the "pending command" queue has reached an upper limit and
+  been cleared to prevent one from attempting to slowly exhaust memory.
 
 Bro 2.5.4
 =========

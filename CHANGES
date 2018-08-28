@@ -1,4 +1,43 @@
 
+2.5.5 | 2018-08-28 10:55:18 -0500
+
+  * Release 2.5.5 (Jon Siwek, Corelight)
+
+  * Fix signed/unsigned comparison warning (Jon Siwek, Corelight)
+
+  * Add 'smtp_excessive_pending_cmds' weird (Jon Siwek, Corelight)
+
+  * Fix SMTP command string comparisons (Jon Siwek, Corelight)
+
+  * Improve handling of empty lines in several text protocol analyzers
+    (Jon Siwek, Corelight)
+
+  * Add rate-limiting sampling mechanism for weird events 
+    (Jon Siwek, Corelight)
+
+    The generation of weird events, by default, are now rate-limited
+    according to these tunable options:
+
+      - Weird::sampling_whitelist
+      - Weird::sampling_threshold
+      - Weird::sampling_rate
+      - Weird::sampling_duration
+
+    The new get_reporter_stats() BIF also allows one to query the
+    total number of weirds generated (pre-sampling) which the new
+    policy/misc/weird-stats.bro script uses periodically to populate
+    a weird_stats.log.
+
+    There's also new reporter BIFs to allow generating weirds from the
+    script-layer such that they go through the same, internal
+    rate-limiting/sampling mechanisms:
+
+      - Reporter::conn_weird
+      - Reporter::flow_weird
+      - Reporter::net_weird
+
+    Some of the code was adapted from previous work by Johanna Amann.
+
 2.5.4 | 2018-05-29 19:54:21 -0500
 
   * Release 2.5.4.

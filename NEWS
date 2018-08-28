@@ -223,6 +223,22 @@ New Functionality
   Since ssl_ecdh_server_params contains more information than the old
   ssl_server_curve event, ssl_server_curve is now marked as deprecated.
 
+- The ssl_application_data event was retired and replaced with ssl_plaintext_data.
+
+- Some SSL events were changed and now provide additional data. These events
+  are:
+
+  ssl_client_hello, ssl_server_hello, ssl_encrypted_data
+
+  If you use these events, you can make your scripts work on old and new versions
+  of Bro by wrapping the event definition in an @if, for example:
+
+    @if ( Version::at_least("2.6") || ( Version::number == 20500 && Version::info$commit >= [commit number of change] ) )
+    event ssl_client_hello(c: connection, version: count, record_version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec, comp_methods: index_vec)
+    @else
+    event ssl_client_hello(c: connection, version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec)
+    @endif
+
 - Functions for retrieving files by their ID have been added:
   Files::file_exists, Files::lookup_File
 

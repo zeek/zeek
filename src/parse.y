@@ -1142,8 +1142,15 @@ decl:
 	|	func_hdr func_body
 			{ }
 
+	|	func_hdr conditional_list func_body
+			{ }
+
 	|	conditional
 	;
+
+conditional_list:
+		conditional
+	|	conditional conditional_list
 
 conditional:
 		TOK_ATIF '(' expr ')'

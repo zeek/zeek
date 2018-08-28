@@ -15,8 +15,6 @@
 ## record_version: TLS version given in the record layer of the message.
 ##                 Set to 0 for SSLv2.
 ##
-##
-##
 ## possible_ts: The current time as sent by the client. Note that SSL/TLS does
 ##              not require clocks to be set correctly, so treat with care.
 ##

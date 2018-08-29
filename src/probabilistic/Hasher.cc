@@ -118,16 +118,19 @@ Hasher::digest UHF::hash(const void* x, size_t n) const
 		return outdigest;
 		}
 
-	unsigned char d[16];
-	MD5(reinterpret_cast<const unsigned char*>(x), n, d);
+	union {
+		unsigned char d[16];
+		Hasher::digest rval;
+	} u;
+
+	MD5(reinterpret_cast<const unsigned char*>(x), n, u.d);
 
 	const unsigned char* s = reinterpret_cast<const unsigned char*>(&seed);
 	for ( size_t i = 0; i < 16; ++i )
-		d[i] ^= s[i % sizeof(seed)];
+		u.d[i] ^= s[i % sizeof(seed)];
 
-	MD5(d, 16, d);
-
-	return *reinterpret_cast<const Hasher::digest*>(d);
+	MD5(u.d, 16, u.d);
+	return u.rval;
 	}
 
 DefaultHasher::DefaultHasher(size_t k, Hasher::seed_t seed)

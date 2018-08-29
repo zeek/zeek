@@ -1,4 +1,12 @@
 
+2.5-919 | 2018-08-29 14:58:06 -0500
+
+  * Update unit test baseline for new BinPAC output (Jon Siwek, Corelight)
+
+  * CT List update - a few more logs. (Johanna Amann)
+
+  * Update certificate list to NSS 3.38 (Johanna Amann)
+
 2.5-915 | 2018-08-28 14:22:25 -0700
 
   * Improve input framework re-read logic

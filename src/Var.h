@@ -21,8 +21,8 @@ extern Expr* add_and_assign_local(ID* id, Expr* init, Val* val = 0);
 extern void add_type(ID* id, BroType* t, attr_list* attr);
 
 extern void begin_func(ID* id, const char* module_name, function_flavor flavor,
-		       int is_redef, FuncType* t);
-extern void end_func(Stmt* body, attr_list* attrs = 0);
+		       int is_redef, FuncType* t, attr_list* attrs = nullptr);
+extern void end_func(Stmt* body);
 
 extern Val* internal_val(const char* name);
 extern Val* internal_const_val(const char* name); // internal error if not const

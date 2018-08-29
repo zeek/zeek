@@ -11,9 +11,10 @@ static scope_list scopes;
 static Scope* top_scope;
 
 
-Scope::Scope(ID* id)
+Scope::Scope(ID* id, attr_list* al)
 	{
 	scope_id = id;
+	attrs = al;
 	return_type = 0;
 
 	local = new PDict(ID)(ORDERED);
@@ -41,6 +42,14 @@ Scope::~Scope()
 	{
 	for ( int i = 0; i < local->Length(); ++i )
 		Unref(local->NthEntry(i));
+
+	if ( attrs )
+		{
+		loop_over_list(*attrs, i)
+			Unref((*attrs)[i]);
+
+		delete attrs;
+		}
 
 	Unref(scope_id);
 	Unref(return_type);
@@ -186,9 +195,9 @@ void push_existing_scope(Scope* scope)
 	scopes.append(scope);
 	}
 
-void push_scope(ID* id)
+void push_scope(ID* id, attr_list* attrs)
 	{
-	top_scope = new Scope(id);
+	top_scope = new Scope(id, attrs);
 	scopes.append(top_scope);
 	}
 

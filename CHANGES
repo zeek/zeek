@@ -1,4 +1,17 @@
 
+2.5-924 | 2018-08-29 18:21:37 -0500
+
+  * Allow event/function headers to be wrapped in directives. (Johanna Amann)
+
+    For example:
+
+        @if ( conditions )
+            event a(...)
+        @else
+            event b(...)
+        @endif
+                { ... }
+
 2.5-922 | 2018-08-29 17:22:20 -0500
 
   * Fix unit tests (Jon Siwek, Corelight)

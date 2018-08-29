@@ -328,8 +328,20 @@ static void transfer_arg_defaults(RecordType* args, RecordType* recv)
 		}
 	}
 
+static bool has_attr(const attr_list* al, attr_tag tag)
+	{
+	if ( ! al )
+		return false;
+
+	for ( int i = 0; i < al->length(); ++i )
+		if ( (*al)[i]->Tag() == tag )
+			return true;
+
+	return false;
+	}
+
 void begin_func(ID* id, const char* module_name, function_flavor flavor,
-		int is_redef, FuncType* t)
+		int is_redef, FuncType* t, attr_list* attrs)
 	{
 	if ( flavor == FUNC_FLAVOR_EVENT )
 		{
@@ -384,7 +396,7 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 	else
 		id->SetType(t);
 
-	push_scope(id);
+	push_scope(id, attrs);
 
 	RecordType* args = t->Args();
 	int num_args = args->NumFields();
@@ -401,6 +413,9 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 		arg_id = install_ID(arg_i->id, module_name, false, false);
 		arg_id->SetType(arg_i->type->Ref());
 		}
+
+	if ( has_attr(attrs, ATTR_DEPRECATED) )
+		id->MakeDeprecated();
 	}
 
 class OuterIDBindingFinder : public TraversalCallback {
@@ -431,7 +446,7 @@ TraversalCode OuterIDBindingFinder::PreExpr(const Expr* expr)
 	return TC_CONTINUE;
 	}
 
-void end_func(Stmt* body, attr_list* attrs)
+void end_func(Stmt* body)
 	{
 	int frame_size = current_scope()->Length();
 	id_list* inits = current_scope()->GetInits();
@@ -440,6 +455,8 @@ void end_func(Stmt* body, attr_list* attrs)
 	ID* id = scope->ScopeID();
 
 	int priority = 0;
+	auto attrs = scope->Attrs();
+
 	if ( attrs )
 		{
 		loop_over_list(*attrs, i)

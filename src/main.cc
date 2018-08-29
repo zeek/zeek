@@ -848,7 +848,7 @@ int main(int argc, char** argv)
 			add_input_file(argv[optind++]);
 		}
 
-	push_scope(0);
+	push_scope(nullptr, nullptr);
 
 	dns_mgr = new DNS_Mgr(dns_type);
 

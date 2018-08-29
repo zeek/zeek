@@ -234,18 +234,6 @@ static bool expr_is_table_type_name(const Expr* expr)
 
 	return false;
 	}
-
-static bool has_attr(const attr_list* al, attr_tag tag)
-	{
-	if ( ! al )
-		return false;
-
-	for ( int i = 0; i < al->length(); ++i )
-		if ( (*al)[i]->Tag() == tag )
-			return true;
-
-	return false;
-	}
 %}
 
 %union {
@@ -1142,8 +1130,15 @@ decl:
 	|	func_hdr func_body
 			{ }
 
+	|	func_hdr conditional_list func_body
+			{ }
+
 	|	conditional
 	;
+
+conditional_list:
+		conditional
+	|	conditional conditional_list
 
 conditional:
 		TOK_ATIF '(' expr ')'
@@ -1159,43 +1154,40 @@ conditional:
 	;
 
 func_hdr:
-		TOK_FUNCTION def_global_id func_params
+		TOK_FUNCTION def_global_id func_params opt_attr
 			{
 			begin_func($2, current_module.c_str(),
-				FUNC_FLAVOR_FUNCTION, 0, $3);
+				FUNC_FLAVOR_FUNCTION, 0, $3, $4);
 			$$ = $3;
 			broxygen_mgr->Identifier($2);
 			}
-	|	TOK_EVENT event_id func_params
+	|	TOK_EVENT event_id func_params opt_attr
 			{
 			begin_func($2, current_module.c_str(),
-				   FUNC_FLAVOR_EVENT, 0, $3);
+				   FUNC_FLAVOR_EVENT, 0, $3, $4);
 			$$ = $3;
 			}
-	|	TOK_HOOK def_global_id func_params
+	|	TOK_HOOK def_global_id func_params opt_attr
 			{
 			$3->ClearYieldType(FUNC_FLAVOR_HOOK);
 			$3->SetYieldType(base_type(TYPE_BOOL));
 			begin_func($2, current_module.c_str(),
-				   FUNC_FLAVOR_HOOK, 0, $3);
+				   FUNC_FLAVOR_HOOK, 0, $3, $4);
 			$$ = $3;
 			}
-	|	TOK_REDEF TOK_EVENT event_id func_params
+	|	TOK_REDEF TOK_EVENT event_id func_params opt_attr
 			{
 			begin_func($3, current_module.c_str(),
-				   FUNC_FLAVOR_EVENT, 1, $4);
+				   FUNC_FLAVOR_EVENT, 1, $4, $5);
 			$$ = $4;
 			}
 	;
 
 func_body:
-		opt_attr '{'
+		'{'
 			{
 			saved_in_init.push_back(in_init);
 			in_init = 0;
-
-			if ( has_attr($1, ATTR_DEPRECATED) )
-				current_scope()->ScopeID()->MakeDeprecated();
 			}
 
 		stmt_list
@@ -1206,7 +1198,7 @@ func_body:
 
 		'}'
 			{
-			end_func($4, $1);
+			end_func($3);
 			}
 	;
 

@@ -19,7 +19,7 @@ declare(PDict,ID);
 
 class Scope : public BroObj {
 public:
-	explicit Scope(ID* id);
+	explicit Scope(ID* id, attr_list* al);
 	~Scope() override;
 
 	ID* Lookup(const char* name) const	{ return local->Lookup(name); }
@@ -31,6 +31,7 @@ public:
 		}
 
 	ID* ScopeID() const		{ return scope_id; }
+	attr_list* Attrs() const	{ return attrs; }
 	BroType* ReturnType() const	{ return return_type; }
 
 	int Length() const		{ return local->Length(); }
@@ -53,6 +54,7 @@ public:
 
 protected:
 	ID* scope_id;
+	attr_list* attrs;
 	BroType* return_type;
 	PDict(ID)* local;
 	id_list* inits;
@@ -69,7 +71,7 @@ extern ID* lookup_ID(const char* name, const char* module,
 extern ID* install_ID(const char* name, const char* module_name,
 			bool is_global, bool is_export);
 
-extern void push_scope(ID* id);
+extern void push_scope(ID* id, attr_list* attrs);
 extern void push_existing_scope(Scope* scope);
 
 // Returns the one popped off; it's not deleted.

@@ -1,4 +1,10 @@
 
+2.5-922 | 2018-08-29 17:22:20 -0500
+
+  * Fix unit tests (Jon Siwek, Corelight)
+
+  * Fix strict-aliasing compiler warning (Jon Siwek, Corelight)
+
 2.5-919 | 2018-08-29 14:58:06 -0500
 
   * Update unit test baseline for new BinPAC output (Jon Siwek, Corelight)

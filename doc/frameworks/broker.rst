@@ -237,7 +237,7 @@ follows certain conventions in choosing these topics to help avoid
 conflicts and generally make them easier to remember.
 
 As a reminder of how topic subscriptions work, subscribers advertise
-interest in a topic **prefix** and then receive any messages publish by a
+interest in a topic **prefix** and then receive any messages published by a
 peer to a topic name that starts with that prefix.  E.g. Alice
 subscribes to the "alice/dogs" prefix, then would receive the following
 message topics published by Bob:
@@ -263,12 +263,17 @@ scripts use will be along the lines of "bro/<namespace>/<specifics>"
 with "<namespace>" being the script's module name (in all-undercase).
 For example, you might expect an imaginary "Pretend" framework to
 publish/subscribe using topic names like "bro/pretend/my_cool_event".
+For scripts that use Broker as a means of cluster-aware analysis,
+it's usually sufficient for them to make use of the topics declared
+by the cluster framework.  For scripts that are meant to establish
+communication flows unrelated to Bro cluster, new topics are declared
+(examples being the NetControl and Control frameworks).
 
 For cluster operation, see :doc:`/scripts/base/frameworks/cluster/main.bro`
 for a list of topics that are useful for steering published events to
-the various node classes.  E.g. you have the ability to broadcast to all
-directly-connected nodes, only those of a given class (e.g. just workers),
-or to a specific node within a class.
+the various node classes.  E.g. you have the ability to broadcast
+to all nodes of a given class (e.g. just workers) or just send to a
+specific node within a class.
 
 The topic names that logs get published under are a bit nuanced.  In the
 default cluster configuration, they are round-robin published to
@@ -279,7 +284,12 @@ processes, logs get published to the topic indicated by
 For those writing their own scripts which need new topic names, a
 suggestion would be to avoid prefixing any new topics/prefixes with
 "bro/" as any changes in scripts shipping with Bro will use that prefix
-and it's better to not risk unintended conflicts.
+and it's better to not risk unintended conflicts.  Again, it's
+often less confusing to just re-use existing topic names instead
+of introducing new topic names.  The typical use case is writing
+a cluster-enabled script, which usually just needs to route events
+based upon node classes, and that already has usable topics in the
+cluster framework.
 
 Connecting to Peers
 -------------------
@@ -518,24 +528,28 @@ Worker Sending Events To All Workers
 
 Since workers are not directly connected to each other in the cluster
 topology, this type of communication is a bit different than what we
-did before.  Instead of using :bro:see:`Broker::publish` we use different
-"relay" calls to hop the message from a different node that *is* connected.
+did before since we have to manually relay the event via some node that *is*
+connected to all workers.  The manager or a proxy satisfies that requirement:
 
 .. code:: bro
 
     event worker_to_workers(worker_name: string)
         {
-        print "got event from worker", worker_name;
+        @if ( Cluster::local_node_type() == Cluster::MANAGER ||
+              Cluster::local_node_type() == Cluster::PROXY )
+            Broker::publish(Cluster::worker_topic, worker_to_workers,
+                            worker_name)
+        @else
+            print "got event from worker", worker_name;
+        @endif
         }
 
     event some_event_handled_on_worker()
         {
         # We know the manager is connected to all workers, so we could
-        # choose to relay the event across it.  Note that sending the event
-        # this way will not allow the manager to handle it, even if it
-        # does have an event handler.
-        Broker::relay(Cluster::manager_topic, Cluster::worker_topic,
-                      worker_to_workers, Cluster::node + " (via manager)");
+        # choose to relay the event across it.
+        Broker::publish(Cluster::manager_topic,  worker_to_workers,
+                        Cluster::node + " (via manager)");
 
         # We also know that any given proxy is connected to all workers,
         # though now we have a choice of which proxy to use.  If we
@@ -543,9 +557,9 @@ did before.  Instead of using :bro:see:`Broker::publish` we use different
         # we can use a round-robin strategy.  The key used here is simply
         # used by the cluster framework internally to keep track of
         # which node is up next in the round-robin.
-        Cluster::relay_rr(Cluster::proxy_pool, "example_key",
-                          Cluster::worker_topic, worker_to_workers,
-                          Cluster::node + " (via a proxy)");
+        local pt = Cluster::rr_topic(Cluster::proxy_pool, "example_key");
+        Broker::publish(pt, worker_to_workers,
+                        Cluster::node + " (via a proxy)");
         }
 
 Worker Distributing Events Uniformly Across Proxies

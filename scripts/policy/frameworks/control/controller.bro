@@ -23,16 +23,6 @@ event bro_init() &priority=5
 		terminate();
 		}
 
-	Broker::auto_publish(Control::topic_prefix + "/id_value_request",
-		                 Control::id_value_request);
-	Broker::auto_publish(Control::topic_prefix + "/peer_status_request",
-		                 Control::peer_status_request);
-	Broker::auto_publish(Control::topic_prefix + "/net_stats_request",
-		                 Control::net_stats_request);
-	Broker::auto_publish(Control::topic_prefix + "/configuration_update_request",
-		                 Control::configuration_update_request);
-	Broker::auto_publish(Control::topic_prefix + "/shutdown_request",
-                         Control::shutdown_request);
 	Broker::subscribe(Control::topic_prefix);
 	Broker::peer(cat(host), host_port);
 	}
@@ -88,30 +78,30 @@ function configurable_ids(): id_table
 	return rval;
 	}
 
-function send_control_request()
+function send_control_request(topic: string)
 	{
 	switch ( cmd ) {
 	case "id_value":
 		if ( arg == "" )
 			Reporter::fatal("The Control::id_value command requires that Control::arg also has some value.");
 
-		event Control::id_value_request(arg);
+		Broker::publish(topic, Control::id_value_request, arg);
 		break;
 
 	case "peer_status":
-		event Control::peer_status_request();
+		Broker::publish(topic, Control::peer_status_request);
 		break;
 
 	case "net_stats":
-		event Control::net_stats_request();
+		Broker::publish(topic, Control::net_stats_request);
 		break;
 
 	case "shutdown":
-		event Control::shutdown_request();
+		Broker::publish(topic, Control::shutdown_request);
 		break;
 
 	case "configuration_update":
-		event Control::configuration_update_request();
+		Broker::publish(topic, Control::configuration_update_request);
 		break;
 
 	default:
@@ -122,6 +112,8 @@ function send_control_request()
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string) &priority=-10
 	{
+	local topic = Control::topic_prefix + "/" + endpoint$id;
+
 	if ( cmd == "configuration_update" )
 		{
 		# Send all &redef'able consts to the peer.
@@ -130,8 +122,6 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string) &priority=
 
 		for ( id in ids )
 			{
-			local topic = fmt("%s/id/%s", Control::topic_prefix, id);
-
 			if ( Broker::publish_id(topic, id) )
 				++publish_count;
 			}
@@ -139,5 +129,5 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string) &priority=
 		Reporter::info(fmt("Control framework sent %d IDs", publish_count));
 		}
 
-	send_control_request();
+	send_control_request(topic);
 	}

@@ -154,43 +154,6 @@ public:
 	bool PublishEvent(std::string topic, RecordVal* ev);
 
 	/**
-	 * Sends an event to any interested peers, who, upon receipt,
-	 * republishes the event to a new set of topics and optionally
-	 * calls event handlers.
-	 * @param first_topic the first topic to use when publishing the event
-	 * @param relay_topics the set of topics the receivers will use to
-	 * republish the event.  The event is relayed at most a single hop.
-	 * @param name the name of the event
-	 * @param args the event's arguments
-	 * @param handle_on_relayer whether they relaying-node should call event
-	 * handlers.
-	 * @return true if the message is sent successfully.
-	 */
-	bool RelayEvent(std::string first_topic,
-					broker::set relay_topics,
-					std::string name,
-					broker::vector args,
-					bool handle_on_relayer);
-
-	/**
-	 * Sends an event to any interested peers, who, upon receipt,
-	 * republishes the event to a new set of topics and optionally
-	 * calls event handlers.
-	 * @param first_topic the first topic to use when publishing the event
-	 * @param relay_topics the set of topics the receivers will use to
-	 * republish the event.  The event is relayed at most a single hop.
-	 * @param ev the event and its arguments to send to peers, in the form of
-	 * a Broker::Event record type.
-	 * @param handle_on_relayer whether they relaying-node should call event
-	 * handlers.
-	 * @return true if the message is sent successfully.
-	 */
-	bool RelayEvent(std::string first_topic,
-					std::set<std::string> relay_topics,
-					RecordVal* ev,
-					bool handle_on_relayer);
-
-	/**
 	 * Send a message to create a log stream to any interested peers.
 	 * The log stream may or may not already exist on the receiving side.
 	 * The topic name used is implicitly "bro/log/<stream-name>".
@@ -262,9 +225,20 @@ public:
 	bool Subscribe(const std::string& topic_prefix);
 
 	/**
+	 * Register interest in peer event messages that use a certain topic prefix,
+	 * but that should not be raised locally, just forwarded to any subscribing
+	 * peers.
+	 * @param topic_prefix a prefix to match against remote message topics.
+	 * e.g. an empty prefix will match everything and "a" will match "alice"
+	 * and "amy" but not "bob".
+	 * @return true if it's a new event forward/subscription and it is now registered.
+	 */
+	bool Forward(std::string topic_prefix);
+
+	/**
 	 * Unregister interest in peer event messages.
 	 * @param topic_prefix a prefix previously supplied to a successful call
-	 * to bro_broker::Manager::Subscribe().
+	 * to bro_broker::Manager::Subscribe() or bro_broker::Manager::Forward().
 	 * @return true if interest in topic prefix is no longer advertised.
 	 */
 	bool Unsubscribe(const std::string& topic_prefix);
@@ -348,11 +322,8 @@ public:
 
 private:
 
-	void DispatchMessage(broker::data msg);
-	void ProcessEvent(std::string name, broker::vector args);
-	void ProcessEvent(broker::bro::Event ev);
-	void ProcessRelayEvent(broker::bro::RelayEvent re);
-	void ProcessHandleAndRelayEvent(broker::bro::HandleAndRelayEvent ev);
+	void DispatchMessage(const broker::topic& topic, broker::data msg);
+	void ProcessEvent(const broker::topic& topic, broker::bro::Event ev);
 	bool ProcessLogCreate(broker::bro::LogCreate lc);
 	bool ProcessLogWrite(broker::bro::LogWrite lw);
 	bool ProcessIdentifierUpdate(broker::bro::IdentifierUpdate iu);
@@ -403,6 +374,7 @@ private:
 	std::unordered_map<std::string, StoreHandleVal*> data_stores;
 	std::unordered_map<query_id, StoreQueryCallback*,
 	                   query_id_hasher> pending_queries;
+	std::vector<std::string> forwarded_prefixes;
 
 	Stats statistics;
 

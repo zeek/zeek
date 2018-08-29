@@ -285,10 +285,24 @@ export {
 	## (except during :bro:see:`bro_init`).
 	##
 	## topic_prefix: a prefix previously supplied to a successful call to
-	##               :bro:see:`Broker::subscribe`.
+	##               :bro:see:`Broker::subscribe` or :bro:see:`Broker::forward`.
 	##
 	## Returns: true if interest in the topic prefix is no longer advertised.
 	global unsubscribe: function(topic_prefix: string): bool;
+
+	## Register a topic prefix subscription for events that should only be
+	## forwarded to any subscribing peers and not raise any event handlers
+	## on the receiving/forwarding node.  i.e. it's the same as
+	## :bro:see:`Broker::subscribe` except matching events are not raised
+	## on the receiver, just forwarded.  Use :bro:see:`Broker::unsubscribe`
+	## with the same argument to undo this operation.
+	##
+	## topic_prefix: a prefix to match against remote message topics.
+	##               e.g. an empty prefix matches everything and "a" matches
+	##               "alice" and "amy" but not "bob".
+	##
+	## Returns: true if a new event forwarding/subscription is now registered.
+	global forward: function(topic_prefix: string): bool;
 
 	## Automatically send an event to any interested peers whenever it is
 	## locally dispatched. (For example, using "event my_event(...);" in a
@@ -375,6 +389,11 @@ function publish_id(topic: string, id: string): bool
 function subscribe(topic_prefix: string): bool
 	{
 	return __subscribe(topic_prefix);
+	}
+
+function forward(topic_prefix: string): bool
+	{
+	return __forward(topic_prefix);
 	}
 
 function unsubscribe(topic_prefix: string): bool

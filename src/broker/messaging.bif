@@ -144,6 +144,13 @@ function Broker::__subscribe%(topic_prefix: string%): bool
 	return new Val(rval, TYPE_BOOL);
 	%}
 
+function Broker::__forward%(topic_prefix: string%): bool
+	%{
+	bro_broker::Manager::ScriptScopeGuard ssg;
+	auto rval = broker_mgr->Forward(topic_prefix->CheckString());
+	return new Val(rval, TYPE_BOOL);
+	%}
+
 function Broker::__unsubscribe%(topic_prefix: string%): bool
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;

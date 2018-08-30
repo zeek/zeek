@@ -182,7 +182,7 @@ int DNS_Interpreter::ParseQuestion(DNS_MsgInfo* msg,
 		return 0;
 		}
 
-	EventHandlerPtr dns_event = 0;
+	EventHandlerPtr dns_event = nullptr;
 
 	if ( msg->QR == 0 )
 		dns_event = dns_request;
@@ -814,24 +814,68 @@ int DNS_Interpreter::ParseRR_RRSIG(DNS_MsgInfo* msg,
 
 	int sig_len = rdlength - ((data - data_start) + 18);
 	DNSSEC_Algo dsa = DNSSEC_Algo(algo);
-	BroString* signature;
+	BroString* sign;
 	
 	switch ( dsa ) {
 
-		case DSA_SHA1:
-			ExtractStream(data, len, &signature, sig_len);
+		case RSA_MD5:
+			ExtractStream(data, len, &sign, sig_len);
+			analyzer->Weird("DNS_RRSIG_NotRecommended_ZoneSignAlgo", fmt("%d", algo));
 			break;
-	
+
+		case Diffie_Hellman:
+			ExtractStream(data, len, &sign, sig_len);
+			break;
+
+		case DSA_SHA1:
+			ExtractStream(data, len, &sign, sig_len);
+			break;
+
+		case Elliptic_Curve:
+			ExtractStream(data, len, &sign, sig_len);
+			break;
+
 		case RSA_SHA1:
-			ExtractStream(data, len, &signature, sig_len);
+			ExtractStream(data, len, &sign, sig_len);
+			break;
+
+		case DSA_NSEC3_SHA1:
+			ExtractStream(data, len, &sign, sig_len);
+			break;
+
+		case RSA_SHA1_NSEC3_SHA1:
+			ExtractStream(data, len, &sign, sig_len);
+			break;
+
+		case RSA_SHA512:
+			ExtractStream(data, len, &sign, sig_len);
+			break;
+
+		case GOST_R_34_10_2001:
+			ExtractStream(data, len, &sign, sig_len);
+			break;
+
+		case ECDSA_curveP256withSHA256:
+			ExtractStream(data, len, &sign, sig_len);
+			break;
+
+		case ECDSA_curveP384withSHA384:
+			ExtractStream(data, len, &sign, sig_len);
+			break;
+
+		case Indirect:
+			ExtractStream(data, len, &sign, sig_len);
+			analyzer->Weird("DNS_RRSIG_Indirect_ZoneSignAlgo", fmt("%d", algo));
 			break;
 
 		case PrivateDNS:
-			ExtractStream(data, len, &signature, sig_len);
+			ExtractStream(data, len, &sign, sig_len);
+			analyzer->Weird("DNS_RRSIG_PrivateDNS_ZoneSignAlgo", fmt("%d", algo));
 			break;
 
 		case PrivateOID:
-			ExtractStream(data, len, &signature, sig_len);
+			ExtractStream(data, len, &sign, sig_len);
+			analyzer->Weird("DNS_RRSIG_PrivateOID_ZoneSignAlgo", fmt("%d", algo));
 			break;
 
 		default:
@@ -850,7 +894,7 @@ int DNS_Interpreter::ParseRR_RRSIG(DNS_MsgInfo* msg,
 	msg->rrsig->algorithm = algo;
 	msg->rrsig->labels = lab;
 	msg->rrsig->signer_name = new BroString(name, name_end - name, 1);
-	msg->rrsig->signature = signature;
+	msg->rrsig->signature = sign;
 
 	val_list* vl = new val_list;
 

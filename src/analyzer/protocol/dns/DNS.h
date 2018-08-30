@@ -81,15 +81,22 @@ typedef enum {
 
 typedef enum {
 	reserved0 = 0,
-    RSA_MD5 = 1,          ///<	[RFC2537]  NOT RECOMMENDED
-    Diffie_Hellman = 2,	///< [RFC2539]
-    DSA_SHA1 = 3,	///< [RFC2536]  OPTIONAL
-    Elliptic_Curve = 4,
-    RSA_SHA1 = 5,	///< [RFC3110]  MANDATORY
-    Indirect = 252,	///<
-    PrivateDNS = 253,	///<  OPTIONAL
-    PrivateOID = 254,	///<  OPTIONAL
-    reserved255 = 255,
+    	RSA_MD5 = 1,          ///<	[RFC2537]  NOT RECOMMENDED
+    	Diffie_Hellman = 2,	///< [RFC2539]
+    	DSA_SHA1 = 3,	///< [RFC2536]  OPTIONAL
+    	Elliptic_Curve = 4,
+    	RSA_SHA1 = 5,	///< [RFC3110]  MANDATORY
+    	DSA_NSEC3_SHA1 = 6,
+    	RSA_SHA1_NSEC3_SHA1 = 7,
+    	RSA_SHA256 = 8,
+    	RSA_SHA512 = 10,
+    	GOST_R_34_10_2001 = 12,
+    	ECDSA_curveP256withSHA256 = 13,
+    	ECDSA_curveP384withSHA384 =14,
+    	Indirect = 252,	///<
+    	PrivateDNS = 253,	///<  OPTIONAL
+    	PrivateOID = 254,	///<  OPTIONAL
+    	reserved255 = 255,
 } DNSSEC_Algo;
 
 struct DNS_RawMsgHdr {

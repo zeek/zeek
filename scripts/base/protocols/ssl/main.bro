@@ -200,7 +200,7 @@ function finish(c: connection, remove_analyzer: bool)
 		}
 	}
 
-event ssl_client_hello(c: connection, version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec) &priority=5
+event ssl_client_hello(c: connection, version: count, record_version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec, comp_methods: index_vec) &priority=5
 	{
 	set_session(c);
 
@@ -212,7 +212,7 @@ event ssl_client_hello(c: connection, version: count, possible_ts: time, client_
 		}
 	}
 
-event ssl_server_hello(c: connection, version: count, possible_ts: time, server_random: string, session_id: string, cipher: count, comp_method: count) &priority=5
+event ssl_server_hello(c: connection, version: count, record_version: count, possible_ts: time, server_random: string, session_id: string, cipher: count, comp_method: count) &priority=5
 	{
 	set_session(c);
 
@@ -351,11 +351,11 @@ event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &pr
 		}
 	}
 
-event ssl_application_data(c: connection, is_orig: bool, length: count)
+event ssl_plaintext_data(c: connection, is_orig: bool, record_version: count, content_type: count, length: count) &priority=5
 	{
 	set_session(c);
 
-	if ( ! c$ssl?$version || c$ssl$established )
+	if ( ! c$ssl?$version || c$ssl$established || content_type != APPLICATION_DATA )
 		return;
 
 	if ( c$ssl$version_num/0xFF != 0x7F && c$ssl$version_num != TLSv13 )

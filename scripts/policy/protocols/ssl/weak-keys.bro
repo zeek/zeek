@@ -76,7 +76,7 @@ event ssl_established(c: connection) &priority=3
 	}
 
 # Check for old SSL versions and weak connection keys
-event ssl_server_hello(c: connection, version: count, possible_ts: time, server_random: string, session_id: string, cipher: count, comp_method: count) &priority=3
+event ssl_server_hello(c: connection, version: count, record_version: count, possible_ts: time, server_random: string, session_id: string, cipher: count, comp_method: count) &priority=3
 	{
 	if ( ! addr_matches_host(c$id$resp_h, notify_weak_keys) )
 		return;

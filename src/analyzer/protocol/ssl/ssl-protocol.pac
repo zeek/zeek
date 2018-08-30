@@ -8,16 +8,22 @@ type SSLRecord(is_orig: bool) = record {
 	head2 : uint8;
 	head3 : uint8;
 	head4 : uint8;
-	rec : RecordText(this)[] &length=length, &requires(content_type);
+	rec : RecordText(this)[] &length=length, &requires(version,content_type,raw_tls_version);
 } &length = length+5, &byteorder=bigendian,
 	&let {
 	version : int =
 		$context.connection.determine_ssl_record_layer(head0, head1, head2, head3, head4, is_orig);
 
+	# unmodified tls record layer version of this packet. Do not use this if you are parsing SSLv2
+	raw_tls_version: uint16 = case version of {
+		SSLv20 -> 0;
+		default -> (head1<<8) | head2;
+	} &requires(version);
+
 	content_type : int = case version of {
 		SSLv20 -> head2+300;
 		default -> head0;
-	};
+	} &requires(version);
 
 	length : int = case version of {
 		# fail analyzer if the packet cannot be recognized as TLS.
@@ -207,5 +213,7 @@ refine connection SSL_Conn += {
 		bro_analyzer()->SetSkip(true);
 		return UNKNOWN_VERSION;
 		%}
+
+	function record_version() : uint16 %{ return 0; %}
 
 };

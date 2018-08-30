@@ -12,6 +12,9 @@
 ##          values are standardized as part of the SSL/TLS protocol. The
 ##          :bro:id:`SSL::version_strings` table maps them to descriptive names.
 ##
+## record_version: TLS version given in the record layer of the message.
+##                 Set to 0 for SSLv2.
+##
 ## possible_ts: The current time as sent by the client. Note that SSL/TLS does
 ##              not require clocks to be set correctly, so treat with care.
 ##
@@ -24,12 +27,15 @@
 ##          standardized as part of the SSL/TLS protocol. The
 ##          :bro:id:`SSL::cipher_desc` table maps them to descriptive names.
 ##
+## comp_methods: The list of compression methods that the client offered to use.
+##               This value is not sent in TLSv1.3 or SSLv2.
+##
 ## .. bro:see:: ssl_alert ssl_established ssl_extension ssl_server_hello
 ##    ssl_session_ticket_handshake x509_certificate ssl_handshake_message
 ##    ssl_change_cipher_spec
 ##    ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
 ##    ssl_rsa_client_pms
-event ssl_client_hello%(c: connection, version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec%);
+event ssl_client_hello%(c: connection, version: count, record_version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec, comp_methods: index_vec%);
 
 ## Generated for an SSL/TLS server's initial *hello* message. SSL/TLS sessions
 ## start with an unencrypted handshake, and Bro extracts as much information out
@@ -44,6 +50,9 @@ event ssl_client_hello%(c: connection, version: count, possible_ts: time, client
 ## version: The protocol version as extracted from the server's message.
 ##          The values are standardized as part of the SSL/TLS protocol. The
 ##          :bro:id:`SSL::version_strings` table maps them to descriptive names.
+##
+## record_version: TLS version given in the record layer of the message.
+##                 Set to 0 for SSLv2.
 ##
 ## possible_ts: The current time as sent by the server. Note that SSL/TLS does
 ##              not require clocks to be set correctly, so treat with care. This value
@@ -61,14 +70,14 @@ event ssl_client_hello%(c: connection, version: count, possible_ts: time, client
 ##
 ## comp_method: The compression method chosen by the client. The values are
 ##              standardized as part of the SSL/TLS protocol. This value is not
-##              sent in TLSv1.3.
+##              sent in TLSv1.3 or SSLv2.
 ##
 ## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_extension
 ##    ssl_session_ticket_handshake x509_certificate ssl_server_curve
 ##    ssl_dh_server_params ssl_handshake_message ssl_change_cipher_spec
 ##    ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
 ##    ssl_rsa_client_pms
-event ssl_server_hello%(c: connection, version: count, possible_ts: time, server_random: string, session_id: string, cipher: count, comp_method: count%);
+event ssl_server_hello%(c: connection, version: count, record_version: count, possible_ts: time, server_random: string, session_id: string, cipher: count, comp_method: count%);
 
 ## Generated for SSL/TLS extensions seen in an initial handshake.  SSL/TLS
 ## sessions start with an unencrypted handshake, and Bro extracts as much
@@ -476,22 +485,28 @@ event ssl_session_ticket_handshake%(c: connection, ticket_lifetime_hint: count, 
 ##    ssl_alert ssl_encrypted_data
 event ssl_heartbeat%(c: connection, is_orig: bool, length: count, heartbeat_type: count, payload_length: count, payload: string%);
 
-## Generated for non-handshake SSL/TLS application_data messages that are sent before
-## full encryption starts. For TLS 1.2 and lower, this event should not be raised. For TLS 1.3,
-## it is used by Bro internally to determine if the connection has been completely setup.
-## This is necessary as TLS 1.3 does not have CCS anymore.
+## Generated for SSL/TLS messages that are sent before full session encryption
+## starts. Note that "full encryption" is a bit fuzzy, especially for TLSv1.3;
+## here this event will be raised for early packets that are already using
+## pre-encryption.  # This event is also used by Bro internally to determine if
+## the connection has been completely setup. This is necessary as TLS 1.3 does
+## not have CCS anymore.
 ##
 ## c: The connection.
 ##
 ## is_orig: True if event is raised for originator side of the connection.
 ##
-## content_type: message type as reported by TLS session layer.
+## record_version: TLS version given in the record layer of the message.
+##                 Set to 0 for SSLv2.
 ##
-## length: length of the entire heartbeat message.
+## content_type: message type as reported by TLS session layer. Not populated for
+##               SSLv2.
+##
+## length: length of the entire message.
 ##
 ## .. bro:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
 ##    ssl_alert ssl_heartbeat
-event ssl_application_data%(c: connection, is_orig: bool, length: count%);
+event ssl_plaintext_data%(c: connection, is_orig: bool, record_version: count, content_type: count, length: count%);
 
 ## Generated for SSL/TLS messages that are sent after session encryption
 ## started.
@@ -503,13 +518,17 @@ event ssl_application_data%(c: connection, is_orig: bool, length: count%);
 ##
 ## is_orig: True if event is raised for originator side of the connection.
 ##
-## content_type: message type as reported by TLS session layer.
+## record_version: TLS version given in the record layer of the message.
+##                 Set to 0 for SSLv2.
 ##
-## length: length of the entire heartbeat message.
+## content_type: message type as reported by TLS session layer. Not populated for
+##               SSLv2.
+##
+## length: length of the entire message.
 ##
 ## .. bro:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
 ##    ssl_alert ssl_heartbeat
-event ssl_encrypted_data%(c: connection, is_orig: bool, content_type: count, length: count%);
+event ssl_encrypted_data%(c: connection, is_orig: bool, record_version: count, content_type: count, length: count%);
 
 ## This event contains the OCSP response contained in a Certificate Status Request
 ## message, when the client requested OCSP stapling and the server supports it.

@@ -1,12 +1,14 @@
-# @TEST-EXEC: bro -r $TRACES/tls/tls1.2.trace %INPUT
+# This tests that the values sent for compression methods are correct.
+
+# @TEST-EXEC: bro -r $TRACES/tls/tls-conn-with-extensions.trace %INPUT
 # @TEST-EXEC: btest-diff .stdout
 
 event ssl_client_hello(c: connection, version: count, record_version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec, comp_methods: index_vec)
- 	{
-	print client_random;
- 	}
+	{
+	print comp_methods;
+	}
 
 event ssl_server_hello(c: connection, version: count, record_version: count, possible_ts: time, server_random: string, session_id: string, cipher: count, comp_method: count)
 	{
-	print server_random;
+	print comp_method;
 	}

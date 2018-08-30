@@ -22,7 +22,7 @@ public:
 					uint64 seq, const IP_Hdr* ip, int caplen) override;
 	void EndOfData(bool is_orig) override;
 
-	void SendHandshake(uint8 msg_type, uint32 length, const u_char* begin, const u_char* end, bool orig);
+	void SendHandshake(uint16 raw_tls_version, uint8 msg_type, uint32 length, const u_char* begin, const u_char* end, bool orig);
 
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)

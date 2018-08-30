@@ -416,7 +416,7 @@ refine connection Handshake_Conn += {
 refine typeattr ClientHello += &let {
 	proc : bool = $context.connection.proc_client_hello(client_version,
 				gmt_unix_time, random_bytes,
-				session_id, csuits, 0);
+				session_id, csuits, 0, cmeths);
 };
 
 refine typeattr ServerHello += &let {

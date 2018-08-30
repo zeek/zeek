@@ -1,3 +1,14 @@
 # @TEST-EXEC: bro -r $TRACES/tls/tls1.2.trace %INPUT
 # @TEST-EXEC: btest-diff ssl.log
 # @TEST-EXEC: btest-diff x509.log
+# @TEST-EXEC: btest-diff .stdout
+
+event ssl_client_hello(c: connection, version: count, record_version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec, comp_methods: index_vec) &priority=5
+	{
+	print "client", SSL::version_strings[record_version], SSL::version_strings[version];
+	}
+
+event ssl_server_hello(c: connection, version: count, record_version: count, possible_ts: time, server_random: string, session_id: string, cipher: count, comp_method: count) &priority=5
+	{
+	print "server", SSL::version_strings[record_version], SSL::version_strings[version];
+	}

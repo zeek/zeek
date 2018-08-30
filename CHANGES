@@ -1,4 +1,13 @@
 
+2.5-944 | 2018-08-30 09:28:41 -0500
+
+  * Introduce ssl_plaintext_data event, replacing ssl_application_data event.
+    (Johanna Amann)
+     
+  * Add record layer version to event ssl_encrypted_data. (Johanna Amann)
+
+  * Add compression methods to ssl_client_hello event. (Johanna Amann)
+
 2.5-932 | 2018-08-30 00:08:58 +0000
 
   * Add Broker::forward() function. This enables explicit forwarding

@@ -51,8 +51,9 @@ void DTLS_Analyzer::EndOfData(bool is_orig)
 	}
 
 
-void DTLS_Analyzer::SendHandshake(uint8 msg_type, uint32 length, const u_char* begin, const u_char* end, bool orig)
+void DTLS_Analyzer::SendHandshake(uint16 raw_tls_version, uint8 msg_type, uint32 length, const u_char* begin, const u_char* end, bool orig)
 	{
+	handshake_interp->set_record_version(raw_tls_version);
 	try
 		{
 		handshake_interp->NewData(orig, (const unsigned char*) &msg_type, (const unsigned char*) &msg_type + 1);

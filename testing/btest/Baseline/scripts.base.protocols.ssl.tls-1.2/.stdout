@@ -1,0 +1,2 @@
+client, TLSv10, TLSv12
+server, TLSv12, TLSv12

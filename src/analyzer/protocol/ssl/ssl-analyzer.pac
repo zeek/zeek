@@ -25,7 +25,7 @@ refine connection SSL_Conn += {
 
 	function proc_handshake(rec: SSLRecord, data: bytestring, is_orig: bool) : bool
 		%{
-		bro_analyzer()->SendHandshake(data.begin(), data.end(), is_orig);
+		bro_analyzer()->SendHandshake(${rec.raw_tls_version}, data.begin(), data.end(), is_orig);
 		return true;
 		%}
 };
@@ -38,7 +38,7 @@ refine typeattr V2Error += &let {
 
 refine typeattr V2ClientHello += &let {
 	proc : bool = $context.connection.proc_client_hello(client_version, 0,
-				challenge, session_id, 0, ciphers);
+				challenge, session_id, 0, ciphers, 0);
 };
 
 refine typeattr V2ServerHello += &let {

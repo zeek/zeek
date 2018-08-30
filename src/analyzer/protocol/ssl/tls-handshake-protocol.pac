@@ -889,11 +889,13 @@ refine connection Handshake_Conn += {
 	%member{
 		uint32 chosen_cipher_;
 		uint16 chosen_version_;
+		uint16 record_version_;
 	%}
 
 	%init{
 		chosen_cipher_ = NO_CHOSEN_CIPHER;
 		chosen_version_ = UNKNOWN_VERSION;
+		record_version_ = 0;
 	%}
 
 	function chosen_cipher() : int %{ return chosen_cipher_; %}
@@ -911,6 +913,13 @@ refine connection Handshake_Conn += {
 		chosen_version_ = version;
 		return true;
 		%}
-};
 
+	function record_version() : uint16 %{ return record_version_; %}
+
+	function set_record_version(version: uint16) : bool
+		%{
+		record_version_ = version;
+		return true;
+		%}
+};
 

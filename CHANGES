@@ -1,4 +1,8 @@
 
+2.5-947 | 2018-08-30 16:05:36 -0500
+
+  * Allow loading policy/protocols/smb once again (Jon Siwek, Corelight)
+
 2.5-946 | 2018-08-30 09:51:16 -0500
 
   * Update NEWS with more info about runtime options (Daniel Thayer)

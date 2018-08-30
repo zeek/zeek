@@ -120,6 +120,15 @@ New Functionality
     not send the change to any other nodes, so Config::set_value should
     typically be used instead of Option::set.
 
+    Various redef-able constants in the standard Bro scripts have
+    been converted to runtime options.  This change will not affect any
+    user scripts because the initial value of runtime options can be
+    redefined with a "redef" declaration.  Example:
+
+        option testvar = "old value";
+
+        redef testvar = "new value";
+
     It is possible to "subscribe" to an option through
     Option::set_change_handler, which will trigger a handler callback
     when an option changes. Change handlers can optionally modify

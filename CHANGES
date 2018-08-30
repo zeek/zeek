@@ -1,4 +1,8 @@
 
+2.5-946 | 2018-08-30 09:51:16 -0500
+
+  * Update NEWS with more info about runtime options (Daniel Thayer)
+
 2.5-944 | 2018-08-30 09:28:41 -0500
 
   * Introduce ssl_plaintext_data event, replacing ssl_application_data event.

@@ -1,5 +1,5 @@
 
-2.5-931 | 2018-08-29 23:45:29 +0000
+2.5-932 | 2018-08-30 00:08:58 +0000
 
   * Add Broker::forward() function. This enables explicit forwarding
     of events matching a given topic prefix.  Even if a receiving node

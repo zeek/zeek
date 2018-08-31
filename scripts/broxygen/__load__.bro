@@ -7,6 +7,7 @@
 @load frameworks/files/extract-all-files.bro
 @load policy/misc/dump-events.bro
 @load policy/protocols/dhcp/deprecated_events.bro
+@load policy/protocols/smb/__load__.bro
 
 @load ./example.bro
 

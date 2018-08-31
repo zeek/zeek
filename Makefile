@@ -6,10 +6,10 @@
 #
 
 BUILD=build
-REPO=`basename \`git config --get remote.origin.url | sed 's/^[^:]*://g'\``
-VERSION_FULL=$(REPO)-`cat VERSION`
-VERSION_MIN=$(REPO)-`cat VERSION`-minimal
-HAVE_MODULES=git submodule | grep -v cmake >/dev/null
+REPO=$$(cd $(CURDIR) && basename $$(git config --get remote.origin.url | sed 's/^[^:]*://g'))
+VERSION_FULL=$(REPO)-$$(cd $(CURDIR) && cat VERSION)
+VERSION_MIN=$(REPO)-$$(cd $(CURDIR) && cat VERSION)-minimal
+GITDIR=$$(test -f .git && echo $$(cut -d" " -f2 .git) || echo .git)
 
 all: configured
 	$(MAKE) -C $(BUILD) $@
@@ -30,17 +30,19 @@ docclean: configured
 	$(MAKE) -C $(BUILD) $@
 
 dist:
-	@rm -rf $(VERSION_FULL) $(VERSION_FULL).tgz
-	@rm -rf $(VERSION_MIN) $(VERSION_MIN).tgz
-	@git clone --recursive . $(VERSION_FULL) >/dev/null 2>&1
-	@find $(VERSION_FULL) -name .git\* | xargs rm -rf
-	@tar -czf $(VERSION_FULL).tgz $(VERSION_FULL) && echo Package: $(VERSION_FULL).tgz && rm -rf $(VERSION_FULL)
-	@$(HAVE_MODULES) && git clone . $(VERSION_MIN) >/dev/null 2>&1 || exit 0
-	@$(HAVE_MODULES) && (cd $(VERSION_MIN) && git submodule update --init cmake >/dev/null 2>&1) || exit 0
-	@$(HAVE_MODULES) && (cd $(VERSION_MIN) && git submodule update --init src/3rdparty >/dev/null 2>&1) || exit 0
-	@$(HAVE_MODULES) && (cd $(VERSION_MIN) && git submodule update --init magic >/dev/null 2>&1) || exit 0
-	@$(HAVE_MODULES) && find $(VERSION_MIN) -name .git\* | xargs rm -rf || exit 0
-	@$(HAVE_MODULES) && tar -czf $(VERSION_MIN).tgz $(VERSION_MIN) && echo Package: $(VERSION_MIN).tgz && rm -rf $(VERSION_MIN) || exit 0
+	@test -e ../$(VERSION_FULL) && rm -ri ../$(VERSION_FULL) || true
+	@cp -R . ../$(VERSION_FULL)
+	@for i in . $$(git submodule foreach -q --recursive realpath --relative-to=$$(pwd) .); do ((cd ../$(VERSION_FULL)/$$i && test -f .git && cp -R $(GITDIR) .gitnew && rm -f .git && mv .gitnew .git && sed -i.bak -e 's#[[:space:]]*worktree[[:space:]]*=[[:space:]]*.*##g' .git/config) || true); done
+	@for i in . $$(git submodule foreach -q --recursive realpath --relative-to=$$(pwd) .); do (cd ../$(VERSION_FULL)/$$i && git reset -q --hard && git clean -ffdxq); done
+	@(cd ../$(VERSION_FULL) && find . -name \.git\* | xargs rm -rf)
+	@mv ../$(VERSION_FULL) .
+	@tar -czf $(VERSION_FULL).tar.gz $(VERSION_FULL)
+	@echo Package: $(VERSION_FULL).tar.gz
+	@mv $(VERSION_FULL) $(VERSION_MIN)
+	@(cd $(VERSION_MIN) && for i in aux/*; do rm -rf $$i/*; done)
+	@tar -czf $(VERSION_MIN).tar.gz $(VERSION_MIN)
+	@echo Package: $(VERSION_MIN).tar.gz
+	@rm -rf $(VERSION_MIN)
 
 distclean:
 	rm -rf $(BUILD)

@@ -1,4 +1,8 @@
 
+2.5-951 | 2018-08-31 15:33:31 -0500
+
+  * Improve `make dist` (Jon Siwek, Corelight)
+
 2.5-950 | 2018-08-31 08:54:36 -0700
 
   * Add @deprecated directive and deprecate policy/protocols/smb/__load__.bro

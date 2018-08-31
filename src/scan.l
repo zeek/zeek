@@ -315,6 +315,23 @@ when	return TOK_WHEN;
 	return TOK_ATTR_SYNCHRONIZED;
 	}
 
+@deprecated.* {
+	auto num_files = file_stack.length();
+	auto comment = skip_whitespace(yytext + 11);
+
+	if ( num_files > 0 )
+		{
+		auto lf = file_stack[num_files - 1];
+
+		if ( lf->name )
+			reporter->Warning("deprecated script loaded from %s:%d %s",
+			                  lf->name, lf->line, comment);
+		else
+			reporter->Warning("deprecated script loaded from command line arguments %s", comment);
+		}
+	else
+		reporter->Warning("deprecated script loaded %s", comment);
+	}
 
 @DEBUG	return TOK_DEBUG;	// marks input for debugger
 

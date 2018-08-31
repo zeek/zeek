@@ -1,4 +1,10 @@
 
+2.5-950 | 2018-08-31 08:54:36 -0700
+
+  * Add @deprecated directive and deprecate policy/protocols/smb/__load__.bro
+
+    @deprecated a warning stating that the script is deprecated. (Jon Siwek, Corelight)
+
 2.5-947 | 2018-08-30 16:05:36 -0500
 
   * Allow loading policy/protocols/smb once again (Jon Siwek, Corelight)
@@ -11,7 +17,7 @@
 
   * Introduce ssl_plaintext_data event, replacing ssl_application_data event.
     (Johanna Amann)
-     
+
   * Add record layer version to event ssl_encrypted_data. (Johanna Amann)
 
   * Add compression methods to ssl_client_hello event. (Johanna Amann)

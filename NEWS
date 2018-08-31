@@ -348,6 +348,9 @@ New Functionality
   with &redef by appending the result of expressions "a", "b", and "c" to
   the vector at initialization-time.
 
+- A new @deprecated directive was added. It marks a script-file as
+  deprecated.
+
 Changed Functionality
 ---------------------
 

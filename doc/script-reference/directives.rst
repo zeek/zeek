@@ -27,6 +27,16 @@ executed.  Directives are evaluated before script execution begins.
 
         print "File:", @FILENAME;
 
+.. bro:keyword:: @deprecated
+
+    Marks the current script as deprecated. This can be placed anywhere in
+    the script, but a good convention is to put it as the first line.
+    You can also supply additional comments.
+
+    Example::
+
+        @deprecated "Use '@load foo' instead"
+
 .. bro:keyword:: @load
 
     Loads the specified Bro script, specified as the relative pathname

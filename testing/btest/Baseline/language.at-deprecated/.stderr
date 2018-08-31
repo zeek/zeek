@@ -1,0 +1,3 @@
+warning in ./foo.bro, line 1: deprecated script loaded from command line arguments 
+warning in ./bar.bro, line 1: deprecated script loaded from ./foo.bro:2 "Use '@load qux.bro' instead"
+warning in ./baz.bro, line 1: deprecated script loaded from ./foo.bro:3 

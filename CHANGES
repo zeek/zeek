@@ -1,4 +1,8 @@
 
+2.5-952 | 2018-08-31 17:30:21 -0500
+
+  * Update NEWS (finalizations/formatting) (Jon Siwek, Corelight)
+
 2.5-951 | 2018-08-31 15:33:31 -0500
 
   * Improve `make dist` (Jon Siwek, Corelight)

@@ -4850,21 +4850,22 @@ export {
 	const sampling_whitelist: set[string] &redef;
 
 	## How many weirds of a given type to tolerate before sampling begins.
-	## i.e. this many consecutive weirds of a given type will be allowed to
+	## I.e. this many consecutive weirds of a given type will be allowed to
 	## raise events for script-layer handling before being rate-limited.
 	const sampling_threshold = 25 &redef;
 
-	## The rate-limiting sampling rate.  One out of every of this number of
+	## The rate-limiting sampling rate. One out of every of this number of
 	## rate-limited weirds of a given type will be allowed to raise events
-	## for further script-layer handling.
+	## for further script-layer handling. Setting the sampling rate to 0
+	## will disable all output of rate-limited weirds.
 	const sampling_rate = 1000 &redef;
 
 	## How long a weird of a given type is allowed to keep state/counters in
-	## memory.  For "net" weirds an expiration timer starts per weird name when
-	## first initializing its counter.  For "flow" weirds an expiration timer
-	## starts once per src/dst IP pair for the first weird of any name.  For
+	## memory. For "net" weirds an expiration timer starts per weird name when
+	## first initializing its counter. For "flow" weirds an expiration timer
+	## starts once per src/dst IP pair for the first weird of any name. For
 	## "conn" weirds, counters and expiration timers are kept for the duration
-	## of the connection for each named weird and reset when necessary.  e.g.
+	## of the connection for each named weird and reset when necessary. E.g.
 	## if a "conn" weird by the name of "foo" is seen more than
 	## :bro:see:`Weird::sampling_threshold` times, then an expiration timer
 	## begins for "foo" and upon triggering will reset the counter for "foo"

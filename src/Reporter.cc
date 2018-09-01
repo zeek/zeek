@@ -296,11 +296,14 @@ bool Reporter::PermitNetWeird(const char* name)
 		timer_mgr->Add(new NetWeirdTimer(network_time, name,
 		                                 weird_sampling_duration));
 
-	if ( count < weird_sampling_threshold )
+	if ( count <= weird_sampling_threshold )
 		return true;
 
 	auto num_above_threshold = count - weird_sampling_threshold;
-	return num_above_threshold % weird_sampling_rate == 0;
+	if ( weird_sampling_rate )
+		return num_above_threshold % weird_sampling_rate == 0;
+	else
+		return false;
 	}
 
 bool Reporter::PermitFlowWeird(const char* name,
@@ -316,11 +319,14 @@ bool Reporter::PermitFlowWeird(const char* name,
 	auto& count = map[name];
 	++count;
 
-	if ( count < weird_sampling_threshold )
+	if ( count <= weird_sampling_threshold )
 		return true;
 
 	auto num_above_threshold = count - weird_sampling_threshold;
-	return num_above_threshold % weird_sampling_rate == 0;
+	if ( weird_sampling_rate )
+		return num_above_threshold % weird_sampling_rate == 0;
+	else
+		return false;
 	}
 
 void Reporter::Weird(const char* name)

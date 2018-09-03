@@ -62,6 +62,7 @@ typedef enum {
 	TYPE_NSEC = 47,		///< Next Secure record (RFC4043)
 	TYPE_DNSKEY = 48,	///< DNS Key record (RFC 4034)
 	TYPE_DS = 43,		///< Delegation signer (RFC 4034)
+	TYPE_NSEC3 = 50,
 	// The following are only valid in queries.
 	TYPE_AXFR = 252,
 	TYPE_ALL = 255,
@@ -81,23 +82,31 @@ typedef enum {
 
 typedef enum {
 	reserved0 = 0,
-    	RSA_MD5 = 1,          ///<	[RFC2537]  NOT RECOMMENDED
-    	Diffie_Hellman = 2,	///< [RFC2539]
-    	DSA_SHA1 = 3,	///< [RFC2536]  OPTIONAL
-    	Elliptic_Curve = 4,
-    	RSA_SHA1 = 5,	///< [RFC3110]  MANDATORY
-    	DSA_NSEC3_SHA1 = 6,
-    	RSA_SHA1_NSEC3_SHA1 = 7,
-    	RSA_SHA256 = 8,
-    	RSA_SHA512 = 10,
-    	GOST_R_34_10_2001 = 12,
-    	ECDSA_curveP256withSHA256 = 13,
-    	ECDSA_curveP384withSHA384 =14,
-    	Indirect = 252,	///<
-    	PrivateDNS = 253,	///<  OPTIONAL
-    	PrivateOID = 254,	///<  OPTIONAL
-    	reserved255 = 255,
+    RSA_MD5 = 1,          ///<	[RFC2537]  NOT RECOMMENDED
+    Diffie_Hellman = 2,	///< [RFC2539]
+    DSA_SHA1 = 3,	///< [RFC2536]  OPTIONAL
+    Elliptic_Curve = 4,
+    RSA_SHA1 = 5,	///< [RFC3110]  MANDATORY
+    DSA_NSEC3_SHA1 = 6,
+    RSA_SHA1_NSEC3_SHA1 = 7,
+    RSA_SHA256 = 8,
+    RSA_SHA512 = 10,
+    GOST_R_34_10_2001 = 12,
+    ECDSA_curveP256withSHA256 = 13,
+    ECDSA_curveP384withSHA384 =14,
+    Indirect = 252,	///<
+    PrivateDNS = 253,	///<  OPTIONAL
+    PrivateOID = 254,	///<  OPTIONAL
+    reserved255 = 255,
 } DNSSEC_Algo;
+
+typedef enum {
+	reserved = 0,
+    SHA1 = 1,          ///< [RFC3110]  MANDATORY
+    SHA256 = 2,
+    GOST_R_34_11_94 = 3,
+    SHA384 = 4,
+} DNSSEC_Digest;
 
 struct DNS_RawMsgHdr {
 	unsigned short id;
@@ -140,6 +149,30 @@ struct RRSIG_DATA {
 	BroString* signature;
 };
 
+struct DNSKEY_DATA {
+	unsigned short dflags;		// 16 : ExtractShort(data, len)
+	unsigned short dalgorithm;		// 8
+	unsigned short dprotocol;		// 8
+	BroString* public_key;			// Variable lenght Public Key 
+};
+
+struct NSEC3_DATA {
+	unsigned short nsec_flags;		
+	unsigned short nsec_hash_algo;		
+	unsigned short nsec_iter;		
+	unsigned short nsec_salt_len;
+	BroString* nsec_salt;
+	unsigned short nsec_hlen;
+	BroString* nsec_hash;		
+};
+
+struct DS_DATA {
+	unsigned short key_tag;		// 16 : ExtractShort(data, len)
+	unsigned short algorithm;		// 8
+	unsigned short digest_type;		// 8
+	BroString* digest_val;			// Variable lenght Digest of DNSKEY RR 
+};
+
 class DNS_MsgInfo {
 public:
 	DNS_MsgInfo(DNS_RawMsgHdr* hdr, int is_query);
@@ -150,6 +183,9 @@ public:
 	Val* BuildEDNS_Val();
 	Val* BuildTSIG_Val();
 	Val* BuildRRSIG_Val();
+	Val* BuildDNSKEY_Val();
+	Val* BuildNSEC3_Val();
+	Val* BuildDS_Val();
 
 	int id;
 	int opcode;	///< query type, see DNS_Opcode
@@ -183,12 +219,16 @@ public:
 	//DNSSEC_Algo dnssec_algo;
 	struct TSIG_DATA* tsig;
 	struct RRSIG_DATA* rrsig;
+	struct DNSKEY_DATA* dnskey;
+	struct NSEC3_DATA* nsec3;
+	struct DS_DATA* ds;
+
 };
 
 
 class DNS_Interpreter {
 public:
-	explicit DNS_Interpreter(analyzer::Analyzer* analyzer);
+	DNS_Interpreter(analyzer::Analyzer* analyzer);
 
 	int ParseMessage(const u_char* data, int len, int is_query);
 
@@ -260,7 +300,18 @@ protected:
 	int ParseRR_RRSIG(DNS_MsgInfo* msg,
 				const u_char*& data, int& len, int rdlength,
 				const u_char* msg_start);
-
+	int ParseRR_DNSKEY(DNS_MsgInfo* msg,
+				const u_char*& data, int& len, int rdlength,
+				const u_char* msg_start);
+	int ParseRR_NSEC(DNS_MsgInfo* msg,
+				const u_char*& data, int& len, int rdlength,
+				const u_char* msg_start);
+	int ParseRR_NSEC3(DNS_MsgInfo* msg,
+				const u_char*& data, int& len, int rdlength,
+				const u_char* msg_start);
+	int ParseRR_DS(DNS_MsgInfo* msg,
+				const u_char*& data, int& len, int rdlength,
+				const u_char* msg_start);
 	void SendReplyOrRejectEvent(DNS_MsgInfo* msg, EventHandlerPtr event,
 					const u_char*& data, int& len,
 					BroString* question_name);
@@ -281,14 +332,14 @@ typedef enum {
 class Contents_DNS : public tcp::TCP_SupportAnalyzer {
 public:
 	Contents_DNS(Connection* c, bool orig, DNS_Interpreter* interp);
-	~Contents_DNS() override;
+	~Contents_DNS();
 
 	void Flush();		///< process any partially-received data
 
 	TCP_DNS_state State() const	{ return state; }
 
 protected:
-	void DeliverStream(int len, const u_char* data, bool orig) override;
+	virtual void DeliverStream(int len, const u_char* data, bool orig);
 
 	DNS_Interpreter* interp;
 
@@ -302,16 +353,16 @@ protected:
 // Works for both TCP and UDP.
 class DNS_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit DNS_Analyzer(Connection* conn);
-	~DNS_Analyzer() override;
+	DNS_Analyzer(Connection* conn);
+	~DNS_Analyzer();
 
-	void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64 seq, const IP_Hdr* ip, int caplen) override;
+	virtual void DeliverPacket(int len, const u_char* data, bool orig,
+					uint64 seq, const IP_Hdr* ip, int caplen);
 
-	void Init() override;
-	void Done() override;
-	void ConnectionClosed(tcp::TCP_Endpoint* endpoint,
-					tcp::TCP_Endpoint* peer, int gen_event) override;
+	virtual void Init();
+	virtual void Done();
+	virtual void ConnectionClosed(tcp::TCP_Endpoint* endpoint,
+					tcp::TCP_Endpoint* peer, int gen_event);
 
 	void ExpireTimer(double t);
 

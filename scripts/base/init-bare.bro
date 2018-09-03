@@ -1,4 +1,4 @@
-@load base/bif/const.bif.bro
+@load base/bif/const.bif
 @load base/bif/types.bif
 
 # Type declarations
@@ -81,6 +81,13 @@ type addr_vec: vector of addr;
 ##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
 ##    directly and then remove this alias.
 type table_string_of_string: table[string] of string;
+
+## A table of counts indexed by strings.
+##
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
+type table_string_of_count: table[string] of count;
 
 ## A set of file analyzer tags.
 ##
@@ -376,12 +383,12 @@ type connection: record {
 
 ## Default amount of time a file can be inactive before the file analysis
 ## gives up and discards any internal state related to the file.
-const default_file_timeout_interval: interval = 2 mins &redef;
+option default_file_timeout_interval: interval = 2 mins;
 
 ## Default amount of bytes that file analysis will buffer in order to use
 ## for mime type matching.  File analyzers attached at the time of mime type
 ## matching or later, will receive a copy of this buffer.
-const default_file_bof_buffer_size: count = 4096 &redef;
+option default_file_bof_buffer_size: count = 4096;
 
 ## A file that Bro is analyzing.  This is Bro's type for describing the basic
 ## internal metadata collected about a "file", which is essentially just a
@@ -442,10 +449,13 @@ type fa_file: record {
 
 ## Metadata that's been inferred about a particular file.
 type fa_metadata: record {
-	## The strongest matching mime type if one was discovered.
+	## The strongest matching MIME type if one was discovered.
 	mime_type: string &optional;
-	## All matching mime types if any were discovered.
+	## All matching MIME types if any were discovered.
 	mime_types: mime_matches &optional;
+	## Specifies whether the MIME type was inferred using signatures,
+	## or provided directly by the protocol the file appeared in.
+	inferred: bool &default=T;
 };
 
 ## Fields of a SYN packet.
@@ -528,7 +538,7 @@ type EventStats: record {
 	dispatched: count; ##< Total number of events dispatched so far.
 };
 
-## Summary statistics of all regular expression matchers.
+## Holds statistics for all types of reassembly.
 ##
 ## .. bro:see:: get_reassembler_stats
 type ReassemblerStats: record {
@@ -600,6 +610,40 @@ type ThreadStats: record {
 	num_threads: count;
 };
 
+## Statistics about Broker communication.
+##
+## .. bro:see:: get_broker_stats
+type BrokerStats: record {
+	num_peers: count;
+	## Number of active data stores.
+	num_stores: count;
+	## Number of pending data store queries.
+	num_pending_queries: count;
+	## Number of total log messages received.
+	num_events_incoming: count;
+	## Number of total log messages sent.
+	num_events_outgoing: count;
+	## Number of total log records received.
+	num_logs_incoming: count;
+	## Number of total log records sent.
+	num_logs_outgoing: count;
+	## Number of total identifiers received.
+	num_ids_incoming: count;
+	## Number of total identifiers sent.
+	num_ids_outgoing: count;
+};
+
+## Statistics about reporter messages and weirds.
+##
+## .. bro:see:: get_reporter_stats
+type ReporterStats: record {
+	## Number of total weirds encountered, before any rate-limiting.
+	weirds: count;
+	## Number of times each individual weird is encountered, before any
+	## rate-limiting is applied.
+	weirds_by_type:	table[string] of count;
+};
+
 ## Deprecated.
 ##
 ## .. todo:: Remove. It's still declared internally but doesn't seem  used anywhere
@@ -628,6 +672,7 @@ type script_id: record {
 	exported: bool;	##< True if the identifier is exported.
 	constant: bool;	##< True if the identifier is a constant.
 	enum_constant: bool;	##< True if the identifier is an enum value.
+	option_value: bool;	##< True if the identifier is an option.
 	redefinable: bool;	##< True if the identifier is declared with the :bro:attr:`&redef` attribute.
 	value: any &optional;	##< The current value of the identifier.
 };
@@ -733,7 +778,7 @@ type IPAddrAnonymizationClass: enum {
 ## A locally unique ID identifying a communication peer. The ID is returned by
 ## :bro:id:`connect`.
 ##
-## .. bro:see:: connect Communication
+## .. bro:see:: connect
 type peer_id: count;
 
 ## A communication peer.
@@ -756,7 +801,7 @@ type event_peer: record {
 	p: port;
 	is_local: bool;		##< True if this record describes the local process.
 	descr: string;		##< The peer's :bro:see:`peer_description`.
-	class: string &optional;	##< The self-assigned *class* of the peer. See :bro:see:`Communication::Node`.
+	class: string &optional;	##< The self-assigned *class* of the peer.
 };
 
 ## Deprecated.
@@ -844,6 +889,9 @@ type geo_location: record {
 	latitude: double &optional;	##< Latitude.
 	longitude: double &optional;	##< Longitude.
 } &log;
+
+## The directory containing MaxMind DB (.mmdb) files to use for GeoIP support.
+const mmdb_dir: string = "" &redef;
 
 ## Computed entropy values. The record captures a number of measures that are
 ## computed in parallel. See `A Pseudorandom Number Sequence Test Program
@@ -1770,9 +1818,11 @@ type gtp_delete_pdp_ctx_response_elements: record {
 };
 
 # Prototypes of Bro built-in functions.
-@load base/bif/strings.bif
 @load base/bif/bro.bif
+@load base/bif/stats.bif
 @load base/bif/reporter.bif
+@load base/bif/strings.bif
+@load base/bif/option.bif
 
 ## Deprecated. This is superseded by the new logging framework.
 global log_file_name: function(tag: string): string &redef;
@@ -2142,6 +2192,28 @@ export {
 		rep_dur: interval;
 		## The length in bytes of the reply.
 		rep_len: count;
+		## The user id of the reply.
+		rpc_uid: count;
+		## The group id of the reply.
+		rpc_gid: count;
+		## The stamp of the reply.
+		rpc_stamp: count;
+		## The machine name of the reply.
+		rpc_machine_name: string;
+		## The auxiliary ids of the reply.
+		rpc_auxgids: index_vec;
+	};
+
+	## NFS file attributes. Field names are based on RFC 1813.
+	##
+	## .. bro:see:: nfs_proc_sattr
+	type sattr_t: record {
+		mode: count &optional; ##< Mode
+		uid: count	&optional; ##< User ID.
+		gid: count	&optional; ##< Group ID.
+		size: count &optional; ##< Size.
+		atime: time_how_t &optional; ##< Time of last access.
+		mtime: time_how_t &optional; ##< Time of last modification.
 	};
 
 	## NFS file attributes. Field names are based on RFC 1813.
@@ -2164,12 +2236,54 @@ export {
 		ctime: time;	##< Time of creation.
 	};
 
+	## NFS symlinkdata attributes. Field names are based on RFC 1813
+	##
+	## .. bro:see:: nfs_proc_symlink
+	type symlinkdata_t: record {
+		symlink_attributes: sattr_t; ##< The initial attributes for the symbolic link
+		nfspath: string &optional;	##< The string containing the symbolic link data.
+	};
+
 	## NFS *readdir* arguments.
 	##
 	## .. bro:see:: nfs_proc_readdir
 	type diropargs_t : record {
 		dirfh: string;	##< The file handle of the directory.
 		fname: string;	##< The name of the file we are interested in.
+	};
+
+	## NFS *rename* arguments.
+	##
+	## .. bro:see:: nfs_proc_rename
+	type renameopargs_t : record {
+		src_dirfh : string;
+		src_fname : string;
+		dst_dirfh : string;
+		dst_fname : string;
+	};
+
+	## NFS *symlink* arguments.
+	##
+	## .. bro:see:: nfs_proc_symlink
+	type symlinkargs_t: record {
+		link : diropargs_t;  ##< The location of the link to be created.
+		symlinkdata: symlinkdata_t; ##< The symbolic link to be created.
+	};
+
+	## NFS *link* arguments.
+	##
+	## .. bro:see:: nfs_proc_link
+	type linkargs_t: record {
+		fh : string; ##< The file handle for the existing file system object.
+		link : diropargs_t;  ##< The location of the link to be created.
+	};
+
+	## NFS *sattr* arguments.
+	##
+	## .. bro:see:: nfs_proc_sattr
+	type sattrargs_t: record {
+		fh : string; ##< The file handle for the existing file system object.
+		new_attributes: sattr_t; ##< The new attributes for the file.
 	};
 
 	## NFS lookup reply. If the lookup failed, *dir_attr* may be set. If the
@@ -2230,6 +2344,23 @@ export {
 		mtime: time;	##< Modification time.
 	};
 
+	## NFS *link* reply.
+	##
+	## .. bro:see:: nfs_proc_link
+	type link_reply_t: record {
+		post_attr: fattr_t &optional; ##< Optional post-operation attributes of the file system object identified by file
+		preattr: wcc_attr_t &optional;	##< Optional attributes associated w/ file.
+		postattr: fattr_t &optional;	##< Optional attributes associated w/ file.
+	};
+
+	## NFS *sattr* reply. If the request fails, *pre|post* attr may be set.
+	## If the request succeeds, *pre|post* attr are set.
+	##
+	type sattr_reply_t: record {
+		dir_pre_attr: wcc_attr_t &optional;	##< Optional attributes associated w/ dir.
+		dir_post_attr: fattr_t &optional;	##< Optional attributes associated w/ dir.
+	};
+
 	## NFS *write* reply. If the request fails, *pre|post* attr may be set.
 	## If the request succeeds, *pre|post* attr may be set and all other
 	## fields are set.
@@ -2262,6 +2393,16 @@ export {
 	type delobj_reply_t: record {
 		dir_pre_attr: wcc_attr_t &optional;	##< Optional attributes associated w/ dir.
 		dir_post_attr: fattr_t &optional;	##< Optional attributes associated w/ dir.
+	};
+
+	## NFS reply for *rename*. Corresponds to *wcc_data* in the spec.
+	##
+	## .. bro:see:: nfs_proc_rename
+	type renameobj_reply_t: record {
+		src_dir_pre_attr: wcc_attr_t;
+		src_dir_post_attr: fattr_t;
+		dst_dir_pre_attr: wcc_attr_t;
+		dst_dir_post_attr: fattr_t;
 	};
 
 	## NFS *readdir* arguments. Used for both *readdir* and *readdirplus*.
@@ -2316,6 +2457,71 @@ export {
 		invarsec: interval;	##< TODO.
 	};
 } # end export
+
+
+module MOUNT3;
+export {
+
+	## Record summarizing the general results and status of MOUNT3
+	## request/reply pairs.
+	##
+	## Note that when *rpc_stat* or *mount_stat* indicates not successful,
+	## the reply record passed to the corresponding event will be empty and
+	## contain uninitialized fields, so don't use it. Also note that time
+	# and duration values might not be fully accurate. For TCP, we record
+	# times when the corresponding chunk of data is delivered to the
+	# analyzer. Depending on the reassembler, this might be well after the
+	# first packet of the request was received.
+	#
+	# .. bro:see:: mount_proc_mnt mount_proc_dump mount_proc_umnt
+	#    mount_proc_umntall mount_proc_export mount_proc_not_implemented
+	type info_t: record {
+		## The RPC status.
+		rpc_stat: rpc_status;
+		## The MOUNT status.
+		mnt_stat: status_t;
+		## The start time of the request.
+		req_start: time;
+		## The duration of the request.
+		req_dur: interval;
+		## The length in bytes of the request.
+		req_len: count;
+		## The start time of the reply.
+		rep_start: time;
+		## The duration of the reply.
+		rep_dur: interval;
+		## The length in bytes of the reply.
+		rep_len: count;
+		## The user id of the reply.
+		rpc_uid: count;
+		## The group id of the reply.
+		rpc_gid: count;
+		## The stamp of the reply.
+		rpc_stamp: count;
+		## The machine name of the reply.
+		rpc_machine_name: string;
+		## The auxiliary ids of the reply.
+		rpc_auxgids: index_vec;
+	};
+
+	## MOUNT *mnt* arguments.
+	##
+	## .. bro:see:: mount_proc_mnt
+	type dirmntargs_t : record {
+		dirname: string;	##< Name of directory to mount
+	};
+
+	## MOUNT lookup reply. If the mount failed, *dir_attr* may be set. If the
+	## mount succeeded, *fh* is always set.
+	##
+	## .. bro:see:: mount_proc_mnt
+	type mnt_reply_t: record {
+		dirfh: string &optional;	##< Dir handle
+		auth_flavors: vector of auth_flavor_t &optional;	##< Returned authentication flavors
+	};
+
+} # end export
+
 
 module Threading;
 
@@ -2801,6 +3007,73 @@ export {
 		security_blob	: string &optional;
 	};
 
+	type SMB1::Trans2_Args: record {
+	     ## Total parameter count
+	     total_param_count: count;
+	     ## Total data count
+	     total_data_count: count;
+	     ## Max parameter count
+	     max_param_count: count;
+	     ## Max data count
+	     max_data_count: count;
+	     ## Max setup count
+	     max_setup_count: count;
+	     ## Flags
+	     flags: count;
+	     ## Timeout
+	     trans_timeout: count;
+	     ## Parameter count
+	     param_count: count;
+	     ## Parameter offset
+	     param_offset: count;
+	     ## Data count
+	     data_count: count;
+	     ## Data offset
+	     data_offset: count;
+	     ## Setup count
+	     setup_count: count;
+	};
+
+	type SMB1::Trans_Sec_Args: record {
+	     ## Total parameter count
+	     total_param_count: count;
+	     ## Total data count
+	     total_data_count: count;
+	     ## Parameter count
+	     param_count: count;
+	     ## Parameter offset
+	     param_offset: count;
+	     ## Parameter displacement
+	     param_displacement: count;
+	     ## Data count
+	     data_count: count;
+	     ## Data offset
+	     data_offset: count;
+	     ## Data displacement
+	     data_displacement: count;
+	};
+
+	type SMB1::Trans2_Sec_Args: record {
+	     ## Total parameter count
+	     total_param_count: count;
+	     ## Total data count
+	     total_data_count: count;
+	     ## Parameter count
+	     param_count: count;
+	     ## Parameter offset
+	     param_offset: count;
+	     ## Parameter displacement
+	     param_displacement: count;
+	     ## Data count
+	     data_count: count;
+	     ## Data offset
+	     data_offset: count;
+	     ## Data displacement
+	     data_displacement: count;
+	     ## File ID
+	     FID: count;
+	};
+
 	type SMB1::Find_First2_Request_Args: record {
 		## File attributes to apply as a constraint to the search
 		search_attrs		: count;
@@ -3021,28 +3294,188 @@ export {
 		## The type of share being accessed. Physical disk, named pipe, or printer.
 		share_type: count;
 	};
+
+	## The request sent by the client to request either creation of or access to a file.
+	##
+	## For more information, see MS-SMB2:2.2.13
+	##
+	## .. bro:see:: smb2_create_request
+	type SMB2::CreateRequest: record {
+		## Name of the file
+		filename       : string;
+		## Defines the action the server MUST take if the file that is specified already exists.
+		disposition    : count;
+		## Specifies the options to be applied when creating or opening the file.
+		create_options : count;
+	};
+
+	## The response to an SMB2 *create_request* request, which is sent by the client to request
+	## either creation of or access to a file.
+	##
+	## For more information, see MS-SMB2:2.2.14
+	##
+	## .. bro:see:: smb2_create_response
+	type SMB2::CreateResponse: record {
+		## The SMB2 GUID for the file.
+		file_id       : SMB2::GUID;
+		## Size of the file.
+		size          : count;
+		## Timestamps associated with the file in question.
+		times         : SMB::MACTimes;
+		## File attributes.
+		attrs         : SMB2::FileAttrs;
+		## The action taken in establishing the open.
+		create_action : count;
+	};
 }
 
 module GLOBAL;
 
-## A list of router addresses offered by a DHCP server.
-##
-## .. bro:see:: dhcp_ack dhcp_offer
-type dhcp_router_list: table[count] of addr;
+module DHCP;
 
-## A DHCP message.
-##
-## .. bro:see:: dhcp_ack dhcp_decline dhcp_discover dhcp_inform dhcp_nak
-##    dhcp_offer dhcp_release dhcp_request
-type dhcp_msg: record {
-	op: count;	##< Message OP code. 1 = BOOTREQUEST, 2 = BOOTREPLY
-	m_type: count;	##< The type of DHCP message.
-	xid: count;	##< Transaction ID of a DHCP session.
-	h_addr: string;	##< Hardware address of the client.
-	ciaddr: addr;	##< Original IP address of the client.
-	yiaddr: addr;	##< IP address assigned to the client.
-};
+export {
+	## A list of addresses offered by a DHCP server.  Could be routers,
+	## DNS servers, or other.
+	##
+	## .. bro:see:: dhcp_message
+	type DHCP::Addrs: vector of addr;
 
+	## A DHCP message.
+	## .. bro:see:: dhcp_message
+	type DHCP::Msg: record {
+		op: count;      ##< Message OP code. 1 = BOOTREQUEST, 2 = BOOTREPLY
+		m_type: count;  ##< The type of DHCP message.
+		xid: count;     ##< Transaction ID of a DHCP session.
+		## Number of seconds since client began address acquisition
+		## or renewal process
+		secs: interval;
+		flags: count;
+		ciaddr: addr;   ##< Original IP address of the client.
+		yiaddr: addr;   ##< IP address assigned to the client.
+		siaddr: addr;   ##< IP address of the server.
+		giaddr: addr;   ##< IP address of the relaying gateway.
+		chaddr: string; ##< Client hardware address.
+		sname:  string &default=""; ##< Server host name.
+		file_n: string &default=""; ##< Boot file name.
+	};
+
+	## DHCP Client Identifier (Option 61)
+	## .. bro:see:: dhcp_message
+	type DHCP::ClientID: record {
+		hwtype: count;
+		hwaddr: string;
+	};
+
+	## DHCP Client FQDN Option information (Option 81)
+	type DHCP::ClientFQDN: record {
+		## An unparsed bitfield of flags (refer to RFC 4702).
+		flags: count;
+		## This field is deprecated in the standard.
+		rcode1: count;
+		## This field is deprecated in the standard.
+		rcode2: count;
+		## The Domain Name part of the option carries all or part of the FQDN
+		## of a DHCP client.
+		domain_name: string;
+	};
+
+	## DHCP Relay Agent Information Option (Option 82)
+	## .. bro:see:: dhcp_message
+	type DHCP::SubOpt: record {
+		code: count;
+		value: string;
+	};
+
+	type DHCP::SubOpts: vector of DHCP::SubOpt;
+
+	type DHCP::Options: record {
+		## The ordered list of all DHCP option numbers.
+		options:         index_vec &optional;
+
+		## Subnet Mask Value (option 1)
+		subnet_mask:     addr &optional;
+
+		## Router addresses (option 3)
+		routers:         DHCP::Addrs &optional;
+
+		## DNS Server addresses (option 6)
+		dns_servers:     DHCP::Addrs &optional;
+
+		## The Hostname of the client (option 12)
+		host_name:       string &optional;
+
+		## The DNS domain name of the client (option 15)
+		domain_name:     string &optional;
+
+		## Enable/Disable IP Forwarding (option 19)
+		forwarding:      bool &optional;
+
+		## Broadcast Address (option 28)
+		broadcast:       addr &optional;
+
+		## Vendor specific data. This can frequently
+		## be unparsed binary data. (option 43)
+		vendor:          string &optional;
+
+		## NETBIOS name server list (option 44)
+		nbns:            DHCP::Addrs &optional;
+
+		## Address requested by the client (option 50)
+		addr_request:    addr &optional;
+
+		## Lease time offered by the server. (option 51)
+		lease:           interval &optional;
+
+		## Server address to allow clients to distinguish
+		## between lease offers. (option 54)
+		serv_addr:       addr &optional;
+
+		## DHCP Parameter Request list (option 55)
+		param_list:      index_vec &optional;
+
+		## Textual error message (option 56)
+		message:         string &optional;
+
+		## Maximum Message Size (option 57)
+		max_msg_size:    count &optional;
+
+		## This option specifies the time interval from address
+		## assignment until the client transitions to the
+		## RENEWING state. (option 58)
+		renewal_time:    interval &optional;
+
+		## This option specifies the time interval from address
+		## assignment until the client transitions to the
+		## REBINDING state. (option 59)
+		rebinding_time:  interval &optional;
+
+		## This option is used by DHCP clients to optionally
+		## identify the vendor type and configuration of a DHCP
+		## client. (option 60)
+		vendor_class:    string &optional;
+
+		## DHCP Client Identifier (Option 61)
+		client_id:       DHCP::ClientID &optional;
+
+		## User Class opaque value (Option 77)
+		user_class:      string &optional;
+
+		## DHCP Client FQDN (Option 81)
+		client_fqdn:     DHCP::ClientFQDN &optional;
+
+		## DHCP Relay Agent Information Option (Option 82)
+		sub_opt:         DHCP::SubOpts &optional;
+
+		## Auto Config option to let host know if it's allowed to
+		## auto assign an IP address. (Option 116)
+		auto_config:     bool &optional;
+
+		## URL to find a proxy.pac for auto proxy config (Option 252)
+		auto_proxy_config: string &optional;
+	};
+}
+
+module GLOBAL;
 ## A DNS message.
 ##
 ## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
@@ -3085,10 +3518,9 @@ type dns_soa: record {
 ##
 ## .. bro:see:: dns_EDNS_addl
 type dns_edns_additional: record {
-	answer_type: count;	##< Ans type.
 	query: string;	##< Query.
 	qtype: count;	##< Query type.
-	## t: count;	##< TODO.
+	t: count;	##< TODO.
 	payload_size: count;	##< TODO.
 	extended_rcode: count;	##< Extended return code.
 	version: count;	##< Version.
@@ -3110,66 +3542,6 @@ type dns_tsig_additional: record {
 	orig_id: count;	##< TODO.
 	rr_error: count;	##< TODO.
 	is_query: count;	##< TODO.
-};
-
-## A DNSSEC RRSIG record.
-##
-## .. bro:see:: dns_RRSIG_addl
-type dns_rrsig_additional: record {
-	query: string;	##< Query.
-	answer_type: count;	##< Ans type.
-	type_covered: count;	## qtype covered by RRSIG RR.
-	algorithm: count;	##< Algorithm.
-	labels: count;	##< labels in the owner's name.
-	orig_ttl: interval;	##< original TTL
-	sig_exp: time;	##< Time when signed RR expires.
-	sig_incep: time;	##< Time when signed.
-	key_tag: count;	## key tag value
-	signer_name: string;	##< Signature.
-	signature: string;	##< Hash of the RRDATA
-	is_query: count;	##< The RR is a query/Response.
-};
-
-## A DNSSEC DNSKEY record.
-##
-## .. bro:see:: dns_DNSKEY_addl
-type dns_dnskey_additional: record {
-	query: string;	##< Query.
-	answer_type: count;	##< Ans type.
-	flags: count;	##< flags filed.
-	protocol: count;	##< Protocol, should be always 3 for DNSSEC.
-	algorithm: count;	##< Algorithm for Public Key.
-	public_key: string;	##< Public Key
-	is_query: count;	##< The RR is a query/Response.
-};
-
-## A DNSSEC NSEC3 record.
-##	
-## .. bro:see:: dns_NSEC3_addl
-type dns_nsec3_additional: record {
-	query: string;	##< Query.
-	answer_type: count;	##< Ans type.
-	nsec_flags: count;	##< flags field.
-	nsec_hash_algo: count;	##< Hash algorithm.
-	nsec_iter: count;	##< Iterations.
-	nsec_salt_len: count; ##< salt length.
-	nsec_salt: string;	##< Salt value
-	nsec_hlen: count;	##< Hash length.
-	nsec_hash: string;	##< Hash value.
-	is_query: count;	##< The RR is a query/Response.
-};
-
-## A DNSSEC DS record.
-##
-## .. bro:see:: dns_DS_addl
-type dns_ds_additional: record {
-	query: string;	##< Query.
-	answer_type: count;	##< Ans type.
-	key_tag: count;	##< flags filed.
-	algorithm: count;	##< Algorithm for Public Key.
-	digest_type: count;	##< Digest Type.
-	digest_val: string;	##< Digest Value.
-	is_query: count;	##< The RR is a query/Response.
 };
 
 # DNS answer types.
@@ -3896,6 +4268,8 @@ export {
 
 module KRB;
 export {
+	## Kerberos keytab file name. Used to decrypt tickets encountered on the wire.
+	const keytab = "" &redef;
 	## KDC Options. See :rfc:`4120`
 	type KRB::KDC_Options: record {
 		## The ticket to be issued should have its forwardable flag set.
@@ -4018,6 +4392,8 @@ export {
 		cipher		: count;
 		## Cipher text of the ticket
 		ciphertext  : string &optional;
+		## Authentication info
+		authenticationinfo: string &optional;
 	};
 
 	type KRB::Ticket_Vector: vector of KRB::Ticket;
@@ -4437,7 +4813,7 @@ export {
 module Pcap;
 export {
 	## Number of bytes per packet to capture from live interfaces.
-	const snaplen = 8192 &redef;
+	const snaplen = 9216 &redef;
 
 	## Number of Mbytes to provide as buffer space when capturing from live
 	## interfaces.
@@ -4463,6 +4839,40 @@ export {
 	const max_frame_size = 65536 &redef;
 }
 
+module Cluster;
+export {
+	type Cluster::Pool: record {};
+}
+
+module Weird;
+export {
+	## Prevents rate-limiting sampling of any weirds named in the table.
+	const sampling_whitelist: set[string] &redef;
+
+	## How many weirds of a given type to tolerate before sampling begins.
+	## i.e. this many consecutive weirds of a given type will be allowed to
+	## raise events for script-layer handling before being rate-limited.
+	const sampling_threshold = 25 &redef;
+
+	## The rate-limiting sampling rate.  One out of every of this number of
+	## rate-limited weirds of a given type will be allowed to raise events
+	## for further script-layer handling.
+	const sampling_rate = 1000 &redef;
+
+	## How long a weird of a given type is allowed to keep state/counters in
+	## memory.  For "net" weirds an expiration timer starts per weird name when
+	## first initializing its counter.  For "flow" weirds an expiration timer
+	## starts once per src/dst IP pair for the first weird of any name.  For
+	## "conn" weirds, counters and expiration timers are kept for the duration
+	## of the connection for each named weird and reset when necessary.  e.g.
+	## if a "conn" weird by the name of "foo" is seen more than
+	## :bro:see:`Weird::sampling_threshold` times, then an expiration timer
+	## begins for "foo" and upon triggering will reset the counter for "foo"
+	## and unthrottle its rate-limiting until it once again exceeds the
+	## threshold.
+	const sampling_duration = 10min &redef;
+}
+
 module GLOBAL;
 
 ## Seed for hashes computed internally for probabilistic data structures. Using
@@ -4475,16 +4885,9 @@ const global_hash_seed: string = "" &redef;
 ## The maximum is currently 128 bits.
 const bits_per_uid: count = 96 &redef;
 
-# Load these frameworks here because they use fairly deep integration with
-# BiFs and script-land defined types.
-@load base/frameworks/broker
-@load base/frameworks/logging
-@load base/frameworks/input
-@load base/frameworks/analyzer
-@load base/frameworks/files
-
-@load base/bif
-
-# Load BiFs defined by plugins.
-@load base/bif/plugins
-
+## Whether usage of the old communication system is considered an error or
+## not.  The default Bro configuration no longer works with the non-Broker
+## communication system unless you have manually taken action to initialize
+## and set up the old comm. system.  Deprecation warnings are still emitted
+## when setting this flag, but they will not result in a fatal error.
+const old_comm_usage_is_ok: bool = F &redef;

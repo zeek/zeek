@@ -1443,6 +1443,8 @@ DNS_MsgInfo::DNS_MsgInfo(DNS_RawMsgHdr* hdr, int arg_is_query)
 	tsig = 0;
 	rrsig = 0;
 	dnskey = 0;
+	nsec3 = 0;
+	ds = 0;
 	}
 
 DNS_MsgInfo::~DNS_MsgInfo()

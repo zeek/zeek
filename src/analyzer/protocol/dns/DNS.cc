@@ -862,7 +862,11 @@ int DNS_Interpreter::ParseRR_RRSIG(DNS_MsgInfo* msg,
 		case RSA_SHA1_NSEC3_SHA1:
 			ExtractStream(data, len, &sign, sig_len);
 			break;
-
+		
+		case RSA_SHA256:
+			ExtractStream(data, len, &sign, sig_len);
+			break;
+			
 		case RSA_SHA512:
 			ExtractStream(data, len, &sign, sig_len);
 			break;
@@ -976,6 +980,10 @@ int DNS_Interpreter::ParseRR_DNSKEY(DNS_MsgInfo* msg,
 			ExtractStream(data, len, &sign, sig_len);
 			break;
 
+		case RSA_SHA256:
+			ExtractStream(data, len, &sign, sig_len);
+			break;
+			
 		case RSA_SHA512:
 			ExtractStream(data, len, &sign, sig_len);
 			break;

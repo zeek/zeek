@@ -383,12 +383,12 @@ type connection: record {
 
 ## Default amount of time a file can be inactive before the file analysis
 ## gives up and discards any internal state related to the file.
-option default_file_timeout_interval: interval = 2 mins;
+const default_file_timeout_interval: interval = 2 mins &redef;
 
 ## Default amount of bytes that file analysis will buffer in order to use
 ## for mime type matching.  File analyzers attached at the time of mime type
 ## matching or later, will receive a copy of this buffer.
-option default_file_bof_buffer_size: count = 4096;
+const default_file_bof_buffer_size: count = 4096 &redef;
 
 ## A file that Bro is analyzing.  This is Bro's type for describing the basic
 ## internal metadata collected about a "file", which is essentially just a
@@ -3542,6 +3542,66 @@ type dns_tsig_additional: record {
 	orig_id: count;	##< TODO.
 	rr_error: count;	##< TODO.
 	is_query: count;	##< TODO.
+};
+
+## A DNSSEC RRSIG record.
+##
+## .. bro:see:: dns_RRSIG_addl
+type dns_rrsig_additional: record {
+	query: string;	##< Query.
+	answer_type: count;	##< Ans type.
+	type_covered: count;	## qtype covered by RRSIG RR.
+	algorithm: count;	##< Algorithm.
+	labels: count;	##< labels in the owner's name.
+	orig_ttl: interval;	##< original TTL
+	sig_exp: time;	##< Time when signed RR expires.
+	sig_incep: time;	##< Time when signed.
+	key_tag: count;	## key tag value
+	signer_name: string;	##< Signature.
+	signature: string;	##< Hash of the RRDATA
+	is_query: count;	##< The RR is a query/Response.
+};
+
+## A DNSSEC DNSKEY record.
+##
+## .. bro:see:: dns_DNSKEY_addl
+type dns_dnskey_additional: record {
+	query: string;	##< Query.
+	answer_type: count;	##< Ans type.
+	flags: count;	##< flags filed.
+	protocol: count;	##< Protocol, should be always 3 for DNSSEC.
+	algorithm: count;	##< Algorithm for Public Key.
+	public_key: string;	##< Public Key
+	is_query: count;	##< The RR is a query/Response.
+};
+
+## A DNSSEC NSEC3 record.
+##	
+## .. bro:see:: dns_NSEC3_addl
+type dns_nsec3_additional: record {
+	query: string;	##< Query.
+	answer_type: count;	##< Ans type.
+	nsec_flags: count;	##< flags field.
+	nsec_hash_algo: count;	##< Hash algorithm.
+	nsec_iter: count;	##< Iterations.
+	nsec_salt_len: count; ##< salt length.
+	nsec_salt: string;	##< Salt value
+	nsec_hlen: count;	##< Hash length.
+	nsec_hash: string;	##< Hash value.
+	is_query: count;	##< The RR is a query/Response.
+};
+
+## A DNSSEC DS record.
+##
+## .. bro:see:: dns_DS_addl
+type dns_ds_additional: record {
+	query: string;	##< Query.
+	answer_type: count;	##< Ans type.
+	key_tag: count;	##< flags filed.
+	algorithm: count;	##< Algorithm for Public Key.
+	digest_type: count;	##< Digest Type.
+	digest_val: string;	##< Digest Value.
+	is_query: count;	##< The RR is a query/Response.
 };
 
 # DNS answer types.

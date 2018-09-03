@@ -98,4 +98,12 @@ export {
     		[255] = "reserved255",
         } &default = function(n: count): string { return fmt("algorithm-%d", n); };
 
+	const digests = {
+                [0] = "reserved0",
+                [1] = "SHA1",
+                [2] = "SHA256",
+                [3] = "GOST_R_34_11_94",
+                [4] = "SHA384",
+        } &default = function(n: count): string { return fmt("digest-%d", n); };
+
 }

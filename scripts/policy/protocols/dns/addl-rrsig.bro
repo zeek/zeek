@@ -26,7 +26,7 @@ event dns_RRSIG_addl(c: connection, msg: dns_msg, ans: dns_answer, rrsig: dns_rr
                 {
                 if ( ! c$dns?$type_covered )
                        c$dns$type_covered = vector();
-                c$dns$type_covered[|c$dns$type_covered|] = query_types[rrsig$type_covered];
+                c$dns$type_covered[|c$dns$type_covered|] = DNS::query_types[rrsig$type_covered];
 
                 if ( ! c$dns?$orig_ttl )
                        c$dns$orig_ttl = vector();
@@ -38,7 +38,7 @@ event dns_RRSIG_addl(c: connection, msg: dns_msg, ans: dns_answer, rrsig: dns_rr
 
                 if ( ! c$dns?$algorithm )
                        c$dns$algorithm = vector();
-                c$dns$algorithm[|c$dns$algorithm|] = algorithms[rrsig$algorithm];
+                c$dns$algorithm[|c$dns$algorithm|] = DNS::algorithms[rrsig$algorithm];
 
                 if ( ! c$dns?$labels )
                        c$dns$labels = vector();

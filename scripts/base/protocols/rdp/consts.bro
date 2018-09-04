@@ -227,7 +227,7 @@ export {
 		[2128] = "Mongolian (Mongolian)",
 		[1121] = "Nepali",
 		[2145] = "Nepali - India",
-		[1044] = "Norwegian (Bokmål)",
+		[1044] = "Norwegian (Bokmal)",
 		[2068] = "Norwegian (Nynorsk)",
 		[1154] = "Occitan",
 		[1096] = "Oriya",

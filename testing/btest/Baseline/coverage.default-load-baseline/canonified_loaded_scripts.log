@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2018-06-08-16-37-20
+#open	2018-09-04-21-14-06
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -323,14 +323,6 @@ scripts/base/init-default.bro
       scripts/base/protocols/mysql/consts.bro
   scripts/base/protocols/ntlm/__load__.bro
     scripts/base/protocols/ntlm/main.bro
-      scripts/base/protocols/smb/__load__.bro
-        scripts/base/protocols/smb/consts.bro
-        scripts/base/protocols/smb/const-dos-error.bro
-        scripts/base/protocols/smb/const-nt-status.bro
-        scripts/base/protocols/smb/main.bro
-        scripts/base/protocols/smb/smb1-main.bro
-        scripts/base/protocols/smb/smb2-main.bro
-        scripts/base/protocols/smb/files.bro
   scripts/base/protocols/pop3/__load__.bro
   scripts/base/protocols/radius/__load__.bro
     scripts/base/protocols/radius/main.bro
@@ -344,6 +336,14 @@ scripts/base/init-default.bro
     scripts/base/protocols/sip/main.bro
   scripts/base/protocols/snmp/__load__.bro
     scripts/base/protocols/snmp/main.bro
+  scripts/base/protocols/smb/__load__.bro
+    scripts/base/protocols/smb/consts.bro
+    scripts/base/protocols/smb/const-dos-error.bro
+    scripts/base/protocols/smb/const-nt-status.bro
+    scripts/base/protocols/smb/main.bro
+    scripts/base/protocols/smb/smb1-main.bro
+    scripts/base/protocols/smb/smb2-main.bro
+    scripts/base/protocols/smb/files.bro
   scripts/base/protocols/smtp/__load__.bro
     scripts/base/protocols/smtp/main.bro
     scripts/base/protocols/smtp/entities.bro
@@ -370,4 +370,4 @@ scripts/base/init-default.bro
   scripts/base/misc/find-filtered-trace.bro
   scripts/base/misc/version.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2018-06-08-16-37-20
+#close	2018-09-04-21-14-06

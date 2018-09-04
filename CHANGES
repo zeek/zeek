@@ -1,4 +1,18 @@
 
+2.5-965 | 2018-09-04 17:17:36 -0500
+
+  * Updates to NTLM script handling. (Seth Hall, Corelight)
+
+     - This separates NTLM handling away from SMB.
+
+     - It logs more accurately when logins are succeed or fail
+       or even if the resulting status of an authentication is
+       unknown.
+
+     - Adds some new fields where the server is indicating information
+       about itself (server_nb_computer_name, server_dns_computer_name,
+       and server_tree_name)
+
 2.5-962 | 2018-09-04 12:11:14 -0500
 
   * Improve update-changes output (Jon Siwek, Corelight)

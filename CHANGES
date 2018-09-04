@@ -1,4 +1,10 @@
 
+2.5-961 | 2018-09-04 12:07:54 -0500
+
+  * Sort output of a coverage unit test (Jon Siwek, Corelight)
+
+  * Remove non-ascii char from rdp/consts.bro (Jon Siwek, Corelight)
+
 2.5-957 | 2018-09-04 09:28:47 -0500
 
   * Fix/improve the find-bro-logs.test (Daniel Thayer)

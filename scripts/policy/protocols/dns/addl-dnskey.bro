@@ -29,7 +29,7 @@ event dns_DNSKEY_addl(c: connection, msg: dns_msg, ans: dns_answer, dnskey: dns_
 
                 if ( ! c$dns?$dnskey_algo )
                        c$dns$dnskey_algo = vector();
-                c$dns$dnskey_algo[|c$dns$dnskey_algo|] = algorithms[dnskey$algorithm];
+                c$dns$dnskey_algo[|c$dns$dnskey_algo|] = DNS::algorithms[dnskey$algorithm];
 
                 if ( ! c$dns?$dnskey_proto )
                        c$dns$dnskey_proto = vector();

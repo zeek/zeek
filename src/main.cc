@@ -933,7 +933,8 @@ int main(int argc, char** argv)
 								 "and set up the old comm. system.  "
 								 "Set the 'old_comm_usage_is_ok' flag "
 								 "to bypass this error if you've taken such "
-								 "actions.");
+								 "actions, but the suggested solution is to "
+								 "port scripts to use the new Broker API.");
 		}
 
 	RecordVal::ResizeParseTimeRecords();

@@ -23,7 +23,7 @@ export {
 event dns_RRSIG_addl(c: connection, msg: dns_msg, ans: dns_answer, rrsig: dns_rrsig_additional)
         {
         if ( c?$dns )
-
+                {
                 if ( ! c$dns?$type_covered )
                        c$dns$type_covered = vector();
                 c$dns$type_covered[|c$dns$type_covered|] = query_types[rrsig$type_covered];
@@ -59,5 +59,6 @@ event dns_RRSIG_addl(c: connection, msg: dns_msg, ans: dns_answer, rrsig: dns_rr
                 if ( ! c$dns?$sig_inc )
                        c$dns$sig_inc = vector();
                 c$dns$sig_inc[|c$dns$sig_inc|] = rrsig$sig_incep;
+                }
 
         }

@@ -1,8 +1,8 @@
-# This test is intended to help keep Bro's reference documentation up-to-date.
-# If this test fails, then it indicates that the set of all the log filenames
-# that Bro could potentially create (with the scripts included with Bro) has
-# changed.  In that case, the reference documentation listing all Bro log files
-# should be checked and updated if necessary.
+# This test is intended to help keep the "Log Files" documentation page
+# up-to-date.  The output of this test should match all the log filenames
+# listed on the "Log Files" page in the documentation.
+#
+# If this test fails, then the "Log Files" documentation page should be updated.
 
 # @TEST-EXEC: bash %INPUT
 # @TEST-EXEC: btest-diff out
@@ -14,42 +14,56 @@ if [ ! -d "${BROSCRIPTS}" ]; then
     exit 1
 fi
 
-# For a given Bro script, look for a call to "create_stream".  If found,
-# extract the log ID (adding the module name if necessary), and print the
-# log ID and script filename.
-cat << '_EOF_' > find_logid.awk
-/module[ ]+[A-Za-z0-9_]/ {
-    mod = $2
-    if ( substr(mod, length(mod), 1) == ";" ) {
-        mod = substr(mod, 1, length(mod)-1)
-    }
-}
+python find_logs.py "${BROSCRIPTS}" | sort > out
 
-/Log::create_stream/ {
-    if ( substr($1, 1, 1) != "#" ) {
-        x = index($1, "(")
-        logid = substr($1, x+1, length($1)-x-1)
-        if ( logid == "LOG" ) {
-            printf "%s::", mod
-        }
-        printf "%s", logid
-        printf " %s\n", FILENAME
-    }
-}
-_EOF_
+@TEST-START-FILE find_logs.py
+import os, sys
 
-find -L ${BROSCRIPTS} -type f -exec awk -f find_logid.awk {} \; > out.logid
+scriptdir = sys.argv[1]
 
-if [ ! -s out.logid ]; then
-    echo "Did not find Bro scripts in directory: ${BROSCRIPTS}" 1>&2
-    exit 1
-fi
+# Return a list of all bro script files.
+def find_scripts():
+    scripts = []
 
-# For each log ID, have Bro convert it to the corresponding log filename
-# using the default mechanism for generating a log filename (we must load
-# all Bro scripts so that all log IDs are defined).
-awk '{print $1}' out.logid | while read logid; do
-    bro ${BROSCRIPTS}/test-all-policy.bro -e "print Log::default_path_func(${logid}, \"\", 0);" >> out.tmp
-done
+    for r, d, f in os.walk(scriptdir):
+        for fname in f:
+            if fname.endswith(".bro"):
+                scripts.append(os.path.join(r, fname))
 
-grep -v WARNING out.tmp | sort -u > out
+    return scripts
+
+# For a given script file, return a list of all "Log::create_stream" lines.
+def find_log(fname):
+    f = open(fname, "r")
+
+    lines = []
+    get_semicolon = False
+
+    for line in f:
+        line = line.strip()
+        if not line:
+            continue
+        if line.startswith("#"):
+            continue
+
+        if get_semicolon:
+            lines[-1] += line
+            if line.endswith(";"):
+                get_semicolon = False
+        elif line.startswith("Log::create_stream"):
+            lines.append(line)
+            if not line.endswith(";"):
+                get_semicolon = True
+
+    f.close()
+
+    return lines
+
+for fname in find_scripts():
+    lines = find_log(fname)
+    for line in lines:
+        # Print the value of the "$path" field.
+        idx = line.find("$path")
+        if idx > 0:
+            print("%s" % line[idx:].split('"')[1])
+@TEST-END-FILE

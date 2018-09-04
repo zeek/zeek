@@ -4,7 +4,7 @@ capture_loss
 cluster
 config
 conn
-dce__r_pc
+dce_rpc
 dhcp
 dnp3
 dns
@@ -14,16 +14,16 @@ ftp
 http
 intel
 irc
+kerberos
 known_certs
 known_hosts
 known_modbus
 known_services
-krb
 loaded_scripts
 modbus
 modbus_register_change
 mysql
-net_control
+netcontrol
 netcontrol_catch_release
 netcontrol_drop
 netcontrol_shunt
@@ -31,7 +31,7 @@ notice
 notice_alarm
 ntlm
 ocsp
-open_flow
+openflow
 packet_filter
 pe
 radius

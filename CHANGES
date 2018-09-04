@@ -1,4 +1,14 @@
 
+2.5-957 | 2018-09-04 09:28:47 -0500
+
+  * Fix/improve the find-bro-logs.test (Daniel Thayer)
+
+  * Fix typos/formatting in NEWS (Daniel Thayer)
+
+  * Clarify 'old_comm_usage_is_ok' error message (Jon Siwek, Corelight)
+
+  * Update Mozilla CA list to NSS 3.39 (Johanna Amann, Corelight)
+
 2.5-952 | 2018-08-31 17:30:21 -0500
 
   * Update NEWS (finalizations/formatting) (Jon Siwek, Corelight)

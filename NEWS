@@ -16,7 +16,7 @@ New Functionality
   redone. There's a new script-level "broker" framework that
   supersedes the old "communication" framework, which is now
   deprecated.  All scripts that ship with Bro have been ported to use
-  to Broker.  BroControl has likewise been ported to use Broker.
+  Broker.  BroControl has likewise been ported to use Broker.
 
   For more about the new Broker framework, see
   https://www.bro.org/sphinx-git/frameworks/broker.html.  There's also
@@ -223,7 +223,7 @@ New Functionality
     - x509_ocsp_ext_signed_certificate_timestamp
     - ssl_extension_signed_certificate_timestamp
 
-  - Functions
+  - Functions:
 
     - sct_verify
     - x509_subject_name_hash
@@ -271,7 +271,7 @@ New Functionality
   - Files::file_exists
   - Files::lookup_File
 
-- New functions in the logging API
+- New functions in the logging API:
 
   - Log::get_filter_names
   - Log::enable_stream
@@ -284,7 +284,7 @@ New Functionality
   - This is not enabled by default (no ports are registered and no
     DPD signatures exist, so no connections will end up attaching the
     new Mount analyzer).  If it were to be activated by users, the
-    following events are available
+    following events are available:
 
     - mount_proc_null
     - mount_proc_mnt
@@ -293,7 +293,7 @@ New Functionality
     - mount_proc_not_implemented
     - mount_reply_status
 
-- Added new NFS events
+- Added new NFS events:
 
   - nfs_proc_symlink
   - nfs_proc_link
@@ -301,12 +301,12 @@ New Functionality
 
 - The SMB scripts in ``policy/protocols/smb`` are now moved into
   ``base/protocols/smb`` and loaded/enabled by default.  If you previously
-  loaded these scripts from their ``policy/ location`` (in local.bro or
+  loaded these scripts from their ``policy/`` location (in local.bro or
   other custom scripts) you may now remove/change those although they
   should still work since ``policy/protocols/smb`` is simply a placeholder
   script that redirects to the new ``base/`` location.
 
-- Added new SMB events
+- Added new SMB events:
 
   - smb1_transaction_secondary_request
   - smb1_transaction2_secondary_request
@@ -442,7 +442,7 @@ Changed Functionality
   "application/x-x509-ca-cert" for CA certificates.
 
 - The "ssl_server_curve" event is considered deprecated and will be removed
-  in in the future.  See the new "ssl_ecdh_server_params" event for a
+  in the future.  See the new "ssl_ecdh_server_params" event for a
   replacement.
 
 - The Socks analyzer no longer logs passwords by default. This
@@ -541,10 +541,10 @@ Removed Functionality
 
 - The "ocsp_request" event no longer has "requestorName" parameter.
 
+- The node-specific ``site/local-*.bro`` scripts have been removed.
+
 - BroControl: The "IPv6Comm" and "ZoneID" options are no longer
   available (though Broker should be able to handle IPv6 automatically).
-
-- The node-specific ``site/local-*.bro`` scripts have been removed.
 
 Deprecated Functionality
 ------------------------

@@ -152,7 +152,7 @@ Miscellaneous
 +----------------------------+---------------------------------------+---------------------------------+
 | weird.log                  | Unexpected network-level activity     | :bro:type:`Weird::Info`         |
 +----------------------------+---------------------------------------+---------------------------------+
-| weird-stats.log            | Statistics about unexpected activity  | :bro:type:`WeirdStats::Info`    |
+| weird_stats.log            | Statistics about unexpected activity  | :bro:type:`WeirdStats::Info`    |
 +----------------------------+---------------------------------------+---------------------------------+
 
 Bro Diagnostics

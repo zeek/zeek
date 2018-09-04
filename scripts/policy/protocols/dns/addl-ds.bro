@@ -29,11 +29,11 @@ event dns_DS_addl(c: connection, msg: dns_msg, ans: dns_answer, ds: dns_ds_addit
 
                 if ( ! c$dns?$ds_algo )
                        c$dns$ds_algo = vector();
-                c$dns$ds_algo[|c$dns$ds_algo|] = algorithms[ds$algorithm];
+                c$dns$ds_algo[|c$dns$ds_algo|] = DNS::algorithms[ds$algorithm];
 
                 if ( ! c$dns?$ds_digestType )
                        c$dns$ds_digestType = vector();
-                c$dns$ds_digestType[|c$dns$ds_digestType] = digests[ds$digest_type];
+                c$dns$ds_digestType[|c$dns$ds_digestType] = DNS::digests[ds$digest_type];
 
                 if ( ! c$dns?$ds_digest)
                        c$dns$ds_digest = vector();

@@ -1,4 +1,8 @@
 
+2.5-962 | 2018-09-04 12:11:14 -0500
+
+  * Improve update-changes output (Jon Siwek, Corelight)
+
 2.5-961 | 2018-09-04 12:07:54 -0500
 
   * Sort output of a coverage unit test (Jon Siwek, Corelight)

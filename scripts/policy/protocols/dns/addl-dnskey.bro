@@ -10,7 +10,7 @@ redef dns_skip_all_addl = F;
 module DNS;
 
 export {
-        redef record dns += {
+        redef record Info += {
 
         dnskey_flags:   vector of count &log &optional;
         dnskey_algo:    vector of string        &log &optional;

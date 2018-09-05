@@ -115,6 +115,10 @@ RecordType* dns_answer;
 RecordType* dns_soa;
 RecordType* dns_edns_additional;
 RecordType* dns_tsig_additional;
+RecordType* dns_rrsig_additional;
+RecordType* dns_dnskey_additional;
+RecordType* dns_nsec3_additional;
+RecordType* dns_ds_additional;
 TableVal* dns_skip_auth;
 TableVal* dns_skip_addl;
 int dns_skip_all_auth;
@@ -430,7 +434,14 @@ void init_net_var()
 		internal_type("dns_edns_additional")->AsRecordType();
 	dns_tsig_additional =
 		internal_type("dns_tsig_additional")->AsRecordType();
-
+	dns_rrsig_additional =
+		internal_type("dns_rrsig_additional")->AsRecordType();
+	dns_dnskey_additional =
+		internal_type("dns_dnskey_additional")->AsRecordType();
+	dns_nsec3_additional =
+		internal_type("dns_nsec3_additional")->AsRecordType();
+	dns_ds_additional =
+		internal_type("dns_ds_additional")->AsRecordType();
 	dns_skip_auth = internal_val("dns_skip_auth")->AsTableVal();
 	dns_skip_addl = internal_val("dns_skip_addl")->AsTableVal();
 	dns_skip_all_auth = opt_internal_int("dns_skip_all_auth");

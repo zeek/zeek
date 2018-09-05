@@ -1,4 +1,10 @@
 
+2.5-969 | 2018-09-05 15:11:48 -0500
+
+  * BIT-1208: remove unused weirds from Weird::actions table (Jon Siwek, Corelight)
+
+  * BIT-1779: use BRO_LOG_SUFFIX env var in ascii log rotation function (Jon Siwek, Corelight)
+
 2.5-967 | 2018-09-05 19:30:48 +0000
 
   * Fix printf format specification for reporting packet stats. (Robin Sommer, Corelight)

@@ -199,6 +199,9 @@ private:
 
 	// wzj
 	bool first_data_packet_seen;
+	bool my_skip;
+	unsigned int skipped_packets;
+	unsigned int all_data_packets;
 };
 
 class TCP_ApplicationAnalyzer : public analyzer::Analyzer {

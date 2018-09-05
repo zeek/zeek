@@ -336,6 +336,9 @@ TCP_Analyzer::TCP_Analyzer(Connection* conn)
 
 	// wzj
 	first_data_packet_seen = false;
+	my_skip = false;
+	skipped_packets = 0;
+	all_data_packets = 0;
 	}
 
 TCP_Analyzer::~TCP_Analyzer()
@@ -345,6 +348,9 @@ TCP_Analyzer::~TCP_Analyzer()
 
 	delete orig;
 	delete resp;
+
+	// wzj
+	DBG_LOG(DBG_ANALYZER, "All data packets: %d, Skipped packets: %d", all_data_packets, skipped_packets);
 	}
 
 void TCP_Analyzer::Init()
@@ -1387,20 +1393,32 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	// wzj
 	if ( len > 0 && ! first_data_packet_seen )
 		{
-		DEBUG_MSG("TCP reserved flags: %d\n", tp->res1);
+		DBG_LOG(DBG_ANALYZER, "%s. TCP reserved flag: %d. %s", 
+			this->GetAnalyzerName(), tp->res1, 
+			tp->res1 == 0xf ? "Set skip to true" : "");
 		if ( tp->res1 == 0xf )
 			{
 			// skip the rest of the connection
-			SetSkip(1);
+			my_skip = true;
 			}
 		first_data_packet_seen = true;
 		}
 
 	int need_contents = 0;
 	if ( len > 0 && (caplen >= len || packet_children.size()) &&
-	     ! flags.RST() && ! Skipping() && ! seq_underflow )
-		need_contents = DeliverData(current_timestamp, data, len, caplen, ip,
-		                            tp, endpoint, rel_data_seq, is_orig, flags);
+	     ! flags.RST() && ! Skipping() && ! seq_underflow)
+		{
+                all_data_packets++;
+		if ( my_skip )
+			{
+			skipped_packets++;
+			}
+		else
+			{
+			need_contents = DeliverData(current_timestamp, data, len, caplen, ip,
+		        	                    tp, endpoint, rel_data_seq, is_orig, flags);
+			}
+		}
 
 	endpoint->CheckEOF();
 

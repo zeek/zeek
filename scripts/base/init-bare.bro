@@ -4847,18 +4847,18 @@ export {
 module Weird;
 export {
 	## Prevents rate-limiting sampling of any weirds named in the table.
-	const sampling_whitelist: set[string] &redef;
+	option sampling_whitelist: set[string] = {};
 
 	## How many weirds of a given type to tolerate before sampling begins.
 	## I.e. this many consecutive weirds of a given type will be allowed to
 	## raise events for script-layer handling before being rate-limited.
-	const sampling_threshold = 25 &redef;
+	option sampling_threshold : count = 25;
 
 	## The rate-limiting sampling rate. One out of every of this number of
 	## rate-limited weirds of a given type will be allowed to raise events
 	## for further script-layer handling. Setting the sampling rate to 0
 	## will disable all output of rate-limited weirds.
-	const sampling_rate = 1000 &redef;
+	option sampling_rate : count = 1000;
 
 	## How long a weird of a given type is allowed to keep state/counters in
 	## memory. For "net" weirds an expiration timer starts per weird name when
@@ -4871,7 +4871,7 @@ export {
 	## begins for "foo" and upon triggering will reset the counter for "foo"
 	## and unthrottle its rate-limiting until it once again exceeds the
 	## threshold.
-	const sampling_duration = 10min &redef;
+	option sampling_duration = 10min;
 }
 
 module GLOBAL;

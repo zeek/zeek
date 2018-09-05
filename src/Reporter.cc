@@ -52,13 +52,13 @@ Reporter::~Reporter()
 
 void Reporter::InitOptions()
 	{
-	info_to_stderr = internal_const_val("Reporter::info_to_stderr")->AsBool();
-	warnings_to_stderr = internal_const_val("Reporter::warnings_to_stderr")->AsBool();
-	errors_to_stderr = internal_const_val("Reporter::errors_to_stderr")->AsBool();
-	weird_sampling_rate = internal_const_val("Weird::sampling_rate")->AsCount();
-	weird_sampling_threshold = internal_const_val("Weird::sampling_threshold")->AsCount();
-	weird_sampling_duration = internal_const_val("Weird::sampling_duration")->AsInterval();
-	auto wl_val = internal_const_val("Weird::sampling_whitelist")->AsTableVal();
+	info_to_stderr = internal_val("Reporter::info_to_stderr")->AsBool();
+	warnings_to_stderr = internal_val("Reporter::warnings_to_stderr")->AsBool();
+	errors_to_stderr = internal_val("Reporter::errors_to_stderr")->AsBool();
+	weird_sampling_rate = internal_val("Weird::sampling_rate")->AsCount();
+	weird_sampling_threshold = internal_val("Weird::sampling_threshold")->AsCount();
+	weird_sampling_duration = internal_val("Weird::sampling_duration")->AsInterval();
+	auto wl_val = internal_val("Weird::sampling_whitelist")->AsTableVal();
 	auto wl_table = wl_val->AsTable();
 
 	HashKey* k;

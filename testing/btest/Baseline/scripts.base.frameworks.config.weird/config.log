@@ -1,0 +1,13 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	config
+#open	2018-09-05-19-30-42
+#fields	ts	id	old_value	new_value	location
+#types	time	string	string	string	string
+0.000000	Weird::sampling_duration	10.0 mins	5.0 secs	-
+0.000000	Weird::sampling_threshold	25	10	-
+0.000000	Weird::sampling_rate	1000	10	-
+0.000000	Weird::sampling_whitelist	(empty)	whitelisted_net_weird,whitelisted_flow_weird,whitelisted_conn_weird	-
+#close	2018-09-05-19-30-42

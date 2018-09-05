@@ -152,6 +152,87 @@ public:
 	const WeirdCountMap& GetWeirdsByType() const
 		{ return weird_count_by_type; }
 
+	/**
+	 * Sets the weird sampling whitelist.
+	 *
+	 * @param weird_sampling_whitelist New weird sampling whitelist.
+	 */
+	WeirdSet GetWeirdSamplingWhitelist() const
+		{
+		return weird_sampling_whitelist;
+		}
+
+	/**
+	 * Sets the weird sampling whitelist.
+	 *
+	 * @param weird_sampling_whitelist New weird sampling whitelist.
+	 */
+	void SetWeirdSamplingWhitelist(const WeirdSet &weird_sampling_whitelist)
+		{
+		Reporter::weird_sampling_whitelist = weird_sampling_whitelist;
+		}
+
+	/**
+	 * Gets the current weird sampling threshold.
+	 *
+	 * @return weird sampling threshold.
+	 */
+	uint64 GetWeirdSamplingThreshold() const
+		{
+		return weird_sampling_threshold;
+		}
+
+	/**
+	 * Sets the current weird sampling threshold.
+	 *
+	 * @param weird_sampling_threshold New weird sampling threshold.
+	 */
+	void SetWeirdSamplingThreshold(uint64 weird_sampling_threshold)
+		{
+		Reporter::weird_sampling_threshold = weird_sampling_threshold;
+		}
+
+	/**
+	 * Gets the current weird sampling rate.
+	 *
+	 * @return weird sampling rate.
+	 */
+	uint64 GetWeirdSamplingRate() const
+		{
+		return weird_sampling_rate;
+		}
+
+	/**
+	 * Sets the weird sampling rate.
+	 *
+	 * @param weird_sampling_rate New weird sampling rate.
+	 */
+	void SetWeirdSamplingRate(uint64 weird_sampling_rate)
+		{
+		Reporter::weird_sampling_rate = weird_sampling_rate;
+		}
+
+	/**
+	 * Gets the current weird sampling duration.
+	 *
+	 * @return weird sampling duration.
+	 */
+	double GetWeirdSamplingDuration() const
+		{
+		return weird_sampling_duration;
+		}
+
+	/**
+	 * Sets the current weird sampling duration. Please note that
+	 * this will not delete already running timers.
+	 *
+	 * @param weird_sampling_duration New weird sampling duration.
+	 */
+	void SetWeirdSamplingDuration(double weird_sampling_duration)
+		{
+		Reporter::weird_sampling_duration = weird_sampling_duration;
+		}
+
 private:
 	void DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 		   Connection* conn, val_list* addl, bool location, bool time,
@@ -178,7 +259,6 @@ private:
 
 	uint64 weird_count;
 	WeirdCountMap weird_count_by_type;
-
 	WeirdCountMap net_weird_state;
 	WeirdFlowMap flow_weird_state;
 

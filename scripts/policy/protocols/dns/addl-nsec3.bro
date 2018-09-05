@@ -12,7 +12,7 @@ module DNS;
 export {
         redef record Info += {
 
-        insec_flags:    vector of count &log &optional;
+        nsec_flags:    vector of count &log &optional;
         nsec_hash_algo: vector of count &log &optional;
         nsec_iter:      vector of count &log &optional;
         nsec_salt_len:  vector of count &log &optional;
@@ -45,7 +45,7 @@ event dns_NSEC3_addl(c: connection, msg: dns_msg, ans: dns_answer, nsec3: dns_ns
 
                 if ( ! c$dns?$nsec_salt)
                        c$dns$nsec_salt = vector();
-                c$dns$nsec_salt[|c$dns$nsec_salt] = bytestring_to_hexstr(nsec3$nsec_salt);
+                c$dns$nsec_salt[|c$dns$nsec_salt|] = bytestring_to_hexstr(nsec3$nsec_salt);
 
                  if ( ! c$dns?$nsec_hlen)
                        c$dns$nsec_hlen = vector();
@@ -53,7 +53,7 @@ event dns_NSEC3_addl(c: connection, msg: dns_msg, ans: dns_answer, nsec3: dns_ns
 
                 if ( ! c$dns?$nsec_hash)
                        c$dns$nsec_hash = vector();
-                c$dns$nsec_hash[|c$dns$nsec_hash] = bytestring_to_hexstr(nsec3$nsec_hash);
+                c$dns$nsec_hash[|c$dns$nsec_hash|] = bytestring_to_hexstr(nsec3$nsec_hash);
 
                 if ( ! c$dns?$nsec_bitmaps)
                        c$dns$nsec_bitmaps = vector();
@@ -69,7 +69,7 @@ event dns_NSEC3_addl(c: connection, msg: dns_msg, ans: dns_answer, nsec3: dns_ns
 
                            bitmap_strings += fmt("bitmap %d %s", |bitmaps[i]|, bitmaps[i]);
                         }
-                        c$dns$nsec_bitmaps[|c$dns$nsec_bitmaps] = bitmap_strings;
+                        c$dns$nsec_bitmaps[|c$dns$nsec_bitmaps|] = bitmap_strings;
                   }
 
                 }

@@ -1,5 +1,5 @@
 ##! This script adds additional fields corresponding to the RRSIG record responses for the current
-##! query to the DNS log. 
+##! query to the DNS log. It can cause severe overhead.
 
 @load base/protocols/dns/main
 @load base/protocols/dns/consts

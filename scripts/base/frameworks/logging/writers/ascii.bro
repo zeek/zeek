@@ -81,10 +81,14 @@ function default_rotation_postprocessor_func(info: Log::RotationInfo) : bool
 	{
 	# If the filename has a ".gz" extension, then keep it.
 	local gz = info$fname[-3:] == ".gz" ? ".gz" : "";
+	local bls = getenv("BRO_LOG_SUFFIX");
+
+	if ( bls == "" )
+		bls = "log";
 
 	# Move file to name including both opening and closing time.
-	local dst = fmt("%s.%s.log%s", info$path,
-			strftime(Log::default_rotation_date_format, info$open), gz);
+	local dst = fmt("%s.%s.%s%s", info$path,
+			strftime(Log::default_rotation_date_format, info$open), bls, gz);
 
 	system(fmt("/bin/mv %s %s", info$fname, dst));
 

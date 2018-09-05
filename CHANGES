@@ -1,4 +1,8 @@
 
+2.5-967 | 2018-09-05 19:30:48 +0000
+
+  * Fix printf format specification for reporting packet stats. (Robin Sommer, Corelight)
+
 2.5-965 | 2018-09-04 17:17:36 -0500
 
   * Updates to NTLM script handling. (Seth Hall, Corelight)

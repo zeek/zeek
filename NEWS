@@ -257,8 +257,8 @@ New Functionality
   - ssl_server_hello
   - ssl_encrypted_data
 
-  If you use these events, you can make your scripts work on old and new versions
-  of Bro by wrapping the event definition in an "@if", for example::
+  If you use these events, you can make your scripts work on old and new
+  versions of Bro by wrapping the event definition in an "@if", for example::
 
     @if ( Version::at_least("2.6") || ( Version::number == 20500 && Version::info$commit >= 944 ) )
     event ssl_client_hello(c: connection, version: count, record_version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec, comp_methods: index_vec)
@@ -541,7 +541,7 @@ Removed Functionality
 - We no longer maintain any Bro plugins as part of the Bro
   distribution. Most of the plugins that used to be in aux/plugins have
   been moved over to use the Bro Package Manager instead. See
-  https://github.com/bro/packages for a list of Bro packages currently
+  https://packages.bro.org for a list of Bro packages currently
   available.
 
 - The "ocsp_request" event no longer has "requestorName" parameter.

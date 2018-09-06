@@ -1,4 +1,8 @@
 
+2.5-983 | 2018-09-06 18:26:20 -0500
+
+  * Disable broker message forwarding by default (Jon Siwek, Corelight)
+
 2.5-982 | 2018-09-06 08:58:09 -0500
 
   * Documentation updates (Daniel Thayer)

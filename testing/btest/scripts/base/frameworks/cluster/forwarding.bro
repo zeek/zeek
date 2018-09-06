@@ -28,6 +28,8 @@ global peer_count = 0;
 global peers_lost = 0;
 global fully_connected_nodes = 0;
 
+redef Broker::forward_messages = T;
+
 event forwarded_event()
 	{
 	print "got forwarded event";

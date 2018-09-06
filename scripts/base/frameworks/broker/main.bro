@@ -74,7 +74,7 @@ export {
 	const max_sleep = 0 &redef;
 
 	## Forward all received messages to subscribing peers.
-	const forward_messages = T &redef;
+	const forward_messages = F &redef;
 
 	## The default topic prefix where logs will be published.  The log's stream
 	## id is appended when writing to a particular stream.

@@ -1078,10 +1078,10 @@ bool Connection::PermitWeird(const char* name, uint64 threshold, uint64 rate,
 	auto& state = weird_state[name];
 	++state.count;
 
-	if ( state.count < threshold )
+	if ( state.count <= threshold )
 		return true;
 
-	if ( state.count == threshold )
+	if ( state.count == threshold + 1)
 		state.sampling_start_time = network_time;
 	else
 		{
@@ -1094,5 +1094,8 @@ bool Connection::PermitWeird(const char* name, uint64 threshold, uint64 rate,
 		}
 
 	auto num_above_threshold = state.count - threshold;
-	return num_above_threshold % rate == 0;
+	if ( rate )
+		return num_above_threshold % rate == 0;
+	else
+		return false;
 	}

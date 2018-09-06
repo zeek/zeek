@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2018-09-04-21-14-06
+#open	2018-09-05-20-33-08
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -248,6 +248,7 @@ scripts/base/init-default.bro
   scripts/base/frameworks/config/__load__.bro
     scripts/base/frameworks/config/main.bro
     scripts/base/frameworks/config/input.bro
+    scripts/base/frameworks/config/weird.bro
   scripts/base/frameworks/sumstats/__load__.bro
     scripts/base/frameworks/sumstats/main.bro
     scripts/base/frameworks/sumstats/plugins/__load__.bro
@@ -370,4 +371,4 @@ scripts/base/init-default.bro
   scripts/base/misc/find-filtered-trace.bro
   scripts/base/misc/version.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2018-09-04-21-14-06
+#close	2018-09-05-20-33-08

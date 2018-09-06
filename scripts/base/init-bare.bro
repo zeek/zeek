@@ -4847,30 +4847,31 @@ export {
 module Weird;
 export {
 	## Prevents rate-limiting sampling of any weirds named in the table.
-	const sampling_whitelist: set[string] &redef;
+	option sampling_whitelist: set[string] = {};
 
 	## How many weirds of a given type to tolerate before sampling begins.
-	## i.e. this many consecutive weirds of a given type will be allowed to
+	## I.e. this many consecutive weirds of a given type will be allowed to
 	## raise events for script-layer handling before being rate-limited.
-	const sampling_threshold = 25 &redef;
+	option sampling_threshold : count = 25;
 
-	## The rate-limiting sampling rate.  One out of every of this number of
+	## The rate-limiting sampling rate. One out of every of this number of
 	## rate-limited weirds of a given type will be allowed to raise events
-	## for further script-layer handling.
-	const sampling_rate = 1000 &redef;
+	## for further script-layer handling. Setting the sampling rate to 0
+	## will disable all output of rate-limited weirds.
+	option sampling_rate : count = 1000;
 
 	## How long a weird of a given type is allowed to keep state/counters in
-	## memory.  For "net" weirds an expiration timer starts per weird name when
-	## first initializing its counter.  For "flow" weirds an expiration timer
-	## starts once per src/dst IP pair for the first weird of any name.  For
+	## memory. For "net" weirds an expiration timer starts per weird name when
+	## first initializing its counter. For "flow" weirds an expiration timer
+	## starts once per src/dst IP pair for the first weird of any name. For
 	## "conn" weirds, counters and expiration timers are kept for the duration
-	## of the connection for each named weird and reset when necessary.  e.g.
+	## of the connection for each named weird and reset when necessary. E.g.
 	## if a "conn" weird by the name of "foo" is seen more than
 	## :bro:see:`Weird::sampling_threshold` times, then an expiration timer
 	## begins for "foo" and upon triggering will reset the counter for "foo"
 	## and unthrottle its rate-limiting until it once again exceeds the
 	## threshold.
-	const sampling_duration = 10min &redef;
+	option sampling_duration = 10min;
 }
 
 module GLOBAL;

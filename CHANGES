@@ -1,4 +1,22 @@
 
+2.5-975 | 2018-09-05 16:52:32 -0500
+
+  * Allow weird sampling settings to be updateable at runtime (Johanna Amann, Corelight)
+
+  * Permit weird sampling rate of 0, which suppresses all weirds (Johanna Amann, Corelight)
+
+  * Switch packet stats to uint64. (Robin Sommer, Corelight)
+
+2.5-969 | 2018-09-05 15:11:48 -0500
+
+  * BIT-1208: remove unused weirds from Weird::actions table (Jon Siwek, Corelight)
+
+  * BIT-1779: use BRO_LOG_SUFFIX env var in ascii log rotation function (Jon Siwek, Corelight)
+
+2.5-967 | 2018-09-05 19:30:48 +0000
+
+  * Fix printf format specification for reporting packet stats. (Robin Sommer, Corelight)
+
 2.5-965 | 2018-09-04 17:17:36 -0500
 
   * Updates to NTLM script handling. (Seth Hall, Corelight)

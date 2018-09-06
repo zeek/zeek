@@ -28,18 +28,18 @@ public:
 		/**
 		 * Packets received by source after filtering (w/o drops).
 		 */
-		unsigned int received;
+		uint64 received;
 
 		/**
 		 * Packets dropped by source.
 		 */
-		unsigned int dropped;	// pkts dropped
+		uint64 dropped;	// pkts dropped
 
 		/**
 		 * Total number of packets on link before filtering.
 		 * Optional, can be left unset if not available.
 		 */
-		unsigned int link;
+		uint64 link;
 
 		/**
 		  * Bytes received by source after filtering (w/o drops).

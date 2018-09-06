@@ -56,7 +56,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --disable-auxtools     don't build or install auxiliary tools
     --disable-perftools    don't try to build with Google Perftools
     --disable-python       don't try to build python bindings for broker
-    --disable-broker-tests don'e try to build Broker unit tests
+    --disable-broker-tests don't try to build Broker unit tests
 
   Required Packages in Non-Standard Locations:
     --with-openssl=PATH    path to OpenSSL install root
@@ -223,7 +223,7 @@ while [ $# -ne 0 ]; do
             append_cache_entry DISABLE_RUBY_BINDINGS     BOOL   true
             append_cache_entry INSTALL_BROCCOLI     BOOL   yes
             ;;
-       --disable-broctl)
+        --disable-broctl)
             append_cache_entry INSTALL_BROCTL       BOOL   false
             ;;
         --disable-auxtools)

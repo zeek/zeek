@@ -1,4 +1,12 @@
 
+2.5-982 | 2018-09-06 08:58:09 -0500
+
+  * Documentation updates (Daniel Thayer)
+
+  * Fix a typo and indentation in the configure script (Daniel Thayer)
+
+  * Add krb5 devel package to Travis docker containers (Daniel Thayer)
+
 2.5-975 | 2018-09-05 16:52:32 -0500
 
   * Allow weird sampling settings to be updateable at runtime (Johanna Amann, Corelight)

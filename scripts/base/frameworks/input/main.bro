@@ -4,6 +4,7 @@
 module Input;
 
 export {
+	## Type that describes what kind of change occurred.
 	type Event: enum {
 		## New data has been imported.
 		EVENT_NEW = 0,

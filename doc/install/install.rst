@@ -72,21 +72,6 @@ To install the required dependencies, you can use:
 
       sudo pkg install bash cmake swig30 bison python py27-sqlite3 py27-ipaddress
 
-  For older versions of FreeBSD (especially FreeBSD 9.x), the system compiler
-  is not new enough to compile Bro. For these systems, you will have to install
-  a newer compiler using pkg; the ``clang34`` package should work.
-
-  You will also have to define several environment variables on these older
-  systems to use the new compiler and headers similar to this before calling
-  configure:
-
-  .. console::
-
-     export CC=clang34
-     export CXX=clang++34
-     export CXXFLAGS="-stdlib=libc++ -I${LOCALBASE}/include/c++/v1 -L${LOCALBASE}/lib"
-     export LDFLAGS="-pthread"
-
 * Mac OS X:
 
   Compiling source code on Macs requires first installing either Xcode_
@@ -123,6 +108,7 @@ build time:
     * gperftools (tcmalloc is used to improve memory and CPU usage)
     * jemalloc (http://www.canonware.com/jemalloc/)
     * PF_RING (Linux only, see :doc:`Cluster Configuration <../configuration/index>`)
+    * krb5 libraries and headers
     * ipsumdump (for trace-summary; http://www.cs.ucla.edu/~kohler/ipsumdump)
 
 Geolocation is probably the most interesting and can be installed

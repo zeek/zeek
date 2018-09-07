@@ -1,4 +1,8 @@
 
+2.5-988 | 2018-09-07 17:49:34 -0500
+
+  * Update default Broker/CAF thread tuning (Jon Siwek, Corelight)
+
 2.5-987 | 2018-09-07 11:24:34 -0500
 
   * Update NEWS explaining Bro runs as 1 process instead of 2 (Daniel Thayer)

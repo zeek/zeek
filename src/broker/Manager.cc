@@ -179,47 +179,32 @@ void Manager::InitPostScript()
 	options.use_real_time = ! reading_pcaps;
 
 	BrokerConfig config{std::move(options)};
-	auto max_threads = get_option("Broker::max_threads")->AsCount();
-	auto max_sleep = get_option("Broker::max_sleep")->AsCount();
 
-	if ( max_threads )
-		config.set("scheduler.max-threads", max_threads);
+	auto max_threads_env = getenv("BRO_BROKER_MAX_THREADS");
+
+	if ( max_threads_env )
+		config.set("scheduler.max-threads", atoi(max_threads_env));
 	else
-		{
-		auto max_threads_env = getenv("BRO_BROKER_MAX_THREADS");
+		config.set("scheduler.max-threads",
+		           get_option("Broker::max_threads")->AsCount());
 
-		if ( max_threads_env )
-			config.set("scheduler.max-threads", atoi(max_threads_env));
-		else
-			{
-			// On high-core-count systems, letting CAF spawn a thread per core
-			// can lead to significant performance problems even if most
-			// threads are under-utilized.  Related:
-			// https://github.com/actor-framework/actor-framework/issues/699
-			if ( reading_pcaps )
-				config.set("scheduler.max-threads", 2u);
-			else
-				// If the goal was to map threads to actors, 4 threads seems
-				// like a minimal default that could make sense -- the main
-				// actors that should be doing work are (1) the core,
-				// (2) the subscriber, (3) data stores (actually made of
-				// a frontend + proxy actor).  Number of data stores may
-				// actually vary, but lumped togather for simplicity.  A (4)
-				// may be CAF's multiplexing or other internals...
-				// 4 is also the minimum number that CAF uses by default,
-				// even for systems with less than 4 cores.
-				config.set("scheduler.max-threads", 4u);
-			}
-		}
+	config.set("work-stealing.moderate-sleep-duration-us",
+	    static_cast<unsigned>(get_option("Broker::moderate_sleep")->AsInterval() / Microseconds));
 
-	if ( max_sleep )
-		config.set("work-stealing.relaxed-sleep-duration-us", max_sleep);
-	else
-		// 64ms is just an arbitrary amount derived from testing
-		// the overhead of a unused CAF actor system on a 32-core system.
-		// Performance was within 2% of baseline timings (w/o CAF)
-		// when using this sleep duration.
-		config.set("work-stealing.relaxed-sleep-duration-us", 64000);
+	config.set("work-stealing.relaxed-sleep-duration-us",
+	    static_cast<unsigned>(get_option("Broker::relaxed_sleep")->AsInterval() / Microseconds));
+
+	config.set("work-stealing.aggressive-poll-attempts",
+	           get_option("Broker::aggressive_polls")->AsCount());
+	config.set("work-stealing.moderate-poll-attempts",
+	           get_option("Broker::moderate_polls")->AsCount());
+
+	config.set("work-stealing.aggressive-steal-interval",
+	           get_option("Broker::aggressive_interval")->AsCount());
+	config.set("work-stealing.moderate-steal-interval",
+	           get_option("Broker::moderate_interval")->AsCount());
+	config.set("work-stealing.relaxed-steal-interval",
+	           get_option("Broker::relaxed_interval")->AsCount());
 
 	auto cqs = get_option("Broker::congestion_queue_size")->AsCount();
 	bstate = std::make_shared<BrokerState>(std::move(config), cqs);

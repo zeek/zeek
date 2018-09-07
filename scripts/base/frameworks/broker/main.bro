@@ -61,17 +61,37 @@ export {
 	## control mechanisms).
 	const congestion_queue_size = 200 &redef;
 
-	## Max number of threads to use for Broker/CAF functionality.  Setting to
-	## zero implies using the value of BRO_BROKER_MAX_THREADS environment
-	## variable, if set, or else typically defaults to 4 (actually 2 threads
-	## when simply reading offline pcaps as there's not expected to be any
-	## communication and more threads just adds more overhead).
-	const max_threads = 0 &redef;
+	## Max number of threads to use for Broker/CAF functionality.  The
+	## BRO_BROKER_MAX_THREADS environment variable overrides this setting.
+	const max_threads = 1 &redef;
 
-	## Max number of microseconds for under-utilized Broker/CAF
-	## threads to sleep.  Using zero will cause this to be automatically
-	## determined or just use CAF's default setting.
-	const max_sleep = 0 &redef;
+	## Interval of time for under-utilized Broker/CAF threads to sleep
+	## when in "moderate" mode.
+	const moderate_sleep = 16 msec &redef;
+
+	## Interval of time for under-utilized Broker/CAF threads to sleep
+	## when in "relaxed" mode.
+	const relaxed_sleep = 64 msec &redef;
+
+	## Number of work-stealing polling attempts for Broker/CAF threads
+	## in "aggressive" mode.
+	const aggressive_polls = 5 &redef;
+
+	## Number of work-stealing polling attempts for Broker/CAF threads
+	## in "moderate" mode.
+	const moderate_polls = 5 &redef;
+
+	## Frequency of work-stealing polling attempts for Broker/CAF threads
+	## in "aggressive" mode.
+	const aggressive_interval = 4 &redef;
+
+	## Frequency of work-stealing polling attempts for Broker/CAF threads
+	## in "moderate" mode.
+	const moderate_interval = 2 &redef;
+
+	## Frequency of work-stealing polling attempts for Broker/CAF threads
+	## in "relaxed" mode.
+	const relaxed_interval = 1 &redef;
 
 	## Forward all received messages to subscribing peers.
 	const forward_messages = F &redef;

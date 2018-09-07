@@ -30,8 +30,9 @@ New Functionality
   That should be fine unless you are using custom scripts doing
   significant data distribution through the new cluster framework.
 
-  A side effect of the switch to using Broker is a reduced number of
-  file descriptors being polled in Bro's main event loop (1 per worker
+  A side effect of the switch to using Broker is that each Bro node now runs
+  as a single process instead of two.  Also, the number of file descriptors
+  being polled in Bro's main event loop has been reduced (1 per worker
   versus 5).  This should increase the number of workers one can
   use before reaching the common 1024 file descriptor limitation of
   "select()".
@@ -534,6 +535,11 @@ Changed Functionality
   success/failure.  Also, the "status" field was removed and
   "server_nb_computer_name", "server_dns_computer_name", and
   "server_tree_name" fields added.
+
+- BroControl: The output of the broctl "top" command has changed slightly.
+  The "Proc" column has been removed from the output.  This column previously
+  indicated whether each Bro process was the "parent" or "child", but this
+  is no longer relevant because each Bro node now runs as a single process.
 
 Removed Functionality
 ---------------------

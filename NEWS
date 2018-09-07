@@ -535,6 +535,11 @@ Changed Functionality
   "server_nb_computer_name", "server_dns_computer_name", and
   "server_tree_name" fields added.
 
+- BroControl: The output of the broctl "top" command has changed slightly.
+  The "Proc" column has been removed from the output.  This column previously
+  indicated whether each Bro process was the "parent" or "child", but this
+  is no longer relevant because each Bro node now runs as a single process.
+
 Removed Functionality
 ---------------------
 

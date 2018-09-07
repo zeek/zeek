@@ -108,12 +108,16 @@ export {
 	## pool: the pool of nodes to consider.
 	##
 	## key: an arbitrary string to identify the purpose for which you're
-	##      requesting the topic.  e.g. consider using namespacing of your script
-	##      like "Intel::cluster_rr_key".
+	##      requesting the topic.  e.g. consider using a name-spaced key
+	##      like "Intel::cluster_rr_key" if you need to guarantee that
+	##      a group of messages get distributed in a well-defined pattern
+	##      without other messages being interleaved within the round-robin.
+	##      Usually sharing the default key is fine for load-balancing
+	##      purposes.
 	##
 	## Returns: a topic string associated with a cluster node that is alive,
 	##          or an empty string if nothing is alive.
-	global rr_topic: function(pool: Pool, key: string): string;
+	global rr_topic: function(pool: Pool, key: string &default=""): string;
 
 	## Distributes log message topics among logger nodes via round-robin.
 	## This will be automatically assigned to :bro:see:`Broker::log_topic`

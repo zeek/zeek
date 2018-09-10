@@ -1,4 +1,11 @@
 
+2.5-992 | 2018-09-10 18:34:09 -0500
+
+  * Stabilize a unit test. (Jon Siwek, Corelight)
+
+  * Fix potential memory leak in Kerberos scripts
+    (reported by Maksim Shudrak and fixed by Jon Siwek, Corelight)
+
 2.5-990 | 2018-09-10 14:55:13 -0500
 
   * Fix recursive type checks/casts of broker data into type 'any' (Jon Siwek, Corelight)

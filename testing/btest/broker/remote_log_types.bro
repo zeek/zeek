@@ -8,8 +8,8 @@
 # @TEST-EXEC: btest-diff recv/test.log
 # @TEST-EXEC: btest-diff send/send.out
 # @TEST-EXEC: btest-diff send/test.log
-# @TEST-EXEC: cat send/test.log | grep -v '#close' >send/test.log.filtered
-# @TEST-EXEC: cat recv/test.log | grep -v '#close' >recv/test.log.filtered
+# @TEST-EXEC: cat send/test.log | grep -v '#close' | grep -v '#open' >send/test.log.filtered
+# @TEST-EXEC: cat recv/test.log | grep -v '#close' | grep -v '#open' >recv/test.log.filtered
 # @TEST-EXEC: diff -u send/test.log.filtered recv/test.log.filtered
 
 @TEST-START-FILE common.bro

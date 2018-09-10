@@ -1,0 +1,7 @@
+count, 1
+string, two
+vector, [[data=broker::data{one}], [data=broker::data{two}], [data=broker::data{3}]]
+string, one
+string, two
+count, 3
+record, [a=bye, b=<uninitialized>, c=<uninitialized>]

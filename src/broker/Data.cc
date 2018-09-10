@@ -14,6 +14,8 @@ OpaqueType* bro_broker::opaque_of_record_iterator;
 
 BroType* bro_broker::DataVal::script_data_type = nullptr;
 
+static bool data_type_check(const broker::data& d, BroType* t);
+
 static broker::port::protocol to_broker_port_proto(TransportProto tp)
 	{
 	switch ( tp ) {
@@ -624,7 +626,7 @@ struct type_checker {
 				auto expect = (*expected_index_types)[i];
 				auto& index_to_check = *(indices_to_check)[i];
 
-				if ( ! caf::visit(type_checker{expect}, index_to_check) )
+				if ( ! data_type_check(index_to_check, expect) )
 					return false;
 				}
 			}
@@ -689,12 +691,11 @@ struct type_checker {
 				auto expect = (*expected_index_types)[i];
 				auto& index_to_check = *(indices_to_check)[i];
 
-				if ( ! caf::visit(type_checker{expect}, index_to_check) )
+				if ( ! data_type_check(index_to_check, expect) )
 					return false;
 				}
 
-			if ( ! caf::visit(type_checker{tt->YieldType()},
-			                     item.second) )
+			if ( ! data_type_check(item.second, tt->YieldType()) )
 				return false;
 			}
 
@@ -709,7 +710,7 @@ struct type_checker {
 
 			for ( auto& item : a )
 				{
-				if ( ! caf::visit(type_checker{vt->YieldType()}, item) )
+				if ( ! data_type_check(item, vt->YieldType()) )
 					return false;
 				}
 
@@ -731,8 +732,7 @@ struct type_checker {
 					continue;
 					}
 
-				if ( ! caf::visit(type_checker{rt->FieldType(i)},
-				                     a[idx]) )
+				if ( ! data_type_check(a[idx], rt->FieldType(i)) )
 					return false;
 
 				++idx;
@@ -769,6 +769,14 @@ struct type_checker {
 		return false;
 		}
 };
+
+static bool data_type_check(const broker::data& d, BroType* t)
+	{
+	if ( t->Tag() == TYPE_ANY )
+		return true;
+
+	return caf::visit(type_checker{t}, d);
+	}
 
 Val* bro_broker::data_to_val(broker::data d, BroType* type)
 	{
@@ -1131,7 +1139,7 @@ broker::data& bro_broker::opaque_field_to_data(RecordVal* v, Frame* f)
 
 bool bro_broker::DataVal::canCastTo(BroType* t) const
 	{
-	return caf::visit(type_checker{t}, data);
+	return data_type_check(data, t);
 	}
 
 Val* bro_broker::DataVal::castTo(BroType* t)

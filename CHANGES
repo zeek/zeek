@@ -1,4 +1,10 @@
 
+2.5-990 | 2018-09-10 14:55:13 -0500
+
+  * Fix recursive type checks/casts of broker data into type 'any' (Jon Siwek, Corelight)
+
+  * Fix is/as operators on vector values (Jon Siwek, Corelight)
+
 2.5-988 | 2018-09-07 17:49:34 -0500
 
   * Update default Broker/CAF thread tuning (Jon Siwek, Corelight)

@@ -140,7 +140,8 @@ event krb_as_request(c: connection, msg: KDC_Request) &priority=5
 
 	c$krb$request_type = "AS";
 	c$krb$client       = fmt("%s/%s", msg?$client_name ? msg$client_name : "", msg$service_realm);
-	c$krb$service      = msg$service_name;
+	if ( msg?$service_name )
+		c$krb$service      = msg$service_name;
 
 	if ( msg?$from )
 		c$krb$from = msg$from;
@@ -183,7 +184,8 @@ event krb_tgs_request(c: connection, msg: KDC_Request) &priority=5
 		return;
 
 	c$krb$request_type = "TGS";
-	c$krb$service = msg$service_name;
+	if ( msg?$service_name )
+		c$krb$service = msg$service_name;
 	if ( msg?$from ) 
 		c$krb$from = msg$from;
 	c$krb$till = msg$till;

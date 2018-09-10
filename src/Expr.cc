@@ -455,7 +455,7 @@ Val* UnaryExpr::Eval(Frame* f) const
 	if ( ! v )
 		return 0;
 
-	if ( is_vector(v) )
+	if ( is_vector(v) && Tag() != EXPR_IS && Tag() != EXPR_CAST )
 		{
 		VectorVal* v_op = v->AsVectorVal();
 		VectorType* out_t;

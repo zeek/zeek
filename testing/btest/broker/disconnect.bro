@@ -3,10 +3,7 @@
 # @TEST-EXEC: btest-bg-run recv "bro -B broker -b ../recv.bro >recv.out"
 # @TEST-EXEC: btest-bg-run send "bro -B broker -b ../send.bro >send.out"
 
-# @TEST-EXEC: $SCRIPTS/wait-for-file recv/got-event 30 || (btest-bg-wait -k 1 && false)
-# @TEST-EXEC: kill $(cat recv/.pid)
-# @TEST-EXEC: $SCRIPTS/wait-for-pid $(cat recv/.pid) 10 || (btest-bg-wait -k 1 && false)
-# @TEST-EXEC: echo 0 >recv/.exitcode
+# @TEST-EXEC: $SCRIPTS/wait-for-pid $(cat recv/.pid) 30 || (btest-bg-wait -k 1 && false)
 
 # @TEST-EXEC: btest-bg-run recv2 "bro -B broker -b ../recv.bro >recv2.out"
 # @TEST-EXEC: btest-bg-wait 30
@@ -60,12 +57,7 @@ const test_topic = "bro/test/my_topic";
 event my_event(i: count)
 	{
 	print "receiver got event", i;
-
-	if ( i == 1 )
-		# In the first case, terminate via `kill` from btest command.
-		system("touch got-event");
-	else
-		terminate();
+	terminate();
 	}
 
 event bro_init()

@@ -1,4 +1,10 @@
 
+2.5-994 | 2018-09-10 19:47:03 -0500
+
+  * Try to fix a rare broker test instability (Jon Siwek, Corelight)
+
+  * Fix invalid memory free when using Log::default_field_name_map (Jon Siwek, Corelight)
+
 2.5-992 | 2018-09-10 18:34:09 -0500
 
   * Stabilize a unit test. (Jon Siwek, Corelight)

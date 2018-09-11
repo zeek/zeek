@@ -691,6 +691,7 @@ bool Raw::DoUpdate()
 			EndCurrentSend();
 
 		SendEvent("InputRaw::process_finished", 4, vals);
+		return false;
 		}
 
 

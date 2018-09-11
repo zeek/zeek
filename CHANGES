@@ -1,4 +1,8 @@
 
+2.5-996 | 2018-09-11 13:04:20 -0500
+
+  * Fix raw input reader not removing streams for dead processes. (Seth Hall, Corelight)
+
 2.5-994 | 2018-09-10 19:47:03 -0500
 
   * Try to fix a rare broker test instability (Jon Siwek, Corelight)

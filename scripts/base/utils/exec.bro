@@ -131,7 +131,9 @@ event InputRaw::process_finished(name: string, source:string, exit_code:count, s
 	if ( name !in pending_commands )
 		return;
 
-	Input::remove(name);
+	# Upon the process exiting, the internal Raw reader code should take
+	# care of signalling that the stream needs to be disabled/removed.
+	#Input::remove(name);
 	results[name]$exit_code = exit_code;
 	results[name]$signal_exit = signal_exit;
 

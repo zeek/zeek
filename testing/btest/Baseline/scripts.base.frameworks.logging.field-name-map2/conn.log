@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	conn
+#open	2018-09-11-00-03-40
+#fields	ts	uid	src_ip	src_port	dst_ip	dst_port	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	local_resp	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents
+#types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	bool	count	string	count	count	count	count	set[string]
+1427304960.695733	CHhAvVGS1DHFjwGM9	192.168.1.2	49159	192.168.1.1	20000	tcp	-	0.463113	120	0	S0	-	-	0	SAD	5	332	0	0	-
+#close	2018-09-11-00-03-40

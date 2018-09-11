@@ -875,7 +875,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 					if ( (val = filter->field_name_map->Lookup(fn, false)) != 0 )
 						{
 						delete [] filter->fields[j]->name;
-						filter->fields[j]->name = val->AsStringVal()->CheckString();
+						filter->fields[j]->name = copy_string(val->AsStringVal()->CheckString());
 						}
 					delete fn;
 					}

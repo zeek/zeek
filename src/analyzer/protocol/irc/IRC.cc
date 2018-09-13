@@ -252,13 +252,14 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			{
 			vector<string> parts = SplitWords(params, ' ');
 
-			// Remove nick name.
-			parts.erase(parts.begin());
-			if ( parts.size() < 2 )
+			if ( parts.size() < 3 )
 				{
 				Weird("irc_invalid_names_line");
 				return;
 				}
+
+			// Remove nick name.
+			parts.erase(parts.begin());
 
 			string type = parts[0];
 			string channel = parts[1];

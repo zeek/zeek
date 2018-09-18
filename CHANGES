@@ -1,4 +1,8 @@
 
+2.6-beta | 2018-09-18 15:05:24 -0500
+
+  * Release 2.6-beta
+
 2.5-1001 | 2018-09-12 19:47:57 -0500
 
   * Fix IRC names command parsing (Jon Siwek, Corelight)

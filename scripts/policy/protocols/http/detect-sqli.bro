@@ -52,6 +52,9 @@ export {
 		| /[\?&][^[:blank:]\x00-\x37\|]+?=([[:blank:]\x00-\x37]|\/\*.*?\*\/)*['"]([[:blank:]\x00-\x37]|\/\*.*?\*\/|;)*([xX]?[oO][rR]|[nN]?[aA][nN][dD]|[hH][aA][vV][iI][nN][gG]|[uU][nN][iI][oO][nN]|[eE][xX][eE][cC]|[sS][eE][lL][eE][cC][tT]|[dD][eE][lL][eE][tT][eE]|[dD][rR][oO][pP]|[dD][eE][cC][lL][aA][rR][eE]|[cC][rR][eE][aA][tT][eE]|[rR][eE][gG][eE][xX][pP]|[iI][nN][sS][eE][rR][tT])([[:blank:]\x00-\x37]|\/\*.*?\*\/|[\[(])+[a-zA-Z&]{2,}/
 		| /[\?&][^[:blank:]\x00-\x37]+?=[^\.]*?([cC][hH][aA][rR]|[aA][sS][cC][iI][iI]|[sS][uU][bB][sS][tT][rR][iI][nN][gG]|[tT][rR][uU][nN][cC][aA][tT][eE]|[vV][eE][rR][sS][iI][oO][nN]|[lL][eE][nN][gG][tT][hH])\(/
 		| /\/\*![[:digit:]]{5}.*?\*\// &redef;
+
+	## A hook that can be used to prevent specific requests from being counted
+	global HTTP::sqli_policy: hook(c: connection, method: string, unescaped_URI: string);
 }
 
 function format_sqli_samples(samples: vector of SumStats::Observation): string
@@ -109,6 +112,9 @@ event bro_init() &priority=3
 event http_request(c: connection, method: string, original_URI: string,
                    unescaped_URI: string, version: string) &priority=3
 	{
+	if (! hook HTTP::sqli_policy(c, method, unescaped_URI) )
+		break;
+
 	if ( match_sql_injection_uri in unescaped_URI )
 		{
 		add c$http$tags[URI_SQLI];

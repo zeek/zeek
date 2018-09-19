@@ -280,6 +280,9 @@ New Functionality
 - HTTP now recognizes and skips upgraded/websocket connections.  A new event,
   "http_connection_upgrade", is raised in such cases.
 
+- A new hook, HTTP::sqli_policy, may be used to whitelist requests that
+  could otherwise be counted as SQL injection attempts.
+
 - Added a MOUNT3 protocol parser
 
   - This is not enabled by default (no ports are registered and no

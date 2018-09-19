@@ -1,4 +1,9 @@
 
+2.6-beta2-3 | 2018-09-19 15:21:00 -0500
+
+  * Add HTTP::sqli_policy hook to ignore counting a request as a SQL injection
+    (Justin Azoff)
+
 2.6-beta2 | 2018-09-18 16:52:34 -0500
 
   * Release 2.6-beta2

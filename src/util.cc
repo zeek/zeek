@@ -1272,7 +1272,7 @@ FILE* rotate_file(const char* name, RecordVal* rotate_info)
 	// Build file names.
 	const int buflen = strlen(name) + 128;
 
-	char tmpname[buflen], newname[buflen+4];
+	char newname[buflen], tmpname[buflen+4];
 
 	safe_snprintf(newname, buflen, "%s.%d.%.06f.tmp",
 			name, getpid(), network_time);

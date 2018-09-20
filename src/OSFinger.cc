@@ -469,6 +469,7 @@ reparse_ptr:
 	{
         case 'E':
           Error("OS fingerprinting: Quirk 'E' is obsolete. Remove it, append E to the options. Line",(uint32)ln);
+          break;
 
         case 'K':
 	  if ( mode != RST_FINGERPRINT_MODE )

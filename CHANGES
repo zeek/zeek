@@ -1,4 +1,10 @@
 
+2.6-beta2-6 | 2018-09-20 13:15:15 -0500
+
+  * Add a missing "break" in OSFinger.cc (Daniel Thayer)
+
+  * Fix buffer sizes in the rotate_file function (Daniel Thayer)
+
 2.6-beta2-3 | 2018-09-19 15:21:00 -0500
 
   * Add HTTP::sqli_policy hook to ignore counting a request as a SQL injection

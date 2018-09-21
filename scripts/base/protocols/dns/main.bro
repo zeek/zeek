@@ -466,6 +466,38 @@ event dns_SRV_reply(c: connection, msg: dns_msg, ans: dns_answer, target: string
 #
 #	}
 
+event dns_RRSIG(c: connection, msg: dns_msg, ans: dns_answer, rrsig: dns_rrsig_rr)
+	{
+	local s: string;
+	s = fmt("RRSIG %s %s", rrsig$type_covered,
+	        rrsig$signer_name == "" ? "<Root>" : rrsig$signer_name);
+	hook DNS::do_reply(c, msg, ans, s);
+	}
+
+event dns_DNSKEY(c: connection, msg: dns_msg, ans: dns_answer, dnskey: dns_dnskey_rr)
+	{
+	local s: string;
+	s = fmt("DNSKEY %s", dnskey$algorithm);
+	hook DNS::do_reply(c, msg, ans, s);
+	}
+
+event dns_NSEC(c: connection, msg: dns_msg, ans: dns_answer, next_name: string, bitmaps: string_vec)
+	{
+	hook DNS::do_reply(c, msg, ans, fmt("NSEC %s %s", ans$query, next_name));
+	}
+
+event dns_NSEC3(c: connection, msg: dns_msg, ans: dns_answer, nsec3: dns_nsec3_rr)
+	{
+	hook DNS::do_reply(c, msg, ans, "NSEC3");
+	}
+
+event dns_DS(c: connection, msg: dns_msg, ans: dns_answer, ds: dns_ds_rr)
+	{
+	local s: string;
+	s = fmt("DS %s %s", ds$algorithm, ds$digest_type);
+	hook DNS::do_reply(c, msg, ans, s);
+	}
+
 event dns_rejected(c: connection, msg: dns_msg, query: string, qtype: count, qclass: count) &priority=5
 	{
 	if ( c?$dns )

@@ -2,4 +2,3 @@
 #
 # @TEST-EXEC: bro -r $TRACES/dns-two-responses.trace
 # @TEST-EXEC: btest-diff dns.log
-# @TEST-EXEC: btest-diff weird.log

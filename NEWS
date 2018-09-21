@@ -4,6 +4,30 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as BroControl and Broccoli, come with
 their own ``CHANGES``.)
 
+Bro 2.7
+=======
+
+New Functionality
+-----------------
+
+- Added support for DNSSEC resource records RRSIG, DNSKEY, DS, NSEC, and NSEC3.
+  The associated events are:
+
+  - dns_RRSIG
+  - dns_DNSKEY
+  - dns_DS
+  - dns_NSEC
+  - dns_NSEC3
+
+Changed Functionality
+---------------------
+
+Removed Functionality
+---------------------
+
+Deprecated Functionality
+------------------------
+
 Bro 2.6
 =======
 

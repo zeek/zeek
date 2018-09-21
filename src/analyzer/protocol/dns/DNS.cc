@@ -312,6 +312,26 @@ int DNS_Interpreter::ParseAnswer(DNS_MsgInfo* msg,
 			status = ParseRR_TSIG(msg, data, len, rdlength, msg_start);
 			break;
 
+		case TYPE_RRSIG:
+			status = ParseRR_RRSIG(msg, data, len, rdlength, msg_start);
+			break;
+
+		case TYPE_DNSKEY:
+			status = ParseRR_DNSKEY(msg, data, len, rdlength, msg_start);
+			break;
+
+		case TYPE_NSEC:
+			status = ParseRR_NSEC(msg, data, len, rdlength, msg_start);
+			break;
+
+		case TYPE_NSEC3:
+			status = ParseRR_NSEC3(msg, data, len, rdlength, msg_start);
+			break;
+
+		case TYPE_DS:
+			status = ParseRR_DS(msg, data, len, rdlength, msg_start);
+			break;
+
 		default:
 
 			if ( dns_unknown_reply && ! msg->skip_event )
@@ -724,6 +744,17 @@ void DNS_Interpreter::ExtractOctets(const u_char*& data, int& len,
 	len -= dlen;
 	}
 
+BroString* DNS_Interpreter::ExtractStream(const u_char*& data, int& len, int l)
+	{
+	l = max(l, 0);
+	int dlen = min(len, l); // Len in bytes of the algorithm use
+	auto rval = new BroString(data, dlen, 0);
+
+	data += dlen;
+	len -= dlen;
+	return rval;
+	}
+
 int DNS_Interpreter::ParseRR_TSIG(DNS_MsgInfo* msg,
 				const u_char*& data, int& len, int rdlength,
 				const u_char* msg_start)
@@ -765,6 +796,389 @@ int DNS_Interpreter::ParseRR_TSIG(DNS_MsgInfo* msg,
 	vl->append(msg->BuildTSIG_Val());
 
 	analyzer->ConnectionEvent(dns_TSIG_addl, vl);
+
+	return 1;
+	}
+
+int DNS_Interpreter::ParseRR_RRSIG(DNS_MsgInfo* msg,
+				const u_char*& data, int& len, int rdlength,
+				const u_char* msg_start)
+	{
+	if ( ! dns_RRSIG || msg->skip_event )
+		{
+		data += rdlength;
+		len -= rdlength;
+		return 1;
+		}
+
+	if ( len < 18 )
+		return 0;
+
+	unsigned int type_covered = ExtractShort(data, len);
+	// split the two bytes for algo and labels extraction
+	uint32 algo_lab = ExtractShort(data, len);
+	unsigned int algo = (algo_lab >> 8) & 0xff;
+	unsigned int lab = algo_lab & 0xff;
+
+	uint32 orig_ttl = ExtractLong(data, len);
+	uint32 sign_exp = ExtractLong(data, len);
+	uint32 sign_incp = ExtractLong(data, len);
+	unsigned int key_tag = ExtractShort(data, len);
+
+	//implement signer's name with the msg_start offset
+	const u_char* data_start = data;
+	u_char name[513];
+	int name_len = sizeof(name) - 1;
+
+	u_char* name_end = ExtractName(data, len, name, name_len, msg_start);
+	if ( ! name_end )
+		return 0;
+
+	int sig_len = rdlength - ((data - data_start) + 18);
+	DNSSEC_Algo dsa = DNSSEC_Algo(algo);
+	BroString* sign = ExtractStream(data, len, sig_len);
+
+	switch ( dsa ) {
+		case RSA_MD5:
+			analyzer->Weird("DNSSEC_RRSIG_NotRecommended_ZoneSignAlgo", fmt("%d", algo));
+			break;
+		case Diffie_Hellman:
+			break;
+		case DSA_SHA1:
+			break;
+		case Elliptic_Curve:
+			break;
+		case RSA_SHA1:
+			break;
+		case DSA_NSEC3_SHA1:
+			break;
+		case RSA_SHA1_NSEC3_SHA1:
+			break;
+		case RSA_SHA256:
+			break;
+		case RSA_SHA512:
+			break;
+		case GOST_R_34_10_2001:
+			break;
+		case ECDSA_curveP256withSHA256:
+			break;
+		case ECDSA_curveP384withSHA384:
+			break;
+		case Indirect:
+			analyzer->Weird("DNSSEC_RRSIG_Indirect_ZoneSignAlgo", fmt("%d", algo));
+			break;
+		case PrivateDNS:
+			analyzer->Weird("DNSSEC_RRSIG_PrivateDNS_ZoneSignAlgo", fmt("%d", algo));
+			break;
+		case PrivateOID:
+			analyzer->Weird("DNSSEC_RRSIG_PrivateOID_ZoneSignAlgo", fmt("%d", algo));
+			break;
+		default:
+			analyzer->Weird("DNSSEC_RRSIG_unknown_ZoneSignAlgo", fmt("%d", algo));
+			break;
+	}
+
+	RRSIG_DATA rrsig;
+	rrsig.type_covered = type_covered;
+	rrsig.algorithm = algo;
+	rrsig.labels = lab;
+	rrsig.orig_ttl = orig_ttl;
+	rrsig.sig_exp = sign_exp;
+	rrsig.sig_incep = sign_incp;
+	rrsig.key_tag = key_tag;
+	rrsig.signer_name = new BroString(name, name_end - name, 1);
+	rrsig.signature = sign;
+
+	val_list* vl = new val_list;
+
+	vl->append(analyzer->BuildConnVal());
+	vl->append(msg->BuildHdrVal());
+	vl->append(msg->BuildAnswerVal());
+	vl->append(msg->BuildRRSIG_Val(&rrsig));
+
+	analyzer->ConnectionEvent(dns_RRSIG, vl);
+
+	return 1;
+	}
+
+int DNS_Interpreter::ParseRR_DNSKEY(DNS_MsgInfo* msg,
+				const u_char*& data, int& len, int rdlength,
+				const u_char* msg_start)
+	{
+	if ( ! dns_DNSKEY || msg->skip_event )
+		{
+		data += rdlength;
+		len -= rdlength;
+		return 1;
+		}
+
+	if ( len < 4 )
+		return 0;
+
+	auto dflags = ExtractShort(data, len);
+	// split the two bytes for protocol and algorithm extraction
+	auto proto_algo = ExtractShort(data, len);
+	unsigned int dprotocol = (proto_algo >> 8) & 0xff;
+	unsigned int dalgorithm = proto_algo & 0xff;
+	DNSSEC_Algo dsa = DNSSEC_Algo(dalgorithm);
+	//Evaluating the size of remaining bytes for Public Key
+	BroString* key = ExtractStream(data, len, rdlength - 4);
+
+	if ( dflags != 256 and dflags != 257 and dflags != 0 )
+		analyzer->Weird("DNSSEC_DNSKEY_Invalid_Flag", fmt("%d", dflags));
+
+	if ( dprotocol != 3 )
+		analyzer->Weird("DNSSEC_DNSKEY_Invalid_Protocol", fmt("%d", dprotocol));
+
+	switch ( dsa ) {
+		case RSA_MD5:
+			analyzer->Weird("DNSSEC_DNSKEY_NotRecommended_ZoneSignAlgo", fmt("%d", dalgorithm));
+			break;
+		case Diffie_Hellman:
+			break;
+		case DSA_SHA1:
+			break;
+		case Elliptic_Curve:
+			break;
+		case RSA_SHA1:
+			break;
+		case DSA_NSEC3_SHA1:
+			break;
+		case RSA_SHA1_NSEC3_SHA1:
+			break;
+		case RSA_SHA256:
+			break;
+		case RSA_SHA512:
+			break;
+		case GOST_R_34_10_2001:
+			break;
+		case ECDSA_curveP256withSHA256:
+			break;
+		case ECDSA_curveP384withSHA384:
+			break;
+		case Indirect:
+			analyzer->Weird("DNSSEC_DNSKEY_Indirect_ZoneSignAlgo", fmt("%d", dalgorithm));
+			break;
+		case PrivateDNS:
+			analyzer->Weird("DNSSEC_DNSKEY_PrivateDNS_ZoneSignAlgo", fmt("%d", dalgorithm));
+			break;
+		case PrivateOID:
+			analyzer->Weird("DNSSEC_DNSKEY_PrivateOID_ZoneSignAlgo", fmt("%d", dalgorithm));
+			break;
+		default:
+			analyzer->Weird("DNSSEC_DNSKEY_unknown_ZoneSignAlgo", fmt("%d", dalgorithm));
+			break;
+	}
+
+	DNSKEY_DATA dnskey;
+	dnskey.dflags = dflags;
+	dnskey.dalgorithm = dalgorithm;
+	dnskey.dprotocol = dprotocol;
+	dnskey.public_key = key;
+
+	val_list* vl = new val_list;
+
+	vl->append(analyzer->BuildConnVal());
+	vl->append(msg->BuildHdrVal());
+	vl->append(msg->BuildAnswerVal());
+	vl->append(msg->BuildDNSKEY_Val(&dnskey));
+
+	analyzer->ConnectionEvent(dns_DNSKEY, vl);
+
+	return 1;
+	}
+
+int DNS_Interpreter::ParseRR_NSEC(DNS_MsgInfo* msg,
+				const u_char*& data, int& len, int rdlength,
+				const u_char* msg_start)
+	{
+	if ( ! dns_NSEC || msg->skip_event )
+		{
+		data += rdlength;
+		len -= rdlength;
+		return 1;
+		}
+
+	const u_char* data_start = data;
+	u_char name[513];
+	int name_len = sizeof(name) - 1;
+
+	u_char* name_end = ExtractName(data, len, name, name_len, msg_start);
+	if ( ! name_end )
+		return 0;
+
+	int typebitmaps_len = rdlength - (data - data_start);
+
+	VectorVal* char_strings = new VectorVal(string_vec);
+
+	while ( typebitmaps_len > 0 && len > 0 )
+		{
+		uint32 block_bmlen = ExtractShort(data, len);
+		unsigned int win_blck = (block_bmlen >> 8) & 0xff;
+		unsigned int bmlen = block_bmlen & 0xff;
+
+		if ( bmlen == 0 )
+			{
+			analyzer->Weird("DNSSEC_NSEC_bitmapLen0", fmt("%d", win_blck));
+			break;
+			}
+
+		BroString* bitmap = ExtractStream(data, len, bmlen);
+		char_strings->Assign(char_strings->Size(), new StringVal(bitmap));
+		typebitmaps_len = typebitmaps_len - (2 + bmlen);
+		}
+
+	val_list* vl = new val_list;
+
+	vl->append(analyzer->BuildConnVal());
+	vl->append(msg->BuildHdrVal());
+	vl->append(msg->BuildAnswerVal());
+	vl->append(new StringVal(new BroString(name, name_end - name, 1)));
+	vl->append(char_strings);
+
+	analyzer->ConnectionEvent(dns_NSEC, vl);
+
+	return 1;
+	}
+
+int DNS_Interpreter::ParseRR_NSEC3(DNS_MsgInfo* msg,
+				const u_char*& data, int& len, int rdlength,
+				const u_char* msg_start)
+	{
+	if ( ! dns_NSEC3 || msg->skip_event )
+		{
+		data += rdlength;
+		len -= rdlength;
+		return 1;
+		}
+
+	if ( len < 6 )
+		return 0;
+
+	const u_char* data_start = data;
+	uint32 halgo_flags = ExtractShort(data, len);
+	unsigned int hash_algo = (halgo_flags >> 8) & 0xff;
+	unsigned int nsec_flags = halgo_flags & 0xff;
+	unsigned int iter = ExtractShort(data, len);
+
+	uint8 salt_len = 0;
+
+	if ( len > 0 )
+		{
+		salt_len = data[0];
+		++data;
+		--len;
+		}
+
+	auto salt_val = ExtractStream(data, len, static_cast<int>(salt_len));
+
+	uint8 hash_len = 0;
+
+	if ( len > 0 )
+		{
+		hash_len = data[0];
+		++data;
+		--len;
+		}
+
+	auto hash_val = ExtractStream(data, len, static_cast<int>(hash_len));
+
+	int typebitmaps_len = rdlength - (data - data_start);
+
+	VectorVal* char_strings = new VectorVal(string_vec);
+
+	while ( typebitmaps_len > 0 && len > 0 )
+		{
+		uint32 block_bmlen = ExtractShort(data, len);
+		unsigned int win_blck = ( block_bmlen >> 8) & 0xff;
+		unsigned int bmlen = block_bmlen & 0xff;
+
+		if ( bmlen == 0 )
+			{
+			analyzer->Weird("DNSSEC_NSEC3_bitmapLen0", fmt("%d", win_blck));
+			break;
+			}
+
+		BroString* bitmap = ExtractStream(data, len, bmlen);
+		char_strings->Assign(char_strings->Size(), new StringVal(bitmap));
+		typebitmaps_len = typebitmaps_len - (2 + bmlen);
+		}
+
+	NSEC3_DATA nsec3;
+	nsec3.nsec_flags = nsec_flags;
+	nsec3.nsec_hash_algo = hash_algo;
+	nsec3.nsec_iter = iter;
+	nsec3.nsec_salt_len = salt_len;
+	nsec3.nsec_salt = salt_val;
+	nsec3.nsec_hlen = hash_len;
+	nsec3.nsec_hash = hash_val;
+	nsec3.bitmaps = char_strings;
+
+	val_list* vl = new val_list;
+
+	vl->append(analyzer->BuildConnVal());
+	vl->append(msg->BuildHdrVal());
+	vl->append(msg->BuildAnswerVal());
+	vl->append(msg->BuildNSEC3_Val(&nsec3));
+
+	analyzer->ConnectionEvent(dns_NSEC3, vl);
+
+	return 1;
+	}
+
+int DNS_Interpreter::ParseRR_DS(DNS_MsgInfo* msg,
+				const u_char*& data, int& len, int rdlength,
+				const u_char* msg_start)
+	{
+	if ( ! dns_DS || msg->skip_event )
+		{
+		data += rdlength;
+		len -= rdlength;
+		return 1;
+		}
+
+	if ( len < 4 )
+		return 0;
+
+	unsigned int ds_key_tag = ExtractShort(data, len);
+	// split the two bytes for algorithm and digest type extraction
+	uint32 ds_algo_dtype = ExtractShort(data, len);
+	unsigned int ds_algo = (ds_algo_dtype >> 8) & 0xff;
+	unsigned int ds_dtype = ds_algo_dtype & 0xff;
+	DNSSEC_Digest ds_digest_type = DNSSEC_Digest(ds_dtype);
+	BroString* ds_digest = ExtractStream(data, len, rdlength - 4);
+
+	switch ( ds_digest_type ) {
+		case SHA1:
+			break;
+		case SHA256:
+			break;
+		case GOST_R_34_11_94:
+			break;
+		case SHA384:
+			break;
+		case reserved0:
+			analyzer->Weird("DNSSEC_DS_ResrevedDigestType", fmt("%d", ds_dtype));
+			break;
+		default:
+			analyzer->Weird("DNSSEC_DS_unknown_DigestType", fmt("%d", ds_dtype));
+			break;
+	}
+
+	DS_DATA ds;
+	ds.key_tag = ds_key_tag;
+	ds.algorithm = ds_algo;
+	ds.digest_type = ds_dtype;
+	ds.digest_val = ds_digest;
+
+	val_list* vl = new val_list;
+
+	vl->append(analyzer->BuildConnVal());
+	vl->append(msg->BuildHdrVal());
+	vl->append(msg->BuildAnswerVal());
+	vl->append(msg->BuildDS_Val(&ds));
+
+	analyzer->ConnectionEvent(dns_DS, vl);
 
 	return 1;
 	}
@@ -1063,7 +1477,7 @@ Val* DNS_MsgInfo::BuildEDNS_Val()
 
 	// Need to break the TTL field into three components:
 	// initial: [------------- ttl (32) ---------------------]
-	// after:   [DO][ ext rcode (7)][ver # (8)][ Z field (16)]
+	// after:   [ ext rcode (8)][ver # (8)][   Z field (16)  ]
 
 	unsigned int ercode = (ttl >> 24) & 0xff;
 	unsigned int version = (ttl >> 16) & 0xff;
@@ -1100,6 +1514,79 @@ Val* DNS_MsgInfo::BuildTSIG_Val()
 
 	delete tsig;
 	tsig = 0;
+
+	return r;
+	}
+
+Val* DNS_MsgInfo::BuildRRSIG_Val(RRSIG_DATA* rrsig)
+	{
+	RecordVal* r = new RecordVal(dns_rrsig_rr);
+
+	Ref(query_name);
+	r->Assign(0, query_name);
+	r->Assign(1, new Val(int(answer_type), TYPE_COUNT));
+	r->Assign(2, new Val(rrsig->type_covered, TYPE_COUNT));
+	r->Assign(3, new Val(rrsig->algorithm, TYPE_COUNT));
+	r->Assign(4, new Val(rrsig->labels, TYPE_COUNT));
+	r->Assign(5, new IntervalVal(double(rrsig->orig_ttl), Seconds));
+	r->Assign(6, new Val(double(rrsig->sig_exp), TYPE_TIME));
+	r->Assign(7, new Val(double(rrsig->sig_incep), TYPE_TIME));
+	r->Assign(8, new Val(rrsig->key_tag, TYPE_COUNT));
+	r->Assign(9, new StringVal(rrsig->signer_name));
+	r->Assign(10, new StringVal(rrsig->signature));
+	r->Assign(11, new Val(is_query, TYPE_COUNT));
+
+	return r;
+	}
+
+Val* DNS_MsgInfo::BuildDNSKEY_Val(DNSKEY_DATA* dnskey)
+	{
+	RecordVal* r = new RecordVal(dns_dnskey_rr);
+
+	Ref(query_name);
+	r->Assign(0, query_name);
+	r->Assign(1, new Val(int(answer_type), TYPE_COUNT));
+	r->Assign(2, new Val(dnskey->dflags, TYPE_COUNT));
+	r->Assign(3, new Val(dnskey->dprotocol, TYPE_COUNT));
+	r->Assign(4, new Val(dnskey->dalgorithm, TYPE_COUNT));
+	r->Assign(5, new StringVal(dnskey->public_key));
+	r->Assign(6, new Val(is_query, TYPE_COUNT));
+
+	return r;
+	}
+
+Val* DNS_MsgInfo::BuildNSEC3_Val(NSEC3_DATA* nsec3)
+	{
+	RecordVal* r = new RecordVal(dns_nsec3_rr);
+
+	Ref(query_name);
+	r->Assign(0, query_name);
+	r->Assign(1, new Val(int(answer_type), TYPE_COUNT));
+	r->Assign(2, new Val(nsec3->nsec_flags, TYPE_COUNT));
+	r->Assign(3, new Val(nsec3->nsec_hash_algo, TYPE_COUNT));
+	r->Assign(4, new Val(nsec3->nsec_iter, TYPE_COUNT));
+	r->Assign(5, new Val(nsec3->nsec_salt_len, TYPE_COUNT));
+	r->Assign(6, new StringVal(nsec3->nsec_salt));
+	r->Assign(7, new Val(nsec3->nsec_hlen, TYPE_COUNT));
+	r->Assign(8, new StringVal(nsec3->nsec_hash));
+	r->Assign(9, nsec3->bitmaps);
+	r->Assign(10, new Val(is_query, TYPE_COUNT));
+
+	return r;
+	}
+
+Val* DNS_MsgInfo::BuildDS_Val(DS_DATA* ds)
+	{
+	RecordVal* r = new RecordVal(dns_ds_rr);
+
+	Ref(query_name);
+	r->Assign(0, query_name);
+	r->Assign(1, new Val(int(answer_type), TYPE_COUNT));
+	r->Assign(2, new Val(ds->key_tag, TYPE_COUNT));
+	r->Assign(3, new Val(ds->algorithm, TYPE_COUNT));
+	r->Assign(4, new Val(ds->digest_type, TYPE_COUNT));
+	r->Assign(5, new StringVal(ds->digest_val));
+	r->Assign(6, new Val(is_query, TYPE_COUNT));
 
 	return r;
 	}

@@ -1,4 +1,8 @@
 
+2.6-beta2-7 | 2018-09-21 10:18:55 -0500
+
+  * Fix compile error in MMDB GeoIP code (Jon Siwek, Corelight)
+
 2.6-beta2-6 | 2018-09-20 13:15:15 -0500
 
   * Add a missing "break" in OSFinger.cc (Daniel Thayer)

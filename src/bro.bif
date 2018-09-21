@@ -3626,7 +3626,7 @@ private:
 };
 
 MMDB::MMDB(const char* filename, struct stat info)
-	: file_info{info}, lookup_error{false},
+	: file_info(info), lookup_error{false},
 	  last_check{std::chrono::steady_clock::now()}
 	{
 	int status = MMDB_open(filename, MMDB_MODE_MMAP, &mmdb);

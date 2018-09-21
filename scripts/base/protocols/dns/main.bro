@@ -466,6 +466,45 @@ event dns_SRV_reply(c: connection, msg: dns_msg, ans: dns_answer, target: string
 #
 #	}
 
+event dns_RRSIG_addl(c: connection, msg: dns_msg, ans: dns_answer, rrsig: dns_rrsig_additional)
+        {
+        local rrsig_rec: string = fmt("RRSIG_Signer_%s", rrsig$signer_name);
+        if ( rrsig$signer_name == "")
+                rrsig_rec = fmt("RRSIG_Signer_<Root>");
+
+        hook DNS::do_reply(c, msg, ans, rrsig_rec);
+        }
+
+event dns_DNSKEY_addl(c: connection, msg: dns_msg, ans: dns_answer, dnskey: dns_dnskey_additional)
+        {
+        local dnskey_rec: string = fmt("DNSKEY_for_%s", ans$query);
+        if (ans$query == "")
+                dnskey_rec = fmt("DNSKEY_for_<Root>");
+        hook DNS::do_reply(c, msg, ans, dnskey_rec);
+        }
+
+event dns_NSEC_addl(c: connection, msg: dns_msg, ans: dns_answer, next_name: string, bitmaps: string_vec)
+        {
+        hook DNS::do_reply(c, msg, ans, next_name);
+        }
+
+event dns_NSEC3_addl(c: connection, msg: dns_msg, ans: dns_answer, nsec3: dns_nsec3_additional, bitmaps: string_vec)
+        {
+        local nsec3_rec: string = fmt("NSEC3_for_%s", ans$query);
+        if (ans$query == "")
+                nsec3_rec = fmt("NSEC3_for_<Root>");
+
+        hook DNS::do_reply(c, msg, ans, nsec3_rec);
+        }
+
+event dns_DS_addl(c: connection, msg: dns_msg, ans: dns_answer, ds: dns_ds_additional)
+        {
+        local ds_rec: string = fmt("DS_for_%s", ans$query);
+        if (ans$query == "")
+                ds_rec = fmt("DS_for_<Root>");
+        hook DNS::do_reply(c, msg, ans, ds_rec);
+        }
+
 event dns_rejected(c: connection, msg: dns_msg, query: string, qtype: count, qclass: count) &priority=5
 	{
 	if ( c?$dns )

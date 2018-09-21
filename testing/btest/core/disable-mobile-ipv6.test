@@ -1,4 +1,4 @@
-# @TEST-REQUIRES: grep -q "#undef ENABLE_MOBILE_IPV6" $BUILD/config.h
+# @TEST-REQUIRES: grep -q "#undef ENABLE_MOBILE_IPV6" $BUILD/bro-config.h
 # @TEST-EXEC: bro -r $TRACES/mobile-ipv6/mip6_back.trace %INPUT
 # @TEST-EXEC: btest-diff weird.log
 

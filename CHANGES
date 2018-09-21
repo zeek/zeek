@@ -1,4 +1,8 @@
 
+2.6-beta2-10 | 2018-09-21 13:29:15 -0500
+
+  * Fix some broken @TEST-REQUIRES in unit tests (Daniel Thayer)
+
 2.6-beta2-8 | 2018-09-21 13:25:50 -0500
 
   * Emit missing GeoIP database errors only once at startup (Jon Siwek, Corelight)

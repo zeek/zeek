@@ -1,4 +1,4 @@
-# @TEST-REQUIRES: grep -q "#define ENABLE_MOBILE_IPV6" $BUILD/config.h
+# @TEST-REQUIRES: grep -q "#define ENABLE_MOBILE_IPV6" $BUILD/bro-config.h
 # @TEST-EXEC: bro -r $TRACES/chksums/mip6-bad-mh-chksum.pcap
 # @TEST-EXEC: mv weird.log bad.out
 # @TEST-EXEC: bro -r $TRACES/chksums/ip6-hoa-tcp-bad-chksum.pcap

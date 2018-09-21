@@ -1,4 +1,8 @@
 
+2.6-beta2-8 | 2018-09-21 13:25:50 -0500
+
+  * Emit missing GeoIP database errors only once at startup (Jon Siwek, Corelight)
+
 2.6-beta2-7 | 2018-09-21 10:18:55 -0500
 
   * Fix compile error in MMDB GeoIP code (Jon Siwek, Corelight)

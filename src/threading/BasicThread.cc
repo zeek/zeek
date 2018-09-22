@@ -11,6 +11,10 @@
 #include <sys/prctl.h>
 #endif
 
+#ifdef __FreeBSD__
+#include <pthread_np.h>
+#endif
+
 using namespace threading;
 
 static const int STD_FMT_BUF_LEN = 2048;
@@ -60,8 +64,8 @@ void BasicThread::SetOSName(const char* arg_name)
 	pthread_setname_np(arg_name);
 #endif
 
-#ifdef FREEBSD
-	pthread_set_name_np(thread.native_handle(), arg_name, arg_name);
+#ifdef __FreeBSD__
+	pthread_set_name_np(thread.native_handle(), arg_name);
 #endif
 	}
 

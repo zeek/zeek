@@ -1,4 +1,8 @@
 
+2.6-beta2-12 | 2018-09-24 10:56:09 -0500
+
+  * Fix BasicThread::SetOSName on FreeBSD (Dominik Charousset)
+
 2.6-beta2-10 | 2018-09-21 13:29:15 -0500
 
   * Fix some broken @TEST-REQUIRES in unit tests (Daniel Thayer)

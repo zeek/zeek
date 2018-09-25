@@ -3626,7 +3626,7 @@ private:
 };
 
 MMDB::MMDB(const char* filename, struct stat info)
-	: file_info{info}, lookup_error{false},
+	: file_info(info), lookup_error{false},
 	  last_check{std::chrono::steady_clock::now()}
 	{
 	int status = MMDB_open(filename, MMDB_MODE_MMAP, &mmdb);
@@ -3695,6 +3695,8 @@ const char* MMDB::Filename()
 
 std::unique_ptr<MMDB> mmdb_loc;
 std::unique_ptr<MMDB> mmdb_asn;
+static bool did_mmdb_loc_db_error = false;
+static bool did_mmdb_asn_db_error = false;
 
 static bool mmdb_open(const char* filename, bool asn)
 	{
@@ -3719,6 +3721,11 @@ static bool mmdb_open(const char* filename, bool asn)
 
 	catch ( const std::exception& e )
 		{
+		if ( asn )
+			did_mmdb_asn_db_error = false;
+		else
+			did_mmdb_loc_db_error = false;
+
 		reporter->Info("Failed to open MaxMind DB: %s [%s]", filename,
 		               e.what());
 		return false;
@@ -3742,6 +3749,7 @@ static void mmdb_check_loc()
 	if ( mmdb_loc && mmdb_loc->StaleDB() )
 		{
 		reporter->Info("Closing stale MaxMind DB [%s]", mmdb_loc->Filename());
+		did_mmdb_loc_db_error = false;
 		mmdb_loc.release();
 		}
 	}
@@ -3751,6 +3759,7 @@ static void mmdb_check_asn()
 	if ( mmdb_asn && mmdb_asn->StaleDB() )
 		{
 		reporter->Info("Closing stale MaxMind DB [%s]", mmdb_asn->Filename());
+		did_mmdb_asn_db_error = false;
 		mmdb_asn.release();
 		}
 	}
@@ -3943,7 +3952,12 @@ function lookup_location%(a: addr%) : geo_location
 		{
 		if ( ! mmdb_try_open_loc() )
 			{
-			builtin_error("Failed to open GeoIP location database");
+			if ( ! did_mmdb_loc_db_error )
+				{
+				did_mmdb_loc_db_error = true;
+				builtin_error("Failed to open GeoIP location database");
+				}
+
 			return location;
 			}
 		}
@@ -4021,7 +4035,12 @@ function lookup_asn%(a: addr%) : count
 		{
 		if ( ! mmdb_try_open_asn() )
 			{
-			builtin_error("No open GeoIP ASN database");
+			if ( ! did_mmdb_asn_db_error )
+				{
+				did_mmdb_asn_db_error = true;
+				builtin_error("Failed to open GeoIP ASN database");
+				}
+
 			return new Val(0, TYPE_COUNT);
 			}
 		}

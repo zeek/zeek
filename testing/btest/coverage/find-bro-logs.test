@@ -4,6 +4,7 @@
 #
 # If this test fails, then the "Log Files" documentation page should be updated.
 
+# @TEST-REQUIRES: which python
 # @TEST-EXEC: bash %INPUT
 # @TEST-EXEC: btest-diff out
 

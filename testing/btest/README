@@ -20,17 +20,17 @@ Significant Subdirectories
 	Packet captures utilized by the various BTest tests.
 
 * scripts/
-    This hierarchy of tests emulates the hierarchy of the Bro scripts/
-    directory.
+	This hierarchy of tests emulates the hierarchy of the Bro scripts/
+	directory.
 
 * coverage/
-    This collection of tests relates to checking whether we're covering
-    everything we want to in terms of tests, documentation, and which
-    scripts get loaded in different Bro configurations.  These tests are
-    more prone to fail as new Bro scripts are developed and added to the
-    distribution -- checking the individual test's comments is the best
-    place to check for more details on what exactly the test is checking
-    and hints on how to fix it when it fails.
+	This collection of tests relates to checking whether we're covering
+	everything we want to in terms of tests, documentation, and which
+	scripts get loaded in different Bro configurations.  These tests are
+	more prone to fail as new Bro scripts are developed and added to the
+	distribution -- checking the individual test's comments is the best
+	place to check for more details on what exactly the test is checking
+	and hints on how to fix it when it fails.
 
 Running Tests
 =============

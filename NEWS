@@ -544,6 +544,11 @@ Changed Functionality
   indicated whether each Bro process was the "parent" or "child", but this
   is no longer relevant because each Bro node now runs as a single process.
 
+- Bro's Plugin framework now allows a patch version.  If a patch version is not
+  provided, it will default to 0.  To specify this, modify the plugin
+  Configuration class in your ``src/Plugin.cc` and set
+  ``config.version.patch``.
+
 Removed Functionality
 ---------------------
 

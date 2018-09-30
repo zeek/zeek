@@ -15,5 +15,6 @@ plugin::Configuration Plugin::Configure()
 	config.description = "A Foo test input reader";
 	config.version.major = 1;
 	config.version.minor = 0;
+	config.version.patch = 0;
 	return config;
 	}

@@ -1,4 +1,4 @@
-Demo::Foo - <Insert description> (dynamic, version 0.1)
+Demo::Foo - <Insert description> (dynamic, version 0.1.0)
     [Function] hello_plugin_world
     [Event] plugin_event
 

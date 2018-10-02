@@ -1,4 +1,8 @@
 
+2.6-beta2-17 | 2018-10-02 16:05:10 -0500
+
+  * Update testing/btest/README (Jon Siwek, Corelight)
+
 2.6-beta2-14 | 2018-09-25 16:38:29 -0500
 
   * Add some missing @TEST-REQUIRES to a few tests (Daniel Thayer)

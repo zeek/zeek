@@ -684,8 +684,6 @@ struct type_checker {
 				return false;
 				}
 
-			auto list_val = new ListVal(TYPE_ANY);
-
 			for ( auto i = 0u; i < indices_to_check.size(); ++i )
 				{
 				auto expect = (*expected_index_types)[i];

@@ -1,4 +1,8 @@
 
+2.6-beta2-18 | 2018-10-03 11:09:04 -0500
+
+  * Fix memory leak in broker type checking (Jon Siwek, Corelight)
+
 2.6-beta2-17 | 2018-10-02 16:05:10 -0500
 
   * Update testing/btest/README (Jon Siwek, Corelight)

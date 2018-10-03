@@ -3,7 +3,7 @@
 # @TEST-EXEC: btest-bg-run clone "bro -B broker -b  ../clone-main.bro >clone.out"
 # @TEST-EXEC: btest-bg-run master "bro -B broker -b  ../master-main.bro >master.out"
 #
-# @TEST-EXEC: btest-bg-wait 25
+# @TEST-EXEC: btest-bg-wait 45
 # @TEST-EXEC: btest-diff clone/clone.out
 # @TEST-EXEC: btest-diff master/master.out
 

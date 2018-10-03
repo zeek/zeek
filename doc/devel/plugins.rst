@@ -99,7 +99,7 @@ option::
     # export BRO_PLUGIN_PATH=/path/to/rot13-plugin/build
     # bro -N
     [...]
-    Demo::Rot13 - <Insert description> (dynamic, version 0.1)
+    Demo::Rot13 - <Insert description> (dynamic, version 0.1.0)
     [...]
 
 That looks quite good, except for the dummy description that we should
@@ -115,6 +115,7 @@ is about.  We do this by editing the ``config.description`` line in
         config.description = "Caesar cipher rotating a string's characters by 13 places.";
         config.version.major = 0;
         config.version.minor = 1;
+        config.version.patch = 0;
         return config;
         }
     [...]
@@ -124,14 +125,14 @@ Now rebuild and verify that the description is visible::
     # make
     [...]
     # bro -N | grep Rot13
-    Demo::Rot13 - Caesar cipher rotating a string's characters by 13 places. (dynamic, version 0.1)
+    Demo::Rot13 - Caesar cipher rotating a string's characters by 13 places. (dynamic, version 0.1.0)
 
 Bro can also show us what exactly the plugin provides with the
 more verbose option ``-NN``::
 
     # bro -NN
     [...]
-    Demo::Rot13 - Caesar cipher rotating a string's characters by 13 places. (dynamic, version 0.1)
+    Demo::Rot13 - Caesar cipher rotating a string's characters by 13 places. (dynamic, version 0.1.0)
         [Function] Demo::rot13
     [...]
 
@@ -166,7 +167,7 @@ unpacking.
 
 To distribute the plugin in binary form, the build process
 conveniently creates a corresponding tarball in ``build/dist/``. In
-this case, it's called ``Demo_Rot13-0.1.tar.gz``, with the version
+this case, it's called ``Demo_Rot13-0.1.0.tar.gz``, with the version
 number coming out of the ``VERSION`` file that ``init-plugin`` put
 into place. The binary tarball has everything needed to run the
 plugin, but no further source files. Optionally, one can include
@@ -395,7 +396,7 @@ let's get that in place::
     % 'btest-diff output' failed unexpectedly (exit code 100)
     % cat .diag
     == File ===============================
-    Demo::Rot13 - Caesar cipher rotating a string's characters by 13 places. (dynamic, version 0.1)
+    Demo::Rot13 - Caesar cipher rotating a string's characters by 13 places. (dynamic, version 0.1.0)
         [Function] Demo::rot13
 
     == Error ===============================

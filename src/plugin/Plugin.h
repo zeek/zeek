@@ -69,16 +69,26 @@ extern const char* hook_name(HookType h);
 struct VersionNumber {
 	int major; //< Major version number;
 	int minor; //< Minor version number;
+	int patch; //< Patch version number;
 
 	/**
 	 *  Constructor.
 	 */
-	VersionNumber()	{ major = minor = -1; }
+	VersionNumber()	{
+		/**
+		 * Major and minor versions are required.
+		 */
+		major = minor = -1;
+		/**
+		 * Patch version is optional, and set to 0 if not manually set.
+		 */
+		patch = 0;
+	}
 
 	/**
 	 *  Returns true if the version is set to a non-negative value.
 	 */
-	explicit operator bool() const { return major >= 0 && minor >= 0; }
+	explicit operator bool() const { return major >= 0 && minor >= 0 && patch >= 0; }
 };
 
 /**

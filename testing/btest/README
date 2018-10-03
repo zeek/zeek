@@ -1,7 +1,7 @@
 This a test suite of small "unit tests" that verify individual pieces of Bro
 functionality.  They all utilize BTest, a simple framework/driver for
 writing unit tests.  More information about BTest can be found at
-http://www.bro.org/development/btest.html
+https://github.com/bro/btest
 
 The test suite's BTest configuration is handled through the
 ``btest.cfg`` file.  Of particular interest is the "TestDirs" settings,
@@ -61,7 +61,7 @@ Adding Tests
 =============
 
 See either the `BTest documentation
-<http://www.bro.org/development/btest.html>`_ or the existing unit
+<https://github.com/bro/btest>`_ or the existing unit
 tests for examples of what they actually look like.  The essential
 components of a new test include:
 
@@ -80,6 +80,3 @@ If you create a new top-level testing directory for collecting related
 tests, then you'll need to add it to the list of ``TestDirs`` in
 ``btest.cfg``. Do this only if your test really doesn't fit logically in
 any of the extant directories.
-
-Note that any new test you add this way will automatically be included
-in the testing done in the NMI automated build & test environment.

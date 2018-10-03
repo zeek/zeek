@@ -1,4 +1,10 @@
 
+2.6-beta2-20 | 2018-10-03 15:47:26 -0500
+
+  * Improve broker.remote_id unit test (Jon Siwek, Corelight)
+
+  * Increase broker unit test timeout intervals (Jon Siwek, Corelight)
+
 2.6-beta2-18 | 2018-10-03 11:09:04 -0500
 
   * Fix memory leak in broker type checking (Jon Siwek, Corelight)

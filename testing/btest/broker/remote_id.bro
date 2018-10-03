@@ -15,8 +15,9 @@ event bro_init()
 	Broker::peer("127.0.0.1");
 	}
 
-event die()
+event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	{
+	print "peer lost";
 	terminate();
 	}
 
@@ -24,7 +25,6 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
 	print "peer added";
 	Broker::publish_id("bro/ids/test", "test_var");
-	schedule 1sec { die() };
 	}
 
 @TEST-END-FILE
@@ -32,6 +32,17 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 @TEST-START-FILE recv.bro
 
 const test_var = "init" &redef;
+
+event check_var()
+	{
+	if ( test_var == "init" )
+		schedule 0.1sec { check_var() };
+	else
+		{
+		print "updated val", test_var;
+		terminate();
+		}
+	}
 
 event bro_init()
 	{
@@ -43,12 +54,12 @@ event bro_init()
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
 	print "peer added";
+	schedule 1sec { check_var() };
 	}
 
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	{
 	print "peer lost";
-	print "updated val", test_var;
 	terminate();
 	}
 

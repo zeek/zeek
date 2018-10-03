@@ -21,6 +21,7 @@ plugin::Configuration Plugin::Configure()
 	config.description = "Exercises Log hooks";
 	config.version.major = 1;
 	config.version.minor = 0;
+	config.version.patch = 0;
 	return config;
 	}
 

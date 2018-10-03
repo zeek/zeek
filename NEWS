@@ -19,6 +19,15 @@ New Functionality
   - dns_NSEC
   - dns_NSEC3
 
+- Bro's Plugin framework now allows a patch version.  If a patch version is not
+  provided, it will default to 0.  To specify this, modify the plugin
+  Configuration class in your ``src/Plugin.cc` and set
+  ``config.version.patch``.  Note that the default plugin skeleton
+  includes a unit test whose Baseline has the plugin version number in
+  it and that will now fail due to the version number now including a
+  patch number.  For those that want to keep the unit test, simply adapt
+  the unit test/baseline to include the new plugin patch number.
+
 Changed Functionality
 ---------------------
 

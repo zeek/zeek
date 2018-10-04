@@ -1,4 +1,10 @@
 
+2.6-beta2-22 | 2018-10-04 11:31:48 -0500
+
+  * Add return value checks for some RPC parsing functions (Jon Siwek, Corelight)
+
+  * Add 'fallthrough' comment to a switch/case block (Jon Siwek, Corelight)
+
 2.6-beta2-20 | 2018-10-03 15:47:26 -0500
 
   * Improve broker.remote_id unit test (Jon Siwek, Corelight)

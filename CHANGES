@@ -1,4 +1,8 @@
 
+2.6-beta2-24 | 2018-10-05 14:24:34 -0500
+
+  * GH-184: add `bro-config --build_type`, outputs CMake build type (Jon Siwek, Corelight)
+
 2.6-beta2-22 | 2018-10-04 11:31:48 -0500
 
   * Add return value checks for some RPC parsing functions (Jon Siwek, Corelight)

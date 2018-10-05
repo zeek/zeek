@@ -230,6 +230,7 @@ if ( NOT BINARY_PACKAGING_MODE )
     set(BRO_DIST ${CMAKE_SOURCE_DIR})
 endif ()
 
+string(TOLOWER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_LOWER)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/bro-config.h.in
                ${CMAKE_CURRENT_BINARY_DIR}/bro-config.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})

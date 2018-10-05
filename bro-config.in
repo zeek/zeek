@@ -1,6 +1,7 @@
 #!/bin/sh
 
 version=@VERSION@
+build_type=@CMAKE_BUILD_TYPE_LOWER@
 prefix=@CMAKE_INSTALL_PREFIX@
 script_dir=@BRO_SCRIPT_INSTALL_PATH@
 site_dir=@BRO_SCRIPT_INSTALL_PATH@/site
@@ -16,7 +17,7 @@ caf_root=@BRO_CONFIG_CAF_ROOT_DIR@
 broker_root=@BRO_CONFIG_BROKER_ROOT_DIR@
 
 usage="\
-Usage: bro-config [--version] [--prefix] [--script_dir] [--site_dir] [--plugin_dir] [--config_dir] [--python_dir] [--include_dir] [--cmake_dir] [--bropath] [--bro_dist] [--binpac_root] [--caf_root] [--broker_root]"
+Usage: bro-config [--version] [--build_type] [--prefix] [--script_dir] [--site_dir] [--plugin_dir] [--config_dir] [--python_dir] [--include_dir] [--cmake_dir] [--bropath] [--bro_dist] [--binpac_root] [--caf_root] [--broker_root]"
 
 if [ $# -eq 0 ] ; then
       echo "${usage}" 1>&2
@@ -35,6 +36,9 @@ while [ $# -ne 0 ]; do
       ;;
     --prefix)
       echo $prefix
+      ;;
+    --build_type)
+      echo $build_type
       ;;
     --script_dir)
       echo $script_dir

@@ -7,7 +7,7 @@ module Site;
 export {
 	## Address space that is considered private and unrouted.
 	## By default it has RFC defined non-routable IPv4 address space.
-	const private_address_space: set[subnet] = {
+	option private_address_space: set[subnet] = {
 		10.0.0.0/8,
 		192.168.0.0/16,
 		172.16.0.0/12,
@@ -15,11 +15,11 @@ export {
 		127.0.0.0/8,
 		[fe80::]/10,
 		[::1]/128,
-	} &redef;
+	};
 
 	## Networks that are considered "local".  Note that BroControl sets
 	## this automatically.
-	const local_nets: set[subnet] &redef;
+	option local_nets: set[subnet] = {};
 
 	## This is used for retrieving the subnet when using multiple entries in
 	## :bro:id:`Site::local_nets`.  It's populated automatically from there.
@@ -29,19 +29,19 @@ export {
 	global local_nets_table: table[subnet] of subnet = {};
 
 	## Networks that are considered "neighbors".
-	const neighbor_nets: set[subnet] &redef;
+	option neighbor_nets: set[subnet] = {};
 
 	## If local network administrators are known and they have responsibility
 	## for defined address space, then a mapping can be defined here between
 	## networks for which they have responsibility and a set of email
 	## addresses.
-	const local_admins: table[subnet] of set[string] = {} &redef;
+	option local_admins: table[subnet] of set[string] = {};
 
 	## DNS zones that are considered "local".
-	const local_zones: set[string] &redef;
+	option local_zones: set[string] = {};
 
 	## DNS zones that are considered "neighbors".
-	const neighbor_zones: set[string] &redef;
+	option neighbor_zones: set[string] = {};
 
 	## Function that returns true if an address corresponds to one of
 	## the local networks, false if not.

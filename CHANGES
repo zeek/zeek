@@ -1,4 +1,8 @@
 
+2.6-beta2-28 | 2018-10-12 12:48:33 -0400
+
+  * Fix test baseline for plugin skeleton update (Jon Siwek, Corelight)
+
 2.6-beta2-27 | 2018-10-12 12:18:02 -0400
 
   * Convert site::local_nets, etc. into options. (Johanna Amann)

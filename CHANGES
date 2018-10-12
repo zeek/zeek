@@ -1,4 +1,8 @@
 
+2.6-beta2-27 | 2018-10-12 12:18:02 -0400
+
+  * Convert site::local_nets, etc. into options. (Johanna Amann)
+
 2.6-beta2-25 | 2018-10-12 08:33:32 -0400
 
   * Fix crash when modifying a table from within its &expire_func (Jon Siwek, Corelight)

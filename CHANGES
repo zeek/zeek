@@ -1,4 +1,8 @@
 
+2.6-beta2-25 | 2018-10-12 08:33:32 -0400
+
+  * Fix crash when modifying a table from within its &expire_func (Jon Siwek, Corelight)
+
 2.6-beta2-24 | 2018-10-05 14:24:34 -0500
 
   * GH-184: add `bro-config --build_type`, outputs CMake build type (Jon Siwek, Corelight)

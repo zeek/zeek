@@ -27,5 +27,30 @@ event bro_init()
 		$t=(strptime("%Y-%m-%dT%H:%M:%SZ", "1986-12-01T01:01:01Z") + 0.90 secs)
 		]);
 
+	Log::write(SSH::LOG, [
+		$t=(strptime("%Y-%m-%dT%H:%M:%SZ", "1970-01-01T00:00:00Z") - 0.4 secs)
+		]);
+	Log::write(SSH::LOG, [
+		$t=(strptime("%Y-%m-%dT%H:%M:%SZ", "1970-01-01T00:00:00Z") - 0.5 secs)
+		]);
+	Log::write(SSH::LOG, [
+		$t=(strptime("%Y-%m-%dT%H:%M:%SZ", "1970-01-01T00:00:00Z") - 0.6 secs)
+		]);
+	Log::write(SSH::LOG, [
+		$t=(strptime("%Y-%m-%dT%H:%M:%SZ", "1970-01-01T00:00:00Z") - 1.0 secs)
+		]);
+	Log::write(SSH::LOG, [
+		$t=(strptime("%Y-%m-%dT%H:%M:%SZ", "1970-01-01T00:00:00Z") - 1.4 secs)
+		]);
+	Log::write(SSH::LOG, [
+		$t=(strptime("%Y-%m-%dT%H:%M:%SZ", "1970-01-01T00:00:00Z") - 1.5 secs)
+		]);
+	Log::write(SSH::LOG, [
+		$t=(strptime("%Y-%m-%dT%H:%M:%SZ", "1970-01-01T00:00:00Z") - 1.6 secs)
+		]);
+	Log::write(SSH::LOG, [
+		$t=(strptime("%Y-%m-%dT%H:%M:%SZ", "1970-01-01T00:00:00Z") - 99 secs)
+		]);
+
 }
 

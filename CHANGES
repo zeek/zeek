@@ -1,4 +1,8 @@
 
+2.6-beta2-29 | 2018-10-12 21:30:19 +0000
+
+  * GH-186: fix JSON formatting of timestamps before Unix epoch (Jon Siwek, Corelight)
+
 2.6-beta2-28 | 2018-10-12 12:48:33 -0400
 
   * Fix test baseline for plugin skeleton update (Jon Siwek, Corelight)

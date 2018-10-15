@@ -1,4 +1,8 @@
 
+2.6-beta2-31 | 2018-10-15 16:42:36 -0500
+
+  * Add DCE_RPC exchange_mapi operations to relevant consts.bro file (Dale Lakes)
+
 2.6-beta2-29 | 2018-10-12 21:30:19 +0000
 
   * GH-186: fix JSON formatting of timestamps before Unix epoch (Jon Siwek, Corelight)

@@ -1431,6 +1431,11 @@ export {
 		["a4f1db00-ca47-1067-b31f-00dd010662da",0x07] = "EcRGetDCName",
 		["a4f1db00-ca47-1067-b31f-00dd010662da",0x08] = "EcRNetGetDCName",
 		["a4f1db00-ca47-1067-b31f-00dd010662da",0x09] = "EcDoRpcExt",
+		["a4f1db00-ca47-1067-b31f-00dd010662da",0x0a] = "EcDoConnectEx",
+		["a4f1db00-ca47-1067-b31f-00dd010662da",0x0b] = "EcDoRpcExt2",
+		["a4f1db00-ca47-1067-b31f-00dd010662da",0x0c] = "EcUnknown0xC",
+		["a4f1db00-ca47-1067-b31f-00dd010662da",0x0d] = "EcUnknown0xD",
+		["a4f1db00-ca47-1067-b31f-00dd010662da",0x0e] = "EcDoAsyncConnectEx",
 
 		# drsuapi
 		["e3514235-4b06-11d1-ab04-00c04fc2dcd2",0x00] = "DRSBind",

@@ -1,4 +1,14 @@
 
+2.6-beta2-40 | 2018-10-16 15:37:49 -0500
+
+  * Change DNP3::function_codes name for request 0x21 (Dale Lakes)
+
+  * Fix resource record type names in DNS::query_types for 41 and 100 (Dale Lakes)
+
+  * Add missing DNS resource record types to DNS::query_types (Dale Lakes)
+
+  * Refactor DCE_RPC constants to be specified in hex instead of decimal (Dale Lakes)
+
 2.6-beta2-35 | 2018-10-16 13:41:15 -0500
 
   * Update baselines for SSH capabilities fix (Vlad Grigorescu)

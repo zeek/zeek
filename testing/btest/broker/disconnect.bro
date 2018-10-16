@@ -3,10 +3,10 @@
 # @TEST-EXEC: btest-bg-run recv "bro -B broker -b ../recv.bro >recv.out"
 # @TEST-EXEC: btest-bg-run send "bro -B broker -b ../send.bro >send.out"
 
-# @TEST-EXEC: $SCRIPTS/wait-for-pid $(cat recv/.pid) 30 || (btest-bg-wait -k 1 && false)
+# @TEST-EXEC: $SCRIPTS/wait-for-pid $(cat recv/.pid) 45 || (btest-bg-wait -k 1 && false)
 
 # @TEST-EXEC: btest-bg-run recv2 "bro -B broker -b ../recv.bro >recv2.out"
-# @TEST-EXEC: btest-bg-wait 30
+# @TEST-EXEC: btest-bg-wait 45
 
 # @TEST-EXEC: btest-diff send/send.out
 # @TEST-EXEC: btest-diff recv/recv.out

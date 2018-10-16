@@ -38,7 +38,7 @@ export {
 		[0x1e] = "ABORT_FILE",
 		[0x1f] = "ACTIVATE_CONFIG",
 		[0x20] = "AUTHENTICATE_REQ",
-		[0x21] = "AUTHENTICATE_ERR",
+		[0x21] = "AUTHENTICATE_REQ_NR",
 
 		# Responses.
 		[0x81] = "RESPONSE",

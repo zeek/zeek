@@ -577,6 +577,12 @@ Changed Functionality
   indicated whether each Bro process was the "parent" or "child", but this
   is no longer relevant because each Bro node now runs as a single process.
 
+- The ``DNP3::function_codes`` name for request 0x21 has been corrected from
+  "AUTHENTICATE_ERR" to "AUTHENTICATE_REQ_NR".
+
+- The ``DNS::query_types`` names for resource records 41 and 100 have been
+  corrected from "EDNS" to "OPT" and "DINFO" to "UINFO", respectively.
+
 Removed Functionality
 ---------------------
 

@@ -116,7 +116,7 @@ bool JSON::Describe(ODesc* desc, Value* val, const string& name) const
 				{
 				char buffer[40];
 				char buffer2[40];
-				time_t the_time = time_t(val->val.double_val);
+				time_t the_time = time_t(floor(val->val.double_val));
 				struct tm t;
 
 				desc->AddRaw("\"", 1);
@@ -133,7 +133,11 @@ bool JSON::Describe(ODesc* desc, Value* val, const string& name) const
 					{
 					double integ;
 					double frac = modf(val->val.double_val, &integ);
-					snprintf(buffer2, sizeof(buffer2), "%s.%06.0fZ", buffer, frac * 1000000);
+
+					if ( frac < 0 )
+						frac += 1;
+
+					snprintf(buffer2, sizeof(buffer2), "%s.%06.0fZ", buffer, fabs(frac) * 1000000);
 					desc->Add(buffer2);
 					}
 

@@ -2361,8 +2361,6 @@ void TableVal::DoExpire(double t)
 
 		else if ( v->ExpireAccessTime() + timeout < t )
 			{
-			Val* val = v->Value();
-
 			if ( expire_func )
 				{
 				Val* idx = RecoverIndex(k);
@@ -2403,8 +2401,8 @@ void TableVal::DoExpire(double t)
 					new StateAccess(OP_EXPIRE, this, k));
 
 			tbl->RemoveEntry(k);
+			Unref(v->Value());
 			delete v;
-			Unref(val);
 			Modified();
 			}
 

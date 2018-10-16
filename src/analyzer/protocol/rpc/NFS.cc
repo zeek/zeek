@@ -311,7 +311,7 @@ StringVal* NFS_Interp::nfs3_file_data(const u_char*& buf, int& n, uint64_t offse
 	data_n = min(data_n, size);
 	data_n = min(data_n, int(BifConst::NFS3::return_data_max));
 
-	if ( data_n > 0 )
+	if ( data && data_n > 0 )
 		return new StringVal(new BroString(data, data_n, 0));
 
 	return 0;

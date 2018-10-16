@@ -284,6 +284,7 @@ void Packet::ProcessLayer2()
 			}
 
 		pdata += rtheader_len;
+		// fallthrough
 		}
 
 	case DLT_IEEE802_11:

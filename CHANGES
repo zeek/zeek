@@ -1,4 +1,8 @@
 
+2.6-beta2-32 | 2018-10-16 09:22:54 -0700
+
+  * Fix typo in Sessions.h (Eiji Yanagi (Cisco))
+
 2.6-beta2-31 | 2018-10-15 16:42:36 -0500
 
   * Add DCE_RPC exchange_mapi operations to relevant consts.bro file (Dale Lakes)

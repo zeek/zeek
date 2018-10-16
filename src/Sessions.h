@@ -186,7 +186,7 @@ protected:
 	friend class IPTunnelTimer;
 
 	Connection* NewConn(HashKey* k, double t, const ConnID* id,
-			const u_char* data, int proto, uint32 flow_lable,
+			const u_char* data, int proto, uint32 flow_label,
 			const Packet* pkt, const EncapsulationStack* encapsulation);
 
 	// Check whether the tag of the current packet is consistent with

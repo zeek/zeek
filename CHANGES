@@ -1,4 +1,10 @@
 
+2.6-beta2-35 | 2018-10-16 13:41:15 -0500
+
+  * Update baselines for SSH capabilities fix (Vlad Grigorescu)
+
+  * Fix SSH analyzer bug where is_server in capabilities is wrong. (Vlad Grigorescu)
+
 2.6-beta2-32 | 2018-10-16 09:22:54 -0700
 
   * Fix typo in Sessions.h (Eiji Yanagi (Cisco))

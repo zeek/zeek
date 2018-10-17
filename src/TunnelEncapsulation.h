@@ -88,6 +88,7 @@ public:
 			return false;
 
 		if ( ec1.type == BifEnum::Tunnel::IP ||
+				 ec1.type == BifEnum::Tunnel::VXLAN ||
 		     ec1.type == BifEnum::Tunnel::GRE )
 			// Reversing endpoints is still same tunnel.
 			return ec1.uid == ec2.uid && ec1.proto == ec2.proto &&

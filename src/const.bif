@@ -19,6 +19,7 @@ const Tunnel::enable_ayiya: bool;
 const Tunnel::enable_teredo: bool;
 const Tunnel::enable_gtpv1: bool;
 const Tunnel::enable_gre: bool;
+const Tunnel::enable_vxlan: bool;
 const Tunnel::delay_teredo_confirmation: bool;
 const Tunnel::delay_gtp_confirmation: bool;
 const Tunnel::ip_tunnel_timeout: interval;

@@ -192,6 +192,7 @@ enum Type %{
 	GTPv1,
 	HTTP,
 	GRE,
+	VXLAN,
 %}
 
 type EncapsulatingConn: record;

@@ -1,0 +1,13 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	tunnel
+#open	2018-10-18-11-51-46
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	tunnel_type	action
+#types	time	string	addr	port	addr	port	enum	enum
+1368908504.837063	CAL8II3MrNKoLygbR	192.168.203.1	45149	192.168.202.1	4789	Tunnel::VXLAN	Tunnel::DISCOVER
+1368908504.925960	CPPxeT3vy9lhCeFyzf	192.168.202.1	32894	192.168.203.1	4789	Tunnel::VXLAN	Tunnel::DISCOVER
+1368908507.885359	CPPxeT3vy9lhCeFyzf	192.168.202.1	32894	192.168.203.1	4789	Tunnel::VXLAN	Tunnel::CLOSE
+1368908507.885359	CAL8II3MrNKoLygbR	192.168.203.1	45149	192.168.202.1	4789	Tunnel::VXLAN	Tunnel::CLOSE
+#close	2018-10-18-11-51-46

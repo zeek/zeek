@@ -2641,7 +2641,7 @@ export {
 		negotiate_lm_key       : bool;
 		## If set, requests connectionless authentication
 		negotiate_datagram     : bool;
-		## If set, requests session key negotiation for message 
+		## If set, requests session key negotiation for message
 		## confidentiality
 		negotiate_seal         : bool;
 		## If set, requests session key negotiation for message
@@ -2829,7 +2829,7 @@ export {
 		## The server supports compressed data transfer. Requires bulk_transfer.
 		## Note: No known implementations support this
 		compressed_data	   : bool;
-		## The server supports extended security exchanges	
+		## The server supports extended security exchanges
 		extended_security  : bool;
 	};
 
@@ -2922,7 +2922,7 @@ export {
 	};
 
 	type SMB1::NegotiateResponse: record {
-		## If the server does not understand any of the dialect strings, or if 
+		## If the server does not understand any of the dialect strings, or if
 		## PC NETWORK PROGRAM 1.0 is the chosen dialect.
 		core	: SMB1::NegotiateResponseCore 	&optional;
 		## If the chosen dialect is greater than core up to and including
@@ -2973,7 +2973,7 @@ export {
 		## If challenge/response auth is not being used, this is the password.
 		## Otherwise, it's the response to the server's challenge.
 		## Note: Only set for pre NT LM 0.12
-		account_password	  : string &optional;		
+		account_password	  : string &optional;
 		## Client's primary domain, if known
 		## Note: not set for NT LM 0.12 with extended security
 		primary_domain		  : string &optional;
@@ -2991,7 +2991,7 @@ export {
 		## Note: only set for NT LM 0.12
 		capabilities		  : SMB1::SessionSetupAndXCapabilities &optional;
 	};
-	
+
 	type SMB1::SessionSetupAndXResponse: record {
 		## Count of parameter words (should be 3 for pre NT LM 0.12 and 4 for NT LM 0.12)
 		word_count	: count;
@@ -3958,7 +3958,7 @@ type bt_tracker_headers: table[string] of string;
 ## for a range of modbus coils.
 type ModbusCoils: vector of bool;
 
-## A vector of count values that represent 16bit modbus 
+## A vector of count values that represent 16bit modbus
 ## register values.
 type ModbusRegisters: vector of count;
 
@@ -4770,6 +4770,9 @@ export {
 
 	## Toggle whether to do GRE decapsulation.
 	const enable_gre = T &redef;
+
+	## Toggle whether to do VXLAN decapsulation.
+	const enable_vxlan = T &redef;
 
 	## With this set, the Teredo analyzer waits until it sees both sides
 	## of a connection using a valid Teredo encapsulation before issuing

@@ -1,4 +1,4 @@
-[source=wc -l ../input.log |, reader=Input::READER_RAW, mode=Input::MANUAL, name=input, fields=<no value description>, want_record=F, ev=line
+[source=wc -l ../input.log |, reader=Input::READER_RAW, mode=Input::MANUAL, name=input, fields=Val, want_record=F, ev=line
 { 
 print outfile, description;
 print outfile, tpe;

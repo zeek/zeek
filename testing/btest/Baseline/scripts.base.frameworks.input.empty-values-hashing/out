@@ -11,7 +11,7 @@ Description
 [source=../input.log, reader=Input::READER_ASCII, mode=Input::REREAD, name=ssh, destination={
 [2] = [s=<uninitialized>, ss=<uninitialized>],
 [1] = [s=<uninitialized>, ss=TEST]
-}, idx=<no value description>, val=<no value description>, want_record=T, ev=line
+}, idx=A::Idx, val=A::Val, want_record=T, ev=line
 { 
 print A::outfile, ============EVENT============;
 print A::outfile, Description;
@@ -43,7 +43,7 @@ Description
 [source=../input.log, reader=Input::READER_ASCII, mode=Input::REREAD, name=ssh, destination={
 [2] = [s=<uninitialized>, ss=<uninitialized>],
 [1] = [s=<uninitialized>, ss=TEST]
-}, idx=<no value description>, val=<no value description>, want_record=T, ev=line
+}, idx=A::Idx, val=A::Val, want_record=T, ev=line
 { 
 print A::outfile, ============EVENT============;
 print A::outfile, Description;
@@ -88,7 +88,7 @@ Description
 [source=../input.log, reader=Input::READER_ASCII, mode=Input::REREAD, name=ssh, destination={
 [2] = [s=TEST, ss=TEST],
 [1] = [s=TEST, ss=<uninitialized>]
-}, idx=<no value description>, val=<no value description>, want_record=T, ev=line
+}, idx=A::Idx, val=A::Val, want_record=T, ev=line
 { 
 print A::outfile, ============EVENT============;
 print A::outfile, Description;
@@ -120,7 +120,7 @@ Description
 [source=../input.log, reader=Input::READER_ASCII, mode=Input::REREAD, name=ssh, destination={
 [2] = [s=TEST, ss=TEST],
 [1] = [s=TEST, ss=<uninitialized>]
-}, idx=<no value description>, val=<no value description>, want_record=T, ev=line
+}, idx=A::Idx, val=A::Val, want_record=T, ev=line
 { 
 print A::outfile, ============EVENT============;
 print A::outfile, Description;

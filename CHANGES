@@ -1,4 +1,8 @@
 
+2.6-beta2-42 | 2018-10-18 10:21:01 -0500
+
+  * Fix documentation link for notice_alarm.log fields (Jon Siwek, Corelight)
+
 2.6-beta2-40 | 2018-10-16 15:37:49 -0500
 
   * Change DNP3::function_codes name for request 0x21 (Dale Lakes)

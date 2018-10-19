@@ -1,6 +1,12 @@
 # @TEST-EXEC: btest-bg-run bro bro -b ../dirtest.bro
-# @TEST-EXEC: btest-bg-wait 15
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff bro/.stdout
+# @TEST-EXEC: $SCRIPTS/wait-for-file bro/next1 10 || (btest-bg-wait -k 1 && false)
+# @TEST-EXEC: touch testdir/newone
+# @TEST-EXEC: rm testdir/bye
+# @TEST-EXEC: $SCRIPTS/wait-for-file bro/next2 10 || (btest-bg-wait -k 1 && false)
+# @TEST-EXEC: touch testdir/bye
+# @TEST-EXEC: btest-bg-wait 20
+# @TEST-EXEC: touch testdir/newone
+# @TEST-EXEC: btest-diff bro/.stdout
 
 @TEST-START-FILE dirtest.bro
 
@@ -9,43 +15,41 @@ redef exit_only_after_terminate = T;
 
 global c: count = 0;
 
-function check_terminate_condition()
-	{
-	c += 1;
+global initial_files: set[string] = set();
 
-	if ( c == 10 )
+function check_initial_file(s: string)
+	{
+	if ( s in initial_files )
+		print "initial file", s;
+	else
+		print "didn't see initial file", s;
+	}
+
+function new_file(fname: string)
+	{
+	++c;
+
+	if ( c <= 3 )
+		add initial_files[fname];
+	else
+		print "new_file", fname;
+
+	if ( c == 3 )
+		{
+		check_initial_file("../testdir/hi");
+		check_initial_file("../testdir/howsitgoing");
+		check_initial_file("../testdir/bye");
+		system("touch next1");
+		}
+	else if ( c == 4 )
+		system("touch next2");
+	else if ( c == 5 )
 		terminate();
-	}
-
-function new_file1(fname: string)
-	{
-	print "new_file1", fname;
-	check_terminate_condition();
-	}
-
-function new_file2(fname: string)
-	{
-	print "new_file2", fname;
-	check_terminate_condition();
-	}
-
-event change_things()
-	{
-	system("touch ../testdir/newone");
-	system("rm ../testdir/bye");
-	}
-
-event change_things2()
-	{
-	system("touch ../testdir/bye");
 	}
 
 event bro_init()
 	{
-	Dir::monitor("../testdir", new_file1, .5sec);
-	Dir::monitor("../testdir", new_file2, 1sec);
-	schedule 3sec { change_things() };
-	schedule 6sec { change_things2() };
+	Dir::monitor("../testdir", new_file, .25sec);
 	}
 
 @TEST-END-FILE

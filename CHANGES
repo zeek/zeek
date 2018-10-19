@@ -1,4 +1,8 @@
 
+2.6-beta2-43 | 2018-10-19 11:15:44 -0500
+
+  * Improve scripts/base/utils/dir unit test (Jon Siwek, Corelight)
+
 2.6-beta2-42 | 2018-10-18 10:21:01 -0500
 
   * Fix documentation link for notice_alarm.log fields (Jon Siwek, Corelight)

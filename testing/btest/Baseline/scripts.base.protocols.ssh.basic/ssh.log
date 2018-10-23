@@ -3,14 +3,14 @@
 #empty_field	(empty)
 #unset_field	-
 #path	ssh
-#open	2018-10-16-15-00-07
+#open	2018-10-23-15-34-42
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	auth_success	auth_attempts	direction	client	server	cipher_alg	mac_alg	compression_alg	kex_alg	host_key_alg	host_key
 #types	time	string	addr	port	addr	port	count	bool	count	enum	string	string	string	string	string	string	string	string
 1324071333.792887	CHhAvVGS1DHFjwGM9	192.168.1.79	51880	131.159.21.1	22	2	-	0	-	SSH-2.0-OpenSSH_5.9	SSH-2.0-OpenSSH_5.8	aes128-ctr	hmac-md5	zlib@openssh.com	ecdh-sha2-nistp256	ecdsa-sha2-nistp256	a7:26:62:3f:75:1f:33:8a:f3:32:90:8b:73:fd:2c:83
 1409516196.413240	ClEkJM2Vm5giqnMf4h	10.0.0.18	40184	128.2.6.88	41644	2	T	1	-	SSH-2.0-OpenSSH_6.6	SSH-2.0-OpenSSH_5.9p1 Debian-5ubuntu1.1	aes128-ctr	hmac-md5	none	ecdh-sha2-nistp256	ssh-rsa	8a:8d:55:28:1e:71:04:99:94:43:22:89:e5:ff:e9:03
 1419870189.489202	C4J4Th3PJpwUYZZ6gc	192.168.2.1	57189	192.168.2.158	22	2	T	3	-	SSH-2.0-OpenSSH_6.2	SSH-1.99-OpenSSH_6.6.1p1 Ubuntu-2ubuntu2	aes128-ctr	hmac-md5-etm@openssh.com	none	diffie-hellman-group-exchange-sha256	ssh-rsa	28:78:65:c1:c3:26:f7:1b:65:6a:44:14:d0:04:8f:b3
 1419870206.111841	CtPZjS20MLrsMUOJi2	192.168.2.1	57191	192.168.2.158	22	1	-	0	-	SSH-1.5-OpenSSH_6.2	SSH-1.99-OpenSSH_6.6.1p1 Ubuntu-2ubuntu2	-	-	-	-	-	a1:73:d1:e1:25:72:79:71:56:56:65:ed:81:bf:67:98
-1419996264.344957	CUM0KZ3MLUfNB0cl11	192.168.2.1	55179	192.168.2.158	2200	2	-	0	-	SSH-2.0-OpenSSH_6.2	SSH-2.0-paramiko_1.15.2	aes128-ctr	hmac-md5	none	diffie-hellman-group-exchange-sha1	ssh-rsa	60:73:38:44:cb:51:86:65:7f:de:da:a2:2b:5a:57:d5
+1419996264.344957	CUM0KZ3MLUfNB0cl11	192.168.2.1	55179	192.168.2.158	2200	2	T	1	-	SSH-2.0-OpenSSH_6.2	SSH-2.0-paramiko_1.15.2	aes128-ctr	hmac-md5	none	diffie-hellman-group-exchange-sha1	ssh-rsa	60:73:38:44:cb:51:86:65:7f:de:da:a2:2b:5a:57:d5
 1420588548.729561	CmES5u32sYpV7JYN	192.168.2.1	56594	192.168.2.158	22	1	-	0	-	SSH-1.5-OpenSSH_5.3	SSH-1.99-OpenSSH_6.6.1p1 Ubuntu-2ubuntu2	-	-	-	-	-	a1:73:d1:e1:25:72:79:71:56:56:65:ed:81:bf:67:98
 1420590124.885826	CP5puj4I8PtEU4qzYg	192.168.2.1	56821	192.168.2.158	22	1	-	0	-	SSH-1.5-OpenSSH_6.2	SSH-1.99-OpenSSH_6.6.1p1 Ubuntu-2ubuntu2	-	-	-	-	-	a1:73:d1:e1:25:72:79:71:56:56:65:ed:81:bf:67:98
 1420590308.781231	C37jN32gN3y3AZzyf6	192.168.2.1	56837	192.168.2.158	22	1	-	0	-	SSH-1.5-OpenSSH_6.2	SSH-1.99-OpenSSH_6.6.1p1 Ubuntu-2ubuntu2	-	-	-	-	-	a1:73:d1:e1:25:72:79:71:56:56:65:ed:81:bf:67:98
@@ -28,4 +28,4 @@
 1421041177.031508	CLNN1k2QMum1aexUK7	192.168.1.32	58641	131.103.20.168	22	2	F	1	-	SSH-2.0-OpenSSH_6.7	SSH-2.0-OpenSSH_5.3	aes128-ctr	umac-64@openssh.com	none	diffie-hellman-group-exchange-sha256	ssh-rsa	97:8c:1b:f2:6f:14:6b:5c:3b:ec:aa:46:46:74:7c:40
 1421041299.777962	CBA8792iHmnhPLksKa	192.168.1.32	58646	131.103.20.168	22	2	T	1	-	SSH-2.0-OpenSSH_6.7	SSH-2.0-OpenSSH_5.3	aes128-ctr	umac-64@openssh.com	none	diffie-hellman-group-exchange-sha256	ssh-rsa	97:8c:1b:f2:6f:14:6b:5c:3b:ec:aa:46:46:74:7c:40
 1421041526.353524	CGLPPc35OzDQij1XX8	192.168.1.32	58649	131.103.20.168	22	2	T	1	-	SSH-2.0-OpenSSH_6.7	SSH-2.0-OpenSSH_5.3	aes128-ctr	umac-64@openssh.com	none	diffie-hellman-group-exchange-sha256	ssh-rsa	97:8c:1b:f2:6f:14:6b:5c:3b:ec:aa:46:46:74:7c:40
-#close	2018-10-16-15-00-07
+#close	2018-10-23-15-34-42

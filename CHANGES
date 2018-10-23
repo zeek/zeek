@@ -1,4 +1,9 @@
 
+2.6-beta2-46 | 2018-10-23 13:01:28 -0500
+
+  * GH-192: Generate ssh_auth_attempted for the 'none' authentication method.
+    (Vlad Grigorescu)
+
 2.6-beta2-43 | 2018-10-19 11:15:44 -0500
 
   * Improve scripts/base/utils/dir unit test (Jon Siwek, Corelight)

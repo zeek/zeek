@@ -1,0 +1,4 @@
+
+type MQTT::ConnectMsg: record;
+type MQTT::ConnectAckMsg: record;
+type MQTT::PublishMsg: record;

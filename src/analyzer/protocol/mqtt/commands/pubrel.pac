@@ -1,0 +1,23 @@
+refine casetype Command += {
+	MQTT_PUBREL  -> pubrel  : MQTT_pubrel(pdu);
+};
+
+type MQTT_pubrel(pdu: MQTT_PDU) = record {
+	msg_id : uint16;
+} &let {
+	proc: bool = $context.flow.proc_mqtt_pubrel(this, pdu.is_orig);
+};
+
+refine flow MQTT_Flow += {
+	function proc_mqtt_pubrel(msg: MQTT_pubrel, is_orig: bool): bool
+		%{
+		if ( mqtt_pubrel )
+			{
+			BifEvent::generate_mqtt_pubrel(connection()->bro_analyzer(), 
+			                               connection()->bro_analyzer()->Conn(),
+			                               is_orig,
+			                               ${msg.msg_id});
+			}
+		return true;
+		%}
+};

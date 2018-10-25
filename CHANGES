@@ -1,4 +1,8 @@
 
+2.6-beta2-49 | 2018-10-25 18:56:02 -0500
+
+  * Fix minor documentation mistakes (Jon Siwek, Corelight)
+
 2.6-beta2-46 | 2018-10-23 13:01:28 -0500
 
   * GH-192: Generate ssh_auth_attempted for the 'none' authentication method.

@@ -2,7 +2,6 @@
 
 #include "bro-config.h"
 
-#include <openssl/md5.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #ifdef TIME_WITH_SYS_TIME
@@ -36,6 +35,7 @@
 #include "Var.h"
 #include "Reporter.h"
 #include "iosource/Manager.h"
+#include "digest.h"
 
 extern "C" {
 extern int select(int, fd_set *, fd_set *, fd_set *, struct timeval *);
@@ -445,7 +445,7 @@ void DNS_Mgr::InitPostScript()
 static TableVal* fake_name_lookup_result(const char* name)
 	{
 	uint32 hash[4];
-	MD5(reinterpret_cast<const u_char*>(name), strlen(name),
+	internal_md5(reinterpret_cast<const u_char*>(name), strlen(name),
 	    reinterpret_cast<u_char*>(hash));
 	ListVal* hv = new ListVal(TYPE_ADDR);
 	hv->Append(new AddrVal(hash));

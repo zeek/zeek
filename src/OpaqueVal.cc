@@ -83,7 +83,7 @@ MD5Val::MD5Val() : HashVal(md5_type)
 
 void MD5Val::digest(val_list& vlist, u_char result[MD5_DIGEST_LENGTH])
 	{
-	MD5_CTX h;
+	EVP_MD_CTX h;
 	md5_init(&h);
 
 	loop_over_list(vlist, i)
@@ -113,7 +113,7 @@ void MD5Val::hmac(val_list& vlist,
 	for ( int i = 0; i < MD5_DIGEST_LENGTH; ++i )
 		result[i] ^= key[i];
 
-	MD5(result, MD5_DIGEST_LENGTH, result);
+	internal_md5(result, MD5_DIGEST_LENGTH, result);
 	}
 
 bool MD5Val::DoInit()
@@ -146,26 +146,27 @@ IMPLEMENT_SERIAL(MD5Val, SER_MD5_VAL);
 
 bool MD5Val::DoSerialize(SerialInfo* info) const
 	{
+	MD5_CTX *md = (MD5_CTX *) ctx.md_data;
 	DO_SERIALIZE(SER_MD5_VAL, HashVal);
 
 	if ( ! IsValid() )
 		return true;
 
-	if ( ! (SERIALIZE(ctx.A) &&
-		SERIALIZE(ctx.B) &&
-		SERIALIZE(ctx.C) &&
-		SERIALIZE(ctx.D) &&
-		SERIALIZE(ctx.Nl) &&
-		SERIALIZE(ctx.Nh)) )
+	if ( ! (SERIALIZE(md->A) &&
+		SERIALIZE(md->B) &&
+		SERIALIZE(md->C) &&
+		SERIALIZE(md->D) &&
+		SERIALIZE(md->Nl) &&
+		SERIALIZE(md->Nh)) )
 		return false;
 
 	for ( int i = 0; i < MD5_LBLOCK; ++i )
 		{
-		if ( ! SERIALIZE(ctx.data[i]) )
+		if ( ! SERIALIZE(md->data[i]) )
 			return false;
 		}
 
-	if ( ! SERIALIZE(ctx.num) )
+	if ( ! SERIALIZE(md->num) )
 		return false;
 
 	return true;
@@ -173,26 +174,27 @@ bool MD5Val::DoSerialize(SerialInfo* info) const
 
 bool MD5Val::DoUnserialize(UnserialInfo* info)
 	{
+	MD5_CTX *md = (MD5_CTX *) ctx.md_data;
 	DO_UNSERIALIZE(HashVal);
 
 	if ( ! IsValid() )
 		return true;
 
-	if ( ! (UNSERIALIZE(&ctx.A) &&
-		UNSERIALIZE(&ctx.B) &&
-		UNSERIALIZE(&ctx.C) &&
-		UNSERIALIZE(&ctx.D) &&
-		UNSERIALIZE(&ctx.Nl) &&
-		UNSERIALIZE(&ctx.Nh)) )
+	if ( ! (UNSERIALIZE(&md->A) &&
+		UNSERIALIZE(&md->B) &&
+		UNSERIALIZE(&md->C) &&
+		UNSERIALIZE(&md->D) &&
+		UNSERIALIZE(&md->Nl) &&
+		UNSERIALIZE(&md->Nh)) )
 		return false;
 
 	for ( int i = 0; i < MD5_LBLOCK; ++i )
 		{
-		if ( ! UNSERIALIZE(&ctx.data[i]) )
+		if ( ! UNSERIALIZE(&md->data[i]) )
 			return false;
 		}
 
-	if ( ! UNSERIALIZE(&ctx.num) )
+	if ( ! UNSERIALIZE(&md->num) )
 		return false;
 
 	return true;

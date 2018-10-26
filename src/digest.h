@@ -9,6 +9,17 @@
 
 #include <openssl/md5.h>
 #include <openssl/sha.h>
+#include <openssl/evp.h>
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#define EVP_MD_CTX_new EVP_MD_CTX_create
+#define EVP_MD_CTX_free EVP_MD_CTX_destroy
+
+inline void *EVP_MD_CTX_md_data(const EVP_MD_CTX* ctx)
+	{
+	return ctx->md_data;
+	}
+#endif
 
 #include "Reporter.h"
 
@@ -35,22 +46,56 @@ inline const char* sha256_digest_print(const u_char digest[SHA256_DIGEST_LENGTH]
 	return digest_print(digest, SHA256_DIGEST_LENGTH);
 	}
 
-inline void md5_init(MD5_CTX* c)
+inline void md5_init(EVP_MD_CTX** c)
 	{
-	if ( ! MD5_Init(c) )
+	*c = EVP_MD_CTX_new();
+	/* Allow this to work even if FIPS disables it */
+#ifdef EVP_MD_CTX_FLAG_NON_FIPS_ALLOW
+	EVP_MD_CTX_set_flags(*c, EVP_MD_CTX_FLAG_NON_FIPS_ALLOW);
+#endif
+	if ( ! EVP_DigestInit_ex(*c, EVP_md5(), NULL) )
 		reporter->InternalError("MD5_Init failed");
 	}
 
-inline void md5_update(MD5_CTX* c, const void* data, unsigned long len)
+inline void md5_update(EVP_MD_CTX* c, const void* data, unsigned long len)
 	{
-	if ( ! MD5_Update(c, data, len) )
+	if ( ! EVP_DigestUpdate(c, data, len) )
 		reporter->InternalError("MD5_Update failed");
 	}
 
-inline void md5_final(MD5_CTX* c, u_char md[MD5_DIGEST_LENGTH])
+inline void md5_final(EVP_MD_CTX* c, u_char md[MD5_DIGEST_LENGTH])
 	{
-	if ( ! MD5_Final(md, c) )
+	if ( ! EVP_DigestFinal(c, md, NULL) )
 		reporter->InternalError("MD5_Final failed");
+	}
+
+inline unsigned char* internal_md5(const unsigned char *d, size_t n, unsigned char *md)
+	{
+		EVP_MD_CTX *c;
+		static unsigned char m[MD5_DIGEST_LENGTH];
+
+		if (md == NULL)
+			md = m;
+		md5_init(&c);
+	#ifndef CHARSET_EBCDIC
+		md5_update(c, d, n);
+	#else
+		{
+			char temp[1024];
+			unsigned long chunk;
+
+			while (n > 0) {
+				chunk = (n > sizeof(temp)) ? sizeof(temp) : n;
+				ebcdic2ascii(temp, d, chunk);
+				md5_update(c, temp, chunk);
+				n -= chunk;
+				d += chunk;
+			}
+		}
+	#endif
+		md5_final(c, md);
+		EVP_MD_CTX_free(c);
+		return md;
 	}
 
 inline void sha1_init(SHA_CTX* c)

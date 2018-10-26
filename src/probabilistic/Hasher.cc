@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include <typeinfo>
-#include <openssl/md5.h>
+#include <openssl/evp.h>
 
 #include "Hasher.h"
 #include "NetVar.h"
@@ -123,13 +123,13 @@ Hasher::digest UHF::hash(const void* x, size_t n) const
 		Hasher::digest rval;
 	} u;
 
-	MD5(reinterpret_cast<const unsigned char*>(x), n, u.d);
+	internal_md5(reinterpret_cast<const unsigned char*>(x), n, u.d);
 
 	const unsigned char* s = reinterpret_cast<const unsigned char*>(&seed);
 	for ( size_t i = 0; i < 16; ++i )
 		u.d[i] ^= s[i % sizeof(seed)];
 
-	MD5(u.d, 16, u.d);
+	internal_md5(u.d, 16, u.d);
 	return u.rval;
 	}
 

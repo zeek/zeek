@@ -16,6 +16,7 @@ export {
 }
 
 redef record SSL::Info += {
+	## A response from the ICSI certificate notary.
 	notary: Response &log &optional;
 	};
 

@@ -1,4 +1,8 @@
 
+2.6-beta2-50 | 2018-10-26 10:23:57 -0500
+
+  * Add missing record field comments (Jon Siwek, Corelight)
+
 2.6-beta2-49 | 2018-10-25 18:56:02 -0500
 
   * Fix minor documentation mistakes (Jon Siwek, Corelight)

@@ -1,4 +1,10 @@
 
+2.6-beta2-55 | 2018-10-30 09:59:44 -0500
+
+  * Add a test with an encrypted MySQL connection (Vlad Grigorescu)
+
+  * Fix parsing of MySQL NUL Strings (Vlad Grigorescu)
+
 2.6-beta2-51 | 2018-10-26 10:41:42 -0500
 
   * Add missing record field comment (Jon Siwek, Corelight)

@@ -775,7 +775,7 @@ function strcmp%(s1: string, s2: string%): int
 ## Returns: The location of *little* in *big*, or 0 if *little* is not found in
 ##          *big*.
 ##
-## .. bro:see:: find_all find_last
+## .. bro:see:: find find_all find_last
 function strstr%(big: string, little: string%): count
 	%{
 	return new Val(
@@ -1141,6 +1141,33 @@ function str_shell_escape%(source: string%): string
 	return new StringVal(new BroString(1, dst, j));
 	%}
 
+## Finds the first occurence of a pattern in a string. This is the
+## match that starts at the smallest index in the string.
+##
+## str: The string to inspect.
+##
+## re: The pattern to look for in *str*.
+##
+## Returns: The first string in *str* that matches *re*, or the empty string.
+##
+## .. bro:see: find_all find_last strstr
+function find%(str: string, re: pattern%) : string
+	%{
+	const u_char* start = str->Bytes();
+	const u_char* end = start + str->Len();
+
+	for ( const u_char* current = start; current < end; ++current )
+		{
+		int match_length = re->MatchPrefix(current, end - current);
+		if ( match_length >= 0 )
+			{
+			return new StringVal(match_length, (const char*) current);
+			}
+		}
+	
+	return new StringVal("");
+	%}
+
 ## Finds all occurrences of a pattern in a string.
 ##
 ## str: The string to inspect.
@@ -1197,6 +1224,32 @@ function find_last%(str: string, re: pattern%) : string
 		}
 
 	return new StringVal("");
+	%}
+
+## Finds the highest index of the occurence of a pattern in a string. Similar
+## to find_last, this function does not necessarily return the last index of
+## the longest match. For example, a pattern of ``/.*/`` will return the final
+## index in the string.
+##
+## str: The string to inspect.
+##
+## re: The pattern to look for in *str*.
+##
+## Returns: The highest index of a match, or -1 if
+## the pattern never occurs in the string.
+function rfind%(str: string, re: pattern%) : int
+	%{
+	const u_char* s = str->Bytes();
+	const u_char* e = s + str->Len();
+	int i = str->Len() - 1;
+	for ( const u_char* t = e - 1; t >= s; --t)
+		{
+		int n = re->MatchPrefix(t, e - t);
+		if ( n >= 0 )
+			return new Val(i, TYPE_INT);
+		i--;
+		}
+	return new Val(-1, TYPE_INT);;
 	%}
 
 ## Returns a hex dump for given input data. The hex dump renders 16 bytes per

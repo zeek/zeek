@@ -1,4 +1,8 @@
 
+2.6-beta2-57 | 2018-10-31 22:26:24 -0500
+
+  * GH-199: change `bro --help` exit status from 1 to 0 (Jon Siwek, Corelight)
+
 2.6-beta2-55 | 2018-10-30 09:59:44 -0500
 
   * Add a test with an encrypted MySQL connection (Vlad Grigorescu)

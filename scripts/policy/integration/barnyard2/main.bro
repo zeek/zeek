@@ -10,8 +10,11 @@ export {
 	redef enum Log::ID += { LOG };
 	
 	type Info: record {
+		## Timestamp of the alert.
 		ts:                 time      &log;
+		## Associated packet ID.
 		pid:                PacketID  &log;
+		## Associated alert data.
 		alert:              AlertData &log;
 	};
 	

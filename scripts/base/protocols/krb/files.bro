@@ -7,18 +7,18 @@ module KRB;
 
 export {
 	redef record Info += {
-		# Client certificate
+		## Client certificate
 		client_cert:		Files::Info &optional;
-		# Subject of client certificate, if any
+		## Subject of client certificate, if any
 		client_cert_subject:	string &log &optional;
-		# File unique ID of client cert, if any
+		## File unique ID of client cert, if any
 		client_cert_fuid:	string &log &optional;
 
-		# Server certificate
+		## Server certificate
 		server_cert:		Files::Info &optional;
-		# Subject of server certificate, if any
+		## Subject of server certificate, if any
 		server_cert_subject:	string &log &optional;
-		# File unique ID of server cert, if any
+		## File unique ID of server cert, if any
 		server_cert_fuid:	string &log &optional;
 	};
 

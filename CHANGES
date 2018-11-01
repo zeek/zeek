@@ -1,4 +1,55 @@
 
+2.6-beta2-55 | 2018-10-30 09:59:44 -0500
+
+  * Add a test with an encrypted MySQL connection (Vlad Grigorescu)
+
+  * Fix parsing of MySQL NUL Strings (Vlad Grigorescu)
+
+2.6-beta2-51 | 2018-10-26 10:41:42 -0500
+
+  * Add missing record field comment (Jon Siwek, Corelight)
+
+2.6-beta2-50 | 2018-10-26 10:23:57 -0500
+
+  * Add missing record field comments (Jon Siwek, Corelight)
+
+2.6-beta2-49 | 2018-10-25 18:56:02 -0500
+
+  * Fix minor documentation mistakes (Jon Siwek, Corelight)
+
+2.6-beta2-46 | 2018-10-23 13:01:28 -0500
+
+  * GH-192: Generate ssh_auth_attempted for the 'none' authentication method.
+    (Vlad Grigorescu)
+
+2.6-beta2-43 | 2018-10-19 11:15:44 -0500
+
+  * Improve scripts/base/utils/dir unit test (Jon Siwek, Corelight)
+
+2.6-beta2-42 | 2018-10-18 10:21:01 -0500
+
+  * Fix documentation link for notice_alarm.log fields (Jon Siwek, Corelight)
+
+2.6-beta2-40 | 2018-10-16 15:37:49 -0500
+
+  * Change DNP3::function_codes name for request 0x21 (Dale Lakes)
+
+  * Fix resource record type names in DNS::query_types for 41 and 100 (Dale Lakes)
+
+  * Add missing DNS resource record types to DNS::query_types (Dale Lakes)
+
+  * Refactor DCE_RPC constants to be specified in hex instead of decimal (Dale Lakes)
+
+2.6-beta2-35 | 2018-10-16 13:41:15 -0500
+
+  * Update baselines for SSH capabilities fix (Vlad Grigorescu)
+
+  * Fix SSH analyzer bug where is_server in capabilities is wrong. (Vlad Grigorescu)
+
+2.6-beta2-32 | 2018-10-16 09:22:54 -0700
+
+  * Fix typo in Sessions.h (Eiji Yanagi (Cisco))
+
 2.6-beta2-31 | 2018-10-15 16:42:36 -0500
 
   * Add DCE_RPC exchange_mapi operations to relevant consts.bro file (Dale Lakes)

@@ -43,7 +43,7 @@ export {
 		# Responses.
 		[0x81] = "RESPONSE",
 		[0x82] = "UNSOLICITED_RESPONSE",
-		[0x83] = "AUTHENTICATE_RESPONSE",
+		[0x83] = "AUTHENTICATE_RESP",
 	} &default=function(i: count):string { return fmt("unknown-%d", i); } &redef;
 }
 

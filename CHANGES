@@ -1,4 +1,10 @@
 
+2.6-beta2-60 | 2018-11-01 18:35:26 -0500
+
+  * Add core file search and stack trace output for Travis builds (Jon Siwek, Corelight)
+
+  * Update license year for 2018 (Vlad Grigorescu)
+
 2.6-beta2-57 | 2018-10-31 22:26:24 -0500
 
   * GH-199: change `bro --help` exit status from 1 to 0 (Jon Siwek, Corelight)

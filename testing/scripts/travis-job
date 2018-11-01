@@ -80,19 +80,19 @@ run_coverity() {
 install_in_docker() {
     case $distro in
         centos_7)
-        distro_cmds="yum -y install cmake make gcc gcc-c++ flex bison libpcap-devel openssl-devel git openssl which"
+        distro_cmds="yum -y install gdb cmake make gcc gcc-c++ flex bison libpcap-devel openssl-devel git openssl which"
         ;;
         debian_9)
-        distro_cmds="apt-get update; apt-get -y install cmake make gcc g++ flex bison python libpcap-dev libssl-dev zlib1g-dev libkrb5-dev git sqlite3 curl bsdmainutils"
+        distro_cmds="apt-get update; apt-get -y install gdb cmake make gcc g++ flex bison python libpcap-dev libssl-dev zlib1g-dev libkrb5-dev git sqlite3 curl bsdmainutils"
         ;;
         fedora_28)
-        distro_cmds="yum -y install cmake make gcc gcc-c++ flex bison libpcap-devel openssl-devel git sqlite findutils which; ln -s /usr/bin/python3 /usr/local/bin/python"
+        distro_cmds="yum -y install gdb cmake make gcc gcc-c++ flex bison libpcap-devel openssl-devel git sqlite findutils which; ln -s /usr/bin/python3 /usr/local/bin/python"
         ;;
         ubuntu_16.04)
-        distro_cmds="apt-get update; apt-get -y install cmake make gcc g++ flex bison python libpcap-dev libssl-dev zlib1g-dev libkrb5-dev git sqlite3 curl bsdmainutils"
+        distro_cmds="apt-get update; apt-get -y install gdb cmake make gcc g++ flex bison python libpcap-dev libssl-dev zlib1g-dev libkrb5-dev git sqlite3 curl bsdmainutils"
         ;;
         ubuntu_18.04)
-        distro_cmds="apt-get update; apt-get -y install cmake make gcc g++ flex bison python3 libpcap-dev libssl-dev zlib1g-dev libkrb5-dev git sqlite3 curl bsdmainutils; ln -s /usr/bin/python3 /usr/local/bin/python"
+        distro_cmds="apt-get update; apt-get -y install gdb cmake make gcc g++ flex bison python3 libpcap-dev libssl-dev zlib1g-dev libkrb5-dev git sqlite3 curl bsdmainutils; ln -s /usr/bin/python3 /usr/local/bin/python"
         ;;
         *)
         echo "Error: distro ${distro} is not recognized by this script"
@@ -178,6 +178,7 @@ get_private_tests() {
 
 # Run Bro tests.
 run() {
+    ulimit -c unlimited
     echo
     echo "Running unit tests ##################################################"
     echo
@@ -219,7 +220,22 @@ run() {
     echo
     echo "Running external tests ##############################################"
     echo
-    make || showdiag
+    make
+
+    if [ $? -ne 0 ]; then
+        showdiag
+        ret=1
+    fi
+
+    cd ../..
+
+    if [ $ret -ne 0 ]; then
+        COREFILE=`find testing/btest/.tmp testing/external/*/.tmp -name "core*" | head -n 1`
+
+        if [ -f "$COREFILE" ]; then
+            gdb build/src/bro -c "$COREFILE" -ex "thread apply all bt" -ex "set pagination 0" -batch;
+        fi
+    fi
 
     # If we get here, then external tests were successful.
     exit $ret
@@ -234,8 +250,6 @@ showdiag() {
       echo "Output of failed external tests #####################################" && \
       echo && \
       grep -v "... not available, skipped" $f
-
-    exit 1
 }
 
 # Remove the docker container.

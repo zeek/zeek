@@ -1,4 +1,8 @@
 
+2.6-beta2-68 | 2018-11-02 18:30:01 -0500
+
+  * Fix a unit test relying on a bash-ism (Jon Siwek, Corelight)
+
 2.6-beta2-67 | 2018-11-02 17:41:46 -0500
 
   * Add script-layer call stack to internal errors messages that abort (Jon Siwek, Corelight)

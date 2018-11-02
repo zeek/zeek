@@ -1,4 +1,8 @@
 
+2.6-beta2-64 | 2018-11-02 08:56:59 -0500
+
+  * Improve a weird stats unit test (Jon Siwek, Corelight)
+
 2.6-beta2-62 | 2018-11-01 20:39:07 -0500
 
   * Fix Travis script typo (Jon Siwek, Corelight)

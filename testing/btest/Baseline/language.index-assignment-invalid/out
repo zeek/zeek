@@ -1,1 +1,5 @@
-internal error in /Users/jon/projects/bro/bro/scripts/base/utils/queue.bro, line 152: vector index assignment failed for invalid type 'myrec', value: [a=T, b=hi, c=<uninitialized>] (Queue::ret[Queue::j])
+internal error in /Users/jon/projects/bro/bro/scripts/base/utils/queue.bro, line 152: vector index assignment failed for invalid type 'myrec', value: [a=T, b=hi, c=<uninitialized>] (Queue::ret[Queue::j]), call stack: 
+ #0 Queue::get_vector() at /Users/jon/projects/bro/bro/testing/btest/.tmp/language.index-assignment-invalid/index-assignment-invalid.bro:19 
+ #1 bar() at /Users/jon/projects/bro/bro/testing/btest/.tmp/language.index-assignment-invalid/index-assignment-invalid.bro:27 
+ #2 foo() at /Users/jon/projects/bro/bro/testing/btest/.tmp/language.index-assignment-invalid/index-assignment-invalid.bro:39 
+

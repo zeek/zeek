@@ -1,4 +1,10 @@
 
+2.6-beta2-67 | 2018-11-02 17:41:46 -0500
+
+  * Add script-layer call stack to internal errors messages that abort (Jon Siwek, Corelight)
+
+  * Improve error message of index assignment expression failures (Jon Siwek, Corelight)
+
 2.6-beta2-65 | 2018-11-02 09:36:30 -0500
 
   * Improve Travis script to show multiple core dump stacks (Jon Siwek, Corelight)

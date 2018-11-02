@@ -6,6 +6,7 @@
 
 #include "Obj.h"
 #include "Serializer.h"
+#include "Func.h"
 #include "File.h"
 #include "plugin/Manager.h"
 
@@ -139,7 +140,13 @@ void BroObj::Internal(const char* msg) const
 	{
 	ODesc d;
 	DoMsg(&d, msg);
-	reporter->InternalError("%s", d.Description());
+	auto rcs = render_call_stack();
+
+	if ( rcs.empty() )
+		reporter->InternalError("%s", d.Description());
+	else
+		reporter->InternalError("%s, call stack: %s", d.Description(), rcs.data());
+
 	reporter->PopLocation();
 	}
 

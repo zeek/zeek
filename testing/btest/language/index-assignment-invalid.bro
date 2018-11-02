@@ -1,4 +1,6 @@
-# @TEST-EXEC-FAIL: bro -b %INPUT >out 2>&1
+# @TEST-EXEC-FAIL: bro -b %INPUT >output 2>&1
+# @TEST-EXEC: grep "internal error" output >output2
+# @TEST-EXEC: for i in {1..5}; do cat output2 | cut -d'|' -f$i >>out; done
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
 
 @load base/utils/queue
@@ -11,11 +13,18 @@ type myrec: record {
 	c: string &optional;
 };
 
-function foo(mr: myrec)
+function bar()
 	{
-	print mr$a;
-	print mr$c;
-	print mr$b;
+	local rval: vector of string = vector();
+	Queue::get_vector(q, rval);
+	print rval;
+	Queue::get_vector(q, rval);
+	print rval;
+	}
+
+function foo()
+	{
+	bar();
 	}
 
 event bro_init()
@@ -24,8 +33,8 @@ event bro_init()
 	Queue::put(q, "goodbye");
 	Queue::put(q, "test");
 	Queue::put(q, myrec());
-
-	local rval: vector of string = vector();
-	Queue::get_vector(q, rval);
-	print rval;
+	Queue::put(q, "asdf");
+	Queue::put(q, 3);
+	Queue::put(q, "jkl;");
+	foo();
 	}

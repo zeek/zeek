@@ -254,20 +254,20 @@ run() {
     echo "Result code after running tests: $ret"
 
     if [ $ret -ne 0 ]; then
-        COREDUMP_FIND=`find testing/btest/.tmp testing/external/*/.tmp -name core*`
-        COREFILE=`find testing/btest/.tmp testing/external/*/.tmp -name core* | head -n 1`
+        COREFILES=`find testing/btest/.tmp testing/external/*/.tmp -type f -name core*`
 
         echo
         echo "Search for core dumps ##############################################"
         echo
-        echo `pwd`
-        echo
-        echo $COREDUMP_FIND
+        echo $COREFILES
 
-        if [ -f "$COREFILE" ]; then
-            echo "Getting stack trace from $COREFILE"
-            gdb build/src/bro -c "$COREFILE" -ex "thread apply all bt" -ex "set pagination 0" -batch;
-        fi
+        for cf in $COREFILES; do
+            echo
+            echo "############# Begin stack trace for $cf ###############"
+            gdb build/src/bro -c "$cf" -ex "thread apply all bt" -ex "set pagination 0" -batch;
+            echo "############# End stack trace for $cf #################"
+            echo
+        done
     fi
 
     # If we get here, then external tests were successful.

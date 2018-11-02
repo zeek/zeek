@@ -1,4 +1,8 @@
 
+2.6-beta2-65 | 2018-11-02 09:36:30 -0500
+
+  * Improve Travis script to show multiple core dump stacks (Jon Siwek, Corelight)
+
 2.6-beta2-64 | 2018-11-02 08:56:59 -0500
 
   * Improve a weird stats unit test (Jon Siwek, Corelight)

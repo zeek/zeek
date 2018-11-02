@@ -1,4 +1,8 @@
 
+2.6-beta2-62 | 2018-11-01 20:39:07 -0500
+
+  * Fix Travis script typo (Jon Siwek, Corelight)
+
 2.6-beta2-61 | 2018-11-01 19:57:32 -0500
 
   * Add more debug output to Travis script (Jon Siwek, Corelight)

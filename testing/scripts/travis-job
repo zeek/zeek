@@ -236,7 +236,7 @@ run() {
       cd ..
     fi
 
-    if [ -d bro-testing-private]; then
+    if [ -d bro-testing-private ]; then
       cd bro-testing-private
       make
 

@@ -179,6 +179,7 @@ get_private_tests() {
 # Run Bro tests.
 run() {
     ulimit -c unlimited
+    ulimit -a
     echo
     echo "Running unit tests ##################################################"
     echo
@@ -220,19 +221,51 @@ run() {
     echo
     echo "Running external tests ##############################################"
     echo
-    make
 
-    if [ $? -ne 0 ]; then
-        showdiag
-        ret=1
+    set +e
+
+    if [ -d bro-testing ]; then
+      cd bro-testing
+      make
+
+      if [ $? -ne 0 ]; then
+          showdiag
+          ret=1
+      fi
+
+      cd ..
+    fi
+
+    if [ -d bro-testing-private]; then
+      cd bro-testing-private
+      make
+
+      if [ $? -ne 0 ]; then
+          showdiag
+          ret=1
+      fi
+
+      cd ..
     fi
 
     cd ../..
 
+    echo
+    echo "Result code after running tests: $ret"
+
     if [ $ret -ne 0 ]; then
-        COREFILE=`find testing/btest/.tmp testing/external/*/.tmp -name "core*" | head -n 1`
+        COREDUMP_FIND=`find testing/btest/.tmp testing/external/*/.tmp -name core*`
+        COREFILE=`find testing/btest/.tmp testing/external/*/.tmp -name core* | head -n 1`
+
+        echo
+        echo "Search for core dumps ##############################################"
+        echo
+        echo `pwd`
+        echo
+        echo $COREDUMP_FIND
 
         if [ -f "$COREFILE" ]; then
+            echo "Getting stack trace from $COREFILE"
             gdb build/src/bro -c "$COREFILE" -ex "thread apply all bt" -ex "set pagination 0" -batch;
         fi
     fi
@@ -243,7 +276,7 @@ run() {
 
 # Show failed tests (not skipped tests) from diag.log when a test fails.
 showdiag() {
-    f=bro-testing/diag.log
+    f=diag.log
 
     grep -qs '... failed$' $f && \
       echo && \

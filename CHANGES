@@ -1,4 +1,8 @@
 
+2.6-beta2-61 | 2018-11-01 19:57:32 -0500
+
+  * Add more debug output to Travis script (Jon Siwek, Corelight)
+
 2.6-beta2-60 | 2018-11-01 18:35:26 -0500
 
   * Add core file search and stack trace output for Travis builds (Jon Siwek, Corelight)

@@ -3119,12 +3119,40 @@ void IndexExpr::Assign(Frame* f, Val* v, Opcode op)
 	switch ( v1->Type()->Tag() ) {
 	case TYPE_VECTOR:
 		if ( ! v1->AsVectorVal()->Assign(v2, v, op) )
-			Internal("assignment failed");
+			{
+			if ( v )
+				{
+				ODesc d;
+				v->Describe(&d);
+				auto vt = v->Type();
+				auto vtt = vt->Tag();
+				std::string tn = vtt == TYPE_RECORD ? vt->GetName() : type_name(vtt);
+				Internal(fmt(
+				  "vector index assignment failed for invalid type '%s', value: %s",
+				  tn.data(), d.Description()));
+				}
+			else
+				Internal("assignment failed with null value");
+			}
 		break;
 
 	case TYPE_TABLE:
 		if ( ! v1->AsTableVal()->Assign(v2, v, op) )
-			Internal("assignment failed");
+			{
+			if ( v )
+				{
+				ODesc d;
+				v->Describe(&d);
+				auto vt = v->Type();
+				auto vtt = vt->Tag();
+				std::string tn = vtt == TYPE_RECORD ? vt->GetName() : type_name(vtt);
+				Internal(fmt(
+				  "table index assignment failed for invalid type '%s', value: %s",
+				  tn.data(), d.Description()));
+				}
+			else
+				Internal("assignment failed with null value");
+			}
 		break;
 
 	case TYPE_STRING:

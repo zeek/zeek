@@ -39,8 +39,7 @@ export {
 		## Argument for the command if one is given.
 		arg:              string      &log &optional;
 
-		## Libmagic "sniffed" file type if the command indicates a file
-		## transfer.
+		## Sniffed mime type of file.
 		mime_type:        string      &log &optional;
 		## Size of the file if the command indicates a file transfer.
 		file_size:        count       &log &optional;

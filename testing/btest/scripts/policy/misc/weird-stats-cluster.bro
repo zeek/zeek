@@ -38,11 +38,7 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 event ready_again()
 	{
 	Reporter::net_weird("weird1");
-
-	if ( Cluster::node == "worker-2" )
-		{
-		schedule 5secs { terminate_me() };
-		}
+	schedule 5secs { terminate_me() };
 	}
 
 event ready_for_data()
@@ -75,19 +71,14 @@ event ready_for_data()
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
 
-event bro_init()
-	{
-	Broker::auto_publish(Cluster::worker_topic, ready_for_data);
-	}
-
 global peer_count = 0;
 
-event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
+event Cluster::node_up(name: string, id: string)
 	{
 	++peer_count;
 
 	if ( peer_count == 2 )
-		event ready_for_data();
+		Broker::publish(Cluster::worker_topic, ready_for_data);
 	}
 
 @endif

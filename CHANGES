@@ -1,4 +1,61 @@
 
+2.6-beta2-65 | 2018-11-02 09:36:30 -0500
+
+  * Improve Travis script to show multiple core dump stacks (Jon Siwek, Corelight)
+
+2.6-beta2-64 | 2018-11-02 08:56:59 -0500
+
+  * Improve a weird stats unit test (Jon Siwek, Corelight)
+
+2.6-beta2-62 | 2018-11-01 20:39:07 -0500
+
+  * Fix Travis script typo (Jon Siwek, Corelight)
+
+2.6-beta2-61 | 2018-11-01 19:57:32 -0500
+
+  * Add more debug output to Travis script (Jon Siwek, Corelight)
+
+2.6-beta2-60 | 2018-11-01 18:35:26 -0500
+
+  * Add core file search and stack trace output for Travis builds (Jon Siwek, Corelight)
+
+  * Update license year for 2018 (Vlad Grigorescu)
+
+2.6-beta2-57 | 2018-10-31 22:26:24 -0500
+
+  * GH-199: change `bro --help` exit status from 1 to 0 (Jon Siwek, Corelight)
+
+2.6-beta2-55 | 2018-10-30 09:59:44 -0500
+
+  * Add a test with an encrypted MySQL connection (Vlad Grigorescu)
+
+  * Fix parsing of MySQL NUL Strings (Vlad Grigorescu)
+
+2.6-beta2-51 | 2018-10-26 10:41:42 -0500
+
+  * Add missing record field comment (Jon Siwek, Corelight)
+
+2.6-beta2-50 | 2018-10-26 10:23:57 -0500
+
+  * Add missing record field comments (Jon Siwek, Corelight)
+
+2.6-beta2-49 | 2018-10-25 18:56:02 -0500
+
+  * Fix minor documentation mistakes (Jon Siwek, Corelight)
+
+2.6-beta2-46 | 2018-10-23 13:01:28 -0500
+
+  * GH-192: Generate ssh_auth_attempted for the 'none' authentication method.
+    (Vlad Grigorescu)
+
+2.6-beta2-43 | 2018-10-19 11:15:44 -0500
+
+  * Improve scripts/base/utils/dir unit test (Jon Siwek, Corelight)
+
+2.6-beta2-42 | 2018-10-18 10:21:01 -0500
+
+  * Fix documentation link for notice_alarm.log fields (Jon Siwek, Corelight)
+
 2.6-beta2-40 | 2018-10-16 15:37:49 -0500
 
   * Change DNP3::function_codes name for request 0x21 (Dale Lakes)

@@ -151,7 +151,7 @@ enum Expected {
 	EXPECT_AUTH_SWITCH,
 };
 
-type NUL_String = RE/[^\0]*/;
+type NUL_String = RE/[^\0]*\0/;
 
 # MySQL PDU
 

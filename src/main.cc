@@ -157,7 +157,7 @@ const char* bro_dns_fake()
 		return "on";
 	}
 
-void usage()
+void usage(int code = 1)
 	{
 	fprintf(stderr, "bro version %s\n", bro_version());
 	fprintf(stderr, "usage: %s [options] [file ...]\n", prog);
@@ -168,7 +168,7 @@ void usage()
 	fprintf(stderr, "    -e|--exec <bro code>           | augment loaded policies by given code\n");
 	fprintf(stderr, "    -f|--filter <filter>           | tcpdump filter\n");
 	fprintf(stderr, "    -g|--dump-config               | dump current config into .state dir\n");
-	fprintf(stderr, "    -h|--help|-?                   | command line help\n");
+	fprintf(stderr, "    -h|--help                      | command line help\n");
 	fprintf(stderr, "    -i|--iface <interface>         | read from given interface\n");
 	fprintf(stderr, "    -p|--prefix <prefix>           | add given prefix to policy file resolution\n");
 	fprintf(stderr, "    -r|--readfile <readfile>       | read from given tcpdump file\n");
@@ -217,7 +217,7 @@ void usage()
 
 	fprintf(stderr, "\n");
 
-	exit(1);
+	exit(code);
 	}
 
 bool show_plugins(int level)
@@ -634,7 +634,7 @@ int main(int argc, char** argv)
 			break;
 
 		case 'h':
-			usage();
+			usage(0);
 			break;
 
 		case 'i':
@@ -687,7 +687,7 @@ int main(int argc, char** argv)
 
 		case 'F':
 			if ( dns_type != DNS_DEFAULT )
-				usage();
+				usage(1);
 			dns_type = DNS_FORCE;
 			break;
 
@@ -709,7 +709,7 @@ int main(int argc, char** argv)
 
 		case 'P':
 			if ( dns_type != DNS_DEFAULT )
-				usage();
+				usage(1);
 			dns_type = DNS_PRIME;
 			break;
 
@@ -765,7 +765,7 @@ int main(int argc, char** argv)
 
 		case '?':
 		default:
-			usage();
+			usage(1);
 			break;
 		}
 
@@ -806,7 +806,7 @@ int main(int argc, char** argv)
 	// and Solaris provide /dev/urandom).
 
 	if ( interfaces.length() > 0 && read_files.length() > 0 )
-		usage();
+		usage(1);
 
 #ifdef USE_IDMEF
 	char* libidmef_dtd_path_cstr = new char[libidmef_dtd_path.length() + 1];

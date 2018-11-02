@@ -56,6 +56,32 @@ bool did_builtin_init = false;
 vector<Func*> Func::unique_ids;
 static const std::pair<bool, Val*> empty_hook_result(false, NULL);
 
+std::string render_call_stack()
+	{
+	std::string rval;
+	int lvl = 0;
+
+	if ( ! call_stack.empty() )
+		rval += "| ";
+
+	for ( auto it = call_stack.rbegin(); it != call_stack.rend(); ++it )
+		{
+		if ( lvl > 0 )
+			rval += " | ";
+
+		auto& ci = *it;
+		auto loc = ci.call->GetLocationInfo();
+		auto name = ci.func->Name();
+		rval += fmt("#%d %s() at %s:%d", lvl, name, loc->filename, loc->first_line);
+		++lvl;
+		}
+
+	if ( ! call_stack.empty() )
+		rval += " |";
+
+	return rval;
+	}
+
 Func::Func() : scope(0), type(0)
 	{
 	unique_id = unique_ids.size();

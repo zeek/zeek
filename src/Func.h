@@ -147,6 +147,8 @@ struct CallInfo {
 
 extern vector<CallInfo> call_stack;
 
+extern std::string render_call_stack();
+
 // This is set to true after the built-in functions have been initialized.
 extern bool did_builtin_init;
 

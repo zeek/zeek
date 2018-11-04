@@ -4,8 +4,8 @@
 # This must be serialized with communication tests because it does load
 # listen.bro in order to document it.
 
-# @TEST-SERIALIZE: comm
-# @TEST-EXEC: unset BRO_DISABLE_BROXYGEN; bro -X broxygen.config broxygen DumpEvents::include=/NOTHING_MATCHES/
+# @TEST-PORT: BROKER_PORT
+# @TEST-EXEC: unset BRO_DISABLE_BROXYGEN; bro -X broxygen.config broxygen DumpEvents::include=/NOTHING_MATCHES/ Broker::default_port=$BROKER_PORT
 # @TEST-EXEC: btest-diff .stdout
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
 

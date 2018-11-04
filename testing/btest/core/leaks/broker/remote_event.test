@@ -1,4 +1,4 @@
-# @TEST-SERIALIZE: comm
+# @TEST-PORT: BROKER_PORT
 # @TEST-REQUIRES: bro --help 2>&1 | grep -q mem-leaks
 # @TEST-GROUP: leaks
 
@@ -20,7 +20,7 @@ event bro_init()
 	{
 	Broker::subscribe("bro/event/");
 	Broker::auto_publish("bro/event/my_topic", auto_event_handler);
-	Broker::listen("127.0.0.1");
+	Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));
 	}
 
 global event_count = 0;
@@ -53,7 +53,7 @@ global auto_event_handler: event(msg: string, c: count);
 event bro_init()
 	{
 	Broker::subscribe("bro/event/my_topic");
-	Broker::peer("127.0.0.1", Broker::default_port, 1secs);
+	Broker::peer("127.0.0.1", to_port(getenv("BROKER_PORT")), 1secs);
 	}
 
 global event_count = 0;

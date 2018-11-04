@@ -1,4 +1,4 @@
-# @TEST-SERIALIZE: comm
+# @TEST-PORT: BROKER_PORT
 #
 # @TEST-EXEC: btest-bg-run recv "bro -B broker -b ../recv.bro >recv.out"
 # @TEST-EXEC: btest-bg-run send "bro -B broker -b ../send.bro >send.out"
@@ -106,7 +106,7 @@ event do_terminate()
 event bro_init()
     {
     Broker::subscribe("bro/event/my_topic");
-    Broker::peer("127.0.0.1");
+    Broker::peer("127.0.0.1", to_port(getenv("BROKER_PORT")));
     schedule 5secs { do_terminate()   };
     }
 
@@ -123,7 +123,7 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 
 event Broker::error(code: Broker::ErrorCode, msg: string)
     {
-    print fmt("sender error: code=%s msg=%s", code, msg);
+    print fmt("sender error: code=%s msg=%s", code, gsub(msg, /127.0.0.1:[0-9]+/, "<endpoint addr:port>"));
     terminate();
     }
 
@@ -147,7 +147,7 @@ event do_terminate()
 
 event bro_init()
         {
-        Broker::listen("127.0.0.1");
+        Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));
         schedule 10secs { do_terminate()   };
         }
 

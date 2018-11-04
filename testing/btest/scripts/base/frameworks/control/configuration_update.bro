@@ -1,7 +1,7 @@
-# @TEST-SERIALIZE: comm
+# @TEST-PORT: BROKER_PORT
 #
-# @TEST-EXEC: btest-bg-run controllee  BROPATH=$BROPATH:.. bro -Bbroker %INPUT frameworks/control/controllee Broker::default_port=65531/tcp
-# @TEST-EXEC: btest-bg-run controller  BROPATH=$BROPATH:.. bro -Bbroker %INPUT test-redef frameworks/control/controller Control::host=127.0.0.1 Control::host_port=65531/tcp Control::cmd=configuration_update
+# @TEST-EXEC: btest-bg-run controllee  BROPATH=$BROPATH:.. bro -Bbroker %INPUT frameworks/control/controllee Broker::default_port=$BROKER_PORT
+# @TEST-EXEC: btest-bg-run controller  BROPATH=$BROPATH:.. bro -Bbroker %INPUT test-redef frameworks/control/controller Control::host=127.0.0.1 Control::host_port=$BROKER_PORT Control::cmd=configuration_update
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff controllee/.stdout
 

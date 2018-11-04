@@ -1,4 +1,3 @@
-# @TEST-SERIALIZE: comm
 # @TEST-EXEC: btest-bg-run test1 bro %INPUT
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: mv test1/.stdout out

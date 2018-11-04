@@ -1,4 +1,4 @@
-# @TEST-SERIALIZE: comm
+# @TEST-PORT: BROKER_PORT
 
 # @TEST-EXEC: btest-bg-run recv "bro -b ../recv.bro >recv.out"
 # @TEST-EXEC: btest-bg-run send "bro -b ../send.bro >send.out"
@@ -61,7 +61,7 @@ event bro_init() &priority=5
 event bro_init()
 	{
 	Broker::subscribe("bro/");
-	Broker::listen("127.0.0.1");
+	Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));
 	}
 
 event quit_receiver()
@@ -79,7 +79,7 @@ event quit_receiver()
 
 event bro_init()
 	{
-	Broker::peer("127.0.0.1");
+	Broker::peer("127.0.0.1", to_port(getenv("BROKER_PORT")));
 	}
 
 event quit_sender()

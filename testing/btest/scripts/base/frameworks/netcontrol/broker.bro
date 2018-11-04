@@ -1,4 +1,4 @@
-# @TEST-SERIALIZE: comm
+# @TEST-PORT: BROKER_PORT
 # @TEST-EXEC: btest-bg-run recv "bro -b ../recv.bro >recv.out"
 # @TEST-EXEC: btest-bg-run send "bro -b -r $TRACES/smtp.trace --pseudo-realtime ../send.bro >send.out"
 
@@ -22,7 +22,7 @@ event bro_init()
 
 event NetControl::init()
 	{
-	local netcontrol_broker = NetControl::create_broker(NetControl::BrokerConfig($host=127.0.0.1, $bport=Broker::default_port, $topic="bro/event/netcontroltest"), T);
+	local netcontrol_broker = NetControl::create_broker(NetControl::BrokerConfig($host=127.0.0.1, $bport=to_port(getenv("BROKER_PORT")), $topic="bro/event/netcontroltest"), T);
 	NetControl::activate(netcontrol_broker, 0);
 	}
 
@@ -36,7 +36,7 @@ event NetControl::init_done()
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
-	print "Broker peer added", endpoint$network;
+	print "Broker peer added", endpoint$network$address, endpoint$network$bound_port == to_port(getenv("BROKER_PORT"));
 	have_peer = T;
 
 	if ( did_init && have_peer )
@@ -93,7 +93,7 @@ event die()
 event bro_init()
 	{
 	Broker::subscribe("bro/event/netcontroltest");
-	Broker::listen("127.0.0.1");
+	Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));
 	}
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)

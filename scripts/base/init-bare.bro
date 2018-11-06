@@ -1150,7 +1150,7 @@ const rpc_timeout = 24 sec &redef;
 
 ## How long to hold onto fragments for possible reassembly.  A value of 0.0
 ## means "forever", which resists evasion, but can lead to state accrual.
-option frag_timeout = 0.0 sec;
+const frag_timeout = 0.0 sec &redef;
 
 ## If positive, indicates the encapsulation header size that should
 ## be skipped. This applies to all packets.

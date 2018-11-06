@@ -1,4 +1,10 @@
 
+2.6-beta2-77 | 2018-11-06 09:32:17 -0600
+
+  * Switch GridFTP options from redef to option (Vlad Grigorescu)
+
+  * Improve error handling in x509_ocsp_verify function (Jon Siwek, Corelight)
+
 2.6-beta2-68 | 2018-11-02 18:30:01 -0500
 
   * Fix a unit test relying on a bash-ism (Jon Siwek, Corelight)

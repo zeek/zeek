@@ -1,2 +1,2 @@
 warning: ../input.log/Input::READER_ASCII: Port '50/trash' contained unknown protocol 'trash'
-received termination signal
+received termination signal 15

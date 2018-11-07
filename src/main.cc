@@ -392,9 +392,7 @@ void termination_signal()
 	(void) setsignal(SIGTERM, SIG_DFL);
 	(void) setsignal(SIGINT, SIG_DFL);
 	set_processing_status("TERMINATING", "termination_signal");
-
-	Val sval(signal_val, TYPE_COUNT);
-	reporter->Info("received termination signal");
+	reporter->Info("received termination signal %d", signal_val);
 	net_get_final_stats();
 	done_with_network();
 	net_delete();

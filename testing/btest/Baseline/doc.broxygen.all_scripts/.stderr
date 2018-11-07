@@ -8,4 +8,4 @@ warning in /Users/jon/projects/bro/bro/scripts/policy/protocols/dhcp/deprecated_
 warning in /Users/jon/projects/bro/bro/scripts/policy/protocols/dhcp/deprecated_events.bro, line 266: deprecated (dhcp_inform)
 warning in /Users/jon/projects/bro/bro/scripts/policy/protocols/smb/__load__.bro, line 1: deprecated script loaded from /Users/jon/projects/bro/bro/scripts/broxygen/__load__.bro:10 "Use '@load base/protocols/smb' instead"
 error in /Users/jon/projects/bro/bro/scripts/policy/frameworks/control/controller.bro, line 22: The '' control command is unknown.
-<params>, line 1: received termination signal
+<params>, line 1: received termination signal 15

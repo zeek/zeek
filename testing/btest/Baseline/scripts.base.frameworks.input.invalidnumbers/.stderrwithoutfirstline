@@ -4,5 +4,5 @@ warning: ../input.log/Input::READER_ASCII: Number '9223372036854775801TEXTHERE' 
 warning: ../input.log/Input::READER_ASCII: Number '1Justtext' contained non-numeric trailing characters. Ignored trailing characters 'Justtext'
 warning: ../input.log/Input::READER_ASCII: String 'Justtext' contained no parseable number
 warning: ../input.log/Input::READER_ASCII: Could not convert line 'Justtext	1' to Val. Ignoring line.
-received termination signal
+received termination signal 15
 >>>

@@ -389,6 +389,8 @@ void terminate_bro()
 
 void termination_signal()
 	{
+	(void) setsignal(SIGTERM, SIG_DFL);
+	(void) setsignal(SIGINT, SIG_DFL);
 	set_processing_status("TERMINATING", "termination_signal");
 
 	Val sval(signal_val, TYPE_COUNT);

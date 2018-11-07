@@ -1,4 +1,8 @@
 
+2.6-beta2-80 | 2018-11-07 11:46:34 -0600
+
+  * Support appending to vector of any (Jon Siwek, Corelight)
+
 2.6-beta2-79 | 2018-11-07 10:27:00 -0600
 
   * Fix coding conventions nits/typos (Vern Paxson, Corelight)

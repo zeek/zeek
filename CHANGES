@@ -1,4 +1,8 @@
 
+2.6-beta2-79 | 2018-11-07 10:27:00 -0600
+
+  * Fix coding conventions nits/typos (Vern Paxson, Corelight)
+
 2.6-beta2-77 | 2018-11-06 09:32:17 -0600
 
   * Switch GridFTP options from redef to option (Vlad Grigorescu)

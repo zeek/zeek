@@ -990,7 +990,7 @@ type:
 				{
 				NullStmt here;
 				if ( $1 )
-					$1->Error("not a BRO type", &here);
+					$1->Error("not a Bro type", &here);
 				$$ = error_type();
 				}
 			else

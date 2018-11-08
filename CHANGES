@@ -1,4 +1,8 @@
 
+2.6-beta2-82 | 2018-11-08 09:38:52 -0600
+
+  * Remove unnecessary Bloom filter empty check (Matthias Vallentin)
+
 2.6-beta2-80 | 2018-11-07 11:46:34 -0600
 
   * Support appending to vector of any (Jon Siwek, Corelight)

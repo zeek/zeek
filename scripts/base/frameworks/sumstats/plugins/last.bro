@@ -17,7 +17,8 @@ export {
 	};
 
 	redef record ResultVal += {
-		## This is the queue where elements are maintained.  Use the
+		## This is the queue where elements are maintained.
+		## Don't access this value directly, instead use the
 		## :bro:see:`SumStats::get_last` function to get a vector of
 		## the current element values.
 		last_elements: Queue::Queue &optional;
@@ -29,10 +30,21 @@ export {
 
 function get_last(rv: ResultVal): vector of Observation
 	{
-	local s: vector of Observation = vector();
+	local s: vector of any = vector();
+
 	if ( rv?$last_elements )
 		Queue::get_vector(rv$last_elements, s);
-	return s;
+
+	local rval: vector of Observation = vector();
+
+	for ( i in s )
+		# When using the cluster-ized version of SumStats, Queue's
+		# internal table storage uses "any" type for values, so we need
+		# to cast them here or else they may be left as Broker::Data from
+		# the unserialization process.
+		rval += s[i] as Observation;
+
+	return rval;
 	}
 
 hook register_observe_plugins()

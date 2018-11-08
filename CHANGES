@@ -1,4 +1,8 @@
 
+2.6-beta2-83 | 2018-11-08 12:25:21 -0600
+
+  * Fix SumStats "last" plugin in cluster mode (Jon Siwek, Corelight)
+
 2.6-beta2-82 | 2018-11-08 09:38:52 -0600
 
   * Remove unnecessary Bloom filter empty check (Matthias Vallentin)

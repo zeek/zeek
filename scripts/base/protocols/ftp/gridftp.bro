@@ -30,15 +30,15 @@ module GridFTP;
 export {
 	## Number of bytes transferred before guessing a connection is a
 	## GridFTP data channel.
-	const size_threshold = 1073741824 &redef;
+	option size_threshold = 1073741824;
 
 	## Time during which we check whether a connection's size exceeds the
 	## :bro:see:`GridFTP::size_threshold`.
-	const max_time = 2 min &redef;
+	option max_time = 2 min;
 
 	## Whether to skip further processing of the GridFTP data channel once
 	## detected, which may help performance.
-	const skip_data = T &redef;
+	option skip_data = T;
 
 	## Raised when a GridFTP data channel is detected.
 	##

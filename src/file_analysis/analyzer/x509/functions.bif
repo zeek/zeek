@@ -303,7 +303,12 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 	int result = -1;
 	X509* issuer_certificate = 0;
 	X509* signer = 0;
+	ASN1_GENERALIZEDTIME* thisUpdate = nullptr;
+	ASN1_GENERALIZEDTIME* nextUpdate = nullptr;
+	int type = -1;
+
 	OCSP_RESPONSE *resp = d2i_OCSP_RESPONSE(NULL, &start, ocsp_reply->Len());
+
 	if ( ! resp )
 		{
 		rval = x509_result_record(-1, "Could not parse OCSP response");
@@ -441,13 +446,35 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 		return x509_result_record(-1, "OCSP reply is not for host certificate");
 
 	// next - check freshness of proof...
-	ASN1_GENERALIZEDTIME *thisUpdate;
-	ASN1_GENERALIZEDTIME *nextUpdate;
-	int type;
 	type = OCSP_single_get0_status(single, NULL, NULL, &thisUpdate, &nextUpdate);
-	if ( ! ASN1_GENERALIZEDTIME_check(thisUpdate) || ! ASN1_GENERALIZEDTIME_check(nextUpdate) )
+
+	if ( type == -1 )
 		{
-		rval = x509_result_record(-1, "OCSP reply contains invalid dates");
+		rval = x509_result_record(-1, "OCSP reply failed to retrieve update times");
+		goto x509_ocsp_cleanup;
+		}
+
+	if ( ! thisUpdate )
+		{
+		rval = x509_result_record(-1, "OCSP reply missing thisUpdate field");
+		goto x509_ocsp_cleanup;
+		}
+
+	if ( ! nextUpdate )
+		{
+		rval = x509_result_record(-1, "OCSP reply missing nextUpdate field");
+		goto x509_ocsp_cleanup;
+		}
+
+	if ( ! ASN1_GENERALIZEDTIME_check(thisUpdate) )
+		{
+		rval = x509_result_record(-1, "OCSP reply contains invalid thisUpdate field");
+		goto x509_ocsp_cleanup;
+		}
+
+	if ( ! ASN1_GENERALIZEDTIME_check(nextUpdate) )
+		{
+		rval = x509_result_record(-1, "OCSP reply contains invalid nextUpdate field");
 		goto x509_ocsp_cleanup;
 		}
 

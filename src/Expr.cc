@@ -1485,8 +1485,9 @@ AddToExpr::AddToExpr(Expr* arg_op1, Expr* arg_op2)
 				ExprError("appending non-arithmetic to arithmetic vector");
 			}
 
-		else if ( bt1 != bt2 )
-			ExprError("incompatible vector append");
+		else if ( bt1 != bt2 && bt1 != TYPE_ANY )
+			ExprError(fmt("incompatible vector append: %s and %s",
+					  type_name(bt1), type_name(bt2)));
 
 		else
 			SetType(op1->Type()->Ref());

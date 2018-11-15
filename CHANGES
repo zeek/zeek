@@ -1,4 +1,8 @@
 
+2.6-beta3 | 2018-11-14 17:09:42 -0600
+
+  * Release 2.6-beta3
+
 2.6-beta2-83 | 2018-11-08 12:25:21 -0600
 
   * Fix SumStats "last" plugin in cluster mode (Jon Siwek, Corelight)

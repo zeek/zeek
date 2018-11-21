@@ -3656,6 +3656,12 @@ global dns_skip_all_addl = T &redef;
 ## traffic and do not process it.  Set to 0 to turn off this functionality.
 global dns_max_queries = 25 &redef;
 
+## The address of the DNS resolver to use.  If not changed from the
+## unspecified address, ``[::]``, the first nameserver from /etc/resolv.conf
+## gets used (IPv6 is currently only supported if set via this option, not
+## when parsed from the file).
+const dns_resolver = [::] &redef;
+
 ## HTTP session statistics.
 ##
 ## .. bro:see:: http_stats

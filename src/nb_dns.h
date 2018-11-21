@@ -17,6 +17,7 @@ typedef unsigned int nb_uint32_t;
 
 /* Public routines */
 struct nb_dns_info *nb_dns_init(char *);
+struct nb_dns_info *nb_dns_init2(char *, struct sockaddr*);
 void nb_dns_finish(struct nb_dns_info *);
 
 int nb_dns_fd(struct nb_dns_info *);

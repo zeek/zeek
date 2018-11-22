@@ -863,6 +863,7 @@ int analyzer::icmp::ICMP4_counterpart(int icmp_type, int icmp_code, bool& is_one
 	case ICMP_IREQREPLY:		return ICMP_IREQ;
 
 	case ICMP_ROUTERSOLICIT:	return ICMP_ROUTERADVERT;
+	case ICMP_ROUTERADVERT:	return ICMP_ROUTERSOLICIT;
 
 	case ICMP_MASKREQ:		return ICMP_MASKREPLY;
 	case ICMP_MASKREPLY:		return ICMP_MASKREQ;

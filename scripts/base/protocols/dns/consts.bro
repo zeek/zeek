@@ -130,4 +130,37 @@ export {
 		[254] = "C_NONE",
 		[255] = "C_ANY",
 	} &default = function(n: count): string { return fmt("qclass-%d", n); };
+
+	## Possible values of the algorithms used in DNSKEY, DS and RRSIG records
+	const algorithms = {
+		[0] = "reserved0",
+		[1] = "RSA_MD5",
+		[2] = "Diffie_Hellman",
+		[3] = "DSA_SHA1",
+		[4] = "Elliptic_Curve",
+		[5] = "RSA_SHA1",
+		[6] = "DSA_NSEC3_SHA1",
+		[7] = "RSA_SHA1_NSEC3_SHA1",
+		[8] = "RSA_SHA256",
+		[10] = "RSA_SHA512",
+		[12] = "GOST_R_34_10_2001",
+		[13] = "ECDSA_curveP256withSHA256",
+		[14] = "ECDSA_curveP384withSHA384",
+		[15] = "Ed25519",
+		[16] = "Ed448",
+		[252] = "Indirect",
+		[253] = "PrivateDNS",
+		[254] = "PrivateOID",
+		[255] = "reserved255",
+	} &default = function(n: count): string { return fmt("algorithm-%d", n); };
+
+	## Possible digest types used in DNSSEC.
+	const digests = {
+		[0] = "reserved0",
+		[1] = "SHA1",
+		[2] = "SHA256",
+		[3] = "GOST_R_34_11_94",
+		[4] = "SHA384",
+	} &default = function(n: count): string { return fmt("digest-%d", n); };
+
 }

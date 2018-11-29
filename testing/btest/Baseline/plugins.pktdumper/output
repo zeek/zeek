@@ -1,4 +1,4 @@
-Demo::Foo - A Foo packet dumper (dynamic, version 1.0)
+Demo::Foo - A Foo packet dumper (dynamic, version 1.0.0)
     [Packet Dumper] FooPktDumper (dumper prefix: "foo")
 
 ===

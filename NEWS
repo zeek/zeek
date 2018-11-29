@@ -1,8 +1,40 @@
 
 This document summarizes the most important changes in the current Bro
 release. For an exhaustive list of changes, see the ``CHANGES`` file
-(note that submodules, such as BroControl and Broccoli, come with
-their own ``CHANGES``.)
+(note that submodules, such as Broker, come with their own ``CHANGES``.)
+
+Bro 2.7
+=======
+
+New Functionality
+-----------------
+
+- Added support for DNSSEC resource records RRSIG, DNSKEY, DS, NSEC, and NSEC3.
+  The associated events are:
+
+  - dns_RRSIG
+  - dns_DNSKEY
+  - dns_DS
+  - dns_NSEC
+  - dns_NSEC3
+
+- Bro's Plugin framework now allows a patch version.  If a patch version is not
+  provided, it will default to 0.  To specify this, modify the plugin
+  Configuration class in your ``src/Plugin.cc` and set
+  ``config.version.patch``.  Note that the default plugin skeleton
+  includes a unit test whose Baseline has the plugin version number in
+  it and that will now fail due to the version number now including a
+  patch number.  For those that want to keep the unit test, simply adapt
+  the unit test/baseline to include the new plugin patch number.
+
+Changed Functionality
+---------------------
+
+Removed Functionality
+---------------------
+
+Deprecated Functionality
+------------------------
 
 Bro 2.6
 =======

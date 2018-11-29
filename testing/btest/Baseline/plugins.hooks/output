@@ -228,53 +228,53 @@
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (Weird::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=weird, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (X509::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=x509, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (mysql::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=mysql, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Broker::LOG, [columns=<no value description>, ev=<uninitialized>, path=broker])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Cluster::LOG, [columns=<no value description>, ev=<uninitialized>, path=cluster])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Config::LOG, [columns=<no value description>, ev=Config::log_config, path=config])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Conn::LOG, [columns=<no value description>, ev=Conn::log_conn, path=conn])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (DCE_RPC::LOG, [columns=<no value description>, ev=<uninitialized>, path=dce_rpc])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (DHCP::LOG, [columns=<no value description>, ev=DHCP::log_dhcp, path=dhcp])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (DNP3::LOG, [columns=<no value description>, ev=DNP3::log_dnp3, path=dnp3])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (DNS::LOG, [columns=<no value description>, ev=DNS::log_dns, path=dns])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (DPD::LOG, [columns=<no value description>, ev=<uninitialized>, path=dpd])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (FTP::LOG, [columns=<no value description>, ev=FTP::log_ftp, path=ftp])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Files::LOG, [columns=<no value description>, ev=Files::log_files, path=files])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (HTTP::LOG, [columns=<no value description>, ev=HTTP::log_http, path=http])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (IRC::LOG, [columns=<no value description>, ev=IRC::irc_log, path=irc])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Intel::LOG, [columns=<no value description>, ev=Intel::log_intel, path=intel])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (KRB::LOG, [columns=<no value description>, ev=KRB::log_krb, path=kerberos])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Modbus::LOG, [columns=<no value description>, ev=Modbus::log_modbus, path=modbus])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (NTLM::LOG, [columns=<no value description>, ev=<uninitialized>, path=ntlm])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (NetControl::CATCH_RELEASE, [columns=<no value description>, ev=NetControl::log_netcontrol_catch_release, path=netcontrol_catch_release])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (NetControl::DROP, [columns=<no value description>, ev=NetControl::log_netcontrol_drop, path=netcontrol_drop])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (NetControl::LOG, [columns=<no value description>, ev=NetControl::log_netcontrol, path=netcontrol])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (NetControl::SHUNT, [columns=<no value description>, ev=NetControl::log_netcontrol_shunt, path=netcontrol_shunt])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Notice::ALARM_LOG, [columns=<no value description>, ev=<uninitialized>, path=notice_alarm])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Notice::LOG, [columns=<no value description>, ev=Notice::log_notice, path=notice])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (OpenFlow::LOG, [columns=<no value description>, ev=OpenFlow::log_openflow, path=openflow])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (PE::LOG, [columns=<no value description>, ev=PE::log_pe, path=pe])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (PacketFilter::LOG, [columns=<no value description>, ev=<uninitialized>, path=packet_filter])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (RADIUS::LOG, [columns=<no value description>, ev=RADIUS::log_radius, path=radius])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (RDP::LOG, [columns=<no value description>, ev=RDP::log_rdp, path=rdp])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (RFB::LOG, [columns=<no value description>, ev=RFB::log_rfb, path=rfb])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Reporter::LOG, [columns=<no value description>, ev=<uninitialized>, path=reporter])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (SIP::LOG, [columns=<no value description>, ev=SIP::log_sip, path=sip])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (SMB::FILES_LOG, [columns=<no value description>, ev=<uninitialized>, path=smb_files])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (SMB::MAPPING_LOG, [columns=<no value description>, ev=<uninitialized>, path=smb_mapping])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (SMTP::LOG, [columns=<no value description>, ev=SMTP::log_smtp, path=smtp])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (SNMP::LOG, [columns=<no value description>, ev=SNMP::log_snmp, path=snmp])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (SOCKS::LOG, [columns=<no value description>, ev=SOCKS::log_socks, path=socks])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (SSH::LOG, [columns=<no value description>, ev=SSH::log_ssh, path=ssh])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (SSL::LOG, [columns=<no value description>, ev=SSL::log_ssl, path=ssl])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Signatures::LOG, [columns=<no value description>, ev=Signatures::log_signature, path=signatures])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Software::LOG, [columns=<no value description>, ev=Software::log_software, path=software])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Syslog::LOG, [columns=<no value description>, ev=<uninitialized>, path=syslog])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Tunnel::LOG, [columns=<no value description>, ev=<uninitialized>, path=tunnel])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Unified2::LOG, [columns=<no value description>, ev=Unified2::log_unified2, path=unified2])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1541517939.221621, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Broker::LOG, [columns=Broker::Info, ev=<uninitialized>, path=broker])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Cluster::LOG, [columns=Cluster::Info, ev=<uninitialized>, path=cluster])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Config::LOG, [columns=Config::Info, ev=Config::log_config, path=config])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Conn::LOG, [columns=Conn::Info, ev=Conn::log_conn, path=conn])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (DCE_RPC::LOG, [columns=DCE_RPC::Info, ev=<uninitialized>, path=dce_rpc])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (DHCP::LOG, [columns=DHCP::Info, ev=DHCP::log_dhcp, path=dhcp])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (DNP3::LOG, [columns=DNP3::Info, ev=DNP3::log_dnp3, path=dnp3])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (DNS::LOG, [columns=DNS::Info, ev=DNS::log_dns, path=dns])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (DPD::LOG, [columns=DPD::Info, ev=<uninitialized>, path=dpd])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (FTP::LOG, [columns=FTP::Info, ev=FTP::log_ftp, path=ftp])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Files::LOG, [columns=Files::Info, ev=Files::log_files, path=files])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (HTTP::LOG, [columns=HTTP::Info, ev=HTTP::log_http, path=http])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (IRC::LOG, [columns=IRC::Info, ev=IRC::irc_log, path=irc])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Intel::LOG, [columns=Intel::Info, ev=Intel::log_intel, path=intel])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (KRB::LOG, [columns=KRB::Info, ev=KRB::log_krb, path=kerberos])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Modbus::LOG, [columns=Modbus::Info, ev=Modbus::log_modbus, path=modbus])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (NTLM::LOG, [columns=NTLM::Info, ev=<uninitialized>, path=ntlm])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (NetControl::CATCH_RELEASE, [columns=NetControl::CatchReleaseInfo, ev=NetControl::log_netcontrol_catch_release, path=netcontrol_catch_release])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (NetControl::DROP, [columns=NetControl::DropInfo, ev=NetControl::log_netcontrol_drop, path=netcontrol_drop])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (NetControl::LOG, [columns=NetControl::Info, ev=NetControl::log_netcontrol, path=netcontrol])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (NetControl::SHUNT, [columns=NetControl::ShuntInfo, ev=NetControl::log_netcontrol_shunt, path=netcontrol_shunt])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Notice::ALARM_LOG, [columns=Notice::Info, ev=<uninitialized>, path=notice_alarm])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Notice::LOG, [columns=Notice::Info, ev=Notice::log_notice, path=notice])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (OpenFlow::LOG, [columns=OpenFlow::Info, ev=OpenFlow::log_openflow, path=openflow])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (PE::LOG, [columns=PE::Info, ev=PE::log_pe, path=pe])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (PacketFilter::LOG, [columns=PacketFilter::Info, ev=<uninitialized>, path=packet_filter])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (RADIUS::LOG, [columns=RADIUS::Info, ev=RADIUS::log_radius, path=radius])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (RDP::LOG, [columns=RDP::Info, ev=RDP::log_rdp, path=rdp])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (RFB::LOG, [columns=RFB::Info, ev=RFB::log_rfb, path=rfb])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Reporter::LOG, [columns=Reporter::Info, ev=<uninitialized>, path=reporter])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (SIP::LOG, [columns=SIP::Info, ev=SIP::log_sip, path=sip])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (SMB::FILES_LOG, [columns=SMB::FileInfo, ev=<uninitialized>, path=smb_files])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (SMB::MAPPING_LOG, [columns=SMB::TreeInfo, ev=<uninitialized>, path=smb_mapping])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (SMTP::LOG, [columns=SMTP::Info, ev=SMTP::log_smtp, path=smtp])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (SNMP::LOG, [columns=SNMP::Info, ev=SNMP::log_snmp, path=snmp])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (SOCKS::LOG, [columns=SOCKS::Info, ev=SOCKS::log_socks, path=socks])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (SSH::LOG, [columns=SSH::Info, ev=SSH::log_ssh, path=ssh])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (SSL::LOG, [columns=SSL::Info, ev=SSL::log_ssl, path=ssl])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Signatures::LOG, [columns=Signatures::Info, ev=Signatures::log_signature, path=signatures])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Software::LOG, [columns=Software::Info, ev=Software::log_software, path=software])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Syslog::LOG, [columns=Syslog::Info, ev=<uninitialized>, path=syslog])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Tunnel::LOG, [columns=Tunnel::Info, ev=<uninitialized>, path=tunnel])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Unified2::LOG, [columns=Unified2::Info, ev=Unified2::log_unified2, path=unified2])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1541702572.740462, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Broker::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Config::LOG)) -> <no result>
@@ -413,53 +413,53 @@
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (Weird::LOG, default)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (X509::LOG, default)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (mysql::LOG, default)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Broker::LOG, [columns=<no value description>, ev=<uninitialized>, path=broker])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Cluster::LOG, [columns=<no value description>, ev=<uninitialized>, path=cluster])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Config::LOG, [columns=<no value description>, ev=Config::log_config, path=config])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Conn::LOG, [columns=<no value description>, ev=Conn::log_conn, path=conn])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (DCE_RPC::LOG, [columns=<no value description>, ev=<uninitialized>, path=dce_rpc])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (DHCP::LOG, [columns=<no value description>, ev=DHCP::log_dhcp, path=dhcp])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (DNP3::LOG, [columns=<no value description>, ev=DNP3::log_dnp3, path=dnp3])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (DNS::LOG, [columns=<no value description>, ev=DNS::log_dns, path=dns])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (DPD::LOG, [columns=<no value description>, ev=<uninitialized>, path=dpd])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (FTP::LOG, [columns=<no value description>, ev=FTP::log_ftp, path=ftp])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Files::LOG, [columns=<no value description>, ev=Files::log_files, path=files])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (HTTP::LOG, [columns=<no value description>, ev=HTTP::log_http, path=http])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (IRC::LOG, [columns=<no value description>, ev=IRC::irc_log, path=irc])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Intel::LOG, [columns=<no value description>, ev=Intel::log_intel, path=intel])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (KRB::LOG, [columns=<no value description>, ev=KRB::log_krb, path=kerberos])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Modbus::LOG, [columns=<no value description>, ev=Modbus::log_modbus, path=modbus])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (NTLM::LOG, [columns=<no value description>, ev=<uninitialized>, path=ntlm])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (NetControl::CATCH_RELEASE, [columns=<no value description>, ev=NetControl::log_netcontrol_catch_release, path=netcontrol_catch_release])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (NetControl::DROP, [columns=<no value description>, ev=NetControl::log_netcontrol_drop, path=netcontrol_drop])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (NetControl::LOG, [columns=<no value description>, ev=NetControl::log_netcontrol, path=netcontrol])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (NetControl::SHUNT, [columns=<no value description>, ev=NetControl::log_netcontrol_shunt, path=netcontrol_shunt])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Notice::ALARM_LOG, [columns=<no value description>, ev=<uninitialized>, path=notice_alarm])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Notice::LOG, [columns=<no value description>, ev=Notice::log_notice, path=notice])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (OpenFlow::LOG, [columns=<no value description>, ev=OpenFlow::log_openflow, path=openflow])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (PE::LOG, [columns=<no value description>, ev=PE::log_pe, path=pe])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (PacketFilter::LOG, [columns=<no value description>, ev=<uninitialized>, path=packet_filter])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (RADIUS::LOG, [columns=<no value description>, ev=RADIUS::log_radius, path=radius])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (RDP::LOG, [columns=<no value description>, ev=RDP::log_rdp, path=rdp])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (RFB::LOG, [columns=<no value description>, ev=RFB::log_rfb, path=rfb])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Reporter::LOG, [columns=<no value description>, ev=<uninitialized>, path=reporter])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (SIP::LOG, [columns=<no value description>, ev=SIP::log_sip, path=sip])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (SMB::FILES_LOG, [columns=<no value description>, ev=<uninitialized>, path=smb_files])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (SMB::MAPPING_LOG, [columns=<no value description>, ev=<uninitialized>, path=smb_mapping])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (SMTP::LOG, [columns=<no value description>, ev=SMTP::log_smtp, path=smtp])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (SNMP::LOG, [columns=<no value description>, ev=SNMP::log_snmp, path=snmp])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (SOCKS::LOG, [columns=<no value description>, ev=SOCKS::log_socks, path=socks])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (SSH::LOG, [columns=<no value description>, ev=SSH::log_ssh, path=ssh])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (SSL::LOG, [columns=<no value description>, ev=SSL::log_ssl, path=ssl])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Signatures::LOG, [columns=<no value description>, ev=Signatures::log_signature, path=signatures])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Software::LOG, [columns=<no value description>, ev=Software::log_software, path=software])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Syslog::LOG, [columns=<no value description>, ev=<uninitialized>, path=syslog])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Tunnel::LOG, [columns=<no value description>, ev=<uninitialized>, path=tunnel])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Unified2::LOG, [columns=<no value description>, ev=Unified2::log_unified2, path=unified2])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1541517939.221621, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Broker::LOG, [columns=Broker::Info, ev=<uninitialized>, path=broker])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Cluster::LOG, [columns=Cluster::Info, ev=<uninitialized>, path=cluster])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Config::LOG, [columns=Config::Info, ev=Config::log_config, path=config])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Conn::LOG, [columns=Conn::Info, ev=Conn::log_conn, path=conn])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (DCE_RPC::LOG, [columns=DCE_RPC::Info, ev=<uninitialized>, path=dce_rpc])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (DHCP::LOG, [columns=DHCP::Info, ev=DHCP::log_dhcp, path=dhcp])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (DNP3::LOG, [columns=DNP3::Info, ev=DNP3::log_dnp3, path=dnp3])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (DNS::LOG, [columns=DNS::Info, ev=DNS::log_dns, path=dns])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (DPD::LOG, [columns=DPD::Info, ev=<uninitialized>, path=dpd])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (FTP::LOG, [columns=FTP::Info, ev=FTP::log_ftp, path=ftp])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Files::LOG, [columns=Files::Info, ev=Files::log_files, path=files])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (HTTP::LOG, [columns=HTTP::Info, ev=HTTP::log_http, path=http])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (IRC::LOG, [columns=IRC::Info, ev=IRC::irc_log, path=irc])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Intel::LOG, [columns=Intel::Info, ev=Intel::log_intel, path=intel])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (KRB::LOG, [columns=KRB::Info, ev=KRB::log_krb, path=kerberos])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Modbus::LOG, [columns=Modbus::Info, ev=Modbus::log_modbus, path=modbus])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (NTLM::LOG, [columns=NTLM::Info, ev=<uninitialized>, path=ntlm])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (NetControl::CATCH_RELEASE, [columns=NetControl::CatchReleaseInfo, ev=NetControl::log_netcontrol_catch_release, path=netcontrol_catch_release])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (NetControl::DROP, [columns=NetControl::DropInfo, ev=NetControl::log_netcontrol_drop, path=netcontrol_drop])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (NetControl::LOG, [columns=NetControl::Info, ev=NetControl::log_netcontrol, path=netcontrol])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (NetControl::SHUNT, [columns=NetControl::ShuntInfo, ev=NetControl::log_netcontrol_shunt, path=netcontrol_shunt])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Notice::ALARM_LOG, [columns=Notice::Info, ev=<uninitialized>, path=notice_alarm])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Notice::LOG, [columns=Notice::Info, ev=Notice::log_notice, path=notice])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (OpenFlow::LOG, [columns=OpenFlow::Info, ev=OpenFlow::log_openflow, path=openflow])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (PE::LOG, [columns=PE::Info, ev=PE::log_pe, path=pe])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (PacketFilter::LOG, [columns=PacketFilter::Info, ev=<uninitialized>, path=packet_filter])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (RADIUS::LOG, [columns=RADIUS::Info, ev=RADIUS::log_radius, path=radius])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (RDP::LOG, [columns=RDP::Info, ev=RDP::log_rdp, path=rdp])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (RFB::LOG, [columns=RFB::Info, ev=RFB::log_rfb, path=rfb])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Reporter::LOG, [columns=Reporter::Info, ev=<uninitialized>, path=reporter])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (SIP::LOG, [columns=SIP::Info, ev=SIP::log_sip, path=sip])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (SMB::FILES_LOG, [columns=SMB::FileInfo, ev=<uninitialized>, path=smb_files])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (SMB::MAPPING_LOG, [columns=SMB::TreeInfo, ev=<uninitialized>, path=smb_mapping])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (SMTP::LOG, [columns=SMTP::Info, ev=SMTP::log_smtp, path=smtp])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (SNMP::LOG, [columns=SNMP::Info, ev=SNMP::log_snmp, path=snmp])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (SOCKS::LOG, [columns=SOCKS::Info, ev=SOCKS::log_socks, path=socks])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (SSH::LOG, [columns=SSH::Info, ev=SSH::log_ssh, path=ssh])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (SSL::LOG, [columns=SSL::Info, ev=SSL::log_ssl, path=ssl])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Signatures::LOG, [columns=Signatures::Info, ev=Signatures::log_signature, path=signatures])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Software::LOG, [columns=Software::Info, ev=Software::log_software, path=software])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Syslog::LOG, [columns=Syslog::Info, ev=<uninitialized>, path=syslog])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Tunnel::LOG, [columns=Tunnel::Info, ev=<uninitialized>, path=tunnel])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Unified2::LOG, [columns=Unified2::Info, ev=Unified2::log_unified2, path=unified2])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1541702572.740462, node=bro, filter=ip or not ip, init=T, success=T])) -> <no result>
 0.000000   MetaHookPost  CallFunction(NetControl::check_plugins, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(NetControl::init, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Notice::want_pp, <frame>, ()) -> <no result>
@@ -1122,53 +1122,53 @@
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (Weird::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=weird, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (X509::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=x509, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (mysql::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=mysql, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Broker::LOG, [columns=<no value description>, ev=<uninitialized>, path=broker]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Cluster::LOG, [columns=<no value description>, ev=<uninitialized>, path=cluster]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Config::LOG, [columns=<no value description>, ev=Config::log_config, path=config]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Conn::LOG, [columns=<no value description>, ev=Conn::log_conn, path=conn]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (DCE_RPC::LOG, [columns=<no value description>, ev=<uninitialized>, path=dce_rpc]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (DHCP::LOG, [columns=<no value description>, ev=DHCP::log_dhcp, path=dhcp]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (DNP3::LOG, [columns=<no value description>, ev=DNP3::log_dnp3, path=dnp3]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (DNS::LOG, [columns=<no value description>, ev=DNS::log_dns, path=dns]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (DPD::LOG, [columns=<no value description>, ev=<uninitialized>, path=dpd]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (FTP::LOG, [columns=<no value description>, ev=FTP::log_ftp, path=ftp]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Files::LOG, [columns=<no value description>, ev=Files::log_files, path=files]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (HTTP::LOG, [columns=<no value description>, ev=HTTP::log_http, path=http]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (IRC::LOG, [columns=<no value description>, ev=IRC::irc_log, path=irc]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Intel::LOG, [columns=<no value description>, ev=Intel::log_intel, path=intel]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (KRB::LOG, [columns=<no value description>, ev=KRB::log_krb, path=kerberos]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Modbus::LOG, [columns=<no value description>, ev=Modbus::log_modbus, path=modbus]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (NTLM::LOG, [columns=<no value description>, ev=<uninitialized>, path=ntlm]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (NetControl::CATCH_RELEASE, [columns=<no value description>, ev=NetControl::log_netcontrol_catch_release, path=netcontrol_catch_release]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (NetControl::DROP, [columns=<no value description>, ev=NetControl::log_netcontrol_drop, path=netcontrol_drop]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (NetControl::LOG, [columns=<no value description>, ev=NetControl::log_netcontrol, path=netcontrol]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (NetControl::SHUNT, [columns=<no value description>, ev=NetControl::log_netcontrol_shunt, path=netcontrol_shunt]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Notice::ALARM_LOG, [columns=<no value description>, ev=<uninitialized>, path=notice_alarm]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Notice::LOG, [columns=<no value description>, ev=Notice::log_notice, path=notice]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (OpenFlow::LOG, [columns=<no value description>, ev=OpenFlow::log_openflow, path=openflow]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (PE::LOG, [columns=<no value description>, ev=PE::log_pe, path=pe]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (PacketFilter::LOG, [columns=<no value description>, ev=<uninitialized>, path=packet_filter]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (RADIUS::LOG, [columns=<no value description>, ev=RADIUS::log_radius, path=radius]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (RDP::LOG, [columns=<no value description>, ev=RDP::log_rdp, path=rdp]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (RFB::LOG, [columns=<no value description>, ev=RFB::log_rfb, path=rfb]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Reporter::LOG, [columns=<no value description>, ev=<uninitialized>, path=reporter]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (SIP::LOG, [columns=<no value description>, ev=SIP::log_sip, path=sip]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (SMB::FILES_LOG, [columns=<no value description>, ev=<uninitialized>, path=smb_files]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (SMB::MAPPING_LOG, [columns=<no value description>, ev=<uninitialized>, path=smb_mapping]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (SMTP::LOG, [columns=<no value description>, ev=SMTP::log_smtp, path=smtp]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (SNMP::LOG, [columns=<no value description>, ev=SNMP::log_snmp, path=snmp]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (SOCKS::LOG, [columns=<no value description>, ev=SOCKS::log_socks, path=socks]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (SSH::LOG, [columns=<no value description>, ev=SSH::log_ssh, path=ssh]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (SSL::LOG, [columns=<no value description>, ev=SSL::log_ssl, path=ssl]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Signatures::LOG, [columns=<no value description>, ev=Signatures::log_signature, path=signatures]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Software::LOG, [columns=<no value description>, ev=Software::log_software, path=software]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Syslog::LOG, [columns=<no value description>, ev=<uninitialized>, path=syslog]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Tunnel::LOG, [columns=<no value description>, ev=<uninitialized>, path=tunnel]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Unified2::LOG, [columns=<no value description>, ev=Unified2::log_unified2, path=unified2]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql]))
-0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1541517939.221621, node=bro, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Broker::LOG, [columns=Broker::Info, ev=<uninitialized>, path=broker]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Cluster::LOG, [columns=Cluster::Info, ev=<uninitialized>, path=cluster]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Config::LOG, [columns=Config::Info, ev=Config::log_config, path=config]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Conn::LOG, [columns=Conn::Info, ev=Conn::log_conn, path=conn]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (DCE_RPC::LOG, [columns=DCE_RPC::Info, ev=<uninitialized>, path=dce_rpc]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (DHCP::LOG, [columns=DHCP::Info, ev=DHCP::log_dhcp, path=dhcp]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (DNP3::LOG, [columns=DNP3::Info, ev=DNP3::log_dnp3, path=dnp3]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (DNS::LOG, [columns=DNS::Info, ev=DNS::log_dns, path=dns]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (DPD::LOG, [columns=DPD::Info, ev=<uninitialized>, path=dpd]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (FTP::LOG, [columns=FTP::Info, ev=FTP::log_ftp, path=ftp]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Files::LOG, [columns=Files::Info, ev=Files::log_files, path=files]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (HTTP::LOG, [columns=HTTP::Info, ev=HTTP::log_http, path=http]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (IRC::LOG, [columns=IRC::Info, ev=IRC::irc_log, path=irc]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Intel::LOG, [columns=Intel::Info, ev=Intel::log_intel, path=intel]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (KRB::LOG, [columns=KRB::Info, ev=KRB::log_krb, path=kerberos]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Modbus::LOG, [columns=Modbus::Info, ev=Modbus::log_modbus, path=modbus]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (NTLM::LOG, [columns=NTLM::Info, ev=<uninitialized>, path=ntlm]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (NetControl::CATCH_RELEASE, [columns=NetControl::CatchReleaseInfo, ev=NetControl::log_netcontrol_catch_release, path=netcontrol_catch_release]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (NetControl::DROP, [columns=NetControl::DropInfo, ev=NetControl::log_netcontrol_drop, path=netcontrol_drop]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (NetControl::LOG, [columns=NetControl::Info, ev=NetControl::log_netcontrol, path=netcontrol]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (NetControl::SHUNT, [columns=NetControl::ShuntInfo, ev=NetControl::log_netcontrol_shunt, path=netcontrol_shunt]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Notice::ALARM_LOG, [columns=Notice::Info, ev=<uninitialized>, path=notice_alarm]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Notice::LOG, [columns=Notice::Info, ev=Notice::log_notice, path=notice]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (OpenFlow::LOG, [columns=OpenFlow::Info, ev=OpenFlow::log_openflow, path=openflow]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (PE::LOG, [columns=PE::Info, ev=PE::log_pe, path=pe]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (PacketFilter::LOG, [columns=PacketFilter::Info, ev=<uninitialized>, path=packet_filter]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (RADIUS::LOG, [columns=RADIUS::Info, ev=RADIUS::log_radius, path=radius]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (RDP::LOG, [columns=RDP::Info, ev=RDP::log_rdp, path=rdp]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (RFB::LOG, [columns=RFB::Info, ev=RFB::log_rfb, path=rfb]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Reporter::LOG, [columns=Reporter::Info, ev=<uninitialized>, path=reporter]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (SIP::LOG, [columns=SIP::Info, ev=SIP::log_sip, path=sip]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (SMB::FILES_LOG, [columns=SMB::FileInfo, ev=<uninitialized>, path=smb_files]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (SMB::MAPPING_LOG, [columns=SMB::TreeInfo, ev=<uninitialized>, path=smb_mapping]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (SMTP::LOG, [columns=SMTP::Info, ev=SMTP::log_smtp, path=smtp]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (SNMP::LOG, [columns=SNMP::Info, ev=SNMP::log_snmp, path=snmp]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (SOCKS::LOG, [columns=SOCKS::Info, ev=SOCKS::log_socks, path=socks]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (SSH::LOG, [columns=SSH::Info, ev=SSH::log_ssh, path=ssh]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (SSL::LOG, [columns=SSL::Info, ev=SSL::log_ssl, path=ssl]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Signatures::LOG, [columns=Signatures::Info, ev=Signatures::log_signature, path=signatures]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Software::LOG, [columns=Software::Info, ev=Software::log_software, path=software]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Syslog::LOG, [columns=Syslog::Info, ev=<uninitialized>, path=syslog]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Tunnel::LOG, [columns=Tunnel::Info, ev=<uninitialized>, path=tunnel]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Unified2::LOG, [columns=Unified2::Info, ev=Unified2::log_unified2, path=unified2]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql]))
+0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1541702572.740462, node=bro, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Broker::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Config::LOG))
@@ -1307,53 +1307,53 @@
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (Weird::LOG, default))
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (X509::LOG, default))
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (mysql::LOG, default))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Broker::LOG, [columns=<no value description>, ev=<uninitialized>, path=broker]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Cluster::LOG, [columns=<no value description>, ev=<uninitialized>, path=cluster]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Config::LOG, [columns=<no value description>, ev=Config::log_config, path=config]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Conn::LOG, [columns=<no value description>, ev=Conn::log_conn, path=conn]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (DCE_RPC::LOG, [columns=<no value description>, ev=<uninitialized>, path=dce_rpc]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (DHCP::LOG, [columns=<no value description>, ev=DHCP::log_dhcp, path=dhcp]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (DNP3::LOG, [columns=<no value description>, ev=DNP3::log_dnp3, path=dnp3]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (DNS::LOG, [columns=<no value description>, ev=DNS::log_dns, path=dns]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (DPD::LOG, [columns=<no value description>, ev=<uninitialized>, path=dpd]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (FTP::LOG, [columns=<no value description>, ev=FTP::log_ftp, path=ftp]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Files::LOG, [columns=<no value description>, ev=Files::log_files, path=files]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (HTTP::LOG, [columns=<no value description>, ev=HTTP::log_http, path=http]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (IRC::LOG, [columns=<no value description>, ev=IRC::irc_log, path=irc]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Intel::LOG, [columns=<no value description>, ev=Intel::log_intel, path=intel]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (KRB::LOG, [columns=<no value description>, ev=KRB::log_krb, path=kerberos]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Modbus::LOG, [columns=<no value description>, ev=Modbus::log_modbus, path=modbus]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (NTLM::LOG, [columns=<no value description>, ev=<uninitialized>, path=ntlm]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (NetControl::CATCH_RELEASE, [columns=<no value description>, ev=NetControl::log_netcontrol_catch_release, path=netcontrol_catch_release]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (NetControl::DROP, [columns=<no value description>, ev=NetControl::log_netcontrol_drop, path=netcontrol_drop]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (NetControl::LOG, [columns=<no value description>, ev=NetControl::log_netcontrol, path=netcontrol]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (NetControl::SHUNT, [columns=<no value description>, ev=NetControl::log_netcontrol_shunt, path=netcontrol_shunt]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Notice::ALARM_LOG, [columns=<no value description>, ev=<uninitialized>, path=notice_alarm]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Notice::LOG, [columns=<no value description>, ev=Notice::log_notice, path=notice]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (OpenFlow::LOG, [columns=<no value description>, ev=OpenFlow::log_openflow, path=openflow]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (PE::LOG, [columns=<no value description>, ev=PE::log_pe, path=pe]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (PacketFilter::LOG, [columns=<no value description>, ev=<uninitialized>, path=packet_filter]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (RADIUS::LOG, [columns=<no value description>, ev=RADIUS::log_radius, path=radius]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (RDP::LOG, [columns=<no value description>, ev=RDP::log_rdp, path=rdp]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (RFB::LOG, [columns=<no value description>, ev=RFB::log_rfb, path=rfb]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Reporter::LOG, [columns=<no value description>, ev=<uninitialized>, path=reporter]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (SIP::LOG, [columns=<no value description>, ev=SIP::log_sip, path=sip]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (SMB::FILES_LOG, [columns=<no value description>, ev=<uninitialized>, path=smb_files]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (SMB::MAPPING_LOG, [columns=<no value description>, ev=<uninitialized>, path=smb_mapping]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (SMTP::LOG, [columns=<no value description>, ev=SMTP::log_smtp, path=smtp]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (SNMP::LOG, [columns=<no value description>, ev=SNMP::log_snmp, path=snmp]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (SOCKS::LOG, [columns=<no value description>, ev=SOCKS::log_socks, path=socks]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (SSH::LOG, [columns=<no value description>, ev=SSH::log_ssh, path=ssh]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (SSL::LOG, [columns=<no value description>, ev=SSL::log_ssl, path=ssl]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Signatures::LOG, [columns=<no value description>, ev=Signatures::log_signature, path=signatures]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Software::LOG, [columns=<no value description>, ev=Software::log_software, path=software]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Syslog::LOG, [columns=<no value description>, ev=<uninitialized>, path=syslog]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Tunnel::LOG, [columns=<no value description>, ev=<uninitialized>, path=tunnel]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Unified2::LOG, [columns=<no value description>, ev=Unified2::log_unified2, path=unified2]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql]))
-0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1541517939.221621, node=bro, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Broker::LOG, [columns=Broker::Info, ev=<uninitialized>, path=broker]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Cluster::LOG, [columns=Cluster::Info, ev=<uninitialized>, path=cluster]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Config::LOG, [columns=Config::Info, ev=Config::log_config, path=config]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Conn::LOG, [columns=Conn::Info, ev=Conn::log_conn, path=conn]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (DCE_RPC::LOG, [columns=DCE_RPC::Info, ev=<uninitialized>, path=dce_rpc]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (DHCP::LOG, [columns=DHCP::Info, ev=DHCP::log_dhcp, path=dhcp]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (DNP3::LOG, [columns=DNP3::Info, ev=DNP3::log_dnp3, path=dnp3]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (DNS::LOG, [columns=DNS::Info, ev=DNS::log_dns, path=dns]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (DPD::LOG, [columns=DPD::Info, ev=<uninitialized>, path=dpd]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (FTP::LOG, [columns=FTP::Info, ev=FTP::log_ftp, path=ftp]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Files::LOG, [columns=Files::Info, ev=Files::log_files, path=files]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (HTTP::LOG, [columns=HTTP::Info, ev=HTTP::log_http, path=http]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (IRC::LOG, [columns=IRC::Info, ev=IRC::irc_log, path=irc]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Intel::LOG, [columns=Intel::Info, ev=Intel::log_intel, path=intel]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (KRB::LOG, [columns=KRB::Info, ev=KRB::log_krb, path=kerberos]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Modbus::LOG, [columns=Modbus::Info, ev=Modbus::log_modbus, path=modbus]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (NTLM::LOG, [columns=NTLM::Info, ev=<uninitialized>, path=ntlm]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (NetControl::CATCH_RELEASE, [columns=NetControl::CatchReleaseInfo, ev=NetControl::log_netcontrol_catch_release, path=netcontrol_catch_release]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (NetControl::DROP, [columns=NetControl::DropInfo, ev=NetControl::log_netcontrol_drop, path=netcontrol_drop]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (NetControl::LOG, [columns=NetControl::Info, ev=NetControl::log_netcontrol, path=netcontrol]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (NetControl::SHUNT, [columns=NetControl::ShuntInfo, ev=NetControl::log_netcontrol_shunt, path=netcontrol_shunt]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Notice::ALARM_LOG, [columns=Notice::Info, ev=<uninitialized>, path=notice_alarm]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Notice::LOG, [columns=Notice::Info, ev=Notice::log_notice, path=notice]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (OpenFlow::LOG, [columns=OpenFlow::Info, ev=OpenFlow::log_openflow, path=openflow]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (PE::LOG, [columns=PE::Info, ev=PE::log_pe, path=pe]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (PacketFilter::LOG, [columns=PacketFilter::Info, ev=<uninitialized>, path=packet_filter]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (RADIUS::LOG, [columns=RADIUS::Info, ev=RADIUS::log_radius, path=radius]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (RDP::LOG, [columns=RDP::Info, ev=RDP::log_rdp, path=rdp]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (RFB::LOG, [columns=RFB::Info, ev=RFB::log_rfb, path=rfb]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Reporter::LOG, [columns=Reporter::Info, ev=<uninitialized>, path=reporter]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (SIP::LOG, [columns=SIP::Info, ev=SIP::log_sip, path=sip]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (SMB::FILES_LOG, [columns=SMB::FileInfo, ev=<uninitialized>, path=smb_files]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (SMB::MAPPING_LOG, [columns=SMB::TreeInfo, ev=<uninitialized>, path=smb_mapping]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (SMTP::LOG, [columns=SMTP::Info, ev=SMTP::log_smtp, path=smtp]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (SNMP::LOG, [columns=SNMP::Info, ev=SNMP::log_snmp, path=snmp]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (SOCKS::LOG, [columns=SOCKS::Info, ev=SOCKS::log_socks, path=socks]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (SSH::LOG, [columns=SSH::Info, ev=SSH::log_ssh, path=ssh]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (SSL::LOG, [columns=SSL::Info, ev=SSL::log_ssl, path=ssl]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Signatures::LOG, [columns=Signatures::Info, ev=Signatures::log_signature, path=signatures]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Software::LOG, [columns=Software::Info, ev=Software::log_software, path=software]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Syslog::LOG, [columns=Syslog::Info, ev=<uninitialized>, path=syslog]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Tunnel::LOG, [columns=Tunnel::Info, ev=<uninitialized>, path=tunnel]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Unified2::LOG, [columns=Unified2::Info, ev=Unified2::log_unified2, path=unified2]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql]))
+0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1541702572.740462, node=bro, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(NetControl::check_plugins, <frame>, ())
 0.000000   MetaHookPre   CallFunction(NetControl::init, <null>, ())
 0.000000   MetaHookPre   CallFunction(Notice::want_pp, <frame>, ())
@@ -2015,53 +2015,53 @@
 0.000000 | HookCallFunction Log::__add_filter(Weird::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=weird, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::__add_filter(X509::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=x509, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])
 0.000000 | HookCallFunction Log::__add_filter(mysql::LOG, [name=default, writer=Log::WRITER_ASCII, pred=<uninitialized>, path=mysql, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=anonymous-function, interv=0 secs, postprocessor=<uninitialized>, config={}])
-0.000000 | HookCallFunction Log::__create_stream(Broker::LOG, [columns=<no value description>, ev=<uninitialized>, path=broker])
-0.000000 | HookCallFunction Log::__create_stream(Cluster::LOG, [columns=<no value description>, ev=<uninitialized>, path=cluster])
-0.000000 | HookCallFunction Log::__create_stream(Config::LOG, [columns=<no value description>, ev=Config::log_config, path=config])
-0.000000 | HookCallFunction Log::__create_stream(Conn::LOG, [columns=<no value description>, ev=Conn::log_conn, path=conn])
-0.000000 | HookCallFunction Log::__create_stream(DCE_RPC::LOG, [columns=<no value description>, ev=<uninitialized>, path=dce_rpc])
-0.000000 | HookCallFunction Log::__create_stream(DHCP::LOG, [columns=<no value description>, ev=DHCP::log_dhcp, path=dhcp])
-0.000000 | HookCallFunction Log::__create_stream(DNP3::LOG, [columns=<no value description>, ev=DNP3::log_dnp3, path=dnp3])
-0.000000 | HookCallFunction Log::__create_stream(DNS::LOG, [columns=<no value description>, ev=DNS::log_dns, path=dns])
-0.000000 | HookCallFunction Log::__create_stream(DPD::LOG, [columns=<no value description>, ev=<uninitialized>, path=dpd])
-0.000000 | HookCallFunction Log::__create_stream(FTP::LOG, [columns=<no value description>, ev=FTP::log_ftp, path=ftp])
-0.000000 | HookCallFunction Log::__create_stream(Files::LOG, [columns=<no value description>, ev=Files::log_files, path=files])
-0.000000 | HookCallFunction Log::__create_stream(HTTP::LOG, [columns=<no value description>, ev=HTTP::log_http, path=http])
-0.000000 | HookCallFunction Log::__create_stream(IRC::LOG, [columns=<no value description>, ev=IRC::irc_log, path=irc])
-0.000000 | HookCallFunction Log::__create_stream(Intel::LOG, [columns=<no value description>, ev=Intel::log_intel, path=intel])
-0.000000 | HookCallFunction Log::__create_stream(KRB::LOG, [columns=<no value description>, ev=KRB::log_krb, path=kerberos])
-0.000000 | HookCallFunction Log::__create_stream(Modbus::LOG, [columns=<no value description>, ev=Modbus::log_modbus, path=modbus])
-0.000000 | HookCallFunction Log::__create_stream(NTLM::LOG, [columns=<no value description>, ev=<uninitialized>, path=ntlm])
-0.000000 | HookCallFunction Log::__create_stream(NetControl::CATCH_RELEASE, [columns=<no value description>, ev=NetControl::log_netcontrol_catch_release, path=netcontrol_catch_release])
-0.000000 | HookCallFunction Log::__create_stream(NetControl::DROP, [columns=<no value description>, ev=NetControl::log_netcontrol_drop, path=netcontrol_drop])
-0.000000 | HookCallFunction Log::__create_stream(NetControl::LOG, [columns=<no value description>, ev=NetControl::log_netcontrol, path=netcontrol])
-0.000000 | HookCallFunction Log::__create_stream(NetControl::SHUNT, [columns=<no value description>, ev=NetControl::log_netcontrol_shunt, path=netcontrol_shunt])
-0.000000 | HookCallFunction Log::__create_stream(Notice::ALARM_LOG, [columns=<no value description>, ev=<uninitialized>, path=notice_alarm])
-0.000000 | HookCallFunction Log::__create_stream(Notice::LOG, [columns=<no value description>, ev=Notice::log_notice, path=notice])
-0.000000 | HookCallFunction Log::__create_stream(OpenFlow::LOG, [columns=<no value description>, ev=OpenFlow::log_openflow, path=openflow])
-0.000000 | HookCallFunction Log::__create_stream(PE::LOG, [columns=<no value description>, ev=PE::log_pe, path=pe])
-0.000000 | HookCallFunction Log::__create_stream(PacketFilter::LOG, [columns=<no value description>, ev=<uninitialized>, path=packet_filter])
-0.000000 | HookCallFunction Log::__create_stream(RADIUS::LOG, [columns=<no value description>, ev=RADIUS::log_radius, path=radius])
-0.000000 | HookCallFunction Log::__create_stream(RDP::LOG, [columns=<no value description>, ev=RDP::log_rdp, path=rdp])
-0.000000 | HookCallFunction Log::__create_stream(RFB::LOG, [columns=<no value description>, ev=RFB::log_rfb, path=rfb])
-0.000000 | HookCallFunction Log::__create_stream(Reporter::LOG, [columns=<no value description>, ev=<uninitialized>, path=reporter])
-0.000000 | HookCallFunction Log::__create_stream(SIP::LOG, [columns=<no value description>, ev=SIP::log_sip, path=sip])
-0.000000 | HookCallFunction Log::__create_stream(SMB::FILES_LOG, [columns=<no value description>, ev=<uninitialized>, path=smb_files])
-0.000000 | HookCallFunction Log::__create_stream(SMB::MAPPING_LOG, [columns=<no value description>, ev=<uninitialized>, path=smb_mapping])
-0.000000 | HookCallFunction Log::__create_stream(SMTP::LOG, [columns=<no value description>, ev=SMTP::log_smtp, path=smtp])
-0.000000 | HookCallFunction Log::__create_stream(SNMP::LOG, [columns=<no value description>, ev=SNMP::log_snmp, path=snmp])
-0.000000 | HookCallFunction Log::__create_stream(SOCKS::LOG, [columns=<no value description>, ev=SOCKS::log_socks, path=socks])
-0.000000 | HookCallFunction Log::__create_stream(SSH::LOG, [columns=<no value description>, ev=SSH::log_ssh, path=ssh])
-0.000000 | HookCallFunction Log::__create_stream(SSL::LOG, [columns=<no value description>, ev=SSL::log_ssl, path=ssl])
-0.000000 | HookCallFunction Log::__create_stream(Signatures::LOG, [columns=<no value description>, ev=Signatures::log_signature, path=signatures])
-0.000000 | HookCallFunction Log::__create_stream(Software::LOG, [columns=<no value description>, ev=Software::log_software, path=software])
-0.000000 | HookCallFunction Log::__create_stream(Syslog::LOG, [columns=<no value description>, ev=<uninitialized>, path=syslog])
-0.000000 | HookCallFunction Log::__create_stream(Tunnel::LOG, [columns=<no value description>, ev=<uninitialized>, path=tunnel])
-0.000000 | HookCallFunction Log::__create_stream(Unified2::LOG, [columns=<no value description>, ev=Unified2::log_unified2, path=unified2])
-0.000000 | HookCallFunction Log::__create_stream(Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])
-0.000000 | HookCallFunction Log::__create_stream(X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])
-0.000000 | HookCallFunction Log::__create_stream(mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])
-0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1541517939.221621, node=bro, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::__create_stream(Broker::LOG, [columns=Broker::Info, ev=<uninitialized>, path=broker])
+0.000000 | HookCallFunction Log::__create_stream(Cluster::LOG, [columns=Cluster::Info, ev=<uninitialized>, path=cluster])
+0.000000 | HookCallFunction Log::__create_stream(Config::LOG, [columns=Config::Info, ev=Config::log_config, path=config])
+0.000000 | HookCallFunction Log::__create_stream(Conn::LOG, [columns=Conn::Info, ev=Conn::log_conn, path=conn])
+0.000000 | HookCallFunction Log::__create_stream(DCE_RPC::LOG, [columns=DCE_RPC::Info, ev=<uninitialized>, path=dce_rpc])
+0.000000 | HookCallFunction Log::__create_stream(DHCP::LOG, [columns=DHCP::Info, ev=DHCP::log_dhcp, path=dhcp])
+0.000000 | HookCallFunction Log::__create_stream(DNP3::LOG, [columns=DNP3::Info, ev=DNP3::log_dnp3, path=dnp3])
+0.000000 | HookCallFunction Log::__create_stream(DNS::LOG, [columns=DNS::Info, ev=DNS::log_dns, path=dns])
+0.000000 | HookCallFunction Log::__create_stream(DPD::LOG, [columns=DPD::Info, ev=<uninitialized>, path=dpd])
+0.000000 | HookCallFunction Log::__create_stream(FTP::LOG, [columns=FTP::Info, ev=FTP::log_ftp, path=ftp])
+0.000000 | HookCallFunction Log::__create_stream(Files::LOG, [columns=Files::Info, ev=Files::log_files, path=files])
+0.000000 | HookCallFunction Log::__create_stream(HTTP::LOG, [columns=HTTP::Info, ev=HTTP::log_http, path=http])
+0.000000 | HookCallFunction Log::__create_stream(IRC::LOG, [columns=IRC::Info, ev=IRC::irc_log, path=irc])
+0.000000 | HookCallFunction Log::__create_stream(Intel::LOG, [columns=Intel::Info, ev=Intel::log_intel, path=intel])
+0.000000 | HookCallFunction Log::__create_stream(KRB::LOG, [columns=KRB::Info, ev=KRB::log_krb, path=kerberos])
+0.000000 | HookCallFunction Log::__create_stream(Modbus::LOG, [columns=Modbus::Info, ev=Modbus::log_modbus, path=modbus])
+0.000000 | HookCallFunction Log::__create_stream(NTLM::LOG, [columns=NTLM::Info, ev=<uninitialized>, path=ntlm])
+0.000000 | HookCallFunction Log::__create_stream(NetControl::CATCH_RELEASE, [columns=NetControl::CatchReleaseInfo, ev=NetControl::log_netcontrol_catch_release, path=netcontrol_catch_release])
+0.000000 | HookCallFunction Log::__create_stream(NetControl::DROP, [columns=NetControl::DropInfo, ev=NetControl::log_netcontrol_drop, path=netcontrol_drop])
+0.000000 | HookCallFunction Log::__create_stream(NetControl::LOG, [columns=NetControl::Info, ev=NetControl::log_netcontrol, path=netcontrol])
+0.000000 | HookCallFunction Log::__create_stream(NetControl::SHUNT, [columns=NetControl::ShuntInfo, ev=NetControl::log_netcontrol_shunt, path=netcontrol_shunt])
+0.000000 | HookCallFunction Log::__create_stream(Notice::ALARM_LOG, [columns=Notice::Info, ev=<uninitialized>, path=notice_alarm])
+0.000000 | HookCallFunction Log::__create_stream(Notice::LOG, [columns=Notice::Info, ev=Notice::log_notice, path=notice])
+0.000000 | HookCallFunction Log::__create_stream(OpenFlow::LOG, [columns=OpenFlow::Info, ev=OpenFlow::log_openflow, path=openflow])
+0.000000 | HookCallFunction Log::__create_stream(PE::LOG, [columns=PE::Info, ev=PE::log_pe, path=pe])
+0.000000 | HookCallFunction Log::__create_stream(PacketFilter::LOG, [columns=PacketFilter::Info, ev=<uninitialized>, path=packet_filter])
+0.000000 | HookCallFunction Log::__create_stream(RADIUS::LOG, [columns=RADIUS::Info, ev=RADIUS::log_radius, path=radius])
+0.000000 | HookCallFunction Log::__create_stream(RDP::LOG, [columns=RDP::Info, ev=RDP::log_rdp, path=rdp])
+0.000000 | HookCallFunction Log::__create_stream(RFB::LOG, [columns=RFB::Info, ev=RFB::log_rfb, path=rfb])
+0.000000 | HookCallFunction Log::__create_stream(Reporter::LOG, [columns=Reporter::Info, ev=<uninitialized>, path=reporter])
+0.000000 | HookCallFunction Log::__create_stream(SIP::LOG, [columns=SIP::Info, ev=SIP::log_sip, path=sip])
+0.000000 | HookCallFunction Log::__create_stream(SMB::FILES_LOG, [columns=SMB::FileInfo, ev=<uninitialized>, path=smb_files])
+0.000000 | HookCallFunction Log::__create_stream(SMB::MAPPING_LOG, [columns=SMB::TreeInfo, ev=<uninitialized>, path=smb_mapping])
+0.000000 | HookCallFunction Log::__create_stream(SMTP::LOG, [columns=SMTP::Info, ev=SMTP::log_smtp, path=smtp])
+0.000000 | HookCallFunction Log::__create_stream(SNMP::LOG, [columns=SNMP::Info, ev=SNMP::log_snmp, path=snmp])
+0.000000 | HookCallFunction Log::__create_stream(SOCKS::LOG, [columns=SOCKS::Info, ev=SOCKS::log_socks, path=socks])
+0.000000 | HookCallFunction Log::__create_stream(SSH::LOG, [columns=SSH::Info, ev=SSH::log_ssh, path=ssh])
+0.000000 | HookCallFunction Log::__create_stream(SSL::LOG, [columns=SSL::Info, ev=SSL::log_ssl, path=ssl])
+0.000000 | HookCallFunction Log::__create_stream(Signatures::LOG, [columns=Signatures::Info, ev=Signatures::log_signature, path=signatures])
+0.000000 | HookCallFunction Log::__create_stream(Software::LOG, [columns=Software::Info, ev=Software::log_software, path=software])
+0.000000 | HookCallFunction Log::__create_stream(Syslog::LOG, [columns=Syslog::Info, ev=<uninitialized>, path=syslog])
+0.000000 | HookCallFunction Log::__create_stream(Tunnel::LOG, [columns=Tunnel::Info, ev=<uninitialized>, path=tunnel])
+0.000000 | HookCallFunction Log::__create_stream(Unified2::LOG, [columns=Unified2::Info, ev=Unified2::log_unified2, path=unified2])
+0.000000 | HookCallFunction Log::__create_stream(Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird])
+0.000000 | HookCallFunction Log::__create_stream(X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509])
+0.000000 | HookCallFunction Log::__create_stream(mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql])
+0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1541702572.740462, node=bro, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction Log::add_default_filter(Broker::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Cluster::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Config::LOG)
@@ -2200,53 +2200,53 @@
 0.000000 | HookCallFunction Log::add_stream_filters(Weird::LOG, default)
 0.000000 | HookCallFunction Log::add_stream_filters(X509::LOG, default)
 0.000000 | HookCallFunction Log::add_stream_filters(mysql::LOG, default)
-0.000000 | HookCallFunction Log::create_stream(Broker::LOG, [columns=<no value description>, ev=<uninitialized>, path=broker])
-0.000000 | HookCallFunction Log::create_stream(Cluster::LOG, [columns=<no value description>, ev=<uninitialized>, path=cluster])
-0.000000 | HookCallFunction Log::create_stream(Config::LOG, [columns=<no value description>, ev=Config::log_config, path=config])
-0.000000 | HookCallFunction Log::create_stream(Conn::LOG, [columns=<no value description>, ev=Conn::log_conn, path=conn])
-0.000000 | HookCallFunction Log::create_stream(DCE_RPC::LOG, [columns=<no value description>, ev=<uninitialized>, path=dce_rpc])
-0.000000 | HookCallFunction Log::create_stream(DHCP::LOG, [columns=<no value description>, ev=DHCP::log_dhcp, path=dhcp])
-0.000000 | HookCallFunction Log::create_stream(DNP3::LOG, [columns=<no value description>, ev=DNP3::log_dnp3, path=dnp3])
-0.000000 | HookCallFunction Log::create_stream(DNS::LOG, [columns=<no value description>, ev=DNS::log_dns, path=dns])
-0.000000 | HookCallFunction Log::create_stream(DPD::LOG, [columns=<no value description>, ev=<uninitialized>, path=dpd])
-0.000000 | HookCallFunction Log::create_stream(FTP::LOG, [columns=<no value description>, ev=FTP::log_ftp, path=ftp])
-0.000000 | HookCallFunction Log::create_stream(Files::LOG, [columns=<no value description>, ev=Files::log_files, path=files])
-0.000000 | HookCallFunction Log::create_stream(HTTP::LOG, [columns=<no value description>, ev=HTTP::log_http, path=http])
-0.000000 | HookCallFunction Log::create_stream(IRC::LOG, [columns=<no value description>, ev=IRC::irc_log, path=irc])
-0.000000 | HookCallFunction Log::create_stream(Intel::LOG, [columns=<no value description>, ev=Intel::log_intel, path=intel])
-0.000000 | HookCallFunction Log::create_stream(KRB::LOG, [columns=<no value description>, ev=KRB::log_krb, path=kerberos])
-0.000000 | HookCallFunction Log::create_stream(Modbus::LOG, [columns=<no value description>, ev=Modbus::log_modbus, path=modbus])
-0.000000 | HookCallFunction Log::create_stream(NTLM::LOG, [columns=<no value description>, ev=<uninitialized>, path=ntlm])
-0.000000 | HookCallFunction Log::create_stream(NetControl::CATCH_RELEASE, [columns=<no value description>, ev=NetControl::log_netcontrol_catch_release, path=netcontrol_catch_release])
-0.000000 | HookCallFunction Log::create_stream(NetControl::DROP, [columns=<no value description>, ev=NetControl::log_netcontrol_drop, path=netcontrol_drop])
-0.000000 | HookCallFunction Log::create_stream(NetControl::LOG, [columns=<no value description>, ev=NetControl::log_netcontrol, path=netcontrol])
-0.000000 | HookCallFunction Log::create_stream(NetControl::SHUNT, [columns=<no value description>, ev=NetControl::log_netcontrol_shunt, path=netcontrol_shunt])
-0.000000 | HookCallFunction Log::create_stream(Notice::ALARM_LOG, [columns=<no value description>, ev=<uninitialized>, path=notice_alarm])
-0.000000 | HookCallFunction Log::create_stream(Notice::LOG, [columns=<no value description>, ev=Notice::log_notice, path=notice])
-0.000000 | HookCallFunction Log::create_stream(OpenFlow::LOG, [columns=<no value description>, ev=OpenFlow::log_openflow, path=openflow])
-0.000000 | HookCallFunction Log::create_stream(PE::LOG, [columns=<no value description>, ev=PE::log_pe, path=pe])
-0.000000 | HookCallFunction Log::create_stream(PacketFilter::LOG, [columns=<no value description>, ev=<uninitialized>, path=packet_filter])
-0.000000 | HookCallFunction Log::create_stream(RADIUS::LOG, [columns=<no value description>, ev=RADIUS::log_radius, path=radius])
-0.000000 | HookCallFunction Log::create_stream(RDP::LOG, [columns=<no value description>, ev=RDP::log_rdp, path=rdp])
-0.000000 | HookCallFunction Log::create_stream(RFB::LOG, [columns=<no value description>, ev=RFB::log_rfb, path=rfb])
-0.000000 | HookCallFunction Log::create_stream(Reporter::LOG, [columns=<no value description>, ev=<uninitialized>, path=reporter])
-0.000000 | HookCallFunction Log::create_stream(SIP::LOG, [columns=<no value description>, ev=SIP::log_sip, path=sip])
-0.000000 | HookCallFunction Log::create_stream(SMB::FILES_LOG, [columns=<no value description>, ev=<uninitialized>, path=smb_files])
-0.000000 | HookCallFunction Log::create_stream(SMB::MAPPING_LOG, [columns=<no value description>, ev=<uninitialized>, path=smb_mapping])
-0.000000 | HookCallFunction Log::create_stream(SMTP::LOG, [columns=<no value description>, ev=SMTP::log_smtp, path=smtp])
-0.000000 | HookCallFunction Log::create_stream(SNMP::LOG, [columns=<no value description>, ev=SNMP::log_snmp, path=snmp])
-0.000000 | HookCallFunction Log::create_stream(SOCKS::LOG, [columns=<no value description>, ev=SOCKS::log_socks, path=socks])
-0.000000 | HookCallFunction Log::create_stream(SSH::LOG, [columns=<no value description>, ev=SSH::log_ssh, path=ssh])
-0.000000 | HookCallFunction Log::create_stream(SSL::LOG, [columns=<no value description>, ev=SSL::log_ssl, path=ssl])
-0.000000 | HookCallFunction Log::create_stream(Signatures::LOG, [columns=<no value description>, ev=Signatures::log_signature, path=signatures])
-0.000000 | HookCallFunction Log::create_stream(Software::LOG, [columns=<no value description>, ev=Software::log_software, path=software])
-0.000000 | HookCallFunction Log::create_stream(Syslog::LOG, [columns=<no value description>, ev=<uninitialized>, path=syslog])
-0.000000 | HookCallFunction Log::create_stream(Tunnel::LOG, [columns=<no value description>, ev=<uninitialized>, path=tunnel])
-0.000000 | HookCallFunction Log::create_stream(Unified2::LOG, [columns=<no value description>, ev=Unified2::log_unified2, path=unified2])
-0.000000 | HookCallFunction Log::create_stream(Weird::LOG, [columns=<no value description>, ev=Weird::log_weird, path=weird])
-0.000000 | HookCallFunction Log::create_stream(X509::LOG, [columns=<no value description>, ev=X509::log_x509, path=x509])
-0.000000 | HookCallFunction Log::create_stream(mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql, path=mysql])
-0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1541517939.221621, node=bro, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::create_stream(Broker::LOG, [columns=Broker::Info, ev=<uninitialized>, path=broker])
+0.000000 | HookCallFunction Log::create_stream(Cluster::LOG, [columns=Cluster::Info, ev=<uninitialized>, path=cluster])
+0.000000 | HookCallFunction Log::create_stream(Config::LOG, [columns=Config::Info, ev=Config::log_config, path=config])
+0.000000 | HookCallFunction Log::create_stream(Conn::LOG, [columns=Conn::Info, ev=Conn::log_conn, path=conn])
+0.000000 | HookCallFunction Log::create_stream(DCE_RPC::LOG, [columns=DCE_RPC::Info, ev=<uninitialized>, path=dce_rpc])
+0.000000 | HookCallFunction Log::create_stream(DHCP::LOG, [columns=DHCP::Info, ev=DHCP::log_dhcp, path=dhcp])
+0.000000 | HookCallFunction Log::create_stream(DNP3::LOG, [columns=DNP3::Info, ev=DNP3::log_dnp3, path=dnp3])
+0.000000 | HookCallFunction Log::create_stream(DNS::LOG, [columns=DNS::Info, ev=DNS::log_dns, path=dns])
+0.000000 | HookCallFunction Log::create_stream(DPD::LOG, [columns=DPD::Info, ev=<uninitialized>, path=dpd])
+0.000000 | HookCallFunction Log::create_stream(FTP::LOG, [columns=FTP::Info, ev=FTP::log_ftp, path=ftp])
+0.000000 | HookCallFunction Log::create_stream(Files::LOG, [columns=Files::Info, ev=Files::log_files, path=files])
+0.000000 | HookCallFunction Log::create_stream(HTTP::LOG, [columns=HTTP::Info, ev=HTTP::log_http, path=http])
+0.000000 | HookCallFunction Log::create_stream(IRC::LOG, [columns=IRC::Info, ev=IRC::irc_log, path=irc])
+0.000000 | HookCallFunction Log::create_stream(Intel::LOG, [columns=Intel::Info, ev=Intel::log_intel, path=intel])
+0.000000 | HookCallFunction Log::create_stream(KRB::LOG, [columns=KRB::Info, ev=KRB::log_krb, path=kerberos])
+0.000000 | HookCallFunction Log::create_stream(Modbus::LOG, [columns=Modbus::Info, ev=Modbus::log_modbus, path=modbus])
+0.000000 | HookCallFunction Log::create_stream(NTLM::LOG, [columns=NTLM::Info, ev=<uninitialized>, path=ntlm])
+0.000000 | HookCallFunction Log::create_stream(NetControl::CATCH_RELEASE, [columns=NetControl::CatchReleaseInfo, ev=NetControl::log_netcontrol_catch_release, path=netcontrol_catch_release])
+0.000000 | HookCallFunction Log::create_stream(NetControl::DROP, [columns=NetControl::DropInfo, ev=NetControl::log_netcontrol_drop, path=netcontrol_drop])
+0.000000 | HookCallFunction Log::create_stream(NetControl::LOG, [columns=NetControl::Info, ev=NetControl::log_netcontrol, path=netcontrol])
+0.000000 | HookCallFunction Log::create_stream(NetControl::SHUNT, [columns=NetControl::ShuntInfo, ev=NetControl::log_netcontrol_shunt, path=netcontrol_shunt])
+0.000000 | HookCallFunction Log::create_stream(Notice::ALARM_LOG, [columns=Notice::Info, ev=<uninitialized>, path=notice_alarm])
+0.000000 | HookCallFunction Log::create_stream(Notice::LOG, [columns=Notice::Info, ev=Notice::log_notice, path=notice])
+0.000000 | HookCallFunction Log::create_stream(OpenFlow::LOG, [columns=OpenFlow::Info, ev=OpenFlow::log_openflow, path=openflow])
+0.000000 | HookCallFunction Log::create_stream(PE::LOG, [columns=PE::Info, ev=PE::log_pe, path=pe])
+0.000000 | HookCallFunction Log::create_stream(PacketFilter::LOG, [columns=PacketFilter::Info, ev=<uninitialized>, path=packet_filter])
+0.000000 | HookCallFunction Log::create_stream(RADIUS::LOG, [columns=RADIUS::Info, ev=RADIUS::log_radius, path=radius])
+0.000000 | HookCallFunction Log::create_stream(RDP::LOG, [columns=RDP::Info, ev=RDP::log_rdp, path=rdp])
+0.000000 | HookCallFunction Log::create_stream(RFB::LOG, [columns=RFB::Info, ev=RFB::log_rfb, path=rfb])
+0.000000 | HookCallFunction Log::create_stream(Reporter::LOG, [columns=Reporter::Info, ev=<uninitialized>, path=reporter])
+0.000000 | HookCallFunction Log::create_stream(SIP::LOG, [columns=SIP::Info, ev=SIP::log_sip, path=sip])
+0.000000 | HookCallFunction Log::create_stream(SMB::FILES_LOG, [columns=SMB::FileInfo, ev=<uninitialized>, path=smb_files])
+0.000000 | HookCallFunction Log::create_stream(SMB::MAPPING_LOG, [columns=SMB::TreeInfo, ev=<uninitialized>, path=smb_mapping])
+0.000000 | HookCallFunction Log::create_stream(SMTP::LOG, [columns=SMTP::Info, ev=SMTP::log_smtp, path=smtp])
+0.000000 | HookCallFunction Log::create_stream(SNMP::LOG, [columns=SNMP::Info, ev=SNMP::log_snmp, path=snmp])
+0.000000 | HookCallFunction Log::create_stream(SOCKS::LOG, [columns=SOCKS::Info, ev=SOCKS::log_socks, path=socks])
+0.000000 | HookCallFunction Log::create_stream(SSH::LOG, [columns=SSH::Info, ev=SSH::log_ssh, path=ssh])
+0.000000 | HookCallFunction Log::create_stream(SSL::LOG, [columns=SSL::Info, ev=SSL::log_ssl, path=ssl])
+0.000000 | HookCallFunction Log::create_stream(Signatures::LOG, [columns=Signatures::Info, ev=Signatures::log_signature, path=signatures])
+0.000000 | HookCallFunction Log::create_stream(Software::LOG, [columns=Software::Info, ev=Software::log_software, path=software])
+0.000000 | HookCallFunction Log::create_stream(Syslog::LOG, [columns=Syslog::Info, ev=<uninitialized>, path=syslog])
+0.000000 | HookCallFunction Log::create_stream(Tunnel::LOG, [columns=Tunnel::Info, ev=<uninitialized>, path=tunnel])
+0.000000 | HookCallFunction Log::create_stream(Unified2::LOG, [columns=Unified2::Info, ev=Unified2::log_unified2, path=unified2])
+0.000000 | HookCallFunction Log::create_stream(Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird])
+0.000000 | HookCallFunction Log::create_stream(X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509])
+0.000000 | HookCallFunction Log::create_stream(mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql])
+0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1541702572.740462, node=bro, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction NetControl::check_plugins()
 0.000000 | HookCallFunction NetControl::init()
 0.000000 | HookCallFunction Notice::want_pp()
@@ -2675,7 +2675,7 @@
 0.000000 | HookLoadFile  base<...>/x509
 0.000000 | HookLoadFile  base<...>/xmpp
 0.000000 | HookLogInit   packet_filter 1/1 {ts (time), node (string), filter (string), init (bool), success (bool)}
-0.000000 | HookLogWrite  packet_filter [ts=1541517939.221621, node=bro, filter=ip or not ip, init=T, success=T]
+0.000000 | HookLogWrite  packet_filter [ts=1541702572.740462, node=bro, filter=ip or not ip, init=T, success=T]
 0.000000 | HookQueueEvent NetControl::init()
 0.000000 | HookQueueEvent bro_init()
 0.000000 | HookQueueEvent filter_change_tracking()

@@ -445,6 +445,8 @@ void Plugin::Describe(ODesc* d) const
 			d->Add(config.version.major);
 			d->Add(".");
 			d->Add(config.version.minor);
+			d->Add(".");
+			d->Add(config.version.patch);
 			d->Add(")");
 			}
 		else

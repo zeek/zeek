@@ -1,4 +1,4 @@
-Demo::Foo - A Foo test analyzer (dynamic, version 1.0)
+Demo::Foo - A Foo test analyzer (dynamic, version 1.0.0)
     [File Analyzer] Foo (ANALYZER_FOO)
     [Event] foo_piece
 

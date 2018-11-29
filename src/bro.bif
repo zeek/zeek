@@ -1896,27 +1896,50 @@ function lookup_ID%(id: string%) : any
 ## includes the field name, whether it is logged, its value (if it has one),
 ## and its default value (if specified).
 ##
-## rec: The record to inspect.
+## rec: The record value or type to inspect.
 ##
 ## Returns: A table that describes the fields of a record.
 function record_fields%(rec: any%): record_field_table
 	%{
 	TableVal* fields = new TableVal(record_field_table);
 
-	RecordVal* rv = rec->AsRecordVal();
-	RecordType* rt = rv->Type()->AsRecordType();
+	auto t = rec->Type();
 
-	if ( rt->Tag() != TYPE_RECORD )
+	if ( t->Tag() != TYPE_RECORD && t->Tag() != TYPE_TYPE )
 		{
-		reporter->Error("non-record passed to record_fields");
+		reporter->Error("non-record value/type passed to record_fields");
 		return fields;
+		}
+
+	RecordType* rt = nullptr;
+	RecordVal* rv = nullptr;
+
+	if ( t->Tag() == TYPE_RECORD )
+		{
+		rt = t->AsRecordType();
+		rv = rec->AsRecordVal();
+		}
+	else
+		{
+		t = t->AsTypeType()->Type();
+
+		if ( t->Tag() != TYPE_RECORD )
+			{
+			reporter->Error("non-record value/type passed to record_fields");
+			return fields;
+			}
+
+		rt = t->AsRecordType();
 		}
 
 	for ( int i = 0; i < rt->NumFields(); ++i )
 		{
 		BroType* ft = rt->FieldType(i);
 		TypeDecl* fd = rt->FieldDecl(i);
-		Val* fv = rv->Lookup(i);
+		Val* fv = nullptr;
+
+		if ( rv )
+			fv = rv->Lookup(i);
 
 		if ( fv )
 			Ref(fv);
@@ -1924,7 +1947,12 @@ function record_fields%(rec: any%): record_field_table
 		bool logged = (fd->attrs && fd->FindAttr(ATTR_LOG) != 0);
 
 		RecordVal* nr = new RecordVal(record_field);
-		nr->Assign(0, new StringVal(type_name(rt->Tag())));
+
+		if ( ft->Tag() == TYPE_RECORD )
+			nr->Assign(0, new StringVal("record " + ft->GetName()));
+		else
+			nr->Assign(0, new StringVal(type_name(ft->Tag())));
+
 		nr->Assign(1, new Val(logged, TYPE_BOOL));
 		nr->Assign(2, fv);
 		nr->Assign(3, rt->FieldDefault(i));

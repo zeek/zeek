@@ -500,6 +500,8 @@ void Val::ValDescribe(ODesc* d) const
 			AsFunc()->Describe(d);
 		else if ( type->Tag() == TYPE_FILE )
 			AsFile()->Describe(d);
+		else if ( type->Tag() == TYPE_TYPE )
+			d->Add(type->AsTypeType()->Type()->GetName());
 		else
 			d->Add("<no value description>");
 		break;

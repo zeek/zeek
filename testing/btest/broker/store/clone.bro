@@ -1,4 +1,4 @@
-# @TEST-SERIALIZE: comm
+# @TEST-PORT: BROKER_PORT
 #
 # @TEST-EXEC: btest-bg-run clone "bro -B broker -b  ../clone-main.bro >clone.out"
 # @TEST-EXEC: btest-bg-run master "bro -B broker -b  ../master-main.bro >master.out"
@@ -58,7 +58,7 @@ event bro_init()
 	Broker::put(h, "two", 223);
 	Broker::put(h, vector(1,2), 1947/tcp);
 	
-	Broker::peer("127.0.0.1");
+	Broker::peer("127.0.0.1", to_port(getenv("BROKER_PORT")));
 	}
 
 event insert_more()
@@ -133,7 +133,7 @@ event bro_init()
 	{
 	Broker::auto_publish("bro/events", inserted);
 	Broker::subscribe("bro/");
-	Broker::listen("127.0.0.1");
+	Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));
 	}
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)

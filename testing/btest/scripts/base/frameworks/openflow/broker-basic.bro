@@ -1,4 +1,4 @@
-# @TEST-SERIALIZE: comm
+# @TEST-PORT: BROKER_PORT
 # @TEST-EXEC: btest-bg-run recv "bro -b ../recv.bro >recv.out"
 # @TEST-EXEC: btest-bg-run send "bro -b -r $TRACES/smtp.trace --pseudo-realtime ../send.bro >send.out"
 
@@ -18,12 +18,12 @@ global of_controller: OpenFlow::Controller;
 event bro_init()
 	{
 	suspend_processing();
-	of_controller = OpenFlow::broker_new("broker1", 127.0.0.1, Broker::default_port, "bro/openflow", 42);
+	of_controller = OpenFlow::broker_new("broker1", 127.0.0.1, to_port(getenv("BROKER_PORT")), "bro/openflow", 42);
 	}
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
-	print "Broker peer added", endpoint$network;
+	print "Broker peer added", endpoint$network$address, endpoint$network$bound_port == to_port(getenv("BROKER_PORT"));
 	}
 
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
@@ -83,7 +83,7 @@ event die()
 event bro_init()
 	{
 	Broker::subscribe("bro/openflow");
-	Broker::listen("127.0.0.1");
+	Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));
 	}
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)

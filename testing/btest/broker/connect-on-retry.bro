@@ -1,4 +1,4 @@
-# @TEST-SERIALIZE: comm
+# @TEST-PORT: BROKER_PORT
 #
 # @TEST-EXEC: btest-bg-run recv "bro -B broker -b ../recv.bro >recv.out"
 # @TEST-EXEC: btest-bg-run send "bro -B broker -b ../send.bro >send.out"
@@ -20,7 +20,7 @@ event bro_init()
     {
     Broker::subscribe("bro/event/my_topic");
     Broker::auto_publish("bro/event/my_topic", ping);
-    Broker::peer("127.0.0.1");
+    Broker::peer("127.0.0.1", to_port(getenv("BROKER_PORT")));
     }
 
 function send_event()
@@ -62,7 +62,7 @@ global pong: event(msg: string, c: count);
 
 event delayed_listen()
 	{
-        Broker::listen("127.0.0.1");
+        Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));
 	}
 
 event bro_init()

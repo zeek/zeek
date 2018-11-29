@@ -1,4 +1,8 @@
 
+2.6-16 | 2018-11-29 17:05:44 -0600
+
+  * Parallelize communication tests using btest TEST-PORT (Jon Siwek, Corelight)
+
 2.6-14 | 2018-11-29 16:27:38 -0600
 
   * Improve introspection of Record and TypeType values (Jon Siwek, Corelight)

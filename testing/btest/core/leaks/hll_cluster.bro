@@ -1,6 +1,8 @@
 # Needs perftools support.
 #
-# @TEST-SERIALIZE: comm
+# @TEST-PORT: BROKER_PORT1
+# @TEST-PORT: BROKER_PORT2
+# @TEST-PORT: BROKER_PORT3
 # @TEST-GROUP: leaks
 #
 # @TEST-REQUIRES: bro  --help 2>&1 | grep -q mem-leaks
@@ -17,9 +19,9 @@
 
 @TEST-START-FILE cluster-layout.bro
 redef Cluster::nodes = {
-	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=37757/tcp],
-	["worker-1"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=37760/tcp, $manager="manager-1"],
-	["worker-2"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=37761/tcp, $manager="manager-1"],
+	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT1"))],
+	["worker-1"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT2")), $manager="manager-1"],
+	["worker-2"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT3")), $manager="manager-1"],
 };
 @TEST-END-FILE
 

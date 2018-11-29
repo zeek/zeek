@@ -1,4 +1,4 @@
-# @TEST-SERIALIZE: comm
+# @TEST-PORT: BROKER_PORT
 #
 # @TEST-EXEC: btest-bg-run recv "bro -B broker -b ../recv.bro >recv.out"
 # @TEST-EXEC: btest-bg-run send "bro -B broker -b ../send.bro test_var=newval >send.out"
@@ -12,7 +12,7 @@ const test_var = "init" &redef;
 
 event bro_init()
 	{
-	Broker::peer("127.0.0.1");
+	Broker::peer("127.0.0.1", to_port(getenv("BROKER_PORT")));
 	}
 
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
@@ -48,7 +48,7 @@ event bro_init()
 	{
 	print "intial val", test_var;
 	Broker::subscribe("bro/ids");
-	Broker::listen();
+	Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));
 	}
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)

@@ -1,4 +1,7 @@
-# @TEST-SERIALIZE: comm
+# @TEST-PORT: BROKER_PORT1
+# @TEST-PORT: BROKER_PORT2
+# @TEST-PORT: BROKER_PORT3
+# @TEST-PORT: BROKER_PORT4
 #
 # @TEST-EXEC: btest-bg-run logger-1 BROPATH=$BROPATH:.. CLUSTER_NODE=logger-1 bro %INPUT
 # @TEST-EXEC: btest-bg-run logger-2 BROPATH=$BROPATH:.. CLUSTER_NODE=logger-2 bro %INPUT
@@ -12,10 +15,10 @@
 redef Cluster::manager_is_logger = F;
 
 redef Cluster::nodes = {
-    ["manager"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=37757/tcp],
-    ["worker-1"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=37760/tcp, $manager="manager", $interface="eth0"],
-    ["logger-1"] = [$node_type=Cluster::LOGGER,   $ip=127.0.0.1, $p=37762/tcp, $manager="manager"],
-    ["logger-2"] = [$node_type=Cluster::LOGGER,   $ip=127.0.0.1, $p=37763/tcp, $manager="manager"]
+    ["manager"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT1"))],
+    ["worker-1"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT2")), $manager="manager", $interface="eth0"],
+    ["logger-1"] = [$node_type=Cluster::LOGGER,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT3")), $manager="manager"],
+    ["logger-2"] = [$node_type=Cluster::LOGGER,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT4")), $manager="manager"]
 };
 
 @TEST-END-FILE

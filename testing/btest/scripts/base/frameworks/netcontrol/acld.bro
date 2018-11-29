@@ -1,4 +1,4 @@
-# @TEST-SERIALIZE: comm
+# @TEST-PORT: BROKER_PORT
 # @TEST-EXEC: btest-bg-run recv "bro -b ../recv.bro >recv.out"
 # @TEST-EXEC: btest-bg-run send "bro -b -r $TRACES/tls/ecdhe.pcap --pseudo-realtime ../send.bro >send.out"
 
@@ -22,13 +22,13 @@ event bro_init()
 
 event NetControl::init()
 	{
-	local netcontrol_acld = NetControl::create_acld(NetControl::AcldConfig($acld_host=127.0.0.1, $acld_port=Broker::default_port, $acld_topic="bro/event/netcontroltest"));
+	local netcontrol_acld = NetControl::create_acld(NetControl::AcldConfig($acld_host=127.0.0.1, $acld_port=to_port(getenv("BROKER_PORT")), $acld_topic="bro/event/netcontroltest"));
 	NetControl::activate(netcontrol_acld, 0);
 	}
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
-	print "Broker peer added", endpoint$network;
+	print "Broker peer added", endpoint$network$address, endpoint$network$bound_port == to_port(getenv("BROKER_PORT"));
 	have_peer = T;
 
 	if ( did_init && have_peer )
@@ -109,7 +109,7 @@ event die()
 event bro_init()
 	{
 	Broker::subscribe("bro/event/netcontroltest");
-	Broker::listen("127.0.0.1");
+	Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));
 	}
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)

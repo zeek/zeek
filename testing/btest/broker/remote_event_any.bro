@@ -1,4 +1,4 @@
-# @TEST-SERIALIZE: comm
+# @TEST-PORT: BROKER_PORT
 #
 # @TEST-EXEC: btest-bg-run recv "bro -B broker -b ../recv.bro >recv.out"
 # @TEST-EXEC: btest-bg-run send "bro -B broker -b ../send.bro >send.out"
@@ -18,7 +18,7 @@ global ping: event(msg: string, c: any);
 event bro_init()
     {
     Broker::subscribe("bro/event/my_topic");
-    Broker::peer("127.0.0.1");
+    Broker::peer("127.0.0.1", to_port(getenv("BROKER_PORT")));
     print "is_remote should be F, and is", is_remote_event();
     }
 
@@ -70,7 +70,7 @@ global pong: event(msg: string, c: any);
 event bro_init()
         {
         Broker::subscribe("bro/event/my_topic");
-        Broker::listen("127.0.0.1");
+        Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));
         }
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)

@@ -1,4 +1,8 @@
 
+2.6 | 2018-11-29 10:03:33 -0600
+
+  * Release 2.6.
+
 2.6-beta3-2 | 2018-11-22 07:56:17 -0600
 
   * GH-218: Add missing ICMP router advertisement counterpart (Jon Siwek, Corelight)

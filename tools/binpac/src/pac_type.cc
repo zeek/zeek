@@ -454,8 +454,8 @@ void Type::GenBufferConfiguration(Output *out_cc, Env *env)
 				env->RValue(buffering_state_id));
 			out_cc->inc_indent();
 			out_cc->println("{");
-			if(BufferableWithLineBreaker())
-				out_cc->println("%s->SetLineBreaker((u_char*)%s);", 
+			if ( BufferableWithLineBreaker() )
+				out_cc->println("%s->SetLineBreaker((unsigned char*)%s);",
 				    env->LValue(flow_buffer_id), LineBreaker()->orig());
 			else 
 				out_cc->println("%s->UnsetLineBreaker();", 

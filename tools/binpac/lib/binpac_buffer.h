@@ -73,7 +73,7 @@ public:
 		return buffer_n_ > 0 || orig_data_end_ > orig_data_begin_;
 		}
 
-	void SetLineBreaker(u_char *lbreaker);
+	void SetLineBreaker(unsigned char* lbreaker);
 	void UnsetLineBreaker();
 	void NewLine();
 	// A negative frame_length represents a frame till EOF
@@ -126,7 +126,7 @@ protected:
 
 	int 	buffer_n_;		// number of bytes in the buffer
 	int 	buffer_length_;	// size of the buffer
-	u_char	*buffer_;
+	unsigned char* buffer_;
 	bool 	message_complete_;
 	int 	frame_length_;
 	bool	chunked_;
@@ -134,7 +134,7 @@ protected:
 
 	LineBreakStyle linebreak_style_;
 	LineBreakStyle linebreak_style_default;
-	u_char  linebreaker_;
+	unsigned char  linebreaker_;
 
 	enum {
 		UNKNOWN_MODE,

@@ -109,7 +109,7 @@ inline int64 pac_swap(const int64 x)
 #define FixByteOrder(byteorder, x)	(byteorder == HOST_BYTEORDER ? (x) : pac_swap(x))
 
 template <class T>
-inline T UnMarshall(const u_char *data, int byteorder)
+inline T UnMarshall(const unsigned char *data, int byteorder)
 	{
 	T result = 0;
 	for ( int i = 0; i < (int) sizeof(T); ++i )

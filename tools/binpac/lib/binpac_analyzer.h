@@ -10,16 +10,16 @@ class ConnectionAnalyzer {
 public:
 	virtual ~ConnectionAnalyzer() {}
 	virtual void NewData(bool is_orig,
-	                     const u_char *begin_of_data, 
-	                     const u_char *end_of_data) = 0;
+	                     const unsigned char* begin_of_data,
+	                     const unsigned char* end_of_data) = 0;
 };
 
 // The interface for a flow analyzer
 class FlowAnalyzer {
 public:
 	virtual ~FlowAnalyzer() {}
-	virtual void NewData(const u_char *begin_of_data, 
-	                     const u_char *end_of_data) = 0;
+	virtual void NewData(const unsigned char* begin_of_data,
+	                     const unsigned char* end_of_data) = 0;
 };
 
 }  // namespace binpac

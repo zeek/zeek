@@ -12,8 +12,8 @@ namespace binpac {
 extern double network_time();
 
 namespace {
-	const u_char CR = '\r';
-	const u_char LF = '\n';
+	const unsigned char CR = '\r';
+	const unsigned char LF = '\n';
 }
 
 FlowBuffer::FlowBuffer(LineBreakStyle linebreak_style)
@@ -108,10 +108,10 @@ void FlowBuffer::ExpandBuffer(int length)
 
 	// Allocate a new buffer and copy the existing contents
 	buffer_length_ = length;
-	u_char *new_buf = (u_char *) realloc(buffer_, buffer_length_);
+	unsigned char* new_buf = (unsigned char *) realloc(buffer_, buffer_length_);
 	BINPAC_ASSERT(new_buf);
 #if 0
-	u_char* new_buf = new u_char[buffer_length_];
+	unsigned char* new_buf = new unsigned char[buffer_length_];
 	if ( buffer_ && buffer_n_ > 0 )
 		memcpy(new_buf, buffer_, buffer_n_);
 	delete [] buffer_;
@@ -119,7 +119,7 @@ void FlowBuffer::ExpandBuffer(int length)
 	buffer_ = new_buf;
 	}
 
-void FlowBuffer::SetLineBreaker(u_char *lbreaker) 
+void FlowBuffer::SetLineBreaker(unsigned char* lbreaker)
 	{
 	linebreaker_ = *lbreaker;
 	linebreak_style_default = linebreak_style_;

@@ -144,6 +144,88 @@ nb_dns_init(char *errstr)
 		return (NULL);
 	}
 
+	if ( _res.nscount == 0 )
+		{
+		// Really?  Let's try parsing resolv.conf ourselves to see what's
+		// there.  (e.g. musl libc has res_init() that doesn't actually
+		// parse the config file).
+		const char* config_file_path = "/etc/resolv.conf";
+
+#ifdef _PATH_RESCONF
+		config_file_path = _PATH_RESCONF;
+#endif
+
+		FILE* config_file = fopen(config_file_path, "r");
+
+		if ( config_file )
+			{
+			char line[128];
+			char* ns;
+
+			while ( fgets(line, sizeof(line), config_file) )
+				{
+				ns = strtok(line, " \t\n");
+
+				if ( ! ns || strcmp(ns, "nameserver") )
+					continue;
+
+				ns = strtok(0, " \t\n");
+
+				if ( ! ns )
+					continue;
+
+				/* XXX support IPv6 */
+				struct sockaddr_in a;
+				memset(&a, 0, sizeof(a));
+				a.sin_family = AF_INET;
+				a.sin_port = htons(53);
+
+				if ( inet_pton(AF_INET, ns, &a.sin_addr) == 1 )
+					{
+					memcpy(&nd->server, &a, sizeof(a));
+					nd->s = socket(nd->server.ss_family, SOCK_DGRAM, 0);
+
+					if ( nd->s < 0 )
+						{
+						snprintf(errstr, NB_DNS_ERRSIZE, "socket(): %s",
+						         my_strerror(errno));
+						fclose(config_file);
+						free(nd);
+						return (NULL);
+						}
+
+					if ( connect(nd->s, (struct sockaddr *)&nd->server,
+					             nd->server.ss_family == AF_INET ?
+					             sizeof(struct sockaddr_in) :
+					             sizeof(struct sockaddr_in6)) < 0 )
+						{
+						char s[INET6_ADDRSTRLEN];
+						sa_ntop((struct sockaddr*)&nd->server, s, INET6_ADDRSTRLEN);
+						snprintf(errstr, NB_DNS_ERRSIZE, "connect(%s): %s", s,
+						         my_strerror(errno));
+						fclose(config_file);
+						close(nd->s);
+						free(nd);
+						return (NULL);
+						}
+
+					fclose(config_file);
+					return (nd);
+					}
+				}
+
+			fclose(config_file);
+			snprintf(errstr, NB_DNS_ERRSIZE, "no valid nameserver found in %s",
+			         config_file_path);
+			free(nd);
+			return (NULL);
+			}
+
+		snprintf(errstr, NB_DNS_ERRSIZE, "resolver config file not located");
+		free(nd);
+		return (NULL);
+		}
+
 	int i;
 
 	for ( i = 0; i < _res.nscount; ++i )

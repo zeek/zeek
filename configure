@@ -52,6 +52,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --enable-perftools-debug use Google's perftools for debugging
     --enable-jemalloc      link against jemalloc
     --enable-broccoli      build or install the Broccoli library (deprecated)
+    --enable-static-broker build broker statically (ignored if --with-broker is specified)
     --disable-broctl       don't install Broctl
     --disable-auxtools     don't build or install auxiliary tools
     --disable-perftools    don't try to build with Google Perftools
@@ -222,6 +223,9 @@ while [ $# -ne 0 ]; do
         --enable-broccoli)
             append_cache_entry DISABLE_RUBY_BINDINGS     BOOL   true
             append_cache_entry INSTALL_BROCCOLI     BOOL   yes
+            ;;
+        --enable-static-broker)
+            append_cache_entry BUILD_STATIC_BROKER    BOOL    true
             ;;
         --disable-broctl)
             append_cache_entry INSTALL_BROCTL       BOOL   false

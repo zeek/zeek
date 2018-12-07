@@ -1,4 +1,10 @@
 
+2.6-18 | 2018-12-06 20:11:01 -0600
+
+  * Update external test suite locations (Jon Siwek, Corelight)
+
+  * Update submodules to use github.com/zeek (Jon Siwek, Corelight)
+
 2.6-16 | 2018-11-29 17:05:44 -0600
 
   * Parallelize communication tests using btest TEST-PORT (Jon Siwek, Corelight)

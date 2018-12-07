@@ -47,7 +47,7 @@ test repository:
 
 .. console:
 
-    > cd bro-testing
+    > cd zeek-testing
     > btest
 
 All the standard ``btest`` options can be used to run individual

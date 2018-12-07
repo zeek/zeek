@@ -146,7 +146,7 @@ get_private_tests() {
         echo "Host *" >> ~/.ssh/config
         echo "    StrictHostKeyChecking no" >> ~/.ssh/config
         chmod 400 ~/.ssh/config
-        git clone ssh://git@github.com:zeek/zeek-testing-private
+        git clone git@github.com:zeek/zeek-testing-private
         rm ~/.ssh/id_rsa
     elif [ -n "${TRAVIS_PULL_REQUEST}" ] && [ "${TRAVIS_PULL_REQUEST}" != "false" ]; then
         # For pull request builds, the private key is not available, so skip

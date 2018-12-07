@@ -1,4 +1,8 @@
 
+2.6-19 | 2018-12-07 07:26:51 -0600
+
+  * Fix Travis git clone command (Jon Siwek, Corelight)
+
 2.6-18 | 2018-12-06 20:11:01 -0600
 
   * Update external test suite locations (Jon Siwek, Corelight)

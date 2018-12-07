@@ -584,7 +584,7 @@ communicate with the Switch.
     NetControl and OpenFlow architecture (click to enlarge).
 
 The Python scripts that are used to interface with the available NetControl
-plugins are contained in the `bro-netcontrol` repository (`github link <https://github.com/bro/bro-netcontrol>`_).
+plugins are contained in the `zeek-netcontrol` repository (`github link <https://github.com/zeek/zeek-netcontrol>`_).
 The repository contains scripts for the OpenFlow as well as the acld plugin.
 Furthermore, it contains a script for the broker plugin which can be used to
 call configureable command-line programs when used with the broker plugin.

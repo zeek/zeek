@@ -1,4 +1,8 @@
 
+2.6-20 | 2018-12-07 16:36:35 -0600
+
+  * Update github/download links (Jon Siwek, Corelight)
+
 2.6-19 | 2018-12-07 07:26:51 -0600
 
   * Fix Travis git clone command (Jon Siwek, Corelight)

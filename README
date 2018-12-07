@@ -1,29 +1,34 @@
-============================
-Bro Network Security Monitor
-============================
+=============================
+Zeek Network Security Monitor
+=============================
 
-Bro is a powerful framework for network analysis and security
-monitoring. Please see the INSTALL file for installation instructions
-and pointers for getting started. NEWS contains release notes for the
-current version, and CHANGES has the complete history of changes.
-Please see COPYING for licensing information.
+Zeek is a powerful framework for network analysis and security
+monitoring.
+
+(Zeek is the new name for the long-established Bro system. Note that
+parts of the system retain the "Bro" name, and it also often appears in
+the documentation and distributions.)
+
+Please see the INSTALL file for installation instructions and pointers
+for getting started.  NEWS contains release notes for the current
+version, and CHANGES has the complete history of changes.  Please see
+COPYING for licensing information.
 
 You can download source and binary releases on:
 
-    http://www.bro.org/download
+    https://www.zeek.org/download
 
 To get the current development version, clone our master git
 repository:
 
-    git clone --recursive git://git.bro.org/bro
+    git clone --recursive https://github.com/zeek/zeek
 
 For more documentation, research publications, and community contact
-information, please see Bro's home page:
+information, please see the home page:
 
-    http://www.bro.org
+    https://www.zeek.org
 
-
-On behalf of the Bro Development Team,
+On behalf of the Zeek Development Team,
 
 Vern Paxson & Robin Sommer,
 International Computer Science Institute &

@@ -147,17 +147,17 @@ available on the `bro downloads page`_.
 
 Alternatively, the latest Bro development version
 can be obtained through git repositories
-hosted at ``git.bro.org``.  See our `git development documentation
-<https://www.bro.org/development/howtos/process.html>`_ for comprehensive
+hosted at https://github.com/zeek.  See our `git development documentation
+<https://www.zeek.org/development/howtos/process.html>`_ for comprehensive
 information on Bro's use of git revision control, but the short story
 for downloading the full source code experience for Bro via git is:
 
 .. console::
 
-    git clone --recursive git://git.bro.org/bro
+    git clone --recursive https://github.com/zeek/zeek
 
-.. note:: If you choose to clone the ``bro`` repository
-   non-recursively for a "minimal Bro experience", be aware that
+.. note:: If you choose to clone the ``zeek`` repository
+   non-recursively for a "minimal Zeek experience", be aware that
    compiling it depends on several of the other submodules as well.
 
 The typical way to build and install from source is (for more options,

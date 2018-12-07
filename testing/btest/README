@@ -1,7 +1,7 @@
 This a test suite of small "unit tests" that verify individual pieces of Bro
 functionality.  They all utilize BTest, a simple framework/driver for
 writing unit tests.  More information about BTest can be found at
-https://github.com/bro/btest
+https://github.com/zeek/btest
 
 The test suite's BTest configuration is handled through the
 ``btest.cfg`` file.  Of particular interest is the "TestDirs" settings,
@@ -61,7 +61,7 @@ Adding Tests
 =============
 
 See either the `BTest documentation
-<https://github.com/bro/btest>`_ or the existing unit
+<https://github.com/zeek/btest>`_ or the existing unit
 tests for examples of what they actually look like.  The essential
 components of a new test include:
 

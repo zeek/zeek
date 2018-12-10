@@ -1,4 +1,16 @@
 
+2.6-27 | 2018-12-10 11:53:41 -0600
+
+  * GH-216: Add FTS dependency when building on Alpine (Jon Siwek, Corelight)
+
+  * Remove unnecessary header include (Jon Siwek, Corelight)
+
+  * GH-216: Improve default DNS resolution support for Alpine/musl (Jon Siwek, Corelight)
+
+    /etc/resolv.conf now gets parsed for the first IPv4 nameserver that works.
+
+  * Add dns_resolver option (Jon Siwek, Corelight)
+
 2.6-22 | 2018-12-10 11:16:53 -0600
 
   * Introduce --enable-static-broker configuration option. (Johanna Amann)

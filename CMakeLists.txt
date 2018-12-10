@@ -188,6 +188,20 @@ endif ()
 # if one specifies --with-openssl (which may be common).
 include_directories(BEFORE ${OPENSSL_INCLUDE_DIR})
 
+# Alpine support
+if ( ${CMAKE_SYSTEM_NAME} MATCHES Linux AND EXISTS /etc/os-release )
+    execute_process(
+        COMMAND grep -q alpine /etc/os-release
+        RESULT_VARIABLE os_release_alpine
+    )
+
+    if ( os_release_alpine EQUAL 0 )
+        find_package(FTS REQUIRED)
+        list(APPEND OPTLIBS ${FTS_LIBRARY})
+        include_directories(BEFORE ${FTS_INCLUDE_DIR})
+    endif ()
+endif ()
+
 set(brodeps
     ${BinPAC_LIBRARY}
     ${PCAP_LIBRARY}

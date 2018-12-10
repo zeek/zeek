@@ -1,5 +1,4 @@
 
-#include <sys/signal.h>
 #include <signal.h>
 
 #include "bro-config.h"

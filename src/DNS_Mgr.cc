@@ -376,12 +376,6 @@ DNS_Mgr::DNS_Mgr(DNS_MgrMode arg_mode)
 
 	mode = arg_mode;
 
-	char err[NB_DNS_ERRSIZE];
-	nb_dns = nb_dns_init(err);
-
-	if ( ! nb_dns )
-		reporter->Warning("problem initializing NB-DNS: %s", err);
-
 	dns_mapping_valid = dns_mapping_unverified = dns_mapping_new_name =
 		dns_mapping_lost_name = dns_mapping_name_changed =
 			dns_mapping_altered =  0;
@@ -409,6 +403,35 @@ void DNS_Mgr::InitPostScript()
 	{
 	if ( did_init )
 		return;
+
+	auto dns_resolver_id = global_scope()->Lookup("dns_resolver");
+	auto dns_resolver_addr = dns_resolver_id->ID_Val()->AsAddr();
+	char err[NB_DNS_ERRSIZE];
+
+	if ( dns_resolver_addr == IPAddr("::") )
+		nb_dns = nb_dns_init(err);
+	else
+		{
+		struct sockaddr_storage ss = {0};
+
+		if ( dns_resolver_addr.GetFamily() == IPv4 )
+			{
+			struct sockaddr_in* sa = (struct sockaddr_in*)&ss;
+			sa->sin_family = AF_INET;
+			dns_resolver_addr.CopyIPv4(&sa->sin_addr);
+			}
+		else
+			{
+			struct sockaddr_in6* sa = (struct sockaddr_in6*)&ss;
+			sa->sin6_family = AF_INET6;
+			dns_resolver_addr.CopyIPv6(&sa->sin6_addr);
+			}
+
+		nb_dns = nb_dns_init2(err, (struct sockaddr*)&ss);
+		}
+
+	if ( ! nb_dns )
+		reporter->Warning("problem initializing NB-DNS: %s", err);
 
 	const char* cache_dir = dir ? dir : ".";
 
@@ -471,14 +494,14 @@ static const char* fake_addr_lookup_result(const IPAddr& addr)
 
 TableVal* DNS_Mgr::LookupHost(const char* name)
 	{
+	if ( mode == DNS_FAKE )
+		return fake_name_lookup_result(name);
+
 	if ( ! nb_dns )
 		return empty_addr_set();
 
 	if ( ! did_init )
 		Init();
-
-	if ( mode == DNS_FAKE )
-		return fake_name_lookup_result(name);
 
 	if ( mode != DNS_PRIME )
 		{

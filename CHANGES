@@ -1,4 +1,10 @@
 
+2.6-22 | 2018-12-10 11:16:53 -0600
+
+  * Introduce --enable-static-broker configuration option. (Johanna Amann)
+
+    This option builds the bundled broker (and caf) statically.
+
 2.6-20 | 2018-12-07 16:36:35 -0600
 
   * Update github/download links (Jon Siwek, Corelight)

@@ -84,31 +84,43 @@ use this to identify a proxy server.
 We can write a basic script in Bro to handle the http_reply event and
 detect a reply for a ``GET http://`` request.
 
-.. btest-include:: ${DOC_ROOT}/httpmonitor/http_proxy_01.bro
+.. literalinclude:: http_proxy_01.bro
+   :caption:
+   :language: bro
+   :linenos:
 
-.. btest:: http_proxy_01
+.. code-block:: console
 
-    @TEST-EXEC: btest-rst-cmd bro -r ${TRACES}/http/proxy.pcap ${DOC_ROOT}/httpmonitor/http_proxy_01.bro
+   $ bro -r http/proxy.pcap http_proxy_01.bro
+   A local server is acting as an open proxy: 192.168.56.101
 
 Basically, the script is checking for a "200 OK" status code on a reply
 for a request that includes "http:" (case insensitive). In reality, the
 HTTP protocol defines several success status codes other than 200, so we
 will extend our basic script to also consider the additional codes.
 
-.. btest-include:: ${DOC_ROOT}/httpmonitor/http_proxy_02.bro
+.. literalinclude:: http_proxy_02.bro
+   :caption:
+   :language: bro
+   :linenos:
 
-.. btest:: http_proxy_02
+.. code-block:: console
 
-    @TEST-EXEC: btest-rst-cmd bro -r ${TRACES}/http/proxy.pcap ${DOC_ROOT}/httpmonitor/http_proxy_02.bro
+   $ bro -r http/proxy.pcap http_proxy_02.bro
+   A local server is acting as an open proxy: 192.168.56.101
 
 Next, we will make sure that the responding proxy is part of our local
 network.
 
-.. btest-include:: ${DOC_ROOT}/httpmonitor/http_proxy_03.bro
+.. literalinclude:: http_proxy_03.bro
+   :caption:
+   :language: bro
+   :linenos:
 
-.. btest:: http_proxy_03
+.. code-block:: console
 
-    @TEST-EXEC: btest-rst-cmd bro -r ${TRACES}/http/proxy.pcap ${DOC_ROOT}/httpmonitor/http_proxy_03.bro
+   $ bro -r http/proxy.pcap http_proxy_03.bro
+   A local server is acting as an open proxy: 192.168.56.101
 
 .. note::
 
@@ -123,12 +135,25 @@ we will tag the traffic accordingly and define a new ``Open_Proxy``
 notification has been fired, we will further suppress it for one day.
 Below is the complete script.
 
-.. btest-include:: ${DOC_ROOT}/httpmonitor/http_proxy_04.bro
+.. literalinclude:: http_proxy_04.bro
+   :caption:
+   :language: bro
+   :linenos:
 
-.. btest:: http_proxy_04
+.. code-block:: console
 
-    @TEST-EXEC: btest-rst-cmd bro -r ${TRACES}/http/proxy.pcap ${DOC_ROOT}/httpmonitor/http_proxy_04.bro
-    @TEST-EXEC: btest-rst-include notice.log
+   $ bro -r http/proxy.pcap http_proxy_04.bro
+   $ cat notice.log
+   #separator \x09
+   #set_separator    ,
+   #empty_field      (empty)
+   #unset_field      -
+   #path     notice
+   #open     2018-12-13-22-56-39
+   #fields   ts      uid     id.orig_h       id.orig_p       id.resp_h       id.resp_p       fuid    file_mime_type  file_desc       proto   note    msg     sub     src     dst     p       n       peer_descr      actions suppress_for    dropped remote_location.country_code    remote_location.region  remote_location.city    remote_location.latitude        remote_location.longitude
+   #types    time    string  addr    port    addr    port    string  string  string  enum    enum    string  string  addr    addr    port    count   string  set[enum]       interval        bool    string  string  string  double  double
+   1389654450.449603 CHhAvVGS1DHFjwGM9       192.168.56.1    52679   192.168.56.101  80      -       -       -       tcp     HTTP::Open_Proxy        A local server is acting as an open proxy: 192.168.56.101       -       192.168.56.1    192.168.56.101  80      -       -       Notice::ACTION_LOG      86400.000000    F       -       -       -       -       -
+   #close    2018-12-13-22-56-40
 
 Note that this script only logs the presence of the proxy to
 ``notice.log``, but if an additional email is desired (and email
@@ -148,11 +173,20 @@ instruct Bro to create a copy of all files of certain types that it sees
 using the :ref:`File Analysis Framework <file-analysis-framework>`
 (introduced with Bro 2.2):
 
-.. btest-include:: ${DOC_ROOT}/httpmonitor/file_extraction.bro
+.. literalinclude:: file_extraction.bro
+   :caption:
+   :language: bro
+   :linenos:
 
-.. btest:: file_extraction
+.. code-block:: console
 
-    @TEST-EXEC: btest-rst-cmd -n 5 bro -r ${TRACES}/http/bro.org.pcap ${DOC_ROOT}/httpmonitor/file_extraction.bro
+   $ bro -r bro.org.pcap file_extraction.bro
+   Extracting file HTTP-FiIpIB2hRQSDBOSJRg.html
+   Extracting file HTTP-FMG4bMmVV64eOsCb.txt
+   Extracting file HTTP-FnaT2a3UDd093opCB9.txt
+   Extracting file HTTP-FfQGqj4Fhh3pH7nVQj.txt
+   Extracting file HTTP-FsvATF146kf1Emc21j.txt
+   [...]
 
 Here, the ``mime_to_ext`` table serves two purposes.  It defines which
 mime types to extract and also the file suffix of the extracted files.

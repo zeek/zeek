@@ -37,10 +37,85 @@ Hash registry includes the ability to do a host lookup on a domain with the form
 Team Cymru also populates the TXT record of their DNS responses with both a "first seen"
 timestamp and a numerical "detection rate".  The important aspect to understand is Bro already
 generating hashes for files via the Files framework, but it is the
-script ``detect-MHR.bro`` that is responsible for generating the
+script :doc:`/scripts/policy/frameworks/files/detect-MHR.bro`
+that is responsible for generating the
 appropriate DNS lookup, parsing the response, and generating a notice if appropriate.
 
-.. btest-include:: ${BRO_SRC_ROOT}/scripts/policy/frameworks/files/detect-MHR.bro
+.. code-block:: bro
+   :caption: detect-MHR.bro
+
+   ##! Detect file downloads that have hash values matching files in Team
+   ##! Cymru's Malware Hash Registry (http://www.team-cymru.org/Services/MHR/).
+
+   @load base/frameworks/files
+   @load base/frameworks/notice
+   @load frameworks/files/hash-all-files
+
+   module TeamCymruMalwareHashRegistry;
+
+   export {
+       redef enum Notice::Type += {
+           ## The hash value of a file transferred over HTTP matched in the
+           ## malware hash registry.
+           Match
+       };
+
+       ## File types to attempt matching against the Malware Hash Registry.
+       option match_file_types = /application\/x-dosexec/ |
+                                /application\/vnd.ms-cab-compressed/ |
+                                /application\/pdf/ |
+                                /application\/x-shockwave-flash/ |
+                                /application\/x-java-applet/ |
+                                /application\/jar/ |
+                                /video\/mp4/;
+
+       ## The Match notice has a sub message with a URL where you can get more
+       ## information about the file. The %s will be replaced with the SHA-1
+       ## hash of the file.
+       option match_sub_url = "https://www.virustotal.com/en/search/?query=%s";
+
+       ## The malware hash registry runs each malware sample through several
+       ## A/V engines.  Team Cymru returns a percentage to indicate how
+       ## many A/V engines flagged the sample as malicious. This threshold
+       ## allows you to require a minimum detection rate.
+       option notice_threshold = 10;
+   }
+
+   function do_mhr_lookup(hash: string, fi: Notice::FileInfo)
+       {
+       local hash_domain = fmt("%s.malware.hash.cymru.com", hash);
+
+       when ( local MHR_result = lookup_hostname_txt(hash_domain) )
+           {
+           # Data is returned as "<dateFirstDetected> <detectionRate>"
+           local MHR_answer = split_string1(MHR_result, / /);
+
+           if ( |MHR_answer| == 2 )
+               {
+               local mhr_detect_rate = to_count(MHR_answer[1]);
+
+               if ( mhr_detect_rate >= notice_threshold )
+                   {
+                   local mhr_first_detected = double_to_time(to_double(MHR_answer[0]));
+                   local readable_first_detected = strftime("%Y-%m-%d %H:%M:%S", mhr_first_detected);
+                   local message = fmt("Malware Hash Registry Detection rate: %d%%  Last seen: %s", mhr_detect_rate, readable_first_detected);
+                   local virustotal_url = fmt(match_sub_url, hash);
+                   # We don't have the full fa_file record here in order to
+                   # avoid the "when" statement cloning it (expensive!).
+                   local n: Notice::Info = Notice::Info($note=Match, $msg=message, $sub=virustotal_url);
+                   Notice::populate_file_info2(fi, n);
+                   NOTICE(n);
+                   }
+               }
+           }
+       }
+
+   event file_hash(f: fa_file, kind: string, hash: string)
+       {
+       if ( kind == "sha1" && f?$info && f$info?$mime_type && 
+            match_file_types in f$info$mime_type )
+           do_mhr_lookup(hash, Notice::create_file_info(f));
+       }
 
 Visually, there are three distinct sections of the script.  First, there is a base
 level with no indentation where libraries are included in the script through ``@load``
@@ -51,8 +126,12 @@ specific event (``event file_hash``).  Don't get discouraged if you don't
 understand every section of the script; we'll cover the basics of the
 script and much more in following sections.
 
-.. btest-include:: ${BRO_SRC_ROOT}/scripts/policy/frameworks/files/detect-MHR.bro
-   :lines: 4-6
+.. code-block:: bro
+   :caption: detect-MHR.bro
+
+   @load base/frameworks/files
+   @load base/frameworks/notice
+   @load frameworks/files/hash-all-files
 
 The first part of the script consists of ``@load`` directives which 
 process the ``__load__.bro`` script in the
@@ -66,8 +145,36 @@ this level of granularity might not be entirely necessary.  The ``@load`` direct
 are ensuring the Files framework, the Notice framework and the script to hash all files has
 been loaded by Bro.
 
-.. btest-include:: ${BRO_SRC_ROOT}/scripts/policy/frameworks/files/detect-MHR.bro
-   :lines: 10-36
+.. code-block:: bro
+   :caption: detect-MHR.bro
+
+   export {
+       redef enum Notice::Type += {
+           ## The hash value of a file transferred over HTTP matched in the
+           ## malware hash registry.
+           Match
+       };
+
+       ## File types to attempt matching against the Malware Hash Registry.
+       option match_file_types = /application\/x-dosexec/ |
+                                /application\/vnd.ms-cab-compressed/ |
+                                /application\/pdf/ |
+                                /application\/x-shockwave-flash/ |
+                                /application\/x-java-applet/ |
+                                /application\/jar/ |
+                                /video\/mp4/;
+
+       ## The Match notice has a sub message with a URL where you can get more
+       ## information about the file. The %s will be replaced with the SHA-1
+       ## hash of the file.
+       option match_sub_url = "https://www.virustotal.com/en/search/?query=%s";
+
+       ## The malware hash registry runs each malware sample through several
+       ## A/V engines.  Team Cymru returns a percentage to indicate how
+       ## many A/V engines flagged the sample as malicious. This threshold
+       ## allows you to require a minimum detection rate.
+       option notice_threshold = 10;
+   }
 
 The export section redefines an enumerable constant that describes the
 type of notice we will generate with the Notice framework.  Bro
@@ -89,8 +196,43 @@ Up until this point, the script has merely done some basic setup.  With
 the next section, the script starts to define instructions to take in
 a given event.
 
-.. btest-include:: ${BRO_SRC_ROOT}/scripts/policy/frameworks/files/detect-MHR.bro
-   :lines: 38-71
+.. code-block:: bro
+   :caption: detect-MHR.bro
+
+   function do_mhr_lookup(hash: string, fi: Notice::FileInfo)
+       {
+       local hash_domain = fmt("%s.malware.hash.cymru.com", hash);
+
+       when ( local MHR_result = lookup_hostname_txt(hash_domain) )
+           {
+           # Data is returned as "<dateFirstDetected> <detectionRate>"
+           local MHR_answer = split_string1(MHR_result, / /);
+
+           if ( |MHR_answer| == 2 )
+               {
+               local mhr_detect_rate = to_count(MHR_answer[1]);
+
+               if ( mhr_detect_rate >= notice_threshold )
+                   {
+                   local mhr_first_detected = double_to_time(to_double(MHR_answer[0]));
+                   local readable_first_detected = strftime("%Y-%m-%d %H:%M:%S", mhr_first_detected);
+                   local message = fmt("Malware Hash Registry Detection rate: %d%%  Last seen: %s", mhr_detect_rate, readable_first_detected);
+                   local virustotal_url = fmt(match_sub_url, hash);
+                   # We don't have the full fa_file record here in order to
+                   # avoid the "when" statement cloning it (expensive!).
+                   local n: Notice::Info = Notice::Info($note=Match, $msg=message, $sub=virustotal_url);
+                   Notice::populate_file_info2(fi, n);
+                   NOTICE(n);
+                   }
+               }
+           }
+       }
+
+   event file_hash(f: fa_file, kind: string, hash: string)
+       {
+       if ( kind == "sha1" && f?$info && f$info?$mime_type && 
+            match_file_types in f$info$mime_type )
+           do_mhr_lookup(hash, Notice::create_file_info(f));
 
 The workhorse of the script is contained in the event handler for
 ``file_hash``.  The :bro:see:`file_hash` event allows scripts to access
@@ -182,8 +324,34 @@ This effort resulted in built-in-function files organized such that
 each entry contains a descriptive event name, the arguments passed to
 the event, and a concise explanation of the functions use.
 
-.. btest-include:: ${BRO_SRC_ROOT}/build/scripts/base/bif/plugins/Bro_DNS.events.bif.bro
-   :lines: 29-54
+.. code-block:: bro
+
+   ## Generated for DNS requests. For requests with multiple queries, this event
+   ## is raised once for each.
+   ##
+   ## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+   ## information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   ## sessions.
+   ##
+   ## c: The connection, which may be UDP or TCP depending on the type of the
+   ##    transport-layer session being analyzed.
+   ##
+   ## msg: The parsed DNS message header.
+   ##
+   ## query: The queried name.
+   ##
+   ## qtype: The queried resource record type.
+   ##
+   ## qclass: The queried resource record class.
+   ##
+   ## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+   ##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
+   ##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end
+   ##    dns_full_request dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
+   ##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
+   ##    dns_rejected non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
+   ##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
+   event dns_request%(c: connection, msg: dns_msg, query: string, qtype: count, qclass: count%);
 
 Above is a segment of the documentation for the event
 :bro:id:`dns_request` (and the preceding link points to the
@@ -226,7 +394,10 @@ remove this event from memory, effectively forgetting about it.  Let's
 take a look at a simple example script, that will output the connection record
 for a single connection.
 
-.. btest-include:: ${DOC_ROOT}/scripting/connection_record_01.bro
+.. literalinclude:: connection_record_01.bro
+   :caption:
+   :language: bro
+   :linenos:
 
 Again, we start with ``@load``, this time importing the
 :doc:`/scripts/base/protocols/conn/index` scripts which supply the tracking
@@ -242,9 +413,12 @@ more layers of information about a connection.  This will give us a
 chance to see the contents of the connection record without it being
 overly populated.
 
-.. btest:: connection-record-01
+.. code-block:: console
 
-    @TEST-EXEC: btest-rst-cmd bro -b -r ${TRACES}/http/get.trace ${DOC_ROOT}/scripting/connection_record_01.bro
+   $ bro -b -r http/get.trace connection_record_01.bro
+   [id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp], orig=[size=136, state=5, num_pkts=7, num_bytes_ip=512, flow_label=0, l2_addr=c8:bc:c8:96:d2:a0], resp=[size=5007, state=5, num_pkts=7, num_bytes_ip=5379, flow_label=0, l2_addr=00:10:db:88:d2:ef], start_time=1362692526.869344, duration=0.211484, service={
+
+   }, history=ShADadFf, uid=CHhAvVGS1DHFjwGM9, tunnel=<uninitialized>, vlan=<uninitialized>, inner_vlan=<uninitialized>, conn=[ts=1362692526.869344, uid=CHhAvVGS1DHFjwGM9, id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp], proto=tcp, service=<uninitialized>, duration=0.211484, orig_bytes=136, resp_bytes=5007, conn_state=SF, local_orig=<uninitialized>, local_resp=<uninitialized>, missed_bytes=0, history=ShADadFf, orig_pkts=7, orig_ip_bytes=512, resp_pkts=7, resp_ip_bytes=5379, tunnel_parents=<uninitialized>], extract_orig=F, extract_resp=F, thresholds=<uninitialized>]
 
 As you can see from the output, the connection record is something of
 a jumble when printed on its own.  Regularly taking a peek at a
@@ -270,11 +444,21 @@ proper format of a dereferenced variable in scripts. In the output of
 the script above, groups of information are collected between
 brackets, which would correspond to the ``$``-delimiter in a Bro script.  
 
-.. btest-include:: ${DOC_ROOT}/scripting/connection_record_02.bro
+.. literalinclude:: connection_record_02.bro
+   :caption:
+   :language: bro
+   :linenos:
 
-.. btest:: connection-record-02
+.. code-block:: console
 
-    @TEST-EXEC: btest-rst-cmd bro -b -r ${TRACES}/http/get.trace ${DOC_ROOT}/scripting/connection_record_02.bro
+   $bro -b -r http/get.trace connection_record_02.bro
+   [id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp], orig=[size=136, state=5, num_pkts=7, num_bytes_ip=512, flow_label=0, l2_addr=c8:bc:c8:96:d2:a0], resp=[size=5007, state=5, num_pkts=7, num_bytes_ip=5379, flow_label=0, l2_addr=00:10:db:88:d2:ef], start_time=1362692526.869344, duration=0.211484, service={
+
+   }, history=ShADadFf, uid=CHhAvVGS1DHFjwGM9, tunnel=<uninitialized>, vlan=<uninitialized>, inner_vlan=<uninitialized>, conn=[ts=1362692526.869344, uid=CHhAvVGS1DHFjwGM9, id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp], proto=tcp, service=<uninitialized>, duration=0.211484, orig_bytes=136, resp_bytes=5007, conn_state=SF, local_orig=<uninitialized>, local_resp=<uninitialized>, missed_bytes=0, history=ShADadFf, orig_pkts=7, orig_ip_bytes=512, resp_pkts=7, resp_ip_bytes=5379, tunnel_parents=<uninitialized>], extract_orig=F, extract_resp=F, thresholds=<uninitialized>, http=[ts=1362692526.939527, uid=CHhAvVGS1DHFjwGM9, id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp], trans_depth=1, method=GET, host=bro.org, uri=/download/CHANGES.bro-aux.txt, referrer=<uninitialized>, version=1.1, user_agent=Wget/1.14 (darwin12.2.0), request_body_len=0, response_body_len=4705, status_code=200, status_msg=OK, info_code=<uninitialized>, info_msg=<uninitialized>, tags={
+
+   }, username=<uninitialized>, password=<uninitialized>, capture_password=F, proxied=<uninitialized>, range_request=F, orig_fuids=<uninitialized>, orig_filenames=<uninitialized>, orig_mime_types=<uninitialized>, resp_fuids=[FakNcS1Jfe01uljb3], resp_filenames=<uninitialized>, resp_mime_types=[text/plain], current_entity=<uninitialized>, orig_mime_depth=1, resp_mime_depth=1], http_state=[pending={
+
+   }, current_request=1, current_response=1, trans_depth=1]]
 
 The addition of the ``base/protocols/http`` scripts populates the
 ``http=[]`` member of the connection record.  While Bro is doing a
@@ -306,7 +490,10 @@ each of which produce the same result if ``EXPRESSION`` evaluates to the
 same type as ``TYPE``.  The decision as to which type of declaration to
 use is likely to be dictated by personal preference and readability. 
 
-.. btest-include:: ${DOC_ROOT}/scripting/data_type_declaration.bro
+.. literalinclude:: data_type_declaration.bro
+   :caption:
+   :language: bro
+   :linenos:
 
 Global Variables
 ~~~~~~~~~~~~~~~~
@@ -347,13 +534,19 @@ decrypted from HTTP streams is stored in
 :bro:see:`HTTP::default_capture_password` as shown in the stripped down
 excerpt from :doc:`/scripts/base/protocols/http/main.bro` below.
 
-.. btest-include:: ${DOC_ROOT}/scripting/http_main.bro
+.. literalinclude:: http_main.bro
+   :caption:
+   :language: bro
+   :linenos:
 
 Because the constant was declared with the ``&redef`` attribute, if we
 needed to turn this option on globally, we could do so by adding the
 following line to our ``site/local.bro`` file before firing up Bro.
 
-.. btest-include:: ${DOC_ROOT}/scripting/data_type_const_simple.bro
+.. literalinclude:: data_type_const_simple.bro
+   :caption:
+   :language: bro
+   :linenos:
 
 While the idea of a re-definable constant might be odd, the constraint
 that constants can only be altered at parse-time remains even with the
@@ -364,11 +557,18 @@ in a :bro:id:`bro_init` event.  Were we to try to alter the table in
 an event handler, Bro would notify the user of an error and the script
 would fail.
 
-.. btest-include:: ${DOC_ROOT}/scripting/data_type_const.bro
+.. literalinclude:: data_type_const.bro
+   :caption:
+   :language: bro
+   :linenos:
 
-.. btest:: data_type_const.bro
+.. code-block:: console
 
-    @TEST-EXEC: btest-rst-cmd bro -b ${DOC_ROOT}/scripting/data_type_const.bro
+   $ bro -b data_type_const.bro
+   {
+   [80/tcp] = WWW,
+   [6666/tcp] = IRC
+   }
 
 Local Variables
 ~~~~~~~~~~~~~~~
@@ -382,7 +582,10 @@ of a script passes beyond that scope and no longer used, the variable
 is deleted. Bro maintains names of locals separately from globally
 visible ones, an example of which is illustrated below.
 
-.. btest-include:: ${DOC_ROOT}/scripting/data_type_local.bro
+.. literalinclude:: data_type_local.bro
+   :caption:
+   :language: bro
+   :linenos:
 
 The script executes the event handler :bro:id:`bro_init` which in turn calls
 the function ``add_two(i: count)`` with an argument of ``10``.  Once Bro
@@ -455,7 +658,10 @@ for information that is already naturally unique such as ports or IP
 addresses.  The code snippet below shows both an explicit and implicit
 declaration of a locally scoped set.
 
-.. btest-include:: ${DOC_ROOT}/scripting/data_struct_set_declaration.bro
+.. literalinclude:: data_struct_set_declaration.bro
+   :caption:
+   :language: bro
+   :linenos:
    :lines: 1-4,22
 
 As you can see, sets are declared using the format ``SCOPE var_name:
@@ -467,8 +673,12 @@ the ``in`` operator.  In the case of iterating over a set, combining the
 ``for`` statement and the ``in`` operator will allow you to sequentially
 process each element of the set as seen below.  
 
-.. btest-include:: ${DOC_ROOT}/scripting/data_struct_set_declaration.bro
+.. literalinclude:: data_struct_set_declaration.bro
+   :caption:
+   :language: bro
+   :linenos:
    :lines: 17-21
+   :lineno-start: 17
 
 Here, the ``for`` statement loops over the contents of the set storing
 each element in the temporary variable ``i``.  With each iteration of
@@ -487,16 +697,31 @@ negate the in operator itself.  While the functionality is the same,
 using the ``!in`` is more efficient as well as a more natural construct
 which will aid in the readability of your script. 
 
-.. btest-include:: ${DOC_ROOT}/scripting/data_struct_set_declaration.bro
+.. literalinclude:: data_struct_set_declaration.bro
+   :caption:
+   :language: bro
+   :linenos:
    :lines: 13-15
+   :lineno-start: 13
 
 You can see the full script and its output below.
 
-.. btest-include:: ${DOC_ROOT}/scripting/data_struct_set_declaration.bro
+.. literalinclude:: data_struct_set_declaration.bro
+   :caption:
+   :language: bro
+   :linenos:
 
-.. btest:: data_struct_set_declaration
+.. code-block:: console
 
-    @TEST-EXEC: btest-rst-cmd bro ${DOC_ROOT}/scripting/data_struct_set_declaration.bro
+   $ bro data_struct_set_declaration.bro
+   SSL Port: 22/tcp
+   SSL Port: 443/tcp
+   SSL Port: 587/tcp
+   SSL Port: 993/tcp
+   Non-SSL Port: 80/tcp
+   Non-SSL Port: 25/tcp
+   Non-SSL Port: 143/tcp
+   Non-SSL Port: 23/tcp
 
 Tables
 ~~~~~~
@@ -505,11 +730,18 @@ A table in Bro is a mapping of a key to a value or yield.  While the
 values don't have to be unique, each key in the table must be unique
 to preserve a one-to-one mapping of keys to values.
 
-.. btest-include:: ${DOC_ROOT}/scripting/data_struct_table_declaration.bro
+.. literalinclude:: data_struct_table_declaration.bro
+   :caption:
+   :language: bro
+   :linenos:
 
-.. btest:: data_struct_table_declaration
+.. code-block:: console
 
-    @TEST-EXEC: btest-rst-cmd bro ${DOC_ROOT}/scripting/data_struct_table_declaration.bro
+   $ bro data_struct_table_declaration.bro
+   Service Name:  SSH - Common Port: 22/tcp
+   Service Name:  HTTPS - Common Port: 443/tcp
+   Service Name:  SMTPS - Common Port: 587/tcp
+   Service Name:  IMAPS - Common Port: 993/tcp
 
 In this example,
 we've compiled a table of SSL-enabled services and their common
@@ -534,11 +766,18 @@ Bro implies a cost in complexity for the person writing the scripts
 but pays off in effectiveness given the power of Bro as a network
 security platform.
 
-.. btest-include:: ${DOC_ROOT}/scripting/data_struct_table_complex.bro
+.. literalinclude:: data_struct_table_complex.bro
+   :caption:
+   :language: bro
+   :linenos:
 
-.. btest:: data_struct_table_complex
+.. code-block:: console
 
-    @TEST-EXEC: btest-rst-cmd bro -b ${DOC_ROOT}/scripting/data_struct_table_complex.bro
+   $ bro -b data_struct_table_complex.bro
+   Harakiri was released in 1962 by Shochiku Eiga studios, directed by Masaki Kobayashi and starring Tatsuya Nakadai
+   Goyokin was released in 1969 by Fuji studios, directed by Hideo Gosha and starring Tatsuya Nakadai
+   Tasogare Seibei was released in 2002 by Eisei Gekijo studios, directed by Yoji Yamada and starring Hiroyuki Sanada
+   Kiru was released in 1968 by Toho studios, directed by Kihachi Okamoto and starring Tatsuya Nakadai
 
 This script shows a sample table of strings indexed by two
 strings, a count, and a final string.  With a tuple acting as an
@@ -580,11 +819,18 @@ the vector name between two vertical pipes to get the vector's current
 length before printing the contents of both Vectors and their current
 lengths.
 
-.. btest-include:: ${DOC_ROOT}/scripting/data_struct_vector_declaration.bro
+.. literalinclude:: data_struct_vector_declaration.bro
+   :caption:
+   :language: bro
+   :linenos:
 
-.. btest:: data_struct_vector_declaration
+.. code-block:: console
 
-    @TEST-EXEC: btest-rst-cmd bro ${DOC_ROOT}/scripting/data_struct_vector_declaration.bro
+   $ bro data_struct_vector_declaration.bro
+   contents of v1: [1, 2, 3, 4]
+   length of v1: 4
+   contents of v2: [1, 2, 3, 4]
+   length of v2: 4
 
 In a lot of cases, storing elements in a vector is simply a precursor
 to then iterating over them.  Iterating over a vector is easy with the
@@ -595,12 +841,17 @@ called ``i`` which will hold the index of the current element in the
 vector. Using ``i`` as an index to addr_vector we can access the
 current item in the vector with ``addr_vector[i]``.  
 
-.. btest-include:: ${DOC_ROOT}/scripting/data_struct_vector_iter.bro
+.. literalinclude:: data_struct_vector_iter.bro
+   :caption:
+   :language: bro
+   :linenos:
 
-.. btest:: data_struct_vector_iter
+.. code-block:: console
 
-    @TEST-EXEC: btest-rst-cmd bro -b ${DOC_ROOT}/scripting/data_struct_vector_iter.bro
-
+   $ bro -b data_struct_vector_iter.bro
+   1.2.0.0/18
+   2.3.0.0/18
+   3.4.0.0/18
 
 Data Types Revisited
 --------------------
@@ -653,7 +904,10 @@ your scripts.  The following example below uses a Bro script to
 determine if a series of IP addresses are within a set of subnets
 using a 20 bit subnet mask. 
 
-.. btest-include:: ${DOC_ROOT}/scripting/data_type_subnets.bro
+.. literalinclude:: data_type_subnets.bro
+   :caption:
+   :language: bro
+   :linenos:
 
 Because this is a script that doesn't use any kind of network
 analysis, we can handle the event :bro:id:`bro_init` which is always
@@ -669,9 +923,13 @@ For example, ``10.0.0.1 in 10.0.0.0/8`` would return true while
 script, we get the output listing the IP address and the subnet in
 which it belongs.
 
-.. btest:: data_type_subnets
+.. code-block:: console
 
-    @TEST-EXEC: btest-rst-cmd bro ${DOC_ROOT}/scripting/data_type_subnets.bro
+   $ bro data_type_subnets.bro
+   172.16.4.56 belongs to subnet 172.16.0.0/20
+   172.16.47.254 belongs to subnet 172.16.32.0/20
+   172.16.22.45 belongs to subnet 172.16.16.0/20
+   172.16.1.1 belongs to subnet 172.16.0.0/20
 
 time
 ~~~~
@@ -693,14 +951,26 @@ timestamp and an indication of who the originator and responder were.
 We use the ``strftime`` format string of ``%Y%M%d %H:%m:%S`` to
 produce a common date time formatted time stamp.
 
-.. btest-include:: ${DOC_ROOT}/scripting/data_type_time.bro
+.. literalinclude:: data_type_time.bro
+   :caption:
+   :language: bro
+   :linenos:
 
 When the script is executed we get an output showing the details of
 established connections.  
 
-.. btest:: data_type_time
+.. code-block:: console
 
-    @TEST-EXEC: btest-rst-cmd bro -r ${TRACES}/wikipedia.trace ${DOC_ROOT}/scripting/data_type_time.bro
+   $ bro -r wikipedia.trace data_type_time.bro
+   2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.118\x0a
+   2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.3\x0a
+   2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.3\x0a
+   2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.3\x0a
+   2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.3\x0a
+   2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.3\x0a
+   2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.3\x0a
+   2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.2\x0a
+   2011/06/18 19:03:09:  New connection established from 141.142.220.235 to 173.192.163.128\x0a
 
 interval
 ~~~~~~~~
@@ -730,15 +1000,35 @@ operator.  The script below amends the script started in the section
 above to include a time delta value printed along with the connection
 establishment report.
 
-.. btest-include:: ${DOC_ROOT}/scripting/data_type_interval.bro
+.. literalinclude:: data_type_interval.bro
+   :caption:
+   :language: bro
+   :linenos:
 
 This time, when we execute the script we see an additional line in the
 output to display the time delta since the last fully established
 connection.  
 
-.. btest:: data_type_interval
+.. code-block:: console
 
-    @TEST-EXEC: btest-rst-cmd bro -r ${TRACES}/wikipedia.trace ${DOC_ROOT}/scripting/data_type_interval.bro
+   $ bro -r wikipedia.trace data_type_interval.bro
+   2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.118
+   2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.3
+        Time since last connection: 132.0 msecs 97.0 usecs
+   2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.3
+        Time since last connection: 177.0 usecs
+   2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.3
+        Time since last connection: 2.0 msecs 177.0 usecs
+   2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.3
+        Time since last connection: 33.0 msecs 898.0 usecs
+   2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.3
+        Time since last connection: 35.0 usecs
+   2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.3
+        Time since last connection: 2.0 msecs 532.0 usecs
+   2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.2
+        Time since last connection: 7.0 msecs 866.0 usecs
+   2011/06/18 19:03:09:  New connection established from 141.142.220.235 to 173.192.163.128
+        Time since last connection: 817.0 msecs 703.0 usecs
 
 
 Pattern
@@ -755,7 +1045,10 @@ adheres to a strict format, requiring the regular expression or
 pattern constant to be on the left side of the ``in`` operator and the
 string against which it will be tested to be on the right.
 
-.. btest-include:: ${DOC_ROOT}/scripting/data_type_pattern_01.bro
+.. literalinclude:: data_type_pattern_01.bro
+   :caption:
+   :language: bro
+   :linenos:
 
 In the sample above, two local variables are declared to hold our
 sample sentence and regular expression.  Our regular expression in
@@ -771,9 +1064,12 @@ excluding the actual matches.  In this case, our pattern matches
 twice, and results in a table with three entries.  The ``print`` statements
 in the script will print the contents of the table in order.  
 
-.. btest:: data_type_pattern
+.. code-block:: console
 
-    @TEST-EXEC: btest-rst-cmd bro ${DOC_ROOT}/scripting/data_type_pattern_01.bro
+   $ bro data_type_pattern_01.bro
+   The
+    brown fox jumps over the
+    dog.
 
 Patterns can also be used to compare strings using equality and
 inequality operators through the ``==`` and ``!=`` operators
@@ -783,13 +1079,13 @@ ternary conditional statements to illustrate the use of the ``==``
 operator with patterns.  The output is altered based
 on the result of the comparison between the pattern and the string.  
 
-.. btest-include:: ${DOC_ROOT}/scripting/data_type_pattern_02.bro
+.. literalinclude:: data_type_pattern_02.bro
 
-.. btest:: data_type_pattern_02
+.. code-block:: console
 
-    @TEST-EXEC: btest-rst-cmd bro ${DOC_ROOT}/scripting/data_type_pattern_02.bro
-
-
+   $ bro data_type_pattern_02.bro
+   equality and /^?(equal)$?/ are not equal
+   equality and /^?(equality)$?/ are equal
 
 Record Data Type
 ----------------
@@ -809,7 +1105,10 @@ example of the ``record`` data type in the earlier sections, the
 :bro:type:`Conn::Info`, which corresponds to the fields logged into
 ``conn.log``, is shown by the excerpt below.
 
-.. btest-include:: ${DOC_ROOT}/scripting/data_type_record.bro
+.. literalinclude:: data_type_record.bro
+   :caption:
+   :language: bro
+   :linenos:
 
 Looking at the structure of the definition, a new collection of data
 types is being defined as a type called ``Info``.  Since this type
@@ -822,11 +1121,20 @@ that make up the record.  The individual fields that make up the new
 record are not limited in type or number as long as the name for each
 field is unique.
 
-.. btest-include:: ${DOC_ROOT}/scripting/data_struct_record_01.bro
+.. literalinclude:: data_struct_record_01.bro
+   :caption:
+   :language: bro
+   :linenos:
 
-.. btest:: data_struct_record_01
+.. code-block:: console
 
-   @TEST-EXEC: btest-rst-cmd bro ${DOC_ROOT}/scripting/data_struct_record_01.bro
+   $ bro data_struct_record_01.bro
+   Service: dns(RFC1035)
+     port: 53/udp
+     port: 53/tcp
+   Service: http(RFC2616)
+     port: 8080/tcp
+     port: 80/tcp
 
 The sample above shows a simple type definition that includes a
 string, a set of ports, and a count to define a service type.  Also
@@ -843,11 +1151,18 @@ records are even valid as fields within another record.  We can extend
 the example above to include another record that contains a Service
 record.
 
-.. btest-include:: ${DOC_ROOT}/scripting/data_struct_record_02.bro
+.. literalinclude:: data_struct_record_02.bro
 
-.. btest:: data_struct_record_02
+.. code-block:: console
 
-   @TEST-EXEC: btest-rst-cmd bro ${DOC_ROOT}/scripting/data_struct_record_02.bro
+   $ bro data_struct_record_02.bro
+   System: morlock
+     Service: http(RFC2616)
+       port: 8080/tcp
+       port: 80/tcp
+     Service: dns(RFC1035)
+       port: 53/udp
+       port: 53/tcp
 
 The example above includes a second record type in which a field is
 used as the data type for a set.  Records can be repeatedly nested
@@ -858,8 +1173,12 @@ It's also common to see a ``type`` used to simply alias a data
 structure to a more descriptive name.  The example below shows an
 example of this from Bro's own type definitions file.
 
-.. btest-include:: ${BRO_SRC_ROOT}/scripts/base/init-bare.bro
-   :lines: 12,19,26
+.. code-block:: bro
+   :caption: init-bare.bro
+
+   type string_array: table[count] of string;
+   type string_set: set[string];
+   type addr_set: set[addr];
 
 The three lines above alias a type of data structure to a descriptive
 name.  Functionally, the operations are the same, however, each of the
@@ -916,11 +1235,24 @@ It's always best to work through the problem once, simulating the
 desired output with ``print`` and ``fmt`` before attempting to dive
 into the Logging Framework.
 
-.. btest-include:: ${DOC_ROOT}/scripting/framework_logging_factorial_01.bro
+.. literalinclude:: framework_logging_factorial_01.bro
+   :caption:
+   :language: bro
+   :linenos:
 
-.. btest:: framework_logging_factorial
+.. code-block:: console
 
-   @TEST-EXEC: btest-rst-cmd bro ${DOC_ROOT}/scripting/framework_logging_factorial_01.bro
+   $ bro framework_logging_factorial_01.bro
+   1
+   2
+   6
+   24
+   120
+   720
+   5040
+   40320
+   362880
+   3628800
 
 This script defines a factorial function to recursively calculate the
 factorial of a unsigned integer passed as an argument to the function.  Using
@@ -930,7 +1262,10 @@ calculations correctly as well get an idea of the answers ourselves.
 The output of the script aligns with what we expect so now it's time
 to integrate the Logging Framework.
 
-.. btest-include:: ${DOC_ROOT}/scripting/framework_logging_factorial_02.bro
+.. literalinclude:: framework_logging_factorial_02.bro
+   :caption:
+   :language: bro
+   :linenos:
 
 As mentioned above we have to perform a few steps before we can
 issue the :bro:id:`Log::write` method and produce a logfile.
@@ -962,10 +1297,29 @@ Now, if we run this script, instead of generating
 logging information to stdout, no output is created.  Instead the
 output is all in ``factor.log``, properly formatted and organized.
 
-.. btest:: framework_logging_factorial-2
-   
-   @TEST-EXEC: btest-rst-cmd bro ${DOC_ROOT}/scripting/framework_logging_factorial_02.bro
-   @TEST-EXEC: btest-rst-include factor.log
+.. code-block:: console
+
+   $ bro framework_logging_factorial_02.bro
+   $ cat factor.log
+   #separator \x09
+   #set_separator    ,
+   #empty_field      (empty)
+   #unset_field      -
+   #path     factor
+   #open     2018-12-14-21-47-18
+   #fields   num     factorial_num
+   #types    count   count
+   1 1
+   2 2
+   3 6
+   4 24
+   5 120
+   6 720
+   7 5040
+   8 40320
+   9 362880
+   10        3628800
+   #close    2018-12-14-21-47-18
 
 While the previous example is a simplistic one, it serves to
 demonstrate the small pieces of script code hat need to be in place in
@@ -993,7 +1347,10 @@ example we've been using, let's extend it so as to write any factorial
 which is a factor of 5 to an alternate file, while writing the
 remaining logs to factor.log.  
 
-.. btest-include:: ${DOC_ROOT}/scripting/framework_logging_factorial_03.bro
+.. literalinclude:: framework_logging_factorial_03.bro
+   :caption:
+   :language: bro
+   :linenos:
 
 To dynamically alter the file in which a stream writes its logs, a
 filter can specify a function that returns a string to be used as the
@@ -1014,10 +1371,25 @@ factorials that are a factors of 5, ``factor-non5.log`` with the
 factorials that are not factors of 5, and ``factor.log`` which would have
 included all factorials.  
 
-.. btest:: framework_logging_factorial-3
-   
-   @TEST-EXEC: btest-rst-cmd bro ${DOC_ROOT}/scripting/framework_logging_factorial_03.bro
-   @TEST-EXEC: btest-rst-include factor-mod5.log
+.. code-block:: console
+
+   $ bro framework_logging_factorial_03.bro
+   $ cat factor-mod5.log
+   #separator \x09
+   #set_separator    ,
+   #empty_field      (empty)
+   #unset_field      -
+   #path     factor-mod5
+   #open     2018-12-14-21-47-18
+   #fields   num     factorial_num
+   #types    count   count
+   5 120
+   6 720
+   7 5040
+   8 40320
+   9 362880
+   10        3628800
+   #close    2018-12-14-21-47-1
 
 The ability of Bro to generate easily customizable and extensible logs
 which remain easily parsable is a big part of the reason Bro has
@@ -1047,7 +1419,10 @@ block and define the value to be passed to it, in this case the
 ``Factor::Info`` record.  We then list the ``log_factor`` function as
 the ``$ev`` field in the call to ``Log::create_stream``
 
-.. btest-include:: ${DOC_ROOT}/scripting/framework_logging_factorial_04.bro
+.. literalinclude:: framework_logging_factorial_04.bro
+   :caption:
+   :language: bro
+   :linenos:
 
 
 Raising Notices
@@ -1098,8 +1473,60 @@ or not that notice is acted upon is decided by the local Notice
 Policy, but the script attempts to supply as much information as
 possible while staying concise.  
 
-.. btest-include:: ${BRO_SRC_ROOT}/scripts/policy/protocols/ssh/interesting-hostnames.bro
-   :lines: 1-52
+.. code-block:: bro
+   :caption: scripts/policy/protocols/ssh/interesting-hostnames.bro
+
+   ##! This script will generate a notice if an apparent SSH login originates
+   ##! or heads to a host with a reverse hostname that looks suspicious.  By
+   ##! default, the regular expression to match "interesting" hostnames includes
+   ##! names that are typically used for infrastructure hosts like nameservers,
+   ##! mail servers, web servers and ftp servers.
+
+   @load base/frameworks/notice
+
+   module SSH;
+
+   export {
+       redef enum Notice::Type += {
+           ## Generated if a login originates or responds with a host where
+           ## the reverse hostname lookup resolves to a name matched by the
+           ## :bro:id:`SSH::interesting_hostnames` regular expression.
+           Interesting_Hostname_Login,
+       };
+
+       ## Strange/bad host names to see successful SSH logins from or to.
+       option interesting_hostnames =
+               /^d?ns[0-9]*\./ |
+               /^smtp[0-9]*\./ |
+               /^mail[0-9]*\./ |
+               /^pop[0-9]*\./  |
+               /^imap[0-9]*\./ |
+               /^www[0-9]*\./  |
+               /^ftp[0-9]*\./;
+   }
+
+   function check_ssh_hostname(id: conn_id, uid: string, host: addr)
+       {
+       when ( local hostname = lookup_addr(host) )
+           {
+           if ( interesting_hostnames in hostname )
+               {
+               NOTICE([$note=Interesting_Hostname_Login,
+                       $msg=fmt("Possible SSH login involving a %s %s with an interesting hostname.",
+                                Site::is_local_addr(host) ? "local" : "remote",
+                                host == id$orig_h ? "client" : "server"),
+                       $sub=hostname, $id=id, $uid=uid]);
+               }
+           }
+       }
+
+   event ssh_auth_successful(c: connection, auth_method_none: bool)
+       {
+       for ( host in set(c$id$orig_h, c$id$resp_h) )
+           {
+           check_ssh_hostname(c$id, c$uid, host);
+           }
+       }
 
 While much of the script relates to the actual detection, the parts
 specific to the Notice Framework are actually quite interesting in
@@ -1137,7 +1564,10 @@ action based on the answer.  The hook below adds the
 ``SSH::Interesting_Hostname_Login`` notice raised in the
 :doc:`/scripts/policy/protocols/ssh/interesting-hostnames.bro` script.
 
-.. btest-include:: ${DOC_ROOT}/scripting/framework_notice_hook_01.bro
+.. literalinclude:: framework_notice_hook_01.bro
+   :caption:
+   :language: bro
+   :linenos:
 
 In the example above we've added ``Notice::ACTION_EMAIL`` to the
 ``n$actions`` set.  This set, defined in the Notice Framework scripts,
@@ -1174,8 +1604,14 @@ identifier.  An identifier is a unique string of information collected
 from the connection relative to the behavior that has been observed by
 Bro.  
 
-.. btest-include:: ${BRO_SRC_ROOT}/scripts/policy/protocols/ssl/expiring-certs.bro
-   :lines: 64-68
+.. code-block:: bro
+   :caption: scripts/policy/protocols/ssl/expiring-certs.bro
+
+   NOTICE([$note=Certificate_Expires_Soon,
+           $msg=fmt("Certificate %s is going to expire at %T", cert$subject, cert$not_valid_after),
+           $conn=c, $suppress_for=1day,
+           $identifier=cat(c$id$resp_h, c$id$resp_p, hash),
+           $fuid=fuid]);
 
 In the :doc:`/scripts/policy/protocols/ssl/expiring-certs.bro` script
 which identifies when SSL certificates are set to expire and raises
@@ -1206,7 +1642,10 @@ environment in which it is be run.  Using the example of
 ``SSL::Certificate_Expires_Soon`` to configure the ``$suppress_for``
 variable to a shorter time.  
 
-.. btest-include:: ${DOC_ROOT}/scripting/framework_notice_hook_suppression_01.bro
+.. literalinclude:: framework_notice_hook_suppression_01.bro
+   :caption:
+   :language: bro
+   :linenos:
 
 While ``Notice::policy`` hooks allow you to build custom
 predicate-based policies for a deployment, there are bound to be times
@@ -1253,11 +1692,17 @@ suppression from a notice while ``Notice::type_suppression_intervals``
 can be used to alter the suppression interval defined by $suppress_for
 in the call to ``NOTICE``.
 
-.. btest-include:: ${DOC_ROOT}/scripting/framework_notice_shortcuts_01.bro
+.. literalinclude:: framework_notice_shortcuts_01.bro
+   :caption:
+   :language: bro
+   :linenos:
 
 The Notice Policy shortcut above adds the ``Notice::Type`` of
 ``SSH::Interesting_Hostname_Login`` to the
 ``Notice::emailed_types`` set while the shortcut below alters the length
 of time for which those notices will be suppressed.
 
-.. btest-include:: ${DOC_ROOT}/scripting/framework_notice_shortcuts_02.bro
+.. literalinclude:: framework_notice_shortcuts_02.bro
+   :caption:
+   :language: bro
+   :linenos:

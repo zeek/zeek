@@ -23,13 +23,14 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/broxygen.conf.in
                ${CMAKE_CURRENT_BINARY_DIR}/broxygen.conf
                @ONLY)
 
-add_custom_target(sphinxdoc
+add_custom_target(rstdoc
     # Copy the template documentation to build directory to use as input tree
     # for Sphinx.  This is needed because some parts are dynamically generated
     # in to that tree by Bro/Broxygen.
     COMMAND rsync -q -r --copy-links --times --delete
             --filter='protect scripts/*'
-            ${CMAKE_CURRENT_SOURCE_DIR}/ ${SPHINX_INPUT_DIR}
+            ${CMAKE_CURRENT_SOURCE_DIR}/
+            ${SPHINX_INPUT_DIR}
     # Use Bro/Broxygen to dynamically generate reST for all Bro scripts.
     COMMAND BROPATH=${BROPATH}
             ${CMAKE_BINARY_DIR}/src/bro
@@ -37,19 +38,26 @@ add_custom_target(sphinxdoc
             broxygen >/dev/null
     # Rsync over the generated reST to the Sphinx source tree in the build dir.
     COMMAND rsync -q -r --copy-links --times --delete --filter='protect *.bro'
-            ${BROXYGEN_SCRIPT_OUTPUT}/ ${SPHINX_INPUT_DIR}/scripts
+            ${BROXYGEN_SCRIPT_OUTPUT}/
+            ${SPHINX_INPUT_DIR}/scripts
     # Rsync over Bro scripts to the Sphinx source tree in the build dir.
     # These are used by :download: references in the generated script docs.
     COMMAND rsync -q -r --copy-links --times --delete
             --filter='protect /base/bif/*' --filter='protect *.rst'
             --filter='include */' --filter='include *.bro' --filter='exclude *'
-            ${CMAKE_SOURCE_DIR}/scripts/ ${SPHINX_INPUT_DIR}/scripts
+            ${CMAKE_SOURCE_DIR}/scripts/
+            ${SPHINX_INPUT_DIR}/scripts
     # Rsync over Bro scripts created by BIF compiler to the Sphinx source tree.
     COMMAND rsync -q -r --copy-links --times --delete
             --filter='protect *.rst' --filter='include */'
             --filter='include *.bro' --filter='exclude *'
             ${CMAKE_BINARY_DIR}/scripts/base/bif/
             ${SPHINX_INPUT_DIR}/scripts/base/bif
+)
+
+add_dependencies(rstdoc bro)
+
+add_custom_target(sphinxdoc
     # Use Sphinx to build HTML.
     COMMAND sphinx-build
             -b html
@@ -64,14 +72,16 @@ add_custom_target(sphinxdoc
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     COMMENT "[Sphinx] Generate HTML documentation in ${CMAKE_BINARY_DIR}/html")
 
-add_dependencies(sphinxdoc bro)
+add_dependencies(sphinxdoc rstdoc)
 
-add_custom_target(sphinxdoc_clean
+add_custom_target(rstdoc_clean
     COMMAND "${CMAKE_COMMAND}" -E remove_directory ${SPHINX_INPUT_DIR}
-    COMMAND "${CMAKE_COMMAND}" -E remove_directory ${SPHINX_OUTPUT_DIR}
     COMMAND "${CMAKE_COMMAND}" -E remove_directory ${BROXYGEN_SCRIPT_OUTPUT}
     COMMAND "${CMAKE_COMMAND}" -E remove_directory ${BROXYGEN_CACHE_DIR}
     VERBATIM)
+
+add_custom_target(sphinxdoc_clean
+    COMMAND "${CMAKE_COMMAND}" -E remove_directory ${SPHINX_OUTPUT_DIR})
 
 if (NOT TARGET doc)
   add_custom_target(doc)
@@ -79,4 +89,4 @@ endif ()
 
 add_custom_target(docclean)
 add_dependencies(doc sphinxdoc)
-add_dependencies(docclean sphinxdoc_clean)
+add_dependencies(docclean sphinxdoc_clean rstdoc_clean)

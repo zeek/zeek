@@ -38,12 +38,10 @@ You have to define a filter which specifies SQLite as the writer.
 
 The following example code adds SQLite as a filter for the connection log:
 
-.. btest-include:: ${DOC_ROOT}/frameworks/sqlite-conn-filter.bro
-
-.. btest:: sqlite-conn-filter-check
-
-    # Make sure this parses correctly at least.
-    @TEST-EXEC: bro ${DOC_ROOT}/frameworks/sqlite-conn-filter.bro
+.. literalinclude:: sqlite-conn-filter.bro
+   :caption:
+   :language: bro
+   :linenos:
 
 Bro will create the database file ``/var/db/conn.sqlite``, if it does not
 already exist.  It will also create a table with the name ``conn`` (if it
@@ -115,12 +113,10 @@ The SQLite commands to create the schema are as follows::
 After creating a file called ``hosts.sqlite`` with this content, we can
 read the resulting table into Bro:
 
-.. btest-include:: ${DOC_ROOT}/frameworks/sqlite-read-table.bro
-
-.. btest:: sqlite-read-table-check
-
-    # Make sure this parses correctly at least.
-    @TEST-EXEC: bro ${DOC_ROOT}/frameworks/sqlite-read-table.bro
+.. literalinclude:: sqlite-read-table.bro
+   :caption:
+   :language: bro
+   :linenos:
 
 Afterwards, that table can be used to check logins into hosts against
 the available userlist.
@@ -164,12 +160,10 @@ of files that are transmitted over the network. For each hash, a SQL-query
 is run against SQLite. If the query returns with a result, we had a hit
 against our malware-database and output the matching hash.
 
-.. btest-include:: ${DOC_ROOT}/frameworks/sqlite-read-events.bro
-
-.. btest:: sqlite-read-events-check
-
-    # Make sure this parses correctly at least.
-    @TEST-EXEC: bro ${DOC_ROOT}/frameworks/sqlite-read-events.bro
+.. literalinclude:: sqlite-read-events.bro
+   :caption:
+   :language: bro
+   :linenos:
 
 If you run this script against the trace in
 ``testing/btest/Traces/ftp/ipv4.trace``, you will get one hit.

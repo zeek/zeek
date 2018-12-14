@@ -133,17 +133,37 @@ start sending the rules to the added backend(s). To give a very simple example,
 the following script will simply block the traffic of all connections that it
 sees being established:
 
-.. btest-include:: ${DOC_ROOT}/frameworks/netcontrol-1-drop-with-debug.bro
+.. literalinclude:: netcontrol-1-drop-with-debug.bro
+   :caption:
+   :language: bro
+   :linenos:
 
 Running this script on a file containing one connection will cause the debug
 plugin to print one line to the standard output, which contains information
 about the rule that was added. It will also cause creation of `netcontrol.log`,
 which contains information about all actions that are taken by NetControl:
 
-.. btest:: netcontrol-1-drop-with-debug.bro
+.. code-block:: console
 
-    @TEST-EXEC: btest-rst-cmd bro -C -r ${TRACES}/tls/ecdhe.pcap ${DOC_ROOT}/frameworks/netcontrol-1-drop-with-debug.bro
-    @TEST-EXEC: btest-rst-cmd cat netcontrol.log
+   $ bro -C -r tls/ecdhe.pcap netcontrol-1-drop-with-debug.bro
+   netcontrol debug (Debug-All): init
+   netcontrol debug (Debug-All): add_rule: [ty=NetControl::DROP, target=NetControl::FORWARD, entity=[ty=NetControl::CONNECTION, conn=[orig_h=192.168.18.50, orig_p=56981/tcp, resp_h=74.125.239.97, resp_p=443/tcp], flow=<uninitialized>, ip=<uninitialized>, mac=<uninitialized>], expire=20.0 secs, priority=0, location=, out_port=<uninitialized>, mod=<uninitialized>, id=2, cid=2, _plugin_ids={\x0a\x0a}, _active_plugin_ids={\x0a\x0a}, _no_expire_plugins={\x0a\x0a}, _added=F]
+
+   $ cat netcontrol.log
+   #separator \x09
+   #set_separator    ,
+   #empty_field      (empty)
+   #unset_field      -
+   #path     netcontrol
+   #open     2018-12-14-18-50-53
+   #fields   ts      rule_id category        cmd     state   action  target  entity_type     entity  mod     msg     priority        expire  location        plugin
+   #types    time    string  enum    string  enum    string  enum    string  string  string  string  int     interval        string  string
+   0.000000  -       NetControl::MESSAGE     -       -       -       -       -       -       -       activating plugin with priority 0       -       -       -       Debug-All
+   0.000000  -       NetControl::MESSAGE     -       -       -       -       -       -       -       activation finished     -       -       -       Debug-All
+   0.000000  -       NetControl::MESSAGE     -       -       -       -       -       -       -       plugin initialization done      -       -       -       -
+   1398529018.678276 2       NetControl::RULE        ADD     NetControl::REQUESTED   NetControl::DROP        NetControl::FORWARD     NetControl::CONNECTION  192.168.18.50/56981<->74.125.239.97/443 -       -       0       20.000000       -       Debug-All
+   1398529018.678276 2       NetControl::RULE        ADD     NetControl::SUCCEEDED   NetControl::DROP        NetControl::FORWARD     NetControl::CONNECTION  192.168.18.50/56981<->74.125.239.97/443 -       -       0       20.000000       -       Debug-All
+   #close    2018-12-14-18-50-53
 
 In our case, `netcontrol.log` contains several :bro:see:`NetControl::MESSAGE`
 entries, which show that the debug plugin has been initialized and added.
@@ -159,39 +179,99 @@ additional log called `netcontrol_drop.log`. This log file is much more succinct
 only contains information that is specific to drops that are enacted by
 NetControl:
 
-.. btest:: netcontrol-1-drop-with-debug.bro
+.. code-block:: console
 
-    @TEST-EXEC: btest-rst-cmd cat netcontrol_drop.log
+   $ cat netcontrol_drop.log
+   #separator \x09
+   #set_separator    ,
+   #empty_field      (empty)
+   #unset_field      -
+   #path     netcontrol_drop
+   #open     2018-12-14-18-50-53
+   #fields   ts      rule_id orig_h  orig_p  resp_h  resp_p  expire  location
+   #types    time    string  addr    port    addr    port    interval        string
+   1398529018.678276 2       192.168.18.50   56981   74.125.239.97   443     20.000000       -
+   #close    2018-12-14-18-50-53
 
 While this example of blocking all connections is usually not very useful, the
 high-level API gives an easy way to take action, for example when a host is
 identified doing some harmful activity. To give a more realistic example, the
 following code automatically blocks a recognized SSH guesser:
 
-.. btest-include:: ${DOC_ROOT}/frameworks/netcontrol-2-ssh-guesser.bro
+.. literalinclude:: netcontrol-2-ssh-guesser.bro
+   :caption:
+   :language: bro
+   :linenos:
 
-.. btest:: netcontrol-2-ssh-guesser.bro
+.. code-block:: console
 
-    @TEST-EXEC: btest-rst-cmd bro -C -r ${TRACES}/ssh/sshguess.pcap ${DOC_ROOT}/frameworks/netcontrol-2-ssh-guesser.bro
-    @TEST-EXEC: btest-rst-cmd cat netcontrol.log
+   $ bro -C -r ssh/sshguess.pcap netcontrol-2-ssh-guesser.bro
+   netcontrol debug (Debug-All): init
+   netcontrol debug (Debug-All): add_rule: [ty=NetControl::DROP, target=NetControl::FORWARD, entity=[ty=NetControl::ADDRESS, conn=<uninitialized>, flow=<uninitialized>, ip=192.168.56.1/32, mac=<uninitialized>], expire=1.0 hr, priority=0, location=, out_port=<uninitialized>, mod=<uninitialized>, id=2, cid=2, _plugin_ids={\x0a\x0a}, _active_plugin_ids={\x0a\x0a}, _no_expire_plugins={\x0a\x0a}, _added=F]
+
+   $ cat netcontrol.log
+   #separator \x09
+   #set_separator    ,
+   #empty_field      (empty)
+   #unset_field      -
+   #path     netcontrol
+   #open     2018-12-14-18-50-54
+   #fields   ts      rule_id category        cmd     state   action  target  entity_type     entity  mod     msg     priority        expire  location        plugin
+   #types    time    string  enum    string  enum    string  enum    string  string  string  string  int     interval        string  string
+   0.000000  -       NetControl::MESSAGE     -       -       -       -       -       -       -       activating plugin with priority 0       -       -       -       Debug-All
+   0.000000  -       NetControl::MESSAGE     -       -       -       -       -       -       -       activation finished     -       -       -       Debug-All
+   0.000000  -       NetControl::MESSAGE     -       -       -       -       -       -       -       plugin initialization done      -       -       -       -
+   1427726759.303199 2       NetControl::RULE        ADD     NetControl::REQUESTED   NetControl::DROP        NetControl::FORWARD     NetControl::ADDRESS     192.168.56.1/32 -       -       0       3600.000000     -       Debug-All
+   1427726759.303199 2       NetControl::RULE        ADD     NetControl::SUCCEEDED   NetControl::DROP        NetControl::FORWARD     NetControl::ADDRESS     192.168.56.1/32 -       -       0       3600.000000     -       Debug-All
+   #close    2018-12-14-18-50-54
 
 Note that in this case, instead of calling NetControl directly, we also can use
 the :bro:see:`Notice::ACTION_DROP` action of the notice framework:
 
-.. btest-include:: ${DOC_ROOT}/frameworks/netcontrol-3-ssh-guesser.bro
+.. literalinclude:: netcontrol-3-ssh-guesser.bro
+   :caption:
+   :language: bro
+   :linenos:
 
-.. btest:: netcontrol-3-ssh-guesser.bro
+.. code-block:: console
 
-    @TEST-EXEC: btest-rst-cmd bro -C -r ${TRACES}/ssh/sshguess.pcap ${DOC_ROOT}/frameworks/netcontrol-3-ssh-guesser.bro
-    @TEST-EXEC: btest-rst-cmd cat netcontrol.log
+   $ bro -C -r ssh/sshguess.pcap netcontrol-3-ssh-guesser.bro
+   netcontrol debug (Debug-All): init
+   netcontrol debug (Debug-All): add_rule: [ty=NetControl::DROP, target=NetControl::FORWARD, entity=[ty=NetControl::ADDRESS, conn=<uninitialized>, flow=<uninitialized>, ip=192.168.56.1/32, mac=<uninitialized>], expire=10.0 mins, priority=0, location=ACTION_DROP: T, out_port=<uninitialized>, mod=<uninitialized>, id=2, cid=2, _plugin_ids={\x0a\x0a}, _active_plugin_ids={\x0a\x0a}, _no_expire_plugins={\x0a\x0a}, _added=F]
+
+   $ cat netcontrol.log
+   #separator \x09
+   #set_separator    ,
+   #empty_field      (empty)
+   #unset_field      -
+   #path     netcontrol
+   #open     2018-12-14-18-50-55
+   #fields   ts      rule_id category        cmd     state   action  target  entity_type     entity  mod     msg     priority        expire  location        plugin
+   #types    time    string  enum    string  enum    string  enum    string  string  string  string  int     interval        string  string
+   0.000000  -       NetControl::MESSAGE     -       -       -       -       -       -       -       activating plugin with priority 0       -       -       -       Debug-All
+   0.000000  -       NetControl::MESSAGE     -       -       -       -       -       -       -       activation finished     -       -       -       Debug-All
+   0.000000  -       NetControl::MESSAGE     -       -       -       -       -       -       -       plugin initialization done      -       -       -       -
+   1427726759.303199 2       NetControl::RULE        ADD     NetControl::REQUESTED   NetControl::DROP        NetControl::FORWARD     NetControl::ADDRESS     192.168.56.1/32 -       -       0       600.000000      ACTION_DROP: T  Debug-All
+   1427726759.303199 2       NetControl::RULE        ADD     NetControl::SUCCEEDED   NetControl::DROP        NetControl::FORWARD     NetControl::ADDRESS     192.168.56.1/32 -       -       0       600.000000      ACTION_DROP: T  Debug-All
+   #close    2018-12-14-18-50-55
 
 Using the :bro:see:`Notice::ACTION_DROP` action of the notice framework also
 will cause the `dropped` column in `notice.log` to be set to true each time that
 the NetControl framework enacts a block:
 
-.. btest:: netcontrol-3-ssh-guesser.bro
+.. code-block:: console
 
-    @TEST-EXEC: btest-rst-cmd cat notice.log
+   $ cat notice.log
+   #separator \x09
+   #set_separator    ,
+   #empty_field      (empty)
+   #unset_field      -
+   #path     notice
+   #open     2018-12-14-18-50-55
+   #fields   ts      uid     id.orig_h       id.orig_p       id.resp_h       id.resp_p       fuid    file_mime_type  file_desc       proto   note    msg     sub     src     dst     p       n       peer_descr      actions suppress_for    dropped remote_location.country_code    remote_location.region  remote_location.city    remote_location.latitude        remote_location.longitude
+   #types    time    string  addr    port    addr    port    string  string  string  enum    enum    string  string  addr    addr    port    count   string  set[enum]       interval        bool    string  string  string  double  double
+   1427726759.303199 -       -       -       -       -       -       -       -       -       SSH::Password_Guessing  192.168.56.1 appears to be guessing SSH passwords (seen in 10 connections).     Sampled servers:  192.168.56.103, 192.168.56.103, 192.168.56.103, 192.168.56.103, 192.168.56.103        192.168.56.1    -       -       -       -       Notice::ACTION_DROP,Notice::ACTION_LOG  3600.000000     F       -       -       -       -       -
+   #close    2018-12-14-18-50-55
 
 Rule API
 --------
@@ -241,12 +321,32 @@ that the NetControl function has additional functionality, e.g. for logging.
 Once again, we are going to test our function with a simple example that simply
 drops all connections on the network:
 
-.. btest-include:: ${DOC_ROOT}/frameworks/netcontrol-4-drop.bro
+.. literalinclude:: netcontrol-4-drop.bro
+   :caption:
+   :language: bro
+   :linenos:
 
-.. btest:: netcontrol-4-drop.bro
+.. code-block:: console
 
-    @TEST-EXEC: btest-rst-cmd bro -C -r ${TRACES}/tls/ecdhe.pcap ${DOC_ROOT}/frameworks/netcontrol-4-drop.bro
-    @TEST-EXEC: btest-rst-cmd cat netcontrol.log
+   $ bro -C -r tls/ecdhe.pcap netcontrol-4-drop.bro
+   netcontrol debug (Debug-All): init
+   netcontrol debug (Debug-All): add_rule: [ty=NetControl::DROP, target=NetControl::FORWARD, entity=[ty=NetControl::CONNECTION, conn=[orig_h=192.168.18.50, orig_p=56981/tcp, resp_h=74.125.239.97, resp_p=443/tcp], flow=<uninitialized>, ip=<uninitialized>, mac=<uninitialized>], expire=20.0 secs, priority=0, location=<uninitialized>, out_port=<uninitialized>, mod=<uninitialized>, id=2, cid=2, _plugin_ids={\x0a\x0a}, _active_plugin_ids={\x0a\x0a}, _no_expire_plugins={\x0a\x0a}, _added=F]
+
+   $ cat netcontrol.log
+   #separator \x09
+   #set_separator    ,
+   #empty_field      (empty)
+   #unset_field      -
+   #path     netcontrol
+   #open     2018-12-14-18-50-55
+   #fields   ts      rule_id category        cmd     state   action  target  entity_type     entity  mod     msg     priority        expire  location        plugin
+   #types    time    string  enum    string  enum    string  enum    string  string  string  string  int     interval        string  string
+   0.000000  -       NetControl::MESSAGE     -       -       -       -       -       -       -       activating plugin with priority 0       -       -       -       Debug-All
+   0.000000  -       NetControl::MESSAGE     -       -       -       -       -       -       -       activation finished     -       -       -       Debug-All
+   0.000000  -       NetControl::MESSAGE     -       -       -       -       -       -       -       plugin initialization done      -       -       -       -
+   1398529018.678276 2       NetControl::RULE        ADD     NetControl::REQUESTED   NetControl::DROP        NetControl::FORWARD     NetControl::CONNECTION  192.168.18.50/56981<->74.125.239.97/443 -       -       0       20.000000       -       Debug-All
+   1398529018.678276 2       NetControl::RULE        ADD     NetControl::SUCCEEDED   NetControl::DROP        NetControl::FORWARD     NetControl::CONNECTION  192.168.18.50/56981<->74.125.239.97/443 -       -       0       20.000000       -       Debug-All
+   #close    2018-12-14-18-50-55
 
 The last example shows that :bro:see:`NetControl::add_rule` returns a string
 identifier that is unique for each rule (uniqueness is not preserved across
@@ -281,11 +381,16 @@ discarded before further processing.
 Here is a simple example which tells Bro to discard all rules for connections
 originating from the 192.168.* network:
 
-.. btest-include:: ${DOC_ROOT}/frameworks/netcontrol-5-hook.bro
+.. literalinclude:: netcontrol-5-hook.bro
+   :caption:
+   :language: bro
+   :linenos:
 
-.. btest:: netcontrol-5-hook.bro
+.. code-block:: console
 
-    @TEST-EXEC: btest-rst-cmd bro -C -r ${TRACES}/tls/ecdhe.pcap ${DOC_ROOT}/frameworks/netcontrol-5-hook.bro
+   $ bro -C -r tls/ecdhe.pcap netcontrol-5-hook.bro
+   netcontrol debug (Debug-All): init
+   Ignored connection from, 192.168.18.50
 
 NetControl Events
 *****************
@@ -355,11 +460,18 @@ Here is a simple example, which uses a trace that contains two connections from
 the same IP address. After the first connection, the script recognizes that the
 address is already blocked in the second connection.
 
-.. btest-include:: ${DOC_ROOT}/frameworks/netcontrol-6-find.bro
+.. literalinclude:: netcontrol-6-find.bro
+   :caption:
+   :language: bro
+   :linenos:
 
-.. btest:: netcontrol-6-find.bro
+.. code-block:: console
 
-    @TEST-EXEC: btest-rst-cmd bro -C -r ${TRACES}/tls/google-duplicate.trace ${DOC_ROOT}/frameworks/netcontrol-6-find.bro
+   $ bro -C -r tls/google-duplicate.trace netcontrol-6-find.bro
+   netcontrol debug (Debug-All): init
+   netcontrol debug (Debug-All): add_rule: [ty=NetControl::DROP, target=NetControl::FORWARD, entity=[ty=NetControl::CONNECTION, conn=[orig_h=192.168.4.149, orig_p=60623/tcp, resp_h=74.125.239.129, resp_p=443/tcp], flow=<uninitialized>, ip=<uninitialized>, mac=<uninitialized>], expire=20.0 secs, priority=0, location=, out_port=<uninitialized>, mod=<uninitialized>, id=2, cid=2, _plugin_ids={\x0a\x0a}, _active_plugin_ids={\x0a\x0a}, _no_expire_plugins={\x0a\x0a}, _added=F]
+   Rule added
+   Rule already exists
 
 Notice that the functions return vectors because it is possible that several
 rules exist simultaneously that affect one IP; either there could be
@@ -402,11 +514,16 @@ release is contained in the file
 Using catch and release in your scripts is easy; just use
 :bro:see:`NetControl::drop_address_catch_release` like in this example:
 
-.. btest-include:: ${DOC_ROOT}/frameworks/netcontrol-7-catch-release.bro
+.. literalinclude:: netcontrol-7-catch-release.bro
+   :caption:
+   :language: bro
+   :linenos:
 
-.. btest:: netcontrol-7-catch-release.bro
+.. code-block:: console
 
-    @TEST-EXEC: btest-rst-cmd bro -C -r ${TRACES}/tls/ecdhe.pcap ${DOC_ROOT}/frameworks/netcontrol-7-catch-release.bro
+   $ bro -C -r tls/ecdhe.pcap netcontrol-7-catch-release.bro
+   netcontrol debug (Debug-All): init
+   netcontrol debug (Debug-All): add_rule: [ty=NetControl::DROP, target=NetControl::FORWARD, entity=[ty=NetControl::ADDRESS, conn=<uninitialized>, flow=<uninitialized>, ip=192.168.18.50/32, mac=<uninitialized>], expire=10.0 mins, priority=0, location=, out_port=<uninitialized>, mod=<uninitialized>, id=2, cid=2, _plugin_ids={\x0a\x0a}, _active_plugin_ids={\x0a\x0a}, _no_expire_plugins={\x0a\x0a}, _added=F]
 
 Note that you do not have to provide the block time for catch and release;
 instead, catch and release uses the time intervals specified in
@@ -418,9 +535,20 @@ first 10 minutes, it is blocked for 1 hour and then monitored for 24 hours, etc.
 Catch and release adds its own new logfile in addition to the already existing
 ones (netcontrol_catch_release.log):
 
-.. btest:: netcontrol-7-catch-release.bro
+.. code-block:: console
 
-    @TEST-EXEC: btest-rst-cmd cat netcontrol_catch_release.log
+   $ cat netcontrol_catch_release.log
+   #separator \x09
+   #set_separator    ,
+   #empty_field      (empty)
+   #unset_field      -
+   #path     netcontrol_catch_release
+   #open     2018-12-14-18-50-58
+   #fields   ts      rule_id ip      action  block_interval  watch_interval  blocked_until   watched_until   num_blocked     location        message
+   #types    time    string  addr    enum    interval        interval        time    time    count   string  string
+   1398529018.678276 2       192.168.18.50   NetControl::DROP        600.000000      3600.000000     1398529618.678276       1398532618.678276       1       -       -
+   1398529018.678276 2       192.168.18.50   NetControl::DROPPED     600.000000      3600.000000     1398529618.678276       1398532618.678276       1       -       -
+   #close    2018-12-14-18-50-58
 
 In addition to the blocking function, catch and release comes with the
 :bro:see:`NetControl::get_catch_release_info` function to
@@ -531,27 +659,65 @@ the 192.168.17.0/24 network; all other rules will be passed on to the debug
 plugin. We manually block a few addresses in the
 :bro:see:`NetControl::init_done` event to verify the correct functionality.
 
-.. btest-include:: ${DOC_ROOT}/frameworks/netcontrol-8-multiple.bro
+.. literalinclude:: netcontrol-8-multiple.bro
+   :caption:
+   :language: bro
+   :linenos:
 
-.. btest:: netcontrol-8-multiple.bro
+.. code-block:: console
 
-    @TEST-EXEC: btest-rst-cmd bro ${DOC_ROOT}/frameworks/netcontrol-8-multiple.bro
+   $ bro netcontrol-8-multiple.bro
+   netcontrol debug (Debug-All): init
+   netcontrol debug (Debug-All): add_rule: [ty=NetControl::DROP, target=NetControl::FORWARD, entity=[ty=NetControl::ADDRESS, conn=<uninitialized>, flow=<uninitialized>, ip=192.168.17.2/32, mac=<uninitialized>], expire=1.0 min, priority=0, location=, out_port=<uninitialized>, mod=<uninitialized>, id=3, cid=3, _plugin_ids={\x0a\x0a}, _active_plugin_ids={\x0a\x0a}, _no_expire_plugins={\x0a\x0a}, _added=F]
 
 As you can see, only the single block affecting the 192.168.17.0/24 network is
 output to the command line. The other two lines are handled by the OpenFlow
 plugin. We can verify this by looking at netcontrol.log. The plugin column shows
 which plugin handled a rule and reveals that two rules were handled by OpenFlow:
 
-.. btest:: netcontrol-8-multiple.bro
+.. code-block:: console
 
-    @TEST-EXEC: btest-rst-cmd cat netcontrol.log
+   $ cat netcontrol.log
+   #separator \x09
+   #set_separator    ,
+   #empty_field      (empty)
+   #unset_field      -
+   #path     netcontrol
+   #open     2018-12-14-18-50-58
+   #fields   ts      rule_id category        cmd     state   action  target  entity_type     entity  mod     msg     priority        expire  location        plugin
+   #types    time    string  enum    string  enum    string  enum    string  string  string  string  int     interval        string  string
+   1544813458.913148 -       NetControl::MESSAGE     -       -       -       -       -       -       -       activating plugin with priority 0       -       -       -       Debug-All
+   1544813458.913148 -       NetControl::MESSAGE     -       -       -       -       -       -       -       activation finished     -       -       -       Debug-All
+   1544813458.913148 -       NetControl::MESSAGE     -       -       -       -       -       -       -       activating plugin with priority 10      -       -       -       Openflow-Log-42
+   1544813458.913148 -       NetControl::MESSAGE     -       -       -       -       -       -       -       activation finished     -       -       -       Openflow-Log-42
+   1544813458.913148 -       NetControl::MESSAGE     -       -       -       -       -       -       -       plugin initialization done      -       -       -       -
+   1544813458.913148 2       NetControl::RULE        ADD     NetControl::REQUESTED   NetControl::DROP        NetControl::FORWARD     NetControl::ADDRESS     10.0.0.1/32     -       -       0       60.000000       -       Openflow-Log-42
+   1544813458.913148 3       NetControl::RULE        ADD     NetControl::REQUESTED   NetControl::DROP        NetControl::FORWARD     NetControl::ADDRESS     192.168.17.2/32 -       -       0       60.000000       -       Debug-All
+   1544813458.913148 4       NetControl::RULE        ADD     NetControl::REQUESTED   NetControl::DROP        NetControl::FORWARD     NetControl::ADDRESS     192.168.18.2/32 -       -       0       60.000000       -       Openflow-Log-42
+   1544813458.913148 3       NetControl::RULE        ADD     NetControl::SUCCEEDED   NetControl::DROP        NetControl::FORWARD     NetControl::ADDRESS     192.168.17.2/32 -       -       0       60.000000       -       Debug-All
+   1544813458.913148 2       NetControl::RULE        ADD     NetControl::SUCCEEDED   NetControl::DROP        NetControl::FORWARD     NetControl::ADDRESS     10.0.0.1/32     -       -       0       60.000000       -       Openflow-Log-42
+   1544813458.913148 4       NetControl::RULE        ADD     NetControl::SUCCEEDED   NetControl::DROP        NetControl::FORWARD     NetControl::ADDRESS     192.168.18.2/32 -       -       0       60.000000       -       Openflow-Log-42
+   #close    2018-12-14-18-50-58
 
 Furthermore, openflow.log also shows the two added rules, converted to OpenFlow
 flow mods:
 
-.. btest:: netcontrol-8-multiple.bro
+.. code-block:: console
 
-    @TEST-EXEC: btest-rst-cmd cat openflow.log
+   $ cat openflow.log
+   #separator \x09
+   #set_separator    ,
+   #empty_field      (empty)
+   #unset_field      -
+   #path     openflow
+   #open     2018-12-14-18-50-58
+   #fields   ts      dpid    match.in_port   match.dl_src    match.dl_dst    match.dl_vlan   match.dl_vlan_pcp       match.dl_type   match.nw_tos    match.nw_proto  match.nw_src    match.nw_dst    match.tp_src    match.tp_dst    flow_mod.cookie flow_mod.table_id       flow_mod.command        flow_mod.idle_timeout   flow_mod.hard_timeout   flow_mod.priority       flow_mod.out_port       flow_mod.out_group      flow_mod.flags  flow_mod.actions.out_ports      flow_mod.actions.vlan_vid       flow_mod.actions.vlan_pcp       flow_mod.actions.vlan_strip     flow_mod.actions.dl_src flow_mod.actions.dl_dst flow_mod.actions.nw_tos flow_mod.actions.nw_src flow_mod.actions.nw_dst flow_mod.actions.tp_src flow_mod.actions.tp_dst
+   #types    time    count   count   string  string  count   count   count   count   count   subnet  subnet  count   count   count   count   enum    count   count   count   count   count   count   vector[count]   count   count   bool    string  string  count   addr    addr    count   count
+   1544813458.913148 42      -       -       -       -       -       2048    -       -       10.0.0.1/32     -       -       -       4398046511108   -       OpenFlow::OFPFC_ADD     0       60      0       -       -       1       (empty) -       -       F       -       -       -       -       -       -       -
+   1544813458.913148 42      -       -       -       -       -       2048    -       -       -       10.0.0.1/32     -       -       4398046511109   -       OpenFlow::OFPFC_ADD     0       60      0       -       -       1       (empty) -       -       F       -       -       -       -       -       -       -
+   1544813458.913148 42      -       -       -       -       -       2048    -       -       192.168.18.2/32 -       -       -       4398046511112   -       OpenFlow::OFPFC_ADD     0       60      0       -       -       1       (empty) -       -       F       -       -       -       -       -       -       -
+   1544813458.913148 42      -       -       -       -       -       2048    -       -       -       192.168.18.2/32 -       -       4398046511113   -       OpenFlow::OFPFC_ADD     0       60      0       -       -       1       (empty) -       -       F       -       -       -       -       -       -       -
+   #close    2018-12-14-18-50-58
 
 .. note::
 
@@ -613,16 +779,29 @@ raise the :bro:see:`NetControl::rule_added` and
 :bro:see:`NetControl::rule_removed` events in your plugin to let NetControl know
 when a rule was added and removed successfully.
 
-.. btest-include:: ${DOC_ROOT}/frameworks/netcontrol-9-skeleton.bro
+.. literalinclude:: netcontrol-9-skeleton.bro
+   :caption:
+   :language: bro
+   :linenos:
 
 This example is already fully functional and we can use it with a script similar
 to our very first example:
 
-.. btest-include:: ${DOC_ROOT}/frameworks/netcontrol-10-use-skeleton.bro
+.. literalinclude:: netcontrol-10-use-skeleton.bro
+   :caption:
+   :language: bro
+   :linenos:
 
-.. btest:: netcontrol-9-skeleton.bro
+.. code-block:: console
 
-    @TEST-EXEC: btest-rst-cmd bro -C -r ${TRACES}/tls/ecdhe.pcap ${DOC_ROOT}/frameworks/netcontrol-9-skeleton.bro ${DOC_ROOT}/frameworks/netcontrol-10-use-skeleton.bro
+   $ bro -C -r tls/ecdhe.pcap netcontrol-10-use-skeleton.bro
+   add, [ty=NetControl::DROP, target=NetControl::FORWARD, entity=[ty=NetControl::CONNECTION, conn=[orig_h=192.168.18.50, orig_p=56981/tcp, resp_h=74.125.239.97, resp_p=443/tcp], flow=<uninitialized>, ip=<uninitialized>, mac=<uninitialized>], expire=20.0 secs, priority=0, location=, out_port=<uninitialized>, mod=<uninitialized>, id=2, cid=2, _plugin_ids={
+
+   }, _active_plugin_ids={
+
+   }, _no_expire_plugins={
+
+   }, _added=F]
 
 If you want to write your own plugins, it will be worthwhile to look at the
 plugins that ship with the NetControl framework to see how they define the

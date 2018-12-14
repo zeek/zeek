@@ -296,11 +296,17 @@ Connecting to Peers
 
 Bro can accept incoming connections by calling :bro:see:`Broker::listen`.
 
-.. btest-include:: ${DOC_ROOT}/frameworks/broker/connecting-listener.bro
+.. literalinclude:: broker/connecting-listener.bro
+   :caption: connecting-listener.bro
+   :language: bro
+   :linenos:
 
 Bro can initiate outgoing connections by calling :bro:see:`Broker::peer`.
 
-.. btest-include:: ${DOC_ROOT}/frameworks/broker/connecting-connector.bro
+.. literalinclude:: broker/connecting-connector.bro
+   :caption: connecting-connector.bro
+   :language: bro
+   :linenos:
 
 In either case, connection status updates are monitored via the
 :bro:see:`Broker::peer_added` and :bro:see:`Broker::peer_lost` events.
@@ -317,7 +323,10 @@ more on how topics work and are chosen.
 Use the :bro:see:`Broker::subscribe` function to subscribe to topics and
 define any event handlers for events that peers will send.
 
-.. btest-include:: ${DOC_ROOT}/frameworks/broker/events-listener.bro
+.. literalinclude:: broker/events-listener.bro
+   :caption: events-listener.bro
+   :language: bro
+   :linenos:
 
 There are two different ways to send events.
 
@@ -333,7 +342,10 @@ whenever the event is called locally via the normal event invocation syntax.
 When auto-publishing events, local event handlers for the event are called
 in addition to sending the event to any subscribed peers.
 
-.. btest-include:: ${DOC_ROOT}/frameworks/broker/events-connector.bro
+.. literalinclude:: broker/events-connector.bro
+   :caption: events-connector.bro
+   :language: bro
+   :linenos:
 
 Note that the subscription model is prefix-based, meaning that if you subscribe
 to the "bro/events" topic prefix you would receive events that are published
@@ -342,16 +354,25 @@ to topic names  "bro/events/foo" and "bro/events/bar" but not "bro/misc".
 Remote Logging
 --------------
 
-.. btest-include:: ${DOC_ROOT}/frameworks/broker/testlog.bro
+.. literalinclude:: broker/testlog.bro
+   :caption: testlog.bro
+   :language: bro
+   :linenos:
 
 To toggle remote logs, redef :bro:see:`Log::enable_remote_logging`.
 Use the :bro:see:`Broker::subscribe` function to advertise interest
 in logs written by peers.  The topic names that Bro uses are determined by
 :bro:see:`Broker::log_topic`.
 
-.. btest-include:: ${DOC_ROOT}/frameworks/broker/logs-listener.bro
+.. literalinclude:: broker/logs-listener.bro
+   :caption: logs-listener.bro
+   :language: bro
+   :linenos:
 
-.. btest-include:: ${DOC_ROOT}/frameworks/broker/logs-connector.bro
+.. literalinclude:: broker/logs-connector.bro
+   :caption: logs-connector.bro
+   :language: bro
+   :linenos:
 
 Note that logging events are only raised locally on the node that performs
 the :bro:see:`Log::write` and not automatically published to peers.
@@ -379,9 +400,15 @@ use.  E.g. In-memory versus SQLite for persistence.
 Data stores also support expiration on a per-key basis using an amount of
 time relative to the entry's last modification time.
 
-.. btest-include:: ${DOC_ROOT}/frameworks/broker/stores-listener.bro
+.. literalinclude:: broker/stores-listener.bro
+   :caption: stores-listener.bro
+   :language: bro
+   :linenos:
 
-.. btest-include:: ${DOC_ROOT}/frameworks/broker/stores-connector.bro
+.. literalinclude:: broker/stores-connector.bro
+   :caption: stores-connector.bro
+   :language: bro
+   :linenos:
 
 Note that all data store queries must be made within Bro's asynchronous
 ``when`` statements and must specify a timeout block.

@@ -255,12 +255,25 @@ action taken on notices can be user-defined.
 
 In ``local.bro``, let's define a new ``policy`` hook handler body:
 
-.. btest-include:: ${DOC_ROOT}/quickstart/conditional-notice.bro
+.. literalinclude:: conditional-notice.bro
+   :caption:
+   :language: bro
+   :linenos:
 
-.. btest:: conditional-notice
+.. code-block:: console
 
-    @TEST-EXEC: btest-rst-cmd bro -r ${TRACES}/tls/tls-expired-cert.trace ${DOC_ROOT}/quickstart/conditional-notice.bro
-    @TEST-EXEC: btest-rst-cmd cat notice.log
+   $ bro -r tls/tls-expired-cert.trace conditional-notice.bro
+   $ cat notice.log
+   #separator \x09
+   #set_separator    ,
+   #empty_field      (empty)
+   #unset_field      -
+   #path     notice
+   #open     2018-12-14-17-36-05
+   #fields   ts      uid     id.orig_h       id.orig_p       id.resp_h       id.resp_p       fuid    file_mime_type  file_desc       proto   note    msg     sub     src     dst     p       n       peer_descr      actions suppress_for    dropped remote_location.country_code    remote_location.region  remote_location.city    remote_location.latitude        remote_location.longitude
+   #types    time    string  addr    port    addr    port    string  string  string  enum    enum    string  string  addr    addr    port    count   string  set[enum]       interval        bool    string  string  string  double  double
+   1394745603.293028 CHhAvVGS1DHFjwGM9       192.168.4.149   60539   87.98.220.10    443     F1fX1R2cDOzbvg17ye      -       -       tcp     SSL::Certificate_Expired        Certificate CN=www.spidh.org,OU=COMODO SSL,OU=Domain Control Validated expired at 2014-03-04-23:59:59.000000000 -       192.168.4.149   87.98.220.10    443     -       -       Notice::ACTION_EMAIL,Notice::ACTION_LOG 86400.000000    F       -       -       -       -       -
+   #close    2018-12-14-17-36-05
 
 You'll just have to trust the syntax for now, but what we've done is
 first declare our own variable to hold a set of watched addresses,

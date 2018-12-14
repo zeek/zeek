@@ -23,9 +23,10 @@ broxygen:file_analyzer
 
 from sphinx.domains import Domain, ObjType
 from sphinx.locale import l_
+from sphinx.util import logging
 from docutils.parsers.rst.directives.misc import Include
 
-
+logger = logging.getLogger(__name__)
 App = None
 
 
@@ -33,7 +34,7 @@ def info(msg):
     """Use Sphinx builder to output a console message."""
     global App
     from sphinx.util.console import blue
-    App.builder.info(blue(msg))
+    logger.info(blue(msg))
 
 
 def pattern_to_filename_component(pattern):

@@ -2641,7 +2641,7 @@ export {
 		negotiate_lm_key       : bool;
 		## If set, requests connectionless authentication
 		negotiate_datagram     : bool;
-		## If set, requests session key negotiation for message
+		## If set, requests session key negotiation for message 
 		## confidentiality
 		negotiate_seal         : bool;
 		## If set, requests session key negotiation for message
@@ -2829,7 +2829,7 @@ export {
 		## The server supports compressed data transfer. Requires bulk_transfer.
 		## Note: No known implementations support this
 		compressed_data	   : bool;
-		## The server supports extended security exchanges
+		## The server supports extended security exchanges	
 		extended_security  : bool;
 	};
 
@@ -2922,7 +2922,7 @@ export {
 	};
 
 	type SMB1::NegotiateResponse: record {
-		## If the server does not understand any of the dialect strings, or if
+		## If the server does not understand any of the dialect strings, or if 
 		## PC NETWORK PROGRAM 1.0 is the chosen dialect.
 		core	: SMB1::NegotiateResponseCore 	&optional;
 		## If the chosen dialect is greater than core up to and including
@@ -2973,7 +2973,7 @@ export {
 		## If challenge/response auth is not being used, this is the password.
 		## Otherwise, it's the response to the server's challenge.
 		## Note: Only set for pre NT LM 0.12
-		account_password	  : string &optional;
+		account_password	  : string &optional;		
 		## Client's primary domain, if known
 		## Note: not set for NT LM 0.12 with extended security
 		primary_domain		  : string &optional;
@@ -2991,7 +2991,7 @@ export {
 		## Note: only set for NT LM 0.12
 		capabilities		  : SMB1::SessionSetupAndXCapabilities &optional;
 	};
-
+	
 	type SMB1::SessionSetupAndXResponse: record {
 		## Count of parameter words (should be 3 for pre NT LM 0.12 and 4 for NT LM 0.12)
 		word_count	: count;
@@ -3544,6 +3544,67 @@ type dns_tsig_additional: record {
 	is_query: count;	##< TODO.
 };
 
+## A DNSSEC RRSIG record.
+##
+## .. bro:see:: dns_RRSIG
+type dns_rrsig_rr: record {
+	query: string;			##< Query.
+	answer_type: count;		##< Ans type.
+	type_covered: count;	##< qtype covered by RRSIG RR.
+	algorithm: count;		##< Algorithm.
+	labels: count;			##< Labels in the owner's name.
+	orig_ttl: interval;		##< Original TTL.
+	sig_exp: time;			##< Time when signed RR expires.
+	sig_incep: time;		##< Time when signed.
+	key_tag: count;			##< Key tag value.
+	signer_name: string;	##< Signature.
+	signature: string;		##< Hash of the RRDATA.
+	is_query: count;		##< The RR is a query/Response.
+};
+
+## A DNSSEC DNSKEY record.
+##
+## .. bro:see:: dns_DNSKEY
+type dns_dnskey_rr: record {
+	query: string;		##< Query.
+	answer_type: count;	##< Ans type.
+	flags: count;		##< flags filed.
+	protocol: count;	##< Protocol, should be always 3 for DNSSEC.
+	algorithm: count;	##< Algorithm for Public Key.
+	public_key: string;	##< Public Key
+	is_query: count;	##< The RR is a query/Response.
+};
+
+## A DNSSEC NSEC3 record.
+##
+## .. bro:see:: dns_NSEC3
+type dns_nsec3_rr: record {
+	query: string;			##< Query.
+	answer_type: count;		##< Ans type.
+	nsec_flags: count;		##< flags field.
+	nsec_hash_algo: count;	##< Hash algorithm.
+	nsec_iter: count;		##< Iterations.
+	nsec_salt_len: count; 	##< Salt length.
+	nsec_salt: string;		##< Salt value
+	nsec_hlen: count;		##< Hash length.
+	nsec_hash: string;		##< Hash value.
+	bitmaps: string_vec;	##< Type Bit Maps.
+	is_query: count;		##< The RR is a query/Response.
+};
+
+## A DNSSEC DS record.
+##
+## .. bro:see:: dns_DS
+type dns_ds_rr: record {
+	query: string;		##< Query.
+	answer_type: count;	##< Ans type.
+	key_tag: count;		##< flags filed.
+	algorithm: count;	##< Algorithm for Public Key.
+	digest_type: count;	##< Digest Type.
+	digest_val: string;	##< Digest Value.
+	is_query: count;	##< The RR is a query/Response.
+};
+
 # DNS answer types.
 #
 # .. bro:see:: dns_answerr
@@ -3594,6 +3655,12 @@ global dns_skip_all_addl = T &redef;
 ## If a DNS request includes more than this many queries, assume it's non-DNS
 ## traffic and do not process it.  Set to 0 to turn off this functionality.
 global dns_max_queries = 25 &redef;
+
+## The address of the DNS resolver to use.  If not changed from the
+## unspecified address, ``[::]``, the first nameserver from /etc/resolv.conf
+## gets used (IPv6 is currently only supported if set via this option, not
+## when parsed from the file).
+const dns_resolver = [::] &redef;
 
 ## HTTP session statistics.
 ##
@@ -3958,7 +4025,7 @@ type bt_tracker_headers: table[string] of string;
 ## for a range of modbus coils.
 type ModbusCoils: vector of bool;
 
-## A vector of count values that represent 16bit modbus
+## A vector of count values that represent 16bit modbus 
 ## register values.
 type ModbusRegisters: vector of count;
 
@@ -4770,9 +4837,6 @@ export {
 
 	## Toggle whether to do GRE decapsulation.
 	const enable_gre = T &redef;
-
-	## Toggle whether to do VXLAN decapsulation.
-	const enable_vxlan = T &redef;
 
 	## With this set, the Teredo analyzer waits until it sees both sides
 	## of a connection using a valid Teredo encapsulation before issuing

@@ -9,4 +9,4 @@
 ##
 ## .. note:: Since this event may be raised on a per-packet basis, handling
 ##    it may become particularly expensive for real-time analysis.
-#event vxlan_packet%(outer: connection, inner: vxlan_hdr%);
+event vxlan_packet%(outer: connection, inner: vxlan_hdr%);

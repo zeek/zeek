@@ -89,6 +89,7 @@ void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 	int vxlan_len = 8;
 	int eth_mac = 6;
 	int i = 0;
+	int vni= 0;
 	int proto = 0;
 
 	const EncapsulationStack* e = Conn()->GetEncapsulation();
@@ -152,6 +153,9 @@ void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 	}
 
 	printf("Packet safety checks done\n");
+	vni = (data[4] << 16) + (data[5] << 8) + (data[6] << 0);
+	printf("VXLAN VNI %d\n",vni);
+
 	/*	Do we want the inner packet with or without Ethernet header?
 	data += vxlan_len + udp_len + eth_len;
 	len -= vxlan_len + udp_len + eth_len;

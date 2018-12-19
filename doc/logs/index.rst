@@ -41,7 +41,7 @@ As the fields of the log entries can be further customized by the
 user, the Logging Framework makes use of a header block to ensure that
 it remains self-describing. Here's the first few lines of a ``conn.log``.
 
-.. console::
+.. sourcecode:: console
 
    $ cat conn.log
    #separator \x09
@@ -139,7 +139,7 @@ require the user to refer to fields referenced by their position).
 For example, the following command extracts just the given columns
 from a ``conn.log``:
 
-.. console::
+.. sourcecode:: console
 
    $ cat conn.log | bro-cut id.orig_h id.orig_p id.resp_h duration
    141.142.220.202   5353    224.0.0.251     -
@@ -156,7 +156,7 @@ from a ``conn.log``:
 
 The corresponding ``awk`` command will look like this:
 
-.. console::
+.. sourcecode:: console
 
    $ awk '/^[^#]/ {print $3, $4, $5, $6, $9}' conn.log
    141.142.220.202 5353 224.0.0.251 5353 -
@@ -223,7 +223,7 @@ includes the human readable time stamp, the unique identifier, the
 HTTP ``Host``, and HTTP ``URI`` as extracted from the ``http.log``
 file:
 
-.. console::
+.. sourcecode:: console
 
    $ bro-cut -d ts uid host uri < http.log
    2011-03-18T19:06:08+0000  CUM0KZ3MLUfNB0cl11      bits.wikimedia.org      /skins-1.5/monobook/main.css
@@ -237,7 +237,7 @@ Often times log files from multiple sources are stored in UTC time to
 allow easy correlation.  Converting the timestamp from a log file to
 UTC can be accomplished with the ``-u`` option:
 
-.. console::
+.. sourcecode:: console
 
    $ bro-cut -u ts uid host uri < http.log
    2011-03-18T19:06:08+0000  CUM0KZ3MLUfNB0cl11      bits.wikimedia.org      /skins-1.5/monobook/main.css
@@ -255,7 +255,7 @@ using the ``-D`` and ``-U`` flags, using the standard ``strftime``
 syntax. For example, to format the timestamp in the US-typical "Middle
 Endian" you could use a format string of: ``%d-%m-%YT%H:%M:%S%z``
 
-.. console::
+.. sourcecode:: console
 
    $ bro-cut -D %d-%m-%YT%H:%M:%S%z ts uid host uri < http.log
    18-03-2011T19:06:08+0000  CUM0KZ3MLUfNB0cl11      bits.wikimedia.org      /skins-1.5/monobook/main.css
@@ -285,7 +285,7 @@ largest number of bytes from the responder by redirecting the output
 for ``cat conn.log`` into bro-cut to extract the UID and the
 resp_bytes, then sorting that output by the resp_bytes field.
 
-.. console::
+.. sourcecode:: console
 
    $ cat conn.log | bro-cut uid resp_bytes | sort -nrk2 | head -5
    CwjjYJ2WqgTbAqiHl6        734
@@ -297,7 +297,7 @@ resp_bytes, then sorting that output by the resp_bytes field.
 Taking the UID of the first of the top responses, we can now
 crossreference that with the UIDs in the ``http.log`` file.
 
-.. console::
+.. sourcecode:: console
 
    $ cat http.log | bro-cut uid id.resp_h method status_code host uri | grep UM0KZ3MLUfNB0cl11
    CUM0KZ3MLUfNB0cl11        208.80.152.118  GET     304     bits.wikimedia.org      /skins-1.5/monobook/main.css

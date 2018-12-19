@@ -25,14 +25,14 @@ You first need to compile a few build tools native to the host system
 for use during the later cross-compile build.  In the root of your
 Bro source tree:
 
-.. console::
+.. sourcecode:: console
 
    ./configure --builddir=../bro-buildtools
    ( cd ../bro-buildtools && make binpac bifcl )
 
 Next configure Bro to use your cross-compilation toolchain:
 
-.. console::
+.. sourcecode:: console
 
    ./configure --toolchain=/home/jon/x-tools/RaspberryPi-toolchain.cmake --with-binpac=$(pwd)/../bro-buildtools/aux/binpac/src/binpac --with-bifcl=$(pwd)/../bro-buildtools/src/bifcl
 
@@ -71,13 +71,13 @@ something the following (using a Raspberry Pi as target system)::
 
 If that configuration succeeds you are ready to build:
 
-.. console::
+.. sourcecode:: console
 
    make
 
 And if that works, install on your host system:
 
-.. console::
+.. sourcecode:: console
 
    make install
 

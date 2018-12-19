@@ -430,7 +430,7 @@ should always use the fully-qualified event name.
 
 For example, this will likely not work as expected:
 
-.. code:: bro
+.. sourcecode:: bro
 
     module MyModule;
 
@@ -454,7 +454,7 @@ will never be called and also not any remote handlers either, even if
 :bro:see:`Broker::auto_publish` was used elsewhere for it.  Instead, at
 minimum you would need change the ``bro_init()`` handler:
 
-.. code:: bro
+.. sourcecode:: bro
 
     event bro_init()
         {
@@ -465,7 +465,7 @@ minimum you would need change the ``bro_init()`` handler:
 Though, an easy rule of thumb to remember would be to always use the
 explicit module namespace scoping and you can't go wrong:
 
-.. code:: bro
+.. sourcecode:: bro
 
     module MyModule;
 
@@ -494,7 +494,7 @@ Manager Sending Events To Workers
 This is fairly straightforward, we just need a topic name which we know
 all workers are subscribed combined with the event we want to send them.
 
-.. code:: bro
+.. sourcecode:: bro
 
     event manager_to_workers(s: string)
         {
@@ -524,10 +524,10 @@ all workers are subscribed combined with the event we want to send them.
         # eliminated by using the following conditional directives.
         # It's evaluated once per node at parse-time and, if false,
         # any code within is just ignored / treated as not existing at all.
-        @if ( Cluster::local_node_type() == Cluster::MANAGER )
+    @if ( Cluster::local_node_type() == Cluster::MANAGER )
             Broker::publish(Cluster::worker_topic, manager_to_workers,
                             "hello v3");
-        @endif
+    @endif
         }
 
 Worker Sending Events To Manager
@@ -537,7 +537,7 @@ This should look almost identical to the previous case of sending an event
 from the manager to workers, except it simply changes the topic name to
 one which the manager is subscribed.
 
-.. code:: bro
+.. sourcecode:: bro
 
     event worker_to_manager(worker_name: string)
         {
@@ -558,17 +558,17 @@ topology, this type of communication is a bit different than what we
 did before since we have to manually relay the event via some node that *is*
 connected to all workers.  The manager or a proxy satisfies that requirement:
 
-.. code:: bro
+.. sourcecode:: bro
 
     event worker_to_workers(worker_name: string)
         {
-        @if ( Cluster::local_node_type() == Cluster::MANAGER ||
+    @if ( Cluster::local_node_type() == Cluster::MANAGER ||
               Cluster::local_node_type() == Cluster::PROXY )
             Broker::publish(Cluster::worker_topic, worker_to_workers,
                             worker_name)
-        @else
+    @else
             print "got event from worker", worker_name;
-        @endif
+    @endif
         }
 
     event some_event_handled_on_worker()
@@ -597,7 +597,7 @@ we can make use of a `Highest Random Weight (HRW) hashing
 <https://en.wikipedia.org/wiki/Rendezvous_hashing>`_ distribution strategy
 to uniformly map an arbitrary key space across all available proxies.
 
-.. code:: bro
+.. sourcecode:: bro
 
     event worker_to_proxies(worker_name: string)
         {

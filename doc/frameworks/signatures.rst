@@ -20,9 +20,7 @@ Signature Framework
 Basics
 ======
 
-Let's look at an example signature first:
-
-.. code:: bro-sig
+Let's look at an example signature first::
 
     signature my-first-sig {
         ip-proto == tcp
@@ -36,7 +34,7 @@ This signature asks Bro to match the regular expression ``.*root`` on
 all TCP connections going to port 80. When the signature triggers, Bro
 will raise an event :bro:id:`signature_match` of the form:
 
-.. code:: bro
+.. sourcecode:: bro
 
     event signature_match(state: signature_state, msg: string, data: string)
     
@@ -117,9 +115,7 @@ evaluates to true, the whole header condition matches (exception: with
 ``!=``, the header condition only matches if all values differ).
 
 In addition to these pre-defined header keywords, a general header
-condition can be defined either as
-
-.. code:: bro-sig
+condition can be defined either as::
 
     header <proto>[<offset>:<size>] [& <integer>] <cmp> <value-list>
 
@@ -141,9 +137,7 @@ are not allowed in the value-list, though you can still inspect any 1,
 2, or 4 byte section of an IPv6 header using this keyword.
 
 Putting it all together, this is an example condition that is
-equivalent to ``dst-ip == 1.2.3.4/16, 5.6.7.8/24``:
-
-.. code:: bro-sig
+equivalent to ``dst-ip == 1.2.3.4/16, 5.6.7.8/24``::
 
     header ip[16:4] == 1.2.3.4/16, 5.6.7.8/24
 
@@ -162,9 +156,7 @@ Second, it may be prefixed with an analyzer-specific label, in which
 case the expression is matched against the data as extracted by the
 corresponding analyzer.
 
-A ``payload`` condition has the form:
-
-.. code:: bro-sig
+A ``payload`` condition has the form::
 
     payload /<regular expression>/
 
@@ -272,7 +264,7 @@ two actions defined:
     Raises a :bro:id:`signature_match` event. The event handler has the
     following type:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         event signature_match(state: signature_state, msg: string, data: string)
 

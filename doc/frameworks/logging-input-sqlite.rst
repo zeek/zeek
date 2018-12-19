@@ -69,7 +69,7 @@ same fields that are present in the ASCII log files::
 Note that the ASCII ``conn.log`` will still be created. To prevent this file
 from being created, you can remove the default filter:
 
-.. code:: bro
+.. sourcecode:: bro
 
     Log::remove_filter(Conn::LOG, "default");
 

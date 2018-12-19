@@ -65,7 +65,7 @@ Backends should be initialized in the :bro:see:`NetControl::init` event, calling
 the :bro:see:`NetControl::activate` function after the plugin instance has been
 initialized. The debug plugin can be initialized as follows:
 
-.. code:: bro
+.. sourcecode:: bro
 
   event NetControl::init()
     {
@@ -143,7 +143,7 @@ plugin to print one line to the standard output, which contains information
 about the rule that was added. It will also cause creation of `netcontrol.log`,
 which contains information about all actions that are taken by NetControl:
 
-.. console::
+.. sourcecode:: console
 
    $ bro -C -r tls/ecdhe.pcap netcontrol-1-drop-with-debug.bro
    netcontrol debug (Debug-All): init
@@ -179,7 +179,7 @@ additional log called `netcontrol_drop.log`. This log file is much more succinct
 only contains information that is specific to drops that are enacted by
 NetControl:
 
-.. console::
+.. sourcecode:: console
 
    $ cat netcontrol_drop.log
    #separator \x09
@@ -203,7 +203,7 @@ following code automatically blocks a recognized SSH guesser:
    :language: bro
    :linenos:
 
-.. console::
+.. sourcecode:: console
 
    $ bro -C -r ssh/sshguess.pcap netcontrol-2-ssh-guesser.bro
    netcontrol debug (Debug-All): init
@@ -233,7 +233,7 @@ the :bro:see:`Notice::ACTION_DROP` action of the notice framework:
    :language: bro
    :linenos:
 
-.. console::
+.. sourcecode:: console
 
    $ bro -C -r ssh/sshguess.pcap netcontrol-3-ssh-guesser.bro
    netcontrol debug (Debug-All): init
@@ -259,7 +259,7 @@ Using the :bro:see:`Notice::ACTION_DROP` action of the notice framework also
 will cause the `dropped` column in `notice.log` to be set to true each time that
 the NetControl framework enacts a block:
 
-.. console::
+.. sourcecode:: console
 
    $ cat notice.log
    #separator \x09
@@ -326,7 +326,7 @@ drops all connections on the network:
    :language: bro
    :linenos:
 
-.. console::
+.. sourcecode:: console
 
    $ bro -C -r tls/ecdhe.pcap netcontrol-4-drop.bro
    netcontrol debug (Debug-All): init
@@ -386,7 +386,7 @@ originating from the 192.168.* network:
    :language: bro
    :linenos:
 
-.. console::
+.. sourcecode:: console
 
    $ bro -C -r tls/ecdhe.pcap netcontrol-5-hook.bro
    netcontrol debug (Debug-All): init
@@ -465,7 +465,7 @@ address is already blocked in the second connection.
    :language: bro
    :linenos:
 
-.. console::
+.. sourcecode:: console
 
    $ bro -C -r tls/google-duplicate.trace netcontrol-6-find.bro
    netcontrol debug (Debug-All): init
@@ -519,7 +519,7 @@ Using catch and release in your scripts is easy; just use
    :language: bro
    :linenos:
 
-.. console::
+.. sourcecode:: console
 
    $ bro -C -r tls/ecdhe.pcap netcontrol-7-catch-release.bro
    netcontrol debug (Debug-All): init
@@ -535,7 +535,7 @@ first 10 minutes, it is blocked for 1 hour and then monitored for 24 hours, etc.
 Catch and release adds its own new logfile in addition to the already existing
 ones (netcontrol_catch_release.log):
 
-.. console::
+.. sourcecode:: console
 
    $ cat netcontrol_catch_release.log
    #separator \x09
@@ -664,7 +664,7 @@ plugin. We manually block a few addresses in the
    :language: bro
    :linenos:
 
-.. console::
+.. sourcecode:: console
 
    $ bro netcontrol-8-multiple.bro
    netcontrol debug (Debug-All): init
@@ -675,7 +675,7 @@ output to the command line. The other two lines are handled by the OpenFlow
 plugin. We can verify this by looking at netcontrol.log. The plugin column shows
 which plugin handled a rule and reveals that two rules were handled by OpenFlow:
 
-.. console::
+.. sourcecode:: console
 
    $ cat netcontrol.log
    #separator \x09
@@ -702,7 +702,7 @@ which plugin handled a rule and reveals that two rules were handled by OpenFlow:
 Furthermore, openflow.log also shows the two added rules, converted to OpenFlow
 flow mods:
 
-.. console::
+.. sourcecode:: console
 
    $ cat openflow.log
    #separator \x09
@@ -792,7 +792,7 @@ to our very first example:
    :language: bro
    :linenos:
 
-.. console::
+.. sourcecode:: console
 
    $ bro -C -r tls/ecdhe.pcap netcontrol-10-use-skeleton.bro
    add, [ty=NetControl::DROP, target=NetControl::FORWARD, entity=[ty=NetControl::CONNECTION, conn=[orig_h=192.168.18.50, orig_p=56981/tcp, resp_h=74.125.239.97, resp_p=443/tcp], flow=<uninitialized>, ip=<uninitialized>, mac=<uninitialized>], expire=20.0 secs, priority=0, location=, out_port=<uninitialized>, mod=<uninitialized>, id=2, cid=2, _plugin_ids={

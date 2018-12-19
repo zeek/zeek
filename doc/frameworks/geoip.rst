@@ -26,19 +26,19 @@ Before building Bro, you need to install libmaxminddb.
 
 * RPM/RedHat-based Linux:
 
-  .. console::
+  .. sourcecode:: console
 
       sudo yum install libmaxminddb-devel
 
 * DEB/Debian-based Linux:
 
-  .. console::
+  .. sourcecode:: console
 
       sudo apt-get install libmaxminddb-dev
 
 * FreeBSD:
 
-  .. console::
+  .. sourcecode:: console
 
       sudo pkg install libmaxminddb
 
@@ -58,7 +58,7 @@ and regions in addition to countries.
 `Download <http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.tar.gz>`__
 the GeoLite2 city binary database:
 
-.. console::
+.. sourcecode:: console
 
     wget http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.tar.gz
     tar zxf GeoLite2-City.tar.gz
@@ -69,7 +69,7 @@ and will vary depending on which platform and package you are using.  For
 FreeBSD, use ``/usr/local/share/GeoIP``.  For Linux, use ``/usr/share/GeoIP``
 or ``/var/lib/GeoIP`` (choose whichever one already exists).
     
-.. console::
+.. sourcecode:: console
 
     mv <extracted subdir>/GeoLite2-City.mmdb <path_to_database_dir>/GeoLite2-City.mmdb
 
@@ -81,7 +81,7 @@ everything is setup correctly.  After installing libmaxminddb and the GeoIP
 city database, and building Bro, you can quickly check if the GeoIP
 functionality works by running a command like this:
 
-.. console::
+.. sourcecode:: console
 
     bro -e "print lookup_location(8.8.8.8);"
 
@@ -113,7 +113,7 @@ Usage
 
 There is a built-in function that provides the GeoIP functionality:
 
-.. code:: bro
+.. sourcecode:: bro
 
     function lookup_location(a:addr): geo_location
 
@@ -130,7 +130,7 @@ Example
 
 To show every ftp connection from hosts in Ohio, this is now very easy:
 
-.. code:: bro
+.. sourcecode:: bro
 
     event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool)
     {

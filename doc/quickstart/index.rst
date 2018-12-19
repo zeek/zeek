@@ -44,20 +44,20 @@ installation that will manage a single Bro instance on the ``localhost``:
 
 Now start the BroControl shell like:
 
-.. console::
+.. sourcecode:: console
 
    broctl
 
 Since this is the first-time use of the shell, perform an initial installation
 of the BroControl configuration:
 
-.. console::
+.. sourcecode:: console
 
    [BroControl] > install
 
 Then start up a Bro instance:
 
-.. console::
+.. sourcecode:: console
 
    [BroControl] > start
 
@@ -74,7 +74,7 @@ policy and output the results in ``$PREFIX/logs``.
 
 You can leave it running for now, but to stop this Bro instance you would do:
 
-.. console::
+.. sourcecode:: console
 
    [BroControl] > stop
 
@@ -200,7 +200,7 @@ Let's continue on our path to modify the behavior for the two SSL
 notices.  Looking at :doc:`/scripts/base/frameworks/notice/main.bro`,
 we see that it advertises:
 
-.. code:: bro
+.. sourcecode:: bro
 
     module Notice;
 
@@ -212,7 +212,7 @@ we see that it advertises:
 
 That's exactly what we want to do for the first notice.  Add to ``local.bro``:
 
-.. code:: bro
+.. sourcecode:: bro
 
     redef Notice::ignored_types += { SSL::Invalid_Server_Cert };
 
@@ -226,7 +226,7 @@ Then go into the BroControl shell to check whether the configuration change
 is valid before installing it and then restarting the Bro instance.  The
 "deploy" command does all of this automatically:
 
-.. console::
+.. sourcecode:: console
 
    [BroControl] > deploy
    checking configurations ...
@@ -260,7 +260,7 @@ In ``local.bro``, let's define a new ``policy`` hook handler body:
    :language: bro
    :linenos:
 
-.. console::
+.. sourcecode:: console
 
    $ bro -r tls/tls-expired-cert.trace conditional-notice.bro
    $ cat notice.log
@@ -325,7 +325,7 @@ Monitoring Live Traffic
 
 Analyzing live traffic from an interface is simple:
 
-.. console::
+.. sourcecode:: console
 
    bro -i en0 <list of scripts to load>
 
@@ -345,7 +345,7 @@ Reading Packet Capture (pcap) Files
 Capturing packets from an interface and writing them to a file can be done
 like this:
 
-.. console::
+.. sourcecode:: console
 
    sudo tcpdump -i en0 -s 0 -w mypackets.trace
 
@@ -356,7 +356,7 @@ whole packets; in cases where it's not supported use ``-s 65535`` instead).
 After a while of capturing traffic, kill the ``tcpdump`` (with ctrl-c),
 and tell Bro to perform all the default analysis on the capture which primarily includes :
 
-.. console::
+.. sourcecode:: console
 
    bro -r mypackets.trace
 
@@ -365,7 +365,7 @@ Bro will output log files into the working directory.
 If you are interested in more detection, you can again load the ``local``
 script that we include as a suggested configuration:
 
-.. console::
+.. sourcecode:: console
 
   bro -r mypackets.trace local
 
@@ -374,7 +374,7 @@ Telling Bro Which Scripts to Load
 
 A command-line invocation of Bro typically looks like:
 
-.. console::
+.. sourcecode:: console
 
    bro <options> <scripts...>
 
@@ -391,7 +391,7 @@ directories are included in the default search path for Bro scripts::
 
 These prefix paths can be used to load scripts like this:
 
-.. console::
+.. sourcecode:: console
 
    bro -r mypackets.trace frameworks/files/extract-all
 
@@ -420,7 +420,7 @@ customization" and is not overwritten when upgrades take place. To use
 the site-specific ``local.bro`` script, just add it to the command-line (can
 also be loaded through scripts with @load):
 
-.. console::
+.. sourcecode:: console
 
    bro -i en0 local
 
@@ -429,7 +429,7 @@ This causes Bro to load a script that prints a warning about lacking the
 information at the command line like this (supply your "local" subnets
 in place of the example subnets):
 
-.. console::
+.. sourcecode:: console
 
    bro -r mypackets.trace local "Site::local_nets += { 1.2.3.0/24, 5.6.7.0/24 }"
 

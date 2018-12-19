@@ -22,3 +22,7 @@ render the reST files into HTML.  That target depends on:
 * `Read the Docs Sphinx Theme <https://github.com/rtfd/sphinx_rtd_theme>`_
 
 After the build completes, HTML documentation is symlinked in ``build/html``.
+
+There's also a ``make livehtml`` target in the top-level Makefile that
+is useful for editing the reST files and seeing changes rendered out live
+to a separate HTML browser.

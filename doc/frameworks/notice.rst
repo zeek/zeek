@@ -14,8 +14,6 @@ Notice Framework
     alarm emails.  This page gives an introduction into writing such a notice
     policy.
 
-.. contents::
-
 Overview
 --------
 

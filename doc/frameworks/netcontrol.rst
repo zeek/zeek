@@ -17,8 +17,6 @@ NetControl Framework
   it can be used in practice, it might be worthwhile to take a look at
   the unit tests.
 
-.. contents::
-
 NetControl Architecture
 =======================
 

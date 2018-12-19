@@ -5,8 +5,6 @@
 Bro Logging
 ===========
 
-.. contents::
-
 Once Bro has been deployed in an environment and monitoring live
 traffic, it will, in its default configuration, begin to produce
 human-readable ASCII logs.  Each log file, produced by Bro's

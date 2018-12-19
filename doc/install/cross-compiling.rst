@@ -5,8 +5,6 @@
 Cross Compiling Bro
 ===================
 
-.. contents::
-
 Prerequisites
 =============
 

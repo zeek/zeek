@@ -21,8 +21,6 @@ File Analysis
     provide analysis specifically for files that is analogous to the
     analysis Bro provides for network connections.
 
-.. contents::
-
 File Lifecycle Events
 =====================
 

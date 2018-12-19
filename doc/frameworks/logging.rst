@@ -12,8 +12,6 @@ Logging Framework
    logged. This document describes how logging can be customized and
    extended.
 
-.. contents::
-
 Terminology
 ===========
 

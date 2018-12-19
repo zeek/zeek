@@ -17,8 +17,6 @@ GeoLocation
     software, and then install the GeoLite2 city database before building
     Bro.
 
-.. contents::
-
 Install libmaxminddb
 --------------------
 

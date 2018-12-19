@@ -1,9 +1,6 @@
 File Analyzers
 ==============
 
-.. contents::
-     :depth: 2
-
 .. bro:type:: Files::Tag
 
    :Type: :bro:type:`enum`

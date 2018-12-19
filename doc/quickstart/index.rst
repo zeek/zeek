@@ -7,8 +7,6 @@
 Quick Start Guide
 =================
 
-.. contents::
-
 Bro works on most modern, Unix-based systems and requires no custom
 hardware.  It can be downloaded in either pre-built binary package or
 source code forms.  See :ref:`installing-bro` for instructions on how to

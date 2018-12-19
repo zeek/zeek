@@ -15,8 +15,6 @@ Input Framework
    worthwhile to take a look at the unit tests in
    ``testing/btest/scripts/base/frameworks/input/``.
 
-.. contents::
-
 Reading Data into Tables
 ========================
 

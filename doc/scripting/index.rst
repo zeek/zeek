@@ -5,8 +5,6 @@
 Writing Bro Scripts
 ===================
 
-.. contents::
-
 Understanding Bro Scripts
 =========================
 

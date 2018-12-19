@@ -17,8 +17,6 @@ Summary Statistics
     data sets and making them measurable in practice on large clustered and
     non-clustered Bro deployments.
 
-.. contents::
-
 Overview
 ========
 

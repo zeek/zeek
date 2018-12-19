@@ -3,8 +3,6 @@
 Introduction
 ============
 
-.. contents::
-
 Overview
 --------
 

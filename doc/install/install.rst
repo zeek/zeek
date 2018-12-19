@@ -12,8 +12,6 @@
 Installing Bro
 ==============
 
-.. contents::
-
 Prerequisites
 =============
 

@@ -14,10 +14,6 @@ ability to specify input files to enable changing the value of options at
 runtime, a couple of functions, and a log file "config.log"
 which contains information about every change to option values.
 
-
-.. contents::
-
-
 Introduction
 ------------
 

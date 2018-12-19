@@ -260,8 +260,6 @@ void ProtoAnalyzerTarget::DoCreateAnalyzerDoc(FILE* f) const
 	{
 	fprintf(f, "Protocol Analyzers\n");
 	fprintf(f, "==================\n\n");
-	fprintf(f, ".. contents::\n");
-	fprintf(f, "     :depth: 2\n\n");
 
 	WriteAnalyzerTagDefn(f, "Analyzer");
 
@@ -288,8 +286,6 @@ void FileAnalyzerTarget::DoCreateAnalyzerDoc(FILE* f) const
 	{
 	fprintf(f, "File Analyzers\n");
 	fprintf(f, "==============\n\n");
-	fprintf(f, ".. contents::\n");
-	fprintf(f, "     :depth: 2\n\n");
 
 	WriteAnalyzerTagDefn(f, "Files");
 

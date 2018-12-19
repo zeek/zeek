@@ -29,8 +29,6 @@ Broker-Enabled Communication/Cluster Framework
     also gives examples of Broker and the new cluster framework that
     show off all the new features and capabilities.
 
-.. contents::
-
 Porting Guide
 =============
 

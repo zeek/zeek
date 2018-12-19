@@ -1,9 +1,6 @@
 Protocol Analyzers
 ==================
 
-.. contents::
-     :depth: 2
-
 .. bro:type:: Analyzer::Tag
 
    :Type: :bro:type:`enum`

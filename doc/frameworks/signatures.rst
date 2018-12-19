@@ -14,9 +14,6 @@ Signature Framework
     other NIDS. This page gives a brief overview on Bro's signatures
     and covers some of their technical subtleties.
 
-.. contents::
-    :depth: 2
-
 Basics
 ======
 

@@ -14,8 +14,6 @@ Logging To and Reading From SQLite Databases
    they can, for example, be used to make data that changes regularly available
    to Bro on a continuing basis.
 
-.. contents::
-
 Warning
 =======
 

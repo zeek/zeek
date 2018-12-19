@@ -4,6 +4,18 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as BroControl and Broccoli, come with
 their own ``CHANGES``.)
 
+Bro 2.6.1
+=========
+
+Bro 2.6.1 updates the embedded SQLite to version 3.26.0 to address the
+"Magellan" remote code execution vulnerability.  The stock Bro
+configuration/scripts don't use SQLite by default, but custom user
+scripts/packages may.
+
+This release also updates Broker to v1.1.2, which includes a minor bug
+fix in its Python bindings and improved support for building it as a
+static library.
+
 Bro 2.6
 =======
 

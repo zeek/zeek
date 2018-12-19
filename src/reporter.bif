@@ -72,6 +72,20 @@ function Reporter::fatal%(msg: string%): bool
 	return new Val(1, TYPE_BOOL);
 	%}
 
+## Generates a fatal error on stderr and terminates program execution
+## after dumping a core file
+## 
+## msg: The error message to report.
+## 
+## Returns: Always true.
+function Reporter::fatal_error_with_core%(msg: string%): bool
+	%{
+	reporter-PushLocation(frame->GetCall()->GetLocationInfo());
+	reporter->FatalError("%s", msg->CheckString());
+	reporter->PopLocation();
+	return new Val(1, TYPE_BOOL);
+	%}
+
 ## Generates a "net" weird.
 ##
 ## name: the name of the weird.

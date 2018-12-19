@@ -89,7 +89,7 @@ detect a reply for a ``GET http://`` request.
    :language: bro
    :linenos:
 
-.. code-block:: console
+.. console::
 
    $ bro -r http/proxy.pcap http_proxy_01.bro
    A local server is acting as an open proxy: 192.168.56.101
@@ -104,7 +104,7 @@ will extend our basic script to also consider the additional codes.
    :language: bro
    :linenos:
 
-.. code-block:: console
+.. console::
 
    $ bro -r http/proxy.pcap http_proxy_02.bro
    A local server is acting as an open proxy: 192.168.56.101
@@ -117,7 +117,7 @@ network.
    :language: bro
    :linenos:
 
-.. code-block:: console
+.. console::
 
    $ bro -r http/proxy.pcap http_proxy_03.bro
    A local server is acting as an open proxy: 192.168.56.101
@@ -140,7 +140,7 @@ Below is the complete script.
    :language: bro
    :linenos:
 
-.. code-block:: console
+.. console::
 
    $ bro -r http/proxy.pcap http_proxy_04.bro
    $ cat notice.log
@@ -178,7 +178,7 @@ using the :ref:`File Analysis Framework <file-analysis-framework>`
    :language: bro
    :linenos:
 
-.. code-block:: console
+.. console::
 
    $ bro -r bro.org.pcap file_extraction.bro
    Extracting file HTTP-FiIpIB2hRQSDBOSJRg.html

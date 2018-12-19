@@ -41,7 +41,7 @@ script :doc:`/scripts/policy/frameworks/files/detect-MHR.bro`
 that is responsible for generating the
 appropriate DNS lookup, parsing the response, and generating a notice if appropriate.
 
-.. code-block:: bro
+.. code:: bro
    :caption: detect-MHR.bro
 
    ##! Detect file downloads that have hash values matching files in Team
@@ -126,7 +126,7 @@ specific event (``event file_hash``).  Don't get discouraged if you don't
 understand every section of the script; we'll cover the basics of the
 script and much more in following sections.
 
-.. code-block:: bro
+.. code:: bro
    :caption: detect-MHR.bro
 
    @load base/frameworks/files
@@ -145,7 +145,7 @@ this level of granularity might not be entirely necessary.  The ``@load`` direct
 are ensuring the Files framework, the Notice framework and the script to hash all files has
 been loaded by Bro.
 
-.. code-block:: bro
+.. code:: bro
    :caption: detect-MHR.bro
 
    export {
@@ -196,7 +196,7 @@ Up until this point, the script has merely done some basic setup.  With
 the next section, the script starts to define instructions to take in
 a given event.
 
-.. code-block:: bro
+.. code:: bro
    :caption: detect-MHR.bro
 
    function do_mhr_lookup(hash: string, fi: Notice::FileInfo)
@@ -324,7 +324,7 @@ This effort resulted in built-in-function files organized such that
 each entry contains a descriptive event name, the arguments passed to
 the event, and a concise explanation of the functions use.
 
-.. code-block:: bro
+.. code:: bro
 
    ## Generated for DNS requests. For requests with multiple queries, this event
    ## is raised once for each.
@@ -413,7 +413,7 @@ more layers of information about a connection.  This will give us a
 chance to see the contents of the connection record without it being
 overly populated.
 
-.. code-block:: console
+.. console::
 
    $ bro -b -r http/get.trace connection_record_01.bro
    [id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp], orig=[size=136, state=5, num_pkts=7, num_bytes_ip=512, flow_label=0, l2_addr=c8:bc:c8:96:d2:a0], resp=[size=5007, state=5, num_pkts=7, num_bytes_ip=5379, flow_label=0, l2_addr=00:10:db:88:d2:ef], start_time=1362692526.869344, duration=0.211484, service={
@@ -449,7 +449,7 @@ brackets, which would correspond to the ``$``-delimiter in a Bro script.
    :language: bro
    :linenos:
 
-.. code-block:: console
+.. console::
 
    $bro -b -r http/get.trace connection_record_02.bro
    [id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp], orig=[size=136, state=5, num_pkts=7, num_bytes_ip=512, flow_label=0, l2_addr=c8:bc:c8:96:d2:a0], resp=[size=5007, state=5, num_pkts=7, num_bytes_ip=5379, flow_label=0, l2_addr=00:10:db:88:d2:ef], start_time=1362692526.869344, duration=0.211484, service={
@@ -562,7 +562,7 @@ would fail.
    :language: bro
    :linenos:
 
-.. code-block:: console
+.. console::
 
    $ bro -b data_type_const.bro
    {
@@ -711,7 +711,7 @@ You can see the full script and its output below.
    :language: bro
    :linenos:
 
-.. code-block:: console
+.. console::
 
    $ bro data_struct_set_declaration.bro
    SSL Port: 22/tcp
@@ -735,7 +735,7 @@ to preserve a one-to-one mapping of keys to values.
    :language: bro
    :linenos:
 
-.. code-block:: console
+.. console::
 
    $ bro data_struct_table_declaration.bro
    Service Name:  SSH - Common Port: 22/tcp
@@ -771,7 +771,7 @@ security platform.
    :language: bro
    :linenos:
 
-.. code-block:: console
+.. console::
 
    $ bro -b data_struct_table_complex.bro
    Harakiri was released in 1962 by Shochiku Eiga studios, directed by Masaki Kobayashi and starring Tatsuya Nakadai
@@ -824,7 +824,7 @@ lengths.
    :language: bro
    :linenos:
 
-.. code-block:: console
+.. console::
 
    $ bro data_struct_vector_declaration.bro
    contents of v1: [1, 2, 3, 4]
@@ -846,7 +846,7 @@ current item in the vector with ``addr_vector[i]``.
    :language: bro
    :linenos:
 
-.. code-block:: console
+.. console::
 
    $ bro -b data_struct_vector_iter.bro
    1.2.0.0/18
@@ -923,7 +923,7 @@ For example, ``10.0.0.1 in 10.0.0.0/8`` would return true while
 script, we get the output listing the IP address and the subnet in
 which it belongs.
 
-.. code-block:: console
+.. console::
 
    $ bro data_type_subnets.bro
    172.16.4.56 belongs to subnet 172.16.0.0/20
@@ -959,7 +959,7 @@ produce a common date time formatted time stamp.
 When the script is executed we get an output showing the details of
 established connections.  
 
-.. code-block:: console
+.. console::
 
    $ bro -r wikipedia.trace data_type_time.bro
    2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.118\x0a
@@ -1009,7 +1009,7 @@ This time, when we execute the script we see an additional line in the
 output to display the time delta since the last fully established
 connection.  
 
-.. code-block:: console
+.. console::
 
    $ bro -r wikipedia.trace data_type_interval.bro
    2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.118
@@ -1064,7 +1064,7 @@ excluding the actual matches.  In this case, our pattern matches
 twice, and results in a table with three entries.  The ``print`` statements
 in the script will print the contents of the table in order.  
 
-.. code-block:: console
+.. console::
 
    $ bro data_type_pattern_01.bro
    The
@@ -1081,7 +1081,7 @@ on the result of the comparison between the pattern and the string.
 
 .. literalinclude:: data_type_pattern_02.bro
 
-.. code-block:: console
+.. console::
 
    $ bro data_type_pattern_02.bro
    equality and /^?(equal)$?/ are not equal
@@ -1126,7 +1126,7 @@ field is unique.
    :language: bro
    :linenos:
 
-.. code-block:: console
+.. console::
 
    $ bro data_struct_record_01.bro
    Service: dns(RFC1035)
@@ -1153,7 +1153,7 @@ record.
 
 .. literalinclude:: data_struct_record_02.bro
 
-.. code-block:: console
+.. console::
 
    $ bro data_struct_record_02.bro
    System: morlock
@@ -1173,7 +1173,7 @@ It's also common to see a ``type`` used to simply alias a data
 structure to a more descriptive name.  The example below shows an
 example of this from Bro's own type definitions file.
 
-.. code-block:: bro
+.. code:: bro
    :caption: init-bare.bro
 
    type string_array: table[count] of string;
@@ -1240,7 +1240,7 @@ into the Logging Framework.
    :language: bro
    :linenos:
 
-.. code-block:: console
+.. console::
 
    $ bro framework_logging_factorial_01.bro
    1
@@ -1297,7 +1297,7 @@ Now, if we run this script, instead of generating
 logging information to stdout, no output is created.  Instead the
 output is all in ``factor.log``, properly formatted and organized.
 
-.. code-block:: console
+.. console::
 
    $ bro framework_logging_factorial_02.bro
    $ cat factor.log
@@ -1371,7 +1371,7 @@ factorials that are a factors of 5, ``factor-non5.log`` with the
 factorials that are not factors of 5, and ``factor.log`` which would have
 included all factorials.  
 
-.. code-block:: console
+.. console::
 
    $ bro framework_logging_factorial_03.bro
    $ cat factor-mod5.log
@@ -1473,7 +1473,7 @@ or not that notice is acted upon is decided by the local Notice
 Policy, but the script attempts to supply as much information as
 possible while staying concise.  
 
-.. code-block:: bro
+.. code:: bro
    :caption: scripts/policy/protocols/ssh/interesting-hostnames.bro
 
    ##! This script will generate a notice if an apparent SSH login originates
@@ -1604,7 +1604,7 @@ identifier.  An identifier is a unique string of information collected
 from the connection relative to the behavior that has been observed by
 Bro.  
 
-.. code-block:: bro
+.. code:: bro
    :caption: scripts/policy/protocols/ssl/expiring-certs.bro
 
    NOTICE([$note=Certificate_Expires_Soon,

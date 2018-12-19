@@ -41,7 +41,7 @@ Here's a simple example:
    :language: bro
    :linenos:
 
-.. code-block:: console
+.. console::
 
    $ bro -r http/get.trace file_analysis_01.bro
    file_state_remove
@@ -88,7 +88,7 @@ calculate the MD5 of plain text files:
    :language: bro
    :linenos:
 
-.. code-block:: console
+.. console::
 
    $ bro -r http/get.trace file_analysis_02.bro
    new file, FakNcS1Jfe01uljb3
@@ -137,7 +137,7 @@ the input framework uses to uniquely identify an input stream.
 
 Example output of the above script may be:
 
-.. code-block:: console
+.. console::
 
    $ echo "Hello world" > myfile
    $ bro file_analysis_03.bro

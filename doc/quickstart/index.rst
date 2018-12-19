@@ -260,7 +260,7 @@ In ``local.bro``, let's define a new ``policy`` hook handler body:
    :language: bro
    :linenos:
 
-.. code-block:: console
+.. console::
 
    $ bro -r tls/tls-expired-cert.trace conditional-notice.bro
    $ cat notice.log

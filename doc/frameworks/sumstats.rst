@@ -81,7 +81,7 @@ inline documentation that does this with the Sumstats framework:
 When run on a sample PCAP file from the Bro test suite, the following output
 is created:
 
-.. code-block:: console
+.. console::
 
    $ bro -r workshop_2011_browse.trace sumstats-countconns.bro
    Number of connections established: 6
@@ -103,7 +103,7 @@ real-world functional example, that is left to the
 Let's see if there are any hosts that crossed the threshold in a PCAP file
 containing a host running nmap:
 
-.. code-block:: console
+.. console::
 
    $ bro -r nmap-vsn.trace sumstats-toy-scan.bro
    192.168.1.71 attempted 5 or more connections

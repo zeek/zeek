@@ -96,7 +96,7 @@ the server at 192.168.56.103:
    :language: bro
    :linenos:
 
-.. code-block:: console
+.. console::
 
    $ bro -C -r ssh/sshguess.pcap notice_ssh_guesser.bro
    $ cat notice.log

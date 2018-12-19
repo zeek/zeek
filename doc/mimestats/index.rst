@@ -81,7 +81,7 @@ final code for our script.
    :language: bro
    :linenos:
 
-.. code-block:: console
+.. console::
 
    $ bro -r http/bro.org.pcap mimestats.bro
    #separator \x09

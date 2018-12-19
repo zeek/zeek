@@ -80,7 +80,7 @@ function Reporter::fatal%(msg: string%): bool
 ## Returns: Always true.
 function Reporter::fatal_error_with_core%(msg: string%): bool
 	%{
-	reporter-PushLocation(frame->GetCall()->GetLocationInfo());
+	reporter->PushLocation(frame->GetCall()->GetLocationInfo());
 	reporter->FatalError("%s", msg->CheckString());
 	reporter->PopLocation();
 	return new Val(1, TYPE_BOOL);

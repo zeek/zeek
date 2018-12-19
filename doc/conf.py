@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Bro documentation build configuration file, created by sphinx-quickstart
+# Zeek documentation build configuration file, created by sphinx-quickstart
 #
 # This file is execfile()d with the current directory set to its containing dir.
 #
@@ -29,7 +29,7 @@ sys.path.insert(0, os.path.abspath('ext'))
 extensions += ['bro', 'rst_directive', 'sphinx.ext.todo']
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates', '_static']
+templates_path = ['_templates']
 
 # The suffix of source filenames.
 source_suffix = '.rst'
@@ -41,8 +41,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'Bro'
-copyright = u'2018, The Bro Project'
+project = u'Zeek'
+copyright = u'2018, The Zeek Project'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -96,21 +96,30 @@ highlight_language = 'none'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'basic'
+on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+
+if not on_rtd:
+    # only import and set the theme if we're building docs locally
+    import sphinx_rtd_theme
+    html_theme = 'sphinx_rtd_theme'
+    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 html_last_updated_fmt = '%B %d, %Y'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-html_theme_options = { }
+html_theme_options = {
+    'collapse_navigation': False,
+    'display_version': True,
+}
 
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> Documentation".
-#html_title = None
+html_title = u'Zeek User Manual v' + release
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 #html_short_title = None
@@ -127,7 +136,7 @@ html_theme_options = { }
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+#html_static_path = ['_static']
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
@@ -138,9 +147,9 @@ html_static_path = ['_static']
 #html_use_smartypants = True
 
 # Custom sidebar templates, maps document names to template names.
-html_sidebars = {
-'**': ['localtoc.html', 'sourcelink.html', 'searchbox.html'],
-}
+#html_sidebars = {
+#'**': ['localtoc.html', 'sourcelink.html', 'searchbox.html'],
+#}
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.
@@ -173,7 +182,7 @@ html_sidebars = {
 #html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'Broxygen'
+htmlhelp_basename = 'bro-doc'
 
 # -- Options for LaTeX output --------------------------------------------------
 
@@ -186,8 +195,8 @@ htmlhelp_basename = 'Broxygen'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'Bro.tex', u'Bro Documentation',
-   u'The Bro Project', 'manual'),
+  ('index', 'Zeek.tex', u'Zeek Documentation',
+   u'The Zeek Project', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -218,8 +227,8 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'bro', u'Bro Documentation',
-     [u'The Bro Project'], 1)
+    ('index', 'bro', u'Zeek Documentation',
+     [u'The Zeek Project'], 1)
 ]
 
 # -- Options for todo plugin --------------------------------------------

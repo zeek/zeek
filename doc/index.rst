@@ -1,9 +1,7 @@
 
-.. Bro documentation master file
-
-==========
-Bro Manual
-==========
+===========
+Zeek Manual
+===========
 
 Introduction Section
 ====================
@@ -21,8 +19,8 @@ Introduction Section
 
 .. _using-bro:
 
-Using Bro Section
-=================
+Using Zeek/Bro Section
+======================
 
 .. toctree::
    :maxdepth: 2

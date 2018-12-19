@@ -1,9 +1,9 @@
 
 .. _http-monitor:
 
-================================
-Monitoring HTTP Traffic with Bro
-================================
+=======================
+Monitoring HTTP Traffic
+=======================
 
 Bro can be used to log the entire HTTP traffic from your network to the
 http.log file.  This file can then be used for analysis and auditing

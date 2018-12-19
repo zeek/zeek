@@ -8,9 +8,9 @@
 
 .. _installing-bro:
 
-==============
-Installing Bro
-==============
+==========
+Installing
+==========
 
 Prerequisites
 =============

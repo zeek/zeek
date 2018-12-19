@@ -1,9 +1,9 @@
 .. _crosstool-NG: https://crosstool-ng.github.io/
 .. _CMake toolchain: https://cmake.org/cmake/help/latest/manual/cmake-toolchains.7.html
 
-===================
-Cross Compiling Bro
-===================
+===============
+Cross Compiling
+===============
 
 Prerequisites
 =============

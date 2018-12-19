@@ -1,9 +1,9 @@
 
 .. _bro-ids:
 
-=======
-Bro IDS
-=======
+===
+IDS
+===
 
 An Intrusion Detection System (IDS) allows you to detect suspicious
 activities happening on your network as a result of a past or active

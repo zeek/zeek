@@ -1,12 +1,12 @@
 
 .. _writing-scripts:
 
-===================
-Writing Bro Scripts
-===================
+===============
+Writing Scripts
+===============
 
-Understanding Bro Scripts
-=========================
+Understanding Scripts
+=====================
 
 Bro includes an event-driven scripting language that provides
 the primary means for an organization to extend and customize Bro's

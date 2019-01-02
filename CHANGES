@@ -1,4 +1,8 @@
 
+2.6-39 | 2019-01-02 11:26:27 -0600
+
+  * Add BIF: Reporter::fatal_error_with_core (Stephen Hosom)
+
 2.6-27 | 2018-12-10 11:53:41 -0600
 
   * GH-216: Add FTS dependency when building on Alpine (Jon Siwek, Corelight)

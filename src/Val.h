@@ -75,6 +75,30 @@ typedef union {
 
 } BroValUnion;
 
+class ValManager {
+public:
+	ValManager();
+	~ValManager();
+
+	Val* GetBool(bool b) const;
+	Val* GetCount(int32 i) const;
+	Val* GetCount(uint32 u) const;
+
+	Val* GetCount(int64 i) const;
+	Val* GetCount(uint64 u) const;
+
+private:
+    Val* b_true;
+    Val* b_false;
+    std::array<Val*, 4096> int32s;
+    std::array<Val*, 4096> uint32s;
+
+    std::array<Val*, 4096> int64s;
+    std::array<Val*, 4096> uint64s;
+};
+
+extern ValManager* val_mgr;
+
 class Val : public BroObj {
 public:
 	Val(bool b, TypeTag t)

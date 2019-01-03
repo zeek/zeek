@@ -1437,10 +1437,10 @@ void TCP_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	RecordVal *orig_endp_val = conn_val->Lookup("orig")->AsRecordVal();
 	RecordVal *resp_endp_val = conn_val->Lookup("resp")->AsRecordVal();
 
-	orig_endp_val->Assign(0, new Val(orig->Size(), TYPE_COUNT));
-	orig_endp_val->Assign(1, new Val(int(orig->state), TYPE_COUNT));
-	resp_endp_val->Assign(0, new Val(resp->Size(), TYPE_COUNT));
-	resp_endp_val->Assign(1, new Val(int(resp->state), TYPE_COUNT));
+	orig_endp_val->Assign(0, val_mgr->GetCount(orig->Size()));
+	orig_endp_val->Assign(1, val_mgr->GetCount(int(orig->state)));
+	resp_endp_val->Assign(0, val_mgr->GetCount(resp->Size()));
+	resp_endp_val->Assign(1, val_mgr->GetCount(int(resp->state)));
 
 	// Call children's UpdateConnVal
 	Analyzer::UpdateConnVal(conn_val);

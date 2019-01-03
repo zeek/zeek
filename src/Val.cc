@@ -3710,3 +3710,71 @@ bool can_cast_value_to_type(const BroType* s, BroType* t)
 	return false;
 	}
 
+
+ValManager::ValManager()
+	{
+	b_false = new Val(0, TYPE_BOOL);
+	b_true = new Val(1, TYPE_BOOL);
+
+	for(auto i=0; i < 4096; i++) {
+		int32s[i] = new Val((int32) i, TYPE_COUNT);
+		uint32s[i] = new Val((uint32) i, TYPE_COUNT);
+		int64s[i] = new Val((int64) i, TYPE_COUNT);
+		uint64s[i] = new Val((uint64) i, TYPE_COUNT);
+	}
+	}
+
+ValManager::~ValManager()
+	{
+		//??
+		Unref(b_true);
+		Unref(b_false);
+	}
+
+
+Val* ValManager::GetBool(bool val) const
+	{
+	auto rval = val ? b_true : b_false;
+	::Ref(rval);
+	return rval;
+	}
+
+Val* ValManager::GetCount(int32 i) const
+	{
+	if (i < 4096) {
+		auto rval = int32s[i];
+		::Ref(rval);
+		return rval;
+	}
+	return new Val(i, TYPE_COUNT);
+	}
+
+Val* ValManager::GetCount(uint32 i) const
+	{
+	if (i < 4096) {
+		auto rval = uint32s[i];
+		::Ref(rval);
+		return rval;
+	}
+	return new Val(i, TYPE_COUNT);
+	}
+
+Val* ValManager::GetCount(int64 i) const
+	{
+	if (i < 4096) {
+		auto rval = int64s[i];
+		::Ref(rval);
+		return rval;
+	}
+	return new Val(i, TYPE_COUNT);
+	}
+
+Val* ValManager::GetCount(uint64 i) const
+	{
+	if (i < 4096) {
+		auto rval = uint64s[i];
+		::Ref(rval);
+		return rval;
+	}
+	return new Val(i, TYPE_COUNT);
+	}

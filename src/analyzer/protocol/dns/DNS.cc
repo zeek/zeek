@@ -48,9 +48,9 @@ int DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query)
 		{
 		val_list* vl = new val_list();
 		vl->append(analyzer->BuildConnVal());
-		vl->append(new Val(is_query, TYPE_BOOL));
+		vl->append(val_mgr->GetBool(is_query));
 		vl->append(msg.BuildHdrVal());
-		vl->append(new Val(len, TYPE_COUNT));
+		vl->append(val_mgr->GetCount(len));
 
 		analyzer->ConnectionEvent(dns_message, vl);
 		}
@@ -1428,19 +1428,19 @@ Val* DNS_MsgInfo::BuildHdrVal()
 	{
 	RecordVal* r = new RecordVal(dns_msg);
 
-	r->Assign(0, new Val(id, TYPE_COUNT));
-	r->Assign(1, new Val(opcode, TYPE_COUNT));
-	r->Assign(2, new Val(rcode, TYPE_COUNT));
-	r->Assign(3, new Val(QR, TYPE_BOOL));
-	r->Assign(4, new Val(AA, TYPE_BOOL));
-	r->Assign(5, new Val(TC, TYPE_BOOL));
-	r->Assign(6, new Val(RD, TYPE_BOOL));
-	r->Assign(7, new Val(RA, TYPE_BOOL));
-	r->Assign(8, new Val(Z, TYPE_COUNT));
-	r->Assign(9, new Val(qdcount, TYPE_COUNT));
-	r->Assign(10, new Val(ancount, TYPE_COUNT));
-	r->Assign(11, new Val(nscount, TYPE_COUNT));
-	r->Assign(12, new Val(arcount, TYPE_COUNT));
+	r->Assign(0, val_mgr->GetCount(id));
+	r->Assign(1, val_mgr->GetCount(opcode));
+	r->Assign(2, val_mgr->GetCount(rcode));
+	r->Assign(3, val_mgr->GetBool(QR));
+	r->Assign(4, val_mgr->GetBool(AA));
+	r->Assign(5, val_mgr->GetBool(TC));
+	r->Assign(6, val_mgr->GetBool(RD));
+	r->Assign(7, val_mgr->GetBool(RA));
+	r->Assign(8, val_mgr->GetCount(Z));
+	r->Assign(9, val_mgr->GetCount(qdcount));
+	r->Assign(10, val_mgr->GetCount(ancount));
+	r->Assign(11, val_mgr->GetCount(nscount));
+	r->Assign(12, val_mgr->GetCount(arcount));
 
 	return r;
 	}
@@ -1450,10 +1450,10 @@ Val* DNS_MsgInfo::BuildAnswerVal()
 	RecordVal* r = new RecordVal(dns_answer);
 
 	Ref(query_name);
-	r->Assign(0, new Val(int(answer_type), TYPE_COUNT));
+	r->Assign(0, val_mgr->GetCount(int(answer_type)));
 	r->Assign(1, query_name);
-	r->Assign(2, new Val(atype, TYPE_COUNT));
-	r->Assign(3, new Val(aclass, TYPE_COUNT));
+	r->Assign(2, val_mgr->GetCount(atype));
+	r->Assign(3, val_mgr->GetCount(aclass));
 	r->Assign(4, new IntervalVal(double(ttl), Seconds));
 
 	return r;

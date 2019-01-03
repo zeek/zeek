@@ -413,9 +413,9 @@ RecordVal* Connection::BuildConnVal()
 		id_val->Assign(3, port_mgr->Get(ntohs(resp_port), prot_type));
 
 		RecordVal* orig_endp = new RecordVal(endpoint);
-		orig_endp->Assign(0, new Val(0, TYPE_COUNT));
-		orig_endp->Assign(1, new Val(0, TYPE_COUNT));
-		orig_endp->Assign(4, new Val(orig_flow_label, TYPE_COUNT));
+		orig_endp->Assign(0, val_mgr->GetCount(0));
+		orig_endp->Assign(1, val_mgr->GetCount(0));
+		orig_endp->Assign(4, val_mgr->GetCount(orig_flow_label));
 
 		const int l2_len = sizeof(orig_l2_addr);
 		char null[l2_len]{};
@@ -424,9 +424,9 @@ RecordVal* Connection::BuildConnVal()
 			orig_endp->Assign(5, new StringVal(fmt_mac(orig_l2_addr, l2_len)));
 
 		RecordVal* resp_endp = new RecordVal(endpoint);
-		resp_endp->Assign(0, new Val(0, TYPE_COUNT));
-		resp_endp->Assign(1, new Val(0, TYPE_COUNT));
-		resp_endp->Assign(4, new Val(resp_flow_label, TYPE_COUNT));
+		resp_endp->Assign(0, val_mgr->GetCount(0));
+		resp_endp->Assign(1, val_mgr->GetCount(0));
+		resp_endp->Assign(4, val_mgr->GetCount(orig_flow_label));
 
 		if ( memcmp(&resp_l2_addr, &null, l2_len) != 0 )
 			resp_endp->Assign(5, new StringVal(fmt_mac(resp_l2_addr, l2_len)));

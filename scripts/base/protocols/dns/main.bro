@@ -128,13 +128,16 @@ export {
 	## A record type which tracks the status of DNS queries for a given
 	## :bro:type:`connection`.
 	type State: record {
+		## a single query that hasn't been matched with a response yet.
+		pending_query: Info &optional;
+
 		## Indexed by query id, returns Info record corresponding to
 		## queries that haven't been matched with a response yet.
-		pending_queries: PendingMessages;
+		pending_queries: PendingMessages &optional;
 
 		## Indexed by query id, returns Info record corresponding to
 		## replies that haven't been matched with a query yet.
-		pending_replies: PendingMessages;
+		pending_replies: PendingMessages &optional;
 	};
 }
 
@@ -230,7 +233,7 @@ hook set_session(c: connection, msg: dns_msg, is_query: bool) &priority=5
 
 	if ( is_query )
 		{
-		if ( msg$id in c$dns_state$pending_replies &&
+		if ( c$dns_state?$pending_replies && msg$id in c$dns_state$pending_replies &&
 		     Queue::len(c$dns_state$pending_replies[msg$id]) > 0 )
 			{
 			# Match this DNS query w/ what's at head of pending reply queue.
@@ -241,12 +244,24 @@ hook set_session(c: connection, msg: dns_msg, is_query: bool) &priority=5
 			# Create a new DNS session and put it in the query queue so
 			# we can wait for a matching reply.
 			c$dns = new_session(c, msg$id);
-			enqueue_new_msg(c$dns_state$pending_queries, msg$id, c$dns);
+			if(!c$dns_state?$pending_query)
+				c$dns_state$pending_query = c$dns;
+			else
+				{
+				if(!c$dns_state?$pending_queries)
+					c$dns_state$pending_queries = table();
+				enqueue_new_msg(c$dns_state$pending_queries, msg$id, c$dns);
+				}
 			}
 		}
 	else
 		{
-		if ( msg$id in c$dns_state$pending_queries &&
+		if (c$dns_state?$pending_query && c$dns_state$pending_query$trans_id == msg$id)
+			{
+			c$dns = c$dns_state$pending_query;
+			delete c$dns_state$pending_query;
+			}
+		else if (c$dns_state?$pending_queries && msg$id in c$dns_state$pending_queries &&
 		     Queue::len(c$dns_state$pending_queries[msg$id]) > 0 )
 			{
 			# Match this DNS reply w/ what's at head of pending query queue.
@@ -257,6 +272,8 @@ hook set_session(c: connection, msg: dns_msg, is_query: bool) &priority=5
 			# Create a new DNS session and put it in the reply queue so
 			# we can wait for a matching query.
 			c$dns = new_session(c, msg$id);
+			if(!c$dns_state?$pending_replies)
+				c$dns_state$pending_replies = table();
 			enqueue_new_msg(c$dns_state$pending_replies, msg$id, c$dns);
 			}
 		}
@@ -511,6 +528,10 @@ event connection_state_remove(c: connection) &priority=-5
 
 	# If Bro is expiring state, we should go ahead and log all unmatched
 	# queries and replies now.
-	log_unmatched_msgs(c$dns_state$pending_queries);
-	log_unmatched_msgs(c$dns_state$pending_replies);
+	if(c$dns_state?$pending_query)
+		Log::write(DNS::LOG, c$dns_state$pending_query);
+	if(c$dns_state?$pending_queries)
+		log_unmatched_msgs(c$dns_state$pending_queries);
+	if(c$dns_state?$pending_replies)
+		log_unmatched_msgs(c$dns_state$pending_replies);
 	}

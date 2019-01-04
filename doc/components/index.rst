@@ -6,7 +6,7 @@ Subcomponents
 The following are snapshots of documentation for components that come
 with this version of Bro (|version|). Since they can also be used
 independently, see the `download page
-<http://bro.org/download/index.html>`_ for documentation of any
+<http://www.zeek.org/download/index.html>`_ for documentation of any
 current, independent component releases.
 
 .. toctree::

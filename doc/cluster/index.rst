@@ -169,7 +169,7 @@ same interface.  This allows you to easily take advantage of multiple
 cores in a single physical host because Bro's main event loop is single
 threaded and can't natively utilize all of the cores.  If you want to use
 PF_RING, see the documentation on `how to configure Bro with PF_RING
-<http://bro.org/documentation/load-balancing.html>`_.
+<https://www.zeek.org/documentation/load-balancing.html>`_.
 
 Netmap
 ^^^^^^

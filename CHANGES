@@ -1,4 +1,8 @@
 
+2.6-41 | 2019-01-04 17:50:00 -0600
+
+  * Replace some bro.org usages with zeek.org (Jon Siwek, Corelight)
+
 2.6-39 | 2019-01-02 11:26:27 -0600
 
   * Add BIF: Reporter::fatal_error_with_core (Stephen Hosom)

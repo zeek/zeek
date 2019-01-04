@@ -1,5 +1,5 @@
 
-.. _FAQ: //www.bro.org/documentation/faq.html
+.. _FAQ: https://www.zeek.org/documentation/faq.html
 
 .. _quickstart:
 

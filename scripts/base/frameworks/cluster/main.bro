@@ -144,7 +144,7 @@ export {
 		## The node type doing all the actual traffic analysis.
 		WORKER,
 		## A node acting as a traffic recorder using the
-		## `Time Machine <http://bro.org/community/time-machine.html>`_
+		## `Time Machine <https://www.zeek.org/community/time-machine.html>`_
 		## software.
 		TIME_MACHINE,
 	};

@@ -4,7 +4,7 @@
 .. _MacPorts: http://www.macports.org
 .. _Fink: http://www.finkproject.org
 .. _Homebrew: http://brew.sh
-.. _bro downloads page: https://www.bro.org/download/index.html
+.. _downloads page: https://www.zeek.org/download/index.html
 
 .. _installing-bro:
 
@@ -127,7 +127,7 @@ code forms.
 Using Pre-Built Binary Release Packages
 ---------------------------------------
 
-See the `bro downloads page`_ for currently supported/targeted
+See the `downloads page`_ for currently supported/targeted
 platforms for binary releases and for installation instructions.
 
 * Linux Packages
@@ -143,7 +143,7 @@ Installing from Source
 ----------------------
 
 Bro releases are bundled into source packages for convenience and are
-available on the `bro downloads page`_.
+available on the `downloads page`_.
 
 Alternatively, the latest Bro development version
 can be obtained through git repositories
@@ -183,7 +183,7 @@ standard prefixes for binary Bro packages to be installed, so those are
 typically not good choices unless you are creating such a package.
 
 OpenBSD users, please see our `FAQ
-<https://www.bro.org/documentation/faq.html>`_ if you are having
+<https://www.zeek.org/documentation/faq.html>`_ if you are having
 problems installing Bro.
 
 Depending on the Bro package you downloaded, there may be auxiliary

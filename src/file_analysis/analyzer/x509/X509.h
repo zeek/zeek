@@ -8,23 +8,26 @@
 #include "Val.h"
 #include "X509Common.h"
 
-#if (OPENSSL_VERSION_NUMBER < 0x10002000L || LIBRESSL_VERSION_NUMBER)
+#if ( OPENSSL_VERSION_NUMBER < 0x10002000L ) || defined(LIBRESSL_VERSION_NUMBER)
 
 #define X509_get_signature_nid(x) OBJ_obj2nid((x)->sig_alg->algorithm)
 
 #endif
 
-#if (OPENSSL_VERSION_NUMBER < 0x1010000fL || LIBRESSL_VERSION_NUMBER)
+#if ( OPENSSL_VERSION_NUMBER < 0x1010000fL ) || defined(LIBRESSL_VERSION_NUMBER)
 
 #define X509_OBJECT_new()   (X509_OBJECT*)malloc(sizeof(X509_OBJECT))
 #define X509_OBJECT_free(a) free(a)
 
-#define OCSP_SINGLERESP_get0_id(s) (s)->certId
 #define OCSP_resp_get0_certs(x)    (x)->certs
 
 #define EVP_PKEY_get0_DSA(p)    ((p)->pkey.dsa)
 #define EVP_PKEY_get0_EC_KEY(p) ((p)->pkey.ec)
 #define EVP_PKEY_get0_RSA(p)    ((p)->pkey.rsa)
+
+#if !defined(LIBRESSL_VERSION_NUMBER) || ( LIBRESSL_VERSION_NUMBER < 0x2070000fL )
+
+#define OCSP_SINGLERESP_get0_id(s) (s)->certId
 
 static X509 *X509_OBJECT_get0_X509(const X509_OBJECT *a)
 {
@@ -54,6 +57,8 @@ static void RSA_get0_key(const RSA *r,
 	if ( d != nullptr )
 		*d = r->d;
 }
+
+#endif
 
 #endif
 

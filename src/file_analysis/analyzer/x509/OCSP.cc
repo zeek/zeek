@@ -44,7 +44,7 @@ static Val* get_ocsp_type(RecordVal* args, const char* name)
 
 static bool OCSP_RESPID_bio(OCSP_BASICRESP* basic_resp, BIO* bio)
 	{
-#if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
+#if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
 	ASN1_OCTET_STRING* key  = nullptr;
 	X509_NAME*         name = nullptr;
 
@@ -423,7 +423,7 @@ void file_analysis::OCSP::ParseRequest(OCSP_REQUEST* req, const char* fid)
 
 	uint64 version = 0;
 
-#if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
+#if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
 	if ( req->tbsRequest->version )
 		version = (uint64)ASN1_INTEGER_get(req->tbsRequest->version);
 #else
@@ -495,7 +495,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val, const char* fid)
 	if ( !basic_resp )
 		goto clean_up;
 
-#if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
+#if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
 	resp_data = basic_resp->tbsResponseData;
 	if ( !resp_data )
 		goto clean_up;
@@ -506,7 +506,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val, const char* fid)
 	vl->append(resp_val->Ref());
 	vl->append(status_val);
 
-#if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
+#if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
 	vl->append(new Val((uint64)ASN1_INTEGER_get(resp_data->version), TYPE_COUNT));
 #else
 	vl->append(parse_basic_resp_data_version(basic_resp));
@@ -526,7 +526,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val, const char* fid)
 		}
 
 	// producedAt
-#if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
+#if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
 	produced_at = resp_data->producedAt;
 #else
 	produced_at = OCSP_resp_get0_produced_at(basic_resp);
@@ -551,7 +551,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val, const char* fid)
 		// cert id
 		const OCSP_CERTID* cert_id = nullptr;
 
-#if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
+#if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
 		cert_id = single_resp->certId;
 #else
 		cert_id = OCSP_SINGLERESP_get0_id(single_resp);
@@ -618,7 +618,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val, const char* fid)
 			}
 		}
 
-#if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
+#if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
 	i2a_ASN1_OBJECT(bio, basic_resp->signatureAlgorithm->algorithm);
 	len = BIO_read(bio, buf, sizeof(buf));
 	vl->append(new StringVal(len, buf));
@@ -635,7 +635,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val, const char* fid)
 	certs_vector = new VectorVal(internal_type("x509_opaque_vector")->AsVectorType());
 	vl->append(certs_vector);
 
-#if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
+#if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
 	certs = basic_resp->certs;
 #else
 	certs = OCSP_resp_get0_certs(basic_resp);

@@ -1,4 +1,8 @@
 
+2.6-43 | 2019-01-07 09:50:43 -0800
+
+  * GH-227: Improve LibreSSL support (Jon Siwek, Corelight)
+
 2.6-41 | 2019-01-04 17:50:00 -0600
 
   * Replace some bro.org usages with zeek.org (Jon Siwek, Corelight)

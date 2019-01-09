@@ -11,7 +11,7 @@ class Plugin : public ::plugin::Plugin
 {
 protected:
 	// Overridden from plugin::Plugin.
-	virtual plugin::Configuration Configure();
+	plugin::Configuration Configure() override;
 };
 
 extern Plugin plugin;

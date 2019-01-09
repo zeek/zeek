@@ -40,7 +40,7 @@ void AF_PacketSource::Open()
 	// Create RX-ring
 	try {
 		rx_ring = new RX_Ring(socket_fd, buffer_size);
-	} catch (RX_RingException e) {
+	} catch (RX_RingException& e) {
 		Error(errno ? strerror(errno) : "unable to create RX-ring");
 		close(socket_fd);
 		return;
@@ -80,7 +80,7 @@ void AF_PacketSource::Open()
 	props.is_live = true;
 	props.link_type = DLT_EN10MB; // Ethernet headers
 
-	memset(&stats, 0, sizeof(stats));
+	stats.received = stats.dropped = stats.link = stats.bytes_received = 0;
 	num_discarded = 0;
 
 	Opened(props);

@@ -162,7 +162,7 @@ function new_session(c: connection, trans_id: count): Info
 	info$ts       = network_time();
 	info$id       = c$id;
 	info$uid      = c$uid;
-	info$proto    = get_conn_transport_proto(c$id);
+	info$proto    = get_port_transport_proto(c$id$resp_p);
 	info$trans_id = trans_id;
 	return info;
 	}

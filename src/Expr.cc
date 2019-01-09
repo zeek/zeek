@@ -1234,7 +1234,7 @@ NotExpr::NotExpr(Expr* arg_op) : UnaryExpr(EXPR_NOT, arg_op)
 
 Val* NotExpr::Fold(Val* v) const
 	{
-	return new Val(! v->InternalInt(), type->Tag());
+	return val_mgr->GetBool(!v->InternalInt());
 	}
 
 IMPLEMENT_SERIAL(NotExpr, SER_NOT_EXPR);

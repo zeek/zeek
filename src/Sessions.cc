@@ -533,6 +533,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 		unsigned int eth_len = 0;
 		unsigned int gre_len = gre_header_len(flags_ver);
 		unsigned int ppp_len = gre_version == 1 ? 4 : 0;
+		unsigned int erspan_len = 0;
 
 		if ( gre_version != 0 && gre_version != 1 )
 			{
@@ -548,6 +549,22 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 				// transparent ethernet bridging
 				eth_len = 14;
 				proto_typ = ntohs(*((uint16*)(data + gre_len + 12)));
+				}
+
+			if ( proto_typ == 0x88be && len > gre_len + 14 + 8)
+				{
+				// ERSPAN type II
+				erspan_len = 8;
+				eth_len = 14;
+				proto_typ = ntohs(*((uint16*)(data + gre_len + 20)));
+				}
+
+			if ( proto_typ == 0x22eb && len > gre_len + 14 + 12)
+				{
+				// ERSPAN type III
+				erspan_len = 12;
+				eth_len = 14;
+				proto_typ = ntohs(*((uint16*)(data + gre_len + 24)));
 				}
 
 			if ( proto_typ == 0x0800 )
@@ -590,7 +607,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 			return;
 			}
 
-		if ( len < gre_len + ppp_len + eth_len || caplen < gre_len + ppp_len + eth_len )
+		if ( len < gre_len + ppp_len + eth_len + erspan_len || caplen < gre_len + ppp_len + eth_len + erspan_len )
 			{
 			Weird("truncated_GRE", ip_hdr, encapsulation);
 			return;
@@ -609,9 +626,9 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 			proto = (ppp_proto == 0x0021) ? IPPROTO_IPV4 : IPPROTO_IPV6;
 			}
 
-		data += gre_len + ppp_len + eth_len;
-		len -= gre_len + ppp_len + eth_len;
-		caplen -= gre_len + ppp_len + eth_len;
+		data += gre_len + ppp_len + eth_len + erspan_len;
+		len -= gre_len + ppp_len + eth_len + erspan_len;
+		caplen -= gre_len + ppp_len + eth_len + erspan_len;
 
 		// Treat GRE tunnel like IP tunnels, fallthrough to logic below now
 		// that GRE header is stripped and only payload packet remains.

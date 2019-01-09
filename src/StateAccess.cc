@@ -252,6 +252,14 @@ bool StateAccess::MergeTables(TableVal* dst, Val* src)
 	return true;
 	}
 
+static Val* GetInteger(bro_int_t n, TypeTag t)
+	{
+	if ( t == TYPE_INT )
+		return val_mgr->GetInt(n);
+
+	return val_mgr->GetCount(n);
+	}
+
 void StateAccess::Replay()
 	{
 	// For simplicity we assume that we only replay unserialized accesses.
@@ -298,7 +306,7 @@ void StateAccess::Replay()
 			bro_int_t amount =
 				op1.val->CoerceToInt() - op2->CoerceToInt();
 
-			target.id->SetVal(new Val(v->CoerceToInt() + amount, t),
+			target.id->SetVal(GetInteger(v->CoerceToInt() + amount, t),
 						OP_INCR);
 			}
 		break;
@@ -392,7 +400,7 @@ void StateAccess::Replay()
 			t = v->Type()->AsTableType()->YieldType()->Tag();
 			Val* lookup_op1 = v->AsTableVal()->Lookup(op1.val);
 			int delta = lookup_op1->CoerceToInt() + amount;
-			Val* new_val = new Val(delta, t);
+			Val* new_val = GetInteger(delta, t);
 			v->AsTableVal()->Assign(op1.val, new_val, OP_INCR );
 			}
 
@@ -407,7 +415,7 @@ void StateAccess::Replay()
 					v->AsRecordVal()->Lookup(idx);
 				bro_int_t delta =
 					lookup_field->CoerceToInt() + amount;
-				Val* new_val = new Val(delta, t);
+				Val* new_val = GetInteger(delta, t);
 				v->AsRecordVal()->Assign(idx, new_val, OP_INCR);
 				}
 			else
@@ -420,7 +428,7 @@ void StateAccess::Replay()
 			t = v->Type()->AsVectorType()->YieldType()->Tag();
 			Val* lookup_op1 = v->AsVectorVal()->Lookup(index);
 			int delta = lookup_op1->CoerceToInt() + amount;
-			Val* new_val = new Val(delta, t);
+			Val* new_val = GetInteger(delta, t);
 			v->AsVectorVal()->Assign(index, new_val);
 			}
 

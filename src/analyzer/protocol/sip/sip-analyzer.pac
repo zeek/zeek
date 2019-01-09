@@ -69,7 +69,7 @@ refine flow SIP_Flow += {
 
 		for ( unsigned int i = 0; i < headers.size(); ++i )
 			{ // index starting from 1
-			Val* index = new Val(i + 1, TYPE_COUNT);
+			Val* index = val_mgr->GetCount(i + 1);
 			t->Assign(index, headers[i]);
 			Unref(index);
 			}
@@ -111,7 +111,7 @@ refine flow SIP_Flow += {
 			}
 		else
 			{
-			name_val = new StringVal("");
+			name_val = val_mgr->GetEmptyString();
 			}
 
 		header_record->Assign(0, name_val);

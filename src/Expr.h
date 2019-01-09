@@ -1144,10 +1144,6 @@ val_list* eval_list(Frame* f, const ListExpr* l);
 // a canonical form.
 extern int expr_greater(const Expr* e1, const Expr* e2);
 
-// Return constants of the given type.
-Expr* make_zero(BroType* t);
-Expr* make_one(BroType* t);
-
 // True if the given Val* has a vector type
 inline bool is_vector(Expr* e)	{ return e->Type()->Tag() == TYPE_VECTOR; }
 

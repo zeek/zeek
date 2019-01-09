@@ -61,7 +61,7 @@ refine connection SMB_Conn += {
 
 		if ( ! payload_str )
 			{
-			payload_str = new StringVal("");
+			payload_str = val_mgr->GetEmptyString();
 			}
 
 		BifEvent::generate_smb1_transaction_request(bro_analyzer(),
@@ -107,7 +107,7 @@ refine connection SMB_Conn += {
 
 		if ( ! payload_str )
 			{
-			payload_str = new StringVal("");
+			payload_str = val_mgr->GetEmptyString();
 			}
 
 		BifEvent::generate_smb1_transaction_response(bro_analyzer(),

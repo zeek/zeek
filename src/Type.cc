@@ -1445,10 +1445,14 @@ EnumType::EnumType(EnumType* e)
 
 	for ( NameMap::iterator it = e->names.begin(); it != e->names.end(); ++it )
 		names[it->first] = it->second;
+
+	vals = e->vals;
 	}
 
 EnumType::~EnumType()
 	{
+	for ( auto& kv : vals )
+		Unref(kv.second);
 	}
 
 // Note, we use reporter->Error() here (not Error()) to include the current script
@@ -1524,6 +1528,9 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 
 	AddNameInternal(module_name, name, val, is_export);
 
+	if ( vals.find(val) == vals.end() )
+		vals[val] = new EnumVal(this, val);
+
 	set<BroType*> types = BroType::GetAliases(GetName());
 	set<BroType*>::const_iterator it;
 
@@ -1569,6 +1576,23 @@ EnumType::enum_name_list EnumType::Names() const
 		n.push_back(std::make_pair(iter->first, iter->second));
 
 	return n;
+	}
+
+EnumVal* EnumType::GetVal(bro_int_t i)
+	{
+	auto it = vals.find(i);
+	EnumVal* rval;
+
+	if ( it == vals.end() )
+		{
+		rval = new EnumVal(this, i);
+		vals[i] = rval;
+		}
+	else
+		rval = it->second;
+
+	::Ref(rval);
+	return rval;
 	}
 
 void EnumType::DescribeReST(ODesc* d, bool roles_only) const
@@ -1690,6 +1714,7 @@ bool EnumType::DoUnserialize(UnserialInfo* info)
 
 		names[name] = val;
 		delete [] name; // names[name] converts to std::string
+		vals[val] = new EnumVal(this, val);
 		}
 
 	return true;

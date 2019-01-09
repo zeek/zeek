@@ -25,7 +25,7 @@
 			VectorVal* cipher_vec = new VectorVal(internal_type("index_vec")->AsVectorType());
 			for ( unsigned int i = 0; i < cipher_suites->size(); ++i )
 				{
-				Val* ciph = new Val((*cipher_suites)[i], TYPE_COUNT);
+				Val* ciph = val_mgr->GetCount((*cipher_suites)[i]);
 				cipher_vec->Assign(i, ciph);
 				}
 
@@ -34,7 +34,7 @@
 				{
 				for ( unsigned int i = 0; i < compression_methods->size(); ++i )
 					{
-					Val* comp = new Val((*compression_methods)[i], TYPE_COUNT);
+					Val* comp = val_mgr->GetCount((*compression_methods)[i]);
 					comp_vec->Assign(i, comp);
 					}
 				}

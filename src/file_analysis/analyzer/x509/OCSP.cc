@@ -89,10 +89,10 @@ bool ocsp_add_cert_id(const OCSP_CERTID* cert_id, val_list* vl, BIO* bio)
 	if ( ! res )
 		{
 		reporter->Weird("OpenSSL failed to get OCSP_CERTID info");
-		vl->append(new StringVal(""));
-		vl->append(new StringVal(""));
-		vl->append(new StringVal(""));
-		vl->append(new StringVal(""));
+		vl->append(val_mgr->GetEmptyString());
+		vl->append(val_mgr->GetEmptyString());
+		vl->append(val_mgr->GetEmptyString());
+		vl->append(val_mgr->GetEmptyString());
 		return false;
 		}
 
@@ -208,7 +208,7 @@ static StringVal* parse_basic_resp_sig_alg(OCSP_BASICRESP* basic_resp,
 	der_basic_resp_len = i2d_OCSP_BASICRESP(basic_resp, &der_basic_resp_dat);
 
 	if ( der_basic_resp_len <= 0 )
-		return new StringVal("");
+		return val_mgr->GetEmptyString();
 
 	const unsigned char* const_der_basic_resp_dat = der_basic_resp_dat;
 
@@ -218,14 +218,14 @@ static StringVal* parse_basic_resp_sig_alg(OCSP_BASICRESP* basic_resp,
 	if ( ! bseq )
 		{
 		OPENSSL_free(der_basic_resp_dat);
-		return new StringVal("");
+		return val_mgr->GetEmptyString();
 		}
 
 	if ( sk_ASN1_TYPE_num(bseq) < 3 )
 		{
 		sk_ASN1_TYPE_free(bseq);
 		OPENSSL_free(der_basic_resp_dat);
-		return new StringVal("");
+		return val_mgr->GetEmptyString();
 		}
 
 	auto constexpr sig_alg_idx = 1u;
@@ -235,7 +235,7 @@ static StringVal* parse_basic_resp_sig_alg(OCSP_BASICRESP* basic_resp,
 		{
 		sk_ASN1_TYPE_free(bseq);
 		OPENSSL_free(der_basic_resp_dat);
-		return new StringVal("");
+		return val_mgr->GetEmptyString();
 		}
 
 	auto aseq_str = aseq_type->value.asn1_string;
@@ -248,7 +248,7 @@ static StringVal* parse_basic_resp_sig_alg(OCSP_BASICRESP* basic_resp,
 		{
 		sk_ASN1_TYPE_free(bseq);
 		OPENSSL_free(der_basic_resp_dat);
-		return new StringVal("");
+		return val_mgr->GetEmptyString();
 		}
 
 	if ( sk_ASN1_TYPE_num(aseq) < 1 )
@@ -256,7 +256,7 @@ static StringVal* parse_basic_resp_sig_alg(OCSP_BASICRESP* basic_resp,
 		sk_ASN1_TYPE_free(aseq);
 		sk_ASN1_TYPE_free(bseq);
 		OPENSSL_free(der_basic_resp_dat);
-		return new StringVal("");
+		return val_mgr->GetEmptyString();
 		}
 
 	auto constexpr alg_obj_idx = 0u;
@@ -267,7 +267,7 @@ static StringVal* parse_basic_resp_sig_alg(OCSP_BASICRESP* basic_resp,
 		sk_ASN1_TYPE_free(aseq);
 		sk_ASN1_TYPE_free(bseq);
 		OPENSSL_free(der_basic_resp_dat);
-		return new StringVal("");
+		return val_mgr->GetEmptyString();
 		}
 
 	auto alg_obj = alg_obj_type->value.object;
@@ -290,7 +290,7 @@ static Val* parse_basic_resp_data_version(OCSP_BASICRESP* basic_resp)
 	der_basic_resp_len = i2d_OCSP_BASICRESP(basic_resp, &der_basic_resp_dat);
 
 	if ( der_basic_resp_len <= 0 )
-		return new Val(-1, TYPE_COUNT);
+		return val_mgr->GetCount(-1);
 
 	const unsigned char* const_der_basic_resp_dat = der_basic_resp_dat;
 
@@ -300,14 +300,14 @@ static Val* parse_basic_resp_data_version(OCSP_BASICRESP* basic_resp)
 	if ( ! bseq )
 		{
 		OPENSSL_free(der_basic_resp_dat);
-		return new Val(-1, TYPE_COUNT);
+		return val_mgr->GetCount(-1);
 		}
 
 	if ( sk_ASN1_TYPE_num(bseq) < 3 )
 		{
 		sk_ASN1_TYPE_free(bseq);
 		OPENSSL_free(der_basic_resp_dat);
-		return new Val(-1, TYPE_COUNT);
+		return val_mgr->GetCount(-1);
 		}
 
 	auto constexpr resp_data_idx = 0u;
@@ -317,7 +317,7 @@ static Val* parse_basic_resp_data_version(OCSP_BASICRESP* basic_resp)
 		{
 		sk_ASN1_TYPE_free(bseq);
 		OPENSSL_free(der_basic_resp_dat);
-		return new Val(-1, TYPE_COUNT);
+		return val_mgr->GetCount(-1);
 		}
 
 	auto dseq_str = dseq_type->value.asn1_string;
@@ -330,7 +330,7 @@ static Val* parse_basic_resp_data_version(OCSP_BASICRESP* basic_resp)
 		{
 		sk_ASN1_TYPE_free(bseq);
 		OPENSSL_free(der_basic_resp_dat);
-		return new StringVal("");
+		return val_mgr->GetEmptyString();
 		}
 
 	if ( sk_ASN1_TYPE_num(dseq) < 1 )
@@ -338,7 +338,7 @@ static Val* parse_basic_resp_data_version(OCSP_BASICRESP* basic_resp)
 		sk_ASN1_TYPE_free(dseq);
 		sk_ASN1_TYPE_free(bseq);
 		OPENSSL_free(der_basic_resp_dat);
-		return new StringVal("");
+		return val_mgr->GetEmptyString();
 		}
 
 /*-  ResponseData ::= SEQUENCE {
@@ -358,14 +358,14 @@ static Val* parse_basic_resp_data_version(OCSP_BASICRESP* basic_resp)
 		sk_ASN1_TYPE_free(bseq);
 		OPENSSL_free(der_basic_resp_dat);
 		// Not present, use default value.
-		return new Val(0, TYPE_COUNT);
+		return val_mgr->GetCount(0);
 		}
 
 	uint64_t asn1_int = ASN1_INTEGER_get(version_type->value.integer);
 	sk_ASN1_TYPE_free(dseq);
 	sk_ASN1_TYPE_free(bseq);
 	OPENSSL_free(der_basic_resp_dat);
-	return new Val(asn1_int, TYPE_COUNT);
+	return val_mgr->GetCount(asn1_int);
 	}
 
 static uint64 parse_request_version(OCSP_REQUEST* req)
@@ -431,7 +431,7 @@ void file_analysis::OCSP::ParseRequest(OCSP_REQUEST* req, const char* fid)
 	// TODO: try to parse out general name ?
 #endif
 
-	vl->append(new Val(version, TYPE_COUNT));
+	vl->append(val_mgr->GetCount(version));
 
 	BIO *bio = BIO_new(BIO_s_mem());
 
@@ -507,7 +507,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val, const char* fid)
 	vl->append(status_val);
 
 #if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
-	vl->append(new Val((uint64)ASN1_INTEGER_get(resp_data->version), TYPE_COUNT));
+	vl->append(val_mgr->GetCount((uint64)ASN1_INTEGER_get(resp_data->version)));
 #else
 	vl->append(parse_basic_resp_data_version(basic_resp));
 #endif
@@ -522,7 +522,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val, const char* fid)
 	else
 		{
 		reporter->Weird("OpenSSL failed to get OCSP responder id");
-		vl->append(new StringVal(""));
+		vl->append(val_mgr->GetEmptyString());
 		}
 
 	// producedAt
@@ -591,19 +591,19 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val, const char* fid)
 			}
 		else
 			{
-			rvl->append(new Val(0, TYPE_TIME));
+			rvl->append(new Val(0.0, TYPE_TIME));
 			rvl->append(new StringVal(0, ""));
 			}
 
 		if ( this_update )
 			rvl->append(new Val(GetTimeFromAsn1(this_update, fid, reporter), TYPE_TIME));
 		else
-			rvl->append(new Val(0, TYPE_TIME));
+			rvl->append(new Val(0.0, TYPE_TIME));
 
 		if ( next_update )
 			rvl->append(new Val(GetTimeFromAsn1(next_update, fid, reporter), TYPE_TIME));
 		else
-			rvl->append(new Val(0, TYPE_TIME));
+			rvl->append(new Val(0.0, TYPE_TIME));
 
 		mgr.QueueEvent(ocsp_response_certificate, rvl);
 

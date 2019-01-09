@@ -7,7 +7,7 @@ refine connection SMB_Conn += {
 			VectorVal* dialects = new VectorVal(index_vec);
 			for ( unsigned int i = 0; i < ${val.dialects}->size(); ++i )
 				{
-				dialects->Assign(i, new Val((*${val.dialects})[i], TYPE_COUNT));
+				dialects->Assign(i, val_mgr->GetCount((*${val.dialects})[i]));
 				}
 			BifEvent::generate_smb2_negotiate_request(bro_analyzer(), bro_analyzer()->Conn(),
 			                                          BuildSMB2HeaderVal(h),
@@ -23,8 +23,8 @@ refine connection SMB_Conn += {
 			{
 			RecordVal* nr = new RecordVal(BifType::Record::SMB2::NegotiateResponse);
 
-			nr->Assign(0, new Val(${val.dialect_revision}, TYPE_COUNT));
-			nr->Assign(1, new Val(${val.security_mode}, TYPE_COUNT));
+			nr->Assign(0, val_mgr->GetCount(${val.dialect_revision}));
+			nr->Assign(1, val_mgr->GetCount(${val.security_mode}));
 			nr->Assign(2, BuildSMB2GUID(${val.server_guid})),
 			nr->Assign(3, filetime2brotime(${val.system_time}));
 			nr->Assign(4, filetime2brotime(${val.server_start_time}));

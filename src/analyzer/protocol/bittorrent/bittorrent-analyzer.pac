@@ -222,7 +222,7 @@ flow BitTorrent_Flow(is_orig: bool) {
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(),
-				port_mgr->Get(listen_port, TRANSPORT_TCP));
+				val_mgr->GetPort(listen_port, TRANSPORT_TCP));
 			}
 
 		return true;

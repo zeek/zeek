@@ -469,7 +469,7 @@ expr:
 	|	TOK_LOCAL local_id '=' expr
 			{
 			set_location(@2, @4);
-			$$ = add_and_assign_local($2, $4, new Val(1, TYPE_BOOL));
+			$$ = add_and_assign_local($2, $4, val_mgr->GetBool(1));
 			}
 
 	|	expr '[' expr_list ']'
@@ -481,7 +481,7 @@ expr:
 	|	expr '[' opt_expr ':' opt_expr ']'
 			{
 			set_location(@1, @6);
-			Expr* low = $3 ? $3 : new ConstExpr(new Val(0, TYPE_COUNT));
+			Expr* low = $3 ? $3 : new ConstExpr(val_mgr->GetCount(0));
 			Expr* high = $5 ? $5 : new SizeExpr($1);
 			ListExpr* le = new ListExpr(low);
 			le->Append(high);
@@ -695,7 +695,7 @@ expr:
 							       id->Name());
 					if ( intval < 0 )
 						reporter->InternalError("enum value not found for %s", id->Name());
-					$$ = new ConstExpr(new EnumVal(intval, t));
+					$$ = new ConstExpr(t->GetVal(intval));
 					}
 				else
 					$$ = new NameExpr(id);

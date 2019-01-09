@@ -94,7 +94,7 @@ int PortmapperInterp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status status
 			if ( ! buf )
 				return 0;
 
-			reply = new Val(status, TYPE_BOOL);
+			reply = val_mgr->GetBool(status);
 			event = pm_request_set;
 			}
 		else
@@ -109,7 +109,7 @@ int PortmapperInterp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status status
 			if ( ! buf )
 				return 0;
 
-			reply = new Val(status, TYPE_BOOL);
+			reply = val_mgr->GetBool(status);
 			event = pm_request_unset;
 			}
 		else
@@ -126,7 +126,7 @@ int PortmapperInterp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status status
 
 			RecordVal* rv = c->RequestVal()->AsRecordVal();
 			Val* is_tcp = rv->Lookup(2);
-			reply = port_mgr->Get(CheckPort(port),
+			reply = val_mgr->GetPort(CheckPort(port),
 					is_tcp->IsOne() ?
 						TRANSPORT_TCP : TRANSPORT_UDP);
 			event = pm_request_getport;
@@ -150,7 +150,7 @@ int PortmapperInterp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status status
 				if ( ! m )
 					break;
 
-				Val* index = new Val(++nmap, TYPE_COUNT);
+				Val* index = val_mgr->GetCount(++nmap);
 				mappings->Assign(index, m);
 				Unref(index);
 				}
@@ -178,7 +178,7 @@ int PortmapperInterp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status status
 			if ( ! opaque_reply )
 				return 0;
 
-			reply = port_mgr->Get(CheckPort(port), TRANSPORT_UDP);
+			reply = val_mgr->GetPort(CheckPort(port), TRANSPORT_UDP);
 			event = pm_request_callit;
 			}
 		else
@@ -197,12 +197,12 @@ Val* PortmapperInterp::ExtractMapping(const u_char*& buf, int& len)
 	{
 	RecordVal* mapping = new RecordVal(pm_mapping);
 
-	mapping->Assign(0, new Val(extract_XDR_uint32(buf, len), TYPE_COUNT));
-	mapping->Assign(1, new Val(extract_XDR_uint32(buf, len), TYPE_COUNT));
+	mapping->Assign(0, val_mgr->GetCount(extract_XDR_uint32(buf, len)));
+	mapping->Assign(1, val_mgr->GetCount(extract_XDR_uint32(buf, len)));
 
 	int is_tcp = extract_XDR_uint32(buf, len) == IPPROTO_TCP;
 	uint32 port = extract_XDR_uint32(buf, len);
-	mapping->Assign(2, port_mgr->Get(CheckPort(port),
+	mapping->Assign(2, val_mgr->GetPort(CheckPort(port),
 			is_tcp ? TRANSPORT_TCP : TRANSPORT_UDP));
 
 	if ( ! buf )
@@ -218,11 +218,11 @@ Val* PortmapperInterp::ExtractPortRequest(const u_char*& buf, int& len)
 	{
 	RecordVal* pr = new RecordVal(pm_port_request);
 
-	pr->Assign(0, new Val(extract_XDR_uint32(buf, len), TYPE_COUNT));
-	pr->Assign(1, new Val(extract_XDR_uint32(buf, len), TYPE_COUNT));
+	pr->Assign(0, val_mgr->GetCount(extract_XDR_uint32(buf, len)));
+	pr->Assign(1, val_mgr->GetCount(extract_XDR_uint32(buf, len)));
 
 	int is_tcp = extract_XDR_uint32(buf, len) == IPPROTO_TCP;
-	pr->Assign(2, new Val(is_tcp, TYPE_BOOL));
+	pr->Assign(2, val_mgr->GetBool(is_tcp));
 	(void) extract_XDR_uint32(buf, len);	// consume the bogus port
 
 	if ( ! buf )
@@ -238,13 +238,13 @@ Val* PortmapperInterp::ExtractCallItRequest(const u_char*& buf, int& len)
 	{
 	RecordVal* c = new RecordVal(pm_callit_request);
 
-	c->Assign(0, new Val(extract_XDR_uint32(buf, len), TYPE_COUNT));
-	c->Assign(1, new Val(extract_XDR_uint32(buf, len), TYPE_COUNT));
-	c->Assign(2, new Val(extract_XDR_uint32(buf, len), TYPE_COUNT));
+	c->Assign(0, val_mgr->GetCount(extract_XDR_uint32(buf, len)));
+	c->Assign(1, val_mgr->GetCount(extract_XDR_uint32(buf, len)));
+	c->Assign(2, val_mgr->GetCount(extract_XDR_uint32(buf, len)));
 
 	int arg_n;
 	(void) extract_XDR_opaque(buf, len, arg_n);
-	c->Assign(3, new Val(arg_n, TYPE_COUNT));
+	c->Assign(3, val_mgr->GetCount(arg_n));
 
 	if ( ! buf )
 		{
@@ -263,7 +263,7 @@ uint32 PortmapperInterp::CheckPort(uint32 port)
 			{
 			val_list* vl = new val_list;
 			vl->append(analyzer->BuildConnVal());
-			vl->append(new Val(port, TYPE_COUNT));
+			vl->append(val_mgr->GetCount(port));
 			analyzer->ConnectionEvent(pm_bad_port, vl);
 			}
 
@@ -295,7 +295,7 @@ void PortmapperInterp::Event(EventHandlerPtr f, Val* request, BifEnum::rpc_statu
 		}
 	else
 		{
-		vl->append(new EnumVal(status, BifType::Enum::rpc_status));
+		vl->append(BifType::Enum::rpc_status->GetVal(status));
 		if ( request )
 			vl->append(request);
 		}

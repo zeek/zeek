@@ -393,7 +393,6 @@ void termination_signal()
 	{
 	set_processing_status("TERMINATING", "termination_signal");
 
-	Val sval(signal_val, TYPE_COUNT);
 	reporter->Info("received termination signal");
 	net_get_final_stats();
 	done_with_network();
@@ -1177,7 +1176,7 @@ int main(int argc, char** argv)
 
 		val_list* vl = new val_list;
 		vl->append(new StringVal(i->name.c_str()));
-		vl->append(new Val(i->include_level, TYPE_COUNT));
+		vl->append(val_mgr->GetCount(i->include_level));
 		mgr.QueueEvent(bro_script_loaded, vl);
 		}
 

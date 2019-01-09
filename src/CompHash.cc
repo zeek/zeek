@@ -685,9 +685,11 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 		kp1 = reinterpret_cast<const char*>(kp+1);
 
 		if ( tag == TYPE_ENUM )
-			pval = new EnumVal(*kp, t->AsEnumType());
+			pval = t->AsEnumType()->GetVal(*kp);
+		else if ( tag == TYPE_BOOL )
+			pval = val_mgr->GetBool(*kp);
 		else
-			pval = new Val(*kp, tag);
+			pval = val_mgr->GetInt(*kp);
 		}
 		break;
 
@@ -699,11 +701,11 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 		switch ( tag ) {
 		case TYPE_COUNT:
 		case TYPE_COUNTER:
-			pval = new Val(*kp, tag);
+			pval = val_mgr->GetCount(*kp);
 			break;
 
 		case TYPE_PORT:
-			pval = port_mgr->Get(*kp);
+			pval = val_mgr->GetPort(*kp);
 			break;
 
 		default:

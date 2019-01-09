@@ -4,21 +4,21 @@ RecordVal* BuildGTPv1Hdr(const GTPv1_Header* pdu)
 	{
 	RecordVal* rv = new RecordVal(BifType::Record::gtpv1_hdr);
 
-	rv->Assign(0, new Val(pdu->version(), TYPE_COUNT));
-	rv->Assign(1, new Val(pdu->pt_flag(), TYPE_BOOL));
-	rv->Assign(2, new Val(pdu->rsv(), TYPE_BOOL));
-	rv->Assign(3, new Val(pdu->e_flag(), TYPE_BOOL));
-	rv->Assign(4, new Val(pdu->s_flag(), TYPE_BOOL));
-	rv->Assign(5, new Val(pdu->pn_flag(), TYPE_BOOL));
-	rv->Assign(6, new Val(pdu->msg_type(), TYPE_COUNT));
-	rv->Assign(7, new Val(pdu->length(), TYPE_COUNT));
-	rv->Assign(8, new Val(pdu->teid(), TYPE_COUNT));
+	rv->Assign(0, val_mgr->GetCount(pdu->version()));
+	rv->Assign(1, val_mgr->GetBool(pdu->pt_flag()));
+	rv->Assign(2, val_mgr->GetBool(pdu->rsv()));
+	rv->Assign(3, val_mgr->GetBool(pdu->e_flag()));
+	rv->Assign(4, val_mgr->GetBool(pdu->s_flag()));
+	rv->Assign(5, val_mgr->GetBool(pdu->pn_flag()));
+	rv->Assign(6, val_mgr->GetCount(pdu->msg_type()));
+	rv->Assign(7, val_mgr->GetCount(pdu->length()));
+	rv->Assign(8, val_mgr->GetCount(pdu->teid()));
 
 	if ( pdu->has_opt() )
 		{
-		rv->Assign(9, new Val(pdu->opt_hdr()->seq(), TYPE_COUNT));
-		rv->Assign(10, new Val(pdu->opt_hdr()->n_pdu(), TYPE_COUNT));
-		rv->Assign(11, new Val(pdu->opt_hdr()->next_type(), TYPE_COUNT));
+		rv->Assign(9, val_mgr->GetCount(pdu->opt_hdr()->seq()));
+		rv->Assign(10, val_mgr->GetCount(pdu->opt_hdr()->n_pdu()));
+		rv->Assign(11, val_mgr->GetCount(pdu->opt_hdr()->next_type()));
 		}
 
 	return rv;
@@ -26,64 +26,64 @@ RecordVal* BuildGTPv1Hdr(const GTPv1_Header* pdu)
 
 Val* BuildIMSI(const InformationElement* ie)
 	{
-	return new Val(ie->imsi()->value(), TYPE_COUNT);
+	return val_mgr->GetCount(ie->imsi()->value());
 	}
 
 Val* BuildRAI(const InformationElement* ie)
 	{
 	RecordVal* ev = new RecordVal(BifType::Record::gtp_rai);
-	ev->Assign(0, new Val(ie->rai()->mcc(), TYPE_COUNT));
-	ev->Assign(1, new Val(ie->rai()->mnc(), TYPE_COUNT));
-	ev->Assign(2, new Val(ie->rai()->lac(), TYPE_COUNT));
-	ev->Assign(3, new Val(ie->rai()->rac(), TYPE_COUNT));
+	ev->Assign(0, val_mgr->GetCount(ie->rai()->mcc()));
+	ev->Assign(1, val_mgr->GetCount(ie->rai()->mnc()));
+	ev->Assign(2, val_mgr->GetCount(ie->rai()->lac()));
+	ev->Assign(3, val_mgr->GetCount(ie->rai()->rac()));
 	return ev;
 	}
 
 Val* BuildRecovery(const InformationElement* ie)
 	{
-	return new Val(ie->recovery()->restart_counter(), TYPE_COUNT);
+	return val_mgr->GetCount(ie->recovery()->restart_counter());
 	}
 
 Val* BuildSelectionMode(const InformationElement* ie)
 	{
-	return new Val(ie->selection_mode()->mode(), TYPE_COUNT);
+	return val_mgr->GetCount(ie->selection_mode()->mode());
 	}
 
 Val* BuildTEID1(const InformationElement* ie)
 	{
-	return new Val(ie->teid1()->value(), TYPE_COUNT);
+	return val_mgr->GetCount(ie->teid1()->value());
 	}
 
 Val* BuildTEID_ControlPlane(const InformationElement* ie)
 	{
-	return new Val(ie->teidcp()->value(), TYPE_COUNT);
+	return val_mgr->GetCount(ie->teidcp()->value());
 	}
 
 Val* BuildNSAPI(const InformationElement* ie)
 	{
-	return new Val(ie->nsapi()->nsapi(), TYPE_COUNT);
+	return val_mgr->GetCount(ie->nsapi()->nsapi());
 	}
 
 Val* BuildChargingCharacteristics(const InformationElement* ie)
 	{
-	return new Val(ie->charging_characteristics()->value(), TYPE_COUNT);
+	return val_mgr->GetCount(ie->charging_characteristics()->value());
 	}
 
 Val* BuildTraceReference(const InformationElement* ie)
 	{
-	return new Val(ie->trace_reference()->value(), TYPE_COUNT);
+	return val_mgr->GetCount(ie->trace_reference()->value());
 	}
 
 Val* BuildTraceType(const InformationElement* ie)
 	{
-	return new Val(ie->trace_type()->value(), TYPE_COUNT);
+	return val_mgr->GetCount(ie->trace_type()->value());
 	}
 
 Val* BuildEndUserAddr(const InformationElement* ie)
 	{
 	RecordVal* ev = new RecordVal(BifType::Record::gtp_end_user_addr);
-	ev->Assign(0, new Val(ie->end_user_addr()->pdp_type_org(), TYPE_COUNT));
-	ev->Assign(1, new Val(ie->end_user_addr()->pdp_type_num(), TYPE_COUNT));
+	ev->Assign(0, val_mgr->GetCount(ie->end_user_addr()->pdp_type_org()));
+	ev->Assign(1, val_mgr->GetCount(ie->end_user_addr()->pdp_type_num()));
 
 	int len = ie->end_user_addr()->pdp_addr().length();
 
@@ -157,8 +157,7 @@ Val* BuildQoS_Profile(const InformationElement* ie)
 	const u_char* d = (const u_char*) ie->qos_profile()->data().data();
 	int len = ie->qos_profile()->data().length();
 
-	ev->Assign(0, new Val(ie->qos_profile()->alloc_retention_priority(),
-	                      TYPE_COUNT));
+	ev->Assign(0, val_mgr->GetCount(ie->qos_profile()->alloc_retention_priority()));
 	ev->Assign(1, new StringVal(new BroString(d, len, 0)));
 
 	return ev;
@@ -192,7 +191,7 @@ Val* BuildPrivateExt(const InformationElement* ie)
 	const uint8* d = ie->private_ext()->value().data();
 	int len = ie->private_ext()->value().length();
 
-	ev->Assign(0, new Val(ie->private_ext()->id(), TYPE_COUNT));
+	ev->Assign(0, val_mgr->GetCount(ie->private_ext()->id()));
 	ev->Assign(1, new StringVal(new BroString((const u_char*) d, len, 0)));
 
 	return ev;
@@ -200,17 +199,17 @@ Val* BuildPrivateExt(const InformationElement* ie)
 
 Val* BuildCause(const InformationElement* ie)
 	{
-	return new Val(ie->cause()->value(), TYPE_COUNT);
+	return val_mgr->GetCount(ie->cause()->value());
 	}
 
 Val* BuildReorderReq(const InformationElement* ie)
 	{
-	return new Val(ie->reorder_req()->req(), TYPE_BOOL);
+	return val_mgr->GetBool(ie->reorder_req()->req());
 	}
 
 Val* BuildChargingID(const InformationElement* ie)
 	{
-	return new Val(ie->charging_id()->value(), TYPE_COUNT);;
+	return val_mgr->GetCount(ie->charging_id()->value());;
 	}
 
 Val* BuildChargingGatewayAddr(const InformationElement* ie)
@@ -227,7 +226,7 @@ Val* BuildChargingGatewayAddr(const InformationElement* ie)
 
 Val* BuildTeardownInd(const InformationElement* ie)
 	{
-	return new Val(ie->teardown_ind()->ind(), TYPE_BOOL);
+	return val_mgr->GetBool(ie->teardown_ind()->ind());
 	}
 
 void CreatePDP_Request(const BroAnalyzer& a, const GTPv1_Header* pdu)

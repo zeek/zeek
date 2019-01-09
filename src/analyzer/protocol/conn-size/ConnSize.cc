@@ -49,8 +49,8 @@ void ConnSize_Analyzer::ThresholdEvent(EventHandlerPtr f, uint64 threshold, bool
 
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
-	vl->append(new Val(threshold, TYPE_COUNT));
-	vl->append(new Val(is_orig, TYPE_BOOL));
+	vl->append(val_mgr->GetCount(threshold));
+	vl->append(val_mgr->GetBool(is_orig));
 	ConnectionEvent(f, vl);
 	}
 

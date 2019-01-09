@@ -106,13 +106,13 @@ function Broker::publish%(topic: string, ...%): bool
 		args.append((*bif_args)[i]);
 
 	auto rval = publish_event_args(args, topic->AsString(), frame);
-	return new Val(rval, TYPE_BOOL);
+	return val_mgr->GetBool(rval);
 	%}
 
 function Broker::__flush_logs%(%): count
 	%{
 	auto rval = broker_mgr->FlushLogBuffers();
-	return new Val(static_cast<uint64>(rval), TYPE_COUNT);
+	return val_mgr->GetCount(static_cast<uint64>(rval));
 	%}
 
 function Broker::__publish_id%(topic: string, id: string%): bool
@@ -120,42 +120,42 @@ function Broker::__publish_id%(topic: string, id: string%): bool
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->PublishIdentifier(topic->CheckString(),
 	                                          id->CheckString());
-	return new Val(rval, TYPE_BOOL);
+	return val_mgr->GetBool(rval);
 	%}
 
 function Broker::__auto_publish%(topic: string, ev: any%): bool
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->AutoPublishEvent(topic->CheckString(), ev);
-	return new Val(rval, TYPE_BOOL);
+	return val_mgr->GetBool(rval);
 	%}
 
 function Broker::__auto_unpublish%(topic: string, ev: any%): bool
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->AutoUnpublishEvent(topic->CheckString(), ev);
-	return new Val(rval, TYPE_BOOL);
+	return val_mgr->GetBool(rval);
 	%}
 
 function Broker::__subscribe%(topic_prefix: string%): bool
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->Subscribe(topic_prefix->CheckString());
-	return new Val(rval, TYPE_BOOL);
+	return val_mgr->GetBool(rval);
 	%}
 
 function Broker::__forward%(topic_prefix: string%): bool
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->Forward(topic_prefix->CheckString());
-	return new Val(rval, TYPE_BOOL);
+	return val_mgr->GetBool(rval);
 	%}
 
 function Broker::__unsubscribe%(topic_prefix: string%): bool
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->Unsubscribe(topic_prefix->CheckString());
-	return new Val(rval, TYPE_BOOL);
+	return val_mgr->GetBool(rval);
 	%}
 
 module Cluster;
@@ -191,7 +191,7 @@ function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
 	if ( ! topic->AsString()->Len() )
 		{
 		Unref(topic);
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	val_list* bif_args = @ARGS@;
@@ -202,7 +202,7 @@ function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
 
 	auto rval = publish_event_args(args, topic->AsString(), frame);
 	Unref(topic);
-	return new Val(rval, TYPE_BOOL);
+	return val_mgr->GetBool(rval);
 	%}
 
 
@@ -234,7 +234,7 @@ function Cluster::publish_hrw%(pool: Pool, key: any, ...%): bool
 	if ( ! topic->AsString()->Len() )
 		{
 		Unref(topic);
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	val_list* bif_args = @ARGS@;
@@ -245,5 +245,5 @@ function Cluster::publish_hrw%(pool: Pool, key: any, ...%): bool
 
 	auto rval = publish_event_args(args, topic->AsString(), frame);
 	Unref(topic);
-	return new Val(rval, TYPE_BOOL);
+	return val_mgr->GetBool(rval);
 	%}

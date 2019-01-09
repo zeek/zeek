@@ -168,7 +168,7 @@ bool RuleConditionEval::DoMatch(Rule* rule, RuleEndpointState* state,
 	if ( data )
 		args.append(new StringVal(len, (const char*) data));
 	else
-		args.append(new StringVal(""));
+		args.append(val_mgr->GetEmptyString());
 
 	bool result = 0;
 

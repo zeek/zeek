@@ -25,18 +25,18 @@ refine connection SMB_Conn += {
 		if ( smb1_transaction2_request )
 			{
 			RecordVal* args = new RecordVal(BifType::Record::SMB1::Trans2_Args);
-			args->Assign(0, new Val(${val.total_param_count}, TYPE_COUNT));
-			args->Assign(1, new Val(${val.total_data_count}, TYPE_COUNT));
-			args->Assign(2, new Val(${val.max_param_count}, TYPE_COUNT));
-			args->Assign(3, new Val(${val.max_data_count}, TYPE_COUNT));
-			args->Assign(4, new Val(${val.max_setup_count}, TYPE_COUNT));
-			args->Assign(5, new Val(${val.flags}, TYPE_COUNT));
-			args->Assign(6, new Val(${val.timeout}, TYPE_COUNT));
-			args->Assign(7, new Val(${val.param_count}, TYPE_COUNT));
-			args->Assign(8, new Val(${val.param_offset}, TYPE_COUNT));
-			args->Assign(9, new Val(${val.data_count}, TYPE_COUNT));
-			args->Assign(10, new Val(${val.data_offset}, TYPE_COUNT));
-			args->Assign(11, new Val(${val.setup_count}, TYPE_COUNT));
+			args->Assign(0, val_mgr->GetCount(${val.total_param_count}));
+			args->Assign(1, val_mgr->GetCount(${val.total_data_count}));
+			args->Assign(2, val_mgr->GetCount(${val.max_param_count}));
+			args->Assign(3, val_mgr->GetCount(${val.max_data_count}));
+			args->Assign(4, val_mgr->GetCount(${val.max_setup_count}));
+			args->Assign(5, val_mgr->GetCount(${val.flags}));
+			args->Assign(6, val_mgr->GetCount(${val.timeout}));
+			args->Assign(7, val_mgr->GetCount(${val.param_count}));
+			args->Assign(8, val_mgr->GetCount(${val.param_offset}));
+			args->Assign(9, val_mgr->GetCount(${val.data_count}));
+			args->Assign(10, val_mgr->GetCount(${val.data_offset}));
+			args->Assign(11, val_mgr->GetCount(${val.setup_count}));
 
 			BifEvent::generate_smb1_transaction2_request(bro_analyzer(), bro_analyzer()->Conn(), BuildHeaderVal(header), args, ${val.sub_cmd});
 			}
@@ -128,11 +128,11 @@ refine connection SMB_Conn += {
 		if ( smb1_trans2_find_first2_request )
 			{
 			RecordVal* result = new RecordVal(BifType::Record::SMB1::Find_First2_Request_Args);
-			result->Assign(0, new Val(${val.search_attrs}, TYPE_COUNT));
-			result->Assign(1, new Val(${val.search_count}, TYPE_COUNT));
-			result->Assign(2, new Val(${val.flags}, TYPE_COUNT));
-			result->Assign(3, new Val(${val.info_level}, TYPE_COUNT));
-			result->Assign(4, new Val(${val.search_storage_type}, TYPE_COUNT));
+			result->Assign(0, val_mgr->GetCount(${val.search_attrs}));
+			result->Assign(1, val_mgr->GetCount(${val.search_count}));
+			result->Assign(2, val_mgr->GetCount(${val.flags}));
+			result->Assign(3, val_mgr->GetCount(${val.info_level}));
+			result->Assign(4, val_mgr->GetCount(${val.search_storage_type}));
 			result->Assign(5, smb_string2stringval(${val.file_name}));
 			BifEvent::generate_smb1_trans2_find_first2_request(bro_analyzer(), bro_analyzer()->Conn(), \
 															   BuildHeaderVal(header), result);

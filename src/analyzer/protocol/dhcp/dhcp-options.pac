@@ -159,7 +159,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_forwarding_option(v: OptionValue): bool
 		%{
-		${context.flow}->options->Assign(6, new Val(${v.forwarding} == 0 ? false : true, TYPE_BOOL));
+		${context.flow}->options->Assign(6, val_mgr->GetBool(${v.forwarding} == 0 ? false : true));
 
 		return true;
 		%}
@@ -345,7 +345,7 @@ refine flow DHCP_Flow += {
 		for ( int i = 0; i < num_parms; ++i )
 			{
 			uint8 param = (*plist)[i];
-			params->Assign(i, new Val(param, TYPE_COUNT));
+			params->Assign(i, val_mgr->GetCount(param));
 			}
 
 		${context.flow}->options->Assign(13, params);
@@ -397,7 +397,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_max_message_size_option(v: OptionValue): bool
 		%{
-		${context.flow}->options->Assign(15, new Val(${v.max_msg_size}, TYPE_COUNT));
+		${context.flow}->options->Assign(15, val_mgr->GetCount(${v.max_msg_size}));
 
 		return true;
 		%}
@@ -502,7 +502,7 @@ refine flow DHCP_Flow += {
 	function process_client_id_option(v: OptionValue): bool
 		%{
 		RecordVal* client_id = new RecordVal(BifType::Record::DHCP::ClientID);
-		client_id->Assign(0, new Val(${v.client_id.hwtype}, TYPE_COUNT));
+		client_id->Assign(0, val_mgr->GetCount(${v.client_id.hwtype}));
 		client_id->Assign(1, new StringVal(fmt_mac(${v.client_id.hwaddr}.begin(), ${v.client_id.hwaddr}.length())));
 
 		${context.flow}->options->Assign(19, client_id);
@@ -562,9 +562,9 @@ refine flow DHCP_Flow += {
 	function process_client_fqdn_option(v: OptionValue): bool
 		%{
 		RecordVal* client_fqdn = new RecordVal(BifType::Record::DHCP::ClientFQDN);
-		client_fqdn->Assign(0, new Val(${v.client_fqdn.flags}, TYPE_COUNT));
-		client_fqdn->Assign(1, new Val(${v.client_fqdn.rcode1}, TYPE_COUNT));
-		client_fqdn->Assign(2, new Val(${v.client_fqdn.rcode2}, TYPE_COUNT));
+		client_fqdn->Assign(0, val_mgr->GetCount(${v.client_fqdn.flags}));
+		client_fqdn->Assign(1, val_mgr->GetCount(${v.client_fqdn.rcode1}));
+		client_fqdn->Assign(2, val_mgr->GetCount(${v.client_fqdn.rcode2}));
 		const char* domain_name = reinterpret_cast<const char*>(${v.client_fqdn.domain_name}.begin());
 		client_fqdn->Assign(3, new StringVal(${v.client_fqdn.domain_name}.length(), domain_name));
 
@@ -627,7 +627,7 @@ refine flow DHCP_Flow += {
 		      ptrsubopt != ${v.relay_agent_inf}->end(); ++ptrsubopt )
 			{
 			auto r = new RecordVal(BifType::Record::DHCP::SubOpt);
-			r->Assign(0, new Val((*ptrsubopt)->code(), TYPE_COUNT));
+			r->Assign(0, val_mgr->GetCount((*ptrsubopt)->code()));
 			r->Assign(1, bytestring_to_val((*ptrsubopt)->value()));
 
 			relay_agent_sub_opt->Assign(i, r);
@@ -657,7 +657,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_auto_config_option(v: OptionValue): bool
 		%{
-		${context.flow}->options->Assign(23, new Val(${v.auto_config} == 0 ? false : true, TYPE_BOOL));
+		${context.flow}->options->Assign(23, val_mgr->GetBool(${v.auto_config} == 0 ? false : true));
 
 		return true;
 		%}

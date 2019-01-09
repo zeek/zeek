@@ -169,9 +169,9 @@ void Rsh_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		{
 		if ( contents_orig->RshSaveState() == RSH_SERVER_USER_NAME )
 			// First input
-			vl->append(new Val(true, TYPE_BOOL));
+			vl->append(val_mgr->GetTrue());
 		else
-			vl->append(new Val(false, TYPE_BOOL));
+			vl->append(val_mgr->GetFalse());
 
 		ConnectionEvent(rsh_request, vl);
 		}

@@ -13,7 +13,7 @@ VectorVal* process_rvas(const RVAS* rva_table)
 	{
 	VectorVal* rvas = new VectorVal(internal_type("index_vec")->AsVectorType());
 	for ( uint16 i=0; i < rva_table->rvas()->size(); ++i )
-		rvas->Assign(i, new Val((*rva_table->rvas())[i]->size(), TYPE_COUNT));
+		rvas->Assign(i, val_mgr->GetCount((*rva_table->rvas())[i]->size()));
 
 	return rvas;
 	}
@@ -30,7 +30,7 @@ refine flow File += {
 			{
 			if ( ((c >> i) & 0x1) == 1 )
 				{
-				Val *ch = new Val((1<<i)&mask, TYPE_COUNT);
+				Val *ch = val_mgr->GetCount((1<<i)&mask);
 				char_set->Assign(ch, 0);
 				Unref(ch);
 				}
@@ -44,22 +44,22 @@ refine flow File += {
 			{
 			RecordVal* dh = new RecordVal(BifType::Record::PE::DOSHeader);
 			dh->Assign(0, new StringVal(${h.signature}.length(), (const char*) ${h.signature}.data()));
-			dh->Assign(1, new Val(${h.UsedBytesInTheLastPage}, TYPE_COUNT));
-			dh->Assign(2, new Val(${h.FileSizeInPages}, TYPE_COUNT));
-			dh->Assign(3, new Val(${h.NumberOfRelocationItems}, TYPE_COUNT));
-			dh->Assign(4, new Val(${h.HeaderSizeInParagraphs}, TYPE_COUNT));
-			dh->Assign(5, new Val(${h.MinimumExtraParagraphs}, TYPE_COUNT));
-			dh->Assign(6, new Val(${h.MaximumExtraParagraphs}, TYPE_COUNT));
-			dh->Assign(7, new Val(${h.InitialRelativeSS}, TYPE_COUNT));
-			dh->Assign(8, new Val(${h.InitialSP}, TYPE_COUNT));
-			dh->Assign(9, new Val(${h.Checksum}, TYPE_COUNT));
-			dh->Assign(10, new Val(${h.InitialIP}, TYPE_COUNT));
-			dh->Assign(11, new Val(${h.InitialRelativeCS}, TYPE_COUNT));
-			dh->Assign(12, new Val(${h.AddressOfRelocationTable}, TYPE_COUNT));
-			dh->Assign(13, new Val(${h.OverlayNumber}, TYPE_COUNT));
-			dh->Assign(14, new Val(${h.OEMid}, TYPE_COUNT));
-			dh->Assign(15, new Val(${h.OEMinfo}, TYPE_COUNT));
-			dh->Assign(16, new Val(${h.AddressOfNewExeHeader}, TYPE_COUNT));
+			dh->Assign(1, val_mgr->GetCount(${h.UsedBytesInTheLastPage}));
+			dh->Assign(2, val_mgr->GetCount(${h.FileSizeInPages}));
+			dh->Assign(3, val_mgr->GetCount(${h.NumberOfRelocationItems}));
+			dh->Assign(4, val_mgr->GetCount(${h.HeaderSizeInParagraphs}));
+			dh->Assign(5, val_mgr->GetCount(${h.MinimumExtraParagraphs}));
+			dh->Assign(6, val_mgr->GetCount(${h.MaximumExtraParagraphs}));
+			dh->Assign(7, val_mgr->GetCount(${h.InitialRelativeSS}));
+			dh->Assign(8, val_mgr->GetCount(${h.InitialSP}));
+			dh->Assign(9, val_mgr->GetCount(${h.Checksum}));
+			dh->Assign(10, val_mgr->GetCount(${h.InitialIP}));
+			dh->Assign(11, val_mgr->GetCount(${h.InitialRelativeCS}));
+			dh->Assign(12, val_mgr->GetCount(${h.AddressOfRelocationTable}));
+			dh->Assign(13, val_mgr->GetCount(${h.OverlayNumber}));
+			dh->Assign(14, val_mgr->GetCount(${h.OEMid}));
+			dh->Assign(15, val_mgr->GetCount(${h.OEMinfo}));
+			dh->Assign(16, val_mgr->GetCount(${h.AddressOfNewExeHeader}));
 
 			BifEvent::generate_pe_dos_header((analyzer::Analyzer *) connection()->bro_analyzer(),
 			                                 connection()->bro_analyzer()->GetFile()->GetVal()->Ref(),
@@ -94,11 +94,11 @@ refine flow File += {
 		if ( pe_file_header )
 			{
 			RecordVal* fh = new RecordVal(BifType::Record::PE::FileHeader);
-			fh->Assign(0, new Val(${h.Machine}, TYPE_COUNT));
+			fh->Assign(0, val_mgr->GetCount(${h.Machine}));
 			fh->Assign(1, new Val(static_cast<double>(${h.TimeDateStamp}), TYPE_TIME));
-			fh->Assign(2, new Val(${h.PointerToSymbolTable}, TYPE_COUNT));
-			fh->Assign(3, new Val(${h.NumberOfSymbols}, TYPE_COUNT));
-			fh->Assign(4, new Val(${h.SizeOfOptionalHeader}, TYPE_COUNT));
+			fh->Assign(2, val_mgr->GetCount(${h.PointerToSymbolTable}));
+			fh->Assign(3, val_mgr->GetCount(${h.NumberOfSymbols}));
+			fh->Assign(4, val_mgr->GetCount(${h.SizeOfOptionalHeader}));
 			fh->Assign(5, characteristics_to_bro(${h.Characteristics}, 16));
 			BifEvent::generate_pe_file_header((analyzer::Analyzer *) connection()->bro_analyzer(),
 			                                  connection()->bro_analyzer()->GetFile()->GetVal()->Ref(),
@@ -122,31 +122,31 @@ refine flow File += {
 			{
 			RecordVal* oh = new RecordVal(BifType::Record::PE::OptionalHeader);
 
-			oh->Assign(0, new Val(${h.magic}, TYPE_COUNT));
-			oh->Assign(1, new Val(${h.major_linker_version}, TYPE_COUNT));
-			oh->Assign(2, new Val(${h.minor_linker_version}, TYPE_COUNT));
-			oh->Assign(3, new Val(${h.size_of_code}, TYPE_COUNT));
-			oh->Assign(4, new Val(${h.size_of_init_data}, TYPE_COUNT));
-			oh->Assign(5, new Val(${h.size_of_uninit_data}, TYPE_COUNT));
-			oh->Assign(6, new Val(${h.addr_of_entry_point}, TYPE_COUNT));
-			oh->Assign(7, new Val(${h.base_of_code}, TYPE_COUNT));
+			oh->Assign(0, val_mgr->GetCount(${h.magic}));
+			oh->Assign(1, val_mgr->GetCount(${h.major_linker_version}));
+			oh->Assign(2, val_mgr->GetCount(${h.minor_linker_version}));
+			oh->Assign(3, val_mgr->GetCount(${h.size_of_code}));
+			oh->Assign(4, val_mgr->GetCount(${h.size_of_init_data}));
+			oh->Assign(5, val_mgr->GetCount(${h.size_of_uninit_data}));
+			oh->Assign(6, val_mgr->GetCount(${h.addr_of_entry_point}));
+			oh->Assign(7, val_mgr->GetCount(${h.base_of_code}));
 
 			if ( ${h.pe_format} != PE32_PLUS )
-				oh->Assign(8, new Val(${h.base_of_data}, TYPE_COUNT));
+				oh->Assign(8, val_mgr->GetCount(${h.base_of_data}));
 
-			oh->Assign(9, new Val(${h.image_base}, TYPE_COUNT));
-			oh->Assign(10, new Val(${h.section_alignment}, TYPE_COUNT));
-			oh->Assign(11, new Val(${h.file_alignment}, TYPE_COUNT));
-			oh->Assign(12, new Val(${h.os_version_major}, TYPE_COUNT));
-			oh->Assign(13, new Val(${h.os_version_minor}, TYPE_COUNT));
-			oh->Assign(14, new Val(${h.major_image_version}, TYPE_COUNT));
-			oh->Assign(15, new Val(${h.minor_image_version}, TYPE_COUNT));
-			oh->Assign(16, new Val(${h.minor_subsys_version}, TYPE_COUNT));
-			oh->Assign(17, new Val(${h.minor_subsys_version}, TYPE_COUNT));
-			oh->Assign(18, new Val(${h.size_of_image}, TYPE_COUNT));
-			oh->Assign(19, new Val(${h.size_of_headers}, TYPE_COUNT));
-			oh->Assign(20, new Val(${h.checksum}, TYPE_COUNT));
-			oh->Assign(21, new Val(${h.subsystem}, TYPE_COUNT));
+			oh->Assign(9, val_mgr->GetCount(${h.image_base}));
+			oh->Assign(10, val_mgr->GetCount(${h.section_alignment}));
+			oh->Assign(11, val_mgr->GetCount(${h.file_alignment}));
+			oh->Assign(12, val_mgr->GetCount(${h.os_version_major}));
+			oh->Assign(13, val_mgr->GetCount(${h.os_version_minor}));
+			oh->Assign(14, val_mgr->GetCount(${h.major_image_version}));
+			oh->Assign(15, val_mgr->GetCount(${h.minor_image_version}));
+			oh->Assign(16, val_mgr->GetCount(${h.minor_subsys_version}));
+			oh->Assign(17, val_mgr->GetCount(${h.minor_subsys_version}));
+			oh->Assign(18, val_mgr->GetCount(${h.size_of_image}));
+			oh->Assign(19, val_mgr->GetCount(${h.size_of_headers}));
+			oh->Assign(20, val_mgr->GetCount(${h.checksum}));
+			oh->Assign(21, val_mgr->GetCount(${h.subsystem}));
 			oh->Assign(22, characteristics_to_bro(${h.dll_characteristics}, 16));
 
 			oh->Assign(23, process_rvas(${h.rvas}));
@@ -173,14 +173,14 @@ refine flow File += {
 				name_len = first_null - ${h.name}.data();
 			section_header->Assign(0, new StringVal(name_len, (const char*) ${h.name}.data()));
 
-			section_header->Assign(1, new Val(${h.virtual_size}, TYPE_COUNT));
-			section_header->Assign(2, new Val(${h.virtual_addr}, TYPE_COUNT));
-			section_header->Assign(3, new Val(${h.size_of_raw_data}, TYPE_COUNT));
-			section_header->Assign(4, new Val(${h.ptr_to_raw_data}, TYPE_COUNT));
-			section_header->Assign(5, new Val(${h.non_used_ptr_to_relocs}, TYPE_COUNT));
-			section_header->Assign(6, new Val(${h.non_used_ptr_to_line_nums}, TYPE_COUNT));
-			section_header->Assign(7, new Val(${h.non_used_num_of_relocs}, TYPE_COUNT));
-			section_header->Assign(8, new Val(${h.non_used_num_of_line_nums}, TYPE_COUNT));
+			section_header->Assign(1, val_mgr->GetCount(${h.virtual_size}));
+			section_header->Assign(2, val_mgr->GetCount(${h.virtual_addr}));
+			section_header->Assign(3, val_mgr->GetCount(${h.size_of_raw_data}));
+			section_header->Assign(4, val_mgr->GetCount(${h.ptr_to_raw_data}));
+			section_header->Assign(5, val_mgr->GetCount(${h.non_used_ptr_to_relocs}));
+			section_header->Assign(6, val_mgr->GetCount(${h.non_used_ptr_to_line_nums}));
+			section_header->Assign(7, val_mgr->GetCount(${h.non_used_num_of_relocs}));
+			section_header->Assign(8, val_mgr->GetCount(${h.non_used_num_of_line_nums}));
 			section_header->Assign(9, characteristics_to_bro(${h.characteristics}, 32));
 
 			BifEvent::generate_pe_section_header((analyzer::Analyzer *) connection()->bro_analyzer(),

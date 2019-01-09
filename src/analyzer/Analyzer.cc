@@ -668,7 +668,7 @@ void Analyzer::ProtocolConfirmation(Tag arg_tag)
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
 	vl->append(tval);
-	vl->append(new Val(id, TYPE_COUNT));
+	vl->append(val_mgr->GetCount(id));
 	mgr.QueueEvent(protocol_confirmation, vl);
 
 	protocol_confirmed = true;
@@ -695,7 +695,7 @@ void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
 	vl->append(tval);
-	vl->append(new Val(id, TYPE_COUNT));
+	vl->append(val_mgr->GetCount(id));
 	vl->append(r);
 	mgr.QueueEvent(protocol_violation, vl);
 	}

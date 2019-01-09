@@ -222,7 +222,7 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 				{
 				val_list* vl = new val_list;
 				vl->append(BuildConnVal());
-				vl->append(new Val(orig, TYPE_BOOL));
+				vl->append(val_mgr->GetBool(orig));
 				vl->append(new StringVal(data_len, line));
 				ConnectionEvent(smtp_data, vl);
 				}
@@ -352,11 +352,11 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 
 				val_list* vl = new val_list;
 				vl->append(BuildConnVal());
-				vl->append(new Val(orig, TYPE_BOOL));
-				vl->append(new Val(reply_code, TYPE_COUNT));
+				vl->append(val_mgr->GetBool(orig));
+				vl->append(val_mgr->GetCount(reply_code));
 				vl->append(new StringVal(cmd));
 				vl->append(new StringVal(end_of_line - line, line));
-				vl->append(new Val((pending_reply > 0), TYPE_BOOL));
+				vl->append(val_mgr->GetBool((pending_reply > 0)));
 
 				ConnectionEvent(smtp_reply, vl);
 				}
@@ -859,7 +859,7 @@ void SMTP_Analyzer::RequestEvent(int cmd_len, const char* cmd,
 	val_list* vl = new val_list;
 
 	vl->append(BuildConnVal());
-	vl->append(new Val(orig_is_sender, TYPE_BOOL));
+	vl->append(val_mgr->GetBool(orig_is_sender));
 	vl->append((new StringVal(cmd_len, cmd))->ToUpper());
 	vl->append(new StringVal(arg_len, arg));
 
@@ -880,7 +880,7 @@ void SMTP_Analyzer::Unexpected(const int is_sender, const char* msg,
 			is_orig = ! is_orig;
 
 		vl->append(BuildConnVal());
-		vl->append(new Val(is_orig, TYPE_BOOL));
+		vl->append(val_mgr->GetBool(is_orig));
 		vl->append(new StringVal(msg));
 		vl->append(new StringVal(detail_len, detail));
 

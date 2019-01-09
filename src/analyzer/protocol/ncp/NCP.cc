@@ -63,17 +63,16 @@ void NCP_Session::DeliverFrame(const binpac::NCP::ncp_frame* frame)
 		{
 		val_list* vl = new val_list;
 		vl->append(analyzer->BuildConnVal());
-		vl->append(new Val(frame->frame_type(), TYPE_COUNT));
-		vl->append(new Val(frame->body_length(), TYPE_COUNT));
+		vl->append(val_mgr->GetCount(frame->frame_type()));
+		vl->append(val_mgr->GetCount(frame->body_length()));
 
 		if ( frame->is_orig() )
-			vl->append(new Val(req_func, TYPE_COUNT));
+			vl->append(val_mgr->GetCount(req_func));
 		else
 			{
-			vl->append(new Val(req_frame_type, TYPE_COUNT));
-			vl->append(new Val(req_func, TYPE_COUNT));
-			vl->append(new Val(frame->reply()->completion_code(),
-						TYPE_COUNT));
+			vl->append(val_mgr->GetCount(req_frame_type));
+			vl->append(val_mgr->GetCount(req_func));
+			vl->append(val_mgr->GetCount(frame->reply()->completion_code()));
 			}
 
 		analyzer->ConnectionEvent(f, vl);

@@ -417,19 +417,19 @@ Val* Val::SizeVal() const
 		// Return abs value. However abs() only works on ints and llabs
 		// doesn't work on Mac OS X 10.5. So we do it by hand
 		if ( val.int_val < 0 )
-			return new Val(-val.int_val, TYPE_COUNT);
+			return val_mgr->GetCount(-val.int_val);
 		else
-			return new Val(val.int_val, TYPE_COUNT);
+			return val_mgr->GetCount(val.int_val);
 
 	case TYPE_INTERNAL_UNSIGNED:
-		return new Val(val.uint_val, TYPE_COUNT);
+		return val_mgr->GetCount(val.uint_val);
 
 	case TYPE_INTERNAL_DOUBLE:
 		return new Val(fabs(val.double_val), TYPE_DOUBLE);
 
 	case TYPE_INTERNAL_OTHER:
 		if ( type->Tag() == TYPE_FUNC )
-			return new Val(val.func_val->FType()->ArgTypes()->Types()->length(), TYPE_COUNT);
+			return val_mgr->GetCount(val.func_val->FType()->ArgTypes()->Types()->length());
 
 		if ( type->Tag() == TYPE_FILE )
 			return new Val(val.file_val->Size(), TYPE_DOUBLE);
@@ -439,7 +439,7 @@ Val* Val::SizeVal() const
 		break;
 	}
 
-	return new Val(0, TYPE_COUNT);
+	return val_mgr->GetCount(0);
 	}
 
 unsigned int Val::MemoryAllocation() const
@@ -764,54 +764,17 @@ bool IntervalVal::DoUnserialize(UnserialInfo* info)
 	return true;
 	}
 
-PortManager::PortManager()
-	{
-	for ( auto i = 0u; i < ports.size(); ++i )
-		{
-		auto& arr = ports[i];
-		auto port_type = (TransportProto)i;
-
-		for ( auto j = 0u; j < arr.size(); ++j )
-			arr[j] = new PortVal(Mask(j, port_type), true);
-		}
-	}
-
-PortManager::~PortManager()
-	{
-	for ( auto& arr : ports )
-		for ( auto& pv : arr )
-			Unref(pv);
-	}
-
 PortVal* PortManager::Get(uint32 port_num) const
 	{
-	auto mask = port_num & PORT_SPACE_MASK;
-	port_num &= ~PORT_SPACE_MASK;
-
-	if ( mask == TCP_PORT_MASK )
-		return Get(port_num, TRANSPORT_TCP);
-	else if ( mask == UDP_PORT_MASK )
-		return Get(port_num, TRANSPORT_UDP);
-	else if ( mask == ICMP_PORT_MASK )
-		return Get(port_num, TRANSPORT_ICMP);
-	else
-		return Get(port_num, TRANSPORT_UNKNOWN);
+	return val_mgr->GetPort(port_num);
 	}
 
 PortVal* PortManager::Get(uint32 port_num, TransportProto port_type) const
 	{
-	if ( port_num >= 65536 )
-		{
-		reporter->Warning("bad port number %d", port_num);
-		port_num = 0;
-		}
-
-	auto rval = ports[port_type][port_num];
-	::Ref(rval);
-	return rval;
+	return val_mgr->GetPort(port_num, port_type);
 	}
 
-uint32 PortManager::Mask(uint32 port_num, TransportProto port_type) const
+uint32 PortVal::Mask(uint32 port_num, TransportProto port_type)
 	{
 	// Note, for ICMP one-way connections:
 	// src_port = icmp_type, dst_port = icmp_code.
@@ -844,7 +807,7 @@ uint32 PortManager::Mask(uint32 port_num, TransportProto port_type) const
 
 PortVal::PortVal(uint32 p, TransportProto port_type) : Val(TYPE_PORT)
 	{
-	auto port_num = port_mgr->Mask(p, port_type);
+	auto port_num = PortVal::Mask(p, port_type);
 	val.uint_val = static_cast<bro_uint_t>(port_num);
 	}
 
@@ -952,9 +915,9 @@ unsigned int AddrVal::MemoryAllocation() const
 Val* AddrVal::SizeVal() const
 	{
 	if ( val.addr_val->GetFamily() == IPv4 )
-		return new Val(32, TYPE_COUNT);
+		return val_mgr->GetCount(32);
 	else
-		return new Val(128, TYPE_COUNT);
+		return val_mgr->GetCount(128);
 	}
 
 IMPLEMENT_SERIAL(AddrVal, SER_ADDR_VAL);
@@ -1601,7 +1564,7 @@ int TableVal::Assign(Val* index, HashKey* k, Val* new_val, Opcode op)
 			// A set.
 			if ( old_entry_val && remote_check_sync_consistency )
 				{
-				Val* has_old_val = new Val(1, TYPE_INT);
+				Val* has_old_val = val_mgr->GetInt(1);
 				StateAccess::Log(
 					new StateAccess(OP_ADD, this, index,
 							has_old_val));
@@ -2101,7 +2064,7 @@ Val* TableVal::Delete(const Val* index)
 			else
 				{
 				// A set.
-				Val* has_old_val = new Val(1, TYPE_INT);
+				Val* has_old_val = val_mgr->GetInt(1);
 				StateAccess::Log(
 					new StateAccess(OP_DEL, this, index,
 							has_old_val));
@@ -3265,7 +3228,7 @@ bool VectorVal::Assign(unsigned int index, Val* element, Opcode op)
 			{
 			if ( LoggingAccess() && op != OP_NONE )
 				{
-				Val* ival = new Val(index, TYPE_COUNT);
+				Val* ival = val_mgr->GetCount(index);
 				StateAccess::Log(new StateAccess(OP_ASSIGN_IDX,
 						this, ival, element,
 						(*val.vector_val)[index]));
@@ -3290,7 +3253,7 @@ bool VectorVal::Assign(unsigned int index, Val* element, Opcode op)
 		if ( element->IsMutableVal() )
 			element->AsMutableVal()->AddProperties(GetProperties());
 
-		Val* ival = new Val(index, TYPE_COUNT);
+		Val* ival = val_mgr->GetCount(index);
 
 		StateAccess::Log(new StateAccess(op == OP_INCR ?
 				OP_INCR_IDX : OP_ASSIGN_IDX,
@@ -3551,11 +3514,29 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init)
 	Val* promoted_v;
 	switch ( it ) {
 	case TYPE_INTERNAL_INT:
-		promoted_v = new Val(v->CoerceToInt(), t_tag);
+		if ( t_tag == TYPE_INT )
+			promoted_v = val_mgr->GetInt(v->CoerceToInt());
+		else if ( t_tag == TYPE_BOOL )
+			promoted_v = val_mgr->GetBool(v->CoerceToInt());
+		else // enum
+			{
+			reporter->InternalError("bad internal type in check_and_promote()");
+			Unref(v);
+			return 0;
+			}
+
 		break;
 
 	case TYPE_INTERNAL_UNSIGNED:
-		promoted_v = new Val(v->CoerceToUnsigned(), t_tag);
+		if ( t_tag == TYPE_COUNT || t_tag == TYPE_COUNTER )
+			promoted_v = val_mgr->GetCount(v->CoerceToUnsigned());
+		else // port
+			{
+			reporter->InternalError("bad internal type in check_and_promote()");
+			Unref(v);
+			return 0;
+			}
+
 		break;
 
 	case TYPE_INTERNAL_DOUBLE:
@@ -3710,71 +3691,80 @@ bool can_cast_value_to_type(const BroType* s, BroType* t)
 	return false;
 	}
 
-
 ValManager::ValManager()
 	{
-	b_false = new Val(0, TYPE_BOOL);
-	b_true = new Val(1, TYPE_BOOL);
+	empty_string = new StringVal("");
+	b_false = Val::MakeBool(false);
+	b_true = Val::MakeBool(true);
+	counts = new Val*[PREALLOCATED_COUNTS];
+	ints = new Val*[PREALLOCATED_INTS];
 
-	for(auto i=0; i < 4096; i++) {
-		int32s[i] = new Val((int32) i, TYPE_COUNT);
-		uint32s[i] = new Val((uint32) i, TYPE_COUNT);
-		int64s[i] = new Val((int64) i, TYPE_COUNT);
-		uint64s[i] = new Val((uint64) i, TYPE_COUNT);
-	}
+	for ( auto i = 0u; i < PREALLOCATED_COUNTS; ++i )
+		counts[i] = Val::MakeCount(i);
+
+	for ( auto i = 0u; i < PREALLOCATED_INTS; ++i )
+		ints[i] = Val::MakeInt(PREALLOCATED_INT_LOWEST + i);
+
+	for ( auto i = 0u; i < ports.size(); ++i )
+		{
+		auto& arr = ports[i];
+		auto port_type = (TransportProto)i;
+
+		for ( auto j = 0u; j < arr.size(); ++j )
+			arr[j] = new PortVal(PortVal::Mask(j, port_type), true);
+		}
 	}
 
 ValManager::~ValManager()
 	{
-		//??
-		Unref(b_true);
-		Unref(b_false);
+	Unref(empty_string);
+	Unref(b_true);
+	Unref(b_false);
+
+	for ( auto i = 0u; i < PREALLOCATED_COUNTS; ++i )
+		Unref(counts[i]);
+
+	for ( auto i = 0u; i < PREALLOCATED_INTS; ++i )
+		Unref(ints[i]);
+
+	delete [] counts;
+	delete [] ints;
+
+	for ( auto& arr : ports )
+		for ( auto& pv : arr )
+			Unref(pv);
 	}
 
-
-Val* ValManager::GetBool(bool val) const
+StringVal* ValManager::GetEmptyString() const
 	{
-	auto rval = val ? b_true : b_false;
+	::Ref(empty_string);
+	return empty_string;
+	}
+
+PortVal* ValManager::GetPort(uint32 port_num, TransportProto port_type) const
+	{
+	if ( port_num >= 65536 )
+		{
+		reporter->Warning("bad port number %d", port_num);
+		port_num = 0;
+		}
+
+	auto rval = ports[port_type][port_num];
 	::Ref(rval);
 	return rval;
 	}
 
-Val* ValManager::GetCount(int32 i) const
+PortVal* ValManager::GetPort(uint32 port_num) const
 	{
-	if (i < 4096) {
-		auto rval = int32s[i];
-		::Ref(rval);
-		return rval;
-	}
-	return new Val(i, TYPE_COUNT);
-	}
+	auto mask = port_num & PORT_SPACE_MASK;
+	port_num &= ~PORT_SPACE_MASK;
 
-Val* ValManager::GetCount(uint32 i) const
-	{
-	if (i < 4096) {
-		auto rval = uint32s[i];
-		::Ref(rval);
-		return rval;
-	}
-	return new Val(i, TYPE_COUNT);
-	}
-
-Val* ValManager::GetCount(int64 i) const
-	{
-	if (i < 4096) {
-		auto rval = int64s[i];
-		::Ref(rval);
-		return rval;
-	}
-	return new Val(i, TYPE_COUNT);
-	}
-
-Val* ValManager::GetCount(uint64 i) const
-	{
-	if (i < 4096) {
-		auto rval = uint64s[i];
-		::Ref(rval);
-		return rval;
-	}
-	return new Val(i, TYPE_COUNT);
+	if ( mask == TCP_PORT_MASK )
+		return GetPort(port_num, TRANSPORT_TCP);
+	else if ( mask == UDP_PORT_MASK )
+		return GetPort(port_num, TRANSPORT_UDP);
+	else if ( mask == ICMP_PORT_MASK )
+		return GetPort(port_num, TRANSPORT_ICMP);
+	else
+		return GetPort(port_num, TRANSPORT_UNKNOWN);
 	}

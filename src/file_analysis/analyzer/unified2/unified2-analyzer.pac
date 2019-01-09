@@ -54,7 +54,7 @@ refine flow Flow += {
 		case 17: proto = TRANSPORT_UDP; break;
 		}
 
-		return port_mgr->Get(n, proto);
+		return val_mgr->GetPort(n, proto);
 		%}
 
 	#function proc_record(rec: Record) : bool
@@ -67,19 +67,19 @@ refine flow Flow += {
 		if ( ::unified2_event )
 			{
 			RecordVal* ids_event = new RecordVal(BifType::Record::Unified2::IDSEvent);
-			ids_event->Assign(0, new Val(${ev.sensor_id}, TYPE_COUNT));
-			ids_event->Assign(1, new Val(${ev.event_id}, TYPE_COUNT));
+			ids_event->Assign(0, val_mgr->GetCount(${ev.sensor_id}));
+			ids_event->Assign(1, val_mgr->GetCount(${ev.event_id}));
 			ids_event->Assign(2, new Val(ts_to_double(${ev.ts}), TYPE_TIME));
-			ids_event->Assign(3, new Val(${ev.signature_id}, TYPE_COUNT));
-			ids_event->Assign(4, new Val(${ev.generator_id}, TYPE_COUNT));
-			ids_event->Assign(5, new Val(${ev.signature_revision}, TYPE_COUNT));
-			ids_event->Assign(6, new Val(${ev.classification_id}, TYPE_COUNT));
-			ids_event->Assign(7, new Val(${ev.priority_id}, TYPE_COUNT));
+			ids_event->Assign(3, val_mgr->GetCount(${ev.signature_id}));
+			ids_event->Assign(4, val_mgr->GetCount(${ev.generator_id}));
+			ids_event->Assign(5, val_mgr->GetCount(${ev.signature_revision}));
+			ids_event->Assign(6, val_mgr->GetCount(${ev.classification_id}));
+			ids_event->Assign(7, val_mgr->GetCount(${ev.priority_id}));
 			ids_event->Assign(8, unified2_addr_to_bro_addr(${ev.src_ip}));
 			ids_event->Assign(9, unified2_addr_to_bro_addr(${ev.dst_ip}));
 			ids_event->Assign(10, to_port(${ev.src_p}, ${ev.protocol}));
 			ids_event->Assign(11, to_port(${ev.dst_p}, ${ev.protocol}));
-			ids_event->Assign(17, new Val(${ev.packet_action}, TYPE_COUNT));
+			ids_event->Assign(17, val_mgr->GetCount(${ev.packet_action}));
 
 			val_list* vl = new val_list();
 			vl->append(connection()->bro_analyzer()->GetFile()->GetVal()->Ref());
@@ -94,23 +94,23 @@ refine flow Flow += {
 		if ( ::unified2_event )
 			{
 			RecordVal* ids_event = new RecordVal(BifType::Record::Unified2::IDSEvent);
-			ids_event->Assign(0, new Val(${ev.sensor_id}, TYPE_COUNT));
-			ids_event->Assign(1, new Val(${ev.event_id}, TYPE_COUNT));
+			ids_event->Assign(0, val_mgr->GetCount(${ev.sensor_id}));
+			ids_event->Assign(1, val_mgr->GetCount(${ev.event_id}));
 			ids_event->Assign(2, new Val(ts_to_double(${ev.ts}), TYPE_TIME));
-			ids_event->Assign(3, new Val(${ev.signature_id}, TYPE_COUNT));
-			ids_event->Assign(4, new Val(${ev.generator_id}, TYPE_COUNT));
-			ids_event->Assign(5, new Val(${ev.signature_revision}, TYPE_COUNT));
-			ids_event->Assign(6, new Val(${ev.classification_id}, TYPE_COUNT));
-			ids_event->Assign(7, new Val(${ev.priority_id}, TYPE_COUNT));
+			ids_event->Assign(3, val_mgr->GetCount(${ev.signature_id}));
+			ids_event->Assign(4, val_mgr->GetCount(${ev.generator_id}));
+			ids_event->Assign(5, val_mgr->GetCount(${ev.signature_revision}));
+			ids_event->Assign(6, val_mgr->GetCount(${ev.classification_id}));
+			ids_event->Assign(7, val_mgr->GetCount(${ev.priority_id}));
 			ids_event->Assign(8, unified2_addr_to_bro_addr(${ev.src_ip}));
 			ids_event->Assign(9, unified2_addr_to_bro_addr(${ev.dst_ip}));
 			ids_event->Assign(10, to_port(${ev.src_p}, ${ev.protocol}));
 			ids_event->Assign(11, to_port(${ev.dst_p}, ${ev.protocol}));
-			ids_event->Assign(12, new Val(${ev.impact_flag}, TYPE_COUNT));
-			ids_event->Assign(13, new Val(${ev.impact}, TYPE_COUNT));
-			ids_event->Assign(14, new Val(${ev.blocked}, TYPE_COUNT));
-			ids_event->Assign(15, new Val(${ev.mpls_label}, TYPE_COUNT));
-			ids_event->Assign(16, new Val(${ev.vlan_id}, TYPE_COUNT));
+			ids_event->Assign(12, val_mgr->GetCount(${ev.impact_flag}));
+			ids_event->Assign(13, val_mgr->GetCount(${ev.impact}));
+			ids_event->Assign(14, val_mgr->GetCount(${ev.blocked}));
+			ids_event->Assign(15, val_mgr->GetCount(${ev.mpls_label}));
+			ids_event->Assign(16, val_mgr->GetCount(${ev.vlan_id}));
 
 			val_list* vl = new val_list();
 			vl->append(connection()->bro_analyzer()->GetFile()->GetVal()->Ref());
@@ -126,11 +126,11 @@ refine flow Flow += {
 		if ( ::unified2_packet )
 			{
 			RecordVal* packet = new RecordVal(BifType::Record::Unified2::Packet);
-			packet->Assign(0, new Val(${pkt.sensor_id}, TYPE_COUNT));
-			packet->Assign(1, new Val(${pkt.event_id}, TYPE_COUNT));
-			packet->Assign(2, new Val(${pkt.event_second}, TYPE_COUNT));
+			packet->Assign(0, val_mgr->GetCount(${pkt.sensor_id}));
+			packet->Assign(1, val_mgr->GetCount(${pkt.event_id}));
+			packet->Assign(2, val_mgr->GetCount(${pkt.event_second}));
 			packet->Assign(3, new Val(ts_to_double(${pkt.packet_ts}), TYPE_TIME));
-			packet->Assign(4, new Val(${pkt.link_type}, TYPE_COUNT));
+			packet->Assign(4, val_mgr->GetCount(${pkt.link_type}));
 			packet->Assign(5, bytestring_to_val(${pkt.packet_data}));
 
 			val_list* vl = new val_list();

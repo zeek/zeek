@@ -60,9 +60,9 @@ int NetbiosSSN_Interpreter::ParseMessage(unsigned int type, unsigned int flags,
 		{
 		val_list* vl = new val_list;
 		vl->append(analyzer->BuildConnVal());
-		vl->append(new Val(is_query, TYPE_BOOL));
-		vl->append(new Val(type, TYPE_COUNT));
-		vl->append(new Val(len, TYPE_COUNT));
+		vl->append(val_mgr->GetBool(is_query));
+		vl->append(val_mgr->GetCount(type));
+		vl->append(val_mgr->GetCount(len));
 		analyzer->ConnectionEvent(netbios_session_message, vl);
 		}
 
@@ -331,7 +331,7 @@ void NetbiosSSN_Interpreter::Event(EventHandlerPtr event, const u_char* data,
 	val_list* vl = new val_list;
 	vl->append(analyzer->BuildConnVal());
 	if ( is_orig >= 0 )
-		vl->append(new Val(is_orig, TYPE_BOOL));
+		vl->append(val_mgr->GetBool(is_orig));
 	vl->append(new StringVal(new BroString(data, len, 0)));
 
 	analyzer->ConnectionEvent(event, vl);

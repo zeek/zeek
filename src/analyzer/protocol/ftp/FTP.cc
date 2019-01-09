@@ -171,9 +171,9 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 				}
 			}
 
-		vl->append(new Val(reply_code, TYPE_COUNT));
+		vl->append(val_mgr->GetCount(reply_code));
 		vl->append(new StringVal(end_of_line - line, line));
-		vl->append(new Val(cont_resp, TYPE_BOOL));
+		vl->append(val_mgr->GetBool(cont_resp));
 
 		f = ftp_reply;
 		}

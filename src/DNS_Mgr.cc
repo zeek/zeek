@@ -738,7 +738,7 @@ Val* DNS_Mgr::BuildMappingVal(DNS_Mapping* dm)
 	r->Assign(0, new Val(dm->CreationTime(), TYPE_TIME));
 	r->Assign(1, new StringVal(dm->ReqHost() ? dm->ReqHost() : ""));
 	r->Assign(2, new AddrVal(dm->ReqAddr()));
-	r->Assign(3, new Val(dm->Valid(), TYPE_BOOL));
+	r->Assign(3, val_mgr->GetBool(dm->Valid()));
 
 	Val* h = dm->Host();
 	r->Assign(4, h ? h : new StringVal("<none>"));

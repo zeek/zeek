@@ -109,7 +109,20 @@ Val* asn1_integer_to_val(const ASN1Integer* i, TypeTag t)
 
 Val* asn1_integer_to_val(const ASN1Encoding* i, TypeTag t)
 	{
-	return new Val(binary_to_int64(i->content()), t);
+	auto v = binary_to_int64(i->content());
+
+	switch ( t ) {
+	case TYPE_BOOL:
+		return val_mgr->GetBool(v);
+	case TYPE_INT:
+		return val_mgr->GetInt(v);
+	case TYPE_COUNT:
+	case TYPE_COUNTER:
+		return val_mgr->GetCount(v);
+	default:
+		reporter->Error("bad asn1_integer_to_val tag: %s", type_name(t));
+		return val_mgr->GetCount(v);
+	}
 	}
 
 StringVal* asn1_oid_to_val(const ASN1ObjectIdentifier* oid)
@@ -139,7 +152,7 @@ StringVal* asn1_oid_to_val(const ASN1Encoding* oid)
 
 	if ( ! subidentifier.empty() || subidentifiers.size() < 1 )
 		// Underflow.
-		return new StringVal("");
+		return val_mgr->GetEmptyString();
 
 	for ( size_t i = 0; i < subidentifiers.size(); ++i )
 		{

@@ -1296,7 +1296,7 @@ TableVal* MIME_Message::BuildHeaderTable(MIME_HeaderList& hlist)
 
 	for ( unsigned int i = 0; i < hlist.size(); ++i )
 		{
-		Val* index = new Val(i+1, TYPE_COUNT);	// index starting from 1
+		Val* index = val_mgr->GetCount(i+1);	// index starting from 1
 
 		MIME_Header* h = hlist[i];
 		RecordVal* header_record = BuildHeaderVal(h);
@@ -1359,7 +1359,7 @@ void MIME_Mail::Done()
 
 		val_list* vl = new val_list;
 		vl->append(analyzer->BuildConnVal());
-		vl->append(new Val(content_hash_length, TYPE_COUNT));
+		vl->append(val_mgr->GetCount(content_hash_length));
 		vl->append(new StringVal(new BroString(1, digest, 16)));
 		analyzer->ConnectionEvent(mime_content_hash, vl);
 		}
@@ -1400,7 +1400,7 @@ void MIME_Mail::EndEntity(MIME_Entity* /* entity */)
 
 		val_list* vl = new val_list();
 		vl->append(analyzer->BuildConnVal());
-		vl->append(new Val(s->Len(), TYPE_COUNT));
+		vl->append(val_mgr->GetCount(s->Len()));
 		vl->append(new StringVal(s));
 
 		analyzer->ConnectionEvent(mime_entity_data, vl);
@@ -1476,7 +1476,7 @@ void MIME_Mail::SubmitData(int len, const char* buf)
 
 		val_list* vl = new val_list();
 		vl->append(analyzer->BuildConnVal());
-		vl->append(new Val(data_len, TYPE_COUNT));
+		vl->append(val_mgr->GetCount(data_len));
 		vl->append(new StringVal(data_len, data));
 		analyzer->ConnectionEvent(mime_segment_data, vl);
 		}
@@ -1523,7 +1523,7 @@ void MIME_Mail::SubmitAllData()
 
 		val_list* vl = new val_list();
 		vl->append(analyzer->BuildConnVal());
-		vl->append(new Val(s->Len(), TYPE_COUNT));
+		vl->append(val_mgr->GetCount(s->Len()));
 		vl->append(new StringVal(s));
 
 		analyzer->ConnectionEvent(mime_all_data, vl);

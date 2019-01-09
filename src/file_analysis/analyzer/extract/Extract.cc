@@ -93,8 +93,8 @@ bool Extract::DeliverStream(const u_char* data, uint64 len)
 		val_list* vl = new val_list();
 		vl->append(f->GetVal()->Ref());
 		vl->append(Args()->Ref());
-		vl->append(new Val(limit, TYPE_COUNT));
-		vl->append(new Val(len, TYPE_COUNT));
+		vl->append(val_mgr->GetCount(limit));
+		vl->append(val_mgr->GetCount(len));
 		f->FileEvent(file_extraction_limit, vl);
 
 		// Limit may have been modified by a BIF, re-check it.

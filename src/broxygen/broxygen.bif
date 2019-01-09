@@ -25,7 +25,7 @@ function get_identifier_comments%(name: string%): string
 	IdentifierInfo* d = broxygen_mgr->GetIdentifierInfo(name->CheckString());
 
 	if ( ! d )
-		return new StringVal("");
+		return val_mgr->GetEmptyString();
 
 	return comments_to_val(d->GetComments());
 	%}
@@ -45,7 +45,7 @@ function get_script_comments%(name: string%): string
 	ScriptInfo* d = broxygen_mgr->GetScriptInfo(name->CheckString());
 
 	if ( ! d )
-		return new StringVal("");
+		return val_mgr->GetEmptyString();
 
 	return comments_to_val(d->GetComments());
 	%}
@@ -63,7 +63,7 @@ function get_package_readme%(name: string%): string
 	PackageInfo* d = broxygen_mgr->GetPackageInfo(name->CheckString());
 
 	if ( ! d )
-		return new StringVal("");
+		return val_mgr->GetEmptyString();
 
 	return comments_to_val(d->GetReadme());
 	%}
@@ -83,14 +83,14 @@ function get_record_field_comments%(name: string%): string
 	size_t i = accessor.find('$');
 
 	if ( i > accessor.size() - 2 )
-		return new StringVal("");
+		return val_mgr->GetEmptyString();
 
 	string id = accessor.substr(0, i);
 
 	IdentifierInfo* d = broxygen_mgr->GetIdentifierInfo(id);
 
 	if ( ! d )
-		return new StringVal("");
+		return val_mgr->GetEmptyString();
 
 	string field = accessor.substr(i + 1);
 	return comments_to_val(d->GetFieldComments(field));

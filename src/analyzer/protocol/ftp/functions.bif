@@ -33,14 +33,14 @@ static Val* parse_port(const char* line)
 			}
 
 		r->Assign(0, new AddrVal(htonl(addr)));
-		r->Assign(1, port_mgr->Get(port, TRANSPORT_TCP));
-		r->Assign(2, new Val(good, TYPE_BOOL));
+		r->Assign(1, val_mgr->GetPort(port, TRANSPORT_TCP));
+		r->Assign(2, val_mgr->GetBool(good));
 		}
 	else
 		{
 		r->Assign(0, new AddrVal(uint32(0)));
-		r->Assign(1, port_mgr->Get(0, TRANSPORT_TCP));
-		r->Assign(2, new Val(0, TYPE_BOOL));
+		r->Assign(1, val_mgr->GetPort(0, TRANSPORT_TCP));
+		r->Assign(2, val_mgr->GetBool(0));
 		}
 
 	return r;
@@ -109,8 +109,8 @@ static Val* parse_eftp(const char* line)
 		}
 
 	r->Assign(0, new AddrVal(addr));
-	r->Assign(1, port_mgr->Get(port, TRANSPORT_TCP));
-	r->Assign(2, new Val(good, TYPE_BOOL));
+	r->Assign(1, val_mgr->GetPort(port, TRANSPORT_TCP));
+	r->Assign(2, val_mgr->GetBool(good));
 
 	return r;
 	}
@@ -214,7 +214,7 @@ function fmt_ftp_port%(a: addr, p: port%): string
 		{
 		builtin_error("conversion of non-IPv4 address in fmt_ftp_port",
 		              @ARG@[0]);
-		return new StringVal("");
+		return val_mgr->GetEmptyString();
 		}
 	%}
 

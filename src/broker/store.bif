@@ -95,11 +95,11 @@ function Broker::__is_closed%(h: opaque of Broker::Store%): bool
 	if ( ! h )
 		{
 		builtin_error("invalid Broker store handle");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
-	return new Val(broker_mgr->LookupStore(handle->store.name()), TYPE_BOOL);
+	return val_mgr->GetBool(broker_mgr->LookupStore(handle->store.name()));
 	%}
 
 function Broker::__close%(h: opaque of Broker::Store%): bool
@@ -109,11 +109,11 @@ function Broker::__close%(h: opaque of Broker::Store%): bool
 	if ( ! h )
 		{
 		builtin_error("invalid Broker store handle");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
-	return new Val(broker_mgr->CloseStore(handle->store.name()), TYPE_BOOL);
+	return val_mgr->GetBool(broker_mgr->CloseStore(handle->store.name()));
 	%}
 
 function Broker::__store_name%(h: opaque of Broker::Store%): string
@@ -121,7 +121,7 @@ function Broker::__store_name%(h: opaque of Broker::Store%): string
 	if ( ! h )
 		{
 		builtin_error("invalid Broker store handle");
-		return new StringVal("");
+		return val_mgr->GetEmptyString();
 		}
 
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
@@ -134,7 +134,7 @@ function Broker::__exists%(h: opaque of Broker::Store,
 	if ( ! h )
 		{
 		builtin_error("invalid Broker store handle");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
@@ -179,7 +179,7 @@ function Broker::__get%(h: opaque of Broker::Store,
 	if ( ! h )
 		{
 		builtin_error("invalid Broker store handle");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
@@ -224,7 +224,7 @@ function Broker::__put_unique%(h: opaque of Broker::Store,
 	if ( ! h )
 		{
 		builtin_error("invalid Broker store handle");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
@@ -278,7 +278,7 @@ function Broker::__get_index_from_value%(h: opaque of Broker::Store,
 	if ( ! h )
 		{
 		builtin_error("invalid Broker store handle");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
@@ -331,7 +331,7 @@ function Broker::__keys%(h: opaque of Broker::Store%): Broker::QueryResult
 	if ( ! h )
 		{
 		builtin_error("invalid Broker store handle");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
@@ -369,7 +369,7 @@ function Broker::__put%(h: opaque of Broker::Store,
 	if ( ! h )
 		{
 		builtin_error("invalid Broker store handle");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
@@ -379,17 +379,17 @@ function Broker::__put%(h: opaque of Broker::Store,
 	if ( ! key )
 		{
 		builtin_error("invalid Broker data conversion for key argument");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	if ( ! val )
 		{
 		builtin_error("invalid Broker data conversion for value argument");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	handle->store.put(std::move(*key), std::move(*val), prepare_expiry(e));
-	return new Val(true, TYPE_BOOL);
+	return val_mgr->GetTrue();
 	%}
 
 function Broker::__erase%(h: opaque of Broker::Store, k: any%): bool
@@ -397,7 +397,7 @@ function Broker::__erase%(h: opaque of Broker::Store, k: any%): bool
 	if ( ! h )
 		{
 		builtin_error("invalid Broker store handle");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
@@ -406,11 +406,11 @@ function Broker::__erase%(h: opaque of Broker::Store, k: any%): bool
 	if ( ! key )
 		{
 		builtin_error("invalid Broker data conversion for key argument");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	handle->store.erase(std::move(*key));
-	return new Val(true, TYPE_BOOL);
+	return val_mgr->GetTrue();
 	%}
 
 function Broker::__increment%(h: opaque of Broker::Store, k: any, a: any,
@@ -419,7 +419,7 @@ function Broker::__increment%(h: opaque of Broker::Store, k: any, a: any,
 	if ( ! h )
 		{
 		builtin_error("invalid Broker store handle");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
@@ -429,18 +429,18 @@ function Broker::__increment%(h: opaque of Broker::Store, k: any, a: any,
 	if ( ! key )
 		{
 		builtin_error("invalid Broker data conversion for key argument");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	if ( ! amount )
 		{
 		builtin_error("invalid Broker data conversion for amount argument");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	handle->store.increment(std::move(*key), std::move(*amount),
 	                        prepare_expiry(e));
-	return new Val(true, TYPE_BOOL);
+	return val_mgr->GetTrue();
 	%}
 
 function Broker::__decrement%(h: opaque of Broker::Store, k: any, a: any,
@@ -449,7 +449,7 @@ function Broker::__decrement%(h: opaque of Broker::Store, k: any, a: any,
 	if ( ! h )
 		{
 		builtin_error("invalid Broker store handle");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
@@ -459,17 +459,17 @@ function Broker::__decrement%(h: opaque of Broker::Store, k: any, a: any,
 	if ( ! key )
 		{
 		builtin_error("invalid Broker data conversion for key argument");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	if ( ! amount )
 		{
 		builtin_error("invalid Broker data conversion for amount argument");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	handle->store.decrement(std::move(*key), std::move(*amount), prepare_expiry(e));
-	return new Val(true, TYPE_BOOL);
+	return val_mgr->GetTrue();
 	%}
 
 function Broker::__append%(h: opaque of Broker::Store, k: any, s: any,
@@ -478,7 +478,7 @@ function Broker::__append%(h: opaque of Broker::Store, k: any, s: any,
 	if ( ! h )
 		{
 		builtin_error("invalid Broker store handle");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
@@ -488,17 +488,17 @@ function Broker::__append%(h: opaque of Broker::Store, k: any, s: any,
 	if ( ! key )
 		{
 		builtin_error("invalid Broker data conversion for key argument");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	if ( ! str )
 		{
 		builtin_error("invalid Broker data conversion for str argument");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	handle->store.append(std::move(*key), std::move(*str), prepare_expiry(e));
-	return new Val(true, TYPE_BOOL);
+	return val_mgr->GetTrue();
 	%}
 
 function Broker::__insert_into_set%(h: opaque of Broker::Store, k: any, i: any,
@@ -507,7 +507,7 @@ function Broker::__insert_into_set%(h: opaque of Broker::Store, k: any, i: any,
 	if ( ! h )
 		{
 		builtin_error("invalid Broker store handle");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
@@ -517,18 +517,18 @@ function Broker::__insert_into_set%(h: opaque of Broker::Store, k: any, i: any,
 	if ( ! key )
 		{
 		builtin_error("invalid Broker data conversion for key argument");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	if ( ! idx )
 		{
 		builtin_error("invalid Broker data conversion for index argument");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	handle->store.insert_into(std::move(*key), std::move(*idx),
 	                          prepare_expiry(e));
-	return new Val(true, TYPE_BOOL);
+	return val_mgr->GetTrue();
 	%}
 
 function Broker::__insert_into_table%(h: opaque of Broker::Store, k: any,
@@ -537,7 +537,7 @@ function Broker::__insert_into_table%(h: opaque of Broker::Store, k: any,
 	if ( ! h )
 		{
 		builtin_error("invalid Broker store handle");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
@@ -548,24 +548,24 @@ function Broker::__insert_into_table%(h: opaque of Broker::Store, k: any,
 	if ( ! key )
 		{
 		builtin_error("invalid Broker data conversion for key argument");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	if ( ! idx )
 		{
 		builtin_error("invalid Broker data conversion for index argument");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	if ( ! val )
 		{
 		builtin_error("invalid Broker data conversion for value argument");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	handle->store.insert_into(std::move(*key), std::move(*idx),
 	                          std::move(*val), prepare_expiry(e));
-	return new Val(true, TYPE_BOOL);
+	return val_mgr->GetTrue();
 	%}
 
 function Broker::__remove_from%(h: opaque of Broker::Store, k: any, i: any,
@@ -574,7 +574,7 @@ function Broker::__remove_from%(h: opaque of Broker::Store, k: any, i: any,
 	if ( ! h )
 		{
 		builtin_error("invalid Broker store handle");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
@@ -584,18 +584,18 @@ function Broker::__remove_from%(h: opaque of Broker::Store, k: any, i: any,
 	if ( ! key )
 		{
 		builtin_error("invalid Broker data conversion for key argument");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	if ( ! idx )
 		{
 		builtin_error("invalid Broker data conversion for index argument");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	handle->store.remove_from(std::move(*key), std::move(*idx),
 	                          prepare_expiry(e));
-	return new Val(true, TYPE_BOOL);
+	return val_mgr->GetTrue();
 	%}
 
 function Broker::__push%(h: opaque of Broker::Store, k: any, v: any,
@@ -604,7 +604,7 @@ function Broker::__push%(h: opaque of Broker::Store, k: any, v: any,
 	if ( ! h )
 		{
 		builtin_error("invalid Broker store handle");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
@@ -614,17 +614,17 @@ function Broker::__push%(h: opaque of Broker::Store, k: any, v: any,
 	if ( ! key )
 		{
 		builtin_error("invalid Broker data conversion for key argument");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	if ( ! val )
 		{
 		builtin_error("invalid Broker data conversion for value argument");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	handle->store.push(std::move(*key), std::move(*val), prepare_expiry(e));
-	return new Val(true, TYPE_BOOL);
+	return val_mgr->GetTrue();
 	%}
 
 function Broker::__pop%(h: opaque of Broker::Store, k: any, e: interval%): bool
@@ -632,7 +632,7 @@ function Broker::__pop%(h: opaque of Broker::Store, k: any, e: interval%): bool
 	if ( ! h )
 		{
 		builtin_error("invalid Broker store handle");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
@@ -641,11 +641,11 @@ function Broker::__pop%(h: opaque of Broker::Store, k: any, e: interval%): bool
 	if ( ! key )
 		{
 		builtin_error("invalid Broker data conversion for key argument");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	handle->store.pop(std::move(*key), prepare_expiry(e));
-	return new Val(true, TYPE_BOOL);
+	return val_mgr->GetTrue();
 	%}
 
 function Broker::__clear%(h: opaque of Broker::Store%): bool
@@ -653,11 +653,11 @@ function Broker::__clear%(h: opaque of Broker::Store%): bool
 	if ( ! h )
 		{
 		builtin_error("invalid Broker store handle");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
 
 	handle->store.clear();
-	return new Val(true, TYPE_BOOL);
+	return val_mgr->GetTrue();
 	%}

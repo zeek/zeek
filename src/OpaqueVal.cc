@@ -24,7 +24,7 @@ bool HashVal::Init()
 StringVal* HashVal::Get()
 	{
 	if ( ! valid )
-		return new StringVal("");
+		return val_mgr->GetEmptyString();
 
 	StringVal* result = DoGet();
 	valid = false;
@@ -55,7 +55,7 @@ bool HashVal::DoFeed(const void*, size_t)
 StringVal* HashVal::DoGet()
 	{
 	assert(! "missing implementation of DoGet()");
-	return new StringVal("");
+	return val_mgr->GetEmptyString();
 	}
 
 HashVal::HashVal(OpaqueType* t) : OpaqueVal(t)
@@ -135,7 +135,7 @@ bool MD5Val::DoFeed(const void* data, size_t size)
 StringVal* MD5Val::DoGet()
 	{
 	if ( ! IsValid() )
-		return new StringVal("");
+		return val_mgr->GetEmptyString();
 
 	u_char digest[MD5_DIGEST_LENGTH];
 	md5_final(&ctx, digest);
@@ -245,7 +245,7 @@ bool SHA1Val::DoFeed(const void* data, size_t size)
 StringVal* SHA1Val::DoGet()
 	{
 	if ( ! IsValid() )
-		return new StringVal("");
+		return val_mgr->GetEmptyString();
 
 	u_char digest[SHA_DIGEST_LENGTH];
 	sha1_final(&ctx, digest);
@@ -357,7 +357,7 @@ bool SHA256Val::DoFeed(const void* data, size_t size)
 StringVal* SHA256Val::DoGet()
 	{
 	if ( ! IsValid() )
-		return new StringVal("");
+		return val_mgr->GetEmptyString();
 
 	u_char digest[SHA256_DIGEST_LENGTH];
 	sha256_final(&ctx, digest);

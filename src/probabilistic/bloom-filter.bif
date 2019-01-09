@@ -180,9 +180,9 @@ function bloomfilter_lookup%(bf: opaque of bloomfilter, x: any%): count
 		reporter->Error("incompatible Bloom filter types");
 
 	else
-		return new Val(static_cast<uint64>(bfv->Count(x)), TYPE_COUNT);
+		return val_mgr->GetCount(static_cast<uint64>(bfv->Count(x)));
 
-	return new Val(0, TYPE_COUNT);
+	return val_mgr->GetCount(0);
 	%}
 
 ## Removes all elements from a Bloom filter. This function resets all bits in

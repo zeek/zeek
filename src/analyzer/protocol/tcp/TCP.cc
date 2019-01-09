@@ -103,14 +103,14 @@ static RecordVal* build_syn_packet_val(int is_orig, const IP_Hdr* ip,
 
 	RecordVal* v = new RecordVal(SYN_packet);
 
-	v->Assign(0, new Val(is_orig, TYPE_BOOL));
-	v->Assign(1, new Val(int(ip->DF()), TYPE_BOOL));
-	v->Assign(2, new Val((ip->TTL()), TYPE_COUNT));
-	v->Assign(3, new Val((ip->TotalLen()), TYPE_COUNT));
-	v->Assign(4, new Val(ntohs(tcp->th_win), TYPE_COUNT));
-	v->Assign(5, new Val(winscale, TYPE_INT));
-	v->Assign(6, new Val(MSS, TYPE_COUNT));
-	v->Assign(7, new Val(SACK, TYPE_BOOL));
+	v->Assign(0, val_mgr->GetBool(is_orig));
+	v->Assign(1, val_mgr->GetBool(int(ip->DF())));
+	v->Assign(2, val_mgr->GetCount((ip->TTL())));
+	v->Assign(3, val_mgr->GetCount((ip->TotalLen())));
+	v->Assign(4, val_mgr->GetCount(ntohs(tcp->th_win)));
+	v->Assign(5, val_mgr->GetInt(winscale));
+	v->Assign(6, val_mgr->GetCount(MSS));
+	v->Assign(7, val_mgr->GetBool(SACK));
 
 	return v;
 	}
@@ -270,10 +270,10 @@ static RecordVal* build_os_val(int is_orig, const IP_Hdr* ip,
 		if ( os_from_print.desc )
 			os->Assign(1, new StringVal(os_from_print.desc));
 		else
-			os->Assign(1, new StringVal(""));
+			os->Assign(1, val_mgr->GetEmptyString());
 
-		os->Assign(2, new Val(os_from_print.dist, TYPE_COUNT));
-		os->Assign(3, new EnumVal(os_from_print.match, OS_version_inference));
+		os->Assign(2, val_mgr->GetCount(os_from_print.dist));
+		os->Assign(3, OS_version_inference->GetVal(os_from_print.match));
 
 		return os;
 		}
@@ -968,11 +968,11 @@ void TCP_Analyzer::GeneratePacketEvent(
 	val_list* vl = new val_list();
 
 	vl->append(BuildConnVal());
-	vl->append(new Val(is_orig, TYPE_BOOL));
+	vl->append(val_mgr->GetBool(is_orig));
 	vl->append(new StringVal(flags.AsString()));
-	vl->append(new Val(rel_seq, TYPE_COUNT));
-	vl->append(new Val(flags.ACK() ? rel_ack : 0, TYPE_COUNT));
-	vl->append(new Val(len, TYPE_COUNT));
+	vl->append(val_mgr->GetCount(rel_seq));
+	vl->append(val_mgr->GetCount(flags.ACK() ? rel_ack : 0));
+	vl->append(val_mgr->GetCount(len));
 
 	// We need the min() here because Ethernet padding can lead to
 	// caplen > len.
@@ -1506,9 +1506,9 @@ int TCP_Analyzer::TCPOptionEvent(unsigned int opt,
 		val_list* vl = new val_list();
 
 		vl->append(analyzer->BuildConnVal());
-		vl->append(new Val(is_orig, TYPE_BOOL));
-		vl->append(new Val(opt, TYPE_COUNT));
-		vl->append(new Val(optlen, TYPE_COUNT));
+		vl->append(val_mgr->GetBool(is_orig));
+		vl->append(val_mgr->GetCount(opt));
+		vl->append(val_mgr->GetCount(optlen));
 
 		analyzer->ConnectionEvent(tcp_option, vl);
 		}
@@ -1828,7 +1828,7 @@ void TCP_Analyzer::EndpointEOF(TCP_Reassembler* endp)
 		{
 		val_list* vl = new val_list();
 		vl->append(BuildConnVal());
-		vl->append(new Val(endp->IsOrig(), TYPE_BOOL));
+		vl->append(val_mgr->GetBool(endp->IsOrig()));
 		ConnectionEvent(connection_EOF, vl);
 		}
 
@@ -2110,11 +2110,11 @@ int TCPStats_Endpoint::DataSent(double /* t */, uint64 seq, int len, int caplen,
 			{
 			val_list* vl = new val_list();
 			vl->append(endp->TCP()->BuildConnVal());
-			vl->append(new Val(endp->IsOrig(), TYPE_BOOL));
-			vl->append(new Val(seq, TYPE_COUNT));
-			vl->append(new Val(len, TYPE_COUNT));
-			vl->append(new Val(data_in_flight, TYPE_COUNT));
-			vl->append(new Val(endp->peer->window, TYPE_COUNT));
+			vl->append(val_mgr->GetBool(endp->IsOrig()));
+			vl->append(val_mgr->GetCount(seq));
+			vl->append(val_mgr->GetCount(len));
+			vl->append(val_mgr->GetCount(data_in_flight));
+			vl->append(val_mgr->GetCount(endp->peer->window));
 
 			endp->TCP()->ConnectionEvent(tcp_rexmit, vl);
 			}
@@ -2129,13 +2129,13 @@ RecordVal* TCPStats_Endpoint::BuildStats()
 	{
 	RecordVal* stats = new RecordVal(endpoint_stats);
 
-	stats->Assign(0, new Val(num_pkts,TYPE_COUNT));
-	stats->Assign(1, new Val(num_rxmit,TYPE_COUNT));
-	stats->Assign(2, new Val(num_rxmit_bytes,TYPE_COUNT));
-	stats->Assign(3, new Val(num_in_order,TYPE_COUNT));
-	stats->Assign(4, new Val(num_OO,TYPE_COUNT));
-	stats->Assign(5, new Val(num_repl,TYPE_COUNT));
-	stats->Assign(6, new Val(endian_type,TYPE_COUNT));
+	stats->Assign(0, val_mgr->GetCount(num_pkts));
+	stats->Assign(1, val_mgr->GetCount(num_rxmit));
+	stats->Assign(2, val_mgr->GetCount(num_rxmit_bytes));
+	stats->Assign(3, val_mgr->GetCount(num_in_order));
+	stats->Assign(4, val_mgr->GetCount(num_OO));
+	stats->Assign(5, val_mgr->GetCount(num_repl));
+	stats->Assign(6, val_mgr->GetCount(endian_type));
 
 	return stats;
 	}

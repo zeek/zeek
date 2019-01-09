@@ -138,7 +138,7 @@ int MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status
 			// Otherwise DeliverRPC would complain about
 			// excess_RPC.
 			n = 0;
-			reply = new EnumVal(c->Proc(), BifType::Enum::MOUNT3::proc_t);
+			reply = BifType::Enum::MOUNT3::proc_t->GetVal(c->Proc());
 			event = mount_proc_not_implemented;
 			}
 		else
@@ -194,21 +194,21 @@ val_list* MOUNT_Interp::event_common_vl(RPC_CallInfo *c,
 
 	for (size_t i = 0; i < c->AuxGIDs().size(); ++i)
 		{
-		auxgids->Assign(i, new Val(c->AuxGIDs()[i], TYPE_COUNT));
+		auxgids->Assign(i, val_mgr->GetCount(c->AuxGIDs()[i]));
 		}
 
 	RecordVal* info = new RecordVal(BifType::Record::MOUNT3::info_t);
-	info->Assign(0, new EnumVal(rpc_status, BifType::Enum::rpc_status));
-	info->Assign(1, new EnumVal(mount_status, BifType::Enum::MOUNT3::status_t));
+	info->Assign(0, BifType::Enum::rpc_status->GetVal(rpc_status));
+	info->Assign(1, BifType::Enum::MOUNT3::status_t->GetVal(mount_status));
 	info->Assign(2, new Val(c->StartTime(), TYPE_TIME));
 	info->Assign(3, new Val(c->LastTime() - c->StartTime(), TYPE_INTERVAL));
-	info->Assign(4, new Val(c->RPCLen(), TYPE_COUNT));
+	info->Assign(4, val_mgr->GetCount(c->RPCLen()));
 	info->Assign(5, new Val(rep_start_time, TYPE_TIME));
 	info->Assign(6, new Val(rep_last_time - rep_start_time, TYPE_INTERVAL));
-	info->Assign(7, new Val(reply_len, TYPE_COUNT));
-	info->Assign(8, new Val(c->Uid(), TYPE_COUNT));
-	info->Assign(9, new Val(c->Gid(), TYPE_COUNT));
-	info->Assign(10, new Val(c->Stamp(), TYPE_COUNT));
+	info->Assign(7, val_mgr->GetCount(reply_len));
+	info->Assign(8, val_mgr->GetCount(c->Uid()));
+	info->Assign(9, val_mgr->GetCount(c->Gid()));
+	info->Assign(10, val_mgr->GetCount(c->Stamp()));
 	info->Assign(11, new StringVal(c->MachineName()));
 	info->Assign(12, auxgids);
 
@@ -219,7 +219,7 @@ val_list* MOUNT_Interp::event_common_vl(RPC_CallInfo *c,
 EnumVal* MOUNT_Interp::mount3_auth_flavor(const u_char*& buf, int& n)
     {
 	BifEnum::MOUNT3::auth_flavor_t t = (BifEnum::MOUNT3::auth_flavor_t)extract_XDR_uint32(buf, n);
-	return new EnumVal(t, BifType::Enum::MOUNT3::auth_flavor_t);
+	return BifType::Enum::MOUNT3::auth_flavor_t->GetVal(t);
     }
 
 StringVal* MOUNT_Interp::mount3_fh(const u_char*& buf, int& n)

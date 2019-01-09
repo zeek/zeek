@@ -327,8 +327,8 @@ void Connection::HistoryThresholdEvent(EventHandlerPtr e, bool is_orig,
 
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
-	vl->append(new Val(is_orig, TYPE_BOOL));
-	vl->append(new Val(threshold, TYPE_COUNT));
+	vl->append(val_mgr->GetBool(is_orig));
+	vl->append(val_mgr->GetCount(threshold));
 
 	ConnectionEvent(e, 0, vl);
 	}
@@ -408,9 +408,9 @@ RecordVal* Connection::BuildConnVal()
 
 		RecordVal* id_val = new RecordVal(conn_id);
 		id_val->Assign(0, new AddrVal(orig_addr));
-		id_val->Assign(1, port_mgr->Get(ntohs(orig_port), prot_type));
+		id_val->Assign(1, val_mgr->GetPort(ntohs(orig_port), prot_type));
 		id_val->Assign(2, new AddrVal(resp_addr));
-		id_val->Assign(3, port_mgr->Get(ntohs(resp_port), prot_type));
+		id_val->Assign(3, val_mgr->GetPort(ntohs(resp_port), prot_type));
 
 		RecordVal* orig_endp = new RecordVal(endpoint);
 		orig_endp->Assign(0, val_mgr->GetCount(0));
@@ -426,7 +426,7 @@ RecordVal* Connection::BuildConnVal()
 		RecordVal* resp_endp = new RecordVal(endpoint);
 		resp_endp->Assign(0, val_mgr->GetCount(0));
 		resp_endp->Assign(1, val_mgr->GetCount(0));
-		resp_endp->Assign(4, val_mgr->GetCount(orig_flow_label));
+		resp_endp->Assign(4, val_mgr->GetCount(resp_flow_label));
 
 		if ( memcmp(&resp_l2_addr, &null, l2_len) != 0 )
 			resp_endp->Assign(5, new StringVal(fmt_mac(resp_l2_addr, l2_len)));
@@ -436,7 +436,7 @@ RecordVal* Connection::BuildConnVal()
 		conn_val->Assign(2, resp_endp);
 		// 3 and 4 are set below.
 		conn_val->Assign(5, new TableVal(string_set));	// service
-		conn_val->Assign(6, new StringVal(""));	// history
+		conn_val->Assign(6, val_mgr->GetEmptyString());	// history
 
 		if ( ! uid )
 			uid.Set(bits_per_uid);
@@ -447,10 +447,10 @@ RecordVal* Connection::BuildConnVal()
 			conn_val->Assign(8, encapsulation->GetVectorVal());
 
 		if ( vlan != 0 )
-			conn_val->Assign(9, new Val(vlan, TYPE_INT));
+			conn_val->Assign(9, val_mgr->GetInt(vlan));
 
 		if ( inner_vlan != 0 )
-			conn_val->Assign(10, new Val(inner_vlan, TYPE_INT));
+			conn_val->Assign(10, val_mgr->GetInt(inner_vlan));
 
 		}
 
@@ -547,7 +547,7 @@ Val* Connection::BuildVersionVal(const char* s, int len)
 		;
 
 	if ( s != e )
-		major = new Val(atoi(s), TYPE_INT);
+		major = val_mgr->GetInt(atoi(s));
 
 	// Find second number seperated only by punctuation chars -
 	// that's the minor version.
@@ -557,7 +557,7 @@ Val* Connection::BuildVersionVal(const char* s, int len)
 		;
 
 	if ( s != e )
-		minor = new Val(atoi(s), TYPE_INT);
+		minor = val_mgr->GetInt(atoi(s));
 
 	// Find second number seperated only by punctuation chars; -
 	// that's the minor version.
@@ -567,7 +567,7 @@ Val* Connection::BuildVersionVal(const char* s, int len)
 		;
 
 	if ( s != e )
-		minor2 = new Val(atoi(s), TYPE_INT);
+		minor2 = val_mgr->GetInt(atoi(s));
 
 	// Anything after following punctuation and until next white space is
 	// an additional version string.
@@ -604,10 +604,10 @@ Val* Connection::BuildVersionVal(const char* s, int len)
 		}
 
 	RecordVal* version = new RecordVal(software_version);
-	version->Assign(0, major ? major : new Val(-1, TYPE_INT));
-	version->Assign(1, minor ? minor : new Val(-1, TYPE_INT));
-	version->Assign(2, minor2 ? minor2 : new Val(-1, TYPE_INT));
-	version->Assign(3, addl ? addl : new StringVal(""));
+	version->Assign(0, major ? major : val_mgr->GetInt(-1));
+	version->Assign(1, minor ? minor : val_mgr->GetInt(-1));
+	version->Assign(2, minor2 ? minor2 : val_mgr->GetInt(-1));
+	version->Assign(3, addl ? addl : val_mgr->GetEmptyString());
 
 	RecordVal* sw = new RecordVal(software);
 	sw->Assign(0, name);
@@ -1049,7 +1049,7 @@ void Connection::CheckFlowLabel(bool is_orig, uint32 flow_label)
 		if ( conn_val )
 			{
 			RecordVal *endp = conn_val->Lookup(is_orig ? 1 : 2)->AsRecordVal();
-			endp->Assign(4, new Val(flow_label, TYPE_COUNT));
+			endp->Assign(4, val_mgr->GetCount(flow_label));
 			}
 
 		if ( connection_flow_label_changed &&
@@ -1057,9 +1057,9 @@ void Connection::CheckFlowLabel(bool is_orig, uint32 flow_label)
 			{
 			val_list* vl = new val_list(4);
 			vl->append(BuildConnVal());
-			vl->append(new Val(is_orig, TYPE_BOOL));
-			vl->append(new Val(my_flow_label, TYPE_COUNT));
-			vl->append(new Val(flow_label, TYPE_COUNT));
+			vl->append(val_mgr->GetBool(is_orig));
+			vl->append(val_mgr->GetCount(my_flow_label));
+			vl->append(val_mgr->GetCount(flow_label));
 			ConnectionEvent(connection_flow_label_changed, 0, vl);
 			}
 

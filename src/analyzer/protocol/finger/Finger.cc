@@ -68,7 +68,7 @@ void Finger_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig
 
 		val_list* vl = new val_list;
 		vl->append(BuildConnVal());
-		vl->append(new Val(long_cnt, TYPE_BOOL));
+		vl->append(val_mgr->GetBool(long_cnt));
 		vl->append(new StringVal(at - line, line));
 		vl->append(new StringVal(end_of_line - host, host));
 

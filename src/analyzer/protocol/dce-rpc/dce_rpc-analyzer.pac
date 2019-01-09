@@ -42,7 +42,7 @@ refine connection DCE_RPC_Conn += {
 			                                   ${header.is_orig},
 			                                   fid,
 			                                   ${header.PTYPE},
-			                                   new EnumVal(${header.PTYPE}, BifType::Enum::DCE_RPC::PType));
+			                                   BifType::Enum::DCE_RPC::PType->GetVal(${header.PTYPE}));
 			}
 		return true;
 		%}

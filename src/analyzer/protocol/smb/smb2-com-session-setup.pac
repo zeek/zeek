@@ -5,7 +5,7 @@ refine connection SMB_Conn += {
 		if ( smb2_session_setup_request )
 			{
 			RecordVal* req = new RecordVal(BifType::Record::SMB2::SessionSetupRequest);
-			req->Assign(0, new Val(${val.security_mode}, TYPE_COUNT));
+			req->Assign(0, val_mgr->GetCount(${val.security_mode}));
 
 			BifEvent::generate_smb2_session_setup_request(bro_analyzer(),
 			                                              bro_analyzer()->Conn(),
@@ -21,9 +21,9 @@ refine connection SMB_Conn += {
 		if ( smb2_session_setup_response )
 			{
 			RecordVal* flags = new RecordVal(BifType::Record::SMB2::SessionSetupFlags);
-			flags->Assign(0, new Val(${val.flag_guest}, TYPE_BOOL));
-			flags->Assign(1, new Val(${val.flag_anonymous}, TYPE_BOOL));
-			flags->Assign(2, new Val(${val.flag_encrypt}, TYPE_BOOL));
+			flags->Assign(0, val_mgr->GetBool(${val.flag_guest}));
+			flags->Assign(1, val_mgr->GetBool(${val.flag_anonymous}));
+			flags->Assign(2, val_mgr->GetBool(${val.flag_encrypt}));
 
 			RecordVal* resp = new RecordVal(BifType::Record::SMB2::SessionSetupResponse);
 			resp->Assign(0, flags);

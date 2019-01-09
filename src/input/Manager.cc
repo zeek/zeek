@@ -1083,7 +1083,7 @@ void Manager::SendEntry(ReaderFrontend* reader, Value* *vals)
 
 	else if ( i->stream_type == EVENT_STREAM )
 		{
-		EnumVal *type = new EnumVal(BifEnum::Input::EVENT_NEW, BifType::Enum::Input::Event);
+		EnumVal *type = BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_NEW);
 		readFields = SendEventStreamEvent(i, type, vals);
 		}
 
@@ -1189,9 +1189,9 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals)
 		if ( ! pred_convert_error )
 			{
 			if ( updated )
-				ev = new EnumVal(BifEnum::Input::EVENT_CHANGED, BifType::Enum::Input::Event);
+				ev = BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_CHANGED);
 			else
-				ev = new EnumVal(BifEnum::Input::EVENT_NEW, BifType::Enum::Input::Event);
+				ev = BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_NEW);
 
 			bool result;
 			if ( stream->num_val_fields > 0 ) // we have values
@@ -1292,13 +1292,13 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals)
 		else if ( updated )
 			{ // in case of update send back the old value.
 			assert ( stream->num_val_fields > 0 );
-			ev = new EnumVal(BifEnum::Input::EVENT_CHANGED, BifType::Enum::Input::Event);
+			ev = BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_CHANGED);
 			assert ( oldval != 0 );
 			SendEvent(stream->event, 4, stream->description->Ref(), ev, predidx, oldval);
 			}
 		else
 			{
-			ev = new EnumVal(BifEnum::Input::EVENT_NEW, BifType::Enum::Input::Event);
+			ev = BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_NEW);
 			if ( stream->num_val_fields == 0 )
 				{
 				Ref(stream->description);
@@ -1363,7 +1363,7 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 			assert(val != 0);
 			predidx = ListValToRecordVal(idx, stream->itype, &startpos);
 			Unref(idx);
-			ev = new EnumVal(BifEnum::Input::EVENT_REMOVED, BifType::Enum::Input::Event);
+			ev = BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_REMOVED);
 			}
 
 		if ( stream->pred )
@@ -1472,7 +1472,7 @@ void Manager::Put(ReaderFrontend* reader, Value* *vals)
 
 	else if ( i->stream_type == EVENT_STREAM )
 		{
-		EnumVal *type = new EnumVal(BifEnum::Input::EVENT_NEW, BifType::Enum::Input::Event);
+		EnumVal *type = BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_NEW);
 		readFields = SendEventStreamEvent(i, type, vals);
 		}
 
@@ -1610,11 +1610,9 @@ int Manager::PutTable(Stream* i, const Value* const *vals)
 			else
 				{
 				if ( updated )
-					ev = new EnumVal(BifEnum::Input::EVENT_CHANGED,
-							 BifType::Enum::Input::Event);
+					ev = BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_CHANGED);
 				else
-					ev = new EnumVal(BifEnum::Input::EVENT_NEW,
-							 BifType::Enum::Input::Event);
+					ev = BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_NEW);
 
 				bool result;
 				if ( stream->num_val_fields > 0 ) // we have values
@@ -1654,16 +1652,14 @@ int Manager::PutTable(Stream* i, const Value* const *vals)
 					{
 					// in case of update send back the old value.
 					assert ( stream->num_val_fields > 0 );
-					ev = new EnumVal(BifEnum::Input::EVENT_CHANGED,
-							 BifType::Enum::Input::Event);
+					ev = BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_CHANGED);
 					assert ( oldval != 0 );
 					SendEvent(stream->event, 4, stream->description->Ref(),
 							ev, predidx, oldval);
 					}
 				else
 					{
-					ev = new EnumVal(BifEnum::Input::EVENT_NEW,
-										 BifType::Enum::Input::Event);
+					ev = BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_NEW);
 					if ( stream->num_val_fields == 0 )
 						SendEvent(stream->event, 4, stream->description->Ref(),
 								ev, predidx);
@@ -1749,7 +1745,7 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 				else
 					{
 					Ref(val);
-					EnumVal *ev = new EnumVal(BifEnum::Input::EVENT_REMOVED, BifType::Enum::Input::Event);
+					EnumVal *ev = BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_REMOVED);
 
 					streamresult = CallPred(stream->pred, 3, ev, predidx, val);
 
@@ -1769,7 +1765,7 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 				Ref(idxval);
 				assert(val != 0);
 				Ref(val);
-				EnumVal *ev = new EnumVal(BifEnum::Input::EVENT_REMOVED, BifType::Enum::Input::Event);
+				EnumVal *ev = BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_REMOVED);
 				SendEvent(stream->event, 4, stream->description->Ref(), ev, idxval, val);
 				}
 			}
@@ -1789,7 +1785,7 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 
 	else if ( i->stream_type == EVENT_STREAM  )
 		{
-		EnumVal *type = new EnumVal(BifEnum::Input::EVENT_REMOVED, BifType::Enum::Input::Event);
+		EnumVal *type = BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_REMOVED);
 		readVals = SendEventStreamEvent(i, type, vals);
 		success = true;
 		}
@@ -2276,13 +2272,14 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_typ
 
 	switch ( val->type ) {
 	case TYPE_BOOL:
+		return val_mgr->GetBool(val->val.int_val);
+
 	case TYPE_INT:
-		return new Val(val->val.int_val, val->type);
-		break;
+		return val_mgr->GetInt(val->val.int_val);
 
 	case TYPE_COUNT:
 	case TYPE_COUNTER:
-		return new Val(val->val.uint_val, val->type);
+		return val_mgr->GetCount(val->val.int_val);
 
 	case TYPE_DOUBLE:
 	case TYPE_TIME:
@@ -2296,7 +2293,7 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_typ
 		}
 
 	case TYPE_PORT:
-		return port_mgr->Get(val->val.port_val.port, val->val.port_val.proto);
+		return val_mgr->GetPort(val->val.port_val.port, val->val.port_val.proto);
 
 	case TYPE_ADDR:
 		{
@@ -2396,7 +2393,7 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_typ
 			return nullptr;
 			}
 
-		return new EnumVal(index, request_type->Ref()->AsEnumType());
+		return request_type->Ref()->AsEnumType()->GetVal(index);
 		}
 
 	default:
@@ -2417,13 +2414,14 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, bool& have_error) co
 
 	switch ( val->type ) {
 	case TYPE_BOOL:
+		return val_mgr->GetBool(val->val.int_val);
+
 	case TYPE_INT:
-		return new Val(val->val.int_val, val->type);
-		break;
+		return val_mgr->GetInt(val->val.int_val);
 
 	case TYPE_COUNT:
 	case TYPE_COUNTER:
-		return new Val(val->val.uint_val, val->type);
+		return val_mgr->GetCount(val->val.int_val);
 
 	case TYPE_DOUBLE:
 	case TYPE_TIME:
@@ -2437,7 +2435,7 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, bool& have_error) co
 		}
 
 	case TYPE_PORT:
-		return port_mgr->Get(val->val.port_val.port, val->val.port_val.proto);
+		return val_mgr->GetPort(val->val.port_val.port, val->val.port_val.proto);
 
 	case TYPE_ADDR:
 		{
@@ -2565,7 +2563,7 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, bool& have_error) co
 			return nullptr;
 			}
 
-		return new EnumVal(intval, t);
+		return t->GetVal(intval);
 		}
 
 	default:
@@ -2697,15 +2695,15 @@ void Manager::ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, co
 		switch (et)
 			{
 			case ErrorType::INFO:
-				ev = new EnumVal(BifEnum::Reporter::INFO, BifType::Enum::Reporter::Level);
+				ev = BifType::Enum::Reporter::Level->GetVal(BifEnum::Reporter::INFO);
 				break;
 
 			case ErrorType::WARNING:
-				ev = new EnumVal(BifEnum::Reporter::WARNING, BifType::Enum::Reporter::Level);
+				ev = BifType::Enum::Reporter::Level->GetVal(BifEnum::Reporter::WARNING);
 				break;
 
 			case ErrorType::ERROR:
-				ev = new EnumVal(BifEnum::Reporter::ERROR, BifType::Enum::Reporter::Level);
+				ev = BifType::Enum::Reporter::Level->GetVal(BifEnum::Reporter::ERROR);
 				break;
 
 			default:

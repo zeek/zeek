@@ -7,7 +7,7 @@ error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.set-type-che
 error in port and /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.set-type-checking/set-type-checking.bro, line 16: arithmetic mixed with non-arithmetic (port and 2)
 error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.set-type-checking/set-type-checking.bro, line 16 and port: type mismatch (2 and port)
 error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.set-type-checking/set-type-checking.bro, line 16: inconsistent type in set constructor (set(2))
-error in port and /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.set-type-checking/set-type-checking.bro, line 20: arithmetic mixed with non-arithmetic (port and 3)
+error in port: arithmetic mixed with non-arithmetic (port and 3)
 error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.set-type-checking/set-type-checking.bro, line 20: initialization type mismatch in set (set(3) and 3)
 error in port and /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.set-type-checking/set-type-checking.bro, line 25: arithmetic mixed with non-arithmetic (port and 1000)
 error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.set-type-checking/set-type-checking.bro, line 25 and port: type mismatch (1000 and port)

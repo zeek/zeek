@@ -313,7 +313,7 @@ void ProfileLogger::Log()
 		val_list* vl = new val_list;
 		Ref(file);
 		vl->append(new Val(file));
-		vl->append(new Val(expensive, TYPE_BOOL));
+		vl->append(val_mgr->GetBool(expensive));
 		mgr.Dispatch(new Event(profiling_update, vl));
 		}
 	}
@@ -372,7 +372,7 @@ void SampleLogger::SegmentProfile(const char* /* name */,
 	val_list* vl = new val_list(2);
 	vl->append(load_samples->Ref());
 	vl->append(new IntervalVal(dtime, Seconds));
-	vl->append(new Val(dmem, TYPE_INT));
+	vl->append(val_mgr->GetInt(dmem));
 
 	mgr.QueueEvent(load_sample, vl);
 	}

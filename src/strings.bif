@@ -25,10 +25,10 @@ function levenshtein_distance%(s1: string, s2: string%): count
 	unsigned int m = s2->Len();
 
 	if ( ! n )
-		return new Val(m, TYPE_COUNT);
+		return val_mgr->GetCount(m);
 
 	if ( ! m )
-		return new Val(n, TYPE_COUNT);
+		return val_mgr->GetCount(n);
 
 	vector<vector<unsigned int> > d(n + 1, vector<unsigned int>(m + 1));
 
@@ -47,7 +47,7 @@ function levenshtein_distance%(s1: string, s2: string%): count
 				      d[i-1][j-1] + (s1->Bytes()[i-1] == s2->Bytes()[j-1] ? 0 : 1));
 		}
 
-	return new Val(d[n][m], TYPE_COUNT);
+	return val_mgr->GetCount(d[n][m]);
 	%}
 
 ## Concatenates all arguments into a single string. The function takes a
@@ -85,7 +85,7 @@ int string_array_to_vs(TableVal* tbl, int start, int end,
 	vs.clear();
 	for ( int i = start; i <= end; ++i )
 		{
-		Val* ind = new Val(i, TYPE_COUNT);
+		Val* ind = val_mgr->GetCount(i);
 		Val* v = tbl->Lookup(ind);
 		if ( ! v )
 			return 0;
@@ -95,7 +95,7 @@ int string_array_to_vs(TableVal* tbl, int start, int end,
 		DEBUG_MSG("string_array[%d] = \"%s\"\n", i, str);
 		delete [] str;
 #endif
-		delete ind;
+		Unref(ind);
 		}
 	return 1;
 	}
@@ -105,7 +105,7 @@ int vs_to_string_array(vector<const BroString*>& vs, TableVal* tbl,
 	{
 	for ( int i = start, j = 0; i <= end; ++i, ++j )
 		{
-		Val* ind = new Val(i, TYPE_COUNT);
+		Val* ind = val_mgr->GetCount(i);
 		tbl->Assign(ind, new StringVal(vs[j]->Len(),
 						(const char *)vs[j]->Bytes()));
 		Unref(ind);
@@ -176,7 +176,7 @@ function join_string_array%(sep: string, a: string_array%): string &deprecated
 
 	for ( int i = 1; i <= n; ++i )
 		{
-		Val* ind = new Val(i, TYPE_COUNT);
+		Val* ind = val_mgr->GetCount(i);
 		Val* v = tbl->Lookup(ind);
 		if ( ! v )
 			return 0;
@@ -432,7 +432,7 @@ Val* do_split(StringVal* str_val, RE_Matcher* re, int incl_sep, int max_num_sep)
 			n=0;
 			}
 
-		Val* ind = new Val(++num, TYPE_COUNT);
+		Val* ind = val_mgr->GetCount(++num);
 		a->Assign(ind, new StringVal(offset, (const char*) s));
 		Unref(ind);
 
@@ -442,7 +442,7 @@ Val* do_split(StringVal* str_val, RE_Matcher* re, int incl_sep, int max_num_sep)
 
 		if ( incl_sep )
 			{ // including the part that matches the pattern
-			ind = new Val(++num, TYPE_COUNT);
+			ind = val_mgr->GetCount(++num);
 			a->Assign(ind, new StringVal(end_of_match, (const char*) s+offset));
 			Unref(ind);
 			}
@@ -763,7 +763,7 @@ function gsub%(str: string, re: pattern, repl: string%): string
 ##          *s1* is greater than, equal to, or less than *s2*.
 function strcmp%(s1: string, s2: string%): int
 	%{
-	return new Val(Bstr_cmp(s1->AsString(), s2->AsString()), TYPE_INT);
+	return val_mgr->GetInt(Bstr_cmp(s1->AsString(), s2->AsString()));
 	%}
 
 ## Locates the first occurrence of one string in another.
@@ -778,9 +778,8 @@ function strcmp%(s1: string, s2: string%): int
 ## .. bro:see:: find_all find_last
 function strstr%(big: string, little: string%): count
 	%{
-	return new Val(
-		1 + big->AsString()->FindSubstring(little->AsString()),
-		TYPE_COUNT);
+	return val_mgr->GetCount(
+		1 + big->AsString()->FindSubstring(little->AsString()));
 	%}
 
 ## Substitutes each (non-overlapping) appearance of a string in another.
@@ -947,9 +946,9 @@ function is_ascii%(str: string%): bool
 
 	for ( int i = 0; i < n; ++i )
 		if ( s[i] > 127 )
-			return new Val(0, TYPE_BOOL);
+			return val_mgr->GetBool(0);
 
-	return new Val(1, TYPE_BOOL);
+	return val_mgr->GetBool(1);
 	%}
 
 ## Replaces non-printable characters in a string with escaped sequences. The
@@ -1196,7 +1195,7 @@ function find_last%(str: string, re: pattern%) : string
 			return new StringVal(n, (const char*) t);
 		}
 
-	return new StringVal("");
+	return val_mgr->GetEmptyString();
 	%}
 
 ## Returns a hex dump for given input data. The hex dump renders 16 bytes per
@@ -1241,13 +1240,13 @@ function hexdump%(data_str: string%) : string
 	unsigned data_size = data_str->Len();
 
 	if ( ! data )
-		return new StringVal("");
+		return val_mgr->GetEmptyString();
 
 	int num_lines = (data_size / 16) + 1;
 	int len = num_lines * HEX_LINE_WIDTH;
 	u_char* hex_data = new u_char[len + 1];
 	if ( ! hex_data )
-		return new StringVal("");
+		return val_mgr->GetEmptyString();
 
 	memset(hex_data, ' ', len);
 

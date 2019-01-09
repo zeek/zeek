@@ -26,14 +26,13 @@ function get_login_state%(cid: conn_id%): count
 	%{
 	Connection* c = sessions->FindConnection(cid);
 	if ( ! c )
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->GetBool(0);
 
 	analyzer::Analyzer* la = c->FindAnalyzer("Login");
 	if ( ! la )
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->GetBool(0);
 
-	return new Val(int(static_cast<analyzer::login::Login_Analyzer*>(la)->LoginState()),
-			TYPE_COUNT);
+	return val_mgr->GetCount(int(static_cast<analyzer::login::Login_Analyzer*>(la)->LoginState()));
 	%}
 
 ## Sets the login state of a connection with a login analyzer.
@@ -51,12 +50,12 @@ function set_login_state%(cid: conn_id, new_state: count%): bool
 	%{
 	Connection* c = sessions->FindConnection(cid);
 	if ( ! c )
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->GetBool(0);
 
 	analyzer::Analyzer* la = c->FindAnalyzer("Login");
 	if ( ! la )
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->GetBool(0);
 
 	static_cast<analyzer::login::Login_Analyzer*>(la)->SetLoginState(analyzer::login::login_state(new_state));
-	return new Val(1, TYPE_BOOL);
+	return val_mgr->GetBool(1);
 	%}

@@ -434,7 +434,7 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 
 		if ( tcp_contents && ! reass )
 			{
-			auto dport = port_mgr->Get(ntohs(conn->RespPort()), TRANSPORT_TCP);
+			auto dport = val_mgr->GetPort(ntohs(conn->RespPort()), TRANSPORT_TCP);
 			Val* result;
 
 			if ( ! reass )

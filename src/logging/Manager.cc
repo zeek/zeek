@@ -280,7 +280,7 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 		if ( ! same_type((*args)[0], columns) )
 			{
 			reporter->Error("stream event's argument type does not match column record type");
-			return new Val(0, TYPE_BOOL);
+			return val_mgr->GetBool(0);
 			}
 		}
 
@@ -757,7 +757,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 			if ( filter->path_val )
 				path_arg = filter->path_val->Ref();
 			else
-				path_arg = new StringVal("");
+				path_arg = val_mgr->GetEmptyString();
 
 			vl.append(path_arg);
 
@@ -1309,6 +1309,8 @@ bool Manager::WriteFromRemote(EnumVal* id, EnumVal* writer, string path, int num
 
 void Manager::SendAllWritersTo(RemoteSerializer::PeerID peer)
 	{
+	auto et = internal_type("Log::Writer")->AsEnumType();
+
 	for ( vector<Stream *>::iterator s = streams.begin(); s != streams.end(); ++s )
 		{
 		Stream* stream = (*s);
@@ -1320,19 +1322,21 @@ void Manager::SendAllWritersTo(RemoteSerializer::PeerID peer)
 		      i != stream->writers.end(); i++ )
 			{
 			WriterFrontend* writer = i->second->writer;
-
-			EnumVal writer_val(i->first.first, internal_type("Log::Writer")->AsEnumType());
+			auto writer_val = et->GetVal(i->first.first);
 			remote_serializer->SendLogCreateWriter(peer, (*s)->id,
-							       &writer_val,
+							       writer_val,
 							       *i->second->info,
 							       writer->NumFields(),
 							       writer->Fields());
+			Unref(writer_val);
 			}
 		}
 	}
 
 void Manager::SendAllWritersTo(const broker::endpoint_info& ei)
 	{
+	auto et = internal_type("Log::Writer")->AsEnumType();
+
 	for ( vector<Stream *>::iterator s = streams.begin(); s != streams.end(); ++s )
 		{
 		Stream* stream = (*s);
@@ -1340,18 +1344,19 @@ void Manager::SendAllWritersTo(const broker::endpoint_info& ei)
 		if ( ! (stream && stream->enable_remote) )
 			continue;
 
+
 		for ( Stream::WriterMap::iterator i = stream->writers.begin();
 		      i != stream->writers.end(); i++ )
 			{
 			WriterFrontend* writer = i->second->writer;
-
-			EnumVal writer_val(i->first.first, internal_type("Log::Writer")->AsEnumType());
+			auto writer_val = et->GetVal(i->first.first);
 			broker_mgr->PublishLogCreate((*s)->id,
-						     &writer_val,
+						     writer_val,
 						     *i->second->info,
 						     writer->NumFields(),
 						     writer->Fields(),
 						     ei);
+			Unref(writer_val);
 			}
 		}
 	}
@@ -1575,7 +1580,7 @@ bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, con
 	info->Assign(2, new StringVal(winfo->writer->Info().path));
 	info->Assign(3, new Val(open, TYPE_TIME));
 	info->Assign(4, new Val(close, TYPE_TIME));
-	info->Assign(5, new Val(terminating, TYPE_BOOL));
+	info->Assign(5, val_mgr->GetBool(terminating));
 
 	Func* func = winfo->postprocessor;
 	if ( ! func )

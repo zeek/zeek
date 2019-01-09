@@ -57,11 +57,11 @@ function Broker::__listen%(a: string, p: port%): port
 	if ( ! p->IsTCP() )
 		{
 		builtin_error("listen port must use tcp");
-		return port_mgr->Get(0, TRANSPORT_UNKNOWN);
+		return val_mgr->GetPort(0, TRANSPORT_UNKNOWN);
 		}
 
 	auto rval = broker_mgr->Listen(a->Len() ? a->CheckString() : "", p->Port());
-	return port_mgr->Get(rval, TRANSPORT_TCP);
+	return val_mgr->GetPort(rval, TRANSPORT_TCP);
 	%}
 
 function Broker::__peer%(a: string, p: port, retry: interval%): bool
@@ -71,11 +71,11 @@ function Broker::__peer%(a: string, p: port, retry: interval%): bool
 	if ( ! p->IsTCP() )
 		{
 		builtin_error("remote connection port must use tcp");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	broker_mgr->Peer(a->CheckString(), p->Port(), retry);
-	return new Val(true, TYPE_BOOL);
+	return val_mgr->GetTrue();
 	%}
 
 function Broker::__unpeer%(a: string, p: port%): bool
@@ -85,11 +85,11 @@ function Broker::__unpeer%(a: string, p: port%): bool
 	if ( ! p->IsTCP() )
 		{
 		builtin_error("remote connection port must use tcp");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	broker_mgr->Unpeer(a->CheckString(), p->Port());
-	return new Val(true, TYPE_BOOL);
+	return val_mgr->GetTrue();
 	%}
 
 function Broker::__peers%(%): PeerInfos
@@ -111,12 +111,12 @@ function Broker::__peers%(%): PeerInfos
 		if ( n )
 			{
 			network_info->Assign(0, new AddrVal(IPAddr(n->address)));
-			network_info->Assign(1, port_mgr->Get(n->port, TRANSPORT_TCP));
+			network_info->Assign(1, val_mgr->GetPort(n->port, TRANSPORT_TCP));
 			}
 		else
 			{
 			network_info->Assign(0, new AddrVal("0.0.0.0"));
-			network_info->Assign(1, port_mgr->Get(0, TRANSPORT_TCP));
+			network_info->Assign(1, val_mgr->GetPort(0, TRANSPORT_TCP));
 			}
 
 		endpoint_info->Assign(0, new StringVal(to_string(p.peer.node)));
@@ -124,7 +124,7 @@ function Broker::__peers%(%): PeerInfos
 
 		auto ps = (BifEnum::Broker::PeerStatus)p.status;
 		peer_info->Assign(0, endpoint_info);
-		peer_info->Assign(1, new EnumVal(ps, BifType::Enum::Broker::PeerStatus));
+		peer_info->Assign(1, BifType::Enum::Broker::PeerStatus->GetVal(ps));
 
 		rval->Assign(i, peer_info);
 		++i;

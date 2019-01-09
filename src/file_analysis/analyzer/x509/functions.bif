@@ -32,7 +32,7 @@ RecordVal* x509_result_record(uint64_t num, const char* reason, Val* chainVector
 	{
 	RecordVal* rrecord = new RecordVal(BifType::Record::X509::Result);
 
-	rrecord->Assign(0, new Val(num, TYPE_INT));
+	rrecord->Assign(0, val_mgr->GetInt(num));
 	rrecord->Assign(1, new StringVal(reason));
 	if ( chainVector )
 		rrecord->Assign(2, chainVector);
@@ -231,7 +231,7 @@ function x509_get_certificate_string%(cert: opaque of x509, pem: bool &default=F
 	StringVal* ext_val = file_analysis::X509::GetExtensionFromBIO(bio);
 
 	if ( ! ext_val )
-		ext_val = new StringVal("");
+		ext_val = val_mgr->GetEmptyString();
 
 	return ext_val;
 	%}
@@ -662,7 +662,7 @@ function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signa
 	if ( precert && issuer_key_hash->Len() != 32)
 		{
 		reporter->Error("Invalid issuer_key_hash length");
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->GetBool(0);
 		}
 
 	std::string data;
@@ -686,7 +686,7 @@ function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signa
 		if ( pos < 0 )
 			{
 			reporter->Error("NID_ct_precert_scts not found");
-			return new Val(0, TYPE_BOOL);
+			return val_mgr->GetBool(0);
 			}
 #else
 		int num_ext = X509_get_ext_count(x);
@@ -781,7 +781,7 @@ function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signa
 	EVP_MD_CTX_destroy(mdctx);
 	EVP_PKEY_free(key);
 
-	return new Val(success, TYPE_BOOL);
+	return val_mgr->GetBool(success);
 
 sct_verify_err:
 	if (mdctx)
@@ -790,7 +790,7 @@ sct_verify_err:
 		EVP_PKEY_free(key);
 
 	reporter->Error("%s", errstr.c_str());
-	return new Val(0, TYPE_BOOL);
+	return val_mgr->GetBool(0);
 	%}
 
 

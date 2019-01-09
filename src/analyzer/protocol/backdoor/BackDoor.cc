@@ -112,14 +112,14 @@ RecordVal* BackDoorEndpoint::BuildStats()
 	{
 	RecordVal* stats = new RecordVal(backdoor_endp_stats);
 
-	stats->Assign(0, new Val(is_partial, TYPE_BOOL));
-	stats->Assign(1, new Val(num_pkts, TYPE_COUNT));
-	stats->Assign(2, new Val(num_8k0_pkts, TYPE_COUNT));
-	stats->Assign(3, new Val(num_8k4_pkts, TYPE_COUNT));
-	stats->Assign(4, new Val(num_lines, TYPE_COUNT));
-	stats->Assign(5, new Val(num_normal_lines, TYPE_COUNT));
-	stats->Assign(6, new Val(num_bytes, TYPE_COUNT));
-	stats->Assign(7, new Val(num_7bit_ascii, TYPE_COUNT));
+	stats->Assign(0, val_mgr->GetBool(is_partial));
+	stats->Assign(1, val_mgr->GetCount(num_pkts));
+	stats->Assign(2, val_mgr->GetCount(num_8k0_pkts));
+	stats->Assign(3, val_mgr->GetCount(num_8k4_pkts));
+	stats->Assign(4, val_mgr->GetCount(num_lines));
+	stats->Assign(5, val_mgr->GetCount(num_normal_lines));
+	stats->Assign(6, val_mgr->GetCount(num_bytes));
+	stats->Assign(7, val_mgr->GetCount(num_7bit_ascii));
 
 	return stats;
 	}
@@ -248,9 +248,9 @@ void BackDoorEndpoint::RloginSignatureFound(int len)
 
 	val_list* vl = new val_list;
 	vl->append(endp->TCP()->BuildConnVal());
-	vl->append(new Val(endp->IsOrig(), TYPE_BOOL));
-	vl->append(new Val(rlogin_num_null, TYPE_COUNT));
-	vl->append(new Val(len, TYPE_COUNT));
+	vl->append(val_mgr->GetBool(endp->IsOrig()));
+	vl->append(val_mgr->GetCount(rlogin_num_null));
+	vl->append(val_mgr->GetCount(len));
 
 	endp->TCP()->ConnectionEvent(rlogin_signature_found, vl);
 	}
@@ -340,8 +340,8 @@ void BackDoorEndpoint::TelnetSignatureFound(int len)
 	{
 	val_list* vl = new val_list;
 	vl->append(endp->TCP()->BuildConnVal());
-	vl->append(new Val(endp->IsOrig(), TYPE_BOOL));
-	vl->append(new Val(len, TYPE_COUNT));
+	vl->append(val_mgr->GetBool(endp->IsOrig()));
+	vl->append(val_mgr->GetCount(len));
 
 	endp->TCP()->ConnectionEvent(telnet_signature_found, vl);
 	}
@@ -647,7 +647,7 @@ void BackDoorEndpoint::SignatureFound(EventHandlerPtr e, int do_orig)
 	vl->append(endp->TCP()->BuildConnVal());
 
 	if ( do_orig )
-		vl->append(new Val(endp->IsOrig(), TYPE_BOOL));
+		vl->append(val_mgr->GetBool(endp->IsOrig()));
 
 	endp->TCP()->ConnectionEvent(e, vl);
 	}

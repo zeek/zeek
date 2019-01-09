@@ -824,9 +824,11 @@ Val* BinaryExpr::Fold(Val* v1, Val* v2) const
 	else if ( ret_type->InternalType() == TYPE_INTERNAL_DOUBLE )
 		return new Val(d3, ret_type->Tag());
 	else if ( ret_type->InternalType() == TYPE_INTERNAL_UNSIGNED )
-		return new Val(u3, ret_type->Tag());
+		return val_mgr->GetCount(u3);
+	else if ( ret_type->Tag() == TYPE_BOOL )
+		return val_mgr->GetBool(i3);
 	else
-		return new Val(i3, ret_type->Tag());
+		return val_mgr->GetInt(i3);
 	}
 
 Val* BinaryExpr::StringFold(Val* v1, Val* v2) const
@@ -860,7 +862,7 @@ Val* BinaryExpr::StringFold(Val* v1, Val* v2) const
 		BadTag("BinaryExpr::StringFold", expr_name(tag));
 	}
 
-	return new Val(result, TYPE_BOOL);
+	return val_mgr->GetBool(result);
 	}
 
 
@@ -931,7 +933,7 @@ Val* BinaryExpr::SetFold(Val* v1, Val* v2) const
 		return 0;
 	}
 
-	return new Val(res, TYPE_BOOL);
+	return val_mgr->GetBool(res);
 	}
 
 Val* BinaryExpr::AddrFold(Val* v1, Val* v2) const
@@ -965,7 +967,7 @@ Val* BinaryExpr::AddrFold(Val* v1, Val* v2) const
 		BadTag("BinaryExpr::AddrFold", expr_name(tag));
 	}
 
-	return new Val(result, TYPE_BOOL);
+	return val_mgr->GetBool(result);
 	}
 
 Val* BinaryExpr::SubNetFold(Val* v1, Val* v2) const
@@ -978,7 +980,7 @@ Val* BinaryExpr::SubNetFold(Val* v1, Val* v2) const
 	if ( tag == EXPR_NE )
 		result = ! result;
 
-	return new Val(result, TYPE_BOOL);
+	return val_mgr->GetBool(result);
 	}
 
 void BinaryExpr::SwapOps()
@@ -1127,7 +1129,10 @@ Val* IncrExpr::DoSingleEval(Frame* f, Val* v) const
 	 if ( IsVector(ret_type->Tag()) )
 		 ret_type = Type()->YieldType();
 
-	 return new Val(k, ret_type->Tag());
+	if ( ret_type->Tag() == TYPE_INT )
+		return val_mgr->GetInt(k);
+	else
+		return val_mgr->GetCount(k);
 	 }
 
 
@@ -1199,7 +1204,7 @@ ComplementExpr::ComplementExpr(Expr* arg_op) : UnaryExpr(EXPR_COMPLEMENT, arg_op
 
 Val* ComplementExpr::Fold(Val* v) const
 	{
-	return new Val(~ v->InternalUnsigned(), type->Tag());
+	return val_mgr->GetCount(~ v->InternalUnsigned());
 	}
 
 IMPLEMENT_SERIAL(ComplementExpr, SER_COMPLEMENT_EXPR);
@@ -1232,7 +1237,7 @@ NotExpr::NotExpr(Expr* arg_op) : UnaryExpr(EXPR_NOT, arg_op)
 
 Val* NotExpr::Fold(Val* v) const
 	{
-	return new Val(! v->InternalInt(), type->Tag());
+	return val_mgr->GetBool(! v->InternalInt());
 	}
 
 IMPLEMENT_SERIAL(NotExpr, SER_NOT_EXPR);
@@ -1282,7 +1287,7 @@ Val* PosExpr::Fold(Val* v) const
 	if ( t == TYPE_DOUBLE || t == TYPE_INTERVAL || t == TYPE_INT )
 		return v->Ref();
 	else
-		return new Val(v->CoerceToInt(), type->Tag());
+		return val_mgr->GetInt(v->CoerceToInt());
 	}
 
 IMPLEMENT_SERIAL(PosExpr, SER_POS_EXPR);
@@ -1332,7 +1337,7 @@ Val* NegExpr::Fold(Val* v) const
 	else if ( v->Type()->Tag() == TYPE_INTERVAL )
 		return new IntervalVal(- v->InternalDouble(), 1.0);
 	else
-		return new Val(- v->CoerceToInt(), TYPE_INT);
+		return val_mgr->GetInt(- v->CoerceToInt());
 	}
 
 
@@ -1968,7 +1973,7 @@ Val* BoolExpr::Eval(Frame* f) const
 				(! op1->IsZero() && ! op2->IsZero()) :
 				(! op1->IsZero() || ! op2->IsZero());
 
-			result->Assign(i, new Val(local_result, TYPE_BOOL));
+			result->Assign(i, val_mgr->GetBool(local_result));
 			}
 		else
 			result->Assign(i, 0);
@@ -2150,9 +2155,9 @@ Val* EqExpr::Fold(Val* v1, Val* v2) const
 		RE_Matcher* re = v1->AsPattern();
 		const BroString* s = v2->AsString();
 		if ( tag == EXPR_EQ )
-			return new Val(re->MatchExactly(s), TYPE_BOOL);
+			return val_mgr->GetBool(re->MatchExactly(s));
 		else
-			return new Val(! re->MatchExactly(s), TYPE_BOOL);
+			return val_mgr->GetBool(! re->MatchExactly(s));
 		}
 
 	else
@@ -3371,10 +3376,10 @@ Val* HasFieldExpr::Fold(Val* v) const
 	rec_to_look_at = v->AsRecordVal();
 
 	if ( ! rec_to_look_at )
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->GetBool(0);
 
 	RecordVal* r = rec_to_look_at->Ref()->AsRecordVal();
-	Val* ret = new Val(r->Lookup(field) != 0, TYPE_BOOL);
+	Val* ret = val_mgr->GetBool(r->Lookup(field) != 0);
 	Unref(r);
 
 	return ret;
@@ -3983,10 +3988,10 @@ Val* ArithCoerceExpr::FoldSingleVal(Val* v, InternalTypeTag t) const
 		return new Val(v->CoerceToDouble(), TYPE_DOUBLE);
 
 	case TYPE_INTERNAL_INT:
-		return new Val(v->CoerceToInt(), TYPE_INT);
+		return val_mgr->GetInt(v->CoerceToInt());
 
 	case TYPE_INTERNAL_UNSIGNED:
-		return new Val(v->CoerceToUnsigned(), TYPE_COUNT);
+		return val_mgr->GetCount(v->CoerceToUnsigned());
 
 	default:
 		Internal("bad type in CoerceExpr::Fold");
@@ -4639,7 +4644,7 @@ Val* InExpr::Fold(Val* v1, Val* v2) const
 		{
 		RE_Matcher* re = v1->AsPattern();
 		const BroString* s = v2->AsString();
-		return new Val(re->MatchAnywhere(s) != 0, TYPE_BOOL);
+		return val_mgr->GetBool(re->MatchAnywhere(s) != 0);
 		}
 
 	if ( v2->Type()->Tag() == TYPE_STRING )
@@ -4648,12 +4653,12 @@ Val* InExpr::Fold(Val* v1, Val* v2) const
 		const BroString* s2 = v2->AsString();
 
 		// Could do better here e.g. Boyer-Moore if done repeatedly.
-		return new Val(strstr_n(s2->Len(), s2->Bytes(), s1->Len(), reinterpret_cast<const unsigned char*>(s1->CheckString())) != -1, TYPE_BOOL);
+		return val_mgr->GetBool(strstr_n(s2->Len(), s2->Bytes(), s1->Len(), reinterpret_cast<const unsigned char*>(s1->CheckString())) != -1);
 		}
 
 	if ( v1->Type()->Tag() == TYPE_ADDR &&
 	     v2->Type()->Tag() == TYPE_SUBNET )
-		return new Val(v2->AsSubNetVal()->Contains(v1->AsAddr()), TYPE_BOOL);
+		return val_mgr->GetBool(v2->AsSubNetVal()->Contains(v1->AsAddr()));
 
 	Val* res;
 
@@ -4663,9 +4668,9 @@ Val* InExpr::Fold(Val* v1, Val* v2) const
 		res = v2->AsTableVal()->Lookup(v1, false);
 
 	if ( res )
-		return new Val(1, TYPE_BOOL);
+		return val_mgr->GetBool(1);
 	else
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->GetBool(0);
 	}
 
 IMPLEMENT_SERIAL(InExpr, SER_IN_EXPR);
@@ -5589,9 +5594,9 @@ Val* IsExpr::Fold(Val* v) const
 		return 0;
 
 	if ( can_cast_value_to_type(v, t) )
-		return new Val(1, TYPE_BOOL);
+		return val_mgr->GetBool(1);
 	else
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->GetBool(0);
 	}
 
 void IsExpr::ExprDescribe(ODesc* d) const
@@ -5833,29 +5838,4 @@ val_list* eval_list(Frame* f, const ListExpr* l)
 int expr_greater(const Expr* e1, const Expr* e2)
 	{
 	return int(e1->Tag()) > int(e2->Tag());
-	}
-
-static Expr* make_constant(BroType* t, double d)
-	{
-	Val* v = 0;
-	switch ( t->InternalType() ) {
-	case TYPE_INTERNAL_INT:		v = new Val(bro_int_t(d), t->Tag()); break;
-	case TYPE_INTERNAL_UNSIGNED:	v = new Val(bro_uint_t(d), t->Tag()); break;
-	case TYPE_INTERNAL_DOUBLE:	v = new Val(double(d), t->Tag()); break;
-
-	default:
-		reporter->InternalError("bad type in make_constant()");
-	}
-
-	return new ConstExpr(v);
-	}
-
-Expr* make_zero(BroType* t)
-	{
-	return make_constant(t, 0.0);
-	}
-
-Expr* make_one(BroType* t)
-	{
-	return make_constant(t, 1.0);
 	}

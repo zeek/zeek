@@ -14,7 +14,7 @@ if ( KERNELHEADERS_FOUND )
     bro_plugin_cc(src/AF_Packet.cc)
     bro_plugin_cc(src/RX_Ring.cc)
     bro_plugin_bif(src/af_packet.bif)
-    bro_plugin_dist_files(broctl/af_packet.py)
+    bro_plugin_dist_files(broctl/af_packet.py README COPYING VERSION)
     bro_plugin_end()
 
     message(STATUS "Kernelheader prefix : ${KERNELHEADERS_ROOT_DIR}")

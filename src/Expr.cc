@@ -825,6 +825,8 @@ Val* BinaryExpr::Fold(Val* v1, Val* v2) const
 		return new Val(d3, ret_type->Tag());
 	else if ( ret_type->InternalType() == TYPE_INTERNAL_UNSIGNED )
 		return new Val(u3, ret_type->Tag());
+	else if ( ret_type->Tag() == TYPE_BOOL )
+		return val_mgr->GetBool(i3);
 	else
 		return new Val(i3, ret_type->Tag());
 	}

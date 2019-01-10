@@ -1,4 +1,8 @@
 
+2.6-62 | 2019-01-10 15:45:04 -0600
+
+  * Reorganize documentation index (Jon Siwek, Corelight)
+
 2.6-61 | 2019-01-10 13:40:04 -0600
 
   * Add RTD yaml config file (Jon Siwek, Corelight)

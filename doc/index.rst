@@ -3,8 +3,8 @@
 Zeek Manual
 ===========
 
-Introduction Section
-====================
+Introduction
+============
 
 .. toctree::
    :maxdepth: 2
@@ -15,26 +15,22 @@ Introduction Section
    quickstart/index.rst
    configuration/index.rst
 
-.. 
+..
 
 .. _using-bro:
 
-Using Zeek/Bro Section
+Examples and Use Cases
 ======================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
-   logs/index.rst
-   httpmonitor/index.rst
-   broids/index.rst
-   mimestats/index.rst
-   scripting/index.rst
+   examples/index.rst
 
 ..
 
-Reference Section
-=================
+Reference
+=========
 
 .. toctree::
    :maxdepth: 2
@@ -52,5 +48,3 @@ Development
    devel/plugins.rst
 
 * :ref:`General Index <genindex>`
-* :ref:`search`
-

@@ -121,7 +121,7 @@ default, including:
 As you can see, some log files are specific to a particular protocol,
 while others aggregate information across different types of activity. 
 For a complete list of log files and a description of its purpose, 
-see :doc:`Log Files <../script-reference/log-files>`.
+see :doc:`Log Files </script-reference/log-files>`.
 
 .. _bro-cut:
 

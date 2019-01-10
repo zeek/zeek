@@ -1,4 +1,8 @@
 
+2.6-46 | 2019-01-10 09:10:08 -0800
+
+  * improve performance of catch and release script (Juston Azonn, Corelight)
+
 2.6-43 | 2019-01-07 09:50:43 -0800
 
   * GH-227: Improve LibreSSL support (Jon Siwek, Corelight)

@@ -1,6 +1,6 @@
 set(html_output_dir ${CMAKE_CURRENT_BINARY_DIR}/html)
 
-add_custom_target(bro-doc-html
+add_custom_target(zeek-doc-html
     COMMAND sphinx-build
             -b html
             -c ${CMAKE_CURRENT_SOURCE_DIR}
@@ -17,4 +17,4 @@ if (NOT TARGET doc)
   add_custom_target(doc)
 endif ()
 
-add_dependencies(doc bro-doc-html)
+add_dependencies(doc zeek-doc-html)

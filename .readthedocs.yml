@@ -1,4 +1,4 @@
-formats: []
+formats: [pdf]
 
 python:
     version: 3

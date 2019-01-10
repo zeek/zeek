@@ -182,7 +182,7 @@ html_title = u'Zeek User Manual v' + release
 #html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'bro-doc'
+htmlhelp_basename = 'zeek-docs'
 
 # -- Options for LaTeX output --------------------------------------------------
 

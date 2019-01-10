@@ -428,13 +428,12 @@ function unblock_address_catch_release(a: addr, reason: string &default=""): boo
 
 function catch_release_seen(a: addr)
 	{
-	local e = Entity($ty=ADDRESS, $ip=addr_to_subnet(a));
-
 	if ( a in blocks )
 		{
 @if ( ! Cluster::is_enabled() || ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER ) )
 		local bi = blocks[a];
 		local log: CatchReleaseInfo;
+		local e = Entity($ty=ADDRESS, $ip=addr_to_subnet(a));
 
 		if ( [e,DROP] in rule_entities )
 			{

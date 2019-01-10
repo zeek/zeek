@@ -1,7 +1,7 @@
 
-========================
-Bro Cluster Architecture
-========================
+====================
+Cluster Architecture
+====================
 
 
 Bro is not multithreaded, so once the limitations of a single processor core

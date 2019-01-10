@@ -749,7 +749,11 @@ void ID::DescribeReST(ODesc* d, bool roles_only) const
 
 	if ( val && type &&
 		type->Tag() != TYPE_FUNC &&
-		type->InternalType() != TYPE_INTERNAL_VOID )
+		type->InternalType() != TYPE_INTERNAL_VOID &&
+		// Values within Version module are likely to include a
+		// constantly-changing version number and be a frequent
+		// source of error/desynchronization, so don't include them.
+		ModuleName() != "Version" )
 		{
 		d->Add(":Default:");
 

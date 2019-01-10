@@ -29,8 +29,6 @@ Broker-Enabled Communication/Cluster Framework
     also gives examples of Broker and the new cluster framework that
     show off all the new features and capabilities.
 
-.. contents::
-
 Porting Guide
 =============
 
@@ -296,11 +294,17 @@ Connecting to Peers
 
 Bro can accept incoming connections by calling :bro:see:`Broker::listen`.
 
-.. btest-include:: ${DOC_ROOT}/frameworks/broker/connecting-listener.bro
+.. literalinclude:: broker/connecting-listener.bro
+   :caption: connecting-listener.bro
+   :language: bro
+   :linenos:
 
 Bro can initiate outgoing connections by calling :bro:see:`Broker::peer`.
 
-.. btest-include:: ${DOC_ROOT}/frameworks/broker/connecting-connector.bro
+.. literalinclude:: broker/connecting-connector.bro
+   :caption: connecting-connector.bro
+   :language: bro
+   :linenos:
 
 In either case, connection status updates are monitored via the
 :bro:see:`Broker::peer_added` and :bro:see:`Broker::peer_lost` events.
@@ -317,7 +321,10 @@ more on how topics work and are chosen.
 Use the :bro:see:`Broker::subscribe` function to subscribe to topics and
 define any event handlers for events that peers will send.
 
-.. btest-include:: ${DOC_ROOT}/frameworks/broker/events-listener.bro
+.. literalinclude:: broker/events-listener.bro
+   :caption: events-listener.bro
+   :language: bro
+   :linenos:
 
 There are two different ways to send events.
 
@@ -333,7 +340,10 @@ whenever the event is called locally via the normal event invocation syntax.
 When auto-publishing events, local event handlers for the event are called
 in addition to sending the event to any subscribed peers.
 
-.. btest-include:: ${DOC_ROOT}/frameworks/broker/events-connector.bro
+.. literalinclude:: broker/events-connector.bro
+   :caption: events-connector.bro
+   :language: bro
+   :linenos:
 
 Note that the subscription model is prefix-based, meaning that if you subscribe
 to the "bro/events" topic prefix you would receive events that are published
@@ -342,16 +352,25 @@ to topic names  "bro/events/foo" and "bro/events/bar" but not "bro/misc".
 Remote Logging
 --------------
 
-.. btest-include:: ${DOC_ROOT}/frameworks/broker/testlog.bro
+.. literalinclude:: broker/testlog.bro
+   :caption: testlog.bro
+   :language: bro
+   :linenos:
 
 To toggle remote logs, redef :bro:see:`Log::enable_remote_logging`.
 Use the :bro:see:`Broker::subscribe` function to advertise interest
 in logs written by peers.  The topic names that Bro uses are determined by
 :bro:see:`Broker::log_topic`.
 
-.. btest-include:: ${DOC_ROOT}/frameworks/broker/logs-listener.bro
+.. literalinclude:: broker/logs-listener.bro
+   :caption: logs-listener.bro
+   :language: bro
+   :linenos:
 
-.. btest-include:: ${DOC_ROOT}/frameworks/broker/logs-connector.bro
+.. literalinclude:: broker/logs-connector.bro
+   :caption: logs-connector.bro
+   :language: bro
+   :linenos:
 
 Note that logging events are only raised locally on the node that performs
 the :bro:see:`Log::write` and not automatically published to peers.
@@ -379,9 +398,15 @@ use.  E.g. In-memory versus SQLite for persistence.
 Data stores also support expiration on a per-key basis using an amount of
 time relative to the entry's last modification time.
 
-.. btest-include:: ${DOC_ROOT}/frameworks/broker/stores-listener.bro
+.. literalinclude:: broker/stores-listener.bro
+   :caption: stores-listener.bro
+   :language: bro
+   :linenos:
 
-.. btest-include:: ${DOC_ROOT}/frameworks/broker/stores-connector.bro
+.. literalinclude:: broker/stores-connector.bro
+   :caption: stores-connector.bro
+   :language: bro
+   :linenos:
 
 Note that all data store queries must be made within Bro's asynchronous
 ``when`` statements and must specify a timeout block.
@@ -403,7 +428,7 @@ should always use the fully-qualified event name.
 
 For example, this will likely not work as expected:
 
-.. code:: bro
+.. sourcecode:: bro
 
     module MyModule;
 
@@ -427,7 +452,7 @@ will never be called and also not any remote handlers either, even if
 :bro:see:`Broker::auto_publish` was used elsewhere for it.  Instead, at
 minimum you would need change the ``bro_init()`` handler:
 
-.. code:: bro
+.. sourcecode:: bro
 
     event bro_init()
         {
@@ -438,7 +463,7 @@ minimum you would need change the ``bro_init()`` handler:
 Though, an easy rule of thumb to remember would be to always use the
 explicit module namespace scoping and you can't go wrong:
 
-.. code:: bro
+.. sourcecode:: bro
 
     module MyModule;
 
@@ -467,7 +492,7 @@ Manager Sending Events To Workers
 This is fairly straightforward, we just need a topic name which we know
 all workers are subscribed combined with the event we want to send them.
 
-.. code:: bro
+.. sourcecode:: bro
 
     event manager_to_workers(s: string)
         {
@@ -497,10 +522,10 @@ all workers are subscribed combined with the event we want to send them.
         # eliminated by using the following conditional directives.
         # It's evaluated once per node at parse-time and, if false,
         # any code within is just ignored / treated as not existing at all.
-        @if ( Cluster::local_node_type() == Cluster::MANAGER )
+    @if ( Cluster::local_node_type() == Cluster::MANAGER )
             Broker::publish(Cluster::worker_topic, manager_to_workers,
                             "hello v3");
-        @endif
+    @endif
         }
 
 Worker Sending Events To Manager
@@ -510,7 +535,7 @@ This should look almost identical to the previous case of sending an event
 from the manager to workers, except it simply changes the topic name to
 one which the manager is subscribed.
 
-.. code:: bro
+.. sourcecode:: bro
 
     event worker_to_manager(worker_name: string)
         {
@@ -531,17 +556,17 @@ topology, this type of communication is a bit different than what we
 did before since we have to manually relay the event via some node that *is*
 connected to all workers.  The manager or a proxy satisfies that requirement:
 
-.. code:: bro
+.. sourcecode:: bro
 
     event worker_to_workers(worker_name: string)
         {
-        @if ( Cluster::local_node_type() == Cluster::MANAGER ||
+    @if ( Cluster::local_node_type() == Cluster::MANAGER ||
               Cluster::local_node_type() == Cluster::PROXY )
             Broker::publish(Cluster::worker_topic, worker_to_workers,
                             worker_name)
-        @else
+    @else
             print "got event from worker", worker_name;
-        @endif
+    @endif
         }
 
     event some_event_handled_on_worker()
@@ -570,7 +595,7 @@ we can make use of a `Highest Random Weight (HRW) hashing
 <https://en.wikipedia.org/wiki/Rendezvous_hashing>`_ distribution strategy
 to uniformly map an arbitrary key space across all available proxies.
 
-.. code:: bro
+.. sourcecode:: bro
 
     event worker_to_proxies(worker_name: string)
         {

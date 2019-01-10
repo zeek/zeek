@@ -327,7 +327,7 @@ string ScriptInfo::DoReStructuredText(bool roles_only) const
 		rval += "\n";
 		}
 
-	rval += fmt(":Source File: :download:`/scripts/%s`\n", name.c_str());
+	//rval += fmt(":Source File: :download:`/scripts/%s`\n", name.c_str());
 	rval += "\n";
 	rval += broxygen::make_heading("Summary", '~');
 	rval += make_summary("Runtime Options", '#', '=', options);

@@ -1,11 +1,9 @@
 
 .. _bro-logging:
 
-===========
-Bro Logging
-===========
-
-.. contents::
+=======
+Logging
+=======
 
 Once Bro has been deployed in an environment and monitoring live
 traffic, it will, in its default configuration, begin to produce
@@ -39,13 +37,23 @@ to the appropriate log file.
 
 As the fields of the log entries can be further customized by the
 user, the Logging Framework makes use of a header block to ensure that
-it remains self-describing. This header entry can be see by running
-the Unix utility ``head`` and outputting the first lines of the file:
+it remains self-describing. Here's the first few lines of a ``conn.log``.
 
-.. btest:: using_bro
-   
-   @TEST-EXEC: btest-rst-cmd bro -r $TRACES/wikipedia.trace
-   @TEST-EXEC: btest-rst-include -n 15 conn.log
+.. sourcecode:: console
+
+   $ cat conn.log
+   #separator \x09
+   #set_separator    ,
+   #empty_field      (empty)
+   #unset_field      -
+   #path     conn
+   #open     2018-12-10-22-18-00
+   #fields   ts      uid     id.orig_h       id.orig_p       id.resp_h       id.resp_p       proto   service duration        orig_bytes      resp_bytes      conn_state      local_orig      local_resp      missed_bytes    history orig_pkts       orig_ip_bytes   resp_pkts       resp_ip_bytes   tunnel_parents
+   #types    time    string  addr    port    addr    port    enum    string  interval        count   count   string  bool    bool    count   string  count   count   count   count   set[string]
+   1300475167.096535 CHhAvVGS1DHFjwGM9       141.142.220.202 5353    224.0.0.251     5353    udp     dns     -       -       -       S0      -       -       0       D       1       73      0       0       -
+   1300475167.097012 ClEkJM2Vm5giqnMf4h      fe80::217:f2ff:fed7:cf65        5353    ff02::fb        5353    udp     dns     -       -       -       S0      -       -       0       D       1       199     0       0       -
+   1300475167.099816 C4J4Th3PJpwUYZZ6gc      141.142.220.50  5353    224.0.0.251     5353    udp     dns     -       -       -       S0      -       -       0       D       1       179     0       0       -
+   [...]
 
 As you can see, the header consists of lines prefixed by ``#`` and
 includes information such as what separators are being used for
@@ -129,15 +137,37 @@ require the user to refer to fields referenced by their position).
 For example, the following command extracts just the given columns
 from a ``conn.log``:
 
-.. btest:: using_bro
+.. sourcecode:: console
 
-   @TEST-EXEC: btest-rst-cmd -n 10 "cat conn.log | bro-cut id.orig_h id.orig_p id.resp_h duration"
+   $ cat conn.log | bro-cut id.orig_h id.orig_p id.resp_h duration
+   141.142.220.202   5353    224.0.0.251     -
+   fe80::217:f2ff:fed7:cf65  5353    ff02::fb        -
+   141.142.220.50    5353    224.0.0.251     -
+   141.142.220.118   43927   141.142.2.2     0.000435
+   141.142.220.118   37676   141.142.2.2     0.000420
+   141.142.220.118   40526   141.142.2.2     0.000392
+   141.142.220.118   32902   141.142.2.2     0.000317
+   141.142.220.118   59816   141.142.2.2     0.000343
+   141.142.220.118   59714   141.142.2.2     0.000375
+   141.142.220.118   58206   141.142.2.2     0.000339
+   [...]
 
 The corresponding ``awk`` command will look like this:
 
-.. btest:: using_bro
+.. sourcecode:: console
 
-   @TEST-EXEC: btest-rst-cmd -n 10 awk \'/^[^#]/ {print \$3, \$4, \$5, \$6, \$9}\' conn.log
+   $ awk '/^[^#]/ {print $3, $4, $5, $6, $9}' conn.log
+   141.142.220.202 5353 224.0.0.251 5353 -
+   fe80::217:f2ff:fed7:cf65 5353 ff02::fb 5353 -
+   141.142.220.50 5353 224.0.0.251 5353 -
+   141.142.220.118 43927 141.142.2.2 53 0.000435
+   141.142.220.118 37676 141.142.2.2 53 0.000420
+   141.142.220.118 40526 141.142.2.2 53 0.000392
+   141.142.220.118 32902 141.142.2.2 53 0.000317
+   141.142.220.118 59816 141.142.2.2 53 0.000343
+   141.142.220.118 59714 141.142.2.2 53 0.000375
+   141.142.220.118 58206 141.142.2.2 53 0.000339
+   [...]
 
 While the output is similar, the advantages to using bro-cut over
 ``awk`` lay in that, while ``awk`` is flexible and powerful, ``bro-cut``
@@ -191,17 +221,29 @@ includes the human readable time stamp, the unique identifier, the
 HTTP ``Host``, and HTTP ``URI`` as extracted from the ``http.log``
 file:
 
-.. btest:: using_bro
+.. sourcecode:: console
 
-   @TEST-EXEC: btest-rst-cmd -n 5 "bro-cut -d ts uid host uri < http.log"
+   $ bro-cut -d ts uid host uri < http.log
+   2011-03-18T19:06:08+0000  CUM0KZ3MLUfNB0cl11      bits.wikimedia.org      /skins-1.5/monobook/main.css
+   2011-03-18T19:06:08+0000  CwjjYJ2WqgTbAqiHl6      upload.wikimedia.org    /wikipedia/commons/6/63/Wikipedia-logo.png
+   2011-03-18T19:06:08+0000  C3eiCBGOLw3VtHfOj       upload.wikimedia.org    /wikipedia/commons/thumb/b/bb/Wikipedia_wordmark.svg/174px-Wikipedia_wordmark.svg.png
+   2011-03-18T19:06:08+0000  Ck51lg1bScffFj34Ri      upload.wikimedia.org    /wikipedia/commons/b/bd/Bookshelf-40x201_6.png
+   2011-03-18T19:06:08+0000  CtxTCR2Yer0FR1tIBg      upload.wikimedia.org    /wikipedia/commons/thumb/8/8a/Wikinews-logo.png/35px-Wikinews-logo.png
+   [...]
 
 Often times log files from multiple sources are stored in UTC time to
 allow easy correlation.  Converting the timestamp from a log file to
 UTC can be accomplished with the ``-u`` option:
 
-.. btest:: using_bro
+.. sourcecode:: console
 
-   @TEST-EXEC: btest-rst-cmd -n 5 "bro-cut -u ts uid host uri < http.log"
+   $ bro-cut -u ts uid host uri < http.log
+   2011-03-18T19:06:08+0000  CUM0KZ3MLUfNB0cl11      bits.wikimedia.org      /skins-1.5/monobook/main.css
+   2011-03-18T19:06:08+0000  CwjjYJ2WqgTbAqiHl6      upload.wikimedia.org    /wikipedia/commons/6/63/Wikipedia-logo.png
+   2011-03-18T19:06:08+0000  C3eiCBGOLw3VtHfOj       upload.wikimedia.org    /wikipedia/commons/thumb/b/bb/Wikipedia_wordmark.svg/174px-Wikipedia_wordmark.svg.png
+   2011-03-18T19:06:08+0000  Ck51lg1bScffFj34Ri      upload.wikimedia.org    /wikipedia/commons/b/bd/Bookshelf-40x201_6.png
+   2011-03-18T19:06:08+0000  CtxTCR2Yer0FR1tIBg      upload.wikimedia.org    /wikipedia/commons/thumb/8/8a/Wikinews-logo.png/35px-Wikinews-logo.png
+   [...]
 
 The default time format when using the ``-d`` or ``-u`` is the
 ``strftime`` format string ``%Y-%m-%dT%H:%M:%S%z`` which results in a
@@ -211,9 +253,15 @@ using the ``-D`` and ``-U`` flags, using the standard ``strftime``
 syntax. For example, to format the timestamp in the US-typical "Middle
 Endian" you could use a format string of: ``%d-%m-%YT%H:%M:%S%z``
 
-.. btest:: using_bro
+.. sourcecode:: console
 
-   @TEST-EXEC: btest-rst-cmd -n 5 "bro-cut -D %d-%m-%YT%H:%M:%S%z ts uid host uri < http.log"
+   $ bro-cut -D %d-%m-%YT%H:%M:%S%z ts uid host uri < http.log
+   18-03-2011T19:06:08+0000  CUM0KZ3MLUfNB0cl11      bits.wikimedia.org      /skins-1.5/monobook/main.css
+   18-03-2011T19:06:08+0000  CwjjYJ2WqgTbAqiHl6      upload.wikimedia.org    /wikipedia/commons/6/63/Wikipedia-logo.png
+   18-03-2011T19:06:08+0000  C3eiCBGOLw3VtHfOj       upload.wikimedia.org    /wikipedia/commons/thumb/b/bb/Wikipedia_wordmark.svg/174px-Wikipedia_wordmark.svg.png
+   18-03-2011T19:06:08+0000  Ck51lg1bScffFj34Ri      upload.wikimedia.org    /wikipedia/commons/b/bd/Bookshelf-40x201_6.png
+   18-03-2011T19:06:08+0000  CtxTCR2Yer0FR1tIBg      upload.wikimedia.org    /wikipedia/commons/thumb/8/8a/Wikinews-logo.png/35px-Wikinews-logo.png
+   [...]
 
 See ``man strfime`` for more options for the format string.
 
@@ -235,16 +283,22 @@ largest number of bytes from the responder by redirecting the output
 for ``cat conn.log`` into bro-cut to extract the UID and the
 resp_bytes, then sorting that output by the resp_bytes field.
 
-.. btest:: using_bro
+.. sourcecode:: console
 
-   @TEST-EXEC: btest-rst-cmd "cat conn.log | bro-cut uid resp_bytes | sort -nrk2 | head -5"
+   $ cat conn.log | bro-cut uid resp_bytes | sort -nrk2 | head -5
+   CwjjYJ2WqgTbAqiHl6        734
+   CtxTCR2Yer0FR1tIBg        734
+   Ck51lg1bScffFj34Ri        734
+   CLNN1k2QMum1aexUK7        734
+   CykQaM33ztNt0csB9a        733
 
 Taking the UID of the first of the top responses, we can now
 crossreference that with the UIDs in the ``http.log`` file.
 
-.. btest:: using_bro
+.. sourcecode:: console
 
-   @TEST-EXEC: btest-rst-cmd "cat http.log | bro-cut uid id.resp_h method status_code host uri | grep UM0KZ3MLUfNB0cl11"
+   $ cat http.log | bro-cut uid id.resp_h method status_code host uri | grep UM0KZ3MLUfNB0cl11
+   CUM0KZ3MLUfNB0cl11        208.80.152.118  GET     304     bits.wikimedia.org      /skins-1.5/monobook/main.css
 
 As you can see there are two HTTP ``GET`` requests within the
 session that Bro identified and logged.  Given that HTTP is a stream

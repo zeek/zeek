@@ -5,8 +5,6 @@
 Release Notes
 =============
 
-.. contents::
-
 .. include:: NEWS.rst
 
 

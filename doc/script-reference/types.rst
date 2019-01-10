@@ -305,7 +305,7 @@ Here is a more detailed description of each type:
     of an address gives the size in bits (32 for IPv4, and 128 for IPv6).
     Addresses can also be masked with ``/`` to produce a :bro:type:`subnet`:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         local a: addr = 192.168.1.100;
         local s: subnet = 192.168.0.0/16;
@@ -315,7 +315,7 @@ Here is a more detailed description of each type:
     And checked for inclusion within a :bro:type:`subnet` using ``in``
     or ``!in``:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         local a: addr = 192.168.1.100;
         local s: subnet = 192.168.0.0/16;
@@ -329,7 +329,7 @@ Here is a more detailed description of each type:
     correspond to multiple IP addresses, the type of such a variable is
     "set[addr]". For example:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         local a = www.google.com;
 
@@ -349,7 +349,7 @@ Here is a more detailed description of each type:
     A type allowing the specification of a set of related values that
     have no further structure.  An example declaration:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         type color: enum { Red, White, Blue, };
 
@@ -379,13 +379,13 @@ Here is a more detailed description of each type:
     Here is an example of declaring a table indexed by "count" values
     and yielding "string" values:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         global a: table[count] of string;
 
     The yield type can also be more complex:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         global a: table[count] of table[addr, port] of string;
 
@@ -396,7 +396,7 @@ Here is a more detailed description of each type:
     One way to initialize a table is by enclosing a set of initializers within
     braces, for example:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         global t: table[count] of string = {
             [11] = "eleven",
@@ -405,7 +405,7 @@ Here is a more detailed description of each type:
 
     A table constructor can also be used to create a table:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         global t2 = table(
             [192.168.0.2, 22/tcp] = "ssh",
@@ -416,7 +416,7 @@ Here is a more detailed description of each type:
     useful when a more complex index type could otherwise be
     ambiguous:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         type MyRec: record {
             a: count &optional;
@@ -430,13 +430,13 @@ Here is a more detailed description of each type:
     Accessing table elements is provided by enclosing index values within
     square brackets (``[]``), for example:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         print t[11];
 
     And membership can be tested with ``in`` or ``!in``:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         if ( 13 in t )
             ...
@@ -445,13 +445,13 @@ Here is a more detailed description of each type:
 
     Add or overwrite individual table elements by assignment:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         t[13] = "thirteen";
 
     Remove individual table elements with :bro:keyword:`delete`:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         delete t[13];
 
@@ -461,7 +461,7 @@ Here is a more detailed description of each type:
     The number of elements in a table can be obtained by placing the table
     identifier between vertical pipe characters:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         |t|
 
@@ -482,7 +482,7 @@ Here is a more detailed description of each type:
 
     Sets can be initialized by listing elements enclosed by curly braces:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         global s: set[port] = { 21/tcp, 23/tcp, 80/tcp, 443/tcp };
         global s2: set[port, string] = { [21/tcp, "ftp"], [23/tcp, "telnet"] };
@@ -490,7 +490,7 @@ Here is a more detailed description of each type:
     A set constructor (equivalent to above example) can also be used to
     create a set:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         global s3 = set(21/tcp, 23/tcp, 80/tcp, 443/tcp);
 
@@ -498,7 +498,7 @@ Here is a more detailed description of each type:
     useful when a more complex index type could otherwise be
     ambiguous:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         type MyRec: record {
             a: count &optional;
@@ -511,7 +511,7 @@ Here is a more detailed description of each type:
 
     Set membership is tested with ``in`` or ``!in``:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         if ( 21/tcp in s )
             ...
@@ -521,7 +521,7 @@ Here is a more detailed description of each type:
 
     Elements are added with :bro:keyword:`add`:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         add s[22/tcp];
 
@@ -530,7 +530,7 @@ Here is a more detailed description of each type:
 
     And removed with :bro:keyword:`delete`:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         delete s[21/tcp];
 
@@ -540,7 +540,7 @@ Here is a more detailed description of each type:
     The number of elements in a set can be obtained by placing the set
     identifier between vertical pipe characters:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         |s|
 
@@ -563,13 +563,13 @@ Here is a more detailed description of each type:
     :bro:type:`count` (and vector indexing is always zero-based).  A vector
     is declared like:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         global v: vector of string;
 
     And can be initialized with the vector constructor:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         local v = vector("one", "two", "three");
 
@@ -577,7 +577,7 @@ Here is a more detailed description of each type:
     is useful for when a more complex yield type could otherwise be
     ambiguous.
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         type MyRec: record {
             a: count &optional;
@@ -591,14 +591,14 @@ Here is a more detailed description of each type:
     Accessing vector elements is provided by enclosing index values within
     square brackets (``[]``), for example:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         print v[2];
 
     An element can be added to a vector by assigning the value (a value
     that already exists at that index will be overwritten):
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         v[3] = "four";
 
@@ -606,21 +606,21 @@ Here is a more detailed description of each type:
     is normally equal to the number of elements in the vector) can be obtained
     by placing the vector identifier between vertical pipe characters:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         |v|
 
     A particularly common operation on a vector is to append an element
     to its end.  You can do so using:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         v += e;
 
     where if e's type is ``X``, v's type is ``vector of X``.  Note that
     this expression is equivalent to:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         v[|v|] = e;
 
@@ -660,7 +660,7 @@ Here is a more detailed description of each type:
     same as local or global variables).  An example record type
     definition:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         type MyRecordType: record {
             c: count;
@@ -672,27 +672,27 @@ Here is a more detailed description of each type:
     :bro:attr:`&optional` or have a :bro:attr:`&default` attribute must
     be specified.  First, there's a constructor syntax:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         local r: MyRecordType = record($c = 7);
 
     And the constructor can be explicitly named by type, too, which
     is arguably more readable:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         local r = MyRecordType($c = 42);
 
     And the third way is like this:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         local r: MyRecordType = [$c = 13, $s = "thirteen"];
 
     Access to a record field uses the dollar sign (``$``) operator, and
     record fields can be assigned with this:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         local r: MyRecordType;
         r$c = 13;
@@ -701,7 +701,7 @@ Here is a more detailed description of each type:
     value, use the ``?$`` operator (it returns a :bro:type:`bool` value of
     ``T`` if the field has been assigned a value, or ``F`` if not):
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         if ( r ?$ s )
             ...
@@ -715,7 +715,7 @@ Here is a more detailed description of each type:
     where *argument* is a (possibly empty) comma-separated list of
     arguments, and *type* is an optional return type.  For example:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         global greeting: function(name: string): string;
 
@@ -724,7 +724,7 @@ Here is a more detailed description of each type:
     have different function body values at different times.  To define
     a function including a body value, the syntax is like:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         function greeting(name: string): string
             {
@@ -739,7 +739,7 @@ Here is a more detailed description of each type:
     Here is an example function that takes no parameters and does not
     return a value:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         function my_func()
             {
@@ -748,20 +748,20 @@ Here is a more detailed description of each type:
 
     Function types don't need to have a name and can be assigned anonymously:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         greeting = function(name: string): string { return "Hi, " + name; };
 
     And finally, the function can be called like:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         print greeting("Dave");
 
     Function parameters may specify default values as long as they appear
     last in the parameter list:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         global foo: function(s: string, t: string &default="abc", u: count &default=0);
 
@@ -770,7 +770,7 @@ Here is a more detailed description of each type:
     body and they will still be used for function calls that lack those
     arguments.
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         function foo(s: string, t: string, u: count)
             {
@@ -779,7 +779,7 @@ Here is a more detailed description of each type:
 
     And calls to the function may omit the defaults from the argument list:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         foo("test");
 
@@ -792,7 +792,7 @@ Here is a more detailed description of each type:
 
     Example:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         event my_event(r: bool, s: string)
         {
@@ -815,7 +815,7 @@ Here is a more detailed description of each type:
 
         Immediately queuing invocation of an event handler occurs like:
 
-        .. code:: bro
+        .. sourcecode:: bro
 
             event password_exposed(user, password);
 
@@ -827,7 +827,7 @@ Here is a more detailed description of each type:
         This delays the invocation of event handlers until some time in
         the future.  For example:
 
-        .. code:: bro
+        .. sourcecode:: bro
 
             schedule 5 secs { password_exposed(user, password) };
 
@@ -856,7 +856,7 @@ Here is a more detailed description of each type:
     where *argument* is a (possibly empty) comma-separated list of
     arguments.  For example:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         global myhook: hook(s: string)
 
@@ -864,7 +864,7 @@ Here is a more detailed description of each type:
     bodies have been defined for it yet.  To define some hook handler
     bodies the syntax looks like:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         hook myhook(s: string) &priority=10
             {
@@ -891,13 +891,13 @@ Here is a more detailed description of each type:
     are called similarly to a function, except preceded by the ``hook``
     keyword:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         hook myhook("hi");
 
     or
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         if ( hook myhook("hi") )
             print "all handlers ran";
@@ -925,7 +925,7 @@ Here is a more detailed description of each type:
     function.  For example, declare, open, and write to a file and finally
     close it like:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         local f = open("myfile");
         print f, "hello, world";
@@ -945,7 +945,7 @@ Here is a more detailed description of each type:
     An example use of this type is the set of built-in functions which
     perform hashing:
 
-    .. code:: bro
+    .. sourcecode:: bro
 
         local handle = md5_hash_init();
         md5_hash_update(handle, "test");

@@ -37,32 +37,69 @@ in the MIME type, size of the file ("response_body_len"), and the
 originator host ("orig_h"). We use the MIME type as our key and create
 observers for the other two values.
 
-.. btest-include:: ${DOC_ROOT}/mimestats/mimestats.bro
-    :lines: 6-29, 54-64
+.. literalinclude:: mimestats.bro
+   :caption:
+   :language: bro
+   :linenos:
+   :lines: 6-29
+   :lineno-start: 6
+
+.. literalinclude:: mimestats.bro
+   :caption:
+   :language: bro
+   :linenos:
+   :lines: 54-64
+   :lineno-start: 54
 
 Next, we create the reducers. The first will accumulate file sizes
 and the second will make sure we only store a host ID once. Below is
 the partial code from a :bro:see:`bro_init` handler.
 
-.. btest-include:: ${DOC_ROOT}/mimestats/mimestats.bro
-    :lines: 34-37
+.. literalinclude:: mimestats.bro
+   :caption:
+   :language: bro
+   :linenos:
+   :lines: 34-37
+   :lineno-start: 34
 
 In our final step, we create the SumStats where we check for the
 observation interval.  Once it expires, we populate the record
 (defined above) with all the relevant data and write it to a log.
 
-.. btest-include:: ${DOC_ROOT}/mimestats/mimestats.bro
-    :lines: 38-51
+.. literalinclude:: mimestats.bro
+   :caption:
+   :language: bro
+   :linenos:
+   :lines: 38-51
+   :lineno-start: 38
 
-After putting the three pieces together we end up with the following final code for
-our script.
+After putting the three pieces together we end up with the following
+final code for our script.
 
-.. btest-include:: ${DOC_ROOT}/mimestats/mimestats.bro
+.. literalinclude:: mimestats.bro
+   :caption:
+   :language: bro
+   :linenos:
 
-.. btest:: mimestats
+.. sourcecode:: console
 
-    @TEST-EXEC: btest-rst-cmd bro -r ${TRACES}/http/bro.org.pcap ${DOC_ROOT}/mimestats/mimestats.bro
-    @TEST-EXEC: btest-rst-include mime_metrics.log
+   $ bro -r http/bro.org.pcap mimestats.bro
+   #separator \x09
+   #set_separator    ,
+   #empty_field      (empty)
+   #unset_field      -
+   #path     mime_metrics
+   #open     2018-12-14-16-25-06
+   #fields   ts      ts_delta        mtype   uniq_hosts      hits    bytes
+   #types    time    interval        string  count   count   count
+   1389719059.311698 300.000000      image/png       1       9       82176
+   1389719059.311698 300.000000      image/gif       1       1       172
+   1389719059.311698 300.000000      image/x-icon    1       2       2300
+   1389719059.311698 300.000000      text/html       1       2       42231
+   1389719059.311698 300.000000      text/plain      1       15      128001
+   1389719059.311698 300.000000      image/jpeg      1       1       186859
+   1389719059.311698 300.000000      application/pgp-signature       1       1       836
+   #close    2018-12-14-16-25-06
 
 .. note::
 

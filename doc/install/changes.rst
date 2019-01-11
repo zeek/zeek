@@ -3,8 +3,6 @@
 Detailed Version History
 ========================
 
-.. contents::
-
 ---
 Bro
 ---

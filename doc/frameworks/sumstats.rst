@@ -17,8 +17,6 @@ Summary Statistics
     data sets and making them measurable in practice on large clustered and
     non-clustered Bro deployments.
 
-.. contents::
-
 Overview
 ========
 
@@ -73,15 +71,18 @@ Sumstats provides a simple way of approaching the problem of trying to count
 the number of connections over a given time interval.  Here is a script with
 inline documentation that does this with the Sumstats framework:
 
-.. btest-include:: ${DOC_ROOT}/frameworks/sumstats-countconns.bro
+.. literalinclude:: sumstats-countconns.bro
+   :caption:
+   :language: bro
+   :linenos:
 
 When run on a sample PCAP file from the Bro test suite, the following output
 is created:
 
-.. btest:: sumstats-countconns
+.. sourcecode:: console
 
-    @TEST-EXEC: btest-rst-cmd bro -r ${TRACES}/workshop_2011_browse.trace ${DOC_ROOT}/frameworks/sumstats-countconns.bro
-
+   $ bro -r workshop_2011_browse.trace sumstats-countconns.bro
+   Number of connections established: 6
 
 Toy scan detection
 ------------------
@@ -92,14 +93,18 @@ demonstrate how thresholding works in Sumstats and is not meant to be a
 real-world functional example, that is left to the
 :doc:`/scripts/policy/misc/scan.bro` script that is included with Bro.
 
-.. btest-include:: ${DOC_ROOT}/frameworks/sumstats-toy-scan.bro
+.. literalinclude:: sumstats-toy-scan.bro
+   :caption:
+   :language: bro
+   :linenos:
 
 Let's see if there are any hosts that crossed the threshold in a PCAP file
 containing a host running nmap:
 
-.. btest:: sumstats-toy-scan
+.. sourcecode:: console
 
-    @TEST-EXEC: btest-rst-cmd bro -r ${TRACES}/nmap-vsn.trace ${DOC_ROOT}/frameworks/sumstats-toy-scan.bro
+   $ bro -r nmap-vsn.trace sumstats-toy-scan.bro
+   192.168.1.71 attempted 5 or more connections
 
 It seems the host running nmap was detected!
 

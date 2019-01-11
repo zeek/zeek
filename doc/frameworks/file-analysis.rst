@@ -21,8 +21,6 @@ File Analysis
     provide analysis specifically for files that is analogous to the
     analysis Bro provides for network connections.
 
-.. contents::
-
 File Lifecycle Events
 =====================
 
@@ -36,11 +34,23 @@ bytes have been transferred so far, and its MIME type.
 
 Here's a simple example:
 
-.. btest-include:: ${DOC_ROOT}/frameworks/file_analysis_01.bro
+.. literalinclude:: file_analysis_01.bro
+   :caption:
+   :language: bro
+   :linenos:
 
-.. btest:: file-analysis-01
+.. sourcecode:: console
 
-    @TEST-EXEC: btest-rst-cmd bro -r ${TRACES}/http/get.trace ${DOC_ROOT}/frameworks/file_analysis_01.bro
+   $ bro -r http/get.trace file_analysis_01.bro
+   file_state_remove
+   FakNcS1Jfe01uljb3
+   CHhAvVGS1DHFjwGM9
+   [orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp]
+   HTTP
+   connection_state_remove
+   CHhAvVGS1DHFjwGM9
+   [orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp]
+   HTTP
 
 This doesn't perform any interesting analysis yet, but does highlight
 the similarity between analysis of connections and files.  Connections
@@ -71,16 +81,21 @@ explicit attachment decision.
 Here's a simple example of how to use the MD5 file analyzer to
 calculate the MD5 of plain text files:
 
-.. btest-include:: ${DOC_ROOT}/frameworks/file_analysis_02.bro
+.. literalinclude:: file_analysis_02.bro
+   :caption:
+   :language: bro
+   :linenos:
 
-.. btest:: file-analysis-02
+.. sourcecode:: console
 
-    @TEST-EXEC: btest-rst-cmd bro -r ${TRACES}/http/get.trace ${DOC_ROOT}/frameworks/file_analysis_02.bro
+   $ bro -r http/get.trace file_analysis_02.bro
+   new file, FakNcS1Jfe01uljb3
+   file_hash, FakNcS1Jfe01uljb3, md5, 397168fd09991a0e712254df7bc639ac
 
 Some file analyzers might have tunable parameters that need to be
 specified in the call to :bro:see:`Files::add_analyzer`:
 
-.. code:: bro
+.. sourcecode:: bro
 
     event file_new(f: fa_file)
         {
@@ -109,19 +124,24 @@ in the same way it analyzes files that it sees coming over traffic from
 a network interface it's monitoring.  It only requires a call to
 :bro:see:`Input::add_analysis`:
 
-.. btest-include:: ${DOC_ROOT}/frameworks/file_analysis_03.bro
+.. literalinclude:: file_analysis_03.bro
+   :caption:
+   :language: bro
+   :linenos:
 
 Note that the "source" field of :bro:see:`fa_file` corresponds to the
 "name" field of :bro:see:`Input::AnalysisDescription` since that is what
 the input framework uses to uniquely identify an input stream.
 
-The output of the above script may be (assuming a file called "myfile"
-exists):
+Example output of the above script may be:
 
-.. btest:: file-analysis-03
+.. sourcecode:: console
 
-    @TEST-EXEC: echo "Hello world" > myfile
-    @TEST-EXEC: btest-rst-cmd bro ${DOC_ROOT}/frameworks/file_analysis_03.bro
+   $ echo "Hello world" > myfile
+   $ bro file_analysis_03.bro
+   new file, FZedLu4Ajcvge02jA8
+   file_hash, FZedLu4Ajcvge02jA8, md5, f0ef7081e1539ac00ef5b761b4fb01b3
+   file_state_remove
 
 Nothing that special, but it at least verifies the MD5 file analyzer
 saw all the bytes of the input file and calculated the checksum

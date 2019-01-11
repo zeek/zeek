@@ -8,11 +8,9 @@
 
 .. _installing-bro:
 
-==============
-Installing Bro
-==============
-
-.. contents::
+==========
+Installing
+==========
 
 Prerequisites
 =============
@@ -50,13 +48,13 @@ To install the required dependencies, you can use:
 
 * RPM/RedHat-based Linux:
 
-  .. console::
+  .. sourcecode:: console
 
      sudo yum install cmake make gcc gcc-c++ flex bison libpcap-devel openssl-devel python-devel swig zlib-devel
 
 * DEB/Debian-based Linux:
 
-  .. console::
+  .. sourcecode:: console
 
      sudo apt-get install cmake make gcc g++ flex bison libpcap-dev libssl-dev python-dev swig zlib1g-dev
 
@@ -68,7 +66,7 @@ To install the required dependencies, you can use:
   Most required dependencies should come with a minimal FreeBSD install
   except for the following.
 
-  .. console::
+  .. sourcecode:: console
 
       sudo pkg install bash cmake swig30 bison python py27-sqlite3 py27-ipaddress
 
@@ -152,7 +150,7 @@ hosted at https://github.com/zeek.  See our `git development documentation
 information on Bro's use of git revision control, but the short story
 for downloading the full source code experience for Bro via git is:
 
-.. console::
+.. sourcecode:: console
 
     git clone --recursive https://github.com/zeek/zeek
 
@@ -163,7 +161,7 @@ for downloading the full source code experience for Bro via git is:
 The typical way to build and install from source is (for more options,
 run ``./configure --help``):
 
-.. console::
+.. sourcecode:: console
 
     ./configure
     make
@@ -214,13 +212,13 @@ according to the platform/shell/package you're using.  For example:
 
 Bourne-Shell Syntax:
 
-.. console::
+.. sourcecode:: console
 
    export PATH=/usr/local/bro/bin:$PATH
 
 C-Shell Syntax:
 
-.. console::
+.. sourcecode:: console
 
    setenv PATH /usr/local/bro/bin:$PATH
 

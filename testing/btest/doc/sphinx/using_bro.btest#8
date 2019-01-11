@@ -1,1 +1,0 @@
-@TEST-EXEC: btest-rst-cmd "cat http.log | bro-cut uid id.resp_h method status_code host uri | grep UM0KZ3MLUfNB0cl11"

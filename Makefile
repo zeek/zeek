@@ -29,6 +29,10 @@ doc: configured
 docclean: configured
 	$(MAKE) -C $(BUILD) $@
 
+livehtml:
+	@mkdir -p build/doc/html
+	sphinx-autobuild --ignore "testing/*" --ignore "*.git/*" --ignore "*.lock" --ignore "*.pyc" --ignore "*.swp" --ignore "*.swpx" --ignore "*.swx" -b html ./doc ./build/doc/html
+
 dist:
 	@test -e ../$(VERSION_FULL) && rm -ri ../$(VERSION_FULL) || true
 	@cp -R . ../$(VERSION_FULL)
@@ -63,4 +67,4 @@ configured:
 	@test -d $(BUILD) || ( echo "Error: No build/ directory found. Did you run configure?" && exit 1 )
 	@test -e $(BUILD)/Makefile || ( echo "Error: No build/Makefile found. Did you run configure?" && exit 1 )
 
-.PHONY : all install clean doc docclean dist distclean configured
+.PHONY : all install clean doc docclean dist distclean configured livehtml

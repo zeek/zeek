@@ -14,8 +14,6 @@ Notice Framework
     alarm emails.  This page gives an introduction into writing such a notice
     policy.
 
-.. contents::
-
 Overview
 --------
 
@@ -91,12 +89,25 @@ Here's a simple example which tells Bro to send an email for all notices of
 type :bro:see:`SSH::Password_Guessing` if the guesser attempted to log in to
 the server at 192.168.56.103:
 
-.. btest-include:: ${DOC_ROOT}/frameworks/notice_ssh_guesser.bro
+.. literalinclude:: notice_ssh_guesser.bro
+   :caption:
+   :language: bro
+   :linenos:
 
-.. btest:: notice_ssh_guesser.bro
+.. sourcecode:: console
 
-    @TEST-EXEC: btest-rst-cmd bro -C -r ${TRACES}/ssh/sshguess.pcap ${DOC_ROOT}/frameworks/notice_ssh_guesser.bro
-    @TEST-EXEC: btest-rst-cmd cat notice.log
+   $ bro -C -r ssh/sshguess.pcap notice_ssh_guesser.bro
+   $ cat notice.log
+   #separator \x09
+   #set_separator    ,
+   #empty_field      (empty)
+   #unset_field      -
+   #path     notice
+   #open     2018-12-13-22-56-35
+   #fields   ts      uid     id.orig_h       id.orig_p       id.resp_h       id.resp_p       fuid    file_mime_type  file_desc       proto   note    msg     sub     src     dst     p       n       peer_descr      actions suppress_for    dropped remote_location.country_code    remote_location.region  remote_location.city    remote_location.latitude        remote_location.longitude
+   #types    time    string  addr    port    addr    port    string  string  string  enum    enum    string  string  addr    addr    port    count   string  set[enum]       interval        bool    string  string  string  double  double
+   1427726759.303199 -       -       -       -       -       -       -       -       -       SSH::Password_Guessing  192.168.56.1 appears to be guessing SSH passwords (seen in 10 connections).     Sampled servers:  192.168.56.103, 192.168.56.103, 192.168.56.103, 192.168.56.103, 192.168.56.103        192.168.56.1    -       -       -       -       Notice::ACTION_EMAIL,Notice::ACTION_LOG 3600.000000     F       -       -       -       -       -
+   #close    2018-12-13-22-56-35
 
 .. note::
 
@@ -108,7 +119,7 @@ Hooks can also have priorities applied to order their execution like events
 with a default priority of 0.  Greater values are executed first.  Setting
 a hook body to run before default hook bodies might look like this:
 
-.. code:: bro
+.. sourcecode:: bro
 
     hook Notice::policy(n: Notice::Info) &priority=5
         {
@@ -178,7 +189,7 @@ SSH analysis scripts sees enough failed logins to a given host, it
 raises a notice of the type :bro:see:`SSH::Password_Guessing`.  The code
 in the base SSH analysis script which raises the notice looks like this:
 
-.. code:: bro
+.. sourcecode:: bro
 
     NOTICE([$note=Password_Guessing,
             $msg=fmt("%s appears to be guessing SSH passwords (seen in %d connections).", key$host, r$num),
@@ -289,7 +300,7 @@ for session negotiations where the certificate or certificate chain did
 not validate successfully against the available certificate authority
 certificates.
 
-.. code:: bro
+.. sourcecode:: bro
 
     NOTICE([$note=SSL::Invalid_Server_Cert,
             $msg=fmt("SSL certificate validation failed with (%s)", c$ssl$validation_status),
@@ -335,7 +346,7 @@ There is a field in the :bro:see:`Notice::Info` record named
 sent. An example of including some information from an HTTP request is
 included below.
 
-.. code:: bro
+.. sourcecode:: bro
 
     hook Notice::policy(n: Notice::Info)
       {

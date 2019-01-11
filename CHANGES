@@ -1,4 +1,32 @@
 
+2.6-62 | 2019-01-10 15:45:04 -0600
+
+  * Reorganize documentation index (Jon Siwek, Corelight)
+
+2.6-61 | 2019-01-10 13:40:04 -0600
+
+  * Add RTD yaml config file (Jon Siwek, Corelight)
+
+  * Remove some Bro usages in main TOC entries (Jon Siwek, Corelight)
+
+  * Remove "contents" Sphinx directive usages (Jon Siwek, Corelight)
+
+  * Add a `make livehtml` target (Jon Siwek, Corelight)
+
+  * Use sourcecode Sphinx directive more widely (Jon Siwek, Corelight)
+
+  * Use Sphinx RTD theme for user manual (Jon Siwek, Corelight)
+
+  * Remove unused Sphinx extensions (Jon Siwek, Corelight)
+
+  * Remove broxygen Sphinx integration (Jon Siwek, Corelight)
+
+  * Remove Sphinx btest integrations and tests (Jon Siwek, Corelight)
+
+2.6-46 | 2019-01-10 09:10:08 -0800
+
+  * improve performance of catch and release script (Justin Azoff, Corelight)
+
 2.6-43 | 2019-01-07 09:50:43 -0800
 
   * GH-227: Improve LibreSSL support (Jon Siwek, Corelight)

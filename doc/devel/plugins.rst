@@ -1,7 +1,7 @@
 
-===================
-Writing Bro Plugins
-===================
+===============
+Writing Plugins
+===============
 
 Bro internally provides a plugin API that enables extending
 the system dynamically, without modifying the core code base. That way

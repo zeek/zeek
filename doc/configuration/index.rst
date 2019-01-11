@@ -5,8 +5,6 @@
 Cluster Configuration
 =====================
 
-.. contents::
-
 A *Bro Cluster* is a set of systems jointly analyzing the traffic of
 a network link in a coordinated fashion.  You can operate such a setup from
 a central manager system easily using BroControl because BroControl

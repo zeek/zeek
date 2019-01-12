@@ -2348,6 +2348,7 @@ void TableVal::DoExpire(double t)
 
 	HashKey* k = 0;
 	TableEntryVal* v = 0;
+	TableEntryVal* v_saved = 0;
 
 	for ( int i = 0; i < table_incremental_step &&
 			 (v = tbl->NextEntry(k, expire_cookie)); ++i )
@@ -2371,10 +2372,12 @@ void TableVal::DoExpire(double t)
 				// It's possible that the user-provided
 				// function modified or deleted the table
 				// value, so look it up again.
+				v_saved = v;
 				v = tbl->Lookup(k);
 
 				if ( ! v )
 					{ // user-provided function deleted it
+					v = v_saved;
 					delete k;
 					continue;
 					}

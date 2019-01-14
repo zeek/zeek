@@ -377,11 +377,11 @@ void terminate_bro()
 	delete event_registry;
 	delete analyzer_mgr;
 	delete file_mgr;
-	delete log_mgr;
-	delete plugin_mgr;
-	delete reporter;
 	// broker_mgr is deleted via iosource_mgr
 	delete iosource_mgr;
+	delete log_mgr;
+	delete reporter;
+	delete plugin_mgr;
 	delete port_mgr;
 
 	reporter = 0;

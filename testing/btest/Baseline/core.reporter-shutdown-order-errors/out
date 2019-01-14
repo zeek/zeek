@@ -1,0 +1,3 @@
+warning: ./config/Input::READER_CONFIG: Init: cannot open ./config
+error: reporter/Log::WRITER_ASCII: cannot open reporter.log: Permission denied
+error: reporter/Log::WRITER_ASCII: terminating thread

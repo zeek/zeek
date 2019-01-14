@@ -1,4 +1,8 @@
 
+2.6-69 | 2019-01-14 14:49:49 -0600
+
+  * Fix compiler warning in DNS analyzer (Jon Siwek, Corelight)
+
 2.6-68 | 2019-01-14 14:18:46 -0600
 
   * GH-162: fix segfault when &expire_func is missing a return value (Jon Siwek, Corelight)

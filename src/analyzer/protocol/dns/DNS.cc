@@ -1157,7 +1157,7 @@ int DNS_Interpreter::ParseRR_DS(DNS_MsgInfo* msg,
 			break;
 		case SHA384:
 			break;
-		case reserved0:
+		case analyzer::dns::reserved:
 			analyzer->Weird("DNSSEC_DS_ResrevedDigestType", fmt("%d", ds_dtype));
 			break;
 		default:

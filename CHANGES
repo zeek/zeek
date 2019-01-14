@@ -1,4 +1,8 @@
 
+2.6-71 | 2019-01-14 16:11:58 -0600
+
+  * GH-205: prioritize use of sigaction() over sigset() (Jon Siwek, Corelight)
+
 2.6-70 | 2019-01-14 15:34:18 -0600
 
   * GH-188: fix crash when shutting down with pending reporter errors(Jon Siwek, Corelight)

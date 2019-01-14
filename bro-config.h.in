@@ -47,7 +47,7 @@
 /* line editing & history powers */
 #cmakedefine HAVE_READLINE
 
-/* Define if you have the `sigaction' function, but not `sigset'. */
+/* Define if you have the `sigaction' function. */
 #cmakedefine HAVE_SIGACTION
 
 /* Define if you have the `sigset' function. */

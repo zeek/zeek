@@ -1,4 +1,8 @@
 
+2.6-68 | 2019-01-14 14:18:46 -0600
+
+  * GH-162: fix segfault when &expire_func is missing a return value (Jon Siwek, Corelight)
+
 2.6-67 | 2019-01-14 14:01:00 -0600
 
   * GH-161: fix segfault in &default type checking for sets (Jon Siwek, Corelight)

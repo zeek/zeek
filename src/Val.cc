@@ -2466,7 +2466,7 @@ double TableVal::CallExpireFunc(Val* idx)
 
 	vl->append(idx);
 
-	double secs;
+	double secs = 0;
 
 	try
 		{
@@ -2488,16 +2488,19 @@ double TableVal::CallExpireFunc(Val* idx)
 			}
 
 		Val* vs = vf->AsFunc()->Call(vl);
-		secs = vs->AsInterval();
+
+		if ( vs )
+			{
+			secs = vs->AsInterval();
+			Unref(vs);
+			}
 
 		Unref(vf);
-		Unref(vs);
 		delete vl;
 		}
 
 	catch ( InterpreterException& e )
 		{
-		secs = 0;
 		}
 
 	return secs;

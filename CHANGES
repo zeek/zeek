@@ -1,4 +1,8 @@
 
+2.6-67 | 2019-01-14 14:01:00 -0600
+
+  * GH-161: fix segfault in &default type checking for sets (Jon Siwek, Corelight)
+
 2.6-66 | 2019-01-14 10:26:47 -0600
 
   * Fix performance issue due to variable reuse in table expiration (Justin Azoff, Corelight)

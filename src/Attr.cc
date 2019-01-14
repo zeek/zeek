@@ -292,6 +292,7 @@ void Attributes::CheckAttr(Attr* a)
 				}
 
 			a->AttrExpr()->Error("&default value has inconsistent type", type);
+			return;
 			}
 
 		TableType* tt = type->AsTableType();

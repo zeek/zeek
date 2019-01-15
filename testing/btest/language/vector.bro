@@ -63,7 +63,7 @@ event bro_init()
 	ct = 0;
 	for ( c in v1 )
 	{
-		if ( type_name(c) != "int" )
+		if ( type_name(c) != "count" )
 			print "Error: wrong index type";
 		if ( type_name(v1[c]) != "string" )
 			print "Error: wrong vector type";

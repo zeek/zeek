@@ -1387,7 +1387,7 @@ ForStmt::ForStmt(id_list* arg_loop_vars, Expr* loop_expr)
 
 		BroType* t = (*loop_vars)[0]->Type();
 		if ( ! t )
-			delete add_local((*loop_vars)[0], base_type(TYPE_INT),
+			delete add_local((*loop_vars)[0], base_type(TYPE_COUNT),
 						INIT_NONE, 0, 0, VAR_REGULAR);
 
 		else if ( ! IsIntegral(t->Tag()) )
@@ -1470,7 +1470,7 @@ Val* ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 		{
 		VectorVal* vv = v->AsVectorVal();
 
-		for ( int i = 0; i <= int(vv->Size()); ++i )
+		for ( auto i = 0u; i <= vv->Size(); ++i )
 			{
 			// Skip unassigned vector indices.
 			if ( ! vv->Lookup(i) )
@@ -1479,7 +1479,7 @@ Val* ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 			// Set the loop variable to the current index, and make
 			// another pass over the loop body.
 			f->SetElement((*loop_vars)[0]->Offset(),
-					new Val(i, TYPE_INT));
+					new Val(i, TYPE_COUNT));
 			flow = FLOW_NEXT;
 			ret = body->Exec(f, flow);
 

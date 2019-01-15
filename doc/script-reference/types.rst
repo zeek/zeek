@@ -559,9 +559,8 @@ Here is a more detailed description of each type:
 
 .. bro:type:: vector
 
-    A vector is like a :bro:type:`table`, except it's always indexed by a
-    :bro:type:`count` (and vector indexing is always zero-based).  A vector
-    is declared like:
+    A vector is like a :bro:type:`table`, except its indices are non-negative
+    integers, starting from zero.  A vector is declared like:
 
     .. sourcecode:: bro
 

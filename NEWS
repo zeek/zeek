@@ -30,6 +30,11 @@ New Functionality
 Changed Functionality
 ---------------------
 
+- The for-loop index variable for vectors has been changed from
+  'int' to 'count' type.  It's unlikely this would alter/break any
+  script behavior unless they were explicitly inspecting the variable's
+  type (and there's typically no reason to do that).
+
 Removed Functionality
 ---------------------
 

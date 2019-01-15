@@ -924,8 +924,10 @@ int DNS_Interpreter::ParseRR_DNSKEY(DNS_MsgInfo* msg,
 	//Evaluating the size of remaining bytes for Public Key
 	BroString* key = ExtractStream(data, len, rdlength - 4);
 
-	if ( dflags != 256 and dflags != 257 and dflags != 0 )
+	if ( dflags != 256 and dflags != 257 and dflags != 0 and dflags != 385 )
 		analyzer->Weird("DNSSEC_DNSKEY_Invalid_Flag", fmt("%d", dflags));
+	if ( dflags == 385 )
+		analyzer->Weird("DNSSEC_DNSKEY_Revoked_KSK", fmt("%d", dflags));
 
 	if ( dprotocol != 3 )
 		analyzer->Weird("DNSSEC_DNSKEY_Invalid_Protocol", fmt("%d", dprotocol));

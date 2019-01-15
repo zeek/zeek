@@ -36,7 +36,7 @@ Types
 ========================================================== ===================================================================
 :bro:type:`Input::AnalysisDescription`: :bro:type:`record` A file analysis input stream type used to forward input data to the
                                                            file analysis framework.
-:bro:type:`Input::Event`: :bro:type:`enum`                 
+:bro:type:`Input::Event`: :bro:type:`enum`                 Type that describes what kind of change occurred.
 :bro:type:`Input::EventDescription`: :bro:type:`record`    An event input stream type used to send input data to a Bro event.
 :bro:type:`Input::Mode`: :bro:type:`enum`                  Type that defines the input stream read mode.
 :bro:type:`Input::TableDescription`: :bro:type:`record`    A table input stream type used to send data to a Bro table.
@@ -182,6 +182,7 @@ Types
 
          Previously existing data has been removed.
 
+   Type that describes what kind of change occurred.
 
 .. bro:type:: Input::EventDescription
 

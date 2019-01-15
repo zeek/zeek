@@ -211,7 +211,8 @@ void Manager::ModuleUsage(const string& path, const string& module)
 
 IdentifierInfo* Manager::CreateIdentifierInfo(ID* id, ScriptInfo* script)
 	{
-	IdentifierInfo* rval = new IdentifierInfo(id, script);
+	auto prev = identifiers.GetInfo(id->Name());
+	IdentifierInfo* rval = prev ? prev : new IdentifierInfo(id, script);
 
 	rval->AddComments(comment_buffer);
 	comment_buffer.clear();
@@ -224,8 +225,12 @@ IdentifierInfo* Manager::CreateIdentifierInfo(ID* id, ScriptInfo* script)
 		comment_buffer_map.erase(it);
 		}
 
-	all_info.push_back(rval);
-	identifiers.map[id->Name()] = rval;
+	if ( ! prev )
+		{
+		all_info.push_back(rval);
+		identifiers.map[id->Name()] = rval;
+		}
+
 	last_identifier_seen = rval;
 
 	if ( script )

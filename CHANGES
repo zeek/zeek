@@ -1,4 +1,8 @@
 
+2.6-76 | 2019-01-15 12:12:09 -0600
+
+  * GH-172: fix broxygen not merging bif and script identifier comments (Jon Siwek, Corelight)
+
 2.6-75 | 2019-01-15 10:30:06 -0600
 
   * GH-213: change type of vector for-loop index to a count (Jon Siwek, Corelight)

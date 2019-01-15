@@ -28,7 +28,6 @@ type Broker::QueryResult: record;
 
 type Broker::BackendOptions: record;
 
-## Enumerates the possible storage backends.
 enum BackendType %{
 	MEMORY,
 	SQLITE,

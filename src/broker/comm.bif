@@ -40,7 +40,6 @@ enum ErrorCode %{
 	CAF_ERROR = 100,
 %}
 
-## The possible states of a peer endpoint.
 enum PeerStatus %{
 	INITIALIZING,
 	CONNECTING,

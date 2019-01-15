@@ -1,4 +1,8 @@
 
+2.6-77 | 2019-01-15 14:24:55 -0600
+
+  * GH-170: fix segfault triggered by invalid pattern symbols (Jon Siwek, Corelight)
+
 2.6-76 | 2019-01-15 12:12:09 -0600
 
   * GH-172: fix broxygen not merging bif and script identifier comments (Jon Siwek, Corelight)

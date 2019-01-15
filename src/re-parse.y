@@ -131,7 +131,18 @@ singleton	:  singleton '*'
 			{ $$ = $2; case_insensitive = 0; }
 
 		|  TOK_CHAR
-			{ $$ = new NFA_Machine(new NFA_State($1, rem->EC())); }
+			{
+			auto sym = $1;
+
+			if ( sym < 0 || ( sym >= NUM_SYM && sym != SYM_EPSILON ) )
+				{
+				reporter->Error("bad symbol %d (compiling pattern /%s/)", sym,
+				                RE_parse_input);
+				return 1;
+				}
+
+			$$ = new NFA_Machine(new NFA_State(sym, rem->EC()));
+			}
 
 		|  '^'
 			{

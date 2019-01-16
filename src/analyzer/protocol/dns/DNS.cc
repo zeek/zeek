@@ -924,8 +924,15 @@ int DNS_Interpreter::ParseRR_DNSKEY(DNS_MsgInfo* msg,
 	//Evaluating the size of remaining bytes for Public Key
 	BroString* key = ExtractStream(data, len, rdlength - 4);
 
-	if ( dflags != 256 and dflags != 257 and dflags != 0 )
+	// flags bit  7: zone key
+	// flags bit  8: revoked
+	// flags bit 15: Secure Entry Point, key signing key
+	if ( (dflags & 0xfe7e) != 0 )
 		analyzer->Weird("DNSSEC_DNSKEY_Invalid_Flag", fmt("%d", dflags));
+
+	// flags bit 7, 8, and 15 all set
+	if ( (dflags & 0x0181) == 0x0181 )
+		analyzer->Weird("DNSSEC_DNSKEY_Revoked_KSK", fmt("%d", dflags));
 
 	if ( dprotocol != 3 )
 		analyzer->Weird("DNSSEC_DNSKEY_Invalid_Protocol", fmt("%d", dprotocol));

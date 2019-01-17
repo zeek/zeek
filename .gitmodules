@@ -28,3 +28,6 @@
 [submodule "aux/bifcl"]
 	path = aux/bifcl
 	url = https://github.com/zeek/bifcl
+[submodule "doc"]
+	path = doc
+	url = https://github.com/zeek/zeek-docs

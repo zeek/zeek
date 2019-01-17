@@ -23,15 +23,14 @@ install-aux: configured
 clean: configured docclean
 	$(MAKE) -C $(BUILD) $@
 
-doc: configured
-	$(MAKE) -C $(BUILD) $@
+doc:
+	$(MAKE) -C doc $@
 
-docclean: configured
-	$(MAKE) -C $(BUILD) $@
+docclean:
+	(cd doc && make clean)
 
 livehtml:
-	@mkdir -p build/doc/html
-	sphinx-autobuild --ignore "testing/*" --ignore "*.git/*" --ignore "*.lock" --ignore "*.pyc" --ignore "*.swp" --ignore "*.swpx" --ignore "*.swx" -b html ./doc ./build/doc/html
+	$(MAKE) -C doc $@
 
 dist:
 	@test -e ../$(VERSION_FULL) && rm -ri ../$(VERSION_FULL) || true

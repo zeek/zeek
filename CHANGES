@@ -1,4 +1,10 @@
 
+2.6-82 | 2019-01-17 14:09:29 -0600
+
+  * Change doc/ subdir into a git submodule (Jon Siwek, Corelight)
+
+    The docs now live at https://github.com/zeek/zeek-docs
+
 2.6-81 | 2019-01-16 19:03:07 -0600
 
   * Add Broker::peer_counts_as_iosource option (Jon Siwek, Corelight)

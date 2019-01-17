@@ -307,7 +307,6 @@ include_directories(BEFORE ${CAF_INCLUDE_DIR_OPENSSL})
 
 add_subdirectory(src)
 add_subdirectory(scripts)
-add_subdirectory(doc)
 add_subdirectory(man)
 
 include(CheckOptionalBuildSources)

@@ -96,6 +96,13 @@ export {
 	## Forward all received messages to subscribing peers.
 	const forward_messages = F &redef;
 
+	## Whether calling :bro:see:`Broker::peer` will register the Broker
+	## system as an I/O source that will block the process from shutting
+	## down.  For example, set this to false when you are reading pcaps,
+	## but also want to initaiate a Broker peering and still shutdown after
+	## done reading the pcap.
+	option peer_counts_as_iosource = T;
+
 	## The default topic prefix where logs will be published.  The log's stream
 	## id is appended when writing to a particular stream.
 	const default_log_topic_prefix = "bro/logs/" &redef;

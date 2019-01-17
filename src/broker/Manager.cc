@@ -318,8 +318,11 @@ void Manager::Peer(const string& addr, uint16_t port, double retry)
 	auto secs = broker::timeout::seconds(static_cast<uint64>(retry));
 	bstate->endpoint.peer_nosync(addr, port, secs);
 
-	// // Register as a "does-count" source now.
-	iosource_mgr->Register(this, false);
+	auto counts_as_iosource = get_option("Broker::peer_counts_as_iosource")->AsBool();
+
+	if ( counts_as_iosource )
+		// Register as a "does-count" source now.
+		iosource_mgr->Register(this, false);
 	}
 
 void Manager::Unpeer(const string& addr, uint16_t port)

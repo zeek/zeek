@@ -1,4 +1,8 @@
 
+2.6-81 | 2019-01-16 19:03:07 -0600
+
+  * Add Broker::peer_counts_as_iosource option (Jon Siwek, Corelight)
+
 2.6-80 | 2019-01-16 11:14:47 -0600
 
   * Patch to recognized the Revoked bit in DNSKEY Flag (Fatema BW)

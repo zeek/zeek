@@ -11,6 +11,14 @@ The Broker-based communication API and its various options.
 
 Summary
 ~~~~~~~
+Runtime Options
+###############
+============================================================================== =================================================================
+:bro:id:`Broker::peer_counts_as_iosource`: :bro:type:`bool` :bro:attr:`&redef` Whether calling :bro:see:`Broker::peer` will register the Broker
+                                                                               system as an I/O source that will block the process from shutting
+                                                                               down.
+============================================================================== =================================================================
+
 Redefinable Options
 ###################
 ================================================================================= ======================================================================
@@ -94,6 +102,20 @@ Functions
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
+Runtime Options
+###############
+.. bro:id:: Broker::peer_counts_as_iosource
+
+   :Type: :bro:type:`bool`
+   :Attributes: :bro:attr:`&redef`
+   :Default: ``T``
+
+   Whether calling :bro:see:`Broker::peer` will register the Broker
+   system as an I/O source that will block the process from shutting
+   down.  For example, set this to false when you are reading pcaps,
+   but also want to initaiate a Broker peering and still shutdown after
+   done reading the pcap.
+
 Redefinable Options
 ###################
 .. bro:id:: Broker::aggressive_interval

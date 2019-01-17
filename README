@@ -1,0 +1,32 @@
+
+Documentation
+=============
+
+This directory contains documentation in reStructuredText format
+(see http://docutils.sourceforge.net/rst.html).
+
+It is the root of a Sphinx source tree and can be modified to add more
+documentation, style sheets, JavaScript, etc.  The Sphinx config file
+is ``conf.py``.
+
+There is also a custom Sphinx domain implemented in ``ext/bro.py``
+which adds some reST directives and roles that aid in generating useful
+index entries and cross-references.  Other extensions can be added in
+a similar fashion.
+
+The ``make doc`` target in the top-level Makefile can be used to locally
+render the reST files into HTML.  That target depends on:
+
+* Python interpreter >= 2.7
+* Sphinx: http://sphinx-doc.org
+* Read the Docs Sphinx Theme: https://github.com/rtfd/sphinx_rtd_theme
+* GitPython: https://github.com/gitpython-developers/GitPython
+
+If you have pip, you may just use ``pip install -r requirements.txt`` to
+install all the dependencies.
+
+After the build completes, HTML documentation is symlinked in ``build/html``.
+
+There's also a ``make livehtml`` target in the top-level Makefile that
+is useful for editing the reST files and seeing changes rendered out live
+to a separate HTML browser.

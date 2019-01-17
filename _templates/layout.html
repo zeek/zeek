@@ -1,0 +1,7 @@
+{% extends "!layout.html" %}
+
+{% if READTHEDOCS and current_version %}
+  {% if current_version == "latest" or current_version == "stable" %}
+    {% set current_version = current_version ~ " (" ~ version ~ ")" %}
+  {% endif %}
+{% endif %}

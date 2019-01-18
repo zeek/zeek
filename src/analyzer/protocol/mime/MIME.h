@@ -2,7 +2,7 @@
 #define ANALYZER_PROTOCOL_MIME_MIME_H
 
 #include <assert.h>
-#include <openssl/md5.h>
+#include <openssl/evp.h>
 #include <stdio.h>
 #include <vector>
 #include <queue>
@@ -252,7 +252,7 @@ protected:
 	int data_start;
 	int compute_content_hash;
 	int content_hash_length;
-	MD5_CTX md5_hash;
+	EVP_MD_CTX* md5_hash;
 	vector<const BroString*> entity_content;
 	vector<const BroString*> all_content;
 

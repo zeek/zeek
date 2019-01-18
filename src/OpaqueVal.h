@@ -56,7 +56,7 @@ protected:
 	DECLARE_SERIAL(MD5Val);
 
 private:
-	MD5_CTX ctx;
+	EVP_MD_CTX* ctx;
 };
 
 class SHA1Val : public HashVal {

@@ -41,6 +41,7 @@
 # include <malloc.h>
 #endif
 
+#include "digest.h"
 #include "input.h"
 #include "util.h"
 #include "Obj.h"
@@ -712,12 +713,12 @@ void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16])
 	if ( ! hmac_key_set )
 		reporter->InternalError("HMAC-MD5 invoked before the HMAC key is set");
 
-	MD5(bytes, size, digest);
+	internal_md5(bytes, size, digest);
 
 	for ( int i = 0; i < 16; ++i )
 		digest[i] ^= shared_hmac_md5_key[i];
 
-	MD5(digest, 16, digest);
+	internal_md5(digest, 16, digest);
 	}
 
 static bool read_random_seeds(const char* read_file, uint32* seed,
@@ -871,7 +872,7 @@ void init_random_seed(const char* read_file, const char* write_file)
 	if ( ! hmac_key_set )
 		{
 		assert(sizeof(buf) - 16 == 64);
-		MD5((const u_char*) buf, sizeof(buf) - 16, shared_hmac_md5_key); // The last 128 bits of buf are for siphash
+		internal_md5((const u_char*) buf, sizeof(buf) - 16, shared_hmac_md5_key); // The last 128 bits of buf are for siphash
 		hmac_key_set = true;
 		}
 
